@@ -126,6 +126,9 @@ type blockJournalEntry struct {
 	Revision kbfsmd.Revision `codec:",omitempty"`
 	// Ignore this entry while flushing if this is true.
 	Ignore bool `codec:",omitempty"`
+	// If the current journal ID doesn't match this journal ID, then
+	// ignore this entry while flushing.
+	MDJournalID *kbfsmd.ID `codec:",omitempty"`
 	// This is an MD rev marker that represents a local squash.  TODO:
 	// combine this with Ignore using a more generic flags or state
 	// field, once we can change the journal format.
@@ -161,6 +164,12 @@ func (e blockJournalEntry) getSingleContext() (
 
 	return kbfsblock.ID{}, kbfsblock.Context{}, errors.Errorf(
 		"getSingleContext() erroneously called on op %s", e.Op)
+}
+
+func (e blockJournalEntry) ignore(mdJournalID kbfsmd.ID) bool {
+	return e.Ignore ||
+		(mdJournalID.IsValid() && e.MDJournalID != nil &&
+			mdJournalID != *e.MDJournalID)
 }
 
 func blockJournalDir(dir string) string {
@@ -580,7 +589,8 @@ func (j *blockJournal) removeReferences(
 }
 
 func (j *blockJournal) markMDRevision(ctx context.Context,
-	rev kbfsmd.Revision, isPendingLocalSquash bool) (err error) {
+	rev kbfsmd.Revision, journalID kbfsmd.ID, isPendingLocalSquash bool) (
+	err error) {
 	j.vlog.CLogf(
 		ctx, libkb.VLog1, "Marking MD revision %d in the block journal", rev)
 	defer func() {
@@ -591,8 +601,9 @@ func (j *blockJournal) markMDRevision(ctx context.Context,
 	}()
 
 	_, err = j.appendJournalEntry(ctx, blockJournalEntry{
-		Op:       mdRevMarkerOp,
-		Revision: rev,
+		Op:          mdRevMarkerOp,
+		Revision:    rev,
+		MDJournalID: &journalID,
 		// If this MD represents a pending local squash, it should
 		// never be ignored since the revision it refers to can't be
 		// squashed again.
@@ -623,9 +634,11 @@ func (be blockEntriesToFlush) flushNeeded() bool {
 	return be.length() > 0
 }
 
-func (be blockEntriesToFlush) revIsLocalSquash(rev kbfsmd.Revision) bool {
+func (be blockEntriesToFlush) revIsLocalSquash(
+	rev kbfsmd.Revision, mdJournalID kbfsmd.ID) bool {
 	for _, entry := range be.other {
-		if !entry.Ignore && entry.Op == mdRevMarkerOp && entry.Revision == rev {
+		if !entry.ignore(mdJournalID) && entry.Op == mdRevMarkerOp &&
+			entry.Revision == rev {
 			return entry.IsLocalSquash || entry.Unignorable
 		}
 	}
@@ -651,7 +664,8 @@ func (be blockEntriesToFlush) clearFlushingBlockIDs(ids map[kbfsblock.ID]bool) {
 // journal is empty) then any MD revision may be flushed even when
 // kbfsmd.RevisionUninitialized is returned.
 func (j *blockJournal) getNextEntriesToFlush(
-	ctx context.Context, end journalOrdinal, maxToFlush int) (
+	ctx context.Context, end journalOrdinal, maxToFlush int,
+	mdJournalID kbfsmd.ID) (
 	entries blockEntriesToFlush, bytesToFlush int64,
 	maxMDRevToFlush kbfsmd.Revision, err error) {
 	first, err := j.j.readEarliestOrdinal()
@@ -697,7 +711,7 @@ func (j *blockJournal) getNextEntriesToFlush(
 			return blockEntriesToFlush{}, 0, kbfsmd.RevisionUninitialized, err
 		}
 
-		if entry.Ignore {
+		if entry.ignore(mdJournalID) {
 			if loopEnd < end {
 				loopEnd++
 			}
@@ -794,7 +808,7 @@ func flushNonBPSBlockJournalEntry(
 		}
 
 	case blockPutOp:
-		if !entry.Ignore {
+		if !entry.ignore(kbfsmd.ID{}) {
 			return errors.New("Trying to flush unignored blockPut as other")
 		}
 		// Otherwise nothing to do.
@@ -872,7 +886,7 @@ func (j *blockJournal) removeFlushedEntry(ctx context.Context,
 	}
 
 	// Store the block byte count if we've finished a Put.
-	if entry.Op == blockPutOp && !entry.Ignore {
+	if entry.Op == blockPutOp && !entry.ignore(kbfsmd.ID{}) {
 		id, _, err := entry.getSingleContext()
 		if err != nil {
 			return 0, err
@@ -1291,7 +1305,8 @@ func (j *blockJournal) getAllRefsForTest() (map[kbfsblock.ID]blockRefMap, error)
 	return refs, nil
 }
 
-func (j *blockJournal) markLatestRevMarkerAsLocalSquash() error {
+func (j *blockJournal) markLatestRevMarkerAsLocalSquash(
+	mdJournalID kbfsmd.ID) error {
 	first, err := j.j.readEarliestOrdinal()
 	if ioutil.IsNotExist(err) {
 		return nil
@@ -1310,7 +1325,7 @@ func (j *blockJournal) markLatestRevMarkerAsLocalSquash() error {
 			return err
 		}
 		e := entry.(blockJournalEntry)
-		if e.Ignore || e.Op != mdRevMarkerOp {
+		if e.ignore(mdJournalID) || e.Op != mdRevMarkerOp {
 			continue
 		}
 

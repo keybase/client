@@ -810,24 +810,29 @@ func (j *tlfJournal) checkEnabledLocked() error {
 }
 
 func (j *tlfJournal) getJournalEnds(ctx context.Context) (
-	blockEnd journalOrdinal, mdEnd kbfsmd.Revision, err error) {
+	blockEnd journalOrdinal, mdEnd kbfsmd.Revision, mdJournalID kbfsmd.ID,
+	err error) {
 	j.journalLock.RLock()
 	defer j.journalLock.RUnlock()
 	if err := j.checkEnabledLocked(); err != nil {
-		return 0, kbfsmd.RevisionUninitialized, err
+		return 0, kbfsmd.RevisionUninitialized, kbfsmd.ID{}, err
 	}
 
 	blockEnd, err = j.blockJournal.end()
 	if err != nil {
-		return 0, 0, err
+		return 0, 0, kbfsmd.ID{}, err
 	}
 
 	mdEnd, err = j.mdJournal.end()
 	if err != nil {
-		return 0, 0, err
+		return 0, 0, kbfsmd.ID{}, err
+	}
+	mdJournalID, err = j.mdJournal.getOrCreateJournalID()
+	if err != nil {
+		return 0, 0, kbfsmd.ID{}, err
 	}
 
-	return blockEnd, mdEnd, nil
+	return blockEnd, mdEnd, mdJournalID, nil
 }
 
 func (j *tlfJournal) checkAndFinishSingleOpFlushLocked(
@@ -919,7 +924,7 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 			return nil
 		}
 
-		blockEnd, mdEnd, err := j.getJournalEnds(ctx)
+		blockEnd, mdEnd, mdJournalID, err := j.getJournalEnds(ctx)
 		if err != nil {
 			return err
 		}
@@ -941,7 +946,7 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 
 		// Flush the block journal ops in parallel.
 		numFlushed, maxMDRevToFlush, converted, err :=
-			j.flushBlockEntries(ctx, blockEnd)
+			j.flushBlockEntries(ctx, blockEnd, mdJournalID)
 		if err != nil {
 			return err
 		}
@@ -1070,7 +1075,7 @@ func (j *tlfJournal) checkServerForConflicts(ctx context.Context,
 }
 
 func (j *tlfJournal) getNextBlockEntriesToFlush(
-	ctx context.Context, end journalOrdinal) (
+	ctx context.Context, end journalOrdinal, mdJournalID kbfsmd.ID) (
 	entries blockEntriesToFlush, bytesToFlush int64,
 	maxMDRevToFlush kbfsmd.Revision, err error) {
 	j.journalLock.RLock()
@@ -1080,7 +1085,7 @@ func (j *tlfJournal) getNextBlockEntriesToFlush(
 	}
 
 	return j.blockJournal.getNextEntriesToFlush(ctx, end,
-		maxJournalBlockFlushBatchSize)
+		maxJournalBlockFlushBatchSize, mdJournalID)
 }
 
 func (j *tlfJournal) removeFlushedBlockEntries(ctx context.Context,
@@ -1136,11 +1141,11 @@ func (j *tlfJournal) startFlush(bytesToFlush int64) {
 }
 
 func (j *tlfJournal) flushBlockEntries(
-	ctx context.Context, end journalOrdinal) (
+	ctx context.Context, end journalOrdinal, mdJournalID kbfsmd.ID) (
 	numFlushed int, maxMDRevToFlush kbfsmd.Revision,
 	converted bool, err error) {
 	entries, bytesToFlush, maxMDRevToFlush, err := j.getNextBlockEntriesToFlush(
-		ctx, end)
+		ctx, end, mdJournalID)
 	if err != nil {
 		return 0, kbfsmd.RevisionUninitialized, false, err
 	}
@@ -1246,7 +1251,7 @@ func (j *tlfJournal) flushBlockEntries(
 	// happened yet, in which case it's still ok to flush
 	// maxMDRevToFlush.
 	if converted && maxMDRevToFlush != kbfsmd.RevisionUninitialized &&
-		!entries.revIsLocalSquash(maxMDRevToFlush) {
+		!entries.revIsLocalSquash(maxMDRevToFlush, mdJournalID) {
 		maxMDRevToFlush = kbfsmd.RevisionUninitialized
 	}
 
@@ -1364,6 +1369,11 @@ func (j *tlfJournal) convertMDsToBranchIfOverThreshold(ctx context.Context,
 		ctx, libkb.VLog1, "Converting journal with %d unsquashed bytes "+
 			"to a branch", j.unsquashedBytes)
 
+	mdJournalID, err := j.mdJournal.getOrCreateJournalID()
+	if err != nil {
+		return false, err
+	}
+
 	// If we're squashing by bytes, and there's exactly one
 	// non-local-squash revision, just directly mark it as squashed to
 	// avoid the CR overhead.
@@ -1382,7 +1392,7 @@ func (j *tlfJournal) convertMDsToBranchIfOverThreshold(ctx context.Context,
 				return false, err
 			}
 
-			err = j.blockJournal.markLatestRevMarkerAsLocalSquash()
+			err = j.blockJournal.markLatestRevMarkerAsLocalSquash(mdJournalID)
 			if err != nil {
 				return false, err
 			}
@@ -2342,14 +2352,15 @@ func (j *tlfJournal) doPutMD(
 	// TODO: remove the revision from the cache on any errors below?
 	// Tricky when the append is only queued.
 
-	mdID, err := j.mdJournal.put(ctx, j.config.Crypto(),
+	mdID, journalID, err := j.mdJournal.put(ctx, j.config.Crypto(),
 		j.config.encryptionKeyGetter(), j.config.BlockSplitter(),
 		rmd, isFirstRev)
 	if err != nil {
 		return ImmutableRootMetadata{}, false, err
 	}
 
-	err = j.blockJournal.markMDRevision(ctx, rmd.Revision(), isFirstRev)
+	err = j.blockJournal.markMDRevision(
+		ctx, rmd.Revision(), journalID, isFirstRev)
 	if err != nil {
 		return ImmutableRootMetadata{}, false, err
 	}
@@ -2505,7 +2516,7 @@ func (j *tlfJournal) doResolveBranch(
 
 	// First write the resolution to a new branch, and swap it with
 	// the existing branch, then clear the existing branch.
-	mdID, err := j.mdJournal.resolveAndClear(
+	mdID, journalID, err := j.mdJournal.resolveAndClear(
 		ctx, j.config.Crypto(), j.config.encryptionKeyGetter(),
 		j.config.BlockSplitter(), j.config.MDCache(), bid, rmd)
 	if err != nil {
@@ -2525,7 +2536,7 @@ func (j *tlfJournal) doResolveBranch(
 
 	// Finally, append a new, non-ignored md rev marker for the new revision.
 	err = j.blockJournal.markMDRevision(
-		ctx, rmd.Revision(), isPendingLocalSquash)
+		ctx, rmd.Revision(), journalID, isPendingLocalSquash)
 	if err != nil {
 		return ImmutableRootMetadata{}, false, err
 	}
