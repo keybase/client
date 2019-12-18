@@ -11,14 +11,6 @@ type Props = {
   you: string
 }
 
-const connectedUsernamesProps = {
-  colorFollowing: true,
-  inline: true,
-  onUsernameClicked: 'profile',
-  type: 'BodySmallSemibold',
-  underline: true,
-} as const
-
 const formatAssertion = (serviceUser: string, service: ServiceIdWithContact, isYou: boolean): string => {
   switch (service) {
     case 'phone':
