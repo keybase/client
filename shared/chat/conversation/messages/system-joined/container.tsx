@@ -11,8 +11,8 @@ type OwnProps = {
 
 export default Container.connect(
   (state, {message}: OwnProps) => ({
-    _meta: Constants.getMeta(state, message.conversationIDKey),
     _joiners: message.joiners,
+    _meta: Constants.getMeta(state, message.conversationIDKey),
     author: message.author,
     authorIsYou: state.config.username === message.author,
     leavers: message.leavers,
