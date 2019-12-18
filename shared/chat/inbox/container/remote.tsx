@@ -4,14 +4,6 @@ import * as ChatTypes from '../../../constants/types/chat2'
 import {TypedState} from '../../../constants/reducer'
 
 export type RemoteConvMeta = any
-/* Exclude<
-  {
-    conversationIDKey: ChatTypes.ConversationIDKey
-  } & SmallTeam.Props,
-  {
-    onSelectConversation: () => void
-  }
-> */
 
 // A hack to store the username to avoid plumbing.
 let _username: string
@@ -22,30 +14,42 @@ let _lastSent:
       conversation: ChatTypes.ConversationMeta
     }>
   | undefined
+let _lastSentParams = {
+  badgeCount: 0,
+  inboxVers: '',
+  unreadCount: 0,
+}
 
 const changed = (state: TypedState) => {
-  if (!_lastSent) {
-    return true
-  }
+  const {metaMap, inboxLayout, badgeMap, unreadMap} = state.chat2
 
-  const {metaMap, inboxLayout} = state.chat2
+  const nextSentParams = {
+    badgeCount: 0,
+    inboxVers: '',
+    unreadCount: 0,
+  }
 
   const wl = inboxLayout?.widgetList
-  if (wl?.length !== _lastSent.length) {
-    return true
+  wl?.forEach(w => {
+    const {convID} = w
+    nextSentParams.badgeCount += badgeMap.get(convID) ? 1 : 0
+    nextSentParams.unreadCount += unreadMap.get(convID) ? 1 : 0
+    nextSentParams.inboxVers += `:${metaMap.get(convID)?.inboxVersion ?? 'none'}`
+  })
+
+  const isChanged =
+    !_lastSentParams ||
+    !_lastSent ||
+    nextSentParams.badgeCount !== _lastSentParams.badgeCount ||
+    nextSentParams.unreadCount !== _lastSentParams.unreadCount ||
+    nextSentParams.inboxVers !== _lastSentParams.inboxVers
+
+  isChanged && console.log('aaa ischanged', isChanged, _lastSentParams, nextSentParams)
+  if (isChanged) {
+    _lastSentParams = nextSentParams
   }
 
-  if (
-    wl?.some(
-      (w, idx) => (metaMap.get(w.convID)?.snippet ?? w.snippet) !== _lastSent?.[idx]?.conversation?.snippet
-    )
-  ) {
-    console.log('aaaa inside changed')
-    return true
-  }
-
-  console.log('aaaa same')
-  return false
+  return isChanged
 }
 
 export const conversationsToSend = (state: TypedState) => {
