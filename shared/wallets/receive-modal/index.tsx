@@ -169,7 +169,6 @@ const styles = Styles.styleSheetCreate(
         padding: Styles.globalMargins.tiny,
       },
       requestButton: {
-        flex: 0,
         width: '100%',
       },
       requestIcon: {marginRight: Styles.globalMargins.tiny},
