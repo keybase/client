@@ -28,21 +28,30 @@ const changed = (state: TypedState) => {
     return true
   }
 
-  const wl = state.chat2.inboxLayout?.widgetList
+  const {metaMap, inboxLayout} = state.chat2
+
+  const wl = inboxLayout?.widgetList
   if (wl?.length !== _lastSent.length) {
     return true
   }
 
-  if (wl?.some((w, idx) => w.snippet !== _lastSent?.[idx]?.conversation?.snippet)) {
+  if (
+    wl?.some(
+      (w, idx) => (metaMap.get(w.convID)?.snippet ?? w.snippet) !== _lastSent?.[idx]?.conversation?.snippet
+    )
+  ) {
+    console.log('aaaa inside changed')
     return true
   }
 
+  console.log('aaaa same')
   return false
 }
 
 export const conversationsToSend = (state: TypedState) => {
   _username = state.config.username
   if (changed(state)) {
+    const TEMP = _lastSent
     _lastSent = state.chat2.inboxLayout?.widgetList?.map(v => ({
       conversation: state.chat2.metaMap.get(v.convID) || {
         ...Constants.makeConversationMeta(),
@@ -51,6 +60,8 @@ export const conversationsToSend = (state: TypedState) => {
       hasBadge: (state.chat2.badgeMap.get(v.convID) || 0) > 0,
       hasUnread: (state.chat2.unreadMap.get(v.convID) || 0) > 0,
     }))
+
+    console.log('aaa diff', TEMP, _lastSent)
   }
   return _lastSent
 }
