@@ -293,7 +293,7 @@ protocol config {
     2. Keybase FM "update available" green radio icon
     3. Red bar in GUI for crtiically out of date clients
    */
-  UpdateInfo2 getUpdateInfo2(union { null, string } platform, union { null, string } version);
+  UpdateInfo2 getUpdateInfo2(union { null, string } platform, union { null, string } version, union { null, boolean } testSlowReleaseBypass);
 
   enum ProxyType {
     No_Proxy_0,

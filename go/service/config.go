@@ -433,8 +433,8 @@ func (h ConfigHandler) GetUpdateInfo2(ctx context.Context, arg keybase1.GetUpdat
 	if i := m.G().Env.GetInstallID(); i.Exists() {
 		installId = i.String()
 	}
-	if arg.SlowReleaseBypass != nil {
-		slowReleaseBypass = *arg.SlowReleaseBypass
+	if arg.TestSlowReleaseBypass != nil {
+		slowReleaseBypass = *arg.TestSlowReleaseBypass
 	}
 
 	apiArg := libkb.APIArg{

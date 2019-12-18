@@ -1095,6 +1095,13 @@
             null,
             "string"
           ]
+        },
+        {
+          "name": "testSlowReleaseBypass",
+          "type": [
+            null,
+            "boolean"
+          ]
         }
       ],
       "response": "UpdateInfo2",

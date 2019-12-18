@@ -925,8 +925,9 @@ type SetRememberPassphraseArg struct {
 }
 
 type GetUpdateInfo2Arg struct {
-	Platform *string `codec:"platform,omitempty" json:"platform,omitempty"`
-	Version  *string `codec:"version,omitempty" json:"version,omitempty"`
+	Platform              *string `codec:"platform,omitempty" json:"platform,omitempty"`
+	Version               *string `codec:"version,omitempty" json:"version,omitempty"`
+	TestSlowReleaseBypass *bool   `codec:"testSlowReleaseBypass,omitempty" json:"testSlowReleaseBypass,omitempty"`
 }
 
 type SetProxyDataArg struct {

@@ -560,7 +560,7 @@ export type MessageTypes = {
     outParam: Boolean
   }
   'keybase.1.config.getUpdateInfo2': {
-    inParam: {readonly platform?: String | null; readonly version?: String | null}
+    inParam: {readonly platform?: String | null; readonly version?: String | null; readonly testSlowReleaseBypass?: Boolean | null}
     outParam: UpdateInfo2
   }
   'keybase.1.config.guiGetValue': {

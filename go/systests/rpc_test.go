@@ -400,7 +400,7 @@ func testGetUpdateInfo2(t *testing.T, g *libkb.GlobalContext) {
 
 	// (Desktop) OK
 	// Uses current platform and version
-	res, err := cli.GetUpdateInfo2(context.TODO(), keybase1.GetUpdateInfo2Arg{SlowReleaseBypass: &slowReleaseBypass})
+	res, err := cli.GetUpdateInfo2(context.TODO(), keybase1.GetUpdateInfo2Arg{TestSlowReleaseBypass: &slowReleaseBypass})
 	require.NoError(t, err)
 	status, err := res.Status()
 	require.NoError(t, err)
@@ -408,7 +408,7 @@ func testGetUpdateInfo2(t *testing.T, g *libkb.GlobalContext) {
 
 	// (Desktop) CRITICAL
 	version = "1.4.2"
-	res, err = cli.GetUpdateInfo2(context.TODO(), keybase1.GetUpdateInfo2Arg{Version: &version, SlowReleaseBypass: &slowReleaseBypass})
+	res, err = cli.GetUpdateInfo2(context.TODO(), keybase1.GetUpdateInfo2Arg{Version: &version, TestSlowReleaseBypass: &slowReleaseBypass})
 	require.NoError(t, err)
 	status, err = res.Status()
 	require.NoError(t, err)
@@ -418,7 +418,7 @@ func testGetUpdateInfo2(t *testing.T, g *libkb.GlobalContext) {
 
 	// (Desktop) SUGGESTED
 	version = "4.8.1"
-	res, err = cli.GetUpdateInfo2(context.TODO(), keybase1.GetUpdateInfo2Arg{Version: &version, SlowReleaseBypass: &slowReleaseBypass})
+	res, err = cli.GetUpdateInfo2(context.TODO(), keybase1.GetUpdateInfo2Arg{Version: &version, TestSlowReleaseBypass: &slowReleaseBypass})
 	require.NoError(t, err)
 	status, err = res.Status()
 	require.NoError(t, err)
@@ -429,7 +429,7 @@ func testGetUpdateInfo2(t *testing.T, g *libkb.GlobalContext) {
 	// (Mobile) CRITICAL
 	platform = "ios"
 	version = "0.0.1"
-	res, err = cli.GetUpdateInfo2(context.TODO(), keybase1.GetUpdateInfo2Arg{Platform: &platform, Version: &version,SlowReleaseBypass: &slowReleaseBypass })
+	res, err = cli.GetUpdateInfo2(context.TODO(), keybase1.GetUpdateInfo2Arg{Platform: &platform, Version: &version,TestSlowReleaseBypass: &slowReleaseBypass })
 	require.NoError(t, err)
 	status, err = res.Status()
 	require.NoError(t, err)
