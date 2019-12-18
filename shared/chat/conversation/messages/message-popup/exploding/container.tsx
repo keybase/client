@@ -47,6 +47,7 @@ export default Container.connect(
       _participants: meta.participants,
       _teamname: meta.teamname,
       author: ownProps.message.author,
+      botUsername: ownProps.message.type === 'text' ? ownProps.message.botUsername : undefined,
       deviceName: ownProps.message.deviceName,
       deviceRevokedAt: ownProps.message.deviceRevokedAt,
       deviceType: ownProps.message.deviceType,
@@ -227,6 +228,7 @@ export default Container.connect(
     return {
       attachTo: ownProps.attachTo,
       author: stateProps.author,
+      botUsername: stateProps.botUsername,
       deviceName: stateProps.deviceName,
       deviceRevokedAt: stateProps.deviceRevokedAt,
       deviceType: stateProps.deviceType,

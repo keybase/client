@@ -200,7 +200,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                 </Kb.WithTooltip>
               )}
               {this.props.authorIsBot && (
-                <Kb.Icon fontSize={16} color={Styles.globalColors.black_20} type="iconfont-nav-2-robot" />
+                <Kb.Icon fontSize={16} color={Styles.globalColors.black_35} type="iconfont-nav-2-robot" />
               )}
               <Kb.Text
                 type="BodyTiny"
@@ -571,7 +571,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               <Kb.WithTooltip tooltip={`Encrypted for @${this._getKeyedBot()}`}>
                 <Kb.Icon
                   fontSize={16}
-                  color={Styles.globalColors.black_20}
+                  color={Styles.globalColors.black_35}
                   type="iconfont-nav-2-robot"
                   onClick={() => null}
                   style={styles.paddingLeftTiny}
