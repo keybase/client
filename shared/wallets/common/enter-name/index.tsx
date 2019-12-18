@@ -28,17 +28,13 @@ const EnterName = (props: EnterNameProps) => {
         </Kb.Box2>
       )}
       <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.inputContainer}>
-        <Kb.Text type="BodySmallSemibold" style={{color: Styles.globalColors.blueDark}}>
-          Account name
-        </Kb.Text>
-        <Kb.NewInput
-          style={styles.input}
+        <Kb.LabeledInput
+          placeholder="Account name"
           value={props.name}
           onEnterKeyDown={props.onEnterKeyDown}
           onChangeText={props.onNameChange}
           autoFocus={true}
           maxLength={accountNameMaxLength}
-          hideBorder={Styles.isMobile}
         />
         {!!props.error && (
           <Kb.Text type="BodySmall" style={styles.error}>
@@ -80,16 +76,12 @@ const styles = Styles.styleSheetCreate(
           paddingRight: Styles.globalMargins.medium,
         },
       }),
-      input: Styles.platformStyles({common: {margin: 0}, isElectron: {width: '100%'}}),
       inputContainer: Styles.platformStyles({
         common: {
           alignItems: 'flex-start',
         },
         isElectron: {width: '100%'},
         isMobile: {
-          borderBottomWidth: 1,
-          borderColor: Styles.globalColors.black_05,
-          borderStyle: 'solid',
           paddingBottom: Styles.globalMargins.tiny,
           paddingLeft: Styles.globalMargins.small,
           paddingRight: Styles.globalMargins.small,
