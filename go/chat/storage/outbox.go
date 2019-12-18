@@ -51,6 +51,17 @@ type diskOutbox struct {
 	Records []chat1.OutboxRecord `codec:"O"`
 }
 
+func (d diskOutbox) DeepCopy() diskOutbox {
+	obrs := make([]chat1.OutboxRecord, 0, len(d.Records))
+	for _, obr := range d.Records {
+		obrs = append(obrs, obr.DeepCopy())
+	}
+	return diskOutbox{
+		Version: d.Version,
+		Records: obrs,
+	}
+}
+
 func NewOutboxID() (chat1.OutboxID, error) {
 	rbs, err := libkb.RandBytes(8)
 	if err != nil {

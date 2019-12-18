@@ -2,7 +2,11 @@ package chat
 
 import (
 	"bytes"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
+	"hash"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -15,6 +19,7 @@ import (
 
 	"github.com/keybase/client/go/chat/giphy"
 	"github.com/keybase/client/go/kbhttp/manager"
+	"github.com/keybase/go-codec/codec"
 
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/chat/attachments"
@@ -50,6 +55,7 @@ type AttachmentHTTPSrv struct {
 	fetcher            types.AttachmentFetcher
 	ri                 func() chat1.RemoteInterface
 	httpSrv            *manager.Srv
+	hmacPool           sync.Pool
 }
 
 var _ types.AttachmentURLSrv = (*AttachmentHTTPSrv)(nil)
@@ -57,6 +63,11 @@ var _ types.AttachmentURLSrv = (*AttachmentHTTPSrv)(nil)
 func NewAttachmentHTTPSrv(g *globals.Context, httpSrv *manager.Srv, fetcher types.AttachmentFetcher,
 	ri func() chat1.RemoteInterface) *AttachmentHTTPSrv {
 	l, err := lru.New(2000)
+	if err != nil {
+		panic(err)
+	}
+
+	token, err := libkb.RandBytes(32)
 	if err != nil {
 		panic(err)
 	}
@@ -74,6 +85,11 @@ func NewAttachmentHTTPSrv(g *globals.Context, httpSrv *manager.Srv, fetcher type
 		urlMap:             l,
 		fetcher:            fetcher,
 		httpSrv:            httpSrv,
+		hmacPool: sync.Pool{
+			New: func() interface{} {
+				return hmac.New(sha256.New, token)
+			},
+		},
 	}
 	r.httpSrv.HandleFunc(r.endpoint, manager.SrvTokenModeUnchecked, r.serve)
 	r.fetcher.OnStart(libkb.NewMetaContextTODO(g.ExternalG()))
@@ -88,8 +104,18 @@ func (r *AttachmentHTTPSrv) GetAttachmentFetcher() types.AttachmentFetcher {
 	return r.fetcher
 }
 
-func (r *AttachmentHTTPSrv) randURLKey(prefix string) (string, error) {
-	return libkb.RandHexString(prefix, 32)
+func (r *AttachmentHTTPSrv) genURLKey(prefix string, payload interface{}) (string, error) {
+	h := r.hmacPool.Get().(hash.Hash)
+	defer r.hmacPool.Put(h)
+	h.Reset()
+	h.Write([]byte(prefix))
+	var data []byte
+	mh := codec.MsgpackHandle{WriteExt: true}
+	if err := codec.NewEncoderBytes(&data, &mh).Encode(payload); err != nil {
+		return "", err
+	}
+	h.Write(data)
+	return prefix + hex.EncodeToString(h.Sum(nil)), nil
 }
 
 func (r *AttachmentHTTPSrv) getURL(ctx context.Context, prefix string, payload interface{}) string {
@@ -102,7 +128,7 @@ func (r *AttachmentHTTPSrv) getURL(ctx context.Context, prefix string, payload i
 		r.Debug(ctx, "getURL: failed to get HTTP server address: %s", err)
 		return ""
 	}
-	key, err := r.randURLKey(prefix)
+	key, err := r.genURLKey(prefix, payload)
 	if err != nil {
 		r.Debug(ctx, "getURL: failed to generate URL key: %s", err)
 		return ""
@@ -133,16 +159,16 @@ func (r *AttachmentHTTPSrv) GetPendingPreviewURL(ctx context.Context, outboxID c
 }
 
 type unfurlAsset struct {
-	asset  chat1.Asset
-	convID chat1.ConversationID
+	Asset  chat1.Asset
+	ConvID chat1.ConversationID
 }
 
 func (r *AttachmentHTTPSrv) GetUnfurlAssetURL(ctx context.Context, convID chat1.ConversationID,
 	asset chat1.Asset) string {
 	defer r.Trace(ctx, func() error { return nil }, "GetUnfurlAssetURL")()
 	url := r.getURL(ctx, r.unfurlPrefix, unfurlAsset{
-		asset:  asset,
-		convID: convID,
+		Asset:  asset,
+		ConvID: convID,
 	})
 	r.Debug(ctx, "GetUnfurlAssetURL: handler URL: %s", url)
 	return url
@@ -159,9 +185,9 @@ func (r *AttachmentHTTPSrv) GetGiphyGalleryURL(ctx context.Context, convID chat1
 	tlfName string, results []chat1.GiphySearchResult) string {
 	defer r.Trace(ctx, func() error { return nil }, "GetGiphyGalleryURL")()
 	url := r.getURL(ctx, r.giphyGalleryPrefix, giphyGalleryInfo{
-		results: results,
-		convID:  convID,
-		tlfName: tlfName,
+		Results: results,
+		ConvID:  convID,
+		TlfName: tlfName,
 	})
 	r.Debug(ctx, "GetGiphyGalleryURL: handler URL: %s", url)
 	return url
@@ -200,21 +226,21 @@ func (r *AttachmentHTTPSrv) serveUnfurlAsset(ctx context.Context, w http.Respons
 		return
 	}
 	ua := val.(unfurlAsset)
-	if r.shouldServeContent(ctx, ua.asset, req) {
+	if r.shouldServeContent(ctx, ua.Asset, req) {
 		if r.serveUnfurlVideoHostPage(ctx, w, req) {
 			// if we served the host page, just bail out
 			return
 		}
 		r.Debug(ctx, "serveUnfurlAsset: streaming: req: method: %s range: %s", req.Method,
 			req.Header.Get("Range"))
-		rs, err := r.fetcher.StreamAttachment(ctx, ua.convID, ua.asset, r.ri, r)
+		rs, err := r.fetcher.StreamAttachment(ctx, ua.ConvID, ua.Asset, r.ri, r)
 		if err != nil {
 			r.makeError(ctx, w, http.StatusInternalServerError, "failed to get streamer: %s", err)
 			return
 		}
-		http.ServeContent(w, req, ua.asset.Filename, time.Time{}, rs)
+		http.ServeContent(w, req, ua.Asset.Filename, time.Time{}, rs)
 	} else {
-		if err := r.fetcher.FetchAttachment(ctx, w, ua.convID, ua.asset, r.ri, r, blankProgress); err != nil {
+		if err := r.fetcher.FetchAttachment(ctx, w, ua.ConvID, ua.Asset, r.ri, r, blankProgress); err != nil {
 			r.makeError(ctx, w, http.StatusInternalServerError, "failed to fetch attachment: %s", err)
 			return
 		}
@@ -222,9 +248,9 @@ func (r *AttachmentHTTPSrv) serveUnfurlAsset(ctx context.Context, w http.Respons
 }
 
 type giphyGalleryInfo struct {
-	results []chat1.GiphySearchResult
-	convID  chat1.ConversationID
-	tlfName string
+	Results []chat1.GiphySearchResult
+	ConvID  chat1.ConversationID
+	TlfName string
 }
 
 func (r *AttachmentHTTPSrv) getGiphyGallerySelectURL(ctx context.Context, convID chat1.ConversationID,
@@ -234,7 +260,7 @@ func (r *AttachmentHTTPSrv) getGiphyGallerySelectURL(ctx context.Context, convID
 		r.Debug(ctx, "getGiphySelectURL: failed to get HTTP server address: %s", err)
 		return ""
 	}
-	key, err := r.randURLKey(r.giphySelectPrefix)
+	key, err := r.genURLKey(r.giphySelectPrefix, targetURL)
 	if err != nil {
 		r.Debug(ctx, "getGiphySelectURL: failed to generate URL key: %s", err)
 		return ""
@@ -290,10 +316,10 @@ func (r *AttachmentHTTPSrv) serveGiphyGallery(ctx context.Context, w http.Respon
 	}
 	galleryInfo := infoInt.(giphyGalleryInfo)
 	var videoStr string
-	for _, res := range galleryInfo.results {
+	for _, res := range galleryInfo.Results {
 		videoStr += fmt.Sprintf(`
 			<img style="height: 100%%" src="%s" onclick="sendMessage('%s')" />
-		`, res.PreviewUrl, r.getGiphyGallerySelectURL(ctx, galleryInfo.convID, galleryInfo.tlfName,
+		`, res.PreviewUrl, r.getGiphyGallerySelectURL(ctx, galleryInfo.ConvID, galleryInfo.TlfName,
 			res.TargetUrl))
 	}
 	res := fmt.Sprintf(`

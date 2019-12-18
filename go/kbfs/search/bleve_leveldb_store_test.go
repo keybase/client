@@ -29,7 +29,7 @@ func TestBleveLevelDBStore(t *testing.T) {
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
 	t.Log("Open a leveldb using a KBFS billy filesystem")
-	s, err := newBleveLevelDBStore(fs, false)
+	s, err := newBleveLevelDBStore(fs, false, nil)
 	require.NoError(t, err)
 	sNeedsClose := true
 	defer func() {
@@ -68,7 +68,7 @@ func TestBleveLevelDBStore(t *testing.T) {
 	fs2, err := libfs.NewFS(
 		ctx, config2, h, data.MasterBranch, "", "", keybase1.MDPriorityNormal)
 	require.NoError(t, err)
-	s2, err := newBleveLevelDBStore(fs2, false)
+	s2, err := newBleveLevelDBStore(fs2, false, nil)
 	require.NoError(t, err)
 	defer func() {
 		err := s2.Close()
@@ -93,8 +93,6 @@ func TestBleveLevelDBStore(t *testing.T) {
 
 	t.Log("Check the iterator, should see two keys")
 	i := r.PrefixIterator([]byte("k"))
-	require.False(t, i.Valid()) // Next must be called before it's valid.
-	i.Next()
 	k1 := i.Key()
 	require.Equal(t, key1, k1)
 	v1 := i.Value()

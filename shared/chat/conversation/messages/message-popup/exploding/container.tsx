@@ -169,6 +169,7 @@ export default Container.connect(
     if (stateProps._canDeleteHistory && stateProps._teamname && !stateProps.yourMessage && authorInConv) {
       items.push({
         danger: true,
+        icon: 'iconfont-block-user',
         onClick: () => dispatchProps._onKick(stateProps._teamname, stateProps.author),
         title: 'Kick user',
       })

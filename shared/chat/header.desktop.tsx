@@ -151,7 +151,7 @@ const Header = (p: Props) => {
           {renderDescription && (
             <Kb.Box2 direction="vertical" style={styles.descriptionContainer} fullWidth={true}>
               {p.fullName && withoutSelf && withoutSelf.length === 1 ? (
-                <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
+                <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.descriptionTextContainer}>
                   <Kb.ConnectedUsernames
                     colorFollowing={true}
                     underline={true}
@@ -224,6 +224,11 @@ const styles = Styles.styleSheetCreate(
         height: 17,
         overflow: 'hidden',
       },
+      descriptionTextContainer: Styles.platformStyles({
+        isElectron: {
+          alignItems: 'baseline',
+        },
+      }),
       headerTitle: Styles.platformStyles({
         common: {flexGrow: 1, paddingBottom: Styles.globalMargins.xtiny},
         isElectron: Styles.desktopStyles.windowDraggingClickable,

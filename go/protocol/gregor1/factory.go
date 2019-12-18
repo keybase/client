@@ -191,7 +191,7 @@ func (its itemSlice) Less(i, j int) bool {
 }
 
 func (o ObjFactory) MakeState(items []gregor.Item) (gregor.State, error) {
-	var ourItems itemSlice
+	ourItems := make(itemSlice, 0, len(items))
 	for _, item := range items {
 		ourItem, err := castItem(item)
 		if err != nil {

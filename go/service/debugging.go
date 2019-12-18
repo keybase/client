@@ -45,7 +45,7 @@ func (t *DebuggingHandler) Script(ctx context.Context, arg keybase1.ScriptArg) (
 	case "journeycard":
 		log("journeycard-fastforward [days]")
 		log("journeycard-resetall")
-		log("journeycard-state <conv-id>")
+		log("journeycard-state <team-id>")
 		return "", nil
 	case "journeycard-fastforward":
 		uidGregor := gregor1.UID(m.G().ActiveDevice.UID().ToBytes())

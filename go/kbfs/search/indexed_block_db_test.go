@@ -48,7 +48,7 @@ func shutdownIndexedBlockDbTest(db *IndexedBlockDb, tempdir string) {
 	os.RemoveAll(tempdir)
 }
 
-func TestINdexedBlockDbCreate(t *testing.T) {
+func TestIndexedBlockDbCreate(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "user1")
 	tempdir, err := ioutil.TempDir(os.TempDir(), "indexed_blocks_db")
 	require.NoError(t, err)

@@ -129,7 +129,8 @@ func (c *CmdTeamAddMembersBulk) Run() error {
 	}
 	c.arg.TeamID = teamID
 
-	err = cli.TeamAddMembersMultiRole(context.Background(), c.arg)
+	// TODO: currently ignoring res; address in PICNIC-714
+	_, err = cli.TeamAddMembersMultiRole(context.Background(), c.arg)
 	if err != nil {
 		return err
 	}

@@ -1082,6 +1082,10 @@ protocol teams {
     boolean chatSending;
   }
 
+  record TeamAddMembersResult {
+    array<User> notAdded;
+  }
+
   record TeamJoinRequest {
     string name;
     string username;
@@ -1195,7 +1199,7 @@ protocol teams {
   TeamAddMemberResult teamAddMember(int sessionID, TeamID teamID, string email, string username,
     TeamRole role, union { null, TeamBotSettings } botSettings, boolean sendChatNotification);
 
-  void teamAddMembers(int sessionID, TeamID teamID, array<string> assertions, TeamRole role, union { null, TeamBotSettings } botSettings, boolean sendChatNotification);
+  TeamAddMembersResult teamAddMembers(int sessionID, TeamID teamID, array<string> assertions, TeamRole role, union { null, TeamBotSettings } botSettings, boolean sendChatNotification);
 
   record UserRolePair {
     string assertionOrEmail;
@@ -1203,7 +1207,7 @@ protocol teams {
     union { null, TeamBotSettings } botSettings;
   }
 
-  void teamAddMembersMultiRole(int sessionID, TeamID teamID, array<UserRolePair> users, boolean sendChatNotification);
+  TeamAddMembersResult teamAddMembersMultiRole(int sessionID, TeamID teamID, array<UserRolePair> users, boolean sendChatNotification);
 
   // allowInaction suppresses errors that come from removing an invite that doesn't exist. Relevant for suppressing errors when calling remove while a remove is already in progress.
   // Note: allowInaction only applies to invite removals, just because that was what was needed.

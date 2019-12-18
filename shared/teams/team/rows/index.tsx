@@ -1,9 +1,10 @@
 import * as Types from '../../../constants/types/teams'
-import {getOrderedMemberArray, sortInvites} from './helpers'
+import {getOrderedMemberArray, sortInvites, getOrderedBotsArray} from './helpers'
 
 type HeaderRow = {key: string; type: 'header'}
 type TabsRow = {key: string; type: 'tabs'}
 type MemberRow = {key: string; username: string; type: 'member'}
+type BotRow = {key: string; username: string; type: 'bot'}
 type InviteRow =
   | {key: string; label: string; type: 'invites-divider'}
   | {key: string; username: string; type: 'invites-request'}
@@ -16,7 +17,7 @@ type SubteamRow =
   | {key: string; type: 'subteam-none'}
 type SettingsRow = {key: string; type: 'settings'}
 type LoadingRow = {key: string; type: 'loading'}
-export type Row = HeaderRow | TabsRow | MemberRow | InviteRow | SubteamRow | SettingsRow | LoadingRow
+export type Row = HeaderRow | TabsRow | MemberRow | BotRow | InviteRow | SubteamRow | SettingsRow | LoadingRow
 
 const makeRows = (
   details: Types.TeamDetails,
@@ -32,6 +33,19 @@ const makeRows = (
           key: `member:${user.username}`,
           type: 'member' as const,
           username: user.username,
+        }))
+      )
+      if (details.memberCount > 0 && !details.members) {
+        // loading
+        rows.push({key: 'loading', type: 'loading'})
+      }
+      break
+    case 'bots':
+      rows.push(
+        ...getOrderedBotsArray(details.members).map(bot => ({
+          key: `bot:${bot.username}`,
+          type: 'bot' as const,
+          username: bot.username,
         }))
       )
       if (details.memberCount > 0 && !details.members) {

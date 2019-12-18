@@ -321,7 +321,6 @@ func (i *Inbox) summarizeConv(rc *types.RemoteConversation) {
 	}
 
 	summaries := make(map[chat1.MessageType]chat1.MessageSummary)
-
 	// Collect the existing summaries
 	for _, m := range rc.Conv.MaxMsgSummaries {
 		summaries[m.GetMessageType()] = m
@@ -520,7 +519,7 @@ func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, rcs 
 		query.ConvIDs = append(query.ConvIDs, *query.ConvID)
 	}
 	if len(query.ConvIDs) > 0 {
-		queryConvIDMap = make(map[string]bool)
+		queryConvIDMap = make(map[string]bool, len(query.ConvIDs))
 		for _, c := range query.ConvIDs {
 			queryConvIDMap[c.String()] = true
 		}
@@ -1693,7 +1692,7 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 		if removedMap[conv.ConvIDStr] {
 			conv.Conv.ReaderInfo.Status = chat1.ConversationMemberStatus_LEFT
 			conv.Conv.Metadata.Version = vers.ToConvVers()
-			var newAllList []gregor1.UID
+			newAllList := make([]gregor1.UID, 0, len(conv.Conv.Metadata.AllList))
 			for _, u := range conv.Conv.Metadata.AllList {
 				if !u.Eq(uid) {
 					newAllList = append(newAllList, u)
@@ -1756,7 +1755,7 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 	}
 	for _, or := range othersRemoved {
 		if cp, ok := convMap[or.ConvID.String()]; ok {
-			var newAllList []gregor1.UID
+			newAllList := make([]gregor1.UID, 0, len(cp.Conv.Metadata.AllList))
 			for _, u := range cp.Conv.Metadata.AllList {
 				if !u.Eq(or.Uid) {
 					newAllList = append(newAllList, u)

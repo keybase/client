@@ -643,6 +643,14 @@ export type MessageTypes = {
     inParam: {readonly folder: FolderHandle}
     outParam: void
   }
+  'keybase.1.featuredBot.featuredBots': {
+    inParam: {readonly limit: Int; readonly offset: Int}
+    outParam: FeaturedBotsRes
+  }
+  'keybase.1.featuredBot.search': {
+    inParam: {readonly query: String; readonly limit: Int; readonly offset: Int}
+    outParam: SearchRes
+  }
   'keybase.1.git.createPersonalRepo': {
     inParam: {readonly repoName: GitRepoName}
     outParam: RepoID
@@ -1257,7 +1265,7 @@ export type MessageTypes = {
   }
   'keybase.1.teams.teamAddMembersMultiRole': {
     inParam: {readonly teamID: TeamID; readonly users?: Array<UserRolePair> | null; readonly sendChatNotification: Boolean}
-    outParam: void
+    outParam: TeamAddMembersResult
   }
   'keybase.1.teams.teamCreate': {
     inParam: {readonly name: String; readonly joinSubteam: Boolean}
@@ -2921,6 +2929,7 @@ export type TLFQuery = {readonly tlfName: String; readonly identifyBehavior: TLF
 export type TeamAcceptOrRequestResult = {readonly wasToken: Boolean; readonly wasSeitan: Boolean; readonly wasTeamName: Boolean; readonly wasOpenTeam: Boolean}
 export type TeamAccessRequest = {readonly uid: UID; readonly eldestSeqno: Seqno}
 export type TeamAddMemberResult = {readonly invited: Boolean; readonly user?: User | null; readonly emailSent: Boolean; readonly chatSending: Boolean}
+export type TeamAddMembersResult = {readonly notAdded?: Array<User> | null}
 export type TeamAndMemberShowcase = {readonly teamShowcase: TeamShowcase; readonly isMemberShowcased: Boolean}
 export type TeamApplicationKey = {readonly application: TeamApplication; readonly keyGeneration: PerTeamKeyGeneration; readonly key: Bytes32}
 export type TeamBlock = {readonly teamName: String; readonly createTime: Time}
@@ -3418,6 +3427,8 @@ export const emailsSetPrimaryEmailRpcPromise = (params: MessageTypes['keybase.1.
 export const emailsSetVisibilityEmailRpcPromise = (params: MessageTypes['keybase.1.emails.setVisibilityEmail']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.emails.setVisibilityEmail']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.emails.setVisibilityEmail', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const favoriteFavoriteAddRpcPromise = (params: MessageTypes['keybase.1.favorite.favoriteAdd']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.favorite.favoriteAdd']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.favorite.favoriteAdd', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const favoriteFavoriteIgnoreRpcPromise = (params: MessageTypes['keybase.1.favorite.favoriteIgnore']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.favorite.favoriteIgnore']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.favorite.favoriteIgnore', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const featuredBotFeaturedBotsRpcPromise = (params: MessageTypes['keybase.1.featuredBot.featuredBots']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.featuredBot.featuredBots']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.featuredBot.featuredBots', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const featuredBotSearchRpcPromise = (params: MessageTypes['keybase.1.featuredBot.search']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.featuredBot.search']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.featuredBot.search', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const gitCreatePersonalRepoRpcPromise = (params: MessageTypes['keybase.1.git.createPersonalRepo']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.git.createPersonalRepo']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.git.createPersonalRepo', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const gitCreateTeamRepoRpcPromise = (params: MessageTypes['keybase.1.git.createTeamRepo']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.git.createTeamRepo']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.git.createTeamRepo', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const gitDeletePersonalRepoRpcPromise = (params: MessageTypes['keybase.1.git.deletePersonalRepo']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.git.deletePersonalRepo']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.git.deletePersonalRepo', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -3595,8 +3606,6 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.emails.setVisibilityAllEmail'
 // 'keybase.1.emails.getEmails'
 // 'keybase.1.favorite.getFavorites'
-// 'keybase.1.featuredBot.featuredBots'
-// 'keybase.1.featuredBot.search'
 // 'keybase.1.fs.List'
 // 'keybase.1.git.putGitMetadata'
 // 'keybase.1.git.deleteGitMetadata'

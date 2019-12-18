@@ -62,6 +62,7 @@ export const leaveConversation = 'chat2:leaveConversation'
 export const loadAttachmentView = 'chat2:loadAttachmentView'
 export const loadMessagesCentered = 'chat2:loadMessagesCentered'
 export const loadNewerMessagesDueToScroll = 'chat2:loadNewerMessagesDueToScroll'
+export const loadNextBotPage = 'chat2:loadNextBotPage'
 export const loadOlderMessagesDueToScroll = 'chat2:loadOlderMessagesDueToScroll'
 export const lockAudioRecording = 'chat2:lockAudioRecording'
 export const markConversationsStale = 'chat2:markConversationsStale'
@@ -122,6 +123,7 @@ export const setConversationOffline = 'chat2:setConversationOffline'
 export const setExplodingModeLock = 'chat2:setExplodingModeLock'
 export const setInboxNumSmallRows = 'chat2:setInboxNumSmallRows'
 export const setInboxShowIsNew = 'chat2:setInboxShowIsNew'
+export const setLoadedBotPage = 'chat2:setLoadedBotPage'
 export const setMaybeMentionInfo = 'chat2:setMaybeMentionInfo'
 export const setMinWriterRole = 'chat2:setMinWriterRole'
 export const setPaymentConfirmInfo = 'chat2:setPaymentConfirmInfo'
@@ -304,6 +306,7 @@ type _LoadMessagesCenteredPayload = {
   readonly highlightMode: Types.CenterOrdinalHighlightMode
 }
 type _LoadNewerMessagesDueToScrollPayload = {readonly conversationIDKey: Types.ConversationIDKey}
+type _LoadNextBotPagePayload = {readonly pageSize: number}
 type _LoadOlderMessagesDueToScrollPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _LockAudioRecordingPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _MarkConversationsStalePayload = {
@@ -585,6 +588,7 @@ type _SetExplodingModeLockPayload = {
 }
 type _SetInboxNumSmallRowsPayload = {readonly ignoreWrite?: boolean; readonly rows: number}
 type _SetInboxShowIsNewPayload = {readonly isNew: boolean}
+type _SetLoadedBotPagePayload = {readonly page: number}
 type _SetMaybeMentionInfoPayload = {readonly name: string; readonly info: RPCChatTypes.UIMaybeMentionInfo}
 type _SetMinWriterRolePayload = {
   readonly conversationIDKey: Types.ConversationIDKey
@@ -1190,9 +1194,23 @@ export const createChangeFocus = (payload: _ChangeFocusPayload): ChangeFocusPayl
   type: changeFocus,
 })
 /**
+ * loads next page of featured bots from backend
+ */
+export const createLoadNextBotPage = (payload: _LoadNextBotPagePayload): LoadNextBotPagePayload => ({
+  payload,
+  type: loadNextBotPage,
+})
+/**
  * send a message from Giphy search
  */
 export const createGiphySend = (payload: _GiphySendPayload): GiphySendPayload => ({payload, type: giphySend})
+/**
+ * set page # for a conversation
+ */
+export const createSetLoadedBotPage = (payload: _SetLoadedBotPagePayload): SetLoadedBotPagePayload => ({
+  payload,
+  type: setLoadedBotPage,
+})
 export const createAttachmentDownload = (payload: _AttachmentDownloadPayload): AttachmentDownloadPayload => ({
   payload,
   type: attachmentDownload,
@@ -1661,6 +1679,10 @@ export type LoadNewerMessagesDueToScrollPayload = {
   readonly payload: _LoadNewerMessagesDueToScrollPayload
   readonly type: typeof loadNewerMessagesDueToScroll
 }
+export type LoadNextBotPagePayload = {
+  readonly payload: _LoadNextBotPagePayload
+  readonly type: typeof loadNextBotPage
+}
 export type LoadOlderMessagesDueToScrollPayload = {
   readonly payload: _LoadOlderMessagesDueToScrollPayload
   readonly type: typeof loadOlderMessagesDueToScroll
@@ -1874,6 +1896,10 @@ export type SetInboxShowIsNewPayload = {
   readonly payload: _SetInboxShowIsNewPayload
   readonly type: typeof setInboxShowIsNew
 }
+export type SetLoadedBotPagePayload = {
+  readonly payload: _SetLoadedBotPagePayload
+  readonly type: typeof setLoadedBotPage
+}
 export type SetMaybeMentionInfoPayload = {
   readonly payload: _SetMaybeMentionInfoPayload
   readonly type: typeof setMaybeMentionInfo
@@ -2082,6 +2108,7 @@ export type Actions =
   | LoadAttachmentViewPayload
   | LoadMessagesCenteredPayload
   | LoadNewerMessagesDueToScrollPayload
+  | LoadNextBotPagePayload
   | LoadOlderMessagesDueToScrollPayload
   | LockAudioRecordingPayload
   | MarkConversationsStalePayload
@@ -2142,6 +2169,7 @@ export type Actions =
   | SetExplodingModeLockPayload
   | SetInboxNumSmallRowsPayload
   | SetInboxShowIsNewPayload
+  | SetLoadedBotPagePayload
   | SetMaybeMentionInfoPayload
   | SetMinWriterRolePayload
   | SetPaymentConfirmInfoPayload

@@ -228,7 +228,7 @@ func annotateResolvingRequest(g *libkb.GlobalContext, req *chatConversationResol
 	}
 	if req.TopicType == chat1.TopicType_CHAT && len(req.TopicName) != 0 &&
 		req.MembersType != chat1.ConversationMembersType_TEAM {
-		return errors.New("multiple topics only supported for teams and dev channels")
+		return errors.New("channel name only supported for team and dev conversations")
 	}
 
 	// Set the default topic name to #general if none is specified

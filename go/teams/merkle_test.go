@@ -52,8 +52,9 @@ func TestMerkleWithHidden(t *testing.T) {
 	team, err := GetForTestByStringName(context.TODO(), tc.G, name)
 	require.NoError(t, err)
 
-	leaf, hiddenResp, err := tc.G.MerkleClient.LookupTeamWithHidden(libkb.NewMetaContextForTest(tc), team.ID, hidden.ProcessHiddenResponseFunc)
+	leaf, hiddenResp, lastMerkleRoot, err := tc.G.MerkleClient.LookupTeamWithHidden(libkb.NewMetaContextForTest(tc), team.ID, hidden.ProcessHiddenResponseFunc)
 	require.NoError(t, err)
+	require.NotNil(t, lastMerkleRoot)
 	require.NotNil(t, leaf)
 	t.Logf("team merkle leaf: %v", spew.Sdump(leaf))
 	if leaf.TeamID.IsNil() {
@@ -75,8 +76,9 @@ func TestMerkleWithHidden(t *testing.T) {
 	team, err = GetForTestByStringName(context.TODO(), tc.G, name)
 	require.NoError(t, err)
 
-	leaf, hiddenResp, err = tc.G.MerkleClient.LookupTeamWithHidden(libkb.NewMetaContextForTest(tc), team.ID, hidden.ProcessHiddenResponseFunc)
+	leaf, hiddenResp, lastMerkleRoot, err = tc.G.MerkleClient.LookupTeamWithHidden(libkb.NewMetaContextForTest(tc), team.ID, hidden.ProcessHiddenResponseFunc)
 	require.NoError(t, err)
+	require.NotNil(t, lastMerkleRoot)
 	require.NotNil(t, leaf)
 	require.Equal(t, team.ID, leaf.TeamID, "team id mismatch")
 	require.Equal(t, team.chain().GetLatestSeqno(), leaf.Private.Seqno)
@@ -98,8 +100,9 @@ func TestMerkleWithHidden(t *testing.T) {
 
 	requestNewBlindTreeFromArchitectAndWaitUntilDone(t, &tc)
 
-	leaf, hiddenResp, err = tc.G.MerkleClient.LookupTeamWithHidden(libkb.NewMetaContextForTest(tc), team.ID, hidden.ProcessHiddenResponseFunc)
+	leaf, hiddenResp, lastMerkleRoot, err = tc.G.MerkleClient.LookupTeamWithHidden(libkb.NewMetaContextForTest(tc), team.ID, hidden.ProcessHiddenResponseFunc)
 	require.NoError(t, err)
+	require.NotNil(t, lastMerkleRoot)
 	require.NotNil(t, leaf)
 	require.Equal(t, team.ID, leaf.TeamID, "team id")
 	require.Equal(t, team.chain().GetLatestSeqno(), leaf.Private.Seqno)
