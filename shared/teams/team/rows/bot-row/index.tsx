@@ -9,8 +9,6 @@ export type Props = {
   botAlias: string
   description: string
   onClick: () => void
-  onReAddToTeam: () => void
-  onRemoveFromTeam: () => void
   onShowTracker: () => void
   ownerTeam?: string
   ownerUser?: string
@@ -105,25 +103,6 @@ export const TeamBotRow = (props: Props) => {
 
 const styles = Styles.styleSheetCreate(() => ({
   buttonBarContainer: {...Styles.globalStyles.flexBoxRow, flexShrink: 1},
-  menuButtonDesktop: {
-    marginLeft: Styles.globalMargins.small,
-    marginRight: Styles.globalMargins.tiny,
-    padding: Styles.globalMargins.tiny,
-  },
-  menuButtonMobile: {
-    position: 'absolute',
-    right: 16,
-    top: 24,
-  },
-  menuButtonMobileSmallTop: {
-    top: 12,
-  },
-  menuIconContainer: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    flexShrink: 1,
-    height: '100%',
-  },
   clickable: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
@@ -160,6 +139,25 @@ const styles = Styles.styleSheetCreate(() => ({
     marginRight: Styles.globalMargins.xtiny,
     paddingLeft: Styles.globalMargins.xtiny,
     paddingRight: Styles.globalMargins.xtiny,
+  },
+  menuButtonDesktop: {
+    marginLeft: Styles.globalMargins.small,
+    marginRight: Styles.globalMargins.tiny,
+    padding: Styles.globalMargins.tiny,
+  },
+  menuButtonMobile: {
+    position: 'absolute',
+    right: 16,
+    top: 24,
+  },
+  menuButtonMobileSmallTop: {
+    top: 12,
+  },
+  menuIconContainer: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+    flexShrink: 1,
+    height: '100%',
   },
   nameContainer: {...Styles.globalStyles.flexBoxColumn, marginLeft: Styles.globalMargins.small},
   nameContainerInner: {...Styles.globalStyles.flexBoxRow, alignItems: 'center'},

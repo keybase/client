@@ -1,5 +1,4 @@
 import * as Constants from '../../../../constants/teams'
-import * as TeamsGen from '../../../../actions/teams-gen'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Tracker2Gen from '../../../../actions/tracker2-gen'
 import * as ProfileGen from '../../../../actions/profile-gen'
@@ -17,8 +16,6 @@ type OwnProps = {
 const blankInfo = Constants.initialMemberInfo
 
 type DispatchProps = {
-  _onReAddToTeam: (teamname: string, username: string) => void
-  _onRemoveFromTeam: (teamname: string, username: string) => void
   _onShowTracker: (username: string) => void
   onChat: () => void
   onClick: () => void
@@ -27,8 +24,8 @@ type DispatchProps = {
 export default connect(
   (state, {teamID, username}: OwnProps) => {
     const teamDetails = Constants.getTeamDetails(state, teamID)
-    const {members: map = new Map(), teamname} = teamDetails
-    const info = map.get(username) || blankInfo
+    const {members: map = new Map<string, Types.MemberInfo>(), teamname} = teamDetails
+    const info: Types.MemberInfo = map.get(username) || blankInfo
     const bot: RPCTypes.FeaturedBot = state.chat2.featuredBotsMap.get(username) ?? {
       botAlias: info.fullName,
       botUsername: username,
@@ -36,26 +33,17 @@ export default connect(
     }
 
     return {
+      ...bot,
       roleType: info.type,
       status: info.status,
       teamname,
       username: info.username,
       youCanManageMembers: Constants.getCanPerform(state, teamname).manageMembers,
-      ...bot,
+      ownerTeam: bot.ownerTeam || undefined,
+      ownerUser: bot.ownerUser || undefined,
     }
   },
   (dispatch, ownProps: OwnProps): DispatchProps => ({
-    _onReAddToTeam: (teamID: Types.TeamID, username: string) => {
-      dispatch(
-        TeamsGen.createReAddToTeam({
-          teamID,
-          username,
-        })
-      )
-    },
-    _onRemoveFromTeam: (teamname: string, username: string) => {
-      dispatch(TeamsGen.createRemoveMemberOrPendingInvite({email: '', inviteID: '', teamname, username}))
-    },
     _onShowTracker: (username: string) => {
       if (isMobile) {
         dispatch(ProfileGen.createShowUserProfile({username}))
@@ -76,8 +64,6 @@ export default connect(
     botAlias: stateProps.botAlias,
     description: stateProps.description,
     onClick: dispatchProps.onClick,
-    onReAddToTeam: () => dispatchProps._onReAddToTeam(ownProps.teamID, ownProps.username),
-    onRemoveFromTeam: () => dispatchProps._onRemoveFromTeam(stateProps.teamname, ownProps.username),
     onShowTracker: () => dispatchProps._onShowTracker(ownProps.username),
     ownerTeam: stateProps.ownerTeam,
     ownerUser: stateProps.ownerUser,
