@@ -54,28 +54,21 @@ const DesktopSendAttachmentToChat = (props: Props) => (
           <Kb.Text type="BodySmall">{Types.getPathName(props.path)}</Kb.Text>
         </Kb.Box2>
         <DesktopConversationDropdown dropdownButtonStyle={desktopStyles.dropdown} />
-        <Kb.Input
-          floatingHintTextOverride="Title"
+        <Kb.LabeledInput
+          placeholder="Title"
           value={props.title}
-          inputStyle={desktopStyles.input}
-          onChangeText={props.onSetTitle}
           style={desktopStyles.input}
+          onChangeText={props.onSetTitle}
         />
       </Kb.Box2>
-      <Kb.Box2
-        direction="horizontal"
-        centerChildren={true}
-        style={desktopStyles.footer}
-        fullWidth={true}
-        gap="tiny"
-      >
+      <Kb.ButtonBar fullWidth={true} style={desktopStyles.buttonBar}>
         <Kb.Button type="Dim" label="Cancel" onClick={props.onCancel} />
         <Kb.Button
           label="Send in conversation"
           onClick={props.send}
           disabled={props.sendAttachmentToChatState !== Types.SendAttachmentToChatState.ReadyToSend}
         />
-      </Kb.Box2>
+      </Kb.ButtonBar>
     </Kb.Box2>
   </>
 )
@@ -115,21 +108,21 @@ const desktopStyles = Styles.styleSheetCreate(
       belly: {
         ...Styles.globalStyles.flexGrow,
         alignItems: 'center',
+        marginBottom: Styles.globalMargins.small,
         paddingLeft: Styles.globalMargins.large,
         paddingRight: Styles.globalMargins.large,
       },
+      buttonBar: {alignItems: 'center'},
       container: Styles.platformStyles({
         isElectron: {
-          height: 480,
-          width: 560,
+          maxHeight: 560,
+          width: 400,
         },
       }),
       dropdown: {
         marginBottom: Styles.globalMargins.small,
         marginTop: Styles.globalMargins.mediumLarge,
-      },
-      footer: {
-        paddingBottom: Styles.globalMargins.large,
+        width: '100%',
       },
       header: {
         paddingTop: Styles.globalMargins.mediumLarge,
