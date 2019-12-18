@@ -291,19 +291,20 @@ func (b *batchingStore) PutMetadata(ctx context.Context, convID chat1.Conversati
 
 func (b *batchingStore) Flush() (err error) {
 	ctx := context.Background()
-	defer b.Trace(context.Background(), func() error { return err }, "flush")()
 	b.Lock()
+	if len(b.tokenBatch) == 0 && len(b.aliasBatch) == 0 && len(b.mdBatch) == 0 {
+		b.Unlock()
+		return nil
+	}
 	aliasBatch := b.aliasBatch
 	tokenBatch := b.tokenBatch
 	mdBatch := b.mdBatch
 	b.resetLocked()
 	b.Unlock()
 
+	defer b.Trace(context.Background(), func() error { return err }, "Flush")()
 	b.flushMu.Lock()
 	defer b.flushMu.Unlock()
-	if len(tokenBatch) == 0 && len(aliasBatch) == 0 && len(mdBatch) == 0 {
-		return nil
-	}
 	b.Debug(ctx, "Flush: flushing tokens from %d convs", len(tokenBatch))
 	for _, tokenBatch := range tokenBatch {
 		b.Debug(ctx, "Flush: flushing %d tokens from %s", len(tokenBatch.tokens), tokenBatch.convID)
@@ -558,7 +559,7 @@ func (s *store) getTokenEntry(ctx context.Context, convID chat1.ConversationID, 
 	}
 	defer func() {
 		if err == nil {
-			s.tokenCache.Add(cacheKey, res)
+			s.tokenCache.Add(cacheKey, res.dup())
 		}
 	}()
 	if res, err = s.diskStorage.GetTokenEntry(ctx, convID, token); err != nil {
@@ -580,7 +581,7 @@ func (s *store) getAliasEntry(ctx context.Context, alias string) (res *aliasEntr
 	}
 	defer func() {
 		if err == nil {
-			s.aliasCache.Add(alias, res)
+			s.aliasCache.Add(alias, res.dup())
 		}
 	}()
 	if res, err = s.diskStorage.GetAliasEntry(ctx, alias); err != nil {
@@ -600,7 +601,7 @@ func (s *store) putTokenEntry(ctx context.Context, convID chat1.ConversationID,
 	token string, te *tokenEntry) (err error) {
 	defer func() {
 		if err == nil {
-			s.tokenCache.Add(s.tokenCacheKey(convID, token), te)
+			s.tokenCache.Add(s.tokenCacheKey(convID, token), te.dup())
 		}
 	}()
 	return s.diskStorage.PutTokenEntry(ctx, convID, token, te)
@@ -609,7 +610,7 @@ func (s *store) putTokenEntry(ctx context.Context, convID chat1.ConversationID,
 func (s *store) putAliasEntry(ctx context.Context, alias string, ae *aliasEntry) (err error) {
 	defer func() {
 		if err == nil {
-			s.aliasCache.Add(alias, ae)
+			s.aliasCache.Add(alias, ae.dup())
 		}
 	}()
 	return s.diskStorage.PutAliasEntry(ctx, alias, ae)

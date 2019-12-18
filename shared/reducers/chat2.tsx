@@ -1196,11 +1196,8 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     draftState.staticConfig = action.payload.staticConfig
   },
   [Chat2Gen.metasReceived]: (draftState, action) => {
-    const {fromInboxRefresh, metas, initialTrustedLoad, removals} = action.payload
+    const {metas, initialTrustedLoad, removals} = action.payload
     const {draftMap, mutedMap, metaMap} = draftState
-    if (fromInboxRefresh) {
-      draftState.inboxHasLoaded = true
-    }
     if (initialTrustedLoad) {
       draftState.trustedInboxHasLoaded = true
     }
@@ -1221,6 +1218,10 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     removals && removals.forEach(m => metaMap.delete(m))
     metas.forEach(m => {
       const old = metaMap.get(m.conversationIDKey)
+      logger.info(
+        `metasReceived: convID: ${m.conversationIDKey} name: ${m.tlfname} hasOld: ${!!old} hasParts: ${m
+          .participants.length > 0} vers: ${m.inboxVersion} oldVers: ${old?.inboxVersion}`
+      )
       metaMap.set(m.conversationIDKey, old ? Constants.updateMeta(old, m) : m)
     })
   },
