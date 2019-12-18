@@ -187,10 +187,10 @@ func testHiddenLoadFailsIfServerDoesntCommitLinks(t *testing.T) bool {
 type CorruptingMockLoaderContext struct {
 	LoaderContext
 
-	merkleCorruptorFunc func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, error)
+	merkleCorruptorFunc func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, lastMerkleRoot *libkb.MerkleRoot, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, *libkb.MerkleRoot, error)
 }
 
-func (c CorruptingMockLoaderContext) merkleLookupWithHidden(ctx context.Context, teamID keybase1.TeamID, public bool) (r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, err error) {
+func (c CorruptingMockLoaderContext) merkleLookupWithHidden(ctx context.Context, teamID keybase1.TeamID, public bool) (r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, lastMerkleRoot *libkb.MerkleRoot, err error) {
 	return c.merkleCorruptorFunc(c.LoaderContext.merkleLookupWithHidden(ctx, teamID, public))
 }
 
@@ -218,12 +218,12 @@ func TestHiddenLoadFailsIfServerRollsbackUncommittedSeqno(t *testing.T) {
 	newLoader := tcs[1].G.GetTeamLoader()
 	newLoader.(*TeamLoader).world = CorruptingMockLoaderContext{
 		LoaderContext: newLoader.(*TeamLoader).world,
-		merkleCorruptorFunc: func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, error) {
+		merkleCorruptorFunc: func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, lastMerkleRoot *libkb.MerkleRoot, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, *libkb.MerkleRoot, error) {
 			if hiddenResp != nil && hiddenResp.UncommittedSeqno >= 1 {
 				hiddenResp.UncommittedSeqno--
 				t.Logf("Simulating malicious server: updating hiddenResp.UncommittedSeqno (new value %v)", hiddenResp.UncommittedSeqno)
 			}
-			return r1, r2, hiddenResp, err
+			return r1, r2, hiddenResp, lastMerkleRoot, err
 		},
 	}
 	tcs[1].G.SetTeamLoader(newLoader)
@@ -257,12 +257,12 @@ func TestHiddenLoadFailsIfServerDoesNotReturnPromisedLinks(t *testing.T) {
 	newLoader := tcs[1].G.GetTeamLoader()
 	newLoader.(*TeamLoader).world = CorruptingMockLoaderContext{
 		LoaderContext: newLoader.(*TeamLoader).world,
-		merkleCorruptorFunc: func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, error) {
+		merkleCorruptorFunc: func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, lastMerkleRoot *libkb.MerkleRoot, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, *libkb.MerkleRoot, error) {
 			if hiddenResp != nil && hiddenResp.UncommittedSeqno >= 1 {
 				hiddenResp.UncommittedSeqno += 5
 				t.Logf("Simulating malicious server: updating hiddenResp.UncommittedSeqno (new value %v)", hiddenResp.UncommittedSeqno)
 			}
-			return r1, r2, hiddenResp, err
+			return r1, r2, hiddenResp, lastMerkleRoot, err
 		},
 	}
 	tcs[1].G.SetTeamLoader(newLoader)
@@ -301,11 +301,11 @@ func TestHiddenLoadFailsIfHiddenTailIsTamperedAfterFirstLoad(t *testing.T) {
 	defaultWorld := teamLoader.world
 	teamLoader.world = CorruptingMockLoaderContext{
 		LoaderContext: defaultWorld,
-		merkleCorruptorFunc: func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, error) {
+		merkleCorruptorFunc: func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, lastMerkleRoot *libkb.MerkleRoot, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, *libkb.MerkleRoot, error) {
 			if hiddenResp != nil {
 				hiddenResp.RespType = 111
 			}
-			return r1, r2, hiddenResp, err
+			return r1, r2, hiddenResp, lastMerkleRoot, err
 		},
 	}
 	tcs[1].G.SetTeamLoader(teamLoader)
@@ -319,11 +319,11 @@ func TestHiddenLoadFailsIfHiddenTailIsTamperedAfterFirstLoad(t *testing.T) {
 	// now load the team again, but this time we change the response from the server by altering the hidden tail
 	teamLoader.world = CorruptingMockLoaderContext{
 		LoaderContext: defaultWorld,
-		merkleCorruptorFunc: func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, error) {
+		merkleCorruptorFunc: func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, lastMerkleRoot *libkb.MerkleRoot, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, *libkb.MerkleRoot, error) {
 			if hiddenResp != nil {
 				hiddenResp.CommittedHiddenTail.Seqno += 5
 			}
-			return r1, r2, hiddenResp, err
+			return r1, r2, hiddenResp, lastMerkleRoot, err
 		},
 	}
 	tcs[1].G.SetTeamLoader(teamLoader)
@@ -337,11 +337,11 @@ func TestHiddenLoadFailsIfHiddenTailIsTamperedAfterFirstLoad(t *testing.T) {
 	// now load the team again, but this time we change the response from the server by altering the hidden tail hash
 	teamLoader.world = CorruptingMockLoaderContext{
 		LoaderContext: defaultWorld,
-		merkleCorruptorFunc: func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, error) {
+		merkleCorruptorFunc: func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, lastMerkleRoot *libkb.MerkleRoot, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, *libkb.MerkleRoot, error) {
 			if hiddenResp != nil {
 				hiddenResp.CommittedHiddenTail.Hash[0] ^= 0xff
 			}
-			return r1, r2, hiddenResp, err
+			return r1, r2, hiddenResp, lastMerkleRoot, err
 		},
 	}
 	tcs[1].G.SetTeamLoader(teamLoader)
@@ -356,12 +356,12 @@ func TestHiddenLoadFailsIfHiddenTailIsTamperedAfterFirstLoad(t *testing.T) {
 	// now load the team again, but this time we change the response from the server into an absence proof
 	teamLoader.world = CorruptingMockLoaderContext{
 		LoaderContext: defaultWorld,
-		merkleCorruptorFunc: func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, error) {
+		merkleCorruptorFunc: func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, lastMerkleRoot *libkb.MerkleRoot, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, *libkb.MerkleRoot, error) {
 			if hiddenResp != nil {
 				hiddenResp.RespType = libkb.MerkleHiddenResponseTypeABSENCEPROOF
 				hiddenResp.CommittedHiddenTail = nil
 			}
-			return r1, r2, hiddenResp, err
+			return r1, r2, hiddenResp, lastMerkleRoot, err
 		},
 	}
 	tcs[1].G.SetTeamLoader(teamLoader)
@@ -375,11 +375,11 @@ func TestHiddenLoadFailsIfHiddenTailIsTamperedAfterFirstLoad(t *testing.T) {
 	// now load the team again, but this time we change the response from the server by altering the hidden response type
 	teamLoader.world = CorruptingMockLoaderContext{
 		LoaderContext: defaultWorld,
-		merkleCorruptorFunc: func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, error) {
+		merkleCorruptorFunc: func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, lastMerkleRoot *libkb.MerkleRoot, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, *libkb.MerkleRoot, error) {
 			if hiddenResp != nil {
 				hiddenResp.RespType = libkb.MerkleHiddenResponseTypeNONE
 			}
-			return r1, r2, hiddenResp, err
+			return r1, r2, hiddenResp, lastMerkleRoot, err
 		},
 	}
 	tcs[1].G.SetTeamLoader(teamLoader)
@@ -400,11 +400,11 @@ func TestHiddenLoadFailsIfHiddenTailIsTamperedAfterFirstLoad(t *testing.T) {
 	// now load the team again, but this time we change the response from the server by rolling back the uncommitted seqno
 	teamLoader.world = CorruptingMockLoaderContext{
 		LoaderContext: defaultWorld,
-		merkleCorruptorFunc: func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, error) {
+		merkleCorruptorFunc: func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, lastMerkleRoot *libkb.MerkleRoot, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, *libkb.MerkleRoot, error) {
 			if hiddenResp != nil {
 				hiddenResp.CommittedHiddenTail.Seqno = 1
 			}
-			return r1, r2, hiddenResp, err
+			return r1, r2, hiddenResp, lastMerkleRoot, err
 		},
 	}
 	tcs[1].G.SetTeamLoader(teamLoader)
@@ -446,11 +446,11 @@ func TestHiddenLoadFailsIfHiddenTailIsTamperedBeforeFirstLoad(t *testing.T) {
 	defaultWorld := teamLoader.world
 	teamLoader.world = CorruptingMockLoaderContext{
 		LoaderContext: defaultWorld,
-		merkleCorruptorFunc: func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, error) {
+		merkleCorruptorFunc: func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, lastMerkleRoot *libkb.MerkleRoot, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, *libkb.MerkleRoot, error) {
 			if hiddenResp != nil {
 				hiddenResp.CommittedHiddenTail.Hash[0] ^= 0xff
 			}
-			return r1, r2, hiddenResp, err
+			return r1, r2, hiddenResp, lastMerkleRoot, err
 		},
 	}
 	tcs[2].G.SetTeamLoader(teamLoader)
@@ -568,12 +568,12 @@ func TestFTLFailsIfServerRollsbackUncommittedSeqno(t *testing.T) {
 	newLoader := tcs[1].G.GetFastTeamLoader()
 	newLoader.(*FastTeamChainLoader).world = CorruptingMockLoaderContext{
 		LoaderContext: newLoader.(*FastTeamChainLoader).world,
-		merkleCorruptorFunc: func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, error) {
+		merkleCorruptorFunc: func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, lastMerkleRoot *libkb.MerkleRoot, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, *libkb.MerkleRoot, error) {
 			if hiddenResp != nil && hiddenResp.UncommittedSeqno >= 1 {
 				hiddenResp.UncommittedSeqno--
 				t.Logf("Simulating malicious server: updating hiddenResp.UncommittedSeqno (new value %v)", hiddenResp.UncommittedSeqno)
 			}
-			return r1, r2, hiddenResp, err
+			return r1, r2, hiddenResp, lastMerkleRoot, err
 		},
 	}
 	tcs[1].G.SetFastTeamLoader(newLoader)
@@ -610,12 +610,12 @@ func TestFTLFailsIfServerDoesNotReturnPromisedLinks(t *testing.T) {
 	newLoader := tcs[1].G.GetFastTeamLoader()
 	newLoader.(*FastTeamChainLoader).world = CorruptingMockLoaderContext{
 		LoaderContext: newLoader.(*FastTeamChainLoader).world,
-		merkleCorruptorFunc: func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, error) {
+		merkleCorruptorFunc: func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, lastMerkleRoot *libkb.MerkleRoot, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, *libkb.MerkleRoot, error) {
 			if hiddenResp != nil && hiddenResp.UncommittedSeqno >= 1 {
 				hiddenResp.UncommittedSeqno += 5
 				t.Logf("Simulating malicious server: updating hiddenResp.UncommittedSeqno (new value %v)", hiddenResp.UncommittedSeqno)
 			}
-			return r1, r2, hiddenResp, err
+			return r1, r2, hiddenResp, lastMerkleRoot, err
 		},
 	}
 	tcs[1].G.SetFastTeamLoader(newLoader)
@@ -655,11 +655,11 @@ func TestFTLFailsIfHiddenTailIsTamperedAfterFirstLoad(t *testing.T) {
 	world := ftl.world
 	ftl.world = CorruptingMockLoaderContext{
 		LoaderContext: world,
-		merkleCorruptorFunc: func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, error) {
+		merkleCorruptorFunc: func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, lastMerkleRoot *libkb.MerkleRoot, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, *libkb.MerkleRoot, error) {
 			if hiddenResp != nil {
 				hiddenResp.CommittedHiddenTail.Seqno += 5
 			}
-			return r1, r2, hiddenResp, err
+			return r1, r2, hiddenResp, lastMerkleRoot, err
 		},
 	}
 	tcs[1].G.SetFastTeamLoader(ftl)
@@ -675,11 +675,11 @@ func TestFTLFailsIfHiddenTailIsTamperedAfterFirstLoad(t *testing.T) {
 	// now load the team again, but this time we change the response from the server by altering the hidden tail hash
 	ftl.world = CorruptingMockLoaderContext{
 		LoaderContext: world,
-		merkleCorruptorFunc: func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, error) {
+		merkleCorruptorFunc: func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, lastMerkleRoot *libkb.MerkleRoot, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, *libkb.MerkleRoot, error) {
 			if hiddenResp != nil {
 				hiddenResp.CommittedHiddenTail.Hash[0] ^= 0xff
 			}
-			return r1, r2, hiddenResp, err
+			return r1, r2, hiddenResp, lastMerkleRoot, err
 		},
 	}
 	tcs[1].G.SetFastTeamLoader(ftl)
@@ -696,12 +696,12 @@ func TestFTLFailsIfHiddenTailIsTamperedAfterFirstLoad(t *testing.T) {
 	// now load the team again, but this time we change the response type of the server
 	ftl.world = CorruptingMockLoaderContext{
 		LoaderContext: world,
-		merkleCorruptorFunc: func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, error) {
+		merkleCorruptorFunc: func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, lastMerkleRoot *libkb.MerkleRoot, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, *libkb.MerkleRoot, error) {
 			if hiddenResp != nil {
 				hiddenResp.RespType = libkb.MerkleHiddenResponseTypeABSENCEPROOF
 				hiddenResp.CommittedHiddenTail = nil
 			}
-			return r1, r2, hiddenResp, err
+			return r1, r2, hiddenResp, lastMerkleRoot, err
 		},
 	}
 	tcs[1].G.SetFastTeamLoader(ftl)
@@ -717,11 +717,11 @@ func TestFTLFailsIfHiddenTailIsTamperedAfterFirstLoad(t *testing.T) {
 	// now load the team again, but this time we change the response from the server by altering the response type
 	ftl.world = CorruptingMockLoaderContext{
 		LoaderContext: world,
-		merkleCorruptorFunc: func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, error) {
+		merkleCorruptorFunc: func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, lastMerkleRoot *libkb.MerkleRoot, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, *libkb.MerkleRoot, error) {
 			if hiddenResp != nil {
 				hiddenResp.RespType = libkb.MerkleHiddenResponseTypeNONE
 			}
-			return r1, r2, hiddenResp, err
+			return r1, r2, hiddenResp, lastMerkleRoot, err
 		},
 	}
 	tcs[1].G.SetFastTeamLoader(ftl)
@@ -763,12 +763,12 @@ func TestFTLFailsIfHiddenTailIsTamperedBeforeFirstLoad(t *testing.T) {
 	world := ftl.world
 	ftl.world = CorruptingMockLoaderContext{
 		LoaderContext: world,
-		merkleCorruptorFunc: func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, error) {
+		merkleCorruptorFunc: func(r1 keybase1.Seqno, r2 keybase1.LinkID, hiddenResp *libkb.MerkleHiddenResponse, lastMerkleRoot *libkb.MerkleRoot, err error) (keybase1.Seqno, keybase1.LinkID, *libkb.MerkleHiddenResponse, *libkb.MerkleRoot, error) {
 			if hiddenResp != nil {
 				t.Logf("hiddenResp %v cit %v", hiddenResp, hiddenResp.CommittedHiddenTail)
 				hiddenResp.CommittedHiddenTail.Hash[0] ^= 0xff
 			}
-			return r1, r2, hiddenResp, err
+			return r1, r2, hiddenResp, lastMerkleRoot, err
 		},
 	}
 	tcs[2].G.SetFastTeamLoader(ftl)

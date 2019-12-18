@@ -48,10 +48,13 @@ func (s *outboxBaseboxStorage) readStorage(ctx context.Context) (res diskOutbox,
 
 	if memobox := outboxMemCache.Get(s.uid); memobox != nil {
 		s.Debug(ctx, "hit in memory cache")
-		res = *memobox
+		res = (*memobox).DeepCopy()
 	} else {
 		found, ierr := s.readDiskBox(ctx, s.dbKey(), &res)
 		if ierr != nil {
+			if _, ok := ierr.(libkb.LoginRequiredError); ok {
+				return res, MiscError{Msg: ierr.Error()}
+			}
 			return res, NewInternalError(ctx, s.DebugLabeler, "failure to read chat outbox: %s", ierr)
 		}
 		if !found {
