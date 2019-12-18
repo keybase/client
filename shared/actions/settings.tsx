@@ -567,6 +567,38 @@ const contactSettingsRefresh = async (state: TypedState) => {
   }
 }
 
+const contactSettingsSaved = async (state: TypedState, action: SettingsGen.ContactSettingsSavedPayload) => {
+  if (!state.config.loggedIn) {
+    return false
+  }
+
+  // Convert the selected teams object into the RPC format.
+  const {enabled, indirectFollowees, teamsEnabled, teamsList} = action.payload
+  const teams = Object.entries(teamsList).map(([teamID, enabled]) => ({
+    allowFolloweesOfTeamMembers: false,
+    enabled,
+    teamID,
+  }))
+  const settings = enabled
+    ? {
+        enabled: true,
+        allowFolloweeDegrees: indirectFollowees ? 2 : 1,
+        teams: teamsEnabled ? teams : null,
+      }
+    : {
+        enabled: false,
+        allowFolloweeDegrees: 1,
+      }
+  try {
+    await RPCTypes.accountUserSetContactSettingsRpcPromise({settings}, Constants.contactSettingsWaitingKey)
+    return SettingsGen.createContactSettingsRefresh()
+  } catch (_) {
+    return SettingsGen.createContactSettingsError({
+      error: 'Unable to save contact settings, please try again.',
+    })
+  }
+}
+
 const unfurlSettingsRefresh = async (state: TypedState) => {
   if (!state.config.loggedIn) {
     return false
@@ -793,6 +825,8 @@ function* settingsSaga() {
   yield* Saga.chainAction2(SettingsGen.onChangeLockdownMode, setLockdownMode)
   yield* Saga.chainAction2(SettingsGen.sendFeedback, sendFeedback)
   yield* Saga.chainAction2(SettingsGen.contactSettingsRefresh, contactSettingsRefresh)
+  yield* Saga.chainAction2(SettingsGen.contactSettingsRefresh, contactSettingsRefresh)
+  yield* Saga.chainAction2(SettingsGen.contactSettingsSaved, contactSettingsSaved)
   yield* Saga.chainAction2(SettingsGen.unfurlSettingsRefresh, unfurlSettingsRefresh)
   yield* Saga.chainAction2(SettingsGen.unfurlSettingsSaved, unfurlSettingsSaved)
   yield* Saga.chainAction2(SettingsGen.loadHasRandomPw, loadHasRandomPW)

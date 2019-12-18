@@ -16,7 +16,8 @@ const props = {
   contactSettingsDirectFollowees: true,
   contactSettingsEnabled: true,
   contactSettingsIndirectFollowees: true,
-  teams: [],
+  contactSettingsSelectedTeams: {},
+  teamDetails: [],
   unfurlMode: RPCChatTypes.UnfurlMode.whitelisted,
   unfurlWhitelist: [
     'amazon.com',
@@ -40,7 +41,8 @@ const loadErrorProps = {
   contactSettingsDirectFollowees: false,
   contactSettingsEnabled: false,
   contactSettingsIndirectFollowees: false,
-  teams: [],
+  contactSettingsSelectedTeams: {},
+  teamDetails: [],
   unfurlError: 'Unable to load link preview settings, please try again.',
   ...actions,
 }

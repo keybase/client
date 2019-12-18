@@ -21,6 +21,7 @@ export const clearPhoneNumberErrors = 'settings:clearPhoneNumberErrors'
 export const contactSettingsError = 'settings:contactSettingsError'
 export const contactSettingsRefresh = 'settings:contactSettingsRefresh'
 export const contactSettingsRefreshed = 'settings:contactSettingsRefreshed'
+export const contactSettingsSaved = 'settings:contactSettingsSaved'
 export const dbNuke = 'settings:dbNuke'
 export const deleteAccountForever = 'settings:deleteAccountForever'
 export const editContactImportEnabled = 'settings:editContactImportEnabled'
@@ -103,6 +104,12 @@ type _ClearPhoneNumberErrorsPayload = void
 type _ContactSettingsErrorPayload = {readonly error: string}
 type _ContactSettingsRefreshPayload = void
 type _ContactSettingsRefreshedPayload = {readonly settings: RPCTypes.ContactSettings}
+type _ContactSettingsSavedPayload = {
+  readonly enabled: boolean
+  readonly indirectFollowees: boolean
+  readonly teamsEnabled: boolean
+  readonly teamsList: Types.ContactSettingsTeamsList
+}
 type _DbNukePayload = void
 type _DeleteAccountForeverPayload = void
 type _EditContactImportEnabledPayload = {readonly enable: boolean; readonly fromSettings?: boolean}
@@ -254,6 +261,12 @@ export const createUnfurlSettingsRefresh = (
 export const createContactSettingsRefreshed = (
   payload: _ContactSettingsRefreshedPayload
 ): ContactSettingsRefreshedPayload => ({payload, type: contactSettingsRefreshed})
+/**
+ * Refreshed Chat contact settings available
+ */
+export const createContactSettingsSaved = (
+  payload: _ContactSettingsSavedPayload
+): ContactSettingsSavedPayload => ({payload, type: contactSettingsSaved})
 /**
  * Refreshed unfurl settings available
  */
@@ -542,6 +555,10 @@ export type ContactSettingsRefreshedPayload = {
   readonly payload: _ContactSettingsRefreshedPayload
   readonly type: typeof contactSettingsRefreshed
 }
+export type ContactSettingsSavedPayload = {
+  readonly payload: _ContactSettingsSavedPayload
+  readonly type: typeof contactSettingsSaved
+}
 export type DbNukePayload = {readonly payload: _DbNukePayload; readonly type: typeof dbNuke}
 export type DeleteAccountForeverPayload = {
   readonly payload: _DeleteAccountForeverPayload
@@ -778,6 +795,7 @@ export type Actions =
   | ContactSettingsErrorPayload
   | ContactSettingsRefreshPayload
   | ContactSettingsRefreshedPayload
+  | ContactSettingsSavedPayload
   | DbNukePayload
   | DeleteAccountForeverPayload
   | EditContactImportEnabledPayload

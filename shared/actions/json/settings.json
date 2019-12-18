@@ -202,6 +202,13 @@
       "_description": "Refreshed Chat contact settings available",
       "settings": "RPCTypes.ContactSettings"
     },
+    "contactSettingsSaved": {
+      "_description": "Refreshed Chat contact settings available",
+      "enabled": "boolean",
+      "indirectFollowees": "boolean",
+      "teamsEnabled": "boolean",
+      "teamsList": "Types.ContactSettingsTeamsList"
+    },
     "loadHasRandomPw": {},
     "loadedHasRandomPw": {
       "randomPW": "boolean"
