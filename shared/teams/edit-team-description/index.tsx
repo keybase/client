@@ -31,10 +31,9 @@ const EditTeamDescription = ({
       onChangeText={onChangeDescription}
       value={description}
       multiline={true}
-      // style={{alignSelf: 'stretch', flexGrow: 1}}
       autoFocus={true}
     />
-    <Kb.ButtonBar>
+    <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
       <Kb.Button label="Cancel" onClick={onClose} type="Dim" />
       <Kb.WaitingButton
         disabled={description === origDescription}
@@ -47,8 +46,19 @@ const EditTeamDescription = ({
 )
 
 const styles = Styles.styleSheetCreate(() => ({
-  container: {padding: Styles.globalMargins.large},
-  title: {paddingBottom: Styles.globalMargins.medium, paddingTop: Styles.globalMargins.xtiny},
+  buttonBar: {alignItems: 'center'},
+  container: Styles.platformStyles({
+    common: {...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.small, 0)},
+    isElectron: {
+      maxHeight: 560,
+      width: 400,
+    },
+    isMobile: {width: '100%'},
+  }),
+  title: {
+    paddingBottom: Styles.globalMargins.medium,
+    paddingTop: Styles.globalMargins.xtiny,
+  },
 }))
 
 export default EditTeamDescription
