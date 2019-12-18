@@ -22,13 +22,9 @@ let _lastSent:
       conversation: ChatTypes.ConversationMeta
     }>
   | undefined
-let _lastSentCompare: any
 
 const changed = (state: TypedState) => {
   if (!_lastSent) {
-    return true
-  }
-  if (!_lastSentCompare) {
     return true
   }
 
@@ -37,7 +33,7 @@ const changed = (state: TypedState) => {
     return true
   }
 
-  if (wl?.some((w, idx) => w.snippet !== _lastSent[idx]?.conversation?.snippet)) {
+  if (wl?.some((w, idx) => w.snippet !== _lastSent?.[idx]?.conversation?.snippet)) {
     return true
   }
 
