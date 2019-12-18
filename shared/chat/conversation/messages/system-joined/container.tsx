@@ -11,10 +11,10 @@ type OwnProps = {
 
 export default Container.connect(
   (state, {message}: OwnProps) => ({
+    _joiners: message.joiners,
     _meta: Constants.getMeta(state, message.conversationIDKey),
     author: message.author,
     authorIsYou: state.config.username === message.author,
-    joiners: !message.joiners.length && !message.leavers.length ? [message.author] : message.joiners,
     leavers: message.leavers,
     timestamp: message.timestamp,
   }),
@@ -44,7 +44,8 @@ export default Container.connect(
       authorIsYou: stateProps.authorIsYou,
       channelname: _meta.channelname,
       isBigTeam: _meta.teamType === 'big',
-      joiners: stateProps.joiners,
+      joiners:
+        !stateProps._joiners.length && !stateProps.leavers.length ? [stateProps.author] : stateProps._joiners,
       leavers: stateProps.leavers,
       onAuthorClick: () => dispatchProps._onAuthorClick(stateProps.author),
       onManageChannels: () => dispatchProps._onManageChannels(_meta.teamname),
