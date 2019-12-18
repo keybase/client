@@ -378,7 +378,7 @@ func TestJournalMDOpsLocalSquashBranch(t *testing.T) {
 	firstRevision := kbfsmd.Revision(1)
 	initialRmd := makeMDForJournalMDOpsTest(t, config, id, h, firstRevision)
 	j := tlfJournal.mdJournal
-	initialMdID, err := j.put(ctx, config.Crypto(), config.KeyManager(),
+	initialMdID, _, err := j.put(ctx, config.Crypto(), config.KeyManager(),
 		config.BlockSplitter(), initialRmd, true)
 	require.NoError(t, err)
 
@@ -391,7 +391,7 @@ func TestJournalMDOpsLocalSquashBranch(t *testing.T) {
 			config.Codec(), config.KeyManager(),
 			config.KBPKI(), config.KBPKI(), config, mdID, true)
 		require.NoError(t, err)
-		mdID, err = j.put(ctx, config.Crypto(), config.KeyManager(),
+		mdID, _, err = j.put(ctx, config.Crypto(), config.KeyManager(),
 			config.BlockSplitter(), rmd, false)
 		require.NoError(t, err)
 	}

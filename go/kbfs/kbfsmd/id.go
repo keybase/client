@@ -99,6 +99,11 @@ func (id *ID) UnmarshalText(buf []byte) error {
 	return id.UnmarshalBinary(bytes)
 }
 
+// IsValid returns whether the ID is valid.
+func (id ID) IsValid() bool {
+	return id.h.IsValid()
+}
+
 // ParseID parses a hex encoded ID. Returns ID{} and an InvalidIDError
 // on failure.
 func ParseID(s string) (ID, error) {
