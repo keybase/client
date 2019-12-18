@@ -118,8 +118,8 @@ const styles = Styles.styleSheetCreate(
         paddingRight: Styles.globalMargins.medium,
       },
       imageLower: {
-        marginTop: Styles.isMobile ? -20 : 39,
         marginLeft: Styles.isMobile ? -65 : undefined,
+        marginTop: Styles.isMobile ? -20 : 39,
       },
       link: {color: Styles.isMobile ? Styles.globalColors.blueLighter : undefined},
       textContainer: {padding: Styles.globalMargins.medium},
