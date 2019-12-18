@@ -17,11 +17,11 @@ type InnerProps = {
   text: string
 }
 
-const NewCard = (props: Props) => {
+const NewCard = (outerProps: Props) => {
   const iconEncrypted: Kb.IconType = 'icon-illustration-encrypted-116-96'
   const iconSecure: Kb.IconType = 'icon-illustration-secure-116-96'
-  const innerProps = props.self ? {
-    action: props.openPrivateFolder,
+  const props: InnerProps = outerProps.self ? {
+    action: outerProps.openPrivateFolder,
     icon: iconSecure,
     imageLower: true,
     label: 'Open your private folder',
@@ -33,11 +33,7 @@ const NewCard = (props: Props) => {
     label: 'Read more',
     text: 'This conversation is end-to-end encrypted.',
   }
-  return (<NewCardInner {...innerProps} />)
-}
-
-const NewCardInner = (props: InnerProps) => (
-  <Kb.Box2 direction="horizontal" style={Styles.collapseStyles([styles.container, props.tall ? styles.containerTall : null])} alignItems="flex-start">
+  return (<Kb.Box2 direction="horizontal" style={Styles.collapseStyles([styles.container, props.tall ? styles.containerTall : null])} alignItems="flex-start">
     <Kb.Box2 direction="vertical" gap="xtiny" fullHeight={true} style={styles.textContainer}>
       <Kb.Text type="BodySmallSemibold" style={styles.header} negative={true}>
         {props.text}
@@ -68,8 +64,8 @@ const NewCardInner = (props: InnerProps) => (
       </Kb.ClickableBox>
     </Kb.Box2>
     <Kb.Icon type={props.icon} style={Styles.collapseStyles([styles.image, props.imageLower ? styles.imageLower : null])} />
-  </Kb.Box2>
-)
+  </Kb.Box2>)
+}
 
 const styles = Styles.styleSheetCreate(
   () =>
