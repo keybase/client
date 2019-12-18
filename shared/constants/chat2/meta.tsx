@@ -143,7 +143,7 @@ export const updateMeta = (
   oldMeta: Types.ConversationMeta,
   newMeta: Types.ConversationMeta
 ): Types.ConversationMeta => {
-  if (newMeta.inboxVersion < oldMeta.inboxVersion) {
+  if (newMeta.inboxVersion < oldMeta.inboxVersion && oldMeta.participants.length > 0) {
     // new is older, keep old
     return oldMeta
   } else if (oldMeta.inboxVersion === newMeta.inboxVersion) {

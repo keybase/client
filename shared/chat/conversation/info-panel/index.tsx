@@ -187,10 +187,7 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
     if (entityType !== 'adhoc') {
       res.push(
         <Kb.Box2 key="members" style={styles.tabTextContainer} direction="horizontal">
-          <TabText
-            selected={this.isSelected('members')}
-            text={`Members (${this.props.participants.length})`}
-          />
+          <TabText selected={this.isSelected('members')} text="Members" />
         </Kb.Box2>
       )
     }
@@ -202,10 +199,7 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
     if (flags.botUI) {
       res.push(
         <Kb.Box2 key="bots" style={styles.tabTextContainer} direction="horizontal">
-          <TabText
-            selected={this.isSelected('bots')}
-            text={this.props.bots.length > 0 ? `Bots (${this.props.bots.length})` : 'Bots'}
-          />
+          <TabText selected={this.isSelected('bots')} text="Bots" />
         </Kb.Box2>
       )
     }
