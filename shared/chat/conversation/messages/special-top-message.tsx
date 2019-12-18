@@ -73,7 +73,14 @@ class TopMessage extends React.PureComponent<Props> {
           !this.props.showRetentionNotice &&
           this.props.pendingState === 'done' && (
             <Kb.Box style={styles.more}>
-              {this.props.isHelloBotConversation ? <HelloBotCard /> : <NewChatCard self={this.props.isSelfConversation} openPrivateFolder={this.props.openPrivateFolder} />}
+              {this.props.isHelloBotConversation ? (
+                <HelloBotCard />
+              ) : (
+                <NewChatCard
+                  self={this.props.isSelfConversation}
+                  openPrivateFolder={this.props.openPrivateFolder}
+                />
+              )}
             </Kb.Box>
           )}
         {this.props.showTeamOffer && (
@@ -175,8 +182,11 @@ export default Container.namedConnect(
       username: state.config.username,
     }
   },
-  (dispatch) => ({
-    _openPrivateFolder: (username: string) => dispatch( FsConstants.makeActionForOpenPathInFilesTab( FsTypes.stringToPath(`/keybase/private/${username}`)))
+  dispatch => ({
+    _openPrivateFolder: (username: string) =>
+      dispatch(
+        FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/private/${username}`))
+      ),
   }),
   (stateProps, dispatchProps, __: OwnProps) => {
     const {username, ...props} = stateProps

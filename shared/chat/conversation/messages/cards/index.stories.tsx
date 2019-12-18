@@ -5,7 +5,7 @@ import NewChat from './new-chat'
 import HelloBot from './hello-bot'
 import MakeTeam from './make-team'
 
-const openPrivateFolder = Sb.action("openPrivateFolder")
+const openPrivateFolder = Sb.action('openPrivateFolder')
 
 const load = () => {
   Sb.storiesOf('Chat/Conversation/Cards', module)
