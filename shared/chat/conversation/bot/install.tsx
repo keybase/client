@@ -2,25 +2,31 @@ import * as React from 'react'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import * as TeamTypes from '../../../constants/teams'
 
-type Props = Container.RouteProps<{botUsername: string; name: string}>
-
-const BotPopup = (props: Props) => {}
-
-type DescribeBotProps = {
-  botUsername: string
+type Origin = {
   name: string
+  isTeam: boolean
 }
 
-const DescribeBot = (props: Props) => {
-  const botUsername = Container.getRouteProps(props, 'botUsername', '')
-  const name = Container.getRouteProps(props, 'name', '')
+type Props = Container.RouteProps<{botUsername: string; origin?: Origin}>
 
+const InstallBotPopup = (props: Props) => {
+  const botUsername = Container.getRouteProps(props, 'botUsername', '')
+  const origin = Container.getRouteProps(props, 'origin', undefined)
+
+  // state
+  const {inOrigin} = Container.useSelector(state => ({
+    inOrigin: origin && (!origin.isTeam || TeamTypes.userInTeam(state, origin.name, botUsername)),
+  }))
   // dispatch
   const dispatch = Container.useDispatch()
   const onClose = () => {
     dispatch(RouteTreeGen.createClearModals())
   }
+  // merge
+  const showInstallButton = !origin || inOrigin
+
   return (
     <Kb.Modal
       header={{
@@ -32,7 +38,7 @@ const DescribeBot = (props: Props) => {
         title: '',
       }}
       footer={{
-        content: (
+        content: showInstallButton ? (
           <Kb.Button
             fullWidth={true}
             label="Install (free)"
@@ -40,7 +46,7 @@ const DescribeBot = (props: Props) => {
             mode="Primary"
             type="Default"
           />
-        ),
+        ) : null,
       }}
     >
       <Kb.Text type="BodyBig">{botUsername}</Kb.Text>
@@ -48,4 +54,4 @@ const DescribeBot = (props: Props) => {
   )
 }
 
-export default InstallBot
+export default InstallBotPopup

@@ -295,6 +295,11 @@ export const userIsRoleInTeam = (
   )
 }
 
+export const userInTeam = (state: TypedState, teamname: Types.Teamname, username: string): boolean => {
+  const info = state.teams.teamNameToMembers.get(teamname) || new Map<string, Types.MemberInfo>()
+  return !!info.get(username)
+}
+
 export const getEmailInviteError = (state: TypedState) => state.teams.emailInviteError
 
 export const isTeamWithChosenChannels = (state: TypedState, teamname: string): boolean =>
