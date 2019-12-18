@@ -224,10 +224,7 @@ const onConnected = () => {
  *
  * This is always a critical update and should be handled by prompting the users directly
  */
-const onOutOfDate = (
-  _: Container.TypedState,
-  action: EngineGen.Keybase1NotifySessionClientOutOfDatePayload
-) => {
+const onOutOfDate = (action: EngineGen.Keybase1NotifySessionClientOutOfDatePayload) => {
   const {upgradeTo, upgradeURI, upgradeMsg} = action.payload.params
   const body = upgradeMsg || `Please update to ${upgradeTo} by going to ${upgradeURI}`
   NotifyPopup('Client out of date!', {body}, 60 * 60)
@@ -505,9 +502,9 @@ export function* platformConfigSaga() {
   yield* Saga.chainAction2(EngineGen.keybase1NotifyAppExit, onExit)
   yield* Saga.chainAction2(EngineGen.keybase1NotifyFSFSActivity, onFSActivity)
   yield* Saga.chainAction2(EngineGen.keybase1NotifyPGPPgpKeyInSecretStoreFile, onPgpgKeySecret)
-  yield* Saga.chainAction2(EngineGen.keybase1NotifyServiceShutdown, onShutdown)
-  yield* Saga.chainAction2(EngineGen.keybase1NotifySessionClientOutOfDate, onOutOfDate)
-  yield* Saga.chainAction2(ConfigGen.copyToClipboard, copyToClipboard)
+  yield* Saga.chainAction(EngineGen.keybase1NotifyServiceShutdown, onShutdown)
+  yield* Saga.chainAction(EngineGen.keybase1NotifySessionClientOutOfDate, onOutOfDate)
+  yield* Saga.chainAction(ConfigGen.copyToClipboard, copyToClipboard)
   yield* Saga.chainAction2(ConfigGen.updateStart, updateStart)
   yield* Saga.chainAction2(ConfigGen.checkForUpdate, checkForUpdate)
   yield* Saga.chainAction2(ConfigGen.daemonHandshakeWait, sendWindowsKBServiceCheck)

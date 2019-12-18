@@ -288,10 +288,10 @@ protocol config {
   }
 
   /**
-  getUpdateInfo2 is drives three parts of the GUI
+  getUpdateInfo2 drives three parts of the GUI
     1. Widget "update available" yellow bar
     2. Keybase FM "update available" green radio icon
-    3. Red bar in GUI for crtiically out of date clients
+    3. Red bar in GUI for critically out of date clients
    */
   UpdateInfo2 getUpdateInfo2(union { null, string } platform, union { null, string } version, union { null, boolean } testSlowReleaseBypass);
 

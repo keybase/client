@@ -982,10 +982,10 @@ type ConfigInterface interface {
 	RequestFollowingAndUnverifiedFollowers(context.Context, int) error
 	GetRememberPassphrase(context.Context, int) (bool, error)
 	SetRememberPassphrase(context.Context, SetRememberPassphraseArg) error
-	// getUpdateInfo2 is drives three parts of the GUI
+	// getUpdateInfo2 drives three parts of the GUI
 	// 1. Widget "update available" yellow bar
 	// 2. Keybase FM "update available" green radio icon
-	// 3. Red bar in GUI for crtiically out of date clients
+	// 3. Red bar in GUI for critically out of date clients
 	GetUpdateInfo2(context.Context, GetUpdateInfo2Arg) (UpdateInfo2, error)
 	SetProxyData(context.Context, ProxyData) error
 	GetProxyData(context.Context) (ProxyData, error)
@@ -1607,10 +1607,10 @@ func (c ConfigClient) SetRememberPassphrase(ctx context.Context, __arg SetRememb
 	return
 }
 
-// getUpdateInfo2 is drives three parts of the GUI
+// getUpdateInfo2 drives three parts of the GUI
 // 1. Widget "update available" yellow bar
 // 2. Keybase FM "update available" green radio icon
-// 3. Red bar in GUI for crtiically out of date clients
+// 3. Red bar in GUI for critically out of date clients
 func (c ConfigClient) GetUpdateInfo2(ctx context.Context, __arg GetUpdateInfo2Arg) (res UpdateInfo2, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.config.getUpdateInfo2", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return

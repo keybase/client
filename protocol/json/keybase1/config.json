@@ -1105,7 +1105,7 @@
         }
       ],
       "response": "UpdateInfo2",
-      "doc": "getUpdateInfo2 is drives three parts of the GUI\n    1. Widget \"update available\" yellow bar\n    2. Keybase FM \"update available\" green radio icon\n    3. Red bar in GUI for crtiically out of date clients"
+      "doc": "getUpdateInfo2 drives three parts of the GUI\n    1. Widget \"update available\" yellow bar\n    2. Keybase FM \"update available\" green radio icon\n    3. Red bar in GUI for critically out of date clients"
     },
     "setProxyData": {
       "request": [
