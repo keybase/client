@@ -656,6 +656,7 @@ func (cki *ComputedKeyInfos) Delegate(kid keybase1.KID, tm *KeybaseTime, sigid k
 		info.Status = KeyUncancelled
 		info.CTime = ctime.Unix()
 		info.ETime = etimeUnix
+		//info.ActivePGPHash = pgpHash
 	}
 	info.Delegations[sigid.ToMapKey()] = signingKid
 	info.DelegationsList = append(info.DelegationsList, Delegation{signingKid, sigid})
