@@ -34,13 +34,13 @@ export default connect(
 
     return {
       ...bot,
+      ownerTeam: bot.ownerTeam || undefined,
+      ownerUser: bot.ownerUser || undefined,
       roleType: info.type,
       status: info.status,
       teamname,
       username: info.username,
       youCanManageMembers: Constants.getCanPerform(state, teamname).manageMembers,
-      ownerTeam: bot.ownerTeam || undefined,
-      ownerUser: bot.ownerUser || undefined,
     }
   },
   (dispatch, ownProps: OwnProps): DispatchProps => ({
