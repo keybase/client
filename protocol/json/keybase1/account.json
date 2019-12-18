@@ -104,6 +104,11 @@
         },
         {
           "type": "boolean",
+          "name": "allowGoodTeams",
+          "jsonkey": "allow_good_teams"
+        },
+        {
+          "type": "boolean",
           "name": "enabled",
           "jsonkey": "enabled"
         },

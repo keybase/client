@@ -75,6 +75,7 @@ func (o TeamContactSettings) DeepCopy() TeamContactSettings {
 type ContactSettings struct {
 	Version              *int                  `codec:"version,omitempty" json:"version,omitempty"`
 	AllowFolloweeDegrees int                   `codec:"allowFolloweeDegrees" json:"allow_followee_degrees"`
+	AllowGoodTeams       bool                  `codec:"allowGoodTeams" json:"allow_good_teams"`
 	Enabled              bool                  `codec:"enabled" json:"enabled"`
 	Teams                []TeamContactSettings `codec:"teams" json:"teams"`
 }
@@ -89,6 +90,7 @@ func (o ContactSettings) DeepCopy() ContactSettings {
 			return &tmp
 		})(o.Version),
 		AllowFolloweeDegrees: o.AllowFolloweeDegrees,
+		AllowGoodTeams:       o.AllowGoodTeams,
 		Enabled:              o.Enabled,
 		Teams: (func(x []TeamContactSettings) []TeamContactSettings {
 			if x == nil {
