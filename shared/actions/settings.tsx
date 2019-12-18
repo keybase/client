@@ -581,13 +581,13 @@ const contactSettingsSaved = async (state: TypedState, action: SettingsGen.Conta
   }))
   const settings = enabled
     ? {
-        enabled: true,
         allowFolloweeDegrees: indirectFollowees ? 2 : 1,
+        enabled: true,
         teams: teamsEnabled ? teams : null,
       }
     : {
-        enabled: false,
         allowFolloweeDegrees: 1,
+        enabled: false,
       }
   try {
     await RPCTypes.accountUserSetContactSettingsRpcPromise({settings}, Constants.contactSettingsWaitingKey)
