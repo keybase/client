@@ -35,6 +35,7 @@ export const makeState = (): Types.State => ({
   blockButtonsMap: new Map(),
   botCommandsUpdateStatusMap: new Map(),
   botPublicCommands: new Map(),
+  botSettings: new Map(),
   channelSearchText: '',
   commandMarkdownMap: new Map(),
   commandStatusMap: new Map(),
@@ -298,6 +299,7 @@ export const waitingKeyInboxRefresh = 'chat:inboxRefresh'
 export const waitingKeyCreating = 'chat:creatingConvo'
 export const waitingKeyInboxSyncStarted = 'chat:inboxSyncStarted'
 export const waitingKeyBotAdd = 'chat:botAdd'
+export const waitingKeyBotRemove = 'chat:botRemove'
 export const waitingKeyPushLoad = (conversationIDKey: Types.ConversationIDKey) =>
   `chat:pushLoad:${conversationIDKeyToString(conversationIDKey)}`
 export const waitingKeyThreadLoad = (conversationIDKey: Types.ConversationIDKey) =>

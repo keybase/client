@@ -157,6 +157,7 @@ export type State = Readonly<{
   blockButtonsMap: Map<RPCTypes.TeamID, BlockButtonsInfo> // Should we show block buttons for this team ID?
   botCommandsUpdateStatusMap: Map<Common.ConversationIDKey, RPCChatTypes.UIBotCommandsUpdateStatus>
   botPublicCommands: Map<string, BotPublicCommands>
+  botSettings: Map<Common.ConversationIDKey, RPCTypes.TeamBotSettings>
   channelSearchText: string
   commandMarkdownMap: Map<Common.ConversationIDKey, RPCChatTypes.UICommandMarkdown>
   commandStatusMap: Map<Common.ConversationIDKey, CommandStatusInfo>

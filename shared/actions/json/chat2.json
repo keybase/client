@@ -838,6 +838,11 @@
       "allowCommands": "boolean",
       "allowMentions": "boolean",
       "username": "string"
+    },
+    "refreshBotSettings": {
+      "_description": "refresh bot settings",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "username": "string"
     }
   }
 }
