@@ -67,7 +67,15 @@ class Pinentry extends React.Component<Props, State> {
             {this.props.prompt}
           </Kb.Text>
           {isPaperKey && <Kb.Icon type="icon-paper-key-48" style={{alignSelf: 'center'}} />}
-          <Kb.Box2 alignSelf="center" direction="vertical" fullWidth={true} gap="tiny" gapEnd={true} gapStart={true} style={styles.inputContainer}>
+          <Kb.Box2
+            alignSelf="center"
+            direction="vertical"
+            fullWidth={true}
+            gap="tiny"
+            gapEnd={true}
+            gapStart={true}
+            style={styles.inputContainer}
+          >
             <Kb.LabeledInput
               autoFocus={true}
               error={!!this.props.retryLabel}
