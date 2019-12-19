@@ -3355,13 +3355,10 @@ const refreshBotPublicCommands = async (
 }
 
 const closeBotModal = (state: Container.TypedState, conversationIDKey: Types.ConversationIDKey) => {
-  const actions = [RouteTreeGen.createClearModals()]
+  const actions: Array<Container.TypedActions> = [RouteTreeGen.createClearModals()]
   const meta = state.chat2.metaMap.get(conversationIDKey)
-  if (meta) {
-    if (meta.teamname) {
-      actions.push(TeamsGen.createGetMembers({teamname: meta.teamname}))
-    }
-    actions.push(Chat2Gen.createMetaRequestTrusted({conversationIDKeys: [conversationIDKey]}))
+  if (meta && meta.teamname) {
+    actions.push(TeamsGen.createGetMembers({teamname: meta.teamname}))
   }
   return actions
 }

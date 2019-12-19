@@ -181,7 +181,7 @@ const ConnectedInfoPanel = Container.connect(
     onHideConv: () => dispatch(Chat2Gen.createHideConversation({conversationIDKey})),
     onJoinChannel: () => dispatch(Chat2Gen.createJoinConversation({conversationIDKey})),
     onLeaveConversation: () => dispatch(Chat2Gen.createLeaveConversation({conversationIDKey})),
-    onLoadMoreBots: () => dispatch(Chat2Gen.createLoadNextBotPage({pageSize: 6})),
+    onLoadMoreBots: () => dispatch(Chat2Gen.createLoadNextBotPage({pageSize: 100})),
     onSearchFeaturedBots: (query: string) => dispatch(BotsGen.createSearchFeaturedBots({query})),
     onShowNewTeamDialog: () => {
       dispatch(
@@ -211,7 +211,7 @@ const ConnectedInfoPanel = Container.connect(
 
     participants = flags.botUI ? participants.filter(p => !botUsernames.includes(p)) : participants
 
-    const bots: Array<RPCTypes.FeaturedBot> = botUsernames.map(
+    const installedBots: Array<RPCTypes.FeaturedBot> = botUsernames.map(
       b =>
         stateProps._featuredBots.get(b) ?? {
           botAlias: stateProps._botAliases[b] ?? (stateProps._infoMap.get(b) || {fullname: ''}).fullname,
@@ -221,7 +221,7 @@ const ConnectedInfoPanel = Container.connect(
         }
     )
 
-    const availableBots = Array.from(stateProps._featuredBots.entries())
+    const featuredBots = Array.from(stateProps._featuredBots.entries())
       .filter(([k, _]) => !botUsernames.includes(k))
       .map(([_, v]) => v)
 
@@ -245,8 +245,6 @@ const ConnectedInfoPanel = Container.connect(
     return {
       admin: stateProps.admin,
       attachmentsLoading: stateProps.attachmentsLoading,
-      availableBots,
-      bots,
       canDeleteHistory: stateProps.canDeleteHistory,
       canEditChannel: stateProps.canEditChannel,
       canSetMinWriterRole: stateProps.canSetMinWriterRole,
@@ -283,7 +281,9 @@ const ConnectedInfoPanel = Container.connect(
               status: stateProps._attachmentInfo.status,
             }
           : noDocs,
+      featuredBots,
       ignored: stateProps.ignored,
+      installedBots,
       isPreview: stateProps.isPreview,
       links:
         stateProps.selectedAttachmentView === RPCChatTypes.GalleryItemTyp.link
