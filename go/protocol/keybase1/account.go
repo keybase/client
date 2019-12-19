@@ -59,16 +59,14 @@ func (o GetLockdownResponse) DeepCopy() GetLockdownResponse {
 }
 
 type TeamContactSettings struct {
-	TeamID                      TeamID `codec:"teamID" json:"team_id"`
-	AllowFolloweesOfTeamMembers bool   `codec:"allowFolloweesOfTeamMembers" json:"allow_followees_of_team_members"`
-	Enabled                     bool   `codec:"enabled" json:"enabled"`
+	TeamID  TeamID `codec:"teamID" json:"team_id"`
+	Enabled bool   `codec:"enabled" json:"enabled"`
 }
 
 func (o TeamContactSettings) DeepCopy() TeamContactSettings {
 	return TeamContactSettings{
-		TeamID:                      o.TeamID.DeepCopy(),
-		AllowFolloweesOfTeamMembers: o.AllowFolloweesOfTeamMembers,
-		Enabled:                     o.Enabled,
+		TeamID:  o.TeamID.DeepCopy(),
+		Enabled: o.Enabled,
 	}
 }
 
