@@ -1,53 +1,48 @@
 import * as React from 'react'
-import {
-  Box,
-  Box2,
-  Icon,
-  Text,
-  OrientedImage,
-  PopupDialog,
-  ProgressBar,
-  ProgressIndicator,
-  OverlayParentHOC,
-  OverlayParentProps,
-} from '../../../common-adapters'
+import * as Kb from '../../../common-adapters'
 import MessagePopup from '../messages/message-popup'
 import * as Styles from '../../../styles'
 import {Props} from '.'
-import KeyHandler from '../../../util/key-handler.desktop'
 
 type State = {
   loaded: string
   isZoomed: boolean
 }
 
-class _Fullscreen extends React.Component<Props & OverlayParentProps, State> {
-  _vidRef: {current: HTMLVideoElement | null} = React.createRef()
-  _mounted = false
+class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, State> {
   state = {isZoomed: false, loaded: ''}
-  _setLoaded = (path: string) => this.setState({loaded: path})
-  _isLoaded = () => this.props.path.length > 0 && this.props.path === this.state.loaded
+
+  private vidRef: {current: HTMLVideoElement | null} = React.createRef()
+  private mounted = false
+  private setLoaded = (path: string) => this.setState({loaded: path})
+  private isLoaded = () => this.props.path.length > 0 && this.props.path === this.state.loaded
+  private hotKeys = ['left', 'right']
+  private onHotKey = (cmd: string) => {
+    cmd === 'left' && this.props.onPreviousAttachment()
+    cmd === 'right' && this.props.onNextAttachment()
+  }
 
   componentDidMount() {
-    this._mounted = true
-    if (this._vidRef.current && this.props.autoPlay) {
-      this._vidRef.current.play()
+    this.mounted = true
+    if (this.vidRef.current && this.props.autoPlay) {
+      this.vidRef.current.play()
     }
   }
 
   componentWillUnmount() {
-    this._mounted = false
+    this.mounted = false
   }
 
   render() {
     return (
-      <PopupDialog onClose={this.props.onClose} fill={true}>
-        <Box style={styles.container}>
-          <Box style={styles.headerFooter}>
-            <Text type="BodySemibold" style={{color: Styles.globalColors.black, flex: 1}}>
+      <Kb.PopupDialog onClose={this.props.onClose} fill={true}>
+        <Kb.Box style={styles.container}>
+          <Kb.HotKey hotKeys={this.hotKeys} onHotKey={this.onHotKey} />
+          <Kb.Box style={styles.headerFooter}>
+            <Kb.Text type="BodySemibold" style={{color: Styles.globalColors.black, flex: 1}}>
               {this.props.title}
-            </Text>
-            <Icon
+            </Kb.Text>
+            <Kb.Icon
               ref={this.props.setAttachmentRef}
               type="iconfont-ellipsis"
               style={Styles.platformStyles({
@@ -64,12 +59,12 @@ class _Fullscreen extends React.Component<Props & OverlayParentProps, State> {
               position="bottom left"
               visible={this.props.showingMenu}
             />
-          </Box>
+          </Kb.Box>
           {this.props.path && (
-            <Box
+            <Kb.Box
               style={Styles.collapseStyles([
                 this.state.isZoomed ? styles.contentsZoom : styles.contentsFit,
-                this._isLoaded() ? null : {display: 'none'},
+                this.isLoaded() ? null : {display: 'none'},
               ])}
               onClick={() => {
                 if (!this.props.isVideo) {
@@ -79,75 +74,62 @@ class _Fullscreen extends React.Component<Props & OverlayParentProps, State> {
               key={this.props.path}
             >
               {!this.props.isVideo ? (
-                <OrientedImage
+                <Kb.OrientedImage
                   src={this.props.path}
                   style={this.state.isZoomed ? styles.imageZoom : styles.imageFit}
                   onLoad={() => {
-                    if (this._mounted) {
-                      this._setLoaded(this.props.path)
+                    if (this.mounted) {
+                      this.setLoaded(this.props.path)
                     }
                   }}
                 />
               ) : (
                 <video
                   style={styles.videoFit}
-                  onLoadedMetadata={() => this._setLoaded(this.props.path)}
+                  onLoadedMetadata={() => this.setLoaded(this.props.path)}
                   controlsList="nodownload nofullscreen noremoteplayback"
                   controls={true}
-                  ref={this._vidRef}
+                  ref={this.vidRef}
                 >
                   <source src={this.props.path} />
                   <style>{showPlayButton}</style>
                 </video>
               )}
-            </Box>
+            </Kb.Box>
           )}
-          {!this._isLoaded() && (
-            <Box2 direction="horizontal" fullHeight={true} fullWidth={true} centerChildren={true}>
-              <ProgressIndicator type="Huge" style={{margin: 'auto'}} />
-            </Box2>
+          {!this.isLoaded() && (
+            <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true} centerChildren={true}>
+              <Kb.ProgressIndicator type="Huge" style={{margin: 'auto'}} />
+            </Kb.Box2>
           )}
-          <Box style={styles.headerFooter}>
+          <Kb.Box style={styles.headerFooter}>
             {!!this.props.progressLabel && (
-              <Text
+              <Kb.Text
                 type="BodySmall"
                 style={{color: Styles.globalColors.black_50, marginRight: Styles.globalMargins.tiny}}
               >
                 {this.props.progressLabel}
-              </Text>
+              </Kb.Text>
             )}
-            {!!this.props.progressLabel && <ProgressBar ratio={this.props.progress} />}
+            {!!this.props.progressLabel && <Kb.ProgressBar ratio={this.props.progress} />}
             {!this.props.progressLabel && this.props.onDownloadAttachment && (
-              <Text type="BodySmall" style={styles.link} onClick={this.props.onDownloadAttachment}>
+              <Kb.Text type="BodySmall" style={styles.link} onClick={this.props.onDownloadAttachment}>
                 Download
-              </Text>
+              </Kb.Text>
             )}
             {this.props.onShowInFinder && (
-              <Text type="BodySmall" style={styles.link} onClick={this.props.onShowInFinder}>
+              <Kb.Text type="BodySmall" style={styles.link} onClick={this.props.onShowInFinder}>
                 Show in {Styles.fileUIName}
-              </Text>
+              </Kb.Text>
             )}
-          </Box>
-        </Box>
-      </PopupDialog>
+          </Kb.Box>
+        </Kb.Box>
+      </Kb.PopupDialog>
     )
   }
 }
 
-const Af = KeyHandler(OverlayParentHOC(_Fullscreen as any))
-const Fullscreen = (p: Props) => {
-  const {onNextAttachment, onPreviousAttachment, ...rest} = p
-  return (
-    <Af
-      hotkeys={['left', 'right']}
-      onHotkey={(cmd: string) => {
-        cmd === 'left' && onPreviousAttachment()
-        cmd === 'right' && onNextAttachment()
-      }}
-      {...rest}
-    />
-  )
-}
+const Fullscreen = Kb.OverlayParentHOC(_Fullscreen)
 
 const styles = Styles.styleSheetCreate(
   () =>

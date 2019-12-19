@@ -5,7 +5,6 @@ import * as WaitingConstants from '../../../constants/waiting'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Tracker2Gen from '../../../actions/tracker2-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import {isDarwin} from '../../../constants/platform'
 import Normal, {Props} from '.'
 import * as Container from '../../../util/container'
 import {indefiniteArticle} from '../../../util/string'
@@ -13,8 +12,6 @@ import {indefiniteArticle} from '../../../util/string'
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
 }
-
-const hotkeys = [`${isDarwin ? 'command' : 'ctrl'}+f`]
 
 const NormalWrapper = React.memo(
   (
@@ -92,15 +89,10 @@ export default Container.connect(
     },
     _onPaste: (conversationIDKey: Types.ConversationIDKey, data: Buffer) =>
       dispatch(Chat2Gen.createAttachmentPasted({conversationIDKey, data})),
+    _onToggleThreadSearch: (conversationIDKey: Types.ConversationIDKey) =>
+      dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey})),
     jumpToRecent: (conversationIDKey: Types.ConversationIDKey) =>
       dispatch(Chat2Gen.createJumpToRecent({conversationIDKey})),
-    onHotkey: (conversationIDKey: Types.ConversationIDKey, cmd: string) => {
-      const letter = cmd.replace(/(command|ctrl)\+/, '')
-      switch (letter) {
-        case 'f':
-          dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey}))
-      }
-    },
     onShowTracker: (username: string) => dispatch(Tracker2Gen.createShowUser({asTracker: true, username})),
     onToggleInfoPanel: () => dispatch(Chat2Gen.createToggleInfoPanel()),
   }),
@@ -111,15 +103,14 @@ export default Container.connect(
           stateProps._meta.minWriterRole
         } to post.`
       : undefined,
-    hotkeys,
     jumpToRecent: () => dispatchProps.jumpToRecent(stateProps.conversationIDKey),
     onAttach: stateProps._meta.cannotWrite
       ? null
       : (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
-    onHotkey: (cmd: string) => dispatchProps.onHotkey(stateProps.conversationIDKey, cmd),
     onPaste: (data: Buffer) => dispatchProps._onPaste(stateProps.conversationIDKey, data),
     onShowTracker: dispatchProps.onShowTracker,
     onToggleInfoPanel: dispatchProps.onToggleInfoPanel,
+    onToggleThreadSearch: () => dispatchProps._onToggleThreadSearch(stateProps.conversationIDKey),
     showLoader: stateProps.showLoader,
     showThreadSearch: stateProps.showThreadSearch,
     threadLoadedOffline: stateProps._meta.offline,

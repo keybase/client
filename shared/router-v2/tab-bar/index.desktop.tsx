@@ -5,7 +5,6 @@ import * as Tabs from '../../constants/tabs'
 import * as Platforms from '../../constants/platform'
 import * as FsConstants from '../../constants/fs'
 import * as Kbfs from '../../fs/common'
-import KeyHandler from '../../util/key-handler.desktop'
 import RuntimeStats from '../../app/runtime-stats/container'
 import './tab-bar.css'
 import flags from '../../util/feature-flags'
@@ -96,12 +95,22 @@ class TabBar extends React.PureComponent<Props, State> {
     {danger: true, onClick: this.props.onQuit, title: 'Quit Keybase'},
   ]
 
+  private keysMap = Tabs.desktopTabOrder.reduce((map, tab, index) => {
+    map[`${Platforms.isDarwin ? 'command' : 'ctrl'}+${index + 1}`] = tab
+    return map
+  }, {})
+  private hotKeys = Object.keys(this.keysMap)
+  private onHotKey = (cmd: string) => {
+    this.props.onTabClick(this.keysMap[cmd])
+  }
+
   render() {
     const p = this.props
     return (
       !!p.username && (
         <Kb.Box2 className="tab-container" direction="vertical" fullHeight={true}>
           <Kb.Box2 direction="vertical" style={styles.header} fullWidth={true}>
+            <Kb.HotKey hotKeys={this.hotKeys} onHotKey={this.onHotKey} />
             <Kb.Box2 direction="horizontal" style={styles.osButtons} fullWidth={true} />
             <Kb.ClickableBox onClick={this.showMenu}>
               <Kb.Box2
@@ -243,35 +252,4 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-const keysMap = Tabs.desktopTabOrder.reduce((map, tab, index) => {
-  map[`${Platforms.isDarwin ? 'command' : 'ctrl'}+${index + 1}`] = tab
-  return map
-}, {})
-const hotkeys = Object.keys(keysMap)
-
-const InsideHotKeyTabBar = KeyHandler(TabBar)
-
-class HotKeyTabBar extends React.PureComponent<Props> {
-  private onHotkey = (cmd: string) => {
-    this.props.onTabClick(keysMap[cmd])
-  }
-  private onProfileClick = () => {
-    this.props.onProfileClick()
-  }
-  private onTabClick = (t: Tabs.AppTab) => {
-    this.props.onTabClick(t)
-  }
-  render() {
-    return (
-      <InsideHotKeyTabBar
-        {...this.props}
-        hotkeys={hotkeys}
-        onHotkey={this.onHotkey}
-        onProfileClick={this.onProfileClick}
-        onTabClick={this.onTabClick}
-      />
-    )
-  }
-}
-
-export default HotKeyTabBar
+export default TabBar

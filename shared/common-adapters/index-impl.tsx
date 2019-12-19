@@ -130,6 +130,9 @@ module.exports = {
   get HeaderOrPopupWithHeader() {
     return require('./header-or-popup').HeaderOrPopupWithHeader
   },
+  get HotKey() {
+    return require('./hot-key').HotKey
+  },
   get HoverHoc() {
     return require('./hover-hoc').default
   },
@@ -336,6 +339,9 @@ module.exports = {
   },
   get urlsToImgSet() {
     return require('./icon').urlsToImgSet
+  },
+  get useHotKey() {
+    return require('./hot-key').useHotKey
   },
   get useInterval() {
     return require('./use-timers').useInterval
