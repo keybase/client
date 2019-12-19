@@ -47,7 +47,7 @@ func initConfigForAutogit(t *testing.T) (
 	err = config.EnableDiskLimiter(tempdir)
 	require.NoError(t, err)
 	err = config.EnableJournaling(
-		ctx, tempdir, libkbfs.TLFJournalSingleOpBackgroundWorkEnabled)
+		ctx, tempdir, libkbfs.TLFJournalBackgroundWorkEnabled)
 	require.NoError(t, err)
 
 	success = true
