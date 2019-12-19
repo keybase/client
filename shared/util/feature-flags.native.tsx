@@ -9,7 +9,7 @@ const ff: FeatureFlags = {
   admin: __DEV__,
   airdrop: true,
   audioAttachments: true,
-  botUI: false,
+  botUI: true,
   chatIndexProfilingEnabled: false,
   connectThrashCheck: false,
   dbCleanEnabled: false,

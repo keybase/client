@@ -74,7 +74,7 @@ const InstallBotPopup = (props: Props) => {
     <Kb.Box2 direction="vertical" gap="small" style={styles.container} fullWidth={true}>
       <Kb.Box2 direction="horizontal" gap="small" fullWidth={true}>
         <Kb.Avatar username={botUsername} size={64} />
-        <Kb.Box2 direction="vertical">
+        <Kb.Box2 direction="vertical" style={{flex: 1}}>
           <Kb.Text type="BodyBigExtrabold">{featured.botAlias}</Kb.Text>
           <Kb.ConnectedUsernames
             colorFollowing={true}
@@ -82,7 +82,9 @@ const InstallBotPopup = (props: Props) => {
             usernames={[botUsername]}
             withProfileCardPopup={false}
           />
-          <Kb.Text type="BodySmall">{featured.description}</Kb.Text>
+          <Kb.Text type="BodySmall" lineClamp={1}>
+            {featured.description}
+          </Kb.Text>
         </Kb.Box2>
       </Kb.Box2>
       <Kb.Text type="BodySmall">{featured.extendedDescription}</Kb.Text>
@@ -109,9 +111,13 @@ const InstallBotPopup = (props: Props) => {
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container} gap="small">
       <Kb.Box2 direction="horizontal" gap="small" fullWidth={true}>
         <Kb.Avatar username={botUsername} size={64} />
-        <Kb.Box2 direction="vertical">
+        <Kb.Box2 direction="vertical" style={{flex: 1}}>
           <Kb.Text type="BodyBigExtrabold">{featured ? featured.botAlias : botUsername}</Kb.Text>
-          <Kb.Text type="BodySmall">{featured.description}</Kb.Text>
+          {!!featured && (
+            <Kb.Text type="BodySmall" lineClamp={1}>
+              {featured.description}
+            </Kb.Text>
+          )}
         </Kb.Box2>
       </Kb.Box2>
       <Kb.Text type="BodyBig">It will be able to read:</Kb.Text>

@@ -10,7 +10,14 @@ type Props = FeaturedBot & {
 
 const Bot = ({botAlias, description, botUsername, onClick, ownerTeam, ownerUser}: Props) => {
   const lower = (
-    <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny" alignSelf="flex-start">
+    <Kb.Box2
+      direction="horizontal"
+      alignItems="center"
+      gap="xtiny"
+      alignSelf="flex-start"
+      fullWidth={true}
+      style={{flex: 1}}
+    >
       {description !== '' && (
         <Kb.Text type="BodySmall" lineClamp={1} onClick={() => onClick(botUsername)}>
           {description}
@@ -54,7 +61,7 @@ const Bot = ({botAlias, description, botUsername, onClick, ownerTeam, ownerUser}
             username={botUsername}
             onClick={() => onClick(botUsername)}
           />
-          <Kb.Box2 direction="vertical">
+          <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}}>
             {usernameDisplay}
             {lower}
           </Kb.Box2>
