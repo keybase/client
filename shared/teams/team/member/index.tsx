@@ -90,10 +90,10 @@ export const TeamMember = (props: Props) => {
         >
           {props.loading && <Kb.ProgressIndicator style={{alignSelf: 'center', height: 20, width: 20}} />}
         </Kb.Box>
-        <Kb.Usernames
+        <Kb.ConnectedUsernames
           type="HeaderBig"
           colorFollowing={!(you && you.username === user.username)} // De-colorize if this is own member page
-          users={[{following: props.following, username: user.username}]}
+          usernames={[user.username]}
           onUsernameClicked={props.onOpenProfile}
         />
         <Kb.Text type="BodySmall">
