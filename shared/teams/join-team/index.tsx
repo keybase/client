@@ -66,7 +66,7 @@ const JoinTeam = (props: Props) => (
             />
             <Kb.Text center={true} type="Body">
               We sent a request to{' '}
-              {!!props.successTeamName ? (
+              {props.successTeamName ? (
                 <Kb.Text type="BodySemibold">{props.successTeamName}</Kb.Text>
               ) : (
                 'the team'
