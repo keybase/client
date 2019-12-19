@@ -111,7 +111,7 @@ func (c *CmdChatUpload) Run() (err error) {
 	}
 
 	conversation, _, err := resolver.Resolve(context.TODO(), c.resolvingRequest, chatConversationResolvingBehavior{
-		CreateIfNotExists: false,
+		CreateIfNotExists: true,
 		MustNotExist:      false,
 		Interactive:       c.hasTTY,
 		IdentifyBehavior:  keybase1.TLFIdentifyBehavior_CHAT_CLI,
