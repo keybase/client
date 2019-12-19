@@ -109,9 +109,6 @@ module.exports = {
   get FloatingPicker() {
     return require('./floating-picker').default
   },
-  get HOCTimers() {
-    return require('./hoc-timers').default
-  },
   get Header() {
     return require('./header').default
   },
@@ -129,6 +126,9 @@ module.exports = {
   },
   get HeaderOrPopupWithHeader() {
     return require('./header-or-popup').HeaderOrPopupWithHeader
+  },
+  get HotKey() {
+    return require('./hot-key').HotKey
   },
   get HoverHoc() {
     return require('./hover-hoc').default
@@ -174,9 +174,6 @@ module.exports = {
   },
   get MaybePopup() {
     return require('./maybe-popup').MaybePopup
-  },
-  get MaybePopupHoc() {
-    return require('./maybe-popup').MaybePopupHoc
   },
   get Meta() {
     return require('./meta').default
@@ -333,6 +330,9 @@ module.exports = {
   },
   get urlsToImgSet() {
     return require('./icon').urlsToImgSet
+  },
+  get useHotKey() {
+    return require('./hot-key').useHotKey
   },
   get useInterval() {
     return require('./use-timers').useInterval

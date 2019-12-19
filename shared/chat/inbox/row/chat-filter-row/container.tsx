@@ -1,7 +1,6 @@
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import {appendNewChatBuilder} from '../../../../actions/typed-routes'
-import {isDarwin, isMobile} from '../../../../constants/platform'
 import * as Container from '../../../../util/container'
 import ConversationFilterInput from '.'
 
@@ -14,34 +13,23 @@ type OwnProps = {
   query: string
 }
 
-function KeyHandler<T>(t: T): T {
-  return require('../../../../util/key-handler.desktop').default(t)
-}
-
-const Component = isMobile ? ConversationFilterInput : KeyHandler(ConversationFilterInput)
-
 export default Container.namedConnect(
   (state, ownProps: OwnProps) => ({
     filter: ownProps.query,
     isSearching: !!state.chat2.inboxSearch,
   }),
   dispatch => ({
-    _onHotkey: (cmd: string) => {
-      if (cmd.endsWith('+n')) {
-        dispatch(appendNewChatBuilder())
-      }
-    },
+    appendNewChatBuilder: () => dispatch(appendNewChatBuilder()),
     onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
     onStartSearch: () => dispatch(Chat2Gen.createToggleInboxSearch({enabled: true})),
     onStopSearch: () => dispatch(Chat2Gen.createToggleInboxSearch({enabled: false})),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => ({
+    appendNewChatBuilder: () => dispatchProps.appendNewChatBuilder(),
     filter: stateProps.filter,
-    hotkeys: isDarwin ? ['command+n'] : ['ctrl+n'],
     isSearching: stateProps.isSearching,
     onBack: dispatchProps.onBack,
     onEnsureSelection: ownProps.onEnsureSelection,
-    onHotkey: (cmd: string) => dispatchProps._onHotkey(cmd),
     onNewChat: ownProps.onNewChat,
     onSelectDown: ownProps.onSelectDown,
     onSelectUp: ownProps.onSelectUp,
@@ -50,4 +38,4 @@ export default Container.namedConnect(
     onStopSearch: dispatchProps.onStopSearch,
   }),
   'ChatFilterRow'
-)(Component)
+)(ConversationFilterInput)
