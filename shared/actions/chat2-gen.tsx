@@ -11,6 +11,7 @@ import {AmpTracker} from '../chat/audio/amptracker'
 export const resetStore = 'common:resetStore' // not a part of chat2 but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'chat2:'
 export const addAttachmentViewMessage = 'chat2:addAttachmentViewMessage'
+export const addBotMember = 'chat2:addBotMember'
 export const addUsersToChannel = 'chat2:addUsersToChannel'
 export const attachmentDownload = 'chat2:attachmentDownload'
 export const attachmentDownloaded = 'chat2:attachmentDownloaded'
@@ -173,6 +174,12 @@ type _AddAttachmentViewMessagePayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly viewType: RPCChatTypes.GalleryItemTyp
   readonly message: Types.Message
+}
+type _AddBotMemberPayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly allowCommands: boolean
+  readonly allowMentions: boolean
+  readonly username: string
 }
 type _AddUsersToChannelPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
@@ -1198,6 +1205,13 @@ export const createChangeFocus = (payload: _ChangeFocusPayload): ChangeFocusPayl
   type: changeFocus,
 })
 /**
+ * add bot member to channel
+ */
+export const createAddBotMember = (payload: _AddBotMemberPayload): AddBotMemberPayload => ({
+  payload,
+  type: addBotMember,
+})
+/**
  * loads next page of featured bots from backend
  */
 export const createLoadNextBotPage = (payload: _LoadNextBotPagePayload): LoadNextBotPagePayload => ({
@@ -1509,6 +1523,7 @@ export type AddAttachmentViewMessagePayload = {
   readonly payload: _AddAttachmentViewMessagePayload
   readonly type: typeof addAttachmentViewMessage
 }
+export type AddBotMemberPayload = {readonly payload: _AddBotMemberPayload; readonly type: typeof addBotMember}
 export type AddUsersToChannelPayload = {
   readonly payload: _AddUsersToChannelPayload
   readonly type: typeof addUsersToChannel
@@ -2081,6 +2096,7 @@ export type UpdateUserReacjisPayload = {
 // prettier-ignore
 export type Actions =
   | AddAttachmentViewMessagePayload
+  | AddBotMemberPayload
   | AddUsersToChannelPayload
   | AttachmentDownloadPayload
   | AttachmentDownloadedPayload

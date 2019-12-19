@@ -112,25 +112,6 @@ const ConnectedInfoPanel = Container.connect(
     {conversationIDKey, onBack, onCancel, onSelectAttachmentView}: OwnProps
   ) => ({
     _navToRootChat: () => dispatch(Chat2Gen.createNavigateToInbox()),
-    _onBotSelect: (username: string, name: string, isTeam: boolean) => {
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [
-            {
-              props: {
-                botUsername: username,
-                namespace: 'chat2',
-                origin: {
-                  name,
-                  isTeam,
-                },
-              },
-              selected: 'chatInstallBot',
-            },
-          ],
-        })
-      )
-    },
     _onDocDownload: (message: Types.Message) => dispatch(Chat2Gen.createAttachmentDownload({message})),
     _onEditChannel: (teamname: string) =>
       dispatch(
@@ -175,6 +156,22 @@ const ConnectedInfoPanel = Container.connect(
           dispatch(Chat2Gen.createClearAttachmentView({conversationIDKey}))
         }
       : undefined,
+    onBotSelect: (username: string) => {
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [
+            {
+              props: {
+                botUsername: username,
+                conversationIDKey,
+                namespace: 'chat2',
+              },
+              selected: 'chatInstallBot',
+            },
+          ],
+        })
+      )
+    },
     onCancel: onCancel
       ? () => {
           onCancel()
@@ -353,8 +350,7 @@ const ConnectedInfoPanel = Container.connect(
           : noMedia,
       onAttachmentViewChange: dispatchProps.onAttachmentViewChange,
       onBack: dispatchProps.onBack,
-      onBotSelect: (username: string) =>
-        dispatchProps._onBotSelect(username, stateProps.teamname, !stateProps.adhocTeam),
+      onBotSelect: dispatchProps.onBotSelect,
       onCancel: dispatchProps.onCancel,
       onEditChannel: () => dispatchProps._onEditChannel(stateProps.teamname),
       onHideConv: dispatchProps.onHideConv,

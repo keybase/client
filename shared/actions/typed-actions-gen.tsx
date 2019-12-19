@@ -234,6 +234,7 @@ export type TypedActionsMap = {
   'chat2:setLoadedBotPage': chat2.SetLoadedBotPagePayload
   'chat2:refreshBotPublicCommands': chat2.RefreshBotPublicCommandsPayload
   'chat2:setBotPublicCommands': chat2.SetBotPublicCommandsPayload
+  'chat2:addBotMember': chat2.AddBotMemberPayload
   'config:startHandshake': config.StartHandshakePayload
   'config:restartHandshake': config.RestartHandshakePayload
   'config:daemonHandshake': config.DaemonHandshakePayload

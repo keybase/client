@@ -3354,6 +3354,28 @@ const refreshBotPublicCommands = async (
   })
 }
 
+const addBotMember = async (_: Container.TypedState, action: Chat2Gen.AddBotMemberPayload) => {
+  const {allowCommands, allowMentions, conversationIDKey, username} = action.payload
+  try {
+    await RPCChatTypes.localAddBotMemberRpcPromise(
+      {
+        botSettings: {
+          cmds: allowCommands,
+          mentions: allowMentions,
+        },
+        convID: Types.keyToConversationID(conversationIDKey),
+        role: RPCTypes.TeamRole.restrictedbot,
+        username,
+      },
+      Constants.waitingKeyBotAdd
+    )
+  } catch (err) {
+    logger.info('addBotMember: failed to add bot member: ' + err.message)
+    return false
+  }
+  return RouteTreeGen.createClearModals()
+}
+
 function* chat2Saga() {
   // Platform specific actions
   if (Container.isMobile) {
@@ -3441,6 +3463,7 @@ function* chat2Saga() {
   // bots
   yield* Saga.chainAction2(Chat2Gen.loadNextBotPage, loadNextBotPage)
   yield* Saga.chainAction2(Chat2Gen.refreshBotPublicCommands, refreshBotPublicCommands)
+  yield* Saga.chainAction2(Chat2Gen.addBotMember, addBotMember)
 
   // On login lets load the untrusted inbox. This helps make some flows easier
   yield* Saga.chainAction2(ConfigGen.bootstrapStatusLoaded, startupInboxLoad)

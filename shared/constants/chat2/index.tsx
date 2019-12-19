@@ -297,6 +297,7 @@ export const waitingKeyCancelPost = 'chat:cancelPost'
 export const waitingKeyInboxRefresh = 'chat:inboxRefresh'
 export const waitingKeyCreating = 'chat:creatingConvo'
 export const waitingKeyInboxSyncStarted = 'chat:inboxSyncStarted'
+export const waitingKeyBotAdd = 'chat:botAdd'
 export const waitingKeyPushLoad = (conversationIDKey: Types.ConversationIDKey) =>
   `chat:pushLoad:${conversationIDKeyToString(conversationIDKey)}`
 export const waitingKeyThreadLoad = (conversationIDKey: Types.ConversationIDKey) =>

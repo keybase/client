@@ -6340,12 +6340,10 @@ type IgnorePinnedMessageArg struct {
 }
 
 type AddBotMemberArg struct {
-	TlfName     string                    `codec:"tlfName" json:"tlfName"`
+	ConvID      ConversationID            `codec:"convID" json:"convID"`
 	Username    string                    `codec:"username" json:"username"`
 	BotSettings *keybase1.TeamBotSettings `codec:"botSettings,omitempty" json:"botSettings,omitempty"`
 	Role        keybase1.TeamRole         `codec:"role" json:"role"`
-	MembersType ConversationMembersType   `codec:"membersType" json:"membersType"`
-	TlfPublic   bool                      `codec:"tlfPublic" json:"tlfPublic"`
 }
 
 type EditBotMemberArg struct {
@@ -6358,10 +6356,8 @@ type EditBotMemberArg struct {
 }
 
 type RemoveBotMemberArg struct {
-	TlfName     string                  `codec:"tlfName" json:"tlfName"`
-	Username    string                  `codec:"username" json:"username"`
-	MembersType ConversationMembersType `codec:"membersType" json:"membersType"`
-	TlfPublic   bool                    `codec:"tlfPublic" json:"tlfPublic"`
+	ConvID   ConversationID `codec:"convID" json:"convID"`
+	Username string         `codec:"username" json:"username"`
 }
 
 type SetBotMemberSettingsArg struct {
@@ -6373,10 +6369,8 @@ type SetBotMemberSettingsArg struct {
 }
 
 type GetBotMemberSettingsArg struct {
-	TlfName     string                  `codec:"tlfName" json:"tlfName"`
-	Username    string                  `codec:"username" json:"username"`
-	MembersType ConversationMembersType `codec:"membersType" json:"membersType"`
-	TlfPublic   bool                    `codec:"tlfPublic" json:"tlfPublic"`
+	ConvID   ConversationID `codec:"convID" json:"convID"`
+	Username string         `codec:"username" json:"username"`
 }
 
 type TeamIDFromTLFNameArg struct {

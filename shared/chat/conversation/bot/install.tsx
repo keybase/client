@@ -4,40 +4,58 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as TeamTypes from '../../../constants/teams'
+import * as Teams from '../../../constants/teams'
 import * as Types from '../../../constants/types/chat2'
+import * as Constants from '../../../constants/chat2'
 
-type Origin = {
-  name: string
-  isTeam: boolean
-}
-
-type Props = Container.RouteProps<{botUsername: string; origin?: Origin}>
+type Props = Container.RouteProps<{botUsername: string; conversationIDKey?: Types.ConversationIDKey}>
 
 const InstallBotPopup = (props: Props) => {
   const botUsername = Container.getRouteProps(props, 'botUsername', '')
-  const origin = Container.getRouteProps(props, 'origin', undefined)
+  const conversationIDKey = Container.getRouteProps(props, 'conversationIDKey', undefined)
 
   // state
   const [installScreen, setInstallScreen] = React.useState(false)
   const [installWithCommands, setInstallWithCommands] = React.useState(true)
   const [installWithMentions, setInstallWithMentions] = React.useState(true)
-  const {commands, featured, inOrigin} = Container.useSelector(state => ({
-    commands: state.chat2.botPublicCommands.get(botUsername),
-    featured: state.chat2.featuredBotsMap.get(botUsername),
-    inOrigin: origin && (!origin.isTeam || TeamTypes.userInTeam(state, origin.name, botUsername)),
-  }))
+  const {commands, featured, inTeam} = Container.useSelector(state => {
+    const meta = conversationIDKey && state.chat2.metaMap.get(conversationIDKey)
+    let inTeam = false
+    if (meta) {
+      if (meta.teamType === 'adhoc') {
+        inTeam = meta.participants.includes(botUsername)
+      } else {
+        inTeam = Teams.userInTeam(state, meta.teamname, botUsername)
+      }
+    }
+    return {
+      commands: state.chat2.botPublicCommands.get(botUsername),
+      featured: state.chat2.featuredBotsMap.get(botUsername),
+      inTeam,
+    }
+  })
   // dispatch
   const dispatch = Container.useDispatch()
   const onClose = () => {
     dispatch(RouteTreeGen.createClearModals())
   }
+  const onInstall = () => {
+    if (!conversationIDKey) {
+      return
+    }
+    dispatch(
+      Chat2Gen.createAddBotMember({
+        allowCommands: installWithCommands,
+        allowMentions: installWithMentions,
+        conversationIDKey,
+        username: botUsername,
+      })
+    )
+  }
   // lifecycle
   React.useEffect(() => {
     dispatch(Chat2Gen.createRefreshBotPublicCommands({username: botUsername}))
   }, [])
-  // merge
-  const showInstallButton = !origin || !inOrigin
 
   const featuredContent = !!featured && (
     <Kb.Box2 direction="vertical" gap="small" style={styles.container} fullWidth={true}>
@@ -103,21 +121,22 @@ const InstallBotPopup = (props: Props) => {
       header={{
         leftButton: (
           <Kb.Text type="BodyBigLink" onClick={onClose}>
-            {!showInstallButton ? 'Close' : 'Cancel'}
+            {inTeam ? 'Close' : 'Cancel'}
           </Kb.Text>
         ),
         title: '',
       }}
       footer={
-        showInstallButton
+        !inTeam
           ? {
               content: (
-                <Kb.Button
+                <Kb.WaitingButton
                   fullWidth={true}
                   label="Install (free)"
-                  onClick={() => setInstallScreen(true)}
+                  onClick={installScreen ? onInstall : () => setInstallScreen(true)}
                   mode="Primary"
                   type="Default"
+                  waitingKey={Constants.waitingKeyBotAdd}
                 />
               ),
             }

@@ -831,6 +831,13 @@
       "_description": "set bot public commands",
       "username": "string",
       "commands": "Types.BotPublicCommands"
+    },
+    "addBotMember": {
+      "_description": "add bot member to channel",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "allowCommands": "boolean",
+      "allowMentions": "boolean",
+      "username": "string"
     }
   }
 }
