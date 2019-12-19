@@ -5,25 +5,15 @@ package engine
 
 import (
 	"bytes"
-	"crypto"
-	"crypto/ecdsa"
-	"crypto/elliptic"
-	"crypto/rand"
 	"testing"
-	"time"
-
-	"github.com/keybase/go-crypto/openpgp"
-
-	"github.com/keybase/go-crypto/curve25519"
-	"github.com/keybase/go-crypto/openpgp/ecdh"
-
-	"github.com/keybase/go-crypto/openpgp/packet"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/go-crypto/openpgp/armor"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
+
+	"github.com/keybase/go-crypto/openpgp"
+	"github.com/keybase/go-crypto/openpgp/armor"
 )
 
 // TestPGPSavePublicPush runs the PGPSave engine, pushing the
@@ -410,174 +400,30 @@ func numPrivateGPGKeys(g *libkb.GlobalContext) (int, error) {
 	return index.Len(), nil
 }
 
+func encodeArmoredPrivatePGP(entity *openpgp.Entity) (buf bytes.Buffer, err error) {
+	writer, err := armor.Encode(&buf, "PGP PRIVATE KEY BLOCK", nil)
+	if err != nil {
+		return buf, err
+	}
+	if err := entity.SerializePrivate(writer, nil); err != nil {
+		return buf, err
+	}
+	if err := writer.Close(); err != nil {
+		return buf, err
+	}
+	return buf, nil
+}
+
 func genPGPKeyAndArmor(t *testing.T, tc libkb.TestContext, email string) (libkb.PGPFingerprint, keybase1.KID, string) {
 	bundle, err := tc.MakePGPKey(email)
 	if err != nil {
 		t.Fatal(err)
 	}
-	var buf bytes.Buffer
-	writer, err := armor.Encode(&buf, "PGP PRIVATE KEY BLOCK", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := bundle.Entity.SerializePrivate(writer, nil); err != nil {
-		t.Fatal(err)
-	}
-	if err := writer.Close(); err != nil {
-		t.Fatal(err)
-	}
+	buf, err := encodeArmoredPrivatePGP(bundle.Entity)
+	require.NoError(t, err)
 	fp := *bundle.GetFingerprintP()
 	kid := bundle.GetKID()
 	return fp, kid, buf.String()
-}
-
-func TestY2K1178(t *testing.T) {
-	// Test PGP KID reuse by using the same key material for primary key.
-
-	signingPriv, err := ecdsa.GenerateKey(elliptic.P521(), rand.Reader)
-	require.NoError(t, err)
-	// Encryption key material doesn't matter, we can keep it the same or make
-	// a new one for each generated key. KID is only based on primary key
-	// material.
-	encPriv, err := ecdh.GenerateKey(curve25519.Cv25519(), rand.Reader)
-	require.NoError(t, err)
-
-	uid := packet.NewUserId("Keybase PGP Test", "Test Only Do Not Use", "alice@example.com")
-
-	genKey := func(currentTime time.Time) *openpgp.Entity {
-		// We will be manipulating key creation time while keeping the eddsa
-		// private key bytes same. This will yield different PGP fingerprint
-		// every time (and different full hash), but same KID.
-		signingPrivKey := packet.NewECDSAPrivateKey(currentTime, signingPriv)
-		entity := &openpgp.Entity{
-			PrimaryKey: &signingPrivKey.PublicKey,
-			PrivateKey: signingPrivKey,
-			Identities: make(map[string]*openpgp.Identity),
-		}
-		isPrimaryID := true
-		entity.Identities[uid.Id] = &openpgp.Identity{
-			Name:   uid.Name,
-			UserId: uid,
-			SelfSignature: &packet.Signature{
-				CreationTime: currentTime,
-				SigType:      packet.SigTypePositiveCert,
-				PubKeyAlgo:   packet.PubKeyAlgoECDSA,
-				Hash:         crypto.SHA512,
-				IsPrimaryId:  &isPrimaryID,
-				FlagsValid:   true,
-				FlagSign:     true,
-				FlagCertify:  true,
-				IssuerKeyId:  &entity.PrimaryKey.KeyId,
-			},
-		}
-		encryptPrivKey := packet.NewECDHPrivateKey(currentTime, encPriv)
-		subkey := openpgp.Subkey{
-			PublicKey:  &encryptPrivKey.PublicKey,
-			PrivateKey: encryptPrivKey,
-			Sig: &packet.Signature{
-				CreationTime:              currentTime,
-				SigType:                   packet.SigTypeSubkeyBinding,
-				PubKeyAlgo:                packet.PubKeyAlgoECDSA,
-				Hash:                      crypto.SHA512,
-				FlagsValid:                true,
-				FlagEncryptStorage:        true,
-				FlagEncryptCommunications: true,
-				IssuerKeyId:               &entity.PrimaryKey.KeyId,
-			},
-		}
-		subkey.PrivateKey.IsSubkey = true
-		subkey.PublicKey.IsSubkey = true
-		entity.Subkeys = append(entity.Subkeys, subkey)
-		return entity
-	}
-
-	encode := func(entity *openpgp.Entity) []byte {
-		// var bufx bytes.Buffer
-		// err = entity.SerializePrivate(&bufx, nil)
-
-		var buf bytes.Buffer
-		writer, err := armor.Encode(&buf, "PGP PRIVATE KEY BLOCK", nil)
-		require.NoError(t, err)
-		// err = entity.Serialize(writer)
-		err = entity.SerializePrivate(writer, nil)
-		require.NoError(t, err)
-		err = writer.Close()
-		require.NoError(t, err)
-		return buf.Bytes()
-	}
-
-	currentTime := time.Now()
-
-	entity1 := genKey(currentTime)
-	privKey1 := encode(entity1)
-
-	entity2 := genKey(currentTime.Add(-24 * time.Hour))
-	privKey2 := encode(entity2)
-
-	tc := SetupEngineTest(t, "pgp")
-	defer tc.Cleanup()
-
-	user := CreateAndSignupFakeUser(tc, "pgp")
-	secui := &libkb.TestSecretUI{Passphrase: user.Passphrase}
-	uis := libkb.UIs{LogUI: tc.G.UI.GetLogUI(), SecretUI: secui}
-
-	mctx := NewMetaContextForTest(tc).WithUIs(uis)
-
-	var kid keybase1.KID
-
-	{
-		// Add first PGP key.
-		eng, err := NewPGPKeyImportEngineFromBytes(tc.G, privKey1, false)
-		require.NoError(t, err)
-		err = RunEngine2(mctx, eng)
-		require.NoError(t, err)
-		kid = eng.bundle.GetKID()
-	}
-
-	{
-		// Revoke that key.
-		eng := NewRevokeKeyEngine(tc.G, kid)
-		err := RunEngine2(mctx, eng)
-		require.NoError(t, err)
-	}
-
-	var delegate2Err error
-	{
-		// Add second key. It should have the same KID as the first one.
-		eng, err := NewPGPKeyImportEngineFromBytes(tc.G, privKey2, false)
-		require.NoError(t, err)
-		// Do not care about an error from this engine immediately, keep going.
-		delegate2Err = RunEngine2(mctx, eng)
-		kid2 := eng.bundle.GetKID()
-		require.Equal(t, kid, kid2)
-	}
-
-	{
-		// Try to identify that user
-		tc := SetupEngineTest(t, "pgp")
-		defer tc.Cleanup()
-
-		idUI := &FakeIdentifyUI{}
-		arg := keybase1.Identify2Arg{
-			UserAssertion:    user.Username,
-			UseDelegateUI:    false,
-			CanSuppressUI:    true,
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
-		}
-
-		uis := libkb.UIs{
-			LogUI:      tc.G.UI.GetLogUI(),
-			IdentifyUI: idUI,
-		}
-		eng := NewResolveThenIdentify2(tc.G, &arg)
-		mctx := NewMetaContextForTest(tc).WithUIs(uis)
-		err = RunEngine2(mctx, eng)
-		require.NoError(t, err)
-	}
-
-	// Check PGP import engine error. When this bug was first reported, that
-	// engine was erroring out but the key was still being added.
-	require.NoError(t, delegate2Err)
 }
 
 const pubkeyIssue325 = `-----BEGIN PGP PUBLIC KEY BLOCK-----
