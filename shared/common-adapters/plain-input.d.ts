@@ -82,7 +82,7 @@ export type Props = {
   secureTextEntry?: boolean
   style?: InputStyle
   textType?: TextType
-  type?: 'password' | 'text'
+  type?: 'password' | 'text' | 'passwordVisible'
   value?: string // Makes this a controlled input when passed. Also disables mutating value via `transformText`, see note at component API,
   dummyInput?: boolean // Only affects mobile
   /* Platform discrepancies */

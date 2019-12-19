@@ -109,9 +109,6 @@ module.exports = {
   get FloatingPicker() {
     return require('./floating-picker').default
   },
-  get FormWithCheckbox() {
-    return require('./form-with-checkbox').default
-  },
   get HOCTimers() {
     return require('./hoc-timers').default
   },
