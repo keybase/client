@@ -44,12 +44,13 @@ const mapStateToProps = (state, {team}: OwnProps) => {
 
 const mapDispatchToProps = (dispatch, {team}: OwnProps) => {
   const teamname = team.fqName
+  const open = team.open
   return {
     _checkRequestedAccess: () => dispatch(TeamsGen.createCheckRequestedAccess({teamname})),
     _loadTeams: () => dispatch(TeamsGen.createGetTeams()),
     _onSetTeamJoinError: (error: string) => dispatch(TeamsGen.createSetTeamJoinError({error})),
     _onSetTeamJoinSuccess: (success: boolean) =>
-      dispatch(TeamsGen.createSetTeamJoinSuccess({success, teamname: ''})),
+      dispatch(TeamsGen.createSetTeamJoinSuccess({open, success, teamname: ''})),
     onJoinTeam: (teamname: string) => dispatch(TeamsGen.createJoinTeam({teamname})),
     onUserClick: (username: string) => {
       dispatch(ProfileGen.createShowUserProfile({username}))

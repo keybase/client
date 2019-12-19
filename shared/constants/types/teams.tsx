@@ -129,6 +129,7 @@ export type State = Readonly<{
   teamInviteError: string
   teamJoinError: string
   teamJoinSuccess: boolean
+  teamJoinSuccessOpen: boolean
   teamJoinSuccessTeamName: string
   teamCreationError: string
   teamDetails: Map<TeamID, TeamDetails>
