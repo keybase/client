@@ -9,6 +9,7 @@ export type Props = {
   contactSettingsEnabled?: boolean
   contactSettingsError: string
   contactSettingsIndirectFollowees: boolean
+  contactSettingsTeamsEnabled: boolean
   contactSettingsSelectedTeams: {[K in TeamID]: boolean}
   unfurlMode?: RPCChatTypes.UnfurlMode
   unfurlWhitelist?: Array<string>
@@ -38,7 +39,7 @@ class Chat extends React.Component<Props, State> {
     contactSettingsEnabled: undefined,
     contactSettingsIndirectFollowees: undefined,
     contactSettingsSelectedTeams: {},
-    contactSettingsTeamsEnabled: false,
+    contactSettingsTeamsEnabled: undefined,
     unfurlSelected: undefined,
     unfurlWhitelistRemoved: {},
   }

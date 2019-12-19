@@ -575,13 +575,13 @@ const contactSettingsSaved = async (state: TypedState, action: SettingsGen.Conta
   // Convert the selected teams object into the RPC format.
   const {enabled, indirectFollowees, teamsEnabled, teamsList} = action.payload
   const teams = Object.entries(teamsList).map(([teamID, enabled]) => ({
-    allowFolloweesOfTeamMembers: false,
     enabled,
     teamID,
   }))
   const settings = enabled
     ? {
         allowFolloweeDegrees: indirectFollowees ? 2 : 1,
+        allowGoodTeams: teamsEnabled,
         enabled: true,
         teams: teamsEnabled ? teams : null,
       }

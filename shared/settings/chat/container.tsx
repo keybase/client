@@ -16,6 +16,8 @@ export default Container.namedConnect(
     const contactSettingsIndirectFollowees =
       state.settings.chat.contactSettings.settings?.allowFolloweeDegrees === 2
     const contactSettingsTeams = state.settings.chat.contactSettings.settings?.teams
+    const contactSettingsTeamsEnabled = state.settings.chat.contactSettings.settings?.teams
+
     const whitelist = state.settings.chat.unfurl.unfurlWhitelist
     const unfurlWhitelist = whitelist ?? emptyList
     return {
@@ -23,6 +25,7 @@ export default Container.namedConnect(
       contactSettingsError: state.settings.chat.contactSettings.error,
       contactSettingsIndirectFollowees,
       contactSettingsTeams,
+      contactSettingsTeamsEnabled,
       teamDetails: state.teams.teamDetails,
       title: 'Chat',
       unfurlError: state.settings.chat.unfurl.unfurlError,

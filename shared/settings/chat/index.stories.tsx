@@ -17,6 +17,7 @@ const props = {
   contactSettingsError: '',
   contactSettingsIndirectFollowees: true,
   contactSettingsSelectedTeams: {},
+  contactSettingsTeamsEnabled: true,
   teamDetails: [],
   unfurlMode: RPCChatTypes.UnfurlMode.whitelisted,
   unfurlWhitelist: [
@@ -43,6 +44,7 @@ const loadErrorProps = {
   contactSettingsError: 'Unable to load contact settings, please try again.',
   contactSettingsIndirectFollowees: false,
   contactSettingsSelectedTeams: {},
+  contactSettingsTeamsEnabled: false,
   teamDetails: [],
   unfurlError: 'Unable to load link preview settings, please try again.',
   ...actions,
