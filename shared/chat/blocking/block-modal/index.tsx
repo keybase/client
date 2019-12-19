@@ -2,6 +2,10 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 
+export type BlockModalContext =
+  | 'message-popup-single' // message popup in 1-on-1 conv
+  | 'message-popup' // message popup in bigger convs (incl. team chats)
+
 export type BlockType = 'chatBlocked' | 'followBlocked'
 export type ReportSettings = {
   extraNotes: string
@@ -21,6 +25,7 @@ export type Props = {
   adderUsername?: string
   blockUserByDefault?: boolean
   convID?: string
+  context?: BlockModalContext
   finishWaiting: boolean
   isBlocked: (username: string, which: BlockType) => boolean
   loadingWaiting: boolean
@@ -138,6 +143,11 @@ class BlockModal extends React.PureComponent<Props, State> {
       map.set(this.props.adderUsername, {chatBlocked: true, followBlocked: true})
       this.setState({newBlocks: new Map(map)})
     }
+    if (this.props.context === 'message-popup') {
+      // Do not block conversation by default when coming from message popup
+      // menu.
+      this.setState({blockTeam: false})
+    }
   }
 
   componentDidUpdate(prevProps: Props) {
@@ -245,10 +255,10 @@ class BlockModal extends React.PureComponent<Props, State> {
     this.state.newBlocks.get(username)?.report?.reason ?? reasons[0]
   getExtraNotes = (username: string): string => this.state.newBlocks.get(username)?.report?.extraNotes ?? ''
 
-  renderRowsForUsername = (username: string, last: boolean): React.ReactElement => (
+  renderRowsForUsername = (username: string, last: boolean, teamLabel?: boolean): React.ReactElement => (
     <>
       <CheckboxRow
-        text={`Block ${username}`}
+        text={!teamLabel ? `Block ${username}` : `Block ${username} from messaging me directly`}
         onCheck={checked => this.setBlockFor(username, 'chatBlocked', checked)}
         checked={this.getBlockFor(username, 'chatBlocked')}
         info={`${username} won't be able to start any new conversations with you, and they won't be able to add you to any teams.`}
@@ -315,6 +325,7 @@ class BlockModal extends React.PureComponent<Props, State> {
     }
 
     const teamCheckboxDisabled = !!teamname && !this.props.otherUsernames?.length && !adderUsername
+    const teamLabel = this.props.context === 'message-popup'
 
     return (
       <Kb.Modal
@@ -344,7 +355,7 @@ class BlockModal extends React.PureComponent<Props, State> {
             <Kb.Divider />
           </>
         )}
-        {!!adderUsername && this.renderRowsForUsername(adderUsername, true)}
+        {!!adderUsername && this.renderRowsForUsername(adderUsername, true, teamLabel)}
         {!!this.props.otherUsernames?.length && (
           <>
             <Kb.Box2 direction="horizontal" style={styles.greyBox} fullWidth={true}>

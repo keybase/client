@@ -99,22 +99,6 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
       })
     )
   },
-  _onUserBlock: (message: Types.Message) => {
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {
-              blockUserByDefault: true,
-              convID: message.conversationIDKey,
-              username: message.author,
-            },
-            selected: 'chatBlockingModal',
-          },
-        ],
-      })
-    )
-  },
   _onReply: (message: Types.Message) => {
     dispatch(
       Chat2Gen.createToggleReplyToMessage({
@@ -128,6 +112,23 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
       Chat2Gen.createMessageReplyPrivately({
         ordinal: message.ordinal,
         sourceConversationIDKey: message.conversationIDKey,
+      })
+    )
+  },
+  _onUserBlock: (message: Types.Message, isSingle: boolean) => {
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {
+              blockUserByDefault: true,
+              context: isSingle ? 'message-popup-single' : 'message-popup',
+              convID: message.conversationIDKey,
+              username: message.author,
+            },
+            selected: 'chatBlockingModal',
+          },
+        ],
       })
     )
   },
@@ -151,6 +152,7 @@ export default Container.namedConnect(
       mapUnfurl && mapUnfurl.mapInfo && !mapUnfurl.mapInfo.isLiveLocationDone
         ? () => openURL(mapUnfurl.url)
         : undefined
+    const blockModalSingle = !stateProps._teamname && stateProps._participants.length === 2
     return {
       attachTo: ownProps.attachTo,
       author: message.author,
@@ -162,6 +164,7 @@ export default Container.namedConnect(
       isEditable,
       isKickable: isDeleteable && !!stateProps._teamname && !yourMessage && authorInConv,
       isLocation,
+      isTeam: !!stateProps._teamname,
       onAddReaction: Container.isMobile ? () => dispatchProps._onAddReaction(message) : undefined,
       onCopy: message.type === 'text' ? () => dispatchProps._onCopy(message) : undefined,
       onDelete: isDeleteable ? () => dispatchProps._onDelete(message) : undefined,
@@ -175,6 +178,10 @@ export default Container.namedConnect(
       onReply: message.type === 'text' ? () => dispatchProps._onReply(message) : undefined,
       onReplyPrivately:
         !yourMessage && canReplyPrivately ? () => dispatchProps._onReplyPrivately(message) : undefined,
+      onUserBlock:
+        message.author && !yourMessage
+          ? () => dispatchProps._onUserBlock(message, blockModalSingle)
+          : undefined,
       onViewMap,
       onViewProfile:
         message.author && !yourMessage ? () => dispatchProps._onViewProfile(message.author) : undefined,
@@ -184,11 +191,6 @@ export default Container.namedConnect(
       timestamp: message.timestamp,
       visible: ownProps.visible,
       yourMessage,
-      onUserBlock:
-        message.author && !yourMessage
-          ? () => dispatchProps._onUserBlock(message)
-          : undefined,
-      isTeam: !!stateProps._teamname,
     }
   },
   'MessagePopupText'
