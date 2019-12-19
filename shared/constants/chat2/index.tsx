@@ -34,6 +34,7 @@ export const makeState = (): Types.State => ({
   badgeMap: new Map(), // id to the badge count
   blockButtonsMap: new Map(),
   botCommandsUpdateStatusMap: new Map(),
+  botPublicCommands: new Map(),
   channelSearchText: '',
   commandMarkdownMap: new Map(),
   commandStatusMap: new Map(),

@@ -102,6 +102,7 @@ export const pendingMessageWasEdited = 'chat2:pendingMessageWasEdited'
 export const pinMessage = 'chat2:pinMessage'
 export const prepareFulfillRequestForm = 'chat2:prepareFulfillRequestForm'
 export const previewConversation = 'chat2:previewConversation'
+export const refreshBotPublicCommands = 'chat2:refreshBotPublicCommands'
 export const replyJump = 'chat2:replyJump'
 export const requestInfoReceived = 'chat2:requestInfoReceived'
 export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
@@ -113,6 +114,7 @@ export const sendAudioRecording = 'chat2:sendAudioRecording'
 export const sendTyping = 'chat2:sendTyping'
 export const setAttachmentViewStatus = 'chat2:setAttachmentViewStatus'
 export const setAudioRecordingPostInfo = 'chat2:setAudioRecordingPostInfo'
+export const setBotPublicCommands = 'chat2:setBotPublicCommands'
 export const setChannelSearchText = 'chat2:setChannelSearchText'
 export const setCommandMarkdown = 'chat2:setCommandMarkdown'
 export const setCommandStatusInfo = 'chat2:setCommandStatusInfo'
@@ -494,6 +496,7 @@ type _PreviewConversationPayload = {
     | 'search'
     | 'journeyCardPopular'
 }
+type _RefreshBotPublicCommandsPayload = {readonly username: string}
 type _ReplyJumpPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly messageID: Types.MessageID
@@ -557,6 +560,7 @@ type _SetAudioRecordingPostInfoPayload = {
   readonly path: string
   readonly outboxID: Buffer
 }
+type _SetBotPublicCommandsPayload = {readonly username: string; readonly commands: Types.BotPublicCommands}
 type _SetChannelSearchTextPayload = {readonly text: string}
 type _SetCommandMarkdownPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
@@ -1201,9 +1205,21 @@ export const createLoadNextBotPage = (payload: _LoadNextBotPagePayload): LoadNex
   type: loadNextBotPage,
 })
 /**
+ * refresh bot public commands
+ */
+export const createRefreshBotPublicCommands = (
+  payload: _RefreshBotPublicCommandsPayload
+): RefreshBotPublicCommandsPayload => ({payload, type: refreshBotPublicCommands})
+/**
  * send a message from Giphy search
  */
 export const createGiphySend = (payload: _GiphySendPayload): GiphySendPayload => ({payload, type: giphySend})
+/**
+ * set bot public commands
+ */
+export const createSetBotPublicCommands = (
+  payload: _SetBotPublicCommandsPayload
+): SetBotPublicCommandsPayload => ({payload, type: setBotPublicCommands})
 /**
  * set page # for a conversation
  */
@@ -1818,6 +1834,10 @@ export type PreviewConversationPayload = {
   readonly payload: _PreviewConversationPayload
   readonly type: typeof previewConversation
 }
+export type RefreshBotPublicCommandsPayload = {
+  readonly payload: _RefreshBotPublicCommandsPayload
+  readonly type: typeof refreshBotPublicCommands
+}
 export type ReplyJumpPayload = {readonly payload: _ReplyJumpPayload; readonly type: typeof replyJump}
 export type RequestInfoReceivedPayload = {
   readonly payload: _RequestInfoReceivedPayload
@@ -1855,6 +1875,10 @@ export type SetAttachmentViewStatusPayload = {
 export type SetAudioRecordingPostInfoPayload = {
   readonly payload: _SetAudioRecordingPostInfoPayload
   readonly type: typeof setAudioRecordingPostInfo
+}
+export type SetBotPublicCommandsPayload = {
+  readonly payload: _SetBotPublicCommandsPayload
+  readonly type: typeof setBotPublicCommands
 }
 export type SetChannelSearchTextPayload = {
   readonly payload: _SetChannelSearchTextPayload
@@ -2148,6 +2172,7 @@ export type Actions =
   | PinMessagePayload
   | PrepareFulfillRequestFormPayload
   | PreviewConversationPayload
+  | RefreshBotPublicCommandsPayload
   | ReplyJumpPayload
   | RequestInfoReceivedPayload
   | ResetChatWithoutThemPayload
@@ -2159,6 +2184,7 @@ export type Actions =
   | SendTypingPayload
   | SetAttachmentViewStatusPayload
   | SetAudioRecordingPostInfoPayload
+  | SetBotPublicCommandsPayload
   | SetChannelSearchTextPayload
   | SetCommandMarkdownPayload
   | SetCommandStatusInfoPayload

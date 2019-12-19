@@ -27,6 +27,7 @@
   "chat.1.local.ignorePinnedMessage": {"promise": true},
   "chat.1.local.joinConversationByIDLocal": {"promise": true},
   "chat.1.local.leaveConversationLocal": {"promise": true},
+  "chat.1.local.listPublicBotCommandsLocal": {"promise": true},
   "chat.1.local.loadGallery": {"engineSaga": true},
   "chat.1.local.locationDenied": {"promise": true},
   "chat.1.local.locationUpdate": {"promise": true},

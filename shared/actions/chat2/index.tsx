@@ -3328,6 +3328,32 @@ const loadNextBotPage = (state: Container.TypedState, action: Chat2Gen.LoadNextB
     page: state.chat2.featuredBotsPage + 1,
   })
 
+const refreshBotPublicCommands = async (
+  _: Container.TypedState,
+  action: Chat2Gen.RefreshBotPublicCommandsPayload
+) => {
+  let res: RPCChatTypes.ListBotCommandsLocalRes | undefined
+  try {
+    res = await RPCChatTypes.localListPublicBotCommandsLocalRpcPromise({
+      username: action.payload.username,
+    })
+  } catch (e) {
+    logger.info('refreshBotPublicCommands: failed to get public commands: ' + e.message)
+    return Chat2Gen.createSetBotPublicCommands({
+      commands: {commands: [], loadError: true},
+      username: action.payload.username,
+    })
+  }
+  const commands = (res?.commands ?? []).reduce<Array<string>>((l, c) => {
+    l.push(c.name)
+    return l
+  }, [])
+  return Chat2Gen.createSetBotPublicCommands({
+    commands: {commands, loadError: false},
+    username: action.payload.username,
+  })
+}
+
 function* chat2Saga() {
   // Platform specific actions
   if (Container.isMobile) {
@@ -3414,6 +3440,7 @@ function* chat2Saga() {
 
   // bots
   yield* Saga.chainAction2(Chat2Gen.loadNextBotPage, loadNextBotPage)
+  yield* Saga.chainAction2(Chat2Gen.refreshBotPublicCommands, refreshBotPublicCommands)
 
   // On login lets load the untrusted inbox. This helps make some flows easier
   yield* Saga.chainAction2(ConfigGen.bootstrapStatusLoaded, startupInboxLoad)

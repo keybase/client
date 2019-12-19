@@ -232,6 +232,8 @@ export type TypedActionsMap = {
   'chat2:setAudioRecordingPostInfo': chat2.SetAudioRecordingPostInfoPayload
   'chat2:loadNextBotPage': chat2.LoadNextBotPagePayload
   'chat2:setLoadedBotPage': chat2.SetLoadedBotPagePayload
+  'chat2:refreshBotPublicCommands': chat2.RefreshBotPublicCommandsPayload
+  'chat2:setBotPublicCommands': chat2.SetBotPublicCommandsPayload
   'config:startHandshake': config.StartHandshakePayload
   'config:restartHandshake': config.RestartHandshakePayload
   'config:daemonHandshake': config.DaemonHandshakePayload
