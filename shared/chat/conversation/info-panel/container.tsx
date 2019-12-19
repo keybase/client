@@ -222,7 +222,11 @@ const ConnectedInfoPanel = Container.connect(
     )
 
     const featuredBots = Array.from(stateProps._featuredBots.entries())
-      .filter(([k, _]) => !botUsernames.includes(k))
+      .filter(
+        ([k, _]) =>
+          !botUsernames.includes(k) &&
+          !(!stateProps.adhocTeam && TeamConstants.userInTeamNotBotWithInfo(stateProps._teamMembers, k))
+      )
       .map(([_, v]) => v)
 
     const teamMembers = stateProps._teamMembers
