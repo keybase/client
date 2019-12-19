@@ -420,8 +420,13 @@ func (a *Auditor) doPreProbes(m libkb.MetaContext, history *keybase1.AuditHistor
 			return 0, NewAuditError("merkle root should not have had a leaf for team %v: got %s/%d at merkle seqno %v",
 				history.ID, tuple.linkID, tuple.team, tuple.merkle)
 		}
-		if tuple.hiddenResp.RespType == libkb.MerkleHiddenResponseTypeNONE && tuple.merkle > firstRootWithHidden && auditMode != keybase1.AuditMode_STANDARD_NO_HIDDEN {
-			return 0, NewAuditError("did not get a hidden response but one was expected (at main seqno %v)", tuple.merkle)
+		if tuple.hiddenResp.RespType == libkb.MerkleHiddenResponseTypeNONE {
+			if tuple.merkle > firstRootWithHidden && auditMode != keybase1.AuditMode_STANDARD_NO_HIDDEN {
+				return 0, NewAuditError("did not get a hidden response but one was expected (at main seqno %v)", tuple.merkle)
+			}
+			// In this case, we did not expect any hidden response as we are
+			// either not authorized, or the hidden tree was not being used yet.
+			continue
 		}
 		if tuple.hiddenResp.RespType != libkb.MerkleHiddenResponseTypeABSENCEPROOF && tuple.hiddenResp.RespType != libkb.MerkleHiddenResponseTypeFLAGOFF {
 			return 0, NewAuditError("expected an ABSENCE PROOF (or the flag to be off) but got %+v instead", tuple.hiddenResp)
