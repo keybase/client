@@ -5,28 +5,28 @@ import {allServices} from '../constants/team-building'
 
 const serviceColors: {[K in ServiceIdWithContact]: string} = {
   get email() {
-    return Styles.isDarkMode ? '#3663ea' : '#3663ea'
+    return Styles.isDarkMode() ? '#3663ea' : '#3663ea'
   },
   get facebook() {
-    return Styles.isDarkMode ? '#3B5998' : '#3B5998'
+    return Styles.isDarkMode() ? '#3B5998' : '#3B5998'
   },
   get github() {
-    return Styles.isDarkMode ? '#9f7be1' : '#333'
+    return Styles.isDarkMode() ? '#E7E8E8' : '#333'
   },
   get hackernews() {
-    return Styles.isDarkMode ? '#FF6600' : '#FF6600'
+    return Styles.isDarkMode() ? '#FF6600' : '#FF6600'
   },
   get keybase() {
-    return Styles.isDarkMode ? '#3663ea' : '#3663ea'
+    return Styles.isDarkMode() ? '#3663ea' : '#3663ea'
   },
   get phone() {
-    return Styles.isDarkMode ? '#3663ea' : '#3663ea'
+    return Styles.isDarkMode() ? '#3663ea' : '#3663ea'
   },
   get reddit() {
-    return Styles.isDarkMode ? '#ff4500' : '#ff4500'
+    return Styles.isDarkMode() ? '#ff4500' : '#ff4500'
   },
   get twitter() {
-    return Styles.isDarkMode ? '#1DA1F2' : '#1DA1F2'
+    return Styles.isDarkMode() ? '#1DA1F2' : '#1DA1F2'
   },
 }
 

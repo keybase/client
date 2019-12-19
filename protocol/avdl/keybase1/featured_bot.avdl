@@ -6,6 +6,7 @@ protocol featuredBot {
   record FeaturedBot {
     string botAlias;
     string description;
+    string extendedDescription;
     string botUsername;
     union { null, string } ownerTeam;
     union { null, string } ownerUser;

@@ -1,7 +1,6 @@
 import commandMarkdown from './conversation/command-markdown/index.stories'
 import commandStatus from './conversation/command-status/index.stories'
 import confirmPayment from './payments/confirm/index.stories'
-import conversationList from './conversation-list/index.stories'
 import createChannel from './create-channel/index.stories'
 import explodingMessageExplainer from './conversation/messages/exploding-explainer-dialog/index.stories'
 import giphy from './conversation/giphy/index.stories'
@@ -28,7 +27,6 @@ const load = () => {
     commandMarkdown,
     commandStatus,
     confirmPayment,
-    conversationList,
     createChannel,
     explodingMessageExplainer,
     giphy,

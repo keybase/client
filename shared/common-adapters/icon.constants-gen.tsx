@@ -2207,6 +2207,38 @@ const iconMeta_ = {
       return require('../images/icons/icon-dark-following-28.png')
     },
   },
+  'icon-dark-github-logo-16': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-github-logo-16.png')
+    },
+  },
+  'icon-dark-github-logo-32': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-github-logo-32.png')
+    },
+  },
+  'icon-dark-github-logo-48': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-github-logo-48.png')
+    },
+  },
+  'icon-dark-github-logo-64': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-github-logo-64.png')
+    },
+  },
   'icon-dark-message-deletion-32': {
     extension: 'png',
     imagesDir: 'icons',
@@ -4451,8 +4483,12 @@ const iconMeta_ = {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
+    nameDark: 'icon-dark-github-logo-16',
     get require() {
       return require('../images/icons/icon-github-logo-16.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-github-logo-16.png')
     },
   },
   'icon-github-logo-24': {
@@ -4467,24 +4503,36 @@ const iconMeta_ = {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
+    nameDark: 'icon-dark-github-logo-32',
     get require() {
       return require('../images/icons/icon-github-logo-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-github-logo-32.png')
     },
   },
   'icon-github-logo-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
+    nameDark: 'icon-dark-github-logo-48',
     get require() {
       return require('../images/icons/icon-github-logo-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-github-logo-48.png')
     },
   },
   'icon-github-logo-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
+    nameDark: 'icon-dark-github-logo-64',
     get require() {
       return require('../images/icons/icon-github-logo-64.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-github-logo-64.png')
     },
   },
   'icon-hacker-news-logo-16': {
@@ -4533,6 +4581,14 @@ const iconMeta_ = {
     isFont: false,
     get require() {
       return require('../images/icons/icon-illustration-attention-64.png')
+    },
+  },
+  'icon-illustration-contact-restrictions-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-illustration-contact-restrictions-96.png')
     },
   },
   'icon-illustration-encrypted-116-96': {

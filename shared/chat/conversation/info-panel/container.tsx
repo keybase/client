@@ -217,6 +217,7 @@ const ConnectedInfoPanel = Container.connect(
           botAlias: stateProps._botAliases[b] ?? (stateProps._infoMap.get(b) || {fullname: ''}).fullname,
           botUsername: b,
           description: stateProps._infoMap.get(b)?.bio ?? '',
+          extendedDescription: '',
         }
     )
 

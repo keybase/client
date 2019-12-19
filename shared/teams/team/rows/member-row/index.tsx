@@ -7,7 +7,7 @@ import {
   ClickableBox,
   Text,
   Icon,
-  Usernames,
+  ConnectedUsernames,
 } from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import {typeToLabel} from '../../../../constants/teams'
@@ -76,13 +76,7 @@ export const TeamMemberRow = (props: Props) => {
           <Avatar username={props.username} size={Styles.isMobile ? 48 : 32} />
           <Box style={styles.nameContainer}>
             <Box style={Styles.globalStyles.flexBoxRow}>
-              <Usernames
-                type="BodySemibold"
-                colorFollowing={true}
-                users={[
-                  {following: props.following, username: props.username, you: props.you === props.username},
-                ]}
-              />
+              <ConnectedUsernames type="BodySemibold" usernames={[props.username]} />
             </Box>
             <Box style={styles.nameContainerInner}>
               {fullNameLabel}

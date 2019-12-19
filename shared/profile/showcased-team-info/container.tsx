@@ -17,11 +17,6 @@ type OwnProps = {
 
 const mapStateToProps = (state, {team}: OwnProps) => {
   const username = state.config.username
-  const following = state.config.following
-  if (!username || !following) {
-    throw new Error('Not logged in')
-  }
-
   const description = team.description
   const memberCount = team.numMembers
   const openTeam = team.open
@@ -35,7 +30,6 @@ const mapStateToProps = (state, {team}: OwnProps) => {
 
   return {
     description,
-    following,
     memberCount,
     openTeam,
     publicAdmins,
