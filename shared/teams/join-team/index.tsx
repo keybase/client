@@ -55,7 +55,7 @@ const JoinTeam = (props: Props) => (
               </Kb.Text>
             )}
             <Kb.Text center={true} type="Body">
-              The team may take take a tiny while to appear as an admin need to come online. But you’re in.
+              The team may take take a tiny while to appear as an admin needs to come online. But you’re in.
             </Kb.Text>
           </Kb.Box2>
         ) : (
