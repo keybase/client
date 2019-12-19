@@ -106,9 +106,6 @@ module.exports = {
   get FloatingPicker() {
     return Index.FloatingPicker
   },
-  get FormWithCheckbox() {
-    return Index.FormWithCheckbox
-  },
   get GestureState() {
     return require('react-native-gesture-handler').State
   },
