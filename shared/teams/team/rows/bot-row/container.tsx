@@ -30,6 +30,7 @@ export default connect(
       botAlias: info.fullName,
       botUsername: username,
       description: '',
+      extendedDescription: '',
     }
 
     return {
