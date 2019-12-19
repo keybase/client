@@ -108,8 +108,17 @@ type IdentityHasher struct{}
 
 var _ Encoder = IdentityHasher{}
 
-func (i IdentityHasher) Encode(o interface{}) ([]byte, error) {
-	return msgpack.EncodeCanonical(o)
+func (i IdentityHasher) Encode(o interface{}) (dst []byte, err error) {
+	return dst, i.EncodeTo(o, &dst)
+}
+
+func (i IdentityHasher) EncodeTo(o interface{}, out *[]byte) (err error) {
+	enc, err := msgpack.EncodeCanonical(o)
+	if err != nil {
+		return err
+	}
+	*out = append((*out)[:0], enc...)
+	return nil
 }
 
 func (i IdentityHasher) GetEncodingType() EncodingType {
@@ -183,8 +192,17 @@ func (i IdentityHasherBlinded) HashGeneric(o interface{}, h *Hash) (err error) {
 	return err
 }
 
-func (i IdentityHasherBlinded) Encode(o interface{}) ([]byte, error) {
-	return msgpack.EncodeCanonical(o)
+func (i IdentityHasherBlinded) Encode(o interface{}) (dst []byte, err error) {
+	return dst, i.EncodeTo(o, &dst)
+}
+
+func (i IdentityHasherBlinded) EncodeTo(o interface{}, out *[]byte) (err error) {
+	enc, err := msgpack.EncodeCanonical(o)
+	if err != nil {
+		return err
+	}
+	*out = append((*out)[:0], enc...)
+	return nil
 }
 
 func (i IdentityHasherBlinded) Decode(dest interface{}, src []byte) error {
@@ -316,8 +334,17 @@ func (e SHA512_256Encoder) GetEncodingType() EncodingType {
 	return EncodingTypeForTesting
 }
 
-func (e SHA512_256Encoder) Encode(o interface{}) ([]byte, error) {
-	return msgpack.EncodeCanonical(o)
+func (e SHA512_256Encoder) Encode(o interface{}) (dst []byte, err error) {
+	return dst, e.EncodeTo(o, &dst)
+}
+
+func (e SHA512_256Encoder) EncodeTo(o interface{}, out *[]byte) (err error) {
+	enc, err := msgpack.EncodeCanonical(o)
+	if err != nil {
+		return err
+	}
+	*out = append((*out)[:0], enc...)
+	return nil
 }
 
 func (e SHA512_256Encoder) Decode(dest interface{}, src []byte) error {

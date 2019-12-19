@@ -30,6 +30,8 @@ type Tree struct {
 	// approximately balanced and have short-ish paths).
 	step int
 
+	// these two fields are used as buffers during tree building to avoid making
+	// many short lived memory allocations
 	bufKss  KeySpecificSecret
 	bufLeaf Node
 }

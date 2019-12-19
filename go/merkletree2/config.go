@@ -78,6 +78,8 @@ type KeySpecificSecret []byte
 type Encoder interface {
 	Decode(dest interface{}, src []byte) error
 	Encode(src interface{}) (dst []byte, err error)
+	// takes as input a []byte pointer dst to avoid creating new objects
+	EncodeTo(o interface{}, dst *[]byte) (err error)
 
 	EncodeAndHashGeneric(interface{}) (encoded []byte, hash Hash, err error)
 	// takes as input an hash pointer ret to avoid creating new objects

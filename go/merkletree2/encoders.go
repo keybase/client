@@ -34,6 +34,8 @@ func (e EncodingType) GetEncoder() Encoder {
 	}
 }
 
+// This function returns an encoder which is potentially unsafe for concurrent
+// use.
 func (e EncodingType) GetUnsafeEncoder() Encoder {
 	switch e {
 	case EncodingTypeBlindedSHA512_256v1:
@@ -84,7 +86,7 @@ func (e *UnsafeBlindedSHA512_256v1Encoder) HashGeneric(o interface{}, ret *Hash)
 	}
 	e.sha.Reset()
 	_, _ = e.sha.Write(e.encBuf)
-	*ret = e.sha.Sum((*ret)[0:0])
+	*ret = e.sha.Sum((*ret)[:0])
 	return nil
 }
 
@@ -122,8 +124,12 @@ func NewBlindedSHA512_256v1Encoder() *BlindedSHA512_256v1Encoder {
 	return &BlindedSHA512_256v1Encoder{mh: mh}
 }
 
+func (e *BlindedSHA512_256v1Encoder) EncodeTo(o interface{}, out *[]byte) (err error) {
+	return codec.NewEncoderBytes(out, &e.mh).Encode(o)
+}
+
 func (e *BlindedSHA512_256v1Encoder) Encode(o interface{}) (out []byte, err error) {
-	return out, codec.NewEncoderBytes(&out, &e.mh).Encode(o)
+	return out, e.EncodeTo(o, &out)
 }
 
 func (e *BlindedSHA512_256v1Encoder) Decode(dest interface{}, src []byte) error {
@@ -149,7 +155,7 @@ func (e *BlindedSHA512_256v1Encoder) HashGeneric(o interface{}, ret *Hash) error
 	hasher := sha512.New512_256()
 	// hasher.Write never errors.
 	_, _ = hasher.Write(enc)
-	*ret = hasher.Sum((*ret)[0:0])
+	*ret = hasher.Sum((*ret)[:0])
 	return nil
 }
 
@@ -171,7 +177,7 @@ func (e BlindedSHA512_256v1Inner) HashKeyEncodedValuePairWithKeySpecificSecretTo
 	hasher := hmac.New(sha512.New512_256, kss)
 	// hasher.Write never errors.
 	_, _ = hasher.Write(kevp.Value)
-	*ret = hasher.Sum((*ret)[0:0])
+	*ret = hasher.Sum((*ret)[:0])
 	return nil
 }
 
@@ -190,7 +196,7 @@ func (e BlindedSHA512_256v1Inner) ComputeKeySpecificSecretTo(ms MasterSecret, k 
 	hasher := hmac.New(sha512.New512_256, ms)
 	// hasher.Write never errors.
 	_, _ = hasher.Write(k)
-	*ret = hasher.Sum((*ret)[0:0])
+	*ret = hasher.Sum((*ret)[:0])
 }
 
 func (e BlindedSHA512_256v1Inner) GetEncodingType() EncodingType {
