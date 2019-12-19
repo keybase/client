@@ -1,7 +1,6 @@
 import * as _Avatar from '../common-adapters/avatar'
 import * as _Usernames from '../common-adapters/usernames'
 import {OwnProps as ReloadableOwnProps, Props as ReloadableProps} from '../common-adapters/reload'
-import {ConnectedProps as _UsernamesConnectedProps} from '../common-adapters/usernames/container'
 import * as _WaitingButton from '../common-adapters/waiting-button'
 import {OwnProps as TeamDropdownMenuOwnProps} from '../chat/conversation/info-panel/menu/container'
 import {Props as TeamDropdownMenuProps} from '../chat/conversation/info-panel/menu'
@@ -28,7 +27,7 @@ const defaultFollowing = ['max', 'cnojima', 'cdixon']
 const defaultFollowers = ['max', 'akalin']
 
 export const Usernames = (following: string[] = defaultFollowing, you: string = defaultYou) => ({
-  Usernames: (ownProps: _UsernamesConnectedProps): _Usernames.Props => {
+  Usernames: (ownProps: any): _Usernames.Props => {
     const {usernames, onUsernameClicked, skipSelf, ...props} = ownProps
     const users = (usernames || [])
       .map(username => ({following: following.includes(username), username, you: username === you}))

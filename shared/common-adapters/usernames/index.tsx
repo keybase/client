@@ -1,10 +1,9 @@
 import * as React from 'react'
-import Text, {TextType, Background, StylesTextCrossPlatform} from '../text'
-import shallowEqual from 'shallowequal'
 import * as Styles from '../../styles'
+import Text, {TextType, Background, StylesTextCrossPlatform} from '../text'
 import {backgroundModeIsNegative} from '../text.shared'
 
-export type UserListItem = {
+export type User = {
   username: string
   readOnly?: boolean
   broken?: boolean
@@ -12,9 +11,9 @@ export type UserListItem = {
   following?: boolean
 }
 
-export type UserList = Array<UserListItem>
-
-export type BaseUsernamesProps = {
+export type Props = {
+  onUsernameClicked?: (username: string) => void
+  users: Array<User>
   backgroundMode?: Background
   colorBroken?: boolean
   colorFollowing?: boolean
@@ -39,11 +38,6 @@ export type BaseUsernamesProps = {
   withProfileCardPopup?: boolean
 }
 
-export type Props = {
-  onUsernameClicked?: (username: string) => void
-  users: UserList
-} & BaseUsernamesProps
-
 // Mobile handles spaces correctly so don't insert anything
 const space = Styles.isMobile ? ` ` : <>&nbsp;</>
 
@@ -52,7 +46,7 @@ const space = Styles.isMobile ? ` ` : <>&nbsp;</>
 let WithProfileCardPopup: React.ComponentType<any> | null
 export const _setWithProfileCardPopup = (Comp: React.ComponentType<any>) => (WithProfileCardPopup = Comp)
 
-function UsernameText(props: Props) {
+const UsernameText = (props: Props) => {
   const derivedJoinerStyle = Styles.collapseStyles([
     props.joinerStyle,
     styles.joinerStyle,
@@ -152,62 +146,52 @@ UsernameText.defaultProps = {
 
 const inlineProps = Styles.isMobile ? {lineClamp: 1} : {}
 
-class Usernames extends React.Component<Props> {
-  shouldComponentUpdate(nextProps: Props) {
-    return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
-      if (['style', 'containerStyle', 'users'].includes(key as string)) {
-        return shallowEqual(obj, oth)
-      }
-      return undefined
-    })
-  }
+const _Usernames = (props: Props) => {
+  const containerStyle = props.inline ? styles.inlineStyle : styles.nonInlineStyle
+  const rwers = props.users.filter(u => !u.readOnly)
+  const readers = props.users.filter(u => !!u.readOnly)
+  const bgMode = props.backgroundMode || null
+  const isNegative = backgroundModeIsNegative(bgMode)
 
-  render() {
-    const containerStyle = this.props.inline ? styles.inlineStyle : styles.nonInlineStyle
-    const rwers = this.props.users.filter(u => !u.readOnly)
-    const readers = this.props.users.filter(u => !!u.readOnly)
-    const bgMode = this.props.backgroundMode || null
-    const isNegative = backgroundModeIsNegative(bgMode)
-
-    return (
-      <Text
-        type={this.props.type}
-        negative={isNegative}
-        style={Styles.collapseStyles([containerStyle, this.props.containerStyle])}
-        title={this.props.title}
-        ellipsizeMode="tail"
-        lineClamp={this.props.lineClamp}
-        {...(this.props.inline ? inlineProps : {})}
-      >
-        {!!this.props.prefix && (
-          <Text type={this.props.type} negative={isNegative} style={this.props.style}>
-            {this.props.prefix}
-          </Text>
-        )}
-        <UsernameText {...this.props} users={rwers} />
-        {!!readers.length && (
-          <Text
-            type={this.props.type}
-            negative={isNegative}
-            style={Styles.collapseStyles([this.props.style, {marginRight: 1}])}
-          >
-            #
-          </Text>
-        )}
-        <UsernameText {...this.props} users={readers} />
-        {!!this.props.suffix && (
-          <Text
-            type={this.props.suffixType || this.props.type}
-            negative={isNegative}
-            style={Styles.collapseStyles([this.props.style, {marginLeft: Styles.globalMargins.xtiny}])}
-          >
-            {this.props.suffix}
-          </Text>
-        )}
-      </Text>
-    )
-  }
+  return (
+    <Text
+      type={props.type}
+      negative={isNegative}
+      style={Styles.collapseStyles([containerStyle, props.containerStyle])}
+      title={props.title}
+      ellipsizeMode="tail"
+      lineClamp={props.lineClamp}
+      {...(props.inline ? inlineProps : {})}
+    >
+      {!!props.prefix && (
+        <Text type={props.type} negative={isNegative} style={props.style}>
+          {props.prefix}
+        </Text>
+      )}
+      <UsernameText {...props} users={rwers} />
+      {!!readers.length && (
+        <Text
+          type={props.type}
+          negative={isNegative}
+          style={Styles.collapseStyles([props.style, {marginRight: 1}])}
+        >
+          #
+        </Text>
+      )}
+      <UsernameText {...props} users={readers} />
+      {!!props.suffix && (
+        <Text
+          type={props.suffixType || props.type}
+          negative={isNegative}
+          style={Styles.collapseStyles([props.style, {marginLeft: Styles.globalMargins.xtiny}])}
+        >
+          {props.suffix}
+        </Text>
+      )}
+    </Text>
+  )
 }
+const Usernames = React.memo(_Usernames)
 
 // 15550123456@phone => +1 (555) 012-3456
 // [test@example.com]@email => test@example.com
