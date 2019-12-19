@@ -27,13 +27,13 @@ export const serialize: any = {
     }, {}),
   blocked: (v: boolean) => v,
   clearCacheTrigger: () => undefined,
-  conversationIDs: (v: ConvMap, o?: ConvMap) => {
+  conversationIDs: (v: ConvMap | undefined, o?: ConvMap) => {
     const newKeys = v?.map(v => v.conversation.conversationIDKey)
     const oldKeys = (o ?? []).map(v => v.conversation.conversationIDKey)
     return shallowEqual(newKeys, oldKeys) ? undefined : newKeys
   },
-  conversationMap: (v: ConvMap, o: ConvMap) => {
-    const obj = v.reduce((map, toSend) => {
+  conversationMap: (v: ConvMap | undefined, o: ConvMap) => {
+    const obj = v?.reduce((map, toSend) => {
       const oldConv =
         o &&
         o.find(oldElem => oldElem.conversation.conversationIDKey === toSend.conversation.conversationIDKey)
@@ -47,7 +47,7 @@ export const serialize: any = {
             [toSend.conversation.conversationIDKey]: conversationSerialize(toSend),
           }
     }, {})
-    if (Object.keys(obj).length) {
+    if (obj && Object.keys(obj).length) {
       return obj
     }
     return undefined
