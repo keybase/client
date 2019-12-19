@@ -2641,7 +2641,7 @@ func FormatConversationName(info chat1.ConversationInfoLocal, myUsername string)
 		}
 		var usersWithoutYou []string
 		for _, user := range users {
-			if user.Username != myUsername {
+			if user.Username != myUsername && user.InConvName {
 				usersWithoutYou = append(usersWithoutYou, user.Username)
 			}
 		}

@@ -67,8 +67,15 @@ class _SimpleTopLine extends React.Component<Props> {
                 </Kb.Text>
               </Kb.Box2>
             ) : (
-              <Kb.PlaintextUsernames
+              <Kb.ConnectedUsernames
+                backgroundMode={this.props.isSelected ? 'Terminal' : 'Normal'}
                 type="BodySemibold"
+                inline={true}
+                withProfileCardPopup={false}
+                underline={false}
+                colorBroken={false}
+                colorFollowing={false}
+                colorYou={false}
                 containerStyle={Styles.collapseStyles([
                   styles.name,
                   boldStyle,
@@ -76,7 +83,7 @@ class _SimpleTopLine extends React.Component<Props> {
                     ? {backgroundColor: this.props.backgroundColor, color: this.props.usernameColor}
                     : {color: this.props.usernameColor},
                 ])}
-                users={this.props.participants.map(p => ({username: p}))}
+                usernames={this.props.participants}
                 title={this.props.participants.join(', ')}
               />
             )}

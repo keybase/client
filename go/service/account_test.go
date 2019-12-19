@@ -100,11 +100,11 @@ func TestContactSettingsAPI(t *testing.T) {
 	// set
 	err = handler.UserSetContactSettings(ctx, keybase1.ContactSettings{
 		Enabled:              true,
+		AllowGoodTeams:       true,
 		AllowFolloweeDegrees: 2,
 		Teams: []keybase1.TeamContactSettings{
 			{TeamID: *teamID,
-				AllowFolloweesOfTeamMembers: false,
-				Enabled:                     true,
+				Enabled: true,
 			}},
 	})
 	require.NoError(t, err)
@@ -113,10 +113,10 @@ func TestContactSettingsAPI(t *testing.T) {
 	res, err = handler.UserGetContactSettings(ctx)
 	require.NoError(t, err)
 	require.Equal(t, true, res.Enabled)
+	require.Equal(t, true, res.AllowGoodTeams)
 	require.Equal(t, 2, res.AllowFolloweeDegrees)
 	require.Equal(t, 1, len(res.Teams))
 	require.Equal(t, *teamID, res.Teams[0].TeamID)
-	require.Equal(t, false, res.Teams[0].AllowFolloweesOfTeamMembers)
 	require.Equal(t, true, res.Teams[0].Enabled)
 }
 

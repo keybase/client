@@ -1371,6 +1371,7 @@ protocol teams {
   array<TeamProfileAddEntry> teamProfileAddList(int sessionID, string username);
 
   record TeamProfileAddEntry {
+    TeamID teamID;
     TeamName teamName;
     boolean open;
     // Reason for disabling selection.

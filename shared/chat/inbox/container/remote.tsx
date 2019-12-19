@@ -1,58 +1,36 @@
 import * as Constants from '../../../constants/chat2'
 import * as Styles from '../../../styles'
-import * as ChatTypes from '../../../constants/types/chat2'
-import {TypedState} from '../../../constants/reducer'
+import * as Types from '../../../constants/types/chat2'
 import {memoize} from '../../../util/memoize'
-import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 
 export type RemoteConvMeta = any
-/* Exclude<
-  {
-    conversationIDKey: ChatTypes.ConversationIDKey
-  } & SmallTeam.Props,
-  {
-    onSelectConversation: () => void
-  }
-> */
 
-// To cache the list
-const valuesCached = memoize(
+// A hack to store the username to avoid plumbing.
+let _username: string
+
+export const conversationsToSend = memoize(
   (
-    inboxLayout: RPCChatTypes.UIInboxLayout | null,
-    badgeMap,
-    unreadMap,
-    metaMap
-  ): Array<{
-    hasBadge: boolean
-    hasUnread: boolean
-    conversation: ChatTypes.ConversationMeta
-  }> =>
-    ((inboxLayout && inboxLayout.widgetList) || []).map(v => ({
+    inboxLayout: Types.State['inboxLayout'],
+    metaMap: Types.State['metaMap'],
+    badgeMap: Types.State['badgeMap'],
+    unreadMap: Types.State['unreadMap'],
+    username: string
+  ) => {
+    // a terrible hack to capture this since the serialize flow doesn't understand things outside of itself
+    _username = username
+    // and a terrible hack
+    return inboxLayout?.widgetList?.map(v => ({
       conversation: metaMap.get(v.convID) || {
         ...Constants.makeConversationMeta(),
         conversationIDKey: v.convID,
       },
-      hasBadge: (badgeMap.get(v.convID) || 0) > 0,
-      hasUnread: (unreadMap.get(v.convID) || 0) > 0,
+      hasBadge: !!badgeMap.get(v.convID),
+      hasUnread: !!unreadMap.get(v.convID),
     }))
+  }
 )
 
-// A hack to store the username to avoid plumbing.
-let _username: string
-export const conversationsToSend = (state: TypedState) => {
-  _username = state.config.username
-  return valuesCached(
-    state.chat2.inboxLayout,
-    state.chat2.badgeMap,
-    state.chat2.unreadMap,
-    state.chat2.metaMap
-  )
-}
-
-export const changeAffectsWidget = (
-  oldConv: ChatTypes.ConversationMeta,
-  newConv: ChatTypes.ConversationMeta
-) =>
+export const changeAffectsWidget = (oldConv: Types.ConversationMeta, newConv: Types.ConversationMeta) =>
   oldConv !== newConv &&
   !(
     oldConv.rekeyers === newConv.rekeyers &&
@@ -67,15 +45,12 @@ export const changeAffectsWidget = (
     oldConv.membershipType === newConv.membershipType
   )
 
-export const serialize = ({
-  hasBadge,
-  hasUnread,
-  conversation,
-}: {
+export const serialize = (s: {
   hasBadge: boolean
   hasUnread: boolean
-  conversation: ChatTypes.ConversationMeta
+  conversation: Types.ConversationMeta
 }): RemoteConvMeta => {
+  const {hasBadge, hasUnread, conversation} = s
   const styles = Constants.getRowStyles(false, hasUnread)
   const participantNeedToRekey = conversation.rekeyers.size > 0
   const youNeedToRekey = !!participantNeedToRekey && conversation.rekeyers.has(_username)

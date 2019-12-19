@@ -2,10 +2,10 @@ import * as Types from './types/users'
 import {TypedState} from './reducer'
 
 export const getFullname = (state: TypedState, username: string) =>
-  (state.users.infoMap.get(username) || {fullname: null}).fullname
+  state.users.infoMap.get(username)?.fullname
 
 export const getIsBroken = (infoMap: Map<string, Types.UserInfo>, username: string) =>
-  (infoMap.get(username) || {broken: null}).broken
+  infoMap.get(username)?.broken ?? false
 
 export const makeUserInfo = (): Types.UserInfo => ({
   bio: '',
