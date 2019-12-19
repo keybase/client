@@ -99,13 +99,13 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
       })
     )
   },
-  _onUserBlock: (teamname: string, message: Types.Message) => {
+  _onUserBlock: (message: Types.Message) => {
     dispatch(
       RouteTreeGen.createNavigateAppend({
         path: [
           {
             props: {
-              blockByDefault: true,
+              blockUserByDefault: true,
               convID: message.conversationIDKey,
               username: message.author,
             },
@@ -186,7 +186,7 @@ export default Container.namedConnect(
       yourMessage,
       onUserBlock:
         message.author && !yourMessage
-          ? () => dispatchProps._onUserBlock(stateProps._teamname, message)
+          ? () => dispatchProps._onUserBlock(message)
           : undefined,
       isTeam: !!stateProps._teamname,
     }

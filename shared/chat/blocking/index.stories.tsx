@@ -35,24 +35,24 @@ const load = () => {
   Sb.storiesOf('Chat/Blocking', module)
     .add('Implicit team', () => (
       <BlockModal
-        {...Sb.createNavigator({username: 'chris', others, blockByDefault: true, convID: fakeConvID})}
+        {...Sb.createNavigator({username: 'chris', others, blockUserByDefault: true, convID: fakeConvID})}
       />
     ))
     .add('Implicit team from sidebar', () => (
-      <BlockModal {...Sb.createNavigator({others, blockByDefault: true, convID: fakeConvID})} />
+      <BlockModal {...Sb.createNavigator({others, blockUserByDefault: true, convID: fakeConvID})} />
     ))
     .add('Team', () => (
       <BlockModal
         {...Sb.createNavigator({
           username: 'chris',
           team: 'keybase',
-          blockByDefault: true,
+          blockUserByDefault: true,
           convID: fakeConvID,
         })}
       />
     ))
     .add('1on1', () => (
-      <BlockModal {...Sb.createNavigator({username: 'chris', blockByDefault: true, convID: fakeConvID})} />
+      <BlockModal {...Sb.createNavigator({username: 'chris', blockUserByDefault: true, convID: fakeConvID})} />
     ))
     .add('From profile', () => <BlockModal {...Sb.createNavigator({username: 'chris'})} />)
   Sb.storiesOf('Chat/Blocking', module)

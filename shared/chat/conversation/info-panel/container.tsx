@@ -128,7 +128,7 @@ const ConnectedInfoPanel = Container.connect(
         RouteTreeGen.createNavigateAppend({
           path: [
             {
-              props: {blockByDefault: true, convID: conversationIDKey, others, team},
+              props: {blockUserByDefault: true, convID: conversationIDKey, others, team},
               selected: 'chatBlockingModal',
             },
           ],

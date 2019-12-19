@@ -8,7 +8,7 @@ import * as Constants from '../../../constants/users'
 import {leaveTeamWaitingKey} from '../../../constants/teams'
 
 type OwnProps = Container.RouteProps<{
-  blockByDefault?: boolean
+  blockUserByDefault?: boolean
   convID?: string
   others?: Array<string>
   team?: string
@@ -31,7 +31,7 @@ const Connect = Container.connect(
     return {
       _allKnownBlocks: state.users.blockMap,
       adderUsername,
-      blockByDefault: Container.getRouteProps(ownProps, 'blockByDefault', false),
+      blockUserByDefault: Container.getRouteProps(ownProps, 'blockUserByDefault', false),
       convID: Container.getRouteProps(ownProps, 'convID', undefined),
       finishWaiting: waitingForLeave || waitingForBlocking || waitingForReport,
       loadingWaiting: Container.anyWaiting(state, Constants.getUserBlocksWaitingKey),
