@@ -6,7 +6,6 @@ if (!__STORYBOOK__) {
 
 const ff: FeatureFlags = {
   admin: false,
-  airdrop: true,
   audioAttachments: true,
   botUI: false,
   chatIndexProfilingEnabled: false,

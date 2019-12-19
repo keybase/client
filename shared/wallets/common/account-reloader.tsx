@@ -31,7 +31,6 @@ const mapStateToProps = () => ({})
 const mapDispatchToProps = dispatch => ({
   onReload: () => {
     dispatch(WalletsGen.createLoadAccounts({reason: 'initial-load'}))
-    dispatch(WalletsGen.createUpdateAirdropDetails())
   },
 })
 

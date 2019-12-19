@@ -37,7 +37,6 @@ export type Props = {
   onEditAvatar?: (e?: React.BaseSyntheticEvent) => void
   reason: string
   sbsAvatarUrl?: string
-  showAirdropBanner: boolean
   state: Types.DetailsState
   suggestionKeys?: Array<string>
   userIsYou: boolean
@@ -443,8 +442,6 @@ class User extends React.Component<Props, State> {
       }
     }
 
-    const paddingTop = styles.container.paddingTop + (this.props.showAirdropBanner ? 70 : 0)
-
     return (
       <Kb.Reloadable
         reloadOnMount={true}
@@ -459,7 +456,6 @@ class User extends React.Component<Props, State> {
           fullHeight={true}
           style={Styles.collapseStyles([
             styles.container,
-            {paddingTop},
             colorTypeToStyle(this.props.backgroundColorType),
           ])}
         >
