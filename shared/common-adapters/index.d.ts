@@ -44,6 +44,7 @@ export {default as Header} from './header'
 export {default as HeaderHoc, HeaderHocHeader} from './header-hoc'
 export {default as HeaderOnMobile} from './header-on-mobile'
 export {default as HeaderOrPopup, HeaderOrPopupWithHeader} from './header-or-popup'
+export {HotKey, useHotKey} from './hot-key'
 export {default as HoverHoc} from './hover-hoc'
 export {default as Icon, urlsToImgSet, IconStyle} from './icon'
 export {default as Image, RequireImage} from './image'
@@ -62,7 +63,7 @@ export {
   smallHeight as smallListItem2Height,
 } from './list-item2'
 export {default as Markdown} from './markdown'
-export {MaybePopup, MaybePopupHoc} from './maybe-popup'
+export {MaybePopup} from './maybe-popup'
 
 export {default as MultiAvatar} from './multi-avatar'
 export {default as Meta} from './meta'

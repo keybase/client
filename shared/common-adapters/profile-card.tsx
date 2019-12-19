@@ -49,12 +49,12 @@ type ServiceIconsProps = {
   userDetailsAssertions?: Map<string, Tracker2Types.Assertion>
 }
 
-const assertionTypeToServiceId = (assertionType): Platforms.ServiceId | null => {
+const assertionTypeToServiceId = (assertionType: string): Platforms.ServiceId | null => {
   switch (assertionType) {
     case 'facebook':
     case 'github':
     case 'hackernews':
-    case 'keybase:':
+    case 'keybase':
     case 'reddit':
     case 'twitter':
       return assertionType
