@@ -3376,6 +3376,38 @@ const addBotMember = async (_: Container.TypedState, action: Chat2Gen.AddBotMemb
   return RouteTreeGen.createClearModals()
 }
 
+const removeBotMember = async (_: Container.TypedState, action: Chat2Gen.RemoveBotMemberPayload) => {
+  const {conversationIDKey, username} = action.payload
+  try {
+    await RPCChatTypes.localRemoveBotMemberRpcPromise(
+      {
+        convID: Types.keyToConversationID(conversationIDKey),
+        username,
+      },
+      Constants.waitingKeyBotRemove
+    )
+  } catch (err) {
+    logger.info('removeBotMember: failed to remove bot member: ' + err.message)
+    return false
+  }
+  return RouteTreeGen.createClearModals()
+}
+
+const refreshBotSettings = async (_: Container.TypedState, action: Chat2Gen.RefreshBotSettingsPayload) => {
+  let settings: RPCTypes.TeamBotSettings | undefined
+  const {conversationIDKey, username} = action.payload
+  try {
+    settings = await RPCChatTypes.localGetBotMemberSettingsRpcPromise({
+      convID: Types.keyToConversationID(conversationIDKey),
+      username,
+    })
+  } catch (err) {
+    logger.info(`refreshBotSettings: failed to refresh settings for ${username}: ${err.message}`)
+    return
+  }
+  return Chat2Gen.createSetBotSettings({conversationIDKey, settings, username})
+}
+
 function* chat2Saga() {
   // Platform specific actions
   if (Container.isMobile) {
@@ -3464,6 +3496,8 @@ function* chat2Saga() {
   yield* Saga.chainAction2(Chat2Gen.loadNextBotPage, loadNextBotPage)
   yield* Saga.chainAction2(Chat2Gen.refreshBotPublicCommands, refreshBotPublicCommands)
   yield* Saga.chainAction2(Chat2Gen.addBotMember, addBotMember)
+  yield* Saga.chainAction2(Chat2Gen.removeBotMember, removeBotMember)
+  yield* Saga.chainAction2(Chat2Gen.refreshBotSettings, refreshBotSettings)
 
   // On login lets load the untrusted inbox. This helps make some flows easier
   yield* Saga.chainAction2(ConfigGen.bootstrapStatusLoaded, startupInboxLoad)

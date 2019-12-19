@@ -1495,6 +1495,17 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   [Chat2Gen.refreshBotPublicCommands]: (draftState, action) => {
     draftState.botPublicCommands.delete(action.payload.username)
   },
+  [Chat2Gen.refreshBotSettings]: (draftState, action) => {
+    const m = draftState.botSettings.get(action.payload.conversationIDKey)
+    if (m) {
+      m.delete(action.payload.username)
+    }
+  },
+  [Chat2Gen.setBotSettings]: (draftState, action) => {
+    const m = draftState.botSettings.get(action.payload.conversationIDKey) || new Map()
+    m.set(action.payload.username, action.payload.settings)
+    draftState.botSettings.set(action.payload.conversationIDKey, m)
+  },
   ...audioActions,
   ...botActions,
   ...giphyActions,

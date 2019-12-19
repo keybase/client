@@ -7,6 +7,7 @@ import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Teams from '../../../constants/teams'
 import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
+import * as RPCTypes from '../../../constants/types/rpc-gen'
 
 type Props = Container.RouteProps<{botUsername: string; conversationIDKey?: Types.ConversationIDKey}>
 
@@ -18,7 +19,7 @@ const InstallBotPopup = (props: Props) => {
   const [installScreen, setInstallScreen] = React.useState(false)
   const [installWithCommands, setInstallWithCommands] = React.useState(true)
   const [installWithMentions, setInstallWithMentions] = React.useState(true)
-  const {commands, featured, inTeam} = Container.useSelector(state => {
+  const {commands, featured, inTeam, settings} = Container.useSelector(state => {
     const meta = conversationIDKey && state.chat2.metaMap.get(conversationIDKey)
     let inTeam = false
     if (meta) {
@@ -32,6 +33,9 @@ const InstallBotPopup = (props: Props) => {
       commands: state.chat2.botPublicCommands.get(botUsername),
       featured: state.chat2.featuredBotsMap.get(botUsername),
       inTeam,
+      settings: conversationIDKey
+        ? state.chat2.botSettings.get(conversationIDKey)?.get(botUsername) ?? undefined
+        : undefined,
     }
   })
   // dispatch
@@ -52,9 +56,18 @@ const InstallBotPopup = (props: Props) => {
       })
     )
   }
+  const onRemove = () => {
+    if (!conversationIDKey) {
+      return
+    }
+    dispatch(Chat2Gen.createRemoveBotMember({conversationIDKey, username: botUsername}))
+  }
   // lifecycle
   React.useEffect(() => {
     dispatch(Chat2Gen.createRefreshBotPublicCommands({username: botUsername}))
+    if (conversationIDKey && inTeam) {
+      dispatch(Chat2Gen.createRefreshBotSettings({conversationIDKey, username: botUsername}))
+    }
   }, [])
 
   const featuredContent = !!featured && (
@@ -72,6 +85,7 @@ const InstallBotPopup = (props: Props) => {
         </Kb.Box2>
       </Kb.Box2>
       <Kb.Text type="Body">{featured.description}</Kb.Text>
+      {inTeam && <PermsList settings={settings} username={botUsername} />}
     </Kb.Box2>
   )
   const usernameContent = !featured && (
@@ -87,6 +101,7 @@ const InstallBotPopup = (props: Props) => {
           />
         </Kb.Box2>
       </Kb.Box2>
+      {inTeam && <PermsList settings={settings} username={botUsername} />}
     </Kb.Box2>
   )
   const installContent = installScreen && (
@@ -116,6 +131,9 @@ const InstallBotPopup = (props: Props) => {
     </Kb.Box2>
   )
   const content = installScreen ? installContent : featured ? featuredContent : usernameContent
+  const buttonText = installScreen ? 'Install (free)' : inTeam ? 'Remove' : 'Install (free)'
+  const buttonClick = installScreen ? onInstall : inTeam ? onRemove : () => setInstallScreen(true)
+  const buttonWaitingKey = inTeam ? Constants.waitingKeyBotRemove : Constants.waitingKeyBotAdd
   return (
     <Kb.Modal
       header={{
@@ -126,22 +144,18 @@ const InstallBotPopup = (props: Props) => {
         ),
         title: '',
       }}
-      footer={
-        !inTeam
-          ? {
-              content: (
-                <Kb.WaitingButton
-                  fullWidth={true}
-                  label="Install (free)"
-                  onClick={installScreen ? onInstall : () => setInstallScreen(true)}
-                  mode="Primary"
-                  type="Default"
-                  waitingKey={Constants.waitingKeyBotAdd}
-                />
-              ),
-            }
-          : undefined
-      }
+      footer={{
+        content: (
+          <Kb.WaitingButton
+            fullWidth={true}
+            label={buttonText}
+            onClick={buttonClick}
+            mode="Primary"
+            type="Default"
+            waitingKey={buttonWaitingKey}
+          />
+        ),
+      }}
     >
       {content}
     </Kb.Modal>
@@ -173,6 +187,32 @@ const CommandsLabel = (props: CommandsLabelProps) => {
       </Kb.Box2>
     )
   }
+}
+
+type PermsListProps = {
+  settings?: RPCTypes.TeamBotSettings
+  username: string
+}
+
+const PermsList = (props: PermsListProps) => {
+  return (
+    <Kb.Box2 direction="vertical" gap="small" fullWidth={true}>
+      <Kb.Text type="BodySemibold">This bot can currently read:</Kb.Text>
+      {props.settings ? (
+        <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
+          {!(props.settings.cmds || props.settings.mentions) && (
+            <Kb.Text type="Body">{'• no messages, the bot is in write only mode'}</Kb.Text>
+          )}
+          {props.settings.cmds && <Kb.Text type="Body">{'• messages that begin with bot commands.'}</Kb.Text>}
+          {props.settings.mentions && (
+            <Kb.Text type="Body">{`• messages it has been mentioned in with @${props.username}`}</Kb.Text>
+          )}
+        </Kb.Box2>
+      ) : (
+        <Kb.ProgressIndicator />
+      )}
+    </Kb.Box2>
+  )
 }
 
 const styles = Styles.styleSheetCreate(() => ({
