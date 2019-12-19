@@ -28,7 +28,7 @@ export const serialize: any = {
   blocked: (v: boolean) => v,
   clearCacheTrigger: () => undefined,
   conversationIDs: (v: ConvMap, o?: ConvMap) => {
-    const newKeys = v.map(v => v.conversation.conversationIDKey)
+    const newKeys = v?.map(v => v.conversation.conversationIDKey)
     const oldKeys = (o ?? []).map(v => v.conversation.conversationIDKey)
     return shallowEqual(newKeys, oldKeys) ? undefined : newKeys
   },
