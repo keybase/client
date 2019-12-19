@@ -17,7 +17,7 @@ type featuredBotsCache struct {
 }
 
 func (c featuredBotsCache) isFresh() bool {
-	return time.Now().Sub(c.Ctime.Time()) <= cacheLifetime
+	return time.Since(c.Ctime.Time()) <= cacheLifetime
 }
 
 type FeaturedBotLoader struct {
@@ -128,7 +128,9 @@ func (l *FeaturedBotLoader) FeaturedBots(mctx libkb.MetaContext, arg keybase1.Fe
 		l.G().NotifyRouter.HandleFeaturedBots(mctx.Ctx(), res.Bots)
 		go func() {
 			mctx = libkb.NewMetaContextBackground(l.G())
-			l.syncFeaturedBots(mctx, arg, &res)
+			if _, err := l.syncFeaturedBots(mctx, arg, &res); err != nil {
+				l.debug(mctx, "FeaturedBots: unable to fetch from server in background: %v", err)
+			}
 		}()
 		return res, err
 	}
