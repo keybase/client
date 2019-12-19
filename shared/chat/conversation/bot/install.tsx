@@ -82,9 +82,10 @@ const InstallBotPopup = (props: Props) => {
             usernames={[botUsername]}
             withProfileCardPopup={false}
           />
+          <Kb.Text type="BodySmall">{featured.description}</Kb.Text>
         </Kb.Box2>
       </Kb.Box2>
-      <Kb.Text type="Body">{featured.description}</Kb.Text>
+      <Kb.Text type="BodySmall">{featured.extendedDescription}</Kb.Text>
       {inTeam && <PermsList settings={settings} username={botUsername} />}
     </Kb.Box2>
   )
@@ -110,6 +111,7 @@ const InstallBotPopup = (props: Props) => {
         <Kb.Avatar username={botUsername} size={64} />
         <Kb.Box2 direction="vertical">
           <Kb.Text type="BodyBigExtrabold">{featured ? featured.botAlias : botUsername}</Kb.Text>
+          <Kb.Text type="BodySmall">{featured.description}</Kb.Text>
         </Kb.Box2>
       </Kb.Box2>
       <Kb.Text type="BodyBig">It will be able to read:</Kb.Text>
