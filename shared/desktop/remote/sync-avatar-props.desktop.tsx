@@ -64,18 +64,6 @@ const getUsernamesSet = memoize(
 function SyncAvatarProps(ComposedComponent: any) {
   const RemoteAvatarConnected = (props: Props) => <ComposedComponent {...props} />
 
-  const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
-    const {usernames} = ownProps
-    return {
-      ...immerCached(
-        getRemoteFollowers(state.config.followers, usernames),
-        getRemoteFollowing(state.config.following, usernames)
-      ),
-      httpSrvAddress: state.config.httpSrvAddress,
-      httpSrvToken: state.config.httpSrvToken,
-    }
-  }
-
   const getRemoteFollowers = memoize((followers: Set<string>, usernames: Set<string>) =>
     intersect(followers, usernames)
   )
@@ -83,17 +71,28 @@ function SyncAvatarProps(ComposedComponent: any) {
     intersect(following, usernames)
   )
 
-  // use an immer equals to not rerender if its the same
-  const immerCached = memoize(
-    (followers: Set<string>, following: Set<string>) => ({followers, following}),
-    ([newFollowers, newFollowing]: Array<Set<string>>, [oldFollowers, oldFollowing]: Array<Set<string>>) =>
-      isEqual(newFollowers, oldFollowers) && isEqual(newFollowing, oldFollowing)
-  )
-
   const Connected = Container.connect(
-    mapStateToProps,
+    state => {
+      const {followers, following, httpSrvAddress, httpSrvToken} = state.config
+      return {
+        _followers: followers,
+        _following: following,
+        httpSrvAddress,
+        httpSrvToken,
+      }
+    },
     () => ({}),
-    (s, d, o: OwnProps) => ({...o, ...s, ...d})
+    (stateProps, _d, ownProps: OwnProps) => {
+      const {usernames} = ownProps
+      const {_followers, _following, httpSrvAddress, httpSrvToken} = stateProps
+      return {
+        followers: getRemoteFollowers(_followers, usernames),
+        following: getRemoteFollowing(_following, usernames),
+        httpSrvAddress,
+        httpSrvToken,
+        ...ownProps,
+      }
+    }
   )(RemoteAvatarConnected)
 
   type WrapperProps = {
