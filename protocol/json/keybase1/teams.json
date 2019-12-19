@@ -2911,6 +2911,10 @@
       "name": "TeamProfileAddEntry",
       "fields": [
         {
+          "type": "TeamID",
+          "name": "teamID"
+        },
+        {
           "type": "TeamName",
           "name": "teamName"
         },
