@@ -142,6 +142,10 @@ export default Container.namedConnect(
     const authorIsAdmin = teamname
       ? TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'admin')
       : false
+    const authorIsBot = teamname
+      ? TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'restrictedbot') ||
+        TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'bot')
+      : false
     const authorIsOwner = teamname
       ? TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'owner')
       : false
@@ -150,6 +154,7 @@ export default Container.namedConnect(
     return {
       _you: state.config.username,
       authorIsAdmin,
+      authorIsBot,
       authorIsOwner,
       botAlias,
       centeredOrdinal,
@@ -206,6 +211,7 @@ export default Container.namedConnect(
 
     return {
       authorIsAdmin: stateProps.authorIsAdmin,
+      authorIsBot: stateProps.authorIsBot,
       authorIsOwner: stateProps.authorIsOwner,
       botAlias: stateProps.botAlias,
       centeredOrdinal: stateProps.centeredOrdinal,

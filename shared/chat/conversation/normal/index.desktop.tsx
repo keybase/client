@@ -1,17 +1,17 @@
+import * as Kb from '../../../common-adapters'
 import * as React from 'react'
+import * as Styles from '../../../styles'
 import Banner from '../bottom-banner/container'
 import InputArea from '../input-area/container'
-import ListArea from '../list-area/container'
-import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
-import {readImageFromClipboard} from '../../../util/clipboard.desktop'
-import {Props} from '.'
-import '../conversation.css'
-import ThreadLoadStatus from '../load-status/container'
-import PinnedMessage from '../pinned-message/container'
-import ThreadSearch from '../search/container'
-import KeyHandler from '../../../util/key-handler.desktop'
 import InvitationToBlock from '../../blocking/invitation-to-block'
+import ListArea from '../list-area/container'
+import PinnedMessage from '../pinned-message/container'
+import ThreadLoadStatus from '../load-status/container'
+import ThreadSearch from '../search/container'
+import {Props} from '.'
+import {isDarwin} from '../../../constants/platform'
+import {readImageFromClipboard} from '../../../util/clipboard.desktop'
+import '../conversation.css'
 
 const Offline = () => (
   <Kb.Box style={styles.offline}>
@@ -22,17 +22,7 @@ const Offline = () => (
 )
 
 class Conversation extends React.PureComponent<Props> {
-  _mounted = false
-
-  componentWillUnmount() {
-    this._mounted = false
-  }
-
-  componentDidMount() {
-    this._mounted = true
-  }
-
-  _onPaste = e => {
+  private onPaste = (e: React.SyntheticEvent) => {
     readImageFromClipboard(e, () => {}).then(clipboardData => {
       if (clipboardData) {
         this.props.onPaste(clipboardData)
@@ -40,9 +30,17 @@ class Conversation extends React.PureComponent<Props> {
     })
   }
 
+  private hotKeys = [`${isDarwin ? 'command' : 'ctrl'}+f`]
+  private onHotKey = (cmd: string) => {
+    if (cmd.replace(/(command|ctrl)\+/, '') === 'f') {
+      this.props.onToggleThreadSearch()
+    }
+  }
+
   render() {
     return (
-      <Kb.Box className="conversation" style={styles.container} onPaste={this._onPaste}>
+      <Kb.Box className="conversation" style={styles.container} onPaste={this.onPaste}>
+        <Kb.HotKey hotKeys={this.hotKeys} onHotKey={this.onHotKey} />
         <Kb.DragAndDrop
           onAttach={this.props.onAttach}
           fullHeight={true}
@@ -112,4 +110,4 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export default KeyHandler(Conversation)
+export default Conversation

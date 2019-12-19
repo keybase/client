@@ -4,6 +4,7 @@ import * as Styles from '../../styles'
 
 export type Props = {
   errorText: string
+  open: boolean
   success: boolean
   name: string
   successTeamName: string | null
@@ -45,21 +46,35 @@ const JoinTeam = (props: Props) => (
   >
     {props.success ? (
       <Kb.Box2 alignItems="center" direction="horizontal" fullHeight={true} fullWidth={true}>
-        <Kb.Box2 direction="vertical" style={styles.container}>
-          <Kb.Icon
-            style={styles.icon}
-            type={Styles.isMobile ? 'icon-fancy-email-sent-192-x-64' : 'icon-fancy-email-sent-144-x-48'}
-          />
-          <Kb.Text center={true} type="Body">
-            We sent a request to{' '}
-            {props.successTeamName ? (
-              <Kb.Text type="BodySemibold">{props.successTeamName}</Kb.Text>
-            ) : (
-              'the team'
+        {props.open ? (
+          <Kb.Box2 alignItems="center" direction="vertical" gap="tiny" style={styles.container}>
+            <Kb.Icon type="icon-illustration-welcome-96" />
+            {!!props.successTeamName && (
+              <Kb.Text center={true} type="Header">
+                You’ve joined {props.successTeamName}!
+              </Kb.Text>
             )}
-            ’s admins. We will notify you as soon as they let you in!
-          </Kb.Text>
-        </Kb.Box2>
+            <Kb.Text center={true} type="Body">
+              The team may take take a tiny while to appear as an admin need to come online. But you’re in.
+            </Kb.Text>
+          </Kb.Box2>
+        ) : (
+          <Kb.Box2 alignItems="center" direction="vertical" gap="tiny" style={styles.container}>
+            <Kb.Icon
+              style={styles.icon}
+              type={Styles.isMobile ? 'icon-fancy-email-sent-192-x-64' : 'icon-fancy-email-sent-144-x-48'}
+            />
+            <Kb.Text center={true} type="Body">
+              We sent a request to{' '}
+              {props.successTeamName ? (
+                <Kb.Text type="BodySemibold">{props.successTeamName}</Kb.Text>
+              ) : (
+                'the team'
+              )}
+              ’s admins. We will notify you as soon as they let you in!
+            </Kb.Text>
+          </Kb.Box2>
+        )}
       </Kb.Box2>
     ) : (
       <Kb.Box2 direction="vertical" style={styles.container}>
@@ -89,10 +104,6 @@ const styles = Styles.styleSheetCreate(
         width: '100%',
       },
       icon: Styles.platformStyles({
-        common: {
-          alignSelf: 'center',
-          marginBottom: Styles.globalMargins.tiny,
-        },
         isElectron: {
           height: 48,
           width: 144,

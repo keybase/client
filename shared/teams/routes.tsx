@@ -1,4 +1,3 @@
-import {MaybePopupHoc} from '../common-adapters'
 import Team from './team/container'
 import TeamMember from './team/member/container'
 import TeamsRoot from './container'
@@ -32,10 +31,8 @@ export const newModalRoutes = {
   teamEditTeamAvatar: {
     getScreen: (): typeof TeamEditTeamAvatar => require('../profile/edit-avatar/container').default,
   },
-  // TODO connect broken
   teamEditTeamDescription: {
-    getScreen: (): typeof TeamEditTeamDescription =>
-      MaybePopupHoc(false)(require('./edit-team-description/container').default),
+    getScreen: (): typeof TeamEditTeamDescription => require('./edit-team-description/container').default,
   },
   teamInviteByContact: {
     getScreen: (): typeof TeamInviteByContact => require('./invite-by-contact/container').default,

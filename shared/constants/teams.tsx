@@ -179,6 +179,7 @@ const emptyState: Types.State = {
   teamInviteError: '',
   teamJoinError: '',
   teamJoinSuccess: false,
+  teamJoinSuccessOpen: false,
   teamJoinSuccessTeamName: '',
   teamNameToChannelInfos: new Map(),
   teamNameToID: new Map(),

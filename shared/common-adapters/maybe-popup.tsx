@@ -1,8 +1,6 @@
 import * as React from 'react'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import Box from './box'
 import PopupDialog from './popup-dialog'
-import {connect} from '../util/container'
 import {collapseStyles, globalColors, isMobile} from '../styles'
 
 type Props = {
@@ -32,54 +30,6 @@ const MaybePopup = isMobile
       />
     )
 
-// TODO properly type this
-const DispatchNavUpHoc: any = connect(
-  () => ({}),
-  // @ts-ignore codemod issue
-  (dispatch, {navigateUp}) => ({
-    connectedNavigateUp: () => dispatch(navigateUp ? navigateUp() : RouteTreeGen.createNavigateUp()),
-  }),
-  (s, d, o: any) => ({...o, ...s, ...d})
-)
-
-// TODO properly type this
-const _MaybePopupHoc: any = (cover: boolean) => {
-  return WrappedComponent => props => {
-    const {
-      onClose,
-      connectedNavigateUp,
-      onMouseUp,
-      onMouseDown,
-      onMouseMove,
-      styleCover,
-      styleContainer,
-      styleClipContainer,
-      ...rest
-    } = props
-    const _onClose = onClose || connectedNavigateUp
-    return (
-      <MaybePopup
-        onClose={_onClose}
-        cover={!!cover}
-        onMouseUp={onMouseUp}
-        onMouseDown={onMouseDown}
-        onMouseMove={onMouseMove}
-        styleCover={styleCover}
-        styleContainer={styleContainer}
-        styleClipContainer={styleClipContainer}
-      >
-        <WrappedComponent onClose={_onClose} {...rest} />
-      </MaybePopup>
-    )
-  }
-}
-
-type MaybePopupHocType<P> = (
-  cover: boolean
-) => (WrappedComponent: React.ComponentType<P>) => React.ComponentType<P>
-const MaybePopupHoc: MaybePopupHocType<any> = (cover: boolean) => Component =>
-  DispatchNavUpHoc(_MaybePopupHoc(cover)(Component))
-
 const _styleCover = {
   alignItems: 'stretch',
   backgroundColor: globalColors.black,
@@ -90,4 +40,4 @@ const _styleContainer = {
   height: '100%',
 }
 
-export {MaybePopup, MaybePopupHoc}
+export {MaybePopup}

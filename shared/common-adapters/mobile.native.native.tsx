@@ -106,14 +106,8 @@ module.exports = {
   get FloatingPicker() {
     return Index.FloatingPicker
   },
-  get FormWithCheckbox() {
-    return Index.FormWithCheckbox
-  },
   get GestureState() {
     return require('react-native-gesture-handler').State
-  },
-  get HOCTimers() {
-    return Index.HOCTimers
   },
   get Header() {
     return Index.Header
@@ -180,9 +174,6 @@ module.exports = {
   },
   get MaybePopup() {
     return Index.MaybePopup
-  },
-  get MaybePopupHoc() {
-    return Index.MaybePopupHoc
   },
   get Meta() {
     return Index.Meta

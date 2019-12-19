@@ -83,7 +83,15 @@ export function typeToFontSize(sizeType: SizeType) {
   }
 }
 
-const idealSizeMultMap = {
+type MultMap = {
+  [1]?: number
+  [2]?: number
+  [3]?: number
+}
+
+const multiKeys = [1, 2, 3] as const
+
+const idealSizeMultMap: {[key: string]: MultMap} = {
   '128': {'1': 256, '2': 256, '3': 960},
   '16': {'1': 192, '2': 192, '3': 192},
   '32': {'1': 192, '2': 192, '3': 192},
@@ -92,7 +100,7 @@ const idealSizeMultMap = {
   '96': {'1': 192, '2': 192, '3': 960},
 }
 
-const _getMultsMapCache = {}
+const _getMultsMapCache: {[key: string]: MultMap} = {}
 export function getMultsMap(imgMap: {[size: string]: any}, targetSize: number): Object {
   const ssizes = Object.keys(imgMap)
 
@@ -107,17 +115,17 @@ export function getMultsMap(imgMap: {[size: string]: any}, targetSize: number): 
 
   const sizes = ssizes.map(s => parseInt(s, 10)).sort((a: number, b: number) => a - b)
 
-  const multsMap: any = {
-    '1': null,
-    '2': null,
-    '3': null,
+  const multsMap: MultMap = {
+    [1]: undefined,
+    [2]: undefined,
+    [3]: undefined,
   }
 
-  Object.keys(multsMap).forEach(mult => {
+  multiKeys.forEach(mult => {
     // find ideal size if it exist
     const level1 = idealSizeMultMap[String(targetSize)]
     if (level1) {
-      const level2 = level1[String(mult)]
+      const level2 = level1[mult]
       if (level2) {
         multsMap[mult] = level2
         return
@@ -125,7 +133,7 @@ export function getMultsMap(imgMap: {[size: string]: any}, targetSize: number): 
     }
 
     // fallback
-    const ideal = parseInt(mult, 10) * targetSize
+    const ideal = mult * targetSize
     const size = sizes.find(size => size >= ideal)
     multsMap[mult] = size || sizes[sizes.length - 1]
   })
@@ -138,20 +146,19 @@ export function castPlatformStyles(styles: any) {
   return styles
 }
 
-function makePaddingStyles() {
-  return Object.keys(Styles.globalMargins).reduce(
+function makePaddingStyles(): PaddingStyles {
+  type Keys = keyof typeof Styles.globalMargins
+  const keys = (Object.keys(Styles.globalMargins) as any) as Array<Keys>
+  return keys.reduce<PaddingStyles>(
     (styles, paddingName) => ({
       ...styles,
-      [paddingName]: Styles.platformStyles({
-        common: {
-          padding: Styles.globalMargins[paddingName],
-        },
-      }),
+      [paddingName]: {padding: Styles.globalMargins[paddingName]},
     }),
-    {} as {[K in keyof typeof Styles.globalMargins]: Styles.StylesCrossPlatform}
+    {} as any
   )
 }
 
-export const paddingStyles: {
+type PaddingStyles = {
   [K in keyof typeof Styles.globalMargins]: Styles.StylesCrossPlatform
-} = makePaddingStyles()
+}
+export const paddingStyles: PaddingStyles = makePaddingStyles()

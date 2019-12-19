@@ -4,7 +4,6 @@ export type Props = {
   conversationIDKey: Types.ConversationIDKey
   dragAndDropRejectReason?: string
   focusInputCounter: number
-  hotkeys?: Array<string>
   jumpToRecent: () => void
   scrollListDownCounter: number
   scrollListToBottomCounter: number
@@ -13,11 +12,11 @@ export type Props = {
   onPaste: (data: Buffer) => void
   onAttach: ((paths: Array<string>) => void) | null
   onFocusInput: () => void
-  onHotkey?: (cmd: string) => void
   onRequestScrollDown: () => void
   onRequestScrollToBottom: () => void
   onRequestScrollUp: () => void
   onShowTracker: (username: string) => void
+  onToggleThreadSearch: () => void
   onToggleInfoPanel: () => void
   showThreadSearch: boolean
   threadLoadedOffline: boolean
