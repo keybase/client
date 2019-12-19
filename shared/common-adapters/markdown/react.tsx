@@ -1,5 +1,4 @@
 import * as React from 'react'
-// @ts-ignore TODO update to 0.7.x to get TS types
 import SimpleMarkdown from 'simple-markdown'
 import * as Styles from '../../styles'
 import Text from '../text'
@@ -297,64 +296,71 @@ type NodeOutput<Result> = (node: SingleASTNode, nestedOutput: Output<Result>, st
 type ReactElements = React.ReactNode
 type ReactNodeOutput = NodeOutput<ReactElements>
 
-const ruleOutput = (rules: {[K in string]: ReactNodeOutput}) => (node, output, state) =>
-  rules[node.type](node, output, state)
+const ruleOutput = (rules: {[K in string]: ReactNodeOutput}) => (
+  node: SingleASTNode,
+  output: Output<string>,
+  state: State
+) => rules[node.type](node, output, state)
 
-const bigEmojiOutput = SimpleMarkdown.reactFor(
-  ruleOutput({
-    ...reactComponentsForMarkdownType,
-    emoji: (node, _, state) => {
-      return (
-        <Emoji
-          emojiName={String(node.content)}
-          size={32}
+const bigEmojiOutput: SimpleMarkdown.ReactOutput =
+  // @ts-ignore
+  SimpleMarkdown.reactFor(
+    ruleOutput({
+      ...reactComponentsForMarkdownType,
+      emoji: (node, _, state) => {
+        return (
+          <Emoji
+            emojiName={String(node.content)}
+            size={32}
+            key={state.key}
+            allowFontScaling={state.allowFontScaling}
+          />
+        )
+      },
+      paragraph: (node, output, state) => (
+        <Text
+          type="Body"
           key={state.key}
+          style={markdownStyles.bigTextBlockStyle}
           allowFontScaling={state.allowFontScaling}
-        />
-      )
-    },
-    paragraph: (node, output, state) => (
-      <Text
-        type="Body"
-        key={state.key}
-        style={markdownStyles.bigTextBlockStyle}
-        allowFontScaling={state.allowFontScaling}
-      >
-        {output(node.content, {...state, inParagraph: true})}
-      </Text>
-    ),
-  })
-)
+        >
+          {output(node.content, {...state, inParagraph: true})}
+        </Text>
+      ),
+    })
+  )
 
 // TODO: Fix the typing here. Can ast actually be a non-object? Can
 // output actually only return strings?
-const previewOutput = SimpleMarkdown.reactFor(
-  (ast: SingleASTNode, output: Output<string>, state: State): ReactElements => {
-    // leaf node is just the raw value, so it has no ast.type
-    if (typeof ast !== 'object') {
-      return ast
-    }
+const previewOutput: SimpleMarkdown.ReactOutput =
+  // @ts-ignore
+  SimpleMarkdown.reactFor(
+    (ast: SingleASTNode, output: Output<string>, state: State): ReactElements => {
+      // leaf node is just the raw value, so it has no ast.type
+      if (typeof ast !== 'object') {
+        return ast
+      }
 
-    switch (ast.type) {
-      case 'emoji':
-        return reactComponentsForMarkdownType.emoji(ast, output, state)
-      case 'newline':
-        return ' '
-      case 'blockQuote':
-        return React.Children.toArray([
-          output([{content: '> ', type: 'text'}], state),
-          output(ast.content, state),
-        ])
-      case 'codeBlock':
-        return React.Children.toArray([
-          output([{content: ' ', type: 'text'}], state),
-          output(ast.content, state),
-        ])
-      default:
-        return output(ast.content, state)
+      switch (ast.type) {
+        case 'emoji':
+          return reactComponentsForMarkdownType.emoji(ast, output, state)
+        case 'newline':
+          return ' '
+        case 'blockQuote':
+          return React.Children.toArray([
+            output([{content: '> ', type: 'text'}], state),
+            output(ast.content, state),
+          ])
+        case 'codeBlock':
+          return React.Children.toArray([
+            output([{content: ' ', type: 'text'}], state),
+            output(ast.content, state),
+          ])
+        default:
+          return output(ast.content, state)
+      }
     }
-  }
-)
+  )
 
 const serviceOnlyOutput = SimpleMarkdown.reactFor(
   (ast: SingleASTNode, output: Output<string>, state: State): ReactElements => {
