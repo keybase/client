@@ -26,6 +26,7 @@ export type OwnProps = {
 export default Container.connect(
   (state, ownProps: OwnProps) => {
     const yourMessage = ownProps.message.author === state.config.username
+    console.log(state.config)
     const meta = Constants.getMeta(state, ownProps.message.conversationIDKey)
     const _canDeleteHistory =
       meta.teamType === 'adhoc' || TeamConstants.getCanPerformByID(state, meta.teamID).deleteChatHistory
@@ -246,7 +247,7 @@ export default Container.connect(
       const blockModalSingle = !stateProps._teamname && stateProps._participants.length === 2
       items.push({
         danger: true,
-        icon: 'iconfont-person',
+        icon: 'iconfont-block-user',
         onClick: () => dispatchProps._onUserBlock(message, blockModalSingle),
         title: stateProps._teamname ? 'Report user' : 'Block user',
       })

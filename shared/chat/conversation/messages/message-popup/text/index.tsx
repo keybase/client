@@ -98,7 +98,7 @@ const TextPopupMenu = (props: Props) => {
       ? [
           {
             danger: true,
-            icon: 'iconfont-person',
+            icon: 'iconfont-block-user',
             onClick: props.onUserBlock,
             title: props.isTeam ? 'Report user' : 'Block user',
           },

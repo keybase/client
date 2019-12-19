@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Sb from '../../../../stories/storybook'
+import * as Container from '../../../../util/container'
 import {makeMessageAttachment, makeMessageText} from '../../../../constants/chat2'
 import TextPopupMenu from './text/index'
 import AttachmentPopupMenu from './attachment/index'
@@ -14,6 +15,13 @@ const textMessage = makeMessageText({
   timestamp: 1525190235719,
 })
 
+const textMessageOther = makeMessageText({
+  author: 'chris',
+  deviceName: 'Phone',
+  text: new HiddenString('blah'),
+  timestamp: 1525190235719,
+})
+
 const attachmentMessage = makeMessageAttachment({
   author: 'cjb',
   deviceName: 'myDevice',
@@ -24,7 +32,7 @@ const defaultProps = {
   attachTo: () => null,
   isDeleteable: true,
   isKickable: true,
-  isTeam: true,
+  isTeam: false,
   onAddReaction: Sb.action('onAddReaction'),
   onAllMedia: Sb.action('onAllMedia'),
   onCopy: Sb.action('onCopy'),
@@ -66,6 +74,12 @@ const explodingLaterText = (deviceRevokedAt?: number) =>
     explodingTime: 2000009000000,
   })
 
+const explodingSomeoneElses = makeMessageText({
+  author: 'chris',
+  deviceName: 'GNU/Linux',
+  explodingTime: 2000009000000,
+})
+
 const explodingSoonAttachment = makeMessageAttachment({
   author: 'cjb',
   deviceName: 'device',
@@ -79,34 +93,14 @@ const commonExplodingProps = {
   visible: true,
 }
 
-const provider = Sb.createPropProviderWithCommon({
-  ExplodingPopup: (props: ExplodingOwnProps) => ({
-    attachTo: () => null,
-    author: props.message.author,
-    deviceName: props.message.deviceName,
-    deviceRevokedAt: props.message.deviceRevokedAt,
-    deviceType: props.message.deviceType,
-    explodesAt: props.message.explodingTime,
-    items: [
-      {danger: true, onClick: Sb.action('onExplodeNow'), title: 'Explode now'},
-      ...(props.message.type === 'attachment'
-        ? [{onClick: Sb.action('onDownload'), title: 'Download'}]
-        : [
-            {onClick: Sb.action('onEdit'), title: 'Edit'},
-            {onClick: Sb.action('onCopy'), title: 'Copy text'},
-          ]),
-    ],
-    onHidden: props.onHidden,
-    position: props.position,
-    timestamp: props.message.timestamp,
-    visible: props.visible,
-    yourMessage: props.message.author === 'cjb',
-  }),
+const common = Sb.createStoreWithCommon()
+const store = Container.produce(common, draftState => {
+  draftState.config.username = 'cjb'
 })
 
 const load = () => {
   Sb.storiesOf('Chat/Conversation/Message popup', module)
-    .addDecorator(provider)
+    .addDecorator((story: any) => <Sb.MockStore store={store}>{story()}</Sb.MockStore>)
     .add('Text', () => <TextPopupMenu {...defaultProps} {...textMessage} />)
     .add('Text w/ revoked device at 0', () => (
       <TextPopupMenu {...defaultProps} {...textMessage} deviceRevokedAt={0} />
@@ -127,6 +121,12 @@ const load = () => {
     .add('Exploding soon', () => <ExplodingPopupMenu {...commonExplodingProps} message={explodingSoonText} />)
     .add('Exploding attachment', () => (
       <ExplodingPopupMenu {...commonExplodingProps} message={explodingSoonAttachment} />
+    ))
+    .add("Text (someone else's)", () => (
+      <TextPopupMenu {...defaultProps} {...textMessageOther} {...{yourMessage: false}} />
+    ))
+    .add("Exploding (someone else's)", () => (
+      <ExplodingPopupMenu {...commonExplodingProps} message={explodingSomeoneElses} />
     ))
 
   // Externally defined stories

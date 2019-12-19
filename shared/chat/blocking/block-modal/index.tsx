@@ -2,6 +2,8 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 
+// Type for extra RouteProp passed to block modal sometimes when launching the
+// modal from specific places from the app.
 export type BlockModalContext =
   | 'message-popup-single' // message popup in 1-on-1 conv
   | 'message-popup' // message popup in bigger convs (incl. team chats)
