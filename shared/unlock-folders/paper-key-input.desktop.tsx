@@ -30,9 +30,7 @@ class PaperKeyInput extends React.Component<Props, State> {
           error={!!errorText}
           placeholder="Enter your paper key"
         />
-        {!!errorText && (
-          <Kb.Text type="BodySmallError">{errorText}</Kb.Text>
-        )}
+        {!!errorText && <Kb.Text type="BodySmallError">{errorText}</Kb.Text>}
         <Kb.Button
           label="Continue"
           style={styles.button}
