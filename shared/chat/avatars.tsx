@@ -51,7 +51,7 @@ type StrokedIconProps = IconProps & {
 }
 const StrokedIcon = Styles.styled<typeof Kb.Icon, StrokedIconProps>(Kb.Icon)(props => ({
   '&.stroke': {
-    '-webkit-text-stroke': `3px ${
+    WebkitTextStroke: `3px ${
       props.isHovered && !props.isSelected
         ? Styles.globalColors.blueGreyDark
         : props.isSelected
