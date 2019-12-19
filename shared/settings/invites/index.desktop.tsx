@@ -62,23 +62,16 @@ class Invites extends Component<Props, State> {
             padding: Styles.globalMargins.medium,
           }}
         >
-          <Kb.Box
-            style={{
-              ...Styles.globalStyles.flexBoxColumn,
-              alignItems: 'center',
-              marginTop: Styles.globalMargins.small,
-              minHeight: 269,
-            }}
-          >
-            <Kb.Input
-              hintText="Friend's email (optional)"
+          <Kb.Box2 direction="vertical" gap="small" style={styles.container}>
+            <Kb.LabeledInput
+              placeholder="Friend's email (optional)"
               value={this.state.inviteEmail}
               onChangeText={inviteEmail => this._handleChangeEmail(inviteEmail)}
               style={{marginBottom: 0}}
             />
             {this.state.showMessageField && (
-              <Kb.Input
-                hintText="Message (optional)"
+              <Kb.LabeledInput
+                placeholder="Message (optional)"
                 multiline={true}
                 value={this.state.inviteMessage}
                 onChangeText={inviteMessage => this.setState({inviteMessage})}
@@ -90,7 +83,7 @@ class Invites extends Component<Props, State> {
               waiting={props.waitingForResponse}
               style={{alignSelf: 'center', marginTop: Styles.globalMargins.medium}}
             />
-          </Kb.Box>
+          </Kb.Box2>
           {props.pendingInvites.length > 0 && (
             <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, flexShrink: 0, marginBottom: 16}}>
               <SubHeading>Pending invites ({props.pendingInvites.length})</SubHeading>
@@ -216,6 +209,11 @@ function AcceptedInviteItem({
 }
 
 const styles = Styles.styleSheetCreate(() => ({
+  container: {
+    marginTop: Styles.globalMargins.small,
+    minHeight: 269,
+    width: 400,
+  },
   inviteItem: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',

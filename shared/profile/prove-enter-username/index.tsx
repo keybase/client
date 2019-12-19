@@ -30,7 +30,7 @@ class EnterUsername extends React.Component<Props, State> {
       // TODO support generic proofs
       throw new Error(`Proofs for platform ${this.props.platform} are unsupported.`)
     }
-    const {headerText, floatingLabelText, hintText} = pt
+    const {headerText, hintText} = pt
     return (
       <Modal onCancel={this.props.onCancel} skipButton={true}>
         {!!this.props.errorText && (
@@ -50,10 +50,9 @@ class EnterUsername extends React.Component<Props, State> {
             overlay="icon-proof-unfinished"
             overlayColor={Styles.globalColors.greyDark}
           />
-          <Kb.Input
+          <Kb.LabeledInput
             autoFocus={true}
-            floatingHintTextOverride={floatingLabelText}
-            hintText={hintText}
+            placeholder={hintText}
             value={this.state.username}
             onChangeText={this._onChangeUsername}
             onEnterKeyDown={this._submit}
@@ -89,25 +88,21 @@ const UsernameTips = ({platform}) =>
   ) : null
 
 const standardText = (name: string) => ({
-  floatingLabelText: `Your ${name} username`,
   headerText: `Prove your ${name} identity`,
   hintText: `Your ${name} username`,
 })
 
 const invalidText = () => ({
-  floatingLabelText: '',
   headerText: '',
   hintText: '',
 })
 
 const platformText = {
   btc: {
-    floatingLabelText: 'Your Bitcoin address',
     headerText: 'Set a Bitcoin address',
     hintText: 'Your Bitcoin address',
   },
   dns: {
-    floatingLabelText: '',
     headerText: 'Prove your domain',
     hintText: 'yourdomain.com',
   },
@@ -116,12 +111,10 @@ const platformText = {
   github: standardText('GitHub'),
   hackernews: standardText('Hacker News'),
   http: {
-    floatingLabelText: '',
     headerText: 'Prove your http website',
     hintText: 'http://whatever.yoursite.com',
   },
   https: {
-    floatingLabelText: '',
     headerText: 'Prove your https website',
     hintText: 'https://whatever.yoursite.com',
   },
@@ -130,12 +123,10 @@ const platformText = {
   rooter: invalidText(),
   twitter: standardText('Twitter'),
   web: {
-    floatingLabelText: '',
     headerText: 'Prove your website',
     hintText: 'whatever.yoursite.com',
   },
   zcash: {
-    floatingLabelText: 'Your Zcash address',
     headerText: 'Set a Zcash address',
     hintText: 'Your z_address or t_address',
   },
