@@ -80,6 +80,10 @@
         {
           "name": "offset",
           "type": "int"
+        },
+        {
+          "name": "skipCache",
+          "type": "boolean"
         }
       ],
       "response": "FeaturedBotsRes"

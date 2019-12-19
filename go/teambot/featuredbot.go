@@ -2,35 +2,39 @@ package teambot
 
 import (
 	"fmt"
-	"sync"
+	"time"
 
+	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
-	context "golang.org/x/net/context"
-	"golang.org/x/sync/errgroup"
 )
 
+const cacheLifetime = 24 * time.Hour
 
-type featuredBotsCache struct  {
-	Data keybase1.FeaturedBotsRes
-	CTime gregor1.Time
+type featuredBotsCache struct {
+	Data  keybase1.FeaturedBotsRes `codec:"d" json:"d"`
+	Ctime gregor1.Time             `codec:"c" json:"c"`
 }
 
+func (c featuredBotsCache) isFresh() bool {
+	return time.Now().Sub(c.Ctime.Time()) <= cacheLifetime
+}
 
 type FeaturedBotLoader struct {
-	Contextified
+	libkb.Contextified
 }
 
-func NewFeaturedBotLoader(g *GlobalContext) *FeaturedBotLoader {
+func NewFeaturedBotLoader(g *libkb.GlobalContext) *FeaturedBotLoader {
 	return &FeaturedBotLoader{
-		Contextified: NewContextified(g),
+		Contextified: libkb.NewContextified(g),
 	}
 }
 
-func (l *FeaturedBotLoader) debug(ctx context.Context, msg string, args ...interface{}) {
-	l.G().Log.CDebugf(ctx, "FeaturedBotLoader: %s", fmt.Sprintf(msg, args...))
+func (l *FeaturedBotLoader) debug(mctx libkb.MetaContext, msg string, args ...interface{}) {
+	l.G().Log.CDebugf(mctx.Ctx(), "FeaturedBotLoader: %s", fmt.Sprintf(msg, args...))
 }
 
-func (l *FeaturedBotLoader) Search(mctx libkb.MetaContext, arg keybase1.SearchArg) (res keybase1.SearchRes, err error)
+func (l *FeaturedBotLoader) Search(mctx libkb.MetaContext, arg keybase1.SearchArg) (res keybase1.SearchRes, err error) {
 	apiRes, err := mctx.G().API.Get(mctx, libkb.APIArg{
 		Endpoint:    "featured_bots/search",
 		SessionType: libkb.APISessionTypeNONE,
@@ -48,7 +52,7 @@ func (l *FeaturedBotLoader) Search(mctx libkb.MetaContext, arg keybase1.SearchAr
 	return res, err
 }
 
-func (l *FeaturedBotLoader) featuredBotsFromServer(mctx libkb.MetaContext, arg keybase1.FeaturedBotsArg) (res keybase1.FeaturedBotsRes, err error)
+func (l *FeaturedBotLoader) featuredBotsFromServer(mctx libkb.MetaContext, arg keybase1.FeaturedBotsArg) (res keybase1.FeaturedBotsRes, err error) {
 	apiRes, err := mctx.G().API.Get(mctx, libkb.APIArg{
 		Endpoint:    "featured_bots/featured",
 		SessionType: libkb.APISessionTypeNONE,
@@ -65,55 +69,68 @@ func (l *FeaturedBotLoader) featuredBotsFromServer(mctx libkb.MetaContext, arg k
 }
 
 func (l *FeaturedBotLoader) dbKey(arg keybase1.FeaturedBotsArg) libkb.DbKey {
-	return libkb.DbKey {
+	return libkb.DbKey{
 		Typ: libkb.DBFeaturedBots,
-		Key:fmt.Sprintf("fb:%d:%d", arg.Limit, arg.Offset),
+		Key: fmt.Sprintf("fb:%d:%d", arg.Limit, arg.Offset),
 	}
 }
 
 func (l *FeaturedBotLoader) featuredBotsFromStorage(mctx libkb.MetaContext, arg keybase1.FeaturedBotsArg) (res keybase1.FeaturedBotsRes, found bool, err error) {
 	dbKey := l.dbKey(arg)
 	var cachedData featuredBotsCache
-		 found, err = mctx.G().GetKVStore().GetInto(&cachedData, dbKey)
-		 if err != nil || !found{
-			return res, false, err
-		}
-
-		if !cachedData.isFresh() {
-			return res, false, nil
-		}
-		return cachedData.Data, true, nil
-
+	found, err = mctx.G().GetKVStore().GetInto(&cachedData, dbKey)
+	if err != nil || !found {
+		return res, false, err
+	}
+	if !cachedData.isFresh() {
+		l.debug(mctx, "featuredBotsFromStorage: data not fresh, ctime: %v", cachedData.Ctime)
+		return res, false, nil
+	}
+	return cachedData.Data, true, nil
 }
 
-func (l *FeaturedBotLoader) syncFeaturedBots(mctx libkb.MetaContext,  arg keybase1.FeaturedBotsArg) (error) {
-	res, err := l.featuredBotsFromServer(mctx, arg)
+func (l *FeaturedBotLoader) storeFeaturedBots(mctx libkb.MetaContext, arg keybase1.FeaturedBotsArg, res keybase1.FeaturedBotsRes) error {
+	l.debug(mctx, "storeFeaturedBots: storing %d bots", len(res.Bots))
+	dbKey := l.dbKey(arg)
+	return mctx.G().GetKVStore().PutObj(dbKey, nil, featuredBotsCache{
+		Data:  res,
+		Ctime: gregor1.ToTime(time.Now()),
+	})
+}
+
+func (l *FeaturedBotLoader) syncFeaturedBots(mctx libkb.MetaContext, arg keybase1.FeaturedBotsArg, existingData *keybase1.FeaturedBotsRes) (res keybase1.FeaturedBotsRes, err error) {
+	res, err = l.featuredBotsFromServer(mctx, arg)
 	if err != nil {
-		l.debug(ctx, "load: failed to load from server: %s", err)
+		l.debug(mctx, "syncFeaturedBots: failed to load from server: %s", err)
 		return res, err
 	}
-	if err := l.storeFeaturedBots(mctx, arg, res); err != nil {
-		l.debug(ctx, "load: failed to store result: %s", err)
-		return res, err
+	if existingData != nil && !res.Eq(*existingData) { // only write out data if it changed
+		if err := l.storeFeaturedBots(mctx, arg, res); err != nil {
+			l.debug(mctx, "syncFeaturedBots: failed to store result: %s", err)
+			return res, err
+		}
 	}
-	l.G().NotifyRouter.HandleFeaturedBots(res)
+	l.G().NotifyRouter.HandleFeaturedBots(mctx.Ctx(), res.Bots)
 	return res, nil
 }
 
 func (l *FeaturedBotLoader) FeaturedBots(mctx libkb.MetaContext, arg keybase1.FeaturedBotsArg) (res keybase1.FeaturedBotsRes, err error) {
 	if arg.SkipCache {
-	return l.syncFeaturedBots(mctx, arg)
-}
+		return l.syncFeaturedBots(mctx, arg, nil)
+	}
 
 	// send up local copy first quickly
 	res, found, err := l.featuredBotsFromStorage(mctx, arg)
 	if err != nil {
-		l.debug(ctx, "load: failed to load from local storage: %s", err)
+		l.debug(mctx, "FeaturedBots: failed to load from local storage: %s", err)
 	} else if found {
-		l.G().NotifyRouter.HandleFeaturedBots(res)
-		go l.syncFeaturedBots(ctx, arg)
-		return cachedData, err
+		l.debug(mctx, "FeaturedBots: returning cached data")
+		l.G().NotifyRouter.HandleFeaturedBots(mctx.Ctx(), res.Bots)
+		go func() {
+			mctx = libkb.NewMetaContextBackground(l.G())
+			l.syncFeaturedBots(mctx, arg, &res)
+		}()
+		return res, err
 	}
-	return l.syncFeaturedBots(mctx, arg)
+	return l.syncFeaturedBots(mctx, arg, nil)
 }
-

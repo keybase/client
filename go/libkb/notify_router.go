@@ -102,6 +102,7 @@ type NotifyListener interface {
 	HTTPSrvInfoUpdate(keybase1.HttpSrvInfo)
 	IdentifyUpdate(okUsernames []string, brokenUsernames []string)
 	Reachability(keybase1.Reachability)
+	FeaturedBotsUpdate([]keybase1.FeaturedBot)
 }
 
 type NoopNotifyListener struct{}
@@ -228,8 +229,9 @@ func (n *NoopNotifyListener) RuntimeStatsUpdate(*keybase1.RuntimeStats) {}
 func (n *NoopNotifyListener) HTTPSrvInfoUpdate(keybase1.HttpSrvInfo)    {}
 func (n *NoopNotifyListener) IdentifyUpdate(okUsernames []string, brokenUsernames []string) {
 }
-func (n *NoopNotifyListener) Reachability(keybase1.Reachability)   {}
-func (n *NoopNotifyListener) UserBlocked(keybase1.UserBlockedBody) {}
+func (n *NoopNotifyListener) Reachability(keybase1.Reachability)             {}
+func (n *NoopNotifyListener) UserBlocked(keybase1.UserBlockedBody)           {}
+func (n *NoopNotifyListener) FeaturedBotsUpdate(bots []keybase1.FeaturedBot) {}
 
 type NotifyListenerID string
 
@@ -2596,5 +2598,24 @@ func (n *NotifyRouter) HandleIdentifyUpdate(ctx context.Context, okUsernames []s
 	})
 	n.runListeners(func(listener NotifyListener) {
 		listener.IdentifyUpdate(okUsernames, brokenUsernames)
+	})
+}
+
+func (n *NotifyRouter) HandleFeaturedBots(ctx context.Context, bots []keybase1.FeaturedBot) {
+	if n == nil {
+		return
+	}
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).FeaturedBots {
+			go func() {
+				_ = (keybase1.NotifyFeaturedBotsClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).FeaturedBotsUpdate(ctx, bots)
+			}()
+		}
+		return true
+	})
+	n.runListeners(func(listener NotifyListener) {
+		listener.FeaturedBotsUpdate(bots)
 	})
 }

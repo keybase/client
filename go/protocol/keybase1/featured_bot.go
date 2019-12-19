@@ -82,8 +82,9 @@ func (o SearchRes) DeepCopy() SearchRes {
 }
 
 type FeaturedBotsArg struct {
-	Limit  int `codec:"limit" json:"limit"`
-	Offset int `codec:"offset" json:"offset"`
+	Limit     int  `codec:"limit" json:"limit"`
+	Offset    int  `codec:"offset" json:"offset"`
+	SkipCache bool `codec:"skipCache" json:"skipCache"`
 }
 
 type SearchArg struct {
