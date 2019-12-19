@@ -457,9 +457,10 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
             )
           }
           if (item === inThisChannelHeader) {
+            const text = this.props.teamname ? 'Installed in this team' : 'In this conversation'
             return (
               <Kb.Text type="Header" style={styles.botHeaders}>
-                In this channel
+                {text}
               </Kb.Text>
             )
           }

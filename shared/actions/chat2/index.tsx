@@ -3354,7 +3354,19 @@ const refreshBotPublicCommands = async (
   })
 }
 
-const addBotMember = async (_: Container.TypedState, action: Chat2Gen.AddBotMemberPayload) => {
+const closeBotModal = (state: Container.TypedState, conversationIDKey: Types.ConversationIDKey) => {
+  const actions = [RouteTreeGen.createClearModals()]
+  const meta = state.chat2.metaMap.get(conversationIDKey)
+  if (meta) {
+    if (meta.teamname) {
+      actions.push(TeamsGen.createGetMembers({teamname: meta.teamname}))
+    }
+    actions.push(Chat2Gen.createMetaRequestTrusted({conversationIDKeys: [conversationIDKey]}))
+  }
+  return actions
+}
+
+const addBotMember = async (state: Container.TypedState, action: Chat2Gen.AddBotMemberPayload) => {
   const {allowCommands, allowMentions, conversationIDKey, username} = action.payload
   try {
     await RPCChatTypes.localAddBotMemberRpcPromise(
@@ -3373,10 +3385,10 @@ const addBotMember = async (_: Container.TypedState, action: Chat2Gen.AddBotMemb
     logger.info('addBotMember: failed to add bot member: ' + err.message)
     return false
   }
-  return RouteTreeGen.createClearModals()
+  return closeBotModal(state, conversationIDKey)
 }
 
-const removeBotMember = async (_: Container.TypedState, action: Chat2Gen.RemoveBotMemberPayload) => {
+const removeBotMember = async (state: Container.TypedState, action: Chat2Gen.RemoveBotMemberPayload) => {
   const {conversationIDKey, username} = action.payload
   try {
     await RPCChatTypes.localRemoveBotMemberRpcPromise(
@@ -3390,7 +3402,7 @@ const removeBotMember = async (_: Container.TypedState, action: Chat2Gen.RemoveB
     logger.info('removeBotMember: failed to remove bot member: ' + err.message)
     return false
   }
-  return RouteTreeGen.createClearModals()
+  return closeBotModal(state, conversationIDKey)
 }
 
 const refreshBotSettings = async (_: Container.TypedState, action: Chat2Gen.RefreshBotSettingsPayload) => {
