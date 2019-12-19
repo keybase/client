@@ -817,7 +817,7 @@ func (cc *JourneyCardManagerSingleUser) Dismiss(ctx context.Context, teamID keyb
 		return
 	}
 	jcd = jcd.MutateConv(convID, func(conv journeycardConvData) journeycardConvData {
-		conv.PrepareToMutateDismissals()
+		conv = conv.PrepareToMutateDismissals() // clone Dismissals to avoid modifying shared conv.
 		conv.Dismissals[cardType] = true
 		return conv
 	})
