@@ -4583,6 +4583,14 @@ const iconMeta_ = {
       return require('../images/icons/icon-illustration-attention-64.png')
     },
   },
+  'icon-illustration-contact-restrictions-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-illustration-contact-restrictions-96.png')
+    },
+  },
   'icon-illustration-encrypted-116-96': {
     extension: 'png',
     imagesDir: 'icons',
