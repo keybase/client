@@ -1,34 +1,39 @@
+import * as Container from '../../util/container'
 import * as ProfileGen from '../../actions/profile-gen'
-import {Usernames} from '.'
-import {remoteConnect} from '../../util/container'
-import * as Container from './container'
+import {Usernames, Props} from '.'
 
-type OwnProps = Container.ConnectedProps
+type OwnProps = {
+  onUsernameClicked?: ((username: string) => void) | 'tracker' | 'profile'
+  skipSelf?: boolean
+  usernames: Array<string>
+} & Omit<Props, 'users' | 'onUsernameClicked'>
 
-// Connected username component
-const mapStateToProps = state => ({
-  _following: state.following,
-  _userInfo: state.userInfo,
-  _you: state.username,
-})
-const mapDispatchToProps = dispatch => ({
-  _onUsernameClicked: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
-})
+export default Container.remoteConnect(
+  (state: any) => ({
+    _following: state.following,
+    _userInfo: state.userInfo,
+    _you: state.username,
+  }),
+  dispatch => ({
+    onUsernameClicked: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
+  }),
+  (stateProps, dispatchProps, ownProps: OwnProps) => {
+    const _following = new Set(stateProps._following)
 
-const userDatafromState = (stateProps, usernames) =>
-  usernames.map(username => ({
-    broken: (stateProps._userInfo[username] && stateProps._userInfo[username].broken) || false,
-    following: stateProps._following.has(username),
-    username,
-    you: stateProps._you === username,
-  }))
+    const users = ownProps.usernames.reduce<Props['users']>((arr, username) => {
+      const you = stateProps._you === username
+      if (!ownProps.skipSelf || !you) {
+        arr.push({
+          broken: (stateProps._userInfo[username] && stateProps._userInfo[username].broken) || false,
+          following: _following.has(username),
+          username,
+          you,
+        })
+      }
+      return arr
+    }, [])
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) =>
-  Container.connectedPropsToProps(
-    {...stateProps, _following: new Set(stateProps._following)},
-    {},
-    {...ownProps, onUsernameClicked: dispatchProps._onUsernameClicked},
-    userDatafromState
-  )
-
-export default remoteConnect(mapStateToProps, mapDispatchToProps, mergeProps)(Usernames)
+    const {onUsernameClicked: _onUsernameClicked, skipSelf, usernames, ...rest} = ownProps
+    return {...rest, onUsernameClicked: dispatchProps.onUsernameClicked, users}
+  }
+)(Usernames)

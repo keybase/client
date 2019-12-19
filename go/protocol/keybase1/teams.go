@@ -2828,6 +2828,26 @@ func (o TeamAddMemberResult) DeepCopy() TeamAddMemberResult {
 	}
 }
 
+type TeamAddMembersResult struct {
+	NotAdded []User `codec:"notAdded" json:"notAdded"`
+}
+
+func (o TeamAddMembersResult) DeepCopy() TeamAddMembersResult {
+	return TeamAddMembersResult{
+		NotAdded: (func(x []User) []User {
+			if x == nil {
+				return nil
+			}
+			ret := make([]User, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.NotAdded),
+	}
+}
+
 type TeamJoinRequest struct {
 	Name     string `codec:"name" json:"name"`
 	Username string `codec:"username" json:"username"`
@@ -3291,6 +3311,7 @@ func (o TeamDebugRes) DeepCopy() TeamDebugRes {
 }
 
 type TeamProfileAddEntry struct {
+	TeamID         TeamID   `codec:"teamID" json:"teamID"`
 	TeamName       TeamName `codec:"teamName" json:"teamName"`
 	Open           bool     `codec:"open" json:"open"`
 	DisabledReason string   `codec:"disabledReason" json:"disabledReason"`
@@ -3298,6 +3319,7 @@ type TeamProfileAddEntry struct {
 
 func (o TeamProfileAddEntry) DeepCopy() TeamProfileAddEntry {
 	return TeamProfileAddEntry{
+		TeamID:         o.TeamID.DeepCopy(),
 		TeamName:       o.TeamName.DeepCopy(),
 		Open:           o.Open,
 		DisabledReason: o.DisabledReason,
@@ -3803,8 +3825,8 @@ type TeamsInterface interface {
 	TeamListSubteamsRecursive(context.Context, TeamListSubteamsRecursiveArg) ([]TeamIDAndName, error)
 	TeamChangeMembership(context.Context, TeamChangeMembershipArg) error
 	TeamAddMember(context.Context, TeamAddMemberArg) (TeamAddMemberResult, error)
-	TeamAddMembers(context.Context, TeamAddMembersArg) error
-	TeamAddMembersMultiRole(context.Context, TeamAddMembersMultiRoleArg) error
+	TeamAddMembers(context.Context, TeamAddMembersArg) (TeamAddMembersResult, error)
+	TeamAddMembersMultiRole(context.Context, TeamAddMembersMultiRoleArg) (TeamAddMembersResult, error)
 	TeamRemoveMember(context.Context, TeamRemoveMemberArg) error
 	TeamLeave(context.Context, TeamLeaveArg) error
 	TeamEditMember(context.Context, TeamEditMemberArg) error
@@ -4061,7 +4083,7 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]TeamAddMembersArg)(nil), args)
 						return
 					}
-					err = i.TeamAddMembers(ctx, typedArgs[0])
+					ret, err = i.TeamAddMembers(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -4076,7 +4098,7 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]TeamAddMembersMultiRoleArg)(nil), args)
 						return
 					}
-					err = i.TeamAddMembersMultiRole(ctx, typedArgs[0])
+					ret, err = i.TeamAddMembersMultiRole(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -4788,13 +4810,13 @@ func (c TeamsClient) TeamAddMember(ctx context.Context, __arg TeamAddMemberArg) 
 	return
 }
 
-func (c TeamsClient) TeamAddMembers(ctx context.Context, __arg TeamAddMembersArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamAddMembers", []interface{}{__arg}, nil, 0*time.Millisecond)
+func (c TeamsClient) TeamAddMembers(ctx context.Context, __arg TeamAddMembersArg) (res TeamAddMembersResult, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamAddMembers", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
-func (c TeamsClient) TeamAddMembersMultiRole(ctx context.Context, __arg TeamAddMembersMultiRoleArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamAddMembersMultiRole", []interface{}{__arg}, nil, 0*time.Millisecond)
+func (c TeamsClient) TeamAddMembersMultiRole(ctx context.Context, __arg TeamAddMembersMultiRoleArg) (res TeamAddMembersResult, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamAddMembersMultiRole", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 

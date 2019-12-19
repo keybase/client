@@ -233,9 +233,24 @@ func (h *AccountHandler) EnterResetPipeline(ctx context.Context, arg keybase1.En
 }
 
 // CancelReset allows a user to cancel the reset process via an authenticated API call.
-func (h *AccountHandler) CancelReset(ctx context.Context, sessionID int) error {
+func (h *AccountHandler) CancelReset(ctx context.Context, sessionID int) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	return libkb.CancelResetPipeline(mctx)
+	defer mctx.Trace("CancelReset", func() error { return err })()
+	err = libkb.CancelResetPipeline(mctx)
+	if err != nil {
+		mctx.Debug("CancelResetPipeline failed with: %s", err)
+		mctx.Debug("Checking if we are not revoked")
+		err2 := mctx.LogoutAndDeprovisionIfRevoked()
+		if err2 != nil {
+			mctx.Error("LogoutAndDeprovisionIfRevoked failed in CancelReset check: %s", err2)
+			return libkb.CombineErrors(err, err2)
+		}
+		if mctx.CurrentUID().IsNil() {
+			// We got logged out.
+			return UserWasLoggedOutError{}
+		}
+	}
+	return err
 }
 
 // TimeTravelReset allows a user to move forward in the reset process via an API call [devel-only].
@@ -261,37 +276,14 @@ func (h *AccountHandler) TimeTravelReset(ctx context.Context, arg keybase1.TimeT
 	return err
 }
 
-type GetContactSettingsResponse struct {
-	libkb.AppStatusEmbed
-	Settings keybase1.ContactSettings `json:"settings"`
-}
-
 func (h *AccountHandler) UserGetContactSettings(ctx context.Context) (ret keybase1.ContactSettings, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.TraceTimed("GetContactSettings", func() error { return err })()
-	apiArg := libkb.APIArg{
-		Endpoint:    "account/contact_settings",
-		SessionType: libkb.APISessionTypeREQUIRED,
-	}
-	var response GetContactSettingsResponse
-	err = mctx.G().API.GetDecode(mctx, apiArg, &response)
-	if err != nil {
-		return ret, err
-	}
-	ret = response.Settings
-	return ret, nil
+	defer mctx.TraceTimed("AccountHandler#UserGetContactSettings", func() error { return err })()
+	return libkb.GetContactSettings(mctx)
 }
 
 func (h *AccountHandler) UserSetContactSettings(ctx context.Context, arg keybase1.ContactSettings) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	defer mctx.TraceTimed("SetContactSettings", func() error { return err })()
-	payload := make(libkb.JSONPayload)
-	payload["settings"] = arg
-	apiArg := libkb.APIArg{
-		Endpoint:    "account/contact_settings",
-		SessionType: libkb.APISessionTypeREQUIRED,
-		JSONPayload: payload,
-	}
-	_, err = mctx.G().API.Post(mctx, apiArg)
-	return err
+	defer mctx.TraceTimed("AccountHandler#UserSetContactSettings", func() error { return err })()
+	return libkb.SetContactSettings(mctx, arg)
 }

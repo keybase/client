@@ -1257,7 +1257,7 @@ export type MessageTypes = {
   }
   'keybase.1.teams.teamAddMembersMultiRole': {
     inParam: {readonly teamID: TeamID; readonly users?: Array<UserRolePair> | null; readonly sendChatNotification: Boolean}
-    outParam: void
+    outParam: TeamAddMembersResult
   }
   'keybase.1.teams.teamCreate': {
     inParam: {readonly name: String; readonly joinSubteam: Boolean}
@@ -2561,7 +2561,7 @@ export type ConflictState = {conflictStateType: ConflictStateType.normalview; no
 export type Contact = {readonly name: String; readonly components?: Array<ContactComponent> | null}
 export type ContactComponent = {readonly label: String; readonly phoneNumber?: RawPhoneNumber | null; readonly email?: EmailAddress | null}
 export type ContactListResolutionResult = {readonly newlyResolved?: Array<ProcessedContact> | null; readonly resolved?: Array<ProcessedContact> | null}
-export type ContactSettings = {readonly version?: Int | null; readonly allowFolloweeDegrees: Int; readonly enabled: Boolean; readonly teams?: Array<TeamContactSettings> | null}
+export type ContactSettings = {readonly version?: Int | null; readonly allowFolloweeDegrees: Int; readonly allowGoodTeams: Boolean; readonly enabled: Boolean; readonly teams?: Array<TeamContactSettings> | null}
 export type CopyArgs = {readonly opID: OpID; readonly src: Path; readonly dest: Path}
 export type CryptKey = {readonly KeyGeneration: Int; readonly Key: Bytes32}
 export type Cryptocurrency = {readonly rowId: Int; readonly pkhash: Bytes; readonly address: String; readonly sigID: SigID; readonly type: String; readonly family: String}
@@ -2618,7 +2618,7 @@ export type FastTeamLoadRes = {readonly name: TeamName; readonly applicationKeys
 export type FastTeamSigChainState = {readonly ID: TeamID; readonly public: Boolean; readonly rootAncestor: TeamName; readonly nameDepth: Int; readonly last?: LinkTriple | null; readonly perTeamKeys: {[key: string]: PerTeamKey}; readonly perTeamKeySeedsVerified: {[key: string]: PerTeamKeySeed}; readonly downPointers: {[key: string]: DownPointer}; readonly lastUpPointer?: UpPointer | null; readonly perTeamKeyCTime: UnixTime; readonly linkIDs: {[key: string]: LinkID}; readonly merkleInfo: {[key: string]: MerkleRootV2}}
 export type FavoritesResult = {readonly favoriteFolders?: Array<Folder> | null; readonly ignoredFolders?: Array<Folder> | null; readonly newFolders?: Array<Folder> | null}
 export type Feature = {readonly allow: Boolean; readonly defaultValue: Boolean; readonly readonly: Boolean; readonly label: String}
-export type FeaturedBot = {readonly botAlias: String; readonly description: String; readonly botUsername: String; readonly ownerTeam?: String | null; readonly ownerUser?: String | null}
+export type FeaturedBot = {readonly botAlias: String; readonly description: String; readonly extendedDescription: String; readonly botUsername: String; readonly ownerTeam?: String | null; readonly ownerUser?: String | null}
 export type FeaturedBotsRes = {readonly bots?: Array<FeaturedBot> | null}
 export type File = {readonly path: String}
 export type FileContent = {readonly data: Bytes; readonly progress: Progress}
@@ -2921,6 +2921,7 @@ export type TLFQuery = {readonly tlfName: String; readonly identifyBehavior: TLF
 export type TeamAcceptOrRequestResult = {readonly wasToken: Boolean; readonly wasSeitan: Boolean; readonly wasTeamName: Boolean; readonly wasOpenTeam: Boolean}
 export type TeamAccessRequest = {readonly uid: UID; readonly eldestSeqno: Seqno}
 export type TeamAddMemberResult = {readonly invited: Boolean; readonly user?: User | null; readonly emailSent: Boolean; readonly chatSending: Boolean}
+export type TeamAddMembersResult = {readonly notAdded?: Array<User> | null}
 export type TeamAndMemberShowcase = {readonly teamShowcase: TeamShowcase; readonly isMemberShowcased: Boolean}
 export type TeamApplicationKey = {readonly application: TeamApplication; readonly keyGeneration: PerTeamKeyGeneration; readonly key: Bytes32}
 export type TeamBlock = {readonly teamName: String; readonly createTime: Time}
@@ -2930,7 +2931,7 @@ export type TeamCLKRResetUser = {readonly uid: UID; readonly userEldestSeqno: Se
 export type TeamChangeReq = {readonly owners?: Array<UserVersion> | null; readonly admins?: Array<UserVersion> | null; readonly writers?: Array<UserVersion> | null; readonly readers?: Array<UserVersion> | null; readonly bots?: Array<UserVersion> | null; readonly restrictedBots: {[key: string]: TeamBotSettings}; readonly none?: Array<UserVersion> | null; readonly completedInvites: {[key: string]: UserVersionPercentForm}}
 export type TeamChangeRow = {readonly id: TeamID; readonly name: String; readonly keyRotated: Boolean; readonly membershipChanged: Boolean; readonly latestSeqno: Seqno; readonly latestHiddenSeqno: Seqno; readonly latestOffchainSeqno: Seqno; readonly implicitTeam: Boolean; readonly misc: Boolean; readonly removedResetUsers: Boolean}
 export type TeamChangeSet = {readonly membershipChanged: Boolean; readonly keyRotated: Boolean; readonly renamed: Boolean; readonly misc: Boolean}
-export type TeamContactSettings = {readonly teamID: TeamID; readonly allowFolloweesOfTeamMembers: Boolean; readonly enabled: Boolean}
+export type TeamContactSettings = {readonly teamID: TeamID; readonly enabled: Boolean}
 export type TeamCreateResult = {readonly teamID: TeamID; readonly chatSent: Boolean; readonly creatorAdded: Boolean}
 export type TeamData = {readonly v: /* subversion */ Int; readonly frozen: Boolean; readonly tombstoned: Boolean; readonly secretless: Boolean; readonly name: TeamName; readonly chain: TeamSigChainState; readonly perTeamKeySeeds: /* perTeamKeySeedsUnverified */ {[key: string]: PerTeamKeySeedItem}; readonly readerKeyMasks: {[key: string]: {[key: string]: MaskB64}}; readonly latestSeqnoHint: Seqno; readonly cachedAt: Time; readonly tlfCryptKeys: {[key: string]: Array<CryptKey> | null}}
 export type TeamDebugRes = {readonly chain: TeamSigChainState}
@@ -2973,7 +2974,7 @@ export type TeamOpenReqMsg = {readonly teamID: TeamID; readonly tars?: Array<Tea
 export type TeamOpenSweepMsg = {readonly teamID: TeamID; readonly resetUsersUntrusted?: Array<TeamCLKRResetUser> | null}
 export type TeamOperation = {readonly manageMembers: Boolean; readonly manageSubteams: Boolean; readonly createChannel: Boolean; readonly chat: Boolean; readonly deleteChannel: Boolean; readonly renameChannel: Boolean; readonly renameTeam: Boolean; readonly editChannelDescription: Boolean; readonly editTeamDescription: Boolean; readonly setTeamShowcase: Boolean; readonly setMemberShowcase: Boolean; readonly setRetentionPolicy: Boolean; readonly setMinWriterRole: Boolean; readonly changeOpenTeam: Boolean; readonly leaveTeam: Boolean; readonly joinTeam: Boolean; readonly setPublicityAny: Boolean; readonly listFirst: Boolean; readonly changeTarsDisabled: Boolean; readonly deleteChatHistory: Boolean; readonly deleteOtherMessages: Boolean; readonly deleteTeam: Boolean; readonly pinMessage: Boolean}
 export type TeamPlusApplicationKeys = {readonly id: TeamID; readonly name: String; readonly implicit: Boolean; readonly public: Boolean; readonly application: TeamApplication; readonly writers?: Array<UserVersion> | null; readonly onlyReaders?: Array<UserVersion> | null; readonly onlyRestrictedBots?: Array<UserVersion> | null; readonly applicationKeys?: Array<TeamApplicationKey> | null}
-export type TeamProfileAddEntry = {readonly teamName: TeamName; readonly open: Boolean; readonly disabledReason: String}
+export type TeamProfileAddEntry = {readonly teamID: TeamID; readonly teamName: TeamName; readonly open: Boolean; readonly disabledReason: String}
 export type TeamRefreshers = {readonly needKeyGeneration: PerTeamKeyGeneration; readonly needApplicationsAtGenerations: {[key: string]: Array<TeamApplication> | null}; readonly needApplicationsAtGenerationsWithKBFS: {[key: string]: Array<TeamApplication> | null}; readonly wantMembers?: Array<UserVersion> | null; readonly wantMembersRole: TeamRole; readonly needKBFSKeyGeneration: TeamKBFSKeyRefresher}
 export type TeamRequestAccessResult = {readonly open: Boolean}
 export type TeamResetUser = {readonly username: String; readonly uid: UID; readonly eldestSeqno: Seqno; readonly isDelete: Boolean}

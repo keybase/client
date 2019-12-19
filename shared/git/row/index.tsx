@@ -118,11 +118,11 @@ const Row = (props: Props) => (
             )}
             {!!props.teamname && !!props.lastEditUser && (
               <Kb.Box style={{marginLeft: 2}}>
-                <Kb.Usernames
+                <Kb.ConnectedUsernames
                   type="BodySmallSemibold"
                   underline={true}
                   colorFollowing={true}
-                  users={[{following: props.lastEditUserFollowing, username: props.lastEditUser}]}
+                  usernames={[props.lastEditUser]}
                   onUsernameClicked={() => props.openUserTracker(props.lastEditUser)}
                 />
               </Kb.Box>

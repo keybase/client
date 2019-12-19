@@ -1,11 +1,14 @@
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Types from '../../constants/types/chat2'
-import * as Styles from '../../styles'
-import SelectableSmallTeam from '../selectable-small-team-container'
-import SelectableBigTeamChannel from '../selectable-big-team-channel-container'
-import {rowHeight} from '../selectable-big-team-channel'
-import {rowHeight as shouldEqualToRowHeight} from '../selectable-small-team'
+import * as Kb from '../../../../common-adapters'
+import * as Types from '../../../../constants/types/chat2'
+import * as Styles from '../../../../styles'
+import SelectableSmallTeam from '../../../../chat/selectable-small-team-container'
+import SelectableBigTeamChannel from '../../../../chat/selectable-big-team-channel-container'
+import {rowHeight} from '../../../../chat/selectable-big-team-channel'
+import {rowHeight as shouldEqualToRowHeight} from '../../../../chat/selectable-small-team'
+
+/* This is used in Fs tab for sending attachments to chat. Please check to make
+ * sure it doesn't break there if you make changes to this file. */
 
 export type SmallTeamRowItem = {
   conversationIDKey: Types.ConversationIDKey
@@ -88,6 +91,16 @@ const ConversationList = (props: Props) => {
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+      {!!props.filter && (
+        <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.filterContainer}>
+          <Kb.SearchFilter
+            placeholderText="Search"
+            onChange={props.filter.onSetFilter}
+            size="small"
+            icon="iconfont-search"
+          />
+        </Kb.Box2>
+      )}
       <Kb.List2
         itemHeight={{height: rowHeight, type: 'fixed'}}
         items={props.rows}
@@ -101,9 +114,14 @@ const ConversationList = (props: Props) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      filter: {
-        backgroundColor: Styles.globalColors.fastBlank,
-      },
+      filterContainer: Styles.platformStyles({
+        isElectron: {
+          padding: Styles.globalMargins.tiny,
+        },
+        isMobile: {
+          paddingBottom: Styles.globalMargins.tiny,
+        },
+      }),
       moreLessContainer: {
         height: rowHeight,
       },

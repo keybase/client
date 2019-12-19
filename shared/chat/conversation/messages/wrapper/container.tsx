@@ -66,9 +66,11 @@ const getUsernameToShow = (
     case 'pin':
       return message.author
     case 'systemUsersAddedToConversation':
-      return message.usernames.includes(you) ? '' : message.author
+      return message.author
     case 'systemJoined':
       return message.joiners.length + message.leavers.length > 1 ? '' : message.author
+    case 'systemSBSResolved':
+      return message.prover
   }
   return message.author
 }

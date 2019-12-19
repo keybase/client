@@ -1384,13 +1384,15 @@ func (c Conversation) IsPublic() bool {
 	return c.Metadata.Visibility == keybase1.TLFVisibility_PUBLIC
 }
 
+var errMaxMessageNotFound = errors.New("max message not found")
+
 func (c Conversation) GetMaxMessage(typ MessageType) (MessageSummary, error) {
 	for _, msg := range c.MaxMsgSummaries {
 		if msg.GetMessageType() == typ {
 			return msg, nil
 		}
 	}
-	return MessageSummary{}, fmt.Errorf("max message not found: %v", typ)
+	return MessageSummary{}, errMaxMessageNotFound
 }
 
 func (c Conversation) Includes(uid gregor1.UID) bool {

@@ -1,3 +1,4 @@
+import * as BotsGen from '../../../actions/bots-gen'
 import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
 import Tabs from '.'
@@ -14,14 +15,18 @@ export default Container.connect(
   (state, {teamID, selectedTab, setSelectedTab}: OwnProps) => {
     const teamDetails = Constants.getTeamDetails(state, teamID)
     const yourOperations = Constants.getCanPerformByID(state, teamID)
+
+    const _featuredBotsMap = state.chat2.featuredBotsMap
+    const _members = teamDetails.members
     return {
+      _featuredBotsMap,
+      _members,
       admin: yourOperations.manageMembers,
       loading: anyWaiting(
         state,
         Constants.teamWaitingKey(teamDetails.teamname),
         Constants.teamTarsWaitingKey(teamDetails.teamname)
       ),
-      memberCount: teamDetails.memberCount,
       newTeamRequests: state.teams.newTeamRequests,
       numInvites: teamDetails.invites?.size ?? 0,
       numRequests: teamDetails.requests?.size ?? 0,
@@ -33,12 +38,21 @@ export default Container.connect(
       teamname: teamDetails.teamname,
     }
   },
-  () => ({}),
-  (stateProps, _, ownProps) => {
+  dispatch => ({
+    _searchFeaturedBot: (query: string) => dispatch(BotsGen.createSearchFeaturedBots({query})),
+  }),
+  (stateProps, dispatchProps, ownProps) => {
+    const _bots = [...(stateProps._members?.values() ?? [])].filter(
+      m => m.type === 'restrictedbot' || m.type === 'bot'
+    )
     return {
       admin: stateProps.admin,
+      loadBots: () =>
+        _bots.map(
+          bot =>
+            !stateProps._featuredBotsMap.has(bot.username) && dispatchProps._searchFeaturedBot(bot.username)
+        ),
       loading: stateProps.loading,
-      memberCount: stateProps.memberCount,
       newRequests: stateProps.newTeamRequests.get(ownProps.teamID) || 0,
       numInvites: stateProps.numInvites,
       numRequests: stateProps.numRequests,

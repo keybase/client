@@ -1469,6 +1469,7 @@ func TestMemberInviteChangeRoleOwner(t *testing.T) {
 
 func TestFollowResetAdd(t *testing.T) {
 	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
 
 	alice, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
 	require.NoError(t, err)
@@ -1508,6 +1509,7 @@ func TestFollowResetAdd(t *testing.T) {
 	kbtest.ResetAccount(tc, bob)
 	err = tc.Logout()
 	require.NoError(t, err)
+
 	err = charlie.Login(tc.G)
 	require.NoError(t, err)
 	kbtest.ResetAccount(tc, charlie)
@@ -1522,14 +1524,174 @@ func TestFollowResetAdd(t *testing.T) {
 	require.True(t, libkb.IsIdentifyProofError(err))
 
 	// AddMembers also fails
-	_, err = AddMembers(context.TODO(), tc.G, teamID, []keybase1.UserRolePair{{AssertionOrEmail: bob.Username, Role: keybase1.TeamRole_ADMIN}})
+	added, notAdded, err := AddMembers(context.TODO(), tc.G, teamID, []keybase1.UserRolePair{{AssertionOrEmail: bob.Username, Role: keybase1.TeamRole_ADMIN}})
 	require.Error(t, err)
 	amerr, ok := err.(AddMembersError)
 	require.True(t, ok)
 	require.True(t, libkb.IsIdentifyProofError(amerr.Err))
+	require.Nil(t, added)
+	require.Nil(t, notAdded)
 
 	// alice succeeds in removing charlie from the team, since her broken tracking statement
 	// is ignored for a team removal.
 	err = RemoveMember(context.TODO(), tc.G, team, charlie.Username)
 	require.NoError(t, err)
+}
+
+func TestAddMemberWithRestrictiveContactSettings(t *testing.T) {
+	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+
+	alice, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+	teamName, _ := createTeam2(tc)
+	team := teamName.String()
+	t.Logf("Created team %q", team)
+	err = tc.Logout()
+	require.NoError(t, err)
+
+	bob, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+	err = tc.Logout()
+	require.NoError(t, err)
+
+	charlie, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+
+	// charlie sets contact settings
+	kbtest.SetContactSettings(tc, charlie, keybase1.ContactSettings{
+		Enabled:              true,
+		AllowFolloweeDegrees: 1,
+	})
+
+	// alice can add bob
+	err = tc.Logout()
+	require.NoError(t, err)
+	err = alice.Login(tc.G)
+	require.NoError(t, err)
+	_, err = AddMember(context.TODO(), tc.G, team, bob.Username, keybase1.TeamRole_WRITER, nil)
+	require.NoError(t, err)
+
+	// alice can't add charlie
+	_, err = AddMember(context.TODO(), tc.G, team, charlie.Username, keybase1.TeamRole_WRITER, nil)
+	require.Error(t, err)
+	usernames := err.(libkb.TeamContactSettingsBlockError).BlockedUsernames()
+	require.Equal(t, usernames[0].String(), charlie.Username)
+
+	// charlie tracks alice
+	err = tc.Logout()
+	require.NoError(t, err)
+	err = charlie.Login(tc.G)
+	require.NoError(t, err)
+
+	_, err = kbtest.RunTrack(tc, charlie, alice.Username)
+	require.NoError(t, err)
+
+	// alice can add charlie
+	err = tc.Logout()
+	require.NoError(t, err)
+	err = alice.Login(tc.G)
+	require.NoError(t, err)
+
+	_, err = AddMember(context.TODO(), tc.G, team, charlie.Username, keybase1.TeamRole_WRITER, nil)
+	require.NoError(t, err)
+}
+
+func TestAddMembersWithRestrictiveContactSettings(t *testing.T) {
+	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+
+	alice, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+	teamName, teamID := createTeam2(tc)
+	team := teamName.String()
+	t.Logf("Created team %q", team)
+	err = tc.Logout()
+	require.NoError(t, err)
+
+	bob, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+	err = tc.Logout()
+	require.NoError(t, err)
+
+	charlie, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+
+	// charlie sets contact settings
+	kbtest.SetContactSettings(tc, charlie, keybase1.ContactSettings{
+		Enabled:              true,
+		AllowFolloweeDegrees: 1,
+	})
+
+	// alice can add bob but not charlie
+	err = tc.Logout()
+	require.NoError(t, err)
+	err = alice.Login(tc.G)
+	require.NoError(t, err)
+	users := []keybase1.UserRolePair{
+		{AssertionOrEmail: bob.Username, Role: keybase1.TeamRole_WRITER},
+		{AssertionOrEmail: charlie.Username, Role: keybase1.TeamRole_WRITER},
+	}
+	added, notAdded, err := AddMembers(context.TODO(), tc.G, teamID, users)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(added))
+	require.Equal(t, libkb.NewNormalizedUsername(bob.Username), added[0].Username)
+	require.Equal(t, 1, len(notAdded))
+	require.Equal(t, libkb.NewNormalizedUsername(charlie.Username).String(), notAdded[0].Username)
+}
+
+func TestAddMembersWithRestrictiveContactSettingsFailIfNoneAdded(t *testing.T) {
+	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+
+	alice, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+	teamName, teamID := createTeam2(tc)
+	team := teamName.String()
+	t.Logf("Created team %q", team)
+	err = tc.Logout()
+	require.NoError(t, err)
+
+	bob, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+	kbtest.SetContactSettings(tc, bob, keybase1.ContactSettings{
+		Enabled:              true,
+		AllowFolloweeDegrees: 1,
+	})
+	err = tc.Logout()
+	require.NoError(t, err)
+
+	charlie, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+	kbtest.SetContactSettings(tc, charlie, keybase1.ContactSettings{
+		Enabled:              true,
+		AllowFolloweeDegrees: 1,
+	})
+	err = tc.Logout()
+	require.NoError(t, err)
+
+	expectedFailedUsernames := map[libkb.NormalizedUsername]bool{
+		libkb.NewNormalizedUsername(bob.Username):     true,
+		libkb.NewNormalizedUsername(charlie.Username): true,
+	}
+
+	// alice can't add bob or charlie
+	err = alice.Login(tc.G)
+	require.NoError(t, err)
+	users := []keybase1.UserRolePair{
+		{AssertionOrEmail: bob.Username, Role: keybase1.TeamRole_WRITER},
+		{AssertionOrEmail: charlie.Username, Role: keybase1.TeamRole_WRITER},
+	}
+	added, notAdded, err := AddMembers(context.TODO(), tc.G, teamID, users)
+	require.Error(t, err)
+	require.IsType(t, err, libkb.TeamContactSettingsBlockError{})
+	usernames := err.(libkb.TeamContactSettingsBlockError).BlockedUsernames()
+	require.Equal(t, 2, len(usernames))
+	for _, username := range usernames {
+		_, ok := expectedFailedUsernames[username]
+		require.True(t, ok)
+	}
+	require.IsType(t, err, libkb.TeamContactSettingsBlockError{})
+	require.Nil(t, added)
+	require.Nil(t, notAdded)
 }

@@ -111,7 +111,7 @@ type nullTeamAuditor struct{}
 
 var _ TeamAuditor = nullTeamAuditor{}
 
-func (n nullTeamAuditor) AuditTeam(m MetaContext, id keybase1.TeamID, isPublic bool, headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno, auditMode keybase1.AuditMode) (err error) {
+func (n nullTeamAuditor) AuditTeam(m MetaContext, id keybase1.TeamID, isPublic bool, headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno, lastMerkleRoot *MerkleRoot, auditMode keybase1.AuditMode) (err error) {
 	return fmt.Errorf("null team auditor")
 }
 

@@ -141,6 +141,8 @@ const commonProps = {
       botAlias: 'Reminder Bot',
       botUsername: 'reminderbot',
       description: 'Never forget again',
+      extendedDescription:
+        'Sequi facilis odit vitae odit enim. Voluptatem vel asperiores odit ut. Est voluptatem nesciunt in quia ab molestiae sequi. Saepe quibusdam sed officiis quam quo nihil sequi et. Dicta ea velit hic eos. Porro dicta voluptatem qui laudantium. Doloribus amet error illo et. Cupiditate ipsam eaque labore occaecati ut ex saepe. Adipisci quo suscipit porro perferendis nam. In eius quaerat numquam quia exercitationem deserunt minima.',
       ownerUser: 'jessk',
     },
   ],
@@ -149,12 +151,14 @@ const commonProps = {
       botAlias: 'ECS Deploy Bot',
       botUsername: 'ecsdeploybot',
       description: '',
+      extendedDescription: '',
       ownerTeam: 'keybase',
     },
     {
       botAlias: 'Google Meet',
       botUsername: 'meetbot',
       description: 'Use Google Meet to discuss over video',
+      extendedDescription: '',
       ownerTeam: 'keybase',
     },
   ],

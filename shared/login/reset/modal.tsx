@@ -10,7 +10,7 @@ import {formatDurationForAutoreset} from '../../util/timestamp'
 export type Props = {}
 
 const ResetModal = (_: Props) => {
-  const {active, endTime} = Container.useSelector(s => s.autoreset)
+  const {active, endTime, error} = Container.useSelector(s => s.autoreset)
   const dispatch = Container.useDispatch()
   React.useEffect(() => {
     if (!active) {
@@ -44,6 +44,15 @@ const ResetModal = (_: Props) => {
             />
           ),
         }}
+        banners={
+          error
+            ? [
+                <Kb.Banner color="red" key="errors">
+                  <Kb.BannerParagraph bannerColor="red" content={error} />
+                </Kb.Banner>,
+              ]
+            : undefined
+        }
       >
         <Kb.Box2 fullWidth={true} direction="vertical">
           <Kb.Box2

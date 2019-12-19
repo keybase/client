@@ -3,9 +3,13 @@ import * as Types from '../../../constants/types/fs'
 import * as Kb from '../../../common-adapters'
 import * as Kbfs from '../../common'
 import * as Styles from '../../../styles'
-import ChooseConversationHOC from './choose-conversation-hoc'
-import ConversationList from '../../../chat/conversation-list/conversation-list-container'
-import ChooseConversation from '../../../chat/conversation-list/choose-conversation-container'
+import * as FsGen from '../../../actions/fs-gen'
+import * as Chat2Gen from '../../../actions/chat2-gen'
+import * as ChatTypes from '../../../constants/types/chat2'
+import * as Container from '../../../util/container'
+import HiddenString from '../../../util/hidden-string'
+import ConversationList from './conversation-list/conversation-list-container'
+import ChooseConversation from './conversation-list/choose-conversation-container'
 
 type Props = {
   onCancel: () => void
@@ -16,7 +20,35 @@ type Props = {
   title: string
 }
 
-const MobileWithHeader = Kb.HeaderHoc(ChooseConversationHOC(ConversationList))
+const useConversationList = () => {
+  const sendAttachmentToChat = Container.useSelector(state => state.fs.sendAttachmentToChat)
+  const dispatch = Container.useDispatch()
+  const onSelect = (convID: ChatTypes.ConversationIDKey) => {
+    dispatch(FsGen.createSetSendAttachmentToChatConvID({convID}))
+  }
+  const onDone = React.useCallback(() => dispatch(Chat2Gen.createToggleInboxSearch({enabled: false})), [
+    dispatch,
+  ])
+  const onSetFilter = (filter: string) => {
+    dispatch(FsGen.createSetSendAttachmentToChatFilter({filter}))
+    dispatch(Chat2Gen.createInboxSearch({query: new HiddenString(filter)}))
+  }
+  React.useEffect(() => onDone, [onDone])
+  return {
+    filter: sendAttachmentToChat.filter,
+    onDone,
+    onSelect,
+    onSetFilter,
+    selected: sendAttachmentToChat.convID,
+  }
+}
+
+const ConnectedConversationList = (props: {customComponent?: React.ReactNode | null}) => {
+  const additionalProps = useConversationList()
+  return <ConversationList {...props} {...additionalProps} />
+}
+
+const MobileWithHeader = Kb.HeaderHoc(ConnectedConversationList)
 
 const MobileHeader = (props: Props) => (
   <Kb.Box2 direction="horizontal" centerChildren={true} fullWidth={true} style={mobileStyles.headerContainer}>
@@ -34,7 +66,10 @@ const MobileHeader = (props: Props) => (
   </Kb.Box2>
 )
 
-const DesktopConversationDropdown = ChooseConversationHOC(ChooseConversation)
+const DesktopConversationDropdown = (props: {dropdownButtonStyle?: Styles.StylesCrossPlatform | null}) => {
+  const additionalProps = useConversationList()
+  return <ChooseConversation {...props} {...additionalProps} />
+}
 
 const DesktopSendAttachmentToChat = (props: Props) => (
   <>
