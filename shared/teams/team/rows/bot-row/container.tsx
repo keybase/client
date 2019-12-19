@@ -31,6 +31,8 @@ export default connect(
       botUsername: username,
       description: '',
       extendedDescription: '',
+      isPromoted: false,
+      rank: 0,
     }
 
     return {
