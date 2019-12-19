@@ -320,6 +320,8 @@ func main() {
 		os.Exit(1)
 	}
 
+	fmt.Fprintf(os.Stderr, "Starting redirector...")
+
 	// Restrict the mountpoint to paths starting with "/keybase".
 	// Since this is a suid binary, it is dangerous to allow arbitrary
 	// mountpoints.  TODO: Read a redirector mountpoint from a
@@ -449,6 +451,7 @@ func main() {
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		err = cmd.Start()
+		fmt.Fprintf(os.Stderr, "starting %#v, err=%#v, pid=%d\n", cmd, err, cmd.Process.Pid)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Can't start upgraded copy: %+v\n", err)
 			os.Exit(1)

@@ -12,6 +12,7 @@ EnvironmentFile=-%h/.config/keybase/keybase.env
 ExecStartPre=/usr/bin/keybase --use-root-config-file config get --direct --assert-false --assert-ok-on-nil disable-root-redirector
 ExecStart=/usr/bin/keybase-redirector /keybase
 Restart=on-failure
+KillMode=process
 
 [Install]
 WantedBy=default.target
