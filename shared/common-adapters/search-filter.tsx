@@ -116,7 +116,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
   }
   private mouseOver = () => this.setState({hover: true})
   private mouseLeave = () => this.setState({hover: false})
-  private onHotkey = cmd => {
+  private onHotkey = (cmd: string) => {
     this.props.hotkey && cmd.endsWith('+' + this.props.hotkey) && this.focus()
   }
   private onKeyDown = (e: React.KeyboardEvent, isComposingIME: boolean) => {
