@@ -4,6 +4,7 @@ import * as Styles from '../../styles'
 
 export type Props = {
   errorText: string
+  open: boolean
   success: boolean
   name: string
   successTeamName: string | null

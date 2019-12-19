@@ -66,7 +66,7 @@ function* joinTeam(_: TypedState, action: TeamsGen.JoinTeamPayload) {
   const {teamname} = action.payload
   yield Saga.all([
     Saga.put(TeamsGen.createSetTeamJoinError({error: ''})),
-    Saga.put(TeamsGen.createSetTeamJoinSuccess({success: false, teamname: ''})),
+    Saga.put(TeamsGen.createSetTeamJoinSuccess({open: false, success: false, teamname: ''})),
   ])
   try {
     const result: Saga.RPCPromiseType<typeof RPCTypes.teamsTeamAcceptInviteOrRequestAccessRpcPromise> = yield Saga.callUntyped(
@@ -78,6 +78,7 @@ function* joinTeam(_: TypedState, action: TeamsGen.JoinTeamPayload) {
     // Success
     yield Saga.put(
       TeamsGen.createSetTeamJoinSuccess({
+        open: result?.wasOpenTeam,
         success: true,
         teamname: result && result.wasTeamName ? teamname : '',
       })

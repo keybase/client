@@ -55,6 +55,7 @@ export default Container.makeReducer<
   },
   [TeamsGen.setTeamJoinSuccess]: (draftState, action) => {
     draftState.teamJoinSuccess = action.payload.success
+    draftState.teamJoinSuccessOpen = action.payload.open
     draftState.teamJoinSuccessTeamName = action.payload.teamname
   },
   [TeamsGen.setTeamRetentionPolicy]: (draftState, action) => {
