@@ -148,6 +148,14 @@ func start() (startErr *libfs.Error) {
 		return libfs.InitError("extra arguments specified (flags go before the first argument)")
 	}
 
+	if lfs {
+		// For LFS uploads we should be flushing the journal
+		// constantly, so we don't build up a huge batch of data that
+		// conflict resolution can't handle.  (See HOTPOT-1554.)
+		kbfsParams.TLFJournalBackgroundWorkStatus =
+			libkbfs.TLFJournalBackgroundWorkEnabled
+	}
+
 	options := kbfsgit.StartOptions{
 		KbfsParams: *kbfsParams,
 		Remote:     remote,
