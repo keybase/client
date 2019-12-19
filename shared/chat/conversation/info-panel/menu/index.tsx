@@ -128,7 +128,11 @@ class InfoPanelMenu extends React.Component<Props> {
     const isAdhoc =
       (props.isSmallTeam && !props.convProps) || !!(props.convProps && props.convProps.teamType === 'adhoc')
     const items: Kb.MenuItems = (isAdhoc
-      ? [this.hideItem(), this.muteItem(), {danger: true, onClick: props.onBlockConv, title: 'Block'}]
+      ? [
+          this.hideItem(),
+          this.muteItem(),
+          {danger: true, icon: 'iconfont-block-user', onClick: props.onBlockConv, title: 'Block'},
+        ]
       : [
           ...(props.canAddPeople ? addPeopleItems : []),
           {

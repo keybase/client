@@ -599,6 +599,7 @@ type groceries struct {
 	seeds             []keybase1.PerTeamKeySeed
 	newHiddenLinks    []sig3.ExportJSON
 	expMaxHiddenSeqno keybase1.Seqno
+	lastMerkleRoot    *libkb.MerkleRoot
 }
 
 // isEmpty returns true if our shopping list is empty. In this case, we have no need to go to the
@@ -797,7 +798,7 @@ func (f *FastTeamChainLoader) loadFromServerOnce(m libkb.MetaContext, arg fastLo
 	var lastSecretGen keybase1.PerTeamKeyGeneration
 	var seeds []keybase1.PerTeamKeySeed
 
-	lastSeqno, lastLinkID, hiddenResp, err := f.world.merkleLookupWithHidden(m.Ctx(), arg.ID, arg.Public)
+	lastSeqno, lastLinkID, hiddenResp, lastMerkleRoot, err := f.world.merkleLookupWithHidden(m.Ctx(), arg.ID, arg.Public)
 	if err != nil {
 		return nil, err
 	}
@@ -864,6 +865,7 @@ func (f *FastTeamChainLoader) loadFromServerOnce(m libkb.MetaContext, arg fastLo
 		seeds:             seeds,
 		newHiddenLinks:    teamUpdate.HiddenChain,
 		expMaxHiddenSeqno: hiddenResp.UncommittedSeqno,
+		lastMerkleRoot:    lastMerkleRoot,
 	}, nil
 }
 
@@ -999,7 +1001,7 @@ func (f *FastTeamChainLoader) checkPrevs(m libkb.MetaContext, arg fastLoadArg, l
 
 // audit runs probabilistic merkle tree audit on the new links, to make sure that the server isn't
 // running odd-even-style attacks against members in a group.
-func (f *FastTeamChainLoader) audit(m libkb.MetaContext, arg fastLoadArg, state *keybase1.FastTeamData) (err error) {
+func (f *FastTeamChainLoader) audit(m libkb.MetaContext, arg fastLoadArg, state *keybase1.FastTeamData, lastMerkleRoot *libkb.MerkleRoot) (err error) {
 	head, ok := state.Chain.MerkleInfo[1]
 	if !ok {
 		return NewAuditError("cannot run audit without merkle info for head")
@@ -1008,7 +1010,7 @@ func (f *FastTeamChainLoader) audit(m libkb.MetaContext, arg fastLoadArg, state 
 	if last == nil {
 		return NewAuditError("cannot run audit, no last chain data")
 	}
-	return m.G().GetTeamAuditor().AuditTeam(m, arg.ID, arg.Public, head.Seqno, state.Chain.LinkIDs, last.Seqno, keybase1.AuditMode_STANDARD)
+	return m.G().GetTeamAuditor().AuditTeam(m, arg.ID, arg.Public, head.Seqno, state.Chain.LinkIDs, last.Seqno, lastMerkleRoot, keybase1.AuditMode_STANDARD)
 }
 
 // readDownPointer reads a down pointer out of a given link, if it's unstubbed. Down pointers
@@ -1421,7 +1423,7 @@ func (f *FastTeamChainLoader) refresh(m libkb.MetaContext, arg fastLoadArg, stat
 	}
 
 	// peform a probabilistic audit on the new links
-	err = f.audit(m, arg, state)
+	err = f.audit(m, arg, state, groceries.lastMerkleRoot)
 	if err != nil {
 		return nil, err
 	}

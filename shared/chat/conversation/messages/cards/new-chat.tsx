@@ -3,42 +3,80 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import openUrl from '../../../../util/open-url'
 
-type Props = {}
+type Props = {
+  self: boolean
+  openPrivateFolder: () => void
+}
 
-const NewCard = (_: Props) => (
-  <Kb.Box2 direction="horizontal" style={styles.container} alignItems="flex-start">
-    <Kb.Box2 direction="vertical" gap="xtiny" fullHeight={true} style={styles.textContainer}>
-      <Kb.Text type="BodySmallSemibold" style={styles.header} negative={true}>
-        This conversation is end-to-end encrypted.
-      </Kb.Text>
-      <Kb.ClickableBox onClick={() => openUrl('https://keybase.io/docs/chat/crypto')}>
-        <Kb.Box2
-          direction="horizontal"
-          alignItems="center"
-          fullWidth={true}
-          className="hover_container"
-          gap="xtiny"
-        >
-          <Kb.Text
-            type="BodySmallSemiboldPrimaryLink"
-            style={styles.link}
-            className="color_blueLighterOrWhite hover_contained_color_white"
+type InnerProps = {
+  action: () => void
+  icon: Kb.IconType
+  imageLower?: boolean
+  label: string
+  tall?: boolean
+  text: string
+}
+
+const NewCard = (outerProps: Props) => {
+  const iconEncrypted: Kb.IconType = 'icon-illustration-encrypted-116-96'
+  const iconSecure: Kb.IconType = 'icon-illustration-secure-116-96'
+  const props: InnerProps = outerProps.self
+    ? {
+        action: outerProps.openPrivateFolder,
+        icon: iconSecure,
+        imageLower: true,
+        label: 'Open your private folder',
+        tall: true,
+        text: 'Use this chat to store secure notes such as credit card numbers, passwords, or secret keys.',
+      }
+    : {
+        action: () => openUrl('https://keybase.io/docs/chat/crypto'),
+        icon: iconEncrypted,
+        label: 'Read more',
+        text: 'This conversation is end-to-end encrypted.',
+      }
+  return (
+    <Kb.Box2
+      direction="horizontal"
+      style={Styles.collapseStyles([styles.container, props.tall ? styles.containerTall : null])}
+      alignItems="flex-start"
+    >
+      <Kb.Box2 direction="vertical" gap="xtiny" fullHeight={true} style={styles.textContainer}>
+        <Kb.Text type="BodySmallSemibold" style={styles.header} negative={true}>
+          {props.text}
+        </Kb.Text>
+        <Kb.ClickableBox onClick={props.action}>
+          <Kb.Box2
+            direction="horizontal"
+            alignItems="center"
+            fullWidth={true}
+            className="hover_container"
+            gap="xtiny"
           >
-            Read more
-          </Kb.Text>
-          <Kb.Icon
-            color={Styles.globalColors.blueLighterOrWhite}
-            sizeType="Tiny"
-            type="iconfont-arrow-right"
-            className="hover_contained_color_white"
-            style={styles.icon}
-          />
-        </Kb.Box2>
-      </Kb.ClickableBox>
+            <Kb.Text
+              type="BodySmallSemiboldPrimaryLink"
+              style={styles.link}
+              className="color_blueLighterOrWhite hover_contained_color_white"
+            >
+              {props.label}
+            </Kb.Text>
+            <Kb.Icon
+              color={Styles.globalColors.blueLighterOrWhite}
+              sizeType="Tiny"
+              type="iconfont-arrow-right"
+              className="hover_contained_color_white"
+              style={styles.icon}
+            />
+          </Kb.Box2>
+        </Kb.ClickableBox>
+      </Kb.Box2>
+      <Kb.Icon
+        type={props.icon}
+        style={Styles.collapseStyles([styles.image, props.imageLower ? styles.imageLower : null])}
+      />
     </Kb.Box2>
-    <Kb.Icon type="icon-illustration-encrypted-116-96" style={styles.image} />
-  </Kb.Box2>
-)
+  )
+}
 
 const styles = Styles.styleSheetCreate(
   () =>
@@ -60,6 +98,11 @@ const styles = Styles.styleSheetCreate(
           width: 288,
         },
       }),
+      containerTall: Styles.platformStyles({
+        isElectron: {
+          height: 119,
+        },
+      }),
       header: {
         maxWidth: Styles.isMobile ? 126 : undefined,
       },
@@ -73,6 +116,10 @@ const styles = Styles.styleSheetCreate(
         alignSelf: Styles.isMobile ? 'center' : undefined,
         marginTop: Styles.isMobile ? Styles.globalMargins.tiny : -Styles.globalMargins.xsmall,
         paddingRight: Styles.globalMargins.medium,
+      },
+      imageLower: {
+        marginLeft: Styles.isMobile ? -65 : undefined,
+        marginTop: Styles.isMobile ? -20 : 39,
       },
       link: {color: Styles.isMobile ? Styles.globalColors.blueLighter : undefined},
       textContainer: {padding: Styles.globalMargins.medium},

@@ -58,7 +58,7 @@ func newIndexedBlockDbFromStorage(
 	config libkbfs.Config, blockStorage, tlfStorage storage.Storage) (
 	db *IndexedBlockDb, err error) {
 	log := config.MakeLogger("IBD")
-	closers := make([]io.Closer, 0, 1)
+	closers := make([]io.Closer, 0, 2)
 	closer := func() {
 		for _, c := range closers {
 			closeErr := c.Close()
@@ -108,7 +108,7 @@ func newIndexedBlockDb(config libkbfs.Config, dirPath string) (db *IndexedBlockD
 	log := config.MakeLogger("IBD")
 	defer func() {
 		if err != nil {
-			log.Error("Error initializing MD db: %+v", err)
+			log.Error("Error initializing indexed block db: %+v", err)
 		}
 	}()
 	dbPath := filepath.Join(dirPath, indexedBlocksFolderName)
@@ -134,7 +134,7 @@ func newIndexedBlockDb(config libkbfs.Config, dirPath string) (db *IndexedBlockD
 	}
 	defer func() {
 		if err != nil {
-			blockStorage.Close()
+			tlfStorage.Close()
 		}
 	}()
 	return newIndexedBlockDbFromStorage(config, blockStorage, tlfStorage)
@@ -291,7 +291,7 @@ func (db *IndexedBlockDb) Delete(
 	return db.tlfDb.Delete(tlfKey(tlfID, ptr), nil)
 }
 
-// Shutdown implements the IndexedBlocksDb interface for IndexedBlockDb.
+// Shutdown closes this db.
 func (db *IndexedBlockDb) Shutdown(ctx context.Context) {
 	db.lock.Lock()
 	defer db.lock.Unlock()

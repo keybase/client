@@ -16,43 +16,46 @@ const EditTeamDescription = (props: Props) => {
   const onSave = React.useCallback(() => {
     onSubmit(description)
   }, [description, onSubmit])
-
   return (
-    <Kb.MaybePopup onClose={onClose} cover={false}>
-      <Kb.Box
-        style={{
-          ...Styles.globalStyles.flexBoxColumn,
-          alignItems: 'center',
-          padding: Styles.globalMargins.large,
-        }}
-      >
-        <Kb.Avatar isTeam={true} teamname={teamname} size={64} />
-        <Kb.Text
-          style={{paddingBottom: Styles.globalMargins.medium, paddingTop: Styles.globalMargins.xtiny}}
-          type="BodyBig"
-        >
-          {teamname}
-        </Kb.Text>
-        <Kb.Input
-          hintText="Brief description"
-          onChangeText={setDescription}
-          value={description}
-          multiline={true}
-          style={{alignSelf: 'stretch', flexGrow: 1}}
-          autoFocus={true}
+    <Kb.Box2 alignItems="center" direction="vertical" style={styles.container}>
+      <Kb.Avatar isTeam={true} teamname={teamname} size={64} />
+      <Kb.Text style={styles.title} type="BodyBig">
+        {teamname}
+      </Kb.Text>
+      <Kb.LabeledInput
+        placeholder="Team description"
+        onChangeText={setDescription}
+        value={description}
+        multiline={true}
+        autoFocus={true}
+      />
+      <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
+        <Kb.Button label="Cancel" onClick={onClose} type="Dim" />
+        <Kb.WaitingButton
+          disabled={description === origDescription}
+          label="Save"
+          onClick={onSave}
+          waitingKey={waitingKey}
         />
-        <Kb.ButtonBar>
-          <Kb.Button label="Cancel" onClick={onClose} type="Dim" />
-          <Kb.WaitingButton
-            disabled={description === origDescription}
-            label="Save"
-            onClick={onSave}
-            waitingKey={waitingKey}
-          />
-        </Kb.ButtonBar>
-      </Kb.Box>
-    </Kb.MaybePopup>
+      </Kb.ButtonBar>
+    </Kb.Box2>
   )
 }
+
+const styles = Styles.styleSheetCreate(() => ({
+  buttonBar: {alignItems: 'center'},
+  container: Styles.platformStyles({
+    common: {...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.small, 0)},
+    isElectron: {
+      maxHeight: 560,
+      width: 400,
+    },
+    isMobile: {width: '100%'},
+  }),
+  title: {
+    paddingBottom: Styles.globalMargins.medium,
+    paddingTop: Styles.globalMargins.xtiny,
+  },
+}))
 
 export default EditTeamDescription

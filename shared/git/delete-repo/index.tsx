@@ -52,7 +52,7 @@ class DeleteRepo extends React.Component<Props, State> {
               </Kb.Text>
             </Kb.Box>
           )}
-          <Kb.Text type="Header" style={{marginBottom: 27}}>
+          <Kb.Text center={true} type="Header" style={{marginBottom: 27}}>
             Are you sure you want to delete this {this.props.teamname ? 'team ' : ''}
             repository?
           </Kb.Text>
@@ -78,24 +78,25 @@ class DeleteRepo extends React.Component<Props, State> {
               ? 'This will permanently delete your remote files and history, and all members of the team will be notified.  This action cannot be undone.'
               : 'This will permanently delete your remote files and history. This action cannot be undone.'}
           </Kb.Text>
-          <Kb.Text type="BodySemibold">Please type in the name of the repository to confirm:</Kb.Text>
-          <Kb.Input
+          <Kb.Text style={styles.confirm} type="BodySemibold">
+            Enter the name of the repository to&nbsp;confirm:
+          </Kb.Text>
+          <Kb.LabeledInput
             autoFocus={true}
             value={this.state.name}
             onChangeText={name => this.setState({name})}
             onEnterKeyDown={this._onSubmit}
-            hintText="Name of the repository"
+            placeholder="Name of the repository"
           />
           {!!this.props.teamname && (
             <Kb.Checkbox
               label="Notify the team"
               checked={this.state.notifyTeam}
               onCheck={notifyTeam => this.setState({notifyTeam})}
-              style={{marginBottom: Styles.globalMargins.small, marginTop: Styles.globalMargins.xlarge}}
+              style={styles.checkbox}
             />
           )}
-          <Kb.Box style={{flex: 1}} />
-          <Kb.Box style={Styles.globalStyles.flexBoxRow}>
+          <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
             <Kb.WaitingButton
               type="Dim"
               onClick={this.props.onClose}
@@ -111,7 +112,7 @@ class DeleteRepo extends React.Component<Props, State> {
               disabled={!this._matchesName()}
               waitingKey={this.props.waitingKey}
             />
-          </Kb.Box>
+          </Kb.ButtonBar>
         </Kb.Box>
       </Kb.ScrollView>
     )
@@ -124,13 +125,33 @@ const styles = Styles.styleSheetCreate(() => ({
     alignItems: 'center',
     marginBottom: Styles.globalMargins.medium,
   },
-  container: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    flex: 1,
-    height: '100%',
-    padding: Styles.isMobile ? Styles.globalMargins.large : Styles.globalMargins.xlarge,
+  buttonBar: {alignItems: 'center'},
+  checkbox: {
+    alignSelf: 'flex-start',
+    marginBottom: Styles.globalMargins.tiny,
+    marginTop: Styles.globalMargins.tiny,
   },
+  confirm: {
+    alignSelf: 'flex-start',
+    marginBottom: Styles.globalMargins.tiny,
+  },
+  container: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxColumn,
+      alignItems: 'center',
+      flex: 1,
+      height: '100%',
+    },
+    isElectron: {
+      maxHeight: 560,
+      padding: Styles.globalMargins.large,
+      paddingBottom: Styles.globalMargins.small,
+      width: 400,
+    },
+    isMobile: {
+      padding: Styles.globalMargins.small,
+    },
+  }),
   error: {
     alignSelf: 'stretch',
     backgroundColor: Styles.globalColors.red,

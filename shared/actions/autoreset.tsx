@@ -27,7 +27,20 @@ const cancelReset = async () => {
   try {
     await RPCGen.accountCancelResetRpcPromise(undefined, Constants.cancelResetWaitingKey)
   } catch (error) {
-    return AutoresetGen.createResetError({error})
+    logger.error('Error in CancelAutoreset', error)
+    switch (error.code ?? 0) {
+      case RPCGen.StatusCode.scnosession:
+        // We got logged out because we were revoked (which might have been
+        // becase the reset was completed and this device wasn't notified).
+        return undefined
+      case RPCGen.StatusCode.scnotfound:
+        // "User not in autoreset queue."
+        // do nothing, fall out of the catch block to cancel reset modal.
+        break
+      default:
+        // Any other error - display a red bar in the modal.
+        return AutoresetGen.createResetError({error})
+    }
   }
   return AutoresetGen.createResetCancelled()
 }

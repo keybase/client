@@ -1,3 +1,4 @@
+import * as BotsGen from '../bots-gen'
 import * as Chat2Gen from '../chat2-gen'
 import * as ConfigGen from '../config-gen'
 import * as DeeplinksGen from '../deeplinks-gen'
@@ -185,7 +186,7 @@ const onGetInboxConvsUnboxed = (
   let added = false
   const usernameToFullname: {[username: string]: string} = {}
   inboxUIItems.forEach(inboxUIItem => {
-    const meta = Constants.inboxUIItemToConversationMeta(state, inboxUIItem, true)
+    const meta = Constants.inboxUIItemToConversationMeta(state, inboxUIItem)
     if (meta) {
       metas.push(meta)
     }
@@ -402,43 +403,18 @@ const chatActivityToMetasAction = (
   state: Container.TypedState,
   payload: {
     readonly conv?: RPCChatTypes.InboxUIItem | null
-  },
-  ignoreDelete?: boolean
+  }
 ) => {
   const conv = payload ? payload.conv : null
   const meta = conv && Constants.inboxUIItemToConversationMeta(state, conv)
-  const conversationIDKey = meta
-    ? meta.conversationIDKey
-    : conv && Types.stringToConversationIDKey(conv.convID)
   const usernameToFullname = ((conv && conv.participants) || []).reduce((map, part) => {
     if (part.fullName) {
       map[part.assertion] = part.fullName
     }
     return map
   }, {})
-  // We ignore inbox rows that are blocked/reported or have no content
-  const isADelete =
-    !ignoreDelete &&
-    conv &&
-    ([
-      RPCChatTypes.ConversationStatus.blocked,
-      RPCChatTypes.ConversationStatus.reported,
-      RPCChatTypes.ConversationStatus.ignored,
-    ].includes(conv.status) ||
-      conv.isEmpty)
-
-  // We want to select a different convo if its cause we blocked/reported. Otherwise sometimes we get that a convo
-  // is empty which we don't want to select something else as sometimes we're in the middle of making it!
-  const selectSomethingElse = conv ? !conv.isEmpty : false
   return meta
-    ? [
-        isADelete
-          ? Chat2Gen.createMetaDelete({conversationIDKey: meta.conversationIDKey, selectSomethingElse})
-          : Chat2Gen.createMetasReceived({metas: [meta]}),
-        UsersGen.createUpdateFullnames({usernameToFullname}),
-      ]
-    : conversationIDKey && isADelete
-    ? [Chat2Gen.createMetaDelete({conversationIDKey, selectSomethingElse})]
+    ? [Chat2Gen.createMetasReceived({metas: [meta]}), UsersGen.createUpdateFullnames({usernameToFullname})]
     : []
 }
 
@@ -704,7 +680,7 @@ const onChatSetConvRetention = (
     logger.warn('onChatSetConvRetention: no conv given')
     return false
   }
-  const meta = Constants.inboxUIItemToConversationMeta(state, conv, true)
+  const meta = Constants.inboxUIItemToConversationMeta(state, conv)
   if (!meta) {
     logger.warn(`onChatSetConvRetention: no meta found for ${convID}`)
     return false
@@ -755,7 +731,7 @@ const onChatSetTeamRetention = (
 ) => {
   const {convs} = action.payload.params
   const metas = (convs ?? []).reduce<Array<Types.ConversationMeta>>((l, c) => {
-    const meta = Constants.inboxUIItemToConversationMeta(state, c, true)
+    const meta = Constants.inboxUIItemToConversationMeta(state, c)
     if (meta) {
       l.push(meta)
     }
@@ -861,7 +837,7 @@ const onNewChatActivity = (
       actions = chatActivityToMetasAction(state, activity.readMessage)
       break
     case RPCChatTypes.ChatActivityType.newConversation:
-      actions = chatActivityToMetasAction(state, activity.newConversation, true)
+      actions = chatActivityToMetasAction(state, activity.newConversation)
       break
     case RPCChatTypes.ChatActivityType.failedMessage: {
       const {failedMessage} = activity
@@ -2717,7 +2693,7 @@ function* createConversation(
   if (!conversationIDKey) {
     logger.warn("Couldn't make a new conversation?")
   } else {
-    const meta = Constants.inboxUIItemToConversationMeta(state, result.uiConv, true)
+    const meta = Constants.inboxUIItemToConversationMeta(state, result.uiConv)
     if (meta) {
       yield Saga.put(Chat2Gen.createMetasReceived({metas: [meta]}))
     }
@@ -2756,7 +2732,7 @@ const messageReplyPrivately = async (
     logger.warn("messageReplyPrivately: couldn't make a new conversation?")
     return
   }
-  const meta = Constants.inboxUIItemToConversationMeta(state, result.uiConv, true)
+  const meta = Constants.inboxUIItemToConversationMeta(state, result.uiConv)
   if (!meta) {
     logger.warn('messageReplyPrivately: unable to make meta')
     return
@@ -3346,6 +3322,12 @@ const getInboxNumSmallRows = async () => {
   return false
 }
 
+const loadNextBotPage = (state: Container.TypedState, action: Chat2Gen.LoadNextBotPagePayload) =>
+  BotsGen.createGetFeaturedBots({
+    limit: action.payload.pageSize,
+    page: state.chat2.featuredBotsPage + 1,
+  })
+
 function* chat2Saga() {
   // Platform specific actions
   if (Container.isMobile) {
@@ -3429,6 +3411,10 @@ function* chat2Saga() {
   yield* Saga.chainAction2(Chat2Gen.previewConversation, previewConversationTeam)
   yield* Saga.chainAction(Chat2Gen.previewConversation, previewConversationPersonMakesAConversation)
   yield* Saga.chainAction2(Chat2Gen.openFolder, openFolder)
+
+  // bots
+  yield* Saga.chainAction2(Chat2Gen.loadNextBotPage, loadNextBotPage)
+
   // On login lets load the untrusted inbox. This helps make some flows easier
   yield* Saga.chainAction2(ConfigGen.bootstrapStatusLoaded, startupInboxLoad)
 

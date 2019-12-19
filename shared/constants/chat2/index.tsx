@@ -44,6 +44,9 @@ export const makeState = (): Types.State => ({
   editingMap: new Map(),
   explodingModeLocks: new Map(), // locks set on exploding mode while user is inputting text,
   explodingModes: new Map(), // seconds to exploding message expiration,
+  featuredBotsLoaded: false,
+  featuredBotsMap: new Map(),
+  featuredBotsPage: -1,
   flipStatusMap: new Map(),
   focus: null,
   giphyResultMap: new Map(),
@@ -175,8 +178,9 @@ export const getInboxSearchSelected = (inboxSearch: Types.InboxSearchInfo) => {
 export const getThreadSearchInfo = (state: TypedState, conversationIDKey: Types.ConversationIDKey) =>
   state.chat2.threadSearchInfoMap.get(conversationIDKey) || makeThreadSearchInfo()
 
+const emptyOrdinals = new Set<Types.Ordinal>()
 export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKey) =>
-  state.chat2.messageOrdinals.get(id) || new Set<Types.Ordinal>()
+  state.chat2.messageOrdinals.get(id) || emptyOrdinals
 export const getMessageCenterOrdinal = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.messageCenterOrdinals.get(id)
 export const getMessage = (

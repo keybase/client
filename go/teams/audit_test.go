@@ -1,6 +1,7 @@
 package teams
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -222,4 +223,119 @@ func TestAuditRotateAudit(t *testing.T) {
 		load()
 		assertAuditTo(expectedSeqno)
 	}
+}
+
+type CorruptingMerkleClient struct {
+	libkb.MerkleClientInterface
+
+	corruptor func(leaf *libkb.MerkleGenericLeaf, root *libkb.MerkleRoot, err error) (*libkb.MerkleGenericLeaf, *libkb.MerkleRoot, error)
+}
+
+func (c CorruptingMerkleClient) LookupLeafAtSeqnoForAudit(m libkb.MetaContext, leafID keybase1.UserOrTeamID, s keybase1.Seqno) (leaf *libkb.MerkleGenericLeaf, root *libkb.MerkleRoot, err error) {
+	return c.corruptor(c.MerkleClientInterface.LookupLeafAtSeqnoForAudit(m, leafID, s))
+}
+
+var _ libkb.MerkleClientInterface = CorruptingMerkleClient{}
+
+func TestAuditFailsIfDataIsInconsistent(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	t.Logf("create team")
+	teamName, teamID := createTeam2(*tcs[0])
+	m := make([]libkb.MetaContext, 2)
+	for i, tc := range tcs {
+		m[i] = libkb.NewMetaContextForTest(*tc)
+	}
+
+	// We set up codenames for 2 users, A, B
+	const (
+		A = 0
+		B = 1
+	)
+
+	add := func(adder, addee int) keybase1.Seqno {
+		_, err := AddMember(m[adder].Ctx(), tcs[adder].G, teamName.String(), fus[addee].Username, keybase1.TeamRole_READER, nil)
+		require.NoError(t, err)
+		return 1
+	}
+
+	setFastAudits := func(user int) {
+		// do a lot of probes so we're likely to find issues
+		m[user].G().Env.Test.TeamAuditParams = &libkb.TeamAuditParams{
+			NumPostProbes:         10,
+			MerkleMovementTrigger: keybase1.Seqno(1),
+			RootFreshness:         time.Duration(1),
+			LRUSize:               500,
+			NumPreProbes:          3,
+			Parallelism:           3,
+		}
+	}
+
+	assertAuditTo := func(user int, n keybase1.Seqno) {
+		auditor := m[user].G().GetTeamAuditor().(*Auditor)
+		history, err := auditor.getFromCache(m[user], teamID, auditor.getLRU())
+		require.NoError(t, err)
+		require.Equal(t, n, lastAudit(history).MaxChainSeqno)
+	}
+
+	setFastAudits(B)
+
+	// A adds B to the team
+	add(A, B)
+
+	team, err := GetForTestByStringName(context.TODO(), m[A].G(), teamName.String())
+	require.NoError(t, err)
+	root := m[A].G().GetMerkleClient().LastRoot(m[A])
+	require.NotNil(t, root)
+
+	merkle := m[B].G().GetMerkleClient()
+	corruptMerkle := CorruptingMerkleClient{
+		MerkleClientInterface: merkle,
+		corruptor: func(leaf *libkb.MerkleGenericLeaf, root *libkb.MerkleRoot, err error) (*libkb.MerkleGenericLeaf, *libkb.MerkleRoot, error) {
+			t.Logf("Corruptor: received %v,%v,%v", leaf, root, err)
+			if leaf != nil && leaf.Private != nil && len(leaf.Private.LinkID) > 0 {
+				leaf.Private.LinkID[0] ^= 0xff
+				t.Logf("Corruptor: altering LINKID for %v", leaf.Private.Seqno)
+			}
+			return leaf, root, err
+		},
+	}
+	m[B].G().SetMerkleClient(corruptMerkle)
+
+	auditor := m[B].G().GetTeamAuditor().(*Auditor)
+	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.MainChain().Chain.LastSeqno, root, keybase1.AuditMode_STANDARD)
+	require.Error(t, err)
+	require.IsType(t, AuditError{}, err)
+	require.Contains(t, err.Error(), "team chain linkID mismatch")
+
+	// repeat a second time to ensure that a failed audit is not cached (and thus skipped the second time)
+	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.MainChain().Chain.LastSeqno, root, keybase1.AuditMode_STANDARD)
+	require.Error(t, err)
+	require.IsType(t, AuditError{}, err)
+	require.Contains(t, err.Error(), "team chain linkID mismatch")
+
+	corruptMerkle = CorruptingMerkleClient{
+		MerkleClientInterface: merkle,
+		corruptor: func(leaf *libkb.MerkleGenericLeaf, root *libkb.MerkleRoot, err error) (*libkb.MerkleGenericLeaf, *libkb.MerkleRoot, error) {
+			t.Logf("Corruptor: received %v,%v,%v", leaf, root, err)
+			if leaf != nil && leaf.Private != nil && len(leaf.Private.LinkID) > 0 {
+				leaf.Private.Seqno += 5
+				t.Logf("Corruptor: altering Seqno, leaf = %+v", leaf)
+			}
+			return leaf, root, err
+		},
+	}
+	m[B].G().SetMerkleClient(corruptMerkle)
+
+	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.MainChain().Chain.LastSeqno, root, keybase1.AuditMode_STANDARD)
+	require.Error(t, err)
+	require.IsType(t, AuditError{}, err)
+	require.Contains(t, err.Error(), "team chain rollback")
+
+	//now let's make sure without any interference the audit succeeds
+	m[B].G().SetMerkleClient(merkle)
+	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.MainChain().Chain.LastSeqno, root, keybase1.AuditMode_STANDARD)
+	require.NoError(t, err)
+	assertAuditTo(B, 2)
 }

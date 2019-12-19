@@ -2021,7 +2021,7 @@ func (h *Server) CancelActiveInboxSearch(ctx context.Context) (err error) {
 func (h *Server) delegateInboxSearch(ctx context.Context, uid gregor1.UID, query, origQuery string,
 	opts chat1.SearchOpts, ui libkb.ChatUI) (res chat1.ChatSearchInboxResults, err error) {
 	defer h.Trace(ctx, func() error { return err }, "delegateInboxSearch")()
-	convs, err := h.G().Indexer.SearchableConvs(ctx, uid, opts.ConvID)
+	convs, err := h.G().Indexer.SearchableConvs(ctx, opts.ConvID)
 	if err != nil {
 		return res, err
 	}
@@ -2128,7 +2128,7 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 	doSearch := !arg.NamesOnly && len(query) > 0
 	forceDelegate := false
 	if arg.Opts.ConvID != nil {
-		fullyIndexed, err := h.G().Indexer.FullyIndexed(ctx, *arg.Opts.ConvID, uid)
+		fullyIndexed, err := h.G().Indexer.FullyIndexed(ctx, *arg.Opts.ConvID)
 		if err != nil {
 			h.Debug(ctx, "SearchInbox: failed to check fully indexed, delegating... err: %s", err)
 			forceDelegate = true
@@ -2227,7 +2227,7 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 		case <-ctx.Done():
 			return
 		}
-		if searchRes, err = h.G().Indexer.Search(ctx, uid, query, arg.Query, opts, hitUICh, indexUICh); err != nil {
+		if searchRes, err = h.G().Indexer.Search(ctx, query, arg.Query, opts, hitUICh, indexUICh); err != nil {
 			return res, err
 		}
 	}
@@ -2261,12 +2261,12 @@ func (h *Server) ProfileChatSearch(ctx context.Context, identifyBehavior keybase
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), identifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "ProfileChatSearch")()
-	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	_, err = utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return nil, err
 	}
 
-	res, err = h.G().Indexer.IndexInbox(ctx, uid)
+	res, err = h.G().Indexer.IndexInbox(ctx)
 	if err != nil {
 		return nil, err
 	}

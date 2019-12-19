@@ -109,9 +109,6 @@ module.exports = {
   get FloatingPicker() {
     return require('./floating-picker').default
   },
-  get FormWithCheckbox() {
-    return require('./form-with-checkbox').default
-  },
   get Header() {
     return require('./header').default
   },
@@ -214,9 +211,6 @@ module.exports = {
   get PlainInput() {
     return require('./plain-input').default
   },
-  get PlaintextUsernames() {
-    return require('./usernames').PlaintextUsernames
-  },
   get PlatformIcon() {
     return require('./platform-icon').default
   },
@@ -306,9 +300,6 @@ module.exports = {
   },
   get UserCard() {
     return require('./user-card').default
-  },
-  get Usernames() {
-    return require('./usernames').Usernames
   },
   get Video() {
     return require('./video').default

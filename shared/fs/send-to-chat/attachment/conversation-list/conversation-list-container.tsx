@@ -1,11 +1,11 @@
-import {namedConnect} from '../../util/container'
-import {memoize} from '../../util/memoize'
-import * as Types from '../../constants/types/chat2'
-import * as Constants from '../../constants/chat2'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import {isMobile} from '../../constants/platform'
+import {namedConnect} from '../../../../util/container'
+import {memoize} from '../../../../util/memoize'
+import * as Types from '../../../../constants/types/chat2'
+import * as Constants from '../../../../constants/chat2'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import {isMobile} from '../../../../constants/platform'
 import ConversationList, {SmallTeamRowItem, BigTeamChannelRowItem, RowItem} from './conversation-list'
-import getFilteredRowsAndMetadata from '../inbox/container/filtered'
+import getFilteredRowsAndMetadata from '../../../../chat/inbox/container/filtered'
 
 type OwnProps = {
   filter?: string
