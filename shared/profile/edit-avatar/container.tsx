@@ -48,8 +48,8 @@ export default Container.connect(
         stateProps.error.code === RPCTypes.StatusCode.scgeneric
           ? stateProps.error.desc
           : Container.isNetworkErr(stateProps.error.code)
-          ? "We're having trouble connecting to the internet. Check your network and try again."
-          : "We don't support this type of image, try a different one."
+          ? "Connection lost. Please check your network and try again."
+          : "This image format is not supported."
     }
     return {
       createdTeam: stateProps.createdTeam,
