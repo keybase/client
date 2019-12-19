@@ -80,8 +80,6 @@ protocol account {
   record TeamContactSettings {
     @jsonkey("team_id")
     TeamID teamID;
-    @jsonkey("allow_followees_of_team_members")
-    boolean allowFolloweesOfTeamMembers;
     @jsonkey("enabled")
     boolean enabled;
   }
@@ -89,9 +87,10 @@ protocol account {
   record ContactSettings {
     @jsonkey("version")
     union { null, int } version;
-
     @jsonkey("allow_followee_degrees")
     int allowFolloweeDegrees;
+    @jsonkey("allow_good_teams")
+    boolean allowGoodTeams;
     @jsonkey("enabled")
     boolean enabled;
     @jsonkey("teams")
