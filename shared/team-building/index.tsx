@@ -475,7 +475,7 @@ class TeamBuilding extends React.PureComponent<Props> {
                   : item.userId
               }}
               getItemLayout={this._getRecLayout}
-              renderItem={({index, item: result, section}) =>
+              renderItem={({index, item: result, section}: any) =>
                 result.isImportButton ? (
                   <ContactsImportButton {...this.props} />
                 ) : result.isSearchHint ? (
@@ -503,7 +503,7 @@ class TeamBuilding extends React.PureComponent<Props> {
                   />
                 )
               }
-              renderSectionHeader={({section: {label}}) =>
+              renderSectionHeader={({section: {label}}: any) =>
                 label && (!Styles.isMobile || label !== 'Recommendations') ? (
                   <Kb.SectionDivider label={label} />
                 ) : null

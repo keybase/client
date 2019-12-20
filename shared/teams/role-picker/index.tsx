@@ -206,7 +206,11 @@ const headerTextHelper = (text: string | undefined) =>
     </>
   )
 
-const footerButtonsHelper = (onCancel, onConfirm, confirmLabel) => (
+const footerButtonsHelper = (
+  onCancel: undefined | (() => void),
+  onConfirm: undefined | (() => void),
+  confirmLabel: string
+) => (
   <Kb.ButtonBar direction="row" fullWidth={true} style={styles.footerButtonBar}>
     {!!onCancel && <Kb.Button type="Dim" label="Cancel" onClick={onCancel} />}
     <Kb.Button fullWidth={true} disabled={!onConfirm} label={confirmLabel} onClick={onConfirm} />
@@ -214,7 +218,7 @@ const footerButtonsHelper = (onCancel, onConfirm, confirmLabel) => (
 )
 
 const confirmLabelHelper = (presetRole: Role | null, selectedRole: Role | null): string => {
-  let label = selectedRole && selectedRole.toLowerCase()
+  const label = selectedRole && selectedRole.toLowerCase()
   if (label && presetRole === selectedRole) {
     return `Saved`
   }
@@ -223,7 +227,7 @@ const confirmLabelHelper = (presetRole: Role | null, selectedRole: Role | null):
 }
 
 const RolePicker = (props: Props) => {
-  let selectedRole = filterRole(props.selectedRole || props.presetRole)
+  const selectedRole = filterRole(props.selectedRole || props.presetRole)
   return (
     <Kb.Box2 direction="vertical" alignItems="stretch" style={styles.container}>
       {headerTextHelper(props.headerText)}
