@@ -19,7 +19,7 @@ export type Props = {
   onDeleteTeam: () => void
   onLeave: () => void
   name: string
-  open: boolean
+  open?: boolean
 }
 
 const _Spinner = (props: Props) => (
