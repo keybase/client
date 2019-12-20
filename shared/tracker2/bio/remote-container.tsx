@@ -5,7 +5,6 @@ type OwnProps = {username: string}
 
 const mapDispatchToProps = () => ({})
 const mergeProps = (stateProps, _, ownProps: OwnProps) => ({
-  airdropIsLive: stateProps.airdropIsLive,
   bio: stateProps.bio,
   blocked: stateProps.blocked,
   followThem: stateProps.followThem,
@@ -16,11 +15,9 @@ const mergeProps = (stateProps, _, ownProps: OwnProps) => ({
   hidFromFollowers: stateProps.hidFromFollowers,
   inTracker: true,
   location: stateProps.location,
-  registeredForAirdrop: stateProps.registeredForAirdrop,
   sbsDescription: undefined,
   stellarHidden: stateProps.stellarHidden,
   username: ownProps.username,
-  youAreInAirdrop: stateProps.youAreInAirdrop,
 })
 
 // Just to get the stories working short term. TODO remove and use newer story wrapper

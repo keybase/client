@@ -9,7 +9,6 @@ import * as SettingsConstants from './settings'
 import invert from 'lodash/invert'
 import {TypedState} from './reducer'
 import HiddenString from '../util/hidden-string'
-import flags from '../util/feature-flags'
 import * as TeamBuildingConstants from './team-building'
 import {memoize} from '../util/memoize'
 
@@ -870,7 +869,6 @@ export const makeCancelButtonInfo = (username: string) =>
   `${assertionToDisplay(username)} can claim this when they set up their wallet.`
 
 export const getShowAirdropBanner = (state: TypedState) =>
-  flags.airdrop &&
   state.wallets.airdropDetails.isPromoted &&
   state.wallets.airdropShowBanner &&
   (state.wallets.airdropState === 'qualified' ||

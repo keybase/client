@@ -425,10 +425,6 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [WalletsGen.loadedMobileOnlyMode]: (draftState, action) => {
     draftState.mobileOnlyMap.set(action.payload.accountID, action.payload.enabled)
   },
-  [WalletsGen.updatedAirdropState]: (draftState, action) => {
-    draftState.airdropQualifications = action.payload.airdropQualifications
-    draftState.airdropState = action.payload.airdropState
-  },
   [WalletsGen.validateSEP7Link]: draftState => {
     // Clear out old state just in [
     draftState.sep7ConfirmError = ''
@@ -446,17 +442,6 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   [WalletsGen.setSEP7Tx]: (draftState, action) => {
     draftState.sep7ConfirmInfo = action.payload.tx
     draftState.sep7ConfirmURI = action.payload.confirmURI
-  },
-  [WalletsGen.hideAirdropBanner]: draftState => {
-    // set this immediately so it goes away immediately
-    draftState.airdropShowBanner = false
-  },
-  [WalletsGen.updateAirdropBannerState]: (draftState, action) => {
-    draftState.airdropShowBanner = action.payload.show
-  },
-  [WalletsGen.updatedAirdropDetails]: (draftState, action) => {
-    const {details, disclaimer, isPromoted} = action.payload
-    draftState.airdropDetails = Constants.makeStellarDetails({details, disclaimer, isPromoted})
   },
   [WalletsGen.setTrustlineExpanded]: (draftState, action) => {
     if (action.payload.expanded) {
