@@ -202,6 +202,8 @@ const ConnectedInfoPanel = Container.connect(
           botUsername: b,
           description: stateProps._infoMap.get(b)?.bio ?? '',
           extendedDescription: '',
+          isPromoted: false,
+          rank: 0,
         }
     )
 
