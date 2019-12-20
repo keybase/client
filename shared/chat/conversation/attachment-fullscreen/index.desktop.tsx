@@ -15,13 +15,27 @@ type arrowProps = {
   onClick: () => void
 }
 
+const HoverBox = Styles.styled(Kb.Box)(() => ({
+  backgroundColor: Styles.globalColors.black_50,
+  transition: 'background-color 0.35s ease-in-out',
+  ':hover': {
+    backgroundColor: Styles.globalColors.black,
+  },
+}))
+
 const Arrow = ({iconType, onClick}: arrowProps) => {
   return (
-    <Kb.ClickableBox onClick={onClick} style={{justifyContent: 'center'}}>
-      <Kb.Box2 direction="horizontal" style={styles.circle}>
-        <Kb.Icon type={iconType} color={Styles.globalColors.white} />
-      </Kb.Box2>
-    </Kb.ClickableBox>
+    <HoverBox className="hover_background_color_black" onClick={onClick} style={styles.circle}>
+      <Kb.Icon
+        type={iconType}
+        color={Styles.globalColors.white}
+        style={Styles.collapseStyles([
+          styles.arrow,
+          iconType === 'iconfont-arrow-left' && styles.arrowLeft,
+          iconType === 'iconfont-arrow-right' && styles.arrowRight,
+        ])}
+      />
+    </HoverBox>
   )
 }
 
@@ -81,7 +95,7 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, State> 
               style={Styles.collapseStyles([styles.contentsFit, this.isLoaded() ? null : {display: 'none'}])}
               key={this.props.path}
             >
-              <Arrow iconType={'iconfont-arrow-left'} onClick={this.props.onPreviousAttachment} />
+              <Arrow iconType="iconfont-arrow-left" onClick={this.props.onPreviousAttachment} />
               <Kb.Box
                 style={Styles.collapseStyles([styles.contentsFit])}
                 onClick={() => {
@@ -113,8 +127,8 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, State> 
                     <style>{showPlayButton}</style>
                   </video>
                 )}
-                <Arrow iconType={'iconfont-arrow-right'} onClick={this.props.onNextAttachment} />
               </Kb.Box>
+              <Arrow iconType="iconfont-arrow-right" onClick={this.props.onNextAttachment} />
             </Kb.Box>
           )}
           {!this.isLoaded() && (
@@ -154,15 +168,23 @@ const Fullscreen = Kb.OverlayParentHOC(_Fullscreen)
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      arrow: {
+        position: 'relative',
+        top: 1,
+      },
+      arrowLeft: {right: 1},
+      arrowRight: {left: 1},
       circle: Styles.platformStyles({
         isElectron: {
+          ...Styles.globalStyles.flexBoxColumn,
+          alignSelf: 'center',
           alignItems: 'center',
+          borderRadius: 36,
+          cursor: 'pointer',
+          height: 36,
           justifyContent: 'center',
-          backgroundColor: Styles.globalColors.black_20,
-          borderRadius: 50 / 2,
-          height: 50,
-          width: 50,
-          margin: 5,
+          margin: Styles.globalMargins.small,
+          width: 36,
         },
       }),
       container: {...Styles.globalStyles.flexBoxColumn, height: '100%', width: '100%'},
