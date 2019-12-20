@@ -103,6 +103,7 @@ export type Props = {
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters'
   autoCorrect?: boolean
   keyboardType?: KeyboardType
+  resize?: boolean
   returnKeyType?: 'done' | 'go' | 'next' | 'search' | 'send'
   selectTextOnFocus?: boolean
   onEndEditing?: () => void
