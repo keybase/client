@@ -10,14 +10,18 @@ protocol featuredBot {
     string botUsername;
     union { null, string } ownerTeam;
     union { null, string } ownerUser;
+    int rank;
+    boolean isPromoted;
   }
 
     record FeaturedBotsRes {
         array<FeaturedBot> bots;
+        boolean isLastPage;
     }
 
     record SearchRes {
         array<FeaturedBot> bots;
+        boolean isLastPage;
     }
 
     FeaturedBotsRes featuredBots(int limit, int offset);
