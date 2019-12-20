@@ -136,7 +136,14 @@ const makeLinks = (): any => {
 }
 
 const commonProps = {
-  availableBots: [
+  canDeleteHistory: true,
+  canSetMinWriterRole: false,
+  docs: {
+    docs: makeDocs(),
+    onLoadMore: Sb.action('onLoadMore'),
+    status: 'success',
+  } as any,
+  featuredBots: [
     {
       botAlias: 'Reminder Bot',
       botUsername: 'reminderbot',
@@ -148,7 +155,8 @@ const commonProps = {
       rank: 5,
     },
   ],
-  bots: [
+  ignored: false,
+  installedBots: [
     {
       botAlias: 'ECS Deploy Bot',
       botUsername: 'ecsdeploybot',
@@ -168,14 +176,6 @@ const commonProps = {
       rank: 3,
     },
   ],
-  canDeleteHistory: true,
-  canSetMinWriterRole: false,
-  docs: {
-    docs: makeDocs(),
-    onLoadMore: Sb.action('onLoadMore'),
-    status: 'success',
-  } as any,
-  ignored: false,
   links: {
     links: makeLinks(),
     onLoadMore: Sb.action('onLoadMore'),
