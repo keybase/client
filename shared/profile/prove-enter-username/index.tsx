@@ -40,7 +40,7 @@ class EnterUsername extends React.Component<Props, State> {
             </Kb.Text>
           </Kb.Box2>
         )}
-        <Kb.Box2 direction="vertical" gap="small">
+        <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
           <Kb.Text center={true} type="Header">
             {headerText}
           </Kb.Text>
