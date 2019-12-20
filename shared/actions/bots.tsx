@@ -14,6 +14,7 @@ const getFeaturedBots = async (_: Container.TypedState, action: BotsGen.GetFeatu
     const {bots} = await RPCTypes.featuredBotFeaturedBotsRpcPromise({
       limit: limit ?? pageSize,
       offset: (page ?? 0) * (limit ?? pageSize),
+      skipCache: false,
     })
     const loadedAllBots = !bots || bots.length < pageSize
 

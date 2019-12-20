@@ -422,6 +422,7 @@ export type TypedActionsMap = {
   'engine-gen:keybase1NotifyEphemeralNewTeambotEk': enginegen.Keybase1NotifyEphemeralNewTeambotEkPayload
   'engine-gen:keybase1NotifyEphemeralTeambotEkNeeded': enginegen.Keybase1NotifyEphemeralTeambotEkNeededPayload
   'engine-gen:keybase1NotifyFavoritesFavoritesChanged': enginegen.Keybase1NotifyFavoritesFavoritesChangedPayload
+  'engine-gen:keybase1NotifyFeaturedBotsFeaturedBotsUpdate': enginegen.Keybase1NotifyFeaturedBotsFeaturedBotsUpdatePayload
   'engine-gen:keybase1NotifyFSFSActivity': enginegen.Keybase1NotifyFSFSActivityPayload
   'engine-gen:keybase1NotifyFSFSPathUpdated': enginegen.Keybase1NotifyFSFSPathUpdatedPayload
   'engine-gen:keybase1NotifyFSFSSyncActivity': enginegen.Keybase1NotifyFSFSSyncActivityPayload

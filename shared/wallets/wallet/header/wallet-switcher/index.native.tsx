@@ -2,7 +2,6 @@ import * as React from 'react'
 import WalletRow from './wallet-row/container'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import flags from '../../../../util/feature-flags'
 import {Props} from '.'
 
 export const WalletSwitcher = (props: Props) => {
@@ -25,14 +24,6 @@ export const WalletSwitcher = (props: Props) => {
     ),
   }
   let items: Kb.MenuItems = []
-  if (flags.airdrop && props.airdropIsLive) {
-    items.push({
-      icon: 'icon-airdrop-logo-32',
-      iconStyle: styles.icon,
-      onClick: props.onJoinAirdrop,
-      title: props.inAirdrop ? 'Airdrop' : 'Join the airdrop',
-    })
-  }
   items.push(
     {
       icon: 'iconfont-new',

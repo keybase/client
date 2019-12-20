@@ -143,6 +143,8 @@ export const keybase1NotifyFSFSSubscriptionNotifyPath = 'engine-gen:keybase1Noti
 export const keybase1NotifyFSFSSyncActivity = 'engine-gen:keybase1NotifyFSFSSyncActivity'
 export const keybase1NotifyFSFSSyncStatusResponse = 'engine-gen:keybase1NotifyFSFSSyncStatusResponse'
 export const keybase1NotifyFavoritesFavoritesChanged = 'engine-gen:keybase1NotifyFavoritesFavoritesChanged'
+export const keybase1NotifyFeaturedBotsFeaturedBotsUpdate =
+  'engine-gen:keybase1NotifyFeaturedBotsFeaturedBotsUpdate'
 export const keybase1NotifyKeyfamilyKeyfamilyChanged = 'engine-gen:keybase1NotifyKeyfamilyKeyfamilyChanged'
 export const keybase1NotifyPGPPgpKeyInSecretStoreFile = 'engine-gen:keybase1NotifyPGPPgpKeyInSecretStoreFile'
 export const keybase1NotifyPaperKeyPaperKeyCached = 'engine-gen:keybase1NotifyPaperKeyPaperKeyCached'
@@ -1223,6 +1225,11 @@ type _Keybase1NotifyFavoritesFavoritesChangedPayload = {
     sessionID: number
   }
 }
+type _Keybase1NotifyFeaturedBotsFeaturedBotsUpdatePayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifyFeaturedBots.featuredBotsUpdate']['inParam'] & {
+    sessionID: number
+  }
+}
 type _Keybase1NotifyKeyfamilyKeyfamilyChangedPayload = {
   readonly params: keybase1Types.MessageTypes['keybase.1.NotifyKeyfamily.keyfamilyChanged']['inParam'] & {
     sessionID: number
@@ -2300,6 +2307,12 @@ export const createKeybase1NotifyFavoritesFavoritesChanged = (
   payload,
   type: keybase1NotifyFavoritesFavoritesChanged,
 })
+export const createKeybase1NotifyFeaturedBotsFeaturedBotsUpdate = (
+  payload: _Keybase1NotifyFeaturedBotsFeaturedBotsUpdatePayload
+): Keybase1NotifyFeaturedBotsFeaturedBotsUpdatePayload => ({
+  payload,
+  type: keybase1NotifyFeaturedBotsFeaturedBotsUpdate,
+})
 export const createKeybase1NotifyKeyfamilyKeyfamilyChanged = (
   payload: _Keybase1NotifyKeyfamilyKeyfamilyChangedPayload
 ): Keybase1NotifyKeyfamilyKeyfamilyChangedPayload => ({
@@ -3067,6 +3080,10 @@ export type Keybase1NotifyFavoritesFavoritesChangedPayload = {
   readonly payload: _Keybase1NotifyFavoritesFavoritesChangedPayload
   readonly type: typeof keybase1NotifyFavoritesFavoritesChanged
 }
+export type Keybase1NotifyFeaturedBotsFeaturedBotsUpdatePayload = {
+  readonly payload: _Keybase1NotifyFeaturedBotsFeaturedBotsUpdatePayload
+  readonly type: typeof keybase1NotifyFeaturedBotsFeaturedBotsUpdate
+}
 export type Keybase1NotifyKeyfamilyKeyfamilyChangedPayload = {
   readonly payload: _Keybase1NotifyKeyfamilyKeyfamilyChangedPayload
   readonly type: typeof keybase1NotifyKeyfamilyKeyfamilyChanged
@@ -3493,6 +3510,7 @@ export type Actions =
   | Keybase1NotifyFSFSSyncActivityPayload
   | Keybase1NotifyFSFSSyncStatusResponsePayload
   | Keybase1NotifyFavoritesFavoritesChangedPayload
+  | Keybase1NotifyFeaturedBotsFeaturedBotsUpdatePayload
   | Keybase1NotifyKeyfamilyKeyfamilyChangedPayload
   | Keybase1NotifyPGPPgpKeyInSecretStoreFilePayload
   | Keybase1NotifyPaperKeyPaperKeyCachedPayload
