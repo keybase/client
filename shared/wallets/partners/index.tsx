@@ -66,11 +66,7 @@ class Partners extends React.Component<Props> {
       >
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.partnerContainer}>
           {this.props.externalPartners.map(partner => (
-            <Kb.Box2
-              key={partner.url}
-              direction="vertical"
-              fullWidth={true}
-            >
+            <Kb.Box2 key={partner.url} direction="vertical" fullWidth={true}>
               <PartnerRow
                 description={partner.description}
                 extra={partner.extra}
