@@ -69,13 +69,14 @@ class _SimpleTopLine extends React.Component<Props> {
             ) : (
               <Kb.ConnectedUsernames
                 backgroundMode={this.props.isSelected ? 'Terminal' : 'Normal'}
-                type="BodySemibold"
+                type={this.props.showBold ? 'BodyBold' : 'BodySemibold'}
                 inline={true}
                 withProfileCardPopup={false}
                 underline={false}
                 colorBroken={false}
                 colorFollowing={false}
                 colorYou={false}
+                commaColor={this.props.usernameColor}
                 containerStyle={Styles.collapseStyles([
                   styles.name,
                   boldStyle,

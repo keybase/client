@@ -11,7 +11,6 @@ import FollowNotification from './follow-notification'
 import Announcement from './announcement/container'
 import FollowSuggestions from './follow-suggestions'
 import {Props} from '.'
-import AirdropBanner from '../wallets/airdrop/banner/container'
 
 export const itemToComponent: (item: Types.PeopleScreenItem, props: Props) => React.ReactNode = (
   item,
@@ -115,7 +114,6 @@ const ResentEmailVerificationBanner = () => {
 
 export const PeoplePageList = (props: Props) => (
   <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, position: 'relative', width: '100%'}}>
-    {Styles.isMobile && <AirdropBanner showSystemButtons={false} />}
     <EmailVerificationBanner />
     <ResentEmailVerificationBanner />
     {props.newItems

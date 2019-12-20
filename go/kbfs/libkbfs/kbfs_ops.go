@@ -52,6 +52,8 @@ type KBFSOpsStandard struct {
 
 	favs *Favorites
 
+	syncedTlfObservers *syncedTlfObserverList
+
 	editActivity kbfssync.RepeatedWaitGroup
 	editLock     sync.Mutex
 	editShutdown bool
@@ -95,6 +97,7 @@ func NewKBFSOpsStandard(
 		reIdentifyControlChan: make(chan chan<- struct{}),
 		initDoneCh:            initDoneCh,
 		favs:                  NewFavorites(config),
+		syncedTlfObservers:    newSyncedTlfObserverList(),
 		quotaUsage: NewEventuallyConsistentQuotaUsage(
 			config, quLog, config.MakeVLogger(quLog)),
 		longOperationDebugDumper: NewImpatientDebugDumper(
@@ -753,7 +756,7 @@ func (fs *KBFSOpsStandard) getOpsNoAdd(
 		}
 		ops = newFolderBranchOps(
 			ctx, fs.appStateUpdater, fs.config, fb, bType, quotaUsage,
-			fs.currentStatus, fs.favs)
+			fs.currentStatus, fs.favs, fs.syncedTlfObservers)
 		fs.ops[fb] = ops
 	}
 	return ops
@@ -2022,6 +2025,19 @@ func (fs *KBFSOpsStandard) UnregisterFromChanges(
 		ops := fs.getOps(context.Background(), fb, FavoritesOpNoChange)
 		return ops.UnregisterFromChanges(obs)
 	}
+	return nil
+}
+
+// RegisterForSyncedTlfs implements the Notifer interface for KBFSOpsStandard
+func (fs *KBFSOpsStandard) RegisterForSyncedTlfs(obs SyncedTlfObserver) error {
+	fs.syncedTlfObservers.add(obs)
+	return nil
+}
+
+// UnregisterFromSyncedTlfs implements the Notifer interface for KBFSOpsStandard
+func (fs *KBFSOpsStandard) UnregisterFromSyncedTlfs(
+	obs SyncedTlfObserver) error {
+	fs.syncedTlfObservers.remove(obs)
 	return nil
 }
 

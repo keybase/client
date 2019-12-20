@@ -23,6 +23,7 @@ const setupNotifications = async () => {
         deviceclone: false,
         ephemeral: false,
         favorites: false,
+        featuredBots: false,
         kbfs: true,
         kbfsdesktop: !isMobile,
         kbfslegacy: false,

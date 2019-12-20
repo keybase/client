@@ -1273,7 +1273,7 @@ func (c *ConfigLocal) EnableJournaling(
 
 	jManager = makeJournalManager(c, log, journalRoot, c.BlockCache(),
 		c.DirtyBlockCache(), c.BlockServer(), c.MDOps(), branchListener,
-		flushListener)
+		flushListener, bws)
 
 	c.SetBlockServer(jManager.blockServer())
 	c.SetMDOps(jManager.mdOps())

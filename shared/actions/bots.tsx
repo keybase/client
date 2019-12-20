@@ -12,6 +12,7 @@ const getFeaturedBots = async (_: Container.TypedState, action: BotsGen.GetFeatu
     const {bots} = await RPCTypes.featuredBotFeaturedBotsRpcPromise({
       limit: limit ?? 10,
       offset: (page ?? 0) * (limit ?? 10),
+      skipCache: false,
     })
     if (!bots || bots.length == 0) {
       // don't do anything with an empty response from rpc

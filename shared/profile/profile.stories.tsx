@@ -33,7 +33,6 @@ const providerUser = (cfProps =>
       fullname: 'Chris Coyne',
       inTracker: false,
       location: 'NYC',
-      registeredForAirdrop: false,
     }),
     ConnectedFolders: () => ({
       loadTlfs: Sb.action('loadTlfs'),
@@ -120,7 +119,6 @@ const providerSBS = Sb.createPropProviderWithCommon({
     followsYou: false,
     fullname: 'Twitter Chris',
     inTracker: false,
-    registeredForAirdrop: false,
     sbsDescription: 'Twitter user',
   }),
   ConnectedFolders: () => ({

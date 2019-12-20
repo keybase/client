@@ -3,10 +3,40 @@ import * as Kb from '../../../common-adapters'
 import MessagePopup from '../messages/message-popup'
 import * as Styles from '../../../styles'
 import {Props} from '.'
+import {IconType} from '../../../common-adapters/icon.constants-gen'
 
 type State = {
   loaded: string
   isZoomed: boolean
+}
+
+type arrowProps = {
+  iconType: IconType
+  onClick: () => void
+}
+
+const HoverBox = Styles.styled(Kb.Box)(() => ({
+  ':hover': {
+    backgroundColor: Styles.globalColors.black,
+  },
+  backgroundColor: Styles.globalColors.black_50,
+  transition: 'background-color 0.35s ease-in-out',
+}))
+
+const Arrow = ({iconType, onClick}: arrowProps) => {
+  return (
+    <HoverBox className="hover_background_color_black" onClick={onClick} style={styles.circle}>
+      <Kb.Icon
+        type={iconType}
+        color={Styles.globalColors.white}
+        style={Styles.collapseStyles([
+          styles.arrow,
+          iconType === 'iconfont-arrow-left' && styles.arrowLeft,
+          iconType === 'iconfont-arrow-right' && styles.arrowRight,
+        ])}
+      />
+    </HoverBox>
+  )
 }
 
 class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, State> {
@@ -62,39 +92,43 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, State> 
           </Kb.Box>
           {this.props.path && (
             <Kb.Box
-              style={Styles.collapseStyles([
-                this.state.isZoomed ? styles.contentsZoom : styles.contentsFit,
-                this.isLoaded() ? null : {display: 'none'},
-              ])}
-              onClick={() => {
-                if (!this.props.isVideo) {
-                  this.setState(p => ({isZoomed: !p.isZoomed}))
-                }
-              }}
+              style={Styles.collapseStyles([styles.contentsFit, this.isLoaded() ? null : {display: 'none'}])}
               key={this.props.path}
             >
-              {!this.props.isVideo ? (
-                <Kb.OrientedImage
-                  src={this.props.path}
-                  style={this.state.isZoomed ? styles.imageZoom : styles.imageFit}
-                  onLoad={() => {
-                    if (this.mounted) {
-                      this.setLoaded(this.props.path)
-                    }
-                  }}
-                />
-              ) : (
-                <video
-                  style={styles.videoFit}
-                  onLoadedMetadata={() => this.setLoaded(this.props.path)}
-                  controlsList="nodownload nofullscreen noremoteplayback"
-                  controls={true}
-                  ref={this.vidRef}
-                >
-                  <source src={this.props.path} />
-                  <style>{showPlayButton}</style>
-                </video>
-              )}
+              <Arrow iconType="iconfont-arrow-left" onClick={this.props.onPreviousAttachment} />
+              <Kb.Box
+                style={Styles.collapseStyles([styles.contentsFit])}
+                onClick={() => {
+                  if (!this.props.isVideo) {
+                    this.setState(p => ({isZoomed: !p.isZoomed}))
+                  }
+                }}
+                key={this.props.path}
+              >
+                {!this.props.isVideo ? (
+                  <Kb.OrientedImage
+                    src={this.props.path}
+                    style={this.state.isZoomed ? styles.imageZoom : styles.imageFit}
+                    onLoad={() => {
+                      if (this.mounted) {
+                        this.setLoaded(this.props.path)
+                      }
+                    }}
+                  />
+                ) : (
+                  <video
+                    style={styles.videoFit}
+                    onLoadedMetadata={() => this.setLoaded(this.props.path)}
+                    controlsList="nodownload nofullscreen noremoteplayback"
+                    controls={true}
+                    ref={this.vidRef}
+                  >
+                    <source src={this.props.path} />
+                    <style>{showPlayButton}</style>
+                  </video>
+                )}
+              </Kb.Box>
+              <Arrow iconType="iconfont-arrow-right" onClick={this.props.onNextAttachment} />
             </Kb.Box>
           )}
           {!this.isLoaded() && (
@@ -134,9 +168,27 @@ const Fullscreen = Kb.OverlayParentHOC(_Fullscreen)
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      arrow: {
+        position: 'relative',
+        top: 1,
+      },
+      arrowLeft: {right: 1},
+      arrowRight: {left: 1},
+      circle: Styles.platformStyles({
+        isElectron: {
+          ...Styles.globalStyles.flexBoxColumn,
+          alignItems: 'center',
+          alignSelf: 'center',
+          borderRadius: 36,
+          cursor: 'pointer',
+          height: 36,
+          justifyContent: 'center',
+          margin: Styles.globalMargins.small,
+          width: 36,
+        },
+      }),
       container: {...Styles.globalStyles.flexBoxColumn, height: '100%', width: '100%'},
       contentsFit: {...Styles.globalStyles.flexBoxRow, flex: 1, height: '100%', width: '100%'},
-      contentsZoom: Styles.platformStyles({isElectron: {display: 'block', flex: 1, overflow: 'auto'}}),
       headerFooter: {
         ...Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
@@ -155,7 +207,13 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       imageZoom: Styles.platformStyles({
-        isElectron: {cursor: 'zoom-out', display: 'block', minHeight: '100%', minWidth: '100%'},
+        isElectron: {
+          cursor: 'zoom-out',
+          display: 'block',
+          height: '100%',
+          objectFit: 'contain',
+          width: '100%',
+        },
       }),
       link: Styles.platformStyles({isElectron: {color: Styles.globalColors.black_50, cursor: 'pointer'}}),
       videoFit: Styles.platformStyles({
