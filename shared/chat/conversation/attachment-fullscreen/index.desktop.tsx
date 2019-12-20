@@ -16,11 +16,11 @@ type arrowProps = {
 }
 
 const HoverBox = Styles.styled(Kb.Box)(() => ({
-  backgroundColor: Styles.globalColors.black_50,
-  transition: 'background-color 0.35s ease-in-out',
   ':hover': {
     backgroundColor: Styles.globalColors.black,
   },
+  backgroundColor: Styles.globalColors.black_50,
+  transition: 'background-color 0.35s ease-in-out',
 }))
 
 const Arrow = ({iconType, onClick}: arrowProps) => {
@@ -177,8 +177,8 @@ const styles = Styles.styleSheetCreate(
       circle: Styles.platformStyles({
         isElectron: {
           ...Styles.globalStyles.flexBoxColumn,
-          alignSelf: 'center',
           alignItems: 'center',
+          alignSelf: 'center',
           borderRadius: 36,
           cursor: 'pointer',
           height: 36,
