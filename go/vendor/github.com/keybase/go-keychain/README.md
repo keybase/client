@@ -1,5 +1,7 @@
 # Go Keychain
 
+[![Travis CI](https://travis-ci.org/keybase/go-keychain.svg?branch=master)](https://travis-ci.org/keybase/go-keychain)
+
 A library for accessing the Keychain for macOS, iOS, and Linux in Go (golang).
 
 Requires macOS 10.9 or greater and iOS 8 or greater. On Linux, communicates to
