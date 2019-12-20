@@ -28,11 +28,7 @@ const Bot = ({botAlias, description, botUsername, onClick, ownerTeam, ownerUser}
 
   const usernameDisplay = (
     <Kb.Box2 direction="horizontal" alignSelf="flex-start">
-      <Kb.Text
-        type="BodySmallSemibold"
-        style={{color: Styles.globalColors.black}}
-        onClick={() => onClick(botUsername)}
-      >
+      <Kb.Text type="BodySmallSemibold" style={{color: Styles.globalColors.black}}>
         {botAlias || botUsername}
       </Kb.Text>
       <Kb.Text type="BodySmall">
@@ -52,22 +48,19 @@ const Bot = ({botAlias, description, botUsername, onClick, ownerTeam, ownerUser}
     </Kb.Box2>
   )
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.rowContainer}>
-        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.row}>
-          <Kb.Avatar
-            size={Styles.isMobile ? 48 : 32}
-            style={styles.avatarStyle}
-            username={botUsername}
-            onClick={() => onClick(botUsername)}
-          />
-          <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}}>
-            {usernameDisplay}
-            {lower}
+    <Kb.ClickableBox onClick={() => onClick(botUsername)}>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.rowContainer}>
+          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.row}>
+            <Kb.Avatar size={Styles.isMobile ? 48 : 32} style={styles.avatarStyle} username={botUsername} />
+            <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}}>
+              {usernameDisplay}
+              {lower}
+            </Kb.Box2>
           </Kb.Box2>
         </Kb.Box2>
       </Kb.Box2>
-    </Kb.Box2>
+    </Kb.ClickableBox>
   )
 }
 

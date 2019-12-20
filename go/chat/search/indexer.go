@@ -741,6 +741,11 @@ func (idx *Indexer) PercentIndexed(ctx context.Context, convID chat1.Conversatio
 
 func (idx *Indexer) OnDbNuke(mctx libkb.MetaContext) (err error) {
 	defer idx.Trace(mctx.Ctx(), func() error { return err }, "Indexer.OnDbNuke")()
+	idx.Lock()
+	defer idx.Unlock()
+	if !idx.started {
+		return nil
+	}
 	idx.store.ClearMemory()
 	return nil
 }
