@@ -355,7 +355,7 @@ const reactComponentsForMarkdownType = {
 }
 
 const passthroughForMarkdownType = Object.keys(reactComponentsForMarkdownType).reduce<{
-  [key: string]: SimpleMarkdown.ReactOutputRule
+  [key: string]: SimpleMarkdown.ReactOutputRule | SimpleMarkdown.ReactArrayRule
 }>((obj, k) => {
   // keep special Array type
   if (k === 'Array') {
