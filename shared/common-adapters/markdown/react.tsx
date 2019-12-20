@@ -325,6 +325,22 @@ const reactComponentsForMarkdownType = {
   text: SimpleMarkdown.defaultRules.text,
 }
 
+const passthroughForMarkdownType = Object.keys(reactComponentsForMarkdownType).reduce<{
+  [key: string]: SimpleMarkdown.ReactOutputRule
+}>((obj, k) => {
+  obj[k] = {
+    react: (
+      node: SimpleMarkdown.SingleASTNode,
+      output: SimpleMarkdown.ReactOutput,
+      state: SimpleMarkdown.State
+    ) =>
+      typeof node.content === 'string'
+        ? SimpleMarkdown.defaultRules.text.react({content: node.content, type: 'text'}, output, state)
+        : output(node.content, state),
+  }
+  return obj
+}, {})
+
 const bigEmojiOutput = SimpleMarkdown.outputFor(
   {
     Array: SimpleMarkdown.defaultRules.Array,
@@ -361,6 +377,7 @@ const bigEmojiOutput = SimpleMarkdown.outputFor(
         </Text>
       ),
     },
+    text: SimpleMarkdown.defaultRules.text,
   },
   'react'
 )
@@ -368,8 +385,7 @@ const bigEmojiOutput = SimpleMarkdown.outputFor(
 const previewOutput = SimpleMarkdown.outputFor(
   {
     Array: SimpleMarkdown.defaultRules.Array,
-    ...reactComponentsForMarkdownType,
-    NOJIMA: () => 'blah', // TEMP
+    ...passthroughForMarkdownType,
     blockQuote: {
       react: (
         node: SimpleMarkdown.SingleASTNode,
@@ -400,6 +416,7 @@ const previewOutput = SimpleMarkdown.outputFor(
         _state: SimpleMarkdown.State
       ) => ' ',
     },
+    text: SimpleMarkdown.defaultRules.text,
   },
   'react'
 )
@@ -407,7 +424,7 @@ const previewOutput = SimpleMarkdown.outputFor(
 const serviceOnlyOutput = SimpleMarkdown.outputFor(
   {
     Array: SimpleMarkdown.defaultRules.Array,
-    ...reactComponentsForMarkdownType,
+    ...passthroughForMarkdownType,
     emoji: {
       react: (
         node: SimpleMarkdown.SingleASTNode,
@@ -429,6 +446,8 @@ const serviceOnlyOutput = SimpleMarkdown.outputFor(
           />
         ),
       },
+
+      text: SimpleMarkdown.defaultRules.text,
     },
   },
   'react'
