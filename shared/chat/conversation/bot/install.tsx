@@ -4,6 +4,7 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Chat2Gen from '../../../actions/chat2-gen'
+import * as WaitingGen from '../../../actions/waiting-gen'
 import * as Teams from '../../../constants/teams'
 import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
@@ -38,6 +39,7 @@ const InstallBotPopup = (props: Props) => {
         : undefined,
     }
   })
+  const error = Container.useAnyErrors(Constants.waitingKeyBotAdd, Constants.waitingKeyBotRemove)
   // dispatch
   const dispatch = Container.useDispatch()
   const onClose = () => {
@@ -62,8 +64,14 @@ const InstallBotPopup = (props: Props) => {
     }
     dispatch(Chat2Gen.createRemoveBotMember({conversationIDKey, username: botUsername}))
   }
+  const onFeedback = () => {
+    dispatch(RouteTreeGen.createNavigateAppend({path: ['feedback']}))
+  }
   // lifecycle
   React.useEffect(() => {
+    dispatch(
+      WaitingGen.createClearWaiting({key: [Constants.waitingKeyBotAdd, Constants.waitingKeyBotRemove]})
+    )
     dispatch(Chat2Gen.createRefreshBotPublicCommands({username: botUsername}))
     if (conversationIDKey && inTeam) {
       dispatch(Chat2Gen.createRefreshBotSettings({conversationIDKey, username: botUsername}))
@@ -154,14 +162,29 @@ const InstallBotPopup = (props: Props) => {
       }}
       footer={{
         content: (
-          <Kb.WaitingButton
-            fullWidth={true}
-            label={buttonText}
-            onClick={buttonClick}
-            mode="Primary"
-            type="Default"
-            waitingKey={buttonWaitingKey}
-          />
+          <Kb.Box2 direction="vertical" gap="tiny">
+            <Kb.WaitingButton
+              fullWidth={true}
+              label={buttonText}
+              onClick={buttonClick}
+              mode="Primary"
+              type="Default"
+              waitingKey={buttonWaitingKey}
+            />
+            {!!error && (
+              <Kb.Text type="Body" style={{color: Styles.globalColors.redDark}}>
+                {'Something went wrong! Please try again, or send '}
+                <Kb.Text
+                  type="Body"
+                  style={{color: Styles.globalColors.redDark}}
+                  underline={true}
+                  onClick={onFeedback}
+                >
+                  {'feedback'}
+                </Kb.Text>
+              </Kb.Text>
+            )}
+          </Kb.Box2>
         ),
       }}
     >
