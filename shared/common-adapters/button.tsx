@@ -4,7 +4,7 @@ import {Box, Box2} from './box'
 import ClickableBox from './clickable-box'
 import Icon from './icon'
 import * as React from 'react'
-import Text from './text'
+import Text, {StylesTextCrossPlatform} from './text'
 import * as Styles from '../styles'
 import './button.css'
 
@@ -33,6 +33,7 @@ export type Props = {
   type?: ButtonType
   backgroundColor?: ButtonColor
   mode?: 'Primary' | 'Secondary'
+  narrow?: boolean
   disabled?: boolean
   waiting?: boolean
   small?: boolean
@@ -42,7 +43,7 @@ export type Props = {
   className?: string
 }
 
-const Progress = ({small, white}) => {
+const Progress = ({small, white}: {small?: boolean; white: boolean}) => {
   const Animation = require('./animation').default
   return (
     <Kb.Box style={styles.progressContainer}>
@@ -56,11 +57,11 @@ const Progress = ({small, white}) => {
 
 const Button = React.forwardRef<ClickableBox, Props>((props: Props, ref: React.Ref<ClickableBox>) => {
   const {mode = 'Primary', type = 'Default'} = props
-  let containerStyle = props.backgroundColor
-    ? backgroundColorContainerStyles[mode]
-    : containerStyles[mode + type]
-  let labelStyle = props.backgroundColor
-    ? backgroundColorLabelStyles[mode + (mode === 'Secondary' ? '' : props.backgroundColor)]
+  let containerStyle: Styles.StylesCrossPlatform = props.backgroundColor
+    ? backgroundColorContainerStyles[mode as any]
+    : containerStyles[(mode + type) as any]
+  let labelStyle: StylesTextCrossPlatform = props.backgroundColor
+    ? (backgroundColorLabelStyles[mode + (mode === 'Secondary' ? '' : props.backgroundColor)] as any)
     : labelStyles[mode + type]
 
   if (props.fullWidth) {
@@ -69,6 +70,10 @@ const Button = React.forwardRef<ClickableBox, Props>((props: Props, ref: React.R
 
   if (props.small) {
     containerStyle = Styles.collapseStyles([containerStyle, styles.small])
+  }
+
+  if (props.narrow) {
+    containerStyle = Styles.collapseStyles([containerStyle, styles.narrow])
   }
 
   const unclickable = props.disabled || props.waiting
@@ -182,7 +187,7 @@ const common = () =>
     isElectron: {
       display: 'inline-block',
       lineHeight: 'inherit',
-      minWidth: '100px',
+      minWidth: 100,
       paddingLeft: Styles.globalMargins.medium,
       paddingRight: Styles.globalMargins.medium,
     },
@@ -207,6 +212,18 @@ const styles = Styles.styleSheetCreate(() => ({
     common: {height: '100%', position: 'relative'},
     isElectron: {pointerEvents: 'none'}, // need hover etc. to go through to underlay
   }),
+  narrow: Styles.platformStyles({
+    isElectron: {
+      minWidth: 50,
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+    },
+    isMobile: {
+      minWidth: 80,
+      paddingLeft: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.tiny,
+    },
+  }),
   opacity0: {opacity: 0},
   opacity30: {opacity: 0.3},
   progressContainer: {...Styles.globalStyles.fillAbsolute, ...Styles.globalStyles.flexBoxCenter},
@@ -221,7 +238,7 @@ const styles = Styles.styleSheetCreate(() => ({
   },
 }))
 
-const containerStyles = Styles.styleSheetCreate(() => {
+const containerStyles: any = Styles.styleSheetCreate(() => {
   const commonSecondaryWhiteBg = Styles.platformStyles({
     common: common(),
     isElectron: {
@@ -260,7 +277,7 @@ const commonLabel = () =>
     isMobile: {lineHeight: undefined},
   })
 
-const labelStyles = Styles.styleSheetCreate(() => {
+const labelStyles: any = Styles.styleSheetCreate(() => {
   const primaryWhiteBgLabel = {
     ...commonLabel(),
     color: Styles.globalColors.whiteOrWhite,
@@ -280,7 +297,7 @@ const labelStyles = Styles.styleSheetCreate(() => {
 })
 
 // With backgroundColor styles
-const backgroundColorContainerStyles = Styles.styleSheetCreate(() => ({
+const backgroundColorContainerStyles: any = Styles.styleSheetCreate(() => ({
   Primary: {...common(), backgroundColor: Styles.globalColors.white},
   Secondary: Styles.platformStyles({
     common: {...common(), backgroundColor: Styles.globalColors.black_20},
@@ -288,7 +305,7 @@ const backgroundColorContainerStyles = Styles.styleSheetCreate(() => ({
   }),
 }))
 
-const backgroundColorLabelStyles = Styles.styleSheetCreate(() => ({
+const backgroundColorLabelStyles: any = Styles.styleSheetCreate(() => ({
   Primaryblue: {...commonLabel(), color: Styles.globalColors.blueDark},
   Primaryred: {...commonLabel(), color: Styles.globalColors.redDark},
   Primarygreen: {...commonLabel(), color: Styles.globalColors.greenDark},

@@ -21,12 +21,12 @@ const sentTimeout = 400
 
 const shownEncryptingSet = new Set()
 
-type Props = Kb.PropsWithTimer<{
+type Props = {
   sent: boolean
   failed: boolean
   id?: number
   style?: any
-}>
+}
 
 type State = {
   animationStatus: AnimationStatus
@@ -44,7 +44,7 @@ class SendIndicator extends React.Component<Props, State> {
       // Only show the `encrypting` icon for messages once
       if (shownEncryptingSet.has(this.props.id)) {
         state.animationStatus = 'encrypting'
-        this.encryptingTimeoutID = this.props.setTimeout(() => this._setStatus('sending'), encryptingTimeout)
+        this.encryptingTimeoutID = setTimeout(() => this._setStatus('sending'), encryptingTimeout)
       } else {
         state.animationStatus = 'sending'
       }
@@ -72,15 +72,15 @@ class SendIndicator extends React.Component<Props, State> {
 
   _onSent() {
     this._setStatus('sent')
-    this.sentTimeoutID && this.props.clearTimeout(this.sentTimeoutID)
-    this.sentTimeoutID = this.props.setTimeout(() => this._setVisible(false), sentTimeout)
-    this.encryptingTimeoutID && this.props.clearTimeout(this.encryptingTimeoutID)
+    this.sentTimeoutID && clearTimeout(this.sentTimeoutID)
+    this.sentTimeoutID = setTimeout(() => this._setVisible(false), sentTimeout)
+    this.encryptingTimeoutID && clearTimeout(this.encryptingTimeoutID)
   }
 
   _onFailed() {
     this._setStatus('error')
-    this.encryptingTimeoutID && this.props.clearTimeout(this.encryptingTimeoutID)
-    this.sentTimeoutID && this.props.clearTimeout(this.sentTimeoutID)
+    this.encryptingTimeoutID && clearTimeout(this.encryptingTimeoutID)
+    this.sentTimeoutID && clearTimeout(this.sentTimeoutID)
   }
 
   _onResend() {
@@ -94,10 +94,7 @@ class SendIndicator extends React.Component<Props, State> {
       if (!shownEncryptingSet.has(this.props.id)) {
         this._setStatus('encrypting')
         if (!this.encryptingTimeoutID) {
-          this.encryptingTimeoutID = this.props.setTimeout(
-            () => this._setStatus('sending'),
-            encryptingTimeout
-          )
+          this.encryptingTimeoutID = setTimeout(() => this._setStatus('sending'), encryptingTimeout)
         }
         shownEncryptingSet.add(this.props.id)
       }
@@ -115,8 +112,8 @@ class SendIndicator extends React.Component<Props, State> {
   }
 
   componentWillUnmount() {
-    this.encryptingTimeoutID && this.props.clearTimeout(this.encryptingTimeoutID)
-    this.sentTimeoutID && this.props.clearTimeout(this.sentTimeoutID)
+    this.encryptingTimeoutID && clearTimeout(this.encryptingTimeoutID)
+    this.sentTimeoutID && clearTimeout(this.sentTimeoutID)
   }
 
   render() {
@@ -160,6 +157,6 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-const TimedSendIndicator = Kb.HOCTimers(SendIndicator)
+const TimedSendIndicator = SendIndicator
 
 export default TimedSendIndicator

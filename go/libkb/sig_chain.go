@@ -984,7 +984,7 @@ func (sc *SigChain) GetLinkFromSeqno(seqno keybase1.Seqno) *ChainLink {
 
 func (sc *SigChain) GetLinkFromSigID(id keybase1.SigID) *ChainLink {
 	for _, link := range sc.chainLinks {
-		if link.GetSigID().Equal(id) {
+		if link.GetSigID().Eq(id) {
 			return link
 		}
 	}
@@ -995,7 +995,7 @@ func (sc *SigChain) GetLinkFromSigID(id keybase1.SigID) *ChainLink {
 // with a SigID that starts with query.
 func (sc *SigChain) GetLinkFromSigIDQuery(query string) *ChainLink {
 	for _, link := range sc.chainLinks {
-		if link.GetSigID().Match(query, false) {
+		if link.GetSigID().PrefixMatch(query, false) {
 			return link
 		}
 	}

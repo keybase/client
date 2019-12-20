@@ -307,12 +307,12 @@ func (h *Helper) JourneycardResetAllConvs(ctx context.Context, uid gregor1.UID) 
 	return j.ResetAllConvs(ctx, uid)
 }
 
-func (h *Helper) JourneycardDebugState(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (string, error) {
+func (h *Helper) JourneycardDebugState(ctx context.Context, uid gregor1.UID, teamID keybase1.TeamID) (string, error) {
 	j, ok := h.G().JourneyCardManager.(*JourneyCardManager)
 	if !ok {
 		return "", fmt.Errorf("could not get JourneyCardManager")
 	}
-	return j.DebugState(ctx, uid, convID)
+	return j.DebugState(ctx, uid, teamID)
 }
 
 func GetMessage(ctx context.Context, g *globals.Context, uid gregor1.UID, convID chat1.ConversationID,
@@ -472,8 +472,12 @@ func (r *recentConversationParticipants) get(ctx context.Context, myUID gregor1.
 	}
 
 	r.Debug(ctx, "get: convs: %d", len(convs))
-	m := make(map[string]float64)
+	m := make(map[string]float64, len(convs))
 	for _, conv := range convs {
+		if conv.Conv.Metadata.Status == chat1.ConversationStatus_BLOCKED ||
+			conv.Conv.Metadata.Status == chat1.ConversationStatus_REPORTED {
+			continue
+		}
 		for _, uid := range conv.Conv.Metadata.ActiveList {
 			if uid.Eq(myUID) {
 				continue
@@ -499,7 +503,7 @@ func RecentConversationParticipants(ctx context.Context, g *globals.Context, myU
 }
 
 func PresentConversationLocalWithFetchRetry(ctx context.Context, g *globals.Context,
-	uid gregor1.UID, conv chat1.ConversationLocal) (pc *chat1.InboxUIItem) {
+	uid gregor1.UID, conv chat1.ConversationLocal, partMode utils.PresentParticipantsMode) (pc *chat1.InboxUIItem) {
 	shouldPresent := true
 	if conv.Error != nil {
 		// If we get a transient failure, add this to the retrier queue
@@ -513,7 +517,7 @@ func PresentConversationLocalWithFetchRetry(ctx context.Context, g *globals.Cont
 	}
 	if shouldPresent {
 		pc = new(chat1.InboxUIItem)
-		*pc = utils.PresentConversationLocal(ctx, g, uid, conv)
+		*pc = utils.PresentConversationLocal(ctx, g, uid, conv, partMode)
 	}
 	return pc
 }

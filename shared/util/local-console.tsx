@@ -1,4 +1,4 @@
-import {localLog} from './forward-logs'
+const localLog = console.log.bind(console)
 
 const _base = (messageObject, colors) => (
   shortLabel: string,

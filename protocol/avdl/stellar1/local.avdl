@@ -783,6 +783,8 @@ protocol local {
     string iconFilename;
     @jsonkey("admin_only")
     boolean adminOnly;
+    @jsonkey("can_purchase")
+    boolean canPurchase;
     string extra; // extra json tbd
   }
 

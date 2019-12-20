@@ -14,7 +14,7 @@ import {Gateway} from 'react-gateway'
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
-  iconStyle?: Styles.StylesCrossPlatform
+  iconStyle?: Kb.IconStyle
 }
 
 const unifyAmp = (amp: number) => {

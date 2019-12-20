@@ -462,6 +462,18 @@ func (u *UIDMap) MapHardcodedUsernameToUID(un libkb.NormalizedUsername) keybase1
 	return findHardcodedUsername(un)
 }
 
+func (u *UIDMap) ClearUIDFullName(ctx context.Context, g libkb.UIDMapperContext, uid keybase1.UID) error {
+	u.Lock()
+	defer u.Unlock()
+
+	u.fullNameCache.Remove(uid)
+	key := fullNameDBKey(uid)
+	if err := g.GetKVStore().Delete(key); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (u *UIDMap) ClearUIDAtEldestSeqno(ctx context.Context, g libkb.UIDMapperContext, uid keybase1.UID, s keybase1.Seqno) error {
 	u.Lock()
 	defer u.Unlock()
@@ -562,6 +574,10 @@ func (o *OfflineUIDMap) MapUIDsToUsernamePackages(ctx context.Context, g libkb.U
 
 func (o *OfflineUIDMap) SetTestingNoCachingMode(enabled bool) {
 
+}
+
+func (o *OfflineUIDMap) ClearUIDFullName(ctx context.Context, g libkb.UIDMapperContext, uid keybase1.UID) error {
+	return nil
 }
 
 func (o *OfflineUIDMap) ClearUIDAtEldestSeqno(ctx context.Context, g libkb.UIDMapperContext, uid keybase1.UID, s keybase1.Seqno) error {

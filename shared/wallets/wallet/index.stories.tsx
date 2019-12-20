@@ -9,17 +9,10 @@ const provider = Sb.createPropProviderWithCommon({
   // TODO mock out meaningful values once type `OwnProps` is defined
   Header: () => ({
     accountID: stringToAccountID('fakeAccountID'),
-    airdropSelected: false,
     isDefaultWallet: true,
     keybaseUser: 'cecileb',
     onReceive: Sb.action('onReceive'),
     walletName: "cecileb's account",
-  }),
-  WalletDropdownButton: props => ({
-    disabled: false,
-    onSettings: Sb.action('onSettings'),
-    onShowSecretKey: Sb.action('onShowSecretKey'),
-    small: props.small,
   }),
   WalletSendButton: props => ({
     disabled: false,
@@ -34,7 +27,7 @@ const provider = Sb.createPropProviderWithCommon({
 const props = {
   acceptedDisclaimer: true,
   accountID: stringToAccountID('fakeAccountID'),
-  airdropSelected: false,
+  loadError: '',
   loadingMore: false,
   navigateAppend: Sb.action('navigateAppend'),
   onBack: Sb.action('onBack'),
@@ -54,6 +47,7 @@ const load = () => {
     .addDecorator(provider)
     .addDecorator(Container)
     .add('Default', () => <Wallet {...props} />)
+    .add('Load error', () => <Wallet {...props} loadError="horizon error" />)
 }
 
 export default load

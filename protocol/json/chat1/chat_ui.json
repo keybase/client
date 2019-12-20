@@ -1145,6 +1145,10 @@
         {
           "type": "MessageID",
           "name": "highlightMsgID"
+        },
+        {
+          "type": "boolean",
+          "name": "openTeam"
         }
       ]
     },

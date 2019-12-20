@@ -30,7 +30,7 @@ const PinnedMessage = (props: Props) => {
       ? Constants.zoomImage(props.imageWidth, props.imageHeight, 30)
       : undefined
   const pin = (
-    <Kb.ClickableBox onClick={props.onClick} style={styles.container}>
+    <Kb.ClickableBox className="hover_container" onClick={props.onClick} style={styles.container}>
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
         <Kb.Box2 direction="horizontal" style={styles.blueBar} />
         {!!props.imageURL && (
@@ -49,7 +49,13 @@ const PinnedMessage = (props: Props) => {
               Pinned
             </Kb.Text>
           </Kb.Box2>
-          <Kb.Markdown smallStandaloneEmoji={true} lineClamp={1} style={styles.text} serviceOnly={true}>
+          <Kb.Markdown
+            smallStandaloneEmoji={true}
+            lineClamp={1}
+            style={styles.text}
+            styleOverride={{link: styles.styleOverride}}
+            serviceOnly={true}
+          >
             {props.text}
           </Kb.Markdown>
         </Kb.Box2>
@@ -62,7 +68,7 @@ const PinnedMessage = (props: Props) => {
             onClick={props.dismissUnpins ? () => setShowPopup(true) : props.onDismiss}
             type="iconfont-close"
             sizeType="Small"
-            style={Kb.iconCastPlatformStyles(styles.close)}
+            style={styles.close}
             boxStyle={styles.close}
             ref={closeref}
           />
@@ -117,7 +123,7 @@ const UnpinPrompt = (props: UnpinProps) => {
         view: header,
       }}
       position="left center"
-      items={['Divider', {onClick: props.onUnpin, title: 'Yes, unpin'}]}
+      items={['Divider', {icon: 'iconfont-close', onClick: props.onUnpin, title: 'Yes, unpin'}]}
     />
   )
 }
@@ -169,6 +175,14 @@ const styles = Styles.styleSheetCreate(
         },
         isElectron: {
           maxWidth: 200,
+        },
+      }),
+      styleOverride: Styles.platformStyles({
+        common: {
+          color: Styles.globalColors.black_50,
+        },
+        isElectron: {
+          transition: 'color 0.25s ease-in-out',
         },
       }),
       text: Styles.platformStyles({

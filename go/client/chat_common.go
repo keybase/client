@@ -75,3 +75,20 @@ func postConvMinWriterRole(ctx context.Context, lcli chat1.LocalClient, tui libk
 		Role:   role,
 	})
 }
+
+func CheckAndStartStandaloneChat(g *libkb.GlobalContext, mt chat1.ConversationMembersType) error {
+	if !g.Standalone {
+		return nil
+	}
+	// TODO: Right now this command cannot be run in standalone at
+	// all, even though team chats should work, but there is a bug
+	// in finding existing conversations.
+	switch mt {
+	case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAMNATIVE,
+		chat1.ConversationMembersType_IMPTEAMUPGRADE:
+		g.StartStandaloneChat()
+		return nil
+	default:
+		return CantRunInStandaloneError{}
+	}
+}

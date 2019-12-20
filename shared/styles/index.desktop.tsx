@@ -156,8 +156,8 @@ export const initDesktopStyles = () => {
         `.darkMode .color_${name} {color: ${darkColor};}\n` +
         `.hover_color_${name}:hover {color: ${color};}\n` +
         `.darkMode .hover_color_${name}:hover {color: ${darkColor};}\n` +
-        `.hover_container:hover .hover_contained_color_${name} {color: ${color};}\n` +
-        `.darkMode .hover_container:hover .hover_contained_color_${name} {color: ${darkColor};}\n` +
+        `.hover_container:hover .hover_contained_color_${name} {color: ${color} !important;}\n` +
+        `.darkMode .hover_container:hover .hover_contained_color_${name} {color: ${darkColor} !important;}\n` +
         `.background_color_${name} {background-color: ${color};}\n` +
         `.darkMode .background_color_${name} {background-color: ${darkColor};}\n` +
         `.hover_background_color_${name}:hover {background-color: ${color};}\n` +

@@ -67,7 +67,7 @@ export type InviteInfo = {
   id: string
 }
 
-export type TabKey = 'members' | 'invites' | 'subteams' | 'settings'
+export type TabKey = 'members' | 'invites' | 'bots' | 'subteams' | 'settings'
 
 export type TypeMap = {[K in TeamRoleType]: string}
 
@@ -129,6 +129,7 @@ export type State = Readonly<{
   teamInviteError: string
   teamJoinError: string
   teamJoinSuccess: boolean
+  teamJoinSuccessOpen: boolean
   teamJoinSuccessTeamName: string
   teamCreationError: string
   teamDetails: Map<TeamID, TeamDetails>

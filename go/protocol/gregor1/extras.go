@@ -316,7 +316,7 @@ func (r ReminderID) MsgID() gregor.MsgID { return r.MsgID_ }
 func (r ReminderID) Seqno() int          { return r.Seqno_ }
 
 func (s State) Items() ([]gregor.Item, error) {
-	var ret []gregor.Item
+	ret := make([]gregor.Item, 0, len(s.Items_))
 	for _, i := range s.Items_ {
 		ret = append(ret, i)
 	}

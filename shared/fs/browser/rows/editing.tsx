@@ -29,19 +29,16 @@ const Editing = (props: EditingProps) => {
       }
       body={
         <Kb.Box key="main" style={rowStyles.itemBox}>
-          <Kb.Input
-            hideUnderline={true}
-            small={true}
+          <Kb.PlainInput
             value={filename}
-            hintText={props.hint}
-            inputStyle={styles.text}
+            placeholder={props.hint}
+            style={styles.text}
             onEnterKeyDown={props.onSubmit}
             onChangeText={name => {
               setFilename(name)
               props.onUpdate(name)
             }}
             autoFocus={true}
-            selectTextOnFocus={true}
           />
         </Kb.Box>
       }

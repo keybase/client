@@ -45,9 +45,9 @@ type TestCase struct {
 	KeyOwners        map[keybase1.KID] /*kid*/ string/*username*/ `json:"key_owners"`
 	KeyPubKeyV2NaCls map[keybase1.KID]json.RawMessage `json:"key_pubkeyv2nacls"`
 	TeamMerkle       map[string] /*TeamID AND TeamID-seqno:Seqno*/ struct {
-		Seqno         keybase1.Seqno  `json:"seqno"`
-		LinkID        keybase1.LinkID `json:"link_id"`
-		HiddenIsFresh bool            `json:"hidden_is_fresh"`
+		Seqno      keybase1.Seqno             `json:"seqno"`
+		LinkID     keybase1.LinkID            `json:"link_id"`
+		HiddenResp libkb.MerkleHiddenResponse `json:"hidden_response"`
 	} `json:"team_merkle"`
 	MerkleTriples map[string] /*LeafID-HashMeta*/ libkb.MerkleTriple `json:"merkle_triples"`
 
@@ -90,6 +90,7 @@ func getTeamchainJSONDir(t *testing.T) string {
 	require.NoError(t, err)
 	jsonDir := filepath.Join(cwd, "../vendor/github.com/keybase/keybase-test-vectors/teamchains")
 	if os.Getenv("KEYBASE_TEAM_TEST_NOVENDOR") == "1" {
+		t.Log("Ignoring vendored keybase-test-vectors/teamchains test cases due to env variable (using the local copy at ../../../keybase-test-vectors/teamchains instead)")
 		jsonDir = filepath.Join(cwd, "../../../keybase-test-vectors/teamchains")
 	}
 	return jsonDir
@@ -163,7 +164,7 @@ func handleTestCaseLoadFailure(t *testing.T, data []byte, loadErr error) {
 	var unit loadFailure
 	err := json.Unmarshal(data, &unit)
 	require.NoError(t, err, "reading unit file json (after failure)")
-	require.True(t, unit.Failure.Error)
+	require.True(t, unit.Failure.Error, "unexpected failure in test load: %v", loadErr)
 	require.Equal(t, unit.Failure.ErrorTypeFull, reflect.TypeOf(loadErr).String())
 	require.Contains(t, loadErr.Error(), unit.Failure.ErrorSubstr)
 }

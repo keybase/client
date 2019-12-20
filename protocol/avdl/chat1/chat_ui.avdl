@@ -298,6 +298,7 @@ protocol chatUi {
     double ordinal; // Position in conversation. A float like {msgID:4,offset:1} -> "4.001"
     JourneycardType cardType;
     MessageID highlightMsgID; // Message ID to highlight in MSG_ATTENTION
+    boolean openTeam; // Whether the team is open. Can be erroneously false due to caching. Only filled for ADD_PEOPLE.
   }
 
   enum MessageUnboxedState {

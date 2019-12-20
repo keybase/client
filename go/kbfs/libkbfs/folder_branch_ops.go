@@ -255,13 +255,14 @@ type editChannelActivity struct {
 // blocks, so we can't just reuse the blocks that were modified during
 // the sync.)
 type folderBranchOps struct {
-	config        Config
-	folderBranch  data.FolderBranch
-	unmergedBID   kbfsmd.BranchID // protected by mdWriterLock
-	bType         branchType
-	observers     *observerList
-	serviceStatus *kbfsCurrentStatus
-	favs          *Favorites
+	config             Config
+	folderBranch       data.FolderBranch
+	unmergedBID        kbfsmd.BranchID // protected by mdWriterLock
+	bType              branchType
+	observers          *observerList
+	syncedTlfObservers *syncedTlfObserverList
+	serviceStatus      *kbfsCurrentStatus
+	favs               *Favorites
 
 	// The leveled locks below, when locked concurrently by the same
 	// goroutine, should only be taken in the following order to avoid
@@ -404,7 +405,8 @@ func newFolderBranchOps(
 	config Config, fb data.FolderBranch,
 	bType branchType,
 	quotaUsage *EventuallyConsistentQuotaUsage,
-	serviceStatus *kbfsCurrentStatus, favs *Favorites) *folderBranchOps {
+	serviceStatus *kbfsCurrentStatus, favs *Favorites,
+	syncedTlfObservers *syncedTlfObserverList) *folderBranchOps {
 	var nodeCache NodeCache
 	if config.Mode().NodeCacheEnabled() {
 		nodeCache = newNodeCacheStandard(fb)
@@ -452,13 +454,14 @@ func newFolderBranchOps(
 	forceSyncChan := make(chan struct{})
 
 	fbo := &folderBranchOps{
-		config:        config,
-		folderBranch:  fb,
-		unmergedBID:   kbfsmd.BranchID{},
-		bType:         bType,
-		observers:     observers,
-		serviceStatus: serviceStatus,
-		favs:          favs,
+		config:             config,
+		folderBranch:       fb,
+		unmergedBID:        kbfsmd.BranchID{},
+		bType:              bType,
+		observers:          observers,
+		syncedTlfObservers: syncedTlfObservers,
+		serviceStatus:      serviceStatus,
+		favs:               favs,
 		status: newFolderBranchStatusKeeper(
 			config, nodeCache, quotaUsage, fb.Tlf.Bytes()),
 		mdWriterLock: mdWriterLock,
@@ -1781,6 +1784,8 @@ func (fbo *folderBranchOps) commitFlushedMD(
 				"Error getting wait channel for prefetch: %+v", err)
 			return
 		}
+		fbo.syncedTlfObservers.fullSyncStarted(
+			ctx, fbo.id(), rmd.Revision(), waitCh)
 
 		select {
 		case <-waitCh:
@@ -9323,11 +9328,14 @@ func (fbo *folderBranchOps) SetSyncConfig(
 	}
 
 	// Issue notifications to client when sync mode changes (or is partial).
-	if oldConfig.Mode != config.Mode || config.Mode == keybase1.FolderSyncMode_PARTIAL {
+	modeChanged := oldConfig.Mode != config.Mode
+	if modeChanged || config.Mode == keybase1.FolderSyncMode_PARTIAL {
 		fbo.config.Reporter().Notify(ctx, syncConfigChangeNotification(
 			md.GetTlfHandle(), config))
 	}
-
+	if modeChanged {
+		fbo.syncedTlfObservers.syncModeChanged(ctx, fbo.id(), config.Mode)
+	}
 	return ch, nil
 }
 

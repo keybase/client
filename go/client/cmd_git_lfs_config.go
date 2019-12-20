@@ -131,7 +131,7 @@ func (c *CmdGitLFSConfig) Run() error {
 	if runtime.GOOS == "windows" || runtime.GOOS == "darwin" {
 		// Windows and macOS require quotes around the args, but linux
 		// does not.
-		quoteArgs = "\\\""
+		quoteArgs = "\""
 	}
 	_, err = c.gitExec(
 		"config", "--add", "lfs.customtransfer.keybase-lfs.args",

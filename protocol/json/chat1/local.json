@@ -1683,6 +1683,10 @@
         {
           "type": "MessageID",
           "name": "highlightMsgID"
+        },
+        {
+          "type": "boolean",
+          "name": "openTeam"
         }
       ]
     },
@@ -3675,33 +3679,6 @@
       ],
       "response": "GetThreadLocalRes"
     },
-    "getCachedThread": {
-      "request": [
-        {
-          "name": "conversationID",
-          "type": "ConversationID"
-        },
-        {
-          "name": "query",
-          "type": [
-            null,
-            "GetThreadQuery"
-          ]
-        },
-        {
-          "name": "pagination",
-          "type": [
-            null,
-            "Pagination"
-          ]
-        },
-        {
-          "name": "identifyBehavior",
-          "type": "keybase1.TLFIdentifyBehavior"
-        }
-      ],
-      "response": "GetThreadLocalRes"
-    },
     "getThreadNonblock": {
       "request": [
         {
@@ -5370,6 +5347,19 @@
         }
       ],
       "response": "keybase1.TeamID"
+    },
+    "dismissJourneycard": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "cardType",
+          "type": "JourneycardType"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "chat.1"

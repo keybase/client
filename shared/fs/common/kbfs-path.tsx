@@ -54,7 +54,9 @@ const KbfsPathPopup = (props: PopupProps) => {
       items={
         Styles.isMobile
           ? [
+              'Divider',
               {
+                icon: 'iconfont-file',
                 onClick: openInFilesTab,
                 title: 'Open',
               },

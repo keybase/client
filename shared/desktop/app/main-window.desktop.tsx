@@ -42,7 +42,7 @@ const defaultWindowState: WindowState = {
   dockHidden: false,
   height: 600,
   isFullScreen: false,
-  width: 800,
+  width: 810,
   windowHidden: false,
   x: 0,
   y: 0,

@@ -225,6 +225,10 @@
         {
           "type": "PrefetchProgress",
           "name": "prefetchProgress"
+        },
+        {
+          "type": "string",
+          "name": "symlinkTarget"
         }
       ]
     },

@@ -2,14 +2,11 @@ import * as React from 'react'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as Platform from '../../constants/platform'
-import * as WalletsConstants from '../../constants/wallets'
 import * as Styles from '../../styles'
 import * as Window from '../../util/window-management'
 import {BrowserWindow} from '../../util/safe-electron.desktop'
-import AirdropBanner from '../../wallets/airdrop/banner/container'
 import SyncingFolders from './syncing-folders'
 import {IconWithPopup as WhatsNewIconWithPopup} from '../../whats-new/icon/container'
-import flags from '../../util/feature-flags'
 import * as ReactIs from 'react-is'
 
 // A mobile-like header for desktop
@@ -17,7 +14,6 @@ import * as ReactIs from 'react-is'
 // Fix this as we figure out what this needs to be
 type Props = {
   allowBack: boolean
-  airdropWillShowBanner: boolean
   loggedIn: boolean
   onPop: () => void
   options: any
@@ -144,8 +140,7 @@ class Header extends React.PureComponent<Props> {
     // Normally this component is responsible for rendering the system buttons,
     // but if we're showing a banner then that banner component needs to do it.
     const windowDecorationsAreNeeded = !Platform.isMac && !this.props.useNativeFrame
-    const windowDecorationsDrawnByBanner =
-      windowDecorationsAreNeeded && flags.airdrop && this.props.loggedIn && this.props.airdropWillShowBanner
+    const windowDecorationsDrawnByBanner = windowDecorationsAreNeeded && this.props.loggedIn
 
     // We normally have the back arrow at the top of the screen. It doesn't overlap with the system
     // icons (minimize etc) because the left nav bar pushes it to the right -- unless you're logged
@@ -179,9 +174,6 @@ class Header extends React.PureComponent<Props> {
             opt.headerStyle,
           ])}
         >
-          {flags.airdrop && this.props.loggedIn && (
-            <AirdropBanner showSystemButtons={windowDecorationsDrawnByBanner} />
-          )}
           <Kb.Box2
             key="topBar"
             direction="horizontal"
@@ -339,7 +331,6 @@ const styles = Styles.styleSheetCreate(
 )
 
 const mapStateToProps = (state: Container.TypedState) => ({
-  airdropWillShowBanner: WalletsConstants.getShowAirdropBanner(state),
   useNativeFrame: state.config.useNativeFrame,
 })
 

@@ -77,7 +77,7 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
           updateIcon(false)
           const dock = SafeElectron.getApp().dock
           if (dock && dock.isVisible()) {
-            SafeElectron.getApp().setBadgeCount(action.payload.desktopAppBadgeCount)
+            SafeElectron.getApp().badgeCount = action.payload.desktopAppBadgeCount
           }
           break
         }

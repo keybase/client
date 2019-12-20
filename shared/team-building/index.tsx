@@ -203,19 +203,23 @@ const ContactsImportButton = (props: ContactProps) => {
         gap="small"
         style={styles.importContactsContainer}
       >
-        <Kb.Icon type="iconfont-contact-book" color={Styles.globalColors.black} />
+        <Kb.Box2 direction="vertical" style={styles.iconContactBookContainer}>
+          <Kb.Icon type="iconfont-contact-book" color={Styles.globalColors.black} />
+        </Kb.Box2>
         <Kb.Text type="BodyBig" lineClamp={1}>
-          Import your phone contacts
+          Import phone contacts
         </Kb.Text>
-        <Kb.Icon type="iconfont-arrow-right" sizeType="Small" color={Styles.globalColors.black} />
+        <Kb.Icon type="iconfont-arrow-right" sizeType="Small" color={Styles.globalColors.black_20} />
       </Kb.Box2>
     </Kb.ClickableBox>
   )
 }
 
 const SearchHintText = () => (
-  <Kb.Box2 direction="vertical" style={{padding: Styles.globalMargins.small}}>
-    <Kb.Text type="BodySmall">Search anyone on Keybase by typing a username or a full name.</Kb.Text>
+  <Kb.Box2 direction="vertical" style={styles.searchHint}>
+    <Kb.Text type="BodySmall" style={{textAlign: 'center'}}>
+      Search anyone on Keybase by typing a username or a full name.
+    </Kb.Text>
   </Kb.Box2>
 )
 
@@ -513,34 +517,41 @@ class TeamBuilding extends React.PureComponent<Props> {
 
     return (
       <>
-        <Kb.List
-          reAnimated={true}
-          items={this.props.searchResults || []}
-          onScroll={this.onScroll}
-          selectedIndex={this.props.highlightedIndex || 0}
-          style={styles.list}
-          contentContainerStyle={styles.listContentContainer}
-          keyboardShouldPersistTaps="handled"
-          keyProperty="key"
-          onEndReached={this._onEndReached}
-          onEndReachedThreshold={0.1}
-          renderItem={(index, result) => (
-            <ResultRow
-              resultForService={this.props.selectedService}
-              username={result.username}
-              prettyName={result.prettyName}
-              displayLabel={result.displayLabel}
-              services={result.services}
-              inTeam={result.inTeam}
-              isPreExistingTeamMember={result.isPreExistingTeamMember}
-              isYou={result.isYou}
-              followingState={result.followingState}
-              highlight={!Styles.isMobile && index === this.props.highlightedIndex}
-              onAdd={() => this.props.onAdd(result.userId)}
-              onRemove={() => this.props.onRemove(result.userId)}
-            />
-          )}
-        />
+        {this.props.searchResults === undefined || this.props.searchResults?.length ? (
+          <Kb.List
+            reAnimated={true}
+            items={this.props.searchResults || []}
+            onScroll={this.onScroll}
+            selectedIndex={this.props.highlightedIndex || 0}
+            style={styles.list}
+            contentContainerStyle={styles.listContentContainer}
+            keyboardShouldPersistTaps="handled"
+            keyProperty="key"
+            onEndReached={this._onEndReached}
+            onEndReachedThreshold={0.1}
+            renderItem={(index, result) => (
+              <ResultRow
+                key={result.username}
+                resultForService={this.props.selectedService}
+                username={result.username}
+                prettyName={result.prettyName}
+                displayLabel={result.displayLabel}
+                services={result.services}
+                inTeam={result.inTeam}
+                isPreExistingTeamMember={result.isPreExistingTeamMember}
+                isYou={result.isYou}
+                followingState={result.followingState}
+                highlight={!Styles.isMobile && index === this.props.highlightedIndex}
+                onAdd={() => this.props.onAdd(result.userId)}
+                onRemove={() => this.props.onRemove(result.userId)}
+              />
+            )}
+          />
+        ) : (
+          <Kb.Text type="BodySmall" style={styles.noResults}>
+            No results were found
+          </Kb.Text>
+        )}
       </>
     )
   }
@@ -762,12 +773,17 @@ const styles = Styles.styleSheetCreate(
           marginTop: Styles.globalMargins.small + 2,
         },
       }),
+      iconContactBookContainer: {
+        alignItems: 'center',
+        marginLeft: Styles.globalMargins.xsmall,
+        width: 48,
+      },
       importContactsButton: {
         marginBottom: Styles.globalMargins.tiny,
       },
       importContactsContainer: {
+        height: 64,
         justifyContent: 'flex-start',
-        padding: Styles.globalMargins.xsmall,
       },
       list: Styles.platformStyles({
         common: {paddingBottom: Styles.globalMargins.small},
@@ -807,6 +823,15 @@ const styles = Styles.styleSheetCreate(
           margin: Styles.globalMargins.xsmall,
         },
       }),
+      noResults: {
+        flex: 1,
+        ...Styles.padding(Styles.globalMargins.small),
+      },
+      searchHint: {
+        paddingLeft: Styles.globalMargins.xlarge,
+        paddingRight: Styles.globalMargins.xlarge,
+        paddingTop: Styles.globalMargins.xlarge,
+      },
       shrinkingGap: {flexShrink: 1, height: Styles.globalMargins.xtiny},
       teamAvatar: Styles.platformStyles({
         isElectron: {

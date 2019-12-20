@@ -6,19 +6,17 @@ import DeleteConfirm from '.'
 type OwnProps = {}
 
 export default Container.connect(
-  state => {
-    if (!state.config.username) {
-      throw new Error('No current username for delete confirm container')
-    }
-
-    return {
-      username: state.config.username,
-    }
-  },
-  dispatch => ({
-    onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
-    onDeleteForever: () => dispatch(SettingsGen.createDeleteAccountForever()),
+  state => ({
+    username: state.config.username,
   }),
-
-  (s, d, o: OwnProps) => ({...o, ...s, ...d})
+  dispatch => ({
+    _onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
+    _onDeleteForever: () => dispatch(SettingsGen.createDeleteAccountForever()),
+  }),
+  (stateProps, dispatchProps, ownProps: OwnProps) => ({
+    ...ownProps,
+    ...stateProps,
+    onCancel: dispatchProps._onCancel,
+    onDeleteForever: () => stateProps.username && dispatchProps._onDeleteForever(),
+  })
 )(DeleteConfirm)

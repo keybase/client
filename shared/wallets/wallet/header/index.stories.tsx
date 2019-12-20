@@ -5,12 +5,6 @@ import {Box2} from '../../../common-adapters'
 import Header from '.'
 
 const provider = Sb.createPropProviderWithCommon({
-  WalletDropdownButton: props => ({
-    disabled: false,
-    onSettings: Sb.action('onSettings'),
-    onShowSecretKey: Sb.action('onShowSecretKey'),
-    small: props.small,
-  }),
   WalletSendButton: props => ({
     disabled: false,
     onSendToAnotherAccount: Sb.action('onSendToAnotherAccount'),
@@ -35,8 +29,8 @@ const secondWalletMock = {
 
 const common = {
   accountID: Types.stringToAccountID('GDP25ACNJ6CDEJLILV5UZZIQS66SHHWQ3554EMBF4VPXXKKYXXXMTAGZ'),
-  airdropSelected: false,
   onBack: Sb.action('onBack'),
+  onBuy: Sb.action('onBuy'),
   onReceive: Sb.action('onReceive'),
   onSettings: Sb.action('onSettings'),
   thisDeviceIsLockedOut: false,

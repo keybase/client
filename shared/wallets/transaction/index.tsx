@@ -581,10 +581,15 @@ const styles = Styles.styleSheetCreate(
       cancelButton: {
         alignSelf: 'flex-start',
       },
-      container: {
-        padding: Styles.globalMargins.tiny,
-        paddingRight: Styles.globalMargins.small,
-      },
+      container: Styles.platformStyles({
+        isElectron: {
+          padding: Styles.globalMargins.tiny,
+          paddingRight: Styles.globalMargins.small,
+        },
+        isMobile: {
+          ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
+        },
+      }),
       flexOne: {flex: 1},
       lineThrough: {
         textDecorationLine: 'line-through',

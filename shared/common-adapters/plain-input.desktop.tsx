@@ -201,6 +201,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
         styles.multiline,
         heightStyles,
         paddingStyles,
+        this.props.resize && styles.resize,
         this.props.style,
       ]),
     }
@@ -316,6 +317,9 @@ const styles = Styles.styleSheetCreate(() => ({
       lineHeight: 'unset',
       outline: 'none',
     },
+  }),
+  resize: Styles.platformStyles({
+    isElectron: {resize: 'vertical'},
   }),
 }))
 

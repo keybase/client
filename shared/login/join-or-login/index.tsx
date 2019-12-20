@@ -3,14 +3,14 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {InfoIcon} from '../../signup/common'
 
-type Props = Kb.PropsWithTimer<{
+type Props = {
   bannerMessage: string | null
   checkIsOnline: () => void
   onLogin: () => void
   onSignup: () => void
   isOnline: boolean | null
   showProxySettings: () => void
-}>
+}
 
 const Intro = (props: Props) => {
   const [showing, setShowing] = React.useState(true)

@@ -71,6 +71,10 @@ func (n *nullTeamLoader) ForceRepollUntil(ctx context.Context, t gregor.TimeOrOf
 	return nil
 }
 
+func (n *nullTeamLoader) IsOpenCached(ctx context.Context, teamID keybase1.TeamID) (bool, error) {
+	return false, fmt.Errorf("null team loader")
+}
+
 func (n nullTeamLoader) ClearMem() {}
 
 type nullFastTeamLoader struct{}
@@ -107,7 +111,7 @@ type nullTeamAuditor struct{}
 
 var _ TeamAuditor = nullTeamAuditor{}
 
-func (n nullTeamAuditor) AuditTeam(m MetaContext, id keybase1.TeamID, isPublic bool, headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno, auditMode keybase1.AuditMode) (err error) {
+func (n nullTeamAuditor) AuditTeam(m MetaContext, id keybase1.TeamID, isPublic bool, headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno, lastMerkleRoot *MerkleRoot, auditMode keybase1.AuditMode) (err error) {
 	return fmt.Errorf("null team auditor")
 }
 

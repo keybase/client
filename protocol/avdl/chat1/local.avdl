@@ -538,6 +538,7 @@ protocol local {
     int ordinal; // sub-position after prevID. Ought to be >=1. See computeOutboxOrdinal for some context.
     JourneycardType cardType;
     MessageID highlightMsgID; // Message ID to highlight for MSG_ATTENTION
+    boolean openTeam; // Whether the team is open. Can be erroneously false due to caching. Only filled for ADD_PEOPLE.
   }
 
   // If a new case is needed here, make sure to update at least:
@@ -724,8 +725,6 @@ protocol local {
     array<RateLimit> rateLimits;
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
-
-  GetThreadLocalRes getCachedThread(ConversationID conversationID, union { null, GetThreadQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   enum GetThreadNonblockCbMode {
     FULL_0,
@@ -1245,6 +1244,8 @@ protocol local {
   keybase1.TeamBotSettings getBotMemberSettings(string tlfName, string username, ConversationMembersType membersType, boolean tlfPublic);
 
   keybase1.TeamID teamIDFromTLFName(string tlfName, ConversationMembersType membersType, boolean tlfPublic);
+
+  void dismissJourneycard(ConversationID convID, JourneycardType cardType);
 
   record LocalMtimeUpdate {
     ConversationID convID;
