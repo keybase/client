@@ -201,6 +201,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
         styles.multiline,
         heightStyles,
         paddingStyles,
+        this.props.resize && styles.resize,
         this.props.style,
       ]),
     }
@@ -317,6 +318,7 @@ const styles = Styles.styleSheetCreate(() => ({
       outline: 'none',
     },
   }),
+  resize: {resize: 'both'},
 }))
 
 export default PlainInput
