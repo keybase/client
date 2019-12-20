@@ -16,7 +16,7 @@ const InboxAndConversation = (props: Props) => {
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
       {searchEnabled ? <InboxSearch /> : <Inbox />}
-      <Conversation navigation={props.navigation} />
+      {false && <Conversation navigation={props.navigation} />}
     </Kb.Box2>
   )
 }
