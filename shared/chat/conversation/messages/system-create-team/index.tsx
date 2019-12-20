@@ -28,7 +28,7 @@ const youOrUsername = (props: {creator: string; you: string}) => (props.creator 
 const CreateTeam = (props: Props) => (
   <UserNotice>
     <Kb.Text type="BodySmall">
-      {youOrUsername(props)}created the team <Kb.Text type="BodySmallBold">{props.team}</Kb.Text>.
+      {youOrUsername(props)} created the team <Kb.Text type="BodySmallBold">{props.team}</Kb.Text>.
     </Kb.Text>
     <ManageComponent {...props} />
   </UserNotice>
