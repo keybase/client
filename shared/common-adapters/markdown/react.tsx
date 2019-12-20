@@ -334,7 +334,7 @@ const passthroughForMarkdownType = Object.keys(reactComponentsForMarkdownType).r
       output: SimpleMarkdown.ReactOutput,
       state: SimpleMarkdown.State
     ) =>
-      typeof node.content === 'string'
+      typeof node.content !== 'object'
         ? SimpleMarkdown.defaultRules.text.react({content: node.content, type: 'text'}, output, state)
         : output(node.content, state),
   }
@@ -350,19 +350,17 @@ const bigEmojiOutput = SimpleMarkdown.outputFor(
         node: SimpleMarkdown.SingleASTNode,
         _output: SimpleMarkdown.ReactOutput,
         state: SimpleMarkdown.State
-      ) => {
-        return (
-          <Emoji
-            emojiName={String(node.content)}
-            size={32}
-            key={state.key}
-            allowFontScaling={state.allowFontScaling}
-          />
-        )
-      },
+      ) => (
+        <Emoji
+          emojiName={String(node.content)}
+          size={32}
+          key={state.key}
+          allowFontScaling={state.allowFontScaling}
+        />
+      ),
     },
     paragraph: {
-      react: () => (
+      react: (
         node: SimpleMarkdown.SingleASTNode,
         output: SimpleMarkdown.ReactOutput,
         state: SimpleMarkdown.State
@@ -377,7 +375,6 @@ const bigEmojiOutput = SimpleMarkdown.outputFor(
         </Text>
       ),
     },
-    text: SimpleMarkdown.defaultRules.text,
   },
   'react'
 )
@@ -431,24 +428,23 @@ const serviceOnlyOutput = SimpleMarkdown.outputFor(
         output: SimpleMarkdown.ReactOutput,
         state: SimpleMarkdown.State
       ) => reactComponentsForMarkdownType.emoji.react(node, output, state),
-      serviceDecoration: {
-        react: (
-          node: SimpleMarkdown.SingleASTNode,
-          _output: SimpleMarkdown.ReactOutput,
-          state: SimpleMarkdown.State
-        ) => (
-          <ServiceDecoration
-            json={node.content}
-            key={state.key}
-            allowFontScaling={state.allowFontScaling}
-            styleOverride={state.styleOverride}
-            styles={markdownStyles as any}
-          />
-        ),
-      },
-
-      text: SimpleMarkdown.defaultRules.text,
     },
+    serviceDecoration: {
+      react: (
+        node: SimpleMarkdown.SingleASTNode,
+        _output: SimpleMarkdown.ReactOutput,
+        state: SimpleMarkdown.State
+      ) => (
+        <ServiceDecoration
+          json={node.content}
+          key={state.key}
+          allowFontScaling={state.allowFontScaling}
+          styleOverride={state.styleOverride}
+          styles={markdownStyles as any}
+        />
+      ),
+    },
+    text: SimpleMarkdown.defaultRules.text,
   },
   'react'
 )
