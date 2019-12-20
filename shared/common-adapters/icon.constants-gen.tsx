@@ -119,22 +119,6 @@ const iconMeta_ = {
       return require('../images/icons/icon-dark-addon-lock-hover-16.png')
     },
   },
-  'icon-airdrop-glowing-16': {
-    extension: 'png',
-    imagesDir: 'icons',
-    isFont: false,
-    get require() {
-      return require('../images/icons/icon-airdrop-glowing-16.png')
-    },
-  },
-  'icon-airdrop-glowing-32': {
-    extension: 'png',
-    imagesDir: 'icons',
-    isFont: false,
-    get require() {
-      return require('../images/icons/icon-airdrop-glowing-32.png')
-    },
-  },
   'icon-airdrop-logo-16': {
     extension: 'png',
     imagesDir: 'icons',
@@ -1847,28 +1831,12 @@ const iconMeta_ = {
       return require('../images/icons/icon-dark-fancy-user-card-desktop-80-99.png')
     },
   },
-  'icon-dark-fancy-user-card-desktop-airdrop-80-99': {
-    extension: 'png',
-    imagesDir: 'icons',
-    isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-fancy-user-card-desktop-airdrop-80-99.png')
-    },
-  },
   'icon-dark-fancy-user-card-mobile-120-149': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-fancy-user-card-mobile-120-149.png')
-    },
-  },
-  'icon-dark-fancy-user-card-mobile-airdrop-120-149': {
-    extension: 'png',
-    imagesDir: 'icons',
-    isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-fancy-user-card-mobile-airdrop-120-149.png')
     },
   },
   'icon-dark-file-16': {
@@ -3555,54 +3523,6 @@ const iconMeta_ = {
       return require('../images/icons/icon-facebook-logo-64.png')
     },
   },
-  'icon-fancy-airdrop-faded-120': {
-    extension: 'png',
-    imagesDir: 'icons',
-    isFont: false,
-    get require() {
-      return require('../images/icons/icon-fancy-airdrop-faded-120.png')
-    },
-  },
-  'icon-fancy-airdrop-shining-120': {
-    extension: 'png',
-    imagesDir: 'icons',
-    isFont: false,
-    get require() {
-      return require('../images/icons/icon-fancy-airdrop-shining-120.png')
-    },
-  },
-  'icon-fancy-airdrop-shining-80': {
-    extension: 'png',
-    imagesDir: 'icons',
-    isFont: false,
-    get require() {
-      return require('../images/icons/icon-fancy-airdrop-shining-80.png')
-    },
-  },
-  'icon-fancy-airdrop-star-faded-120': {
-    extension: 'png',
-    imagesDir: 'icons',
-    isFont: false,
-    get require() {
-      return require('../images/icons/icon-fancy-airdrop-star-faded-120.png')
-    },
-  },
-  'icon-fancy-airdrop-star-shining-120': {
-    extension: 'png',
-    imagesDir: 'icons',
-    isFont: false,
-    get require() {
-      return require('../images/icons/icon-fancy-airdrop-star-shining-120.png')
-    },
-  },
-  'icon-fancy-airdrop-star-shining-80': {
-    extension: 'png',
-    imagesDir: 'icons',
-    isFont: false,
-    get require() {
-      return require('../images/icons/icon-fancy-airdrop-star-shining-80.png')
-    },
-  },
   'icon-fancy-bomb-desktop-150-72': {
     extension: 'png',
     imagesDir: 'icons',
@@ -3915,18 +3835,6 @@ const iconMeta_ = {
       return require('../images/icons/icon-dark-fancy-user-card-desktop-80-99.png')
     },
   },
-  'icon-fancy-user-card-desktop-airdrop-80-99': {
-    extension: 'png',
-    imagesDir: 'icons',
-    isFont: false,
-    nameDark: 'icon-dark-fancy-user-card-desktop-airdrop-80-99',
-    get require() {
-      return require('../images/icons/icon-fancy-user-card-desktop-airdrop-80-99.png')
-    },
-    get requireDark() {
-      return require('../images/icons/icon-dark-fancy-user-card-desktop-airdrop-80-99.png')
-    },
-  },
   'icon-fancy-user-card-mobile-120-149': {
     extension: 'png',
     imagesDir: 'icons',
@@ -3937,18 +3845,6 @@ const iconMeta_ = {
     },
     get requireDark() {
       return require('../images/icons/icon-dark-fancy-user-card-mobile-120-149.png')
-    },
-  },
-  'icon-fancy-user-card-mobile-airdrop-120-149': {
-    extension: 'png',
-    imagesDir: 'icons',
-    isFont: false,
-    nameDark: 'icon-dark-fancy-user-card-mobile-airdrop-120-149',
-    get require() {
-      return require('../images/icons/icon-fancy-user-card-mobile-airdrop-120-149.png')
-    },
-    get requireDark() {
-      return require('../images/icons/icon-dark-fancy-user-card-mobile-airdrop-120-149.png')
     },
   },
   'icon-file-16': {
