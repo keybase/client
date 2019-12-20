@@ -319,7 +319,7 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   resize: Styles.platformStyles({
-    isElectron: {resize: 'both'},
+    isElectron: {resize: 'vertical'},
   }),
 }))
 
