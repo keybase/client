@@ -341,7 +341,7 @@ const passthroughForMarkdownType = Object.keys(reactComponentsForMarkdownType).r
   return obj
 }, {})
 
-const bigEmojiOutput = SimpleMarkdown.outputFor(
+const bigEmojiOutput: SimpleMarkdown.Output<any> = SimpleMarkdown.outputFor(
   {
     Array: SimpleMarkdown.defaultRules.Array,
     ...reactComponentsForMarkdownType,
@@ -379,7 +379,7 @@ const bigEmojiOutput = SimpleMarkdown.outputFor(
   'react'
 )
 
-const previewOutput = SimpleMarkdown.outputFor(
+const previewOutput: SimpleMarkdown.Output<any> = SimpleMarkdown.outputFor(
   {
     Array: SimpleMarkdown.defaultRules.Array,
     ...passthroughForMarkdownType,
@@ -418,7 +418,7 @@ const previewOutput = SimpleMarkdown.outputFor(
   'react'
 )
 
-const serviceOnlyOutput = SimpleMarkdown.outputFor(
+const serviceOnlyOutput: SimpleMarkdown.Output<any> = SimpleMarkdown.outputFor(
   {
     Array: SimpleMarkdown.defaultRules.Array,
     ...passthroughForMarkdownType,
@@ -449,6 +449,9 @@ const serviceOnlyOutput = SimpleMarkdown.outputFor(
   'react'
 )
 
-const reactOutput = SimpleMarkdown.outputFor(reactComponentsForMarkdownType, 'react')
+const reactOutput: SimpleMarkdown.Output<any> = SimpleMarkdown.outputFor(
+  reactComponentsForMarkdownType,
+  'react'
+)
 
 export {EmojiIfExists, bigEmojiOutput, markdownStyles, previewOutput, reactOutput, serviceOnlyOutput}
