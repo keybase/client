@@ -12,7 +12,6 @@ import (
 
 	"github.com/blevesearch/bleve"
 	"github.com/blevesearch/bleve/index/store"
-	"github.com/blevesearch/bleve/mapping"
 	"github.com/blevesearch/bleve/registry"
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/idutil"
@@ -28,6 +27,7 @@ import (
 
 const (
 	textFileType      = "kbfsTextFile"
+	htmlFileType      = "kbfsHtmlFile"
 	kvstoreName       = "kbfs"
 	bleveIndexType    = "upside_down"
 	fsIndexStorageDir = "kbfs_index"
@@ -195,12 +195,10 @@ func (i *Indexer) loadIndex(ctx context.Context) (err error) {
 		i.log.CDebugf(ctx, "Creating new index for user %s/%s",
 			session.Name, session.UID)
 
-		// Register a mapping for text files, so when we index text
-		// files we can mark them as such. TODO(HOTPOT-1488): add an
-		// html/md document parser to get rid of tags.
-		indexMapping := bleve.NewIndexMapping()
-		m := mapping.NewDocumentMapping()
-		indexMapping.AddDocumentMapping(textFileType, m)
+		indexMapping, err := makeIndexMapping()
+		if err != nil {
+			return err
+		}
 		index, err = bleve.NewUsing(
 			p, indexMapping, bleveIndexType, kvstoreName, nil)
 		if err != nil {

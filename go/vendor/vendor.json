@@ -182,6 +182,18 @@
 			"revisionTime": "2019-10-30T07:13:27Z"
 		},
 		{
+			"checksumSHA1": "l3HhhCbfDQgK7/CKWvmALzyZ8tY=",
+			"path": "github.com/blevesearch/bleve/analysis/char/html",
+			"revision": "189ee421f71e1e77dbfb5ea900988b5efadb33a4",
+			"revisionTime": "2019-10-30T07:13:27Z"
+		},
+		{
+			"checksumSHA1": "mnNyhSut6FXu4s1nSUH1c0jmH6k=",
+			"path": "github.com/blevesearch/bleve/analysis/char/regexp",
+			"revision": "189ee421f71e1e77dbfb5ea900988b5efadb33a4",
+			"revisionTime": "2019-10-30T07:13:27Z"
+		},
+		{
 			"checksumSHA1": "P+ay5l3LO/xoWJXKfyK4Ma1hGvw=",
 			"path": "github.com/blevesearch/bleve/analysis/datetime/flexible",
 			"revision": "189ee421f71e1e77dbfb5ea900988b5efadb33a4",
