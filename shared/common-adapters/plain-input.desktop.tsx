@@ -318,7 +318,9 @@ const styles = Styles.styleSheetCreate(() => ({
       outline: 'none',
     },
   }),
-  resize: {resize: 'both'},
+  resize: Styles.platformStyles({
+    isElectron: {resize: 'both'},
+  }),
 }))
 
 export default PlainInput
