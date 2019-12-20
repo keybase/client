@@ -58,8 +58,9 @@ func (c *CmdChatFeaturedBots) Run() (err error) {
 
 	offset := c.limit * c.page
 	res, err := cli.FeaturedBots(context.Background(), keybase1.FeaturedBotsArg{
-		Limit:  c.limit,
-		Offset: offset,
+		Limit:     c.limit,
+		Offset:    offset,
+		SkipCache: true,
 	})
 	if err != nil {
 		return err
