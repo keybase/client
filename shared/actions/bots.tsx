@@ -5,21 +5,23 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import logger from '../logger'
 import {RPCError} from 'util/errors'
 
+const pageSize = 100
+
 const getFeaturedBots = async (_: Container.TypedState, action: BotsGen.GetFeaturedBotsPayload) => {
   const {limit, page} = action.payload
 
   try {
     const {bots} = await RPCTypes.featuredBotFeaturedBotsRpcPromise({
-      limit: limit ?? 10,
-      offset: (page ?? 0) * (limit ?? 10),
+      limit: limit ?? pageSize,
+      offset: (page ?? 0) * (limit ?? pageSize),
       skipCache: false,
     })
-    if (!bots || bots.length == 0) {
-      // don't do anything with an empty response from rpc
-      return BotsGen.createSetLoadedAllBots({loaded: true})
-    }
+    const loadedAllBots = !bots || bots.length < pageSize
 
-    return [BotsGen.createUpdateFeaturedBots({bots, page}), BotsGen.createSetLoadedAllBots({loaded: false})]
+    return [
+      BotsGen.createUpdateFeaturedBots({bots: bots ?? [], page}),
+      BotsGen.createSetLoadedAllBots({loaded: loadedAllBots}),
+    ]
   } catch (e) {
     const err: RPCError = e
     if (Container.isNetworkErr(err.code)) {

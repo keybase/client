@@ -3328,6 +3328,95 @@ const loadNextBotPage = (state: Container.TypedState, action: Chat2Gen.LoadNextB
     page: state.chat2.featuredBotsPage + 1,
   })
 
+const refreshBotPublicCommands = async (
+  _: Container.TypedState,
+  action: Chat2Gen.RefreshBotPublicCommandsPayload
+) => {
+  let res: RPCChatTypes.ListBotCommandsLocalRes | undefined
+  try {
+    res = await RPCChatTypes.localListPublicBotCommandsLocalRpcPromise({
+      username: action.payload.username,
+    })
+  } catch (e) {
+    logger.info('refreshBotPublicCommands: failed to get public commands: ' + e.message)
+    return Chat2Gen.createSetBotPublicCommands({
+      commands: {commands: [], loadError: true},
+      username: action.payload.username,
+    })
+  }
+  const commands = (res?.commands ?? []).reduce<Array<string>>((l, c) => {
+    l.push(c.name)
+    return l
+  }, [])
+  return Chat2Gen.createSetBotPublicCommands({
+    commands: {commands, loadError: false},
+    username: action.payload.username,
+  })
+}
+
+const closeBotModal = (state: Container.TypedState, conversationIDKey: Types.ConversationIDKey) => {
+  const actions: Array<Container.TypedActions> = [RouteTreeGen.createClearModals()]
+  const meta = state.chat2.metaMap.get(conversationIDKey)
+  if (meta && meta.teamname) {
+    actions.push(TeamsGen.createGetMembers({teamname: meta.teamname}))
+  }
+  return actions
+}
+
+const addBotMember = async (state: Container.TypedState, action: Chat2Gen.AddBotMemberPayload) => {
+  const {allowCommands, allowMentions, conversationIDKey, username} = action.payload
+  try {
+    await RPCChatTypes.localAddBotMemberRpcPromise(
+      {
+        botSettings: {
+          cmds: allowCommands,
+          mentions: allowMentions,
+        },
+        convID: Types.keyToConversationID(conversationIDKey),
+        role: RPCTypes.TeamRole.restrictedbot,
+        username,
+      },
+      Constants.waitingKeyBotAdd
+    )
+  } catch (err) {
+    logger.info('addBotMember: failed to add bot member: ' + err.message)
+    return false
+  }
+  return closeBotModal(state, conversationIDKey)
+}
+
+const removeBotMember = async (state: Container.TypedState, action: Chat2Gen.RemoveBotMemberPayload) => {
+  const {conversationIDKey, username} = action.payload
+  try {
+    await RPCChatTypes.localRemoveBotMemberRpcPromise(
+      {
+        convID: Types.keyToConversationID(conversationIDKey),
+        username,
+      },
+      Constants.waitingKeyBotRemove
+    )
+  } catch (err) {
+    logger.info('removeBotMember: failed to remove bot member: ' + err.message)
+    return false
+  }
+  return closeBotModal(state, conversationIDKey)
+}
+
+const refreshBotSettings = async (_: Container.TypedState, action: Chat2Gen.RefreshBotSettingsPayload) => {
+  let settings: RPCTypes.TeamBotSettings | undefined
+  const {conversationIDKey, username} = action.payload
+  try {
+    settings = await RPCChatTypes.localGetBotMemberSettingsRpcPromise({
+      convID: Types.keyToConversationID(conversationIDKey),
+      username,
+    })
+  } catch (err) {
+    logger.info(`refreshBotSettings: failed to refresh settings for ${username}: ${err.message}`)
+    return
+  }
+  return Chat2Gen.createSetBotSettings({conversationIDKey, settings, username})
+}
+
 function* chat2Saga() {
   // Platform specific actions
   if (Container.isMobile) {
@@ -3414,6 +3503,10 @@ function* chat2Saga() {
 
   // bots
   yield* Saga.chainAction2(Chat2Gen.loadNextBotPage, loadNextBotPage)
+  yield* Saga.chainAction2(Chat2Gen.refreshBotPublicCommands, refreshBotPublicCommands)
+  yield* Saga.chainAction2(Chat2Gen.addBotMember, addBotMember)
+  yield* Saga.chainAction2(Chat2Gen.removeBotMember, removeBotMember)
+  yield* Saga.chainAction2(Chat2Gen.refreshBotSettings, refreshBotSettings)
 
   // On login lets load the untrusted inbox. This helps make some flows easier
   yield* Saga.chainAction2(ConfigGen.bootstrapStatusLoaded, startupInboxLoad)

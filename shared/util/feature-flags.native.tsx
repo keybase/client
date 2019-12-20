@@ -8,7 +8,7 @@ const featureOn = (key: keyof FeatureFlags) => features.includes(key)
 const ff: FeatureFlags = {
   admin: __DEV__,
   audioAttachments: true,
-  botUI: false,
+  botUI: true,
   chatIndexProfilingEnabled: false,
   connectThrashCheck: false,
   dbCleanEnabled: false,

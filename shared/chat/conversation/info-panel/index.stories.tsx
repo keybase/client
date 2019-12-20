@@ -188,6 +188,7 @@ const commonProps = {
     thumbs: makeThumbs(),
   },
   onBack: Sb.unexpected('onBack'),
+  onBotSelect: Sb.action('onBotSelect'),
   onHideConv: Sb.action(`onHideConv`),
   onLoadMoreBots: Sb.action(`onLoadMoreBots`),
   onSearchFeaturedBots: (username: string) => Sb.action(`onSearchFeaturedBots(${username})`),

@@ -296,6 +296,32 @@ export const userIsRoleInTeam = (
   )
 }
 
+export const userInTeam = (state: TypedState, teamname: Types.Teamname, username: string): boolean => {
+  const info = state.teams.teamNameToMembers.get(teamname) || new Map<string, Types.MemberInfo>()
+  return !!info.get(username)
+}
+
+export const userInTeamNotBotWithInfo = (
+  memberInfo: Map<string, Types.MemberInfo>,
+  username: string
+): boolean => {
+  const memb = memberInfo.get(username)
+  if (!memb) {
+    return false
+  }
+  return memb.type !== 'bot' && memb.type !== 'restrictedbot'
+}
+
+export const userRoleInTeam = (
+  state: TypedState,
+  teamname: Types.Teamname,
+  username: string
+): Types.TeamRoleType | null => {
+  const info = state.teams.teamNameToMembers.get(teamname) || new Map<string, Types.MemberInfo>()
+  const memb = info.get(username)
+  return !memb ? null : memb.type
+}
+
 export const getEmailInviteError = (state: TypedState) => state.teams.emailInviteError
 
 export const isTeamWithChosenChannels = (state: TypedState, teamname: string): boolean =>

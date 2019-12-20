@@ -59,10 +59,8 @@ func (c *CmdChatBotMemberSettings) Run() (err error) {
 	var botSettings keybase1.TeamBotSettings
 	if c.botSettings == nil {
 		botSettings, err = resolver.ChatClient.GetBotMemberSettings(context.TODO(), chat1.GetBotMemberSettingsArg{
-			TlfName:     conversationInfo.TlfName,
-			Username:    c.username,
-			MembersType: conversationInfo.MembersType,
-			TlfPublic:   conversationInfo.Visibility == keybase1.TLFVisibility_PUBLIC,
+			ConvID:   conversationInfo.Id,
+			Username: c.username,
 		})
 		if err != nil {
 			return err
