@@ -718,7 +718,7 @@ class Subprocess {
    *
    * If a file line exceeds maxLineLength, your callback will get some
    * initial chunks of maxLineLength with no trailing delimiters.  The final
-   * chunk of a line is delimiter-terminated iff the delimiter was present
+   * chunk of a line is delimiter-terminated if the delimiter was present
    * in the input.  In particular, the last line in a file always lacks a
    * delimiter -- so if a file ends on a delimiter, the final line is empty.
    *

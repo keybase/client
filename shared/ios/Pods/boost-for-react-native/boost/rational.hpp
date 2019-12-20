@@ -508,7 +508,7 @@ bool rational<IntType>::operator< (param_type i) const
     // Compare with just the quotient, since the remainder always bumps the
     // value up.  [Since q = floor(n/d), and if n/d < i then q < i, if n/d == i
     // then q == i, if n/d == i + r/d then q == i, and if n/d >= i + 1 then
-    // q >= i + 1 > i; therefore n/d < i iff q < i.]
+    // q >= i + 1 > i; therefore n/d < i if q < i.]
     return q < i;
 }
 

@@ -364,7 +364,7 @@ namespace boost{namespace icl
     //--------------------------------------------------------------------------
 
     // A binary operation - is negative (or inverting) with respect to the
-    // neutral element iff it yields the inverse element if it is applied to the 
+    // neutral element if it yields the inverse element if it is applied to the 
     // identity element:
     // 0 - x = -x
     // For a functor that wraps the inplace of op-assign version this is 

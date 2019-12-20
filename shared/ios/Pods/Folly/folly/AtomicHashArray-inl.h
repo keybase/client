@@ -271,7 +271,7 @@ AtomicHashArray<
  * erase --
  *
  *   This will attempt to erase the given key key_in if the key is found. It
- *   returns 1 iff the key was located and marked as erased, and 0 otherwise.
+ *   returns 1 if the key was located and marked as erased, and 0 otherwise.
  *
  *   Memory is not freed or reclaimed by erase, i.e. the cell containing the
  *   erased key will never be reused. If there's an associated value, we won't

@@ -1364,7 +1364,7 @@ func jsonFloatStrconvFmtPrec(f float64) (fmt byte, prec int) {
 		fmt = 'e'
 	} else {
 		fmt = 'f'
-		// set prec to 1 iff mod is 0.
+		// set prec to 1 if mod is 0.
 		//     better than using jsonIsFloatBytesB2 to check if a . or E in the float bytes.
 		// this ensures that every float has an e or .0 in it.
 		if abs <= 1 {

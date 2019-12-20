@@ -188,7 +188,7 @@ public:
     {}
 
     /**
-     * \return true iff the sets of types that the placeholders
+     * \return true if the sets of types that the placeholders
      *         bind to are the same for both arguments.
      *
      * \throws Nothing.
@@ -197,7 +197,7 @@ public:
     { return *lhs.impl.table == *rhs.impl.table; }
     
     /**
-     * \return true iff the arguments do not map to identical
+     * \return true if the arguments do not map to identical
      *         sets of types.
      *
      * \throws Nothing.

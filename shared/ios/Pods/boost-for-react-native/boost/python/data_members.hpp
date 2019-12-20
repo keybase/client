@@ -147,7 +147,7 @@ namespace detail
   // boost::python::make_getter are used to dispatch behavior.  The
   // third argument is a workaround for a CWPro8 partial ordering bug
   // with pointers to data members.  It should be convertible to
-  // mpl::true_ iff the first argument is a pointer-to-member, and
+  // mpl::true_ if the first argument is a pointer-to-member, and
   // mpl::false_ otherwise.  The fourth argument is for compilers
   // which don't support partial ordering at all and should always be
   // passed 0L.

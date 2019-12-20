@@ -217,7 +217,7 @@ func (sc *SigChain) VerifiedChainLinks(fp PGPFingerprint) (ret ChainLinks) {
 }
 
 // Bump updates the latest seqno and high skip pointers during
-// multisig posts. isHighDelegator is true iff the sig making
+// multisig posts. isHighDelegator is true if the sig making
 // causing the bump is high (e.g., for a sibkey).
 func (sc *SigChain) Bump(mt MerkleTriple, isHighDelegator bool) {
 	mt.Seqno = sc.GetLastKnownSeqno() + 1

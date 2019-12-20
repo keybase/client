@@ -304,8 +304,8 @@ public:
         unused_ = 0; // To avoid a GCC uninitialized warning.
     }
     
-    // Result operator(Arg1, ..., ArgN-1, ArgN) -- iff defaults >= 0
-    // Result operator(Arg1, ..., ArgN-1)       -- iff defaults >= 1
+    // Result operator(Arg1, ..., ArgN-1, ArgN) -- if defaults >= 0
+    // Result operator(Arg1, ..., ArgN-1)       -- if defaults >= 1
     // ...                                      -- etc
     BOOST_PP_REPEAT(BOOST_PP_INC(BOOST_LOCAL_FUNCTION_AUX_defaults),
             BOOST_LOCAL_FUNCTION_AUX_operator_call, // INC for no defaults.

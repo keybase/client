@@ -688,7 +688,7 @@ struct calculate_base_dimension_coefficients_func<false> {
     };
 };
 
-// begins_with_dimension returns true iff its first
+// begins_with_dimension returns true if its first
 // parameter is a valid iterator which yields its
 // second parameter when dereferenced.
 

@@ -230,7 +230,7 @@
     /* params or not */ \
     BOOST_LOCAL_FUNCTION_AUX_CODE_BIND_(id, typename01, decl_traits) \
     /* this code takes advantage of the template argument list/comparison */ \
-    /* operator ambiguity to declare a variable iff it hasn't already been */ \
+    /* operator ambiguity to declare a variable if it hasn't already been */ \
     /* declared in that scope; the second occurrence is parsed as: */ \
     /*  (declared<(resolve<sizeof(boost_local_auxXargs)>::cmp1<0)>::cmp2> */ \
     /*      ...Xargs); */ \

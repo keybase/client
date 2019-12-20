@@ -53,7 +53,7 @@ BOOST_HANA_NAMESPACE_BEGIN
     //! Modeled concepts
     //! ----------------
     //! 1. `Comparable`\n
-    //! Two maps are equal iff all their keys are equal and are associated
+    //! Two maps are equal if all their keys are equal and are associated
     //! to equal values.
     //! @include example/map/comparable.cpp
     //!

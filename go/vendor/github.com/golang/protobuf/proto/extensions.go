@@ -200,7 +200,7 @@ func SetRawExtension(base Message, id int32, b []byte) {
 	extmap[id] = Extension{enc: b}
 }
 
-// isExtensionField returns true iff the given field number is in an extension range.
+// isExtensionField returns true if the given field number is in an extension range.
 func isExtensionField(pb extendableProto, field int32) bool {
 	for _, er := range pb.ExtensionRangeArray() {
 		if er.Start <= field && field <= er.End {

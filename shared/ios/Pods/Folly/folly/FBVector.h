@@ -1312,7 +1312,7 @@ class fbvector {
   //
   //---------------------------------------------------------------------------
   //
-  // insert_use_fresh_memory returns true iff the fbvector should use a fresh
+  // insert_use_fresh_memory returns true if the fbvector should use a fresh
   //  block of memory for the insertion. If the fbvector does not have enough
   //  spare capacity, then it must return true. Otherwise either true or false
   //  may be returned.

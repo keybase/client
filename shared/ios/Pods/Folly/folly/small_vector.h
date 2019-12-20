@@ -576,7 +576,7 @@ class small_vector : public detail::small_vector_base<
    * but a bit more complex here.  We have to handle all combinations
    * of in-place vs. heap between this and o.
    *
-   * Basic guarantee only.  Provides the nothrow guarantee iff our
+   * Basic guarantee only.  Provides the nothrow guarantee if our
    * value_type has a nothrow move or copy constructor.
    */
   void swap(small_vector& o) {
@@ -1195,7 +1195,7 @@ FOLLY_SV_PACK_POP
 
 //////////////////////////////////////////////////////////////////////
 
-// Basic guarantee only, or provides the nothrow guarantee iff T has a
+// Basic guarantee only, or provides the nothrow guarantee if T has a
 // nothrow move or copy constructor.
 template <class T, std::size_t MaxInline, class A, class B, class C>
 void swap(

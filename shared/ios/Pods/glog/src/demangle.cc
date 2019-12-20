@@ -317,7 +317,7 @@ static bool IsFunctionCloneSuffix(const char *str) {
   return true;  // Consumed everything in "str".
 }
 
-// Append "str" with some tweaks, iff "append" state is true.
+// Append "str" with some tweaks, if "append" state is true.
 // Returns true so that it can be placed in "if" conditions.
 static void MaybeAppendWithLength(State *state, const char * const str,
                                   const int length) {

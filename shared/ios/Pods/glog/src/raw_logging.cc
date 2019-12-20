@@ -86,7 +86,7 @@ void RawLog__SetLastTime(const struct ::tm& t, int usecs) {
 
 // Helper for RawLog__ below.
 // *DoRawLog writes to *buf of *size and move them past the written portion.
-// It returns true iff there was no overflow or error.
+// It returns true if there was no overflow or error.
 static bool DoRawLog(char** buf, int* size, const char* format, ...) {
   va_list ap;
   va_start(ap, format);

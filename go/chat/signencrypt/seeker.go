@@ -46,7 +46,7 @@ func NewDecodingReadSeeker(ctx context.Context, log logger.Logger, source io.Rea
 	}
 }
 
-// getChunksFromCache returns the plaintext bytes for a set of chunks iff we have each chunk
+// getChunksFromCache returns the plaintext bytes for a set of chunks if we have each chunk
 // in our cache
 func (r *decodingReadSeeker) getChunksFromCache(chunks []chunkSpec) (res []byte, ok bool) {
 	for _, c := range chunks {

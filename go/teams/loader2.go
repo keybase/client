@@ -533,7 +533,7 @@ func (l *TeamLoader) toParentChildOperation(ctx context.Context,
 
 // Apply a new link to the sigchain state.
 // `state` is moved into this function. There must exist no live references into it from now on.
-// `signer` may be nil iff link is stubbed.
+// `signer` may be nil if link is stubbed.
 func (l *TeamLoader) applyNewLink(ctx context.Context,
 	state *keybase1.TeamData, hiddenChainState *keybase1.HiddenTeamChain, link *ChainLinkUnpacked,
 	signer *SignerX, me keybase1.UserVersion) (*keybase1.TeamData, error) {

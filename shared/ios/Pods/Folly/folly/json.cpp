@@ -637,13 +637,13 @@ size_t firstEscapableInWord(T s, const serialization_opts& opts) {
 
   // Sets the MSB of bytes < b. Precondition: b < 128.
   auto isLess = [](T w, uint8_t b) {
-    // A byte is < b iff subtracting b underflows, so we check that
+    // A byte is < b if subtracting b underflows, so we check that
     // the MSB wasn't set before and it's set after the subtraction.
     return (w - kOnes * b) & ~w & kMsbs;
   };
 
   auto isChar = [&](uint8_t c) {
-    // A byte is == c iff it is 0 if xored with c.
+    // A byte is == c if it is 0 if xored with c.
     return isLess(s ^ (kOnes * c), 1);
   };
 

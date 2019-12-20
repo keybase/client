@@ -42,17 +42,17 @@
 //
 // The trick is to find code which produces warnings containing the name of
 // a structure or variable. Details, with same numbering as above:
-// 1. static_warning_impl<B>::value is zero iff B is false, so diving an int
-//    by this value generates a warning iff B is false.
-// 2. static_warning_impl<B>::type has a constructor iff B is true, so an
-//    unreferenced variable of this type generates a warning iff B is false.
+// 1. static_warning_impl<B>::value is zero if B is false, so diving an int
+//    by this value generates a warning if B is false.
+// 2. static_warning_impl<B>::type has a constructor if B is true, so an
+//    unreferenced variable of this type generates a warning if B is false.
 // 3. static_warning_impl<B>::type overloads operator& to return a dynamically
 //    allocated int pointer only is B is true, so  returning the address of an
-//    automatic variable of this type generates a warning iff B is fasle.
-// 4. static_warning_impl<B>::STATIC_WARNING is decalred as a struct iff B is 
+//    automatic variable of this type generates a warning if B is fasle.
+// 4. static_warning_impl<B>::STATIC_WARNING is decalred as a struct if B is 
 //    false. 
-// 5. static_warning_impl<B>::type is incomplete iff B is false, so deleting a
-//    pointer to this type generates a warning iff B is false.
+// 5. static_warning_impl<B>::type is incomplete if B is false, so deleting a
+//    pointer to this type generates a warning if B is false.
 //
 
 //------------------Enable selected warnings----------------------------------//

@@ -108,7 +108,7 @@ template <typename T> struct transposed_type {
 ///        // return the vertical distance to another locator. Some models need the horizontal distance to compute it
 ///        y_coord_t         y_distance_to(const my_locator& loc2, x_coord_t xDiff) const;
 ///
-///        // return true iff incrementing an x-iterator located at the last column will position it at the first 
+///        // return true if incrementing an x-iterator located at the last column will position it at the first 
 ///        // column of the next row. Some models need the image width to determine that.
 ///        bool              is_1d_traversable(x_coord_t width) const;
 /// };

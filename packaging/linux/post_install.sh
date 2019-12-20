@@ -60,7 +60,7 @@ systemd_exec_as() {
     su --login "$user" -s "$BASH" -c "XDG_RUNTIME_DIR=$user_xdg_runtime_dir $* 2> /dev/null"
 }
 
-# Exits with 0 iff the given user is running the service with systemd
+# Exits with 0 if the given user is running the service with systemd
 systemd_unit_active_for() {
     user=$1
     service=$2
@@ -113,7 +113,7 @@ safe_restart_systemd_services() {
             fi
 
             # Mount found, abort autorestart for user if currently being used.
-            # lsof exits with zero iff there are no errors and mount is being used
+            # lsof exits with zero if there are no errors and mount is being used
             # Be slightly aggressive and restart if lsof did hit errors (e.g., if mount didn't exist)
             if lsof_output="$(systemd_exec_as "$user" "lsof $mount" 2> /dev/null)"; then
                 programs_accessing_mount="$(echo "$lsof_output" | tail -n +2 | awk '{print $1}' | tr '\n' ', ')"

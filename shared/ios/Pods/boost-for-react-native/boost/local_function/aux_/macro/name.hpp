@@ -155,7 +155,7 @@
     )(typename01, BOOST_LOCAL_FUNCTION_DETAIL_PP_KEYWORD_INLINE_REMOVE_FRONT( \
             qualified_name))
 
-// Expand to 1 iff `recursive name` or `recursive inline name` or
+// Expand to 1 if `recursive name` or `recursive inline name` or
 // `inline recursive name`.
 #define BOOST_LOCAL_FUNCTION_AUX_NAME_IS_RECURSIVE_(qualified_name) \
     BOOST_LOCAL_FUNCTION_DETAIL_PP_KEYWORD_IS_RECURSIVE_FRONT( \

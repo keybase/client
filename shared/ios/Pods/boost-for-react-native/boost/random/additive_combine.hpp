@@ -220,13 +220,13 @@ public:
     { is >> r._mlcg1 >> std::ws >> r._mlcg2; return is; }
 
     /**
-     * Returns: true iff the two @c additive_combine_engines will
+     * Returns: true if the two @c additive_combine_engines will
      * produce the same sequence of values.
      */
     BOOST_RANDOM_DETAIL_EQUALITY_OPERATOR(additive_combine_engine, x, y)
     { return x._mlcg1 == y._mlcg1 && x._mlcg2 == y._mlcg2; }
     /**
-     * Returns: true iff the two @c additive_combine_engines will
+     * Returns: true if the two @c additive_combine_engines will
      * produce different sequences of values.
      */
     BOOST_RANDOM_DETAIL_INEQUALITY_OPERATOR(additive_combine_engine)

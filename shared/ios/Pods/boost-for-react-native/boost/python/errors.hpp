@@ -20,7 +20,7 @@ struct BOOST_PYTHON_DECL_EXCEPTION error_already_set
 };
 
 // Handles exceptions caught just before returning to Python code.
-// Returns true iff an exception was caught.
+// Returns true if an exception was caught.
 BOOST_PYTHON_DECL bool handle_exception_impl(function0<void>);
 
 template <class T>

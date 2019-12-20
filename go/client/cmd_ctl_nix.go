@@ -565,7 +565,7 @@ func NewCmdCtlWantsSystemd(cl *libcmdline.CommandLine, g *libkb.GlobalContext) c
 	return cli.Command{
 		Name: "wants-systemd",
 		// no Usage to hide command
-		// returns 0 iff systemd management is wanted
+		// returns 0 if systemd management is wanted
 		Flags:        []cli.Flag{},
 		ArgumentHelp: "",
 		Action: func(c *cli.Context) {

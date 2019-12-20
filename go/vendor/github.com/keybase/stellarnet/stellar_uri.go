@@ -206,7 +206,7 @@ func newUnvalidatedURI(uri string) (*unvalidatedURI, error) {
 }
 
 func (u *unvalidatedURI) Validate(getter HTTPGetter) (*ValidatedStellarURI, error) {
-	// URIs without signatures are valid iff the origin domain is also not set
+	// URIs without signatures are valid if the origin domain is also not set
 	if u.OriginDomain == "" && u.Signature != "" {
 		return nil, ErrMissingParameter{Key: "origin_domain"}
 	}

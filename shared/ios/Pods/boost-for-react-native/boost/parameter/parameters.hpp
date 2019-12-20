@@ -233,7 +233,7 @@ namespace aux
       >
   {};
   
-  // Returns mpl::true_ iff the given ParameterRequirements are
+  // Returns mpl::true_ if the given ParameterRequirements are
   // satisfied by ArgList.
   template <class ArgList, class ParameterRequirements>
   struct satisfies

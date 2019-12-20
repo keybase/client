@@ -586,7 +586,7 @@ class LogSink;  // defined below
              << "Check failed: " #condition " "
 
 // A container for a string pointer which can be evaluated to a bool -
-// true iff the pointer is NULL.
+// true if the pointer is NULL.
 struct CheckOpString {
   CheckOpString(std::string* str) : str_(str) { }
   // No destructor: if str_ is non-NULL, we're about to LOG(FATAL),

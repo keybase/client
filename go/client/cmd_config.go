@@ -316,11 +316,11 @@ func NewCmdConfigGet(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 			},
 			cli.BoolFlag{
 				Name:  "assert-true",
-				Usage: "Returns 0 exit code iff the value is a true boolean",
+				Usage: "Returns 0 exit code if the value is a true boolean",
 			},
 			cli.BoolFlag{
 				Name:  "assert-false",
-				Usage: "Returns 0 exit code iff the value is a false boolean",
+				Usage: "Returns 0 exit code if the value is a false boolean",
 			},
 			cli.BoolFlag{
 				Name:  "assert-ok-on-nil",

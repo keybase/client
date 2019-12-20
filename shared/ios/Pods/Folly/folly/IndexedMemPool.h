@@ -294,7 +294,7 @@ struct IndexedMemPool : boost::noncopyable {
     return rv;
   }
 
-  /// Returns true iff idx has been alloc()ed and not recycleIndex()ed
+  /// Returns true if idx has been alloc()ed and not recycleIndex()ed
   bool isAllocated(uint32_t idx) const {
     return slot(idx).localNext.load(std::memory_order_acquire) == uint32_t(-1);
   }

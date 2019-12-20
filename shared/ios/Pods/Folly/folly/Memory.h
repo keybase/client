@@ -704,7 +704,7 @@ struct AllocatorHasDefaultObjectConstruct<std::allocator<Value>, T, Args...>
  * AllocatorHasDefaultObjectDestroy
  *
  * AllocatorHasDefaultObjectDestroy<A, T> unambiguously inherits
- * std::integral_constant<bool, V>, where V will be true iff the effect
+ * std::integral_constant<bool, V>, where V will be true if the effect
  * of std::allocator_traits<A>::destroy(a, p) is the same as p->~T().
  * If true then optimizations applicable to object destruction (relying
  * on std::is_trivially_destructible<T>, for example) can be applied to

@@ -2061,7 +2061,7 @@ class F14Table : public Policy {
         bucket_count());
   }
 
-  // Returns true iff a rehash was performed
+  // Returns true if a rehash was performed
   void reserveForInsert(size_t incoming = 1) {
     auto capacity = size() + incoming;
     auto bc = bucket_count();

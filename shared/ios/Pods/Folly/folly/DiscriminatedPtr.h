@@ -125,14 +125,14 @@ class DiscriminatedPtr {
   }
 
   /**
-   * Return true iff this DiscriminatedPtr is empty.
+   * Return true if this DiscriminatedPtr is empty.
    */
   bool empty() const {
     return index() == 0;
   }
 
   /**
-   * Return true iff the object pointed by this DiscriminatedPtr has type T,
+   * Return true if the object pointed by this DiscriminatedPtr has type T,
    * false otherwise.  Fails at compile time if T is not a valid type (listed
    * in Types...)
    */

@@ -87,7 +87,7 @@ class File {
   }
 
   /**
-   * Returns 'true' iff the file was successfully opened.
+   * Returns 'true' if the file was successfully opened.
    */
   explicit operator bool() const {
     return fd_ != -1;

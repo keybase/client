@@ -144,7 +144,7 @@ func (x decDriverNoopContainerReader) CheckBreak() (v bool)    { return }
 // DecodeOptions captures configuration options during decode.
 type DecodeOptions struct {
 	// MapType specifies type to use during schema-less decoding of a map in the stream.
-	// If nil (unset), we default to map[string]interface{} iff json handle and MapStringAsKey=true,
+	// If nil (unset), we default to map[string]interface{} if json handle and MapStringAsKey=true,
 	// else map[interface{}]interface{}.
 	MapType reflect.Type
 

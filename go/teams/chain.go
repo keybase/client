@@ -692,7 +692,7 @@ func (t TeamSigChainState) TeamBotSettings() map[keybase1.UserVersion]keybase1.T
 // `reader` is the user who is processing the chain.
 // `state` is moved into this function. There must exist no live references into it from now on.
 // If `state` is nil this is the first link of the chain.
-// `signer` may be nil iff link is stubbed.
+// `signer` may be nil if link is stubbed.
 func AppendChainLink(ctx context.Context, g *libkb.GlobalContext, reader keybase1.UserVersion, state *TeamSigChainState,
 	link *ChainLinkUnpacked, signer *SignerX) (res TeamSigChainState, err error) {
 	t := &teamSigchainPlayer{
@@ -760,7 +760,7 @@ type teamSigchainPlayer struct {
 
 // Add a chain link to the end.
 // `prevState` is moved into this function. There must exist no live references into it from now on.
-// `signer` may be nil iff link is stubbed.
+// `signer` may be nil if link is stubbed.
 // If `prevState` is nil this is the first chain link.
 func (t *teamSigchainPlayer) appendChainLinkHelper(
 	mctx libkb.MetaContext, prevState *TeamSigChainState, link *ChainLinkUnpacked, signer *SignerX) (

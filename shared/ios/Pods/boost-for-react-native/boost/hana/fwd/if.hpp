@@ -18,7 +18,7 @@ BOOST_HANA_NAMESPACE_BEGIN
     //! Conditionally return one of two values based on a condition.
     //! @ingroup group-Logical
     //!
-    //! Specifically, `then` is returned iff `cond` is true-valued, and
+    //! Specifically, `then` is returned if `cond` is true-valued, and
     //! `else_` is returned otherwise. Note that some `Logical` models may
     //! allow `then` and `else_` to have different types, while others may
     //! require both values to have the same type.

@@ -25,7 +25,7 @@
 
 // PUBLIC //
 
-// `checking_prefix ## tokens` expand to unary (e.g., `(1)`) iff `tokens` start
+// `checking_prefix ## tokens` expand to unary (e.g., `(1)`) if `tokens` start
 // with keyword to check.
 #define BOOST_LOCAL_FUNCTION_DETAIL_PP_KEYWORD_FACILITY_IS_FRONT( \
         tokens, checking_prefix) \
@@ -38,7 +38,7 @@
         BOOST_LOCAL_FUNCTION_DETAIL_PP_KEYWORD_FACILITY_IS_ \
     )(checking_prefix, tokens)
 
-// `token ## checking_postfix` expand to unary (e.g., `(1)`) iff `token` is the
+// `token ## checking_postfix` expand to unary (e.g., `(1)`) if `token` is the
 // keyword to check. This check only works if `token` is a single token, it
 // will always expand to 0 if token is multiple tokens (e.g., `const *this`).
 // This check will expand to 0 with no error if `token` starts with a

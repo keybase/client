@@ -44,7 +44,7 @@
         )(removing_prefix, tokens) \
     )
 
-// `is_back_macro(tokens)` is 1 iff `tokens` end with keyword to remove.
+// `is_back_macro(tokens)` is 1 if `tokens` end with keyword to remove.
 // `<keyword-to-remove> ## removing_postfix` must expand to nothing, else 0.
 #define BOOST_LOCAL_FUNCTION_DETAIL_PP_KEYWORD_FACILITY_REMOVE_BACK( \
         tokens, is_back_macro, removing_prefix) \

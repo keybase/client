@@ -318,7 +318,7 @@ struct hashed_index_node_alg<Node,hashed_unique_tag>
 
   static bool unlink_last(pointer end)
   {
-    /* returns true iff bucket is emptied */
+    /* returns true if bucket is emptied */
 
     pointer x=end->prior();
     if(x->prior()->next()==base_pointer_from(x)){
@@ -530,7 +530,7 @@ struct hashed_index_node_alg<Node,hashed_non_unique_tag>
 
   static std::pair<pointer,bool> unlink_last_group(pointer end)
   {
-    /* returns first of group true iff bucket is emptied */
+    /* returns first of group true if bucket is emptied */
 
     pointer x=end->prior();
     if(x->prior()->next()==base_pointer_from(x)){

@@ -29,7 +29,7 @@
 //==============================================================================
 
 //==============================================================================
-// `checking_prefix ## tokens` expand to unary (e.g., `(1)`) iff `tokens` start
+// `checking_prefix ## tokens` expand to unary (e.g., `(1)`) if `tokens` start
 // with keyword to check.
 //==============================================================================
 #define BOOST_PROTO_DETAILS_KEYWORD_FACILITY_IS_FRONT(T, CHECKING_PREFIX)                           \
@@ -37,7 +37,7 @@
     /**/
 
 //==============================================================================
-// `is_front_macro(tokens)` is 1 iff `tokens` start with keyword to remove.
+// `is_front_macro(tokens)` is 1 if `tokens` start with keyword to remove.
 // `removing_prefix ## <keyword-to-remove>` must expand to nothing.
 //==============================================================================
 #define BOOST_PROTO_DETAILS_KEYWORD_FACILITY_REMOVE_FRONT(TOKENS, IS_FRONT_MACRO, REMOVING_PREFIX)  \

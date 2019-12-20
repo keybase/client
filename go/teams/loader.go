@@ -612,7 +612,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	var hiddenIsFresh bool
 	var lastMerkleRoot *libkb.MerkleRoot
 
-	// hiddenResp will be nill iff we do not make the merkleLookupWithHidden
+	// hiddenResp will be nill if we do not make the merkleLookupWithHidden
 	// call. If the server does not return any hidden data, we will encode that
 	// as a non nil response whose RespType is MerkleHiddenResponseTypeNONE.
 	var hiddenResp *libkb.MerkleHiddenResponse

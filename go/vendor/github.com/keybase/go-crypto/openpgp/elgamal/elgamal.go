@@ -85,7 +85,7 @@ func Decrypt(priv *PrivateKey, c1, c2 *big.Int) (msg []byte, err error) {
 
 	// The remainder of the plaintext must be a string of non-zero random
 	// octets, followed by a 0, followed by the message.
-	//   lookingForIndex: 1 iff we are still looking for the zero.
+	//   lookingForIndex: 1 if we are still looking for the zero.
 	//   index: the offset of the first zero byte.
 	var lookingForIndex, index int
 	lookingForIndex = 1

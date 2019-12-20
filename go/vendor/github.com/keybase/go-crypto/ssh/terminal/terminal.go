@@ -63,7 +63,7 @@ type Terminal struct {
 	pos int
 	// echo is true if local echo is enabled
 	echo bool
-	// pasteActive is true iff there is a bracketed paste operation in
+	// pasteActive is true if there is a bracketed paste operation in
 	// progress.
 	pasteActive bool
 

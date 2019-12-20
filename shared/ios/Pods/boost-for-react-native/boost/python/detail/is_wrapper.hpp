@@ -18,7 +18,7 @@ namespace detail
   template <class T>
   char is_wrapper_helper(wrapper<T> const volatile*);
 
-  // A metafunction returning true iff T is [derived from] wrapper<U> 
+  // A metafunction returning true if T is [derived from] wrapper<U> 
   template <class T>
   struct is_wrapper
     : mpl::bool_<(sizeof(detail::is_wrapper_helper((T*)0)) == 1)>

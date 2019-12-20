@@ -73,7 +73,7 @@ struct TurnSequencer {
   explicit TurnSequencer(const uint32_t firstTurn = 0) noexcept
       : state_(encode(firstTurn << kTurnShift, 0)) {}
 
-  /// Returns true iff a call to waitForTurn(turn, ...) won't block
+  /// Returns true if a call to waitForTurn(turn, ...) won't block
   bool isTurn(const uint32_t turn) const noexcept {
     auto state = state_.load(std::memory_order_acquire);
     return decodeCurrentSturn(state) == (turn << kTurnShift);

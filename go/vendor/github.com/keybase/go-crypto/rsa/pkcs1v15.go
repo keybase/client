@@ -153,7 +153,7 @@ func decryptPKCS1v15(rand io.Reader, priv *PrivateKey, ciphertext []byte) (valid
 
 	// The remainder of the plaintext must be a string of non-zero random
 	// octets, followed by a 0, followed by the message.
-	//   lookingForIndex: 1 iff we are still looking for the zero.
+	//   lookingForIndex: 1 if we are still looking for the zero.
 	//   index: the offset of the first zero byte.
 	lookingForIndex := 1
 

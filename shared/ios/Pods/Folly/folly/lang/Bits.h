@@ -30,7 +30,7 @@
  *    Finds the next power of two >= x.
  *
  * isPowTwo(x)  [constexpr]
- *    return true iff x is a power of two
+ *    return true if x is a power of two
  *
  * popcount(x)
  *    return the number of 1 bits in x

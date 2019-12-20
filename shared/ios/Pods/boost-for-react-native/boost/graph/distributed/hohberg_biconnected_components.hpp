@@ -813,7 +813,7 @@ hohberg_vertex_processor<Graph>::echo_phase(Vertex alpha, const Graph& g)
          header.bicomp_length);
   }
 
-  // Compute the partition of edges such that iff two edges e1 and e2
+  // Compute the partition of edges such that if two edges e1 and e2
   // are in different subsets then M(e1) is disjoint from M(e2).
 
   // Start by putting each edge in a different partition

@@ -494,12 +494,12 @@ func (pk *PublicKey) serializeWithoutHeaders(w io.Writer) (err error) {
 	return errors.InvalidArgumentError("bad public-key algorithm")
 }
 
-// CanSign returns true iff this public key can generate signatures
+// CanSign returns true if this public key can generate signatures
 func (pk *PublicKey) CanSign() bool {
 	return pk.PubKeyAlgo != PubKeyAlgoRSAEncryptOnly && pk.PubKeyAlgo != PubKeyAlgoElGamal
 }
 
-// VerifySignature returns nil iff sig is a valid signature, made by this
+// VerifySignature returns nil if sig is a valid signature, made by this
 // public key, of the data hashed into signed. signed is mutated by this call.
 func (pk *PublicKey) VerifySignature(signed hash.Hash, sig *Signature) (err error) {
 	if !pk.CanSign() {
@@ -547,7 +547,7 @@ func (pk *PublicKey) VerifySignature(signed hash.Hash, sig *Signature) (err erro
 	}
 }
 
-// VerifySignatureV3 returns nil iff sig is a valid signature, made by this
+// VerifySignatureV3 returns nil if sig is a valid signature, made by this
 // public key, of the data hashed into signed. signed is mutated by this call.
 func (pk *PublicKey) VerifySignatureV3(signed hash.Hash, sig *SignatureV3) (err error) {
 	if !pk.CanSign() {
@@ -607,7 +607,7 @@ func keySignatureHash(pk, signed signingKey, hashFunc crypto.Hash) (h hash.Hash,
 	return
 }
 
-// VerifyKeySignature returns nil iff sig is a valid signature, made by this
+// VerifyKeySignature returns nil if sig is a valid signature, made by this
 // public key, of signed.
 func (pk *PublicKey) VerifyKeySignature(signed *PublicKey, sig *Signature) error {
 	h, err := keySignatureHash(pk, signed, sig.Hash)
@@ -651,7 +651,7 @@ func keyRevocationHash(pk signingKey, hashFunc crypto.Hash) (h hash.Hash, err er
 	return
 }
 
-// VerifyRevocationSignature returns nil iff sig is a valid signature, made by this
+// VerifyRevocationSignature returns nil if sig is a valid signature, made by this
 // public key.
 func (pk *PublicKey) VerifyRevocationSignature(sig *Signature) (err error) {
 	h, err := keyRevocationHash(pk, sig.Hash)
@@ -685,7 +685,7 @@ func userIdSignatureHash(id string, pk *PublicKey, hashFunc crypto.Hash) (h hash
 	return
 }
 
-// VerifyUserIdSignature returns nil iff sig is a valid signature, made by this
+// VerifyUserIdSignature returns nil if sig is a valid signature, made by this
 // public key, that id is the identity of pub.
 func (pk *PublicKey) VerifyUserIdSignature(id string, pub *PublicKey, sig *Signature) (err error) {
 	h, err := userIdSignatureHash(id, pub, sig.Hash)
@@ -695,7 +695,7 @@ func (pk *PublicKey) VerifyUserIdSignature(id string, pub *PublicKey, sig *Signa
 	return pk.VerifySignature(h, sig)
 }
 
-// VerifyUserIdSignatureV3 returns nil iff sig is a valid signature, made by this
+// VerifyUserIdSignatureV3 returns nil if sig is a valid signature, made by this
 // public key, that id is the identity of pub.
 func (pk *PublicKey) VerifyUserIdSignatureV3(id string, pub *PublicKey, sig *SignatureV3) (err error) {
 	h, err := userIdSignatureV3Hash(id, pub, sig.Hash)

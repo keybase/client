@@ -36,7 +36,7 @@ BOOST_HANA_NAMESPACE_BEGIN
     //! Modeled concepts
     //! ----------------
     //! 1. `Comparable`\n
-    //! Two sets are equal iff they contain the same elements, regardless of
+    //! Two sets are equal if they contain the same elements, regardless of
     //! the order.
     //! @include example/set/comparable.cpp
     //!

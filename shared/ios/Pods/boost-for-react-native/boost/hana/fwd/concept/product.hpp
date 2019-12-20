@@ -77,7 +77,7 @@ BOOST_HANA_NAMESPACE_BEGIN
     //! Refined concepts
     //! ----------------
     //! 1. `Comparable` (free model)\n
-    //! Two products `x` and `y` are equal iff they are equal element-wise,
+    //! Two products `x` and `y` are equal if they are equal element-wise,
     //! by comparing the first element before the second element.
     //! @include example/product/comparable.cpp
     //!

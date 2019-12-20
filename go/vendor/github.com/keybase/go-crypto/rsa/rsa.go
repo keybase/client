@@ -609,9 +609,9 @@ func DecryptOAEP(hash hash.Hash, random io.Reader, priv *PrivateKey, ciphertext 
 
 	// The remainder of the plaintext must be zero or more 0x00, followed
 	// by 0x01, followed by the message.
-	//   lookingForIndex: 1 iff we are still looking for the 0x01
+	//   lookingForIndex: 1 if we are still looking for the 0x01
 	//   index: the offset of the first 0x01 byte
-	//   invalid: 1 iff we saw a non-zero byte before the 0x01.
+	//   invalid: 1 if we saw a non-zero byte before the 0x01.
 	var lookingForIndex, index, invalid int
 	lookingForIndex = 1
 	rest := db[hash.Size():]

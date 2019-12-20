@@ -57,7 +57,7 @@
 //        p doesn't have an appropriate type. May assume p is non-null
 //
 //    * X::check(p)
-//        convertible to bool. True iff T(X::construct(p)) will not
+//        convertible to bool. True if T(X::construct(p)) will not
 //        throw.
 
 // Forward declarations

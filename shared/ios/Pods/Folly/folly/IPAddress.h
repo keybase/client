@@ -72,7 +72,7 @@ class IPAddress {
   }
 
  public:
-  // returns true iff the input string can be parsed as an ip-address
+  // returns true if the input string can be parsed as an ip-address
   static bool validate(StringPiece ip) noexcept;
 
   // return the V4 representation of the address, converting it from V6 to V4 if

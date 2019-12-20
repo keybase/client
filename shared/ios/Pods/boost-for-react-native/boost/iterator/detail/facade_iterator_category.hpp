@@ -54,7 +54,7 @@ struct input_output_iterator_tag
 };
 
 //
-// True iff the user has explicitly disabled writability of this
+// True if the user has explicitly disabled writability of this
 // iterator.  Pass the iterator_facade's Value parameter and its
 // nested ::reference type.
 //
@@ -110,7 +110,7 @@ struct iterator_facade_default_category
 {
 };
 
-// True iff T is convertible to an old-style iterator category.
+// True if T is convertible to an old-style iterator category.
 template <class T>
 struct is_iterator_category
   : mpl::or_<

@@ -567,7 +567,7 @@ type RawExt struct {
 type BytesExt interface {
 	// WriteExt converts a value to a []byte.
 	//
-	// Note: v is a pointer iff the registered extension type is a struct or array kind.
+	// Note: v is a pointer if the registered extension type is a struct or array kind.
 	WriteExt(v interface{}) []byte
 
 	// ReadExt updates a value from a []byte.
@@ -584,7 +584,7 @@ type InterfaceExt interface {
 	// ConvertExt converts a value into a simpler interface for easy encoding
 	// e.g. convert time.Time to int64.
 	//
-	// Note: v is a pointer iff the registered extension type is a struct or array kind.
+	// Note: v is a pointer if the registered extension type is a struct or array kind.
 	ConvertExt(v interface{}) interface{}
 
 	// UpdateExt updates a value from a simpler interface for easy decoding
@@ -1704,7 +1704,7 @@ type codecFner struct {
 
 func (c *codecFner) reset(hh Handle) {
 	bh := hh.getBasicHandle()
-	// only reset iff extensions changed or *TypeInfos changed
+	// only reset if extensions changed or *TypeInfos changed
 	var hhSame = true &&
 		c.h == bh && c.h.TypeInfos == bh.TypeInfos &&
 		len(c.h.extHandle) == len(bh.extHandle) &&

@@ -383,9 +383,9 @@ T temme_method_3_ibeta_inverse(T a, T b, T p, T q, const Policy& pol)
    // may be very skewed, these are not related by x ~ 1-x we used when
    // implementing section 3 above.  However we know that:
    //
-   //  cross < x <= 1       ; iff eta < mu
-   //          x == cross   ; iff eta == mu
-   //     0 <= x < cross    ; iff eta > mu
+   //  cross < x <= 1       ; if eta < mu
+   //          x == cross   ; if eta == mu
+   //     0 <= x < cross    ; if eta > mu
    //
    // Where cross == 1 / (1 + mu)
    // Many thanks to Prof Temme for clarifying this point.

@@ -13,12 +13,12 @@
 
 // PUBLIC //
 
-// Expand: `[ERROR_message_text] EMPTY`, EMPTY iff no pp-parsing error.
+// Expand: `[ERROR_message_text] EMPTY`, EMPTY if no pp-parsing error.
 #define BOOST_LOCAL_FUNCTION_AUX_PP_DECL_TRAITS_ERROR(decl_traits) \
     BOOST_PP_TUPLE_ELEM(BOOST_LOCAL_FUNCTION_AUX_PP_DECL_TRAITS_INDEX_MAX, \
             BOOST_LOCAL_FUNCTION_AUX_PP_DECL_TRAITS_INDEX_ERROR, decl_traits)
 
-// Expand: `[ERROR_message_text]`, EMPTY iff no pp-parsing error.
+// Expand: `[ERROR_message_text]`, EMPTY if no pp-parsing error.
 #define BOOST_LOCAL_FUNCTION_AUX_PP_DECL_TRAITS_ERROR_MSG(decl_traits) \
     BOOST_LOCAL_FUNCTION_AUX_PP_DECL_TRAITS_ERROR(decl_traits) \
     (/* expand EMPTY */)

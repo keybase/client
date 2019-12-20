@@ -66,7 +66,7 @@ struct BOOST_PYTHON_DECL registration
     PyTypeObject const* (*m_to_python_target_type)();
 
 
-    // True iff this type is a shared_ptr.  Needed for special rvalue
+    // True if this type is a shared_ptr.  Needed for special rvalue
     // from_python handling.
     const bool is_shared_ptr;
 

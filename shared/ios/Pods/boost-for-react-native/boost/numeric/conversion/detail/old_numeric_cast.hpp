@@ -158,7 +158,7 @@ namespace boost
   //    y_is_signed should be numeric_limits<Y>::is_signed
   //    y_min should be numeric_limits<Y>::min()
   //
-  //    check(x, y_min) returns true iff x < y_min without invoking comparisons
+  //    check(x, y_min) returns true if x < y_min without invoking comparisons
   //    between signed and unsigned values.
   //
   //    "poor man's partial specialization" is in use here.
@@ -191,7 +191,7 @@ namespace boost
   //            numeric_limits<X>::is_signed == numeric_limits<Y>::is_signed
   //    y_max should be numeric_limits<Y>::max()
   //
-  //    check(x, y_max) returns true iff x > y_max without invoking comparisons
+  //    check(x, y_max) returns true if x > y_max without invoking comparisons
   //    between signed and unsigned values.
   //
   //    "poor man's partial specialization" is in use here.

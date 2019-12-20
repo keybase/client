@@ -157,14 +157,14 @@ public:
     }
 
     /**
-     * Returns true iff the two distributions will produce identical
+     * Returns true if the two distributions will produce identical
      * sequences of values given equal generators.
      */
     BOOST_RANDOM_DETAIL_EQUALITY_OPERATOR(exponential_distribution, lhs, rhs)
     { return lhs._lambda == rhs._lambda; }
     
     /**
-     * Returns true iff the two distributions will produce different
+     * Returns true if the two distributions will produce different
      * sequences of values given equal generators.
      */
     BOOST_RANDOM_DETAIL_INEQUALITY_OPERATOR(exponential_distribution)

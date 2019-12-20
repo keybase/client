@@ -494,7 +494,7 @@ class fbstring_core {
     size_t ret = ml_.size_;
     if /* constexpr */ (kIsLittleEndian) {
       // We can save a couple instructions, because the category is
-      // small iff the last char, as unsigned, is <= maxSmallSize.
+      // small if the last char, as unsigned, is <= maxSmallSize.
       typedef typename std::make_unsigned<Char>::type UChar;
       auto maybeSmallSize = size_t(maxSmallSize) -
           size_t(static_cast<UChar>(small_[maxSmallSize]));

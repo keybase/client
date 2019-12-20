@@ -61,7 +61,7 @@ class IPAddressV4 {
   static constexpr size_t kMaxToFullyQualifiedSize =
       4 /*words*/ * 3 /*max chars per word*/ + 3 /*separators*/;
 
-  // returns true iff the input string can be parsed as an ipv4-address
+  // returns true if the input string can be parsed as an ipv4-address
   static bool validate(StringPiece ip) noexcept;
 
   // create an IPAddressV4 instance from a uint32_t (network byte order)

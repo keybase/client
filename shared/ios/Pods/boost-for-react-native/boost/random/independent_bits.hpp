@@ -213,13 +213,13 @@ public:
     }
 
     /**
-     * Returns: true iff the two @c independent_bits_engines will
+     * Returns: true if the two @c independent_bits_engines will
      * produce the same sequence of values.
      */
     BOOST_RANDOM_DETAIL_EQUALITY_OPERATOR(independent_bits_engine, x, y)
     { return x._base == y._base; }
     /**
-     * Returns: true iff the two @c independent_bits_engines will
+     * Returns: true if the two @c independent_bits_engines will
      * produce different sequences of values.
      */
     BOOST_RANDOM_DETAIL_INEQUALITY_OPERATOR(independent_bits_engine)

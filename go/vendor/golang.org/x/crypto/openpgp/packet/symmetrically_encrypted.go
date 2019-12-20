@@ -18,7 +18,7 @@ import (
 // encrypted contents will consist of more OpenPGP packets. See RFC 4880,
 // sections 5.7 and 5.13.
 type SymmetricallyEncrypted struct {
-	MDC      bool // true iff this is a type 18 packet and thus has an embedded MAC.
+	MDC      bool // true if this is a type 18 packet and thus has an embedded MAC.
 	contents io.Reader
 	prefix   []byte
 }

@@ -7,13 +7,13 @@
 /*
 This header defines two traits classes, both in namespace boost::math::tools.
 
-is_distribution<D>::value is true iff D has overloaded "cdf" and
+is_distribution<D>::value is true if D has overloaded "cdf" and
 "quantile" functions, plus member typedefs value_type and policy_type.  
 It's not much of a definitive test frankly,
 but if it looks like a distribution and quacks like a distribution
 then it must be a distribution.
 
-is_scaled_distribution<D>::value is true iff D is a distribution
+is_scaled_distribution<D>::value is true if D is a distribution
 as defined above, and has member functions "scale" and "location".
 
 */

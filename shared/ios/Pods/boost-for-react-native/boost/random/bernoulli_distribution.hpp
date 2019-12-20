@@ -172,14 +172,14 @@ public:
     }
 
     /**
-     * Returns true iff the two distributions will produce identical
+     * Returns true if the two distributions will produce identical
      * sequences of values given equal generators.
      */
     BOOST_RANDOM_DETAIL_EQUALITY_OPERATOR(bernoulli_distribution, lhs, rhs)
     { return lhs._p == rhs._p; }
     
     /**
-     * Returns true iff the two distributions will produce different
+     * Returns true if the two distributions will produce different
      * sequences of values given equal generators.
      */
     BOOST_RANDOM_DETAIL_INEQUALITY_OPERATOR(bernoulli_distribution)

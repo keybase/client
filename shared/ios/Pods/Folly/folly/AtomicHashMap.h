@@ -303,7 +303,7 @@ class AtomicHashMap : boost::noncopyable {
    *
    *   Erases key k from the map
    *
-   *   Returns 1 iff the key is found and erased, and 0 otherwise.
+   *   Returns 1 if the key is found and erased, and 0 otherwise.
    */
   size_type erase(key_type k);
 

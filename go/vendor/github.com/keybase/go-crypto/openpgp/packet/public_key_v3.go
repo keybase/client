@@ -182,12 +182,12 @@ func (pk *PublicKeyV3) serializeWithoutHeaders(w io.Writer) (err error) {
 	return errors.InvalidArgumentError("bad public-key algorithm")
 }
 
-// CanSign returns true iff this public key can generate signatures
+// CanSign returns true if this public key can generate signatures
 func (pk *PublicKeyV3) CanSign() bool {
 	return pk.PubKeyAlgo != PubKeyAlgoRSAEncryptOnly
 }
 
-// VerifySignatureV3 returns nil iff sig is a valid signature, made by this
+// VerifySignatureV3 returns nil if sig is a valid signature, made by this
 // public key, of the data hashed into signed. signed is mutated by this call.
 func (pk *PublicKeyV3) VerifySignatureV3(signed hash.Hash, sig *SignatureV3) (err error) {
 	if !pk.CanSign() {
@@ -221,7 +221,7 @@ func (pk *PublicKeyV3) VerifySignatureV3(signed hash.Hash, sig *SignatureV3) (er
 	panic("unreachable")
 }
 
-// VerifyUserIdSignatureV3 returns nil iff sig is a valid signature, made by this
+// VerifyUserIdSignatureV3 returns nil if sig is a valid signature, made by this
 // public key, that id is the identity of pub.
 func (pk *PublicKeyV3) VerifyUserIdSignatureV3(id string, pub *PublicKeyV3, sig *SignatureV3) (err error) {
 	h, err := userIdSignatureV3Hash(id, pk, sig.Hash)
@@ -231,7 +231,7 @@ func (pk *PublicKeyV3) VerifyUserIdSignatureV3(id string, pub *PublicKeyV3, sig 
 	return pk.VerifySignatureV3(h, sig)
 }
 
-// VerifyKeySignatureV3 returns nil iff sig is a valid signature, made by this
+// VerifyKeySignatureV3 returns nil if sig is a valid signature, made by this
 // public key, of signed.
 func (pk *PublicKeyV3) VerifyKeySignatureV3(signed *PublicKeyV3, sig *SignatureV3) (err error) {
 	h, err := keySignatureHash(pk, signed, sig.Hash)

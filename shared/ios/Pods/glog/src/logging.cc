@@ -244,7 +244,7 @@ static void GetHostName(string* hostname) {
 #endif
 }
 
-// Returns true iff terminal supports using colors in output.
+// Returns true if terminal supports using colors in output.
 static bool TerminalSupportsColor() {
   bool term_supports_color = false;
 #ifdef OS_WINDOWS
@@ -489,16 +489,16 @@ class LogDestination {
   ~LogDestination() { }
 
   // Take a log message of a particular severity and log it to stderr
-  // iff it's of a high enough severity to deserve it.
+  // if it's of a high enough severity to deserve it.
   static void MaybeLogToStderr(LogSeverity severity, const char* message,
 			       size_t len);
 
   // Take a log message of a particular severity and log it to email
-  // iff it's of a high enough severity to deserve it.
+  // if it's of a high enough severity to deserve it.
   static void MaybeLogToEmail(LogSeverity severity, const char* message,
 			      size_t len);
   // Take a log message of a particular severity and log it to a file
-  // iff the base filename is not "" (which means "don't log to me")
+  // if the base filename is not "" (which means "don't log to me")
   static void MaybeLogToLogfile(LogSeverity severity,
                                 time_t timestamp,
 				const char* message, size_t len);
