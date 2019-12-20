@@ -160,6 +160,35 @@ const EmojiIfExists = React.memo(
 )
 
 const reactComponentsForMarkdownType = {
+  Array: {
+    // basically a port of the old reactFor which we used before
+    react: (
+      arr: Array<SimpleMarkdown.SingleASTNode>,
+      output: SimpleMarkdown.Output<any>,
+      state: SimpleMarkdown.State
+    ) => {
+      var oldKey = state.key
+      var result: Array<SimpleMarkdown.ReactElements> = []
+
+      // map nestedOutput over the ast, except group any text
+      // nodes together into a single string output.
+      var lastResult: string | null = null
+      for (var i = 0; i < arr.length; i++) {
+        state.key = '' + i
+        var nodeOut = output(arr[i], state)
+        if (typeof nodeOut === 'string' && typeof lastResult === 'string') {
+          lastResult = lastResult + nodeOut
+          result[result.length - 1] = lastResult
+        } else {
+          result.push(nodeOut)
+          lastResult = nodeOut
+        }
+      }
+
+      state.key = oldKey
+      return result
+    },
+  },
   // On mobile we can't have raw text without a Text tag. So we make sure we are in a paragraph or we return a new text tag. If it's not mobile we can short circuit and just return the string
   blockQuote: {
     react: (
@@ -258,11 +287,11 @@ const reactComponentsForMarkdownType = {
   newline: {
     react: (
       _node: SimpleMarkdown.SingleASTNode,
-      _output: SimpleMarkdown.ReactOutput,
+      output: SimpleMarkdown.ReactOutput,
       state: SimpleMarkdown.State
     ) =>
       !Styles.isMobile || state.inParagraph ? (
-        '\n'
+        output({content: '\n', type: 'text'}, state)
       ) : (
         <Text
           type="Body"
@@ -328,22 +357,26 @@ const reactComponentsForMarkdownType = {
 const passthroughForMarkdownType = Object.keys(reactComponentsForMarkdownType).reduce<{
   [key: string]: SimpleMarkdown.ReactOutputRule
 }>((obj, k) => {
-  obj[k] = {
-    react: (
-      node: SimpleMarkdown.SingleASTNode,
-      output: SimpleMarkdown.ReactOutput,
-      state: SimpleMarkdown.State
-    ) =>
-      typeof node.content !== 'object'
-        ? SimpleMarkdown.defaultRules.text.react({content: node.content, type: 'text'}, output, state)
-        : output(node.content, state),
+  // keep special Array type
+  if (k === 'Array') {
+    obj[k] = reactComponentsForMarkdownType[k]
+  } else {
+    obj[k] = {
+      react: (
+        node: SimpleMarkdown.SingleASTNode,
+        output: SimpleMarkdown.ReactOutput,
+        state: SimpleMarkdown.State
+      ) =>
+        typeof node.content !== 'object'
+          ? SimpleMarkdown.defaultRules.text.react({content: node.content, type: 'text'}, output, state)
+          : output(node.content, state),
+    }
   }
   return obj
 }, {})
 
 const bigEmojiOutput: SimpleMarkdown.Output<any> = SimpleMarkdown.outputFor(
   {
-    Array: SimpleMarkdown.defaultRules.Array,
     ...reactComponentsForMarkdownType,
     emoji: {
       react: (
