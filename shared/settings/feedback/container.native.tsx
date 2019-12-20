@@ -21,9 +21,7 @@ export type Props = {
   feedback: string
   loggedOut: boolean
   push: Object
-  onBack: () => void
   status: Object
-  title: string
 }
 
 const nativeBridge = NativeModules.KeybaseEngine
@@ -105,7 +103,6 @@ class FeedbackContainer extends React.Component<Props, State> {
   render() {
     return (
       <Kb.Box2 direction="vertical" fullWidth={true}>
-        <Kb.HeaderHocHeader onBack={this.props.onBack} title={this.props.title} />
         <Feedback
           onSendFeedback={this._onSendFeedback}
           sending={this.state.sending}
@@ -138,14 +135,11 @@ const connected = Container.connect(
       version,
     },
   }),
-  dispatch => ({
-    onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-  }),
+  () => ({}),
   (s, d, o: OwnProps) => ({
     ...s,
     ...d,
     feedback: Container.getRouteProps(o, 'feedback', ''),
-    title: Container.getRouteProps(o, 'heading', 'Feedback'),
   })
 )(FeedbackContainer)
 
