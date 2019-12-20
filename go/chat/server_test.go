@@ -7113,12 +7113,10 @@ func TestTeamBotSettings(t *testing.T) {
 				Triggers: []string{"HI"},
 			}
 			err = ctc.as(t, users[0]).chatLocalHandler().AddBotMember(tc.startCtx, chat1.AddBotMemberArg{
-				TlfName:     created.TlfName,
+				ConvID:      created.Id,
 				Username:    botua.Username,
 				Role:        keybase1.TeamRole_RESTRICTEDBOT,
 				BotSettings: &botSettings,
-				MembersType: mt,
-				TlfPublic:   created.Visibility == keybase1.TLFVisibility_PUBLIC,
 			})
 			require.NoError(t, err)
 			pollForSeqno(3)
@@ -7146,12 +7144,10 @@ func TestTeamBotSettings(t *testing.T) {
 				Mentions: true,
 			}
 			err = ctc.as(t, users[0]).chatLocalHandler().AddBotMember(tc.startCtx, chat1.AddBotMemberArg{
-				TlfName:     created.TlfName,
+				ConvID:      created.Id,
 				Username:    botua2.Username,
 				Role:        keybase1.TeamRole_RESTRICTEDBOT,
 				BotSettings: &botSettings2,
-				MembersType: mt,
-				TlfPublic:   created.Visibility == keybase1.TLFVisibility_PUBLIC,
 			})
 			require.NoError(t, err)
 			pollForSeqno(5)
@@ -7329,10 +7325,8 @@ func TestTeamBotSettings(t *testing.T) {
 			require.NoError(t, err)
 
 			actualBotSettings, err := ctc.as(t, users[0]).chatLocalHandler().GetBotMemberSettings(tc.startCtx, chat1.GetBotMemberSettingsArg{
-				TlfName:     created.TlfName,
-				Username:    botua.Username,
-				MembersType: mt,
-				TlfPublic:   created.Visibility == keybase1.TLFVisibility_PUBLIC,
+				ConvID:   created.Id,
+				Username: botua.Username,
 			})
 			require.NoError(t, err)
 			require.Equal(t, botSettings, actualBotSettings)
@@ -7448,17 +7442,13 @@ func TestTeamBotSettings(t *testing.T) {
 
 			// remove both bots.
 			err = ctc.as(t, users[0]).chatLocalHandler().RemoveBotMember(tc.startCtx, chat1.RemoveBotMemberArg{
-				TlfName:     created.TlfName,
-				Username:    botua.Username,
-				MembersType: mt,
-				TlfPublic:   created.Visibility == keybase1.TLFVisibility_PUBLIC,
+				ConvID:   created.Id,
+				Username: botua.Username,
 			})
 			require.NoError(t, err)
 			err = ctc.as(t, users[0]).chatLocalHandler().RemoveBotMember(tc.startCtx, chat1.RemoveBotMemberArg{
-				TlfName:     created.TlfName,
-				Username:    botua2.Username,
-				MembersType: mt,
-				TlfPublic:   created.Visibility == keybase1.TLFVisibility_PUBLIC,
+				ConvID:   created.Id,
+				Username: botua2.Username,
 			})
 			require.NoError(t, err)
 			team, err := teams.Load(ctx, tc.m.G(), keybase1.LoadTeamArg{
