@@ -48,7 +48,9 @@ const _ReallyLeaveTeam = (props: Props) => {
     <ConfirmModal
       error={props.error}
       confirmText="Leave team"
-      description={`You will lose access to all the ${props.name} chats and folders${!props.open ? ', and you won’t be able to get back unless an admin invites you' : ''}.`}
+      description={`You will lose access to all the ${props.name} chats and folders${
+        !props.open ? ', and you won’t be able to get back unless an admin invites you' : ''
+      }.`}
       header={<Header {...props} />}
       onCancel={props.onBack}
       onConfirm={props.onLeave}
