@@ -1855,6 +1855,23 @@ type Observer interface {
 	TlfHandleChange(ctx context.Context, newHandle *tlfhandle.Handle)
 }
 
+// SyncedTlfObserver can be notified when a sync has started for a
+// synced TLF, or when a TLF becomes unsynced.  The notification
+// callbacks should not block, or make any calls to the Notifier
+// interface.
+type SyncedTlfObserver interface {
+	// FullSyncStarted announces that a new full sync has begun for
+	// the given tlf ID.  The provided `waitCh` will be completed (or
+	// canceled) once `waitCh` is closed.
+	FullSyncStarted(
+		ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision,
+		waitCh <-chan struct{})
+	// SyncModeChanged announces that the sync mode has changed for
+	// the given tlf ID.
+	SyncModeChanged(
+		ctx context.Context, tlfID tlf.ID, newMode keybase1.FolderSyncMode)
+}
+
 // Notifier notifies registrants of directory changes
 type Notifier interface {
 	// RegisterForChanges declares that the given Observer wants to
@@ -1864,6 +1881,14 @@ type Notifier interface {
 	// longer wants to subscribe to updates for the given top-level
 	// folders.
 	UnregisterFromChanges(folderBranches []data.FolderBranch, obs Observer) error
+	// RegisterForSyncedTlfs declares that the given
+	// `SyncedTlfObserver` wants to subscribe to updates about synced
+	// TLFs.
+	RegisterForSyncedTlfs(obs SyncedTlfObserver) error
+	// UnregisterFromChanges declares that the given
+	// `SyncedTlfObserver` no longer wants to subscribe to updates
+	// about synced TLFs.
+	UnregisterFromSyncedTlfs(obs SyncedTlfObserver) error
 }
 
 // Clock is an interface for getting the current time

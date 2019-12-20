@@ -121,7 +121,7 @@ class AccountSettings extends React.Component<SettingsProps> {
             </Kb.Box2>
             <Divider />
             <Kb.Box2 direction="vertical" gap="tiny" style={styles.section} fullWidth={true}>
-              <Kb.Text type="BodySmallSemibold">Secret Key</Kb.Text>
+              <Kb.Text type="BodySmallSemibold">Secret key</Kb.Text>
               {!props.thisDeviceIsLockedOut ? (
                 <>
                   <Kb.Banner color="yellow" inline={true}>
