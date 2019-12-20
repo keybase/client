@@ -238,6 +238,7 @@
     "@types/react-list": "0.8.5",
     "@types/react-measure": "2.0.5",
     "@types/react-native": "0.60.25",
+    "@types/react-native-video": "3.1.5",
     "@types/react-navigation": "3.4.0",
     "@types/react-transition-group": "4.2.3",
     "@types/react-virtualized-auto-sizer": "1.0.0",
