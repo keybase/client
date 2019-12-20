@@ -72,7 +72,7 @@ const styles = Styles.styleSheetCreate(
         isMobile: {marginRight: Styles.globalMargins.small},
       }),
       container: {
-        paddingTop: Styles.globalMargins.tiny,
+        paddingTop: Styles.globalMargins.small,
       },
       row: {
         alignItems: 'center',
@@ -87,9 +87,6 @@ const styles = Styles.styleSheetCreate(
         },
         isElectron: {
           ...Styles.desktopStyles.clickable,
-        },
-        isMobile: {
-          minHeight: 56,
         },
       }),
     } as const)
