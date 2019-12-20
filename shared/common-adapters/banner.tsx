@@ -190,12 +190,12 @@ const styles = Styles.styleSheetCreate(
           paddingTop: Styles.globalMargins.tiny,
         },
         isElectron: {
-          paddingLeft: Styles.globalMargins.xlarge,
-          paddingRight: Styles.globalMargins.xlarge,
-        },
-        isMobile: {
           paddingLeft: Styles.globalMargins.medium,
           paddingRight: Styles.globalMargins.medium,
+        },
+        isMobile: {
+          paddingLeft: Styles.globalMargins.small,
+          paddingRight: Styles.globalMargins.small,
         },
       }),
       underline: Styles.platformStyles({
