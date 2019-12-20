@@ -358,6 +358,12 @@ func (idx *Indexer) hasPriority(ctx context.Context, convID chat1.ConversationID
 
 func (idx *Indexer) Add(ctx context.Context, convID chat1.ConversationID,
 	msgs []chat1.MessageUnboxed) (err error) {
+	idx.Lock()
+	if !idx.started {
+		idx.Unlock()
+		return nil
+	}
+	idx.Unlock()
 	return idx.add(ctx, convID, msgs, false)
 }
 
@@ -382,6 +388,12 @@ func (idx *Indexer) add(ctx context.Context, convID chat1.ConversationID,
 
 func (idx *Indexer) Remove(ctx context.Context, convID chat1.ConversationID,
 	msgs []chat1.MessageUnboxed) (err error) {
+	idx.Lock()
+	if !idx.started {
+		idx.Unlock()
+		return nil
+	}
+	idx.Unlock()
 	return idx.remove(ctx, convID, msgs, false)
 }
 
