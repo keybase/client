@@ -163,15 +163,17 @@ const InstallBotPopup = (props: Props) => {
       }}
       footer={{
         content: (
-          <Kb.Box2 direction="vertical" gap="tiny">
-            <Kb.WaitingButton
-              fullWidth={true}
-              label={buttonText}
-              onClick={buttonClick}
-              mode="Primary"
-              type="Default"
-              waitingKey={buttonWaitingKey}
-            />
+          <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
+            <Kb.Box2 direction="horizontal" fullWidth={true}>
+              <Kb.WaitingButton
+                fullWidth={true}
+                label={buttonText}
+                onClick={buttonClick}
+                mode="Primary"
+                type="Default"
+                waitingKey={buttonWaitingKey}
+              />
+            </Kb.Box2>
             {!!error && (
               <Kb.Text type="Body" style={{color: Styles.globalColors.redDark}}>
                 {'Something went wrong! Please try again, or send '}
