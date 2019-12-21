@@ -277,17 +277,18 @@ func (h *AccountHandler) TimeTravelReset(ctx context.Context, arg keybase1.TimeT
 	return err
 }
 
-func (h *AccountHandler) UserGetContactSettings(ctx context.Context) (ret keybase1.ContactSettings, err error) {
+func (h *AccountHandler) UserGetContactSettings(ctx context.Context) (res keybase1.ContactSettings, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.TraceTimed("AccountHandler#UserGetContactSettings", func() error { return err })()
-	res, err := libkb.GetContactSettings(mctx)
-	/*for _, team := range res.Teams {
+	res, err = libkb.GetContactSettings(mctx)
+	for i, team := range res.Teams {
 		name, err := teams.ResolveIDToName(mctx.Ctx(), mctx.G(), *team.TeamID)
 		if err != nil {
-
+			return res, fmt.Errorf("Unexpected error resolving team ID (%v) to name", team.TeamID)
 		}
-		team.TeamName = name
-	}*/
+		nameStr := name.String()
+		res.Teams[i].TeamName = &nameStr
+	}
 	return res, err
 }
 
@@ -306,16 +307,16 @@ func (h *AccountHandler) UserSetContactSettings(ctx context.Context, arg keybase
 			// resolve team name
 			tid, err := teams.GetTeamIDByNameRPC(mctx, *team.TeamName)
 			if err != nil {
-				return errors.New(fmt.Sprintf("Failed to get team ID from team name %v", team.TeamName))
+				return fmt.Errorf("Failed to get team ID from team name %v", team.TeamName)
 			}
 			if team.TeamID != nil && *team.TeamID != tid {
-				return errors.New(fmt.Sprintf("Resolved team ID from team name (%v) %v != passed in team ID %v", team.TeamName, tid, team.TeamID))
+				return fmt.Errorf("Resolved team ID from team name (%v) %v != passed in team ID %v", team.TeamName, tid, team.TeamID)
 			}
 			team.TeamID = &tid
 			team.TeamName = nil
 		}
 		if team.TeamID == nil || team.TeamName != nil {
-			return errors.New(fmt.Sprintf("Bad team contact setting; team ID must != nil and team name must == nil: %+v", team))
+			return fmt.Errorf("Unexpected team contact setting; team ID must != nil and team name must == nil: %+v", team)
 		}
 		teamsArg = append(teamsArg, team)
 	}
