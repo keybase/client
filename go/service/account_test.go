@@ -1,7 +1,6 @@
 package service
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/keybase/client/go/engine"
@@ -91,7 +90,6 @@ func TestContactSettingsAPI(t *testing.T) {
 
 	teamName := user.Username + "t"
 	teamID, err := teams.CreateRootTeam(ctx, tc.G, teamName, keybase1.TeamSettings{})
-	fmt.Printf("_____teamname = %+v, teamID = %+v\n", teamName, teamID)
 	require.NoError(t, err)
 	require.NotNil(t, teamID)
 
@@ -100,7 +98,7 @@ func TestContactSettingsAPI(t *testing.T) {
 	require.NoError(t, err)
 
 	// set with bad TeamContactSettings; should skip
-	err = handler.UserSetContactSettings(ctx, keybase1.ContactSettings{
+	settings := keybase1.ContactSettings{
 		Enabled:              true,
 		AllowGoodTeams:       true,
 		AllowFolloweeDegrees: 2,
@@ -108,19 +106,20 @@ func TestContactSettingsAPI(t *testing.T) {
 			{
 				Enabled: true,
 			}},
-	})
+	}
+	expectedSettings := settings
+	expectedSettings.Teams = nil
+	err = handler.UserSetContactSettings(ctx, settings)
 	require.NoError(t, err)
 
 	// get
 	res, err = handler.UserGetContactSettings(ctx)
 	require.NoError(t, err)
-	require.Equal(t, true, res.Enabled)
-	require.Equal(t, true, res.AllowGoodTeams)
-	require.Equal(t, 2, res.AllowFolloweeDegrees)
-	require.Equal(t, 0, len(res.Teams))
+	res.Version = nil
+	require.Equal(t, expectedSettings, res)
 
 	// set
-	err = handler.UserSetContactSettings(ctx, keybase1.ContactSettings{
+	settings = keybase1.ContactSettings{
 		Enabled:              true,
 		AllowGoodTeams:       true,
 		AllowFolloweeDegrees: 2,
@@ -128,22 +127,20 @@ func TestContactSettingsAPI(t *testing.T) {
 			{TeamID: teamID,
 				Enabled: true,
 			}},
-	})
+	}
+	expectedSettings = settings
+	expectedSettings.Teams[0].TeamName = &teamName
+	err = handler.UserSetContactSettings(ctx, settings)
 	require.NoError(t, err)
 
 	// get
 	res, err = handler.UserGetContactSettings(ctx)
 	require.NoError(t, err)
-	require.Equal(t, true, res.Enabled)
-	require.Equal(t, true, res.AllowGoodTeams)
-	require.Equal(t, 2, res.AllowFolloweeDegrees)
-	require.Equal(t, 1, len(res.Teams))
-	require.Equal(t, teamID, res.Teams[0].TeamID)
-	require.Nil(t, res.Teams[0].TeamName)
-	require.Equal(t, true, res.Teams[0].Enabled)
+	res.Version = nil
+	require.Equal(t, expectedSettings, res)
 
 	// set with team name
-	err = handler.UserSetContactSettings(ctx, keybase1.ContactSettings{
+	settings = keybase1.ContactSettings{
 		Enabled:              true,
 		AllowGoodTeams:       true,
 		AllowFolloweeDegrees: 2,
@@ -151,30 +148,44 @@ func TestContactSettingsAPI(t *testing.T) {
 			{TeamName: &teamName,
 				Enabled: true,
 			}},
-	})
-	require.NoError(t, err)
-
-	err = handler.UserSetContactSettings(ctx, keybase1.ContactSettings{
-		Enabled:              true,
-		AllowGoodTeams:       true,
-		AllowFolloweeDegrees: 2,
-		Teams: []keybase1.TeamContactSettings{
-			{TeamName: &teamName,
-				Enabled: true,
-			}},
-	})
+	}
+	expectedSettings = settings
+	expectedSettings.Teams[0].TeamID = teamID
+	err = handler.UserSetContactSettings(ctx, settings)
 	require.NoError(t, err)
 
 	// get
 	res, err = handler.UserGetContactSettings(ctx)
 	require.NoError(t, err)
-	require.Equal(t, true, res.Enabled)
-	require.Equal(t, true, res.AllowGoodTeams)
-	require.Equal(t, 2, res.AllowFolloweeDegrees)
-	require.Equal(t, 1, len(res.Teams))
-	require.Equal(t, teamID, res.Teams[0].TeamID)
-	require.Nil(t, res.Teams[0].TeamName)
-	require.Equal(t, true, res.Teams[0].Enabled)
+	res.Version = nil
+	require.Equal(t, expectedSettings, res)
+}
+
+func TestContactSettingsAPIBadInputs(t *testing.T) {
+	tc := libkb.SetupTest(t, "cset", 3)
+	defer tc.Cleanup()
+
+	// setup
+	user, err := kbtest.CreateAndSignupFakeUser("cset", tc.G)
+	require.NoError(t, err)
+
+	handler := NewAccountHandler(nil, tc.G)
+	ctx := context.Background()
+
+	teamName := user.Username + "t"
+	teamID, err := teams.CreateRootTeam(ctx, tc.G, teamName, keybase1.TeamSettings{})
+	require.NoError(t, err)
+	require.NotNil(t, teamID)
+
+	// set enabled=true, allowFolloweeDegrees>2
+	settings := keybase1.ContactSettings{
+		Enabled:              true,
+		AllowGoodTeams:       true,
+		AllowFolloweeDegrees: 3,
+		Teams:                nil,
+	}
+	err = handler.UserSetContactSettings(ctx, settings)
+	require.Error(t, err)
 }
 
 func TestCancelReset(t *testing.T) {

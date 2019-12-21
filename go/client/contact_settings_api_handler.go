@@ -81,13 +81,7 @@ func (t *contactSettingsAPIHandler) set(ctx context.Context, c Call, w io.Writer
 		return t.encodeErr(c, err, w)
 	}
 
-	arg := keybase1.ContactSettings{
-		Enabled:              opts.Settings.Enabled,
-		AllowGoodTeams:       opts.Settings.AllowGoodTeams,
-		AllowFolloweeDegrees: opts.Settings.AllowFolloweeDegrees,
-		Teams:                opts.Settings.Teams,
-	}
-	err := t.cli.UserSetContactSettings(ctx, arg)
+	err := t.cli.UserSetContactSettings(ctx, opts.Settings)
 	if err != nil {
 		return t.encodeErr(c, err, w)
 	}

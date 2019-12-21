@@ -1,9 +1,0 @@
-_____teamname = cset_d24f24c619t, teamID = 182d77901baf22a9e4647761a9000224
->>>>>>>>>>>>>>>>> arg.Teams = []
->>>>>>>>>>>>>>>>> arg.Teams = [{TeamID:182d77901baf22a9e4647761a9000224 TeamName:<nil> Enabled:true}]
->>>>>>>>>>>>>>>>> teamname = 0xc003ebb700, tid = 182d77901baf22a9e4647761a9000224
->>>>>>>>>>>>>>>>> arg.Teams = [{TeamID:182d77901baf22a9e4647761a9000224 TeamName:<nil> Enabled:true}]
->>>>>>>>>>>>>>>>> teamname = 0xc003ebb700, tid = 182d77901baf22a9e4647761a9000224
->>>>>>>>>>>>>>>>> arg.Teams = [{TeamID:182d77901baf22a9e4647761a9000224 TeamName:<nil> Enabled:true}]
-PASS
-ok  	github.com/keybase/client/go/service	1.120s
