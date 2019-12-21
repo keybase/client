@@ -93,12 +93,7 @@ const EmailPhone = (props: Props) => (
     )}
     <Kb.ButtonBar align="flex-start" style={styles.buttonBar}>
       <AddButton onClick={props.onAddEmail} kind="email" disabled={props.tooManyEmails} />
-      <AddButton
-        onClick={props.onAddPhone}
-        kind="phone number"
-        disabled={props.tooManyPhones}
-        waitingKey={Constants.showPhoneNumberInputWaitingKey}
-      />
+      <AddButton onClick={props.onAddPhone} kind="phone number" disabled={props.tooManyPhones} />
     </Kb.ButtonBar>
   </SettingsSection>
 )

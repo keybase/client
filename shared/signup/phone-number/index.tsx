@@ -2,6 +2,8 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Platform from '../../constants/platform'
+import * as Container from '../../util/container'
+import * as SettingsGen from '../../actions/settings-gen'
 import {SignupScreen, errorBanner} from '../common'
 import PhoneInput from './phone-input'
 import {ButtonType} from '../../common-adapters/button'
@@ -15,6 +17,13 @@ export type Props = {
 }
 
 const EnterPhoneNumber = (props: Props) => {
+  // trigger a default phone number country rpc if it's not already loaded
+  const {defaultCountry} = props
+  const dispatch = Container.useDispatch()
+  React.useEffect(() => {
+    defaultCountry === '' && dispatch(SettingsGen.createLoadDefaultPhoneNumberCountry())
+  }, [defaultCountry, dispatch])
+
   const [phoneNumber, onChangePhoneNumber] = React.useState('')
   const [valid, onChangeValidity] = React.useState(false)
   // const [searchable, onChangeSearchable] = React.useState(true)

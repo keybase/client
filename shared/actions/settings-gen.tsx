@@ -33,6 +33,7 @@ export const invitesRefreshed = 'settings:invitesRefreshed'
 export const invitesSend = 'settings:invitesSend'
 export const invitesSent = 'settings:invitesSent'
 export const loadContactImportEnabled = 'settings:loadContactImportEnabled'
+export const loadDefaultPhoneNumberCountry = 'settings:loadDefaultPhoneNumberCountry'
 export const loadHasRandomPw = 'settings:loadHasRandomPw'
 export const loadLockdownMode = 'settings:loadLockdownMode'
 export const loadProxyData = 'settings:loadProxyData'
@@ -64,7 +65,6 @@ export const onUpdateEmailError = 'settings:onUpdateEmailError'
 export const onUpdatePGPSettings = 'settings:onUpdatePGPSettings'
 export const onUpdatePasswordError = 'settings:onUpdatePasswordError'
 export const onUpdatedPGPSettings = 'settings:onUpdatedPGPSettings'
-export const openAddPhoneNumberModal = 'settings:openAddPhoneNumberModal'
 export const processorProfile = 'settings:processorProfile'
 export const requestContactPermissions = 'settings:requestContactPermissions'
 export const resendVerificationForPhoneNumber = 'settings:resendVerificationForPhoneNumber'
@@ -121,6 +121,7 @@ type _InvitesRefreshedPayload = {readonly invites: Types.InvitesState}
 type _InvitesSendPayload = {readonly email: string; readonly message?: string}
 type _InvitesSentPayload = {readonly error?: Error}
 type _LoadContactImportEnabledPayload = void
+type _LoadDefaultPhoneNumberCountryPayload = void
 type _LoadHasRandomPwPayload = void
 type _LoadLockdownModePayload = void
 type _LoadProxyDataPayload = void
@@ -155,7 +156,6 @@ type _OnUpdateEmailErrorPayload = {readonly error: Error}
 type _OnUpdatePGPSettingsPayload = void
 type _OnUpdatePasswordErrorPayload = {readonly error: Error}
 type _OnUpdatedPGPSettingsPayload = {readonly hasKeys: boolean}
-type _OpenAddPhoneNumberModalPayload = void
 type _ProcessorProfilePayload = {readonly durationSeconds: number}
 type _RequestContactPermissionsPayload = {
   readonly thenToggleImportOn?: boolean
@@ -181,7 +181,7 @@ type _UnfurlSettingsRefreshedPayload = {
   readonly whitelist: Array<string>
 }
 type _UnfurlSettingsSavedPayload = {readonly mode: RPCChatTypes.UnfurlMode; readonly whitelist: Array<string>}
-type _UpdateDefaultPhoneNumberCountryPayload = {readonly country: string; readonly openModal?: boolean}
+type _UpdateDefaultPhoneNumberCountryPayload = {readonly country: string}
 type _VerifiedPhoneNumberPayload = {readonly error?: string; readonly phoneNumber: string}
 type _VerifyPhoneNumberPayload = {readonly phoneNumber: string; readonly code: string}
 
@@ -343,6 +343,9 @@ export const createInvitesSent = (payload: _InvitesSentPayload = Object.freeze({
   payload,
   type: invitesSent,
 })
+export const createLoadDefaultPhoneNumberCountry = (
+  payload: _LoadDefaultPhoneNumberCountryPayload
+): LoadDefaultPhoneNumberCountryPayload => ({payload, type: loadDefaultPhoneNumberCountry})
 export const createLoadHasRandomPw = (payload: _LoadHasRandomPwPayload): LoadHasRandomPwPayload => ({
   payload,
   type: loadHasRandomPw,
@@ -446,9 +449,6 @@ export const createOnUpdatePasswordError = (
 export const createOnUpdatedPGPSettings = (
   payload: _OnUpdatedPGPSettingsPayload
 ): OnUpdatedPGPSettingsPayload => ({payload, type: onUpdatedPGPSettings})
-export const createOpenAddPhoneNumberModal = (
-  payload: _OpenAddPhoneNumberModalPayload
-): OpenAddPhoneNumberModalPayload => ({payload, type: openAddPhoneNumberModal})
 export const createProcessorProfile = (payload: _ProcessorProfilePayload): ProcessorProfilePayload => ({
   payload,
   type: processorProfile,
@@ -563,6 +563,10 @@ export type InvitesSentPayload = {readonly payload: _InvitesSentPayload; readonl
 export type LoadContactImportEnabledPayload = {
   readonly payload: _LoadContactImportEnabledPayload
   readonly type: typeof loadContactImportEnabled
+}
+export type LoadDefaultPhoneNumberCountryPayload = {
+  readonly payload: _LoadDefaultPhoneNumberCountryPayload
+  readonly type: typeof loadDefaultPhoneNumberCountry
 }
 export type LoadHasRandomPwPayload = {
   readonly payload: _LoadHasRandomPwPayload
@@ -685,10 +689,6 @@ export type OnUpdatedPGPSettingsPayload = {
   readonly payload: _OnUpdatedPGPSettingsPayload
   readonly type: typeof onUpdatedPGPSettings
 }
-export type OpenAddPhoneNumberModalPayload = {
-  readonly payload: _OpenAddPhoneNumberModalPayload
-  readonly type: typeof openAddPhoneNumberModal
-}
 export type ProcessorProfilePayload = {
   readonly payload: _ProcessorProfilePayload
   readonly type: typeof processorProfile
@@ -782,6 +782,7 @@ export type Actions =
   | InvitesSendPayload
   | InvitesSentPayload
   | LoadContactImportEnabledPayload
+  | LoadDefaultPhoneNumberCountryPayload
   | LoadHasRandomPwPayload
   | LoadLockdownModePayload
   | LoadProxyDataPayload
@@ -813,7 +814,6 @@ export type Actions =
   | OnUpdatePGPSettingsPayload
   | OnUpdatePasswordErrorPayload
   | OnUpdatedPGPSettingsPayload
-  | OpenAddPhoneNumberModalPayload
   | ProcessorProfilePayload
   | RequestContactPermissionsPayload
   | ResendVerificationForPhoneNumberPayload

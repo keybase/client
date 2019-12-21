@@ -809,8 +809,8 @@ export type TypedActionsMap = {
   'settings:saveProxyData': settings.SaveProxyDataPayload
   'settings:certificatePinningToggled': settings.CertificatePinningToggledPayload
   'settings:toggleRuntimeStats': settings.ToggleRuntimeStatsPayload
+  'settings:loadDefaultPhoneNumberCountry': settings.LoadDefaultPhoneNumberCountryPayload
   'settings:updateDefaultPhoneNumberCountry': settings.UpdateDefaultPhoneNumberCountryPayload
-  'settings:openAddPhoneNumberModal': settings.OpenAddPhoneNumberModalPayload
   'settings:loginBrowserViaWebAuthToken': settings.LoginBrowserViaWebAuthTokenPayload
   'signup:goBackAndClearErrors': signup.GoBackAndClearErrorsPayload
   'signup:requestAutoInvite': signup.RequestAutoInvitePayload
@@ -828,7 +828,6 @@ export type TypedActionsMap = {
   'signup:checkedDevicename': signup.CheckedDevicenamePayload
   'signup:setJustSignedUpEmail': signup.SetJustSignedUpEmailPayload
   'signup:clearJustSignedUpEmail': signup.ClearJustSignedUpEmailPayload
-  'signup:preparePhoneNumberPrompt': signup.PreparePhoneNumberPromptPayload
   'team-building:fetchedUserRecs': teambuilding.FetchedUserRecsPayload
   'team-building:fetchUserRecs': teambuilding.FetchUserRecsPayload
   'team-building:finishTeamBuilding': teambuilding.FinishTeamBuildingPayload

@@ -428,28 +428,18 @@ const editPhone = async (action: SettingsGen.EditPhonePayload, logger: Saga.Saga
     logger.warn('Empty editPhone action')
   }
 }
-const openAddPhoneNumberModal = async (state: TypedState) => {
-  // Skip the check if we have just signed up.
-  if (state.settings.phoneNumbers.defaultCountry) {
-    return RouteTreeGen.createNavigateAppend({path: ['settingsAddPhone']})
-  }
 
-  const country = await RPCTypes.accountGuessCurrentLocationRpcPromise(
-    {
-      defaultCountry: 'US',
-    },
-    Constants.showPhoneNumberInputWaitingKey
-  )
+const loadDefaultPhoneNumberCountry = async (state: TypedState) => {
+  // noop if we've already loaded it
+  if (state.settings.phoneNumbers.defaultCountry) {
+    return
+  }
+  const country = await RPCTypes.accountGuessCurrentLocationRpcPromise({
+    defaultCountry: 'US',
+  })
   return SettingsGen.createUpdateDefaultPhoneNumberCountry({
     country,
-    openModal: true,
   })
-}
-const updateDefaultPhoneNumberCountry = (action: SettingsGen.UpdateDefaultPhoneNumberCountryPayload) => {
-  if (action.payload.openModal) {
-    return RouteTreeGen.createNavigateAppend({path: ['settingsAddPhone']})
-  }
-  return null
 }
 
 const getRememberPassword = async () => {
@@ -809,8 +799,7 @@ function* settingsSaga() {
   yield* Saga.chainAction(SettingsGen.saveProxyData, saveProxyData)
 
   // Phone numbers
-  yield* Saga.chainAction2(SettingsGen.openAddPhoneNumberModal, openAddPhoneNumberModal)
-  yield* Saga.chainAction(SettingsGen.updateDefaultPhoneNumberCountry, updateDefaultPhoneNumberCountry)
+  yield* Saga.chainAction2(SettingsGen.loadDefaultPhoneNumberCountry, loadDefaultPhoneNumberCountry)
   yield* Saga.chainAction(SettingsGen.editPhone, editPhone)
   yield* Saga.chainAction(SettingsGen.addPhoneNumber, addPhoneNumber)
   yield* Saga.chainAction(SettingsGen.verifyPhoneNumber, verifyPhoneNumber)

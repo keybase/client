@@ -221,11 +221,10 @@
       "toggled?": "boolean"
     },
     "toggleRuntimeStats": {},
+    "loadDefaultPhoneNumberCountry": {},
     "updateDefaultPhoneNumberCountry": {
-      "country": "string",
-      "openModal?": "boolean"
+      "country": "string"
     },
-    "openAddPhoneNumberModal": {},
     "loginBrowserViaWebAuthToken": {}
   }
 }

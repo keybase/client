@@ -169,10 +169,6 @@ function* reallySignupOnNoErrors(state: Container.TypedState) {
   }
 
   try {
-    // We're running this here to make sure that we don't end up with a flickering screen.
-    yield Saga.put(SignupGen.createPreparePhoneNumberPrompt())
-    yield Saga.take(SettingsGen.updateDefaultPhoneNumberCountry)
-
     yield RPCTypes.signupSignupRpcSaga({
       customResponseIncomingCallMap: {
         // Do not add a gpg key for now
@@ -208,15 +204,6 @@ function* reallySignupOnNoErrors(state: Container.TypedState) {
   }
 }
 
-const preparePhoneNumberPrompt = async () => {
-  const country = await RPCTypes.accountGuessCurrentLocationRpcPromise({
-    defaultCountry: 'US',
-  })
-  return SettingsGen.createUpdateDefaultPhoneNumberCountry({
-    country,
-  })
-}
-
 const signupSaga = function*() {
   // validation actions
   yield* Saga.chainAction2(SignupGen.requestInvite, requestInvite)
@@ -236,9 +223,6 @@ const signupSaga = function*() {
   // actually make the signup call
   yield* Saga.chainGenerator(SignupGen.checkedDevicename, reallySignupOnNoErrors)
   yield* Saga.chainAction2(SignupGen.goBackAndClearErrors, goBackAndClearErrors)
-
-  // executed during signup to prepare the post-signup ui
-  yield* Saga.chainAction2(SignupGen.preparePhoneNumberPrompt, preparePhoneNumberPrompt)
 }
 
 export default signupSaga

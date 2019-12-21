@@ -51,7 +51,6 @@
     "setJustSignedUpEmail": {
       "email": "string"
     },
-    "clearJustSignedUpEmail": {},
-    "preparePhoneNumberPrompt": {}
+    "clearJustSignedUpEmail": {}
   }
 }

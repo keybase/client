@@ -218,7 +218,6 @@ export const resendVerificationForPhoneWaitingKey = 'settings:resendVerification
 export const verifyPhoneNumberWaitingKey = 'settings:verifyPhoneNumber'
 export const importContactsWaitingKey = 'settings:importContacts'
 export const addEmailWaitingKey = 'settings:addEmail'
-export const showPhoneNumberInputWaitingKey = 'settings:showPhoneNumberInput'
 export const loadSettingsWaitingKey = 'settings:loadSettings'
 export const settingsWaitingKey = 'settings:generic'
 
