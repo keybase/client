@@ -74,7 +74,6 @@ export const sentVerificationEmail = 'settings:sentVerificationEmail'
 export const setContactImportedCount = 'settings:setContactImportedCount'
 export const showContactsJoinedModal = 'settings:showContactsJoinedModal'
 export const stop = 'settings:stop'
-export const toggleRuntimeStats = 'settings:toggleRuntimeStats'
 export const trace = 'settings:trace'
 export const unfurlSettingsError = 'settings:unfurlSettingsError'
 export const unfurlSettingsRefresh = 'settings:unfurlSettingsRefresh'
@@ -172,7 +171,6 @@ type _SentVerificationEmailPayload = {readonly email: string}
 type _SetContactImportedCountPayload = {readonly count?: number; readonly error?: string}
 type _ShowContactsJoinedModalPayload = {readonly resolved: Array<RPCTypes.ProcessedContact>}
 type _StopPayload = {readonly exitCode: RPCTypes.ExitCode}
-type _ToggleRuntimeStatsPayload = void
 type _TracePayload = {readonly durationSeconds: number}
 type _UnfurlSettingsErrorPayload = {readonly error: string}
 type _UnfurlSettingsRefreshPayload = void
@@ -474,10 +472,6 @@ export const createShowContactsJoinedModal = (
   payload: _ShowContactsJoinedModalPayload
 ): ShowContactsJoinedModalPayload => ({payload, type: showContactsJoinedModal})
 export const createStop = (payload: _StopPayload): StopPayload => ({payload, type: stop})
-export const createToggleRuntimeStats = (payload: _ToggleRuntimeStatsPayload): ToggleRuntimeStatsPayload => ({
-  payload,
-  type: toggleRuntimeStats,
-})
 export const createTrace = (payload: _TracePayload): TracePayload => ({payload, type: trace})
 export const createUpdateDefaultPhoneNumberCountry = (
   payload: _UpdateDefaultPhoneNumberCountryPayload
@@ -719,10 +713,6 @@ export type ShowContactsJoinedModalPayload = {
   readonly type: typeof showContactsJoinedModal
 }
 export type StopPayload = {readonly payload: _StopPayload; readonly type: typeof stop}
-export type ToggleRuntimeStatsPayload = {
-  readonly payload: _ToggleRuntimeStatsPayload
-  readonly type: typeof toggleRuntimeStats
-}
 export type TracePayload = {readonly payload: _TracePayload; readonly type: typeof trace}
 export type UnfurlSettingsErrorPayload = {
   readonly payload: _UnfurlSettingsErrorPayload
@@ -823,7 +813,6 @@ export type Actions =
   | SetContactImportedCountPayload
   | ShowContactsJoinedModalPayload
   | StopPayload
-  | ToggleRuntimeStatsPayload
   | TracePayload
   | UnfurlSettingsErrorPayload
   | UnfurlSettingsRefreshPayload
