@@ -41,6 +41,7 @@ export const deselectConversation = 'chat2:deselectConversation'
 export const desktopNotification = 'chat2:desktopNotification'
 export const dismissBlockButtons = 'chat2:dismissBlockButtons'
 export const dismissBottomBanner = 'chat2:dismissBottomBanner'
+export const editBotSettings = 'chat2:editBotSettings'
 export const enableAudioRecording = 'chat2:enableAudioRecording'
 export const giphyGotSearchResult = 'chat2:giphyGotSearchResult'
 export const giphySend = 'chat2:giphySend'
@@ -256,6 +257,12 @@ type _DesktopNotificationPayload = {
 }
 type _DismissBlockButtonsPayload = {readonly teamID: RPCTypes.TeamID}
 type _DismissBottomBannerPayload = {readonly conversationIDKey: Types.ConversationIDKey}
+type _EditBotSettingsPayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly username: string
+  readonly allowCommands: boolean
+  readonly allowMentions: boolean
+}
 type _EnableAudioRecordingPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly meteringCb: (amp: number) => void
@@ -1228,6 +1235,13 @@ export const createAddBotMember = (payload: _AddBotMemberPayload): AddBotMemberP
   type: addBotMember,
 })
 /**
+ * edit bot settings
+ */
+export const createEditBotSettings = (payload: _EditBotSettingsPayload): EditBotSettingsPayload => ({
+  payload,
+  type: editBotSettings,
+})
+/**
  * loads next page of featured bots from backend
  */
 export const createLoadNextBotPage = (payload: _LoadNextBotPagePayload): LoadNextBotPagePayload => ({
@@ -1670,6 +1684,10 @@ export type DismissBlockButtonsPayload = {
 export type DismissBottomBannerPayload = {
   readonly payload: _DismissBottomBannerPayload
   readonly type: typeof dismissBottomBanner
+}
+export type EditBotSettingsPayload = {
+  readonly payload: _EditBotSettingsPayload
+  readonly type: typeof editBotSettings
 }
 export type EnableAudioRecordingPayload = {
   readonly payload: _EnableAudioRecordingPayload
@@ -2175,6 +2193,7 @@ export type Actions =
   | DesktopNotificationPayload
   | DismissBlockButtonsPayload
   | DismissBottomBannerPayload
+  | EditBotSettingsPayload
   | EnableAudioRecordingPayload
   | GiphyGotSearchResultPayload
   | GiphySendPayload
