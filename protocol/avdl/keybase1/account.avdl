@@ -79,7 +79,9 @@ protocol account {
 
   record TeamContactSettings {
     @jsonkey("team_id")
-    TeamID teamID;
+    union { null, TeamID } teamID;
+    @jsonkey("team_name")
+    union { null, string } teamName;
     @jsonkey("enabled")
     boolean enabled;
   }

@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/keybase/client/go/engine"
@@ -90,6 +91,7 @@ func TestContactSettingsAPI(t *testing.T) {
 
 	teamName := user.Username + "t"
 	teamID, err := teams.CreateRootTeam(ctx, tc.G, teamName, keybase1.TeamSettings{})
+	fmt.Printf("_____teamname = %+v, teamID = %+v\n", teamName, teamID)
 	require.NoError(t, err)
 	require.NotNil(t, teamID)
 
@@ -97,13 +99,33 @@ func TestContactSettingsAPI(t *testing.T) {
 	res, err := handler.UserGetContactSettings(ctx)
 	require.NoError(t, err)
 
+	// set with bad TeamContactSettings; should skip
+	err = handler.UserSetContactSettings(ctx, keybase1.ContactSettings{
+		Enabled:              true,
+		AllowGoodTeams:       true,
+		AllowFolloweeDegrees: 2,
+		Teams: []keybase1.TeamContactSettings{
+			{
+				Enabled: true,
+			}},
+	})
+	require.NoError(t, err)
+
+	// get
+	res, err = handler.UserGetContactSettings(ctx)
+	require.NoError(t, err)
+	require.Equal(t, true, res.Enabled)
+	require.Equal(t, true, res.AllowGoodTeams)
+	require.Equal(t, 2, res.AllowFolloweeDegrees)
+	require.Equal(t, 0, len(res.Teams))
+
 	// set
 	err = handler.UserSetContactSettings(ctx, keybase1.ContactSettings{
 		Enabled:              true,
 		AllowGoodTeams:       true,
 		AllowFolloweeDegrees: 2,
 		Teams: []keybase1.TeamContactSettings{
-			{TeamID: *teamID,
+			{TeamID: teamID,
 				Enabled: true,
 			}},
 	})
@@ -116,7 +138,42 @@ func TestContactSettingsAPI(t *testing.T) {
 	require.Equal(t, true, res.AllowGoodTeams)
 	require.Equal(t, 2, res.AllowFolloweeDegrees)
 	require.Equal(t, 1, len(res.Teams))
-	require.Equal(t, *teamID, res.Teams[0].TeamID)
+	require.Equal(t, teamID, res.Teams[0].TeamID)
+	require.Nil(t, res.Teams[0].TeamName)
+	require.Equal(t, true, res.Teams[0].Enabled)
+
+	// set with team name
+	err = handler.UserSetContactSettings(ctx, keybase1.ContactSettings{
+		Enabled:              true,
+		AllowGoodTeams:       true,
+		AllowFolloweeDegrees: 2,
+		Teams: []keybase1.TeamContactSettings{
+			{TeamName: &teamName,
+				Enabled: true,
+			}},
+	})
+	require.NoError(t, err)
+
+	err = handler.UserSetContactSettings(ctx, keybase1.ContactSettings{
+		Enabled:              true,
+		AllowGoodTeams:       true,
+		AllowFolloweeDegrees: 2,
+		Teams: []keybase1.TeamContactSettings{
+			{TeamName: &teamName,
+				Enabled: true,
+			}},
+	})
+	require.NoError(t, err)
+
+	// get
+	res, err = handler.UserGetContactSettings(ctx)
+	require.NoError(t, err)
+	require.Equal(t, true, res.Enabled)
+	require.Equal(t, true, res.AllowGoodTeams)
+	require.Equal(t, 2, res.AllowFolloweeDegrees)
+	require.Equal(t, 1, len(res.Teams))
+	require.Equal(t, teamID, res.Teams[0].TeamID)
+	require.Nil(t, res.Teams[0].TeamName)
 	require.Equal(t, true, res.Teams[0].Enabled)
 }
 

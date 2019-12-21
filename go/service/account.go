@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
 )
@@ -279,11 +280,45 @@ func (h *AccountHandler) TimeTravelReset(ctx context.Context, arg keybase1.TimeT
 func (h *AccountHandler) UserGetContactSettings(ctx context.Context) (ret keybase1.ContactSettings, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.TraceTimed("AccountHandler#UserGetContactSettings", func() error { return err })()
-	return libkb.GetContactSettings(mctx)
+	res, err := libkb.GetContactSettings(mctx)
+	/*for _, team := range res.Teams {
+		name, err := teams.ResolveIDToName(mctx.Ctx(), mctx.G(), *team.TeamID)
+		if err != nil {
+
+		}
+		team.TeamName = name
+	}*/
+	return res, err
 }
 
+// UserSetContactSettings accepts TeamContactSettings with either TeamID or
+// TeamName set, for ease of use. It resolves TeamNames, and makes sure that TeamContactSettings
+// passed to the API (via libkb method) have TeamID set and TeamName not set.
 func (h *AccountHandler) UserSetContactSettings(ctx context.Context, arg keybase1.ContactSettings) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.TraceTimed("AccountHandler#UserSetContactSettings", func() error { return err })()
+	teamsArg := []keybase1.TeamContactSettings{}
+	for _, team := range arg.Teams {
+		if team.TeamID == nil && team.TeamName == nil {
+			// neither is set; skip
+			continue
+		} else if team.TeamName != nil {
+			// resolve team name
+			tid, err := teams.GetTeamIDByNameRPC(mctx, *team.TeamName)
+			if err != nil {
+				return errors.New(fmt.Sprintf("Failed to get team ID from team name %v", team.TeamName))
+			}
+			if team.TeamID != nil && *team.TeamID != tid {
+				return errors.New(fmt.Sprintf("Resolved team ID from team name (%v) %v != passed in team ID %v", team.TeamName, tid, team.TeamID))
+			}
+			team.TeamID = &tid
+			team.TeamName = nil
+		}
+		if team.TeamID == nil || team.TeamName != nil {
+			return errors.New(fmt.Sprintf("Bad team contact setting; team ID must != nil and team name must == nil: %+v", team))
+		}
+		teamsArg = append(teamsArg, team)
+	}
+	arg.Teams = teamsArg
 	return libkb.SetContactSettings(mctx, arg)
 }

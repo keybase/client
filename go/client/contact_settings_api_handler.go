@@ -29,12 +29,12 @@ func (t *contactSettingsAPIHandler) handle(ctx context.Context, c Call, w io.Wri
 
 const (
 	getMethod = "get"
-	putMethod = "put"
+	setMethod = "set"
 )
 
 var validContactSettingsMethodsV1 = map[string]bool{
 	getMethod: true,
-	putMethod: true,
+	setMethod: true,
 }
 
 func (t *contactSettingsAPIHandler) handleV1(ctx context.Context, c Call, w io.Writer) error {
@@ -51,8 +51,8 @@ func (t *contactSettingsAPIHandler) handleV1(ctx context.Context, c Call, w io.W
 	switch c.Method {
 	case getMethod:
 		return t.get(ctx, c, w)
-	case putMethod:
-		return t.put(ctx, c, w)
+	case setMethod:
+		return t.set(ctx, c, w)
 	default:
 		return ErrInvalidMethod{name: c.Method, version: 1}
 	}
@@ -66,20 +66,21 @@ func (t *contactSettingsAPIHandler) get(ctx context.Context, c Call, w io.Writer
 	return t.encodeResult(c, res, w)
 }
 
-type putOptions struct {
+type setOptions struct {
 	Settings keybase1.ContactSettings `json:"settings"`
 }
 
-func (a *putOptions) Check() error {
+func (a *setOptions) Check() error {
 	// expect server-side checks
 	return nil
 }
 
-func (t *contactSettingsAPIHandler) put(ctx context.Context, c Call, w io.Writer) error {
-	var opts putOptions
+func (t *contactSettingsAPIHandler) set(ctx context.Context, c Call, w io.Writer) error {
+	var opts setOptions
 	if err := unmarshalOptions(c, &opts); err != nil {
 		return t.encodeErr(c, err, w)
 	}
+
 	arg := keybase1.ContactSettings{
 		Enabled:              opts.Settings.Enabled,
 		AllowGoodTeams:       opts.Settings.AllowGoodTeams,
