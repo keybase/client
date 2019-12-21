@@ -34,6 +34,8 @@ export const makeState = (): Types.State => ({
   badgeMap: new Map(), // id to the badge count
   blockButtonsMap: new Map(),
   botCommandsUpdateStatusMap: new Map(),
+  botPublicCommands: new Map(),
+  botSettings: new Map(),
   channelSearchText: '',
   commandMarkdownMap: new Map(),
   commandStatusMap: new Map(),
@@ -44,6 +46,9 @@ export const makeState = (): Types.State => ({
   editingMap: new Map(),
   explodingModeLocks: new Map(), // locks set on exploding mode while user is inputting text,
   explodingModes: new Map(), // seconds to exploding message expiration,
+  featuredBotsLoaded: false,
+  featuredBotsMap: new Map(),
+  featuredBotsPage: -1,
   flipStatusMap: new Map(),
   focus: null,
   giphyResultMap: new Map(),
@@ -175,8 +180,9 @@ export const getInboxSearchSelected = (inboxSearch: Types.InboxSearchInfo) => {
 export const getThreadSearchInfo = (state: TypedState, conversationIDKey: Types.ConversationIDKey) =>
   state.chat2.threadSearchInfoMap.get(conversationIDKey) || makeThreadSearchInfo()
 
+const emptyOrdinals = new Set<Types.Ordinal>()
 export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKey) =>
-  state.chat2.messageOrdinals.get(id) || new Set<Types.Ordinal>()
+  state.chat2.messageOrdinals.get(id) || emptyOrdinals
 export const getMessageCenterOrdinal = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.messageCenterOrdinals.get(id)
 export const getMessage = (
@@ -292,6 +298,8 @@ export const waitingKeyCancelPost = 'chat:cancelPost'
 export const waitingKeyInboxRefresh = 'chat:inboxRefresh'
 export const waitingKeyCreating = 'chat:creatingConvo'
 export const waitingKeyInboxSyncStarted = 'chat:inboxSyncStarted'
+export const waitingKeyBotAdd = 'chat:botAdd'
+export const waitingKeyBotRemove = 'chat:botRemove'
 export const waitingKeyPushLoad = (conversationIDKey: Types.ConversationIDKey) =>
   `chat:pushLoad:${conversationIDKeyToString(conversationIDKey)}`
 export const waitingKeyThreadLoad = (conversationIDKey: Types.ConversationIDKey) =>

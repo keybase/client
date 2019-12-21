@@ -9,7 +9,7 @@ import {Props, TextType} from './text'
 const modes = ['positive', 'negative']
 
 const styles = Styles.styleSheetCreate(() =>
-  Object.keys(metaData()).reduce<{[key: string]: Styles.StylesCrossPlatform}>(
+  Object.keys(metaData()).reduce<any>(
     (map, type) => {
       const meta = metaData()[type as TextType]
       modes.forEach(mode => {

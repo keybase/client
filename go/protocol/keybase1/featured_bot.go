@@ -10,18 +10,22 @@ import (
 )
 
 type FeaturedBot struct {
-	BotAlias    string  `codec:"botAlias" json:"botAlias"`
-	Description string  `codec:"description" json:"description"`
-	BotUsername string  `codec:"botUsername" json:"botUsername"`
-	OwnerTeam   *string `codec:"ownerTeam,omitempty" json:"ownerTeam,omitempty"`
-	OwnerUser   *string `codec:"ownerUser,omitempty" json:"ownerUser,omitempty"`
+	BotAlias            string  `codec:"botAlias" json:"botAlias"`
+	Description         string  `codec:"description" json:"description"`
+	ExtendedDescription string  `codec:"extendedDescription" json:"extendedDescription"`
+	BotUsername         string  `codec:"botUsername" json:"botUsername"`
+	OwnerTeam           *string `codec:"ownerTeam,omitempty" json:"ownerTeam,omitempty"`
+	OwnerUser           *string `codec:"ownerUser,omitempty" json:"ownerUser,omitempty"`
+	Rank                int     `codec:"rank" json:"rank"`
+	IsPromoted          bool    `codec:"isPromoted" json:"isPromoted"`
 }
 
 func (o FeaturedBot) DeepCopy() FeaturedBot {
 	return FeaturedBot{
-		BotAlias:    o.BotAlias,
-		Description: o.Description,
-		BotUsername: o.BotUsername,
+		BotAlias:            o.BotAlias,
+		Description:         o.Description,
+		ExtendedDescription: o.ExtendedDescription,
+		BotUsername:         o.BotUsername,
 		OwnerTeam: (func(x *string) *string {
 			if x == nil {
 				return nil
@@ -36,11 +40,14 @@ func (o FeaturedBot) DeepCopy() FeaturedBot {
 			tmp := (*x)
 			return &tmp
 		})(o.OwnerUser),
+		Rank:       o.Rank,
+		IsPromoted: o.IsPromoted,
 	}
 }
 
 type FeaturedBotsRes struct {
-	Bots []FeaturedBot `codec:"bots" json:"bots"`
+	Bots       []FeaturedBot `codec:"bots" json:"bots"`
+	IsLastPage bool          `codec:"isLastPage" json:"isLastPage"`
 }
 
 func (o FeaturedBotsRes) DeepCopy() FeaturedBotsRes {
@@ -56,11 +63,13 @@ func (o FeaturedBotsRes) DeepCopy() FeaturedBotsRes {
 			}
 			return ret
 		})(o.Bots),
+		IsLastPage: o.IsLastPage,
 	}
 }
 
 type SearchRes struct {
-	Bots []FeaturedBot `codec:"bots" json:"bots"`
+	Bots       []FeaturedBot `codec:"bots" json:"bots"`
+	IsLastPage bool          `codec:"isLastPage" json:"isLastPage"`
 }
 
 func (o SearchRes) DeepCopy() SearchRes {
@@ -76,12 +85,14 @@ func (o SearchRes) DeepCopy() SearchRes {
 			}
 			return ret
 		})(o.Bots),
+		IsLastPage: o.IsLastPage,
 	}
 }
 
 type FeaturedBotsArg struct {
-	Limit  int `codec:"limit" json:"limit"`
-	Offset int `codec:"offset" json:"offset"`
+	Limit     int  `codec:"limit" json:"limit"`
+	Offset    int  `codec:"offset" json:"offset"`
+	SkipCache bool `codec:"skipCache" json:"skipCache"`
 }
 
 type SearchArg struct {

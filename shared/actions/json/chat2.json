@@ -814,6 +814,46 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "path": "string",
       "outboxID": "Buffer"
+    },
+    "loadNextBotPage": {
+      "_description": "loads next page of featured bots from backend",
+      "pageSize": "number"
+    },
+    "setLoadedBotPage": {
+      "_description": "set page # for a conversation",
+      "page": "number"
+    },
+    "refreshBotPublicCommands": {
+      "_description": "refresh bot public commands",
+      "username": "string"
+    },
+    "setBotPublicCommands": {
+      "_description": "set bot public commands",
+      "username": "string",
+      "commands": "Types.BotPublicCommands"
+    },
+    "addBotMember": {
+      "_description": "add bot member to channel",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "allowCommands": "boolean",
+      "allowMentions": "boolean",
+      "username": "string"
+    },
+    "refreshBotSettings": {
+      "_description": "refresh bot settings",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "username": "string"
+    },
+    "setBotSettings": {
+      "_description": "set bot settings",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "username": "string",
+      "settings": "RPCTypes.TeamBotSettings"
+    },
+    "removeBotMember": {
+      "_description": "remove a bot member",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "username": "string"
     }
   }
 }

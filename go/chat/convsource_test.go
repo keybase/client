@@ -583,7 +583,7 @@ func TestGetThreadHoleResolution(t *testing.T) {
 	}
 	doSync(t, syncer, ri, uid)
 
-	localThread, err := tc.Context().ConvSource.PullLocalOnly(ctx, convID, uid, nil, nil, 0)
+	localThread, err := tc.Context().ConvSource.PullLocalOnly(ctx, convID, uid, chat1.GetThreadReason_GENERAL, nil, nil, 0)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(localThread.Messages))
 
@@ -853,7 +853,7 @@ func TestClearFromDelete(t *testing.T) {
 	require.NoError(t, hcs.storage.Nuke(context.TODO(), conv.GetConvID(), uid))
 	_, err = hcs.GetMessages(ctx, conv, uid, []chat1.MessageID{3, 2}, nil)
 	require.NoError(t, err)
-	tv, err := hcs.PullLocalOnly(ctx, conv.GetConvID(), uid, nil, nil, 0)
+	tv, err := hcs.PullLocalOnly(ctx, conv.GetConvID(), uid, chat1.GetThreadReason_GENERAL, nil, nil, 0)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(tv.Messages))
 
@@ -864,7 +864,7 @@ func TestClearFromDelete(t *testing.T) {
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "no conv loader")
 	}
-	tv, err = hcs.PullLocalOnly(ctx, conv.GetConvID(), uid, nil, nil, 0)
+	tv, err = hcs.PullLocalOnly(ctx, conv.GetConvID(), uid, chat1.GetThreadReason_GENERAL, nil, nil, 0)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(tv.Messages))
 	require.Equal(t, chat1.MessageID(4), tv.Messages[0].GetMessageID())

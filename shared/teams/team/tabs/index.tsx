@@ -1,14 +1,7 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/teams'
-import {
-  iconCastPlatformStyles,
-  Badge,
-  Box,
-  Icon,
-  ProgressIndicator,
-  Tabs,
-  Text,
-} from '../../../common-adapters'
+import {Badge, Box, Icon, ProgressIndicator, Tabs, Text} from '../../../common-adapters'
+import flags from '../../../util/feature-flags'
 import {
   globalColors,
   globalMargins,
@@ -20,12 +13,12 @@ import {
 
 type TeamTabsProps = {
   admin: boolean
-  memberCount: number
   newRequests: number
   numInvites: number
   numRequests: number
   numSubteams: number
   resetUserCount: number
+  loadBots: () => void
   loading: boolean
   selectedTab?: string
   setSelectedTab: (arg0: Types.TabKey) => void
@@ -41,10 +34,7 @@ const TabText = ({selected, text}: {selected: boolean; text: string}) => (
 const TeamTabs = (props: TeamTabsProps) => {
   const tabs = [
     <Box key="members" style={styles.tabTextContainer}>
-      <TabText
-        selected={props.selectedTab === 'members'}
-        text={props.memberCount === -1 ? 'Members' : `Members (${props.memberCount})`}
-      />
+      <TabText selected={props.selectedTab === 'members'} text="Members" />
       {!!props.resetUserCount && <Badge badgeNumber={props.resetUserCount} badgeStyle={styles.badge} />}
     </Box>,
   ]
@@ -59,6 +49,14 @@ const TeamTabs = (props: TeamTabsProps) => {
           text={`Invites (${props.numInvites + props.numRequests})`}
         />
         {!!requestsBadge && <Badge badgeNumber={requestsBadge} badgeStyle={styles.badge} />}
+      </Box>
+    )
+  }
+
+  if (flags.botUI) {
+    tabs.push(
+      <Box key="bots" style={styles.tabTextContainer}>
+        <TabText selected={props.selectedTab === 'bots'} text="Bots" />
       </Box>
     )
   }
@@ -78,7 +76,7 @@ const TeamTabs = (props: TeamTabsProps) => {
       <Icon
         key="settings"
         type="iconfont-nav-settings"
-        style={iconCastPlatformStyles(props.selectedTab === 'settings' ? styles.iconSelected : styles.icon)}
+        style={props.selectedTab === 'settings' ? styles.iconSelected : styles.icon}
       />
     ) : (
       <TabText key="settings" selected={props.selectedTab === 'settings'} text="Settings" />
@@ -93,6 +91,9 @@ const TeamTabs = (props: TeamTabsProps) => {
     const key = tab && tab.key
     if (key) {
       if (key !== 'loadingIndicator') {
+        if (key === 'bots') {
+          props.loadBots()
+        }
         props.setSelectedTab(key)
       } else {
         props.setSelectedTab('members')

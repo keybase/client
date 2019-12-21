@@ -89,14 +89,14 @@ const revoke = async (state: Container.TypedState, action: DevicesGen.RevokePayl
   }
 }
 
-const navigateAfterRevoked = (_: Container.TypedState, action: DevicesGen.RevokedPayload) =>
+const navigateAfterRevoked = (action: DevicesGen.RevokedPayload) =>
   action.payload.wasCurrentDevice
     ? RouteTreeGen.createNavigateAppend({path: [Tabs.loginTab]})
     : RouteTreeGen.createNavUpToScreen({
         routeName: Constants.devicesTabLocation[Constants.devicesTabLocation.length - 1],
       })
 
-const showRevokePage = (_: Container.TypedState, action: DevicesGen.ShowRevokePagePayload) =>
+const showRevokePage = (action: DevicesGen.ShowRevokePagePayload) =>
   RouteTreeGen.createNavigateAppend({
     path: [
       ...Constants.devicesTabLocation,
@@ -105,7 +105,7 @@ const showRevokePage = (_: Container.TypedState, action: DevicesGen.ShowRevokePa
     ],
   })
 
-const showDevicePage = (_: Container.TypedState, action: DevicesGen.ShowDevicePagePayload) =>
+const showDevicePage = (action: DevicesGen.ShowDevicePagePayload) =>
   RouteTreeGen.createNavigateAppend({
     path: [
       ...Constants.devicesTabLocation,
@@ -118,7 +118,7 @@ const showPaperKeyPage = () =>
 
 const clearNavBadges = () => RPCTypes.deviceDismissDeviceChangeNotificationsRpcPromise().catch(logError)
 
-const receivedBadgeState = (_: Container.TypedState, action: NotificationsGen.ReceivedBadgeStatePayload) =>
+const receivedBadgeState = (action: NotificationsGen.ReceivedBadgeStatePayload) =>
   DevicesGen.createBadgeAppForDevices({
     ids: [
       ...(action.payload.badgeState.newDevices || []),
@@ -133,13 +133,13 @@ function* deviceSaga() {
   yield* Saga.chainAction2(DevicesGen.revoke, revoke)
 
   // Navigation
-  yield* Saga.chainAction2(DevicesGen.showRevokePage, showRevokePage)
-  yield* Saga.chainAction2(DevicesGen.showDevicePage, showDevicePage)
+  yield* Saga.chainAction(DevicesGen.showRevokePage, showRevokePage)
+  yield* Saga.chainAction(DevicesGen.showDevicePage, showDevicePage)
   yield* Saga.chainAction2(DevicesGen.showPaperKeyPage, showPaperKeyPage)
-  yield* Saga.chainAction2(DevicesGen.revoked, navigateAfterRevoked)
+  yield* Saga.chainAction(DevicesGen.revoked, navigateAfterRevoked)
 
   // Badges
-  yield* Saga.chainAction2(NotificationsGen.receivedBadgeState, receivedBadgeState)
+  yield* Saga.chainAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
   yield* Saga.chainAction2([DevicesGen.load, DevicesGen.revoked, DevicesGen.paperKeyCreated], clearNavBadges)
 
   // Loading data

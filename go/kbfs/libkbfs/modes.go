@@ -187,7 +187,7 @@ func (md modeDefault) BackgroundWorkPeriod() time.Duration {
 	return 0
 }
 
-func (md modeDefault) DiskCacheWriteBufferSize() int {
+func (md modeDefault) DbWriteBufferSize() int {
 	return 10 * opt.MiB // 10 MB
 }
 
@@ -357,7 +357,7 @@ func (mm modeMinimal) BackgroundWorkPeriod() time.Duration {
 	return math.MaxInt64
 }
 
-func (mm modeMinimal) DiskCacheWriteBufferSize() int {
+func (mm modeMinimal) DbWriteBufferSize() int {
 	return 1 * opt.KiB // 1 KB
 }
 
@@ -551,7 +551,7 @@ func (mc modeConstrained) BackgroundWorkPeriod() time.Duration {
 	return 5 * time.Second
 }
 
-func (mc modeConstrained) DiskCacheWriteBufferSize() int {
+func (mc modeConstrained) DbWriteBufferSize() int {
 	return 100 * opt.KiB // 100 KB
 }
 
@@ -601,7 +601,7 @@ func (mml modeMemoryLimited) TLFEditHistoryEnabled() bool {
 	return false
 }
 
-func (mml modeMemoryLimited) DiskCacheWriteBufferSize() int {
+func (mml modeMemoryLimited) DbWriteBufferSize() int {
 	return 1 * opt.KiB // 1 KB
 }
 

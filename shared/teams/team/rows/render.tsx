@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Types from '../../../constants/types/teams'
 import {Row} from '.'
 import MemberRow from './member-row/container'
+import BotRow from './bot-row/container'
 import {RequestRow, InviteRow, InvitesEmptyRow, DividerRow} from './invite-row'
 import {SubteamAddRow, SubteamIntroRow, SubteamNoneRow, SubteamTeamRow} from './subteam-row'
 import LoadingRow from './loading'
@@ -14,6 +15,8 @@ const renderRow = (row: Row, teamID: Types.TeamID) => {
       return <TeamHeaderRow teamID={teamID} />
     case 'member':
       return <MemberRow teamID={teamID} username={row.username} />
+    case 'bot':
+      return <BotRow teamID={teamID} username={row.username} />
     case 'invites-invite':
       return <InviteRow teamID={teamID} id={row.id} />
     case 'invites-request':

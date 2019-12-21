@@ -994,7 +994,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	sender := gregor1.UID(s.G().Env.GetUID().ToBytes())
 	conv, err = utils.GetVerifiedConv(ctx, s.G(), sender, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
-		s.Debug(ctx, "Send: error getting conversation metadata: %s", err.Error())
+		s.Debug(ctx, "Send: error getting conversation metadata: %v", err)
 		return nil, nil, err
 	}
 	s.Debug(ctx, "Send: uid: %s in conversation %s (tlfName: %s) with status: %v", sender,
@@ -1004,8 +1004,12 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	switch conv.ReaderInfo.Status {
 	case chat1.ConversationMemberStatus_PREVIEW, chat1.ConversationMemberStatus_NEVER_JOINED:
 		switch msg.ClientHeader.MessageType {
-		case chat1.MessageType_JOIN, chat1.MessageType_LEAVE:
-			// pass so we don't loop between Send and Join/Leave.
+		case chat1.MessageType_JOIN,
+			chat1.MessageType_LEAVE,
+			chat1.MessageType_HEADLINE,
+			chat1.MessageType_METADATA:
+			// pass so we don't loop between Send and Join/Leave or join when
+			// updating the metadata/headline.
 		default:
 			s.Debug(ctx, "Send: user is in mode: %v, joining conversation", conv.ReaderInfo.Status)
 			if err = JoinConversation(ctx, s.G(), s.DebugLabeler, s.getRi, sender, convID); err != nil {
@@ -1159,7 +1163,14 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 					gregor1.FromTime(unboxedMsg.Valid().MessageBody.Text().LiveLocation.EndTime))
 			}
 		}
-		go s.G().JourneyCardManager.SentMessage(globals.BackgroundChatCtx(ctx, s.G()), sender, convID)
+		if conv.GetMembersType() == chat1.ConversationMembersType_TEAM {
+			teamID, err := keybase1.TeamIDFromString(conv.Info.Triple.Tlfid.String())
+			if err != nil {
+				s.Debug(ctx, "Send: failed to get team ID: %v", err)
+			} else {
+				go s.G().JourneyCardManager.SentMessage(globals.BackgroundChatCtx(ctx, s.G()), sender, teamID, convID)
+			}
+		}
 	}
 	return nil, boxed, nil
 }
@@ -1380,11 +1391,17 @@ func (s *Deliverer) Queue(ctx context.Context, convID chat1.ConversationID, msg 
 
 	// Alert the deliver loop it should wake up
 	s.msgSentCh <- struct{}{}
-	update := []chat1.LocalMtimeUpdate{{ConvID: convID, Mtime: obr.Ctime}}
-	if err := s.G().InboxSource.UpdateLocalMtime(ctx, s.outbox.GetUID(), update); err != nil {
-		s.Debug(ctx, "Queue: unable to update local mtime", obr.Ctime)
+	// Only update mtime badgable messages
+	if obr.Msg.IsBadgableType() {
+		go func() {
+			update := []chat1.LocalMtimeUpdate{{ConvID: convID, Mtime: obr.Ctime}}
+			if err := s.G().InboxSource.UpdateLocalMtime(ctx, s.outbox.GetUID(), update); err != nil {
+				s.Debug(ctx, "Queue: unable to update local mtime", obr.Ctime)
+			}
+			time.Sleep(250 * time.Millisecond)
+			s.G().InboxSource.NotifyUpdate(ctx, s.outbox.GetUID(), convID)
+		}()
 	}
-	s.G().InboxSource.NotifyUpdate(ctx, s.outbox.GetUID(), convID)
 	return obr, nil
 }
 
@@ -1460,6 +1477,11 @@ func (s *Deliverer) doNotRetryFailure(ctx context.Context, obr chat1.OutboxRecor
 		return chat1.OutboxErrorType_OFFLINE, err, !berr.Temporary()
 	case *net.DNSError:
 		return chat1.OutboxErrorType_OFFLINE, err, !berr.Temporary()
+
+	}
+	switch err {
+	case ErrChatServerTimeout, ErrDuplicateConnection, ErrKeyServerTimeout:
+		return 0, err, false
 	}
 	return 0, err, true
 }

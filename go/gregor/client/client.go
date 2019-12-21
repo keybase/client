@@ -398,7 +398,7 @@ func (c *Client) localDismissalMap(ctx context.Context) (map[string]bool, error)
 	if err != nil {
 		return nil, err
 	}
-	ldmap := make(map[string]bool)
+	ldmap := make(map[string]bool, len(lds))
 	for _, ld := range lds {
 		ldmap[ld.String()] = true
 	}
@@ -416,7 +416,7 @@ func (c *Client) filterLocalDismissals(ctx context.Context, state gregor.State) 
 		c.Log.CDebugf(ctx, "filterLocalDismissals: failed to get state items: %s", err)
 		return state
 	}
-	var filteredItems []gregor.Item
+	filteredItems := make([]gregor.Item, 0, len(items))
 	for _, it := range items {
 		if !ldmap[it.Metadata().MsgID().String()] {
 			filteredItems = append(filteredItems, it)

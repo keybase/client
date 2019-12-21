@@ -99,8 +99,9 @@ func (t *DebuggingHandler) scriptExtras(ctx context.Context, arg keybase1.Script
 			return eldestSeqnos[i] < eldestSeqnos[j]
 		})
 		obj := struct {
-			Seqnos []keybase1.Seqno `json:"seqnos"`
-		}{eldestSeqnos}
+			EldestSeqno keybase1.Seqno   `json:"current_eldest"`
+			Seqnos      []keybase1.Seqno `json:"seqnos"`
+		}{upak.ToUserVersion().EldestSeqno, eldestSeqnos}
 		bs, err := json.Marshal(obj)
 		if err != nil {
 			return "", err

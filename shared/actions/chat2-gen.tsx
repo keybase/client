@@ -11,6 +11,7 @@ import {AmpTracker} from '../chat/audio/amptracker'
 export const resetStore = 'common:resetStore' // not a part of chat2 but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'chat2:'
 export const addAttachmentViewMessage = 'chat2:addAttachmentViewMessage'
+export const addBotMember = 'chat2:addBotMember'
 export const addUsersToChannel = 'chat2:addUsersToChannel'
 export const attachmentDownload = 'chat2:attachmentDownload'
 export const attachmentDownloaded = 'chat2:attachmentDownloaded'
@@ -62,6 +63,7 @@ export const leaveConversation = 'chat2:leaveConversation'
 export const loadAttachmentView = 'chat2:loadAttachmentView'
 export const loadMessagesCentered = 'chat2:loadMessagesCentered'
 export const loadNewerMessagesDueToScroll = 'chat2:loadNewerMessagesDueToScroll'
+export const loadNextBotPage = 'chat2:loadNextBotPage'
 export const loadOlderMessagesDueToScroll = 'chat2:loadOlderMessagesDueToScroll'
 export const lockAudioRecording = 'chat2:lockAudioRecording'
 export const markConversationsStale = 'chat2:markConversationsStale'
@@ -101,6 +103,9 @@ export const pendingMessageWasEdited = 'chat2:pendingMessageWasEdited'
 export const pinMessage = 'chat2:pinMessage'
 export const prepareFulfillRequestForm = 'chat2:prepareFulfillRequestForm'
 export const previewConversation = 'chat2:previewConversation'
+export const refreshBotPublicCommands = 'chat2:refreshBotPublicCommands'
+export const refreshBotSettings = 'chat2:refreshBotSettings'
+export const removeBotMember = 'chat2:removeBotMember'
 export const replyJump = 'chat2:replyJump'
 export const requestInfoReceived = 'chat2:requestInfoReceived'
 export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
@@ -112,6 +117,8 @@ export const sendAudioRecording = 'chat2:sendAudioRecording'
 export const sendTyping = 'chat2:sendTyping'
 export const setAttachmentViewStatus = 'chat2:setAttachmentViewStatus'
 export const setAudioRecordingPostInfo = 'chat2:setAudioRecordingPostInfo'
+export const setBotPublicCommands = 'chat2:setBotPublicCommands'
+export const setBotSettings = 'chat2:setBotSettings'
 export const setChannelSearchText = 'chat2:setChannelSearchText'
 export const setCommandMarkdown = 'chat2:setCommandMarkdown'
 export const setCommandStatusInfo = 'chat2:setCommandStatusInfo'
@@ -122,6 +129,7 @@ export const setConversationOffline = 'chat2:setConversationOffline'
 export const setExplodingModeLock = 'chat2:setExplodingModeLock'
 export const setInboxNumSmallRows = 'chat2:setInboxNumSmallRows'
 export const setInboxShowIsNew = 'chat2:setInboxShowIsNew'
+export const setLoadedBotPage = 'chat2:setLoadedBotPage'
 export const setMaybeMentionInfo = 'chat2:setMaybeMentionInfo'
 export const setMinWriterRole = 'chat2:setMinWriterRole'
 export const setPaymentConfirmInfo = 'chat2:setPaymentConfirmInfo'
@@ -169,6 +177,12 @@ type _AddAttachmentViewMessagePayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly viewType: RPCChatTypes.GalleryItemTyp
   readonly message: Types.Message
+}
+type _AddBotMemberPayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly allowCommands: boolean
+  readonly allowMentions: boolean
+  readonly username: string
 }
 type _AddUsersToChannelPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
@@ -304,6 +318,7 @@ type _LoadMessagesCenteredPayload = {
   readonly highlightMode: Types.CenterOrdinalHighlightMode
 }
 type _LoadNewerMessagesDueToScrollPayload = {readonly conversationIDKey: Types.ConversationIDKey}
+type _LoadNextBotPagePayload = {readonly pageSize: number}
 type _LoadOlderMessagesDueToScrollPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _LockAudioRecordingPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _MarkConversationsStalePayload = {
@@ -491,6 +506,15 @@ type _PreviewConversationPayload = {
     | 'search'
     | 'journeyCardPopular'
 }
+type _RefreshBotPublicCommandsPayload = {readonly username: string}
+type _RefreshBotSettingsPayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly username: string
+}
+type _RemoveBotMemberPayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly username: string
+}
 type _ReplyJumpPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly messageID: Types.MessageID
@@ -554,6 +578,12 @@ type _SetAudioRecordingPostInfoPayload = {
   readonly path: string
   readonly outboxID: Buffer
 }
+type _SetBotPublicCommandsPayload = {readonly username: string; readonly commands: Types.BotPublicCommands}
+type _SetBotSettingsPayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly username: string
+  readonly settings: RPCTypes.TeamBotSettings
+}
 type _SetChannelSearchTextPayload = {readonly text: string}
 type _SetCommandMarkdownPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
@@ -585,6 +615,7 @@ type _SetExplodingModeLockPayload = {
 }
 type _SetInboxNumSmallRowsPayload = {readonly ignoreWrite?: boolean; readonly rows: number}
 type _SetInboxShowIsNewPayload = {readonly isNew: boolean}
+type _SetLoadedBotPagePayload = {readonly page: number}
 type _SetMaybeMentionInfoPayload = {readonly name: string; readonly info: RPCChatTypes.UIMaybeMentionInfo}
 type _SetMinWriterRolePayload = {
   readonly conversationIDKey: Types.ConversationIDKey
@@ -1190,9 +1221,63 @@ export const createChangeFocus = (payload: _ChangeFocusPayload): ChangeFocusPayl
   type: changeFocus,
 })
 /**
+ * add bot member to channel
+ */
+export const createAddBotMember = (payload: _AddBotMemberPayload): AddBotMemberPayload => ({
+  payload,
+  type: addBotMember,
+})
+/**
+ * loads next page of featured bots from backend
+ */
+export const createLoadNextBotPage = (payload: _LoadNextBotPagePayload): LoadNextBotPagePayload => ({
+  payload,
+  type: loadNextBotPage,
+})
+/**
+ * refresh bot public commands
+ */
+export const createRefreshBotPublicCommands = (
+  payload: _RefreshBotPublicCommandsPayload
+): RefreshBotPublicCommandsPayload => ({payload, type: refreshBotPublicCommands})
+/**
+ * refresh bot settings
+ */
+export const createRefreshBotSettings = (payload: _RefreshBotSettingsPayload): RefreshBotSettingsPayload => ({
+  payload,
+  type: refreshBotSettings,
+})
+/**
+ * remove a bot member
+ */
+export const createRemoveBotMember = (payload: _RemoveBotMemberPayload): RemoveBotMemberPayload => ({
+  payload,
+  type: removeBotMember,
+})
+/**
  * send a message from Giphy search
  */
 export const createGiphySend = (payload: _GiphySendPayload): GiphySendPayload => ({payload, type: giphySend})
+/**
+ * set bot public commands
+ */
+export const createSetBotPublicCommands = (
+  payload: _SetBotPublicCommandsPayload
+): SetBotPublicCommandsPayload => ({payload, type: setBotPublicCommands})
+/**
+ * set bot settings
+ */
+export const createSetBotSettings = (payload: _SetBotSettingsPayload): SetBotSettingsPayload => ({
+  payload,
+  type: setBotSettings,
+})
+/**
+ * set page # for a conversation
+ */
+export const createSetLoadedBotPage = (payload: _SetLoadedBotPagePayload): SetLoadedBotPagePayload => ({
+  payload,
+  type: setLoadedBotPage,
+})
 export const createAttachmentDownload = (payload: _AttachmentDownloadPayload): AttachmentDownloadPayload => ({
   payload,
   type: attachmentDownload,
@@ -1475,6 +1560,7 @@ export type AddAttachmentViewMessagePayload = {
   readonly payload: _AddAttachmentViewMessagePayload
   readonly type: typeof addAttachmentViewMessage
 }
+export type AddBotMemberPayload = {readonly payload: _AddBotMemberPayload; readonly type: typeof addBotMember}
 export type AddUsersToChannelPayload = {
   readonly payload: _AddUsersToChannelPayload
   readonly type: typeof addUsersToChannel
@@ -1661,6 +1747,10 @@ export type LoadNewerMessagesDueToScrollPayload = {
   readonly payload: _LoadNewerMessagesDueToScrollPayload
   readonly type: typeof loadNewerMessagesDueToScroll
 }
+export type LoadNextBotPagePayload = {
+  readonly payload: _LoadNextBotPagePayload
+  readonly type: typeof loadNextBotPage
+}
 export type LoadOlderMessagesDueToScrollPayload = {
   readonly payload: _LoadOlderMessagesDueToScrollPayload
   readonly type: typeof loadOlderMessagesDueToScroll
@@ -1796,6 +1886,18 @@ export type PreviewConversationPayload = {
   readonly payload: _PreviewConversationPayload
   readonly type: typeof previewConversation
 }
+export type RefreshBotPublicCommandsPayload = {
+  readonly payload: _RefreshBotPublicCommandsPayload
+  readonly type: typeof refreshBotPublicCommands
+}
+export type RefreshBotSettingsPayload = {
+  readonly payload: _RefreshBotSettingsPayload
+  readonly type: typeof refreshBotSettings
+}
+export type RemoveBotMemberPayload = {
+  readonly payload: _RemoveBotMemberPayload
+  readonly type: typeof removeBotMember
+}
 export type ReplyJumpPayload = {readonly payload: _ReplyJumpPayload; readonly type: typeof replyJump}
 export type RequestInfoReceivedPayload = {
   readonly payload: _RequestInfoReceivedPayload
@@ -1833,6 +1935,14 @@ export type SetAttachmentViewStatusPayload = {
 export type SetAudioRecordingPostInfoPayload = {
   readonly payload: _SetAudioRecordingPostInfoPayload
   readonly type: typeof setAudioRecordingPostInfo
+}
+export type SetBotPublicCommandsPayload = {
+  readonly payload: _SetBotPublicCommandsPayload
+  readonly type: typeof setBotPublicCommands
+}
+export type SetBotSettingsPayload = {
+  readonly payload: _SetBotSettingsPayload
+  readonly type: typeof setBotSettings
 }
 export type SetChannelSearchTextPayload = {
   readonly payload: _SetChannelSearchTextPayload
@@ -1873,6 +1983,10 @@ export type SetInboxNumSmallRowsPayload = {
 export type SetInboxShowIsNewPayload = {
   readonly payload: _SetInboxShowIsNewPayload
   readonly type: typeof setInboxShowIsNew
+}
+export type SetLoadedBotPagePayload = {
+  readonly payload: _SetLoadedBotPagePayload
+  readonly type: typeof setLoadedBotPage
 }
 export type SetMaybeMentionInfoPayload = {
   readonly payload: _SetMaybeMentionInfoPayload
@@ -2031,6 +2145,7 @@ export type UpdateUserReacjisPayload = {
 // prettier-ignore
 export type Actions =
   | AddAttachmentViewMessagePayload
+  | AddBotMemberPayload
   | AddUsersToChannelPayload
   | AttachmentDownloadPayload
   | AttachmentDownloadedPayload
@@ -2082,6 +2197,7 @@ export type Actions =
   | LoadAttachmentViewPayload
   | LoadMessagesCenteredPayload
   | LoadNewerMessagesDueToScrollPayload
+  | LoadNextBotPagePayload
   | LoadOlderMessagesDueToScrollPayload
   | LockAudioRecordingPayload
   | MarkConversationsStalePayload
@@ -2121,6 +2237,9 @@ export type Actions =
   | PinMessagePayload
   | PrepareFulfillRequestFormPayload
   | PreviewConversationPayload
+  | RefreshBotPublicCommandsPayload
+  | RefreshBotSettingsPayload
+  | RemoveBotMemberPayload
   | ReplyJumpPayload
   | RequestInfoReceivedPayload
   | ResetChatWithoutThemPayload
@@ -2132,6 +2251,8 @@ export type Actions =
   | SendTypingPayload
   | SetAttachmentViewStatusPayload
   | SetAudioRecordingPostInfoPayload
+  | SetBotPublicCommandsPayload
+  | SetBotSettingsPayload
   | SetChannelSearchTextPayload
   | SetCommandMarkdownPayload
   | SetCommandStatusInfoPayload
@@ -2142,6 +2263,7 @@ export type Actions =
   | SetExplodingModeLockPayload
   | SetInboxNumSmallRowsPayload
   | SetInboxShowIsNewPayload
+  | SetLoadedBotPagePayload
   | SetMaybeMentionInfoPayload
   | SetMinWriterRolePayload
   | SetPaymentConfirmInfoPayload

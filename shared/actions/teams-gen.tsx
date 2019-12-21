@@ -224,7 +224,11 @@ type _SetTeamInfoPayload = {
 }
 type _SetTeamInviteErrorPayload = {readonly error: string}
 type _SetTeamJoinErrorPayload = {readonly error: string}
-type _SetTeamJoinSuccessPayload = {readonly success: boolean; readonly teamname: string}
+type _SetTeamJoinSuccessPayload = {
+  readonly open: boolean
+  readonly success: boolean
+  readonly teamname: string
+}
 type _SetTeamLoadingInvitesPayload = {
   readonly teamname: string
   readonly loadingKey: string

@@ -10,7 +10,7 @@ const oneMinuteInMs = 60 * 1000
 const oneHourInMs = oneMinuteInMs * 60
 const oneDayInMs = oneHourInMs * 24
 
-export type _Props = {
+export type Props = {
   exploded: boolean
   explodesAt: number
   isParentHighlighted: boolean
@@ -19,7 +19,6 @@ export type _Props = {
   pending: boolean
   style?: Styles.StylesCrossPlatform
 }
-type Props = Kb.PropsWithTimer<_Props>
 
 interface State {
   readonly mode: 'none' | 'countdown' | 'boom' | 'hidden'
@@ -29,15 +28,16 @@ class ExplodingMeta extends React.Component<Props, State> {
   state = {mode: 'none'} as State
   tickerID?: TickerID
   sharedTimerID?: SharedTimerID
+  forceUpdateID?: NodeJS.Timer
   sharedTimerKey: string = ''
 
   componentDidMount() {
-    this._hideOrStart()
+    this.hideOrStart()
   }
 
   componentDidUpdate(prevProps: Props, _: State) {
     if (!this.props.pending && prevProps.pending) {
-      this._hideOrStart()
+      this.hideOrStart()
     }
 
     if (this.props.exploded && !prevProps.exploded) {
@@ -51,7 +51,7 @@ class ExplodingMeta extends React.Component<Props, State> {
     }
   }
 
-  _hideOrStart = () => {
+  private hideOrStart = () => {
     if (
       this.state.mode === 'none' &&
       !this.props.pending &&
@@ -66,9 +66,10 @@ class ExplodingMeta extends React.Component<Props, State> {
   componentWillUnmount() {
     this.tickerID && removeTicker(this.tickerID)
     this.sharedTimerID && SharedTimer.removeObserver(this.sharedTimerKey, this.sharedTimerID)
+    this.forceUpdateID && clearTimeout(this.forceUpdateID)
   }
 
-  _updateLoop = () => {
+  private updateLoop = () => {
     if (this.props.pending) {
       return
     }
@@ -85,8 +86,8 @@ class ExplodingMeta extends React.Component<Props, State> {
       this.tickerID = addTicker(this._secondLoop)
       return
     }
-    this.props.setTimeout(() => {
-      this.forceUpdate(this._updateLoop)
+    this.forceUpdateID = setTimeout(() => {
+      this.forceUpdate(this.updateLoop)
     }, interval)
   }
 
@@ -103,8 +104,7 @@ class ExplodingMeta extends React.Component<Props, State> {
   }
 
   _setHidden = () => this.state.mode !== 'hidden' && this.setState({mode: 'hidden'})
-  _setCountdown = () =>
-    this.state.mode !== 'countdown' && this.setState({mode: 'countdown'}, this._updateLoop)
+  _setCountdown = () => this.state.mode !== 'countdown' && this.setState({mode: 'countdown'}, this.updateLoop)
 
   render() {
     const backgroundColor =
@@ -281,4 +281,4 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export default Kb.HOCTimers(ExplodingMeta)
+export default ExplodingMeta

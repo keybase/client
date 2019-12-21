@@ -21,6 +21,10 @@
         },
         {
           "type": "string",
+          "name": "extendedDescription"
+        },
+        {
+          "type": "string",
           "name": "botUsername"
         },
         {
@@ -36,6 +40,14 @@
             "string"
           ],
           "name": "ownerUser"
+        },
+        {
+          "type": "int",
+          "name": "rank"
+        },
+        {
+          "type": "boolean",
+          "name": "isPromoted"
         }
       ]
     },
@@ -49,6 +61,10 @@
             "items": "FeaturedBot"
           },
           "name": "bots"
+        },
+        {
+          "type": "boolean",
+          "name": "isLastPage"
         }
       ]
     },
@@ -62,6 +78,10 @@
             "items": "FeaturedBot"
           },
           "name": "bots"
+        },
+        {
+          "type": "boolean",
+          "name": "isLastPage"
         }
       ]
     }
@@ -76,6 +96,10 @@
         {
           "name": "offset",
           "type": "int"
+        },
+        {
+          "name": "skipCache",
+          "type": "boolean"
         }
       ],
       "response": "FeaturedBotsRes"

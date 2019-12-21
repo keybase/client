@@ -2423,6 +2423,19 @@
     },
     {
       "type": "record",
+      "name": "TeamAddMembersResult",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "User"
+          },
+          "name": "notAdded"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "TeamJoinRequest",
       "fields": [
         {
@@ -2898,6 +2911,10 @@
       "name": "TeamProfileAddEntry",
       "fields": [
         {
+          "type": "TeamID",
+          "name": "teamID"
+        },
+        {
           "type": "TeamName",
           "name": "teamName"
         },
@@ -3005,6 +3022,20 @@
     },
     {
       "type": "record",
+      "name": "AnnotatedTeamMemberDetails",
+      "fields": [
+        {
+          "type": "TeamMemberDetails",
+          "name": "details"
+        },
+        {
+          "type": "TeamRole",
+          "name": "role"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "AnnotatedTeam",
       "fields": [
         {
@@ -3022,7 +3053,7 @@
         {
           "type": {
             "type": "array",
-            "items": "TeamMemberDetails"
+            "items": "AnnotatedTeamMemberDetails"
           },
           "name": "members"
         },
@@ -3306,7 +3337,7 @@
           "type": "boolean"
         }
       ],
-      "response": null
+      "response": "TeamAddMembersResult"
     },
     "teamAddMembersMultiRole": {
       "request": [
@@ -3330,7 +3361,7 @@
           "type": "boolean"
         }
       ],
-      "response": null
+      "response": "TeamAddMembersResult"
     },
     "teamRemoveMember": {
       "request": [

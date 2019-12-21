@@ -1,12 +1,11 @@
 // TODO deprecate
 import * as React from 'react'
-import {Avatar, Box, Button, Meta, Text, Usernames, FloatingMenu} from '../../common-adapters'
+import {Avatar, Box, Button, Meta, Text, ConnectedUsernames, FloatingMenu} from '../../common-adapters'
 import {globalColors, globalMargins, globalStyles, isMobile, platformStyles} from '../../styles'
 
 export type Props = {
   attachTo?: () => React.Component<any> | null
   description: string
-  following: Set<string>
   memberCount: number
   onHidden: () => void
   onJoinTeam: (teamname: string) => void
@@ -108,11 +107,11 @@ const TeamInfo = (props: Props) => (
 
         {props.publicAdmins.map((username, idx) => (
           <Box key={username} style={styleInnerWrap}>
-            <Usernames
+            <ConnectedUsernames
               type="BodySmallSemibold"
               underline={true}
               colorFollowing={true}
-              users={[{following: props.following.has(username), username}]}
+              usernames={[username]}
               onUsernameClicked={() => props.onUserClick(username)}
             />
 

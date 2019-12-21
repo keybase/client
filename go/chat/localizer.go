@@ -46,7 +46,7 @@ func (b *baseLocalizer) filterSelfFinalized(ctx context.Context, inbox types.Inb
 	res.ConvsUnverified = nil
 	for _, conv := range inbox.ConvsUnverified {
 		if conv.Conv.IsSelfFinalized(username) {
-			b.Debug(ctx, "baseLocalizer: skipping own finalized convo: %s name: %s", conv.ConvIDStr)
+			b.Debug(ctx, "baseLocalizer: skipping own finalized convo: %s", conv.ConvIDStr)
 			continue
 		}
 		res.ConvsUnverified = append(res.ConvsUnverified, conv)

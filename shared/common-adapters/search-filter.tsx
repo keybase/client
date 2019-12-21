@@ -3,6 +3,7 @@ import Animation from './animation'
 import Box, {Box2} from './box'
 import ClickableBox from './clickable-box'
 import NewInput from './new-input'
+import {HotKey} from './hot-key'
 import PlainInput from './plain-input'
 import Text from './text'
 import ProgressIndicator from './progress-indicator'
@@ -10,13 +11,12 @@ import Icon, {IconType} from './icon'
 import * as Styles from '../styles'
 import * as Platforms from '../constants/platform'
 
-const KeyHandler = (Styles.isMobile ? c => c : require('../util/key-handler.desktop').default)(() => null)
-
 const Kb = {
   Animation,
   Box,
   Box2,
   ClickableBox,
+  HotKey,
   Icon,
   NewInput,
   PlainInput,
@@ -116,7 +116,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
   }
   private mouseOver = () => this.setState({hover: true})
   private mouseLeave = () => this.setState({hover: false})
-  private onHotkey = cmd => {
+  private onHotkey = (cmd: string) => {
     this.props.hotkey && cmd.endsWith('+' + this.props.hotkey) && this.focus()
   }
   private onKeyDown = (e: React.KeyboardEvent, isComposingIME: boolean) => {
@@ -144,9 +144,9 @@ class SearchFilter extends React.PureComponent<Props, State> {
       !Styles.isMobile &&
       this.props.hotkey &&
       !this.props.onClick && (
-        <KeyHandler
-          onHotkey={this.onHotkey}
-          hotkeys={[(Platforms.isDarwin ? 'command+' : 'ctrl+') + this.props.hotkey]}
+        <Kb.HotKey
+          onHotKey={this.onHotkey}
+          hotKeys={[(Platforms.isDarwin ? 'command+' : 'ctrl+') + this.props.hotkey]}
         />
       )
     )

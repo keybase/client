@@ -4062,6 +4062,20 @@ func (mr *MockNotifierMockRecorder) RegisterForChanges(arg0, arg1 interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterForChanges", reflect.TypeOf((*MockNotifier)(nil).RegisterForChanges), arg0, arg1)
 }
 
+// RegisterForSyncedTlfs mocks base method
+func (m *MockNotifier) RegisterForSyncedTlfs(arg0 SyncedTlfObserver) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RegisterForSyncedTlfs", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RegisterForSyncedTlfs indicates an expected call of RegisterForSyncedTlfs
+func (mr *MockNotifierMockRecorder) RegisterForSyncedTlfs(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterForSyncedTlfs", reflect.TypeOf((*MockNotifier)(nil).RegisterForSyncedTlfs), arg0)
+}
+
 // UnregisterFromChanges mocks base method
 func (m *MockNotifier) UnregisterFromChanges(arg0 []data.FolderBranch, arg1 Observer) error {
 	m.ctrl.T.Helper()
@@ -4074,6 +4088,20 @@ func (m *MockNotifier) UnregisterFromChanges(arg0 []data.FolderBranch, arg1 Obse
 func (mr *MockNotifierMockRecorder) UnregisterFromChanges(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnregisterFromChanges", reflect.TypeOf((*MockNotifier)(nil).UnregisterFromChanges), arg0, arg1)
+}
+
+// UnregisterFromSyncedTlfs mocks base method
+func (m *MockNotifier) UnregisterFromSyncedTlfs(arg0 SyncedTlfObserver) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UnregisterFromSyncedTlfs", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UnregisterFromSyncedTlfs indicates an expected call of UnregisterFromSyncedTlfs
+func (mr *MockNotifierMockRecorder) UnregisterFromSyncedTlfs(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnregisterFromSyncedTlfs", reflect.TypeOf((*MockNotifier)(nil).UnregisterFromSyncedTlfs), arg0)
 }
 
 // MockRekeyQueue is a mock of RekeyQueue interface

@@ -452,6 +452,7 @@ type Dirent struct {
 	Writable             bool             `codec:"writable" json:"writable"`
 	PrefetchStatus       PrefetchStatus   `codec:"prefetchStatus" json:"prefetchStatus"`
 	PrefetchProgress     PrefetchProgress `codec:"prefetchProgress" json:"prefetchProgress"`
+	SymlinkTarget        string           `codec:"symlinkTarget" json:"symlinkTarget"`
 }
 
 func (o Dirent) DeepCopy() Dirent {
@@ -464,6 +465,7 @@ func (o Dirent) DeepCopy() Dirent {
 		Writable:             o.Writable,
 		PrefetchStatus:       o.PrefetchStatus.DeepCopy(),
 		PrefetchProgress:     o.PrefetchProgress.DeepCopy(),
+		SymlinkTarget:        o.SymlinkTarget,
 	}
 }
 

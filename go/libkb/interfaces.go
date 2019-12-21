@@ -763,7 +763,7 @@ type TeamRoleMapManager interface {
 }
 
 type TeamAuditor interface {
-	AuditTeam(m MetaContext, id keybase1.TeamID, isPublic bool, headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno, auditMode keybase1.AuditMode) (err error)
+	AuditTeam(m MetaContext, id keybase1.TeamID, isPublic bool, headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno, lastMerkleRoot *MerkleRoot, auditMode keybase1.AuditMode) (err error)
 }
 
 type TeamBoxAuditor interface {
@@ -1075,7 +1075,7 @@ type ChatHelper interface {
 	UserReacjis(ctx context.Context, uid gregor1.UID) keybase1.UserReacjis
 	JourneycardTimeTravel(context.Context, gregor1.UID, time.Duration) error
 	JourneycardResetAllConvs(context.Context, gregor1.UID) error
-	JourneycardDebugState(context.Context, gregor1.UID, chat1.ConversationID) (string, error)
+	JourneycardDebugState(context.Context, gregor1.UID, keybase1.TeamID) (string, error)
 }
 
 // Resolver resolves human-readable usernames (joe) and user asssertions (joe+joe@github)

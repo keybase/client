@@ -1,10 +1,8 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import flags from '../../util/feature-flags'
 
 export type Props = {
-  airdropIsLive?: boolean
   bio?: string
   blocked: boolean
   followThem?: boolean
@@ -16,82 +14,9 @@ export type Props = {
   inTracker: boolean
   location?: string
   onBack?: () => void
-  onLearnMore?: () => void
-  registeredForAirdrop?: boolean
   username: string
-  youAreInAirdrop?: boolean
   sbsDescription?: string
 }
-
-// Here we're using FloatingMenu, but we want to customize the button to match
-// Zeplin, so there's a hack -- desktop renders everything as a custom header,
-// whereas mobile uses `items` prop as normal.
-type AirdropPopupProps = {
-  onBack?: () => void
-  onLearnMore?: () => void
-}
-
-const _AirdropPopup = (p: Kb.PropsWithOverlay<AirdropPopupProps>) => (
-  <Kb.ClickableBox
-    ref={p.setAttachmentRef}
-    onClick={p.toggleShowingMenu}
-    onMouseEnter={p.toggleShowingMenu}
-    onMouseLeave={p.toggleShowingMenu}
-  >
-    <Kb.Icon color={Styles.globalColors.yellowDark} type="iconfont-identity-stellar" style={styles.star} />
-    <Kb.FloatingMenu
-      attachTo={p.getAttachmentRef}
-      closeOnSelect={true}
-      containerStyle={styles.floatingContainer}
-      listStyle={styles.floatingContainer}
-      backgroundColor={Styles.globalColors.purple}
-      textColor={Styles.globalColors.white}
-      onHidden={p.toggleShowingMenu}
-      visible={p.showingMenu}
-      propagateOutsideClicks={true}
-      header={{
-        title: 'header',
-        view: (
-          <Kb.Box2
-            direction="vertical"
-            centerChildren={true}
-            fullWidth={true}
-            gap="tiny"
-            style={{backgroundColor: Styles.globalColors.purple, padding: Styles.globalMargins.small}}
-          >
-            <Kb.Icon type="icon-airdrop-logo-64" style={styles.star} />
-            <Kb.Text style={styles.airdropText} type="BodySemibold">
-              Join the airdrop
-            </Kb.Text>
-            <Kb.Text style={styles.airdropText} type="BodySmall">
-              Airdropees get free Lumens every month.
-            </Kb.Text>
-            {!Styles.isMobile && (
-              <Kb.Button
-                backgroundColor="purple"
-                label="Learn more"
-                onClick={p.onLearnMore}
-                style={styles.learnButton}
-              />
-            )}
-          </Kb.Box2>
-        ),
-      }}
-      items={
-        Styles.isMobile
-          ? [
-              'Divider',
-              {
-                onClick: p.onLearnMore,
-                title: 'Learn more',
-              },
-            ]
-          : []
-      }
-    />
-  </Kb.ClickableBox>
-)
-const AirdropPopup = Kb.OverlayParentHOC(_AirdropPopup)
 
 const FollowText = ({followThem, followsYou}) => {
   let text: string = ''
@@ -113,20 +38,6 @@ const Bio = (p: Props) => (
       <Kb.Text type="BodyBig" lineClamp={p.inTracker ? 1 : undefined} selectable={true}>
         {p.fullname}
       </Kb.Text>
-      {flags.airdrop &&
-        p.airdropIsLive &&
-        p.registeredForAirdrop &&
-        (p.youAreInAirdrop ? (
-          <Kb.WithTooltip tooltip="Lucky airdropee">
-            <Kb.Icon
-              color={Styles.globalColors.yellowDark}
-              type="iconfont-identity-stellar"
-              style={styles.star}
-            />
-          </Kb.WithTooltip>
-        ) : (
-          <AirdropPopup onBack={p.onBack} onLearnMore={p.onLearnMore} />
-        ))}
     </Kb.Box2>
     <FollowText followThem={p.followThem} followsYou={p.followsYou} />
     {p.followersCount !== null && (
@@ -204,10 +115,6 @@ const Bio = (p: Props) => (
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      airdropText: Styles.platformStyles({
-        common: {color: Styles.globalColors.white},
-        isElectron: {textAlign: 'center'},
-      }),
       blockedBackgroundText: {
         backgroundColor: Styles.globalColors.red_20,
         borderRadius: Styles.borderRadius,

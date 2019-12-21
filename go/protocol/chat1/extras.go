@@ -422,6 +422,13 @@ func (m MessageUnboxed) IsPlaceholder() bool {
 	return false
 }
 
+func (m MessageUnboxed) IsJourneycard() bool {
+	if state, err := m.State(); err == nil {
+		return state == MessageUnboxedState_JOURNEYCARD
+	}
+	return false
+}
+
 // IsValidFull returns whether the message is both:
 // 1. Valid
 // 2. Has a non-deleted body with a type matching the header
@@ -566,6 +573,9 @@ func (m *MessageUnboxed) DebugString() string {
 		}
 		return fmt.Sprintf("[%v obid:%v prev:%v ostate:%v %v]",
 			state, obr.OutboxID, obr.Msg.ClientHeader.OutboxInfo.Prev, ostateStr, obr.Msg.ClientHeader.MessageType)
+	case MessageUnboxedState_JOURNEYCARD:
+		jc := m.Journeycard()
+		return fmt.Sprintf("[JOURNEYCARD %v]", jc.CardType)
 	default:
 		return fmt.Sprintf("[state:%v %v]", state, m.GetMessageID())
 	}
@@ -1331,6 +1341,17 @@ func (c ConversationLocal) FullNamesForSearch() (res []*string) {
 	return res
 }
 
+func (c ConversationLocal) CannotWrite() bool {
+	if c.ConvSettings == nil {
+		return false
+	}
+	if c.ConvSettings.MinWriterRoleInfo == nil {
+		return false
+	}
+
+	return c.ConvSettings.MinWriterRoleInfo.CannotWrite
+}
+
 func (c Conversation) GetMtime() gregor1.Time {
 	return c.ReaderInfo.Mtime
 }
@@ -1363,13 +1384,15 @@ func (c Conversation) IsPublic() bool {
 	return c.Metadata.Visibility == keybase1.TLFVisibility_PUBLIC
 }
 
+var errMaxMessageNotFound = errors.New("max message not found")
+
 func (c Conversation) GetMaxMessage(typ MessageType) (MessageSummary, error) {
 	for _, msg := range c.MaxMsgSummaries {
 		if msg.GetMessageType() == typ {
 			return msg, nil
 		}
 	}
-	return MessageSummary{}, fmt.Errorf("max message not found: %v", typ)
+	return MessageSummary{}, errMaxMessageNotFound
 }
 
 func (c Conversation) Includes(uid gregor1.UID) bool {

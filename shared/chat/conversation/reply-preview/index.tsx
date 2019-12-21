@@ -47,7 +47,7 @@ const ReplyPreview = (props: Props) => {
           <Kb.Icon
             onClick={props.onCancel}
             type="iconfont-remove"
-            style={Kb.iconCastPlatformStyles(styles.close)}
+            style={styles.close}
             boxStyle={styles.close}
           />
         </Kb.Box2>

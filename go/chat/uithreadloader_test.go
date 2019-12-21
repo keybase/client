@@ -194,7 +194,7 @@ func TestUIThreadLoaderCache(t *testing.T) {
 	}))
 	consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
 	require.NoError(t, tc.Context().ConvSource.Clear(ctx, conv.Id, uid))
-	_, err := tc.Context().ConvSource.PullLocalOnly(ctx, conv.Id, uid, nil, nil, 0)
+	_, err := tc.Context().ConvSource.PullLocalOnly(ctx, conv.Id, uid, chat1.GetThreadReason_GENERAL, nil, nil, 0)
 	require.Error(t, err)
 	require.IsType(t, storage.MissError{}, err)
 
@@ -216,7 +216,7 @@ func TestUIThreadLoaderCache(t *testing.T) {
 	case <-time.After(timeout):
 		require.Fail(t, "no full cb")
 	}
-	_, err = tc.Context().ConvSource.PullLocalOnly(ctx, conv.Id, uid, nil, nil, 0)
+	_, err = tc.Context().ConvSource.PullLocalOnly(ctx, conv.Id, uid, chat1.GetThreadReason_GENERAL, nil, nil, 0)
 	require.Error(t, err)
 	require.IsType(t, storage.MissError{}, err)
 	clock.Advance(10 * time.Second)
@@ -233,7 +233,7 @@ func TestUIThreadLoaderCache(t *testing.T) {
 		}
 	}
 	require.True(t, worked)
-	tv, err := tc.Context().ConvSource.PullLocalOnly(ctx, conv.Id, uid, nil, nil, 0)
+	tv, err := tc.Context().ConvSource.PullLocalOnly(ctx, conv.Id, uid, chat1.GetThreadReason_GENERAL, nil, nil, 0)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(tv.Messages))
 }

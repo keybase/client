@@ -36,12 +36,6 @@ export type SettingsProps = {
   thisDeviceIsLockedOut: boolean
 }
 
-const HoverText = Styles.isMobile
-  ? Kb.Text
-  : Styles.styled(Kb.Text)(() => ({
-      ':hover': {backgroundColor: Styles.globalColors.yellowLight},
-    }))
-
 const Divider = () => <Kb.Divider style={styles.divider} />
 
 type PartnerRowProps = {
@@ -110,12 +104,13 @@ class AccountSettings extends React.Component<SettingsProps> {
               <Kb.Box2 direction="vertical" gap="xtiny" style={styles.section} fullWidth={true}>
                 <Kb.Text type="BodySmallSemibold">Account name</Kb.Text>
                 <Kb.Box2 direction="horizontal" fullWidth={true}>
-                  <HoverText type="BodySemibold">{props.name}</HoverText>
-                  <Kb.Icon
-                    style={Kb.iconCastPlatformStyles(styles.icon)}
-                    type="iconfont-edit"
-                    fontSize={Styles.isMobile ? 22 : 16}
-                  />
+                  <Kb.Text
+                    className="hover_color_blackOrBlack hover_background_color_yellowLight"
+                    type="BodySemibold"
+                  >
+                    {props.name}
+                  </Kb.Text>
+                  <Kb.Icon style={styles.icon} type="iconfont-edit" fontSize={Styles.isMobile ? 22 : 16} />
                 </Kb.Box2>
               </Kb.Box2>
             </Kb.ClickableBox>
@@ -126,7 +121,7 @@ class AccountSettings extends React.Component<SettingsProps> {
             </Kb.Box2>
             <Divider />
             <Kb.Box2 direction="vertical" gap="tiny" style={styles.section} fullWidth={true}>
-              <Kb.Text type="BodySmallSemibold">Secret Key</Kb.Text>
+              <Kb.Text type="BodySmallSemibold">Secret key</Kb.Text>
               {!props.thisDeviceIsLockedOut ? (
                 <>
                   <Kb.Banner color="yellow" inline={true}>

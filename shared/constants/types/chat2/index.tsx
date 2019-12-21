@@ -140,6 +140,11 @@ export type BlockButtonsInfo = {
   adder: string
 }
 
+export type BotPublicCommands = {
+  loadError: boolean
+  commands: Array<string>
+}
+
 export type State = Readonly<{
   accountsInfoMap: Map<
     Common.ConversationIDKey,
@@ -151,6 +156,8 @@ export type State = Readonly<{
   badgeMap: ConversationCountMap // id to the badge count,
   blockButtonsMap: Map<RPCTypes.TeamID, BlockButtonsInfo> // Should we show block buttons for this team ID?
   botCommandsUpdateStatusMap: Map<Common.ConversationIDKey, RPCChatTypes.UIBotCommandsUpdateStatus>
+  botPublicCommands: Map<string, BotPublicCommands>
+  botSettings: Map<Common.ConversationIDKey, Map<string, RPCTypes.TeamBotSettings>>
   channelSearchText: string
   commandMarkdownMap: Map<Common.ConversationIDKey, RPCChatTypes.UICommandMarkdown>
   commandStatusMap: Map<Common.ConversationIDKey, CommandStatusInfo>
@@ -161,6 +168,9 @@ export type State = Readonly<{
   editingMap: Map<Common.ConversationIDKey, Message.Ordinal> // current message being edited,
   explodingModeLocks: Map<Common.ConversationIDKey, number> // locks set on exploding mode while user is inputting text,
   explodingModes: Map<Common.ConversationIDKey, number> // seconds to exploding message expiration,
+  featuredBotsMap: Map<string, RPCTypes.FeaturedBot>
+  featuredBotsPage: number
+  featuredBotsLoaded: boolean
   flipStatusMap: Map<string, RPCChatTypes.UICoinFlipStatus>
   focus: Focus
   giphyResultMap: Map<Common.ConversationIDKey, RPCChatTypes.GiphySearchResults | undefined>

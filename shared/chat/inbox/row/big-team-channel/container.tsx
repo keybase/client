@@ -36,6 +36,7 @@ export default namedConnect(
     isSelected: stateProps.isSelected,
     onSelectConversation: dispatchProps.onSelectConversation,
     showBold: Constants.getRowStyles(false, false).showBold,
+    snippetDecoration: stateProps._meta.snippetDecoration,
   }),
   'BigTeamChannel'
 )(BigTeamChannel)

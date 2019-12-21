@@ -3593,3 +3593,23 @@ func (b FeaturedBot) Owner() string {
 	}
 	return ""
 }
+
+func (b FeaturedBot) Eq(o FeaturedBot) bool {
+	return b.BotAlias == o.BotAlias &&
+		b.Description == o.Description &&
+		b.ExtendedDescription == o.ExtendedDescription &&
+		b.BotUsername == o.BotUsername &&
+		b.Owner() == o.Owner()
+}
+
+func (b FeaturedBotsRes) Eq(o FeaturedBotsRes) bool {
+	if len(b.Bots) != len(o.Bots) {
+		return false
+	}
+	for i, bot := range b.Bots {
+		if !bot.Eq(o.Bots[i]) {
+			return false
+		}
+	}
+	return true
+}

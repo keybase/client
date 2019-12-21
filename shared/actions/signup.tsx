@@ -220,7 +220,7 @@ const preparePhoneNumberPrompt = async () => {
 const signupSaga = function*() {
   // validation actions
   yield* Saga.chainAction2(SignupGen.requestInvite, requestInvite)
-  yield* Saga.chainAction2(SignupGen.checkUsername, checkUsername, 'checkUsername')
+  yield* Saga.chainAction2(SignupGen.checkUsername, checkUsername)
   yield* Saga.chainAction2(SignupGen.requestAutoInvite, requestAutoInvite)
   yield* Saga.chainAction2([SignupGen.requestedAutoInvite, SignupGen.checkInviteCode], checkInviteCode)
   yield* Saga.chainAction2(SignupGen.checkDevicename, checkDevicename)

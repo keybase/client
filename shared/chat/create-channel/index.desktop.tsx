@@ -25,21 +25,19 @@ const CreateChannel = (props: Props) => (
     )}
     <Kb.Box style={styles.box}>
       <Kb.Box style={styles.back} onClick={props.onBack}>
-        <Kb.Icon style={styles.back} type="iconfont-arrow-left" />
+        <Kb.Icon style={styles.backIcon} type="iconfont-arrow-left" />
         <Kb.Text type="BodyPrimaryLink">Back</Kb.Text>
       </Kb.Box>
-      <Kb.Box style={styles.input}>
-        <Kb.Input
+      <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" gapEnd={true} gapStart={true}>
+        <Kb.LabeledInput
           autoFocus={true}
-          style={{minWidth: 450}}
-          hintText="Channel name"
+          style={styles.input}
+          placeholder="Channel name"
           value={props.channelname}
           onEnterKeyDown={props.onSubmit}
           onChangeText={channelname => props.onChannelnameChange(channelname)}
         />
-      </Kb.Box>
-      <Kb.Box style={styles.input}>
-        <Kb.Input
+        <Kb.LabeledInput
           autoFocus={false}
           autoCorrect={true}
           autoCapitalize="sentences"
@@ -48,14 +46,14 @@ const CreateChannel = (props: Props) => (
           rowsMax={10}
           // From go/chat/msgchecker/constants.go#HeadlineMaxLength
           maxLength={280}
-          style={{minWidth: 450}}
-          hintText="Add a description or topic..."
+          style={styles.input}
+          placeholder="Add a description or topic..."
           value={props.description}
           onEnterKeyDown={props.onSubmit}
           onChangeText={description => props.onDescriptionChange(description)}
         />
-      </Kb.Box>
-      <Kb.ButtonBar>
+      </Kb.Box2>
+      <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
         <Kb.Button type="Dim" onClick={props.onClose} label="Cancel" />
         <Kb.WaitingButton
           waitingKey={Constants.createChannelWaitingKey(props.teamname)}
@@ -77,32 +75,26 @@ const styles = Styles.styleSheetCreate(
         position: 'absolute',
         top: 32,
       },
-      backIcon: Styles.platformStyles({
-        common: {
-          marginRight: Styles.globalMargins.xtiny,
-        },
-        isElectron: {
-          display: 'block',
-        },
-      }),
+      backIcon: {
+        marginRight: Styles.globalMargins.xtiny,
+      },
       box: {
         ...Styles.globalStyles.flexBoxColumn,
         alignItems: 'center',
         paddingLeft: Styles.globalMargins.large,
         paddingRight: Styles.globalMargins.large,
       },
+      buttonBar: {alignItems: 'center'},
       container: {
-        height: 520,
-        width: 620,
+        maxHeight: 520,
+        width: 400,
       },
       cover: {
         alignItems: 'center',
-        backgroundColor: Styles.globalColors.black_50,
         justifyContent: 'center',
       },
       input: {
-        ...Styles.globalStyles.flexBoxRow,
-        marginTop: Styles.globalMargins.medium,
+        width: '100%',
       },
     } as const)
 )

@@ -44,7 +44,7 @@ const onLoggedOut = (state: Container.TypedState) => {
   return undefined
 }
 
-const onLog = (_: Container.TypedState, action: EngineGen.Keybase1LogUiLogPayload) => {
+const onLog = (action: EngineGen.Keybase1LogUiLogPayload) => {
   log(action.payload.params)
 }
 
@@ -54,31 +54,22 @@ const onDisconnected = () => {
   return ConfigGen.createDaemonError({daemonError: new Error('Disconnected')})
 }
 
-const onTrackingInfo = (
-  _: Container.TypedState,
-  action: EngineGen.Keybase1NotifyTrackingTrackingInfoPayload
-) =>
+const onTrackingInfo = (action: EngineGen.Keybase1NotifyTrackingTrackingInfoPayload) =>
   ConfigGen.createFollowerInfoUpdated({
     followees: action.payload.params.followees || [],
     followers: action.payload.params.followers || [],
     uid: action.payload.params.uid,
   })
 
-const onHTTPSrvInfoUpdated = (
-  _: Container.TypedState,
-  action: EngineGen.Keybase1NotifyServiceHTTPSrvInfoUpdatePayload
-) =>
+const onHTTPSrvInfoUpdated = (action: EngineGen.Keybase1NotifyServiceHTTPSrvInfoUpdatePayload) =>
   ConfigGen.createUpdateHTTPSrvInfo({
     address: action.payload.params.info.address,
     token: action.payload.params.info.token,
   })
 
-const getFollowerInfo = (
-  state: Container.TypedState,
-  action: ConfigGen.LoggedInPayload | ConfigGen.StartupFirstIdlePayload
-) => {
+const getFollowerInfo = (state: Container.TypedState, action: ConfigGen.LoadOnStartPayload) => {
   const {uid} = state.config
-  if (action.type === ConfigGen.loggedIn && action.payload.causedByStartup) {
+  if (action.type === ConfigGen.loadOnStart && action.payload.phase !== 'startupOrReloginButNotInARush') {
     return
   }
   if (uid) {
@@ -508,7 +499,10 @@ function* allowLogoutWaiters(_: Container.TypedState, action: ConfigGen.LogoutHa
   )
 }
 
-const updateServerConfig = async (state: Container.TypedState) => {
+const updateServerConfig = async (state: Container.TypedState, action: ConfigGen.LoadOnStartPayload) => {
+  if (action.payload.phase !== 'startupOrReloginButNotInARush') {
+    return false
+  }
   try {
     const str = await RPCTypes.apiserverGetWithSessionRpcPromise({
       endpoint: 'user/features',
@@ -536,14 +530,14 @@ const updateServerConfig = async (state: Container.TypedState) => {
   } catch (e) {
     logger.info('updateServerConfig fail', e)
   }
+  return false
 }
-const setNavigator = (_: Container.TypedState, action: ConfigGen.SetNavigatorPayload) => {
+const setNavigator = (action: ConfigGen.SetNavigatorPayload) => {
   const navigator = action.payload.navigator
   Router2._setNavigator(navigator)
 }
 
 const newNavigation = (
-  _: Container.TypedState,
   action:
     | RouteTreeGen.NavigateAppendPayload
     | RouteTreeGen.NavigateUpPayload
@@ -634,7 +628,7 @@ const logoutAndTryToLogInAs = async (
   return ConfigGen.createSetDefaultUsername({username: action.payload.username})
 }
 
-const gregorPushState = (_: Container.TypedState, action: GregorGen.PushStatePayload) => {
+const gregorPushState = (action: GregorGen.PushStatePayload) => {
   const actions: Array<Container.TypedActions> = []
   const items = action.payload.state
   const lastSeenItem = items.find(i => i.item && i.item.category === 'whatsNewLastSeenVersion')
@@ -676,14 +670,41 @@ const toggleRuntimeStats = async () => {
     logger.warn('error toggling runtime stats', err)
   }
 }
-
-const emitStartupFirstIdle = async () => {
-  await Saga.delay(1000)
-  return new Promise<ConfigGen.StartupFirstIdlePayload>(resolve => {
+const emitStartupOnLoadNotInARush = async () => {
+  await Container.timeoutPromise(1000)
+  return new Promise<ConfigGen.LoadOnStartPayload>(resolve => {
     requestAnimationFrame(() => {
-      resolve(ConfigGen.createStartupFirstIdle())
+      resolve(ConfigGen.createLoadOnStart({phase: 'startupOrReloginButNotInARush'}))
     })
   })
+}
+
+const emitStartupOnLoadNotInARushLoggedIn = async (
+  _: Container.TypedState,
+  action: ConfigGen.LoggedInPayload
+) => {
+  if (action.payload.causedByStartup) {
+    return false
+  }
+  await Container.timeoutPromise(1000)
+  return new Promise<ConfigGen.LoadOnStartPayload>(resolve => {
+    requestAnimationFrame(() => {
+      resolve(ConfigGen.createLoadOnStart({phase: 'startupOrReloginButNotInARush'}))
+    })
+  })
+}
+
+let _emitStartupOnLoadDaemonConnectedOnce = false
+const emitStartupOnLoadDaemonConnectedOnce = () => {
+  if (!_emitStartupOnLoadDaemonConnectedOnce) {
+    _emitStartupOnLoadDaemonConnectedOnce = true
+    return ConfigGen.createLoadOnStart({phase: 'connectedToDaemonForFirstTime'})
+  }
+  return false
+}
+
+const emitStartupOnLoadLoggedIn = (_: Container.TypedState, action: ConfigGen.LoggedInPayload) => {
+  return !action.payload.causedByStartup ? ConfigGen.createLoadOnStart({phase: 'reloggedIn'}) : false
 }
 
 function* configSaga() {
@@ -711,16 +732,19 @@ function* configSaga() {
   // Switch between login or app routes
   yield* Saga.chainAction2([ConfigGen.loggedIn, ConfigGen.loggedOut], switchRouteDef)
   // MUST go above routeToInitialScreen2 so we set the nav correctly
-  yield* Saga.chainAction2(ConfigGen.setNavigator, setNavigator)
+  yield* Saga.chainAction(ConfigGen.setNavigator, setNavigator)
   // Go to the correct starting screen
   yield* Saga.chainAction2([ConfigGen.daemonHandshakeDone, ConfigGen.setNavigator], routeToInitialScreen2)
   yield* Saga.chainAction2(ConfigGen.persistRoute, stashLastRoute)
 
-  yield* Saga.chainAction2(ConfigGen.daemonHandshakeDone, emitStartupFirstIdle)
+  yield* Saga.chainAction2(ConfigGen.daemonHandshakeDone, emitStartupOnLoadNotInARush)
+  yield* Saga.chainAction2(ConfigGen.daemonHandshakeDone, emitStartupOnLoadDaemonConnectedOnce)
+  yield* Saga.chainAction2(ConfigGen.loggedIn, emitStartupOnLoadLoggedIn)
+  yield* Saga.chainAction2(ConfigGen.loggedIn, emitStartupOnLoadNotInARushLoggedIn)
 
-  yield* Saga.chainAction2(ConfigGen.logoutAndTryToLogInAs, logoutAndTryToLogInAs, 'logoutAndTryToLogInAs')
+  yield* Saga.chainAction2(ConfigGen.logoutAndTryToLogInAs, logoutAndTryToLogInAs)
 
-  yield* Saga.chainAction2(
+  yield* Saga.chainAction(
     [
       RouteTreeGen.navigateAppend,
       RouteTreeGen.navigateUp,
@@ -746,20 +770,20 @@ function* configSaga() {
   // When we're all done lets clean up
   yield* Saga.chainAction2(ConfigGen.loggedOut, resetGlobalStore)
   // Store per user server config info
-  yield* Saga.chainAction2(ConfigGen.startupFirstIdle, updateServerConfig)
+  yield* Saga.chainAction2(ConfigGen.loadOnStart, updateServerConfig)
 
   yield* Saga.chainAction2(ConfigGen.setDeletedSelf, showDeletedSelfRootPage)
 
   yield* Saga.chainAction2(EngineGen.keybase1NotifySessionLoggedIn, onLoggedIn)
   yield* Saga.chainAction2(EngineGen.keybase1NotifySessionLoggedOut, onLoggedOut)
-  yield* Saga.chainAction2(EngineGen.keybase1LogUiLog, onLog)
+  yield* Saga.chainAction(EngineGen.keybase1LogUiLog, onLog)
   yield* Saga.chainAction2(EngineGen.connected, onConnected)
   yield* Saga.chainAction2(EngineGen.disconnected, onDisconnected)
-  yield* Saga.chainAction2(EngineGen.keybase1NotifyTrackingTrackingInfo, onTrackingInfo)
-  yield* Saga.chainAction2(EngineGen.keybase1NotifyServiceHTTPSrvInfoUpdate, onHTTPSrvInfoUpdated)
+  yield* Saga.chainAction(EngineGen.keybase1NotifyTrackingTrackingInfo, onTrackingInfo)
+  yield* Saga.chainAction(EngineGen.keybase1NotifyServiceHTTPSrvInfoUpdate, onHTTPSrvInfoUpdated)
 
   // Listen for updates to `whatsNewLastSeenVersion`
-  yield* Saga.chainAction2(GregorGen.pushState, gregorPushState, 'gregorPushState')
+  yield* Saga.chainAction(GregorGen.pushState, gregorPushState)
 
   yield* Saga.chainAction2(SettingsGen.loadedSettings, maybeLoadAppLink)
 
@@ -770,7 +794,7 @@ function* configSaga() {
     )
   }
 
-  yield* Saga.chainAction2([ConfigGen.loggedIn, ConfigGen.startupFirstIdle], getFollowerInfo)
+  yield* Saga.chainAction2(ConfigGen.loadOnStart, getFollowerInfo)
 
   yield* Saga.chainAction2(ConfigGen.toggleRuntimeStats, toggleRuntimeStats)
 

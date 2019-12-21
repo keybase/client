@@ -454,7 +454,7 @@ func (s *Storage) MergeHelper(ctx context.Context,
 
 	// queue search index update in the background
 	go func() {
-		err := s.G().Indexer.Add(ctx, convID, uid, msgs)
+		err := s.G().Indexer.Add(ctx, convID, msgs)
 		if err != nil {
 			s.Debug(ctx, "Error adding to indexer: %+v", err)
 		}
@@ -622,7 +622,7 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 	s.assetDeleter.DeleteAssets(ctx, uid, convID, allAssets)
 	// queue search index update in the background
 	go func() {
-		err := s.G().Indexer.Remove(ctx, convID, uid, allPurged)
+		err := s.G().Indexer.Remove(ctx, convID, allPurged)
 		if err != nil {
 			s.Debug(ctx, "Error removing from indexer: %+v", err)
 		}
@@ -831,7 +831,7 @@ func (s *Storage) applyExpunge(ctx context.Context, convID chat1.ConversationID,
 	s.assetDeleter.DeleteAssets(ctx, uid, convID, allAssets)
 	// queue search index update in the background
 	go func() {
-		err := s.G().Indexer.Remove(ctx, convID, uid, allPurged)
+		err := s.G().Indexer.Remove(ctx, convID, allPurged)
 		if err != nil {
 			s.Debug(ctx, "Error removing from indexer: %+v", err)
 		}
@@ -1064,6 +1064,10 @@ func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID
 
 	// Run seek looking for each message
 	for _, msgID := range msgIDs {
+		if msgID == 0 {
+			res = append(res, nil)
+			continue
+		}
 		msg, err := s.getMessage(ctx, convID, uid, msgID)
 		if err != nil {
 			return nil, s.maybeNukeLocked(ctx, false, err, convID, uid)

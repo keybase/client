@@ -47,7 +47,7 @@ const _TeamHeader = (props: SmallProps) => {
           type="iconfont-gear"
           onClick={props.toggleShowingMenu}
           ref={props.setAttachmentRef}
-          style={Kb.iconCastPlatformStyles(styles.gear)}
+          style={styles.gear}
           fontSize={gearIconSize}
         />
       </Kb.Box2>
@@ -82,7 +82,6 @@ const TeamHeader = Kb.OverlayParentHOC(_TeamHeader)
 type AdhocProps = {
   onShowNewTeamDialog: () => void
   participants: ReadonlyArray<{
-    botAlias: string
     username: string
     fullname: string
   }>
@@ -101,7 +100,6 @@ export const AdhocHeader = (props: AdhocProps) => {
               horizontal={true}
               username={p.username}
               metaOne={p.fullname}
-              botAlias={p.botAlias}
             />
           )
         })}

@@ -6,7 +6,6 @@ import shallowEqual from 'shallowequal'
 // We could try and only send diffs but the payloads are small and handling the removing case is tricky and likely not worth it
 export const serialize = {
   ...Avatar.serialize,
-  airdropIsLive: (v: boolean) => v,
   assertions: (v?: Map<string, Types.Assertion>) => (v ? [...v.entries()] : v),
   bio: (v?: string) => v,
   blocked: (v: boolean) => v,
@@ -21,7 +20,6 @@ export const serialize = {
   isYou: (v: boolean) => v,
   location: (v?: string) => v,
   reason: (v: string) => v,
-  registeredForAirdrop: (v?: boolean) => v,
   state: (v: Types.DetailsState) => v,
   teamShowcase: (v?: Array<Types.TeamShowcase>, o?: Array<Types.TeamShowcase>) =>
     o && shallowEqual(v, o) ? undefined : v,
@@ -33,7 +31,6 @@ export const serialize = {
   windowParam: (v: string) => v,
   windowPositionBottomRight: (v: boolean) => v,
   windowTitle: (v: string) => v,
-  youAreInAirdrop: (v: boolean) => v,
 }
 
 const initialState = {
@@ -46,7 +43,6 @@ const initialState = {
 
 type Props = Partial<{
   // ...Avatar.serialize, // TODO this type
-  airdropIsLive: boolean
   assertions: Map<string, Types.Assertion>
   bio: string
   blocked: boolean
@@ -61,8 +57,8 @@ type Props = Partial<{
   isYou: boolean
   location: string
   reason: string
-  registeredForAirdrop: boolean
   state: Types.DetailsState
+  stellarHidden: boolean
   teamShowcase: Array<Types.TeamShowcase>
   o?: Array<Types.TeamShowcase>
   username: string
@@ -72,7 +68,6 @@ type Props = Partial<{
   windowParam: string
   windowPositionBottomRight: boolean
   windowTitle: string
-  youAreInAirdrop: boolean
 }>
 
 export const deserialize = (state: typeof initialState = initialState, props: Props) => {

@@ -118,6 +118,10 @@
         {
           "type": "boolean",
           "name": "runtimestats"
+        },
+        {
+          "type": "boolean",
+          "name": "featuredBots"
         }
       ]
     }

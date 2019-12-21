@@ -1,6 +1,6 @@
 import * as React from 'react'
 import MessagePopupHeader from '../header'
-import {FloatingMenu, MenuItems} from '../../../../../common-adapters'
+import {FloatingMenu, MenuItem, MenuItems} from '../../../../../common-adapters'
 import {fileUIName, StylesCrossPlatform} from '../../../../../styles'
 import {DeviceType} from '../../../../../constants/types/devices'
 import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
@@ -40,6 +40,7 @@ const AttachmentPopupMenu = (props: Props) => {
           {
             danger: true,
             disabled: !props.onDelete,
+            icon: 'iconfont-trash',
             onClick: props.onDelete,
             subTitle: 'Deletes this attachment for everyone',
             title: 'Delete',
@@ -51,6 +52,7 @@ const AttachmentPopupMenu = (props: Props) => {
           {
             danger: true,
             disabled: !props.onKick,
+            icon: 'iconfont-block-user',
             onClick: props.onKick,
             subTitle: 'Removes the user from the team',
             title: 'Kick user',
@@ -58,19 +60,37 @@ const AttachmentPopupMenu = (props: Props) => {
         ] as const)
       : []),
     'Divider' as const,
-    ...(props.onShowInFinder ? [{onClick: props.onShowInFinder, title: `Show in ${fileUIName}`}] : []),
+    ...(props.onShowInFinder
+      ? [{icon: 'iconfont-finder', onClick: props.onShowInFinder, title: `Show in ${fileUIName}`}]
+      : []),
     ...(props.onSaveAttachment
-      ? [{disabled: props.pending, onClick: props.onSaveAttachment, title: 'Save'}]
+      ? [
+          {
+            disabled: props.pending,
+            icon: 'iconfont-download-2',
+            onClick: props.onSaveAttachment,
+            title: 'Save',
+          },
+        ]
       : []),
-    ...(props.onDownload ? [{disabled: props.pending, onClick: props.onDownload, title: 'Download'}] : []),
+    ...(props.onDownload
+      ? [{disabled: props.pending, icon: 'iconfont-download-2', onClick: props.onDownload, title: 'Download'}]
+      : []),
     ...(props.onShareAttachment
-      ? [{disabled: props.pending, onClick: props.onShareAttachment, title: 'Share'}]
+      ? [{disabled: props.pending, icon: 'iconfont-share', onClick: props.onShareAttachment, title: 'Share'}]
       : []),
-    ...(props.onAllMedia ? [{onClick: props.onAllMedia, title: 'All media'}] : []),
-    ...(props.onAddReaction ? [{onClick: props.onAddReaction, title: 'Add a reaction'}] : []),
-    ...(props.onReply ? [{onClick: props.onReply, title: 'Reply'}] : []),
-    ...(props.onPinMessage ? [{onClick: props.onPinMessage, title: 'Pin message'}] : []),
-  ]
+    ...(props.onAllMedia ? [{icon: 'iconfont-camera', onClick: props.onAllMedia, title: 'All media'}] : []),
+    ...(props.onAddReaction
+      ? [{icon: 'iconfont-reacji', onClick: props.onAddReaction, title: 'Add a reaction'}]
+      : []),
+    ...(props.onReply ? [{icon: 'iconfont-reply', onClick: props.onReply, title: 'Reply'}] : []),
+    ...(props.onPinMessage
+      ? [{icon: 'iconfont-pin', onClick: props.onPinMessage, title: 'Pin message'}]
+      : []),
+  ].reduce<MenuItems>((arr, i) => {
+    i && arr.push(i as MenuItem)
+    return arr
+  }, [])
 
   const header = {
     title: 'header',

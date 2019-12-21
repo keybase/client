@@ -5,7 +5,7 @@ import * as T from './index.d'
 import * as Types from '../../constants/types/chat2'
 import AutoSizer from 'react-virtualized-auto-sizer'
 import BigTeamsDivider from './row/big-teams-divider/container'
-import BuildTeam from './row/build-team/container'
+import BuildTeam from './row/build-team'
 import TeamsDivider from './row/teams-divider/container'
 import UnreadShortcut from './unread-shortcut'
 import * as Kb from '../../common-adapters'
@@ -366,7 +366,7 @@ class Inbox extends React.Component<T.Props, State> {
               )}
             </AutoSizer>
           </div>
-          {floatingDivider || ((this.props.rows.length === 0 || !this.props.hasBigTeams) && <BuildTeam />)}
+          {floatingDivider || (this.props.rows.length === 0 && <BuildTeam />)}
           {this.state.showUnread && !this.state.showFloating && (
             <UnreadShortcut onClick={this.scrollToUnread} />
           )}

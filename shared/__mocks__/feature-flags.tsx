@@ -6,8 +6,8 @@ if (!__STORYBOOK__) {
 
 const ff: FeatureFlags = {
   admin: false,
-  airdrop: true,
   audioAttachments: true,
+  botUI: false,
   chatIndexProfilingEnabled: false,
   connectThrashCheck: true,
   dbCleanEnabled: false,
@@ -17,7 +17,6 @@ const ff: FeatureFlags = {
   moveOrCopy: true,
   newTeamBuildingForChatAllowMakeTeam: false,
   outOfDateBanner: true,
-  plansEnabled: false,
   proofProviders: true,
   stellarExternalPartners: false,
   userBlocking: true,

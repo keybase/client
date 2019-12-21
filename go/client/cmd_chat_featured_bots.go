@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/kyokomi/emoji"
 	context "golang.org/x/net/context"
 )
 
@@ -57,8 +58,9 @@ func (c *CmdChatFeaturedBots) Run() (err error) {
 
 	offset := c.limit * c.page
 	res, err := cli.FeaturedBots(context.Background(), keybase1.FeaturedBotsArg{
-		Limit:  c.limit,
-		Offset: offset,
+		Limit:     c.limit,
+		Offset:    offset,
+		SkipCache: true,
 	})
 	if err != nil {
 		return err
@@ -107,7 +109,11 @@ func displayFeaturedBots(g *libkb.GlobalContext, bots []keybase1.FeaturedBot) er
 			},
 			flexibletable.Cell{
 				Alignment: flexibletable.Left,
-				Content:   flexibletable.SingleCell{Item: bot.Description},
+				Content:   flexibletable.SingleCell{Item: emoji.Sprintf(bot.Description)},
+			},
+			flexibletable.Cell{
+				Alignment: flexibletable.Left,
+				Content:   flexibletable.SingleCell{Item: emoji.Sprintf(bot.ExtendedDescription)},
 			},
 		})
 		if err != nil {
@@ -120,6 +126,7 @@ func displayFeaturedBots(g *libkb.GlobalContext, bots []keybase1.FeaturedBot) er
 		64,                                // displayName
 		64,                                // ownerName
 		flexibletable.ExpandableWrappable, // description
+		flexibletable.ExpandableWrappable, // extendedDescription
 	}); err != nil {
 		return fmt.Errorf("rendering conversation info list view error: %v\n", err)
 	}

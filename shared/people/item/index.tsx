@@ -103,15 +103,24 @@ const styles = Styles.styleSheetCreate(() => ({
     marginRight: Styles.globalMargins.xsmall,
     width: 48,
   },
-  timestampContainer: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    alignSelf: 'center',
-    marginLeft: 'auto',
-    marginRight: Styles.globalMargins.small,
-    marginTop: 6,
-  },
+  timestampContainer: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxRow,
+      alignItems: 'center',
+      alignSelf: 'center',
+      marginLeft: 'auto',
+      marginRight: Styles.globalMargins.small,
+      marginTop: 6,
+    },
+    isElectron: {alignSelf: 'baseline'},
+    isMobile: {
+      position: 'relative',
+      top: -5,
+    },
+  }),
   timestampContainerMulti: {
     alignSelf: 'flex-start',
+    position: 'relative',
+    top: -2,
   },
 }))

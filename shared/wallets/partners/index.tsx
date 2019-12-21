@@ -64,13 +64,9 @@ class Partners extends React.Component<Props> {
         header={{title: 'External partners'}}
         onClose={this.props.onDone}
       >
-        <Kb.Box2 direction="vertical" style={styles.partnerContainer}>
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.partnerContainer}>
           {this.props.externalPartners.map(partner => (
-            <Kb.Box2
-              key={partner.url}
-              direction="vertical"
-              style={{width: Styles.isMobile ? undefined : '100%'}}
-            >
+            <Kb.Box2 key={partner.url} direction="vertical" fullWidth={true}>
               <PartnerRow
                 description={partner.description}
                 extra={partner.extra}

@@ -32,7 +32,7 @@ export type Props = {
   text: string
 }
 
-const getIcon = status => {
+const getIcon = (status: Status) => {
   switch (status) {
     case 'completed':
       return 'iconfont-success'
@@ -44,6 +44,19 @@ const getIcon = status => {
       return 'iconfont-remove'
     default:
       return 'iconfont-time'
+  }
+}
+
+const statusIcon = (s: Status) => {
+  switch (s) {
+    case 'completed':
+      return 'completedIcon'
+    case 'claimable':
+      return 'claimableIcon'
+    case 'pending':
+      return 'pendingIcon'
+    case 'error':
+      return 'errorIcon'
   }
 }
 
@@ -80,7 +93,7 @@ class PaymentStatus extends React.Component<Props, State> {
           type={getIcon(this.props.status)}
           fontSize={12}
           boxStyle={styles.iconBoxStyle}
-          style={styles[this.props.status + 'Icon']}
+          style={styles[statusIcon(this.props.status)]}
         />{' '}
       </Kb.Text>
     )

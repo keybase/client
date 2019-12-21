@@ -5840,13 +5840,6 @@ type GetThreadLocalArg struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
-type GetCachedThreadArg struct {
-	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
-	Query            *GetThreadQuery              `codec:"query,omitempty" json:"query,omitempty"`
-	Pagination       *Pagination                  `codec:"pagination,omitempty" json:"pagination,omitempty"`
-	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
-}
-
 type GetThreadNonblockArg struct {
 	SessionID        int                          `codec:"sessionID" json:"sessionID"`
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
@@ -6347,12 +6340,10 @@ type IgnorePinnedMessageArg struct {
 }
 
 type AddBotMemberArg struct {
-	TlfName     string                    `codec:"tlfName" json:"tlfName"`
+	ConvID      ConversationID            `codec:"convID" json:"convID"`
 	Username    string                    `codec:"username" json:"username"`
 	BotSettings *keybase1.TeamBotSettings `codec:"botSettings,omitempty" json:"botSettings,omitempty"`
 	Role        keybase1.TeamRole         `codec:"role" json:"role"`
-	MembersType ConversationMembersType   `codec:"membersType" json:"membersType"`
-	TlfPublic   bool                      `codec:"tlfPublic" json:"tlfPublic"`
 }
 
 type EditBotMemberArg struct {
@@ -6365,10 +6356,8 @@ type EditBotMemberArg struct {
 }
 
 type RemoveBotMemberArg struct {
-	TlfName     string                  `codec:"tlfName" json:"tlfName"`
-	Username    string                  `codec:"username" json:"username"`
-	MembersType ConversationMembersType `codec:"membersType" json:"membersType"`
-	TlfPublic   bool                    `codec:"tlfPublic" json:"tlfPublic"`
+	ConvID   ConversationID `codec:"convID" json:"convID"`
+	Username string         `codec:"username" json:"username"`
 }
 
 type SetBotMemberSettingsArg struct {
@@ -6380,10 +6369,8 @@ type SetBotMemberSettingsArg struct {
 }
 
 type GetBotMemberSettingsArg struct {
-	TlfName     string                  `codec:"tlfName" json:"tlfName"`
-	Username    string                  `codec:"username" json:"username"`
-	MembersType ConversationMembersType `codec:"membersType" json:"membersType"`
-	TlfPublic   bool                    `codec:"tlfPublic" json:"tlfPublic"`
+	ConvID   ConversationID `codec:"convID" json:"convID"`
+	Username string         `codec:"username" json:"username"`
 }
 
 type TeamIDFromTLFNameArg struct {
@@ -6392,9 +6379,13 @@ type TeamIDFromTLFNameArg struct {
 	TlfPublic   bool                    `codec:"tlfPublic" json:"tlfPublic"`
 }
 
+type DismissJourneycardArg struct {
+	ConvID   ConversationID  `codec:"convID" json:"convID"`
+	CardType JourneycardType `codec:"cardType" json:"cardType"`
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
-	GetCachedThread(context.Context, GetCachedThreadArg) (GetThreadLocalRes, error)
 	GetThreadNonblock(context.Context, GetThreadNonblockArg) (NonblockFetchRes, error)
 	GetUnreadline(context.Context, GetUnreadlineArg) (UnreadlineRes, error)
 	GetInboxAndUnboxLocal(context.Context, GetInboxAndUnboxLocalArg) (GetInboxAndUnboxLocalRes, error)
@@ -6484,6 +6475,7 @@ type LocalInterface interface {
 	SetBotMemberSettings(context.Context, SetBotMemberSettingsArg) error
 	GetBotMemberSettings(context.Context, GetBotMemberSettingsArg) (keybase1.TeamBotSettings, error)
 	TeamIDFromTLFName(context.Context, TeamIDFromTLFNameArg) (keybase1.TeamID, error)
+	DismissJourneycard(context.Context, DismissJourneycardArg) error
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -6502,21 +6494,6 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.GetThreadLocal(ctx, typedArgs[0])
-					return
-				},
-			},
-			"getCachedThread": {
-				MakeArg: func() interface{} {
-					var ret [1]GetCachedThreadArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]GetCachedThreadArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]GetCachedThreadArg)(nil), args)
-						return
-					}
-					ret, err = i.GetCachedThread(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -7815,6 +7792,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"dismissJourneycard": {
+				MakeArg: func() interface{} {
+					var ret [1]DismissJourneycardArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]DismissJourneycardArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]DismissJourneycardArg)(nil), args)
+						return
+					}
+					err = i.DismissJourneycard(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -7825,11 +7817,6 @@ type LocalClient struct {
 
 func (c LocalClient) GetThreadLocal(ctx context.Context, __arg GetThreadLocalArg) (res GetThreadLocalRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.getThreadLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
-	return
-}
-
-func (c LocalClient) GetCachedThread(ctx context.Context, __arg GetCachedThreadArg) (res GetThreadLocalRes, err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.getCachedThread", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -8295,5 +8282,10 @@ func (c LocalClient) GetBotMemberSettings(ctx context.Context, __arg GetBotMembe
 
 func (c LocalClient) TeamIDFromTLFName(ctx context.Context, __arg TeamIDFromTLFNameArg) (res keybase1.TeamID, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.teamIDFromTLFName", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) DismissJourneycard(ctx context.Context, __arg DismissJourneycardArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.dismissJourneycard", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }

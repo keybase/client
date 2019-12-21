@@ -111,19 +111,16 @@ export const InviteByContact = (props: InviteByContactProps) => {
       )}
       {hasItems && (
         <Kb.Box style={styles.listContainer}>
-          <Kb.Box style={styles.filterContainer}>
-            <Kb.Input
+          <Kb.Box2 direction="horizontal" style={styles.filterContainer}>
+            <Kb.PlainInput
+              autoFocus={true}
               keyboardType="email-address"
               value={filterValue}
               onChangeText={onFilterChange}
-              hintText="Search"
-              hideUnderline={true}
-              small={true}
+              placeholder="Search"
               style={styles.filter}
-              errorStyle={styles.filterError}
-              inputStyle={styles.filterInput}
             />
-          </Kb.Box>
+          </Kb.Box2>
           <FloatingRolePicker
             confirmLabel={`Invite as ${pluralize(props.selectedRole)}`}
             selectedRole={props.selectedRole}
@@ -182,17 +179,9 @@ const styles = Styles.styleSheetCreate(
         width: '100%',
       },
       filterContainer: {
-        ...Styles.globalStyles.flexBoxRow,
         borderBottomColor: Styles.globalColors.black_10,
         borderBottomWidth: Styles.hairlineWidth,
-      },
-      filterError: {
-        minHeight: 14,
-      },
-      filterInput: {
-        fontSize: 16,
-        margin: Styles.globalMargins.small,
-        textAlign: 'left',
+        padding: Styles.globalMargins.small,
       },
       inviteButton: {
         paddingLeft: Styles.globalMargins.small,

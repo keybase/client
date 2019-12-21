@@ -1,4 +1,10 @@
-import {UserList} from '../common-adapters/usernames'
+type UserList = Array<{
+  username: string
+  readOnly?: boolean
+  broken?: boolean
+  you?: boolean
+  following?: boolean
+}>
 
 // Parses the folder name and returns an array of usernames
 export function parseFolderNameToUsers(yourUsername: string | null, folderName: string): UserList {

@@ -75,11 +75,6 @@
         },
         {
           "type": "boolean",
-          "name": "allowFolloweesOfTeamMembers",
-          "jsonkey": "allow_followees_of_team_members"
-        },
-        {
-          "type": "boolean",
           "name": "enabled",
           "jsonkey": "enabled"
         }
@@ -101,6 +96,11 @@
           "type": "int",
           "name": "allowFolloweeDegrees",
           "jsonkey": "allow_followee_degrees"
+        },
+        {
+          "type": "boolean",
+          "name": "allowGoodTeams",
+          "jsonkey": "allow_good_teams"
         },
         {
           "type": "boolean",

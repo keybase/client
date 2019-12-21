@@ -53,47 +53,13 @@ const load = () => {
 
   Sb.storiesOf('Wallets', module)
     .addDecorator(Sb.createPropProviderWithCommon(WalletRowProvider(mockWallets)))
-    .add('Wallet List without airdrop', () => (
+    .add('Wallet List', () => (
       <WalletList
         loading={false}
         accountIDs={accountIDs}
-        airdropIsLive={false}
-        airdropSelected={false}
-        inAirdrop={false}
         onAddNew={Sb.action('onAddNew')}
         onLinkExisting={Sb.action('onLinkExisting')}
         onWhatIsStellar={Sb.action('onWhatIsStellar')}
-        onJoinAirdrop={Sb.action('onJoinAirdrop')}
-        title="Wallets"
-        style={{height: isMobile ? '100%' : 600, width: isMobile ? '100%' : 240}}
-      />
-    ))
-    .add('Wallet List with airdrop, not in airdrop', () => (
-      <WalletList
-        loading={false}
-        accountIDs={accountIDs}
-        airdropIsLive={true}
-        airdropSelected={false}
-        inAirdrop={false}
-        onAddNew={Sb.action('onAddNew')}
-        onLinkExisting={Sb.action('onLinkExisting')}
-        onWhatIsStellar={Sb.action('onWhatIsStellar')}
-        onJoinAirdrop={Sb.action('onJoinAirdrop')}
-        title="Wallets"
-        style={{height: isMobile ? '100%' : 600, width: isMobile ? '100%' : 240}}
-      />
-    ))
-    .add('Wallet List with airdrop, in airdrop', () => (
-      <WalletList
-        loading={false}
-        accountIDs={accountIDs}
-        airdropIsLive={true}
-        airdropSelected={false}
-        inAirdrop={true}
-        onAddNew={Sb.action('onAddNew')}
-        onLinkExisting={Sb.action('onLinkExisting')}
-        onWhatIsStellar={Sb.action('onWhatIsStellar')}
-        onJoinAirdrop={Sb.action('onJoinAirdrop')}
         title="Wallets"
         style={{height: isMobile ? '100%' : 600, width: isMobile ? '100%' : 240}}
       />
