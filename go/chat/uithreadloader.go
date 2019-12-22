@@ -420,6 +420,12 @@ func (t *UIThreadLoader) mergeLocalRemoteThread(ctx context.Context, remoteThrea
 				newMsg.GetMessageID())
 			return true
 		}
+		// Any reactions or unfurl messages go
+		if len(newMsg.Valid().Reactions.Reactions) > 0 || len(newMsg.Valid().Unfurls) > 0 {
+			t.Debug(ctx, "mergeLocalRemoteThread: including reacted/unfurled msg: msgID: %d",
+				newMsg.GetMessageID())
+			return true
+		}
 		// If replyTo is different, then let's also transmit this up
 		if newMsg.Valid().ReplyTo != oldMsg.Valid().ReplyTo {
 			return true

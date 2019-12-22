@@ -70,6 +70,7 @@ func (t *basicSupersedesTransform) transformEdit(msg chat1.MessageUnboxed, super
 	mvalid.ChannelNameMentions = superMsg.Valid().ChannelNameMentions
 	mvalid.SenderDeviceName = superMsg.Valid().SenderDeviceName
 	mvalid.SenderDeviceType = superMsg.Valid().SenderDeviceType
+	mvalid.ServerHeader.SupersededBy = superMsg.GetMessageID()
 	newMsg := chat1.NewMessageUnboxedWithValid(mvalid)
 	return &newMsg
 }
@@ -87,6 +88,7 @@ func (t *basicSupersedesTransform) transformAttachment(msg chat1.MessageUnboxed,
 		attachment.Preview = &uploaded.Previews[0]
 	}
 	mvalid.MessageBody = chat1.NewMessageBodyWithAttachment(attachment)
+	mvalid.ServerHeader.SupersededBy = superMsg.GetMessageID()
 	newMsg := chat1.NewMessageUnboxedWithValid(mvalid)
 	return &newMsg
 }
