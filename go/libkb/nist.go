@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"errors"
-	"fmt"
 	"sync"
 	"time"
 
@@ -28,8 +27,8 @@ import (
 //
 
 // If we're within 26 hours of expiration, generate a new NIST;
-const nistExpirationMargin = 2 * time.Minute // I.e., half of the lifetime
-const nistLifetime = 3 * time.Minute         // A little longer than 2 days.
+const nistExpirationMargin = 26 * time.Hour // I.e., half of the lifetime
+const nistLifetime = 52 * time.Hour         // A little longer than 2 days.
 const nistSessionIDLength = 16
 const nistShortHashLen = 19
 const nistWebAuthTokenLifetime = 24 * time.Hour // website tokens expire in a day
@@ -345,19 +344,17 @@ func (n *NIST) generate(ctx context.Context, uid keybase1.UID, deviceID keybase1
 
 	var longTmp, shortTmp *NISTToken
 
-	long := (nistSig{
+	long := nistSig{
 		Version: version,
 		Mode:    nistModeSignature,
 		Sig:     sigInfo.Sig[:],
 		Payload: payload.abbreviate(lastSuccessfulShortHash),
-	})
+	}
 
 	longTmp, err = (long).pack(typ)
 	if err != nil {
 		return err
 	}
-
-	fmt.Printf("@@@ Generated new NIST: %x, passed old nist %x\n", longTmp.ShortHash(), long.Payload.OldNISTHash)
 
 	shortTmp, err = (nistHash{
 		Version: version,
