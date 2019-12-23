@@ -170,32 +170,48 @@ func (t *basicSupersedesTransform) SetMessagesFunc(f getMessagesFunc) {
 func (t *basicSupersedesTransform) Run(ctx context.Context,
 	conv types.UnboxConversationInfo, uid gregor1.UID, originalMsgs []chat1.MessageUnboxed) (res []chat1.MessageUnboxed, err error) {
 	defer t.Trace(ctx, func() error { return err }, fmt.Sprintf("Run(%s)", conv.GetConvID()))()
-
+	originalMsgsMap := make(map[chat1.MessageID]chat1.MessageUnboxed, len(originalMsgs))
+	for _, msg := range originalMsgs {
+		originalMsgsMap[msg.GetMessageID()] = msg
+	}
 	// Map from a MessageID to the message that supersedes it It's possible
 	// that a message can be 'superseded' my multiple messages, by multiple
 	// reactions.
 	smap := make(map[chat1.MessageID][]chat1.MessageUnboxed)
 
 	// Collect all superseder messages for messages in the current thread view
+	superMsgsMap := make(map[chat1.MessageID]chat1.MessageUnboxed)
 	superMsgIDsMap := make(map[chat1.MessageID]bool)
 	for _, msg := range originalMsgs {
 		if msg.IsValid() {
 			supersededBy := msg.Valid().ServerHeader.SupersededBy
 			if supersededBy > 0 {
-				superMsgIDsMap[supersededBy] = true
+				if msg, ok := originalMsgsMap[supersededBy]; ok {
+					superMsgsMap[supersededBy] = msg
+				} else {
+					superMsgIDsMap[supersededBy] = true
+				}
 			}
 			for _, reactID := range msg.Valid().ServerHeader.ReactionIDs {
-				superMsgIDsMap[reactID] = true
+				if msg, ok := originalMsgsMap[reactID]; ok {
+					superMsgsMap[reactID] = msg
+				} else {
+					superMsgIDsMap[reactID] = true
+				}
 			}
 			for _, unfurlID := range msg.Valid().ServerHeader.UnfurlIDs {
-				superMsgIDsMap[unfurlID] = true
+				if msg, ok := originalMsgsMap[unfurlID]; ok {
+					superMsgsMap[unfurlID] = msg
+				} else {
+					superMsgIDsMap[unfurlID] = true
+				}
 			}
 			supersedes, err := utils.GetSupersedes(msg)
 			if err != nil {
 				continue
 			}
 			if len(supersedes) > 0 {
-				superMsgIDsMap[msg.GetMessageID()] = true
+				superMsgsMap[msg.GetMessageID()] = msg
 			}
 		}
 	}
@@ -213,21 +229,24 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 		if err != nil {
 			return nil, err
 		}
-		for _, m := range msgs {
-			if m.IsValid() {
-				supersedes, err := utils.GetSupersedes(m)
-				if err != nil {
-					continue
-				}
-				for _, super := range supersedes {
-					smap[super] = append(smap[super], m)
-				}
-				delh, err := m.Valid().AsDeleteHistory()
-				if err == nil {
-					if delh.Upto > deleteHistoryUpto {
-						t.Debug(ctx, "found delete history: id: %v", m.GetMessageID())
-						deleteHistoryUpto = delh.Upto
-					}
+		for _, msg := range msgs {
+			superMsgsMap[msg.GetMessageID()] = msg
+		}
+	}
+	for _, m := range superMsgsMap {
+		if m.IsValid() {
+			supersedes, err := utils.GetSupersedes(m)
+			if err != nil {
+				continue
+			}
+			for _, super := range supersedes {
+				smap[super] = append(smap[super], m)
+			}
+			delh, err := m.Valid().AsDeleteHistory()
+			if err == nil {
+				if delh.Upto > deleteHistoryUpto {
+					t.Debug(ctx, "found delete history: id: %v", m.GetMessageID())
+					deleteHistoryUpto = delh.Upto
 				}
 			}
 		}
