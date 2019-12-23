@@ -2,6 +2,7 @@ package chat
 
 import (
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/keybase/client/go/chat/globals"
@@ -219,14 +220,8 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 					continue
 				}
 				for _, super := range supersedes {
-					supers, ok := smap[super]
-					if !ok {
-						supers = []chat1.MessageUnboxed{}
-					}
-					supers = append(supers, m)
-					smap[super] = supers
+					smap[super] = append(smap[super], m)
 				}
-
 				delh, err := m.Valid().AsDeleteHistory()
 				if err == nil {
 					if delh.Upto > deleteHistoryUpto {
@@ -237,7 +232,12 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 			}
 		}
 	}
-
+	// Sort all the super lists
+	for _, supers := range smap {
+		sort.Slice(supers, func(i, j int) bool {
+			return supers[i].GetMessageID() < supers[j].GetMessageID()
+		})
+	}
 	// Run through all messages and transform superseded messages into final state
 	var newMsgs []chat1.MessageUnboxed
 	xformDelete := func(msgID chat1.MessageID) {
