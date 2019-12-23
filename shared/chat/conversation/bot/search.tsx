@@ -71,7 +71,13 @@ const SearchBotPopup = (props: Props) => {
           fullWidth={true}
           style={{...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny)}}
         >
-          <Kb.NameWithIcon username={item} horizontal={true} colorFollowing={true} />
+          <Kb.NameWithIcon
+            username={item}
+            horizontal={true}
+            colorFollowing={true}
+            onClick={onSelect}
+            clickType="onClick"
+          />
         </Kb.Box2>
       )
     },
