@@ -23,8 +23,8 @@ import {
  */
 
 export const noVersion: NoVersion = '0.0.0'
-export const currentVersion: CurrentVersion = '4.8.0'
-export const lastVersion: LastVersion = '0.0.0'
+export const currentVersion: CurrentVersion = '5.1.0'
+export const lastVersion: LastVersion = '4.8.0'
 export const lastLastVersion: LastLastVersion = '0.0.0'
 export const versions: WhatsNewVersions = [currentVersion, lastVersion, lastLastVersion]
 export const keybaseFM = 'Keybase FM 87.8'

@@ -48,6 +48,7 @@ The code is organized as follows:
   without using a filesystem mountpoint.
 * [kbpagesconfig](kbpagesconfig/): Configuration code for Keybase Pages.
 * [kbpagesd](kbpagesd/): The main executable for Keybase Pages.
+* [libcontext](ldbutils/): KBFS-specific levelDB utility code.
 * [libcontext](libcontext/): KBFS-specific context helper code.
 * [libdokan](libdokan/): Library code gluing together KBFS and the
   Dokan protocol.

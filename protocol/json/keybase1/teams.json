@@ -689,7 +689,8 @@
       "symbols": [
         "MAIN_0",
         "BLINDED_1",
-        "SELF_2"
+        "SELF_2",
+        "UNCOMMITTED_3"
       ]
     },
     {
@@ -741,6 +742,18 @@
         {
           "type": "Seqno",
           "name": "latestSeqnoHint"
+        },
+        {
+          "type": "Seqno",
+          "name": "lastCommittedSeqno"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "Time",
+            "keys": "Seqno"
+          },
+          "name": "linkReceiptTimes"
         },
         {
           "type": {
@@ -1631,6 +1644,11 @@
       "name": "TeamMemberOutFromReset",
       "fields": [
         {
+          "type": "TeamID",
+          "name": "teamID",
+          "jsonkey": "team_id"
+        },
+        {
           "type": "string",
           "name": "teamName",
           "jsonkey": "team_name"
@@ -2164,6 +2182,10 @@
         {
           "type": "boolean",
           "name": "forceRefresh"
+        },
+        {
+          "type": "boolean",
+          "name": "hiddenChainIsOptional"
         }
       ]
     },
@@ -2396,6 +2418,19 @@
         {
           "type": "boolean",
           "name": "chatSending"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamAddMembersResult",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "User"
+          },
+          "name": "notAdded"
         }
       ]
     },
@@ -2876,6 +2911,10 @@
       "name": "TeamProfileAddEntry",
       "fields": [
         {
+          "type": "TeamID",
+          "name": "teamID"
+        },
+        {
           "type": "TeamName",
           "name": "teamName"
         },
@@ -2983,6 +3022,20 @@
     },
     {
       "type": "record",
+      "name": "AnnotatedTeamMemberDetails",
+      "fields": [
+        {
+          "type": "TeamMemberDetails",
+          "name": "details"
+        },
+        {
+          "type": "TeamRole",
+          "name": "role"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "AnnotatedTeam",
       "fields": [
         {
@@ -3000,7 +3053,7 @@
         {
           "type": {
             "type": "array",
-            "items": "TeamMemberDetails"
+            "items": "AnnotatedTeamMemberDetails"
           },
           "name": "members"
         },
@@ -3284,7 +3337,7 @@
           "type": "boolean"
         }
       ],
-      "response": null
+      "response": "TeamAddMembersResult"
     },
     "teamAddMembersMultiRole": {
       "request": [
@@ -3308,7 +3361,7 @@
           "type": "boolean"
         }
       ],
-      "response": null
+      "response": "TeamAddMembersResult"
     },
     "teamRemoveMember": {
       "request": [

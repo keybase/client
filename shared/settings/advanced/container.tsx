@@ -48,7 +48,7 @@ const mapDispatchToProps = dispatch => ({
   onProcessorProfile: (durationSeconds: number) =>
     dispatch(SettingsGen.createProcessorProfile({durationSeconds})),
   onSetOpenAtLogin: (openAtLogin: boolean) => dispatch(ConfigGen.createSetOpenAtLogin({openAtLogin})),
-  onToggleRuntimeStats: () => dispatch(SettingsGen.createToggleRuntimeStats()),
+  onToggleRuntimeStats: () => dispatch(ConfigGen.createToggleRuntimeStats()),
   onTrace: (durationSeconds: number) => dispatch(SettingsGen.createTrace({durationSeconds})),
 })
 

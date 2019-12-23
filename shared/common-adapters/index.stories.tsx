@@ -13,7 +13,6 @@ import confirmModal from './confirm-modal/index.stories'
 import copyText from './copy-text.stories'
 import copyableText from './copyable-text.stories'
 import dropdown from './dropdown.stories'
-import formWithCheckbox from './form-with-checkbox.stories'
 import floatingMenu from './floating-menu/index.stories'
 import header from './header-hoc/index.stories'
 import icon from './icon.stories'
@@ -42,6 +41,7 @@ import text from './text.stories'
 import tooltip from './tooltip.stories'
 import video from './video.stories'
 import profileCard from './profile-card.stories'
+import waveButton from './wave-button.stories'
 
 const load = () => {
   ;[
@@ -60,7 +60,6 @@ const load = () => {
     copyText,
     copyableText,
     dropdown,
-    formWithCheckbox,
     floatingMenu,
     header,
     icon,
@@ -89,6 +88,7 @@ const load = () => {
     text,
     tooltip,
     video,
+    waveButton,
   ].forEach(load => load())
 }
 

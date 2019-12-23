@@ -44,7 +44,6 @@ class InviteByEmailDesktop extends React.Component<Props, State> {
     malformedEmails: this.props.malformedEmails,
     role: 'reader' as TeamRoleType,
   }
-  _input: Kb.Input | null = null
 
   componentDidUpdate(_: Props, prevState: State) {
     // update contents of input box if we get a new list of malformed emails
@@ -98,7 +97,7 @@ class InviteByEmailDesktop extends React.Component<Props, State> {
               margin: Styles.globalMargins.medium,
             }}
           >
-            <Kb.Text style={styles.inside} type="Header">
+            <Kb.Text style={styles.header} type="Header">
               Invite by email
             </Kb.Text>
             <Kb.Box
@@ -129,38 +128,23 @@ class InviteByEmailDesktop extends React.Component<Props, State> {
                 />
               </FloatingRolePicker>
             </Kb.Box>
-            <Kb.Text type="BodySmallSemibold" style={{alignSelf: 'flex-start'}}>
-              Enter multiple email addresses, separated by commas
-            </Kb.Text>
             <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} style={{alignItems: 'flex-start'}}>
-              <Kb.Box
-                style={{
-                  border: `1px solid ${Styles.globalColors.black_20}`,
-                  borderRadius: 4,
-                  width: '100%',
-                }}
-              >
-                <Kb.Input
-                  autoFocus={true}
-                  multiline={true}
-                  hideUnderline={true}
-                  onChangeText={invitees => this.setState({invitees})}
-                  ref={i => (this._input = i)}
-                  rowsMin={3}
-                  rowsMax={8}
-                  value={this.state.invitees}
-                  style={styles.inside}
-                  small={true}
-                  inputStyle={styles.input}
-                />
-              </Kb.Box>
-              {props.errorMessage && (
+              <Kb.LabeledInput
+                autoFocus={true}
+                error={!!props.errorMessage}
+                multiline={true}
+                onChangeText={invitees => this.setState({invitees})}
+                placeholder="Enter multiple email addresses, separated by commas"
+                rowsMin={3}
+                rowsMax={8}
+                value={this.state.invitees}
+              />
+              {!!props.errorMessage && (
                 <Kb.Text type="BodySmall" style={{color: Styles.globalColors.redDark}}>
                   {props.errorMessage}
                 </Kb.Text>
               )}
             </Kb.Box2>
-
             <Kb.ButtonBar>
               <Kb.WaitingButton label="Invite" onClick={this._onInvite} waitingKey={props.waitingKey} />
             </Kb.ButtonBar>
@@ -172,35 +156,28 @@ class InviteByEmailDesktop extends React.Component<Props, State> {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  container: {
-    ...Styles.desktopStyles.boxShadow,
-    ...Styles.globalStyles.flexBoxColumn,
-    alignSelf: 'center',
-    backgroundColor: Styles.globalColors.white,
-    borderRadius: 5,
-  },
+  container: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxColumn,
+      alignSelf: 'center',
+      backgroundColor: Styles.globalColors.white,
+      borderRadius: 5,
+    },
+    isElectron: {
+      ...Styles.desktopStyles.boxShadow,
+    },
+  }),
   cover: {
     alignItems: 'center',
-    backgroundColor: Styles.globalColors.black,
     justifyContent: 'center',
   },
-
   floatingRolePicker: Styles.platformStyles({
     isElectron: {
       position: 'relative',
       top: -32,
     },
   }),
-
-  input: {
-    fontSize: 13,
-    fontWeight: 'normal',
-    textAlign: 'left',
-  },
-
-  inside: {
-    marginBottom: 0,
-    marginTop: 0,
+  header: {
     padding: Styles.globalMargins.tiny,
   },
 }))

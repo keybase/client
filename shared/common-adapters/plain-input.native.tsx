@@ -31,10 +31,6 @@ class PlainInput extends Component<InternalProps> {
   _input = React.createRef<TextInput>()
   _lastNativeText: string | null = null
   _lastNativeSelection: Selection | null = null
-
-  // TODO remove this when we can use forwardRef with react-redux. That'd let us
-  // use HOCTimers with this component.
-  // https://github.com/reduxjs/react-redux/pull/1000
   _timeoutIDs: Array<NodeJS.Timeout> = []
 
   _setTimeout = (fn: () => void, timeoutMS: number) => {

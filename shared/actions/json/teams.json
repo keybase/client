@@ -192,6 +192,7 @@
       "error": "string"
     },
     "setTeamJoinSuccess": {
+      "open": "boolean",
       "success": "boolean",
       "teamname": "string"
     },

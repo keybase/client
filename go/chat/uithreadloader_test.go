@@ -194,7 +194,7 @@ func TestUIThreadLoaderCache(t *testing.T) {
 	}))
 	consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
 	require.NoError(t, tc.Context().ConvSource.Clear(ctx, conv.Id, uid))
-	_, err := tc.Context().ConvSource.PullLocalOnly(ctx, conv.Id, uid, nil, nil, 0)
+	_, err := tc.Context().ConvSource.PullLocalOnly(ctx, conv.Id, uid, chat1.GetThreadReason_GENERAL, nil, nil, 0)
 	require.Error(t, err)
 	require.IsType(t, storage.MissError{}, err)
 
@@ -216,7 +216,7 @@ func TestUIThreadLoaderCache(t *testing.T) {
 	case <-time.After(timeout):
 		require.Fail(t, "no full cb")
 	}
-	_, err = tc.Context().ConvSource.PullLocalOnly(ctx, conv.Id, uid, nil, nil, 0)
+	_, err = tc.Context().ConvSource.PullLocalOnly(ctx, conv.Id, uid, chat1.GetThreadReason_GENERAL, nil, nil, 0)
 	require.Error(t, err)
 	require.IsType(t, storage.MissError{}, err)
 	clock.Advance(10 * time.Second)
@@ -233,7 +233,7 @@ func TestUIThreadLoaderCache(t *testing.T) {
 		}
 	}
 	require.True(t, worked)
-	tv, err := tc.Context().ConvSource.PullLocalOnly(ctx, conv.Id, uid, nil, nil, 0)
+	tv, err := tc.Context().ConvSource.PullLocalOnly(ctx, conv.Id, uid, chat1.GetThreadReason_GENERAL, nil, nil, 0)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(tv.Messages))
 }
@@ -353,4 +353,81 @@ func TestUIThreadLoaderDisplayStatus(t *testing.T) {
 		require.Fail(t, "no status cbs")
 	default:
 	}
+}
+
+func TestUIThreadLoaderSingleFlight(t *testing.T) {
+	useRemoteMock = false
+	defer func() { useRemoteMock = true }()
+	ctc := makeChatTestContext(t, "TestUIThreadLoaderSingleFlight", 1)
+	defer ctc.cleanup()
+
+	timeout := 2 * time.Second
+	users := ctc.users()
+	chatUI := kbtest.NewChatUI()
+	tc := ctc.world.Tcs[users[0].Username]
+	ctx := ctc.as(t, users[0]).startCtx
+	uid := gregor1.UID(users[0].GetUID().ToBytes())
+	conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+		chat1.ConversationMembersType_IMPTEAMNATIVE)
+	mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body: "HI",
+	}))
+
+	clock := clockwork.NewFakeClock()
+	uil := NewUIThreadLoader(tc.Context())
+	rtd := 1 * time.Second
+	uil.cachedThreadDelay = nil
+	uil.remoteThreadDelay = &rtd
+	uil.resolveThreadDelay = nil
+	uil.validatedDelay = 0
+	uil.clock = clock
+	cb := make(chan error, 1)
+	cb2 := make(chan error, 1)
+	go func() {
+		cb <- uil.LoadNonblock(ctx, chatUI, uid, conv.Id, chat1.GetThreadReason_GENERAL,
+			chat1.GetThreadNonblockPgMode_DEFAULT, chat1.GetThreadNonblockCbMode_INCREMENTAL, nil, nil)
+	}()
+	go func() {
+		cb2 <- uil.LoadNonblock(ctx, chatUI, uid, conv.Id, chat1.GetThreadReason_GENERAL,
+			chat1.GetThreadNonblockPgMode_DEFAULT, chat1.GetThreadNonblockCbMode_INCREMENTAL, nil, nil)
+	}()
+	time.Sleep(time.Second)
+	errors := 0
+	select {
+	case res := <-chatUI.ThreadCb:
+		require.False(t, res.Full)
+		require.Equal(t, 2, len(res.Thread.Messages))
+	case <-time.After(timeout):
+		require.Fail(t, "no cache cb")
+	}
+	clock.Advance(2 * time.Second)
+	select {
+	case res := <-chatUI.ThreadCb:
+		require.True(t, res.Full)
+		require.Zero(t, len(res.Thread.Messages))
+	case <-time.After(timeout):
+		require.Fail(t, "no full cb")
+	}
+	select {
+	case err := <-cb:
+		if err != nil {
+			errors++
+		}
+	case <-time.After(timeout):
+		require.Fail(t, "no end")
+	}
+	select {
+	case err := <-cb2:
+		if err != nil {
+			errors++
+		}
+	case <-time.After(timeout):
+		require.Fail(t, "no end")
+	}
+	select {
+	case <-chatUI.ThreadStatusCb:
+		require.Fail(t, "no status cbs")
+	default:
+	}
+	require.Equal(t, 1, errors)
 }

@@ -20,7 +20,7 @@ import {isIOS, isAndroid} from '../../constants/platform'
 import * as Container from '../../util/container'
 
 let lastCount = -1
-const updateAppBadge = (_: Container.TypedState, action: NotificationsGen.ReceivedBadgeStatePayload) => {
+const updateAppBadge = (action: NotificationsGen.ReceivedBadgeStatePayload) => {
   const count = (action.payload.badgeState.conversations || []).reduce(
     (total, c) => (c.badgeCounts ? total + c.badgeCounts[`${RPCTypes.DeviceType.mobile}`] : total),
     0
@@ -53,7 +53,13 @@ const updateAppBadge = (_: Container.TypedState, action: NotificationsGen.Receiv
 // At startup the flow above can be racy, since we may not have registered the
 // event listener before the event is emitted. In that case you can always use
 // `getInitialPushAndroid`.
-const listenForNativeAndroidIntentNotifications = (emitter: (action: Container.TypedActions) => void) => {
+const listenForNativeAndroidIntentNotifications = async (
+  emitter: (action: Container.TypedActions) => void
+) => {
+  const pushToken = await NativeModules.Utils.getRegistrationToken()
+  logger.debug('[PushToken] received new token: ', pushToken)
+  emitter(PushGen.createUpdatePushToken({token: pushToken}))
+
   const RNEmitter = new NativeEventEmitter(NativeModules.KeybaseEngine)
   RNEmitter.addListener('initialIntentFromNotification', evt => {
     const notification = evt && Constants.normalizePush(evt)
@@ -107,10 +113,11 @@ const listenForPushNotificationsFromJS = (emitter: (action: Container.TypedActio
 
 function* setupPushEventLoop() {
   const pushChannel = yield Saga.eventChannel(emitter => {
-    if (!isIOS) {
+    if (isAndroid) {
       listenForNativeAndroidIntentNotifications(emitter)
+    } else {
+      listenForPushNotificationsFromJS(emitter)
     }
-    listenForPushNotificationsFromJS(emitter)
 
     // we never unsubscribe
     return () => {}
@@ -425,7 +432,7 @@ function* pushSaga() {
   yield* Saga.chainAction2([PushGen.updatePushToken, ConfigGen.bootstrapStatusLoaded], uploadPushToken)
   yield* Saga.chainGenerator<ConfigGen.LogoutHandshakePayload>(ConfigGen.logoutHandshake, deletePushToken)
 
-  yield* Saga.chainAction2(NotificationsGen.receivedBadgeState, updateAppBadge)
+  yield* Saga.chainAction(NotificationsGen.receivedBadgeState, updateAppBadge)
   yield* Saga.chainGenerator<PushGen.NotificationPayload>(PushGen.notification, handlePush)
   yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(ConfigGen.daemonHandshake, setupPushEventLoop)
   yield Saga.spawn(initialPermissionsCheck)

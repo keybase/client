@@ -8,8 +8,6 @@ import AddAccount from './add-account'
 type HeaderTitleProps = {
   accountID: Types.AccountID
   accountName: string
-  airdropSelected: boolean
-  isInAirdrop: boolean
   isDefault: boolean
   loading: boolean
   noDisclaimer: boolean
@@ -23,14 +21,8 @@ export const HeaderTitle = (props: HeaderTitleProps) =>
         <AddAccount />
       </Kb.Box2>
       <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.accountInfo}>
-        {props.loading && !props.airdropSelected ? (
+        {props.loading ? (
           <Kb.ProgressIndicator type="Small" style={styles.loading} />
-        ) : props.airdropSelected ? (
-          <Kb.Box2 direction="horizontal">
-            <Kb.Text selectable={false} type="Header">
-              {props.isInAirdrop ? 'Airdrop' : 'Join the airdrop'}
-            </Kb.Text>
-          </Kb.Box2>
         ) : (
           <>
             <Kb.Box2
@@ -52,15 +44,15 @@ export const HeaderTitle = (props: HeaderTitleProps) =>
   )
 
 type HeaderRightActionsProps = {
-  airdropSelected: boolean
   loading: boolean
   noDisclaimer: boolean
+  onBuy: () => void
   onReceive: () => void
   onSettings: () => void
 }
 
 export const HeaderRightActions = (props: HeaderRightActionsProps) =>
-  props.noDisclaimer || props.airdropSelected ? null : (
+  props.noDisclaimer ? null : (
     <Kb.Box2 alignItems="flex-end" direction="horizontal" gap="tiny" style={styles.rightActions}>
       <SendButton small={true} />
       <Kb.Button
@@ -71,6 +63,7 @@ export const HeaderRightActions = (props: HeaderRightActionsProps) =>
         onClick={props.onReceive}
         disabled={props.loading}
       />
+      <Kb.Button type="Wallet" mode="Secondary" label="Buy" small={true} onClick={props.onBuy} />
       <Kb.Button
         onClick={props.onSettings}
         mode="Secondary"
@@ -87,7 +80,7 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       accountID: Styles.platformStyles({
-        isElectron: Styles.desktopStyles.windowDraggingClickable,
+        isElectron: {...Styles.desktopStyles.windowDraggingClickable},
       }),
       accountInfo: {
         paddingBottom: Styles.globalMargins.xtiny,
@@ -112,7 +105,7 @@ const styles = Styles.styleSheetCreate(
           paddingLeft: Styles.globalMargins.xsmall,
           paddingRight: Styles.globalMargins.xsmall,
         },
-        isElectron: Styles.desktopStyles.windowDraggingClickable,
+        isElectron: {...Styles.desktopStyles.windowDraggingClickable},
       }),
       loading: {
         height: 16,
@@ -124,7 +117,7 @@ const styles = Styles.styleSheetCreate(
           paddingBottom: 6,
           paddingRight: Styles.globalMargins.xsmall,
         },
-        isElectron: Styles.desktopStyles.windowDraggingClickable,
+        isElectron: {...Styles.desktopStyles.windowDraggingClickable},
       }),
     } as const)
 )

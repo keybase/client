@@ -201,7 +201,7 @@ var whitelistedTeamLinkSigsForAdminPermissionDemote = []keybase1.SigID{
 
 func (l *TeamLoader) addProofsForKeyInUserSigchain(ctx context.Context, teamID keybase1.TeamID, link *ChainLinkUnpacked, uid keybase1.UID, key *keybase1.PublicKeyV2NaCl, userLinkMap linkMapT, proofSet *proofSetT) {
 	for _, okSigID := range whitelistedTeamLinkSigsForKeyInUserSigchain {
-		if link.SigID().EqualIgnoreLastByte(okSigID) {
+		if link.SigID().Eq(okSigID) {
 			// This proof is whitelisted, so don't check it.
 			l.G().Log.CDebugf(ctx, "addProofsForKeyInUserSigchain: skipping exceptional link: %v", link.SigID())
 			return
@@ -421,7 +421,7 @@ func (l *TeamLoader) addProofsForAdminPermission(ctx context.Context, teamID key
 	proofSet.AddNeededHappensBeforeProof(ctx, event1Promote, event2Link, "became admin before team link")
 	if event3Demote != nil {
 		for _, okSigID := range whitelistedTeamLinkSigsForAdminPermissionDemote {
-			if link.SigID().EqualIgnoreLastByte(okSigID) {
+			if link.SigID().Eq(okSigID) {
 				// This proof is whitelisted, so don't check it.
 				l.G().Log.CDebugf(ctx, "addProofsForAdminPermission: [demote] skipping exceptional link: %v", link.SigID())
 				return

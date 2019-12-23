@@ -753,6 +753,31 @@ func (h *UserHandler) GetUserBlocks(ctx context.Context, arg keybase1.GetUserBlo
 	return res, nil
 }
 
+func (h *UserHandler) GetTeamBlocks(ctx context.Context, _ int) (res []keybase1.TeamBlock, err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+
+	defer mctx.TraceTimed("UserHandler#GetTeamBlocks()", func() error { return err })()
+
+	apiArg := libkb.APIArg{
+		Endpoint:    "team/blocks",
+		SessionType: libkb.APISessionTypeREQUIRED,
+	}
+
+	type getBlockResult struct {
+		libkb.AppStatusEmbed
+		TeamBlocks []keybase1.TeamBlock `json:"team_blocks"`
+	}
+
+	var apiRes getBlockResult
+
+	err = mctx.G().API.GetDecode(mctx, apiArg, &apiRes)
+	if err != nil {
+		return nil, err
+	}
+
+	return apiRes.TeamBlocks, nil
+}
+
 // Legacy RPC and API:
 
 func (h *UserHandler) BlockUser(ctx context.Context, username string) (err error) {

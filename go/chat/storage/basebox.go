@@ -45,8 +45,9 @@ func (i *baseBox) writeDiskBox(ctx context.Context, key libkb.DbKey, data interf
 
 func (i *baseBox) maybeNuke(err Error, key libkb.DbKey) {
 	if err != nil && err.ShouldClear() {
+		i.G().Log.Debug("nuking %v on err: %v", key, err)
 		if err := i.G().LocalChatDb.Delete(key); err != nil {
-			i.G().Log.Error("unable to clear box on error! err: %s", err.Error())
+			i.G().Log.Error("unable to clear box on error! err: %s", err)
 		}
 	}
 }

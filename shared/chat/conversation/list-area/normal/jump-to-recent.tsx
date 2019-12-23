@@ -16,7 +16,7 @@ const JumpToRecent = (props: Props) => {
           type="iconfont-arrow-full-down"
           boxStyle={styles.arrowBox}
           sizeType="Small"
-          style={Kb.iconCastPlatformStyles(styles.arrowText)}
+          style={styles.arrowText}
         />
       </Kb.Button>
     </Kb.Box2>

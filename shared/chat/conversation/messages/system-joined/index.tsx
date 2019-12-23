@@ -27,10 +27,11 @@ const Joined = (props: Props) => {
 
   const joinMsg =
     props.joiners.length == 1 ? (
-      <>
+      <Kb.Box2 direction="vertical" fullWidth={true} alignSelf="flex-start" style={styles.singleEvent}>
         <AuthorAndAvatar {...props} username={props.joiners[0]} />
         <Kb.Box2
           direction="vertical"
+          alignSelf="flex-start"
           style={Styles.collapseStyles([
             styles.contentUnderAuthorContainer,
             props.leavers.length > 0 && styles.joinerPadding,
@@ -38,32 +39,32 @@ const Joined = (props: Props) => {
         >
           <JoinedUserNotice {...props} joiners={props.joiners} leavers={[]} />
         </Kb.Box2>
-      </>
+      </Kb.Box2>
     ) : props.joiners.length > 1 ? (
       <MultiUserJoinedNotice {...props} joiners={props.joiners} leavers={[]} />
     ) : null
   const leaveMsg =
     props.leavers.length == 1 ? (
-      <>
+      <Kb.Box2 direction="vertical" fullWidth={true} alignSelf="flex-start" style={styles.singleEvent}>
         <AuthorAndAvatar {...props} username={props.leavers[0]} />
-        <Kb.Box2 direction="vertical" style={styles.contentUnderAuthorContainer}>
+        <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.contentUnderAuthorContainer}>
           <JoinedUserNotice {...props} joiners={[]} leavers={props.leavers} />
         </Kb.Box2>
-      </>
+      </Kb.Box2>
     ) : props.leavers.length > 1 ? (
       <MultiUserJoinedNotice {...props} joiners={[]} leavers={props.leavers} />
     ) : null
 
   return (
-    <Kb.Box direction="vertical" style={{paddingTop: Styles.globalMargins.xtiny}}>
+    <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} alignSelf="flex-start">
       {joinMsg}
       {leaveMsg}
-    </Kb.Box>
+    </Kb.Box2>
   )
 }
 
 const MultiUserJoinedNotice = (props: Props) => (
-  <Kb.Box2 direction="vertical">
+  <Kb.Box2 direction="vertical" fullWidth={true} alignSelf="flex-start">
     <UserNotice noUsername={true}>
       {!!props.timestamp && (
         <Kb.Text type="BodyTiny" style={styles.timestamp}>
@@ -117,7 +118,7 @@ const AuthorAndAvatar = (props: {
   authorIsYou: boolean
   onAuthorClick: () => void
 }) => (
-  <Kb.Box2 key="author" direction="horizontal" style={styles.authorContainer} gap="tiny">
+  <Kb.Box2 key="author" direction="horizontal" style={styles.authorContainer} gap="tiny" fullWidth={true}>
     <Kb.Avatar
       size={32}
       username={props.username}
@@ -135,17 +136,6 @@ const AuthorAndAvatar = (props: {
         type="BodySmallBold"
         usernames={[props.username]}
       />
-      {/* {this.props.showCrowns && (this.props.authorIsOwner || this.props.authorIsAdmin) && (
-        <Kb.WithTooltip tooltip={this.props.authorIsOwner ? 'Owner' : 'Admin'}>
-          <Kb.Icon
-            color={
-              this.props.authorIsOwner ? Styles.globalColors.yellowDark : Styles.globalColors.black_35
-            }
-            fontSize={10}
-            type="iconfont-crown-owner"
-          />
-        </Kb.WithTooltip>
-      )} */}
       <Kb.Text type="BodyTiny" style={styles.timestamp}>
         {formatTimeForChat(props.timestamp)}
       </Kb.Text>
@@ -175,7 +165,12 @@ const styles = Styles.styleSheetCreate(
           marginLeft: -2,
         },
         isMobile: {
-          marginLeft: -Styles.globalMargins.xsmall - 2,
+          marginLeft: -Styles.globalMargins.xsmall,
+        },
+      }),
+      container: Styles.platformStyles({
+        isElectron: {
+          paddingTop: Styles.globalMargins.xtiny,
         },
       }),
       contentUnderAuthorContainer: Styles.platformStyles({
@@ -192,13 +187,25 @@ const styles = Styles.styleSheetCreate(
           paddingBottom: 3,
           paddingLeft:
             // Space for below the avatar
-            Styles.globalMargins.tiny + // right margin
-            Styles.globalMargins.tiny + // left margin
-            Styles.globalMargins.mediumLarge, // avatar
+            Styles.globalMargins.small + Styles.globalMargins.mediumLarge, // left margin // avatar,
           paddingRight: Styles.globalMargins.tiny,
         },
       }),
-      joinerPadding: {paddingBottom: Styles.globalMargins.xsmall},
+      joinerPadding: Styles.platformStyles({
+        isElectron: {
+          paddingBottom: Styles.globalMargins.xsmall,
+        },
+        isMobile: {
+          paddingBottom: Styles.globalMargins.xtiny,
+        },
+      }),
+      singleEvent: Styles.platformStyles({
+        isMobile: {
+          marginLeft: -(
+            (Styles.globalMargins.small + Styles.globalMargins.mediumLarge) // left margin
+          ), // avatar
+        },
+      }),
       timestamp: Styles.platformStyles({
         isElectron: {lineHeight: 19},
       }),

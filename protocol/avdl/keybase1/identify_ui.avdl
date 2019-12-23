@@ -40,6 +40,7 @@ protocol identifyUi {
     string accountID;
     string federationAddress;
     SigID sigID;
+    boolean hidden; // for your own account
   }
 
   record RevokedProof {
@@ -123,6 +124,7 @@ protocol identifyUi {
     boolean theyFollowYou;
     array<UserTeamShowcase> teamShowcase;
     boolean registeredForAirdrop;
+    boolean stellarHidden;
     boolean blocked;
     boolean hidFromFollowers;
   }

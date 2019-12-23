@@ -70,14 +70,14 @@ const SetMemberShowcase = (props: SettingProps) => (
             }}
             type="Body"
           >
-            Publish team on your own profile
+            Feature team on your own profile
           </Text>
           <Text type="BodySmall">
             {props.canShowcase
               ? 'Your profile will mention this team. Team description and number of members will be public.'
               : props.yourOperations.joinTeam
-              ? 'You must join this team to publish it on your profile.'
-              : "Admins aren't allowing members to publish this team on their profile."}
+              ? 'You must join this team to feature it on your profile.'
+              : "Admins aren't allowing members to feature this team on their profile."}
           </Text>
         </Box>
       }
@@ -94,7 +94,7 @@ const PublicityAnyMember = (props: SettingProps) =>
         checked={props.newPublicityAnyMember}
         labelComponent={
           <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
-            <Text type="Body">Allow non-admin members to publish the team on their profile</Text>
+            <Text type="Body">Allow non-admin members to feature the team on their profile</Text>
             <Text type="BodySmall">Team descriptions and number of members will be public.</Text>
           </Box>
         }

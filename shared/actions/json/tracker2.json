@@ -19,11 +19,11 @@
       "followsYou": "boolean",
       "fullname": "string",
       "location": "string",
-      "registeredForAirdrop": "boolean",
+      "stellarHidden": "boolean",
       "username": "string",
       "teamShowcase": "Array<Types.TeamShowcase>",
       "blocked": "boolean",
-      "hidFromFollowers": "boolean",
+      "hidFromFollowers": "boolean"
     },
     "updateResult": {
       "guiID": "string",
@@ -71,6 +71,6 @@
       "siteIcon": "Array<Types.SiteIcon>",
       "siteIconFull": "Array<Types.SiteIcon>",
       "siteIconWhite": "Array<Types.SiteIcon>"
-    },
+    }
   }
 }

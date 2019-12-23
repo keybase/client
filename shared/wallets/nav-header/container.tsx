@@ -6,8 +6,6 @@ import {HeaderTitle as _HeaderTitle, HeaderRightActions as _HeaderRightActions} 
 
 const mapStateToPropsHeaderTitle = state => ({
   _account: Constants.getSelectedAccountData(state),
-  airdropSelected: Constants.getAirdropSelected(state),
-  isInAirdrop: state.wallets.airdropState === 'accepted',
   noDisclaimer: !state.wallets.acceptedDisclaimer,
   username: state.config.username,
 })
@@ -15,9 +13,7 @@ const mapStateToPropsHeaderTitle = state => ({
 const mergePropsHeaderTitle = s => ({
   accountID: s._account.accountID,
   accountName: s._account.name,
-  airdropSelected: s.airdropSelected,
   isDefault: s._account.isDefault,
-  isInAirdrop: s.isInAirdrop,
   loading: s._account.accountID === Types.noAccountID,
   noDisclaimer: s.noDisclaimer,
   username: s.username,
@@ -32,7 +28,6 @@ export const HeaderTitle = Container.namedConnect(
 
 const mapStateToPropsHeaderRightActions = state => ({
   _accountID: Constants.getSelectedAccount(state),
-  airdropSelected: Constants.getAirdropSelected(state),
   noDisclaimer: !state.wallets.acceptedDisclaimer,
 })
 const mapDispatchToPropsHeaderRightActions = dispatch => ({
@@ -47,12 +42,13 @@ const mapDispatchToPropsHeaderRightActions = dispatch => ({
         ],
       })
     ),
+  onBuy: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['partners']})),
   onSettings: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['settings']})),
 })
 const mergePropsHeaderRightActions = (s, d, _) => ({
-  airdropSelected: s.airdropSelected,
   loading: s._accountID === Types.noAccountID,
   noDisclaimer: s.noDisclaimer,
+  onBuy: d.onBuy,
   onReceive: () => d._onReceive(s._accountID),
   onSettings: d.onSettings,
 })

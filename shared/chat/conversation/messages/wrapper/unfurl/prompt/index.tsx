@@ -19,7 +19,7 @@ class UnfurlPrompt extends React.PureComponent<Props> {
   render() {
     return (
       <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true}>
-        {!Styles.isMobile && <Kb.Icon type={promptIcon} style={Kb.iconCastPlatformStyles(styles.icon)} />}
+        {!Styles.isMobile && <Kb.Icon type={promptIcon} style={styles.icon} />}
         <Kb.Box2 direction="vertical" style={styles.choiceContainer} gap="xtiny">
           <Kb.Box2 direction="vertical" fullWidth={true}>
             <Kb.Text type="BodySemibold">Would you like to post a preview?</Kb.Text>

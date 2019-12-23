@@ -14,7 +14,12 @@ type OwnProps = Container.RouteProps<{teamID: Types.TeamID}>
 const RenderLastOwner = (p: Props & {_leaving: boolean; lastOwner: boolean}) => {
   const {lastOwner, _leaving, ...rest} = p
   return lastOwner ? (
-    <LastOwnerDialog onBack={rest.onBack} onLeave={rest.onLeave} name={rest.name} />
+    <LastOwnerDialog
+      onBack={rest.onBack}
+      onDeleteTeam={rest.onDeleteTeam}
+      onLeave={rest.onLeave}
+      name={rest.name}
+    />
   ) : (
     <ReallyLeaveTeam {...rest} />
   )
@@ -30,11 +35,20 @@ export default Container.connect(
       error: Container.anyErrors(state, Constants.leaveTeamWaitingKey(teamname)),
       lastOwner,
       name: teamname,
+      teamID,
     }
   },
   dispatch => ({
     _clearErrors: (teamname: string) =>
       dispatch(WaitingGen.createClearWaiting({key: Constants.leaveTeamWaitingKey(teamname)})),
+    _onDeleteTeam: (teamID: Types.TeamID) => {
+      dispatch(RouteTreeGen.createNavigateUp())
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {teamID}, selected: 'teamDeleteTeam'}],
+        })
+      )
+    },
     _onLeave: (teamname: string) => {
       dispatch(
         TeamsGen.createLeaveTeam({
@@ -53,6 +67,7 @@ export default Container.connect(
     lastOwner: stateProps.lastOwner,
     name: stateProps.name,
     onBack: stateProps._leaving ? () => {} : dispatchProps.onBack,
+    onDeleteTeam: () => dispatchProps._onDeleteTeam(stateProps.teamID),
     onLeave: () => dispatchProps._onLeave(stateProps.name),
   })
 )(Container.safeSubmit(['onLeave'], ['_leaving'])(RenderLastOwner))

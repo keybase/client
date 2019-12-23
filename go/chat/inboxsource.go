@@ -22,7 +22,7 @@ import (
 
 func filterConvLocals(convLocals []chat1.ConversationLocal, rquery *chat1.GetInboxQuery,
 	query *chat1.GetInboxLocalQuery, nameInfo types.NameInfo) (res []chat1.ConversationLocal, err error) {
-
+	res = make([]chat1.ConversationLocal, 0, len(convLocals))
 	for _, convLocal := range convLocals {
 		if rquery != nil && rquery.TlfID != nil {
 			// inbox query contained a TLF name, so check to make sure that
@@ -741,7 +741,7 @@ func makeBadgeConversationInfo(convID keybase1.ChatConversationID, count int) ke
 // ApplyLocalChatState marks items locally as read and badges conversations
 // that have failed outbox items.
 func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []keybase1.BadgeConversationInfo) (res []keybase1.BadgeConversationInfo) {
-	var convIDs []chat1.ConversationID
+	convIDs := make([]chat1.ConversationID, 0, len(infos))
 	for _, info := range infos {
 		if !info.IsEmpty() {
 			convIDs = append(convIDs, chat1.ConversationID(info.ConvID.Bytes()))
@@ -786,7 +786,7 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 		if state == chat1.OutboxStateType_ERROR {
 			ctime := obr.Ctime
 			isBadgableError := obr.State.Error().Typ.IsBadgableError()
-			s.Debug(ctx, "ApplyLocalChatState: found errored outbox item ctime: %v, error: %v, messageType: %v, IsBadgableError: %v",
+			s.Debug(ctx, "ApplyLocalChatState: found erred outbox item ctime: %v, error: %v, messageType: %v, IsBadgableError: %v",
 				ctime.Time(), obr.State.Error(), obr.Msg.MessageType(), isBadgableError)
 			if !isBadgableError {
 				continue
@@ -805,7 +805,7 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 		}
 	}
 
-	updates := []chat1.LocalMtimeUpdate{}
+	updates := make([]chat1.LocalMtimeUpdate, 0, len(localUpdates))
 	for _, update := range localUpdates {
 		updates = append(updates, update)
 	}
@@ -813,20 +813,22 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 		s.Debug(ctx, "ApplyLocalChatState: unable to apply UpdateLocalMtime: %v", err)
 	}
 
+	res = make([]keybase1.BadgeConversationInfo, 0, len(infos)+len(failedOutboxMap))
 	for _, info := range infos {
+		convIDStr := info.ConvID.String()
 		// mark this conv as read
-		if readConvMap[info.ConvID.String()] {
+		if readConvMap[convIDStr] {
 			info = makeBadgeConversationInfo(info.ConvID, 0)
 			s.Debug(ctx, "ApplyLocalChatState, marking as read %+v", info)
 		}
 		// badge qualifying failed outbox items
-		if failedCount, ok := failedOutboxMap[info.ConvID.String()]; ok {
+		if failedCount, ok := failedOutboxMap[convIDStr]; ok {
 			newInfo := makeBadgeConversationInfo(info.ConvID, failedCount)
 			newInfo.BadgeCounts[keybase1.DeviceType_DESKTOP] += info.BadgeCounts[keybase1.DeviceType_DESKTOP]
 			newInfo.BadgeCounts[keybase1.DeviceType_MOBILE] += info.BadgeCounts[keybase1.DeviceType_MOBILE]
 			newInfo.UnreadMessages += info.UnreadMessages
 			info = newInfo
-			delete(failedOutboxMap, info.ConvID.String())
+			delete(failedOutboxMap, convIDStr)
 			s.Debug(ctx, "ApplyLocalChatState, applying failed to existing info %+v", info)
 		}
 		res = append(res, info)
@@ -877,7 +879,8 @@ func (s *HybridInboxSource) NotifyUpdate(ctx context.Context, uid gregor1.UID, c
 	var inboxUIItem *chat1.InboxUIItem
 	topicType := chat1.TopicType_NONE
 	if conv != nil {
-		inboxUIItem = PresentConversationLocalWithFetchRetry(ctx, s.G(), uid, *conv)
+		inboxUIItem = PresentConversationLocalWithFetchRetry(ctx, s.G(), uid, *conv,
+			utils.PresentParticipantsModeSkip)
 		topicType = conv.GetTopicType()
 	}
 	s.G().ActivityNotifier.ConvUpdate(ctx, uid, convID,

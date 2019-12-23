@@ -8,7 +8,6 @@ export type Props = {
   getData: (markViewed?: boolean) => void
   onClickUser: (username: string) => void
   onOpenAccountSwitcher?: () => void
-  showAirdrop: boolean
   signupEmail: string
   myUsername: string
   waiting: boolean

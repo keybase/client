@@ -40,7 +40,7 @@ const CreateNewTeam = (props: Props) => {
       banners={[
         !isSubteam && (
           <Kb.Banner color="blue">
-            For security reasons, teamnames are unique and can't be changed, so choose carefully.
+            For security reasons, team names are unique and can't be changed, so choose carefully.
           </Kb.Banner>
         ),
         isSubteam && (

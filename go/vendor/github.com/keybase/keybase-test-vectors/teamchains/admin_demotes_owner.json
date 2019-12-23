@@ -56,7 +56,11 @@
                         "seq_type": 1
                     },
                     "debug_link_id": "d6ce9c8d7b0c21461584eaba483cae26b435c889a28f7bc5bfb2ad208ddcbb45",
-                    "hidden_is_fresh": true
+                    "hidden_response": {
+                        "resp_type": 2,
+                        "committed_hidden_tail": null,
+                        "uncommitted_seqno": 0
+                    }
                 },
                 {
                     "seqno": 2,
@@ -96,7 +100,11 @@
                         "seq_type": 1
                     },
                     "debug_link_id": "88e59c1dc46f2ef19e456ea02e59d8775745ccc1ba9a1341fc8ab1fbe15d626c",
-                    "hidden_is_fresh": true
+                    "hidden_response": {
+                        "resp_type": 2,
+                        "committed_hidden_tail": null,
+                        "uncommitted_seqno": 0
+                    }
                 }
             ],
             "team_key_boxes": [
@@ -211,17 +219,29 @@
         "2123209b98b16083c69c91152b861724": {
             "seqno": 2,
             "link_id": "88e59c1dc46f2ef19e456ea02e59d8775745ccc1ba9a1341fc8ab1fbe15d626c",
-            "hidden_is_fresh": true
+            "hidden_response": {
+                "resp_type": 2,
+                "committed_hidden_tail": null,
+                "uncommitted_seqno": 0
+            }
         },
         "2123209b98b16083c69c91152b861724-seqno:1": {
             "seqno": 1,
             "link_id": "d6ce9c8d7b0c21461584eaba483cae26b435c889a28f7bc5bfb2ad208ddcbb45",
-            "hidden_is_fresh": true
+            "hidden_response": {
+                "resp_type": 2,
+                "committed_hidden_tail": null,
+                "uncommitted_seqno": 0
+            }
         },
         "2123209b98b16083c69c91152b861724-seqno:2": {
             "seqno": 2,
             "link_id": "88e59c1dc46f2ef19e456ea02e59d8775745ccc1ba9a1341fc8ab1fbe15d626c",
-            "hidden_is_fresh": true
+            "hidden_response": {
+                "resp_type": 2,
+                "committed_hidden_tail": null,
+                "uncommitted_seqno": 0
+            }
         }
     },
     "merkle_triples": {

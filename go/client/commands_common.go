@@ -56,6 +56,7 @@ func GetCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Comma
 		NewCmdProve(cl, g),
 		NewCmdRekey(cl, g),
 		NewCmdRIIT(cl, g),
+		newCmdScript(cl, g, !libkb.BuildTagProduction),
 		NewCmdSelfProvision(cl, g),
 		NewCmdSign(cl, g),
 		NewCmdSigs(cl, g),

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {GestureResponderEvent} from 'react-native'
-import {StylesCrossPlatform} from '../styles'
+import {CustomStyles, _CustomStyles} from '../styles/css'
 import {allTextTypes} from './text.shared'
 import * as CSS from '../styles/css'
 import colors from '../styles/colors'
@@ -17,32 +17,36 @@ type Background =
 type TextType = keyof typeof allTextTypes
 
 // Talk to design before adding a color here - these should cover all cases.
-export type AllowedColors = Values<
-  Pick<
-    typeof colors,
-    | 'blueDark'
-    | 'blueLighter' // for terminal background only
-    | 'greenDark'
-    | 'redDark'
-    | 'purpleDark'
-    | 'black'
-    | 'black_on_white'
-    | 'black_50'
-    | 'black_50_on_white'
-    | 'black_35'
-    | 'black_20'
-    | 'black_20_on_white'
-    | 'white'
-    | 'white_75'
-    | 'white_40'
-    | 'white_40OrWhite_40'
-    | 'brown_75'
-    | 'orange'
-    | 'transparent'
-  >
->
+export type AllowedColors =
+  | Values<
+      Pick<
+        typeof colors,
+        | 'blueDark'
+        | 'blueLighter' // for terminal background only
+        | 'greenDark'
+        | 'greenLight'
+        | 'redDark'
+        | 'purpleDark'
+        | 'black'
+        | 'black_on_white'
+        | 'black_50'
+        | 'black_50_on_white'
+        | 'black_35'
+        | 'black_20'
+        | 'black_20_on_white'
+        | 'white'
+        | 'white_75'
+        | 'white_40'
+        | 'white_40OrWhite_40'
+        | 'brown_75'
+        | 'orange'
+        | 'transparent'
+      >
+    >
+  | 'inherit'
 
-export type StylesTextCrossPlatform = StylesCrossPlatform & {color?: AllowedColors}
+export type _StylesTextCrossPlatform = _CustomStyles<'color', {color?: AllowedColors}>
+export type StylesTextCrossPlatform = CustomStyles<'color', {color?: AllowedColors}>
 
 type Props = {
   allowFontScaling?: boolean

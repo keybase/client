@@ -41,8 +41,8 @@ const Display = (props: Props) => (
 const styles = Styles.styleSheetCreate(() => ({
   container: {
     ...Styles.globalStyles.flexBoxColumn,
-    ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.medium),
     flex: 1,
+    padding: Styles.globalMargins.small,
     width: '100%',
   },
   scrollview: {

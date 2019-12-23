@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {StylesCrossPlatform, globalMargins, StylesCrossPlatformWithSomeDisallowed} from '../styles'
+import {StylesCrossPlatform, globalMargins, CustomStyles} from '../styles'
 import {TextType} from './text'
 
 export type KeyboardType =
@@ -55,11 +55,7 @@ export type Selection = {
   end: number | null
 }
 
-export type DisallowedStyles = {
-  padding?: never
-}
-
-export type InputStyle = StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>
+export type InputStyle = CustomStyles<'padding', {}>
 
 export type Props = {
   autoFocus?: boolean
@@ -86,7 +82,7 @@ export type Props = {
   secureTextEntry?: boolean
   style?: InputStyle
   textType?: TextType
-  type?: 'password' | 'text'
+  type?: 'password' | 'text' | 'passwordVisible'
   value?: string // Makes this a controlled input when passed. Also disables mutating value via `transformText`, see note at component API,
   dummyInput?: boolean // Only affects mobile
   /* Platform discrepancies */
@@ -107,6 +103,7 @@ export type Props = {
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters'
   autoCorrect?: boolean
   keyboardType?: KeyboardType
+  resize?: boolean
   returnKeyType?: 'done' | 'go' | 'next' | 'search' | 'send'
   selectTextOnFocus?: boolean
   onEndEditing?: () => void

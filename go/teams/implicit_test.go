@@ -539,22 +539,26 @@ func TestReAddMemberWithSameUV(t *testing.T) {
 	jun := fus[2] // pukless user
 	hal := fus[3] // pukless user (eldest=0)
 
-	kbtest.ResetAccount(*tcs[3], fus[3])
+	tcAnn := tcs[0] // crypto user
+	tcBob := tcs[1] // crypto user
+	tcHal := tcs[3] // pukless user (eldest=0)
+
+	kbtest.ResetAccount(*tcHal, hal) // reset hal
 
 	impteamName := strings.Join([]string{ann.Username, bob.Username, jun.Username, hal.Username}, ",")
 	t.Logf("ann creates an implicit team: %v", impteamName)
-	teamObj, _, _, err := LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, impteamName, false /*isPublic*/)
+	teamObj, _, _, err := LookupOrCreateImplicitTeam(context.Background(), tcAnn.G, impteamName, false /*isPublic*/)
 	require.NoError(t, err)
 
 	t.Logf("created team id: %s", teamObj.ID)
 
-	err = reAddMemberAfterResetInner(context.Background(), tcs[0].G, teamObj.ID, bob.Username)
+	err = reAddMemberAfterResetInner(context.Background(), tcAnn.G, teamObj.ID, bob.Username)
 	require.IsType(t, UserHasNotResetError{}, err)
 
-	err = ReAddMemberAfterReset(context.Background(), tcs[0].G, teamObj.ID, jun.Username)
-	require.NoError(t, err)
+	err = ReAddMemberAfterReset(context.Background(), tcAnn.G, teamObj.ID, jun.Username)
+	require.NoError(t, err) // error should be suppressed
 
-	err = reAddMemberAfterResetInner(context.Background(), tcs[0].G, teamObj.ID, hal.Username)
+	err = reAddMemberAfterResetInner(context.Background(), tcAnn.G, teamObj.ID, hal.Username)
 	require.IsType(t, UserHasNotResetError{}, err)
 
 	// Now, the fun part (bug CORE-8099):
@@ -565,12 +569,12 @@ func TestReAddMemberWithSameUV(t *testing.T) {
 	// (it's an implicit team weirdness - "invite" link has no way of
 	// removing old membership).
 
-	kbtest.ResetAccount(*tcs[1], fus[1])
-	err = ReAddMemberAfterReset(context.Background(), tcs[0].G, teamObj.ID, bob.Username)
+	kbtest.ResetAccount(*tcBob, bob) // reset bob
+	err = reAddMemberAfterResetInner(context.Background(), tcAnn.G, teamObj.ID, bob.Username)
 	require.NoError(t, err)
 
 	// Subsequent calls should start UserHasNotResetErrorin again
-	err = reAddMemberAfterResetInner(context.Background(), tcs[0].G, teamObj.ID, bob.Username)
+	err = reAddMemberAfterResetInner(context.Background(), tcAnn.G, teamObj.ID, bob.Username)
 	require.IsType(t, UserHasNotResetError{}, err)
 }
 
@@ -773,4 +777,113 @@ func TestCaseSensitiveDisplayNames(t *testing.T) {
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "Display name is not normalized")
 	require.Contains(t, err.Error(), rooter)
+}
+
+func TestReAddMemberAfterResetWithRestrictiveContactSettings(t *testing.T) {
+	fus, tcs, cleanup := setupNTestsWithPukless(t, 3, 1)
+	defer cleanup()
+
+	ann := fus[0] // crypto user
+	bob := fus[1] // crypto user
+	jun := fus[2] // pukless user
+
+	tcAnn := tcs[0] // crypto user
+	tcBob := tcs[1] // crypto user
+	tcJun := tcs[2] // pukless user
+
+	impteamName := strings.Join([]string{ann.Username, bob.Username, jun.Username}, ",")
+	t.Logf("ann creates an implicit team: %v", impteamName)
+	teamObj, _, _, err := LookupOrCreateImplicitTeam(context.Background(), tcAnn.G, impteamName, false /*isPublic*/)
+	require.NoError(t, err)
+
+	t.Logf("created team id: %s", teamObj.ID)
+
+	// bob resets
+	kbtest.ResetAccount(*tcBob, bob)
+
+	// bob sets contact settings
+	err = bob.Login(tcBob.G)
+	require.NoError(t, err)
+	kbtest.SetContactSettings(*tcBob, bob, keybase1.ContactSettings{
+		Enabled:              true,
+		AllowFolloweeDegrees: 0,
+	})
+	err = tcBob.Logout()
+	require.NoError(t, err)
+
+	err = reAddMemberAfterResetInner(context.Background(), tcAnn.G, teamObj.ID, bob.Username)
+	require.NoError(t, err) // changing contact settings doesn't affect existing teams
+
+	// jun resets
+	kbtest.ResetAccount(*tcJun, jun)
+
+	// jun sets contact settings
+	err = jun.Login(tcJun.G)
+	require.NoError(t, err)
+	kbtest.SetContactSettings(*tcJun, jun, keybase1.ContactSettings{
+		Enabled:              true,
+		AllowFolloweeDegrees: 0,
+	})
+	err = tcJun.Logout()
+	require.NoError(t, err)
+
+	err = reAddMemberAfterResetInner(context.Background(), tcAnn.G, teamObj.ID, jun.Username)
+	require.NoError(t, err) // changing contact settings doesn't affect existing teams
+}
+
+func TestLookupImplicitTeamWithRestrictiveContactSettings(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 3)
+	defer cleanup()
+
+	ann := fus[0]
+	bob := fus[1]
+	jun := fus[2]
+
+	tcAnn := tcs[0]
+	tcBob := tcs[1]
+	tcJun := tcs[2]
+
+	// jun sets contact settings
+	err := jun.Login(tcJun.G)
+	require.NoError(t, err)
+	kbtest.SetContactSettings(*tcJun, jun, keybase1.ContactSettings{
+		Enabled:              true,
+		AllowFolloweeDegrees: 1,
+	})
+
+	// can't create implicit team with a user with restrictive contact settings
+	impteamName := strings.Join([]string{ann.Username, bob.Username, jun.Username}, ",")
+	_, _, _, err = LookupOrCreateImplicitTeam(context.Background(), tcAnn.G, impteamName, false /*isPublic*/)
+	require.Error(t, err)
+	require.IsType(t, err, libkb.TeamContactSettingsBlockError{})
+	usernames := err.(libkb.TeamContactSettingsBlockError).BlockedUsernames()
+	require.Equal(t, 1, len(usernames))
+	require.Equal(t, libkb.NewNormalizedUsername(jun.Username), usernames[0])
+
+	// jun follows ann
+	_, err = kbtest.RunTrack(*tcJun, jun, ann.Username)
+	require.NoError(t, err)
+	err = tcJun.Logout()
+	require.NoError(t, err)
+
+	// try creating implicit team again; should succeed
+	teamObj, _, _, err := LookupOrCreateImplicitTeam(context.Background(), tcAnn.G, impteamName, false /*isPublic*/)
+	require.NoError(t, err)
+
+	t.Logf("created implicit team: %v; team id: %s", impteamName, teamObj.ID)
+
+	// bob sets contact settings
+	err = bob.Login(tcBob.G)
+	require.NoError(t, err)
+	kbtest.SetContactSettings(*tcBob, bob, keybase1.ContactSettings{
+		Enabled:              true,
+		AllowFolloweeDegrees: 0,
+	})
+	err = tcBob.Logout()
+	require.NoError(t, err)
+
+	// changing contact settings doesn't affect existing teams
+	teamObj2, _, _, err := LookupOrCreateImplicitTeam(context.Background(), tcAnn.G, impteamName, false /*isPublic*/)
+	require.NoError(t, err)
+	require.Equal(t, teamObj.ID, teamObj2.ID)
 }

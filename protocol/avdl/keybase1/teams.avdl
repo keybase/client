@@ -320,7 +320,13 @@ protocol teams {
     BLINDED_1,
     // When we make changes to the hidden chain ourselves, then we bump this
     // ratchet.
-    SELF_2
+    SELF_2,
+    // The server can tell us about a new hidden team chain link which was not
+    // yet committed to the blind tree (as that is updated slowly). We trust the
+    // server and accept it for now, but will complain later if this link does
+    // not get added to the blind tree later within a reasonable time (or if the
+    // tree shows a different history). 
+    UNCOMMITTED_3
   }
 
   record HiddenTeamChainRatchetSet{
@@ -348,6 +354,12 @@ protocol teams {
     // for last seqno. If this is wrong or buggy, it's a performance problem,
     // not a security problem.
     Seqno latestSeqnoHint;
+
+    Seqno lastCommittedSeqno;
+
+    // Used to ensure that the uncommitted updates given from the server are
+    // committed to the blind tree within a reasonable time.
+    map<Seqno, Time> linkReceiptTimes;
 
     // For each PTK type (right now only 'reader'), say where the last seqno of
     // the type is in the chain.
@@ -753,6 +765,8 @@ protocol teams {
 
   // team.member_out_from_reset message body
   record TeamMemberOutFromReset {
+    @jsonkey("team_id")
+    TeamID teamID;
     @jsonkey("team_name")
     string teamName;
     @jsonkey("reset_user")
@@ -983,6 +997,11 @@ protocol teams {
     // Specify this flag if you want to force past the time-based cache,
     // currently set to one hour.
     boolean forceRefresh;
+
+    // Specify this flag to avoid raising an error if the server omits the hidden chain data.
+    // For example, restricted bots can use the FTL to obtain a team name, but cannot see the 
+    // hidden chain for such team.
+    boolean hiddenChainIsOptional;
   }
 
   record FastTeamLoadRes {
@@ -1061,6 +1080,10 @@ protocol teams {
     union{null, User} user;
     boolean emailSent;
     boolean chatSending;
+  }
+
+  record TeamAddMembersResult {
+    array<User> notAdded;
   }
 
   record TeamJoinRequest {
@@ -1176,7 +1199,7 @@ protocol teams {
   TeamAddMemberResult teamAddMember(int sessionID, TeamID teamID, string email, string username,
     TeamRole role, union { null, TeamBotSettings } botSettings, boolean sendChatNotification);
 
-  void teamAddMembers(int sessionID, TeamID teamID, array<string> assertions, TeamRole role, union { null, TeamBotSettings } botSettings, boolean sendChatNotification);
+  TeamAddMembersResult teamAddMembers(int sessionID, TeamID teamID, array<string> assertions, TeamRole role, union { null, TeamBotSettings } botSettings, boolean sendChatNotification);
 
   record UserRolePair {
     string assertionOrEmail;
@@ -1184,7 +1207,7 @@ protocol teams {
     union { null, TeamBotSettings } botSettings;
   }
 
-  void teamAddMembersMultiRole(int sessionID, TeamID teamID, array<UserRolePair> users, boolean sendChatNotification);
+  TeamAddMembersResult teamAddMembersMultiRole(int sessionID, TeamID teamID, array<UserRolePair> users, boolean sendChatNotification);
 
   // allowInaction suppresses errors that come from removing an invite that doesn't exist. Relevant for suppressing errors when calling remove while a remove is already in progress.
   // Note: allowInaction only applies to invite removals, just because that was what was needed.
@@ -1348,6 +1371,7 @@ protocol teams {
   array<TeamProfileAddEntry> teamProfileAddList(int sessionID, string username);
 
   record TeamProfileAddEntry {
+    TeamID teamID;
     TeamName teamName;
     boolean open;
     // Reason for disabling selection.
@@ -1426,12 +1450,17 @@ protocol teams {
     UserTeamVersion version;
   }
 
+  record AnnotatedTeamMemberDetails {
+    TeamMemberDetails details;
+    TeamRole role;
+  }
+
   record AnnotatedTeam {
     TeamID teamID;
     string name;
     SubteamListResult transitiveSubteamsUnverified;
 
-    array<TeamMemberDetails> members;
+    array<AnnotatedTeamMemberDetails> members;
     array<AnnotatedTeamInvite> invites;
     array<TeamJoinRequest> joinRequests;
 

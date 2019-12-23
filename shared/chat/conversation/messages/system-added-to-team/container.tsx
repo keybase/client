@@ -28,10 +28,6 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
 }
 
 const mapDispatchToProps = dispatch => ({
-  _onManageChannels: (teamname: string) =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'chatManageChannels'}]})
-    ),
   _onManageNotifications: conversationIDKey =>
     dispatch(
       RouteTreeGen.createNavigateAppend({
@@ -57,7 +53,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   bulkAdds: stateProps.bulkAdds,
   isAdmin: stateProps.isAdmin,
   isTeam: stateProps.isTeam,
-  onManageChannels: () => dispatchProps._onManageChannels(stateProps.teamname),
   onManageNotifications: () => dispatchProps._onManageNotifications(ownProps.message.conversationIDKey),
   onViewTeam: () => dispatchProps._onViewTeam(stateProps.teamID, ownProps.message.conversationIDKey),
   role: stateProps.role,

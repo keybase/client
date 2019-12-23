@@ -37,6 +37,7 @@ func (e *ProfileEdit) Run(m libkb.MetaContext) (err error) {
 	u := m.G().ActiveDevice.UID()
 	m.Debug("Clearing Card cache for %s", u)
 	_ = e.G().CardCache().Delete(u)
+	_ = e.G().UIDMapper.ClearUIDFullName(m.Ctx(), m.G(), u)
 	return nil
 }
 

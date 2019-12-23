@@ -1,5 +1,4 @@
 import {isMobile} from '../constants/platform'
-import AirdropQualify from './airdrop/qualify/container'
 import CreateNewAccount from './create-account/container'
 import LinkExisting from './link-existing/container'
 import {
@@ -14,13 +13,12 @@ import KeybaseLinkError from '../deeplinks/error'
 import Trustline from './trustline/container'
 import {RoutedOnboarding} from './onboarding/container'
 import WhatIsStellarModal from './what-is-stellar-modal'
-import Airdrop from './airdrop/container'
 import Settings from './wallet/settings/container'
 import TransactionDetails from './transaction-details/container'
 import TeamBuilder from '../team-building/container'
+import Partners from './partners/container'
 
 export const sharedRoutes = {
-  airdrop: {getScreen: (): typeof Airdrop => require('./airdrop/container').default},
   // TODO connect broken
   settings: {getScreen: (): typeof Settings => require('./wallet/settings/container').default},
   // TODO connect broken
@@ -43,10 +41,10 @@ export const newRoutes = {
 
 export const newModalRoutes = {
   ...require('./routes-send-request-form').newModalRoutes,
-  airdropQualify: {getScreen: (): typeof AirdropQualify => require('./airdrop/qualify/container').default},
   createNewAccount: {getScreen: (): typeof CreateNewAccount => require('./create-account/container').default},
   keybaseLinkError: {getScreen: (): typeof KeybaseLinkError => require('../deeplinks/error').default},
   linkExisting: {getScreen: (): typeof LinkExisting => require('./link-existing/container').default},
+  partners: {getScreen: (): typeof Partners => require('./partners/container').default},
   reallyRemoveAccount: {
     getScreen: (): typeof ReallyRemoveAccountPopup =>
       require('./wallet/settings/popups').ReallyRemoveAccountPopup,

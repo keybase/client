@@ -166,7 +166,7 @@ export const colors = {
     return this.white
   },
   get whiteOrGreenDark() {
-    return this.greenDark
+    return this.white
   },
   get whiteOrWhite() {
     return this.white
