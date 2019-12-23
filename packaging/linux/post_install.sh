@@ -130,7 +130,7 @@ safe_restart_systemd_services() {
         systemd_restart_if_active "$user" "keybase.service"
         systemd_restart_if_active "$user" "kbfs.service"
         systemd_restart_if_active "$user" "keybase.gui.service"
-        systemd_restart_if_active "$user" "keybase-redirector.service"
+        # redirector is restarted below by sending it SIGUSR1
     done <<< "$(pidof /usr/bin/keybase | tr ' ' '\n')"
 }
 
@@ -165,6 +165,15 @@ fix_bad_config_perms() {
         done <<< "$userhomes"
     fi
 }
+
+fix_bad_config_perms
+
+# Update the GTK icon cache, if possible.
+if command -v gtk-update-icon-cache &> /dev/null ; then
+  gtk-update-icon-cache -q -t -f /usr/share/icons/hicolor
+fi
+
+safe_restart_systemd_services # restart services before restarting redirector so any changes to redirector unit file will be picked up
 
 if redirector_enabled ; then
   chown root:root "$krbin"
@@ -246,14 +255,5 @@ elif [ -d "$rootmount" ] ; then
     fi
 fi
 
-fix_bad_config_perms
-
 # Make the mountpoint if it doesn't already exist by this point.
 make_mountpoint
-
-# Update the GTK icon cache, if possible.
-if command -v gtk-update-icon-cache &> /dev/null ; then
-  gtk-update-icon-cache -q -t -f /usr/share/icons/hicolor
-fi
-
-safe_restart_systemd_services
