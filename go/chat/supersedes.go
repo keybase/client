@@ -170,23 +170,37 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 	conv types.UnboxConversationInfo, uid gregor1.UID, originalMsgs []chat1.MessageUnboxed) (res []chat1.MessageUnboxed, err error) {
 	defer t.Trace(ctx, func() error { return err }, fmt.Sprintf("Run(%s)", conv.GetConvID()))()
 
-	// MessageIDs that supersede
-	var superMsgIDs []chat1.MessageID
 	// Map from a MessageID to the message that supersedes it It's possible
 	// that a message can be 'superseded' my multiple messages, by multiple
 	// reactions.
 	smap := make(map[chat1.MessageID][]chat1.MessageUnboxed)
 
 	// Collect all superseder messages for messages in the current thread view
+	superMsgIDsMap := make(map[chat1.MessageID]bool)
 	for _, msg := range originalMsgs {
 		if msg.IsValid() {
 			supersededBy := msg.Valid().ServerHeader.SupersededBy
 			if supersededBy > 0 {
-				superMsgIDs = append(superMsgIDs, supersededBy)
+				superMsgIDsMap[supersededBy] = true
 			}
-			superMsgIDs = append(superMsgIDs, msg.Valid().ServerHeader.ReactionIDs...)
-			superMsgIDs = append(superMsgIDs, msg.Valid().ServerHeader.UnfurlIDs...)
+			for _, reactID := range msg.Valid().ServerHeader.ReactionIDs {
+				superMsgIDsMap[reactID] = true
+			}
+			for _, unfurlID := range msg.Valid().ServerHeader.UnfurlIDs {
+				superMsgIDsMap[unfurlID] = true
+			}
+			supersedes, err := utils.GetSupersedes(msg)
+			if err != nil {
+				continue
+			}
+			if len(supersedes) > 0 {
+				superMsgIDsMap[msg.GetMessageID()] = true
+			}
 		}
+	}
+	superMsgIDs := make([]chat1.MessageID, 0, len(superMsgIDsMap))
+	for superMsgID := range superMsgIDsMap {
+		superMsgIDs = append(superMsgIDs, superMsgID)
 	}
 
 	// Get superseding messages
