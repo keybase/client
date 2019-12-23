@@ -11,7 +11,6 @@ const featureOn = (key: keyof FeatureFlags) => features.includes(key)
 
 const ff: FeatureFlags = {
   admin: false,
-  airdrop: true,
   audioAttachments: false,
   botUI: false,
   chatIndexProfilingEnabled: false,

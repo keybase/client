@@ -136,32 +136,6 @@ const makeLinks = (): any => {
 }
 
 const commonProps = {
-  availableBots: [
-    {
-      botAlias: 'Reminder Bot',
-      botUsername: 'reminderbot',
-      description: 'Never forget again',
-      extendedDescription:
-        'Sequi facilis odit vitae odit enim. Voluptatem vel asperiores odit ut. Est voluptatem nesciunt in quia ab molestiae sequi. Saepe quibusdam sed officiis quam quo nihil sequi et. Dicta ea velit hic eos. Porro dicta voluptatem qui laudantium. Doloribus amet error illo et. Cupiditate ipsam eaque labore occaecati ut ex saepe. Adipisci quo suscipit porro perferendis nam. In eius quaerat numquam quia exercitationem deserunt minima.',
-      ownerUser: 'jessk',
-    },
-  ],
-  bots: [
-    {
-      botAlias: 'ECS Deploy Bot',
-      botUsername: 'ecsdeploybot',
-      description: '',
-      extendedDescription: '',
-      ownerTeam: 'keybase',
-    },
-    {
-      botAlias: 'Google Meet',
-      botUsername: 'meetbot',
-      description: 'Use Google Meet to discuss over video',
-      extendedDescription: '',
-      ownerTeam: 'keybase',
-    },
-  ],
   canDeleteHistory: true,
   canSetMinWriterRole: false,
   docs: {
@@ -169,7 +143,39 @@ const commonProps = {
     onLoadMore: Sb.action('onLoadMore'),
     status: 'success',
   } as any,
+  featuredBots: [
+    {
+      botAlias: 'Reminder Bot',
+      botUsername: 'reminderbot',
+      description: 'Never forget again',
+      extendedDescription:
+        'Sequi facilis odit vitae odit enim. Voluptatem vel asperiores odit ut. Est voluptatem nesciunt in quia ab molestiae sequi. Saepe quibusdam sed officiis quam quo nihil sequi et. Dicta ea velit hic eos. Porro dicta voluptatem qui laudantium. Doloribus amet error illo et. Cupiditate ipsam eaque labore occaecati ut ex saepe. Adipisci quo suscipit porro perferendis nam. In eius quaerat numquam quia exercitationem deserunt minima.',
+      isPromoted: true,
+      ownerUser: 'jessk',
+      rank: 5,
+    },
+  ],
   ignored: false,
+  installedBots: [
+    {
+      botAlias: 'ECS Deploy Bot',
+      botUsername: 'ecsdeploybot',
+      description: '',
+      extendedDescription: '',
+      isPromoted: true,
+      ownerTeam: 'keybase',
+      rank: 4,
+    },
+    {
+      botAlias: 'Google Meet',
+      botUsername: 'meetbot',
+      description: 'Use Google Meet to discuss over video',
+      extendedDescription: '',
+      isPromoted: true,
+      ownerTeam: 'keybase',
+      rank: 3,
+    },
+  ],
   links: {
     links: makeLinks(),
     onLoadMore: Sb.action('onLoadMore'),
@@ -182,6 +188,7 @@ const commonProps = {
     thumbs: makeThumbs(),
   },
   onBack: Sb.unexpected('onBack'),
+  onBotSelect: Sb.action('onBotSelect'),
   onHideConv: Sb.action(`onHideConv`),
   onLoadMoreBots: Sb.action(`onLoadMoreBots`),
   onSearchFeaturedBots: (username: string) => Sb.action(`onSearchFeaturedBots(${username})`),

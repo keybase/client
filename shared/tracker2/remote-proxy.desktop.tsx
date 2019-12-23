@@ -26,7 +26,6 @@ const RemoteTracker2 = Container.compose(
     (state, ownProps: OwnProps) => {
       const d = Constants.getDetails(state, ownProps.username)
       return {
-        airdropIsLive: state.wallets.airdropDetails.isPromoted,
         assertions: d.assertions,
         bio: d.bio,
         blocked: d.blocked,
@@ -41,7 +40,6 @@ const RemoteTracker2 = Container.compose(
         location: d.location,
         loggedIn: state.config.loggedIn,
         reason: d.reason,
-        registeredForAirdrop: d.registeredForAirdrop,
         remoteWindowNeedsProps: ConfigConstants.getRemoteWindowPropsCount(
           state.config,
           'tracker2',
@@ -51,7 +49,6 @@ const RemoteTracker2 = Container.compose(
         stellarHidden: d.stellarHidden,
         teamShowcase: d.teamShowcase,
         waiting: Container.anyWaiting(state, Constants.waitingKey),
-        youAreInAirdrop: false,
         yourUsername: state.config.username,
       }
     },
@@ -72,7 +69,6 @@ const RemoteTracker2 = Container.compose(
         isYou: stateProps.yourUsername === ownProps.username,
         location: stateProps.location,
         reason: stateProps.reason,
-        registeredForAirdrop: stateProps.registeredForAirdrop,
         remoteWindowNeedsProps: stateProps.remoteWindowNeedsProps,
         state: stateProps.state,
         teamShowcase: stateProps.teamShowcase,
@@ -83,7 +79,6 @@ const RemoteTracker2 = Container.compose(
         windowParam: ownProps.username,
         windowPositionBottomRight: true,
         windowTitle: `Tracker - ${ownProps.username}`,
-        youAreInAirdrop: stateProps.youAreInAirdrop,
       }
     }
   ),

@@ -105,7 +105,7 @@ class ConversationFilterInput extends React.PureComponent<Props> {
         gapEnd={true}
         fullWidth={true}
       >
-        <Kb.HotKey hotKeys={this.hotKeys} onHotKey={this.onHotKeys} />
+        {!Styles.isMobile && <Kb.HotKey hotKeys={this.hotKeys} onHotKey={this.onHotKeys} />}
         {searchInput}
         {!this.props.isSearching && !!this.props.onNewChat && !Styles.isMobile && (
           <Kb.Box style={styles.rainbowBorder}>

@@ -109,15 +109,7 @@ const Notifications = (props: Props) =>
           <PhoneSection {...props} />
           <Kb.Divider style={styles.divider} />
         </>
-      ) : (
-        !Styles.isMobile /* TODO: display something if the user needs to enable push? */ && (
-          <Kb.Box2 direction="vertical" fullWidth={true}>
-            <Kb.Text type="Header">Phone notifications</Kb.Text>
-            <Kb.Text type="BodySmall">Install the Keybase app on your phone.</Kb.Text>
-            <Kb.Divider style={styles.divider} />
-          </Kb.Box2>
-        )
-      )}
+      ) : null}
 
       {(!Styles.isMobile || props.mobileHasPermissions) && !!props.groups.get('security')?.settings && (
         <Group

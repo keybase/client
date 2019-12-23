@@ -53,7 +53,6 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     d.followingCount = action.payload.followingCount
     d.fullname = action.payload.fullname
     d.location = action.payload.location
-    d.registeredForAirdrop = action.payload.registeredForAirdrop
     d.stellarHidden = action.payload.stellarHidden
     d.teamShowcase = action.payload.teamShowcase
     d.hidFromFollowers = action.payload.hidFromFollowers

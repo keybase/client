@@ -107,6 +107,7 @@ class Feedback extends React.Component<Props, State> {
                 multiline={true}
                 onChangeText={this._onChangeFeedback}
                 placeholder="Please tell us what you were doing, your experience, or anything else we should know. Thanks!"
+                resize={true}
                 rowsMin={4}
                 rowsMax={isMobile ? 4 : 10}
                 value={this.state.feedback}

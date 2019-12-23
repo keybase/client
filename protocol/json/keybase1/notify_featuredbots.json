@@ -1,0 +1,26 @@
+{
+  "protocol": "NotifyFeaturedBots",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [],
+  "messages": {
+    "featuredBotsUpdate": {
+      "request": [
+        {
+          "name": "bots",
+          "type": {
+            "type": "array",
+            "items": "FeaturedBot"
+          }
+        }
+      ],
+      "response": null,
+      "notify": ""
+    }
+  },
+  "namespace": "keybase.1"
+}

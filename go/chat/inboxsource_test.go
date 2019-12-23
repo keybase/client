@@ -277,6 +277,8 @@ func TestInboxSourceLocalOnly(t *testing.T) {
 }
 
 func TestInboxChatBlockingAlsoUserBlocks(t *testing.T) {
+	t.Skip()
+
 	ctc := makeChatTestContext(t, "TestInboxBlocking", 3)
 	defer ctc.cleanup()
 	users := ctc.users()

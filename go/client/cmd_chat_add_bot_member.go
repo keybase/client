@@ -112,12 +112,10 @@ func (c *CmdChatAddBotMember) Run() (err error) {
 	}
 
 	if err = resolver.ChatClient.AddBotMember(context.TODO(), chat1.AddBotMemberArg{
-		TlfName:     conversationInfo.TlfName,
+		ConvID:      conversationInfo.Id,
 		Username:    c.username,
 		Role:        c.role,
 		BotSettings: c.botSettings,
-		MembersType: conversationInfo.MembersType,
-		TlfPublic:   conversationInfo.Visibility == keybase1.TLFVisibility_PUBLIC,
 	}); err != nil {
 		return err
 	}

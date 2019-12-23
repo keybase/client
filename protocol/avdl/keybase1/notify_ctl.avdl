@@ -32,6 +32,7 @@ protocol notifyCtl {
     boolean wallet;
     boolean audit;
     boolean runtimestats;
+    boolean featuredBots;
   }
 
   void setNotifications(NotificationChannels channels);
