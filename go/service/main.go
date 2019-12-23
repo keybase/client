@@ -521,6 +521,7 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	chatSyncer.RegisterOfflinable(g.InboxSource)
 	chatSyncer.RegisterOfflinable(g.FetchRetrier)
 	chatSyncer.RegisterOfflinable(g.MessageDeliverer)
+	chatSyncer.RegisterOfflinable(g.UIThreadLoader)
 
 	// Add a tlfHandler into the user changed handler group so we can keep identify info
 	// fresh
