@@ -298,11 +298,6 @@ func (h *AccountHandler) GuessCurrentLocation(ctx context.Context, arg keybase1.
 	return code, nil
 }
 
-type GetContactSettingsResponse struct {
-	libkb.AppStatusEmbed
-	Settings keybase1.ContactSettings `json:"settings"`
-}
-
 func (h *AccountHandler) UserGetContactSettings(ctx context.Context) (ret keybase1.ContactSettings, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.TraceTimed("AccountHandler#UserGetContactSettings", func() error { return err })()
