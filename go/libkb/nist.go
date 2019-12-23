@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/msgpack"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -145,6 +146,7 @@ func (f *NISTFactory) NIST(ctx context.Context) (ret *NIST, err error) {
 		f.G().Log.CDebugf(ctx, "| NISTFactory#NIST: NIST previously failed, so we'll make a new one")
 	} else {
 		valid, until := f.nist.IsStillValid()
+		valid = false
 		if valid {
 			f.G().Log.CDebugf(ctx, "| NISTFactory#NIST: returning existing NIST (expires conservatively in %s, expiresAt: %s)", until, f.nist.expiresAt)
 			makeNew = false
@@ -279,7 +281,7 @@ func (n nistPayload) abbreviate(oldNIST *NIST) nistPayloadShort {
 		SessionID: n.SessionID,
 	}
 	if oldNIST != nil {
-		short.OldNISTHash = oldNIST.Token().ShortHash()
+		short.OldNISTHash = oldNIST.long.ShortHash()
 	}
 	return short
 }
@@ -341,15 +343,19 @@ func (n *NIST) generate(ctx context.Context, uid keybase1.UID, deviceID keybase1
 
 	var longTmp, shortTmp *NISTToken
 
-	longTmp, err = (nistSig{
+	long := (nistSig{
 		Version: version,
 		Mode:    nistModeSignature,
 		Sig:     sigInfo.Sig[:],
 		Payload: payload.abbreviate(oldNIST),
-	}).pack(typ)
+	})
+
+	longTmp, err = (long).pack(typ)
 	if err != nil {
 		return err
 	}
+
+	spew.Dump("@@@ Generated new NIST:", long, "with shorthash", longTmp.ShortHash())
 
 	shortTmp, err = (nistHash{
 		Version: version,
