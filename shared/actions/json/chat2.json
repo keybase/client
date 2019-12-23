@@ -854,6 +854,13 @@
       "_description": "remove a bot member",
       "conversationIDKey": "Types.ConversationIDKey",
       "username": "string"
+    },
+    "editBotSettings": {
+      "_description": "edit bot settings",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "username": "string",
+      "allowCommands": "boolean",
+      "allowMentions": "boolean"
     }
   }
 }

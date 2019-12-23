@@ -2894,18 +2894,17 @@ func (h *Server) EditBotMember(ctx context.Context, arg chat1.EditBotMemberArg) 
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "EditBotMember")()
-	if _, err = utils.AssertLoggedInUID(ctx, h.G()); err != nil {
-		return err
-	}
-
-	if err := h.validateBotRole(ctx, arg.Role); err != nil {
-		return err
-	}
-	teamID, err := h.teamIDFromTLFName(ctx, arg.MembersType, arg.TlfName, arg.TlfPublic)
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return err
 	}
-
+	if err := h.validateBotRole(ctx, arg.Role); err != nil {
+		return err
+	}
+	teamID, _, err := h.teamIDFromConvID(ctx, uid, arg.ConvID)
+	if err != nil {
+		return err
+	}
 	return teams.EditMemberByID(ctx, h.G().ExternalG(), teamID, arg.Username, arg.Role, arg.BotSettings)
 }
 
@@ -2929,16 +2928,15 @@ func (h *Server) SetBotMemberSettings(ctx context.Context, arg chat1.SetBotMembe
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "SetBotMemberSettings")()
-	defer func() { err = h.fixupTeamErrorWithTLFName(ctx, arg.Username, arg.TlfName, err) }()
-	if _, err = utils.AssertLoggedInUID(ctx, h.G()); err != nil {
-		return err
-	}
-
-	teamID, err := h.teamIDFromTLFName(ctx, arg.MembersType, arg.TlfName, arg.TlfPublic)
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return err
 	}
-
+	teamID, conv, err := h.teamIDFromConvID(ctx, uid, arg.ConvID)
+	if err != nil {
+		return err
+	}
+	defer func() { err = h.fixupTeamErrorWithTLFName(ctx, arg.Username, conv.Info.TlfName, err) }()
 	return teams.SetBotSettingsByID(ctx, h.G().ExternalG(), teamID, arg.Username, arg.BotSettings)
 }
 

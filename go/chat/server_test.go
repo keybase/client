@@ -7316,11 +7316,9 @@ func TestTeamBotSettings(t *testing.T) {
 			// take out botua1 by restricting them to a nonexistent conv.
 			botSettings.Convs = []string{chat1.ConversationID("foo").String()}
 			err = ctc.as(t, users[0]).chatLocalHandler().SetBotMemberSettings(tc.startCtx, chat1.SetBotMemberSettingsArg{
-				TlfName:     created.TlfName,
+				ConvID:      created.Id,
 				Username:    botua.Username,
 				BotSettings: botSettings,
-				MembersType: mt,
-				TlfPublic:   created.Visibility == keybase1.TLFVisibility_PUBLIC,
 			})
 			require.NoError(t, err)
 
@@ -7416,11 +7414,9 @@ func TestTeamBotSettings(t *testing.T) {
 
 			// take out botua2 by upgrading them to BOT
 			err = ctc.as(t, users[0]).chatLocalHandler().EditBotMember(tc.startCtx, chat1.EditBotMemberArg{
-				TlfName:     created.TlfName,
-				Username:    botua2.Username,
-				Role:        keybase1.TeamRole_BOT,
-				MembersType: mt,
-				TlfPublic:   created.Visibility == keybase1.TLFVisibility_PUBLIC,
+				ConvID:   created.Id,
+				Username: botua2.Username,
+				Role:     keybase1.TeamRole_BOT,
 			})
 			require.NoError(t, err)
 			pollForSeqno(7)

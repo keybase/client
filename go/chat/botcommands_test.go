@@ -203,12 +203,10 @@ func TestBotCommandManager(t *testing.T) {
 
 	// restricted bots that do not support commands cannot advertise
 	err = ctc.as(t, users[0]).chatLocalHandler().EditBotMember(ctx, chat1.EditBotMemberArg{
-		TlfName:     teamConv.TlfName,
+		ConvID:      teamConv.Id,
 		Username:    botua.Username,
 		Role:        keybase1.TeamRole_RESTRICTEDBOT,
 		BotSettings: &keybase1.TeamBotSettings{},
-		MembersType: chat1.ConversationMembersType_TEAM,
-		TlfPublic:   teamConv.Visibility == keybase1.TLFVisibility_PUBLIC,
 	})
 	require.NoError(t, err)
 	pollForSeqno(5)
@@ -223,11 +221,9 @@ func TestBotCommandManager(t *testing.T) {
 
 	// upgrading the role removes the restriction.
 	err = ctc.as(t, users[0]).chatLocalHandler().EditBotMember(ctx, chat1.EditBotMemberArg{
-		TlfName:     teamConv.TlfName,
-		Username:    botua.Username,
-		Role:        keybase1.TeamRole_BOT,
-		MembersType: chat1.ConversationMembersType_TEAM,
-		TlfPublic:   teamConv.Visibility == keybase1.TLFVisibility_PUBLIC,
+		ConvID:   teamConv.Id,
+		Username: botua.Username,
+		Role:     keybase1.TeamRole_BOT,
 	})
 	require.NoError(t, err)
 	pollForSeqno(6)

@@ -1238,9 +1238,9 @@ protocol local {
   void ignorePinnedMessage(ConversationID convID);
 
   void addBotMember(ConversationID convID, string username, union { null, keybase1.TeamBotSettings } botSettings, keybase1.TeamRole role);
-  void editBotMember(string tlfName, string username, union { null, keybase1.TeamBotSettings } botSettings, keybase1.TeamRole role, ConversationMembersType membersType, boolean tlfPublic);
+  void editBotMember(ConversationID convID, string username, union { null, keybase1.TeamBotSettings } botSettings, keybase1.TeamRole role);
   void removeBotMember(ConversationID convID, string username);
-  void setBotMemberSettings(string tlfName, string username, keybase1.TeamBotSettings botSettings, ConversationMembersType membersType, boolean tlfPublic);
+  void setBotMemberSettings(ConversationID convID, string username, keybase1.TeamBotSettings botSettings);
   keybase1.TeamBotSettings getBotMemberSettings(ConversationID convID, string username);
 
   keybase1.TeamID teamIDFromTLFName(string tlfName, ConversationMembersType membersType, boolean tlfPublic);

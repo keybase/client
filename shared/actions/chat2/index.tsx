@@ -3385,6 +3385,27 @@ const addBotMember = async (state: Container.TypedState, action: Chat2Gen.AddBot
   return closeBotModal(state, conversationIDKey)
 }
 
+const editBotSettings = async (state: Container.TypedState, action: Chat2Gen.EditBotSettingsPayload) => {
+  const {allowCommands, allowMentions, conversationIDKey, username} = action.payload
+  try {
+    await RPCChatTypes.localSetBotMemberSettingsRpcPromise(
+      {
+        botSettings: {
+          cmds: allowCommands,
+          mentions: allowMentions,
+        },
+        convID: Types.keyToConversationID(conversationIDKey),
+        username,
+      },
+      Constants.waitingKeyBotAdd
+    )
+  } catch (err) {
+    logger.info('addBotMember: failed to edit bot settings: ' + err.message)
+    return false
+  }
+  return closeBotModal(state, conversationIDKey)
+}
+
 const removeBotMember = async (state: Container.TypedState, action: Chat2Gen.RemoveBotMemberPayload) => {
   const {conversationIDKey, username} = action.payload
   try {
@@ -3505,6 +3526,7 @@ function* chat2Saga() {
   yield* Saga.chainAction2(Chat2Gen.loadNextBotPage, loadNextBotPage)
   yield* Saga.chainAction2(Chat2Gen.refreshBotPublicCommands, refreshBotPublicCommands)
   yield* Saga.chainAction2(Chat2Gen.addBotMember, addBotMember)
+  yield* Saga.chainAction2(Chat2Gen.editBotSettings, editBotSettings)
   yield* Saga.chainAction2(Chat2Gen.removeBotMember, removeBotMember)
   yield* Saga.chainAction2(Chat2Gen.refreshBotSettings, refreshBotSettings)
 
