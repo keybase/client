@@ -73,6 +73,9 @@ const botActions: Container.ActionHandler<Actions, Types.State> = {
     const {loaded} = action.payload
     draftState.featuredBotsLoaded = loaded
   },
+  [BotsGen.setSearchFeaturedAndUsersResults]: (draftState, action) => {
+    draftState.botSearchResults = action.payload.results
+  },
 }
 
 const audioActions: Container.ActionHandler<Actions, Types.State> = {

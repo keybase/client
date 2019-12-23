@@ -20,6 +20,14 @@
     "setLoadedAllBots": {
       "_description": "Sets a flag if all featured bots have been loaded",
       "loaded": "boolean"
+    },
+    "searchFeaturedAndUsers": {
+      "_description": "Searches featured bots and users for add bot screen",
+      "query": "string"
+    },
+    "setSearchFeaturedAndUsersResults": {
+      "_description": "Set results of a search",
+      "results?": "Types.BotSearchResults"
     }
   }
 }

@@ -77,6 +77,8 @@ export type TypedActionsMap = {
   'bots:searchFeaturedBots': bots.SearchFeaturedBotsPayload
   'bots:updateFeaturedBots': bots.UpdateFeaturedBotsPayload
   'bots:setLoadedAllBots': bots.SetLoadedAllBotsPayload
+  'bots:searchFeaturedAndUsers': bots.SearchFeaturedAndUsersPayload
+  'bots:setSearchFeaturedAndUsersResults': bots.SetSearchFeaturedAndUsersResultsPayload
   'chat2:toggleSmallTeamsExpanded': chat2.ToggleSmallTeamsExpandedPayload
   'chat2:deselectConversation': chat2.DeselectConversationPayload
   'chat2:selectConversation': chat2.SelectConversationPayload
