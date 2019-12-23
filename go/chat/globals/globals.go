@@ -39,6 +39,7 @@ type ChatContext struct {
 	LiveLocationTracker  types.LiveLocationTracker        // track live location messages for updates
 	BotCommandManager    types.BotCommandManager          // manages commands from bots in convs
 	UIInboxLoader        types.UIInboxLoader              // manages loading inbox for UI
+	UIThreadLoader       types.UIThreadLoader             // manages loading threads for UI
 	Badger               *badges.Badger                   // app badging
 }
 
@@ -73,6 +74,7 @@ func (c *ChatContext) Describe() string {
   LiveLocationTracker: %v,
   BotCommandManager: %v,
   UIInboxLoader: %v,
+  UIThreadLoader: %v,
   Badger: %v,
 }`,
 		c.CtxFactory != nil,
@@ -104,6 +106,7 @@ func (c *ChatContext) Describe() string {
 		c.LiveLocationTracker != nil,
 		c.BotCommandManager != nil,
 		c.UIInboxLoader != nil,
+		c.UIThreadLoader != nil,
 		c.Badger != nil,
 	)
 }

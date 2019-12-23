@@ -28,6 +28,9 @@ type UIThreadLoader struct {
 	clock          clockwork.Clock
 	convPageStatus map[string]chat1.Pagination
 	validatedDelay time.Duration
+	offlineMu      sync.Mutex
+	offline        bool
+	connectedCh    chan struct{}
 
 	activeConvLoadsMu sync.Mutex
 	activeConvLoads   map[string]context.CancelFunc
@@ -41,6 +44,7 @@ type UIThreadLoader struct {
 func NewUIThreadLoader(g *globals.Context) *UIThreadLoader {
 	cacheDelay := 10 * time.Millisecond
 	return &UIThreadLoader{
+		offline:           false,
 		Contextified:      globals.NewContextified(g),
 		DebugLabeler:      utils.NewDebugLabeler(g.GetLog(), "UIThreadLoader", false),
 		convPageStatus:    make(map[string]chat1.Pagination),
@@ -48,7 +52,32 @@ func NewUIThreadLoader(g *globals.Context) *UIThreadLoader {
 		validatedDelay:    100 * time.Millisecond,
 		cachedThreadDelay: &cacheDelay,
 		activeConvLoads:   make(map[string]context.CancelFunc),
+		connectedCh:       make(chan struct{}),
 	}
+}
+
+var _ types.UIThreadLoader = (*UIThreadLoader)(nil)
+
+func (t *UIThreadLoader) Connected(ctx context.Context) {
+	t.offlineMu.Lock()
+	defer t.offlineMu.Unlock()
+	t.offline = false
+	select {
+	case t.connectedCh <- struct{}{}:
+	default:
+	}
+}
+
+func (t *UIThreadLoader) Disconnected(ctx context.Context) {
+	t.offlineMu.Lock()
+	defer t.offlineMu.Unlock()
+	t.offline = true
+}
+
+func (t *UIThreadLoader) IsOffline(ctx context.Context) bool {
+	t.offlineMu.Lock()
+	defer t.offlineMu.Unlock()
+	return t.offline
 }
 
 func (t *UIThreadLoader) groupGeneric(ctx context.Context, uid gregor1.UID, msgs []chat1.MessageUnboxed,
@@ -528,6 +557,20 @@ func (t *UIThreadLoader) singleFlightConv(ctx context.Context, convID chat1.Conv
 	return ctx, cancel
 }
 
+func (t *UIThreadLoader) waitForOnline(ctx context.Context) {
+	// wait at most a second, and then charge forward
+	for i := 0; i < 40; i++ {
+		if !t.IsOffline(ctx) {
+			return
+		}
+		select {
+		case <-time.After(25 * time.Millisecond):
+		case <-t.connectedCh:
+			return
+		}
+	}
+}
+
 func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, uid gregor1.UID,
 	convID chat1.ConversationID, reason chat1.GetThreadReason, pgmode chat1.GetThreadNonblockPgMode,
 	cbmode chat1.GetThreadNonblockCbMode, query *chat1.GetThreadQuery, uipagination *chat1.UIPagination) (err error) {
@@ -572,19 +615,6 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 	}
 	defer t.G().ConvSource.ReleaseConversationLock(ctx, uid, convID)
 	t.Debug(ctx, "LoadNonblock: conversation lock obtained")
-
-	// If this is from a push or foreground, set us into the foreground
-	switch reason {
-	case chat1.GetThreadReason_PUSH, chat1.GetThreadReason_FOREGROUND:
-		// Also if we get here and we claim to not be in the foreground yet, then hit disconnect
-		// to reset any delay checks or timers
-		switch t.G().MobileAppState.State() {
-		case keybase1.MobileAppState_FOREGROUND, keybase1.MobileAppState_BACKGROUNDACTIVE:
-		default:
-			t.G().Syncer.Disconnected(ctx)
-		}
-		t.G().MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
-	}
 
 	// Enable delete placeholders for supersede transform
 	if query == nil {
@@ -716,6 +746,8 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 		if t.remoteThreadDelay != nil {
 			t.clock.Sleep(*t.remoteThreadDelay)
 		}
+		// wait until we are online before attempting the full pull, otherwise we just waste an attempt
+		t.waitForOnline(ctx)
 		remoteThread, fullErr = t.G().ConvSource.Pull(ctx, convID, uid, reason, query, pagination)
 		setDisplayedStatus(cancelUIStatus)
 		if fullErr != nil {

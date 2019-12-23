@@ -449,6 +449,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	g.BotCommandManager = bots.NewCachingBotCommandManager(g, func() chat1.RemoteInterface { return ri })
 	g.BotCommandManager.Start(context.TODO(), uid)
 	g.UIInboxLoader = types.DummyUIInboxLoader{}
+	g.UIThreadLoader = NewUIThreadLoader(g)
 
 	tc.G.ChatHelper = NewHelper(g, func() chat1.RemoteInterface { return ri })
 
@@ -2819,10 +2820,13 @@ func TestChatSrvGetThreadNonblockServerPage(t *testing.T) {
 		// Basic
 		delay := 10 * time.Minute
 		clock := clockwork.NewFakeClock()
-		ctc.as(t, users[0]).h.uiThreadLoader.clock = clock
-		ctc.as(t, users[0]).h.uiThreadLoader.cachedThreadDelay = nil
-		ctc.as(t, users[0]).h.uiThreadLoader.remoteThreadDelay = &delay
-		ctc.as(t, users[0]).h.uiThreadLoader.validatedDelay = 0
+		tc := ctc.world.Tcs[users[0].Username]
+		uiThreadLoader := NewUIThreadLoader(tc.Context())
+		uiThreadLoader.clock = clock
+		uiThreadLoader.cachedThreadDelay = nil
+		uiThreadLoader.remoteThreadDelay = &delay
+		uiThreadLoader.validatedDelay = 0
+		tc.ChatG.UIThreadLoader = uiThreadLoader
 		cb := make(chan struct{})
 		p := utils.PresentPagination(&chat1.Pagination{
 			Num: 1,
@@ -3021,10 +3025,13 @@ func TestChatSrvGetThreadNonblockIncremental(t *testing.T) {
 		// Basic
 		delay := 10 * time.Minute
 		clock := clockwork.NewFakeClock()
-		ctc.as(t, users[0]).h.uiThreadLoader.clock = clock
-		ctc.as(t, users[0]).h.uiThreadLoader.cachedThreadDelay = nil
-		ctc.as(t, users[0]).h.uiThreadLoader.remoteThreadDelay = &delay
-		ctc.as(t, users[0]).h.uiThreadLoader.validatedDelay = 0
+		tc := ctc.world.Tcs[users[0].Username]
+		uiThreadLoader := NewUIThreadLoader(tc.Context())
+		uiThreadLoader.clock = clock
+		uiThreadLoader.cachedThreadDelay = nil
+		uiThreadLoader.remoteThreadDelay = &delay
+		uiThreadLoader.validatedDelay = 0
+		tc.ChatG.UIThreadLoader = uiThreadLoader
 		cb := make(chan struct{})
 		go func() {
 			_, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadNonblock(ctx,
@@ -3156,10 +3163,13 @@ func TestChatSrvGetThreadNonblockSupersedes(t *testing.T) {
 
 		delay := 10 * time.Minute
 		clock := clockwork.NewFakeClock()
-		ctc.as(t, users[0]).h.uiThreadLoader.clock = clock
-		ctc.as(t, users[0]).h.uiThreadLoader.cachedThreadDelay = nil
-		ctc.as(t, users[0]).h.uiThreadLoader.remoteThreadDelay = &delay
-		ctc.as(t, users[0]).h.uiThreadLoader.validatedDelay = 0
+		tc := ctc.world.Tcs[users[0].Username]
+		uiThreadLoader := NewUIThreadLoader(tc.Context())
+		uiThreadLoader.clock = clock
+		uiThreadLoader.cachedThreadDelay = nil
+		uiThreadLoader.remoteThreadDelay = &delay
+		uiThreadLoader.validatedDelay = 0
+		tc.ChatG.UIThreadLoader = uiThreadLoader
 		cb := make(chan struct{})
 		query := chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
@@ -3479,10 +3489,13 @@ func TestChatSrvGetThreadNonblockPlaceholders(t *testing.T) {
 
 		delay := 10 * time.Minute
 		clock := clockwork.NewFakeClock()
-		ctc.as(t, users[0]).h.uiThreadLoader.clock = clock
-		ctc.as(t, users[0]).h.uiThreadLoader.cachedThreadDelay = nil
-		ctc.as(t, users[0]).h.uiThreadLoader.remoteThreadDelay = &delay
-		ctc.as(t, users[0]).h.uiThreadLoader.validatedDelay = 0
+		tc := ctc.world.Tcs[users[0].Username]
+		uiThreadLoader := NewUIThreadLoader(tc.Context())
+		uiThreadLoader.clock = clock
+		uiThreadLoader.cachedThreadDelay = nil
+		uiThreadLoader.remoteThreadDelay = &delay
+		uiThreadLoader.validatedDelay = 0
+		tc.ChatG.UIThreadLoader = uiThreadLoader
 		cb := make(chan struct{})
 		query := chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
@@ -3577,10 +3590,12 @@ func TestChatSrvGetThreadNonblockPlaceholderFirst(t *testing.T) {
 
 		delay := 10 * time.Minute
 		clock := clockwork.NewFakeClock()
-		ctc.as(t, users[0]).h.uiThreadLoader.clock = clock
-		ctc.as(t, users[0]).h.uiThreadLoader.cachedThreadDelay = nil
-		ctc.as(t, users[0]).h.uiThreadLoader.remoteThreadDelay = &delay
-		ctc.as(t, users[0]).h.uiThreadLoader.validatedDelay = 0
+		uiThreadLoader := NewUIThreadLoader(tc.Context())
+		uiThreadLoader.clock = clock
+		uiThreadLoader.cachedThreadDelay = nil
+		uiThreadLoader.remoteThreadDelay = &delay
+		uiThreadLoader.validatedDelay = 0
+		tc.ChatG.UIThreadLoader = uiThreadLoader
 		cb := make(chan struct{})
 		query := chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
@@ -3732,8 +3747,11 @@ func TestChatSrvGetThreadNonblock(t *testing.T) {
 
 		delay := 10 * time.Minute
 		clock := clockwork.NewFakeClock()
-		ctc.as(t, users[0]).h.uiThreadLoader.clock = clock
-		ctc.as(t, users[0]).h.uiThreadLoader.cachedThreadDelay = &delay
+		tc := ctc.world.Tcs[users[0].Username]
+		uiThreadLoader := NewUIThreadLoader(tc.Context())
+		uiThreadLoader.clock = clock
+		uiThreadLoader.cachedThreadDelay = &delay
+		tc.ChatG.UIThreadLoader = uiThreadLoader
 		_, err = ctc.as(t, users[0]).chatLocalHandler().GetThreadNonblock(ctx,
 			chat1.GetThreadNonblockArg{
 				ConversationID:   conv.Id,

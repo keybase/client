@@ -42,11 +42,10 @@ type Server struct {
 	globals.Contextified
 	utils.DebugLabeler
 
-	serverConn     ServerConnection
-	uiSource       UISource
-	boxer          *Boxer
-	identNotifier  types.IdentifyNotifier
-	uiThreadLoader *UIThreadLoader
+	serverConn    ServerConnection
+	uiSource      UISource
+	boxer         *Boxer
+	identNotifier types.IdentifyNotifier
 
 	searchMu            sync.Mutex
 	searchInboxMu       sync.Mutex
@@ -74,7 +73,6 @@ func NewServer(g *globals.Context, serverConn ServerConnection, uiSource UISourc
 		uiSource:                          uiSource,
 		boxer:                             NewBoxer(g),
 		identNotifier:                     NewCachingIdentifyNotifier(g),
-		uiThreadLoader:                    NewUIThreadLoader(g),
 		fileAttachmentDownloadCacheDir:    g.GetEnv().GetCacheDir(),
 		fileAttachmentDownloadDownloadDir: g.GetEnv().GetDownloadsDir(),
 	}
@@ -315,7 +313,7 @@ func (h *Server) GetThreadLocal(ctx context.Context, arg chat1.GetThreadLocalArg
 	if err != nil {
 		return chat1.GetThreadLocalRes{}, err
 	}
-	thread, err := h.uiThreadLoader.Load(ctx, uid, arg.ConversationID, arg.Reason, arg.Query,
+	thread, err := h.G().UIThreadLoader.Load(ctx, uid, arg.ConversationID, arg.Reason, arg.Query,
 		arg.Pagination)
 	if err != nil {
 		return chat1.GetThreadLocalRes{}, err
@@ -361,7 +359,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		return chat1.NonblockFetchRes{}, err
 	}
 	chatUI := h.getChatUI(arg.SessionID)
-	return res, h.uiThreadLoader.LoadNonblock(ctx, chatUI, uid, arg.ConversationID, arg.Reason,
+	return res, h.G().UIThreadLoader.LoadNonblock(ctx, chatUI, uid, arg.ConversationID, arg.Reason,
 		arg.Pgmode, arg.CbMode, arg.Query, arg.Pagination)
 }
 
