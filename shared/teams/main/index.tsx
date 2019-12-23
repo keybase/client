@@ -22,7 +22,7 @@ export type OwnProps = {
   onReadMore: () => void
   onViewTeam: (teamID: Types.TeamID) => void
   sawChatBanner: boolean
-  teamresetusers: Map<string, Set<Types.ResetUser>>
+  teamresetusers: Map<Types.TeamID, Set<Types.ResetUser>>
   newTeamRequests: Map<Types.TeamID, number>
   teams: Array<Types.TeamDetails>
 }
@@ -164,7 +164,7 @@ class Teams extends React.PureComponent<Props, State> {
       }
       case 'team': {
         const team = item.team
-        const reset = this.props.teamresetusers.get(team.teamname)
+        const reset = this.props.teamresetusers.get(team.id)
         const resetUserCount = (reset && reset.size) || 0
         return (
           <TeamRow

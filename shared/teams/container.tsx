@@ -80,7 +80,7 @@ Reloadable.navigationOptions = {
 
 const Connected = Container.connect(
   (state: Container.TypedState) => ({
-    _teamresetusers: state.teams.teamNameToResetUsers || new Map(),
+    _teamresetusers: state.teams.teamIDToResetUsers || new Map(),
     _teams: state.teams.teamDetails,
     deletedTeams: state.teams.deletedTeams,
     loaded: !WaitingConstants.anyWaiting(state, Constants.teamsLoadedWaitingKey),
