@@ -372,48 +372,56 @@ const editMembership = async (action: TeamsGen.EditMembershipPayload) => {
   )
 }
 
-function* removeMemberOrPendingInvite(
+function* removeMember(state: TypedState, action: TeamsGen.RemoveMemberPayload, logger: Saga.SagaLogger) {
+  const {teamID, username} = action.payload
+  try {
+    yield RPCTypes.teamsTeamRemoveMemberRpcPromise(
+      {
+        allowInaction: true,
+        email: '',
+        inviteID: '',
+        teamID,
+        username,
+      },
+      [Constants.teamWaitingKeyByID(teamID, state), Constants.removeMemberWaitingKey(teamID, username)]
+    )
+  } catch (err) {
+    logger.error('Failed to remove member', err)
+    // TODO: create setEmailInviteError?`
+  }
+}
+
+function* removePendingInvite(
   state: TypedState,
-  action: TeamsGen.RemoveMemberOrPendingInvitePayload,
+  action: TeamsGen.RemovePendingInvitePayload,
   logger: Saga.SagaLogger
 ) {
-  const {teamname, username, email, inviteID, loadingKey} = action.payload
-  if (loadingKey) {
-    yield Saga.put(TeamsGen.createSetTeamLoadingInvites({isLoading: true, loadingKey, teamname}))
-  }
+  const {teamID, username, email, inviteID} = action.payload
   // Disallow call with any pair of username, email, and ID to avoid black-bar
   // errors.
   if ((!!username && !!email) || (!!username && !!inviteID) || (!!email && !!inviteID)) {
-    const errMsg = 'Supplied more than one form of identification to removeMemberOrPendingInvite'
+    const errMsg = 'Supplied more than one form of identification to removePendingInvite'
     logger.error(errMsg)
     throw new Error(errMsg)
   }
-
-  const teamID = Constants.getTeamID(state, teamname) // TODO should be in action
 
   try {
     yield RPCTypes.teamsTeamRemoveMemberRpcPromise(
       {
         allowInaction: true,
-        email,
-        inviteID,
+        email: email ?? '',
+        inviteID: inviteID ?? '',
         teamID,
-        username,
+        username: username ?? '',
       },
       [
-        Constants.teamWaitingKey(teamname),
+        Constants.teamWaitingKeyByID(teamID, state),
         // only one of (username, email, inviteID) is truth-y
-        Constants.removeMemberWaitingKey(teamname, username || email || inviteID),
+        Constants.removeMemberWaitingKey(teamID, username || email || inviteID || ''),
       ]
     )
-    if (loadingKey) {
-      yield Saga.put(TeamsGen.createGetDetails({clearInviteLoadingKey: loadingKey, teamname}))
-    }
   } catch (err) {
     logger.error('Failed to remove member or pending invite', err)
-    if (loadingKey) {
-      yield Saga.put(TeamsGen.createSetTeamLoadingInvites({isLoading: false, loadingKey, teamname}))
-    }
   }
 }
 
@@ -1431,9 +1439,10 @@ const teamsSaga = function*() {
   yield* Saga.chainAction(TeamsGen.editTeamDescription, editDescription)
   yield* Saga.chainAction(TeamsGen.uploadTeamAvatar, uploadAvatar)
   yield* Saga.chainAction(TeamsGen.editMembership, editMembership)
-  yield* Saga.chainGenerator<TeamsGen.RemoveMemberOrPendingInvitePayload>(
-    TeamsGen.removeMemberOrPendingInvite,
-    removeMemberOrPendingInvite
+  yield* Saga.chainGenerator<TeamsGen.RemoveMemberPayload>(TeamsGen.removeMember, removeMember)
+  yield* Saga.chainGenerator<TeamsGen.RemovePendingInvitePayload>(
+    TeamsGen.removePendingInvite,
+    removePendingInvite
   )
   yield* Saga.chainAction(TeamsGen.setMemberPublicity, setMemberPublicity)
   yield* Saga.chainAction(TeamsGen.updateTopic, updateTopic)

@@ -16,69 +16,57 @@ type OwnProps = {
 
 const blankInfo = Constants.initialMemberInfo
 
-const mapStateToProps = (state, {teamID, username}: OwnProps) => {
-  const teamDetails = Constants.getTeamDetails(state, teamID)
-  const {members: map = new Map(), teamname} = teamDetails
-  const info = map.get(username) || blankInfo
+export default connect(
+  (state, {teamID, username}: OwnProps) => {
+    const teamDetails = Constants.getTeamDetails(state, teamID)
+    const {members: map = new Map(), teamname} = teamDetails
+    const info = map.get(username) || blankInfo
 
-  return {
-    following: state.config.following.has(username),
-    fullName: state.config.username === username ? 'You' : info.fullName,
-    roleType: info.type,
-    status: info.status,
-    teamname,
-    username: info.username,
-    waitingForAdd: anyWaiting(state, Constants.addMemberWaitingKey(teamID, username)),
-    waitingForRemove: anyWaiting(state, Constants.removeMemberWaitingKey(teamname, username)),
-    you: state.config.username,
-    youCanManageMembers: Constants.getCanPerform(state, teamname).manageMembers,
-  }
-}
-
-type DispatchProps = {
-  _onReAddToTeam: (teamname: string, username: string) => void
-  _onRemoveFromTeam: (teamname: string, username: string) => void
-  _onShowTracker: (username: string) => void
-  onChat: () => void
-  onClick: () => void
-}
-
-const mapDispatchToProps = (dispatch, ownProps: OwnProps): DispatchProps => ({
-  _onReAddToTeam: (teamID: Types.TeamID, username: string) => {
-    dispatch(
-      TeamsGen.createReAddToTeam({
-        teamID,
-        username,
-      })
-    )
-  },
-  _onRemoveFromTeam: (teamname: string, username: string) => {
-    dispatch(TeamsGen.createRemoveMemberOrPendingInvite({email: '', inviteID: '', teamname, username}))
-  },
-  _onShowTracker: (username: string) => {
-    if (isMobile) {
-      dispatch(ProfileGen.createShowUserProfile({username}))
-    } else {
-      dispatch(Tracker2Gen.createShowUser({asTracker: true, username}))
+    return {
+      following: state.config.following.has(username),
+      fullName: state.config.username === username ? 'You' : info.fullName,
+      roleType: info.type,
+      status: info.status,
+      teamname,
+      username: info.username,
+      waitingForAdd: anyWaiting(state, Constants.addMemberWaitingKey(teamID, username)),
+      waitingForRemove: anyWaiting(state, Constants.removeMemberWaitingKey(teamID, username)),
+      you: state.config.username,
+      youCanManageMembers: Constants.getCanPerform(state, teamname).manageMembers,
     }
   },
-  onChat: () => {
-    ownProps.username &&
-      dispatch(Chat2Gen.createPreviewConversation({participants: [ownProps.username], reason: 'teamMember'}))
-  },
-  onClick: () =>
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: ownProps, selected: 'teamMember'}]})),
-})
+  (dispatch, {teamID, username}: OwnProps) => ({
+    onReAddToTeam: () =>
+      dispatch(
+        TeamsGen.createReAddToTeam({
+          teamID,
+          username,
+        })
+      ),
+    onRemoveFromTeam: () => dispatch(TeamsGen.createRemoveMember({teamID, username})),
+    onShowTracker: () =>
+      dispatch(
+        isMobile
+          ? ProfileGen.createShowUserProfile({username})
+          : Tracker2Gen.createShowUser({asTracker: true, username})
+      ),
 
-const mergeProps = (stateProps, dispatchProps: DispatchProps, ownProps: OwnProps) => {
-  return {
+    onChat: () =>
+      username &&
+      dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'teamMember'})),
+    onClick: () =>
+      dispatch(
+        RouteTreeGen.createNavigateAppend({path: [{props: {teamID, username}, selected: 'teamMember'}]})
+      ),
+  }),
+  (stateProps, dispatchProps, _: OwnProps) => ({
     following: stateProps.following,
     fullName: stateProps.fullName,
     onChat: dispatchProps.onChat,
     onClick: dispatchProps.onClick,
-    onReAddToTeam: () => dispatchProps._onReAddToTeam(ownProps.teamID, ownProps.username),
-    onRemoveFromTeam: () => dispatchProps._onRemoveFromTeam(stateProps.teamname, ownProps.username),
-    onShowTracker: () => dispatchProps._onShowTracker(ownProps.username),
+    onReAddToTeam: dispatchProps.onReAddToTeam,
+    onRemoveFromTeam: dispatchProps.onRemoveFromTeam,
+    onShowTracker: dispatchProps.onShowTracker,
     roleType: stateProps.roleType,
     status: stateProps.status,
     username: stateProps.username,
@@ -86,7 +74,5 @@ const mergeProps = (stateProps, dispatchProps: DispatchProps, ownProps: OwnProps
     waitingForRemove: stateProps.waitingForRemove,
     you: stateProps.you,
     youCanManageMembers: stateProps.youCanManageMembers,
-  }
-}
-
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(TeamMemberRow)
+  })
+)(TeamMemberRow)

@@ -39,7 +39,6 @@ export const leaveTeam = 'teams:leaveTeam'
 export const leftTeam = 'teams:leftTeam'
 export const reAddToTeam = 'teams:reAddToTeam'
 export const removeMember = 'teams:removeMember'
-export const removeMemberOrPendingInvite = 'teams:removeMemberOrPendingInvite'
 export const removeParticipant = 'teams:removeParticipant'
 export const removePendingInvite = 'teams:removePendingInvite'
 export const renameTeam = 'teams:renameTeam'
@@ -163,13 +162,6 @@ type _LeaveTeamPayload = {
 }
 type _LeftTeamPayload = {readonly teamname: string; readonly context: 'teams' | 'chat'}
 type _ReAddToTeamPayload = {readonly teamID: Types.TeamID; readonly username: string}
-type _RemoveMemberOrPendingInvitePayload = {
-  readonly email: string
-  readonly teamname: string
-  readonly username: string
-  readonly inviteID: string
-  readonly loadingKey?: string
-}
 type _RemoveMemberPayload = {readonly teamID: Types.TeamID; readonly username: string}
 type _RemoveParticipantPayload = {
   readonly teamname: string
@@ -178,6 +170,7 @@ type _RemoveParticipantPayload = {
 type _RemovePendingInvitePayload = {
   readonly teamID: Types.TeamID
   readonly email?: string
+  readonly username?: string
   readonly inviteID?: string
 }
 type _RenameTeamPayload = {readonly oldName: string; readonly newName: string}
@@ -427,9 +420,6 @@ export const createRemoveMember = (payload: _RemoveMemberPayload): RemoveMemberP
   payload,
   type: removeMember,
 })
-export const createRemoveMemberOrPendingInvite = (
-  payload: _RemoveMemberOrPendingInvitePayload
-): RemoveMemberOrPendingInvitePayload => ({payload, type: removeMemberOrPendingInvite})
 export const createRemoveParticipant = (payload: _RemoveParticipantPayload): RemoveParticipantPayload => ({
   payload,
   type: removeParticipant,
@@ -647,10 +637,6 @@ export type JoinTeamPayload = {readonly payload: _JoinTeamPayload; readonly type
 export type LeaveTeamPayload = {readonly payload: _LeaveTeamPayload; readonly type: typeof leaveTeam}
 export type LeftTeamPayload = {readonly payload: _LeftTeamPayload; readonly type: typeof leftTeam}
 export type ReAddToTeamPayload = {readonly payload: _ReAddToTeamPayload; readonly type: typeof reAddToTeam}
-export type RemoveMemberOrPendingInvitePayload = {
-  readonly payload: _RemoveMemberOrPendingInvitePayload
-  readonly type: typeof removeMemberOrPendingInvite
-}
 export type RemoveMemberPayload = {readonly payload: _RemoveMemberPayload; readonly type: typeof removeMember}
 export type RemoveParticipantPayload = {
   readonly payload: _RemoveParticipantPayload
@@ -821,7 +807,6 @@ export type Actions =
   | LeaveTeamPayload
   | LeftTeamPayload
   | ReAddToTeamPayload
-  | RemoveMemberOrPendingInvitePayload
   | RemoveMemberPayload
   | RemoveParticipantPayload
   | RemovePendingInvitePayload

@@ -21,6 +21,11 @@ export const rpcMemberStatusToStatus = invert(RPCTypes.TeamMemberStatus) as {
 export const teamsLoadedWaitingKey = 'teams:loaded'
 export const teamsAccessRequestWaitingKey = 'teams:accessRequests'
 export const teamWaitingKey = (teamname: Types.Teamname) => `team:${teamname}`
+export const teamWaitingKeyByID = (teamID: Types.TeamID, state: TypedState) => {
+  // TODO: eventually, delete teamWaitingKey and then change this to only use the ID
+  const teamname = getTeamNameFromID(state, teamID) ?? ''
+  return teamWaitingKey(teamname)
+}
 export const teamGetWaitingKey = (teamname: Types.Teamname) => `teamGet:${teamname}`
 export const teamTarsWaitingKey = (teamname: Types.Teamname) => `teamTars:${teamname}`
 export const teamCreationWaitingKey = 'teamCreate'
@@ -37,7 +42,7 @@ export const addMemberWaitingKey = (teamID: Types.TeamID, ...usernames: Array<st
 export const addInviteWaitingKey = (teamname: Types.Teamname, value: string) =>
   `teamAddInvite:${teamname};${value}`
 // also for pending invites, hence id rather than username
-export const removeMemberWaitingKey = (teamname: Types.Teamname, id: string) => `teamRemove:${teamname};${id}`
+export const removeMemberWaitingKey = (teamID: Types.TeamID, id: string) => `teamRemove:${teamID};${id}`
 export const addToTeamSearchKey = 'addToTeamSearch'
 export const teamProfileAddListWaitingKey = 'teamProfileAddList'
 export const deleteTeamWaitingKey = (teamID: Types.TeamID) => `teamDelete:${teamID}`
@@ -357,6 +362,7 @@ const anotherRoleChangeNotSub = {
 
 const notOwnerSub = {owner: 'Subteams cannot have owners.'}
 const notOwnerNotSub = {owner: `Only owners can turn members into owners`}
+const emptyObj = {}
 
 export const getDisabledReasonsForRolePicker = (
   state: TypedState,
@@ -379,7 +385,7 @@ export const getDisabledReasonsForRolePicker = (
       ? subteamsCannotHaveOwners
       : yourRole !== 'owner'
       ? onlyOwnersCanTurnTeamMembersInfoOwners
-      : {}
+      : emptyObj
   }
 
   // We shouldn't get here, but in case we do this is correct.

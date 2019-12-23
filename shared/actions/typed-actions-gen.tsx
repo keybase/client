@@ -867,7 +867,6 @@ export type TypedActionsMap = {
   'teams:editTeamDescription': teams.EditTeamDescriptionPayload
   'teams:uploadTeamAvatar': teams.UploadTeamAvatarPayload
   'teams:editMembership': teams.EditMembershipPayload
-  'teams:removeMemberOrPendingInvite': teams.RemoveMemberOrPendingInvitePayload
   'teams:removeMember': teams.RemoveMemberPayload
   'teams:removePendingInvite': teams.RemovePendingInvitePayload
   'teams:ignoreRequest': teams.IgnoreRequestPayload

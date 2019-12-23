@@ -148,13 +148,6 @@
       "username": "string",
       "role": "Types.TeamRoleType"
     },
-    "removeMemberOrPendingInvite": {
-      "email": "string",
-      "teamname": "string",
-      "username": "string",
-      "inviteID": "string",
-      "loadingKey?": "string"
-    },
     "removeMember": {
       "teamID": "Types.TeamID",
       "username": "string"
@@ -162,6 +155,7 @@
     "removePendingInvite": {
       "teamID": "Types.TeamID",
       "email?": "string",
+      "username?": "string",
       "inviteID?": "string"
     },
     "ignoreRequest": {
