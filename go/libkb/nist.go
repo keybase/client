@@ -5,10 +5,10 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"sync"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/msgpack"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -28,8 +28,8 @@ import (
 //
 
 // If we're within 26 hours of expiration, generate a new NIST;
-const nistExpirationMargin = 26 * time.Hour // I.e., half of the lifetime
-const nistLifetime = 52 * time.Hour         // A little longer than 2 days.
+const nistExpirationMargin = 2 * time.Minute // I.e., half of the lifetime
+const nistLifetime = 3 * time.Minute         // A little longer than 2 days.
 const nistSessionIDLength = 16
 const nistShortHashLen = 19
 const nistWebAuthTokenLifetime = 24 * time.Hour // website tokens expire in a day
@@ -78,10 +78,11 @@ func (t nistType) encoding() *base64.Encoding {
 type NISTFactory struct {
 	Contextified
 	sync.Mutex
-	uid      keybase1.UID
-	deviceID keybase1.DeviceID
-	key      GenericKey // cached secret signing key
-	nist     *NIST
+	uid                         keybase1.UID
+	deviceID                    keybase1.DeviceID
+	key                         GenericKey // cached secret signing key
+	nist                        *NIST
+	lastSuccessfulNISTShortHash []byte
 }
 
 type NISTToken struct {
@@ -138,31 +139,28 @@ func (f *NISTFactory) NIST(ctx context.Context) (ret *NIST, err error) {
 	defer f.Unlock()
 
 	makeNew := true
-	passOldNIST := false
 
 	if f.nist == nil {
 		f.G().Log.CDebugf(ctx, "| NISTFactory#NIST: nil NIST, making new one")
 	} else if f.nist.DidFail() {
 		f.G().Log.CDebugf(ctx, "| NISTFactory#NIST: NIST previously failed, so we'll make a new one")
 	} else {
+		if f.nist.DidSucceed() {
+			f.lastSuccessfulNISTShortHash = f.nist.long.ShortHash()
+		}
+
 		valid, until := f.nist.IsStillValid()
-		valid = false
 		if valid {
 			f.G().Log.CDebugf(ctx, "| NISTFactory#NIST: returning existing NIST (expires conservatively in %s, expiresAt: %s)", until, f.nist.expiresAt)
 			makeNew = false
 		} else {
-			passOldNIST = true
 			f.G().Log.CDebugf(ctx, "| NISTFactory#NIST: NIST expired (conservatively) %s ago, making a new one (expiresAt: %s)", -until, f.nist.expiresAt)
 		}
 	}
 
 	if makeNew {
 		ret = newNIST(f.G())
-		var oldNIST *NIST
-		if passOldNIST {
-			oldNIST = f.nist
-		}
-		err = ret.generate(ctx, f.uid, f.deviceID, f.key, nistClient, oldNIST)
+		err = ret.generate(ctx, f.uid, f.deviceID, f.key, nistClient, f.lastSuccessfulNISTShortHash)
 		if err != nil {
 			return nil, err
 		}
@@ -194,6 +192,12 @@ func (n *NIST) IsStillValid() (bool, time.Duration) {
 func (n *NIST) IsExpired() bool {
 	isValid, _ := n.IsStillValid()
 	return !isValid
+}
+
+func (n *NIST) DidSucceed() bool {
+	n.RLock()
+	defer n.RUnlock()
+	return n.succeeded
 }
 
 func (n *NIST) DidFail() bool {
@@ -272,21 +276,19 @@ func (h nistHash) pack(t nistType) (*NISTToken, error) {
 	return &NISTToken{b: b, nistType: t}, nil
 }
 
-func (n nistPayload) abbreviate(oldNIST *NIST) nistPayloadShort {
+func (n nistPayload) abbreviate(lastSuccessfulNISTShortHash []byte) nistPayloadShort {
 	short := nistPayloadShort{
-		UID:       n.UID,
-		DeviceID:  n.DeviceID,
-		Generated: n.Generated,
-		Lifetime:  n.Lifetime,
-		SessionID: n.SessionID,
-	}
-	if oldNIST != nil {
-		short.OldNISTHash = oldNIST.long.ShortHash()
+		UID:         n.UID,
+		DeviceID:    n.DeviceID,
+		Generated:   n.Generated,
+		Lifetime:    n.Lifetime,
+		SessionID:   n.SessionID,
+		OldNISTHash: lastSuccessfulNISTShortHash,
 	}
 	return short
 }
 
-func (n *NIST) generate(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID, key GenericKey, typ nistType, oldNIST *NIST) (err error) {
+func (n *NIST) generate(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID, key GenericKey, typ nistType, lastSuccessfulShortHash []byte) (err error) {
 	defer n.G().CTrace(ctx, "NIST#generate", func() error { return err })()
 
 	n.Lock()
@@ -347,7 +349,7 @@ func (n *NIST) generate(ctx context.Context, uid keybase1.UID, deviceID keybase1
 		Version: version,
 		Mode:    nistModeSignature,
 		Sig:     sigInfo.Sig[:],
-		Payload: payload.abbreviate(oldNIST),
+		Payload: payload.abbreviate(lastSuccessfulShortHash),
 	})
 
 	longTmp, err = (long).pack(typ)
@@ -355,7 +357,7 @@ func (n *NIST) generate(ctx context.Context, uid keybase1.UID, deviceID keybase1
 		return err
 	}
 
-	spew.Dump("@@@ Generated new NIST:", long, "with shorthash", longTmp.ShortHash())
+	fmt.Printf("@@@ Generated new NIST: %x, passed old nist %x\n", longTmp.ShortHash(), long.Payload.OldNISTHash)
 
 	shortTmp, err = (nistHash{
 		Version: version,
