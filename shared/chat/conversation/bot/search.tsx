@@ -65,7 +65,7 @@ const SearchBotPopup = (props: Props) => {
   }, [])
 
   const botSection = {
-    data: lastQuery.length > 0 ? results?.bots ?? [] : [...featuredBotsMap.values()],
+    data: lastQuery.length > 0 ? results?.bots ?? [] : Constants.getFeaturedSorted(featuredBotsMap),
     renderItem: ({item}: {item: RPCTypes.FeaturedBot}) => {
       return <Bot {...item} onClick={onSelect} />
     },

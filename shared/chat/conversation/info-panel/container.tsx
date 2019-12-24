@@ -2,6 +2,7 @@ import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as FsGen from '../../../actions/fs-gen'
 import * as BotsGen from '../../../actions/bots-gen'
 import * as Constants from '../../../constants/chat2'
+import * as BotConstants from '../../../constants/bots'
 import * as TeamConstants from '../../../constants/teams'
 import * as React from 'react'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
@@ -238,13 +239,14 @@ const ConnectedInfoPanel = Container.connect(
         }
     )
 
-    const featuredBots = Array.from(stateProps._featuredBots.entries())
-      .filter(
-        ([k, _]) =>
-          !botUsernames.includes(k) &&
-          !(!stateProps.adhocTeam && TeamConstants.userInTeamNotBotWithInfo(stateProps._teamMembers, k))
-      )
-      .map(([_, v]) => v)
+    const featuredBots = BotConstants.getFeaturedSorted(stateProps._featuredBots).filter(
+      k =>
+        !botUsernames.includes(k.botUsername) &&
+        !(
+          !stateProps.adhocTeam &&
+          TeamConstants.userInTeamNotBotWithInfo(stateProps._teamMembers, k.botUsername)
+        )
+    )
 
     const teamMembers = stateProps._teamMembers
     const isGeneral = stateProps.channelname === 'general'
