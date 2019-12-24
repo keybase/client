@@ -2,6 +2,7 @@ import * as BotsGen from './bots-gen'
 import * as Saga from '../util/saga'
 import * as Container from '../util/container'
 import * as RPCTypes from '../constants/types/rpc-gen'
+import * as Constants from '../constants/bots'
 import logger from '../logger'
 import {RPCError} from 'util/errors'
 
@@ -63,18 +64,24 @@ const searchFeaturedAndUsers = async (action: BotsGen.SearchFeaturedAndUsersPayl
   let userRes: Array<RPCTypes.APIUserSearchResult> | null | undefined
   try {
     ;[botRes, userRes] = await Promise.all([
-      RPCTypes.featuredBotSearchRpcPromise({
-        limit: 10,
-        offset: 0,
-        query,
-      }),
-      RPCTypes.userSearchUserSearchRpcPromise({
-        includeContacts: false,
-        includeServicesSummary: false,
-        maxResults: 10,
-        query,
-        service: 'keybase',
-      }),
+      RPCTypes.featuredBotSearchRpcPromise(
+        {
+          limit: 10,
+          offset: 0,
+          query,
+        },
+        Constants.waitingKeyBotSearchFeatured
+      ),
+      RPCTypes.userSearchUserSearchRpcPromise(
+        {
+          includeContacts: false,
+          includeServicesSummary: false,
+          maxResults: 10,
+          query,
+          service: 'keybase',
+        },
+        Constants.waitingKeyBotSearchUsers
+      ),
     ])
   } catch (err) {
     logger.info(`searchFeaturedAndUsers: failed to run search: ${err.message}`)

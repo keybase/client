@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as Types from '../../../constants/types/chat2'
+import * as Constants from '../../../constants/bots'
 import * as BotsGen from '../../../actions/bots-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
@@ -25,6 +26,10 @@ const SearchBotPopup = (props: Props) => {
     featuredBotsMap: state.chat2.featuredBotsMap,
     results: state.chat2.botSearchResults,
   }))
+  const waiting = Container.useAnyWaiting(
+    Constants.waitingKeyBotSearchUsers,
+    Constants.waitingKeyBotSearchFeatured
+  )
   // dispatch
   const dispatch = Container.useDispatch()
   const onClose = () => {
@@ -32,7 +37,11 @@ const SearchBotPopup = (props: Props) => {
   }
   const onSearch = debounce((query: string) => {
     setLastQuery(query)
-    dispatch(BotsGen.createSearchFeaturedAndUsers({query}))
+    if (query.length > 0) {
+      dispatch(BotsGen.createSearchFeaturedAndUsers({query}))
+    } else {
+      dispatch(BotsGen.createSetSearchFeaturedAndUsersResults({results: undefined}))
+    }
   }, 200)
   const onSelect = (username: string) => {
     dispatch(
@@ -100,6 +109,7 @@ const SearchBotPopup = (props: Props) => {
           focusOnMount={true}
           onChange={onSearch}
           placeholderText="Search bots and users..."
+          waiting={waiting}
         />
         <Kb.SectionList
           renderSectionHeader={renderSectionHeader}

@@ -162,15 +162,26 @@ const InstallBotPopup = (props: Props) => {
   )
 
   const content = installScreen ? installContent : featured ? featuredContent : usernameContent
-  const showInstallButton = (installScreen && !inTeam) || !inTeam
+  const showInstallButton = installScreen && !inTeam
+  const showReviewButton = !installScreen && !inTeam
   const showRemoveButton = inTeam && !installScreen
   const showEditButton = inTeam && !installScreen
   const showSaveButton = inTeam && installScreen
   const installButton = showInstallButton && (
     <Kb.WaitingButton
       fullWidth={true}
-      label="Install (free)"
-      onClick={installScreen ? onInstall : () => setInstallScreen(true)}
+      label="Install"
+      onClick={onInstall}
+      mode="Primary"
+      type="Default"
+      waitingKey={Constants.waitingKeyBotAdd}
+    />
+  )
+  const reviewButton = showReviewButton && (
+    <Kb.WaitingButton
+      fullWidth={true}
+      label="Review"
+      onClick={() => setInstallScreen(true)}
       mode="Primary"
       type="Default"
       waitingKey={Constants.waitingKeyBotAdd}
@@ -227,6 +238,7 @@ const InstallBotPopup = (props: Props) => {
             <Kb.ButtonBar direction="column">
               {editButton}
               {saveButton}
+              {reviewButton}
               {installButton}
               {removeButton}
             </Kb.ButtonBar>

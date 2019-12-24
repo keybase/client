@@ -2669,7 +2669,10 @@ func (h *Server) ListPublicBotCommandsLocal(ctx context.Context, username string
 	if err != nil {
 		return res, err
 	}
-	return h.ListBotCommandsLocal(ctx, convID)
+	if convID == nil {
+		return res, nil
+	}
+	return h.ListBotCommandsLocal(ctx, *convID)
 }
 
 func (h *Server) ListBotCommandsLocal(ctx context.Context, convID chat1.ConversationID) (res chat1.ListBotCommandsLocalRes, err error) {
