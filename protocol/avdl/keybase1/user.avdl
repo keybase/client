@@ -126,7 +126,7 @@ protocol user {
     string fullname;
     map<string, string> serviceMap;
   }
-  array<InterestingPerson> interestingPeople(int maxUsers);
+  array<InterestingPerson> interestingPeople(int maxUsers, string namespace);
 
   UserVersion meUserVersion(int sessionID, boolean forcePoll);
 
