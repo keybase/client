@@ -151,7 +151,7 @@ const TeamJourneyConnected = Container.connect(
     const conv = Constants.getMeta(state, ownProps.message.conversationIDKey)
     const {channelname, conversationIDKey, teamname, teamID} = conv
     return {
-      _channelInfos: TeamConstants.getTeamChannelInfos(state, teamname),
+      _channelInfos: TeamConstants.getTeamChannelInfos(state, teamID),
       _teamID: teamID,
       channelname,
       conversationIDKey,
@@ -161,17 +161,13 @@ const TeamJourneyConnected = Container.connect(
   },
   dispatch => ({
     _onAddPeopleToTeam: (teamID: TeamTypes.TeamID) => dispatch(appendNewTeamBuilder(teamID)),
-    _onBrowseChannels: (teamname: string) =>
-      dispatch(
-        RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'chatManageChannels'}]})
-      ),
-    _onCreateChatChannels: (teamname: string) =>
-      dispatch(
-        RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'chatManageChannels'}]})
-      ),
     _onGoToChannel: (channelname: string, teamname: string) =>
       dispatch(Chat2Gen.createPreviewConversation({channelname, reason: 'journeyCardPopular', teamname})),
-    _onLoadTeam: (teamname: string) => dispatch(TeamsGen.createGetChannels({teamname})),
+    _onLoadTeam: (teamID: string) => dispatch(TeamsGen.createGetChannels({teamID})),
+    _onManageChannels: (teamID: string) =>
+      dispatch(
+        RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'chatManageChannels'}]})
+      ),
     _onPublishTeam: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['profileShowcaseTeamOffer']})),
     _onShowTeam: (teamID: TeamTypes.TeamID) =>
       dispatch(RouteTreeGen.createNavigateAppend({path: [teamsTab, {props: {teamID}, selected: 'team'}]})),
@@ -202,10 +198,10 @@ const TeamJourneyConnected = Container.connect(
       conversationIDKey,
       message: ownProps.message,
       onAddPeopleToTeam: () => dispatchProps._onAddPeopleToTeam(stateProps._teamID),
-      onBrowseChannels: () => dispatchProps._onBrowseChannels(stateProps.teamname),
-      onCreateChatChannels: () => dispatchProps._onCreateChatChannels(stateProps.teamname),
+      onBrowseChannels: () => dispatchProps._onManageChannels(stateProps._teamID),
+      onCreateChatChannels: () => dispatchProps._onManageChannels(stateProps._teamID),
       onGoToChannel: (channelName: string) => dispatchProps._onGoToChannel(channelName, stateProps.teamname),
-      onLoadTeam: () => dispatchProps._onLoadTeam(stateProps.teamname),
+      onLoadTeam: () => dispatchProps._onLoadTeam(stateProps._teamID),
       onPublishTeam: () => dispatchProps._onPublishTeam(),
       onScrollBack: () => console.log('onScrollBack'),
       onShowTeam: () => dispatchProps._onShowTeam(stateProps._teamID),

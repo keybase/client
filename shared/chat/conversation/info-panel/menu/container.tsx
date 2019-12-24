@@ -92,6 +92,7 @@ export default Container.namedConnect(
         _convPropsTeamID,
         _convPropsTeamType,
         _convPropsTeamname,
+        _teamID: _convPropsTeamID ?? teamID,
         badgeSubscribe: false,
         canAddPeople: false,
         isSmallTeam: false,
@@ -152,16 +153,13 @@ export default Container.namedConnect(
       dispatch(
         RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'teamReallyLeaveTeam'}]})
       ),
-    _onManageChannels: (teamname?: string) => {
-      teamname &&
-        dispatch(
-          RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'chatManageChannels'}]})
-        )
-      teamname && dispatch(TeamsGen.createAddTeamWithChosenChannels({teamname}))
+    _onManageChannels: (teamID: TeamTypes.TeamID) => {
+      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'chatManageChannels'}]}))
+      dispatch(TeamsGen.createAddTeamWithChosenChannels({teamID}))
     },
-    _onViewTeam: (teamID?: TeamTypes.TeamID) => {
-      teamID && dispatch(RouteTreeGen.createClearModals())
-      teamID && dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'team'}]}))
+    _onViewTeam: (teamID: TeamTypes.TeamID) => {
+      dispatch(RouteTreeGen.createClearModals())
+      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'team'}]}))
     },
     onHideConv: () => dispatch(ChatGen.createHideConversation({conversationIDKey})),
     onMuteConv: (muted: boolean) => dispatch(ChatGen.createMuteConversation({conversationIDKey, muted})),
@@ -196,10 +194,10 @@ export default Container.namedConnect(
       onHideConv: d.onHideConv,
       onInvite: () => d._onInvite(s._teamID),
       onLeaveTeam: () => d._onLeaveTeam(s._teamID),
-      onManageChannels: () => d._onManageChannels(s.teamname),
+      onManageChannels: () => d._onManageChannels(s._teamID),
       onMuteConv: d.onMuteConv,
       onUnhideConv: d.onUnhideConv,
-      onViewTeam: () => d._onViewTeam(s._teamID || undefined),
+      onViewTeam: () => d._onViewTeam(s._teamID),
       teamname: s.teamname,
       visible: o.visible,
     }

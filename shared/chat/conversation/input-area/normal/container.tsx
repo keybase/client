@@ -1,5 +1,6 @@
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
+import * as TeamsTypes from '../../../../constants/types/teams'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as ConfigGen from '../../../../actions/config-gen'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
@@ -54,13 +55,13 @@ const getTeams = memoize((layout: RPCChatTypes.UIInboxLayout | null) => {
 const noChannel: Array<string> = []
 let _channelSuggestions: Array<string> = noChannel
 
-const getChannelSuggestions = (state: Container.TypedState, teamname: string) => {
+const getChannelSuggestions = (state: Container.TypedState, teamname: string, teamID: TeamsTypes.TeamID) => {
   if (!teamname) {
     return noChannel
   }
   // First try channelinfos (all channels in a team), then try inbox (the
   // partial list of channels that you have joined).
-  const convs = state.teams.teamNameToChannelInfos.get(teamname)
+  const convs = state.teams.teamIDToChannelInfos.get(teamID)
   let suggestions: Array<string>
   if (convs) {
     suggestions = [...convs.values()].map(conv => conv.channelname)
@@ -133,7 +134,7 @@ export default Container.namedConnect(
       showWalletsIcon: Constants.shouldShowWalletsIcon(state, conversationIDKey),
       suggestBotCommands: Constants.getBotCommands(state, conversationIDKey),
       suggestBotCommandsUpdateStatus,
-      suggestChannels: getChannelSuggestions(state, teamname),
+      suggestChannels: getChannelSuggestions(state, teamname, meta.teamID),
       suggestCommands: Constants.getCommands(state, conversationIDKey),
       suggestTeams: getTeams(state.chat2.inboxLayout),
       suggestUsers: Constants.getParticipantSuggestions(state, conversationIDKey),

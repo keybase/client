@@ -17,8 +17,8 @@ export type OwnProps = {
   deletedTeams: ReadonlyArray<DeletedTeam>
   newTeams: Set<Types.TeamID>
   onHideChatBanner: () => void
-  onManageChat: (arg0: string) => void
-  onOpenFolder: (arg0: string) => void
+  onManageChat: (teamID: Types.TeamID) => void
+  onOpenFolder: (teamID: Types.TeamID) => void
   onReadMore: () => void
   onViewTeam: (teamID: Types.TeamID) => void
   sawChatBanner: boolean
@@ -40,7 +40,7 @@ type RowProps = {
   isOpen: boolean
   newRequests: number
   onOpenFolder: () => void
-  onManageChat: (() => void) | null
+  onManageChat?: () => void
   resetUserCount: number
   onViewTeam: () => void
 }
@@ -141,8 +141,8 @@ class Teams extends React.PureComponent<Props, State> {
     this.setState({sawChatBanner: true})
     this.props.onHideChatBanner()
   }
-  private onOpenFolder = name => this.props.onOpenFolder(name)
-  private onManageChat = name => this.props.onManageChat(name)
+  private onOpenFolder = id => this.props.onOpenFolder(id)
+  private onManageChat = id => this.props.onManageChat(id)
   private onViewTeam = (teamID: Types.TeamID) => this.props.onViewTeam(teamID)
 
   private renderItem = (index: number, item: Row) => {
@@ -176,7 +176,7 @@ class Teams extends React.PureComponent<Props, State> {
             newRequests={this.props.newTeamRequests.get(team.id) || 0}
             membercount={team.memberCount}
             onOpenFolder={() => this.onOpenFolder(team.teamname)}
-            onManageChat={team.isMember ? () => this.onManageChat(team.teamname) : null}
+            onManageChat={team.isMember ? () => this.onManageChat(team.id) : undefined}
             onViewTeam={() => this.onViewTeam(team.id)}
             resetUserCount={resetUserCount}
           />

@@ -42,6 +42,7 @@ const noAttachmentView = Constants.makeAttachmentViewInfo()
 const noDocs = {docs: [], onLoadMore: () => {}, status: 'loading'}
 const noLinks = {links: [], onLoadMore: () => {}, status: 'loading'}
 const noMedia = {onLoadMore: () => {}, status: 'loading', thumbs: []}
+const noTeamMembers = new Map<string, TeamTypes.MemberInfo>()
 
 const ConnectedInfoPanel = Container.connect(
   (state: Container.TypedState, ownProps: OwnProps) => {
@@ -54,7 +55,7 @@ const ConnectedInfoPanel = Container.connect(
     let canSetRetention = false
     let canDeleteHistory = false
     if (meta.teamname) {
-      const yourOperations = TeamConstants.getCanPerform(state, meta.teamname)
+      const yourOperations = TeamConstants.getCanPerformByID(state, meta.teamID)
       admin = yourOperations.manageMembers
       canEditChannel = yourOperations.editTeamDescription
       canSetMinWriterRole = yourOperations.setMinWriterRole
@@ -69,8 +70,7 @@ const ConnectedInfoPanel = Container.connect(
     const m = state.chat2.attachmentViewMap.get(conversationIDKey)
     const attachmentInfo = (m && m.get(selectedAttachmentView)) || noAttachmentView
     const attachmentsLoading = selectedTab === 'attachments' && attachmentInfo.status === 'loading'
-    const _teamMembers =
-      state.teams.teamNameToMembers.get(meta.teamname) || new Map<string, TeamTypes.MemberInfo>()
+    const _teamMembers = state.teams.teamNameToMembers.get(meta.teamname) || noTeamMembers
 
     return {
       _attachmentInfo: attachmentInfo,
@@ -105,6 +105,7 @@ const ConnectedInfoPanel = Container.connect(
         Constants.waitingKeyConvStatusChange(ownProps.conversationIDKey)
       ),
       teamname: meta.teamname,
+      teamID: meta.teamID,
     }
   },
   (
@@ -113,10 +114,10 @@ const ConnectedInfoPanel = Container.connect(
   ) => ({
     _navToRootChat: () => dispatch(Chat2Gen.createNavigateToInbox()),
     _onDocDownload: (message: Types.Message) => dispatch(Chat2Gen.createAttachmentDownload({message})),
-    _onEditChannel: (teamname: string) =>
+    _onEditChannel: (teamID: string) =>
       dispatch(
         RouteTreeGen.createNavigateAppend({
-          path: [{props: {conversationIDKey, teamname}, selected: 'chatEditChannel'}],
+          path: [{props: {conversationIDKey, teamID}, selected: 'chatEditChannel'}],
         })
       ),
     _onLoadMore: (viewType: RPCChatTypes.GalleryItemTyp, fromMsgID?: Types.MessageID) =>
@@ -359,7 +360,7 @@ const ConnectedInfoPanel = Container.connect(
       onBack: dispatchProps.onBack,
       onBotSelect: dispatchProps.onBotSelect,
       onCancel: dispatchProps.onCancel,
-      onEditChannel: () => dispatchProps._onEditChannel(stateProps.teamname),
+      onEditChannel: () => dispatchProps._onEditChannel(stateProps.teamID),
       onHideConv: dispatchProps.onHideConv,
       onJoinChannel: dispatchProps.onJoinChannel,
       onLeaveConversation: dispatchProps.onLeaveConversation,
