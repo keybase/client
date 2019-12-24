@@ -1196,16 +1196,16 @@ func (t *Team) InviteMember(ctx context.Context, username string, role keybase1.
 	return t.inviteSBSMember(ctx, username, role)
 }
 
-func (t *Team) InviteEmailMember(ctx context.Context, email string, role keybase1.TeamRole) error {
-	t.G().Log.CDebugf(ctx, "team %s invite email member %s", t.Name(), email)
+func (t *Team) InviteEmailPhoneMember(ctx context.Context, name string, role keybase1.TeamRole, typ string) error {
+	t.G().Log.CDebugf(ctx, "team %s invite %s member %s", t.Name(), typ, name)
 
 	if role == keybase1.TeamRole_OWNER {
 		return errors.New("You cannot invite an owner to a team over email.")
 	}
 
 	invite := SCTeamInvite{
-		Type: "email",
-		Name: keybase1.TeamInviteName(email),
+		Type: typ,
+		Name: keybase1.TeamInviteName(name),
 		ID:   NewInviteID(),
 	}
 	return t.postInvite(ctx, invite, role)
