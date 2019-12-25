@@ -1,0 +1,67 @@
+### Keybase proof
+
+I hereby claim:
+
+  * I am piotrm89 on github.
+  * I am mpiotr89 (https://keybase.io/mpiotr89) on keybase.
+  * I have a public key ASAxPlmrk5YPOY7Ig0fsntcD2HCElTQdBk7YxNZd1y7uMwo
+
+To claim this, I am signing this object:
+
+```json
+{
+  "body": {
+    "key": {
+      "eldest_kid": "0120313e59ab93960f398ec88347ec9ed703d8708495341d064ed8c4d65dd72eee330a",
+      "host": "keybase.io",
+      "kid": "0120313e59ab93960f398ec88347ec9ed703d8708495341d064ed8c4d65dd72eee330a",
+      "uid": "8a781a414cedcee4313ee62a16baa819",
+      "username": "mpiotr89"
+    },
+    "merkle_root": {
+      "ctime": 1577233647,
+      "hash": "a5ee1e7515028181eb0df48941b187359c839dbe9b5e467fbcc4b990e30401060d2b75f8b24631a4554b8d0641b436ec5dd3db4593ed2a51a3c4470d8872a897",
+      "hash_meta": "149c5e38cdb7fcaca4c43180deaa1caf4c163ea29f2272842c9ff4b9af6ab55d",
+      "seqno": 13942482
+    },
+    "service": {
+      "entropy": "lOK3tlCe7yu9zxMviJjipryF",
+      "name": "github",
+      "username": "piotrm89"
+    },
+    "type": "web_service_binding",
+    "version": 2
+  },
+  "client": {
+    "name": "keybase.io go client",
+    "version": "5.1.0"
+  },
+  "ctime": 1577233659,
+  "expire_in": 504576000,
+  "prev": "3b44874b7c95fab8fb4d62705798e3163be80382c92c7d92eb67a70e63a55a9f",
+  "seqno": 39,
+  "tag": "signature"
+}
+```
+
+with the key [ASAxPlmrk5YPOY7Ig0fsntcD2HCElTQdBk7YxNZd1y7uMwo](https://keybase.io/mpiotr89), yielding the signature:
+
+```
+hKRib2R5hqhkZXRhY2hlZMOpaGFzaF90eXBlCqNrZXnEIwEgMT5Zq5OWDzmOyINH7J7XA9hwhJU0HQZO2MTWXdcu7jMKp3BheWxvYWTESpcCJ8QgO0SHS3yV+rj7TWJwV5jjFjvoA4LJLH2S62enDmOlWp/EIDNVRem2IIeBIoLc0SN9hMQYK//RjOaAbAP6LxCUrUniAgHCo3NpZ8RAlAugmIx05hGwmEtHMItEfsT3DxJrMa07jgIwz0Lz+Fa8nWn5uBiPbjfE0Jzk+uIq7zAUJ7sLBsMzqaUMlUHwDahzaWdfdHlwZSCkaGFzaIKkdHlwZQildmFsdWXEII72glAXqsaLGE9R2PkmrxEApSrVFRuGkbR4zcBggfR0o3RhZ80CAqd2ZXJzaW9uAQ==
+
+```
+
+And finally, I am proving ownership of the github account by posting this as a gist.
+
+### My publicly-auditable identity:
+
+https://keybase.io/mpiotr89
+
+### From the command line:
+
+Consider the [keybase command line program](https://keybase.io/download).
+
+```bash
+# look me up
+keybase id mpiotr89
+```
