@@ -772,7 +772,7 @@ function* getTeams(
     })
 
     // Dismiss any stale badges for teams we're no longer in
-    const teamResetUsers = state.teams.teamNameToResetUsers || new Map<string, Set<Types.ResetUser>>()
+    const teamResetUsers = state.teams.teamIDToResetUsers || new Map<Types.TeamID, Set<Types.ResetUser>>()
     const teamNameSet = new Set<string>(teamnames)
     const dismissIDs = [...teamResetUsers.entries()].reduce<Array<string>>((ids, [key, value]) => {
       if (!teamNameSet.has(key)) {
@@ -1273,9 +1273,9 @@ const badgeAppForTeams = (state: TypedState, action: NotificationsGen.ReceivedBa
   const newTeamRequests = badgeState.newTeamAccessRequests || []
 
   const teamsWithResetUsers: Array<RPCTypes.TeamMemberOutReset> = badgeState.teamsWithResetUsers || []
-  const teamsWithResetUsersMap = new Map<string, Set<Types.ResetUser>>()
+  const teamsWithResetUsersMap = new Map<Types.TeamID, Set<Types.ResetUser>>()
   teamsWithResetUsers.forEach(entry => {
-    const existing = mapGetEnsureValue(teamsWithResetUsersMap, entry.teamname, new Set())
+    const existing = mapGetEnsureValue(teamsWithResetUsersMap, entry.teamID, new Set())
     existing.add({badgeIDKey: Constants.resetUserBadgeIDToKey(entry.id), username: entry.username})
   })
 
@@ -1309,7 +1309,7 @@ const badgeAppForTeams = (state: TypedState, action: NotificationsGen.ReceivedBa
       deletedTeams,
       newTeamRequests,
       newTeams,
-      teamNameToResetUsers: teamsWithResetUsersMap,
+      teamIDToResetUsers: teamsWithResetUsersMap,
     })
   )
   return actions

@@ -125,7 +125,7 @@ func displayFeaturedBots(g *libkb.GlobalContext, bots []keybase1.FeaturedBot) er
 		5,                                 // visualIndex
 		64,                                // displayName
 		64,                                // ownerName
-		flexibletable.ExpandableWrappable, // description
+		256,                               // description
 		flexibletable.ExpandableWrappable, // extendedDescription
 	}); err != nil {
 		return fmt.Errorf("rendering conversation info list view error: %v\n", err)

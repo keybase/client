@@ -6347,12 +6347,10 @@ type AddBotMemberArg struct {
 }
 
 type EditBotMemberArg struct {
-	TlfName     string                    `codec:"tlfName" json:"tlfName"`
+	ConvID      ConversationID            `codec:"convID" json:"convID"`
 	Username    string                    `codec:"username" json:"username"`
 	BotSettings *keybase1.TeamBotSettings `codec:"botSettings,omitempty" json:"botSettings,omitempty"`
 	Role        keybase1.TeamRole         `codec:"role" json:"role"`
-	MembersType ConversationMembersType   `codec:"membersType" json:"membersType"`
-	TlfPublic   bool                      `codec:"tlfPublic" json:"tlfPublic"`
 }
 
 type RemoveBotMemberArg struct {
@@ -6361,11 +6359,9 @@ type RemoveBotMemberArg struct {
 }
 
 type SetBotMemberSettingsArg struct {
-	TlfName     string                   `codec:"tlfName" json:"tlfName"`
+	ConvID      ConversationID           `codec:"convID" json:"convID"`
 	Username    string                   `codec:"username" json:"username"`
 	BotSettings keybase1.TeamBotSettings `codec:"botSettings" json:"botSettings"`
-	MembersType ConversationMembersType  `codec:"membersType" json:"membersType"`
-	TlfPublic   bool                     `codec:"tlfPublic" json:"tlfPublic"`
 }
 
 type GetBotMemberSettingsArg struct {

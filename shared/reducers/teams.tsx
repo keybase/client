@@ -138,7 +138,7 @@ export default Container.makeReducer<
   [TeamsGen.setNewTeamInfo]: (draftState, action) => {
     draftState.deletedTeams = action.payload.deletedTeams
     draftState.newTeams = action.payload.newTeams
-    draftState.teamNameToResetUsers = action.payload.teamNameToResetUsers
+    draftState.teamIDToResetUsers = action.payload.teamIDToResetUsers
 
     const newTeamRequests = new Map<Types.TeamID, number>()
     action.payload.newTeamRequests.forEach(teamID => {

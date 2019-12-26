@@ -569,6 +569,15 @@ type UIInboxLoader interface {
 	LoadNonblock(ctx context.Context, query *chat1.GetInboxLocalQuery, maxUnbox *int, skipUnverified bool) error
 }
 
+type UIThreadLoader interface {
+	Offlinable
+	LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, uid gregor1.UID,
+		convID chat1.ConversationID, reason chat1.GetThreadReason, pgmode chat1.GetThreadNonblockPgMode,
+		cbmode chat1.GetThreadNonblockCbMode, query *chat1.GetThreadQuery, uipagination *chat1.UIPagination) error
+	Load(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		reason chat1.GetThreadReason, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, error)
+}
+
 type JourneyCardManager interface {
 	Resumable
 	PickCard(context.Context, gregor1.UID, chat1.ConversationID, *chat1.ConversationLocal, *chat1.ThreadView) (*chat1.MessageUnboxedJourneycard, error)

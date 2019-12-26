@@ -15,7 +15,14 @@ const UserResult = React.memo((props: ResultProps) => {
       rowStyle={styles.rowContainer}
       rightButtons={
         !props.isPreExistingTeamMember && (
-          <ActionButton inTeam={props.inTeam} onAdd={props.onAdd} onRemove={props.onRemove} />
+          <ActionButton
+            inTeam={props.inTeam}
+            onAdd={(e: React.BaseSyntheticEvent) => {
+              e.stopPropagation()
+              props?.onAdd()
+            }}
+            onRemove={props.onRemove}
+          />
         )
       }
     />
@@ -23,7 +30,11 @@ const UserResult = React.memo((props: ResultProps) => {
 })
 const actionButtonSize = Styles.isMobile ? 22 : Styles.globalMargins.small
 
-const ActionButton = (props: {inTeam: boolean; onAdd: () => void; onRemove: () => void}) => {
+const ActionButton = (props: {
+  inTeam: boolean
+  onAdd: (e: React.BaseSyntheticEvent) => void
+  onRemove: () => void
+}) => {
   const Icon = props.inTeam ? AlreadyAddedIconButton : AddButton
 
   return (

@@ -515,11 +515,13 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	g.LiveLocationTracker = maps.NewLiveLocationTracker(g)
 	g.BotCommandManager = bots.NewCachingBotCommandManager(g, ri)
 	g.UIInboxLoader = chat.NewUIInboxLoader(g)
+	g.UIThreadLoader = chat.NewUIThreadLoader(g)
 
 	// Set up Offlinables on Syncer
 	chatSyncer.RegisterOfflinable(g.InboxSource)
 	chatSyncer.RegisterOfflinable(g.FetchRetrier)
 	chatSyncer.RegisterOfflinable(g.MessageDeliverer)
+	chatSyncer.RegisterOfflinable(g.UIThreadLoader)
 
 	// Add a tlfHandler into the user changed handler group so we can keep identify info
 	// fresh

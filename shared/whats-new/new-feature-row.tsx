@@ -49,7 +49,12 @@ const NewFeature = (props: Props) => {
     >
       {/* Badging */}
       {!props.seen && (
-        <Kb.Badge height={8} badgeStyle={styles.badgeStyle} containerStyle={styles.badgeContainerStyle} />
+        <Kb.Badge
+          height={8}
+          badgeStyle={styles.badgeStyle}
+          containerStyle={styles.badgeContainerStyle}
+          leftRightPadding={4}
+        />
       )}
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.contentContainer}>
         <Kb.Text type="BodySmall" allowFontScaling={true}>
@@ -90,6 +95,7 @@ const styles = Styles.styleSheetCreate(() => ({
   contentContainer: {
     ...Styles.globalStyles.rounded,
     backgroundColor: Styles.globalColors.white,
+    flexShrink: 1,
     paddingBottom: Styles.globalMargins.tiny,
     paddingLeft: Styles.globalMargins.small,
     paddingRight: Styles.globalMargins.small,
@@ -104,7 +110,6 @@ const styles = Styles.styleSheetCreate(() => ({
     marginTop: Styles.globalMargins.tiny,
   },
   rowContainer: {
-    ...Styles.globalStyles.fullWidth,
     alignSelf: 'flex-start',
   },
 }))
