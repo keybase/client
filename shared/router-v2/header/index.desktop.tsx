@@ -137,8 +137,6 @@ class Header extends React.PureComponent<Props> {
       showDivider = false
     }
 
-    // Normally this component is responsible for rendering the system buttons,
-    // but if we're showing a banner then that banner component needs to do it.
     const windowDecorationsAreNeeded = !Platform.isMac && !this.props.useNativeFrame
 
     // We normally have the back arrow at the top of the screen. It doesn't overlap with the system
