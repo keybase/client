@@ -104,8 +104,8 @@ const ConnectedInfoPanel = Container.connect(
         state,
         Constants.waitingKeyConvStatusChange(ownProps.conversationIDKey)
       ),
-      teamname: meta.teamname,
       teamID: meta.teamID,
+      teamname: meta.teamname,
     }
   },
   (
