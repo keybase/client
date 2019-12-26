@@ -9,7 +9,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 	"time"
 
@@ -267,13 +266,9 @@ func mergeIntoPath(g *libkb.GlobalContext, p2 string) error {
 }
 
 func (h ConfigHandler) HelloIAm(_ context.Context, arg keybase1.ClientDetails) error {
-	tmp := fmt.Sprintf("%v", arg.Argv)
-	re := regexp.MustCompile(`\b(chat|fs|encrypt|git|accept-invite|wallet\s+send|wallet\s+import|passphrase\s+check)\b`)
-	if mtch := re.FindString(tmp); len(mtch) > 0 {
-		arg.Argv = []string{arg.Argv[0], mtch, "(redacted)"}
-	}
-	h.G().Log.Debug("HelloIAm: %d - %v", h.connID, arg)
-	return h.G().ConnectionManager.Label(h.connID, arg)
+	redacted := arg.Redact()
+	h.G().Log.Debug("HelloIAm: %d - %v", h.connID, redacted)
+	return h.G().ConnectionManager.Label(h.connID, redacted)
 }
 
 func (h ConfigHandler) CheckAPIServerOutOfDateWarning(_ context.Context) (keybase1.OutOfDateInfo, error) {

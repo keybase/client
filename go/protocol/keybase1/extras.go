@@ -3613,3 +3613,20 @@ func (b FeaturedBotsRes) Eq(o FeaturedBotsRes) bool {
 	}
 	return true
 }
+
+func (d ClientDetails) Redact() ClientDetails {
+	replacement := "(redacted)"
+	redacted := d.DeepCopy()
+	tmp := fmt.Sprintf("%v", redacted.Argv)
+	re := regexp.MustCompile(`\b(chat|fs|encrypt|git|accept-invite|wallet\s+send|wallet\s+import|passphrase\s+check)\b`)
+	if mtch := re.FindString(tmp); len(mtch) > 0 {
+		redacted.Argv = []string{redacted.Argv[0], mtch, replacement}
+	}
+
+	for i, arg := range redacted.Argv {
+		if strings.Contains(arg, "paperkey") && i+1 < len(redacted.Argv) && !strings.HasPrefix(redacted.Argv[i+1], "-") {
+			redacted.Argv[i+1] = replacement
+		}
+	}
+	return redacted
+}
