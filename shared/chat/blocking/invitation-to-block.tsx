@@ -74,7 +74,7 @@ const BlockButtons = (props: Props) => {
               path: [
                 {
                   props: {
-                    blockByDefault: true,
+                    blockUserByDefault: true,
                     convID: props.conversationID,
                     others: others,
                     team: team,
