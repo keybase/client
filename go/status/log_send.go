@@ -127,8 +127,6 @@ func NewLogSendContext(g *libkb.GlobalContext, fstatus *keybase1.FullStatus, sta
 		g.Log.Info("Not sending up a UID for logged in user; none found")
 	}
 
-	feedback = redactPotentialPaperKeys(feedback)
-
 	return &LogSendContext{
 		Contextified: libkb.NewContextified(g),
 		UID:          uid,
@@ -146,7 +144,8 @@ func (l *LogSendContext) post(mctx libkb.MetaContext) (keybase1.LogSendID, error
 	mpart := multipart.NewWriter(&body)
 
 	if l.Feedback != "" {
-		err := mpart.WriteField("feedback", l.Feedback)
+		feedback := redactPotentialPaperKeys(l.Feedback)
+		err := mpart.WriteField("feedback", feedback)
 		if err != nil {
 			return "", err
 		}

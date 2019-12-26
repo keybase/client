@@ -2,6 +2,12 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 
+// Type for extra RouteProp passed to block modal sometimes when launching the
+// modal from specific places from the app.
+export type BlockModalContext =
+  | 'message-popup-single' // message popup in 1-on-1 conv
+  | 'message-popup' // message popup in bigger convs (incl. team chats)
+
 export type BlockType = 'chatBlocked' | 'followBlocked'
 export type ReportSettings = {
   extraNotes: string
@@ -19,8 +25,9 @@ type State = {
 
 export type Props = {
   adderUsername?: string
-  blockByDefault?: boolean
+  blockUserByDefault?: boolean
   convID?: string
+  context?: BlockModalContext
   finishWaiting: boolean
   isBlocked: (username: string, which: BlockType) => boolean
   loadingWaiting: boolean
@@ -75,9 +82,9 @@ type ReportOptionsProps = {
   showIncludeTranscript: boolean
 }
 const reasons = ["I don't know this person", 'Spam', 'Harassment', 'Obscene material', 'Other...']
-const emptyReport: ReportSettings = {
+const defaultReport: ReportSettings = {
   extraNotes: '',
-  includeTranscript: false,
+  includeTranscript: true,
   reason: reasons[0],
 }
 const ReportOptions = (props: ReportOptionsProps) => {
@@ -133,10 +140,15 @@ class BlockModal extends React.PureComponent<Props, State> {
 
     // Set default checkbox block values for adder user. We don't care if they
     // are already blocked, setting a block is idempotent.
-    if (this.props.blockByDefault && this.props.adderUsername) {
+    if (this.props.blockUserByDefault && this.props.adderUsername) {
       const map = this.state.newBlocks
       map.set(this.props.adderUsername, {chatBlocked: true, followBlocked: true})
       this.setState({newBlocks: new Map(map)})
+    }
+    if (this.props.context === 'message-popup') {
+      // Do not block conversation by default when coming from message popup
+      // menu.
+      this.setState({blockTeam: false})
     }
   }
 
@@ -162,13 +174,13 @@ class BlockModal extends React.PureComponent<Props, State> {
     const current = newBlocks.get(username)
     if (current) {
       if (current.report === undefined && shouldReport) {
-        current.report = {...emptyReport}
+        current.report = {...defaultReport}
       } else if (current.report && !shouldReport) {
         current.report = undefined
       }
       newBlocks.set(username, current)
     } else {
-      newBlocks.set(username, {report: {...emptyReport}})
+      newBlocks.set(username, {report: {...defaultReport}})
     }
     // Need to make a new object so the component re-renders.
     this.setState({newBlocks: new Map(newBlocks)})
@@ -245,10 +257,10 @@ class BlockModal extends React.PureComponent<Props, State> {
     this.state.newBlocks.get(username)?.report?.reason ?? reasons[0]
   getExtraNotes = (username: string): string => this.state.newBlocks.get(username)?.report?.extraNotes ?? ''
 
-  renderRowsForUsername = (username: string, last: boolean): React.ReactElement => (
+  renderRowsForUsername = (username: string, last: boolean, teamLabel?: boolean): React.ReactElement => (
     <>
       <CheckboxRow
-        text={`Block ${username}`}
+        text={!teamLabel ? `Block ${username}` : `Block ${username} from messaging me directly`}
         onCheck={checked => this.setBlockFor(username, 'chatBlocked', checked)}
         checked={this.getBlockFor(username, 'chatBlocked')}
         info={`${username} won't be able to start any new conversations with you, and they won't be able to add you to any teams.`}
@@ -315,6 +327,7 @@ class BlockModal extends React.PureComponent<Props, State> {
     }
 
     const teamCheckboxDisabled = !!teamname && !this.props.otherUsernames?.length && !adderUsername
+    const teamLabel = this.props.context === 'message-popup'
 
     return (
       <Kb.Modal
@@ -344,7 +357,7 @@ class BlockModal extends React.PureComponent<Props, State> {
             <Kb.Divider />
           </>
         )}
-        {!!adderUsername && this.renderRowsForUsername(adderUsername, true)}
+        {!!adderUsername && this.renderRowsForUsername(adderUsername, true, teamLabel)}
         {!!this.props.otherUsernames?.length && (
           <>
             <Kb.Box2 direction="horizontal" style={styles.greyBox} fullWidth={true}>

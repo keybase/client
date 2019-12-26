@@ -1,6 +1,6 @@
 import * as Container from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import BlockModal, {BlockType, NewBlocksMap, ReportSettings} from '.'
+import BlockModal, {BlockType, NewBlocksMap, ReportSettings, BlockModalContext} from '.'
 import * as UsersGen from '../../../actions/users-gen'
 import * as TeamsGen from '../../../actions/teams-gen'
 import * as Chat2Gen from '../../../actions/chat2-gen'
@@ -8,7 +8,8 @@ import * as Constants from '../../../constants/users'
 import {leaveTeamWaitingKey} from '../../../constants/teams'
 
 type OwnProps = Container.RouteProps<{
-  blockByDefault?: boolean
+  blockUserByDefault?: boolean
+  context?: BlockModalContext
   convID?: string
   others?: Array<string>
   team?: string
@@ -31,7 +32,8 @@ const Connect = Container.connect(
     return {
       _allKnownBlocks: state.users.blockMap,
       adderUsername,
-      blockByDefault: Container.getRouteProps(ownProps, 'blockByDefault', false),
+      blockUserByDefault: Container.getRouteProps(ownProps, 'blockUserByDefault', false),
+      context: Container.getRouteProps(ownProps, 'context', undefined),
       convID: Container.getRouteProps(ownProps, 'convID', undefined),
       finishWaiting: waitingForLeave || waitingForBlocking || waitingForReport,
       loadingWaiting: Container.anyWaiting(state, Constants.getUserBlocksWaitingKey),
