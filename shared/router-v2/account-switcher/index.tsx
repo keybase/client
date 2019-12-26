@@ -1,4 +1,5 @@
 import * as React from 'react'
+import './account-switcher.css'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as ConfigTypes from '../../constants/types/config'
@@ -121,7 +122,7 @@ const AccountSwitcher = (props: Props) => (
       {Styles.isMobile ? (
         <AccountsRows {...props} />
       ) : (
-        <Kb.ScrollView style={styles.desktopScrollview}>
+        <Kb.ScrollView style={styles.desktopScrollview} className="accountSwitcherScrollView">
           <AccountsRows {...props} />
         </Kb.ScrollView>
       )}
@@ -135,7 +136,6 @@ export default Kb.HeaderHoc(AccountSwitcher)
 const styles = Styles.styleSheetCreate(() => ({
   buttonBox: Styles.padding(0, Styles.globalMargins.small, Styles.globalMargins.tiny),
   desktopScrollview: {
-    maxHeight: 170,
     width: 200,
   },
   divider: {width: '100%'},
