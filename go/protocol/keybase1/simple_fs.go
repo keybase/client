@@ -1820,6 +1820,14 @@ type SimpleFSGetGUIFileContextArg struct {
 	Path KBFSPath `codec:"path" json:"path"`
 }
 
+type SimpleFSUserInArg struct {
+	ClientID string `codec:"clientID" json:"clientID"`
+}
+
+type SimpleFSUserOutArg struct {
+	ClientID string `codec:"clientID" json:"clientID"`
+}
+
 type SimpleFSInterface interface {
 	// Begin list of items in directory at path.
 	// Retrieve results with readList().
@@ -1940,6 +1948,8 @@ type SimpleFSInterface interface {
 	SimpleFSConfigureDownload(context.Context, SimpleFSConfigureDownloadArg) error
 	SimpleFSGetFilesTabBadge(context.Context) (FilesTabBadge, error)
 	SimpleFSGetGUIFileContext(context.Context, KBFSPath) (GUIFileContext, error)
+	SimpleFSUserIn(context.Context, string) error
+	SimpleFSUserOut(context.Context, string) error
 }
 
 func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
@@ -2741,6 +2751,36 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return
 				},
 			},
+			"simpleFSUserIn": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSUserInArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleFSUserInArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSUserInArg)(nil), args)
+						return
+					}
+					err = i.SimpleFSUserIn(ctx, typedArgs[0].ClientID)
+					return
+				},
+			},
+			"simpleFSUserOut": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSUserOutArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleFSUserOutArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSUserOutArg)(nil), args)
+						return
+					}
+					err = i.SimpleFSUserOut(ctx, typedArgs[0].ClientID)
+					return
+				},
+			},
 		},
 	}
 }
@@ -3116,5 +3156,17 @@ func (c SimpleFSClient) SimpleFSGetFilesTabBadge(ctx context.Context) (res Files
 func (c SimpleFSClient) SimpleFSGetGUIFileContext(ctx context.Context, path KBFSPath) (res GUIFileContext, err error) {
 	__arg := SimpleFSGetGUIFileContextArg{Path: path}
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSGetGUIFileContext", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSUserIn(ctx context.Context, clientID string) (err error) {
+	__arg := SimpleFSUserInArg{ClientID: clientID}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSUserIn", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSUserOut(ctx context.Context, clientID string) (err error) {
+	__arg := SimpleFSUserOutArg{ClientID: clientID}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSUserOut", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }

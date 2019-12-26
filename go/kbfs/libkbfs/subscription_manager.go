@@ -12,6 +12,7 @@ import (
 
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
@@ -98,12 +99,26 @@ type onlineStatusTracker struct {
 	cancel   func()
 	config   Config
 	onChange func()
+	log      logger.Logger
 
-	lock          sync.RWMutex
-	currentStatus keybase1.KbfsOnlineStatus
+	lock                 sync.RWMutex
+	currentStatus        keybase1.KbfsOnlineStatus
+	userIsLooking        map[string]bool
+	tryingToOfflineTimer *time.Timer
 }
 
-const onlineStatusTryingStateTimeout = 4 * time.Second
+func (ost *onlineStatusTracker) onTrying() {
+	ost.lock.RLock()
+	userIsLooking := len(ost.userIsLooking) > 0
+	ost.lock.RUnlock()
+	if userIsLooking {
+		ost.log.Debug("onTrying: fast forwarding")
+		ost.config.MDServer().FastForwardBackoff()
+	} else {
+		ost.log.Debug("onTrying: not fast forwarding " +
+			"because userIsLooking is empty")
+	}
+}
 
 func (ost *onlineStatusTracker) updateOnlineStatus(
 	currentStatus keybase1.KbfsOnlineStatus) {
@@ -113,6 +128,9 @@ func (ost *onlineStatusTracker) updateOnlineStatus(
 		return
 	}
 	ost.currentStatus = currentStatus
+	if currentStatus == keybase1.KbfsOnlineStatus_TRYING {
+		ost.onTrying()
+	}
 	ost.onChange()
 }
 
@@ -123,10 +141,53 @@ func (ost *onlineStatusTracker) updateOnlineStatusIfCurrentIs(
 	defer ost.lock.Unlock()
 	if ost.currentStatus == expected || ost.currentStatus == currentStatus {
 		ost.currentStatus = currentStatus
+		if currentStatus == keybase1.KbfsOnlineStatus_TRYING {
+			ost.onTrying()
+		}
 		ost.onChange()
 		return true
 	}
 	return false
+}
+
+const onlineStatusTryingStateTimeout = 4 * time.Second
+
+func (ost *onlineStatusTracker) goToTrying() {
+	if ost.updateOnlineStatusIfCurrentIs(
+		keybase1.KbfsOnlineStatus_ONLINE,
+		keybase1.KbfsOnlineStatus_TRYING) {
+		ost.lock.Lock()
+		defer ost.lock.Unlock()
+		if ost.tryingToOfflineTimer != nil {
+			ost.tryingToOfflineTimer.Stop()
+		}
+		ost.tryingToOfflineTimer = time.AfterFunc(
+			onlineStatusTryingStateTimeout, func() {
+				ost.updateOnlineStatusIfCurrentIs(
+					keybase1.KbfsOnlineStatus_TRYING,
+					keybase1.KbfsOnlineStatus_OFFLINE)
+			})
+	}
+}
+
+// UserIn tells the onlineStatusTracker that user is looking at the Fs tab in
+// GUI. When user is looking at the Fs tab, the underlying RPC fast forwards
+// any backoff timer for reconnecting to the mdserver.
+func (ost *onlineStatusTracker) UserIn(ctx context.Context, clientID string) {
+	ost.lock.Lock()
+	ost.userIsLooking[clientID] = true
+	ost.lock.Unlock()
+	ost.log.CDebugf(ctx, "UserIn clientID=%s", clientID)
+	ost.goToTrying()
+}
+
+// UserOut tells the onlineStatusTracker that user is not looking at the Fs
+// tab in GUI anymore.  GUI.
+func (ost *onlineStatusTracker) UserOut(ctx context.Context, clientID string) {
+	ost.lock.Lock()
+	defer ost.lock.Unlock()
+	delete(ost.userIsLooking, clientID)
+	ost.log.CDebugf(ctx, "UserOut clientID=%s", clientID)
 }
 
 // GetOnlineStatus implements the OnlineStatusTracker interface.
@@ -145,7 +206,6 @@ func (ost *onlineStatusTracker) watchStatus(ctx context.Context) {
 	invalidateChan := make(chan StatusUpdate)
 	close(invalidateChan)
 
-	var t *time.Timer
 	for {
 		select {
 		case <-invalidateChan:
@@ -154,23 +214,13 @@ func (ost *onlineStatusTracker) watchStatus(ctx context.Context) {
 			connected := serviceErrors[MDServiceName] == nil
 			if connected {
 				ost.updateOnlineStatus(keybase1.KbfsOnlineStatus_ONLINE)
-				if t != nil {
-					t.Stop()
+				ost.lock.RLock()
+				if ost.tryingToOfflineTimer != nil {
+					ost.tryingToOfflineTimer.Stop()
 				}
+				ost.lock.RUnlock()
 			} else {
-				if ost.updateOnlineStatusIfCurrentIs(
-					keybase1.KbfsOnlineStatus_ONLINE,
-					keybase1.KbfsOnlineStatus_TRYING) {
-					if t != nil {
-						t.Stop()
-					}
-					t = time.AfterFunc(
-						onlineStatusTryingStateTimeout, func() {
-							ost.updateOnlineStatusIfCurrentIs(
-								keybase1.KbfsOnlineStatus_TRYING,
-								keybase1.KbfsOnlineStatus_OFFLINE)
-						})
-				}
+				ost.goToTrying()
 			}
 		case <-ctx.Done():
 			return
@@ -186,6 +236,8 @@ func newOnlineStatusTracker(
 		config:        config,
 		onChange:      onChange,
 		currentStatus: keybase1.KbfsOnlineStatus_ONLINE,
+		log:           config.MakeLogger("onlineStatusTracker"),
+		userIsLooking: make(map[string]bool),
 	}
 	go ost.watchStatus(ctx)
 	return ost

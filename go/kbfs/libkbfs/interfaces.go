@@ -2081,6 +2081,8 @@ type Subscriber interface {
 // OnlineStatusTracker tracks the online status for the GUI.
 type OnlineStatusTracker interface {
 	GetOnlineStatus() keybase1.KbfsOnlineStatus
+	UserIn(ctx context.Context, clientKey string)
+	UserOut(ctx context.Context, clientKey string)
 }
 
 // SubscriptionManager manages subscriptions. Use the Subscriber interface to
