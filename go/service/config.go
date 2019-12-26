@@ -266,9 +266,9 @@ func mergeIntoPath(g *libkb.GlobalContext, p2 string) error {
 }
 
 func (h ConfigHandler) HelloIAm(_ context.Context, arg keybase1.ClientDetails) error {
-	redacted := arg.Redact()
-	h.G().Log.Debug("HelloIAm: %d - %v", h.connID, redacted)
-	return h.G().ConnectionManager.Label(h.connID, redacted)
+	arg.Redact()
+	h.G().Log.Debug("HelloIAm: %d - %v", h.connID, arg)
+	return h.G().ConnectionManager.Label(h.connID, arg)
 }
 
 func (h ConfigHandler) CheckAPIServerOutOfDateWarning(_ context.Context) (keybase1.OutOfDateInfo, error) {
