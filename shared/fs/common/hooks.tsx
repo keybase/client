@@ -217,7 +217,7 @@ export const useUserIsLookingAtFs = isMobile
       // On mobile views remain mounted, so we need to watch for navigation
       // events to know if user is looking at the Fs tab.
 
-      const dispatch = Container.useDispatch()
+      const dispatch = useDispatchWhenConnected()
       NavigationHooks.useNavigationEvents((e: NavigationEventPayload) => {
         // On mobile stack actions cause willFocus and willBlur too, but they
         // don't mean navigating into or away from the Fs tab. Could just be
