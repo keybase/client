@@ -2216,7 +2216,7 @@ func ForceReloadUPAKsForUIDs(ctx context.Context, g *globals.Context, uids []key
 		tmp := libkb.NewLoadUserByUIDForceArg(g.GlobalContext, uids[i])
 		return &tmp
 	}
-	return g.GetUPAKLoader().Batcher(ctx, getArg, nil, 0)
+	return g.GetUPAKLoader().Batcher(ctx, getArg, nil, nil, 0)
 }
 
 func CreateHiddenPlaceholder(msgID chat1.MessageID) chat1.MessageUnboxed {

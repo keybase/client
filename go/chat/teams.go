@@ -517,7 +517,7 @@ func batchLoadEncryptionKIDs(ctx context.Context, g *libkb.GlobalContext, uvs []
 		return nil
 	}
 
-	err = g.GetUPAKLoader().Batcher(ctx, getArg, processResult, 0)
+	err = g.GetUPAKLoader().Batcher(ctx, getArg, processResult, nil, 0)
 	return ret, err
 }
 

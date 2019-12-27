@@ -1011,7 +1011,7 @@ func calculateSummaryAtMerkleSeqno(mctx libkb.MetaContext, team *Team, merkleSeq
 		return nil
 	}
 
-	err = mctx.G().GetUPAKLoader().Batcher(mctx.Ctx(), getArg, processResult, 0)
+	err = mctx.G().GetUPAKLoader().Batcher(mctx.Ctx(), getArg, processResult, nil, 0)
 	if err != nil {
 		return nil, err
 	}

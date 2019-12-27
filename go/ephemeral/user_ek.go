@@ -249,7 +249,7 @@ func fetchUserEKStatements(mctx libkb.MetaContext, uids []keybase1.UID) (
 		return nil
 	}
 
-	if err = mctx.G().GetUPAKLoader().Batcher(mctx.Ctx(), getArg, processResult, 0); err != nil {
+	if err = mctx.G().GetUPAKLoader().Batcher(mctx.Ctx(), getArg, processResult, nil, 0); err != nil {
 		return nil, err
 	}
 

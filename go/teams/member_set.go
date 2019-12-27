@@ -214,7 +214,7 @@ func parseSocialAssertion(m libkb.MetaContext, username string) (typ string, nam
 }
 
 func loadMember(ctx context.Context, g *libkb.GlobalContext, uv keybase1.UserVersion, forcePoll bool) (mem member, nun libkb.NormalizedUsername, err error) {
-	defer g.CTrace(ctx, fmt.Sprintf("loadMember(%s)", uv), func() error { return err })()
+	defer g.CTrace(ctx, fmt.Sprintf("loadMember(%s, forcePoll=%t)", uv, forcePoll), func() error { return err })()
 
 	upak, err := loadUPAK2(ctx, g, uv.Uid, forcePoll)
 	if upak != nil {
@@ -314,6 +314,11 @@ func (m *memberSet) AddRemainingRecipients(ctx context.Context, g *libkb.GlobalC
 		forceUserPoll = false
 	}
 
+	type request struct {
+		uv              keybase1.UserVersion
+		storeMemberKind storeMemberKind
+	}
+	var requests []request
 	for _, uv := range auv {
 		if filtered[uv] {
 			continue
@@ -332,13 +337,49 @@ func (m *memberSet) AddRemainingRecipients(ctx context.Context, g *libkb.GlobalC
 			storeMemberKind = storeMemberKindRecipient
 		}
 
-		if _, err := m.loadMember(ctx, g, uv, storeMemberKind, forceUserPoll); err != nil {
-			if _, reset := err.(libkb.AccountResetError); reset {
-				g.Log.CDebugf(ctx, "Skipping user who was reset: %s", uv.String())
-				continue
-			}
-			return err
+		requests = append(requests, request{
+			uv:              uv,
+			storeMemberKind: storeMemberKind,
+		})
+	}
+
+	// for UPAK Batcher API
+	getArg := func(idx int) *libkb.LoadUserArg {
+		if idx >= len(requests) {
+			return nil
 		}
+		arg := libkb.NewLoadUserByUIDArg(ctx, g, requests[idx].uv.Uid).WithPublicKeyOptional().WithForcePoll(forceUserPoll)
+		return &arg
+	}
+	// for UPAK Batcher API
+	processResult := func(idx int, upak *keybase1.UserPlusKeysV2AllIncarnations) error {
+		if upak.Current.EldestSeqno != requests[idx].uv.EldestSeqno {
+			// Skip reset user
+			return nil
+		}
+
+		key := upak.Current.GetLatestPerUserKey()
+		if key == nil || key.Gen <= 0 {
+			return fmt.Errorf("No per user key????")
+		}
+
+		version := NewUserVersion(upak.Current.Uid, upak.Current.EldestSeqno)
+
+		switch requests[idx].storeMemberKind {
+		case storeMemberKindRecipient:
+			m.recipients[version] = *key
+		case storeMemberKindRestrictedBotRecipient:
+			m.restrictedBotRecipients[version] = *key
+		}
+		return nil
+	}
+	// for UPAK Batcher API
+	ignoreError := func(err error) bool {
+		return false
+	}
+	err = g.GetUPAKLoader().Batcher(ctx, getArg, processResult, ignoreError, 0)
+	if err != nil {
+		return err
 	}
 
 	return nil

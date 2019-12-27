@@ -36,7 +36,7 @@ type UPAKLoader interface {
 	PutUserToCache(ctx context.Context, user *User) error
 	LoadV2WithKID(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (*keybase1.UserPlusKeysV2AllIncarnations, error)
 	CheckDeviceForUIDAndUsername(ctx context.Context, uid keybase1.UID, did keybase1.DeviceID, n NormalizedUsername, suppressNetworkErrors bool) error
-	Batcher(ctx context.Context, getArg func(int) *LoadUserArg, processResult func(int, *keybase1.UserPlusKeysV2AllIncarnations) error, window int) (err error)
+	Batcher(ctx context.Context, getArg func(int) *LoadUserArg, processResult func(int, *keybase1.UserPlusKeysV2AllIncarnations) error, ignoreError func(err error) bool, window int) (err error)
 }
 
 // CachedUPAKLoader is a UPAKLoader implementation that can cache results both
@@ -994,7 +994,13 @@ func CheckCurrentUIDDeviceID(m MetaContext) (err error) {
 // increasing i, until that getArg return nil, in which case the production of UPAK loads is over.
 // UPAKs will be loaded and fed into processResult() as they come in. Both getArg() and processResult()
 // are called in the same mutex to simplify synchronization.
-func (u *CachedUPAKLoader) Batcher(ctx context.Context, getArg func(int) *LoadUserArg, processResult func(int, *keybase1.UserPlusKeysV2AllIncarnations) error, window int) (err error) {
+func (u *CachedUPAKLoader) Batcher(
+	ctx context.Context,
+	getArg func(int) *LoadUserArg,
+	processResult func(int, *keybase1.UserPlusKeysV2AllIncarnations) error,
+	ignoreError func(error) bool,
+	window int,
+) (err error) {
 	if window == 0 {
 		window = 10
 	}
@@ -1054,7 +1060,10 @@ func (u *CachedUPAKLoader) Batcher(ctx context.Context, getArg func(int) *LoadUs
 					}
 					return nil
 				}, false)
-				if err != nil {
+				// If the UPAK load errors out, it won't get to processResult
+				// in CachedUPAKLoader#loadWithInfo. In case that's fine, don't
+				// return an error so as not to stop the batch.
+				if err != nil && (ignoreError == nil || !ignoreError(err)) {
 					return err
 				}
 			}

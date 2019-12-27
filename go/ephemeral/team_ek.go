@@ -544,7 +544,7 @@ func fetchTeamMemberStatements(mctx libkb.MetaContext,
 		upaks = append(upaks, upak)
 		return nil
 	}
-	if err = mctx.G().GetUPAKLoader().Batcher(mctx.Ctx(), getArg, processResult, 0); err != nil {
+	if err = mctx.G().GetUPAKLoader().Batcher(mctx.Ctx(), getArg, processResult, nil, 0); err != nil {
 		return nil, err
 	}
 	for _, upak := range upaks {
