@@ -135,7 +135,7 @@ export const Phone = () => {
   }, [dispatch, error, nav, pendingVerification])
   // trigger a default phone number country rpc if it's not already loaded
   React.useEffect(() => {
-    defaultCountry === '' && dispatch(SettingsGen.createLoadDefaultPhoneNumberCountry())
+    !defaultCountry && dispatch(SettingsGen.createLoadDefaultPhoneNumberCountry())
   }, [defaultCountry, dispatch])
 
   const onClose = React.useCallback(() => {

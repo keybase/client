@@ -97,7 +97,7 @@ export type ChatState = {
 
 export type PhoneNumbersState = {
   addedPhone: boolean
-  defaultCountry: string
+  defaultCountry?: string
   error: string
   pendingVerification: string
   phones?: Map<string, PhoneRow>

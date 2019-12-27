@@ -70,7 +70,6 @@ export const makeState = (): Types.State => ({
   },
   phoneNumbers: {
     addedPhone: false,
-    defaultCountry: '',
     error: '',
     pendingVerification: '',
   },

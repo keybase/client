@@ -94,7 +94,7 @@ const handleAppLink = (state: Container.TypedState, action: DeeplinksGen.LinkPay
       }
       return [
         RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}),
-        SettingsGen.createOpenAddPhoneNumberModal(),
+        RouteTreeGen.createNavigateAppend({path: ['settingsAddPhone']}),
       ]
     } else if (username && username !== 'app') {
       return [

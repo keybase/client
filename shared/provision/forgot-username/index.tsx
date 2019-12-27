@@ -15,7 +15,7 @@ const ForgotUsername = () => {
   const defaultCountry = Container.useSelector(state => state.settings.phoneNumbers.defaultCountry)
   // trigger a default phone number country rpc if it's not already loaded
   React.useEffect(() => {
-    defaultCountry === '' && dispatch(SettingsGen.createLoadDefaultPhoneNumberCountry())
+    !defaultCountry && dispatch(SettingsGen.createLoadDefaultPhoneNumberCountry())
   }, [defaultCountry, dispatch])
 
   const forgotUsernameResult = Container.useSelector(state => state.provision.forgotUsernameResult)

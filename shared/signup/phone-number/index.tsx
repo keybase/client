@@ -21,7 +21,7 @@ const EnterPhoneNumber = (props: Props) => {
   const {defaultCountry} = props
   const dispatch = Container.useDispatch()
   React.useEffect(() => {
-    defaultCountry === '' && dispatch(SettingsGen.createLoadDefaultPhoneNumberCountry())
+    !defaultCountry && dispatch(SettingsGen.createLoadDefaultPhoneNumberCountry())
   }, [defaultCountry, dispatch])
 
   const [phoneNumber, onChangePhoneNumber] = React.useState('')
