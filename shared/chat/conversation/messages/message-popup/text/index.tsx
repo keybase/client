@@ -24,6 +24,7 @@ type Props = {
   onReplyPrivately?: () => void
   onViewProfile?: () => void
   onViewMap?: () => void
+  onUserBlock?: () => void
   isLocation?: boolean
   position: Position
   showDivider: boolean
@@ -34,6 +35,7 @@ type Props = {
   isDeleteable: boolean
   isEditable: boolean
   isKickable: boolean
+  isTeam: boolean
 }
 
 const TextPopupMenu = (props: Props) => {
@@ -91,6 +93,16 @@ const TextPopupMenu = (props: Props) => {
       : []),
     ...(props.onViewProfile
       ? [{icon: 'iconfont-person', onClick: props.onViewProfile, title: 'View profile'}]
+      : []),
+    ...(!props.yourMessage
+      ? [
+          {
+            danger: true,
+            icon: 'iconfont-block-user',
+            onClick: props.onUserBlock,
+            title: props.isTeam ? 'Report user' : 'Block user',
+          },
+        ]
       : []),
   ].reduce<Kb.MenuItems>((arr, i) => {
     i && arr.push(i as Kb.MenuItem)

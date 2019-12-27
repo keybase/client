@@ -137,10 +137,7 @@ class Header extends React.PureComponent<Props> {
       showDivider = false
     }
 
-    // Normally this component is responsible for rendering the system buttons,
-    // but if we're showing a banner then that banner component needs to do it.
     const windowDecorationsAreNeeded = !Platform.isMac && !this.props.useNativeFrame
-    const windowDecorationsDrawnByBanner = windowDecorationsAreNeeded && this.props.loggedIn
 
     // We normally have the back arrow at the top of the screen. It doesn't overlap with the system
     // icons (minimize etc) because the left nav bar pushes it to the right -- unless you're logged
@@ -216,7 +213,7 @@ class Header extends React.PureComponent<Props> {
                 />
               )}
               {!title && rightActions}
-              {windowDecorationsAreNeeded && !windowDecorationsDrawnByBanner && <SystemButtons />}
+              {windowDecorationsAreNeeded && <SystemButtons />}
             </Kb.Box2>
           </Kb.Box2>
           <Kb.Box2
