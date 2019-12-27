@@ -30,9 +30,9 @@ const ForgotUsername = () => {
   const [phoneNumber, setPhoneNumber] = React.useState<string | null>(null)
   const onSubmit = React.useCallback(() => {
     if (!emailSelected && phoneNumber) {
-      dispatch(ProvisionGen.createForgotUsername({email: '', phone: phoneNumber}))
+      dispatch(ProvisionGen.createForgotUsername({phone: phoneNumber}))
     } else if (emailSelected) {
-      dispatch(ProvisionGen.createForgotUsername({email, phone: ''}))
+      dispatch(ProvisionGen.createForgotUsername({email}))
     }
   }, [dispatch, email, phoneNumber, emailSelected])
 
