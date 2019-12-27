@@ -37,7 +37,7 @@ export const switchToGPGSignOnly = 'provision:switchToGPGSignOnly'
 type _AddNewDevicePayload = {readonly otherDeviceType: 'desktop' | 'mobile'}
 type _BackToDeviceListPayload = {readonly username: string}
 type _CancelProvisionPayload = void
-type _ForgotUsernamePayload = {readonly email: string; readonly phone: string}
+type _ForgotUsernamePayload = {readonly email?: string; readonly phone?: string}
 type _ForgotUsernameResultPayload = {readonly result: string}
 type _ProvisionDonePayload = void
 type _ProvisionErrorPayload = {readonly error: HiddenString | null}
@@ -96,10 +96,9 @@ export const createCancelProvision = (payload: _CancelProvisionPayload): CancelP
   payload,
   type: cancelProvision,
 })
-export const createForgotUsername = (payload: _ForgotUsernamePayload): ForgotUsernamePayload => ({
-  payload,
-  type: forgotUsername,
-})
+export const createForgotUsername = (
+  payload: _ForgotUsernamePayload = Object.freeze({})
+): ForgotUsernamePayload => ({payload, type: forgotUsername})
 export const createForgotUsernameResult = (
   payload: _ForgotUsernameResultPayload
 ): ForgotUsernameResultPayload => ({payload, type: forgotUsernameResult})
