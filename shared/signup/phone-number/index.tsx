@@ -10,7 +10,7 @@ import {ButtonType} from '../../common-adapters/button'
 
 export type Props = {
   error: string
-  defaultCountry: string
+  defaultCountry?: string
   onContinue: (phoneNumber: string, searchable: boolean) => void
   onSkip: () => void
   waiting: boolean

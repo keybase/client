@@ -594,6 +594,7 @@ function* addUserToTeams(state: TypedState, action: TeamsGen.AddUserToTeamsPaylo
       yield RPCTypes.teamsTeamAddMemberRpcPromise(
         {
           email: '',
+          phone: '',
           role: RPCTypes.TeamRole[role],
           sendChatNotification: true,
           teamID,

@@ -475,7 +475,10 @@ const maybeLoadAppLink = (state: Container.TypedState) => {
   }
   maybeLoadAppLinkOnce = true
 
-  return [RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}), SettingsGen.createOpenAddPhoneNumberModal()]
+  return [
+    RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab}),
+    RouteTreeGen.createNavigateAppend({path: ['settingsAddPhone']}),
+  ]
 }
 
 const emitInitialLoggedIn = (state: Container.TypedState) =>
