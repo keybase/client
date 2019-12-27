@@ -233,16 +233,11 @@ func memberFromUPAK(ctx context.Context, requestedUV keybase1.UserVersion, upak 
 func loadMember(ctx context.Context, g *libkb.GlobalContext, uv keybase1.UserVersion, forcePoll bool) (mem member, err error) {
 	defer g.CTrace(ctx, fmt.Sprintf("loadMember(%s, forcePoll=%t)", uv, forcePoll), func() error { return err })()
 
-	defer func() {
-		if err != nil {
-			if _, reset := err.(libkb.NoKeyError); reset {
-				err = libkb.NewAccountResetError(uv, keybase1.Seqno(0))
-			}
-		}
-	}()
-
 	upak, err := loadUPAK2(ctx, g, uv.Uid, forcePoll)
 	if err != nil {
+		if _, reset := err.(libkb.NoKeyError); reset {
+			err = libkb.NewAccountResetError(uv, keybase1.Seqno(0))
+		}
 		return mem, err
 	}
 
