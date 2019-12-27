@@ -213,57 +213,63 @@ func parseSocialAssertion(m libkb.MetaContext, username string) (typ string, nam
 	return typ, name, nil
 }
 
-func loadMember(ctx context.Context, g *libkb.GlobalContext, uv keybase1.UserVersion, forcePoll bool) (mem member, nun libkb.NormalizedUsername, err error) {
-	defer g.CTrace(ctx, fmt.Sprintf("loadMember(%s, forcePoll=%t)", uv, forcePoll), func() error { return err })()
-
-	upak, err := loadUPAK2(ctx, g, uv.Uid, forcePoll)
-	if upak != nil {
-		nun = libkb.NewNormalizedUsername(upak.Current.Username)
+func memberFromUPAK(ctx context.Context, requestedUV keybase1.UserVersion, upak *keybase1.UserPlusKeysV2AllIncarnations) (member, error) {
+	if upak == nil {
+		return member{}, fmt.Errorf("got nil upak")
 	}
-
-	if err != nil {
-		if _, reset := err.(libkb.NoKeyError); reset {
-			err = libkb.NewAccountResetError(uv, keybase1.Seqno(0))
-		}
-		return member{}, nun, err
+	if upak.Current.EldestSeqno != requestedUV.EldestSeqno {
+		return member{}, libkb.NewAccountResetError(requestedUV, upak.Current.EldestSeqno)
 	}
-
-	if upak.Current.EldestSeqno != uv.EldestSeqno {
-		return member{}, nun, libkb.NewAccountResetError(uv, upak.Current.EldestSeqno)
+	key := upak.Current.GetLatestPerUserKey()
+	if key == nil || key.Gen <= 0 {
+		return member{}, fmt.Errorf("user has no per-user key: %s", requestedUV.String())
 	}
-
-	// find the most recent per-user key
-	var key keybase1.PerUserKey
-	for _, puk := range upak.Current.PerUserKeys {
-		if puk.Gen >= key.Gen {
-			key = puk
-		}
-	}
-	if key.Gen <= 0 {
-		return member{}, nun, fmt.Errorf("user has no per-user key: %v (%v)", uv.String(), nun.String())
-	}
-
-	// return a member with UserVersion and a PerUserKey
 	return member{
 		version:    NewUserVersion(upak.Current.Uid, upak.Current.EldestSeqno),
-		perUserKey: key,
-	}, nun, nil
+		perUserKey: *key,
+	}, nil
 }
 
-func (m *memberSet) loadMember(ctx context.Context, g *libkb.GlobalContext, uv keybase1.UserVersion,
-	storeMemberKind storeMemberKind, forcePoll bool) (res member, err error) {
-	res, _, err = loadMember(ctx, g, uv, forcePoll)
+func loadMember(ctx context.Context, g *libkb.GlobalContext, uv keybase1.UserVersion, forcePoll bool) (mem member, err error) {
+	defer g.CTrace(ctx, fmt.Sprintf("loadMember(%s, forcePoll=%t)", uv, forcePoll), func() error { return err })()
+
+	defer func() {
+		if err != nil {
+			if _, reset := err.(libkb.NoKeyError); reset {
+				err = libkb.NewAccountResetError(uv, keybase1.Seqno(0))
+			}
+		}
+	}()
+
+	upak, err := loadUPAK2(ctx, g, uv.Uid, forcePoll)
 	if err != nil {
-		return res, err
+		return mem, err
 	}
-	// store the key in a recipients table
+
+	mem, err = memberFromUPAK(ctx, uv, upak)
+	if err != nil {
+		return mem, err
+	}
+
+	return mem, nil
+}
+
+func (m *memberSet) loadMember(ctx context.Context, g *libkb.GlobalContext, uv keybase1.UserVersion, storeMemberKind storeMemberKind, forcePoll bool) (mem member, err error) {
+	mem, err = loadMember(ctx, g, uv, forcePoll)
+	if err != nil {
+		return mem, err
+	}
+	m.storeMember(ctx, g, mem, storeMemberKind)
+	return mem, nil
+}
+
+func (m *memberSet) storeMember(ctx context.Context, g *libkb.GlobalContext, mem member, storeMemberKind storeMemberKind) {
 	switch storeMemberKind {
 	case storeMemberKindRecipient:
-		m.recipients[res.version] = res.perUserKey
+		m.recipients[mem.version] = mem.perUserKey
 	case storeMemberKindRestrictedBotRecipient:
-		m.restrictedBotRecipients[res.version] = res.perUserKey
+		m.restrictedBotRecipients[mem.version] = mem.perUserKey
 	}
-	return res, nil
 }
 
 type MemberChecker interface {
@@ -353,28 +359,16 @@ func (m *memberSet) AddRemainingRecipients(ctx context.Context, g *libkb.GlobalC
 	}
 	// for UPAK Batcher API
 	processResult := func(idx int, upak *keybase1.UserPlusKeysV2AllIncarnations) error {
-		if upak.Current.EldestSeqno != requests[idx].uv.EldestSeqno {
-			// Skip reset user
-			return nil
+		mem, err := memberFromUPAK(ctx, requests[idx].uv, upak)
+		if err != nil {
+			return err
 		}
-
-		key := upak.Current.GetLatestPerUserKey()
-		if key == nil || key.Gen <= 0 {
-			return fmt.Errorf("No per user key????")
-		}
-
-		version := NewUserVersion(upak.Current.Uid, upak.Current.EldestSeqno)
-
-		switch requests[idx].storeMemberKind {
-		case storeMemberKindRecipient:
-			m.recipients[version] = *key
-		case storeMemberKindRestrictedBotRecipient:
-			m.restrictedBotRecipients[version] = *key
-		}
+		m.storeMember(ctx, g, mem, requests[idx].storeMemberKind)
 		return nil
 	}
 	// for UPAK Batcher API
 	ignoreError := func(err error) bool {
+		//TODO
 		return false
 	}
 	err = g.GetUPAKLoader().Batcher(ctx, getArg, processResult, ignoreError, 0)
