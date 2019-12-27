@@ -238,19 +238,28 @@ func (h *TeamsHandler) TeamChangeMembership(ctx context.Context, arg keybase1.Te
 
 func (h *TeamsHandler) TeamAddMember(ctx context.Context, arg keybase1.TeamAddMemberArg) (res keybase1.TeamAddMemberResult, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamAddMember(%s,%s)", arg.TeamID, arg.Username),
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamAddMember(%s,username=%q,email=%q,phone=%q)", arg.TeamID, arg.Username, arg.Email, arg.Phone),
 		func() error { return err })()
 
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return res, err
 	}
 
-	if arg.Email != "" {
-		if err := teams.InviteEmailMember(ctx, h.G().ExternalG(), arg.TeamID, arg.Email, arg.Role); err != nil {
+	if arg.Email != "" || arg.Phone != "" {
+		isEmail := arg.Email != ""
+		typ := "email"
+		name := arg.Email
+		if !isEmail {
+			typ = "phone"
+			name = arg.Phone
+		}
+
+		if err := teams.InviteEmailPhoneMember(ctx, h.G().ExternalG(), arg.TeamID, name, typ, arg.Role); err != nil {
 			return keybase1.TeamAddMemberResult{}, err
 		}
-		return keybase1.TeamAddMemberResult{Invited: true, EmailSent: true}, nil
+		return keybase1.TeamAddMemberResult{Invited: true, EmailSent: isEmail}, nil
 	}
+
 	result, err := teams.AddMemberByID(ctx, h.G().ExternalG(), arg.TeamID, arg.Username, arg.Role, arg.BotSettings)
 	if err != nil {
 		return keybase1.TeamAddMemberResult{}, err
