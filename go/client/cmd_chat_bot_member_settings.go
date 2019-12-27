@@ -68,11 +68,9 @@ func (c *CmdChatBotMemberSettings) Run() (err error) {
 	} else {
 		botSettings = *c.botSettings
 		if err = resolver.ChatClient.SetBotMemberSettings(context.TODO(), chat1.SetBotMemberSettingsArg{
-			TlfName:     conversationInfo.TlfName,
+			ConvID:      conversationInfo.Id,
 			Username:    c.username,
 			BotSettings: botSettings,
-			MembersType: conversationInfo.MembersType,
-			TlfPublic:   conversationInfo.Visibility == keybase1.TLFVisibility_PUBLIC,
 		}); err != nil {
 			return err
 		}

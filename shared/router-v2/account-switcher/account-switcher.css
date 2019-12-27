@@ -1,0 +1,14 @@
+.accountSwitcherScrollView {
+  max-height: 170px;
+}
+
+@media all and (min-height: 800px) {
+  .accountSwitcherScrollView {
+    max-height: 370px;
+  }
+}
+@media all and (min-height: 700px) and (max-height: 800px) {
+  .accountSwitcherScrollView {
+    max-height: 270px;
+  }
+}

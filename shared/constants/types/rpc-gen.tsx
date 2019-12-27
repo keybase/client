@@ -1260,7 +1260,7 @@ export type MessageTypes = {
     outParam: BulkRes
   }
   'keybase.1.teams.teamAddMember': {
-    inParam: {readonly teamID: TeamID; readonly email: String; readonly username: String; readonly role: TeamRole; readonly botSettings?: TeamBotSettings | null; readonly sendChatNotification: Boolean}
+    inParam: {readonly teamID: TeamID; readonly email: String; readonly phone: String; readonly username: String; readonly role: TeamRole; readonly botSettings?: TeamBotSettings | null; readonly sendChatNotification: Boolean}
     outParam: TeamAddMemberResult
   }
   'keybase.1.teams.teamAddMembersMultiRole': {
@@ -1388,7 +1388,7 @@ export type MessageTypes = {
     outParam: Array<UserBlock> | null
   }
   'keybase.1.user.interestingPeople': {
-    inParam: {readonly maxUsers: Int}
+    inParam: {readonly maxUsers: Int; readonly namespace: String}
     outParam: Array<InterestingPerson> | null
   }
   'keybase.1.user.listTrackers2': {

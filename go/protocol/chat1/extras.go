@@ -485,6 +485,20 @@ func (m MessageUnboxed) IsVisible() bool {
 	return false
 }
 
+func (m MessageUnboxed) HasReactions() bool {
+	if !m.IsValid() {
+		return false
+	}
+	return len(m.Valid().Reactions.Reactions) > 0
+}
+
+func (m MessageUnboxed) HasUnfurls() bool {
+	if !m.IsValid() {
+		return false
+	}
+	return len(m.Valid().Unfurls) > 0
+}
+
 func (m MessageUnboxed) SearchableText() string {
 	if !m.IsValidFull() {
 		return ""

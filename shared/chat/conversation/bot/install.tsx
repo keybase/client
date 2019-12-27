@@ -21,7 +21,7 @@ const InstallBotPopup = (props: Props) => {
   const [installScreen, setInstallScreen] = React.useState(false)
   const [installWithCommands, setInstallWithCommands] = React.useState(true)
   const [installWithMentions, setInstallWithMentions] = React.useState(true)
-  const {commands, featured, inTeam, settings} = Container.useSelector(state => {
+  const {commands, featured, inTeam, settings} = Container.useSelector((state: Container.TypedState) => {
     const meta = conversationIDKey && state.chat2.metaMap.get(conversationIDKey)
     let inTeam = false
     if (meta) {
@@ -52,6 +52,19 @@ const InstallBotPopup = (props: Props) => {
     }
     dispatch(
       Chat2Gen.createAddBotMember({
+        allowCommands: installWithCommands,
+        allowMentions: installWithMentions,
+        conversationIDKey,
+        username: botUsername,
+      })
+    )
+  }
+  const onEdit = () => {
+    if (!conversationIDKey) {
+      return
+    }
+    dispatch(
+      Chat2Gen.createEditBotSettings({
         allowCommands: installWithCommands,
         allowMentions: installWithMentions,
         conversationIDKey,
@@ -147,10 +160,57 @@ const InstallBotPopup = (props: Props) => {
       </Kb.Text>
     </Kb.Box2>
   )
+
   const content = installScreen ? installContent : featured ? featuredContent : usernameContent
-  const buttonText = installScreen ? 'Install (free)' : inTeam ? 'Remove' : 'Install (free)'
-  const buttonClick = installScreen ? onInstall : inTeam ? onRemove : () => setInstallScreen(true)
-  const buttonWaitingKey = inTeam ? Constants.waitingKeyBotRemove : Constants.waitingKeyBotAdd
+  const showInstallButton = (installScreen && !inTeam) || !inTeam
+  const showRemoveButton = inTeam && !installScreen
+  const showEditButton = inTeam && !installScreen
+  const showSaveButton = inTeam && installScreen
+  const installButton = showInstallButton && (
+    <Kb.WaitingButton
+      fullWidth={true}
+      label="Install (free)"
+      onClick={installScreen ? onInstall : () => setInstallScreen(true)}
+      mode="Primary"
+      type="Default"
+      waitingKey={Constants.waitingKeyBotAdd}
+    />
+  )
+  const removeButton = showRemoveButton && (
+    <Kb.WaitingButton
+      fullWidth={true}
+      label="Uninstall"
+      onClick={onRemove}
+      mode="Secondary"
+      type="Danger"
+      waitingKey={Constants.waitingKeyBotRemove}
+    />
+  )
+  const editButton = showEditButton && (
+    <Kb.Button
+      fullWidth={true}
+      label="Edit settings"
+      onClick={() => {
+        if (settings) {
+          setInstallWithCommands(settings.cmds)
+          setInstallWithMentions(settings.mentions)
+        }
+        setInstallScreen(true)
+      }}
+      mode="Secondary"
+      type="Default"
+    />
+  )
+  const saveButton = showSaveButton && (
+    <Kb.WaitingButton
+      fullWidth={true}
+      label="Save"
+      onClick={onEdit}
+      mode="Primary"
+      type="Default"
+      waitingKey={Constants.waitingKeyBotAdd}
+    />
+  )
   return (
     <Kb.Modal
       header={{
@@ -164,16 +224,12 @@ const InstallBotPopup = (props: Props) => {
       footer={{
         content: (
           <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
-            <Kb.Box2 direction="horizontal" fullWidth={true}>
-              <Kb.WaitingButton
-                fullWidth={true}
-                label={buttonText}
-                onClick={buttonClick}
-                mode="Primary"
-                type="Default"
-                waitingKey={buttonWaitingKey}
-              />
-            </Kb.Box2>
+            <Kb.ButtonBar direction="column">
+              {editButton}
+              {saveButton}
+              {installButton}
+              {removeButton}
+            </Kb.ButtonBar>
             {!!error && (
               <Kb.Text type="Body" style={{color: Styles.globalColors.redDark}}>
                 {'Something went wrong! Please try again, or send '}

@@ -136,7 +136,7 @@ export default Container.namedConnect(
         RouteTreeGen.createNavigateAppend({
           path: [
             {
-              props: {blockByDefault: others.length === 1, convID: conversationIDKey, others, team},
+              props: {blockUserByDefault: others.length === 1, convID: conversationIDKey, others, team},
               selected: 'chatBlockingModal',
             },
           ],

@@ -9,15 +9,18 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 type CmdInterestingPeople struct {
 	libkb.Contextified
-	maxUsers int
+	maxUsers  int
+	namespace string
 }
 
 func (c *CmdInterestingPeople) ParseArgv(ctx *cli.Context) error {
 	c.maxUsers = ctx.Int("maxusers")
+	c.namespace = ctx.String("namespace")
 	return nil
 }
 
@@ -27,7 +30,7 @@ func (c *CmdInterestingPeople) Run() error {
 		return err
 	}
 
-	users, err := cli.InterestingPeople(context.Background(), c.maxUsers)
+	users, err := cli.InterestingPeople(context.Background(), keybase1.InterestingPeopleArg{MaxUsers: c.maxUsers, Namespace: c.namespace})
 	if err != nil {
 		return err
 	}
@@ -51,6 +54,11 @@ func NewCmdInterestingPeople(cl *libcmdline.CommandLine, g *libkb.GlobalContext)
 				Name:  "maxusers",
 				Usage: "Max users to return",
 				Value: 20,
+			},
+			cli.StringFlag{
+				Name:  "namespace",
+				Usage: "Namespace to filter recommendations for",
+				Value: "people",
 			},
 		},
 		Action: func(c *cli.Context) {

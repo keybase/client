@@ -176,6 +176,7 @@ const emptyState: Types.State = {
   teamDetails: new Map(),
   teamDetailsMetaStale: true, // start out true, we have not loaded
   teamDetailsMetaSubscribeCount: 0,
+  teamIDToResetUsers: new Map(),
   teamInviteError: '',
   teamJoinError: '',
   teamJoinSuccess: false,
@@ -186,7 +187,6 @@ const emptyState: Types.State = {
   teamNameToLoadingInvites: new Map(),
   teamNameToMembers: new Map(),
   teamNameToPublicitySettings: new Map(),
-  teamNameToResetUsers: new Map(),
   teamNameToRetentionPolicy: new Map(),
   teamProfileAddList: [],
   teamRoleMap: {latestKnownVersion: -1, loadedVersion: -1, roles: new Map()},
@@ -509,8 +509,8 @@ export const isInSomeTeam = (state: TypedState): boolean =>
 export const isAccessRequestPending = (state: TypedState, teamname: Types.Teamname): boolean =>
   state.teams.teamAccessRequestsPending.has(teamname)
 
-export const getTeamResetUsers = (state: TypedState, teamname: Types.Teamname): Set<Types.ResetUser> =>
-  state.teams.teamNameToResetUsers.get(teamname) || new Set()
+export const getTeamResetUsers = (state: TypedState, teamID: Types.TeamID): Set<Types.ResetUser> =>
+  state.teams.teamIDToResetUsers.get(teamID) || new Set()
 
 export const getTeamLoadingInvites = (state: TypedState, teamname: Types.Teamname): Map<string, boolean> =>
   state.teams.teamNameToLoadingInvites.get(teamname) || new Map()
