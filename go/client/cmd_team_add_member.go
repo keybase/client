@@ -143,6 +143,11 @@ func (c *CmdTeamAddMember) Run() error {
 	dui := c.G().UI.GetDumbOutputUI()
 	if !res.Invited {
 		// TeamAddMember resulted in the user added to the team
+		if c.Email != "" {
+			dui.Printf("%s matched the Keybase username %s.\n", c.Email, res.User.Username)
+		} else if c.Phone != "" {
+			dui.Printf("%s matched the Keybase username %s.\n", c.Phone, res.User.Username)
+		}
 		if res.ChatSending {
 			// The chat message may still be in flight or fail.
 			dui.Printf("Success! A keybase chat message has been sent to %s. To skip this, use `-s` or `--skip-chat-message`\n", res.User.Username)
