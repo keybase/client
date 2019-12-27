@@ -249,16 +249,14 @@ func (h *TeamsHandler) TeamAddMember(ctx context.Context, arg keybase1.TeamAddMe
 	assertion := arg.Username
 	if arg.Email != "" || arg.Phone != "" {
 		var assertionURL libkb.AssertionURL
+		var err error
 		if arg.Email != "" {
 			assertionURL, err = libkb.ParseAssertionURLKeyValue(externals.MakeStaticAssertionContext(ctx), "email", arg.Email, true)
-			if err != nil {
-				return res, err
-			}
 		} else {
 			assertionURL, err = libkb.ParseAssertionURLKeyValue(externals.MakeStaticAssertionContext(ctx), "phone", arg.Phone, true)
-			if err != nil {
-				return res, err
-			}
+		}
+		if err != nil {
+			return res, err
 		}
 		assertion = assertionURL.String()
 	}
