@@ -38,11 +38,8 @@ type AddButtonProps = {
   disabled: boolean
   kind: 'phone number' | 'email'
   onClick: () => void
-  waitingKey?: string
 }
 const AddButton = (props: AddButtonProps) => {
-  const waiting = props.waitingKey ? Container.useAnyWaiting(props.waitingKey) : undefined
-
   const btn = (
     <Kb.Button
       mode="Secondary"
@@ -50,7 +47,6 @@ const AddButton = (props: AddButtonProps) => {
       label={`Add ${props.kind}`}
       small={true}
       disabled={props.disabled}
-      waiting={waiting}
     />
   )
   return props.disabled ? (
