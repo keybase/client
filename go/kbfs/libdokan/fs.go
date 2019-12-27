@@ -367,31 +367,16 @@ func (f *FS) open(ctx context.Context, oc *openContext, ps []string) (dokan.File
 		oc.isUppercasePath = true
 		fallthrough
 	case PublicName == ps[0]:
-		// Refuse private directories while we are in a a generic error state.
-		if f.remoteStatus.ExtraFileName() == libfs.HumanErrorFileName {
-			f.log.CWarningf(ctx, "Refusing access to public directory while errors are present!")
-			return nil, 0, dokan.ErrAccessDenied
-		}
 		return f.root.public.open(ctx, oc, ps[1:])
 	case strings.ToUpper(PrivateName) == ps[0]:
 		oc.isUppercasePath = true
 		fallthrough
 	case PrivateName == ps[0]:
-		// Refuse private directories while we are in a error state.
-		if f.remoteStatus.ExtraFileName() != "" {
-			f.log.CWarningf(ctx, "Refusing access to private directory while errors are present!")
-			return nil, 0, dokan.ErrAccessDenied
-		}
 		return f.root.private.open(ctx, oc, ps[1:])
 	case strings.ToUpper(TeamName) == ps[0]:
 		oc.isUppercasePath = true
 		fallthrough
 	case TeamName == ps[0]:
-		// Refuse team directories while we are in a error state.
-		if f.remoteStatus.ExtraFileName() != "" {
-			f.log.CWarningf(ctx, "Refusing access to team directory while errors are present!")
-			return nil, 0, dokan.ErrAccessDenied
-		}
 		return f.root.team.open(ctx, oc, ps[1:])
 	}
 	return nil, 0, dokan.ErrObjectNameNotFound
@@ -675,8 +660,7 @@ func (r *Root) FindFiles(ctx context.Context, fi *dokan.FileInfo, ignored string
 	var err error
 	ns.FileAttributes = dokan.FileAttributeDirectory
 	ename, esize := r.private.fs.remoteStatus.ExtraFileNameAndSize()
-	switch ename {
-	case "":
+	if ename != libfs.HumanNoLoginFileName {
 		ns.Name = PrivateName
 		err = callback(&ns)
 		if err != nil {
@@ -687,13 +671,11 @@ func (r *Root) FindFiles(ctx context.Context, fi *dokan.FileInfo, ignored string
 		if err != nil {
 			return err
 		}
-		fallthrough
-	case libfs.HumanNoLoginFileName:
-		ns.Name = PublicName
-		err = callback(&ns)
-		if err != nil {
-			return err
-		}
+	}
+	ns.Name = PublicName
+	err = callback(&ns)
+	if err != nil {
+		return err
 	}
 	if ename != "" {
 		ns.Name = ename
