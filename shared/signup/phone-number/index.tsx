@@ -65,7 +65,7 @@ const EnterPhoneNumber = (props: Props) => {
 
 type BodyProps = {
   autoFocus: boolean
-  defaultCountry: string
+  defaultCountry?: string
   onChangeNumber: (phoneNumber: string, valid: boolean) => void
   onContinue: () => void
   searchable: boolean
