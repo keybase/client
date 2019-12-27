@@ -168,7 +168,7 @@ func (m *memberSet) loadGroup(ctx context.Context, g *libkb.GlobalContext,
 
 	var members []member
 	for _, uv := range group {
-		mem, err := m.loadMember(ctx, g, uv, storeMemberKind, forcePoll)
+		mem, err := m.addMember(ctx, g, uv, storeMemberKind, forcePoll)
 		if _, reset := err.(libkb.AccountResetError); reset {
 			switch storeMemberKind {
 			case storeMemberKindNone:
@@ -249,7 +249,7 @@ func loadMember(ctx context.Context, g *libkb.GlobalContext, uv keybase1.UserVer
 	return mem, nil
 }
 
-func (m *memberSet) loadMember(ctx context.Context, g *libkb.GlobalContext, uv keybase1.UserVersion, storeMemberKind storeMemberKind, forcePoll bool) (mem member, err error) {
+func (m *memberSet) addMember(ctx context.Context, g *libkb.GlobalContext, uv keybase1.UserVersion, storeMemberKind storeMemberKind, forcePoll bool) (mem member, err error) {
 	mem, err = loadMember(ctx, g, uv, forcePoll)
 	if err != nil {
 		return mem, err
@@ -363,8 +363,8 @@ func (m *memberSet) AddRemainingRecipients(ctx context.Context, g *libkb.GlobalC
 	}
 	// for UPAK Batcher API
 	ignoreError := func(err error) bool {
-		//TODO
-		return false
+		_, didReset := err.(libkb.AccountResetError)
+		return didReset
 	}
 	err = g.GetUPAKLoader().Batcher(ctx, getArg, processResult, ignoreError, 0)
 	if err != nil {
