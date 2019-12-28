@@ -3283,6 +3283,10 @@
           "type": "string"
         },
         {
+          "name": "phone",
+          "type": "string"
+        },
+        {
           "name": "username",
           "type": "string"
         },

@@ -429,6 +429,19 @@ const editPhone = async (action: SettingsGen.EditPhonePayload, logger: Saga.Saga
   }
 }
 
+const loadDefaultPhoneNumberCountry = async (state: TypedState) => {
+  // noop if we've already loaded it
+  if (state.settings.phoneNumbers.defaultCountry) {
+    return
+  }
+  const country = await RPCTypes.accountGuessCurrentLocationRpcPromise({
+    defaultCountry: 'US',
+  })
+  return SettingsGen.createUpdateDefaultPhoneNumberCountry({
+    country,
+  })
+}
+
 const getRememberPassword = async () => {
   const remember = await RPCTypes.configGetRememberPassphraseRpcPromise()
   return SettingsGen.createLoadedRememberPassword({remember})
@@ -786,6 +799,7 @@ function* settingsSaga() {
   yield* Saga.chainAction(SettingsGen.saveProxyData, saveProxyData)
 
   // Phone numbers
+  yield* Saga.chainAction2(SettingsGen.loadDefaultPhoneNumberCountry, loadDefaultPhoneNumberCountry)
   yield* Saga.chainAction(SettingsGen.editPhone, editPhone)
   yield* Saga.chainAction(SettingsGen.addPhoneNumber, addPhoneNumber)
   yield* Saga.chainAction(SettingsGen.verifyPhoneNumber, verifyPhoneNumber)
