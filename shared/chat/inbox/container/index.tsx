@@ -14,7 +14,6 @@ import {
   RowItemBig,
   RowItemBigHeader,
   RowItemDivider,
-  RowItemLoadMoreSmallTeams,
   RowItemTeamBuilder,
   RowItem,
 } from '..'
@@ -183,14 +182,13 @@ const Connected = Container.namedConnect(
         bigRows.push(teamBuilder)
       }
     }
+    const hasAllSmallTeamConvs =
+      (stateProps._inboxLayout?.smallTeams?.length ?? 0) === (stateProps._inboxLayout?.totalSmallTeams ?? 0)
     const divider: Array<RowItemDivider> =
-      bigRows.length !== 0 ? [{showButton: smallTeamsBelowTheFold, type: 'divider'}] : []
-    const loadMoreSmalls: Array<RowItemLoadMoreSmallTeams> =
-      showAllSmallRows &&
-      (stateProps._inboxLayout?.smallTeams?.length ?? 0) < (stateProps._inboxLayout?.totalSmallTeams ?? 0)
-        ? [{type: 'loadMoreSmalls'}]
+      bigRows.length !== 0
+        ? [{showButton: !hasAllSmallTeamConvs || smallTeamsBelowTheFold, type: 'divider'}]
         : []
-    const rows: Array<RowItem> = [...smallRows, ...loadMoreSmalls, ...divider, ...bigRows]
+    const rows: Array<RowItem> = [...smallRows, ...divider, ...bigRows]
 
     const unreadIndices: Array<number> = []
     for (let i = rows.length - 1; i >= 0; i--) {

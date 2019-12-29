@@ -53,12 +53,6 @@ export type RowItemTeamBuilder = {
   type: 'teamBuilder'
 }
 
-export type RowItemLoadMoreSmallTeams = {
-  conversationIDKey?: never
-  teamname?: never
-  type: 'loadMoreSmalls'
-}
-
 export type RowItem =
   | RowItemSmall
   | RowItemBigTeamsLabel
@@ -66,7 +60,6 @@ export type RowItem =
   | RowItemBig
   | RowItemDivider
   | RowItemTeamBuilder
-  | RowItemLoadMoreSmallTeams
 
 export type Props = {
   allowShowFloatingButton: boolean

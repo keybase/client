@@ -16,7 +16,6 @@ import {inboxWidth, getRowHeight, smallRowHeight, dividerHeight} from './row/siz
 import {makeRow} from './row'
 import {virtualListMarks} from '../../local-debug'
 import shallowEqual from 'shallowequal'
-import LoadMoreSmalls from './row/loadmore-smalls'
 
 type State = {
   dragY: number
@@ -135,7 +134,7 @@ class Inbox extends React.Component<T.Props, State> {
       }
       return (
         <div style={{...divStyle, position: 'relative'}}>
-          {row.showButton && (
+          {row.showButton && !this.props.smallTeamsExpanded && (
             <>
               <Kb.Box
                 className="grabLinesContainer"
@@ -179,6 +178,7 @@ class Inbox extends React.Component<T.Props, State> {
             toggle={this.props.toggleSmallTeamsExpanded}
             showButton={row.showButton}
             rows={this.props.rows}
+            smallTeamsExpanded={this.props.smallTeamsExpanded}
           />
         </div>
       )
@@ -187,13 +187,6 @@ class Inbox extends React.Component<T.Props, State> {
       return (
         <div style={divStyle}>
           <BuildTeam />
-        </div>
-      )
-    }
-    if (row.type === 'loadMoreSmalls') {
-      return (
-        <div style={{...divStyle}}>
-          <LoadMoreSmalls />
         </div>
       )
     }
