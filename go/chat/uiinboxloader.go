@@ -21,6 +21,8 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+const defaultSmallTeamBound = 100
+
 type UIInboxLoader struct {
 	globals.Contextified
 	utils.DebugLabeler
@@ -39,6 +41,7 @@ type UIInboxLoader struct {
 	batchDelay        time.Duration
 	lastBatchFlush    time.Time
 	lastLayoutFlush   time.Time
+	smallTeamBound    int
 
 	// layout tracking
 	lastLayoutMu sync.Mutex
@@ -55,6 +58,7 @@ func NewUIInboxLoader(g *globals.Context) *UIInboxLoader {
 		convTransmitBatch: make(map[string]chat1.ConversationLocal),
 		clock:             clockwork.NewRealClock(),
 		batchDelay:        200 * time.Millisecond,
+		smallTeamBound:    defaultSmallTeamBound,
 	}
 }
 
@@ -469,6 +473,10 @@ func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox,
 		return res.SmallTeams[i].Time.After(res.SmallTeams[j].Time)
 	})
 	res.BigTeams = btcollector.finalize(ctx)
+	res.TotalSmallTeams = len(res.SmallTeams)
+	if res.TotalSmallTeams > h.smallTeamBound {
+		res.SmallTeams = res.SmallTeams[:h.smallTeamBound]
+	}
 	if !selectedInLayout || reselectMode == chat1.InboxLayoutReselectMode_FORCE {
 		// select a new conv for the UI
 		var reselect chat1.UIInboxReselectInfo
@@ -666,4 +674,16 @@ func (h *UIInboxLoader) UpdateConvs(ctx context.Context, convIDs []chat1.Convers
 		ConvIDs:           convIDs,
 	}
 	return h.LoadNonblock(ctx, &query, nil, true)
+}
+
+func (h *UIInboxLoader) UpdateLayoutFromSmallIncrease(ctx context.Context) {
+	defer h.Trace(ctx, func() error { return nil }, "UpdateLayoutFromSmallIncrease")()
+	h.smallTeamBound += defaultSmallTeamBound
+	h.UpdateLayout(ctx, chat1.InboxLayoutReselectMode_DEFAULT, "small increase")
+}
+
+func (h *UIInboxLoader) UpdateLayoutFromSmallReset(ctx context.Context) {
+	defer h.Trace(ctx, func() error { return nil }, "UpdateLayoutFromSmallReset")()
+	h.smallTeamBound = defaultSmallTeamBound
+	h.UpdateLayout(ctx, chat1.InboxLayoutReselectMode_DEFAULT, "small reset")
 }

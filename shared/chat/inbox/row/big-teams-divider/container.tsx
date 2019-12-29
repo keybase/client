@@ -3,6 +3,7 @@ import * as Container from '../../../../util/container'
 import * as Types from '../../../../constants/types/chat2'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import {memoize} from '../../../../util/memoize'
+import * as Chat2Gen from '../../../../actions/chat2-gen'
 
 type OwnProps = {
   toggle: () => void
@@ -26,9 +27,14 @@ export default Container.connect(
   state => ({
     badgeCount: getBadgeCount(state.chat2.inboxLayout, state.chat2.badgeMap),
   }),
-  () => ({}),
-  (stateProps, _, ownProps: OwnProps) => ({
+  (dispatch, ownProps: OwnProps) => ({
+    toggle: () => {
+      dispatch(Chat2Gen.createResetSmalls())
+      ownProps.toggle()
+    },
+  }),
+  (stateProps, dispatchProps, ownProps: OwnProps) => ({
     badgeCount: stateProps.badgeCount,
-    toggle: ownProps.toggle,
+    toggle: dispatchProps.toggle,
   })
 )(BigTeamsDivider)

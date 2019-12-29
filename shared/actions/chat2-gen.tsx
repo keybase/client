@@ -63,6 +63,7 @@ export const jumpToRecent = 'chat2:jumpToRecent'
 export const leaveConversation = 'chat2:leaveConversation'
 export const loadAttachmentView = 'chat2:loadAttachmentView'
 export const loadMessagesCentered = 'chat2:loadMessagesCentered'
+export const loadMoreSmalls = 'chat2:loadMoreSmalls'
 export const loadNewerMessagesDueToScroll = 'chat2:loadNewerMessagesDueToScroll'
 export const loadNextBotPage = 'chat2:loadNextBotPage'
 export const loadOlderMessagesDueToScroll = 'chat2:loadOlderMessagesDueToScroll'
@@ -111,6 +112,7 @@ export const replyJump = 'chat2:replyJump'
 export const requestInfoReceived = 'chat2:requestInfoReceived'
 export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
 export const resetLetThemIn = 'chat2:resetLetThemIn'
+export const resetSmalls = 'chat2:resetSmalls'
 export const resolveMaybeMention = 'chat2:resolveMaybeMention'
 export const saveMinWriterRole = 'chat2:saveMinWriterRole'
 export const selectConversation = 'chat2:selectConversation'
@@ -324,6 +326,7 @@ type _LoadMessagesCenteredPayload = {
   readonly messageID: Types.MessageID
   readonly highlightMode: Types.CenterOrdinalHighlightMode
 }
+type _LoadMoreSmallsPayload = void
 type _LoadNewerMessagesDueToScrollPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _LoadNextBotPagePayload = {readonly pageSize: number}
 type _LoadOlderMessagesDueToScrollPayload = {readonly conversationIDKey: Types.ConversationIDKey}
@@ -533,6 +536,7 @@ type _RequestInfoReceivedPayload = {
 }
 type _ResetChatWithoutThemPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _ResetLetThemInPayload = {readonly conversationIDKey: Types.ConversationIDKey; readonly username: string}
+type _ResetSmallsPayload = void
 type _ResolveMaybeMentionPayload = {readonly name: string; readonly channel: string}
 type _SaveMinWriterRolePayload = {
   readonly conversationIDKey: Types.ConversationIDKey
@@ -1093,6 +1097,20 @@ export const createUpdateBlockButtons = (payload: _UpdateBlockButtonsPayload): U
 export const createStaticConfigLoaded = (payload: _StaticConfigLoadedPayload): StaticConfigLoadedPayload => ({
   payload,
   type: staticConfigLoaded,
+})
+/**
+ * Tell the service to give us more small teams
+ */
+export const createLoadMoreSmalls = (payload: _LoadMoreSmallsPayload): LoadMoreSmallsPayload => ({
+  payload,
+  type: loadMoreSmalls,
+})
+/**
+ * Tell the service to revert to default number of small teams
+ */
+export const createResetSmalls = (payload: _ResetSmallsPayload): ResetSmallsPayload => ({
+  payload,
+  type: resetSmalls,
 })
 /**
  * Tell the service to toggle a reaction on a message.
@@ -1761,6 +1779,10 @@ export type LoadMessagesCenteredPayload = {
   readonly payload: _LoadMessagesCenteredPayload
   readonly type: typeof loadMessagesCentered
 }
+export type LoadMoreSmallsPayload = {
+  readonly payload: _LoadMoreSmallsPayload
+  readonly type: typeof loadMoreSmalls
+}
 export type LoadNewerMessagesDueToScrollPayload = {
   readonly payload: _LoadNewerMessagesDueToScrollPayload
   readonly type: typeof loadNewerMessagesDueToScroll
@@ -1929,6 +1951,7 @@ export type ResetLetThemInPayload = {
   readonly payload: _ResetLetThemInPayload
   readonly type: typeof resetLetThemIn
 }
+export type ResetSmallsPayload = {readonly payload: _ResetSmallsPayload; readonly type: typeof resetSmalls}
 export type ResolveMaybeMentionPayload = {
   readonly payload: _ResolveMaybeMentionPayload
   readonly type: typeof resolveMaybeMention
@@ -2215,6 +2238,7 @@ export type Actions =
   | LeaveConversationPayload
   | LoadAttachmentViewPayload
   | LoadMessagesCenteredPayload
+  | LoadMoreSmallsPayload
   | LoadNewerMessagesDueToScrollPayload
   | LoadNextBotPagePayload
   | LoadOlderMessagesDueToScrollPayload
@@ -2263,6 +2287,7 @@ export type Actions =
   | RequestInfoReceivedPayload
   | ResetChatWithoutThemPayload
   | ResetLetThemInPayload
+  | ResetSmallsPayload
   | ResolveMaybeMentionPayload
   | SaveMinWriterRolePayload
   | SelectConversationPayload

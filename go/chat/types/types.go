@@ -647,6 +647,9 @@ func (d DummyUIInboxLoader) UpdateLayoutFromNewMessage(ctx context.Context, conv
 func (d DummyUIInboxLoader) UpdateLayoutFromSubteamRename(ctx context.Context, convs []RemoteConversation) {
 }
 
+func (d DummyUIInboxLoader) UpdateLayoutFromSmallIncrease(ctx context.Context) {}
+func (d DummyUIInboxLoader) UpdateLayoutFromSmallReset(ctx context.Context)    {}
+
 type DummyAttachmentUploader struct{}
 
 var _ AttachmentUploader = (*DummyAttachmentUploader)(nil)

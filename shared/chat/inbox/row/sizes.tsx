@@ -7,6 +7,7 @@ export const bigRowHeight = isMobile ? 40 : 24
 export const bigHeaderHeight = 32
 export const floatingDivider = isMobile ? 48 : 40
 export const inboxWidth = 260
+export const loadMoreSmallsHeight = 64
 
 export const dividerHeight = (showingButton: boolean) => {
   if (isMobile) {
@@ -29,6 +30,8 @@ export const getRowHeight = (type: string, showingDividerButton: boolean) => {
       return smallRowHeight
     case 'divider':
       return dividerHeight(showingDividerButton)
+    case 'loadMoreSmalls':
+      return loadMoreSmallsHeight
   }
   return 0
 }

@@ -22,16 +22,14 @@ const mapStateToProps = (state: TypedState) => ({
 const getMetaCounts = memoize(
   (badges: Types.ConversationCountMap, inboxLayout: RPCChatTypes.UIInboxLayout | null) => {
     let badgeCount = 0
-    let hiddenCount = 0
     const smallTeams = inboxLayout ? inboxLayout.smallTeams || [] : []
     smallTeams.forEach((conv: RPCChatTypes.UIInboxSmallTeamRow) => {
       const id = Types.stringToConversationIDKey(conv.convID)
       badgeCount += badges.get(id) || 0
-      hiddenCount++
     })
     return {
       badgeCount,
-      hiddenCount,
+      hiddenCount: inboxLayout?.totalSmallTeams ?? 0,
     }
   }
 )

@@ -6,7 +6,7 @@ import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import {appendNewChatBuilder} from '../../../actions/typed-routes'
 import {getActiveKey} from '../../../constants/router2'
-import Inbox from '..'
+import Inbox, {RowItemLoadMoreSmallTeams} from '..'
 import {isMobile} from '../../../constants/platform'
 import {
   Props as _Props,
@@ -184,7 +184,12 @@ const Connected = Container.namedConnect(
     }
     const divider: Array<RowItemDivider> =
       bigRows.length !== 0 ? [{showButton: smallTeamsBelowTheFold, type: 'divider'}] : []
-    const rows: Array<RowItem> = [...smallRows, ...divider, ...bigRows]
+    const loadMoreSmalls: Array<RowItemLoadMoreSmallTeams> =
+      showAllSmallRows &&
+      (stateProps._inboxLayout?.smallTeams?.length ?? 0) < (stateProps._inboxLayout?.totalSmallTeams ?? 0)
+        ? [{type: 'loadMoreSmalls'}]
+        : []
+    const rows: Array<RowItem> = [...smallRows, ...loadMoreSmalls, ...divider, ...bigRows]
 
     const unreadIndices: Array<number> = []
     for (let i = rows.length - 1; i >= 0; i--) {
