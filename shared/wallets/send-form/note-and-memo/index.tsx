@@ -170,7 +170,7 @@ class PublicMemo extends React.Component<PublicMemoProps, PublicMemoState> {
           <Kb.PlainInput
             multiline={true}
             padding={0}
-            placeholder="Add a public memo (on Stellar)"
+            placeholder="Add XLM Memo text or ID (on Stellar)"
             placeholderColor={Styles.globalColors.black_20}
             style={this.props.publicMemoOverride ? styles.inputDisabled : styles.input}
             rowsMin={Styles.isMobile ? 1 : 2}
