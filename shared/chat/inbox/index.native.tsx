@@ -14,6 +14,7 @@ import debounce from 'lodash/debounce'
 import {makeRow} from './row'
 import {virtualListMarks} from '../../local-debug'
 import shallowEqual from 'shallowequal'
+import LoadMoreSmalls from './row/loadmore-smalls'
 
 const NoChats = (props: {onNewChat: () => void}) => (
   <Kb.Box2 direction="vertical" gap="small" style={styles.noChatsContainer}>
@@ -71,6 +72,8 @@ class Inbox extends React.PureComponent<T.Props, State> {
       )
     } else if (row.type === 'teamBuilder') {
       element = <BuildTeam />
+    } else if (row.type === 'loadMoreSmalls') {
+      element = <LoadMoreSmalls />
     } else {
       element = makeRow({
         channelname: row.channelname,
