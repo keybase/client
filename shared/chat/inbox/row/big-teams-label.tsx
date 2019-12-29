@@ -4,7 +4,7 @@ import {globalStyles} from '../../../styles'
 
 const BigTeamsLabel = () => (
   <Box style={_bigTeamsLabelBox}>
-    <Text type="BodySmallSemibold">Big teams!!!!</Text>
+    <Text type="BodySmallSemibold">Big teams</Text>
   </Box>
 )
 
