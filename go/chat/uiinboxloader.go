@@ -21,8 +21,6 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-const defaultSmallTeamBound = 100
-
 type UIInboxLoader struct {
 	globals.Contextified
 	utils.DebugLabeler
@@ -33,15 +31,16 @@ type UIInboxLoader struct {
 	started bool
 	eg      errgroup.Group
 
-	clock             clockwork.Clock
-	transmitCh        chan interface{}
-	layoutCh          chan chat1.InboxLayoutReselectMode
-	bigTeamUnboxCh    chan []chat1.ConversationID
-	convTransmitBatch map[string]chat1.ConversationLocal
-	batchDelay        time.Duration
-	lastBatchFlush    time.Time
-	lastLayoutFlush   time.Time
-	smallTeamBound    int
+	clock                 clockwork.Clock
+	transmitCh            chan interface{}
+	layoutCh              chan chat1.InboxLayoutReselectMode
+	bigTeamUnboxCh        chan []chat1.ConversationID
+	convTransmitBatch     map[string]chat1.ConversationLocal
+	batchDelay            time.Duration
+	lastBatchFlush        time.Time
+	lastLayoutFlush       time.Time
+	smallTeamBound        int
+	defaultSmallTeamBound int
 
 	// layout tracking
 	lastLayoutMu sync.Mutex
@@ -52,13 +51,18 @@ type UIInboxLoader struct {
 }
 
 func NewUIInboxLoader(g *globals.Context) *UIInboxLoader {
+	defaultSmallTeamBound := 100
+	if g.IsMobileAppType() {
+		defaultSmallTeamBound = 50
+	}
 	return &UIInboxLoader{
-		Contextified:      globals.NewContextified(g),
-		DebugLabeler:      utils.NewDebugLabeler(g.GetLog(), "UIInboxLoader", false),
-		convTransmitBatch: make(map[string]chat1.ConversationLocal),
-		clock:             clockwork.NewRealClock(),
-		batchDelay:        200 * time.Millisecond,
-		smallTeamBound:    defaultSmallTeamBound,
+		Contextified:          globals.NewContextified(g),
+		DebugLabeler:          utils.NewDebugLabeler(g.GetLog(), "UIInboxLoader", false),
+		convTransmitBatch:     make(map[string]chat1.ConversationLocal),
+		clock:                 clockwork.NewRealClock(),
+		batchDelay:            200 * time.Millisecond,
+		smallTeamBound:        defaultSmallTeamBound,
+		defaultSmallTeamBound: defaultSmallTeamBound,
 	}
 }
 
@@ -678,12 +682,12 @@ func (h *UIInboxLoader) UpdateConvs(ctx context.Context, convIDs []chat1.Convers
 
 func (h *UIInboxLoader) UpdateLayoutFromSmallIncrease(ctx context.Context) {
 	defer h.Trace(ctx, func() error { return nil }, "UpdateLayoutFromSmallIncrease")()
-	h.smallTeamBound += defaultSmallTeamBound
+	h.smallTeamBound += h.defaultSmallTeamBound
 	h.UpdateLayout(ctx, chat1.InboxLayoutReselectMode_DEFAULT, "small increase")
 }
 
 func (h *UIInboxLoader) UpdateLayoutFromSmallReset(ctx context.Context) {
 	defer h.Trace(ctx, func() error { return nil }, "UpdateLayoutFromSmallReset")()
-	h.smallTeamBound = defaultSmallTeamBound
+	h.smallTeamBound = h.defaultSmallTeamBound
 	h.UpdateLayout(ctx, chat1.InboxLayoutReselectMode_DEFAULT, "small reset")
 }
