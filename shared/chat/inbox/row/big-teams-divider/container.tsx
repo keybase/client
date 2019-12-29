@@ -33,7 +33,7 @@ export default Container.connect(
       ownProps.toggle()
     },
   }),
-  (stateProps, dispatchProps, ownProps: OwnProps) => ({
+  (stateProps, dispatchProps) => ({
     badgeCount: stateProps.badgeCount,
     toggle: dispatchProps.toggle,
   })

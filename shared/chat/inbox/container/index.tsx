@@ -6,7 +6,7 @@ import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import {appendNewChatBuilder} from '../../../actions/typed-routes'
 import {getActiveKey} from '../../../constants/router2'
-import Inbox, {RowItemLoadMoreSmallTeams} from '..'
+import Inbox from '..'
 import {isMobile} from '../../../constants/platform'
 import {
   Props as _Props,
@@ -14,6 +14,7 @@ import {
   RowItemBig,
   RowItemBigHeader,
   RowItemDivider,
+  RowItemLoadMoreSmallTeams,
   RowItemTeamBuilder,
   RowItem,
 } from '..'
