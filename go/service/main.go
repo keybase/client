@@ -421,6 +421,7 @@ func (d *Service) startChatModules() {
 		g.LiveLocationTracker.Start(context.Background(), uid)
 		g.BotCommandManager.Start(context.Background(), uid)
 		g.UIInboxLoader.Start(context.Background(), uid)
+		g.PushShutdownHook(d.stopChatModules)
 	}
 	d.purgeOldChatAttachmentData()
 }
@@ -901,7 +902,6 @@ func (d *Service) OnLogin(mctx libkb.MetaContext) error {
 	uid := d.G().Env.GetUID()
 	if !uid.IsNil() {
 		d.startChatModules()
-		d.G().PushShutdownHook(d.stopChatModules)
 		d.runTLFUpgrade()
 		d.runTrackerLoader(mctx.Ctx())
 	}
