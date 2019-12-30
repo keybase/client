@@ -8,8 +8,8 @@ import * as Styles from '../../styles'
 export type Props = {
   contactSettingsEnabled?: boolean
   contactSettingsError: string
-  contactSettingsIndirectFollowees: boolean
-  contactSettingsTeamsEnabled: boolean
+  contactSettingsIndirectFollowees?: boolean
+  contactSettingsTeamsEnabled?: boolean
   contactSettingsSelectedTeams: {[K in TeamID]: boolean}
   unfurlMode?: RPCChatTypes.UnfurlMode
   unfurlWhitelist?: Array<string>
