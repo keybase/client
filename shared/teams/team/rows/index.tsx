@@ -4,7 +4,10 @@ import {getOrderedMemberArray, sortInvites, getOrderedBotsArray} from './helpers
 type HeaderRow = {key: string; type: 'header'}
 type TabsRow = {key: string; type: 'tabs'}
 type MemberRow = {key: string; username: string; type: 'member'}
-type BotRow = {key: string; username: string; type: 'bot'} | {key: string; type: 'bot-add'}
+type BotRow =
+  | {key: string; username: string; type: 'bot'}
+  | {key: string; type: 'bot-add'}
+  | {key: string; type: 'bot-none'}
 type InviteRow =
   | {key: string; label: string; type: 'invites-divider'}
   | {key: string; username: string; type: 'invites-request'}
@@ -40,9 +43,10 @@ const makeRows = (
         rows.push({key: 'loading', type: 'loading'})
       }
       break
-    case 'bots':
+    case 'bots': {
+      let bots = getOrderedBotsArray(details.members)
       rows.push(
-        ...getOrderedBotsArray(details.members).map(bot => ({
+        ...bots.map(bot => ({
           key: `bot:${bot.username}`,
           type: 'bot' as const,
           username: bot.username,
@@ -53,7 +57,11 @@ const makeRows = (
         rows.push({key: 'loading', type: 'loading'})
       }
       rows.push({key: 'bot:install-more', type: 'bot-add'})
+      if (bots.length === 0) {
+        rows.push({key: 'bot:none', type: 'bot-none'})
+      }
       break
+    }
     case 'invites': {
       const {invites, requests} = details
       let empty = true
