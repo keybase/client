@@ -54,6 +54,8 @@
   "chat.1.local.removeBotMember": {"promise": true},
   "chat.1.local.resolveMaybeMention": {"promise": true},
   "chat.1.local.requestInboxLayout": {"promise": true},
+  "chat.1.local.requestInboxSmallIncrease": {"promise": true},
+  "chat.1.local.requestInboxSmallReset": {"promise": true},
   "chat.1.local.requestInboxUnbox": {"promise": true},
   "chat.1.local.resolveUnfurlPrompt": {"promise": true},
   "chat.1.local.saveUnfurlSettings": {"promise": true},

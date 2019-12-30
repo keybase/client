@@ -797,6 +797,8 @@ protocol local {
   }
   void requestInboxLayout(InboxLayoutReselectMode reselectMode);
   void requestInboxUnbox(array<ConversationID> convIDs);
+  void requestInboxSmallIncrease();
+  void requestInboxSmallReset();
   NonblockFetchRes getInboxNonblockLocal(int sessionID, union { null, int } maxUnbox, boolean skipUnverified, union { null, GetInboxLocalQuery} query, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   PostLocalRes postLocal(int sessionID, ConversationID conversationID, MessagePlaintext msg, union { null, MessageID }  replyTo, keybase1.TLFIdentifyBehavior identifyBehavior);

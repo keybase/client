@@ -6,7 +6,7 @@ set -euo pipefail
 if [[ "$(id -u)" -eq "0" ]]; then
     chown -R keybase:keybase \
         /home/keybase/.config/keybase \
-        /home/keybase/.local/share/keybase
+        /home/keybase/.cache/keybase
     exec gosu keybase ${BASH_SOURCE[0]} "$@"
     exit 0
 fi

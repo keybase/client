@@ -241,6 +241,8 @@ export type TypedActionsMap = {
   'chat2:setBotSettings': chat2.SetBotSettingsPayload
   'chat2:removeBotMember': chat2.RemoveBotMemberPayload
   'chat2:editBotSettings': chat2.EditBotSettingsPayload
+  'chat2:loadMoreSmalls': chat2.LoadMoreSmallsPayload
+  'chat2:resetSmalls': chat2.ResetSmallsPayload
   'config:startHandshake': config.StartHandshakePayload
   'config:restartHandshake': config.RestartHandshakePayload
   'config:daemonHandshake': config.DaemonHandshakePayload
