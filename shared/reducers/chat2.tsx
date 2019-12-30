@@ -27,6 +27,7 @@ type Actions =
   | EngineActions
   | BotsGen.UpdateFeaturedBotsPayload
   | BotsGen.SetLoadedAllBotsPayload
+  | BotsGen.SetSearchFeaturedAndUsersResultsPayload
 
 const initialState: Types.State = Constants.makeState()
 
@@ -72,6 +73,9 @@ const botActions: Container.ActionHandler<Actions, Types.State> = {
   [BotsGen.setLoadedAllBots]: (draftState, action) => {
     const {loaded} = action.payload
     draftState.featuredBotsLoaded = loaded
+  },
+  [BotsGen.setSearchFeaturedAndUsersResults]: (draftState, action) => {
+    draftState.botSearchResults = action.payload.results
   },
 }
 
@@ -1488,6 +1492,23 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   [Chat2Gen.setLoadedBotPage]: (draftState, action) => {
     const {page} = action.payload
     draftState.featuredBotsPage = page
+  },
+  [Chat2Gen.setBotPublicCommands]: (draftState, action) => {
+    draftState.botPublicCommands.set(action.payload.username, action.payload.commands)
+  },
+  [Chat2Gen.refreshBotPublicCommands]: (draftState, action) => {
+    draftState.botPublicCommands.delete(action.payload.username)
+  },
+  [Chat2Gen.refreshBotSettings]: (draftState, action) => {
+    const m = draftState.botSettings.get(action.payload.conversationIDKey)
+    if (m) {
+      m.delete(action.payload.username)
+    }
+  },
+  [Chat2Gen.setBotSettings]: (draftState, action) => {
+    const m = draftState.botSettings.get(action.payload.conversationIDKey) || new Map()
+    m.set(action.payload.username, action.payload.settings)
+    draftState.botSettings.set(action.payload.conversationIDKey, m)
   },
   ...audioActions,
   ...botActions,

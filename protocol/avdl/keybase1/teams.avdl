@@ -1196,7 +1196,7 @@ protocol teams {
 
   void teamChangeMembership(int sessionID, string name, TeamChangeReq req);
 
-  TeamAddMemberResult teamAddMember(int sessionID, TeamID teamID, string email, string username,
+  TeamAddMemberResult teamAddMember(int sessionID, TeamID teamID, string email, string phone, string username,
     TeamRole role, union { null, TeamBotSettings } botSettings, boolean sendChatNotification);
 
   TeamAddMembersResult teamAddMembers(int sessionID, TeamID teamID, array<string> assertions, TeamRole role, union { null, TeamBotSettings } botSettings, boolean sendChatNotification);

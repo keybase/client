@@ -6,10 +6,9 @@ import * as Styles from '../../styles'
 import EditTeamDescription from '.'
 
 const sharedProps = {
-  description: 'First description',
-  onChangeDescription: Sb.action('onChangeDescription'),
   onClose: Sb.action('onClose'),
   onSetDescription: Sb.action('onSetDescription'),
+  onSubmit: Sb.action('onChangeDescription'),
   origDescription: 'First description',
   teamname: 'testteam',
   waitingKey: 'test',
@@ -24,7 +23,7 @@ const load = () => {
     ))
     .add('Description changed', () => (
       <Box style={storyWrapStyle}>
-        <EditTeamDescription {...sharedProps} description="Second description" />
+        <EditTeamDescription {...sharedProps} origDescription="Second description" />
       </Box>
     ))
 }

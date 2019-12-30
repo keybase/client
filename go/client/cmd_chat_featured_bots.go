@@ -58,8 +58,9 @@ func (c *CmdChatFeaturedBots) Run() (err error) {
 
 	offset := c.limit * c.page
 	res, err := cli.FeaturedBots(context.Background(), keybase1.FeaturedBotsArg{
-		Limit:  c.limit,
-		Offset: offset,
+		Limit:     c.limit,
+		Offset:    offset,
+		SkipCache: true,
 	})
 	if err != nil {
 		return err
@@ -124,7 +125,7 @@ func displayFeaturedBots(g *libkb.GlobalContext, bots []keybase1.FeaturedBot) er
 		5,                                 // visualIndex
 		64,                                // displayName
 		64,                                // ownerName
-		flexibletable.ExpandableWrappable, // description
+		256,                               // description
 		flexibletable.ExpandableWrappable, // extendedDescription
 	}); err != nil {
 		return fmt.Errorf("rendering conversation info list view error: %v\n", err)

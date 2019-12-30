@@ -77,6 +77,8 @@ export type TypedActionsMap = {
   'bots:searchFeaturedBots': bots.SearchFeaturedBotsPayload
   'bots:updateFeaturedBots': bots.UpdateFeaturedBotsPayload
   'bots:setLoadedAllBots': bots.SetLoadedAllBotsPayload
+  'bots:searchFeaturedAndUsers': bots.SearchFeaturedAndUsersPayload
+  'bots:setSearchFeaturedAndUsersResults': bots.SetSearchFeaturedAndUsersResultsPayload
   'chat2:toggleSmallTeamsExpanded': chat2.ToggleSmallTeamsExpandedPayload
   'chat2:deselectConversation': chat2.DeselectConversationPayload
   'chat2:selectConversation': chat2.SelectConversationPayload
@@ -232,6 +234,15 @@ export type TypedActionsMap = {
   'chat2:setAudioRecordingPostInfo': chat2.SetAudioRecordingPostInfoPayload
   'chat2:loadNextBotPage': chat2.LoadNextBotPagePayload
   'chat2:setLoadedBotPage': chat2.SetLoadedBotPagePayload
+  'chat2:refreshBotPublicCommands': chat2.RefreshBotPublicCommandsPayload
+  'chat2:setBotPublicCommands': chat2.SetBotPublicCommandsPayload
+  'chat2:addBotMember': chat2.AddBotMemberPayload
+  'chat2:refreshBotSettings': chat2.RefreshBotSettingsPayload
+  'chat2:setBotSettings': chat2.SetBotSettingsPayload
+  'chat2:removeBotMember': chat2.RemoveBotMemberPayload
+  'chat2:editBotSettings': chat2.EditBotSettingsPayload
+  'chat2:loadMoreSmalls': chat2.LoadMoreSmallsPayload
+  'chat2:resetSmalls': chat2.ResetSmallsPayload
   'config:startHandshake': config.StartHandshakePayload
   'config:restartHandshake': config.RestartHandshakePayload
   'config:daemonHandshake': config.DaemonHandshakePayload
@@ -416,6 +427,7 @@ export type TypedActionsMap = {
   'engine-gen:keybase1NotifyEphemeralNewTeambotEk': enginegen.Keybase1NotifyEphemeralNewTeambotEkPayload
   'engine-gen:keybase1NotifyEphemeralTeambotEkNeeded': enginegen.Keybase1NotifyEphemeralTeambotEkNeededPayload
   'engine-gen:keybase1NotifyFavoritesFavoritesChanged': enginegen.Keybase1NotifyFavoritesFavoritesChangedPayload
+  'engine-gen:keybase1NotifyFeaturedBotsFeaturedBotsUpdate': enginegen.Keybase1NotifyFeaturedBotsFeaturedBotsUpdatePayload
   'engine-gen:keybase1NotifyFSFSActivity': enginegen.Keybase1NotifyFSFSActivityPayload
   'engine-gen:keybase1NotifyFSFSPathUpdated': enginegen.Keybase1NotifyFSFSPathUpdatedPayload
   'engine-gen:keybase1NotifyFSFSSyncActivity': enginegen.Keybase1NotifyFSFSSyncActivityPayload
@@ -805,6 +817,8 @@ export type TypedActionsMap = {
   'settings:loadedProxyData': settings.LoadedProxyDataPayload
   'settings:saveProxyData': settings.SaveProxyDataPayload
   'settings:certificatePinningToggled': settings.CertificatePinningToggledPayload
+  'settings:loadDefaultPhoneNumberCountry': settings.LoadDefaultPhoneNumberCountryPayload
+  'settings:updateDefaultPhoneNumberCountry': settings.UpdateDefaultPhoneNumberCountryPayload
   'settings:loginBrowserViaWebAuthToken': settings.LoginBrowserViaWebAuthTokenPayload
   'signup:goBackAndClearErrors': signup.GoBackAndClearErrorsPayload
   'signup:requestAutoInvite': signup.RequestAutoInvitePayload

@@ -6,7 +6,6 @@ import * as Tracker2Gen from '../../actions/tracker2-gen'
 import * as Types from '../../constants/types/tracker2'
 import Profile2, {BackgroundColorType} from '.'
 import flags from '../../util/feature-flags'
-import {getShowAirdropBanner} from '../../constants/wallets'
 
 type OwnProps = Container.RouteProps<{username: string}>
 
@@ -26,7 +25,6 @@ const connected = Container.namedConnect(
     const d = Constants.getDetails(state, username)
     const notAUser = d.state === 'notAUserYet'
     const userIsYou = username === state.config.username
-    const showAirdropBanner = getShowAirdropBanner(state)
 
     const commonProps = {
       _assertions: undefined,
@@ -43,11 +41,9 @@ const connected = Container.namedConnect(
       name: '',
       reason: d.reason,
       service: '',
-      showAirdropBanner,
       state: d.state,
       userIsYou,
       username,
-      youAreInAirdrop: false,
     }
 
     if (!notAUser) {
@@ -158,7 +154,6 @@ const connected = Container.namedConnect(
       sbsAvatarUrl: stateProps.sbsAvatarUrl,
       service: stateProps.service,
       serviceIcon: stateProps.serviceIcon,
-      showAirdropBanner: stateProps.showAirdropBanner,
       state: stateProps.state,
       suggestionKeys: stateProps._suggestionKeys
         ? stateProps._suggestionKeys.filter(s => !s.belowFold).map(s => s.assertionKey)

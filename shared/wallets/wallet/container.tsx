@@ -31,7 +31,6 @@ export default Container.connect(
     return {
       acceptedDisclaimer: state.wallets.acceptedDisclaimer,
       accountID,
-      airdropSelected: Constants.getAirdropSelected(state),
       assets: Constants.getAssets(state, accountID),
       loadError: state.wallets.loadPaymentsError,
       loadingMore: state.wallets.paymentLoadingMoreMap.get(accountID) ?? false,
@@ -99,7 +98,6 @@ export default Container.connect(
     return {
       acceptedDisclaimer: stateProps.acceptedDisclaimer,
       accountID: stateProps.accountID,
-      airdropSelected: stateProps.airdropSelected,
       loadError: stateProps.loadError,
       loadingMore: stateProps.loadingMore,
       onBack: dispatchProps.onBack,

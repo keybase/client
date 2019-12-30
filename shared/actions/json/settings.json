@@ -238,6 +238,10 @@
     "certificatePinningToggled": {
       "toggled?": "boolean"
     },
+    "loadDefaultPhoneNumberCountry": {},
+    "updateDefaultPhoneNumberCountry": {
+      "country": "string"
+    },
     "loginBrowserViaWebAuthToken": {}
   }
 }

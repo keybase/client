@@ -303,6 +303,19 @@
       ],
       "response": null
     },
+    "guessCurrentLocation": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "defaultCountry",
+          "type": "string"
+        }
+      ],
+      "response": "string"
+    },
     "userGetContactSettings": {
       "request": [],
       "response": "ContactSettings"

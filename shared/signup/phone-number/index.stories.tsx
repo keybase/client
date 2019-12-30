@@ -5,6 +5,7 @@ import EnterPhoneNumber from '.'
 import VerifyPhoneNumber from './verify'
 
 const props = {
+  defaultCountry: 'ZW',
   error: '',
   onContinue: Sb.action('onFinish'),
   onSkip: Sb.action('onSkip'),

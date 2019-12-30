@@ -3549,6 +3549,7 @@ type TeamAddMemberArg struct {
 	SessionID            int              `codec:"sessionID" json:"sessionID"`
 	TeamID               TeamID           `codec:"teamID" json:"teamID"`
 	Email                string           `codec:"email" json:"email"`
+	Phone                string           `codec:"phone" json:"phone"`
 	Username             string           `codec:"username" json:"username"`
 	Role                 TeamRole         `codec:"role" json:"role"`
 	BotSettings          *TeamBotSettings `codec:"botSettings,omitempty" json:"botSettings,omitempty"`

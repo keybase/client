@@ -10,6 +10,7 @@ const base = {
   loadSearchHit: Sb.action('loadSearchHit'),
   onCancel: Sb.action('onCancel'),
   onSearch: Sb.action('onSearch'),
+  onToggleThreadSearch: Sb.action('onToggleThreadSearch'),
   selfHide: Sb.action('selfHide'),
 }
 

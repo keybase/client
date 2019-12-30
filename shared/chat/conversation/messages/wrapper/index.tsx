@@ -44,6 +44,7 @@ import {formatTimeForChat} from '../../../../util/timestamp'
 export type Props = {
   authorIsAdmin?: boolean
   authorIsOwner?: boolean
+  authorIsBot?: boolean
   botAlias: string
   centeredOrdinal: Types.CenterOrdinalHighlightMode
   conversationIDKey: Types.ConversationIDKey
@@ -198,6 +199,9 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                   />
                 </Kb.WithTooltip>
               )}
+              {this.props.authorIsBot && (
+                <Kb.Icon fontSize={16} color={Styles.globalColors.black_35} type="iconfont-nav-2-robot" />
+              )}
               <Kb.Text
                 type="BodyTiny"
                 style={Styles.collapseStyles([
@@ -207,11 +211,6 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               >
                 {formatTimeForChat(this.props.message.timestamp)}
               </Kb.Text>
-              {this._getKeyedBot() && (
-                <Kb.WithTooltip tooltip={`Encrypted for @${this._getKeyedBot()}`}>
-                  <Kb.Icon fontSize={14} color={Styles.globalColors.black} type="iconfont-nav-2-robot" />
-                </Kb.WithTooltip>
-              )}
             </Kb.Box2>
           </Kb.Box2>
           <Kb.Box2
@@ -425,6 +424,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       this.props.showCoinsIcon ? 24 : 0, // coin stack
       exploded || Styles.isMobile ? 0 : 16, // ... menu
       exploding ? (Styles.isMobile ? 57 : 46) : 0, // exploding
+      this._getKeyedBot() && !this.props.authorIsBot ? 24 : 0,
     ].filter(Boolean)
     const padding = Styles.globalMargins.tiny
     const width =
@@ -478,7 +478,16 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         child = <SystemInviteAccepted key="systemInviteAccepted" message={message} />
         break
       case 'systemSBSResolved':
-        child = <SystemSBSResolved key="systemSbsResolved" message={message} />
+        if (this.props.youAreAuthor) {
+          child = <SystemSBSResolved key="systemSbsResolved" message={message} />
+        } else {
+          child = (
+            <SystemJoined
+              key="systemJoined"
+              message={{...message, joiners: [message.prover], leavers: [], type: 'systemJoined'}}
+            />
+          )
+        }
         break
       case 'systemSimpleToComplex':
         child = <SystemSimpleToComplex key="systemSimpleToComplex" message={message} />
@@ -566,6 +575,17 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
             )}
             {this.props.showCoinsIcon && (
               <Kb.Icon type="icon-stellar-coins-stacked-16" style={styles.paddingLeftTiny} />
+            )}
+            {this._getKeyedBot() && !this.props.authorIsBot && (
+              <Kb.WithTooltip tooltip={`Encrypted for @${this._getKeyedBot()}`}>
+                <Kb.Icon
+                  fontSize={16}
+                  color={Styles.globalColors.black_35}
+                  type="iconfont-nav-2-robot"
+                  onClick={() => null}
+                  style={styles.paddingLeftTiny}
+                />
+              </Kb.WithTooltip>
             )}
             {showMenuButton ? (
               <Kb.Box className="WrapperMessage-buttons">
@@ -793,7 +813,6 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       timestamp: Styles.platformStyles({
-        common: {paddingLeft: Styles.globalMargins.xtiny},
         isElectron: {lineHeight: 19},
       }),
       timestampHighlighted: {

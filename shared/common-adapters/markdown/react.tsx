@@ -2,7 +2,6 @@ import * as React from 'react'
 import SimpleMarkdown from 'simple-markdown'
 import * as Styles from '../../styles'
 import Text from '../text'
-import {MarkdownMeta, StyleOverride} from '.'
 import Box from '../box'
 import Emoji, {Props as EmojiProps} from '../emoji'
 import {emojiIndexByName} from './emoji-gen'
@@ -161,14 +160,53 @@ const EmojiIfExists = React.memo(
 )
 
 const reactComponentsForMarkdownType = {
+  Array: {
+    // basically a port of the old reactFor which we used before
+    react: (
+      arr: Array<SimpleMarkdown.SingleASTNode>,
+      output: SimpleMarkdown.Output<any>,
+      state: SimpleMarkdown.State
+    ) => {
+      var oldKey = state.key
+      var result: Array<SimpleMarkdown.ReactElements> = []
+
+      // map nestedOutput over the ast, except group any text
+      // nodes together into a single string output.
+      var lastResult: string | null = null
+      for (var i = 0; i < arr.length; i++) {
+        state.key = '' + i
+        var nodeOut = output(arr[i], state)
+        if (typeof nodeOut === 'string' && typeof lastResult === 'string') {
+          lastResult = lastResult + nodeOut
+          result[result.length - 1] = lastResult
+        } else {
+          result.push(nodeOut)
+          lastResult = nodeOut
+        }
+      }
+
+      state.key = oldKey
+      return result
+    },
+  },
   // On mobile we can't have raw text without a Text tag. So we make sure we are in a paragraph or we return a new text tag. If it's not mobile we can short circuit and just return the string
-  blockQuote: (node, output, state) => (
-    <Box key={state.key} style={markdownStyles.quoteStyle}>
-      {output(node.content, {...state, inBlockQuote: true})}
-    </Box>
-  ),
-  del: (node, output, state) => {
-    return (
+  blockQuote: {
+    react: (
+      node: SimpleMarkdown.SingleASTNode,
+      output: SimpleMarkdown.ReactOutput,
+      state: SimpleMarkdown.State
+    ) => (
+      <Box key={state.key} style={markdownStyles.quoteStyle}>
+        {output(node.content, {...state, inBlockQuote: true})}
+      </Box>
+    ),
+  },
+  del: {
+    react: (
+      node: SimpleMarkdown.SingleASTNode,
+      output: SimpleMarkdown.ReactOutput,
+      state: SimpleMarkdown.State
+    ) => (
       <Text
         type="Body"
         key={state.key}
@@ -177,10 +215,14 @@ const reactComponentsForMarkdownType = {
       >
         {output(node.content, state)}
       </Text>
-    )
+    ),
   },
-  em: (node, output, state) => {
-    return (
+  em: {
+    react: (
+      node: SimpleMarkdown.SingleASTNode,
+      output: SimpleMarkdown.ReactOutput,
+      state: SimpleMarkdown.State
+    ) => (
       <Text
         type="Body"
         key={state.key}
@@ -188,33 +230,50 @@ const reactComponentsForMarkdownType = {
       >
         {output(node.content, state)}
       </Text>
-    )
+    ),
   },
-  emoji: (node, _, state) => {
-    return <Emoji emojiName={String(node.content).toLowerCase()} size={16} key={state.key} />
+  emoji: {
+    react: (
+      node: SimpleMarkdown.SingleASTNode,
+      _output: SimpleMarkdown.ReactOutput,
+      state: SimpleMarkdown.State
+    ) => <Emoji emojiName={String(node.content).toLowerCase()} size={16} key={state.key} />,
   },
-  fence: (node, _, state) =>
-    Styles.isMobile ? (
-      <Box key={state.key} style={markdownStyles.codeSnippetBlockTextStyle}>
+  fence: {
+    react: (
+      node: SimpleMarkdown.SingleASTNode,
+      _output: SimpleMarkdown.ReactOutput,
+      state: SimpleMarkdown.State
+    ) =>
+      Styles.isMobile ? (
+        <Box key={state.key} style={markdownStyles.codeSnippetBlockTextStyle}>
+          <Text
+            type="Body"
+            style={Styles.collapseStyles([
+              markdownStyles.codeSnippetBlockTextStyle,
+              state.styleOverride.fence,
+            ])}
+            allowFontScaling={state.allowFontScaling}
+          >
+            {node.content}
+          </Text>
+        </Box>
+      ) : (
         <Text
+          key={state.key}
           type="Body"
-          style={Styles.collapseStyles([markdownStyles.codeSnippetBlockTextStyle, state.styleOverride.fence])}
-          allowFontScaling={state.allowFontScaling}
+          style={Styles.collapseStyles([markdownStyles.codeSnippetBlockStyle, state.styleOverride.fence])}
         >
           {node.content}
         </Text>
-      </Box>
-    ) : (
-      <Text
-        key={state.key}
-        type="Body"
-        style={Styles.collapseStyles([markdownStyles.codeSnippetBlockStyle, state.styleOverride.fence])}
-      >
-        {node.content}
-      </Text>
-    ),
-  inlineCode: (node, _, state) => {
-    return (
+      ),
+  },
+  inlineCode: {
+    react: (
+      node: SimpleMarkdown.SingleASTNode,
+      _output: SimpleMarkdown.ReactOutput,
+      state: SimpleMarkdown.State
+    ) => (
       <Text
         type="Body"
         key={state.key}
@@ -223,23 +282,33 @@ const reactComponentsForMarkdownType = {
       >
         {node.content}
       </Text>
-    )
-  },
-  newline: (_, __, state) =>
-    !Styles.isMobile || state.inParagraph ? (
-      '\n'
-    ) : (
-      <Text
-        type="Body"
-        key={state.key}
-        style={Styles.collapseStyles([markdownStyles.textBlockStyle, state.styleOverride.paragraph])}
-        allowFontScaling={state.allowFontScaling}
-      >
-        {'\n'}
-      </Text>
     ),
-  paragraph: (node, output, state) => {
-    return (
+  },
+  newline: {
+    react: (
+      _node: SimpleMarkdown.SingleASTNode,
+      output: SimpleMarkdown.ReactOutput,
+      state: SimpleMarkdown.State
+    ) =>
+      !Styles.isMobile || state.inParagraph ? (
+        output({content: '\n', type: 'text'}, state)
+      ) : (
+        <Text
+          type="Body"
+          key={state.key}
+          style={Styles.collapseStyles([markdownStyles.textBlockStyle, state.styleOverride.paragraph])}
+          allowFontScaling={state.allowFontScaling}
+        >
+          {'\n'}
+        </Text>
+      ),
+  },
+  paragraph: {
+    react: (
+      node: SimpleMarkdown.SingleASTNode,
+      output: SimpleMarkdown.ReactOutput,
+      state: SimpleMarkdown.State
+    ) => (
       <Text
         type="Body"
         key={state.key}
@@ -248,20 +317,30 @@ const reactComponentsForMarkdownType = {
       >
         {output(node.content, {...state, inParagraph: true})}
       </Text>
-    )
+    ),
   },
-  serviceDecoration: (node, _, state) => (
-    <ServiceDecoration
-      json={node.content}
-      key={state.key}
-      allowFontScaling={state.allowFontScaling}
-      message={(state.markdownMeta && state.markdownMeta.message) || undefined}
-      styleOverride={state.styleOverride}
-      styles={markdownStyles}
-    />
-  ),
-  strong: (node, output, state) => {
-    return (
+  serviceDecoration: {
+    react: (
+      node: SimpleMarkdown.SingleASTNode,
+      _output: SimpleMarkdown.ReactOutput,
+      state: SimpleMarkdown.State
+    ) => (
+      <ServiceDecoration
+        json={node.content}
+        key={state.key}
+        allowFontScaling={state.allowFontScaling}
+        message={(state.markdownMeta && state.markdownMeta.message) || undefined}
+        styleOverride={state.styleOverride}
+        styles={markdownStyles}
+      />
+    ),
+  },
+  strong: {
+    react: (
+      node: SimpleMarkdown.SingleASTNode,
+      output: SimpleMarkdown.ReactOutput,
+      state: SimpleMarkdown.State
+    ) => (
       <Text
         type="BodySemibold"
         key={state.key}
@@ -270,116 +349,142 @@ const reactComponentsForMarkdownType = {
       >
         {output(node.content, state)}
       </Text>
-    )
+    ),
   },
-  text: SimpleMarkdown.defaultRules.text.react,
+  text: SimpleMarkdown.defaultRules.text,
 }
 
-type State = {
-  allowFontScaling?: boolean
-  inBlockQuote?: boolean
-  inParagraph?: boolean
-  key?: string
-  markdownMeta: MarkdownMeta | null
-  styleOverride: StyleOverride
-}
+const passthroughForMarkdownType = Object.keys(reactComponentsForMarkdownType).reduce<{
+  [key: string]: SimpleMarkdown.ReactOutputRule | SimpleMarkdown.ReactArrayRule
+}>((obj, k) => {
+  // keep special Array type
+  if (k === 'Array') {
+    obj[k] = reactComponentsForMarkdownType[k]
+  } else {
+    obj[k] = {
+      react: (
+        node: SimpleMarkdown.SingleASTNode,
+        output: SimpleMarkdown.ReactOutput,
+        state: SimpleMarkdown.State
+      ) =>
+        typeof node.content !== 'object'
+          ? SimpleMarkdown.defaultRules.text.react({content: node.content, type: 'text'}, output, state)
+          : output(node.content, state),
+    }
+  }
+  return obj
+}, {})
 
-// Ideally this would be a discriminated union keyed by type.
-type SingleASTNode = {[K in string]: any}
-
-// The types below are adapted from the simple-markdown types.
-
-type ASTNode = SingleASTNode | Array<SingleASTNode>
-
-type Output<Result> = (node: ASTNode, state?: State | null) => Result
-type NodeOutput<Result> = (node: SingleASTNode, nestedOutput: Output<Result>, state: State) => Result
-type ReactElements = React.ReactNode
-type ReactNodeOutput = NodeOutput<ReactElements>
-
-const ruleOutput = (rules: {[K in string]: ReactNodeOutput}) => (node, output, state) =>
-  rules[node.type](node, output, state)
-
-const bigEmojiOutput = SimpleMarkdown.reactFor(
-  ruleOutput({
+const bigEmojiOutput: SimpleMarkdown.Output<any> = SimpleMarkdown.outputFor(
+  {
     ...reactComponentsForMarkdownType,
-    emoji: (node, _, state) => {
-      return (
+    emoji: {
+      react: (
+        node: SimpleMarkdown.SingleASTNode,
+        _output: SimpleMarkdown.ReactOutput,
+        state: SimpleMarkdown.State
+      ) => (
         <Emoji
           emojiName={String(node.content)}
           size={32}
           key={state.key}
           allowFontScaling={state.allowFontScaling}
         />
-      )
+      ),
     },
-    paragraph: (node, output, state) => (
-      <Text
-        type="Body"
-        key={state.key}
-        style={markdownStyles.bigTextBlockStyle}
-        allowFontScaling={state.allowFontScaling}
-      >
-        {output(node.content, {...state, inParagraph: true})}
-      </Text>
-    ),
-  })
+    paragraph: {
+      react: (
+        node: SimpleMarkdown.SingleASTNode,
+        output: SimpleMarkdown.ReactOutput,
+        state: SimpleMarkdown.State
+      ) => (
+        <Text
+          type="Body"
+          key={state.key}
+          style={markdownStyles.bigTextBlockStyle}
+          allowFontScaling={state.allowFontScaling}
+        >
+          {output(node.content, {...state, inParagraph: true})}
+        </Text>
+      ),
+    },
+  },
+  'react'
 )
 
-// TODO: Fix the typing here. Can ast actually be a non-object? Can
-// output actually only return strings?
-const previewOutput = SimpleMarkdown.reactFor(
-  (ast: SingleASTNode, output: Output<string>, state: State): ReactElements => {
-    // leaf node is just the raw value, so it has no ast.type
-    if (typeof ast !== 'object') {
-      return ast
-    }
-
-    switch (ast.type) {
-      case 'emoji':
-        return reactComponentsForMarkdownType.emoji(ast, output, state)
-      case 'newline':
-        return ' '
-      case 'blockQuote':
-        return React.Children.toArray([
-          output([{content: '> ', type: 'text'}], state),
-          output(ast.content, state),
-        ])
-      case 'codeBlock':
-        return React.Children.toArray([
-          output([{content: ' ', type: 'text'}], state),
-          output(ast.content, state),
-        ])
-      default:
-        return output(ast.content, state)
-    }
-  }
+const previewOutput: SimpleMarkdown.Output<any> = SimpleMarkdown.outputFor(
+  {
+    Array: SimpleMarkdown.defaultRules.Array,
+    ...passthroughForMarkdownType,
+    blockQuote: {
+      react: (
+        node: SimpleMarkdown.SingleASTNode,
+        output: SimpleMarkdown.ReactOutput,
+        state: SimpleMarkdown.State
+      ) =>
+        React.Children.toArray([output([{content: '> ', type: 'text'}], state), output(node.content, state)]),
+    },
+    codeBlock: {
+      react: (
+        node: SimpleMarkdown.SingleASTNode,
+        output: SimpleMarkdown.ReactOutput,
+        state: SimpleMarkdown.State
+      ) =>
+        React.Children.toArray([output([{content: ' ', type: 'text'}], state), output(node.content, state)]),
+    },
+    emoji: {
+      react: (
+        node: SimpleMarkdown.SingleASTNode,
+        output: SimpleMarkdown.ReactOutput,
+        state: SimpleMarkdown.State
+      ) => reactComponentsForMarkdownType.emoji.react(node, output, state),
+    },
+    newline: {
+      react: (
+        _node: SimpleMarkdown.SingleASTNode,
+        _output: SimpleMarkdown.ReactOutput,
+        _state: SimpleMarkdown.State
+      ) => ' ',
+    },
+    text: SimpleMarkdown.defaultRules.text,
+  },
+  'react'
 )
 
-const serviceOnlyOutput = SimpleMarkdown.reactFor(
-  (ast: SingleASTNode, output: Output<string>, state: State): ReactElements => {
-    // leaf node is just the raw value, so it has no ast.type
-    if (typeof ast !== 'object') {
-      return ast
-    }
-    switch (ast.type) {
-      case 'emoji':
-        return reactComponentsForMarkdownType.emoji(ast, output, state)
-      case 'serviceDecoration':
-        return (
-          <ServiceDecoration
-            json={ast.content}
-            key={state.key}
-            allowFontScaling={state.allowFontScaling}
-            styleOverride={state.styleOverride}
-            styles={markdownStyles as any}
-          />
-        )
-      default:
-        return output(ast.content, state)
-    }
-  }
+const serviceOnlyOutput: SimpleMarkdown.Output<any> = SimpleMarkdown.outputFor(
+  {
+    Array: SimpleMarkdown.defaultRules.Array,
+    ...passthroughForMarkdownType,
+    emoji: {
+      react: (
+        node: SimpleMarkdown.SingleASTNode,
+        output: SimpleMarkdown.ReactOutput,
+        state: SimpleMarkdown.State
+      ) => reactComponentsForMarkdownType.emoji.react(node, output, state),
+    },
+    serviceDecoration: {
+      react: (
+        node: SimpleMarkdown.SingleASTNode,
+        _output: SimpleMarkdown.ReactOutput,
+        state: SimpleMarkdown.State
+      ) => (
+        <ServiceDecoration
+          json={node.content}
+          key={state.key}
+          allowFontScaling={state.allowFontScaling}
+          styleOverride={state.styleOverride}
+          styles={markdownStyles as any}
+        />
+      ),
+    },
+    text: SimpleMarkdown.defaultRules.text,
+  },
+  'react'
 )
 
-const reactOutput = SimpleMarkdown.reactFor(ruleOutput(reactComponentsForMarkdownType))
+const reactOutput: SimpleMarkdown.Output<any> = SimpleMarkdown.outputFor(
+  reactComponentsForMarkdownType,
+  'react'
+)
 
 export {EmojiIfExists, bigEmojiOutput, markdownStyles, previewOutput, reactOutput, serviceOnlyOutput}

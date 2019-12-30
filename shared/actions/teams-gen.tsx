@@ -188,7 +188,7 @@ type _SetNewTeamInfoPayload = {
   readonly deletedTeams: Array<RPCTypes.DeletedTeamInfo>
   readonly newTeams: Set<Types.TeamID>
   readonly newTeamRequests: Array<Types.TeamID>
-  readonly teamNameToResetUsers: Map<Types.Teamname, Set<Types.ResetUser>>
+  readonly teamIDToResetUsers: Map<Types.TeamID, Set<Types.ResetUser>>
 }
 type _SetPublicityPayload = {readonly teamname: string; readonly settings: Types.PublicitySettings}
 type _SetTeamAccessRequestsPendingPayload = {readonly accessRequestsPending: Set<Types.Teamname>}
@@ -224,7 +224,11 @@ type _SetTeamInfoPayload = {
 }
 type _SetTeamInviteErrorPayload = {readonly error: string}
 type _SetTeamJoinErrorPayload = {readonly error: string}
-type _SetTeamJoinSuccessPayload = {readonly success: boolean; readonly teamname: string}
+type _SetTeamJoinSuccessPayload = {
+  readonly open: boolean
+  readonly success: boolean
+  readonly teamname: string
+}
 type _SetTeamLoadingInvitesPayload = {
   readonly teamname: string
   readonly loadingKey: string

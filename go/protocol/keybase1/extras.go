@@ -66,6 +66,8 @@ const (
 	KidVersion = 0x1
 )
 
+const redactedReplacer = "[REDACTED]"
+
 func Unquote(data []byte) string {
 	return strings.Trim(string(data), "\"")
 }
@@ -3592,4 +3594,39 @@ func (b FeaturedBot) Owner() string {
 		return *b.OwnerUser
 	}
 	return ""
+}
+
+func (b FeaturedBot) Eq(o FeaturedBot) bool {
+	return b.BotAlias == o.BotAlias &&
+		b.Description == o.Description &&
+		b.ExtendedDescription == o.ExtendedDescription &&
+		b.BotUsername == o.BotUsername &&
+		b.Owner() == o.Owner()
+}
+
+func (b FeaturedBotsRes) Eq(o FeaturedBotsRes) bool {
+	if len(b.Bots) != len(o.Bots) {
+		return false
+	}
+	for i, bot := range b.Bots {
+		if !bot.Eq(o.Bots[i]) {
+			return false
+		}
+	}
+	return true
+}
+
+// Redact modifies the given ClientDetails struct
+func (d ClientDetails) Redact() {
+	tmp := fmt.Sprintf("%v", d.Argv)
+	re := regexp.MustCompile(`\b(chat|fs|encrypt|git|accept-invite|wallet\s+send|wallet\s+import|passphrase\s+check)\b`)
+	if mtch := re.FindString(tmp); len(mtch) > 0 {
+		d.Argv = []string{d.Argv[0], mtch, redactedReplacer}
+	}
+
+	for i, arg := range d.Argv {
+		if strings.Contains(arg, "paperkey") && i+1 < len(d.Argv) && !strings.HasPrefix(d.Argv[i+1], "-") {
+			d.Argv[i+1] = redactedReplacer
+		}
+	}
 }

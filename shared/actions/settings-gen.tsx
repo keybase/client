@@ -37,6 +37,7 @@ export const invitesRefreshed = 'settings:invitesRefreshed'
 export const invitesSend = 'settings:invitesSend'
 export const invitesSent = 'settings:invitesSent'
 export const loadContactImportEnabled = 'settings:loadContactImportEnabled'
+export const loadDefaultPhoneNumberCountry = 'settings:loadDefaultPhoneNumberCountry'
 export const loadHasRandomPw = 'settings:loadHasRandomPw'
 export const loadLockdownMode = 'settings:loadLockdownMode'
 export const loadProxyData = 'settings:loadProxyData'
@@ -82,6 +83,7 @@ export const unfurlSettingsError = 'settings:unfurlSettingsError'
 export const unfurlSettingsRefresh = 'settings:unfurlSettingsRefresh'
 export const unfurlSettingsRefreshed = 'settings:unfurlSettingsRefreshed'
 export const unfurlSettingsSaved = 'settings:unfurlSettingsSaved'
+export const updateDefaultPhoneNumberCountry = 'settings:updateDefaultPhoneNumberCountry'
 export const verifiedPhoneNumber = 'settings:verifiedPhoneNumber'
 export const verifyPhoneNumber = 'settings:verifyPhoneNumber'
 
@@ -131,6 +133,7 @@ type _InvitesRefreshedPayload = {readonly invites: Types.InvitesState}
 type _InvitesSendPayload = {readonly email: string; readonly message?: string}
 type _InvitesSentPayload = {readonly error?: Error}
 type _LoadContactImportEnabledPayload = void
+type _LoadDefaultPhoneNumberCountryPayload = void
 type _LoadHasRandomPwPayload = void
 type _LoadLockdownModePayload = void
 type _LoadProxyDataPayload = void
@@ -189,6 +192,7 @@ type _UnfurlSettingsRefreshedPayload = {
   readonly whitelist: Array<string>
 }
 type _UnfurlSettingsSavedPayload = {readonly mode: RPCChatTypes.UnfurlMode; readonly whitelist: Array<string>}
+type _UpdateDefaultPhoneNumberCountryPayload = {readonly country: string}
 type _VerifiedPhoneNumberPayload = {readonly error?: string; readonly phoneNumber: string}
 type _VerifyPhoneNumberPayload = {readonly phoneNumber: string; readonly code: string}
 
@@ -374,6 +378,9 @@ export const createInvitesSent = (payload: _InvitesSentPayload = Object.freeze({
   payload,
   type: invitesSent,
 })
+export const createLoadDefaultPhoneNumberCountry = (
+  payload: _LoadDefaultPhoneNumberCountryPayload
+): LoadDefaultPhoneNumberCountryPayload => ({payload, type: loadDefaultPhoneNumberCountry})
 export const createLoadHasRandomPw = (payload: _LoadHasRandomPwPayload): LoadHasRandomPwPayload => ({
   payload,
   type: loadHasRandomPw,
@@ -503,6 +510,9 @@ export const createShowContactsJoinedModal = (
 ): ShowContactsJoinedModalPayload => ({payload, type: showContactsJoinedModal})
 export const createStop = (payload: _StopPayload): StopPayload => ({payload, type: stop})
 export const createTrace = (payload: _TracePayload): TracePayload => ({payload, type: trace})
+export const createUpdateDefaultPhoneNumberCountry = (
+  payload: _UpdateDefaultPhoneNumberCountryPayload
+): UpdateDefaultPhoneNumberCountryPayload => ({payload, type: updateDefaultPhoneNumberCountry})
 
 // Action Payloads
 export type AddEmailPayload = {readonly payload: _AddEmailPayload; readonly type: typeof addEmail}
@@ -600,6 +610,10 @@ export type InvitesSentPayload = {readonly payload: _InvitesSentPayload; readonl
 export type LoadContactImportEnabledPayload = {
   readonly payload: _LoadContactImportEnabledPayload
   readonly type: typeof loadContactImportEnabled
+}
+export type LoadDefaultPhoneNumberCountryPayload = {
+  readonly payload: _LoadDefaultPhoneNumberCountryPayload
+  readonly type: typeof loadDefaultPhoneNumberCountry
 }
 export type LoadHasRandomPwPayload = {
   readonly payload: _LoadHasRandomPwPayload
@@ -769,6 +783,10 @@ export type UnfurlSettingsSavedPayload = {
   readonly payload: _UnfurlSettingsSavedPayload
   readonly type: typeof unfurlSettingsSaved
 }
+export type UpdateDefaultPhoneNumberCountryPayload = {
+  readonly payload: _UpdateDefaultPhoneNumberCountryPayload
+  readonly type: typeof updateDefaultPhoneNumberCountry
+}
 export type VerifiedPhoneNumberPayload = {
   readonly payload: _VerifiedPhoneNumberPayload
   readonly type: typeof verifiedPhoneNumber
@@ -811,6 +829,7 @@ export type Actions =
   | InvitesSendPayload
   | InvitesSentPayload
   | LoadContactImportEnabledPayload
+  | LoadDefaultPhoneNumberCountryPayload
   | LoadHasRandomPwPayload
   | LoadLockdownModePayload
   | LoadProxyDataPayload
@@ -856,6 +875,7 @@ export type Actions =
   | UnfurlSettingsRefreshPayload
   | UnfurlSettingsRefreshedPayload
   | UnfurlSettingsSavedPayload
+  | UpdateDefaultPhoneNumberCountryPayload
   | VerifiedPhoneNumberPayload
   | VerifyPhoneNumberPayload
   | {type: 'common:resetStore', payload: {}}

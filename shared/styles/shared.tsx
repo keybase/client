@@ -14,7 +14,7 @@ export const globalMargins = {
   mediumLarge: 32,
   large: 40,
   xlarge: 64,
-}
+} as const
 /* eslint-enable sort-keys */
 
 export const backgroundModeToColor = {

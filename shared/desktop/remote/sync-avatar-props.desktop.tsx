@@ -27,6 +27,7 @@ export const serialize = {
   following: (v: any) => [...v],
   httpSrvAddress: (v: any) => v,
   httpSrvToken: (v: any) => v,
+  infoMap: (v: any) => [...v.entries()],
 }
 
 const initialState = {
@@ -36,6 +37,9 @@ const initialState = {
     following: new Set(),
     httpSrvAddress: '',
     httpSrvToken: '',
+  },
+  users: {
+    infoMap: new Map(),
   },
 }
 export const deserialize = (state: any = initialState, props: any) => {
@@ -49,6 +53,9 @@ export const deserialize = (state: any = initialState, props: any) => {
       avatarRefreshCounter: initialState.config.avatarRefreshCounter,
       httpSrvAddress: props.httpSrvAddress || state.config.httpSrvAddress,
       httpSrvToken: props.httpSrvToken || state.config.httpSrvToken,
+    },
+    users: {
+      infoMap: new Map(props.infoMap),
     },
   }
 }
@@ -71,12 +78,23 @@ function SyncAvatarProps(ComposedComponent: any) {
     intersect(following, usernames)
   )
 
+  const getRemoteInfoMap = memoize((infoMap: Map<any, any>, usernames: Set<string>) => {
+    const m = new Map()
+    for (const u of usernames) {
+      const i = infoMap.get(u)
+      i && m.set(u, i)
+    }
+    return m
+  })
+
   const Connected = Container.connect(
     state => {
       const {followers, following, httpSrvAddress, httpSrvToken} = state.config
+      const {infoMap} = state.users
       return {
         _followers: followers,
         _following: following,
+        _infoMap: infoMap,
         httpSrvAddress,
         httpSrvToken,
       }
@@ -84,12 +102,13 @@ function SyncAvatarProps(ComposedComponent: any) {
     () => ({}),
     (stateProps, _d, ownProps: OwnProps) => {
       const {usernames} = ownProps
-      const {_followers, _following, httpSrvAddress, httpSrvToken} = stateProps
+      const {_followers, _following, httpSrvAddress, httpSrvToken, _infoMap} = stateProps
       return {
         followers: getRemoteFollowers(_followers, usernames),
         following: getRemoteFollowing(_following, usernames),
         httpSrvAddress,
         httpSrvToken,
+        infoMap: getRemoteInfoMap(_infoMap, usernames),
         ...ownProps,
       }
     }

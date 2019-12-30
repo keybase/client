@@ -109,7 +109,7 @@ const fetchUserRecs = async (
 ) => {
   try {
     const [_suggestionRes, _contactRes] = await Promise.all([
-      RPCTypes.userInterestingPeopleRpcPromise({maxUsers: 50}),
+      RPCTypes.userInterestingPeopleRpcPromise({maxUsers: 50, namespace}),
       includeContacts
         ? RPCTypes.contactsGetContactsForUserRecommendationsRpcPromise()
         : Promise.resolve([] as RPCTypes.ProcessedContact[]),

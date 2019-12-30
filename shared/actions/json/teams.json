@@ -183,6 +183,7 @@
       "error": "string"
     },
     "setTeamJoinSuccess": {
+      "open": "boolean",
       "success": "boolean",
       "teamname": "string"
     },
@@ -238,7 +239,7 @@
       "deletedTeams": "Array<RPCTypes.DeletedTeamInfo>",
       "newTeams": "Set<Types.TeamID>",
       "newTeamRequests": "Array<Types.TeamID>",
-      "teamNameToResetUsers": "Map<Types.Teamname, Set<Types.ResetUser>>"
+      "teamIDToResetUsers": "Map<Types.TeamID, Set<Types.ResetUser>>"
     },
     "setTeamSawChatBanner": {},
     "setTeamSawSubteamsBanner": {},

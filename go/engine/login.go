@@ -297,6 +297,10 @@ func (e *Login) checkLoggedInAndNotRevoked(m libkb.MetaContext) (bool, error) {
 func (e *Login) loginProvisionedDevice(m libkb.MetaContext, username string) (bool, error) {
 	eng := NewLoginProvisionedDevice(m.G(), username)
 	err := RunEngine2(m, eng)
+	// Whatever happened in the engine, overwrite our username with the one potentially
+	// chosen by the user. This gets rid of some confusing flows.
+	e.username = eng.GetUsername().String()
+
 	if err == nil {
 		// login successful
 		m.Debug("LoginProvisionedDevice.Run() was successful")

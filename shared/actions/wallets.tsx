@@ -18,7 +18,6 @@ import * as Tabs from '../constants/tabs'
 import * as SettingsConstants from '../constants/settings'
 import * as TeamBuildingGen from './team-building-gen'
 import commonTeamBuildingSaga, {filterForNs} from './team-building'
-import flags from '../util/feature-flags'
 import {RPCError} from '../util/errors'
 import openURL from '../util/open-url'
 import {isMobile} from '../constants/platform'
@@ -1796,13 +1795,11 @@ function* walletsSaga() {
   yield* Saga.chainAction2(WalletsGen.acceptSEP7Path, acceptSEP7Path)
   yield* Saga.chainAction(WalletsGen.acceptSEP7Tx, acceptSEP7Tx)
 
-  if (flags.airdrop) {
-    yield* Saga.chainAction(GregorGen.pushState, gregorPushState)
-    yield* Saga.chainAction(WalletsGen.changeAirdrop, changeAirdrop)
-    yield* Saga.chainAction2([WalletsGen.updateAirdropDetails, ConfigGen.loadOnStart], updateAirdropDetails)
-    yield* Saga.chainAction2([WalletsGen.updateAirdropState, ConfigGen.loadOnStart], updateAirdropState)
-    yield* Saga.chainAction2([WalletsGen.hideAirdropBanner, WalletsGen.changeAirdrop], hideAirdropBanner)
-  }
+  yield* Saga.chainAction(GregorGen.pushState, gregorPushState)
+  yield* Saga.chainAction(WalletsGen.changeAirdrop, changeAirdrop)
+  yield* Saga.chainAction2([WalletsGen.updateAirdropDetails, ConfigGen.loadOnStart], updateAirdropDetails)
+  yield* Saga.chainAction2([WalletsGen.updateAirdropState, ConfigGen.loadOnStart], updateAirdropState)
+  yield* Saga.chainAction2([WalletsGen.hideAirdropBanner, WalletsGen.changeAirdrop], hideAirdropBanner)
 
   yield* Saga.chainAction(WalletsGen.refreshTrustlineAcceptedAssets, refreshTrustlineAcceptedAssets)
   yield* Saga.chainAction(

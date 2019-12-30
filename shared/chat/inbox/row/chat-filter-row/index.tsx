@@ -4,6 +4,7 @@ import * as Styles from '../../../../styles'
 import * as Platforms from '../../../../constants/platform'
 
 export type Props = {
+  appendNewChatBuilder: () => void
   filter: string
   isSearching: boolean
   onBack: () => void
@@ -48,6 +49,13 @@ class ConversationFilterInput extends React.PureComponent<Props> {
   private onChange = (q: string) => {
     if (q !== this.props.filter) {
       this.props.onSetFilter(q)
+    }
+  }
+
+  private hotKeys = Platforms.isDarwin ? ['command+n'] : ['ctrl+n']
+  private onHotKeys = (cmd: string) => {
+    if (cmd.endsWith('+n')) {
+      this.props.appendNewChatBuilder()
     }
   }
 
@@ -97,6 +105,7 @@ class ConversationFilterInput extends React.PureComponent<Props> {
         gapEnd={true}
         fullWidth={true}
       >
+        {!Styles.isMobile && <Kb.HotKey hotKeys={this.hotKeys} onHotKey={this.onHotKeys} />}
         {searchInput}
         {!this.props.isSearching && !!this.props.onNewChat && !Styles.isMobile && (
           <Kb.Box style={styles.rainbowBorder}>

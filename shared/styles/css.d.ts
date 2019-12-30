@@ -86,6 +86,7 @@ type StyleKeys =
   | 'paddingTop'
   | 'pointerEvents'
   | 'position'
+  | 'resize'
   | 'right'
   | 'textAlign'
   | 'textDecoration'

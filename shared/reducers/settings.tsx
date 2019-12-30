@@ -280,6 +280,9 @@ const contactsActions: Container.ActionHandler<Actions, Types.State> = {
       draftState.contacts.waitingToShowJoinedModal = true
     }
   },
+  [SettingsGen.updateDefaultPhoneNumberCountry]: (draftState, action) => {
+    draftState.phoneNumbers.defaultCountry = action.payload.country
+  },
 }
 
 export default Container.makeReducer<Actions, Types.State>(initialState, {

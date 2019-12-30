@@ -10,6 +10,7 @@ export default Container.compose(
   Container.connect(
     state => ({
       errorText: upperFirst(state.teams.teamJoinError),
+      open: state.teams.teamJoinSuccessOpen,
       success: state.teams.teamJoinSuccess,
       successTeamName: state.teams.teamJoinSuccessTeamName,
     }),
@@ -20,8 +21,8 @@ export default Container.compose(
       _onSetTeamJoinError: (error: string) => {
         dispatch(TeamsGen.createSetTeamJoinError({error}))
       },
-      _onSetTeamJoinSuccess: (success: boolean, teamname: string) => {
-        dispatch(TeamsGen.createSetTeamJoinSuccess({success, teamname}))
+      _onSetTeamJoinSuccess: (open: boolean, success: boolean, teamname: string) => {
+        dispatch(TeamsGen.createSetTeamJoinSuccess({open, success, teamname}))
       },
       onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
     }),
@@ -37,7 +38,7 @@ export default Container.compose(
   Container.lifecycle({
     componentDidMount() {
       this.props._onSetTeamJoinError('')
-      this.props._onSetTeamJoinSuccess(false, null)
+      this.props._onSetTeamJoinSuccess(false, false, null)
     },
   } as any)
 )(JoinTeam as any)

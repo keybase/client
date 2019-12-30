@@ -70,7 +70,6 @@ type _UpdatedDetailsPayload = {
   readonly followsYou: boolean
   readonly fullname: string
   readonly location: string
-  readonly registeredForAirdrop: boolean
   readonly stellarHidden: boolean
   readonly username: string
   readonly teamShowcase: Array<Types.TeamShowcase>

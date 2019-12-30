@@ -43,6 +43,7 @@ export default Container.connect(
       author: stateProps.author,
       authorIsYou: stateProps.authorIsYou,
       channelname: _meta.channelname,
+      isAdHoc: _meta.teamType === 'adhoc',
       isBigTeam: _meta.teamType === 'big',
       joiners:
         !stateProps._joiners.length && !stateProps.leavers.length ? [stateProps.author] : stateProps._joiners,

@@ -19,6 +19,8 @@ import ChatLocationPopup from './conversation/input-area/normal/location-popup'
 import ChatUnfurlMapPopup from './conversation/messages/wrapper/unfurl/map/popup'
 import PunycodeLinkWarning from './punycode-link-warning'
 import BlockModal from './blocking/block-modal/container'
+import ChatInstallBot from './conversation/bot/install'
+import ChatSearchBot from './conversation/bot/search'
 
 export const newRoutes = {
   chatConversation: {getScreen: (): typeof ChatConversation => require('./conversation/container').default},
@@ -69,6 +71,9 @@ export const newModalRoutes = {
   chatInfoPanel: {
     getScreen: (): typeof ChatInfoPanel => require('./conversation/info-panel/container').default,
   },
+  chatInstallBot: {
+    getScreen: (): typeof ChatInstallBot => require('./conversation/bot/install').default,
+  },
   chatLocationPreview: {
     getScreen: (): typeof ChatLocationPopup =>
       require('./conversation/input-area/normal/location-popup').default,
@@ -80,6 +85,9 @@ export const newModalRoutes = {
   chatNewChat: {getScreen: (): typeof ChatNewChat => require('../team-building/container').default},
   chatPaymentsConfirm: {
     getScreen: (): typeof ChatPaymentsConfirm => require('./payments/confirm/container').default,
+  },
+  chatSearchBots: {
+    getScreen: (): typeof ChatSearchBot => require('./conversation/bot/search').default,
   },
   // TODO connect broken
   chatShowNewTeamDialog: {

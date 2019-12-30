@@ -47,6 +47,7 @@ export default Container.connect(
       _participants: meta.participants,
       _teamname: meta.teamname,
       author: ownProps.message.author,
+      botUsername: ownProps.message.type === 'text' ? ownProps.message.botUsername : undefined,
       deviceName: ownProps.message.deviceName,
       deviceRevokedAt: ownProps.message.deviceRevokedAt,
       deviceType: ownProps.message.deviceType,
@@ -154,6 +155,23 @@ export default Container.connect(
         ownProps.message.downloadPath &&
         dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: ownProps.message.downloadPath}))
     },
+    _onUserBlock: (message: Types.Message, isSingle: boolean) => {
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [
+            {
+              props: {
+                blockUserByDefault: true,
+                context: isSingle ? 'message-popup-single' : 'message-popup',
+                convID: message.conversationIDKey,
+                username: message.author,
+              },
+              selected: 'chatBlockingModal',
+            },
+          ],
+        })
+      )
+    },
   }),
   (stateProps, dispatchProps, ownProps) => {
     const authorInConv = stateProps._participants.includes(ownProps.message.author)
@@ -224,14 +242,25 @@ export default Container.connect(
       }
       items.push({icon: 'iconfont-pin', onClick: dispatchProps._onPinMessage, title: 'Pin message'})
     }
+    if (!stateProps.yourMessage && message.author) {
+      const blockModalSingle = !stateProps._teamname && stateProps._participants.length === 2
+      items.push({
+        danger: true,
+        icon: 'iconfont-block-user',
+        onClick: () => dispatchProps._onUserBlock(message, blockModalSingle),
+        title: stateProps._teamname ? 'Report user' : 'Block user',
+      })
+    }
     return {
       attachTo: ownProps.attachTo,
       author: stateProps.author,
+      botUsername: stateProps.botUsername,
       deviceName: stateProps.deviceName,
       deviceRevokedAt: stateProps.deviceRevokedAt,
       deviceType: stateProps.deviceType,
       explodesAt: stateProps.explodesAt,
       hideTimer: stateProps.hideTimer,
+      isTeam: !!stateProps._teamname,
       items,
       onHidden: ownProps.onHidden,
       position: ownProps.position,
