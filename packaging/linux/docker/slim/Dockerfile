@@ -33,7 +33,7 @@ RUN chmod +x /usr/bin/entrypoint.sh
 RUN useradd --create-home --shell /bin/bash keybase \
     && mkdir -p /var/log/keybase \
     && chown keybase:keybase /var/log/keybase
-VOLUME [ "/home/keybase/.config/keybase", "/home/keybase/.local/share/keybase" ]
+VOLUME [ "/home/keybase/.config/keybase", "/home/keybase/.config/keybase" ]
 
 COPY --from=base /usr/bin/keybase /usr/bin/keybase
 COPY --from=base /usr/bin/keybase.sig /usr/bin/keybase.sig
