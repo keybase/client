@@ -13,7 +13,6 @@ import * as WaitingConstants from '../constants/waiting'
 import * as Types from '../constants/types/teams'
 import {memoize} from '../util/memoize'
 import {useTeamsSubscribe} from './subscriber'
-import {NavigationEventCallback} from '@react-navigation/core'
 import {useNavigationEvents} from '../util/navigation-hooks'
 
 type OwnProps = {}
