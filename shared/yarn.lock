@@ -2129,7 +2129,7 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-12.7.8.tgz#cb1bf6800238898bc2ff6ffa5702c3cadd350708"
   integrity sha512-FMdVn84tJJdV+xe+53sYiZS4R5yn1mAIxfj+DVoNiQjTYz1+OYmjwEZr1ev9nU0axXwda0QDbYl06QHanRVH3A==
 
-"@types/node@12.12.21":
+"@types/node@12.12.21", "@types/node@>=10.0.0":
   version "12.12.21"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-12.12.21.tgz#aa44a6363291c7037111c47e4661ad210aded23f"
   integrity sha512-8sRGhbpU+ck1n0PGAUgVrWrWdjSW2aqNeyC15W88GRsMpSwzv6RJGlLhE7s2RhVSOdyDmxbqlWSeThq4/7xqlA==
@@ -2240,7 +2240,7 @@
   dependencies:
     "@types/react" "*"
 
-"@types/react@*", "@types/react@16.9.16":
+"@types/react@*", "@types/react@16.9.16", "@types/react@>=16.0.0":
   version "16.9.16"
   resolved "https://registry.yarnpkg.com/@types/react/-/react-16.9.16.tgz#4f12515707148b1f53a8eaa4341dae5dfefb066d"
   integrity sha512-dQ3wlehuBbYlfvRXfF5G+5TbZF3xqgkikK7DWAsQXe2KnzV+kjD4W2ea+ThCrKASZn9h98bjjPzoTYzfRqyBkw==
@@ -12165,10 +12165,13 @@ signal-exit@^3.0.0, signal-exit@^3.0.2:
   resolved "https://registry.yarnpkg.com/signal-exit/-/signal-exit-3.0.2.tgz#b5fdc08f1287ea1178628e415e25132b73646c6d"
   integrity sha1-tf3AjxKH6hF4Yo5BXiUTK3NkbG0=
 
-simple-markdown@0.5.2:
-  version "0.5.2"
-  resolved "https://registry.yarnpkg.com/simple-markdown/-/simple-markdown-0.5.2.tgz#9b5e302122f6a8e98173371d83a225f5518e3103"
-  integrity sha512-HtfHMkT6C+vwPoY/AmDv71GMFK5NcNYN6HhT8W3hbYOrbWDlo+EkrFhM6cCGLh9qQj+AdRvlI3dlmtK4bDIhag==
+simple-markdown@0.7.1:
+  version "0.7.1"
+  resolved "https://registry.yarnpkg.com/simple-markdown/-/simple-markdown-0.7.1.tgz#48f2f65ad9f7faa5922347e9ab6baf66ab3195bc"
+  integrity sha512-9p92kPFjaDER1yuDgVW1UzFVQoL46HBonniqOLKnCmqn0vlxKkHIxRODBJdHLplo44tOtmnGxPTbUZ1HpYkHyg==
+  dependencies:
+    "@types/node" ">=10.0.0"
+    "@types/react" ">=16.0.0"
 
 simple-plist@^1.0.0:
   version "1.0.0"
