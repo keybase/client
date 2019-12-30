@@ -1071,6 +1071,7 @@ func (d *Service) ConfigRPCServer() (net.Listener, error) {
 }
 
 func (d *Service) Stop(exitCode keybase1.ExitCode) {
+	d.G().Log.Info("Beginning the process of stopping the service")
 	d.stopCh <- exitCode
 }
 
@@ -1092,6 +1093,7 @@ func (d *Service) ListenLoop(l net.Listener) (err error) {
 		if c, err = l.Accept(); err != nil {
 
 			if libkb.IsSocketClosedError(err) {
+				d.G().Log.Debug("ListenLoop socket/pipe is closed")
 				err = nil
 			}
 

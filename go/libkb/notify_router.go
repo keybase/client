@@ -1767,6 +1767,7 @@ func (n *NotifyRouter) HandleServiceShutdown() {
 	// timeout after 4s (launchd will SIGKILL after 5s)
 	select {
 	case <-done:
+		n.G().Log.Debug("Finished sending service shutdown notifications")
 	case <-time.After(4 * time.Second):
 		n.G().Log.Warning("Timed out sending service shutdown notifications, proceeding to shutdown")
 	}

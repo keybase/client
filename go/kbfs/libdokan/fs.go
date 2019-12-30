@@ -354,7 +354,7 @@ func (f *FS) open(ctx context.Context, oc *openContext, ps []string) (dokan.File
 		return oc.returnFileNoCleanup(NewUserEditHistoryFile(&Folder{fs: f}))
 
 	case ".kbfs_unmount" == ps[0]:
-		f.log.CDebugf(ctx, "Exiting due to .kbfs_unmount")
+		f.log.CInfof(ctx, "Exiting due to .kbfs_unmount")
 		logger.Shutdown()
 		os.Exit(0)
 	case ".kbfs_number_of_handles" == ps[0]:
