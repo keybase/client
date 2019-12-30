@@ -65,35 +65,6 @@ func newChatServiceHandler(g *libkb.GlobalContext) *chatServiceHandler {
 	}
 }
 
-func (c *chatServiceHandler) exportUIConv(ctx context.Context, uiconv chat1.InboxUIItem) (convSummary chat1.ConvSummary) {
-	convSummary.Id = uiconv.ConvID
-	convSummary.Unread = uiconv.ReadMsgID < uiconv.MaxVisibleMsgID
-	convSummary.ActiveAt = uiconv.Time.UnixSeconds()
-	convSummary.ActiveAtMs = uiconv.Time.UnixMilliseconds()
-	convSummary.FinalizeInfo = uiconv.FinalizeInfo
-	convSummary.MemberStatus = strings.ToLower(uiconv.MemberStatus.String())
-	for _, super := range uiconv.Supersedes {
-		convSummary.Supersedes = append(convSummary.Supersedes,
-			super.ConversationID.String())
-	}
-	for _, super := range uiconv.SupersededBy {
-		convSummary.SupersededBy = append(convSummary.SupersededBy,
-			super.ConversationID.String())
-	}
-	switch uiconv.MembersType {
-	case chat1.ConversationMembersType_IMPTEAMUPGRADE, chat1.ConversationMembersType_IMPTEAMNATIVE:
-		convSummary.ResetUsers = uiconv.ResetParticipants
-	}
-	convSummary.Channel = chat1.ChatChannel{
-		Name:        uiconv.Name,
-		Public:      uiconv.IsPublic,
-		TopicType:   strings.ToLower(uiconv.TopicType.String()),
-		MembersType: strings.ToLower(uiconv.MembersType.String()),
-		TopicName:   uiconv.Channel,
-	}
-	return convSummary
-}
-
 // ListV1 implements ChatServiceHandler.ListV1.
 func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Reply {
 	var cl chat1.ChatList
@@ -136,7 +107,7 @@ func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Rep
 		IdentifyFailures: res.IdentifyFailures,
 	}
 	for _, conv := range res.Conversations {
-		cl.Conversations = append(cl.Conversations, c.exportUIConv(ctx, conv))
+		cl.Conversations = append(cl.Conversations, conv.ExportToSummary())
 	}
 	cl.RateLimits = c.aggRateLimits(rlimits)
 	return Reply{Result: cl}
@@ -164,7 +135,7 @@ func (c *chatServiceHandler) ListConvsOnNameV1(ctx context.Context, opts listCon
 	var cl chat1.ChatList
 	cl.RateLimits = c.aggRateLimits(listRes.RateLimits)
 	for _, conv := range listRes.Convs {
-		cl.Conversations = append(cl.Conversations, c.exportUIConv(ctx, conv))
+		cl.Conversations = append(cl.Conversations, conv.ExportToSummary())
 	}
 	return Reply{Result: cl}
 }

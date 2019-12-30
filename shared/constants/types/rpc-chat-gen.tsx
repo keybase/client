@@ -1048,6 +1048,7 @@ export type ChatSyncResult = {syncType: SyncInboxResType.current} | {syncType: S
 export type ClearBotCommandsLocalRes = {readonly rateLimits?: Array<RateLimit> | null}
 export type ClearBotCommandsRes = {readonly rateLimit?: RateLimit | null}
 export type CommandConvVers = Uint64
+export type ConvNotification = {readonly type: String; readonly conv?: ConvSummary | null; readonly error?: String | null}
 export type ConvSummary = {readonly id: String; readonly channel: ChatChannel; readonly unread: Boolean; readonly activeAt: Int64; readonly activeAtMs: Int64; readonly memberStatus: String; readonly resetUsers?: Array<String> | null; readonly finalizeInfo?: ConversationFinalizeInfo | null; readonly supersedes?: Array<String> | null; readonly supersededBy?: Array<String> | null; readonly error: String}
 export type ConvTypingUpdate = {readonly convID: ConversationID; readonly typers?: Array<TyperInfo> | null}
 export type Conversation = {readonly metadata: ConversationMetadata; readonly readerInfo?: ConversationReaderInfo | null; readonly notifications?: ConversationNotificationInfo | null; readonly maxMsgs?: Array<MessageBoxed> | null; readonly maxMsgSummaries?: Array<MessageSummary> | null; readonly creatorInfo?: ConversationCreatorInfo | null; readonly pinnedMsg?: MessageID | null; readonly expunge: Expunge; readonly convRetention?: RetentionPolicy | null; readonly teamRetention?: RetentionPolicy | null; readonly cs /* convSettings */?: ConversationSettings | null}

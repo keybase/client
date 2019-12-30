@@ -1683,6 +1683,35 @@ func (i InboxUIItem) GetConvID() ConversationID {
 	return ConversationID(bConvID)
 }
 
+func (i InboxUIItem) ExportToSummary() (s ConvSummary) {
+	s.Id = i.ConvID
+	s.Unread = i.ReadMsgID < i.MaxVisibleMsgID
+	s.ActiveAt = i.Time.UnixSeconds()
+	s.ActiveAtMs = i.Time.UnixMilliseconds()
+	s.FinalizeInfo = i.FinalizeInfo
+	s.MemberStatus = strings.ToLower(i.MemberStatus.String())
+	for _, super := range i.Supersedes {
+		s.Supersedes = append(s.Supersedes,
+			super.ConversationID.String())
+	}
+	for _, super := range i.SupersededBy {
+		s.SupersededBy = append(s.SupersededBy,
+			super.ConversationID.String())
+	}
+	switch i.MembersType {
+	case ConversationMembersType_IMPTEAMUPGRADE, ConversationMembersType_IMPTEAMNATIVE:
+		s.ResetUsers = i.ResetParticipants
+	}
+	s.Channel = ChatChannel{
+		Name:        i.Name,
+		Public:      i.IsPublic,
+		TopicType:   strings.ToLower(i.TopicType.String()),
+		MembersType: strings.ToLower(i.MembersType.String()),
+		TopicName:   i.Channel,
+	}
+	return s
+}
+
 type ByConversationMemberStatus []ConversationMemberStatus
 
 func (m ByConversationMemberStatus) Len() int           { return len(m) }

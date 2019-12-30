@@ -775,6 +775,32 @@ func (o MsgNotification) DeepCopy() MsgNotification {
 	}
 }
 
+type ConvNotification struct {
+	Type  string       `codec:"type" json:"type"`
+	Conv  *ConvSummary `codec:"conv,omitempty" json:"conv,omitempty"`
+	Error *string      `codec:"error,omitempty" json:"error,omitempty"`
+}
+
+func (o ConvNotification) DeepCopy() ConvNotification {
+	return ConvNotification{
+		Type: o.Type,
+		Conv: (func(x *ConvSummary) *ConvSummary {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Conv),
+		Error: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Error),
+	}
+}
+
 type AdvertiseCommandAPIParam struct {
 	Typ      string                `codec:"typ" json:"type"`
 	Commands []UserBotCommandInput `codec:"commands" json:"commands"`
