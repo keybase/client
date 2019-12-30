@@ -861,6 +861,12 @@
       "username": "string",
       "allowCommands": "boolean",
       "allowMentions": "boolean"
+    },
+    "loadMoreSmalls": {
+      "_description": "Tell the service to give us more small teams"
+    },
+    "resetSmalls": {
+      "_description": "Tell the service to revert to default number of small teams"
     }
   }
 }

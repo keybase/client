@@ -5876,6 +5876,12 @@ type RequestInboxUnboxArg struct {
 	ConvIDs []ConversationID `codec:"convIDs" json:"convIDs"`
 }
 
+type RequestInboxSmallIncreaseArg struct {
+}
+
+type RequestInboxSmallResetArg struct {
+}
+
 type GetInboxNonblockLocalArg struct {
 	SessionID        int                          `codec:"sessionID" json:"sessionID"`
 	MaxUnbox         *int                         `codec:"maxUnbox,omitempty" json:"maxUnbox,omitempty"`
@@ -6388,6 +6394,8 @@ type LocalInterface interface {
 	GetInboxAndUnboxUILocal(context.Context, GetInboxAndUnboxUILocalArg) (GetInboxAndUnboxUILocalRes, error)
 	RequestInboxLayout(context.Context, InboxLayoutReselectMode) error
 	RequestInboxUnbox(context.Context, []ConversationID) error
+	RequestInboxSmallIncrease(context.Context) error
+	RequestInboxSmallReset(context.Context) error
 	GetInboxNonblockLocal(context.Context, GetInboxNonblockLocalArg) (NonblockFetchRes, error)
 	PostLocal(context.Context, PostLocalArg) (PostLocalRes, error)
 	GenerateOutboxID(context.Context) (OutboxID, error)
@@ -6580,6 +6588,26 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					err = i.RequestInboxUnbox(ctx, typedArgs[0].ConvIDs)
+					return
+				},
+			},
+			"requestInboxSmallIncrease": {
+				MakeArg: func() interface{} {
+					var ret [1]RequestInboxSmallIncreaseArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					err = i.RequestInboxSmallIncrease(ctx)
+					return
+				},
+			},
+			"requestInboxSmallReset": {
+				MakeArg: func() interface{} {
+					var ret [1]RequestInboxSmallResetArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					err = i.RequestInboxSmallReset(ctx)
 					return
 				},
 			},
@@ -7845,6 +7873,16 @@ func (c LocalClient) RequestInboxLayout(ctx context.Context, reselectMode InboxL
 func (c LocalClient) RequestInboxUnbox(ctx context.Context, convIDs []ConversationID) (err error) {
 	__arg := RequestInboxUnboxArg{ConvIDs: convIDs}
 	err = c.Cli.Call(ctx, "chat.1.local.requestInboxUnbox", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) RequestInboxSmallIncrease(ctx context.Context) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.requestInboxSmallIncrease", []interface{}{RequestInboxSmallIncreaseArg{}}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) RequestInboxSmallReset(ctx context.Context) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.requestInboxSmallReset", []interface{}{RequestInboxSmallResetArg{}}, nil, 0*time.Millisecond)
 	return
 }
 
