@@ -34,7 +34,7 @@ const Bot = ({botAlias, description, botUsername, onClick, ownerTeam, ownerUser}
       <Kb.Text type="BodySmall">
         &nbsp;• by{' '}
         {ownerTeam ? (
-          <Kb.Text type="BodySmall">@{ownerTeam}</Kb.Text>
+          <Kb.TeamWithPopup prefix="@" inline={true} teamName={ownerTeam} type="BodySmall" />
         ) : (
           <Kb.ConnectedUsernames
             prefix="@"

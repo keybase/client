@@ -286,6 +286,9 @@ module.exports = {
   get Tabs() {
     return require('./tabs').default
   },
+  get TeamWithPopup() {
+    return require('./team-with-popup/container').default
+  },
   get Text() {
     return require('./text').default
   },
