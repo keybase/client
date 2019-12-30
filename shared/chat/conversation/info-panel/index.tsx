@@ -133,6 +133,7 @@ export type InfoPanelProps = {
   onSearchFeaturedBots: (username: string) => void
   onLoadMoreBots: () => void
   onBotSelect: (username: string) => void
+  onBotAdd: () => void
 } & HeaderHocProps
 
 const TabText = ({selected, text}: {selected: boolean; text: string}) => (
@@ -447,7 +448,7 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
                 type="Default"
                 label="Add a bot"
                 style={styles.addBot}
-                onClick={() => null}
+                onClick={this.props.onBotAdd}
               />
             )
           }

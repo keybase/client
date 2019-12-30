@@ -2,6 +2,7 @@ import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as FsGen from '../../../actions/fs-gen'
 import * as BotsGen from '../../../actions/bots-gen'
 import * as Constants from '../../../constants/chat2'
+import * as BotConstants from '../../../constants/bots'
 import * as TeamConstants from '../../../constants/teams'
 import * as React from 'react'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
@@ -156,6 +157,21 @@ const ConnectedInfoPanel = Container.connect(
           dispatch(Chat2Gen.createClearAttachmentView({conversationIDKey}))
         }
       : undefined,
+    onBotAdd: () => {
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [
+            {
+              props: {
+                conversationIDKey,
+                namespace: 'chat2',
+              },
+              selected: 'chatSearchBots',
+            },
+          ],
+        })
+      )
+    },
     onBotSelect: (username: string) => {
       dispatch(
         RouteTreeGen.createNavigateAppend({
@@ -223,13 +239,14 @@ const ConnectedInfoPanel = Container.connect(
         }
     )
 
-    const featuredBots = Array.from(stateProps._featuredBots.entries())
-      .filter(
-        ([k, _]) =>
-          !botUsernames.includes(k) &&
-          !(!stateProps.adhocTeam && TeamConstants.userInTeamNotBotWithInfo(stateProps._teamMembers, k))
-      )
-      .map(([_, v]) => v)
+    const featuredBots = BotConstants.getFeaturedSorted(stateProps._featuredBots).filter(
+      k =>
+        !botUsernames.includes(k.botUsername) &&
+        !(
+          !stateProps.adhocTeam &&
+          TeamConstants.userInTeamNotBotWithInfo(stateProps._teamMembers, k.botUsername)
+        )
+    )
 
     const teamMembers = stateProps._teamMembers
     const isGeneral = stateProps.channelname === 'general'
@@ -357,6 +374,7 @@ const ConnectedInfoPanel = Container.connect(
           : noMedia,
       onAttachmentViewChange: dispatchProps.onAttachmentViewChange,
       onBack: dispatchProps.onBack,
+      onBotAdd: dispatchProps.onBotAdd,
       onBotSelect: dispatchProps.onBotSelect,
       onCancel: dispatchProps.onCancel,
       onEditChannel: () => dispatchProps._onEditChannel(stateProps.teamname),

@@ -72,7 +72,8 @@ const styles = Styles.styleSheetCreate(
         isMobile: {marginRight: Styles.globalMargins.small},
       }),
       container: {
-        paddingTop: Styles.globalMargins.small,
+        paddingBottom: Styles.globalMargins.xtiny,
+        paddingTop: Styles.globalMargins.xtiny,
       },
       row: {
         alignItems: 'center',
