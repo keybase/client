@@ -16,19 +16,37 @@ const store = Container.produce(common, draftState => {
   draftState.chat2.blockButtonsMap.set(fakeTeamID, {adder: 'chris'})
   const withOthersMeta = Constants.makeConversationMeta()
   withOthersMeta.teamID = fakeTeamID
-  withOthersMeta.participants = ['chris', 'max', 'patrick']
+  const withOthersParts = ['chris', 'max', 'patrick']
+  const withOthersPartInfo = {
+    all: withOthersParts,
+    name: withOthersParts,
+    contactName: new Map(),
+  }
   draftState.chat2.metaMap.set('withOthers', withOthersMeta)
+  draftState.chat2.participantMap.set('withOthers', withOthersPartInfo)
 
   const justChrisMeta = Constants.makeConversationMeta()
   justChrisMeta.teamID = fakeTeamID
-  justChrisMeta.participants = ['chris']
+  const justChrisParts = ['chris']
+  const justChrisPartInfo = {
+    all: justChrisParts,
+    name: justChrisParts,
+    contactName: new Map(),
+  }
   draftState.chat2.metaMap.set('justChris', justChrisMeta)
+  draftState.chat2.participantMap.set('justChris', justChrisPartInfo)
 
   const teamMeta = Constants.makeConversationMeta()
   teamMeta.teamID = fakeTeamID
   teamMeta.teamname = 'teamteamteam'
-  teamMeta.participants = ['chris', 'max', 'patrick']
+  const teamParts = ['chris', 'max', 'patrick']
+  const teamPartInfo = {
+    all: teamParts,
+    name: teamParts,
+    contactName: new Map(),
+  }
   draftState.chat2.metaMap.set('team', teamMeta)
+  draftState.chat2.participantMap.set('team', teamPartInfo)
 })
 
 const load = () => {

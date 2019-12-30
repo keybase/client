@@ -43,7 +43,7 @@ const noAttachmentView = Constants.makeAttachmentViewInfo()
 const noDocs = {docs: [], onLoadMore: () => {}, status: 'loading'}
 const noLinks = {links: [], onLoadMore: () => {}, status: 'loading'}
 const noMedia = {onLoadMore: () => {}, status: 'loading', thumbs: []}
-
+const noTeamMembers = new Map<string, TeamTypes.MemberInfo>()
 const ConnectedInfoPanel = Container.connect(
   (state: Container.TypedState, ownProps: OwnProps) => {
     const conversationIDKey = ownProps.conversationIDKey
@@ -70,18 +70,15 @@ const ConnectedInfoPanel = Container.connect(
     const m = state.chat2.attachmentViewMap.get(conversationIDKey)
     const attachmentInfo = (m && m.get(selectedAttachmentView)) || noAttachmentView
     const attachmentsLoading = selectedTab === 'attachments' && attachmentInfo.status === 'loading'
-    const _teamMembers =
-      state.teams.teamNameToMembers.get(meta.teamname) || new Map<string, TeamTypes.MemberInfo>()
-
+    const _teamMembers = state.teams.teamNameToMembers.get(meta.teamname) || noTeamMembers
+    const _participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
     return {
       _attachmentInfo: attachmentInfo,
       _botAliases: meta.botAliases,
       _featuredBots: state.chat2.featuredBotsMap,
       _fromMsgID: getFromMsgID(attachmentInfo),
       _infoMap: state.users.infoMap,
-      _nameParticipants: meta.nameParticipants,
-      _participantToContactName: meta.participantToContactName,
-      _participants: meta.participants,
+      _participantInfo,
       _team: meta.teamname,
       _teamMembers,
       _username: state.config.username,
@@ -215,12 +212,12 @@ const ConnectedInfoPanel = Container.connect(
     onUnhideConv: () => dispatch(Chat2Gen.createUnhideConversation({conversationIDKey})),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
-    let participants = stateProps._participants
+    let participants = stateProps._participantInfo.all
     const botUsernames = participants.filter(
       // If we're in an adhoc team, get bots by finding participants not in nameParticipants
       p =>
         stateProps.adhocTeam
-          ? !stateProps._nameParticipants.includes(p)
+          ? !stateProps._participantInfo.name.includes(p)
           : TeamConstants.userIsRoleInTeamWithInfo(stateProps._teamMembers, p, 'restrictedbot') ||
             TeamConstants.userIsRoleInTeamWithInfo(stateProps._teamMembers, p, 'bot')
     )
@@ -253,7 +250,7 @@ const ConnectedInfoPanel = Container.connect(
     const showAuditingBanner = isGeneral && !teamMembers
     const membersForBlock = (stateProps._teamMembers.size
       ? [...stateProps._teamMembers.keys()]
-      : stateProps._participants
+      : stateProps._participantInfo.all
     ).filter(username => username !== stateProps._username && !Constants.isAssertion(username))
     if (teamMembers && isGeneral) {
       participants = [...teamMembers.values()].reduce<Array<string>>((l, mi) => {
@@ -395,7 +392,7 @@ const ConnectedInfoPanel = Container.connect(
         .map(p => ({
           fullname:
             (stateProps._infoMap.get(p) || {fullname: ''}).fullname ||
-            stateProps._participantToContactName.get(p) ||
+            stateProps._participantInfo.contactName.get(p) ||
             '',
           isAdmin: stateProps.teamname
             ? TeamConstants.userIsRoleInTeamWithInfo(teamMembers, p, 'admin')

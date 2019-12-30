@@ -201,23 +201,44 @@ const onGetInboxConvsUnboxed = (
   const metas: Array<Types.ConversationMeta> = []
   let added = false
   const usernameToFullname: {[username: string]: string} = {}
+  const participants: Array<{
+    conversationIDKey: Types.ConversationIDKey
+    participants: Types.ParticipantInfo
+  }> = []
   inboxUIItems.forEach(inboxUIItem => {
     const meta = Constants.inboxUIItemToConversationMeta(state, inboxUIItem)
     if (meta) {
       metas.push(meta)
     }
+    let participantInfo: Types.ParticipantInfo = {all: [], contactName: new Map(), name: []}
     ;(inboxUIItem.participants ?? []).forEach((part: RPCChatTypes.UIParticipant) => {
       if (!infoMap.get(part.assertion) && part.fullName) {
         added = true
         usernameToFullname[part.assertion] = part.fullName
       }
+      participantInfo.all.push(part.assertion)
+      if (part.inConvName) {
+        participantInfo.name.push(part.assertion)
+      }
+      if (part.contactName) {
+        participantInfo.contactName.set(part.assertion, part.contactName)
+      }
     })
+    if (participantInfo.all.length > 0) {
+      participants.push({
+        conversationIDKey: Types.stringToConversationIDKey(inboxUIItem.convID),
+        participants: participantInfo,
+      })
+    }
   })
   if (added) {
     actions.push(UsersGen.createUpdateFullnames({usernameToFullname}))
   }
   if (metas.length > 0) {
     actions.push(Chat2Gen.createMetasReceived({metas}))
+  }
+  if (participants.length > 0) {
+    actions.push(Chat2Gen.createSetParticipants({participants}))
   }
   return actions
 }
@@ -1965,8 +1986,9 @@ const onUpdateUserReacjis = (state: Container.TypedState) => {
 
 const openFolder = (state: Container.TypedState, action: Chat2Gen.OpenFolderPayload) => {
   const meta = Constants.getMeta(state, action.payload.conversationIDKey)
+  const participantInfo = Constants.getParticipantInfo(state, action.payload.conversationIDKey)
   const path = FsTypes.stringToPath(
-    meta.teamType !== 'adhoc' ? teamFolder(meta.teamname) : privateFolderWithUsers(meta.nameParticipants)
+    meta.teamType !== 'adhoc' ? teamFolder(meta.teamname) : privateFolderWithUsers(participantInfo.name)
   )
   return FsConstants.makeActionForOpenPathInFilesTab(path)
 }
@@ -2202,8 +2224,9 @@ const sendTyping = (action: Chat2Gen.SendTypingPayload) => {
 const resetChatWithoutThem = (state: Container.TypedState, action: Chat2Gen.ResetChatWithoutThemPayload) => {
   const {conversationIDKey} = action.payload
   const meta = Constants.getMeta(state, conversationIDKey)
+  const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
   // remove all bad people
-  const goodParticipants = new Set(meta.participants)
+  const goodParticipants = new Set(participantInfo.all)
   meta.resetParticipants.forEach(r => goodParticipants.delete(r))
   return Chat2Gen.createPreviewConversation({
     participants: [...goodParticipants],
@@ -2399,7 +2422,7 @@ const ensureSelectedTeamLoaded = (
 
 const ensureSelectedMeta = (state: Container.TypedState) => {
   const meta = state.chat2.metaMap.get(state.chat2.selectedConversation)
-  return !meta || meta.participants.length === 0
+  return !meta
     ? Chat2Gen.createMetaRequestTrusted({
         conversationIDKeys: [state.chat2.selectedConversation],
         force: true,
@@ -2545,8 +2568,8 @@ const fetchConversationBio = async (
   action: Chat2Gen.SelectConversationPayload
 ) => {
   const {conversationIDKey} = action.payload
-  const meta = Constants.getMeta(state, conversationIDKey)
-  const otherParticipants = Constants.getRowParticipants(meta, state.config.username || '')
+  const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
+  const otherParticipants = Constants.getRowParticipants(participantInfo, state.config.username || '')
   if (otherParticipants.length === 1) {
     // we're in a one-on-one convo
     const username = otherParticipants[0] || ''

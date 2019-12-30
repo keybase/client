@@ -16,13 +16,15 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     Constants.noConversationIDKey
   )
   const meta = Constants.getMeta(state, conversationIDKey)
+  const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
   const teamname = meta.teamname
   const generalChannel = Constants.getChannelForTeam(state, teamname, 'general')
+  const generalParts = Constants.getParticipantInfo(state, generalChannel.conversationIDKey)
   const _fullnames = state.users.infoMap
   const title = `Add to #${meta.channelname}`
   return {
-    _allMembers: generalChannel ? generalChannel.participants : [],
-    _alreadyAdded: meta.participants,
+    _allMembers: generalChannel ? generalParts.all : [],
+    _alreadyAdded: participantInfo.all,
     _conversationIDKey: conversationIDKey,
     _fullnames,
     error: anyErrors(state, Constants.waitingKeyAddUsersToChannel),

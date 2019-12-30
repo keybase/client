@@ -77,8 +77,14 @@ const score = (lcFilter: string, lcYou: string, names: Array<string>, insertMatc
   return rawScore > 0 ? Math.max(1, rawScore - inputLength) : 0
 }
 
-const makeSmallItem = (meta: Types.ConversationMeta, filter: string, you: string, insertMatcher: RegExp) => {
-  const s = score(filter, you, meta.teamname ? [meta.teamname] : meta.participants, insertMatcher)
+const makeSmallItem = (
+  meta: Types.ConversationMeta,
+  participantInfo: Types.ParticipantInfo,
+  filter: string,
+  you: string,
+  insertMatcher: RegExp
+) => {
+  const s = score(filter, you, meta.teamname ? [meta.teamname] : participantInfo.all, insertMatcher)
   return s > 0
     ? {
         data: {conversationIDKey: meta.conversationIDKey, type: 'small'} as RowItemSmall,
@@ -105,35 +111,43 @@ const makeBigItem = (meta: Types.ConversationMeta, filter: string, insertMatcher
 }
 
 // Ignore headers, score based on matches of participants, ignore total non matches
-const getFilteredRowsAndMetadata = memoize((metaMap: Types.MetaMap, filter: string, username: string) => {
-  const metas = [...metaMap.values()]
-  const lcFilter = filter.toLowerCase()
-  const lcYou = username.toLowerCase()
-  const insertMatcher = makeInsertMatcher(filter)
-  const rows: Array<RowItem> = metas
-    .map(meta => {
-      if (!Constants.isValidConversationIDKey(meta.conversationIDKey)) {
-        return null
-      }
-      return meta.teamType !== 'big'
-        ? makeSmallItem(meta, lcFilter, lcYou, insertMatcher)
-        : makeBigItem(meta, lcFilter, insertMatcher)
-    })
-    .reduce<Array<{score: number; timestamp: number; data: RowItemSmall | RowItemBig}>>((arr, r) => {
-      r && arr.push(r)
-      return arr
-    }, [])
-    .sort((a, b) => {
-      return a.score === b.score ? b.timestamp - a.timestamp : b.score - a.score
-    })
-    .map(({data}) => data as RowItem)
+const getFilteredRowsAndMetadata = memoize(
+  (
+    metaMap: Types.MetaMap,
+    participantMap: Map<Types.ConversationIDKey, Types.ParticipantInfo>,
+    filter: string,
+    username: string
+  ) => {
+    const metas = [...metaMap.values()]
+    const lcFilter = filter.toLowerCase()
+    const lcYou = username.toLowerCase()
+    const insertMatcher = makeInsertMatcher(filter)
+    const rows: Array<RowItem> = metas
+      .map(meta => {
+        if (!Constants.isValidConversationIDKey(meta.conversationIDKey)) {
+          return null
+        }
+        const participantInfo = participantMap.get(meta.conversationIDKey) ?? Constants.noParticipantInfo
+        return meta.teamType !== 'big'
+          ? makeSmallItem(meta, participantInfo, lcFilter, lcYou, insertMatcher)
+          : makeBigItem(meta, lcFilter, insertMatcher)
+      })
+      .reduce<Array<{score: number; timestamp: number; data: RowItemSmall | RowItemBig}>>((arr, r) => {
+        r && arr.push(r)
+        return arr
+      }, [])
+      .sort((a, b) => {
+        return a.score === b.score ? b.timestamp - a.timestamp : b.score - a.score
+      })
+      .map(({data}) => data as RowItem)
 
-  return {
-    allowShowFloatingButton: false,
-    rows,
-    smallTeamsExpanded: true,
+    return {
+      allowShowFloatingButton: false,
+      rows,
+      smallTeamsExpanded: true,
+    }
   }
-})
+)
 
 export default getFilteredRowsAndMetadata
 

@@ -24,9 +24,10 @@ const InstallBotPopup = (props: Props) => {
   const {commands, featured, inTeam, settings} = Container.useSelector((state: Container.TypedState) => {
     const meta = conversationIDKey && state.chat2.metaMap.get(conversationIDKey)
     let inTeam = false
-    if (meta) {
+    if (meta && conversationIDKey) {
       if (meta.teamType === 'adhoc') {
-        inTeam = meta.participants.includes(botUsername)
+        const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
+        inTeam = participantInfo.all.includes(botUsername)
       } else {
         inTeam = Teams.userInTeam(state, meta.teamname, botUsername)
       }

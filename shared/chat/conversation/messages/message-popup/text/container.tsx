@@ -24,6 +24,7 @@ type OwnProps = {
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const message = ownProps.message
   const meta = Constants.getMeta(state, message.conversationIDKey)
+  const participantInfo = Constants.getParticipantInfo(state, message.conversationIDKey)
   const yourOperations = getCanPerformByID(state, meta.teamID)
   const _canDeleteHistory = yourOperations && yourOperations.deleteChatHistory
   const _canAdminDelete = yourOperations && yourOperations.deleteOtherMessages
@@ -33,7 +34,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   }
   // you can reply privately *if* text message, someone else's message, and not in a 1-on-1 chat
   const _canReplyPrivately =
-    message.type === 'text' && (['small', 'big'].includes(meta.teamType) || meta.participants.length > 2)
+    message.type === 'text' && (['small', 'big'].includes(meta.teamType) || participantInfo.all.length > 2)
   return {
     _canAdminDelete,
     _canDeleteHistory,
@@ -41,7 +42,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     _canReplyPrivately,
     _isDeleteable: message.isDeleteable,
     _isEditable: message.isEditable,
-    _participants: meta.participants,
+    _participants: participantInfo.all,
     _teamname: meta.teamname,
     _you: state.config.username,
   }

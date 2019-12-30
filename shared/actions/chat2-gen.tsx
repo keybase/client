@@ -135,6 +135,7 @@ export const setInboxShowIsNew = 'chat2:setInboxShowIsNew'
 export const setLoadedBotPage = 'chat2:setLoadedBotPage'
 export const setMaybeMentionInfo = 'chat2:setMaybeMentionInfo'
 export const setMinWriterRole = 'chat2:setMinWriterRole'
+export const setParticipants = 'chat2:setParticipants'
 export const setPaymentConfirmInfo = 'chat2:setPaymentConfirmInfo'
 export const setPrependText = 'chat2:setPrependText'
 export const setThreadLoadStatus = 'chat2:setThreadLoadStatus'
@@ -632,6 +633,12 @@ type _SetMinWriterRolePayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly role: TeamsTypes.TeamRoleType
 }
+type _SetParticipantsPayload = {
+  readonly participants: Array<{
+    conversationIDKey: Types.ConversationIDKey
+    participants: Types.ParticipantInfo
+  }>
+}
 type _SetPaymentConfirmInfoPayload = {
   readonly error?: RPCTypes.Status
   readonly summary?: RPCChatTypes.UIChatPaymentSummary
@@ -984,6 +991,13 @@ export const createSetCommandMarkdown = (payload: _SetCommandMarkdownPayload): S
 export const createSetCommandStatusInfo = (
   payload: _SetCommandStatusInfoPayload
 ): SetCommandStatusInfoPayload => ({payload, type: setCommandStatusInfo})
+/**
+ * Set conversation participant info
+ */
+export const createSetParticipants = (payload: _SetParticipantsPayload): SetParticipantsPayload => ({
+  payload,
+  type: setParticipants,
+})
 /**
  * Set filter for channel search
  */
@@ -2037,6 +2051,10 @@ export type SetMinWriterRolePayload = {
   readonly payload: _SetMinWriterRolePayload
   readonly type: typeof setMinWriterRole
 }
+export type SetParticipantsPayload = {
+  readonly payload: _SetParticipantsPayload
+  readonly type: typeof setParticipants
+}
 export type SetPaymentConfirmInfoPayload = {
   readonly payload: _SetPaymentConfirmInfoPayload
   readonly type: typeof setPaymentConfirmInfo
@@ -2310,6 +2328,7 @@ export type Actions =
   | SetLoadedBotPagePayload
   | SetMaybeMentionInfoPayload
   | SetMinWriterRolePayload
+  | SetParticipantsPayload
   | SetPaymentConfirmInfoPayload
   | SetPrependTextPayload
   | SetThreadLoadStatusPayload
