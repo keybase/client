@@ -175,19 +175,24 @@ const Connected = Container.namedConnect(
     let smallRows = makeSmallRows(smallTeams)
     let bigRows = makeBigRows(bigTeams)
     const teamBuilder: RowItemTeamBuilder = {type: 'teamBuilder'}
+
+    const hasAllSmallTeamConvs =
+      (stateProps._inboxLayout?.smallTeams?.length ?? 0) === (stateProps._inboxLayout?.totalSmallTeams ?? 0)
+    const divider: Array<RowItemDivider | RowItemTeamBuilder> =
+      bigRows.length !== 0 || !hasAllSmallTeamConvs
+        ? [{showButton: !hasAllSmallTeamConvs || smallTeamsBelowTheFold, type: 'divider'}]
+        : []
     if (smallRows.length !== 0) {
       if (bigRows.length === 0) {
-        smallRows.push(teamBuilder)
+        if (divider.length !== 0) {
+          divider.push(teamBuilder)
+        } else {
+          smallRows.push(teamBuilder)
+        }
       } else {
         bigRows.push(teamBuilder)
       }
     }
-    const hasAllSmallTeamConvs =
-      (stateProps._inboxLayout?.smallTeams?.length ?? 0) === (stateProps._inboxLayout?.totalSmallTeams ?? 0)
-    const divider: Array<RowItemDivider> =
-      bigRows.length !== 0
-        ? [{showButton: !hasAllSmallTeamConvs || smallTeamsBelowTheFold, type: 'divider'}]
-        : []
     const rows: Array<RowItem> = [...smallRows, ...divider, ...bigRows]
 
     const unreadIndices: Array<number> = []
@@ -224,7 +229,7 @@ const Connected = Container.namedConnect(
       onUntrustedInboxVisible: dispatchProps.onUntrustedInboxVisible,
       rows,
       setInboxNumSmallRows: dispatchProps.setInboxNumSmallRows,
-      smallTeamsExpanded: stateProps.smallTeamsExpanded,
+      smallTeamsExpanded: stateProps.smallTeamsExpanded || bigTeams.length === 0,
       toggleSmallTeamsExpanded: dispatchProps.toggleSmallTeamsExpanded,
       unreadIndices,
     }
