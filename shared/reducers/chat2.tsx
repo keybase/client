@@ -27,6 +27,7 @@ type Actions =
   | EngineActions
   | BotsGen.UpdateFeaturedBotsPayload
   | BotsGen.SetLoadedAllBotsPayload
+  | BotsGen.SetSearchFeaturedAndUsersResultsPayload
 
 const initialState: Types.State = Constants.makeState()
 
