@@ -29,7 +29,7 @@ export const addUserToTeamsWaitingKey = (username: string) => `addUserToTeams:${
 export const addPeopleToTeamWaitingKey = (teamname: Types.Teamname) => `teamAddPeople:${teamname}`
 export const addToTeamByEmailWaitingKey = (teamname: Types.Teamname) => `teamAddByEmail:${teamname}`
 export const getChannelsWaitingKey = (teamID: Types.TeamID) => `getChannels:${teamID}`
-export const createChannelWaitingKey = (teamname: Types.Teamname) => `createChannel:${teamname}`
+export const createChannelWaitingKey = (teamID: Types.TeamID) => `createChannel:${teamID}`
 export const settingsWaitingKey = (teamname: Types.Teamname) => `teamSettings:${teamname}`
 export const retentionWaitingKey = (teamname: Types.Teamname) => `teamRetention:${teamname}`
 export const addMemberWaitingKey = (teamID: Types.TeamID, ...usernames: Array<string>) =>

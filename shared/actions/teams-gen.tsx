@@ -99,7 +99,7 @@ type _CheckRequestedAccessPayload = {readonly teamname: string}
 type _ClearAddUserToTeamsResultsPayload = void
 type _ClearNavBadgesPayload = void
 type _CreateChannelPayload = {
-  readonly teamname: string
+  readonly teamID: Types.TeamID
   readonly channelname: string
   readonly description: string | null
 }

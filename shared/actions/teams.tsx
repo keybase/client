@@ -883,8 +883,9 @@ function* saveChannelMembership(state: TypedState, action: TeamsGen.SaveChannelM
   }
 }
 
-function* createChannel(_: TypedState, action: TeamsGen.CreateChannelPayload, logger: Saga.SagaLogger) {
-  const {channelname, description, teamname} = action.payload
+function* createChannel(state: TypedState, action: TeamsGen.CreateChannelPayload, logger: Saga.SagaLogger) {
+  const {channelname, description, teamID} = action.payload
+  const teamname = Constants.getTeamNameFromID(state, teamID)
   try {
     const result: Saga.RPCPromiseType<typeof RPCChatTypes.localNewConversationLocalRpcPromise> = yield RPCChatTypes.localNewConversationLocalRpcPromise(
       {
@@ -895,7 +896,7 @@ function* createChannel(_: TypedState, action: TeamsGen.CreateChannelPayload, lo
         topicName: channelname,
         topicType: RPCChatTypes.TopicType.chat,
       },
-      Constants.createChannelWaitingKey(teamname)
+      Constants.createChannelWaitingKey(teamID)
     )
 
     // No error if we get here.
@@ -916,7 +917,7 @@ function* createChannel(_: TypedState, action: TeamsGen.CreateChannelPayload, lo
           tlfName: teamname,
           tlfPublic: false,
         },
-        Constants.createChannelWaitingKey(teamname)
+        Constants.createChannelWaitingKey(teamID)
       )
     }
 

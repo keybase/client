@@ -27,7 +27,7 @@
       "teamname": "string"
     },
     "createChannel": {
-      "teamname": "string",
+      "teamID": "Types.TeamID",
       "channelname": "string",
       "description": "string | null"
     },

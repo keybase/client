@@ -165,7 +165,7 @@ type Props = {
 }
 
 const Wrapper = (p: Props) => {
-  const {_loadChannels, _onView, _saveSubscriptions, channels, selectedChatID, ...rest} = p
+  const {_loadChannels, _onView, _saveSubscriptions, channels, selectedChatID, teamname, ...rest} = p
   const oldChannelState = React.useMemo(
     () =>
       channels.reduce<{[key: string]: boolean}>((acc, c) => {
@@ -181,9 +181,9 @@ const Wrapper = (p: Props) => {
 
   const onClickChannel = React.useCallback(
     (channelname: string) => {
-      _onView(oldChannelState, nextChannelState, rest.teamname, channelname)
+      _onView(oldChannelState, nextChannelState, teamname, channelname)
     },
-    [_onView, oldChannelState, nextChannelState, rest.teamname]
+    [_onView, oldChannelState, nextChannelState, teamname]
   )
 
   const onSaveSubscriptions = React.useCallback(() => {
@@ -224,7 +224,7 @@ const Wrapper = (p: Props) => {
       onBack={rest.onBack}
       waitingKey={rest.waitingKey}
       waitingForGet={rest.waitingForGet}
-      teamname={rest.teamname}
+      teamname={teamname}
       onEdit={rest.onEdit}
       onChangeSearch={rest.onChangeSearch}
       onClose={rest.onClose}
@@ -242,10 +242,7 @@ const Wrapper = (p: Props) => {
   )
 }
 
-export default Container.connect(mapStateToProps, mapDispatchToProps, (s, d, _: OwnProps) => {
-  const res: Props = {
-    ...s,
-    ...d,
-  }
-  return res
-})(Wrapper)
+export default Container.connect(mapStateToProps, mapDispatchToProps, (s, d, _: OwnProps) => ({
+  ...s,
+  ...d,
+}))(Wrapper)

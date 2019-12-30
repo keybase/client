@@ -2304,6 +2304,7 @@ function* loadChannelInfos(state: Container.TypedState, action: Chat2Gen.SelectC
   const {conversationIDKey} = action.payload
   const meta = Constants.getMeta(state, conversationIDKey)
   const teamID = meta.teamID
+  // If this is an impteam, there are no channel infos to load.
   if (!meta.teamname) {
     return
   }
