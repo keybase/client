@@ -1,6 +1,7 @@
 package client
 
 import (
+	"fmt"
 	"io"
 
 	"github.com/keybase/client/go/libkb"
@@ -10,8 +11,9 @@ import (
 
 type contactSettingsAPIHandler struct {
 	libkb.Contextified
-	cli    keybase1.AccountClient
-	indent bool
+	accountClient keybase1.AccountClient
+	teamsClient   keybase1.TeamsClient
+	indent        bool
 }
 
 func newContactSettingsAPIHandler(g *libkb.GlobalContext, indentOutput bool) *contactSettingsAPIHandler {
@@ -42,11 +44,17 @@ func (t *contactSettingsAPIHandler) handleV1(ctx context.Context, c Call, w io.W
 		return ErrInvalidMethod{name: c.Method, version: 1}
 	}
 
-	cli, err := GetAccountClient(t.G())
+	accountClient, err := GetAccountClient(t.G())
 	if err != nil {
 		return err
 	}
-	t.cli = cli
+	t.accountClient = accountClient
+
+	teamsClient, err := GetTeamsClient(t.G())
+	if err != nil {
+		return err
+	}
+	t.teamsClient = teamsClient
 
 	switch c.Method {
 	case getMethod:
@@ -58,16 +66,46 @@ func (t *contactSettingsAPIHandler) handleV1(ctx context.Context, c Call, w io.W
 	}
 }
 
+type TeamContactSettingsWithTeamName struct {
+	TeamName string `json:"team_name"`
+	Enabled  bool   `json:"enabled"`
+}
+
+type ContactSettingsWithTeamNames struct {
+	AllowFolloweeDegrees int                               `json:"allow_followee_degrees"`
+	AllowGoodTeams       bool                              `json:"allow_good_teams"`
+	Enabled              bool                              `json:"enabled"`
+	Teams                []TeamContactSettingsWithTeamName `json:"teams"`
+}
+
 func (t *contactSettingsAPIHandler) get(ctx context.Context, c Call, w io.Writer) error {
-	res, err := t.cli.UserGetContactSettings(ctx)
+	res, err := t.accountClient.UserGetContactSettings(ctx)
 	if err != nil {
 		return t.encodeErr(c, err, w)
 	}
-	return t.encodeResult(c, res, w)
+	cliRes := ContactSettingsWithTeamNames{
+		AllowFolloweeDegrees: res.AllowFolloweeDegrees,
+		AllowGoodTeams:       res.AllowGoodTeams,
+		Enabled:              res.Enabled,
+		Teams:                make([]TeamContactSettingsWithTeamName, len(res.Teams)),
+	}
+	for i, team := range res.Teams {
+		name, err := t.teamsClient.GetTeamName(ctx, team.TeamID)
+		if err != nil {
+			return t.encodeErr(c,
+				fmt.Errorf("Unexpected error resolving team ID (%v) to name", team.TeamID), w)
+		}
+		nameStr := name.String()
+		cliRes.Teams[i] = TeamContactSettingsWithTeamName{
+			TeamName: nameStr,
+			Enabled:  team.Enabled,
+		}
+	}
+	return t.encodeResult(c, cliRes, w)
 }
 
 type setOptions struct {
-	Settings keybase1.ContactSettings `json:"settings"`
+	Settings ContactSettingsWithTeamNames `json:"settings"`
 }
 
 func (a *setOptions) Check() error {
@@ -80,8 +118,24 @@ func (t *contactSettingsAPIHandler) set(ctx context.Context, c Call, w io.Writer
 	if err := unmarshalOptions(c, &opts); err != nil {
 		return t.encodeErr(c, err, w)
 	}
-
-	err := t.cli.UserSetContactSettings(ctx, opts.Settings)
+	cliArgs := opts.Settings
+	args := keybase1.ContactSettings{
+		AllowFolloweeDegrees: cliArgs.AllowFolloweeDegrees,
+		AllowGoodTeams:       cliArgs.AllowGoodTeams,
+		Enabled:              cliArgs.Enabled,
+		Teams:                make([]keybase1.TeamContactSettings, len(cliArgs.Teams)),
+	}
+	for i, team := range cliArgs.Teams {
+		// resolve team name
+		tid, err := t.teamsClient.GetTeamID(ctx, team.TeamName)
+		if err != nil {
+			return t.encodeErr(c, fmt.Errorf("Failed to get team ID from team name %v", team.TeamName), w)
+		}
+		args.Teams[i] = keybase1.TeamContactSettings{
+			TeamID:  tid,
+			Enabled: team.Enabled}
+	}
+	err := t.accountClient.UserSetContactSettings(ctx, args)
 	if err != nil {
 		return t.encodeErr(c, err, w)
 	}

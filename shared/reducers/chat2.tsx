@@ -27,6 +27,7 @@ type Actions =
   | EngineActions
   | BotsGen.UpdateFeaturedBotsPayload
   | BotsGen.SetLoadedAllBotsPayload
+  | BotsGen.SetSearchFeaturedAndUsersResultsPayload
 
 const initialState: Types.State = Constants.makeState()
 
@@ -72,6 +73,9 @@ const botActions: Container.ActionHandler<Actions, Types.State> = {
   [BotsGen.setLoadedAllBots]: (draftState, action) => {
     const {loaded} = action.payload
     draftState.featuredBotsLoaded = loaded
+  },
+  [BotsGen.setSearchFeaturedAndUsersResults]: (draftState, action) => {
+    draftState.botSearchResults = action.payload.results
   },
 }
 

@@ -1,22 +1,28 @@
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import ForgotUsername from '.'
+import * as Container from '../../util/container'
+import * as Constants from '../../constants/provision'
 
-const props = {
-  forgotUsernameResult: '',
-  onBack: Sb.action('onBack'),
-  onSubmit: Sb.action('onSubmit'),
-  waiting: false,
-}
+const makeStore = (msg: string) =>
+  Container.produce(Sb.createStoreWithCommon(), draftState => {
+    draftState.provision = {
+      ...Constants.makeState(),
+      forgotUsernameResult: msg,
+    }
+  })
 
 const load = () => {
   Sb.storiesOf('Provision/ForgotUsername', module)
-    .add('Success', () => <ForgotUsername {...props} forgotUsernameResult="success" />)
+    .add('Success', () => (
+      <Sb.MockStore store={makeStore('success')}>
+        <ForgotUsername />
+      </Sb.MockStore>
+    ))
     .add('Error', () => (
-      <ForgotUsername
-        {...props}
-        forgotUsernameResult="We couldn't find an account with that email address. Try again?"
-      />
+      <Sb.MockStore store={makeStore(`We couldn't find an account with that email address. Try again?`)}>
+        <ForgotUsername />
+      </Sb.MockStore>
     ))
 }
 

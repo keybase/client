@@ -3796,6 +3796,14 @@
       ],
       "response": null
     },
+    "requestInboxSmallIncrease": {
+      "request": [],
+      "response": null
+    },
+    "requestInboxSmallReset": {
+      "request": [],
+      "response": null
+    },
     "getInboxNonblockLocal": {
       "request": [
         {

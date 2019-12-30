@@ -145,6 +145,11 @@ export type BotPublicCommands = {
   commands: Array<string>
 }
 
+export type BotSearchResults = {
+  bots: Array<RPCTypes.FeaturedBot>
+  users: Array<string>
+}
+
 export type State = Readonly<{
   accountsInfoMap: Map<
     Common.ConversationIDKey,
@@ -157,6 +162,7 @@ export type State = Readonly<{
   blockButtonsMap: Map<RPCTypes.TeamID, BlockButtonsInfo> // Should we show block buttons for this team ID?
   botCommandsUpdateStatusMap: Map<Common.ConversationIDKey, RPCChatTypes.UIBotCommandsUpdateStatus>
   botPublicCommands: Map<string, BotPublicCommands>
+  botSearchResults?: BotSearchResults
   botSettings: Map<Common.ConversationIDKey, Map<string, RPCTypes.TeamBotSettings>>
   channelSearchText: string
   commandMarkdownMap: Map<Common.ConversationIDKey, RPCChatTypes.UICommandMarkdown>

@@ -545,7 +545,7 @@ type BotCommandManager interface {
 	Resumable
 	Advertise(ctx context.Context, alias *string, ads []chat1.AdvertiseCommandsParam) error
 	Clear(ctx context.Context) error
-	PublicCommandsConv(ctx context.Context, username string) (chat1.ConversationID, error)
+	PublicCommandsConv(ctx context.Context, username string) (*chat1.ConversationID, error)
 	ListCommands(ctx context.Context, convID chat1.ConversationID) ([]chat1.UserBotCommandOutput, map[string]string, error)
 	UpdateCommands(ctx context.Context, convID chat1.ConversationID, info *chat1.BotInfo) (chan error, error)
 }
@@ -565,6 +565,8 @@ type UIInboxLoader interface {
 	UpdateLayout(ctx context.Context, reselectMode chat1.InboxLayoutReselectMode, reason string)
 	UpdateLayoutFromNewMessage(ctx context.Context, conv RemoteConversation)
 	UpdateLayoutFromSubteamRename(ctx context.Context, convs []RemoteConversation)
+	UpdateLayoutFromSmallIncrease(ctx context.Context)
+	UpdateLayoutFromSmallReset(ctx context.Context)
 	UpdateConvs(ctx context.Context, convIDs []chat1.ConversationID) error
 	LoadNonblock(ctx context.Context, query *chat1.GetInboxLocalQuery, maxUnbox *int, skipUnverified bool) error
 }

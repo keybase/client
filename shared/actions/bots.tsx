@@ -2,6 +2,7 @@ import * as BotsGen from './bots-gen'
 import * as Saga from '../util/saga'
 import * as Container from '../util/container'
 import * as RPCTypes from '../constants/types/rpc-gen'
+import * as Constants from '../constants/bots'
 import logger from '../logger'
 import {RPCError} from 'util/errors'
 
@@ -45,7 +46,6 @@ const searchFeaturedBots = async (_: Container.TypedState, action: BotsGen.Searc
       // don't do anything with a bad response from rpc
       return
     }
-
     return BotsGen.createUpdateFeaturedBots({bots})
   } catch (e) {
     const err: RPCError = e
@@ -58,9 +58,53 @@ const searchFeaturedBots = async (_: Container.TypedState, action: BotsGen.Searc
   }
 }
 
+const searchFeaturedAndUsers = async (action: BotsGen.SearchFeaturedAndUsersPayload) => {
+  const {query} = action.payload
+  let botRes: RPCTypes.SearchRes | null | undefined
+  let userRes: Array<RPCTypes.APIUserSearchResult> | null | undefined
+  try {
+    ;[botRes, userRes] = await Promise.all([
+      RPCTypes.featuredBotSearchRpcPromise(
+        {
+          limit: 10,
+          offset: 0,
+          query,
+        },
+        Constants.waitingKeyBotSearchFeatured
+      ),
+      RPCTypes.userSearchUserSearchRpcPromise(
+        {
+          includeContacts: false,
+          includeServicesSummary: false,
+          maxResults: 10,
+          query,
+          service: 'keybase',
+        },
+        Constants.waitingKeyBotSearchUsers
+      ),
+    ])
+  } catch (err) {
+    logger.info(`searchFeaturedAndUsers: failed to run search: ${err.message}`)
+    return
+  }
+  return BotsGen.createSetSearchFeaturedAndUsersResults({
+    results: {
+      bots: botRes?.bots ?? [],
+      users: (userRes ?? []).reduce<Array<string>>((l, r) => {
+        const username = r?.keybase?.username
+        if (username) {
+          l.push(username)
+        }
+        return l
+      }, []),
+    },
+  })
+}
+
 function* botsSaga() {
   yield* Saga.chainAction2(BotsGen.getFeaturedBots, getFeaturedBots)
   yield* Saga.chainAction2(BotsGen.searchFeaturedBots, searchFeaturedBots)
+  yield* Saga.chainAction(BotsGen.searchFeaturedAndUsers, searchFeaturedAndUsers)
 }
 
 export default botsSaga

@@ -6,11 +6,11 @@ package service
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
 )
@@ -277,49 +277,35 @@ func (h *AccountHandler) TimeTravelReset(ctx context.Context, arg keybase1.TimeT
 	return err
 }
 
+func (h *AccountHandler) GuessCurrentLocation(ctx context.Context, arg keybase1.GuessCurrentLocationArg) (string, error) {
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	res, err := mctx.G().API.Get(mctx, libkb.APIArg{
+		Endpoint:       "account/location_suggest",
+		SessionType:    libkb.APISessionTypeNONE,
+		InitialTimeout: 2500 * time.Millisecond,
+		RetryCount:     2,
+	})
+	if err != nil {
+		mctx.Warning("Unable to retrieve the current location: %v", err)
+		return arg.DefaultCountry, nil
+	}
+	code, err := res.Body.AtKey("country_code").GetString()
+	if err != nil || code == "-" {
+		mctx.Warning("Unable to retrieve the current location: %v", err)
+		return arg.DefaultCountry, nil
+	}
+	mctx.Debug("Guessed this device's country to be %v", code)
+	return code, nil
+}
+
 func (h *AccountHandler) UserGetContactSettings(ctx context.Context) (res keybase1.ContactSettings, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.TraceTimed("AccountHandler#UserGetContactSettings", func() error { return err })()
-	res, err = libkb.GetContactSettings(mctx)
-	for i, team := range res.Teams {
-		name, err := teams.ResolveIDToName(mctx.Ctx(), mctx.G(), *team.TeamID)
-		if err != nil {
-			return res, fmt.Errorf("Unexpected error resolving team ID (%v) to name", team.TeamID)
-		}
-		nameStr := name.String()
-		res.Teams[i].TeamName = &nameStr
-	}
-	return res, err
+	return libkb.GetContactSettings(mctx)
 }
 
-// UserSetContactSettings accepts TeamContactSettings with either TeamID or
-// TeamName set, for ease of use. It resolves TeamNames, and makes sure that TeamContactSettings
-// passed to the API (via libkb method) have TeamID set and TeamName not set.
 func (h *AccountHandler) UserSetContactSettings(ctx context.Context, arg keybase1.ContactSettings) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.TraceTimed("AccountHandler#UserSetContactSettings", func() error { return err })()
-	teamsArg := []keybase1.TeamContactSettings{}
-	for _, team := range arg.Teams {
-		if team.TeamID == nil && team.TeamName == nil {
-			// neither is set; skip
-			continue
-		} else if team.TeamName != nil {
-			// resolve team name
-			tid, err := teams.GetTeamIDByNameRPC(mctx, *team.TeamName)
-			if err != nil {
-				return fmt.Errorf("Failed to get team ID from team name %v", team.TeamName)
-			}
-			if team.TeamID != nil && *team.TeamID != tid {
-				return fmt.Errorf("Resolved team ID from team name (%v) %v != passed in team ID %v", team.TeamName, tid, team.TeamID)
-			}
-			team.TeamID = &tid
-			team.TeamName = nil
-		}
-		if team.TeamID == nil || team.TeamName != nil {
-			return fmt.Errorf("Unexpected team contact setting; team ID must != nil and team name must == nil: %+v", team)
-		}
-		teamsArg = append(teamsArg, team)
-	}
-	arg.Teams = teamsArg
 	return libkb.SetContactSettings(mctx, arg)
 }

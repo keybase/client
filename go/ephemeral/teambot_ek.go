@@ -78,7 +78,8 @@ func prepareNewTeambotEK(mctx libkb.MetaContext, team *teams.Team, botUID keybas
 	if err != nil {
 		return "", nil, err
 	} else if len(activeMetadataMap) == 0 {
-		return "", nil, fmt.Errorf("unable to make teambot key, bot has no active user EKs")
+		mctx.Debug("unable to make teambot key, bot has no active user EKs")
+		return "", nil, nil
 	}
 	activeMetadata := activeMetadataMap[botUID]
 	metadata.UserEkGeneration = activeMetadata.Generation

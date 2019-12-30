@@ -8,6 +8,7 @@ type Props = {
   author: string
   authorIsYou: boolean
   channelname: string
+  isAdHoc: boolean
   isBigTeam: boolean
   joiners: Array<string>
   leavers: Array<string>
@@ -95,7 +96,7 @@ const JoinedUserNotice = (props: Props) => (
     <Kb.Text type="BodySmall">
       {props.authorIsYou ? 'You ' : ''}
       {props.leavers.length > props.joiners.length ? 'left' : 'joined'}{' '}
-      {props.isBigTeam ? `#${props.channelname}` : 'the team'}.
+      {props.isBigTeam ? `#${props.channelname}` : props.isAdHoc ? 'the conversation' : 'the team'}.
     </Kb.Text>
     {props.authorIsYou && props.isBigTeam && (
       <Kb.Text type="BodySmall">

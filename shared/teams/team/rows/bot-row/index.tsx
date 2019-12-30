@@ -51,7 +51,7 @@ export const TeamBotRow = (props: Props) => {
       <Kb.Text type="BodySmall">
         &nbsp;• by{' '}
         {props.ownerTeam ? (
-          <Kb.Text type="BodySmall">@{props.ownerTeam}</Kb.Text>
+          <Kb.TeamWithPopup prefix="@" inline={true} teamName={props.ownerTeam} type="BodySmall" />
         ) : (
           <Kb.ConnectedUsernames
             prefix="@"

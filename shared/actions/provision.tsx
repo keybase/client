@@ -597,7 +597,8 @@ const forgotUsername = async (action: ProvisionGen.ForgotUsernamePayload) => {
         result: Constants.decodeForgotUsernameError(error),
       })
     }
-  } else {
+  }
+  if (action.payload.phone) {
     try {
       await RPCTypes.accountRecoverUsernameWithPhoneRpcPromise(
         {phone: action.payload.phone},
@@ -610,6 +611,8 @@ const forgotUsername = async (action: ProvisionGen.ForgotUsernamePayload) => {
       })
     }
   }
+
+  return null
 }
 
 function* backToDeviceList(_: Container.TypedState, action: ProvisionGen.BackToDeviceListPayload) {
