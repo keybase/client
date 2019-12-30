@@ -18,20 +18,6 @@ const HellobotResult = React.memo((props: ResultProps) => {
 })
 
 const styles = Styles.styleSheetCreate(() => ({
-  actionButton: Styles.platformStyles({
-    common: {
-      marginLeft: Styles.globalMargins.tiny,
-    },
-    isElectron: {
-      height: Styles.globalMargins.small,
-      width: Styles.globalMargins.small,
-    },
-    isMobile: {
-      height: Styles.globalMargins.large,
-      marginRight: Styles.globalMargins.tiny,
-      width: Styles.globalMargins.large,
-    },
-  }),
   rowContainer: {
     ...Styles.padding(
       Styles.globalMargins.tiny,
