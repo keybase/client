@@ -20,22 +20,22 @@ export type Props = {
   onJoinTeam: () => void
   onViewTeam: () => void
   prefix?: string
+  shouldLoadTeam?: boolean
   teamName: string
   type: TextType
   underline?: boolean
 }
 
 export const TeamWithPopup = (props: Props) => {
-  const {loadTeam, onJoinTeam, onViewTeam} = props
+  const {loadTeam, onJoinTeam, onViewTeam, shouldLoadTeam = true} = props
   const {description, isMember, isOpen, memberCount} = props
   const {prefix, teamName, type, inline} = props
   const popupRef = React.useRef(null)
   const [showPopup, setShowPopup] = React.useState(false)
   // load team details once on mount
   React.useEffect(() => {
-    loadTeam()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    shouldLoadTeam && loadTeam()
+  }, [shouldLoadTeam, loadTeam])
 
   const _getAttachmentRef = () => popupRef.current
   const onHidePopup = () => setShowPopup(false)

@@ -9,6 +9,7 @@ import {TextType} from '../text'
 type OwnProps = {
   inline?: boolean
   prefix?: string
+  shouldLoadTeam?: boolean
   teamName: string
   type: TextType
   underline?: boolean
@@ -47,6 +48,7 @@ const ConnectedTeamWithPopup = Container.connect(
       onJoinTeam: () => dispatchProps._onJoinTeam(ownProps.teamName),
       onViewTeam: () => dispatchProps._onViewTeam(stateProps._teamID),
       prefix: ownProps.prefix,
+      shouldLoadTeam: ownProps.shouldLoadTeam,
       teamName: ownProps.teamName,
       type: ownProps.type,
       underline: ownProps.underline,
