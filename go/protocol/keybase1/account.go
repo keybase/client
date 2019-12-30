@@ -59,27 +59,13 @@ func (o GetLockdownResponse) DeepCopy() GetLockdownResponse {
 }
 
 type TeamContactSettings struct {
-	TeamID   *TeamID `codec:"teamID,omitempty" json:"team_id,omitempty"`
-	TeamName *string `codec:"teamName,omitempty" json:"team_name,omitempty"`
-	Enabled  bool    `codec:"enabled" json:"enabled"`
+	TeamID  TeamID `codec:"teamID" json:"team_id"`
+	Enabled bool   `codec:"enabled" json:"enabled"`
 }
 
 func (o TeamContactSettings) DeepCopy() TeamContactSettings {
 	return TeamContactSettings{
-		TeamID: (func(x *TeamID) *TeamID {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.TeamID),
-		TeamName: (func(x *string) *string {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x)
-			return &tmp
-		})(o.TeamName),
+		TeamID:  o.TeamID.DeepCopy(),
 		Enabled: o.Enabled,
 	}
 }

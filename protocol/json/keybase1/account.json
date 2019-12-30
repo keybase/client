@@ -69,20 +69,9 @@
       "name": "TeamContactSettings",
       "fields": [
         {
-          "type": [
-            null,
-            "TeamID"
-          ],
+          "type": "TeamID",
           "name": "teamID",
           "jsonkey": "team_id"
-        },
-        {
-          "type": [
-            null,
-            "string"
-          ],
-          "name": "teamName",
-          "jsonkey": "team_name"
         },
         {
           "type": "boolean",

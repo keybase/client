@@ -97,60 +97,17 @@ func TestContactSettingsAPI(t *testing.T) {
 	res, err := handler.UserGetContactSettings(ctx)
 	require.NoError(t, err)
 
-	// set with bad TeamContactSettings; should skip
+	// set
 	settings := keybase1.ContactSettings{
 		Enabled:              true,
 		AllowGoodTeams:       true,
 		AllowFolloweeDegrees: 2,
 		Teams: []keybase1.TeamContactSettings{
-			{
+			{TeamID: *teamID,
 				Enabled: true,
 			}},
 	}
 	expectedSettings := settings
-	expectedSettings.Teams = nil
-	err = handler.UserSetContactSettings(ctx, settings)
-	require.NoError(t, err)
-
-	// get
-	res, err = handler.UserGetContactSettings(ctx)
-	require.NoError(t, err)
-	res.Version = nil
-	require.Equal(t, expectedSettings, res)
-
-	// set
-	settings = keybase1.ContactSettings{
-		Enabled:              true,
-		AllowGoodTeams:       true,
-		AllowFolloweeDegrees: 2,
-		Teams: []keybase1.TeamContactSettings{
-			{TeamID: teamID,
-				Enabled: true,
-			}},
-	}
-	expectedSettings = settings
-	expectedSettings.Teams[0].TeamName = &teamName
-	err = handler.UserSetContactSettings(ctx, settings)
-	require.NoError(t, err)
-
-	// get
-	res, err = handler.UserGetContactSettings(ctx)
-	require.NoError(t, err)
-	res.Version = nil
-	require.Equal(t, expectedSettings, res)
-
-	// set with team name
-	settings = keybase1.ContactSettings{
-		Enabled:              true,
-		AllowGoodTeams:       true,
-		AllowFolloweeDegrees: 2,
-		Teams: []keybase1.TeamContactSettings{
-			{TeamName: &teamName,
-				Enabled: true,
-			}},
-	}
-	expectedSettings = settings
-	expectedSettings.Teams[0].TeamID = teamID
 	err = handler.UserSetContactSettings(ctx, settings)
 	require.NoError(t, err)
 
