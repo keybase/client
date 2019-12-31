@@ -17,14 +17,6 @@ type OwnProps = {
 
 const blankInfo = Constants.initialMemberInfo
 
-type DispatchProps = {
-  _onEdit: (conversationIDKey: Chat2Types.ConversationIDKey, username: string) => void
-  _onRemove: (conversationIDKey: Chat2Types.ConversationIDKey, username: string) => void
-  _onShowTracker: (username: string) => void
-  onChat: () => void
-  onClick: () => void
-}
-
 export default connect(
   (state, {teamID, username}: OwnProps) => {
     const teamDetails = Constants.getTeamDetails(state, teamID)
@@ -52,7 +44,7 @@ export default connect(
       youCanManageMembers: Constants.getCanPerform(state, teamname).manageMembers,
     }
   },
-  (dispatch, ownProps: OwnProps): DispatchProps => ({
+  (dispatch, ownProps: OwnProps) => ({
     _onEdit: (conversationIDKey: Chat2Types.ConversationIDKey, username: string) =>
       dispatch(
         RouteTreeGen.createNavigateAppend({
@@ -86,7 +78,7 @@ export default connect(
     onClick: () =>
       dispatch(RouteTreeGen.createNavigateAppend({path: [{props: ownProps, selected: 'teamMember'}]})),
   }),
-  (stateProps, dispatchProps: DispatchProps, ownProps: OwnProps) => ({
+  (stateProps, dispatchProps, ownProps: OwnProps) => ({
     botAlias: stateProps.botAlias,
     description: stateProps.description,
     onClick: dispatchProps.onClick,
