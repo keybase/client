@@ -2230,17 +2230,6 @@ func (e RevokeCurrentDeviceError) ToStatus() keybase1.Status {
 	}
 }
 
-func (e RevokeLastDeviceWithoutPassphraseError) ToStatus() keybase1.Status {
-	return keybase1.Status{
-		Code: SCRevokeLastDevice,
-		Name: "SC_DEVICE_REVOKE_LAST",
-		Desc: e.Error(),
-		Fields: []keybase1.StringKVPair{
-			{Key: "NoPassphrase", Value: "true"},
-		},
-	}
-}
-
 func (e RevokeLastDeviceError) ToStatus() keybase1.Status {
 	x := keybase1.Status{
 		Code: SCRevokeLastDevice,

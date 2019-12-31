@@ -2357,12 +2357,6 @@ func (e RevokeCurrentDeviceError) Error() string {
 	return "cannot revoke the current device without confirmation"
 }
 
-type RevokeLastDeviceWithoutPassphraseError struct{}
-
-func (e RevokeLastDeviceWithoutPassphraseError) Error() string {
-	return "cannot revoke the last device; set a passphrase first"
-}
-
 type RevokeLastDeviceError struct{ NoPassphrase bool }
 
 func (e RevokeLastDeviceError) Error() string {
