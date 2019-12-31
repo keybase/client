@@ -77,6 +77,8 @@ export type TypedActionsMap = {
   'bots:searchFeaturedBots': bots.SearchFeaturedBotsPayload
   'bots:updateFeaturedBots': bots.UpdateFeaturedBotsPayload
   'bots:setLoadedAllBots': bots.SetLoadedAllBotsPayload
+  'bots:searchFeaturedAndUsers': bots.SearchFeaturedAndUsersPayload
+  'bots:setSearchFeaturedAndUsersResults': bots.SetSearchFeaturedAndUsersResultsPayload
   'chat2:toggleSmallTeamsExpanded': chat2.ToggleSmallTeamsExpandedPayload
   'chat2:deselectConversation': chat2.DeselectConversationPayload
   'chat2:selectConversation': chat2.SelectConversationPayload
@@ -232,6 +234,16 @@ export type TypedActionsMap = {
   'chat2:setAudioRecordingPostInfo': chat2.SetAudioRecordingPostInfoPayload
   'chat2:loadNextBotPage': chat2.LoadNextBotPagePayload
   'chat2:setLoadedBotPage': chat2.SetLoadedBotPagePayload
+  'chat2:refreshBotPublicCommands': chat2.RefreshBotPublicCommandsPayload
+  'chat2:setBotPublicCommands': chat2.SetBotPublicCommandsPayload
+  'chat2:addBotMember': chat2.AddBotMemberPayload
+  'chat2:refreshBotSettings': chat2.RefreshBotSettingsPayload
+  'chat2:setBotSettings': chat2.SetBotSettingsPayload
+  'chat2:removeBotMember': chat2.RemoveBotMemberPayload
+  'chat2:editBotSettings': chat2.EditBotSettingsPayload
+  'chat2:loadMoreSmalls': chat2.LoadMoreSmallsPayload
+  'chat2:resetSmalls': chat2.ResetSmallsPayload
+  'chat2:setParticipants': chat2.SetParticipantsPayload
   'config:startHandshake': config.StartHandshakePayload
   'config:restartHandshake': config.RestartHandshakePayload
   'config:daemonHandshake': config.DaemonHandshakePayload
@@ -600,6 +612,8 @@ export type TypedActionsMap = {
   'fs:loadedAdditionalTlf': fs.LoadedAdditionalTlfPayload
   'fs:loadFilesTabBadge': fs.LoadFilesTabBadgePayload
   'fs:loadedFilesTabBadge': fs.LoadedFilesTabBadgePayload
+  'fs:userIn': fs.UserInPayload
+  'fs:userOut': fs.UserOutPayload
   'fs:setDebugLevel': fs.SetDebugLevelPayload
   'git:loadGit': git.LoadGitPayload
   'git:loaded': git.LoadedPayload
@@ -802,6 +816,8 @@ export type TypedActionsMap = {
   'settings:loadedProxyData': settings.LoadedProxyDataPayload
   'settings:saveProxyData': settings.SaveProxyDataPayload
   'settings:certificatePinningToggled': settings.CertificatePinningToggledPayload
+  'settings:loadDefaultPhoneNumberCountry': settings.LoadDefaultPhoneNumberCountryPayload
+  'settings:updateDefaultPhoneNumberCountry': settings.UpdateDefaultPhoneNumberCountryPayload
   'settings:loginBrowserViaWebAuthToken': settings.LoginBrowserViaWebAuthTokenPayload
   'signup:goBackAndClearErrors': signup.GoBackAndClearErrorsPayload
   'signup:requestAutoInvite': signup.RequestAutoInvitePayload

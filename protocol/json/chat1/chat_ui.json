@@ -193,6 +193,10 @@
       "name": "UIInboxLayout",
       "fields": [
         {
+          "type": "int",
+          "name": "totalSmallTeams"
+        },
+        {
           "type": {
             "type": "array",
             "items": "UIInboxSmallTeamRow"

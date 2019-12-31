@@ -60,7 +60,8 @@ export default Container.namedConnect(
     let teamID: TeamTypes.TeamID = TeamTypes.noTeamID
     if (conversationIDKey && conversationIDKey !== ChatConstants.noConversationIDKey) {
       const meta = state.chat2.metaMap.get(conversationIDKey) || ChatConstants.makeConversationMeta()
-      const participants = ChatConstants.getRowParticipants(meta, state.config.username)
+      const participantInfo = ChatConstants.getParticipantInfo(state, conversationIDKey)
+      const participants = ChatConstants.getRowParticipants(participantInfo, state.config.username)
       // If it's a one-on-one chat, we need the user's fullname.
       const fullname =
         (participants.length === 1 &&
@@ -136,7 +137,7 @@ export default Container.namedConnect(
         RouteTreeGen.createNavigateAppend({
           path: [
             {
-              props: {blockByDefault: others.length === 1, convID: conversationIDKey, others, team},
+              props: {blockUserByDefault: others.length === 1, convID: conversationIDKey, others, team},
               selected: 'chatBlockingModal',
             },
           ],

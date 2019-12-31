@@ -31,9 +31,11 @@ export default Container.namedConnect(
       snippet =
         typers.size === 1 ? `${typers.values().next().value} is typing...` : 'Multiple people typing...'
     }
+    const _participantInfo = Constants.getParticipantInfo(state, _conversationIDKey)
     return {
       _draft: Constants.getDraft(state, _conversationIDKey),
       _meta,
+      _participantInfo,
       _username: state.config.username,
       hasBadge: Constants.getHasBadge(state, _conversationIDKey),
       hasUnread: Constants.getHasUnread(state, _conversationIDKey),
@@ -61,8 +63,8 @@ export default Container.namedConnect(
     const isDecryptingSnippet =
       (hasUnread || stateProps.snippet.length === 0) && Constants.isDecryptingSnippet(stateProps._meta)
     const hasResetUsers = stateProps._meta.resetParticipants.size !== 0
-    const participants = stateProps._meta.participants.length
-      ? Constants.getRowParticipants(stateProps._meta, stateProps._username)
+    const participants = stateProps._participantInfo.all.length
+      ? Constants.getRowParticipants(stateProps._participantInfo, stateProps._username)
       : !ownProps.isTeam
       ? ownProps.name.split(',')
       : [ownProps.name]

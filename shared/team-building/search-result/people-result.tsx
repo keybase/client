@@ -93,6 +93,7 @@ const PeopleResult = React.memo((props: ResultProps) => {
     dispatch(Chat2Gen.createPreviewConversation({participants: [decoratedUsername], reason: 'search'}))
   }
 
+  const resultIsMe = keybaseUsername === myUsername
   const dropdown = keybaseUsername ? (
     <DropdownButton
       key="dropdown"
@@ -101,8 +102,8 @@ const PeopleResult = React.memo((props: ResultProps) => {
       onBrowsePublicFolder={onBrowsePublicFolder}
       onSendLumens={onSendLumens}
       onRequestLumens={onRequestLumens}
-      onBlock={onBlock}
-      onUnblock={onUnblock}
+      onBlock={!resultIsMe ? onBlock : undefined}
+      onUnblock={!resultIsMe ? onUnblock : undefined}
       blocked={blocked}
     />
   ) : (

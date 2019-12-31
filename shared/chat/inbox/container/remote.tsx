@@ -12,6 +12,7 @@ export const conversationsToSend = memoize(
   (
     inboxLayout: Types.State['inboxLayout'],
     metaMap: Types.State['metaMap'],
+    participantMap: Types.State['participantMap'],
     badgeMap: Types.State['badgeMap'],
     unreadMap: Types.State['unreadMap'],
     username: string
@@ -26,6 +27,7 @@ export const conversationsToSend = memoize(
       },
       hasBadge: !!badgeMap.get(v.convID),
       hasUnread: !!unreadMap.get(v.convID),
+      participantInfo: participantMap.get(v.convID) ?? Constants.noParticipantInfo,
     }))
   }
 )
@@ -49,8 +51,9 @@ export const serialize = (s: {
   hasBadge: boolean
   hasUnread: boolean
   conversation: Types.ConversationMeta
+  participantInfo: Types.ParticipantInfo
 }): RemoteConvMeta => {
-  const {hasBadge, hasUnread, conversation} = s
+  const {hasBadge, hasUnread, conversation, participantInfo} = s
   const styles = Constants.getRowStyles(false, hasUnread)
   const participantNeedToRekey = conversation.rekeyers.size > 0
   const youNeedToRekey = !!participantNeedToRekey && conversation.rekeyers.has(_username)
@@ -71,7 +74,7 @@ export const serialize = (s: {
     isSelected: false,
     isTypingSnippet: false,
     participantNeedToRekey,
-    participants: conversation.teamname ? [] : Constants.getRowParticipants(conversation, _username),
+    participants: conversation.teamname ? [] : Constants.getRowParticipants(participantInfo, _username),
     showBold: styles.showBold,
     snippet: conversation.snippet,
     snippetDecoration: conversation.snippetDecoration,

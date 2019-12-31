@@ -371,6 +371,14 @@ export type MessageTypes = {
     inParam: void
     outParam: Array<FSFolderEditHistory> | null
   }
+  'keybase.1.SimpleFS.simpleFSUserIn': {
+    inParam: {readonly clientID: String}
+    outParam: void
+  }
+  'keybase.1.SimpleFS.simpleFSUserOut': {
+    inParam: {readonly clientID: String}
+    outParam: void
+  }
   'keybase.1.SimpleFS.simpleFSWait': {
     inParam: {readonly opID: OpID}
     outParam: void
@@ -390,6 +398,10 @@ export type MessageTypes = {
   'keybase.1.account.getLockdownMode': {
     inParam: void
     outParam: GetLockdownResponse
+  }
+  'keybase.1.account.guessCurrentLocation': {
+    inParam: {readonly defaultCountry: String}
+    outParam: String
   }
   'keybase.1.account.hasServerKeys': {
     inParam: void
@@ -417,6 +429,14 @@ export type MessageTypes = {
   }
   'keybase.1.account.setLockdownMode': {
     inParam: {readonly enabled: Boolean}
+    outParam: void
+  }
+  'keybase.1.account.userGetContactSettings': {
+    inParam: void
+    outParam: ContactSettings
+  }
+  'keybase.1.account.userSetContactSettings': {
+    inParam: {readonly settings: ContactSettings}
     outParam: void
   }
   'keybase.1.apiserver.Delete': {
@@ -1256,7 +1276,7 @@ export type MessageTypes = {
     outParam: BulkRes
   }
   'keybase.1.teams.teamAddMember': {
-    inParam: {readonly teamID: TeamID; readonly email: String; readonly username: String; readonly role: TeamRole; readonly botSettings?: TeamBotSettings | null; readonly sendChatNotification: Boolean}
+    inParam: {readonly teamID: TeamID; readonly email: String; readonly phone: String; readonly username: String; readonly role: TeamRole; readonly botSettings?: TeamBotSettings | null; readonly sendChatNotification: Boolean}
     outParam: TeamAddMemberResult
   }
   'keybase.1.teams.teamAddMembersMultiRole': {
@@ -1384,7 +1404,7 @@ export type MessageTypes = {
     outParam: Array<UserBlock> | null
   }
   'keybase.1.user.interestingPeople': {
-    inParam: {readonly maxUsers: Int}
+    inParam: {readonly maxUsers: Int; readonly namespace: String}
     outParam: Array<InterestingPerson> | null
   }
   'keybase.1.user.listTrackers2': {
@@ -2924,7 +2944,7 @@ export type TLFIdentifyFailure = {readonly user: User; readonly breaks?: Identif
 export type TLFQuery = {readonly tlfName: String; readonly identifyBehavior: TLFIdentifyBehavior}
 export type TeamAcceptOrRequestResult = {readonly wasToken: Boolean; readonly wasSeitan: Boolean; readonly wasTeamName: Boolean; readonly wasOpenTeam: Boolean}
 export type TeamAccessRequest = {readonly uid: UID; readonly eldestSeqno: Seqno}
-export type TeamAddMemberResult = {readonly invited: Boolean; readonly user?: User | null; readonly emailSent: Boolean; readonly chatSending: Boolean}
+export type TeamAddMemberResult = {readonly invited: Boolean; readonly user?: User | null; readonly chatSending: Boolean}
 export type TeamAddMembersResult = {readonly notAdded?: Array<User> | null}
 export type TeamAndMemberShowcase = {readonly teamShowcase: TeamShowcase; readonly isMemberShowcased: Boolean}
 export type TeamApplicationKey = {readonly application: TeamApplication; readonly keyGeneration: PerTeamKeyGeneration; readonly key: Bytes32}
@@ -3355,11 +3375,14 @@ export const SimpleFSSimpleFSSyncConfigAndStatusRpcPromise = (params: MessageTyp
 export const SimpleFSSimpleFSSyncStatusRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSSyncStatus']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSSyncStatus']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSSyncStatus', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSUnsubscribeRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSUnsubscribe']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSUnsubscribe']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSUnsubscribe', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSUserEditHistoryRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSUserEditHistory']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSUserEditHistory']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSUserEditHistory', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const SimpleFSSimpleFSUserInRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSUserIn']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSUserIn']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSUserIn', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const SimpleFSSimpleFSUserOutRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSUserOut']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSUserOut']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSUserOut', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSWaitRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSWait']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSWait']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSWait', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const accountCancelResetRpcPromise = (params: MessageTypes['keybase.1.account.cancelReset']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.account.cancelReset']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.account.cancelReset', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const accountEmailChangeRpcPromise = (params: MessageTypes['keybase.1.account.emailChange']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.account.emailChange']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.account.emailChange', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const accountEnterResetPipelineRpcSaga = (p: {params: MessageTypes['keybase.1.account.enterResetPipeline']['inParam']; incomingCallMap: IncomingCallMapType; customResponseIncomingCallMap?: CustomResponseIncomingCallMap; waitingKey?: WaitingKey}) => call(getEngineSaga(), {method: 'keybase.1.account.enterResetPipeline', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
 export const accountGetLockdownModeRpcPromise = (params: MessageTypes['keybase.1.account.getLockdownMode']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.account.getLockdownMode']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.account.getLockdownMode', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const accountGuessCurrentLocationRpcPromise = (params: MessageTypes['keybase.1.account.guessCurrentLocation']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.account.guessCurrentLocation']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.account.guessCurrentLocation', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const accountHasServerKeysRpcPromise = (params: MessageTypes['keybase.1.account.hasServerKeys']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.account.hasServerKeys']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.account.hasServerKeys', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const accountPassphraseChangeRpcPromise = (params: MessageTypes['keybase.1.account.passphraseChange']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.account.passphraseChange']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.account.passphraseChange', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const accountPassphraseCheckRpcPromise = (params: MessageTypes['keybase.1.account.passphraseCheck']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.account.passphraseCheck']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.account.passphraseCheck', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -3367,6 +3390,8 @@ export const accountRecoverUsernameWithEmailRpcPromise = (params: MessageTypes['
 export const accountRecoverUsernameWithPhoneRpcPromise = (params: MessageTypes['keybase.1.account.recoverUsernameWithPhone']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.account.recoverUsernameWithPhone']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.account.recoverUsernameWithPhone', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const accountResetAccountRpcPromise = (params: MessageTypes['keybase.1.account.resetAccount']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.account.resetAccount']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.account.resetAccount', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const accountSetLockdownModeRpcPromise = (params: MessageTypes['keybase.1.account.setLockdownMode']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.account.setLockdownMode']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.account.setLockdownMode', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const accountUserGetContactSettingsRpcPromise = (params: MessageTypes['keybase.1.account.userGetContactSettings']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.account.userGetContactSettings']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.account.userGetContactSettings', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const accountUserSetContactSettingsRpcPromise = (params: MessageTypes['keybase.1.account.userSetContactSettings']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.account.userSetContactSettings']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.account.userSetContactSettings', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const apiserverDeleteRpcPromise = (params: MessageTypes['keybase.1.apiserver.Delete']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.apiserver.Delete']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.apiserver.Delete', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const apiserverGetRpcPromise = (params: MessageTypes['keybase.1.apiserver.Get']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.apiserver.Get']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.apiserver.Get', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const apiserverGetWithSessionRpcPromise = (params: MessageTypes['keybase.1.apiserver.GetWithSession']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.apiserver.GetWithSession']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.apiserver.GetWithSession', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -3541,8 +3566,6 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // Not enabled calls. To enable add to enabled-calls.json:
 // 'keybase.1.account.passphrasePrompt'
 // 'keybase.1.account.timeTravelReset'
-// 'keybase.1.account.userGetContactSettings'
-// 'keybase.1.account.userSetContactSettings'
 // 'keybase.1.airdrop.reg1'
 // 'keybase.1.airdrop.reg2'
 // 'keybase.1.audit.isInJail'
@@ -3909,6 +3932,7 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.teams.findNextMerkleRootAfterTeamRemovalBySigningKey'
 // 'keybase.1.teams.profileTeamLoad'
 // 'keybase.1.teams.getTeamID'
+// 'keybase.1.teams.getTeamName'
 // 'keybase.1.teams.ftl'
 // 'keybase.1.teams.getAnnotatedTeam'
 // 'keybase.1.teamsUi.confirmRootTeamDelete'

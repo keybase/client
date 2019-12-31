@@ -59,8 +59,8 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
       }
 
       // find the other participant's username
-      const conv = Constants.getMeta(state, ownProps.message.conversationIDKey)
-      const theirUsername = conv.participants.find(p => p !== you) || ''
+      const participantInfo = Constants.getParticipantInfo(state, ownProps.message.conversationIDKey)
+      const theirUsername = participantInfo.all.find(p => p !== you) || ''
 
       const cancelable = paymentInfo.status === 'claimable'
       const pending = cancelable || paymentInfo.status === 'pending'

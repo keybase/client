@@ -66,6 +66,7 @@ const styles = Styles.styleSheetCreate(() => ({
     borderRadius: 2,
     borderStyle: 'solid',
     borderWidth: 1,
+    flexShrink: 0,
     height: CHECKBOX_SIZE,
     justifyContent: 'center',
     marginRight: CHECKBOX_MARGIN,

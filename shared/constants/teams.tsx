@@ -176,6 +176,7 @@ const emptyState: Types.State = {
   teamDetails: new Map(),
   teamDetailsMetaStale: true, // start out true, we have not loaded
   teamDetailsMetaSubscribeCount: 0,
+  teamIDToResetUsers: new Map(),
   teamInviteError: '',
   teamJoinError: '',
   teamJoinSuccess: false,
@@ -186,7 +187,6 @@ const emptyState: Types.State = {
   teamNameToLoadingInvites: new Map(),
   teamNameToMembers: new Map(),
   teamNameToPublicitySettings: new Map(),
-  teamNameToResetUsers: new Map(),
   teamNameToRetentionPolicy: new Map(),
   teamProfileAddList: [],
   teamRoleMap: {latestKnownVersion: -1, loadedVersion: -1, roles: new Map()},
@@ -294,6 +294,32 @@ export const userIsRoleInTeam = (
     username,
     role
   )
+}
+
+export const userInTeam = (state: TypedState, teamname: Types.Teamname, username: string): boolean => {
+  const info = state.teams.teamNameToMembers.get(teamname) || new Map<string, Types.MemberInfo>()
+  return !!info.get(username)
+}
+
+export const userInTeamNotBotWithInfo = (
+  memberInfo: Map<string, Types.MemberInfo>,
+  username: string
+): boolean => {
+  const memb = memberInfo.get(username)
+  if (!memb) {
+    return false
+  }
+  return memb.type !== 'bot' && memb.type !== 'restrictedbot'
+}
+
+export const userRoleInTeam = (
+  state: TypedState,
+  teamname: Types.Teamname,
+  username: string
+): Types.TeamRoleType | null => {
+  const info = state.teams.teamNameToMembers.get(teamname) || new Map<string, Types.MemberInfo>()
+  const memb = info.get(username)
+  return !memb ? null : memb.type
 }
 
 export const getEmailInviteError = (state: TypedState) => state.teams.emailInviteError
@@ -483,8 +509,8 @@ export const isInSomeTeam = (state: TypedState): boolean =>
 export const isAccessRequestPending = (state: TypedState, teamname: Types.Teamname): boolean =>
   state.teams.teamAccessRequestsPending.has(teamname)
 
-export const getTeamResetUsers = (state: TypedState, teamname: Types.Teamname): Set<Types.ResetUser> =>
-  state.teams.teamNameToResetUsers.get(teamname) || new Set()
+export const getTeamResetUsers = (state: TypedState, teamID: Types.TeamID): Set<Types.ResetUser> =>
+  state.teams.teamIDToResetUsers.get(teamID) || new Set()
 
 export const getTeamLoadingInvites = (state: TypedState, teamname: Types.Teamname): Map<string, boolean> =>
   state.teams.teamNameToLoadingInvites.get(teamname) || new Map()

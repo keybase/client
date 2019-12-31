@@ -367,6 +367,14 @@ func (s SimpleFSMock) SimpleFSGetFilesTabBadge(_ context.Context) (
 	return keybase1.FilesTabBadge_NONE, nil
 }
 
+func (s SimpleFSMock) SimpleFSUserIn(_ context.Context, _ string) error {
+	return nil
+}
+
+func (s SimpleFSMock) SimpleFSUserOut(_ context.Context, _ string) error {
+	return nil
+}
+
 /*
  file source cases:
  1. file

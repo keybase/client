@@ -597,7 +597,7 @@ func (d DummyBotCommandManager) Advertise(ctx context.Context, alias *string,
 
 func (d DummyBotCommandManager) Clear(context.Context) error { return nil }
 
-func (d DummyBotCommandManager) PublicCommandsConv(ctx context.Context, username string) (chat1.ConversationID, error) {
+func (d DummyBotCommandManager) PublicCommandsConv(ctx context.Context, username string) (*chat1.ConversationID, error) {
 	return nil, nil
 }
 
@@ -647,6 +647,9 @@ func (d DummyUIInboxLoader) UpdateLayoutFromNewMessage(ctx context.Context, conv
 func (d DummyUIInboxLoader) UpdateLayoutFromSubteamRename(ctx context.Context, convs []RemoteConversation) {
 }
 
+func (d DummyUIInboxLoader) UpdateLayoutFromSmallIncrease(ctx context.Context) {}
+func (d DummyUIInboxLoader) UpdateLayoutFromSmallReset(ctx context.Context)    {}
+
 type DummyAttachmentUploader struct{}
 
 var _ AttachmentUploader = (*DummyAttachmentUploader)(nil)
@@ -673,3 +676,22 @@ func (d DummyAttachmentUploader) CancelUploadTempFile(ctx context.Context, outbo
 	return nil
 }
 func (d DummyAttachmentUploader) OnDbNuke(mctx libkb.MetaContext) error { return nil }
+
+type DummyUIThreadLoader struct{}
+
+var _ UIThreadLoader = (*DummyUIThreadLoader)(nil)
+
+func (d DummyUIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, uid gregor1.UID,
+	convID chat1.ConversationID, reason chat1.GetThreadReason, pgmode chat1.GetThreadNonblockPgMode,
+	cbmode chat1.GetThreadNonblockCbMode, query *chat1.GetThreadQuery, uipagination *chat1.UIPagination) error {
+	return nil
+}
+
+func (d DummyUIThreadLoader) Load(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	reason chat1.GetThreadReason, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, error) {
+	return chat1.ThreadView{}, nil
+}
+
+func (d DummyUIThreadLoader) IsOffline(ctx context.Context) bool { return true }
+func (d DummyUIThreadLoader) Connected(ctx context.Context)      {}
+func (d DummyUIThreadLoader) Disconnected(ctx context.Context)   {}

@@ -3,16 +3,17 @@ import * as Kb from '../../../../common-adapters'
 
 type Props = {
   attachTo?: () => React.Component<any> | null
+  onEdit: () => void
+  onRemove: () => void
   onHidden: () => void
   visible: boolean
 }
 
-const items: Kb.MenuItems = [
-  {icon: 'iconfont-gear', onClick: () => null, title: 'Edit settings'},
-  {danger: true, icon: 'iconfont-remove', onClick: () => null, title: 'Uninstall'},
-]
-
 const BotMenu = (props: Props) => {
+  const items: Kb.MenuItems = [
+    {icon: 'iconfont-gear', onClick: props.onEdit, title: 'Edit settings'},
+    {danger: true, icon: 'iconfont-remove', onClick: props.onRemove, title: 'Uninstall'},
+  ]
   return (
     <Kb.FloatingMenu
       attachTo={props.attachTo}

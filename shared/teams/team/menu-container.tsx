@@ -17,7 +17,7 @@ type OwnProps = {
 const mapStateToProps = (state: Container.TypedState, {teamID}: OwnProps) => {
   const teamDetails = Constants.getTeamDetails(state, teamID)
   const yourOperations = Constants.getCanPerformByID(state, teamID)
-  const isBigTeam = Constants.isBigTeam(state, teamID)
+  const isBigTeam = Constants.isBigTeam(state, teamDetails.teamname)
   return {
     canCreateSubteam: yourOperations.manageSubteams,
     canDeleteTeam: yourOperations.deleteTeam && teamDetails.subteams?.size === 0,

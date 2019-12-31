@@ -17,8 +17,8 @@ type Props = {
 const MoreMenuPopup = (props: Props) => {
   const {conversationIDKey, onHidden, visible} = props
   // state
-  const {meta, wallet, you} = Container.useSelector(state => ({
-    meta: Constants.getMeta(state, conversationIDKey),
+  const {participantInfo, wallet, you} = Container.useSelector(state => ({
+    participantInfo: Constants.getParticipantInfo(state, conversationIDKey),
     wallet: Constants.shouldShowWalletsIcon(state, conversationIDKey),
     you: state.config.username,
   }))
@@ -56,7 +56,7 @@ const MoreMenuPopup = (props: Props) => {
   // merge
   let to = ''
   if (wallet) {
-    const otherParticipants = meta.participants.filter(u => u !== you)
+    const otherParticipants = participantInfo.all.filter(u => u !== you)
     to = (otherParticipants && otherParticipants[0]) || ''
   }
   const onSendLumens = wallet ? () => onLumens(to, false) : undefined
