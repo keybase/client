@@ -2809,7 +2809,6 @@ func (o AnnotatedTeamList) DeepCopy() AnnotatedTeamList {
 type TeamAddMemberResult struct {
 	Invited     bool  `codec:"invited" json:"invited"`
 	User        *User `codec:"user,omitempty" json:"user,omitempty"`
-	EmailSent   bool  `codec:"emailSent" json:"emailSent"`
 	ChatSending bool  `codec:"chatSending" json:"chatSending"`
 }
 
@@ -2823,7 +2822,6 @@ func (o TeamAddMemberResult) DeepCopy() TeamAddMemberResult {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.User),
-		EmailSent:   o.EmailSent,
 		ChatSending: o.ChatSending,
 	}
 }

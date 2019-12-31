@@ -371,6 +371,14 @@ export type MessageTypes = {
     inParam: void
     outParam: Array<FSFolderEditHistory> | null
   }
+  'keybase.1.SimpleFS.simpleFSUserIn': {
+    inParam: {readonly clientID: String}
+    outParam: void
+  }
+  'keybase.1.SimpleFS.simpleFSUserOut': {
+    inParam: {readonly clientID: String}
+    outParam: void
+  }
   'keybase.1.SimpleFS.simpleFSWait': {
     inParam: {readonly opID: OpID}
     outParam: void
@@ -2936,7 +2944,7 @@ export type TLFIdentifyFailure = {readonly user: User; readonly breaks?: Identif
 export type TLFQuery = {readonly tlfName: String; readonly identifyBehavior: TLFIdentifyBehavior}
 export type TeamAcceptOrRequestResult = {readonly wasToken: Boolean; readonly wasSeitan: Boolean; readonly wasTeamName: Boolean; readonly wasOpenTeam: Boolean}
 export type TeamAccessRequest = {readonly uid: UID; readonly eldestSeqno: Seqno}
-export type TeamAddMemberResult = {readonly invited: Boolean; readonly user?: User | null; readonly emailSent: Boolean; readonly chatSending: Boolean}
+export type TeamAddMemberResult = {readonly invited: Boolean; readonly user?: User | null; readonly chatSending: Boolean}
 export type TeamAddMembersResult = {readonly notAdded?: Array<User> | null}
 export type TeamAndMemberShowcase = {readonly teamShowcase: TeamShowcase; readonly isMemberShowcased: Boolean}
 export type TeamApplicationKey = {readonly application: TeamApplication; readonly keyGeneration: PerTeamKeyGeneration; readonly key: Bytes32}
@@ -3367,6 +3375,8 @@ export const SimpleFSSimpleFSSyncConfigAndStatusRpcPromise = (params: MessageTyp
 export const SimpleFSSimpleFSSyncStatusRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSSyncStatus']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSSyncStatus']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSSyncStatus', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSUnsubscribeRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSUnsubscribe']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSUnsubscribe']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSUnsubscribe', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSUserEditHistoryRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSUserEditHistory']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSUserEditHistory']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSUserEditHistory', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const SimpleFSSimpleFSUserInRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSUserIn']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSUserIn']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSUserIn', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const SimpleFSSimpleFSUserOutRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSUserOut']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSUserOut']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSUserOut', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSWaitRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSWait']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSWait']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSWait', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const accountCancelResetRpcPromise = (params: MessageTypes['keybase.1.account.cancelReset']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.account.cancelReset']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.account.cancelReset', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const accountEmailChangeRpcPromise = (params: MessageTypes['keybase.1.account.emailChange']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.account.emailChange']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.account.emailChange', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))

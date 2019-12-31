@@ -2801,6 +2801,18 @@ func (k *SimpleFS) SimpleFSGetOnlineStatus(ctx context.Context) (keybase1.KbfsOn
 	return k.onlineStatusTracker.GetOnlineStatus(), nil
 }
 
+// SimpleFSUserIn implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSUserIn(ctx context.Context, clientID string) error {
+	k.onlineStatusTracker.UserIn(ctx, clientID)
+	return nil
+}
+
+// SimpleFSUserOut implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSUserOut(ctx context.Context, clientID string) error {
+	k.onlineStatusTracker.UserOut(ctx, clientID)
+	return nil
+}
+
 // SimpleFSCheckReachability implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSCheckReachability(ctx context.Context) error {
 	ctx = k.makeContext(ctx)

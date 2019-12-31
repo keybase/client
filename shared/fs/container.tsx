@@ -20,6 +20,7 @@ type ChooseComponentProps = {
 }
 
 const ChooseComponent = (props: ChooseComponentProps) => {
+  Kbfs.useUserIsLookingAtFs()
   const {emitBarePreview, waitForKbfsDaemon} = props
 
   const fileContext = Container.useSelector(

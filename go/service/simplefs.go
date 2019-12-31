@@ -712,3 +712,25 @@ func (s *SimpleFSHandler) SimpleFSGetFilesTabBadge(ctx context.Context) (
 	}
 	return cli.SimpleFSGetFilesTabBadge(ctx)
 }
+
+// SimpleFSUserIn implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSUserIn(ctx context.Context, clientKey string) error {
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	cli, err := s.client()
+	if err != nil {
+		return err
+	}
+	return cli.SimpleFSUserIn(ctx, clientKey)
+}
+
+// SimpleFSUserOut implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSUserOut(ctx context.Context, clientKey string) error {
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	cli, err := s.client()
+	if err != nil {
+		return err
+	}
+	return cli.SimpleFSUserOut(ctx, clientKey)
+}
