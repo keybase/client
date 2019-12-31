@@ -1,11 +1,11 @@
 import * as SettingsGen from '../../actions/settings-gen'
+import * as WaitingGen from '../../actions/waiting-gen'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Constants from '../../constants/settings'
 import * as TeamConstants from '../../constants/teams'
 import * as TeamTypes from '../../constants/types/teams'
-import * as WaitingConstants from '../../constants/waiting'
 
 import Chat from '.'
 
@@ -18,9 +18,6 @@ export default Container.namedConnect(
     const contactSettingsEnabled = state.settings.chat.contactSettings.settings?.enabled
     const contactSettingsIndirectFollowees =
       state.settings.chat.contactSettings.settings?.allowFolloweeDegrees === 2
-    const contactSettingsLoading = WaitingConstants.anyWaiting(state, Constants.contactSettingsLoadWaitingKey)
-    const contactSettingsSaving = WaitingConstants.anyWaiting(state, Constants.contactSettingsSaveWaitingKey)
-
     const contactSettingsTeams = state.settings.chat.contactSettings.settings?.teams
     const contactSettingsTeamsEnabled = state.settings.chat.contactSettings.settings?.allowGoodTeams
 
@@ -29,9 +26,7 @@ export default Container.namedConnect(
     return {
       contactSettingsEnabled,
       contactSettingsError: state.settings.chat.contactSettings.error,
-      contactSettingsLoading,
       contactSettingsIndirectFollowees,
-      contactSettingsSaving,
       contactSettingsTeams,
       contactSettingsTeamsEnabled,
       teamDetails: state.teams.teamDetails,
@@ -52,7 +47,9 @@ export default Container.namedConnect(
       dispatch(SettingsGen.createContactSettingsSaved({enabled, indirectFollowees, teamsEnabled, teamsList}))
     },
     onRefresh: () => {
+      dispatch(WaitingGen.createIncrementWaiting({key: Constants.contactSettingsLoadWaitingKey}))
       dispatch(SettingsGen.createContactSettingsRefresh())
+      dispatch(WaitingGen.createDecrementWaiting({key: Constants.contactSettingsLoadWaitingKey}))
       dispatch(SettingsGen.createUnfurlSettingsRefresh())
     },
     onUnfurlSave: (mode: RPCChatTypes.UnfurlMode, whitelist: Array<string>) => {

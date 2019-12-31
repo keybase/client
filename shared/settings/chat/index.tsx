@@ -9,7 +9,6 @@ export type Props = {
   contactSettingsEnabled?: boolean
   contactSettingsError: string
   contactSettingsIndirectFollowees?: boolean
-  contactSettingsLoading: boolean
   contactSettingsTeamsEnabled?: boolean
   contactSettingsSelectedTeams: {[K in TeamID]: boolean}
   unfurlMode?: RPCChatTypes.UnfurlMode
@@ -98,19 +97,21 @@ class Chat extends React.Component<Props, State> {
   componentDidUpdate(prevProps: Props) {
     if (
       this.props.contactSettingsEnabled !== prevProps.contactSettingsEnabled ||
-      (!this.props.contactSettingsLoading && prevProps.contactSettingsLoading)
+      (this.props.contactSettingsEnabled !== undefined && this.state.contactSettingsEnabled == undefined)
     ) {
       this.setState({contactSettingsEnabled: this.props.contactSettingsEnabled})
     }
     if (
       this.props.contactSettingsIndirectFollowees !== prevProps.contactSettingsIndirectFollowees ||
-      (!this.props.contactSettingsLoading && prevProps.contactSettingsLoading)
+      (this.props.contactSettingsIndirectFollowees !== undefined &&
+        this.state.contactSettingsIndirectFollowees == undefined)
     ) {
       this.setState({contactSettingsIndirectFollowees: this.props.contactSettingsIndirectFollowees})
     }
     if (
       this.props.contactSettingsTeamsEnabled !== prevProps.contactSettingsTeamsEnabled ||
-      (!this.props.contactSettingsLoading && prevProps.contactSettingsLoading)
+      (this.props.contactSettingsTeamsEnabled !== undefined &&
+        this.state.contactSettingsTeamsEnabled == undefined)
     ) {
       this.setState({contactSettingsTeamsEnabled: this.props.contactSettingsTeamsEnabled})
     }
