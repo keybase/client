@@ -80,14 +80,14 @@ func newTransientEphemeralKeyError(err EphemeralKeyError) EphemeralKeyError {
 }
 
 const (
-	DefaultHumanErrMsg           = "This exploding message is not available to you"
-	DefaultPluralHumanErrMsg     = "%d exploding messages are not available to you"
+	DefaultHumanErrMsg           = "This exploding message is not available"
+	DefaultPluralHumanErrMsg     = "%d exploding messages are not available"
 	DeviceCloneErrMsg            = "cloned devices do not support exploding messages"
 	DeviceCloneWithOneshotErrMsg = "to support exploding messages in `oneshot` mode, you need a separate paper key for each running instance"
-	DeviceAfterEKErrMsg          = "this device was created after the message was sent"
-	MemberAfterEKErrMsg          = "you were added to the team after the message was sent"
-	DeviceStaleErrMsg            = "this device wasn't online to generate an exploding key"
-	UserStaleErrMsg              = "you weren't online to generate new exploding keys"
+	DeviceAfterEKErrMsg          = "because this device was created after it was sent"
+	MemberAfterEKErrMsg          = "because you joined team after it was sent"
+	DeviceStaleErrMsg            = "because this device wasn't online to generate an exploding key"
+	UserStaleErrMsg              = "because you weren't online to generate new exploding keys"
 )
 
 type IncorrectTeamEphemeralKeyTypeError struct {
