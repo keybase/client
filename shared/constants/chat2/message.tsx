@@ -1142,7 +1142,7 @@ const errorUIMessagetoMessage = (
     deviceName: o.senderDeviceName,
     deviceType: DeviceTypes.stringToDeviceType(o.senderDeviceType),
     errorReason: o.errMsg,
-    exploded: o.isEphemeralExpired,
+    exploded: o.isEphemeral && o.etime * 1000 < Date.now(),
     exploding: o.isEphemeral,
     explodingUnreadable: !!o.errType && o.isEphemeral,
     id: Types.numberToMessageID(o.messageID),
