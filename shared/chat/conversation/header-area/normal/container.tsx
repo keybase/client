@@ -30,8 +30,9 @@ const HeaderBranch = (props: Props) => {
 export default Container.connect(
   (state, {infoPanelOpen, conversationIDKey}: OwnProps) => {
     const meta = Constants.getMeta(state, conversationIDKey)
-    const _participants = meta.teamname ? null : meta.nameParticipants
-    const _contactNames = meta.participantToContactName
+    const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
+    const _participants = meta.teamname ? null : participantInfo.name
+    const _contactNames = participantInfo.contactName
 
     return {
       _badgeMap: state.chat2.badgeMap,

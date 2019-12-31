@@ -9,9 +9,10 @@ type OwnProps = {
 }
 
 const mapStateToProps = (state, {conversationIDKey}) => {
+  const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
   const meta = Constants.getMeta(state, conversationIDKey)
   return {
-    _participants: meta.participants,
+    _participants: participantInfo.all,
     nextConversationIDKey: meta.supersededBy,
     username: meta.wasFinalizedBy || '',
   }

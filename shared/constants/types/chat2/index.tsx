@@ -150,6 +150,12 @@ export type BotSearchResults = {
   users: Array<string>
 }
 
+export type ParticipantInfo = {
+  all: Array<string>
+  name: Array<string>
+  contactName: Map<string, string>
+}
+
 export type State = Readonly<{
   accountsInfoMap: Map<
     Common.ConversationIDKey,
@@ -196,6 +202,7 @@ export type State = Readonly<{
   moreToLoadMap: Map<Common.ConversationIDKey, boolean> // if we have more data to load,
   mutedMap: Map<Common.ConversationIDKey, boolean> // muted convs
   orangeLineMap: Map<Common.ConversationIDKey, number> // last message we've seen,
+  participantMap: Map<Common.ConversationIDKey, ParticipantInfo>
   paymentConfirmInfo?: PaymentConfirmInfo // chat payment confirm screen data,
   paymentStatusMap: Map<Wallet.PaymentID, Message.ChatPaymentInfo>
   pendingOutboxToOrdinal: Map<Common.ConversationIDKey, Map<Message.OutboxID, Message.Ordinal>> // messages waiting to be sent,

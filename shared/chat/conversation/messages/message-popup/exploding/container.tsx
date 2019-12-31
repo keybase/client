@@ -27,6 +27,7 @@ export default Container.connect(
   (state, ownProps: OwnProps) => {
     const yourMessage = ownProps.message.author === state.config.username
     const meta = Constants.getMeta(state, ownProps.message.conversationIDKey)
+    const participantInfo = Constants.getParticipantInfo(state, ownProps.message.conversationIDKey)
     const _canDeleteHistory =
       meta.teamType === 'adhoc' || TeamConstants.getCanPerformByID(state, meta.teamID).deleteChatHistory
     const _canExplodeNow = (yourMessage || _canDeleteHistory) && ownProps.message.isDeleteable
@@ -36,7 +37,7 @@ export default Container.connect(
     const _canReplyPrivately =
       !yourMessage &&
       ownProps.message.type === 'text' &&
-      (['small', 'big'].includes(meta.teamType) || meta.participants.length > 2)
+      (['small', 'big'].includes(meta.teamType) || participantInfo.all.length > 2)
 
     return {
       _canDeleteHistory,
@@ -44,7 +45,7 @@ export default Container.connect(
       _canExplodeNow,
       _canReplyPrivately,
       _mapUnfurl,
-      _participants: meta.participants,
+      _participants: participantInfo.all,
       _teamname: meta.teamname,
       author: ownProps.message.author,
       botUsername: ownProps.message.type === 'text' ? ownProps.message.botUsername : undefined,

@@ -1199,6 +1199,11 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   [Chat2Gen.staticConfigLoaded]: (draftState, action) => {
     draftState.staticConfig = action.payload.staticConfig
   },
+  [Chat2Gen.setParticipants]: (draftState, action) => {
+    action.payload.participants.forEach(part => {
+      draftState.participantMap.set(part.conversationIDKey, part.participants)
+    })
+  },
   [Chat2Gen.metasReceived]: (draftState, action) => {
     const {metas, initialTrustedLoad, removals} = action.payload
     const {draftMap, mutedMap, metaMap} = draftState
@@ -1222,10 +1227,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     removals && removals.forEach(m => metaMap.delete(m))
     metas.forEach(m => {
       const old = metaMap.get(m.conversationIDKey)
-      logger.info(
-        `metasReceived: convID: ${m.conversationIDKey} name: ${m.tlfname} hasOld: ${!!old} hasParts: ${m
-          .participants.length > 0} vers: ${m.inboxVersion} oldVers: ${old?.inboxVersion}`
-      )
       metaMap.set(m.conversationIDKey, old ? Constants.updateMeta(old, m) : m)
     })
   },
@@ -1341,11 +1342,15 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
         }
         draftState.metaMap.set(conversationIDKey, {
           ...newMeta,
-          participants,
           rekeyers,
           snippet: error.message,
           snippetDecoration: RPCChatTypes.SnippetDecoration.none,
           trustedState: 'error' as const,
+        })
+        draftState.participantMap.set(conversationIDKey, {
+          all: participants,
+          contactName: Constants.noParticipantInfo.contactName,
+          name: participants,
         })
       } else {
         const old = draftState.metaMap.get(conversationIDKey)

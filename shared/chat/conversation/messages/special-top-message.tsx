@@ -131,6 +131,7 @@ export default Container.namedConnect(
   (state, ownProps: OwnProps) => {
     const hasLoadedEver = state.chat2.messageOrdinals.get(ownProps.conversationIDKey) !== undefined
     const meta = Constants.getMeta(state, ownProps.conversationIDKey)
+    const participantInfo = Constants.getParticipantInfo(state, ownProps.conversationIDKey)
 
     let pendingState: Props['pendingState']
     switch (ownProps.conversationIDKey) {
@@ -152,7 +153,7 @@ export default Container.namedConnect(
       hasLoadedEver &&
       loadMoreType === 'noMoreToLoad' &&
       meta.teamType === 'adhoc' &&
-      meta.participants.length > 2
+      participantInfo.all.length > 2
     const hasOlderResetConversation = meta.supersedes !== Constants.noConversationIDKey
     // don't show default header in the case of the retention notice being visible
     const showRetentionNotice =
@@ -162,12 +163,12 @@ export default Container.namedConnect(
     const isHelloBotConversation =
       hasLoadedEver &&
       meta.teamType === 'adhoc' &&
-      meta.participants.length === 2 &&
-      meta.participants.includes('hellobot')
+      participantInfo.all.length === 2 &&
+      participantInfo.all.includes('hellobot')
     const isSelfConversation =
       meta.teamType === 'adhoc' &&
-      meta.participants.length === 1 &&
-      meta.participants.includes(state.config.username)
+      participantInfo.all.length === 1 &&
+      participantInfo.all.includes(state.config.username)
     return {
       conversationIDKey: ownProps.conversationIDKey,
       createConversationError,

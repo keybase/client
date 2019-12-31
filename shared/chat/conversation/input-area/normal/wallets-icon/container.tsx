@@ -12,8 +12,8 @@ type OwnProps = {
 
 const WalletsIcon = Container.namedConnect(
   state => {
-    const meta = Constants.getMeta(state, Constants.getSelectedConversation(state))
-    const otherParticipants = meta.participants.filter(u => u !== state.config.username)
+    const participantInfo = Constants.getParticipantInfo(state, Constants.getSelectedConversation(state))
+    const otherParticipants = participantInfo.name.filter(u => u !== state.config.username)
     const _to = otherParticipants[0]
     return {
       _to,
