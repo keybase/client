@@ -129,6 +129,7 @@ const mapStateToProps = (state: Container.TypedState) => ({
   conversationsToSend: conversationsToSend(
     state.chat2.inboxLayout,
     state.chat2.metaMap,
+    state.chat2.participantMap,
     state.chat2.badgeMap,
     state.chat2.unreadMap,
     state.config.username

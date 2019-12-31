@@ -900,6 +900,10 @@ const loadFilesTabBadge = async () => {
   }
 }
 
+const userInOutClientKey = Constants.makeUUID()
+const userIn = () => RPCTypes.SimpleFSSimpleFSUserInRpcPromise({clientID: userInOutClientKey})
+const userOut = () => RPCTypes.SimpleFSSimpleFSUserOutRpcPromise({clientID: userInOutClientKey})
+
 function* fsSaga() {
   yield* Saga.chainGenerator<FsGen.UploadPayload>(FsGen.upload, upload)
   yield* Saga.chainGenerator<FsGen.FolderListLoadPayload>(FsGen.folderListLoad, folderList)
@@ -930,6 +934,8 @@ function* fsSaga() {
     EngineGen.keybase1NotifyFSFSOverallSyncStatusChanged,
     onNotifyFSOverallSyncSyncStatusChanged
   )
+  yield* Saga.chainAction2(FsGen.userIn, userIn)
+  yield* Saga.chainAction2(FsGen.userOut, userOut)
   yield* Saga.chainAction2(FsGen.loadSettings, loadSettings)
   yield* Saga.chainAction(FsGen.setSpaceAvailableNotificationThreshold, setSpaceNotificationThreshold)
   yield* Saga.chainAction2(FsGen.startManualConflictResolution, startManualCR)

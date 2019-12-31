@@ -17,7 +17,7 @@
 }
 
 .listItem2:hover .avatar-border {
-  box-shadow: 0px 0px 0px 2px #a8ccff !important;
+  box-shadow: 0px 0px 0px 2px #EBF2FC !important;
 }
 .darkMode .listItem2:hover .avatar-border {
   box-shadow: 0px 0px 0px 2px rgba(24, 45, 110, .5) !important;

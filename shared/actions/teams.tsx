@@ -481,8 +481,8 @@ async function createNewTeamFromConversation(
   const {conversationIDKey, teamname} = action.payload
   const me = state.config.username
 
-  const meta = ChatConstants.getMeta(state, conversationIDKey)
-  const participants = meta.participants.filter(p => p !== me) // we will already be in as 'owner'
+  const participantInfo = ChatConstants.getParticipantInfo(state, conversationIDKey)
+  const participants = participantInfo.all.filter(p => p !== me) // we will already be in as 'owner'
   const users = participants.map(assertion => ({
     assertion,
     role: assertion === me ? ('admin' as const) : ('writer' as const),
@@ -594,6 +594,7 @@ function* addUserToTeams(state: TypedState, action: TeamsGen.AddUserToTeamsPaylo
       yield RPCTypes.teamsTeamAddMemberRpcPromise(
         {
           email: '',
+          phone: '',
           role: RPCTypes.TeamRole[role],
           sendChatNotification: true,
           teamID,
@@ -704,7 +705,7 @@ const getChannelInfo = async (
     hasAllMembers: null,
     memberStatus: convs[0].memberStatus,
     mtime: meta.timestamp,
-    numParticipants: meta.participants.length,
+    numParticipants: convs[0].participants?.length ?? 0,
   }
 
   return TeamsGen.createSetTeamChannelInfo({channelInfo, conversationIDKey, teamname})
@@ -772,7 +773,7 @@ function* getTeams(
     })
 
     // Dismiss any stale badges for teams we're no longer in
-    const teamResetUsers = state.teams.teamNameToResetUsers || new Map<string, Set<Types.ResetUser>>()
+    const teamResetUsers = state.teams.teamIDToResetUsers || new Map<Types.TeamID, Set<Types.ResetUser>>()
     const teamNameSet = new Set<string>(teamnames)
     const dismissIDs = [...teamResetUsers.entries()].reduce<Array<string>>((ids, [key, value]) => {
       if (!teamNameSet.has(key)) {
@@ -1273,9 +1274,9 @@ const badgeAppForTeams = (state: TypedState, action: NotificationsGen.ReceivedBa
   const newTeamRequests = badgeState.newTeamAccessRequests || []
 
   const teamsWithResetUsers: Array<RPCTypes.TeamMemberOutReset> = badgeState.teamsWithResetUsers || []
-  const teamsWithResetUsersMap = new Map<string, Set<Types.ResetUser>>()
+  const teamsWithResetUsersMap = new Map<Types.TeamID, Set<Types.ResetUser>>()
   teamsWithResetUsers.forEach(entry => {
-    const existing = mapGetEnsureValue(teamsWithResetUsersMap, entry.teamname, new Set())
+    const existing = mapGetEnsureValue(teamsWithResetUsersMap, entry.teamID, new Set())
     existing.add({badgeIDKey: Constants.resetUserBadgeIDToKey(entry.id), username: entry.username})
   })
 
@@ -1309,7 +1310,7 @@ const badgeAppForTeams = (state: TypedState, action: NotificationsGen.ReceivedBa
       deletedTeams,
       newTeamRequests,
       newTeams,
-      teamNameToResetUsers: teamsWithResetUsersMap,
+      teamIDToResetUsers: teamsWithResetUsersMap,
     })
   )
   return actions

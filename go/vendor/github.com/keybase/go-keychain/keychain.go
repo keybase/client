@@ -44,6 +44,26 @@ var (
 	ErrorNoSuchKeychain = Error(C.errSecNoSuchKeychain)
 	// ErrorNoAcccessForItem corresponds to errSecNoAccessForItem result code
 	ErrorNoAccessForItem = Error(C.errSecNoAccessForItem)
+	// ErrorReadOnly corresponds to errSecReadOnly result code
+	ErrorReadOnly = Error(C.errSecReadOnly)
+	// ErrorInvalidKeychain corresponds to errSecInvalidKeychain result code
+	ErrorInvalidKeychain = Error(C.errSecInvalidKeychain)
+	// ErrorDuplicateKeyChain corresponds to errSecDuplicateKeychain result code
+	ErrorDuplicateKeyChain = Error(C.errSecDuplicateKeychain)
+	// ErrorWrongVersion corresponds to errSecWrongSecVersion result code
+	ErrorWrongVersion = Error(C.errSecWrongSecVersion)
+	// ErrorReadonlyAttribute corresponds to errSecReadOnlyAttr result code
+	ErrorReadonlyAttribute = Error(C.errSecReadOnlyAttr)
+	// ErrorInvalidSearchRef corresponds to errSecInvalidSearchRef result code
+	ErrorInvalidSearchRef = Error(C.errSecInvalidSearchRef)
+	// ErrorInvalidItemRef corresponds to errSecInvalidItemRef result code
+	ErrorInvalidItemRef = Error(C.errSecInvalidItemRef)
+	// ErrorDataNotAvailable corresponds to errSecDataNotAvailable result code
+	ErrorDataNotAvailable = Error(C.errSecDataNotAvailable)
+	// ErrorDataNotModifiable corresponds to errSecDataNotModifiable result code
+	ErrorDataNotModifiable = Error(C.errSecDataNotModifiable)
+	// ErrorInvalidOwnerEdit corresponds to errSecInvalidOwnerEdit result code
+	ErrorInvalidOwnerEdit = Error(C.errSecInvalidOwnerEdit)
 )
 
 func checkError(errCode C.OSStatus) error {
@@ -79,6 +99,26 @@ func (k Error) Error() (msg string) {
 		msg = "The specified keychain could not be found."
 	case ErrorNoAccessForItem:
 		msg = "The specified item has no access control."
+	case ErrorReadOnly:
+		msg = "Read-only error."
+	case ErrorReadonlyAttribute:
+		msg = "The attribute is read-only."
+	case ErrorInvalidKeychain:
+		msg = "The keychain is not valid."
+	case ErrorDuplicateKeyChain:
+		msg = "A keychain with the same name already exists."
+	case ErrorWrongVersion:
+		msg = "The version is incorrect."
+	case ErrorInvalidItemRef:
+		msg = "The item reference is invalid."
+	case ErrorInvalidSearchRef:
+		msg = "The search reference is invalid."
+	case ErrorDataNotAvailable:
+		msg = "The data is not available."
+	case ErrorDataNotModifiable:
+		msg = "The data is not modifiable."
+	case ErrorInvalidOwnerEdit:
+		msg = "An invalid attempt to change the owner of an item."
 	default:
 		msg = "Keychain Error."
 	}

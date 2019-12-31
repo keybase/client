@@ -1078,7 +1078,6 @@ protocol teams {
   record TeamAddMemberResult {
     boolean invited;
     union{null, User} user;
-    boolean emailSent;
     boolean chatSending;
   }
 
@@ -1196,7 +1195,7 @@ protocol teams {
 
   void teamChangeMembership(int sessionID, string name, TeamChangeReq req);
 
-  TeamAddMemberResult teamAddMember(int sessionID, TeamID teamID, string email, string username,
+  TeamAddMemberResult teamAddMember(int sessionID, TeamID teamID, string email, string phone, string username,
     TeamRole role, union { null, TeamBotSettings } botSettings, boolean sendChatNotification);
 
   TeamAddMembersResult teamAddMembers(int sessionID, TeamID teamID, array<string> assertions, TeamRole role, union { null, TeamBotSettings } botSettings, boolean sendChatNotification);
@@ -1411,6 +1410,12 @@ protocol teams {
    current user can't read the team.
    */
   TeamID getTeamID(string teamName);
+
+  /**
+   Gets a TeamName from a team id string. Returns an error if the
+   current user can't read the team.
+   */
+  TeamName getTeamName(TeamID teamID);
 
   FastTeamLoadRes ftl(FastTeamLoadArg arg);
 

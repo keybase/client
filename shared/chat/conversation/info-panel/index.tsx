@@ -83,8 +83,8 @@ export type InfoPanelProps = {
   loadDelay?: number
   selectedConversationIDKey: Types.ConversationIDKey
   participants: ReadonlyArray<ParticipantTyp>
-  availableBots: ReadonlyArray<RPCTypes.FeaturedBot>
-  bots: ReadonlyArray<RPCTypes.FeaturedBot>
+  installedBots: ReadonlyArray<RPCTypes.FeaturedBot>
+  featuredBots: ReadonlyArray<RPCTypes.FeaturedBot>
   isPreview: boolean
   teamname?: string
   channelname?: string
@@ -132,6 +132,8 @@ export type InfoPanelProps = {
   loadedAllBots: boolean
   onSearchFeaturedBots: (username: string) => void
   onLoadMoreBots: () => void
+  onBotSelect: (username: string) => void
+  onBotAdd: () => void
 } & HeaderHocProps
 
 const TabText = ({selected, text}: {selected: boolean; text: string}) => (
@@ -161,12 +163,7 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
   }
 
   private loadBots = () => {
-    const possibleBotsLength = this.props.bots.length + this.props.availableBots.length
-    if (this.props.bots.length > 0) {
-      this.props.bots.map(bot => this.props.onSearchFeaturedBots(bot.botUsername))
-    }
-
-    if (possibleBotsLength === 0 && !this.props.loadedAllBots) {
+    if (this.props.featuredBots.length === 0 && !this.props.loadedAllBots) {
       this.props.onLoadMoreBots()
     }
   }
@@ -432,13 +429,13 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
         }
 
         tabsSection.data.push(addBotButton)
-        if (this.props.bots.length > 0) {
+        if (this.props.installedBots.length > 0) {
           tabsSection.data.push(inThisChannelHeader)
         }
-        tabsSection.data = tabsSection.data.concat(this.props.bots)
-        if (this.props.availableBots.length > 0 || !this.props.loadedAllBots) {
+        tabsSection.data = tabsSection.data.concat(this.props.installedBots)
+        if (this.props.featuredBots.length > 0) {
           tabsSection.data.push(featuredBotsHeader)
-          tabsSection.data = tabsSection.data.concat(this.props.availableBots)
+          tabsSection.data = tabsSection.data.concat(this.props.featuredBots)
         }
         if (!this.props.loadedAllBots) {
           tabsSection.data.push(loadMoreBotsButton)
@@ -451,14 +448,15 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
                 type="Default"
                 label="Add a bot"
                 style={styles.addBot}
-                onClick={() => null}
+                onClick={this.props.onBotAdd}
               />
             )
           }
           if (item === inThisChannelHeader) {
+            const text = this.props.teamname ? 'Installed in this team' : 'In this conversation'
             return (
               <Kb.Text type="Header" style={styles.botHeaders}>
-                In this channel
+                {text}
               </Kb.Text>
             )
           }
@@ -483,7 +481,7 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
           if (!item.botUsername) {
             return null
           } else {
-            return <Bot {...item} onShowProfile={this.props.onShowProfile} />
+            return <Bot {...item} onClick={this.props.onBotSelect} />
           }
         }
         sections.push(tabsSection)

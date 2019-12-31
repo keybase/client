@@ -46,14 +46,17 @@ const BannerContainer = (props: Props) => {
 
 const mapStateToProps = (state: Container.TypedState, {conversationIDKey}: OwnProps) => {
   const _following = state.config.following
-  const _meta = Constants.getMeta(state, conversationIDKey)
+  const _participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
   const _users = state.users
   const _dismissed = state.chat2.dismissedInviteBannersMap.get(conversationIDKey) || false
+  const meta = Constants.getMeta(state, conversationIDKey)
   return {
     _dismissed,
     _following,
-    _meta,
+    _participantInfo,
+    _teamType: meta.teamType,
     _users,
+    hasMessages: !meta.isEmpty,
   }
 }
 
@@ -68,18 +71,17 @@ export default Container.connect(
   (stateProps, dispatchProps, _: OwnProps) => {
     let type: Props['type']
     let users: Array<string> = []
-
-    if (stateProps._meta.teamType !== 'adhoc') {
+    if (stateProps._teamType !== 'adhoc') {
       type = 'none'
     } else {
-      const broken = stateProps._meta.participants.filter(
+      const broken = stateProps._participantInfo.all.filter(
         p => (stateProps._users.infoMap.get(p) || {broken: false}).broken && stateProps._following.has(p)
       )
       if (broken.length > 0) {
         type = 'broken'
         users = broken
       } else {
-        const toInvite = stateProps._meta.participants.filter(p => p.includes('@'))
+        const toInvite = stateProps._participantInfo.all.filter(p => p.includes('@'))
         if (toInvite.length > 0) {
           type = 'invite'
           users = toInvite
@@ -91,7 +93,7 @@ export default Container.connect(
 
     return {
       dismissed: stateProps._dismissed,
-      hasMessages: !stateProps._meta.isEmpty,
+      hasMessages: stateProps.hasMessages,
       onDismiss: dispatchProps.onDismiss,
       openSMS: (phoneNumber: string) => openSMS(['+' + phoneNumber], installMessage),
       openShareSheet: () =>
@@ -100,7 +102,7 @@ export default Container.connect(
           mimeType: 'text/plain',
         }),
       type,
-      usernameToContactName: stateProps._meta.participantToContactName,
+      usernameToContactName: stateProps._participantInfo.contactName,
       users,
     }
   }

@@ -20,13 +20,14 @@ export default namedConnect(
       _hasBadge: Constants.getHasBadge(state, conversationIDKey),
       _hasUnread: Constants.getHasUnread(state, conversationIDKey),
       _meta: Constants.getMeta(state, conversationIDKey),
+      _participantInfo: Constants.getParticipantInfo(state, conversationIDKey),
       _username: state.config.username,
       isMuted: Constants.isMuted(state, conversationIDKey),
     }
   },
   () => ({}),
   (stateProps, _, ownProps) => {
-    const {isMuted, _hasBadge, _meta, _hasUnread, _username} = stateProps
+    const {isMuted, _hasBadge, _meta, _participantInfo, _hasUnread, _username} = stateProps
     const {isSelected, maxSearchHits, numSearchHits, onSelectConversation, name} = ownProps
     const styles = Constants.getRowStyles(isSelected, _hasUnread)
     const participantNeedToRekey = _meta.rekeyers.size > 0
@@ -35,7 +36,7 @@ export default namedConnect(
 
     // order participants by hit, if it's set
     const filter = ownProps.filter ?? ''
-    const metaParts = Constants.getRowParticipants(_meta, _username)
+    const metaParts = Constants.getRowParticipants(_participantInfo, _username)
     let participants = metaParts.length > 0 ? metaParts : name.split(',')
     participants = participants.sort((a, b) => {
       const ai = a.indexOf(filter)

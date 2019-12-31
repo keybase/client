@@ -28,4 +28,5 @@ export {
   useFsTlfs,
   useFsWatchDownloadForMobile,
   useDispatchWhenConnected as useDispatchWhenKbfsIsConnected,
+  useUserIsLookingAtFs,
 } from './hooks'

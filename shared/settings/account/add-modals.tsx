@@ -119,6 +119,8 @@ export const Phone = () => {
   const [searchable, onChangeSearchable] = React.useState(true)
   const disabled = !valid
 
+  const defaultCountry = Container.useSelector(state => state.settings.phoneNumbers.defaultCountry)
+
   const error = Container.useSelector(state => state.settings.phoneNumbers.error)
   const pendingVerification = Container.useSelector(state => state.settings.phoneNumbers.pendingVerification)
   const waiting = Container.useAnyWaiting(Constants.addPhoneNumberWaitingKey)
@@ -131,6 +133,10 @@ export const Phone = () => {
       dispatch(nav.safeNavigateAppendPayload({path: ['settingsVerifyPhone']}))
     }
   }, [dispatch, error, nav, pendingVerification])
+  // trigger a default phone number country rpc if it's not already loaded
+  React.useEffect(() => {
+    !defaultCountry && dispatch(SettingsGen.createLoadDefaultPhoneNumberCountry())
+  }, [defaultCountry, dispatch])
 
   const onClose = React.useCallback(() => {
     dispatch(SettingsGen.createClearPhoneNumberAdd())
@@ -186,6 +192,7 @@ export const Phone = () => {
         style={styles.body}
       >
         <EnterPhoneNumberBody
+          defaultCountry={defaultCountry}
           onChangeNumber={onChangeNumberCb}
           onContinue={onContinue}
           searchable={searchable}

@@ -1,40 +1,49 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
+import * as Constants from '../../constants/provision'
+import * as Container from '../../util/container'
+import * as ProvisionGen from '../../actions/provision-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Styles from '../../styles'
+import * as SettingsGen from '../../actions/settings-gen'
 import PhoneInput from '../../signup/phone-number/phone-input'
 import {SignupScreen, errorBanner} from '../../signup/common'
 
-type Props = {
-  forgotUsernameResult: string
-  onBack: () => void
-  onSubmit: (email: string, phone: string) => void
-  waiting: boolean
-}
+const ForgotUsername = () => {
+  const dispatch = Container.useDispatch()
 
-const ForgotUsername = (props: Props) => {
+  const defaultCountry = Container.useSelector(state => state.settings.phoneNumbers.defaultCountry)
+  // trigger a default phone number country rpc if it's not already loaded
+  React.useEffect(() => {
+    !defaultCountry && dispatch(SettingsGen.createLoadDefaultPhoneNumberCountry())
+  }, [defaultCountry, dispatch])
+
+  const forgotUsernameResult = Container.useSelector(state => state.provision.forgotUsernameResult)
+  const onBack = React.useCallback(() => dispatch(RouteTreeGen.createNavigateUp()), [dispatch])
+  const waiting = Container.useAnyWaiting(Constants.forgotUsernameWaitingKey)
+
   const [emailSelected, setEmailSelected] = React.useState(true)
   const [email, setEmail] = React.useState('')
   // PhoneInput's callback gets passed a (phoneNumber, valid) tuple.
   // If "valid" is false, phoneNumber gets set to null, therefore phoneNumber is only
   // truthy when it's valid. This is used in the form validation logic in the code.
   const [phoneNumber, setPhoneNumber] = React.useState<string | null>(null)
-  const {onSubmit} = props
-  const _onSubmit = React.useCallback(() => {
+  const onSubmit = React.useCallback(() => {
     if (!emailSelected && phoneNumber) {
-      onSubmit('', phoneNumber)
+      dispatch(ProvisionGen.createForgotUsername({phone: phoneNumber}))
     } else if (emailSelected) {
-      onSubmit(email, '')
+      dispatch(ProvisionGen.createForgotUsername({email}))
     }
-  }, [onSubmit, email, phoneNumber, emailSelected])
+  }, [dispatch, email, phoneNumber, emailSelected])
 
-  const error = props.forgotUsernameResult !== 'success' ? props.forgotUsernameResult : ''
+  const error = forgotUsernameResult !== 'success' ? forgotUsernameResult : ''
   const disabled = (!emailSelected && phoneNumber === null) || (emailSelected && !email)
 
   return (
     <SignupScreen
       banners={[
         ...errorBanner(error),
-        ...(props.forgotUsernameResult === 'success'
+        ...(forgotUsernameResult === 'success'
           ? [
               <Kb.Banner key="successBanner" color="blue">
                 <Kb.BannerParagraph bannerColor="green" content="We just sent you your username." />
@@ -46,12 +55,12 @@ const ForgotUsername = (props: Props) => {
         {
           disabled,
           label: 'Recover username',
-          onClick: _onSubmit,
+          onClick: onSubmit,
           type: 'Default',
-          waiting: props.waiting,
+          waiting: waiting,
         },
       ]}
-      onBack={props.onBack}
+      onBack={onBack}
       title="Recover username"
     >
       <Kb.Box2 direction="vertical" gap="tiny" style={styles.wrapper}>
@@ -64,7 +73,7 @@ const ForgotUsername = (props: Props) => {
           <Kb.LabeledInput
             autoFocus={true}
             placeholder="Email address"
-            onEnterKeyDown={_onSubmit}
+            onEnterKeyDown={onSubmit}
             onChangeText={setEmail}
             value={email}
           />
@@ -77,6 +86,7 @@ const ForgotUsername = (props: Props) => {
         {!emailSelected && (
           <PhoneInput
             autoFocus={true}
+            defaultCountry={defaultCountry}
             onChangeNumber={(phoneNumber, valid) => {
               if (!valid) {
                 setPhoneNumber(null)
@@ -85,7 +95,7 @@ const ForgotUsername = (props: Props) => {
 
               setPhoneNumber(phoneNumber)
             }}
-            onEnterKeyDown={_onSubmit}
+            onEnterKeyDown={onSubmit}
             style={styles.phoneInput}
           />
         )}
