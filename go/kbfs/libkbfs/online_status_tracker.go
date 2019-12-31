@@ -42,7 +42,7 @@ const (
 	// we are showing a "trying" state in GUI. This usually lasts for
 	// ostTryingStateTimeout.
 	ostTryingUserIn
-	// User is not looking at the Fs tab. We are disconnected to the mdserver,
+	// User is not looking at the Fs tab. We are not connected to the mdserver,
 	// but we are telling GUI a "trying" state.
 	ostTryingUserOut
 	// User is looking at the Fs tab. We are disconnected from the mdserver and
