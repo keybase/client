@@ -26,7 +26,7 @@ import (
 )
 
 const (
-	maxAllowedMerkleGapServer = 8 * time.Hour
+	maxAllowedMerkleGapServer = 13 * time.Hour
 	// Our contract with the server states that it won't accept KBFS
 	// writes if more than 8 hours have passed since the last Merkle
 	// roots (both global and KBFS) were published.  Add some padding
