@@ -148,7 +148,7 @@ func ostFsm(
 	// connected is used to signify the FSM that we've just connected to the
 	// mdserver.
 	connected <-chan struct{},
-	// connected is used to signify the FSM that we've just lost connection to
+	// disconnected is used to signify the FSM that we've just lost connection to
 	// the mdserver.
 	disconnected <-chan struct{},
 ) {
