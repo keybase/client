@@ -152,7 +152,8 @@ func (h *UIInboxLoader) flushConvBatch() (err error) {
 	if len(h.convTransmitBatch) == 0 {
 		return nil
 	}
-	ctx := context.Background()
+	ctx := globals.ChatCtx(context.Background(), h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
+	defer h.Trace(ctx, func() error { return err }, "flushConvBatch")()
 	var convs []chat1.ConversationLocal
 	for _, conv := range h.convTransmitBatch {
 		convs = append(convs, conv)
@@ -353,6 +354,7 @@ func (h *UIInboxLoader) LoadNonblock(ctx context.Context, query *chat1.GetInboxL
 					Conv: convRes.ConvLocal,
 				}
 			} else {
+				h.Debug(ctx, "LoadNonblock: success: conv: %s", convRes.Conv.ConvIDStr)
 				h.transmitCh <- conversationResponse{
 					Conv: convRes.ConvLocal,
 				}

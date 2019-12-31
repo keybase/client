@@ -2422,7 +2422,8 @@ const ensureSelectedTeamLoaded = (
 
 const ensureSelectedMeta = (state: Container.TypedState) => {
   const meta = state.chat2.metaMap.get(state.chat2.selectedConversation)
-  return !meta
+  const participantInfo = Constants.getParticipantInfo(state, state.chat2.selectedConversation)
+  return !meta || participantInfo.all.length === 0
     ? Chat2Gen.createMetaRequestTrusted({
         conversationIDKeys: [state.chat2.selectedConversation],
         force: true,
