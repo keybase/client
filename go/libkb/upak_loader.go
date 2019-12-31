@@ -1054,9 +1054,6 @@ func (u *CachedUPAKLoader) Batcher(ctx context.Context, getArg func(int) *LoadUs
 					}
 					return nil
 				}, false)
-				// If the UPAK load errors out, it won't get to processResult
-				// in CachedUPAKLoader#loadWithInfo. In case that's fine, don't
-				// return an error so as not to stop the batch.
 				if err != nil {
 					return err
 				}
