@@ -383,6 +383,7 @@ const anotherRoleChangeNotSub = {
 
 const notOwnerSub = {owner: 'Subteams cannot have owners.'}
 const notOwnerNotSub = {owner: `Only owners can turn members into owners`}
+const emptyObj = {}
 
 export const getDisabledReasonsForRolePicker = (
   state: TypedState,
@@ -405,7 +406,7 @@ export const getDisabledReasonsForRolePicker = (
       ? subteamsCannotHaveOwners
       : yourRole !== 'owner'
       ? onlyOwnersCanTurnTeamMembersInfoOwners
-      : {}
+      : emptyObj
   }
 
   // We shouldn't get here, but in case we do this is correct.
