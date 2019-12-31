@@ -100,7 +100,7 @@ export const TeamRow = React.memo<RowProps>((props: RowProps) => {
   )
 })
 
-const getMembersText = (count: number) => (count === -1 ? '' : pluralize('member', count))
+const getMembersText = (count: number) => (count === -1 ? '' : `${count} ${pluralize('member', count)}`)
 
 type Row =
   | {

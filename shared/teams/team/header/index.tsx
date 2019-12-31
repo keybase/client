@@ -147,7 +147,7 @@ const getTeamSubtitle = (memberCount: number, role: Types.MaybeTeamRoleType): st
   if (memberCount === -1) {
     return Constants.typeToLabel[role]
   }
-  let res = pluralize('member', memberCount)
+  let res = `${memberCount} ${pluralize('member', memberCount)}`
   if (role && role !== 'none') {
     res += ` • ${Constants.typeToLabel[role]}`
   }
