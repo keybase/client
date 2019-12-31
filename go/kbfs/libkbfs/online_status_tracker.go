@@ -133,7 +133,7 @@ func ostFsm(
 	// transitions. Caller should handle these effects and make things actually
 	// happen.
 	sideEffects chan<- ostSideEffect,
-	// onlineStatusUpdates carries a special side effect for caller to know
+	// onlineStatusUpdates carries a special side effect for the caller to know
 	// when the onlineStatus changes.
 	onlineStatusUpdates chan<- keybase1.KbfsOnlineStatus,
 	// userIn is used to signify the FSM that user has just started looking at
