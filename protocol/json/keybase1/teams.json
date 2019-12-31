@@ -4042,6 +4042,16 @@
       "response": "TeamID",
       "doc": "Gets a TeamID from a team name string. Returns an error if the\n   current user can't read the team."
     },
+    "getTeamName": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "TeamID"
+        }
+      ],
+      "response": "TeamName",
+      "doc": "Gets a TeamName from a team id string. Returns an error if the\n   current user can't read the team."
+    },
     "ftl": {
       "request": [
         {

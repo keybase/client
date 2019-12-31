@@ -770,6 +770,13 @@ func (h *TeamsHandler) GetTeamID(ctx context.Context, teamName string) (res keyb
 	return teams.GetTeamIDByNameRPC(mctx, teamName)
 }
 
+func (h *TeamsHandler) GetTeamName(ctx context.Context, teamID keybase1.TeamID) (res keybase1.TeamName, err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("GetTeamNameByID(%s)", teamID), func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
+	return teams.ResolveIDToName(mctx.Ctx(), mctx.G(), teamID)
+}
+
 func (h *TeamsHandler) GetTeamRoleMap(ctx context.Context) (res keybase1.TeamRoleMapAndVersion, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
 	return mctx.G().GetTeamRoleMapManager().Get(mctx, true /* retry on fail */)

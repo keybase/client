@@ -3802,6 +3802,10 @@ type GetTeamIDArg struct {
 	TeamName string `codec:"teamName" json:"teamName"`
 }
 
+type GetTeamNameArg struct {
+	TeamID TeamID `codec:"teamID" json:"teamID"`
+}
+
 type FtlArg struct {
 	Arg FastTeamLoadArg `codec:"arg" json:"arg"`
 }
@@ -3884,6 +3888,9 @@ type TeamsInterface interface {
 	// Gets a TeamID from a team name string. Returns an error if the
 	// current user can't read the team.
 	GetTeamID(context.Context, string) (TeamID, error)
+	// Gets a TeamName from a team id string. Returns an error if the
+	// current user can't read the team.
+	GetTeamName(context.Context, TeamID) (TeamName, error)
 	Ftl(context.Context, FastTeamLoadArg) (FastTeamLoadRes, error)
 	GetTeamRoleMap(context.Context) (TeamRoleMapAndVersion, error)
 	GetAnnotatedTeam(context.Context, TeamID) (AnnotatedTeam, error)
@@ -4703,6 +4710,21 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 					return
 				},
 			},
+			"getTeamName": {
+				MakeArg: func() interface{} {
+					var ret [1]GetTeamNameArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetTeamNameArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetTeamNameArg)(nil), args)
+						return
+					}
+					ret, err = i.GetTeamName(ctx, typedArgs[0].TeamID)
+					return
+				},
+			},
 			"ftl": {
 				MakeArg: func() interface{} {
 					var ret [1]FtlArg
@@ -5042,6 +5064,14 @@ func (c TeamsClient) ProfileTeamLoad(ctx context.Context, arg LoadTeamArg) (res 
 func (c TeamsClient) GetTeamID(ctx context.Context, teamName string) (res TeamID, err error) {
 	__arg := GetTeamIDArg{TeamName: teamName}
 	err = c.Cli.Call(ctx, "keybase.1.teams.getTeamID", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+// Gets a TeamName from a team id string. Returns an error if the
+// current user can't read the team.
+func (c TeamsClient) GetTeamName(ctx context.Context, teamID TeamID) (res TeamName, err error) {
+	__arg := GetTeamNameArg{TeamID: teamID}
+	err = c.Cli.Call(ctx, "keybase.1.teams.getTeamName", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 

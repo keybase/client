@@ -1412,6 +1412,12 @@ protocol teams {
    */
   TeamID getTeamID(string teamName);
 
+  /**
+   Gets a TeamName from a team id string. Returns an error if the
+   current user can't read the team.
+   */
+  TeamName getTeamName(TeamID teamID);
+
   FastTeamLoadRes ftl(FastTeamLoadArg arg);
 
   record MemberEmail {
