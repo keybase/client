@@ -36,6 +36,13 @@ export default connect(
     }
   },
   (dispatch, {teamID, username}: OwnProps) => ({
+    onChat: () =>
+      username &&
+      dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'teamMember'})),
+    onClick: () =>
+      dispatch(
+        RouteTreeGen.createNavigateAppend({path: [{props: {teamID, username}, selected: 'teamMember'}]})
+      ),
     onReAddToTeam: () =>
       dispatch(
         TeamsGen.createReAddToTeam({
@@ -49,14 +56,6 @@ export default connect(
         isMobile
           ? ProfileGen.createShowUserProfile({username})
           : Tracker2Gen.createShowUser({asTracker: true, username})
-      ),
-
-    onChat: () =>
-      username &&
-      dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'teamMember'})),
-    onClick: () =>
-      dispatch(
-        RouteTreeGen.createNavigateAppend({path: [{props: {teamID, username}, selected: 'teamMember'}]})
       ),
   }),
   (stateProps, dispatchProps, _: OwnProps) => ({

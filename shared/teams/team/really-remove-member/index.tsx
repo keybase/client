@@ -44,7 +44,7 @@ const ReallyRemoveMember = (props: Props) => {
         dispatch(RouteTreeGen.createNavUpToScreen({routeName: 'team'}))
       }
     }
-  }, [dispatch, waiting, wasWaiting])
+  }, [dispatch, waiting, wasWaiting, nav, navToChat])
 
   return (
     <Kb.ConfirmModal
