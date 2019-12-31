@@ -107,8 +107,9 @@ func (s ostState) getOnlineStatus() keybase1.KbfsOnlineStatus {
 }
 
 // ostSideEffect is a type for side effects that happens as a result of
-// transitions happening inside the FSM. These are actions that should happen,
-// but not by the FSM itself.
+// transitions happening inside the FSM. These side effects describe what
+// should happen, but the FSM doesn't directly do them. The caller of outFsm
+// should make sure those actions are carried out.
 type ostSideEffect int
 
 const (
@@ -281,8 +282,8 @@ func (ost *onlineStatusTracker) run(ctx context.Context) {
 		time.Sleep(100 * time.Millisecond)
 	}
 
-	tryingToOfflineTimer := time.NewTimer(time.Hour)
-	tryingToOfflineTimer.Stop()
+	tryingStateTimer := time.NewTimer(time.Hour)
+	tryingStateTimer.Stop()
 
 	sideEffects := make(chan ostSideEffect)
 	onlineStatusUpdates := make(chan keybase1.KbfsOnlineStatus)
@@ -323,23 +324,23 @@ func (ost *onlineStatusTracker) run(ctx context.Context) {
 
 	for {
 		select {
-		case <-tryingToOfflineTimer.C:
+		case <-tryingStateTimer.C:
 			tryingTimerUp <- struct{}{}
 		case sideEffect := <-sideEffects:
 			switch sideEffect {
 			case ostResetTimer:
-				if !tryingToOfflineTimer.Stop() {
+				if !tryingStateTimer.Stop() {
 					select {
-					case <-tryingToOfflineTimer.C:
+					case <-tryingStateTimer.C:
 					default:
 					}
 				}
-				tryingToOfflineTimer.Reset(ostTryingStateTimeout)
+				tryingStateTimer.Reset(ostTryingStateTimeout)
 			case ostStopTimer:
-				if !tryingToOfflineTimer.Stop() {
-					<-tryingToOfflineTimer.C
+				if !tryingStateTimer.Stop() {
+					<-tryingStateTimer.C
 					select {
-					case <-tryingToOfflineTimer.C:
+					case <-tryingStateTimer.C:
 					default:
 					}
 				}

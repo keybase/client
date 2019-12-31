@@ -447,7 +447,6 @@ func (md *MDServerRemote) OnDisconnected(ctx context.Context,
 	md.resetRekeyTimer()
 
 	if status == rpc.StartingNonFirstConnection {
-		fmt.Println("SONGGAO-LOG pushing connection status change")
 		md.config.KBFSOps().PushConnectionStatusChange(MDServiceName, errDisconnected{})
 		md.config.Reporter().OnlineStatusChanged(ctx, false)
 	}
