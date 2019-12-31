@@ -78,7 +78,7 @@ export const TeamRow = React.memo<RowProps>((props: RowProps) => {
           </Kb.Box2>
           <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start">
             {props.isNew && <Kb.Meta title="new" backgroundColor={Styles.globalColors.orange} />}
-            <Kb.Text type="BodySmall">{getMembersText(props.memberCount)}</Kb.Text>
+            <Kb.Text type="BodySmall">{getMembersText(props.membercount)}</Kb.Text>
           </Kb.Box2>
         </Kb.Box2>
       }
