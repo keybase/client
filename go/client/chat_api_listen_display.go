@@ -190,6 +190,23 @@ func (d *chatNotificationDisplay) NewChatActivity(ctx context.Context, arg chat1
 	return nil
 }
 
+func (d *chatNotificationDisplay) ChatJoinedConversation(ctx context.Context, arg chat1.ChatJoinedConversationArg) error {
+	if !d.config.showNewConvs {
+		return nil
+	}
+
+	notif := newConvNotification()
+	if arg.Conv == nil {
+		err := fmt.Sprintf("No conversation info found: %v", arg.ConvID.String())
+		notif.Error = &err
+	} else {
+		conv := arg.Conv.ExportToSummary()
+		notif.Conv = &conv
+	}
+	d.printJSON(notif)
+	return nil
+}
+
 func (d *chatNotificationDisplay) ChatIdentifyUpdate(context.Context, keybase1.CanonicalTLFNameAndIDWithBreaks) error {
 	return nil
 }
@@ -204,9 +221,6 @@ func (d *chatNotificationDisplay) ChatThreadsStale(context.Context, chat1.ChatTh
 	return nil
 }
 func (d *chatNotificationDisplay) ChatTypingUpdate(context.Context, []chat1.ConvTypingUpdate) error {
-	return nil
-}
-func (d *chatNotificationDisplay) ChatJoinedConversation(context.Context, chat1.ChatJoinedConversationArg) error {
 	return nil
 }
 func (d *chatNotificationDisplay) ChatLeftConversation(context.Context, chat1.ChatLeftConversationArg) error {
