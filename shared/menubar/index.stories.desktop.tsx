@@ -88,7 +88,12 @@ const load = () => {
     .add('Out of date banner', () => (
       <Kb.Box2 fullWidth={true} direction="vertical" gap="small">
         <OutOfDate
-          updateInfo={{status: 'ok', updating: false, critical: undefined, suggested: undefined}}
+          updateInfo={{
+            critical: undefined,
+            status: 'ok',
+            suggested: undefined,
+            updating: false,
+          }}
           updateStart={Storybook.action('updateStart')}
         />
         <OutOfDate

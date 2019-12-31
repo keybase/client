@@ -207,15 +207,15 @@ const styles = Styles.styleSheetCreate(() => ({
       marginTop: Styles.globalMargins.small,
     },
   }),
+  updateAvailableButtonsContainer: {
+    marginTop: Styles.globalMargins.xsmall,
+  },
   updateAvailableContainer: {
     backgroundColor: Styles.globalColors.green,
     paddingBottom: Styles.globalMargins.tiny,
     paddingLeft: Styles.globalMargins.medium,
     paddingRight: Styles.globalMargins.medium,
     paddingTop: Styles.globalMargins.tiny,
-  },
-  updateAvailableButtonsContainer: {
-    marginTop: Styles.globalMargins.xsmall,
   },
   updateAvailableMessage: {
     color: Styles.globalColors.white,
