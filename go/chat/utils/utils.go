@@ -2715,3 +2715,32 @@ func DBConvLess(a pager.InboxEntry, b pager.InboxEntry) bool {
 	}
 	return !(a.GetConvID().Eq(b.GetConvID()) || a.GetConvID().Less(b.GetConvID()))
 }
+
+func ExportToSummary(i chat1.InboxUIItem) (s chat1.ConvSummary) {
+	s.Id = i.ConvID
+	s.Unread = i.ReadMsgID < i.MaxVisibleMsgID
+	s.ActiveAt = i.Time.UnixSeconds()
+	s.ActiveAtMs = i.Time.UnixMilliseconds()
+	s.FinalizeInfo = i.FinalizeInfo
+	s.MemberStatus = strings.ToLower(i.MemberStatus.String())
+	for _, super := range i.Supersedes {
+		s.Supersedes = append(s.Supersedes,
+			super.ConversationID.String())
+	}
+	for _, super := range i.SupersededBy {
+		s.SupersededBy = append(s.SupersededBy,
+			super.ConversationID.String())
+	}
+	switch i.MembersType {
+	case chat1.ConversationMembersType_IMPTEAMUPGRADE, chat1.ConversationMembersType_IMPTEAMNATIVE:
+		s.ResetUsers = i.ResetParticipants
+	}
+	s.Channel = chat1.ChatChannel{
+		Name:        i.Name,
+		Public:      i.IsPublic,
+		TopicType:   strings.ToLower(i.TopicType.String()),
+		MembersType: strings.ToLower(i.MembersType.String()),
+		TopicName:   i.Channel,
+	}
+	return s
+}

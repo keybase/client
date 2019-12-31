@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -182,7 +183,7 @@ func (d *chatNotificationDisplay) NewChatActivity(ctx context.Context, arg chat1
 			err := fmt.Sprintf("No conversation info found: %v", convInfo.ConvID.String())
 			notif.Error = &err
 		} else {
-			conv := convInfo.Conv.ExportToSummary()
+			conv := utils.ExportToSummary(*convInfo.Conv)
 			notif.Conv = &conv
 		}
 		d.printJSON(notif)
@@ -200,7 +201,7 @@ func (d *chatNotificationDisplay) ChatJoinedConversation(ctx context.Context, ar
 		err := fmt.Sprintf("No conversation info found: %v", arg.ConvID.String())
 		notif.Error = &err
 	} else {
-		conv := arg.Conv.ExportToSummary()
+		conv := utils.ExportToSummary(*arg.Conv)
 		notif.Conv = &conv
 	}
 	d.printJSON(notif)

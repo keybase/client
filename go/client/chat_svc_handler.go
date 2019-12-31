@@ -107,7 +107,7 @@ func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Rep
 		IdentifyFailures: res.IdentifyFailures,
 	}
 	for _, conv := range res.Conversations {
-		cl.Conversations = append(cl.Conversations, conv.ExportToSummary())
+		cl.Conversations = append(cl.Conversations, utils.ExportToSummary(conv))
 	}
 	cl.RateLimits = c.aggRateLimits(rlimits)
 	return Reply{Result: cl}
@@ -135,7 +135,7 @@ func (c *chatServiceHandler) ListConvsOnNameV1(ctx context.Context, opts listCon
 	var cl chat1.ChatList
 	cl.RateLimits = c.aggRateLimits(listRes.RateLimits)
 	for _, conv := range listRes.Convs {
-		cl.Conversations = append(cl.Conversations, conv.ExportToSummary())
+		cl.Conversations = append(cl.Conversations, utils.ExportToSummary(conv))
 	}
 	return Reply{Result: cl}
 }
