@@ -412,12 +412,12 @@ func (md *MDOpsStandard) checkRevisionCameBeforeMerkle(
 	// readonly if `maxAllowedMerkleGapServer` has passed since laste  KBFS
 	// merkle tree was published. We add a small error window to it, and
 	// enforce in client that any MD with a gap greater than
-	// `maxAllowedMerkleGap` since laste KBFS merkle tree is illegal.
+	// `maxAllowedMerkleGap` since last KBFS merkle tree is illegal.
 	//
 	// However there's no way get a trustable timestamp for the metadata
-	// updaste happening at 8:02am when we haven't verified that metadata yet,
+	// update happening at 8:02am when we haven't verified that metadata yet,
 	// we have to proxy it to some sort of ordering from merkle trees. Here we
-	// are using K2 as that proxy. Since we alredy need to guarantee the
+	// are using K2 as that proxy. Since we already need to guarantee the
 	// metadata in question has to happen before K2, we just need to make sure
 	// K2 happens within `maxAllowedMerkleGap` since the revoke happened.
 	//
@@ -526,9 +526,9 @@ func (md *MDOpsStandard) checkRevisionCameBeforeMerkle(
 			// This is to make sure kbfsRoot is built within
 			// maxAllowedMerkleGap from timeToCheck (which is the from the
 			// revoke signature). As mentioned in the large comment block
-			// above, since there's no otherr way to get a trustable time from
+			// above, since there's no other way to get a trustable time from
 			// this particular metadata update when we don't trust it yet, we
-			// use the "happens before K2" check below as a proxyf, and make
+			// use the "happens before K2" check below as a proxy, and make
 			// sure K2 is within the gap.
 			err = md.checkMerkleTimes(
 				ctx, latestRootTime, kbfsRoot, timeToCheck,
@@ -559,7 +559,7 @@ func (md *MDOpsStandard) checkRevisionCameBeforeMerkle(
 	// If the given revision comes after the merkle leaf revision,
 	// then don't verify it.
 	//
-	// In thte context of the large comment at the beginning of this method,
+	// In the context of the large comment at the beginning of this method,
 	// this is to check a write happens before K2.
 	if irmd.Revision() > leaf.Revision {
 		return MDWrittenAfterRevokeError{
