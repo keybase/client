@@ -77,7 +77,20 @@ const InstallBotPopup = (props: Props) => {
     if (!conversationIDKey) {
       return
     }
-    dispatch(Chat2Gen.createRemoveBotMember({conversationIDKey, username: botUsername}))
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {
+              botUsername,
+              conversationIDKey,
+              namespace: 'chat2',
+            },
+            selected: 'chatConfirmRemoveBot',
+          },
+        ],
+      })
+    )
   }
   const onFeedback = () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: ['feedback']}))
