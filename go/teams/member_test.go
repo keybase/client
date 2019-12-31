@@ -1241,9 +1241,7 @@ func TestMemberCancelInviteEmail(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error canceling email invite for unknown team")
 	}
-	if _, ok := err.(TeamDoesNotExistError); !ok {
-		t.Errorf("expected teams.TeamDoesNotExistError, got %T", err)
-	}
+	require.EqualError(t, err, "team load arg has invalid ID: notateam")
 }
 
 // Test two users racing to post chain links to the same team.
