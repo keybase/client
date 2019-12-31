@@ -357,7 +357,11 @@ func (m *memberSet) AddRemainingRecipients(ctx context.Context, g *libkb.GlobalC
 	// for UPAK Batcher API
 	processResult := func(idx int, upak *keybase1.UserPlusKeysV2AllIncarnations) error {
 		mem, err := memberFromUPAK(ctx, requests[idx].uv, upak)
-		if err != nil {
+		switch err.(type) {
+		case nil:
+		case libkb.AccountResetError:
+			return nil
+		default:
 			return err
 		}
 		m.storeMember(ctx, g, mem, requests[idx].storeMemberKind)
