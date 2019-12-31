@@ -9,7 +9,9 @@ import * as WaitingGen from '../../../actions/waiting-gen'
 import * as Types from '../../../constants/types/chat2'
 import * as TeamTypes from '../../../constants/types/teams'
 import * as Constants from '../../../constants/chat2'
+import * as Teams from '../../../constants/teams'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
+import ChannelPicker from './channel-picker'
 
 export const useBotConversationIDKey = (inConvIDKey?: Types.ConversationIDKey, teamID?: TeamTypes.TeamID) => {
   const [conversationIDKey, setConversationIDKey] = React.useState(inConvIDKey)
@@ -40,32 +42,38 @@ const InstallBotPopupLoader = (props: LoaderProps) => {
   const inConvIDKey = Container.getRouteProps(props, 'conversationIDKey', undefined)
   const teamID = Container.getRouteProps(props, 'teamID', undefined)
   const conversationIDKey = useBotConversationIDKey(inConvIDKey, teamID)
-  return <InstallBotPopup botUsername={botUsername} conversationIDKey={conversationIDKey} />
+  return <InstallBotPopup botUsername={botUsername} conversationIDKey={conversationIDKey} teamID={teamID} />
 }
 
 type Props = {
   botUsername: string
   conversationIDKey?: Types.ConversationIDKey
+  teamID?: TeamTypes.TeamID
 }
 
 const InstallBotPopup = (props: Props) => {
-  const { botUsername, conversationIDKey } = props
+  const { botUsername, conversationIDKey, teamID } = props
 
   // state
   const [installScreen, setInstallScreen] = React.useState(false)
+  const [channelPickerScreen, setChannelPickerScreen] = React.useState(false)
   const [installWithCommands, setInstallWithCommands] = React.useState(true)
   const [installWithMentions, setInstallWithMentions] = React.useState(true)
   const [installWithRestrict, setInstallWithRestrict] = React.useState(true)
-  const [installInConvs, setInstallInConvs] = React.useState(undefined)
+  const [installInConvs, setInstallInConvs] = React.useState<string[]>([])
   const { commands, featured, inTeam, inTeamUnrestricted, settings } = Container.useSelector(
     (state: Container.TypedState) => {
       let inTeam: boolean | undefined
       let teamRole: TeamTypes.TeamRoleType | null | undefined
+      let teamName: string | null | undefined
       if (conversationIDKey) {
         teamRole = state.chat2.botTeamRoleInConvMap.get(conversationIDKey)?.get(botUsername)
         if (teamRole !== undefined) {
           inTeam = !!teamRole
         }
+      }
+      if (teamID) {
+        teamName = Teams.getTeamNameFromID(state, teamID)
       }
       return {
         commands: state.chat2.botPublicCommands.get(botUsername),
@@ -75,6 +83,7 @@ const InstallBotPopup = (props: Props) => {
         settings: conversationIDKey
           ? state.chat2.botSettings.get(conversationIDKey)?.get(botUsername) ?? undefined
           : undefined,
+        teamName,
       }
     }
   )
@@ -286,7 +295,24 @@ const InstallBotPopup = (props: Props) => {
     </Kb.Box2 >
   )
 
-  const content = installScreen ? installContent : featured ? featuredContent : usernameContent
+  const channelPickerContent = channelPickerScreen && teamName && (
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container} gap="small">
+      <ChannelPicker
+        installInConvs={installInConvs}
+        setChannelPickerScreen={setChannelPickerScreen}
+        setInstallInConvs={setInstallInConvs}
+        teamname={teamName}
+      />
+    </Kb.Box2>
+  )
+
+  const content = channelPickerScreen
+    ? channelPickerContent
+    : installScreen
+      ? installContent
+      : featured
+        ? featuredContent
+        : usernameContent
   const showInstallButton = installScreen && !inTeam
   const showReviewButton = !installScreen && !inTeam
   const showRemoveButton = inTeam && !installScreen
@@ -379,21 +405,20 @@ const InstallBotPopup = (props: Props) => {
                 >
                   {'feedback'}
                 </Kb.Text>
-              </Kb.Text>
-            )}
-          </Kb.Box2>
-        ),
+                )}
+            </Kb.Box2>
+            ),
       }}
-    >
+                            >
       <Kb.Box2 direction="vertical" style={styles.outerContainer} fullWidth={true}>
-        {enabled ? content : <Kb.ProgressIndicator />}
-      </Kb.Box2>
+              {enabled ? content : <Kb.ProgressIndicator />}
+            </Kb.Box2>
     </Kb.Modal>
-  )
-}
+        )
+      }
 
-type CommandsLabelProps = {
-  commands: Types.BotPublicCommands | undefined
+type CommandsLabelProps={
+        commands: Types.BotPublicCommands | undefined
 }
 
 const maxCommandsShown = 3

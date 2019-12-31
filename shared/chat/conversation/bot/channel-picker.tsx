@@ -26,7 +26,7 @@ const Row = ({selected, channelInfo}: RowProps) => (
       disabled={channelInfo.channelname.toLowerCase() === 'general'}
     />
     <Kb.Box2 direction="vertical">
-      <Kb.Text lineClamp={1} type="BodySecondaryLink" style={styles.channelHash}>
+      <Kb.Text lineClamp={1} type="BodySecondaryLink">
         #{' '}
         <Kb.Text type="Body" style={styles.channelText}>
           {channelInfo.channelname}
@@ -41,14 +41,17 @@ const ChannelPicker = (props: Props) => {
   const channelInfos = Container.useSelector(state =>
     TeamConstants.getTeamChannelInfos(state, props.teamname)
   )
+
+  const rows = [...channelInfos.entries()].map(([convID, channelInfo]) => (
+    <Row key={convID} selected={props.installInConvs.includes(convID)} channelInfo={channelInfo} />
+  ))
+
+  return <Kb.Box2 direction="vertical">{rows}</Kb.Box2>
 }
 
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      channelHash: {
-        color: Styles.globalColors.black_20,
-      },
       channelText: Styles.platformStyles({
         isElectron: {
           wordBreak: 'break-all',
