@@ -12,7 +12,12 @@ import {
 import GetRowsFromTlfUpdate from '../fs/remote-container'
 import shallowEqual from 'shallowequal'
 
-type ConvMap = Array<{hasBadge: boolean; hasUnread: boolean; conversation: ChatTypes.ConversationMeta}>
+type ConvMap = Array<{
+  hasBadge: boolean
+  hasUnread: boolean
+  conversation: ChatTypes.ConversationMeta
+  participantInfo: ChatTypes.ParticipantInfo
+}>
 type FileRows = {_tlfUpdates: FSTypes.UserTlfUpdates; _uploads: FSTypes.Uploads}
 
 export const serialize: any = {

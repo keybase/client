@@ -67,6 +67,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
           showButton={row.showButton}
           toggle={this.props.toggleSmallTeamsExpanded}
           rows={this.props.rows}
+          smallTeamsExpanded={this.props.smallTeamsExpanded}
         />
       )
     } else if (row.type === 'teamBuilder') {

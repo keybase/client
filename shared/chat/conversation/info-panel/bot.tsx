@@ -34,7 +34,7 @@ const Bot = ({botAlias, description, botUsername, onClick, ownerTeam, ownerUser}
       <Kb.Text type="BodySmall">
         &nbsp;• by{' '}
         {ownerTeam ? (
-          <Kb.Text type="BodySmall">@{ownerTeam}</Kb.Text>
+          <Kb.TeamWithPopup prefix="@" inline={true} teamName={ownerTeam} type="BodySmall" />
         ) : (
           <Kb.ConnectedUsernames
             prefix="@"
@@ -72,7 +72,8 @@ const styles = Styles.styleSheetCreate(
         isMobile: {marginRight: Styles.globalMargins.small},
       }),
       container: {
-        paddingTop: Styles.globalMargins.small,
+        paddingBottom: Styles.globalMargins.xtiny,
+        paddingTop: Styles.globalMargins.xtiny,
       },
       row: {
         alignItems: 'center',

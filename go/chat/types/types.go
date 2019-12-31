@@ -597,7 +597,7 @@ func (d DummyBotCommandManager) Advertise(ctx context.Context, alias *string,
 
 func (d DummyBotCommandManager) Clear(context.Context) error { return nil }
 
-func (d DummyBotCommandManager) PublicCommandsConv(ctx context.Context, username string) (chat1.ConversationID, error) {
+func (d DummyBotCommandManager) PublicCommandsConv(ctx context.Context, username string) (*chat1.ConversationID, error) {
 	return nil, nil
 }
 
@@ -646,6 +646,9 @@ func (d DummyUIInboxLoader) UpdateLayoutFromNewMessage(ctx context.Context, conv
 
 func (d DummyUIInboxLoader) UpdateLayoutFromSubteamRename(ctx context.Context, convs []RemoteConversation) {
 }
+
+func (d DummyUIInboxLoader) UpdateLayoutFromSmallIncrease(ctx context.Context) {}
+func (d DummyUIInboxLoader) UpdateLayoutFromSmallReset(ctx context.Context)    {}
 
 type DummyAttachmentUploader struct{}
 

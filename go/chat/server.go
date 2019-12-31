@@ -175,6 +175,20 @@ func (h *Server) RequestInboxUnbox(ctx context.Context, convIDs []chat1.Conversa
 	return nil
 }
 
+func (h *Server) RequestInboxSmallIncrease(ctx context.Context) (err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
+	defer h.Trace(ctx, func() error { return err }, "RequestInboxSmallIncrease")()
+	h.G().UIInboxLoader.UpdateLayoutFromSmallIncrease(ctx)
+	return nil
+}
+
+func (h *Server) RequestInboxSmallReset(ctx context.Context) (err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
+	defer h.Trace(ctx, func() error { return err }, "RequestInboxSmallReset")()
+	h.G().UIInboxLoader.UpdateLayoutFromSmallReset(ctx)
+	return nil
+}
+
 func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNonblockLocalArg) (res chat1.NonblockFetchRes, err error) {
 	var breaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), arg.IdentifyBehavior, &breaks, h.identNotifier)
@@ -2669,7 +2683,10 @@ func (h *Server) ListPublicBotCommandsLocal(ctx context.Context, username string
 	if err != nil {
 		return res, err
 	}
-	return h.ListBotCommandsLocal(ctx, convID)
+	if convID == nil {
+		return res, nil
+	}
+	return h.ListBotCommandsLocal(ctx, *convID)
 }
 
 func (h *Server) ListBotCommandsLocal(ctx context.Context, convID chat1.ConversationID) (res chat1.ListBotCommandsLocalRes, err error) {

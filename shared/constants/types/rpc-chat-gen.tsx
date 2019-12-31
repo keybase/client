@@ -471,6 +471,14 @@ export type MessageTypes = {
     inParam: {readonly reselectMode: InboxLayoutReselectMode}
     outParam: void
   }
+  'chat.1.local.requestInboxSmallIncrease': {
+    inParam: void
+    outParam: void
+  }
+  'chat.1.local.requestInboxSmallReset': {
+    inParam: void
+    outParam: void
+  }
   'chat.1.local.requestInboxUnbox': {
     inParam: {readonly convIDs?: Array<ConversationID> | null}
     outParam: void
@@ -1317,7 +1325,7 @@ export type UICommandMarkdown = {readonly body: String; readonly title?: String 
 export type UIInboxBigTeamChannelRow = {readonly convID: String; readonly teamname: String; readonly channelname: String; readonly draft?: String | null; readonly isMuted: Boolean}
 export type UIInboxBigTeamLabelRow = {readonly name: String; readonly id: String}
 export type UIInboxBigTeamRow = {state: UIInboxBigTeamRowTyp.label; label: UIInboxBigTeamLabelRow} | {state: UIInboxBigTeamRowTyp.channel; channel: UIInboxBigTeamChannelRow}
-export type UIInboxLayout = {readonly smallTeams?: Array<UIInboxSmallTeamRow> | null; readonly bigTeams?: Array<UIInboxBigTeamRow> | null; readonly reselectInfo?: UIInboxReselectInfo | null; readonly widgetList?: Array<UIInboxSmallTeamRow> | null}
+export type UIInboxLayout = {readonly totalSmallTeams: Int; readonly smallTeams?: Array<UIInboxSmallTeamRow> | null; readonly bigTeams?: Array<UIInboxBigTeamRow> | null; readonly reselectInfo?: UIInboxReselectInfo | null; readonly widgetList?: Array<UIInboxSmallTeamRow> | null}
 export type UIInboxReselectInfo = {readonly oldConvID: String; readonly newConvID?: String | null}
 export type UIInboxSmallTeamRow = {readonly convID: String; readonly name: String; readonly time: Gregor1.Time; readonly snippet?: String | null; readonly snippetDecoration: SnippetDecoration; readonly draft?: String | null; readonly isMuted: Boolean; readonly isTeam: Boolean}
 export type UILinkDecoration = {readonly display: String; readonly url: String; readonly punycode: String}
@@ -1516,6 +1524,8 @@ export const localPreviewConversationByIDLocalRpcPromise = (params: MessageTypes
 export const localProfileChatSearchRpcPromise = (params: MessageTypes['chat.1.local.profileChatSearch']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.profileChatSearch']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.profileChatSearch', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localRemoveBotMemberRpcPromise = (params: MessageTypes['chat.1.local.removeBotMember']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.removeBotMember']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.removeBotMember', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localRequestInboxLayoutRpcPromise = (params: MessageTypes['chat.1.local.requestInboxLayout']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.requestInboxLayout']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.requestInboxLayout', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localRequestInboxSmallIncreaseRpcPromise = (params: MessageTypes['chat.1.local.requestInboxSmallIncrease']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.requestInboxSmallIncrease']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.requestInboxSmallIncrease', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localRequestInboxSmallResetRpcPromise = (params: MessageTypes['chat.1.local.requestInboxSmallReset']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.requestInboxSmallReset']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.requestInboxSmallReset', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localRequestInboxUnboxRpcPromise = (params: MessageTypes['chat.1.local.requestInboxUnbox']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.requestInboxUnbox']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.requestInboxUnbox', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localResolveMaybeMentionRpcPromise = (params: MessageTypes['chat.1.local.resolveMaybeMention']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.resolveMaybeMention']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.resolveMaybeMention', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localResolveUnfurlPromptRpcPromise = (params: MessageTypes['chat.1.local.resolveUnfurlPrompt']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.resolveUnfurlPrompt']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.resolveUnfurlPrompt', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))

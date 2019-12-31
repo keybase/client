@@ -254,8 +254,9 @@ const Connected = Container.connect(
     const _conversationIDKey = Constants.getSelectedConversation(state)
     const userInfo = state.users.infoMap
     const _meta = Constants.getMeta(state, _conversationIDKey)
+    const participantInfo = Constants.getParticipantInfo(state, _conversationIDKey)
 
-    const otherParticipants = Constants.getRowParticipants(_meta, state.config.username)
+    const otherParticipants = Constants.getRowParticipants(participantInfo, state.config.username)
     const first: string =
       _meta.teamType === 'adhoc' && otherParticipants.length === 1 ? otherParticipants[0] : ''
     const otherInfo = userInfo.get(first)
@@ -268,6 +269,7 @@ const Connected = Container.connect(
     return {
       _conversationIDKey,
       _meta,
+      _participantInfo: participantInfo,
       canEditDesc: TeamConstants.getCanPerform(state, _meta.teamname).editChannelDescription,
       desc,
       fullName,
@@ -305,7 +307,7 @@ const Connected = Container.connect(
       onOpenFolder: () => dispatchProps._onOpenFolder(stateProps._conversationIDKey),
       onToggleInfoPanel: dispatchProps.onToggleInfoPanel,
       onToggleThreadSearch: () => dispatchProps.onToggleThreadSearch(stateProps._conversationIDKey),
-      participants: meta.teamType === 'adhoc' ? meta.nameParticipants : null,
+      participants: meta.teamType === 'adhoc' ? stateProps._participantInfo.name : null,
       showActions: Constants.isValidConversationIDKey(stateProps._conversationIDKey),
       unMuteConversation: () => dispatchProps.onUnMuteConversation(stateProps._conversationIDKey),
       username: stateProps.username,

@@ -105,6 +105,8 @@ export const uploadStarted = 'fs:uploadStarted'
 export const uploadWritingSuccess = 'fs:uploadWritingSuccess'
 export const userFileEditsLoad = 'fs:userFileEditsLoad'
 export const userFileEditsLoaded = 'fs:userFileEditsLoaded'
+export const userIn = 'fs:userIn'
+export const userOut = 'fs:userOut'
 export const waitForKbfsDaemon = 'fs:waitForKbfsDaemon'
 
 // Payload Types
@@ -239,6 +241,8 @@ type _UploadStartedPayload = {readonly path: Types.Path}
 type _UploadWritingSuccessPayload = {readonly path: Types.Path}
 type _UserFileEditsLoadPayload = void
 type _UserFileEditsLoadedPayload = {readonly tlfUpdates: Types.UserTlfUpdates}
+type _UserInPayload = void
+type _UserOutPayload = void
 type _WaitForKbfsDaemonPayload = void
 
 // Action Creators
@@ -579,6 +583,8 @@ export const createUserFileEditsLoad = (payload: _UserFileEditsLoadPayload): Use
 export const createUserFileEditsLoaded = (
   payload: _UserFileEditsLoadedPayload
 ): UserFileEditsLoadedPayload => ({payload, type: userFileEditsLoaded})
+export const createUserIn = (payload: _UserInPayload): UserInPayload => ({payload, type: userIn})
+export const createUserOut = (payload: _UserOutPayload): UserOutPayload => ({payload, type: userOut})
 export const createWaitForKbfsDaemon = (payload: _WaitForKbfsDaemonPayload): WaitForKbfsDaemonPayload => ({
   payload,
   type: waitForKbfsDaemon,
@@ -930,6 +936,8 @@ export type UserFileEditsLoadedPayload = {
   readonly payload: _UserFileEditsLoadedPayload
   readonly type: typeof userFileEditsLoaded
 }
+export type UserInPayload = {readonly payload: _UserInPayload; readonly type: typeof userIn}
+export type UserOutPayload = {readonly payload: _UserOutPayload; readonly type: typeof userOut}
 export type WaitForKbfsDaemonPayload = {
   readonly payload: _WaitForKbfsDaemonPayload
   readonly type: typeof waitForKbfsDaemon
@@ -1037,5 +1045,7 @@ export type Actions =
   | UploadWritingSuccessPayload
   | UserFileEditsLoadPayload
   | UserFileEditsLoadedPayload
+  | UserInPayload
+  | UserOutPayload
   | WaitForKbfsDaemonPayload
   | {type: 'common:resetStore', payload: {}}

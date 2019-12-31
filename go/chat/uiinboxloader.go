@@ -31,14 +31,16 @@ type UIInboxLoader struct {
 	started bool
 	eg      errgroup.Group
 
-	clock             clockwork.Clock
-	transmitCh        chan interface{}
-	layoutCh          chan chat1.InboxLayoutReselectMode
-	bigTeamUnboxCh    chan []chat1.ConversationID
-	convTransmitBatch map[string]chat1.ConversationLocal
-	batchDelay        time.Duration
-	lastBatchFlush    time.Time
-	lastLayoutFlush   time.Time
+	clock                 clockwork.Clock
+	transmitCh            chan interface{}
+	layoutCh              chan chat1.InboxLayoutReselectMode
+	bigTeamUnboxCh        chan []chat1.ConversationID
+	convTransmitBatch     map[string]chat1.ConversationLocal
+	batchDelay            time.Duration
+	lastBatchFlush        time.Time
+	lastLayoutFlush       time.Time
+	smallTeamBound        int
+	defaultSmallTeamBound int
 
 	// layout tracking
 	lastLayoutMu sync.Mutex
@@ -49,12 +51,18 @@ type UIInboxLoader struct {
 }
 
 func NewUIInboxLoader(g *globals.Context) *UIInboxLoader {
+	defaultSmallTeamBound := 100
+	if g.IsMobileAppType() {
+		defaultSmallTeamBound = 50
+	}
 	return &UIInboxLoader{
-		Contextified:      globals.NewContextified(g),
-		DebugLabeler:      utils.NewDebugLabeler(g.GetLog(), "UIInboxLoader", false),
-		convTransmitBatch: make(map[string]chat1.ConversationLocal),
-		clock:             clockwork.NewRealClock(),
-		batchDelay:        200 * time.Millisecond,
+		Contextified:          globals.NewContextified(g),
+		DebugLabeler:          utils.NewDebugLabeler(g.GetLog(), "UIInboxLoader", false),
+		convTransmitBatch:     make(map[string]chat1.ConversationLocal),
+		clock:                 clockwork.NewRealClock(),
+		batchDelay:            200 * time.Millisecond,
+		smallTeamBound:        defaultSmallTeamBound,
+		defaultSmallTeamBound: defaultSmallTeamBound,
 	}
 }
 
@@ -144,7 +152,8 @@ func (h *UIInboxLoader) flushConvBatch() (err error) {
 	if len(h.convTransmitBatch) == 0 {
 		return nil
 	}
-	ctx := context.Background()
+	ctx := globals.ChatCtx(context.Background(), h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
+	defer h.Trace(ctx, func() error { return err }, "flushConvBatch")()
 	var convs []chat1.ConversationLocal
 	for _, conv := range h.convTransmitBatch {
 		convs = append(convs, conv)
@@ -345,6 +354,7 @@ func (h *UIInboxLoader) LoadNonblock(ctx context.Context, query *chat1.GetInboxL
 					Conv: convRes.ConvLocal,
 				}
 			} else {
+				h.Debug(ctx, "LoadNonblock: success: conv: %s", convRes.Conv.ConvIDStr)
 				h.transmitCh <- conversationResponse{
 					Conv: convRes.ConvLocal,
 				}
@@ -469,6 +479,10 @@ func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox,
 		return res.SmallTeams[i].Time.After(res.SmallTeams[j].Time)
 	})
 	res.BigTeams = btcollector.finalize(ctx)
+	res.TotalSmallTeams = len(res.SmallTeams)
+	if res.TotalSmallTeams > h.smallTeamBound {
+		res.SmallTeams = res.SmallTeams[:h.smallTeamBound]
+	}
 	if !selectedInLayout || reselectMode == chat1.InboxLayoutReselectMode_FORCE {
 		// select a new conv for the UI
 		var reselect chat1.UIInboxReselectInfo
@@ -666,4 +680,16 @@ func (h *UIInboxLoader) UpdateConvs(ctx context.Context, convIDs []chat1.Convers
 		ConvIDs:           convIDs,
 	}
 	return h.LoadNonblock(ctx, &query, nil, true)
+}
+
+func (h *UIInboxLoader) UpdateLayoutFromSmallIncrease(ctx context.Context) {
+	defer h.Trace(ctx, func() error { return nil }, "UpdateLayoutFromSmallIncrease")()
+	h.smallTeamBound += h.defaultSmallTeamBound
+	h.UpdateLayout(ctx, chat1.InboxLayoutReselectMode_DEFAULT, "small increase")
+}
+
+func (h *UIInboxLoader) UpdateLayoutFromSmallReset(ctx context.Context) {
+	defer h.Trace(ctx, func() error { return nil }, "UpdateLayoutFromSmallReset")()
+	h.smallTeamBound = h.defaultSmallTeamBound
+	h.UpdateLayout(ctx, chat1.InboxLayoutReselectMode_DEFAULT, "small reset")
 }

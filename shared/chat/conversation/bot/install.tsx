@@ -24,9 +24,10 @@ const InstallBotPopup = (props: Props) => {
   const {commands, featured, inTeam, settings} = Container.useSelector((state: Container.TypedState) => {
     const meta = conversationIDKey && state.chat2.metaMap.get(conversationIDKey)
     let inTeam = false
-    if (meta) {
+    if (meta && conversationIDKey) {
       if (meta.teamType === 'adhoc') {
-        inTeam = meta.participants.includes(botUsername)
+        const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
+        inTeam = participantInfo.all.includes(botUsername)
       } else {
         inTeam = Teams.userInTeam(state, meta.teamname, botUsername)
       }
@@ -162,15 +163,26 @@ const InstallBotPopup = (props: Props) => {
   )
 
   const content = installScreen ? installContent : featured ? featuredContent : usernameContent
-  const showInstallButton = (installScreen && !inTeam) || !inTeam
+  const showInstallButton = installScreen && !inTeam
+  const showReviewButton = !installScreen && !inTeam
   const showRemoveButton = inTeam && !installScreen
   const showEditButton = inTeam && !installScreen
   const showSaveButton = inTeam && installScreen
   const installButton = showInstallButton && (
     <Kb.WaitingButton
       fullWidth={true}
-      label="Install (free)"
-      onClick={installScreen ? onInstall : () => setInstallScreen(true)}
+      label="Install"
+      onClick={onInstall}
+      mode="Primary"
+      type="Default"
+      waitingKey={Constants.waitingKeyBotAdd}
+    />
+  )
+  const reviewButton = showReviewButton && (
+    <Kb.WaitingButton
+      fullWidth={true}
+      label="Review"
+      onClick={() => setInstallScreen(true)}
       mode="Primary"
       type="Default"
       waitingKey={Constants.waitingKeyBotAdd}
@@ -227,6 +239,7 @@ const InstallBotPopup = (props: Props) => {
             <Kb.ButtonBar direction="column">
               {editButton}
               {saveButton}
+              {reviewButton}
               {installButton}
               {removeButton}
             </Kb.ButtonBar>

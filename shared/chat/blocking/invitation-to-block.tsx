@@ -12,6 +12,9 @@ const BlockButtons = (props: Props) => {
   const nav = Container.useSafeNavigation()
 
   const conversationMeta = Container.useSelector(state => state.chat2.metaMap.get(props.conversationID))
+  const participantInfo = Container.useSelector(state =>
+    Constants.getParticipantInfo(state, props.conversationID)
+  )
   const blockButtonsMap = Container.useSelector(state => state.chat2.blockButtonsMap)
   const currentUser = Container.useSelector(state => state.config.username)
   if (!conversationMeta) {
@@ -25,7 +28,7 @@ const BlockButtons = (props: Props) => {
   }
 
   const adder = blockButtonInfo.adder
-  const others = conversationMeta.participants.filter(
+  const others = participantInfo.all.filter(
     person => person !== currentUser && person !== adder && !Constants.isAssertion(person)
   )
   const team = conversationMeta.teamname || undefined
@@ -74,7 +77,7 @@ const BlockButtons = (props: Props) => {
               path: [
                 {
                   props: {
-                    blockByDefault: true,
+                    blockUserByDefault: true,
                     convID: props.conversationID,
                     others: others,
                     team: team,

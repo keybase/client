@@ -12,7 +12,8 @@ type OwnProps = {
 export default connect(
   (state, {conversationIDKey}: OwnProps) => {
     const meta = Constants.getMeta(state, conversationIDKey)
-    const _participants = meta.participants
+    const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
+    const _participants = participantInfo.all
     const _resetParticipants = meta.resetParticipants
     return {_conversationIDKey: conversationIDKey, _participants, _resetParticipants}
   },

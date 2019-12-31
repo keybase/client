@@ -481,8 +481,8 @@ async function createNewTeamFromConversation(
   const {conversationIDKey, teamname} = action.payload
   const me = state.config.username
 
-  const meta = ChatConstants.getMeta(state, conversationIDKey)
-  const participants = meta.participants.filter(p => p !== me) // we will already be in as 'owner'
+  const participantInfo = ChatConstants.getParticipantInfo(state, conversationIDKey)
+  const participants = participantInfo.all.filter(p => p !== me) // we will already be in as 'owner'
   const users = participants.map(assertion => ({
     assertion,
     role: assertion === me ? ('admin' as const) : ('writer' as const),
@@ -594,6 +594,7 @@ function* addUserToTeams(state: TypedState, action: TeamsGen.AddUserToTeamsPaylo
       yield RPCTypes.teamsTeamAddMemberRpcPromise(
         {
           email: '',
+          phone: '',
           role: RPCTypes.TeamRole[role],
           sendChatNotification: true,
           teamID,
@@ -704,7 +705,7 @@ const getChannelInfo = async (
     hasAllMembers: null,
     memberStatus: convs[0].memberStatus,
     mtime: meta.timestamp,
-    numParticipants: meta.participants.length,
+    numParticipants: convs[0].participants?.length ?? 0,
   }
 
   return TeamsGen.createSetTeamChannelInfo({channelInfo, conversationIDKey, teamID})
