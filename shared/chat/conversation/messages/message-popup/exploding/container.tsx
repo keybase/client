@@ -48,6 +48,7 @@ export default Container.connect(
       _mapUnfurl,
       _participants: participantInfo.all,
       _teamID: meta.teamID,
+      _teamname: meta.teamname,
       author: ownProps.message.author,
       botUsername: ownProps.message.type === 'text' ? ownProps.message.botUsername : undefined,
       deviceName: ownProps.message.deviceName,

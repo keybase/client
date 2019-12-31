@@ -45,6 +45,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     _isEditable: message.isEditable,
     _participants: participantInfo.all,
     _teamID: meta.teamID,
+    _teamname: meta.teamname,
     _you: state.config.username,
   }
 }
