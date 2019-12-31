@@ -178,6 +178,8 @@ class Chat extends React.Component<Props, State> {
                       direction="vertical"
                       fullWidth={true}
                       gap={Styles.isMobile ? 'small' : undefined}
+                      gapStart={false}
+                      gapEnd={true}
                     >
                       {this.props.teamDetails.map(teamDetails => (
                         <TeamRow
