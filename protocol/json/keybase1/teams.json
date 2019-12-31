@@ -2413,10 +2413,6 @@
         },
         {
           "type": "boolean",
-          "name": "emailSent"
-        },
-        {
-          "type": "boolean",
           "name": "chatSending"
         }
       ]

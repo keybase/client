@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/offline"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -245,25 +246,26 @@ func (h *TeamsHandler) TeamAddMember(ctx context.Context, arg keybase1.TeamAddMe
 		return res, err
 	}
 
+	assertion := arg.Username
 	if arg.Email != "" || arg.Phone != "" {
-		isEmail := arg.Email != ""
-		typ := "email"
-		name := arg.Email
-		if !isEmail {
-			typ = "phone"
-			name = arg.Phone
+		var assertionURL libkb.AssertionURL
+		var err error
+		if arg.Email != "" {
+			assertionURL, err = libkb.ParseAssertionURLKeyValue(externals.MakeStaticAssertionContext(ctx), "email", arg.Email, true)
+		} else {
+			assertionURL, err = libkb.ParseAssertionURLKeyValue(externals.MakeStaticAssertionContext(ctx), "phone", arg.Phone, true)
 		}
-
-		if err := teams.InviteEmailPhoneMember(ctx, h.G().ExternalG(), arg.TeamID, name, typ, arg.Role); err != nil {
-			return keybase1.TeamAddMemberResult{}, err
+		if err != nil {
+			return res, err
 		}
-		return keybase1.TeamAddMemberResult{Invited: true, EmailSent: isEmail}, nil
+		assertion = assertionURL.String()
 	}
 
-	result, err := teams.AddMemberByID(ctx, h.G().ExternalG(), arg.TeamID, arg.Username, arg.Role, arg.BotSettings)
+	result, err := teams.AddMemberByID(ctx, h.G().ExternalG(), arg.TeamID, assertion, arg.Role, arg.BotSettings)
 	if err != nil {
-		return keybase1.TeamAddMemberResult{}, err
+		return res, err
 	}
+
 	if !arg.SendChatNotification {
 		return result, nil
 	}

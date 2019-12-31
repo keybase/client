@@ -1078,7 +1078,6 @@ protocol teams {
   record TeamAddMemberResult {
     boolean invited;
     union{null, User} user;
-    boolean emailSent;
     boolean chatSending;
   }
 
