@@ -638,8 +638,7 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 	case SCRevokeLastDevice:
 		e := RevokeLastDeviceError{}
 		for _, field := range s.Fields {
-			switch field.Key {
-			case "NoPassphrase":
+			if field.Key == "NoPassphrase" {
 				e.NoPassphrase = field.BoolValue()
 			}
 		}
