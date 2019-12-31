@@ -79,34 +79,41 @@ const getSortedConversationIDKeys = memoize(
   }
 )
 
-const getRows = (metaMap: Types.MetaMap, username: string, ownProps: OwnProps) => {
+const getRows = (
+  metaMap: Types.MetaMap,
+  participantMap: Map<Types.ConversationIDKey, Types.ParticipantInfo>,
+  username: string,
+  ownProps: OwnProps
+) => {
   let selectedIndex: number | null = null
   const rows = ownProps.filter
-    ? getFilteredRowsAndMetadata(metaMap, ownProps.filter, username).rows.map((row, index) => {
-        // This should never happen to have empty conversationIDKey, but
-        // provide default to make flow happy
-        const conversationIDKey = row.conversationIDKey || Constants.noConversationIDKey
-        const common = {
-          conversationIDKey,
-          isSelected: conversationIDKey === ownProps.selected,
-          onSelectConversation: () => {
-            ownProps.onSelect(conversationIDKey)
-            ownProps.onDone && ownProps.onDone()
-          },
+    ? getFilteredRowsAndMetadata(metaMap, participantMap, ownProps.filter, username).rows.map(
+        (row, index) => {
+          // This should never happen to have empty conversationIDKey, but
+          // provide default to make flow happy
+          const conversationIDKey = row.conversationIDKey || Constants.noConversationIDKey
+          const common = {
+            conversationIDKey,
+            isSelected: conversationIDKey === ownProps.selected,
+            onSelectConversation: () => {
+              ownProps.onSelect(conversationIDKey)
+              ownProps.onDone && ownProps.onDone()
+            },
+          }
+          if (common.isSelected) {
+            selectedIndex = index
+          }
+          return row.type === 'big'
+            ? ({
+                ...common,
+                type: 'big',
+              } as BigTeamChannelRowItem)
+            : ({
+                ...common,
+                type: 'small',
+              } as SmallTeamRowItem)
         }
-        if (common.isSelected) {
-          selectedIndex = index
-        }
-        return row.type === 'big'
-          ? ({
-              ...common,
-              type: 'big',
-            } as BigTeamChannelRowItem)
-          : ({
-              ...common,
-              type: 'small',
-            } as SmallTeamRowItem)
-      })
+      )
     : getSortedConversationIDKeys(metaMap).map(({conversationIDKey, type}, index) => {
         const common = {
           conversationIDKey,
@@ -149,13 +156,19 @@ const selectNext = (rows: Array<RowItem>, current: null | number, delta: 1 | -1)
 export default namedConnect(
   state => ({
     _metaMap: state.chat2.metaMap,
+    _participantMap: state.chat2.participantMap,
     _username: state.config.username,
   }),
   dispatch => ({
     onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
-    const {selectedIndex, rows} = getRows(stateProps._metaMap, stateProps._username, ownProps)
+    const {selectedIndex, rows} = getRows(
+      stateProps._metaMap,
+      stateProps._participantMap,
+      stateProps._username,
+      ownProps
+    )
     return {
       filter: ownProps.onSetFilter && {
         filter: ownProps.filter || '',

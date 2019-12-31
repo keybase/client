@@ -147,16 +147,18 @@ func (b *CachingBotCommandManager) createConv(ctx context.Context, param chat1.A
 	}
 }
 
-func (b *CachingBotCommandManager) PublicCommandsConv(ctx context.Context, username string) (chat1.ConversationID, error) {
+func (b *CachingBotCommandManager) PublicCommandsConv(ctx context.Context, username string) (*chat1.ConversationID, error) {
 	convs, err := b.G().ChatHelper.FindConversations(ctx, username, &commandsPublicTopicName,
 		chat1.TopicType_DEV, chat1.ConversationMembersType_IMPTEAMNATIVE, keybase1.TLFVisibility_PUBLIC)
 	if err != nil {
 		return nil, err
 	}
 	if len(convs) != 1 {
-		return nil, fmt.Errorf("unable to find conversation for %v, found %d convs instead of 1", username, len(convs))
+		b.Debug(ctx, "PublicCommandsConv: no command conv found")
+		return nil, nil
 	}
-	return convs[0].GetConvID(), nil
+	convID := convs[0].GetConvID()
+	return &convID, nil
 }
 
 func (b *CachingBotCommandManager) Advertise(ctx context.Context, alias *string,

@@ -482,6 +482,7 @@ class TeamBuilding extends React.PureComponent<Props> {
                   <SearchHintText />
                 ) : (
                   <ResultRow
+                    namespace={this.props.namespace}
                     resultForService={this.props.selectedService}
                     username={result.username}
                     prettyName={result.prettyName}
@@ -537,6 +538,7 @@ class TeamBuilding extends React.PureComponent<Props> {
                 prettyName={result.prettyName}
                 displayLabel={result.displayLabel}
                 services={result.services}
+                namespace={this.props.namespace}
                 inTeam={result.inTeam}
                 isPreExistingTeamMember={result.isPreExistingTeamMember}
                 isYou={result.isYou}

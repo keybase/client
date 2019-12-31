@@ -102,6 +102,22 @@ const inboxRefresh = (
   return actions
 }
 
+const inboxLoadMoreSmalls = async () => {
+  try {
+    await RPCChatTypes.localRequestInboxSmallIncreaseRpcPromise()
+  } catch (err) {
+    logger.info(`inboxLoadMoreSmalls: failed to increase smalls: ${err.message}`)
+  }
+}
+
+const inboxResetSmalls = async () => {
+  try {
+    await RPCChatTypes.localRequestInboxSmallResetRpcPromise()
+  } catch (err) {
+    logger.info(`inboxResetSmalls: failed to reset smalls: ${err.message}`)
+  }
+}
+
 // Only get the untrusted conversations out
 const untrustedConversationIDKeys = (state: Container.TypedState, ids: Array<Types.ConversationIDKey>) =>
   ids.filter(id => (state.chat2.metaMap.get(id) ?? {trustedState: 'untrusted'}).trustedState === 'untrusted')
@@ -185,23 +201,44 @@ const onGetInboxConvsUnboxed = (
   const metas: Array<Types.ConversationMeta> = []
   let added = false
   const usernameToFullname: {[username: string]: string} = {}
+  const participants: Array<{
+    conversationIDKey: Types.ConversationIDKey
+    participants: Types.ParticipantInfo
+  }> = []
   inboxUIItems.forEach(inboxUIItem => {
     const meta = Constants.inboxUIItemToConversationMeta(state, inboxUIItem)
     if (meta) {
       metas.push(meta)
     }
+    let participantInfo: Types.ParticipantInfo = {all: [], contactName: new Map(), name: []}
     ;(inboxUIItem.participants ?? []).forEach((part: RPCChatTypes.UIParticipant) => {
       if (!infoMap.get(part.assertion) && part.fullName) {
         added = true
         usernameToFullname[part.assertion] = part.fullName
       }
+      participantInfo.all.push(part.assertion)
+      if (part.inConvName) {
+        participantInfo.name.push(part.assertion)
+      }
+      if (part.contactName) {
+        participantInfo.contactName.set(part.assertion, part.contactName)
+      }
     })
+    if (participantInfo.all.length > 0) {
+      participants.push({
+        conversationIDKey: Types.stringToConversationIDKey(inboxUIItem.convID),
+        participants: participantInfo,
+      })
+    }
   })
   if (added) {
     actions.push(UsersGen.createUpdateFullnames({usernameToFullname}))
   }
   if (metas.length > 0) {
     actions.push(Chat2Gen.createMetasReceived({metas}))
+  }
+  if (participants.length > 0) {
+    actions.push(Chat2Gen.createSetParticipants({participants}))
   }
   return actions
 }
@@ -1949,8 +1986,9 @@ const onUpdateUserReacjis = (state: Container.TypedState) => {
 
 const openFolder = (state: Container.TypedState, action: Chat2Gen.OpenFolderPayload) => {
   const meta = Constants.getMeta(state, action.payload.conversationIDKey)
+  const participantInfo = Constants.getParticipantInfo(state, action.payload.conversationIDKey)
   const path = FsTypes.stringToPath(
-    meta.teamType !== 'adhoc' ? teamFolder(meta.teamname) : privateFolderWithUsers(meta.nameParticipants)
+    meta.teamType !== 'adhoc' ? teamFolder(meta.teamname) : privateFolderWithUsers(participantInfo.name)
   )
   return FsConstants.makeActionForOpenPathInFilesTab(path)
 }
@@ -2186,8 +2224,9 @@ const sendTyping = (action: Chat2Gen.SendTypingPayload) => {
 const resetChatWithoutThem = (state: Container.TypedState, action: Chat2Gen.ResetChatWithoutThemPayload) => {
   const {conversationIDKey} = action.payload
   const meta = Constants.getMeta(state, conversationIDKey)
+  const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
   // remove all bad people
-  const goodParticipants = new Set(meta.participants)
+  const goodParticipants = new Set(participantInfo.all)
   meta.resetParticipants.forEach(r => goodParticipants.delete(r))
   return Chat2Gen.createPreviewConversation({
     participants: [...goodParticipants],
@@ -2383,7 +2422,8 @@ const ensureSelectedTeamLoaded = (
 
 const ensureSelectedMeta = (state: Container.TypedState) => {
   const meta = state.chat2.metaMap.get(state.chat2.selectedConversation)
-  return !meta || meta.participants.length === 0
+  const participantInfo = Constants.getParticipantInfo(state, state.chat2.selectedConversation)
+  return !meta || participantInfo.all.length === 0
     ? Chat2Gen.createMetaRequestTrusted({
         conversationIDKeys: [state.chat2.selectedConversation],
         force: true,
@@ -2529,8 +2569,8 @@ const fetchConversationBio = async (
   action: Chat2Gen.SelectConversationPayload
 ) => {
   const {conversationIDKey} = action.payload
-  const meta = Constants.getMeta(state, conversationIDKey)
-  const otherParticipants = Constants.getRowParticipants(meta, state.config.username || '')
+  const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
+  const otherParticipants = Constants.getRowParticipants(participantInfo, state.config.username || '')
   if (otherParticipants.length === 1) {
     // we're in a one-on-one convo
     const username = otherParticipants[0] || ''
@@ -3328,6 +3368,116 @@ const loadNextBotPage = (state: Container.TypedState, action: Chat2Gen.LoadNextB
     page: state.chat2.featuredBotsPage + 1,
   })
 
+const refreshBotPublicCommands = async (
+  _: Container.TypedState,
+  action: Chat2Gen.RefreshBotPublicCommandsPayload
+) => {
+  let res: RPCChatTypes.ListBotCommandsLocalRes | undefined
+  try {
+    res = await RPCChatTypes.localListPublicBotCommandsLocalRpcPromise({
+      username: action.payload.username,
+    })
+  } catch (e) {
+    logger.info('refreshBotPublicCommands: failed to get public commands: ' + e.message)
+    return Chat2Gen.createSetBotPublicCommands({
+      commands: {commands: [], loadError: true},
+      username: action.payload.username,
+    })
+  }
+  const commands = (res?.commands ?? []).reduce<Array<string>>((l, c) => {
+    l.push(c.name)
+    return l
+  }, [])
+  return Chat2Gen.createSetBotPublicCommands({
+    commands: {commands, loadError: false},
+    username: action.payload.username,
+  })
+}
+
+const closeBotModal = (state: Container.TypedState, conversationIDKey: Types.ConversationIDKey) => {
+  const actions: Array<Container.TypedActions> = [RouteTreeGen.createClearModals()]
+  const meta = state.chat2.metaMap.get(conversationIDKey)
+  if (meta && meta.teamname) {
+    actions.push(TeamsGen.createGetMembers({teamname: meta.teamname}))
+  }
+  return actions
+}
+
+const addBotMember = async (state: Container.TypedState, action: Chat2Gen.AddBotMemberPayload) => {
+  const {allowCommands, allowMentions, conversationIDKey, username} = action.payload
+  try {
+    await RPCChatTypes.localAddBotMemberRpcPromise(
+      {
+        botSettings: {
+          cmds: allowCommands,
+          mentions: allowMentions,
+        },
+        convID: Types.keyToConversationID(conversationIDKey),
+        role: RPCTypes.TeamRole.restrictedbot,
+        username,
+      },
+      Constants.waitingKeyBotAdd
+    )
+  } catch (err) {
+    logger.info('addBotMember: failed to add bot member: ' + err.message)
+    return false
+  }
+  return closeBotModal(state, conversationIDKey)
+}
+
+const editBotSettings = async (state: Container.TypedState, action: Chat2Gen.EditBotSettingsPayload) => {
+  const {allowCommands, allowMentions, conversationIDKey, username} = action.payload
+  try {
+    await RPCChatTypes.localSetBotMemberSettingsRpcPromise(
+      {
+        botSettings: {
+          cmds: allowCommands,
+          mentions: allowMentions,
+        },
+        convID: Types.keyToConversationID(conversationIDKey),
+        username,
+      },
+      Constants.waitingKeyBotAdd
+    )
+  } catch (err) {
+    logger.info('addBotMember: failed to edit bot settings: ' + err.message)
+    return false
+  }
+  return closeBotModal(state, conversationIDKey)
+}
+
+const removeBotMember = async (state: Container.TypedState, action: Chat2Gen.RemoveBotMemberPayload) => {
+  const {conversationIDKey, username} = action.payload
+  try {
+    await RPCChatTypes.localRemoveBotMemberRpcPromise(
+      {
+        convID: Types.keyToConversationID(conversationIDKey),
+        username,
+      },
+      Constants.waitingKeyBotRemove
+    )
+  } catch (err) {
+    logger.info('removeBotMember: failed to remove bot member: ' + err.message)
+    return false
+  }
+  return closeBotModal(state, conversationIDKey)
+}
+
+const refreshBotSettings = async (_: Container.TypedState, action: Chat2Gen.RefreshBotSettingsPayload) => {
+  let settings: RPCTypes.TeamBotSettings | undefined
+  const {conversationIDKey, username} = action.payload
+  try {
+    settings = await RPCChatTypes.localGetBotMemberSettingsRpcPromise({
+      convID: Types.keyToConversationID(conversationIDKey),
+      username,
+    })
+  } catch (err) {
+    logger.info(`refreshBotSettings: failed to refresh settings for ${username}: ${err.message}`)
+    return
+  }
+  return Chat2Gen.createSetBotSettings({conversationIDKey, settings, username})
+}
+
 function* chat2Saga() {
   // Platform specific actions
   if (Container.isMobile) {
@@ -3353,6 +3503,8 @@ function* chat2Saga() {
   // Refresh the inbox
   yield* Saga.chainAction2([Chat2Gen.inboxRefresh, EngineGen.chat1NotifyChatChatInboxStale], inboxRefresh)
   yield* Saga.chainAction2([Chat2Gen.selectConversation, Chat2Gen.metasReceived], ensureSelectedTeamLoaded)
+  yield* Saga.chainAction(Chat2Gen.loadMoreSmalls, inboxLoadMoreSmalls)
+  yield* Saga.chainAction(Chat2Gen.resetSmalls, inboxResetSmalls)
   // We've scrolled some new inbox rows into view, queue them up
   yield* Saga.chainAction2(Chat2Gen.metaNeedsUpdating, queueMetaToRequest)
   // We have some items in the queue to process
@@ -3414,6 +3566,11 @@ function* chat2Saga() {
 
   // bots
   yield* Saga.chainAction2(Chat2Gen.loadNextBotPage, loadNextBotPage)
+  yield* Saga.chainAction2(Chat2Gen.refreshBotPublicCommands, refreshBotPublicCommands)
+  yield* Saga.chainAction2(Chat2Gen.addBotMember, addBotMember)
+  yield* Saga.chainAction2(Chat2Gen.editBotSettings, editBotSettings)
+  yield* Saga.chainAction2(Chat2Gen.removeBotMember, removeBotMember)
+  yield* Saga.chainAction2(Chat2Gen.refreshBotSettings, refreshBotSettings)
 
   // On login lets load the untrusted inbox. This helps make some flows easier
   yield* Saga.chainAction2(ConfigGen.bootstrapStatusLoaded, startupInboxLoad)

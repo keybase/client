@@ -510,7 +510,7 @@ func LoadUserFromLocalStorage(m MetaContext, uid keybase1.UID) (u *User, err err
 func LoadUserEmails(m MetaContext) (emails []keybase1.Email, err error) {
 	uid := m.G().GetMyUID()
 	res, err := m.G().API.Get(m, APIArg{
-		Endpoint:    "user/lookup",
+		Endpoint:    "user/private",
 		SessionType: APISessionTypeREQUIRED,
 		Args: HTTPArgs{
 			"uid": UIDArg(uid),

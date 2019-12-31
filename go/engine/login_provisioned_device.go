@@ -297,3 +297,8 @@ func (e *LoginProvisionedDevice) connectivityWarning(m libkb.MetaContext) {
 		}
 	}
 }
+
+// Returns the username that the user typed during the engine's execution
+func (e *LoginProvisionedDevice) GetUsername() libkb.NormalizedUsername {
+	return e.username
+}

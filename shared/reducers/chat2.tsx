@@ -27,6 +27,7 @@ type Actions =
   | EngineActions
   | BotsGen.UpdateFeaturedBotsPayload
   | BotsGen.SetLoadedAllBotsPayload
+  | BotsGen.SetSearchFeaturedAndUsersResultsPayload
 
 const initialState: Types.State = Constants.makeState()
 
@@ -72,6 +73,9 @@ const botActions: Container.ActionHandler<Actions, Types.State> = {
   [BotsGen.setLoadedAllBots]: (draftState, action) => {
     const {loaded} = action.payload
     draftState.featuredBotsLoaded = loaded
+  },
+  [BotsGen.setSearchFeaturedAndUsersResults]: (draftState, action) => {
+    draftState.botSearchResults = action.payload.results
   },
 }
 
@@ -1195,6 +1199,11 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   [Chat2Gen.staticConfigLoaded]: (draftState, action) => {
     draftState.staticConfig = action.payload.staticConfig
   },
+  [Chat2Gen.setParticipants]: (draftState, action) => {
+    action.payload.participants.forEach(part => {
+      draftState.participantMap.set(part.conversationIDKey, part.participants)
+    })
+  },
   [Chat2Gen.metasReceived]: (draftState, action) => {
     const {metas, initialTrustedLoad, removals} = action.payload
     const {draftMap, mutedMap, metaMap} = draftState
@@ -1218,10 +1227,6 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     removals && removals.forEach(m => metaMap.delete(m))
     metas.forEach(m => {
       const old = metaMap.get(m.conversationIDKey)
-      logger.info(
-        `metasReceived: convID: ${m.conversationIDKey} name: ${m.tlfname} hasOld: ${!!old} hasParts: ${m
-          .participants.length > 0} vers: ${m.inboxVersion} oldVers: ${old?.inboxVersion}`
-      )
       metaMap.set(m.conversationIDKey, old ? Constants.updateMeta(old, m) : m)
     })
   },
@@ -1337,11 +1342,15 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
         }
         draftState.metaMap.set(conversationIDKey, {
           ...newMeta,
-          participants,
           rekeyers,
           snippet: error.message,
           snippetDecoration: RPCChatTypes.SnippetDecoration.none,
           trustedState: 'error' as const,
+        })
+        draftState.participantMap.set(conversationIDKey, {
+          all: participants,
+          contactName: Constants.noParticipantInfo.contactName,
+          name: participants,
         })
       } else {
         const old = draftState.metaMap.get(conversationIDKey)
@@ -1488,6 +1497,23 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   [Chat2Gen.setLoadedBotPage]: (draftState, action) => {
     const {page} = action.payload
     draftState.featuredBotsPage = page
+  },
+  [Chat2Gen.setBotPublicCommands]: (draftState, action) => {
+    draftState.botPublicCommands.set(action.payload.username, action.payload.commands)
+  },
+  [Chat2Gen.refreshBotPublicCommands]: (draftState, action) => {
+    draftState.botPublicCommands.delete(action.payload.username)
+  },
+  [Chat2Gen.refreshBotSettings]: (draftState, action) => {
+    const m = draftState.botSettings.get(action.payload.conversationIDKey)
+    if (m) {
+      m.delete(action.payload.username)
+    }
+  },
+  [Chat2Gen.setBotSettings]: (draftState, action) => {
+    const m = draftState.botSettings.get(action.payload.conversationIDKey) || new Map()
+    m.set(action.payload.username, action.payload.settings)
+    draftState.botSettings.set(action.payload.conversationIDKey, m)
   },
   ...audioActions,
   ...botActions,

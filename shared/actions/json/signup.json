@@ -35,7 +35,7 @@
       "email": "string",
       "name": "string",
       "emailError?": "string",
-      "nameError?": "string",
+      "nameError?": "string"
     },
     "restartSignup": {},
     "signedup": {
@@ -51,6 +51,6 @@
     "setJustSignedUpEmail": {
       "email": "string"
     },
-    "clearJustSignedUpEmail": {},
+    "clearJustSignedUpEmail": {}
   }
 }

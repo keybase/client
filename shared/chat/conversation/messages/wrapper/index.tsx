@@ -478,7 +478,16 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         child = <SystemInviteAccepted key="systemInviteAccepted" message={message} />
         break
       case 'systemSBSResolved':
-        child = <SystemSBSResolved key="systemSbsResolved" message={message} />
+        if (this.props.youAreAuthor) {
+          child = <SystemSBSResolved key="systemSbsResolved" message={message} />
+        } else {
+          child = (
+            <SystemJoined
+              key="systemJoined"
+              message={{...message, joiners: [message.prover], leavers: [], type: 'systemJoined'}}
+            />
+          )
+        }
         break
       case 'systemSimpleToComplex':
         child = <SystemSimpleToComplex key="systemSimpleToComplex" message={message} />

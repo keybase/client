@@ -189,7 +189,7 @@ type _SetNewTeamInfoPayload = {
   readonly deletedTeams: Array<RPCTypes.DeletedTeamInfo>
   readonly newTeams: Set<Types.TeamID>
   readonly newTeamRequests: Array<Types.TeamID>
-  readonly teamNameToResetUsers: Map<Types.Teamname, Set<Types.ResetUser>>
+  readonly teamIDToResetUsers: Map<Types.TeamID, Set<Types.ResetUser>>
 }
 type _SetPublicityPayload = {readonly teamname: string; readonly settings: Types.PublicitySettings}
 type _SetTeamAccessRequestsPendingPayload = {readonly accessRequestsPending: Set<Types.Teamname>}

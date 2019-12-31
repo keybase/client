@@ -25,6 +25,7 @@ export default Container.connect(
   (state, ownProps: OwnProps) => {
     const message = ownProps.message
     const meta = Constants.getMeta(state, message.conversationIDKey)
+    const participantInfo = Constants.getParticipantInfo(state, message.conversationIDKey)
     const yourOperations = getCanPerformByID(state, meta.teamID)
     const _canDeleteHistory = yourOperations && yourOperations.deleteChatHistory
     const _canAdminDelete = yourOperations && yourOperations.deleteOtherMessages
@@ -37,7 +38,7 @@ export default Container.connect(
       _canAdminDelete,
       _canDeleteHistory,
       _canPinMessage,
-      _participants: meta.participants,
+      _participants: participantInfo.all,
       _teamID: meta.teamID,
       _you: state.config.username,
       pending: !!message.transferState,

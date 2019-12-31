@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/offline"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -238,23 +239,33 @@ func (h *TeamsHandler) TeamChangeMembership(ctx context.Context, arg keybase1.Te
 
 func (h *TeamsHandler) TeamAddMember(ctx context.Context, arg keybase1.TeamAddMemberArg) (res keybase1.TeamAddMemberResult, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamAddMember(%s,%s)", arg.TeamID, arg.Username),
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamAddMember(%s,username=%q,email=%q,phone=%q)", arg.TeamID, arg.Username, arg.Email, arg.Phone),
 		func() error { return err })()
 
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return res, err
 	}
 
-	if arg.Email != "" {
-		if err := teams.InviteEmailMember(ctx, h.G().ExternalG(), arg.TeamID, arg.Email, arg.Role); err != nil {
-			return keybase1.TeamAddMemberResult{}, err
+	assertion := arg.Username
+	if arg.Email != "" || arg.Phone != "" {
+		var assertionURL libkb.AssertionURL
+		var err error
+		if arg.Email != "" {
+			assertionURL, err = libkb.ParseAssertionURLKeyValue(externals.MakeStaticAssertionContext(ctx), "email", arg.Email, true)
+		} else {
+			assertionURL, err = libkb.ParseAssertionURLKeyValue(externals.MakeStaticAssertionContext(ctx), "phone", arg.Phone, true)
 		}
-		return keybase1.TeamAddMemberResult{Invited: true, EmailSent: true}, nil
+		if err != nil {
+			return res, err
+		}
+		assertion = assertionURL.String()
 	}
-	result, err := teams.AddMemberByID(ctx, h.G().ExternalG(), arg.TeamID, arg.Username, arg.Role, arg.BotSettings)
+
+	result, err := teams.AddMemberByID(ctx, h.G().ExternalG(), arg.TeamID, assertion, arg.Role, arg.BotSettings)
 	if err != nil {
-		return keybase1.TeamAddMemberResult{}, err
+		return res, err
 	}
+
 	if !arg.SendChatNotification {
 		return result, nil
 	}
@@ -759,6 +770,13 @@ func (h *TeamsHandler) GetTeamID(ctx context.Context, teamName string) (res keyb
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("GetTeamIDByName(%s)", teamName), func() error { return err })()
 	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
 	return teams.GetTeamIDByNameRPC(mctx, teamName)
+}
+
+func (h *TeamsHandler) GetTeamName(ctx context.Context, teamID keybase1.TeamID) (res keybase1.TeamName, err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("GetTeamNameByID(%s)", teamID), func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
+	return teams.ResolveIDToName(mctx.Ctx(), mctx.G(), teamID)
 }
 
 func (h *TeamsHandler) GetTeamRoleMap(ctx context.Context) (res keybase1.TeamRoleMapAndVersion, err error) {

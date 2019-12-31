@@ -657,14 +657,14 @@ func reAddMemberAfterResetInner(ctx context.Context, g *libkb.GlobalContext, tea
 	})
 }
 
-func InviteEmailMember(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, email string, role keybase1.TeamRole) error {
+func InviteEmailPhoneMember(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, name string, typ string, role keybase1.TeamRole) error {
 	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
 		t, err := GetForTeamManagementByTeamID(ctx, g, teamID, true)
 		if err != nil {
 			return err
 		}
 
-		return t.InviteEmailMember(ctx, email, role)
+		return t.InviteEmailPhoneMember(ctx, name, role, typ)
 	})
 }
 

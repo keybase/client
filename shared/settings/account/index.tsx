@@ -33,7 +33,13 @@ export const SettingsSection = ({children}: {children: React.ReactNode}) => (
     {children}
   </Kb.Box2>
 )
-const AddButton = (props: {disabled: boolean; kind: 'phone number' | 'email'; onClick: () => void}) => {
+
+type AddButtonProps = {
+  disabled: boolean
+  kind: 'phone number' | 'email'
+  onClick: () => void
+}
+const AddButton = (props: AddButtonProps) => {
   const btn = (
     <Kb.Button
       mode="Secondary"

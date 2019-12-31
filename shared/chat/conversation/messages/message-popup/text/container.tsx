@@ -25,6 +25,7 @@ type OwnProps = {
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const message = ownProps.message
   const meta = Constants.getMeta(state, message.conversationIDKey)
+  const participantInfo = Constants.getParticipantInfo(state, message.conversationIDKey)
   const yourOperations = getCanPerformByID(state, meta.teamID)
   const _canDeleteHistory = yourOperations && yourOperations.deleteChatHistory
   const _canAdminDelete = yourOperations && yourOperations.deleteOtherMessages
@@ -34,7 +35,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   }
   // you can reply privately *if* text message, someone else's message, and not in a 1-on-1 chat
   const _canReplyPrivately =
-    message.type === 'text' && (['small', 'big'].includes(meta.teamType) || meta.participants.length > 2)
+    message.type === 'text' && (['small', 'big'].includes(meta.teamType) || participantInfo.all.length > 2)
   return {
     _canAdminDelete,
     _canDeleteHistory,
@@ -42,7 +43,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     _canReplyPrivately,
     _isDeleteable: message.isDeleteable,
     _isEditable: message.isEditable,
-    _participants: meta.participants,
+    _participants: participantInfo.all,
     _teamID: meta.teamID,
     _you: state.config.username,
   }
@@ -116,6 +117,23 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
       })
     )
   },
+  _onUserBlock: (message: Types.Message, isSingle: boolean) => {
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {
+              blockUserByDefault: true,
+              context: isSingle ? 'message-popup-single' : 'message-popup',
+              convID: message.conversationIDKey,
+              username: message.author,
+            },
+            selected: 'chatBlockingModal',
+          },
+        ],
+      })
+    )
+  },
   _onViewProfile: (username: string) => dispatch(createShowUserProfile({username})),
 })
 
@@ -136,6 +154,7 @@ export default Container.namedConnect(
       mapUnfurl && mapUnfurl.mapInfo && !mapUnfurl.mapInfo.isLiveLocationDone
         ? () => openURL(mapUnfurl.url)
         : undefined
+    const blockModalSingle = !stateProps._teamname && stateProps._participants.length === 2
     return {
       attachTo: ownProps.attachTo,
       author: message.author,
@@ -147,6 +166,7 @@ export default Container.namedConnect(
       isEditable,
       isKickable: isDeleteable && !!stateProps._teamID && !yourMessage && authorInConv,
       isLocation,
+      isTeam: !!stateProps._teamname,
       onAddReaction: Container.isMobile ? () => dispatchProps._onAddReaction(message) : undefined,
       onCopy: message.type === 'text' ? () => dispatchProps._onCopy(message) : undefined,
       onDelete: isDeleteable ? () => dispatchProps._onDelete(message) : undefined,
@@ -160,6 +180,10 @@ export default Container.namedConnect(
       onReply: message.type === 'text' ? () => dispatchProps._onReply(message) : undefined,
       onReplyPrivately:
         !yourMessage && canReplyPrivately ? () => dispatchProps._onReplyPrivately(message) : undefined,
+      onUserBlock:
+        message.author && !yourMessage
+          ? () => dispatchProps._onUserBlock(message, blockModalSingle)
+          : undefined,
       onViewMap,
       onViewProfile:
         message.author && !yourMessage ? () => dispatchProps._onViewProfile(message.author) : undefined,

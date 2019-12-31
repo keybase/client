@@ -5,9 +5,11 @@ import {RowItem} from '../..'
 import {memoize} from '../../../../util/memoize'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Types from '../../../../constants/types/chat2'
+import * as Chat2Gen from '../../../../actions/chat2-gen'
 
 type OwnProps = {
   hiddenCountDelta: number
+  smallTeamsExpanded: boolean
   rows: Array<RowItem>
   showButton: boolean
   toggle: () => void
@@ -22,16 +24,14 @@ const mapStateToProps = (state: TypedState) => ({
 const getMetaCounts = memoize(
   (badges: Types.ConversationCountMap, inboxLayout: RPCChatTypes.UIInboxLayout | null) => {
     let badgeCount = 0
-    let hiddenCount = 0
     const smallTeams = inboxLayout ? inboxLayout.smallTeams || [] : []
     smallTeams.forEach((conv: RPCChatTypes.UIInboxSmallTeamRow) => {
       const id = Types.stringToConversationIDKey(conv.convID)
       badgeCount += badges.get(id) || 0
-      hiddenCount++
     })
     return {
       badgeCount,
-      hiddenCount,
+      hiddenCount: inboxLayout?.totalSmallTeams ?? 0,
     }
   }
 )
@@ -55,8 +55,16 @@ const getRowCounts = memoize((badges, rows) => {
 
 export default namedConnect(
   mapStateToProps,
-  () => ({}),
-  (stateProps, _, ownProps: OwnProps) => {
+  (dispatch, ownProps: OwnProps) => ({
+    toggle: () => {
+      if (ownProps.smallTeamsExpanded) {
+        dispatch(Chat2Gen.createLoadMoreSmalls())
+      } else {
+        ownProps.toggle()
+      }
+    },
+  }),
+  (stateProps, dispatchProps, ownProps: OwnProps) => {
     // we remove the badge count of the stuff we're showing
     let {badgeCount, hiddenCount} = getRowCounts(stateProps._badges, ownProps.rows)
 
@@ -75,7 +83,7 @@ export default namedConnect(
       hiddenCount,
       showButton: ownProps.showButton,
       style: ownProps.style,
-      toggle: ownProps.toggle,
+      toggle: dispatchProps.toggle,
     }
   },
   'TeamsDivider'

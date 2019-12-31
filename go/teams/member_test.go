@@ -648,18 +648,18 @@ func TestMemberAddEmail(t *testing.T) {
 
 	address := "noone@keybase.io"
 
-	if err := InviteEmailMember(context.TODO(), tc.G, teamID, address, keybase1.TeamRole_OWNER); err == nil {
+	if err := InviteEmailPhoneMember(context.TODO(), tc.G, teamID, address, "email", keybase1.TeamRole_OWNER); err == nil {
 		t.Fatal("should not be able to invite an owner over email")
 	}
 
-	if err := InviteEmailMember(context.TODO(), tc.G, teamID, address, keybase1.TeamRole_READER); err != nil {
+	if err := InviteEmailPhoneMember(context.TODO(), tc.G, teamID, address, "email", keybase1.TeamRole_READER); err != nil {
 		t.Fatal(err)
 	}
 
 	assertInvite(tc, name, address, "email", keybase1.TeamRole_READER)
 
-	// second InviteEmailMember should return err
-	if err := InviteEmailMember(context.TODO(), tc.G, teamID, address, keybase1.TeamRole_WRITER); err == nil {
+	// second InviteEmailPhoneMember should return err
+	if err := InviteEmailPhoneMember(context.TODO(), tc.G, teamID, address, "email", keybase1.TeamRole_WRITER); err == nil {
 		t.Errorf("second InviteEmailMember succeeded, should have failed since user already invited")
 	}
 
@@ -1215,7 +1215,7 @@ func TestMemberCancelInviteEmail(t *testing.T) {
 
 	address := "noone@keybase.io"
 
-	if err := InviteEmailMember(context.TODO(), tc.G, teamID, address, keybase1.TeamRole_READER); err != nil {
+	if err := InviteEmailPhoneMember(context.TODO(), tc.G, teamID, address, "email", keybase1.TeamRole_READER); err != nil {
 		t.Fatal(err)
 	}
 	assertInvite(tc, name, address, "email", keybase1.TeamRole_READER)

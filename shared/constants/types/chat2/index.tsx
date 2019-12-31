@@ -140,6 +140,22 @@ export type BlockButtonsInfo = {
   adder: string
 }
 
+export type BotPublicCommands = {
+  loadError: boolean
+  commands: Array<string>
+}
+
+export type BotSearchResults = {
+  bots: Array<RPCTypes.FeaturedBot>
+  users: Array<string>
+}
+
+export type ParticipantInfo = {
+  all: Array<string>
+  name: Array<string>
+  contactName: Map<string, string>
+}
+
 export type State = Readonly<{
   accountsInfoMap: Map<
     Common.ConversationIDKey,
@@ -151,6 +167,9 @@ export type State = Readonly<{
   badgeMap: ConversationCountMap // id to the badge count,
   blockButtonsMap: Map<RPCTypes.TeamID, BlockButtonsInfo> // Should we show block buttons for this team ID?
   botCommandsUpdateStatusMap: Map<Common.ConversationIDKey, RPCChatTypes.UIBotCommandsUpdateStatus>
+  botPublicCommands: Map<string, BotPublicCommands>
+  botSearchResults?: BotSearchResults
+  botSettings: Map<Common.ConversationIDKey, Map<string, RPCTypes.TeamBotSettings>>
   channelSearchText: string
   commandMarkdownMap: Map<Common.ConversationIDKey, RPCChatTypes.UICommandMarkdown>
   commandStatusMap: Map<Common.ConversationIDKey, CommandStatusInfo>
@@ -183,6 +202,7 @@ export type State = Readonly<{
   moreToLoadMap: Map<Common.ConversationIDKey, boolean> // if we have more data to load,
   mutedMap: Map<Common.ConversationIDKey, boolean> // muted convs
   orangeLineMap: Map<Common.ConversationIDKey, number> // last message we've seen,
+  participantMap: Map<Common.ConversationIDKey, ParticipantInfo>
   paymentConfirmInfo?: PaymentConfirmInfo // chat payment confirm screen data,
   paymentStatusMap: Map<Wallet.PaymentID, Message.ChatPaymentInfo>
   pendingOutboxToOrdinal: Map<Common.ConversationIDKey, Map<Message.OutboxID, Message.Ordinal>> // messages waiting to be sent,

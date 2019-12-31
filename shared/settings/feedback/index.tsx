@@ -119,7 +119,7 @@ class Feedback extends React.Component<Props, State> {
               </Kb.Banner>
             )}
             <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
-              <Kb.ClickableBox onClick={this._onLabelClick}>
+              <Kb.ClickableBox onClick={this._onLabelClick} style={styles.includeLogs}>
                 <Kb.Checkbox
                   label="Include your logs"
                   labelSubtitle="This includes some private metadata info (e.g., file sizes, but not names or contents) but it will help the developers fix bugs more quickly."
@@ -171,6 +171,9 @@ const styles = Styles.styleSheetCreate(
       container: Styles.platformStyles({
         common: {flex: 1},
       }),
+      includeLogs: {
+        ...Styles.globalStyles.fullWidth,
+      },
       input: Styles.platformStyles({
         isElectron: {padding: Styles.globalMargins.tiny},
         isMobile: {...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small)},
