@@ -11,17 +11,16 @@ type OwnProps = {
 
 export default connect(
   (state, ownProps: OwnProps) => {
-    const {teamID, teamname} = Constants.getMeta(state, ownProps.message.conversationIDKey)
+    const {teamID} = Constants.getMeta(state, ownProps.message.conversationIDKey)
     return {
       teamID,
-      teamname,
       you: state.config.username,
     }
   },
   dispatch => ({
-    _onManageChannels: (teamname: string) =>
+    _onManageChannels: (teamID: TeamID) =>
       dispatch(
-        RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'chatManageChannels'}]})
+        RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'chatManageChannels'}]})
       ),
     _onViewTeam: (teamID: TeamID) => {
       dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'team'}]}))
@@ -29,7 +28,7 @@ export default connect(
   }),
   (stateProps, dispatchProps, ownProps) => ({
     message: ownProps.message,
-    onManageChannels: () => dispatchProps._onManageChannels(stateProps.teamname),
+    onManageChannels: () => dispatchProps._onManageChannels(stateProps.teamID),
     onViewTeam: () => dispatchProps._onViewTeam(stateProps.teamID),
     you: stateProps.you,
   })

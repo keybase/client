@@ -1,4 +1,6 @@
 import * as React from 'react'
+import * as TeamsTypes from '../../constants/types/teams'
+
 export type Props = {
   channelname: string
   description: string
@@ -8,6 +10,7 @@ export type Props = {
   onSubmit: () => void
   onDescriptionChange: (description: string) => void
   onChannelnameChange: (channelname: string) => void
+  teamID: TeamsTypes.TeamID
   teamname: string
 }
 export declare class CreateChannel extends React.Component<Props> {}

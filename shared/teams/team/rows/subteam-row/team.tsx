@@ -23,8 +23,8 @@ export default Container.connect(
     }
   },
   dispatch => ({
-    _onManageChat: (teamname: Types.Teamname) =>
-      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'manageChannels'}]})),
+    _onManageChat: (teamID: Types.TeamID) =>
+      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'manageChannels'}]})),
     _onOpenFolder: (teamname: Types.Teamname) =>
       dispatch(
         FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/team/${teamname}`))
@@ -40,7 +40,7 @@ export default Container.connect(
     membercount: stateProps.members,
     name: stateProps.teamname,
     newRequests: stateProps._newTeamRequests.get(ownProps.teamID) || 0,
-    onManageChat: stateProps._isMember ? () => dispatchProps._onManageChat(stateProps.teamname) : null,
+    onManageChat: stateProps._isMember ? () => dispatchProps._onManageChat(ownProps.teamID) : undefined,
     onOpenFolder: () => dispatchProps._onOpenFolder(stateProps.teamname),
     onViewTeam: () => dispatchProps._onViewTeam(ownProps.teamID),
     resetUserCount: 0,

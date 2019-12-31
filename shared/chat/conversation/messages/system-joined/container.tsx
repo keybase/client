@@ -1,4 +1,5 @@
 import * as Types from '../../../../constants/types/chat2'
+import * as TeamsTypes from '../../../../constants/types/teams'
 import * as Constants from '../../../../constants/chat2'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as ProfileGen from '../../../../actions/profile-gen'
@@ -20,16 +21,10 @@ export default Container.connect(
   }),
   dispatch => ({
     _onAuthorClick: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
-    _onManageChannels: (teamname: string) =>
-      Container.isMobile
-        ? dispatch(
-            RouteTreeGen.createNavigateAppend({
-              path: [{props: {teamname}, selected: 'chatManageChannels'}],
-            })
-          )
-        : dispatch(
-            RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'chatManageChannels'}]})
-          ),
+    _onManageChannels: (teamID: TeamsTypes.TeamID) =>
+      dispatch(
+        RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'chatManageChannels'}]})
+      ),
     _onManageNotifications: (conversationIDKey: Types.ConversationIDKey) =>
       dispatch(
         RouteTreeGen.createNavigateAppend({
@@ -49,7 +44,7 @@ export default Container.connect(
         !stateProps._joiners.length && !stateProps.leavers.length ? [stateProps.author] : stateProps._joiners,
       leavers: stateProps.leavers,
       onAuthorClick: () => dispatchProps._onAuthorClick(stateProps.author),
-      onManageChannels: () => dispatchProps._onManageChannels(_meta.teamname),
+      onManageChannels: () => dispatchProps._onManageChannels(_meta.teamID),
       onManageNotifications: () => dispatchProps._onManageNotifications(_meta.conversationIDKey),
       teamname: _meta.teamname,
       timestamp: stateProps.timestamp,

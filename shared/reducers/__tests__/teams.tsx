@@ -6,7 +6,7 @@ import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import reducer from '../teams'
 
 describe('teams reducer', () => {
-  const teamname = 'keybaseteam'
+  const teamID = '12345abcde'
   const conversationIDKey = Types.stringToConversationIDKey('0')
 
   const initialState = Constants.makeState({})
@@ -22,10 +22,10 @@ describe('teams reducer', () => {
     const setAction = TeamsGen.createSetTeamChannelInfo({
       channelInfo,
       conversationIDKey,
-      teamname,
+      teamID,
     })
 
     const state1 = reducer(initialState, setAction)
-    expect(state1.teamNameToChannelInfos.get(teamname)?.get(conversationIDKey)).toEqual(channelInfo)
+    expect(state1.teamIDToChannelInfos.get(teamID)?.get(conversationIDKey)).toEqual(channelInfo)
   })
 })

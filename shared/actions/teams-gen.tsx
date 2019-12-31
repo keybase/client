@@ -79,10 +79,10 @@ export const uploadTeamAvatar = 'teams:uploadTeamAvatar'
 
 // Payload Types
 type _AddParticipantPayload = {
-  readonly teamname: string
+  readonly teamID: Types.TeamID
   readonly conversationIDKey: ChatTypes.ConversationIDKey
 }
-type _AddTeamWithChosenChannelsPayload = {readonly teamname: string}
+type _AddTeamWithChosenChannelsPayload = {readonly teamID: Types.TeamID}
 type _AddToTeamPayload = {
   readonly teamID: Types.TeamID
   readonly users: Array<{assertion: string; role: Types.TeamRoleType}>
@@ -99,7 +99,7 @@ type _CheckRequestedAccessPayload = {readonly teamname: string}
 type _ClearAddUserToTeamsResultsPayload = void
 type _ClearNavBadgesPayload = void
 type _CreateChannelPayload = {
-  readonly teamname: string
+  readonly teamID: Types.TeamID
   readonly channelname: string
   readonly description: string | null
 }
@@ -114,11 +114,11 @@ type _CreateNewTeamPayload = {
   readonly thenAddMembers?: Omit<_AddToTeamPayload, 'teamID'>
 }
 type _DeleteChannelConfirmedPayload = {
-  readonly teamname: Types.Teamname
+  readonly teamID: Types.TeamID
   readonly conversationIDKey: ChatTypes.ConversationIDKey
 }
 type _DeleteChannelInfoPayload = {
-  readonly teamname: Types.Teamname
+  readonly teamID: Types.TeamID
   readonly conversationIDKey: ChatTypes.ConversationIDKey
 }
 type _DeleteTeamPayload = {readonly teamID: Types.TeamID}
@@ -130,9 +130,9 @@ type _EditMembershipPayload = {
 type _EditTeamDescriptionPayload = {readonly teamname: string; readonly description: string}
 type _GetChannelInfoPayload = {
   readonly conversationIDKey: ChatTypes.ConversationIDKey
-  readonly teamname: string
+  readonly teamID: Types.TeamID
 }
-type _GetChannelsPayload = {readonly teamname: string}
+type _GetChannelsPayload = {readonly teamID: Types.TeamID}
 type _GetDetailsPayload = {readonly teamname: string; readonly clearInviteLoadingKey?: string}
 type _GetMembersPayload = {readonly teamname: string}
 type _GetTeamProfileAddListPayload = {readonly username: string}
@@ -169,12 +169,12 @@ type _RemoveMemberOrPendingInvitePayload = {
   readonly loadingKey?: string
 }
 type _RemoveParticipantPayload = {
-  readonly teamname: string
+  readonly teamID: Types.TeamID
   readonly conversationIDKey: ChatTypes.ConversationIDKey
 }
 type _RenameTeamPayload = {readonly oldName: string; readonly newName: string}
 type _SaveChannelMembershipPayload = {
-  readonly teamname: string
+  readonly teamID: Types.TeamID
   readonly oldChannelState: Types.ChannelMembershipState
   readonly newChannelState: Types.ChannelMembershipState
 }
@@ -198,12 +198,12 @@ type _SetTeamCanPerformPayload = {
   readonly teamOperation: Types.TeamOperations
 }
 type _SetTeamChannelInfoPayload = {
-  readonly teamname: string
+  readonly teamID: Types.TeamID
   readonly conversationIDKey: ChatTypes.ConversationIDKey
   readonly channelInfo: Types.ChannelInfo
 }
 type _SetTeamChannelsPayload = {
-  readonly teamname: string
+  readonly teamID: Types.TeamID
   readonly channelInfos: Map<ChatTypes.ConversationIDKey, Types.ChannelInfo>
 }
 type _SetTeamCreationErrorPayload = {readonly error: string}
@@ -244,14 +244,14 @@ type _SetTeamRoleMapLatestKnownVersionPayload = {readonly version: number}
 type _SetTeamRoleMapPayload = {readonly map: Types.TeamRoleMap}
 type _SetTeamSawChatBannerPayload = void
 type _SetTeamSawSubteamsBannerPayload = void
-type _SetTeamsWithChosenChannelsPayload = {readonly teamsWithChosenChannels: Set<Types.Teamname>}
+type _SetTeamsWithChosenChannelsPayload = {readonly teamsWithChosenChannels: Set<Types.TeamID>}
 type _SetUpdatedChannelNamePayload = {
-  readonly teamname: Types.Teamname
+  readonly teamID: Types.TeamID
   readonly conversationIDKey: ChatTypes.ConversationIDKey
   readonly newChannelName: string
 }
 type _SetUpdatedTopicPayload = {
-  readonly teamname: Types.Teamname
+  readonly teamID: Types.TeamID
   readonly conversationIDKey: ChatTypes.ConversationIDKey
   readonly newTopic: string
 }
@@ -262,12 +262,12 @@ type _TeamCreatedPayload = {
 }
 type _UnsubscribeTeamListPayload = void
 type _UpdateChannelNamePayload = {
-  readonly teamname: Types.Teamname
+  readonly teamID: Types.TeamID
   readonly conversationIDKey: ChatTypes.ConversationIDKey
   readonly newChannelName: string
 }
 type _UpdateTopicPayload = {
-  readonly teamname: Types.Teamname
+  readonly teamID: Types.TeamID
   readonly conversationIDKey: ChatTypes.ConversationIDKey
   readonly newTopic: string
 }

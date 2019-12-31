@@ -17,6 +17,7 @@ const load = () => {
         onDescriptionChange={Sb.action('onDescriptionChange')}
         onSubmit={Sb.action('onSubmit')}
         teamname="stripe.usa"
+        teamID="1234567890abcdef"
       />
     </Box>
   ))

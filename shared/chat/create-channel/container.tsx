@@ -4,15 +4,18 @@ import CreateChannel from '.'
 import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import upperFirst from 'lodash/upperFirst'
+import * as TeamsTypes from '../../constants/types/teams'
+import * as TeamsConstants from '../../constants/teams'
 
-type OwnProps = Container.RouteProps<{teamname: string}>
+type OwnProps = Container.RouteProps<{teamID: TeamsTypes.TeamID}>
 
 type Props = {
-  _onCreateChannel: (o: {channelname: string; description: string; teamname: string}) => void
+  _onCreateChannel: (o: {channelname: string; description: string; teamID: TeamsTypes.TeamID}) => void
   _onSetChannelCreationError: (error: string) => void
   errorText: string
   onBack: () => void
   onClose: () => void
+  teamID: TeamsTypes.TeamID
   teamname: string
 }
 
@@ -20,10 +23,10 @@ const Wrapped = (p: Props) => {
   const [channelname, onChannelnameChange] = React.useState<string>('')
   const [description, onDescriptionChange] = React.useState<string>('')
 
-  const {_onCreateChannel, _onSetChannelCreationError, teamname, ...rest} = p
+  const {_onCreateChannel, _onSetChannelCreationError, teamID, ...rest} = p
   const onSubmit = React.useCallback(() => {
-    channelname && _onCreateChannel({channelname, description, teamname})
-  }, [channelname, _onCreateChannel, description, teamname])
+    channelname && _onCreateChannel({channelname, description, teamID})
+  }, [channelname, _onCreateChannel, description, teamID])
 
   React.useEffect(() => {
     _onSetChannelCreationError('')
@@ -32,7 +35,7 @@ const Wrapped = (p: Props) => {
   return (
     <CreateChannel
       {...rest}
-      teamname={teamname}
+      teamID={teamID}
       channelname={channelname}
       onChannelnameChange={onChannelnameChange}
       description={description}
@@ -43,20 +46,24 @@ const Wrapped = (p: Props) => {
 }
 
 export default Container.connect(
-  (state, ownProps: OwnProps) => ({
-    errorText: upperFirst(state.teams.channelCreationError),
-    teamname: Container.getRouteProps(ownProps, 'teamname', ''),
-  }),
+  (state, ownProps: OwnProps) => {
+    const teamID = Container.getRouteProps(ownProps, 'teamID', TeamsTypes.noTeamID)
+    return {
+      errorText: upperFirst(state.teams.channelCreationError),
+      teamID,
+      teamname: TeamsConstants.getTeamNameFromID(state, teamID) ?? '',
+    }
+  },
   dispatch => ({
     _onCreateChannel: ({
       channelname,
       description,
-      teamname,
+      teamID,
     }: {
       channelname: string
       description: string
-      teamname: string
-    }) => dispatch(TeamsGen.createCreateChannel({channelname, description, teamname})),
+      teamID: TeamsTypes.TeamID
+    }) => dispatch(TeamsGen.createCreateChannel({channelname, description, teamID})),
     _onSetChannelCreationError: (error: string) => dispatch(TeamsGen.createSetChannelCreationError({error})),
     onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
     onClose: () => dispatch(RouteTreeGen.createNavigateUp()),

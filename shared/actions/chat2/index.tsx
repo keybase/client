@@ -17,6 +17,7 @@ import * as Saga from '../../util/saga'
 import * as TeamsGen from '../teams-gen'
 import * as Types from '../../constants/types/chat2'
 import * as FsTypes from '../../constants/types/fs'
+import * as TeamsTypes from '../../constants/types/teams'
 import * as WalletTypes from '../../constants/types/wallets'
 import * as Tabs from '../../constants/tabs'
 import * as UsersGen from '../users-gen'
@@ -845,9 +846,13 @@ const onChatThreadStale = (
   return actions
 }
 
-const onChatShowManageChannels = (action: EngineGen.Chat1ChatUiChatShowManageChannelsPayload) => {
+const onChatShowManageChannels = (
+  state: Container.TypedState,
+  action: EngineGen.Chat1ChatUiChatShowManageChannelsPayload
+) => {
   const {teamname} = action.payload.params
-  return RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'chatManageChannels'}]})
+  const teamID = state.teams.teamNameToID.get(teamname) ?? TeamsTypes.noTeamID
+  return RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'chatManageChannels'}]})
 }
 
 const onNewChatActivity = (
@@ -2337,13 +2342,14 @@ const deleteMessageHistory = async (
 function* loadChannelInfos(state: Container.TypedState, action: Chat2Gen.SelectConversationPayload) {
   const {conversationIDKey} = action.payload
   const meta = Constants.getMeta(state, conversationIDKey)
-  const teamname = meta.teamname
-  if (!teamname) {
+  const teamID = meta.teamID
+  // If this is an impteam, there are no channel infos to load.
+  if (!meta.teamname) {
     return
   }
-  if (!TeamsConstants.hasChannelInfos(state, teamname)) {
+  if (!TeamsConstants.hasChannelInfos(state, teamID)) {
     yield Saga.delay(4000)
-    yield Saga.put(TeamsGen.createGetChannels({teamname}))
+    yield Saga.put(TeamsGen.createGetChannels({teamID}))
   }
 }
 
@@ -3683,7 +3689,7 @@ function* chat2Saga() {
   yield* Saga.chainAction2(EngineGen.chat1NotifyChatNewChatActivity, onNewChatActivity)
   yield* Saga.chainAction(EngineGen.chat1ChatUiChatGiphySearchResults, onGiphyResults)
   yield* Saga.chainAction(EngineGen.chat1ChatUiChatGiphyToggleResultWindow, onGiphyToggleWindow)
-  yield* Saga.chainAction(EngineGen.chat1ChatUiChatShowManageChannels, onChatShowManageChannels)
+  yield* Saga.chainAction2(EngineGen.chat1ChatUiChatShowManageChannels, onChatShowManageChannels)
   yield* Saga.chainAction(EngineGen.chat1ChatUiChatCoinFlipStatus, onChatCoinFlipStatus)
   yield* Saga.chainAction(EngineGen.chat1ChatUiChatCommandMarkdown, onChatCommandMarkdown)
   yield* Saga.chainAction(EngineGen.chat1ChatUiChatCommandStatus, onChatCommandStatus)
