@@ -69,7 +69,7 @@ export default Container.namedConnect(
       const isTeam = meta.teamType === 'big' || meta.teamType === 'small'
       teamDetails = isTeam ? TeamConstants.getTeamDetails(state, meta.teamID) : undefined
       teamname = meta.teamname
-      teamID = meta.teamID
+      teamID = meta.teamID ?? TeamTypes.noTeamID
       _convPropsFullname = fullname
       _convPropsIgnored = meta.status === RPCChatTypes.ConversationStatus.ignored
       _convPropsMuted = meta.isMuted
@@ -190,7 +190,7 @@ export default Container.namedConnect(
       manageChannelsSubtitle: s.manageChannelsSubtitle,
       manageChannelsTitle: s.manageChannelsTitle,
       memberCount: s.memberCount,
-      onAddPeople: () => d._onAddPeople(s._convPropsTeamID || undefined),
+      onAddPeople: () => d._onAddPeople(s._teamID),
       onBlockConv: () => d._onBlockConv(s.teamname, s._convPropsParticipants ?? []),
       onHidden: o.onHidden,
       onHideConv: d.onHideConv,
