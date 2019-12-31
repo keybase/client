@@ -51,7 +51,7 @@ export default Container.connect(
     return {
       errorText: upperFirst(state.teams.channelCreationError),
       teamID,
-      teamname: TeamsConstants.getTeamNameFromID(state, teamID),
+      teamname: TeamsConstants.getTeamNameFromID(state, teamID) ?? '',
     }
   },
   dispatch => ({

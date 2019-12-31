@@ -886,6 +886,12 @@ function* saveChannelMembership(state: TypedState, action: TeamsGen.SaveChannelM
 function* createChannel(state: TypedState, action: TeamsGen.CreateChannelPayload, logger: Saga.SagaLogger) {
   const {channelname, description, teamID} = action.payload
   const teamname = Constants.getTeamNameFromID(state, teamID)
+
+  if (teamname === null) {
+    logger.warn('Team name was not in store!')
+    return
+  }
+
   try {
     const result: Saga.RPCPromiseType<typeof RPCChatTypes.localNewConversationLocalRpcPromise> = yield RPCChatTypes.localNewConversationLocalRpcPromise(
       {
