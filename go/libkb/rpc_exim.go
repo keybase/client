@@ -636,7 +636,14 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 	case SCRevokeCurrentDevice:
 		return RevokeCurrentDeviceError{}
 	case SCRevokeLastDevice:
-		return RevokeLastDeviceError{}
+		e := RevokeLastDeviceError{}
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "NoPassphrase":
+				e.NoPassphrase = field.BoolValue()
+			}
+		}
+		return e
 	case SCRevokeLastDevicePGP:
 		return RevokeLastDevicePGPError{}
 	case SCTeamKeyMaskNotFound:
@@ -2223,12 +2230,31 @@ func (e RevokeCurrentDeviceError) ToStatus() keybase1.Status {
 	}
 }
 
-func (e RevokeLastDeviceError) ToStatus() keybase1.Status {
+func (e RevokeLastDeviceWithoutPassphraseError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCRevokeLastDevice,
 		Name: "SC_DEVICE_REVOKE_LAST",
 		Desc: e.Error(),
+		Fields: []keybase1.StringKVPair{
+			{Key: "NoPassphrase", Value: "true"},
+		},
 	}
+}
+
+func (e RevokeLastDeviceError) ToStatus() keybase1.Status {
+	x := keybase1.Status{
+		Code: SCRevokeLastDevice,
+		Name: "SC_DEVICE_REVOKE_LAST",
+		Desc: e.Error(),
+	}
+
+	if e.NoPassphrase {
+		x.Fields = []keybase1.StringKVPair{
+			{Key: "NoPassphrase", Value: "true"},
+		}
+	}
+
+	return x
 }
 
 func (e RevokeLastDevicePGPError) ToStatus() keybase1.Status {
