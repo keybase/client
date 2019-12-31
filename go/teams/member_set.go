@@ -349,6 +349,8 @@ func (m *memberSet) AddRemainingRecipients(ctx context.Context, g *libkb.GlobalC
 		if idx >= len(requests) {
 			return nil
 		}
+		// Because we pass WithPublicKeyOptional, users who have reset do not cause an error when loading the UPAK, but are ignored later
+		// in processResult.
 		arg := libkb.NewLoadUserByUIDArg(ctx, g, requests[idx].uv.Uid).WithPublicKeyOptional().WithForcePoll(forceUserPoll)
 		return &arg
 	}
@@ -361,12 +363,7 @@ func (m *memberSet) AddRemainingRecipients(ctx context.Context, g *libkb.GlobalC
 		m.storeMember(ctx, g, mem, requests[idx].storeMemberKind)
 		return nil
 	}
-	// for UPAK Batcher API
-	ignoreError := func(err error) bool {
-		_, didReset := err.(libkb.AccountResetError)
-		return didReset
-	}
-	err = g.GetUPAKLoader().Batcher(ctx, getArg, processResult, ignoreError, 0)
+	err = g.GetUPAKLoader().Batcher(ctx, getArg, processResult, 0)
 	if err != nil {
 		return err
 	}
