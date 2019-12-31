@@ -511,7 +511,7 @@ protocol local {
     MessageType messageType;
     gregor1.Time ctime;
     boolean isEphemeral;
-    boolean isEphemeralExpired;
+    union { null, string } explodedBy;
     gregor1.Time etime;
     // Non-empty if this message is keyed for a bot
     string botUsername;

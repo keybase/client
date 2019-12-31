@@ -575,7 +575,7 @@ func FilterExploded(conv types.UnboxConversationInfo, msgs []chat1.MessageUnboxe
 			// If we had an error on an expired message, it's irrelevant now
 			// that the message has exploded so we hide it.
 			merr := msg.Error()
-			if merr.IsEphemeral && merr.IsEphemeralExpired {
+			if merr.IsEphemeral && merr.IsEphemeralExpired(now) {
 				continue
 			}
 		}
