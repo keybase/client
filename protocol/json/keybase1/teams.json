@@ -3370,8 +3370,8 @@
           "type": "int"
         },
         {
-          "name": "name",
-          "type": "string"
+          "name": "teamID",
+          "type": "TeamID"
         },
         {
           "name": "username",

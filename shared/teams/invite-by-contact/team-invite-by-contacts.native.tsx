@@ -101,16 +101,13 @@ const TeamInviteByContact = (props: TeamInviteByContactProps) => {
     (inviteID: string) => {
       dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''}))
       dispatch(
-        TeamsGen.createRemoveMemberOrPendingInvite({
-          email: '',
+        TeamsGen.createRemovePendingInvite({
           inviteID,
-          loadingKey: inviteID,
-          teamname,
-          username: '',
+          teamID,
         })
       )
     },
-    [dispatch, teamname]
+    [dispatch, teamID]
   )
 
   // ----

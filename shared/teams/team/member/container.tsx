@@ -27,7 +27,8 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     follower: state.config.followers.has(username),
     following: state.config.following.has(username),
     loading: anyWaiting(state, Constants.teamWaitingKey(teamname)),
-    teamname: teamname,
+    teamID,
+    teamname,
     yourOperations: Constants.getCanPerform(state, teamname),
   }
 }
@@ -38,10 +39,10 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProp
   },
   _onEditRole: (teamname: string, username: string, role: Types.TeamRoleType) =>
     dispatch(TeamsGen.createEditMembership({role, teamname, username})),
-  _onRemoveMember: (teamname: string, username: string) => {
+  _onRemoveMember: (teamID: Types.TeamID, username: string) => {
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [{props: {teamname, username}, selected: 'teamReallyRemoveMember'}],
+        path: [{props: {teamID, username}, selected: 'teamReallyRemoveMember'}],
       })
     )
   },
@@ -130,7 +131,7 @@ export default Container.connect(
         if (stateProps._username === stateProps._you) {
           dispatchProps.onLeaveTeam()
         } else {
-          dispatchProps._onRemoveMember(stateProps.teamname, stateProps._username)
+          dispatchProps._onRemoveMember(stateProps.teamID, stateProps._username)
         }
       },
       teamname: stateProps.teamname,

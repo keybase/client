@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Constants from '../../../../../constants/chat2'
 import * as TeamConstants from '../../../../../constants/teams'
 import * as Types from '../../../../../constants/types/chat2'
+import * as TeamTypes from '../../../../../constants/types/teams'
 import * as ConfigGen from '../../../../../actions/config-gen'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as FsGen from '../../../../../actions/fs-gen'
@@ -46,6 +47,7 @@ export default Container.connect(
       _canReplyPrivately,
       _mapUnfurl,
       _participants: participantInfo.all,
+      _teamID: meta.teamID,
       _teamname: meta.teamname,
       author: ownProps.message.author,
       botUsername: ownProps.message.type === 'text' ? ownProps.message.botUsername : undefined,
@@ -110,10 +112,10 @@ export default Container.connect(
           ordinal: ownProps.message.ordinal,
         })
       ),
-    _onKick: (teamname: string, username: string) =>
+    _onKick: (teamID: TeamTypes.TeamID, username: string) =>
       dispatch(
         RouteTreeGen.createNavigateAppend({
-          path: [{props: {navToChat: true, teamname, username}, selected: 'teamReallyRemoveMember'}],
+          path: [{props: {navToChat: true, teamID, username}, selected: 'teamReallyRemoveMember'}],
         })
       ),
     _onPinMessage: () => {
@@ -185,11 +187,11 @@ export default Container.connect(
         title: 'Explode now',
       })
     }
-    if (stateProps._canDeleteHistory && stateProps._teamname && !stateProps.yourMessage && authorInConv) {
+    if (stateProps._canDeleteHistory && stateProps._teamID && !stateProps.yourMessage && authorInConv) {
       items.push({
         danger: true,
         icon: 'iconfont-block-user',
-        onClick: () => dispatchProps._onKick(stateProps._teamname, stateProps.author),
+        onClick: () => dispatchProps._onKick(stateProps._teamID, stateProps.author),
         title: 'Kick user',
       })
     }

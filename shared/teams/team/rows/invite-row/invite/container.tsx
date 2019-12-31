@@ -14,12 +14,19 @@ export default connect(
     const teamDetails = Constants.getTeamDetails(state, teamID)
     return {
       _invites: teamDetails.invites,
-      teamname: teamDetails.teamname,
     }
   },
-  dispatch => ({
-    _onCancelInvite: ({email, teamname, username, inviteID}) => {
-      dispatch(TeamsGen.createRemoveMemberOrPendingInvite({email, inviteID, teamname, username}))
+  (dispatch, {teamID}: OwnProps) => ({
+    _onCancelInvite: ({
+      email,
+      username,
+      inviteID,
+    }: {
+      email?: string
+      username?: string
+      inviteID?: string
+    }) => {
+      dispatch(TeamsGen.createRemovePendingInvite({email, inviteID, teamID, username}))
     },
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
@@ -34,27 +41,19 @@ export default connect(
       onCancelInvite = () =>
         dispatchProps._onCancelInvite({
           email: user.email,
-          inviteID: '',
-          teamname: stateProps.teamname,
-          username: '',
         })
     } else if (user.username) {
       onCancelInvite = () =>
         dispatchProps._onCancelInvite({
-          email: '',
-          inviteID: '',
-          teamname: stateProps.teamname,
           username: user.username,
         })
     } else if (user.name || user.phone) {
       onCancelInvite = () =>
         dispatchProps._onCancelInvite({
-          email: '',
           inviteID: ownProps.id,
-          teamname: stateProps.teamname,
-          username: '',
         })
     }
+    // TODO: can we just do this by invite ID always?
 
     return {
       label: user.email || user.username || user.name || user.phone,

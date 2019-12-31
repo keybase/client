@@ -1210,7 +1210,7 @@ protocol teams {
 
   // allowInaction suppresses errors that come from removing an invite that doesn't exist. Relevant for suppressing errors when calling remove while a remove is already in progress.
   // Note: allowInaction only applies to invite removals, just because that was what was needed.
-  void teamRemoveMember(int sessionID, string name, string username, string email, TeamInviteID inviteID, boolean allowInaction);
+  void teamRemoveMember(int sessionID, TeamID teamID, string username, string email, TeamInviteID inviteID, boolean allowInaction);
 
   void teamLeave(int sessionID, string name, boolean permanent);
 

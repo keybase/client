@@ -143,8 +143,13 @@ func (c *CmdTeamRemoveMember) Run() error {
 		return err
 	}
 
+	teamID, err := cli.GetTeamID(context.Background(), c.Team)
+	if err != nil {
+		return err
+	}
+
 	arg := keybase1.TeamRemoveMemberArg{
-		Name:     c.Team,
+		TeamID:   teamID,
 		Username: c.Username,
 		Email:    c.Email,
 		InviteID: c.InviteID,

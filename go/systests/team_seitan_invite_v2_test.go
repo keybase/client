@@ -186,7 +186,7 @@ func testTeamCreateSeitanAndCancel(t *testing.T, seitanVersion teams.SeitanVersi
 
 	own := tt.addUser("own")
 
-	_, teamName := own.createTeam2()
+	teamID, teamName := own.createTeam2()
 
 	t.Logf("Created team %q", teamName.String())
 
@@ -246,7 +246,7 @@ func testTeamCreateSeitanAndCancel(t *testing.T, seitanVersion teams.SeitanVersi
 	t.Logf("Checked that invite was added correctly, removing invite by id")
 
 	err = own.teamsClient.TeamRemoveMember(context.TODO(), keybase1.TeamRemoveMemberArg{
-		Name:     teamName.String(),
+		TeamID:   teamID,
 		InviteID: inviteID,
 	})
 	require.NoError(t, err)
@@ -441,7 +441,7 @@ func testTeamInviteSeitanPukless(t *testing.T, seitanVersion teams.SeitanVersion
 	require.Len(t, invites, 1)
 	for _, invite := range invites {
 		// Invite should be WAITING_FOR_PUK now and we can't cancel it anymore.
-		err := teams.CancelInviteByID(context.Background(), bee.tc.G, teamName.String(), invite.Id, false)
+		err := teams.CancelInviteByID(context.Background(), bee.tc.G, teamID, invite.Id, false)
 		require.Error(t, err)
 	}
 
