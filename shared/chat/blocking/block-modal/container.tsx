@@ -91,21 +91,28 @@ const Connect = Container.connect(
     },
     onClose: dispatchProps._close,
     onFinish: (newBlocks: NewBlocksMap, blockTeam: boolean) => {
+      let takingAction = false
       if (blockTeam) {
         const {teamname} = stateProps
         if (teamname) {
+          takingAction = true
           dispatchProps._leaveTeamAndBlock(teamname)
         } else if (stateProps.convID) {
+          takingAction = true
           const anyReported = [...newBlocks.values()].some(v => v?.report !== undefined)
           dispatchProps._setConversationStatus(stateProps.convID, anyReported)
         }
       }
       if (newBlocks.size) {
+        takingAction = true
         dispatchProps._setUserBlocks(newBlocks)
       }
       newBlocks.forEach(
         ({report}, username) => report && dispatchProps._reportUser(username, stateProps.convID, report)
       )
+      if (!takingAction) {
+        dispatchProps._close()
+      }
     },
     refreshBlocks: () => {
       const usernames = [
