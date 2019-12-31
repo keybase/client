@@ -568,7 +568,7 @@ const contactSettingsRefresh = async (state: TypedState) => {
   try {
     const settings = await RPCTypes.accountUserGetContactSettingsRpcPromise(
       undefined,
-      Constants.contactSettingsWaitingKey
+      Constants.contactSettingsLoadWaitingKey
     )
     return SettingsGen.createContactSettingsRefreshed({
       settings,
@@ -605,7 +605,10 @@ const contactSettingsSaved = async (state: TypedState, action: SettingsGen.Conta
         teams,
       }
   try {
-    await RPCTypes.accountUserSetContactSettingsRpcPromise({settings}, Constants.contactSettingsWaitingKey)
+    await RPCTypes.accountUserSetContactSettingsRpcPromise(
+      {settings},
+      Constants.contactSettingsSaveWaitingKey
+    )
     return SettingsGen.createContactSettingsRefresh()
   } catch (_) {
     return SettingsGen.createContactSettingsError({

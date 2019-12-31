@@ -211,7 +211,8 @@ export const importContactsConfigKey = (username: string) => `ui.importContacts.
 
 export const refreshNotificationsWaitingKey = 'settingsTabs.refreshNotifications'
 export const chatUnfurlWaitingKey = 'settings:chatUnfurlWaitingKey'
-export const contactSettingsWaitingKey = 'settings:contactSettingsWaitingKey'
+export const contactSettingsLoadWaitingKey = 'settings:contactSettingsLoadWaitingKey'
+export const contactSettingsSaveWaitingKey = 'settings:contactSettingsSaveWaitingKey'
 export const setLockdownModeWaitingKey = 'settings:setLockdownMode'
 export const loadLockdownModeWaitingKey = 'settings:loadLockdownMode'
 export const checkPasswordWaitingKey = 'settings:checkPassword'
