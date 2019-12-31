@@ -270,6 +270,7 @@ type _EditBotSettingsPayload = {
   readonly username: string
   readonly allowCommands: boolean
   readonly allowMentions: boolean
+  readonly convs?: Array<string>
 }
 type _EnableAudioRecordingPayload = {
   readonly conversationIDKey: Types.ConversationIDKey

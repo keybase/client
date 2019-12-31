@@ -861,7 +861,8 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "username": "string",
       "allowCommands": "boolean",
-      "allowMentions": "boolean"
+      "allowMentions": "boolean",
+      "convs?": "Array<string>"
     },
     "loadMoreSmalls": {
       "_description": "Tell the service to give us more small teams"
