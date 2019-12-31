@@ -38,7 +38,7 @@ const (
 	ostOnlineUserIn
 	// We are connected to the mdserver, and user is not looking at the Fs tab.
 	ostOnlineUserOut
-	// User is looking at the Fs tab. We are disconnected to the mdserver, but
+	// User is looking at the Fs tab. We are not connected to the mdserver, but
 	// we are showing a "trying" state in GUI. This usually lasts for
 	// ostTryingStateTimeout.
 	ostTryingUserIn
