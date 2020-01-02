@@ -59,7 +59,7 @@ const InstallBotPopup = (props: Props) => {
   const {commands, featured, inTeam, inTeamUnrestricted, settings} = Container.useSelector(
     (state: Container.TypedState) => {
       let inTeam: boolean | undefined
-      let teamRole: TeamTypes.TeamRoleType | undefined
+      let teamRole: TeamTypes.TeamRoleType | null | undefined
       if (conversationIDKey) {
         teamRole = state.chat2.botTeamRoleInConvMap.get(conversationIDKey)?.get(botUsername)
         if (teamRole !== undefined) {
