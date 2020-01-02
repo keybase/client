@@ -14,13 +14,14 @@ export type Props = {
   policy: RetentionPolicy
   policyIsExploding: boolean
   teamPolicy?: RetentionPolicy
+  load: () => void
   loading: boolean // for when we're waiting to fetch the team policy
   showInheritOption: boolean
   showOverrideNotice: boolean
   showSaveIndicator: boolean
   type: 'simple' | 'auto'
   saveRetentionPolicy: (policy: RetentionPolicy) => void
-  onSelect: (policy: RetentionPolicy, changed: boolean, decreased: boolean) => void
+  onSelect?: (policy: RetentionPolicy, changed: boolean, decreased: boolean) => void
   onShowWarning: (policy: RetentionPolicy, onConfirm: () => void, onCancel: () => void) => void
 }
 
@@ -50,7 +51,7 @@ class _RetentionPicker extends React.Component<PropsWithOverlay<Props>, State> {
       policyToComparable(selected, this.props.teamPolicy) <
       policyToComparable(this.props.policy, this.props.teamPolicy)
     if (this.props.type === 'simple') {
-      this.props.onSelect(selected, changed, decreased)
+      this.props.onSelect?.(selected, changed, decreased)
       return
     }
     // auto case; show dialog if decreased, set immediately if not
@@ -138,7 +139,7 @@ class _RetentionPicker extends React.Component<PropsWithOverlay<Props>, State> {
     const p = policy || this.props.policy
     this.setState({selected: p})
     // tell parent that nothing has changed
-    this.props.type === 'simple' && this.props.onSelect(p, false, false)
+    this.props.type === 'simple' && this.props.onSelect?.(p, false, false)
   }
 
   _label = () => {
@@ -416,6 +417,14 @@ const RetentionSwitcher = (
     entityType: RetentionEntityType
   } & Props
 ) => {
+  const {load} = props
+  React.useEffect(
+    () => {
+      load()
+    },
+    // eslint-disable-next-line
+    []
+  )
   if (props.loading) {
     return <Kb.ProgressIndicator style={styles.progressIndicator} />
   }

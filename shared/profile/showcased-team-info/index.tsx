@@ -7,6 +7,7 @@ export type Props = {
   attachTo?: () => React.Component<any> | null
   description: string
   memberCount: number
+  load: () => void
   onHidden: () => void
   onJoinTeam: (teamname: string) => void
   onUserClick: (username: string) => void
@@ -168,10 +169,20 @@ const styleWrap = {
 }
 
 const TeamInfoWrapper = (props: Props) => {
+  const {load} = props
+  React.useEffect(
+    () => {
+      load()
+    },
+    // eslint-disable-next-line
+    []
+  )
+
   const header = {
     title: 'header',
     view: <TeamInfo {...props} />,
   }
+
   return (
     <FloatingMenu
       attachTo={props.attachTo}

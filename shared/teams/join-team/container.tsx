@@ -15,30 +15,23 @@ export default Container.compose(
       successTeamName: state.teams.teamJoinSuccessTeamName,
     }),
     dispatch => ({
-      _onJoinTeam: (teamname: string) => {
-        dispatch(TeamsGen.createJoinTeam({teamname}))
-      },
-      _onSetTeamJoinError: (error: string) => {
-        dispatch(TeamsGen.createSetTeamJoinError({error}))
-      },
-      _onSetTeamJoinSuccess: (open: boolean, success: boolean, teamname: string) => {
-        dispatch(TeamsGen.createSetTeamJoinSuccess({open, success, teamname}))
-      },
+      _onSetTeamJoinError: (error: string) => dispatch(TeamsGen.createSetTeamJoinError({error})),
+      _onSetTeamJoinSuccess: (open: boolean, success: boolean, teamname: string) =>
+        dispatch(TeamsGen.createSetTeamJoinSuccess({open, success, teamname})),
       onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+      onJoinTeam: (teamname: string) => dispatch(TeamsGen.createJoinTeam({teamname})),
     }),
-    (s, d, o: OwnProps) => ({...o, ...s, ...d})
-  ),
-  Container.withStateHandlers(
-    {name: ''},
-    {onNameChange: () => (name: string) => ({name: name.toLowerCase()})}
-  ),
-  Container.withHandlers({
-    onSubmit: ({name, _onJoinTeam}) => () => _onJoinTeam(name),
-  } as any),
-  Container.lifecycle({
-    componentDidMount() {
-      this.props._onSetTeamJoinError('')
-      this.props._onSetTeamJoinSuccess(false, false, null)
-    },
-  } as any)
-)(JoinTeam as any)
+    (s, d, o: OwnProps) => {
+      const {_onSetTeamJoinError, _onSetTeamJoinSuccess, ...dRest} = d
+      return {
+        ...o,
+        ...s,
+        ...dRest,
+        load: () => {
+          _onSetTeamJoinError('')
+          _onSetTeamJoinSuccess(false, false, '')
+        },
+      }
+    }
+  )
+)(JoinTeam)
