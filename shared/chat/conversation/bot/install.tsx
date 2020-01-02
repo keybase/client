@@ -63,7 +63,7 @@ const InstallBotPopup = (props: Props) => {
   const [installWithMentions, setInstallWithMentions] = React.useState(true)
   const [installWithRestrict, setInstallWithRestrict] = React.useState(true)
   const [installInConvs, setInstallInConvs] = React.useState<string[]>([])
-  const { commands, featured, inTeam, inTeamUnrestricted, settings, teamName } = Container.useSelector(
+  const { commands, featured, inTeam, inTeamUnrestricted, settings, teamID, teamName } = Container.useSelector(
     (state: Container.TypedState) => {
       let inTeam: boolean | undefined
       let teamRole: TeamTypes.TeamRoleType | null | undefined
@@ -78,6 +78,7 @@ const InstallBotPopup = (props: Props) => {
         teamName = Teams.getTeamNameFromID(state, teamID)
       }
       return {
+        channelInfos: Teams.getTeamChannelInfos(state, teamID),
         commands: state.chat2.botPublicCommands.get(botUsername),
         featured: state.chat2.featuredBotsMap.get(botUsername),
         inTeam,
@@ -166,6 +167,13 @@ const InstallBotPopup = (props: Props) => {
     }
   }, [conversationIDKey, inTeam])
 
+  React.useEffect(() => {
+    if (!teamID) {
+      return
+    }
+
+    dispatch(TeamsGen.createGetChannels({ teamID }))
+  }, [teamID])
   const restrictPicker = !inTeam && (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
       <Kb.Text type="BodyBigExtrabold">Install as:</Kb.Text>
@@ -219,9 +227,10 @@ const InstallBotPopup = (props: Props) => {
         </Kb.Box2>
         <Kb.Text type="BodySmall">{featured.extendedDescription}</Kb.Text>
       </Kb.Box2>
-      {inTeam && !inTeamUnrestricted && <PermsList settings={settings} username={botUsername} />}
+      {inTeam && !inTeamUnrestricted && <PermsList settings={settings} username={botUsername} />
+      }
       {restrictPicker}
-    </Kb.Box2>
+    </Kb.Box2 >
   )
   const usernameContent = !featured && (
     <Kb.Box2 direction="vertical" gap="small" style={styles.container} fullWidth={true}>
@@ -239,7 +248,7 @@ const InstallBotPopup = (props: Props) => {
       </Kb.Box2>
       {inTeam && !inTeamUnrestricted && <PermsList settings={settings} username={botUsername} />}
       {restrictPicker}
-    </Kb.Box2>
+    </Kb.Box2 >
   )
   const installContent = installScreen && (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container} gap="small">
@@ -275,16 +284,29 @@ const InstallBotPopup = (props: Props) => {
               onCheck={() => setInstallWithMentions(!installWithMentions)}
             />
           </Kb.Box2>
+          {teamID && (
+            <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+              <Kb.Text type="BodyBig">In these channels:</Kb.Text>
+              <Kb.DropdownButton
+                selected={
+                  <Kb.Box2 direction="horizontal" alignItems="center">
+                    <Kb.Avatar size={16} teamname={teamName} style={{ marginRight: Styles.globalMargins.tiny }} />
+                    <Kb.Text type="BodySemibold">
+                      {teamName}{' '}
+                      {installInConvs.length === 1
+                        ? `(#${channelInfos.get(installInConvs[0])?.channelname ?? ''})`
+                        : `(${installInConvs.length > 0 ? installInConvs.length : 'all'} channels)`}
+                    </Kb.Text>
+                  </Kb.Box2>
+                }
+                toggleOpen={() => setChannelPickerScreen(true)}
+              />
+            </Kb.Box2>
+          )}
           <Kb.Text type="BodySmall">
             This bot will not be able to read any other messages, channels, files, repositories, or team
             members.
           </Kb.Text>
-          <Kb.Text type="BodyBig">In these channels:</Kb.Text>
-          <Kb.Button
-            mode="Secondary"
-            label={`${teamName} (${installInConvs.length > 0 ? installInConvs.length : 'all'} channels)`}
-            onClick={() => setChannelPickerScreen(true)}
-          />
         </Kb.Box2>
       ) : (
           <Kb.Box2 direction="vertical" gap="tiny">
@@ -305,12 +327,14 @@ const InstallBotPopup = (props: Props) => {
   )
 
   const channelPickerContent = channelPickerScreen && teamID && (
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container} gap="small">
+    <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
       <ChannelPicker
+        channelInfos={channelInfos}
         installInConvs={installInConvs}
         setChannelPickerScreen={setChannelPickerScreen}
         setInstallInConvs={setInstallInConvs}
         teamID={teamID}
+        teamName={teamName}
       />
     </Kb.Box2>
   )
@@ -387,12 +411,16 @@ const InstallBotPopup = (props: Props) => {
   return (
     <Kb.Modal
       header={{
-        leftButton: (
-          <Kb.Text type="BodyBigLink" onClick={onClose}>
-            {installScreen ? 'Back' : inTeam ? 'Close' : 'Cancel'}
+        leftButton: channelPickerScreen ? (
+          <Kb.Text type="BodyBigLink" onClick={() => setChannelPickerScreen(false)}>
+            Back
           </Kb.Text>
-        ),
-        title: '',
+        ) : (
+            <Kb.Text type="BodyBigLink" onClick={onClose}>
+              {installScreen ? 'Back' : inTeam ? 'Close' : 'Cancel'}
+            </Kb.Text>
+          ),
+        title: channelPickerScreen ? 'Channels' : '',
       }}
       footer={{
         content: enabled && (
@@ -474,6 +502,7 @@ const CommandsLabel = (props: CommandsLabelProps) => {
 }
 
 type PermsListProps = {
+  channelInfos: Map<string, TeamTypes.ChannelInfo>
   settings?: RPCTypes.TeamBotSettings
   username: string
 }
@@ -491,7 +520,15 @@ const PermsList = (props: PermsListProps) => {
           {props.settings.mentions && (
             <Kb.Text type="Body">{`• messages it has been mentioned in with @${props.username}`}</Kb.Text>
           )}
-          <Kb.Text type="BodySemibold">In these channels:</Kb.Text>
+          {props.settings.convs && (
+            <>
+              <Kb.Text type="BodySemibold">In these channels:</Kb.Text>
+              {props.settings.convs?.map(convID => (
+                <Kb.Text type="Body" key={convID}>{`• #${props.channelInfos.get(convID)?.channelname ??
+                  ''}`}</Kb.Text>
+              ))}
+            </>
+          )}
         </Kb.Box2>
       ) : (
           <Kb.ProgressIndicator />
