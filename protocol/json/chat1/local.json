@@ -5308,6 +5308,19 @@
       ],
       "response": "keybase1.TeamBotSettings"
     },
+    "getTeamRoleInConversation": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        }
+      ],
+      "response": "keybase1.TeamRole"
+    },
     "teamIDFromTLFName": {
       "request": [
         {

@@ -6379,6 +6379,11 @@ type GetBotMemberSettingsArg struct {
 	Username string         `codec:"username" json:"username"`
 }
 
+type GetTeamRoleInConversationArg struct {
+	ConvID   ConversationID `codec:"convID" json:"convID"`
+	Username string         `codec:"username" json:"username"`
+}
+
 type TeamIDFromTLFNameArg struct {
 	TlfName     string                  `codec:"tlfName" json:"tlfName"`
 	MembersType ConversationMembersType `codec:"membersType" json:"membersType"`
@@ -6483,6 +6488,7 @@ type LocalInterface interface {
 	RemoveBotMember(context.Context, RemoveBotMemberArg) error
 	SetBotMemberSettings(context.Context, SetBotMemberSettingsArg) error
 	GetBotMemberSettings(context.Context, GetBotMemberSettingsArg) (keybase1.TeamBotSettings, error)
+	GetTeamRoleInConversation(context.Context, GetTeamRoleInConversationArg) (keybase1.TeamRole, error)
 	TeamIDFromTLFName(context.Context, TeamIDFromTLFNameArg) (keybase1.TeamID, error)
 	DismissJourneycard(context.Context, DismissJourneycardArg) error
 }
@@ -7821,6 +7827,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"getTeamRoleInConversation": {
+				MakeArg: func() interface{} {
+					var ret [1]GetTeamRoleInConversationArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetTeamRoleInConversationArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetTeamRoleInConversationArg)(nil), args)
+						return
+					}
+					ret, err = i.GetTeamRoleInConversation(ctx, typedArgs[0])
+					return
+				},
+			},
 			"teamIDFromTLFName": {
 				MakeArg: func() interface{} {
 					var ret [1]TeamIDFromTLFNameArg
@@ -8337,6 +8358,11 @@ func (c LocalClient) SetBotMemberSettings(ctx context.Context, __arg SetBotMembe
 
 func (c LocalClient) GetBotMemberSettings(ctx context.Context, __arg GetBotMemberSettingsArg) (res keybase1.TeamBotSettings, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.getBotMemberSettings", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) GetTeamRoleInConversation(ctx context.Context, __arg GetTeamRoleInConversationArg) (res keybase1.TeamRole, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.getTeamRoleInConversation", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 

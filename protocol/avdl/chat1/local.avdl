@@ -1245,6 +1245,7 @@ protocol local {
   void removeBotMember(ConversationID convID, string username);
   void setBotMemberSettings(ConversationID convID, string username, keybase1.TeamBotSettings botSettings);
   keybase1.TeamBotSettings getBotMemberSettings(ConversationID convID, string username);
+  keybase1.TeamRole getTeamRoleInConversation(ConversationID convID, string username);
 
   keybase1.TeamID teamIDFromTLFName(string tlfName, ConversationMembersType membersType, boolean tlfPublic);
 

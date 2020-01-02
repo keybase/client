@@ -22,6 +22,7 @@
   "chat.1.local.getStaticConfig": {"promise": true},
   "chat.1.local.getTLFConversationsLocal": {"promise": true},
   "chat.1.local.getTeamRetentionLocal": {"promise": true},
+  "chat.1.local.getTeamRoleInConversation": {"promise": true},
   "chat.1.local.getThreadLocal": {"promise": true},
   "chat.1.local.getThreadNonblock": {"engineSaga": true},
   "chat.1.local.getUnfurlSettings": {"promise": true},

@@ -7,6 +7,7 @@ import * as Container from '../util/container'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/chat2'
+import * as TeamTypes from '../constants/types/teams'
 import {editTeambuildingDraft} from './team-building'
 import {teamBuilderReducerCreator} from '../team-building/reducer-helper'
 import {isMobile} from '../constants/platform'
@@ -1511,12 +1512,25 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     }
   },
   [Chat2Gen.setBotSettings]: (draftState, action) => {
-    const m = draftState.botSettings.get(action.payload.conversationIDKey) || new Map()
+    const m =
+      draftState.botSettings.get(action.payload.conversationIDKey) ||
+      new Map<string, RPCTypes.TeamBotSettings>()
     m.set(action.payload.username, action.payload.settings)
     draftState.botSettings.set(action.payload.conversationIDKey, m)
   },
   [Chat2Gen.setGeneralConvFromTeamID]: (draftState, action) => {
     draftState.teamIDToGeneralConvID.set(action.payload.teamID, action.payload.conversationIDKey)
+  },
+  [Chat2Gen.setBotRoleInConv]: (draftState, action) => {
+    const roles =
+      draftState.botTeamRoleInConvMap.get(action.payload.conversationIDKey) ||
+      new Map<string, TeamTypes.TeamRoleType>()
+    if (action.payload.role !== undefined) {
+      roles.set(action.payload.username, action.payload.role)
+    } else {
+      roles.delete(action.payload.username)
+    }
+    draftState.botTeamRoleInConvMap.set(action.payload.conversationIDKey, roles)
   },
   ...audioActions,
   ...botActions,
