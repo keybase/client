@@ -17,6 +17,7 @@ const Main = (_: Props) => {
       <GatewayDest
         name="popup-root"
         component={ViewForGatewayDest}
+        // @ts-ignore
         pointerEvents="box-none"
         style={Styles.globalStyles.fillAbsolute}
       />
@@ -28,6 +29,7 @@ const Main = (_: Props) => {
         <GatewayDest
           name="keyboard-avoiding-root"
           component={ViewForGatewayDest}
+          // @ts-ignore
           pointerEvents="box-none"
           style={styles.gatewayDest}
         />

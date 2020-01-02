@@ -125,7 +125,7 @@ const MenuItem = (props: {emoji: string; text: string}) => (
 
 type CountrySelectorProps = {
   attachTo?: () => React.Component<any> | null
-  onSelect: (arg0: string) => void
+  onSelect: (s: string | undefined) => void
   onHidden: () => void
   selected?: string
   visible: boolean
@@ -152,7 +152,8 @@ class CountrySelector extends React.Component<CountrySelectorProps, CountrySelec
     }
   }
 
-  private onSelect = (selected: string) => this.setState(s => (s.selected === selected ? null : {selected}))
+  private onSelect = (selected: string | undefined) =>
+    this.setState(s => (s.selected === selected ? null : {selected}))
 
   private onSelectFirst = () => {
     if (Styles.isMobile && this.mobileItems && this.mobileItems[0]) {
@@ -404,8 +405,8 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
     )
   }
 
-  private onSelectCountry = (code: string) => {
-    this.setCountry(code, false)
+  private onSelectCountry = (code: string | undefined) => {
+    this.setCountry(code ?? '', false)
     this.phoneInputRef.current && this.phoneInputRef.current.focus()
   }
 
