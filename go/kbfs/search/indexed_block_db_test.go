@@ -21,15 +21,15 @@ import (
 )
 
 func newIndexedBlockDbForTestWithStorage(
-	t *testing.T, blockS, tlfS storage.Storage) *IndexedBlockDb {
+	t *testing.T, blockS, tlfS storage.Storage) (db *IndexedBlockDb, done func()) {
 	config := libkbfs.MakeTestConfigOrBust(t, "user1")
 	db, err := newIndexedBlockDbFromStorage(config, blockS, tlfS)
 	require.NoError(t, err)
-	return db
+	return db, func() { config.Shutdown(context.Background()) }
 }
 
 func newIndexedBlockDbForTest(t *testing.T) (
-	*IndexedBlockDb, string) {
+	db *IndexedBlockDb, tempdir string, done func()) {
 	// Use a disk-based level, instead of memory storage, because we
 	// want to simulate a restart and memory storages can't be reused.
 	tempdir, err := ioutil.TempDir(os.TempDir(), "indexed_blocks_db")
@@ -39,8 +39,8 @@ func newIndexedBlockDbForTest(t *testing.T) (
 	tlfS, err := storage.OpenFile(filepath.Join(tempdir, "tlf"), false)
 	require.NoError(t, err)
 
-	db := newIndexedBlockDbForTestWithStorage(t, blockS, tlfS)
-	return db, tempdir
+	db, done = newIndexedBlockDbForTestWithStorage(t, blockS, tlfS)
+	return db, tempdir, done
 }
 
 func shutdownIndexedBlockDbTest(db *IndexedBlockDb, tempdir string) {
@@ -60,9 +60,10 @@ func TestIndexedBlockDbCreate(t *testing.T) {
 func TestIndexedBlockDb(t *testing.T) {
 	t.Parallel()
 	t.Log("Test that indexed block db Put and Get operations work.")
-	db, tempdir := newIndexedBlockDbForTest(t)
+	db, tempdir, done := newIndexedBlockDbForTest(t)
 	defer func() {
 		shutdownIndexedBlockDbTest(db, tempdir)
+		done()
 	}()
 
 	ctx := context.Background()
@@ -146,7 +147,8 @@ func TestIndexedBlockDb(t *testing.T) {
 	require.NoError(t, err)
 	tlfS, err := storage.OpenFile(filepath.Join(tempdir, "tlfs"), false)
 	require.NoError(t, err)
-	db = newIndexedBlockDbForTestWithStorage(t, blockS, tlfS)
+	db, done2 := newIndexedBlockDbForTestWithStorage(t, blockS, tlfS)
+	defer done2()
 	getVer1, getDocID1, err = db.Get(ctx, ptr1)
 	require.NoError(t, err)
 	checkWrite(ver1, getVer1, docID1, getDocID1)
