@@ -188,6 +188,7 @@ type _AddAttachmentViewMessagePayload = {
 }
 type _AddBotMemberPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
+  readonly convs?: Array<string>
   readonly allowCommands: boolean
   readonly allowMentions: boolean
   readonly username: string

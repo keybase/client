@@ -835,6 +835,7 @@
     "addBotMember": {
       "_description": "add bot member to channel",
       "conversationIDKey": "Types.ConversationIDKey",
+      "convs?": "Array<string>",
       "allowCommands": "boolean",
       "allowMentions": "boolean",
       "username": "string",
