@@ -56,31 +56,41 @@ const InstallBotPopup = (props: Props) => {
   const [installScreen, setInstallScreen] = React.useState(false)
   const [installWithCommands, setInstallWithCommands] = React.useState(true)
   const [installWithMentions, setInstallWithMentions] = React.useState(true)
-  const {commands, featured, inTeam, settings} = Container.useSelector((state: Container.TypedState) => {
-    const meta = conversationIDKey && state.chat2.metaMap.get(conversationIDKey)
-    let inTeam = false
-    if (meta && conversationIDKey) {
-      if (meta.teamType === 'adhoc') {
-        const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
-        inTeam = participantInfo.all.includes(botUsername)
-      } else {
-        inTeam = Teams.userInTeam(state, meta.teamname, botUsername)
+  const [installWithRestrict, setInstallWithRestrict] = React.useState(true)
+  const {commands, featured, inTeam, inTeamUnrestricted, settings} = Container.useSelector(
+    (state: Container.TypedState) => {
+      const meta = conversationIDKey && state.chat2.metaMap.get(conversationIDKey)
+      let inTeam = false
+      let inTeamUnrestricted = false
+      if (meta && conversationIDKey) {
+        if (meta.teamType === 'adhoc') {
+          const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
+          inTeam = participantInfo.all.includes(botUsername)
+        } else {
+          inTeam = Teams.userInTeam(state, meta.teamname, botUsername)
+          inTeamUnrestricted = Teams.userIsRoleInTeam(state, meta.teamname, botUsername, 'bot')
+        }
+      }
+      return {
+        commands: state.chat2.botPublicCommands.get(botUsername),
+        featured: state.chat2.featuredBotsMap.get(botUsername),
+        inTeam,
+        inTeamUnrestricted,
+        settings: conversationIDKey
+          ? state.chat2.botSettings.get(conversationIDKey)?.get(botUsername) ?? undefined
+          : undefined,
       }
     }
-    return {
-      commands: state.chat2.botPublicCommands.get(botUsername),
-      featured: state.chat2.featuredBotsMap.get(botUsername),
-      inTeam,
-      settings: conversationIDKey
-        ? state.chat2.botSettings.get(conversationIDKey)?.get(botUsername) ?? undefined
-        : undefined,
-    }
-  })
+  )
   const error = Container.useAnyErrors(Constants.waitingKeyBotAdd, Constants.waitingKeyBotRemove)
   // dispatch
   const dispatch = Container.useDispatch()
   const onClose = () => {
-    dispatch(RouteTreeGen.createClearModals())
+    if (installScreen) {
+      setInstallScreen(false)
+    } else {
+      dispatch(RouteTreeGen.createClearModals())
+    }
   }
   const onInstall = () => {
     if (!conversationIDKey) {
@@ -91,6 +101,7 @@ const InstallBotPopup = (props: Props) => {
         allowCommands: installWithCommands,
         allowMentions: installWithMentions,
         conversationIDKey,
+        restricted: installWithRestrict,
         username: botUsername,
       })
     )
@@ -141,6 +152,33 @@ const InstallBotPopup = (props: Props) => {
     }
   }, [conversationIDKey])
 
+  const restrictPicker = !inTeam && (
+    <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+      <Kb.Text type="BodyBigExtrabold">Install as:</Kb.Text>
+      <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+        <Kb.RadioButton
+          label={
+            <Kb.Box2 direction="vertical">
+              <Kb.Text type="BodySemibold">Restricted Bot</Kb.Text>
+              <Kb.Text type="BodySmall">Customize which messages get encrypted for this bot.</Kb.Text>
+            </Kb.Box2>
+          }
+          onSelect={() => setInstallWithRestrict(true)}
+          selected={installWithRestrict}
+        />
+        <Kb.RadioButton
+          label={
+            <Kb.Box2 direction="vertical">
+              <Kb.Text type="BodySemibold">Unrestricted Bot</Kb.Text>
+              <Kb.Text type="BodySmall">All messages will be encrypted for this bot.</Kb.Text>
+            </Kb.Box2>
+          }
+          onSelect={() => setInstallWithRestrict(false)}
+          selected={!installWithRestrict}
+        />
+      </Kb.Box2>
+    </Kb.Box2>
+  )
   const featuredContent = !!featured && (
     <Kb.Box2 direction="vertical" gap="small" style={styles.container} fullWidth={true}>
       <Kb.Box2 direction="horizontal" gap="small" fullWidth={true}>
@@ -159,7 +197,8 @@ const InstallBotPopup = (props: Props) => {
         </Kb.Box2>
       </Kb.Box2>
       <Kb.Text type="BodySmall">{featured.extendedDescription}</Kb.Text>
-      {inTeam && <PermsList settings={settings} username={botUsername} />}
+      {inTeam && !inTeamUnrestricted && <PermsList settings={settings} username={botUsername} />}
+      {restrictPicker}
     </Kb.Box2>
   )
   const usernameContent = !featured && (
@@ -175,7 +214,8 @@ const InstallBotPopup = (props: Props) => {
           />
         </Kb.Box2>
       </Kb.Box2>
-      {inTeam && <PermsList settings={settings} username={botUsername} />}
+      {inTeam && !inTeamUnrestricted && <PermsList settings={settings} username={botUsername} />}
+      {restrictPicker}
     </Kb.Box2>
   )
   const installContent = installScreen && (
@@ -191,22 +231,40 @@ const InstallBotPopup = (props: Props) => {
           )}
         </Kb.Box2>
       </Kb.Box2>
-      <Kb.Text type="BodyBig">It will be able to read:</Kb.Text>
-      <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
-        <Kb.Checkbox
-          checked={installWithCommands}
-          labelComponent={<CommandsLabel commands={commands} />}
-          onCheck={() => setInstallWithCommands(!installWithCommands)}
-        />
-        <Kb.Checkbox
-          checked={installWithMentions}
-          label={`messages it has been mentioned in with @${botUsername}`}
-          onCheck={() => setInstallWithMentions(!installWithMentions)}
-        />
-      </Kb.Box2>
-      <Kb.Text type="BodySmall">
-        This bot will not be able to read any other messages, channels, files, repositories, or team members.
-      </Kb.Text>
+      {installWithRestrict ? (
+        <>
+          <Kb.Text type="BodyBig">It will be able to read:</Kb.Text>
+          <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
+            <Kb.Checkbox
+              checked={installWithCommands}
+              labelComponent={<CommandsLabel commands={commands} />}
+              onCheck={() => setInstallWithCommands(!installWithCommands)}
+            />
+            <Kb.Checkbox
+              checked={installWithMentions}
+              label={`messages it has been mentioned in with @${botUsername}`}
+              onCheck={() => setInstallWithMentions(!installWithMentions)}
+            />
+          </Kb.Box2>
+          <Kb.Text type="BodySmall">
+            This bot will not be able to read any other messages, channels, files, repositories, or team
+            members.
+          </Kb.Text>
+        </>
+      ) : (
+        <Kb.Box2 direction="vertical" gap="tiny">
+          <Kb.Text type="BodySemibold" style={{alignSelf: 'center', color: Styles.globalColors.redDark}}>
+            WARNING
+          </Kb.Text>
+          <Kb.Text type="BodySmall">
+            This bot will be able to read all messages, channels, files, repositories, and team members.
+          </Kb.Text>
+          <Kb.Text type="BodySmall">
+            If you wish to customize which messages are encrypted for this bot, please go back and select the
+            restricted bot option.
+          </Kb.Text>
+        </Kb.Box2>
+      )}
     </Kb.Box2>
   )
 
@@ -214,7 +272,7 @@ const InstallBotPopup = (props: Props) => {
   const showInstallButton = installScreen && !inTeam
   const showReviewButton = !installScreen && !inTeam
   const showRemoveButton = inTeam && !installScreen
-  const showEditButton = inTeam && !installScreen
+  const showEditButton = inTeam && !inTeamUnrestricted && !installScreen
   const showSaveButton = inTeam && installScreen
   const installButton = showInstallButton && (
     <Kb.WaitingButton
@@ -276,7 +334,7 @@ const InstallBotPopup = (props: Props) => {
       header={{
         leftButton: (
           <Kb.Text type="BodyBigLink" onClick={onClose}>
-            {inTeam ? 'Close' : 'Cancel'}
+            {installScreen ? 'Back' : inTeam ? 'Close' : 'Cancel'}
           </Kb.Text>
         ),
         title: '',

@@ -837,7 +837,8 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "allowCommands": "boolean",
       "allowMentions": "boolean",
-      "username": "string"
+      "username": "string",
+      "restricted": "boolean"
     },
     "refreshBotSettings": {
       "_description": "refresh bot settings",

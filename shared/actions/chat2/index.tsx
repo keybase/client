@@ -3441,12 +3441,14 @@ const addBotMember = async (state: Container.TypedState, action: Chat2Gen.AddBot
   try {
     await RPCChatTypes.localAddBotMemberRpcPromise(
       {
-        botSettings: {
-          cmds: allowCommands,
-          mentions: allowMentions,
-        },
+        botSettings: action.payload.restricted
+          ? {
+              cmds: allowCommands,
+              mentions: allowMentions,
+            }
+          : null,
         convID: Types.keyToConversationID(conversationIDKey),
-        role: RPCTypes.TeamRole.restrictedbot,
+        role: action.payload.restricted ? RPCTypes.TeamRole.restrictedbot : RPCTypes.TeamRole.bot,
         username,
       },
       Constants.waitingKeyBotAdd

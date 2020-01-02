@@ -189,6 +189,7 @@ type _AddBotMemberPayload = {
   readonly allowCommands: boolean
   readonly allowMentions: boolean
   readonly username: string
+  readonly restricted: boolean
 }
 type _AddUsersToChannelPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
