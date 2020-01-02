@@ -14,7 +14,7 @@ export type Props = {
   policy: RetentionPolicy
   policyIsExploding: boolean
   teamPolicy?: RetentionPolicy
-  load: () => void
+  load?: () => void
   loading: boolean // for when we're waiting to fetch the team policy
   showInheritOption: boolean
   showOverrideNotice: boolean
@@ -420,7 +420,7 @@ const RetentionSwitcher = (
   const {load} = props
   React.useEffect(
     () => {
-      load()
+      load?.()
     },
     // eslint-disable-next-line
     []
