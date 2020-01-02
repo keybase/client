@@ -1,9 +1,9 @@
 import * as Styles from '../styles'
 import * as Constants from '../constants/config'
-import SyncProps from '../desktop/remote/sync-props.desktop'
+import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'
 import * as Container from '../util/container'
-import {serialize} from './remote-serializer.desktop'
+// import {serialize} from './remote-serializer.desktop'
 
 const windowOpts = {height: 300, width: 500}
 
@@ -18,12 +18,17 @@ export type WireProps = {
   waiting: State['waiting']
 }
 
-const UnlockFolder: any = SyncProps(serialize)(Container.NullComponent)
-
 export default () => {
   const state = Container.useSelector(s => s)
   const {devices, phase, paperkeyError, waiting, popupOpen} = state.unlockFolders
-  const props = {
+  const windowComponent = popupOpen ? 'unlock-folders' : undefined
+  useBrowserWindow({
+    windowComponent,
+    windowOpts,
+    windowTitle: 'UnlockFolders',
+  })
+
+  const toSend = {
     darkMode: Styles.isDarkMode(),
     devices,
     paperkeyError,
@@ -31,13 +36,6 @@ export default () => {
     remoteWindowNeedsProps: Constants.getRemoteWindowPropsCount(state.config, 'unlockFolders', ''),
     waiting,
   }
-
-  const opts = {
-    windowOpts,
-    windowTitle: 'UnlockFolders',
-    windowComponent: popupOpen ? 'unlock-folders' : undefined,
-  }
-  useBrowserWindow(opts)
-
-  return popupOpen ? <UnlockFolder {...props} windowComponent={opts.windowComponent} /> : null
+  useSerializeProps(toSend, windowComponent)
+  return null
 }

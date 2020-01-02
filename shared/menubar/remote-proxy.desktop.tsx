@@ -1,7 +1,7 @@
 // A mirror of the remote menubar windows.
 import * as React from 'react'
 import SyncAvatarProps from '../desktop/remote/sync-avatar-props.desktop'
-import SyncProps from '../desktop/remote/sync-props.desktop'
+import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
 import * as SafeElectron from '../util/safe-electron.desktop'
@@ -165,6 +165,14 @@ const RenderExternalWindowBranch: any = (ComposedComponent: React.ComponentType<
     }
   }
 
+// TODO useSelector
+const Render = (p: any) => {
+  const toSend = {}
+  // TODO use useSerializeProps
+
+  return null
+}
+
 // Actions are handled by remote-container
 export default Container.namedConnect(
   mapStateToProps,
@@ -213,8 +221,4 @@ export default Container.namedConnect(
     }
   },
   'MenubarRemoteProxy'
-)(
-  RenderExternalWindowBranch(
-    RemoteMenubarWindow(SyncAvatarProps(SyncProps(serialize)(Container.NullComponent)))
-  )
-)
+)(RenderExternalWindowBranch(RemoteMenubarWindow(SyncAvatarProps(Render))))

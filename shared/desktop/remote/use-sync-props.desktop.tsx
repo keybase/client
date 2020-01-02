@@ -21,6 +21,8 @@ type Props = {
 
 type Serializer = {[K in string]: (value: any, oldValue: any) => Object | null}
 
+function useSyncProps() {}
+
 function SyncPropsFactory(serializer: Serializer) {
   return function SyncProps(ComposedComponent: any) {
     class RemoteConnected extends React.PureComponent<Props> {

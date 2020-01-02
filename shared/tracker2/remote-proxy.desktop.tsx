@@ -7,7 +7,7 @@ import * as Constants from '../constants/tracker2'
 import * as ConfigConstants from '../constants/config'
 import * as Styles from '../styles'
 import SyncAvatarProps from '../desktop/remote/sync-avatar-props.desktop'
-import SyncProps from '../desktop/remote/sync-props.desktop'
+import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'
 import {serialize} from './remote-serializer.desktop'
 
@@ -15,8 +15,13 @@ type OwnProps = {username: string}
 
 const MAX_TRACKERS = 5
 const windowOpts = {hasShadow: false, height: 470, transparent: true, width: 320}
+
+// TODO
+const Render = () => {
+  return null
+}
 // @ts-ignore
-const RemoteTracker: any = SyncAvatarProps(SyncProps(serialize)(Container.NullComponent))
+const RemoteTracker: any = SyncAvatarProps(Render)
 
 const RemoteTracker2 = (props: OwnProps) => {
   const {username} = props
