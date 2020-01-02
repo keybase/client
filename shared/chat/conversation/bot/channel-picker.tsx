@@ -4,12 +4,13 @@ import * as Styles from '../../../styles'
 import * as TeamTypes from '../../../constants/types/teams'
 import * as TeamConstants from '../../../constants/teams'
 import * as Container from '../../../util/container'
+import * as TeamsGen from '../../../actions/teams-gen'
 
 type Props = {
   installInConvs: string[]
   setChannelPickerScreen: (show: boolean) => void
   setInstallInConvs: (convs: string[]) => void
-  teamname: string
+  teamID: TeamTypes.TeamID
 }
 
 const toggleChannel = (convID: string, installInConvs: string[]) => {
@@ -43,9 +44,15 @@ const Row = ({onToggle, selected, channelInfo}: RowProps) => (
 )
 const ChannelPicker = (props: Props) => {
   // TODO: consider moving state setup somewhere else
-  const channelInfos = Container.useSelector(state =>
-    TeamConstants.getTeamChannelInfos(state, props.teamname)
-  )
+  const dispatch = Container.useDispatch()
+  React.useEffect(() => {
+    if (!props.teamID) {
+      return
+    }
+
+    dispatch(TeamsGen.createGetChannels({teamID: props.teamID}))
+  }, [props.teamID])
+  const channelInfos = Container.useSelector(state => TeamConstants.getTeamChannelInfos(state, props.teamID))
 
   const rows = [...channelInfos.entries()].map(([convID, channelInfo]) => (
     <Row

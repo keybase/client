@@ -6,6 +6,8 @@ import * as Styles from '../../../styles'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as WaitingGen from '../../../actions/waiting-gen'
+import * as TeamsGen from '../../../actions/teams-gen'
+import * as Teams from '../../../constants/teams'
 import * as Types from '../../../constants/types/chat2'
 import * as TeamTypes from '../../../constants/types/teams'
 import * as Constants from '../../../constants/chat2'
@@ -83,6 +85,7 @@ const InstallBotPopup = (props: Props) => {
         settings: conversationIDKey
           ? state.chat2.botSettings.get(conversationIDKey)?.get(botUsername) ?? undefined
           : undefined,
+        teamID,
         teamName,
       }
     }
@@ -147,6 +150,7 @@ const InstallBotPopup = (props: Props) => {
   const onFeedback = () => {
     dispatch(RouteTreeGen.createNavigateAppend({ path: ['feedback'] }))
   }
+
   // lifecycle
   React.useEffect(() => {
     dispatch(
@@ -299,13 +303,13 @@ const InstallBotPopup = (props: Props) => {
     </Kb.Box2 >
   )
 
-  const channelPickerContent = channelPickerScreen && teamName && (
+  const channelPickerContent = channelPickerScreen && teamID && (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container} gap="small">
       <ChannelPicker
         installInConvs={installInConvs}
         setChannelPickerScreen={setChannelPickerScreen}
         setInstallInConvs={setInstallInConvs}
-        teamname={teamName}
+        teamID={teamID}
       />
     </Kb.Box2>
   )
