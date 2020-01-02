@@ -1857,6 +1857,33 @@ const previewConversationPersonMakesAConversation = (action: Chat2Gen.PreviewCon
   )
 }
 
+const findGeneralConvIDFromTeamID = async (
+  state: Container.TypedState,
+  action: Chat2Gen.FindGeneralConvIDFromTeamIDPayload
+) => {
+  let conv: RPCChatTypes.InboxUIItem | undefined
+  try {
+    conv = await RPCChatTypes.localFindGeneralConvFromTeamIDRpcPromise({
+      teamID: action.payload.teamID,
+    })
+  } catch (err) {
+    logger.info(`findGeneralConvIDFromTeamID: failed to get general conv: ${err.message}`)
+    return
+  }
+  const meta = Constants.inboxUIItemToConversationMeta(state, conv)
+  if (!meta) {
+    logger.info(`findGeneralConvIDFromTeamID: failed to convert to meta`)
+    return
+  }
+  return [
+    Chat2Gen.createMetasReceived({metas: [meta]}),
+    Chat2Gen.createSetGeneralConvFromTeamID({
+      conversationIDKey: Types.stringToConversationIDKey(conv.convID),
+      teamID: action.payload.teamID,
+    }),
+  ]
+}
+
 // We preview channels
 const previewConversationTeam = async (
   state: Container.TypedState,
@@ -3571,6 +3598,7 @@ function* chat2Saga() {
   yield* Saga.chainAction2(Chat2Gen.editBotSettings, editBotSettings)
   yield* Saga.chainAction2(Chat2Gen.removeBotMember, removeBotMember)
   yield* Saga.chainAction2(Chat2Gen.refreshBotSettings, refreshBotSettings)
+  yield* Saga.chainAction2(Chat2Gen.findGeneralConvIDFromTeamID, findGeneralConvIDFromTeamID)
 
   // On login lets load the untrusted inbox. This helps make some flows easier
   yield* Saga.chainAction2(ConfigGen.bootstrapStatusLoaded, startupInboxLoad)

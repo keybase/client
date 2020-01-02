@@ -6139,6 +6139,10 @@ type FindConversationsLocalArg struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
+type FindGeneralConvFromTeamIDArg struct {
+	TeamID keybase1.TeamID `codec:"teamID" json:"teamID"`
+}
+
 type UpdateTypingArg struct {
 	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
 	Typing         bool           `codec:"typing" json:"typing"`
@@ -6431,6 +6435,7 @@ type LocalInterface interface {
 	RetryPost(context.Context, RetryPostArg) error
 	MarkAsReadLocal(context.Context, MarkAsReadLocalArg) (MarkAsReadLocalRes, error)
 	FindConversationsLocal(context.Context, FindConversationsLocalArg) (FindConversationsLocalRes, error)
+	FindGeneralConvFromTeamID(context.Context, keybase1.TeamID) (InboxUIItem, error)
 	UpdateTyping(context.Context, UpdateTypingArg) error
 	UpdateUnsentText(context.Context, UpdateUnsentTextArg) error
 	JoinConversationLocal(context.Context, JoinConversationLocalArg) (JoinLeaveConversationLocalRes, error)
@@ -7128,6 +7133,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.FindConversationsLocal(ctx, typedArgs[0])
+					return
+				},
+			},
+			"findGeneralConvFromTeamID": {
+				MakeArg: func() interface{} {
+					var ret [1]FindGeneralConvFromTeamIDArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]FindGeneralConvFromTeamIDArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]FindGeneralConvFromTeamIDArg)(nil), args)
+						return
+					}
+					ret, err = i.FindGeneralConvFromTeamID(ctx, typedArgs[0].TeamID)
 					return
 				},
 			},
@@ -8062,6 +8082,12 @@ func (c LocalClient) MarkAsReadLocal(ctx context.Context, __arg MarkAsReadLocalA
 
 func (c LocalClient) FindConversationsLocal(ctx context.Context, __arg FindConversationsLocalArg) (res FindConversationsLocalRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.findConversationsLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) FindGeneralConvFromTeamID(ctx context.Context, teamID keybase1.TeamID) (res InboxUIItem, err error) {
+	__arg := FindGeneralConvFromTeamIDArg{TeamID: teamID}
+	err = c.Cli.Call(ctx, "chat.1.local.findGeneralConvFromTeamID", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 

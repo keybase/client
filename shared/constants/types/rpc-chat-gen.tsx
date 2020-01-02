@@ -319,6 +319,10 @@ export type MessageTypes = {
     inParam: {readonly tlfName: String; readonly membersType: ConversationMembersType; readonly visibility: Keybase1.TLFVisibility; readonly topicType: TopicType; readonly topicName: String; readonly oneChatPerTLF?: Boolean | null; readonly identifyBehavior: Keybase1.TLFIdentifyBehavior}
     outParam: FindConversationsLocalRes
   }
+  'chat.1.local.findGeneralConvFromTeamID': {
+    inParam: {readonly teamID: Keybase1.TeamID}
+    outParam: InboxUIItem
+  }
   'chat.1.local.getBotMemberSettings': {
     inParam: {readonly convID: ConversationID; readonly username: String}
     outParam: Keybase1.TeamBotSettings
@@ -1485,6 +1489,7 @@ export const localDeleteConversationLocalRpcPromise = (params: MessageTypes['cha
 export const localDownloadFileAttachmentLocalRpcSaga = (p: {params: MessageTypes['chat.1.local.DownloadFileAttachmentLocal']['inParam']; incomingCallMap: IncomingCallMapType; customResponseIncomingCallMap?: CustomResponseIncomingCallMap; waitingKey?: WaitingKey}) => call(getEngineSaga(), {method: 'chat.1.local.DownloadFileAttachmentLocal', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
 export const localEditBotMemberRpcPromise = (params: MessageTypes['chat.1.local.editBotMember']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.editBotMember']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.editBotMember', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localFindConversationsLocalRpcPromise = (params: MessageTypes['chat.1.local.findConversationsLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.findConversationsLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.findConversationsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localFindGeneralConvFromTeamIDRpcPromise = (params: MessageTypes['chat.1.local.findGeneralConvFromTeamID']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.findGeneralConvFromTeamID']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.findGeneralConvFromTeamID', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetBotMemberSettingsRpcPromise = (params: MessageTypes['chat.1.local.getBotMemberSettings']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getBotMemberSettings']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getBotMemberSettings', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetGlobalAppNotificationSettingsLocalRpcPromise = (params: MessageTypes['chat.1.local.getGlobalAppNotificationSettingsLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getGlobalAppNotificationSettingsLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getGlobalAppNotificationSettingsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetInboxAndUnboxUILocalRpcPromise = (params: MessageTypes['chat.1.local.getInboxAndUnboxUILocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getInboxAndUnboxUILocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getInboxAndUnboxUILocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))

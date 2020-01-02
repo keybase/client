@@ -82,6 +82,7 @@ export const makeState = (): Types.State => ({
   smallTeamsExpanded: false,
   staticConfig: undefined,
   teamBuilding: TeamBuildingConstants.makeSubState(),
+  teamIDToGeneralConvID: new Map(),
   threadLoadStatus: new Map(),
   threadSearchInfoMap: new Map(),
   threadSearchQueryMap: new Map(),

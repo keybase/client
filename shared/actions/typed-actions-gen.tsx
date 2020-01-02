@@ -244,6 +244,8 @@ export type TypedActionsMap = {
   'chat2:loadMoreSmalls': chat2.LoadMoreSmallsPayload
   'chat2:resetSmalls': chat2.ResetSmallsPayload
   'chat2:setParticipants': chat2.SetParticipantsPayload
+  'chat2:findGeneralConvIDFromTeamID': chat2.FindGeneralConvIDFromTeamIDPayload
+  'chat2:setGeneralConvFromTeamID': chat2.SetGeneralConvFromTeamIDPayload
   'config:startHandshake': config.StartHandshakePayload
   'config:restartHandshake': config.RestartHandshakePayload
   'config:daemonHandshake': config.DaemonHandshakePayload

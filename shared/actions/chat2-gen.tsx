@@ -43,6 +43,7 @@ export const dismissBlockButtons = 'chat2:dismissBlockButtons'
 export const dismissBottomBanner = 'chat2:dismissBottomBanner'
 export const editBotSettings = 'chat2:editBotSettings'
 export const enableAudioRecording = 'chat2:enableAudioRecording'
+export const findGeneralConvIDFromTeamID = 'chat2:findGeneralConvIDFromTeamID'
 export const giphyGotSearchResult = 'chat2:giphyGotSearchResult'
 export const giphySend = 'chat2:giphySend'
 export const giphyToggleWindow = 'chat2:giphyToggleWindow'
@@ -130,6 +131,7 @@ export const setConvExplodingMode = 'chat2:setConvExplodingMode'
 export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
 export const setConversationOffline = 'chat2:setConversationOffline'
 export const setExplodingModeLock = 'chat2:setExplodingModeLock'
+export const setGeneralConvFromTeamID = 'chat2:setGeneralConvFromTeamID'
 export const setInboxNumSmallRows = 'chat2:setInboxNumSmallRows'
 export const setInboxShowIsNew = 'chat2:setInboxShowIsNew'
 export const setLoadedBotPage = 'chat2:setLoadedBotPage'
@@ -270,6 +272,7 @@ type _EnableAudioRecordingPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly meteringCb: (amp: number) => void
 }
+type _FindGeneralConvIDFromTeamIDPayload = {readonly teamID: TeamTypes.TeamID}
 type _GiphyGotSearchResultPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly results: RPCChatTypes.GiphySearchResults
@@ -625,6 +628,10 @@ type _SetExplodingModeLockPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly unset?: boolean
 }
+type _SetGeneralConvFromTeamIDPayload = {
+  readonly teamID: TeamTypes.TeamID
+  readonly conversationIDKey: Types.ConversationIDKey
+}
 type _SetInboxNumSmallRowsPayload = {readonly ignoreWrite?: boolean; readonly rows: number}
 type _SetInboxShowIsNewPayload = {readonly isNew: boolean}
 type _SetLoadedBotPagePayload = {readonly page: number}
@@ -848,6 +855,12 @@ export const createMessagesExploded = (payload: _MessagesExplodedPayload): Messa
   type: messagesExploded,
 })
 /**
+ * Get the general channel conv ID from team ID
+ */
+export const createFindGeneralConvIDFromTeamID = (
+  payload: _FindGeneralConvIDFromTeamIDPayload
+): FindGeneralConvIDFromTeamIDPayload => ({payload, type: findGeneralConvIDFromTeamID})
+/**
  * Giphy search results obtained
  */
 export const createGiphyGotSearchResult = (
@@ -935,6 +948,12 @@ export const createPrepareFulfillRequestForm = (
 export const createThreadSearchResults = (
   payload: _ThreadSearchResultsPayload
 ): ThreadSearchResultsPayload => ({payload, type: threadSearchResults})
+/**
+ * Record teamID to general convID mapping
+ */
+export const createSetGeneralConvFromTeamID = (
+  payload: _SetGeneralConvFromTeamIDPayload
+): SetGeneralConvFromTeamIDPayload => ({payload, type: setGeneralConvFromTeamID})
 /**
  * Remove an unfurl
  */
@@ -1725,6 +1744,10 @@ export type EnableAudioRecordingPayload = {
   readonly payload: _EnableAudioRecordingPayload
   readonly type: typeof enableAudioRecording
 }
+export type FindGeneralConvIDFromTeamIDPayload = {
+  readonly payload: _FindGeneralConvIDFromTeamIDPayload
+  readonly type: typeof findGeneralConvIDFromTeamID
+}
 export type GiphyGotSearchResultPayload = {
   readonly payload: _GiphyGotSearchResultPayload
   readonly type: typeof giphyGotSearchResult
@@ -2031,6 +2054,10 @@ export type SetExplodingModeLockPayload = {
   readonly payload: _SetExplodingModeLockPayload
   readonly type: typeof setExplodingModeLock
 }
+export type SetGeneralConvFromTeamIDPayload = {
+  readonly payload: _SetGeneralConvFromTeamIDPayload
+  readonly type: typeof setGeneralConvFromTeamID
+}
 export type SetInboxNumSmallRowsPayload = {
   readonly payload: _SetInboxNumSmallRowsPayload
   readonly type: typeof setInboxNumSmallRows
@@ -2236,6 +2263,7 @@ export type Actions =
   | DismissBottomBannerPayload
   | EditBotSettingsPayload
   | EnableAudioRecordingPayload
+  | FindGeneralConvIDFromTeamIDPayload
   | GiphyGotSearchResultPayload
   | GiphySendPayload
   | GiphyToggleWindowPayload
@@ -2323,6 +2351,7 @@ export type Actions =
   | SetConvRetentionPolicyPayload
   | SetConversationOfflinePayload
   | SetExplodingModeLockPayload
+  | SetGeneralConvFromTeamIDPayload
   | SetInboxNumSmallRowsPayload
   | SetInboxShowIsNewPayload
   | SetLoadedBotPagePayload
