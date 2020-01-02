@@ -1,5 +1,4 @@
 import * as Constants from '../../../../../constants/teams'
-import * as Chat2Constants from '../../../../../constants/chat2'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Tracker2Gen from '../../../../../actions/tracker2-gen'
 import * as ProfileGen from '../../../../../actions/profile-gen'

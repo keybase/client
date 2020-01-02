@@ -272,7 +272,7 @@ type _EnableAudioRecordingPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly meteringCb: (amp: number) => void
 }
-type _FindGeneralConvIDFromTeamIDPayload = {readonly teamID: TeamTypes.TeamID}
+type _FindGeneralConvIDFromTeamIDPayload = {readonly teamID: TeamsTypes.TeamID}
 type _GiphyGotSearchResultPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly results: RPCChatTypes.GiphySearchResults
@@ -629,7 +629,7 @@ type _SetExplodingModeLockPayload = {
   readonly unset?: boolean
 }
 type _SetGeneralConvFromTeamIDPayload = {
-  readonly teamID: TeamTypes.TeamID
+  readonly teamID: TeamsTypes.TeamID
   readonly conversationIDKey: Types.ConversationIDKey
 }
 type _SetInboxNumSmallRowsPayload = {readonly ignoreWrite?: boolean; readonly rows: number}
