@@ -123,6 +123,7 @@ const InstallBotPopup = (props: Props) => {
       Chat2Gen.createEditBotSettings({
         allowCommands: installWithCommands,
         allowMentions: installWithMentions,
+        convs: installInConvs,
         conversationIDKey,
         username: botUsername,
       })
