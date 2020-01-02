@@ -130,8 +130,8 @@ const styles = Styles.styleSheetCreate(
       }),
       searchFilter: Styles.platformStyles({
         common: {
-          marginBottom: Styles.globalMargins.small,
-          marginTop: Styles.globalMargins.small,
+          marginBottom: Styles.globalMargins.xsmall,
+          marginTop: Styles.globalMargins.tiny,
         },
         isElectron: {
           marginLeft: Styles.globalMargins.small,

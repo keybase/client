@@ -124,8 +124,8 @@ const InstallBotPopup = (props: Props) => {
       Chat2Gen.createEditBotSettings({
         allowCommands: installWithCommands,
         allowMentions: installWithMentions,
-        convs: installInConvs,
         conversationIDKey,
+        convs: installInConvs,
         username: botUsername,
       })
     )
@@ -521,13 +521,13 @@ const PermsList = (props: PermsListProps) => {
             <Kb.Text type="Body">{`• messages it has been mentioned in with @${props.username}`}</Kb.Text>
           )}
           {props.settings.convs && (
-            <>
+            <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
               <Kb.Text type="BodySemibold">In these channels:</Kb.Text>
               {props.settings.convs?.map(convID => (
                 <Kb.Text type="Body" key={convID}>{`• #${props.channelInfos.get(convID)?.channelname ??
                   ''}`}</Kb.Text>
               ))}
-            </>
+            </Kb.Box2>
           )}
         </Kb.Box2>
       ) : (
