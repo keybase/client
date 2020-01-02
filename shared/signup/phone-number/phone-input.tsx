@@ -21,7 +21,7 @@ const getCountryEmoji = (countryCode: string) => (
 )
 const getPlaceholder = (countryCode: string) =>
   countryCode !== '' ? 'Ex: ' + countryData()[normalizeCountryCode(countryCode)].example : 'N/A'
-const filterNumeric = text => text.replace(/[^\d]/g, '')
+const filterNumeric = (text: string) => text.replace(/[^\d]/g, '')
 const prioritizedCountries = ['US', 'CA', 'GB']
 
 const pickerItems = memoize(countryData =>
@@ -114,7 +114,7 @@ const menuItems = memoize((countryData, filter, onClick) => {
     }))
 })
 
-const MenuItem = props => (
+const MenuItem = (props: {emoji: string; text: string}) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.menuItem} gap="xtiny" alignItems="center">
     <Kb.Text type="Body" center={true}>
       <Kb.Emoji size={18} emojiName={props.emoji} />
@@ -125,7 +125,7 @@ const MenuItem = props => (
 
 type CountrySelectorProps = {
   attachTo?: () => React.Component<any> | null
-  onSelect: (arg0: string) => void
+  onSelect: (s: string | undefined) => void
   onHidden: () => void
   selected?: string
   visible: boolean
@@ -152,7 +152,8 @@ class CountrySelector extends React.Component<CountrySelectorProps, CountrySelec
     }
   }
 
-  private onSelect = selected => this.setState(s => (s.selected === selected ? null : {selected}))
+  private onSelect = (selected: string | undefined) =>
+    this.setState(s => (s.selected === selected ? null : {selected}))
 
   private onSelectFirst = () => {
     if (Styles.isMobile && this.mobileItems && this.mobileItems[0]) {
@@ -176,11 +177,11 @@ class CountrySelector extends React.Component<CountrySelectorProps, CountrySelec
     this.props.onHidden()
   }
 
-  onSelectMenu = selected => {
+  onSelectMenu = (selected: string) => {
     this.props.onSelect(selected)
   }
 
-  private onChangeFilter = filter => this.setState(() => ({filter}))
+  private onChangeFilter = (filter: string) => this.setState(() => ({filter}))
 
   clearFilter() {
     this.onChangeFilter('')
@@ -260,7 +261,7 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
   private countrySelectorRef = React.createRef<CountrySelector>()
   private phoneInputRef = React.createRef<Kb.PlainInput>()
 
-  private setFormattedPhoneNumber = formatted =>
+  private setFormattedPhoneNumber = (formatted: string) =>
     this.setState(s => {
       if (s.formatted === formatted) {
         return null
@@ -274,7 +275,7 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
   // 2. Remove any non-numerics from the text
   // 3. Feed the new text into the formatter char by char
   // 4. Set the value of the input to the new formatted
-  private reformatPhoneNumber = (_newText, skipCountry) => {
+  private reformatPhoneNumber = (_newText: string, skipCountry: boolean) => {
     if (!this.state.formatter) {
       return
     }
@@ -317,7 +318,7 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
     }
   }
 
-  private reformatPrefix = (_newText, skipCountry) => {
+  private reformatPrefix = (_newText: string, skipCountry: boolean) => {
     let newText = filterNumeric(_newText)
     if (!skipCountry) {
       const matchedCountry = codeToCountry()[newText]
@@ -343,7 +344,7 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
     this.props.onChangeNumber(validation.e164, validation.valid)
   }
 
-  private setCountry = (country, keepPrefix) => {
+  private setCountry = (country: string, keepPrefix: boolean) => {
     if (this.state.country !== country) {
       country = normalizeCountryCode(country)
 
@@ -404,8 +405,8 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
     )
   }
 
-  private onSelectCountry = (code: string) => {
-    this.setCountry(code, false)
+  private onSelectCountry = (code: string | undefined) => {
+    this.setCountry(code ?? '', false)
     this.phoneInputRef.current && this.phoneInputRef.current.focus()
   }
 

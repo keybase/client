@@ -796,7 +796,7 @@ export const getDefaultAccount = (state: Types.State) => {
 
 export const getExternalPartners = (state: TypedState) => state.wallets.externalPartners
 
-const noAssets = []
+const noAssets: Array<Types.Assets> = []
 export const getAssets = (state: TypedState, accountID: Types.AccountID): Array<Types.Assets> =>
   state.wallets.assetsMap.get(accountID) ?? noAssets
 

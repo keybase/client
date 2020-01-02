@@ -129,8 +129,8 @@ const deriveTeamSoFar = memoize(
 
 const deriveServiceResultCount = memoize((searchResults: Types.SearchResults, query: string) =>
   [...(searchResults.get(trim(query)) ?? new Map<Types.ServiceIdWithContact, Array<Types.User>>()).entries()]
-    .map(([key, results]) => [key, results.length])
-    .reduce<Object>((o, [key, num]) => {
+    .map(([key, results]) => [key, results.length] as const)
+    .reduce<{[k: string]: number}>((o, [key, num]) => {
       o[key] = num
       return o
     }, {})
@@ -265,16 +265,18 @@ const deriveOnBackspace = memoize((searchString, teamSoFar, onRemove) => () => {
 })
 
 const deriveOnEnterKeyDown = memoizeShallow(
-  ({
-    searchResults,
-    teamSoFar,
-    highlightedIndex,
-    onAdd,
-    onRemove,
-    changeText,
-    searchStringIsEmpty,
-    onFinishTeamBuilding,
+  (p: {
+    changeText: (s: string) => void
+    highlightedIndex: number
+    onAdd: (id: string) => void
+    onFinishTeamBuilding: () => void
+    onRemove: (id: string) => void
+    searchResults: Array<SearchResult>
+    searchStringIsEmpty: string
+    teamSoFar: Array<Types.SelectedUser>
   }) => () => {
+    const {onRemove, changeText, searchStringIsEmpty, onFinishTeamBuilding} = p
+    const {searchResults, teamSoFar, highlightedIndex, onAdd} = p
     const selectedResult = !!searchResults && searchResults[highlightedIndex]
     if (selectedResult) {
       // We don't handle cases where they hit enter on someone that is already a
@@ -297,7 +299,13 @@ const deriveOnEnterKeyDown = memoizeShallow(
 )
 
 const deriveOnSearchForMore = memoizeShallow(
-  ({search, searchResults, searchString, selectedService}) => () => {
+  (p: {
+    search: (q: string, sid: Types.ServiceIdWithContact, limit?: number) => void
+    searchResults: Array<Types.User>
+    searchString: string
+    selectedService: Types.ServiceIdWithContact
+  }) => () => {
+    const {search, searchResults, searchString, selectedService} = p
     if (searchResults && searchResults.length >= 10) {
       search(searchString, selectedService, searchResults.length + 20)
     }

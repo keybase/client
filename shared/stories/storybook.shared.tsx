@@ -80,13 +80,13 @@ const createPropProvider = (...maps: SelectorMap[]) => {
 }
 
 // Plumb dispatches through storybook actions panel
-const actionLog = () => next => a => {
+const actionLog = () => (next: any) => (a: any) => {
   action('ReduxDispatch')(a)
   return next(a)
 }
 
 // Includes common old-style propProvider temporarily
-export const MockStore = ({store, children}): any => (
+export const MockStore = ({store, children}: any): any => (
   // @ts-ignore
   <Provider
     key={`storyprovider:${uniqueProviderKey++}`}
@@ -102,9 +102,9 @@ export const MockStore = ({store, children}): any => (
     </GatewayProvider>
   </Provider>
 )
-export const createNavigator = params => ({
+export const createNavigator = (params: any) => ({
   navigation: {
-    getParam: key => params[key],
+    getParam: (key: any) => params[key],
   },
 })
 

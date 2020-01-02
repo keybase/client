@@ -19,8 +19,8 @@ export type CountryData = {
 }
 
 let _countryDataLoaded = false
-let _countryDataRaw: {[key: string]: CountryData} = {}
-let _codeToCountryRaw: {[key: string]: string} = {}
+const _countryDataRaw: {[key: string]: CountryData} = {}
+const _codeToCountryRaw: {[key: string]: string} = {}
 
 const load = () => {
   if (_countryDataLoaded) return
@@ -30,7 +30,7 @@ const load = () => {
   const {emojiIndexByChar} = require('../../common-adapters/markdown/emoji-gen')
   const supportedCodes: {[key: string]: boolean} = require('./sms-support/data.json')
 
-  countries.forEach(curr => {
+  countries.forEach((curr: any) => {
     if (
       curr.alpha2 &&
       (curr.status === 'assigned' || curr.status === 'user assigned') &&

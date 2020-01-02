@@ -10,7 +10,7 @@ import {mapGetEnsureValue} from '../util/map'
 
 const initialState: Types.State = Constants.makeState()
 
-const handleTeamBuilding = (draftState, action) => {
+const handleTeamBuilding = (draftState: Container.Draft<Types.State>, action: TeamBuildingGen.Actions) => {
   const val = editTeambuildingDraft('teams', draftState.teamBuilding, action)
   if (val !== undefined) {
     draftState.teamBuilding = val

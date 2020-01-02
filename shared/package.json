@@ -233,6 +233,7 @@
     "@types/path-parse": "1.0.19",
     "@types/react": "16.9.16",
     "@types/react-dom": "16.9.4",
+    "@types/react-gateway": "2.8.3",
     "@types/react-is": "16.7.1",
     "@types/react-list": "0.8.5",
     "@types/react-measure": "2.0.5",
