@@ -671,27 +671,27 @@ var _ libkb.TeamBoxAuditor = &DummyBoxAuditor{}
 const dummyMsg = "Box auditor disabled; aborting successfully"
 
 func (d DummyBoxAuditor) AssertUnjailedOrReaudit(mctx libkb.MetaContext, _ keybase1.TeamID) (bool, error) {
-	mctx.Warning(dummyMsg)
+	mctx.Debug(dummyMsg)
 	return false, nil
 }
 func (d DummyBoxAuditor) IsInJail(mctx libkb.MetaContext, _ keybase1.TeamID) (bool, error) {
-	mctx.Warning(dummyMsg)
+	mctx.Debug(dummyMsg)
 	return false, nil
 }
 func (d DummyBoxAuditor) RetryNextBoxAudit(mctx libkb.MetaContext) (*keybase1.BoxAuditAttempt, error) {
-	mctx.Warning(dummyMsg)
+	mctx.Debug(dummyMsg)
 	return nil, nil
 }
 func (d DummyBoxAuditor) BoxAuditRandomTeam(mctx libkb.MetaContext) (*keybase1.BoxAuditAttempt, error) {
-	mctx.Warning(dummyMsg)
+	mctx.Debug(dummyMsg)
 	return nil, nil
 }
 func (d DummyBoxAuditor) BoxAuditTeam(mctx libkb.MetaContext, _ keybase1.TeamID) (*keybase1.BoxAuditAttempt, error) {
-	mctx.Warning(dummyMsg)
+	mctx.Debug(dummyMsg)
 	return nil, nil
 }
 func (d DummyBoxAuditor) Attempt(mctx libkb.MetaContext, _ keybase1.TeamID, _ bool) keybase1.BoxAuditAttempt {
-	mctx.Warning(dummyMsg)
+	mctx.Debug(dummyMsg)
 	return keybase1.BoxAuditAttempt{
 		Result: keybase1.BoxAuditAttemptResult_OK_NOT_ATTEMPTED_ROLE,
 		Ctime:  keybase1.ToUnixTime(time.Now()),

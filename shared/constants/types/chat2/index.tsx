@@ -5,6 +5,7 @@ import * as Meta from './meta'
 import * as Message from './message'
 import * as Wallet from '../wallets'
 import * as TeamBuildingTypes from '../team-building'
+import * as Team from '../teams'
 import HiddenString from '../../../util/hidden-string'
 import {AmpTracker} from '../../../chat/audio/amptracker'
 
@@ -214,6 +215,7 @@ export type State = Readonly<{
   smallTeamsExpanded: boolean // if we're showing all small teams,
   staticConfig?: StaticConfig // static config stuff from the service. only needs to be loaded once. if null, it hasn't been loaded,
   teamBuilding: TeamBuildingTypes.TeamBuildingSubState
+  teamIDToGeneralConvID: Map<Team.TeamID, Common.ConversationIDKey>
   threadLoadStatus: Map<Common.ConversationIDKey, RPCChatTypes.UIChatThreadStatus>
   threadSearchInfoMap: Map<Common.ConversationIDKey, ThreadSearchInfo>
   threadSearchQueryMap: Map<Common.ConversationIDKey, HiddenString>

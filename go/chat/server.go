@@ -1320,6 +1320,38 @@ func (h *Server) setTestRemoteClient(ri chat1.RemoteInterface) {
 	h.rc = ri
 }
 
+func (h *Server) FindGeneralConvFromTeamID(ctx context.Context, teamID keybase1.TeamID) (res chat1.InboxUIItem, err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
+	defer h.Trace(ctx, func() error { return err }, "FindGeneralConvFromTeamID")()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
+	tlfID := chat1.TLFID(teamID.ToBytes())
+	vis := keybase1.TLFVisibility_PRIVATE
+	topicName := globals.DefaultTeamTopic
+	topicType := chat1.TopicType_CHAT
+	query := &chat1.GetInboxLocalQuery{
+		Name: &chat1.NameQuery{
+			TlfID:       &tlfID,
+			MembersType: chat1.ConversationMembersType_TEAM,
+		},
+		TlfVisibility: &vis,
+		TopicName:     &topicName,
+		TopicType:     &topicType,
+	}
+	ib, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
+		types.InboxSourceDataSourceAll, nil, query)
+	if err != nil {
+		return res, err
+	}
+	if len(ib.Convs) != 1 {
+		return res, libkb.NotFoundError{}
+	}
+	return utils.PresentConversationLocal(ctx, h.G(), uid, ib.Convs[0], utils.PresentParticipantsModeSkip),
+		nil
+}
+
 func (h *Server) FindConversationsLocal(ctx context.Context,
 	arg chat1.FindConversationsLocalArg) (res chat1.FindConversationsLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure

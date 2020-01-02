@@ -10,7 +10,7 @@ import TeamInviteByContact from './invite-by-contact/container'
 import TeamJoinTeamDialog from './join-team/container'
 import TeamNewTeamDialog from './new-team/container'
 import TeamReallyLeaveTeam from './really-leave-team/container'
-import TeamReallyRemoveMember from './team/really-remove-member/container'
+import TeamReallyRemoveMember from './team/really-remove-member'
 import TeamRename from './rename-team/container'
 import TeamsTeamBuilder from '../team-building/container'
 
@@ -48,7 +48,7 @@ export const newModalRoutes = {
     getScreen: (): typeof TeamReallyLeaveTeam => require('./really-leave-team/container').default,
   },
   teamReallyRemoveMember: {
-    getScreen: (): typeof TeamReallyRemoveMember => require('./team/really-remove-member/container').default,
+    getScreen: (): typeof TeamReallyRemoveMember => require('./team/really-remove-member').default,
   },
   teamRename: {getScreen: (): typeof TeamRename => require('./rename-team/container').default},
   teamsTeamBuilder: {getScreen: (): typeof TeamsTeamBuilder => require('../team-building/container').default},

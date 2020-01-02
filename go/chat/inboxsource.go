@@ -27,7 +27,8 @@ func filterConvLocals(convLocals []chat1.ConversationLocal, rquery *chat1.GetInb
 		if rquery != nil && rquery.TlfID != nil {
 			// inbox query contained a TLF name, so check to make sure that
 			// the conversation from the server matches tlfInfo from kbfs
-			if convLocal.Info.TLFNameExpanded() != nameInfo.CanonicalName {
+			if len(nameInfo.CanonicalName) > 0 &&
+				convLocal.Info.TLFNameExpanded() != nameInfo.CanonicalName {
 				if convLocal.Error == nil {
 					return nil, fmt.Errorf("server conversation TLF name mismatch: %s, expected %s",
 						convLocal.Info.TLFNameExpanded(), nameInfo.CanonicalName)

@@ -1005,6 +1005,7 @@ protocol local {
   }
 
   FindConversationsLocalRes findConversationsLocal(string tlfName, ConversationMembersType membersType, keybase1.TLFVisibility visibility, TopicType topicType, string topicName, union { null, boolean } oneChatPerTLF, keybase1.TLFIdentifyBehavior identifyBehavior);
+  InboxUIItem findGeneralConvFromTeamID(keybase1.TeamID teamID);
 
   // Typing API
   void updateTyping(ConversationID conversationID, boolean typing); // throttled

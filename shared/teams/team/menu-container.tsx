@@ -47,10 +47,10 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {teamID}: OwnProp
         path: [{props: {teamID}, selected: 'teamReallyLeaveTeam'}],
       })
     ),
-  onManageChat: (teamname: string) =>
+  onManageChat: () =>
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [{props: {teamname}, selected: 'chatManageChannels'}],
+        path: [{props: {teamID}, selected: 'chatManageChannels'}],
       })
     ),
   onOpenFolder: (teamname: string) =>
@@ -88,7 +88,7 @@ export default Container.connect(
     if (stateProps.canManageChat) {
       items.push({
         icon: 'iconfont-hash',
-        onClick: () => dispatchProps.onManageChat(stateProps.teamname),
+        onClick: dispatchProps.onManageChat,
         subTitle: stateProps.isBigTeam ? undefined : 'Turns this into a big team',
         title: stateProps.isBigTeam ? 'Manage chat channels' : 'Make chat channels...',
       })

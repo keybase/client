@@ -93,17 +93,17 @@ export default Container.makeReducer<
     draftState.teamNameToPublicitySettings.set(action.payload.teamname, action.payload.publicity)
   },
   [TeamsGen.setTeamChannelInfo]: (draftState, action) => {
-    const {conversationIDKey, channelInfo, teamname} = action.payload
-    draftState.teamNameToChannelInfos.set(
-      teamname,
-      mapGetEnsureValue(draftState.teamNameToChannelInfos, teamname, new Map()).set(
+    const {conversationIDKey, channelInfo, teamID} = action.payload
+    draftState.teamIDToChannelInfos.set(
+      teamID,
+      mapGetEnsureValue(draftState.teamIDToChannelInfos, teamID, new Map()).set(
         conversationIDKey,
         channelInfo
       )
     )
   },
   [TeamsGen.setTeamChannels]: (draftState, action) => {
-    draftState.teamNameToChannelInfos.set(action.payload.teamname, action.payload.channelInfos)
+    draftState.teamIDToChannelInfos.set(action.payload.teamID, action.payload.channelInfos)
   },
   [TeamsGen.setEmailInviteError]: (draftState, action) => {
     if (!action.payload.malformed.length && !action.payload.message) {
@@ -159,33 +159,33 @@ export default Container.makeReducer<
     draftState.teamsWithChosenChannels = action.payload.teamsWithChosenChannels
   },
   [TeamsGen.setUpdatedChannelName]: (draftState, action) => {
-    const {teamname, conversationIDKey, newChannelName} = action.payload
-    const oldChannelInfos = mapGetEnsureValue(draftState.teamNameToChannelInfos, teamname, new Map())
+    const {teamID, conversationIDKey, newChannelName} = action.payload
+    const oldChannelInfos = mapGetEnsureValue(draftState.teamIDToChannelInfos, teamID, new Map())
     const oldChannelInfo = mapGetEnsureValue(oldChannelInfos, conversationIDKey, Constants.initialChannelInfo)
     oldChannelInfo.channelname = newChannelName
   },
   [TeamsGen.setUpdatedTopic]: (draftState, action) => {
-    const {teamname, conversationIDKey, newTopic} = action.payload
-    const oldChannelInfos = mapGetEnsureValue(draftState.teamNameToChannelInfos, teamname, new Map())
+    const {teamID, conversationIDKey, newTopic} = action.payload
+    const oldChannelInfos = mapGetEnsureValue(draftState.teamIDToChannelInfos, teamID, new Map())
     const oldChannelInfo = mapGetEnsureValue(oldChannelInfos, conversationIDKey, Constants.initialChannelInfo)
     oldChannelInfo.description = newTopic
   },
   [TeamsGen.deleteChannelInfo]: (draftState, action) => {
-    const {teamname, conversationIDKey} = action.payload
-    const oldChannelInfos = draftState.teamNameToChannelInfos.get(teamname)
+    const {teamID, conversationIDKey} = action.payload
+    const oldChannelInfos = draftState.teamIDToChannelInfos.get(teamID)
     if (oldChannelInfos) {
       oldChannelInfos.delete(conversationIDKey)
     }
   },
   [TeamsGen.addParticipant]: (draftState, action) => {
-    const {teamname, conversationIDKey} = action.payload
-    const oldChannelInfos = mapGetEnsureValue(draftState.teamNameToChannelInfos, teamname, new Map())
+    const {teamID, conversationIDKey} = action.payload
+    const oldChannelInfos = mapGetEnsureValue(draftState.teamIDToChannelInfos, teamID, new Map())
     const oldChannelInfo = mapGetEnsureValue(oldChannelInfos, conversationIDKey, Constants.initialChannelInfo)
     oldChannelInfo.memberStatus = RPCChatTypes.ConversationMemberStatus.active
   },
   [TeamsGen.removeParticipant]: (draftState, action) => {
-    const {teamname, conversationIDKey} = action.payload
-    const oldChannelInfos = mapGetEnsureValue(draftState.teamNameToChannelInfos, teamname, new Map())
+    const {teamID, conversationIDKey} = action.payload
+    const oldChannelInfos = mapGetEnsureValue(draftState.teamIDToChannelInfos, teamID, new Map())
     const oldChannelInfo = mapGetEnsureValue(oldChannelInfos, conversationIDKey, Constants.initialChannelInfo)
     oldChannelInfo.memberStatus = RPCChatTypes.ConversationMemberStatus.left
   },

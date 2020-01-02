@@ -13,6 +13,7 @@
   "chat.1.local.deleteConversationLocal": {"promise": true},
   "chat.1.local.editBotMember": {"promise": true},
   "chat.1.local.findConversationsLocal": {"promise": true},
+  "chat.1.local.findGeneralConvFromTeamID": {"promise": true},
   "chat.1.local.getBotMemberSettings": {"promise": true},
   "chat.1.local.getGlobalAppNotificationSettingsLocal": {"promise": true},
   "chat.1.local.getInboxAndUnboxUILocal": {"promise": true},

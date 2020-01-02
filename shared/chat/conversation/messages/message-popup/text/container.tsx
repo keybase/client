@@ -3,6 +3,7 @@ import * as ConfigGen from '../../../../../actions/config-gen'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Constants from '../../../../../constants/chat2'
 import * as Types from '../../../../../constants/types/chat2'
+import * as TeamTypes from '../../../../../constants/types/teams'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import * as Container from '../../../../../util/container'
 import {createShowUserProfile} from '../../../../../actions/profile-gen'
@@ -43,6 +44,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     _isDeleteable: message.isDeleteable,
     _isEditable: message.isEditable,
     _participants: participantInfo.all,
+    _teamID: meta.teamID,
     _teamname: meta.teamname,
     _you: state.config.username,
   }
@@ -86,10 +88,10 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
       })
     )
   },
-  _onKick: (teamname: string, username: string) =>
+  _onKick: (teamID: TeamTypes.TeamID, username: string) =>
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [{props: {navToChat: true, teamname, username}, selected: 'teamReallyRemoveMember'}],
+        path: [{props: {navToChat: true, teamID, username}, selected: 'teamReallyRemoveMember'}],
       })
     ),
   _onPinMessage: (message: Types.Message) => {
@@ -163,7 +165,7 @@ export default Container.namedConnect(
       deviceType: message.deviceType,
       isDeleteable,
       isEditable,
-      isKickable: isDeleteable && !!stateProps._teamname && !yourMessage && authorInConv,
+      isKickable: isDeleteable && !!stateProps._teamID && !yourMessage && authorInConv,
       isLocation,
       isTeam: !!stateProps._teamname,
       onAddReaction: Container.isMobile ? () => dispatchProps._onAddReaction(message) : undefined,
@@ -174,7 +176,7 @@ export default Container.namedConnect(
         : undefined,
       onEdit: yourMessage && message.type === 'text' ? () => dispatchProps._onEdit(message) : undefined,
       onHidden: () => ownProps.onHidden(),
-      onKick: () => dispatchProps._onKick(stateProps._teamname, message.author),
+      onKick: () => dispatchProps._onKick(stateProps._teamID, message.author),
       onPinMessage: stateProps._canPinMessage ? () => dispatchProps._onPinMessage(message) : undefined,
       onReply: message.type === 'text' ? () => dispatchProps._onReply(message) : undefined,
       onReplyPrivately:

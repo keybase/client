@@ -8,14 +8,49 @@ import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as WaitingGen from '../../../actions/waiting-gen'
 import * as Teams from '../../../constants/teams'
 import * as Types from '../../../constants/types/chat2'
+import * as TeamTypes from '../../../constants/types/teams'
 import * as Constants from '../../../constants/chat2'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 
-type Props = Container.RouteProps<{botUsername: string; conversationIDKey?: Types.ConversationIDKey}>
+export const useBotConversationIDKey = (inConvIDKey?: Types.ConversationIDKey, teamID?: TeamTypes.TeamID) => {
+  const [conversationIDKey, setConversationIDKey] = React.useState(inConvIDKey)
+  const generalConvID = Container.useSelector(
+    (state: Container.TypedState) => teamID && state.chat2.teamIDToGeneralConvID.get(teamID)
+  )
+  const dispatch = Container.useDispatch()
+  React.useEffect(() => {
+    if (!conversationIDKey && teamID) {
+      if (!generalConvID) {
+        dispatch(Chat2Gen.createFindGeneralConvIDFromTeamID({teamID}))
+      } else {
+        setConversationIDKey(generalConvID)
+      }
+    }
+  }, [conversationIDKey, dispatch, generalConvID, teamID])
+  return conversationIDKey
+}
+
+type LoaderProps = Container.RouteProps<{
+  botUsername: string
+  conversationIDKey?: Types.ConversationIDKey
+  teamID?: TeamTypes.TeamID
+}>
+
+const InstallBotPopupLoader = (props: LoaderProps) => {
+  const botUsername = Container.getRouteProps(props, 'botUsername', '')
+  const inConvIDKey = Container.getRouteProps(props, 'conversationIDKey', undefined)
+  const teamID = Container.getRouteProps(props, 'teamID', undefined)
+  const conversationIDKey = useBotConversationIDKey(inConvIDKey, teamID)
+  return <InstallBotPopup botUsername={botUsername} conversationIDKey={conversationIDKey} />
+}
+
+type Props = {
+  botUsername: string
+  conversationIDKey?: Types.ConversationIDKey
+}
 
 const InstallBotPopup = (props: Props) => {
-  const botUsername = Container.getRouteProps(props, 'botUsername', '')
-  const conversationIDKey = Container.getRouteProps(props, 'conversationIDKey', undefined)
+  const {botUsername, conversationIDKey} = props
 
   // state
   const [installScreen, setInstallScreen] = React.useState(false)
@@ -77,7 +112,20 @@ const InstallBotPopup = (props: Props) => {
     if (!conversationIDKey) {
       return
     }
-    dispatch(Chat2Gen.createRemoveBotMember({conversationIDKey, username: botUsername}))
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {
+              botUsername,
+              conversationIDKey,
+              namespace: 'chat2',
+            },
+            selected: 'chatConfirmRemoveBot',
+          },
+        ],
+      })
+    )
   }
   const onFeedback = () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: ['feedback']}))
@@ -91,7 +139,7 @@ const InstallBotPopup = (props: Props) => {
     if (conversationIDKey && inTeam) {
       dispatch(Chat2Gen.createRefreshBotSettings({conversationIDKey, username: botUsername}))
     }
-  }, [])
+  }, [conversationIDKey])
 
   const featuredContent = !!featured && (
     <Kb.Box2 direction="vertical" gap="small" style={styles.container} fullWidth={true}>
@@ -234,7 +282,9 @@ const InstallBotPopup = (props: Props) => {
         title: '',
       }}
       footer={{
-        content: (
+        content: !conversationIDKey ? (
+          <Kb.ProgressIndicator />
+        ) : (
           <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
             <Kb.ButtonBar direction="column">
               {editButton}
@@ -342,4 +392,4 @@ const styles = Styles.styleSheetCreate(() => ({
   },
 }))
 
-export default InstallBotPopup
+export default InstallBotPopupLoader

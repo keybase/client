@@ -548,7 +548,7 @@ func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext,
 		case keybase1.TeamRole_RESTRICTEDBOT:
 			return nil, nil, errors.New("Cannot add self as restricted bot to a subteam")
 		}
-		_, err := memSet.loadMember(ctx, g, meUV, storeMemberKindRecipient, false /* force poll */)
+		_, err := memSet.addMember(ctx, g, meUV, storeMemberKindRecipient, false /* force poll */)
 		if err != nil {
 			return nil, nil, err
 		}

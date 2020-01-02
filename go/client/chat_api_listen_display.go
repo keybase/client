@@ -1,27 +1,33 @@
 package client
 
 import (
+	"fmt"
 	"strings"
 
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
 
+type chatNotificationConfig struct {
+	showLocal     bool
+	showNewConvs  bool
+	hideExploding bool
+}
+
 type chatNotificationDisplay struct {
 	*baseNotificationDisplay
 	svc               *chatServiceHandler
-	showLocal         bool
-	hideExploding     bool
+	config            chatNotificationConfig
 	filtersNormalized []chat1.ConversationID
 }
 
-func newChatNotificationDisplay(g *libkb.GlobalContext, showLocal, hideExploding bool) *chatNotificationDisplay {
+func newChatNotificationDisplay(g *libkb.GlobalContext, config chatNotificationConfig) *chatNotificationDisplay {
 	return &chatNotificationDisplay{
 		baseNotificationDisplay: newBaseNotificationDisplay(g),
-		showLocal:               showLocal,
-		hideExploding:           hideExploding,
+		config:                  config,
 		svc:                     newChatServiceHandler(g),
 	}
 }
@@ -32,6 +38,14 @@ func newMsgNotification(source string) *chat1.MsgNotification {
 	return &chat1.MsgNotification{
 		Type:   notifTypeChat,
 		Source: source,
+	}
+}
+
+const notifTypeChatConv = "chat_conv"
+
+func newConvNotification() *chat1.ConvNotification {
+	return &chat1.ConvNotification{
+		Type: notifTypeChatConv,
 	}
 }
 
@@ -132,7 +146,7 @@ func (d *chatNotificationDisplay) matchFilters(convID chat1.ConversationID) bool
 }
 
 func (d *chatNotificationDisplay) NewChatActivity(ctx context.Context, arg chat1.NewChatActivityArg) error {
-	if !d.showLocal && arg.Source == chat1.ChatActivitySource_LOCAL {
+	if !d.config.showLocal && arg.Source == chat1.ChatActivitySource_LOCAL {
 		// Skip local message
 		return nil
 	}
@@ -144,7 +158,7 @@ func (d *chatNotificationDisplay) NewChatActivity(ctx context.Context, arg chat1
 	}
 	if typ == chat1.ChatActivityType_INCOMING_MESSAGE {
 		inMsg := activity.IncomingMessage()
-		if d.hideExploding && inMsg.Message.IsEphemeral() {
+		if d.config.hideExploding && inMsg.Message.IsEphemeral() {
 			// Skip exploding message
 			return nil
 		}
@@ -162,7 +176,35 @@ func (d *chatNotificationDisplay) NewChatActivity(ctx context.Context, arg chat1
 		notif.Error = msg.Error
 		notif.Pagination = inMsg.Pagination
 		d.printJSON(notif)
+	} else if d.config.showNewConvs && typ == chat1.ChatActivityType_NEW_CONVERSATION {
+		convInfo := activity.NewConversation()
+		notif := newConvNotification()
+		if convInfo.Conv == nil {
+			err := fmt.Sprintf("No conversation info found: %v", convInfo.ConvID.String())
+			notif.Error = &err
+		} else {
+			conv := utils.ExportToSummary(*convInfo.Conv)
+			notif.Conv = &conv
+		}
+		d.printJSON(notif)
 	}
+	return nil
+}
+
+func (d *chatNotificationDisplay) ChatJoinedConversation(ctx context.Context, arg chat1.ChatJoinedConversationArg) error {
+	if !d.config.showNewConvs {
+		return nil
+	}
+
+	notif := newConvNotification()
+	if arg.Conv == nil {
+		err := fmt.Sprintf("No conversation info found: %v", arg.ConvID.String())
+		notif.Error = &err
+	} else {
+		conv := utils.ExportToSummary(*arg.Conv)
+		notif.Conv = &conv
+	}
+	d.printJSON(notif)
 	return nil
 }
 
@@ -180,9 +222,6 @@ func (d *chatNotificationDisplay) ChatThreadsStale(context.Context, chat1.ChatTh
 	return nil
 }
 func (d *chatNotificationDisplay) ChatTypingUpdate(context.Context, []chat1.ConvTypingUpdate) error {
-	return nil
-}
-func (d *chatNotificationDisplay) ChatJoinedConversation(context.Context, chat1.ChatJoinedConversationArg) error {
 	return nil
 }
 func (d *chatNotificationDisplay) ChatLeftConversation(context.Context, chat1.ChatLeftConversationArg) error {

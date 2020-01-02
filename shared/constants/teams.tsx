@@ -21,6 +21,11 @@ export const rpcMemberStatusToStatus = invert(RPCTypes.TeamMemberStatus) as {
 export const teamsLoadedWaitingKey = 'teams:loaded'
 export const teamsAccessRequestWaitingKey = 'teams:accessRequests'
 export const teamWaitingKey = (teamname: Types.Teamname) => `team:${teamname}`
+export const teamWaitingKeyByID = (teamID: Types.TeamID, state: TypedState) => {
+  // TODO: eventually, delete teamWaitingKey and then change this to only use the ID
+  const teamname = getTeamNameFromID(state, teamID) ?? ''
+  return teamWaitingKey(teamname)
+}
 export const teamGetWaitingKey = (teamname: Types.Teamname) => `teamGet:${teamname}`
 export const teamTarsWaitingKey = (teamname: Types.Teamname) => `teamTars:${teamname}`
 export const teamCreationWaitingKey = 'teamCreate'
@@ -28,8 +33,8 @@ export const teamCreationWaitingKey = 'teamCreate'
 export const addUserToTeamsWaitingKey = (username: string) => `addUserToTeams:${username}`
 export const addPeopleToTeamWaitingKey = (teamname: Types.Teamname) => `teamAddPeople:${teamname}`
 export const addToTeamByEmailWaitingKey = (teamname: Types.Teamname) => `teamAddByEmail:${teamname}`
-export const getChannelsWaitingKey = (teamname: Types.Teamname) => `getChannels:${teamname}`
-export const createChannelWaitingKey = (teamname: Types.Teamname) => `createChannel:${teamname}`
+export const getChannelsWaitingKey = (teamID: Types.TeamID) => `getChannels:${teamID}`
+export const createChannelWaitingKey = (teamID: Types.TeamID) => `createChannel:${teamID}`
 export const settingsWaitingKey = (teamname: Types.Teamname) => `teamSettings:${teamname}`
 export const retentionWaitingKey = (teamname: Types.Teamname) => `teamRetention:${teamname}`
 export const addMemberWaitingKey = (teamID: Types.TeamID, ...usernames: Array<string>) =>
@@ -37,7 +42,7 @@ export const addMemberWaitingKey = (teamID: Types.TeamID, ...usernames: Array<st
 export const addInviteWaitingKey = (teamname: Types.Teamname, value: string) =>
   `teamAddInvite:${teamname};${value}`
 // also for pending invites, hence id rather than username
-export const removeMemberWaitingKey = (teamname: Types.Teamname, id: string) => `teamRemove:${teamname};${id}`
+export const removeMemberWaitingKey = (teamID: Types.TeamID, id: string) => `teamRemove:${teamID};${id}`
 export const addToTeamSearchKey = 'addToTeamSearch'
 export const teamProfileAddListWaitingKey = 'teamProfileAddList'
 export const deleteTeamWaitingKey = (teamID: Types.TeamID) => `teamDelete:${teamID}`
@@ -176,13 +181,13 @@ const emptyState: Types.State = {
   teamDetails: new Map(),
   teamDetailsMetaStale: true, // start out true, we have not loaded
   teamDetailsMetaSubscribeCount: 0,
+  teamIDToChannelInfos: new Map(),
   teamIDToResetUsers: new Map(),
   teamInviteError: '',
   teamJoinError: '',
   teamJoinSuccess: false,
   teamJoinSuccessOpen: false,
   teamJoinSuccessTeamName: '',
-  teamNameToChannelInfos: new Map(),
   teamNameToID: new Map(),
   teamNameToLoadingInvites: new Map(),
   teamNameToMembers: new Map(),
@@ -331,15 +336,15 @@ const noInfos = new Map<ChatTypes.ConversationIDKey, Types.ChannelInfo>()
 
 export const getTeamChannelInfos = (
   state: TypedState,
-  teamname: Types.Teamname
+  teamID: Types.TeamID
 ): Map<ChatTypes.ConversationIDKey, Types.ChannelInfo> =>
-  state.teams.teamNameToChannelInfos.get(teamname) ?? noInfos
+  state.teams.teamIDToChannelInfos.get(teamID) ?? noInfos
 
 export const getChannelInfoFromConvID = (
   state: TypedState,
-  teamname: Types.Teamname,
+  teamID: Types.TeamID,
   conversationIDKey: ChatTypes.ConversationIDKey
-): Types.ChannelInfo | null => getTeamChannelInfos(state, teamname).get(conversationIDKey) || null
+): Types.ChannelInfo | null => getTeamChannelInfos(state, teamID).get(conversationIDKey) || null
 
 export const getRole = (state: TypedState, teamID: Types.TeamID): Types.MaybeTeamRoleType =>
   state.teams.teamRoleMap.roles.get(teamID)?.role || 'none'
@@ -347,8 +352,8 @@ export const getRole = (state: TypedState, teamID: Types.TeamID): Types.MaybeTea
 export const getRoleByName = (state: TypedState, teamname: string): Types.MaybeTeamRoleType =>
   getRole(state, getTeamID(state, teamname))
 
-export const hasChannelInfos = (state: TypedState, teamname: Types.Teamname): boolean =>
-  state.teams.teamNameToChannelInfos.has(teamname)
+export const hasChannelInfos = (state: TypedState, teamID: Types.TeamID): boolean =>
+  state.teams.teamIDToChannelInfos.has(teamID)
 
 export const isLastOwner = (state: TypedState, teamname: Types.Teamname): boolean =>
   isOwner(getRoleByName(state, teamname)) && !isMultiOwnerTeam(state, teamname)
@@ -383,6 +388,7 @@ const anotherRoleChangeNotSub = {
 
 const notOwnerSub = {owner: 'Subteams cannot have owners.'}
 const notOwnerNotSub = {owner: `Only owners can turn members into owners`}
+const emptyObj = {}
 
 export const getDisabledReasonsForRolePicker = (
   state: TypedState,
@@ -405,7 +411,7 @@ export const getDisabledReasonsForRolePicker = (
       ? subteamsCannotHaveOwners
       : yourRole !== 'owner'
       ? onlyOwnersCanTurnTeamMembersInfoOwners
-      : {}
+      : emptyObj
   }
 
   // We shouldn't get here, but in case we do this is correct.

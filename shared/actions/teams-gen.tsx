@@ -38,8 +38,9 @@ export const joinTeam = 'teams:joinTeam'
 export const leaveTeam = 'teams:leaveTeam'
 export const leftTeam = 'teams:leftTeam'
 export const reAddToTeam = 'teams:reAddToTeam'
-export const removeMemberOrPendingInvite = 'teams:removeMemberOrPendingInvite'
+export const removeMember = 'teams:removeMember'
 export const removeParticipant = 'teams:removeParticipant'
+export const removePendingInvite = 'teams:removePendingInvite'
 export const renameTeam = 'teams:renameTeam'
 export const saveChannelMembership = 'teams:saveChannelMembership'
 export const saveTeamRetentionPolicy = 'teams:saveTeamRetentionPolicy'
@@ -79,10 +80,10 @@ export const uploadTeamAvatar = 'teams:uploadTeamAvatar'
 
 // Payload Types
 type _AddParticipantPayload = {
-  readonly teamname: string
+  readonly teamID: Types.TeamID
   readonly conversationIDKey: ChatTypes.ConversationIDKey
 }
-type _AddTeamWithChosenChannelsPayload = {readonly teamname: string}
+type _AddTeamWithChosenChannelsPayload = {readonly teamID: Types.TeamID}
 type _AddToTeamPayload = {
   readonly teamID: Types.TeamID
   readonly users: Array<{assertion: string; role: Types.TeamRoleType}>
@@ -99,7 +100,7 @@ type _CheckRequestedAccessPayload = {readonly teamname: string}
 type _ClearAddUserToTeamsResultsPayload = void
 type _ClearNavBadgesPayload = void
 type _CreateChannelPayload = {
-  readonly teamname: string
+  readonly teamID: Types.TeamID
   readonly channelname: string
   readonly description: string | null
 }
@@ -114,11 +115,11 @@ type _CreateNewTeamPayload = {
   readonly thenAddMembers?: Omit<_AddToTeamPayload, 'teamID'>
 }
 type _DeleteChannelConfirmedPayload = {
-  readonly teamname: Types.Teamname
+  readonly teamID: Types.TeamID
   readonly conversationIDKey: ChatTypes.ConversationIDKey
 }
 type _DeleteChannelInfoPayload = {
-  readonly teamname: Types.Teamname
+  readonly teamID: Types.TeamID
   readonly conversationIDKey: ChatTypes.ConversationIDKey
 }
 type _DeleteTeamPayload = {readonly teamID: Types.TeamID}
@@ -130,9 +131,9 @@ type _EditMembershipPayload = {
 type _EditTeamDescriptionPayload = {readonly teamname: string; readonly description: string}
 type _GetChannelInfoPayload = {
   readonly conversationIDKey: ChatTypes.ConversationIDKey
-  readonly teamname: string
+  readonly teamID: Types.TeamID
 }
-type _GetChannelsPayload = {readonly teamname: string}
+type _GetChannelsPayload = {readonly teamID: Types.TeamID}
 type _GetDetailsPayload = {readonly teamname: string; readonly clearInviteLoadingKey?: string}
 type _GetMembersPayload = {readonly teamname: string}
 type _GetTeamProfileAddListPayload = {readonly username: string}
@@ -161,20 +162,20 @@ type _LeaveTeamPayload = {
 }
 type _LeftTeamPayload = {readonly teamname: string; readonly context: 'teams' | 'chat'}
 type _ReAddToTeamPayload = {readonly teamID: Types.TeamID; readonly username: string}
-type _RemoveMemberOrPendingInvitePayload = {
-  readonly email: string
-  readonly teamname: string
-  readonly username: string
-  readonly inviteID: string
-  readonly loadingKey?: string
-}
+type _RemoveMemberPayload = {readonly teamID: Types.TeamID; readonly username: string}
 type _RemoveParticipantPayload = {
-  readonly teamname: string
+  readonly teamID: Types.TeamID
   readonly conversationIDKey: ChatTypes.ConversationIDKey
+}
+type _RemovePendingInvitePayload = {
+  readonly teamID: Types.TeamID
+  readonly email?: string
+  readonly username?: string
+  readonly inviteID?: string
 }
 type _RenameTeamPayload = {readonly oldName: string; readonly newName: string}
 type _SaveChannelMembershipPayload = {
-  readonly teamname: string
+  readonly teamID: Types.TeamID
   readonly oldChannelState: Types.ChannelMembershipState
   readonly newChannelState: Types.ChannelMembershipState
 }
@@ -198,12 +199,12 @@ type _SetTeamCanPerformPayload = {
   readonly teamOperation: Types.TeamOperations
 }
 type _SetTeamChannelInfoPayload = {
-  readonly teamname: string
+  readonly teamID: Types.TeamID
   readonly conversationIDKey: ChatTypes.ConversationIDKey
   readonly channelInfo: Types.ChannelInfo
 }
 type _SetTeamChannelsPayload = {
-  readonly teamname: string
+  readonly teamID: Types.TeamID
   readonly channelInfos: Map<ChatTypes.ConversationIDKey, Types.ChannelInfo>
 }
 type _SetTeamCreationErrorPayload = {readonly error: string}
@@ -244,14 +245,14 @@ type _SetTeamRoleMapLatestKnownVersionPayload = {readonly version: number}
 type _SetTeamRoleMapPayload = {readonly map: Types.TeamRoleMap}
 type _SetTeamSawChatBannerPayload = void
 type _SetTeamSawSubteamsBannerPayload = void
-type _SetTeamsWithChosenChannelsPayload = {readonly teamsWithChosenChannels: Set<Types.Teamname>}
+type _SetTeamsWithChosenChannelsPayload = {readonly teamsWithChosenChannels: Set<Types.TeamID>}
 type _SetUpdatedChannelNamePayload = {
-  readonly teamname: Types.Teamname
+  readonly teamID: Types.TeamID
   readonly conversationIDKey: ChatTypes.ConversationIDKey
   readonly newChannelName: string
 }
 type _SetUpdatedTopicPayload = {
-  readonly teamname: Types.Teamname
+  readonly teamID: Types.TeamID
   readonly conversationIDKey: ChatTypes.ConversationIDKey
   readonly newTopic: string
 }
@@ -262,12 +263,12 @@ type _TeamCreatedPayload = {
 }
 type _UnsubscribeTeamListPayload = void
 type _UpdateChannelNamePayload = {
-  readonly teamname: Types.Teamname
+  readonly teamID: Types.TeamID
   readonly conversationIDKey: ChatTypes.ConversationIDKey
   readonly newChannelName: string
 }
 type _UpdateTopicPayload = {
-  readonly teamname: Types.Teamname
+  readonly teamID: Types.TeamID
   readonly conversationIDKey: ChatTypes.ConversationIDKey
   readonly newTopic: string
 }
@@ -415,13 +416,17 @@ export const createReAddToTeam = (payload: _ReAddToTeamPayload): ReAddToTeamPayl
   payload,
   type: reAddToTeam,
 })
-export const createRemoveMemberOrPendingInvite = (
-  payload: _RemoveMemberOrPendingInvitePayload
-): RemoveMemberOrPendingInvitePayload => ({payload, type: removeMemberOrPendingInvite})
+export const createRemoveMember = (payload: _RemoveMemberPayload): RemoveMemberPayload => ({
+  payload,
+  type: removeMember,
+})
 export const createRemoveParticipant = (payload: _RemoveParticipantPayload): RemoveParticipantPayload => ({
   payload,
   type: removeParticipant,
 })
+export const createRemovePendingInvite = (
+  payload: _RemovePendingInvitePayload
+): RemovePendingInvitePayload => ({payload, type: removePendingInvite})
 export const createSaveChannelMembership = (
   payload: _SaveChannelMembershipPayload
 ): SaveChannelMembershipPayload => ({payload, type: saveChannelMembership})
@@ -632,13 +637,14 @@ export type JoinTeamPayload = {readonly payload: _JoinTeamPayload; readonly type
 export type LeaveTeamPayload = {readonly payload: _LeaveTeamPayload; readonly type: typeof leaveTeam}
 export type LeftTeamPayload = {readonly payload: _LeftTeamPayload; readonly type: typeof leftTeam}
 export type ReAddToTeamPayload = {readonly payload: _ReAddToTeamPayload; readonly type: typeof reAddToTeam}
-export type RemoveMemberOrPendingInvitePayload = {
-  readonly payload: _RemoveMemberOrPendingInvitePayload
-  readonly type: typeof removeMemberOrPendingInvite
-}
+export type RemoveMemberPayload = {readonly payload: _RemoveMemberPayload; readonly type: typeof removeMember}
 export type RemoveParticipantPayload = {
   readonly payload: _RemoveParticipantPayload
   readonly type: typeof removeParticipant
+}
+export type RemovePendingInvitePayload = {
+  readonly payload: _RemovePendingInvitePayload
+  readonly type: typeof removePendingInvite
 }
 export type RenameTeamPayload = {readonly payload: _RenameTeamPayload; readonly type: typeof renameTeam}
 export type SaveChannelMembershipPayload = {
@@ -801,8 +807,9 @@ export type Actions =
   | LeaveTeamPayload
   | LeftTeamPayload
   | ReAddToTeamPayload
-  | RemoveMemberOrPendingInvitePayload
+  | RemoveMemberPayload
   | RemoveParticipantPayload
+  | RemovePendingInvitePayload
   | RenameTeamPayload
   | SaveChannelMembershipPayload
   | SaveTeamRetentionPolicyPayload

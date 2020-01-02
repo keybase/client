@@ -8,10 +8,11 @@ import * as BotsGen from '../../../actions/bots-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 import * as Styles from '../../../styles'
+import * as TeamTypes from '../../../constants/types/teams'
 import Bot from '../info-panel/bot'
 import debounce from 'lodash/debounce'
 
-type Props = Container.RouteProps<{conversationIDKey?: Types.ConversationIDKey}>
+type Props = Container.RouteProps<{conversationIDKey?: Types.ConversationIDKey; teamID?: TeamTypes.TeamID}>
 
 const renderSectionHeader = ({section}) => {
   return <Kb.SectionDivider label={section.title} />
@@ -19,6 +20,7 @@ const renderSectionHeader = ({section}) => {
 
 const SearchBotPopup = (props: Props) => {
   const conversationIDKey = Container.getRouteProps(props, 'conversationIDKey', undefined)
+  const teamID = Container.getRouteProps(props, 'teamID', undefined)
 
   // state
   const [lastQuery, setLastQuery] = React.useState('')
@@ -52,6 +54,7 @@ const SearchBotPopup = (props: Props) => {
               botUsername: username,
               conversationIDKey,
               namespace: 'chat2',
+              teamID,
             },
             selected: 'chatInstallBot',
           },
