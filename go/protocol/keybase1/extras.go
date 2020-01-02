@@ -2611,6 +2611,14 @@ func ParseUserVersion(s UserVersionPercentForm) (res UserVersion, err error) {
 	}, nil
 }
 
+func (p StringKVPair) BoolValue() bool {
+	i, err := strconv.ParseBool(p.Value)
+	if err != nil {
+		return false
+	}
+	return i
+}
+
 func (p StringKVPair) IntValue() int {
 	i, err := strconv.Atoi(p.Value)
 	if err != nil {

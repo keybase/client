@@ -60,7 +60,7 @@ func (c *CmdPassphraseCheck) Run() error {
 
 	if passphraseState == keybase1.PassphraseState_RANDOM {
 		c.G().Log.Error("Your account does not have a passphrase, so there is nothing to check.")
-		c.G().Log.Info("You should set a passphrase using `keybase passphrase set`.")
+		c.G().Log.Info("You can set a passphrase using `keybase passphrase set`.")
 		return nil
 	}
 
