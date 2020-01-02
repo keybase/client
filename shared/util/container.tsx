@@ -1,5 +1,4 @@
 import * as React from 'react'
-// eslint-disable-next-line
 import {Draft as _Draft} from 'immer'
 import {TypedActions as _TypedActions} from '../actions/typed-actions-gen'
 import {ActionHandler as _ActionHandler} from './make-reducer'
@@ -91,6 +90,7 @@ export {
   withPropsOnChange,
   setDisplayName,
 } from 'recompose'
+
 export {default as connect, namedConnect, connectDEBUG} from './typed-connect'
 export {default as remoteConnect} from './typed-remote-connect'
 export {isMobile, isIOS, isAndroid} from '../constants/platform'
