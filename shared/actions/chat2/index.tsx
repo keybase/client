@@ -3401,6 +3401,24 @@ const loadNextBotPage = (state: Container.TypedState, action: Chat2Gen.LoadNextB
     page: state.chat2.featuredBotsPage + 1,
   })
 
+const refreshBotRoleInConv = async (action: Chat2Gen.RefreshBotRoleInConvPayload) => {
+  let role: RPCTypes.TeamRole | undefined
+  try {
+    role = await RPCChatTypes.localGetTeamRoleInConversationRpcPromise({
+      convID: Types.keyToConversationID(action.payload.conversationIDKey),
+      username: action.payload.username,
+    })
+  } catch (err) {
+    logger.info(`refreshBotRoleInConv: failed to refresh bot team role: ${err.message}`)
+    return
+  }
+  return Chat2Gen.createSetBotRoleInConv({
+    conversationIDKey: action.payload.conversationIDKey,
+    role: TeamsConstants.teamRoleByEnum[role],
+    username: action.payload.username,
+  })
+}
+
 const refreshBotPublicCommands = async (
   _: Container.TypedState,
   action: Chat2Gen.RefreshBotPublicCommandsPayload
@@ -3607,6 +3625,7 @@ function* chat2Saga() {
   yield* Saga.chainAction2(Chat2Gen.removeBotMember, removeBotMember)
   yield* Saga.chainAction2(Chat2Gen.refreshBotSettings, refreshBotSettings)
   yield* Saga.chainAction2(Chat2Gen.findGeneralConvIDFromTeamID, findGeneralConvIDFromTeamID)
+  yield* Saga.chainAction(Chat2Gen.refreshBotRoleInConv, refreshBotRoleInConv)
 
   // On login lets load the untrusted inbox. This helps make some flows easier
   yield* Saga.chainAction2(ConfigGen.bootstrapStatusLoaded, startupInboxLoad)

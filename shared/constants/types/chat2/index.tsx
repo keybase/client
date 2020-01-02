@@ -171,6 +171,7 @@ export type State = Readonly<{
   botPublicCommands: Map<string, BotPublicCommands>
   botSearchResults?: BotSearchResults
   botSettings: Map<Common.ConversationIDKey, Map<string, RPCTypes.TeamBotSettings>>
+  botTeamRoleInConvMap: Map<Common.ConversationIDKey, Map<string, Team.TeamRoleType>>
   channelSearchText: string
   commandMarkdownMap: Map<Common.ConversationIDKey, RPCChatTypes.UICommandMarkdown>
   commandStatusMap: Map<Common.ConversationIDKey, CommandStatusInfo>

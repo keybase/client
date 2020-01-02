@@ -59,23 +59,17 @@ const InstallBotPopup = (props: Props) => {
   const [installWithRestrict, setInstallWithRestrict] = React.useState(true)
   const {commands, featured, inTeam, inTeamUnrestricted, settings} = Container.useSelector(
     (state: Container.TypedState) => {
-      const meta = conversationIDKey && state.chat2.metaMap.get(conversationIDKey)
-      let inTeam = false
-      let inTeamUnrestricted = false
-      if (meta && conversationIDKey) {
-        if (meta.teamType === 'adhoc') {
-          const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
-          inTeam = participantInfo.all.includes(botUsername)
-        } else {
-          inTeam = Teams.userInTeam(state, meta.teamname, botUsername)
-          inTeamUnrestricted = Teams.userIsRoleInTeam(state, meta.teamname, botUsername, 'bot')
-        }
+      let inTeam: boolean | undefined
+      let teamRole: TeamTypes.TeamRoleType | undefined
+      if (conversationIDKey) {
+        teamRole = state.chat2.botTeamRoleInConvMap.get(conversationIDKey)?.get(botUsername) ?? undefined
+        inTeam = !!teamRole
       }
       return {
         commands: state.chat2.botPublicCommands.get(botUsername),
         featured: state.chat2.featuredBotsMap.get(botUsername),
         inTeam,
-        inTeamUnrestricted,
+        inTeamUnrestricted: teamRole === 'bot',
         settings: conversationIDKey
           ? state.chat2.botSettings.get(conversationIDKey)?.get(botUsername) ?? undefined
           : undefined,
@@ -147,10 +141,13 @@ const InstallBotPopup = (props: Props) => {
       WaitingGen.createClearWaiting({key: [Constants.waitingKeyBotAdd, Constants.waitingKeyBotRemove]})
     )
     dispatch(Chat2Gen.createRefreshBotPublicCommands({username: botUsername}))
-    if (conversationIDKey && inTeam) {
-      dispatch(Chat2Gen.createRefreshBotSettings({conversationIDKey, username: botUsername}))
+    if (conversationIDKey) {
+      dispatch(Chat2Gen.createRefreshBotRoleInConv({conversationIDKey, username: botUsername}))
+      if (inTeam) {
+        dispatch(Chat2Gen.createRefreshBotSettings({conversationIDKey, username: botUsername}))
+      }
     }
-  }, [conversationIDKey])
+  }, [conversationIDKey, inTeam])
 
   const restrictPicker = !inTeam && (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
@@ -340,32 +337,33 @@ const InstallBotPopup = (props: Props) => {
         title: '',
       }}
       footer={{
-        content: !conversationIDKey ? (
-          <Kb.ProgressIndicator />
-        ) : (
-          <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
-            <Kb.ButtonBar direction="column">
-              {editButton}
-              {saveButton}
-              {reviewButton}
-              {installButton}
-              {removeButton}
-            </Kb.ButtonBar>
-            {!!error && (
-              <Kb.Text type="Body" style={{color: Styles.globalColors.redDark}}>
-                {'Something went wrong! Please try again, or send '}
-                <Kb.Text
-                  type="Body"
-                  style={{color: Styles.globalColors.redDark}}
-                  underline={true}
-                  onClick={onFeedback}
-                >
-                  {'feedback'}
+        content:
+          !conversationIDKey || inTeam === undefined ? (
+            <Kb.ProgressIndicator />
+          ) : (
+            <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
+              <Kb.ButtonBar direction="column">
+                {editButton}
+                {saveButton}
+                {reviewButton}
+                {installButton}
+                {removeButton}
+              </Kb.ButtonBar>
+              {!!error && (
+                <Kb.Text type="Body" style={{color: Styles.globalColors.redDark}}>
+                  {'Something went wrong! Please try again, or send '}
+                  <Kb.Text
+                    type="Body"
+                    style={{color: Styles.globalColors.redDark}}
+                    underline={true}
+                    onClick={onFeedback}
+                  >
+                    {'feedback'}
+                  </Kb.Text>
                 </Kb.Text>
-              </Kb.Text>
-            )}
-          </Kb.Box2>
-        ),
+              )}
+            </Kb.Box2>
+          ),
       }}
     >
       {content}

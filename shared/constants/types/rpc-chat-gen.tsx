@@ -355,6 +355,10 @@ export type MessageTypes = {
     inParam: {readonly teamID: Keybase1.TeamID}
     outParam: RetentionPolicy | null
   }
+  'chat.1.local.getTeamRoleInConversation': {
+    inParam: {readonly convID: ConversationID; readonly username: String}
+    outParam: Keybase1.TeamRole
+  }
   'chat.1.local.getThreadLocal': {
     inParam: {readonly conversationID: ConversationID; readonly reason: GetThreadReason; readonly query?: GetThreadQuery | null; readonly pagination?: Pagination | null; readonly identifyBehavior: Keybase1.TLFIdentifyBehavior}
     outParam: GetThreadLocalRes
@@ -1499,6 +1503,7 @@ export const localGetNextAttachmentMessageLocalRpcPromise = (params: MessageType
 export const localGetStaticConfigRpcPromise = (params: MessageTypes['chat.1.local.getStaticConfig']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getStaticConfig']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getStaticConfig', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetTLFConversationsLocalRpcPromise = (params: MessageTypes['chat.1.local.getTLFConversationsLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getTLFConversationsLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getTLFConversationsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetTeamRetentionLocalRpcPromise = (params: MessageTypes['chat.1.local.getTeamRetentionLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getTeamRetentionLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getTeamRetentionLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localGetTeamRoleInConversationRpcPromise = (params: MessageTypes['chat.1.local.getTeamRoleInConversation']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getTeamRoleInConversation']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getTeamRoleInConversation', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetThreadLocalRpcPromise = (params: MessageTypes['chat.1.local.getThreadLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getThreadLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getThreadLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetThreadNonblockRpcSaga = (p: {params: MessageTypes['chat.1.local.getThreadNonblock']['inParam']; incomingCallMap: IncomingCallMapType; customResponseIncomingCallMap?: CustomResponseIncomingCallMap; waitingKey?: WaitingKey}) => call(getEngineSaga(), {method: 'chat.1.local.getThreadNonblock', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
 export const localGetUnfurlSettingsRpcPromise = (params: MessageTypes['chat.1.local.getUnfurlSettings']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getUnfurlSettings']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getUnfurlSettings', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
