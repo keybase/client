@@ -9,7 +9,7 @@ type OwnProps = {
 }
 
 export default Container.connect(
-  (state, {conversationIDKey}) => {
+  (state, {conversationIDKey}: OwnProps) => {
     const _meta = Constants.getMeta(state, conversationIDKey)
     return {
       _conversationIDKey: conversationIDKey,

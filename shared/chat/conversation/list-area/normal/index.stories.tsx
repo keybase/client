@@ -45,8 +45,8 @@ const makeMoreOrdinals = (
 
 const props = {
   copyToClipboard: Sb.action('copyToClipboard'),
-  editingOrdinal: null,
-  lastLoadMoreOrdinal: null,
+  editingOrdinal: undefined,
+  lastLoadMoreOrdinal: undefined,
   lastMessageIsOurs: false,
   onFocusInput: Sb.action('onFocusInput'),
   scrollListDownCounter: 0,
@@ -231,6 +231,7 @@ class ThreadWrapper extends React.Component<Props, State> {
   _injectMessagesIntervalID?: NodeJS.Timer
   _loadMoreTimeoutID?: NodeJS.Timer
   _loadConvoTimeoutID?: NodeJS.Timer
+
   constructor(props: Props) {
     super(props)
     this.state = {
@@ -317,9 +318,9 @@ class ThreadWrapper extends React.Component<Props, State> {
         </ButtonBar>
         <Thread
           {...props}
-          centeredOrdinal={null}
           containsLatestMessage={true}
           conversationIDKey={this.state.conversationIDKey}
+          markInitiallyLoadedThreadAsRead={Sb.action('markInitiallyLoadedThreadAsRead')}
           messageOrdinals={this.state.messageOrdinals}
           loadOlderMessages={this.onLoadMoreMessages}
           loadNewerMessages={this.onLoadMoreMessages}

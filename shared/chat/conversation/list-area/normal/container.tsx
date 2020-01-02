@@ -1,10 +1,10 @@
-// TODO deprecate recompose
 import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
 import * as ConfigGen from '../../../../actions/config-gen'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Container from '../../../../util/container'
 import ListComponent from '.'
+import throttle from 'lodash/throttle'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
@@ -15,29 +15,21 @@ type OwnProps = {
   scrollListUpCounter: number
 }
 
-// We load the first thread automatically so in order to mark it read
-// we send an action on the first mount once
-let markedInitiallyLoaded = false
+const throttledLoadNewer = throttle(
+  (dispatch: Container.TypedDispatch, conversationIDKey: Types.ConversationIDKey) => {
+    dispatch(Chat2Gen.createLoadNewerMessagesDueToScroll({conversationIDKey}))
+  },
+  1000
+)
 
-const loadMoreMessages = (state: any, props: any, loadFn: any) => (ordinal: any) => {
-  if (
-    state._conversationIDKey === props.conversationIDKey &&
-    state._lastLoadMoreOrdinalTime + 1000 > Date.now()
-  ) {
-    // ignore a load if its too recent for the same ordinal
-    return
-  }
+const throttledLoadOlder = throttle(
+  (dispatch: Container.TypedDispatch, conversationIDKey: Types.ConversationIDKey) => {
+    dispatch(Chat2Gen.createLoadOlderMessagesDueToScroll({conversationIDKey}))
+  },
+  1000
+)
 
-  loadFn()
-  return {
-    _conversationIDKey: props.conversationIDKey,
-    _lastLoadMoreOrdinalTime: Date.now(),
-    lastLoadMoreOrdinal: ordinal,
-  }
-}
-
-export default Container.compose(
-  Container.connect(
+export default Container.connect(
   (state: Container.TypedState, {conversationIDKey}: OwnProps) => {
     const messageOrdinals = Constants.getMessageOrdinals(state, conversationIDKey)
     const lastOrdinal = [...messageOrdinals].pop()
@@ -61,49 +53,28 @@ export default Container.compose(
     }
   },
   (dispatch: Container.TypedDispatch, {conversationIDKey}: OwnProps) => ({
-    _loadNewerMessages: () => dispatch(Chat2Gen.createLoadNewerMessagesDueToScroll({conversationIDKey})),
-    _loadOlderMessages: () => dispatch(Chat2Gen.createLoadOlderMessagesDueToScroll({conversationIDKey})),
-    _markInitiallyLoadedThreadAsRead: () =>
-      dispatch(Chat2Gen.createMarkInitiallyLoadedThreadAsRead({conversationIDKey})),
     copyToClipboard: (text: string) => dispatch(ConfigGen.createCopyToClipboard({text})),
+    loadNewerMessages: () => throttledLoadNewer(dispatch, conversationIDKey),
+    loadOlderMessages: () => throttledLoadOlder(dispatch, conversationIDKey),
+    markInitiallyLoadedThreadAsRead: () =>
+      dispatch(Chat2Gen.createMarkInitiallyLoadedThreadAsRead({conversationIDKey})),
     onJumpToRecent: () => dispatch(Chat2Gen.createJumpToRecent({conversationIDKey})),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => ({
-    _loadNewerMessages: dispatchProps._loadNewerMessages,
-    _loadOlderMessages: dispatchProps._loadOlderMessages,
     centeredOrdinal: stateProps.centeredOrdinal,
     containsLatestMessage: stateProps.containsLatestMessage,
     conversationIDKey: stateProps.conversationIDKey,
     copyToClipboard: dispatchProps.copyToClipboard,
     editingOrdinal: stateProps.editingOrdinal,
     lastMessageIsOurs: stateProps.lastMessageIsOurs,
-    markInitiallyLoadedThreadAsRead: dispatchProps._markInitiallyLoadedThreadAsRead,
+    loadNewerMessages: dispatchProps.loadNewerMessages,
+    loadOlderMessages: dispatchProps.loadOlderMessages,
+    markInitiallyLoadedThreadAsRead: dispatchProps.markInitiallyLoadedThreadAsRead,
     messageOrdinals: [...stateProps.messageOrdinals],
     onFocusInput: ownProps.onFocusInput,
     onJumpToRecent: dispatchProps.onJumpToRecent,
     scrollListDownCounter: ownProps.scrollListDownCounter,
     scrollListToBottomCounter: ownProps.scrollListToBottomCounter,
     scrollListUpCounter: ownProps.scrollListUpCounter,
-  }),
-  Container.withStateHandlers(
-    {
-      _conversationIDKey: Constants.noConversationIDKey,
-      _lastLoadMoreOrdinalTime: Date.now(),
-      lastLoadMoreOrdinal: null,
-    } as any,
-    {
-      // We don't let you try and load more within a second. Used to use the ordinal but maybe we just never want a super quick load
-      loadNewerMessages: (state: any, props: any) => loadMoreMessages(state, props, props._loadNewerMessages),
-      loadOlderMessages: (state: any, props: any) => loadMoreMessages(state, props, props._loadOlderMessages),
-    } as any
-  ),
-  Container.lifecycle({
-    componentDidMount() {
-      if (markedInitiallyLoaded) {
-        return
-      }
-      markedInitiallyLoaded = true
-      this.props.markInitiallyLoadedThreadAsRead()
-    },
-  } as any)
+  })
 )(ListComponent)

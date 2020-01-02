@@ -56,7 +56,7 @@ export default Container.connect(
     let noInput = meta.resetParticipants.size > 0 || !!meta.wasFinalizedBy
     const showThreadSearch = Constants.getThreadSearchInfo(state, conversationIDKey).visible
     const audio = state.chat2.audioRecording.get(conversationIDKey)
-    const showAudioSend = audio && audio.status === Types.AudioRecordingStatus.STAGED
+    const showAudioSend = !!audio && audio.status === Types.AudioRecordingStatus.STAGED
 
     if (
       conversationIDKey === Constants.pendingWaitingConversationIDKey ||
@@ -74,5 +74,5 @@ export default Container.connect(
     }
   },
   () => ({}),
-  (s, d, o) => ({...o, ...s, ...d})
+  (s, _d, o: OwnProps) => ({...o, ...s})
 )(InputArea)
