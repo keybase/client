@@ -3486,8 +3486,8 @@ const editBotSettings = async (state: Container.TypedState, action: Chat2Gen.Edi
       {
         botSettings: {
           cmds: allowCommands,
-          mentions: allowMentions,
           convs,
+          mentions: allowMentions,
         },
         convID: Types.keyToConversationID(conversationIDKey),
         username,
