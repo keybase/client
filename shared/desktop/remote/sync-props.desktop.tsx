@@ -14,8 +14,8 @@ if (debugSerializer) {
 
 type Props = {
   clearCacheTrigger: number
-  windowParam: string | null
-  windowComponent: string
+  windowParam?: string
+  windowComponent?: string
   remoteWindowNeedsProps: number
 }
 

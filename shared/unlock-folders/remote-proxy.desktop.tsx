@@ -1,60 +1,43 @@
-import * as React from 'react'
 import * as Styles from '../styles'
 import * as Constants from '../constants/config'
 import SyncProps from '../desktop/remote/sync-props.desktop'
-import SyncBrowserWindow from '../desktop/remote/sync-browser-window.desktop'
-import {NullComponent, connect, compose} from '../util/container'
+import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'
+import * as Container from '../util/container'
 import {serialize} from './remote-serializer.desktop'
-
-type OwnProps = {}
 
 const windowOpts = {height: 300, width: 500}
 
-// Actions are handled by remote-container
-const UnlockFolder = compose(
-  connect(
-    state => {
-      const {devices, phase, paperkeyError, waiting} = state.unlockFolders
-      return {
-        darkMode: Styles.isDarkMode(),
-        devices,
-        paperkeyError,
-        phase,
-        remoteWindowNeedsProps: Constants.getRemoteWindowPropsCount(state.config, 'unlockFolders', ''),
-        waiting,
-        windowComponent: 'unlock-folders',
-        windowOpts,
-        windowParam: '',
-        windowTitle: 'UnlockFolders',
-      }
-    },
-    () => ({}),
-    (stateProps, _, __) => ({
-      darkMode: stateProps.darkMode,
-      devices: stateProps.devices,
-      paperkeyError: stateProps.paperkeyError,
-      phase: stateProps.phase,
-      remoteWindowNeedsProps: stateProps.remoteWindowNeedsProps,
-      waiting: stateProps.waiting,
-      windowComponent: stateProps.windowComponent,
-      windowOpts: stateProps.windowOpts,
-      windowParam: stateProps.windowParam,
-      windowPositionBottomRight: false,
-      windowTitle: stateProps.windowTitle,
-    })
-  ),
-  SyncBrowserWindow,
-  SyncProps(serialize)
-)(NullComponent)
+type State = Container.TypedState['unlockFolders']
 
-type Props = {
-  show: boolean
+export type WireProps = {
+  darkMode: boolean
+  devices: State['devices']
+  paperkeyError: State['paperkeyError']
+  phase: State['phase']
+  remoteWindowNeedsProps: number
+  waiting: State['waiting']
 }
 
-const UnlockFolders = (props: Props) => (props.show ? <UnlockFolder /> : null)
+const UnlockFolder: any = SyncProps(serialize)(Container.NullComponent)
 
-export default connect(
-  state => ({show: state.unlockFolders.popupOpen}),
-  () => ({}),
-  (s, d, o: OwnProps) => ({...o, ...s, ...d})
-)(UnlockFolders)
+export default () => {
+  const state = Container.useSelector(s => s)
+  const {devices, phase, paperkeyError, waiting, popupOpen} = state.unlockFolders
+  const props = {
+    darkMode: Styles.isDarkMode(),
+    devices,
+    paperkeyError,
+    phase,
+    remoteWindowNeedsProps: Constants.getRemoteWindowPropsCount(state.config, 'unlockFolders', ''),
+    waiting,
+  }
+
+  const opts = {
+    windowOpts,
+    windowTitle: 'UnlockFolders',
+    windowComponent: popupOpen ? 'unlock-folders' : undefined,
+  }
+  useBrowserWindow(opts)
+
+  return popupOpen ? <UnlockFolder {...props} windowComponent={opts.windowComponent} /> : null
+}
