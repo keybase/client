@@ -3412,9 +3412,10 @@ const refreshBotRoleInConv = async (action: Chat2Gen.RefreshBotRoleInConvPayload
     logger.info(`refreshBotRoleInConv: failed to refresh bot team role: ${err.message}`)
     return
   }
+  const trole = TeamsConstants.teamRoleByEnum[role]
   return Chat2Gen.createSetBotRoleInConv({
     conversationIDKey: action.payload.conversationIDKey,
-    role: TeamsConstants.teamRoleByEnum[role],
+    role: !trole || trole === 'none' ? null : trole,
     username: action.payload.username,
   })
 }

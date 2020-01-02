@@ -604,7 +604,7 @@ type _SetBotPublicCommandsPayload = {readonly username: string; readonly command
 type _SetBotRoleInConvPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly username: string
-  readonly role?: TeamsTypes.TeamRoleType
+  readonly role: TeamsTypes.TeamRoleType | null
 }
 type _SetBotSettingsPayload = {
   readonly conversationIDKey: Types.ConversationIDKey

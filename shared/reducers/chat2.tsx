@@ -1525,7 +1525,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const roles =
       draftState.botTeamRoleInConvMap.get(action.payload.conversationIDKey) ||
       new Map<string, TeamTypes.TeamRoleType>()
-    if (action.payload.role) {
+    if (action.payload.role !== undefined) {
       roles.set(action.payload.username, action.payload.role)
     } else {
       roles.delete(action.payload.username)

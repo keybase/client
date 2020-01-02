@@ -61,14 +61,16 @@ const InstallBotPopup = (props: Props) => {
       let inTeam: boolean | undefined
       let teamRole: TeamTypes.TeamRoleType | undefined
       if (conversationIDKey) {
-        teamRole = state.chat2.botTeamRoleInConvMap.get(conversationIDKey)?.get(botUsername) ?? undefined
-        inTeam = !!teamRole
+        teamRole = state.chat2.botTeamRoleInConvMap.get(conversationIDKey)?.get(botUsername)
+        if (teamRole !== undefined) {
+          inTeam = !!teamRole
+        }
       }
       return {
         commands: state.chat2.botPublicCommands.get(botUsername),
         featured: state.chat2.featuredBotsMap.get(botUsername),
         inTeam,
-        inTeamUnrestricted: teamRole === 'bot',
+        inTeamUnrestricted: inTeam && teamRole === 'bot',
         settings: conversationIDKey
           ? state.chat2.botSettings.get(conversationIDKey)?.get(botUsername) ?? undefined
           : undefined,
@@ -154,7 +156,7 @@ const InstallBotPopup = (props: Props) => {
       <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
         <Kb.RadioButton
           label={
-            <Kb.Box2 direction="vertical">
+            <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}}>
               <Kb.Text type="BodySemibold">Restricted Bot</Kb.Text>
               <Kb.Text type="BodySmall">Customize which messages get encrypted for this bot.</Kb.Text>
             </Kb.Box2>
@@ -164,7 +166,7 @@ const InstallBotPopup = (props: Props) => {
         />
         <Kb.RadioButton
           label={
-            <Kb.Box2 direction="vertical">
+            <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}}>
               <Kb.Text type="BodySemibold">Unrestricted Bot</Kb.Text>
               <Kb.Text type="BodySmall">All messages will be encrypted for this bot.</Kb.Text>
             </Kb.Box2>
@@ -176,23 +178,31 @@ const InstallBotPopup = (props: Props) => {
     </Kb.Box2>
   )
   const featuredContent = !!featured && (
-    <Kb.Box2 direction="vertical" gap="small" style={styles.container} fullWidth={true}>
-      <Kb.Box2 direction="horizontal" gap="small" fullWidth={true}>
-        <Kb.Avatar username={botUsername} size={64} />
-        <Kb.Box2 direction="vertical" style={{flex: 1}}>
-          <Kb.Text type="BodyBigExtrabold">{featured.botAlias}</Kb.Text>
-          <Kb.ConnectedUsernames
-            colorFollowing={true}
-            type="BodySemibold"
-            usernames={[botUsername]}
-            withProfileCardPopup={false}
-          />
-          <Kb.Text type="BodySmall" lineClamp={1}>
-            {featured.description}
-          </Kb.Text>
+    <Kb.Box2
+      direction="vertical"
+      style={Styles.collapseStyles([styles.container, {flex: 1, justifyContent: 'space-between'}])}
+      fullWidth={true}
+      fullHeight={true}
+      gap="tiny"
+    >
+      <Kb.Box2 direction="vertical" gap="small" fullWidth={true}>
+        <Kb.Box2 direction="horizontal" gap="small" fullWidth={true}>
+          <Kb.Avatar username={botUsername} size={64} />
+          <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}}>
+            <Kb.Text type="BodyBigExtrabold">{featured.botAlias}</Kb.Text>
+            <Kb.ConnectedUsernames
+              colorFollowing={true}
+              type="BodySemibold"
+              usernames={[botUsername]}
+              withProfileCardPopup={false}
+            />
+            <Kb.Text type="BodySmall" lineClamp={1}>
+              {featured.description}
+            </Kb.Text>
+          </Kb.Box2>
         </Kb.Box2>
+        <Kb.Text type="BodySmall">{featured.extendedDescription}</Kb.Text>
       </Kb.Box2>
-      <Kb.Text type="BodySmall">{featured.extendedDescription}</Kb.Text>
       {inTeam && !inTeamUnrestricted && <PermsList settings={settings} username={botUsername} />}
       {restrictPicker}
     </Kb.Box2>
@@ -201,10 +211,11 @@ const InstallBotPopup = (props: Props) => {
     <Kb.Box2 direction="vertical" gap="small" style={styles.container} fullWidth={true}>
       <Kb.Box2 direction="horizontal" gap="small" fullWidth={true}>
         <Kb.Avatar username={botUsername} size={64} />
-        <Kb.Box2 direction="vertical">
+        <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}}>
+          <Kb.Text type="BodyBigExtrabold">{botUsername}</Kb.Text>
           <Kb.ConnectedUsernames
             colorFollowing={true}
-            type="BodyBigExtrabold"
+            type="BodySemibold"
             usernames={[botUsername]}
             withProfileCardPopup={false}
           />
@@ -218,8 +229,14 @@ const InstallBotPopup = (props: Props) => {
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container} gap="small">
       <Kb.Box2 direction="horizontal" gap="small" fullWidth={true}>
         <Kb.Avatar username={botUsername} size={64} />
-        <Kb.Box2 direction="vertical" style={{flex: 1}}>
+        <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}}>
           <Kb.Text type="BodyBigExtrabold">{featured ? featured.botAlias : botUsername}</Kb.Text>
+          <Kb.ConnectedUsernames
+            colorFollowing={true}
+            type="BodySemibold"
+            usernames={[botUsername]}
+            withProfileCardPopup={false}
+          />
           {!!featured && (
             <Kb.Text type="BodySmall" lineClamp={1}>
               {featured.description}
@@ -228,7 +245,7 @@ const InstallBotPopup = (props: Props) => {
         </Kb.Box2>
       </Kb.Box2>
       {installWithRestrict ? (
-        <>
+        <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
           <Kb.Text type="BodyBig">It will be able to read:</Kb.Text>
           <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
             <Kb.Checkbox
@@ -246,7 +263,7 @@ const InstallBotPopup = (props: Props) => {
             This bot will not be able to read any other messages, channels, files, repositories, or team
             members.
           </Kb.Text>
-        </>
+        </Kb.Box2>
       ) : (
         <Kb.Box2 direction="vertical" gap="tiny">
           <Kb.Text type="BodySemibold" style={{alignSelf: 'center', color: Styles.globalColors.redDark}}>
@@ -325,6 +342,7 @@ const InstallBotPopup = (props: Props) => {
       waitingKey={Constants.waitingKeyBotAdd}
     />
   )
+  const enabled = !!conversationIDKey && inTeam !== undefined
   return (
     <Kb.Modal
       header={{
@@ -336,36 +354,35 @@ const InstallBotPopup = (props: Props) => {
         title: '',
       }}
       footer={{
-        content:
-          !conversationIDKey || inTeam === undefined ? (
-            <Kb.ProgressIndicator />
-          ) : (
-            <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
-              <Kb.ButtonBar direction="column">
-                {editButton}
-                {saveButton}
-                {reviewButton}
-                {installButton}
-                {removeButton}
-              </Kb.ButtonBar>
-              {!!error && (
-                <Kb.Text type="Body" style={{color: Styles.globalColors.redDark}}>
-                  {'Something went wrong! Please try again, or send '}
-                  <Kb.Text
-                    type="Body"
-                    style={{color: Styles.globalColors.redDark}}
-                    underline={true}
-                    onClick={onFeedback}
-                  >
-                    {'feedback'}
-                  </Kb.Text>
+        content: enabled && (
+          <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
+            <Kb.ButtonBar direction="column">
+              {editButton}
+              {saveButton}
+              {reviewButton}
+              {installButton}
+              {removeButton}
+            </Kb.ButtonBar>
+            {!!error && (
+              <Kb.Text type="Body" style={{color: Styles.globalColors.redDark}}>
+                {'Something went wrong! Please try again, or send '}
+                <Kb.Text
+                  type="Body"
+                  style={{color: Styles.globalColors.redDark}}
+                  underline={true}
+                  onClick={onFeedback}
+                >
+                  {'feedback'}
                 </Kb.Text>
-              )}
-            </Kb.Box2>
-          ),
+              </Kb.Text>
+            )}
+          </Kb.Box2>
+        ),
       }}
     >
-      {content}
+      <Kb.Box2 direction="vertical" style={styles.outerContainer} fullWidth={true}>
+        {enabled ? content : <Kb.ProgressIndicator />}
+      </Kb.Box2>
     </Kb.Modal>
   )
 }
@@ -445,6 +462,11 @@ const styles = Styles.styleSheetCreate(() => ({
   container: {
     ...Styles.padding(Styles.globalMargins.medium, Styles.globalMargins.small),
   },
+  outerContainer: Styles.platformStyles({
+    isElectron: {
+      minHeight: 350,
+    },
+  }),
 }))
 
 export default InstallBotPopupLoader
