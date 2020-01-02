@@ -6,6 +6,7 @@ import * as Kb from '../../../common-adapters'
 import * as Constants from '../../../constants/chat2'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as TeamTypes from '../../../constants/types/teams'
+import {useBotConversationIDKey} from './install'
 
 type LoaderProps = Container.RouteProps<{
   botUsername: string
@@ -17,20 +18,7 @@ const ConfirmBotRemoveLoader = (props: LoaderProps) => {
   const botUsername = Container.getRouteProps(props, 'botUsername', '')
   const inConvIDKey = Container.getRouteProps(props, 'conversationIDKey', undefined)
   const teamID = Container.getRouteProps(props, 'teamID', undefined)
-  const [conversationIDKey, setConversationIDKey] = React.useState(inConvIDKey)
-  const generalConvID = Container.useSelector(
-    (state: Container.TypedState) => teamID && state.chat2.teamIDToGeneralConvID.get(teamID)
-  )
-  const dispatch = Container.useDispatch()
-  React.useEffect(() => {
-    if (!conversationIDKey && teamID) {
-      if (!generalConvID) {
-        dispatch(Chat2Gen.createFindGeneralConvIDFromTeamID({teamID}))
-      } else {
-        setConversationIDKey(generalConvID)
-      }
-    }
-  }, [conversationIDKey, dispatch, generalConvID, teamID])
+  const conversationIDKey = useBotConversationIDKey(inConvIDKey, teamID)
   return <ConfirmBotRemove botUsername={botUsername} conversationIDKey={conversationIDKey} />
 }
 

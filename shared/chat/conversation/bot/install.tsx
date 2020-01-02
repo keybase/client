@@ -12,16 +12,7 @@ import * as TeamTypes from '../../../constants/types/teams'
 import * as Constants from '../../../constants/chat2'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 
-type LoaderProps = Container.RouteProps<{
-  botUsername: string
-  conversationIDKey?: Types.ConversationIDKey
-  teamID?: TeamTypes.TeamID
-}>
-
-const InstallBotPopupLoader = (props: LoaderProps) => {
-  const botUsername = Container.getRouteProps(props, 'botUsername', '')
-  const inConvIDKey = Container.getRouteProps(props, 'conversationIDKey', undefined)
-  const teamID = Container.getRouteProps(props, 'teamID', undefined)
+export const useBotConversationIDKey = (inConvIDKey?: Types.ConversationIDKey, teamID?: TeamTypes.TeamID) => {
   const [conversationIDKey, setConversationIDKey] = React.useState(inConvIDKey)
   const generalConvID = Container.useSelector(
     (state: Container.TypedState) => teamID && state.chat2.teamIDToGeneralConvID.get(teamID)
@@ -35,7 +26,21 @@ const InstallBotPopupLoader = (props: LoaderProps) => {
         setConversationIDKey(generalConvID)
       }
     }
-  }, [conversationIDKey, generalConvID])
+  }, [conversationIDKey, dispatch, generalConvID, teamID])
+  return conversationIDKey
+}
+
+type LoaderProps = Container.RouteProps<{
+  botUsername: string
+  conversationIDKey?: Types.ConversationIDKey
+  teamID?: TeamTypes.TeamID
+}>
+
+const InstallBotPopupLoader = (props: LoaderProps) => {
+  const botUsername = Container.getRouteProps(props, 'botUsername', '')
+  const inConvIDKey = Container.getRouteProps(props, 'conversationIDKey', undefined)
+  const teamID = Container.getRouteProps(props, 'teamID', undefined)
+  const conversationIDKey = useBotConversationIDKey(inConvIDKey, teamID)
   return <InstallBotPopup botUsername={botUsername} conversationIDKey={conversationIDKey} />
 }
 
