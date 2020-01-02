@@ -61,7 +61,7 @@ const InstallBotPopup = (props: Props) => {
   const [installWithMentions, setInstallWithMentions] = React.useState(true)
   const [installWithRestrict, setInstallWithRestrict] = React.useState(true)
   const [installInConvs, setInstallInConvs] = React.useState<string[]>([])
-  const { commands, featured, inTeam, inTeamUnrestricted, settings } = Container.useSelector(
+  const { commands, featured, inTeam, inTeamUnrestricted, settings, teamName } = Container.useSelector(
     (state: Container.TypedState) => {
       let inTeam: boolean | undefined
       let teamRole: TeamTypes.TeamRoleType | null | undefined
@@ -275,7 +275,11 @@ const InstallBotPopup = (props: Props) => {
             members.
           </Kb.Text>
           <Kb.Text type="BodyBig">In these channels:</Kb.Text>
-          <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny"></Kb.Box2>
+          <Kb.Button
+            mode="Secondary"
+            label={`${teamName} (${installInConvs.length > 0 ? installInConvs.length : 'all'} channels)`}
+            onClick={() => setChannelPickerScreen(true)}
+          />
         </Kb.Box2>
       ) : (
           <Kb.Box2 direction="vertical" gap="tiny">
@@ -356,6 +360,7 @@ const InstallBotPopup = (props: Props) => {
         if (settings) {
           setInstallWithCommands(settings.cmds)
           setInstallWithMentions(settings.mentions)
+          setInstallInConvs(settings.convs ?? [])
         }
         setInstallScreen(true)
       }}
@@ -405,20 +410,21 @@ const InstallBotPopup = (props: Props) => {
                 >
                   {'feedback'}
                 </Kb.Text>
-                )}
-            </Kb.Box2>
-            ),
+              </Kb.Text>
+            )}
+          </ Kb.Box2 >
+        ),
       }}
-                            >
+    >
       <Kb.Box2 direction="vertical" style={styles.outerContainer} fullWidth={true}>
-              {enabled ? content : <Kb.ProgressIndicator />}
-            </Kb.Box2>
-    </Kb.Modal>
-        )
-      }
+        {enabled ? content : <Kb.ProgressIndicator />}
+      </Kb.Box2>
+    </Kb.Modal >
+  )
+}
 
-type CommandsLabelProps={
-        commands: Types.BotPublicCommands | undefined
+type CommandsLabelProps = {
+  commands: Types.BotPublicCommands | undefined
 }
 
 const maxCommandsShown = 3

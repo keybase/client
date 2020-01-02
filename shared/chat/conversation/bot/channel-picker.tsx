@@ -12,27 +12,32 @@ type Props = {
   teamname: string
 }
 
+const toggleChannel = (convID: string, installInConvs: string[]) => {
+  if (installInConvs.includes(convID)) {
+    return installInConvs.filter(id => id !== convID)
+  } else {
+    return installInConvs.concat([convID])
+  }
+}
+
 type RowProps = {
+  onToggle: () => void
   selected: boolean
   channelInfo: TeamTypes.ChannelInfo
 }
-const Row = ({selected, channelInfo}: RowProps) => (
-  <Kb.Box2 direction="horizontal">
-    <Kb.Checkbox
-      checked={selected}
-      label=""
-      onCheck={() => null /* ontoggle */}
-      style={{alignSelf: 'flex-start', marginRight: 0}}
-      disabled={channelInfo.channelname.toLowerCase() === 'general'}
-    />
+const Row = ({onToggle, selected, channelInfo}: RowProps) => (
+  <Kb.Box2 direction="horizontal" alignSelf="flex-start" style={{marginBottom: Styles.globalMargins.tiny}}>
+    <Kb.Checkbox checked={selected} label="" onCheck={onToggle} style={styles.channelCheckbox} />
+    <Kb.Text lineClamp={1} type="Body" style={styles.channelHash}>
+      #
+    </Kb.Text>
     <Kb.Box2 direction="vertical">
-      <Kb.Text lineClamp={1} type="BodySecondaryLink">
-        #{' '}
-        <Kb.Text type="Body" style={styles.channelText}>
-          {channelInfo.channelname}
-        </Kb.Text>
+      <Kb.Text type="Body" style={styles.channelText}>
+        {channelInfo.channelname}
       </Kb.Text>
-      <Kb.Text type="BodySecondaryLink">{channelInfo.description}</Kb.Text>
+      <Kb.Text type="Body" style={{color: Styles.globalColors.black_50}}>
+        {channelInfo.description}
+      </Kb.Text>
     </Kb.Box2>
   </Kb.Box2>
 )
@@ -43,15 +48,32 @@ const ChannelPicker = (props: Props) => {
   )
 
   const rows = [...channelInfos.entries()].map(([convID, channelInfo]) => (
-    <Row key={convID} selected={props.installInConvs.includes(convID)} channelInfo={channelInfo} />
+    <Row
+      key={convID}
+      onToggle={() => props.setInstallInConvs(toggleChannel(convID, props.installInConvs))}
+      selected={props.installInConvs.includes(convID)}
+      channelInfo={channelInfo}
+    />
   ))
 
-  return <Kb.Box2 direction="vertical">{rows}</Kb.Box2>
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true}>
+      {rows}
+    </Kb.Box2>
+  )
 }
 
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      channelCheckbox: {
+        marginRight: Styles.globalMargins.tiny,
+      },
+      channelHash: {
+        color: Styles.globalColors.black_50,
+        flexShrink: 0,
+        marginRight: Styles.globalMargins.xtiny,
+      },
       channelText: Styles.platformStyles({
         isElectron: {
           wordBreak: 'break-all',
