@@ -25,7 +25,7 @@ func newIndexedBlockDbForTestWithStorage(
 	config := libkbfs.MakeTestConfigOrBust(t, "user1")
 	db, err := newIndexedBlockDbFromStorage(config, blockS, tlfS)
 	require.NoError(t, err)
-	return db, func() { config.Shutdown(context.Background()) }
+	return db, func() { _ = config.Shutdown(context.Background()) }
 }
 
 func newIndexedBlockDbForTest(t *testing.T) (
