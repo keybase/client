@@ -208,9 +208,9 @@ func (e PublicTeamEphemeralKeyError) Error() string {
 
 type NotAuthenticatedForThisDeviceError struct{ inner ephemeral.EphemeralKeyError }
 
-func NewNotAuthenticatedForThisDeviceError(mctx libkb.MetaContext, tlfID chat1.TLFID,
+func NewNotAuthenticatedForThisDeviceError(mctx libkb.MetaContext, memberCtime *keybase1.Time,
 	contentCtime gregor1.Time) NotAuthenticatedForThisDeviceError {
-	inner := ephemeral.NewNotAuthenticatedForThisDeviceError(mctx, tlfID, contentCtime)
+	inner := ephemeral.NewNotAuthenticatedForThisDeviceError(mctx, memberCtime, contentCtime)
 	return NotAuthenticatedForThisDeviceError{inner: inner}
 }
 

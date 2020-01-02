@@ -151,7 +151,7 @@ const Header = (p: Props) => {
           {renderDescription && (
             <Kb.Box2 direction="vertical" style={styles.descriptionContainer} fullWidth={true}>
               {p.fullName && withoutSelf && withoutSelf.length === 1 ? (
-                <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
+                <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.descriptionTextContainer}>
                   <Kb.ConnectedUsernames
                     colorFollowing={true}
                     underline={true}
@@ -161,10 +161,14 @@ const Header = (p: Props) => {
                     usernames={[withoutSelf[0]]}
                     onUsernameClicked="profile"
                   />
-                  <Kb.Text type="BodySmall" style={styles.desc}>
-                    &nbsp;•&nbsp;
-                  </Kb.Text>
-                  {description}
+                  {description && (
+                    <>
+                      <Kb.Text type="BodySmall" style={styles.desc}>
+                        &nbsp;•&nbsp;
+                      </Kb.Text>
+                      {description}
+                    </>
+                  )}
                 </Kb.Box2>
               ) : (
                 description
@@ -220,6 +224,11 @@ const styles = Styles.styleSheetCreate(
         height: 17,
         overflow: 'hidden',
       },
+      descriptionTextContainer: Styles.platformStyles({
+        isElectron: {
+          alignItems: 'baseline',
+        },
+      }),
       headerTitle: Styles.platformStyles({
         common: {flexGrow: 1, paddingBottom: Styles.globalMargins.xtiny},
         isElectron: Styles.desktopStyles.windowDraggingClickable,
@@ -245,8 +254,9 @@ const Connected = Container.connect(
     const _conversationIDKey = Constants.getSelectedConversation(state)
     const userInfo = state.users.infoMap
     const _meta = Constants.getMeta(state, _conversationIDKey)
+    const participantInfo = Constants.getParticipantInfo(state, _conversationIDKey)
 
-    const otherParticipants = Constants.getRowParticipants(_meta, state.config.username)
+    const otherParticipants = Constants.getRowParticipants(participantInfo, state.config.username)
     const first: string =
       _meta.teamType === 'adhoc' && otherParticipants.length === 1 ? otherParticipants[0] : ''
     const otherInfo = userInfo.get(first)
@@ -259,6 +269,7 @@ const Connected = Container.connect(
     return {
       _conversationIDKey,
       _meta,
+      _participantInfo: participantInfo,
       canEditDesc: TeamConstants.getCanPerform(state, _meta.teamname).editChannelDescription,
       desc,
       fullName,
@@ -296,7 +307,7 @@ const Connected = Container.connect(
       onOpenFolder: () => dispatchProps._onOpenFolder(stateProps._conversationIDKey),
       onToggleInfoPanel: dispatchProps.onToggleInfoPanel,
       onToggleThreadSearch: () => dispatchProps.onToggleThreadSearch(stateProps._conversationIDKey),
-      participants: meta.teamType === 'adhoc' ? meta.nameParticipants : null,
+      participants: meta.teamType === 'adhoc' ? stateProps._participantInfo.name : null,
       showActions: Constants.isValidConversationIDKey(stateProps._conversationIDKey),
       unMuteConversation: () => dispatchProps.onUnMuteConversation(stateProps._conversationIDKey),
       username: stateProps.username,

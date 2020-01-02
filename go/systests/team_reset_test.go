@@ -443,13 +443,13 @@ func TestTeamRemoveAfterReset(t *testing.T) {
 
 	cli := ann.getTeamsClient()
 	err := cli.TeamRemoveMember(context.TODO(), keybase1.TeamRemoveMemberArg{
-		Name:     team.name,
+		TeamID:   team.ID,
 		Username: bob.username,
 	})
 	require.NoError(t, err)
 
 	err = cli.TeamRemoveMember(context.TODO(), keybase1.TeamRemoveMemberArg{
-		Name:     team.name,
+		TeamID:   team.ID,
 		Username: joe.username,
 	})
 	require.NoError(t, err)
@@ -494,7 +494,7 @@ func TestTeamRemoveMemberAfterDelete(t *testing.T) {
 
 	cli := ann.getTeamsClient()
 	err = cli.TeamRemoveMember(context.Background(), keybase1.TeamRemoveMemberArg{
-		Name:     team.name,
+		TeamID:   team.ID,
 		Username: bob.username,
 	})
 	require.NoError(t, err)
@@ -534,7 +534,7 @@ func TestTeamTryAddDeletedUser(t *testing.T) {
 	divDebug(ctx, "team created (%s)", team.name)
 
 	_, err := cli.TeamAddMember(context.Background(), keybase1.TeamAddMemberArg{
-		Name:     team.name,
+		TeamID:   team.ID,
 		Username: bob.username,
 		Role:     keybase1.TeamRole_READER,
 	})
@@ -570,7 +570,7 @@ func TestTeamAddAfterReset(t *testing.T) {
 
 	cli := ann.getTeamsClient()
 	_, err := cli.TeamAddMember(context.TODO(), keybase1.TeamAddMemberArg{
-		Name:     team.name,
+		TeamID:   team.ID,
 		Username: bob.username,
 		// Note: any role would do! Does not have to be the same as before
 		// reset. This does not apply to imp-teams though, it requires the
@@ -661,7 +661,7 @@ func testTeamReAddAfterReset(t *testing.T, pukful, adminOwner, removeAfterReset 
 
 	if removeAfterReset {
 		err := ann.getTeamsClient().TeamRemoveMember(context.TODO(), keybase1.TeamRemoveMemberArg{
-			Name:     team.name,
+			TeamID:   team.ID,
 			Username: bob.username,
 		})
 		require.NoError(t, err)

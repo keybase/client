@@ -14,12 +14,14 @@ import ChatInfoPanel from './conversation/info-panel/container'
 import ChatManageChannels from './manage-channels/container'
 import ChatNewChat from '../team-building/container'
 import ChatPaymentsConfirm from './payments/confirm/container'
-import ChatShowBlockConversationDialog from './conversation/block-conversation-warning/container'
 import ChatShowNewTeamDialog from './new-team-dialog-container'
 import ChatLocationPopup from './conversation/input-area/normal/location-popup'
 import ChatUnfurlMapPopup from './conversation/messages/wrapper/unfurl/map/popup'
 import PunycodeLinkWarning from './punycode-link-warning'
 import BlockModal from './blocking/block-modal/container'
+import ChatInstallBot from './conversation/bot/install'
+import ChatSearchBot from './conversation/bot/search'
+import ChatConfirmRemoveBot from './conversation/bot/confirm'
 
 export const newRoutes = {
   chatConversation: {getScreen: (): typeof ChatConversation => require('./conversation/container').default},
@@ -58,6 +60,9 @@ export const newModalRoutes = {
   chatConfirmNavigateExternal: {
     getScreen: (): typeof PunycodeLinkWarning => require('./punycode-link-warning').default,
   },
+  chatConfirmRemoveBot: {
+    getScreen: (): typeof ChatConfirmRemoveBot => require('./conversation/bot/confirm').default,
+  },
   chatCreateChannel: {
     getScreen: (): typeof ChatCreateChannel => require('./create-channel/container').default,
   },
@@ -69,6 +74,9 @@ export const newModalRoutes = {
   },
   chatInfoPanel: {
     getScreen: (): typeof ChatInfoPanel => require('./conversation/info-panel/container').default,
+  },
+  chatInstallBot: {
+    getScreen: (): typeof ChatInstallBot => require('./conversation/bot/install').default,
   },
   chatLocationPreview: {
     getScreen: (): typeof ChatLocationPopup =>
@@ -82,9 +90,8 @@ export const newModalRoutes = {
   chatPaymentsConfirm: {
     getScreen: (): typeof ChatPaymentsConfirm => require('./payments/confirm/container').default,
   },
-  chatShowBlockConversationDialog: {
-    getScreen: (): typeof ChatShowBlockConversationDialog =>
-      require('./conversation/block-conversation-warning/container').default,
+  chatSearchBots: {
+    getScreen: (): typeof ChatSearchBot => require('./conversation/bot/search').default,
   },
   // TODO connect broken
   chatShowNewTeamDialog: {

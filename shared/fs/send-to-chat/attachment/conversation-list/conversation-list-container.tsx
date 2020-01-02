@@ -1,0 +1,199 @@
+import {namedConnect} from '../../../../util/container'
+import {memoize} from '../../../../util/memoize'
+import * as Types from '../../../../constants/types/chat2'
+import * as Constants from '../../../../constants/chat2'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import {isMobile} from '../../../../constants/platform'
+import ConversationList, {SmallTeamRowItem, BigTeamChannelRowItem, RowItem} from './conversation-list'
+import getFilteredRowsAndMetadata from '../../../../chat/inbox/container/filtered'
+
+type OwnProps = {
+  filter?: string
+  focusFilterOnMount?: boolean | null
+  onDone?: (() => void) | null
+  onSelect: (conversationIDKey: Types.ConversationIDKey) => void
+  onSetFilter?: (filter: string) => void
+  selected: Types.ConversationIDKey
+}
+
+const notificationsTypeToNumber = (t: Types.NotificationsType): number => {
+  switch (t) {
+    case 'onAnyActivity':
+      return 1
+    case 'onWhenAtMentioned':
+      return 2
+    case 'never':
+      return 3
+    default:
+      return 0
+  }
+}
+
+const boolToNumber = (b: boolean): number => (b ? 1 : 0)
+
+const staleToNumber = (convTime: number, staleCutoff: number) => (convTime < staleCutoff ? 1 : 0)
+
+const getAWeekAgo = () => {
+  const t = new Date()
+  return t.setDate(t.getDate() - 7) // works fine for cross-boundary; returns a number
+}
+
+const getSortedConversationIDKeys = memoize(
+  (
+    metaMap: Types.MetaMap
+  ): Array<{
+    conversationIDKey: Types.ConversationIDKey
+    type: 'small' | 'big'
+  }> => {
+    const staleCutoff = getAWeekAgo()
+    return [...metaMap.values()]
+      .sort((a, b) => {
+        // leveled order rules:
+        // 1. unmuted before muted
+        // 2. active conversations before inactive (has activity in the past week)
+        // 3. notification type: onAnyActivity before onWhenAtMentioned, before never
+        // 4. activity timestamp being the last tie breaker
+        const mutedBased = boolToNumber(a.isMuted) - boolToNumber(b.isMuted)
+        if (mutedBased !== 0) {
+          return mutedBased
+        }
+        const staleBased = staleToNumber(a.timestamp, staleCutoff) - staleToNumber(b.timestamp, staleCutoff)
+        if (staleBased !== 0) {
+          return staleBased
+        }
+        const notificationsTypeBased = isMobile
+          ? notificationsTypeToNumber(a.notificationsMobile) -
+            notificationsTypeToNumber(b.notificationsMobile)
+          : notificationsTypeToNumber(a.notificationsDesktop) -
+            notificationsTypeToNumber(b.notificationsDesktop)
+        if (notificationsTypeBased !== 0) {
+          return notificationsTypeBased
+        }
+        return b.timestamp - a.timestamp
+      })
+      .filter(({conversationIDKey}) => conversationIDKey !== Constants.noConversationIDKey)
+      .map(({conversationIDKey, teamType}) => ({
+        conversationIDKey,
+        type: teamType === 'big' ? 'big' : 'small',
+      }))
+  }
+)
+
+const getRows = (
+  metaMap: Types.MetaMap,
+  participantMap: Map<Types.ConversationIDKey, Types.ParticipantInfo>,
+  username: string,
+  ownProps: OwnProps
+) => {
+  let selectedIndex: number | null = null
+  const rows = ownProps.filter
+    ? getFilteredRowsAndMetadata(metaMap, participantMap, ownProps.filter, username).rows.map(
+        (row, index) => {
+          // This should never happen to have empty conversationIDKey, but
+          // provide default to make flow happy
+          const conversationIDKey = row.conversationIDKey || Constants.noConversationIDKey
+          const common = {
+            conversationIDKey,
+            isSelected: conversationIDKey === ownProps.selected,
+            onSelectConversation: () => {
+              ownProps.onSelect(conversationIDKey)
+              ownProps.onDone && ownProps.onDone()
+            },
+          }
+          if (common.isSelected) {
+            selectedIndex = index
+          }
+          return row.type === 'big'
+            ? ({
+                ...common,
+                type: 'big',
+              } as BigTeamChannelRowItem)
+            : ({
+                ...common,
+                type: 'small',
+              } as SmallTeamRowItem)
+        }
+      )
+    : getSortedConversationIDKeys(metaMap).map(({conversationIDKey, type}, index) => {
+        const common = {
+          conversationIDKey,
+          isSelected: conversationIDKey === ownProps.selected,
+          onSelectConversation: () => {
+            ownProps.onSelect(conversationIDKey)
+            ownProps.onDone && ownProps.onDone()
+          },
+        }
+        if (common.isSelected) {
+          selectedIndex = index
+        }
+        return type === 'big'
+          ? ({
+              ...common,
+              type: 'big',
+            } as BigTeamChannelRowItem)
+          : ({
+              ...common,
+              type: 'small',
+            } as SmallTeamRowItem)
+      })
+  return {rows, selectedIndex}
+}
+
+const selectNext = (rows: Array<RowItem>, current: null | number, delta: 1 | -1) => {
+  if (!rows.length) {
+    return null
+  }
+  const nextIndex = (current === null ? (delta > 0 ? 0 : rows.length - 1) : current + delta) % rows.length
+  if (rows[nextIndex].type === 'more-less') {
+    const row = rows[(nextIndex + 1) % rows.length]
+    // two 'more-less' in a row: either that's the only we have or something's
+    // wrong elsewhere.
+    return row.type === 'more-less' ? null : row.conversationIDKey
+  }
+  return rows[nextIndex].conversationIDKey
+}
+
+export default namedConnect(
+  state => ({
+    _metaMap: state.chat2.metaMap,
+    _participantMap: state.chat2.participantMap,
+    _username: state.config.username,
+  }),
+  dispatch => ({
+    onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+  }),
+  (stateProps, dispatchProps, ownProps: OwnProps) => {
+    const {selectedIndex, rows} = getRows(
+      stateProps._metaMap,
+      stateProps._participantMap,
+      stateProps._username,
+      ownProps
+    )
+    return {
+      filter: ownProps.onSetFilter && {
+        filter: ownProps.filter || '',
+        isLoading: false,
+        onSetFilter: ownProps.onSetFilter,
+      },
+      focusFilterOnMount: ownProps.focusFilterOnMount,
+      onBack: dispatchProps.onBack,
+      onEnsureSelection: () => {
+        if (selectedIndex === null) {
+          const nextConvIDKey = selectNext(rows, selectedIndex, 1)
+          nextConvIDKey && ownProps.onSelect(nextConvIDKey)
+        }
+        ownProps.onDone && ownProps.onDone()
+      },
+      onSelectDown: () => {
+        const nextConvIDKey = selectNext(rows, selectedIndex, 1)
+        nextConvIDKey && ownProps.onSelect(nextConvIDKey)
+      },
+      onSelectUp: () => {
+        const nextConvIDKey = selectNext(rows, selectedIndex, -1)
+        nextConvIDKey && ownProps.onSelect(nextConvIDKey)
+      },
+      rows,
+    }
+  },
+  'ConversationList'
+)(ConversationList)

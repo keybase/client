@@ -825,8 +825,10 @@ func (e *EKLib) deriveAndMaybePublishTeambotEK(mctx libkb.MetaContext, teamID ke
 		if err != nil {
 			return ek, false, err
 		}
-		if err = postNewTeambotEK(mctx, team.ID, sig, box.Box); err != nil {
-			return ek, false, err
+		if box != nil {
+			if err = postNewTeambotEK(mctx, team.ID, sig, box.Box); err != nil {
+				return ek, false, err
+			}
 		}
 	}
 

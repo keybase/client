@@ -26,7 +26,7 @@ class LoginRender extends React.Component<Props, State> {
       onChangeText: password => this.props.passwordChange(password),
       onEnterKeyDown: () => this.props.onSubmit(),
       placeholder: 'Password',
-      secureTextEntry: true,
+      secureTextEntry: !this.props.showTyping,
       type: this.props.showTyping ? 'text' : 'password',
     }
 

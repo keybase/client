@@ -44,6 +44,7 @@ import {formatTimeForChat} from '../../../../util/timestamp'
 export type Props = {
   authorIsAdmin?: boolean
   authorIsOwner?: boolean
+  authorIsBot?: boolean
   botAlias: string
   centeredOrdinal: Types.CenterOrdinalHighlightMode
   conversationIDKey: Types.ConversationIDKey
@@ -138,7 +139,6 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         direction="vertical"
         style={Styles.collapseStyles([
           styles.orangeLine,
-          !this._isExploding() && styles.orangeLineCompensationRight,
           !this.props.showUsername && styles.orangeLineCompensationLeft,
         ])}
       />
@@ -199,6 +199,9 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                   />
                 </Kb.WithTooltip>
               )}
+              {this.props.authorIsBot && (
+                <Kb.Icon fontSize={16} color={Styles.globalColors.black_35} type="iconfont-nav-2-robot" />
+              )}
               <Kb.Text
                 type="BodyTiny"
                 style={Styles.collapseStyles([
@@ -208,11 +211,6 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               >
                 {formatTimeForChat(this.props.message.timestamp)}
               </Kb.Text>
-              {this._getKeyedBot() && (
-                <Kb.WithTooltip tooltip={`Encrypted for @${this._getKeyedBot()}`}>
-                  <Kb.Icon fontSize={14} color={Styles.globalColors.black} type="iconfont-nav-2-robot" />
-                </Kb.WithTooltip>
-              )}
             </Kb.Box2>
           </Kb.Box2>
           <Kb.Box2
@@ -364,7 +362,6 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       const props = {
         style: Styles.collapseStyles([
           styles.container,
-          !this._isExploding() && styles.containerNoExploding, // extra right padding to line up with infopane / input icons
           this._showCenteredHighlight() && styles.centeredOrdinal,
           !this.props.showUsername && styles.containerNoUsername,
         ]),
@@ -423,10 +420,11 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
   _cachedMenuStyles = {}
   _menuAreaStyle = (exploded, exploding) => {
     const iconSizes = [
-      this.props.isRevoked ? 16 : 0, // revoked
-      this.props.showCoinsIcon ? 16 : 0, // coin stack
+      this.props.isRevoked ? 24 : 0, // revoked
+      this.props.showCoinsIcon ? 24 : 0, // coin stack
       exploded || Styles.isMobile ? 0 : 16, // ... menu
       exploding ? (Styles.isMobile ? 57 : 46) : 0, // exploding
+      this._getKeyedBot() && !this.props.authorIsBot ? 24 : 0,
     ].filter(Boolean)
     const padding = Styles.globalMargins.tiny
     const width =
@@ -480,7 +478,16 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         child = <SystemInviteAccepted key="systemInviteAccepted" message={message} />
         break
       case 'systemSBSResolved':
-        child = <SystemSBSResolved key="systemSbsResolved" message={message} />
+        if (this.props.youAreAuthor) {
+          child = <SystemSBSResolved key="systemSbsResolved" message={message} />
+        } else {
+          child = (
+            <SystemJoined
+              key="systemJoined"
+              message={{...message, joiners: [message.prover], leavers: [], type: 'systemJoined'}}
+            />
+          )
+        }
         break
       case 'systemSimpleToComplex':
         child = <SystemSimpleToComplex key="systemSimpleToComplex" message={message} />
@@ -562,12 +569,23 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
             {this.props.isRevoked && (
               <Kb.Icon
                 type="iconfont-rip"
+                style={styles.paddingLeftTiny}
                 color={Styles.globalColors.black_20}
-                style={styles.marginLeftTiny}
               />
             )}
             {this.props.showCoinsIcon && (
-              <Kb.Icon type="icon-stellar-coins-stacked-16" style={styles.marginLeftTiny} />
+              <Kb.Icon type="icon-stellar-coins-stacked-16" style={styles.paddingLeftTiny} />
+            )}
+            {this._getKeyedBot() && !this.props.authorIsBot && (
+              <Kb.WithTooltip tooltip={`Encrypted for @${this._getKeyedBot()}`}>
+                <Kb.Icon
+                  fontSize={16}
+                  color={Styles.globalColors.black_35}
+                  type="iconfont-nav-2-robot"
+                  onClick={() => null}
+                  style={styles.paddingLeftTiny}
+                />
+              </Kb.WithTooltip>
             )}
             {showMenuButton ? (
               <Kb.Box className="WrapperMessage-buttons">
@@ -630,10 +648,10 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     return (
       <>
         <LongPressable
-          {...(this.props.message.type !== 'journeycard' && this._containerProps())}
+          {...this._containerProps()}
           children={[
             this.props.message.type === 'journeycard' ? (
-              <TeamJourney message={this.props.message} />
+              <TeamJourney key="journey" message={this.props.message} />
             ) : (
               this._authorAndContent([
                 this._messageAndButtons(),
@@ -679,7 +697,6 @@ const styles = Styles.styleSheetCreate(
         backgroundColor: Styles.globalColors.yellowOrYellowAlt,
       },
       container: Styles.platformStyles({isMobile: {overflow: 'hidden'}}),
-      containerNoExploding: Styles.platformStyles({isMobile: {paddingRight: Styles.globalMargins.tiny}}),
       containerNoUsername: Styles.platformStyles({
         isMobile: {
           paddingBottom: 3,
@@ -751,7 +768,6 @@ const styles = Styles.styleSheetCreate(
       fail: {color: Styles.globalColors.redDark},
       failUnderline: {color: Styles.globalColors.redDark, textDecorationLine: 'underline'},
       fast,
-      marginLeftTiny: {marginLeft: Styles.globalMargins.tiny},
       menuButtons: Styles.platformStyles({
         common: {
           alignSelf: 'flex-start',
@@ -781,11 +797,7 @@ const styles = Styles.styleSheetCreate(
           left: -Styles.globalMargins.mediumLarge, // compensate for containerNoUsername's padding
         },
       }),
-      orangeLineCompensationRight: Styles.platformStyles({
-        isMobile: {
-          right: -Styles.globalMargins.tiny, // compensate for containerNoExploding's padding
-        },
-      }),
+      paddingLeftTiny: {paddingLeft: Styles.globalMargins.tiny},
       send: Styles.platformStyles({
         common: {
           position: 'absolute',
@@ -801,7 +813,6 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       timestamp: Styles.platformStyles({
-        common: {paddingLeft: Styles.globalMargins.xtiny},
         isElectron: {lineHeight: 19},
       }),
       timestampHighlighted: {

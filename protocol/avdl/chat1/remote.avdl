@@ -340,6 +340,7 @@ protocol remote {
   array<ExternalAPIKey> getExternalAPIKeys(array<ExternalAPIKeyTyp> typs);
 
   // Bot commands
+  @typedef("uint64") @lint("ignore") record BotInfoHashVers {}
   @typedef("uint64") @lint("ignore") record CommandConvVers {}
   record RemoteBotCommandsAdvertisementPublic {
     ConversationID convID;
@@ -361,6 +362,10 @@ protocol remote {
     gregor1.Time mtime;
   }
   record BotInfo {
+    // server version controls busting client caches.
+    BotInfoHashVers serverHashVers;
+    // client version determines the hash algorithm.
+    BotInfoHashVers clientHashVers;
     array<BotCommandConv> commandConvs;
   }
   record AdvertiseBotCommandsRes {
@@ -385,5 +390,5 @@ protocol remote {
     union { null, RateLimit } rateLimit;
   }
   @typedef("bytes") record BotInfoHash {}
-  GetBotInfoRes getBotInfo(ConversationID convID, BotInfoHash infoHash);
+  GetBotInfoRes getBotInfo(ConversationID convID, BotInfoHash infoHash, BotInfoHashVers clientHashVers);
 }

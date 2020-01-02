@@ -20,8 +20,7 @@ export type Props = {
   loadSearchHit: (hit: number) => void
   onCancel: () => void
   onSearch: (toFind: string) => void
-  hotkeys?: Array<string>
-  onHotkey?: (cmd: string) => void
+  onToggleThreadSearch: () => void
   selfHide: () => void
   status: Types.ThreadSearchStatus
   style?: Styles.StylesCrossPlatform
@@ -136,8 +135,14 @@ type SearchProps = {
 }
 
 class ThreadSearchDesktop extends React.Component<SearchProps & Props> {
-  _inputRef = React.createRef<Kb.PlainInput>()
-  _onKeyDown = (e: React.KeyboardEvent) => {
+  private hotKeys = ['esc']
+  private onHotKey = (cmd: string) => {
+    if (cmd === 'esc') {
+      this.props.onToggleThreadSearch()
+    }
+  }
+  private inputRef = React.createRef<Kb.PlainInput>()
+  private onKeyDown = (e: React.KeyboardEvent) => {
     switch (e.key) {
       case 'Escape':
         this.props.selfHide()
@@ -181,8 +186,8 @@ class ThreadSearchDesktop extends React.Component<SearchProps & Props> {
 
   componentDidUpdate(prevProps: SearchProps) {
     if (prevProps.conversationIDKey !== this.props.conversationIDKey) {
-      if (this._inputRef.current) {
-        this._inputRef.current.focus()
+      if (this.inputRef.current) {
+        this.inputRef.current.focus()
       }
     }
   }
@@ -191,6 +196,7 @@ class ThreadSearchDesktop extends React.Component<SearchProps & Props> {
     const noResults = this.props.status === 'done' && this.props.hits.length === 0
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} style={this.props.style}>
+        <Kb.HotKey hotKeys={this.hotKeys} onHotKey={this.onHotKey} />
         <Kb.Box2 direction="horizontal" style={styles.outerContainer} fullWidth={true} gap="tiny">
           <Kb.Box2 direction="horizontal" style={styles.inputContainer}>
             <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.queryContainer} centerChildren={true}>
@@ -199,9 +205,9 @@ class ThreadSearchDesktop extends React.Component<SearchProps & Props> {
                 flexable={true}
                 onChangeText={this.props.onChangedText}
                 onEnterKeyDown={this.props.onEnter}
-                onKeyDown={this._onKeyDown}
+                onKeyDown={this.onKeyDown}
                 placeholder="Search..."
-                ref={this._inputRef}
+                ref={this.inputRef}
                 value={this.props.text}
               />
             </Kb.Box2>
@@ -299,12 +305,8 @@ export default ThreadSearch
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      done: {
-        color: Styles.globalColors.blueDark,
-      },
-      doneContainer: {
-        flexShrink: 0,
-      },
+      done: {color: Styles.globalColors.blueDark},
+      doneContainer: {flexShrink: 0},
       hitList: Styles.platformStyles({
         isElectron: {
           backgroundColor: Styles.globalColors.blueLighter3,
@@ -346,29 +348,17 @@ const styles = Styles.styleSheetCreate(
           paddingRight: Styles.globalMargins.tiny,
           paddingTop: Styles.globalMargins.xtiny,
         },
-        isMobile: {
-          padding: Styles.globalMargins.tiny,
-        },
+        isMobile: {padding: Styles.globalMargins.tiny},
       }),
       outerContainer: {
         backgroundColor: Styles.globalColors.blueLighter3,
         justifyContent: 'space-between',
         padding: Styles.globalMargins.tiny,
       },
-      progress: {
-        height: 16,
-      },
-      queryContainer: {
-        flex: 1,
-      },
-      results: {
-        color: Styles.globalColors.black_50,
-      },
-      resultsContainer: {
-        flexShrink: 0,
-      },
-      time: {
-        flexShrink: 0,
-      },
+      progress: {height: 16},
+      queryContainer: {flex: 1},
+      results: {color: Styles.globalColors.black_50},
+      resultsContainer: {flexShrink: 0},
+      time: {flexShrink: 0},
     } as const)
 )

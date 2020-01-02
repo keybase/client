@@ -106,7 +106,7 @@ func TestEphemeralDeviceProvisionedAfterContent(t *testing.T) {
 	require.Error(t, err)
 	require.IsType(t, EphemeralKeyError{}, err)
 	ekErr := err.(EphemeralKeyError)
-	require.Contains(t, ekErr.HumanError(), DeviceProvisionedAfterContentCreationErrMsg)
+	require.Contains(t, ekErr.HumanError(), DeviceAfterEKErrMsg)
 
 	// clear out cached error messages
 	g.GetEKLib().ClearCaches(mctx)
@@ -122,7 +122,7 @@ func TestEphemeralDeviceProvisionedAfterContent(t *testing.T) {
 }
 
 func TestEphemeralPluralization(t *testing.T) {
-	humanMsg := humanMsgWithPrefix(DeviceProvisionedAfterContentCreationErrMsg)
+	humanMsg := humanMsgWithPrefix(DeviceAfterEKErrMsg)
 
 	pluralized := PluralizeErrorMessage(humanMsg, 0)
 	require.Equal(t, humanMsg, pluralized)

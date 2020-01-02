@@ -116,16 +116,22 @@ func (c *CmdDeviceRemove) Run() (err error) {
 		return err
 	}
 
-	switch err.(type) {
+	switch e := err.(type) {
 	case libkb.RevokeCurrentDeviceError:
 		_ = ui.Output("You tried to remove this device. If you are sure you want to\n")
 		_ = ui.Output("remove the current device, then run\n\n")
 		_ = ui.Output("\tkeybase device remove --force-self <device id or name>\n\n")
 	case libkb.RevokeLastDeviceError:
-		_ = ui.Output("You tried to remove the last device in your account. If you are\n")
-		_ = ui.Output("sure you want to remove it, then run\n\n")
-		_ = ui.Output("\tkeybase device remove --force-last <device id or name>\n\n")
-		_ = ui.Output("Your account will be automatically reset afterward.\n\n")
+		if e.NoPassphrase {
+			_ = ui.Output("Because your account does not have a passphrase, you cannot\n")
+			_ = ui.Output("revoke your last device. Set a passphrase first with\n\n")
+			_ = ui.Output("\tkeybase passphrase set\n\n")
+		} else {
+			_ = ui.Output("You tried to remove the last device in your account. If you are\n")
+			_ = ui.Output("sure you want to remove it, then run\n\n")
+			_ = ui.Output("\tkeybase device remove --force-last <device id or name>\n\n")
+			_ = ui.Output("Your account will be automatically reset afterward.\n\n")
+		}
 	case libkb.RevokeLastDevicePGPError:
 		_ = ui.Output("You tried to remove the last device in your account. Because\n")
 		_ = ui.Output("you also have a PGP key, you cannot do this.\n\n")

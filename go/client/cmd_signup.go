@@ -180,7 +180,7 @@ func (s *CmdSignup) ParseArgv(ctx *cli.Context) (err error) {
 
 		s.passphrase = s.defaultPassphrase
 		s.genPGP = ctx.Bool("pgp")
-		s.genPaper = true
+		s.genPaper = !ctx.Bool("skip-paperkey")
 		s.doPrompt = false
 		s.storeSecret = true
 		s.randomPassphrase = ctx.Bool("no-passphrase")

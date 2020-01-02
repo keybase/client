@@ -6,12 +6,13 @@ import * as Styles from '../../../../../styles'
 import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 import {Box2} from '../../../../../common-adapters/box'
 import Text, {AllowedColors} from '../../../../../common-adapters/text'
-import Icon, {castPlatformStyles as iconCastPlatformStyles} from '../../../../../common-adapters/icon'
+import Icon from '../../../../../common-adapters/icon'
 import Avatar from '../../../../../common-adapters/avatar'
 import ConnectedUsernames from '../../../../../common-adapters/usernames/container'
 import ProgressIndicator from '../../../../../common-adapters/progress-indicator'
 import Divider from '../../../../../common-adapters/divider'
 import FloatingMenu from '../../../../../common-adapters/floating-menu'
+import {MenuItem, MenuItems} from '../../../../../common-adapters/floating-menu/menu-layout'
 
 // This is actually a dependency of common-adapters/markdown so we have to treat it like a common-adapter, no * import allowed
 // TODO could make this more dynamic to avoid this (aka register with markdown what custom stuff you want)
@@ -24,7 +25,6 @@ const Kb = {
   Icon,
   ProgressIndicator,
   Text,
-  iconCastPlatformStyles,
 }
 
 const sendIcon = Styles.isMobile
@@ -72,13 +72,10 @@ const headerIcon = (props: HeaderProps) =>
       type="iconfont-time"
       color={Styles.globalColors.black_50}
       fontSize={pendingIconSize}
-      style={Kb.iconCastPlatformStyles(styles.pendingHeaderIcon)}
+      style={styles.pendingHeaderIcon}
     />
   ) : (
-    <Kb.Icon
-      type={props.icon === 'sending' ? sendIcon : receiveIcon}
-      style={Kb.iconCastPlatformStyles(styles.headerIcon)}
-    />
+    <Kb.Icon type={props.icon === 'sending' ? sendIcon : receiveIcon} style={styles.headerIcon} />
   )
 
 const Header = (props: HeaderProps) =>
@@ -153,12 +150,13 @@ const Header = (props: HeaderProps) =>
   )
 
 const PaymentPopup = (props: Props) => {
-  const items = !props.loading
+  const items: MenuItems = !props.loading
     ? [
         ...(props.onCancel
           ? [
               {
                 danger: true,
+                icon: 'iconfont-remove',
                 onClick: props.onCancel,
                 title: props.cancelButtonLabel,
               },
@@ -167,13 +165,19 @@ const PaymentPopup = (props: Props) => {
         ...(props.onSeeDetails
           ? [
               {
+                icon: 'iconfont-dollar-sign',
                 onClick: props.onSeeDetails,
                 title: 'See transaction details',
               },
             ]
           : []),
-        ...(props.onClaimLumens ? [{onClick: props.onClaimLumens, title: 'Claim lumens'}] : []),
-      ]
+        ...(props.onClaimLumens
+          ? [{icon: 'iconfont-stellar-request', onClick: props.onClaimLumens, title: 'Claim lumens'}]
+          : []),
+      ].reduce<MenuItems>((arr, i) => {
+        i && arr.push(i as MenuItem)
+        return arr
+      }, [])
     : []
 
   // separate out header props

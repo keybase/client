@@ -18,7 +18,6 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/uidmap"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -47,7 +46,7 @@ func (b *baseLocalizer) filterSelfFinalized(ctx context.Context, inbox types.Inb
 	res.ConvsUnverified = nil
 	for _, conv := range inbox.ConvsUnverified {
 		if conv.Conv.IsSelfFinalized(username) {
-			b.Debug(ctx, "baseLocalizer: skipping own finalized convo: %s name: %s", conv.ConvIDStr)
+			b.Debug(ctx, "baseLocalizer: skipping own finalized convo: %s", conv.ConvIDStr)
 			continue
 		}
 		res.ConvsUnverified = append(res.ConvsUnverified, conv)
@@ -722,15 +721,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		conversationRemote.GetConvID(), s.offline, conversationRemote.Metadata.Visibility)()
 
 	var err error
-	// Pick a source of usernames based on offline status, if we are offline then just use a
-	// type that just returns errors all the time (this will just use TLF name as the ordering)
-	var umapper libkb.UIDMapper
-	if s.offline {
-		umapper = &uidmap.OfflineUIDMap{}
-	} else {
-		umapper = s.G().UIDMapper
-	}
-
+	umapper := s.G().UIDMapper
 	conversationLocal.Info = chat1.ConversationInfoLocal{
 		Id:           conversationRemote.Metadata.ConversationID,
 		Visibility:   conversationRemote.Metadata.Visibility,

@@ -275,6 +275,8 @@
     "loadedFilesTabBadge": {
       "badge": "RPCTypes.FilesTabBadge"
     },
+    "userIn": {},
+    "userOut": {},
 
     "setDebugLevel": {
       "level": "string"

@@ -990,10 +990,23 @@ func (s *WalletStellarChainLink) VerifyReverseSig(_ ComputedKeyFamily) (err erro
 }
 
 func (s *WalletStellarChainLink) Display(m MetaContext, ui IdentifyUI) error {
+	// First get an up to date user card, since hiding the Stellar address affects it.
+	card, err := UserCard(m, s.GetUID(), true)
+	if err != nil {
+		return fmt.Errorf("Error getting usercard: %s", err)
+	}
+	selfUID := m.G().Env.GetUID()
+	if selfUID.IsNil() {
+		m.G().Log.Warning("Could not get self UID for api")
+	}
+	if card.StellarHidden && !selfUID.Equal(s.GetUID()) {
+		return nil
+	}
 	return ui.DisplayStellarAccount(m, keybase1.StellarAccount{
 		AccountID:         s.address,
 		FederationAddress: fmt.Sprintf("%s*keybase.io", s.GetUsername()),
 		SigID:             s.GetSigID(),
+		Hidden:            card.StellarHidden,
 	})
 }
 
@@ -1226,8 +1239,8 @@ func ParseSelfSigChainLink(base GenericChainLink) (ret *SelfSigChainLink, err er
 type IdentityTable struct {
 	Contextified
 	sigChain         *SigChain
-	revocations      map[keybase1.SigID]bool
-	links            map[keybase1.SigID]TypedChainLink
+	revocations      map[keybase1.SigIDMapKey]bool
+	links            map[keybase1.SigIDMapKey]TypedChainLink
 	remoteProofLinks *RemoteProofLinks
 	tracks           map[NormalizedUsername][]*TrackChainLink
 	Order            []TypedChainLink
@@ -1252,11 +1265,11 @@ func (idt *IdentityTable) HasStubs() bool {
 }
 
 func (idt *IdentityTable) insertLink(l TypedChainLink) {
-	idt.links[l.GetSigID()] = l
+	idt.links[l.GetSigID().ToMapKey()] = l
 	idt.Order = append(idt.Order, l)
 	for _, rev := range l.GetRevocations() {
-		idt.revocations[rev] = true
-		if targ, found := idt.links[rev]; !found {
+		idt.revocations[rev.ToMapKey()] = true
+		if targ, found := idt.links[rev.ToMapKey()]; !found {
 			idt.G().Log.Warning("Can't revoke signature %s @%s", rev, l.ToDebugString())
 		} else {
 			targ.markRevoked(l)
@@ -1325,8 +1338,8 @@ func NewIdentityTable(m MetaContext, eldest keybase1.KID, sc *SigChain, h *SigHi
 	ret := &IdentityTable{
 		Contextified:     NewContextified(m.G()),
 		sigChain:         sc,
-		revocations:      make(map[keybase1.SigID]bool),
-		links:            make(map[keybase1.SigID]TypedChainLink),
+		revocations:      make(map[keybase1.SigIDMapKey]bool),
+		links:            make(map[keybase1.SigIDMapKey]TypedChainLink),
 		remoteProofLinks: NewRemoteProofLinks(m.G()),
 		tracks:           make(map[NormalizedUsername][]*TrackChainLink),
 		sigHints:         h,

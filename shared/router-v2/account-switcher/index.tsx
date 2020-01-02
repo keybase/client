@@ -1,4 +1,5 @@
 import * as React from 'react'
+import './account-switcher.css'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as ConfigTypes from '../../constants/types/config'
@@ -75,22 +76,24 @@ const AccountRow = (props: AccountRowProps) => {
       }
   return (
     <Kb.ListItem2
-      type="Small"
-      icon={<Kb.Avatar size={32} username={props.entry.account.username} />}
+      type={Styles.isMobile ? 'Large' : 'Small'}
+      icon={<Kb.Avatar size={Styles.isMobile ? 48 : 32} username={props.entry.account.username} />}
       firstItem={true}
       body={
         <Kb.Box2 direction="vertical" fullWidth={true} style={props.waiting ? styles.waiting : undefined}>
           <Kb.Text type="BodySemibold">{props.entry.account.username}</Kb.Text>
-          <Kb.Box2 direction="horizontal" alignItems="flex-start" fullWidth={true}>
-            <Kb.Text type="BodySmall" lineClamp={1} style={styles.nameText}>
-              {props.entry.fullName}
-            </Kb.Text>
-            {!props.entry.account.hasStoredSecret && (
-              <Kb.Text type="BodySmall" style={styles.text2}>
-                {props.entry.fullName && ' · '}Signed out
+          {(props.entry.fullName || !props.entry.account.hasStoredSecret) && (
+            <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true}>
+              <Kb.Text type="BodySmall" lineClamp={1} style={styles.nameText}>
+                {props.entry.fullName}
               </Kb.Text>
-            )}
-          </Kb.Box2>
+              {!props.entry.account.hasStoredSecret && (
+                <Kb.Text type="BodySmall" style={styles.text2}>
+                  {props.entry.fullName && ' · '}Signed out
+                </Kb.Text>
+              )}
+            </Kb.Box2>
+          )}
           {clicked && <Kb.ProgressIndicator type="Large" style={styles.progressIndicator} />}
         </Kb.Box2>
       }
@@ -119,7 +122,7 @@ const AccountSwitcher = (props: Props) => (
       {Styles.isMobile ? (
         <AccountsRows {...props} />
       ) : (
-        <Kb.ScrollView style={styles.desktopScrollview}>
+        <Kb.ScrollView style={styles.desktopScrollview} className="accountSwitcherScrollView">
           <AccountsRows {...props} />
         </Kb.ScrollView>
       )}
@@ -133,7 +136,6 @@ export default Kb.HeaderHoc(AccountSwitcher)
 const styles = Styles.styleSheetCreate(() => ({
   buttonBox: Styles.padding(0, Styles.globalMargins.small, Styles.globalMargins.tiny),
   desktopScrollview: {
-    maxHeight: 170,
     width: 200,
   },
   divider: {width: '100%'},

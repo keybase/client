@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters/mobile.native'
 import * as Styles from '../../styles'
 import {RPCError} from '../../util/errors'
-import {Props as _Props} from './index'
+import {Props} from './index'
 
 type Size = 'Closed' | 'Small' | 'Big'
 
@@ -11,60 +11,54 @@ type State = {
   cachedDetails?: string
 }
 
-type Props = Kb.PropsWithTimer<_Props>
-
 class GlobalError extends React.Component<Props, State> {
   state: State
+  timerID?: NodeJS.Timer
 
   constructor(props: Props) {
     super(props)
 
     this.state = {
-      cachedDetails: this._detailsForError(props.error),
+      cachedDetails: this.detailsForError(props.error),
       size: 'Closed',
     }
   }
 
   componentDidMount() {
-    this._resetError(!!this.props.error)
+    this.resetError(!!this.props.error)
   }
 
-  _onExpandClick = () => {
+  componentWillUnmount() {
+    this.timerID && clearTimeout(this.timerID)
+  }
+
+  private onExpandClick = () => {
     this.setState({size: 'Big'})
   }
 
-  _resetError(newError: boolean) {
+  private resetError(newError: boolean) {
     const size = newError ? 'Small' : 'Closed'
     if (this.state.size !== size) {
       this.setState({size})
     }
   }
 
-  _detailsForError(err: null | Error | RPCError) {
+  private detailsForError(err: null | Error | RPCError) {
     return err ? err.stack : undefined
   }
 
   componentDidUpdate(prevProps: Props) {
     if (prevProps.error !== this.props.error) {
-      this.props.setTimeout(
+      this.timerID = setTimeout(
         () => {
           this.setState({
-            cachedDetails: this._detailsForError(this.props.error),
+            cachedDetails: this.detailsForError(this.props.error),
           })
         },
         this.props.error ? 0 : 7000
       ) // if it's set, do it immediately, if it's cleared set it in a bit
-      this._resetError(!!this.props.error)
+      this.resetError(!!this.props.error)
     }
-  }
-
-  _renderItem = (index: number, item: string) => {
-    return (
-      <Kb.Text key={String(index)} type="BodySmall" style={styles.itemText}>
-        {item}
-        {'\n'}
-      </Kb.Text>
-    )
   }
 
   render() {
@@ -90,7 +84,7 @@ class GlobalError extends React.Component<Props, State> {
               center={true}
               type="BodySmallSemibold"
               style={styles.errorText}
-              onClick={this._onExpandClick}
+              onClick={this.onExpandClick}
             >
               {this.state.size !== 'Big' && (
                 <Kb.Icon type="iconfont-caret-right" color={Styles.globalColors.white_75} sizeType="Tiny" />
@@ -174,4 +168,4 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export default Kb.HOCTimers(GlobalError)
+export default GlobalError

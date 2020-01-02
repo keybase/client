@@ -1435,6 +1435,11 @@
           "jsonkey": "admin_only"
         },
         {
+          "type": "boolean",
+          "name": "canPurchase",
+          "jsonkey": "can_purchase"
+        },
+        {
           "type": "string",
           "name": "extra"
         }

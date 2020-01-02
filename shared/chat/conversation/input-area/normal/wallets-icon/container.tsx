@@ -3,7 +3,6 @@ import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as WalletsGen from '../../../../../actions/wallets-gen'
 import * as Styles from '../../../../../styles'
 import * as Constants from '../../../../../constants/chat2'
-import logger from '../../../../../logger'
 import WalletsIconRender from '.'
 
 type OwnProps = {
@@ -13,11 +12,8 @@ type OwnProps = {
 
 const WalletsIcon = Container.namedConnect(
   state => {
-    const meta = Constants.getMeta(state, Constants.getSelectedConversation(state))
-    const otherParticipants = meta.participants.filter(u => u !== state.config.username)
-    if (otherParticipants.length !== 1) {
-      logger.warn('WalletsIcon: conversation has more than 1 other user. selecting first')
-    }
+    const participantInfo = Constants.getParticipantInfo(state, Constants.getSelectedConversation(state))
+    const otherParticipants = participantInfo.name.filter(u => u !== state.config.username)
     const _to = otherParticipants[0]
     return {
       _to,

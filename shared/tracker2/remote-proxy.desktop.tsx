@@ -26,7 +26,6 @@ const RemoteTracker2 = Container.compose(
     (state, ownProps: OwnProps) => {
       const d = Constants.getDetails(state, ownProps.username)
       return {
-        airdropIsLive: state.wallets.airdropDetails.isPromoted,
         assertions: d.assertions,
         bio: d.bio,
         blocked: d.blocked,
@@ -41,16 +40,15 @@ const RemoteTracker2 = Container.compose(
         location: d.location,
         loggedIn: state.config.loggedIn,
         reason: d.reason,
-        registeredForAirdrop: d.registeredForAirdrop,
         remoteWindowNeedsProps: ConfigConstants.getRemoteWindowPropsCount(
           state.config,
           'tracker2',
           ownProps.username
         ),
         state: d.state,
+        stellarHidden: d.stellarHidden,
         teamShowcase: d.teamShowcase,
         waiting: Container.anyWaiting(state, Constants.waitingKey),
-        youAreInAirdrop: false,
         yourUsername: state.config.username,
       }
     },
@@ -59,6 +57,7 @@ const RemoteTracker2 = Container.compose(
       return {
         assertions: stateProps.assertions,
         bio: stateProps.bio,
+        blocked: stateProps.blocked,
         darkMode: stateProps.darkMode,
         followThem: stateProps.followThem,
         followersCount: stateProps.followersCount,
@@ -66,10 +65,10 @@ const RemoteTracker2 = Container.compose(
         followsYou: stateProps.followsYou,
         fullname: stateProps.fullname,
         guiID: stateProps.guiID,
+        hidFromFollowers: stateProps.hidFromFollowers,
         isYou: stateProps.yourUsername === ownProps.username,
         location: stateProps.location,
         reason: stateProps.reason,
-        registeredForAirdrop: stateProps.registeredForAirdrop,
         remoteWindowNeedsProps: stateProps.remoteWindowNeedsProps,
         state: stateProps.state,
         teamShowcase: stateProps.teamShowcase,
@@ -80,7 +79,6 @@ const RemoteTracker2 = Container.compose(
         windowParam: ownProps.username,
         windowPositionBottomRight: true,
         windowTitle: `Tracker - ${ownProps.username}`,
-        youAreInAirdrop: stateProps.youAreInAirdrop,
       }
     }
   ),

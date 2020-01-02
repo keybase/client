@@ -62,7 +62,7 @@ export default class Asset extends React.Component<Props, State> {
               <Kb.Icon
                 type={this.state.expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
                 sizeType="Tiny"
-                style={Kb.iconCastPlatformStyles(styles.caret)}
+                style={styles.caret}
               />
               <Kb.Box2 direction="vertical">
                 <Kb.Text type="BodySemibold" lineClamp={1}>
@@ -255,11 +255,17 @@ const styles = Styles.styleSheetCreate(
         paddingLeft: Styles.globalMargins.medium,
         paddingRight: Styles.globalMargins.small,
       },
-      headerContainer: {
-        height: Styles.isMobile ? 56 : 48,
-        padding: Styles.globalMargins.tiny,
-        paddingRight: Styles.globalMargins.small,
-      },
+      headerContainer: Styles.platformStyles({
+        isElectron: {
+          height: 48,
+          padding: Styles.globalMargins.tiny,
+          paddingRight: Styles.globalMargins.small,
+        },
+        isMobile: {
+          ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
+          height: 56,
+        },
+      }),
       labelContainer: {
         flex: 1,
       },

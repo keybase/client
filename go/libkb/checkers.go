@@ -14,6 +14,7 @@ import (
 
 var emailRE = regexp.MustCompile(`^\S+@\S+\.\S+$`)
 
+// Also used in shared/signup/device-name/index.tsx
 var deviceRE = regexp.MustCompile(`^[a-zA-Z0-9][ _'a-zA-Z0-9+‘’—–-]*$`)
 var badDeviceRE = regexp.MustCompile(`  |[ '_-]$|['_-][ ]?['_-]`)
 var normalizeDeviceRE = regexp.MustCompile(`[^a-zA-Z0-9]`)
@@ -63,9 +64,18 @@ var CheckInviteCode = Checker{
 	Hint: "Invite codes are 4 or more characters",
 }
 
+func normalizeDeviceName(s string) string {
+	return strings.ToLower(normalizeDeviceRE.ReplaceAllString(s, ""))
+}
+
 var CheckDeviceName = Checker{
 	F: func(s string) bool {
-		return len(s) >= 3 && len(s) <= 64 && deviceRE.MatchString(s) && !badDeviceRE.MatchString(s)
+		normalized := normalizeDeviceName(s)
+
+		return len(normalized) >= 3 &&
+			len(normalized) <= 64 &&
+			deviceRE.MatchString(s) &&
+			!badDeviceRE.MatchString(s)
 	},
 	Transform: func(s string) string {
 		s = strings.Replace(s, "—", "-", -1) // em dash
@@ -75,7 +85,7 @@ var CheckDeviceName = Checker{
 		return s
 	},
 	Normalize: func(s string) string {
-		return strings.ToLower(normalizeDeviceRE.ReplaceAllString(s, ""))
+		return normalizeDeviceName(s)
 	},
 	Hint: "between 3 and 64 characters long; use a-Z, 0-9, space, plus, underscore, dash and apostrophe",
 }

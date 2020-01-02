@@ -270,7 +270,8 @@
     "messageSend": {
       "conversationIDKey": "Types.ConversationIDKey",
       "text": "HiddenString",
-      "replyTo?": "Types.MessageID"
+      "replyTo?": "Types.MessageID",
+      "waitingKey?": "string"
     },
     "messageSendByUsernames": {
       "usernames": "string",
@@ -813,6 +814,72 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "path": "string",
       "outboxID": "Buffer"
+    },
+    "loadNextBotPage": {
+      "_description": "loads next page of featured bots from backend",
+      "pageSize": "number"
+    },
+    "setLoadedBotPage": {
+      "_description": "set page # for a conversation",
+      "page": "number"
+    },
+    "refreshBotPublicCommands": {
+      "_description": "refresh bot public commands",
+      "username": "string"
+    },
+    "setBotPublicCommands": {
+      "_description": "set bot public commands",
+      "username": "string",
+      "commands": "Types.BotPublicCommands"
+    },
+    "addBotMember": {
+      "_description": "add bot member to channel",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "allowCommands": "boolean",
+      "allowMentions": "boolean",
+      "username": "string"
+    },
+    "refreshBotSettings": {
+      "_description": "refresh bot settings",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "username": "string"
+    },
+    "setBotSettings": {
+      "_description": "set bot settings",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "username": "string",
+      "settings": "RPCTypes.TeamBotSettings"
+    },
+    "removeBotMember": {
+      "_description": "remove a bot member",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "username": "string"
+    },
+    "editBotSettings": {
+      "_description": "edit bot settings",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "username": "string",
+      "allowCommands": "boolean",
+      "allowMentions": "boolean"
+    },
+    "loadMoreSmalls": {
+      "_description": "Tell the service to give us more small teams"
+    },
+    "resetSmalls": {
+      "_description": "Tell the service to revert to default number of small teams"
+    },
+    "setParticipants": {
+      "_description": "Set conversation participant info",
+      "participants": "Array<{conversationIDKey: Types.ConversationIDKey, participants: Types.ParticipantInfo}>"
+    },
+    "findGeneralConvIDFromTeamID": {
+      "_description": "Get the general channel conv ID from team ID",
+      "teamID": "TeamsTypes.TeamID"
+    },
+    "setGeneralConvFromTeamID": {
+      "_description": "Record teamID to general convID mapping",
+      "teamID": "TeamsTypes.TeamID",
+      "conversationIDKey": "Types.ConversationIDKey"
     }
   }
 }

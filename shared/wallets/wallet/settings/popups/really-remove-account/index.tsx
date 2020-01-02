@@ -74,7 +74,7 @@ const ReallyRemoveAccountPopup = (props: Props) => {
       <Kb.Box2 centerChildren={true} direction="vertical" style={styles.flexOne} fullWidth={true}>
         <Kb.Icon
           type={Styles.isMobile ? 'icon-wallet-secret-key-64' : 'icon-wallet-secret-key-48'}
-          style={Kb.iconCastPlatformStyles(styles.icon)}
+          style={styles.icon}
         />
         <Kb.Box2 direction="vertical">
           <Kb.Text center={true} style={styles.warningText} type="Header">

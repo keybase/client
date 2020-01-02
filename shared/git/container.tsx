@@ -36,7 +36,7 @@ type ExtraProps = {
 let moduleExpandedSet = new Set<string>()
 
 const GitReloadable = (p: Omit<GitProps & ExtraProps, 'onToggleExpand'>) => {
-  const {clearBadges, expandedSet: initialExpandedSet} = p
+  const {clearBadges, expandedSet: initialExpandedSet, _loadGit, ...rest} = p
   const [expandedSet, setExpandedSet] = React.useState(new Set<string>(initialExpandedSet))
 
   React.useEffect(() => {
@@ -48,8 +48,6 @@ const GitReloadable = (p: Omit<GitProps & ExtraProps, 'onToggleExpand'>) => {
     moduleExpandedSet.has(id) ? moduleExpandedSet.delete(id) : moduleExpandedSet.add(id)
     setExpandedSet(new Set(moduleExpandedSet))
   }
-
-  const {_loadGit, ...rest} = p
   return (
     <Kb.Reloadable
       waitingKeys={Constants.loadingWaitingKey}
@@ -70,9 +68,10 @@ GitReloadable.navigationOptions = Container.isMobile
       title: 'Git',
     }
 
+const emptySet = new Set<string>()
 export default Container.connect(
   (state: Container.TypedState, ownProps: OwnProps) => ({
-    expandedSet: Container.getRouteProps(ownProps, 'expandedSet', new Set<string>()),
+    expandedSet: Container.getRouteProps(ownProps, 'expandedSet', emptySet),
     loading: anyWaiting(state, Constants.loadingWaitingKey),
     ...getRepos(Constants.getIdToGit(state)),
   }),

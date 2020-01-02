@@ -474,3 +474,12 @@ func GetAuditClient(g *libkb.GlobalContext) (cli keybase1.AuditClient, err error
 	}
 	return
 }
+
+func GetFeaturedBotsClient(g *libkb.GlobalContext) (cli keybase1.FeaturedBotClient, err error) {
+	rcli, _, err := GetRPCClientWithContext(g)
+	if err != nil {
+		return cli, err
+	}
+	cli = keybase1.FeaturedBotClient{Cli: rcli}
+	return cli, nil
+}

@@ -21,7 +21,13 @@ func SendTeamChatWelcomeMessage(ctx context.Context, g *libkb.GlobalContext, tea
 	if err != nil {
 		return fmt.Errorf("getting team details: %v", err)
 	}
-
+	if team == "" && !teamID.IsNil() {
+		teamname, err := ResolveIDToName(ctx, g, teamID)
+		if err != nil {
+			return fmt.Errorf("getting team name: %v", err)
+		}
+		team = teamname.String()
+	}
 	var ownerNames, adminNames, writerNames, readerNames, botNames, restrictedBotNames []string
 	for _, owner := range teamDetails.Members.Owners {
 		ownerNames = append(ownerNames, owner.Username)

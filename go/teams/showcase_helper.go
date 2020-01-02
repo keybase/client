@@ -24,6 +24,7 @@ func GetTeamShowcase(ctx context.Context, g *libkb.GlobalContext, teamname strin
 func GetTeamShowcaseByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID) (ret keybase1.TeamShowcase, err error) {
 	arg := apiArg("team/get")
 	arg.Args.Add("id", libkb.S{Val: teamID.String()})
+	arg.Args.Add("showcase_only", libkb.B{Val: true})
 
 	var rt rawTeam
 	mctx := libkb.NewMetaContext(ctx, g)

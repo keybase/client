@@ -28,6 +28,10 @@ module.exports = (storybookBaseConfig, configType) => {
       path.join(__dirname, '/../util/__mocks__/typed-connect.tsx')
     ),
     new webpack.NormalModuleReplacementPlugin(
+      /safe-navigation/,
+      path.join(__dirname, '/../__mocks__/safe-navigation.tsx')
+    ),
+    new webpack.NormalModuleReplacementPlugin(
       /^electron$/,
       path.join(__dirname, '/../__mocks__/electron.js')
     ),

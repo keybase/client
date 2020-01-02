@@ -45,7 +45,7 @@ const ToKeybaseUser = (props: ToKeybaseUserProps) => {
             />
             <Kb.Icon
               type="iconfont-remove"
-              boxStyle={Kb.iconCastPlatformStyles(styles.keybaseUserRemoveButton)}
+              boxStyle={styles.keybaseUserRemoveButton}
               fontSize={16}
               color={Styles.globalColors.black_20}
               onClick={props.onRemoveProfile}
@@ -158,7 +158,7 @@ const ToStellarPublicKey = (props: ToStellarPublicKeyProps) => {
               color={Styles.globalColors.black_50}
               type="iconfont-qr-code"
               onClick={props.onScanQRCode}
-              style={Kb.iconCastPlatformStyles(styles.qrCode)}
+              style={styles.qrCode}
             />
           )}
         </Kb.Box2>

@@ -15,38 +15,32 @@ const Info = props => (
       <Kb.Text type="BodySemibold" style={styles.centered}>
         Fill in your public info.
       </Kb.Text>
-      <Kb.Input
+      <Kb.LabeledInput
         autoFocus={true}
-        hintText="Your full name"
+        placeholder="Your full name"
         value={props.fullName}
         onChangeText={props.onChangeFullName}
       />
-      <Kb.Input
-        small={true}
-        smallLabel="Email 1:"
-        hintText="(required)"
+      <Kb.LabeledInput
+        placeholder="Email 1"
         onChangeText={props.onChangeEmail1}
         onEnterKeyDown={props.onNext}
         value={props.email1}
-        errorText={props.errorEmail1 ? 'error' : null}
+        error={props.errorEmail1}
       />
-      <Kb.Input
-        small={true}
-        smallLabel="Email 2:"
-        hintText="(optional)"
+      <Kb.LabeledInput
+        placeholder="Email 2 (optional)"
         onChangeText={props.onChangeEmail2}
         onEnterKeyDown={props.onNext}
         value={props.email2}
-        errorText={props.errorEmail2 ? 'error' : null}
+        error={props.errorEmail2}
       />
-      <Kb.Input
-        small={true}
-        smallLabel="Email 3:"
-        hintText="(optional)"
+      <Kb.LabeledInput
+        placeholder="Email 3 (optional)"
         onChangeText={props.onChangeEmail3}
         onEnterKeyDown={props.onNext}
         value={props.email3}
-        errorText={props.errorEmail3 ? 'error' : null}
+        error={props.errorEmail3}
       />
       <Kb.Text type={props.errorText ? 'BodySmallError' : 'BodySmall'}>
         {props.errorText || 'Include any addresses you plan to use for PGP encrypted email.'}

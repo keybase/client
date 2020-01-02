@@ -27,7 +27,6 @@ public class AppearanceModule extends ReactContextBaseJavaModule {
     public static final String NAME = "Appearance";
 
     private static final String APPEARANCE_CHANGED_EVENT_NAME = "appearanceChanged";
-    private static final int ANDROID_TEN = 29;
 
     private String mColorScheme = "light";
 
@@ -38,8 +37,7 @@ public class AppearanceModule extends ReactContextBaseJavaModule {
     }
 
     private static String colorSchemeForCurrentConfiguration(Context context) {
-        // TODO: (hramos) T52929922: Switch to Build.VERSION_CODES.ANDROID_TEN or equivalent
-        if (Build.VERSION.SDK_INT >= ANDROID_TEN) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             int currentNightMode =
                     context.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
             switch (currentNightMode) {
@@ -98,7 +96,7 @@ public class AppearanceModule extends ReactContextBaseJavaModule {
     public Map<String, Object> getConstants() {
         final Map<String, Object> constants = new HashMap<>();
         constants.put("initialColorScheme", this.getColorScheme());
-        constants.put("supported", Build.VERSION.SDK_INT >= ANDROID_TEN ? "1" : "0");
+        constants.put("supported", Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q ? "1" : "0");
         return constants;
     }
 }

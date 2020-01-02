@@ -102,6 +102,12 @@ func (r *userHandler) userBlocked(m libkb.MetaContext, cli gregor1.IncomingInter
 		if (r.Chat != nil && *r.Chat) || (r.Follow != nil && *r.Follow) {
 			badUIDs[r.Uid] = true
 		}
+
+		// regardless of status, clear user card cache for any uid
+		// that changed
+		if err := m.G().CardCache().Delete(r.Uid); err != nil {
+			m.Debug("CardCache.Delete(%s) error: %s", r.Uid, err)
+		}
 	}
 
 	// Ignore the error if we fail to block properly
@@ -114,7 +120,16 @@ func (r *userHandler) userBlocked(m libkb.MetaContext, cli gregor1.IncomingInter
 			m.Warning("Error handling UserBlocked message: %s", tmp)
 		}
 	}
+
 	r.G().NotifyRouter.HandleUserBlocked(m.Ctx(), msg)
+
+	r.G().GetStellar().Refresh(m, "user.blocked message")
+
+	// dismiss this locally so it is only processed once per device
+	if err := r.G().GregorState.LocalDismissItem(m.Ctx(), item.Metadata().MsgID()); err != nil {
+		m.Warning("error in LocalDismissItem: %s", err)
+	}
+
 	return nil
 }
 

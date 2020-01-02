@@ -689,7 +689,8 @@
       "symbols": [
         "MAIN_0",
         "BLINDED_1",
-        "SELF_2"
+        "SELF_2",
+        "UNCOMMITTED_3"
       ]
     },
     {
@@ -741,6 +742,18 @@
         {
           "type": "Seqno",
           "name": "latestSeqnoHint"
+        },
+        {
+          "type": "Seqno",
+          "name": "lastCommittedSeqno"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "Time",
+            "keys": "Seqno"
+          },
+          "name": "linkReceiptTimes"
         },
         {
           "type": {
@@ -1631,6 +1644,11 @@
       "name": "TeamMemberOutFromReset",
       "fields": [
         {
+          "type": "TeamID",
+          "name": "teamID",
+          "jsonkey": "team_id"
+        },
+        {
           "type": "string",
           "name": "teamName",
           "jsonkey": "team_name"
@@ -2164,6 +2182,10 @@
         {
           "type": "boolean",
           "name": "forceRefresh"
+        },
+        {
+          "type": "boolean",
+          "name": "hiddenChainIsOptional"
         }
       ]
     },
@@ -2391,11 +2413,20 @@
         },
         {
           "type": "boolean",
-          "name": "emailSent"
-        },
-        {
-          "type": "boolean",
           "name": "chatSending"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamAddMembersResult",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "User"
+          },
+          "name": "notAdded"
         }
       ]
     },
@@ -2876,6 +2907,10 @@
       "name": "TeamProfileAddEntry",
       "fields": [
         {
+          "type": "TeamID",
+          "name": "teamID"
+        },
+        {
           "type": "TeamName",
           "name": "teamName"
         },
@@ -2983,6 +3018,20 @@
     },
     {
       "type": "record",
+      "name": "AnnotatedTeamMemberDetails",
+      "fields": [
+        {
+          "type": "TeamMemberDetails",
+          "name": "details"
+        },
+        {
+          "type": "TeamRole",
+          "name": "role"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "AnnotatedTeam",
       "fields": [
         {
@@ -3000,7 +3049,7 @@
         {
           "type": {
             "type": "array",
-            "items": "TeamMemberDetails"
+            "items": "AnnotatedTeamMemberDetails"
           },
           "name": "members"
         },
@@ -3222,11 +3271,15 @@
           "type": "int"
         },
         {
-          "name": "name",
-          "type": "string"
+          "name": "teamID",
+          "type": "TeamID"
         },
         {
           "name": "email",
+          "type": "string"
+        },
+        {
+          "name": "phone",
           "type": "string"
         },
         {
@@ -3258,8 +3311,8 @@
           "type": "int"
         },
         {
-          "name": "name",
-          "type": "string"
+          "name": "teamID",
+          "type": "TeamID"
         },
         {
           "name": "assertions",
@@ -3284,7 +3337,7 @@
           "type": "boolean"
         }
       ],
-      "response": null
+      "response": "TeamAddMembersResult"
     },
     "teamAddMembersMultiRole": {
       "request": [
@@ -3293,8 +3346,8 @@
           "type": "int"
         },
         {
-          "name": "name",
-          "type": "string"
+          "name": "teamID",
+          "type": "TeamID"
         },
         {
           "name": "users",
@@ -3308,7 +3361,7 @@
           "type": "boolean"
         }
       ],
-      "response": null
+      "response": "TeamAddMembersResult"
     },
     "teamRemoveMember": {
       "request": [
@@ -3317,8 +3370,8 @@
           "type": "int"
         },
         {
-          "name": "name",
-          "type": "string"
+          "name": "teamID",
+          "type": "TeamID"
         },
         {
           "name": "username",
@@ -3984,6 +4037,16 @@
       ],
       "response": "TeamID",
       "doc": "Gets a TeamID from a team name string. Returns an error if the\n   current user can't read the team."
+    },
+    "getTeamName": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "TeamID"
+        }
+      ],
+      "response": "TeamName",
+      "doc": "Gets a TeamName from a team id string. Returns an error if the\n   current user can't read the team."
     },
     "ftl": {
       "request": [

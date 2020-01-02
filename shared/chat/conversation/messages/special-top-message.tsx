@@ -10,6 +10,8 @@ import * as Styles from '../../../styles'
 import NewChatCard from './cards/new-chat'
 import HelloBotCard from './cards/hello-bot'
 import MakeTeamCard from './cards/make-team'
+import * as FsConstants from '../../../constants/fs'
+import * as FsTypes from '../../../constants/types/fs'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
@@ -21,8 +23,10 @@ type Props = {
   createConversationError: string | null
   hasOlderResetConversation: boolean
   isHelloBotConversation: boolean
+  isSelfConversation: boolean
   loadMoreType: 'moreToLoad' | 'noMoreToLoad'
   measure: (() => void) | null
+  openPrivateFolder: () => void
   pendingState: 'waiting' | 'error' | 'done'
   showRetentionNotice: boolean
   showTeamOffer: boolean
@@ -69,7 +73,14 @@ class TopMessage extends React.PureComponent<Props> {
           !this.props.showRetentionNotice &&
           this.props.pendingState === 'done' && (
             <Kb.Box style={styles.more}>
-              {this.props.isHelloBotConversation ? <HelloBotCard /> : <NewChatCard />}
+              {this.props.isHelloBotConversation ? (
+                <HelloBotCard />
+              ) : (
+                <NewChatCard
+                  self={this.props.isSelfConversation}
+                  openPrivateFolder={this.props.openPrivateFolder}
+                />
+              )}
             </Kb.Box>
           )}
         {this.props.showTeamOffer && (
@@ -120,6 +131,7 @@ export default Container.namedConnect(
   (state, ownProps: OwnProps) => {
     const hasLoadedEver = state.chat2.messageOrdinals.get(ownProps.conversationIDKey) !== undefined
     const meta = Constants.getMeta(state, ownProps.conversationIDKey)
+    const participantInfo = Constants.getParticipantInfo(state, ownProps.conversationIDKey)
 
     let pendingState: Props['pendingState']
     switch (ownProps.conversationIDKey) {
@@ -141,7 +153,7 @@ export default Container.namedConnect(
       hasLoadedEver &&
       loadMoreType === 'noMoreToLoad' &&
       meta.teamType === 'adhoc' &&
-      meta.participants.length > 2
+      participantInfo.all.length > 2
     const hasOlderResetConversation = meta.supersedes !== Constants.noConversationIDKey
     // don't show default header in the case of the retention notice being visible
     const showRetentionNotice =
@@ -149,22 +161,40 @@ export default Container.namedConnect(
       !(meta.retentionPolicy.type === 'inherit' && meta.teamRetentionPolicy.type === 'retain')
     const {createConversationError} = state.chat2
     const isHelloBotConversation =
-      hasLoadedEver && meta.teamType === 'adhoc' && meta.participants.includes('hellobot')
+      hasLoadedEver &&
+      meta.teamType === 'adhoc' &&
+      participantInfo.all.length === 2 &&
+      participantInfo.all.includes('hellobot')
+    const isSelfConversation =
+      meta.teamType === 'adhoc' &&
+      participantInfo.all.length === 1 &&
+      participantInfo.all.includes(state.config.username)
     return {
       conversationIDKey: ownProps.conversationIDKey,
       createConversationError,
       hasOlderResetConversation,
       isHelloBotConversation,
+      isSelfConversation,
       loadMoreType,
       measure: ownProps.measure,
       pendingState,
       showRetentionNotice,
       showTeamOffer,
+      username: state.config.username,
     }
   },
-  () => ({}),
-  (stateProps, _, __: OwnProps) => ({
-    ...stateProps,
+  dispatch => ({
+    _openPrivateFolder: (username: string) =>
+      dispatch(
+        FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/private/${username}`))
+      ),
   }),
+  (stateProps, dispatchProps, __: OwnProps) => {
+    const {username, ...props} = stateProps
+    return {
+      openPrivateFolder: () => dispatchProps._openPrivateFolder(username),
+      ...props,
+    }
+  },
   'TopMessage'
 )(TopMessage)

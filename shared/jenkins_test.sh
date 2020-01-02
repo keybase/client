@@ -30,8 +30,8 @@ has_js_files() {
         echo 'Missing $change_target, forcing has_js_files to true'
         return
     fi
-    echo 'git fetch'
-    git fetch
+    echo 'git fetch -q'
+    git fetch -q
     check_rc $? 'echo git fetch problem' 1
     echo 'git diff'
     git diff --name-only "$change_base...$commit_hash"

@@ -25,7 +25,7 @@ import com.facebook.react.ReactApplication;
 import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReactContext;
-import com.facebook.react.ReactFragmentActivity;
+import com.facebook.react.ReactActivity;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.facebook.react.modules.core.PermissionListener;
@@ -47,12 +47,13 @@ import io.keybase.ossifrage.modules.AppearanceModule;
 import io.keybase.ossifrage.modules.KeybaseEngine;
 import io.keybase.ossifrage.modules.NativeLogger;
 import io.keybase.ossifrage.util.DNSNSFetcher;
+import io.keybase.ossifrage.util.GuiConfig;
 import io.keybase.ossifrage.util.VideoHelper;
 import keybase.Keybase;
 
 import static keybase.Keybase.initOnce;
 
-public class MainActivity extends ReactFragmentActivity {
+public class MainActivity extends ReactActivity {
   private static final String TAG = MainActivity.class.getName();
   private PermissionListener listener;
   static boolean createdReact = false;
@@ -82,7 +83,7 @@ public class MainActivity extends ReactFragmentActivity {
   }
 
   private ReactContext getReactContext() {
-    ReactInstanceManager instanceManager = getReactInstanceManager();
+    ReactInstanceManager instanceManager = ((ReactApplication) getApplication()).getReactNativeHost().getReactInstanceManager();
     if (instanceManager == null) {
       NativeLogger.warn("react instance manager not ready");
       return null;
@@ -114,11 +115,8 @@ public class MainActivity extends ReactFragmentActivity {
 
   }
 
-  private static final int ANDROID_TEN = 29;
-
   private String colorSchemeForCurrentConfiguration() {
-    // TODO: (hramos) T52929922: Switch to Build.VERSION_CODES.ANDROID_TEN or equivalent
-    if (Build.VERSION.SDK_INT >= ANDROID_TEN) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
       int currentNightMode =
         this.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
       switch (currentNightMode) {
@@ -136,7 +134,7 @@ public class MainActivity extends ReactFragmentActivity {
   @Override
   @TargetApi(Build.VERSION_CODES.KITKAT)
   protected void onCreate(Bundle savedInstanceState) {
-    ReactInstanceManager instanceManager = this.getReactInstanceManager();
+    ReactInstanceManager instanceManager = ((ReactApplication) getApplication()).getReactNativeHost().getReactInstanceManager();
     if (!this.createdReact) {
       this.createdReact = true;
       instanceManager.createReactContextInBackground();
@@ -148,8 +146,7 @@ public class MainActivity extends ReactFragmentActivity {
 
     new android.os.Handler().postDelayed(new Runnable() {
       public void run() {
-        // TODO, read this pref from go
-        setBackgroundColor(DarkModePreference.System);
+        setBackgroundColor(GuiConfig.getInstance(getFilesDir()).getDarkMode());
       }
     }, 300);
 
@@ -388,7 +385,7 @@ public class MainActivity extends ReactFragmentActivity {
   @Override
   public void onConfigurationChanged(Configuration newConfig) {
     super.onConfigurationChanged(newConfig);
-    ReactInstanceManager instanceManager = getReactInstanceManager();
+    ReactInstanceManager instanceManager = ((ReactApplication) getApplication()).getReactNativeHost().getReactInstanceManager();
 
     if (instanceManager != null) {
       //instanceManager.onConfigurationChanged(newConfig);
@@ -398,7 +395,7 @@ public class MainActivity extends ReactFragmentActivity {
       }
     }
 
-    setBackgroundColor(DarkModePreference.System);
+    setBackgroundColor(GuiConfig.getInstance(getFilesDir()).getDarkMode());
   }
 
   public void setBackgroundColor(DarkModePreference pref) {

@@ -385,17 +385,21 @@ func (fbo *folderBlockOps) getBlockHelperLocked(ctx context.Context,
 	}
 
 	if block, lifetime, err := fbo.config.BlockCache().GetWithLifetime(ptr); err == nil {
-		// If the block was cached in the past, we need to handle it as if it's
-		// an on-demand request so that its downstream prefetches are triggered
-		// correctly according to the new on-demand fetch priority.
-		action := fbo.config.Mode().DefaultBlockRequestAction()
-		if fbo.config.IsSyncedTlf(fbo.id()) {
-			action = action.AddSync()
+		if lifetime != data.PermanentEntry {
+			// If the block was cached in the past, and is not a permanent
+			// block (i.e., currently being written by the user), we need
+			// to handle it as if it's an on-demand request so that its
+			// downstream prefetches are triggered correctly according to
+			// the new on-demand fetch priority.
+			action := fbo.config.Mode().DefaultBlockRequestAction()
+			if fbo.config.IsSyncedTlf(fbo.id()) {
+				action = action.AddSync()
+			}
+			prefetchStatus := fbo.config.PrefetchStatus(ctx, fbo.id(), ptr)
+			fbo.config.BlockOps().Prefetcher().ProcessBlockForPrefetch(ctx, ptr,
+				block, kmd, defaultOnDemandRequestPriority-1, lifetime,
+				prefetchStatus, action)
 		}
-		prefetchStatus := fbo.config.PrefetchStatus(ctx, fbo.id(), ptr)
-		fbo.config.BlockOps().Prefetcher().ProcessBlockForPrefetch(ctx, ptr,
-			block, kmd, defaultOnDemandRequestPriority-1, lifetime,
-			prefetchStatus, action)
 		return block, nil
 	}
 

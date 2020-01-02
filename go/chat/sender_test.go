@@ -310,9 +310,9 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	g.RegexpSearcher = searcher
 	indexer := search.NewIndexer(g)
 	ictx := globals.CtxAddIdentifyMode(context.Background(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil)
-	indexer.Start(ictx, uid)
 	indexer.SetPageSize(2)
 	indexer.SetStartSyncDelay(0)
+	indexer.Start(ictx, uid)
 	g.Indexer = indexer
 	g.AttachmentURLSrv = types.DummyAttachmentHTTPSrv{}
 	g.Unfurler = types.DummyUnfurler{}
@@ -326,6 +326,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	g.CoinFlipManager = NewFlipManager(g, getRI)
 	g.CoinFlipManager.Start(context.TODO(), uid)
 	g.UIInboxLoader = types.DummyUIInboxLoader{}
+	g.UIThreadLoader = NewUIThreadLoader(g)
 
 	return ctx, world, ri, sender, baseSender, &listener
 }

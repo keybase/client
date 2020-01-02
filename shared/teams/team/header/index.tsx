@@ -6,6 +6,7 @@ import AddPeopleHow from './add-people-how/container'
 import NameWithIconWrapper from './name-with-icon-wrapper'
 import * as Styles from '../../../styles'
 import * as ImagePicker from 'expo-image-picker'
+import {pluralize} from '../../../util/string'
 
 export type Props = {
   canChat: boolean
@@ -105,11 +106,7 @@ const _TeamHeader = (props: Props) => (
       <Kb.ButtonBar direction="row" style={styles.buttonBar}>
         {props.canChat && (
           <Kb.Button label="Chat" onClick={props.onChat}>
-            <Kb.Icon
-              type="iconfont-chat"
-              style={Kb.iconCastPlatformStyles(styles.chatIcon)}
-              color={Styles.globalColors.whiteOrWhite}
-            />
+            <Kb.Icon type="iconfont-chat" style={styles.chatIcon} color={Styles.globalColors.whiteOrWhite} />
           </Kb.Button>
         )}
         {props.canManageMembers && (
@@ -147,10 +144,10 @@ const _TeamHeader = (props: Props) => (
 const TeamHeader = Kb.OverlayParentHOC(_TeamHeader)
 
 const getTeamSubtitle = (memberCount: number, role: Types.MaybeTeamRoleType): string => {
-  let res = `${memberCount} member`
-  if (memberCount !== 1) {
-    res += 's'
+  if (memberCount === -1) {
+    return Constants.typeToLabel[role]
   }
+  let res = `${memberCount} ${pluralize('member', memberCount)}`
   if (role && role !== 'none') {
     res += ` • ${Constants.typeToLabel[role]}`
   }

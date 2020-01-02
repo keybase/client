@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Constants from '../../../../../constants/chat2'
 import * as TeamConstants from '../../../../../constants/teams'
 import * as Types from '../../../../../constants/types/chat2'
+import * as TeamTypes from '../../../../../constants/types/teams'
 import * as ConfigGen from '../../../../../actions/config-gen'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as FsGen from '../../../../../actions/fs-gen'
@@ -27,8 +28,9 @@ export default Container.connect(
   (state, ownProps: OwnProps) => {
     const yourMessage = ownProps.message.author === state.config.username
     const meta = Constants.getMeta(state, ownProps.message.conversationIDKey)
+    const participantInfo = Constants.getParticipantInfo(state, ownProps.message.conversationIDKey)
     const _canDeleteHistory =
-      meta.teamType === 'adhoc' || TeamConstants.getCanPerform(state, meta.teamname).deleteChatHistory
+      meta.teamType === 'adhoc' || TeamConstants.getCanPerformByID(state, meta.teamID).deleteChatHistory
     const _canExplodeNow = (yourMessage || _canDeleteHistory) && ownProps.message.isDeleteable
     const _canEdit = yourMessage && ownProps.message.isEditable
     const _mapUnfurl = Constants.getMapUnfurl(ownProps.message)
@@ -36,7 +38,7 @@ export default Container.connect(
     const _canReplyPrivately =
       !yourMessage &&
       ownProps.message.type === 'text' &&
-      (['small', 'big'].includes(meta.teamType) || meta.participants.length > 2)
+      (['small', 'big'].includes(meta.teamType) || participantInfo.all.length > 2)
 
     return {
       _canDeleteHistory,
@@ -44,9 +46,11 @@ export default Container.connect(
       _canExplodeNow,
       _canReplyPrivately,
       _mapUnfurl,
-      _participants: meta.participants,
+      _participants: participantInfo.all,
+      _teamID: meta.teamID,
       _teamname: meta.teamname,
       author: ownProps.message.author,
+      botUsername: ownProps.message.type === 'text' ? ownProps.message.botUsername : undefined,
       deviceName: ownProps.message.deviceName,
       deviceRevokedAt: ownProps.message.deviceRevokedAt,
       deviceType: ownProps.message.deviceType,
@@ -108,10 +112,10 @@ export default Container.connect(
           ordinal: ownProps.message.ordinal,
         })
       ),
-    _onKick: (teamname: string, username: string) =>
+    _onKick: (teamID: TeamTypes.TeamID, username: string) =>
       dispatch(
         RouteTreeGen.createNavigateAppend({
-          path: [{props: {navToChat: true, teamname, username}, selected: 'teamReallyRemoveMember'}],
+          path: [{props: {navToChat: true, teamID, username}, selected: 'teamReallyRemoveMember'}],
         })
       ),
     _onPinMessage: () => {
@@ -154,6 +158,23 @@ export default Container.connect(
         ownProps.message.downloadPath &&
         dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: ownProps.message.downloadPath}))
     },
+    _onUserBlock: (message: Types.Message, isSingle: boolean) => {
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [
+            {
+              props: {
+                blockUserByDefault: true,
+                context: isSingle ? 'message-popup-single' : 'message-popup',
+                convID: message.conversationIDKey,
+                username: message.author,
+              },
+              selected: 'chatBlockingModal',
+            },
+          ],
+        })
+      )
+    },
   }),
   (stateProps, dispatchProps, ownProps) => {
     const authorInConv = stateProps._participants.includes(ownProps.message.author)
@@ -161,20 +182,23 @@ export default Container.connect(
     if (stateProps._canExplodeNow) {
       items.push({
         danger: true,
+        icon: 'iconfont-bomb',
         onClick: dispatchProps._onExplodeNow,
         title: 'Explode now',
       })
     }
-    if (stateProps._canDeleteHistory && stateProps._teamname && !stateProps.yourMessage && authorInConv) {
+    if (stateProps._canDeleteHistory && stateProps._teamID && !stateProps.yourMessage && authorInConv) {
       items.push({
         danger: true,
-        onClick: () => dispatchProps._onKick(stateProps._teamname, stateProps.author),
+        icon: 'iconfont-block-user',
+        onClick: () => dispatchProps._onKick(stateProps._teamID, stateProps.author),
         title: 'Kick user',
       })
     }
     if (Container.isMobile) {
       // 'Add a reaction' is an option on mobile
       items.push({
+        icon: 'iconfont-reacji',
         onClick: dispatchProps._onAddReaction,
         title: 'Add a reaction',
       })
@@ -183,21 +207,21 @@ export default Container.connect(
     if (message.type === 'attachment') {
       if (Container.isMobile) {
         if (message.attachmentType === 'image') {
-          items.push({onClick: dispatchProps._onSaveAttachment, title: 'Save'})
+          items.push({icon: 'iconfont-download-2', onClick: dispatchProps._onSaveAttachment, title: 'Save'})
         }
         if (isIOS) {
-          items.push({onClick: dispatchProps._onShareAttachment, title: 'Share'})
+          items.push({icon: 'iconfont-share', onClick: dispatchProps._onShareAttachment, title: 'Share'})
         }
       } else {
         items.push(
           !message.downloadPath
-            ? {onClick: dispatchProps._onDownload, title: 'Download'}
-            : {onClick: dispatchProps._onShowInFinder, title: 'Show in finder'}
+            ? {icon: 'iconfont-download-2', onClick: dispatchProps._onDownload, title: 'Download'}
+            : {icon: 'iconfont-finder', onClick: dispatchProps._onShowInFinder, title: 'Show in finder'}
         )
       }
-      items.push({onClick: dispatchProps._onAllMedia, title: 'All media'})
-      items.push({onClick: dispatchProps._onReply, title: 'Reply'})
-      items.push({onClick: dispatchProps._onPinMessage, title: 'Pin message'})
+      items.push({icon: 'iconfont-camera', onClick: dispatchProps._onAllMedia, title: 'All media'})
+      items.push({icon: 'iconfont-reply', onClick: dispatchProps._onReply, title: 'Reply'})
+      items.push({icon: 'iconfont-pin', onClick: dispatchProps._onPinMessage, title: 'Pin message'})
     } else {
       if (
         stateProps._mapUnfurl &&
@@ -205,26 +229,41 @@ export default Container.connect(
         !stateProps._mapUnfurl.mapInfo.isLiveLocationDone
       ) {
         const url = stateProps._mapUnfurl.url
-        items.push({onClick: () => openURL(url), title: 'View on Google Maps'})
+        items.push({icon: 'iconfont-location', onClick: () => openURL(url), title: 'View on Google Maps'})
       }
       if (stateProps._canEdit) {
-        items.push({onClick: dispatchProps._onEdit, title: 'Edit'})
+        items.push({icon: 'iconfont-edit', onClick: dispatchProps._onEdit, title: 'Edit'})
       }
-      items.push({onClick: dispatchProps._onCopy, title: 'Copy text'})
-      items.push({onClick: dispatchProps._onReply, title: 'Reply'})
+      items.push({icon: 'iconfont-clipboard', onClick: dispatchProps._onCopy, title: 'Copy text'})
+      items.push({icon: 'iconfont-reply', onClick: dispatchProps._onReply, title: 'Reply'})
       if (stateProps._canReplyPrivately) {
-        items.push({onClick: dispatchProps._onReplyPrivately, title: 'Reply privately'})
+        items.push({
+          icon: 'iconfont-reply',
+          onClick: dispatchProps._onReplyPrivately,
+          title: 'Reply privately',
+        })
       }
-      items.push({onClick: dispatchProps._onPinMessage, title: 'Pin message'})
+      items.push({icon: 'iconfont-pin', onClick: dispatchProps._onPinMessage, title: 'Pin message'})
+    }
+    if (!stateProps.yourMessage && message.author) {
+      const blockModalSingle = !stateProps._teamname && stateProps._participants.length === 2
+      items.push({
+        danger: true,
+        icon: 'iconfont-block-user',
+        onClick: () => dispatchProps._onUserBlock(message, blockModalSingle),
+        title: stateProps._teamname ? 'Report user' : 'Block user',
+      })
     }
     return {
       attachTo: ownProps.attachTo,
       author: stateProps.author,
+      botUsername: stateProps.botUsername,
       deviceName: stateProps.deviceName,
       deviceRevokedAt: stateProps.deviceRevokedAt,
       deviceType: stateProps.deviceType,
       explodesAt: stateProps.explodesAt,
       hideTimer: stateProps.hideTimer,
+      isTeam: !!stateProps._teamname,
       items,
       onHidden: ownProps.onHidden,
       position: ownProps.position,

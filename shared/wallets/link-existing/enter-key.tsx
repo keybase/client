@@ -23,12 +23,8 @@ const EnterKey = (props: EnterKeyProps) => (
       </Kb.Box2>
     )}
     <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.inputContainer}>
-      <Kb.Text type="BodySmallSemibold" style={{color: Styles.globalColors.blueDark}}>
-        Paste your secret key
-      </Kb.Text>
-      <Kb.NewInput
-        placeholder="SDNBUW...SC7632"
-        style={styles.input}
+      <Kb.LabeledInput
+        placeholder="Paste your secret key (SDNBUW...SC7632)"
         multiline={true}
         rowsMin={2}
         rowsMax={2}
@@ -36,7 +32,7 @@ const EnterKey = (props: EnterKeyProps) => (
         onChangeText={props.onKeyChange}
         autoFocus={true}
         maxLength={56}
-        hideBorder={Styles.isMobile}
+        error={!!props.error}
       />
       {!!props.error && (
         <Kb.Text type="BodySmall" style={styles.error}>
@@ -74,7 +70,6 @@ const styles = Styles.styleSheetCreate(
           paddingRight: Styles.globalMargins.medium,
         },
       }),
-      input: Styles.platformStyles({common: {margin: 0}, isElectron: {width: '100%'}}),
       inputContainer: Styles.platformStyles({
         common: {
           alignItems: 'flex-start',

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/ephemeral"
@@ -27,6 +28,12 @@ type UIThreadLoader struct {
 	clock          clockwork.Clock
 	convPageStatus map[string]chat1.Pagination
 	validatedDelay time.Duration
+	offlineMu      sync.Mutex
+	offline        bool
+	connectedCh    chan struct{}
+
+	activeConvLoadsMu sync.Mutex
+	activeConvLoads   map[string]context.CancelFunc
 
 	// testing
 	cachedThreadDelay  *time.Duration
@@ -37,13 +44,40 @@ type UIThreadLoader struct {
 func NewUIThreadLoader(g *globals.Context) *UIThreadLoader {
 	cacheDelay := 10 * time.Millisecond
 	return &UIThreadLoader{
+		offline:           false,
 		Contextified:      globals.NewContextified(g),
 		DebugLabeler:      utils.NewDebugLabeler(g.GetLog(), "UIThreadLoader", false),
 		convPageStatus:    make(map[string]chat1.Pagination),
 		clock:             clockwork.NewRealClock(),
 		validatedDelay:    100 * time.Millisecond,
 		cachedThreadDelay: &cacheDelay,
+		activeConvLoads:   make(map[string]context.CancelFunc),
+		connectedCh:       make(chan struct{}),
 	}
+}
+
+var _ types.UIThreadLoader = (*UIThreadLoader)(nil)
+
+func (t *UIThreadLoader) Connected(ctx context.Context) {
+	t.offlineMu.Lock()
+	defer t.offlineMu.Unlock()
+	t.offline = false
+	select {
+	case t.connectedCh <- struct{}{}:
+	default:
+	}
+}
+
+func (t *UIThreadLoader) Disconnected(ctx context.Context) {
+	t.offlineMu.Lock()
+	defer t.offlineMu.Unlock()
+	t.offline = true
+}
+
+func (t *UIThreadLoader) IsOffline(ctx context.Context) bool {
+	t.offlineMu.Lock()
+	defer t.offlineMu.Unlock()
+	return t.offline
 }
 
 func (t *UIThreadLoader) groupGeneric(ctx context.Context, uid gregor1.UID, msgs []chat1.MessageUnboxed,
@@ -415,6 +449,12 @@ func (t *UIThreadLoader) mergeLocalRemoteThread(ctx context.Context, remoteThrea
 				newMsg.GetMessageID())
 			return true
 		}
+		// Any reactions or unfurl messages go
+		if newMsg.HasUnfurls() || oldMsg.HasUnfurls() || newMsg.HasReactions() || oldMsg.HasReactions() {
+			t.Debug(ctx, "mergeLocalRemoteThread: including reacted/unfurled msg: msgID: %d",
+				newMsg.GetMessageID())
+			return true
+		}
 		// If replyTo is different, then let's also transmit this up
 		if newMsg.Valid().ReplyTo != oldMsg.Valid().ReplyTo {
 			return true
@@ -496,6 +536,47 @@ func (t *UIThreadLoader) setUIStatus(ctx context.Context, chatUI libkb.ChatUI,
 	return cancelStatusFn
 }
 
+func (t *UIThreadLoader) shouldIgnoreError(err error) bool {
+	switch terr := err.(type) {
+	case storage.AbortedError:
+		return true
+	case TransientUnboxingError:
+		return t.shouldIgnoreError(terr.Inner())
+	}
+	switch err {
+	case context.Canceled:
+		return true
+	default:
+	}
+	return false
+}
+
+func (t *UIThreadLoader) singleFlightConv(ctx context.Context, convID chat1.ConversationID) (context.Context, context.CancelFunc) {
+	t.activeConvLoadsMu.Lock()
+	defer t.activeConvLoadsMu.Unlock()
+	convIDStr := convID.String()
+	if cancel, ok := t.activeConvLoads[convIDStr]; ok {
+		cancel()
+	}
+	ctx, cancel := context.WithCancel(ctx)
+	t.activeConvLoads[convIDStr] = cancel
+	return ctx, cancel
+}
+
+func (t *UIThreadLoader) waitForOnline(ctx context.Context) {
+	// wait at most a second, and then charge forward
+	for i := 0; i < 40; i++ {
+		if !t.IsOffline(ctx) {
+			return
+		}
+		select {
+		case <-time.After(25 * time.Millisecond):
+		case <-t.connectedCh:
+			return
+		}
+	}
+}
+
 func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, uid gregor1.UID,
 	convID chat1.ConversationID, reason chat1.GetThreadReason, pgmode chat1.GetThreadNonblockPgMode,
 	cbmode chat1.GetThreadNonblockCbMode, query *chat1.GetThreadQuery, uipagination *chat1.UIPagination) (err error) {
@@ -506,9 +587,13 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 		// Detect any problem loading the thread, and queue it up in the retrier if there is a problem.
 		// Otherwise, send notice that we successfully loaded the conversation.
 		if fullErr != nil {
-			t.Debug(ctx, "LoadNonblock: queueing retry because of: %s", fullErr)
-			t.G().FetchRetrier.Failure(ctx, uid,
-				NewConversationRetry(t.G(), convID, nil, ThreadLoad))
+			if t.shouldIgnoreError(fullErr) {
+				t.Debug(ctx, "LoadNonblock: ignoring error: %v", fullErr)
+			} else {
+				t.Debug(ctx, "LoadNonblock: queueing retry because of: %s", fullErr)
+				t.G().FetchRetrier.Failure(ctx, uid,
+					NewConversationRetry(t.G(), convID, nil, ThreadLoad))
+			}
 		} else {
 			t.G().FetchRetrier.Success(ctx, uid,
 				NewConversationRetry(t.G(), convID, nil, ThreadLoad))
@@ -518,6 +603,17 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 	}()
 	// Set last select conversation on syncer
 	t.G().Syncer.SelectConversation(ctx, convID)
+	// Decode presentation form pagination
+	if pagination, err = utils.DecodePagination(uipagination); err != nil {
+		return err
+	}
+
+	// single flight per conv since the UI blasts this (only for first page)
+	outerCancel := func() {}
+	if pagination.FirstPage() {
+		ctx, outerCancel = t.singleFlightConv(ctx, convID)
+	}
+	defer outerCancel()
 
 	// Lock conversation while this is running
 	if err := t.G().ConvSource.AcquireConversationLock(ctx, uid, convID); err != nil {
@@ -525,24 +621,6 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 	}
 	defer t.G().ConvSource.ReleaseConversationLock(ctx, uid, convID)
 	t.Debug(ctx, "LoadNonblock: conversation lock obtained")
-
-	// If this is from a push or foreground, set us into the foreground
-	switch reason {
-	case chat1.GetThreadReason_PUSH, chat1.GetThreadReason_FOREGROUND:
-		// Also if we get here and we claim to not be in the foreground yet, then hit disconnect
-		// to reset any delay checks or timers
-		switch t.G().MobileAppState.State() {
-		case keybase1.MobileAppState_FOREGROUND, keybase1.MobileAppState_BACKGROUNDACTIVE:
-		default:
-			t.G().Syncer.Disconnected(ctx)
-		}
-		t.G().MobileAppState.Update(keybase1.MobileAppState_FOREGROUND)
-	}
-
-	// Decode presentation form pagination
-	if pagination, err = utils.DecodePagination(uipagination); err != nil {
-		return err
-	}
 
 	// Enable delete placeholders for supersede transform
 	if query == nil {
@@ -604,7 +682,7 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 				}
 			}
 			localThread, err = t.G().ConvSource.PullLocalOnly(ctx, convID,
-				uid, query, pagination, 10)
+				uid, reason, query, pagination, 10)
 			ch <- err
 		}()
 		select {
@@ -674,6 +752,8 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 		if t.remoteThreadDelay != nil {
 			t.clock.Sleep(*t.remoteThreadDelay)
 		}
+		// wait until we are online before attempting the full pull, otherwise we just waste an attempt
+		t.waitForOnline(ctx)
 		remoteThread, fullErr = t.G().ConvSource.Pull(ctx, convID, uid, reason, query, pagination)
 		setDisplayedStatus(cancelUIStatus)
 		if fullErr != nil {

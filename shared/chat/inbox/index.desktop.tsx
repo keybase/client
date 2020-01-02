@@ -5,7 +5,7 @@ import * as T from './index.d'
 import * as Types from '../../constants/types/chat2'
 import AutoSizer from 'react-virtualized-auto-sizer'
 import BigTeamsDivider from './row/big-teams-divider/container'
-import BuildTeam from './row/build-team/container'
+import BuildTeam from './row/build-team'
 import TeamsDivider from './row/teams-divider/container'
 import UnreadShortcut from './unread-shortcut'
 import * as Kb from '../../common-adapters'
@@ -134,7 +134,7 @@ class Inbox extends React.Component<T.Props, State> {
       }
       return (
         <div style={{...divStyle, position: 'relative'}}>
-          {row.showButton && (
+          {row.showButton && !this.props.smallTeamsExpanded && (
             <>
               <Kb.Box
                 className="grabLinesContainer"
@@ -178,6 +178,7 @@ class Inbox extends React.Component<T.Props, State> {
             toggle={this.props.toggleSmallTeamsExpanded}
             showButton={row.showButton}
             rows={this.props.rows}
+            smallTeamsExpanded={this.props.smallTeamsExpanded}
           />
         </div>
       )
@@ -317,9 +318,26 @@ class Inbox extends React.Component<T.Props, State> {
     this.setState({dragY: -1})
   }
 
+  private scrollToBigTeams = () => {
+    if (!this.scrollDiv.current) return
+
+    if (this.props.smallTeamsExpanded) {
+      this.props.toggleSmallTeamsExpanded()
+    }
+
+    // Should we scroll?
+    const top = this.props.inboxNumSmallRows * smallRowHeight
+    const boundingHeight = this.scrollDiv.current.getBoundingClientRect().height
+    const dragHeight = 76 // grabbed from inspector
+    const currentScrollTop = this.scrollDiv.current.scrollTop
+    if (boundingHeight + currentScrollTop < top + dragHeight) {
+      this.scrollDiv.current && this.scrollDiv.current.scrollBy({behavior: 'smooth', top})
+    }
+  }
+
   render() {
     const floatingDivider = this.state.showFloating && this.props.allowShowFloatingButton && (
-      <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
+      <BigTeamsDivider toggle={this.scrollToBigTeams} />
     )
     return (
       <Kb.ErrorBoundary>
@@ -349,7 +367,7 @@ class Inbox extends React.Component<T.Props, State> {
               )}
             </AutoSizer>
           </div>
-          {floatingDivider || ((this.props.rows.length === 0 || !this.props.hasBigTeams) && <BuildTeam />)}
+          {floatingDivider || (this.props.rows.length === 0 && <BuildTeam />)}
           {this.state.showUnread && !this.state.showFloating && (
             <UnreadShortcut onClick={this.scrollToUnread} />
           )}

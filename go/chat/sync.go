@@ -228,18 +228,34 @@ func (s *Syncer) handleFilteredConvs(ctx context.Context, uid gregor1.UID, syncC
 	}
 }
 
+func (s *Syncer) maxSyncUnboxConvs() int {
+	if s.G().IsMobileAppType() {
+		return 8
+	}
+	return 100
+}
+
 func (s *Syncer) getShouldUnboxSyncConvMap(ctx context.Context, convs []chat1.Conversation,
 	topicNameChanged []chat1.ConversationID) (m map[string]bool) {
 	m = make(map[string]bool)
 	for _, t := range topicNameChanged {
 		m[t.String()] = true
 	}
-	for _, conv := range convs {
-		if m[conv.GetConvID().String()] {
+	rconvs := utils.RemoteConvs(convs)
+	sort.Slice(rconvs, func(i, j int) bool {
+		return utils.GetConvPriorityScore(rconvs[i]) >= utils.GetConvPriorityScore(rconvs[j])
+	})
+	maxConvs := s.maxSyncUnboxConvs()
+	for _, conv := range rconvs {
+		if len(m) >= maxConvs {
+			s.Debug(ctx, "getShouldUnboxSyncConvMap: max sync convs reached, not including any others")
+			break
+		}
+		if m[conv.ConvIDStr] {
 			continue
 		}
-		if s.shouldUnboxSyncConv(conv) {
-			m[conv.GetConvID().String()] = true
+		if s.shouldUnboxSyncConv(conv.Conv) {
+			m[conv.ConvIDStr] = true
 		}
 	}
 	return m
@@ -403,9 +419,10 @@ func (s *Syncer) Sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 			s.notifyIncrementalSync(ctx, uid, incr.Convs, shouldUnboxMap)
 		}
 
-		// The idea here is to limit the amount of work we do with the background conversation loader
-		// on mobile. If we are on a cell connection, or if we just came into the foreground, then limit
-		// the number of conversations we queue up for background loading.
+		// The idea here is to limit the amount of work we do with the
+		// background conversation loader on mobile. If we are on a cell
+		// connection, or if we just came into the foreground, limit the number
+		// of conversations we queue up for background loading.
 		var queuedConvs, maxConvs int
 		pageBack := 3
 		num := 50
@@ -429,7 +446,7 @@ func (s *Syncer) Sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 			if jtype == chat1.TeamType_COMPLEX && itype != chat1.TeamType_COMPLEX {
 				return true
 			}
-			return iboxSyncRes.FilteredConvs[i].GetMtime().After(iboxSyncRes.FilteredConvs[j].GetMtime())
+			return utils.GetConvPriorityScore(iboxSyncRes.FilteredConvs[i]) >= utils.GetConvPriorityScore(iboxSyncRes.FilteredConvs[j])
 		})
 
 		// Dispatch background jobs

@@ -17,6 +17,8 @@ import {getEffectiveRetentionPolicy, getMeta} from './meta'
 import {formatTextForQuoting} from '../../util/chat'
 import * as Router2 from '../router2'
 import HiddenString from '../../util/hidden-string'
+import {getFullname} from '../users'
+import {memoize} from '../../util/memoize'
 
 export const defaultTopReacjis = [':+1:', ':-1:', ':tada:', ':joy:', ':sunglasses:']
 const defaultSkinTone = 1
@@ -34,6 +36,8 @@ export const makeState = (): Types.State => ({
   badgeMap: new Map(), // id to the badge count
   blockButtonsMap: new Map(),
   botCommandsUpdateStatusMap: new Map(),
+  botPublicCommands: new Map(),
+  botSettings: new Map(),
   channelSearchText: '',
   commandMarkdownMap: new Map(),
   commandStatusMap: new Map(),
@@ -44,6 +48,9 @@ export const makeState = (): Types.State => ({
   editingMap: new Map(),
   explodingModeLocks: new Map(), // locks set on exploding mode while user is inputting text,
   explodingModes: new Map(), // seconds to exploding message expiration,
+  featuredBotsLoaded: false,
+  featuredBotsMap: new Map(),
+  featuredBotsPage: -1,
   flipStatusMap: new Map(),
   focus: null,
   giphyResultMap: new Map(),
@@ -63,6 +70,7 @@ export const makeState = (): Types.State => ({
   moreToLoadMap: new Map(), // if we have more data to load,
   mutedMap: new Map(),
   orangeLineMap: new Map(), // last message we've seen,
+  participantMap: new Map(),
   paymentConfirmInfo: undefined,
   paymentStatusMap: new Map(),
   pendingOutboxToOrdinal: new Map(), // messages waiting to be sent,
@@ -74,6 +82,7 @@ export const makeState = (): Types.State => ({
   smallTeamsExpanded: false,
   staticConfig: undefined,
   teamBuilding: TeamBuildingConstants.makeSubState(),
+  teamIDToGeneralConvID: new Map(),
   threadLoadStatus: new Map(),
   threadSearchInfoMap: new Map(),
   threadSearchQueryMap: new Map(),
@@ -175,8 +184,9 @@ export const getInboxSearchSelected = (inboxSearch: Types.InboxSearchInfo) => {
 export const getThreadSearchInfo = (state: TypedState, conversationIDKey: Types.ConversationIDKey) =>
   state.chat2.threadSearchInfoMap.get(conversationIDKey) || makeThreadSearchInfo()
 
+const emptyOrdinals = new Set<Types.Ordinal>()
 export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKey) =>
-  state.chat2.messageOrdinals.get(id) || new Set<Types.Ordinal>()
+  state.chat2.messageOrdinals.get(id) || emptyOrdinals
 export const getMessageCenterOrdinal = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.messageCenterOrdinals.get(id)
 export const getMessage = (
@@ -292,6 +302,8 @@ export const waitingKeyCancelPost = 'chat:cancelPost'
 export const waitingKeyInboxRefresh = 'chat:inboxRefresh'
 export const waitingKeyCreating = 'chat:creatingConvo'
 export const waitingKeyInboxSyncStarted = 'chat:inboxSyncStarted'
+export const waitingKeyBotAdd = 'chat:botAdd'
+export const waitingKeyBotRemove = 'chat:botRemove'
 export const waitingKeyPushLoad = (conversationIDKey: Types.ConversationIDKey) =>
   `chat:pushLoad:${conversationIDKeyToString(conversationIDKey)}`
 export const waitingKeyThreadLoad = (conversationIDKey: Types.ConversationIDKey) =>
@@ -366,6 +378,8 @@ export const makeInboxQuery = (
   }
 }
 
+export const isAssertion = (username: string) => username.includes('@')
+
 export const threadRoute = isMobile ? [chatTab, 'chatConversation'] : [{props: {}, selected: chatTab}]
 export const newRouterThreadRoute = isMobile ? ['chatConversation'] : [chatTab]
 
@@ -414,16 +428,50 @@ export const zoomImage = (width: number, height: number, maxThumbSize: number) =
   }
 }
 
+export const noParticipantInfo: Types.ParticipantInfo = {
+  all: [],
+  contactName: new Map(),
+  name: [],
+}
+
+export const getParticipantInfo = (
+  state: TypedState,
+  conversationIDKey: Types.ConversationIDKey
+): Types.ParticipantInfo => {
+  const participantInfo = state.chat2.participantMap.get(conversationIDKey)
+  return participantInfo ? participantInfo : noParticipantInfo
+}
+
+// we want the memoized function to have access to state but not have it be a part of the memoization else it'll fail always
+let _unmemoizedState: TypedState
+const _getParticipantSuggestionsMemoized = memoize(
+  (participants: Array<string>, teamType: Types.TeamType) => {
+    const suggestions = participants.map(username => ({
+      fullName: getFullname(_unmemoizedState, username) || '',
+      username,
+    }))
+    if (teamType !== 'adhoc') {
+      const fullName = teamType === 'small' ? 'Everyone in this team' : 'Everyone in this channel'
+      suggestions.push({fullName, username: 'channel'}, {fullName, username: 'here'})
+    }
+    return suggestions
+  }
+)
+
+export const getParticipantSuggestions = (state: TypedState, id: Types.ConversationIDKey) => {
+  const participants = getParticipantInfo(state, id)
+  const {teamType} = getMeta(state, id)
+  _unmemoizedState = state
+  return _getParticipantSuggestionsMemoized(participants.all, teamType)
+}
+
 export {
-  getAllChannels,
   getBotCommands,
   getChannelForTeam,
-  getChannelSuggestions,
   getCommands,
   getConversationIDKeyMetasToLoad,
   getEffectiveRetentionPolicy,
   getMeta,
-  getParticipantSuggestions,
   getRowParticipants,
   getRowStyles,
   getTeams,

@@ -424,7 +424,8 @@ func TestJournalManagerRestart(t *testing.T) {
 	jManager = makeJournalManager(
 		config, jManager.log, tempdir, jManager.delegateBlockCache,
 		jManager.delegateDirtyBlockCache,
-		jManager.delegateBlockServer, jManager.delegateMDOps, nil, nil)
+		jManager.delegateBlockServer, jManager.delegateMDOps, nil, nil,
+		TLFJournalBackgroundWorkPaused)
 	err = jManager.EnableExistingJournals(
 		ctx, session.UID, session.VerifyingKey, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
@@ -794,7 +795,8 @@ func TestJournalManagerEnableAuto(t *testing.T) {
 	jManager = makeJournalManager(
 		config, jManager.log, tempdir, jManager.delegateBlockCache,
 		jManager.delegateDirtyBlockCache,
-		jManager.delegateBlockServer, jManager.delegateMDOps, nil, nil)
+		jManager.delegateBlockServer, jManager.delegateMDOps, nil, nil,
+		TLFJournalBackgroundWorkPaused)
 	session, err := config.KBPKI().GetCurrentSession(ctx)
 	require.NoError(t, err)
 	err = jManager.EnableExistingJournals(
@@ -918,7 +920,8 @@ func TestJournalManagerNukeEmptyJournalsOnRestart(t *testing.T) {
 	jManager = makeJournalManager(
 		config, jManager.log, tempdir, jManager.delegateBlockCache,
 		jManager.delegateDirtyBlockCache,
-		jManager.delegateBlockServer, jManager.delegateMDOps, nil, nil)
+		jManager.delegateBlockServer, jManager.delegateMDOps, nil, nil,
+		TLFJournalBackgroundWorkPaused)
 	session, err := config.KBPKI().GetCurrentSession(ctx)
 	require.NoError(t, err)
 	err = jManager.EnableExistingJournals(
@@ -987,7 +990,8 @@ func TestJournalManagerTeamTLFWithRestart(t *testing.T) {
 	jManager = makeJournalManager(
 		config, jManager.log, tempdir, jManager.delegateBlockCache,
 		jManager.delegateDirtyBlockCache,
-		jManager.delegateBlockServer, jManager.delegateMDOps, nil, nil)
+		jManager.delegateBlockServer, jManager.delegateMDOps, nil, nil,
+		TLFJournalBackgroundWorkPaused)
 	err = jManager.EnableExistingJournals(
 		ctx, session.UID, session.VerifyingKey, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
@@ -1105,7 +1109,8 @@ func TestJournalManagerCorruptJournal(t *testing.T) {
 	jManager = makeJournalManager(
 		config, jManager.log, tempdir, jManager.delegateBlockCache,
 		jManager.delegateDirtyBlockCache,
-		jManager.delegateBlockServer, jManager.delegateMDOps, nil, nil)
+		jManager.delegateBlockServer, jManager.delegateMDOps, nil, nil,
+		TLFJournalBackgroundWorkPaused)
 	session, err := config.KBPKI().GetCurrentSession(ctx)
 	require.NoError(t, err)
 	err = jManager.EnableExistingJournals(

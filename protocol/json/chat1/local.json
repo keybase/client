@@ -1659,7 +1659,7 @@
         "ADD_PEOPLE_2",
         "CREATE_CHANNELS_3",
         "MSG_ATTENTION_4",
-        "USER_AWAY_FOR_LONG_5",
+        "UNUSED_5",
         "CHANNEL_INACTIVE_6",
         "MSG_NO_ANSWER_7"
       ]
@@ -1683,6 +1683,10 @@
         {
           "type": "MessageID",
           "name": "highlightMsgID"
+        },
+        {
+          "type": "boolean",
+          "name": "openTeam"
         }
       ]
     },
@@ -3675,33 +3679,6 @@
       ],
       "response": "GetThreadLocalRes"
     },
-    "getCachedThread": {
-      "request": [
-        {
-          "name": "conversationID",
-          "type": "ConversationID"
-        },
-        {
-          "name": "query",
-          "type": [
-            null,
-            "GetThreadQuery"
-          ]
-        },
-        {
-          "name": "pagination",
-          "type": [
-            null,
-            "Pagination"
-          ]
-        },
-        {
-          "name": "identifyBehavior",
-          "type": "keybase1.TLFIdentifyBehavior"
-        }
-      ],
-      "response": "GetThreadLocalRes"
-    },
     "getThreadNonblock": {
       "request": [
         {
@@ -3817,6 +3794,14 @@
           }
         }
       ],
+      "response": null
+    },
+    "requestInboxSmallIncrease": {
+      "request": [],
+      "response": null
+    },
+    "requestInboxSmallReset": {
+      "request": [],
       "response": null
     },
     "getInboxNonblockLocal": {
@@ -4668,6 +4653,15 @@
       ],
       "response": "FindConversationsLocalRes"
     },
+    "findGeneralConvFromTeamID": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "keybase1.TeamID"
+        }
+      ],
+      "response": "InboxUIItem"
+    },
     "updateTyping": {
       "request": [
         {
@@ -5226,8 +5220,8 @@
     "addBotMember": {
       "request": [
         {
-          "name": "tlfName",
-          "type": "string"
+          "name": "convID",
+          "type": "ConversationID"
         },
         {
           "name": "username",
@@ -5243,14 +5237,6 @@
         {
           "name": "role",
           "type": "keybase1.TeamRole"
-        },
-        {
-          "name": "membersType",
-          "type": "ConversationMembersType"
-        },
-        {
-          "name": "tlfPublic",
-          "type": "boolean"
         }
       ],
       "response": null
@@ -5258,8 +5244,8 @@
     "editBotMember": {
       "request": [
         {
-          "name": "tlfName",
-          "type": "string"
+          "name": "convID",
+          "type": "ConversationID"
         },
         {
           "name": "username",
@@ -5275,14 +5261,6 @@
         {
           "name": "role",
           "type": "keybase1.TeamRole"
-        },
-        {
-          "name": "membersType",
-          "type": "ConversationMembersType"
-        },
-        {
-          "name": "tlfPublic",
-          "type": "boolean"
         }
       ],
       "response": null
@@ -5290,20 +5268,12 @@
     "removeBotMember": {
       "request": [
         {
-          "name": "tlfName",
-          "type": "string"
+          "name": "convID",
+          "type": "ConversationID"
         },
         {
           "name": "username",
           "type": "string"
-        },
-        {
-          "name": "membersType",
-          "type": "ConversationMembersType"
-        },
-        {
-          "name": "tlfPublic",
-          "type": "boolean"
         }
       ],
       "response": null
@@ -5311,8 +5281,8 @@
     "setBotMemberSettings": {
       "request": [
         {
-          "name": "tlfName",
-          "type": "string"
+          "name": "convID",
+          "type": "ConversationID"
         },
         {
           "name": "username",
@@ -5321,14 +5291,6 @@
         {
           "name": "botSettings",
           "type": "keybase1.TeamBotSettings"
-        },
-        {
-          "name": "membersType",
-          "type": "ConversationMembersType"
-        },
-        {
-          "name": "tlfPublic",
-          "type": "boolean"
         }
       ],
       "response": null
@@ -5336,20 +5298,12 @@
     "getBotMemberSettings": {
       "request": [
         {
-          "name": "tlfName",
-          "type": "string"
+          "name": "convID",
+          "type": "ConversationID"
         },
         {
           "name": "username",
           "type": "string"
-        },
-        {
-          "name": "membersType",
-          "type": "ConversationMembersType"
-        },
-        {
-          "name": "tlfPublic",
-          "type": "boolean"
         }
       ],
       "response": "keybase1.TeamBotSettings"
@@ -5370,6 +5324,19 @@
         }
       ],
       "response": "keybase1.TeamID"
+    },
+    "dismissJourneycard": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "cardType",
+          "type": "JourneycardType"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "chat.1"

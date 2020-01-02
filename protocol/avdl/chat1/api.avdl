@@ -318,6 +318,13 @@ protocol api {
     union { null, UIPagination } pagination;
   }
 
+  record ConvNotification {
+    // should always be `chat_conv`
+    string type;
+    union { null, ConvSummary } conv;
+    union { null, string } error;
+  }
+
   // Similar to AdvertiseCommandParam but intended for the json API
   record AdvertiseCommandAPIParam {
     @jsonkey("type")

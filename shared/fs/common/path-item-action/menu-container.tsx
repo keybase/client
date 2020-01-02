@@ -113,15 +113,6 @@ const addCancelIfNeeded = (action: () => void, cancel: (arg0: string) => void, t
       }
     : action
 
-const shouldAutoHide = stateProps => {
-  const {saving, sharing, done} = getDownloadingState(
-    stateProps._downloads,
-    stateProps._downloadID,
-    stateProps._pathItemActionMenu
-  )
-  return (saving || sharing) && done
-}
-
 const getSendToOtherApp = (stateProps, dispatchProps, c) => {
   const {sharing} = getDownloadingState(
     stateProps._downloads,
@@ -170,7 +161,6 @@ const mergeProps = (
     isMobile ? addCancelIfNeeded(action, dispatchProps._cancel, stateProps._downloadID) : action
   return {
     ...rest,
-    shouldAutoHide: shouldAutoHide(stateProps),
     // menu items
     // eslint-disable-next-line sort-keys
     delete: layout.delete ? c(dispatchProps._delete) : null,

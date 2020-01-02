@@ -528,7 +528,7 @@ protocol local {
     ADD_PEOPLE_2,
     CREATE_CHANNELS_3,
     MSG_ATTENTION_4,
-    USER_AWAY_FOR_LONG_5,
+    UNUSED_5, // Was going to be USER_AWAY_FOR_LONG but never was. Can be re-purposed for something else.
     CHANNEL_INACTIVE_6,
     MSG_NO_ANSWER_7
   }
@@ -538,6 +538,7 @@ protocol local {
     int ordinal; // sub-position after prevID. Ought to be >=1. See computeOutboxOrdinal for some context.
     JourneycardType cardType;
     MessageID highlightMsgID; // Message ID to highlight for MSG_ATTENTION
+    boolean openTeam; // Whether the team is open. Can be erroneously false due to caching. Only filled for ADD_PEOPLE.
   }
 
   // If a new case is needed here, make sure to update at least:
@@ -725,8 +726,6 @@ protocol local {
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
-  GetThreadLocalRes getCachedThread(ConversationID conversationID, union { null, GetThreadQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
-
   enum GetThreadNonblockCbMode {
     FULL_0,
     INCREMENTAL_1
@@ -798,6 +797,8 @@ protocol local {
   }
   void requestInboxLayout(InboxLayoutReselectMode reselectMode);
   void requestInboxUnbox(array<ConversationID> convIDs);
+  void requestInboxSmallIncrease();
+  void requestInboxSmallReset();
   NonblockFetchRes getInboxNonblockLocal(int sessionID, union { null, int } maxUnbox, boolean skipUnverified, union { null, GetInboxLocalQuery} query, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   PostLocalRes postLocal(int sessionID, ConversationID conversationID, MessagePlaintext msg, union { null, MessageID }  replyTo, keybase1.TLFIdentifyBehavior identifyBehavior);
@@ -1004,6 +1005,7 @@ protocol local {
   }
 
   FindConversationsLocalRes findConversationsLocal(string tlfName, ConversationMembersType membersType, keybase1.TLFVisibility visibility, TopicType topicType, string topicName, union { null, boolean } oneChatPerTLF, keybase1.TLFIdentifyBehavior identifyBehavior);
+  InboxUIItem findGeneralConvFromTeamID(keybase1.TeamID teamID);
 
   // Typing API
   void updateTyping(ConversationID conversationID, boolean typing); // throttled
@@ -1238,13 +1240,15 @@ protocol local {
   PinMessageRes unpinMessage(ConversationID convID);
   void ignorePinnedMessage(ConversationID convID);
 
-  void addBotMember(string tlfName, string username, union { null, keybase1.TeamBotSettings } botSettings, keybase1.TeamRole role, ConversationMembersType membersType, boolean tlfPublic);
-  void editBotMember(string tlfName, string username, union { null, keybase1.TeamBotSettings } botSettings, keybase1.TeamRole role, ConversationMembersType membersType, boolean tlfPublic);
-  void removeBotMember(string tlfName, string username, ConversationMembersType membersType, boolean tlfPublic);
-  void setBotMemberSettings(string tlfName, string username, keybase1.TeamBotSettings botSettings, ConversationMembersType membersType, boolean tlfPublic);
-  keybase1.TeamBotSettings getBotMemberSettings(string tlfName, string username, ConversationMembersType membersType, boolean tlfPublic);
+  void addBotMember(ConversationID convID, string username, union { null, keybase1.TeamBotSettings } botSettings, keybase1.TeamRole role);
+  void editBotMember(ConversationID convID, string username, union { null, keybase1.TeamBotSettings } botSettings, keybase1.TeamRole role);
+  void removeBotMember(ConversationID convID, string username);
+  void setBotMemberSettings(ConversationID convID, string username, keybase1.TeamBotSettings botSettings);
+  keybase1.TeamBotSettings getBotMemberSettings(ConversationID convID, string username);
 
   keybase1.TeamID teamIDFromTLFName(string tlfName, ConversationMembersType membersType, boolean tlfPublic);
+
+  void dismissJourneycard(ConversationID convID, JourneycardType cardType);
 
   record LocalMtimeUpdate {
     ConversationID convID;

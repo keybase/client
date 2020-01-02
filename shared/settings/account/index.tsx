@@ -33,7 +33,13 @@ export const SettingsSection = ({children}: {children: React.ReactNode}) => (
     {children}
   </Kb.Box2>
 )
-const AddButton = (props: {disabled: boolean; kind: 'phone number' | 'email'; onClick: () => void}) => {
+
+type AddButtonProps = {
+  disabled: boolean
+  kind: 'phone number' | 'email'
+  onClick: () => void
+}
+const AddButton = (props: AddButtonProps) => {
   const btn = (
     <Kb.Button
       mode="Secondary"
@@ -121,7 +127,7 @@ const WebAuthTokenLogin = (_: Props) => {
   return (
     <SettingsSection>
       <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true}>
-        <Kb.Text type="Header">Website Login</Kb.Text>
+        <Kb.Text type="Header">Website login</Kb.Text>
         <Kb.Text type="BodySmall">You can use your app to log your web browser into keybase.io.</Kb.Text>
       </Kb.Box2>
       <Kb.ButtonBar align="flex-start" style={styles.buttonBar}>

@@ -101,10 +101,7 @@ const _openPathInSystemFileManagerPromise = (openPath: string, isFolder: boolean
     }
   })
 
-const openLocalPathInSystemFileManager = async (
-  _: TypedState,
-  action: FsGen.OpenLocalPathInSystemFileManagerPayload
-) => {
+const openLocalPathInSystemFileManager = async (action: FsGen.OpenLocalPathInSystemFileManagerPayload) => {
   try {
     const pathType = await getPathType(action.payload.localPath)
     return _openPathInSystemFileManagerPromise(action.payload.localPath, pathType === 'directory')
@@ -156,7 +153,9 @@ const fuseStatusToActions = (previousStatusType: Types.DriverStatusType) => (
   status: RPCTypes.FuseStatus | null
 ) => {
   if (!status) {
-    return FsGen.createSetDriverStatus({driverStatus: Constants.defaultDriverStatus})
+    return FsGen.createSetDriverStatus({
+      driverStatus: Constants.defaultDriverStatus,
+    })
   }
   return status.kextStarted
     ? [
@@ -172,11 +171,17 @@ const fuseStatusToActions = (previousStatusType: Types.DriverStatusType) => (
           ? [FsGen.createShowSystemFileManagerIntegrationBanner()]
           : []), // show banner for newly enabled
         ...(previousStatusType === Types.DriverStatusType.Disabled
-          ? [FsGen.createOpenPathInSystemFileManager({path: Types.stringToPath('/keybase')})]
+          ? [
+              FsGen.createOpenPathInSystemFileManager({
+                path: Types.stringToPath('/keybase'),
+              }),
+            ]
           : []), // open Finder/Explorer/etc for newly enabled
       ]
     : [
-        FsGen.createSetDriverStatus({driverStatus: Constants.emptyDriverStatusDisabled}),
+        FsGen.createSetDriverStatus({
+          driverStatus: Constants.emptyDriverStatusDisabled,
+        }),
         ...(previousStatusType === Types.DriverStatusType.Enabled
           ? [FsGen.createHideSystemFileManagerIntegrationBanner()]
           : []), // hide banner for newly disabled
@@ -211,7 +216,9 @@ const refreshDriverStatus = async (
     action.type !== FsGen.kbfsDaemonRpcStatusChanged ||
     action.payload.rpcStatus === Types.KbfsDaemonRpcStatus.Connected
   ) {
-    let status = await RPCTypes.installFuseStatusRpcPromise({bundleVersion: ''})
+    let status = await RPCTypes.installFuseStatusRpcPromise({
+      bundleVersion: '',
+    })
     if (isWindows && status.installStatus !== RPCTypes.InstallStatus.installed) {
       status = await windowsCheckMountFromOtherDokanInstall(status)
     }
@@ -227,7 +234,7 @@ const fuseInstallResultIsKextPermissionError = (result: RPCTypes.InstallResult):
     c => c.name === 'fuse' && c.exitCode === Constants.ExitCodeFuseKextPermissionError
   ) !== -1
 
-const driverEnableFuse = async (_: TypedState, action: FsGen.DriverEnablePayload) => {
+const driverEnableFuse = async (action: FsGen.DriverEnablePayload) => {
   const result = await RPCTypes.installInstallFuseRpcPromise()
   if (fuseInstallResultIsKextPermissionError(result)) {
     return [
@@ -311,7 +318,7 @@ const openSecurityPreferences = () => {
 // Invoking the cached installer package has to happen from the topmost process
 // or it won't be visible to the user. The service also does this to support command line
 // operations.
-const installCachedDokan = (_: TypedState, action: FsGen.DriverEnablePayload) =>
+const installCachedDokan = (action: FsGen.DriverEnablePayload) =>
   new Promise((resolve, reject) => {
     logger.info('Invoking dokan installer')
     const dokanPath = path.resolve(String(process.env.LOCALAPPDATA), 'Keybase', 'DokanSetup_redist.exe')
@@ -341,25 +348,20 @@ const installCachedDokan = (_: TypedState, action: FsGen.DriverEnablePayload) =>
     .then(() => FsGen.createRefreshDriverStatus())
     .catch(makeUnretriableErrorHandler(action, null))
 
-const openAndUploadToPromise = (_: TypedState, action: FsGen.OpenAndUploadPayload): Promise<Array<string>> =>
-  new Promise(resolve =>
-    SafeElectron.getDialog().showOpenDialog(
-      SafeElectron.getCurrentWindowFromRemote(),
-      {
-        // @ts-ignore codemod-issue
-        properties: [
-          'multiSelections',
-          ...(['file', 'both'].includes(action.payload.type) ? ['openFile'] : []),
-          ...(['directory', 'both'].includes(action.payload.type) ? ['openDirectory'] : []),
-        ],
-        title: 'Select a file or folder to upload',
-      },
-      (filePaths: Array<string>) => resolve(filePaths || [])
-    )
-  )
+const openAndUploadToPromise = (action: FsGen.OpenAndUploadPayload): Promise<Array<string>> =>
+  SafeElectron.getDialog()
+    .showOpenDialog(SafeElectron.getCurrentWindowFromRemote(), {
+      properties: [
+        'multiSelections' as const,
+        ...(['file', 'both'].includes(action.payload.type) ? (['openFile'] as const) : []),
+        ...(['directory', 'both'].includes(action.payload.type) ? (['openDirectory'] as const) : []),
+      ],
+      title: 'Select a file or folder to upload',
+    })
+    .then(res => res.filePaths)
 
-const openAndUpload = async (state: TypedState, action: FsGen.OpenAndUploadPayload) => {
-  const localPaths = await openAndUploadToPromise(state, action)
+const openAndUpload = async (action: FsGen.OpenAndUploadPayload) => {
+  const localPaths = await openAndUploadToPromise(action)
   return localPaths.map(localPath => FsGen.createUpload({localPath, parentPath: action.payload.parentPath}))
 }
 
@@ -373,7 +375,7 @@ const loadUserFileEdits = async (state: TypedState) => {
   return false
 }
 
-const openFilesFromWidget = (_: TypedState, {payload: {path}}) => [
+const openFilesFromWidget = ({payload: {path}}) => [
   ConfigGen.createShowMain(),
   ...(path
     ? [Constants.makeActionForOpenPathInFilesTab(path)]
@@ -403,7 +405,9 @@ const refreshMountDirs = async (
   const preferredMountDirs = await RPCTypes.kbfsMountGetPreferredMountDirsRpcPromise()
   return [
     FsGen.createSetDirectMountDir({directMountDir}),
-    FsGen.createSetPreferredMountDirs({preferredMountDirs: preferredMountDirs || []}),
+    FsGen.createSetPreferredMountDirs({
+      preferredMountDirs: preferredMountDirs || [],
+    }),
     // Check again in 10s, as redirector comes up only after kbfs daemon is alive.
     ...(action.type !== FsGen.refreshMountDirsAfter10s ? [FsGen.createRefreshMountDirsAfter10s()] : []),
   ]
@@ -412,7 +416,7 @@ const refreshMountDirs = async (
 export const ensureDownloadPermissionPromise = () => Promise.resolve()
 
 function* platformSpecificSaga() {
-  yield* Saga.chainAction2(FsGen.openLocalPathInSystemFileManager, openLocalPathInSystemFileManager)
+  yield* Saga.chainAction(FsGen.openLocalPathInSystemFileManager, openLocalPathInSystemFileManager)
   yield* Saga.chainAction2(FsGen.openPathInSystemFileManager, openPathInSystemFileManager)
   if (!isLinux) {
     yield* Saga.chainAction2(
@@ -424,15 +428,15 @@ function* platformSpecificSaga() {
     [FsGen.kbfsDaemonRpcStatusChanged, FsGen.setDriverStatus, FsGen.refreshMountDirsAfter10s],
     refreshMountDirs
   )
-  yield* Saga.chainAction2(FsGen.openAndUpload, openAndUpload)
+  yield* Saga.chainAction(FsGen.openAndUpload, openAndUpload)
   yield* Saga.chainAction2([FsGen.userFileEditsLoad, FsGen.kbfsDaemonRpcStatusChanged], loadUserFileEdits)
-  yield* Saga.chainAction2(FsGen.openFilesFromWidget, openFilesFromWidget)
+  yield* Saga.chainAction(FsGen.openFilesFromWidget, openFilesFromWidget)
   if (isWindows) {
-    yield* Saga.chainAction2(FsGen.driverEnable, installCachedDokan)
+    yield* Saga.chainAction(FsGen.driverEnable, installCachedDokan)
     yield* Saga.chainAction2(FsGen.driverDisable as any, uninstallDokanConfirm as any)
     yield* Saga.chainAction2(FsGen.driverDisabling, uninstallDokan)
   } else {
-    yield* Saga.chainAction2(FsGen.driverEnable, driverEnableFuse)
+    yield* Saga.chainAction(FsGen.driverEnable, driverEnableFuse)
     yield* Saga.chainAction2(FsGen.driverDisable, uninstallKBFSConfirm)
     yield* Saga.chainAction2(FsGen.driverDisabling, uninstallKBFS)
   }

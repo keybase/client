@@ -10,7 +10,6 @@ type Props = {
 }
 
 const DividerBox = Styles.styled(Kb.Box)(() => ({
-  ...Styles.globalStyles.flexBoxRow,
   ...(Styles.isMobile
     ? {backgroundColor: Styles.globalColors.fastBlank}
     : {
@@ -19,21 +18,11 @@ const DividerBox = Styles.styled(Kb.Box)(() => ({
         },
         color: Styles.globalColors.black_20,
       }),
-  alignItems: 'center',
-  borderStyle: 'solid',
-  borderTopColor: Styles.globalColors.black_10,
-  borderTopWidth: 1,
-  height: '100%',
-  justifyContent: 'flex-start',
-  paddingLeft: Styles.globalMargins.tiny,
-  paddingRight: Styles.globalMargins.tiny,
-  position: 'relative',
-  width: '100%',
 }))
 
 const BigTeamsDivider = ({toggle, badgeCount}: Props) => (
   <Kb.ClickableBox title="Teams with multiple channels." onClick={toggle} style={styles.container}>
-    <DividerBox>
+    <DividerBox style={styles.dividerBox}>
       <BigTeamsLabel />
       {badgeCount > 0 && <Kb.Badge badgeStyle={styles.badge} badgeNumber={badgeCount} />}
       <Kb.Box style={styles.icon}>
@@ -63,6 +52,27 @@ const styles = Styles.styleSheetCreate(
           backgroundColor: Styles.globalColors.fastBlank,
           flexShrink: 0,
           height: RowSizes.floatingDivider,
+        },
+      }),
+      dividerBox: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.flexBoxRow,
+          alignItems: 'center',
+          borderStyle: 'solid',
+          borderTopColor: Styles.globalColors.black_10,
+          borderTopWidth: 1,
+          height: '100%',
+          justifyContent: 'flex-start',
+          position: 'relative',
+          width: '100%',
+        },
+        isElectron: {
+          paddingLeft: Styles.globalMargins.tiny,
+          paddingRight: Styles.globalMargins.tiny,
+        },
+        isMobile: {
+          paddingLeft: Styles.globalMargins.small,
+          paddingRight: Styles.globalMargins.small,
         },
       }),
       icon: {

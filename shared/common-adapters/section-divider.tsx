@@ -48,11 +48,16 @@ const height = Styles.isMobile ? 40 : 32
 SectionDivider.height = height
 
 const styles = Styles.styleSheetCreate(() => ({
-  container: {
-    ...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.tiny),
-    backgroundColor: Styles.globalColors.blueLighter3,
-    height,
-  },
+  container: Styles.platformStyles({
+    common: {
+      ...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.tiny),
+      backgroundColor: Styles.globalColors.blueLighter3,
+      height,
+    },
+    isMobile: {
+      ...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.small),
+    },
+  }),
   fullWidth: {
     width: '100%',
   },

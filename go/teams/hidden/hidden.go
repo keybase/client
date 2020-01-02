@@ -1,8 +1,14 @@
 package hidden
 
 import (
+	"encoding/base64"
+	"encoding/hex"
 	"fmt"
+
+	"github.com/keybase/client/go/blindtree"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/merkletree2"
+	"github.com/keybase/client/go/msgpack"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/sig3"
 )
@@ -303,4 +309,111 @@ func CheckFeatureGateForSupport(mctx libkb.MetaContext, teamID keybase1.TeamID, 
 		return NewHiddenRotationNotSupportedError(teamID)
 	}
 	return nil
+}
+
+func ProcessHiddenResponseFunc(m libkb.MetaContext, teamID keybase1.TeamID, apiRes *libkb.APIRes, blindRootHashStr string) (hiddenResp *libkb.MerkleHiddenResponse, err error) {
+	if CheckFeatureGateForSupport(m, teamID, false /* isWrite */) != nil {
+		m.Debug("Skipped ProcessHiddenResponseFunc as the feature flag is off (%v)", err)
+		return &libkb.MerkleHiddenResponse{RespType: libkb.MerkleHiddenResponseTypeFLAGOFF}, nil
+	}
+
+	if blindRootHashStr == "" {
+		m.Debug("blind tree root not found in the main tree: %v", err)
+		// TODO: Y2K-770 Until the root of the blind tree starts getting
+		// included in the main tree, we can get such root from the server as an
+		// additional parameter and assume the server is honest.
+		blindRootHashStr, err = apiRes.Body.AtKey("last_blind_root_hash").GetString()
+		if err != nil {
+			return &libkb.MerkleHiddenResponse{RespType: libkb.MerkleHiddenResponseTypeNONE}, nil
+		}
+		m.Debug("the server is providing a blind tree root which is not included in the main tree. We trust the server on this as the blind tree is an experimental feature.")
+	}
+	blindRootHashBytes, err := hex.DecodeString(blindRootHashStr)
+	if err != nil {
+		return nil, err
+	}
+
+	return ParseAndVerifyCommittedHiddenLinkID(m, teamID, apiRes, merkletree2.Hash(blindRootHashBytes))
+}
+
+func ParseAndVerifyCommittedHiddenLinkID(m libkb.MetaContext, teamID keybase1.TeamID, apiRes *libkb.APIRes, blindHash merkletree2.Hash) (hiddenResp *libkb.MerkleHiddenResponse, err error) {
+	verif := merkletree2.NewMerkleProofVerifier(blindtree.GetCurrentBlindTreeConfig())
+
+	encValWithProofBase64, err := apiRes.Body.AtKey("enc_value_with_proof").GetString()
+	if err != nil {
+		m.Debug("Error decoding enc_value_with_proof (%v), assuming the server did not send it.", err.Error())
+		return &libkb.MerkleHiddenResponse{RespType: libkb.MerkleHiddenResponseTypeNONE}, nil
+	}
+	encValWithProofBytes, err := base64.StdEncoding.DecodeString(encValWithProofBase64)
+	if err != nil {
+		return nil, fmt.Errorf("error decoding encValWithProof from b64: %v", err.Error())
+	}
+	var resp merkletree2.GetValueWithProofResponse
+	if err := msgpack.Decode(&resp, encValWithProofBytes); err != nil {
+		return nil, fmt.Errorf("error decoding encValWithProof: %v", err.Error())
+	}
+
+	lastHiddenSeqnoInt, err := apiRes.Body.AtKey("last_hidden_seqno").GetInt()
+	if err != nil {
+		return nil, err
+	}
+	lastHiddenSeqno := keybase1.Seqno(lastHiddenSeqnoInt)
+
+	proof := resp.Proof
+	eVal := resp.Value
+	key := merkletree2.Key(teamID.ToBytes())
+
+	// if the leaf is not in there, expect an exclusion proof.
+	if eVal == nil {
+		err := verif.VerifyExclusionProof(m, key, &proof, blindHash)
+		if err != nil {
+			return nil, err
+		}
+
+		return &libkb.MerkleHiddenResponse{
+			RespType:            libkb.MerkleHiddenResponseTypeABSENCEPROOF,
+			UncommittedSeqno:    lastHiddenSeqno,
+			CommittedHiddenTail: nil,
+		}, nil
+	}
+
+	var leaf blindtree.BlindMerkleValue
+	if err := msgpack.Decode(&leaf, eVal); err != nil {
+		return nil, err
+	}
+	if err := verif.VerifyInclusionProof(m, merkletree2.KeyValuePair{Key: key, Value: leaf}, &proof, blindHash); err != nil {
+		return nil, err
+	}
+	return makeHiddenRespFromTeamLeaf(m, leaf, lastHiddenSeqno)
+}
+
+func makeHiddenRespFromTeamLeaf(m libkb.MetaContext, leaf blindtree.BlindMerkleValue, lastHiddenSeqno keybase1.Seqno) (hiddenResp *libkb.MerkleHiddenResponse, err error) {
+	switch leaf.ValueType {
+	case blindtree.ValueTypeTeamV1:
+		leaf := leaf.InnerValue.(blindtree.TeamV1Value)
+		tail, found := leaf.Tails[keybase1.SeqType_TEAM_PRIVATE_HIDDEN]
+		if !found {
+			return nil, libkb.NewHiddenMerkleError(libkb.HiddenMerkleErrorNoHiddenChainInLeaf,
+				"The leaf contained in the apiRes does not contain a hidden chain tail: %+v", leaf)
+		}
+		if tail.ChainType != keybase1.SeqType_TEAM_PRIVATE_HIDDEN {
+			return nil, libkb.NewHiddenMerkleError(libkb.HiddenMerkleErrorInconsistentLeaf,
+				"The tail type is inconsistent among different parts of the leaf: %+v", leaf)
+		}
+		return &libkb.MerkleHiddenResponse{
+			RespType:            libkb.MerkleHiddenResponseTypeOK,
+			UncommittedSeqno:    lastHiddenSeqno,
+			CommittedHiddenTail: &tail,
+		}, nil
+	case blindtree.ValueTypeEmpty:
+		// We had an empty leaf but we verified its inclusion proof.
+		return &libkb.MerkleHiddenResponse{
+			RespType:            libkb.MerkleHiddenResponseTypeABSENCEPROOF,
+			UncommittedSeqno:    lastHiddenSeqno,
+			CommittedHiddenTail: nil,
+		}, nil
+	default:
+		return nil, libkb.NewHiddenMerkleError(libkb.HiddenMerkleErrorInvalidLeafType,
+			"Invalid leaf type: %+v", leaf)
+	}
 }

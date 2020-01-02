@@ -507,7 +507,7 @@ func (u *smuUser) createTeam2(readers, writers, admins, owners []*smuUser) smuTe
 	for i, list := range lists {
 		for _, u2 := range list {
 			_, err = cli.TeamAddMember(context.TODO(), keybase1.TeamAddMemberArg{
-				Name:     name,
+				TeamID:   x.TeamID,
 				Username: u2.username,
 				Role:     roles[i],
 			})
@@ -545,7 +545,7 @@ func (u *smuUser) loadTeam(teamname string, admin bool) *teams.Team {
 func (u *smuUser) addTeamMember(team smuTeam, member *smuUser, role keybase1.TeamRole) {
 	cli := u.getTeamsClient()
 	_, err := cli.TeamAddMember(context.TODO(), keybase1.TeamAddMemberArg{
-		Name:     team.name,
+		TeamID:   team.ID,
 		Username: member.username,
 		Role:     role,
 	})
@@ -790,6 +790,24 @@ func (u *smuUser) readChatsWithDevice(team smuTeam, dev *smuDeviceWrapper, nMess
 	messages, err := u.readChatsWithErrorAndDevice(team, dev, nMessages)
 	t := u.ctx.t
 	require.NoError(t, err)
+
+	// Filter out journeycards
+	originalLen := len(messages)
+	n := 0 // https://github.com/golang/go/wiki/SliceTricks#filter-in-place
+	for _, msg := range messages {
+		if !msg.IsJourneycard() {
+			messages[n] = msg
+			n++
+		}
+	}
+	messages = messages[:n]
+	if originalLen < len(messages) {
+		t.Logf("filtered out %v journeycard messages", originalLen-len(messages))
+	}
+
+	if len(messages) != nMessages {
+		t.Logf("messages: %v", chat1.MessageUnboxedDebugLines(messages))
+	}
 	require.Len(t, messages, nMessages)
 	for i, msg := range messages {
 		require.Equal(t, msg.Valid().MessageBody.Text().Body, fmt.Sprintf("%d", len(messages)-i-1))

@@ -13,7 +13,6 @@ import {globalColors} from '../../styles'
 import {isMobile} from '../platform'
 import {toByteArray} from 'base64-js'
 import {noConversationIDKey, isValidConversationIDKey} from '../types/chat2/common'
-import {getFullname} from '../users'
 import {AllowedColors} from '../../common-adapters/text'
 import shallowEqual from 'shallowequal'
 
@@ -56,8 +55,6 @@ export const unverifiedInboxUIItemToConversationMeta = (
   )
 
   const isTeam = i.membersType === RPCChatTypes.ConversationMembersType.team
-  const participants =
-    i.localMetadata && isTeam ? i.localMetadata.writerNames || [] : (i.name || '').split(',')
   const channelname = isTeam && i.localMetadata ? i.localMetadata.channelName : ''
 
   const supersededBy = conversationMetadataToMetaSupersedeInfo(i.supersededBy)
@@ -86,11 +83,9 @@ export const unverifiedInboxUIItemToConversationMeta = (
     maxMsgID: i.maxMsgID,
     maxVisibleMsgID: i.maxVisibleMsgID,
     membershipType: conversationMemberStatusToMembershipType(i.memberStatus),
-    nameParticipants: participants,
     notificationsDesktop,
     notificationsGlobalIgnoreMentions,
     notificationsMobile,
-    participants,
     readMsgID: i.readMsgID,
     resetParticipants,
     retentionPolicy,
@@ -154,12 +149,6 @@ export const updateMeta = (
       newMeta.inboxLocalVersion > oldMeta.inboxLocalVersion
     ) {
       const merged = {...newMeta}
-      if (shallowEqual(merged.participants, oldMeta.participants)) {
-        merged.participants = oldMeta.participants
-      }
-      if (shallowEqual(merged.nameParticipants, oldMeta.nameParticipants)) {
-        merged.nameParticipants = oldMeta.nameParticipants
-      }
       if (shallowEqual([...merged.rekeyers], [...oldMeta.rekeyers])) {
         merged.rekeyers = oldMeta.rekeyers
       }
@@ -260,15 +249,10 @@ const UIItemToRetentionPolicies = (
 
 export const inboxUIItemToConversationMeta = (
   state: TypedState,
-  i: RPCChatTypes.InboxUIItem,
-  allowEmpty?: boolean
+  i: RPCChatTypes.InboxUIItem
 ): ConversationMeta | null => {
   // Private chats only
   if (i.visibility !== RPCTypes.TLFVisibility.private) {
-    return null
-  }
-  // Ignore empty unless we explicitly allow it (making new conversations)
-  if (i.isEmpty && !allowEmpty) {
     return null
   }
   // We don't support mixed reader/writers
@@ -318,7 +302,6 @@ export const inboxUIItemToConversationMeta = (
       }
     }
   }
-  const participants = i.participants || []
   return {
     ...makeConversationMeta(),
     botAliases: i.botAliases,
@@ -338,26 +321,9 @@ export const inboxUIItemToConversationMeta = (
     maxVisibleMsgID: i.maxVisibleMsgID,
     membershipType: conversationMemberStatusToMembershipType(i.memberStatus),
     minWriterRole,
-    nameParticipants: (i.participants || []).reduce<Array<string>>((l, part) => {
-      if (part.inConvName) {
-        l.push(part.assertion)
-      }
-      return l
-    }, []),
     notificationsDesktop,
     notificationsGlobalIgnoreMentions,
     notificationsMobile,
-    participantToContactName: participants
-      ? new Map(
-          participants.reduce<Array<[string, string]>>((arr, part) => {
-            if (part.contactName) {
-              arr.push([part.assertion, part.contactName])
-            }
-            return arr
-          }, [])
-        )
-      : new Map(),
-    participants: (i.participants || []).map(part => part.assertion),
     pinnedMsg,
     readMsgID: i.readMsgID,
     resetParticipants,
@@ -396,13 +362,10 @@ export const makeConversationMeta = (): Types.ConversationMeta => ({
   maxVisibleMsgID: -1,
   membershipType: 'active' as const,
   minWriterRole: 'reader' as const,
-  nameParticipants: [],
   notificationsDesktop: 'never' as const,
   notificationsGlobalIgnoreMentions: false,
   notificationsMobile: 'never' as const,
   offline: false,
-  participantToContactName: new Map(),
-  participants: [],
   pinnedMsg: undefined,
   readMsgID: -1,
   rekeyers: new Set(),
@@ -426,58 +389,6 @@ export const makeConversationMeta = (): Types.ConversationMeta => ({
 const emptyMeta = makeConversationMeta()
 export const getMeta = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.metaMap.get(id) || emptyMeta
-
-// we want the memoized function to have access to state but not have it be a part of the memoization else it'll fail always
-let _unmemoizedState: TypedState
-const _getParticipantSuggestionsMemoized = memoize(
-  (participants: Array<string>, teamType: Types.TeamType) => {
-    const suggestions = participants.map(username => ({
-      fullName: getFullname(_unmemoizedState, username) || '',
-      username,
-    }))
-    if (teamType !== 'adhoc') {
-      const fullName = teamType === 'small' ? 'Everyone in this team' : 'Everyone in this channel'
-      suggestions.push({fullName, username: 'channel'}, {fullName, username: 'here'})
-    }
-    return suggestions
-  }
-)
-
-export const getParticipantSuggestions = (state: TypedState, id: Types.ConversationIDKey) => {
-  const {participants, teamType} = getMeta(state, id)
-  _unmemoizedState = state
-  return _getParticipantSuggestionsMemoized(participants, teamType)
-}
-
-export const getChannelSuggestions = (state: TypedState, teamname: string) => {
-  if (!teamname) {
-    return []
-  }
-  // First try channelinfos (all channels in a team), then try inbox (the
-  // partial list of channels that you have joined).
-  const convs = state.teams.teamNameToChannelInfos.get(teamname)
-  if (convs) {
-    return [...convs.values()].map(conv => conv.channelname)
-  }
-  return [...state.chat2.metaMap.values()].filter(v => v.teamname === teamname).map(v => v.channelname)
-}
-
-let _getAllChannelsRet: Array<{channelname: string; teamname: string}> = []
-// TODO why do this for all teams?
-const _getAllChannelsMemo = memoize((mm: TypedState['chat2']['metaMap']) =>
-  [...mm.values()]
-    .filter(v => v.teamname && v.channelname && v.teamType === 'big')
-    .map(({channelname, teamname}) => ({channelname, teamname}))
-)
-export const getAllChannels = (state: TypedState) => {
-  const ret = _getAllChannelsMemo(state.chat2.metaMap)
-
-  if (shallowEqual(ret, _getAllChannelsRet)) {
-    return _getAllChannelsRet
-  }
-  _getAllChannelsRet = ret
-  return _getAllChannelsRet
-}
 
 export const getChannelForTeam = (state: TypedState, teamname: string, channelname: string) =>
   [...state.chat2.metaMap.values()].find(m => m.teamname === teamname && m.channelname === channelname) ||
@@ -511,13 +422,14 @@ export const getBotCommands = (state: TypedState, id: Types.ConversationIDKey) =
 // show wallets icon for one-on-one conversations
 export const shouldShowWalletsIcon = (state: TypedState, id: Types.ConversationIDKey) => {
   const meta = getMeta(state, id)
+  const participants = state.chat2.participantMap.get(id)
   const accountID = WalletConstants.getDefaultAccountID(state.wallets)
   const sendDisabled = !isMobile && accountID && !!state.wallets.mobileOnlyMap.get(accountID)
 
   return (
     !sendDisabled &&
     meta.teamType === 'adhoc' &&
-    meta.nameParticipants.filter(u => u !== state.config.username).length === 1
+    (participants?.name ?? []).filter(u => u !== state.config.username).length === 1
   )
 }
 
@@ -559,10 +471,11 @@ export const getConversationIDKeyMetasToLoad = (
     return arr
   }, [])
 
-export const getRowParticipants = (meta: Types.ConversationMeta, username: string) =>
-  meta.nameParticipants
+export const getRowParticipants = memoize((participants: Types.ParticipantInfo, username: string) =>
+  participants.name
     // Filter out ourselves unless it's our 1:1 conversation
     .filter((participant, _, list) => (list.length === 1 ? true : participant !== username))
+)
 
 export const timestampToString = (meta: Types.ConversationMeta) =>
   formatTimeForConversationList(meta.timestamp)

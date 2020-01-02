@@ -220,7 +220,10 @@
     "certificatePinningToggled": {
       "toggled?": "boolean"
     },
-    "toggleRuntimeStats": {},
+    "loadDefaultPhoneNumberCountry": {},
+    "updateDefaultPhoneNumberCountry": {
+      "country": "string"
+    },
     "loginBrowserViaWebAuthToken": {}
   }
 }

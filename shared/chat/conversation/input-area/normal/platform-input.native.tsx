@@ -271,25 +271,13 @@ const Action = React.memo((props: ActionProps) => {
         ]}
       >
         <Kb.Box2 direction="horizontal" style={styles.actionIconsContainer}>
-          <Kb.Icon
-            onClick={insertMentionMarker}
-            type="iconfont-mention"
-            style={Kb.iconCastPlatformStyles(styles.actionButton)}
-          />
+          <Kb.Icon onClick={insertMentionMarker} type="iconfont-mention" style={styles.actionButton} />
           {smallGap}
-          <Kb.Icon
-            onClick={openFilePicker}
-            type="iconfont-camera"
-            style={Kb.iconCastPlatformStyles(styles.actionButton)}
-          />
+          <Kb.Icon onClick={openFilePicker} type="iconfont-camera" style={styles.actionButton} />
           {smallGap}
           <AudioRecorder conversationIDKey={conversationIDKey} iconStyle={styles.actionButton} />
           {smallGap}
-          <Kb.Icon
-            onClick={openMoreMenu}
-            type="iconfont-add"
-            style={Kb.iconCastPlatformStyles(styles.actionButton)}
-          />
+          <Kb.Icon onClick={openMoreMenu} type="iconfont-add" style={styles.actionButton} />
         </Kb.Box2>
       </Kb.NativeAnimated.View>
     </Kb.Box2>
@@ -309,7 +297,7 @@ const ExplodingIcon = ({explodingModeSeconds, isExploding, openExplodingPicker})
         ) : (
           <Kb.Icon
             color={isExploding ? Styles.globalColors.black : null}
-            style={Kb.iconCastPlatformStyles(styles.nonExploding)}
+            style={styles.nonExploding}
             type="iconfont-timer"
             fontSize={22}
           />

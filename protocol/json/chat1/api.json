@@ -828,6 +828,30 @@
     },
     {
       "type": "record",
+      "name": "ConvNotification",
+      "fields": [
+        {
+          "type": "string",
+          "name": "type"
+        },
+        {
+          "type": [
+            null,
+            "ConvSummary"
+          ],
+          "name": "conv"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "error"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "AdvertiseCommandAPIParam",
       "fields": [
         {

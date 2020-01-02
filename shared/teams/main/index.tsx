@@ -6,27 +6,31 @@ import Header from './header'
 import Banner from './banner'
 import NoTeamsPlaceholder from './no-teams-placeholder'
 import {memoize} from '../../util/memoize'
+import {pluralize} from '../../util/string'
 
 type DeletedTeam = {
   teamName: string
   deletedBy: string
 }
 
-export type Props = {
+export type OwnProps = {
   loaded: boolean
   deletedTeams: ReadonlyArray<DeletedTeam>
   newTeams: Set<Types.TeamID>
-  onCreateTeam: () => void
   onHideChatBanner: () => void
-  onJoinTeam: () => void
-  onManageChat: (arg0: string) => void
-  onOpenFolder: (arg0: string) => void
+  onManageChat: (teamID: Types.TeamID) => void
+  onOpenFolder: (teamID: Types.TeamID) => void
   onReadMore: () => void
   onViewTeam: (teamID: Types.TeamID) => void
   sawChatBanner: boolean
-  teamresetusers: Map<string, Set<Types.ResetUser>>
+  teamresetusers: Map<Types.TeamID, Set<Types.ResetUser>>
   newTeamRequests: Map<Types.TeamID, number>
   teams: Array<Types.TeamDetails>
+}
+
+export type Props = OwnProps & {
+  onCreateTeam: () => void
+  onJoinTeam: () => void
 }
 
 type RowProps = {
@@ -37,7 +41,7 @@ type RowProps = {
   isOpen: boolean
   newRequests: number
   onOpenFolder: () => void
-  onManageChat: (() => void) | null
+  onManageChat?: () => void
   resetUserCount: number
   onViewTeam: () => void
 }
@@ -74,9 +78,7 @@ export const TeamRow = React.memo<RowProps>((props: RowProps) => {
           </Kb.Box2>
           <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start">
             {props.isNew && <Kb.Meta title="new" backgroundColor={Styles.globalColors.orange} />}
-            <Kb.Text type="BodySmall">
-              {props.membercount + ' member' + (props.membercount !== 1 ? 's' : '')}
-            </Kb.Text>
+            <Kb.Text type="BodySmall">{getMembersText(props.membercount)}</Kb.Text>
           </Kb.Box2>
         </Kb.Box2>
       }
@@ -97,6 +99,8 @@ export const TeamRow = React.memo<RowProps>((props: RowProps) => {
     />
   )
 })
+
+const getMembersText = (count: number) => (count === -1 ? '' : `${count} ${pluralize('member', count)}`)
 
 type Row =
   | {
@@ -138,8 +142,8 @@ class Teams extends React.PureComponent<Props, State> {
     this.setState({sawChatBanner: true})
     this.props.onHideChatBanner()
   }
-  private onOpenFolder = name => this.props.onOpenFolder(name)
-  private onManageChat = name => this.props.onManageChat(name)
+  private onOpenFolder = id => this.props.onOpenFolder(id)
+  private onManageChat = id => this.props.onManageChat(id)
   private onViewTeam = (teamID: Types.TeamID) => this.props.onViewTeam(teamID)
 
   private renderItem = (index: number, item: Row) => {
@@ -161,7 +165,7 @@ class Teams extends React.PureComponent<Props, State> {
       }
       case 'team': {
         const team = item.team
-        const reset = this.props.teamresetusers.get(team.teamname)
+        const reset = this.props.teamresetusers.get(team.id)
         const resetUserCount = (reset && reset.size) || 0
         return (
           <TeamRow
@@ -173,7 +177,7 @@ class Teams extends React.PureComponent<Props, State> {
             newRequests={this.props.newTeamRequests.get(team.id) || 0}
             membercount={team.memberCount}
             onOpenFolder={() => this.onOpenFolder(team.teamname)}
-            onManageChat={team.isMember ? () => this.onManageChat(team.teamname) : null}
+            onManageChat={team.isMember ? () => this.onManageChat(team.id) : undefined}
             onViewTeam={() => this.onViewTeam(team.id)}
             resetUserCount={resetUserCount}
           />

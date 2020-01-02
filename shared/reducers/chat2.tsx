@@ -1,5 +1,6 @@
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as TeamBuildingGen from '../actions/team-building-gen'
+import * as BotsGen from '../actions/bots-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as Constants from '../constants/chat2'
 import * as Container from '../util/container'
@@ -13,14 +14,20 @@ import logger from '../logger'
 import HiddenString from '../util/hidden-string'
 import partition from 'lodash/partition'
 import shallowEqual from 'shallowequal'
-import {mapGetEnsureValue} from '../util/map'
+import {mapGetEnsureValue, mapEqual} from '../util/map'
 
 type EngineActions =
   | EngineGen.Chat1NotifyChatChatTypingUpdatePayload
   | EngineGen.Chat1ChatUiChatBotCommandsUpdateStatusPayload
   | EngineGen.Chat1ChatUiChatInboxLayoutPayload
 
-type Actions = Chat2Gen.Actions | TeamBuildingGen.Actions | EngineActions
+type Actions =
+  | Chat2Gen.Actions
+  | TeamBuildingGen.Actions
+  | EngineActions
+  | BotsGen.UpdateFeaturedBotsPayload
+  | BotsGen.SetLoadedAllBotsPayload
+  | BotsGen.SetSearchFeaturedAndUsersResultsPayload
 
 const initialState: Types.State = Constants.makeState()
 
@@ -53,6 +60,23 @@ const messageIDToOrdinal = (
   }
 
   return null
+}
+
+const botActions: Container.ActionHandler<Actions, Types.State> = {
+  [BotsGen.updateFeaturedBots]: (draftState, action) => {
+    const {bots, page} = action.payload
+    bots.map(b => draftState.featuredBotsMap.set(b.botUsername, b))
+    if (page !== undefined) {
+      draftState.featuredBotsPage = page
+    }
+  },
+  [BotsGen.setLoadedAllBots]: (draftState, action) => {
+    const {loaded} = action.payload
+    draftState.featuredBotsLoaded = loaded
+  },
+  [BotsGen.setSearchFeaturedAndUsersResults]: (draftState, action) => {
+    draftState.botSearchResults = action.payload.results
+  },
 }
 
 const audioActions: Container.ActionHandler<Actions, Types.State> = {
@@ -619,12 +643,16 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const unreadMap = new Map<Types.ConversationIDKey, number>()
     conversations.forEach(({convID, badgeCounts, unreadMessages}) => {
       const key = Types.conversationIDToKey(convID)
-      const count = badgeCounts[badgeKey] || 0
-      badgeMap.set(key, count)
+      badgeMap.set(key, badgeCounts[badgeKey] || 0)
       unreadMap.set(key, unreadMessages)
     })
-    draftState.badgeMap = badgeMap
-    draftState.unreadMap = unreadMap
+
+    if (!mapEqual(draftState.badgeMap, badgeMap)) {
+      draftState.badgeMap = badgeMap
+    }
+    if (!mapEqual(draftState.unreadMap, unreadMap)) {
+      draftState.unreadMap = unreadMap
+    }
   },
   [Chat2Gen.messageSetEditing]: (draftState, action) => {
     const {conversationIDKey, editLastUser, ordinal} = action.payload
@@ -1171,12 +1199,14 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   [Chat2Gen.staticConfigLoaded]: (draftState, action) => {
     draftState.staticConfig = action.payload.staticConfig
   },
+  [Chat2Gen.setParticipants]: (draftState, action) => {
+    action.payload.participants.forEach(part => {
+      draftState.participantMap.set(part.conversationIDKey, part.participants)
+    })
+  },
   [Chat2Gen.metasReceived]: (draftState, action) => {
-    const {fromInboxRefresh, metas, initialTrustedLoad, removals} = action.payload
+    const {metas, initialTrustedLoad, removals} = action.payload
     const {draftMap, mutedMap, metaMap} = draftState
-    if (fromInboxRefresh) {
-      draftState.inboxHasLoaded = true
-    }
     if (initialTrustedLoad) {
       draftState.trustedInboxHasLoaded = true
     }
@@ -1312,11 +1342,15 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
         }
         draftState.metaMap.set(conversationIDKey, {
           ...newMeta,
-          participants,
           rekeyers,
           snippet: error.message,
           snippetDecoration: RPCChatTypes.SnippetDecoration.none,
           trustedState: 'error' as const,
+        })
+        draftState.participantMap.set(conversationIDKey, {
+          all: participants,
+          contactName: Constants.noParticipantInfo.contactName,
+          name: participants,
         })
       } else {
         const old = draftState.metaMap.get(conversationIDKey)
@@ -1460,7 +1494,32 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       draftState.inboxNumSmallRows = rows
     }
   },
+  [Chat2Gen.setLoadedBotPage]: (draftState, action) => {
+    const {page} = action.payload
+    draftState.featuredBotsPage = page
+  },
+  [Chat2Gen.setBotPublicCommands]: (draftState, action) => {
+    draftState.botPublicCommands.set(action.payload.username, action.payload.commands)
+  },
+  [Chat2Gen.refreshBotPublicCommands]: (draftState, action) => {
+    draftState.botPublicCommands.delete(action.payload.username)
+  },
+  [Chat2Gen.refreshBotSettings]: (draftState, action) => {
+    const m = draftState.botSettings.get(action.payload.conversationIDKey)
+    if (m) {
+      m.delete(action.payload.username)
+    }
+  },
+  [Chat2Gen.setBotSettings]: (draftState, action) => {
+    const m = draftState.botSettings.get(action.payload.conversationIDKey) || new Map()
+    m.set(action.payload.username, action.payload.settings)
+    draftState.botSettings.set(action.payload.conversationIDKey, m)
+  },
+  [Chat2Gen.setGeneralConvFromTeamID]: (draftState, action) => {
+    draftState.teamIDToGeneralConvID.set(action.payload.teamID, action.payload.conversationIDKey)
+  },
   ...audioActions,
+  ...botActions,
   ...giphyActions,
   ...paymentActions,
   ...searchActions,

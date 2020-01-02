@@ -102,6 +102,7 @@ protocol SimpleFS {
     boolean writable;
     PrefetchStatus prefetchStatus;
     PrefetchProgress prefetchProgress;
+    string symlinkTarget;
   }
 
   record DirentWithRevision {
@@ -645,4 +646,7 @@ protocol SimpleFS {
     string url;
   }
   GUIFileContext simpleFSGetGUIFileContext(KBFSPath path);
+
+  void simpleFSUserIn(string clientID);
+  void simpleFSUserOut(string clientID);
 }

@@ -280,22 +280,14 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
             )}
             {!this.props.cannotWrite && (
               <>
-                <Kb.Icon
-                  onClick={this.props.onGiphyToggle}
-                  style={Kb.iconCastPlatformStyles(styles.icon)}
-                  type="iconfont-gif"
-                />
+                <Kb.Icon onClick={this.props.onGiphyToggle} style={styles.icon} type="iconfont-gif" />
                 <Kb.Icon
                   color={this.state.emojiPickerOpen ? Styles.globalColors.black : null}
                   onClick={this._emojiPickerToggle}
-                  style={Kb.iconCastPlatformStyles(styles.icon)}
+                  style={styles.icon}
                   type="iconfont-emoji"
                 />
-                <Kb.Icon
-                  onClick={this._filePickerOpen}
-                  style={Kb.iconCastPlatformStyles(styles.icon)}
-                  type="iconfont-attachment"
-                />
+                <Kb.Icon onClick={this._filePickerOpen} style={styles.icon} type="iconfont-attachment" />
               </>
             )}
           </Kb.Box>
@@ -439,15 +431,17 @@ const styles = Styles.styleSheetCreate(
         marginRight: Styles.globalMargins.tiny,
         position: 'relative',
       },
-      input: {
-        backgroundColor: Styles.globalColors.transparent,
-        height: 22,
-        // Line height change is so that emojis (unicode characters inside
-        // textarea) are not clipped at the top. This change is accompanied by
-        // a change in padding to offset the increased line height
-        lineHeight: '22px',
-        minHeight: 22,
-      },
+      input: Styles.platformStyles({
+        isElectron: {
+          backgroundColor: Styles.globalColors.transparent,
+          height: 22,
+          // Line height change is so that emojis (unicode characters inside
+          // textarea) are not clipped at the top. This change is accompanied by
+          // a change in padding to offset the increased line height
+          lineHeight: 22,
+          minHeight: 22,
+        },
+      }),
       inputBox: {
         flex: 1,
         paddingBottom: Styles.globalMargins.xtiny,

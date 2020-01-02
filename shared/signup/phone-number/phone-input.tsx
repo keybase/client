@@ -12,17 +12,16 @@ import {
 } from '../../util/phone-numbers'
 import {memoize} from '../../util/memoize'
 
-const normalizeCountryCode = countryCode =>
+const normalizeCountryCode = (countryCode: string) =>
   countryCode.endsWith('?') ? countryCode.slice(0, -1) : countryCode
-const getCallingCode = countryCode =>
+const getCallingCode = (countryCode: string) =>
   countryCode !== '' ? countryData()[normalizeCountryCode(countryCode)].callingCode : ''
-const getCountryEmoji = countryCode => (
+const getCountryEmoji = (countryCode: string) => (
   <Kb.Emoji size={16} emojiName={countryData()[normalizeCountryCode(countryCode)].emojiText} />
 )
-const getPlaceholder = countryCode =>
+const getPlaceholder = (countryCode: string) =>
   countryCode !== '' ? 'Ex: ' + countryData()[normalizeCountryCode(countryCode)].example : 'N/A'
-const filterNumeric = text => text.replace(/[^\d]/g, '')
-const defaultCountry = 'US'
+const filterNumeric = (text: string) => text.replace(/[^\d]/g, '')
 const prioritizedCountries = ['US', 'CA', 'GB']
 
 const pickerItems = memoize(countryData =>
@@ -115,7 +114,7 @@ const menuItems = memoize((countryData, filter, onClick) => {
     }))
 })
 
-const MenuItem = props => (
+const MenuItem = (props: {emoji: string; text: string}) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.menuItem} gap="xtiny" alignItems="center">
     <Kb.Text type="Body" center={true}>
       <Kb.Emoji size={18} emojiName={props.emoji} />
@@ -126,14 +125,14 @@ const MenuItem = props => (
 
 type CountrySelectorProps = {
   attachTo?: () => React.Component<any> | null
-  onSelect: (arg0: string) => void
+  onSelect: (s: string | undefined) => void
   onHidden: () => void
-  selected: string
+  selected?: string
   visible: boolean
 }
 
 type CountrySelectorState = {
-  selected: string
+  selected?: string
   filter: string
 }
 
@@ -153,7 +152,8 @@ class CountrySelector extends React.Component<CountrySelectorProps, CountrySelec
     }
   }
 
-  private onSelect = selected => this.setState(s => (s.selected === selected ? null : {selected}))
+  private onSelect = (selected: string | undefined) =>
+    this.setState(s => (s.selected === selected ? null : {selected}))
 
   private onSelectFirst = () => {
     if (Styles.isMobile && this.mobileItems && this.mobileItems[0]) {
@@ -170,15 +170,18 @@ class CountrySelector extends React.Component<CountrySelectorProps, CountrySelec
   }
 
   private onDone = () => {
+    if (!this.state.selected) {
+      return
+    }
     this.props.onSelect(this.state.selected)
     this.props.onHidden()
   }
 
-  onSelectMenu = selected => {
+  onSelectMenu = (selected: string) => {
     this.props.onSelect(selected)
   }
 
-  private onChangeFilter = filter => this.setState(() => ({filter}))
+  private onChangeFilter = (filter: string) => this.setState(() => ({filter}))
 
   clearFilter() {
     this.onChangeFilter('')
@@ -240,24 +243,25 @@ type Props = {
 }
 
 type State = {
-  country: string
-  prefix: string
+  country?: string
+  prefix?: string
   formatted: string
+  formatter?: libphonenumber.AsYouTypeFormatter
   focused: boolean
 }
 
 class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
   state = {
-    country: this.props.defaultCountry || defaultCountry,
+    country: this.props.defaultCountry,
     focused: false,
     formatted: '',
-    prefix: getCallingCode(this.props.defaultCountry || defaultCountry).slice(1),
+    formatter: this.props.defaultCountry ? new AsYouTypeFormatter(this.props.defaultCountry) : undefined,
+    prefix: this.props.defaultCountry && getCallingCode(this.props.defaultCountry).slice(1),
   }
-  private formatter = new AsYouTypeFormatter(this.props.defaultCountry || defaultCountry)
   private countrySelectorRef = React.createRef<CountrySelector>()
   private phoneInputRef = React.createRef<Kb.PlainInput>()
 
-  private setFormattedPhoneNumber = formatted =>
+  private setFormattedPhoneNumber = (formatted: string) =>
     this.setState(s => {
       if (s.formatted === formatted) {
         return null
@@ -271,17 +275,21 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
   // 2. Remove any non-numerics from the text
   // 3. Feed the new text into the formatter char by char
   // 4. Set the value of the input to the new formatted
-  private reformatPhoneNumber = (_newText, skipCountry) => {
-    this.formatter.clear()
+  private reformatPhoneNumber = (_newText: string, skipCountry: boolean) => {
+    if (!this.state.formatter) {
+      return
+    }
+
+    this.state.formatter.clear()
     const newText = filterNumeric(_newText)
     if (newText.trim().length === 0) {
       this.setFormattedPhoneNumber('')
       return
     }
     for (let i = 0; i < newText.length - 1; i++) {
-      this.formatter.inputDigit(newText[i])
+      this.state.formatter.inputDigit(newText[i])
     }
-    const formatted = this.formatter.inputDigit(newText[newText.length - 1])
+    const formatted = this.state.formatter.inputDigit(newText[newText.length - 1])
     this.setFormattedPhoneNumber(formatted)
 
     // Special case for NA area
@@ -310,7 +318,7 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
     }
   }
 
-  private reformatPrefix = (_newText, skipCountry) => {
+  private reformatPrefix = (_newText: string, skipCountry: boolean) => {
     let newText = filterNumeric(_newText)
     if (!skipCountry) {
       const matchedCountry = codeToCountry()[newText]
@@ -336,14 +344,14 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
     this.props.onChangeNumber(validation.e164, validation.valid)
   }
 
-  private setCountry = (country, keepPrefix) => {
+  private setCountry = (country: string, keepPrefix: boolean) => {
     if (this.state.country !== country) {
       country = normalizeCountryCode(country)
 
-      this.setState({country})
-      if (country !== '') {
-        this.formatter = new AsYouTypeFormatter(country)
-      }
+      this.setState({
+        country,
+        formatter: country ? new AsYouTypeFormatter(country) : undefined,
+      })
 
       // Special behaviour for NA numbers
       if (getCallingCode(country).length === 6) {
@@ -356,9 +364,9 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
   }
 
   private toggleShowingMenu = () => {
-    if (this.state.country === '') {
+    if (!this.state.country && this.props.defaultCountry) {
       this.countrySelectorRef.current &&
-        this.countrySelectorRef.current.onSelectMenu(this.props.defaultCountry || defaultCountry)
+        this.countrySelectorRef.current.onSelectMenu(this.props.defaultCountry)
     }
     this.countrySelectorRef.current && this.countrySelectorRef.current.clearFilter()
     this.props.toggleShowingMenu()
@@ -369,11 +377,15 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
   }
 
   private renderCountrySelector = () => {
+    if (!this.state.country) {
+      return null
+    }
+
     if (Styles.isMobile) {
       return (
         <Kb.Text type="BodySemibold" style={styles.countrySelector}>
-          {this.state.country === ''
-            ? this.state.prefix === ''
+          {!this.state.country
+            ? !this.state.prefix
               ? '- Pick a country -'
               : '- Invalid country prefix -'
             : countryData()[this.state.country].emoji + ' ' + countryData()[this.state.country].name}
@@ -393,12 +405,34 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
     )
   }
 
-  private onSelectCountry = (code: string) => {
-    this.setCountry(code, false)
+  private onSelectCountry = (code: string | undefined) => {
+    this.setCountry(code ?? '', false)
     this.phoneInputRef.current && this.phoneInputRef.current.focus()
   }
 
+  static getDerivedStateFromProps(props: Props, state: State) {
+    if (!state.country && props.defaultCountry) {
+      return {
+        country: props.defaultCountry,
+        formatter: new AsYouTypeFormatter(props.defaultCountry),
+        prefix: getCallingCode(props.defaultCountry).slice(1),
+      }
+    }
+    return null
+  }
+
   render() {
+    if (!this.state.country) {
+      return (
+        <Kb.Box2
+          direction={isMobile ? 'vertical' : 'horizontal'}
+          style={Styles.collapseStyles([styles.container, styles.containerLoading])}
+        >
+          <Kb.ProgressIndicator type="Small" />
+        </Kb.Box2>
+      )
+    }
+
     return (
       <Kb.Box2
         direction={isMobile ? 'vertical' : 'horizontal'}
@@ -464,7 +498,7 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
               onFocus={() => this.setState({focused: true})}
               onBlur={() => this.setState({focused: false})}
               value={this.state.formatted}
-              disabled={this.state.country === ''}
+              disabled={!this.state.country}
               ref={this.phoneInputRef}
               maxLength={17}
               textContentType="telephoneNumber"
@@ -499,6 +533,11 @@ const styles = Styles.styleSheetCreate(
           width: '100%',
         },
       }),
+      containerLoading: {
+        alignItems: 'center',
+        display: 'flex',
+        justifyContent: 'center',
+      },
       countryLayout: {
         maxHeight: 200,
         overflow: 'hidden',

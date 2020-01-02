@@ -1,23 +1,27 @@
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
+import * as ChatTypes from '../../../../../constants/types/chat2'
 
-type Action = {
-  label: string
-  onClick: () => void
-}
+export type Action =
+  | {
+      label: string
+      onClick: () => void
+    }
+  | 'wave'
 
 type Props = {
   actions: Array<Action>
+  conversationIDKey: ChatTypes.ConversationIDKey
   image: Kb.IconType | null
   loadTeam?: () => void
   teamname: string
-  text: string
+  textComponent: React.ReactNode
 }
 
-const TeamJourney = (props: Props) => {
+export const TeamJourney = (props: Props) => {
   // Load the team once on mount for its channel list if required.
-  const {loadTeam, teamname} = props
+  const {conversationIDKey, loadTeam, teamname} = props
   React.useEffect(() => {
     loadTeam?.()
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -28,21 +32,31 @@ const TeamJourney = (props: Props) => {
       <Kb.Box2 key="content" direction="vertical" fullWidth={true} style={styles.content}>
         <Kb.Box2 direction="horizontal" fullWidth={true}>
           <Kb.Box2 direction="horizontal" style={props.image ? styles.text : undefined}>
-            <Kb.Markdown styleOverride={markdownOverride}>{props.text}</Kb.Markdown>
+            {props.textComponent}
           </Kb.Box2>
           {!!props.image && <Kb.Icon style={styles.image} type={props.image} />}
         </Kb.Box2>
-        <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.actionsBox}>
-          {props.actions.map(action => (
-            <Kb.Button
-              key={action.label}
-              small={true}
-              type="Default"
-              mode="Secondary"
-              label={action.label}
-              onClick={action.onClick}
-            />
-          ))}
+        <Kb.Box2
+          direction="horizontal"
+          fullWidth={true}
+          alignItems={'flex-start'}
+          gap="tiny"
+          style={styles.actionsBox}
+        >
+          {props.actions.map(action =>
+            action == 'wave' ? (
+              <Kb.WaveButton conversationIDKey={conversationIDKey} small={true} />
+            ) : (
+              <Kb.Button
+                key={action.label}
+                small={true}
+                type="Default"
+                mode="Secondary"
+                label={action.label}
+                onClick={action.onClick}
+              />
+            )
+          )}
         </Kb.Box2>
       </Kb.Box2>
     </>
@@ -71,22 +85,6 @@ const TeamJourneyHeader = (props: HeaderProps) => (
     </Kb.Box2>
   </>
 )
-
-const markdownOverride = {
-  paragraph: Styles.platformStyles({
-    common: {
-      color: Styles.globalColors.black_50,
-      fontWeight: '400',
-    },
-    isElectron: {fontSize: 13, lineHeight: 17},
-    isMobile: {fontSize: 14, lineHeight: 18},
-  }),
-  strong: Styles.platformStyles({
-    common: Styles.globalStyles.fontExtrabold,
-    isElectron: {fontSize: 13, lineHeight: 17},
-    isMobile: {fontSize: 14, lineHeight: 18},
-  }),
-}
 
 const styles = Styles.styleSheetCreate(
   () =>

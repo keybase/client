@@ -4,7 +4,6 @@
 package service
 
 import (
-	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -232,7 +231,7 @@ func (h *UserHandler) ProfileEdit(nctx context.Context, arg keybase1.ProfileEdit
 	return engine.RunEngine2(m, eng)
 }
 
-func (h *UserHandler) InterestingPeople(ctx context.Context, maxUsers int) (res []keybase1.InterestingPerson, err error) {
+func (h *UserHandler) InterestingPeople(ctx context.Context, args keybase1.InterestingPeopleArg) (res []keybase1.InterestingPerson, err error) {
 	// In case someone comes from "GetInterestingPeople" command in standalone
 	// mode:
 	h.G().StartStandaloneChat()
@@ -279,9 +278,21 @@ func (h *UserHandler) InterestingPeople(ctx context.Context, maxUsers int) (res 
 	// Add sources of interesting people
 	ip.AddSource(chatFn, 0.7)
 	ip.AddSource(followerFn, 0.2)
-	ip.AddSource(fallbackFn, 0.1)
 
-	uids, err := ip.Get(ctx, maxUsers)
+	// We filter out the fallback recommendations when actually building a team
+	if args.Namespace != "teams" {
+		// The most interesting person of all... you
+		you := keybase1.InterestingPerson{
+			Uid:      h.G().GetEnv().GetUID(),
+			Username: h.G().GetEnv().GetUsername().String(),
+		}
+		res = append(res, you)
+
+		// add hellobot as a fallback recommendation if you don't have many others
+		ip.AddSource(fallbackFn, 0.1)
+	}
+
+	uids, err := ip.Get(ctx, args.MaxUsers)
 	if err != nil {
 		h.G().Log.Debug("InterestingPeople: failed to get list: %s", err.Error())
 		return nil, err
@@ -301,13 +312,6 @@ func (h *UserHandler) InterestingPeople(ctx context.Context, maxUsers int) (res 
 	const serviceMapFreshness = 24 * time.Hour
 	serviceMaps := h.G().ServiceMapper.MapUIDsToServiceSummaries(ctx, h.G(), uids,
 		serviceMapFreshness, uidmap.DisallowNetworkBudget)
-
-	// The most interesting person of all... you
-	you := keybase1.InterestingPerson{
-		Uid:      h.G().GetEnv().GetUID(),
-		Username: h.G().GetEnv().GetUsername().String(),
-	}
-	res = append(res, you)
 
 	for i, uid := range uids {
 		if packages[i].NormalizedUsername.IsNil() {
@@ -649,6 +653,7 @@ func (h *UserHandler) SetUserBlocks(ctx context.Context, arg keybase1.SetUserBlo
 		h.G().Log.CDebugf(ctx, "SetUserBlocks: adding block: %+v", block)
 	}
 	payloadBlocks := make([]setBlockArg, len(arg.Blocks))
+	uids := make([]keybase1.UID, len(arg.Blocks))
 	for i, v := range arg.Blocks {
 		uid := libkb.GetUIDByUsername(h.G(), v.Username)
 		payloadBlocks[i] = setBlockArg{
@@ -656,6 +661,7 @@ func (h *UserHandler) SetUserBlocks(ctx context.Context, arg keybase1.SetUserBlo
 			Chat:     v.SetChatBlock,
 			Follow:   v.SetFollowBlock,
 		}
+		uids[i] = uid
 	}
 
 	payload := make(libkb.JSONPayload)
@@ -668,6 +674,11 @@ func (h *UserHandler) SetUserBlocks(ctx context.Context, arg keybase1.SetUserBlo
 	}
 
 	_, err = mctx.G().API.Post(mctx, apiArg)
+
+	if err == nil {
+		h.cleanupAfterBlockChange(mctx, uids)
+	}
+
 	return err
 
 }
@@ -747,38 +758,29 @@ func (h *UserHandler) GetUserBlocks(ctx context.Context, arg keybase1.GetUserBlo
 	return res, nil
 }
 
-func (h *UserHandler) ReportUser(ctx context.Context, arg keybase1.ReportUserArg) (err error) {
+func (h *UserHandler) GetTeamBlocks(ctx context.Context, _ int) (res []keybase1.TeamBlock, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	convIDStr := "nil"
-	if arg.ConvID != nil {
-		convIDStr = *arg.ConvID
-	}
-	defer mctx.TraceTimed(fmt.Sprintf(
-		"UserHandler#ReportUser(username=%q,transcript=%t,convId=%s)",
-		arg.Username, arg.IncludeTranscript, convIDStr),
-		func() error { return err })()
 
-	if arg.IncludeTranscript {
-		if arg.ConvID == nil {
-			return errors.New("invalid arguments: IncludeTranscript is true but ConvID == nil")
-		}
-		mctx.Debug("Ignoring IncludeTranscript - not implemented")
-	}
-	postArgs := libkb.HTTPArgs{
-		"username": libkb.S{Val: arg.Username},
-		"reason":   libkb.S{Val: arg.Reason},
-		"comment":  libkb.S{Val: arg.Comment},
-	}
-	if arg.ConvID != nil {
-		postArgs["conv_id"] = libkb.S{Val: *arg.ConvID}
-	}
+	defer mctx.TraceTimed("UserHandler#GetTeamBlocks()", func() error { return err })()
+
 	apiArg := libkb.APIArg{
-		Endpoint:    "report/conversation",
+		Endpoint:    "team/blocks",
 		SessionType: libkb.APISessionTypeREQUIRED,
-		Args:        postArgs,
 	}
-	_, err = mctx.G().API.Post(mctx, apiArg)
-	return err
+
+	type getBlockResult struct {
+		libkb.AppStatusEmbed
+		TeamBlocks []keybase1.TeamBlock `json:"team_blocks"`
+	}
+
+	var apiRes getBlockResult
+
+	err = mctx.G().API.GetDecode(mctx, apiArg, &apiRes)
+	if err != nil {
+		return nil, err
+	}
+
+	return apiRes.TeamBlocks, nil
 }
 
 // Legacy RPC and API:
@@ -809,6 +811,22 @@ func (h *UserHandler) setUserBlock(mctx libkb.MetaContext, username string, bloc
 		},
 	}
 	_, err = mctx.G().API.Post(mctx, apiArg)
-	_ = mctx.G().CardCache().Delete(uid)
+
+	if err == nil {
+		h.cleanupAfterBlockChange(mctx, []keybase1.UID{uid})
+	}
+
 	return err
+}
+
+func (h *UserHandler) cleanupAfterBlockChange(mctx libkb.MetaContext, uids []keybase1.UID) {
+	mctx.Debug("clearing card cache after block change")
+	for _, uid := range uids {
+		if err := mctx.G().CardCache().Delete(uid); err != nil {
+			mctx.Debug("cleanupAfterBlockChange CardCache delete error for %s: %s", uid, err)
+		}
+	}
+
+	mctx.Debug("refreshing wallet state after block change")
+	mctx.G().GetStellar().Refresh(mctx, "user block change")
 }

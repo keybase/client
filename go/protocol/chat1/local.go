@@ -3032,27 +3032,27 @@ func (o MessageUnboxedPlaceholder) DeepCopy() MessageUnboxedPlaceholder {
 type JourneycardType int
 
 const (
-	JourneycardType_WELCOME            JourneycardType = 0
-	JourneycardType_POPULAR_CHANNELS   JourneycardType = 1
-	JourneycardType_ADD_PEOPLE         JourneycardType = 2
-	JourneycardType_CREATE_CHANNELS    JourneycardType = 3
-	JourneycardType_MSG_ATTENTION      JourneycardType = 4
-	JourneycardType_USER_AWAY_FOR_LONG JourneycardType = 5
-	JourneycardType_CHANNEL_INACTIVE   JourneycardType = 6
-	JourneycardType_MSG_NO_ANSWER      JourneycardType = 7
+	JourneycardType_WELCOME          JourneycardType = 0
+	JourneycardType_POPULAR_CHANNELS JourneycardType = 1
+	JourneycardType_ADD_PEOPLE       JourneycardType = 2
+	JourneycardType_CREATE_CHANNELS  JourneycardType = 3
+	JourneycardType_MSG_ATTENTION    JourneycardType = 4
+	JourneycardType_UNUSED           JourneycardType = 5
+	JourneycardType_CHANNEL_INACTIVE JourneycardType = 6
+	JourneycardType_MSG_NO_ANSWER    JourneycardType = 7
 )
 
 func (o JourneycardType) DeepCopy() JourneycardType { return o }
 
 var JourneycardTypeMap = map[string]JourneycardType{
-	"WELCOME":            0,
-	"POPULAR_CHANNELS":   1,
-	"ADD_PEOPLE":         2,
-	"CREATE_CHANNELS":    3,
-	"MSG_ATTENTION":      4,
-	"USER_AWAY_FOR_LONG": 5,
-	"CHANNEL_INACTIVE":   6,
-	"MSG_NO_ANSWER":      7,
+	"WELCOME":          0,
+	"POPULAR_CHANNELS": 1,
+	"ADD_PEOPLE":       2,
+	"CREATE_CHANNELS":  3,
+	"MSG_ATTENTION":    4,
+	"UNUSED":           5,
+	"CHANNEL_INACTIVE": 6,
+	"MSG_NO_ANSWER":    7,
 }
 
 var JourneycardTypeRevMap = map[JourneycardType]string{
@@ -3061,7 +3061,7 @@ var JourneycardTypeRevMap = map[JourneycardType]string{
 	2: "ADD_PEOPLE",
 	3: "CREATE_CHANNELS",
 	4: "MSG_ATTENTION",
-	5: "USER_AWAY_FOR_LONG",
+	5: "UNUSED",
 	6: "CHANNEL_INACTIVE",
 	7: "MSG_NO_ANSWER",
 }
@@ -3078,6 +3078,7 @@ type MessageUnboxedJourneycard struct {
 	Ordinal        int             `codec:"ordinal" json:"ordinal"`
 	CardType       JourneycardType `codec:"cardType" json:"cardType"`
 	HighlightMsgID MessageID       `codec:"highlightMsgID" json:"highlightMsgID"`
+	OpenTeam       bool            `codec:"openTeam" json:"openTeam"`
 }
 
 func (o MessageUnboxedJourneycard) DeepCopy() MessageUnboxedJourneycard {
@@ -3086,6 +3087,7 @@ func (o MessageUnboxedJourneycard) DeepCopy() MessageUnboxedJourneycard {
 		Ordinal:        o.Ordinal,
 		CardType:       o.CardType.DeepCopy(),
 		HighlightMsgID: o.HighlightMsgID.DeepCopy(),
+		OpenTeam:       o.OpenTeam,
 	}
 }
 
@@ -5838,13 +5840,6 @@ type GetThreadLocalArg struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
-type GetCachedThreadArg struct {
-	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
-	Query            *GetThreadQuery              `codec:"query,omitempty" json:"query,omitempty"`
-	Pagination       *Pagination                  `codec:"pagination,omitempty" json:"pagination,omitempty"`
-	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
-}
-
 type GetThreadNonblockArg struct {
 	SessionID        int                          `codec:"sessionID" json:"sessionID"`
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
@@ -5879,6 +5874,12 @@ type RequestInboxLayoutArg struct {
 
 type RequestInboxUnboxArg struct {
 	ConvIDs []ConversationID `codec:"convIDs" json:"convIDs"`
+}
+
+type RequestInboxSmallIncreaseArg struct {
+}
+
+type RequestInboxSmallResetArg struct {
 }
 
 type GetInboxNonblockLocalArg struct {
@@ -6138,6 +6139,10 @@ type FindConversationsLocalArg struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
+type FindGeneralConvFromTeamIDArg struct {
+	TeamID keybase1.TeamID `codec:"teamID" json:"teamID"`
+}
+
 type UpdateTypingArg struct {
 	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
 	Typing         bool           `codec:"typing" json:"typing"`
@@ -6345,43 +6350,33 @@ type IgnorePinnedMessageArg struct {
 }
 
 type AddBotMemberArg struct {
-	TlfName     string                    `codec:"tlfName" json:"tlfName"`
+	ConvID      ConversationID            `codec:"convID" json:"convID"`
 	Username    string                    `codec:"username" json:"username"`
 	BotSettings *keybase1.TeamBotSettings `codec:"botSettings,omitempty" json:"botSettings,omitempty"`
 	Role        keybase1.TeamRole         `codec:"role" json:"role"`
-	MembersType ConversationMembersType   `codec:"membersType" json:"membersType"`
-	TlfPublic   bool                      `codec:"tlfPublic" json:"tlfPublic"`
 }
 
 type EditBotMemberArg struct {
-	TlfName     string                    `codec:"tlfName" json:"tlfName"`
+	ConvID      ConversationID            `codec:"convID" json:"convID"`
 	Username    string                    `codec:"username" json:"username"`
 	BotSettings *keybase1.TeamBotSettings `codec:"botSettings,omitempty" json:"botSettings,omitempty"`
 	Role        keybase1.TeamRole         `codec:"role" json:"role"`
-	MembersType ConversationMembersType   `codec:"membersType" json:"membersType"`
-	TlfPublic   bool                      `codec:"tlfPublic" json:"tlfPublic"`
 }
 
 type RemoveBotMemberArg struct {
-	TlfName     string                  `codec:"tlfName" json:"tlfName"`
-	Username    string                  `codec:"username" json:"username"`
-	MembersType ConversationMembersType `codec:"membersType" json:"membersType"`
-	TlfPublic   bool                    `codec:"tlfPublic" json:"tlfPublic"`
+	ConvID   ConversationID `codec:"convID" json:"convID"`
+	Username string         `codec:"username" json:"username"`
 }
 
 type SetBotMemberSettingsArg struct {
-	TlfName     string                   `codec:"tlfName" json:"tlfName"`
+	ConvID      ConversationID           `codec:"convID" json:"convID"`
 	Username    string                   `codec:"username" json:"username"`
 	BotSettings keybase1.TeamBotSettings `codec:"botSettings" json:"botSettings"`
-	MembersType ConversationMembersType  `codec:"membersType" json:"membersType"`
-	TlfPublic   bool                     `codec:"tlfPublic" json:"tlfPublic"`
 }
 
 type GetBotMemberSettingsArg struct {
-	TlfName     string                  `codec:"tlfName" json:"tlfName"`
-	Username    string                  `codec:"username" json:"username"`
-	MembersType ConversationMembersType `codec:"membersType" json:"membersType"`
-	TlfPublic   bool                    `codec:"tlfPublic" json:"tlfPublic"`
+	ConvID   ConversationID `codec:"convID" json:"convID"`
+	Username string         `codec:"username" json:"username"`
 }
 
 type TeamIDFromTLFNameArg struct {
@@ -6390,15 +6385,21 @@ type TeamIDFromTLFNameArg struct {
 	TlfPublic   bool                    `codec:"tlfPublic" json:"tlfPublic"`
 }
 
+type DismissJourneycardArg struct {
+	ConvID   ConversationID  `codec:"convID" json:"convID"`
+	CardType JourneycardType `codec:"cardType" json:"cardType"`
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
-	GetCachedThread(context.Context, GetCachedThreadArg) (GetThreadLocalRes, error)
 	GetThreadNonblock(context.Context, GetThreadNonblockArg) (NonblockFetchRes, error)
 	GetUnreadline(context.Context, GetUnreadlineArg) (UnreadlineRes, error)
 	GetInboxAndUnboxLocal(context.Context, GetInboxAndUnboxLocalArg) (GetInboxAndUnboxLocalRes, error)
 	GetInboxAndUnboxUILocal(context.Context, GetInboxAndUnboxUILocalArg) (GetInboxAndUnboxUILocalRes, error)
 	RequestInboxLayout(context.Context, InboxLayoutReselectMode) error
 	RequestInboxUnbox(context.Context, []ConversationID) error
+	RequestInboxSmallIncrease(context.Context) error
+	RequestInboxSmallReset(context.Context) error
 	GetInboxNonblockLocal(context.Context, GetInboxNonblockLocalArg) (NonblockFetchRes, error)
 	PostLocal(context.Context, PostLocalArg) (PostLocalRes, error)
 	GenerateOutboxID(context.Context) (OutboxID, error)
@@ -6434,6 +6435,7 @@ type LocalInterface interface {
 	RetryPost(context.Context, RetryPostArg) error
 	MarkAsReadLocal(context.Context, MarkAsReadLocalArg) (MarkAsReadLocalRes, error)
 	FindConversationsLocal(context.Context, FindConversationsLocalArg) (FindConversationsLocalRes, error)
+	FindGeneralConvFromTeamID(context.Context, keybase1.TeamID) (InboxUIItem, error)
 	UpdateTyping(context.Context, UpdateTypingArg) error
 	UpdateUnsentText(context.Context, UpdateUnsentTextArg) error
 	JoinConversationLocal(context.Context, JoinConversationLocalArg) (JoinLeaveConversationLocalRes, error)
@@ -6482,6 +6484,7 @@ type LocalInterface interface {
 	SetBotMemberSettings(context.Context, SetBotMemberSettingsArg) error
 	GetBotMemberSettings(context.Context, GetBotMemberSettingsArg) (keybase1.TeamBotSettings, error)
 	TeamIDFromTLFName(context.Context, TeamIDFromTLFNameArg) (keybase1.TeamID, error)
+	DismissJourneycard(context.Context, DismissJourneycardArg) error
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -6500,21 +6503,6 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.GetThreadLocal(ctx, typedArgs[0])
-					return
-				},
-			},
-			"getCachedThread": {
-				MakeArg: func() interface{} {
-					var ret [1]GetCachedThreadArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]GetCachedThreadArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]GetCachedThreadArg)(nil), args)
-						return
-					}
-					ret, err = i.GetCachedThread(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -6605,6 +6593,26 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					err = i.RequestInboxUnbox(ctx, typedArgs[0].ConvIDs)
+					return
+				},
+			},
+			"requestInboxSmallIncrease": {
+				MakeArg: func() interface{} {
+					var ret [1]RequestInboxSmallIncreaseArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					err = i.RequestInboxSmallIncrease(ctx)
+					return
+				},
+			},
+			"requestInboxSmallReset": {
+				MakeArg: func() interface{} {
+					var ret [1]RequestInboxSmallResetArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					err = i.RequestInboxSmallReset(ctx)
 					return
 				},
 			},
@@ -7125,6 +7133,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.FindConversationsLocal(ctx, typedArgs[0])
+					return
+				},
+			},
+			"findGeneralConvFromTeamID": {
+				MakeArg: func() interface{} {
+					var ret [1]FindGeneralConvFromTeamIDArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]FindGeneralConvFromTeamIDArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]FindGeneralConvFromTeamIDArg)(nil), args)
+						return
+					}
+					ret, err = i.FindGeneralConvFromTeamID(ctx, typedArgs[0].TeamID)
 					return
 				},
 			},
@@ -7813,6 +7836,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"dismissJourneycard": {
+				MakeArg: func() interface{} {
+					var ret [1]DismissJourneycardArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]DismissJourneycardArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]DismissJourneycardArg)(nil), args)
+						return
+					}
+					err = i.DismissJourneycard(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -7823,11 +7861,6 @@ type LocalClient struct {
 
 func (c LocalClient) GetThreadLocal(ctx context.Context, __arg GetThreadLocalArg) (res GetThreadLocalRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.getThreadLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
-	return
-}
-
-func (c LocalClient) GetCachedThread(ctx context.Context, __arg GetCachedThreadArg) (res GetThreadLocalRes, err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.getCachedThread", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -7860,6 +7893,16 @@ func (c LocalClient) RequestInboxLayout(ctx context.Context, reselectMode InboxL
 func (c LocalClient) RequestInboxUnbox(ctx context.Context, convIDs []ConversationID) (err error) {
 	__arg := RequestInboxUnboxArg{ConvIDs: convIDs}
 	err = c.Cli.Call(ctx, "chat.1.local.requestInboxUnbox", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) RequestInboxSmallIncrease(ctx context.Context) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.requestInboxSmallIncrease", []interface{}{RequestInboxSmallIncreaseArg{}}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) RequestInboxSmallReset(ctx context.Context) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.requestInboxSmallReset", []interface{}{RequestInboxSmallResetArg{}}, nil, 0*time.Millisecond)
 	return
 }
 
@@ -8039,6 +8082,12 @@ func (c LocalClient) MarkAsReadLocal(ctx context.Context, __arg MarkAsReadLocalA
 
 func (c LocalClient) FindConversationsLocal(ctx context.Context, __arg FindConversationsLocalArg) (res FindConversationsLocalRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.findConversationsLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) FindGeneralConvFromTeamID(ctx context.Context, teamID keybase1.TeamID) (res InboxUIItem, err error) {
+	__arg := FindGeneralConvFromTeamIDArg{TeamID: teamID}
+	err = c.Cli.Call(ctx, "chat.1.local.findGeneralConvFromTeamID", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -8293,5 +8342,10 @@ func (c LocalClient) GetBotMemberSettings(ctx context.Context, __arg GetBotMembe
 
 func (c LocalClient) TeamIDFromTLFName(ctx context.Context, __arg TeamIDFromTLFNameArg) (res keybase1.TeamID, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.teamIDFromTLFName", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) DismissJourneycard(ctx context.Context, __arg DismissJourneycardArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.dismissJourneycard", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }

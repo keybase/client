@@ -143,7 +143,8 @@ type clearedConflictVal struct {
 //
 //   /v1/de...-...(53 characters total)...ff(/tlf journal)
 type JournalManager struct {
-	config Config
+	config     Config
+	defaultBWS TLFJournalBackgroundWorkStatus
 
 	log      traceLogger
 	deferLog traceLogger
@@ -182,12 +183,14 @@ func makeJournalManager(
 	config Config, log logger.Logger, dir string,
 	bcache data.BlockCache, dirtyBcache data.DirtyBlockCache,
 	bserver BlockServer, mdOps MDOps, onBranchChange branchChangeListener,
-	onMDFlush mdFlushListener) *JournalManager {
+	onMDFlush mdFlushListener,
+	bws TLFJournalBackgroundWorkStatus) *JournalManager {
 	if len(dir) == 0 {
 		panic("journal root path string unexpectedly empty")
 	}
 	jManager := JournalManager{
 		config:                  config,
+		defaultBWS:              bws,
 		log:                     traceLogger{log},
 		deferLog:                traceLogger{log.CloneWithAddedDepth(1)},
 		dir:                     dir,
@@ -326,11 +329,7 @@ func (j *JournalManager) getTLFJournal(
 
 		j.log.CDebugf(ctx, "Enabling a new journal for %s (enableAuto=%t, set by user=%t)",
 			tlfID, enableAuto, enableAutoSetByUser)
-		bws := TLFJournalBackgroundWorkEnabled
-		if j.config.Mode().Type() == InitSingleOp {
-			bws = TLFJournalSingleOpBackgroundWorkEnabled
-		}
-		err = j.Enable(ctx, tlfID, h, bws)
+		err = j.Enable(ctx, tlfID, h, j.defaultBWS)
 		if err != nil {
 			j.log.CWarningf(ctx, "Couldn't enable journal for %s: %+v", tlfID, err)
 			return nil, false
@@ -1011,7 +1010,9 @@ func (j *JournalManager) WaitForCompleteFlush(
 
 // FinishSingleOp lets the write journal know that the application has
 // finished a single op, and then blocks until the write journal has
-// finished flushing everything.
+// finished flushing everything.  If this folder is not being flushed
+// in single op mode, this call is equivalent to
+// `WaitForCompleteFlush`.
 func (j *JournalManager) FinishSingleOp(ctx context.Context, tlfID tlf.ID,
 	lc *keybase1.LockContext, priority keybase1.MDPriority) (err error) {
 	j.log.CDebugf(ctx, "Finishing single op for %s", tlfID)

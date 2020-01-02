@@ -223,14 +223,16 @@ func (o UIInboxReselectInfo) DeepCopy() UIInboxReselectInfo {
 }
 
 type UIInboxLayout struct {
-	SmallTeams   []UIInboxSmallTeamRow `codec:"smallTeams" json:"smallTeams"`
-	BigTeams     []UIInboxBigTeamRow   `codec:"bigTeams" json:"bigTeams"`
-	ReselectInfo *UIInboxReselectInfo  `codec:"reselectInfo,omitempty" json:"reselectInfo,omitempty"`
-	WidgetList   []UIInboxSmallTeamRow `codec:"widgetList" json:"widgetList"`
+	TotalSmallTeams int                   `codec:"totalSmallTeams" json:"totalSmallTeams"`
+	SmallTeams      []UIInboxSmallTeamRow `codec:"smallTeams" json:"smallTeams"`
+	BigTeams        []UIInboxBigTeamRow   `codec:"bigTeams" json:"bigTeams"`
+	ReselectInfo    *UIInboxReselectInfo  `codec:"reselectInfo,omitempty" json:"reselectInfo,omitempty"`
+	WidgetList      []UIInboxSmallTeamRow `codec:"widgetList" json:"widgetList"`
 }
 
 func (o UIInboxLayout) DeepCopy() UIInboxLayout {
 	return UIInboxLayout{
+		TotalSmallTeams: o.TotalSmallTeams,
 		SmallTeams: (func(x []UIInboxSmallTeamRow) []UIInboxSmallTeamRow {
 			if x == nil {
 				return nil
@@ -1115,6 +1117,7 @@ type UIMessageJourneycard struct {
 	Ordinal        float64         `codec:"ordinal" json:"ordinal"`
 	CardType       JourneycardType `codec:"cardType" json:"cardType"`
 	HighlightMsgID MessageID       `codec:"highlightMsgID" json:"highlightMsgID"`
+	OpenTeam       bool            `codec:"openTeam" json:"openTeam"`
 }
 
 func (o UIMessageJourneycard) DeepCopy() UIMessageJourneycard {
@@ -1122,6 +1125,7 @@ func (o UIMessageJourneycard) DeepCopy() UIMessageJourneycard {
 		Ordinal:        o.Ordinal,
 		CardType:       o.CardType.DeepCopy(),
 		HighlightMsgID: o.HighlightMsgID.DeepCopy(),
+		OpenTeam:       o.OpenTeam,
 	}
 }
 

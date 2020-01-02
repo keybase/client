@@ -7,10 +7,10 @@ import MaybeSwitcher from './maybe-switcher'
 
 type Props = {
   accountID: Types.AccountID
-  airdropSelected: boolean
   isDefaultWallet: boolean
   keybaseUser: string
   onBack: (() => void) | null
+  onBuy: () => void
   onReceive: () => void
   onSettings: () => void
   thisDeviceIsLockedOut: boolean
@@ -28,49 +28,44 @@ const Header = (props: Props) => {
   const unread = Styles.isMobile && props.unreadPayments && (
     <Kb.Box2 direction="vertical" style={styles.unread} />
   )
-  const nameAndInfo =
-    props.walletName || props.airdropSelected ? (
-      <MaybeSwitcher>
-        <Kb.Box2 direction="vertical" fullWidth={true}>
-          <Kb.Box2
-            direction="horizontal"
-            fullWidth={true}
-            gap="xtiny"
-            centerChildren={true}
-            style={styles.topContainer}
-          >
-            {backButton}
-            {props.isDefaultWallet && <Kb.Avatar size={16} username={props.keybaseUser} />}
-            <Kb.Text type="BodyBig">{props.airdropSelected ? 'Airdrop' : props.walletName}</Kb.Text>
-            {caret}
-            {unread}
-          </Kb.Box2>
-          {!props.airdropSelected && (
-            <>
-              {props.isDefaultWallet && (
-                <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true}>
-                  <Kb.Text type="BodySmall">Default Keybase account</Kb.Text>
-                </Kb.Box2>
-              )}
-              <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true}>
-                <SmallAccountID accountID={props.accountID} style={styles.smallAccountID} />
-              </Kb.Box2>
-            </>
-          )}
+  const nameAndInfo = props.walletName ? (
+    <MaybeSwitcher>
+      <Kb.Box2 direction="vertical" fullWidth={true}>
+        <Kb.Box2
+          direction="horizontal"
+          fullWidth={true}
+          gap="xtiny"
+          centerChildren={true}
+          style={styles.topContainer}
+        >
+          {backButton}
+          {props.isDefaultWallet && <Kb.Avatar size={16} username={props.keybaseUser} />}
+          <Kb.Text type="BodyBig">{props.walletName}</Kb.Text>
+          {caret}
+          {unread}
         </Kb.Box2>
-      </MaybeSwitcher>
-    ) : (
-      <Kb.Box2
-        direction="horizontal"
-        fullWidth={true}
-        gap="xtiny"
-        centerChildren={true}
-        style={styles.topContainer}
-      >
-        {backButton}
-        <Kb.ProgressIndicator style={styles.spinner} type="Small" />
+        {props.isDefaultWallet && (
+          <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true}>
+            <Kb.Text type="BodySmall">Default Keybase account</Kb.Text>
+          </Kb.Box2>
+        )}
+        <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true}>
+          <SmallAccountID accountID={props.accountID} style={styles.smallAccountID} />
+        </Kb.Box2>
       </Kb.Box2>
-    )
+    </MaybeSwitcher>
+  ) : (
+    <Kb.Box2
+      direction="horizontal"
+      fullWidth={true}
+      gap="xtiny"
+      centerChildren={true}
+      style={styles.topContainer}
+    >
+      {backButton}
+      <Kb.ProgressIndicator style={styles.spinner} type="Small" />
+    </Kb.Box2>
+  )
   return (
     <Kb.Box2
       direction="vertical"
@@ -81,32 +76,32 @@ const Header = (props: Props) => {
       style={styles.container}
     >
       {nameAndInfo}
-      {!props.airdropSelected && (
-        <>
-          <Kb.Box2 direction="horizontal" gap="tiny" centerChildren={true}>
-            <SendButton />
-            <Kb.Button
-              type="Wallet"
-              mode="Secondary"
-              onClick={props.onReceive}
-              label="Receive"
-              disabled={!props.walletName}
-            />
-            <Kb.Button
-              onClick={props.onSettings}
-              mode="Secondary"
-              style={styles.settingsButton}
-              type="Wallet"
-            >
-              <Kb.Icon type="iconfont-gear" style={styles.gear} />
-            </Kb.Button>
-          </Kb.Box2>
-          {props.thisDeviceIsLockedOut && (
-            <Kb.Text center={true} type="BodySmall">
-              You can only send from a mobile device more than 7 days old.
-            </Kb.Text>
-          )}
-        </>
+      <Kb.Box2 direction="horizontal" gap="tiny" centerChildren={true}>
+        <SendButton />
+        <Kb.Button
+          type="Wallet"
+          mode="Secondary"
+          onClick={props.onReceive}
+          label="Receive"
+          disabled={!props.walletName}
+          narrow={Styles.isMobile}
+        />
+        <Kb.Button
+          type="Wallet"
+          mode="Secondary"
+          onClick={props.onBuy}
+          label="Buy"
+          disabled={!props.walletName}
+          narrow={Styles.isMobile}
+        />
+        <Kb.Button onClick={props.onSettings} mode="Secondary" style={styles.settingsButton} type="Wallet">
+          <Kb.Icon type="iconfont-gear" style={styles.gear} />
+        </Kb.Button>
+      </Kb.Box2>
+      {props.thisDeviceIsLockedOut && (
+        <Kb.Text center={true} type="BodySmall">
+          You can only send from a mobile device more than 7 days old.
+        </Kb.Text>
       )}
     </Kb.Box2>
   )

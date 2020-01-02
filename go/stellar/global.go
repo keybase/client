@@ -680,6 +680,12 @@ func (s *Stellar) OwnAccountCached(mctx libkb.MetaContext, accountID stellar1.Ac
 	return OwnAccount(mctx, accountID)
 }
 
+func (s *Stellar) Refresh(mctx libkb.MetaContext, reason string) {
+	if err := s.walletState.RefreshAll(mctx, reason); err != nil {
+		mctx.Debug("Stellar.Refresh(%s) ws.RefreshAll error: %s", reason, err)
+	}
+}
+
 // getFederationClient is a helper function used during
 // initialization.
 func getFederationClient(g *libkb.GlobalContext) federation.ClientInterface {

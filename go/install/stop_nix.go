@@ -17,12 +17,12 @@ import (
 
 func StopAllButService(mctx libkb.MetaContext, exitCode keybase1.ExitCode) {
 	clients := libkb.GetClientStatus(mctx)
-	mctx.Info("Shutting down Keybase clients...: %+v", clients)
+	mctx.Debug("Shutting down Keybase clients...: %+v", clients)
 	for _, client := range clients {
 		if client.Details.ClientType == keybase1.ClientType_CLI {
 			continue
 		}
-		mctx.Info("Shutting down Keybase client %+v", client)
+		mctx.Debug("Shutting down Keybase client %+v", client)
 
 		// NOTE KBFS catches the SIGTERM and attempts to unmount mountdir before terminating,
 		//      so we don't have to do it ourselves.

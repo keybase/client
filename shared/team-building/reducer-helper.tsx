@@ -11,6 +11,8 @@ export function teamBuilderReducerCreator<State>(
     TeamBuildingGen.changeSendNotification,
     TeamBuildingGen.fetchUserRecs,
     TeamBuildingGen.fetchedUserRecs,
+    TeamBuildingGen.finishTeamBuilding,
+    TeamBuildingGen.setError,
     TeamBuildingGen.finishedTeamBuilding,
     TeamBuildingGen.labelsSeen,
     TeamBuildingGen.removeUsersFromTeamSoFar,

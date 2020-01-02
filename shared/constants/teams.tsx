@@ -21,6 +21,11 @@ export const rpcMemberStatusToStatus = invert(RPCTypes.TeamMemberStatus) as {
 export const teamsLoadedWaitingKey = 'teams:loaded'
 export const teamsAccessRequestWaitingKey = 'teams:accessRequests'
 export const teamWaitingKey = (teamname: Types.Teamname) => `team:${teamname}`
+export const teamWaitingKeyByID = (teamID: Types.TeamID, state: TypedState) => {
+  // TODO: eventually, delete teamWaitingKey and then change this to only use the ID
+  const teamname = getTeamNameFromID(state, teamID) ?? ''
+  return teamWaitingKey(teamname)
+}
 export const teamGetWaitingKey = (teamname: Types.Teamname) => `teamGet:${teamname}`
 export const teamTarsWaitingKey = (teamname: Types.Teamname) => `teamTars:${teamname}`
 export const teamCreationWaitingKey = 'teamCreate'
@@ -28,16 +33,16 @@ export const teamCreationWaitingKey = 'teamCreate'
 export const addUserToTeamsWaitingKey = (username: string) => `addUserToTeams:${username}`
 export const addPeopleToTeamWaitingKey = (teamname: Types.Teamname) => `teamAddPeople:${teamname}`
 export const addToTeamByEmailWaitingKey = (teamname: Types.Teamname) => `teamAddByEmail:${teamname}`
-export const getChannelsWaitingKey = (teamname: Types.Teamname) => `getChannels:${teamname}`
-export const createChannelWaitingKey = (teamname: Types.Teamname) => `createChannel:${teamname}`
+export const getChannelsWaitingKey = (teamID: Types.TeamID) => `getChannels:${teamID}`
+export const createChannelWaitingKey = (teamID: Types.TeamID) => `createChannel:${teamID}`
 export const settingsWaitingKey = (teamname: Types.Teamname) => `teamSettings:${teamname}`
 export const retentionWaitingKey = (teamname: Types.Teamname) => `teamRetention:${teamname}`
-export const addMemberWaitingKey = (teamname: Types.Teamname, username: string) =>
-  `teamAdd:${teamname};${username}`
+export const addMemberWaitingKey = (teamID: Types.TeamID, ...usernames: Array<string>) =>
+  `teamAdd:${teamID};${usernames.join(',')}`
 export const addInviteWaitingKey = (teamname: Types.Teamname, value: string) =>
   `teamAddInvite:${teamname};${value}`
 // also for pending invites, hence id rather than username
-export const removeMemberWaitingKey = (teamname: Types.Teamname, id: string) => `teamRemove:${teamname};${id}`
+export const removeMemberWaitingKey = (teamID: Types.TeamID, id: string) => `teamRemove:${teamID};${id}`
 export const addToTeamSearchKey = 'addToTeamSearch'
 export const teamProfileAddListWaitingKey = 'teamProfileAddList'
 export const deleteTeamWaitingKey = (teamID: Types.TeamID) => `teamDelete:${teamID}`
@@ -176,16 +181,17 @@ const emptyState: Types.State = {
   teamDetails: new Map(),
   teamDetailsMetaStale: true, // start out true, we have not loaded
   teamDetailsMetaSubscribeCount: 0,
+  teamIDToChannelInfos: new Map(),
+  teamIDToResetUsers: new Map(),
   teamInviteError: '',
   teamJoinError: '',
   teamJoinSuccess: false,
+  teamJoinSuccessOpen: false,
   teamJoinSuccessTeamName: '',
-  teamNameToChannelInfos: new Map(),
   teamNameToID: new Map(),
   teamNameToLoadingInvites: new Map(),
   teamNameToMembers: new Map(),
   teamNameToPublicitySettings: new Map(),
-  teamNameToResetUsers: new Map(),
   teamNameToRetentionPolicy: new Map(),
   teamProfileAddList: [],
   teamRoleMap: {latestKnownVersion: -1, loadedVersion: -1, roles: new Map()},
@@ -295,26 +301,50 @@ export const userIsRoleInTeam = (
   )
 }
 
+export const userInTeam = (state: TypedState, teamname: Types.Teamname, username: string): boolean => {
+  const info = state.teams.teamNameToMembers.get(teamname) || new Map<string, Types.MemberInfo>()
+  return !!info.get(username)
+}
+
+export const userInTeamNotBotWithInfo = (
+  memberInfo: Map<string, Types.MemberInfo>,
+  username: string
+): boolean => {
+  const memb = memberInfo.get(username)
+  if (!memb) {
+    return false
+  }
+  return memb.type !== 'bot' && memb.type !== 'restrictedbot'
+}
+
+export const userRoleInTeam = (
+  state: TypedState,
+  teamname: Types.Teamname,
+  username: string
+): Types.TeamRoleType | null => {
+  const info = state.teams.teamNameToMembers.get(teamname) || new Map<string, Types.MemberInfo>()
+  const memb = info.get(username)
+  return !memb ? null : memb.type
+}
+
 export const getEmailInviteError = (state: TypedState) => state.teams.emailInviteError
 
 export const isTeamWithChosenChannels = (state: TypedState, teamname: string): boolean =>
   state.teams.teamsWithChosenChannels.has(teamname)
 
+const noInfos = new Map<ChatTypes.ConversationIDKey, Types.ChannelInfo>()
+
 export const getTeamChannelInfos = (
   state: TypedState,
-  teamname: Types.Teamname
-): Map<ChatTypes.ConversationIDKey, Types.ChannelInfo> => {
-  return (
-    state.teams.teamNameToChannelInfos.get(teamname) ||
-    new Map<ChatTypes.ConversationIDKey, Types.ChannelInfo>()
-  )
-}
+  teamID: Types.TeamID
+): Map<ChatTypes.ConversationIDKey, Types.ChannelInfo> =>
+  state.teams.teamIDToChannelInfos.get(teamID) ?? noInfos
 
 export const getChannelInfoFromConvID = (
   state: TypedState,
-  teamname: Types.Teamname,
+  teamID: Types.TeamID,
   conversationIDKey: ChatTypes.ConversationIDKey
-): Types.ChannelInfo | null => getTeamChannelInfos(state, teamname).get(conversationIDKey) || null
+): Types.ChannelInfo | null => getTeamChannelInfos(state, teamID).get(conversationIDKey) || null
 
 export const getRole = (state: TypedState, teamID: Types.TeamID): Types.MaybeTeamRoleType =>
   state.teams.teamRoleMap.roles.get(teamID)?.role || 'none'
@@ -322,19 +352,53 @@ export const getRole = (state: TypedState, teamID: Types.TeamID): Types.MaybeTea
 export const getRoleByName = (state: TypedState, teamname: string): Types.MaybeTeamRoleType =>
   getRole(state, getTeamID(state, teamname))
 
-export const hasChannelInfos = (state: TypedState, teamname: Types.Teamname): boolean =>
-  state.teams.teamNameToChannelInfos.has(teamname)
+export const hasChannelInfos = (state: TypedState, teamID: Types.TeamID): boolean =>
+  state.teams.teamIDToChannelInfos.has(teamID)
 
 export const isLastOwner = (state: TypedState, teamname: Types.Teamname): boolean =>
   isOwner(getRoleByName(state, teamname)) && !isMultiOwnerTeam(state, teamname)
 
+const subteamsCannotHaveOwners = {owner: 'Subteams cannot have owners.'}
+const onlyOwnersCanTurnTeamMembersInfoOwners = {owner: 'Only owners can turn team members into owners.'}
+const roleChangeSub = {
+  admin: 'You must be at least an admin to make role changes.',
+  owner: 'Subteams cannot have owners',
+  reader: 'You must be at least an admin to make role changes.',
+  writer: 'You must be at least an admin to make role changes.',
+}
+const roleChangeNotSub = {
+  admin: 'You must be at least an admin to make role changes.',
+  owner: 'You must be at least an admin to make role changes.',
+  reader: 'You must be at least an admin to make role changes.',
+  writer: 'You must be at least an admin to make role changes.',
+}
+
+const anotherRoleChangeSub = {
+  admin: `Only owners can change another owner's role`,
+  owner: 'Subteams cannot have owners.',
+  reader: `Only owners can change another owner's role`,
+  writer: `Only owners can change another owner's role`,
+}
+const anotherRoleChangeNotSub = {
+  admin: `Only owners can change another owner's role`,
+  owner: `Only owners can change another owner's role`,
+  reader: `Only owners can change another owner's role`,
+  writer: `Only owners can change another owner's role`,
+}
+
+const notOwnerSub = {owner: 'Subteams cannot have owners.'}
+const notOwnerNotSub = {owner: `Only owners can turn members into owners`}
+const emptyObj = {}
+
 export const getDisabledReasonsForRolePicker = (
   state: TypedState,
-  teamname: Types.Teamname,
+  teamID: Types.TeamID,
   memberToModify: string | null
 ): Types.DisabledReasonsForRolePicker => {
-  const canManageMembers = getCanPerform(state, teamname).manageMembers
-  const members = getTeamMembers(state, teamname)
+  const canManageMembers = getCanPerformByID(state, teamID).manageMembers
+  const teamDetails = getTeamDetails(state, teamID)
+  const members = teamDetails.members || new Map()
+  const teamname = teamDetails.teamname
   const member = memberToModify ? members.get(memberToModify) : null
   const theyAreOwner = member ? member.type === 'owner' : false
   const you = members.get(state.config.username)
@@ -344,43 +408,25 @@ export const getDisabledReasonsForRolePicker = (
   if (canManageMembers) {
     // If you're an implicit admin, the tests below will fail for you, but you can still change roles.
     return isSubteam(teamname)
-      ? {owner: 'Subteams cannot have owners.'}
+      ? subteamsCannotHaveOwners
       : yourRole !== 'owner'
-      ? {owner: 'Only owners can turn team members into owners.'}
-      : {}
+      ? onlyOwnersCanTurnTeamMembersInfoOwners
+      : emptyObj
   }
 
   // We shouldn't get here, but in case we do this is correct.
   if (yourRole !== 'owner' && yourRole !== 'admin') {
-    return {
-      admin: 'You must be at least an admin to make role changes.',
-      owner: isSubteam(teamname)
-        ? 'Subteams cannot have owners'
-        : 'You must be at least an admin to make role changes.',
-      reader: 'You must be at least an admin to make role changes.',
-      writer: 'You must be at least an admin to make role changes.',
-    }
+    return isSubteam(teamname) ? roleChangeSub : roleChangeNotSub
   }
 
   // We shouldn't get here, but in case we do this is correct.
   if (theyAreOwner && yourRole !== 'owner') {
-    return {
-      admin: `Only owners can change another owner's role`,
-      owner: isSubteam(teamname)
-        ? 'Subteams cannot have owners.'
-        : `Only owners can change another owner's role`,
-      reader: `Only owners can change another owner's role`,
-      writer: `Only owners can change another owner's role`,
-    }
+    return isSubteam(teamname) ? anotherRoleChangeSub : anotherRoleChangeNotSub
   }
 
   // We shouldn't get here, but in case we do this is correct.
   if (yourRole !== 'owner') {
-    return {
-      owner: isSubteam(teamname)
-        ? 'Subteams cannot have owners.'
-        : `Only owners can turn members into owners`,
-    }
+    return isSubteam(teamname) ? notOwnerSub : notOwnerNotSub
   }
 
   return {}
@@ -443,9 +489,6 @@ export const getTeamType = (state: TypedState, teamname: Types.Teamname): 'big' 
 export const isBigTeam = (state: TypedState, teamname: Types.Teamname): boolean =>
   getTeamType(state, teamname) === 'big'
 
-export const getTeamMembers = (state: TypedState, teamname: Types.Teamname): Map<string, Types.MemberInfo> =>
-  state.teams.teamNameToMembers.get(teamname) || new Map()
-
 export const initialPublicitySettings = Object.freeze<Types._PublicitySettings>({
   anyMemberShowcase: false,
   description: '',
@@ -472,8 +515,8 @@ export const isInSomeTeam = (state: TypedState): boolean =>
 export const isAccessRequestPending = (state: TypedState, teamname: Types.Teamname): boolean =>
   state.teams.teamAccessRequestsPending.has(teamname)
 
-export const getTeamResetUsers = (state: TypedState, teamname: Types.Teamname): Set<Types.ResetUser> =>
-  state.teams.teamNameToResetUsers.get(teamname) || new Set()
+export const getTeamResetUsers = (state: TypedState, teamID: Types.TeamID): Set<Types.ResetUser> =>
+  state.teams.teamIDToResetUsers.get(teamID) || new Set()
 
 export const getTeamLoadingInvites = (state: TypedState, teamname: Types.Teamname): Map<string, boolean> =>
   state.teams.teamNameToLoadingInvites.get(teamname) || new Map()

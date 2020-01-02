@@ -126,7 +126,14 @@ const mapStateToProps = (state: Container.TypedState) => ({
   _pathItems: state.fs.pathItems,
   _tlfUpdates: state.fs.tlfUpdates,
   _uploads: state.fs.uploads,
-  conversationsToSend: conversationsToSend(state),
+  conversationsToSend: conversationsToSend(
+    state.chat2.inboxLayout,
+    state.chat2.metaMap,
+    state.chat2.participantMap,
+    state.chat2.badgeMap,
+    state.chat2.unreadMap,
+    state.config.username
+  ),
   daemonHandshakeState: state.config.daemonHandshakeState,
   darkMode: Styles.isDarkMode(),
   desktopAppBadgeCount: state.notifications.desktopAppBadgeCount,

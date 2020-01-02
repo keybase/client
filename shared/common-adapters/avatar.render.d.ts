@@ -6,6 +6,7 @@ export type AvatarSize = 128 | 96 | 64 | 48 | 32 | 24 | 16
 
 export type Props = {
   borderColor?: string
+  blocked?: boolean
   children?: React.ReactNode
   editable?: boolean
   followIconSize: number

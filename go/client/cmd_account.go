@@ -14,6 +14,7 @@ func NewCmdAccount(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 		NewCmdAccountDelete(cl, g),
 		NewCmdAccountLockdown(cl, g),
 		NewCmdAccountRecoverUsername(cl, g),
+		NewCmdAccountContactSettings(cl, g),
 		NewCmdEmail(cl, g),
 		NewCmdPhoneNumber(cl, g),
 		newCmdUploadAvatar(cl, g, false /* hidden */),

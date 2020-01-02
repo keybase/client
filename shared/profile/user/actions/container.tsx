@@ -36,10 +36,6 @@ export default Container.namedConnect(
       dispatch(
         RouteTreeGen.createNavigateAppend({path: [{props: {username}, selected: 'profileAddToTeam'}]})
       ),
-    _onBlock: (username: string) =>
-      dispatch(
-        RouteTreeGen.createNavigateAppend({path: [{props: {username}, selected: 'profileBlockUser'}]})
-      ),
     _onBrowsePublicFolder: (username: string) =>
       dispatch(
         FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/public/${username}`))
@@ -78,7 +74,6 @@ export default Container.namedConnect(
     hidFromFollowers: stateProps.hidFromFollowers,
     onAccept: () => dispatchProps._onFollow(stateProps._guiID, true),
     onAddToTeam: () => dispatchProps._onAddToTeam(stateProps.username),
-    onBlock: () => dispatchProps._onBlock(stateProps.username),
     onBrowsePublicFolder: () => dispatchProps._onBrowsePublicFolder(stateProps.username),
     onEditProfile: stateProps._you === stateProps.username ? dispatchProps._onEditProfile : undefined,
     onFollow: () => dispatchProps._onFollow(stateProps._guiID, true),

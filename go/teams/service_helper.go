@@ -55,13 +55,25 @@ func GetAnnotatedTeam(ctx context.Context, g *libkb.GlobalContext, id keybase1.T
 		return res, err
 	}
 
-	var members []keybase1.TeamMemberDetails
-	members = append(members, det.Members.Owners...)
-	members = append(members, det.Members.Admins...)
-	members = append(members, det.Members.Writers...)
-	members = append(members, det.Members.Readers...)
-	members = append(members, det.Members.Bots...)
-	members = append(members, det.Members.RestrictedBots...)
+	var members []keybase1.AnnotatedTeamMemberDetails
+	for _, details := range det.Members.Owners {
+		members = append(members, keybase1.AnnotatedTeamMemberDetails{Details: details, Role: keybase1.TeamRole_OWNER})
+	}
+	for _, details := range det.Members.Admins {
+		members = append(members, keybase1.AnnotatedTeamMemberDetails{Details: details, Role: keybase1.TeamRole_ADMIN})
+	}
+	for _, details := range det.Members.Writers {
+		members = append(members, keybase1.AnnotatedTeamMemberDetails{Details: details, Role: keybase1.TeamRole_WRITER})
+	}
+	for _, details := range det.Members.Readers {
+		members = append(members, keybase1.AnnotatedTeamMemberDetails{Details: details, Role: keybase1.TeamRole_READER})
+	}
+	for _, details := range det.Members.Bots {
+		members = append(members, keybase1.AnnotatedTeamMemberDetails{Details: details, Role: keybase1.TeamRole_BOT})
+	}
+	for _, details := range det.Members.RestrictedBots {
+		members = append(members, keybase1.AnnotatedTeamMemberDetails{Details: details, Role: keybase1.TeamRole_RESTRICTEDBOT})
+	}
 
 	var invites []keybase1.AnnotatedTeamInvite
 	for _, invite := range det.AnnotatedActiveInvites {
@@ -386,7 +398,7 @@ func AddMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 		}
 
 		tx := CreateAddMemberTx(t)
-		resolvedUsername, uv, invite, err := tx.AddMemberByAssertionOrEmail(ctx, username, role, botSettings)
+		resolvedUsername, uv, invite, err := tx.AddOrInviteMemberByAssertionOrEmail(ctx, username, role, botSettings)
 		if err != nil {
 			return err
 		}
@@ -436,21 +448,20 @@ type AddMembersRes struct {
 
 // AddMembers adds a bunch of people to a team. Assertions can contain usernames or social assertions.
 // Adds them all in a transaction so it's all or nothing.
-// On success, returns a list where len(res)=len(assertions) and in corresponding order.
-func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamname string, users []keybase1.UserRolePair) (res []AddMembersRes, err error) {
+// If the first transaction fails due to TeamContactSettingsBlock error, it
+// will remove restricted users returned by the error, and retry once.
+// On success, returns a list where len(added) + len(noAdded) = len(assertions) and in
+// corresponding order, with restricted users having an empty AddMembersRes.
+func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, users []keybase1.UserRolePair) (added []AddMembersRes, notAdded []keybase1.User, err error) {
+	mctx := libkb.NewMetaContext(ctx, g)
 	tracer := g.CTimeTracer(ctx, "team.AddMembers", true)
 	defer tracer.Finish()
-	teamName, err := keybase1.TeamNameFromString(teamname)
-	if err != nil {
-		return nil, err
-	}
-	teamID, err := ResolveNameToID(ctx, g, teamName)
-	if err != nil {
-		return nil, err
-	}
 
-	err = RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
-		res = make([]AddMembersRes, len(users))
+	restrictedUsers := make(map[keybase1.UID]bool)
+	addNonRestrictedMembersFunc := func(ctx context.Context, _ int) error {
+		added = []AddMembersRes{}
+		notAdded = []keybase1.User{}
+
 		team, err := GetForTeamManagementByTeamID(ctx, g, teamID, true /*needAdmin*/)
 		if err != nil {
 			return err
@@ -462,8 +473,20 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamname string, us
 			UV        keybase1.UserVersion
 		}
 		var sweep []sweepEntry
-		for i, user := range users {
-			username, uv, invite, err := tx.AddMemberByAssertionOrEmail(ctx, user.AssertionOrEmail, user.Role, user.BotSettings)
+		for _, user := range users {
+			upak, single, doInvite, err := tx.ResolveUPKV2FromAssertionOrEmail(mctx, user.AssertionOrEmail)
+			if err != nil {
+				return NewAddMembersError(user.AssertionOrEmail, err)
+			}
+
+			if _, ok := restrictedUsers[upak.Uid]; ok {
+				// skip users with contact setting restrictions
+				user := keybase1.User{Uid: upak.Uid, Username: libkb.NewNormalizedUsername(upak.Username).String()}
+				notAdded = append(notAdded, user)
+				continue
+			}
+
+			username, uv, invite, err := tx.AddOrInviteMemberByUPKV2(ctx, upak, single, doInvite, user.AssertionOrEmail, user.Role, user.BotSettings)
 			if err != nil {
 				if _, ok := err.(AttemptedInviteSocialOwnerError); ok {
 					return err
@@ -474,10 +497,11 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamname string, us
 			if !username.IsNil() {
 				normalizedUsername = username
 			}
-			res[i] = AddMembersRes{
+
+			added = append(added, AddMembersRes{
 				Invite:   invite,
 				Username: normalizedUsername,
-			}
+			})
 			if !uv.IsNil() {
 				sweep = append(sweep, sweepEntry{
 					Assertion: user.AssertionOrEmail,
@@ -485,7 +509,6 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamname string, us
 				})
 			}
 		}
-
 		// Try to mark completed any invites for the users' social assertions.
 		// This can be a time-intensive process since it involves checking proofs.
 		// It is limited to a few seconds and failure is non-fatal.
@@ -498,11 +521,30 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamname string, us
 		timeoutCancel()
 
 		return tx.Post(libkb.NewMetaContext(ctx, g))
-	})
-	if err != nil {
-		return nil, err
 	}
-	return res, nil
+
+	// try to add
+	err = RetryIfPossible(ctx, g, addNonRestrictedMembersFunc)
+	if blockError, ok := err.(libkb.TeamContactSettingsBlockError); ok {
+		mctx.Debug("AddMembers: initial attempt failed with contact settings error: %v", err)
+		uids := blockError.BlockedUIDs()
+		if len(uids) == len(users) {
+			// if all users can't be added, quit
+			mctx.Debug("AddMembers: initial attempt failed and all users were restricted from being added. Not retrying.")
+			return nil, nil, err
+		}
+		// retry add
+		for _, uid := range uids {
+			restrictedUsers[uid] = true
+		}
+		mctx.Debug("AddMembers: retrying without restricted users: %+v", blockError.BlockedUsernames())
+		err = RetryIfPossible(ctx, g, addNonRestrictedMembersFunc)
+	}
+
+	if err != nil {
+		return nil, nil, err
+	}
+	return added, notAdded, nil
 }
 
 func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID,
@@ -615,14 +657,14 @@ func reAddMemberAfterResetInner(ctx context.Context, g *libkb.GlobalContext, tea
 	})
 }
 
-func InviteEmailMember(ctx context.Context, g *libkb.GlobalContext, teamname, email string, role keybase1.TeamRole) error {
+func InviteEmailPhoneMember(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, name string, typ string, role keybase1.TeamRole) error {
 	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
-		t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
+		t, err := GetForTeamManagementByTeamID(ctx, g, teamID, true)
 		if err != nil {
 			return err
 		}
 
-		return t.InviteEmailMember(ctx, email, role)
+		return t.InviteEmailPhoneMember(ctx, name, role, typ)
 	})
 }
 
@@ -978,10 +1020,10 @@ func remove(ctx context.Context, g *libkb.GlobalContext, teamGetter func() (*Tea
 	})
 }
 
-func CancelEmailInvite(ctx context.Context, g *libkb.GlobalContext, teamname, email string, allowInaction bool) (err error) {
+func CancelEmailInvite(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, email string, allowInaction bool) (err error) {
 	g.CTrace(ctx, "CancelEmailInvite", func() error { return err })
 	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
-		t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
+		t, err := GetForTeamManagementByTeamID(ctx, g, teamID, true)
 		if err != nil {
 			return err
 		}
@@ -994,10 +1036,10 @@ func CancelEmailInvite(ctx context.Context, g *libkb.GlobalContext, teamname, em
 	})
 }
 
-func CancelInviteByID(ctx context.Context, g *libkb.GlobalContext, teamname string, inviteID keybase1.TeamInviteID, allowInaction bool) (err error) {
+func CancelInviteByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, inviteID keybase1.TeamInviteID, allowInaction bool) (err error) {
 	g.CTrace(ctx, "CancelInviteByID", func() error { return err })
 	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
-		t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
+		t, err := GetForTeamManagementByTeamID(ctx, g, teamID, true)
 		if err != nil {
 			return err
 		}
@@ -1995,8 +2037,9 @@ type listProfileAddServerRes struct {
 }
 
 type listProfileAddResEntry struct {
-	FqName     string `json:"fq_name"`
-	IsOpenTeam bool   `json:"is_open_team"`
+	TeamID     keybase1.TeamID `json:"team_id"`
+	FqName     string          `json:"fq_name"`
+	IsOpenTeam bool            `json:"is_open_team"`
 	// Whether the caller has admin powers.
 	CallerAdmin bool `json:"caller_admin"`
 	// Whether the 'them' user is an explicit member.
@@ -2029,6 +2072,7 @@ func TeamProfileAddList(ctx context.Context, g *libkb.GlobalContext, username st
 			disabledReason = fmt.Sprintf("%v is already a member.", uname.String())
 		}
 		res = append(res, keybase1.TeamProfileAddEntry{
+			TeamID:         entry.TeamID,
 			TeamName:       teamName,
 			Open:           entry.IsOpenTeam,
 			DisabledReason: disabledReason,

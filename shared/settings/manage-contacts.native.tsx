@@ -88,7 +88,7 @@ const ManageContactsBanner = () => {
 
   return (
     <>
-      {importedCount !== null && (
+      {!!importedCount && (
         <Kb.Banner color="green">
           <Kb.BannerParagraph bannerColor="green" content={[`You imported ${importedCount} contacts.`]} />
           <Kb.BannerParagraph bannerColor="green" content={[{onClick: onStartChat, text: 'Start a chat'}]} />

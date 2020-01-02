@@ -18,6 +18,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/chat/bots"
 	"github.com/keybase/client/go/kbhttp/manager"
 
@@ -404,9 +405,9 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	g.RegexpSearcher = searcher
 	indexer := search.NewIndexer(g)
 	ictx := globals.CtxAddIdentifyMode(context.Background(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil)
-	indexer.Start(ictx, uid)
 	indexer.SetPageSize(2)
 	indexer.SetStartSyncDelay(0)
+	indexer.Start(ictx, uid)
 	g.Indexer = indexer
 
 	h.setTestRemoteClient(ri)
@@ -448,6 +449,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	g.BotCommandManager = bots.NewCachingBotCommandManager(g, func() chat1.RemoteInterface { return ri })
 	g.BotCommandManager.Start(context.TODO(), uid)
 	g.UIInboxLoader = types.DummyUIInboxLoader{}
+	g.UIThreadLoader = NewUIThreadLoader(g)
 
 	tc.G.ChatHelper = NewHelper(g, func() chat1.RemoteInterface { return ri })
 
@@ -996,13 +998,13 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 		case ibox := <-ui.InboxCb:
 			require.NotNil(t, ibox.InboxRes, "nil inbox")
 			require.Equal(t, numconvs, len(ibox.InboxRes.Items))
+			sort.Slice(ibox.InboxRes.Items, func(i, j int) bool {
+				return ibox.InboxRes.Items[i].Time.After(ibox.InboxRes.Items[j].Time)
+			})
 			for index, conv := range ibox.InboxRes.Items {
 				t.Logf("metadata snippet: index: %d snippet: %s time: %v", index, conv.LocalMetadata.Snippet,
 					conv.Time)
 			}
-			sort.Slice(ibox.InboxRes.Items, func(i, j int) bool {
-				return ibox.InboxRes.Items[i].Time.After(ibox.InboxRes.Items[j].Time)
-			})
 			for index, conv := range ibox.InboxRes.Items {
 				require.NotNil(t, conv.LocalMetadata)
 				switch mt {
@@ -1010,9 +1012,9 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 					if conv.ConvID == firstConv.Id.String() {
 						continue
 					}
-					require.Equal(t, fmt.Sprintf("%d", numconvs-index), conv.LocalMetadata.ChannelName)
+					require.Equal(t, fmt.Sprintf("%d", numconvs-index-1), conv.LocalMetadata.ChannelName)
 					require.Equal(t,
-						fmt.Sprintf("%s: %d", users[numconvs-index].Username, numconvs-index),
+						fmt.Sprintf("%s: %d", users[numconvs-index-1].Username, numconvs-index-1),
 						conv.LocalMetadata.Snippet)
 					require.Zero(t, len(conv.LocalMetadata.WriterNames))
 				default:
@@ -1279,6 +1281,8 @@ func TestChatSrvPostLocalAtMention(t *testing.T) {
 		ctc := makeChatTestContext(t, "PostLocal", 2)
 		defer ctc.cleanup()
 		users := ctc.users()
+		libkb.RemoveEnvironmentFeatureForTest(ctc.as(t, users[0]).m.G().GetEnv().Test, libkb.FeatureJourneycardPreview)
+		libkb.RemoveEnvironmentFeatureForTest(ctc.as(t, users[1]).m.G().GetEnv().Test, libkb.FeatureJourneycardPreview)
 
 		switch mt {
 		case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAMNATIVE,
@@ -2816,10 +2820,13 @@ func TestChatSrvGetThreadNonblockServerPage(t *testing.T) {
 		// Basic
 		delay := 10 * time.Minute
 		clock := clockwork.NewFakeClock()
-		ctc.as(t, users[0]).h.uiThreadLoader.clock = clock
-		ctc.as(t, users[0]).h.uiThreadLoader.cachedThreadDelay = nil
-		ctc.as(t, users[0]).h.uiThreadLoader.remoteThreadDelay = &delay
-		ctc.as(t, users[0]).h.uiThreadLoader.validatedDelay = 0
+		tc := ctc.world.Tcs[users[0].Username]
+		uiThreadLoader := NewUIThreadLoader(tc.Context())
+		uiThreadLoader.clock = clock
+		uiThreadLoader.cachedThreadDelay = nil
+		uiThreadLoader.remoteThreadDelay = &delay
+		uiThreadLoader.validatedDelay = 0
+		tc.ChatG.UIThreadLoader = uiThreadLoader
 		cb := make(chan struct{})
 		p := utils.PresentPagination(&chat1.Pagination{
 			Num: 1,
@@ -3018,10 +3025,13 @@ func TestChatSrvGetThreadNonblockIncremental(t *testing.T) {
 		// Basic
 		delay := 10 * time.Minute
 		clock := clockwork.NewFakeClock()
-		ctc.as(t, users[0]).h.uiThreadLoader.clock = clock
-		ctc.as(t, users[0]).h.uiThreadLoader.cachedThreadDelay = nil
-		ctc.as(t, users[0]).h.uiThreadLoader.remoteThreadDelay = &delay
-		ctc.as(t, users[0]).h.uiThreadLoader.validatedDelay = 0
+		tc := ctc.world.Tcs[users[0].Username]
+		uiThreadLoader := NewUIThreadLoader(tc.Context())
+		uiThreadLoader.clock = clock
+		uiThreadLoader.cachedThreadDelay = nil
+		uiThreadLoader.remoteThreadDelay = &delay
+		uiThreadLoader.validatedDelay = 0
+		tc.ChatG.UIThreadLoader = uiThreadLoader
 		cb := make(chan struct{})
 		go func() {
 			_, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadNonblock(ctx,
@@ -3153,10 +3163,13 @@ func TestChatSrvGetThreadNonblockSupersedes(t *testing.T) {
 
 		delay := 10 * time.Minute
 		clock := clockwork.NewFakeClock()
-		ctc.as(t, users[0]).h.uiThreadLoader.clock = clock
-		ctc.as(t, users[0]).h.uiThreadLoader.cachedThreadDelay = nil
-		ctc.as(t, users[0]).h.uiThreadLoader.remoteThreadDelay = &delay
-		ctc.as(t, users[0]).h.uiThreadLoader.validatedDelay = 0
+		tc := ctc.world.Tcs[users[0].Username]
+		uiThreadLoader := NewUIThreadLoader(tc.Context())
+		uiThreadLoader.clock = clock
+		uiThreadLoader.cachedThreadDelay = nil
+		uiThreadLoader.remoteThreadDelay = &delay
+		uiThreadLoader.validatedDelay = 0
+		tc.ChatG.UIThreadLoader = uiThreadLoader
 		cb := make(chan struct{})
 		query := chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
@@ -3476,10 +3489,13 @@ func TestChatSrvGetThreadNonblockPlaceholders(t *testing.T) {
 
 		delay := 10 * time.Minute
 		clock := clockwork.NewFakeClock()
-		ctc.as(t, users[0]).h.uiThreadLoader.clock = clock
-		ctc.as(t, users[0]).h.uiThreadLoader.cachedThreadDelay = nil
-		ctc.as(t, users[0]).h.uiThreadLoader.remoteThreadDelay = &delay
-		ctc.as(t, users[0]).h.uiThreadLoader.validatedDelay = 0
+		tc := ctc.world.Tcs[users[0].Username]
+		uiThreadLoader := NewUIThreadLoader(tc.Context())
+		uiThreadLoader.clock = clock
+		uiThreadLoader.cachedThreadDelay = nil
+		uiThreadLoader.remoteThreadDelay = &delay
+		uiThreadLoader.validatedDelay = 0
+		tc.ChatG.UIThreadLoader = uiThreadLoader
 		cb := make(chan struct{})
 		query := chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
@@ -3574,10 +3590,12 @@ func TestChatSrvGetThreadNonblockPlaceholderFirst(t *testing.T) {
 
 		delay := 10 * time.Minute
 		clock := clockwork.NewFakeClock()
-		ctc.as(t, users[0]).h.uiThreadLoader.clock = clock
-		ctc.as(t, users[0]).h.uiThreadLoader.cachedThreadDelay = nil
-		ctc.as(t, users[0]).h.uiThreadLoader.remoteThreadDelay = &delay
-		ctc.as(t, users[0]).h.uiThreadLoader.validatedDelay = 0
+		uiThreadLoader := NewUIThreadLoader(tc.Context())
+		uiThreadLoader.clock = clock
+		uiThreadLoader.cachedThreadDelay = nil
+		uiThreadLoader.remoteThreadDelay = &delay
+		uiThreadLoader.validatedDelay = 0
+		tc.ChatG.UIThreadLoader = uiThreadLoader
 		cb := make(chan struct{})
 		query := chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
@@ -3729,8 +3747,11 @@ func TestChatSrvGetThreadNonblock(t *testing.T) {
 
 		delay := 10 * time.Minute
 		clock := clockwork.NewFakeClock()
-		ctc.as(t, users[0]).h.uiThreadLoader.clock = clock
-		ctc.as(t, users[0]).h.uiThreadLoader.cachedThreadDelay = &delay
+		tc := ctc.world.Tcs[users[0].Username]
+		uiThreadLoader := NewUIThreadLoader(tc.Context())
+		uiThreadLoader.clock = clock
+		uiThreadLoader.cachedThreadDelay = &delay
+		tc.ChatG.UIThreadLoader = uiThreadLoader
 		_, err = ctc.as(t, users[0]).chatLocalHandler().GetThreadNonblock(ctx,
 			chat1.GetThreadNonblockArg{
 				ConversationID:   conv.Id,
@@ -4826,7 +4847,17 @@ func TestChatSrvRetentionSweepConv(t *testing.T) {
 
 			tvres, err := ctc.as(t, users[1]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{ConversationID: conv.Id})
 			require.NoError(t, err)
-			require.Len(t, tvres.Thread.Messages, 1, "the TEXTs should be deleted")
+			t.Logf("messages: %v", chat1.MessageUnboxedDebugList(tvres.Thread.Messages))
+			for _, msg := range tvres.Thread.Messages {
+				if msg.IsJourneycard() {
+					continue
+				}
+				switch msg.GetMessageType() {
+				case chat1.MessageType_METADATA, chat1.MessageType_TLFNAME:
+					continue
+				}
+				require.FailNowf(t, "the TEXTs should be deleted", "%v, %v", chat1.MessageUnboxedDebugList(tvres.Thread.Messages), spew.Sdump(msg))
+			}
 
 			// If we are using an ephemeral policy make sure messages with a lifetime exceeding
 			// the policy age are blocked.
@@ -4933,6 +4964,9 @@ func TestChatSrvRetentionSweepTeam(t *testing.T) {
 				require.NoError(t, err)
 				var nText int
 				for _, msg := range tvres.Thread.Messages {
+					if msg.IsJourneycard() {
+						continue
+					}
 					require.True(t, msg.IsValidFull())
 					require.Equal(t, chat1.MessageID(0), msg.Valid().ServerHeader.SupersededBy)
 					if msg.GetMessageType() == chat1.MessageType_TEXT {
@@ -5175,6 +5209,8 @@ func TestChatSrvSetConvMinWriterRole(t *testing.T) {
 
 		tc1 := ctc.as(t, users[0])
 		tc2 := ctc.as(t, users[1])
+		libkb.RemoveEnvironmentFeatureForTest(tc1.m.G().GetEnv().Test, libkb.FeatureJourneycardPreview)
+		libkb.RemoveEnvironmentFeatureForTest(tc2.m.G().GetEnv().Test, libkb.FeatureJourneycardPreview)
 
 		listener1 := newServerChatListener()
 		tc1.h.G().NotifyRouter.AddListener(listener1)
@@ -5272,6 +5308,9 @@ func TestChatSrvSetConvMinWriterRole(t *testing.T) {
 				},
 			})
 			require.NoError(t, err)
+			if len(tvres.Thread.Messages) != 2 {
+				t.Logf("messages: %v", chat1.MessageUnboxedDebugList(tvres.Thread.Messages))
+			}
 			require.Len(t, tvres.Thread.Messages, 2, "messages are accessible")
 		}
 
@@ -7092,12 +7131,10 @@ func TestTeamBotSettings(t *testing.T) {
 				Triggers: []string{"HI"},
 			}
 			err = ctc.as(t, users[0]).chatLocalHandler().AddBotMember(tc.startCtx, chat1.AddBotMemberArg{
-				TlfName:     created.TlfName,
+				ConvID:      created.Id,
 				Username:    botua.Username,
 				Role:        keybase1.TeamRole_RESTRICTEDBOT,
 				BotSettings: &botSettings,
-				MembersType: mt,
-				TlfPublic:   created.Visibility == keybase1.TLFVisibility_PUBLIC,
 			})
 			require.NoError(t, err)
 			pollForSeqno(3)
@@ -7125,12 +7162,10 @@ func TestTeamBotSettings(t *testing.T) {
 				Mentions: true,
 			}
 			err = ctc.as(t, users[0]).chatLocalHandler().AddBotMember(tc.startCtx, chat1.AddBotMemberArg{
-				TlfName:     created.TlfName,
+				ConvID:      created.Id,
 				Username:    botua2.Username,
 				Role:        keybase1.TeamRole_RESTRICTEDBOT,
 				BotSettings: &botSettings2,
-				MembersType: mt,
-				TlfPublic:   created.Visibility == keybase1.TLFVisibility_PUBLIC,
 			})
 			require.NoError(t, err)
 			pollForSeqno(5)
@@ -7299,19 +7334,15 @@ func TestTeamBotSettings(t *testing.T) {
 			// take out botua1 by restricting them to a nonexistent conv.
 			botSettings.Convs = []string{chat1.ConversationID("foo").String()}
 			err = ctc.as(t, users[0]).chatLocalHandler().SetBotMemberSettings(tc.startCtx, chat1.SetBotMemberSettingsArg{
-				TlfName:     created.TlfName,
+				ConvID:      created.Id,
 				Username:    botua.Username,
 				BotSettings: botSettings,
-				MembersType: mt,
-				TlfPublic:   created.Visibility == keybase1.TLFVisibility_PUBLIC,
 			})
 			require.NoError(t, err)
 
 			actualBotSettings, err := ctc.as(t, users[0]).chatLocalHandler().GetBotMemberSettings(tc.startCtx, chat1.GetBotMemberSettingsArg{
-				TlfName:     created.TlfName,
-				Username:    botua.Username,
-				MembersType: mt,
-				TlfPublic:   created.Visibility == keybase1.TLFVisibility_PUBLIC,
+				ConvID:   created.Id,
+				Username: botua.Username,
 			})
 			require.NoError(t, err)
 			require.Equal(t, botSettings, actualBotSettings)
@@ -7401,11 +7432,9 @@ func TestTeamBotSettings(t *testing.T) {
 
 			// take out botua2 by upgrading them to BOT
 			err = ctc.as(t, users[0]).chatLocalHandler().EditBotMember(tc.startCtx, chat1.EditBotMemberArg{
-				TlfName:     created.TlfName,
-				Username:    botua2.Username,
-				Role:        keybase1.TeamRole_BOT,
-				MembersType: mt,
-				TlfPublic:   created.Visibility == keybase1.TLFVisibility_PUBLIC,
+				ConvID:   created.Id,
+				Username: botua2.Username,
+				Role:     keybase1.TeamRole_BOT,
 			})
 			require.NoError(t, err)
 			pollForSeqno(7)
@@ -7427,17 +7456,13 @@ func TestTeamBotSettings(t *testing.T) {
 
 			// remove both bots.
 			err = ctc.as(t, users[0]).chatLocalHandler().RemoveBotMember(tc.startCtx, chat1.RemoveBotMemberArg{
-				TlfName:     created.TlfName,
-				Username:    botua.Username,
-				MembersType: mt,
-				TlfPublic:   created.Visibility == keybase1.TLFVisibility_PUBLIC,
+				ConvID:   created.Id,
+				Username: botua.Username,
 			})
 			require.NoError(t, err)
 			err = ctc.as(t, users[0]).chatLocalHandler().RemoveBotMember(tc.startCtx, chat1.RemoveBotMemberArg{
-				TlfName:     created.TlfName,
-				Username:    botua2.Username,
-				MembersType: mt,
-				TlfPublic:   created.Visibility == keybase1.TLFVisibility_PUBLIC,
+				ConvID:   created.Id,
+				Username: botua2.Username,
 			})
 			require.NoError(t, err)
 			team, err := teams.Load(ctx, tc.m.G(), keybase1.LoadTeamArg{

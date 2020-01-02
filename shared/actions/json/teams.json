@@ -12,15 +12,22 @@
     },
     "clearNavBadges": {},
     "createNewTeam": {
+      "fromChat?": "boolean",
       "joinSubteam": "boolean",
-      "teamname": "string"
+      "teamname": "string",
+      "thenAddMembers?": "Omit<_AddToTeamPayload, 'teamID'>"
     },
     "createNewTeamFromConversation": {
       "conversationIDKey": "ChatTypes.ConversationIDKey",
       "teamname": "string"
     },
+    "teamCreated": {
+      "fromChat": "boolean",
+      "teamID": "Types.TeamID",
+      "teamname": "string"
+    },
     "createChannel": {
-      "teamname": "string",
+      "teamID": "Types.TeamID",
       "channelname": "string",
       "description": "string | null"
     },
@@ -36,11 +43,11 @@
     "getChannelInfo": {
       "_description": "Fetches the channel information for a single channel in a team from the server.",
       "conversationIDKey": "ChatTypes.ConversationIDKey",
-      "teamname": "string"
+      "teamID": "Types.TeamID"
     },
     "getChannels": {
       "_description": "Fetches the channel information for all channels in a team from the server. Should only be called for components that need the full list.",
-      "teamname": "string"
+      "teamID": "Types.TeamID"
     },
     "getTeams": {
       "_description": "Load team list if we are stale. _subscribe is for use by teams/subscriber only.",
@@ -68,19 +75,19 @@
       "teamname": "string"
     },
     "addTeamWithChosenChannels": {
-      "teamname": "string"
+      "teamID": "Types.TeamID"
     },
     "saveChannelMembership": {
-      "teamname": "string",
+      "teamID": "Types.TeamID",
       "oldChannelState": "Types.ChannelMembershipState",
       "newChannelState": "Types.ChannelMembershipState"
     },
     "addParticipant": {
-      "teamname": "string",
+      "teamID": "Types.TeamID",
       "conversationIDKey": "ChatTypes.ConversationIDKey"
     },
     "removeParticipant": {
-      "teamname": "string",
+      "teamID": "Types.TeamID",
       "conversationIDKey": "ChatTypes.ConversationIDKey"
     },
     "deleteTeam": {
@@ -113,13 +120,17 @@
       "context": "'teams' | 'chat'"
     },
     "addToTeam": {
-      "teamname": "string",
-      "username": "string",
-      "role": "Types.TeamRoleType",
-      "sendChatNotification": "boolean"
+      "teamID": "Types.TeamID",
+      "users": "Array<{assertion: string, role: Types.TeamRoleType}>",
+      "sendChatNotification": "boolean",
+      "fromTeamBuilder?": "boolean"
+    },
+    "addedToTeam": {
+      "error?": "string",
+      "fromTeamBuilder?": "boolean"
     },
     "reAddToTeam": {
-      "teamname": "string",
+      "teamID": "Types.TeamID",
       "username": "string"
     },
     "editTeamDescription": {
@@ -137,12 +148,15 @@
       "username": "string",
       "role": "Types.TeamRoleType"
     },
-    "removeMemberOrPendingInvite": {
-      "email": "string",
-      "teamname": "string",
-      "username": "string",
-      "inviteID": "string",
-      "loadingKey?": "string"
+    "removeMember": {
+      "teamID": "Types.TeamID",
+      "username": "string"
+    },
+    "removePendingInvite": {
+      "teamID": "Types.TeamID",
+      "email?": "string",
+      "username?": "string",
+      "inviteID?": "string"
     },
     "ignoreRequest": {
       "teamname": "string",
@@ -160,7 +174,7 @@
       "error": "string"
     },
     "setTeamsWithChosenChannels": {
-      "teamsWithChosenChannels": "Set<Types.Teamname>"
+      "teamsWithChosenChannels": "Set<Types.TeamID>"
     },
     "setTeamCreationError": {
       "error": "string"
@@ -172,6 +186,7 @@
       "error": "string"
     },
     "setTeamJoinSuccess": {
+      "open": "boolean",
       "success": "boolean",
       "teamname": "string"
     },
@@ -204,12 +219,12 @@
       "publicity": "Types._PublicitySettings"
     },
     "setTeamChannelInfo": {
-      "teamname": "string",
+      "teamID": "Types.TeamID",
       "conversationIDKey": "ChatTypes.ConversationIDKey",
       "channelInfo": "Types.ChannelInfo"
     },
     "setTeamChannels": {
-      "teamname": "string",
+      "teamID": "Types.TeamID",
       "channelInfos": "Map<ChatTypes.ConversationIDKey, Types.ChannelInfo>"
     },
     "setTeamInfo": {
@@ -227,36 +242,36 @@
       "deletedTeams": "Array<RPCTypes.DeletedTeamInfo>",
       "newTeams": "Set<Types.TeamID>",
       "newTeamRequests": "Array<Types.TeamID>",
-      "teamNameToResetUsers": "Map<Types.Teamname, Set<Types.ResetUser>>"
+      "teamIDToResetUsers": "Map<Types.TeamID, Set<Types.ResetUser>>"
     },
     "setTeamSawChatBanner": {},
     "setTeamSawSubteamsBanner": {},
     "updateChannelName": {
-      "teamname": "Types.Teamname",
+      "teamID": "Types.TeamID",
       "conversationIDKey": "ChatTypes.ConversationIDKey",
       "newChannelName": "string"
     },
     "setUpdatedChannelName": {
-      "teamname": "Types.Teamname",
+      "teamID": "Types.TeamID",
       "conversationIDKey": "ChatTypes.ConversationIDKey",
       "newChannelName": "string"
     },
     "updateTopic": {
-      "teamname": "Types.Teamname",
+      "teamID": "Types.TeamID",
       "conversationIDKey": "ChatTypes.ConversationIDKey",
       "newTopic": "string"
     },
     "setUpdatedTopic": {
-      "teamname": "Types.Teamname",
+      "teamID": "Types.TeamID",
       "conversationIDKey": "ChatTypes.ConversationIDKey",
       "newTopic": "string"
     },
     "deleteChannelConfirmed": {
-      "teamname": "Types.Teamname",
+      "teamID": "Types.TeamID",
       "conversationIDKey": "ChatTypes.ConversationIDKey"
     },
     "deleteChannelInfo": {
-      "teamname": "Types.Teamname",
+      "teamID": "Types.TeamID",
       "conversationIDKey": "ChatTypes.ConversationIDKey"
     },
     "checkRequestedAccess": {

@@ -119,22 +119,6 @@ const iconMeta_ = {
       return require('../images/icons/icon-dark-addon-lock-hover-16.png')
     },
   },
-  'icon-airdrop-glowing-16': {
-    extension: 'png',
-    imagesDir: 'icons',
-    isFont: false,
-    get require() {
-      return require('../images/icons/icon-airdrop-glowing-16.png')
-    },
-  },
-  'icon-airdrop-glowing-32': {
-    extension: 'png',
-    imagesDir: 'icons',
-    isFont: false,
-    get require() {
-      return require('../images/icons/icon-airdrop-glowing-32.png')
-    },
-  },
   'icon-airdrop-logo-16': {
     extension: 'png',
     imagesDir: 'icons',
@@ -1847,28 +1831,12 @@ const iconMeta_ = {
       return require('../images/icons/icon-dark-fancy-user-card-desktop-80-99.png')
     },
   },
-  'icon-dark-fancy-user-card-desktop-airdrop-80-99': {
-    extension: 'png',
-    imagesDir: 'icons',
-    isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-fancy-user-card-desktop-airdrop-80-99.png')
-    },
-  },
   'icon-dark-fancy-user-card-mobile-120-149': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-fancy-user-card-mobile-120-149.png')
-    },
-  },
-  'icon-dark-fancy-user-card-mobile-airdrop-120-149': {
-    extension: 'png',
-    imagesDir: 'icons',
-    isFont: false,
-    get require() {
-      return require('../images/icons/icon-dark-fancy-user-card-mobile-airdrop-120-149.png')
     },
   },
   'icon-dark-file-16': {
@@ -2205,6 +2173,38 @@ const iconMeta_ = {
     isFont: false,
     get require() {
       return require('../images/icons/icon-dark-following-28.png')
+    },
+  },
+  'icon-dark-github-logo-16': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-github-logo-16.png')
+    },
+  },
+  'icon-dark-github-logo-32': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-github-logo-32.png')
+    },
+  },
+  'icon-dark-github-logo-48': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-github-logo-48.png')
+    },
+  },
+  'icon-dark-github-logo-64': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-github-logo-64.png')
     },
   },
   'icon-dark-message-deletion-32': {
@@ -3143,6 +3143,14 @@ const iconMeta_ = {
       return require('../images/icons/icon-dark-placeholder-secret-user-64.png')
     },
   },
+  'icon-dark-poop-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-poop-96.png')
+    },
+  },
   'icon-dark-proof-pending': {
     extension: 'png',
     imagesDir: 'icons',
@@ -3523,54 +3531,6 @@ const iconMeta_ = {
       return require('../images/icons/icon-facebook-logo-64.png')
     },
   },
-  'icon-fancy-airdrop-faded-120': {
-    extension: 'png',
-    imagesDir: 'icons',
-    isFont: false,
-    get require() {
-      return require('../images/icons/icon-fancy-airdrop-faded-120.png')
-    },
-  },
-  'icon-fancy-airdrop-shining-120': {
-    extension: 'png',
-    imagesDir: 'icons',
-    isFont: false,
-    get require() {
-      return require('../images/icons/icon-fancy-airdrop-shining-120.png')
-    },
-  },
-  'icon-fancy-airdrop-shining-80': {
-    extension: 'png',
-    imagesDir: 'icons',
-    isFont: false,
-    get require() {
-      return require('../images/icons/icon-fancy-airdrop-shining-80.png')
-    },
-  },
-  'icon-fancy-airdrop-star-faded-120': {
-    extension: 'png',
-    imagesDir: 'icons',
-    isFont: false,
-    get require() {
-      return require('../images/icons/icon-fancy-airdrop-star-faded-120.png')
-    },
-  },
-  'icon-fancy-airdrop-star-shining-120': {
-    extension: 'png',
-    imagesDir: 'icons',
-    isFont: false,
-    get require() {
-      return require('../images/icons/icon-fancy-airdrop-star-shining-120.png')
-    },
-  },
-  'icon-fancy-airdrop-star-shining-80': {
-    extension: 'png',
-    imagesDir: 'icons',
-    isFont: false,
-    get require() {
-      return require('../images/icons/icon-fancy-airdrop-star-shining-80.png')
-    },
-  },
   'icon-fancy-bomb-desktop-150-72': {
     extension: 'png',
     imagesDir: 'icons',
@@ -3883,18 +3843,6 @@ const iconMeta_ = {
       return require('../images/icons/icon-dark-fancy-user-card-desktop-80-99.png')
     },
   },
-  'icon-fancy-user-card-desktop-airdrop-80-99': {
-    extension: 'png',
-    imagesDir: 'icons',
-    isFont: false,
-    nameDark: 'icon-dark-fancy-user-card-desktop-airdrop-80-99',
-    get require() {
-      return require('../images/icons/icon-fancy-user-card-desktop-airdrop-80-99.png')
-    },
-    get requireDark() {
-      return require('../images/icons/icon-dark-fancy-user-card-desktop-airdrop-80-99.png')
-    },
-  },
   'icon-fancy-user-card-mobile-120-149': {
     extension: 'png',
     imagesDir: 'icons',
@@ -3905,18 +3853,6 @@ const iconMeta_ = {
     },
     get requireDark() {
       return require('../images/icons/icon-dark-fancy-user-card-mobile-120-149.png')
-    },
-  },
-  'icon-fancy-user-card-mobile-airdrop-120-149': {
-    extension: 'png',
-    imagesDir: 'icons',
-    isFont: false,
-    nameDark: 'icon-dark-fancy-user-card-mobile-airdrop-120-149',
-    get require() {
-      return require('../images/icons/icon-fancy-user-card-mobile-airdrop-120-149.png')
-    },
-    get requireDark() {
-      return require('../images/icons/icon-dark-fancy-user-card-mobile-airdrop-120-149.png')
     },
   },
   'icon-file-16': {
@@ -4451,8 +4387,12 @@ const iconMeta_ = {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
+    nameDark: 'icon-dark-github-logo-16',
     get require() {
       return require('../images/icons/icon-github-logo-16.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-github-logo-16.png')
     },
   },
   'icon-github-logo-24': {
@@ -4467,24 +4407,36 @@ const iconMeta_ = {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
+    nameDark: 'icon-dark-github-logo-32',
     get require() {
       return require('../images/icons/icon-github-logo-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-github-logo-32.png')
     },
   },
   'icon-github-logo-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
+    nameDark: 'icon-dark-github-logo-48',
     get require() {
       return require('../images/icons/icon-github-logo-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-github-logo-48.png')
     },
   },
   'icon-github-logo-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
+    nameDark: 'icon-dark-github-logo-64',
     get require() {
       return require('../images/icons/icon-github-logo-64.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-github-logo-64.png')
     },
   },
   'icon-hacker-news-logo-16': {
@@ -4533,6 +4485,14 @@ const iconMeta_ = {
     isFont: false,
     get require() {
       return require('../images/icons/icon-illustration-attention-64.png')
+    },
+  },
+  'icon-illustration-contact-restrictions-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-illustration-contact-restrictions-96.png')
     },
   },
   'icon-illustration-encrypted-116-96': {
@@ -4597,6 +4557,14 @@ const iconMeta_ = {
     isFont: false,
     get require() {
       return require('../images/icons/icon-illustration-mars-rover-foreground.png')
+    },
+  },
+  'icon-illustration-secure-116-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-illustration-secure-116-96.png')
     },
   },
   'icon-illustration-sleepy-96': {
@@ -6795,6 +6763,42 @@ const iconMeta_ = {
       return require('../images/icons/icon-play-64.png')
     },
   },
+  'icon-poop-32': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-poop-32.png')
+    },
+  },
+  'icon-poop-48': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-poop-48.png')
+    },
+  },
+  'icon-poop-64': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-poop-64.png')
+    },
+  },
+  'icon-poop-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    nameDark: 'icon-dark-poop-96',
+    get require() {
+      return require('../images/icons/icon-poop-96.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-poop-96.png')
+    },
+  },
   'icon-powered-by-giphy-120-26': {
     extension: 'png',
     imagesDir: 'icons',
@@ -7946,6 +7950,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-coin-flip': {
+    charCode: 0xe9a1,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-coin-stack': {
     charCode: 0xe972,
     gridSize: 16,
@@ -7968,6 +7977,11 @@ const iconMeta_ = {
   },
   'iconfont-contact-card': {
     charCode: 0xe96d,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-copy': {
+    charCode: 0xe9ae,
     gridSize: 16,
     isFont: true,
   },
@@ -8116,6 +8130,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-hash': {
+    charCode: 0xe9ab,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-heart': {
     charCode: 0xe978,
     gridSize: 16,
@@ -8208,6 +8227,11 @@ const iconMeta_ = {
   },
   'iconfont-link': {
     charCode: 0xe939,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-location': {
+    charCode: 0xe9a2,
     gridSize: 16,
     isFont: true,
   },
@@ -8376,8 +8400,18 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-person': {
+    charCode: 0xe9a7,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-phone-contact': {
     charCode: 0xe97b,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-photo-library': {
+    charCode: 0xe9ac,
     gridSize: 16,
     isFont: true,
   },
@@ -8488,6 +8522,11 @@ const iconMeta_ = {
   },
   'iconfont-search': {
     charCode: 0xe958,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-share': {
+    charCode: 0xe9aa,
     gridSize: 16,
     isFont: true,
   },
@@ -8606,6 +8645,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-video-library': {
+    charCode: 0xe9ad,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-wallet-transfer': {
     charCode: 0xe985,
     gridSize: 16,
@@ -8699,6 +8743,14 @@ const iconMeta_ = {
     isFont: false,
     get require() {
       return require('../images/releases/release-4.8.0-file-sync.png')
+    },
+  },
+  'release-5.1.0-blocking': {
+    extension: 'png',
+    imagesDir: 'releases',
+    isFont: false,
+    get require() {
+      return require('../images/releases/release-5.1.0-blocking.png')
     },
   } /* eslint-enable */,
 }

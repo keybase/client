@@ -26,3 +26,20 @@ func GetCurrentBlindTreeConfig() (cfg merkletree2.Config) {
 	}
 	return cfg
 }
+
+// This config uses the non thread safe encoder.
+func GetCurrentBlindTreeConfigUnsafe() (cfg merkletree2.Config) {
+	valueConstructor := func() interface{} { return BlindMerkleValue{} }
+
+	cfg, err := merkletree2.NewConfig(
+		encodingType.GetUnsafeEncoder(),
+		useBlindedValueHashes,
+		logChildrenPerNode,
+		maxValuesPerLeaf,
+		keysByteLength,
+		valueConstructor)
+	if err != nil {
+		panic(err)
+	}
+	return cfg
+}

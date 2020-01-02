@@ -17,7 +17,7 @@ type OwnProps = {
 const mapStateToProps = (state: Container.TypedState, {teamID}: OwnProps) => {
   const teamDetails = Constants.getTeamDetails(state, teamID)
   const yourOperations = Constants.getCanPerformByID(state, teamID)
-  const isBigTeam = Constants.isBigTeam(state, teamID)
+  const isBigTeam = Constants.isBigTeam(state, teamDetails.teamname)
   return {
     canCreateSubteam: yourOperations.manageSubteams,
     canDeleteTeam: yourOperations.deleteTeam && teamDetails.subteams?.size === 0,
@@ -47,10 +47,10 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {teamID}: OwnProp
         path: [{props: {teamID}, selected: 'teamReallyLeaveTeam'}],
       })
     ),
-  onManageChat: (teamname: string) =>
+  onManageChat: () =>
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [{props: {teamname}, selected: 'chatManageChannels'}],
+        path: [{props: {teamID}, selected: 'chatManageChannels'}],
       })
     ),
   onOpenFolder: (teamname: string) =>
@@ -87,20 +87,35 @@ export default Container.connect(
     const items: Kb.MenuItems = []
     if (stateProps.canManageChat) {
       items.push({
-        onClick: () => dispatchProps.onManageChat(stateProps.teamname),
+        icon: 'iconfont-hash',
+        onClick: dispatchProps.onManageChat,
         subTitle: stateProps.isBigTeam ? undefined : 'Turns this into a big team',
         title: stateProps.isBigTeam ? 'Manage chat channels' : 'Make chat channels...',
       })
     }
     if (stateProps.canCreateSubteam) {
-      items.push({onClick: dispatchProps.onCreateSubteam, title: 'Create subteam'})
+      items.push({icon: 'iconfont-people', onClick: dispatchProps.onCreateSubteam, title: 'Create subteam'})
     }
     if (stateProps.canViewFolder) {
-      items.push({onClick: () => dispatchProps.onOpenFolder(stateProps.teamname), title: 'Open folder'})
+      items.push({
+        icon: 'iconfont-folder-open',
+        onClick: () => dispatchProps.onOpenFolder(stateProps.teamname),
+        title: 'Open folder',
+      })
     }
-    items.push({danger: true, onClick: dispatchProps.onLeaveTeam, title: 'Leave team'})
+    items.push({
+      danger: true,
+      icon: 'iconfont-leave',
+      onClick: dispatchProps.onLeaveTeam,
+      title: 'Leave team',
+    })
     if (stateProps.canDeleteTeam) {
-      items.push({danger: true, onClick: dispatchProps.onDeleteTeam, title: 'Delete team'})
+      items.push({
+        danger: true,
+        icon: 'iconfont-remove',
+        onClick: dispatchProps.onDeleteTeam,
+        title: 'Delete team',
+      })
     }
 
     return {

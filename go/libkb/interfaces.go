@@ -200,7 +200,7 @@ type ConfigReader interface {
 	GetUIDForUsername(n NormalizedUsername) keybase1.UID
 	GetUsername() NormalizedUsername
 	GetAllUsernames() (current NormalizedUsername, others []NormalizedUsername, err error)
-	GetAllUserConfigs() (*UserConfig, []UserConfig, error)
+	GetAllUserConfigs() (current *UserConfig, others []UserConfig, err error)
 	GetUID() keybase1.UID
 	GetProxyCACerts() ([]string, error)
 	GetSecurityAccessGroupOverride() (bool, bool)
@@ -719,6 +719,7 @@ type TeamLoader interface {
 	HintLatestSeqno(ctx context.Context, id keybase1.TeamID, seqno keybase1.Seqno) error
 	ResolveNameToIDUntrusted(ctx context.Context, teamName keybase1.TeamName, public bool, allowCache bool) (id keybase1.TeamID, err error)
 	ForceRepollUntil(ctx context.Context, t gregor.TimeOrOffset) error
+	IsOpenCached(ctx context.Context, teamID keybase1.TeamID) (bool, error)
 	// Clear the in-memory cache. Does not affect the disk cache.
 	ClearMem()
 }
@@ -762,7 +763,7 @@ type TeamRoleMapManager interface {
 }
 
 type TeamAuditor interface {
-	AuditTeam(m MetaContext, id keybase1.TeamID, isPublic bool, headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno, auditMode keybase1.AuditMode) (err error)
+	AuditTeam(m MetaContext, id keybase1.TeamID, isPublic bool, headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno, lastMerkleRoot *MerkleRoot, auditMode keybase1.AuditMode) (err error)
 }
 
 type TeamBoxAuditor interface {
@@ -819,6 +820,7 @@ type Stellar interface {
 	KnownCurrencyCodeInstant(ctx context.Context, code string) (known, ok bool)
 	InformBundle(MetaContext, stellar1.BundleRevision, []stellar1.BundleEntry)
 	InformDefaultCurrencyChange(MetaContext)
+	Refresh(mctx MetaContext, reason string)
 }
 
 type DeviceEKStorage interface {
@@ -990,6 +992,8 @@ type UIDMapper interface {
 	// for use in tests*
 	SetTestingNoCachingMode(enabled bool)
 
+	ClearUIDFullName(context.Context, UIDMapperContext, keybase1.UID) error
+
 	// ClearUID is called to clear the given UID out of the cache, if the given eldest
 	// seqno doesn't match what's currently cached.
 	ClearUIDAtEldestSeqno(context.Context, UIDMapperContext, keybase1.UID, keybase1.Seqno) error
@@ -1071,7 +1075,7 @@ type ChatHelper interface {
 	UserReacjis(ctx context.Context, uid gregor1.UID) keybase1.UserReacjis
 	JourneycardTimeTravel(context.Context, gregor1.UID, time.Duration) error
 	JourneycardResetAllConvs(context.Context, gregor1.UID) error
-	JourneycardDebugState(context.Context, gregor1.UID, chat1.ConversationID) (string, error)
+	JourneycardDebugState(context.Context, gregor1.UID, keybase1.TeamID) (string, error)
 }
 
 // Resolver resolves human-readable usernames (joe) and user asssertions (joe+joe@github)

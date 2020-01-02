@@ -106,6 +106,14 @@ func (rc RemoteConversation) GetMtime() gregor1.Time {
 	return rc.LocalMtime
 }
 
+func (rc RemoteConversation) GetReadMsgID() chat1.MessageID {
+	res := rc.Conv.ReaderInfo.ReadMsgid
+	if res > rc.LocalReadMsgID {
+		return res
+	}
+	return rc.LocalReadMsgID
+}
+
 func (rc RemoteConversation) GetConvID() chat1.ConversationID {
 	return rc.Conv.GetConvID()
 }
@@ -400,20 +408,20 @@ func (d DummyIndexer) Suspend(ctx context.Context) bool {
 func (d DummyIndexer) Resume(ctx context.Context) bool {
 	return false
 }
-func (d DummyIndexer) Search(ctx context.Context, uid gregor1.UID, query, origQuery string,
+func (d DummyIndexer) Search(ctx context.Context, query, origQuery string,
 	opts chat1.SearchOpts, hitUICh chan chat1.ChatSearchInboxHit, indexUICh chan chat1.ChatSearchIndexStatus) (*chat1.ChatSearchInboxResults, error) {
 	return nil, nil
 }
-func (d DummyIndexer) Add(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msg []chat1.MessageUnboxed) error {
+func (d DummyIndexer) Add(ctx context.Context, convID chat1.ConversationID, msg []chat1.MessageUnboxed) error {
 	return nil
 }
-func (d DummyIndexer) Remove(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msg []chat1.MessageUnboxed) error {
+func (d DummyIndexer) Remove(ctx context.Context, convID chat1.ConversationID, msg []chat1.MessageUnboxed) error {
 	return nil
 }
-func (d DummyIndexer) SearchableConvs(ctx context.Context, uid gregor1.UID, convID *chat1.ConversationID) ([]RemoteConversation, error) {
+func (d DummyIndexer) SearchableConvs(ctx context.Context, convID *chat1.ConversationID) ([]RemoteConversation, error) {
 	return nil, nil
 }
-func (d DummyIndexer) IndexInbox(ctx context.Context, uid gregor1.UID) (map[string]chat1.ProfileSearchConvStats, error) {
+func (d DummyIndexer) IndexInbox(ctx context.Context) (map[string]chat1.ProfileSearchConvStats, error) {
 	return nil, nil
 }
 func (d DummyIndexer) IsBackgroundActive() bool { return false }
@@ -424,10 +432,10 @@ func (d DummyIndexer) OnLogout(mctx libkb.MetaContext) error {
 func (d DummyIndexer) OnDbNuke(mctx libkb.MetaContext) error {
 	return nil
 }
-func (d DummyIndexer) FullyIndexed(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (bool, error) {
+func (d DummyIndexer) FullyIndexed(ctx context.Context, convID chat1.ConversationID) (bool, error) {
 	return false, nil
 }
-func (d DummyIndexer) PercentIndexed(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (int, error) {
+func (d DummyIndexer) PercentIndexed(ctx context.Context, convID chat1.ConversationID) (int, error) {
 	return 0, nil
 }
 
@@ -589,7 +597,7 @@ func (d DummyBotCommandManager) Advertise(ctx context.Context, alias *string,
 
 func (d DummyBotCommandManager) Clear(context.Context) error { return nil }
 
-func (d DummyBotCommandManager) PublicCommandsConv(ctx context.Context, username string) (chat1.ConversationID, error) {
+func (d DummyBotCommandManager) PublicCommandsConv(ctx context.Context, username string) (*chat1.ConversationID, error) {
 	return nil, nil
 }
 
@@ -639,6 +647,9 @@ func (d DummyUIInboxLoader) UpdateLayoutFromNewMessage(ctx context.Context, conv
 func (d DummyUIInboxLoader) UpdateLayoutFromSubteamRename(ctx context.Context, convs []RemoteConversation) {
 }
 
+func (d DummyUIInboxLoader) UpdateLayoutFromSmallIncrease(ctx context.Context) {}
+func (d DummyUIInboxLoader) UpdateLayoutFromSmallReset(ctx context.Context)    {}
+
 type DummyAttachmentUploader struct{}
 
 var _ AttachmentUploader = (*DummyAttachmentUploader)(nil)
@@ -665,3 +676,22 @@ func (d DummyAttachmentUploader) CancelUploadTempFile(ctx context.Context, outbo
 	return nil
 }
 func (d DummyAttachmentUploader) OnDbNuke(mctx libkb.MetaContext) error { return nil }
+
+type DummyUIThreadLoader struct{}
+
+var _ UIThreadLoader = (*DummyUIThreadLoader)(nil)
+
+func (d DummyUIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, uid gregor1.UID,
+	convID chat1.ConversationID, reason chat1.GetThreadReason, pgmode chat1.GetThreadNonblockPgMode,
+	cbmode chat1.GetThreadNonblockCbMode, query *chat1.GetThreadQuery, uipagination *chat1.UIPagination) error {
+	return nil
+}
+
+func (d DummyUIThreadLoader) Load(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	reason chat1.GetThreadReason, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, error) {
+	return chat1.ThreadView{}, nil
+}
+
+func (d DummyUIThreadLoader) IsOffline(ctx context.Context) bool { return true }
+func (d DummyUIThreadLoader) Connected(ctx context.Context)      {}
+func (d DummyUIThreadLoader) Disconnected(ctx context.Context)   {}

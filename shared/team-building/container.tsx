@@ -19,11 +19,11 @@ import * as Container from '../util/container'
 import * as Constants from '../constants/team-building'
 import * as Types from '../constants/types/team-building'
 import * as Styles from '../styles'
+import * as TeamTypes from '../constants/types/teams'
 import {requestIdleCallback} from '../util/idle-callback'
 import {HeaderHoc, PopupDialogHoc, Button} from '../common-adapters'
 import {memoizeShallow, memoize} from '../util/memoize'
-import {TeamRoleType, MemberInfo, DisabledReasonsForRolePicker} from '../constants/types/teams'
-import {getDisabledReasonsForRolePicker} from '../constants/teams'
+import {getDisabledReasonsForRolePicker, getTeamDetails} from '../constants/teams'
 import {nextRoleDown, nextRoleUp} from '../teams/role-picker'
 import {Props as HeaderHocProps} from '../common-adapters/header-hoc/types'
 import {HocExtractProps as PopupHocProps} from '../common-adapters/popup-dialog-hoc'
@@ -31,8 +31,8 @@ import {formatAnyPhoneNumbers} from '../util/phone-numbers'
 import {isMobile} from '../constants/platform'
 
 // TODO remove when bots are fully integrated in gui
-type TeamRoleTypeWithoutBots = Exclude<TeamRoleType, 'bot' | 'restrictedbot'>
-const filterRole = (r: TeamRoleType): TeamRoleTypeWithoutBots =>
+type TeamRoleTypeWithoutBots = Exclude<TeamTypes.TeamRoleType, 'bot' | 'restrictedbot'>
+const filterRole = (r: TeamTypes.TeamRoleType): TeamRoleTypeWithoutBots =>
   r === 'bot' || r === 'restrictedbot' ? 'reader' : r
 
 type OwnProps = {
@@ -40,7 +40,7 @@ type OwnProps = {
   incFocusInputCounter: () => void
   focusInputCounter: number
   namespace: Types.AllowedNamespace
-  teamname?: string
+  teamID?: TeamTypes.TeamID
   searchString: string
   selectedService: Types.ServiceIdWithContact
   highlightedIndex: number
@@ -76,7 +76,7 @@ const expensiveDeriveResults = (
   teamSoFar: Set<Types.User>,
   myUsername: string,
   followingState: Set<string>,
-  preExistingTeamMembers: Map<string, MemberInfo>
+  preExistingTeamMembers: Map<string, TeamTypes.MemberInfo>
 ) =>
   searchResults &&
   searchResults.map(info => {
@@ -129,8 +129,8 @@ const deriveTeamSoFar = memoize(
 
 const deriveServiceResultCount = memoize((searchResults: Types.SearchResults, query: string) =>
   [...(searchResults.get(trim(query)) ?? new Map<Types.ServiceIdWithContact, Array<Types.User>>()).entries()]
-    .map(([key, results]) => [key, results.length])
-    .reduce<Object>((o, [key, num]) => {
+    .map(([key, results]) => [key, results.length] as const)
+    .reduce<{[k: string]: number}>((o, [key, num]) => {
       o[key] = num
       return o
     }, {})
@@ -148,19 +148,19 @@ const deriveUserFromUserIdFn = memoize(
 )
 
 const emptyObj = {}
+const emptyMap = new Map()
 
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const teamBuildingState = state[ownProps.namespace].teamBuilding
   const teamBuildingSearchResults = teamBuildingState.searchResults
-  const userResults: Array<Types.User> =
-    teamBuildingState.searchResults.get(trim(ownProps.searchString))?.get(ownProps.selectedService) ?? []
+  const userResults: Array<Types.User> | undefined = teamBuildingState.searchResults
+    .get(trim(ownProps.searchString))
+    ?.get(ownProps.selectedService)
 
-  const preExistingTeamMembers =
-    (ownProps.teamname && state.teams.teamNameToMembers.get(ownProps.teamname)) ||
-    new Map<string, MemberInfo>()
-
-  const disabledRoles = ownProps.teamname
-    ? getDisabledReasonsForRolePicker(state, ownProps.teamname, null)
+  const maybeTeamDetails = ownProps.teamID ? getTeamDetails(state, ownProps.teamID) : undefined
+  const preExistingTeamMembers: TeamTypes.TeamDetails['members'] = maybeTeamDetails?.members ?? emptyMap
+  const disabledRoles = ownProps.teamID
+    ? getDisabledReasonsForRolePicker(state, ownProps.teamID, null)
     : emptyObj
 
   const contactProps = {
@@ -173,6 +173,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   return {
     ...contactProps,
     disabledRoles,
+    error: teamBuildingState.error,
     recommendations: deriveRecommendation(
       teamBuildingState.userRecs,
       teamBuildingState.teamSoFar,
@@ -194,6 +195,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     showServiceResultCount: !isMobile && deriveShowResults(ownProps.searchString),
     teamBuildingSearchResults,
     teamSoFar: deriveTeamSoFar(teamBuildingState.teamSoFar),
+    teamname: maybeTeamDetails?.teamname,
     userFromUserId: deriveUserFromUserIdFn(userResults, teamBuildingState.userRecs),
     waitingForCreate: WaitingConstants.anyWaiting(state, ChatConstants.waitingKeyCreating),
   }
@@ -226,7 +228,7 @@ const makeDebouncedSearch = (time: number) =>
 const debouncedSearch = makeDebouncedSearch(500) // 500ms debounce on social searches
 const debouncedSearchKeybase = makeDebouncedSearch(200) // 200 ms debounce on keybase searches
 
-const mapDispatchToProps = (dispatch: Container.TypedDispatch, {namespace, teamname}: OwnProps) => ({
+const mapDispatchToProps = (dispatch: Container.TypedDispatch, {namespace, teamID}: OwnProps) => ({
   _onAdd: (user: Types.User) =>
     dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({namespace, users: [user]})),
   _onCancelTeamBuilding: () => dispatch(TeamBuildingGen.createCancelTeamBuilding({namespace})),
@@ -244,11 +246,16 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {namespace, teamn
   onChangeSendNotification: (sendNotification: boolean) =>
     namespace === 'teams' &&
     dispatch(TeamBuildingGen.createChangeSendNotification({namespace, sendNotification})),
-  onFinishTeamBuilding: () => dispatch(TeamBuildingGen.createFinishedTeamBuilding({namespace, teamname})),
+  onFinishTeamBuilding: () =>
+    dispatch(
+      namespace === 'teams'
+        ? TeamBuildingGen.createFinishTeamBuilding({namespace, teamID})
+        : TeamBuildingGen.createFinishedTeamBuilding({namespace})
+    ),
   onLoadContactsSetting: () => dispatch(SettingsGen.createLoadContactImportEnabled()),
   onRemove: (userId: string) =>
     dispatch(TeamBuildingGen.createRemoveUsersFromTeamSoFar({namespace, users: [userId]})),
-  onSelectRole: (role: TeamRoleType) =>
+  onSelectRole: (role: TeamTypes.TeamRoleType) =>
     namespace === 'teams' && dispatch(TeamBuildingGen.createSelectRole({namespace, role})),
 })
 
@@ -258,16 +265,18 @@ const deriveOnBackspace = memoize((searchString, teamSoFar, onRemove) => () => {
 })
 
 const deriveOnEnterKeyDown = memoizeShallow(
-  ({
-    searchResults,
-    teamSoFar,
-    highlightedIndex,
-    onAdd,
-    onRemove,
-    changeText,
-    searchStringIsEmpty,
-    onFinishTeamBuilding,
+  (p: {
+    changeText: (s: string) => void
+    highlightedIndex: number
+    onAdd: (id: string) => void
+    onFinishTeamBuilding: () => void
+    onRemove: (id: string) => void
+    searchResults: Array<SearchResult>
+    searchStringIsEmpty: string
+    teamSoFar: Array<Types.SelectedUser>
   }) => () => {
+    const {onRemove, changeText, searchStringIsEmpty, onFinishTeamBuilding} = p
+    const {searchResults, teamSoFar, highlightedIndex, onAdd} = p
     const selectedResult = !!searchResults && searchResults[highlightedIndex]
     if (selectedResult) {
       // We don't handle cases where they hit enter on someone that is already a
@@ -290,7 +299,13 @@ const deriveOnEnterKeyDown = memoizeShallow(
 )
 
 const deriveOnSearchForMore = memoizeShallow(
-  ({search, searchResults, searchString, selectedService}) => () => {
+  (p: {
+    search: (q: string, sid: Types.ServiceIdWithContact, limit?: number) => void
+    searchResults: Array<Types.User>
+    searchString: string
+    selectedService: Types.ServiceIdWithContact
+  }) => () => {
+    const {search, searchResults, searchString, selectedService} = p
     if (searchResults && searchResults.length >= 10) {
       search(searchString, selectedService, searchResults.length + 20)
     }
@@ -334,7 +349,7 @@ const deriveOnDownArrowKeyDown = memoize(
 const deriveRolePickerArrowKeyFns = memoize(
   (
     selectedRole: TeamRoleTypeWithoutBots,
-    disabledRoles: DisabledReasonsForRolePicker,
+    disabledRoles: TeamTypes.DisabledReasonsForRolePicker,
     onSelectRole: (role: TeamRoleTypeWithoutBots) => void
   ) => ({
     downArrow: () => {
@@ -566,7 +581,7 @@ const mergeProps = (
     teamSoFar,
   })
 
-  const title = ownProps.title
+  const title = ownProps.namespace === 'teams' ? `Add to ${stateProps.teamname}` : ownProps.title
   const headerHocProps: HeaderHocProps = Container.isMobile
     ? {
         borderless: true,
@@ -604,12 +619,7 @@ const mergeProps = (
   const popupProps: PopupHocProps | null = Container.isMobile
     ? null
     : {
-        closeStyleOverrides:
-          ownProps.namespace === 'people'
-            ? {
-                display: 'none',
-              }
-            : null,
+        closeStyleOverrides: ownProps.namespace === 'people' ? {display: 'none'} : null,
         containerStyleOverrides:
           ownProps.namespace === 'people'
             ? {
@@ -633,6 +643,7 @@ const mergeProps = (
     ...headerHocProps,
     ...popupProps,
     ...contactProps,
+    error: stateProps.error,
     fetchUserRecs: dispatchProps.fetchUserRecs,
     filterServices: ownProps.filterServices,
     focusInputCounter: ownProps.focusInputCounter,
@@ -676,7 +687,7 @@ const mergeProps = (
     showServiceResultCount: showServiceResultCount && ownProps.showServiceResultCount,
     teamBuildingSearchResults: stateProps.teamBuildingSearchResults,
     teamSoFar,
-    teamname: ownProps.teamname,
+    teamname: stateProps.teamname,
     title,
     waitingForCreate,
   }
@@ -690,7 +701,7 @@ const Connected: React.ComponentType<OwnProps> = Container.compose(
 
 type RealOwnProps = Container.RouteProps<{
   namespace: Types.AllowedNamespace
-  teamname?: string
+  teamID?: TeamTypes.TeamID
   filterServices?: Array<Types.ServiceIdWithContact>
   title: string
 }>
@@ -727,7 +738,7 @@ class StateWrapperForTeamBuilding extends React.Component<RealOwnProps, LocalSta
     return (
       <Connected
         namespace={Container.getRouteProps(this.props, 'namespace', 'chat2')}
-        teamname={Container.getRouteProps(this.props, 'teamname', undefined)}
+        teamID={Container.getRouteProps(this.props, 'teamID', undefined)}
         filterServices={Container.getRouteProps(this.props, 'filterServices', undefined)}
         onChangeService={this.onChangeService}
         onChangeText={this.onChangeText}

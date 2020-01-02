@@ -202,7 +202,6 @@ const styles = Styles.styleSheetCreate(
           width: '100%',
         },
         isMobile: {
-          backgroundColor: Styles.globalColors.fastBlank,
           color: Styles.globalColors.black_50,
           flex: 1,
           fontSize: 15,

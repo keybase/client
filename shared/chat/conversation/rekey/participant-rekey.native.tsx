@@ -2,7 +2,7 @@ import * as React from 'react'
 import {
   Box,
   Avatar,
-  Usernames,
+  ConnectedUsernames,
   Text,
   NativeScrollView,
   HeaderHoc,
@@ -16,7 +16,12 @@ const Row = ({username, onUsernameClicked}) => (
     <Box style={styles.row}>
       <Avatar username={username} size={48} style={{marginRight: Styles.globalMargins.small, padding: 4}} />
       <Box style={styles.innerRow}>
-        <Usernames inline={true} backgroundMode="Terminal" type="BodySemibold" users={[{username}]} />
+        <ConnectedUsernames
+          inline={true}
+          backgroundMode="Terminal"
+          type="BodySemibold"
+          usernames={[username]}
+        />
         <Text
           type="BodySmall"
           negative={true}
@@ -77,12 +82,16 @@ const styles = Styles.styleSheetCreate(
         justifyContent: 'center',
         minHeight: 56,
       },
-      row: {
-        ...Styles.globalStyles.flexBoxRow,
-        ...Styles.desktopStyles.clickable,
-        alignItems: 'center',
-        minHeight: 56,
-      },
+      row: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.flexBoxRow,
+          alignItems: 'center',
+          minHeight: 56,
+        },
+        isElectron: {
+          ...Styles.desktopStyles.clickable,
+        },
+      }),
     } as const)
 )
 

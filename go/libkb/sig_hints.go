@@ -65,7 +65,7 @@ type SigHints struct {
 	Contextified
 	uid     keybase1.UID
 	version int
-	hints   map[keybase1.SigID]*SigHint
+	hints   map[keybase1.SigIDMapKey]*SigHint
 	dirty   bool
 }
 
@@ -84,7 +84,7 @@ func NewSigHints(jw *jsonw.Wrapper, uid keybase1.UID, dirty bool, g *GlobalConte
 }
 
 func (sh SigHints) Lookup(i keybase1.SigID) *SigHint {
-	obj := sh.hints[i]
+	obj := sh.hints[i.ToMapKey()]
 	return obj
 }
 
@@ -99,7 +99,7 @@ func (sh *SigHints) PopulateWith(jw *jsonw.Wrapper) (err error) {
 		return
 	}
 
-	sh.hints = make(map[keybase1.SigID]*SigHint)
+	sh.hints = make(map[keybase1.SigIDMapKey]*SigHint)
 	var n int
 	n, err = jw.AtKey("hints").Len()
 	if err != nil {
@@ -111,7 +111,7 @@ func (sh *SigHints) PopulateWith(jw *jsonw.Wrapper) (err error) {
 		if tmpe != nil {
 			sh.G().Log.Warning("Bad SigHint Loaded: %s", tmpe)
 		} else {
-			sh.hints[hint.sigID] = hint
+			sh.hints[hint.sigID.ToMapKey()] = hint
 		}
 	}
 	return

@@ -42,6 +42,12 @@ export const editTeambuildingDraft = (
       const old = mapGetEnsureValue(results, service, [])
       old.push(...users)
     },
+    [TeamBuildingGen.finishTeamBuilding]: draftState => {
+      draftState.error = ''
+    },
+    [TeamBuildingGen.setError]: (draftState, action) => {
+      draftState.error = action.payload.error
+    },
     [TeamBuildingGen.finishedTeamBuilding]: draftState => {
       return {
         ...Constants.makeSubState(),
@@ -61,6 +67,7 @@ export const editTeambuildingDraft = (
       draftState.searchLimit = limit
       draftState.searchQuery = trim(query)
       draftState.selectedService = service
+      draftState.searchResults.get(query)?.delete(service)
     },
   }
 

@@ -24,8 +24,8 @@ AUTHOR(S):
    {{range .Authors}}{{ . }}{{end}}
    {{end}}{{if .Commands}}
 COMMANDS:
-   {{range .Commands}}{{join .Names ", "}}{{ "\t" }}{{.Usage}}
-   {{end}}{{end}}{{if .Flags}}
+   {{range .Commands}}{{if not .Unlisted}}{{join .Names ", "}}{{ "\t" }}{{.Usage}}
+   {{end}}{{end}}{{end}}{{if .Flags}}
 GLOBAL OPTIONS:
    {{range .Flags}}{{.}}
    {{end}}{{end}}{{if .Copyright }}
@@ -64,8 +64,8 @@ USAGE:
    {{.Name}} command{{if .Flags}} [command options]{{end}} [arguments...]
 
 COMMANDS:
-   {{range .Commands}}{{join .Names ", "}}{{ "\t" }}{{.Usage}}
-   {{end}}{{if .Flags}}
+   {{range .Commands}}{{if not .Unlisted}}{{join .Names ", "}}{{ "\t" }}{{.Usage}}
+   {{end}}{{end}}{{if .Flags}}
 OPTIONS:
    {{range .Flags}}{{.}}
    {{end}}{{end}}

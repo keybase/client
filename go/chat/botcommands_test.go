@@ -77,8 +77,10 @@ func TestBotCommandManager(t *testing.T) {
 	cmds, _, err := tc.Context().BotCommandManager.ListCommands(ctx, impConv.Id)
 	require.NoError(t, err)
 	require.Zero(t, len(cmds))
+
 	errCh, err := tc.Context().BotCommandManager.UpdateCommands(ctx, impConv.Id, nil)
 	require.NoError(t, err)
+
 	errCh1, err := tc1.Context().BotCommandManager.UpdateCommands(ctx1, impConv1.Id, nil)
 	require.NoError(t, err)
 
@@ -109,6 +111,19 @@ func TestBotCommandManager(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, len(cmds))
 	require.Equal(t, "status", cmds[0].Name)
+
+	//make sure the cmds are cached
+	for i := 0; i < 5; i++ {
+		errCh, err = tc.Context().BotCommandManager.UpdateCommands(ctx, impConv.Id, nil)
+		require.NoError(t, err)
+		require.NoError(t, readErrCh(errCh))
+	}
+	select {
+	case <-listener0.convUpdate:
+		require.Fail(t, "commands not cached")
+	default:
+	}
+
 	require.NoError(t, readErrCh(errCh1))
 	cmds, _, err = tc1.Context().BotCommandManager.ListCommands(ctx1, impConv1.Id)
 	require.NoError(t, err)
@@ -169,12 +184,10 @@ func TestBotCommandManager(t *testing.T) {
 	require.Equal(t, 1, len(cmds))
 
 	err = ctc.as(t, users[0]).chatLocalHandler().AddBotMember(ctx, chat1.AddBotMemberArg{
-		TlfName:     teamConv.TlfName,
+		ConvID:      teamConv.Id,
 		Username:    botua.Username,
 		Role:        keybase1.TeamRole_RESTRICTEDBOT,
 		BotSettings: &keybase1.TeamBotSettings{Cmds: true},
-		MembersType: chat1.ConversationMembersType_TEAM,
-		TlfPublic:   teamConv.Visibility == keybase1.TLFVisibility_PUBLIC,
 	})
 	require.NoError(t, err)
 	require.NoError(t, tc2.Context().BotCommandManager.Advertise(ctx2, &alias, commands))
@@ -188,14 +201,12 @@ func TestBotCommandManager(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 6, len(cmds))
 
-	// restricted bots that do not support commands  cannot advertise
+	// restricted bots that do not support commands cannot advertise
 	err = ctc.as(t, users[0]).chatLocalHandler().EditBotMember(ctx, chat1.EditBotMemberArg{
-		TlfName:     teamConv.TlfName,
+		ConvID:      teamConv.Id,
 		Username:    botua.Username,
 		Role:        keybase1.TeamRole_RESTRICTEDBOT,
 		BotSettings: &keybase1.TeamBotSettings{},
-		MembersType: chat1.ConversationMembersType_TEAM,
-		TlfPublic:   teamConv.Visibility == keybase1.TLFVisibility_PUBLIC,
 	})
 	require.NoError(t, err)
 	pollForSeqno(5)
@@ -210,11 +221,9 @@ func TestBotCommandManager(t *testing.T) {
 
 	// upgrading the role removes the restriction.
 	err = ctc.as(t, users[0]).chatLocalHandler().EditBotMember(ctx, chat1.EditBotMemberArg{
-		TlfName:     teamConv.TlfName,
-		Username:    botua.Username,
-		Role:        keybase1.TeamRole_BOT,
-		MembersType: chat1.ConversationMembersType_TEAM,
-		TlfPublic:   teamConv.Visibility == keybase1.TLFVisibility_PUBLIC,
+		ConvID:   teamConv.Id,
+		Username: botua.Username,
+		Role:     keybase1.TeamRole_BOT,
 	})
 	require.NoError(t, err)
 	pollForSeqno(6)

@@ -1,7 +1,7 @@
+// TODO deprecated
 import * as _Avatar from '../common-adapters/avatar'
 import * as _Usernames from '../common-adapters/usernames'
 import {OwnProps as ReloadableOwnProps, Props as ReloadableProps} from '../common-adapters/reload'
-import {ConnectedProps as _UsernamesConnectedProps} from '../common-adapters/usernames/container'
 import * as _WaitingButton from '../common-adapters/waiting-button'
 import {OwnProps as TeamDropdownMenuOwnProps} from '../chat/conversation/info-panel/menu/container'
 import {Props as TeamDropdownMenuProps} from '../chat/conversation/info-panel/menu'
@@ -28,11 +28,11 @@ const defaultFollowing = ['max', 'cnojima', 'cdixon']
 const defaultFollowers = ['max', 'akalin']
 
 export const Usernames = (following: string[] = defaultFollowing, you: string = defaultYou) => ({
-  Usernames: (ownProps: _UsernamesConnectedProps): _Usernames.Props => {
+  Usernames: (ownProps: any): _Usernames.Props => {
     const {usernames, onUsernameClicked, skipSelf, ...props} = ownProps
     const users = (usernames || [])
-      .map(username => ({following: following.includes(username), username, you: username === you}))
-      .filter(u => !skipSelf || !u.you)
+      .map((username: string) => ({following: following.includes(username), username, you: username === you}))
+      .filter((u: any) => !skipSelf || !u.you)
 
     let mockedOnUsernameClick
     if (onUsernameClicked === 'tracker') {
@@ -84,6 +84,7 @@ export const TeamDropdownMenu = () => ({
     manageChannelsTitle: ownProps.isSmallTeam ? 'Create chat channels...' : 'Manage chat channels',
     memberCount: 100,
     onAddPeople: action('onAddPeople'),
+    onBlockConv: action('onBlockConv'),
     onHidden: ownProps.onHidden,
     onHideConv: action('onHideConv'),
     onInvite: action('onInvite'),
@@ -97,7 +98,7 @@ export const TeamDropdownMenu = () => ({
   }),
 })
 
-const Channel = ({name, convID, key, style}) => ({
+const Channel = ({name, convID, key, style}: any) => ({
   convID,
   key,
   name,
@@ -112,10 +113,11 @@ const usernameToTheme = {
   notFollowing: 'nonFollow',
 }
 
-const Mention = ({username, key, style}) => ({
+const Mention = ({username, key, style}: any) => ({
   key,
   onClick: action('onClick Mention'),
   style,
+  // @ts-ignore
   theme: usernameToTheme[username] || (isSpecialMention(username) ? 'highlight' : 'none'),
   username,
 })
@@ -125,7 +127,7 @@ export const NameWithIcon = () => ({
     const {onClick, ...props} = ownProps
 
     let functionOnClick
-    let clickType
+    let clickType: any
     if (!isMobile && onClick === 'tracker') {
       functionOnClick = action('onNameWithIconClicked (tracker)')
       clickType = 'tracker'

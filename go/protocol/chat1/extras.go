@@ -422,6 +422,13 @@ func (m MessageUnboxed) IsPlaceholder() bool {
 	return false
 }
 
+func (m MessageUnboxed) IsJourneycard() bool {
+	if state, err := m.State(); err == nil {
+		return state == MessageUnboxedState_JOURNEYCARD
+	}
+	return false
+}
+
 // IsValidFull returns whether the message is both:
 // 1. Valid
 // 2. Has a non-deleted body with a type matching the header
@@ -476,6 +483,20 @@ func (m MessageUnboxed) IsVisible() bool {
 		}
 	}
 	return false
+}
+
+func (m MessageUnboxed) HasReactions() bool {
+	if !m.IsValid() {
+		return false
+	}
+	return len(m.Valid().Reactions.Reactions) > 0
+}
+
+func (m MessageUnboxed) HasUnfurls() bool {
+	if !m.IsValid() {
+		return false
+	}
+	return len(m.Valid().Unfurls) > 0
 }
 
 func (m MessageUnboxed) SearchableText() string {
@@ -566,6 +587,9 @@ func (m *MessageUnboxed) DebugString() string {
 		}
 		return fmt.Sprintf("[%v obid:%v prev:%v ostate:%v %v]",
 			state, obr.OutboxID, obr.Msg.ClientHeader.OutboxInfo.Prev, ostateStr, obr.Msg.ClientHeader.MessageType)
+	case MessageUnboxedState_JOURNEYCARD:
+		jc := m.Journeycard()
+		return fmt.Sprintf("[JOURNEYCARD %v]", jc.CardType)
 	default:
 		return fmt.Sprintf("[state:%v %v]", state, m.GetMessageID())
 	}
@@ -643,7 +667,7 @@ func (m MessageUnboxedError) ParseableVersion() bool {
 }
 
 func (m MessageUnboxedError) IsEphemeralError() bool {
-	return m.IsEphemeral && m.ErrType == MessageUnboxedErrorType_EPHEMERAL
+	return m.IsEphemeral && (m.ErrType == MessageUnboxedErrorType_EPHEMERAL || m.ErrType == MessageUnboxedErrorType_PAIRWISE_MISSING)
 }
 
 func (m MessageUnboxedValid) AsDeleteHistory() (res MessageDeleteHistory, err error) {
@@ -1331,6 +1355,17 @@ func (c ConversationLocal) FullNamesForSearch() (res []*string) {
 	return res
 }
 
+func (c ConversationLocal) CannotWrite() bool {
+	if c.ConvSettings == nil {
+		return false
+	}
+	if c.ConvSettings.MinWriterRoleInfo == nil {
+		return false
+	}
+
+	return c.ConvSettings.MinWriterRoleInfo.CannotWrite
+}
+
 func (c Conversation) GetMtime() gregor1.Time {
 	return c.ReaderInfo.Mtime
 }
@@ -1363,13 +1398,15 @@ func (c Conversation) IsPublic() bool {
 	return c.Metadata.Visibility == keybase1.TLFVisibility_PUBLIC
 }
 
+var errMaxMessageNotFound = errors.New("max message not found")
+
 func (c Conversation) GetMaxMessage(typ MessageType) (MessageSummary, error) {
 	for _, msg := range c.MaxMsgSummaries {
 		if msg.GetMessageType() == typ {
 			return msg, nil
 		}
 	}
-	return MessageSummary{}, fmt.Errorf("max message not found: %v", typ)
+	return MessageSummary{}, errMaxMessageNotFound
 }
 
 func (c Conversation) Includes(uid gregor1.UID) bool {
@@ -2615,10 +2652,37 @@ func (c Coordinate) Eq(o Coordinate) bool {
 	return c.Lat == o.Lat && c.Lon == o.Lon
 }
 
+// Incremented if the client hash algorithm changes. If this value is changed
+// be sure to add a case in the BotInfo.Hash() function.
+const ClientBotInfoHashVers BotInfoHashVers = 1
+
+// Incremented if the server sends down bad data and needs to bust client
+// caches.
+const ServerBotInfoHashVers BotInfoHashVers = 1
+
 func (b BotInfo) Hash() BotInfoHash {
 	hash := sha256Pool.Get().(hash.Hash)
 	defer sha256Pool.Put(hash)
 	hash.Reset()
+
+	// Always hash in the server/client version.
+	hash.Write([]byte(strconv.FormatUint(uint64(b.ServerHashVers), 10)))
+	hash.Write([]byte(strconv.FormatUint(uint64(b.ClientHashVers), 10)))
+
+	// This should cover all cases from 0..DefaultBotInfoHashVers. If
+	// incrementing DefaultBotInfoHashVers be sure to add a case here.
+	switch b.ClientHashVers {
+	case 0, 1:
+		b.hashV1(hash)
+	default:
+		// Every valid client version should be specifically handled, unit
+		// tests verify that we have a non-empty hash output.
+		hash.Reset()
+	}
+	return BotInfoHash(hash.Sum(nil))
+}
+
+func (b BotInfo) hashV1(hash hash.Hash) {
 	sort.Slice(b.CommandConvs, func(i, j int) bool {
 		ikey := b.CommandConvs[i].Uid.String() + b.CommandConvs[i].ConvID.String()
 		jkey := b.CommandConvs[j].Uid.String() + b.CommandConvs[j].ConvID.String()
@@ -2630,7 +2694,6 @@ func (b BotInfo) Hash() BotInfoHash {
 		hash.Write([]byte(strconv.FormatUint(uint64(cconv.UntrustedTeamRole), 10)))
 		hash.Write([]byte(strconv.FormatUint(uint64(cconv.Vers), 10)))
 	}
-	return BotInfoHash(hash.Sum(nil))
 }
 
 func (b BotInfoHash) Eq(h BotInfoHash) bool {

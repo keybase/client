@@ -174,6 +174,7 @@ type Action =
   | {
       type: 'activeChanged'
       payload: {
+        changedAtMs: number
         isUserActive: boolean
       }
     }
@@ -227,7 +228,10 @@ const plumbEvents = () => {
         try {
           fs.writeFileSync(
             path.join(SafeElectron.getApp().getPath('userData'), 'app-state.json'),
-            JSON.stringify({isUserActive: action.payload.isUserActive}),
+            JSON.stringify({
+              changedAtMs: action.payload.changedAtMs,
+              isUserActive: action.payload.isUserActive,
+            }),
             {encoding: 'utf8'}
           )
         } catch (e) {

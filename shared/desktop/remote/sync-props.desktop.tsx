@@ -4,6 +4,7 @@
 import * as React from 'react'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import {measureStart, measureStop} from '../../util/user-timings'
+import throttle from 'lodash/throttle'
 
 // set this to true to see details of the serialization process
 const debugSerializer = __DEV__ && false
@@ -23,34 +24,38 @@ type Serializer = {[K in string]: (value: any, oldValue: any) => Object | null}
 function SyncPropsFactory(serializer: Serializer) {
   return function SyncProps(ComposedComponent: any) {
     class RemoteConnected extends React.PureComponent<Props> {
-      _lastProps: any
+      private lastProps: any
 
-      _sendProps = () => {
-        try {
-          measureStart('remoteProps')
+      private sendProps = throttle(
+        () => {
+          try {
+            measureStart('remoteProps')
 
-          const {windowParam, windowComponent} = this.props
+            const {windowParam, windowComponent} = this.props
 
-          const props = this._getPropsToSend()
-          // Using stringify to go over the wire as the representation it sends over IPC is very verbose and blows up
-          // the data a lot
-          if (Object.keys(props).length) {
-            SafeElectron.getApp().emit('KBkeybase', '', {
-              payload: {
-                propsStr: JSON.stringify(props),
-                windowComponent,
-                windowParam,
-              },
-              type: 'rendererNewProps',
-            })
+            const props = this.getPropsToSend()
+            // Using stringify to go over the wire as the representation it sends over IPC is very verbose and blows up
+            // the data a lot
+            if (Object.keys(props).length) {
+              SafeElectron.getApp().emit('KBkeybase', '', {
+                payload: {
+                  propsStr: JSON.stringify(props),
+                  windowComponent,
+                  windowParam,
+                },
+                type: 'rendererNewProps',
+              })
+            }
+          } finally {
+            measureStop('remoteProps')
           }
-        } finally {
-          measureStop('remoteProps')
-        }
-      }
+        },
+        1000,
+        {leading: true}
+      )
 
-      _getPropsToSend = () => {
-        const newProps = this._getChildProps()
+      private getPropsToSend = () => {
+        const newProps = this.getChildProps()
         const toSend = {}
 
         // Do a shallow equal
@@ -59,16 +64,16 @@ function SyncPropsFactory(serializer: Serializer) {
         }
         Object.keys(newProps).forEach(k => {
           // Is different
-          if (!this._lastProps || newProps[k] !== this._lastProps[k]) {
+          if (!this.lastProps || newProps[k] !== this.lastProps[k]) {
             if (serializer[k]) {
-              const val = serializer[k](newProps[k], this._lastProps ? this._lastProps[k] : undefined)
+              const val = serializer[k](newProps[k], this.lastProps ? this.lastProps[k] : undefined)
 
               if (debugSerializer) {
                 console.log(
                   '[Serializer]: ',
                   k,
                   'old:',
-                  this._lastProps && this._lastProps[k],
+                  this.lastProps && this.lastProps[k],
                   'new: ',
                   newProps[k],
                   ' output: ',
@@ -84,11 +89,11 @@ function SyncPropsFactory(serializer: Serializer) {
           }
         })
 
-        this._lastProps = newProps
+        this.lastProps = newProps
         return toSend
       }
 
-      _getChildProps = () => {
+      private getChildProps = () => {
         // Don't pass down internal props
         const {remoteWindowNeedsProps, ...props} = this.props
         return props
@@ -100,23 +105,23 @@ function SyncPropsFactory(serializer: Serializer) {
           if (debugSerializer) {
             console.log('[Serializer]: clear cache due to dark mode')
           }
-          this._lastProps = null
+          this.lastProps = null
           this.forceUpdate()
         }
         if (this.props.clearCacheTrigger !== prevProps.clearCacheTrigger) {
-          this._lastProps = null
+          this.lastProps = null
         }
 
         if (this.props.remoteWindowNeedsProps !== prevProps.remoteWindowNeedsProps) {
           // If the remote asks for props send the whole thing
-          this._lastProps = null
+          this.lastProps = null
           this.forceUpdate()
         }
       }
 
       render() {
-        this._sendProps()
-        return <ComposedComponent {...this._getChildProps()} />
+        this.sendProps()
+        return <ComposedComponent {...this.getChildProps()} />
       }
     }
 

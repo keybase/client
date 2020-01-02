@@ -225,6 +225,10 @@
         {
           "type": "PrefetchProgress",
           "name": "prefetchProgress"
+        },
+        {
+          "type": "string",
+          "name": "symlinkTarget"
         }
       ]
     },
@@ -1605,6 +1609,24 @@
         }
       ],
       "response": "GUIFileContext"
+    },
+    "simpleFSUserIn": {
+      "request": [
+        {
+          "name": "clientID",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "simpleFSUserOut": {
+      "request": [
+        {
+          "name": "clientID",
+          "type": "string"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"

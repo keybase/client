@@ -27,6 +27,7 @@ export const serialize = {
   following: (v: any) => [...v],
   httpSrvAddress: (v: any) => v,
   httpSrvToken: (v: any) => v,
+  infoMap: (v: any) => [...v.entries()],
 }
 
 const initialState = {
@@ -36,6 +37,9 @@ const initialState = {
     following: new Set(),
     httpSrvAddress: '',
     httpSrvToken: '',
+  },
+  users: {
+    infoMap: new Map(),
   },
 }
 export const deserialize = (state: any = initialState, props: any) => {
@@ -49,6 +53,9 @@ export const deserialize = (state: any = initialState, props: any) => {
       avatarRefreshCounter: initialState.config.avatarRefreshCounter,
       httpSrvAddress: props.httpSrvAddress || state.config.httpSrvAddress,
       httpSrvToken: props.httpSrvToken || state.config.httpSrvToken,
+    },
+    users: {
+      infoMap: new Map(props.infoMap),
     },
   }
 }
@@ -64,18 +71,6 @@ const getUsernamesSet = memoize(
 function SyncAvatarProps(ComposedComponent: any) {
   const RemoteAvatarConnected = (props: Props) => <ComposedComponent {...props} />
 
-  const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
-    const {usernames} = ownProps
-    return {
-      ...immerCached(
-        getRemoteFollowers(state.config.followers, usernames),
-        getRemoteFollowing(state.config.following, usernames)
-      ),
-      httpSrvAddress: state.config.httpSrvAddress,
-      httpSrvToken: state.config.httpSrvToken,
-    }
-  }
-
   const getRemoteFollowers = memoize((followers: Set<string>, usernames: Set<string>) =>
     intersect(followers, usernames)
   )
@@ -83,19 +78,40 @@ function SyncAvatarProps(ComposedComponent: any) {
     intersect(following, usernames)
   )
 
-  // use an immer equals to not rerender if its the same
-  const immerCached = memoize(
-    (followers: Set<string>, following: Set<string>) => ({followers, following}),
-    (
-      [newFollowers, newFollowing]: [Set<string>, Set<string>],
-      [oldFollowers, oldFollowing]: [Set<string>, Set<string>]
-    ) => isEqual(newFollowers, oldFollowers) && isEqual(newFollowing, oldFollowing)
-  )
+  const getRemoteInfoMap = memoize((infoMap: Map<any, any>, usernames: Set<string>) => {
+    const m = new Map()
+    for (const u of usernames) {
+      const i = infoMap.get(u)
+      i && m.set(u, i)
+    }
+    return m
+  })
 
   const Connected = Container.connect(
-    mapStateToProps,
+    state => {
+      const {followers, following, httpSrvAddress, httpSrvToken} = state.config
+      const {infoMap} = state.users
+      return {
+        _followers: followers,
+        _following: following,
+        _infoMap: infoMap,
+        httpSrvAddress,
+        httpSrvToken,
+      }
+    },
     () => ({}),
-    (s, d, o: OwnProps) => ({...o, ...s, ...d})
+    (stateProps, _d, ownProps: OwnProps) => {
+      const {usernames} = ownProps
+      const {_followers, _following, httpSrvAddress, httpSrvToken, _infoMap} = stateProps
+      return {
+        followers: getRemoteFollowers(_followers, usernames),
+        following: getRemoteFollowing(_following, usernames),
+        httpSrvAddress,
+        httpSrvToken,
+        infoMap: getRemoteInfoMap(_infoMap, usernames),
+        ...ownProps,
+      }
+    }
   )(RemoteAvatarConnected)
 
   type WrapperProps = {

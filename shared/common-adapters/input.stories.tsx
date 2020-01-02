@@ -33,8 +33,8 @@ class TestInput extends React.Component<TestInputProps> {
   _replaceText = (textToInsert: string) => {
     if (this._input) {
       this._input.transformText(({text, selection}) => {
-        const newText = text.slice(0, selection.start) + textToInsert + text.slice(selection.end)
-        const pos = selection.start + textToInsert.length
+        const newText = text.slice(0, selection?.start ?? 0) + textToInsert + text.slice(selection?.end ?? 0)
+        const pos = selection?.start ?? 0 + textToInsert.length
         return {
           selection: {
             end: pos,

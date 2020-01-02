@@ -1,6 +1,6 @@
 import * as React from 'react'
-import {FloatingMenu} from '../../../../common-adapters'
-import {isMobile} from '../../../../styles'
+import * as Kb from '../../../../common-adapters'
+import * as Styles from '../../../../styles'
 
 type Props = {
   attachTo?: () => React.Component<any> | null
@@ -12,15 +12,22 @@ type Props = {
 }
 
 const AddPeopleHow = (props: Props) => {
-  const items = [
-    {onClick: props.onAddPeople, subTitle: 'Keybase, Twitter, etc.', title: 'By username'},
+  const items: Kb.MenuItems = [
     {
+      icon: 'iconfont-mention',
+      onClick: props.onAddPeople,
+      subTitle: 'Keybase, Twitter, etc.',
+      title: 'By username',
+    },
+    {
+      icon: 'iconfont-contact-card',
       onClick: props.onInvite,
       style: {borderTopWidth: 0},
       subTitle: 'friends@friendships.com',
-      title: isMobile ? 'From address book' : 'By email',
+      title: Styles.isMobile ? 'From address book' : 'By email',
     },
     {
+      icon: 'iconfont-hash',
       onClick: props.onSlackImport,
       style: {borderTopWidth: 0},
       subTitle: 'New! Migrate your team',
@@ -29,7 +36,7 @@ const AddPeopleHow = (props: Props) => {
   ]
 
   return (
-    <FloatingMenu
+    <Kb.FloatingMenu
       attachTo={props.attachTo}
       visible={props.visible}
       items={items}

@@ -304,6 +304,12 @@ func HandleChangeNotification(ctx context.Context, g *libkb.GlobalContext, rows 
 	return nil
 }
 
+func HandleTeamMemberShowcaseChange(ctx context.Context, g *libkb.GlobalContext) (err error) {
+	defer g.CTrace(ctx, "HandleTeamMemberShowcaseChange", func() error { return err })()
+	g.NotifyRouter.HandleTeamMetadataUpdate(ctx)
+	return nil
+}
+
 func HandleDeleteNotification(ctx context.Context, g *libkb.GlobalContext, rows []keybase1.TeamChangeRow) (err error) {
 	mctx := libkb.NewMetaContext(ctx, g)
 	defer mctx.Trace(fmt.Sprintf("team.HandleDeleteNotification(%v)", len(rows)),

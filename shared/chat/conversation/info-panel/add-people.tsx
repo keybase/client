@@ -1,8 +1,10 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
+import * as Constants from '../../../constants/chat2'
 import * as Styles from '../../../styles'
-import {Box2, Button, FloatingMenu, OverlayParentHOC, OverlayParentProps} from '../../../common-adapters'
-import {compose, connect} from '../../../util/container'
+import * as TeamTypes from '../../../constants/types/teams'
+import * as Kb from '../../../common-adapters'
+import {connect} from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {appendNewTeamBuilder} from '../../../actions/typed-routes'
 
@@ -11,7 +13,7 @@ type Props = {
   isGeneralChannel: boolean
   onAddPeople: () => void
   onAddToChannel: () => void
-} & OverlayParentProps
+} & Kb.OverlayParentProps
 
 const _AddPeople = (props: Props) => {
   let menu: React.ReactNode = null
@@ -19,12 +21,12 @@ const _AddPeople = (props: Props) => {
   let directLabel: string | null = null
   if (!props.isGeneralChannel) {
     // general channel & small teams don't need a menu
-    const items = [
-      {onClick: props.onAddPeople, title: 'To team'},
-      {onClick: props.onAddToChannel, title: 'To channel'},
+    const items: Kb.MenuItems = [
+      {icon: 'iconfont-people', onClick: props.onAddPeople, title: 'To team'},
+      {icon: 'iconfont-hash', onClick: props.onAddToChannel, title: 'To channel'},
     ]
     menu = (
-      <FloatingMenu
+      <Kb.FloatingMenu
         attachTo={props.getAttachmentRef}
         visible={props.showingMenu}
         items={items}
@@ -42,9 +44,9 @@ const _AddPeople = (props: Props) => {
     directLabel = 'Add members to channel'
   }
   return (
-    <Box2 direction="vertical" fullWidth={true}>
+    <Kb.Box2 direction="vertical" fullWidth={true}>
       {menu}
-      <Button
+      <Kb.Button
         mode="Primary"
         type="Default"
         onClick={directAction || props.toggleShowingMenu}
@@ -52,7 +54,7 @@ const _AddPeople = (props: Props) => {
         ref={props.setAttachmentRef}
         style={styles.addButtonContainer}
       />
-    </Box2>
+    </Kb.Box2>
   )
 }
 _AddPeople.displayName = 'AddPeople'
@@ -61,14 +63,16 @@ type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
   isAdmin: boolean
   isGeneralChannel: boolean
-  teamname: string
 }
 
-const AddPeople = compose(
-  connect(
-    () => ({}),
-    dispatch => ({
-      _onAddPeople: (teamname: string) => dispatch(appendNewTeamBuilder(teamname)),
+const AddPeople = connect(
+  (state, ownProps: OwnProps) => {
+    const meta = Constants.getMeta(state, ownProps.conversationIDKey)
+    return {teamID: meta.teamID}
+  },
+  dispatch => {
+    return {
+      _onAddPeople: (teamID: TeamTypes.TeamID) => dispatch(appendNewTeamBuilder(teamID)),
       _onAddToChannel: (conversationIDKey: Types.ConversationIDKey) => {
         dispatch(
           RouteTreeGen.createNavigateAppend({
@@ -76,16 +80,15 @@ const AddPeople = compose(
           })
         )
       },
-    }),
-    (_, d, o: OwnProps) => ({
-      isAdmin: o.isAdmin,
-      isGeneralChannel: o.isGeneralChannel,
-      onAddPeople: () => d._onAddPeople(o.teamname),
-      onAddToChannel: () => d._onAddToChannel(o.conversationIDKey),
-    })
-  ),
-  OverlayParentHOC
-)(_AddPeople) as any
+    }
+  },
+  (s, d, o: OwnProps) => ({
+    isAdmin: o.isAdmin,
+    isGeneralChannel: o.isGeneralChannel,
+    onAddPeople: () => d._onAddPeople(s.teamID),
+    onAddToChannel: () => d._onAddToChannel(o.conversationIDKey),
+  })
+)(Kb.OverlayParentHOC(_AddPeople))
 
 const styles = Styles.styleSheetCreate(
   () =>

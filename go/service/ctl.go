@@ -28,15 +28,15 @@ func NewCtlHandler(xp rpc.Transporter, v *Service, g *libkb.GlobalContext) *CtlH
 
 // Stop is called on the rpc keybase.1.ctl.stop, which shuts down the service.
 func (c *CtlHandler) Stop(ctx context.Context, args keybase1.StopArg) error {
-	c.G().Log.Info("Ctl: Stop: StopAllButService")
+	c.G().Log.Debug("Ctl: Stop: StopAllButService")
 	install.StopAllButService(libkb.NewMetaContext(ctx, c.G()), args.ExitCode)
-	c.G().Log.Info("Ctl: Stop: Stopping service")
+	c.G().Log.Debug("Ctl: Stop: Stopping service")
 	c.service.Stop(args.ExitCode)
 	return nil
 }
 
 func (c *CtlHandler) StopService(ctx context.Context, args keybase1.StopServiceArg) error {
-	c.G().Log.Info("Ctl: StopService")
+	c.G().Log.Debug("Ctl: StopService")
 	c.service.Stop(args.ExitCode)
 	return nil
 }

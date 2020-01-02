@@ -67,7 +67,7 @@ export type InviteInfo = {
   id: string
 }
 
-export type TabKey = 'members' | 'invites' | 'subteams' | 'settings'
+export type TabKey = 'members' | 'invites' | 'bots' | 'subteams' | 'settings'
 
 export type TypeMap = {[K in TeamRoleType]: string}
 
@@ -129,16 +129,17 @@ export type State = Readonly<{
   teamInviteError: string
   teamJoinError: string
   teamJoinSuccess: boolean
+  teamJoinSuccessOpen: boolean
   teamJoinSuccessTeamName: string
   teamCreationError: string
   teamDetails: Map<TeamID, TeamDetails>
   teamDetailsMetaStale: boolean // if we've received an update since we last loaded team list
   teamDetailsMetaSubscribeCount: number // if >0 we are eagerly reloading team list
-  teamNameToChannelInfos: Map<Teamname, Map<ConversationIDKey, ChannelInfo>>
+  teamIDToChannelInfos: Map<TeamID, Map<ConversationIDKey, ChannelInfo>>
+  teamIDToResetUsers: Map<TeamID, Set<ResetUser>>
   teamNameToID: Map<Teamname, string>
   teamNameToLoadingInvites: Map<Teamname, Map<string, boolean>>
   teamNameToMembers: Map<Teamname, Map<string, MemberInfo>> // TODO remove
-  teamNameToResetUsers: Map<Teamname, Set<ResetUser>>
   teamNameToRetentionPolicy: Map<Teamname, RetentionPolicy>
   teamNameToPublicitySettings: Map<Teamname, _PublicitySettings>
   teamnames: Set<Teamname> // TODO remove

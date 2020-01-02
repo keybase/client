@@ -3,7 +3,7 @@ import PeopleItem from '../item'
 import * as Types from '../../constants/types/people'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {WaveButton, FollowButton} from '../../settings/contacts-joined/buttons'
+import {FollowButton} from '../../settings/contacts-joined/buttons'
 
 const connectedUsernamesProps = {
   colorFollowing: true,
@@ -52,7 +52,7 @@ const FollowNotification = (props: Props) => {
           props.type == 'contact'
             ? [
                 <FollowButton username={username} small={true} key="follow" />,
-                <WaveButton usernames={username} small={true} key="wave" />,
+                <Kb.WaveButton username={username} small={true} key="wave" />,
               ]
             : undefined
         }
@@ -80,7 +80,7 @@ const FollowNotification = (props: Props) => {
   )
 }
 
-export const MultiFollowNotification = (props: Props) => {
+export const MultiFollowNotification = React.memo((props: Props) => {
   if (props.newFollows.length <= 1) {
     throw new Error('Multi follow notification must have more than one user supplied')
   }
@@ -126,7 +126,7 @@ export const MultiFollowNotification = (props: Props) => {
       </Kb.ScrollView>
     </PeopleItem>
   )
-}
+})
 
 const styles = Styles.styleSheetCreate(
   () =>

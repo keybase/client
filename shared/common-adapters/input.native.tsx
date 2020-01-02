@@ -24,12 +24,8 @@ class Input extends Component<Props, State> {
     end: number | null
   } | null = null
 
-  // TODO: Remove once we can use HOCTimers.
   _timeoutIds: Array<NodeJS.Timeout>
 
-  // We define _setTimeout instead of using HOCTimers since we'd need
-  // to use React.forwardRef with HOCTimers, and it doesn't seem to
-  // work with React Native yet.
   _setTimeout = (f, n) => {
     const id = setTimeout(f, n)
     this._timeoutIds.push(id)
@@ -44,11 +40,9 @@ class Input extends Component<Props, State> {
       height: null,
     }
 
-    // TODO: Remove once we can use HOCTimers.
     this._timeoutIds = []
   }
 
-  // TODO: Remove once we can use HOCTimers.
   componentWillUnmount = () => {
     this._timeoutIds.forEach(clearTimeout)
   }

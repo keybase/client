@@ -23,7 +23,6 @@ type Props = {
   onRequestLumens: () => void
   onSendLumens: () => void
   onUnfollow: () => void
-  onBlock: () => void
   onUnblock: () => void
   onManageBlocking: () => void
   state: Types.DetailsState
@@ -151,20 +150,21 @@ const Actions = (p: Props) => {
 }
 
 const DropdownButton = Kb.OverlayParentHOC((p: Kb.PropsWithOverlay<DropdownProps>) => {
-  const items = [
-    {onClick: p.onAddToTeam, title: 'Add to team...'},
-    {onClick: p.onSendLumens, title: 'Send Lumens (XLM)'},
-    {onClick: p.onRequestLumens, title: 'Request Lumens (XLM)'},
-    {onClick: p.onOpenPrivateFolder, title: 'Open private folder'},
-    {onClick: p.onBrowsePublicFolder, title: 'Browse public folder'},
-    p.onUnfollow && {onClick: p.onUnfollow && p.onUnfollow, title: 'Unfollow'},
+  const items: Kb.MenuItems = [
+    {icon: 'iconfont-people', onClick: p.onAddToTeam, title: 'Add to team...'},
+    {icon: 'iconfont-stellar-send', onClick: p.onSendLumens, title: 'Send Lumens (XLM)'},
+    {icon: 'iconfont-stellar-request', onClick: p.onRequestLumens, title: 'Request Lumens (XLM)'},
+    {icon: 'iconfont-folder-open', onClick: p.onOpenPrivateFolder, title: 'Open private folder'},
+    {icon: 'iconfont-folder-public', onClick: p.onBrowsePublicFolder, title: 'Browse public folder'},
+    p.onUnfollow && {icon: 'iconfont-wave', onClick: p.onUnfollow && p.onUnfollow, title: 'Unfollow'},
     flags.userBlocking && {
       danger: true,
+      icon: 'iconfont-remove',
       onClick: p.onManageBlocking,
       title: p.blockedOrHidFromFollowers ? 'Manage blocking' : 'Block',
     },
   ].reduce<Kb.MenuItems>((arr, i) => {
-    i && arr.push(i)
+    i && arr.push(i as Kb.MenuItem)
     return arr
   }, [])
 

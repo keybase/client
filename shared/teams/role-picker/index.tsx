@@ -206,7 +206,11 @@ const headerTextHelper = (text: string | undefined) =>
     </>
   )
 
-const footerButtonsHelper = (onCancel, onConfirm, confirmLabel) => (
+const footerButtonsHelper = (
+  onCancel: undefined | (() => void),
+  onConfirm: undefined | (() => void),
+  confirmLabel: string
+) => (
   <Kb.ButtonBar direction="row" fullWidth={true} style={styles.footerButtonBar}>
     {!!onCancel && <Kb.Button type="Dim" label="Cancel" onClick={onCancel} />}
     <Kb.Button fullWidth={true} disabled={!onConfirm} label={confirmLabel} onClick={onConfirm} />
@@ -214,7 +218,7 @@ const footerButtonsHelper = (onCancel, onConfirm, confirmLabel) => (
 )
 
 const confirmLabelHelper = (presetRole: Role | null, selectedRole: Role | null): string => {
-  let label = selectedRole && selectedRole.toLowerCase()
+  const label = selectedRole && selectedRole.toLowerCase()
   if (label && presetRole === selectedRole) {
     return `Saved`
   }
@@ -223,7 +227,7 @@ const confirmLabelHelper = (presetRole: Role | null, selectedRole: Role | null):
 }
 
 const RolePicker = (props: Props) => {
-  let selectedRole = filterRole(props.selectedRole || props.presetRole)
+  const selectedRole = filterRole(props.selectedRole || props.presetRole)
   return (
     <Kb.Box2 direction="vertical" alignItems="stretch" style={styles.container}>
       {headerTextHelper(props.headerText)}
@@ -278,6 +282,9 @@ const styles = Styles.styleSheetCreate(
         left: -24,
         paddingTop: 2,
         position: 'absolute',
+      },
+      checkbox: {
+        ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
       },
       container: Styles.platformStyles({
         common: {
@@ -405,15 +412,7 @@ export const sendNotificationFooter = (
   checked: boolean,
   onCheck: (nextVal: boolean) => void
 ) => (
-  <Kb.Box2
-    direction="horizontal"
-    fullWidth={!Styles.isMobile}
-    style={{
-      paddingBottom: Styles.globalMargins.tiny,
-      paddingLeft: Styles.globalMargins.small,
-      paddingTop: Styles.globalMargins.tiny,
-    }}
-  >
+  <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.checkbox}>
     <Kb.Checkbox checked={checked} onCheck={onCheck} label={label} />
   </Kb.Box2>
 )

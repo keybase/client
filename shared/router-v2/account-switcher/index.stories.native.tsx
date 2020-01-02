@@ -18,6 +18,13 @@ const props: Props = {
       },
       fullName: 'Livingston Reallyveryquitelongnameheimer',
     },
+    {
+      account: {
+        hasStoredSecret: true,
+        username: 'jakob226',
+      },
+      fullName: '',
+    },
   ],
   fullname: 'Alice Keybaseuser',
   onAddAccount: Sb.action('onAddAccount'),

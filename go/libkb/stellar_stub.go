@@ -61,3 +61,5 @@ func (n *nullStellar) KnownCurrencyCodeInstant(context.Context, string) (bool, b
 func (n *nullStellar) InformBundle(MetaContext, stellar1.BundleRevision, []stellar1.BundleEntry) {}
 
 func (n *nullStellar) InformDefaultCurrencyChange(MetaContext) {}
+
+func (n *nullStellar) Refresh(MetaContext, string) {}

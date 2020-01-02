@@ -7,6 +7,9 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Kb from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
 import logger from '../../logger'
+import * as NavigationHooks from '../../util/navigation-hooks'
+// @ts-ignore huh?
+import {NavigationEventPayload, SwitchActions} from '@react-navigation/core'
 
 const isPathItem = (path: Types.Path) => Types.getPathLevel(path) > 2 || Constants.hasSpecialFileElement(path)
 const noop = () => {}
@@ -168,7 +171,7 @@ export const useFsFileContext = (path: Types.Path) => {
 }
 
 export const useFsWatchDownloadForMobile = isMobile
-  ? (downloadID: string, downloadIntent: Types.DownloadIntent | null) => {
+  ? (downloadID: string, downloadIntent: Types.DownloadIntent | null): boolean => {
       const dlState = Container.useSelector(
         state => state.fs.downloads.state.get(downloadID) || Constants.emptyDownloadState
       )
@@ -180,17 +183,24 @@ export const useFsWatchDownloadForMobile = isMobile
         state => state.fs.fileContext.get(dlInfo.path) || Constants.emptyFileContext
       ).contentType
 
+      const [justDoneWithIntent, setJustDoneWithIntent] = React.useState(false)
+
       const dispatch = useDispatchWhenConnected()
       React.useEffect(() => {
         if (!downloadID || !downloadIntent || !finished || !mimeType) {
+          setJustDoneWithIntent(false)
           return
         }
-        downloadIntent === Types.DownloadIntent.None
-          ? dispatch(FsGen.createFinishedRegularDownload({downloadID, mimeType}))
-          : dispatch(FsGen.createFinishedDownloadWithIntent({downloadID, downloadIntent, mimeType}))
+        if (downloadIntent === Types.DownloadIntent.None) {
+          dispatch(FsGen.createFinishedRegularDownload({downloadID, mimeType}))
+          return
+        }
+        dispatch(FsGen.createFinishedDownloadWithIntent({downloadID, downloadIntent, mimeType}))
+        setJustDoneWithIntent(true)
       }, [finished, mimeType, downloadID, downloadIntent, dispatch])
+      return justDoneWithIntent
     }
-  : () => {}
+  : () => false
 
 export const useFsBadge = (): RPCTypes.FilesTabBadge => {
   useFsNonPathSubscriptionEffect(RPCTypes.SubscriptionTopic.filesTabBadge)
@@ -200,3 +210,35 @@ export const useFsBadge = (): RPCTypes.FilesTabBadge => {
   }, [dispatch])
   return Container.useSelector(state => state.fs.badge)
 }
+
+let useUserIsLookingAtFsCounter = 0
+export const useUserIsLookingAtFs = isMobile
+  ? () => {
+      // On mobile views remain mounted, so we need to watch for navigation
+      // events to know if user is looking at the Fs tab.
+
+      const dispatch = useDispatchWhenConnected()
+      NavigationHooks.useNavigationEvents((e: NavigationEventPayload) => {
+        // On mobile stack actions cause willFocus and willBlur too, but they
+        // don't mean navigating into or away from the Fs tab. Could just be
+        // navigating inside the Fs tabn. So only trigger for JUMP_TO.
+        if (e.type === 'willFocus' && e.action.type === SwitchActions.JUMP_TO) {
+          dispatch(FsGen.createUserIn())
+        } else if (e.type === 'willBlur' && e.action.type === SwitchActions.JUMP_TO) {
+          dispatch(FsGen.createUserOut())
+        }
+      })
+    }
+  : () => {
+      // On desktop navigation events don't fire when user switch to or away
+      // away from the Fs tab, but views are only mounted when user is inside
+      // the Fs tab, so just keep track of mounting situations.
+
+      const dispatch = Container.useDispatch()
+      React.useEffect(() => {
+        useUserIsLookingAtFsCounter++ || dispatch(FsGen.createUserIn())
+        return () => {
+          !--useUserIsLookingAtFsCounter && dispatch(FsGen.createUserOut())
+        }
+      }, [dispatch])
+    }

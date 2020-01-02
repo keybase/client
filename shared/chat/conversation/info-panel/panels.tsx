@@ -59,7 +59,7 @@ export const SettingsPanel = (props: SettingsPanelProps) => {
         )}
         {props.entityType === 'adhoc' && (
           <CaptionedDangerIcon
-            caption="Block this conversation"
+            caption="Block"
             onClick={props.onShowBlockConversationDialog}
             icon="iconfont-remove"
           />

@@ -5,14 +5,13 @@ import {iconTypeToImgSet, urlsToImgSet, IconType, IconStyle} from './icon'
 import * as Container from '../util/container'
 import * as Styles from '../styles'
 import * as ProfileGen from '../actions/profile-gen'
+import * as Tracker2Constants from '../constants/tracker2'
 import './avatar.css'
 
-export type AvatarSize = 128 | 96 | 64 | 48 | 32 | 24 | 16
-type URLType = string
+export const avatarSizes = [128, 96, 64, 48, 32, 24, 16] as const
+export type AvatarSize = typeof avatarSizes[number]
 
-type DisallowedStyles = {
-  borderStyle?: never
-}
+type URLType = string
 
 export type OwnProps = {
   borderColor?: string
@@ -27,7 +26,7 @@ export type OwnProps = {
   opacity?: number
   size: AvatarSize
   skipBackground?: boolean
-  style?: Styles.StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>
+  style?: Styles.CustomStyles<'borderStyle', {}>
   teamname?: string
   username?: string
   showFollowingStatus?: boolean // show the green dots or not
@@ -49,7 +48,7 @@ type Props = {
   opacity?: number
   size: AvatarSize
   skipBackground?: boolean
-  style?: Styles.StylesCrossPlatformWithSomeDisallowed<DisallowedStyles>
+  style?: Styles.CustomStyles<'borderStyle', {}>
   teamname?: string
   url: URLType
   username?: string
@@ -73,23 +72,22 @@ const teamPlaceHolders: {[key: string]: IconType} = {
   '960': 'icon-team-placeholder-avatar-960',
 }
 
-const followSizeToStyle = {
-  '128': {bottom: 0, left: 88, position: 'absolute'},
-  '48': {bottom: 0, left: 30, position: 'absolute'},
-  '64': {bottom: 0, left: 44, position: 'absolute'},
-  '96': {bottom: 0, left: 65, position: 'absolute'},
-}
+const followSizeToStyle = new Map<AvatarSize, IconStyle>([
+  [128, {bottom: 0, left: 88, position: 'absolute'}],
+  [48, {bottom: 0, left: 30, position: 'absolute'}],
+  [64, {bottom: 0, left: 44, position: 'absolute'}],
+  [96, {bottom: 0, left: 65, position: 'absolute'}],
+])
 
-const followIconHelper = (size: number, followsYou: boolean, following: boolean) => {
+const followIconHelper = (size: AvatarSize, followsYou: boolean, following: boolean) => {
   const iconSize = size === 128 ? 28 : 21
   const rel =
     followsYou === following ? (followsYou ? 'mutual-follow' : null) : followsYou ? 'follow-me' : 'following'
-  // @ts-ignore can't infer this string is a valid icon, but its ok. we'll
-  // catch it in snapshots if this is wrong
-  const iconType: IconType | undefined = rel ? `icon-${rel}-${iconSize}` : undefined
+  const iconType = rel ? (`icon-${rel}-${iconSize}` as IconType) : undefined
+  const iconStyle = followSizeToStyle.get(size)
   return {
     iconSize,
-    iconStyle: followSizeToStyle[size] as IconStyle,
+    iconStyle,
     iconType,
   }
 }
@@ -101,6 +99,14 @@ const ConnectedAvatar = Container.connect(
     _followsYou: ownProps.showFollowingStatus ? state.config.followers.has(ownProps.username || '') : false,
     _httpSrvAddress: state.config.httpSrvAddress,
     _httpSrvToken: state.config.httpSrvToken,
+    blocked:
+      (
+        (state.tracker2 &&
+          state.tracker2.usernameToDetails &&
+          Tracker2Constants.getDetails(state, ownProps.username || ownProps.teamname || '')) || {
+          blocked: false,
+        }
+      ).blocked || false,
   }),
   dispatch => ({
     _goToProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
@@ -117,7 +123,8 @@ const ConnectedAvatar = Container.connect(
         : ownProps.onClick
     const onClick = ownProps.onEditAvatarClick || opClick
     const name = isTeam ? ownProps.teamname : username
-    const urlMap = [960, 256, 192].reduce((m, size: number) => {
+    const sizes = [960, 256, 192] as const
+    const urlMap = sizes.reduce<{[key: number]: string}>((m, size) => {
       m[size] = `http://${stateProps._httpSrvAddress}/av?typ=${
         isTeam ? 'team' : 'user'
       }&name=${name}&format=square_${size}&mode=${Styles.isDarkMode() ? 'dark' : 'light'}&token=${
@@ -139,6 +146,7 @@ const ConnectedAvatar = Container.connect(
         )
     const iconInfo = followIconHelper(ownProps.size, stateProps._followsYou, stateProps._following)
     return {
+      blocked: stateProps.blocked,
       borderColor: ownProps.borderColor,
       children: ownProps.children,
       editable: ownProps.editable,

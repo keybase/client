@@ -16,7 +16,8 @@ import (
 
 type CmdTeamAddMembersBulk struct {
 	libkb.Contextified
-	arg keybase1.TeamAddMembersMultiRoleArg
+	arg  keybase1.TeamAddMembersMultiRoleArg
+	Team string
 }
 
 func newCmdTeamAddMembersBulk(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -84,7 +85,7 @@ func (c *CmdTeamAddMembersBulk) parseBulkList(v string, role keybase1.TeamRole) 
 }
 
 func (c *CmdTeamAddMembersBulk) ParseArgv(ctx *cli.Context) (err error) {
-	c.arg.Name, err = ParseOneTeamName(ctx)
+	c.Team, err = ParseOneTeamName(ctx)
 	if err != nil {
 		return err
 	}
@@ -122,7 +123,14 @@ func (c *CmdTeamAddMembersBulk) Run() error {
 		return err
 	}
 
-	err = cli.TeamAddMembersMultiRole(context.Background(), c.arg)
+	teamID, err := cli.GetTeamID(context.Background(), c.Team)
+	if err != nil {
+		return err
+	}
+	c.arg.TeamID = teamID
+
+	// TODO: currently ignoring res; address in PICNIC-714
+	_, err = cli.TeamAddMembersMultiRole(context.Background(), c.arg)
 	if err != nil {
 		return err
 	}

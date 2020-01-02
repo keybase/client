@@ -66,7 +66,7 @@ func TestTeamList(t *testing.T) {
 
 	rootername := randomUser("arbitrary").username
 	_, err := teamCli.TeamAddMember(context.TODO(), keybase1.TeamAddMemberArg{
-		Name:     team.name,
+		TeamID:   team.ID,
 		Username: rootername + "@rooter",
 		Role:     keybase1.TeamRole_WRITER,
 	})
@@ -396,13 +396,14 @@ func TestTeamProfileAddList(t *testing.T) {
 	ann := tt.addUser("ann")
 	t.Logf("Signed up ann (%s)", ann.username)
 
-	_, teamName := ann.createTeam2()
+	teamID, teamName := ann.createTeam2()
 	t.Logf("Team created (%s)", teamName)
 
 	res, err := ann.teamsClient.TeamProfileAddList(context.TODO(), keybase1.TeamProfileAddListArg{Username: "t_alice"})
 	require.NoError(t, err)
 	require.Len(t, res, 1)
 	require.Equal(t, keybase1.TeamProfileAddEntry{
+		TeamID:         teamID,
 		TeamName:       teamName,
 		Open:           false,
 		DisabledReason: "",
