@@ -4653,6 +4653,15 @@
       ],
       "response": "FindConversationsLocalRes"
     },
+    "findGeneralConvFromTeamID": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "keybase1.TeamID"
+        }
+      ],
+      "response": "InboxUIItem"
+    },
     "updateTyping": {
       "request": [
         {

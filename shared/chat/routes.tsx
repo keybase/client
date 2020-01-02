@@ -21,6 +21,7 @@ import PunycodeLinkWarning from './punycode-link-warning'
 import BlockModal from './blocking/block-modal/container'
 import ChatInstallBot from './conversation/bot/install'
 import ChatSearchBot from './conversation/bot/search'
+import ChatConfirmRemoveBot from './conversation/bot/confirm'
 
 export const newRoutes = {
   chatConversation: {getScreen: (): typeof ChatConversation => require('./conversation/container').default},
@@ -58,6 +59,9 @@ export const newModalRoutes = {
   },
   chatConfirmNavigateExternal: {
     getScreen: (): typeof PunycodeLinkWarning => require('./punycode-link-warning').default,
+  },
+  chatConfirmRemoveBot: {
+    getScreen: (): typeof ChatConfirmRemoveBot => require('./conversation/bot/confirm').default,
   },
   chatCreateChannel: {
     getScreen: (): typeof ChatCreateChannel => require('./create-channel/container').default,
