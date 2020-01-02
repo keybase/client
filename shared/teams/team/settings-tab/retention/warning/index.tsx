@@ -4,10 +4,8 @@ import * as Styles from '../../../../../styles'
 import {RetentionEntityType} from '..'
 
 type Props = {
-  enabled: boolean
   entityType: RetentionEntityType
   exploding: boolean
-  setEnabled: (enabled: boolean) => undefined
   timePeriod: string
   onConfirm: () => void
   onBack: () => void
@@ -27,11 +25,13 @@ const Wrapper = ({children, onBack}: {children: React.ReactNode; onBack: () => v
   )
 
 const RetentionWarning = (props: Props) => {
+  const [enabled, setEnabled] = React.useState(false)
+
   let showChannelWarnings = false
   if (props.entityType === 'big team') {
     showChannelWarnings = true
   }
-  let convType: string = getConvType(props.entityType)
+  const convType: string = getConvType(props.entityType)
   return (
     <Wrapper onBack={props.onBack}>
       <Kb.Box style={styles.container}>
@@ -47,8 +47,8 @@ const RetentionWarning = (props: Props) => {
             "This will affect all the team's channels, except the ones you've set manually."}
         </Kb.Text>
         <Kb.Checkbox
-          checked={props.enabled}
-          onCheck={props.setEnabled}
+          checked={enabled}
+          onCheck={setEnabled}
           style={styles.checkboxStyle}
           label=""
           labelComponent={
@@ -68,7 +68,7 @@ const RetentionWarning = (props: Props) => {
             type="Danger"
             onClick={props.onConfirm}
             label={Styles.isMobile ? 'Confirm' : `Yes, set to ${props.timePeriod}`}
-            disabled={!props.enabled}
+            disabled={!enabled}
           />
         </Kb.ButtonBar>
       </Kb.Box>

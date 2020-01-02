@@ -5,12 +5,10 @@ import {globalStyles} from '../../../../../styles'
 import RetentionWarning from '.'
 
 const commonProps = {
-  enabled: true,
   entityType: 'channel',
   exploding: false,
   onBack: action('onBack'),
   onConfirm: action('onConfirm'),
-  setEnabled: action('setEnabled'),
   timePeriod: '5 days',
 } as const
 
@@ -23,7 +21,7 @@ const load = () => {
     .add('Channel', () => <RetentionWarning {...commonProps} entityType="channel" />)
     .add('Small team', () => <RetentionWarning {...commonProps} entityType="small team" />)
     .add('Big team', () => <RetentionWarning {...commonProps} entityType="big team" />)
-    .add('Disabled', () => <RetentionWarning {...commonProps} enabled={false} />)
+    .add('Disabled', () => <RetentionWarning {...commonProps} />)
     .add('Exploding', () => <RetentionWarning {...commonProps} exploding={true} timePeriod="30 seconds" />)
 }
 
