@@ -8,6 +8,7 @@ import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as WaitingGen from '../../../actions/waiting-gen'
 import * as Types from '../../../constants/types/chat2'
 import * as TeamTypes from '../../../constants/types/teams'
+import * as TeamConstants from '../../../constants/teams'
 import * as Constants from '../../../constants/chat2'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 
@@ -56,11 +57,16 @@ const InstallBotPopup = (props: Props) => {
   const [installWithCommands, setInstallWithCommands] = React.useState(true)
   const [installWithMentions, setInstallWithMentions] = React.useState(true)
   const [installWithRestrict, setInstallWithRestrict] = React.useState(true)
-  const {commands, featured, inTeam, inTeamUnrestricted, settings} = Container.useSelector(
+  const {commands, featured, inTeam, inTeamUnrestricted, readOnly, settings} = Container.useSelector(
     (state: Container.TypedState) => {
       let inTeam: boolean | undefined
       let teamRole: TeamTypes.TeamRoleType | null | undefined
+      let readOnly = false
       if (conversationIDKey) {
+        const meta = state.chat2.metaMap.get(conversationIDKey)
+        if (meta && meta.teamname) {
+          readOnly = !TeamConstants.getCanPerform(state, meta.teamname).manageBots
+        }
         teamRole = state.chat2.botTeamRoleInConvMap.get(conversationIDKey)?.get(botUsername)
         if (teamRole !== undefined) {
           inTeam = !!teamRole
@@ -71,6 +77,7 @@ const InstallBotPopup = (props: Props) => {
         featured: state.chat2.featuredBotsMap.get(botUsername),
         inTeam,
         inTeamUnrestricted: inTeam && teamRole === 'bot',
+        readOnly,
         settings: conversationIDKey
           ? state.chat2.botSettings.get(conversationIDKey)?.get(botUsername) ?? undefined
           : undefined,
@@ -150,7 +157,7 @@ const InstallBotPopup = (props: Props) => {
     }
   }, [conversationIDKey, inTeam])
 
-  const restrictPicker = !inTeam && (
+  const restrictPicker = !inTeam && !readOnly && (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
       <Kb.Text type="BodyBigExtrabold">Install as:</Kb.Text>
       <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
@@ -348,37 +355,41 @@ const InstallBotPopup = (props: Props) => {
       header={{
         leftButton: (
           <Kb.Text type="BodyBigLink" onClick={onClose}>
-            {installScreen ? 'Back' : inTeam ? 'Close' : 'Cancel'}
+            {installScreen ? 'Back' : inTeam || readOnly ? 'Close' : 'Cancel'}
           </Kb.Text>
         ),
         title: '',
       }}
-      footer={{
-        content: enabled && (
-          <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
-            <Kb.ButtonBar direction="column">
-              {editButton}
-              {saveButton}
-              {reviewButton}
-              {installButton}
-              {removeButton}
-            </Kb.ButtonBar>
-            {!!error && (
-              <Kb.Text type="Body" style={{color: Styles.globalColors.redDark}}>
-                {'Something went wrong! Please try again, or send '}
-                <Kb.Text
-                  type="Body"
-                  style={{color: Styles.globalColors.redDark}}
-                  underline={true}
-                  onClick={onFeedback}
-                >
-                  {'feedback'}
-                </Kb.Text>
-              </Kb.Text>
-            )}
-          </Kb.Box2>
-        ),
-      }}
+      footer={
+        enabled && !readOnly
+          ? {
+              content: (
+                <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
+                  <Kb.ButtonBar direction="column">
+                    {editButton}
+                    {saveButton}
+                    {reviewButton}
+                    {installButton}
+                    {removeButton}
+                  </Kb.ButtonBar>
+                  {!!error && (
+                    <Kb.Text type="Body" style={{color: Styles.globalColors.redDark}}>
+                      {'Something went wrong! Please try again, or send '}
+                      <Kb.Text
+                        type="Body"
+                        style={{color: Styles.globalColors.redDark}}
+                        underline={true}
+                        onClick={onFeedback}
+                      >
+                        {'feedback'}
+                      </Kb.Text>
+                    </Kb.Text>
+                  )}
+                </Kb.Box2>
+              ),
+            }
+          : undefined
+      }
     >
       <Kb.Box2 direction="vertical" style={styles.outerContainer} fullWidth={true}>
         {enabled ? content : <Kb.ProgressIndicator />}
