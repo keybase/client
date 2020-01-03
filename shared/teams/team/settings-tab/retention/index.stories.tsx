@@ -18,6 +18,7 @@ const actions = {
 }
 
 const commonProps = {
+  load: action('load'),
   loading: false,
   showSaveIndicator: false,
 }

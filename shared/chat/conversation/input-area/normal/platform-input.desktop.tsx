@@ -139,7 +139,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
     }
   }
 
-  _pickerOnClick = emoji => {
+  _pickerOnClick = (emoji: any) => {
     this._insertEmoji(emoji.colons)
     this._emojiPickerToggle()
   }
@@ -310,7 +310,13 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
 }
 const PlatformInput = AddSuggestors(_PlatformInput)
 
-const EmojiPicker = ({emojiPickerToggle, onClick}) => (
+const EmojiPicker = ({
+  emojiPickerToggle,
+  onClick,
+}: {
+  emojiPickerToggle: () => void
+  onClick: (c: any) => void
+}) => (
   <Kb.Box>
     <Kb.Box style={styles.emojiPickerContainerWrapper} onClick={emojiPickerToggle} />
     <Kb.Box style={styles.emojiPickerRelative}>

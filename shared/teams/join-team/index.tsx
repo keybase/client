@@ -4,101 +4,117 @@ import * as Styles from '../../styles'
 
 export type Props = {
   errorText: string
+  load: () => void
   open: boolean
   success: boolean
-  name: string
   successTeamName: string | null
   onBack: () => void
-  onNameChange: () => void
-  onSubmit: () => void
+  onJoinTeam: (name: string) => void
 }
 
-const JoinTeam = (props: Props) => (
-  <Kb.Modal
-    banners={[
-      !!props.errorText && (
-        <Kb.Banner color="red">
-          <Kb.BannerParagraph bannerColor="red" content={props.errorText} />
-        </Kb.Banner>
-      ),
-    ]}
-    footer={{
-      content: (
-        <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonBar}>
-          <Kb.Button
-            fullWidth={true}
-            label={props.success ? 'Okay' : 'Continue'}
-            onClick={props.success ? props.onBack : props.onSubmit}
-          />
-        </Kb.ButtonBar>
-      ),
-    }}
-    header={{
-      leftButton:
-        Styles.isMobile && !props.success ? (
-          <Kb.Text type="BodyBigLink" onClick={props.onBack}>
-            Cancel
-          </Kb.Text>
-        ) : null,
-      title: 'Join a team',
-    }}
-    onClose={props.onBack}
-  >
-    {props.success ? (
-      <Kb.Box2 alignItems="center" direction="horizontal" fullHeight={true} fullWidth={true}>
-        {props.open ? (
-          <Kb.Box2 alignItems="center" direction="vertical" gap="tiny" style={styles.container}>
-            <Kb.Icon type="icon-illustration-welcome-96" />
-            {!!props.successTeamName && (
-              <Kb.Text center={true} type="Header">
-                You’ve joined {props.successTeamName}!
-              </Kb.Text>
-            )}
-            <Kb.Text center={true} type="Body">
-              The team may take take a tiny while to appear as an admin needs to come online. But you’re in.
-            </Kb.Text>
-          </Kb.Box2>
-        ) : (
-          <Kb.Box2 alignItems="center" direction="vertical" gap="tiny" style={styles.container}>
-            <Kb.Icon
-              style={styles.icon}
-              type={Styles.isMobile ? 'icon-fancy-email-sent-192-x-64' : 'icon-fancy-email-sent-144-x-48'}
+const JoinTeam = (props: Props) => {
+  const {load} = props
+
+  const [name, _setName] = React.useState('')
+  const setName = (n: string) => _setName(n.toLowerCase())
+
+  React.useEffect(
+    () => {
+      load()
+    },
+    // eslint-disable-next-line
+    []
+  )
+
+  const onSubmit = () => {
+    props.onJoinTeam(name)
+  }
+
+  return (
+    <Kb.Modal
+      banners={[
+        !!props.errorText && (
+          <Kb.Banner color="red">
+            <Kb.BannerParagraph bannerColor="red" content={props.errorText} />
+          </Kb.Banner>
+        ),
+      ]}
+      footer={{
+        content: (
+          <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonBar}>
+            <Kb.Button
+              fullWidth={true}
+              label={props.success ? 'Okay' : 'Continue'}
+              onClick={props.success ? props.onBack : onSubmit}
             />
-            <Kb.Text center={true} type="Body">
-              We sent a request to{' '}
-              {props.successTeamName ? (
-                <Kb.Text type="BodySemibold">{props.successTeamName}</Kb.Text>
-              ) : (
-                'the team'
-              )}
-              ’s admins. We will notify you as soon as they let you in!
+          </Kb.ButtonBar>
+        ),
+      }}
+      header={{
+        leftButton:
+          Styles.isMobile && !props.success ? (
+            <Kb.Text type="BodyBigLink" onClick={props.onBack}>
+              Cancel
             </Kb.Text>
-          </Kb.Box2>
-        )}
-      </Kb.Box2>
-    ) : (
-      <Kb.Box2 direction="vertical" style={styles.container}>
-        <Kb.RoundedBox style={styles.roundedBox}>
-          <Kb.PlainInput
-            autoFocus={true}
-            onChangeText={props.onNameChange}
-            onEnterKeyDown={props.onSubmit}
-            placeholder="Token or team name"
-            value={props.name}
-          />
-        </Kb.RoundedBox>
-        <Kb.Text type="BodySmall">Examples: keybasefriends, stellar.public, etc.</Kb.Text>
-      </Kb.Box2>
-    )}
-  </Kb.Modal>
-)
+          ) : null,
+        title: 'Join a team',
+      }}
+      onClose={props.onBack}
+    >
+      {props.success ? (
+        <Kb.Box2 alignItems="center" direction="horizontal" fullHeight={true} fullWidth={true}>
+          {props.open ? (
+            <Kb.Box2 alignItems="center" direction="vertical" gap="tiny" style={styles.container}>
+              <Kb.Icon type="icon-illustration-welcome-96" />
+              {!!props.successTeamName && (
+                <Kb.Text center={true} type="Header">
+                  You’ve joined {props.successTeamName}!
+                </Kb.Text>
+              )}
+              <Kb.Text center={true} type="Body">
+                The team may take take a tiny while to appear as an admin needs to come online. But you’re in.
+              </Kb.Text>
+            </Kb.Box2>
+          ) : (
+            <Kb.Box2 alignItems="center" direction="vertical" gap="tiny" style={styles.container}>
+              <Kb.Icon
+                style={styles.icon}
+                type={Styles.isMobile ? 'icon-fancy-email-sent-192-x-64' : 'icon-fancy-email-sent-144-x-48'}
+              />
+              <Kb.Text center={true} type="Body">
+                We sent a request to{' '}
+                {props.successTeamName ? (
+                  <Kb.Text type="BodySemibold">{props.successTeamName}</Kb.Text>
+                ) : (
+                  'the team'
+                )}
+                ’s admins. We will notify you as soon as they let you in!
+              </Kb.Text>
+            </Kb.Box2>
+          )}
+        </Kb.Box2>
+      ) : (
+        <Kb.Box2 direction="vertical" style={styles.container}>
+          <Kb.RoundedBox style={styles.roundedBox}>
+            <Kb.PlainInput
+              autoFocus={true}
+              onChangeText={setName}
+              onEnterKeyDown={onSubmit}
+              placeholder="Token or team name"
+              value={name}
+            />
+          </Kb.RoundedBox>
+          <Kb.Text type="BodySmall">Examples: keybasefriends, stellar.public, etc.</Kb.Text>
+        </Kb.Box2>
+      )}
+    </Kb.Modal>
+  )
+}
 
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      buttonBar: {
-        minHeight: undefined,
-      },
+      buttonBar: {minHeight: undefined},
       container: {
         padding: Styles.globalMargins.small,
         width: '100%',
@@ -113,9 +129,7 @@ const styles = Styles.styleSheetCreate(
           width: 192,
         },
       }),
-      roundedBox: {
-        marginBottom: Styles.globalMargins.tiny,
-      },
+      roundedBox: {marginBottom: Styles.globalMargins.tiny},
     } as const)
 )
 

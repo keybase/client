@@ -31,20 +31,18 @@ const Bot = ({botAlias, description, botUsername, onClick, ownerTeam, ownerUser}
       <Kb.Text type="BodySmallSemibold" style={{color: Styles.globalColors.black}}>
         {botAlias || botUsername}
       </Kb.Text>
-      <Kb.Text type="BodySmall">
-        &nbsp;• by{' '}
-        {ownerTeam ? (
-          <Kb.TeamWithPopup prefix="@" inline={true} teamName={ownerTeam} type="BodySmall" />
-        ) : (
-          <Kb.ConnectedUsernames
-            prefix="@"
-            inline={true}
-            usernames={[ownerUser ?? botUsername]}
-            type="BodySmall"
-            withProfileCardPopup={true}
-          />
-        )}
-      </Kb.Text>
+      <Kb.Text type="BodySmall">&nbsp;• by&nbsp;</Kb.Text>
+      {ownerTeam ? (
+        <Kb.TeamWithPopup prefix="@" inline={true} teamName={ownerTeam} type="BodySmall" />
+      ) : (
+        <Kb.ConnectedUsernames
+          prefix="@"
+          inline={true}
+          usernames={[ownerUser ?? botUsername]}
+          type="BodySmall"
+          withProfileCardPopup={true}
+        />
+      )}
     </Kb.Box2>
   )
   return (
