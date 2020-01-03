@@ -5,7 +5,7 @@ import * as FsUtil from '../util/kbfs'
 import * as TimestampUtil from '../util/timestamp'
 import {RemoteTlfUpdates} from '../fs/remote-container'
 import {FilesPreview} from './files.desktop'
-import {remoteConnect, setDisplayName} from '../util/container'
+import {remoteConnect} from '../util/container'
 
 type State = {
   username: string
@@ -54,8 +54,4 @@ const mergeProps = (stateProps, dispatchProps) => ({
       }),
 })
 
-export default remoteConnect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
-)(setDisplayName('FilesPreview')(FilesPreview))
+export default remoteConnect(mapStateToProps, mapDispatchToProps, mergeProps)(FilesPreview)

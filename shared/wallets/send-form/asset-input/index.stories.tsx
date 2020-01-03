@@ -1,8 +1,7 @@
 import * as React from 'react'
 import * as Sb from '../../../stories/storybook'
 import * as Kb from '../../../common-adapters'
-import {withStateHandlers} from '../../../util/container'
-import AssetInputBasic from './asset-input-basic'
+import AssetInputBasic, {Props} from './asset-input-basic'
 
 const provider = Sb.createPropProviderWithCommon({
   Available: () => ({
@@ -68,19 +67,17 @@ const warning3 = {
   warningPayee: 'russel',
 }
 
-const asStatefulInput: any = withStateHandlers(
-  (props: any) => ({
-    value: props.value,
-  }),
-  {
-    onChangeAmount: (_, props) => (value: string) => {
-      props.onChangeAmount(value)
-      return {value}
-    },
+const StatefulAssetInputBasic = (p: Props) => {
+  const {value, onChangeAmount, ...rest} = p
+  const [_value, _setValue] = React.useState(value)
+  const _onChangeAmount = (v: string) => {
+    onChangeAmount(v)
+    _setValue(v)
   }
-)
 
-const StatefulAssetInputBasic = asStatefulInput(AssetInputBasic)
+  return <AssetInputBasic {...rest} value={_value} onChangeAmount={_onChangeAmount} />
+}
+
 /*
 const StatefulAssetInputRecipientAdvanced = asStatefulInput(AssetInputRecipientAdvanced)
 

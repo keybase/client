@@ -60,6 +60,7 @@ const connect: typeof RR.connect =
       }
     : RR.connect
 
+/** TODO deprecate, not compatible with hooks */
 export const namedConnect = <TOwnProps, TStateProps, TDispatchProps, TMergedProps>(
   mapStateToProps: RR.MapStateToProps<TStateProps, TOwnProps>,
   mapDispatchToProps: RR.MapDispatchToProps<TDispatchProps, TOwnProps>,

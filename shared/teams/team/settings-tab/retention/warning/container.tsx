@@ -4,7 +4,6 @@ import RetentionWarning from '.'
 import {RetentionEntityType} from '..'
 import {RetentionPolicy} from '../../../../../constants/types/retention-policy'
 import * as Constants from '../../../../../constants/teams'
-import {TypedState} from '../../../../../constants/reducer'
 
 type OwnProps = Container.RouteProps<{
   policy: RetentionPolicy
@@ -13,15 +12,8 @@ type OwnProps = Container.RouteProps<{
   onConfirm: (() => void) | null
 }>
 
-const connected = Container.connect(
-  (_: TypedState, ownProps: OwnProps) => {
-    const policy = Container.getRouteProps(ownProps, 'policy', Constants.retentionPolicies.policyInherit)
-    return {
-      entityType: Container.getRouteProps(ownProps, 'entityType', 'adhoc'),
-      exploding: policy.type === 'explode',
-      timePeriod: policy.title,
-    }
-  },
+export default Container.connect(
+  () => ({}),
   (dispatch, ownProps: OwnProps) => ({
     onBack: () => {
       dispatch(RouteTreeGen.createNavigateUp())
@@ -34,15 +26,14 @@ const connected = Container.connect(
       cb && cb()
     },
   }),
-  (s, d, o) => ({...o, ...s, ...d})
-)
-
-// eslint-disable-next-line func-call-spacing
-const withState = Container.withStateHandlers<
-  {enabled: boolean},
-  {setEnabled: (enabled: boolean) => {enabled: boolean} | undefined},
-  {}
->({enabled: false}, {setEnabled: () => (enabled: boolean) => ({enabled})})
-
-// @ts-ignore
-export default connected(withState(RetentionWarning)) as any
+  (_s, d, ownProps: OwnProps) => {
+    const policy = Container.getRouteProps(ownProps, 'policy', Constants.retentionPolicies.policyInherit)
+    return {
+      ...ownProps,
+      ...d,
+      entityType: Container.getRouteProps(ownProps, 'entityType', 'adhoc'),
+      exploding: policy.type === 'explode',
+      timePeriod: policy.title,
+    }
+  }
+)(RetentionWarning)

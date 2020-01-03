@@ -76,20 +76,8 @@ export const timeoutPromise = (timeMs: number) =>
     setTimeout(() => resolve(), timeMs)
   })
 
-export {
-  branch,
-  defaultProps,
-  lifecycle,
-  pure,
-  renderComponent,
-  renderNothing,
-  withHandlers,
-  withStateHandlers,
-  withProps,
-  mapProps,
-  withPropsOnChange,
-  setDisplayName,
-} from 'recompose'
+/** TODO deprecate all recompose*/
+export {lifecycle, withStateHandlers} from 'recompose'
 
 export {default as connect, namedConnect, connectDEBUG} from './typed-connect'
 export {default as remoteConnect} from './typed-remote-connect'
