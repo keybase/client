@@ -20,28 +20,26 @@ export default function useSerializeProps<Props extends {}>(
 ) {
   const lastSent = React.useRef<Partial<Props>>({})
   const lastForceUpdate = React.useRef<number>(-1)
-  const currentForceUpdate = Container.useSelector(
-    s => (!!windowComponent && s.config.remoteWindowNeedsProps.get(windowComponent)?.get(windowParam)) ?? 0
+  const currentForceUpdate = Container.useSelector(s =>
+    windowComponent ? s.config.remoteWindowNeedsProps.get(windowComponent)?.get(windowParam) ?? 0 : 0
   )
 
-  const throttledSend = React.useMemo(
-    () =>
-      throttle(
-        (toSend: Object, windowComponent: string, windowParam: string) => {
-          SafeElectron.getApp().emit('KBkeybase', '', {
-            payload: {
-              propsStr: JSON.stringify(toSend),
-              windowComponent,
-              windowParam,
-            },
-            type: 'rendererNewProps',
-          })
-          lastSent.current = toSend
-        },
-        1000,
-        {leading: true}
-      ),
-    [windowComponent, windowParam]
+  const throttledSend = React.useRef(
+    throttle(
+      (toSend: Partial<Props>, windowComponent: string, windowParam: string) => {
+        SafeElectron.getApp().emit('KBkeybase', '', {
+          payload: {
+            propsStr: JSON.stringify(toSend),
+            windowComponent,
+            windowParam,
+          },
+          type: 'rendererNewProps',
+        })
+        lastSent.current = toSend
+      },
+      1000,
+      {leading: true}
+    )
   )
 
   React.useEffect(
@@ -49,9 +47,9 @@ export default function useSerializeProps<Props extends {}>(
       if (!windowComponent) {
         return
       }
-      const forceUpdate = currentForceUpdate !== lastForceUpdate
+      const forceUpdate = currentForceUpdate !== lastForceUpdate.current
       const toSend = serializer(p, forceUpdate ? {} : lastSent.current)
-      Object.keys(toSend).length && throttledSend(p, windowComponent, windowParam)
+      Object.keys(toSend).length && throttledSend.current(p, windowComponent, windowParam)
       lastForceUpdate.current = currentForceUpdate
     },
     // eslint-disable-next-line

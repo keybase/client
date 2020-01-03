@@ -1,46 +1,47 @@
-import * as Styles from '../styles'
-import * as Constants from '../constants/config'
-import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
-import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'
 import * as Container from '../util/container'
+import * as React from 'react'
+import * as Styles from '../styles'
+import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'
+import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import {serialize} from './remote-serializer.desktop'
-
-const windowOpts = {height: 300, width: 500}
-
-type State = Container.TypedState['unlockFolders']
 
 export type WireProps = {
   darkMode: boolean
-  devices: State['devices']
-  paperkeyError: State['paperkeyError']
-  phase: State['phase']
-  waiting: State['waiting']
-}
+} & Pick<Container.TypedState['unlockFolders'], 'devices' | 'paperkeyError' | 'phase' | 'waiting'>
 
-const UnlockFolders = () => {
+const windowOpts = {height: 300, width: 500}
+
+const UnlockFolders = (p: WireProps) => {
+  const windowComponent = 'unlock-folders'
+  const windowParam = windowComponent
+
+  useBrowserWindow({
+    windowComponent,
+    windowOpts,
+    windowParam,
+    windowTitle: 'UnlockFolders',
+  })
+
+  useSerializeProps(p, serialize, windowComponent, windowParam)
   return null
 }
 
-export default () => {
-  // TODO
-  // const state = Container.useSelector(s => s)
-  // const {devices, phase, paperkeyError, waiting, popupOpen} = state.unlockFolders
-  // const windowComponent = popupOpen ? 'unlock-folders' : undefined
-  // useBrowserWindow({
-  // windowComponent,
-  // windowOpts,
-  // windowParam: 'unlockFolders',
-  // windowTitle: 'UnlockFolders',
-  // })
+const UnlockFoldersMemo = React.memo(UnlockFolders)
 
-  // const toSend = {
-  // darkMode: Styles.isDarkMode(),
-  // devices,
-  // paperkeyError,
-  // phase,
-  // // remoteWindowNeedsProps: Constants.getRemoteWindowPropsCount(state.config, 'unlockFolders', ''),
-  // waiting,
-  // }
-  // useSerializeProps(toSend, serialize, ['unlockFolders', 'unlockFolders'], windowComponent)
+export default () => {
+  const state = Container.useSelector(s => s)
+  const {popupOpen} = state.unlockFolders
+  if (popupOpen) {
+    const {devices, phase, paperkeyError, waiting, popupOpen} = state.unlockFolders
+    return (
+      <UnlockFoldersMemo
+        darkMode={Styles.isDarkMode()}
+        devices={devices}
+        paperkeyError={paperkeyError}
+        phase={phase}
+        waiting={waiting}
+      />
+    )
+  }
   return null
 }

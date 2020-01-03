@@ -1,8 +1,6 @@
 import * as RPCTypes from '../constants/types/rpc-gen'
 import {WireProps} from './remote-proxy.desktop'
 
-export const serialize = (p: WireProps, _old: Partial<WireProps>): Partial<WireProps> => p
-
 const initialState: WireProps = {
   darkMode: false,
   prompt: '',
@@ -16,15 +14,9 @@ const initialState: WireProps = {
   windowTitle: '',
 }
 
-export const deserialize = (state: WireProps = initialState, props: Partial<WireProps>): WireProps => {
-  if (!props) return state
+export const serialize = (p: WireProps): Partial<WireProps> => p
 
-  return {
-    ...state,
-    ...props,
-    showTyping: {
-      ...state.showTyping,
-      ...props.showTyping,
-    },
-  }
-}
+export const deserialize = (state: WireProps = initialState, props: Partial<WireProps>): WireProps => ({
+  ...state,
+  ...props,
+})

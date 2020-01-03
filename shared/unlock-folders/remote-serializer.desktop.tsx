@@ -1,22 +1,15 @@
-export const serialize = {
-  darkMode: (v: any) => v,
-  devices: (v: any) => v,
-  paperkeyError: (v: any) => v,
-  phase: (v: any) => v,
-  waiting: (v: any) => v,
-  windowComponent: (v: any) => v,
-  windowOpts: (v: any) => v,
-  windowParam: (v: any) => v,
-  windowPositionBottomRight: (v: any) => v,
-  windowTitle: (v: any) => v,
-}
-const initialState = {}
+import {WireProps} from './remote-proxy.desktop'
 
-export const deserialize = (state: any = initialState, props: any) => {
-  if (!props) return state
-
-  return {
-    ...state,
-    ...props,
-  }
+const initialState: WireProps = {
+  darkMode: false,
+  devices: [],
+  phase: 'dead',
+  waiting: false,
 }
+
+export const serialize = (p: WireProps): Partial<WireProps> => p
+
+export const deserialize = (state: WireProps = initialState, props: Partial<WireProps>): WireProps => ({
+  ...state,
+  ...props,
+})
