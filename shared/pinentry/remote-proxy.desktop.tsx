@@ -1,4 +1,5 @@
-// A mirror of the remote pinentry windows.
+// Manages remote pinentry windows
+import * as React from 'react'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Styles from '../styles'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
@@ -9,37 +10,51 @@ import {serialize} from './remote-serializer.desktop'
 
 export type WireProps = {
   darkMode: boolean
-  showTyping: RPCTypes.Feature
-  windowComponent: string
-  windowOpts: any
-  windowPositionBottomRight: boolean
-  windowTitle: string
 } & Types.State
 
-// Actions are handled by remote-container
-// const RemotePinentry: any = SyncProps(serialize)(Container.NullComponent)
 const windowOpts = {height: 210, width: 440}
 
-export default () => {
-  const state = Container.useSelector(s => s)
-  const remoteWindowNeedsProps = state.config.remoteWindowNeedsProps.get('pinentry')?.get('pinentry') ?? 0
-  const pinentry = state.pinentry
-  const darkMode = Styles.isDarkMode()
-
-  const show = pinentry.type !== RPCTypes.PassphraseType.none && !!pinentry.showTyping
-  const windowComponent = show ? 'pinentry' : undefined
+const Pinentry = (p: WireProps & {forceUpdate: number}) => {
+  console.log('aaa pinetry rendereing', p)
+  const windowComponent = 'pinentry'
+  const windowParam = 'pinentry'
 
   useBrowserWindow({
     windowComponent,
     windowOpts,
+    windowParam,
     windowTitle: 'Pinentry',
   })
 
-  const toSend = {
-    ...pinentry,
-    darkMode,
-    remoteWindowNeedsProps,
-  }
-  useSerializeProps(toSend, serialize, windowComponent)
+  const {forceUpdate, ...toSend} = p
+  useSerializeProps(toSend, serialize, forceUpdate, windowComponent, windowParam)
   return null
 }
+
+const PinentryMemo = React.memo(Pinentry)
+
+const PinentryProxy = () => {
+  const state = Container.useSelector(s => s)
+  const {showTyping, type} = state.pinentry
+  const show = type !== RPCTypes.PassphraseType.none && !!showTyping
+  if (show) {
+    const forceUpdate = state.config.remoteWindowNeedsProps.get('pinentry')?.get('pinentry') ?? 0
+    const {cancelLabel, prompt, retryLabel, showTyping, submitLabel, type, windowTitle} = state.pinentry
+    return (
+      <PinentryMemo
+        cancelLabel={cancelLabel}
+        darkMode={Styles.isDarkMode()}
+        forceUpdate={forceUpdate}
+        prompt={prompt}
+        retryLabel={retryLabel}
+        showTyping={showTyping}
+        submitLabel={submitLabel}
+        type={type}
+        windowTitle={windowTitle}
+      />
+    )
+  }
+  return null
+}
+
+export default PinentryProxy

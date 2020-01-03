@@ -3,6 +3,7 @@
 // If asked we'll send all props, otherwise we do a shallow compare and send the different ones
 import * as React from 'react'
 import * as SafeElectron from '../../util/safe-electron.desktop'
+import * as Container from '../../util/container'
 // import {measureStart, measureStop} from '../../util/user-timings'
 // import throttle from 'lodash/throttle'
 
@@ -25,13 +26,24 @@ if (debugSerializer) {
 
 export default function useSerializeProps<Props extends {}>(
   p: Props,
-  serializer: (p: Props, old: Partial<Props>) => {[P in keyof Props]: string},
-  windowComponent?: string,
-  windowParam?: string
+  serializer: (p: Props, old: Partial<Props>) => Partial<Props>,
+  forceUpdate: number,
+  windowComponent: string,
+  windowParam: string
 ) {
-  React.useEffect(() => {
-    if (windowComponent) {
-      const toSend = serializer(p)
+  const lastSent = React.useRef<Partial<Props>>({})
+  const lastForceUpdate = React.useRef<number>(-1)
+  const currentForceUpdate = forceUpdate
+
+  console.log('aaaa useSerializer call', p, lastSent.current, lastForceUpdate.current, currentForceUpdate)
+  React.useEffect(
+    () => {
+      if (!windowComponent) {
+        return
+      }
+      const forceUpdate = currentForceUpdate !== lastForceUpdate
+      const toSend = serializer(p, forceUpdate ? {} : lastSent.current)
+      console.log('aaaa useSerializer useEffect', p, lastSent.current, forceUpdate, toSend)
       Object.keys(toSend).length &&
         SafeElectron.getApp().emit('KBkeybase', '', {
           payload: {
@@ -41,9 +53,12 @@ export default function useSerializeProps<Props extends {}>(
           },
           type: 'rendererNewProps',
         })
-    }
+      lastSent.current = p
+      lastForceUpdate.current = currentForceUpdate
+    },
     // eslint-disable-next-line
-  }, Object.values(p))
+    [...Object.values(p), currentForceUpdate]
+  )
 }
 
 // function SyncPropsFactory(serializer: Serializer) {

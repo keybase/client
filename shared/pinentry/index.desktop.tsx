@@ -9,7 +9,7 @@ export type Props = {
   darkMode: boolean
   onSubmit: (password: string) => void
   onCancel: () => void
-  showTyping: RPCTypes.Feature
+  showTyping?: RPCTypes.Feature
   type: RPCTypes.PassphraseType
   prompt: string
   retryLabel?: string
@@ -35,7 +35,7 @@ class Pinentry extends React.Component<Props, State> {
 
     this.state = {
       password: '',
-      showTyping: this.props.showTyping.defaultValue,
+      showTyping: this.props.showTyping?.defaultValue ?? false,
     }
   }
 
