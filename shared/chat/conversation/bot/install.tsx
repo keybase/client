@@ -10,6 +10,7 @@ import * as TeamsGen from '../../../actions/teams-gen'
 import * as Teams from '../../../constants/teams'
 import * as Types from '../../../constants/types/chat2'
 import * as TeamTypes from '../../../constants/types/teams'
+import * as TeamConstants from '../../../constants/teams'
 import * as Constants from '../../../constants/chat2'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 import ChannelPicker from './channel-picker'
@@ -67,6 +68,7 @@ const InstallBotPopup = (props: Props) => {
     featured,
     inTeam,
     inTeamUnrestricted,
+    readOnly,
     settings,
     teamID,
     teamName,
@@ -76,24 +78,27 @@ const InstallBotPopup = (props: Props) => {
     let teamName: string | null | undefined
     let teamID: TeamTypes.TeamID | undefined
     let channelInfos: Map<string, TeamTypes.ChannelInfo> | undefined
+    let readOnly = false
     if (conversationIDKey) {
+      const meta = state.chat2.metaMap.get(conversationIDKey)
+      if (meta && meta.teamname) {
+        teamID = meta.teamID
+        teamName = meta.teamname
+        readOnly = !TeamConstants.getCanPerformByID(state, meta.teamID).manageBots
+        channelInfos = Teams.getTeamChannelInfos(state, teamID)
+      }
       teamRole = state.chat2.botTeamRoleInConvMap.get(conversationIDKey)?.get(botUsername)
       if (teamRole !== undefined) {
         inTeam = !!teamRole
       }
-
-      if (inTeam) {
-        teamID = Constants.getMeta(state, conversationIDKey).teamID
-        teamName = Teams.getTeamNameFromID(state, teamID)
-        channelInfos = Teams.getTeamChannelInfos(state, teamID)
-      }
     }
     return {
-      commands: state.chat2.botPublicCommands.get(botUsername),
       channelInfos,
+      commands: state.chat2.botPublicCommands.get(botUsername),
       featured: state.chat2.featuredBotsMap.get(botUsername),
       inTeam,
       inTeamUnrestricted: inTeam && teamRole === 'bot',
+      readOnly,
       settings: conversationIDKey
         ? state.chat2.botSettings.get(conversationIDKey)?.get(botUsername) ?? undefined
         : undefined,
@@ -176,16 +181,14 @@ const InstallBotPopup = (props: Props) => {
       }
     }
   }, [conversationIDKey, inTeam])
-
   React.useEffect(() => {
-    console.warn('GETTING CHANNELS')
     if (!teamID) {
       return
     }
-
     dispatch(TeamsGen.createGetChannels({teamID}))
   }, [teamID])
-  const restrictPicker = !inTeam && (
+
+  const restrictPicker = !inTeam && !readOnly && (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
       <Kb.Text type="BodyBigExtrabold">Install as:</Kb.Text>
       <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
@@ -361,12 +364,12 @@ const InstallBotPopup = (props: Props) => {
     : featured
     ? featuredContent
     : usernameContent
-  const showInstallButton = installScreen && !inTeam
+  const showInstallButton = installScreen && !inTeam && !channelPickerScreen
   const showReviewButton = !installScreen && !inTeam
   const showRemoveButton = inTeam && !installScreen
   const showEditButton = inTeam && !inTeamUnrestricted && !installScreen
   const showSaveButton = inTeam && installScreen && !channelPickerContent
-  const showDoneButton = inTeam && channelPickerContent
+  const showDoneButton = channelPickerContent
   const installButton = showInstallButton && (
     <Kb.WaitingButton
       fullWidth={true}
@@ -443,38 +446,42 @@ const InstallBotPopup = (props: Props) => {
           </Kb.Text>
         ) : (
           <Kb.Text type="BodyBigLink" onClick={onClose}>
-            {installScreen ? 'Back' : inTeam ? 'Close' : 'Cancel'}
+            {installScreen ? 'Back' : inTeam || readOnly ? 'Close' : 'Cancel'}
           </Kb.Text>
         ),
         title: channelPickerScreen ? 'Channels' : '',
       }}
-      footer={{
-        content: enabled && (
-          <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
-            <Kb.ButtonBar direction="column">
-              {doneButton}
-              {editButton}
-              {saveButton}
-              {reviewButton}
-              {installButton}
-              {removeButton}
-            </Kb.ButtonBar>
-            {!!error && (
-              <Kb.Text type="Body" style={{color: Styles.globalColors.redDark}}>
-                {'Something went wrong! Please try again, or send '}
-                <Kb.Text
-                  type="Body"
-                  style={{color: Styles.globalColors.redDark}}
-                  underline={true}
-                  onClick={onFeedback}
-                >
-                  {'feedback'}
-                </Kb.Text>
-              </Kb.Text>
-            )}
-          </Kb.Box2>
-        ),
-      }}
+      footer={
+        enabled && !readOnly
+          ? {
+              content: (
+                <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
+                  <Kb.ButtonBar direction="column">
+                    {doneButton}
+                    {editButton}
+                    {saveButton}
+                    {reviewButton}
+                    {installButton}
+                    {removeButton}
+                  </Kb.ButtonBar>
+                  {!!error && (
+                    <Kb.Text type="Body" style={{color: Styles.globalColors.redDark}}>
+                      {'Something went wrong! Please try again, or send '}
+                      <Kb.Text
+                        type="Body"
+                        style={{color: Styles.globalColors.redDark}}
+                        underline={true}
+                        onClick={onFeedback}
+                      >
+                        {'feedback'}
+                      </Kb.Text>
+                    </Kb.Text>
+                  )}
+                </Kb.Box2>
+              ),
+            }
+          : undefined
+      }
     >
       <Kb.Box2 direction="vertical" style={styles.outerContainer} fullWidth={true}>
         {enabled ? content : <Kb.ProgressIndicator />}
