@@ -50,20 +50,18 @@ export const TeamBotRow = (props: Props) => {
       >
         {props.botAlias || props.username}
       </Kb.Text>
-      <Kb.Text type="BodySmall">
-        &nbsp;• by{' '}
-        {props.ownerTeam ? (
-          <Kb.TeamWithPopup prefix="@" inline={true} teamName={props.ownerTeam} type="BodySmall" />
-        ) : (
-          <Kb.ConnectedUsernames
-            prefix="@"
-            inline={true}
-            usernames={[props.ownerUser ?? props.username]}
-            type="BodySmall"
-            withProfileCardPopup={true}
-          />
-        )}
-      </Kb.Text>
+      <Kb.Text type="BodySmall">&nbsp;• by </Kb.Text>
+      {props.ownerTeam ? (
+        <Kb.TeamWithPopup prefix="@" inline={true} teamName={props.ownerTeam} type="BodySmall" />
+      ) : (
+        <Kb.ConnectedUsernames
+          prefix="@"
+          inline={true}
+          usernames={[props.ownerUser ?? props.username]}
+          type="BodySmall"
+          withProfileCardPopup={true}
+        />
+      )}
     </Kb.Box2>
   )
 
