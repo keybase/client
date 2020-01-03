@@ -159,7 +159,11 @@ func (f *NISTFactory) NIST(ctx context.Context) (ret *NIST, err error) {
 
 	if makeNew {
 		ret = newNIST(f.G())
-		err = ret.generate(ctx, f.uid, f.deviceID, f.key, nistClient, f.lastSuccessfulNIST.long.ShortHash())
+		var lastSuccessfulNISTShortHash []byte
+		if f.lastSuccessfulNIST != nil {
+			lastSuccessfulNISTShortHash = f.lastSuccessfulNIST.long.ShortHash()
+		}
+		err = ret.generate(ctx, f.uid, f.deviceID, f.key, nistClient, lastSuccessfulNISTShortHash)
 		if err != nil {
 			return nil, err
 		}
