@@ -365,7 +365,8 @@ const InstallBotPopup = (props: Props) => {
   const showReviewButton = !installScreen && !inTeam
   const showRemoveButton = inTeam && !installScreen
   const showEditButton = inTeam && !inTeamUnrestricted && !installScreen
-  const showSaveButton = inTeam && installScreen
+  const showSaveButton = inTeam && installScreen && !channelPickerContent
+  const showDoneButton = inTeam && channelPickerContent
   const installButton = showInstallButton && (
     <Kb.WaitingButton
       fullWidth={true}
@@ -422,6 +423,16 @@ const InstallBotPopup = (props: Props) => {
       waitingKey={Constants.waitingKeyBotAdd}
     />
   )
+
+  const doneButton = showDoneButton && (
+    <Kb.Button
+      fullWidth={true}
+      label="Done"
+      onClick={() => setChannelPickerScreen(false)}
+      mode="Primary"
+      type="Default"
+    />
+  )
   const enabled = !!conversationIDKey && inTeam !== undefined
   return (
     <Kb.Modal
@@ -441,6 +452,7 @@ const InstallBotPopup = (props: Props) => {
         content: enabled && (
           <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
             <Kb.ButtonBar direction="column">
+              {doneButton}
               {editButton}
               {saveButton}
               {reviewButton}
