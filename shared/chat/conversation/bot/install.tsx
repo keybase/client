@@ -93,8 +93,8 @@ const InstallBotPopup = (props: Props) => {
       }
     }
     return {
-      commands: state.chat2.botPublicCommands.get(botUsername),
       channelInfos,
+      commands: state.chat2.botPublicCommands.get(botUsername),
       featured: state.chat2.featuredBotsMap.get(botUsername),
       inTeam,
       inTeamUnrestricted: inTeam && teamRole === 'bot',

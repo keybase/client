@@ -215,6 +215,7 @@ export const initialCanUserPerform = Object.freeze<Types.TeamOperations>({
   editTeamDescription: false,
   joinTeam: false,
   listFirst: false,
+  manageBots: false,
   manageMembers: false,
   manageSubteams: false,
   pinMessage: false,
