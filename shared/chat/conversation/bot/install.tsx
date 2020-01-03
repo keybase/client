@@ -82,7 +82,7 @@ const InstallBotPopup = (props: Props) => {
     if (conversationIDKey) {
       const meta = state.chat2.metaMap.get(conversationIDKey)
       if (meta && meta.teamname) {
-        teamID = Constants.getMeta(state, conversationIDKey).teamID
+        teamID = meta.teamID
         teamName = meta.teamname
         readOnly = !TeamConstants.getCanPerformByID(state, meta.teamID).manageBots
         channelInfos = Teams.getTeamChannelInfos(state, teamID)
