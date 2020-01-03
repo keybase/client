@@ -55,6 +55,7 @@ const ConnectedInfoPanel = Container.connect(
     let canSetMinWriterRole = false
     let canSetRetention = false
     let canDeleteHistory = false
+    let canManageBots = false
     if (meta.teamname) {
       const yourOperations = TeamConstants.getCanPerformByID(state, meta.teamID)
       admin = yourOperations.manageMembers
@@ -62,8 +63,10 @@ const ConnectedInfoPanel = Container.connect(
       canSetMinWriterRole = yourOperations.setMinWriterRole
       canSetRetention = yourOperations.setRetentionPolicy
       canDeleteHistory = yourOperations.deleteChatHistory && !meta.cannotWrite
+      canManageBots = yourOperations.manageBots
     } else {
       canDeleteHistory = true
+      canManageBots = true
     }
     const isPreview = meta.membershipType === 'youArePreviewing'
     const selectedTab = ownProps.selectedTab || (meta.teamname ? 'members' : 'attachments')
@@ -88,6 +91,7 @@ const ConnectedInfoPanel = Container.connect(
       attachmentsLoading,
       canDeleteHistory,
       canEditChannel,
+      canManageBots,
       canSetMinWriterRole,
       canSetRetention,
       channelname: meta.channelname,
@@ -269,6 +273,7 @@ const ConnectedInfoPanel = Container.connect(
       attachmentsLoading: stateProps.attachmentsLoading,
       canDeleteHistory: stateProps.canDeleteHistory,
       canEditChannel: stateProps.canEditChannel,
+      canManageBots: stateProps.canManageBots,
       canSetMinWriterRole: stateProps.canSetMinWriterRole,
       canSetRetention: stateProps.canSetRetention,
       channelname: stateProps.channelname,

@@ -739,6 +739,7 @@ const deriveCanPerform = (roleAndDetails?: Types.TeamRoleAndDetails): Types.Team
     editTeamDescription: isAdminOrAbove || implicitAdmin,
     joinTeam: role === 'none' && implicitAdmin,
     listFirst: implicitAdmin,
+    manageBots: isAdminOrAbove || implicitAdmin,
     manageMembers: isAdminOrAbove || implicitAdmin,
     manageSubteams: isAdminOrAbove || implicitAdmin,
     pinMessage: isWriterOrAbove,

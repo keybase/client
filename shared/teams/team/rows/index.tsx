@@ -56,7 +56,9 @@ const makeRows = (
         // loading
         rows.push({key: 'loading', type: 'loading'})
       }
-      rows.push({key: 'bot:install-more', type: 'bot-add'})
+      if (yourOperations.manageBots) {
+        rows.push({key: 'bot:install-more', type: 'bot-add'})
+      }
       if (bots.length === 0) {
         rows.push({key: 'bot:none', type: 'bot-none'})
       }
