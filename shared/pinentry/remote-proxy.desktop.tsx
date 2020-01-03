@@ -15,7 +15,6 @@ export type WireProps = {
 const windowOpts = {height: 210, width: 440}
 
 const Pinentry = (p: WireProps & {forceUpdate: number}) => {
-  console.log('aaa pinetry rendereing', p)
   const windowComponent = 'pinentry'
   const windowParam = 'pinentry'
 
@@ -26,8 +25,7 @@ const Pinentry = (p: WireProps & {forceUpdate: number}) => {
     windowTitle: 'Pinentry',
   })
 
-  const {forceUpdate, ...toSend} = p
-  useSerializeProps(toSend, serialize, forceUpdate, windowComponent, windowParam)
+  useSerializeProps(p, serialize, windowComponent, windowParam)
   return null
 }
 
@@ -38,13 +36,11 @@ const PinentryProxy = () => {
   const {showTyping, type} = state.pinentry
   const show = type !== RPCTypes.PassphraseType.none && !!showTyping
   if (show) {
-    const forceUpdate = state.config.remoteWindowNeedsProps.get('pinentry')?.get('pinentry') ?? 0
-    const {cancelLabel, prompt, retryLabel, showTyping, submitLabel, type, windowTitle} = state.pinentry
+    const {cancelLabel, prompt, retryLabel, submitLabel, windowTitle} = state.pinentry
     return (
       <PinentryMemo
         cancelLabel={cancelLabel}
         darkMode={Styles.isDarkMode()}
-        forceUpdate={forceUpdate}
         prompt={prompt}
         retryLabel={retryLabel}
         showTyping={showTyping}

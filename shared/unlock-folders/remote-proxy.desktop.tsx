@@ -14,8 +14,11 @@ export type WireProps = {
   devices: State['devices']
   paperkeyError: State['paperkeyError']
   phase: State['phase']
-  remoteWindowNeedsProps: number
   waiting: State['waiting']
+}
+
+const UnlockFolders = () => {
+  return null
 }
 
 export default () => {

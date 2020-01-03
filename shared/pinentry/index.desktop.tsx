@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import {_setDarkModePreference} from '../styles/dark-mode'
-import {autoResize} from '../desktop/remote/util.desktop'
 import * as RPCTypes from '../constants/types/rpc-gen'
 
 export type Props = {
@@ -46,10 +45,6 @@ class Pinentry extends React.Component<Props, State> {
   _onSubmit = () => {
     this.props.onSubmit(this.state.password)
     this.setState({password: ''})
-  }
-
-  componentDidMount() {
-    setTimeout(() => autoResize(), 500)
   }
 
   render() {

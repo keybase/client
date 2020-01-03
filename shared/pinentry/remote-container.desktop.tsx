@@ -7,7 +7,7 @@ type OwnProps = {}
 
 // Props are handled by remote-proxy.desktop.js
 export default Container.remoteConnect(
-  state => state as WireProps,
+  (state: WireProps) => state,
   dispatch => ({
     onCancel: () => dispatch(PinentryGen.createOnCancel()),
     onSubmit: (password: string) => dispatch(PinentryGen.createOnSubmit({password})),
