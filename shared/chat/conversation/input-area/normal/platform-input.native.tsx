@@ -6,6 +6,7 @@ import * as Kb from '../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import {isIOS, isLargeScreen} from '../../../../constants/platform'
+import {LayoutEvent} from '../../../../common-adapters/box'
 import {
   NativeKeyboard,
   NativeTouchableWithoutFeedback,
@@ -95,11 +96,12 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
     this.props.toggleShowingMenu()
   }
 
-  private onLayout = ({
-    nativeEvent: {
-      layout: {height},
-    },
-  }) => this.props.setHeight(height)
+  private onLayout = (p: LayoutEvent) => {
+    const {nativeEvent} = p
+    const {layout} = nativeEvent
+    const {height} = layout
+    this.props.setHeight(height)
+  }
 
   private insertMentionMarker = () => {
     if (this.input) {
@@ -284,7 +286,15 @@ const Action = React.memo((props: ActionProps) => {
   )
 })
 
-const ExplodingIcon = ({explodingModeSeconds, isExploding, openExplodingPicker}) => (
+const ExplodingIcon = ({
+  explodingModeSeconds,
+  isExploding,
+  openExplodingPicker,
+}: {
+  explodingModeSeconds: number
+  isExploding: boolean
+  openExplodingPicker: () => void
+}) => (
   <Kb.Box2 direction="horizontal" style={styles.explodingOuterContainer}>
     <NativeTouchableWithoutFeedback onPress={openExplodingPicker}>
       <Kb.Box style={explodingIconContainer}>

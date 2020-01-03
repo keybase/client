@@ -42,6 +42,10 @@ type Snapshot = {
 
 const debug = __STORYBOOK__
 
+// We load the first thread automatically so in order to mark it read
+// we send an action on the first mount once
+let markedInitiallyLoaded = false
+
 class Thread extends React.PureComponent<Props, State> {
   state = {}
   private listRef = React.createRef<HTMLDivElement>()
@@ -169,6 +173,11 @@ class Thread extends React.PureComponent<Props, State> {
   }
 
   componentDidMount() {
+    if (!markedInitiallyLoaded) {
+      markedInitiallyLoaded = true
+      this.props.markInitiallyLoadedThreadAsRead()
+    }
+
     if (this.isLockedToBottom()) {
       this.scrollToBottom('componentDidMount')
     }

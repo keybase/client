@@ -33,7 +33,7 @@ const Wrapper = (
   )
 }
 
-const ShhIcon = props => (
+const ShhIcon = (props: {onClick: () => void}) => (
   <Icon
     type="iconfont-shh"
     style={styles.shhIcon}
