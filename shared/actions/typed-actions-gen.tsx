@@ -810,6 +810,10 @@ export type TypedActionsMap = {
   'settings:unfurlSettingsRefresh': settings.UnfurlSettingsRefreshPayload
   'settings:unfurlSettingsRefreshed': settings.UnfurlSettingsRefreshedPayload
   'settings:unfurlSettingsError': settings.UnfurlSettingsErrorPayload
+  'settings:contactSettingsError': settings.ContactSettingsErrorPayload
+  'settings:contactSettingsRefresh': settings.ContactSettingsRefreshPayload
+  'settings:contactSettingsRefreshed': settings.ContactSettingsRefreshedPayload
+  'settings:contactSettingsSaved': settings.ContactSettingsSavedPayload
   'settings:loadHasRandomPw': settings.LoadHasRandomPwPayload
   'settings:loadedHasRandomPw': settings.LoadedHasRandomPwPayload
   'settings:checkPassword': settings.CheckPasswordPayload

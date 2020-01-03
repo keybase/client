@@ -18,6 +18,10 @@ export const clearAddedPhone = 'settings:clearAddedPhone'
 export const clearAddingEmail = 'settings:clearAddingEmail'
 export const clearPhoneNumberAdd = 'settings:clearPhoneNumberAdd'
 export const clearPhoneNumberErrors = 'settings:clearPhoneNumberErrors'
+export const contactSettingsError = 'settings:contactSettingsError'
+export const contactSettingsRefresh = 'settings:contactSettingsRefresh'
+export const contactSettingsRefreshed = 'settings:contactSettingsRefreshed'
+export const contactSettingsSaved = 'settings:contactSettingsSaved'
 export const dbNuke = 'settings:dbNuke'
 export const deleteAccountForever = 'settings:deleteAccountForever'
 export const editContactImportEnabled = 'settings:editContactImportEnabled'
@@ -99,6 +103,15 @@ type _ClearAddedPhonePayload = void
 type _ClearAddingEmailPayload = void
 type _ClearPhoneNumberAddPayload = void
 type _ClearPhoneNumberErrorsPayload = void
+type _ContactSettingsErrorPayload = {readonly error: string}
+type _ContactSettingsRefreshPayload = void
+type _ContactSettingsRefreshedPayload = {readonly settings: RPCTypes.ContactSettings}
+type _ContactSettingsSavedPayload = {
+  readonly enabled: boolean
+  readonly indirectFollowees: boolean
+  readonly teamsEnabled: boolean
+  readonly teamsList: Types.ContactSettingsTeamsList
+}
 type _DbNukePayload = void
 type _DeleteAccountForeverPayload = void
 type _EditContactImportEnabledPayload = {readonly enable: boolean; readonly fromSettings?: boolean}
@@ -199,6 +212,12 @@ export const createEmailVerified = (payload: _EmailVerifiedPayload): EmailVerifi
   type: emailVerified,
 })
 /**
+ * An error occurred on the contact settings screen
+ */
+export const createContactSettingsError = (
+  payload: _ContactSettingsErrorPayload
+): ContactSettingsErrorPayload => ({payload, type: contactSettingsError})
+/**
  * An error occurred on the unfurl settings screen
  */
 export const createUnfurlSettingsError = (
@@ -229,11 +248,29 @@ export const createLoadContactImportEnabled = (
   payload: _LoadContactImportEnabledPayload
 ): LoadContactImportEnabledPayload => ({payload, type: loadContactImportEnabled})
 /**
+ * Refresh Chat contact settings
+ */
+export const createContactSettingsRefresh = (
+  payload: _ContactSettingsRefreshPayload
+): ContactSettingsRefreshPayload => ({payload, type: contactSettingsRefresh})
+/**
  * Refresh unfurl settings
  */
 export const createUnfurlSettingsRefresh = (
   payload: _UnfurlSettingsRefreshPayload
 ): UnfurlSettingsRefreshPayload => ({payload, type: unfurlSettingsRefresh})
+/**
+ * Refreshed Chat contact settings available
+ */
+export const createContactSettingsRefreshed = (
+  payload: _ContactSettingsRefreshedPayload
+): ContactSettingsRefreshedPayload => ({payload, type: contactSettingsRefreshed})
+/**
+ * Refreshed Chat contact settings available
+ */
+export const createContactSettingsSaved = (
+  payload: _ContactSettingsSavedPayload
+): ContactSettingsSavedPayload => ({payload, type: contactSettingsSaved})
 /**
  * Refreshed unfurl settings available
  */
@@ -516,6 +553,22 @@ export type ClearPhoneNumberErrorsPayload = {
   readonly payload: _ClearPhoneNumberErrorsPayload
   readonly type: typeof clearPhoneNumberErrors
 }
+export type ContactSettingsErrorPayload = {
+  readonly payload: _ContactSettingsErrorPayload
+  readonly type: typeof contactSettingsError
+}
+export type ContactSettingsRefreshPayload = {
+  readonly payload: _ContactSettingsRefreshPayload
+  readonly type: typeof contactSettingsRefresh
+}
+export type ContactSettingsRefreshedPayload = {
+  readonly payload: _ContactSettingsRefreshedPayload
+  readonly type: typeof contactSettingsRefreshed
+}
+export type ContactSettingsSavedPayload = {
+  readonly payload: _ContactSettingsSavedPayload
+  readonly type: typeof contactSettingsSaved
+}
 export type DbNukePayload = {readonly payload: _DbNukePayload; readonly type: typeof dbNuke}
 export type DeleteAccountForeverPayload = {
   readonly payload: _DeleteAccountForeverPayload
@@ -757,6 +810,10 @@ export type Actions =
   | ClearAddingEmailPayload
   | ClearPhoneNumberAddPayload
   | ClearPhoneNumberErrorsPayload
+  | ContactSettingsErrorPayload
+  | ContactSettingsRefreshPayload
+  | ContactSettingsRefreshedPayload
+  | ContactSettingsSavedPayload
   | DbNukePayload
   | DeleteAccountForeverPayload
   | EditContactImportEnabledPayload
