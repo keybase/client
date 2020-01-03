@@ -39,10 +39,10 @@ const props = {
   contactSettingsError: '',
   contactSettingsIndirectFollowees: false,
   contactSettingsSelectedTeams: {
-    openteam1: false,
     closedteam1: true,
     closedteam2: true,
     closedteam3: true,
+    openteam1: false,
   },
   contactSettingsTeamsEnabled: false,
   teamDetails,
