@@ -108,6 +108,10 @@ var restrictedSignupFlags = []cli.Flag{
 		Name:  "no-passphrase",
 		Usage: "Sign up without passphrase.",
 	},
+	cli.BoolFlag{
+		Name:  "skip-paperkey",
+		Usage: "Sign up without creating a paperkey",
+	},
 }
 
 var restrictedProveFlags = []cli.Flag{

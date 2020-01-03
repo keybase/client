@@ -93,7 +93,19 @@ const Sent = React.memo(({children, conversationIDKey, ordinal}: SentProps) => {
   }
 })
 
+// We load the first thread automatically so in order to mark it read
+// we send an action on the first mount once
+let markedInitiallyLoaded = false
+
 class ConversationList extends React.PureComponent<Props> {
+  componentDidMount() {
+    if (markedInitiallyLoaded) {
+      return
+    }
+    markedInitiallyLoaded = true
+    this.props.markInitiallyLoadedThreadAsRead()
+  }
+
   private listRef = React.createRef<
     Kb.NativeVirtualizedList<Types.Ordinal | 'specialTop' | 'specialBottom'>
   >()

@@ -26,6 +26,8 @@ type onlineStatusTracker struct {
 
 	userIn  chan struct{}
 	userOut chan struct{}
+
+	wg *sync.WaitGroup
 }
 
 const ostTryingStateTimeout = 4 * time.Second
@@ -128,6 +130,7 @@ const (
 
 func ostFsm(
 	ctx context.Context,
+	wg *sync.WaitGroup,
 	log logger.Logger,
 	initialState ostState,
 	// sideEffects carries events about side effects caused by the FSM
@@ -153,6 +156,8 @@ func ostFsm(
 	// the mdserver.
 	disconnected <-chan struct{},
 ) {
+	defer wg.Done()
+
 	log.CDebugf(ctx, "ostFsm initialState=%s", initialState)
 	state := initialState
 	for {
@@ -278,6 +283,8 @@ func (ost *onlineStatusTracker) updateOnlineStatus(onlineStatus keybase1.KbfsOnl
 }
 
 func (ost *onlineStatusTracker) run(ctx context.Context) {
+	defer ost.wg.Done()
+
 	for ost.config.KBFSOps() == nil {
 		time.Sleep(100 * time.Millisecond)
 	}
@@ -299,11 +306,15 @@ func (ost *onlineStatusTracker) run(ctx context.Context) {
 		initialState = ostOnlineUserOut
 	}
 
-	go ostFsm(ctx, ost.log, initialState, sideEffects, onlineStatusUpdates,
+	ost.wg.Add(1)
+	go ostFsm(ctx, ost.wg, ost.log,
+		initialState, sideEffects, onlineStatusUpdates,
 		ost.userIn, ost.userOut, tryingTimerUp, connected, disconnected)
 
+	ost.wg.Add(1)
 	// mdserver connection status watch routine
 	go func() {
+		defer ost.wg.Done()
 		invalidateChan := invalidateChan
 		var serviceErrors map[string]error
 		for {
@@ -413,11 +424,16 @@ func newOnlineStatusTracker(
 		userIsLooking: make(map[string]bool),
 		userIn:        make(chan struct{}),
 		userOut:       make(chan struct{}),
+		wg:            &sync.WaitGroup{},
 	}
+
+	ost.wg.Add(1)
 	go ost.run(ctx)
+
 	return ost
 }
 
 func (ost *onlineStatusTracker) shutdown() {
 	ost.cancel()
+	ost.wg.Wait()
 }

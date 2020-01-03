@@ -51,9 +51,13 @@ const RadioButton = ({disabled, label, onSelect, selected, style}: Props) => (
     <RadioOuterCircle disabled={disabled} selected={selected}>
       <RadioInnerCircle selected={selected} />
     </RadioOuterCircle>
-    <Kb.Text type="Body" style={{color: Styles.globalColors.black}}>
-      {label}
-    </Kb.Text>
+    {typeof label === 'string' ? (
+      <Kb.Text type="Body" style={{color: Styles.globalColors.black}}>
+        {label}
+      </Kb.Text>
+    ) : (
+      label
+    )}
   </Kb.ClickableBox>
 )
 

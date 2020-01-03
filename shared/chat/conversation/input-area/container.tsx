@@ -1,9 +1,9 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
+import * as Container from '../../../util/container'
 import Normal from './normal/container'
 import Preview from './preview/container'
-import {connect, isMobile} from '../../../util/container'
 import ThreadSearch from '../search/container'
 import AudioSend from '../../audio/audio-send'
 
@@ -23,29 +23,6 @@ type Props = {
   showThreadSearch: boolean
 } & OwnProps
 
-const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
-  const meta = Constants.getMeta(state, conversationIDKey)
-  let noInput = meta.resetParticipants.size > 0 || !!meta.wasFinalizedBy
-  const showThreadSearch = Constants.getThreadSearchInfo(state, conversationIDKey).visible
-  const audio = state.chat2.audioRecording.get(conversationIDKey)
-  const showAudioSend = audio && audio.status === Types.AudioRecordingStatus.STAGED
-
-  if (
-    conversationIDKey === Constants.pendingWaitingConversationIDKey ||
-    conversationIDKey === Constants.pendingErrorConversationIDKey
-  ) {
-    noInput = true
-  }
-
-  return {
-    conversationIDKey,
-    isPreview: meta.membershipType === 'youArePreviewing',
-    noInput,
-    showAudioSend,
-    showThreadSearch,
-  }
-}
-
 class InputArea extends React.PureComponent<Props> {
   render() {
     if (this.props.noInput) {
@@ -54,7 +31,7 @@ class InputArea extends React.PureComponent<Props> {
     if (this.props.isPreview) {
       return <Preview conversationIDKey={this.props.conversationIDKey} />
     }
-    if (this.props.showThreadSearch && isMobile) {
+    if (this.props.showThreadSearch && Container.isMobile) {
       return <ThreadSearch conversationIDKey={this.props.conversationIDKey} />
     }
     if (this.props.showAudioSend) {
@@ -73,8 +50,29 @@ class InputArea extends React.PureComponent<Props> {
   }
 }
 
-export default connect(
-  mapStateToProps,
+export default Container.connect(
+  (state, {conversationIDKey}: OwnProps) => {
+    const meta = Constants.getMeta(state, conversationIDKey)
+    let noInput = meta.resetParticipants.size > 0 || !!meta.wasFinalizedBy
+    const showThreadSearch = Constants.getThreadSearchInfo(state, conversationIDKey).visible
+    const audio = state.chat2.audioRecording.get(conversationIDKey)
+    const showAudioSend = !!audio && audio.status === Types.AudioRecordingStatus.STAGED
+
+    if (
+      conversationIDKey === Constants.pendingWaitingConversationIDKey ||
+      conversationIDKey === Constants.pendingErrorConversationIDKey
+    ) {
+      noInput = true
+    }
+
+    return {
+      conversationIDKey,
+      isPreview: meta.membershipType === 'youArePreviewing',
+      noInput,
+      showAudioSend,
+      showThreadSearch,
+    }
+  },
   () => ({}),
-  (s, d, o) => ({...o, ...s, ...d})
+  (s, _d, o: OwnProps) => ({...o, ...s})
 )(InputArea)
