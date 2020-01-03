@@ -77,11 +77,11 @@ func (t nistType) encoding() *base64.Encoding {
 type NISTFactory struct {
 	Contextified
 	sync.Mutex
-	uid                         keybase1.UID
-	deviceID                    keybase1.DeviceID
-	key                         GenericKey // cached secret signing key
-	nist                        *NIST
-	lastSuccessfulNISTShortHash []byte
+	uid                keybase1.UID
+	deviceID           keybase1.DeviceID
+	key                GenericKey // cached secret signing key
+	nist               *NIST
+	lastSuccessfulNIST *NIST
 }
 
 type NISTToken struct {
@@ -145,7 +145,7 @@ func (f *NISTFactory) NIST(ctx context.Context) (ret *NIST, err error) {
 		f.G().Log.CDebugf(ctx, "| NISTFactory#NIST: NIST previously failed, so we'll make a new one")
 	} else {
 		if f.nist.DidSucceed() {
-			f.lastSuccessfulNISTShortHash = f.nist.long.ShortHash()
+			f.lastSuccessfulNIST = f.nist
 		}
 
 		valid, until := f.nist.IsStillValid()
@@ -159,7 +159,7 @@ func (f *NISTFactory) NIST(ctx context.Context) (ret *NIST, err error) {
 
 	if makeNew {
 		ret = newNIST(f.G())
-		err = ret.generate(ctx, f.uid, f.deviceID, f.key, nistClient, f.lastSuccessfulNISTShortHash)
+		err = ret.generate(ctx, f.uid, f.deviceID, f.key, nistClient, f.lastSuccessfulNIST.long.ShortHash())
 		if err != nil {
 			return nil, err
 		}
