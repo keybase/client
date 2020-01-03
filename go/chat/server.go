@@ -3003,6 +3003,20 @@ func (h *Server) GetBotMemberSettings(ctx context.Context, arg chat1.GetBotMembe
 	return teams.GetBotSettingsByID(ctx, h.G().ExternalG(), teamID, arg.Username)
 }
 
+func (h *Server) GetTeamRoleInConversation(ctx context.Context, arg chat1.GetTeamRoleInConversationArg) (res keybase1.TeamRole, err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
+	defer h.Trace(ctx, func() error { return err }, "GetTeamRoleInConversation")()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
+	teamID, _, err := h.teamIDFromConvID(ctx, uid, arg.ConvID)
+	if err != nil {
+		return res, err
+	}
+	return teams.MemberRoleFromID(ctx, h.G().ExternalG(), teamID, arg.Username)
+}
+
 func (h *Server) TeamIDFromTLFName(ctx context.Context, arg chat1.TeamIDFromTLFNameArg) (res keybase1.TeamID, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
