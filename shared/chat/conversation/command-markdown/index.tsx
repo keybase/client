@@ -17,7 +17,7 @@ const CommandMarkdown = (props: Props) => {
       )}
       <Kb.ScrollView style={styles.scrollContainer}>
         <Kb.Box2 direction="vertical" style={styles.bodyContainer}>
-          <Kb.Markdown>{props.body}</Kb.Markdown>
+          <Kb.Markdown selectable={true}>{props.body}</Kb.Markdown>
         </Kb.Box2>
       </Kb.ScrollView>
     </Kb.Box>
