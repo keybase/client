@@ -1,17 +1,51 @@
 import * as React from 'react'
+import * as Constants from '../../constants/teams'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as Sb from '../../stories/storybook'
 import Chat from '.'
 import {Box} from '../../common-adapters/index'
 
 const actions = {
+  onContactSettingsSave: () => Sb.action('onContactSettingsSave'),
   onRefresh: Sb.action('onRefresh'),
   onUnfurlSave: (mode: RPCChatTypes.UnfurlMode, whitelist: Array<string>) => {
     Sb.action('onUnfurlSave')(mode, whitelist)
   },
 }
 
+const teamDetails = [
+  Constants.makeTeamDetails({
+    id: 'openteam1',
+    isMember: true,
+    isOpen: true,
+    teamname: 'openteam1',
+  }),
+  Constants.makeTeamDetails({
+    id: 'closedteam1',
+    teamname: 'closedteam1',
+  }),
+  Constants.makeTeamDetails({
+    id: 'closedteam2',
+    teamname: 'closedteam2',
+  }),
+  Constants.makeTeamDetails({
+    id: 'closedteam3',
+    teamname: 'closedteam3',
+  }),
+]
+
 const props = {
+  contactSettingsEnabled: false,
+  contactSettingsError: '',
+  contactSettingsIndirectFollowees: false,
+  contactSettingsSelectedTeams: {
+    closedteam1: true,
+    closedteam2: true,
+    closedteam3: true,
+    openteam1: false,
+  },
+  contactSettingsTeamsEnabled: false,
+  teamDetails,
   unfurlMode: RPCChatTypes.UnfurlMode.whitelisted,
   unfurlWhitelist: [
     'amazon.com',
@@ -28,10 +62,17 @@ const props = {
 
 const errorProps = {
   ...props,
+  contactSettingsError: 'Unable to save contact settings, please try again.',
   unfurlError: 'Unable to save link preview settings, please try again.',
 }
 
 const loadErrorProps = {
+  contactSettingsEnabled: false,
+  contactSettingsError: 'Unable to load contact settings, please try again.',
+  contactSettingsIndirectFollowees: false,
+  contactSettingsSelectedTeams: {},
+  contactSettingsTeamsEnabled: false,
+  teamDetails: [],
   unfurlError: 'Unable to load link preview settings, please try again.',
   ...actions,
 }
@@ -39,6 +80,22 @@ const loadErrorProps = {
 const load = () => {
   Sb.storiesOf('Settings/Chat', module)
     .addDecorator(story => <Box style={{padding: 5}}>{story()}</Box>)
+    .add('Default', () => <Chat {...props} />)
+    .add('Contact restrictions: Enabled', () => <Chat {...props} contactSettingsEnabled={true} />)
+    .add('Contact restrictions: Followees', () => (
+      <Chat {...props} contactSettingsEnabled={true} contactSettingsIndirectFollowees={true} />
+    ))
+    .add('Contact restrictions: Teams', () => (
+      <Chat {...props} contactSettingsEnabled={true} contactSettingsTeamsEnabled={true} />
+    ))
+    .add('Contact restrictions: Followees and Teams', () => (
+      <Chat
+        {...props}
+        contactSettingsEnabled={true}
+        contactSettingsIndirectFollowees={true}
+        contactSettingsTeamsEnabled={true}
+      />
+    ))
     .add('Default', () => <Chat {...props} />)
     .add('Error', () => <Chat {...errorProps} />)
     .add('Load Error', () => <Chat {...loadErrorProps} />)
