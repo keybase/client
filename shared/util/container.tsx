@@ -76,9 +76,6 @@ export const timeoutPromise = (timeMs: number) =>
     setTimeout(() => resolve(), timeMs)
   })
 
-/** TODO deprecate all recompose*/
-export {lifecycle, withStateHandlers} from 'recompose'
-
 export {default as connect, namedConnect, connectDEBUG} from './typed-connect'
 export {default as remoteConnect} from './typed-remote-connect'
 export {isMobile, isIOS, isAndroid} from '../constants/platform'
