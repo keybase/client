@@ -82,19 +82,16 @@ const InstallBotPopup = (props: Props) => {
     if (conversationIDKey) {
       const meta = state.chat2.metaMap.get(conversationIDKey)
       if (meta && meta.teamname) {
+        teamID = Constants.getMeta(state, conversationIDKey).teamID
+        teamName = meta.teamname
         readOnly = !TeamConstants.getCanPerformByID(state, meta.teamID).manageBots
+        channelInfos = Teams.getTeamChannelInfos(state, teamID)
       }
       teamRole = state.chat2.botTeamRoleInConvMap.get(conversationIDKey)?.get(botUsername)
       if (teamRole !== undefined) {
         inTeam = !!teamRole
       }
-      if (inTeam) {
-        teamID = Constants.getMeta(state, conversationIDKey).teamID
-        teamName = Teams.getTeamNameFromID(state, teamID)
-        channelInfos = Teams.getTeamChannelInfos(state, teamID)
-      }
     }
-
     return {
       commands: state.chat2.botPublicCommands.get(botUsername),
       channelInfos,
@@ -367,12 +364,12 @@ const InstallBotPopup = (props: Props) => {
     : featured
     ? featuredContent
     : usernameContent
-  const showInstallButton = installScreen && !inTeam
+  const showInstallButton = installScreen && !inTeam && !channelPickerScreen
   const showReviewButton = !installScreen && !inTeam
   const showRemoveButton = inTeam && !installScreen
   const showEditButton = inTeam && !inTeamUnrestricted && !installScreen
   const showSaveButton = inTeam && installScreen && !channelPickerContent
-  const showDoneButton = inTeam && channelPickerContent
+  const showDoneButton = channelPickerContent
   const installButton = showInstallButton && (
     <Kb.WaitingButton
       fullWidth={true}
