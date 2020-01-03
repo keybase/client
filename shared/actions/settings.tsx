@@ -591,15 +591,16 @@ const contactSettingsSaved = async (state: TypedState, action: SettingsGen.Conta
     enabled,
     teamID,
   }))
+  const allowFolloweeDegrees = indirectFollowees ? 2 : 1
   const settings = enabled
     ? {
-        allowFolloweeDegrees: indirectFollowees ? 2 : 1,
+        allowFolloweeDegrees,
         allowGoodTeams: teamsEnabled,
         enabled: true,
         teams,
       }
     : {
-        allowFolloweeDegrees: 1,
+        allowFolloweeDegrees,
         allowGoodTeams: teamsEnabled,
         enabled: false,
         teams,
