@@ -7,9 +7,9 @@ import * as Constants from '../constants/tracker2'
 import * as ConfigConstants from '../constants/config'
 import * as Styles from '../styles'
 import SyncAvatarProps from '../desktop/remote/sync-avatar-props.desktop'
-import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
+// import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'
-import {serialize} from './remote-serializer.desktop'
+// import {serialize} from './remote-serializer.desktop'
 
 type OwnProps = {username: string}
 

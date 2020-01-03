@@ -300,8 +300,6 @@ const plumbEvents = () => {
           ...action.payload.windowOpts,
         }
 
-        console.log('aaaa window opts', action.payload.windowComponent, opts)
-
         const remoteWindow = new Electron.BrowserWindow(opts)
 
         if (action.payload.windowPositionBottomRight && Electron.screen.getPrimaryDisplay()) {

@@ -26,7 +26,7 @@ export default function useSerializeProps<Props extends {}>(
 
   const throttledSend = React.useRef(
     throttle(
-      (toSend: Partial<Props>, windowComponent: string, windowParam: string) => {
+      (toSend: Partial<Props>) => {
         SafeElectron.getApp().emit('KBkeybase', '', {
           payload: {
             propsStr: JSON.stringify(toSend),
@@ -49,7 +49,7 @@ export default function useSerializeProps<Props extends {}>(
       }
       const forceUpdate = currentForceUpdate !== lastForceUpdate.current
       const toSend = serializer(p, forceUpdate ? {} : lastSent.current)
-      Object.keys(toSend).length && throttledSend.current(p, windowComponent, windowParam)
+      Object.keys(toSend).length && throttledSend.current(toSend)
       lastForceUpdate.current = currentForceUpdate
     },
     // eslint-disable-next-line

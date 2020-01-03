@@ -1,15 +1,17 @@
-import {WireProps} from './remote-proxy.desktop'
+import {Props} from './remote-proxy.desktop'
 
-const initialState: WireProps = {
+const initialState: Props = {
   darkMode: false,
   devices: [],
   phase: 'dead',
   waiting: false,
 }
 
-export const serialize = (p: WireProps): Partial<WireProps> => p
+type SerializeProps = Props
 
-export const deserialize = (state: WireProps = initialState, props: Partial<WireProps>): WireProps => ({
+export const serialize = (p: Props): SerializeProps => p
+
+export const deserialize = (state: Props = initialState, props: SerializeProps): Props => ({
   ...state,
   ...props,
 })

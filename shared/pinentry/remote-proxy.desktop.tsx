@@ -8,13 +8,13 @@ import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import {serialize} from './remote-serializer.desktop'
 
-export type WireProps = {
+export type Props = {
   darkMode: boolean
 } & Types.State
 
 const windowOpts = {height: 210, width: 440}
 
-const Pinentry = (p: WireProps) => {
+const Pinentry = (p: Props) => {
   const windowComponent = 'pinentry'
   const windowParam = 'pinentry'
 
