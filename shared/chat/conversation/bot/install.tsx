@@ -65,7 +65,7 @@ const InstallBotPopup = (props: Props) => {
       if (conversationIDKey) {
         const meta = state.chat2.metaMap.get(conversationIDKey)
         if (meta && meta.teamname) {
-          readOnly = !TeamConstants.getCanPerform(state, meta.teamname).manageBots
+          readOnly = !TeamConstants.getCanPerformByID(state, meta.teamID).manageBots
         }
         teamRole = state.chat2.botTeamRoleInConvMap.get(conversationIDKey)?.get(botUsername)
         if (teamRole !== undefined) {

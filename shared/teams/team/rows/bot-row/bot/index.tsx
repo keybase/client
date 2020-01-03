@@ -7,6 +7,7 @@ import BotMenu from '../bot-menu'
 
 export type Props = {
   botAlias: string
+  canManageBots: boolean
   description: string
   onClick: () => void
   onEdit: () => void
@@ -17,7 +18,6 @@ export type Props = {
   roleType: TeamRoleType
   status: MemberStatus
   username: string
-  youCanManageMembers: boolean
 }
 
 // NOTE the controls for reset and deleted users (and the chat button) are
@@ -98,6 +98,7 @@ export const TeamBotRow = (props: Props) => {
           )}
           <BotMenu
             attachTo={_getAttachmentRef}
+            canManageBots={props.canManageBots}
             visible={showMenu}
             onEdit={props.onEdit}
             onRemove={props.onRemove}
