@@ -8,7 +8,8 @@ import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import {ProxySettings} from '../proxy/container'
 
-type Props = {
+export type Props = {
+  load: () => void
   openAtLogin: boolean
   lockdownModeEnabled: boolean | null
   onChangeLockdownMode: (arg0: boolean) => void
@@ -90,54 +91,61 @@ const LockdownCheckbox = (props: Props) => {
   )
 }
 
-const Advanced = (props: Props) => (
-  <Kb.ScrollView style={styles.scrollview}>
-    <Kb.Box style={styles.advancedContainer}>
-      {props.settingLockdownMode && (
-        <Kb.Box style={styles.progressContainer}>
-          <Kb.ProgressIndicator />
+const Advanced = (props: Props) => {
+  const {load} = props
+  React.useEffect(() => {
+    load()
+    // eslint-disable-next-line
+  }, [])
+  return (
+    <Kb.ScrollView style={styles.scrollview}>
+      <Kb.Box style={styles.advancedContainer}>
+        {props.settingLockdownMode && (
+          <Kb.Box style={styles.progressContainer}>
+            <Kb.ProgressIndicator />
+          </Kb.Box>
+        )}
+        <Kb.Box style={styles.checkboxContainer}>
+          <LockdownCheckbox {...props} />
         </Kb.Box>
-      )}
-      <Kb.Box style={styles.checkboxContainer}>
-        <LockdownCheckbox {...props} />
+        {!!props.setLockdownModeError && (
+          <Kb.Text type="BodySmall" style={styles.error}>
+            {props.setLockdownModeError}
+          </Kb.Text>
+        )}
+        {!props.hasRandomPW && (
+          <Kb.Box style={styles.checkboxContainer}>
+            <Kb.Checkbox
+              checked={props.rememberPassword}
+              labelComponent={
+                <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne}>
+                  <Kb.Text type="Body">Always stay logged in</Kb.Text>
+                  <Kb.Text type="BodySmall">
+                    You won't be asked for your password when restarting the app or your device.
+                  </Kb.Text>
+                </Kb.Box2>
+              }
+              onCheck={props.onChangeRememberPassword}
+            />
+          </Kb.Box>
+        )}
+        {isLinux ? <UseNativeFrame {...props} /> : null}
+        {!Styles.isMobile && (
+          <Kb.Box style={styles.checkboxContainer}>
+            <Kb.Checkbox
+              label="Open Keybase on startup"
+              checked={props.openAtLogin}
+              onCheck={props.onSetOpenAtLogin}
+            />
+          </Kb.Box>
+        )}
+        <Kb.Divider style={styles.proxyDivider} />
+        <ProxySettings />
+        <Developer {...props} />
       </Kb.Box>
-      {!!props.setLockdownModeError && (
-        <Kb.Text type="BodySmall" style={styles.error}>
-          {props.setLockdownModeError}
-        </Kb.Text>
-      )}
-      {!props.hasRandomPW && (
-        <Kb.Box style={styles.checkboxContainer}>
-          <Kb.Checkbox
-            checked={props.rememberPassword}
-            labelComponent={
-              <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne}>
-                <Kb.Text type="Body">Always stay logged in</Kb.Text>
-                <Kb.Text type="BodySmall">
-                  You won't be asked for your password when restarting the app or your device.
-                </Kb.Text>
-              </Kb.Box2>
-            }
-            onCheck={props.onChangeRememberPassword}
-          />
-        </Kb.Box>
-      )}
-      {isLinux ? <UseNativeFrame {...props} /> : null}
-      {!Styles.isMobile && (
-        <Kb.Box style={styles.checkboxContainer}>
-          <Kb.Checkbox
-            label="Open Keybase on startup"
-            checked={props.openAtLogin}
-            onCheck={props.onSetOpenAtLogin}
-          />
-        </Kb.Box>
-      )}
-      <Kb.Divider style={styles.proxyDivider} />
-      <ProxySettings />
-      <Developer {...props} />
-    </Kb.Box>
-  </Kb.ScrollView>
-)
+    </Kb.ScrollView>
+  )
+}
 
 type StartButtonProps = {
   label: string
