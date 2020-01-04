@@ -14,7 +14,7 @@ export type OwnProps = {
 const mapStateToProps = (state, {teamID}: OwnProps) => {
   const teamDetails = Constants.getTeamDetails(state, teamID)
   const {teamname} = teamDetails
-  const publicitySettings = Constants.getTeamPublicitySettings(state, teamname)
+  const publicitySettings = Constants.getTeamPublicitySettings(state, teamID)
   const publicityAnyMember = publicitySettings.anyMemberShowcase
   const publicityMember = publicitySettings.member
   const publicityTeam = publicitySettings.team
@@ -30,22 +30,18 @@ const mapStateToProps = (state, {teamID}: OwnProps) => {
     publicityAnyMember,
     publicityMember,
     publicityTeam,
-    teamname,
+    teamID,
     waitingForSavePublicity: anyWaiting(
       state,
-      `team:${teamname}`,
-      `teamRetention:${teamname}`,
-      `teamSettings:${teamname}`
+      Constants.teamWaitingKeyByID(teamID, state),
+      Constants.retentionWaitingKey(teamID),
+      Constants.settingsWaitingKey(teamID)
     ),
-    yourOperations: Constants.getCanPerform(state, teamname),
+    yourOperations: Constants.getCanPerformByID(state, teamID),
   }
 }
 
-const mapDispatchToProps = dispatch => ({
-  _savePublicity: (teamname: Types.Teamname, settings: Types.PublicitySettings) =>
-    dispatch(TeamsGen.createSetPublicity({settings, teamname})),
-  _saveRetentionPolicy: (teamname: Types.Teamname, policy: RetentionPolicy) =>
-    dispatch(TeamsGen.createSaveTeamRetentionPolicy({policy, teamname})),
+const mapDispatchToProps = (dispatch, {teamID}: OwnProps) => ({
   _showRetentionWarning: (
     policy: RetentionPolicy,
     onConfirm: () => void,
@@ -56,6 +52,10 @@ const mapDispatchToProps = dispatch => ({
         path: [{props: {entityType, onConfirm, policy}, selected: 'retentionWarning'}],
       })
     ),
+  savePublicity: (settings: Types.PublicitySettings) =>
+    dispatch(TeamsGen.createSetPublicity({settings, teamID})),
+  saveRetentionPolicy: (policy: RetentionPolicy) =>
+    dispatch(TeamsGen.createSaveTeamRetentionPolicy({policy, teamID})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => {
@@ -70,12 +70,12 @@ const mergeProps = (stateProps, dispatchProps) => {
         showRetentionWarning &&
           dispatchProps._showRetentionWarning(
             policy,
-            () => dispatchProps._saveRetentionPolicy(stateProps.teamname, policy),
+            () => dispatchProps.saveRetentionPolicy(policy),
             stateProps.isBigTeam ? 'big team' : 'small team'
           )
-        !showRetentionWarning && dispatchProps._saveRetentionPolicy(stateProps.teamname, policy)
+        !showRetentionWarning && dispatchProps.saveRetentionPolicy(policy)
       }
-      dispatchProps._savePublicity(stateProps.teamname, settings)
+      dispatchProps.savePublicity(settings)
     },
   }
 }

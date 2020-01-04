@@ -57,6 +57,7 @@ let config = {
 }
 
 // Developer settings
+config.isDevApplePushToken = true
 if (__DEV__) {
   config.enableActionLogging = true
   config.enableStoreLogging = false

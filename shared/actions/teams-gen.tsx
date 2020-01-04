@@ -128,7 +128,7 @@ type _EditMembershipPayload = {
   readonly username: string
   readonly role: Types.TeamRoleType
 }
-type _EditTeamDescriptionPayload = {readonly teamname: string; readonly description: string}
+type _EditTeamDescriptionPayload = {readonly teamID: Types.TeamID; readonly description: string}
 type _GetChannelInfoPayload = {
   readonly conversationIDKey: ChatTypes.ConversationIDKey
   readonly teamID: Types.TeamID
@@ -137,8 +137,8 @@ type _GetChannelsPayload = {readonly teamID: Types.TeamID}
 type _GetDetailsPayload = {readonly teamname: string; readonly clearInviteLoadingKey?: string}
 type _GetMembersPayload = {readonly teamname: string}
 type _GetTeamProfileAddListPayload = {readonly username: string}
-type _GetTeamPublicityPayload = {readonly teamname: string}
-type _GetTeamRetentionPolicyPayload = {readonly teamname: string}
+type _GetTeamPublicityPayload = {readonly teamID: Types.TeamID}
+type _GetTeamRetentionPolicyPayload = {readonly teamID: Types.TeamID}
 type _GetTeamsPayload = {readonly _subscribe?: boolean; readonly forceReload?: boolean}
 type _IgnoreRequestPayload = {readonly teamname: string; readonly username: string}
 type _InviteToTeamByEmailPayload = {
@@ -179,11 +179,11 @@ type _SaveChannelMembershipPayload = {
   readonly oldChannelState: Types.ChannelMembershipState
   readonly newChannelState: Types.ChannelMembershipState
 }
-type _SaveTeamRetentionPolicyPayload = {readonly teamname: string; readonly policy: RetentionPolicy}
+type _SaveTeamRetentionPolicyPayload = {readonly teamID: Types.TeamID; readonly policy: RetentionPolicy}
 type _SetAddUserToTeamsResultsPayload = {readonly error: boolean; readonly results: string}
 type _SetChannelCreationErrorPayload = {readonly error: string}
 type _SetEmailInviteErrorPayload = {readonly message: string; readonly malformed: Array<string>}
-type _SetMemberPublicityPayload = {readonly teamname: string; readonly showcase: boolean}
+type _SetMemberPublicityPayload = {readonly teamID: Types.TeamID; readonly showcase: boolean}
 type _SetMembersPayload = {readonly teamname: string; readonly members: Map<string, Types.MemberInfo>}
 type _SetNewTeamInfoPayload = {
   readonly deletedTeams: Array<RPCTypes.DeletedTeamInfo>
@@ -191,7 +191,7 @@ type _SetNewTeamInfoPayload = {
   readonly newTeamRequests: Array<Types.TeamID>
   readonly teamIDToResetUsers: Map<Types.TeamID, Set<Types.ResetUser>>
 }
-type _SetPublicityPayload = {readonly teamname: string; readonly settings: Types.PublicitySettings}
+type _SetPublicityPayload = {readonly teamID: Types.TeamID; readonly settings: Types.PublicitySettings}
 type _SetTeamAccessRequestsPendingPayload = {readonly accessRequestsPending: Set<Types.Teamname>}
 type _SetTeamCanPerformPayload = {
   readonly teamname: string
@@ -237,10 +237,13 @@ type _SetTeamLoadingInvitesPayload = {
 }
 type _SetTeamProfileAddListPayload = {readonly teamlist: Array<Types.TeamProfileAddList>}
 type _SetTeamPublicitySettingsPayload = {
-  readonly teamname: string
+  readonly teamID: Types.TeamID
   readonly publicity: Types._PublicitySettings
 }
-type _SetTeamRetentionPolicyPayload = {readonly teamname: string; readonly retentionPolicy: RetentionPolicy}
+type _SetTeamRetentionPolicyPayload = {
+  readonly teamID: Types.TeamID
+  readonly retentionPolicy: RetentionPolicy
+}
 type _SetTeamRoleMapLatestKnownVersionPayload = {readonly version: number}
 type _SetTeamRoleMapPayload = {readonly map: Types.TeamRoleMap}
 type _SetTeamSawChatBannerPayload = void
@@ -301,7 +304,7 @@ export const createGetChannels = (payload: _GetChannelsPayload): GetChannelsPayl
   type: getChannels,
 })
 /**
- * Gets the team retention policy and stores in `state.entities.teams.teamNameToRetentionPolicy`.
+ * Gets the team retention policy and stores in `state.entities.teams.teamIDToRetentionPolicy`.
  */
 export const createGetTeamRetentionPolicy = (
   payload: _GetTeamRetentionPolicyPayload

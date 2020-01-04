@@ -3632,8 +3632,8 @@
           "type": "int"
         },
         {
-          "name": "name",
-          "type": "string"
+          "name": "teamID",
+          "type": "TeamID"
         },
         {
           "name": "settings",
@@ -3790,8 +3790,8 @@
     "getTeamShowcase": {
       "request": [
         {
-          "name": "name",
-          "type": "string"
+          "name": "teamID",
+          "type": "TeamID"
         }
       ],
       "response": "TeamShowcase"
@@ -3799,8 +3799,8 @@
     "getTeamAndMemberShowcase": {
       "request": [
         {
-          "name": "name",
-          "type": "string"
+          "name": "teamID",
+          "type": "TeamID"
         }
       ],
       "response": "TeamAndMemberShowcase"
@@ -3808,8 +3808,8 @@
     "setTeamShowcase": {
       "request": [
         {
-          "name": "name",
-          "type": "string"
+          "name": "teamID",
+          "type": "TeamID"
         },
         {
           "name": "isShowcased",
@@ -3838,8 +3838,8 @@
     "setTeamMemberShowcase": {
       "request": [
         {
-          "name": "name",
-          "type": "string"
+          "name": "teamID",
+          "type": "TeamID"
         },
         {
           "name": "isShowcased",
@@ -3882,8 +3882,8 @@
     "getTarsDisabled": {
       "request": [
         {
-          "name": "name",
-          "type": "string"
+          "name": "teamID",
+          "type": "TeamID"
         }
       ],
       "response": "boolean"
@@ -3891,8 +3891,8 @@
     "setTarsDisabled": {
       "request": [
         {
-          "name": "name",
-          "type": "string"
+          "name": "teamID",
+          "type": "TeamID"
         },
         {
           "name": "disabled",

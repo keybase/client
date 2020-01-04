@@ -152,19 +152,12 @@ const getTeamRetentionPolicy = async (
   action: TeamsGen.GetTeamRetentionPolicyPayload,
   logger: Saga.SagaLogger
 ) => {
-  const {teamname} = action.payload
-  const teamID = Constants.getTeamID(state, teamname)
-  if (teamID === Types.noTeamID) {
-    const errMsg = `getTeamRetentionPolicy: Unable to find teamID for teamname ${teamname}`
-    logger.error(errMsg)
-    return
-  }
-
+  const {teamID} = action.payload
   let retentionPolicy = Constants.makeRetentionPolicy()
   try {
     const policy = await RPCChatTypes.localGetTeamRetentionLocalRpcPromise(
       {teamID},
-      Constants.teamWaitingKey(teamname)
+      Constants.teamWaitingKeyByID(teamID, state)
     )
     try {
       retentionPolicy = Constants.serviceRetentionPolicyToRetentionPolicy(policy)
@@ -176,7 +169,7 @@ const getTeamRetentionPolicy = async (
       throw err
     }
   } catch (_) {}
-  return TeamsGen.createSetTeamRetentionPolicy({retentionPolicy, teamname})
+  return TeamsGen.createSetTeamRetentionPolicy({retentionPolicy, teamID})
 }
 
 const saveTeamRetentionPolicy = (
@@ -184,15 +177,7 @@ const saveTeamRetentionPolicy = (
   action: TeamsGen.SaveTeamRetentionPolicyPayload,
   logger: Saga.SagaLogger
 ) => {
-  const {teamname, policy} = action.payload
-
-  // get teamID
-  const teamID = Constants.getTeamID(state, teamname)
-  if (teamID === Types.noTeamID) {
-    const errMsg = `saveTeamRetentionPolicy: Unable to find teamID for teamname ${teamname}`
-    logger.error(errMsg)
-    throw new Error(errMsg)
-  }
+  const {teamID, policy} = action.payload
 
   let servicePolicy: RPCChatTypes.RetentionPolicy
   try {
@@ -202,8 +187,8 @@ const saveTeamRetentionPolicy = (
     throw err
   }
   return RPCChatTypes.localSetTeamRetentionLocalRpcPromise({policy: servicePolicy, teamID}, [
-    Constants.teamWaitingKey(teamname),
-    Constants.retentionWaitingKey(teamname),
+    Constants.teamWaitingKeyByID(teamID, state),
+    Constants.retentionWaitingKey(teamID),
   ])
 }
 
@@ -217,9 +202,9 @@ const updateTeamRetentionPolicy = (
     logger.warn('Got updateTeamRetentionPolicy with no convs; aborting. Local copy may be out of date')
     return
   }
-  const {teamRetentionPolicy, teamname} = first
+  const {teamRetentionPolicy, teamID} = first
   try {
-    return TeamsGen.createSetTeamRetentionPolicy({retentionPolicy: teamRetentionPolicy, teamname})
+    return TeamsGen.createSetTeamRetentionPolicy({retentionPolicy: teamRetentionPolicy, teamID})
   } catch (err) {
     logger.error(err.message)
     throw err
@@ -331,17 +316,19 @@ const reAddToTeam = async (action: TeamsGen.ReAddToTeamPayload) => {
   }
 }
 
-const editDescription = async (action: TeamsGen.EditTeamDescriptionPayload) => {
-  const {teamname, description} = action.payload
+const editDescription = async (
+  state: TypedState,
+  action: TeamsGen.EditTeamDescriptionPayload,
+  logger: Saga.SagaLogger
+) => {
+  const {teamID, description} = action.payload
   try {
     await RPCTypes.teamsSetTeamShowcaseRpcPromise(
-      {description, name: teamname},
-      Constants.teamWaitingKey(teamname)
+      {description, teamID},
+      Constants.teamWaitingKeyByID(teamID, state)
     )
-    return TeamsGen.createGetDetails({teamname})
-  } catch (__) {
-    // TODO We don't get a team changed notification for this. Delete this call when CORE-7125 is finished.
-    return TeamsGen.createGetDetails({teamname})
+  } catch (e) {
+    logger.warn(`Error updating team description: ${e.message}`)
   }
 }
 
@@ -506,9 +493,14 @@ async function createNewTeamFromConversation(
   })
 }
 
-function* getDetails(_: TypedState, action: TeamsGen.GetDetailsPayload, logger: Saga.SagaLogger) {
+function* getDetails(state: TypedState, action: TeamsGen.GetDetailsPayload, logger: Saga.SagaLogger) {
   const {teamname} = action.payload
-  yield Saga.put(TeamsGen.createGetTeamPublicity({teamname}))
+  const teamID = Constants.getTeamID(state, teamname)
+  if (teamID) {
+    yield Saga.put(TeamsGen.createGetTeamPublicity({teamID}))
+  } else {
+    logger.warn('Could not get team ID in order to get publicity in getDetails for team:', teamname)
+  }
 
   const waitingKeys = [Constants.teamWaitingKey(teamname), Constants.teamGetWaitingKey(teamname)]
 
@@ -652,21 +644,25 @@ function* addUserToTeams(state: TypedState, action: TeamsGen.AddUserToTeamsPaylo
   )
 }
 
-function* getTeamPublicity(_: TypedState, action: TeamsGen.GetTeamPublicityPayload, logger: Saga.SagaLogger) {
+function* getTeamPublicity(
+  state: TypedState,
+  action: TeamsGen.GetTeamPublicityPayload,
+  logger: Saga.SagaLogger
+) {
   try {
-    const teamname = action.payload.teamname
+    const teamID = action.payload.teamID
     // Get publicity settings for this team.
     const publicity: Saga.RPCPromiseType<typeof RPCTypes.teamsGetTeamAndMemberShowcaseRpcPromise> = yield RPCTypes.teamsGetTeamAndMemberShowcaseRpcPromise(
-      {name: teamname},
-      Constants.teamWaitingKey(teamname)
+      {teamID},
+      Constants.teamWaitingKeyByID(teamID, state)
     )
 
     let tarsDisabled: Saga.RPCPromiseType<typeof RPCTypes.teamsGetTarsDisabledRpcPromise> = false
     // can throw if you're not an admin
     try {
       tarsDisabled = yield RPCTypes.teamsGetTarsDisabledRpcPromise(
-        {name: teamname},
-        Constants.teamTarsWaitingKey(teamname)
+        {teamID},
+        Constants.teamTarsWaitingKey(teamID)
       )
     } catch (_) {}
 
@@ -678,7 +674,7 @@ function* getTeamPublicity(_: TypedState, action: TeamsGen.GetTeamPublicityPaylo
       team: publicity.teamShowcase.isShowcased,
     }
 
-    yield Saga.put(TeamsGen.createSetTeamPublicitySettings({publicity: publicityMap, teamname}))
+    yield Saga.put(TeamsGen.createSetTeamPublicitySettings({publicity: publicityMap, teamID}))
   } catch (e) {
     logger.info(e.message)
   }
@@ -958,44 +954,30 @@ function* createChannel(state: TypedState, action: TeamsGen.CreateChannelPayload
   }
 }
 
-const setMemberPublicity = async (action: TeamsGen.SetMemberPublicityPayload) => {
-  const {teamname, showcase} = action.payload
+const setMemberPublicity = async (state: TypedState, action: TeamsGen.SetMemberPublicityPayload) => {
+  const {teamID, showcase} = action.payload
   try {
     await RPCTypes.teamsSetTeamMemberShowcaseRpcPromise(
       {
         isShowcased: showcase,
-        name: teamname,
+        teamID,
       },
-      Constants.teamWaitingKey(teamname)
+      Constants.teamWaitingKeyByID(teamID, state)
     )
-    return [
-      TeamsGen.createGetDetails({teamname}),
-      // The profile showcasing page gets this data from teamList rather than teamGet, so trigger one of those too.
-      // TeamsGen.createGetTeams(), // TODO Y2K-974 probably broken
-    ]
+    return
   } catch (_) {
     // TODO handle error, but for now make sure loading is unset
-    return [
-      TeamsGen.createGetDetails({teamname}),
-      // The profile showcasing page gets this data from teamList rather than teamGet, so trigger one of those too.
-      // TeamsGen.createGetTeams(), // TODO Y2K-974 probably broken
-    ]
   }
 }
 
-function* setPublicity(state: TypedState, action: TeamsGen.SetPublicityPayload, logger: Saga.SagaLogger) {
-  const {teamname, settings} = action.payload
-  const waitingKey = Constants.settingsWaitingKey(teamname)
+function* setPublicity(state: TypedState, action: TeamsGen.SetPublicityPayload) {
+  const {teamID, settings} = action.payload
 
-  const teamID = Constants.getTeamID(state, teamname)
-  if (teamID === Types.noTeamID) {
-    // TODO Y2K-1084 teamID should come in the action
-    logger.error(`no team ID for ${teamname}`)
-    return
-  }
+  const waitingKey = Constants.settingsWaitingKey(teamID)
+
   const teamSettings = state.teams.teamDetails.get(teamID)?.settings || Constants.initialTeamSettings
 
-  const teamPublicitySettings = Constants.getTeamPublicitySettings(state, teamname)
+  const teamPublicitySettings = Constants.getTeamPublicitySettings(state, teamID)
 
   const ignoreAccessRequests = teamPublicitySettings.ignoreAccessRequests
   const openTeam = teamSettings.open
@@ -1011,11 +993,11 @@ function* setPublicity(state: TypedState, action: TeamsGen.SetPublicityPayload, 
         try {
           const payload = await RPCTypes.teamsTeamSetSettingsRpcPromise(
             {
-              name: teamname,
               settings: {
                 joinAs: RPCTypes.TeamRole[settings.openTeamRole],
                 open: settings.openTeam,
               },
+              teamID,
             },
             waitingKey
           )
@@ -1031,7 +1013,7 @@ function* setPublicity(state: TypedState, action: TeamsGen.SetPublicityPayload, 
       Saga.callUntyped(async () => {
         try {
           const payload = await RPCTypes.teamsSetTarsDisabledRpcPromise(
-            {disabled: settings.ignoreAccessRequests, name: teamname},
+            {disabled: settings.ignoreAccessRequests, teamID},
             waitingKey
           )
           return {payload, type: 'ok'}
@@ -1046,7 +1028,7 @@ function* setPublicity(state: TypedState, action: TeamsGen.SetPublicityPayload, 
       Saga.callUntyped(async () => {
         try {
           const payload = await RPCTypes.teamsSetTeamShowcaseRpcPromise(
-            {anyMemberShowcase: settings.publicityAnyMember, name: teamname},
+            {anyMemberShowcase: settings.publicityAnyMember, teamID},
             waitingKey
           )
           return {payload, type: 'ok'}
@@ -1061,7 +1043,7 @@ function* setPublicity(state: TypedState, action: TeamsGen.SetPublicityPayload, 
       Saga.callUntyped(async () => {
         try {
           const payload = await RPCTypes.teamsSetTeamMemberShowcaseRpcPromise(
-            {isShowcased: settings.publicityMember, name: teamname},
+            {isShowcased: settings.publicityMember, teamID},
             waitingKey
           )
           return {payload, type: 'ok'}
@@ -1076,7 +1058,7 @@ function* setPublicity(state: TypedState, action: TeamsGen.SetPublicityPayload, 
       Saga.callUntyped(async () => {
         try {
           const payload = await RPCTypes.teamsSetTeamShowcaseRpcPromise(
-            {isShowcased: settings.publicityTeam, name: teamname},
+            {isShowcased: settings.publicityTeam, teamID},
             waitingKey
           )
           return {payload, type: 'ok'}
@@ -1088,8 +1070,6 @@ function* setPublicity(state: TypedState, action: TeamsGen.SetPublicityPayload, 
   }
 
   const results = yield Saga.all(calls)
-  // TODO delete this getDetails call when CORE-7125 is finished
-  yield Saga.put(TeamsGen.createGetDetails({teamname}))
 
   // Display any errors from the rpcs
   const errs = results
@@ -1469,7 +1449,7 @@ const teamsSaga = function*() {
   yield* Saga.chainGenerator<TeamsGen.AddUserToTeamsPayload>(TeamsGen.addUserToTeams, addUserToTeams)
   yield* Saga.chainGenerator<TeamsGen.InviteToTeamByEmailPayload>(TeamsGen.inviteToTeamByEmail, inviteByEmail)
   yield* Saga.chainAction(TeamsGen.ignoreRequest, ignoreRequest)
-  yield* Saga.chainAction(TeamsGen.editTeamDescription, editDescription)
+  yield* Saga.chainAction2(TeamsGen.editTeamDescription, editDescription)
   yield* Saga.chainAction(TeamsGen.uploadTeamAvatar, uploadAvatar)
   yield* Saga.chainAction(TeamsGen.editMembership, editMembership)
   yield* Saga.chainGenerator<TeamsGen.RemoveMemberPayload>(TeamsGen.removeMember, removeMember)
@@ -1477,7 +1457,7 @@ const teamsSaga = function*() {
     TeamsGen.removePendingInvite,
     removePendingInvite
   )
-  yield* Saga.chainAction(TeamsGen.setMemberPublicity, setMemberPublicity)
+  yield* Saga.chainAction2(TeamsGen.setMemberPublicity, setMemberPublicity)
   yield* Saga.chainAction2(TeamsGen.updateTopic, updateTopic)
   yield* Saga.chainAction2(TeamsGen.updateChannelName, updateChannelname)
   yield* Saga.chainAction2(TeamsGen.deleteChannelConfirmed, deleteChannelConfirmed)

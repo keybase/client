@@ -1244,11 +1244,11 @@ export type MessageTypes = {
     outParam: Int
   }
   'keybase.1.teams.getTarsDisabled': {
-    inParam: {readonly name: String}
+    inParam: {readonly teamID: TeamID}
     outParam: Boolean
   }
   'keybase.1.teams.getTeamAndMemberShowcase': {
-    inParam: {readonly name: String}
+    inParam: {readonly teamID: TeamID}
     outParam: TeamAndMemberShowcase
   }
   'keybase.1.teams.getTeamRoleMap': {
@@ -1256,15 +1256,15 @@ export type MessageTypes = {
     outParam: TeamRoleMapAndVersion
   }
   'keybase.1.teams.setTarsDisabled': {
-    inParam: {readonly name: String; readonly disabled: Boolean}
+    inParam: {readonly teamID: TeamID; readonly disabled: Boolean}
     outParam: void
   }
   'keybase.1.teams.setTeamMemberShowcase': {
-    inParam: {readonly name: String; readonly isShowcased: Boolean}
+    inParam: {readonly teamID: TeamID; readonly isShowcased: Boolean}
     outParam: void
   }
   'keybase.1.teams.setTeamShowcase': {
-    inParam: {readonly name: String; readonly isShowcased?: Boolean | null; readonly description?: String | null; readonly anyMemberShowcase?: Boolean | null}
+    inParam: {readonly teamID: TeamID; readonly isShowcased?: Boolean | null; readonly description?: String | null; readonly anyMemberShowcase?: Boolean | null}
     outParam: void
   }
   'keybase.1.teams.teamAcceptInviteOrRequestAccess': {
@@ -1348,7 +1348,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.teams.teamSetSettings': {
-    inParam: {readonly name: String; readonly settings: TeamSettings}
+    inParam: {readonly teamID: TeamID; readonly settings: TeamSettings}
     outParam: void
   }
   'keybase.1.teams.uploadTeamAvatar': {

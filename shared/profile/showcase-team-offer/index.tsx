@@ -21,7 +21,7 @@ export type Props = {
   customComponent?: React.ElementType | null
   headerStyle?: Object | null
   onCancel: () => void
-  onPromote: (name: Types.Teamname, promote: boolean) => void
+  onPromote: (teamID: Types.TeamID, promote: boolean) => void
   teams: ReadonlyArray<Types.TeamDetails>
   waiting: {[K in string]: number}
 }
@@ -106,7 +106,7 @@ const ShowcaseTeamOffer = (props: Props) => {
             name={teamDetails.teamname}
             isOpen={teamDetails.isOpen}
             membercount={teamDetails.memberCount}
-            onPromote={promoted => props.onPromote(teamDetails.teamname, promoted)}
+            onPromote={promoted => props.onPromote(teamDetails.id, promoted)}
             showcased={teamDetails.showcasing}
             waiting={!!props.waiting[teamWaitingKey(teamDetails.teamname)]}
           />

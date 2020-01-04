@@ -1616,6 +1616,31 @@ func ChangeTeamSettings(ctx context.Context, g *libkb.GlobalContext, teamName st
 	})
 }
 
+func ChangeTeamSettingsByID(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID,
+	settings keybase1.TeamSettings) error {
+	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
+		t, err := GetForTeamManagementByTeamID(ctx, g, id, true)
+		if err != nil {
+			return err
+		}
+
+		if !settings.Open && !t.IsOpen() {
+			g.Log.CDebugf(ctx, "team is already closed, just returning: %s", id)
+			return nil
+		}
+
+		if settings.Open && t.IsOpen() && t.OpenTeamJoinAs() == settings.JoinAs {
+			g.Log.CDebugf(ctx, "team is already open with default role: team: %s role: %s",
+				id, strings.ToLower(t.OpenTeamJoinAs().String()))
+			return nil
+		}
+
+		// Rotate if team is moving from open to closed.
+		rotateKey := t.IsOpen() && !settings.Open
+		return t.PostTeamSettings(ctx, settings, rotateKey)
+	})
+}
+
 func removeMemberInvite(ctx context.Context, g *libkb.GlobalContext, team *Team, username string, uv keybase1.UserVersion) (err error) {
 	g.CTrace(ctx, "removeMemberInvite", func() error { return err })
 	var lookingFor keybase1.TeamInviteName
@@ -1854,7 +1879,7 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 		} else if teamRole == keybase1.TeamRole_NONE {
 			return false, nil
 		}
-		showcase, err := GetTeamShowcaseByID(ctx, g, team.ID)
+		showcase, err := GetTeamShowcase(ctx, g, team.ID)
 		if err != nil {
 			return false, err
 		}
@@ -2010,18 +2035,7 @@ func (c *disableTARsRes) GetAppStatus() *libkb.AppStatus {
 	return &c.Status
 }
 
-func GetTarsDisabled(ctx context.Context, g *libkb.GlobalContext, teamname string) (bool, error) {
-
-	nameParsed, err := keybase1.TeamNameFromString(teamname)
-	if err != nil {
-		return false, err
-	}
-
-	id, err := g.GetTeamLoader().ResolveNameToIDUntrusted(ctx, nameParsed, false, true)
-	if err != nil {
-		return false, err
-	}
-
+func GetTarsDisabled(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) (bool, error) {
 	mctx := libkb.NewMetaContext(ctx, g)
 	arg := apiArg("team/disable_tars")
 	arg.Args.Add("tid", libkb.S{Val: id.String()})
@@ -2033,15 +2047,15 @@ func GetTarsDisabled(ctx context.Context, g *libkb.GlobalContext, teamname strin
 	return ret.Disabled, nil
 }
 
-func SetTarsDisabled(ctx context.Context, g *libkb.GlobalContext, teamname string, disabled bool) error {
+func SetTarsDisabled(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID, disabled bool) error {
 	mctx := libkb.NewMetaContext(ctx, g)
-	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
+	t, err := GetForTeamManagementByTeamID(ctx, g, id, true)
 	if err != nil {
 		return err
 	}
 
 	arg := apiArg("team/disable_tars")
-	arg.Args.Add("tid", libkb.S{Val: t.ID.String()})
+	arg.Args.Add("tid", libkb.S{Val: id.String()})
 	arg.Args.Add("disabled", libkb.B{Val: disabled})
 	if _, err := mctx.G().API.Post(mctx, arg); err != nil {
 		return err

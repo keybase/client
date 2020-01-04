@@ -30,21 +30,21 @@ func GetForTeamManagementByStringName(ctx context.Context, g *libkb.GlobalContex
 	return team, nil
 }
 
-func GetForDisplayByStringName(ctx context.Context, g *libkb.GlobalContext, name string) (*Team, error) {
+func GetForDisplayByTeamID(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) (*Team, error) {
 	// assume private team
 	public := false
 
 	team, err := Load(ctx, g, keybase1.LoadTeamArg{
-		Name:                      name,
+		ID:                        id,
 		Public:                    public,
 		ForceRepoll:               true,
 		AllowNameLookupBurstCache: true,
 	})
 	if err != nil {
-		return nil, fixupTeamGetError(ctx, g, err, name, public)
+		return nil, fixupTeamGetError(ctx, g, err, id.String(), public)
 	}
 	if team.IsImplicit() {
-		return nil, fmt.Errorf("cannot display implicit team by name")
+		return nil, fmt.Errorf("cannot display implicit team by ID")
 	}
 	return team, nil
 }
