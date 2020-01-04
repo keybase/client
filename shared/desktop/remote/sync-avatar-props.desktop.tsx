@@ -111,7 +111,7 @@ function SyncAvatarProps(ComposedComponent: any) {
     },
     () => ({}),
     (stateProps, _d, ownProps: OwnProps) => {
-      const {usernames} = ownProps
+      const {usernames, username} = ownProps
       const {_followers, _following, httpSrvAddress, httpSrvToken, _infoMap, _usernameToDetails} = stateProps
       return {
         followers: getRemoteFollowers(_followers, usernames),
@@ -119,10 +119,7 @@ function SyncAvatarProps(ComposedComponent: any) {
         httpSrvAddress,
         httpSrvToken,
         infoMap: getRemoteMap(_infoMap, usernames),
-        usernameToDetails: getRemoteMap(
-          _usernameToDetails,
-          new Set([...usernames.values(), ownProps.username])
-        ),
+        usernameToDetails: getRemoteMap(_usernameToDetails, new Set([...usernames.values(), username])),
         ...ownProps,
       }
     }
