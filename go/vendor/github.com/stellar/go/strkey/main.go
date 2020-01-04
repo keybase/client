@@ -33,6 +33,34 @@ const (
 	VersionByteHashX = 23 << 3 // Base32-encodes to 'X...'
 )
 
+// DecodeAny decodes the provided StrKey into a raw value, checking the checksum
+// and if the version byte is one of allowed values.
+func DecodeAny(src string) (VersionByte, []byte, error) {
+	raw, err := decodeString(src)
+	if err != nil {
+		return 0, nil, err
+	}
+
+	// decode into components
+	version := VersionByte(raw[0])
+	vp := raw[0 : len(raw)-2]
+	payload := raw[1 : len(raw)-2]
+	checksum := raw[len(raw)-2:]
+
+	// ensure version byte is allowed
+	if err := checkValidVersionByte(version); err != nil {
+		return 0, nil, err
+	}
+
+	// ensure checksum is valid
+	if err := crc16.Validate(vp, checksum); err != nil {
+		return 0, nil, err
+	}
+
+	// if we made it through the gaunlet, return the decoded value
+	return version, payload, nil
+}
+
 // Decode decodes the provided StrKey into a raw value, checking the checksum
 // and ensuring the expected VersionByte (the version parameter) is the value
 // actually encoded into the provided src string.
@@ -160,4 +188,30 @@ func decodeString(src string) ([]byte, error) {
 	}
 
 	return raw, nil
+}
+
+// IsValidEd25519PublicKey validates a stellar public key
+func IsValidEd25519PublicKey(i interface{}) bool {
+	enc, ok := i.(string)
+
+	if !ok {
+		return false
+	}
+
+	_, err := Decode(VersionByteAccountID, enc)
+
+	return err == nil
+}
+
+// IsValidEd25519SecretSeed validates a stellar secret key
+func IsValidEd25519SecretSeed(i interface{}) bool {
+	enc, ok := i.(string)
+
+	if !ok {
+		return false
+	}
+
+	_, err := Decode(VersionByteSeed, enc)
+
+	return err == nil
 }

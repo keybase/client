@@ -302,7 +302,7 @@ func (m PaymentBuilder) MutateTransaction(o *TransactionBuilder) error {
 	}
 
 	if m.PathPayment {
-		m.O.Body, m.Err = xdr.NewOperationBody(xdr.OperationTypePathPayment, m.PP)
+		m.O.Body, m.Err = xdr.NewOperationBody(xdr.OperationTypePathPaymentStrictReceive, m.PP)
 		o.TX.Operations = append(o.TX.Operations, m.O)
 		return m.Err
 	}

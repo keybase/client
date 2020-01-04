@@ -289,7 +289,10 @@ func (c *Client) LoadAccountTransactions(accountID string, params ...interface{}
 	}
 
 	err = decodeResponse(resp, &tx)
-	return tx, errors.Wrap(err, "decoding response to transaction")
+	if err != nil {
+		return tx, errors.Wrap(err, "decoding response to transaction")
+	}
+	return tx, nil
 }
 
 // LoadOperation loads a single operation from Horizon server

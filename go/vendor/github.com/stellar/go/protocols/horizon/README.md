@@ -13,6 +13,12 @@ For each new version we will only track changes from the previous version.
 
 ## Changes
 
+### Unreleased
+
+#### Changes
+
+* Operations responses may include a `transaction` field which represents the transaction that created the operation.
+
 ### 0.15.0
 
 #### SDKs with full support

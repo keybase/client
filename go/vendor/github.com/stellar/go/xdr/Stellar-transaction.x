@@ -17,7 +17,7 @@ enum OperationType
 {
     CREATE_ACCOUNT = 0,
     PAYMENT = 1,
-    PATH_PAYMENT = 2,
+    PATH_PAYMENT_STRICT_RECEIVE = 2,
     MANAGE_SELL_OFFER = 3,
     CREATE_PASSIVE_SELL_OFFER = 4,
     SET_OPTIONS = 5,
@@ -27,7 +27,8 @@ enum OperationType
     INFLATION = 9,
     MANAGE_DATA = 10,
     BUMP_SEQUENCE = 11,
-    MANAGE_BUY_OFFER = 12
+    MANAGE_BUY_OFFER = 12,
+    PATH_PAYMENT_STRICT_SEND = 13
 };
 
 /* CreateAccount
@@ -59,7 +60,7 @@ struct PaymentOp
     int64 amount;          // amount they end up with
 };
 
-/* PathPayment
+/* PathPaymentStrictReceive
 
 send an amount to a destination account through a path.
 (up to sendMax, sendAsset)
@@ -68,9 +69,9 @@ send an amount to a destination account through a path.
 
 Threshold: med
 
-Result: PathPaymentResult
+Result: PathPaymentStrictReceiveResult
 */
-struct PathPaymentOp
+struct PathPaymentStrictReceiveOp
 {
     Asset sendAsset; // asset we pay with
     int64 sendMax;   // the maximum amount of sendAsset to
@@ -83,6 +84,32 @@ struct PathPaymentOp
 
     Asset path<5>; // additional hops it must go through to get there
 };
+
+/* PathPaymentStrictSend
+
+send an amount to a destination account through a path.
+(sendMax, sendAsset)
+(X0, Path[0]) .. (Xn, Path[n])
+(at least destAmount, destAsset)
+
+Threshold: med
+
+Result: PathPaymentStrictSendResult
+*/
+struct PathPaymentStrictSendOp
+{
+    Asset sendAsset;  // asset we pay with
+    int64 sendAmount; // amount of sendAsset to send (excluding fees)
+
+    AccountID destination; // recipient of the payment
+    Asset destAsset;       // what they end up with
+    int64 destMin;         // the minimum amount of dest asset to
+                           // be received
+                           // The operation will fail if it can't be met
+
+    Asset path<5>; // additional hops it must go through to get there
+};
+
 
 /* Creates, updates or deletes an offer
 
@@ -196,10 +223,10 @@ struct AllowTrustOp
     {
     // ASSET_TYPE_NATIVE is not allowed
     case ASSET_TYPE_CREDIT_ALPHANUM4:
-        opaque assetCode4[4];
+        AssetCode4 assetCode4;
 
     case ASSET_TYPE_CREDIT_ALPHANUM12:
-        opaque assetCode12[12];
+        AssetCode12 assetCode12;
 
         // add other asset types here in the future
     }
@@ -266,8 +293,8 @@ struct Operation
         CreateAccountOp createAccountOp;
     case PAYMENT:
         PaymentOp paymentOp;
-    case PATH_PAYMENT:
-        PathPaymentOp pathPaymentOp;
+    case PATH_PAYMENT_STRICT_RECEIVE:
+        PathPaymentStrictReceiveOp pathPaymentStrictReceiveOp;
     case MANAGE_SELL_OFFER:
         ManageSellOfferOp manageSellOfferOp;
     case CREATE_PASSIVE_SELL_OFFER:
@@ -288,6 +315,8 @@ struct Operation
         BumpSequenceOp bumpSequenceOp;
     case MANAGE_BUY_OFFER:
         ManageBuyOfferOp manageBuyOfferOp;
+    case PATH_PAYMENT_STRICT_SEND:
+        PathPaymentStrictSendOp pathPaymentStrictSendOp;
     }
     body;
 };
@@ -447,26 +476,26 @@ default:
     void;
 };
 
-/******* Payment Result ********/
+/******* PathPaymentStrictReceive Result ********/
 
-enum PathPaymentResultCode
+enum PathPaymentStrictReceiveResultCode
 {
     // codes considered as "success" for the operation
-    PATH_PAYMENT_SUCCESS = 0, // success
+    PATH_PAYMENT_STRICT_RECEIVE_SUCCESS = 0, // success
 
     // codes considered as "failure" for the operation
-    PATH_PAYMENT_MALFORMED = -1,          // bad input
-    PATH_PAYMENT_UNDERFUNDED = -2,        // not enough funds in source account
-    PATH_PAYMENT_SRC_NO_TRUST = -3,       // no trust line on source account
-    PATH_PAYMENT_SRC_NOT_AUTHORIZED = -4, // source not authorized to transfer
-    PATH_PAYMENT_NO_DESTINATION = -5,     // destination account does not exist
-    PATH_PAYMENT_NO_TRUST = -6,           // dest missing a trust line for asset
-    PATH_PAYMENT_NOT_AUTHORIZED = -7,     // dest not authorized to hold asset
-    PATH_PAYMENT_LINE_FULL = -8,          // dest would go above their limit
-    PATH_PAYMENT_NO_ISSUER = -9,          // missing issuer on one asset
-    PATH_PAYMENT_TOO_FEW_OFFERS = -10,    // not enough offers to satisfy path
-    PATH_PAYMENT_OFFER_CROSS_SELF = -11,  // would cross one of its own offers
-    PATH_PAYMENT_OVER_SENDMAX = -12       // could not satisfy sendmax
+    PATH_PAYMENT_STRICT_RECEIVE_MALFORMED = -1,          // bad input
+    PATH_PAYMENT_STRICT_RECEIVE_UNDERFUNDED = -2,        // not enough funds in source account
+    PATH_PAYMENT_STRICT_RECEIVE_SRC_NO_TRUST = -3,       // no trust line on source account
+    PATH_PAYMENT_STRICT_RECEIVE_SRC_NOT_AUTHORIZED = -4, // source not authorized to transfer
+    PATH_PAYMENT_STRICT_RECEIVE_NO_DESTINATION = -5,     // destination account does not exist
+    PATH_PAYMENT_STRICT_RECEIVE_NO_TRUST = -6,           // dest missing a trust line for asset
+    PATH_PAYMENT_STRICT_RECEIVE_NOT_AUTHORIZED = -7,     // dest not authorized to hold asset
+    PATH_PAYMENT_STRICT_RECEIVE_LINE_FULL = -8,          // dest would go above their limit
+    PATH_PAYMENT_STRICT_RECEIVE_NO_ISSUER = -9,          // missing issuer on one asset
+    PATH_PAYMENT_STRICT_RECEIVE_TOO_FEW_OFFERS = -10,    // not enough offers to satisfy path
+    PATH_PAYMENT_STRICT_RECEIVE_OFFER_CROSS_SELF = -11,  // would cross one of its own offers
+    PATH_PAYMENT_STRICT_RECEIVE_OVER_SENDMAX = -12       // could not satisfy sendmax
 };
 
 struct SimplePaymentResult
@@ -476,15 +505,51 @@ struct SimplePaymentResult
     int64 amount;
 };
 
-union PathPaymentResult switch (PathPaymentResultCode code)
+union PathPaymentStrictReceiveResult switch (PathPaymentStrictReceiveResultCode code)
 {
-case PATH_PAYMENT_SUCCESS:
+case PATH_PAYMENT_STRICT_RECEIVE_SUCCESS:
     struct
     {
         ClaimOfferAtom offers<>;
         SimplePaymentResult last;
     } success;
-case PATH_PAYMENT_NO_ISSUER:
+case PATH_PAYMENT_STRICT_RECEIVE_NO_ISSUER:
+    Asset noIssuer; // the asset that caused the error
+default:
+    void;
+};
+
+/******* PathPaymentStrictSend Result ********/
+
+enum PathPaymentStrictSendResultCode
+{
+    // codes considered as "success" for the operation
+    PATH_PAYMENT_STRICT_SEND_SUCCESS = 0, // success
+
+    // codes considered as "failure" for the operation
+    PATH_PAYMENT_STRICT_SEND_MALFORMED = -1,          // bad input
+    PATH_PAYMENT_STRICT_SEND_UNDERFUNDED = -2,        // not enough funds in source account
+    PATH_PAYMENT_STRICT_SEND_SRC_NO_TRUST = -3,       // no trust line on source account
+    PATH_PAYMENT_STRICT_SEND_SRC_NOT_AUTHORIZED = -4, // source not authorized to transfer
+    PATH_PAYMENT_STRICT_SEND_NO_DESTINATION = -5,     // destination account does not exist
+    PATH_PAYMENT_STRICT_SEND_NO_TRUST = -6,           // dest missing a trust line for asset
+    PATH_PAYMENT_STRICT_SEND_NOT_AUTHORIZED = -7,     // dest not authorized to hold asset
+    PATH_PAYMENT_STRICT_SEND_LINE_FULL = -8,          // dest would go above their limit
+    PATH_PAYMENT_STRICT_SEND_NO_ISSUER = -9,          // missing issuer on one asset
+    PATH_PAYMENT_STRICT_SEND_TOO_FEW_OFFERS = -10,    // not enough offers to satisfy path
+    PATH_PAYMENT_STRICT_SEND_OFFER_CROSS_SELF = -11,  // would cross one of its own offers
+    PATH_PAYMENT_STRICT_SEND_UNDER_DESTMIN = -12      // could not satisfy destMin
+};
+
+union PathPaymentStrictSendResult switch (PathPaymentStrictSendResultCode code)
+{
+case PATH_PAYMENT_STRICT_SEND_SUCCESS:
+    struct
+    {
+        ClaimOfferAtom offers<>;
+        SimplePaymentResult last;
+    } success;
+case PATH_PAYMENT_STRICT_SEND_NO_ISSUER:
     Asset noIssuer; // the asset that caused the error
 default:
     void;
@@ -762,8 +827,8 @@ case opINNER:
         CreateAccountResult createAccountResult;
     case PAYMENT:
         PaymentResult paymentResult;
-    case PATH_PAYMENT:
-        PathPaymentResult pathPaymentResult;
+    case PATH_PAYMENT_STRICT_RECEIVE:
+        PathPaymentStrictReceiveResult pathPaymentStrictReceiveResult;
     case MANAGE_SELL_OFFER:
         ManageSellOfferResult manageSellOfferResult;
     case CREATE_PASSIVE_SELL_OFFER:
@@ -784,6 +849,8 @@ case opINNER:
         BumpSequenceResult bumpSeqResult;
     case MANAGE_BUY_OFFER:
 	ManageBuyOfferResult manageBuyOfferResult;
+    case PATH_PAYMENT_STRICT_SEND:
+        PathPaymentStrictSendResult pathPaymentStrictSendResult;
     }
     tr;
 default:
