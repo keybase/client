@@ -7,6 +7,7 @@ import {intersect} from '../../util/set'
 import {memoize} from '../../util/memoize'
 
 type OwnProps = {
+  username: string
   usernames: Set<string>
   windowComponent: string
   windowParam: string
@@ -28,6 +29,7 @@ export const serialize = {
   httpSrvAddress: (v: any) => v,
   httpSrvToken: (v: any) => v,
   infoMap: (v: any) => [...v.entries()],
+  usernameToDetails: (v: any) => [...v.entries()],
 }
 
 const initialState = {
@@ -37,6 +39,9 @@ const initialState = {
     following: new Set(),
     httpSrvAddress: '',
     httpSrvToken: '',
+  },
+  tracker2: {
+    usernameToDetails: new Map(),
   },
   users: {
     infoMap: new Map(),
@@ -53,6 +58,9 @@ export const deserialize = (state: any = initialState, props: any) => {
       avatarRefreshCounter: initialState.config.avatarRefreshCounter,
       httpSrvAddress: props.httpSrvAddress || state.config.httpSrvAddress,
       httpSrvToken: props.httpSrvToken || state.config.httpSrvToken,
+    },
+    tracker2: {
+      usernameToDetails: new Map(props.usernameToDetails),
     },
     users: {
       infoMap: new Map(props.infoMap),
@@ -78,10 +86,10 @@ function SyncAvatarProps(ComposedComponent: any) {
     intersect(following, usernames)
   )
 
-  const getRemoteInfoMap = memoize((infoMap: Map<any, any>, usernames: Set<string>) => {
+  const getRemoteMap = memoize((fullMap: Map<any, any>, usernames: Set<string>) => {
     const m = new Map()
     for (const u of usernames) {
-      const i = infoMap.get(u)
+      const i = fullMap.get(u)
       i && m.set(u, i)
     }
     return m
@@ -91,10 +99,12 @@ function SyncAvatarProps(ComposedComponent: any) {
     state => {
       const {followers, following, httpSrvAddress, httpSrvToken} = state.config
       const {infoMap} = state.users
+      const {usernameToDetails} = state.tracker2
       return {
         _followers: followers,
         _following: following,
         _infoMap: infoMap,
+        _usernameToDetails: usernameToDetails,
         httpSrvAddress,
         httpSrvToken,
       }
@@ -102,19 +112,24 @@ function SyncAvatarProps(ComposedComponent: any) {
     () => ({}),
     (stateProps, _d, ownProps: OwnProps) => {
       const {usernames} = ownProps
-      const {_followers, _following, httpSrvAddress, httpSrvToken, _infoMap} = stateProps
+      const {_followers, _following, httpSrvAddress, httpSrvToken, _infoMap, _usernameToDetails} = stateProps
       return {
         followers: getRemoteFollowers(_followers, usernames),
         following: getRemoteFollowing(_following, usernames),
         httpSrvAddress,
         httpSrvToken,
-        infoMap: getRemoteInfoMap(_infoMap, usernames),
+        infoMap: getRemoteMap(_infoMap, usernames),
+        usernameToDetails: getRemoteMap(
+          _usernameToDetails,
+          new Set([...usernames.values(), ownProps.username])
+        ),
         ...ownProps,
       }
     }
   )(RemoteAvatarConnected)
 
   type WrapperProps = {
+    username: string
     usernames: Array<string>
     windowComponent: string
     windowParam: string
