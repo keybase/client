@@ -13,7 +13,7 @@ export const setSearchFeaturedAndUsersResults = 'bots:setSearchFeaturedAndUsersR
 export const updateFeaturedBots = 'bots:updateFeaturedBots'
 
 // Payload Types
-type _GetFeaturedBotsPayload = {readonly limit: number; readonly page?: number}
+type _GetFeaturedBotsPayload = {readonly limit?: number; readonly page?: number}
 type _SearchFeaturedAndUsersPayload = {readonly query: string}
 type _SearchFeaturedBotsPayload = {readonly query: string; readonly limit?: number; readonly offset?: number}
 type _SetLoadedAllBotsPayload = {readonly loaded: boolean}
@@ -24,10 +24,9 @@ type _UpdateFeaturedBotsPayload = {readonly bots: Array<RPCTypes.FeaturedBot>; r
 /**
  * Gets featured bots
  */
-export const createGetFeaturedBots = (payload: _GetFeaturedBotsPayload): GetFeaturedBotsPayload => ({
-  payload,
-  type: getFeaturedBots,
-})
+export const createGetFeaturedBots = (
+  payload: _GetFeaturedBotsPayload = Object.freeze({})
+): GetFeaturedBotsPayload => ({payload, type: getFeaturedBots})
 /**
  * Gets featured bots by query
  */
