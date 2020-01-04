@@ -518,9 +518,10 @@ const styles = Styles.styleSheetCreate(
         width: Styles.globalMargins.small,
       },
       botHeaders: {
+        marginBottom: Styles.globalMargins.xsmall,
         marginLeft: Styles.globalMargins.small,
         marginRight: Styles.globalMargins.small,
-        marginTop: Styles.globalMargins.tiny,
+        marginTop: Styles.globalMargins.xsmall,
       },
       container: Styles.platformStyles({
         common: {alignItems: 'stretch', flex: 1, paddingBottom: Styles.globalMargins.tiny},
