@@ -163,9 +163,7 @@ class ConversationList extends React.PureComponent<Props> {
     return ordinalIndex
   }
 
-  private getIndexFromItem = (item: number) => {
-    return this.getItemCount(this.props.messageOrdinals) - item - 2
-  }
+  private getIndexFromItem = (item: number) => this.getItemCount(this.props.messageOrdinals) - item - 2
 
   private getOrdinalIndex = (target: Types.Ordinal) => {
     for (let item = 0; item < this.props.messageOrdinals.length; item++) {
@@ -208,8 +206,11 @@ class ConversationList extends React.PureComponent<Props> {
       return
     }
 
-    const bottomIndex = this.getIndexFromItem(viewableItems[0].item)
-    const upperIndex = this.getIndexFromItem(viewableItems[viewableItems.length - 1].item)
+    const bottomIndex =
+      typeof bottomRecord.item === 'number'
+        ? this.getIndexFromItem(bottomRecord.item)
+        : this.props.messageOrdinals.length - 1
+    const upperIndex = typeof topRecord.item === 'number' ? this.getIndexFromItem(topRecord.item) : 0
     const middleIndex = bottomIndex + Math.floor((upperIndex - bottomIndex) / 2)
     debug(`onViewableItemsChanged: first: ${bottomIndex} last: ${upperIndex} middle: ${middleIndex}`)
     if (!this.scrollCenterTarget) {
@@ -252,7 +253,8 @@ class ConversationList extends React.PureComponent<Props> {
     if (!list) {
       return
     }
-    const index = this.getOrdinalIndex(this.props.centeredOrdinal)
+    const index =
+      this.props.centeredOrdinal === undefined ? -1 : this.getOrdinalIndex(this.props.centeredOrdinal)
     if (index >= 0) {
       debug(`scrollToCentered: ordinal: ${this.props.centeredOrdinal} index: ${index}`)
       this.scrollCenterTarget = index
@@ -331,9 +333,7 @@ const styles = Styles.styleSheetCreate(
         flex: 1,
         position: 'relative',
       },
-      contentContainer: {
-        bottom: -mobileTypingContainerHeight,
-      },
+      contentContainer: {bottom: -mobileTypingContainerHeight},
       jumpToRecent: {
         bottom: 0,
         position: 'absolute',
