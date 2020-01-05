@@ -25,6 +25,7 @@ export type Props = {
   horizontal?: boolean
   snapToInterval?: number
   refreshControl?: React.ReactElement<RefreshControlProps>
+  pagingEnabled?: boolean
 }
 
 export default class ScrollView extends React.Component<Props> {

@@ -46,19 +46,48 @@ class AutoMaxSizeImage extends React.Component<
         style={styles.zoomableBox}
         showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={false}
+        pinchGestureEnabled={false}
+        horizontal={true}
+        pagingEnabled={true}
       >
-        <Kb.NativeFastImage
-          {...this.props}
-          resizeMode="contain"
-          style={Styles.collapseStyles([
-            styles.fastImage,
-            {
-              height: Math.min(this.state.height, screenHeight),
-              opacity: this.props.opacity,
-              width: Math.min(this.state.width, screenWidth),
-            },
-          ])}
-        />
+        <Kb.ZoomableBox
+          style={styles.zoomableBox}
+          showsHorizontalScrollIndicator={false}
+          showsVerticalScrollIndicator={false}
+          horizontal={true}
+        >
+          <Kb.NativeFastImage
+            {...this.props}
+            resizeMode="contain"
+            style={Styles.collapseStyles([
+              styles.fastImage,
+              {
+                height: Math.min(this.state.height, screenHeight),
+                opacity: this.props.opacity,
+                width: Math.min(this.state.width, screenWidth),
+              },
+            ])}
+          />
+        </Kb.ZoomableBox>
+        <Kb.ZoomableBox
+          style={styles.zoomableBox}
+          showsHorizontalScrollIndicator={false}
+          showsVerticalScrollIndicator={false}
+          horizontal={true}
+        >
+          <Kb.NativeFastImage
+            {...this.props}
+            resizeMode="contain"
+            style={Styles.collapseStyles([
+              styles.fastImage,
+              {
+                height: Math.min(this.state.height, screenHeight),
+                opacity: this.props.opacity,
+                width: Math.min(this.state.width, screenWidth),
+              },
+            ])}
+          />
+        </Kb.ZoomableBox>
       </Kb.ZoomableBox>
     )
   }
@@ -169,7 +198,6 @@ const styles = Styles.styleSheetCreate(
       },
       fastImage: {
         alignSelf: 'center',
-        flex: 1,
       },
       headerFooter: {
         ...Styles.globalStyles.flexBoxRow,
@@ -205,7 +233,6 @@ const styles = Styles.styleSheetCreate(
         width: '100%',
       },
       zoomableBoxContainer: {
-        flex: 1,
         position: 'relative',
       },
     } as const)

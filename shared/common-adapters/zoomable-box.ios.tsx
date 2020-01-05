@@ -12,9 +12,11 @@ export const ZoomableBox = (props: Props) => (
     bounces={props.bounces}
     children={props.children}
     contentContainerStyle={props.contentContainerStyle}
+    horizontal={props.horizontal}
     indicatorStyle="white"
     maximumZoomScale={props.maxZoom || 3}
     minimumZoomScale={props.minZoom || 1}
+    pagingEnabled={props.pagingEnabled}
     onScroll={e =>
       props.onZoom &&
       props.onZoom({
@@ -33,5 +35,6 @@ export const ZoomableBox = (props: Props) => (
     showsHorizontalScrollIndicator={props.showsHorizontalScrollIndicator}
     showsVerticalScrollIndicator={props.showsVerticalScrollIndicator}
     style={props.style}
+    pinchGestureEnabled={props.pinchGestureEnabled}
   />
 )
