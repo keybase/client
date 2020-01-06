@@ -28,27 +28,27 @@ class FilePickerPopup extends React.Component<Props> {
       {
         icon: 'iconfont-camera',
         onClick: () => this.props.onSelect('mixed', 'camera'),
-        title: 'Take Photo or Video',
+        title: 'Take photo or video',
       },
       {
         icon: 'iconfont-photo-library',
         onClick: () => this.props.onSelect('mixed', 'library'),
-        title: 'Choose from Library',
+        title: 'Choose from library',
       },
     ]
 
     const androidItems: Kb.MenuItems = [
-      {icon: 'iconfont-camera', onClick: () => this.props.onSelect('photo', 'camera'), title: 'Take Photo'},
+      {icon: 'iconfont-camera', onClick: () => this.props.onSelect('photo', 'camera'), title: 'Take photo'},
       {icon: 'iconfont-film', onClick: () => this.props.onSelect('video', 'camera'), title: 'Take video'},
       {
         icon: 'iconfont-photo-library',
         onClick: () => this.props.onSelect('photo', 'library'),
-        title: 'Photo from Library',
+        title: 'Photo from library',
       },
       {
         icon: 'iconfont-video-library',
         onClick: () => this.props.onSelect('video', 'library'),
-        title: 'Video from Library',
+        title: 'Video from library',
       },
     ]
     const items = isIOS ? iosItems : androidItems
