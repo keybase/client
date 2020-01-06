@@ -43,7 +43,7 @@ export default Container.connect(
       joiners:
         !stateProps._joiners.length && !stateProps.leavers.length ? [stateProps.author] : stateProps._joiners,
       leavers: stateProps.leavers,
-      onAuthorClick: () => dispatchProps._onAuthorClick(stateProps.author),
+      onAuthorClick: dispatchProps._onAuthorClick,
       onManageChannels: () => dispatchProps._onManageChannels(_meta.teamID),
       onManageNotifications: () => dispatchProps._onManageNotifications(_meta.conversationIDKey),
       teamname: _meta.teamname,
