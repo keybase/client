@@ -230,8 +230,20 @@
 			"revisionTime": "2019-10-30T07:13:27Z"
 		},
 		{
+			"checksumSHA1": "CMTaymOiaF96jRBA46FBSC+3S/Y=",
+			"path": "github.com/blevesearch/bleve/analysis/tokenizer/exception",
+			"revision": "189ee421f71e1e77dbfb5ea900988b5efadb33a4",
+			"revisionTime": "2019-10-30T07:13:27Z"
+		},
+		{
 			"checksumSHA1": "q7C04nlJLxKmemXLop0oyJhfi5M=",
 			"path": "github.com/blevesearch/bleve/analysis/tokenizer/unicode",
+			"revision": "189ee421f71e1e77dbfb5ea900988b5efadb33a4",
+			"revisionTime": "2019-10-30T07:13:27Z"
+		},
+		{
+			"checksumSHA1": "CMuNWGGtyp8p+dvNmLx0KPNHIBM=",
+			"path": "github.com/blevesearch/bleve/analysis/tokenizer/web",
 			"revision": "189ee421f71e1e77dbfb5ea900988b5efadb33a4",
 			"revisionTime": "2019-10-30T07:13:27Z"
 		},
