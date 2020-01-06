@@ -298,6 +298,7 @@ func (w *walletAPIHandler) send(ctx context.Context, c Call, wr io.Writer) error
 		DisplayCurrency: displayCurrency,
 		FromAccountID:   stellar1.AccountID(opts.FromAccountID),
 		PublicNote:      opts.MemoText,
+		PublicNoteType:  stellar1.PublicNoteType_TEXT,
 	}
 	result, err := w.cli.SendCLILocal(ctx, arg)
 	if err != nil {
