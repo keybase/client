@@ -20,7 +20,6 @@ export default Container.connect(
     timestamp: message.timestamp,
   }),
   dispatch => ({
-    _onAuthorClick: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
     _onManageChannels: (teamID: TeamsTypes.TeamID) =>
       dispatch(
         RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'chatManageChannels'}]})
@@ -31,6 +30,7 @@ export default Container.connect(
           path: [{props: {conversationIDKey: conversationIDKey, tab: 'settings'}, selected: 'chatInfoPanel'}],
         })
       ),
+    onAuthorClick: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
   }),
   (stateProps, dispatchProps, _: OwnProps) => {
     const {_meta} = stateProps
@@ -43,7 +43,7 @@ export default Container.connect(
       joiners:
         !stateProps._joiners.length && !stateProps.leavers.length ? [stateProps.author] : stateProps._joiners,
       leavers: stateProps.leavers,
-      onAuthorClick: dispatchProps._onAuthorClick,
+      onAuthorClick: dispatchProps.onAuthorClick,
       onManageChannels: () => dispatchProps._onManageChannels(_meta.teamID),
       onManageNotifications: () => dispatchProps._onManageNotifications(_meta.conversationIDKey),
       teamname: _meta.teamname,
