@@ -84,6 +84,59 @@ const getFollowerInfo = (state: Container.TypedState, action: ConfigGen.LoadOnSt
   }
 }
 
+const checkForUpdate = async () => {
+  const s: Saga.RPCPromiseType<typeof RPCTypes.configGetUpdateInfo2RpcPromise> = await RPCTypes.configGetUpdateInfo2RpcPromise(
+    {}
+  )
+  let status: ConfigGen.UpdateInfoPayload['payload']['status'] = 'ok'
+  let message: string = ''
+  try {
+    switch (s.status) {
+      case RPCTypes.UpdateInfoStatus2.ok:
+        break
+      case RPCTypes.UpdateInfoStatus2.suggested:
+        status = 'suggested'
+        message = s.suggested.message
+        break
+      case RPCTypes.UpdateInfoStatus2.critical:
+        status = 'critical'
+        message = s.critical.message
+        break
+      default:
+        logger.warn('Received an unsupported update status from the service', s)
+        break
+    }
+  } catch (err) {
+    logger.warn('error getting update info: ', err)
+    return
+  }
+  return ConfigGen.createUpdateInfo({message, status})
+}
+
+/*
+ * Check if the client is out of date via the service -> api server
+ * There are three cases we care about from the frontend
+ * 1. OK
+ * 2. SUGGESTED
+ * 3. CRITICAL
+ */
+const startupCheckDelay = 30 * 1000 // 30 seconds
+const updateCheckInterval = 60 * 60 * 1000 // 1 hour
+function* startOutOfDateCheckLoop() {
+  // don't bother checking during startup
+  yield Saga.delay(startupCheckDelay)
+
+  while (true) {
+    const action = yield checkForUpdate()
+    yield Saga.put(action)
+    // Only want to make a single check on mobile
+    if (isMobile) {
+      return
+    }
+    yield Saga.delay(updateCheckInterval)
+  }
+}
+
 // set to true so we reget status when we're reachable again
 let wasUnreachable = false
 function* loadDaemonBootstrapStatus(
@@ -825,6 +878,7 @@ function* configSaga() {
   yield* Saga.chainAction(EngineGen.keybase1NotifyTrackingTrackingInfo, onTrackingInfo)
   yield* Saga.chainAction(EngineGen.keybase1NotifyServiceHTTPSrvInfoUpdate, onHTTPSrvInfoUpdated)
   yield* Saga.chainAction(EngineGen.keybase1NotifyServiceHandleKeybaseLink, onHandleLink)
+  yield* Saga.chainAction2(ConfigGen.checkForUpdate, checkForUpdate)
 
   // Listen for updates to `whatsNewLastSeenVersion`
   yield* Saga.chainAction(GregorGen.pushState, gregorPushState)
@@ -844,6 +898,8 @@ function* configSaga() {
 
   yield* Saga.chainAction2(PushGen.showPermissionsPrompt, onShowPermissionsPrompt)
   yield* Saga.chainAction2(ConfigGen.androidShare, onAndroidShare)
+  // Kick off out of date checking
+  yield Saga.spawn(startOutOfDateCheckLoop)
 
   // Kick off platform specific stuff
   yield Saga.spawn(PlatformSpecific.platformConfigSaga)
