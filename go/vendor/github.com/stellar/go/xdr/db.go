@@ -1,8 +1,10 @@
 package xdr
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
+
 	"github.com/lib/pq"
 )
 
@@ -46,7 +48,7 @@ func (t *Int64) Scan(src interface{}) error {
 	return nil
 }
 
-// Scan reads from a src an xdr.Price
+// Scan reads from a src into an xdr.Price
 func (t *Price) Scan(src interface{}) error {
 	// assuming the price is represented as a two-element array [n,d]
 	arr := pq.Int64Array{}
@@ -61,6 +63,21 @@ func (t *Price) Scan(src interface{}) error {
 	}
 
 	*t = Price{Int32(arr[0]), Int32(arr[1])}
+	return nil
+}
+
+// Scan reads from a src into an xdr.Hash
+func (t *Hash) Scan(src interface{}) error {
+	decodedBytes, err := hex.DecodeString(string(src.([]uint8)))
+	if err != nil {
+		return err
+	}
+
+	var decodedHash Hash
+	copy(decodedHash[:], decodedBytes)
+
+	*t = decodedHash
+
 	return nil
 }
 
