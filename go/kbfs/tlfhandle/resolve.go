@@ -17,6 +17,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
 	kbname "github.com/keybase/client/go/kbun"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
@@ -834,11 +835,16 @@ func parseHandleLoose(
 			if iteamHandle.tlfID != tlf.NullID {
 				return iteamHandle, nil
 			}
+		} else {
+			// This is not an implicit team, so continue on to check for a
+			// normal team.  TODO: return non-nil errors immediately if they
+			// don't simply indicate the implicit team doesn't exist yet
+			// (i.e., when we start creating them by default).
+			switch errors.Cause(err).(type) {
+			case libkb.TeamContactSettingsBlockError:
+				return nil, err
+			}
 		}
-		// This is not an implicit team, so continue on to check for a
-		// normal team.  TODO: return non-nil errors immediately if they
-		// don't simply indicate the implicit team doesn't exist yet
-		// (i.e., when we start creating them by default).
 	}
 
 	// Before parsing the tlf handle (which results in identify

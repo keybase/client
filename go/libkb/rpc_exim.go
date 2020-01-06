@@ -2414,3 +2414,29 @@ func (e NoPaperKeysError) ToStatus() (ret keybase1.Status) {
 	ret.Desc = e.Error()
 	return
 }
+
+func (e TeamContactSettingsBlockError) ToStatus() (ret keybase1.Status) {
+	ret.Code = SCTeamContactSettingsBlock
+	ret.Name = "TEAM_CONTACT_SETTINGS_BLOCK"
+	ret.Desc = e.Error()
+	ret.Fields = []keybase1.StringKVPair{
+		{Key: "uids", Value: parseUIDsToString(e.blockedUIDs)},
+		{Key: "usernames", Value: parseUsernamesToString(e.blockedUsernames)},
+	}
+	return
+}
+
+func parseUIDsToString(input []keybase1.UID) string {
+	uids := make([]string, len(input))
+	for i, uid := range input {
+		uids[i] = uid.String()
+	}
+	return strings.Join(uids, ",")
+}
+func parseUsernamesToString(input []NormalizedUsername) string {
+	usernames := make([]string, len(input))
+	for i, username := range input {
+		usernames[i] = username.String()
+	}
+	return strings.Join(usernames, ",")
+}
