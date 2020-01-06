@@ -5,7 +5,6 @@ import {DeserializeProps} from './remote-serializer.desktop'
 
 type OwnProps = {}
 
-// Props are handled by remote-proxy.desktop.js
 export default Container.remoteConnect(
   (state: DeserializeProps) => state,
   dispatch => ({

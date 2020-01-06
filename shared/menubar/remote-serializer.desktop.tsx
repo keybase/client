@@ -39,7 +39,7 @@ type KbfsDaemonStatus = Readonly<{
   onlineStatus: FSTypes.KbfsDaemonOnlineStatus
 }>
 
-export type Props = {
+export type ProxyProps = {
   conversationsToSend: ConversationsToSend
   darkMode: boolean
   diskSpaceStatus: FSTypes.DiskSpaceStatus
@@ -56,7 +56,7 @@ export type Props = {
   Pick<UsersState, UsersHoistedProps>
 
 type SerializeProps = Omit<
-  Props,
+  ProxyProps,
   'avatarRefreshCounter' | 'followers' | 'following' | 'infoMap' | 'navBadges'
 > & {
   avatarRefreshCounter: Array<[string, number]>
@@ -66,9 +66,8 @@ type SerializeProps = Omit<
   navBadges: Array<[Tab, number]>
 }
 
-export type DeserializeProps = Omit<Props, ConfigHoistedProps | UsersHoistedProps> & {
+export type DeserializeProps = Omit<ProxyProps, ConfigHoistedProps | UsersHoistedProps> & {
   config: Pick<ConfigState, ConfigHoistedProps>
-} & {
   users: Pick<UsersState, UsersHoistedProps>
 }
 
@@ -102,7 +101,7 @@ const initialState: DeserializeProps = {
   users: {infoMap: new Map()},
 }
 
-export const serialize = (p: Props, o: Partial<Props>): SerializeProps => {
+export const serialize = (p: ProxyProps, o: Partial<ProxyProps>): SerializeProps => {
   const {avatarRefreshCounter, navBadges, conversationsToSend, followers, following, infoMap, ...toSend} = p
   return {
     ...toSend,

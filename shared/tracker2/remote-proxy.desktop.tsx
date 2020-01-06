@@ -1,95 +1,78 @@
 // A mirror of the remote tracker windows.
-// RemoteTrackers renders up to MAX_TRACKERS
-// RemoteTracker is a single tracker popup
 import * as React from 'react'
 import * as Container from '../util/container'
 import * as Constants from '../constants/tracker2'
-import * as ConfigConstants from '../constants/config'
 import * as Styles from '../styles'
-// import SyncAvatarProps from '../desktop/remote/sync-avatar-props.desktop'
-// import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
+import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'
-// import {serialize} from './remote-serializer.desktop'
-
-type OwnProps = {username: string}
+import {serialize, ProxyProps} from './remote-serializer.desktop'
+import {intersect} from '../util/set'
+import {mapFilterByKey} from '../util/map'
 
 const MAX_TRACKERS = 5
 const windowOpts = {hasShadow: false, height: 470, transparent: true, width: 320}
 
-// TODO
-const Render = () => {
-  return null
-}
-// @ts-ignore
-const RemoteTracker: any = Render // SyncAvatarProps(Render)
-
-const RemoteTracker2 = (props: OwnProps) => {
+const RemoteTracker = (props: {username: string}) => {
   const {username} = props
   const state = Container.useSelector(s => s)
-  const d = Constants.getDetails(state, username)
-  const p = {
-    assertions: d.assertions,
-    bio: d.bio,
-    blocked: d.blocked,
+  const details = Constants.getDetails(state, username)
+  const {infoMap} = state.users
+  const {avatarRefreshCounter, following, httpSrvToken, httpSrvAddress} = state.config
+  const {assertions, bio, blocked, followersCount, followingCount, fullname, guiID} = details
+  const {hidFromFollowers, location, reason, teamShowcase} = details
+
+  const usernames = new Set([username])
+  const p: ProxyProps = {
+    // waiting: Container.anyWaiting(state, Constants.waitingKey),
+    assertions,
+    avatarRefreshCounter,
+    bio,
+    blocked,
     darkMode: Styles.isDarkMode(),
     followThem: Constants.followThem(state, username),
-    followersCount: d.followersCount,
-    followingCount: d.followingCount,
+    followersCount,
+    following: intersect(following, usernames),
+    followingCount,
     followsYou: Constants.followsYou(state, username),
-    fullname: d.fullname,
-    guiID: d.guiID,
-    hidFromFollowers: d.hidFromFollowers,
+    fullname,
+    guiID,
+    hidFromFollowers,
+    httpSrvAddress,
+    httpSrvToken,
+    infoMap: mapFilterByKey(infoMap, usernames),
     isYou: state.config.username === username,
-    location: d.location,
-    reason: d.reason,
-    state: d.state,
-    teamShowcase: d.teamShowcase,
-    waiting: Container.anyWaiting(state, Constants.waitingKey),
+    location,
+    reason,
+    state: details.state,
+    teamShowcase,
+    username,
   }
 
-  const opts = {
-    windowComponent: 'tracker2',
+  const windowComponent = 'tracker2'
+  const windowParam = username
+  useBrowserWindow({
+    windowComponent,
     windowOpts,
-    windowParam: username,
+    windowParam,
     windowPositionBottomRight: true,
     windowTitle: `Tracker - ${username}`,
-  } as const
-  useBrowserWindow(opts)
+  })
 
+  useSerializeProps(p, serialize, windowComponent, windowParam)
+
+  return null
+}
+
+const RemoteTrackers = () => {
+  const state = Container.useSelector(s => s)
+  const {usernameToDetails} = state.tracker2
   return (
-    <RemoteTracker
-      {...p}
-      username={username}
-      remoteWindowNeedsProps={ConfigConstants.getRemoteWindowPropsCount(state.config, 'tracker2', username)}
-      windowComponent={opts.windowComponent}
-      windowParam={opts.windowParam}
-    />
+    <>
+      {[...usernameToDetails.values()].slice(0, MAX_TRACKERS).map(u => (
+        <RemoteTracker key={u.username} username={u.username} />
+      ))}
+    </>
   )
 }
 
-type Props = {
-  users: Array<string>
-}
-
-const RemoteTracker2s = React.memo((p: Props) => (
-  <>
-    {p.users.map(username => (
-      <RemoteTracker2 username={username} key={username} />
-    ))}
-  </>
-))
-
-export default Container.connect(
-  state => ({_users: state.tracker2.usernameToDetails}),
-  () => ({}),
-  (stateProps, _, __) => ({
-    users: [...stateProps._users.values()].reduce<Array<string>>((arr, u) => {
-      if (arr.length < MAX_TRACKERS) {
-        if (u.showTracker) {
-          arr.push(u.username)
-        }
-      }
-      return arr
-    }, []),
-  })
-)(RemoteTracker2s)
+export default RemoteTrackers

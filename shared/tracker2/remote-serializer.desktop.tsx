@@ -1,85 +1,119 @@
-import * as Constants from '../constants/tracker2'
-import * as Types from '../constants/types/tracker2'
-// import * as Avatar from '../desktop/remote/sync-avatar-props.desktop'
-import shallowEqual from 'shallowequal'
+// import * as Constants from '../constants/tracker2'
+// import * as Types from '../constants/types/tracker2'
+import {Details, Assertion} from '../constants/types/tracker2'
+import {State as ConfigState} from '../constants/types/config'
+import {State as UsersState, UserInfo} from '../constants/types/users'
+// import shallowEqual from 'shallowequal'
 
-// We could try and only send diffs but the payloads are small and handling the removing case is tricky and likely not worth it
-export const serialize = {
-  // ...Avatar.serialize,
-  assertions: (v?: Map<string, Types.Assertion>) => (v ? [...v.entries()] : v),
-  bio: (v?: string) => v,
-  blocked: (v: boolean) => v,
-  darkMode: (v: boolean) => v,
-  followThem: (v: boolean) => v,
-  followersCount: (v?: number) => v,
-  followingCount: (v?: number) => v,
-  followsYou: (v: boolean) => v,
-  fullname: (v?: string) => v,
-  guiID: (v: string) => v,
-  hidFromFollowers: (v: boolean) => v,
-  isYou: (v: boolean) => v,
-  location: (v?: string) => v,
-  reason: (v: string) => v,
-  state: (v: Types.DetailsState) => v,
-  teamShowcase: (v?: Array<Types.TeamShowcase>, o?: Array<Types.TeamShowcase>) =>
-    o && shallowEqual(v, o) ? undefined : v,
-  username: (v: string) => v,
-  usernames: (v: Array<string>) => v,
-  waiting: (v: boolean) => v,
-  windowComponent: (v: string) => v,
-  windowOpts: (v: Object) => v,
-  windowParam: (v: string) => v,
-  windowPositionBottomRight: (v: boolean) => v,
-  windowTitle: (v: string) => v,
-}
+// for convenience we flatten the props we send over the wire
+type ConfigHoistedProps =
+  | 'avatarRefreshCounter'
+  | 'following'
+  | 'httpSrvAddress'
+  | 'httpSrvToken'
+  | 'username'
+type UsersHoistedProps = 'infoMap'
 
-const initialState = {
-  assertions: new Map(),
-  config: {following: new Set()},
-  teams: {teamNameToID: new Map()},
-  users: {infoMap: new Map()},
-  waiting: {counts: new Map()},
-}
-
-type Props = Partial<{
-  // ...Avatar.serialize, // TODO this type
-  assertions: Map<string, Types.Assertion>
-  bio: string
-  blocked: boolean
+export type ProxyProps = {
   darkMode: boolean
   followThem: boolean
-  followersCount: number
-  followingCount: number
   followsYou: boolean
-  fullname: string
-  guiID: string
-  hidFromFollowers: boolean
   isYou: boolean
-  location: string
-  reason: string
-  state: Types.DetailsState
-  stellarHidden: boolean
-  teamShowcase: Array<Types.TeamShowcase>
-  o?: Array<Types.TeamShowcase>
-  username: string
-  waiting: boolean
-  windowComponent: string
-  windowOpts: Object
-  windowParam: string
-  windowPositionBottomRight: boolean
-  windowTitle: string
-}>
+} & Pick<
+  Details,
+  | 'assertions'
+  | 'bio'
+  | 'blocked'
+  | 'followersCount'
+  | 'followingCount'
+  | 'fullname'
+  | 'guiID'
+  | 'hidFromFollowers'
+  | 'location'
+  | 'reason'
+  | 'state'
+  | 'stellarHidden'
+  | 'teamShowcase'
+> &
+  Pick<ConfigState, ConfigHoistedProps> &
+  Pick<UsersState, UsersHoistedProps>
 
-export const deserialize = (state: typeof initialState = initialState, props: Props) => {
-  const newState = {
-    ...state,
-    ...props,
-    ...(props && props.assertions ? {assertions: new Map(props.assertions)} : {}),
-    ...(props && props.username
-      ? {users: {infoMap: new Map([[props.username, {broken: false, fullname: props.fullname}]])}}
-      : {}),
-    waiting: {counts: new Map([[Constants.waitingKey, props && props.waiting]])},
+type SerializeProps = Omit<ProxyProps, 'avatarRefreshCounter' | 'assertions' | 'infoMap' | 'following'> & {
+  assertions: Array<[string, Assertion]>
+  avatarRefreshCounter: Array<[string, number]>
+  following: Array<string>
+  infoMap: Array<[string, UserInfo]>
+}
+export type DeserializeProps = Omit<ProxyProps, ConfigHoistedProps | UsersHoistedProps> & {
+  config: Pick<ConfigState, ConfigHoistedProps>
+  users: Pick<UsersState, UsersHoistedProps>
+  // waiting: boolean
+}
+
+const initialState: DeserializeProps = {
+  assertions: new Map(),
+  blocked: false,
+  config: {
+    avatarRefreshCounter: new Map(),
+    following: new Set(),
+    httpSrvAddress: '',
+    httpSrvToken: '',
+    username: '',
+  },
+  darkMode: false,
+  followThem: false,
+  followsYou: false,
+  guiID: '',
+  hidFromFollowers: false,
+  isYou: false,
+  reason: '',
+  state: 'checking',
+  stellarHidden: false,
+  // teams: {teamNameToID: new Map()},
+  users: {infoMap: new Map()},
+  // waiting: false,
+}
+
+export const serialize = (p: ProxyProps): SerializeProps => {
+  const {assertions, avatarRefreshCounter, following, infoMap, ...toSend} = p
+  return {
+    ...toSend,
+    assertions: [...(assertions?.entries() ?? [])],
+    avatarRefreshCounter: [...avatarRefreshCounter.entries()],
+    following: [...following],
+    infoMap: [...infoMap.entries()],
   }
-  // TODO
-  return newState // Avatar.deserialize(newState, props)
+}
+
+export const deserialize = (
+  state: DeserializeProps = initialState,
+  props: SerializeProps
+): DeserializeProps => {
+  if (!props) return state
+
+  const {
+    assertions,
+    avatarRefreshCounter,
+    following,
+    httpSrvAddress,
+    httpSrvToken,
+    infoMap,
+    username,
+    ...rest
+  } = props
+
+  return {
+    ...state,
+    ...rest,
+    assertions: new Map(props.assertions),
+    config: {
+      ...state.config,
+      avatarRefreshCounter: new Map(avatarRefreshCounter),
+      following: new Set(following),
+      httpSrvAddress,
+      httpSrvToken,
+      username,
+    },
+    users: {infoMap: new Map(infoMap)},
+  }
 }

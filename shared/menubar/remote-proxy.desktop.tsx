@@ -14,7 +14,7 @@ import {resolveImage} from '../desktop/app/resolve-root.desktop'
 import {isDarwin, isWindows} from '../constants/platform'
 import {isSystemDarkMode} from '../styles/dark-mode'
 import {uploadsToUploadCountdownHOCProps} from '../fs/footer/upload-container'
-import {Props, RemoteTlfUpdates} from './remote-serializer.desktop'
+import {ProxyProps, RemoteTlfUpdates} from './remote-serializer.desktop'
 import {mapFilterByKey} from '../util/map'
 
 const getIcons = (iconType: NotificationTypes.BadgeType, isBadged: boolean) => {
@@ -87,7 +87,7 @@ function useWidgetBrowserWindow(p: WidgetProps) {
   useUpdateBadges(p, count)
 }
 
-const Widget = (p: Props & WidgetProps) => {
+const Widget = (p: ProxyProps & WidgetProps) => {
   const windowComponent = 'menubar'
   const windowParam = 'menubar'
 
@@ -143,11 +143,9 @@ export default () => {
   const diskSpaceStatus = overallSyncStatus.diskSpaceStatus
   const showingDiskSpaceBanner = overallSyncStatus.showingBanner
   const kbfsEnabled = sfmi.driverStatus.type === 'enabled'
-
   const remoteTlfUpdates = tlfUpdates.map(t => GetRowsFromTlfUpdate(t, uploads))
-  // TODO filter based on users names here?
 
-  const p: Props & WidgetProps = {
+  const p: ProxyProps & WidgetProps = {
     ...uploadsToUploadCountdownHOCProps(pathItems, uploads),
     avatarRefreshCounter: mapFilterByKey(avatarRefreshCounter, usernames),
     conversationsToSend,

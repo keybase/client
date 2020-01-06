@@ -4,7 +4,7 @@ export type ProxyProps = {
 } & Pick<State, 'devices' | 'paperkeyError' | 'phase' | 'waiting'>
 
 type SerializeProps = ProxyProps
-type DeserializeProps = ProxyProps
+export type DeserializeProps = ProxyProps
 
 const initialState: DeserializeProps = {
   darkMode: false,
