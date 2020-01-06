@@ -347,7 +347,7 @@ func (e *Identify2WithUID) run(m libkb.MetaContext) {
 	err := e.runReturnError(m)
 	e.unblock(m /* isFinal */, true, err)
 
-	if e.arg.IdentifyBehavior != keybase1.TLFIdentifyBehavior_CHAT_GUI {
+	if !e.arg.IdentifyBehavior.IsChatIdentify() {
 		m.Debug("Identify2WithUID.run: notifying chat")
 		go m.G().UserChanged(m.Ctx(), e.arg.Uid)
 	}
