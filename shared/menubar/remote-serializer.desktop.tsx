@@ -27,12 +27,12 @@ type ConfigHoistedProps =
 
 type UsersHoistedProps = 'infoMap'
 
-type ConversationsToSend = Array<{
+type Conversation = {
   conversation: ChatTypes.ConversationMeta
   hasBadge: boolean
   hasUnread: boolean
   participantInfo: ChatTypes.ParticipantInfo
-}>
+}
 
 type KbfsDaemonStatus = Readonly<{
   rpcStatus: FSTypes.KbfsDaemonRpcStatus
@@ -40,7 +40,7 @@ type KbfsDaemonStatus = Readonly<{
 }>
 
 export type ProxyProps = {
-  conversationsToSend: ConversationsToSend
+  conversationsToSend: Array<Conversation>
   darkMode: boolean
   diskSpaceStatus: FSTypes.DiskSpaceStatus
   endEstimate: number
@@ -57,13 +57,14 @@ export type ProxyProps = {
 
 type SerializeProps = Omit<
   ProxyProps,
-  'avatarRefreshCounter' | 'followers' | 'following' | 'infoMap' | 'navBadges'
+  'avatarRefreshCounter' | 'followers' | 'following' | 'infoMap' | 'navBadges' | 'conversationsToSend'
 > & {
   avatarRefreshCounter: Array<[string, number]>
+  conversationsToSend: Array<Conversation | 'same'> // same if unchanged
   followers: Array<string>
   following: Array<string>
   infoMap: Array<[string, UserInfo]>
-  navBadges: Array<[Tab, number]>
+  navBadges: Array<[Tab, number]> | 'same'
 }
 
 export type DeserializeProps = Omit<ProxyProps, ConfigHoistedProps | UsersHoistedProps> & {
@@ -101,22 +102,27 @@ const initialState: DeserializeProps = {
   users: {infoMap: new Map()},
 }
 
-export const serialize = (p: ProxyProps, o: Partial<ProxyProps>): SerializeProps => {
-  const {avatarRefreshCounter, navBadges, conversationsToSend, followers, following, infoMap, ...toSend} = p
-  return {
-    ...toSend,
-    avatarRefreshCounter: [...avatarRefreshCounter.entries()],
-    conversationsToSend: conversationsToSend.filter(c => {
-      const matching = o?.conversationsToSend?.find(
-        oc => oc.conversation.conversationIDKey === c.conversation.conversationIDKey
-      )
-      return !shallowEqual(matching, c)
-    }),
-    followers: [...followers],
-    following: [...following],
-    infoMap: [...infoMap.entries()],
-    navBadges: [...navBadges.entries()],
-  }
+export const serialize = (
+  p: ProxyProps,
+  o: Partial<SerializeProps>
+): [Partial<SerializeProps>, Partial<SerializeProps>] => {
+  const {avatarRefreshCounter, conversationsToSend, followers, following, infoMap, ...toSend} = p
+  const navBadges = [...p.navBadges.entries()]
+  return [
+    {
+      ...toSend,
+      avatarRefreshCounter: [...avatarRefreshCounter.entries()],
+      conversationsToSend: conversationsToSend.map((c, idx) => {
+        const old = o?.conversationsToSend?.[idx]
+        return shallowEqual(old, c) ? 'same' : c
+      }),
+      followers: [...followers],
+      following: [...following],
+      infoMap: [...infoMap.entries()],
+      navBadges: JSON.stringify(navBadges) === JSON.stringify(o?.navBadges) ? 'same' : navBadges,
+    },
+    {conversationsToSend, navBadges},
+  ]
 }
 
 export const deserialize = (
@@ -155,6 +161,9 @@ export const deserialize = (
       outOfDate,
       username,
     },
+    conversationsToSend: props.conversationsToSend.map((c, idx) =>
+      c === 'same' ? state.conversationsToSend[idx]! : c
+    ),
     navBadges: new Map(navBadges),
     users: {
       infoMap: new Map(infoMap),

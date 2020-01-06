@@ -62,18 +62,21 @@ const initialState: DeserializeProps = {
   waiting: {counts: new Map(), errors: new Map()},
 }
 
-export const serialize = (p: ProxyProps): SerializeProps => {
+export const serialize = (p: ProxyProps): [Partial<SerializeProps>, Partial<SerializeProps>] => {
   const {assertions, avatarRefreshCounter, following, followers, infoMap, counts, errors, ...toSend} = p
-  return {
-    ...toSend,
-    assertions: [...(assertions?.entries() ?? [])],
-    avatarRefreshCounter: [...avatarRefreshCounter.entries()],
-    counts: [...counts.entries()],
-    errors: [...errors.entries()],
-    followers: [...followers],
-    following: [...following],
-    infoMap: [...infoMap.entries()],
-  }
+  return [
+    {
+      ...toSend,
+      assertions: [...(assertions?.entries() ?? [])],
+      avatarRefreshCounter: [...avatarRefreshCounter.entries()],
+      counts: [...counts.entries()],
+      errors: [...errors.entries()],
+      followers: [...followers],
+      following: [...following],
+      infoMap: [...infoMap.entries()],
+    },
+    {},
+  ]
 }
 
 export const deserialize = (s: DeserializeProps = initialState, props: SerializeProps): DeserializeProps => {

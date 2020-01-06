@@ -21,11 +21,9 @@ const RemoteTracker = (props: {trackerUsername: string}) => {
   const {assertions, bio, blocked, followersCount, followingCount, fullname, guiID} = details
   const {hidFromFollowers, location, reason, teamShowcase} = details
   const {counts, errors} = state.waiting
-
   const trackerUsernames = new Set([trackerUsername])
   const waitingKeys = new Set([Constants.waitingKey])
   const p: ProxyProps = {
-    // waiting: Container.anyWaiting(state, Constants.waitingKey),
     assertions,
     avatarRefreshCounter,
     bio,

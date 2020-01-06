@@ -21,7 +21,7 @@ const initialState: DeserializeProps = {
   windowTitle: '',
 }
 
-export const serialize = (p: ProxyProps): SerializeProps => p
+export const serialize = (p: ProxyProps): [Partial<SerializeProps>, Partial<SerializeProps>] => [p, {}]
 
 export const deserialize = (
   state: DeserializeProps = initialState,

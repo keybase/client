@@ -7,18 +7,21 @@ import * as Container from '../../util/container'
 import throttle from 'lodash/throttle'
 
 // set this to true to see details of the serialization process
-const debugSerializer = __DEV__ && false
+const debugSerializer = __DEV__ && true
 if (debugSerializer) {
   console.log('\n\n\n\n\n\nDEBUGGING REMOTE SERIALIZER')
 }
 
-export default function useSerializeProps<Props extends {}>(
-  p: Props,
-  serializer: (p: Props, old: Partial<Props>) => Partial<Props>,
+export default function useSerializeProps<ProxyProps extends {}, SerializeProps extends {}>(
+  p: ProxyProps,
+  serializer: (
+    p: ProxyProps,
+    old: Partial<SerializeProps>
+  ) => [Partial<SerializeProps>, Partial<SerializeProps>],
   windowComponent: string,
   windowParam: string
 ) {
-  const lastSent = React.useRef<Partial<Props>>({})
+  const lastSent = React.useRef<Partial<SerializeProps>>({})
   const lastForceUpdate = React.useRef<number>(-1)
   const currentForceUpdate = Container.useSelector(s =>
     windowComponent ? s.config.remoteWindowNeedsProps.get(windowComponent)?.get(windowParam) ?? 0 : 0
@@ -26,16 +29,18 @@ export default function useSerializeProps<Props extends {}>(
 
   const throttledSend = React.useRef(
     throttle(
-      (toSend: Partial<Props>) => {
+      (toSend: Partial<SerializeProps>, toCache: Partial<SerializeProps>) => {
+        const propsStr = JSON.stringify(toSend)
+        debugSerializer && console.log('[useSerializeProps]: throttled send', propsStr.length, toSend)
         SafeElectron.getApp().emit('KBkeybase', '', {
           payload: {
-            propsStr: JSON.stringify(toSend),
+            propsStr,
             windowComponent,
             windowParam,
           },
           type: 'rendererNewProps',
         })
-        lastSent.current = toSend
+        lastSent.current = toCache
       },
       1000,
       {leading: true}
@@ -48,8 +53,8 @@ export default function useSerializeProps<Props extends {}>(
         return
       }
       const forceUpdate = currentForceUpdate !== lastForceUpdate.current
-      const toSend = serializer(p, forceUpdate ? {} : lastSent.current)
-      Object.keys(toSend).length && throttledSend.current(toSend)
+      const [toSend, toCache] = serializer(p, forceUpdate ? {} : lastSent.current)
+      throttledSend.current(toSend, toCache)
       lastForceUpdate.current = currentForceUpdate
     },
     // eslint-disable-next-line
