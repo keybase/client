@@ -50,7 +50,7 @@ const Bot = ({botAlias, description, botUsername, onClick, ownerTeam, ownerUser}
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.rowContainer}>
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.row}>
-            <Kb.Avatar size={48} style={styles.avatarStyle} username={botUsername} />
+            <Kb.Avatar size={Styles.isMobile ? 48 : 32} style={styles.avatarStyle} username={botUsername} />
             <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}}>
               {usernameDisplay}
               {lower}
@@ -69,10 +69,16 @@ const styles = Styles.styleSheetCreate(
         isElectron: {marginRight: Styles.globalMargins.tiny},
         isMobile: {marginRight: Styles.globalMargins.small},
       }),
-      container: {
-        paddingBottom: Styles.globalMargins.tiny,
-        paddingTop: Styles.globalMargins.tiny,
-      },
+      container: Styles.platformStyles({
+        isElectron: {
+          paddingBottom: Styles.globalMargins.xxtiny,
+          paddingTop: Styles.globalMargins.xxtiny,
+        },
+        isMobile: {
+          paddingBottom: Styles.globalMargins.tiny,
+          paddingTop: Styles.globalMargins.tiny,
+        },
+      }),
       row: {
         alignItems: 'center',
         flex: 1,
