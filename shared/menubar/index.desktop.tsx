@@ -23,11 +23,11 @@ export type Props = {
   loggedIn: boolean
   kbfsDaemonStatus: FsTypes.KbfsDaemonStatus
   kbfsEnabled: boolean
-  updateNow: () => void
+  updateNow?: () => void
   onHideDiskSpaceBanner: () => void
   onRekey: (path: string) => void
   onRetrySync: () => void
-  openApp: (tab?: string) => void
+  openApp: (tab?: Tabs.AppTab) => void
   outOfDate?: ConfigTypes.OutOfDate
   showInFinder: () => void
   quit: () => void
@@ -38,7 +38,7 @@ export type Props = {
   showingDiskSpaceBanner: boolean
   username: string | null
   waitForKbfsDaemon: () => void
-  badgeInfo: {[K in string]: number}
+  navBadges: Map<string, number>
 
   // UploadCountdownHOCProps
   endEstimate?: number
@@ -233,7 +233,7 @@ class MenubarRender extends React.Component<Props, State> {
   }
 
   _menuItems(): Kb.MenuItems {
-    const countMap = this.props.badgeInfo || {}
+    const countMap = this.props.navBadges
     const startingUp = this.props.daemonHandshakeState !== 'done'
     const loggedOut = !this.props.username
 
@@ -244,22 +244,22 @@ class MenubarRender extends React.Component<Props, State> {
             {
               onClick: () => this.props.openApp(Tabs.walletsTab),
               title: 'Wallet',
-              view: this._menuView('Wallet', 'iconfont-nav-2-wallets', countMap[Tabs.walletsTab]),
+              view: this._menuView('Wallet', 'iconfont-nav-2-wallets', countMap.get(Tabs.walletsTab)),
             },
             {
               onClick: () => this.props.openApp(Tabs.gitTab),
               title: 'Git',
-              view: this._menuView('Git', 'iconfont-nav-2-git', countMap[Tabs.gitTab]),
+              view: this._menuView('Git', 'iconfont-nav-2-git', countMap.get(Tabs.gitTab)),
             },
             {
               onClick: () => this.props.openApp(Tabs.devicesTab),
               title: 'Devices',
-              view: this._menuView('Devices', 'iconfont-nav-2-devices', countMap[Tabs.devicesTab]),
+              view: this._menuView('Devices', 'iconfont-nav-2-devices', countMap.get(Tabs.devicesTab)),
             },
             {
               onClick: () => this.props.openApp(Tabs.settingsTab),
               title: 'Settings',
-              view: this._menuView('Settings', 'iconfont-nav-2-settings', countMap[Tabs.settingsTab]),
+              view: this._menuView('Settings', 'iconfont-nav-2-settings', countMap.get(Tabs.settingsTab)),
             },
             'Divider',
           ] as const)
@@ -292,10 +292,7 @@ class MenubarRender extends React.Component<Props, State> {
     const badgeTypesInHeader = [Tabs.peopleTab, Tabs.chatTab, Tabs.fsTab, Tabs.teamsTab]
     const badgesInMenu = [Tabs.walletsTab, Tabs.gitTab, Tabs.devicesTab, Tabs.settingsTab]
     // TODO move this into container
-    const badgeCountInMenu = badgesInMenu.reduce(
-      (acc, val) => (this.props.badgeInfo[val] ? acc + this.props.badgeInfo[val] : acc),
-      0
-    )
+    const badgeCountInMenu = badgesInMenu.reduce((acc, val) => this.props.navBadges.get(val) ?? 0 + acc, 0)
 
     return (
       <Kb.Box
@@ -308,7 +305,7 @@ class MenubarRender extends React.Component<Props, State> {
         <Kb.Box style={styles.topRow}>
           <Kb.Box style={styles.headerBadgesContainer}>
             {badgeTypesInHeader.map(tab => (
-              <BadgeIcon key={tab} tab={tab} countMap={this.props.badgeInfo} openApp={this.props.openApp} />
+              <BadgeIcon key={tab} tab={tab} countMap={this.props.navBadges} openApp={this.props.openApp} />
             ))}
           </Kb.Box>
           <Kb.Box
@@ -384,7 +381,7 @@ const iconMap = {
   [Tabs.teamsTab]: 'iconfont-nav-2-teams',
 } as const
 const BadgeIcon = ({tab, countMap, openApp}) => {
-  const count = countMap[tab]
+  const count = countMap.get(tab)
   const iconType = iconMap[tab]
 
   if ((tab === Tabs.devicesTab && !count) || !iconType) {

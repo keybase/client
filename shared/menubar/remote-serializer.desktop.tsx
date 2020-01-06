@@ -1,5 +1,5 @@
-import * as Avatar from '../desktop/remote/sync-avatar-props.desktop'
-import {State as UsersState} from '../constants/types/users'
+// import * as Avatar from '../desktop/remote/sync-avatar-props.desktop'
+import {State as UsersState, UserInfo} from '../constants/types/users'
 import {State as ConfigState} from '../constants/types/config'
 import * as ChatTypes from '../constants/types/chat2'
 // import * as ChatTypes from '../constants/types/chat2'
@@ -20,6 +20,20 @@ export type RemoteTlfUpdates = {
   writer: string
 }
 
+// for convenience we flatten the props we send over the wire
+type ConfigHoistedProps =
+  | 'avatarRefreshCounter'
+  | 'daemonHandshakeState'
+  | 'outOfDate'
+  | 'followers'
+  | 'following'
+  | 'httpSrvAddress'
+  | 'httpSrvToken'
+  | 'loggedIn'
+  | 'username'
+
+type UsersHoistedProps = 'infoMap'
+
 export type Props = {
   conversationsToSend: Array<{
     conversation: ChatTypes.ConversationMeta
@@ -30,6 +44,7 @@ export type Props = {
   darkMode: boolean
   diskSpaceStatus: FSTypes.DiskSpaceStatus
   endEstimate: number
+  files: number
   fileName: string | null
   kbfsDaemonStatus: Readonly<{
     rpcStatus: FSTypes.KbfsDaemonRpcStatus
@@ -38,43 +53,27 @@ export type Props = {
   kbfsEnabled: boolean
   remoteTlfUpdates: Array<RemoteTlfUpdates>
   showingDiskSpaceBanner: boolean
-} & Pick<
-  ConfigState,
-  | 'avatarRefreshCounter'
-  | 'daemonHandshakeState'
-  | 'outOfDate'
-  | 'followers'
-  | 'following'
-  | 'httpSrvAddress'
-  | 'httpSrvToken'
-  | 'loggedIn'
-  | 'username'
-> &
+  totalSyncingBytes: number
+} & Pick<ConfigState, ConfigHoistedProps> &
   Pick<NotificationsState, 'navBadges'> &
-  Pick<UsersState, 'infoMap'>
+  Pick<UsersState, UsersHoistedProps>
 
 type SerializeProps = Omit<
   Props,
-  'avatarRefreshCounter' | 'users' | 'followers' | 'following' | 'infoMap' | 'navBadges'
+  'avatarRefreshCounter' | 'followers' | 'following' | 'infoMap' | 'navBadges'
 > & {
+  avatarRefreshCounter: Array<[string, number]>
+  followers: Array<string>
+  following: Array<string>
+  infoMap: Array<[string, UserInfo]>
   navBadges: Array<[Tab, number]>
-} & Avatar.SerializeProps
+}
 
-export type DeserializeProps = Omit<
-  Props,
-  | 'avatarRefreshCounter'
-  | 'daemonHandshakeState'
-  | 'followers'
-  | 'following'
-  | 'httpSrvAddress'
-  | 'httpSrvToken'
-  | 'loggedIn'
-  | 'username'
-  | 'infoMap'
-> &
-  Avatar.DeserializeProps & {
-    config: Pick<ConfigState, 'daemonHandshakeState' | 'outOfDate' | 'loggedIn' | 'username'>
-  }
+export type DeserializeProps = Omit<Props, ConfigHoistedProps | UsersHoistedProps> & {
+  config: Pick<ConfigState, ConfigHoistedProps>
+} & {
+  users: Pick<UsersState, UsersHoistedProps>
+}
 
 const initialState: DeserializeProps = {
   config: {
@@ -85,6 +84,7 @@ const initialState: DeserializeProps = {
     httpSrvAddress: '',
     httpSrvToken: '',
     loggedIn: false,
+    outOfDate: undefined,
     username: '',
   },
   conversationsToSend: [],
@@ -92,31 +92,33 @@ const initialState: DeserializeProps = {
   diskSpaceStatus: FSTypes.DiskSpaceStatus.Ok,
   endEstimate: 0,
   fileName: null,
+  files: 0,
   kbfsDaemonStatus: {
     onlineStatus: FSTypes.KbfsDaemonOnlineStatus.Unknown,
     rpcStatus: FSTypes.KbfsDaemonRpcStatus.Unknown,
   },
   kbfsEnabled: false,
   navBadges: new Map(),
-  outOfDate: undefined,
   remoteTlfUpdates: [],
   showingDiskSpaceBanner: false,
+  totalSyncingBytes: 0,
   users: {infoMap: new Map()},
 }
 
 export const serialize = (p: Props, o: Partial<Props>): SerializeProps => {
-  // TODO
-  const usernames = new Set<string>()
   const {avatarRefreshCounter, navBadges, conversationsToSend, followers, following, infoMap, ...toSend} = p
   return {
     ...toSend,
-    ...Avatar.serialize(p, o, usernames),
+    avatarRefreshCounter: [...avatarRefreshCounter.entries()],
     conversationsToSend: conversationsToSend.filter(c => {
       const matching = o?.conversationsToSend?.find(
         oc => oc.conversation.conversationIDKey === c.conversation.conversationIDKey
       )
       return !shallowEqual(matching, c)
     }),
+    followers: [...followers],
+    following: [...following],
+    infoMap: [...infoMap.entries()],
     navBadges: [...navBadges.entries()],
   }
 }
@@ -126,8 +128,6 @@ export const deserialize = (
   props: SerializeProps
 ): DeserializeProps => {
   if (!props) return state
-
-  // const infoMap = new Map(props.userInfo)
 
   const {
     avatarRefreshCounter,
@@ -144,23 +144,24 @@ export const deserialize = (
     ...rest
   } = props
 
-  const fromAvatar = Avatar.deserialize(state, props)
-
   return {
     ...state,
     ...rest,
     config: {
       ...state.config,
+      avatarRefreshCounter: new Map(avatarRefreshCounter),
       daemonHandshakeState,
+      followers: new Set(followers),
+      following: new Set(following),
+      httpSrvAddress,
+      httpSrvToken,
       loggedIn,
       outOfDate,
       username,
-      ...fromAvatar.config,
     },
     navBadges: new Map(navBadges),
     users: {
-      ...state.users,
-      ...fromAvatar.users,
+      infoMap: new Map(infoMap),
     },
   }
 }

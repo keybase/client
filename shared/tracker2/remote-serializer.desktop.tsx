@@ -1,11 +1,11 @@
 import * as Constants from '../constants/tracker2'
 import * as Types from '../constants/types/tracker2'
-import * as Avatar from '../desktop/remote/sync-avatar-props.desktop'
+// import * as Avatar from '../desktop/remote/sync-avatar-props.desktop'
 import shallowEqual from 'shallowequal'
 
 // We could try and only send diffs but the payloads are small and handling the removing case is tricky and likely not worth it
 export const serialize = {
-  ...Avatar.serialize,
+  // ...Avatar.serialize,
   assertions: (v?: Map<string, Types.Assertion>) => (v ? [...v.entries()] : v),
   bio: (v?: string) => v,
   blocked: (v: boolean) => v,

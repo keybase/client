@@ -7,6 +7,7 @@ import * as React from 'react'
 import * as Styles from '../styles'
 import * as SafeElectron from '../util/safe-electron.desktop'
 // TODO
+import {intersect} from '../util/set'
 // import SyncAvatarProps from '../desktop/remote/sync-avatar-props.desktop'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import {serialize} from './remote-serializer.desktop'
@@ -16,6 +17,7 @@ import {isDarwin, isWindows} from '../constants/platform'
 import {isSystemDarkMode} from '../styles/dark-mode'
 import {uploadsToUploadCountdownHOCProps} from '../fs/footer/upload-container'
 import {Props, RemoteTlfUpdates} from './remote-serializer.desktop'
+import {mapFilterByKey} from '../util/map'
 
 const getIcons = (iconType: NotificationTypes.BadgeType, isBadged: boolean) => {
   const devMode = __DEV__ ? '-dev' : ''
@@ -162,43 +164,55 @@ export default () => {
   const state = Container.useSelector(s => s)
   const {desktopAppBadgeCount, navBadges, widgetBadge} = state.notifications
   const {daemonHandshakeState, loggedIn, outOfDate, username} = state.config
+  const {avatarRefreshCounter, httpSrvAddress, httpSrvToken, followers, following} = state.config
   const {pathItems, tlfUpdates, uploads, overallSyncStatus, kbfsDaemonStatus, sfmi} = state.fs
   const {inboxLayout, metaMap, badgeMap, unreadMap, participantMap} = state.chat2
+  const {infoMap} = state.users
+
+  // only users we care about
+  const usernames = new Set<string>()
+  tlfUpdates.forEach(update => usernames.add(update.writer))
 
   const conversationsToSend =
-    inboxLayout?.widgetList?.map(v => ({
-      conversation: metaMap.get(v.convID) || {
-        ...ChatConstants.makeConversationMeta(),
-        conversationIDKey: v.convID,
-      },
-      hasBadge: !!badgeMap.get(v.convID),
-      hasUnread: !!unreadMap.get(v.convID),
-      participantInfo: participantMap.get(v.convID) ?? ChatConstants.noParticipantInfo,
-    })) ?? []
+    inboxLayout?.widgetList?.map(v => {
+      const participantInfo = participantMap.get(v.convID) ?? ChatConstants.noParticipantInfo
+
+      if (!v.isTeam) {
+        participantInfo.all.forEach(u => usernames.add(u))
+      }
+
+      return {
+        conversation: metaMap.get(v.convID) || {
+          ...ChatConstants.makeConversationMeta(),
+          conversationIDKey: v.convID,
+        },
+        hasBadge: !!badgeMap.get(v.convID),
+        hasUnread: !!unreadMap.get(v.convID),
+        participantInfo,
+      }
+    }) ?? []
 
   const darkMode = Styles.isDarkMode()
   const diskSpaceStatus = overallSyncStatus.diskSpaceStatus
   const showingDiskSpaceBanner = overallSyncStatus.showingBanner
   const kbfsEnabled = sfmi.driverStatus.type === 'enabled'
-  const userInfo = state.users.infoMap
 
-  // const usernames = tlfUpdates.map(update => update.writer)
   const remoteTlfUpdates = tlfUpdates.map(t => GetRowsFromTlfUpdate(t, uploads))
   // TODO filter based on users names here?
 
   const p: Props & WidgetProps = {
     ...uploadsToUploadCountdownHOCProps(pathItems, uploads),
-    avatarRefreshCounter: new Map<string, number>(),
+    avatarRefreshCounter: mapFilterByKey(avatarRefreshCounter, usernames),
     conversationsToSend,
     daemonHandshakeState,
     darkMode,
     desktopAppBadgeCount,
     diskSpaceStatus,
-    followers: new Set<string>(),
-    following: new Set<string>(),
-    httpSrvAddress: '',
-    httpSrvToken: '',
-    infoMap: userInfo,
+    followers: intersect(followers, usernames),
+    following: intersect(following, usernames),
+    httpSrvAddress,
+    httpSrvToken,
+    infoMap: mapFilterByKey(infoMap, usernames),
     kbfsDaemonStatus,
     kbfsEnabled,
     loggedIn,
