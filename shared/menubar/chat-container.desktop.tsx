@@ -6,7 +6,7 @@ import * as Styles from '../styles'
 import * as Types from '../constants/types/chat2'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import {SmallTeam} from '../chat/inbox/row/small-team'
-import {Props} from './remote-proxy.desktop'
+import {DeserializeProps} from './remote-serializer.desktop'
 import {remoteConnect} from '../util/container'
 
 type OwnProps = {
@@ -25,8 +25,9 @@ type ChatPreviewProps = {
 const noop = () => {}
 
 const RemoteSmallTeam = remoteConnect(
-  (state: Props) => {
-    const {username, conversationsToSend} = state
+  (state: DeserializeProps) => {
+    const {conversationsToSend, config} = state
+    const {username} = config
     return {conversationsToSend, username}
   },
   (dispatch, {conversationIDKey}: RowProps) => ({
@@ -113,7 +114,7 @@ const styles = Styles.styleSheetCreate(() => ({
 }))
 
 export default remoteConnect(
-  (state: Props) => {
+  (state: DeserializeProps) => {
     const {conversationsToSend} = state
     return {conversationsToSend}
   },

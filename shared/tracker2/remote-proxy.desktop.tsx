@@ -6,7 +6,7 @@ import * as Container from '../util/container'
 import * as Constants from '../constants/tracker2'
 import * as ConfigConstants from '../constants/config'
 import * as Styles from '../styles'
-import SyncAvatarProps from '../desktop/remote/sync-avatar-props.desktop'
+// import SyncAvatarProps from '../desktop/remote/sync-avatar-props.desktop'
 // import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'
 // import {serialize} from './remote-serializer.desktop'
@@ -21,7 +21,7 @@ const Render = () => {
   return null
 }
 // @ts-ignore
-const RemoteTracker: any = SyncAvatarProps(Render)
+const RemoteTracker: any = Render // SyncAvatarProps(Render)
 
 const RemoteTracker2 = (props: OwnProps) => {
   const {username} = props

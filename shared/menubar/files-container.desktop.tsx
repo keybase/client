@@ -3,7 +3,7 @@ import * as FsGen from '../actions/fs-gen'
 import * as ProfileGen from '../actions/profile-gen'
 import * as FsUtil from '../util/kbfs'
 import * as TimestampUtil from '../util/timestamp'
-import {RemoteTlfUpdates} from './remote-proxy.desktop'
+import {RemoteTlfUpdates} from './remote-serializer.desktop'
 import {FilesPreview} from './files.desktop'
 import {remoteConnect, setDisplayName} from '../util/container'
 

@@ -80,5 +80,6 @@ export const deserialize = (state: typeof initialState = initialState, props: Pr
       : {}),
     waiting: {counts: new Map([[Constants.waitingKey, props && props.waiting]])},
   }
-  return Avatar.deserialize(newState, props)
+  // TODO
+  return newState // Avatar.deserialize(newState, props)
 }

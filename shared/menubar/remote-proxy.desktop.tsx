@@ -1,10 +1,7 @@
 // A mirror of the remote menubar windows.
-import * as ConfigTypes from '../constants/types/config'
 import * as ChatConstants from '../constants/chat2'
-import * as ChatTypes from '../constants/types/chat2'
 import * as NotificationTypes from '../constants/types/notifications'
 import * as FSTypes from '../constants/types/fs'
-import * as UsersTypes from '../constants/types/users'
 import * as Container from '../util/container'
 import * as React from 'react'
 import * as Styles from '../styles'
@@ -18,6 +15,7 @@ import {resolveImage} from '../desktop/app/resolve-root.desktop'
 import {isDarwin, isWindows} from '../constants/platform'
 import {isSystemDarkMode} from '../styles/dark-mode'
 import {uploadsToUploadCountdownHOCProps} from '../fs/footer/upload-container'
+import {Props, RemoteTlfUpdates} from './remote-serializer.desktop'
 
 const getIcons = (iconType: NotificationTypes.BadgeType, isBadged: boolean) => {
   const devMode = __DEV__ ? '-dev' : ''
@@ -91,49 +89,6 @@ const getIcons = (iconType: NotificationTypes.BadgeType, isBadged: boolean) => {
 // return RemoteWindowComponent
 // }
 
-export type RemoteTlfUpdates = {
-  timestamp: number
-  tlf: FSTypes.Path
-  updates: Array<{path: FSTypes.Path; uploading: boolean}>
-  writer: string
-}
-
-export type Props = {
-  badgeInfo: NotificationTypes.State['navBadges']
-  config: {
-    avatarRefreshCounter: Map<string, number>
-    followers: Set<string>
-    following: Set<string>
-    httpSrvAddress: string
-    httpSrvToken: string
-  }
-  conversationsToSend: Array<{
-    conversation: ChatTypes.ConversationMeta
-    hasBadge: boolean
-    hasUnread: boolean
-    participantInfo: ChatTypes.ParticipantInfo
-  }>
-  daemonHandshakeState: ConfigTypes.DaemonHandshakeState
-  darkMode: boolean
-  diskSpaceStatus: FSTypes.DiskSpaceStatus
-  kbfsDaemonStatus: Readonly<{
-    rpcStatus: FSTypes.KbfsDaemonRpcStatus
-    onlineStatus: FSTypes.KbfsDaemonOnlineStatus
-  }>
-  kbfsEnabled: boolean
-  loggedIn: boolean
-  outOfDate: ConfigTypes.OutOfDate | undefined
-  showingDiskSpaceBanner: boolean
-  remoteTlfUpdates: Array<RemoteTlfUpdates>
-  users: {
-    infoMap: Map<string, UsersTypes.UserInfo>
-  }
-  username: string
-  usernames: string[]
-  endEstimate: number
-  fileName: string | null
-}
-
 type WidgetProps = {
   desktopAppBadgeCount: number
   widgetBadge: NotificationTypes.BadgeType
@@ -205,8 +160,8 @@ const GetRowsFromTlfUpdate = (t: FSTypes.TlfUpdate, uploads: FSTypes.Uploads): R
 
 export default () => {
   const state = Container.useSelector(s => s)
-  const {navBadges, desktopAppBadgeCount, widgetBadge} = state.notifications
-  const {menubarWindowID, daemonHandshakeState, loggedIn, outOfDate, username} = state.config
+  const {desktopAppBadgeCount, navBadges, widgetBadge} = state.notifications
+  const {daemonHandshakeState, loggedIn, outOfDate, username} = state.config
   const {pathItems, tlfUpdates, uploads, overallSyncStatus, kbfsDaemonStatus, sfmi} = state.fs
   const {inboxLayout, metaMap, badgeMap, unreadMap, participantMap} = state.chat2
 
@@ -227,35 +182,31 @@ export default () => {
   const kbfsEnabled = sfmi.driverStatus.type === 'enabled'
   const userInfo = state.users.infoMap
 
-  const usernames = tlfUpdates.map(update => update.writer)
+  // const usernames = tlfUpdates.map(update => update.writer)
   const remoteTlfUpdates = tlfUpdates.map(t => GetRowsFromTlfUpdate(t, uploads))
+  // TODO filter based on users names here?
 
-  const p = {
+  const p: Props & WidgetProps = {
     ...uploadsToUploadCountdownHOCProps(pathItems, uploads),
-    // TODO sycn avatar
-    config: {
-      avatarRefreshCounter: new Map<string, number>(),
-      followers: new Set<string>(),
-      following: new Set<string>(),
-      httpSrvAddress: '',
-      httpSrvToken: '',
-    },
-    badgeInfo: navBadges,
+    avatarRefreshCounter: new Map<string, number>(),
     conversationsToSend,
     daemonHandshakeState,
     darkMode,
     desktopAppBadgeCount,
     diskSpaceStatus,
-    externalRemoteWindowID: menubarWindowID,
+    followers: new Set<string>(),
+    following: new Set<string>(),
+    httpSrvAddress: '',
+    httpSrvToken: '',
+    infoMap: userInfo,
     kbfsDaemonStatus,
     kbfsEnabled,
     loggedIn,
+    navBadges,
     outOfDate,
     remoteTlfUpdates,
     showingDiskSpaceBanner,
-    users: {infoMap: userInfo},
     username,
-    usernames,
     widgetBadge,
   }
 
