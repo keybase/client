@@ -5,10 +5,9 @@ package stellar1
 
 import (
 	"fmt"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type WalletAccountLocal struct {
@@ -1643,11 +1642,12 @@ type SendCLILocalArg struct {
 }
 
 type SendPathCLILocalArg struct {
-	Source     AccountID   `codec:"source" json:"source"`
-	Recipient  string      `codec:"recipient" json:"recipient"`
-	Path       PaymentPath `codec:"path" json:"path"`
-	Note       string      `codec:"note" json:"note"`
-	PublicNote string      `codec:"publicNote" json:"publicNote"`
+	Source         AccountID      `codec:"source" json:"source"`
+	Recipient      string         `codec:"recipient" json:"recipient"`
+	Path           PaymentPath    `codec:"path" json:"path"`
+	Note           string         `codec:"note" json:"note"`
+	PublicNote     string         `codec:"publicNote" json:"publicNote"`
+	PublicNoteType PublicNoteType `codec:"publicNoteType" json:"publicNoteType"`
 }
 
 type AccountMergeCLILocalArg struct {

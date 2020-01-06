@@ -2502,6 +2502,10 @@
         {
           "name": "publicNote",
           "type": "string"
+        },
+        {
+          "name": "publicNoteType",
+          "type": "PublicNoteType"
         }
       ],
       "response": "SendResultCLILocal"

@@ -412,11 +412,12 @@ func (w *walletAPIHandler) sendPathPayment(ctx context.Context, c Call, wr io.Wr
 	}
 
 	sendArg := stellar1.SendPathCLILocalArg{
-		Source:     from,
-		Recipient:  opts.Recipient,
-		Path:       path.FullPath,
-		Note:       opts.Message,
-		PublicNote: opts.MemoText,
+		Source:         from,
+		Recipient:      opts.Recipient,
+		Path:           path.FullPath,
+		Note:           opts.Message,
+		PublicNote:     opts.MemoText,
+		PublicNoteType: stellar1.PublicNoteType_TEXT,
 	}
 	res, err := w.cli.SendPathCLILocal(ctx, sendArg)
 	if err != nil {
