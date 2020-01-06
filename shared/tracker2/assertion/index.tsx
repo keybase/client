@@ -56,7 +56,7 @@ const stateToIcon = (state: Types.AssertionState) => {
     case 'suggestion':
       return 'iconfont-proof-placeholder'
     default:
-      throw new Error('Impossible')
+      return 'iconfont-proof-pending'
   }
 }
 
@@ -74,7 +74,7 @@ const stateToDecorationIcon = (state: Types.AssertionState) => {
     case 'suggestion':
       return 'icon-proof-unfinished'
     default:
-      throw new Error('impossible')
+      return 'icon-proof-pending'
   }
 }
 
@@ -87,9 +87,8 @@ const stateToValueTextStyle = (state: Types.AssertionState) => {
     case 'error':
     case 'warning':
     case 'suggestion':
-      return null
     default:
-      throw new Error('Impossible')
+      return null
   }
 }
 

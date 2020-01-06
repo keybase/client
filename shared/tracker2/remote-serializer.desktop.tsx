@@ -1,9 +1,8 @@
-// import * as Constants from '../constants/tracker2'
-// import * as Types from '../constants/types/tracker2'
 import {Details, Assertion} from '../constants/types/tracker2'
 import {State as ConfigState} from '../constants/types/config'
 import {State as UsersState, UserInfo} from '../constants/types/users'
-// import shallowEqual from 'shallowequal'
+import {State as WaitingState} from '../constants/types/waiting'
+import {RPCError} from '../util/errors'
 
 // for convenience we flatten the props we send over the wire
 type ConfigHoistedProps =
@@ -14,51 +13,46 @@ type ConfigHoistedProps =
   | 'httpSrvToken'
   | 'username'
 type UsersHoistedProps = 'infoMap'
+type WaitingHoistedProps = 'counts' | 'errors'
 
 export type ProxyProps = {
   darkMode: boolean
-  // followThem: boolean
-  // followsYou: boolean
-  isYou: boolean
-} & Pick<
-  Details,
-  | 'assertions'
-  | 'bio'
-  | 'blocked'
-  | 'followersCount'
-  | 'followingCount'
-  | 'fullname'
-  | 'guiID'
-  | 'hidFromFollowers'
-  | 'location'
-  | 'reason'
-  | 'state'
-  | 'stellarHidden'
-  | 'teamShowcase'
-> &
+  trackerUsername: string
+} & Details &
   Pick<ConfigState, ConfigHoistedProps> &
-  Pick<UsersState, UsersHoistedProps>
+  Pick<UsersState, UsersHoistedProps> &
+  Pick<WaitingState, WaitingHoistedProps>
 
 type SerializeProps = Omit<
   ProxyProps,
-  'avatarRefreshCounter' | 'assertions' | 'infoMap' | 'following' | 'followers'
+  'avatarRefreshCounter' | 'assertions' | 'infoMap' | 'following' | 'followers' | 'counts' | 'errors'
 > & {
   assertions: Array<[string, Assertion]>
   avatarRefreshCounter: Array<[string, number]>
+  counts: Array<[string, number]>
+  errors: Array<[string, RPCError | undefined]>
   followers: Array<string>
   following: Array<string>
   infoMap: Array<[string, UserInfo]>
 }
-export type DeserializeProps = Omit<ProxyProps, ConfigHoistedProps | UsersHoistedProps> & {
-  config: Pick<ConfigState, ConfigHoistedProps>
-  users: Pick<UsersState, UsersHoistedProps>
-  teams: {teamNameToID: Map<string, string>}
-  // waiting: boolean
-}
+export type DeserializeProps =
+  // Omit<
+  // ProxyProps,
+  // ConfigHoistedProps | UsersHoistedProps | WaitingHoistedProps
+  // > & {
+  {
+    darkMode: boolean
+    config: Pick<ConfigState, ConfigHoistedProps>
+    users: Pick<UsersState, UsersHoistedProps>
+    teams: {teamNameToID: Map<string, string>}
+    tracker2: {usernameToDetails: Map<string, Details>}
+    trackerUsername: string
+    waiting: WaitingState
+  }
 
 const initialState: DeserializeProps = {
-  assertions: new Map(),
-  blocked: false,
+  // assertions: new Map(),
+  // blocked: false,
   config: {
     avatarRefreshCounter: new Map(),
     followers: new Set(),
@@ -68,55 +62,87 @@ const initialState: DeserializeProps = {
     username: '',
   },
   darkMode: false,
-  // followThem: false,
-  // followsYou: false,
-  guiID: '',
-  hidFromFollowers: false,
-  isYou: false,
-  reason: '',
-  state: 'checking',
-  stellarHidden: false,
+  // guiID: '',
+  // hidFromFollowers: false,
+  // reason: '',
+  // showTracker: true,
+  // state: 'checking',
+  // stellarHidden: false,
   teams: {teamNameToID: new Map()},
+  tracker2: {usernameToDetails: new Map()},
+  trackerUsername: '',
   users: {infoMap: new Map()},
-  // waiting: false,
+  waiting: {counts: new Map(), errors: new Map()},
 }
 
 export const serialize = (p: ProxyProps): SerializeProps => {
-  const {assertions, avatarRefreshCounter, following, followers, infoMap, ...toSend} = p
+  const {assertions, avatarRefreshCounter, following, followers, infoMap, counts, errors, ...toSend} = p
   return {
     ...toSend,
     assertions: [...(assertions?.entries() ?? [])],
     avatarRefreshCounter: [...avatarRefreshCounter.entries()],
+    counts: [...counts.entries()],
+    errors: [...errors.entries()],
     followers: [...followers],
     following: [...following],
     infoMap: [...infoMap.entries()],
   }
 }
 
-export const deserialize = (
-  state: DeserializeProps = initialState,
-  props: SerializeProps
-): DeserializeProps => {
-  if (!props) return state
+export const deserialize = (s: DeserializeProps = initialState, props: SerializeProps): DeserializeProps => {
+  if (!props) return s
 
   const {
     assertions,
     avatarRefreshCounter,
+    bio,
+    blocked,
+    counts,
+    errors,
     followers,
+    followersCount,
     following,
+    followingCount,
+    fullname,
+    guiID,
+    hidFromFollowers,
     httpSrvAddress,
     httpSrvToken,
     infoMap,
+    location,
+    reason,
+    showTracker,
+    state,
+    stellarHidden,
+    teamShowcase,
+    trackerUsername,
     username,
     ...rest
   } = props
 
+  const details: Details = {
+    assertions: new Map(assertions),
+    bio,
+    blocked,
+    followersCount,
+    followingCount,
+    fullname,
+    guiID,
+    hidFromFollowers,
+    location,
+    reason,
+    showTracker: true,
+    state,
+    stellarHidden,
+    teamShowcase,
+    username: trackerUsername,
+  }
+
   return {
-    ...state,
+    ...s,
     ...rest,
-    assertions: new Map(props.assertions),
     config: {
-      ...state.config,
+      ...s.config,
       avatarRefreshCounter: new Map(avatarRefreshCounter),
       followers: new Set(followers),
       following: new Set(following),
@@ -125,5 +151,11 @@ export const deserialize = (
       username,
     },
     users: {infoMap: new Map(infoMap)},
+    trackerUsername,
+    tracker2: {usernameToDetails: new Map([[trackerUsername, details]])},
+    waiting: {
+      counts: new Map(counts),
+      errors: new Map(errors),
+    },
   }
 }

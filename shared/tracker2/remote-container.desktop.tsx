@@ -1,5 +1,6 @@
 // Inside tracker we use an embedded Avatar which is connected.
 import * as Constants from '../constants/tracker2'
+import * as Types from '../constants/types/tracker2'
 import * as ConfigGen from '../actions/config-gen'
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as Tracker2Gen from '../actions/tracker2-gen'
@@ -9,6 +10,16 @@ import * as SafeElectron from '../util/safe-electron.desktop'
 import {DeserializeProps} from './remote-serializer.desktop'
 
 type OwnProps = {}
+
+const noDetails: Types.Details = {
+  blocked: false,
+  guiID: '',
+  hidFromFollowers: false,
+  reason: '',
+  showTracker: false,
+  state: 'checking',
+  username: '',
+}
 
 export default remoteConnect(
   (s: DeserializeProps) => s,
@@ -39,10 +50,11 @@ export default remoteConnect(
       ),
   }),
   (stateProps, dispatchProps, _: OwnProps) => {
-    const {assertions, bio, darkMode, followersCount, followingCount} = stateProps
-    // followThem, , followsYou
-    const {guiID, isYou, location, config, reason, state, teamShowcase} = stateProps
-    const {username} = config
+    const {darkMode, trackerUsername, tracker2, config} = stateProps
+    const {usernameToDetails} = tracker2
+    const details = usernameToDetails.get(trackerUsername) ?? noDetails
+    const {assertions, bio, followersCount, followingCount} = details
+    const {guiID, location, reason, state, teamShowcase} = details
     return {
       assertionKeys: assertions ? [...assertions.keys()] : undefined,
       bio,
@@ -52,18 +64,18 @@ export default remoteConnect(
       followingCount,
       // followsYou,
       guiID,
-      isYou,
+      isYou: config.username === trackerUsername,
       location,
       onAccept: () => dispatchProps._onFollow(guiID),
-      onChat: () => dispatchProps._onChat(username),
+      onChat: () => dispatchProps._onChat(trackerUsername),
       onClose: () => dispatchProps._onClose(guiID),
       onFollow: () => dispatchProps._onFollow(guiID),
       onIgnoreFor24Hours: () => dispatchProps._onIgnoreFor24Hours(guiID),
-      onReload: () => dispatchProps._onReload(username),
+      onReload: () => dispatchProps._onReload(trackerUsername),
       reason,
       state,
       teamShowcase,
-      username,
+      trackerUsername,
     }
   }
 )(Tracker)
