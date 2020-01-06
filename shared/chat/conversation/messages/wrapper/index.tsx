@@ -252,7 +252,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         <Kb.Text type="BodySmall" style={this._isExploding() ? styles.failExploding : styles.fail}>
           {this._isExploding() && (
             <Kb.Icon fontSize={16} boxStyle={styles.failExplodingIcon} type="iconfont-block" />
-          )}{' '}
+          )}
           {this.props.failureDescription}.{' '}
         </Kb.Text>
         {!!this.props.onCancel && (
@@ -769,6 +769,9 @@ const styles = Styles.styleSheetCreate(
       fail: {color: Styles.globalColors.redDark},
       failExploding: {color: Styles.globalColors.black_50},
       failExplodingIcon: Styles.platformStyles({
+        common: {
+          paddingRight: 3,
+        },
         isElectron: {
           display: 'inline-block',
           verticalAlign: 'middle',
