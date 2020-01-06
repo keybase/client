@@ -1,17 +1,10 @@
-// import * as Avatar from '../desktop/remote/sync-avatar-props.desktop'
-import {State as UsersState, UserInfo} from '../constants/types/users'
-import {State as ConfigState} from '../constants/types/config'
 import * as ChatTypes from '../constants/types/chat2'
-// import * as ChatTypes from '../constants/types/chat2'
-import {State as NotificationsState} from '../constants/types/notifications'
 import * as FSTypes from '../constants/types/fs'
-import {Tab} from '../constants/tabs'
-// import {
-// serialize as conversationSerialize,
-// // hangeAffectsWidget as conversationChangeAffectsWidget,
-// } from '../chat/inbox/container/remote'
-// import GetRowsFromTlfUpdate from '../fs/remote-container'
 import shallowEqual from 'shallowequal'
+import {State as ConfigState} from '../constants/types/config'
+import {State as NotificationsState} from '../constants/types/notifications'
+import {State as UsersState, UserInfo} from '../constants/types/users'
+import {Tab} from '../constants/tabs'
 
 export type RemoteTlfUpdates = {
   timestamp: number
@@ -34,22 +27,26 @@ type ConfigHoistedProps =
 
 type UsersHoistedProps = 'infoMap'
 
+type ConversationsToSend = Array<{
+  conversation: ChatTypes.ConversationMeta
+  hasBadge: boolean
+  hasUnread: boolean
+  participantInfo: ChatTypes.ParticipantInfo
+}>
+
+type KbfsDaemonStatus = Readonly<{
+  rpcStatus: FSTypes.KbfsDaemonRpcStatus
+  onlineStatus: FSTypes.KbfsDaemonOnlineStatus
+}>
+
 export type Props = {
-  conversationsToSend: Array<{
-    conversation: ChatTypes.ConversationMeta
-    hasBadge: boolean
-    hasUnread: boolean
-    participantInfo: ChatTypes.ParticipantInfo
-  }>
+  conversationsToSend: ConversationsToSend
   darkMode: boolean
   diskSpaceStatus: FSTypes.DiskSpaceStatus
   endEstimate: number
   files: number
   fileName: string | null
-  kbfsDaemonStatus: Readonly<{
-    rpcStatus: FSTypes.KbfsDaemonRpcStatus
-    onlineStatus: FSTypes.KbfsDaemonOnlineStatus
-  }>
+  kbfsDaemonStatus: KbfsDaemonStatus
   kbfsEnabled: boolean
   remoteTlfUpdates: Array<RemoteTlfUpdates>
   showingDiskSpaceBanner: boolean

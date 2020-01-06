@@ -6,9 +6,7 @@ import * as Container from '../util/container'
 import * as React from 'react'
 import * as Styles from '../styles'
 import * as SafeElectron from '../util/safe-electron.desktop'
-// TODO
 import {intersect} from '../util/set'
-// import SyncAvatarProps from '../desktop/remote/sync-avatar-props.desktop'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import {serialize} from './remote-serializer.desktop'
 import {getMainWindow} from '../desktop/remote/util.desktop'
@@ -39,57 +37,6 @@ const getIcons = (iconType: NotificationTypes.BadgeType, isBadged: boolean) => {
   const iconSelected = `icon-${platform}keybase-menubar-${iconType}-${colorSelected}-${size}${devMode}@2x.png`
   return [icon, iconSelected]
 }
-
-// Like RemoteWindow but the browserWindow is handled by the 3rd party menubar class and mostly lets it handle things
-// function RemoteMenubarWindow(ComposedComponent: any) {
-// class RemoteWindowComponent extends React.PureComponent<Props> {
-// subscriptionId: number | null = null
-// _updateBadges = () => {
-// }
-
-// componentDidUpdate(prevProps: Props) {
-// if (
-// this.props.widgetBadge !== prevProps.widgetBadge ||
-// this.props.desktopAppBadgeCount !== prevProps.desktopAppBadgeCount ||
-// this.props.remoteWindowNeedsProps !== prevProps.remoteWindowNeedsProps
-// ) {
-// this._updateBadges()
-// }
-// }
-
-// componentDidMount() {
-// this._updateBadges()
-
-// if (isDarwin && SafeElectron.getSystemPreferences().subscribeNotification) {
-// this.subscriptionId = SafeElectron.getSystemPreferences().subscribeNotification(
-// 'AppleInterfaceThemeChangedNotification',
-// () => {
-// this._updateBadges()
-// }
-// )
-// }
-// }
-// componentWillUnmount() {
-// if (this.subscriptionId && SafeElectron.getSystemPreferences().unsubscribeNotification) {
-// SafeElectron.getSystemPreferences().unsubscribeNotification(this.subscriptionId || -1)
-// }
-// }
-// render() {
-// const {
-// widgetBadge,
-// desktopAppBadgeCount,
-// windowOpts,
-// windowPositionBottomRight,
-// windowTitle,
-// externalRemoteWindow,
-// ...props
-// } = this.props
-// return <ComposedComponent {...props} />
-// }
-// }
-
-// return RemoteWindowComponent
-// }
 
 type WidgetProps = {
   desktopAppBadgeCount: number
