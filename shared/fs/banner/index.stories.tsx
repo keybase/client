@@ -62,8 +62,11 @@ export default () => {
   Sb.storiesOf('Files/Banners', module)
     .addDecorator(provider)
     .addDecorator(Sb.scrollViewDecorator)
-    .add('ResetBanner - other', () => (
+    .add('ResetBanner - multiple resets', () => (
       <ResetBanner resetParticipants={['reset1', 'reset3']} {...resetBannerCommon} />
+    ))
+    .add('ResetBanner - single reset', () => (
+      <ResetBanner resetParticipants={['reset1']} {...resetBannerCommon} />
     ))
     .add('Public Reminder Banner', () => (
       <PublicReminder path={Types.stringToPath('/keybase/public/jakob223,songgao')} />
