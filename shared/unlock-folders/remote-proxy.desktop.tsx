@@ -3,15 +3,11 @@ import * as React from 'react'
 import * as Styles from '../styles'
 import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
-import {serialize} from './remote-serializer.desktop'
-
-export type Props = {
-  darkMode: boolean
-} & Pick<Container.TypedState['unlockFolders'], 'devices' | 'paperkeyError' | 'phase' | 'waiting'>
+import {serialize, ProxyProps} from './remote-serializer.desktop'
 
 const windowOpts = {height: 300, width: 500}
 
-const UnlockFolders = (p: Props) => {
+const UnlockFolders = (p: ProxyProps) => {
   const windowComponent = 'unlock-folders'
   const windowParam = windowComponent
 

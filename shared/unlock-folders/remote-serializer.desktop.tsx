@@ -1,17 +1,24 @@
-import {Props} from './remote-proxy.desktop'
+import {State} from '../constants/types/unlock-folders'
+export type ProxyProps = {
+  darkMode: boolean
+} & Pick<State, 'devices' | 'paperkeyError' | 'phase' | 'waiting'>
 
-const initialState: Props = {
+type SerializeProps = ProxyProps
+type DeserializeProps = ProxyProps
+
+const initialState: DeserializeProps = {
   darkMode: false,
   devices: [],
   phase: 'dead',
   waiting: false,
 }
 
-type SerializeProps = Props
+export const serialize = (p: ProxyProps): SerializeProps => p
 
-export const serialize = (p: Props): SerializeProps => p
-
-export const deserialize = (state: Props = initialState, props: SerializeProps): Props => ({
+export const deserialize = (
+  state: DeserializeProps = initialState,
+  props: SerializeProps
+): DeserializeProps => ({
   ...state,
   ...props,
 })
