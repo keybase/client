@@ -22,7 +22,7 @@ const RemoteTracker = (props: {trackerUsername: string}) => {
   const {hidFromFollowers, location, reason, teamShowcase} = details
   const {counts, errors} = state.waiting
 
-  const usernames = new Set([trackerUsername])
+  const trackerUsernames = new Set([trackerUsername])
   const waitingKeys = new Set([Constants.waitingKey])
   const p: ProxyProps = {
     // waiting: Container.anyWaiting(state, Constants.waitingKey),
@@ -33,17 +33,16 @@ const RemoteTracker = (props: {trackerUsername: string}) => {
     counts: mapFilterByKey(counts, waitingKeys),
     darkMode: Styles.isDarkMode(),
     errors: mapFilterByKey(errors, waitingKeys),
-    followers: intersect(followers, usernames),
+    followers: intersect(followers, trackerUsernames),
     followersCount,
-    following: intersect(following, usernames),
+    following: intersect(following, trackerUsernames),
     followingCount,
     fullname,
     guiID,
     hidFromFollowers,
     httpSrvAddress,
     httpSrvToken,
-    infoMap: mapFilterByKey(infoMap, usernames),
-    // isYou: state.config.username === username,
+    infoMap: mapFilterByKey(infoMap, trackerUsernames),
     location,
     reason,
     showTracker: true,
@@ -54,7 +53,7 @@ const RemoteTracker = (props: {trackerUsername: string}) => {
   }
 
   const windowComponent = 'tracker2'
-  const windowParam = username
+  const windowParam = trackerUsername
   useBrowserWindow({
     windowComponent,
     windowOpts,

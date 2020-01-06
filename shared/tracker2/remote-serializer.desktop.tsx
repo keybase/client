@@ -35,24 +35,17 @@ type SerializeProps = Omit<
   following: Array<string>
   infoMap: Array<[string, UserInfo]>
 }
-export type DeserializeProps =
-  // Omit<
-  // ProxyProps,
-  // ConfigHoistedProps | UsersHoistedProps | WaitingHoistedProps
-  // > & {
-  {
-    darkMode: boolean
-    config: Pick<ConfigState, ConfigHoistedProps>
-    users: Pick<UsersState, UsersHoistedProps>
-    teams: {teamNameToID: Map<string, string>}
-    tracker2: {usernameToDetails: Map<string, Details>}
-    trackerUsername: string
-    waiting: WaitingState
-  }
+export type DeserializeProps = {
+  darkMode: boolean
+  config: Pick<ConfigState, ConfigHoistedProps>
+  users: Pick<UsersState, UsersHoistedProps>
+  teams: {teamNameToID: Map<string, string>}
+  tracker2: {usernameToDetails: Map<string, Details>}
+  trackerUsername: string
+  waiting: WaitingState
+}
 
 const initialState: DeserializeProps = {
-  // assertions: new Map(),
-  // blocked: false,
   config: {
     avatarRefreshCounter: new Map(),
     followers: new Set(),
@@ -62,12 +55,6 @@ const initialState: DeserializeProps = {
     username: '',
   },
   darkMode: false,
-  // guiID: '',
-  // hidFromFollowers: false,
-  // reason: '',
-  // showTracker: true,
-  // state: 'checking',
-  // stellarHidden: false,
   teams: {teamNameToID: new Map()},
   tracker2: {usernameToDetails: new Map()},
   trackerUsername: '',
@@ -151,8 +138,8 @@ export const deserialize = (s: DeserializeProps = initialState, props: Serialize
       username,
     },
     users: {infoMap: new Map(infoMap)},
-    trackerUsername,
     tracker2: {usernameToDetails: new Map([[trackerUsername, details]])},
+    trackerUsername,
     waiting: {
       counts: new Map(counts),
       errors: new Map(errors),
