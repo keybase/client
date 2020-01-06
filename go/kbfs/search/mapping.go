@@ -9,20 +9,20 @@ import (
 	"github.com/blevesearch/bleve/analysis"
 	"github.com/blevesearch/bleve/analysis/char/html"
 	"github.com/blevesearch/bleve/analysis/token/lowercase"
-	"github.com/blevesearch/bleve/analysis/tokenizer/unicode"
+	"github.com/blevesearch/bleve/analysis/tokenizer/web"
 	"github.com/blevesearch/bleve/mapping"
 	"github.com/blevesearch/bleve/registry"
 )
 
 const (
-	htmlAnalyzerName = "html"
+	htmlAnalyzerName = "kbfsHtml"
 	htmlFieldName    = "Html"
 )
 
 func htmlAnalyzerConstructor(
 	config map[string]interface{}, cache *registry.Cache) (
 	*analysis.Analyzer, error) {
-	tokenizer, err := cache.TokenizerNamed(unicode.Name)
+	tokenizer, err := cache.TokenizerNamed(web.Name)
 	if err != nil {
 		return nil, err
 	}
