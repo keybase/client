@@ -15,7 +15,7 @@ import (
 
 const (
 	testMappingText = "A new span of the Golden Gate Bridge is complete"
-	testMappingHtml = "<span>The Golden Gate Bridge is actually red</span>"
+	testMappingHTML = "<span>The Golden Gate Bridge is actually red</span>"
 )
 
 type testMappingTextFile struct {
@@ -29,14 +29,14 @@ func (tf testMappingTextFile) Type() string {
 	return textFileType
 }
 
-type testMappingHtmlFile struct {
+type testMappingHTMLFile struct {
 	Name string
-	Html string
+	HTML string
 }
 
-var _ mapping.Classifier = testMappingHtmlFile{}
+var _ mapping.Classifier = testMappingHTMLFile{}
 
-func (hf testMappingHtmlFile) Type() string {
+func (hf testMappingHTMLFile) Type() string {
 	return htmlFileType
 }
 
@@ -56,7 +56,7 @@ func TestIndexMapping(t *testing.T) {
 
 	t.Log("Insert HTML file into the index")
 	htmlID := "html"
-	hf := testMappingHtmlFile{"htmlFile", testMappingHtml}
+	hf := testMappingHTMLFile{"htmlFile", testMappingHTML}
 	err = index.Index(htmlID, hf)
 	require.NoError(t, err)
 

@@ -27,7 +27,7 @@ import (
 
 const (
 	textFileType      = "kbfsTextFile"
-	htmlFileType      = "kbfsHtmlFile"
+	htmlFileType      = "kbfsHTMLFile"
 	kvstoreName       = "kbfs"
 	bleveIndexType    = "upside_down"
 	fsIndexStorageDir = "kbfs_index"

@@ -15,8 +15,8 @@ import (
 )
 
 const (
-	htmlAnalyzerName = "kbfsHtml"
-	htmlFieldName    = "Html"
+	htmlAnalyzerName = "kbfsHTML"
+	htmlFieldName    = "HTML"
 )
 
 func htmlAnalyzerConstructor(
