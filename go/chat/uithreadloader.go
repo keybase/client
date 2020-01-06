@@ -287,7 +287,7 @@ func (t *UIThreadLoader) groupThreadView(ctx context.Context, uid gregor1.UID, t
 	// group duplicate ephemeral errors
 	newMsgs = t.groupGeneric(ctx, uid, newMsgs,
 		func(msg chat1.MessageUnboxed, grouped []chat1.MessageUnboxed) bool {
-			if !(msg.IsError() && msg.Error().IsEphemeralError()) {
+			if !(msg.IsError() && msg.Error().IsEphemeralError() && !msg.Error().IsEphemeralExpired(time.Now())) {
 				return false
 			}
 			// group the same error message from the same sender
