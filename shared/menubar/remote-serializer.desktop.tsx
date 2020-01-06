@@ -1,6 +1,5 @@
 import * as ChatTypes from '../constants/types/chat2'
 import * as FSTypes from '../constants/types/fs'
-import shallowEqual from 'shallowequal'
 import {State as ConfigState} from '../constants/types/config'
 import {State as NotificationsState} from '../constants/types/notifications'
 import {State as UsersState, UserInfo} from '../constants/types/users'
@@ -60,11 +59,11 @@ type SerializeProps = Omit<
   'avatarRefreshCounter' | 'followers' | 'following' | 'infoMap' | 'navBadges' | 'conversationsToSend'
 > & {
   avatarRefreshCounter: Array<[string, number]>
-  conversationsToSend: Array<Conversation | 'same'> // same if unchanged
+  conversationsToSend: Array<Conversation>
   followers: Array<string>
   following: Array<string>
   infoMap: Array<[string, UserInfo]>
-  navBadges: Array<[Tab, number]> | 'same'
+  navBadges: Array<[Tab, number]>
 }
 
 export type DeserializeProps = Omit<ProxyProps, ConfigHoistedProps | UsersHoistedProps> & {
@@ -102,19 +101,12 @@ const initialState: DeserializeProps = {
   users: {infoMap: new Map()},
 }
 
-export const serialize = (
-  p: ProxyProps,
-  o: Partial<SerializeProps>
-): [Partial<SerializeProps>, Partial<SerializeProps>] => {
+export const serialize = (p: ProxyProps, o: Partial<SerializeProps>): Partial<SerializeProps> => {
   const {avatarRefreshCounter, conversationsToSend, followers, following, infoMap, ...toSend} = p
   const navBadges = [...p.navBadges.entries()]
-  const out = {
+  const out: Partial<SerializeProps> = {
     ...toSend,
     avatarRefreshCounter: [...avatarRefreshCounter.entries()],
-    conversationsToSend: conversationsToSend.map((c, idx) => {
-      const old = o?.conversationsToSend?.[idx]
-      return shallowEqual(old, c) ? 'same' : c
-    }),
     followers: [...followers],
     following: [...following],
     infoMap: [...infoMap.entries()],
@@ -122,7 +114,10 @@ export const serialize = (
   if (JSON.stringify(navBadges) !== JSON.stringify(o?.navBadges)) {
     out.navBadges = navBadges
   }
-  return [out, {conversationsToSend, navBadges}]
+  if (JSON.stringify(conversationsToSend) !== JSON.stringify(o?.conversationsToSend)) {
+    out.conversationsToSend = conversationsToSend
+  }
+  return out
 }
 
 export const deserialize = (
@@ -161,10 +156,7 @@ export const deserialize = (
       outOfDate,
       username,
     },
-    conversationsToSend: props.conversationsToSend.map((c, idx) =>
-      c === 'same' ? state.conversationsToSend[idx]! : c
-    ),
-    navBadges: navBadges == 'same' ? state.navBadges : new Map(navBadges),
+    navBadges: navBadges ? new Map(navBadges) : state.navBadges,
     users: {
       infoMap: new Map(infoMap),
     },

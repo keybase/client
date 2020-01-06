@@ -14,10 +14,7 @@ if (debugSerializer) {
 
 export default function useSerializeProps<ProxyProps extends {}, SerializeProps extends {}>(
   p: ProxyProps,
-  serializer: (
-    p: ProxyProps,
-    old: Partial<SerializeProps>
-  ) => [Partial<SerializeProps>, Partial<SerializeProps>],
+  serializer: (p: ProxyProps, old: Partial<SerializeProps>) => Partial<SerializeProps>,
   windowComponent: string,
   windowParam: string
 ) {
@@ -29,7 +26,7 @@ export default function useSerializeProps<ProxyProps extends {}, SerializeProps 
 
   const throttledSend = React.useRef(
     throttle(
-      (toSend: Partial<SerializeProps>, toCache: Partial<SerializeProps>) => {
+      (toSend: Partial<SerializeProps>) => {
         const propsStr = JSON.stringify(toSend)
         debugSerializer && console.log('[useSerializeProps]: throttled send', propsStr.length, toSend)
         SafeElectron.getApp().emit('KBkeybase', '', {
@@ -40,7 +37,7 @@ export default function useSerializeProps<ProxyProps extends {}, SerializeProps 
           },
           type: 'rendererNewProps',
         })
-        lastSent.current = toCache
+        lastSent.current = toSend
       },
       1000,
       {leading: true}
@@ -53,8 +50,8 @@ export default function useSerializeProps<ProxyProps extends {}, SerializeProps 
         return
       }
       const forceUpdate = currentForceUpdate !== lastForceUpdate.current
-      const [toSend, toCache] = serializer(p, forceUpdate ? {} : lastSent.current)
-      throttledSend.current(toSend, toCache)
+      const toSend = serializer(p, forceUpdate ? {} : lastSent.current)
+      throttledSend.current(toSend)
       lastForceUpdate.current = currentForceUpdate
     },
     // eslint-disable-next-line
