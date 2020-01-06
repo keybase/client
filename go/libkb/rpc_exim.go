@@ -221,6 +221,7 @@ func (c ErrorUnwrapper) MakeArg() interface{} {
 
 func (c ErrorUnwrapper) UnwrapError(arg interface{}) (appError error, dispatchError error) {
 	targ, ok := arg.(*keybase1.Status)
+
 	if !ok {
 		dispatchError = errors.New("Error converting status to keybase1.Status object")
 		return
@@ -744,6 +745,17 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		return NewFeatureFlagError(s.Desc, feature)
 	case SCNoPaperKeys:
 		return NoPaperKeysError{}
+	case SCTeamContactSettingsBlock:
+		e := TeamContactSettingsBlockError{}
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "uids":
+				e.blockedUIDs = parseUIDsFromString(field.Value)
+			case "usernames":
+				e.blockedUsernames = parseUsernamesFromString(field.Value)
+			}
+		}
+		return e
 	default:
 		ase := AppStatusError{
 			Code:   s.Code,
