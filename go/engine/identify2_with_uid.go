@@ -347,6 +347,11 @@ func (e *Identify2WithUID) run(m libkb.MetaContext) {
 	err := e.runReturnError(m)
 	e.unblock(m /* isFinal */, true, err)
 
+	if e.arg.IdentifyBehavior != keybase1.TLFIdentifyBehavior_CHAT_GUI {
+		m.Debug("Identify2WithUID.run: notifying chat")
+		go m.G().UserChanged(m.Ctx(), e.arg.Uid)
+	}
+
 	// always cancel IdentifyUI to allow clients to clean up.
 	// If no identifyUI was specified (because running the background)
 	// then don't do anything.
