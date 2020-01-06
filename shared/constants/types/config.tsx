@@ -35,7 +35,6 @@ export type WindowState = {
   x: number
   y: number
 }
-
 export type State = {
   androidShare?:
     | {
@@ -54,9 +53,9 @@ export type State = {
   daemonHandshakeFailedReason: string
   daemonHandshakeRetriesLeft: number
   daemonHandshakeState: DaemonHandshakeState
+  daemonHandshakeWaiters: Map<string, number>
   // if we ever restart handshake up this so we can ignore any waiters for old things
   daemonHandshakeVersion: number
-  daemonHandshakeWaiters: Map<string, number>
   darkModePreference: DarkModePreference
   debugDump: Array<string>
   defaultUsername: string
@@ -80,11 +79,13 @@ export type State = {
   remoteWindowNeedsProps: Map<string, Map<string, number>>
   runtimeStats?: RPCTypes.RuntimeStats
   startupConversation: ConversationIDKey
+  startupDetailsLoaded: boolean
   startupFile: HiddenString
   startupFollowUser: string
   startupLink: string
   startupPushPayload?: string
   startupTab?: Tab
+  startupWasFromPush: boolean
   systemDarkMode: boolean
   uid: string
   updateInfo: UpdateInfo

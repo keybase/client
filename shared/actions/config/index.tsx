@@ -85,9 +85,7 @@ const getFollowerInfo = (state: Container.TypedState, action: ConfigGen.LoadOnSt
 }
 
 const checkForUpdate = async () => {
-  const s: Saga.RPCPromiseType<typeof RPCTypes.configGetUpdateInfo2RpcPromise> = await RPCTypes.configGetUpdateInfo2RpcPromise(
-    {}
-  )
+  const s = await RPCTypes.configGetUpdateInfo2RpcPromise({})
   let status: ConfigGen.UpdateInfoPayload['payload']['status'] = 'ok'
   let message: string = ''
   try {

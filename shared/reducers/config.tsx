@@ -253,10 +253,7 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
     draftState.startupDetailsLoaded = isMobile ? draftState.startupDetailsLoaded : true
   },
   [ConfigGen.updateStart]: draftState => {
-    draftState.updateInfo = {
-      ...draftState.updateInfo,
-      updating: true,
-    }
+    draftState.updateInfo.updating = true
   },
   [ConfigGen.updateInfo]: (draftState, action) => {
     const {status, message} = action.payload

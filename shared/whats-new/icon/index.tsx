@@ -116,9 +116,10 @@ export const IconWithPopup = (props: PopupProps) => {
                   isProfileHeader={isProfileHeader}
                   newRelease={false}
                   color={isProfileHeader ? Styles.globalColors.white : Styles.globalColors.greenDarkOrBlack}
-                  className={`hover_contained_color_${
-                    isProfileHeader ? Styles.globalColors.black_35 : Styles.globalColors.greenDark
-                  }`}
+                  className={Styles.classNames({
+                    [`hover_background_color_${Styles.globalColors.black_35}`]: isProfileHeader,
+                    [`hover_background_color_${Styles.globalColors.greenDark}`]: !isProfileHeader,
+                  })}
                   style={styles.updateAvailable}
                 />
                 <Kb.Text
@@ -159,9 +160,9 @@ const styles = Styles.styleSheetCreate(() => ({
   badgeBlue: {
     backgroundColor: Styles.globalColors.blue,
     // Manually set the innerSize of the blue circle to have a larger white border
-    borderRadius: 8,
-    height: 8,
-    minWidth: 8,
+    borderRadius: Styles.globalMargins.tiny,
+    height: Styles.globalMargins.tiny,
+    minWidth: Styles.globalMargins.tiny,
   },
   badgeContainerStyle: {
     position: 'absolute',

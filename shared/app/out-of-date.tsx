@@ -41,7 +41,7 @@ const styles = Styles.styleSheetCreate(() => ({
   },
 }))
 
-export default Container.connectDEBUG(
+export default Container.connect(
   (state: Container.TypedState) => ({
     message: state.config.updateInfo.status === 'critical' ? state.config.updateInfo?.critical?.message : '',
     status: state.config.updateInfo.status,

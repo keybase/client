@@ -41,15 +41,8 @@ const WhatsNewContainer = Container.namedConnect(
   }),
   (dispatch: Container.TypedDispatch) => ({
     // Navigate primary/secondary button click
-    _onNavigate: ({
-      fromKey,
-      path,
-      replace,
-    }: {
-      fromKey?: string
-      path: Array<{props?: {}; selected: string}>
-      replace?: boolean
-    }) => {
+    _onNavigate: (p: {fromKey?: string; path: Array<{props?: {}; selected: string}>; replace?: boolean}) => {
+      const {fromKey, path, replace} = p
       dispatch(
         RouteTreeGen.createNavigateAppend({
           fromKey,
@@ -62,11 +55,12 @@ const WhatsNewContainer = Container.namedConnect(
     _onNavigateExternal: (url: string) => openURL(url),
 
     _onUpdateLastSeenVersion: (lastSeenVersion: string) => {
-      const action = GregorGen.createUpdateCategory({
-        body: lastSeenVersion,
-        category: 'whatsNewLastSeenVersion',
-      })
-      dispatch(action)
+      dispatch(
+        GregorGen.createUpdateCategory({
+          body: lastSeenVersion,
+          category: 'whatsNewLastSeenVersion',
+        })
+      )
     },
 
     _onUpdateSnooze: () => {
@@ -74,17 +68,15 @@ const WhatsNewContainer = Container.namedConnect(
       // TODO @jacob PICNIC-684 - Handle linux "never notify"
     },
     _onUpdateStart: () => {
-      // If we're hitting this for any reason, it's because of a frontend mistake
       // Linux clients have never had an `updater` bundled with them (keybase/go-updater)
       // Attempting to make this RPC without an updater will black bar the GUI
-      if (isLinux) return
-      dispatch(ConfigGen.createUpdateStart())
+      !isLinux && dispatch(ConfigGen.createUpdateStart())
     },
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
-    const {updateAvailable, updateMessage} = stateProps
-    const seenVersions = getSeenVersions(stateProps.lastSeenVersion)
-    const newRelease = anyVersionsUnseen(stateProps.lastSeenVersion)
+    const {updateAvailable, updateMessage, lastSeenVersion} = stateProps
+    const seenVersions = getSeenVersions(lastSeenVersion)
+    const newRelease = anyVersionsUnseen(lastSeenVersion)
     const onBack = () => {
       if (newRelease) {
         dispatchProps._onUpdateLastSeenVersion(currentVersion)

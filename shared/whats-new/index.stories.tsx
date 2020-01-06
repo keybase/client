@@ -40,7 +40,7 @@ const newFeatures = [
   },
 ]
 
-const HeaderIconWrapper = props => (
+const HeaderIconWrapper = (props: {children: React.ReactNode}) => (
   <Kb.Box2
     direction="vertical"
     style={styles.iconContainer}
@@ -50,7 +50,7 @@ const HeaderIconWrapper = props => (
   </Kb.Box2>
 )
 
-const UpdateAvailableWrapper = props => (
+const UpdateAvailableWrapper = (props: {children: React.ReactNode}) => (
   <Kb.Box2
     direction="vertical"
     style={{

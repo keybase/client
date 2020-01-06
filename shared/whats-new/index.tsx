@@ -38,13 +38,13 @@ type UpdateAvailableProps = {
 const UpdateAvailableBanner = (props: UpdateAvailableProps) => {
   const skipButtonLabel = isLinux ? 'Never notify me again' : 'Skip this version'
   const updateMessage = isLinux
-    ? props.message || 'Update Keybae via your local package manager'
+    ? props.message || 'Update Keybase via your local package manager'
     : 'An update is available.'
   return (
     <Kb.Box2
       direction="vertical"
       fullWidth={true}
-      alignItems={'center'}
+      alignItems="center"
       centerChildren={true}
       style={styles.updateAvailableContainer}
     >
