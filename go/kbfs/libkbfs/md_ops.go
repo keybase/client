@@ -28,7 +28,7 @@ import (
 const (
 	maxAllowedMerkleGapServer = 13 * time.Hour
 	// Our contract with the server states that it won't accept KBFS
-	// writes if more than 8 hours have passed since the last Merkle
+	// writes if more than 13 hours have passed since the last Merkle
 	// roots (both global and KBFS) were published.  Add some padding
 	// to that, and if we see any gaps larger than this, we will know
 	// we shouldn't be trusting the server.  TODO: reduce this once
@@ -409,9 +409,9 @@ func (md *MDOpsStandard) checkRevisionCameBeforeMerkle(
 	// any writes happening after a grace period of
 	// `maxAllowedMerkleGapServer` after the last KBFS merkle tree was
 	// published should be rejected. In other words, KBFS should become
-	// readonly if `maxAllowedMerkleGapServer` has passed since laste  KBFS
+	// readonly if `maxAllowedMerkleGapServer` has passed since last KBFS
 	// merkle tree was published. We add a small error window to it, and
-	// enforce in client that any MD with a gap greater than
+	// enforce in the client that any MD with a gap greater than
 	// `maxAllowedMerkleGap` since last KBFS merkle tree is illegal.
 	//
 	// However there's no way get a trustable timestamp for the metadata
@@ -421,10 +421,12 @@ func (md *MDOpsStandard) checkRevisionCameBeforeMerkle(
 	// metadata in question has to happen before K2, we just need to make sure
 	// K2 happens within `maxAllowedMerkleGap` since the revoke happened.
 	//
-	// Unfortunately this means if mdmerkle takes longer to build, and there
-	// happens to be a revoke and some writes happening during the gap, there's
-	// no way for us to know for sure the write is legit, from merkle tree
-	// perspective.
+	// Unfortunately this means if mdmerkle takes longer than
+	// `maxAllowedMerkleGap` to build two trees, and a device both writes to a
+	// TLF and then gets revoked within that gap (and those writes are the most
+	// recent writes to the TLF), there's no way for us to know for sure the
+	// write is legit, from merkle tree perspective, and future reads of the
+	// TLF will fail without manual intervention.
 	kbfsRoot, merkleNodes, rootSeqno, err :=
 		md.config.MDCache().GetNextMD(rmds.MD.TlfID(), root.Seqno)
 	switch errors.Cause(err).(type) {
