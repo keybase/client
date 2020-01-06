@@ -89,6 +89,33 @@ type RemoteConversationMetadata struct {
 	ResetParticipants  []string                `codec:"r"`
 }
 
+func (m RemoteConversationMetadata) Copy() (res RemoteConversationMetadata) {
+	res.Name = m.Name
+	res.TopicName = m.TopicName
+	res.Snippet = m.Snippet
+	res.SnippetDecoration = m.SnippetDecoration.DeepCopy()
+	res.Headline = m.Headline
+	res.WriterNames = make([]string, 0, len(m.WriterNames))
+	for _, n := range m.WriterNames {
+		res.WriterNames = append(res.WriterNames, n)
+	}
+	res.FullNamesForSearch = make([]*string, 0, len(m.FullNamesForSearch))
+	for _, n := range m.FullNamesForSearch {
+		if n != nil {
+			rn := new(string)
+			*rn = *n
+			res.FullNamesForSearch = append(res.FullNamesForSearch, rn)
+		} else {
+			res.FullNamesForSearch = append(res.FullNamesForSearch, nil)
+		}
+	}
+	res.ResetParticipants = make([]string, 0, len(m.ResetParticipants))
+	for _, n := range res.ResetParticipants {
+		res.ResetParticipants = append(res.ResetParticipants, n)
+	}
+	return res
+}
+
 type RemoteConversation struct {
 	Conv           chat1.Conversation          `codec:"c"`
 	ConvIDStr      string                      `codec:"i"`
@@ -96,6 +123,23 @@ type RemoteConversation struct {
 	LocalReadMsgID chat1.MessageID             `codec:"r"`
 	LocalDraft     *string                     `codec:"d"`
 	LocalMtime     gregor1.Time                `codec:"t"`
+}
+
+func (rc RemoteConversation) Copy() (res RemoteConversation) {
+	res.Conv = rc.Conv.DeepCopy()
+	res.ConvIDStr = rc.ConvIDStr
+	if rc.LocalMetadata != nil {
+		md := rc.LocalMetadata.Copy()
+		res.LocalMetadata = &md
+	}
+	res.LocalReadMsgID = rc.LocalReadMsgID
+	if rc.LocalDraft != nil {
+		ld := new(string)
+		*ld = *rc.LocalDraft
+		res.LocalDraft = ld
+	}
+	res.LocalMtime = rc.LocalMtime
+	return res
 }
 
 func (rc RemoteConversation) GetMtime() gregor1.Time {

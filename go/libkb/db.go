@@ -21,6 +21,7 @@ const (
 	DBTeamChain         = 0x10
 	DBUserPlusAllKeysV1 = 0x19
 
+	DBChatInboxConversations         = 0xaa
 	DBFeaturedBots                   = 0xab
 	DBChatEphemeralTracker           = 0xac
 	DBLoginTimes                     = 0xad
