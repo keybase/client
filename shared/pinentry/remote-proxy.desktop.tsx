@@ -3,18 +3,13 @@ import * as Container from '../util/container'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as React from 'react'
 import * as Styles from '../styles'
-import * as Types from '../constants/types/pinentry'
 import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
-import {serialize} from './remote-serializer.desktop'
-
-export type Props = {
-  darkMode: boolean
-} & Types.State
+import {serialize, ProxyProps} from './remote-serializer.desktop'
 
 const windowOpts = {height: 210, width: 440}
 
-const Pinentry = (p: Props) => {
+const Pinentry = (p: ProxyProps) => {
   const windowComponent = 'pinentry'
   const windowParam = 'pinentry'
 

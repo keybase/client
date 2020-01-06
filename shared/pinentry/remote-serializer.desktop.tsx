@@ -1,7 +1,14 @@
 import * as RPCTypes from '../constants/types/rpc-gen'
-import {Props} from './remote-proxy.desktop'
+import * as Types from '../constants/types/pinentry'
 
-const initialState: Props = {
+export type ProxyProps = {
+  darkMode: boolean
+} & Types.State
+
+type SerializeProps = ProxyProps
+export type DeserializeProps = ProxyProps
+
+const initialState: DeserializeProps = {
   darkMode: false,
   prompt: '',
   showTyping: {
@@ -14,11 +21,12 @@ const initialState: Props = {
   windowTitle: '',
 }
 
-type SerializeProps = Props
+export const serialize = (p: ProxyProps): SerializeProps => p
 
-export const serialize = (p: Props): SerializeProps => p
-
-export const deserialize = (state: Props = initialState, props: SerializeProps): Props => ({
+export const deserialize = (
+  state: DeserializeProps = initialState,
+  props: SerializeProps
+): DeserializeProps => ({
   ...state,
   ...props,
 })
