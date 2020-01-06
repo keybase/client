@@ -17,7 +17,7 @@ const RemoteTracker = (props: {username: string}) => {
   const state = Container.useSelector(s => s)
   const details = Constants.getDetails(state, username)
   const {infoMap} = state.users
-  const {avatarRefreshCounter, following, httpSrvToken, httpSrvAddress} = state.config
+  const {avatarRefreshCounter, following, followers, httpSrvToken, httpSrvAddress} = state.config
   const {assertions, bio, blocked, followersCount, followingCount, fullname, guiID} = details
   const {hidFromFollowers, location, reason, teamShowcase} = details
 
@@ -29,11 +29,12 @@ const RemoteTracker = (props: {username: string}) => {
     bio,
     blocked,
     darkMode: Styles.isDarkMode(),
-    followThem: Constants.followThem(state, username),
+    // followThem: Constants.followThem(state, username),
+    followers: intersect(followers, usernames),
     followersCount,
     following: intersect(following, usernames),
     followingCount,
-    followsYou: Constants.followsYou(state, username),
+    // followsYou: Constants.followsYou(state, username),
     fullname,
     guiID,
     hidFromFollowers,

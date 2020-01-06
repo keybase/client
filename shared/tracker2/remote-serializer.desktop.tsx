@@ -9,6 +9,7 @@ import {State as UsersState, UserInfo} from '../constants/types/users'
 type ConfigHoistedProps =
   | 'avatarRefreshCounter'
   | 'following'
+  | 'followers'
   | 'httpSrvAddress'
   | 'httpSrvToken'
   | 'username'
@@ -16,8 +17,8 @@ type UsersHoistedProps = 'infoMap'
 
 export type ProxyProps = {
   darkMode: boolean
-  followThem: boolean
-  followsYou: boolean
+  // followThem: boolean
+  // followsYou: boolean
   isYou: boolean
 } & Pick<
   Details,
@@ -38,15 +39,20 @@ export type ProxyProps = {
   Pick<ConfigState, ConfigHoistedProps> &
   Pick<UsersState, UsersHoistedProps>
 
-type SerializeProps = Omit<ProxyProps, 'avatarRefreshCounter' | 'assertions' | 'infoMap' | 'following'> & {
+type SerializeProps = Omit<
+  ProxyProps,
+  'avatarRefreshCounter' | 'assertions' | 'infoMap' | 'following' | 'followers'
+> & {
   assertions: Array<[string, Assertion]>
   avatarRefreshCounter: Array<[string, number]>
+  followers: Array<string>
   following: Array<string>
   infoMap: Array<[string, UserInfo]>
 }
 export type DeserializeProps = Omit<ProxyProps, ConfigHoistedProps | UsersHoistedProps> & {
   config: Pick<ConfigState, ConfigHoistedProps>
   users: Pick<UsersState, UsersHoistedProps>
+  teams: {teamNameToID: Map<string, string>}
   // waiting: boolean
 }
 
@@ -55,31 +61,33 @@ const initialState: DeserializeProps = {
   blocked: false,
   config: {
     avatarRefreshCounter: new Map(),
+    followers: new Set(),
     following: new Set(),
     httpSrvAddress: '',
     httpSrvToken: '',
     username: '',
   },
   darkMode: false,
-  followThem: false,
-  followsYou: false,
+  // followThem: false,
+  // followsYou: false,
   guiID: '',
   hidFromFollowers: false,
   isYou: false,
   reason: '',
   state: 'checking',
   stellarHidden: false,
-  // teams: {teamNameToID: new Map()},
+  teams: {teamNameToID: new Map()},
   users: {infoMap: new Map()},
   // waiting: false,
 }
 
 export const serialize = (p: ProxyProps): SerializeProps => {
-  const {assertions, avatarRefreshCounter, following, infoMap, ...toSend} = p
+  const {assertions, avatarRefreshCounter, following, followers, infoMap, ...toSend} = p
   return {
     ...toSend,
     assertions: [...(assertions?.entries() ?? [])],
     avatarRefreshCounter: [...avatarRefreshCounter.entries()],
+    followers: [...followers],
     following: [...following],
     infoMap: [...infoMap.entries()],
   }
@@ -94,6 +102,7 @@ export const deserialize = (
   const {
     assertions,
     avatarRefreshCounter,
+    followers,
     following,
     httpSrvAddress,
     httpSrvToken,
@@ -109,6 +118,7 @@ export const deserialize = (
     config: {
       ...state.config,
       avatarRefreshCounter: new Map(avatarRefreshCounter),
+      followers: new Set(followers),
       following: new Set(following),
       httpSrvAddress,
       httpSrvToken,

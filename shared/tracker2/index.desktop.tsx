@@ -5,7 +5,7 @@ import * as Types from '../constants/types/tracker2'
 import * as Styles from '../styles'
 import {_setDarkModePreference} from '../styles/dark-mode'
 import Assertion from './assertion/remote-container'
-import Bio from './bio/remote-container'
+import Bio from './bio/container'
 
 type Props = {
   assertionKeys?: ReadonlyArray<string>
@@ -175,7 +175,7 @@ const Tracker = (props: Props) => {
               />
             </Kb.Box2>
           </Kb.Box2>
-          <Bio username={props.username} />
+          <Bio inTracker={true} username={props.username} />
           {props.teamShowcase && (
             <Kb.Box2 direction="vertical" fullWidth={true} style={styles.teamShowcases} gap="xtiny">
               {props.teamShowcase.map(t => (

@@ -39,17 +39,18 @@ export default remoteConnect(
       ),
   }),
   (stateProps, dispatchProps, _: OwnProps) => {
-    const {assertions, bio, darkMode, followThem, followersCount, followingCount, followsYou} = stateProps
+    const {assertions, bio, darkMode, followersCount, followingCount} = stateProps
+    // followThem, , followsYou
     const {guiID, isYou, location, config, reason, state, teamShowcase} = stateProps
     const {username} = config
     return {
       assertionKeys: assertions ? [...assertions.keys()] : undefined,
       bio,
       darkMode,
-      followThem,
+      // followThem,
       followersCount,
       followingCount,
-      followsYou,
+      // followsYou,
       guiID,
       isYou,
       location,
