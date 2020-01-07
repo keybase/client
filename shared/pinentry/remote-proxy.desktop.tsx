@@ -7,7 +7,7 @@ import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import {serialize, ProxyProps} from './remote-serializer.desktop'
 
-const windowOpts = {height: 210, width: 440}
+const windowOpts = {height: 230, width: 440}
 
 const Pinentry = (p: ProxyProps) => {
   const windowComponent = 'pinentry'

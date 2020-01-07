@@ -41,11 +41,7 @@ export default function useSerializeProps<ProxyProps extends {}, SerializeProps 
           const propsStr = JSON.stringify(toSend)
           debugSerializer && console.log('[useSerializeProps]: throttled send', propsStr.length, toSend)
           SafeElectron.getApp().emit('KBkeybase', '', {
-            payload: {
-              propsStr,
-              windowComponent,
-              windowParam,
-            },
+            payload: {propsStr, windowComponent, windowParam},
             type: 'rendererNewProps',
           })
         }
