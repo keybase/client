@@ -1,3 +1,5 @@
+//lint:file-ignore S1005 The issue should be fixed in xdrgen. Unfortunately, there's no way to ignore a single file in staticcheck.
+//lint:file-ignore U1000 fmtTest is not needed anywhere, should be removed in xdrgen.
 // Package xdr is generated from:
 //
 //  Stellar-SCP.x
@@ -851,6 +853,64 @@ var (
 	_ encoding.BinaryUnmarshaler = (*DataValue)(nil)
 )
 
+// AssetCode4 is an XDR Typedef defines as:
+//
+//   typedef opaque AssetCode4[4];
+//
+type AssetCode4 [4]byte
+
+// XDRMaxSize implements the Sized interface for AssetCode4
+func (e AssetCode4) XDRMaxSize() int {
+	return 4
+}
+
+// MarshalBinary implements encoding.BinaryMarshaler.
+func (s AssetCode4) MarshalBinary() ([]byte, error) {
+	b := new(bytes.Buffer)
+	_, err := Marshal(b, s)
+	return b.Bytes(), err
+}
+
+// UnmarshalBinary implements encoding.BinaryUnmarshaler.
+func (s *AssetCode4) UnmarshalBinary(inp []byte) error {
+	_, err := Unmarshal(bytes.NewReader(inp), s)
+	return err
+}
+
+var (
+	_ encoding.BinaryMarshaler   = (*AssetCode4)(nil)
+	_ encoding.BinaryUnmarshaler = (*AssetCode4)(nil)
+)
+
+// AssetCode12 is an XDR Typedef defines as:
+//
+//   typedef opaque AssetCode12[12];
+//
+type AssetCode12 [12]byte
+
+// XDRMaxSize implements the Sized interface for AssetCode12
+func (e AssetCode12) XDRMaxSize() int {
+	return 12
+}
+
+// MarshalBinary implements encoding.BinaryMarshaler.
+func (s AssetCode12) MarshalBinary() ([]byte, error) {
+	b := new(bytes.Buffer)
+	_, err := Marshal(b, s)
+	return b.Bytes(), err
+}
+
+// UnmarshalBinary implements encoding.BinaryUnmarshaler.
+func (s *AssetCode12) UnmarshalBinary(inp []byte) error {
+	_, err := Unmarshal(bytes.NewReader(inp), s)
+	return err
+}
+
+var (
+	_ encoding.BinaryMarshaler   = (*AssetCode12)(nil)
+	_ encoding.BinaryUnmarshaler = (*AssetCode12)(nil)
+)
+
 // AssetType is an XDR Enum defines as:
 //
 //   enum AssetType
@@ -909,12 +969,12 @@ var (
 //
 //   struct
 //        {
-//            opaque assetCode[4]; // 1 to 4 characters
+//            AssetCode4 assetCode;
 //            AccountID issuer;
 //        }
 //
 type AssetAlphaNum4 struct {
-	AssetCode [4]byte `xdrmaxsize:"4"`
+	AssetCode AssetCode4
 	Issuer    AccountId
 }
 
@@ -940,12 +1000,12 @@ var (
 //
 //   struct
 //        {
-//            opaque assetCode[12]; // 5 to 12 characters
+//            AssetCode12 assetCode;
 //            AccountID issuer;
 //        }
 //
 type AssetAlphaNum12 struct {
-	AssetCode [12]byte `xdrmaxsize:"12"`
+	AssetCode AssetCode12
 	Issuer    AccountId
 }
 
@@ -977,14 +1037,14 @@ var (
 //    case ASSET_TYPE_CREDIT_ALPHANUM4:
 //        struct
 //        {
-//            opaque assetCode[4]; // 1 to 4 characters
+//            AssetCode4 assetCode;
 //            AccountID issuer;
 //        } alphaNum4;
 //
 //    case ASSET_TYPE_CREDIT_ALPHANUM12:
 //        struct
 //        {
-//            opaque assetCode[12]; // 5 to 12 characters
+//            AssetCode12 assetCode;
 //            AccountID issuer;
 //        } alphaNum12;
 //
@@ -1290,7 +1350,7 @@ var (
 //   struct Signer
 //    {
 //        SignerKey key;
-//        uint32 weight; // really only need 1byte
+//        uint32 weight; // really only need 1 byte
 //    };
 //
 type Signer struct {
@@ -2703,7 +2763,7 @@ var (
 
 // StellarValueExt is an XDR NestedUnion defines as:
 //
-//   union switch (int v)
+//   union switch (StellarValueType v)
 //        {
 //        case STELLAR_VALUE_BASIC:
 //            void;
@@ -2712,7 +2772,7 @@ var (
 //        }
 //
 type StellarValueExt struct {
-	V                int32
+	V                StellarValueType
 	LcValueSignature *LedgerCloseValueSignature
 }
 
@@ -2725,22 +2785,22 @@ func (u StellarValueExt) SwitchFieldName() string {
 // ArmForSwitch returns which field name should be used for storing
 // the value for an instance of StellarValueExt
 func (u StellarValueExt) ArmForSwitch(sw int32) (string, bool) {
-	switch int32(sw) {
-	case int32(StellarValueTypeStellarValueBasic):
+	switch StellarValueType(sw) {
+	case StellarValueTypeStellarValueBasic:
 		return "", true
-	case int32(StellarValueTypeStellarValueSigned):
+	case StellarValueTypeStellarValueSigned:
 		return "LcValueSignature", true
 	}
 	return "-", false
 }
 
 // NewStellarValueExt creates a new  StellarValueExt.
-func NewStellarValueExt(v int32, value interface{}) (result StellarValueExt, err error) {
+func NewStellarValueExt(v StellarValueType, value interface{}) (result StellarValueExt, err error) {
 	result.V = v
-	switch int32(v) {
-	case int32(StellarValueTypeStellarValueBasic):
+	switch StellarValueType(v) {
+	case StellarValueTypeStellarValueBasic:
 		// void
-	case int32(StellarValueTypeStellarValueSigned):
+	case StellarValueTypeStellarValueSigned:
 		tv, ok := value.(LedgerCloseValueSignature)
 		if !ok {
 			err = fmt.Errorf("invalid value, must be LedgerCloseValueSignature")
@@ -2809,7 +2869,7 @@ var (
 //        UpgradeType upgrades<6>;
 //
 //        // reserved for future use
-//        union switch (int v)
+//        union switch (StellarValueType v)
 //        {
 //        case STELLAR_VALUE_BASIC:
 //            void;
@@ -6089,7 +6149,7 @@ var (
 //    {
 //        CREATE_ACCOUNT = 0,
 //        PAYMENT = 1,
-//        PATH_PAYMENT = 2,
+//        PATH_PAYMENT_STRICT_RECEIVE = 2,
 //        MANAGE_SELL_OFFER = 3,
 //        CREATE_PASSIVE_SELL_OFFER = 4,
 //        SET_OPTIONS = 5,
@@ -6099,31 +6159,33 @@ var (
 //        INFLATION = 9,
 //        MANAGE_DATA = 10,
 //        BUMP_SEQUENCE = 11,
-//        MANAGE_BUY_OFFER = 12
+//        MANAGE_BUY_OFFER = 12,
+//        PATH_PAYMENT_STRICT_SEND = 13
 //    };
 //
 type OperationType int32
 
 const (
-	OperationTypeCreateAccount          OperationType = 0
-	OperationTypePayment                OperationType = 1
-	OperationTypePathPayment            OperationType = 2
-	OperationTypeManageSellOffer        OperationType = 3
-	OperationTypeCreatePassiveSellOffer OperationType = 4
-	OperationTypeSetOptions             OperationType = 5
-	OperationTypeChangeTrust            OperationType = 6
-	OperationTypeAllowTrust             OperationType = 7
-	OperationTypeAccountMerge           OperationType = 8
-	OperationTypeInflation              OperationType = 9
-	OperationTypeManageData             OperationType = 10
-	OperationTypeBumpSequence           OperationType = 11
-	OperationTypeManageBuyOffer         OperationType = 12
+	OperationTypeCreateAccount            OperationType = 0
+	OperationTypePayment                  OperationType = 1
+	OperationTypePathPaymentStrictReceive OperationType = 2
+	OperationTypeManageSellOffer          OperationType = 3
+	OperationTypeCreatePassiveSellOffer   OperationType = 4
+	OperationTypeSetOptions               OperationType = 5
+	OperationTypeChangeTrust              OperationType = 6
+	OperationTypeAllowTrust               OperationType = 7
+	OperationTypeAccountMerge             OperationType = 8
+	OperationTypeInflation                OperationType = 9
+	OperationTypeManageData               OperationType = 10
+	OperationTypeBumpSequence             OperationType = 11
+	OperationTypeManageBuyOffer           OperationType = 12
+	OperationTypePathPaymentStrictSend    OperationType = 13
 )
 
 var operationTypeMap = map[int32]string{
 	0:  "OperationTypeCreateAccount",
 	1:  "OperationTypePayment",
-	2:  "OperationTypePathPayment",
+	2:  "OperationTypePathPaymentStrictReceive",
 	3:  "OperationTypeManageSellOffer",
 	4:  "OperationTypeCreatePassiveSellOffer",
 	5:  "OperationTypeSetOptions",
@@ -6134,6 +6196,7 @@ var operationTypeMap = map[int32]string{
 	10: "OperationTypeManageData",
 	11: "OperationTypeBumpSequence",
 	12: "OperationTypeManageBuyOffer",
+	13: "OperationTypePathPaymentStrictSend",
 }
 
 // ValidEnum validates a proposed value for this enum.  Implements
@@ -6231,9 +6294,9 @@ var (
 	_ encoding.BinaryUnmarshaler = (*PaymentOp)(nil)
 )
 
-// PathPaymentOp is an XDR Struct defines as:
+// PathPaymentStrictReceiveOp is an XDR Struct defines as:
 //
-//   struct PathPaymentOp
+//   struct PathPaymentStrictReceiveOp
 //    {
 //        Asset sendAsset; // asset we pay with
 //        int64 sendMax;   // the maximum amount of sendAsset to
@@ -6247,7 +6310,7 @@ var (
 //        Asset path<5>; // additional hops it must go through to get there
 //    };
 //
-type PathPaymentOp struct {
+type PathPaymentStrictReceiveOp struct {
 	SendAsset   Asset
 	SendMax     Int64
 	Destination AccountId
@@ -6257,21 +6320,64 @@ type PathPaymentOp struct {
 }
 
 // MarshalBinary implements encoding.BinaryMarshaler.
-func (s PathPaymentOp) MarshalBinary() ([]byte, error) {
+func (s PathPaymentStrictReceiveOp) MarshalBinary() ([]byte, error) {
 	b := new(bytes.Buffer)
 	_, err := Marshal(b, s)
 	return b.Bytes(), err
 }
 
 // UnmarshalBinary implements encoding.BinaryUnmarshaler.
-func (s *PathPaymentOp) UnmarshalBinary(inp []byte) error {
+func (s *PathPaymentStrictReceiveOp) UnmarshalBinary(inp []byte) error {
 	_, err := Unmarshal(bytes.NewReader(inp), s)
 	return err
 }
 
 var (
-	_ encoding.BinaryMarshaler   = (*PathPaymentOp)(nil)
-	_ encoding.BinaryUnmarshaler = (*PathPaymentOp)(nil)
+	_ encoding.BinaryMarshaler   = (*PathPaymentStrictReceiveOp)(nil)
+	_ encoding.BinaryUnmarshaler = (*PathPaymentStrictReceiveOp)(nil)
+)
+
+// PathPaymentStrictSendOp is an XDR Struct defines as:
+//
+//   struct PathPaymentStrictSendOp
+//    {
+//        Asset sendAsset;  // asset we pay with
+//        int64 sendAmount; // amount of sendAsset to send (excluding fees)
+//
+//        AccountID destination; // recipient of the payment
+//        Asset destAsset;       // what they end up with
+//        int64 destMin;         // the minimum amount of dest asset to
+//                               // be received
+//                               // The operation will fail if it can't be met
+//
+//        Asset path<5>; // additional hops it must go through to get there
+//    };
+//
+type PathPaymentStrictSendOp struct {
+	SendAsset   Asset
+	SendAmount  Int64
+	Destination AccountId
+	DestAsset   Asset
+	DestMin     Int64
+	Path        []Asset `xdrmaxsize:"5"`
+}
+
+// MarshalBinary implements encoding.BinaryMarshaler.
+func (s PathPaymentStrictSendOp) MarshalBinary() ([]byte, error) {
+	b := new(bytes.Buffer)
+	_, err := Marshal(b, s)
+	return b.Bytes(), err
+}
+
+// UnmarshalBinary implements encoding.BinaryUnmarshaler.
+func (s *PathPaymentStrictSendOp) UnmarshalBinary(inp []byte) error {
+	_, err := Unmarshal(bytes.NewReader(inp), s)
+	return err
+}
+
+var (
+	_ encoding.BinaryMarshaler   = (*PathPaymentStrictSendOp)(nil)
+	_ encoding.BinaryUnmarshaler = (*PathPaymentStrictSendOp)(nil)
 )
 
 // ManageSellOfferOp is an XDR Struct defines as:
@@ -6479,18 +6585,18 @@ var (
 //        {
 //        // ASSET_TYPE_NATIVE is not allowed
 //        case ASSET_TYPE_CREDIT_ALPHANUM4:
-//            opaque assetCode4[4];
+//            AssetCode4 assetCode4;
 //
 //        case ASSET_TYPE_CREDIT_ALPHANUM12:
-//            opaque assetCode12[12];
+//            AssetCode12 assetCode12;
 //
 //            // add other asset types here in the future
 //        }
 //
 type AllowTrustOpAsset struct {
 	Type        AssetType
-	AssetCode4  *[4]byte  `xdrmaxsize:"4"`
-	AssetCode12 *[12]byte `xdrmaxsize:"12"`
+	AssetCode4  *AssetCode4
+	AssetCode12 *AssetCode12
 }
 
 // SwitchFieldName returns the field name in which this union's
@@ -6516,16 +6622,16 @@ func NewAllowTrustOpAsset(aType AssetType, value interface{}) (result AllowTrust
 	result.Type = aType
 	switch AssetType(aType) {
 	case AssetTypeAssetTypeCreditAlphanum4:
-		tv, ok := value.([4]byte)
+		tv, ok := value.(AssetCode4)
 		if !ok {
-			err = fmt.Errorf("invalid value, must be [4]byte")
+			err = fmt.Errorf("invalid value, must be AssetCode4")
 			return
 		}
 		result.AssetCode4 = &tv
 	case AssetTypeAssetTypeCreditAlphanum12:
-		tv, ok := value.([12]byte)
+		tv, ok := value.(AssetCode12)
 		if !ok {
-			err = fmt.Errorf("invalid value, must be [12]byte")
+			err = fmt.Errorf("invalid value, must be AssetCode12")
 			return
 		}
 		result.AssetCode12 = &tv
@@ -6535,7 +6641,7 @@ func NewAllowTrustOpAsset(aType AssetType, value interface{}) (result AllowTrust
 
 // MustAssetCode4 retrieves the AssetCode4 value from the union,
 // panicing if the value is not set.
-func (u AllowTrustOpAsset) MustAssetCode4() [4]byte {
+func (u AllowTrustOpAsset) MustAssetCode4() AssetCode4 {
 	val, ok := u.GetAssetCode4()
 
 	if !ok {
@@ -6547,7 +6653,7 @@ func (u AllowTrustOpAsset) MustAssetCode4() [4]byte {
 
 // GetAssetCode4 retrieves the AssetCode4 value from the union,
 // returning ok if the union's switch indicated the value is valid.
-func (u AllowTrustOpAsset) GetAssetCode4() (result [4]byte, ok bool) {
+func (u AllowTrustOpAsset) GetAssetCode4() (result AssetCode4, ok bool) {
 	armName, _ := u.ArmForSwitch(int32(u.Type))
 
 	if armName == "AssetCode4" {
@@ -6560,7 +6666,7 @@ func (u AllowTrustOpAsset) GetAssetCode4() (result [4]byte, ok bool) {
 
 // MustAssetCode12 retrieves the AssetCode12 value from the union,
 // panicing if the value is not set.
-func (u AllowTrustOpAsset) MustAssetCode12() [12]byte {
+func (u AllowTrustOpAsset) MustAssetCode12() AssetCode12 {
 	val, ok := u.GetAssetCode12()
 
 	if !ok {
@@ -6572,7 +6678,7 @@ func (u AllowTrustOpAsset) MustAssetCode12() [12]byte {
 
 // GetAssetCode12 retrieves the AssetCode12 value from the union,
 // returning ok if the union's switch indicated the value is valid.
-func (u AllowTrustOpAsset) GetAssetCode12() (result [12]byte, ok bool) {
+func (u AllowTrustOpAsset) GetAssetCode12() (result AssetCode12, ok bool) {
 	armName, _ := u.ArmForSwitch(int32(u.Type))
 
 	if armName == "AssetCode12" {
@@ -6610,10 +6716,10 @@ var (
 //        {
 //        // ASSET_TYPE_NATIVE is not allowed
 //        case ASSET_TYPE_CREDIT_ALPHANUM4:
-//            opaque assetCode4[4];
+//            AssetCode4 assetCode4;
 //
 //        case ASSET_TYPE_CREDIT_ALPHANUM12:
-//            opaque assetCode12[12];
+//            AssetCode12 assetCode12;
 //
 //            // add other asset types here in the future
 //        }
@@ -6714,8 +6820,8 @@ var (
 //            CreateAccountOp createAccountOp;
 //        case PAYMENT:
 //            PaymentOp paymentOp;
-//        case PATH_PAYMENT:
-//            PathPaymentOp pathPaymentOp;
+//        case PATH_PAYMENT_STRICT_RECEIVE:
+//            PathPaymentStrictReceiveOp pathPaymentStrictReceiveOp;
 //        case MANAGE_SELL_OFFER:
 //            ManageSellOfferOp manageSellOfferOp;
 //        case CREATE_PASSIVE_SELL_OFFER:
@@ -6736,22 +6842,25 @@ var (
 //            BumpSequenceOp bumpSequenceOp;
 //        case MANAGE_BUY_OFFER:
 //            ManageBuyOfferOp manageBuyOfferOp;
+//        case PATH_PAYMENT_STRICT_SEND:
+//            PathPaymentStrictSendOp pathPaymentStrictSendOp;
 //        }
 //
 type OperationBody struct {
-	Type                     OperationType
-	CreateAccountOp          *CreateAccountOp
-	PaymentOp                *PaymentOp
-	PathPaymentOp            *PathPaymentOp
-	ManageSellOfferOp        *ManageSellOfferOp
-	CreatePassiveSellOfferOp *CreatePassiveSellOfferOp
-	SetOptionsOp             *SetOptionsOp
-	ChangeTrustOp            *ChangeTrustOp
-	AllowTrustOp             *AllowTrustOp
-	Destination              *AccountId
-	ManageDataOp             *ManageDataOp
-	BumpSequenceOp           *BumpSequenceOp
-	ManageBuyOfferOp         *ManageBuyOfferOp
+	Type                       OperationType
+	CreateAccountOp            *CreateAccountOp
+	PaymentOp                  *PaymentOp
+	PathPaymentStrictReceiveOp *PathPaymentStrictReceiveOp
+	ManageSellOfferOp          *ManageSellOfferOp
+	CreatePassiveSellOfferOp   *CreatePassiveSellOfferOp
+	SetOptionsOp               *SetOptionsOp
+	ChangeTrustOp              *ChangeTrustOp
+	AllowTrustOp               *AllowTrustOp
+	Destination                *AccountId
+	ManageDataOp               *ManageDataOp
+	BumpSequenceOp             *BumpSequenceOp
+	ManageBuyOfferOp           *ManageBuyOfferOp
+	PathPaymentStrictSendOp    *PathPaymentStrictSendOp
 }
 
 // SwitchFieldName returns the field name in which this union's
@@ -6768,8 +6877,8 @@ func (u OperationBody) ArmForSwitch(sw int32) (string, bool) {
 		return "CreateAccountOp", true
 	case OperationTypePayment:
 		return "PaymentOp", true
-	case OperationTypePathPayment:
-		return "PathPaymentOp", true
+	case OperationTypePathPaymentStrictReceive:
+		return "PathPaymentStrictReceiveOp", true
 	case OperationTypeManageSellOffer:
 		return "ManageSellOfferOp", true
 	case OperationTypeCreatePassiveSellOffer:
@@ -6790,6 +6899,8 @@ func (u OperationBody) ArmForSwitch(sw int32) (string, bool) {
 		return "BumpSequenceOp", true
 	case OperationTypeManageBuyOffer:
 		return "ManageBuyOfferOp", true
+	case OperationTypePathPaymentStrictSend:
+		return "PathPaymentStrictSendOp", true
 	}
 	return "-", false
 }
@@ -6812,13 +6923,13 @@ func NewOperationBody(aType OperationType, value interface{}) (result OperationB
 			return
 		}
 		result.PaymentOp = &tv
-	case OperationTypePathPayment:
-		tv, ok := value.(PathPaymentOp)
+	case OperationTypePathPaymentStrictReceive:
+		tv, ok := value.(PathPaymentStrictReceiveOp)
 		if !ok {
-			err = fmt.Errorf("invalid value, must be PathPaymentOp")
+			err = fmt.Errorf("invalid value, must be PathPaymentStrictReceiveOp")
 			return
 		}
-		result.PathPaymentOp = &tv
+		result.PathPaymentStrictReceiveOp = &tv
 	case OperationTypeManageSellOffer:
 		tv, ok := value.(ManageSellOfferOp)
 		if !ok {
@@ -6884,6 +6995,13 @@ func NewOperationBody(aType OperationType, value interface{}) (result OperationB
 			return
 		}
 		result.ManageBuyOfferOp = &tv
+	case OperationTypePathPaymentStrictSend:
+		tv, ok := value.(PathPaymentStrictSendOp)
+		if !ok {
+			err = fmt.Errorf("invalid value, must be PathPaymentStrictSendOp")
+			return
+		}
+		result.PathPaymentStrictSendOp = &tv
 	}
 	return
 }
@@ -6938,25 +7056,25 @@ func (u OperationBody) GetPaymentOp() (result PaymentOp, ok bool) {
 	return
 }
 
-// MustPathPaymentOp retrieves the PathPaymentOp value from the union,
+// MustPathPaymentStrictReceiveOp retrieves the PathPaymentStrictReceiveOp value from the union,
 // panicing if the value is not set.
-func (u OperationBody) MustPathPaymentOp() PathPaymentOp {
-	val, ok := u.GetPathPaymentOp()
+func (u OperationBody) MustPathPaymentStrictReceiveOp() PathPaymentStrictReceiveOp {
+	val, ok := u.GetPathPaymentStrictReceiveOp()
 
 	if !ok {
-		panic("arm PathPaymentOp is not set")
+		panic("arm PathPaymentStrictReceiveOp is not set")
 	}
 
 	return val
 }
 
-// GetPathPaymentOp retrieves the PathPaymentOp value from the union,
+// GetPathPaymentStrictReceiveOp retrieves the PathPaymentStrictReceiveOp value from the union,
 // returning ok if the union's switch indicated the value is valid.
-func (u OperationBody) GetPathPaymentOp() (result PathPaymentOp, ok bool) {
+func (u OperationBody) GetPathPaymentStrictReceiveOp() (result PathPaymentStrictReceiveOp, ok bool) {
 	armName, _ := u.ArmForSwitch(int32(u.Type))
 
-	if armName == "PathPaymentOp" {
-		result = *u.PathPaymentOp
+	if armName == "PathPaymentStrictReceiveOp" {
+		result = *u.PathPaymentStrictReceiveOp
 		ok = true
 	}
 
@@ -7188,6 +7306,31 @@ func (u OperationBody) GetManageBuyOfferOp() (result ManageBuyOfferOp, ok bool) 
 	return
 }
 
+// MustPathPaymentStrictSendOp retrieves the PathPaymentStrictSendOp value from the union,
+// panicing if the value is not set.
+func (u OperationBody) MustPathPaymentStrictSendOp() PathPaymentStrictSendOp {
+	val, ok := u.GetPathPaymentStrictSendOp()
+
+	if !ok {
+		panic("arm PathPaymentStrictSendOp is not set")
+	}
+
+	return val
+}
+
+// GetPathPaymentStrictSendOp retrieves the PathPaymentStrictSendOp value from the union,
+// returning ok if the union's switch indicated the value is valid.
+func (u OperationBody) GetPathPaymentStrictSendOp() (result PathPaymentStrictSendOp, ok bool) {
+	armName, _ := u.ArmForSwitch(int32(u.Type))
+
+	if armName == "PathPaymentStrictSendOp" {
+		result = *u.PathPaymentStrictSendOp
+		ok = true
+	}
+
+	return
+}
+
 // MarshalBinary implements encoding.BinaryMarshaler.
 func (s OperationBody) MarshalBinary() ([]byte, error) {
 	b := new(bytes.Buffer)
@@ -7221,8 +7364,8 @@ var (
 //            CreateAccountOp createAccountOp;
 //        case PAYMENT:
 //            PaymentOp paymentOp;
-//        case PATH_PAYMENT:
-//            PathPaymentOp pathPaymentOp;
+//        case PATH_PAYMENT_STRICT_RECEIVE:
+//            PathPaymentStrictReceiveOp pathPaymentStrictReceiveOp;
 //        case MANAGE_SELL_OFFER:
 //            ManageSellOfferOp manageSellOfferOp;
 //        case CREATE_PASSIVE_SELL_OFFER:
@@ -7243,6 +7386,8 @@ var (
 //            BumpSequenceOp bumpSequenceOp;
 //        case MANAGE_BUY_OFFER:
 //            ManageBuyOfferOp manageBuyOfferOp;
+//        case PATH_PAYMENT_STRICT_SEND:
+//            PathPaymentStrictSendOp pathPaymentStrictSendOp;
 //        }
 //        body;
 //    };
@@ -8150,91 +8295,91 @@ var (
 	_ encoding.BinaryUnmarshaler = (*PaymentResult)(nil)
 )
 
-// PathPaymentResultCode is an XDR Enum defines as:
+// PathPaymentStrictReceiveResultCode is an XDR Enum defines as:
 //
-//   enum PathPaymentResultCode
+//   enum PathPaymentStrictReceiveResultCode
 //    {
 //        // codes considered as "success" for the operation
-//        PATH_PAYMENT_SUCCESS = 0, // success
+//        PATH_PAYMENT_STRICT_RECEIVE_SUCCESS = 0, // success
 //
 //        // codes considered as "failure" for the operation
-//        PATH_PAYMENT_MALFORMED = -1,          // bad input
-//        PATH_PAYMENT_UNDERFUNDED = -2,        // not enough funds in source account
-//        PATH_PAYMENT_SRC_NO_TRUST = -3,       // no trust line on source account
-//        PATH_PAYMENT_SRC_NOT_AUTHORIZED = -4, // source not authorized to transfer
-//        PATH_PAYMENT_NO_DESTINATION = -5,     // destination account does not exist
-//        PATH_PAYMENT_NO_TRUST = -6,           // dest missing a trust line for asset
-//        PATH_PAYMENT_NOT_AUTHORIZED = -7,     // dest not authorized to hold asset
-//        PATH_PAYMENT_LINE_FULL = -8,          // dest would go above their limit
-//        PATH_PAYMENT_NO_ISSUER = -9,          // missing issuer on one asset
-//        PATH_PAYMENT_TOO_FEW_OFFERS = -10,    // not enough offers to satisfy path
-//        PATH_PAYMENT_OFFER_CROSS_SELF = -11,  // would cross one of its own offers
-//        PATH_PAYMENT_OVER_SENDMAX = -12       // could not satisfy sendmax
+//        PATH_PAYMENT_STRICT_RECEIVE_MALFORMED = -1,          // bad input
+//        PATH_PAYMENT_STRICT_RECEIVE_UNDERFUNDED = -2,        // not enough funds in source account
+//        PATH_PAYMENT_STRICT_RECEIVE_SRC_NO_TRUST = -3,       // no trust line on source account
+//        PATH_PAYMENT_STRICT_RECEIVE_SRC_NOT_AUTHORIZED = -4, // source not authorized to transfer
+//        PATH_PAYMENT_STRICT_RECEIVE_NO_DESTINATION = -5,     // destination account does not exist
+//        PATH_PAYMENT_STRICT_RECEIVE_NO_TRUST = -6,           // dest missing a trust line for asset
+//        PATH_PAYMENT_STRICT_RECEIVE_NOT_AUTHORIZED = -7,     // dest not authorized to hold asset
+//        PATH_PAYMENT_STRICT_RECEIVE_LINE_FULL = -8,          // dest would go above their limit
+//        PATH_PAYMENT_STRICT_RECEIVE_NO_ISSUER = -9,          // missing issuer on one asset
+//        PATH_PAYMENT_STRICT_RECEIVE_TOO_FEW_OFFERS = -10,    // not enough offers to satisfy path
+//        PATH_PAYMENT_STRICT_RECEIVE_OFFER_CROSS_SELF = -11,  // would cross one of its own offers
+//        PATH_PAYMENT_STRICT_RECEIVE_OVER_SENDMAX = -12       // could not satisfy sendmax
 //    };
 //
-type PathPaymentResultCode int32
+type PathPaymentStrictReceiveResultCode int32
 
 const (
-	PathPaymentResultCodePathPaymentSuccess          PathPaymentResultCode = 0
-	PathPaymentResultCodePathPaymentMalformed        PathPaymentResultCode = -1
-	PathPaymentResultCodePathPaymentUnderfunded      PathPaymentResultCode = -2
-	PathPaymentResultCodePathPaymentSrcNoTrust       PathPaymentResultCode = -3
-	PathPaymentResultCodePathPaymentSrcNotAuthorized PathPaymentResultCode = -4
-	PathPaymentResultCodePathPaymentNoDestination    PathPaymentResultCode = -5
-	PathPaymentResultCodePathPaymentNoTrust          PathPaymentResultCode = -6
-	PathPaymentResultCodePathPaymentNotAuthorized    PathPaymentResultCode = -7
-	PathPaymentResultCodePathPaymentLineFull         PathPaymentResultCode = -8
-	PathPaymentResultCodePathPaymentNoIssuer         PathPaymentResultCode = -9
-	PathPaymentResultCodePathPaymentTooFewOffers     PathPaymentResultCode = -10
-	PathPaymentResultCodePathPaymentOfferCrossSelf   PathPaymentResultCode = -11
-	PathPaymentResultCodePathPaymentOverSendmax      PathPaymentResultCode = -12
+	PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveSuccess          PathPaymentStrictReceiveResultCode = 0
+	PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveMalformed        PathPaymentStrictReceiveResultCode = -1
+	PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveUnderfunded      PathPaymentStrictReceiveResultCode = -2
+	PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveSrcNoTrust       PathPaymentStrictReceiveResultCode = -3
+	PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveSrcNotAuthorized PathPaymentStrictReceiveResultCode = -4
+	PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveNoDestination    PathPaymentStrictReceiveResultCode = -5
+	PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveNoTrust          PathPaymentStrictReceiveResultCode = -6
+	PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveNotAuthorized    PathPaymentStrictReceiveResultCode = -7
+	PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveLineFull         PathPaymentStrictReceiveResultCode = -8
+	PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveNoIssuer         PathPaymentStrictReceiveResultCode = -9
+	PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveTooFewOffers     PathPaymentStrictReceiveResultCode = -10
+	PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveOfferCrossSelf   PathPaymentStrictReceiveResultCode = -11
+	PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveOverSendmax      PathPaymentStrictReceiveResultCode = -12
 )
 
-var pathPaymentResultCodeMap = map[int32]string{
-	0:   "PathPaymentResultCodePathPaymentSuccess",
-	-1:  "PathPaymentResultCodePathPaymentMalformed",
-	-2:  "PathPaymentResultCodePathPaymentUnderfunded",
-	-3:  "PathPaymentResultCodePathPaymentSrcNoTrust",
-	-4:  "PathPaymentResultCodePathPaymentSrcNotAuthorized",
-	-5:  "PathPaymentResultCodePathPaymentNoDestination",
-	-6:  "PathPaymentResultCodePathPaymentNoTrust",
-	-7:  "PathPaymentResultCodePathPaymentNotAuthorized",
-	-8:  "PathPaymentResultCodePathPaymentLineFull",
-	-9:  "PathPaymentResultCodePathPaymentNoIssuer",
-	-10: "PathPaymentResultCodePathPaymentTooFewOffers",
-	-11: "PathPaymentResultCodePathPaymentOfferCrossSelf",
-	-12: "PathPaymentResultCodePathPaymentOverSendmax",
+var pathPaymentStrictReceiveResultCodeMap = map[int32]string{
+	0:   "PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveSuccess",
+	-1:  "PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveMalformed",
+	-2:  "PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveUnderfunded",
+	-3:  "PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveSrcNoTrust",
+	-4:  "PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveSrcNotAuthorized",
+	-5:  "PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveNoDestination",
+	-6:  "PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveNoTrust",
+	-7:  "PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveNotAuthorized",
+	-8:  "PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveLineFull",
+	-9:  "PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveNoIssuer",
+	-10: "PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveTooFewOffers",
+	-11: "PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveOfferCrossSelf",
+	-12: "PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveOverSendmax",
 }
 
 // ValidEnum validates a proposed value for this enum.  Implements
-// the Enum interface for PathPaymentResultCode
-func (e PathPaymentResultCode) ValidEnum(v int32) bool {
-	_, ok := pathPaymentResultCodeMap[v]
+// the Enum interface for PathPaymentStrictReceiveResultCode
+func (e PathPaymentStrictReceiveResultCode) ValidEnum(v int32) bool {
+	_, ok := pathPaymentStrictReceiveResultCodeMap[v]
 	return ok
 }
 
 // String returns the name of `e`
-func (e PathPaymentResultCode) String() string {
-	name, _ := pathPaymentResultCodeMap[int32(e)]
+func (e PathPaymentStrictReceiveResultCode) String() string {
+	name, _ := pathPaymentStrictReceiveResultCodeMap[int32(e)]
 	return name
 }
 
 // MarshalBinary implements encoding.BinaryMarshaler.
-func (s PathPaymentResultCode) MarshalBinary() ([]byte, error) {
+func (s PathPaymentStrictReceiveResultCode) MarshalBinary() ([]byte, error) {
 	b := new(bytes.Buffer)
 	_, err := Marshal(b, s)
 	return b.Bytes(), err
 }
 
 // UnmarshalBinary implements encoding.BinaryUnmarshaler.
-func (s *PathPaymentResultCode) UnmarshalBinary(inp []byte) error {
+func (s *PathPaymentStrictReceiveResultCode) UnmarshalBinary(inp []byte) error {
 	_, err := Unmarshal(bytes.NewReader(inp), s)
 	return err
 }
 
 var (
-	_ encoding.BinaryMarshaler   = (*PathPaymentResultCode)(nil)
-	_ encoding.BinaryUnmarshaler = (*PathPaymentResultCode)(nil)
+	_ encoding.BinaryMarshaler   = (*PathPaymentStrictReceiveResultCode)(nil)
+	_ encoding.BinaryUnmarshaler = (*PathPaymentStrictReceiveResultCode)(nil)
 )
 
 // SimplePaymentResult is an XDR Struct defines as:
@@ -8270,7 +8415,7 @@ var (
 	_ encoding.BinaryUnmarshaler = (*SimplePaymentResult)(nil)
 )
 
-// PathPaymentResultSuccess is an XDR NestedStruct defines as:
+// PathPaymentStrictReceiveResultSuccess is an XDR NestedStruct defines as:
 //
 //   struct
 //        {
@@ -8278,82 +8423,82 @@ var (
 //            SimplePaymentResult last;
 //        }
 //
-type PathPaymentResultSuccess struct {
+type PathPaymentStrictReceiveResultSuccess struct {
 	Offers []ClaimOfferAtom
 	Last   SimplePaymentResult
 }
 
 // MarshalBinary implements encoding.BinaryMarshaler.
-func (s PathPaymentResultSuccess) MarshalBinary() ([]byte, error) {
+func (s PathPaymentStrictReceiveResultSuccess) MarshalBinary() ([]byte, error) {
 	b := new(bytes.Buffer)
 	_, err := Marshal(b, s)
 	return b.Bytes(), err
 }
 
 // UnmarshalBinary implements encoding.BinaryUnmarshaler.
-func (s *PathPaymentResultSuccess) UnmarshalBinary(inp []byte) error {
+func (s *PathPaymentStrictReceiveResultSuccess) UnmarshalBinary(inp []byte) error {
 	_, err := Unmarshal(bytes.NewReader(inp), s)
 	return err
 }
 
 var (
-	_ encoding.BinaryMarshaler   = (*PathPaymentResultSuccess)(nil)
-	_ encoding.BinaryUnmarshaler = (*PathPaymentResultSuccess)(nil)
+	_ encoding.BinaryMarshaler   = (*PathPaymentStrictReceiveResultSuccess)(nil)
+	_ encoding.BinaryUnmarshaler = (*PathPaymentStrictReceiveResultSuccess)(nil)
 )
 
-// PathPaymentResult is an XDR Union defines as:
+// PathPaymentStrictReceiveResult is an XDR Union defines as:
 //
-//   union PathPaymentResult switch (PathPaymentResultCode code)
+//   union PathPaymentStrictReceiveResult switch (PathPaymentStrictReceiveResultCode code)
 //    {
-//    case PATH_PAYMENT_SUCCESS:
+//    case PATH_PAYMENT_STRICT_RECEIVE_SUCCESS:
 //        struct
 //        {
 //            ClaimOfferAtom offers<>;
 //            SimplePaymentResult last;
 //        } success;
-//    case PATH_PAYMENT_NO_ISSUER:
+//    case PATH_PAYMENT_STRICT_RECEIVE_NO_ISSUER:
 //        Asset noIssuer; // the asset that caused the error
 //    default:
 //        void;
 //    };
 //
-type PathPaymentResult struct {
-	Code     PathPaymentResultCode
-	Success  *PathPaymentResultSuccess
+type PathPaymentStrictReceiveResult struct {
+	Code     PathPaymentStrictReceiveResultCode
+	Success  *PathPaymentStrictReceiveResultSuccess
 	NoIssuer *Asset
 }
 
 // SwitchFieldName returns the field name in which this union's
 // discriminant is stored
-func (u PathPaymentResult) SwitchFieldName() string {
+func (u PathPaymentStrictReceiveResult) SwitchFieldName() string {
 	return "Code"
 }
 
 // ArmForSwitch returns which field name should be used for storing
-// the value for an instance of PathPaymentResult
-func (u PathPaymentResult) ArmForSwitch(sw int32) (string, bool) {
-	switch PathPaymentResultCode(sw) {
-	case PathPaymentResultCodePathPaymentSuccess:
+// the value for an instance of PathPaymentStrictReceiveResult
+func (u PathPaymentStrictReceiveResult) ArmForSwitch(sw int32) (string, bool) {
+	switch PathPaymentStrictReceiveResultCode(sw) {
+	case PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveSuccess:
 		return "Success", true
-	case PathPaymentResultCodePathPaymentNoIssuer:
+	case PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveNoIssuer:
 		return "NoIssuer", true
 	default:
 		return "", true
 	}
 }
 
-// NewPathPaymentResult creates a new  PathPaymentResult.
-func NewPathPaymentResult(code PathPaymentResultCode, value interface{}) (result PathPaymentResult, err error) {
+// NewPathPaymentStrictReceiveResult creates a new  PathPaymentStrictReceiveResult.
+func NewPathPaymentStrictReceiveResult(code PathPaymentStrictReceiveResultCode, value interface{}) (result PathPaymentStrictReceiveResult, err error) {
 	result.Code = code
-	switch PathPaymentResultCode(code) {
-	case PathPaymentResultCodePathPaymentSuccess:
-		tv, ok := value.(PathPaymentResultSuccess)
+	switch PathPaymentStrictReceiveResultCode(code) {
+	case PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveSuccess:
+		tv, ok := value.(PathPaymentStrictReceiveResultSuccess)
 		if !ok {
-			err = fmt.Errorf("invalid value, must be PathPaymentResultSuccess")
+			err = fmt.Errorf("invalid value, must be PathPaymentStrictReceiveResultSuccess")
 			return
 		}
 		result.Success = &tv
-	case PathPaymentResultCodePathPaymentNoIssuer:
+	case PathPaymentStrictReceiveResultCodePathPaymentStrictReceiveNoIssuer:
 		tv, ok := value.(Asset)
 		if !ok {
 			err = fmt.Errorf("invalid value, must be Asset")
@@ -8368,7 +8513,7 @@ func NewPathPaymentResult(code PathPaymentResultCode, value interface{}) (result
 
 // MustSuccess retrieves the Success value from the union,
 // panicing if the value is not set.
-func (u PathPaymentResult) MustSuccess() PathPaymentResultSuccess {
+func (u PathPaymentStrictReceiveResult) MustSuccess() PathPaymentStrictReceiveResultSuccess {
 	val, ok := u.GetSuccess()
 
 	if !ok {
@@ -8380,7 +8525,7 @@ func (u PathPaymentResult) MustSuccess() PathPaymentResultSuccess {
 
 // GetSuccess retrieves the Success value from the union,
 // returning ok if the union's switch indicated the value is valid.
-func (u PathPaymentResult) GetSuccess() (result PathPaymentResultSuccess, ok bool) {
+func (u PathPaymentStrictReceiveResult) GetSuccess() (result PathPaymentStrictReceiveResultSuccess, ok bool) {
 	armName, _ := u.ArmForSwitch(int32(u.Code))
 
 	if armName == "Success" {
@@ -8393,7 +8538,7 @@ func (u PathPaymentResult) GetSuccess() (result PathPaymentResultSuccess, ok boo
 
 // MustNoIssuer retrieves the NoIssuer value from the union,
 // panicing if the value is not set.
-func (u PathPaymentResult) MustNoIssuer() Asset {
+func (u PathPaymentStrictReceiveResult) MustNoIssuer() Asset {
 	val, ok := u.GetNoIssuer()
 
 	if !ok {
@@ -8405,7 +8550,7 @@ func (u PathPaymentResult) MustNoIssuer() Asset {
 
 // GetNoIssuer retrieves the NoIssuer value from the union,
 // returning ok if the union's switch indicated the value is valid.
-func (u PathPaymentResult) GetNoIssuer() (result Asset, ok bool) {
+func (u PathPaymentStrictReceiveResult) GetNoIssuer() (result Asset, ok bool) {
 	armName, _ := u.ArmForSwitch(int32(u.Code))
 
 	if armName == "NoIssuer" {
@@ -8417,21 +8562,272 @@ func (u PathPaymentResult) GetNoIssuer() (result Asset, ok bool) {
 }
 
 // MarshalBinary implements encoding.BinaryMarshaler.
-func (s PathPaymentResult) MarshalBinary() ([]byte, error) {
+func (s PathPaymentStrictReceiveResult) MarshalBinary() ([]byte, error) {
 	b := new(bytes.Buffer)
 	_, err := Marshal(b, s)
 	return b.Bytes(), err
 }
 
 // UnmarshalBinary implements encoding.BinaryUnmarshaler.
-func (s *PathPaymentResult) UnmarshalBinary(inp []byte) error {
+func (s *PathPaymentStrictReceiveResult) UnmarshalBinary(inp []byte) error {
 	_, err := Unmarshal(bytes.NewReader(inp), s)
 	return err
 }
 
 var (
-	_ encoding.BinaryMarshaler   = (*PathPaymentResult)(nil)
-	_ encoding.BinaryUnmarshaler = (*PathPaymentResult)(nil)
+	_ encoding.BinaryMarshaler   = (*PathPaymentStrictReceiveResult)(nil)
+	_ encoding.BinaryUnmarshaler = (*PathPaymentStrictReceiveResult)(nil)
+)
+
+// PathPaymentStrictSendResultCode is an XDR Enum defines as:
+//
+//   enum PathPaymentStrictSendResultCode
+//    {
+//        // codes considered as "success" for the operation
+//        PATH_PAYMENT_STRICT_SEND_SUCCESS = 0, // success
+//
+//        // codes considered as "failure" for the operation
+//        PATH_PAYMENT_STRICT_SEND_MALFORMED = -1,          // bad input
+//        PATH_PAYMENT_STRICT_SEND_UNDERFUNDED = -2,        // not enough funds in source account
+//        PATH_PAYMENT_STRICT_SEND_SRC_NO_TRUST = -3,       // no trust line on source account
+//        PATH_PAYMENT_STRICT_SEND_SRC_NOT_AUTHORIZED = -4, // source not authorized to transfer
+//        PATH_PAYMENT_STRICT_SEND_NO_DESTINATION = -5,     // destination account does not exist
+//        PATH_PAYMENT_STRICT_SEND_NO_TRUST = -6,           // dest missing a trust line for asset
+//        PATH_PAYMENT_STRICT_SEND_NOT_AUTHORIZED = -7,     // dest not authorized to hold asset
+//        PATH_PAYMENT_STRICT_SEND_LINE_FULL = -8,          // dest would go above their limit
+//        PATH_PAYMENT_STRICT_SEND_NO_ISSUER = -9,          // missing issuer on one asset
+//        PATH_PAYMENT_STRICT_SEND_TOO_FEW_OFFERS = -10,    // not enough offers to satisfy path
+//        PATH_PAYMENT_STRICT_SEND_OFFER_CROSS_SELF = -11,  // would cross one of its own offers
+//        PATH_PAYMENT_STRICT_SEND_UNDER_DESTMIN = -12      // could not satisfy destMin
+//    };
+//
+type PathPaymentStrictSendResultCode int32
+
+const (
+	PathPaymentStrictSendResultCodePathPaymentStrictSendSuccess          PathPaymentStrictSendResultCode = 0
+	PathPaymentStrictSendResultCodePathPaymentStrictSendMalformed        PathPaymentStrictSendResultCode = -1
+	PathPaymentStrictSendResultCodePathPaymentStrictSendUnderfunded      PathPaymentStrictSendResultCode = -2
+	PathPaymentStrictSendResultCodePathPaymentStrictSendSrcNoTrust       PathPaymentStrictSendResultCode = -3
+	PathPaymentStrictSendResultCodePathPaymentStrictSendSrcNotAuthorized PathPaymentStrictSendResultCode = -4
+	PathPaymentStrictSendResultCodePathPaymentStrictSendNoDestination    PathPaymentStrictSendResultCode = -5
+	PathPaymentStrictSendResultCodePathPaymentStrictSendNoTrust          PathPaymentStrictSendResultCode = -6
+	PathPaymentStrictSendResultCodePathPaymentStrictSendNotAuthorized    PathPaymentStrictSendResultCode = -7
+	PathPaymentStrictSendResultCodePathPaymentStrictSendLineFull         PathPaymentStrictSendResultCode = -8
+	PathPaymentStrictSendResultCodePathPaymentStrictSendNoIssuer         PathPaymentStrictSendResultCode = -9
+	PathPaymentStrictSendResultCodePathPaymentStrictSendTooFewOffers     PathPaymentStrictSendResultCode = -10
+	PathPaymentStrictSendResultCodePathPaymentStrictSendOfferCrossSelf   PathPaymentStrictSendResultCode = -11
+	PathPaymentStrictSendResultCodePathPaymentStrictSendUnderDestmin     PathPaymentStrictSendResultCode = -12
+)
+
+var pathPaymentStrictSendResultCodeMap = map[int32]string{
+	0:   "PathPaymentStrictSendResultCodePathPaymentStrictSendSuccess",
+	-1:  "PathPaymentStrictSendResultCodePathPaymentStrictSendMalformed",
+	-2:  "PathPaymentStrictSendResultCodePathPaymentStrictSendUnderfunded",
+	-3:  "PathPaymentStrictSendResultCodePathPaymentStrictSendSrcNoTrust",
+	-4:  "PathPaymentStrictSendResultCodePathPaymentStrictSendSrcNotAuthorized",
+	-5:  "PathPaymentStrictSendResultCodePathPaymentStrictSendNoDestination",
+	-6:  "PathPaymentStrictSendResultCodePathPaymentStrictSendNoTrust",
+	-7:  "PathPaymentStrictSendResultCodePathPaymentStrictSendNotAuthorized",
+	-8:  "PathPaymentStrictSendResultCodePathPaymentStrictSendLineFull",
+	-9:  "PathPaymentStrictSendResultCodePathPaymentStrictSendNoIssuer",
+	-10: "PathPaymentStrictSendResultCodePathPaymentStrictSendTooFewOffers",
+	-11: "PathPaymentStrictSendResultCodePathPaymentStrictSendOfferCrossSelf",
+	-12: "PathPaymentStrictSendResultCodePathPaymentStrictSendUnderDestmin",
+}
+
+// ValidEnum validates a proposed value for this enum.  Implements
+// the Enum interface for PathPaymentStrictSendResultCode
+func (e PathPaymentStrictSendResultCode) ValidEnum(v int32) bool {
+	_, ok := pathPaymentStrictSendResultCodeMap[v]
+	return ok
+}
+
+// String returns the name of `e`
+func (e PathPaymentStrictSendResultCode) String() string {
+	name, _ := pathPaymentStrictSendResultCodeMap[int32(e)]
+	return name
+}
+
+// MarshalBinary implements encoding.BinaryMarshaler.
+func (s PathPaymentStrictSendResultCode) MarshalBinary() ([]byte, error) {
+	b := new(bytes.Buffer)
+	_, err := Marshal(b, s)
+	return b.Bytes(), err
+}
+
+// UnmarshalBinary implements encoding.BinaryUnmarshaler.
+func (s *PathPaymentStrictSendResultCode) UnmarshalBinary(inp []byte) error {
+	_, err := Unmarshal(bytes.NewReader(inp), s)
+	return err
+}
+
+var (
+	_ encoding.BinaryMarshaler   = (*PathPaymentStrictSendResultCode)(nil)
+	_ encoding.BinaryUnmarshaler = (*PathPaymentStrictSendResultCode)(nil)
+)
+
+// PathPaymentStrictSendResultSuccess is an XDR NestedStruct defines as:
+//
+//   struct
+//        {
+//            ClaimOfferAtom offers<>;
+//            SimplePaymentResult last;
+//        }
+//
+type PathPaymentStrictSendResultSuccess struct {
+	Offers []ClaimOfferAtom
+	Last   SimplePaymentResult
+}
+
+// MarshalBinary implements encoding.BinaryMarshaler.
+func (s PathPaymentStrictSendResultSuccess) MarshalBinary() ([]byte, error) {
+	b := new(bytes.Buffer)
+	_, err := Marshal(b, s)
+	return b.Bytes(), err
+}
+
+// UnmarshalBinary implements encoding.BinaryUnmarshaler.
+func (s *PathPaymentStrictSendResultSuccess) UnmarshalBinary(inp []byte) error {
+	_, err := Unmarshal(bytes.NewReader(inp), s)
+	return err
+}
+
+var (
+	_ encoding.BinaryMarshaler   = (*PathPaymentStrictSendResultSuccess)(nil)
+	_ encoding.BinaryUnmarshaler = (*PathPaymentStrictSendResultSuccess)(nil)
+)
+
+// PathPaymentStrictSendResult is an XDR Union defines as:
+//
+//   union PathPaymentStrictSendResult switch (PathPaymentStrictSendResultCode code)
+//    {
+//    case PATH_PAYMENT_STRICT_SEND_SUCCESS:
+//        struct
+//        {
+//            ClaimOfferAtom offers<>;
+//            SimplePaymentResult last;
+//        } success;
+//    case PATH_PAYMENT_STRICT_SEND_NO_ISSUER:
+//        Asset noIssuer; // the asset that caused the error
+//    default:
+//        void;
+//    };
+//
+type PathPaymentStrictSendResult struct {
+	Code     PathPaymentStrictSendResultCode
+	Success  *PathPaymentStrictSendResultSuccess
+	NoIssuer *Asset
+}
+
+// SwitchFieldName returns the field name in which this union's
+// discriminant is stored
+func (u PathPaymentStrictSendResult) SwitchFieldName() string {
+	return "Code"
+}
+
+// ArmForSwitch returns which field name should be used for storing
+// the value for an instance of PathPaymentStrictSendResult
+func (u PathPaymentStrictSendResult) ArmForSwitch(sw int32) (string, bool) {
+	switch PathPaymentStrictSendResultCode(sw) {
+	case PathPaymentStrictSendResultCodePathPaymentStrictSendSuccess:
+		return "Success", true
+	case PathPaymentStrictSendResultCodePathPaymentStrictSendNoIssuer:
+		return "NoIssuer", true
+	default:
+		return "", true
+	}
+}
+
+// NewPathPaymentStrictSendResult creates a new  PathPaymentStrictSendResult.
+func NewPathPaymentStrictSendResult(code PathPaymentStrictSendResultCode, value interface{}) (result PathPaymentStrictSendResult, err error) {
+	result.Code = code
+	switch PathPaymentStrictSendResultCode(code) {
+	case PathPaymentStrictSendResultCodePathPaymentStrictSendSuccess:
+		tv, ok := value.(PathPaymentStrictSendResultSuccess)
+		if !ok {
+			err = fmt.Errorf("invalid value, must be PathPaymentStrictSendResultSuccess")
+			return
+		}
+		result.Success = &tv
+	case PathPaymentStrictSendResultCodePathPaymentStrictSendNoIssuer:
+		tv, ok := value.(Asset)
+		if !ok {
+			err = fmt.Errorf("invalid value, must be Asset")
+			return
+		}
+		result.NoIssuer = &tv
+	default:
+		// void
+	}
+	return
+}
+
+// MustSuccess retrieves the Success value from the union,
+// panicing if the value is not set.
+func (u PathPaymentStrictSendResult) MustSuccess() PathPaymentStrictSendResultSuccess {
+	val, ok := u.GetSuccess()
+
+	if !ok {
+		panic("arm Success is not set")
+	}
+
+	return val
+}
+
+// GetSuccess retrieves the Success value from the union,
+// returning ok if the union's switch indicated the value is valid.
+func (u PathPaymentStrictSendResult) GetSuccess() (result PathPaymentStrictSendResultSuccess, ok bool) {
+	armName, _ := u.ArmForSwitch(int32(u.Code))
+
+	if armName == "Success" {
+		result = *u.Success
+		ok = true
+	}
+
+	return
+}
+
+// MustNoIssuer retrieves the NoIssuer value from the union,
+// panicing if the value is not set.
+func (u PathPaymentStrictSendResult) MustNoIssuer() Asset {
+	val, ok := u.GetNoIssuer()
+
+	if !ok {
+		panic("arm NoIssuer is not set")
+	}
+
+	return val
+}
+
+// GetNoIssuer retrieves the NoIssuer value from the union,
+// returning ok if the union's switch indicated the value is valid.
+func (u PathPaymentStrictSendResult) GetNoIssuer() (result Asset, ok bool) {
+	armName, _ := u.ArmForSwitch(int32(u.Code))
+
+	if armName == "NoIssuer" {
+		result = *u.NoIssuer
+		ok = true
+	}
+
+	return
+}
+
+// MarshalBinary implements encoding.BinaryMarshaler.
+func (s PathPaymentStrictSendResult) MarshalBinary() ([]byte, error) {
+	b := new(bytes.Buffer)
+	_, err := Marshal(b, s)
+	return b.Bytes(), err
+}
+
+// UnmarshalBinary implements encoding.BinaryUnmarshaler.
+func (s *PathPaymentStrictSendResult) UnmarshalBinary(inp []byte) error {
+	_, err := Unmarshal(bytes.NewReader(inp), s)
+	return err
+}
+
+var (
+	_ encoding.BinaryMarshaler   = (*PathPaymentStrictSendResult)(nil)
+	_ encoding.BinaryUnmarshaler = (*PathPaymentStrictSendResult)(nil)
 )
 
 // ManageSellOfferResultCode is an XDR Enum defines as:
@@ -10036,8 +10432,8 @@ var (
 //            CreateAccountResult createAccountResult;
 //        case PAYMENT:
 //            PaymentResult paymentResult;
-//        case PATH_PAYMENT:
-//            PathPaymentResult pathPaymentResult;
+//        case PATH_PAYMENT_STRICT_RECEIVE:
+//            PathPaymentStrictReceiveResult pathPaymentStrictReceiveResult;
 //        case MANAGE_SELL_OFFER:
 //            ManageSellOfferResult manageSellOfferResult;
 //        case CREATE_PASSIVE_SELL_OFFER:
@@ -10058,23 +10454,26 @@ var (
 //            BumpSequenceResult bumpSeqResult;
 //        case MANAGE_BUY_OFFER:
 //    	ManageBuyOfferResult manageBuyOfferResult;
+//        case PATH_PAYMENT_STRICT_SEND:
+//            PathPaymentStrictSendResult pathPaymentStrictSendResult;
 //        }
 //
 type OperationResultTr struct {
-	Type                         OperationType
-	CreateAccountResult          *CreateAccountResult
-	PaymentResult                *PaymentResult
-	PathPaymentResult            *PathPaymentResult
-	ManageSellOfferResult        *ManageSellOfferResult
-	CreatePassiveSellOfferResult *ManageSellOfferResult
-	SetOptionsResult             *SetOptionsResult
-	ChangeTrustResult            *ChangeTrustResult
-	AllowTrustResult             *AllowTrustResult
-	AccountMergeResult           *AccountMergeResult
-	InflationResult              *InflationResult
-	ManageDataResult             *ManageDataResult
-	BumpSeqResult                *BumpSequenceResult
-	ManageBuyOfferResult         *ManageBuyOfferResult
+	Type                           OperationType
+	CreateAccountResult            *CreateAccountResult
+	PaymentResult                  *PaymentResult
+	PathPaymentStrictReceiveResult *PathPaymentStrictReceiveResult
+	ManageSellOfferResult          *ManageSellOfferResult
+	CreatePassiveSellOfferResult   *ManageSellOfferResult
+	SetOptionsResult               *SetOptionsResult
+	ChangeTrustResult              *ChangeTrustResult
+	AllowTrustResult               *AllowTrustResult
+	AccountMergeResult             *AccountMergeResult
+	InflationResult                *InflationResult
+	ManageDataResult               *ManageDataResult
+	BumpSeqResult                  *BumpSequenceResult
+	ManageBuyOfferResult           *ManageBuyOfferResult
+	PathPaymentStrictSendResult    *PathPaymentStrictSendResult
 }
 
 // SwitchFieldName returns the field name in which this union's
@@ -10091,8 +10490,8 @@ func (u OperationResultTr) ArmForSwitch(sw int32) (string, bool) {
 		return "CreateAccountResult", true
 	case OperationTypePayment:
 		return "PaymentResult", true
-	case OperationTypePathPayment:
-		return "PathPaymentResult", true
+	case OperationTypePathPaymentStrictReceive:
+		return "PathPaymentStrictReceiveResult", true
 	case OperationTypeManageSellOffer:
 		return "ManageSellOfferResult", true
 	case OperationTypeCreatePassiveSellOffer:
@@ -10113,6 +10512,8 @@ func (u OperationResultTr) ArmForSwitch(sw int32) (string, bool) {
 		return "BumpSeqResult", true
 	case OperationTypeManageBuyOffer:
 		return "ManageBuyOfferResult", true
+	case OperationTypePathPaymentStrictSend:
+		return "PathPaymentStrictSendResult", true
 	}
 	return "-", false
 }
@@ -10135,13 +10536,13 @@ func NewOperationResultTr(aType OperationType, value interface{}) (result Operat
 			return
 		}
 		result.PaymentResult = &tv
-	case OperationTypePathPayment:
-		tv, ok := value.(PathPaymentResult)
+	case OperationTypePathPaymentStrictReceive:
+		tv, ok := value.(PathPaymentStrictReceiveResult)
 		if !ok {
-			err = fmt.Errorf("invalid value, must be PathPaymentResult")
+			err = fmt.Errorf("invalid value, must be PathPaymentStrictReceiveResult")
 			return
 		}
-		result.PathPaymentResult = &tv
+		result.PathPaymentStrictReceiveResult = &tv
 	case OperationTypeManageSellOffer:
 		tv, ok := value.(ManageSellOfferResult)
 		if !ok {
@@ -10212,6 +10613,13 @@ func NewOperationResultTr(aType OperationType, value interface{}) (result Operat
 			return
 		}
 		result.ManageBuyOfferResult = &tv
+	case OperationTypePathPaymentStrictSend:
+		tv, ok := value.(PathPaymentStrictSendResult)
+		if !ok {
+			err = fmt.Errorf("invalid value, must be PathPaymentStrictSendResult")
+			return
+		}
+		result.PathPaymentStrictSendResult = &tv
 	}
 	return
 }
@@ -10266,25 +10674,25 @@ func (u OperationResultTr) GetPaymentResult() (result PaymentResult, ok bool) {
 	return
 }
 
-// MustPathPaymentResult retrieves the PathPaymentResult value from the union,
+// MustPathPaymentStrictReceiveResult retrieves the PathPaymentStrictReceiveResult value from the union,
 // panicing if the value is not set.
-func (u OperationResultTr) MustPathPaymentResult() PathPaymentResult {
-	val, ok := u.GetPathPaymentResult()
+func (u OperationResultTr) MustPathPaymentStrictReceiveResult() PathPaymentStrictReceiveResult {
+	val, ok := u.GetPathPaymentStrictReceiveResult()
 
 	if !ok {
-		panic("arm PathPaymentResult is not set")
+		panic("arm PathPaymentStrictReceiveResult is not set")
 	}
 
 	return val
 }
 
-// GetPathPaymentResult retrieves the PathPaymentResult value from the union,
+// GetPathPaymentStrictReceiveResult retrieves the PathPaymentStrictReceiveResult value from the union,
 // returning ok if the union's switch indicated the value is valid.
-func (u OperationResultTr) GetPathPaymentResult() (result PathPaymentResult, ok bool) {
+func (u OperationResultTr) GetPathPaymentStrictReceiveResult() (result PathPaymentStrictReceiveResult, ok bool) {
 	armName, _ := u.ArmForSwitch(int32(u.Type))
 
-	if armName == "PathPaymentResult" {
-		result = *u.PathPaymentResult
+	if armName == "PathPaymentStrictReceiveResult" {
+		result = *u.PathPaymentStrictReceiveResult
 		ok = true
 	}
 
@@ -10541,6 +10949,31 @@ func (u OperationResultTr) GetManageBuyOfferResult() (result ManageBuyOfferResul
 	return
 }
 
+// MustPathPaymentStrictSendResult retrieves the PathPaymentStrictSendResult value from the union,
+// panicing if the value is not set.
+func (u OperationResultTr) MustPathPaymentStrictSendResult() PathPaymentStrictSendResult {
+	val, ok := u.GetPathPaymentStrictSendResult()
+
+	if !ok {
+		panic("arm PathPaymentStrictSendResult is not set")
+	}
+
+	return val
+}
+
+// GetPathPaymentStrictSendResult retrieves the PathPaymentStrictSendResult value from the union,
+// returning ok if the union's switch indicated the value is valid.
+func (u OperationResultTr) GetPathPaymentStrictSendResult() (result PathPaymentStrictSendResult, ok bool) {
+	armName, _ := u.ArmForSwitch(int32(u.Type))
+
+	if armName == "PathPaymentStrictSendResult" {
+		result = *u.PathPaymentStrictSendResult
+		ok = true
+	}
+
+	return
+}
+
 // MarshalBinary implements encoding.BinaryMarshaler.
 func (s OperationResultTr) MarshalBinary() ([]byte, error) {
 	b := new(bytes.Buffer)
@@ -10570,8 +11003,8 @@ var (
 //            CreateAccountResult createAccountResult;
 //        case PAYMENT:
 //            PaymentResult paymentResult;
-//        case PATH_PAYMENT:
-//            PathPaymentResult pathPaymentResult;
+//        case PATH_PAYMENT_STRICT_RECEIVE:
+//            PathPaymentStrictReceiveResult pathPaymentStrictReceiveResult;
 //        case MANAGE_SELL_OFFER:
 //            ManageSellOfferResult manageSellOfferResult;
 //        case CREATE_PASSIVE_SELL_OFFER:
@@ -10592,6 +11025,8 @@ var (
 //            BumpSequenceResult bumpSeqResult;
 //        case MANAGE_BUY_OFFER:
 //    	ManageBuyOfferResult manageBuyOfferResult;
+//        case PATH_PAYMENT_STRICT_SEND:
+//            PathPaymentStrictSendResult pathPaymentStrictSendResult;
 //        }
 //        tr;
 //    default:

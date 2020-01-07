@@ -37,7 +37,7 @@ struct StellarValue
     UpgradeType upgrades<6>;
 
     // reserved for future use
-    union switch (int v)
+    union switch (StellarValueType v)
     {
     case STELLAR_VALUE_BASIC:
         void;

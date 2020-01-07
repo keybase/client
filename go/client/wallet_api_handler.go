@@ -298,6 +298,7 @@ func (w *walletAPIHandler) send(ctx context.Context, c Call, wr io.Writer) error
 		DisplayCurrency: displayCurrency,
 		FromAccountID:   stellar1.AccountID(opts.FromAccountID),
 		PublicNote:      opts.MemoText,
+		PublicNoteType:  stellar1.PublicNoteType_TEXT,
 	}
 	result, err := w.cli.SendCLILocal(ctx, arg)
 	if err != nil {
@@ -411,11 +412,12 @@ func (w *walletAPIHandler) sendPathPayment(ctx context.Context, c Call, wr io.Wr
 	}
 
 	sendArg := stellar1.SendPathCLILocalArg{
-		Source:     from,
-		Recipient:  opts.Recipient,
-		Path:       path.FullPath,
-		Note:       opts.Message,
-		PublicNote: opts.MemoText,
+		Source:         from,
+		Recipient:      opts.Recipient,
+		Path:           path.FullPath,
+		Note:           opts.Message,
+		PublicNote:     opts.MemoText,
+		PublicNoteType: stellar1.PublicNoteType_TEXT,
 	}
 	res, err := w.cli.SendPathCLILocal(ctx, sendArg)
 	if err != nil {
