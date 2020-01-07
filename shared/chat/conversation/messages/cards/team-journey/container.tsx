@@ -53,7 +53,10 @@ const TeamJourneyContainer = (props: Props) => {
           : ['wave', {label: 'Publish team on your profile', onClick: props.onPublishTeam}]
       image = 'icon-illustration-welcome-96'
       textComponent = (
-        <Kb.Text type="BodySmall">Welcome to the team! Say hi to everyone and introduce yourself.</Kb.Text>
+        <Kb.Text type="BodySmall">
+          <Kb.Emoji allowFontScaling={true} size={16} emojiName=":wave:" /> Welcome to the team! Say hi to
+          everyone and introduce yourself.
+        </Kb.Text>
       )
       break
     case RPCChatTypes.JourneycardType.popularChannels:
