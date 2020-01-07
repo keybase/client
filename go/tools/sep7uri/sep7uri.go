@@ -19,6 +19,7 @@ var message string
 var xdr string
 var memo string
 var memoType string
+var callbackURL string
 
 func main() {
 	parseFlags()
@@ -42,6 +43,7 @@ func parseFlags() {
 	flag.StringVar(&memoType, "memo-type", "", "MEMO_TEXT, MEMO_ID, MEMO_HASH, MEMO_RETURN")
 	flag.StringVar(&assetCode, "asset-code", "", "destination asset code")
 	flag.StringVar(&assetIssuer, "asset-issuer", "", "destination asset issuer")
+	flag.StringVar(&callbackURL, "callback-url", "", "callback URL")
 
 	flag.Parse()
 
@@ -108,6 +110,10 @@ func run() string {
 		}
 	case "tx":
 		q.Set("xdr", xdr)
+	}
+
+	if callbackURL != "" {
+		q.Set("callback", "url:"+callbackURL)
 	}
 
 	u.RawQuery = q.Encode()

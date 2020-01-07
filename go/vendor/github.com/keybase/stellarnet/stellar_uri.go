@@ -386,13 +386,22 @@ func validateTxEnv(txEnv xdr.TransactionEnvelope) (validated xdr.TransactionEnve
 // newValidated returns a new ValidatedStellarURI with the common
 // fields populated.
 func (u *unvalidatedURI) newValidated(op string) *ValidatedStellarURI {
-	return &ValidatedStellarURI{
+
+	v := &ValidatedStellarURI{
 		URI:          u.raw,
 		Operation:    op,
 		OriginDomain: u.OriginDomain,
 		Message:      u.value("msg"),
-		CallbackURL:  u.value("callback"),
 	}
+
+	// sep7 spec says only "url:" callbacks are supported
+	callback := u.value("callback")
+	if strings.HasPrefix(callback, "url:") {
+		// strip the prefix
+		v.CallbackURL = strings.TrimPrefix(callback, "url:")
+	}
+
+	return v
 }
 
 func (u *unvalidatedURI) value(key string) string {
