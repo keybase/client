@@ -1,22 +1,24 @@
-export const serialize = {
-  darkMode: (v: any) => v,
-  devices: (v: any) => v,
-  paperkeyError: (v: any) => v,
-  phase: (v: any) => v,
-  waiting: (v: any) => v,
-  windowComponent: (v: any) => v,
-  windowOpts: (v: any) => v,
-  windowParam: (v: any) => v,
-  windowPositionBottomRight: (v: any) => v,
-  windowTitle: (v: any) => v,
-}
-const initialState = {}
+import {State} from '../constants/types/unlock-folders'
+export type ProxyProps = {
+  darkMode: boolean
+} & Pick<State, 'devices' | 'paperkeyError' | 'phase' | 'waiting'>
 
-export const deserialize = (state: any = initialState, props: any) => {
-  if (!props) return state
+type SerializeProps = ProxyProps
+export type DeserializeProps = ProxyProps
 
-  return {
-    ...state,
-    ...props,
-  }
+const initialState: DeserializeProps = {
+  darkMode: false,
+  devices: [],
+  phase: 'dead',
+  waiting: false,
 }
+
+export const serialize = (p: ProxyProps): Partial<SerializeProps> => p
+
+export const deserialize = (
+  state: DeserializeProps = initialState,
+  props: SerializeProps
+): DeserializeProps => ({
+  ...state,
+  ...props,
+})

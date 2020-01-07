@@ -285,7 +285,7 @@ const plumbEvents = () => {
         break
       }
       case 'makeRenderer': {
-        const defaultWindowOpts = {
+        const opts = {
           frame: false,
           fullscreen: false,
           height: 300,
@@ -297,12 +297,10 @@ const plumbEvents = () => {
             nodeIntegrationInWorker: false,
           },
           width: 500,
+          ...action.payload.windowOpts,
         }
 
-        const remoteWindow = new Electron.BrowserWindow({
-          ...defaultWindowOpts,
-          ...action.payload.windowOpts,
-        })
+        const remoteWindow = new Electron.BrowserWindow(opts)
 
         if (action.payload.windowPositionBottomRight && Electron.screen.getPrimaryDisplay()) {
           const {width, height} = Electron.screen.getPrimaryDisplay().workAreaSize

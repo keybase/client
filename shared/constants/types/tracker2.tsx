@@ -46,21 +46,21 @@ export type DetailsState = 'checking' | 'valid' | 'broken' | 'needsUpgrade' | 'e
 export type Details = {
   assertions?: Map<string, Assertion>
   bio?: string
+  blocked: boolean
   followers?: Set<string>
-  following?: Set<string>
   followersCount?: number
+  following?: Set<string>
   followingCount?: number
   fullname?: string
   guiID: string
+  hidFromFollowers: boolean
   location?: string
   reason: string
-  stellarHidden?: boolean
   showTracker: boolean
   state: DetailsState
+  stellarHidden?: boolean
   teamShowcase?: Array<TeamShowcase>
   username: string
-  blocked: boolean
-  hidFromFollowers: boolean
 }
 
 // Details for SBS profiles

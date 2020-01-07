@@ -117,7 +117,7 @@ const trackerOnlyProps = {
   reason: 'You accessed a private folder with gabrielh.',
   state: 'valid' as 'valid',
   teamShowcase: [],
-  username: 'darksim905',
+  trackerUsername: 'darksim905',
 }
 const props = {
   ...trackerOnlyProps,
@@ -169,19 +169,19 @@ const Bio = p => ({
   ...props,
   ...p,
   bio:
-    p.username === 'longbio'
+    p.trackerUsername === 'longbio'
       ? 'This is a very very very very very very very very very very very very very very very very very very very very very very very very very very very very long bio'
       : props.bio,
-  followersCount: p.username === 'nofollowcounts' ? null : props.followersCount,
-  followingCount: p.username === 'nofollowcounts' ? null : props.followingCount,
+  followersCount: p.trackerUsername === 'nofollowcounts' ? null : props.followersCount,
+  followingCount: p.trackerUsername === 'nofollowcounts' ? null : props.followingCount,
   fullname:
-    p.username === 'longfullname'
+    p.trackerUsername === 'longfullname'
       ? 'mr longlonlonglonlonglonlonglonlonglonggggglonglonglongnarm squire the third'
-      : p.username === 'nofullname'
+      : p.trackerUsername === 'nofullname'
       ? null
       : props.fullname,
   location:
-    p.username === 'longlocation'
+    p.trackerUsername === 'longlocation'
       ? 'This is a very very very very very very very very very very very very very very very very very very very very very very very very very very very very long location'
       : props.location,
 })
@@ -194,20 +194,28 @@ const providerGreenAssertion = Sb.createPropProviderWithCommon({
   Bio,
 })
 
-const trackerProps = username => ({
+const trackerProps = trackerUsername => ({
   ...trackerOnlyProps,
   assertionKeys:
-    username === 'noProofs' ? [] : username === 'oneProof' ? [props.assertions[0]] : [...props.assertions],
-  followThem: username === 'green' ? true : props.followThem,
-  isYou: username === 'yourUsername',
+    trackerUsername === 'noProofs'
+      ? []
+      : trackerUsername === 'oneProof'
+      ? [props.assertions[0]]
+      : [...props.assertions],
+  followThem: trackerUsername === 'green' ? true : props.followThem,
+  isYou: trackerUsername === 'yourtrackerUsername',
   reason:
-    username === 'longreason'
+    trackerUsername === 'longreason'
       ? 'This is a very very very very very very very very very very very very very very very very very very very very very very very very very very very very long reason'
       : props.reason,
   state:
-    username === 'red' ? ('error' as 'error') : username === 'green' ? ('valid' as 'valid') : props.state,
-  teamShowcase: username === 'teams' ? teams : props.teamShowcase,
-  username,
+    trackerUsername === 'red'
+      ? ('error' as 'error')
+      : trackerUsername === 'green'
+      ? ('valid' as 'valid')
+      : props.state,
+  teamShowcase: trackerUsername === 'teams' ? teams : props.teamShowcase,
+  trackerUsername,
 })
 
 const load = () => {
