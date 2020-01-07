@@ -16,6 +16,8 @@ import {isSystemDarkMode} from '../styles/dark-mode'
 import {uploadsToUploadCountdownHOCProps} from '../fs/footer/upload-container'
 import {ProxyProps, RemoteTlfUpdates} from './remote-serializer.desktop'
 import {mapFilterByKey} from '../util/map'
+import {memoize} from '../util/memoize'
+import shallowEqual from 'shallowequal'
 
 const getIcons = (iconType: NotificationTypes.BadgeType, isBadged: boolean) => {
   const devMode = __DEV__ ? '-dev' : ''
@@ -107,64 +109,88 @@ const GetRowsFromTlfUpdate = (t: FSTypes.TlfUpdate, uploads: FSTypes.Uploads): R
   writer: t.writer,
 })
 
+const getCachedUsernames = memoize(
+  (users: Array<string>) => new Set(users),
+  ([a], [b]) => shallowEqual(a, b)
+)
+
 export default () => {
   const state = Container.useSelector(s => s)
   const {desktopAppBadgeCount, navBadges, widgetBadge} = state.notifications
   const {daemonHandshakeState, loggedIn, outOfDate, username} = state.config
-  const {avatarRefreshCounter, httpSrvAddress, httpSrvToken, followers, following} = state.config
+  const {httpSrvAddress, httpSrvToken} = state.config
+  const {avatarRefreshCounter: _arc, followers: _followers, following: _following} = state.config
   const {pathItems, tlfUpdates, uploads, overallSyncStatus, kbfsDaemonStatus, sfmi} = state.fs
   const {inboxLayout, metaMap, badgeMap, unreadMap, participantMap} = state.chat2
-  const {infoMap} = state.users
-
-  // only users we care about
-  const usernames = new Set<string>()
-  tlfUpdates.forEach(update => usernames.add(update.writer))
-
-  const conversationsToSend =
-    inboxLayout?.widgetList?.map(v => {
-      const participantInfo = participantMap.get(v.convID) ?? ChatConstants.noParticipantInfo
-
-      if (!v.isTeam) {
-        participantInfo.all.forEach(u => usernames.add(u))
-      }
-
-      return {
-        conversation: metaMap.get(v.convID) || {
-          ...ChatConstants.makeConversationMeta(),
-          conversationIDKey: v.convID,
-        },
-        hasBadge: !!badgeMap.get(v.convID),
-        hasUnread: !!unreadMap.get(v.convID),
-        participantInfo,
-      }
-    }) ?? []
-
+  const {infoMap: _infoMap} = state.users
   const darkMode = Styles.isDarkMode()
-  const diskSpaceStatus = overallSyncStatus.diskSpaceStatus
-  const showingDiskSpaceBanner = overallSyncStatus.showingBanner
+  const {diskSpaceStatus, showingBanner} = overallSyncStatus
   const kbfsEnabled = sfmi.driverStatus.type === 'enabled'
-  const remoteTlfUpdates = tlfUpdates.map(t => GetRowsFromTlfUpdate(t, uploads))
+
+  const remoteTlfUpdates = React.useMemo(() => tlfUpdates.map(t => GetRowsFromTlfUpdate(t, uploads)), [
+    tlfUpdates,
+    uploads,
+  ])
+
+  const conversationsToSend = React.useMemo(
+    () =>
+      inboxLayout?.widgetList?.map(v => {
+        const participantInfo = participantMap.get(v.convID) ?? ChatConstants.noParticipantInfo
+
+        if (!v.isTeam) {
+          participantInfo.all.forEach(u => usernamesArr.push(u))
+        }
+
+        return {
+          conversation: metaMap.get(v.convID) || {
+            ...ChatConstants.makeConversationMeta(),
+            conversationIDKey: v.convID,
+          },
+          hasBadge: !!badgeMap.get(v.convID),
+          hasUnread: !!unreadMap.get(v.convID),
+          participantInfo,
+        }
+      }) ?? [],
+    [inboxLayout]
+  )
+
+  // filter some data based on visible users
+  const usernamesArr = []
+  tlfUpdates.forEach(update => usernamesArr.push(update.writer))
+  conversationsToSend.forEach(c => {
+    if (c.conversation.teamType === 'adhoc') {
+      usernamesArr.push(...c.participantInfo.all)
+    }
+  })
+
+  // memoize so useMemos work below
+  const usernames = getCachedUsernames(usernamesArr)
+
+  const avatarRefreshCounter = React.useMemo(() => mapFilterByKey(_arc, usernames), [_arc, usernames])
+  const followers = React.useMemo(() => intersect(_followers, usernames), [_followers, usernames])
+  const following = React.useMemo(() => intersect(_following, usernames), [_following, usernames])
+  const infoMap = React.useMemo(() => mapFilterByKey(_infoMap, usernames), [_infoMap, usernames])
 
   const p: ProxyProps & WidgetProps = {
     ...uploadsToUploadCountdownHOCProps(pathItems, uploads),
-    avatarRefreshCounter: mapFilterByKey(avatarRefreshCounter, usernames),
+    avatarRefreshCounter,
     conversationsToSend,
     daemonHandshakeState,
     darkMode,
     desktopAppBadgeCount,
     diskSpaceStatus,
-    followers: intersect(followers, usernames),
-    following: intersect(following, usernames),
+    followers,
+    following,
     httpSrvAddress,
     httpSrvToken,
-    infoMap: mapFilterByKey(infoMap, usernames),
+    infoMap,
     kbfsDaemonStatus,
     kbfsEnabled,
     loggedIn,
     navBadges,
     outOfDate,
     remoteTlfUpdates,
-    showingDiskSpaceBanner,
+    showingDiskSpaceBanner: showingBanner,
     username,
     widgetBadge,
   }
