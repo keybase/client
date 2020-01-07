@@ -74,6 +74,7 @@ func keyManagerInit(t *testing.T, ver kbfsmd.MetadataVer) (mockCtrl *gomock.Cont
 func keyManagerShutdown(mockCtrl *gomock.Controller, config *ConfigMock) {
 	config.ctr.CheckForFailures()
 	mockCtrl.Finish()
+	config.Shutdown(context.Background())
 }
 
 var serverHalf = kbfscrypto.MakeTLFCryptKeyServerHalf([32]byte{0x2})
