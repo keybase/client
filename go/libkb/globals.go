@@ -143,11 +143,9 @@ type GlobalContext struct {
 
 	uchMu               *sync.Mutex          // protects the UserChangedHandler array
 	UserChangedHandlers []UserChangedHandler // a list of handlers that deal generically with userchanged events
-	// identifyFinishedHandlersMu *sync.Mutex               // protects IdentifyFinishedHandlers
-	// identifyFinishedHandlers   []IdentifyFinishedHandler // a list of handlers that get called when an identify2 finishes
-	ConnectivityMonitor ConnectivityMonitor // Detect whether we're connected or not.
-	localSigchainGuard  *LocalSigchainGuard // Non-strict guard for shoeing away bg tasks when the user is doing sigchain actions
-	FeatureFlags        *FeatureFlagSet     // user's feature flag set
+	ConnectivityMonitor ConnectivityMonitor  // Detect whether we're connected or not.
+	localSigchainGuard  *LocalSigchainGuard  // Non-strict guard for shoeing away bg tasks when the user is doing sigchain actions
+	FeatureFlags        *FeatureFlagSet      // user's feature flag set
 
 	StandaloneChatConnector StandaloneChatConnector
 
@@ -1346,12 +1344,6 @@ func (g *GlobalContext) AddUserChangedHandler(h UserChangedHandler) {
 	g.uchMu.Unlock()
 }
 
-// func (g *GlobalContext) AddIdentifyFinishedHandler(h IdentifyFinishedHandler) {
-// 	g.identifyFinishedHandlersMu.Lock()
-// 	g.identifyFinishedHandlers = append(g.identifyFinishedHandlers, h)
-// 	g.identifyFinishedHandlersMu.Unlock()
-// }
-
 func (g *GlobalContext) GetOutOfDateInfo() keybase1.OutOfDateInfo {
 	g.oodiMu.RLock()
 	ret := *g.outOfDateInfo
@@ -1372,22 +1364,6 @@ func (g *GlobalContext) KeyfamilyChanged(ctx context.Context, u keybase1.UID) {
 		g.NotifyRouter.HandleUserChanged(NewMetaContext(ctx, g), u, "KeyfamilyChanged")
 	}
 }
-
-// func (g *GlobalContext) IdentifyFinished(ctx context.Context,
-// 	username keybase1.Username,
-// 	tlfIdentifyBehavior keybase1.TLFIdentifyBehavior,
-// 	res *keybase1.Identify2ResUPK2,
-// 	identifyErr error) {
-// 	g.Log.CDebugf(ctx, "+ IdentifyFinished(%s)", username)
-// 	defer g.Log.CDebugf(ctx, "- IdentifyFinished(%s)", username)
-
-// 	for _, h := range g.identifyFinishedHandlers {
-// 		err := h.HandleIdentifyFinished(username, tlfIdentifyBehavior, res)
-// 		if err != nil {
-// 			g.Log.CWarningf("failed to run IdentifyFinishedHandler: %s", err)
-// 		}
-// 	}
-// }
 
 func (g *GlobalContext) UserChanged(ctx context.Context, u keybase1.UID) {
 	g.Log.CDebugf(ctx, "+ UserChanged(%s)", u)

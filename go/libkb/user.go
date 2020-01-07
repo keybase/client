@@ -635,7 +635,6 @@ func (u *User) TrackChainLinkFor(m MetaContext, username NormalizedUsername, uid
 	return TrackChainLinkFor(m, u.id, uid, remote, e1)
 }
 
-// nope
 func TrackChainLinkFor(m MetaContext, me keybase1.UID, them keybase1.UID, remote *TrackChainLink, remoteErr error) (*TrackChainLink, error) {
 
 	local, e2 := LocalTrackChainLinkFor(m, me, them)
