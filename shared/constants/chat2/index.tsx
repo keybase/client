@@ -38,6 +38,7 @@ export const makeState = (): Types.State => ({
   botCommandsUpdateStatusMap: new Map(),
   botPublicCommands: new Map(),
   botSettings: new Map(),
+  botTeamRoleInConvMap: new Map(),
   channelSearchText: '',
   commandMarkdownMap: new Map(),
   commandStatusMap: new Map(),

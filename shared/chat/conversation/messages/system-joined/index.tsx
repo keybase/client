@@ -12,7 +12,7 @@ type Props = {
   isBigTeam: boolean
   joiners: Array<string>
   leavers: Array<string>
-  onAuthorClick: () => void
+  onAuthorClick: (username: string) => void
   onManageChannels: () => void
   onManageNotifications: () => void
   teamname: string
@@ -117,14 +117,14 @@ const AuthorAndAvatar = (props: {
   username: string
   timestamp: number
   authorIsYou: boolean
-  onAuthorClick: () => void
+  onAuthorClick: (username: string) => void
 }) => (
   <Kb.Box2 key="author" direction="horizontal" style={styles.authorContainer} gap="tiny" fullWidth={true}>
     <Kb.Avatar
       size={32}
       username={props.username}
       skipBackground={true}
-      onClick={props.onAuthorClick}
+      onClick={() => props.onAuthorClick(props.username)}
       style={styles.avatar}
     />
     <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.usernameCrown}>
@@ -132,7 +132,7 @@ const AuthorAndAvatar = (props: {
         colorBroken={true}
         colorFollowing={true}
         colorYou={true}
-        onUsernameClicked={props.onAuthorClick}
+        onUsernameClicked="profile"
         style={Styles.collapseStyles([props.authorIsYou && styles.usernameHighlighted])}
         type="BodySmallBold"
         usernames={[props.username]}

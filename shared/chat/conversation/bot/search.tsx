@@ -65,6 +65,7 @@ const SearchBotPopup = (props: Props) => {
   // lifecycle
   React.useEffect(() => {
     dispatch(BotsGen.createSetSearchFeaturedAndUsersResults({results: undefined}))
+    dispatch(BotsGen.createGetFeaturedBots({}))
   }, [])
 
   const botSection = {

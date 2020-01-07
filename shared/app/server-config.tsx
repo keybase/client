@@ -1,7 +1,8 @@
-import * as File from '../util/file'
+import {writeStream, readFile} from '../util/file'
 import {serverConfigFileName} from '../constants/platform'
 import logger from '../logger'
 
+/** TODO deprecate and move to go */
 export async function updateServerConfigLastLoggedIn(username: string, serverConfig: Object) {
   if (!username) {
     return
@@ -15,7 +16,7 @@ export async function updateServerConfigLastLoggedIn(username: string, serverCon
       lastLoggedInUser: username,
       [username]: serverConfig,
     })
-    const ws = await File.writeStream(serverConfigFileName, 'utf8')
+    const ws = await writeStream(serverConfigFileName, 'utf8')
     ws.write(data)
     ws.close()
   } catch (e) {
@@ -25,7 +26,7 @@ export async function updateServerConfigLastLoggedIn(username: string, serverCon
 
 export async function getServerConfig() {
   try {
-    const old = await File.readFile(serverConfigFileName, 'utf8')
+    const old = await readFile(serverConfigFileName, 'utf8')
     return JSON.parse(old)
   } catch (e) {
     logger.info('updateServerConfigLastLoggedIn fail reading old', e)

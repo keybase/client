@@ -580,7 +580,7 @@ function* getDetails(_: TypedState, action: TeamsGen.GetDetailsPayload, logger: 
       })
     )
   } catch (e) {
-    logger.error(e)
+    logger.info(e)
   } finally {
     const loadingKey = action.payload.clearInviteLoadingKey
     if (loadingKey) {
@@ -680,7 +680,7 @@ function* getTeamPublicity(_: TypedState, action: TeamsGen.GetTeamPublicityPaylo
 
     yield Saga.put(TeamsGen.createSetTeamPublicitySettings({publicity: publicityMap, teamname}))
   } catch (e) {
-    logger.error(e.message)
+    logger.info(e.message)
   }
 }
 

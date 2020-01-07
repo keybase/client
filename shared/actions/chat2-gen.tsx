@@ -107,6 +107,7 @@ export const pinMessage = 'chat2:pinMessage'
 export const prepareFulfillRequestForm = 'chat2:prepareFulfillRequestForm'
 export const previewConversation = 'chat2:previewConversation'
 export const refreshBotPublicCommands = 'chat2:refreshBotPublicCommands'
+export const refreshBotRoleInConv = 'chat2:refreshBotRoleInConv'
 export const refreshBotSettings = 'chat2:refreshBotSettings'
 export const removeBotMember = 'chat2:removeBotMember'
 export const replyJump = 'chat2:replyJump'
@@ -122,6 +123,7 @@ export const sendTyping = 'chat2:sendTyping'
 export const setAttachmentViewStatus = 'chat2:setAttachmentViewStatus'
 export const setAudioRecordingPostInfo = 'chat2:setAudioRecordingPostInfo'
 export const setBotPublicCommands = 'chat2:setBotPublicCommands'
+export const setBotRoleInConv = 'chat2:setBotRoleInConv'
 export const setBotSettings = 'chat2:setBotSettings'
 export const setChannelSearchText = 'chat2:setChannelSearchText'
 export const setCommandMarkdown = 'chat2:setCommandMarkdown'
@@ -186,9 +188,11 @@ type _AddAttachmentViewMessagePayload = {
 }
 type _AddBotMemberPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
+  readonly convs?: Array<string>
   readonly allowCommands: boolean
   readonly allowMentions: boolean
   readonly username: string
+  readonly restricted: boolean
 }
 type _AddUsersToChannelPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
@@ -267,6 +271,7 @@ type _EditBotSettingsPayload = {
   readonly username: string
   readonly allowCommands: boolean
   readonly allowMentions: boolean
+  readonly convs?: Array<string>
 }
 type _EnableAudioRecordingPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
@@ -521,6 +526,10 @@ type _PreviewConversationPayload = {
     | 'journeyCardPopular'
 }
 type _RefreshBotPublicCommandsPayload = {readonly username: string}
+type _RefreshBotRoleInConvPayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly username: string
+}
 type _RefreshBotSettingsPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly username: string
@@ -594,6 +603,11 @@ type _SetAudioRecordingPostInfoPayload = {
   readonly outboxID: Buffer
 }
 type _SetBotPublicCommandsPayload = {readonly username: string; readonly commands: Types.BotPublicCommands}
+type _SetBotRoleInConvPayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly username: string
+  readonly role: TeamsTypes.TeamRoleType | null
+}
 type _SetBotSettingsPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly username: string
@@ -955,6 +969,12 @@ export const createSetGeneralConvFromTeamID = (
   payload: _SetGeneralConvFromTeamIDPayload
 ): SetGeneralConvFromTeamIDPayload => ({payload, type: setGeneralConvFromTeamID})
 /**
+ * Refresh role in conversation
+ */
+export const createRefreshBotRoleInConv = (
+  payload: _RefreshBotRoleInConvPayload
+): RefreshBotRoleInConvPayload => ({payload, type: refreshBotRoleInConv})
+/**
  * Remove an unfurl
  */
 export const createUnfurlRemove = (payload: _UnfurlRemovePayload): UnfurlRemovePayload => ({
@@ -997,6 +1017,13 @@ export const createSetExplodingModeLock = (
 export const createSetAttachmentViewStatus = (
   payload: _SetAttachmentViewStatusPayload
 ): SetAttachmentViewStatusPayload => ({payload, type: setAttachmentViewStatus})
+/**
+ * Set bot role in conversation
+ */
+export const createSetBotRoleInConv = (payload: _SetBotRoleInConvPayload): SetBotRoleInConvPayload => ({
+  payload,
+  type: setBotRoleInConv,
+})
 /**
  * Set command markdown for a conversation
  */
@@ -1967,6 +1994,10 @@ export type RefreshBotPublicCommandsPayload = {
   readonly payload: _RefreshBotPublicCommandsPayload
   readonly type: typeof refreshBotPublicCommands
 }
+export type RefreshBotRoleInConvPayload = {
+  readonly payload: _RefreshBotRoleInConvPayload
+  readonly type: typeof refreshBotRoleInConv
+}
 export type RefreshBotSettingsPayload = {
   readonly payload: _RefreshBotSettingsPayload
   readonly type: typeof refreshBotSettings
@@ -2017,6 +2048,10 @@ export type SetAudioRecordingPostInfoPayload = {
 export type SetBotPublicCommandsPayload = {
   readonly payload: _SetBotPublicCommandsPayload
   readonly type: typeof setBotPublicCommands
+}
+export type SetBotRoleInConvPayload = {
+  readonly payload: _SetBotRoleInConvPayload
+  readonly type: typeof setBotRoleInConv
 }
 export type SetBotSettingsPayload = {
   readonly payload: _SetBotSettingsPayload
@@ -2327,6 +2362,7 @@ export type Actions =
   | PrepareFulfillRequestFormPayload
   | PreviewConversationPayload
   | RefreshBotPublicCommandsPayload
+  | RefreshBotRoleInConvPayload
   | RefreshBotSettingsPayload
   | RemoveBotMemberPayload
   | ReplyJumpPayload
@@ -2342,6 +2378,7 @@ export type Actions =
   | SetAttachmentViewStatusPayload
   | SetAudioRecordingPostInfoPayload
   | SetBotPublicCommandsPayload
+  | SetBotRoleInConvPayload
   | SetBotSettingsPayload
   | SetChannelSearchTextPayload
   | SetCommandMarkdownPayload

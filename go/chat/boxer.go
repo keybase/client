@@ -282,6 +282,8 @@ func (b *Boxer) getEffectiveMembersType(ctx context.Context, boxed chat1.Message
 	return convMembersType
 }
 
+var errBoxerUnavailableMessage = NewPermanentUnboxingError(errors.New("message not available"))
+
 // UnboxMessage unboxes a chat1.MessageBoxed into a chat1.MessageUnboxed. It
 // finds the appropriate keybase1.CryptKey, decrypts the message, and verifies
 // several things:
@@ -314,6 +316,12 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 	case <-ctx.Done():
 		return m, NewTransientUnboxingError(ctx.Err())
 	default:
+	}
+
+	// if the server message doesn't have a TLFID, then it isn't available to us. This is most commonly
+	// used when restricted bots try to read messages not encrypted for them.
+	if boxed.ClientHeader.Conv.Tlfid.IsNil() {
+		return b.makeErrorMessage(ctx, boxed, errBoxerUnavailableMessage), nil
 	}
 
 	// If we don't have an rtime, add one.

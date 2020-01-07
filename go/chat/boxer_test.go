@@ -27,6 +27,8 @@ import (
 	insecureTriplesec "github.com/keybase/go-triplesec-insecure"
 )
 
+var mockTLFID = chat1.TLFID([]byte{0, 1})
+
 func cryptKey(t *testing.T) *keybase1.CryptKey {
 	kp, err := libkb.GenerateNaclDHKeyPair()
 	require.NoError(t, err)
@@ -46,6 +48,9 @@ func textMsg(t *testing.T, text string, mbVersion chat1.MessageBoxedVersion) cha
 
 func textMsgWithSender(t *testing.T, text string, uid gregor1.UID, mbVersion chat1.MessageBoxedVersion) chat1.MessagePlaintext {
 	header := chat1.MessageClientHeader{
+		Conv: chat1.ConversationIDTriple{
+			Tlfid: mockTLFID,
+		},
 		Sender:      uid,
 		MessageType: chat1.MessageType_TEXT,
 	}
@@ -1493,7 +1498,7 @@ func TestChatMessagePrevPointerInconsistency(t *testing.T) {
 		boxerContext := globals.BackgroundChatCtx(context.TODO(), g)
 
 		// Everything below will use the zero convID.
-		convID := chat1.ConversationIDTriple{}.ToConversationID([2]byte{0, 0})
+		convID := chat1.ConversationIDTriple{Tlfid: mockTLFID}.ToConversationID([2]byte{0, 0})
 		conv := chat1.Conversation{
 			Metadata: chat1.ConversationMetadata{
 				ConversationID: convID,

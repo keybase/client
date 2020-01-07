@@ -18,6 +18,7 @@ const blankInfo = Constants.initialMemberInfo
 export default connect(
   (state, {teamID, username}: OwnProps) => {
     const teamDetails = Constants.getTeamDetails(state, teamID)
+    const canManageBots = Constants.getCanPerformByID(state, teamID).manageBots
     const {members: map = new Map<string, Types.MemberInfo>(), teamname} = teamDetails
     const info: Types.MemberInfo = map.get(username) || blankInfo
     const bot: RPCTypes.FeaturedBot = state.chat2.featuredBotsMap.get(username) ?? {
@@ -31,13 +32,13 @@ export default connect(
 
     return {
       ...bot,
+      canManageBots,
       ownerTeam: bot.ownerTeam || undefined,
       ownerUser: bot.ownerUser || undefined,
       roleType: info.type,
       status: info.status,
       teamname,
       username: info.username,
-      youCanManageMembers: Constants.getCanPerform(state, teamname).manageMembers,
     }
   },
   (dispatch, ownProps: OwnProps) => ({
@@ -89,6 +90,7 @@ export default connect(
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => ({
     botAlias: stateProps.botAlias,
+    canManageBots: stateProps.canManageBots,
     description: stateProps.description,
     onClick: dispatchProps.onClick,
     onEdit: dispatchProps.onEdit,
@@ -99,6 +101,5 @@ export default connect(
     roleType: stateProps.roleType,
     status: stateProps.status,
     username: stateProps.username,
-    youCanManageMembers: stateProps.youCanManageMembers,
   })
 )(TeamBotRow)

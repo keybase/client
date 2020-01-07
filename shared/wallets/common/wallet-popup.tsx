@@ -2,13 +2,13 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import AccountPageHeader from './account-page-header'
-import {compose, withProps} from 'recompose'
 
 // WalletPopup - wraps all stellar modals except for the send / request forms.
 //
 // Handles platform split between desktop modal / native screen + header
 
 type WalletPopupProps = {
+  onCancel?: () => void
   onExit?: () => void // called onExit so to avoid name conflict with other header props
   // Buttons to be placed in the bottom Button Bar.
   // If none are included, the bar is not rendered.
@@ -24,12 +24,6 @@ type WalletPopupProps = {
   headerTitle?: string
   safeAreaViewBottomStyle?: Styles.StylesCrossPlatform
   safeAreaViewTopStyle?: Styles.StylesCrossPlatform
-}
-
-const backButtonTypeToFcnHandle = {
-  back: 'onBack', // Displays back button on desktop
-  cancel: 'onCancel',
-  close: 'onCancel',
 }
 
 const WalletPopup = (props: WalletPopupProps) => (
@@ -119,17 +113,21 @@ const styles = Styles.styleSheetCreate(() => ({
   scrollViewContentContainer: {...Styles.globalStyles.flexBoxColumn, flexGrow: 1},
 }))
 
-export default compose(
-  withProps((props: WalletPopupProps) => ({
-    [backButtonTypeToFcnHandle[props.backButtonType]]: props.onExit,
+const Pop = Kb.HeaderOrPopupWithHeader(WalletPopup)
+
+export default (props: WalletPopupProps) => {
+  const otherProps = {
     customCancelText: props.backButtonType === 'close' ? 'Close' : '',
     customComponent: props.headerTitle && (
       <AccountPageHeader accountName={props.accountName} title={props.headerTitle} />
     ),
     customSafeAreaBottomStyle: props.safeAreaViewBottomStyle,
     customSafeAreaTopStyle: props.safeAreaViewTopStyle,
+    onBack: props.backButtonType === 'back' ? props.onExit : undefined, // Displays back button on desktop
+    onCancel:
+      props.onCancel ??
+      (props.backButtonType === 'cancel' || props.backButtonType === 'close' ? props.onExit : undefined),
     style: styles.popup,
-  })),
-  Kb.HeaderOrPopupWithHeader
-  // @ts-ignore
-)(WalletPopup) as any
+  }
+  return <Pop {...props} {...otherProps} />
+}

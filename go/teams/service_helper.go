@@ -953,6 +953,24 @@ func MemberRole(ctx context.Context, g *libkb.GlobalContext, teamname, username 
 	return role, err
 }
 
+func MemberRoleFromID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, username string) (role keybase1.TeamRole, err error) {
+	uv, err := loadUserVersionByUsername(ctx, g, username, false /* useTracking */)
+	if err != nil {
+		return keybase1.TeamRole_NONE, err
+	}
+
+	err = RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
+		t, err := GetForTeamManagementByTeamID(ctx, g, teamID, false)
+		if err != nil {
+			return err
+		}
+		// return value assign to escape closure
+		role, err = t.MemberRole(ctx, uv)
+		return err
+	})
+	return role, err
+}
+
 func RemoveMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, username string) error {
 	teamGetter := func() (*Team, error) {
 		return GetForTeamManagementByTeamID(ctx, g, teamID, false)
@@ -1880,6 +1898,7 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 	ret.ChangeOpenTeam = isAdmin || isImplicitAdmin
 	ret.ChangeTarsDisabled = isAdmin || isImplicitAdmin
 	ret.EditTeamDescription = isAdmin || isImplicitAdmin
+	ret.ManageBots = isAdmin || isImplicitAdmin
 	ret.SetMemberShowcase, err = canMemberShowcase()
 	if err != nil {
 		return ret, err
