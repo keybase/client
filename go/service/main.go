@@ -409,6 +409,7 @@ func (d *Service) startChatModules() {
 	if !kuid.IsNil() {
 		uid := kuid.ToBytes()
 		g := globals.NewContext(d.G(), d.ChatG())
+		g.PushHandler.Start(context.Background(), uid)
 		g.MessageDeliverer.Start(context.Background(), uid)
 		g.ConvLoader.Start(context.Background(), uid)
 		g.FetchRetrier.Start(context.Background(), uid)
@@ -427,6 +428,7 @@ func (d *Service) startChatModules() {
 }
 
 func (d *Service) stopChatModules(m libkb.MetaContext) error {
+	<-d.ChatG().PushHandler.Stop(m.Ctx())
 	<-d.ChatG().MessageDeliverer.Stop(m.Ctx())
 	<-d.ChatG().ConvLoader.Stop(m.Ctx())
 	<-d.ChatG().FetchRetrier.Stop(m.Ctx())
