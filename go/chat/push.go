@@ -1313,20 +1313,19 @@ func (g *PushHandler) SubteamRename(ctx context.Context, m gregor.OutOfBandMessa
 }
 
 func (g *PushHandler) HandleOobm(ctx context.Context, obm gregor.OutOfBandMessage) (bool, error) {
+	// Don't process messages if we have not started.
+	g.Lock()
+	defer g.Unlock()
+	if !g.started {
+		return false, nil
+	}
+
 	if g.testingIgnoreBroadcasts {
 		return false, errors.New("ignoring broadcasts for tests")
 	}
 	if obm.System() == nil {
 		return false, errors.New("nil system in out of band message")
 	}
-
-	// Don't process messages if we have not started.
-	g.Lock()
-	if !g.started {
-		g.Unlock()
-		return false, nil
-	}
-	g.Unlock()
 
 	switch obm.System().String() {
 	case types.PushActivity:
