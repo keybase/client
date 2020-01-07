@@ -97,7 +97,6 @@ export {
   setDisplayName,
 } from 'recompose'
 export {default as connect, namedConnect, connectDEBUG} from './typed-connect'
-// export {default as remoteConnect} from './typed-remote-connect'
 export {isMobile, isIOS, isAndroid} from '../constants/platform'
 export {anyWaiting, anyErrors} from '../constants/waiting'
 export {safeSubmit, safeSubmitPerMount} from './safe-submit'
