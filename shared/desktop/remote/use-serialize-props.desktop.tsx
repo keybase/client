@@ -26,9 +26,9 @@ export default function useSerializeProps<ProxyProps extends {}, SerializeProps 
 
   const throttledSend = React.useRef(
     throttle(
-      (p: Partial<ProxyProps>, forceUpdate: boolean) => {
+      (p: ProxyProps, forceUpdate: boolean) => {
         const lastToSend = forceUpdate ? {} : lastSent.current
-        const serialized = serializer(p, lastToSend)
+        const serialized = serializer(p)
         const toSend = {...serialized}
         // clear undefineds / exact dupes
         Object.keys(toSend).forEach(k => {

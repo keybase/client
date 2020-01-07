@@ -76,8 +76,11 @@ export const serialize = (p: ProxyProps): Partial<SerializeProps> => {
   }
 }
 
-export const deserialize = (s: DeserializeProps = initialState, props: SerializeProps): DeserializeProps => {
-  if (!props) return s
+export const deserialize = (
+  state: DeserializeProps = initialState,
+  props: SerializeProps
+): DeserializeProps => {
+  if (!props) return state
 
   const {
     assertions,
@@ -99,50 +102,55 @@ export const deserialize = (s: DeserializeProps = initialState, props: Serialize
     location,
     reason,
     showTracker,
-    state,
+    state: trackerState,
     stellarHidden,
     teamShowcase,
-    trackerUsername,
+    trackerUsername: _trackerUsername,
     username,
     ...rest
   } = props
 
+  const trackerUsername = _trackerUsername ?? state.trackerUsername
+  const oldDetails = state.tracker2.usernameToDetails.get(trackerUsername)
+
   const details: Details = {
-    assertions: new Map(assertions),
-    bio,
-    blocked,
-    followersCount,
-    followingCount,
-    fullname,
-    guiID,
-    hidFromFollowers,
-    location,
-    reason,
+    assertions: assertions ? new Map(assertions) : oldDetails?.assertions,
+    bio: bio ?? oldDetails?.bio,
+    blocked: blocked ?? oldDetails?.blocked,
+    followersCount: followersCount ?? oldDetails?.followersCount,
+    followingCount: followingCount ?? oldDetails?.followingCount,
+    fullname: fullname ?? oldDetails?.fullname,
+    guiID: guiID ?? oldDetails?.guiID,
+    hidFromFollowers: hidFromFollowers ?? oldDetails?.hidFromFollowers,
+    location: location ?? oldDetails?.location,
+    reason: reason ?? oldDetails?.reason,
     showTracker: true,
-    state,
-    stellarHidden,
-    teamShowcase,
+    state: trackerState ?? oldDetails?.state,
+    stellarHidden: stellarHidden ?? oldDetails?.stellarHidden,
+    teamShowcase: teamShowcase ?? oldDetails?.teamShowcase,
     username: trackerUsername,
   }
 
   return {
-    ...s,
+    ...state,
     ...rest,
     config: {
-      ...s.config,
-      avatarRefreshCounter: new Map(avatarRefreshCounter),
-      followers: new Set(followers),
-      following: new Set(following),
-      httpSrvAddress,
-      httpSrvToken,
-      username,
+      ...state.config,
+      avatarRefreshCounter: avatarRefreshCounter
+        ? new Map(avatarRefreshCounter)
+        : state.config.avatarRefreshCounter,
+      followers: followers ? new Set(followers) : state.config.followers,
+      following: following ? new Set(following) : state.config.following,
+      httpSrvAddress: httpSrvAddress ?? state.config.httpSrvAddress,
+      httpSrvToken: httpSrvToken ?? state.config.httpSrvToken,
+      username: username ?? state.config.username,
     },
-    users: {infoMap: new Map(infoMap)},
     tracker2: {usernameToDetails: new Map([[trackerUsername, details]])},
     trackerUsername,
+    users: {infoMap: infoMap ? new Map(infoMap) : state.users.infoMap},
     waiting: {
-      counts: new Map(counts),
-      errors: new Map(errors),
+      counts: counts ? new Map(counts) : state.waiting.counts,
+      errors: errors ? new Map(errors) : state.waiting.errors,
     },
   }
 }

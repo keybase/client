@@ -140,19 +140,19 @@ export const deserialize = (
     ...rest,
     config: {
       ...state.config,
-      avatarRefreshCounter: new Map(avatarRefreshCounter),
-      daemonHandshakeState,
-      followers: new Set(followers),
-      following: new Set(following),
-      httpSrvAddress,
-      httpSrvToken,
-      loggedIn,
-      outOfDate,
-      username,
+      avatarRefreshCounter: avatarRefreshCounter
+        ? new Map(avatarRefreshCounter)
+        : state.config.avatarRefreshCounter,
+      daemonHandshakeState: daemonHandshakeState ?? state.config.daemonHandshakeState,
+      followers: followers ? new Set(followers) : state.config.followers,
+      following: following ? new Set(following) : state.config.following,
+      httpSrvAddress: httpSrvAddress ?? state.config.httpSrvAddress,
+      httpSrvToken: httpSrvToken ?? state.config.httpSrvToken,
+      loggedIn: loggedIn ?? state.config.loggedIn,
+      outOfDate: outOfDate ?? state.config.outOfDate,
+      username: username ?? state.config.username,
     },
     navBadges: navBadges ? new Map(navBadges) : state.navBadges,
-    users: {
-      infoMap: new Map(infoMap),
-    },
+    users: {infoMap: infoMap ? new Map(infoMap) : state.users.infoMap},
   }
 }

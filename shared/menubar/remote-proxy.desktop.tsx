@@ -134,28 +134,20 @@ export default () => {
 
   const conversationsToSend = React.useMemo(
     () =>
-      inboxLayout?.widgetList?.map(v => {
-        const participantInfo = participantMap.get(v.convID) ?? ChatConstants.noParticipantInfo
-
-        if (!v.isTeam) {
-          participantInfo.all.forEach(u => usernamesArr.push(u))
-        }
-
-        return {
-          conversation: metaMap.get(v.convID) || {
-            ...ChatConstants.makeConversationMeta(),
-            conversationIDKey: v.convID,
-          },
-          hasBadge: !!badgeMap.get(v.convID),
-          hasUnread: !!unreadMap.get(v.convID),
-          participantInfo,
-        }
-      }) ?? [],
-    [inboxLayout]
+      inboxLayout?.widgetList?.map(v => ({
+        conversation: metaMap.get(v.convID) || {
+          ...ChatConstants.makeConversationMeta(),
+          conversationIDKey: v.convID,
+        },
+        hasBadge: !!badgeMap.get(v.convID),
+        hasUnread: !!unreadMap.get(v.convID),
+        participantInfo: participantMap.get(v.convID) ?? ChatConstants.noParticipantInfo,
+      })) ?? [],
+    [inboxLayout, metaMap, badgeMap, unreadMap, participantMap]
   )
 
   // filter some data based on visible users
-  const usernamesArr = []
+  const usernamesArr: Array<string> = []
   tlfUpdates.forEach(update => usernamesArr.push(update.writer))
   conversationsToSend.forEach(c => {
     if (c.conversation.teamType === 'adhoc') {
