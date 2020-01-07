@@ -234,14 +234,11 @@ export type ConnectedComponentTypeDEBUG<TMergedProps, TOwnProps> = <C extends Co
   component: C
 ) => TMergedProps extends React.ComponentProps<C>
   ? ConnectedComponentClass<C, TOwnProps>
-  : [
-      'missing props:',
-      Exclude<keyof GetProps<C>, keyof TMergedProps>,
-      'extra props:',
-      Exclude<keyof TMergedProps, keyof GetProps<C>>,
-      GetProps<C>,
-      TMergedProps
-    ]
+  : {
+      [P in keyof TMergedProps]: TMergedProps[P] extends GetProps<C>[P]
+        ? 'TS correct'
+        : [GetProps<C>[P], '!=', TMergedProps[P]]
+    }
 
 export interface ConnectDEBUG {
   <TOwnProps, TStateProps, TDispatchProps, TMergedProps>(
