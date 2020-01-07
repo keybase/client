@@ -835,14 +835,18 @@ func parseHandleLoose(
 			if iteamHandle.tlfID != tlf.NullID {
 				return iteamHandle, nil
 			}
+
 		} else {
-			// This is not an implicit team, so continue on to check for a
-			// normal team.  TODO: return non-nil errors immediately if they
-			// don't simply indicate the implicit team doesn't exist yet
-			// (i.e., when we start creating them by default).
-			switch errors.Cause(err).(type) {
+			switch err.(type) {
 			case libkb.TeamContactSettingsBlockError:
+				// The implicit team couldn't be created due to one of the
+				// users' privacy settings, so fail the handle lookup completely.
 				return nil, err
+			default:
+				// This is not an implicit team, so continue on to check for a
+				// normal team.  TODO: return non-nil errors immediately if they
+				// don't simply indicate the implicit team doesn't exist yet
+				// (i.e., when we start creating them by default).
 			}
 		}
 	}

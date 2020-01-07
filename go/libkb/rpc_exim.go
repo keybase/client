@@ -221,7 +221,6 @@ func (c ErrorUnwrapper) MakeArg() interface{} {
 
 func (c ErrorUnwrapper) UnwrapError(arg interface{}) (appError error, dispatchError error) {
 	targ, ok := arg.(*keybase1.Status)
-
 	if !ok {
 		dispatchError = errors.New("Error converting status to keybase1.Status object")
 		return
