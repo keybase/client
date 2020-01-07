@@ -353,8 +353,9 @@ func (e *Identify2WithUID) notifyChat(m libkb.MetaContext, inErr error) error {
 	}
 	nun := e.them.GetNormalizedName()
 	if nun.IsNil() {
-		return nil
+		return fmt.Errorf("no username for user")
 	}
+	// Don't notify if there's a non-identity proof error.
 	if inErr != nil && !libkb.IsIdentifyProofError(inErr) {
 		return nil
 	}
@@ -364,15 +365,19 @@ func (e *Identify2WithUID) notifyChat(m libkb.MetaContext, inErr error) error {
 		return err
 	}
 
-	m.Debug("Identify2WithUID.run: running HandleChatIdentifyUpdate")
-	m.G().NotifyRouter.HandleChatIdentifyUpdate(m.Ctx(), keybase1.CanonicalTLFNameAndIDWithBreaks{
+	update := keybase1.CanonicalTLFNameAndIDWithBreaks{
 		CanonicalName: keybase1.CanonicalTlfName(nun),
-		Breaks: keybase1.TLFBreak{
-			Breaks: []keybase1.TLFIdentifyFailure{
-				{User: *e.them.Export(), Breaks: res.TrackBreaks},
+	}
+	if libkb.IsIdentifyProofError(inErr) {
+		update.Breaks = keybase1.TLFBreak{Breaks: []keybase1.TLFIdentifyFailure{
+			keybase1.TLFIdentifyFailure{
+				User:   *e.them.Export(),
+				Breaks: res.TrackBreaks,
 			},
-		},
-	})
+		}}
+	}
+	m.Debug("Identify2WithUID.run: running HandleChatIdentifyUpdate: %#v", update)
+	m.G().NotifyRouter.HandleChatIdentifyUpdate(m.Ctx(), update)
 
 	return nil
 }

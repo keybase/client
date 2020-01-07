@@ -1283,15 +1283,6 @@ func (b TLFIdentifyBehavior) UnblockThenForceIDTable() bool {
 	}
 }
 
-func (b TLFIdentifyBehavior) IsChatIdentify() bool {
-	switch b {
-	case TLFIdentifyBehavior_CHAT_CLI, TLFIdentifyBehavior_CHAT_GUI:
-		return true
-	default:
-		return false
-	}
-}
-
 func (b TLFIdentifyBehavior) AlwaysRunIdentify() bool {
 	switch b {
 	case TLFIdentifyBehavior_CHAT_CLI,
