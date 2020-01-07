@@ -14,7 +14,7 @@ if (debugSerializer) {
 
 export default function useSerializeProps<ProxyProps extends {}, SerializeProps extends {}>(
   p: ProxyProps,
-  serializer: (p: ProxyProps, old: Partial<SerializeProps>) => Partial<SerializeProps>,
+  serializer: (p: ProxyProps) => Partial<SerializeProps>,
   windowComponent: string,
   windowParam: string
 ) {
@@ -26,18 +26,31 @@ export default function useSerializeProps<ProxyProps extends {}, SerializeProps 
 
   const throttledSend = React.useRef(
     throttle(
-      (toSend: Partial<SerializeProps>) => {
-        const propsStr = JSON.stringify(toSend)
-        debugSerializer && console.log('[useSerializeProps]: throttled send', propsStr.length, toSend)
-        SafeElectron.getApp().emit('KBkeybase', '', {
-          payload: {
-            propsStr,
-            windowComponent,
-            windowParam,
-          },
-          type: 'rendererNewProps',
+      (p: Partial<ProxyProps>, forceUpdate: boolean) => {
+        const lastToSend = forceUpdate ? {} : lastSent.current
+        const serialized = serializer(p, lastToSend)
+        const toSend = {...serialized}
+        // clear undefineds / exact dupes
+        Object.keys(toSend).forEach(k => {
+          if (toSend[k] === undefined || JSON.stringify(toSend[k]) === JSON.stringify(lastToSend?.[k])) {
+            delete toSend[k]
+          }
         })
-        lastSent.current = toSend
+
+        if (Object.keys(toSend).length) {
+          const propsStr = JSON.stringify(toSend)
+          debugSerializer && console.log('[useSerializeProps]: throttled send', propsStr.length, toSend)
+          SafeElectron.getApp().emit('KBkeybase', '', {
+            payload: {
+              propsStr,
+              windowComponent,
+              windowParam,
+            },
+            type: 'rendererNewProps',
+          })
+        }
+        lastSent.current = serialized
+        lastForceUpdate.current = currentForceUpdate
       },
       1000,
       {leading: true}
@@ -50,9 +63,7 @@ export default function useSerializeProps<ProxyProps extends {}, SerializeProps 
         return
       }
       const forceUpdate = currentForceUpdate !== lastForceUpdate.current
-      const toSend = serializer(p, forceUpdate ? {} : lastSent.current)
-      throttledSend.current(toSend)
-      lastForceUpdate.current = currentForceUpdate
+      throttledSend.current(p, forceUpdate)
     },
     // eslint-disable-next-line
     [...Object.values(p), currentForceUpdate]

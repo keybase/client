@@ -101,23 +101,17 @@ const initialState: DeserializeProps = {
   users: {infoMap: new Map()},
 }
 
-export const serialize = (p: ProxyProps, o: Partial<SerializeProps>): Partial<SerializeProps> => {
+export const serialize = (p: ProxyProps): Partial<SerializeProps> => {
   const {avatarRefreshCounter, conversationsToSend, followers, following, infoMap, ...toSend} = p
-  const navBadges = [...p.navBadges.entries()]
-  const out: Partial<SerializeProps> = {
+  return {
     ...toSend,
     avatarRefreshCounter: [...avatarRefreshCounter.entries()],
+    conversationsToSend,
     followers: [...followers],
     following: [...following],
     infoMap: [...infoMap.entries()],
+    navBadges: [...p.navBadges.entries()],
   }
-  if (JSON.stringify(navBadges) !== JSON.stringify(o?.navBadges)) {
-    out.navBadges = navBadges
-  }
-  if (JSON.stringify(conversationsToSend) !== JSON.stringify(o?.conversationsToSend)) {
-    out.conversationsToSend = conversationsToSend
-  }
-  return out
 }
 
 export const deserialize = (
