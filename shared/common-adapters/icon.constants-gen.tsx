@@ -8691,6 +8691,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-warning': {
+    charCode: 0xe9ae,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-wave-2': {
     charCode: 0xe98e,
     gridSize: 24,
