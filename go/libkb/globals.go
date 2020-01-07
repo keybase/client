@@ -807,9 +807,11 @@ func (g *GlobalContext) Shutdown(mctx MetaContext) error {
 			g.Resolver.Shutdown(NewMetaContextBackground(g))
 		}
 
+		g.Log.Debug("executing %d shutdown hooks; errCount=%d", len(g.ShutdownHooks), epick.Count())
 		for _, hook := range g.ShutdownHooks {
 			epick.Push(hook(mctx))
 		}
+		g.Log.Debug("executed shutdown hooks; errCount=%d", epick.Count())
 
 		// shutdown the databases after the shutdown hooks run, we may want to
 		// flush memory caches to disk during shutdown.
@@ -826,7 +828,7 @@ func (g *GlobalContext) Shutdown(mctx MetaContext) error {
 
 		err = epick.Error()
 
-		g.Log.Debug("exiting shutdown code=%d; err=%v", g.ExitCode, err)
+		g.Log.Debug("exiting shutdown code=%d; errCount=%d; firstErr=%v", g.ExitCode, epick.Count(), err)
 	})
 
 	// Make a little bit of a statement if we wind up here a second time
