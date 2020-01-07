@@ -563,18 +563,31 @@ func (t *UIThreadLoader) singleFlightConv(ctx context.Context, convID chat1.Conv
 	return ctx, cancel
 }
 
-func (t *UIThreadLoader) waitForOnline(ctx context.Context) {
+func (t *UIThreadLoader) waitForOnline(ctx context.Context) (err error) {
+	defer func() {
+		// check for a canceled context before coming out of here
+		if err == nil {
+			select {
+			case <-ctx.Done():
+				err = ctx.Err()
+			default:
+			}
+		}
+	}()
 	// wait at most a second, and then charge forward
 	for i := 0; i < 40; i++ {
 		if !t.IsOffline(ctx) {
-			return
+			return nil
 		}
 		select {
+		case <-ctx.Done():
+			return ctx.Err()
 		case <-time.After(25 * time.Millisecond):
 		case <-t.connectedCh:
-			return
+			return nil
 		}
 	}
+	return nil
 }
 
 func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, uid gregor1.UID,
@@ -753,7 +766,9 @@ func (t *UIThreadLoader) LoadNonblock(ctx context.Context, chatUI libkb.ChatUI, 
 			t.clock.Sleep(*t.remoteThreadDelay)
 		}
 		// wait until we are online before attempting the full pull, otherwise we just waste an attempt
-		t.waitForOnline(ctx)
+		if fullErr = t.waitForOnline(ctx); fullErr != nil {
+			return
+		}
 		remoteThread, fullErr = t.G().ConvSource.Pull(ctx, convID, uid, reason, query, pagination)
 		setDisplayedStatus(cancelUIStatus)
 		if fullErr != nil {

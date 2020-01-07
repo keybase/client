@@ -1,5 +1,5 @@
 import {Dimensions, Platform, NativeModules} from 'react-native'
-import {cachesDirectoryPath} from '../util/file.native'
+import RNFB from 'rn-fetch-blob'
 import * as iPhoneXHelper from 'react-native-iphone-x-helper'
 
 const nativeBridge = NativeModules.KeybaseEngine || {
@@ -42,7 +42,7 @@ export const isIPhoneX = iPhoneXHelper.isIphoneX()
 // See https://material.io/devices/
 export const isLargeScreen = Dimensions.get('window').height >= 667
 
-const _dir = `${cachesDirectoryPath}/Keybase`
+const _dir = `${RNFB.fs.dirs.CacheDir}/Keybase`
 export const logFileDir = _dir
 export const pprofDir = _dir
 export const serverConfigFileName = `${_dir}/keybase.app.serverConfig`

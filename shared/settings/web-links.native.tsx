@@ -11,11 +11,8 @@ const WebLinks = Container.compose(
       title: Container.getRouteProps(ownProps, 'title', ''),
     }),
     dispatch => ({onBack: () => dispatch(RouteTreeGen.createNavigateUp())}),
-    (s, d, o: OwnProps) => ({...o, ...s, ...d})
+    (s, d, o: OwnProps) => ({...o, ...s, ...d, dataDetectorTypes: 'none'})
   ),
-  Container.defaultProps({
-    dataDetectorTypes: 'none',
-  }),
   HeaderHoc
 )(NativeWebView)
 

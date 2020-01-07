@@ -37,7 +37,7 @@ class GiphySearch extends React.Component<Props, State> {
     return (
       <Kb.Box style={styles.outerContainer}>
         <Kb.Box
-          forwardedRef={el => (this.container = el)}
+          forwardedRef={(el: HTMLDivElement | null) => (this.container = el)}
           style={Styles.collapseStyles([
             styles.scrollContainer,
             {overflowY: this.state.width ? 'auto' : 'scroll'},

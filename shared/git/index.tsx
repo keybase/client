@@ -4,6 +4,7 @@ import * as Styles from '../styles'
 import Row from './row/container'
 
 export type Props = {
+  error?: Error
   expandedSet: Set<string>
   loading: boolean
   onShowDelete: (id: string) => void
@@ -44,6 +45,7 @@ class Git extends React.Component<Props & Kb.OverlayParentProps, {}> {
   render() {
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
+        {!!this.props.error && <Kb.Banner color="red">{this.props.error.message}</Kb.Banner>}
         {Styles.isMobile && (
           <Kb.ClickableBox
             ref={this.props.setAttachmentRef}

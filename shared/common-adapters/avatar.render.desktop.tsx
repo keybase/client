@@ -1,7 +1,18 @@
-import Icon from './icon'
+import Icon, {IconType} from './icon'
 import * as React from 'react'
 import * as Styles from '../styles'
-import {Props} from './avatar.render'
+import {Props, AvatarSize} from './avatar.render'
+
+const avatarSizeToPoopIconType = (s: AvatarSize): IconType | null =>
+  s === 128
+    ? 'icon-poop-96'
+    : s === 96
+    ? 'icon-poop-64'
+    : s === 64
+    ? 'icon-poop-48'
+    : s === 48 || s === 32
+    ? 'icon-poop-32'
+    : null
 
 const Avatar = (props: Props) => {
   const avatarSizeClasName = `avatar-${props.isTeam ? 'team' : 'user'}-size-${props.size}`
@@ -14,12 +25,14 @@ const Avatar = (props: Props) => {
       {!props.skipBackground && (
         <div className={Styles.classNames('avatar-background', avatarSizeClasName)} />
       )}
-      {!!props.blocked && (
+      {!!props.blocked && !!avatarSizeToPoopIconType(props.size) && (
         <div
           className={Styles.classNames('avatar-user-image', avatarSizeClasName)}
           style={styles.poopContainer}
         >
-          <Icon type="icon-poop-96" style={styles.poop} />
+          {/* ts messes up here without the || 'icon-poop-32' even though it
+              can't happen due to the !!avatarSizeToPoopIconType() check above */}
+          <Icon type={avatarSizeToPoopIconType(props.size) || 'icon-poop-32'} />
         </div>
       )}
       {!!props.url && (
@@ -78,18 +91,11 @@ const styles = Styles.styleSheetCreate(
         position: 'absolute',
         right: -18,
       },
-      poop: Styles.platformStyles({
-        isElectron: {
-          backgroundOrigin: 'content-box',
-          position: 'relative',
-          width: '100%',
-        },
-      }),
-      poopContainer: Styles.platformStyles({
-        isElectron: {
-          padding: '10%',
-        },
-      }),
+      poopContainer: {
+        alignItems: 'center',
+        display: 'flex',
+        justifyContent: 'center',
+      },
     } as const)
 )
 

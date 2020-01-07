@@ -4,7 +4,6 @@ import * as Constants from '../../../constants/fs'
 import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
 import {Props as HeaderHocProps} from '../../../common-adapters/header-hoc/types'
-import {withProps} from 'recompose'
 import Rows from '../rows/rows-container'
 import Root from '../root'
 import * as FsCommon from '../../common'
@@ -117,8 +116,10 @@ const DestinationPicker = (props: Props) => {
 }
 
 const HighOrderDestinationPickerDesktop = Kb.HeaderOrPopup(DestinationPicker)
-const HighOrderDestinationPickerMobile = withProps(
-  (props: Props & HeaderHocProps): Partial<HeaderHocProps> => ({
+
+const PickerMobile = Kb.HeaderHoc(DestinationPicker)
+const HighOrderDestinationPickerMobile = (props: Props & HeaderHocProps) => {
+  const otherProps = {
     customComponent: (
       <Kb.Box2 direction="horizontal" fullWidth={true}>
         <Kb.ClickableBox style={styles.mobileHeaderButton} onClick={props.onCancel || undefined}>
@@ -136,9 +137,10 @@ const HighOrderDestinationPickerMobile = withProps(
       </Kb.Box2>
     ) as React.ReactNode,
     headerStyle: {paddingRight: 0} as Styles.StylesCrossPlatform,
-    onCancel: null, // unset this to avoid onCancel button from HeaderHoc
-  })
-)(Kb.HeaderHoc(DestinationPicker))
+    onCancel: undefined, // unset this to avoid onCancel button from HeaderHoc
+  }
+  return <PickerMobile {...props} {...otherProps} />
+}
 
 export default Styles.isMobile ? HighOrderDestinationPickerMobile : HighOrderDestinationPickerDesktop
 

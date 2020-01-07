@@ -252,6 +252,7 @@ func (u *UIDMap) lookupFromServer(ctx context.Context, g libkb.UIDMapperContext,
 	start := g.GetClock().Now()
 	end := start.Add(networkTimeBudget)
 
+	g.GetLog().CInfof(ctx, "looking up %d uids from server", len(uids))
 	var ret []libkb.UsernamePackage
 	for i := 0; i < len(uids); i += batchSize {
 		high := i + batchSize
@@ -400,7 +401,6 @@ func (u *UIDMap) MapUIDsToUsernamePackages(ctx context.Context, g libkb.UIDMappe
 
 		apiResults, err = u.lookupFromServer(ctx, g, uidsToLookup, networkTimeBudget)
 		if err == nil {
-
 			for i, row := range apiResults {
 				uid := uidsToLookup[i]
 				if row.FullName != nil {

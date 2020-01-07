@@ -54,7 +54,7 @@ const Tooltip = (props: TooltipProps) => {
 }
 
 const AudioStarter = (props: AudioStarterProps) => {
-  let longPressTimer
+  let longPressTimer: null | NodeJS.Timer
   const locked = React.useRef<boolean>(false)
   const tapLive = React.useRef<boolean>(false)
   const tapRef = React.useRef(null)
@@ -113,7 +113,7 @@ const AudioStarter = (props: AudioStarterProps) => {
             nativeEvent.state === Kb.GestureState.CANCELLED ||
             nativeEvent.state === Kb.GestureState.FAILED
           ) {
-            clearTimeout(longPressTimer)
+            longPressTimer && clearTimeout(longPressTimer)
             tapLive.current = false
             longPressTimer = null
             if (!props.recording && Date.now() - recordTimeRef.current <= 100) {
@@ -146,7 +146,7 @@ const AudioStarter = (props: AudioStarterProps) => {
               lockRecording()
             }
             if (nativeEvent.translationX < maxCancelDrift) {
-              clearTimeout(longPressTimer)
+              longPressTimer && clearTimeout(longPressTimer)
               longPressTimer = null
               stopRecording(Types.AudioStopType.CANCEL)
             }
@@ -163,11 +163,11 @@ const AudioStarter = (props: AudioStarterProps) => {
                 lockRecording()
               }
               if (nativeEvent.x < maxCancelDrift) {
-                clearTimeout(longPressTimer)
+                longPressTimer && clearTimeout(longPressTimer)
                 longPressTimer = null
                 stopRecording(Types.AudioStopType.CANCEL)
               } else {
-                clearTimeout(longPressTimer)
+                longPressTimer && clearTimeout(longPressTimer)
                 longPressTimer = null
                 stopRecording(Types.AudioStopType.RELEASE)
               }

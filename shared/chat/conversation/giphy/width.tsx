@@ -16,7 +16,7 @@ export const getMargins = (totalWidth: number, widths: Array<number>) => {
   // set to the desired size, some GIFs are very wide and take up too much space initially. We will allow
   // the expansion phase to go over this clamp however.
   clampAtMaxWidths(images)
-  let res: Array<number> = []
+  const res: Array<number> = []
   let longRow: Array<Image> = []
   for (let index = 0; index < images.length; index++) {
     const im = images[index]
@@ -48,7 +48,7 @@ class Image {
   origWidth = 0
   margin = 0
 
-  constructor(origWidth, margin) {
+  constructor(origWidth: number, margin: number) {
     this.origWidth = origWidth
     this.margin = margin
   }
@@ -63,7 +63,7 @@ class Image {
     }
   }
 
-  compress = desired => {
+  compress = (desired: number) => {
     if (this.width() <= minWidth) {
       // max compressed, don't do anything
       return
@@ -76,7 +76,7 @@ class Image {
     this.margin += compressed
   }
 
-  expand = desired => {
+  expand = (desired: number) => {
     if (this.margin === 0) {
       // max expanded, don't do anything
       return
@@ -98,25 +98,25 @@ class Image {
   }
 }
 
-const clampAtMaxWidths = images => {
+const clampAtMaxWidths = (images: Array<Image>) => {
   images.forEach(i => {
     i.clamp()
   })
 }
 
-const groupWidth = images => {
+const groupWidth = (images: Array<Image>) => {
   return images.reduce((total, i) => {
     return total + i.width()
   }, 0)
 }
 
-const numCompressables = images => {
+const numCompressables = (images: Array<Image>) => {
   return images.reduce((total, i) => {
     return total + (i.isCompressable() ? 1 : 0)
   }, 0)
 }
 
-const numExpandables = images => {
+const numExpandables = (images: Array<Image>) => {
   return images.reduce((total, i) => {
     return total + (i.isExpandable() ? 1 : 0)
   }, 0)
@@ -126,7 +126,7 @@ const maxCompressPasses = 15
 const maxExpandPasses = 15
 
 // compressRow attempts to compress a candidate row down to a given width
-const compressRow = (totalWidth, row) => {
+const compressRow = (totalWidth: number, row: Array<Image>) => {
   const compressed: Array<Image> = []
   row.forEach(i => {
     compressed.push(new Image(i.origWidth, i.margin))
@@ -153,7 +153,7 @@ const compressRow = (totalWidth, row) => {
 }
 
 // expandRow attempt to expand a candidate row into a given width
-const expandRow = (totalWidth, row) => {
+const expandRow = (totalWidth: number, row: Array<Image>) => {
   const expanded: Array<Image> = []
   row.forEach(i => {
     expanded.push(new Image(i.origWidth, i.margin))
@@ -181,7 +181,7 @@ const expandRow = (totalWidth, row) => {
   return expanded
 }
 
-const pickRow = (totalWidth, longIndex, longRow, shortRow) => {
+const pickRow = (totalWidth: number, longIndex: number, longRow: Array<Image>, shortRow: Array<Image>) => {
   let compressed
   const expanded = expandRow(totalWidth, shortRow)
   try {

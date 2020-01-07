@@ -636,7 +636,13 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 	case SCRevokeCurrentDevice:
 		return RevokeCurrentDeviceError{}
 	case SCRevokeLastDevice:
-		return RevokeLastDeviceError{}
+		e := RevokeLastDeviceError{}
+		for _, field := range s.Fields {
+			if field.Key == "NoPassphrase" {
+				e.NoPassphrase = field.BoolValue()
+			}
+		}
+		return e
 	case SCRevokeLastDevicePGP:
 		return RevokeLastDevicePGPError{}
 	case SCTeamKeyMaskNotFound:
@@ -738,6 +744,17 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		return NewFeatureFlagError(s.Desc, feature)
 	case SCNoPaperKeys:
 		return NoPaperKeysError{}
+	case SCTeamContactSettingsBlock:
+		e := TeamContactSettingsBlockError{}
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "uids":
+				e.blockedUIDs = parseUIDsFromString(field.Value)
+			case "usernames":
+				e.blockedUsernames = parseUsernamesFromString(field.Value)
+			}
+		}
+		return e
 	default:
 		ase := AppStatusError{
 			Code:   s.Code,
@@ -2224,11 +2241,19 @@ func (e RevokeCurrentDeviceError) ToStatus() keybase1.Status {
 }
 
 func (e RevokeLastDeviceError) ToStatus() keybase1.Status {
-	return keybase1.Status{
+	x := keybase1.Status{
 		Code: SCRevokeLastDevice,
 		Name: "SC_DEVICE_REVOKE_LAST",
 		Desc: e.Error(),
 	}
+
+	if e.NoPassphrase {
+		x.Fields = []keybase1.StringKVPair{
+			{Key: "NoPassphrase", Value: "true"},
+		}
+	}
+
+	return x
 }
 
 func (e RevokeLastDevicePGPError) ToStatus() keybase1.Status {
@@ -2387,4 +2412,30 @@ func (e NoPaperKeysError) ToStatus() (ret keybase1.Status) {
 	ret.Name = "NO_PAPER_KEYS"
 	ret.Desc = e.Error()
 	return
+}
+
+func (e TeamContactSettingsBlockError) ToStatus() (ret keybase1.Status) {
+	ret.Code = SCTeamContactSettingsBlock
+	ret.Name = "TEAM_CONTACT_SETTINGS_BLOCK"
+	ret.Desc = e.Error()
+	ret.Fields = []keybase1.StringKVPair{
+		{Key: "uids", Value: parseUIDsToString(e.blockedUIDs)},
+		{Key: "usernames", Value: parseUsernamesToString(e.blockedUsernames)},
+	}
+	return
+}
+
+func parseUIDsToString(input []keybase1.UID) string {
+	uids := make([]string, len(input))
+	for i, uid := range input {
+		uids[i] = uid.String()
+	}
+	return strings.Join(uids, ",")
+}
+func parseUsernamesToString(input []NormalizedUsername) string {
+	usernames := make([]string, len(input))
+	for i, username := range input {
+		usernames[i] = username.String()
+	}
+	return strings.Join(usernames, ",")
 }

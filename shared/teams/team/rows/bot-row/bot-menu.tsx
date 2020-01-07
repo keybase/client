@@ -3,6 +3,7 @@ import * as Kb from '../../../../common-adapters'
 
 type Props = {
   attachTo?: () => React.Component<any> | null
+  canManageBots: boolean
   onEdit: () => void
   onRemove: () => void
   onHidden: () => void
@@ -11,9 +12,15 @@ type Props = {
 
 const BotMenu = (props: Props) => {
   const items: Kb.MenuItems = [
-    {icon: 'iconfont-gear', onClick: props.onEdit, title: 'Edit settings'},
-    {danger: true, icon: 'iconfont-remove', onClick: props.onRemove, title: 'Uninstall'},
+    {
+      icon: 'iconfont-gear',
+      onClick: props.onEdit,
+      title: !props.canManageBots ? 'View settings' : 'Edit settings',
+    },
   ]
+  if (props.canManageBots) {
+    items.push({danger: true, icon: 'iconfont-remove', onClick: props.onRemove, title: 'Uninstall'})
+  }
   return (
     <Kb.FloatingMenu
       attachTo={props.attachTo}

@@ -24,4 +24,4 @@ export default Container.connect(
       dispatch(TeamsGen.createCreateNewTeam({joinSubteam, teamname})),
   }),
   (s, d) => ({...s, ...d})
-)(NewTeamDialog as any)
+)(NewTeamDialog)

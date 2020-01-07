@@ -2611,6 +2611,14 @@ func ParseUserVersion(s UserVersionPercentForm) (res UserVersion, err error) {
 	}, nil
 }
 
+func (p StringKVPair) BoolValue() bool {
+	i, err := strconv.ParseBool(p.Value)
+	if err != nil {
+		return false
+	}
+	return i
+}
+
 func (p StringKVPair) IntValue() int {
 	i, err := strconv.Atoi(p.Value)
 	if err != nil {
@@ -3617,7 +3625,7 @@ func (b FeaturedBotsRes) Eq(o FeaturedBotsRes) bool {
 }
 
 // Redact modifies the given ClientDetails struct
-func (d ClientDetails) Redact() {
+func (d *ClientDetails) Redact() {
 	tmp := fmt.Sprintf("%v", d.Argv)
 	re := regexp.MustCompile(`\b(chat|fs|encrypt|git|accept-invite|wallet\s+send|wallet\s+import|passphrase\s+check)\b`)
 	if mtch := re.FindString(tmp); len(mtch) > 0 {

@@ -129,6 +129,7 @@ export type InfoPanelProps = {
   onJoinChannel: () => void
 
   // Used for bots
+  canManageBots: boolean
   loadedAllBots: boolean
   onSearchFeaturedBots: (username: string) => void
   onLoadMoreBots: () => void
@@ -428,7 +429,9 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
           }
         }
 
-        tabsSection.data.push(addBotButton)
+        if (this.props.canManageBots) {
+          tabsSection.data.push(addBotButton)
+        }
         if (this.props.installedBots.length > 0) {
           tabsSection.data.push(inThisChannelHeader)
         }
@@ -515,9 +518,10 @@ const styles = Styles.styleSheetCreate(
         width: Styles.globalMargins.small,
       },
       botHeaders: {
+        marginBottom: Styles.globalMargins.xsmall,
         marginLeft: Styles.globalMargins.small,
         marginRight: Styles.globalMargins.small,
-        marginTop: Styles.globalMargins.tiny,
+        marginTop: Styles.globalMargins.xsmall,
       },
       container: Styles.platformStyles({
         common: {alignItems: 'stretch', flex: 1, paddingBottom: Styles.globalMargins.tiny},

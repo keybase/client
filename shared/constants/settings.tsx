@@ -39,6 +39,10 @@ export const toPhoneRow = (p: RPCTypes.UserPhoneNumber) => {
 export const makeState = (): Types.State => ({
   allowDeleteAccount: false,
   chat: {
+    contactSettings: {
+      error: '',
+      settings: undefined,
+    },
     unfurl: {
       unfurlWhitelist: [],
     },
@@ -207,6 +211,8 @@ export const importContactsConfigKey = (username: string) => `ui.importContacts.
 
 export const refreshNotificationsWaitingKey = 'settingsTabs.refreshNotifications'
 export const chatUnfurlWaitingKey = 'settings:chatUnfurlWaitingKey'
+export const contactSettingsLoadWaitingKey = 'settings:contactSettingsLoadWaitingKey'
+export const contactSettingsSaveWaitingKey = 'settings:contactSettingsSaveWaitingKey'
 export const setLockdownModeWaitingKey = 'settings:setLockdownMode'
 export const loadLockdownModeWaitingKey = 'settings:loadLockdownMode'
 export const checkPasswordWaitingKey = 'settings:checkPassword'

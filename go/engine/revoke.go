@@ -139,6 +139,14 @@ func (e *RevokeEngine) run(m libkb.MetaContext) error {
 		hasPGP := len(me.GetComputedKeyFamily().GetActivePGPKeys(false)) > 0
 
 		if len(me.GetComputedKeyFamily().GetAllActiveDevices()) == 1 {
+			passphraseState, err := libkb.LoadPassphraseState(m)
+			if err != nil {
+				return fmt.Errorf("could not load passphrase state: %s", err)
+			}
+			if passphraseState == keybase1.PassphraseState_RANDOM {
+				return libkb.RevokeLastDeviceError{NoPassphrase: true}
+			}
+
 			if hasPGP {
 				// even w/ forceLast, you cannot revoke your last device
 				// if you have a pgp key

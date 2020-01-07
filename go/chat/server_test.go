@@ -7387,18 +7387,20 @@ func TestTeamBotSettings(t *testing.T) {
 
 			// ensure gregor withholds messages for restricted bot members
 			// unless it is specifically keyed for them.
-			tv, err := ctc.world.Tcs[botua.Username].Context().ConvSource.Pull(ctc.as(t, botua).startCtx, created.Id,
-				botuaUID, chat1.GetThreadReason_GENERAL, nil, nil)
+			tv, err := ctc.world.Tcs[botua.Username].Context().ConvSource.Pull(ctc.as(t, botua).startCtx,
+				created.Id, botuaUID, chat1.GetThreadReason_GENERAL, nil, nil)
 			require.NoError(t, err)
 			// expected botua keyed messages
 			// NOTE that for ephemeral messages we include deleted messages in the thread
 			var expectedBotuaTyps []chat1.MessageType
+			var expectedCount int
 			if ephemeralLifetime == nil {
 				expectedBotuaTyps = []chat1.MessageType{
 					chat1.MessageType_DELETE,
 					chat1.MessageType_DELETE,
 					chat1.MessageType_TEXT,
 				}
+				expectedCount = 7
 			} else {
 				expectedBotuaTyps = []chat1.MessageType{
 					chat1.MessageType_DELETE,
@@ -7408,12 +7410,18 @@ func TestTeamBotSettings(t *testing.T) {
 					chat1.MessageType_TEXT,
 					chat1.MessageType_TEXT,
 				}
+				expectedCount = 10
 			}
-			require.Equal(t, len(expectedBotuaTyps), len(tv.Messages))
+			require.Equal(t, expectedCount, len(tv.Messages))
+			validIndex := 0
 			for i, msg := range tv.Messages {
-				require.True(t, msg.IsValid())
-				require.Equal(t, expectedBotuaTyps[i], msg.GetMessageType())
+				t.Logf("INDEX: %d VALID: %v", i, msg.IsValid())
+				if msg.IsValid() {
+					require.Equal(t, expectedBotuaTyps[validIndex], msg.GetMessageType())
+					validIndex++
+				}
 			}
+			require.Equal(t, len(expectedBotuaTyps), validIndex)
 
 			tv, err = ctc.world.Tcs[botua2.Username].Context().ConvSource.Pull(ctc.as(t, botua2).startCtx, created.Id,
 				botuaUID2, chat1.GetThreadReason_GENERAL, nil, nil)
@@ -7424,11 +7432,15 @@ func TestTeamBotSettings(t *testing.T) {
 				chat1.MessageType_TEXT,
 				chat1.MessageType_TEXT,
 			}
-			require.Equal(t, len(expectedBotua2Typs), len(tv.Messages))
-			for i, msg := range tv.Messages {
-				require.True(t, msg.IsValid())
-				require.Equal(t, expectedBotua2Typs[i], msg.GetMessageType())
+			validIndex = 0
+			require.Equal(t, 13, len(tv.Messages))
+			for _, msg := range tv.Messages {
+				if msg.IsValid() {
+					require.Equal(t, expectedBotua2Typs[validIndex], msg.GetMessageType())
+					validIndex++
+				}
 			}
+			require.Equal(t, 2, validIndex)
 
 			// take out botua2 by upgrading them to BOT
 			err = ctc.as(t, users[0]).chatLocalHandler().EditBotMember(tc.startCtx, chat1.EditBotMemberArg{

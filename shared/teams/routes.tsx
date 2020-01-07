@@ -40,9 +40,7 @@ export const newModalRoutes = {
   teamInviteByEmail: {
     getScreen: (): typeof TeamInviteByEmail => require('./invite-by-email/container').default,
   },
-  // TODO connect broken
   teamJoinTeamDialog: {getScreen: (): typeof TeamJoinTeamDialog => require('./join-team/container').default},
-  // TODO connect broken
   teamNewTeamDialog: {getScreen: (): typeof TeamNewTeamDialog => require('./new-team/container').default},
   teamReallyLeaveTeam: {
     getScreen: (): typeof TeamReallyLeaveTeam => require('./really-leave-team/container').default,

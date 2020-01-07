@@ -1779,3 +1779,10 @@ func (c *ConfigLocal) KbEnv() *libkb.Env {
 	defer c.lock.RUnlock()
 	return c.kbCtx.GetEnv()
 }
+
+// KbContext implements the Config interface.
+func (c *ConfigLocal) KbContext() Context {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
+	return c.kbCtx
+}

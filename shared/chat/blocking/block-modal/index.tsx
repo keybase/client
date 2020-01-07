@@ -234,11 +234,6 @@ class BlockModal extends React.PureComponent<Props, State> {
   }
 
   onFinish = () => {
-    if (this.state.newBlocks.size === 0 && !this.state.blockTeam) {
-      // Nothing to do, just close the modal.
-      this.props.onClose()
-      return
-    }
     this.setState({finishClicked: true})
     this.props.onFinish(this.state.newBlocks, this.state.blockTeam)
   }
