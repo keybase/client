@@ -11,7 +11,7 @@ type OwnProps = {
   message: Types.MessageSystemAddedToTeam
 }
 
-export default Container.connect(
+const Connected = Container.connect(
   (state, ownProps: OwnProps) => {
     const {teamID, teamname, teamType} = Constants.getMeta(state, ownProps.message.conversationIDKey)
     return {
@@ -62,3 +62,4 @@ export default Container.connect(
     you: stateProps.you,
   })
 )(SystemAddedToTeam)
+export default Connected

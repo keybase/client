@@ -98,7 +98,7 @@ export default Container.namedConnect(
     claim: stateProps.claim ? {onClaim: dispatchProps._onClaim, ...stateProps.claim} : undefined,
     isEditing: stateProps.isEditing,
     isHighlighted: ownProps.isHighlighted,
-    message: 3, // ownProps.message,
+    message: ownProps.message,
     reply: getReplyProps(ownProps.message.replyTo || undefined, dispatchProps._onReplyClick),
     text: ownProps.message.decoratedText
       ? ownProps.message.decoratedText.stringValue()

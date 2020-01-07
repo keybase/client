@@ -15,7 +15,7 @@ const loadingProps = {
   amount: '',
   approxWorth: '',
   balanceChange: '',
-  balanceChangeColor: '',
+  balanceChangeColor: undefined,
   cancelButtonInfo: '',
   cancelButtonLabel: '',
   canceled: false,
@@ -27,7 +27,7 @@ const loadingProps = {
   sendButtonLabel: '',
   showCoinsIcon: false,
   sourceAmount: '',
-}
+} as const
 
 // Get action phrase for sendPayment msg
 const makeSendPaymentVerb = (status: WalletTypes.StatusSimplified, youAreSender: boolean) => {
@@ -96,7 +96,7 @@ const ConnectedAccountPayment = Container.connect(
             !youAreSender && cancelable && !acceptedDisclaimer
               ? `Claim${paymentInfo.worth ? ' Lumens worth' : ''}`
               : '',
-          icon: pending ? 'iconfont-clock' : null,
+          icon: pending ? ('iconfont-clock' as const) : null,
           loading: false,
           memo: paymentInfo.note.stringValue(),
           pending: pending || canceled,
@@ -119,12 +119,12 @@ const ConnectedAccountPayment = Container.connect(
           amount: amountDescription,
           approxWorth: requestInfo.worthAtRequestTime,
           balanceChange: '',
-          balanceChangeColor: '',
+          balanceChangeColor: undefined,
           cancelButtonInfo: '',
           cancelButtonLabel: '',
           canceled,
           claimButtonLabel: '',
-          icon: 'iconfont-stellar-request',
+          icon: 'iconfont-stellar-request' as const,
           loading: false,
           memo: message.note.stringValue(),
           pending: false,
