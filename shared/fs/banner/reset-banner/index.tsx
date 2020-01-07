@@ -92,14 +92,14 @@ const Banner = ({resetParticipants, onReAddToTeam, onViewProfile, onOpenWithoutR
         </Kb.Box2>
       ))}
     </Kb.Box2>
-    {resetParticipants.length > 1 ? (
+    {resetParticipants.length > 1 && (
       <Kb.Text type="BodySemibold" negative={true} style={styles.textOrUntil}>
         Or until you're sure,{' '}
         <Kb.Text type="BodySemiboldLink" negative={true} onClick={onOpenWithoutResetUsers}>
           open a folder without any of them.
         </Kb.Text>
       </Kb.Text>
-    ) : null}
+    )}
   </Kb.Box2>
 )
 
