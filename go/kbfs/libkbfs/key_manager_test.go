@@ -74,7 +74,6 @@ func keyManagerInit(t *testing.T, ver kbfsmd.MetadataVer) (mockCtrl *gomock.Cont
 func keyManagerShutdown(mockCtrl *gomock.Controller, config *ConfigMock) {
 	config.ctr.CheckForFailures()
 	mockCtrl.Finish()
-	config.Shutdown(context.Background())
 }
 
 var serverHalf = kbfscrypto.MakeTLFCryptKeyServerHalf([32]byte{0x2})
@@ -629,6 +628,7 @@ func testKeyManagerPromoteReaderSelf(t *testing.T, ver kbfsmd.MetadataVer) {
 	oldKeyGen := rmd.LatestKeyGeneration()
 
 	config2 := ConfigAsUser(config, "bob")
+	defer CheckConfigAndShutdown(ctx, t, config2)
 
 	// Pretend that bob@twitter now resolves to bob.
 	daemon := config2.KeybaseService().(*KeybaseDaemonLocal)
@@ -680,6 +680,7 @@ func testKeyManagerReaderRekeyShouldNotPromote(t *testing.T, ver kbfsmd.Metadata
 	require.False(t, hasWriterKey(t, rmd, charlieUID))
 
 	config2 := ConfigAsUser(config, "bob")
+	defer CheckConfigAndShutdown(ctx, t, config2)
 
 	// Pretend that charlie@twitter now resolves to charlie.
 	daemon := config2.KeybaseService().(*KeybaseDaemonLocal)
