@@ -97,10 +97,10 @@ Load a flip's result:
 Get unfurl settings:
     {"method": "getunfurlsettings"}
 
-Set unfurl setings (thumbnails for sent links):
+Set unfurl settings (thumbnails for sent links):
     {"method": "setunfurlsettings", "params": {"options":{"mode": "always/never/whitelisted", "whitelist":["example.com"]}}}
 
-Advertise availabe bot commands in the UI:
+Advertise available bot commands in the UI:
     {"method": "advertisecommands", "params": {"options":{"alias": "helpbot", "advertisements":[{"type": "public", "commands": [{"name": "help", "description": "Get help using this bot"}]}]}}}
 
 Clear bot commands:
@@ -121,7 +121,7 @@ Get a user's device info from their username:
 Get all reset members of conversations in your inbox:
    {"method": "getresetconvmembers"}
 
-Readd a reset user back to a conversation:
+Re-add a reset user back to a conversation:
    {"method": "addresetconvmember", "params": {"options": {"username": "joshblum", "conversation_id": "..."}}}
 
 List members of a conversation from a topic name:
