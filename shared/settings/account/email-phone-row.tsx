@@ -211,69 +211,66 @@ export type OwnProps = {
   contactKey: string
 }
 
-const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => ({
-  _emailRow: (state.settings.email.emails && state.settings.email.emails.get(ownProps.contactKey)) || null,
-  _phoneRow:
-    (state.settings.phoneNumbers.phones && state.settings.phoneNumbers.phones.get(ownProps.contactKey)) ||
-    null,
-  moreThanOneEmail: state.settings.email.emails && state.settings.email.emails.size > 1,
-})
-
-const mapDispatchToProps = (dispatch: Container.TypedDispatch, ownProps: OwnProps) => ({
-  _onMakeNotSearchable: () =>
-    dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, makeSearchable: false})),
-  _onMakeSearchable: () =>
-    dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, makeSearchable: true})),
-  email: {
-    _onDelete: (address: string, searchable: boolean, lastEmail: boolean) =>
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [
-            {
-              props: {
-                address,
-                lastEmail,
-                searchable,
-                type: 'email',
-              },
-              selected: 'settingsDeleteAddress',
-            },
-          ],
-        })
-      ),
-    onMakePrimary: () =>
-      dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, makePrimary: true})),
-    onVerify: () => dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, verify: true})),
-  },
-  phone: {
-    _onDelete: (address: string, searchable: boolean) =>
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [
-            {
-              props: {
-                address,
-                searchable,
-                type: 'phone',
-              },
-              selected: 'settingsDeleteAddress',
-            },
-          ],
-        })
-      ),
-    _onToggleSearchable: (setSearchable: boolean) =>
-      dispatch(SettingsGen.createEditPhone({phone: ownProps.contactKey, setSearchable})),
-    _onVerify: phoneNumber => {
-      dispatch(SettingsGen.createResendVerificationForPhoneNumber({phoneNumber}))
-      dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsVerifyPhone']}))
-    },
-    onMakePrimary: () => {}, // this is not a supported phone action
-  },
-})
-
 const ConnectedEmailPhoneRow = Container.namedConnect(
-  mapStateToProps,
-  mapDispatchToProps,
+  (state, ownProps: OwnProps) => ({
+    _emailRow: (state.settings.email.emails && state.settings.email.emails.get(ownProps.contactKey)) || null,
+    _phoneRow:
+      (state.settings.phoneNumbers.phones && state.settings.phoneNumbers.phones.get(ownProps.contactKey)) ||
+      null,
+    moreThanOneEmail: state.settings.email.emails && state.settings.email.emails.size > 1,
+  }),
+  (dispatch, ownProps: OwnProps) => ({
+    _onMakeNotSearchable: () =>
+      dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, makeSearchable: false})),
+    _onMakeSearchable: () =>
+      dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, makeSearchable: true})),
+    email: {
+      _onDelete: (address: string, searchable: boolean, lastEmail: boolean) =>
+        dispatch(
+          RouteTreeGen.createNavigateAppend({
+            path: [
+              {
+                props: {
+                  address,
+                  lastEmail,
+                  searchable,
+                  type: 'email',
+                },
+                selected: 'settingsDeleteAddress',
+              },
+            ],
+          })
+        ),
+      onMakePrimary: () =>
+        dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, makePrimary: true})),
+      onVerify: () => dispatch(SettingsGen.createEditEmail({email: ownProps.contactKey, verify: true})),
+    },
+    phone: {
+      _onDelete: (address: string, searchable: boolean) =>
+        dispatch(
+          RouteTreeGen.createNavigateAppend({
+            path: [
+              {
+                props: {
+                  address,
+                  searchable,
+                  type: 'phone',
+                },
+                selected: 'settingsDeleteAddress',
+              },
+            ],
+          })
+        ),
+      _onToggleSearchable: (setSearchable: boolean) =>
+        dispatch(SettingsGen.createEditPhone({phone: ownProps.contactKey, setSearchable})),
+      _onVerify: phoneNumber => {
+        dispatch(SettingsGen.createResendVerificationForPhoneNumber({phoneNumber}))
+        dispatch(RouteTreeGen.createNavigateAppend({path: ['settingsVerifyPhone']}))
+      },
+      onMakePrimary: () => {}, // this is not a supported phone action
+    },
+  }),
+
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     if (stateProps._phoneRow) {
       const pr = stateProps._phoneRow
@@ -303,6 +300,7 @@ const ConnectedEmailPhoneRow = Container.namedConnect(
         onVerify: dispatchProps.email.onVerify,
         primary: stateProps._emailRow.isPrimary,
         searchable,
+        superseded: false,
         type: 'email' as const,
         verified: stateProps._emailRow.isVerified,
       }
@@ -315,6 +313,7 @@ const ConnectedEmailPhoneRow = Container.namedConnect(
         onVerify: () => {},
         primary: false,
         searchable: false,
+        superseded: false,
         type: 'phone' as const,
         verified: false,
       }

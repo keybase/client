@@ -1,21 +1,10 @@
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import TextMessage, {Props, ReplyProps} from '.'
 import * as Container from '../../../../util/container'
 import * as WalletConstants from '../../../../constants/wallets'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
-
-import {
-  MapStateToProps,
-  MapDispatchToProps,
-  MergeProps,
-  Options,
-  ConnectedComponentClass,
-  GetProps,
-} from 'react-redux'
-import {ComponentType} from 'react'
-import {TypedState} from 'redux'
+import TextMessage, {Props, ReplyProps} from '.'
 
 type OwnProps = {
   isHighlighted?: boolean
@@ -88,28 +77,7 @@ const getClaimProps = (state: Container.TypedState, ownProps: OwnProps) => {
 
 type MsgType = Props['type']
 
-export type ConnectedComponentTypeDEBUG<TMergedProps, TOwnProps> = <C extends ComponentType<any>>(
-  component: C
-) => TMergedProps extends React.ComponentProps<C>
-  ? ConnectedComponentClass<C, TOwnProps>
-  : {
-      [P in keyof TMergedProps]: TMergedProps[P] extends GetProps<C>[P]
-        ? 'TS correct'
-        : [GetProps<C>[P], '!=', TMergedProps[P]]
-    }
-
-interface ConnectDEBUG {
-  <TOwnProps, TStateProps, TDispatchProps, TMergedProps>(
-    mapStateToProps: MapStateToProps<TStateProps, TOwnProps>,
-    mapDispatchToProps: MapDispatchToProps<TDispatchProps, TOwnProps>,
-    mergeProps: MergeProps<TStateProps, TDispatchProps, TOwnProps, TMergedProps>,
-    options?: Options<TypedState, TStateProps, TOwnProps, TMergedProps>
-  ): ConnectedComponentTypeDEBUG<TMergedProps, TOwnProps>
-}
-
-const connectDEBUG: ConnectDEBUG = null as any
-
-export default connectDEBUG(
+export default Container.namedConnect(
   (state: Container.TypedState, ownProps: OwnProps) => {
     const editInfo = Constants.getEditInfo(state, ownProps.message.conversationIDKey)
     const isEditing = !!(editInfo && editInfo.ordinal === ownProps.message.ordinal)
@@ -130,7 +98,7 @@ export default connectDEBUG(
     claim: stateProps.claim ? {onClaim: dispatchProps._onClaim, ...stateProps.claim} : undefined,
     isEditing: stateProps.isEditing,
     isHighlighted: ownProps.isHighlighted,
-    message: ownProps.message,
+    message: 3, // ownProps.message,
     reply: getReplyProps(ownProps.message.replyTo || undefined, dispatchProps._onReplyClick),
     text: ownProps.message.decoratedText
       ? ownProps.message.decoratedText.stringValue()
@@ -140,5 +108,6 @@ export default connectDEBUG(
       : ownProps.message.submitState === null
       ? 'sent'
       : 'pending') as MsgType,
-  }) //, 'TextMessage'
+  }),
+  'TextMessage'
 )(TextMessage)
