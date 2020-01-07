@@ -1439,3 +1439,11 @@ func (d *Service) StartStandaloneChat(g *libkb.GlobalContext) error {
 
 	return nil
 }
+
+func assertLoggedIn(ctx context.Context, g *libkb.GlobalContext) error {
+	loggedIn := g.ActiveDevice.Valid()
+	if !loggedIn {
+		return libkb.LoginRequiredError{}
+	}
+	return nil
+}
