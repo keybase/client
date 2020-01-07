@@ -685,6 +685,13 @@ type UserChangedHandler interface {
 	HandleUserChanged(uid keybase1.UID) error
 }
 
+// // IdentifyFinishedHandler is a generic interface for notifying about identifies.
+// type IdentifyFinishedHandler interface {
+// 	// HandleUserChanged is called when the with User with the given UID has
+// 	// changed, either because of a sigchain change, or a profile change.
+// 	HandleIdentityFinished(username keybase1.Username, identifyBehavior keybase1.TLFIdentifyBehavior, res *keybase1.Identify2ResUPK2, identifyErr error) error
+// }
+
 type ConnectivityMonitorResult int
 
 const (

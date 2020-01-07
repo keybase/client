@@ -223,8 +223,8 @@ func (i *identifyUser) trackChainLinkFor(m libkb.MetaContext, name libkb.Normali
 //   - Work back in the identify card
 //
 
-// Identify2WithUID is the Identify engine used in KBFS and as a subroutine
-// of command-line crypto.
+// Identify2WithUID is the Identify engine used in KBFS, chat, and as a
+// subroutine of command-line crypto.
 type Identify2WithUID struct {
 	libkb.Contextified
 
@@ -343,13 +343,46 @@ func (e *Identify2WithUID) Run(m libkb.MetaContext) (err error) {
 	return err
 }
 
+func (e *Identify2WithUID) notifyChat(m libkb.MetaContext, inErr error) error {
+	m.Debug("Identify2WithUID.run: notifyChat")
+	if !e.arg.IdentifyBehavior.ShouldRefreshChatView() {
+		return nil
+	}
+	if e.them == nil {
+		return fmt.Errorf("nil user")
+	}
+	nun := e.them.GetNormalizedName()
+	if nun.IsNil() {
+		return nil
+	}
+	if inErr != nil && !libkb.IsIdentifyProofError(inErr) {
+		return nil
+	}
+
+	res, err := e.Result(m)
+	if err != nil {
+		return err
+	}
+
+	m.Debug("Identify2WithUID.run: running HandleChatIdentifyUpdate")
+	m.G().NotifyRouter.HandleChatIdentifyUpdate(m.Ctx(), keybase1.CanonicalTLFNameAndIDWithBreaks{
+		CanonicalName: keybase1.CanonicalTlfName(nun),
+		Breaks: keybase1.TLFBreak{
+			Breaks: []keybase1.TLFIdentifyFailure{
+				{User: *e.them.Export(), Breaks: res.TrackBreaks},
+			},
+		},
+	})
+
+	return nil
+}
+
 func (e *Identify2WithUID) run(m libkb.MetaContext) {
 	err := e.runReturnError(m)
 	e.unblock(m /* isFinal */, true, err)
 
-	if !e.arg.IdentifyBehavior.IsChatIdentify() {
-		m.Debug("Identify2WithUID.run: notifying chat")
-		go m.G().UserChanged(m.Ctx(), e.arg.Uid)
+	if notifyChatErr := e.notifyChat(m, err); notifyChatErr != nil {
+		m.Warning("failed to notify chat of identify result: %s", notifyChatErr)
 	}
 
 	// always cancel IdentifyUI to allow clients to clean up.
@@ -535,7 +568,7 @@ func (e *Identify2WithUID) runReturnError(m libkb.MetaContext) (err error) {
 	m = m.BackgroundWithLogTags()
 
 	if (!e.useTracking && !e.useRemoteAssertions() && e.allowEarlyOuts()) || e.arg.IdentifyBehavior.UnblockThenForceIDTable() {
-		e.unblock(m /* isFinal */, false, nil)
+		e.unblock(m, false /* isFinal */, nil /* err */)
 	}
 
 	return e.runIdentifyUI(m)
@@ -846,7 +879,7 @@ func (e *Identify2WithUID) runIdentifyUI(m libkb.MetaContext) (err error) {
 		identifyTableMode = libkb.IdentifyTableModePassive
 	}
 
-	// When we get a callback from IDTabe().Identify, we don't get to thread our metacontext
+	// When we get a callback from IDTable().Identify, we don't get to thread our metacontext
 	// through (for now), so stash it in the this.
 	e.metaContext = m
 	if them.IDTable() == nil {
@@ -887,6 +920,8 @@ func (e *Identify2WithUID) runIdentifyUI(m libkb.MetaContext) (err error) {
 
 	err = e.checkRemoteAssertions([]keybase1.ProofState{keybase1.ProofState_OK})
 	e.maybeCacheResult(m)
+
+	m.Debug("| IdentifyUI: checked remote assertions (%s)", e.them.GetName())
 
 	if err == nil && !e.arg.NoErrorOnTrackFailure {
 		// We only care about tracking errors in this case; hence GetErrorLax
