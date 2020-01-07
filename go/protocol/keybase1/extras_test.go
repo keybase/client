@@ -5,8 +5,12 @@ package keybase1
 
 import (
 	"errors"
+	"fmt"
+	"strings"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestTime(t *testing.T) {
@@ -132,4 +136,19 @@ func TestTeamNameFromString(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestRedact(t *testing.T) {
+	cmd1 := "keybase fs ls anything really here"
+	rcmd1 := fmt.Sprintf("keybase fs %s", redactedReplacer)
+	arg := ClientDetails{
+		Argv: strings.Split(cmd1, " ")}
+	arg.Redact()
+	require.Equal(t, strings.Split(rcmd1, " "), arg.Argv)
+
+	cmd2 := "keybase whatever command paperkey --another-flag"
+	arg = ClientDetails{
+		Argv: strings.Split(cmd2, " ")}
+	arg.Redact()
+	require.Equal(t, strings.Split(cmd2, " "), arg.Argv)
 }
