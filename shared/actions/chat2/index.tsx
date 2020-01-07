@@ -33,6 +33,7 @@ import {RPCError} from '../../util/errors'
 import * as Container from '../../util/container'
 
 const onConnect = async () => {
+  console.log(`aaaa V8 version is ${global._v8runtime().version}`)
   try {
     await RPCTypes.delegateUiCtlRegisterChatUIRpcPromise()
     console.log('Registered Chat UI')
