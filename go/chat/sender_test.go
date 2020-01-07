@@ -299,6 +299,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 
 	g.ConnectivityMonitor = &libkb.NullConnectivityMonitor{}
 	pushHandler := NewPushHandler(g)
+	pushHandler.Start(context.TODO(), nil)
 	g.PushHandler = pushHandler
 	g.ChatHelper = NewHelper(g, getRI)
 	g.TeamChannelSource = NewTeamChannelSource(g)

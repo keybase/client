@@ -29,3 +29,7 @@ export function mapEqual<M extends Map<any, any>>(map1: M, map2: M): boolean {
 
   return !k1.some(key => map1.get(key) !== map2.get(key))
 }
+
+export function mapFilterByKey<M extends Map<any, any>>(map: M, keys: Set<string>): M {
+  return new Map([...map.entries()].filter(([k]) => keys.has(k))) as M
+}

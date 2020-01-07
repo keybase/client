@@ -288,6 +288,20 @@ func (i *InMemoryStorageEngine) LookupKEVPairsUnderPosition(ctx logger.ContextIn
 	return kvps, seqnos, nil
 }
 
+// LookupAllKEVPairs returns all the keys and encoded values at the specified Seqno.
+func (i *InMemoryStorageEngine) LookupAllKEVPairs(ctx logger.ContextInterface, t Transaction, s Seqno) (kevps []KeyEncodedValuePair, err error) {
+	kevps = make([]KeyEncodedValuePair, 0, len(i.SortedKVPRs))
+	for _, kvpr := range i.SortedKVPRs {
+		for ; kvpr != nil; kvpr = kvpr.next {
+			if kvpr.s <= s {
+				kevps = append(kevps, kvpr.kevp)
+				break
+			}
+		}
+	}
+	return kevps, nil
+}
+
 func (i *InMemoryStorageEngine) StoreMasterSecret(ctx logger.ContextInterface, t Transaction, s Seqno, ms MasterSecret) (err error) {
 	i.MasterSecretsMap[s] = MasterSecret(append([]byte{}, []byte(ms)...))
 	return nil

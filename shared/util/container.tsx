@@ -47,6 +47,11 @@ export function usePrevious<T>(value: T) {
   })
   return ref.current
 }
+
+/** like useSelector but for remote stores **/
+export function useRemoteStore<S>(): S {
+  return (useSelector(s => s) as unknown) as S
+}
 /**
       like useEffect but doesn't call on initial mount, only when deps change
  */
@@ -77,7 +82,6 @@ export const timeoutPromise = (timeMs: number) =>
   })
 
 export {default as connect, namedConnect, connectDEBUG} from './typed-connect'
-export {default as remoteConnect} from './typed-remote-connect'
 export {isMobile, isIOS, isAndroid} from '../constants/platform'
 export {anyWaiting, anyErrors} from '../constants/waiting'
 export {safeSubmit, safeSubmitPerMount} from './safe-submit'

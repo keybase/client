@@ -148,13 +148,21 @@ func PickFirstError(errors ...error) error {
 }
 
 type FirstErrorPicker struct {
-	e error
+	e     error
+	count int
 }
 
 func (p *FirstErrorPicker) Push(e error) {
-	if e != nil && p.e == nil {
-		p.e = e
+	if e != nil {
+		p.count++
+		if p.e == nil {
+			p.e = e
+		}
 	}
+}
+
+func (p *FirstErrorPicker) Count() int {
+	return p.count
 }
 
 func (p *FirstErrorPicker) Error() error {

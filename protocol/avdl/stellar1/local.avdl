@@ -584,11 +584,19 @@ protocol local {
     TransactionID txID;
   }
 
+  enum PublicNoteType {
+    NONE_0,
+    TEXT_1,
+    ID_2,
+    HASH_3,
+    RETURN_4
+  }
+
   SendResultCLILocal sendCLILocal(string recipient, string amount, Asset asset, string note,
                                   string displayAmount, string displayCurrency, boolean forceRelay,
-                                  string publicNote, AccountID fromAccountID);
+                                  string publicNote, PublicNoteType publicNoteType, AccountID fromAccountID);
 
-  SendResultCLILocal sendPathCLILocal(AccountID source, string recipient, PaymentPath path, string note, string publicNote);
+  SendResultCLILocal sendPathCLILocal(AccountID source, string recipient, PaymentPath path, string note, string publicNote, PublicNoteType publicNoteType);
   TransactionID accountMergeCLILocal(AccountID fromAccountID, union { null, SecretKey } fromSecretKey, string to);
 
   // Claim a relay payment

@@ -42,6 +42,9 @@ func (c ChatTestContext) Context() *globals.Context {
 }
 
 func (c ChatTestContext) Cleanup() {
+	if c.ChatG.PushHandler != nil {
+		<-c.ChatG.PushHandler.Stop(context.TODO())
+	}
 	if c.ChatG.MessageDeliverer != nil {
 		<-c.ChatG.MessageDeliverer.Stop(context.TODO())
 	}

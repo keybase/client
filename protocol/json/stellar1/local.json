@@ -943,6 +943,17 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "PublicNoteType",
+      "symbols": [
+        "NONE_0",
+        "TEXT_1",
+        "ID_2",
+        "HASH_3",
+        "RETURN_4"
+      ]
+    },
+    {
       "type": "record",
       "name": "PaymentOrErrorCLILocal",
       "fields": [
@@ -2460,6 +2471,10 @@
           "type": "string"
         },
         {
+          "name": "publicNoteType",
+          "type": "PublicNoteType"
+        },
+        {
           "name": "fromAccountID",
           "type": "AccountID"
         }
@@ -2487,6 +2502,10 @@
         {
           "name": "publicNote",
           "type": "string"
+        },
+        {
+          "name": "publicNoteType",
+          "type": "PublicNoteType"
         }
       ],
       "response": "SendResultCLILocal"

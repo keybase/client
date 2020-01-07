@@ -568,6 +568,7 @@ func (s *CmdSignup) handlePostError(inerr error) (retry bool, err error) {
 	}
 
 	if !s.doPrompt {
+		err = inerr
 		retry = false
 	}
 

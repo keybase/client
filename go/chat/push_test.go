@@ -86,6 +86,8 @@ func TestPushOrdering(t *testing.T) {
 	uid := u.User.GetUID().ToBytes()
 	tc := world.Tcs[u.Username]
 	handler := NewPushHandler(tc.Context())
+	handler.Start(context.TODO(), nil)
+	defer func() { <-handler.Stop(context.TODO()) }()
 	handler.SetClock(world.Fc)
 	timeout := 2 * time.Second
 
@@ -158,6 +160,8 @@ func TestPushAppState(t *testing.T) {
 	uid := u.User.GetUID().ToBytes()
 	tc := world.Tcs[u.Username]
 	handler := NewPushHandler(tc.Context())
+	handler.Start(context.TODO(), nil)
+	defer func() { <-handler.Stop(context.TODO()) }()
 	handler.SetClock(world.Fc)
 	conv := newBlankConv(ctx, t, tc, uid, ri, sender, u.Username)
 
@@ -206,6 +210,8 @@ func TestPushTyping(t *testing.T) {
 	uid := u.User.GetUID().ToBytes()
 	tc := world.Tcs[u.Username]
 	handler := NewPushHandler(tc.Context())
+	handler.Start(context.TODO(), nil)
+	defer func() { <-handler.Stop(context.TODO()) }()
 	handler.SetClock(world.Fc)
 	handler.typingMonitor.SetClock(world.Fc)
 	handler.typingMonitor.SetTimeout(time.Minute)

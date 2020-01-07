@@ -506,7 +506,7 @@ const CommandsLabel = (props: CommandsLabelProps) => {
     const numCommands = props.commands.commands.length
     return (
       <Kb.Box2 direction="vertical" gap="tiny">
-        <Kb.Text type="Body">messages that begin with public commands:</Kb.Text>
+        <Kb.Text type="Body">messages that begin with bot commands:</Kb.Text>
         <Kb.Box2 direction="vertical" fullWidth={true}>
           {props.commands.commands.map((c: string, i: number) => {
             if (!expanded && i >= maxCommandsShown) {

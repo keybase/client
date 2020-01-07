@@ -107,12 +107,14 @@ func FindPIDsWithMatchFn(matchFn MatchFn, log Log) ([]int, error) {
 func findPIDsWithFn(fn processesFn, matchFn MatchFn, log Log) ([]int, error) {
 	procs, err := findProcessesWithFn(fn, matchFn, 0)
 	if err != nil {
+		log.Errorf("Error finding matching processes")
 		return nil, err
 	}
 	pids := []int{}
 	for _, p := range procs {
 		pids = append(pids, p.Pid())
 	}
+	log.Debugf("Found %d matching processes with pids: %s", len(procs), pids)
 	return pids, nil
 }
 
@@ -126,21 +128,24 @@ func TerminateAll(matcher Matcher, killDelay time.Duration, log Log) []int {
 // TerminateAllWithProcessesFn stops processes processesFn that satify the matchFn.
 // It returns the pids that were terminated.
 // This method only logs errors, if you need error handling, you can should use a different implementation.
-func TerminateAllWithProcessesFn(fn processesFn, matchFn MatchFn, killDelay time.Duration, log Log) (pids []int) {
+func TerminateAllWithProcessesFn(fn processesFn, matchFn MatchFn, killDelay time.Duration, log Log) (terminatedPids []int) {
 	pids, err := findPIDsWithFn(fn, matchFn, log)
 	if err != nil {
 		log.Errorf("Error finding process: %s", err)
-		return
+		return terminatedPids
 	}
 	if len(pids) == 0 {
-		return
+		return terminatedPids
 	}
 	for _, pid := range pids {
 		if err := TerminatePID(pid, killDelay, log); err != nil {
 			log.Errorf("Error terminating %d: %s", pid, err)
+			continue
 		}
+		log.Debugf("Successfully terminated %s", pid)
+		terminatedPids = append(terminatedPids, pid)
 	}
-	return
+	return terminatedPids
 }
 
 // TerminatePID is an overly simple way to terminate a PID.
@@ -150,7 +155,7 @@ func TerminateAllWithProcessesFn(fn processesFn, matchFn MatchFn, killDelay time
 // check if it's still running but before the SIGKILL.
 // The killDelay is not used on windows.
 func TerminatePID(pid int, killDelay time.Duration, log Log) error {
-	log.Debugf("Searching OS for %d", pid)
+	log.Debugf("Searching OS for %d to terminate", pid)
 	process, err := os.FindProcess(pid)
 	if err != nil {
 		return fmt.Errorf("Error finding OS process: %s", err)
@@ -200,7 +205,7 @@ func KillAll(matcher Matcher, log Log) (pids []int) {
 
 // KillPID kills process at pid (sends a SIGKILL on unix)
 func KillPID(pid int, log Log) error {
-	log.Debugf("Searching OS for %d", pid)
+	log.Debugf("Searching OS for %d to kill", pid)
 	process, err := os.FindProcess(pid)
 	if err != nil {
 		return fmt.Errorf("Error finding OS process: %s", err)

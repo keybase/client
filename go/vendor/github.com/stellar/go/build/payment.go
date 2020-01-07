@@ -26,7 +26,7 @@ type PaymentBuilder struct {
 	PathPayment bool
 	O           xdr.Operation
 	P           xdr.PaymentOp
-	PP          xdr.PathPaymentOp
+	PP          xdr.PathPaymentStrictReceiveOp
 	Err         error
 }
 
@@ -73,7 +73,7 @@ func (m CreditAmount) MutatePayment(o interface{}) (err error) {
 		}
 
 		o.Asset, err = createAlphaNumAsset(m.Code, m.Issuer)
-	case *xdr.PathPaymentOp:
+	case *xdr.PathPaymentStrictReceiveOp:
 		o.DestAmount, err = amount.Parse(m.Amount)
 		if err != nil {
 			return
@@ -91,7 +91,7 @@ func (m Destination) MutatePayment(o interface{}) error {
 		return errors.New("Unexpected operation type")
 	case *xdr.PaymentOp:
 		return setAccountId(m.AddressOrSeed, &o.Destination)
-	case *xdr.PathPaymentOp:
+	case *xdr.PathPaymentStrictReceiveOp:
 		return setAccountId(m.AddressOrSeed, &o.Destination)
 	}
 }
@@ -109,7 +109,7 @@ func (m NativeAmount) MutatePayment(o interface{}) (err error) {
 		}
 
 		o.Asset, err = xdr.NewAsset(xdr.AssetTypeAssetTypeNative, nil)
-	case *xdr.PathPaymentOp:
+	case *xdr.PathPaymentStrictReceiveOp:
 		o.DestAmount, err = amount.Parse(m.Amount)
 		if err != nil {
 			return
@@ -123,9 +123,9 @@ func (m NativeAmount) MutatePayment(o interface{}) (err error) {
 // MutatePayment for PayWithPath sets the PathPaymentOp's SendAsset,
 // SendMax and Path fields
 func (m PayWithPath) MutatePayment(o interface{}) (err error) {
-	var pathPaymentOp *xdr.PathPaymentOp
+	var pathPaymentOp *xdr.PathPaymentStrictReceiveOp
 	var ok bool
-	if pathPaymentOp, ok = o.(*xdr.PathPaymentOp); !ok {
+	if pathPaymentOp, ok = o.(*xdr.PathPaymentStrictReceiveOp); !ok {
 		return errors.New("Unexpected operation type")
 	}
 

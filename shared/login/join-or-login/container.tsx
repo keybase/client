@@ -12,7 +12,7 @@ export default Container.connect(
     let bannerMessage: string | null = null
 
     if (state.config.justDeletedSelf) {
-      bannerMessage = `Your Keybase account ${state.config.justDeletedSelf}" has been deleted. Au revoir!`
+      bannerMessage = `Your Keybase account ${state.config.justDeletedSelf} has been deleted. Au revoir!`
     } else if (state.devices.justRevokedSelf) {
       bannerMessage = `${state.devices.justRevokedSelf} was revoked successfully`
     }

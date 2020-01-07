@@ -5,7 +5,7 @@ import * as Kb from '../common-adapters'
 export type Props = {
   onBack: () => void
   onContinue: (paperkey: string) => void
-  paperkeyError: string | null
+  paperkeyError?: string
   waiting: boolean
 }
 

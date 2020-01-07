@@ -150,6 +150,7 @@ func (s *Identify3State) Shutdown() chan struct{} {
 	if s.markShutdown() {
 		go func() {
 			_ = s.eg.Wait()
+			s.shutdownCh = nil
 			close(ch)
 		}()
 	} else {
@@ -173,7 +174,6 @@ func (s *Identify3State) markShutdown() bool {
 		return false
 	}
 	close(s.shutdownCh)
-	s.shutdownCh = nil
 	s.shutdown = true
 	return true
 }

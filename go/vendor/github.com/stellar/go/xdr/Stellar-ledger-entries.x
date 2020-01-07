@@ -15,6 +15,12 @@ typedef int64 SequenceNumber;
 typedef uint64 TimePoint;
 typedef opaque DataValue<64>;
 
+// 1-4 alphanumeric characters right-padded with 0 bytes
+typedef opaque AssetCode4[4];
+
+// 5-12 alphanumeric characters right-padded with 0 bytes
+typedef opaque AssetCode12[12];
+
 enum AssetType
 {
     ASSET_TYPE_NATIVE = 0,
@@ -30,14 +36,14 @@ case ASSET_TYPE_NATIVE: // Not credit
 case ASSET_TYPE_CREDIT_ALPHANUM4:
     struct
     {
-        opaque assetCode[4]; // 1 to 4 characters
+        AssetCode4 assetCode;
         AccountID issuer;
     } alphaNum4;
 
 case ASSET_TYPE_CREDIT_ALPHANUM12:
     struct
     {
-        opaque assetCode[12]; // 5 to 12 characters
+        AssetCode12 assetCode;
         AccountID issuer;
     } alphaNum12;
 
@@ -78,7 +84,7 @@ enum LedgerEntryType
 struct Signer
 {
     SignerKey key;
-    uint32 weight; // really only need 1byte
+    uint32 weight; // really only need 1 byte
 };
 
 enum AccountFlags

@@ -3,7 +3,6 @@ import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as FsTypes from '../constants/types/fs'
 import {Filename} from '../fs/common'
-import ConnectedUsernames from '../common-adapters/usernames/remote-container'
 
 type FileUpdateProps = {
   path: FsTypes.Path
@@ -112,7 +111,7 @@ const UserTlfUpdateRow = (props: UserTlfUpdateRowProps) => (
     <Kb.Avatar size={32} username={props.writer} style={styles.tlfRowAvatar} onClick={props.onClickAvatar} />
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.tlfTopLine}>
-        <ConnectedUsernames
+        <Kb.ConnectedUsernames
           usernames={[props.writer]}
           type="BodySemibold"
           underline={true}

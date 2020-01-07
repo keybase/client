@@ -3143,6 +3143,30 @@ const iconMeta_ = {
       return require('../images/icons/icon-dark-placeholder-secret-user-64.png')
     },
   },
+  'icon-dark-poop-32': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-poop-32.png')
+    },
+  },
+  'icon-dark-poop-48': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-poop-48.png')
+    },
+  },
+  'icon-dark-poop-64': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-poop-64.png')
+    },
+  },
   'icon-dark-poop-96': {
     extension: 'png',
     imagesDir: 'icons',
@@ -6767,24 +6791,36 @@ const iconMeta_ = {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
+    nameDark: 'icon-dark-poop-32',
     get require() {
       return require('../images/icons/icon-poop-32.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-poop-32.png')
     },
   },
   'icon-poop-48': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
+    nameDark: 'icon-dark-poop-48',
     get require() {
       return require('../images/icons/icon-poop-48.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-poop-48.png')
     },
   },
   'icon-poop-64': {
     extension: 'png',
     imagesDir: 'icons',
     isFont: false,
+    nameDark: 'icon-dark-poop-64',
     get require() {
       return require('../images/icons/icon-poop-64.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-poop-64.png')
     },
   },
   'icon-poop-96': {
@@ -8652,6 +8688,11 @@ const iconMeta_ = {
   },
   'iconfont-wallet-transfer': {
     charCode: 0xe985,
+    gridSize: 16,
+    isFont: true,
+  },
+  'iconfont-warning': {
+    charCode: 0xe9ae,
     gridSize: 16,
     isFont: true,
   },

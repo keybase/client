@@ -187,7 +187,7 @@ export default Container.connect(
         title: 'Explode now',
       })
     }
-    if (stateProps._canDeleteHistory && stateProps._teamID && !stateProps.yourMessage && authorInConv) {
+    if (stateProps._canDeleteHistory && stateProps._teamname && !stateProps.yourMessage && authorInConv) {
       items.push({
         danger: true,
         icon: 'iconfont-block-user',
