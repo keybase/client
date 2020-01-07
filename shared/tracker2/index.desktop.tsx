@@ -4,7 +4,6 @@ import * as Constants from '../constants/tracker2'
 import * as Types from '../constants/types/tracker2'
 import * as Styles from '../styles'
 import {_setDarkModePreference} from '../styles/dark-mode'
-// import Assertion from './assertion/remote-container'
 import Assertion from './assertion/container'
 import Bio from './bio/container'
 
