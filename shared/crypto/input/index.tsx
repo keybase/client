@@ -1,4 +1,4 @@
-import fs from 'fs'
+import * as fs from 'fs'
 import * as React from 'react'
 import * as FsConstants from '../../constants/fs'
 import * as Types from '../../constants/types/crypto'
