@@ -230,6 +230,7 @@ const ConnectedInfoPanel = Container.connect(
             TeamConstants.userIsRoleInTeamWithInfo(stateProps._teamMembers, p.username, 'bot')
         )
         .map(p => p.username)
+        .sort((l, r) => l.localeCompare(r))
     }
 
     const shouldFilterBots = stateProps.smallTeam
