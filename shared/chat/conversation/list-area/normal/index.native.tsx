@@ -8,13 +8,13 @@ import Message from '../../messages'
 import SpecialBottomMessage from '../../messages/special-bottom-message'
 import SpecialTopMessage from '../../messages/special-top-message'
 import logger from '../../../../logger'
-import {Animated} from 'react-native'
-import {Props} from '.'
+import {Animated, ListRenderItemInfo} from 'react-native'
+import {Props, ItemType} from '.'
 import {mobileTypingContainerHeight} from '../../input-area/normal/typing'
 
 const debugEnabled = false
 
-const debug = debugEnabled ? s => logger.debug('scroll: ' + s) : () => {}
+const debug = debugEnabled ? (s: string) => logger.debug('scroll: ' + s) : () => {}
 
 const targetHitArea = 1
 
@@ -106,12 +106,11 @@ class ConversationList extends React.PureComponent<Props> {
     this.props.markInitiallyLoadedThreadAsRead()
   }
 
-  private listRef = React.createRef<
-    Kb.NativeVirtualizedList<Types.Ordinal | 'specialTop' | 'specialBottom'>
-  >()
+  private listRef = React.createRef<Kb.NativeVirtualizedList<ItemType>>()
   private scrollCenterTarget?: number
 
-  private renderItem = ({item}) => {
+  private renderItem = (i: ListRenderItemInfo<ItemType>) => {
+    const {item} = i
     if (item === 'specialTop') {
       return <SpecialTopMessage conversationIDKey={this.props.conversationIDKey} measure={null} />
     } else if (item === 'specialBottom') {
@@ -149,7 +148,7 @@ class ConversationList extends React.PureComponent<Props> {
     }
   }
 
-  private getItem = (messageOrdinals, index) => {
+  private getItem = (messageOrdinals: Array<Types.Ordinal>, index: number) => {
     // Note we invert our list so we need to feed it things in the reverse order. We just invert the index
     // vs reversing the items to speed things up
     const itemCountIncludingSpecial = this.getItemCount(messageOrdinals)
@@ -164,11 +163,9 @@ class ConversationList extends React.PureComponent<Props> {
     return ordinalIndex
   }
 
-  private getIndexFromItem = item => {
-    return this.getItemCount(this.props.messageOrdinals) - item - 2
-  }
+  private getIndexFromItem = (item: number) => this.getItemCount(this.props.messageOrdinals) - item - 2
 
-  private getOrdinalIndex = target => {
+  private getOrdinalIndex = (target: Types.Ordinal) => {
     for (let item = 0; item < this.props.messageOrdinals.length; item++) {
       const ordinal = this.props.messageOrdinals[item] || 0
       if (ordinal === target) {
@@ -178,9 +175,10 @@ class ConversationList extends React.PureComponent<Props> {
     return -1
   }
 
-  private getItemCount = messageOrdinals => (messageOrdinals ? messageOrdinals.length + 2 : 2)
+  private getItemCount = (messageOrdinals: Array<Types.Ordinal>) =>
+    messageOrdinals ? messageOrdinals.length + 2 : 2
 
-  private keyExtractor = item => {
+  private keyExtractor = (item: ItemType) => {
     if (item === 'specialTop') {
       return 'specialTop'
     }
@@ -191,7 +189,7 @@ class ConversationList extends React.PureComponent<Props> {
   }
 
   // Was using onEndReached but that was really flakey
-  private onViewableItemsChanged = ({viewableItems}) => {
+  private onViewableItemsChanged = ({viewableItems}: {viewableItems: Array<{item: ItemType}>}) => {
     const topRecord = viewableItems[viewableItems.length - 1]
     const bottomRecord = viewableItems[0]
     // we scroll back in time if the specialTop item is the last viewable, *unless* we are currently
@@ -199,7 +197,7 @@ class ConversationList extends React.PureComponent<Props> {
     if (!this.scrollCenterTarget && topRecord && topRecord.item === 'specialTop') {
       const ordinalRecord = viewableItems[viewableItems.length - 2]
       // ignore if we don't have real messages
-      if (ordinalRecord && ordinalRecord.item !== 'specialBottom') {
+      if (ordinalRecord && ordinalRecord.item !== 'specialBottom' && ordinalRecord.item !== 'specialTop') {
         this.props.loadOlderMessages(this.props.messageOrdinals[ordinalRecord.item])
       }
     }
@@ -208,8 +206,11 @@ class ConversationList extends React.PureComponent<Props> {
       return
     }
 
-    const bottomIndex = this.getIndexFromItem(viewableItems[0].item)
-    const upperIndex = this.getIndexFromItem(viewableItems[viewableItems.length - 1].item)
+    const bottomIndex =
+      typeof bottomRecord.item === 'number'
+        ? this.getIndexFromItem(bottomRecord.item)
+        : this.props.messageOrdinals.length - 1
+    const upperIndex = typeof topRecord.item === 'number' ? this.getIndexFromItem(topRecord.item) : 0
     const middleIndex = bottomIndex + Math.floor((upperIndex - bottomIndex) / 2)
     debug(`onViewableItemsChanged: first: ${bottomIndex} last: ${upperIndex} middle: ${middleIndex}`)
     if (!this.scrollCenterTarget) {
@@ -252,7 +253,8 @@ class ConversationList extends React.PureComponent<Props> {
     if (!list) {
       return
     }
-    const index = this.getOrdinalIndex(this.props.centeredOrdinal)
+    const index =
+      this.props.centeredOrdinal === undefined ? -1 : this.getOrdinalIndex(this.props.centeredOrdinal)
     if (index >= 0) {
       debug(`scrollToCentered: ordinal: ${this.props.centeredOrdinal} index: ${index}`)
       this.scrollCenterTarget = index
@@ -331,9 +333,7 @@ const styles = Styles.styleSheetCreate(
         flex: 1,
         position: 'relative',
       },
-      contentContainer: {
-        bottom: -mobileTypingContainerHeight,
-      },
+      contentContainer: {bottom: -mobileTypingContainerHeight},
       jumpToRecent: {
         bottom: 0,
         position: 'absolute',

@@ -26,6 +26,7 @@ const InviteAddedToTeamNotice = (props: Props) => {
     return <YouInviteAddedToTeamNotice {...props} />
   }
   const {inviter} = props.message
+  const roleLabel = props.role === 'none' ? null : typeToLabel[props.role]
   // There's not a lot of space to explain the adder / inviter situation,
   // just pretend they were added by the inviter for now.
   return (
@@ -37,7 +38,7 @@ const InviteAddedToTeamNotice = (props: Props) => {
         ) : (
           <Kb.ConnectedUsernames {...connectedUsernamesProps} usernames={[inviter]} />
         )}
-        {typeToLabel[props.role] && ` as a "${typeToLabel[props.role].toLowerCase()}"`}.{' '}
+        {roleLabel && ` as a "${roleLabel.toLowerCase()}"`}.{' '}
       </Kb.Text>
     </UserNotice>
   )

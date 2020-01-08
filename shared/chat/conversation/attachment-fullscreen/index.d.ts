@@ -7,13 +7,13 @@ export type Props = {
   title: string
   message: MessageAttachment
   progress: number
-  progressLabel: string | null
+  progressLabel?: string
   onAllMedia: () => void
   onNextAttachment: () => void
   onPreviousAttachment: () => void
   onClose: () => void
-  onDownloadAttachment: (() => void) | null
-  onShowInFinder: (() => void) | null
+  onDownloadAttachment?: () => void
+  onShowInFinder?: () => void
   isVideo: boolean
   autoPlay: boolean
 }

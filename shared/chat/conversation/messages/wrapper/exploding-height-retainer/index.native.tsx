@@ -49,7 +49,7 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
     this._clearTimeout()
   }
 
-  _onLayout = evt => {
+  _onLayout = (evt: any) => {
     if (evt.nativeEvent && evt.nativeEvent.layout.height !== this.state.height) {
       this.setState({
         height: evt.nativeEvent.layout.height,

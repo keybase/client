@@ -11,46 +11,42 @@ const blankMessage = Constants.makeMessageAttachment({})
 
 type OwnProps = {}
 
-const mapStateToProps = (state: Container.TypedState) => {
-  const selection = state.chat2.attachmentFullscreenSelection
-  const message = selection ? selection.message : blankMessage
-  return {
-    autoPlay: selection ? selection.autoPlay : false,
-    message: message.type === 'attachment' ? message : blankMessage,
-  }
-}
-
-const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
-  _onAllMedia: (conversationIDKey: Types.ConversationIDKey) =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {conversationIDKey, tab: 'attachments'},
-            selected: 'chatInfoPanel',
-          },
-        ],
-      })
-    ),
-  _onDownloadAttachment: (message: Types.MessageAttachment) =>
-    dispatch(Chat2Gen.createAttachmentDownload({message})),
-  _onShowInFinder: (message: Types.MessageAttachment) => {
-    message.downloadPath &&
-      dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: message.downloadPath}))
-  },
-  _onSwitchAttachment: (
-    conversationIDKey: Types.ConversationIDKey,
-    messageID: Types.MessageID,
-    prev: boolean
-  ) => {
-    dispatch(Chat2Gen.createAttachmentFullscreenNext({backInTime: prev, conversationIDKey, messageID}))
-  },
-  onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
-})
-
 const Connected = Container.connect(
-  mapStateToProps,
-  mapDispatchToProps,
+  state => {
+    const selection = state.chat2.attachmentFullscreenSelection
+    const message = selection ? selection.message : blankMessage
+    return {
+      autoPlay: selection ? selection.autoPlay : false,
+      message: message.type === 'attachment' ? message : blankMessage,
+    }
+  },
+  dispatch => ({
+    _onAllMedia: (conversationIDKey: Types.ConversationIDKey) =>
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [
+            {
+              props: {conversationIDKey, tab: 'attachments'},
+              selected: 'chatInfoPanel',
+            },
+          ],
+        })
+      ),
+    _onDownloadAttachment: (message: Types.MessageAttachment) =>
+      dispatch(Chat2Gen.createAttachmentDownload({message})),
+    _onShowInFinder: (message: Types.MessageAttachment) => {
+      message.downloadPath &&
+        dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: message.downloadPath}))
+    },
+    _onSwitchAttachment: (
+      conversationIDKey: Types.ConversationIDKey,
+      messageID: Types.MessageID,
+      prev: boolean
+    ) => {
+      dispatch(Chat2Gen.createAttachmentFullscreenNext({backInTime: prev, conversationIDKey, messageID}))
+    },
+    onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
+  }),
   (stateProps, dispatchProps, _: OwnProps) => {
     const message = stateProps.message
     const {height, width} = Constants.clampImageSize(

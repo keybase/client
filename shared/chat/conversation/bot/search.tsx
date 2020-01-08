@@ -14,7 +14,7 @@ import debounce from 'lodash/debounce'
 
 type Props = Container.RouteProps<{conversationIDKey?: Types.ConversationIDKey; teamID?: TeamTypes.TeamID}>
 
-const renderSectionHeader = ({section}) => {
+const renderSectionHeader = ({section}: any) => {
   return <Kb.SectionDivider label={section.title} />
 }
 

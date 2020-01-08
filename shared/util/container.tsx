@@ -81,7 +81,7 @@ export const timeoutPromise = (timeMs: number) =>
     setTimeout(() => resolve(), timeMs)
   })
 
-export {default as connect, namedConnect, connectDEBUG} from './typed-connect'
+export {default as connect, namedConnect} from './typed-connect'
 export {isMobile, isIOS, isAndroid} from '../constants/platform'
 export {anyWaiting, anyErrors} from '../constants/waiting'
 export {safeSubmit, safeSubmitPerMount} from './safe-submit'
