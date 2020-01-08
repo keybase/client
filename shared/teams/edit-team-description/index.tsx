@@ -1,57 +1,100 @@
 import React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import * as TeamsGen from '../../actions/teams-gen'
+import * as Container from '../../util/container'
+import * as Constants from '../../constants/teams'
+import * as Types from '../../constants/types/teams'
 
-export type Props = {
-  onSubmit: (description: string) => void
-  onClose: () => void
-  origDescription: string
-  teamname: string
-  waitingKey: string
-}
+type Props = Container.RouteProps<{teamID: Types.TeamID}>
 
 const EditTeamDescription = (props: Props) => {
-  const {origDescription, teamname, onClose, onSubmit, waitingKey} = props
+  const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
+
+  const teamname = Container.useSelector(state => Constants.getTeamNameFromID(state, teamID))
+  const waitingKey = Container.useSelector(state => Constants.teamWaitingKeyByID(teamID, state))
+  const waiting = Container.useAnyWaiting(waitingKey)
+  const error = Container.useSelector(state => state.teams.editDescriptionError)
+  const origDescription = Container.useSelector(
+    state => Constants.getTeamPublicitySettings(state, teamID).description
+  )
+
+  if (teamID === Types.noTeamID || teamname === null) {
+    throw new Error(
+      `There was a problem loading the description page, please report this error (teamID: ${teamID}, teamname: ${teamname}).`
+    )
+  }
+
   const [description, setDescription] = React.useState(origDescription)
-  const onSave = React.useCallback(() => {
-    onSubmit(description)
-  }, [description, onSubmit])
+
+  const dispatch = Container.useDispatch()
+  const nav = Container.useSafeNavigation()
+  const onSave = () => dispatch(TeamsGen.createEditTeamDescription({description, teamID}))
+  const onClose = () => dispatch(nav.safeNavigateUpPayload())
+
+  const wasWaiting = Container.usePrevious(waiting)
+  React.useEffect(() => {
+    if (!waiting && wasWaiting && !error) dispatch(nav.safeNavigateUpPayload())
+  }, [waiting, wasWaiting, nav, dispatch, error])
+
   return (
-    <Kb.Box2 alignItems="center" direction="vertical" style={styles.container}>
-      <Kb.Avatar isTeam={true} teamname={teamname} size={64} />
-      <Kb.Text style={styles.title} type="BodyBig">
-        {teamname}
-      </Kb.Text>
-      <Kb.LabeledInput
-        placeholder="Team description"
-        onChangeText={setDescription}
-        value={description}
-        multiline={true}
-        autoFocus={true}
-      />
-      <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
-        <Kb.Button label="Cancel" onClick={onClose} type="Dim" />
-        <Kb.WaitingButton
-          disabled={description === origDescription}
-          label="Save"
-          onClick={onSave}
-          waitingKey={waitingKey}
+    <Kb.Modal
+      mode="Default"
+      banners={
+        error
+          ? [
+              <Kb.Banner color="red" key="err">
+                {error}
+              </Kb.Banner>,
+            ]
+          : undefined
+      }
+      onClose={onClose}
+      footer={{
+        content: (
+          <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
+            <Kb.Button label="Cancel" onClick={onClose} type="Dim" />
+            <Kb.Button
+              disabled={description === origDescription}
+              label="Save"
+              onClick={onSave}
+              waiting={waiting}
+            />
+          </Kb.ButtonBar>
+        ),
+      }}
+      header={{
+        icon: (
+          <Kb.Box style={styles.headerIcon}>
+            <Kb.Avatar isTeam={true} teamname={teamname} size={64} />
+          </Kb.Box>
+        ),
+        title: teamname,
+      }}
+    >
+      <Kb.Box2 alignItems="center" direction="vertical" style={styles.container}>
+        <Kb.LabeledInput
+          placeholder="Team description"
+          onChangeText={setDescription}
+          value={description}
+          multiline={true}
+          rowsMin={3}
+          rowsMax={3}
+          maxLength={280}
+          autoFocus={true}
         />
-      </Kb.ButtonBar>
-    </Kb.Box2>
+      </Kb.Box2>
+    </Kb.Modal>
   )
 }
 
 const styles = Styles.styleSheetCreate(() => ({
   buttonBar: {alignItems: 'center'},
-  container: Styles.platformStyles({
-    common: {...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.small, 0)},
-    isElectron: {
-      maxHeight: 560,
-      width: 400,
-    },
-    isMobile: {width: '100%'},
-  }),
+  container: {
+    ...Styles.padding(Styles.globalMargins.small),
+    width: '100%',
+  },
+  headerIcon: Styles.padding(Styles.globalMargins.tiny, 0, 0),
   title: {
     paddingBottom: Styles.globalMargins.medium,
     paddingTop: Styles.globalMargins.xtiny,

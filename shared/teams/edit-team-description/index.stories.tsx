@@ -1,40 +1,40 @@
 import React from 'react'
-import {Box} from '../../common-adapters'
 import * as Sb from '../../stories/storybook'
-import * as Styles from '../../styles'
+import * as Constants from '../../constants/teams'
+import * as Container from '../../util/container'
 
 import EditTeamDescription from '.'
 
-const sharedProps = {
-  onClose: Sb.action('onClose'),
-  onSetDescription: Sb.action('onSetDescription'),
-  onSubmit: Sb.action('onChangeDescription'),
-  origDescription: 'First description',
-  teamname: 'testteam',
-  waitingKey: 'test',
-}
+const fakeTeamID = 'abcd1234'
+const makeStore = (withErr: boolean) =>
+  Container.produce(Sb.createStoreWithCommon(), draftState => {
+    draftState.teams = {
+      ...Constants.makeState(),
+      editDescriptionError: withErr ? 'Something has gone horribly wrong!!!' : '',
+      teamDetails: new Map([[fakeTeamID, {...Constants.emptyTeamDetails, teamname: 'description_changers'}]]),
+      teamIDToPublicitySettings: new Map([
+        [
+          fakeTeamID,
+          {
+            ...Constants.initialPublicitySettings,
+            description: 'A team for people who change team descriptions',
+          },
+        ],
+      ]),
+    }
+  })
 
-const load = () => {
+const load = () =>
   Sb.storiesOf('Teams/Edit team description', module)
-    .add('Description unchanged', () => (
-      <Box style={storyWrapStyle}>
-        <EditTeamDescription {...sharedProps} />
-      </Box>
+    .add('Normal', () => (
+      <Sb.MockStore store={makeStore(false)}>
+        <EditTeamDescription {...Sb.createNavigator({teamID: fakeTeamID})} />
+      </Sb.MockStore>
     ))
-    .add('Description changed', () => (
-      <Box style={storyWrapStyle}>
-        <EditTeamDescription {...sharedProps} origDescription="Second description" />
-      </Box>
+    .add('Error', () => (
+      <Sb.MockStore store={makeStore(true)}>
+        <EditTeamDescription {...Sb.createNavigator({teamID: fakeTeamID})} />
+      </Sb.MockStore>
     ))
-}
-
-const storyWrapStyle = {
-  borderColor: 'black',
-  borderStyle: 'solid',
-  borderWidth: 1,
-  display: 'flex',
-  height: 400,
-  width: Styles.isMobile ? undefined : 500,
-}
 
 export default load

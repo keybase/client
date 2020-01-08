@@ -336,11 +336,7 @@ const reAddToTeam = async (action: TeamsGen.ReAddToTeamPayload) => {
   }
 }
 
-const editDescription = async (
-  state: TypedState,
-  action: TeamsGen.EditTeamDescriptionPayload,
-  logger: Saga.SagaLogger
-) => {
+const editDescription = async (state: TypedState, action: TeamsGen.EditTeamDescriptionPayload) => {
   const {teamID, description} = action.payload
   try {
     await RPCTypes.teamsSetTeamShowcaseRpcPromise(
@@ -348,8 +344,9 @@ const editDescription = async (
       Constants.teamWaitingKeyByID(teamID, state)
     )
   } catch (e) {
-    logger.warn(`Error updating team description: ${e.message}`)
+    return TeamsGen.createSetEditDescriptionError({error: e.message})
   }
+  return []
 }
 
 const uploadAvatar = async (action: TeamsGen.UploadTeamAvatarPayload, logger: Saga.SagaLogger) => {

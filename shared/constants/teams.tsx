@@ -170,6 +170,7 @@ const emptyState: Types.State = {
   canPerform: new Map(),
   channelCreationError: '',
   deletedTeams: [],
+  editDescriptionError: '',
   emailInviteError: emptyEmailInviteError,
   newTeamRequests: new Map(),
   newTeams: new Set(),

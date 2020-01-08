@@ -177,6 +177,12 @@ export default Container.makeReducer<
       oldChannelInfos.delete(conversationIDKey)
     }
   },
+  [TeamsGen.setEditDescriptionError]: (draftState, action) => {
+    draftState.editDescriptionError = action.payload.error
+  },
+  [TeamsGen.editTeamDescription]: draftState => {
+    draftState.editDescriptionError = ''
+  },
   [TeamsGen.addParticipant]: (draftState, action) => {
     const {teamID, conversationIDKey} = action.payload
     const oldChannelInfos = mapGetEnsureValue(draftState.teamIDToChannelInfos, teamID, new Map())
