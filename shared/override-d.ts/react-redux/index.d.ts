@@ -230,9 +230,13 @@ export type ConnectedComponentType<TMergedProps, TOwnProps> = <C extends Compone
 ) => TMergedProps extends React.ComponentProps<C>
   ? ConnectedComponentClass<C, TOwnProps>
   : {
-      [P in keyof TMergedProps]: TMergedProps[P] extends GetProps<C>[P]
-        ? 'TS correct'
-        : [GetProps<C>[P], '!=', TMergedProps[P]]
+      [K in keyof TMergedProps | keyof GetProps<C>]: K extends keyof TMergedProps
+        ? K extends keyof GetProps<C>
+          ? TMergedProps[K] extends GetProps<C>[K]
+            ? 'TS Correct'
+            : [GetProps<C>[K], '!=', TMergedProps[K]]
+          : 'missing from component'
+        : 'missing prop'
     }
 
 export interface Connect {
