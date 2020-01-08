@@ -323,6 +323,7 @@ type UnverifiedInboxUIItem struct {
 	TlfID           string                         `codec:"tlfID" json:"tlfID"`
 	TopicType       TopicType                      `codec:"topicType" json:"topicType"`
 	IsPublic        bool                           `codec:"isPublic" json:"isPublic"`
+	IsDefaultConv   bool                           `codec:"isDefaultConv" json:"isDefaultConv"`
 	Name            string                         `codec:"name" json:"name"`
 	Visibility      keybase1.TLFVisibility         `codec:"visibility" json:"visibility"`
 	Status          ConversationStatus             `codec:"status" json:"status"`
@@ -348,16 +349,17 @@ type UnverifiedInboxUIItem struct {
 
 func (o UnverifiedInboxUIItem) DeepCopy() UnverifiedInboxUIItem {
 	return UnverifiedInboxUIItem{
-		ConvID:       o.ConvID,
-		TlfID:        o.TlfID,
-		TopicType:    o.TopicType.DeepCopy(),
-		IsPublic:     o.IsPublic,
-		Name:         o.Name,
-		Visibility:   o.Visibility.DeepCopy(),
-		Status:       o.Status.DeepCopy(),
-		MembersType:  o.MembersType.DeepCopy(),
-		MemberStatus: o.MemberStatus.DeepCopy(),
-		TeamType:     o.TeamType.DeepCopy(),
+		ConvID:        o.ConvID,
+		TlfID:         o.TlfID,
+		TopicType:     o.TopicType.DeepCopy(),
+		IsPublic:      o.IsPublic,
+		IsDefaultConv: o.IsDefaultConv,
+		Name:          o.Name,
+		Visibility:    o.Visibility.DeepCopy(),
+		Status:        o.Status.DeepCopy(),
+		MembersType:   o.MembersType.DeepCopy(),
+		MemberStatus:  o.MemberStatus.DeepCopy(),
+		TeamType:      o.TeamType.DeepCopy(),
 		Notifications: (func(x *ConversationNotificationInfo) *ConversationNotificationInfo {
 			if x == nil {
 				return nil
@@ -534,6 +536,7 @@ type InboxUIItem struct {
 	TopicType         TopicType                     `codec:"topicType" json:"topicType"`
 	IsPublic          bool                          `codec:"isPublic" json:"isPublic"`
 	IsEmpty           bool                          `codec:"isEmpty" json:"isEmpty"`
+	IsDefaultConv     bool                          `codec:"isDefaultConv" json:"isDefaultConv"`
 	Name              string                        `codec:"name" json:"name"`
 	Snippet           string                        `codec:"snippet" json:"snippet"`
 	SnippetDecoration SnippetDecoration             `codec:"snippetDecoration" json:"snippetDecoration"`
@@ -575,6 +578,7 @@ func (o InboxUIItem) DeepCopy() InboxUIItem {
 		TopicType:         o.TopicType.DeepCopy(),
 		IsPublic:          o.IsPublic,
 		IsEmpty:           o.IsEmpty,
+		IsDefaultConv:     o.IsDefaultConv,
 		Name:              o.Name,
 		Snippet:           o.Snippet,
 		SnippetDecoration: o.SnippetDecoration.DeepCopy(),

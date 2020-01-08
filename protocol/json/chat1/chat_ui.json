@@ -287,6 +287,10 @@
           "name": "isPublic"
         },
         {
+          "type": "boolean",
+          "name": "isDefaultConv"
+        },
+        {
           "type": "string",
           "name": "name"
         },
@@ -492,6 +496,10 @@
         {
           "type": "boolean",
           "name": "isEmpty"
+        },
+        {
+          "type": "boolean",
+          "name": "isDefaultConv"
         },
         {
           "type": "string",

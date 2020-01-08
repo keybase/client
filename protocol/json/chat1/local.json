@@ -1851,6 +1851,10 @@
           "name": "visibility"
         },
         {
+          "type": "boolean",
+          "name": "isDefaultConv"
+        },
+        {
           "type": "ConversationStatus",
           "name": "status"
         },
