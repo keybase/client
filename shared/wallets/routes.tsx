@@ -1,6 +1,5 @@
 import {isMobile} from '../constants/platform'
 import CreateNewAccount from './create-account/container'
-import FailedRequest from './failed-request'
 import LinkExisting from './link-existing/container'
 import {
   RenameAccountPopup,
@@ -45,7 +44,6 @@ export const newModalRoutes = {
   createNewAccount: {
     getScreen: (): typeof CreateNewAccount => require('./create-account/container').default,
   },
-  failedRequest: {getScreen: (): typeof FailedRequest => require('./failed-request').default},
   keybaseLinkError: {getScreen: (): typeof KeybaseLinkError => require('../deeplinks/error').default},
   linkExisting: {getScreen: (): typeof LinkExisting => require('./link-existing/container').default},
   partners: {getScreen: (): typeof Partners => require('./partners/container').default},

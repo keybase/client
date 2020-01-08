@@ -299,11 +299,11 @@ const addToTeam = async (action: TeamsGen.AddToTeamPayload) => {
       Constants.addMemberWaitingKey(teamID, ...users.map(({assertion}) => assertion))
     )
     if (res.notAdded && res.notAdded.length > 0) {
-      const requestee = res.notAdded.map(elem => elem.username).join(',')
+      const usernames = res.notAdded.map(elem => elem.username)
       return [
         TeamBuildingGen.createFinishedTeamBuilding({namespace: 'teams'}),
         RouteTreeGen.createNavigateAppend({
-          path: [{props: {requestee}, selected: 'failedRequest'}],
+          path: [{props: {source: 'teamAddSomeFailed', usernames}, selected: 'contactRestricted'}],
         }),
       ]
     }
@@ -311,12 +311,12 @@ const addToTeam = async (action: TeamsGen.AddToTeamPayload) => {
   } catch (err) {
     // If all of the users couldn't be added due to contact settings, the RPC fails.
     if (err.code === RPCTypes.StatusCode.scteamcontactsettingsblock) {
-      const usernames = err.fields?.filter(elem => elem.key === 'usernames')
-      const requestee = usernames[0].value
+      const users = err.fields?.filter(elem => elem.key === 'usernames')
+      const usernames = users.map(elem => elem.value)
       return [
         TeamBuildingGen.createFinishedTeamBuilding({namespace: 'teams'}),
         RouteTreeGen.createNavigateAppend({
-          path: [{props: {requestee}, selected: 'failedRequest'}],
+          path: [{props: {source: 'teamAddAllFailed', usernames}, selected: 'contactRestricted'}],
         }),
       ]
     }

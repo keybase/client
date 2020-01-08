@@ -260,13 +260,13 @@ function* requestPayment(state: TypedState, _: WalletsGen.RequestPaymentPayload,
   } catch (err) {
     if (err instanceof RPCError && err.code === RPCTypes.StatusCode.scteamcontactsettingsblock) {
       const navAction = maybeNavigateAwayFromSendForm()
-      const usernames = err.fields?.filter(elem => elem.key === 'usernames')
-      const requestee = usernames[0].value
+      const users = err.fields?.filter(elem => elem.key === 'usernames')
+      const usernames = [users[0].value]
       yield Saga.sequentially([
         ...(navAction ? navAction.map(n => Saga.put(n)) : []),
         Saga.put(
           RouteTreeGen.createNavigateAppend({
-            path: [{props: {requestee}, selected: 'failedRequest'}],
+            path: [{props: {source: 'walletsRequest', usernames}, selected: 'contactRestricted'}],
           })
         ),
       ])

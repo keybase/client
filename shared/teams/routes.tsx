@@ -1,6 +1,7 @@
 import Team from './team/container'
 import TeamMember from './team/member/container'
 import TeamsRoot from './container'
+import ContactRestricted from '../team-building/contact-restricted'
 import RetentionWarning from './team/settings-tab/retention/warning/container'
 import TeamDeleteTeam from './delete-team/container'
 import TeamEditTeamAvatar from '../profile/edit-avatar/container'
@@ -23,6 +24,9 @@ export const newRoutes = {
 
 export const newModalRoutes = {
   // TODO connect broken
+  contactRestricted: {
+    getScreen: (): typeof ContactRestricted => require('../team-building/contact-restricted').default,
+  },
   retentionWarning: {
     getScreen: (): typeof RetentionWarning =>
       require('./team/settings-tab/retention/warning/container').default,
