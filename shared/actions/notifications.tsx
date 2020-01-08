@@ -24,7 +24,7 @@ const setupNotifications = async () => {
         ephemeral: false,
         favorites: false,
         featuredBots: false,
-        kbfs: true,
+        kbfs: false,
         kbfsdesktop: !isMobile,
         kbfslegacy: false,
         kbfsrequest: false,

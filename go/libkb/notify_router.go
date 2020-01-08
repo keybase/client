@@ -586,7 +586,11 @@ func (n *NotifyRouter) HandleFSOverallSyncStatusChanged(status keybase1.FolderSy
 	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		// If the connection wants the `kbfs` notification type
-		if n.getNotificationChannels(id).Kbfs {
+		//
+		// TODO: GUI doesn't subscribe to `kbfs` anymore, but the subscription
+		// manager doesn't support this yet. When we eventually add this in the
+		// subscription manager, we should move this back to kbfs.
+		if n.getNotificationChannels(id).Kbfssubscription {
 			// In the background do...
 			go func() {
 				// A send of a `FSOnlineStatusChanged` RPC with the
