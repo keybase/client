@@ -370,7 +370,7 @@ func (e *Identify2WithUID) notifyChat(m libkb.MetaContext, inErr error) error {
 	}
 	if libkb.IsIdentifyProofError(inErr) {
 		update.Breaks = keybase1.TLFBreak{Breaks: []keybase1.TLFIdentifyFailure{
-			keybase1.TLFIdentifyFailure{
+			{
 				User:   *e.them.Export(),
 				Breaks: res.TrackBreaks,
 			},
