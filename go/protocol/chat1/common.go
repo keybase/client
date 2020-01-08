@@ -839,6 +839,7 @@ type ConversationMetadata struct {
 	ActiveList     []gregor1.UID             `codec:"activeList" json:"activeList"`
 	AllList        []gregor1.UID             `codec:"allList" json:"allList"`
 	ResetList      []gregor1.UID             `codec:"resetList" json:"resetList"`
+	IsDefaultConv  bool                      `codec:"d" json:"isDefaultConv"`
 }
 
 func (o ConversationMetadata) DeepCopy() ConversationMetadata {
@@ -914,6 +915,7 @@ func (o ConversationMetadata) DeepCopy() ConversationMetadata {
 			}
 			return ret
 		})(o.ResetList),
+		IsDefaultConv: o.IsDefaultConv,
 	}
 }
 
