@@ -44,12 +44,6 @@ class PlainInput extends React.PureComponent<InternalProps> {
       // no resizing height on single-line inputs
       return
     }
-
-    // Allow textarea to layout automatically
-    if (this.props.growAndScroll) {
-      return
-    }
-
     const n = this._input
     if (!n) {
       return
@@ -208,7 +202,6 @@ class PlainInput extends React.PureComponent<InternalProps> {
         heightStyles,
         paddingStyles,
         this.props.resize && styles.resize,
-        this.props.growAndScroll && styles.growAndScroll,
         this.props.style,
       ]),
     }
@@ -309,12 +302,6 @@ const styles = Styles.styleSheetCreate(() => ({
     // https://stackoverflow.com/questions/42421361/input-button-elements-not-shrinking-in-a-flex-container
     width: 0,
   },
-  growAndScroll: Styles.platformStyles({
-    isElectron: {
-      maxHeight: '100%',
-      overflowY: 'scroll',
-    },
-  }),
   multiline: Styles.platformStyles({
     isElectron: {
       height: 'initial',

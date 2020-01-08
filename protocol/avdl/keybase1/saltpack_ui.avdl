@@ -1,5 +1,5 @@
-@namespace("keybase.1")
 
+@namespace("keybase.1")
 protocol saltpackUi {
   import idl "common.avdl";
 

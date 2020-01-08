@@ -43,8 +43,3 @@ export const appendNewTeamBuilder = (teamID: TeamTypes.TeamID) =>
   RouteTreeGen.createNavigateAppend({
     path: [{props: {namespace: 'teams', teamID, title: ''}, selected: 'teamsTeamBuilder'}],
   })
-
-export const appendEncryptRecipientsBuilder = () =>
-  RouteTreeGen.createNavigateAppend({
-    path: [{props: {namespace: 'crypto', title: 'Recipients'}, selected: 'cryptoTeamBuilder'}],
-  })

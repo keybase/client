@@ -1,7 +1,6 @@
 import {isMobile} from './platform'
 
 const chatTab = 'tabs.chatTab'
-const cryptoTab = 'tabs.cryptoTab'
 const devicesTab = 'tabs.devicesTab'
 const folderTab = 'tabs.folderTab'
 const loginTab = 'tabs.loginTab'
@@ -15,7 +14,6 @@ const walletsTab = 'tabs.walletsTab'
 
 export type Tab =
   | typeof chatTab
-  | typeof cryptoTab
   | typeof devicesTab
   | typeof folderTab
   | typeof loginTab
@@ -30,7 +28,6 @@ export type Tab =
 export type AppTab =
   | typeof peopleTab
   | typeof chatTab
-  | typeof cryptoTab
   | typeof fsTab
   | typeof teamsTab
   | typeof walletsTab
@@ -47,7 +44,6 @@ const desktopTabOrder: Array<AppTab> = [
   walletsTab,
   gitTab,
   devicesTab,
-  cryptoTab,
   settingsTab,
 ]
 
@@ -67,7 +63,6 @@ function isValidInitialTabString(tab: string | null) {
 
 export {
   chatTab,
-  cryptoTab,
   desktopTabOrder,
   devicesTab,
   folderTab,
