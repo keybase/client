@@ -155,9 +155,9 @@ func (t *basicSupersedesTransform) transformUnfurl(msg chat1.MessageUnboxed, sup
 }
 
 func (t *basicSupersedesTransform) transform(ctx context.Context, msg chat1.MessageUnboxed,
-	superMsgs []chat1.MessageUnboxed) (*chat1.MessageUnboxed, bool) {
+	superMsgs []chat1.MessageUnboxed) (newMsg *chat1.MessageUnboxed, isDelete bool) {
 
-	newMsg := &msg
+	newMsg = &msg
 	for _, superMsg := range superMsgs {
 		if !superMsg.IsValidFull() {
 			continue
