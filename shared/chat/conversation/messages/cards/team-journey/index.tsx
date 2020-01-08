@@ -19,8 +19,6 @@ type Props = {
   textComponent: React.ReactNode
 }
 
-const buttonSpace = 6
-
 export const TeamJourney = (props: Props) => {
   // Load the team once on mount for its channel list if required.
   const {conversationIDKey, loadTeam, teamname} = props
@@ -88,6 +86,8 @@ const TeamJourneyHeader = (props: HeaderProps) => (
     </Kb.Box2>
   </>
 )
+
+const buttonSpace = 6
 
 const styles = Styles.styleSheetCreate(
   () =>
