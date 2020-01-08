@@ -57,8 +57,7 @@ func ParseRole(ctx *cli.Context) (keybase1.TeamRole, error) {
 
 	role, ok := keybase1.TeamRoleMap[strings.ToUpper(srole)]
 	if !ok {
-		// TODO(HOTPOT-599) update to include bot roles
-		return 0, errors.New("invalid team role, please use owner, admin, writer, or reader")
+		return 0, errors.New("invalid team role, please use owner, admin, writer, reader, bot, or restrictedbot")
 	}
 
 	return role, nil
