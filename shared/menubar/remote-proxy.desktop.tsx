@@ -48,16 +48,20 @@ type WidgetProps = {
 function useDarkSubscription() {
   const [count, setCount] = React.useState(-1)
   React.useEffect(() => {
-    const subscriptionId = SafeElectron.getSystemPreferences().subscribeNotification(
-      'AppleInterfaceThemeChangedNotification',
-      () => {
-        setCount(count + 1)
+    if (isDarwin) {
+      const subscriptionId = SafeElectron.getSystemPreferences().subscribeNotification(
+        'AppleInterfaceThemeChangedNotification',
+        () => {
+          setCount(count + 1)
+        }
+      )
+      return () => {
+        if (subscriptionId && SafeElectron.getSystemPreferences().unsubscribeNotification) {
+          SafeElectron.getSystemPreferences().unsubscribeNotification(subscriptionId || -1)
+        }
       }
-    )
-    return () => {
-      if (subscriptionId && SafeElectron.getSystemPreferences().unsubscribeNotification) {
-        SafeElectron.getSystemPreferences().unsubscribeNotification(subscriptionId || -1)
-      }
+    } else {
+      return undefined
     }
     // eslint-disable-next-line
   }, [])
