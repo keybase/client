@@ -20,7 +20,9 @@ type OwnProps = {
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
+  createConversationErrorTitle: string | null
   createConversationError: string | null
+  createConversationErrorUsernames: Array<string> | null
   hasOlderResetConversation: boolean
   isHelloBotConversation: boolean
   isSelfConversation: boolean
@@ -55,19 +57,20 @@ class TopMessage extends React.PureComponent<Props> {
           </Kb.Text>
         )}
         {this.props.pendingState === 'error' && (
-          <Kb.Box style={errorStyle}>
-            <Kb.Text type="BodySmallSemibold">(ノ ゜Д゜)ノ ︵ ┻━┻</Kb.Text>
-            {this.props.createConversationError ? (
-              <>
-                <Kb.Text type="BodySmallSemibold">Failed to create conversation:</Kb.Text>
-                <Kb.Text type="BodySmall" style={styles.errorText} selectable={true}>
-                  {this.props.createConversationError}
-                </Kb.Text>
-              </>
-            ) : (
-              <Kb.Text type="BodySmallSemibold">Failed to create conversation.</Kb.Text>
-            )}
-          </Kb.Box>
+          <Kb.Box2
+            direction="vertical"
+            fullWidth={true}
+            fullHeight={true}
+            gap="small"
+            gapStart={true}
+            centerChildren={true}
+          >
+            <Kb.Icon color={Styles.globalColors.black_50} sizeType="Huge" type="iconfont-warning" />
+            <Kb.Text type="Header">{this.props.createConversationErrorTitle} </Kb.Text>
+            <Kb.Text type="BodyBig" style={styles.errorText} selectable={true}>
+              {this.props.createConversationError}
+            </Kb.Text>
+          </Kb.Box2>
         )}
         {this.props.loadMoreType === 'noMoreToLoad' &&
           !this.props.showRetentionNotice &&
@@ -88,7 +91,7 @@ class TopMessage extends React.PureComponent<Props> {
             <MakeTeamCard conversationIDKey={this.props.conversationIDKey} />
           </Kb.Box>
         )}
-        {this.props.loadMoreType === 'moreToLoad' && (
+        {this.props.loadMoreType === 'moreToLoad' && this.props.pendingState !== 'error' && (
           <Kb.Box style={styles.more}>
             <Kb.Text type="BodyBig">
               <Kb.Emoji size={16} emojiName=":moyai:" />
@@ -105,7 +108,7 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       errorText: {
-        marginTop: Styles.globalMargins.tiny,
+        padding: Styles.globalMargins.medium,
       },
       loading: {
         marginLeft: Styles.globalMargins.small,
@@ -121,11 +124,6 @@ const styles = Styles.styleSheetCreate(
       },
     } as const)
 )
-
-const errorStyle = {
-  ...styles.more,
-  margin: Styles.globalMargins.medium,
-}
 
 export default Container.namedConnect(
   (state, ownProps: OwnProps) => {
@@ -159,7 +157,23 @@ export default Container.namedConnect(
     const showRetentionNotice =
       meta.retentionPolicy.type !== 'retain' &&
       !(meta.retentionPolicy.type === 'inherit' && meta.teamRetentionPolicy.type === 'retain')
-    const {createConversationError} = state.chat2
+    const {createConversationErrorCode, createConversationErrorUsernames} = state.chat2
+    let createConversationErrorTitle = "This conversation couldn't be created"
+    let createConversationError = state.chat2.createConversationError
+    if (
+      createConversationErrorCode === 2763 &&
+      createConversationErrorUsernames &&
+      createConversationErrorUsernames.length > 0
+    ) {
+      createConversationErrorTitle =
+        createConversationErrorUsernames.length > 1
+          ? 'The following people cannot be added to the conversation:'
+          : `You cannot start a conversation with @${createConversationErrorUsernames[0]}.`
+      createConversationError =
+        createConversationErrorUsernames.length > 1 ? 'Their' : `@${createConversationErrorUsernames[0]}’s`
+      createConversationError +=
+        ' contact restrictions prevent you from getting in touch. Contact them outside Keybase to proceed.'
+    }
     const isHelloBotConversation =
       hasLoadedEver &&
       meta.teamType === 'adhoc' &&
@@ -172,6 +186,8 @@ export default Container.namedConnect(
     return {
       conversationIDKey: ownProps.conversationIDKey,
       createConversationError,
+      createConversationErrorTitle,
+      createConversationErrorUsernames,
       hasOlderResetConversation,
       isHelloBotConversation,
       isSelfConversation,

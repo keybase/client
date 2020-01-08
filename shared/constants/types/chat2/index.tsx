@@ -177,6 +177,8 @@ export type State = Readonly<{
   commandStatusMap: Map<Common.ConversationIDKey, CommandStatusInfo>
   containsLatestMessageMap: Map<Common.ConversationIDKey, boolean>
   createConversationError: string | null
+  createConversationErrorCode: number | null
+  createConversationErrorUsernames: Array<string> | null
   dismissedInviteBannersMap: Map<Common.ConversationIDKey, boolean>
   draftMap: Map<Common.ConversationIDKey, string>
   editingMap: Map<Common.ConversationIDKey, Message.Ordinal> // current message being edited,

@@ -44,6 +44,8 @@ export const makeState = (): Types.State => ({
   commandStatusMap: new Map(),
   containsLatestMessageMap: new Map(),
   createConversationError: null,
+  createConversationErrorCode: null,
+  createConversationErrorUsernames: null,
   dismissedInviteBannersMap: new Map(),
   draftMap: new Map(),
   editingMap: new Map(),

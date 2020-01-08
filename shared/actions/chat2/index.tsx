@@ -2750,27 +2750,40 @@ function* createConversation(
     logger.error('Making a convo while logged out?')
     return
   }
-
-  const result: Saga.RPCPromiseType<typeof RPCChatTypes.localNewConversationLocalRpcPromise> = yield RPCChatTypes.localNewConversationLocalRpcPromise(
-    {
-      identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-      membersType: RPCChatTypes.ConversationMembersType.impteamnative,
-      tlfName: [...new Set([username, ...action.payload.participants])].join(','),
-      tlfVisibility: RPCTypes.TLFVisibility.private,
-      topicType: RPCChatTypes.TopicType.chat,
-    },
-    Constants.waitingKeyCreating
-  )
-
-  const conversationIDKey = Types.conversationIDToKey(result.conv.info.id)
-  if (!conversationIDKey) {
-    logger.warn("Couldn't make a new conversation?")
-  } else {
-    const meta = Constants.inboxUIItemToConversationMeta(state, result.uiConv)
-    if (meta) {
-      yield Saga.put(Chat2Gen.createMetasReceived({metas: [meta]}))
+  try {
+    const result: Saga.RPCPromiseType<typeof RPCChatTypes.localNewConversationLocalRpcPromise> = yield RPCChatTypes.localNewConversationLocalRpcPromise(
+      {
+        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+        membersType: RPCChatTypes.ConversationMembersType.impteamnative,
+        tlfName: [...new Set([username, ...action.payload.participants])].join(','),
+        tlfVisibility: RPCTypes.TLFVisibility.private,
+        topicType: RPCChatTypes.TopicType.chat,
+      },
+      Constants.waitingKeyCreating
+    )
+    const conversationIDKey = Types.conversationIDToKey(result.conv.info.id)
+    if (!conversationIDKey) {
+      logger.warn("Couldn't make a new conversation?")
+    } else {
+      const meta = Constants.inboxUIItemToConversationMeta(state, result.uiConv)
+      if (meta) {
+        yield Saga.put(Chat2Gen.createMetasReceived({metas: [meta]}))
+      }
+      yield Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'justCreated'}))
     }
-    yield Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'justCreated'}))
+  } catch (error) {
+    let usernames = error.fields?.filter(elem => elem.key === 'usernames')
+    if (usernames.length) {
+      const {value} = usernames[0]
+      usernames = value.split(',')
+    }
+    yield Saga.put(Chat2Gen.createConversationErrored({code: error.code, message: error.desc, usernames}))
+    yield Saga.put(
+      Chat2Gen.createSelectConversation({
+        conversationIDKey: Constants.pendingErrorConversationIDKey,
+        reason: 'justCreated',
+      })
+    )
   }
 }
 
