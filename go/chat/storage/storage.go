@@ -1079,6 +1079,7 @@ func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID
 	}
 
 	// Run seek looking for each message
+	var msgs []chat1.MessageUnboxed
 	for _, msgID := range msgIDs {
 		if msgID == 0 {
 			res = append(res, nil)
@@ -1089,6 +1090,26 @@ func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID
 			return nil, s.maybeNukeLocked(ctx, false, err, convID, uid)
 		}
 		res = append(res, msg)
+		if msg != nil {
+			msgs = append(msgs, *msg)
+		}
+	}
+
+	_, err = s.explodeExpiredMessages(ctx, convID, uid, msgs)
+	if err != nil {
+		return nil, err
+	}
+	i := 0
+	for _, m := range msgs {
+		for res[i] == nil && i < len(res) {
+			i++
+		}
+		if i >= len(res) {
+			break
+		}
+		msg := m
+		res[i] = &msg
+		i++
 	}
 	return res, nil
 }
