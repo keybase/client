@@ -15,6 +15,8 @@ module.hot &&
 
 let store
 
+console.log("Require's done", Date.now())
+
 class Keybase extends Component<any> {
   constructor(props: any) {
     super(props)

@@ -13,6 +13,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.Trace;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.util.Log;
@@ -53,7 +54,20 @@ import keybase.Keybase;
 
 import static keybase.Keybase.initOnce;
 
-public class MainActivity extends ReactActivity {
+public class MainActivity extends ReactActivity implements ReactInstanceManager.ReactInstanceEventListener {
+  static {
+    // Load our jni
+    System.loadLibrary("test_module_jni");
+  }
+
+  @Override
+  public void onReactContextInitialized(ReactContext context) {
+    // Call our native function with the runtime pointer
+    install(context.getJavaScriptContextHolder().get());
+  }
+
+  public native void install(long jsContextNativePointer);
+
   private static final String TAG = MainActivity.class.getName();
   private PermissionListener listener;
   static boolean createdReact = false;
@@ -100,18 +114,22 @@ public class MainActivity extends ReactActivity {
 
 
   public static void setupKBRuntime(Context context, boolean shouldCreateDummyFile) {
+    Trace.beginSection("Setup Keystore");
     try {
       Keybase.setGlobalExternalKeyStore(new KeyStore(context, context.getSharedPreferences("KeyStore", MODE_PRIVATE)));
     } catch (KeyStoreException | CertificateException | IOException | NoSuchAlgorithmException e) {
       NativeLogger.error("Exception in MainActivity.onCreate", e);
     }
+    Trace.endSection();
 
     if (shouldCreateDummyFile) {
       createDummyFile(context);
     }
     String mobileOsVersion = Integer.toString(android.os.Build.VERSION.SDK_INT);
+    Trace.beginSection("Go InitOnce");
     initOnce(context.getFilesDir().getPath(), "", context.getFileStreamPath("service.log").getAbsolutePath(), "prod", false,
       new DNSNSFetcher(), new VideoHelper(), mobileOsVersion);
+    Trace.endSection();
 
   }
 
@@ -139,6 +157,8 @@ public class MainActivity extends ReactActivity {
       this.createdReact = true;
       instanceManager.createReactContextInBackground();
     }
+
+    Log.d("App Start Timing", "Start time " + System.currentTimeMillis());
 
     setupKBRuntime(this, true);
     super.onCreate(null);
@@ -346,7 +366,9 @@ public class MainActivity extends ReactActivity {
   @Override
   protected void onResume() {
     super.onResume();
+    getReactInstanceManager().addReactInstanceEventListener(this);
     Keybase.setAppStateForeground();
+
 
     // Emit the intent data to JS
     Intent intent = getIntent();

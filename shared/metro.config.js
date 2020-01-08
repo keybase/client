@@ -18,12 +18,14 @@ module.exports = (async () => {
     },
     transformer: {
       babelTransformerPath: require.resolve('./rn-css-transformer.js'),
-      getTransformOptions: async () => ({
-        transform: {
-          experimentalImportSupport: false,
-          inlineRequires: true,
-        },
-      }),
+      getTransformOptions: async () => {
+        return {
+          transform: {
+            experimentalImportSupport: false,
+            inlineRequires: true,
+          },
+        }
+      },
       minifierConfig: {
         mangle: {
           keep_fnames: true,
