@@ -1,4 +1,4 @@
-import CryptoSubNav from './crypto-sub-nav'
+import CryptoSubNav from './crypto-sub-nav.desktop'
 import TeamBuilder from '../team-building/container'
 export const newRoutes = {
   //. Crypto tab is driven by the sub nav on desktop

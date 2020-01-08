@@ -1,4 +1,3 @@
-import * as fs from 'fs'
 import * as React from 'react'
 import * as FsConstants from '../../constants/fs'
 import * as Types from '../../constants/types/crypto'
@@ -42,27 +41,6 @@ const TextInput = (props: TextProps) => {
 
 const FileInput = (props: FileProps) => {
   const {isDir, path, size} = props
-  const [fileSize, setFileSize] = React.useState(0)
-  const [isDirectory, setIsDirectory] = React.useState(false)
-  React.useEffect(() => {
-    try {
-      // Storybook
-      if (isDir) {
-        setIsDirectory(true)
-        setFileSize(0)
-        return
-      }
-      const stat = fs.lstatSync(path)
-      if (stat.isDirectory()) {
-        setIsDirectory(true)
-        setFileSize(0)
-        return
-      }
-      setFileSize(stat.size)
-    } catch (e) {
-      setFileSize(size ?? 0)
-    }
-  }, [isDir, path, size])
   return (
     <Kb.Box2
       direction="vertical"
@@ -75,11 +53,9 @@ const FileInput = (props: FileProps) => {
         Clear
       </Kb.Text>
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.fileContainer}>
-        <Kb.Icon type={isDirectory ? 'icon-folder-64' : 'icon-file-64'} />
-        <Kb.Text type="BodySemibold">{props.path}</Kb.Text>
-        {fileSize ? (
-          <Kb.Text type="BodySmallSemibold">{FsConstants.humanReadableFileSize(fileSize)}</Kb.Text>
-        ) : null}
+        <Kb.Icon type={isDir ? 'icon-folder-64' : 'icon-file-64'} />
+        <Kb.Text type="BodySemibold">{path}</Kb.Text>
+        {size ? <Kb.Text type="BodySmallSemibold">{FsConstants.humanReadableFileSize(size)}</Kb.Text> : null}
       </Kb.Box2>
     </Kb.Box2>
   )
