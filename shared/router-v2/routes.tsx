@@ -1,5 +1,4 @@
 import {newRoutes as chatNewRoutes, newModalRoutes as chatNewModalRoutes} from '../chat/routes'
-import {newRoutes as cryptoNewRoutes, newModalRoutes as cryptoNewModalRoutes} from '../crypto/routes'
 import {newRoutes as deviceNewRoutes, newModalRoutes as deviceNewModalRoutes} from '../devices/routes'
 import {newRoutes as fsNewRoutes, newModalRoutes as fsNewModalRoutes} from '../fs/routes'
 import {newRoutes as gitNewRoutes, newModalRoutes as gitNewModalRoutes} from '../git/routes'
@@ -26,7 +25,6 @@ type RoutePlusTab = {route: RouteMap; tab: Tabs.Tab}
 const _newRoutes: ReadonlyArray<RoutePlusTab> = [
   {route: deviceNewRoutes, tab: isMobile ? Tabs.settingsTab : Tabs.devicesTab} as RoutePlusTab,
   {route: chatNewRoutes, tab: Tabs.chatTab} as RoutePlusTab,
-  {route: cryptoNewRoutes, tab: Tabs.cryptoTab} as RoutePlusTab,
   {route: peopleNewRoutes, tab: Tabs.peopleTab} as RoutePlusTab,
   {route: profileNewRoutes, tab: Tabs.peopleTab} as RoutePlusTab,
   {route: fsNewRoutes, tab: Tabs.fsTab} as RoutePlusTab,
@@ -50,7 +48,6 @@ _newRoutes.forEach(({route, tab}) => {
 export const tabRoots = {
   [Tabs.peopleTab]: 'peopleRoot',
   [Tabs.chatTab]: 'chatRoot',
-  [Tabs.cryptoTab]: 'cryptoRoot',
   [Tabs.fsTab]: 'fsRoot',
   [Tabs.teamsTab]: 'teamsRoot',
   [Tabs.walletsTab]: 'walletsRoot',
@@ -61,7 +58,6 @@ export const tabRoots = {
 
 export const modalRoutes: RouteMap = {
   ...(chatNewModalRoutes as RouteMap),
-  ...(cryptoNewModalRoutes as RouteMap),
   ...(deviceNewModalRoutes as RouteMap),
   ...(fsNewModalRoutes as RouteMap),
   ...(gitNewModalRoutes as RouteMap),

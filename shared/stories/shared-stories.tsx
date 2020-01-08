@@ -1,6 +1,5 @@
 import chat from '../chat/index.stories'
 import common from '../common-adapters/index.stories'
-import crypto from '../crypto/index.stories'
 import devices from '../devices/index.stories'
 import fs from '../fs/index.stories'
 import git from '../git/index.stories'
@@ -20,7 +19,6 @@ import whatsNew from '../whats-new/index.stories'
 const stories = {
   chat,
   common,
-  crypto,
   devices,
   fs,
   git,

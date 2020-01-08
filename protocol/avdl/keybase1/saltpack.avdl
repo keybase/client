@@ -5,8 +5,8 @@ protocol saltpack {
   import idl "identify_common.avdl";
 
   enum AuthenticityType {
-    SIGNED_0,
-    REPUDIABLE_1,
+    SIGNED_0, 
+    REPUDIABLE_1, 
     ANONYMOUS_2
   }
 
@@ -16,7 +16,7 @@ protocol saltpack {
     AuthenticityType authenticityType;
     boolean useEntityKeys;
     boolean useDeviceKeys;
-    boolean usePaperKeys;
+    boolean usePaperKeys;    
     boolean noSelfEncrypt;
     boolean binary;
     int saltpackVersion;
