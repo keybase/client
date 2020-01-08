@@ -39,6 +39,7 @@ func (s *mockConvSource) Pull(ctx context.Context, convID chat1.ConversationID,
 
 	s.callsToPull++
 
+	require.Greater(s.t, pagination.Num, 0)
 	require.Len(s.t, pagination.Next, 0)
 	require.NotNil(s.t, query)
 
