@@ -8,6 +8,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/keybase/client/go/kbun"
+
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -26,41 +28,83 @@ type convTranscriptMsg struct {
 	Ctime          gregor1.Time      `json:"ctime_ms"`
 }
 
-// When sending a transcript, send the following number of most recent chat
-// messages of selected types.
-const transcriptMessageLimit = 100
+// How many messages do we pull in each call to ConvSource.Pull...
+const transcriptMessageBatch = 100
 
-func pullTranscript(mctx libkb.MetaContext, chatG *globals.ChatContext, convIDStr string) (res string, err error) {
+// ...to try to get the following number of messages sent by chosen users
+// (usually user being reported and the reporting user).
+const transcriptMessageCount = 50
+
+// Hard limit on Pull calls so we don't spend too much time digging.
+const transcriptCallLimit = 5
+
+func pullTranscript(mctx libkb.MetaContext, chatG *globals.ChatContext, convIDStr string, usernames []kbun.NormalizedUsername) (res string, err error) {
 	convIDBytes, err := chat1.MakeConvID(convIDStr)
 	if err != nil {
 		return "", err
 	}
+
+	mctx.Debug("Pulling transcript for convID=%s, usernames=%v", convIDStr, usernames)
+	if len(usernames) == 0 {
+		mctx.Debug("usernames array is empty, pulling messages for ALL usernames")
+	}
+	usernameMap := make(map[string]struct{}, len(usernames))
+	for _, v := range usernames {
+		usernameMap[v.String()] = struct{}{}
+	}
+
 	uidBytes := gregor1.UID(mctx.CurrentUID().ToBytes())
 	chatQuery := &chat1.GetThreadQuery{
 		MarkAsRead:   false,
 		MessageTypes: chat1.VisibleChatMessageTypes(),
 	}
-	pagination := &chat1.Pagination{
-		Num: transcriptMessageLimit,
-	}
-	threadView, err := chatG.ConvSource.Pull(mctx.Ctx(), convIDBytes, uidBytes, chat1.GetThreadReason_GENERAL,
-		chatQuery, pagination)
-	if err != nil {
-		return "", err
-	}
 	var transcript convTranscript
-	for _, msg := range threadView.Messages {
-		if !msg.IsValid() {
-			continue
+	var next []byte
+
+outerLoop:
+	for i := 0; i < transcriptCallLimit; i++ {
+		pagination := &chat1.Pagination{
+			Num:  transcriptMessageBatch,
+			Next: next,
 		}
-		mv := msg.Valid()
-		tMsg := convTranscriptMsg{
-			SenderUsername: mv.SenderUsername,
-			Body:           mv.MessageBody,
-			Ctime:          mv.ServerHeader.Ctime,
+		mctx.Debug("Pulling from ConvSource: i=%d, Pagination=%#v", i, pagination)
+		threadView, err := chatG.ConvSource.Pull(mctx.Ctx(), convIDBytes, uidBytes, chat1.GetThreadReason_GENERAL,
+			chatQuery, pagination)
+		if err != nil {
+			return "", err
 		}
-		transcript.Messages = append(transcript.Messages, tMsg)
+		mctx.Debug("Got %d messages to search through", len(threadView.Messages))
+		for _, msg := range threadView.Messages {
+			if !msg.IsValid() {
+				continue
+			}
+			mv := msg.Valid()
+			// Filter by usernames
+			if len(usernames) != 0 {
+				if _, ok := usernameMap[mv.SenderUsername]; !ok {
+					// Skip this message
+					continue
+				}
+			}
+			tMsg := convTranscriptMsg{
+				SenderUsername: mv.SenderUsername,
+				Body:           mv.MessageBody,
+				Ctime:          mv.ServerHeader.Ctime,
+			}
+			transcript.Messages = append(transcript.Messages, tMsg)
+			if len(transcript.Messages) >= transcriptMessageCount {
+				mctx.Debug("Got all messages we wanted (%d) at i=%d", transcriptMessageCount, i)
+				break outerLoop
+			}
+		}
+
+		if threadView.Pagination.Last {
+			mctx.Debug("i=%d was the last page", i)
+			break
+		}
+		next = threadView.Pagination.Next
 	}
+
 	transcriptStr, err := json.Marshal(transcript)
 	if err != nil {
 		return "", err
@@ -92,8 +136,12 @@ func (h *UserHandler) ReportUser(ctx context.Context, arg keybase1.ReportUserArg
 			return errors.New("invalid arguments: IncludeTranscript is true but ConvID == nil")
 		}
 		convID := *arg.ConvID
-
-		transcript, err := pullTranscript(mctx, h.ChatG(), convID)
+		// Pull transcripts with messages from curent user and the reported user.
+		usernames := []kbun.NormalizedUsername{
+			kbun.NewNormalizedUsername(arg.Username),
+			mctx.CurrentUsername(),
+		}
+		transcript, err := pullTranscript(mctx, h.ChatG(), convID, usernames)
 		if err == nil {
 			mctx.Debug("Got transcript for %s, size: %d", convID, len(transcript))
 			postArgs["transcript"] = libkb.S{Val: transcript}
