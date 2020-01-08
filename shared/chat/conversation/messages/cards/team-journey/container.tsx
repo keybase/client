@@ -54,7 +54,7 @@ const TeamJourneyContainer = (props: Props) => {
       image = 'icon-illustration-welcome-96'
       textComponent = (
         <Kb.Text type="BodySmall">
-          <Kb.Emoji allowFontScaling={true} size={16} emojiName=":wave:" /> Welcome to the team! Say hi to
+          <Kb.Emoji allowFontScaling={true} size={Styles.globalMargins.small} emojiName=":wave:" /> Welcome to the team! Say hi to
           everyone and introduce yourself.
         </Kb.Text>
       )
