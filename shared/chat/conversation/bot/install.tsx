@@ -226,20 +226,22 @@ const InstallBotPopup = (props: Props) => {
       <Kb.Box2 direction="vertical" gap="small" fullWidth={true}>
         <Kb.Box2 direction="horizontal" gap="small" fullWidth={true}>
           <Kb.Avatar username={botUsername} size={64} />
-          <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}}>
-            <Kb.Text type="BodyBigExtrabold">{featured.botAlias}</Kb.Text>
-            <Kb.ConnectedUsernames
-              colorFollowing={true}
-              type="BodySemibold"
-              usernames={[botUsername]}
-              withProfileCardPopup={false}
-            />
+          <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}} gap="tiny">
+            <Kb.Box2 direction="vertical" fullWidth={true}>
+              <Kb.Text type="BodyBigExtrabold">{featured.botAlias}</Kb.Text>
+              <Kb.ConnectedUsernames
+                colorFollowing={true}
+                type="BodySemibold"
+                usernames={[botUsername]}
+                withProfileCardPopup={false}
+              />
+            </Kb.Box2>
             <Kb.Text type="BodySmall" lineClamp={1}>
               {featured.description}
             </Kb.Text>
           </Kb.Box2>
         </Kb.Box2>
-        <Kb.Text type="BodySmall">{featured.extendedDescription}</Kb.Text>
+        <Kb.Text type="Body">{featured.extendedDescription}</Kb.Text>
       </Kb.Box2>
       {inTeam && !inTeamUnrestricted && (
         <PermsList channelInfos={channelInfos} settings={settings} username={botUsername} />
@@ -439,15 +441,18 @@ const InstallBotPopup = (props: Props) => {
   const enabled = !!conversationIDKey && inTeam !== undefined
   return (
     <Kb.Modal
+      onClose={!Styles.isMobile ? onClose : undefined}
       header={{
         leftButton: channelPickerScreen ? (
           <Kb.Text type="BodyBigLink" onClick={() => setChannelPickerScreen(false)}>
             Back
           </Kb.Text>
-        ) : (
+        ) : Styles.isMobile || installScreen ? (
           <Kb.Text type="BodyBigLink" onClick={onClose}>
             {installScreen ? 'Back' : inTeam || readOnly ? 'Close' : 'Cancel'}
           </Kb.Text>
+        ) : (
+          undefined
         ),
         title: channelPickerScreen ? 'Channels' : '',
       }}
