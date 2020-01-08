@@ -3,7 +3,8 @@ let isElectron = null
 let isReactNative = null
 
 module.exports = function(api /*: any */) {
-  if (api.env() === 'test') {
+  const env = api.env()
+  if (env === 'test') {
     return {
       plugins: [
         '@babel/plugin-proposal-optional-catch-binding',
@@ -55,6 +56,7 @@ module.exports = function(api /*: any */) {
   } else if (isReactNative) {
     console.error('KB babel.config.js for ReactNative')
     return {
+      plugins: env === 'production' ? ['transform-remove-console'] : [],
       presets: ['module:metro-react-native-babel-preset'],
     }
   }
