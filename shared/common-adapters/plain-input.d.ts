@@ -71,6 +71,8 @@ export type Props = {
   // doesn't enforce on longer `props.value`s coming in
   maxBytes?: number
   multiline?: boolean
+  // Allows multiline to grow to fill the parent and have scrollbars
+  growAndScroll?: boolean
   onBlur?: () => void
   onChangeText?: (text: string) => void
   onFocus?: () => void

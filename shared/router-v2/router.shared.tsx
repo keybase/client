@@ -24,6 +24,7 @@ export const mobileTabs = [Tabs.peopleTab, Tabs.chatTab, Tabs.fsTab, Tabs.teamsT
 export const desktopTabs = [
   Tabs.peopleTab,
   Tabs.chatTab,
+  Tabs.cryptoTab,
   Tabs.fsTab,
   Tabs.teamsTab,
   Tabs.walletsTab,
