@@ -1,6 +1,7 @@
 import * as Constants from '../../../constants/chat2'
 import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
+import * as RPCTypes from '../../../constants/types/rpc-gen'
 import ProfileResetNotice from './system-profile-reset-notice/container'
 import RetentionNotice from './retention-notice/container'
 import shallowEqual from 'shallowequal'
@@ -161,7 +162,7 @@ export default Container.namedConnect(
     let createConversationErrorTitle = "This conversation couldn't be created"
     let createConversationError = state.chat2.createConversationError
     if (
-      createConversationErrorCode === 2763 &&
+      createConversationErrorCode === RPCTypes.StatusCode.scteamcontactsettingsblock &&
       createConversationErrorUsernames &&
       createConversationErrorUsernames.length > 0
     ) {
