@@ -22,7 +22,8 @@ import (
 func pullTranscript(mctx libkb.MetaContext, postArgs libkb.HTTPArgs, convSource types.ConversationSource,
 	convID string, usernames []kbun.NormalizedUsername) (err error) {
 
-	transcript, err := chat.PullTranscript(mctx, convSource, convID, usernames)
+	config := chat.PullTranscriptConfigDefault()
+	transcript, err := chat.PullTranscript(mctx, convSource, convID, usernames, config)
 	if err != nil {
 		return err
 	}

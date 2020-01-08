@@ -18,18 +18,25 @@ type ConvTranscriptMsg struct {
 	Ctime          gregor1.Time      `json:"ctime_ms"`
 }
 
-// How many messages do we pull in each call to ConvSource.Pull...
-const transcriptMessageBatch = 100
+type PullTranscriptConfig struct {
+	// How many messages to pull with given filters (so list of usernames, or
+	// all users).
+	messageCount int
 
-// ...to try to get the following number of messages sent by chosen users
-// (usually user being reported and the reporting user).
-const transcriptMessageCount = 50
+	batchSize  int // how many to pull in one batch
+	batchCount int // how many batches to try
+}
 
-// Hard limit on Pull calls so we don't spend too much time digging.
-const transcriptCallLimit = 5
+func PullTranscriptConfigDefault() PullTranscriptConfig {
+	return PullTranscriptConfig{
+		messageCount: 100,
+		batchSize:    100,
+		batchCount:   5,
+	}
+}
 
 func PullTranscript(mctx libkb.MetaContext, convSource types.ConversationSource, convIDStr string,
-	usernames []kbun.NormalizedUsername) (res ConvTranscript, err error) {
+	usernames []kbun.NormalizedUsername, config PullTranscriptConfig) (res ConvTranscript, err error) {
 
 	convIDBytes, err := chat1.MakeConvID(convIDStr)
 	if err != nil {
@@ -37,12 +44,13 @@ func PullTranscript(mctx libkb.MetaContext, convSource types.ConversationSource,
 	}
 
 	mctx.Debug("Pulling transcript for convID=%s, usernames=%v", convIDStr, usernames)
-	if len(usernames) == 0 {
-		mctx.Debug("usernames array is empty, pulling messages for ALL usernames")
-	}
 	usernameMap := make(map[string]struct{}, len(usernames))
-	for _, v := range usernames {
-		usernameMap[v.String()] = struct{}{}
+	if len(usernames) != 0 {
+		for _, v := range usernames {
+			usernameMap[v.String()] = struct{}{}
+		}
+	} else {
+		mctx.Debug("usernames array is empty, pulling messages for ALL usernames")
 	}
 
 	uidBytes := gregor1.UID(mctx.CurrentUID().ToBytes())
@@ -54,9 +62,9 @@ func PullTranscript(mctx libkb.MetaContext, convSource types.ConversationSource,
 	var next []byte
 
 outerLoop:
-	for i := 0; i < transcriptCallLimit; i++ {
+	for i := 0; i < config.batchCount; i++ {
 		pagination := &chat1.Pagination{
-			Num:  transcriptMessageBatch,
+			Num:  config.batchSize,
 			Next: next,
 		}
 		mctx.Debug("Pulling from ConvSource: i=%d, Pagination=%#v", i, pagination)
@@ -84,8 +92,8 @@ outerLoop:
 				Ctime:          mv.ServerHeader.Ctime,
 			}
 			res.Messages = append(res.Messages, tMsg)
-			if len(res.Messages) >= transcriptMessageCount {
-				mctx.Debug("Got all messages we wanted (%d) at i=%d", transcriptMessageCount, i)
+			if len(res.Messages) >= config.messageCount {
+				mctx.Debug("Got all messages we wanted (%d) at i=%d", config.messageCount, i)
 				break outerLoop
 			}
 		}

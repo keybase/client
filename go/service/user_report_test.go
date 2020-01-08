@@ -53,6 +53,7 @@ func TestPullTranscript(t *testing.T) {
 		Username:          offender.Username,
 		ConvID:            &testConvID,
 		IncludeTranscript: true,
+		Comment:           "Coming from user_report_test.go",
 	})
 	require.NoError(t, err)
 	require.Greater(t, cs.callsToPull, 0)
