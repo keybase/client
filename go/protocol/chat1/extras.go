@@ -190,6 +190,8 @@ func DeletableMessageTypesByDelete() []MessageType {
 var visibleMessageTypes = []MessageType{
 	MessageType_TEXT,
 	MessageType_ATTACHMENT,
+	MessageType_JOIN,
+	MessageType_LEAVE,
 	MessageType_SYSTEM,
 	MessageType_SENDPAYMENT,
 	MessageType_REQUESTPAYMENT,
