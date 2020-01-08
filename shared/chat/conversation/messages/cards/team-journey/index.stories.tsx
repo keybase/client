@@ -28,8 +28,9 @@ const load = () => {
       <TeamJourney
         {...commonProps}
         actions={[
-          {label: 'Publish team on your profile', onClick: Sb.action('onPublishTeam')},
+          'wave',
           {label: 'Browse channels', onClick: Sb.action('onBrowseChannels')},
+          {label: 'Publish team on your profile', onClick: Sb.action('onPublishTeam')},
         ]}
         image="icon-illustration-welcome-96"
         textComponent={
