@@ -90,6 +90,10 @@ outerLoop:
 			}
 		}
 
+		if threadView.Pagination == nil {
+			mctx.Debug("i=%d got no Pagination struct", i)
+			break
+		}
 		if threadView.Pagination.Last {
 			mctx.Debug("i=%d was the last page", i)
 			break
