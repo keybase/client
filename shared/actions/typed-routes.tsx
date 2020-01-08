@@ -48,4 +48,3 @@ export const appendEncryptRecipientsBuilder = () =>
   RouteTreeGen.createNavigateAppend({
     path: [{props: {namespace: 'crypto', title: 'Recipients'}, selected: 'cryptoTeamBuilder'}],
   })
-
