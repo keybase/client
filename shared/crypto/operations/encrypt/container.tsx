@@ -42,4 +42,3 @@ export default Container.namedConnect(
   }),
   'EncryptContainer'
 )(Encrypt)
-

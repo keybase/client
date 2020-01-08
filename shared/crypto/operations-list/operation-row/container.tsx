@@ -10,27 +10,19 @@ type OwnProps = {
   tab: Types.CryptoSubTab
   icon: IconType
 }
-
-const mapStateToProps = (/*state: Container.TypedState*/) => ({})
-
-const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
-  _switchOperationTab: (tab: Types.CryptoSubTab) => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: [tab], replace: true}))
-  },
-})
-
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
-  ...stateProps,
-  icon: ownProps.icon,
-  isSelected: ownProps.isSelected,
-  onSelect: () => dispatchProps._switchOperationTab(ownProps.tab),
-  tab: ownProps.tab,
-  title: ownProps.title,
-})
-
 export default Container.namedConnect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
+  () => ({}),
+  (dispatch: Container.TypedDispatch) => ({
+    _switchOperationTab: (tab: Types.CryptoSubTab) => {
+      dispatch(RouteTreeGen.createNavigateAppend({path: [tab], replace: true}))
+    },
+  }),
+  (_, dispatchProps, ownProps: OwnProps) => ({
+    icon: ownProps.icon,
+    isSelected: ownProps.isSelected,
+    onSelect: () => dispatchProps._switchOperationTab(ownProps.tab),
+    tab: ownProps.tab,
+    title: ownProps.title,
+  }),
   'OperationRow'
 )(OperationRow)

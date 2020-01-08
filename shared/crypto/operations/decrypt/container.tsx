@@ -32,4 +32,3 @@ export default Container.namedConnect(
   }),
   'DecryptContainer'
 )(Decrypt)
-

@@ -8,7 +8,7 @@ type OwnProps = {
   operation: Types.Operations
 }
 
-export default Container.connectDEBUG(
+export default Container.namedConnect(
   (state: Container.TypedState) => ({
     recipients: state.crypto.encrypt.recipients,
   }),
@@ -21,5 +21,6 @@ export default Container.connectDEBUG(
     onAddRecipients: dispatchProps.onAddRecipients,
     onClearRecipients: () => dispatchProps.onClearRecipients(ownProps.operation),
     recipients: stateProps.recipients,
-  })
+  }),
+  'Recipients'
 )(Recipients)
