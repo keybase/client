@@ -848,6 +848,41 @@ func (o SendResultCLILocal) DeepCopy() SendResultCLILocal {
 	}
 }
 
+type PublicNoteType int
+
+const (
+	PublicNoteType_NONE   PublicNoteType = 0
+	PublicNoteType_TEXT   PublicNoteType = 1
+	PublicNoteType_ID     PublicNoteType = 2
+	PublicNoteType_HASH   PublicNoteType = 3
+	PublicNoteType_RETURN PublicNoteType = 4
+)
+
+func (o PublicNoteType) DeepCopy() PublicNoteType { return o }
+
+var PublicNoteTypeMap = map[string]PublicNoteType{
+	"NONE":   0,
+	"TEXT":   1,
+	"ID":     2,
+	"HASH":   3,
+	"RETURN": 4,
+}
+
+var PublicNoteTypeRevMap = map[PublicNoteType]string{
+	0: "NONE",
+	1: "TEXT",
+	2: "ID",
+	3: "HASH",
+	4: "RETURN",
+}
+
+func (e PublicNoteType) String() string {
+	if v, ok := PublicNoteTypeRevMap[e]; ok {
+		return v
+	}
+	return fmt.Sprintf("%v", int(e))
+}
+
 type PaymentOrErrorCLILocal struct {
 	Payment *PaymentCLILocal `codec:"payment,omitempty" json:"payment,omitempty"`
 	Err     *string          `codec:"err,omitempty" json:"err,omitempty"`
@@ -1594,23 +1629,25 @@ type BalancesLocalArg struct {
 }
 
 type SendCLILocalArg struct {
-	Recipient       string    `codec:"recipient" json:"recipient"`
-	Amount          string    `codec:"amount" json:"amount"`
-	Asset           Asset     `codec:"asset" json:"asset"`
-	Note            string    `codec:"note" json:"note"`
-	DisplayAmount   string    `codec:"displayAmount" json:"displayAmount"`
-	DisplayCurrency string    `codec:"displayCurrency" json:"displayCurrency"`
-	ForceRelay      bool      `codec:"forceRelay" json:"forceRelay"`
-	PublicNote      string    `codec:"publicNote" json:"publicNote"`
-	FromAccountID   AccountID `codec:"fromAccountID" json:"fromAccountID"`
+	Recipient       string         `codec:"recipient" json:"recipient"`
+	Amount          string         `codec:"amount" json:"amount"`
+	Asset           Asset          `codec:"asset" json:"asset"`
+	Note            string         `codec:"note" json:"note"`
+	DisplayAmount   string         `codec:"displayAmount" json:"displayAmount"`
+	DisplayCurrency string         `codec:"displayCurrency" json:"displayCurrency"`
+	ForceRelay      bool           `codec:"forceRelay" json:"forceRelay"`
+	PublicNote      string         `codec:"publicNote" json:"publicNote"`
+	PublicNoteType  PublicNoteType `codec:"publicNoteType" json:"publicNoteType"`
+	FromAccountID   AccountID      `codec:"fromAccountID" json:"fromAccountID"`
 }
 
 type SendPathCLILocalArg struct {
-	Source     AccountID   `codec:"source" json:"source"`
-	Recipient  string      `codec:"recipient" json:"recipient"`
-	Path       PaymentPath `codec:"path" json:"path"`
-	Note       string      `codec:"note" json:"note"`
-	PublicNote string      `codec:"publicNote" json:"publicNote"`
+	Source         AccountID      `codec:"source" json:"source"`
+	Recipient      string         `codec:"recipient" json:"recipient"`
+	Path           PaymentPath    `codec:"path" json:"path"`
+	Note           string         `codec:"note" json:"note"`
+	PublicNote     string         `codec:"publicNote" json:"publicNote"`
+	PublicNoteType PublicNoteType `codec:"publicNoteType" json:"publicNoteType"`
 }
 
 type AccountMergeCLILocalArg struct {

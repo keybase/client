@@ -277,6 +277,7 @@ type OobmHandler interface {
 }
 
 type PushHandler interface {
+	Resumable
 	TlfFinalize(context.Context, gregor.OutOfBandMessage) error
 	TlfResolve(context.Context, gregor.OutOfBandMessage) error
 	Activity(context.Context, gregor.OutOfBandMessage) error

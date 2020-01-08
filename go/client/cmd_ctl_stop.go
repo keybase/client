@@ -55,12 +55,15 @@ func (s *CmdCtlStop) Run() (err error) {
 	switch runtime.GOOS {
 	case "windows":
 		if !s.shutdown {
+			mctx.Info("stopping everything but the keybase service")
 			install.StopAllButService(mctx, keybase1.ExitCode_OK)
 		}
 		cli, err := GetCtlClient(s.G())
 		if err != nil {
+			mctx.Error("failed to get ctl client for shutdown: %s", err)
 			return err
 		}
+		mctx.Info("stopping the keybase service")
 		return cli.StopService(mctx.Ctx(), keybase1.StopServiceArg{ExitCode: keybase1.ExitCode_OK})
 	default:
 		// On Linux, StopAllButService depends on a running service to tell it

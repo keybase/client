@@ -3229,6 +3229,7 @@ type TeamOperation struct {
 	DeleteOtherMessages    bool `codec:"deleteOtherMessages" json:"deleteOtherMessages"`
 	DeleteTeam             bool `codec:"deleteTeam" json:"deleteTeam"`
 	PinMessage             bool `codec:"pinMessage" json:"pinMessage"`
+	ManageBots             bool `codec:"manageBots" json:"manageBots"`
 }
 
 func (o TeamOperation) DeepCopy() TeamOperation {
@@ -3256,6 +3257,7 @@ func (o TeamOperation) DeepCopy() TeamOperation {
 		DeleteOtherMessages:    o.DeleteOtherMessages,
 		DeleteTeam:             o.DeleteTeam,
 		PinMessage:             o.PinMessage,
+		ManageBots:             o.ManageBots,
 	}
 }
 

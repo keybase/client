@@ -1341,6 +1341,7 @@ protocol teams {
     boolean deleteOtherMessages;
     boolean deleteTeam;
     boolean pinMessage;
+    boolean manageBots;
   }
 
   record ProfileTeamLoadRes {

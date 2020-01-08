@@ -9,7 +9,7 @@ import {menubar} from 'menubar'
 import {resolveImage, resolveRootAsURL} from './resolve-root.desktop'
 import {showDevTools, skipSecondaryDevtools} from '../../local-debug.desktop'
 
-const htmlFile = resolveRootAsURL('dist', `menubar${__DEV__ ? '.dev' : ''}.html?param=`)
+const htmlFile = resolveRootAsURL('dist', `menubar${__DEV__ ? '.dev' : ''}.html?param=menubar`)
 
 let icon = isWindows
   ? 'icon-windows-keybase-menubar-regular-black-16@2x.png'

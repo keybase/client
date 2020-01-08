@@ -56,6 +56,7 @@ const ConnectedInfoPanel = Container.connect(
     let canSetMinWriterRole = false
     let canSetRetention = false
     let canDeleteHistory = false
+    let canManageBots = false
     if (meta.teamname) {
       const yourOperations = TeamConstants.getCanPerformByID(state, meta.teamID)
       admin = yourOperations.manageMembers
@@ -63,8 +64,10 @@ const ConnectedInfoPanel = Container.connect(
       canSetMinWriterRole = yourOperations.setMinWriterRole
       canSetRetention = yourOperations.setRetentionPolicy
       canDeleteHistory = yourOperations.deleteChatHistory && !meta.cannotWrite
+      canManageBots = yourOperations.manageBots
     } else {
       canDeleteHistory = true
+      canManageBots = true
     }
     const isPreview = meta.membershipType === 'youArePreviewing'
     const selectedTab = ownProps.selectedTab || (meta.teamname ? 'members' : 'attachments')
@@ -87,6 +90,7 @@ const ConnectedInfoPanel = Container.connect(
       admin,
       canDeleteHistory,
       canEditChannel,
+      canManageBots,
       canSetMinWriterRole,
       canSetRetention,
       channelname: meta.channelname,
@@ -214,16 +218,22 @@ const ConnectedInfoPanel = Container.connect(
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     let participants = stateProps._participantInfo.all
-    const botUsernames = participants.filter(
-      // If we're in an adhoc team, get bots by finding participants not in nameParticipants
-      p =>
-        stateProps.adhocTeam
-          ? !stateProps._participantInfo.name.includes(p)
-          : TeamConstants.userIsRoleInTeamWithInfo(stateProps._teamMembers, p, 'restrictedbot') ||
-            TeamConstants.userIsRoleInTeamWithInfo(stateProps._teamMembers, p, 'bot')
-    )
+    let botUsernames: Array<string> = []
+    if (stateProps.adhocTeam) {
+      botUsernames = participants.filter(p => !stateProps._participantInfo.name.includes(p))
+    } else {
+      botUsernames = [...stateProps._teamMembers.values()]
+        .filter(
+          p =>
+            TeamConstants.userIsRoleInTeamWithInfo(stateProps._teamMembers, p.username, 'restrictedbot') ||
+            TeamConstants.userIsRoleInTeamWithInfo(stateProps._teamMembers, p.username, 'bot')
+        )
+        .map(p => p.username)
+    }
 
-    participants = flags.botUI ? participants.filter(p => !botUsernames.includes(p)) : participants
+    const shouldFilterBots = stateProps.smallTeam
+    participants =
+      flags.botUI && shouldFilterBots ? participants.filter(p => !botUsernames.includes(p)) : participants
 
     const installedBots: Array<RPCTypes.FeaturedBot> = botUsernames.map(
       b =>
@@ -259,7 +269,7 @@ const ConnectedInfoPanel = Container.connect(
         return l
       }, [])
 
-      if (flags.botUI) {
+      if (flags.botUI && shouldFilterBots) {
         participants = participants.filter(p => !botUsernames.includes(p))
       }
     }
@@ -267,6 +277,7 @@ const ConnectedInfoPanel = Container.connect(
       admin: stateProps.admin,
       canDeleteHistory: stateProps.canDeleteHistory,
       canEditChannel: stateProps.canEditChannel,
+      canManageBots: stateProps.canManageBots,
       canSetMinWriterRole: stateProps.canSetMinWriterRole,
       canSetRetention: stateProps.canSetRetention,
       channelname: stateProps.channelname,

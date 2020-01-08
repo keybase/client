@@ -201,6 +201,11 @@ func (s *Server) SendCLILocal(ctx context.Context, arg stellar1.SendCLILocalArg)
 	}
 	mctx = mctx.WithUIs(uis)
 
+	memo, err := stellarnet.NewMemoFromStrings(arg.PublicNote, arg.PublicNoteType.String())
+	if err != nil {
+		return res, err
+	}
+
 	sendRes, err := stellar.SendPaymentCLI(mctx, s.walletState, stellar.SendPaymentArg{
 		From:           arg.FromAccountID,
 		To:             stellarcommon.RecipientInput(arg.Recipient),
@@ -209,7 +214,7 @@ func (s *Server) SendCLILocal(ctx context.Context, arg stellar1.SendCLILocalArg)
 		SecretNote:     arg.Note,
 		ForceRelay:     arg.ForceRelay,
 		QuickReturn:    false,
-		PublicMemo:     stellarnet.NewMemoText(arg.PublicNote),
+		PublicMemo:     memo,
 	})
 	if err != nil {
 		return res, err
@@ -281,12 +286,17 @@ func (s *Server) SendPathCLILocal(ctx context.Context, arg stellar1.SendPathCLIL
 	}
 	mctx = mctx.WithUIs(uis)
 
+	memo, err := stellarnet.NewMemoFromStrings(arg.PublicNote, arg.PublicNoteType.String())
+	if err != nil {
+		return res, err
+	}
+
 	sendRes, err := stellar.SendPathPaymentCLI(mctx, s.walletState, stellar.SendPathPaymentArg{
 		From:        arg.Source,
 		To:          stellarcommon.RecipientInput(arg.Recipient),
 		Path:        arg.Path,
 		SecretNote:  arg.Note,
-		PublicMemo:  stellarnet.NewMemoText(arg.PublicNote),
+		PublicMemo:  memo,
 		QuickReturn: false,
 	})
 	if err != nil {

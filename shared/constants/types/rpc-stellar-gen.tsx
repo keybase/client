@@ -360,6 +360,14 @@ export enum PaymentSummaryType {
   relay = 3,
 }
 
+export enum PublicNoteType {
+  none = 0,
+  text = 1,
+  id = 2,
+  hash = 3,
+  return = 4,
+}
+
 export enum RelayDirection {
   claim = 0,
   yank = 1,

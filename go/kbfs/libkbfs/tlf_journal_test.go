@@ -461,7 +461,8 @@ func testTLFJournalBlockOpBasic(t *testing.T, ver kbfsmd.MetadataVer) {
 
 	putBlock(ctx, t, config, tlfJournal, []byte{1, 2, 3, 4})
 	numFlushed, rev, converted, err :=
-		tlfJournal.flushBlockEntries(ctx, firstValidJournalOrdinal+1)
+		tlfJournal.flushBlockEntries(ctx, firstValidJournalOrdinal+1,
+			kbfsmd.ID{})
 	require.NoError(t, err)
 	require.Equal(t, 1, numFlushed)
 	require.Equal(t, rev, kbfsmd.RevisionUninitialized)
@@ -546,7 +547,8 @@ func testTLFJournalBlockOpDiskByteLimit(t *testing.T, ver kbfsmd.MetadataVer) {
 	}()
 
 	numFlushed, rev, converted, err :=
-		tlfJournal.flushBlockEntries(ctx, firstValidJournalOrdinal+1)
+		tlfJournal.flushBlockEntries(ctx, firstValidJournalOrdinal+1,
+			kbfsmd.ID{})
 	require.NoError(t, err)
 	require.Equal(t, 1, numFlushed)
 	require.Equal(t, rev, kbfsmd.RevisionUninitialized)
@@ -588,7 +590,8 @@ func testTLFJournalBlockOpDiskFileLimit(t *testing.T, ver kbfsmd.MetadataVer) {
 	}()
 
 	numFlushed, rev, converted, err :=
-		tlfJournal.flushBlockEntries(ctx, firstValidJournalOrdinal+1)
+		tlfJournal.flushBlockEntries(ctx, firstValidJournalOrdinal+1,
+			kbfsmd.ID{})
 	require.NoError(t, err)
 	require.Equal(t, 1, numFlushed)
 	require.Equal(t, rev, kbfsmd.RevisionUninitialized)
@@ -636,7 +639,8 @@ func testTLFJournalBlockOpDiskQuotaLimit(t *testing.T, ver kbfsmd.MetadataVer) {
 	}()
 
 	numFlushed, rev, converted, err :=
-		tlfJournal.flushBlockEntries(ctx, firstValidJournalOrdinal+1)
+		tlfJournal.flushBlockEntries(ctx, firstValidJournalOrdinal+1,
+			kbfsmd.ID{})
 	require.NoError(t, err)
 	require.Equal(t, 1, numFlushed)
 	require.Equal(t, rev, kbfsmd.RevisionUninitialized)
@@ -978,7 +982,7 @@ func testTLFJournalFlushMDBasic(t *testing.T, ver kbfsmd.MetadataVer) {
 	var mdserver shimMDServer
 	config.mdserver = &mdserver
 
-	_, mdEnd, err := tlfJournal.getJournalEnds(ctx)
+	_, mdEnd, _, err := tlfJournal.getJournalEnds(ctx)
 	require.NoError(t, err)
 
 	for i := 0; i < mdCount; i++ {
@@ -1023,7 +1027,7 @@ func testTLFJournalFlushMDConflict(t *testing.T, ver kbfsmd.MetadataVer) {
 	mdserver.nextErr = kbfsmd.ServerErrorConflictRevision{}
 	config.mdserver = &mdserver
 
-	_, mdEnd, err := tlfJournal.getJournalEnds(ctx)
+	_, mdEnd, _, err := tlfJournal.getJournalEnds(ctx)
 	require.NoError(t, err)
 
 	// Simulate a flush with a conflict error halfway through.
@@ -1693,7 +1697,7 @@ func testTLFJournalResolveBranch(t *testing.T, ver kbfsmd.MetadataVer) {
 	mdserver.nextErr = kbfsmd.ServerErrorConflictRevision{}
 	config.mdserver = &mdserver
 
-	_, mdEnd, err := tlfJournal.getJournalEnds(ctx)
+	_, mdEnd, _, err := tlfJournal.getJournalEnds(ctx)
 	require.NoError(t, err)
 
 	// This will convert to a branch.
@@ -1714,12 +1718,12 @@ func testTLFJournalResolveBranch(t *testing.T, ver kbfsmd.MetadataVer) {
 		resolveMD, tlfJournal.key, nil)
 	require.NoError(t, err)
 
-	blockEnd, newMDEnd, err := tlfJournal.getJournalEnds(ctx)
+	blockEnd, newMDEnd, _, err := tlfJournal.getJournalEnds(ctx)
 	require.NoError(t, err)
 	require.Equal(t, firstRevision+1, newMDEnd)
 
 	blocks, b, maxMD, err := tlfJournal.getNextBlockEntriesToFlush(
-		ctx, blockEnd)
+		ctx, blockEnd, kbfsmd.ID{})
 	require.NoError(t, err)
 	require.Equal(t, firstRevision, maxMD)
 	// 3 blocks, 3 old MD markers, 1 new MD marker

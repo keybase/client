@@ -20,8 +20,8 @@ const ResetUser = ({username, viewProfile, letThemIn, allowChatWithoutThem, chat
     <Kb.Box style={styles.textContainer}>
       <Kb.Text center={true} type="BodySemibold" negative={true}>
         <Kb.Text type="BodySemiboldLink" negative={true} onClick={viewProfile}>
-          {username}{' '}
-        </Kb.Text>
+          {username}
+        </Kb.Text>{' '}
         <Kb.Text type="BodySemibold" negative={true}>
           lost all their devices and this account has new keys. If you want to let them into this chat and
           folder's history, you should either:

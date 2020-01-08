@@ -1,63 +1,73 @@
 // Inside tracker we use an embedded Avatar which is connected.
-import * as Constants from '../constants/tracker2'
-import * as ConfigGen from '../actions/config-gen'
+import * as React from 'react'
 import * as Chat2Gen from '../actions/chat2-gen'
+import * as ConfigGen from '../actions/config-gen'
+import * as Constants from '../constants/tracker2'
+import * as Container from '../util/container'
 import * as Tracker2Gen from '../actions/tracker2-gen'
+import * as Types from '../constants/types/tracker2'
 import Tracker from './index.desktop'
-import {remoteConnect} from '../util/container'
 import * as SafeElectron from '../util/safe-electron.desktop'
+import {DeserializeProps} from './remote-serializer.desktop'
 
-type OwnProps = {}
+const noDetails: Types.Details = {
+  blocked: false,
+  guiID: '',
+  hidFromFollowers: false,
+  reason: '',
+  showTracker: false,
+  state: 'checking',
+  username: '',
+}
 
-// Props are handled by remote-proxy.desktop.js
-const mapDispatchToProps = dispatch => ({
-  _onChat: (username: string) => {
-    dispatch(ConfigGen.createShowMain())
-    dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'tracker'}))
-  },
-  _onClose: (guiID: string) => {
-    dispatch(Tracker2Gen.createCloseTracker({guiID}))
-    // close immediately
-    const w = SafeElectron.getCurrentWindowFromRemote()
-    w && w.close()
-  },
-  _onFollow: (guiID: string) => dispatch(Tracker2Gen.createChangeFollow({follow: true, guiID})),
-  _onIgnoreFor24Hours: (guiID: string) => dispatch(Tracker2Gen.createIgnore({guiID})),
-  _onReload: (assertion: string) =>
-    dispatch(
-      Tracker2Gen.createLoad({
-        assertion,
-        forceDisplay: true,
-        fromDaemon: false,
-        guiID: Constants.generateGUIID(),
-        ignoreCache: true,
-        inTracker: true,
-        reason: '',
-      })
-    ),
-})
-
-const mergeProps = (stateProps, dispatchProps, _: OwnProps) => ({
-  assertionKeys: stateProps.assertions ? [...stateProps.assertions.keys()] : undefined,
-  bio: stateProps.bio,
-  darkMode: stateProps.darkMode,
-  followThem: stateProps.followThem,
-  followersCount: stateProps.followersCount,
-  followingCount: stateProps.followingCount,
-  followsYou: stateProps.followsYou,
-  guiID: stateProps.guiID,
-  isYou: stateProps.isYou,
-  location: stateProps.location,
-  onAccept: () => dispatchProps._onFollow(stateProps.guiID),
-  onChat: () => dispatchProps._onChat(stateProps.username),
-  onClose: () => dispatchProps._onClose(stateProps.guiID),
-  onFollow: () => dispatchProps._onFollow(stateProps.guiID),
-  onIgnoreFor24Hours: () => dispatchProps._onIgnoreFor24Hours(stateProps.guiID),
-  onReload: () => dispatchProps._onReload(stateProps.username),
-  reason: stateProps.reason,
-  state: stateProps.state,
-  teamShowcase: stateProps.teamShowcase,
-  username: stateProps.username,
-})
-
-export default remoteConnect(s => s, mapDispatchToProps, mergeProps)(Tracker)
+export default () => {
+  const state = Container.useRemoteStore<DeserializeProps>()
+  const dispatch = Container.useDispatch()
+  const {darkMode, trackerUsername, tracker2, config} = state
+  const {usernameToDetails} = tracker2
+  const details = usernameToDetails.get(trackerUsername) ?? noDetails
+  const {assertions, bio, followersCount, followingCount} = details
+  const {guiID, location, reason, state: trackerState, teamShowcase} = details
+  return (
+    <Tracker
+      assertionKeys={assertions ? [...assertions.keys()] : undefined}
+      bio={bio}
+      darkMode={darkMode}
+      followersCount={followersCount}
+      followingCount={followingCount}
+      guiID={guiID}
+      isYou={config.username === trackerUsername}
+      location={location}
+      onAccept={() => dispatch(Tracker2Gen.createChangeFollow({follow: true, guiID}))}
+      onChat={() => {
+        dispatch(ConfigGen.createShowMain())
+        dispatch(Chat2Gen.createPreviewConversation({participants: [trackerUsername], reason: 'tracker'}))
+      }}
+      onClose={() => {
+        dispatch(Tracker2Gen.createCloseTracker({guiID}))
+        // close immediately
+        const w = SafeElectron.getCurrentWindowFromRemote()
+        w && w.close()
+      }}
+      onFollow={() => dispatch(Tracker2Gen.createChangeFollow({follow: true, guiID}))}
+      onIgnoreFor24Hours={() => dispatch(Tracker2Gen.createIgnore({guiID}))}
+      onReload={() =>
+        dispatch(
+          Tracker2Gen.createLoad({
+            assertion: trackerUsername,
+            forceDisplay: true,
+            fromDaemon: false,
+            guiID: Constants.generateGUIID(),
+            ignoreCache: true,
+            inTracker: true,
+            reason: '',
+          })
+        )
+      }
+      reason={reason}
+      state={trackerState}
+      teamShowcase={teamShowcase}
+      trackerUsername={trackerUsername}
+    />
+  )
+}

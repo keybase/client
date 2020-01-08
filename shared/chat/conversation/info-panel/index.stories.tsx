@@ -137,6 +137,7 @@ const makeLinks = (): any => {
 
 const commonProps = {
   canDeleteHistory: true,
+  canManageBots: true,
   canSetMinWriterRole: false,
   docs: {
     docs: makeDocs(),

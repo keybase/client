@@ -1,44 +1,51 @@
-// A mirror of the remote pinentry windows.
-// RemotePinentrys renders all of them (usually only one)
-// RemotePinentry is a single remote window
+// Manages remote pinentry windows
+import * as Container from '../util/container'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as React from 'react'
 import * as Styles from '../styles'
-import SyncProps from '../desktop/remote/sync-props.desktop'
-import SyncBrowserWindow from '../desktop/remote/sync-browser-window.desktop'
-import * as Container from '../util/container'
-import * as Types from '../constants/types/pinentry'
-import {serialize} from './remote-serializer.desktop'
+import useBrowserWindow from '../desktop/remote/use-browser-window.desktop'
+import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
+import {serialize, ProxyProps} from './remote-serializer.desktop'
 
-export type WireProps = {
-  darkMode: boolean
-  showTyping: RPCTypes.Feature
-  windowComponent: string
-  windowOpts: any
-  windowPositionBottomRight: boolean
-  windowTitle: string
-} & Types.State
+const windowOpts = {height: 230, width: 440}
 
-// Actions are handled by remote-container
-const RemotePinentry: any = SyncBrowserWindow(SyncProps(serialize)(Container.NullComponent))
+const Pinentry = (p: ProxyProps) => {
+  const windowComponent = 'pinentry'
+  const windowParam = 'pinentry'
 
-const windowOpts = {height: 210, width: 440}
+  useBrowserWindow({
+    windowComponent,
+    windowOpts,
+    windowParam,
+    windowTitle: 'Pinentry',
+  })
 
-export default () => {
-  const state = Container.useSelector(s => s)
-  const remoteWindowNeedsProps = state.config.remoteWindowNeedsProps.get('pinentry')
-  const pinentry = state.pinentry
-  const darkMode = Styles.isDarkMode()
-
-  return pinentry.type === RPCTypes.PassphraseType.none || !pinentry.showTyping ? null : (
-    <RemotePinentry
-      remoteWindowNeedsProps={remoteWindowNeedsProps}
-      darkMode={darkMode}
-      windowComponent="pinentry"
-      windowOpts={windowOpts}
-      windowPositionBottomRight={false}
-      windowTitle="Pinentry"
-      {...pinentry}
-    />
-  )
+  useSerializeProps(p, serialize, windowComponent, windowParam)
+  return null
 }
+
+const PinentryMemo = React.memo(Pinentry)
+
+const PinentryProxy = () => {
+  const state = Container.useSelector(s => s)
+  const {showTyping, type} = state.pinentry
+  const show = type !== RPCTypes.PassphraseType.none && !!showTyping
+  if (show) {
+    const {cancelLabel, prompt, retryLabel, submitLabel, windowTitle} = state.pinentry
+    return (
+      <PinentryMemo
+        cancelLabel={cancelLabel}
+        darkMode={Styles.isDarkMode()}
+        prompt={prompt}
+        retryLabel={retryLabel}
+        showTyping={showTyping}
+        submitLabel={submitLabel}
+        type={type}
+        windowTitle={windowTitle}
+      />
+    )
+  }
+  return null
+}
+
+export default PinentryProxy

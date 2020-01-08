@@ -4,8 +4,8 @@ import * as Constants from '../constants/tracker2'
 import * as Types from '../constants/types/tracker2'
 import * as Styles from '../styles'
 import {_setDarkModePreference} from '../styles/dark-mode'
-import Assertion from './assertion/remote-container'
-import Bio from './bio/remote-container'
+import Assertion from './assertion/container'
+import Bio from './bio/container'
 
 type Props = {
   assertionKeys?: ReadonlyArray<string>
@@ -24,11 +24,10 @@ type Props = {
   onIgnoreFor24Hours: () => void
   onAccept: () => void
   onReload: () => void
-  // eslint-disable-next-line no-use-before-define
   reason: string
   state: Types.DetailsState
   teamShowcase?: ReadonlyArray<Types.TeamShowcase>
-  username: string
+  trackerUsername: string
 }
 
 const getButtons = (props: Props) => {
@@ -117,7 +116,7 @@ const Tracker = (props: Props) => {
   if (props.assertionKeys) {
     const unsorted = [...props.assertionKeys]
     const sorted = unsorted.sort(Constants.sortAssertionKeys)
-    assertions = sorted.map(a => <Assertion key={a} assertionKey={a} />)
+    assertions = sorted.map(a => <Assertion username={props.trackerUsername} key={a} assertionKey={a} />)
   } else {
     // TODO could do a loading thing before we know about the list at all?
     assertions = null
@@ -167,7 +166,7 @@ const Tracker = (props: Props) => {
               <Kb.ConnectedNameWithIcon
                 size="big"
                 onClick="profile"
-                username={props.username}
+                username={props.trackerUsername}
                 underline={false}
                 selectable={true}
                 colorFollowing={true}
@@ -175,7 +174,7 @@ const Tracker = (props: Props) => {
               />
             </Kb.Box2>
           </Kb.Box2>
-          <Bio username={props.username} />
+          <Bio inTracker={true} username={props.trackerUsername} />
           {props.teamShowcase && (
             <Kb.Box2 direction="vertical" fullWidth={true} style={styles.teamShowcases} gap="xtiny">
               {props.teamShowcase.map(t => (

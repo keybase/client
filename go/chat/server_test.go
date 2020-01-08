@@ -434,6 +434,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	g.CommandsSource = commands.NewSource(g)
 
 	pushHandler := NewPushHandler(g)
+	pushHandler.Start(context.TODO(), nil)
 	g.PushHandler = pushHandler
 	g.TeamChannelSource = NewTeamChannelSource(g)
 	g.AttachmentURLSrv = types.DummyAttachmentHTTPSrv{}
@@ -2007,6 +2008,8 @@ func TestChatSrvGap(t *testing.T) {
 		enc := codec.NewEncoderBytes(&data, &mh)
 		require.NoError(t, enc.Encode(payload))
 		ph := NewPushHandler(tc.Context())
+		ph.Start(context.TODO(), nil)
+		defer func() { <-ph.Stop(context.TODO()) }()
 		require.NoError(t, ph.Activity(ctx, &gregor1.OutOfBandMessage{
 			Uid_:    u.User.GetUID().ToBytes(),
 			System_: gregor1.System(types.PushActivity),

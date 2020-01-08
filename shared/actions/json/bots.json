@@ -3,7 +3,7 @@
   "actions": {
     "getFeaturedBots": {
       "_description": "Gets featured bots",
-      "limit": "number",
+      "limit?": "number",
       "page?": "number"
     },
     "searchFeaturedBots": {
