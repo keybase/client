@@ -1099,13 +1099,17 @@ func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID
 	if err != nil {
 		return nil, err
 	}
-
 	i := 0
-	for _, msg := range msgs {
-		for res[i] == nil {
+	for _, m := range msgs {
+		for res[i] == nil && i < len(res) {
 			i++
 		}
+		if i >= len(res) {
+			break
+		}
+		msg := m
 		res[i] = &msg
+		i++
 	}
 	return res, nil
 }
