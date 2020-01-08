@@ -246,10 +246,17 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       </Kb.Text>
     )
 
-  private isFailed = () =>
-    !!this.props.failureDescription && (
+  private _isFailed = () =>
+    // hide error messages if the exploding message already exploded
+    !!this.props.failureDescription &&
+    !(this._isExploding() && this.props.exploded) && (
       <Kb.Text key="isFailed" type="BodySmall">
-        <Kb.Text type="BodySmall" style={styles.fail}>
+        <Kb.Text type="BodySmall" style={this._isExploding() ? styles.failExploding : styles.fail}>
+          {this._isExploding() && (
+            <>
+              <Kb.Icon fontSize={16} boxStyle={styles.failExplodingIcon} type="iconfont-block" />{' '}
+            </>
+          )}
           {this.props.failureDescription}.{' '}
         </Kb.Text>
         {!!this.props.onCancel && (
@@ -764,6 +771,13 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       fail: {color: Styles.globalColors.redDark},
+      failExploding: {color: Styles.globalColors.black_50},
+      failExplodingIcon: Styles.platformStyles({
+        isElectron: {
+          display: 'inline-block',
+          verticalAlign: 'middle',
+        },
+      }),
       failUnderline: {color: Styles.globalColors.redDark, textDecorationLine: 'underline'},
       fast,
       menuButtons: Styles.platformStyles({
