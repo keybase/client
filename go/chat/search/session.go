@@ -149,7 +149,7 @@ func (s *searchSession) getMsgsAndIDSet(ctx context.Context, convID chat1.Conver
 	}
 	res := []chat1.MessageUnboxed{}
 	for _, msg := range msgs {
-		if msg.IsValidFull() && msg.IsVisible() {
+		if msg.IsValid() && msg.IsVisible() {
 			res = append(res, msg)
 		}
 	}
