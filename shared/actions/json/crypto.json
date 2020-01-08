@@ -1,0 +1,65 @@
+{
+  "prelude": ["import * as Types from '../constants/types/crypto'"],
+  "actions": {
+    "clearRecipients": {
+      "_description": "Remove all recipients from operation",
+      "operation": "Types.Operations"
+    },
+    "clearInput": {
+      "_description": "Clear input type and value from the specified operation",
+      "operation": "Types.Operations"
+    },
+    "setRecipients": {
+      "_description": "Array recipients of operations, provided via TeamBuilding",
+      "operation": "Types.Operations",
+      "recipients": "Array<string>"
+    },
+    "setInput": {
+      "_description": "Set input type (text, file) and value on user input. Either keyboard input or drag-and-drop file",
+      "operation": "Types.Operations",
+      "type": "Types.InputTypes",
+      "value": "string"
+    },
+    "setEncryptOptions": {
+      "_description": "Encrypt operation takes three options { 'includeSelf', 'sign', 'usePGP' }",
+      "options": "Types.EncryptOptions"
+    },
+    "onOperationSuccess": {
+      "_description": "On saltpack RPC successful response",
+      "operation": "Types.Operations",
+      "output": "string",
+      "outputType": "Types.OutputType"
+    },
+    "onOperationError": {
+      "_description": "On saltpack RPC error response",
+      "operation": "Types.Operations",
+      "errorType": "Types.ErrorTypes",
+      "errorMessage": "string"
+    },
+    "resetOperation": {
+      "_description": "Resets all values in the store for the given operation",
+      "operation": "Types.Operations"
+    },
+    "saltpackEncrypt": {
+      "_description": "Calls Saltpack RPC",
+      "recipients": "Array<string>",
+      "input": "string",
+      "type": "Types.InputTypes"
+    },
+    "saltpackDecrypt": {
+      "_description": "Calls Saltpack RPC",
+      "input": "string",
+      "type": "Types.InputTypes"
+    },
+    "saltpackSign": {
+      "_description": "Calls Saltpack RPC",
+      "input": "string",
+      "type": "Types.InputTypes"
+    },
+    "saltpackVerify": {
+      "_description": "Calls Saltpack RPC",
+      "input": "string",
+      "type": "Types.InputTypes"
+    }
+  }
+}
