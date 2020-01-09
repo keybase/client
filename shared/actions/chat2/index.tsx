@@ -2782,8 +2782,8 @@ function* createConversation(
       Chat2Gen.createConversationErrored({
         allowedUsers,
         code: error.code,
-        message: error.desc,
         disallowedUsers,
+        message: error.desc,
       })
     )
     yield Saga.put(
