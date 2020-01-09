@@ -172,7 +172,7 @@ func (h *SaltpackHandler) SaltpackEncryptString(ctx context.Context, arg keybase
 	}
 
 	uis := libkb.UIs{
-		SecretUI:  h.getSecretUI(arg.SessionID, h.G()),
+		SecretUI:  &nopSecretUI{},
 		SessionID: arg.SessionID,
 	}
 
@@ -190,7 +190,30 @@ func (h *SaltpackHandler) SaltpackEncryptString(ctx context.Context, arg keybase
 
 func (h *SaltpackHandler) SaltpackDecryptString(ctx context.Context, arg keybase1.SaltpackDecryptStringArg) (keybase1.SaltpackPlaintextResult, error) {
 	ctx = libkb.WithLogTag(ctx, "SP")
-	return keybase1.SaltpackPlaintextResult{}, errors.New("nyi")
+	sink := libkb.NewBufferCloser()
+	earg := &engine.SaltpackDecryptArg{
+		Sink:   sink,
+		Source: strings.NewReader(arg.Ciphertext),
+	}
+
+	uis := libkb.UIs{
+		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID, h.G()), // XXX this could be a problem...
+		SecretUI:   &nopSecretUI{},
+		SaltpackUI: &capSaltpackUI{},
+		SessionID:  arg.SessionID,
+	}
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	resolver := saltpackkeys.NewKeyPseudonymResolver(m)
+	eng := engine.NewSaltpackDecrypt(earg, resolver)
+	err := engine.RunEngine2(m, eng)
+	if err != nil {
+		return keybase1.SaltpackPlaintextResult{}, err
+	}
+	r := keybase1.SaltpackPlaintextResult{
+		Info:      eng.MessageInfo(),
+		Plaintext: sink.String(),
+	}
+	return r, nil
 }
 
 func (h *SaltpackHandler) SaltpackSignString(ctx context.Context, arg keybase1.SaltpackSignStringArg) (string, error) {
@@ -202,7 +225,7 @@ func (h *SaltpackHandler) SaltpackSignString(ctx context.Context, arg keybase1.S
 	}
 
 	uis := libkb.UIs{
-		SecretUI:  h.getSecretUI(arg.SessionID, h.G()),
+		SecretUI:  &nopSecretUI{},
 		SessionID: arg.SessionID,
 	}
 	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
@@ -216,5 +239,66 @@ func (h *SaltpackHandler) SaltpackSignString(ctx context.Context, arg keybase1.S
 
 func (h *SaltpackHandler) SaltpackVerifyString(ctx context.Context, arg keybase1.SaltpackVerifyStringArg) (keybase1.SaltpackVerifyResult, error) {
 	ctx = libkb.WithLogTag(ctx, "SP")
-	return keybase1.SaltpackVerifyResult{}, errors.New("nyi")
+	sink := libkb.NewBufferCloser()
+	earg := &engine.SaltpackVerifyArg{
+		Sink:   sink,
+		Source: strings.NewReader(arg.SignedMsg),
+	}
+
+	spui := &capSaltpackUI{}
+	uis := libkb.UIs{
+		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID, h.G()),
+		SecretUI:   &nopSecretUI{},
+		SaltpackUI: spui,
+		SessionID:  arg.SessionID,
+	}
+	eng := engine.NewSaltpackVerify(h.G(), earg)
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	if err := engine.RunEngine2(m, eng); err != nil {
+		return keybase1.SaltpackVerifyResult{}, err
+	}
+	res := keybase1.SaltpackVerifyResult{
+		Plaintext: sink.String(),
+	}
+	if spui.signingKID != nil {
+		res.SigningKID = *spui.signingKID
+	}
+	if spui.sender != nil {
+		res.Sender = *spui.sender
+	}
+	return res, nil
+}
+
+// nopSecretUI returns an error if it is ever called.
+// A lot of these saltpack engines say they require a secret UI.
+// They really don't, but it's dangerous to try to strip it out.
+type nopSecretUI struct{}
+
+func (n *nopSecretUI) GetPassphrase(pinentry keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error) {
+	return keybase1.GetPassphraseRes{}, errors.New("GetPassphrase called unexpectedly")
+}
+
+// capSaltpackUI captures the various sender info so the RPCs can just return that
+// directly to the caller instead of via a UI.
+type capSaltpackUI struct {
+	decryptArg *keybase1.SaltpackPromptForDecryptArg
+	signingKID *keybase1.KID
+	sender     *keybase1.SaltpackSender
+}
+
+func (c *capSaltpackUI) SaltpackPromptForDecrypt(ctx context.Context, arg keybase1.SaltpackPromptForDecryptArg, _ bool) error {
+	c.decryptArg = &arg
+	return nil
+}
+
+func (c *capSaltpackUI) SaltpackVerifySuccess(ctx context.Context, arg keybase1.SaltpackVerifySuccessArg) error {
+	c.signingKID = &arg.SigningKID
+	c.sender = &arg.Sender
+	return nil
+}
+
+func (c *capSaltpackUI) SaltpackVerifyBadSender(ctx context.Context, arg keybase1.SaltpackVerifyBadSenderArg) error {
+	c.signingKID = &arg.SigningKID
+	c.sender = &arg.Sender
+	return nil
 }

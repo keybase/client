@@ -62,12 +62,23 @@ func (s *CmdTestCrypto) Run() (err error) {
 			Signed:      true,
 		},
 	}
-	out, err := cli.SaltpackEncryptString(mctx.Ctx(), arg)
+	ciphertext, err := cli.SaltpackEncryptString(mctx.Ctx(), arg)
 	if err != nil {
 		return err
 	}
 	dui.Printf("ciphertext:\n\n")
-	dui.Printf("%s\n\n", out)
+	dui.Printf("%s\n\n", ciphertext)
+
+	dui.Printf("decrypting ciphertext\n")
+	decArg := keybase1.SaltpackDecryptStringArg{
+		Ciphertext: ciphertext,
+	}
+	res, err := cli.SaltpackDecryptString(mctx.Ctx(), decArg)
+	if err != nil {
+		return err
+	}
+	dui.Printf("plaintext: %q\n\n", res.Plaintext)
+	dui.Printf("info: %+v\n\n", res.Info)
 
 	dui.Printf("signing string %q\n", plaintext)
 	signArg := keybase1.SaltpackSignStringArg{Plaintext: plaintext}
@@ -77,6 +88,14 @@ func (s *CmdTestCrypto) Run() (err error) {
 	}
 	dui.Printf("signed:\n\n")
 	dui.Printf("%s\n\n", signed)
+
+	dui.Printf("verifying signed msg\n")
+	verifyArg := keybase1.SaltpackVerifyStringArg{SignedMsg: signed}
+	vres, err := cli.SaltpackVerifyString(mctx.Ctx(), verifyArg)
+	if err != nil {
+		return err
+	}
+	dui.Printf("verify result: %+v\n\n", vres)
 
 	return nil
 }

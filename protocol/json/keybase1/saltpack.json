@@ -193,6 +193,10 @@
         {
           "type": "SaltpackSender",
           "name": "sender"
+        },
+        {
+          "type": "string",
+          "name": "plaintext"
         }
       ]
     }

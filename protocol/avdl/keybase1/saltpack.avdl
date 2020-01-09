@@ -81,6 +81,7 @@ protocol saltpack {
   record SaltpackVerifyResult {
     KID signingKID;
     SaltpackSender sender;
+    string plaintext;
   }
   SaltpackVerifyResult saltpackVerifyString(int sessionID, string signedMsg);
 }

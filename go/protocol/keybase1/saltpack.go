@@ -197,12 +197,14 @@ func (o SaltpackPlaintextResult) DeepCopy() SaltpackPlaintextResult {
 type SaltpackVerifyResult struct {
 	SigningKID KID            `codec:"signingKID" json:"signingKID"`
 	Sender     SaltpackSender `codec:"sender" json:"sender"`
+	Plaintext  string         `codec:"plaintext" json:"plaintext"`
 }
 
 func (o SaltpackVerifyResult) DeepCopy() SaltpackVerifyResult {
 	return SaltpackVerifyResult{
 		SigningKID: o.SigningKID.DeepCopy(),
 		Sender:     o.Sender.DeepCopy(),
+		Plaintext:  o.Plaintext,
 	}
 }
 
