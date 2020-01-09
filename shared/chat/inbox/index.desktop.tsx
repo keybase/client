@@ -383,7 +383,6 @@ const InboxHoverContainer = Styles.styled(Kb.Box)({
     transition: 'opacity 0.25s ease-in-out',
   },
   '.grabLinesContainer': {
-    opacity: 0.5,
     transition: 'opacity 0.25s ease-in-out',
   },
   ':hover .grabLines': {opacity: 1},
@@ -475,7 +474,7 @@ const styles = Styles.styleSheetCreate(
       grabber: Styles.platformStyles({
         common: {
           ...Styles.globalStyles.flexBoxRow,
-          backgroundColor: Styles.globalColors.black_05,
+          backgroundColor: Styles.globalColors.blueGreyLight,
           bottom: 8,
           height: Styles.globalMargins.tiny,
           justifyContent: 'center',
