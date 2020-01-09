@@ -29,7 +29,7 @@ export default Container.connect(
   (state, ownProps: OwnProps) => {
     const teamID = Container.getRouteProps(ownProps, 'teamID', Types.noTeamID)
     const {teamname} = Constants.getTeamDetails(state, teamID)
-    const lastOwner = Constants.isLastOwner(state, teamname)
+    const lastOwner = Constants.isLastOwner(state, teamID)
     return {
       _leaving: anyWaiting(state, Constants.leaveTeamWaitingKey(teamname)),
       error: Container.anyErrors(state, Constants.leaveTeamWaitingKey(teamname)),

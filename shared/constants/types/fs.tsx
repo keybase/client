@@ -1,7 +1,6 @@
 import * as RPCTypes from './rpc-gen'
 import * as ChatTypes from './chat2'
 import * as Devices from './devices'
-import * as TeamsTypes from './teams'
 import {isWindows} from '../platform'
 import {memoize} from '../../util/memoize'
 // lets not create cycles in flow, lets discuss how to fix this
@@ -768,7 +767,6 @@ export enum FileViewType {
 }
 
 export type ResetMetadata = Readonly<{
-  badgeIDKey: TeamsTypes.ResetUserBadgeIDKey
   name: string
   visibility: Visibility
   resetParticipants: Array<string>

@@ -73,13 +73,6 @@ export type TypeMap = {[K in TeamRoleType]: string}
 
 export type BoolTypeMap = {[K in TeamRoleType]: boolean}
 
-export type ResetUserBadgeID = Buffer
-export type ResetUserBadgeIDKey = string
-export type ResetUser = {
-  username: string
-  badgeIDKey: ResetUserBadgeIDKey
-}
-
 export type EmailInviteError = {
   malformed: Set<string>
   message: string
@@ -137,11 +130,10 @@ export type State = Readonly<{
   teamDetailsMetaSubscribeCount: number // if >0 we are eagerly reloading team list
   teamIDToChannelInfos: Map<TeamID, Map<ConversationIDKey, ChannelInfo>>
   teamIDToPublicitySettings: Map<TeamID, _PublicitySettings>
-  teamIDToResetUsers: Map<TeamID, Set<ResetUser>>
+  teamIDToResetUsers: Map<TeamID, Set<string>>
   teamIDToRetentionPolicy: Map<TeamID, RetentionPolicy>
   teamNameToID: Map<Teamname, string>
   teamNameToLoadingInvites: Map<Teamname, Map<string, boolean>>
-  teamNameToMembers: Map<Teamname, Map<string, MemberInfo>> // TODO remove
   teamnames: Set<Teamname> // TODO remove
   teamProfileAddList: Array<TeamProfileAddList>
   teamRoleMap: TeamRoleMap

@@ -70,8 +70,6 @@ export default Container.makeReducer<
   [TeamsGen.setTeamDetails]: (draftState, action) => {
     const {teamname, teamID} = action.payload
     const members = Constants.rpcDetailsToMemberInfos(action.payload.members)
-    draftState.teamNameToMembers.set(teamname, Constants.rpcDetailsToMemberInfos(action.payload.members))
-
     const details = mapGetEnsureValue(
       draftState.teamDetails,
       teamID,
@@ -82,9 +80,6 @@ export default Container.makeReducer<
     details.invites = new Set(action.payload.invites)
     details.subteams = action.payload.subteamIDs
     details.requests = new Set(action.payload.requests.get(teamname))
-  },
-  [TeamsGen.setMembers]: (draftState, action) => {
-    draftState.teamNameToMembers.set(action.payload.teamname, action.payload.members)
   },
   [TeamsGen.setTeamCanPerform]: (draftState, action) => {
     draftState.canPerform.set(action.payload.teamID, action.payload.teamOperation)

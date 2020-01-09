@@ -142,12 +142,17 @@ export default Container.namedConnect(
         : 'none'
     const meta = Constants.getMeta(state, message.conversationIDKey)
     const teamname = meta.teamname
+    const teamID = meta.teamID
+    // TODO: possibly useTeamSubscribe here
     const authorIsAdmin = teamname
-      ? TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'admin')
+      ? TeamConstants.userIsRoleInTeam(state, teamID, message.author, 'admin')
       : false
-    const authorIsBot = Constants.messageAuthorIsBot(state, meta, message, _participantInfo)
+    const authorIsBot = teamname
+      ? TeamConstants.userIsRoleInTeam(state, teamID, message.author, 'restrictedbot') ||
+        TeamConstants.userIsRoleInTeam(state, teamID, message.author, 'bot')
+      : false
     const authorIsOwner = teamname
-      ? TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'owner')
+      ? TeamConstants.userIsRoleInTeam(state, teamID, message.author, 'owner')
       : false
     const ordinals = [...Constants.getMessageOrdinals(state, ownProps.conversationIDKey)]
     const botAlias = meta.botAliases[message.author] ?? ''

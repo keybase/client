@@ -808,25 +808,7 @@ function* getTeams(
       teamnames.push(team.fqName)
       teamNameToID.set(team.fqName, team.teamID)
     })
-
-    // Dismiss any stale badges for teams we're no longer in
-    const teamResetUsers = state.teams.teamIDToResetUsers || new Map<Types.TeamID, Set<Types.ResetUser>>()
     const teamNameSet = new Set<string>(teamnames)
-    const dismissIDs = [...teamResetUsers.entries()].reduce<Array<string>>((ids, [key, value]) => {
-      if (!teamNameSet.has(key)) {
-        ids.push(...[...value].map(ru => ru.badgeIDKey))
-      }
-      return ids
-    }, [])
-    yield Saga.all(
-      dismissIDs.map(id =>
-        Saga.callUntyped(
-          RPCTypes.gregorDismissItemRpcPromise,
-          {id: Constants.keyToResetUserBadgeID(id)},
-          Constants.teamsLoadedWaitingKey
-        )
-      )
-    )
 
     yield Saga.put(
       TeamsGen.createSetTeamInfo({
@@ -1316,10 +1298,10 @@ const badgeAppForTeams = (state: TypedState, action: NotificationsGen.ReceivedBa
   const newTeamRequests = badgeState.newTeamAccessRequests || []
 
   const teamsWithResetUsers: Array<RPCTypes.TeamMemberOutReset> = badgeState.teamsWithResetUsers || []
-  const teamsWithResetUsersMap = new Map<Types.TeamID, Set<Types.ResetUser>>()
+  const teamsWithResetUsersMap = new Map<Types.TeamID, Set<string>>()
   teamsWithResetUsers.forEach(entry => {
     const existing = mapGetEnsureValue(teamsWithResetUsersMap, entry.teamID, new Set())
-    existing.add({badgeIDKey: Constants.resetUserBadgeIDToKey(entry.id), username: entry.username})
+    existing.add(entry.username)
   })
 
   /* TODO team notifications should handle what the following block did */

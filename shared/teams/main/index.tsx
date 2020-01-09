@@ -23,7 +23,7 @@ export type OwnProps = {
   onReadMore: () => void
   onViewTeam: (teamID: Types.TeamID) => void
   sawChatBanner: boolean
-  teamresetusers: Map<Types.TeamID, Set<Types.ResetUser>>
+  teamresetusers: Map<Types.TeamID, Set<string>>
   newTeamRequests: Map<Types.TeamID, number>
   teams: Array<Types.TeamDetails>
 }
