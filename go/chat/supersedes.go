@@ -194,7 +194,7 @@ func (t *basicSupersedesTransform) SetMessagesFunc(f getMessagesFunc) {
 }
 
 func (t *basicSupersedesTransform) Run(ctx context.Context,
-	conv types.UnboxConversationInfo, uid gregor1.UID, originalMsgs []chat1.MessageUnboxed) (res []chat1.MessageUnboxed, err error) {
+	conv types.UnboxConversationInfo, uid gregor1.UID, originalMsgs []chat1.MessageUnboxed) (newMsgs []chat1.MessageUnboxed, err error) {
 	defer t.Trace(ctx, func() error { return err }, fmt.Sprintf("Run(%s)", conv.GetConvID()))()
 	originalMsgsMap := make(map[chat1.MessageID]chat1.MessageUnboxed, len(originalMsgs))
 	for _, msg := range originalMsgs {
@@ -284,7 +284,6 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 		})
 	}
 	// Run through all messages and transform superseded messages into final state
-	var newMsgs []chat1.MessageUnboxed
 	xformDelete := func(msgID chat1.MessageID) {
 		if t.opts.UseDeletePlaceholders {
 			newMsgs = append(newMsgs, utils.CreateHiddenPlaceholder(msgID))
@@ -301,7 +300,7 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 			if newMsg == nil {
 				if isDelete {
 					// Transform might return nil in case of a delete.
-					t.Debug(ctx, "skipping: %d because it was deleted", msg.GetMessageID())
+					t.Debug(ctx, "skipping: %d because it was deleted by a delete", msg.GetMessageID())
 					xformDelete(msg.GetMessageID())
 				} else { // just use the original message
 					newMsgs = append(newMsgs, msg)
@@ -310,6 +309,7 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 			}
 			if newMsg.GetMessageID() < deleteHistoryUpto &&
 				chat1.IsDeletableByDeleteHistory(newMsg.GetMessageType()) {
+				t.Debug(ctx, "skipping: %d because it was deleted by delete history", msg.GetMessageID())
 				xformDelete(msg.GetMessageID())
 				continue
 			}
@@ -318,7 +318,8 @@ func (t *basicSupersedesTransform) Run(ctx context.Context,
 				// locally but not superseded by anything.  Could have been
 				// deleted by a delete-history, retention expunge, or was an
 				// exploding message.
-				if !newMsg.IsEphemeral() || newMsg.HideExplosion(conv.GetMaxDeletedUpTo(), time.Now()) {
+				if newMsg.IsValid() && (!newMsg.IsEphemeral() || newMsg.HideExplosion(conv.GetMaxDeletedUpTo(), time.Now())) {
+					t.Debug(ctx, "skipping: %d because it was deleted or a long exploded ephemeral message", msg.GetMessageID())
 					xformDelete(msg.GetMessageID())
 					continue
 				}
