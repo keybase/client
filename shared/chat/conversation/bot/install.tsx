@@ -195,13 +195,13 @@ const InstallBotPopup = (props: Props) => {
 
   const restrictedButton = (
     <Kb.Box2 key={RestrictedItem} direction="vertical" fullWidth={true} style={styles.dropdownButton}>
-      <Kb.Text type="BodySemibold">Restricted Bot</Kb.Text>
+      <Kb.Text type="BodySemibold">Restricted bot (recommended)</Kb.Text>
       <Kb.Text type="BodySmall">Customize which messages get encrypted for this bot.</Kb.Text>
     </Kb.Box2>
   )
   const unrestrictedButton = (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.dropdownButton}>
-      <Kb.Text type="BodySemibold">Unrestricted Bot</Kb.Text>
+      <Kb.Text type="BodySemibold">Unrestricted bot</Kb.Text>
       <Kb.Text type="BodySmall">All messages will be encrypted for this bot.</Kb.Text>
     </Kb.Box2>
   )
@@ -297,7 +297,12 @@ const InstallBotPopup = (props: Props) => {
             />
             <Kb.Checkbox
               checked={installWithMentions}
-              label={`messages it has been mentioned in with @${botUsername}`}
+              labelComponent={
+                <Kb.Text
+                  style={{flex: 1}}
+                  type="Body"
+                >{`messages it has been mentioned in with @${botUsername}`}</Kb.Text>
+              }
               onCheck={() => setInstallWithMentions(!installWithMentions)}
             />
           </Kb.Box2>
@@ -384,10 +389,18 @@ const InstallBotPopup = (props: Props) => {
   )
   const reviewButton = showReviewButton && (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={{marginTop: -Styles.globalMargins.tiny}}>
-      <Kb.Text type="BodySmall" style={{alignSelf: 'center'}}>
-        Install as
-      </Kb.Text>
-      {restrictPicker}
+      {readOnly ? (
+        <Kb.Text style={{alignSelf: 'center'}} type="BodySmall">
+          Ask an admin or owner to install this bot
+        </Kb.Text>
+      ) : (
+        <>
+          <Kb.Text type="BodySmall" style={{alignSelf: 'center'}}>
+            Install as
+          </Kb.Text>
+          {restrictPicker}
+        </>
+      )}
       <Kb.WaitingButton
         fullWidth={true}
         label="Review"
@@ -395,6 +408,7 @@ const InstallBotPopup = (props: Props) => {
         mode="Primary"
         type="Default"
         waitingKey={Constants.waitingKeyBotAdd}
+        disabled={readOnly}
       />
     </Kb.Box2>
   )
@@ -434,7 +448,6 @@ const InstallBotPopup = (props: Props) => {
       waitingKey={Constants.waitingKeyBotAdd}
     />
   )
-
   const doneButton = showDoneButton && (
     <Kb.Button
       fullWidth={true}
@@ -464,7 +477,7 @@ const InstallBotPopup = (props: Props) => {
         title: channelPickerScreen ? 'Channels' : '',
       }}
       footer={
-        enabled && !readOnly
+        enabled && (!readOnly || showReviewButton)
           ? {
               content: (
                 <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
@@ -591,7 +604,6 @@ const styles = Styles.styleSheetCreate(() => ({
     width: '100%',
   },
   dropdownButton: {
-    flex: 1,
     padding: Styles.globalMargins.tiny,
   },
   outerContainer: Styles.platformStyles({
