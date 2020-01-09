@@ -24,8 +24,6 @@ type SaltpackRecipientKeyfinderEngine struct {
 	engine.SaltpackUserKeyfinder
 	SymmetricEntityKeyMap map[keybase1.TeamID](keybase1.TeamApplicationKey)
 	SaltpackSymmetricKeys []libkb.SaltpackReceiverSymmetricKey
-
-	SkipTlfKeysForTesting bool // CORE-8423 remove this after most clients update
 }
 
 var _ libkb.Engine2 = (*SaltpackRecipientKeyfinderEngine)(nil)
@@ -36,16 +34,6 @@ func NewSaltpackRecipientKeyfinderEngineAsInterface(arg libkb.SaltpackRecipientK
 	return &SaltpackRecipientKeyfinderEngine{
 		SaltpackUserKeyfinder: *engine.NewSaltpackUserKeyfinder(arg),
 		SymmetricEntityKeyMap: make(map[keybase1.TeamID](keybase1.TeamApplicationKey)),
-	}
-}
-
-// SaltpackRecipientKeyfinderEngineForTesting creates a SaltpackRecipientKeyfinderEngine engine.
-// CORE-8423 remove this after most clients update
-func NewSaltpackRecipientKeyfinderEngineAsInterfaceForTesting(arg libkb.SaltpackRecipientKeyfinderArg) libkb.SaltpackRecipientKeyfinderEngineInterface {
-	return &SaltpackRecipientKeyfinderEngine{
-		SaltpackUserKeyfinder: *engine.NewSaltpackUserKeyfinder(arg),
-		SymmetricEntityKeyMap: make(map[keybase1.TeamID](keybase1.TeamApplicationKey)),
-		SkipTlfKeysForTesting: true,
 	}
 }
 
