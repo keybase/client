@@ -50,9 +50,8 @@ Disable a previously set policy
 		},
 		Flags: append(getConversationResolverFlags(), []cli.Flag{
 			cli.StringFlag{
-				Name: "r, role",
-				// TODO HOTPOT-599 add bot (but not restricted bot) role
-				Usage: "team role (owner, admin, writer, reader, none)",
+				Name:  "r, role",
+				Usage: "team role (owner, admin, writer, reader, bot, none)",
 			},
 		}...),
 	}

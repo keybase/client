@@ -500,6 +500,14 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 	sort.Slice(msgs, func(i, j int) bool {
 		return msgs[i].GetMessageID() < msgs[j].GetMessageID()
 	})
+	newMsgMap := make(map[chat1.MessageID]chat1.MessageUnboxed)
+	getMessage := func(msgID chat1.MessageID) (*chat1.MessageUnboxed, Error) {
+		stored, ok := newMsgMap[msgID]
+		if ok {
+			return &stored, nil
+		}
+		return s.getMessage(ctx, convID, uid, msgID)
+	}
 	for _, msg := range msgs {
 		msgid := msg.GetMessageID()
 		if !msg.IsValid() {
@@ -523,7 +531,7 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 
 			s.Debug(ctx, "updateSupersededBy: msg: %v supersedes: %v", msg.DebugString(), supersededID)
 			// Read superseded msg
-			superMsg, err := s.getMessage(ctx, convID, uid, supersededID)
+			superMsg, err := getMessage(supersededID)
 			if err != nil {
 				return res, err
 			}
@@ -539,17 +547,16 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 				s.Debug(ctx, "updateSupersededBy: writing: id: %d superseded: %d", msgid, supersededID)
 				mvalid := superMsg.Valid()
 
-				newMsgs := []chat1.MessageUnboxed{}
 				switch msg.GetMessageType() {
 				case chat1.MessageType_TEXT:
 					mvalid.ServerHeader.Replies = append(mvalid.ServerHeader.Replies, msg.GetMessageID())
 					newMsg := chat1.NewMessageUnboxedWithValid(mvalid)
-					newMsgs = append(newMsgs, newMsg)
+					newMsgMap[newMsg.GetMessageID()] = newMsg
 				case chat1.MessageType_UNFURL:
 					unfurl := msg.Valid().MessageBody.Unfurl()
 					utils.SetUnfurl(&mvalid, msg.GetMessageID(), unfurl.Unfurl)
 					newMsg := chat1.NewMessageUnboxedWithValid(mvalid)
-					newMsgs = append(newMsgs, newMsg)
+					newMsgMap[newMsg.GetMessageID()] = newMsg
 					updatedUnfurlTargets[superMsg.GetMessageID()] = UnfurlMergeResult{
 						Msg:         newMsg,
 						IsMapDelete: false,
@@ -563,7 +570,7 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 					mvalid.ServerHeader.ReactionIDs, reactionUpdate =
 						s.updateReactionIDs(mvalid.ServerHeader.ReactionIDs, msgid)
 					newMsg := chat1.NewMessageUnboxedWithValid(mvalid)
-					newMsgs = append(newMsgs, newMsg)
+					newMsgMap[newMsg.GetMessageID()] = newMsg
 					if reactionUpdate {
 						updatedReactionTargets[superMsg.GetMessageID()] = newMsg
 					}
@@ -580,7 +587,7 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 								Msg:         updatedTarget,
 								IsMapDelete: utils.IsMapUnfurl(*superMsg),
 							}
-							newMsgs = append(newMsgs, updatedTarget)
+							newMsgMap[updatedTarget.GetMessageID()] = updatedTarget
 						}
 					case chat1.MessageType_REACTION:
 						// We have to find the message we are reacting to and
@@ -593,29 +600,38 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 							if reactionUpdate {
 								updatedReactionTargets[newTargetMsg.GetMessageID()] = *newTargetMsg
 							}
-							newMsgs = append(newMsgs, *newTargetMsg)
+							newMsgMap[newTargetMsg.GetMessageID()] = *newTargetMsg
 						}
 					}
 					msgPurged, assets := s.purgeMessage(mvalid)
 					allPurged = append(allPurged, *superMsg)
 					allAssets = append(allAssets, assets...)
-					newMsgs = append(newMsgs, msgPurged)
+					newMsgMap[msgPurged.GetMessageID()] = msgPurged
 				case chat1.MessageType_EDIT:
 					s.updateRepliesAffected(ctx, convID, uid, mvalid.ServerHeader.Replies, repliesAffected)
 					fallthrough
 				default:
 					mvalid.ServerHeader.SupersededBy = msgid
 					newMsg := chat1.NewMessageUnboxedWithValid(mvalid)
-					newMsgs = append(newMsgs, newMsg)
-				}
-				if err = s.engine.WriteMessages(ctx, convID, uid, newMsgs); err != nil {
-					return res, err
+					newMsgMap[newMsg.GetMessageID()] = newMsg
 				}
 			} else {
 				s.Debug(ctx, "updateSupersededBy: skipping id: %d, it is stored as an error",
 					superMsg.GetMessageID())
 			}
 		}
+	}
+
+	// Write out all the modified messages in one shot
+	newMsgs := make([]chat1.MessageUnboxed, 0, len(newMsgMap))
+	for _, msg := range newMsgMap {
+		newMsgs = append(newMsgs, msg)
+	}
+	sort.Slice(newMsgs, func(i, j int) bool {
+		return newMsgs[i].GetMessageID() > newMsgs[j].GetMessageID()
+	})
+	if err = s.engine.WriteMessages(ctx, convID, uid, newMsgs); err != nil {
+		return res, err
 	}
 
 	// queue asset deletions in the background

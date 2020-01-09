@@ -82,7 +82,7 @@ class Thread extends React.PureComponent<Props, State> {
   }
 
   private logAll = debug
-    ? (list, name, fn: any) => {
+    ? (list: HTMLDivElement, name: string, fn: any) => {
         const oldScrollTop = list.scrollTop
         const oldScrollHeight = list.scrollHeight
         const oldClientHeight = list.clientHeight
@@ -104,7 +104,7 @@ class Thread extends React.PureComponent<Props, State> {
           list.clientHeight
         )
       }
-    : (_, __, fn: any) => fn()
+    : (_: HTMLDivElement, __: string, fn: any) => fn()
 
   private scrollToCentered = () => {
     const list = this.listRef.current
@@ -598,7 +598,7 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
 
   // We ran into an issue where this was being called tremendously fast with inside/below. To stop that behavior
   // we defer settings things invisible for a little bit, which seems enough to fix it
-  private handlePositionChange = p => {
+  private handlePositionChange = (p: Waypoint.CallbackArgs) => {
     // lets ignore when this happens, this seems like a large source of jiggliness
     if (this.isVisible && !p.event) {
       return

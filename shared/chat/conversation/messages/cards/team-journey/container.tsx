@@ -6,6 +6,7 @@ import * as Container from '../../../../../util/container'
 import * as MessageTypes from '../../../../../constants/types/chat2/message'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import * as RPCChatTypes from '../../../../../constants/types/rpc-chat-gen'
+import * as Styles from '../../../../../styles'
 import * as TeamConstants from '../../../../../constants/teams'
 import * as TeamTypes from '../../../../../constants/types/teams'
 import * as TeamsGen from '../../../../../actions/teams-gen'
@@ -53,7 +54,10 @@ const TeamJourneyContainer = (props: Props) => {
           : ['wave', {label: 'Publish team on your profile', onClick: props.onPublishTeam}]
       image = 'icon-illustration-welcome-96'
       textComponent = (
-        <Kb.Text type="BodySmall">Welcome to the team! Say hi to everyone and introduce yourself.</Kb.Text>
+        <Kb.Text type="BodySmall">
+          <Kb.Emoji allowFontScaling={true} size={Styles.globalMargins.small} emojiName=":wave:" /> Welcome to
+          the team! Say hi to everyone and introduce yourself.
+        </Kb.Text>
       )
       break
     case RPCChatTypes.JourneycardType.popularChannels:

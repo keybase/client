@@ -335,6 +335,30 @@ func (m MessageUnboxed) GetMessageID() MessageID {
 	return 0
 }
 
+func (m MessageUnboxed) IsEphemeral() bool {
+	if state, err := m.State(); err == nil {
+		switch state {
+		case MessageUnboxedState_VALID:
+			return m.Valid().IsEphemeral()
+		case MessageUnboxedState_ERROR:
+			return m.Error().IsEphemeral
+		}
+	}
+	return false
+}
+
+func (m MessageUnboxed) HideExplosion(maxDeletedUpto MessageID, now time.Time) bool {
+	if state, err := m.State(); err == nil {
+		switch state {
+		case MessageUnboxedState_VALID:
+			return m.Valid().HideExplosion(maxDeletedUpto, now)
+		case MessageUnboxedState_ERROR:
+			return m.Error().HideExplosion(maxDeletedUpto, now)
+		}
+	}
+	return false
+}
+
 func (m MessageUnboxed) GetOutboxID() *OutboxID {
 	if state, err := m.State(); err == nil {
 		switch state {
@@ -668,6 +692,26 @@ func (m MessageUnboxedError) ParseableVersion() bool {
 
 func (m MessageUnboxedError) IsEphemeralError() bool {
 	return m.IsEphemeral && (m.ErrType == MessageUnboxedErrorType_EPHEMERAL || m.ErrType == MessageUnboxedErrorType_PAIRWISE_MISSING)
+}
+
+func (m MessageUnboxedError) IsEphemeralExpired(now time.Time) bool {
+	if !m.IsEphemeral {
+		return false
+	}
+	etime := m.Etime.Time()
+	// There are a few ways a message could be considered expired
+	// 1. We were "exploded now"
+	// 2. Our lifetime is up
+	return m.ExplodedBy != nil || etime.Before(now) || etime.Equal(now)
+}
+
+func (m MessageUnboxedError) HideExplosion(maxDeletedUpto MessageID, now time.Time) bool {
+	if !m.IsEphemeral {
+		return false
+	}
+	etime := m.Etime
+	// Don't show ash lines for messages that have been expunged.
+	return etime.Time().Add(ShowExplosionLifetime).Before(now) || m.MessageID < maxDeletedUpto
 }
 
 func (m MessageUnboxedValid) AsDeleteHistory() (res MessageDeleteHistory, err error) {
@@ -1013,6 +1057,13 @@ func (m MessageBoxed) IsEphemeralExpired(now time.Time) bool {
 	}
 	etime := m.Etime().Time()
 	return m.EphemeralMetadata().ExplodedBy != nil || etime.Before(now) || etime.Equal(now)
+}
+
+func (m MessageBoxed) ExplodedBy() *string {
+	if !m.IsEphemeral() {
+		return nil
+	}
+	return m.EphemeralMetadata().ExplodedBy
 }
 
 var ConversationStatusGregorMap = map[ConversationStatus]string{

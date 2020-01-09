@@ -12,7 +12,7 @@ const copyChildren = (children: React.ReactNode): React.ReactNode =>
 
 export const animationDuration = 1500
 
-const retainedHeights = {}
+const retainedHeights = new Set<string>()
 
 type State = {
   animating: boolean
@@ -31,8 +31,8 @@ class ExplodingHeightRetainer extends React.PureComponent<Props, State> {
 
   componentDidMount() {
     // remeasure if we are already exploded
-    if (this.props.retainHeight && retainedHeights[this.props.messageKey] && this.props.measure) {
-      delete retainedHeights[this.props.messageKey]
+    if (this.props.retainHeight && retainedHeights.has(this.props.messageKey) && this.props.measure) {
+      retainedHeights.delete(this.props.messageKey)
       this.props.measure()
     }
   }
@@ -60,7 +60,7 @@ class ExplodingHeightRetainer extends React.PureComponent<Props, State> {
     if (node instanceof HTMLElement) {
       const height = node.clientHeight
       if (height && height !== this.state.height) {
-        retainedHeights[this.props.messageKey] = true
+        retainedHeights.add(this.props.messageKey)
         this.setState({height})
       }
     }

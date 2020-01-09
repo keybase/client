@@ -26,13 +26,14 @@ import (
 )
 
 const (
+	maxAllowedMerkleGapServer = 13 * time.Hour
 	// Our contract with the server states that it won't accept KBFS
-	// writes if more than 8 hours have passed since the last Merkle
+	// writes if more than 13 hours have passed since the last Merkle
 	// roots (both global and KBFS) were published.  Add some padding
 	// to that, and if we see any gaps larger than this, we will know
 	// we shouldn't be trusting the server.  TODO: reduce this once
 	// merkle computation is faster.
-	maxAllowedMerkleGap = 8*time.Hour + 15*time.Minute
+	maxAllowedMerkleGap = maxAllowedMerkleGapServer + 15*time.Minute
 
 	// merkleGapEnforcementStartString indicates when the mdserver
 	// started rejecting new writes based on the lack of recent merkle
@@ -375,6 +376,57 @@ func (md *MDOpsStandard) checkRevisionCameBeforeMerkle(
 	verifyingKey kbfscrypto.VerifyingKey, irmd ImmutableRootMetadata,
 	root keybase1.MerkleRootV2, timeToCheck time.Time) (err error) {
 	ctx = context.WithValue(ctx, ctxMDOpsSkipKeyVerification, struct{}{})
+	// This gives us the KBFS merkle root that comes after the KBFS merkle
+	// root right after the one included by `root`. In other words, if the
+	// KBFS merkle root included in `root` is K0, the returned KBFS merkle
+	// root `kbfsRoot` here would be K2.
+	//
+	// Since `root` is the merkle root included by the revoke signature,
+	// anything written by the revoked device after K2 is not legit. The reason
+	// why we don't check K1 is that when K1 was built, it's possible that it
+	// only included writes happening right before the revoke happened. For
+	// example:
+	//
+	//    - 8:00am mdmerkle starts to run
+	//    - 8:01am mdmerkle scans TLF /keybase/private/alice
+	//    - 8:02am Alice's device "Playstation 4" writes to her TLF
+	//        /keybase/private/alice
+	//    - 8:03am Alice revokes her device "Playstation 4", referencing a
+	//        global merkle root that includes KBFS merkle K0
+	//    - 8:07am mdmerkle finishes building the merkle tree and publish K1,
+	//        which includes the head MD from /keybase/private/alice from 8:01,
+	//        the one before the write happened at 8:02am.
+	//    - 9:00am mdmerkle starts to run again, producing a KBFS merkle tree
+	//        K2.
+	//
+	// Looking at the per TLF metadata chain, the writes happened at 8:02
+	// happened after the MD included in K1, but it was before the revoke and
+	// was legit. So we have to compare with K2 instead of K1.
+	//
+	// To protect against a malicious server indefinitely halting building
+	// KBFS merkle trees with the purpose of slipping in malicious writes
+	// from a revoked device, we have a "contract" with the mdserver that
+	// any writes happening after a grace period of
+	// `maxAllowedMerkleGapServer` after the last KBFS merkle tree was
+	// published should be rejected. In other words, KBFS should become
+	// readonly if `maxAllowedMerkleGapServer` has passed since last KBFS
+	// merkle tree was published. We add a small error window to it, and
+	// enforce in the client that any MD with a gap greater than
+	// `maxAllowedMerkleGap` since last KBFS merkle tree is illegal.
+	//
+	// However there's no way get a trustable timestamp for the metadata
+	// update happening at 8:02am when we haven't verified that metadata yet,
+	// we have to proxy it to some sort of ordering from merkle trees. Here we
+	// are using K2 as that proxy. Since we already need to guarantee the
+	// metadata in question has to happen before K2, we just need to make sure
+	// K2 happens within `maxAllowedMerkleGap` since the revoke happened.
+	//
+	// Unfortunately this means if mdmerkle takes longer than
+	// `maxAllowedMerkleGap` to build two trees, and a device both writes to a
+	// TLF and then gets revoked within that gap (and those writes are the most
+	// recent writes to the TLF), there's no way for us to know for sure the
+	// write is legit, from merkle tree perspective, and future reads of the
+	// TLF will fail without manual intervention.
 	kbfsRoot, merkleNodes, rootSeqno, err :=
 		md.config.MDCache().GetNextMD(rmds.MD.TlfID(), root.Seqno)
 	switch errors.Cause(err).(type) {
@@ -473,6 +525,13 @@ func (md *MDOpsStandard) checkRevisionCameBeforeMerkle(
 			// TODO(KBFS-2954): get the right root time for the
 			// corresponding global root.
 			latestRootTime := time.Unix(kbfsRoot.Timestamp, 0)
+			// This is to make sure kbfsRoot is built within
+			// maxAllowedMerkleGap from timeToCheck (which is the from the
+			// revoke signature). As mentioned in the large comment block
+			// above, since there's no other way to get a trustable time from
+			// this particular metadata update when we don't trust it yet, we
+			// use the "happens before K2" check below as a proxy, and make
+			// sure K2 is within the gap.
 			err = md.checkMerkleTimes(
 				ctx, latestRootTime, kbfsRoot, timeToCheck,
 				// Check the gap from the reverse direction, to make sure the
@@ -501,6 +560,9 @@ func (md *MDOpsStandard) checkRevisionCameBeforeMerkle(
 
 	// If the given revision comes after the merkle leaf revision,
 	// then don't verify it.
+	//
+	// In the context of the large comment at the beginning of this method,
+	// this is to check a write happens before K2.
 	if irmd.Revision() > leaf.Revision {
 		return MDWrittenAfterRevokeError{
 			irmd.TlfID(), irmd.Revision(), leaf.Revision, verifyingKey}

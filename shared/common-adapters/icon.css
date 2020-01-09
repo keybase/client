@@ -93,7 +93,7 @@
 .icon-gen-iconfont-proof-pending::before {content: "\e94d";}
 .icon-gen-iconfont-proof-placeholder::before {content: "\e94e";}
 .icon-gen-iconfont-qr-code::before {content: "\e94f";}
-.icon-gen-iconfont-question-mark::before {content: "\e950";}
+.icon-gen-iconfont-question-mark::before {content: "\e9b1";}
 .icon-gen-iconfont-reacji::before {content: "\e951";}
 .icon-gen-iconfont-reacji-heart::before {content: "\e952";}
 .icon-gen-iconfont-reacji-sheep::before {content: "\e953";}
@@ -188,5 +188,7 @@
 .icon-gen-iconfont-photo-library::before {content: "\e9ac";}
 .icon-gen-iconfont-video-library::before {content: "\e9ad";}
 .icon-gen-iconfont-copy::before {content: "\e9ae";}
-.icon-gen-iconfont-warning::before {content: "\e9ae";}
+.icon-gen-iconfont-warning::before {content: "\e9af";}
+.icon-gen-iconfont-nav-2-crypto::before {content: "\e9b0";}
+.icon-gen-iconfont-unlock::before {content: "\e9b2";}
 

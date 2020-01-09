@@ -37,6 +37,12 @@ func NewCmdChat(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command 
 		newCmdChatSearchRegexp(cl, g),
 		newCmdChatSend(cl, g),
 		newCmdChatUpload(cl, g),
+		newCmdChatAddBotMember(cl, g),
+		newCmdChatRemoveBotMember(cl, g),
+		newCmdChatEditBotMember(cl, g),
+		newCmdChatBotMemberSettings(cl, g),
+		newCmdChatFeaturedBots(cl, g),
+		newCmdChatSearchBots(cl, g),
 	}
 	subcommands = append(subcommands, getBuildSpecificChatCommands(cl, g)...)
 	return cli.Command{

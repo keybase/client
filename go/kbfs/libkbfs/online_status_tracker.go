@@ -158,7 +158,13 @@ func ostFsm(
 ) {
 	defer wg.Done()
 
+	select {
+	case <-ctx.Done():
+		return
+	default:
+	}
 	log.CDebugf(ctx, "ostFsm initialState=%s", initialState)
+
 	state := initialState
 	for {
 		previousState := state

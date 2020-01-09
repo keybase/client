@@ -12,7 +12,7 @@ type Props = {
   addee: string
   adder: string
   bulkAdds: Array<string>
-  role: TeamTypes.TeamRoleType
+  role: TeamTypes.MaybeTeamRoleType
   onManageNotifications: () => void
   onViewTeam: () => void
   isTeam: boolean

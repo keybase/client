@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Sb from '../../../../../stories/storybook'
+import * as Styles from '../../../../../styles'
 import TeamJourney from './index'
 
 const commonProps = {
@@ -16,7 +17,10 @@ const load = () => {
         actions={['wave', {label: 'Publish team on your profile', onClick: Sb.action('onPublishTeam')}]}
         image="icon-illustration-welcome-96"
         textComponent={
-          <Kb.Text type="BodySmall">Welcome to the team! Say hi to everyone and introduce yourself.</Kb.Text>
+          <Kb.Text type="BodySmall">
+            <Kb.Emoji allowFontScaling={true} size={Styles.globalMargins.small} emojiName=":wave:" /> Welcome
+            to the team! Say hi to everyone and introduce yourself.
+          </Kb.Text>
         }
       />
     ))
@@ -29,7 +33,10 @@ const load = () => {
         ]}
         image="icon-illustration-welcome-96"
         textComponent={
-          <Kb.Text type="BodySmall">Welcome to the team! Say hi to everyone and introduce yourself.</Kb.Text>
+          <Kb.Text type="BodySmall">
+            <Kb.Emoji allowFontScaling={true} size={Styles.globalMargins.small} emojiName=":wave:" /> Welcome
+            to the team! Say hi to everyone and introduce yourself.
+          </Kb.Text>
         }
       />
     ))

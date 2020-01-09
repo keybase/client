@@ -94,21 +94,21 @@ func (b *Boxer) log() logger.Logger {
 func (b *Boxer) makeErrorMessageFromPieces(ctx context.Context, err types.UnboxingError,
 	msgID chat1.MessageID, msgType chat1.MessageType, ctime gregor1.Time,
 	sender gregor1.UID, senderDevice gregor1.DeviceID, botUID *gregor1.UID,
-	isEphemeral, isEphemeralExpired bool, etime gregor1.Time) chat1.MessageUnboxed {
+	isEphemeral bool, explodedBy *string, etime gregor1.Time) chat1.MessageUnboxed {
 	e := chat1.MessageUnboxedError{
-		ErrType:            err.ExportType(),
-		ErrMsg:             err.Error(),
-		InternalErrMsg:     err.InternalError(),
-		VersionKind:        err.VersionKind(),
-		VersionNumber:      err.VersionNumber(),
-		IsCritical:         err.IsCritical(),
-		MessageID:          msgID,
-		MessageType:        msgType,
-		Ctime:              ctime,
-		IsEphemeral:        isEphemeral,
-		IsEphemeralExpired: isEphemeralExpired,
-		Etime:              etime,
-		BotUsername:        b.getBotInfoLocal(ctx, botUID),
+		ErrType:        err.ExportType(),
+		ErrMsg:         err.Error(),
+		InternalErrMsg: err.InternalError(),
+		VersionKind:    err.VersionKind(),
+		VersionNumber:  err.VersionNumber(),
+		IsCritical:     err.IsCritical(),
+		MessageID:      msgID,
+		MessageType:    msgType,
+		Ctime:          ctime,
+		IsEphemeral:    isEphemeral,
+		ExplodedBy:     explodedBy,
+		Etime:          etime,
+		BotUsername:    b.getBotInfoLocal(ctx, botUID),
 	}
 	e.SenderUsername, e.SenderDeviceName, e.SenderDeviceType = b.getSenderInfoLocal(ctx,
 		sender, senderDevice)
@@ -119,7 +119,7 @@ func (b *Boxer) makeErrorMessage(ctx context.Context, msg chat1.MessageBoxed, er
 	return b.makeErrorMessageFromPieces(ctx, err, msg.GetMessageID(), msg.GetMessageType(),
 		msg.ServerHeader.Ctime, msg.ClientHeader.Sender, msg.ClientHeader.SenderDevice,
 		msg.ClientHeader.BotUID,
-		msg.IsEphemeral(), msg.IsEphemeralExpired(b.clock.Now()), msg.Etime())
+		msg.IsEphemeral(), msg.ExplodedBy(), msg.Etime())
 }
 
 func (b *Boxer) detectPermanentError(conv types.UnboxConversationInfo, err error, tlfName string) types.UnboxingError {
@@ -802,7 +802,7 @@ func (b *Boxer) ResolveSkippedUnboxed(ctx context.Context, msg chat1.MessageUnbo
 				msg.Valid().ServerHeader.Ctime, msg.Valid().ClientHeader.Sender,
 				msg.Valid().ClientHeader.SenderDevice,
 				msg.Valid().ClientHeader.BotUID, msg.Valid().IsEphemeral(),
-				msg.Valid().IsEphemeralExpired(b.clock.Now()), msg.Valid().Etime()), true, nil
+				msg.Valid().ExplodedBy(), msg.Valid().Etime()), true, nil
 		}
 		return msg, false, ierr
 	}

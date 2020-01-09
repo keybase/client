@@ -1903,6 +1903,22 @@ const iconMeta_ = {
       return require('../images/icons/icon-dark-file-placeholder-32.png')
     },
   },
+  'icon-dark-file-saltpack-encrypted-64': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-file-saltpack-encrypted-64.png')
+    },
+  },
+  'icon-dark-file-saltpack-signed-64': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-dark-file-saltpack-signed-64.png')
+    },
+  },
   'icon-dark-file-txt-48': {
     extension: 'png',
     imagesDir: 'icons',
@@ -3973,6 +3989,30 @@ const iconMeta_ = {
     },
     get requireDark() {
       return require('../images/icons/icon-dark-file-placeholder-32.png')
+    },
+  },
+  'icon-file-saltpack-encrypted-64': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    nameDark: 'icon-dark-file-saltpack-encrypted-64',
+    get require() {
+      return require('../images/icons/icon-file-saltpack-encrypted-64.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-file-saltpack-encrypted-64.png')
+    },
+  },
+  'icon-file-saltpack-signed-64': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    nameDark: 'icon-dark-file-saltpack-signed-64',
+    get require() {
+      return require('../images/icons/icon-file-saltpack-signed-64.png')
+    },
+    get requireDark() {
+      return require('../images/icons/icon-dark-file-saltpack-signed-64.png')
     },
   },
   'icon-file-txt-48': {
@@ -8296,6 +8336,11 @@ const iconMeta_ = {
     gridSize: 24,
     isFont: true,
   },
+  'iconfont-nav-2-crypto': {
+    charCode: 0xe9b0,
+    gridSize: 24,
+    isFont: true,
+  },
   'iconfont-nav-2-devices': {
     charCode: 0xe982,
     gridSize: 24,
@@ -8487,7 +8532,7 @@ const iconMeta_ = {
     isFont: true,
   },
   'iconfont-question-mark': {
-    charCode: 0xe950,
+    charCode: 0xe9b1,
     gridSize: 16,
     isFont: true,
   },
@@ -8666,6 +8711,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-unlock': {
+    charCode: 0xe9b2,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-upload': {
     charCode: 0xe967,
     gridSize: 16,
@@ -8692,7 +8742,7 @@ const iconMeta_ = {
     isFont: true,
   },
   'iconfont-warning': {
-    charCode: 0xe9ae,
+    charCode: 0xe9af,
     gridSize: 16,
     isFont: true,
   },

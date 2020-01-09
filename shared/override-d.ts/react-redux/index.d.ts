@@ -227,32 +227,17 @@ export type ResolveArrayThunks<TDispatchProps extends ReadonlyArray<any>> = TDis
 // KB added
 export type ConnectedComponentType<TMergedProps, TOwnProps> = <C extends ComponentType<any>>(
   component: C
-) => TMergedProps extends React.ComponentProps<C> ? ConnectedComponentClass<C, TOwnProps> : never
-
-// To debug why the connect is returning never
-export type ConnectedComponentTypeDEBUG<TMergedProps, TOwnProps> = <C extends ComponentType<any>>(
-  component: C
 ) => TMergedProps extends React.ComponentProps<C>
   ? ConnectedComponentClass<C, TOwnProps>
-  : [
-      'missing props:',
-      Exclude<keyof GetProps<C>, keyof TMergedProps>,
-      'extra props:',
-      Exclude<keyof TMergedProps, keyof GetProps<C>>,
-      GetProps<C>,
-      TMergedProps
-    ]
-
-export interface ConnectDEBUG {
-  <TOwnProps, TStateProps, TDispatchProps, TMergedProps>(
-    mapStateToProps: MapStateToProps<TStateProps, TOwnProps>,
-    mapDispatchToProps: MapDispatchToProps<TDispatchProps, TOwnProps>,
-    mergeProps: MergeProps<TStateProps, TDispatchProps, TOwnProps, TMergedProps>,
-    options?: Options<TypedState, TStateProps, TOwnProps, TMergedProps>
-  ): ConnectedComponentTypeDEBUG<TMergedProps, TOwnProps>
-}
-
-export const connectDEBUG: ConnectDEBUG
+  : {
+      [K in keyof TMergedProps | keyof GetProps<C>]: K extends keyof TMergedProps
+        ? K extends keyof GetProps<C>
+          ? TMergedProps[K] extends GetProps<C>[K]
+            ? 'TS Correct'
+            : [GetProps<C>[K], '!=', TMergedProps[K]]
+          : 'missing from component'
+        : 'missing prop'
+    }
 
 export interface Connect {
   // KB. The types below dont differentiate between stateProps and mergeProps so it can think you passed something through mergeProps
