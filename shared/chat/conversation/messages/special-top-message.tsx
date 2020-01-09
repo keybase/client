@@ -70,12 +70,9 @@ class TopMessage extends React.PureComponent<Props> {
             gapStart={true}
             centerChildren={true}
           >
-            <Kb.Icon color={Styles.globalColors.black_50} sizeType="Huge" type="iconfont-warning" />
-            <Kb.Text style={styles.errorText} type="Header">
+            <Kb.Icon color={Styles.globalColors.black_20} sizeType="Huge" type="iconfont-warning" />
+            <Kb.Text center={true} style={styles.errorText} type="Header">
               {this.props.createConversationErrorHeader}{' '}
-            </Kb.Text>
-            <Kb.Text type="BodyBig" style={styles.errorText} selectable={true}>
-              {this.props.createConversationErrorDescription}
             </Kb.Text>
             {this.props.createConversationDisallowedUsers.length > 0 && (
               <>
@@ -94,6 +91,9 @@ class TopMessage extends React.PureComponent<Props> {
                 ))}
               </>
             )}
+            <Kb.Text center={true} type="BodyBig" style={styles.errorText} selectable={true}>
+              {this.props.createConversationErrorDescription}
+            </Kb.Text>
             <Kb.ButtonBar
               direction={Styles.isMobile ? 'column' : 'row'}
               fullWidth={true}

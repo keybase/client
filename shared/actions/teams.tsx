@@ -311,8 +311,8 @@ const addToTeam = async (action: TeamsGen.AddToTeamPayload) => {
   } catch (err) {
     // If all of the users couldn't be added due to contact settings, the RPC fails.
     if (err.code === RPCTypes.StatusCode.scteamcontactsettingsblock) {
-      const users = err.fields?.filter(elem => elem.key === 'usernames')
-      const usernames = users.map(elem => elem.value)
+      const users = err.fields?.filter(elem => elem.key === 'usernames').map(elem => elem.value)
+      const usernames = users[0].split(',')
       return [
         TeamBuildingGen.createFinishedTeamBuilding({namespace: 'teams'}),
         RouteTreeGen.createNavigateAppend({
