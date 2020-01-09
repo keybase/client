@@ -197,7 +197,7 @@ func (h *SaltpackHandler) SaltpackDecryptString(ctx context.Context, arg keybase
 	}
 
 	uis := libkb.UIs{
-		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID, h.G()), // XXX this could be a problem...
+		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID, h.G()),
 		SecretUI:   &nopSecretUI{},
 		SaltpackUI: &capSaltpackUI{},
 		SessionID:  arg.SessionID,
