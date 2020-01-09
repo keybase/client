@@ -516,6 +516,11 @@
         },
         {
           "type": "boolean",
+          "name": "isDefaultConv",
+          "jsonkey": "is_default_conv"
+        },
+        {
+          "type": "boolean",
           "name": "unread",
           "jsonkey": "unread"
         },

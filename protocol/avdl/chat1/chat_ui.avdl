@@ -79,6 +79,7 @@ protocol chatUi {
     string tlfID;
     TopicType topicType;
     boolean isPublic;
+    boolean isDefaultConv;
     string name;
     keybase1.TLFVisibility visibility;
     ConversationStatus status;
@@ -135,6 +136,7 @@ protocol chatUi {
     TopicType topicType;
     boolean isPublic;
     boolean isEmpty;
+    boolean isDefaultConv;
     string name;
     string snippet;
     SnippetDecoration snippetDecoration;

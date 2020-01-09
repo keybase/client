@@ -206,6 +206,8 @@ protocol api {
     string id;
     @jsonkey("channel")
     ChatChannel channel;
+    @jsonkey("is_default_conv")
+    boolean isDefaultConv;
     @jsonkey("unread")
     boolean unread;
     @jsonkey("active_at")
