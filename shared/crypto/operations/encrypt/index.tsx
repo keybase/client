@@ -144,13 +144,14 @@ const styles = Styles.styleSheetCreate(
         height: Styles.globalMargins.xlarge,
       },
       outputPlaceholder: {
-        backgroundColor: Styles.globalColors.blueGreyDark,
+        backgroundColor: Styles.globalColors.blueGreyLight,
       },
       questionMark: {
         color: Styles.globalColors.black_20,
       },
       questionMarkContainer: {
-        marginTop: Styles.globalMargins.xxtiny,
+        marginLeft: Styles.globalMargins.xtiny,
+        marginTop: Styles.globalMargins.xtiny,
       },
     } as const)
 )
