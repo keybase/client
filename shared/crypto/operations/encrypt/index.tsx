@@ -50,19 +50,21 @@ const EncryptOptions = (props: EncryptOptionsProps) => {
         checked={sign}
         onCheck={newValue => onSetOptions({includeSelf, sign: newValue, usePGP})}
       />
-      <Kb.Checkbox
-        label="Use PGP"
-        disabled={!canUsePGP || !hasRecipients}
-        checked={usePGP}
-        onCheck={newValue => onSetOptions({includeSelf, sign, usePGP: newValue})}
-      />
-      <Kb.WithTooltip position="top center" tooltip="All of your recipients need to have a PGP key">
-        <Kb.Icon
-          type="iconfont-question-mark"
-          boxStyle={styles.questionMarkContainer}
-          style={styles.questionMark}
+      <Kb.Box2 direction="horizontal">
+        <Kb.Checkbox
+          label="Use PGP"
+          disabled={!canUsePGP || !hasRecipients}
+          checked={usePGP}
+          onCheck={newValue => onSetOptions({includeSelf, sign, usePGP: newValue})}
         />
-      </Kb.WithTooltip>
+        <Kb.WithTooltip position="top center" tooltip="All recipients need to have a PGP key.">
+          <Kb.Icon
+            type="iconfont-question-mark"
+            boxStyle={styles.questionMarkContainer}
+            style={styles.questionMark}
+          />
+        </Kb.WithTooltip>
+      </Kb.Box2>
     </Kb.Box2>
   )
 }
