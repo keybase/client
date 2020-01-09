@@ -93,12 +93,12 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       actionsBox: Styles.platformStyles({
-        isElectron: {
-          flexWrap: 'wrap',
-        },
         common: {
           marginTop: Styles.globalMargins.tiny - buttonSpace,
           minHeight: 50,
+        },
+        isElectron: {
+          flexWrap: 'wrap',
         },
       }),
       authorContainer: Styles.platformStyles({
