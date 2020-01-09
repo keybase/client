@@ -36,7 +36,6 @@ export type CommonState = {
 export type EncryptOptions = {
   includeSelf: boolean
   sign: boolean
-  usePGP: boolean
 }
 export type DecryptOptions = {}
 export type SignOptions = {}
@@ -45,7 +44,6 @@ export type OperationsOptions = EncryptOptions | DecryptOptions | SignOptions | 
 
 export type EncrypState = CommonState & {
   meta: {
-    canUsePGP: boolean
     hasRecipients: boolean
   }
   options: EncryptOptions

@@ -92,7 +92,7 @@ export const createClearInput = (payload: _ClearInputPayload): ClearInputPayload
   type: clearInput,
 })
 /**
- * Encrypt operation takes three options { 'includeSelf', 'sign', 'usePGP' }
+ * Encrypt operation takes three options { 'includeSelf', 'sign' }
  */
 export const createSetEncryptOptions = (payload: _SetEncryptOptionsPayload): SetEncryptOptionsPayload => ({
   payload,

@@ -8,7 +8,6 @@ const operation = 'encrypt'
 
 export default Container.namedConnect(
   (state: Container.TypedState) => ({
-    canUsePGP: state.crypto.encrypt.meta.canUsePGP,
     hasRecipients: state.crypto.encrypt.meta.hasRecipients,
     input: state.crypto.encrypt.input,
     inputType: state.crypto.encrypt.inputType,
@@ -26,7 +25,6 @@ export default Container.namedConnect(
     onSetOptions: (options: Types.EncryptOptions) => dispatch(CryptoGen.createSetEncryptOptions({options})),
   }),
   (stateProps, dispatchProps) => ({
-    canUsePGP: stateProps.canUsePGP,
     hasRecipients: stateProps.hasRecipients,
     input: stateProps.input,
     inputType: stateProps.inputType,

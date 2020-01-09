@@ -21,7 +21,7 @@
       "value": "string"
     },
     "setEncryptOptions": {
-      "_description": "Encrypt operation takes three options { 'includeSelf', 'sign', 'usePGP' }",
+      "_description": "Encrypt operation takes three options { 'includeSelf', 'sign' }",
       "options": "Types.EncryptOptions"
     },
     "onOperationSuccess": {

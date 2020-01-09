@@ -34,38 +34,22 @@ type EncryptOptionsProps = {
 const debounced = debounce((fn, ...args) => fn(...args), 500)
 
 const EncryptOptions = (props: EncryptOptionsProps) => {
-  const {canUsePGP, onSetOptions, options, hasRecipients} = props
-  const {includeSelf, sign, usePGP} = options
+  const {onSetOptions, options, hasRecipients} = props
+  const {includeSelf, sign} = options
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} gap="medium" style={styles.optionsContainer}>
       <Kb.Checkbox
         label="Include yourself"
         disabled={!hasRecipients}
         checked={includeSelf}
-        onCheck={newValue => onSetOptions({includeSelf: newValue, sign, usePGP})}
+        onCheck={newValue => onSetOptions({includeSelf: newValue, sign})}
       />
       <Kb.Checkbox
         label="Sign"
         disabled={!hasRecipients}
         checked={sign}
-        onCheck={newValue => onSetOptions({includeSelf, sign: newValue, usePGP})}
+        onCheck={newValue => onSetOptions({includeSelf, sign: newValue})}
       />
-      <Kb.Box2 direction="horizontal">
-        <Kb.Checkbox
-          label="Use PGP"
-          disabled={!canUsePGP || !hasRecipients}
-          checked={usePGP}
-          onCheck={newValue => onSetOptions({includeSelf, sign, usePGP: newValue})}
-        />
-        <Kb.WithTooltip position="top center" tooltip="All recipients need to have a PGP key.">
-          <Kb.Icon
-            boxStyle={styles.questionMarkContainer}
-            sizeType="Small"
-            style={styles.questionMark}
-            type="iconfont-question-mark"
-          />
-        </Kb.WithTooltip>
-      </Kb.Box2>
     </Kb.Box2>
   )
 }

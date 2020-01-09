@@ -60,13 +60,11 @@ export const makeState = (): Types.State => ({
   encrypt: {
     ...defaultCommonState,
     meta: {
-      canUsePGP: false,
       hasRecipients: false,
     },
     options: {
       includeSelf: true,
       sign: true,
-      usePGP: false,
     },
     recipients: [],
   },
