@@ -25,10 +25,11 @@ import {
 } from './shared'
 import {
   AllowedNamespace,
-  ServiceIdWithContact,
   FollowingState,
-  SelectedUser,
+  GoButtonLabel,
   SearchResults,
+  SelectedUser,
+  ServiceIdWithContact,
 } from '../constants/types/team-building'
 
 export const numSectionLabel = '0-9'
@@ -123,6 +124,7 @@ export type Props = ContactProps & {
   waitingForCreate: boolean
   rolePickerProps?: RolePickerProps
   title: string
+  goButtonLabel?: GoButtonLabel
 }
 
 const ContactsBanner = (props: ContactProps & {onRedoSearch: () => void; onRedoRecs: () => void}) => {
@@ -629,6 +631,7 @@ class TeamBuilding extends React.PureComponent<Props> {
         onBackspace={props.onBackspace}
         searchString={props.searchString}
         rolePickerProps={props.rolePickerProps}
+        goButtonLabel={props.goButtonLabel}
       />
     )
 

@@ -4,7 +4,7 @@ import UserBubble from './user-bubble'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
-import {SelectedUser} from '../constants/types/team-building'
+import {SelectedUser, GoButtonLabel} from '../constants/types/team-building'
 import {FloatingRolePicker, sendNotificationFooter} from '../teams/role-picker'
 import {pluralize} from '../util/string'
 import {e164ToDisplay} from '../util/phone-numbers'
@@ -22,6 +22,7 @@ type Props = {
   onFinishTeamBuilding: () => void
   searchString: string
   rolePickerProps?: RolePickerProps
+  goButtonLabel?: GoButtonLabel
 }
 
 const formatNameForUserBubble = (u: SelectedUser) => {
@@ -126,12 +127,12 @@ const TeamBox = (props: Props) => {
               )}
             >
               <GoButton
-                label="Add"
+                label={props.goButtonLabel ?? 'Add'}
                 onClick={() => props.rolePickerProps && props.rolePickerProps.changeShowRolePicker(true)}
               />
             </FloatingRolePicker>
           ) : (
-            <GoButton label="Start" onClick={props.onFinishTeamBuilding} />
+            <GoButton label={props.goButtonLabel ?? 'Start'} onClick={props.onFinishTeamBuilding} />
           ))}
       </Kb.Box2>
     </Kb.Box2>

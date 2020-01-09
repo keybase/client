@@ -53,6 +53,7 @@ type OwnProps = {
   showRolePicker: boolean
   showServiceResultCount: boolean
   title: string
+  goButtonLabel?: Types.GoButtonLabel
 }
 
 type LocalState = {
@@ -647,6 +648,7 @@ const mergeProps = (
     fetchUserRecs: dispatchProps.fetchUserRecs,
     filterServices: ownProps.filterServices,
     focusInputCounter: ownProps.focusInputCounter,
+    goButtonLabel: ownProps.goButtonLabel,
     highlightedIndex: ownProps.highlightedIndex,
     includeContacts: ownProps.namespace === 'chat2',
     namespace: ownProps.namespace,
@@ -754,6 +756,7 @@ class StateWrapperForTeamBuilding extends React.Component<RealOwnProps, LocalSta
         focusInputCounter={this.state.focusInputCounter}
         incFocusInputCounter={this._incFocusInputCounter}
         title={Container.getRouteProps(this.props, 'title', '')}
+        goButtonLabel={Container.getRouteProps(this.props, 'goButtonLabel', 'Start')}
       />
     )
   }
