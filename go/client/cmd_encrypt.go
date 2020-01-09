@@ -130,7 +130,6 @@ anonymous modes in such cases.
 			cl.ChooseCommand(&CmdEncrypt{
 				Contextified: libkb.NewContextified(g),
 			}, "encrypt", c)
-			cl.SetNoStandalone() // CORE-8423 for now we need KBFS.
 		},
 		Flags: flags,
 	}
