@@ -8731,6 +8731,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-verify': {
+    charCode: 0xe9b0,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-video-library': {
     charCode: 0xe9ad,
     gridSize: 16,
