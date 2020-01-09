@@ -218,9 +218,8 @@ const InstallBotPopup = (props: Props) => {
   const featuredContent = !!featured && (
     <Kb.Box2
       direction="vertical"
-      style={Styles.collapseStyles([styles.container, {flex: 1, justifyContent: 'space-between'}])}
+      style={Styles.collapseStyles([styles.container, {flex: 1}])}
       fullWidth={true}
-      fullHeight={true}
       gap="tiny"
     >
       <Kb.Box2 direction="vertical" gap="small" fullWidth={true}>
@@ -608,7 +607,7 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   outerContainer: Styles.platformStyles({
     isElectron: {
-      minHeight: 350,
+      height: 560,
     },
   }),
 }))

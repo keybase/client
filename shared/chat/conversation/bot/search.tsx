@@ -129,7 +129,7 @@ const SearchBotPopup = (props: Props) => {
         <Kb.SectionList
           renderSectionHeader={renderSectionHeader}
           stickySectionHeadersEnabled={true}
-          sections={[botSection, usersSection]}
+          sections={[usersSection, botSection]}
         />
       </Kb.Box2>
     </Kb.Modal>
