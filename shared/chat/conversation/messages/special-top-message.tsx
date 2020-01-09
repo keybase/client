@@ -46,7 +46,6 @@ class TopMessage extends React.PureComponent<Props> {
   }
 
   render() {
-    console.warn('propssss', this.props)
     return (
       <Kb.Box>
         {this.props.loadMoreType === 'noMoreToLoad' && this.props.showRetentionNotice && (
@@ -72,25 +71,26 @@ class TopMessage extends React.PureComponent<Props> {
           >
             <Kb.Icon color={Styles.globalColors.black_20} sizeType="Huge" type="iconfont-warning" />
             <Kb.Text center={true} style={styles.errorText} type="Header">
-              {this.props.createConversationErrorHeader}{' '}
+              {this.props.createConversationErrorHeader}
             </Kb.Text>
-            {this.props.createConversationDisallowedUsers.length > 0 && (
-              <>
-                {this.props.createConversationDisallowedUsers.map((username, idx) => (
-                  <Kb.ListItem2
-                    key={username}
-                    type={Styles.isMobile ? 'Large' : 'Small'}
-                    icon={<Kb.Avatar size={Styles.isMobile ? 48 : 32} username={username} />}
-                    firstItem={idx === 0}
-                    body={
-                      <Kb.Box2 direction="vertical" fullWidth={true}>
-                        <Kb.Text type="BodySemibold">{username}</Kb.Text>
-                      </Kb.Box2>
-                    }
-                  />
-                ))}
-              </>
-            )}
+            {this.props.createConversationDisallowedUsers &&
+              this.props.createConversationDisallowedUsers.length > 0 && (
+                <>
+                  {this.props.createConversationDisallowedUsers.map((username, idx) => (
+                    <Kb.ListItem2
+                      key={username}
+                      type={Styles.isMobile ? 'Large' : 'Small'}
+                      icon={<Kb.Avatar size={Styles.isMobile ? 48 : 32} username={username} />}
+                      firstItem={idx === 0}
+                      body={
+                        <Kb.Box2 direction="vertical" fullWidth={true}>
+                          <Kb.Text type="BodySemibold">{username}</Kb.Text>
+                        </Kb.Box2>
+                      }
+                    />
+                  ))}
+                </>
+              )}
             <Kb.Text center={true} type="BodyBig" style={styles.errorText} selectable={true}>
               {this.props.createConversationErrorDescription}
             </Kb.Text>

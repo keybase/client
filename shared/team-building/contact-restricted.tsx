@@ -10,7 +10,7 @@ type Props = {
   usernames: Array<string>
 }
 
-const ContactRestricted = (props: Props) => {
+export const ContactRestricted = (props: Props) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onBack = React.useCallback(() => dispatch(nav.safeNavigateUpPayload()), [dispatch, nav])
@@ -81,24 +81,23 @@ const ContactRestricted = (props: Props) => {
         <Kb.Text center={true} style={styles.text} type="BodyBig">
           {description}
         </Kb.Text>
-        {props.usernames.length > 0 &&
-          (props.source === 'teamAddAllFailed' || props.source === 'teamAddSomeFailed') && (
-            <>
-              {props.usernames.map((username, idx) => (
-                <Kb.ListItem2
-                  key={username}
-                  type={Styles.isMobile ? 'Large' : 'Small'}
-                  icon={<Kb.Avatar size={Styles.isMobile ? 48 : 32} username={username} />}
-                  firstItem={idx === 0}
-                  body={
-                    <Kb.Box2 direction="vertical" fullWidth={true}>
-                      <Kb.Text type="BodySemibold">{username}</Kb.Text>
-                    </Kb.Box2>
-                  }
-                />
-              ))}
-            </>
-          )}
+        {disallowedUsers.length > 0 && (
+          <>
+            {disallowedUsers.map((username, idx) => (
+              <Kb.ListItem2
+                key={username}
+                type={Styles.isMobile ? 'Large' : 'Small'}
+                icon={<Kb.Avatar size={Styles.isMobile ? 48 : 32} username={username} />}
+                firstItem={idx === 0}
+                body={
+                  <Kb.Box2 direction="vertical" fullWidth={true}>
+                    <Kb.Text type="BodySemibold">{username}</Kb.Text>
+                  </Kb.Box2>
+                }
+              />
+            ))}
+          </>
+        )}
       </Kb.Box2>
     </Kb.Modal>
   )
