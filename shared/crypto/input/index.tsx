@@ -49,7 +49,7 @@ const FileInput = (props: FileProps) => {
       alignItems="stretch"
       style={styles.container}
     >
-      <Kb.Text type="BodyPrimaryLink" onClick={() => props.onClearFiles()} style={styles.clearButton}>
+      <Kb.Text type="BodySmallPrimaryLink" onClick={() => props.onClearFiles()} style={styles.clearButton}>
         Clear
       </Kb.Text>
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.fileContainer}>

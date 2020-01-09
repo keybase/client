@@ -35,7 +35,7 @@ const Decrypt = (props: Props) => {
           ) : (
             <TextInput
               value={inputValue}
-              placeholder="Paste cipher text or drop an encrypted file to decrypt."
+              placeholder="Paste cipher text or drop an encrypted file"
               textType="cipher"
               onChangeText={text => {
                 setInputValue(text)

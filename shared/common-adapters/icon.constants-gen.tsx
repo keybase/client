@@ -8337,7 +8337,7 @@ const iconMeta_ = {
     isFont: true,
   },
   'iconfont-nav-2-crypto': {
-    charCode: 0xe9b0,
+    charCode: 0xe9af,
     gridSize: 24,
     isFont: true,
   },
@@ -8532,7 +8532,7 @@ const iconMeta_ = {
     isFont: true,
   },
   'iconfont-question-mark': {
-    charCode: 0xe9b1,
+    charCode: 0xe950,
     gridSize: 16,
     isFont: true,
   },
@@ -8712,7 +8712,7 @@ const iconMeta_ = {
     isFont: true,
   },
   'iconfont-unlock': {
-    charCode: 0xe9b2,
+    charCode: 0xe9b1,
     gridSize: 16,
     isFont: true,
   },
@@ -8731,6 +8731,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-verify': {
+    charCode: 0xe9b0,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-video-library': {
     charCode: 0xe9ad,
     gridSize: 16,
@@ -8742,7 +8747,7 @@ const iconMeta_ = {
     isFont: true,
   },
   'iconfont-warning': {
-    charCode: 0xe9af,
+    charCode: 0xe9ae,
     gridSize: 16,
     isFont: true,
   },

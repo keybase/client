@@ -28,12 +28,12 @@ export const OutputSigned = (props: OutputSignedProps) => {
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.signedContainer}>
       {props.signed && props.signedBy ? (
         <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center">
-          <Kb.Icon type="iconfont-proof-good" style={styles.signedIcon} />
-          <Kb.Text type="Body">Signed by</Kb.Text>
-          <Kb.ConnectedUsernames type="BodySemiboldItalic" colorYou={true} usernames={[props.signedBy]} />
+          <Kb.Icon type="iconfont-success" sizeType="Small" style={styles.signedIcon} />
+          <Kb.Text type="BodySmallSuccess">Signed by</Kb.Text>
+          <Kb.ConnectedUsernames type="BodySmallBold" colorYou={true} usernames={[props.signedBy]} />
         </Kb.Box2>
       ) : (
-        <Kb.Text type="Body">Not signed (anonymous sender)</Kb.Text>
+        <Kb.Text type="BodySmall">Not signed (anonymous sender)</Kb.Text>
       )}
     </Kb.Box2>
   ) : (
@@ -155,7 +155,7 @@ const styles = Styles.styleSheetCreate(
         ...Styles.padding(Styles.globalMargins.tiny),
       },
       outputPlaceholder: {
-        backgroundColor: Styles.globalColors.blueGreyDark,
+        backgroundColor: Styles.globalColors.blueGreyLight,
       },
       outputVerifiedContainer: {
         marginBottom: Styles.globalMargins.xlarge,

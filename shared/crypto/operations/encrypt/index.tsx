@@ -50,19 +50,22 @@ const EncryptOptions = (props: EncryptOptionsProps) => {
         checked={sign}
         onCheck={newValue => onSetOptions({includeSelf, sign: newValue, usePGP})}
       />
-      <Kb.Checkbox
-        label="Use PGP"
-        disabled={!canUsePGP || !hasRecipients}
-        checked={usePGP}
-        onCheck={newValue => onSetOptions({includeSelf, sign, usePGP: newValue})}
-      />
-      <Kb.WithTooltip position="top center" tooltip="All of your recipients need to have a PGP key">
-        <Kb.Icon
-          type="iconfont-question-mark"
-          boxStyle={styles.questionMarkContainer}
-          style={styles.questionMark}
+      <Kb.Box2 direction="horizontal">
+        <Kb.Checkbox
+          label="Use PGP"
+          disabled={!canUsePGP || !hasRecipients}
+          checked={usePGP}
+          onCheck={newValue => onSetOptions({includeSelf, sign, usePGP: newValue})}
         />
-      </Kb.WithTooltip>
+        <Kb.WithTooltip position="top center" tooltip="All recipients need to have a PGP key.">
+          <Kb.Icon
+            boxStyle={styles.questionMarkContainer}
+            sizeType="Small"
+            style={styles.questionMark}
+            type="iconfont-question-mark"
+          />
+        </Kb.WithTooltip>
+      </Kb.Box2>
     </Kb.Box2>
   )
 }
@@ -142,13 +145,14 @@ const styles = Styles.styleSheetCreate(
         height: Styles.globalMargins.xlarge,
       },
       outputPlaceholder: {
-        backgroundColor: Styles.globalColors.blueGreyDark,
+        backgroundColor: Styles.globalColors.blueGreyLight,
       },
       questionMark: {
         color: Styles.globalColors.black_20,
       },
       questionMarkContainer: {
-        marginTop: Styles.globalMargins.xxtiny,
+        marginLeft: Styles.globalMargins.xtiny,
+        marginTop: Styles.globalMargins.xtiny,
       },
     } as const)
 )
