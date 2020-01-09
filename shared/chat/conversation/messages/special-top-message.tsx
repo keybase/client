@@ -30,6 +30,7 @@ type Props = {
   isSelfConversation: boolean
   loadMoreType: 'moreToLoad' | 'noMoreToLoad'
   measure: (() => void) | null
+  onBack: (() => void) | null
   onCreateWithoutThem: (() => void) | null
   openPrivateFolder: () => void
   pendingState: 'waiting' | 'error' | 'done'
@@ -45,6 +46,7 @@ class TopMessage extends React.PureComponent<Props> {
   }
 
   render() {
+    console.warn('propssss', this.props)
     return (
       <Kb.Box>
         {this.props.loadMoreType === 'noMoreToLoad' && this.props.showRetentionNotice && (
@@ -69,10 +71,51 @@ class TopMessage extends React.PureComponent<Props> {
             centerChildren={true}
           >
             <Kb.Icon color={Styles.globalColors.black_50} sizeType="Huge" type="iconfont-warning" />
-            <Kb.Text type="HeaderBig">{this.props.createConversationErrorHeader} </Kb.Text>
-            <Kb.Text type="Body" style={styles.errorText} selectable={true}>
+            <Kb.Text style={styles.errorText} type="Header">
+              {this.props.createConversationErrorHeader}{' '}
+            </Kb.Text>
+            <Kb.Text type="BodyBig" style={styles.errorText} selectable={true}>
               {this.props.createConversationErrorDescription}
             </Kb.Text>
+            {this.props.createConversationDisallowedUsers.length > 0 && (
+              <>
+                {this.props.createConversationDisallowedUsers.map((username, idx) => (
+                  <Kb.ListItem2
+                    key={username}
+                    type={Styles.isMobile ? 'Large' : 'Small'}
+                    icon={<Kb.Avatar size={Styles.isMobile ? 48 : 32} username={username} />}
+                    firstItem={idx === 0}
+                    body={
+                      <Kb.Box2 direction="vertical" fullWidth={true}>
+                        <Kb.Text type="BodySemibold">{username}</Kb.Text>
+                      </Kb.Box2>
+                    }
+                  />
+                ))}
+              </>
+            )}
+            <Kb.ButtonBar
+              direction={Styles.isMobile ? 'column' : 'row'}
+              fullWidth={true}
+              style={styles.buttonBar}
+            >
+              {this.props.onCreateWithoutThem && (
+                <Kb.WaitingButton
+                  type="Default"
+                  label="Create without them"
+                  onClick={this.props.onCreateWithoutThem}
+                  waitingKey={null}
+                />
+              )}
+              {this.props.onBack && (
+                <Kb.WaitingButton
+                  type={this.props.onCreateWithoutThem ? 'Dim' : 'Default'}
+                  label={this.props.onCreateWithoutThem ? 'Cancel' : 'Okay'}
+                  onClick={this.props.onBack}
+                  waitingKey={null}
+                />
+              )}
+            </Kb.ButtonBar>
           </Kb.Box2>
         )}
         {this.props.loadMoreType === 'noMoreToLoad' &&
@@ -110,8 +153,11 @@ class TopMessage extends React.PureComponent<Props> {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      buttonBar: {
+        padding: Styles.globalMargins.small,
+      },
       errorText: {
-        padding: Styles.globalMargins.medium,
+        padding: Styles.globalMargins.small,
       },
       loading: {
         marginLeft: Styles.globalMargins.small,
@@ -184,6 +230,7 @@ export default Container.namedConnect(
     }
   },
   dispatch => ({
+    _onBack: () => dispatch(Chat2Gen.createNavigateToInbox()),
     _onCreateWithoutThem: (allowedUsers: Array<string>) =>
       dispatch(Chat2Gen.createCreateConversation({participants: allowedUsers})),
     _openPrivateFolder: (username: string) =>
@@ -193,13 +240,14 @@ export default Container.namedConnect(
   }),
   (stateProps, dispatchProps, __: OwnProps) => {
     const {username, ...props} = stateProps
-    let createConversationDisallowedUsers = []
+    let createConversationDisallowedUsers: Array<string> = []
     let createConversationErrorDescription = ''
     let createConversationErrorHeader = ''
     let onCreateWithoutThem: (() => void) | null = null
     if (stateProps.createConversationError) {
       const {allowedUsers, code, disallowedUsers, message} = stateProps.createConversationError
       if (code === RPCTypes.StatusCode.scteamcontactsettingsblock) {
+        createConversationDisallowedUsers = disallowedUsers
         if (disallowedUsers.length === 1 && allowedUsers.length === 0) {
           // One-on-one conversation.
           createConversationErrorHeader = `You cannot start a conversation with @${disallowedUsers[0]}.`
@@ -222,6 +270,7 @@ export default Container.namedConnect(
       createConversationDisallowedUsers,
       createConversationErrorDescription,
       createConversationErrorHeader,
+      onBack: Styles.isMobile ? dispatchProps._onBack : null,
       onCreateWithoutThem,
       openPrivateFolder: () => dispatchProps._openPrivateFolder(username),
       ...props,

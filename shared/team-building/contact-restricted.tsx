@@ -35,9 +35,19 @@ const ContactRestricted = (props: Props) => {
       footer={{
         content: (
           <Kb.ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
+            {props.onCreateWithoutThem && (
+              <Kb.WaitingButton
+                key="createWithoutThem"
+                type="Success"
+                label="Create without them"
+                onClick={props.onCreateWithoutThem}
+                style={styles.button}
+                waitingKey={null}
+              />
+            )}
             <Kb.WaitingButton
               key="okay"
-              type="Success"
+              type={props.onCreateWithoutThem ? 'Secondary' : 'Success'}
               label="Okay"
               onClick={onBack}
               style={styles.button}
