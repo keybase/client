@@ -2,7 +2,6 @@ package saltpackkeys
 
 import (
 	"fmt"
-	"runtime/debug"
 	"strings"
 
 	"github.com/keybase/client/go/libkb"
@@ -123,7 +122,6 @@ func (r *KeyPseudonymResolver) kbfsResolveKeys(identifiers [][]byte) ([]*saltpac
 func (r *KeyPseudonymResolver) getCryptKeys(m libkb.MetaContext, name string) (keybase1.GetTLFCryptKeysRes, error) {
 	xp := m.G().ConnectionManager.LookupByClientType(keybase1.ClientType_KBFS)
 	if xp == nil {
-		debug.PrintStack()
 		return keybase1.GetTLFCryptKeysRes{}, libkb.KBFSNotRunningError{}
 	}
 	cli := &keybase1.TlfKeysClient{
