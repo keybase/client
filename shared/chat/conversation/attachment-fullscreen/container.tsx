@@ -9,6 +9,8 @@ import * as FsGen from '../../../actions/fs-gen'
 import Fullscreen from '.'
 import * as Container from '../../../util/container'
 import {imgMaxWidthRaw} from '../messages/attachment/image/image-render'
+// TEMP
+import useRPC from '../../../util/use-rpc'
 
 const blankMessage = Constants.makeMessageAttachment({})
 
@@ -28,32 +30,29 @@ const Connected = (props: OwnProps) => {
     imgMaxWidthRaw()
   )
 
-  const submit = Container.useRPC<
-    ReturnType<typeof RPCChatTypes.localGetNextAttachmentMessageLocalRpcPromise>
-  >()
+  const submit = /*Container.*/ useRPC(RPCChatTypes.localGetNextAttachmentMessageLocalRpcPromise)
 
   const onSwitchAttachment = async (backInTime: boolean) => {
     if (conversationIDKey !== blankMessage.conversationIDKey) {
-      try {
-        const result = await submit(
-          RPCChatTypes.localGetNextAttachmentMessageLocalRpcPromise({
-            assetTypes: [RPCChatTypes.AssetMetadataType.image, RPCChatTypes.AssetMetadataType.video],
-            backInTime,
-            convID: Types.keyToConversationID(conversationIDKey),
-            identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-            messageID: id,
-          })
-        )
-        if (result.message) {
-          const goodMessage = Constants.uiMessageToMessage(state, conversationIDKey, result.message)
-          if (goodMessage && goodMessage.type === 'attachment') {
-            setAutoPlay(false)
-            setMessage(goodMessage)
+      submit(
+        {
+          assetTypes: [RPCChatTypes.AssetMetadataType.image, RPCChatTypes.AssetMetadataType.video],
+          backInTime,
+          convID: Types.keyToConversationID(conversationIDKey),
+          identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+          messageID: id,
+        },
+        result => {
+          if (result.message) {
+            const goodMessage = Constants.uiMessageToMessage(state, conversationIDKey, result.message)
+            if (goodMessage && goodMessage.type === 'attachment') {
+              setAutoPlay(false)
+              setMessage(goodMessage)
+            }
           }
-        }
-      } catch (_e) {
-        // ignore
-      }
+        },
+        error => {}
+      )
     }
   }
 

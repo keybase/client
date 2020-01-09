@@ -97,5 +97,5 @@ export type Draft<T> = _Draft<T>
 export {default as HiddenString} from './hidden-string'
 export {default as makeReducer} from './make-reducer'
 export type ActionHandler<S, A> = _ActionHandler<S, A>
-export {default as useRPC} from './use-rpc'
+// export {default as useRPC} from './use-rpc'
 

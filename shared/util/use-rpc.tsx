@@ -1,6 +1,5 @@
 import * as React from 'react'
 import {RPCError} from './errors'
-import useMounted from '../common-adapters/use-mounted'
 /** A hook to make an RPC call. This entirely skips our redux layer and shouldn't be used if you need any side effects
  */
 
@@ -12,25 +11,43 @@ import useMounted from '../common-adapters/use-mounted'
 
 // }
 
-function useRPC<T>(): (promise: Promise<T>) => T | undefined {
-  let isMounted = true
+// TODO
+
+type RPCPromiseType<F extends (...rest: any[]) => any, RF = ReturnType<F>> = RF extends Promise<infer U>
+  ? U
+  : RF
+
+function useRPC<
+  C extends (...r: Array<any>) => any,
+  RET = RPCPromiseType<C>,
+  ARGS extends Array<any> = Parameters<C>
+>(call: C) {
+  const isMounted = React.useRef<Boolean>(true)
+
   React.useEffect(() => {
     return () => {
-      isMounted = false
+      isMounted.current = false
     }
   }, [])
 
-  const submit = async (promise: Promise<T>) => {
-    const result = await promise
+  const submit = React.useCallback(
+    () => async (args: ARGS, setResult: (r: RET) => void, setError: (e: RPCError) => void) => {
+      try {
+        const result = await call(...args)
+        await new Promise(resolve => setTimeout(resolve, 1000))
 
-    await new Promise(resolve => setTimeout(resolve, 5000))
-    if (isMounted) {
-      return result
-    } else {
-      throw new Error()
-    }
-  }
-  return submit
+        if (isMounted.current) {
+          setResult(result)
+        }
+      } catch (e) {
+        if (isMounted.current) {
+          setError(e)
+        }
+      }
+    },
+    []
+  )
+  return submit()
 }
 // function useRPC<ARGS extends Array<any>, RES extends Promise<any>, C extends (args?: ARGS) => RES>(
 // rpcCall: C
