@@ -202,14 +202,6 @@ export const useFsWatchDownloadForMobile = isMobile
     }
   : () => false
 
-export const useFsBadge = () => {
-  useFsNonPathSubscriptionEffect(RPCTypes.SubscriptionTopic.filesTabBadge)
-  const dispatch = useDispatchWhenConnected()
-  React.useEffect(() => {
-    dispatch(FsGen.createLoadFilesTabBadge())
-  }, [dispatch])
-}
-
 let useUserIsLookingAtFsCounter = 0
 export const useUserIsLookingAtFs = isMobile
   ? () => {

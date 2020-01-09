@@ -14,7 +14,6 @@ export {default as Filename} from './filename'
 export {default as UploadIcon} from './upload-icon'
 
 export {
-  useFsBadge,
   useFsChildren,
   useFsFileContext,
   useFsDownloadInfo,

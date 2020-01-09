@@ -1,7 +1,6 @@
 // Switches between the route-tree router and the new router, will go away
 import * as React from 'react'
 import Router from './router'
-import * as Kbfs from '../fs/common'
 import {connect} from '../util/container'
 import * as ConfigGen from '../actions/config-gen'
 import * as Constants from '../constants/config'
@@ -14,16 +13,13 @@ type Props = {
   isDarkMode: boolean
 }
 
-const RouterSwitcheroo = React.memo((props: Props) => {
-  Kbfs.useFsBadge()
-  return (
-    <Router
-      ref={r => props.updateNavigator(r)}
-      persistRoute={props.persistRoute}
-      isDarkMode={props.isDarkMode}
-    />
-  )
-})
+const RouterSwitcheroo = React.memo((props: Props) => (
+  <Router
+    ref={r => props.updateNavigator(r)}
+    persistRoute={props.persistRoute}
+    isDarkMode={props.isDarkMode}
+  />
+))
 
 export default connect(
   state => ({isDarkMode: Constants.isDarkMode(state.config)}),
