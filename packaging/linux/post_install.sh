@@ -67,11 +67,15 @@ systemd_unit_active_for() {
     command -v systemctl &> /dev/null && systemd_exec_as "$user" "systemctl --user -q is-active $service"
 }
 
+SYSTEMD_RESTARTED_REDIRECTOR=
 systemd_restart_if_active() {
     user=$1
     service=$2
     if systemd_unit_active_for "$user" "$service"; then
         systemd_exec_as "$user" "systemctl --user restart $service"
+        if [ "$service" = "keybase-redirector" ]; then
+            SYSTEMD_RESTARTED_REDIRECTOR=1
+        fi
     fi
 }
 
@@ -130,7 +134,7 @@ safe_restart_systemd_services() {
         systemd_restart_if_active "$user" "keybase.service"
         systemd_restart_if_active "$user" "kbfs.service"
         systemd_restart_if_active "$user" "keybase.gui.service"
-        # redirector is restarted below by sending it SIGUSR1
+        systemd_restart_if_active "$user" "keybase-redirector.service"
     done <<< "$(pidof /usr/bin/keybase | tr ' ' '\n')"
 }
 
@@ -173,7 +177,9 @@ if command -v gtk-update-icon-cache &> /dev/null ; then
   gtk-update-icon-cache -q -t -f /usr/share/icons/hicolor
 fi
 
-safe_restart_systemd_services # restart services before restarting redirector so any changes to redirector unit file will be picked up
+# Restart services before restarting redirector so any changes to redirector
+# unit file will be picked up.
+safe_restart_systemd_services
 
 if redirector_enabled ; then
   chown root:root "$krbin"
@@ -211,6 +217,8 @@ elif [ -d "$rootmount" ] ; then
         if killall "$(basename "$krbin")" &> /dev/null ; then
             echo "Stopping existing root redirector."
         fi
+    elif [ -n "$SYSTEMD_RESTARTED_REDIRECTOR" ]; then
+        echo "Restarted existing root director via systemd."
     elif killall -USR1 "$(basename "$krbin")" &> /dev/null ; then
         echo "Restarting existing root redirector."
         # If the redirector is still owned by root, that probably
