@@ -674,7 +674,7 @@ var FirstProdMerkleTreeWithModernShape = keybase1.Seqno(531408)
 
 // FirstProdMerkleSeqnoWithHiddenRootHash is the first merkle root on production that
 // contains the hash of a blind merkle tree root.
-var FirstProdMerkleSeqnoWithHiddenRootHash = keybase1.Seqno(200000000)
+var FirstProdMerkleSeqnoWithHiddenRootHash = keybase1.Seqno(14145980)
 
 type AppType string
 
