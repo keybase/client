@@ -240,7 +240,7 @@ func (c CorruptingMerkleClient) LookupLeafAtSeqnoForAudit(m libkb.MetaContext, l
 var _ libkb.MerkleClientInterface = CorruptingMerkleClient{}
 
 func TestAuditFailsIfDataIsInconsistent(t *testing.T) {
-	fus, tcs, cleanup := setupNTests(t, 2)
+	fus, tcs, cleanup := setupNTests(t, 3)
 	defer cleanup()
 
 	t.Logf("create team")
