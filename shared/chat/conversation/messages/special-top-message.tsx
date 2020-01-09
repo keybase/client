@@ -38,7 +38,7 @@ type Props = {
   showTeamOffer: boolean
 }
 
-export class SpecialTopMessage extends React.PureComponent<Props> {
+class SpecialTopMessage extends React.PureComponent<Props> {
   componentDidUpdate(prevProps: Props) {
     if (this.props.measure && !shallowEqual(this.props, prevProps)) {
       this.props.measure()
