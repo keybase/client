@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/sig3"
+	"github.com/keybase/client/go/teams/hidden"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -266,7 +267,7 @@ func TestAuditFailsIfDataIsInconsistent(t *testing.T) {
 	setFastAudits := func(user int) {
 		// do a lot of probes so we're likely to find issues
 		m[user].G().Env.Test.TeamAuditParams = &libkb.TeamAuditParams{
-			NumPostProbes:         10,
+			NumPostProbes:         40,
 			MerkleMovementTrigger: keybase1.Seqno(1),
 			RootFreshness:         time.Duration(1),
 			LRUSize:               500,
@@ -288,10 +289,31 @@ func TestAuditFailsIfDataIsInconsistent(t *testing.T) {
 	// A adds B to the team
 	add(A, B)
 
+	makeHiddenRotation(t, m[A].G(), teamName)
+	requestNewBlindTreeFromArchitectAndWaitUntilDone(t, tcs[A])
+	makeHiddenRotation(t, m[A].G(), teamName)
+	requestNewBlindTreeFromArchitectAndWaitUntilDone(t, tcs[A])
+	add(A, C)
+
 	team, err := GetForTestByStringName(context.TODO(), m[A].G(), teamName.String())
 	require.NoError(t, err)
 	root := m[A].G().GetMerkleClient().LastRoot(m[A])
 	require.NotNil(t, root)
+	latestRootSeqno := *root.Seqno()
+	t.Logf("latest root: %v %X", root.Seqno(), root.HashMeta())
+	headMerkleSeqno := team.MainChain().Chain.HeadMerkle.Seqno
+	t.Logf("headMerkleSeqno: %v", headMerkleSeqno)
+
+	for i := headMerkleSeqno; i <= latestRootSeqno; i++ {
+		leaf, _, hiddenResp, err := m[B].G().GetMerkleClient().LookupLeafAtSeqnoForAudit(m[B], teamID.AsUserOrTeam(), i, hidden.ProcessHiddenResponseFunc)
+		require.NoError(t, err)
+		if leaf != nil && leaf.Private != nil && len(leaf.Private.LinkID) > 0 {
+			t.Logf("Seqno %v Leaf %v Hidden %v", i, leaf.Private.Seqno, hiddenResp)
+		} else {
+			t.Logf("Seqno %v Leaf EMPTY Hidden %v", i, hiddenResp)
+		}
+
+	}
 
 	merkle := m[B].G().GetMerkleClient()
 	corruptMerkle := CorruptingMerkleClient{
@@ -365,12 +387,6 @@ func TestAuditFailsIfDataIsInconsistent(t *testing.T) {
 	require.Contains(t, err.Error(), "merkle root should not have had a leaf for team")
 
 	// now, test that the server cannot cheat on the hidden chain.
-	makeHiddenRotation(t, m[A].G(), teamName)
-	requestNewBlindTreeFromArchitectAndWaitUntilDone(t, tcs[A])
-	makeHiddenRotation(t, m[A].G(), teamName)
-	requestNewBlindTreeFromArchitectAndWaitUntilDone(t, tcs[A])
-	add(A, C)
-
 	team, err = GetForTestByStringName(context.TODO(), m[A].G(), teamName.String())
 	require.NoError(t, err)
 	root = m[A].G().GetMerkleClient().LastRoot(m[A])
