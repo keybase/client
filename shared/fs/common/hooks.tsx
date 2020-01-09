@@ -202,13 +202,12 @@ export const useFsWatchDownloadForMobile = isMobile
     }
   : () => false
 
-export const useFsBadge = (): RPCTypes.FilesTabBadge => {
+export const useFsBadge = () => {
   useFsNonPathSubscriptionEffect(RPCTypes.SubscriptionTopic.filesTabBadge)
   const dispatch = useDispatchWhenConnected()
   React.useEffect(() => {
     dispatch(FsGen.createLoadFilesTabBadge())
   }, [dispatch])
-  return Container.useSelector(state => state.fs.badge)
 }
 
 let useUserIsLookingAtFsCounter = 0

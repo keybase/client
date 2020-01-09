@@ -1,5 +1,5 @@
 import * as Constants from '../constants/router2'
-import * as Container from '../util/container'
+import * as Kbfs from '../fs/common'
 import * as Kb from '../common-adapters/mobile.native'
 import * as React from 'react'
 import * as Shared from './router.shared'
@@ -8,7 +8,7 @@ import * as Stack from 'react-navigation-stack'
 import * as Styles from '../styles'
 import * as Tabs from '../constants/tabs'
 import * as FsConstants from '../constants/fs'
-import * as Kbfs from '../fs/common'
+import * as Container from '../util/container'
 import GlobalError from '../app/global-errors/container'
 import OutOfDate from '../app/out-of-date'
 import RuntimeStats from '../app/runtime-stats/container'
@@ -77,7 +77,7 @@ const icons: {[key: string]: IconType} = {
 }
 
 const FilesTabBadge = () => {
-  const uploadIcon = FsConstants.getUploadIconForFilesTab(Kbfs.useFsBadge())
+  const uploadIcon = FsConstants.getUploadIconForFilesTab(Container.useSelector(state => state.fs.badge))
   return uploadIcon ? <Kbfs.UploadIcon uploadIcon={uploadIcon} style={styles.fsBadgeIconUpload} /> : null
 }
 
