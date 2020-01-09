@@ -53,7 +53,7 @@ const CryptoSubNavigator = createNavigator(
 
 CryptoSubNavigator.navigationOptions = {
   header: undefined,
-  title: 'Crypto Toolkit',
+  title: 'Crypto tools',
 }
 
 export default CryptoSubNavigator
