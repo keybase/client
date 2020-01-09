@@ -278,7 +278,7 @@ func (c *chatServiceHandler) GetDeviceInfoV1(ctx context.Context, opts getDevice
 	var res chat1.GetDeviceInfoRes
 	for _, m := range them.Current.DeviceKeys {
 		dev := chat1.DeviceInfo{
-			DeviceID:          string(m.DeviceID),
+			DeviceID:          m.DeviceID,
 			DeviceDescription: m.DeviceDescription,
 			DeviceType:        m.DeviceType,
 			DeviceCtime:       m.Base.CTime.UnixSeconds(),
@@ -428,7 +428,7 @@ func (c *chatServiceHandler) GetResetConvMembersV1(ctx context.Context) Reply {
 	var res chat1.GetResetConvMembersRes
 	for _, m := range lres.Members {
 		res.Members = append(res.Members, chat1.ResetConvMemberAPI{
-			ConversationID: m.Conv.String(),
+			ConversationID: m.Conv.APIConvID(),
 			Username:       m.Username,
 		})
 	}
@@ -502,7 +502,7 @@ func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat
 
 		msg := chat1.MsgSummary{
 			Id:     mv.ServerHeader.MessageID,
-			ConvID: conv.GetConvID().String(),
+			ConvID: conv.GetConvID().APIConvID(),
 			Channel: chat1.ChatChannel{
 				Name:        conv.Info.TlfName,
 				Public:      mv.ClientHeader.TlfPublic,
@@ -511,8 +511,8 @@ func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat
 				TopicName:   conv.Info.TopicName,
 			},
 			Sender: chat1.MsgSender{
-				Uid:        mv.ClientHeader.Sender.String(),
-				DeviceID:   mv.ClientHeader.SenderDevice.String(),
+				Uid:        keybase1.UID(mv.ClientHeader.Sender.String()),
+				DeviceID:   keybase1.DeviceID(mv.ClientHeader.SenderDevice.String()),
 				Username:   mv.SenderUsername,
 				DeviceName: mv.SenderDeviceName,
 			},
@@ -532,7 +532,7 @@ func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat
 			ChannelNameMentions: utils.PresentChannelNameMentions(ctx, mv.ChannelNameMentions),
 		}
 		if mv.ClientHeader.BotUID != nil {
-			botUID := mv.ClientHeader.BotUID.String()
+			botUID := keybase1.UID(mv.ClientHeader.BotUID.String())
 			msg.BotInfo = &chat1.MsgBotInfo{
 				BotUID:      botUID,
 				BotUsername: mv.BotUsername,
@@ -1158,7 +1158,7 @@ func (c *chatServiceHandler) NewConvV1(ctx context.Context, opts newConvOptionsV
 		return c.errReply(err)
 	}
 	newConvRes := chat1.NewConvRes{
-		Id:               res.Conv.GetConvID().String(),
+		Id:               res.Conv.GetConvID().APIConvID(),
 		IdentifyFailures: res.IdentifyFailures,
 		RateLimits:       c.aggRateLimits(res.RateLimits),
 	}
@@ -1434,8 +1434,8 @@ func (c *chatServiceHandler) displayFlipBody(flip *chat1.MessageFlip) (res *chat
 		return res
 	}
 	res = new(chat1.MsgFlipContent)
-	res.GameID = flip.GameID.String()
-	res.FlipConvID = flip.FlipConvID.String()
+	res.GameID = chat1.APIGameID(flip.GameID.String())
+	res.FlipConvID = flip.FlipConvID.APIConvID()
 	res.TeamMentions = flip.TeamMentions
 	res.UserMentions = flip.UserMentions
 	res.Text = flip.Text

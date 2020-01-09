@@ -2707,7 +2707,7 @@ func DBConvLess(a pager.InboxEntry, b pager.InboxEntry) bool {
 }
 
 func ExportToSummary(i chat1.InboxUIItem) (s chat1.ConvSummary) {
-	s.Id = i.ConvID
+	s.Id = chat1.APIConvID(i.ConvID)
 	s.IsDefaultConv = i.IsDefaultConv
 	s.Unread = i.ReadMsgID < i.MaxVisibleMsgID
 	s.ActiveAt = i.Time.UnixSeconds()

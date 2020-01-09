@@ -96,7 +96,7 @@ func (d *chatNotificationDisplay) formatMessage(inMsg chat1.IncomingMessage) *ch
 		mv := inMsg.Message.Valid()
 		summary := &chat1.MsgSummary{
 			Id:     mv.MessageID,
-			ConvID: inMsg.ConvID.String(),
+			ConvID: inMsg.ConvID.APIConvID(),
 			Channel: chat1.ChatChannel{
 				Name:        inMsg.Conv.Name,
 				MembersType: strings.ToLower(inMsg.Conv.MembersType.String()),
@@ -105,8 +105,8 @@ func (d *chatNotificationDisplay) formatMessage(inMsg chat1.IncomingMessage) *ch
 				Public:      inMsg.Conv.Visibility == keybase1.TLFVisibility_PUBLIC,
 			},
 			Sender: chat1.MsgSender{
-				Uid:        mv.SenderUID.String(),
-				DeviceID:   mv.SenderDeviceID.String(),
+				Uid:        keybase1.UID(mv.SenderUID.String()),
+				DeviceID:   keybase1.DeviceID(mv.SenderDeviceID.String()),
 				Username:   mv.SenderUsername,
 				DeviceName: mv.SenderDeviceName,
 			},
@@ -180,7 +180,7 @@ func (d *chatNotificationDisplay) NewChatActivity(ctx context.Context, arg chat1
 		convInfo := activity.NewConversation()
 		notif := newConvNotification()
 		if convInfo.Conv == nil {
-			err := fmt.Sprintf("No conversation info found: %v", convInfo.ConvID.String())
+			err := fmt.Sprintf("No conversation info found: %v", convInfo.ConvID.APIConvID())
 			notif.Error = &err
 		} else {
 			conv := utils.ExportToSummary(*convInfo.Conv)
@@ -198,7 +198,7 @@ func (d *chatNotificationDisplay) ChatJoinedConversation(ctx context.Context, ar
 
 	notif := newConvNotification()
 	if arg.Conv == nil {
-		err := fmt.Sprintf("No conversation info found: %v", arg.ConvID.String())
+		err := fmt.Sprintf("No conversation info found: %v", arg.ConvID.APIConvID())
 		notif.Error = &err
 	} else {
 		conv := utils.ExportToSummary(*arg.Conv)
