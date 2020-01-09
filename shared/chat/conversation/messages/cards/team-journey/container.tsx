@@ -165,10 +165,8 @@ const TeamJourneyConnected = Container.connect(
   },
   dispatch => ({
     _onAddPeopleToTeam: (teamID: TeamTypes.TeamID) => dispatch(appendNewTeamBuilder(teamID)),
-    _onCreateChannel: (teamID: string) => {
-      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'chatManageChannels'}]}))
-      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'chatCreateChannel'}]}))
-    },
+    _onCreateChannel: (teamID: string) =>
+      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'chatCreateChannel'}]})),
     _onGoToChannel: (channelname: string, teamname: string) =>
       dispatch(Chat2Gen.createPreviewConversation({channelname, reason: 'journeyCardPopular', teamname})),
     _onLoadTeam: (teamID: string) => dispatch(TeamsGen.createGetChannels({teamID})),
