@@ -2772,12 +2772,20 @@ function* createConversation(
       yield Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'justCreated'}))
     }
   } catch (error) {
-    let usernames = error.fields?.filter(elem => elem.key === 'usernames')
-    if (usernames.length) {
-      const {value} = usernames[0]
-      usernames = value.split(',')
+    let disallowedUsers = error.fields?.filter(elem => elem.key === 'usernames')
+    if (disallowedUsers.length) {
+      const {value} = disallowedUsers[0]
+      disallowedUsers = value.split(',')
     }
-    yield Saga.put(Chat2Gen.createConversationErrored({code: error.code, message: error.desc, usernames}))
+    const allowedUsers = action.payload.participants.filter(x => !disallowedUsers.includes(x))
+    yield Saga.put(
+      Chat2Gen.createConversationErrored({
+        allowedUsers,
+        code: error.code,
+        message: error.desc,
+        disallowedUsers,
+      })
+    )
     yield Saga.put(
       Chat2Gen.createSelectConversation({
         conversationIDKey: Constants.pendingErrorConversationIDKey,

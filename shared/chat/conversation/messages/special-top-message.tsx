@@ -1,7 +1,8 @@
 import * as Constants from '../../../constants/chat2'
 import * as React from 'react'
-import * as Types from '../../../constants/types/chat2'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
+import * as Types from '../../../constants/types/chat2'
+import * as Chat2Gen from '../../../actions/chat2-gen'
 import ProfileResetNotice from './system-profile-reset-notice/container'
 import RetentionNotice from './retention-notice/container'
 import shallowEqual from 'shallowequal'
@@ -21,14 +22,15 @@ type OwnProps = {
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
-  createConversationErrorTitle: string | null
-  createConversationError: string | null
-  createConversationErrorUsernames: Array<string> | null
+  createConversationDisallowedUsers: Array<string>
+  createConversationErrorDescription: string
+  createConversationErrorHeader: string
   hasOlderResetConversation: boolean
   isHelloBotConversation: boolean
   isSelfConversation: boolean
   loadMoreType: 'moreToLoad' | 'noMoreToLoad'
   measure: (() => void) | null
+  onCreateWithoutThem: (() => void) | null
   openPrivateFolder: () => void
   pendingState: 'waiting' | 'error' | 'done'
   showRetentionNotice: boolean
@@ -67,9 +69,9 @@ class TopMessage extends React.PureComponent<Props> {
             centerChildren={true}
           >
             <Kb.Icon color={Styles.globalColors.black_50} sizeType="Huge" type="iconfont-warning" />
-            <Kb.Text type="Header">{this.props.createConversationErrorTitle} </Kb.Text>
-            <Kb.Text type="BodyBig" style={styles.errorText} selectable={true}>
-              {this.props.createConversationError}
+            <Kb.Text type="HeaderBig">{this.props.createConversationErrorHeader} </Kb.Text>
+            <Kb.Text type="Body" style={styles.errorText} selectable={true}>
+              {this.props.createConversationErrorDescription}
             </Kb.Text>
           </Kb.Box2>
         )}
@@ -158,23 +160,6 @@ export default Container.namedConnect(
     const showRetentionNotice =
       meta.retentionPolicy.type !== 'retain' &&
       !(meta.retentionPolicy.type === 'inherit' && meta.teamRetentionPolicy.type === 'retain')
-    const {createConversationErrorCode, createConversationErrorUsernames} = state.chat2
-    let createConversationErrorTitle = "This conversation couldn't be created"
-    let createConversationError = state.chat2.createConversationError
-    if (
-      createConversationErrorCode === RPCTypes.StatusCode.scteamcontactsettingsblock &&
-      createConversationErrorUsernames &&
-      createConversationErrorUsernames.length > 0
-    ) {
-      createConversationErrorTitle =
-        createConversationErrorUsernames.length > 1
-          ? 'The following people cannot be added to the conversation:'
-          : `You cannot start a conversation with @${createConversationErrorUsernames[0]}.`
-      createConversationError =
-        createConversationErrorUsernames.length > 1 ? 'Their' : `@${createConversationErrorUsernames[0]}’s`
-      createConversationError +=
-        ' contact restrictions prevent you from getting in touch. Contact them outside Keybase to proceed.'
-    }
     const isHelloBotConversation =
       hasLoadedEver &&
       meta.teamType === 'adhoc' &&
@@ -186,9 +171,7 @@ export default Container.namedConnect(
       participantInfo.all.includes(state.config.username)
     return {
       conversationIDKey: ownProps.conversationIDKey,
-      createConversationError,
-      createConversationErrorTitle,
-      createConversationErrorUsernames,
+      createConversationError: state.chat2.createConversationError,
       hasOlderResetConversation,
       isHelloBotConversation,
       isSelfConversation,
@@ -201,6 +184,8 @@ export default Container.namedConnect(
     }
   },
   dispatch => ({
+    _onCreateWithoutThem: (allowedUsers: Array<string>) =>
+      dispatch(Chat2Gen.createCreateConversation({participants: allowedUsers})),
     _openPrivateFolder: (username: string) =>
       dispatch(
         FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/private/${username}`))
@@ -208,7 +193,36 @@ export default Container.namedConnect(
   }),
   (stateProps, dispatchProps, __: OwnProps) => {
     const {username, ...props} = stateProps
+    let createConversationDisallowedUsers = []
+    let createConversationErrorDescription = ''
+    let createConversationErrorHeader = ''
+    let onCreateWithoutThem: (() => void) | null = null
+    if (stateProps.createConversationError) {
+      const {allowedUsers, code, disallowedUsers, message} = stateProps.createConversationError
+      if (code === RPCTypes.StatusCode.scteamcontactsettingsblock) {
+        if (disallowedUsers.length === 1 && allowedUsers.length === 0) {
+          // One-on-one conversation.
+          createConversationErrorHeader = `You cannot start a conversation with @${disallowedUsers[0]}.`
+          createConversationErrorDescription = `@${disallowedUsers[0]}'s contact restrictions prevent you from getting in touch. Contact them outside Keybase to proceed.`
+        } else {
+          // Group conversation.
+          createConversationErrorHeader = 'The following people cannot be added to the conversation:'
+          createConversationErrorDescription =
+            'Their contact restrictions prevent you from getting in touch. Contact them outside Keybase to proceed.'
+          if (disallowedUsers.length > 0 && allowedUsers.length > 0) {
+            onCreateWithoutThem = () => dispatchProps._onCreateWithoutThem(allowedUsers)
+          }
+        }
+      } else {
+        createConversationErrorHeader = 'There was an error creating the conversation.'
+        createConversationErrorDescription = message
+      }
+    }
     return {
+      createConversationDisallowedUsers,
+      createConversationErrorDescription,
+      createConversationErrorHeader,
+      onCreateWithoutThem,
       openPrivateFolder: () => dispatchProps._openPrivateFolder(username),
       ...props,
     }
