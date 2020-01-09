@@ -737,7 +737,6 @@ const uiMessageToSystemMessage = (
         reactions,
         team,
         user,
-        // text: new HiddenString(`${user === state.config.username ? 'You ' : ''}changed the team's avatar.`),
       })
     }
     case RPCChatTypes.MessageSystemType.changeretention: {
