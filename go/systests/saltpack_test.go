@@ -153,7 +153,6 @@ func TestSaltpackEncryptDecryptForImplicitTeams(t *testing.T) {
 		Opts: keybase1.SaltpackEncryptOptions{
 			Recipients:    []string{(u2.username + "@rooter")},
 			UseEntityKeys: true,
-			// NoSelfEncrypt: true,
 		},
 		Source: strings.NewReader(msg),
 		Sink:   sink,
