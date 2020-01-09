@@ -5473,7 +5473,15 @@ func (fbo *folderBranchOps) Truncate(
 			return err
 		}
 
-		fbo.status.addDirtyNode(file)
+		filePath, err := fbo.pathFromNodeForRead(file)
+		if err != nil {
+			return err
+		}
+
+		// Only mark the path as dirty if it was actually changed.
+		if fbo.blocks.IsDirty(lState, filePath) {
+			fbo.status.addDirtyNode(file)
+		}
 		fbo.signalWrite()
 		return nil
 	})
