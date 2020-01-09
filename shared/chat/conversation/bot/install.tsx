@@ -193,18 +193,26 @@ const InstallBotPopup = (props: Props) => {
     dispatch(TeamsGen.createGetChannels({teamID}))
   }, [teamID])
 
+  const restrictedButton = (
+    <Kb.Box2 key={RestrictedItem} direction="vertical" fullWidth={true} style={styles.dropdownButton}>
+      <Kb.Text type="BodySemibold">Restricted Bot</Kb.Text>
+      <Kb.Text type="BodySmall">Customize which messages get encrypted for this bot.</Kb.Text>
+    </Kb.Box2>
+  )
+  const unrestrictedButton = (
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.dropdownButton}>
+      <Kb.Text type="BodySemibold">Unrestricted Bot</Kb.Text>
+      <Kb.Text type="BodySmall">All messages will be encrypted for this bot.</Kb.Text>
+    </Kb.Box2>
+  )
+  const dropdownButtons = [restrictedButton, unrestrictedButton]
   const restrictPicker = !inTeam && !readOnly && (
     <Kb.Dropdown
-      items={[
-        <Kb.Box2 key={RestrictedItem} direction="vertical" fullWidth={true} style={{flex: 1}}>
-          <Kb.Text type="BodySemibold">Restricted Bot</Kb.Text>
-          <Kb.Text type="BodySmall">Customize which messages get encrypted for this bot.</Kb.Text>
-        </Kb.Box2>,
-        <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}}>
-          <Kb.Text type="BodySemibold">Unrestricted Bot</Kb.Text>
-          <Kb.Text type="BodySmall">All messages will be encrypted for this bot.</Kb.Text>
-        </Kb.Box2>,
-      ]}
+      items={dropdownButtons}
+      selected={installWithRestrict ? restrictedButton : unrestrictedButton}
+      onChanged={selected => setInstallWithRestrict(selected.key === RestrictedItem)}
+      style={styles.dropdown}
+      overlayStyle={{width: '100%'}}
     />
   )
   const featuredContent = !!featured && (
@@ -238,7 +246,6 @@ const InstallBotPopup = (props: Props) => {
       {inTeam && !inTeamUnrestricted && (
         <PermsList channelInfos={channelInfos} settings={settings} username={botUsername} />
       )}
-      {restrictPicker}
     </Kb.Box2>
   )
   const usernameContent = !featured && (
@@ -256,7 +263,6 @@ const InstallBotPopup = (props: Props) => {
         </Kb.Box2>
       </Kb.Box2>
       {inTeam && !inTeamUnrestricted && <PermsList settings={settings} username={botUsername} />}
-      {restrictPicker}
     </Kb.Box2>
   )
   const installContent = installScreen && (
@@ -377,14 +383,20 @@ const InstallBotPopup = (props: Props) => {
     />
   )
   const reviewButton = showReviewButton && (
-    <Kb.WaitingButton
-      fullWidth={true}
-      label="Review"
-      onClick={() => setInstallScreen(true)}
-      mode="Primary"
-      type="Default"
-      waitingKey={Constants.waitingKeyBotAdd}
-    />
+    <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={{marginTop: -Styles.globalMargins.tiny}}>
+      <Kb.Text type="BodySmall" style={{alignSelf: 'center'}}>
+        Install as
+      </Kb.Text>
+      {restrictPicker}
+      <Kb.WaitingButton
+        fullWidth={true}
+        label="Review"
+        onClick={() => setInstallScreen(true)}
+        mode="Primary"
+        type="Default"
+        waitingKey={Constants.waitingKeyBotAdd}
+      />
+    </Kb.Box2>
   )
   const removeButton = showRemoveButton && (
     <Kb.WaitingButton
@@ -574,6 +586,13 @@ const PermsList = (props: PermsListProps) => {
 const styles = Styles.styleSheetCreate(() => ({
   container: {
     ...Styles.padding(Styles.globalMargins.medium, Styles.globalMargins.small),
+  },
+  dropdown: {
+    width: '100%',
+  },
+  dropdownButton: {
+    flex: 1,
+    padding: Styles.globalMargins.tiny,
   },
   outerContainer: Styles.platformStyles({
     isElectron: {
