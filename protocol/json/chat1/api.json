@@ -31,6 +31,18 @@
   "types": [
     {
       "type": "record",
+      "name": "APIConvID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "APIGameID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
       "name": "RateLimitRes",
       "fields": [
         {
@@ -104,7 +116,7 @@
       "name": "MsgSender",
       "fields": [
         {
-          "type": "string",
+          "type": "keybase1.UID",
           "name": "uid",
           "jsonkey": "uid"
         },
@@ -115,7 +127,7 @@
           "optional": true
         },
         {
-          "type": "string",
+          "type": "keybase1.DeviceID",
           "name": "deviceID",
           "jsonkey": "device_id"
         },
@@ -132,7 +144,7 @@
       "name": "MsgBotInfo",
       "fields": [
         {
-          "type": "string",
+          "type": "keybase1.UID",
           "name": "botUID",
           "jsonkey": "bot_uid"
         },
@@ -154,12 +166,12 @@
           "jsonkey": "text"
         },
         {
-          "type": "string",
+          "type": "APIGameID",
           "name": "gameID",
           "jsonkey": "game_id"
         },
         {
-          "type": "string",
+          "type": "APIConvID",
           "name": "flipConvID",
           "jsonkey": "flip_conv_id"
         },
@@ -306,7 +318,7 @@
           "jsonkey": "id"
         },
         {
-          "type": "string",
+          "type": "APIConvID",
           "name": "convID",
           "jsonkey": "conversation_id"
         },
@@ -505,7 +517,7 @@
       "name": "ConvSummary",
       "fields": [
         {
-          "type": "string",
+          "type": "APIConvID",
           "name": "id",
           "jsonkey": "id"
         },
@@ -734,7 +746,7 @@
       "name": "NewConvRes",
       "fields": [
         {
-          "type": "string",
+          "type": "APIConvID",
           "name": "id",
           "jsonkey": "id"
         },
@@ -884,7 +896,7 @@
       "name": "ResetConvMemberAPI",
       "fields": [
         {
-          "type": "string",
+          "type": "APIConvID",
           "name": "conversationID"
         },
         {
@@ -918,7 +930,7 @@
       "name": "DeviceInfo",
       "fields": [
         {
-          "type": "string",
+          "type": "keybase1.DeviceID",
           "name": "deviceID",
           "jsonkey": "id"
         },

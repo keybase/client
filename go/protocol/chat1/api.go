@@ -9,6 +9,18 @@ import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
+type APIConvID string
+
+func (o APIConvID) DeepCopy() APIConvID {
+	return o
+}
+
+type APIGameID string
+
+func (o APIGameID) DeepCopy() APIGameID {
+	return o
+}
+
 type RateLimitRes struct {
 	Tank     string `codec:"tank" json:"tank"`
 	Capacity int    `codec:"capacity" json:"capacity"`
@@ -57,37 +69,37 @@ func (o ChatMessage) DeepCopy() ChatMessage {
 }
 
 type MsgSender struct {
-	Uid        string `codec:"uid" json:"uid"`
-	Username   string `codec:"username,omitempty" json:"username,omitempty"`
-	DeviceID   string `codec:"deviceID" json:"device_id"`
-	DeviceName string `codec:"deviceName,omitempty" json:"device_name,omitempty"`
+	Uid        keybase1.UID      `codec:"uid" json:"uid"`
+	Username   string            `codec:"username,omitempty" json:"username,omitempty"`
+	DeviceID   keybase1.DeviceID `codec:"deviceID" json:"device_id"`
+	DeviceName string            `codec:"deviceName,omitempty" json:"device_name,omitempty"`
 }
 
 func (o MsgSender) DeepCopy() MsgSender {
 	return MsgSender{
-		Uid:        o.Uid,
+		Uid:        o.Uid.DeepCopy(),
 		Username:   o.Username,
-		DeviceID:   o.DeviceID,
+		DeviceID:   o.DeviceID.DeepCopy(),
 		DeviceName: o.DeviceName,
 	}
 }
 
 type MsgBotInfo struct {
-	BotUID      string `codec:"botUID" json:"bot_uid"`
-	BotUsername string `codec:"botUsername,omitempty" json:"bot_username,omitempty"`
+	BotUID      keybase1.UID `codec:"botUID" json:"bot_uid"`
+	BotUsername string       `codec:"botUsername,omitempty" json:"bot_username,omitempty"`
 }
 
 func (o MsgBotInfo) DeepCopy() MsgBotInfo {
 	return MsgBotInfo{
-		BotUID:      o.BotUID,
+		BotUID:      o.BotUID.DeepCopy(),
 		BotUsername: o.BotUsername,
 	}
 }
 
 type MsgFlipContent struct {
 	Text         string             `codec:"text" json:"text"`
-	GameID       string             `codec:"gameID" json:"game_id"`
-	FlipConvID   string             `codec:"flipConvID" json:"flip_conv_id"`
+	GameID       APIGameID          `codec:"gameID" json:"game_id"`
+	FlipConvID   APIConvID          `codec:"flipConvID" json:"flip_conv_id"`
 	UserMentions []KnownUserMention `codec:"userMentions" json:"user_mentions"`
 	TeamMentions []KnownTeamMention `codec:"teamMentions" json:"team_mentions"`
 }
@@ -95,8 +107,8 @@ type MsgFlipContent struct {
 func (o MsgFlipContent) DeepCopy() MsgFlipContent {
 	return MsgFlipContent{
 		Text:       o.Text,
-		GameID:     o.GameID,
-		FlipConvID: o.FlipConvID,
+		GameID:     o.GameID.DeepCopy(),
+		FlipConvID: o.FlipConvID.DeepCopy(),
 		UserMentions: (func(x []KnownUserMention) []KnownUserMention {
 			if x == nil {
 				return nil
@@ -238,7 +250,7 @@ func (o MsgContent) DeepCopy() MsgContent {
 
 type MsgSummary struct {
 	Id                  MessageID                `codec:"id" json:"id"`
-	ConvID              string                   `codec:"convID" json:"conversation_id"`
+	ConvID              APIConvID                `codec:"convID" json:"conversation_id"`
 	Channel             ChatChannel              `codec:"channel" json:"channel"`
 	Sender              MsgSender                `codec:"sender" json:"sender"`
 	SentAt              int64                    `codec:"sentAt" json:"sent_at"`
@@ -263,7 +275,7 @@ type MsgSummary struct {
 func (o MsgSummary) DeepCopy() MsgSummary {
 	return MsgSummary{
 		Id:       o.Id.DeepCopy(),
-		ConvID:   o.ConvID,
+		ConvID:   o.ConvID.DeepCopy(),
 		Channel:  o.Channel.DeepCopy(),
 		Sender:   o.Sender.DeepCopy(),
 		SentAt:   o.SentAt,
@@ -408,7 +420,7 @@ func (o Thread) DeepCopy() Thread {
 
 // A chat conversation. This is essentially a chat channel plus some additional metadata.
 type ConvSummary struct {
-	Id            string                    `codec:"id" json:"id"`
+	Id            APIConvID                 `codec:"id" json:"id"`
 	Channel       ChatChannel               `codec:"channel" json:"channel"`
 	IsDefaultConv bool                      `codec:"isDefaultConv" json:"is_default_conv"`
 	Unread        bool                      `codec:"unread" json:"unread"`
@@ -424,7 +436,7 @@ type ConvSummary struct {
 
 func (o ConvSummary) DeepCopy() ConvSummary {
 	return ConvSummary{
-		Id:            o.Id,
+		Id:            o.Id.DeepCopy(),
 		Channel:       o.Channel.DeepCopy(),
 		IsDefaultConv: o.IsDefaultConv,
 		Unread:        o.Unread,
@@ -656,14 +668,14 @@ func (o RegexpRes) DeepCopy() RegexpRes {
 }
 
 type NewConvRes struct {
-	Id               string                        `codec:"id" json:"id"`
+	Id               APIConvID                     `codec:"id" json:"id"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures,omitempty" json:"identify_failures,omitempty"`
 	RateLimits       []RateLimitRes                `codec:"rateLimits,omitempty" json:"ratelimits,omitempty"`
 }
 
 func (o NewConvRes) DeepCopy() NewConvRes {
 	return NewConvRes{
-		Id: o.Id,
+		Id: o.Id.DeepCopy(),
 		IdentifyFailures: (func(x []keybase1.TLFIdentifyFailure) []keybase1.TLFIdentifyFailure {
 			if x == nil {
 				return nil
@@ -828,13 +840,13 @@ func (o AdvertiseCommandAPIParam) DeepCopy() AdvertiseCommandAPIParam {
 }
 
 type ResetConvMemberAPI struct {
-	ConversationID string `codec:"conversationID" json:"conversationID"`
-	Username       string `codec:"username" json:"username"`
+	ConversationID APIConvID `codec:"conversationID" json:"conversationID"`
+	Username       string    `codec:"username" json:"username"`
 }
 
 func (o ResetConvMemberAPI) DeepCopy() ResetConvMemberAPI {
 	return ResetConvMemberAPI{
-		ConversationID: o.ConversationID,
+		ConversationID: o.ConversationID.DeepCopy(),
 		Username:       o.Username,
 	}
 }
@@ -872,15 +884,15 @@ func (o GetResetConvMembersRes) DeepCopy() GetResetConvMembersRes {
 }
 
 type DeviceInfo struct {
-	DeviceID          string `codec:"deviceID" json:"id"`
-	DeviceDescription string `codec:"deviceDescription" json:"description"`
-	DeviceType        string `codec:"deviceType" json:"type"`
-	DeviceCtime       int64  `codec:"deviceCtime" json:"ctime"`
+	DeviceID          keybase1.DeviceID `codec:"deviceID" json:"id"`
+	DeviceDescription string            `codec:"deviceDescription" json:"description"`
+	DeviceType        string            `codec:"deviceType" json:"type"`
+	DeviceCtime       int64             `codec:"deviceCtime" json:"ctime"`
 }
 
 func (o DeviceInfo) DeepCopy() DeviceInfo {
 	return DeviceInfo{
-		DeviceID:          o.DeviceID,
+		DeviceID:          o.DeviceID.DeepCopy(),
 		DeviceDescription: o.DeviceDescription,
 		DeviceType:        o.DeviceType,
 		DeviceCtime:       o.DeviceCtime,

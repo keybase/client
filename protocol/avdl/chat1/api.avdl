@@ -8,6 +8,9 @@ protocol api {
   import idl "unfurl.avdl";
   import idl "commands.avdl";
 
+  @typedef("string") record APIConvID {}
+  @typedef("string") record APIGameID {}
+
   record RateLimitRes {
     string tank;
     int capacity;
@@ -49,12 +52,12 @@ protocol api {
   // MsgSender is used for JSON output of the sender of a message.
   record MsgSender {
     @jsonkey("uid")
-    string uid;
+    keybase1.UID uid;
     @jsonkey("username")
     @optional(true)
     string username;
     @jsonkey("device_id")
-    string deviceID;
+    keybase1.DeviceID deviceID;
     @jsonkey("device_name")
     @optional(true)
     string deviceName;
@@ -62,7 +65,7 @@ protocol api {
 
   record MsgBotInfo {
     @jsonkey("bot_uid")
-    string botUID;
+    keybase1.UID botUID;
     @jsonkey("bot_username")
     @optional(true)
     string botUsername;
@@ -72,9 +75,9 @@ protocol api {
     @jsonkey("text")
     string text;
     @jsonkey("game_id")
-    string gameID;
+    APIGameID gameID;
     @jsonkey("flip_conv_id")
-    string flipConvID;
+    APIConvID flipConvID;
     @jsonkey("user_mentions")
     array<KnownUserMention> userMentions;
     @jsonkey("team_mentions")
@@ -121,7 +124,7 @@ protocol api {
     @jsonkey("id")
     MessageID id;
     @jsonkey("conversation_id")
-    string convID;
+    APIConvID convID;
     @jsonkey("channel")
     ChatChannel channel;
     @jsonkey("sender")
@@ -203,7 +206,7 @@ protocol api {
    */
   record ConvSummary {
     @jsonkey("id")
-    string id;
+    APIConvID id;
     @jsonkey("channel")
     ChatChannel channel;
     @jsonkey("is_default_conv")
@@ -286,7 +289,7 @@ protocol api {
 
   record NewConvRes {
     @jsonkey("id")
-    string id;
+    APIConvID id;
     @jsonkey("identify_failures")
     @optional(true)
     array<keybase1.TLFIdentifyFailure> identifyFailures;
@@ -338,7 +341,7 @@ protocol api {
   }
 
   record ResetConvMemberAPI {
-    string conversationID;
+    APIConvID conversationID;
     string username;
   }
 
@@ -349,7 +352,7 @@ protocol api {
 
   record DeviceInfo {
     @jsonkey("id")
-    string deviceID;
+    keybase1.DeviceID deviceID;
     @jsonkey("description")
     string deviceDescription;
     @jsonkey("type")

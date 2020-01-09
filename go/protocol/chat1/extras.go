@@ -82,6 +82,10 @@ func (cid ConversationID) String() string {
 	return hex.EncodeToString(cid)
 }
 
+func (cid ConversationID) APIConvID() APIConvID {
+	return APIConvID(cid.String())
+}
+
 func (cid ConversationID) Bytes() []byte {
 	return []byte(cid)
 }
