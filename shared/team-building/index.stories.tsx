@@ -1504,7 +1504,7 @@ const load = () => {
     .add('Team add some failed', () => (
       <ContactRestricted source="teamAddSomeFailed" usernames={['cjb', 'max']} />
     ))
-    .add('Team add add failed', () => (
+    .add('Team add all failed', () => (
       <ContactRestricted source="teamAddAllFailed" usernames={['cjb', 'max']} />
     ))
     .add('Wallets request failed', () => (
