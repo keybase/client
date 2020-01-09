@@ -6,6 +6,7 @@ import TeamJourney from './index'
 
 const commonProps = {
   conversationIDKey: 'dummyConversationIDKey',
+  onAuthorClick: Sb.action('onAuthorClick'),
   teamname: 'foo',
 }
 
