@@ -59,9 +59,10 @@ const EncryptOptions = (props: EncryptOptionsProps) => {
         />
         <Kb.WithTooltip position="top center" tooltip="All recipients need to have a PGP key.">
           <Kb.Icon
-            type="iconfont-question-mark"
             boxStyle={styles.questionMarkContainer}
+            sizeType="Small"
             style={styles.questionMark}
+            type="iconfont-question-mark"
           />
         </Kb.WithTooltip>
       </Kb.Box2>
