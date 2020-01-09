@@ -14,11 +14,16 @@ type Props = {
   bulkAdds: Array<string>
   role: TeamTypes.MaybeTeamRoleType
   onManageNotifications: () => void
+  onViewBot: () => void
   onViewTeam: () => void
   isTeam: boolean
   teamname: string
   timestamp: number
   you: string
+}
+
+const isBot = (role: TeamTypes.MaybeTeamRoleType) => {
+  return role === 'bot' || role === 'restrictedbot'
 }
 
 const ManageComponent = (props: Props) => {
@@ -33,6 +38,12 @@ const ManageComponent = (props: Props) => {
           Manage phone and computer notifications
         </Kb.Text>
       </Kb.Box>
+    )
+  } else if (isBot(props.role)) {
+    return (
+      <Kb.Text onClick={props.onViewBot} type={textType}>
+        View bot settings
+      </Kb.Text>
     )
   } else if (props.isAdmin) {
     return (
@@ -58,8 +69,7 @@ const youOrUsername = (props: {username: string; you: string; capitalize: boolea
 }
 
 const AddedToTeam = (props: Props) => {
-  const role =
-    props.role === 'bot' || props.role === 'restrictedbot' ? typeToLabel[props.role].toLowerCase() : null
+  const role = isBot(props.role) ? typeToLabel[props.role].toLowerCase() : null
   if (props.addee === props.you) {
     return <YouAddedToTeam {...props} />
   }
