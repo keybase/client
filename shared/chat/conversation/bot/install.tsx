@@ -508,7 +508,13 @@ const InstallBotPopup = (props: Props) => {
       }
     >
       <Kb.Box2 direction="vertical" style={styles.outerContainer} fullWidth={true}>
-        {enabled ? content : <Kb.ProgressIndicator />}
+        {enabled ? (
+          content
+        ) : (
+          <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} centerChildren={true}>
+            <Kb.ProgressIndicator type="Large" />
+          </Kb.Box2>
+        )}
       </Kb.Box2>
     </Kb.Modal>
   )
@@ -522,41 +528,47 @@ const maxCommandsShown = 3
 
 const CommandsLabel = (props: CommandsLabelProps) => {
   const [expanded, setExpanded] = React.useState(false)
+  let inner: React.ReactNode | undefined
   if (!props.commands) {
-    return <Kb.ProgressIndicator />
+    inner = <Kb.ProgressIndicator />
   } else if (props.commands.loadError) {
-    return <Kb.Text type="BodySemibold">Error loading bot public commands.</Kb.Text>
+    inner = (
+      <Kb.Text type="BodySemibold" style={{color: Styles.globalColors.redDark}}>
+        Error loading bot public commands.
+      </Kb.Text>
+    )
   } else {
     const numCommands = props.commands.commands.length
-    return (
-      <Kb.Box2 direction="vertical" gap="tiny">
-        <Kb.Text type="Body">messages that begin with bot commands:</Kb.Text>
-        <Kb.Box2 direction="vertical" fullWidth={true}>
-          {props.commands.commands.map((c: string, i: number) => {
-            if (!expanded && i >= maxCommandsShown) {
-              return i === maxCommandsShown ? (
-                <Kb.Text type="Body">
-                  {'• and '}
-                  <Kb.Text
-                    type="BodyPrimaryLink"
-                    onClick={(e: React.BaseSyntheticEvent) => {
-                      e.stopPropagation()
-                      setExpanded(true)
-                    }}
-                  >{`${numCommands - maxCommandsShown} more`}</Kb.Text>
-                </Kb.Text>
-              ) : null
-            }
-            return (
-              <Kb.Text key={i} type="Body">
-                {`• !${c}`}
-              </Kb.Text>
-            )
-          })}
-        </Kb.Box2>
-      </Kb.Box2>
-    )
+    inner = props.commands.commands.map((c: string, i: number) => {
+      if (!expanded && i >= maxCommandsShown) {
+        return i === maxCommandsShown ? (
+          <Kb.Text type="Body">
+            {'• and '}
+            <Kb.Text
+              type="BodyPrimaryLink"
+              onClick={(e: React.BaseSyntheticEvent) => {
+                e.stopPropagation()
+                setExpanded(true)
+              }}
+            >{`${numCommands - maxCommandsShown} more`}</Kb.Text>
+          </Kb.Text>
+        ) : null
+      }
+      return (
+        <Kb.Text key={i} type="Body">
+          {`• !${c}`}
+        </Kb.Text>
+      )
+    })
   }
+  return (
+    <Kb.Box2 direction="vertical" gap="tiny">
+      <Kb.Text type="Body">messages that begin with bot commands:</Kb.Text>
+      <Kb.Box2 direction="vertical" fullWidth={true}>
+        {inner}
+      </Kb.Box2>
+    </Kb.Box2>
+  )
 }
 
 type PermsListProps = {
@@ -589,7 +601,7 @@ const PermsList = (props: PermsListProps) => {
           )}
         </Kb.Box2>
       ) : (
-        <Kb.ProgressIndicator />
+        <Kb.ProgressIndicator type="Large" />
       )}
     </Kb.Box2>
   )
