@@ -1,21 +1,21 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
+import * as Container from '../../../../util/container'
+import * as Types from '../../../../constants/types/chat2'
 import UserNotice from '../user-notice'
 
 type Props = {
-  team: string
-  user: string
-  you: string
+  message: Types.MessageSystemChangeAvatar
 }
 const SystemChangeAvatar = (props: Props) => {
-  console.warn(props)
+  const you = Container.useSelector(state => state.config.username)
   return (
     <UserNotice>
       <Kb.Text type="BodySmall" style={styles.text}>
-        {props.user === props.you ? 'You ' : ''}changed the team's avatar.
+        {props.message.user === you ? 'You ' : ''}changed the team's avatar.
       </Kb.Text>
-      <Kb.Avatar teamname={props.team} size={128} />
+      <Kb.Avatar teamname={props.message.team} size={128} />
     </UserNotice>
   )
 }
