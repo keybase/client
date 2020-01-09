@@ -51,6 +51,7 @@ class MessageAction extends React.PureComponent<Props> {
       case 'systemInviteAccepted':
       case 'systemSBSResolved':
       case 'systemSimpleToComplex':
+      case 'systemChangeAvatar':
       case 'systemText':
       case 'systemUsersAddedToConversation':
         return (

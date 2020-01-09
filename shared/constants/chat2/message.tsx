@@ -99,6 +99,7 @@ export const serviceMessageTypeToMessageTypes = (t: RPCChatTypes.MessageType): A
         'systemSimpleToComplex',
         'systemText',
         'systemUsersAddedToConversation',
+        'systemChangeAvatar',
       ]
     case RPCChatTypes.MessageType.sendpayment:
       return ['sendPayment']
@@ -133,6 +134,7 @@ export const allMessageTypes: Set<Types.MessageType> = new Set([
   'systemLeft',
   'systemSBSResolved',
   'systemSimpleToComplex',
+  'systemChangeAvatar',
   'systemText',
   'systemUsersAddedToConversation',
   'text',
@@ -485,6 +487,17 @@ const makeMessageSystemUsersAddedToConversation = (
   ...m,
 })
 
+const makeMessageSystemChangeAvatar = (
+  m?: Partial<MessageTypes.MessageSystemChangeAvatar>
+): MessageTypes.MessageSystemChangeAvatar => ({
+  ...makeMessageCommonNoDeleteNoEdit,
+  reactions: new Map(),
+  team: '',
+  type: 'systemChangeAvatar',
+  user: '',
+  ...m,
+})
+
 export const makeReaction = (m?: Partial<MessageTypes.Reaction>): MessageTypes.Reaction => ({
   timestamp: 0,
   username: '',
@@ -718,11 +731,13 @@ const uiMessageToSystemMessage = (
       })
     }
     case RPCChatTypes.MessageSystemType.changeavatar: {
-      const {user = '???'} = body.changeavatar || {}
-      return makeMessageSystemText({
-        reactions,
-        text: new HiddenString(`${user === state.config.username ? 'You ' : ''}changed the team's avatar.`),
+      const {user = '???', team = '???'} = body.changeavatar || {}
+      return makeMessageSystemChangeAvatar({
         ...minimum,
+        reactions,
+        team,
+        user,
+        // text: new HiddenString(`${user === state.config.username ? 'You ' : ''}changed the team's avatar.`),
       })
     }
     case RPCChatTypes.MessageSystemType.changeretention: {
@@ -1428,6 +1443,7 @@ export const shouldShowPopup = (state: TypedState, message: Types.Message) => {
     case 'systemSimpleToComplex':
     case 'systemText':
     case 'systemUsersAddedToConversation':
+    case 'systemChangeAvatar':
     case 'journeycard':
       return true
     case 'sendPayment': {
