@@ -2123,17 +2123,17 @@ function* attachmentFullscreenNext(
 
 const attachmentPreviewSelect = (action: Chat2Gen.AttachmentPreviewSelectPayload) => {
   const message = action.payload.message
-  return [
-    Chat2Gen.createAttachmentFullscreenSelection({autoPlay: true, message}),
-    RouteTreeGen.createNavigateAppend({
-      path: [
-        {
-          props: {},
-          selected: 'chatAttachmentFullscreen',
-        },
-      ],
-    }),
-  ]
+  //[
+  // Chat2Gen.createAttachmentFullscreenSelection({autoPlay: true, message}),
+  return RouteTreeGen.createNavigateAppend({
+    path: [
+      {
+        props: {message},
+        selected: 'chatAttachmentFullscreen',
+      },
+    ],
+  }) //,
+  // ]
 }
 
 // Handle an image pasted into a conversation
