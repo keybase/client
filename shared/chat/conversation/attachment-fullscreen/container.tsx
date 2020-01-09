@@ -28,22 +28,31 @@ const Connected = (props: OwnProps) => {
     imgMaxWidthRaw()
   )
 
+  const submit = Container.useRPC<
+    ReturnType<typeof RPCChatTypes.localGetNextAttachmentMessageLocalRpcPromise>
+  >()
+
   const onSwitchAttachment = async (backInTime: boolean) => {
     if (conversationIDKey !== blankMessage.conversationIDKey) {
-      const result = await RPCChatTypes.localGetNextAttachmentMessageLocalRpcPromise({
-        assetTypes: [RPCChatTypes.AssetMetadataType.image, RPCChatTypes.AssetMetadataType.video],
-        backInTime,
-        convID: Types.keyToConversationID(conversationIDKey),
-        identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-        messageID: id,
-      })
-      await new Promise(resolve => setTimeout(resolve, 10000))
-      if (result.message) {
-        const goodMessage = Constants.uiMessageToMessage(state, conversationIDKey, result.message)
-        if (goodMessage && goodMessage.type === 'attachment') {
-          setAutoPlay(false)
-          setMessage(goodMessage)
+      try {
+        const result = await submit(
+          RPCChatTypes.localGetNextAttachmentMessageLocalRpcPromise({
+            assetTypes: [RPCChatTypes.AssetMetadataType.image, RPCChatTypes.AssetMetadataType.video],
+            backInTime,
+            convID: Types.keyToConversationID(conversationIDKey),
+            identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+            messageID: id,
+          })
+        )
+        if (result.message) {
+          const goodMessage = Constants.uiMessageToMessage(state, conversationIDKey, result.message)
+          if (goodMessage && goodMessage.type === 'attachment') {
+            setAutoPlay(false)
+            setMessage(goodMessage)
+          }
         }
+      } catch (_e) {
+        // ignore
       }
     }
   }
