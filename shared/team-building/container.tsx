@@ -36,24 +36,25 @@ const filterRole = (r: TeamTypes.TeamRoleType): TeamRoleTypeWithoutBots =>
   r === 'bot' || r === 'restrictedbot' ? 'reader' : r
 
 type OwnProps = {
+  changeShowRolePicker: (showRolePicker: boolean) => void
+  decHighlightIndex: () => void
   filterServices?: Array<Types.ServiceIdWithContact>
-  incFocusInputCounter: () => void
   focusInputCounter: number
+  goButtonLabel?: Types.GoButtonLabel
+  hideYourself?: boolean
+  highlightedIndex: number
+  incFocusInputCounter: () => void
+  incHighlightIndex: (maxIndex: number) => void
   namespace: Types.AllowedNamespace
-  teamID?: TeamTypes.TeamID
+  onChangeService: (newService: Types.ServiceIdWithContact) => void
+  onChangeText: (newText: string) => void
+  resetHighlightIndex: (resetToHidden?: boolean) => void
   searchString: string
   selectedService: Types.ServiceIdWithContact
-  highlightedIndex: number
-  onChangeText: (newText: string) => void
-  onChangeService: (newService: Types.ServiceIdWithContact) => void
-  incHighlightIndex: (maxIndex: number) => void
-  decHighlightIndex: () => void
-  resetHighlightIndex: (resetToHidden?: boolean) => void
-  changeShowRolePicker: (showRolePicker: boolean) => void
   showRolePicker: boolean
   showServiceResultCount: boolean
+  teamID?: TeamTypes.TeamID
   title: string
-  goButtonLabel?: Types.GoButtonLabel
 }
 
 type LocalState = {
@@ -649,6 +650,7 @@ const mergeProps = (
     filterServices: ownProps.filterServices,
     focusInputCounter: ownProps.focusInputCounter,
     goButtonLabel: ownProps.goButtonLabel,
+    hideYourself: ownProps.hideYourself,
     highlightedIndex: ownProps.highlightedIndex,
     includeContacts: ownProps.namespace === 'chat2',
     namespace: ownProps.namespace,
@@ -757,6 +759,7 @@ class StateWrapperForTeamBuilding extends React.Component<RealOwnProps, LocalSta
         incFocusInputCounter={this._incFocusInputCounter}
         title={Container.getRouteProps(this.props, 'title', '')}
         goButtonLabel={Container.getRouteProps(this.props, 'goButtonLabel', 'Start')}
+        hideYourself={Container.getRouteProps(this.props, 'hideYourself', false)}
       />
     )
   }
