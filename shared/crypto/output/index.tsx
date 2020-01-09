@@ -155,7 +155,7 @@ const styles = Styles.styleSheetCreate(
         ...Styles.padding(Styles.globalMargins.tiny),
       },
       outputPlaceholder: {
-        backgroundColor: Styles.globalColors.blueGreyDark,
+        backgroundColor: Styles.globalColors.blueGreyLight,
       },
       outputVerifiedContainer: {
         marginBottom: Styles.globalMargins.xlarge,
