@@ -52,6 +52,7 @@ func (s *CmdTestCrypto) Run() (err error) {
 
 	plaintext := "hello goodbye"
 	dui := s.G().UI.GetDumbOutputUI()
+
 	dui.Printf("encrypting string %q for %v\n", plaintext, s.recipients)
 	arg := keybase1.SaltpackEncryptStringArg{
 		Plaintext: plaintext,
@@ -65,9 +66,17 @@ func (s *CmdTestCrypto) Run() (err error) {
 	if err != nil {
 		return err
 	}
-
 	dui.Printf("ciphertext:\n\n")
 	dui.Printf("%s\n\n", out)
+
+	dui.Printf("signing string %q\n", plaintext)
+	signArg := keybase1.SaltpackSignStringArg{Plaintext: plaintext}
+	signed, err := cli.SaltpackSignString(mctx.Ctx(), signArg)
+	if err != nil {
+		return err
+	}
+	dui.Printf("signed:\n\n")
+	dui.Printf("%s\n\n", signed)
 
 	return nil
 }

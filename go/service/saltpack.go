@@ -4,7 +4,9 @@
 package service
 
 import (
+	"bytes"
 	"errors"
+	"io/ioutil"
 	"strings"
 
 	"github.com/keybase/client/go/engine"
@@ -193,7 +195,23 @@ func (h *SaltpackHandler) SaltpackDecryptString(ctx context.Context, arg keybase
 
 func (h *SaltpackHandler) SaltpackSignString(ctx context.Context, arg keybase1.SaltpackSignStringArg) (string, error) {
 	ctx = libkb.WithLogTag(ctx, "SP")
-	return "", errors.New("nyi")
+	sink := libkb.NewBufferCloser()
+	earg := &engine.SaltpackSignArg{
+		Sink:   sink,
+		Source: ioutil.NopCloser(bytes.NewBufferString(arg.Plaintext)),
+	}
+
+	uis := libkb.UIs{
+		SecretUI:  h.getSecretUI(arg.SessionID, h.G()),
+		SessionID: arg.SessionID,
+	}
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	eng := engine.NewSaltpackSign(h.G(), earg)
+	if err := engine.RunEngine2(m, eng); err != nil {
+		return "", err
+	}
+
+	return sink.String(), nil
 }
 
 func (h *SaltpackHandler) SaltpackVerifyString(ctx context.Context, arg keybase1.SaltpackVerifyStringArg) (keybase1.SaltpackVerifyResult, error) {
