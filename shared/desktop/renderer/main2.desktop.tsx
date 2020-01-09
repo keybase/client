@@ -80,9 +80,7 @@ const setupApp = (store, runSagas) => {
 
   // See if we're connected, and try starting keybase if not
   setTimeout(() => {
-    if (!eng.hasEverConnected()) {
-      SafeElectron.getApp().emit('KBkeybase', '', {type: 'requestStartService'})
-    }
+    SafeElectron.getApp().emit('KBkeybase', '', {type: 'requestStartService'})
   }, 0)
 
   // After a delay dump logs in case some startup stuff happened
