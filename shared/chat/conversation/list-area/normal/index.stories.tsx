@@ -13,7 +13,7 @@ import Thread from '.'
 import * as Message from '../../../../constants/chat2/message'
 import HiddenString from '../../../../util/hidden-string'
 import JumpToRecent from './jump-to-recent'
-import SpecialTopMessage from '../../messages/special-top-message'
+import {SpecialTopMessage} from '../../messages/special-top-message'
 import * as Constants from '../../../../constants/chat2'
 
 const firstOrdinal = 10000
@@ -365,7 +365,25 @@ const load = () => {
 
   Sb.storiesOf('Chat/Conversation/Thread', module)
     .addDecorator(providerTopMessage)
-    .add('Error top bar', () => <SpecialTopMessage conversationIDKey="1" measure={null} />)
+    .add('Error top bar', () => (
+      <SpecialTopMessage
+        conversationIDKey="1"
+        createConversationDisallowedUsers={['cjb', 'max']}
+        createConversationErrorHeader="The following people cannot be added to the conversation:"
+        createConversationErrorDescription="Their contact restrictions prevent you from getting in touch. Contact them outside Keybase to proceed."
+        hasOlderResetConversation={false}
+        isHelloBotConversation={false}
+        isSelfConversation={false}
+        loadMoreType="moreToLoad"
+        measure={null}
+        onBack={null}
+        onCreateWithoutThem={null}
+        openPrivateFolder={() => ({})}
+        pendingState="error"
+        showRetentionNotice={false}
+        showTeamOffer={false}
+      />
+    ))
 }
 
 export default load

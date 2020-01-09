@@ -78,9 +78,6 @@ export const ContactRestricted = (props: Props) => {
         <Kb.Text center={true} style={styles.text} type="Header" lineClamp={2}>
           {header}
         </Kb.Text>
-        <Kb.Text center={true} style={styles.text} type="BodyBig">
-          {description}
-        </Kb.Text>
         {disallowedUsers.length > 0 && (
           <>
             {disallowedUsers.map((username, idx) => (
@@ -98,6 +95,9 @@ export const ContactRestricted = (props: Props) => {
             ))}
           </>
         )}
+        <Kb.Text center={true} style={styles.text} type="BodyBig">
+          {description}
+        </Kb.Text>
       </Kb.Box2>
     </Kb.Modal>
   )

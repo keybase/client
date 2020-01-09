@@ -38,7 +38,7 @@ type Props = {
   showTeamOffer: boolean
 }
 
-class TopMessage extends React.PureComponent<Props> {
+export class SpecialTopMessage extends React.PureComponent<Props> {
   componentDidUpdate(prevProps: Props) {
     if (this.props.measure && !shallowEqual(this.props, prevProps)) {
       this.props.measure()
@@ -276,5 +276,5 @@ export default Container.namedConnect(
       ...props,
     }
   },
-  'TopMessage'
-)(TopMessage)
+  'SpecialTopMessage'
+)(SpecialTopMessage)
