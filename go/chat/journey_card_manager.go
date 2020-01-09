@@ -674,10 +674,11 @@ func (cc *JourneyCardManagerSingleUser) cardMsgNoAnswer(ctx context.Context, con
 // Gist: "Zzz... This channel hasn't been very active... Revive it?"
 // Condition: User can write in the channel.
 // Condition: The last visible message is old.
+// Condition: A card besides WELCOME has been shown in the team.
 func (cc *JourneyCardManagerSingleUser) cardChannelInactive(ctx context.Context,
 	conv convForJourneycard, jcd journeycardData, thread *chat1.ThreadView,
 	debugDebug logFn) bool {
-	if conv.CannotWrite {
+	if conv.CannotWrite || !jcd.ShownCardBesidesWelcome {
 		return false
 	}
 	// If the latest message is eligible then show the card.
@@ -917,6 +918,9 @@ func (cc *JourneyCardManagerSingleUser) savePosition(ctx context.Context, teamID
 	if journeycardTypeOncePerTeam[cardType] {
 		jcd = jcd.SetLockin(cardType, convID)
 	}
+	if cardType != chat1.JourneycardType_WELCOME {
+		jcd.ShownCardBesidesWelcome = true
+	}
 	cc.lru.Add(teamID.String(), jcd)
 	err = cc.encryptedDB.Put(ctx, cc.dbKey(teamID), jcd)
 	if err != nil {
@@ -1081,7 +1085,8 @@ type journeycardData struct {
 	DiskVersion int                                                                        `codec:"v,omitempty" json:"v,omitempty"`
 	Convs       map[string] /*keyed by chat1.ConversationID.String()*/ journeycardConvData `codec:"cv,omitempty" json:"cv,omitempty"`
 	// Some card types can only appear once. This map locks a type into a particular conv.
-	Lockin map[chat1.JourneycardType]chat1.ConversationID `codec:"l,omitempty" json:"l,omitempty"`
+	Lockin                  map[chat1.JourneycardType]chat1.ConversationID `codec:"l,omitempty" json:"l,omitempty"`
+	ShownCardBesidesWelcome bool                                           `codec:"sbw,omitempty" json:"sbw,omitempty"`
 	// When this data was first saved. For debugging unexpected data loss.
 	Ctime gregor1.Time `codec:"c,omitempty" json:"c,omitempty"`
 }
