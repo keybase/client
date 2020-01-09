@@ -45,7 +45,7 @@ export const TeamJourney = (props: Props) => {
         >
           {props.actions.map(action =>
             action == 'wave' ? (
-              <Kb.WaveButton conversationIDKey={conversationIDKey} small={true} />
+              <Kb.WaveButton conversationIDKey={conversationIDKey} small={true} style={styles.buttonSpace} />
             ) : (
               <Kb.Button
                 key={action.label}
@@ -54,6 +54,7 @@ export const TeamJourney = (props: Props) => {
                 mode="Secondary"
                 label={action.label}
                 onClick={action.onClick}
+                style={styles.buttonSpace}
               />
             )
           )}
@@ -86,13 +87,20 @@ const TeamJourneyHeader = (props: HeaderProps) => (
   </>
 )
 
+const buttonSpace = 6
+
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      actionsBox: {
-        marginTop: Styles.globalMargins.tiny,
-        minHeight: 50,
-      },
+      actionsBox: Styles.platformStyles({
+        common: {
+          marginTop: Styles.globalMargins.tiny - buttonSpace,
+          minHeight: 50,
+        },
+        isElectron: {
+          flexWrap: 'wrap',
+        },
+      }),
       authorContainer: Styles.platformStyles({
         common: {
           alignItems: 'flex-start',
@@ -110,6 +118,9 @@ const styles = Styles.styleSheetCreate(
       }),
       bottomLine: {
         alignItems: 'baseline',
+      },
+      buttonSpace: {
+        marginTop: buttonSpace,
       },
       content: Styles.platformStyles({
         isElectron: {

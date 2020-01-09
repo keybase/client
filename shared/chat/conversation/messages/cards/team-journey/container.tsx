@@ -48,8 +48,9 @@ const TeamJourneyContainer = (props: Props) => {
       actions =
         props.teamType === 'big'
           ? [
-              {label: 'Publish team on your profile', onClick: props.onPublishTeam},
+              'wave',
               {label: 'Browse channels', onClick: props.onBrowseChannels},
+              {label: 'Publish team on your profile', onClick: props.onPublishTeam},
             ]
           : ['wave', {label: 'Publish team on your profile', onClick: props.onPublishTeam}]
       image = 'icon-illustration-welcome-96'
