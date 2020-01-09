@@ -57,6 +57,7 @@ const Bot = ({botAlias, description, botUsername, onClick, ownerTeam, ownerUser}
             </Kb.Box2>
           </Kb.Box2>
         </Kb.Box2>
+        <Kb.Divider style={styles.divider} />
       </Kb.Box2>
     </Kb.ClickableBox>
   )
@@ -71,12 +72,23 @@ const styles = Styles.styleSheetCreate(
       }),
       container: Styles.platformStyles({
         isElectron: {
-          paddingBottom: Styles.globalMargins.xxtiny,
-          paddingTop: Styles.globalMargins.xxtiny,
+          paddingBottom: Styles.globalMargins.xtiny,
+          paddingTop: Styles.globalMargins.xtiny,
         },
         isMobile: {
           paddingBottom: Styles.globalMargins.tiny,
           paddingTop: Styles.globalMargins.tiny,
+        },
+      }),
+      divider: Styles.platformStyles({
+        common: {
+          marginTop: Styles.globalMargins.tiny,
+        },
+        isElectron: {
+          marginLeft: 56,
+        },
+        isMobile: {
+          marginLeft: 81,
         },
       }),
       row: {
