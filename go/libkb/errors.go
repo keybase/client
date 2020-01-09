@@ -2744,6 +2744,10 @@ func (e AppOutdatedError) Error() string {
 	return fmt.Sprintf("AppOutdatedError")
 }
 
+func (e AppOutdatedError) HumanError() error {
+	return fmt.Errorf("Keybase is out of date. Please update it to resolve this problem. Error details: %v", e.cause.Error())
+}
+
 //============================================================================
 
 type PushSecretWithoutPasswordError struct {
