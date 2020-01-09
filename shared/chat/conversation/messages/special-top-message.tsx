@@ -247,13 +247,13 @@ export default Container.namedConnect(
     if (stateProps.createConversationError) {
       const {allowedUsers, code, disallowedUsers, message} = stateProps.createConversationError
       if (code === RPCTypes.StatusCode.scteamcontactsettingsblock) {
-        createConversationDisallowedUsers = disallowedUsers
         if (disallowedUsers.length === 1 && allowedUsers.length === 0) {
           // One-on-one conversation.
           createConversationErrorHeader = `You cannot start a conversation with @${disallowedUsers[0]}.`
           createConversationErrorDescription = `@${disallowedUsers[0]}'s contact restrictions prevent you from getting in touch. Contact them outside Keybase to proceed.`
         } else {
           // Group conversation.
+          createConversationDisallowedUsers = disallowedUsers
           createConversationErrorHeader = 'The following people cannot be added to the conversation:'
           createConversationErrorDescription =
             'Their contact restrictions prevent you from getting in touch. Contact them outside Keybase to proceed.'
