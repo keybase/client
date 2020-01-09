@@ -41,7 +41,7 @@ type OwnProps = {
   filterServices?: Array<Types.ServiceIdWithContact>
   focusInputCounter: number
   goButtonLabel?: Types.GoButtonLabel
-  hideYourself?: boolean
+  recommendedHideYourself?: boolean
   highlightedIndex: number
   incFocusInputCounter: () => void
   incHighlightIndex: (maxIndex: number) => void
@@ -650,7 +650,6 @@ const mergeProps = (
     filterServices: ownProps.filterServices,
     focusInputCounter: ownProps.focusInputCounter,
     goButtonLabel: ownProps.goButtonLabel,
-    hideYourself: ownProps.hideYourself,
     highlightedIndex: ownProps.highlightedIndex,
     includeContacts: ownProps.namespace === 'chat2',
     namespace: ownProps.namespace,
@@ -680,6 +679,7 @@ const mergeProps = (
         ? rolePickerArrowKeyFns.upArrow
         : ownProps.decHighlightIndex,
     recommendations: recommendationsSections,
+    recommendedHideYourself: ownProps.recommendedHideYourself,
     rolePickerProps,
     search: dispatchProps._search,
     searchResults,
@@ -759,7 +759,7 @@ class StateWrapperForTeamBuilding extends React.Component<RealOwnProps, LocalSta
         incFocusInputCounter={this._incFocusInputCounter}
         title={Container.getRouteProps(this.props, 'title', '')}
         goButtonLabel={Container.getRouteProps(this.props, 'goButtonLabel', 'Start')}
-        hideYourself={Container.getRouteProps(this.props, 'hideYourself', false)}
+        recommendedHideYourself={Container.getRouteProps(this.props, 'recommendedHideYourself', false)}
       />
     )
   }

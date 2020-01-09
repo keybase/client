@@ -51,8 +51,8 @@ export const appendEncryptRecipientsBuilder = () =>
         props: {
           filterServices: ['facebook', 'github', 'hackernews', 'keybase', 'reddit', 'twitter'],
           goButtonLabel: 'Add',
-          hideYourself: true,
           namespace: 'crypto',
+          recommendedHideYourself: true,
           title: 'Recipients',
         },
         selected: 'cryptoTeamBuilder',

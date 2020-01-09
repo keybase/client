@@ -95,7 +95,7 @@ export type Props = ContactProps & {
   filterServices?: Array<ServiceIdWithContact>
   focusInputCounter: number
   goButtonLabel?: GoButtonLabel
-  hideYourself?: boolean
+  recommendedHideYourself?: boolean
   highlightedIndex: number | null
   includeContacts: boolean
   namespace: AllowedNamespace
@@ -483,7 +483,7 @@ class TeamBuilding extends React.PureComponent<Props> {
                   <ContactsImportButton {...this.props} />
                 ) : result.isSearchHint ? (
                   <SearchHintText />
-                ) : this.props.hideYourself && result.isYou ? null : (
+                ) : this.props.recommendedHideYourself && result.isYou ? null : (
                   <ResultRow
                     namespace={this.props.namespace}
                     resultForService={this.props.selectedService}
