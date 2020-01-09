@@ -4,6 +4,9 @@
 package service
 
 import (
+	"errors"
+	"strings"
+
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -142,4 +145,58 @@ func (h *SaltpackHandler) SaltpackVerify(ctx context.Context, arg keybase1.Saltp
 	eng := engine.NewSaltpackVerify(h.G(), earg)
 	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
 	return engine.RunEngine2(m, eng)
+}
+
+// frontend handlers:
+
+func (h *SaltpackHandler) SaltpackEncryptString(ctx context.Context, arg keybase1.SaltpackEncryptStringArg) (string, error) {
+	ctx = libkb.WithLogTag(ctx, "SP")
+
+	auth := keybase1.AuthenticityType_REPUDIABLE
+	if arg.Opts.Signed {
+		auth = keybase1.AuthenticityType_SIGNED
+	}
+	opts := keybase1.SaltpackEncryptOptions{
+		Recipients:       arg.Opts.Recipients,
+		AuthenticityType: auth,
+		NoSelfEncrypt:    !arg.Opts.IncludeSelf,
+		UseEntityKeys:    true,
+	}
+	sink := libkb.NewBufferCloser()
+	earg := &engine.SaltpackEncryptArg{
+		Opts:   opts,
+		Sink:   sink,
+		Source: strings.NewReader(arg.Plaintext),
+	}
+
+	uis := libkb.UIs{
+		SecretUI:  h.getSecretUI(arg.SessionID, h.G()),
+		SessionID: arg.SessionID,
+	}
+
+	keyfinderHook := saltpackkeys.NewRecipientKeyfinderEngineHook(false)
+
+	eng := engine.NewSaltpackEncrypt(earg, keyfinderHook)
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	err := engine.RunEngine2(m, eng)
+	if err != nil {
+		return "", err
+	}
+
+	return sink.String(), nil
+}
+
+func (h *SaltpackHandler) SaltpackDecryptString(ctx context.Context, arg keybase1.SaltpackDecryptStringArg) (keybase1.SaltpackPlaintextResult, error) {
+	ctx = libkb.WithLogTag(ctx, "SP")
+	return keybase1.SaltpackPlaintextResult{}, errors.New("nyi")
+}
+
+func (h *SaltpackHandler) SaltpackSignString(ctx context.Context, arg keybase1.SaltpackSignStringArg) (string, error) {
+	ctx = libkb.WithLogTag(ctx, "SP")
+	return "", errors.New("nyi")
+}
+
+func (h *SaltpackHandler) SaltpackVerifyString(ctx context.Context, arg keybase1.SaltpackVerifyStringArg) (keybase1.SaltpackVerifyResult, error) {
+	ctx = libkb.WithLogTag(ctx, "SP")
+	return keybase1.SaltpackVerifyResult{}, errors.New("nyi")
 }

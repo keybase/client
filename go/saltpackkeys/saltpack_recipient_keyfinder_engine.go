@@ -69,16 +69,6 @@ func (e *SaltpackRecipientKeyfinderEngine) Run(m libkb.MetaContext) (err error) 
 
 	err = e.uploadKeyPseudonymsAndGenerateSymmetricKeys(m)
 
-	// CORE-8423 remove this after most clients update
-	// Note: we do not add tlf keys for users added as members of a recipient team.
-	if !e.SkipTlfKeysForTesting && !e.Arg.NoSelfEncrypt && len(e.Arg.Recipients) > 0 {
-		kf := NewSaltpackKBFSKeyfinderEngineForTesting(e.Arg)
-		if err := engine.RunEngine2(m, kf); err != nil {
-			return err
-		}
-		e.SaltpackSymmetricKeys = append(e.SaltpackSymmetricKeys, kf.GetSymmetricKeys()...)
-	}
-
 	return err
 }
 

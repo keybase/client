@@ -32,6 +32,7 @@ func getBuildSpecificCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext
 		NewCmdContacts(cl, g),
 		NewCmdPeopleSearch(cl, g),
 		newCmdTestAirdropReg(cl, g),
+		newCmdTestCrypto(cl, g),
 	}
 }
 
