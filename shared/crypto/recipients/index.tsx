@@ -37,7 +37,6 @@ const Recipients = (props: Props) => (
         />
       ) : null}
     </Kb.Box2>
-    <Kb.Divider />
   </Kb.Box2>
 )
 

@@ -65,7 +65,6 @@ export const OutputBar = (props: OutputBarProps) => {
   }, [output, onCopyOutput])
   return props.outputStatus && props.outputStatus === 'success' ? (
     <>
-      <Kb.Divider />
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.outputBarContainer}>
         <Kb.ButtonBar direction="row" style={styles.buttonBar}>
           {props.outputType === 'file' ? (

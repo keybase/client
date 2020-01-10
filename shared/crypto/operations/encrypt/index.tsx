@@ -86,7 +86,6 @@ const Encrypt = (props: Props) => {
               }}
             />
           )}
-          <Kb.Divider />
           <EncryptOptions
             hasRecipients={props.hasRecipients}
             noIncludeSelf={props.noIncludeSelf}
