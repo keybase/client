@@ -2773,11 +2773,11 @@ function* createConversation(
     }
   } catch (error) {
     let disallowedUsers = error.fields?.filter(elem => elem.key === 'usernames')
-    if (disallowedUsers.length) {
+    if (disallowedUsers?.length) {
       const {value} = disallowedUsers[0]
       disallowedUsers = value.split(',')
     }
-    const allowedUsers = action.payload.participants.filter(x => !disallowedUsers.includes(x))
+    const allowedUsers = action.payload.participants.filter(x => !disallowedUsers?.includes(x))
     yield Saga.put(
       Chat2Gen.createConversationErrored({
         allowedUsers,

@@ -23,10 +23,10 @@ export const newRoutes = {
 }
 
 export const newModalRoutes = {
-  // TODO connect broken
   contactRestricted: {
     getScreen: (): typeof ContactRestricted => require('../team-building/contact-restricted').default,
   },
+  // TODO connect broken
   retentionWarning: {
     getScreen: (): typeof RetentionWarning =>
       require('./team/settings-tab/retention/warning/container').default,
@@ -44,8 +44,12 @@ export const newModalRoutes = {
   teamInviteByEmail: {
     getScreen: (): typeof TeamInviteByEmail => require('./invite-by-email/container').default,
   },
-  teamJoinTeamDialog: {getScreen: (): typeof TeamJoinTeamDialog => require('./join-team/container').default},
-  teamNewTeamDialog: {getScreen: (): typeof TeamNewTeamDialog => require('./new-team/container').default},
+  teamJoinTeamDialog: {
+    getScreen: (): typeof TeamJoinTeamDialog => require('./join-team/container').default,
+  },
+  teamNewTeamDialog: {
+    getScreen: (): typeof TeamNewTeamDialog => require('./new-team/container').default,
+  },
   teamReallyLeaveTeam: {
     getScreen: (): typeof TeamReallyLeaveTeam => require('./really-leave-team/container').default,
   },
@@ -53,5 +57,7 @@ export const newModalRoutes = {
     getScreen: (): typeof TeamReallyRemoveMember => require('./team/really-remove-member').default,
   },
   teamRename: {getScreen: (): typeof TeamRename => require('./rename-team/container').default},
-  teamsTeamBuilder: {getScreen: (): typeof TeamsTeamBuilder => require('../team-building/container').default},
+  teamsTeamBuilder: {
+    getScreen: (): typeof TeamsTeamBuilder => require('../team-building/container').default,
+  },
 }

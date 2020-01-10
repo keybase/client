@@ -17,26 +17,34 @@ export const ContactRestricted = (props: Props) => {
   let header = ''
   let description = ''
   let disallowedUsers: Array<string> = []
+  const firstUser = props.usernames[0]
   switch (props.source) {
     case 'walletsRequest':
-      header = `You cannot request a payment from @${props.usernames[0]}.`
-      description = `@${props.usernames[0]}'s contact restrictions prevent you from requesting a payment. Contact them outside Keybase to proceed.`
+      header = `You cannot request a payment from @${firstUser}.`
+      description = `@${firstUser}'s contact restrictions prevent you from requesting a payment. Contact them outside Keybase to proceed.`
       break
     case 'newFolder':
-      header = `You cannot open a private folder with @${props.usernames[0]}.`
-      description = `@${props.usernames[0]}'s contact restrictions prevent you from opening a private folder with them. Contact them outside Keybase to proceed.`
+      header = `You cannot open a private folder with @${firstUser}.`
+      description = `@${firstUser}'s contact restrictions prevent you from opening a private folder with them. Contact them outside Keybase to proceed.`
       break
-    case 'teamAddAllFailed':
-      header = 'The following people could not be added to the team.'
-      description =
-        'Their contact restrictions prevent you from adding them. Contact them outside Keybase to proceed.'
-      disallowedUsers = props.usernames
+    case 'teamAddAllFailed': {
+      const soloDisallowed = props.usernames.length === 1
+      if (!soloDisallowed) {
+        // Show the disallowed group as a list
+        disallowedUsers = props.usernames
+      }
+      header = soloDisallowed
+        ? `You cannot add @${firstUser} to a team.`
+        : 'The following people could not be added to the team.'
+      const prefix = soloDisallowed ? `@${firstUser}'s` : 'Their'
+      description = `${prefix} contact restrictions prevent you from adding them. Contact them outside Keybase to proceed.`
       break
+    }
     case 'teamAddSomeFailed':
+      disallowedUsers = props.usernames
       header = 'Some of the users could not be added to the team.'
       description =
         'Their contact restrictions prevent you from adding them. Contact them outside Keybase to proceed.'
-      disallowedUsers = props.usernames
       break
   }
   return (

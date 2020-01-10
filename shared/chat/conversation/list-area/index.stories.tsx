@@ -153,7 +153,6 @@ const provider = Sb.createPropProviderWithCommon({
   }),
   SpecialTopMessage: () => ({
     conversationIDKey: Constants.pendingErrorConversationIDKey,
-    createConversationError: 'I AM ERROR',
     pendingState: 'error',
   }),
   TopMessage: p => ({
