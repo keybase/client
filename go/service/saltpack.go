@@ -447,43 +447,64 @@ func boxFilename(inFilename, suffix string) (string, *libkb.BufferWriter, error)
 	return withExt, libkb.NewBufferWriter(f), nil
 }
 
+// unboxFilename takes a filename and creates a new file where the result
+// of decrypt or verify can go.
+//
+// If inFilename ends in .encrypted.saltpack or .signed.saltpack, the result
+// filename will just have that stripped off.  If a file without that extension
+// already exists, it will look for a file with <name>` (n)`.<extension> for
+// n = 1..99 that doesn't exist.
+//
+// If inFilename doesn't have a saltpack suffix, it uses the suffix that is passed
+// in, so it would be <filename>.decrypted or <filename>.verified.
 func unboxFilename(inFilename, suffix string) (string, *libkb.BufferWriter, error) {
 	dir, file := filepath.Split(inFilename)
-	res := file + suffix
+	// default desired filename is the input filename plus the suffix.
+	desiredFilename := file + suffix
+
+	// if the input filename ends in .encrypted.saltpack or .signed.saltpack,
+	// strip that off and use that instead.
 	if strings.HasSuffix(file, encryptedExtension) {
-		res = strings.TrimSuffix(file, encryptedExtension)
+		desiredFilename = strings.TrimSuffix(file, encryptedExtension)
 	} else if strings.HasSuffix(file, signedExtension) {
-		res = strings.TrimSuffix(file, signedExtension)
+		desiredFilename = strings.TrimSuffix(file, signedExtension)
 	}
-	out := filepath.Join(dir, res)
+
+	finalPath := filepath.Join(dir, desiredFilename)
 
 	var found bool
 	for i := 0; i < 100; i++ {
-		poss := out
+		possible := finalPath
 		if i > 0 {
-			ext := filepath.Ext(poss)
-			poss = fmt.Sprintf("%s (%d)%s", strings.TrimSuffix(poss, ext), i, ext)
+			// after the first time through, add a (i) to the filename
+			// to try to find one that doesn't exist
+			ext := filepath.Ext(possible)
+			possible = fmt.Sprintf("%s (%d)%s", strings.TrimSuffix(possible, ext), i, ext)
 		}
-		exists, err := libkb.FileExists(poss)
+		exists, err := libkb.FileExists(possible)
 		if err != nil {
 			return "", nil, err
 		}
 		if !exists {
+			// found a filename that doesn't exist
 			found = true
-			out = poss
+			finalPath = possible
 			break
 		}
 	}
 
 	if !found {
+		// after 100 attempts, no file found that wouldn't overwrite an existing
+		// file, so bail out.
 		return "", nil, errors.New("could not create output file without overwriting existing file")
 	}
 
-	f, err := os.Create(out)
+	// finalPath contains a filename that doesn't exist, so make the file
+	f, err := os.Create(finalPath)
 	if err != nil {
 		return "", nil, err
 	}
-	return out, libkb.NewBufferWriter(f), nil
+	return finalPath, libkb.NewBufferWriter(f), nil
 }
 
 // nopSecretUI returns an error if it is ever called.
