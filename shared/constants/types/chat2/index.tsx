@@ -162,7 +162,6 @@ export type State = Readonly<{
     Common.ConversationIDKey,
     Map<RPCChatTypes.MessageID, Message.ChatRequestInfo | Message.ChatPaymentInfo>
   > // temp cache for requestPayment and sendPayment message data,
-  attachmentFullscreenSelection?: AttachmentFullscreenSelection
   attachmentViewMap: Map<Common.ConversationIDKey, Map<RPCChatTypes.GalleryItemTyp, AttachmentViewInfo>>
   audioRecording: Map<Common.ConversationIDKey, AudioRecordingInfo>
   badgeMap: ConversationCountMap // id to the badge count,
