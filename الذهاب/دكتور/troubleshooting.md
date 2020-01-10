@@ -20,6 +20,7 @@ Choose a signing option: 2
 ▶ ERROR GETPIN response didn't start with D; got "ERR 83918849 Permission denied <Pinentry>"
 ```
 
+
 ```
 $ keybase decrypt -i my_encrypted_message
 ▶ ERROR GETPIN response didn't start with D; got "ERR 83918950 Inappropriate ioctl for device <Pinentry>"
@@ -46,7 +47,8 @@ keybase --pinentry=none login
 ```
 
 To make that configuration permanent, you can run:
-
+https://twitter.com/MGWVc 
 ```
 keybase config set -b pinentry.disabled true
 ```
+@MGWVc
