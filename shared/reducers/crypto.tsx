@@ -81,12 +81,14 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     draftState[operation].input = value
   },
   [CryptoGen.onOperationSuccess]: (draftState, action) => {
-    const {operation, output, outputType} = action.payload
+    const {operation, output, outputSigned, outputSender, outputType} = action.payload
     if (operationGuard(operation, action)) return
 
     draftState[operation].output = output
     draftState[operation].outputStatus = 'success'
     draftState[operation].outputType = outputType
+    draftState[operation].outputSigned = outputSigned
+    draftState[operation].outputSender = outputSender
   },
 
   // Encrypt: Handle team building when selecting keybase users

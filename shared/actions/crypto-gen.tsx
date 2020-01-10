@@ -29,6 +29,8 @@ type _OnOperationErrorPayload = {
 type _OnOperationSuccessPayload = {
   readonly operation: Types.Operations
   readonly output: string
+  readonly outputSender?: string
+  readonly outputSigned: boolean
   readonly outputType: Types.OutputType
 }
 type _ResetOperationPayload = {readonly operation: Types.Operations}

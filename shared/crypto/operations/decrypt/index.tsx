@@ -14,6 +14,8 @@ type Props = {
   onSetInput: (inputType: Types.InputTypes, inputValue: string) => void
   onShowInFinder: (path: string) => void
   output: string
+  outputSender?: string
+  outputSigned: boolean
   outputStatus?: Types.OutputStatus
   outputType?: Types.OutputType
   username?: string

@@ -19,7 +19,7 @@ type Props = {
 }
 
 // We want to debuonce the onChangeText callback for our input so we are not sending an RPC on every keystroke
-const debounced = debounce((fn, ...args) => fn(...args), 500)
+const debounced = debounce((fn, ...args) => fn(...args), 100)
 
 const Sign = (props: Props) => {
   const [inputValue, setInputValue] = React.useState(props.input)

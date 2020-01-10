@@ -67,6 +67,8 @@ const defaultCommonState = {
   input: '',
   inputType: 'text' as Types.InputTypes,
   output: '',
+  outputSender: undefined,
+  outputSigned: false,
   outputStatus: undefined,
   outputType: undefined,
 }

@@ -29,6 +29,8 @@ export type CommonState = {
   input: string
   inputType: InputTypes
   output: string
+  outputSender?: string
+  outputSigned?: boolean
   outputStatus?: OutputStatus
   outputType?: OutputType
 }

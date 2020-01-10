@@ -29,6 +29,8 @@
       "_description": "On saltpack RPC successful response",
       "operation": "Types.Operations",
       "output": "string",
+      "outputSender?": "string",
+      "outputSigned": "boolean",
       "outputType": "Types.OutputType"
     },
     "onOperationError": {
