@@ -127,7 +127,7 @@ The installer places/updates all the files and adds:
 The service is invoked by the GUI with this command:
 `[INSTALLFOLDER]\keybaserq.exe keybase.exe --log-format=file --log-prefix="[INSTALLFOLDER]watchdog." ctl watchdog2`
 This starts a copy of keybase.exe in watchdog mode, which in turn runs the service and kbfs processes, restarting them if they die or are killed.
-If the service is closed with `keybase ctl stop`, which the GUI does when the widtget menu is used, the watchdog will see a different exit code and not restart the processes.
+If the service is closed with `keybase ctl stop`, which the GUI does when the widtget menu is used (this does not currently work), the watchdog will see a different exit code and not restart the processes.
 
 `keybaserq.exe` has 2 main jobs: de-elevating permissions to run as current user, and running Keybase invisibly, without the CMD window appearing, since it is a console program.
 
@@ -137,7 +137,7 @@ Notable executables
 `kbfsdokan.exe` - kbfs
 `kbnm.exe` - browser extension
 `keybase.exe` - service
-`keybase.rq.exe` - quiet launcher and de-elevator
+`keybaserq.exe` - quiet launcher and de-elevator
 `prompter.exe` - updater GUI
 `upd.exe` - updater
 `Gui\Keybase.exe` - GUI

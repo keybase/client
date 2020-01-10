@@ -22,6 +22,7 @@ IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
 
-cd %GOPATH%\src\github.com\keybase\client\packaging\windows\WIXInstallers\KeybaseApps\bin\Debug
+pushd %GOPATH%\src\github.com\keybase\client\packaging\windows\WIXInstallers\KeybaseApps\bin\Debug
+
 echo Success: here is your .msi file
 

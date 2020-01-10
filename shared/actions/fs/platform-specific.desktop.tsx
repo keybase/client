@@ -328,13 +328,15 @@ const installCachedDokan = (action: FsGen.DriverEnablePayload) =>
         return
       }
       // restart the service, particularly kbfsdokan
-      // based on desktop/app/start-win-service.js
+      // based on desktop/app/start-win-service.desktop.tsx
       const binPath = path.resolve(String(process.env.LOCALAPPDATA), 'Keybase', 'keybase.exe')
       if (!binPath) {
         reject(new Error('resolve failed'))
         return
       }
       const rqPath = binPath.replace('keybase.exe', 'keybaserq.exe')
+      // 1/9/2020 TODO: this will actually kill kbfsdokan and not restart it.
+      // but this looks fine as long as we un-break `ctl restart`
       const args = [binPath, 'ctl', 'restart']
 
       spawn(rqPath, args, {
