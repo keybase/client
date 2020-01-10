@@ -1,14 +1,27 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
+import * as Types from '../../../constants/types/chat2'
 import {FeaturedBot} from 'constants/types/rpc-gen'
+import AddBotToChannel from './add-bot-to-channel'
 
 type Props = FeaturedBot & {
+  conversationIDKey: Types.ConversationIDKey
   description?: string
   onClick: (username: string) => void
+  showAddToChannel: boolean
 }
 
-const Bot = ({botAlias, description, botUsername, onClick, ownerTeam, ownerUser}: Props) => {
+const Bot = ({
+  botAlias,
+  conversationIDKey,
+  description,
+  botUsername,
+  showAddToChannel,
+  onClick,
+  ownerTeam,
+  ownerUser,
+}: Props) => {
   const lower = (
     <Kb.Box2
       direction="horizontal"
@@ -55,6 +68,9 @@ const Bot = ({botAlias, description, botUsername, onClick, ownerTeam, ownerUser}
               {usernameDisplay}
               {lower}
             </Kb.Box2>
+            {showAddToChannel && (
+              <AddBotToChannel username={botUsername} conversationIDKey={conversationIDKey} />
+            )}
           </Kb.Box2>
         </Kb.Box2>
         <Kb.Divider style={styles.divider} />
