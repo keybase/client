@@ -3,17 +3,25 @@ import * as TeamBuildingGen from './team-building-gen'
 import * as CryptoGen from './crypto-gen'
 import * as Types from '../constants/types/crypto'
 import * as Constants from '../constants/crypto'
-import {TypedState} from '../util/container'
+import {TypedState, TypedActions} from '../util/container'
 import commonTeamBuildingSaga, {filterForNs} from './team-building'
 
 // Get list of users from crypto TeamBuilding for encrypt operation
 const onSetRecipients = (state: TypedState, _: TeamBuildingGen.FinishedTeamBuildingPayload) => {
+  const {username: currentUser} = state.config
+  const {options} = state.crypto.encrypt
+
   const users = [...state.crypto.teamBuilding.finishedTeam]
-  const usernames = users.map(user => user.username)
-  return [
-    TeamBuildingGen.createCancelTeamBuilding({namespace: 'crypto'}),
-    CryptoGen.createSetRecipients({operation: 'encrypt', recipients: usernames}),
-  ]
+  let usernames = users.map(user => user.username)
+
+  const actions: Array<TypedActions> = [TeamBuildingGen.createCancelTeamBuilding({namespace: 'crypto'})]
+
+  // User set themselves as a recipient, so don't show 'includeSelf' option
+  if (usernames.includes(currentUser)) {
+    actions.push(CryptoGen.createSetEncryptOptions({noIncludeSelf: true, options}))
+  }
+  actions.push(CryptoGen.createSetRecipients({operation: 'encrypt', recipients: usernames}))
+  return actions
 }
 
 function* teamBuildingSaga() {

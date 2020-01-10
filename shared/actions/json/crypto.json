@@ -21,8 +21,9 @@
       "value": "string"
     },
     "setEncryptOptions": {
-      "_description": "Encrypt operation takes three options { 'includeSelf', 'sign' }",
-      "options": "Types.EncryptOptions"
+      "_description": "Sets options for encrypt operations. Also takkes 'noIncludeSelf' to disable includeSelf when user includes themselves as a recipient",
+      "options": "Types.EncryptOptions",
+      "noIncludeSelf?": "boolean"
     },
     "onOperationSuccess": {
       "_description": "On saltpack RPC successful response",

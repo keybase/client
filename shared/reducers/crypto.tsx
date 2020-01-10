@@ -40,6 +40,7 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     if (operation === Constants.Operations.Encrypt) {
       draftState.encrypt.recipients = initialState.encrypt.recipients
       draftState.encrypt.meta.hasRecipients = false
+      draftState.encrypt.meta.noIncludeSelf = false
       // Reset options since they depend on the recipients
       draftState.encrypt.options = initialState.encrypt.options
       draftState.encrypt.output = ''
@@ -56,11 +57,20 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     if (!draftState.encrypt.recipients.length && recipients.length) {
       draftState.encrypt.meta.hasRecipients = true
     }
-    draftState.encrypt.recipients = recipients
+    if (recipients) draftState.encrypt.recipients = recipients
   },
   [CryptoGen.setEncryptOptions]: (draftState, action) => {
-    const {options} = action.payload
-    draftState.encrypt.options = options
+    const {options: newOptions, noIncludeSelf} = action.payload
+    const oldOptions = draftState.encrypt.options
+    draftState.encrypt.options = {
+      ...oldOptions,
+      ...newOptions,
+    }
+    // User set themselves as a recipient so don't show the 'includeSelf' option for encrypt (since they're encrypting to themselves)
+    if (noIncludeSelf) {
+      draftState.encrypt.meta.noIncludeSelf = noIncludeSelf
+      draftState.encrypt.options.includeSelf = false
+    }
   },
   [CryptoGen.setInput]: (draftState, action) => {
     const {operation, type, value} = action.payload

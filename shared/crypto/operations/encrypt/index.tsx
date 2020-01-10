@@ -8,9 +8,9 @@ import OperationOutput, {OutputBar, OutputSigned} from '../../output'
 import Recipients from '../../recipients/container'
 
 type Props = {
-  canUsePGP: boolean
   input: string
   inputType: Types.InputTypes
+  noIncludeSelf: boolean
   onClearInput: () => void
   onCopyOutput: (text: string) => void
   onSetInput: (inputType: Types.InputTypes, inputValue: string) => void
@@ -24,26 +24,28 @@ type Props = {
 }
 
 type EncryptOptionsProps = {
-  options: Types.EncryptOptions
   hasRecipients: boolean
-  canUsePGP: boolean
+  noIncludeSelf: boolean
   onSetOptions: (options: Types.EncryptOptions) => void
+  options: Types.EncryptOptions
 }
 
 // We want to debuonce the onChangeText callback for our input so we are not sending an RPC on every keystroke
 const debounced = debounce((fn, ...args) => fn(...args), 500)
 
 const EncryptOptions = (props: EncryptOptionsProps) => {
-  const {onSetOptions, options, hasRecipients} = props
+  const {hasRecipients, noIncludeSelf, onSetOptions, options} = props
   const {includeSelf, sign} = options
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} gap="medium" style={styles.optionsContainer}>
-      <Kb.Checkbox
-        label="Include yourself"
-        disabled={!hasRecipients}
-        checked={includeSelf}
-        onCheck={newValue => onSetOptions({includeSelf: newValue, sign})}
-      />
+      {noIncludeSelf ? null : (
+        <Kb.Checkbox
+          label="Include yourself"
+          disabled={!hasRecipients}
+          checked={includeSelf}
+          onCheck={newValue => onSetOptions({includeSelf: newValue, sign})}
+        />
+      )}
       <Kb.Checkbox
         label="Sign"
         disabled={!hasRecipients}
@@ -80,8 +82,8 @@ const Encrypt = (props: Props) => {
           <Kb.Divider />
           <EncryptOptions
             hasRecipients={props.hasRecipients}
+            noIncludeSelf={props.noIncludeSelf}
             options={props.options}
-            canUsePGP={props.canUsePGP}
             onSetOptions={props.onSetOptions}
           />
           <Kb.Divider />

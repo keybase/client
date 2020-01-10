@@ -61,6 +61,7 @@ export const makeState = (): Types.State => ({
     ...defaultCommonState,
     meta: {
       hasRecipients: false,
+      noIncludeSelf: false,
     },
     options: {
       includeSelf: true,

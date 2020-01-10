@@ -40,7 +40,7 @@ type _SaltpackEncryptPayload = {
 }
 type _SaltpackSignPayload = {readonly input: string; readonly type: Types.InputTypes}
 type _SaltpackVerifyPayload = {readonly input: string; readonly type: Types.InputTypes}
-type _SetEncryptOptionsPayload = {readonly options: Types.EncryptOptions}
+type _SetEncryptOptionsPayload = {readonly options: Types.EncryptOptions; readonly noIncludeSelf?: boolean}
 type _SetInputPayload = {
   readonly operation: Types.Operations
   readonly type: Types.InputTypes
@@ -92,13 +92,6 @@ export const createClearInput = (payload: _ClearInputPayload): ClearInputPayload
   type: clearInput,
 })
 /**
- * Encrypt operation takes three options { 'includeSelf', 'sign' }
- */
-export const createSetEncryptOptions = (payload: _SetEncryptOptionsPayload): SetEncryptOptionsPayload => ({
-  payload,
-  type: setEncryptOptions,
-})
-/**
  * On saltpack RPC error response
  */
 export const createOnOperationError = (payload: _OnOperationErrorPayload): OnOperationErrorPayload => ({
@@ -130,6 +123,13 @@ export const createResetOperation = (payload: _ResetOperationPayload): ResetOper
  * Set input type (text, file) and value on user input. Either keyboard input or drag-and-drop file
  */
 export const createSetInput = (payload: _SetInputPayload): SetInputPayload => ({payload, type: setInput})
+/**
+ * Sets options for encrypt operations. Also takkes 'noIncludeSelf' to disable includeSelf when user includes themselves as a recipient
+ */
+export const createSetEncryptOptions = (payload: _SetEncryptOptionsPayload): SetEncryptOptionsPayload => ({
+  payload,
+  type: setEncryptOptions,
+})
 
 // Action Payloads
 export type ClearInputPayload = {readonly payload: _ClearInputPayload; readonly type: typeof clearInput}
