@@ -1,3 +1,4 @@
+// OMG refactor this
 import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
 import * as Styles from '../../../styles'
@@ -146,19 +147,18 @@ const TabText = ({selected, text}: {selected: boolean; text: string}) => (
 )
 
 class _InfoPanel extends React.PureComponent<InfoPanelProps> {
-  private animationDelayLoad: NodeJS.Timeout | undefined
-  componentDidMount() {
-    this.animationDelayLoad = setTimeout(() => {
-      if (this.props.selectedTab === 'attachments') {
-        this.loadAttachments()
-      }
-      if (this.props.selectedTab === 'bots') {
-        this.loadBots()
-      }
-    }, this.props.loadDelay || 0)
+  componentDidUpdate(prevProps: InfoPanelProps) {
+    if (this.props.selectedConversationIDKey !== prevProps.selectedConversationIDKey) {
+      this.loadAttachments()
+    }
   }
-  componentWillUnmount() {
-    this.animationDelayLoad && clearTimeout(this.animationDelayLoad)
+  componentDidMount() {
+    if (this.props.selectedTab === 'attachments') {
+      this.loadAttachments()
+    }
+    if (this.props.selectedTab === 'bots') {
+      this.loadBots()
+    }
   }
 
   private loadAttachments = () => {

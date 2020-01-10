@@ -61,6 +61,8 @@ export const makeState = (): Types.State => ({
   inboxNumSmallRows: 5,
   inboxSearch: undefined,
   inboxShowNew: false,
+  infoPanelShowing: false,
+  infoPanelSelectedTab: undefined,
   isWalletsNew: true,
   lastCoord: undefined,
   maybeMentionMap: new Map(),
@@ -282,14 +284,6 @@ export const isUserActivelyLookingAtThisThread = (
 export const isTeamConversationSelected = (state: TypedState, teamname: string) => {
   const meta = getMeta(state, getSelectedConversation(state))
   return meta.teamname === teamname
-}
-export const isInfoPanelOpen = () => {
-  const maybeVisibleScreen = Router2.getVisibleScreen()
-  return (
-    (maybeVisibleScreen === null || maybeVisibleScreen === undefined
-      ? undefined
-      : maybeVisibleScreen.routeName) === 'chatInfoPanel'
-  )
 }
 
 export const inboxSearchNewKey = 'chat:inboxSearchNew'

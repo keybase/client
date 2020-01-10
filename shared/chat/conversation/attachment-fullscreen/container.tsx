@@ -21,17 +21,9 @@ const Connected = Container.connect(
     }
   },
   dispatch => ({
-    _onAllMedia: (conversationIDKey: Types.ConversationIDKey) =>
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [
-            {
-              props: {conversationIDKey, tab: 'attachments'},
-              selected: 'chatInfoPanel',
-            },
-          ],
-        })
-      ),
+    _onAllMedia: (conversationIDKey: Types.ConversationIDKey) => {
+      dispatch(Chat2Gen.createShowInfoPanel({conversationIDKey, show: true, tab: 'attachments'}))
+    },
     _onDownloadAttachment: (message: Types.MessageAttachment) =>
       dispatch(Chat2Gen.createAttachmentDownload({message})),
     _onShowInFinder: (message: Types.MessageAttachment) => {

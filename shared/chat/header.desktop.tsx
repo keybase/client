@@ -16,7 +16,6 @@ type Props = {
   canEditDesc: boolean
   channel: string | null
   desc: string
-  infoPanelOpen: boolean
   isTeam: boolean
   muted: boolean
   onOpenFolder: () => void
@@ -191,12 +190,7 @@ const Header = (p: Props) => {
               <Kb.Icon style={styles.clickable} type="iconfont-folder-private" onClick={p.onOpenFolder} />
             </Kb.WithTooltip>
             <Kb.WithTooltip tooltip="Chat info & settings">
-              <Kb.Icon
-                style={styles.clickable}
-                type="iconfont-info"
-                onClick={p.onToggleInfoPanel}
-                color={p.infoPanelOpen ? Styles.globalColors.blue : undefined}
-              />
+              <Kb.Icon style={styles.clickable} type="iconfont-info" onClick={p.onToggleInfoPanel} />
             </Kb.WithTooltip>
           </Kb.Box2>
         )}
@@ -255,8 +249,10 @@ const Connected = Container.connect(
     const userInfo = state.users.infoMap
     const _meta = Constants.getMeta(state, _conversationIDKey)
     const participantInfo = Constants.getParticipantInfo(state, _conversationIDKey)
+    const {infoPanelShowing} = state.chat2
+    const {username} = state.config
 
-    const otherParticipants = Constants.getRowParticipants(participantInfo, state.config.username)
+    const otherParticipants = Constants.getRowParticipants(participantInfo, username)
     const first: string =
       _meta.teamType === 'adhoc' && otherParticipants.length === 1 ? otherParticipants[0] : ''
     const otherInfo = userInfo.get(first)
@@ -273,7 +269,7 @@ const Connected = Container.connect(
       canEditDesc: TeamConstants.getCanPerform(state, _meta.teamname).editChannelDescription,
       desc,
       fullName,
-      infoPanelOpen: Constants.isInfoPanelOpen(),
+      infoPanelShowing,
       username: state.config.username,
     }
   },
@@ -281,36 +277,36 @@ const Connected = Container.connect(
     _onOpenFolder: (conversationIDKey: Types.ConversationIDKey) =>
       dispatch(Chat2Gen.createOpenFolder({conversationIDKey})),
     onNewChat: () => dispatch(appendNewChatBuilder()),
-    onToggleInfoPanel: () => dispatch(Chat2Gen.createToggleInfoPanel()),
-    onToggleThreadSearch: (conversationIDKey: Types.ConversationIDKey) =>
+    onHideInfoPanel: () => dispatch(Chat2Gen.createShowInfoPanel({show: false})),
+    onShowInfoPanel: (conversationIDKey: Types.ConversationIDKey) =>
+      dispatch(Chat2Gen.createShowInfoPanel({conversationIDKey, show: true})),
+    _onToggleThreadSearch: (conversationIDKey: Types.ConversationIDKey) =>
       dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey})),
-    onUnMuteConversation: (conversationIDKey: Types.ConversationIDKey) =>
+    _unMuteConversation: (conversationIDKey: Types.ConversationIDKey) =>
       dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted: false})),
   }),
   (stateProps, dispatchProps, _: OwnProps) => {
-    const meta = stateProps._meta
+    const {infoPanelShowing, username, fullName, desc} = stateProps
+    const {_meta, _conversationIDKey, _participantInfo} = stateProps
+    const {teamType, channelname, teamname, isMuted} = _meta
+    const {_onOpenFolder, _onToggleThreadSearch, _unMuteConversation} = dispatchProps
+    const {onHideInfoPanel, onNewChat, onShowInfoPanel} = dispatchProps
 
     return {
       canEditDesc: stateProps.canEditDesc,
-      channel:
-        meta.teamType === 'big'
-          ? `${meta.teamname}#${meta.channelname}`
-          : meta.teamType === 'small'
-          ? meta.teamname
-          : null,
-      desc: stateProps.desc,
-      fullName: stateProps.fullName,
-      infoPanelOpen: stateProps.infoPanelOpen,
-      isTeam: ['small', 'big'].includes(meta.teamType),
-      muted: meta.isMuted,
-      onNewChat: dispatchProps.onNewChat,
-      onOpenFolder: () => dispatchProps._onOpenFolder(stateProps._conversationIDKey),
-      onToggleInfoPanel: dispatchProps.onToggleInfoPanel,
-      onToggleThreadSearch: () => dispatchProps.onToggleThreadSearch(stateProps._conversationIDKey),
-      participants: meta.teamType === 'adhoc' ? stateProps._participantInfo.name : null,
-      showActions: Constants.isValidConversationIDKey(stateProps._conversationIDKey),
-      unMuteConversation: () => dispatchProps.onUnMuteConversation(stateProps._conversationIDKey),
-      username: stateProps.username,
+      channel: teamType === 'big' ? `${teamname}#${channelname}` : teamType === 'small' ? teamname : null,
+      desc,
+      fullName,
+      isTeam: ['small', 'big'].includes(teamType),
+      muted: isMuted,
+      onNewChat,
+      onOpenFolder: () => _onOpenFolder(_conversationIDKey),
+      onToggleInfoPanel: infoPanelShowing ? onHideInfoPanel : () => onShowInfoPanel(_conversationIDKey),
+      onToggleThreadSearch: () => _onToggleThreadSearch(_conversationIDKey),
+      participants: teamType === 'adhoc' ? _participantInfo.name : null,
+      showActions: Constants.isValidConversationIDKey(_conversationIDKey),
+      unMuteConversation: () => _unMuteConversation(_conversationIDKey),
+      username,
     }
   }
 )(Header)
