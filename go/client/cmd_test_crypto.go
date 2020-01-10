@@ -17,12 +17,19 @@ func newCmdTestCrypto(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdTestCrypto{Contextified: libkb.NewContextified(g)}, "test-crypto", c)
 		},
+		Flags: []cli.Flag{
+			cli.StringFlag{
+				Name:  "f",
+				Usage: "filename to encrypt",
+			},
+		},
 	}
 }
 
 type CmdTestCrypto struct {
 	libkb.Contextified
 	recipients []string
+	filename   string
 }
 
 func (s *CmdTestCrypto) ParseArgv(ctx *cli.Context) error {
@@ -30,6 +37,7 @@ func (s *CmdTestCrypto) ParseArgv(ctx *cli.Context) error {
 	if len(s.recipients) == 0 {
 		return errors.New("need at least one recipient")
 	}
+	s.filename = ctx.String("f")
 	return nil
 }
 
@@ -96,6 +104,34 @@ func (s *CmdTestCrypto) Run() (err error) {
 		return err
 	}
 	dui.Printf("verify result: %+v\n\n", vres)
+
+	if s.filename == "" {
+		dui.Printf("no filename specified, done.\n")
+		return nil
+	}
+
+	dui.Printf("encrypting file %s\n", s.filename)
+	efArg := keybase1.SaltpackEncryptFileArg{
+		Filename: s.filename,
+		Opts: keybase1.SaltpackFrontendEncryptOptions{
+			Recipients:  s.recipients,
+			IncludeSelf: true,
+			Signed:      true,
+		},
+	}
+	efPath, err := cli.SaltpackEncryptFile(mctx.Ctx(), efArg)
+	if err != nil {
+		return err
+	}
+	dui.Printf("encrypted file: %s\n", efPath)
+
+	dui.Printf("decrypting file: %s\n", efPath)
+	dfArg := keybase1.SaltpackDecryptFileArg{EncryptedFilename: efPath}
+	dfres, err := cli.SaltpackDecryptFile(mctx.Ctx(), dfArg)
+	if err != nil {
+		return err
+	}
+	dui.Printf("decrypt result: %+v\n", dfres)
 
 	return nil
 }

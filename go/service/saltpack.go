@@ -4,9 +4,13 @@
 package service
 
 import (
+	"bufio"
 	"bytes"
 	"errors"
+	"fmt"
 	"io/ioutil"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/keybase/client/go/engine"
@@ -154,16 +158,7 @@ func (h *SaltpackHandler) SaltpackVerify(ctx context.Context, arg keybase1.Saltp
 func (h *SaltpackHandler) SaltpackEncryptString(ctx context.Context, arg keybase1.SaltpackEncryptStringArg) (string, error) {
 	ctx = libkb.WithLogTag(ctx, "SP")
 
-	auth := keybase1.AuthenticityType_REPUDIABLE
-	if arg.Opts.Signed {
-		auth = keybase1.AuthenticityType_SIGNED
-	}
-	opts := keybase1.SaltpackEncryptOptions{
-		Recipients:       arg.Opts.Recipients,
-		AuthenticityType: auth,
-		NoSelfEncrypt:    !arg.Opts.IncludeSelf,
-		UseEntityKeys:    true,
-	}
+	opts := h.encryptOptions(arg.Opts)
 	sink := libkb.NewBufferCloser()
 	earg := &engine.SaltpackEncryptArg{
 		Opts:   opts,
@@ -171,17 +166,7 @@ func (h *SaltpackHandler) SaltpackEncryptString(ctx context.Context, arg keybase
 		Source: strings.NewReader(arg.Plaintext),
 	}
 
-	uis := libkb.UIs{
-		SecretUI:  &nopSecretUI{},
-		SessionID: arg.SessionID,
-	}
-
-	keyfinderHook := saltpackkeys.NewRecipientKeyfinderEngineHook(false)
-
-	eng := engine.NewSaltpackEncrypt(earg, keyfinderHook)
-	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
-	err := engine.RunEngine2(m, eng)
-	if err != nil {
+	if err := h.frontendEncrypt(ctx, arg.SessionID, earg); err != nil {
 		return "", err
 	}
 
@@ -196,21 +181,12 @@ func (h *SaltpackHandler) SaltpackDecryptString(ctx context.Context, arg keybase
 		Source: strings.NewReader(arg.Ciphertext),
 	}
 
-	uis := libkb.UIs{
-		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID, h.G()),
-		SecretUI:   &nopSecretUI{},
-		SaltpackUI: &capSaltpackUI{},
-		SessionID:  arg.SessionID,
-	}
-	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
-	resolver := saltpackkeys.NewKeyPseudonymResolver(m)
-	eng := engine.NewSaltpackDecrypt(earg, resolver)
-	err := engine.RunEngine2(m, eng)
+	info, err := h.frontendDecrypt(ctx, arg.SessionID, earg)
 	if err != nil {
 		return keybase1.SaltpackPlaintextResult{}, err
 	}
 	r := keybase1.SaltpackPlaintextResult{
-		Info:      eng.MessageInfo(),
+		Info:      info,
 		Plaintext: sink.String(),
 	}
 	return r, nil
@@ -269,18 +245,168 @@ func (h *SaltpackHandler) SaltpackVerifyString(ctx context.Context, arg keybase1
 	return res, nil
 }
 
-func (h *SaltpackHandler) SaltpackEncryptFile(context.Context, keybase1.SaltpackEncryptFileArg) (string, error) {
+func (h *SaltpackHandler) SaltpackEncryptFile(ctx context.Context, arg keybase1.SaltpackEncryptFileArg) (string, error) {
+	ctx = libkb.WithLogTag(ctx, "SP")
+	in, err := os.Open(arg.Filename)
+	if err != nil {
+		return "", err
+	}
+	defer in.Close()
+
+	outFilename, bw, err := encryptFilename(arg.Filename, ".encrypted")
+	if err != nil {
+		return "", err
+	}
+	defer bw.Close()
+
+	opts := h.encryptOptions(arg.Opts)
+	opts.Binary = true
+
+	earg := &engine.SaltpackEncryptArg{
+		Opts:   opts,
+		Sink:   bw,
+		Source: bufio.NewReader(in),
+	}
+
+	if err := h.frontendEncrypt(ctx, arg.SessionID, earg); err != nil {
+		return "", err
+	}
+
+	return outFilename, nil
+}
+
+func (h *SaltpackHandler) SaltpackDecryptFile(ctx context.Context, arg keybase1.SaltpackDecryptFileArg) (keybase1.SaltpackFileResult, error) {
+	ctx = libkb.WithLogTag(ctx, "SP")
+	in, err := os.Open(arg.EncryptedFilename)
+	if err != nil {
+		return keybase1.SaltpackFileResult{}, err
+	}
+	defer in.Close()
+	outFilename, bw, err := decryptFilename(arg.EncryptedFilename)
+	if err != nil {
+		return keybase1.SaltpackFileResult{}, err
+	}
+	defer bw.Close()
+
+	earg := &engine.SaltpackDecryptArg{
+		Sink:   bw,
+		Source: in,
+	}
+
+	info, err := h.frontendDecrypt(ctx, arg.SessionID, earg)
+	if err != nil {
+		return keybase1.SaltpackFileResult{}, err
+	}
+
+	r := keybase1.SaltpackFileResult{
+		Info:              info,
+		DecryptedFilename: outFilename,
+	}
+	return r, nil
+}
+
+func (h *SaltpackHandler) SaltpackSignFile(ctx context.Context, arg keybase1.SaltpackSignFileArg) (string, error) {
+	ctx = libkb.WithLogTag(ctx, "SP")
 	return "", errors.New("nyi")
 }
 
-func (h *SaltpackHandler) SaltpackDecryptFile(context.Context, keybase1.SaltpackDecryptFileArg) (keybase1.SaltpackFileResult, error) {
-	return keybase1.SaltpackFileResult{}, errors.New("nyi")
-}
-func (h *SaltpackHandler) SaltpackSignFile(context.Context, keybase1.SaltpackSignFileArg) (string, error) {
-	return "", errors.New("nyi")
-}
-func (h *SaltpackHandler) SaltpackVerifyFile(context.Context, keybase1.SaltpackVerifyFileArg) (keybase1.SaltpackVerifyFileResult, error) {
+func (h *SaltpackHandler) SaltpackVerifyFile(ctx context.Context, arg keybase1.SaltpackVerifyFileArg) (keybase1.SaltpackVerifyFileResult, error) {
+	ctx = libkb.WithLogTag(ctx, "SP")
 	return keybase1.SaltpackVerifyFileResult{}, errors.New("nyi")
+}
+
+func (h *SaltpackHandler) encryptOptions(opts keybase1.SaltpackFrontendEncryptOptions) keybase1.SaltpackEncryptOptions {
+	auth := keybase1.AuthenticityType_REPUDIABLE
+	if opts.Signed {
+		auth = keybase1.AuthenticityType_SIGNED
+	}
+	return keybase1.SaltpackEncryptOptions{
+		Recipients:       opts.Recipients,
+		AuthenticityType: auth,
+		NoSelfEncrypt:    !opts.IncludeSelf,
+		UseEntityKeys:    true,
+	}
+}
+
+func (h *SaltpackHandler) frontendEncrypt(ctx context.Context, sessionID int, arg *engine.SaltpackEncryptArg) error {
+	uis := libkb.UIs{
+		SecretUI:  &nopSecretUI{},
+		SessionID: sessionID,
+	}
+
+	keyfinderHook := saltpackkeys.NewRecipientKeyfinderEngineHook(false)
+
+	eng := engine.NewSaltpackEncrypt(arg, keyfinderHook)
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+
+	return engine.RunEngine2(m, eng)
+}
+
+func (h *SaltpackHandler) frontendDecrypt(ctx context.Context, sessionID int, arg *engine.SaltpackDecryptArg) (keybase1.SaltpackEncryptedMessageInfo, error) {
+	uis := libkb.UIs{
+		IdentifyUI: h.NewRemoteIdentifyUI(sessionID, h.G()),
+		SecretUI:   &nopSecretUI{},
+		SaltpackUI: &capSaltpackUI{},
+		SessionID:  sessionID,
+	}
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	resolver := saltpackkeys.NewKeyPseudonymResolver(m)
+	eng := engine.NewSaltpackDecrypt(arg, resolver)
+	if err := engine.RunEngine2(m, eng); err != nil {
+		return keybase1.SaltpackEncryptedMessageInfo{}, err
+	}
+	return eng.MessageInfo(), nil
+}
+
+const saltpackExtension = ".saltpack"
+
+func encryptFilename(inFilename, suffix string) (string, *libkb.BufferWriter, error) {
+	dir, file := filepath.Split(inFilename)
+	withExt := filepath.Join(dir, file+suffix+saltpackExtension)
+	f, err := os.Create(withExt)
+	if err != nil {
+		return "", nil, err
+	}
+	return withExt, libkb.NewBufferWriter(f), nil
+}
+
+func decryptFilename(inFilename string) (string, *libkb.BufferWriter, error) {
+	dir, file := filepath.Split(inFilename)
+	res := file + ".decrypted"
+	if strings.HasSuffix(file, ".encrypted.saltpack") {
+		res = strings.TrimSuffix(file, ".encrypted.saltpack")
+	} else if strings.HasSuffix(file, ".signed.saltpack") {
+		res = strings.TrimSuffix(file, ".signed.saltpack")
+	}
+	out := filepath.Join(dir, res)
+
+	var found bool
+	for i := 0; i < 100; i++ {
+		poss := out
+		if i > 0 {
+			ext := filepath.Ext(poss)
+			poss = fmt.Sprintf("%s (%d)%s", strings.TrimSuffix(poss, ext), i, ext)
+		}
+		exists, err := libkb.FileExists(poss)
+		if err != nil {
+			return "", nil, err
+		}
+		if !exists {
+			found = true
+			out = poss
+			break
+		}
+	}
+
+	if !found {
+		return "", nil, errors.New("could not create output file without overwriting existing file")
+	}
+
+	f, err := os.Create(out)
+	if err != nil {
+		return "", nil, err
+	}
+	return out, libkb.NewBufferWriter(f), nil
 }
 
 // nopSecretUI returns an error if it is ever called.
