@@ -9,9 +9,6 @@ import * as FsGen from '../../../actions/fs-gen'
 import Fullscreen from '.'
 import * as Container from '../../../util/container'
 import {imgMaxWidthRaw} from '../messages/attachment/image/image-render'
-// TEMP
-import useRPC from '../../../util/use-rpc'
-import useSafeCallback from '../../../util/use-safe-callback'
 
 const blankMessage = Constants.makeMessageAttachment({})
 
@@ -31,10 +28,7 @@ const Connected = (props: OwnProps) => {
     imgMaxWidthRaw()
   )
 
-  const submit = /*Container.*/ useSafeCallback(
-    useRPC(RPCChatTypes.localGetNextAttachmentMessageLocalRpcPromise),
-    {onlyOnce: true}
-  )
+  const submit = Container.useRPC(RPCChatTypes.localGetNextAttachmentMessageLocalRpcPromise)
 
   const onSwitchAttachment = async (backInTime: boolean) => {
     if (conversationIDKey !== blankMessage.conversationIDKey) {
