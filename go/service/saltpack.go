@@ -269,6 +269,20 @@ func (h *SaltpackHandler) SaltpackVerifyString(ctx context.Context, arg keybase1
 	return res, nil
 }
 
+func (h *SaltpackHandler) SaltpackEncryptFile(context.Context, keybase1.SaltpackEncryptFileArg) (string, error) {
+	return "", errors.New("nyi")
+}
+
+func (h *SaltpackHandler) SaltpackDecryptFile(context.Context, keybase1.SaltpackDecryptFileArg) (keybase1.SaltpackFileResult, error) {
+	return keybase1.SaltpackFileResult{}, errors.New("nyi")
+}
+func (h *SaltpackHandler) SaltpackSignFile(context.Context, keybase1.SaltpackSignFileArg) (string, error) {
+	return "", errors.New("nyi")
+}
+func (h *SaltpackHandler) SaltpackVerifyFile(context.Context, keybase1.SaltpackVerifyFileArg) (keybase1.SaltpackVerifyFileResult, error) {
+	return keybase1.SaltpackVerifyFileResult{}, errors.New("nyi")
+}
+
 // nopSecretUI returns an error if it is ever called.
 // A lot of these saltpack engines say they require a secret UI.
 // They really don't, but it's dangerous to try to strip it out.

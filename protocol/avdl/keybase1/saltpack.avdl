@@ -69,6 +69,7 @@ protocol saltpack {
   }
 
   string saltpackEncryptString(int sessionID, string plaintext, SaltpackFrontendEncryptOptions opts);
+  string saltpackEncryptFile(int sessionID, string filename, SaltpackFrontendEncryptOptions opts);
 
   record SaltpackPlaintextResult {
     SaltpackEncryptedMessageInfo info;
@@ -76,7 +77,14 @@ protocol saltpack {
   }
   SaltpackPlaintextResult saltpackDecryptString(int sessionID, string ciphertext);
 
+  record SaltpackFileResult {
+    SaltpackEncryptedMessageInfo info;
+    string decryptedFilename;
+  }
+  SaltpackFileResult saltpackDecryptFile(int sessionID, string encryptedFilename);
+
   string saltpackSignString(int sessionID, string plaintext);
+  string saltpackSignFile(int sessionID, string filename);
 
   record SaltpackVerifyResult {
     KID signingKID;
@@ -84,4 +92,11 @@ protocol saltpack {
     string plaintext;
   }
   SaltpackVerifyResult saltpackVerifyString(int sessionID, string signedMsg);
+
+  record SaltpackVerifyFileResult {
+    KID signingKID;
+    SaltpackSender sender;
+    string verifiedFilename;
+  }
+  SaltpackVerifyFileResult saltpackVerifyFile(int sessionID, string signedFilename);
 }
