@@ -11,6 +11,7 @@ import * as Container from '../../../util/container'
 import {imgMaxWidthRaw} from '../messages/attachment/image/image-render'
 // TEMP
 import useRPC from '../../../util/use-rpc'
+import useSafeCallback from '../../../util/use-safe-callback'
 
 const blankMessage = Constants.makeMessageAttachment({})
 
@@ -30,18 +31,23 @@ const Connected = (props: OwnProps) => {
     imgMaxWidthRaw()
   )
 
-  const submit = /*Container.*/ useRPC(RPCChatTypes.localGetNextAttachmentMessageLocalRpcPromise)
+  const submit = /*Container.*/ useSafeCallback(
+    useRPC(RPCChatTypes.localGetNextAttachmentMessageLocalRpcPromise),
+    {onlyOnce: true}
+  )
 
   const onSwitchAttachment = async (backInTime: boolean) => {
     if (conversationIDKey !== blankMessage.conversationIDKey) {
       submit(
-        {
-          assetTypes: [RPCChatTypes.AssetMetadataType.image, RPCChatTypes.AssetMetadataType.video],
-          backInTime,
-          convID: Types.keyToConversationID(conversationIDKey),
-          identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-          messageID: id,
-        },
+        [
+          {
+            assetTypes: [RPCChatTypes.AssetMetadataType.image, RPCChatTypes.AssetMetadataType.video],
+            backInTime,
+            convID: Types.keyToConversationID(conversationIDKey),
+            identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
+            messageID: id,
+          },
+        ],
         result => {
           if (result.message) {
             const goodMessage = Constants.uiMessageToMessage(state, conversationIDKey, result.message)
@@ -51,7 +57,10 @@ const Connected = (props: OwnProps) => {
             }
           }
         },
-        error => {}
+        _error => {
+          setAutoPlay(false)
+          setMessage(blankMessage)
+        }
       )
     }
   }
