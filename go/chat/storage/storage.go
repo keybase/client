@@ -1090,6 +1090,32 @@ func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID
 		}
 		res = append(res, msg)
 	}
+	var msgs []chat1.MessageUnboxed
+	// msgID -> index in res
+	msgMap := make(map[chat1.MessageID]int)
+	for i, m := range res {
+		if m != nil {
+			msg := *m
+			msgs = append(msgs, msg)
+			msgMap[msg.GetMessageID()] = i
+		}
+	}
+
+	_, err = s.explodeExpiredMessages(ctx, convID, uid, msgs)
+	if err != nil {
+		return nil, err
+	}
+	// write back any purged messages into our result.
+	for _, m := range msgs {
+		index, ok := msgMap[m.GetMessageID()]
+		if !ok {
+			s.Debug(ctx, "unable to find msg %d in msgMap", m.GetMessageID())
+			continue
+		}
+		msg := m
+		res[index] = &msg
+	}
+
 	return res, nil
 }
 

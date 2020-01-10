@@ -10,6 +10,10 @@ protocol saltpack {
     ANONYMOUS_2
   }
 
+  // ----------------------------------------------------------------------------------
+  // CLI interface
+  // ----------------------------------------------------------------------------------
+
   record SaltpackEncryptOptions {
     array<string> recipients; // usernames or assertions
     array<string> teamRecipients; // team names
@@ -53,4 +57,31 @@ protocol saltpack {
   SaltpackEncryptedMessageInfo saltpackDecrypt(int sessionID, Stream source, Stream sink, SaltpackDecryptOptions opts);
   void saltpackSign(int sessionID, Stream source, Stream sink, SaltpackSignOptions opts);
   void saltpackVerify(int sessionID, Stream source, Stream sink, SaltpackVerifyOptions opts);
+
+  // ----------------------------------------------------------------------------------
+  // frontend interface
+  // ----------------------------------------------------------------------------------
+
+  record SaltpackFrontendEncryptOptions {
+    array<string> recipients;     // usernames or assertions
+    boolean signed;
+    boolean includeSelf;
+  }
+
+  string saltpackEncryptString(int sessionID, string plaintext, SaltpackFrontendEncryptOptions opts);
+
+  record SaltpackPlaintextResult {
+    SaltpackEncryptedMessageInfo info;
+    string plaintext;
+  }
+  SaltpackPlaintextResult saltpackDecryptString(int sessionID, string ciphertext);
+
+  string saltpackSignString(int sessionID, string plaintext);
+
+  record SaltpackVerifyResult {
+    KID signingKID;
+    SaltpackSender sender;
+    string plaintext;
+  }
+  SaltpackVerifyResult saltpackVerifyString(int sessionID, string signedMsg);
 }

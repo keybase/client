@@ -36,14 +36,6 @@ func NewKVStoreHandler(xp rpc.Transporter, g *libkb.GlobalContext) *KVStoreHandl
 	}
 }
 
-func (h *KVStoreHandler) assertLoggedIn(ctx context.Context) error {
-	loggedIn := h.G().ActiveDevice.Valid()
-	if !loggedIn {
-		return libkb.LoginRequiredError{}
-	}
-	return nil
-}
-
 func (h *KVStoreHandler) resolveTeam(mctx libkb.MetaContext, userInputTeamName string) (teamID keybase1.TeamID, err error) {
 	if strings.Contains(userInputTeamName, ",") {
 		// it's an implicit team that might not exist yet
@@ -112,7 +104,7 @@ func (h *KVStoreHandler) GetKVEntry(ctx context.Context, arg keybase1.GetKVEntry
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.TraceTimed(fmt.Sprintf("KVStoreHandler#PutKVEntry: t:%s, n:%s, k:%s", arg.TeamName, arg.Namespace, arg.EntryKey), func() error { return err })()
 
-	if err := h.assertLoggedIn(ctx); err != nil {
+	if err := assertLoggedIn(ctx, h.G()); err != nil {
 		mctx.Debug("not logged in err: %v", err)
 		return res, err
 	}
@@ -169,7 +161,7 @@ func (h *KVStoreHandler) PutKVEntry(ctx context.Context, arg keybase1.PutKVEntry
 	ctx = libkb.WithLogTag(ctx, "KV")
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.TraceTimed(fmt.Sprintf("KVStoreHandler#PutKVEntry: t:%s, n:%s, k:%s, r:%d", arg.TeamName, arg.Namespace, arg.EntryKey, arg.Revision), func() error { return err })()
-	if err := h.assertLoggedIn(ctx); err != nil {
+	if err := assertLoggedIn(ctx, h.G()); err != nil {
 		mctx.Debug("not logged in err: %v", err)
 		return res, err
 	}
@@ -253,7 +245,7 @@ func (h *KVStoreHandler) DelKVEntry(ctx context.Context, arg keybase1.DelKVEntry
 	ctx = libkb.WithLogTag(ctx, "KV")
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.TraceTimed(fmt.Sprintf("KVStoreHandler#DeleteKVEntry: t:%s, n:%s, k:%s, r:%d", arg.TeamName, arg.Namespace, arg.EntryKey, arg.Revision), func() error { return err })()
-	if err := h.assertLoggedIn(ctx); err != nil {
+	if err := assertLoggedIn(ctx, h.G()); err != nil {
 		mctx.Debug("not logged in err: %v", err)
 		return res, err
 	}
@@ -339,7 +331,7 @@ func (h *KVStoreHandler) ListKVNamespaces(ctx context.Context, arg keybase1.List
 	ctx = libkb.WithLogTag(ctx, "KV")
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.TraceTimed(fmt.Sprintf("KVStoreHandler#ListKVNamespaces: t:%s", arg.TeamName), func() error { return err })()
-	if err := h.assertLoggedIn(ctx); err != nil {
+	if err := assertLoggedIn(ctx, h.G()); err != nil {
 		mctx.Debug("not logged in err: %v", err)
 		return res, err
 	}
@@ -386,7 +378,7 @@ func (h *KVStoreHandler) ListKVEntries(ctx context.Context, arg keybase1.ListKVE
 	ctx = libkb.WithLogTag(ctx, "KV")
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	defer mctx.TraceTimed(fmt.Sprintf("KVStoreHandler#ListKVEntries: t:%s, n:%s", arg.TeamName, arg.Namespace), func() error { return err })()
-	if err := h.assertLoggedIn(ctx); err != nil {
+	if err := assertLoggedIn(ctx, h.G()); err != nil {
 		mctx.Debug("not logged in err: %v", err)
 		return res, err
 	}

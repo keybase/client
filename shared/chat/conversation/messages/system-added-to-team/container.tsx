@@ -27,13 +27,29 @@ const Connected = Container.connect(
       you: state.config.username,
     }
   },
-  dispatch => ({
+  (dispatch, ownProps: OwnProps) => ({
     _onManageNotifications: (conversationIDKey: Types.ConversationIDKey) =>
       dispatch(
         RouteTreeGen.createNavigateAppend({
           path: [{props: {conversationIDKey: conversationIDKey, tab: 'settings'}, selected: 'chatInfoPanel'}],
         })
       ),
+    _onViewBot: (username: string) => {
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [
+            {
+              props: {
+                botUsername: username,
+                conversationIDKey: ownProps.message.conversationIDKey,
+                namespace: 'chat2',
+              },
+              selected: 'chatInstallBot',
+            },
+          ],
+        })
+      )
+    },
     _onViewTeam: (teamID: TeamID, conversationIDKey: Types.ConversationIDKey) => {
       if (teamID) {
         dispatch(RouteTreeGen.createNavigateAppend({path: [teamsTab, {props: {teamID}, selected: 'team'}]}))
@@ -55,6 +71,7 @@ const Connected = Container.connect(
     isAdmin: stateProps.isAdmin,
     isTeam: stateProps.isTeam,
     onManageNotifications: () => dispatchProps._onManageNotifications(ownProps.message.conversationIDKey),
+    onViewBot: () => dispatchProps._onViewBot(stateProps.addee),
     onViewTeam: () => dispatchProps._onViewTeam(stateProps.teamID, ownProps.message.conversationIDKey),
     role: stateProps.role,
     teamname: stateProps.teamname,

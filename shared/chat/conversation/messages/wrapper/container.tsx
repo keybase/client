@@ -118,6 +118,7 @@ const getDecorate = (message: Types.Message) => {
 
 export default Container.namedConnect(
   (state: Container.TypedState, ownProps: OwnProps) => {
+    const _participantInfo = Constants.getParticipantInfo(state, ownProps.conversationIDKey)
     const message =
       Constants.getMessage(state, ownProps.conversationIDKey, ownProps.ordinal) || missingMessage
     const previous =
@@ -145,7 +146,7 @@ export default Container.namedConnect(
     const authorIsBot = teamname
       ? TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'restrictedbot') ||
         TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'bot')
-      : false
+      : !_participantInfo.name.includes(message.author) // if adhoc, check if author in participants
     const authorIsOwner = teamname
       ? TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'owner')
       : false

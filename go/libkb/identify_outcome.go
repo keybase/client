@@ -254,10 +254,10 @@ func (i IdentifyOutcome) GetErrorAndWarnings(strict bool) (warnings Warnings, er
 }
 
 func (i IdentifyOutcome) GetError() error {
-	_, e := i.GetErrorAndWarnings(true)
+	_, e := i.GetErrorAndWarnings(true /*strict */)
 	return e
 }
 
 func (i IdentifyOutcome) GetErrorLax() (Warnings, error) {
-	return i.GetErrorAndWarnings(false)
+	return i.GetErrorAndWarnings(false /*strict */)
 }

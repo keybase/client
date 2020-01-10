@@ -44,7 +44,8 @@
       "symbols": [
         "STANDARD_0",
         "JUST_CREATED_1",
-        "SKIP_2"
+        "SKIP_2",
+        "STANDARD_NO_HIDDEN_3"
       ]
     },
     {
@@ -1036,6 +1037,12 @@
         },
         {
           "type": "Seqno",
+          "name": "maxHiddenSeqno",
+          "mpackkey": "mhs",
+          "jsonkey": "mhs"
+        },
+        {
+          "type": "Seqno",
           "name": "maxMerkleProbe",
           "mpackkey": "mmp",
           "jsonkey": "mmp"
@@ -1057,6 +1064,12 @@
           "name": "teamSeqno",
           "mpackkey": "s",
           "jsonkey": "t"
+        },
+        {
+          "type": "Seqno",
+          "name": "teamHiddenSeqno",
+          "mpackkey": "h",
+          "jsonkey": "h"
         }
       ]
     },
@@ -1067,7 +1080,8 @@
         "V0_0",
         "V1_1",
         "V2_2",
-        "V3_3"
+        "V3_3",
+        "V4_4"
       ]
     },
     {
@@ -1121,6 +1135,14 @@
             "keys": "Seqno"
           },
           "name": "tails"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "LinkID",
+            "keys": "Seqno"
+          },
+          "name": "hiddenTails"
         },
         {
           "type": "Time",

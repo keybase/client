@@ -147,7 +147,9 @@ func (s *Storage) ephemeralPurgeHelper(ctx context.Context, convID chat1.Convers
 	}
 
 	// queue asset deletions in the background
-	s.assetDeleter.DeleteAssets(ctx, uid, convID, allAssets)
+	if s.assetDeleter != nil {
+		s.assetDeleter.DeleteAssets(ctx, uid, convID, allAssets)
+	}
 	// queue search index update in the background
 	go func() {
 		err := s.G().Indexer.Remove(ctx, convID, allPurged)

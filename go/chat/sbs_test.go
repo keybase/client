@@ -181,7 +181,6 @@ func runChatSBSScenario(t *testing.T, testCase sbsTestCase) {
 				chat1.NewMessageBodyWithText(chat1.MessageText{
 					Body: "Hi from user 0 (before resolution)",
 				}), ephemeralLifetime)
-			require.NoError(t, err)
 			consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
 
 			// This message should never go in - user is not in the conv yet.

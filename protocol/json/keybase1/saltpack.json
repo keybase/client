@@ -146,6 +146,59 @@
           "name": "sender"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "SaltpackFrontendEncryptOptions",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "recipients"
+        },
+        {
+          "type": "boolean",
+          "name": "signed"
+        },
+        {
+          "type": "boolean",
+          "name": "includeSelf"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SaltpackPlaintextResult",
+      "fields": [
+        {
+          "type": "SaltpackEncryptedMessageInfo",
+          "name": "info"
+        },
+        {
+          "type": "string",
+          "name": "plaintext"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SaltpackVerifyResult",
+      "fields": [
+        {
+          "type": "KID",
+          "name": "signingKID"
+        },
+        {
+          "type": "SaltpackSender",
+          "name": "sender"
+        },
+        {
+          "type": "string",
+          "name": "plaintext"
+        }
+      ]
     }
   ],
   "messages": {
@@ -232,6 +285,62 @@
         }
       ],
       "response": null
+    },
+    "saltpackEncryptString": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "plaintext",
+          "type": "string"
+        },
+        {
+          "name": "opts",
+          "type": "SaltpackFrontendEncryptOptions"
+        }
+      ],
+      "response": "string"
+    },
+    "saltpackDecryptString": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "ciphertext",
+          "type": "string"
+        }
+      ],
+      "response": "SaltpackPlaintextResult"
+    },
+    "saltpackSignString": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "plaintext",
+          "type": "string"
+        }
+      ],
+      "response": "string"
+    },
+    "saltpackVerifyString": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "signedMsg",
+          "type": "string"
+        }
+      ],
+      "response": "SaltpackVerifyResult"
     }
   },
   "namespace": "keybase.1"

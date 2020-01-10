@@ -143,7 +143,7 @@ func (e *SaltpackSenderIdentify) identifySender(m libkb.MetaContext) (err error)
 		NoErrorOnTrackFailure: true,
 		Reason:                e.arg.reason,
 		UserAssertion:         e.arg.userAssertion,
-		IdentifyBehavior:      keybase1.TLFIdentifyBehavior_CLI,
+		IdentifyBehavior:      keybase1.TLFIdentifyBehavior_SALTPACK,
 	}
 	eng := NewIdentify2WithUID(e.G(), &iarg)
 	if err = RunEngine2(m, eng); err != nil {

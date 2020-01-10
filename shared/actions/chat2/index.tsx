@@ -3477,13 +3477,14 @@ const closeBotModal = (state: Container.TypedState, conversationIDKey: Types.Con
 }
 
 const addBotMember = async (state: Container.TypedState, action: Chat2Gen.AddBotMemberPayload) => {
-  const {allowCommands, allowMentions, conversationIDKey, username} = action.payload
+  const {allowCommands, allowMentions, conversationIDKey, convs, username} = action.payload
   try {
     await RPCChatTypes.localAddBotMemberRpcPromise(
       {
         botSettings: action.payload.restricted
           ? {
               cmds: allowCommands,
+              convs,
               mentions: allowMentions,
             }
           : null,

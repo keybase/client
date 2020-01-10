@@ -183,6 +183,7 @@ const commonProps = {
     status: 'success',
   },
   loadedAllBots: false,
+  loadingBots: false,
   media: {
     onLoadMore: Sb.action('onLoadMore'),
     status: 'success',

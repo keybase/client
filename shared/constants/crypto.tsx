@@ -30,7 +30,7 @@ export const Tabs: Array<Types.Tab> = [
     title: TabTitles[signTab],
   },
   {
-    icon: 'iconfont-question-mark',
+    icon: 'iconfont-verify',
     tab: verifyTab,
     title: TabTitles[verifyTab],
   },

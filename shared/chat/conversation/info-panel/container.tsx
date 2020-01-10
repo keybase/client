@@ -249,6 +249,7 @@ const ConnectedInfoPanel = Container.connect(
         }
     )
 
+    const loadingBots = !stateProps._featuredBots.size
     const featuredBots = BotConstants.getFeaturedSorted(stateProps._featuredBots).filter(
       k =>
         !botUsernames.includes(k.botUsername) &&
@@ -361,6 +362,7 @@ const ConnectedInfoPanel = Container.connect(
           : noLinks,
       loadDelay: ownProps.loadDelay,
       loadedAllBots: stateProps.loadedAllBots,
+      loadingBots,
       media:
         stateProps.selectedAttachmentView === RPCChatTypes.GalleryItemTyp.media
           ? {

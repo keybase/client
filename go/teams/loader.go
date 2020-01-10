@@ -972,7 +972,13 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 
 	if didRepoll {
 		tracer.Stage("audit")
-		err = l.audit(ctx, readSubteamID, &ret.Chain, lastMerkleRoot, arg.auditMode)
+		auditMode := arg.auditMode
+		// in case of restricted bots or recursive loads, do not audit the
+		// hidden chain (as we might not have permission to see it).
+		if (role.IsRestrictedBot() || arg.readSubteamID != nil) && auditMode == keybase1.AuditMode_STANDARD {
+			auditMode = keybase1.AuditMode_STANDARD_NO_HIDDEN
+		}
+		err = l.audit(ctx, readSubteamID, &ret.Chain, hiddenPackage.ChainData(), lastMerkleRoot, auditMode)
 		if err != nil {
 			return nil, err
 		}
@@ -1990,7 +1996,7 @@ func (l *TeamLoader) getHeadMerkleSeqno(mctx libkb.MetaContext, readSubteamID ke
 	return headMerkle.Seqno, nil
 }
 
-func (l *TeamLoader) audit(ctx context.Context, readSubteamID keybase1.TeamID, state *keybase1.TeamSigChainState, lastMerkleRoot *libkb.MerkleRoot, auditMode keybase1.AuditMode) (err error) {
+func (l *TeamLoader) audit(ctx context.Context, readSubteamID keybase1.TeamID, state *keybase1.TeamSigChainState, hiddenChain *keybase1.HiddenTeamChain, lastMerkleRoot *libkb.MerkleRoot, auditMode keybase1.AuditMode) (err error) {
 	mctx := libkb.NewMetaContext(ctx, l.G())
 
 	if l.G().Env.Test.TeamSkipAudit {
@@ -2003,7 +2009,7 @@ func (l *TeamLoader) audit(ctx context.Context, readSubteamID keybase1.TeamID, s
 		return err
 	}
 
-	err = mctx.G().GetTeamAuditor().AuditTeam(mctx, state.Id, state.Public, headMerklSeqno, state.LinkIDs, state.LastSeqno, lastMerkleRoot, auditMode)
+	err = mctx.G().GetTeamAuditor().AuditTeam(mctx, state.Id, state.Public, headMerklSeqno, state.LinkIDs, hiddenChain.GetOuter(), state.LastSeqno, hiddenChain.GetLastCommittedSeqno(), lastMerkleRoot, auditMode)
 	return err
 }
 

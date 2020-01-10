@@ -32,7 +32,6 @@ const Recipients = (props: Props) => (
         <Kb.Icon
           type="iconfont-remove"
           boxStyle={styles.removeRecipients}
-          fontSize={16}
           color={Styles.globalColors.black_20}
           onClick={props.onClearRecipients}
         />
@@ -42,7 +41,7 @@ const Recipients = (props: Props) => (
   </Kb.Box2>
 )
 
-const recipientsRowHeight = 50
+const recipientsRowHeight = 40
 const styles = Styles.styleSheetCreate(
   () =>
     ({
@@ -67,7 +66,6 @@ const styles = Styles.styleSheetCreate(
         textAlign: 'right',
       },
       toField: {
-        color: Styles.globalColors.blueDark,
         marginRight: Styles.globalMargins.tiny,
       },
     } as const)

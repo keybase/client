@@ -1485,6 +1485,7 @@ export enum AuditMode {
   standard = 0,
   justCreated = 1,
   skip = 2,
+  standardNoHidden = 3,
 }
 
 export enum AuditVersion {
@@ -1492,6 +1493,7 @@ export enum AuditVersion {
   v1 = 1,
   v2 = 2,
   v3 = 3,
+  v4 = 4,
 }
 
 export enum AuthenticityType {
@@ -2540,8 +2542,8 @@ export type AnnotatedTeam = {readonly teamID: TeamID; readonly name: String; rea
 export type AnnotatedTeamInvite = {readonly role: TeamRole; readonly id: TeamInviteID; readonly type: TeamInviteType; readonly name: TeamInviteName; readonly uv: UserVersion; readonly inviter: UserVersion; readonly inviterUsername: String; readonly teamName: String; readonly status: TeamMemberStatus}
 export type AnnotatedTeamList = {readonly teams?: Array<AnnotatedMemberInfo> | null; readonly annotatedActiveInvites: {[key: string]: AnnotatedTeamInvite}}
 export type AnnotatedTeamMemberDetails = {readonly details: TeamMemberDetails; readonly role: TeamRole}
-export type Audit = {readonly time: Time; readonly mms: /* maxMerkleSeqno */ Seqno; readonly mcs: /* maxChainSeqno */ Seqno; readonly mmp: /* maxMerkleProbe */ Seqno}
-export type AuditHistory = {readonly ID: TeamID; readonly public: Boolean; readonly priorMerkleSeqno: Seqno; readonly version: AuditVersion; readonly audits?: Array<Audit> | null; readonly preProbes: {[key: string]: Probe}; readonly postProbes: {[key: string]: Probe}; readonly tails: {[key: string]: LinkID}; readonly skipUntil: Time}
+export type Audit = {readonly time: Time; readonly mms: /* maxMerkleSeqno */ Seqno; readonly mcs: /* maxChainSeqno */ Seqno; readonly mhs: /* maxHiddenSeqno */ Seqno; readonly mmp: /* maxMerkleProbe */ Seqno}
+export type AuditHistory = {readonly ID: TeamID; readonly public: Boolean; readonly priorMerkleSeqno: Seqno; readonly version: AuditVersion; readonly audits?: Array<Audit> | null; readonly preProbes: {[key: string]: Probe}; readonly postProbes: {[key: string]: Probe}; readonly tails: {[key: string]: LinkID}; readonly hiddenTails: {[key: string]: LinkID}; readonly skipUntil: Time}
 export type AvatarClearCacheMsg = {readonly name: String; readonly formats?: Array<AvatarFormat> | null; readonly typ: AvatarUpdateType}
 export type AvatarFormat = String
 export type AvatarUrl = String
@@ -2836,7 +2838,7 @@ export type Pics = {readonly square40: String; readonly square200: String; reado
 export type PingResponse = {readonly timestamp: Time}
 export type PlatformInfo = {readonly os: String; readonly osVersion: String; readonly arch: String; readonly goVersion: String}
 export type PrefetchProgress = {readonly start: Time; readonly endEstimate: Time; readonly bytesTotal: Int64; readonly bytesFetched: Int64}
-export type Probe = {readonly i: /* index */ Int; readonly s: /* teamSeqno */ Seqno}
+export type Probe = {readonly i: /* index */ Int; readonly s: /* teamSeqno */ Seqno; readonly h: /* teamHiddenSeqno */ Seqno}
 export type ProblemSet = {readonly user: User; readonly kid: KID; readonly tlfs?: Array<ProblemTLF> | null}
 export type ProblemSetDevices = {readonly problemSet: ProblemSet; readonly devices?: Array<Device> | null}
 export type ProblemTLF = {readonly tlf: TLF; readonly score: Int; readonly solution_kids?: Array<KID> | null}
@@ -2885,9 +2887,12 @@ export type SHA512 = Bytes
 export type SaltpackDecryptOptions = {readonly interactive: Boolean; readonly forceRemoteCheck: Boolean; readonly usePaperKey: Boolean}
 export type SaltpackEncryptOptions = {readonly recipients?: Array<String> | null; readonly teamRecipients?: Array<String> | null; readonly authenticityType: AuthenticityType; readonly useEntityKeys: Boolean; readonly useDeviceKeys: Boolean; readonly usePaperKeys: Boolean; readonly noSelfEncrypt: Boolean; readonly binary: Boolean; readonly saltpackVersion: Int; readonly useKBFSKeysOnlyForTesting: Boolean}
 export type SaltpackEncryptedMessageInfo = {readonly devices?: Array<Device> | null; readonly numAnonReceivers: Int; readonly receiverIsAnon: Boolean; readonly sender: SaltpackSender}
+export type SaltpackFrontendEncryptOptions = {readonly recipients?: Array<String> | null; readonly signed: Boolean; readonly includeSelf: Boolean}
+export type SaltpackPlaintextResult = {readonly info: SaltpackEncryptedMessageInfo; readonly plaintext: String}
 export type SaltpackSender = {readonly uid: UID; readonly username: String; readonly senderType: SaltpackSenderType}
 export type SaltpackSignOptions = {readonly detached: Boolean; readonly binary: Boolean; readonly saltpackVersion: Int}
 export type SaltpackVerifyOptions = {readonly signedBy: String; readonly signature: Bytes}
+export type SaltpackVerifyResult = {readonly signingKID: KID; readonly sender: SaltpackSender; readonly plaintext: String}
 export type SearchRes = {readonly bots?: Array<FeaturedBot> | null; readonly isLastPage: Boolean}
 export type SecretEntryArg = {readonly desc: String; readonly prompt: String; readonly err: String; readonly cancel: String; readonly ok: String; readonly reason: String; readonly showTyping: Boolean}
 export type SecretEntryRes = {readonly text: String; readonly canceled: Boolean; readonly storeSecret: Boolean}
@@ -3869,6 +3874,10 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.saltpack.saltpackDecrypt'
 // 'keybase.1.saltpack.saltpackSign'
 // 'keybase.1.saltpack.saltpackVerify'
+// 'keybase.1.saltpack.saltpackEncryptString'
+// 'keybase.1.saltpack.saltpackDecryptString'
+// 'keybase.1.saltpack.saltpackSignString'
+// 'keybase.1.saltpack.saltpackVerifyString'
 // 'keybase.1.saltpackUi.saltpackPromptForDecrypt'
 // 'keybase.1.saltpackUi.saltpackVerifySuccess'
 // 'keybase.1.saltpackUi.saltpackVerifyBadSender'

@@ -919,6 +919,26 @@ const userInOutClientKey = Constants.makeUUID()
 const userIn = () => RPCTypes.SimpleFSSimpleFSUserInRpcPromise({clientID: userInOutClientKey})
 const userOut = () => RPCTypes.SimpleFSSimpleFSUserOutRpcPromise({clientID: userInOutClientKey})
 
+let fsBadgeSubscriptionID: string = ''
+
+const subscribeFsBadge = (state: Container.TypedState) => {
+  if (state.fs.kbfsDaemonStatus.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected) {
+    return
+  }
+  const oldFsBadgeSubscriptionID = fsBadgeSubscriptionID
+  fsBadgeSubscriptionID = Constants.makeUUID()
+  return [
+    ...(oldFsBadgeSubscriptionID
+      ? [FsGen.createUnsubscribe({subscriptionID: oldFsBadgeSubscriptionID})]
+      : []),
+    FsGen.createSubscribeNonPath({
+      subscriptionID: fsBadgeSubscriptionID,
+      topic: RPCTypes.SubscriptionTopic.filesTabBadge,
+    }),
+    FsGen.createLoadFilesTabBadge(),
+  ]
+}
+
 function* fsSaga() {
   yield* Saga.chainGenerator<FsGen.UploadPayload>(FsGen.upload, upload)
   yield* Saga.chainGenerator<FsGen.FolderListLoadPayload>(FsGen.folderListLoad, folderList)
@@ -970,6 +990,7 @@ function* fsSaga() {
   yield* Saga.chainAction(FsGen.unsubscribe, unsubscribe)
   yield* Saga.chainAction(EngineGen.keybase1NotifyFSFSSubscriptionNotifyPath, onPathChange)
   yield* Saga.chainAction(EngineGen.keybase1NotifyFSFSSubscriptionNotify, onNonPathChange)
+  yield* Saga.chainAction2(FsGen.kbfsDaemonRpcStatusChanged, subscribeFsBadge)
 
   yield* Saga.chainAction(FsGen.setDebugLevel, setDebugLevel)
 

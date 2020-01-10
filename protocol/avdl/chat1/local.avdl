@@ -592,6 +592,7 @@ protocol local {
     union { null, ConversationPinnedMessage } pinnedMsg;
     union { null, string } draft;
     keybase1.TLFVisibility visibility;
+    boolean isDefaultConv;
     ConversationStatus status;
     ConversationMembersType membersType;
     ConversationMemberStatus memberStatus;
