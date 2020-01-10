@@ -21,6 +21,14 @@ import (
 	"golang.org/x/net/context"
 )
 
+const saltpackExtension = ".saltpack"
+const encryptedSuffix = ".encrypted"
+const signedSuffix = ".signed"
+const encryptedExtension = encryptedSuffix + saltpackExtension
+const signedExtension = signedSuffix + saltpackExtension
+const decryptedExtension = ".decrypted"
+const verifiedExtension = ".verified"
+
 type SaltpackHandler struct {
 	*BaseHandler
 	libkb.Contextified
@@ -241,7 +249,7 @@ func (h *SaltpackHandler) SaltpackEncryptFile(ctx context.Context, arg keybase1.
 	}
 	defer in.Close()
 
-	outFilename, bw, err := encryptFilename(arg.Filename, ".encrypted")
+	outFilename, bw, err := boxFilename(arg.Filename, encryptedSuffix)
 	if err != nil {
 		return "", err
 	}
@@ -270,7 +278,7 @@ func (h *SaltpackHandler) SaltpackDecryptFile(ctx context.Context, arg keybase1.
 		return keybase1.SaltpackFileResult{}, err
 	}
 	defer in.Close()
-	outFilename, bw, err := decryptFilename(arg.EncryptedFilename)
+	outFilename, bw, err := unboxFilename(arg.EncryptedFilename, decryptedExtension)
 	if err != nil {
 		return keybase1.SaltpackFileResult{}, err
 	}
@@ -302,7 +310,7 @@ func (h *SaltpackHandler) SaltpackSignFile(ctx context.Context, arg keybase1.Sal
 	}
 	defer in.Close()
 
-	outFilename, bw, err := encryptFilename(arg.Filename, ".signed")
+	outFilename, bw, err := boxFilename(arg.Filename, signedSuffix)
 	if err != nil {
 		return "", err
 	}
@@ -331,7 +339,7 @@ func (h *SaltpackHandler) SaltpackVerifyFile(ctx context.Context, arg keybase1.S
 	}
 	defer in.Close()
 
-	outFilename, bw, err := decryptFilename(arg.SignedFilename)
+	outFilename, bw, err := unboxFilename(arg.SignedFilename, verifiedExtension)
 	if err != nil {
 		return keybase1.SaltpackVerifyFileResult{}, err
 	}
@@ -429,9 +437,7 @@ func (h *SaltpackHandler) frontendSign(ctx context.Context, sessionID int, arg *
 	return engine.RunEngine2(m, eng)
 }
 
-const saltpackExtension = ".saltpack"
-
-func encryptFilename(inFilename, suffix string) (string, *libkb.BufferWriter, error) {
+func boxFilename(inFilename, suffix string) (string, *libkb.BufferWriter, error) {
 	dir, file := filepath.Split(inFilename)
 	withExt := filepath.Join(dir, file+suffix+saltpackExtension)
 	f, err := os.Create(withExt)
@@ -441,13 +447,13 @@ func encryptFilename(inFilename, suffix string) (string, *libkb.BufferWriter, er
 	return withExt, libkb.NewBufferWriter(f), nil
 }
 
-func decryptFilename(inFilename string) (string, *libkb.BufferWriter, error) {
+func unboxFilename(inFilename, suffix string) (string, *libkb.BufferWriter, error) {
 	dir, file := filepath.Split(inFilename)
-	res := file + ".decrypted"
-	if strings.HasSuffix(file, ".encrypted.saltpack") {
-		res = strings.TrimSuffix(file, ".encrypted.saltpack")
-	} else if strings.HasSuffix(file, ".signed.saltpack") {
-		res = strings.TrimSuffix(file, ".signed.saltpack")
+	res := file + suffix
+	if strings.HasSuffix(file, encryptedExtension) {
+		res = strings.TrimSuffix(file, encryptedExtension)
+	} else if strings.HasSuffix(file, signedExtension) {
+		res = strings.TrimSuffix(file, signedExtension)
 	}
 	out := filepath.Join(dir, res)
 
