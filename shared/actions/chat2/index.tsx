@@ -2121,20 +2121,10 @@ function* attachmentFullscreenNext(
   yield Saga.put(Chat2Gen.createAttachmentFullscreenSelection({autoPlay: false, message: nextMsg}))
 }
 
-const attachmentPreviewSelect = (action: Chat2Gen.AttachmentPreviewSelectPayload) => {
-  const message = action.payload.message
-  //[
-  // Chat2Gen.createAttachmentFullscreenSelection({autoPlay: true, message}),
-  return RouteTreeGen.createNavigateAppend({
-    path: [
-      {
-        props: {message},
-        selected: 'chatAttachmentFullscreen',
-      },
-    ],
-  }) //,
-  // ]
-}
+const attachmentPreviewSelect = (action: Chat2Gen.AttachmentPreviewSelectPayload) =>
+  RouteTreeGen.createNavigateAppend({
+    path: [{props: {message: action.payload.message}, selected: 'chatAttachmentFullscreen'}],
+  })
 
 // Handle an image pasted into a conversation
 const attachmentPasted = async (action: Chat2Gen.AttachmentPastedPayload) => {
