@@ -138,8 +138,6 @@ export type TypedActionsMap = {
   'chat2:attachmentUploading': chat2.AttachmentUploadingPayload
   'chat2:attachmentUploaded': chat2.AttachmentUploadedPayload
   'chat2:attachmentPasted': chat2.AttachmentPastedPayload
-  'chat2:attachmentFullscreenSelection': chat2.AttachmentFullscreenSelectionPayload
-  'chat2:attachmentFullscreenNext': chat2.AttachmentFullscreenNextPayload
   'chat2:messageAttachmentUploaded': chat2.MessageAttachmentUploadedPayload
   'chat2:sendTyping': chat2.SendTypingPayload
   'chat2:markInitiallyLoadedThreadAsRead': chat2.MarkInitiallyLoadedThreadAsReadPayload

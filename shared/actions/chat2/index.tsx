@@ -2089,38 +2089,6 @@ function* attachmentDownload(
   yield Saga.callUntyped(downloadAttachment, false, message)
 }
 
-function* attachmentFullscreenNext(
-  state: Container.TypedState,
-  action: Chat2Gen.AttachmentFullscreenNextPayload
-) {
-  const {conversationIDKey, messageID, backInTime} = action.payload
-  const blankMessage = Constants.makeMessageAttachment({})
-  if (conversationIDKey === blankMessage.conversationIDKey) {
-    return
-  }
-  const currentSelection = state.chat2.attachmentFullscreenSelection
-  const currentFullscreen = currentSelection ? currentSelection.message : blankMessage
-  yield Saga.put(Chat2Gen.createAttachmentFullscreenSelection({autoPlay: false, message: blankMessage}))
-  const nextAttachmentRes: Saga.RPCPromiseType<typeof RPCChatTypes.localGetNextAttachmentMessageLocalRpcPromise> = yield RPCChatTypes.localGetNextAttachmentMessageLocalRpcPromise(
-    {
-      assetTypes: [RPCChatTypes.AssetMetadataType.image, RPCChatTypes.AssetMetadataType.video],
-      backInTime,
-      convID: Types.keyToConversationID(conversationIDKey),
-      identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
-      messageID,
-    }
-  )
-
-  let nextMsg = currentFullscreen
-  if (nextAttachmentRes.message) {
-    const uiMsg = Constants.uiMessageToMessage(state, conversationIDKey, nextAttachmentRes.message)
-    if (uiMsg) {
-      nextMsg = uiMsg
-    }
-  }
-  yield Saga.put(Chat2Gen.createAttachmentFullscreenSelection({autoPlay: false, message: nextMsg}))
-}
-
 const attachmentPreviewSelect = (action: Chat2Gen.AttachmentPreviewSelectPayload) =>
   RouteTreeGen.createNavigateAppend({
     path: [{props: {message: action.payload.message}, selected: 'chatAttachmentFullscreen'}],
@@ -3634,10 +3602,6 @@ function* chat2Saga() {
   )
   yield* Saga.chainGenerator<Chat2Gen.AttachmentsUploadPayload>(Chat2Gen.attachmentsUpload, attachmentsUpload)
   yield* Saga.chainAction(Chat2Gen.attachmentPasted, attachmentPasted)
-  yield* Saga.chainGenerator<Chat2Gen.AttachmentFullscreenNextPayload>(
-    Chat2Gen.attachmentFullscreenNext,
-    attachmentFullscreenNext
-  )
 
   yield* Saga.chainAction(Chat2Gen.sendTyping, sendTyping)
   yield* Saga.chainAction2(Chat2Gen.resetChatWithoutThem, resetChatWithoutThem)

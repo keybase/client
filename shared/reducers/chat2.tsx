@@ -416,25 +416,9 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
       map.set(ordinal, m ? Constants.upgradeMessage(m, message) : message)
     }
   },
-  [Chat2Gen.attachmentFullscreenSelection]: (draftState, action) => {
-    const {autoPlay, message} = action.payload
-    draftState.attachmentFullscreenSelection = {autoPlay, message}
-  },
   [Chat2Gen.attachmentLoading]: (draftState, action) => {
     const {conversationIDKey, message, isPreview, ratio} = action.payload
-    const {attachmentFullscreenSelection, attachmentViewMap, messageMap} = draftState
-    if (
-      attachmentFullscreenSelection?.message.conversationIDKey === message.conversationIDKey &&
-      attachmentFullscreenSelection?.message.id === message.id &&
-      message.type === 'attachment'
-    ) {
-      attachmentFullscreenSelection.message = {
-        ...message,
-        transferProgress: ratio,
-        transferState: 'downloading',
-      }
-    }
-
+    const {attachmentViewMap, messageMap} = draftState
     const viewType = RPCChatTypes.GalleryItemTyp.doc
     const viewMap = mapGetEnsureValue(attachmentViewMap, conversationIDKey, new Map())
     const info = mapGetEnsureValue(viewMap, viewType, Constants.makeAttachmentViewInfo())
@@ -463,16 +447,7 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
   [Chat2Gen.attachmentDownloaded]: (draftState, action) => {
     const {message, path, error} = action.payload
     const {conversationIDKey, ordinal} = message
-    const {attachmentFullscreenSelection, messageMap} = draftState
-    if (
-      !error &&
-      attachmentFullscreenSelection?.message.conversationIDKey === message.conversationIDKey &&
-      attachmentFullscreenSelection?.message.id === message.id &&
-      message.type === 'attachment'
-    ) {
-      attachmentFullscreenSelection.message = {...message, downloadPath: path ?? null}
-    }
-
+    const {messageMap} = draftState
     const {attachmentViewMap} = draftState
     const viewMap = mapGetEnsureValue(attachmentViewMap, conversationIDKey, new Map())
     const viewType = RPCChatTypes.GalleryItemTyp.doc
