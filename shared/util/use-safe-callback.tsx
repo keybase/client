@@ -3,8 +3,8 @@ import * as React from 'react'
  */
 
 type Options = Partial<{
-  /** Only allow once call per mount,  you pass a function that gives you a clear */
-  onlyOnce: (clearOnce: () => void) => void
+  /** Only allow once call per mount, true or pass a function that gives you a reset */
+  onlyOnce: boolean | ((clearOnce: () => void) => void)
 }>
 function useSafeCallback<C extends (...args: Array<any>) => void>(cb: C, options?: Options): C {
   const isMounted = React.useRef<boolean>(true)
@@ -14,21 +14,24 @@ function useSafeCallback<C extends (...args: Array<any>) => void>(cb: C, options
     calledThisMount.current = false
   }, [])
 
+  const safe = React.useRef<C>(((...a: Array<any>) => {
+    if (isMounted.current && (!options?.onlyOnce || calledThisMount.current === false)) {
+      cb(...a)
+    }
+    calledThisMount.current = true
+  }) as any)
+
   React.useEffect(() => {
-    options?.onlyOnce?.(clearOnlyOnce)
+    if (typeof options?.onlyOnce === 'function') {
+      options?.onlyOnce?.(clearOnlyOnce)
+    }
     return () => {
       isMounted.current = false
     }
     // eslint-disable-next-line
   }, [])
 
-  const safe: C = ((...a: Array<any>) => {
-    if (isMounted.current && (!options?.onlyOnce || calledThisMount.current === false)) {
-      cb(...a)
-    }
-    calledThisMount.current = true
-  }) as any
-  return safe
+  return safe.current
 }
 
 export default useSafeCallback
