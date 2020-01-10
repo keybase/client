@@ -3520,17 +3520,17 @@ const refreshBotSettings = async (_: Container.TypedState, action: Chat2Gen.Refr
   return Chat2Gen.createSetBotSettings({conversationIDKey, settings, username})
 }
 
-const onShowInfoPanel = (state: Container.TypedState, action: Chat2Gen.ShowInfoPanelPayload) => {
-  const {show} = action.payload
+const onShowInfoPanel = (action: Chat2Gen.ShowInfoPanelPayload) => {
+  const {conversationIDKey, show, tab} = action.payload
   if (Container.isMobile) {
     const visibleScreen = Router2Constants.getVisibleScreen()
     if ((visibleScreen?.routeName === 'chatInfoPanel') !== show) {
       return show
         ? RouteTreeGen.createNavigateAppend({
-            path: [{props: {conversationIDKey: state.chat2.selectedConversation}, selected: 'chatInfoPanel'}],
+            path: [{props: {conversationIDKey, tab}, selected: 'chatInfoPanel'}],
           })
         : [
-            Chat2Gen.createClearAttachmentView({conversationIDKey: state.chat2.selectedConversation}),
+            ...(conversationIDKey ? [Chat2Gen.createClearAttachmentView({conversationIDKey})] : []),
             RouteTreeGen.createNavigateUp(),
           ]
     }
@@ -3784,7 +3784,7 @@ function* chat2Saga() {
   yield* Saga.chainAction2(Chat2Gen.selectConversation, refreshPreviousSelected)
   yield* Saga.chainAction2(Chat2Gen.selectConversation, ensureSelectedMeta)
 
-  yield* Saga.chainAction2(Chat2Gen.showInfoPanel, onShowInfoPanel)
+  yield* Saga.chainAction(Chat2Gen.showInfoPanel, onShowInfoPanel)
 
   yield* Saga.chainAction2(Chat2Gen.selectConversation, fetchConversationBio)
 
