@@ -121,13 +121,6 @@ const Encrypt = (props: Props) => {
   )
 }
 
-export const Placeholder = (
-  <>
-    <Kb.Icon type="iconfont-lock" sizeType="Big" />
-    <Kb.Text type="BodySemibold">Your encrypted message will appear here</Kb.Text>
-  </>
-)
-
 const styles = Styles.styleSheetCreate(
   () =>
     ({
