@@ -25,8 +25,10 @@ import (
 	"camlistore.org/pkg/images"
 )
 
-var defaultPreviewDimension = Dimension{Width: 640, Height: 640}
-var defaultMobileDimension = Dimension{Width: 1024, Height: 1024}
+const (
+	previewImageWidth  = 640
+	previewImageHeight = 640
+)
 
 type PreviewRes struct {
 	Source            []byte
@@ -42,15 +44,15 @@ type PreviewRes struct {
 // Preview creates preview assets from src.  It returns an in-memory BufferSource
 // and the content type of the preview asset.
 func Preview(ctx context.Context, log utils.DebugLabeler, src ReadResetter, contentType,
-	basename string, nvh types.NativeVideoHelper, dimension Dimension) (*PreviewRes, error) {
+	basename string, nvh types.NativeVideoHelper) (*PreviewRes, error) {
 	switch contentType {
 	case "image/jpeg", "image/png", "image/vnd.microsoft.icon", "image/x-icon":
-		return previewImage(ctx, log, src, basename, contentType, dimension)
+		return previewImage(ctx, log, src, basename, contentType)
 	case "image/gif":
-		return previewGIF(ctx, log, src, basename, dimension)
+		return previewGIF(ctx, log, src, basename)
 	}
 	if strings.HasPrefix(contentType, "video") {
-		pre, err := previewVideo(ctx, log, src, basename, nvh, dimension)
+		pre, err := previewVideo(ctx, log, src, basename, nvh)
 		if err == nil {
 			log.Debug(ctx, "Preview: found video preview for filename: %s contentType: %s", basename,
 				contentType)
@@ -82,7 +84,7 @@ func previewVideoBlank(ctx context.Context, log utils.DebugLabeler, src io.Reade
 	if err := png.Encode(&out, img); err != nil {
 		return res, err
 	}
-	imagePreview, err := previewImage(ctx, log, &out, basename, "image/png", Dimension{Width: width, Height: height})
+	imagePreview, err := previewImage(ctx, log, &out, basename, "image/png")
 	if err != nil {
 		return res, err
 	}
@@ -98,8 +100,7 @@ func previewVideoBlank(ctx context.Context, log utils.DebugLabeler, src io.Reade
 }
 
 // previewImage will resize a single-frame image.
-func previewImage(ctx context.Context, log utils.DebugLabeler, src io.Reader, basename, contentType string,
-	dimension Dimension) (res *PreviewRes, err error) {
+func previewImage(ctx context.Context, log utils.DebugLabeler, src io.Reader, basename, contentType string) (res *PreviewRes, err error) {
 	defer log.Trace(ctx, func() error { return err }, "previewImage")()
 	// images.Decode in camlistore correctly handles exif orientation information.
 	log.Debug(ctx, "previewImage: decoding image")
@@ -108,7 +109,7 @@ func previewImage(ctx context.Context, log utils.DebugLabeler, src io.Reader, ba
 		return nil, err
 	}
 
-	width, height := previewDimensions(img.Bounds(), dimension)
+	width, height := previewDimensions(img.Bounds())
 
 	log.Debug(ctx, "previewImage: resizing image: bounds: %s", img.Bounds())
 	preview := resize.Resize(width, height, img, resize.Bicubic)
@@ -140,8 +141,7 @@ func previewImage(ctx context.Context, log utils.DebugLabeler, src io.Reader, ba
 
 // previewGIF handles resizing multiple frames in an animated gif.
 // Based on code in https://github.com/dpup/go-scratch/blob/master/gif-resize/gif-resize.go
-func previewGIF(ctx context.Context, log utils.DebugLabeler, src io.Reader, basename string,
-	dimension Dimension) (*PreviewRes, error) {
+func previewGIF(ctx context.Context, log utils.DebugLabeler, src io.Reader, basename string) (*PreviewRes, error) {
 	raw, err := ioutil.ReadAll(src)
 	if err != nil {
 		return nil, err
@@ -192,7 +192,7 @@ func previewGIF(ctx context.Context, log utils.DebugLabeler, src io.Reader, base
 	img := image.NewRGBA(origBounds)
 
 	// draw each frame, then resize it, replacing the existing frames.
-	width, height := previewDimensions(origBounds, dimension)
+	width, height := previewDimensions(origBounds)
 	log.Debug(ctx, "previewGif: resizing to %d x %d", width, height)
 	for index, frame := range g.Image {
 		bounds := frame.Bounds()
@@ -228,33 +228,33 @@ func previewGIF(ctx context.Context, log utils.DebugLabeler, src io.Reader, base
 	return res, nil
 }
 
-func previewDimensions(origBounds image.Rectangle, dimension Dimension) (uint, uint) {
-	origWidth := origBounds.Dx()
-	origHeight := origBounds.Dy()
+func previewDimensions(origBounds image.Rectangle) (uint, uint) {
+	origWidth := uint(origBounds.Dx())
+	origHeight := uint(origBounds.Dy())
 
-	if dimension.Width >= origWidth && dimension.Height >= origHeight {
-		return uint(origWidth), uint(origHeight)
+	if previewImageWidth >= origWidth && previewImageHeight >= origHeight {
+		return origWidth, origHeight
 	}
 
 	newWidth, newHeight := origWidth, origHeight
 	// Preserve aspect ratio
-	if origWidth > dimension.Width {
-		newHeight = origHeight * dimension.Width / origWidth
+	if origWidth > previewImageWidth {
+		newHeight = origHeight * previewImageWidth / origWidth
 		if newHeight < 1 {
 			newHeight = 1
 		}
-		newWidth = dimension.Width
+		newWidth = previewImageWidth
 	}
 
-	if newHeight > dimension.Height {
-		newWidth = newWidth * dimension.Height / newHeight
+	if newHeight > previewImageHeight {
+		newWidth = newWidth * previewImageHeight / newHeight
 		if newWidth < 1 {
 			newWidth = 1
 		}
-		newHeight = dimension.Height
+		newHeight = previewImageHeight
 	}
 
-	return uint(newWidth), uint(newHeight)
+	return newWidth, newHeight
 }
 
 // imageToPaletted converts image.Image to *image.Paletted.

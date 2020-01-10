@@ -218,7 +218,8 @@ func PreprocessAsset(ctx context.Context, g *globals.Context, log utils.DebugLab
 		}
 	}
 	defer func() {
-		if err := src.Reset(); err != nil {
+		err := src.Reset()
+		if err != nil {
 			log.Debug(ctx, "preprocessAsset: reset failed: %+v", err)
 		}
 	}()
@@ -226,27 +227,8 @@ func PreprocessAsset(ctx context.Context, g *globals.Context, log utils.DebugLab
 	if p.ContentType, err = DetectMIMEType(ctx, src, filename); err != nil {
 		return p, err
 	}
-
 	log.Debug(ctx, "preprocessAsset: detected attachment content type %s", p.ContentType)
-	// On mobile or limited data connections resize the image before uploading.
-	if g.IsMobileAppType() || g.MobileNetState.State().IsLimited() {
-		log.Debug(ctx, "preprocessAsset: resizing image")
-		resizeRes, err := Preview(ctx, log, src, p.ContentType, filename, nvh, defaultMobileDimension)
-		if err != nil {
-			log.Debug(ctx, "preprocessAsset: error making preview: %s", err)
-			return p, err
-		}
-		// overwrite the initial file with the resized data
-		if err := ioutil.WriteFile(filename, resizeRes.Source, 0644); err != nil {
-			log.Debug(ctx, "preprocessAsset: error resizing: %s", err)
-			return p, err
-		}
-		if err := src.Reset(); err != nil {
-			log.Debug(ctx, "preprocessAsset: reset failed: %+v", err)
-			return p, err
-		}
-	}
-	previewRes, err := Preview(ctx, log, src, p.ContentType, filename, nvh, defaultPreviewDimension)
+	previewRes, err := Preview(ctx, log, src, p.ContentType, filename, nvh)
 	if err != nil {
 		log.Debug(ctx, "preprocessAsset: error making preview: %s", err)
 		return p, err
