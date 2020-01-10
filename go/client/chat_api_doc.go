@@ -22,6 +22,9 @@ If you're on the nth page and want to go back, set the previous field instead.
 
     {"method": "read", "params": {"options": {"channel": {"name": "you,them"}, "pagination": {"previous": "<result.pagination.previous from last reply>", "num": 10}}}}
 
+Get specific messages:
+    {"method": "get", "params": {"options": {"channel": {"name": "you,them"}, "message_ids": [314, 315, 342]}}}
+
 Send a message:
     {"method": "send", "params": {"options": {"channel": {"name": "you,them"}, "message": {"body": "is it cold today?"}}}}
 
