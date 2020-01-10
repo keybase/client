@@ -28,6 +28,7 @@ type Props = {
   onAddPeopleToTeam: () => void
   onBrowseChannels: () => void
   onCreateChatChannels: () => void
+  onDismiss: () => void
   onGoToChannel: (channelname: string) => void
   onLoadTeam: () => void
   onPublishTeam: () => void
@@ -149,6 +150,7 @@ const TeamJourneyContainer = (props: Props) => {
       teamname={props.teamname}
       conversationIDKey={props.conversationIDKey}
       textComponent={textComponent}
+      onDismiss={props.onDismiss}
     />
   ) : null
 }
@@ -176,6 +178,11 @@ const TeamJourneyConnected = Container.connect(
       ),
     _onCreateChannel: (teamID: string) =>
       dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'chatCreateChannel'}]})),
+    _onDismiss: (
+      conversationIDKey: ChatTypes.ConversationIDKey,
+      cardType: RPCChatTypes.JourneycardType,
+      ordinal: ChatTypes.Ordinal
+    ) => dispatch(Chat2Gen.createDismissJourneycard({conversationIDKey, cardType, ordinal})),
     _onGoToChannel: (channelname: string, teamname: string) =>
       dispatch(Chat2Gen.createPreviewConversation({channelname, reason: 'journeyCardPopular', teamname})),
     _onLoadTeam: (teamID: string) => dispatch(TeamsGen.createGetChannels({teamID})),
@@ -216,6 +223,12 @@ const TeamJourneyConnected = Container.connect(
       onAuthorClick: () => dispatchProps._onAuthorClick(stateProps._teamID),
       onBrowseChannels: () => dispatchProps._onManageChannels(stateProps._teamID),
       onCreateChatChannels: () => dispatchProps._onCreateChannel(stateProps._teamID),
+      onDismiss: () =>
+        dispatchProps._onDismiss(
+          stateProps.conversationIDKey,
+          ownProps.message.cardType,
+          ownProps.message.ordinal
+        ),
       onGoToChannel: (channelName: string) => dispatchProps._onGoToChannel(channelName, stateProps.teamname),
       onLoadTeam: () => dispatchProps._onLoadTeam(stateProps._teamID),
       onPublishTeam: () => dispatchProps._onPublishTeam(),

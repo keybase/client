@@ -41,6 +41,7 @@ export const deselectConversation = 'chat2:deselectConversation'
 export const desktopNotification = 'chat2:desktopNotification'
 export const dismissBlockButtons = 'chat2:dismissBlockButtons'
 export const dismissBottomBanner = 'chat2:dismissBottomBanner'
+export const dismissJourneycard = 'chat2:dismissJourneycard'
 export const editBotSettings = 'chat2:editBotSettings'
 export const enableAudioRecording = 'chat2:enableAudioRecording'
 export const findGeneralConvIDFromTeamID = 'chat2:findGeneralConvIDFromTeamID'
@@ -266,6 +267,11 @@ type _DesktopNotificationPayload = {
 }
 type _DismissBlockButtonsPayload = {readonly teamID: RPCTypes.TeamID}
 type _DismissBottomBannerPayload = {readonly conversationIDKey: Types.ConversationIDKey}
+type _DismissJourneycardPayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly cardType: RPCChatTypes.JourneycardType
+  readonly ordinal: Types.Ordinal
+}
 type _EditBotSettingsPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly username: string
@@ -854,6 +860,13 @@ export const createUpdateTeamRetentionPolicy = (
 export const createTabSelected = (payload: _TabSelectedPayload): TabSelectedPayload => ({
   payload,
   type: tabSelected,
+})
+/**
+ * Dismiss a journeycard
+ */
+export const createDismissJourneycard = (payload: _DismissJourneycardPayload): DismissJourneycardPayload => ({
+  payload,
+  type: dismissJourneycard,
 })
 /**
  * Explicitly set whether a thread is loaded to the most recent message
@@ -1763,6 +1776,10 @@ export type DismissBottomBannerPayload = {
   readonly payload: _DismissBottomBannerPayload
   readonly type: typeof dismissBottomBanner
 }
+export type DismissJourneycardPayload = {
+  readonly payload: _DismissJourneycardPayload
+  readonly type: typeof dismissJourneycard
+}
 export type EditBotSettingsPayload = {
   readonly payload: _EditBotSettingsPayload
   readonly type: typeof editBotSettings
@@ -2296,6 +2313,7 @@ export type Actions =
   | DesktopNotificationPayload
   | DismissBlockButtonsPayload
   | DismissBottomBannerPayload
+  | DismissJourneycardPayload
   | EditBotSettingsPayload
   | EnableAudioRecordingPayload
   | FindGeneralConvIDFromTeamIDPayload

@@ -8,6 +8,7 @@ const commonProps = {
   conversationIDKey: 'dummyConversationIDKey',
   onAuthorClick: Sb.action('onAuthorClick'),
   teamname: 'foo',
+  onDismiss: Sb.action('onDismiss'),
 }
 
 const load = () => {

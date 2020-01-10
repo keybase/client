@@ -16,6 +16,7 @@ type Props = {
   image: Kb.IconType | null
   loadTeam?: () => void
   onAuthorClick: () => void
+  onDismiss: () => void
   teamname: string
   textComponent: React.ReactNode
 }
@@ -29,7 +30,7 @@ export const TeamJourney = (props: Props) => {
   }, [])
   return (
     <>
-      <TeamJourneyHeader teamname={teamname} onAuthorClick={props.onAuthorClick} />
+      <TeamJourneyHeader teamname={teamname} onAuthorClick={props.onAuthorClick} onDismiss={props.onDismiss} />
       <Kb.Box2 key="content" direction="vertical" fullWidth={true} style={styles.content}>
         <Kb.Box2 direction="horizontal" fullWidth={true}>
           <Kb.Box2 direction="horizontal" style={props.image ? styles.text : undefined}>
@@ -68,31 +69,31 @@ export const TeamJourney = (props: Props) => {
 type HeaderProps = {
   teamname: string
   onAuthorClick: () => void
+  onDismiss: () => void
 }
 const TeamJourneyHeader = (props: HeaderProps) => (
-  <>
-    <Kb.Box2 key="author" direction="horizontal" style={styles.authorContainer} gap="tiny">
-      <Kb.Avatar
-        size={32}
-        isTeam={true}
-        teamname={props.teamname}
-        skipBackground={true}
-        style={styles.avatar}
+  <Kb.Box2 key="author" direction="horizontal" fullWidth={true} style={styles.authorContainer} gap="tiny">
+    <Kb.Avatar
+      size={32}
+      isTeam={true}
+      teamname={props.teamname}
+      skipBackground={true}
+      style={styles.avatar}
+      onClick={props.onAuthorClick}
+    />
+    <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={false} alignSelf="flex-start" style={styles.bottomLine}>
+      <Kb.Text
+        style={styles.teamnameText}
+        type="BodySmallBold"
         onClick={props.onAuthorClick}
-      />
-      <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.bottomLine}>
-        <Kb.Text
-          style={styles.teamnameText}
-          type="BodySmallBold"
-          onClick={props.onAuthorClick}
-          className="hover-underline"
-        >
-          {props.teamname}
-        </Kb.Text>
-        <Kb.Text type="BodyTiny">• System message</Kb.Text>
-      </Kb.Box2>
+        className="hover-underline"
+      >
+        {props.teamname}
+      </Kb.Text>
+      <Kb.Text type="BodyTiny">• System message</Kb.Text>
     </Kb.Box2>
-  </>
+    {!Styles.isMobile && <Kb.Icon type="iconfont-close" onClick={props.onDismiss} fontSize={12} />}
+  </Kb.Box2>
 )
 
 const buttonSpace = 6
@@ -122,9 +123,10 @@ const styles = Styles.styleSheetCreate(
           marginLeft: Styles.globalMargins.small,
           marginTop: Styles.globalMargins.xtiny,
         },
-        isMobile: {marginLeft: Styles.globalMargins.xtiny},
+        isMobile: {marginLeft: Styles.globalMargins.tiny},
       }),
       bottomLine: {
+        ...Styles.globalStyles.flexGrow,
         alignItems: 'baseline',
       },
       buttonSpace: {
@@ -143,10 +145,10 @@ const styles = Styles.styleSheetCreate(
           marginTop: -12,
           paddingBottom: 3,
           paddingLeft:
-            // Space for below the avatar
-            Styles.globalMargins.tiny + // right margin
-            Styles.globalMargins.tiny + // left margin
-            Styles.globalMargins.mediumLarge, // avatar
+          // Space for below the avatar
+          Styles.globalMargins.tiny + // right margin
+          Styles.globalMargins.tiny + // left margin
+          Styles.globalMargins.mediumLarge, // avatar
           paddingRight: Styles.globalMargins.tiny,
         },
       }),
@@ -157,9 +159,6 @@ const styles = Styles.styleSheetCreate(
       teamnameText: Styles.platformStyles({
         common: {
           color: Styles.globalColors.black,
-        },
-        isMobile: {
-          marginLeft: Styles.globalMargins.xtiny,
         },
       }),
       text: {

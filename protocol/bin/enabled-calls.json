@@ -11,6 +11,7 @@
   "chat.1.local.SetConversationStatusLocal": {"promise": true},
   "chat.1.local.addTeamMemberAfterReset": {"promise": true},
   "chat.1.local.deleteConversationLocal": {"promise": true},
+  "chat.1.local.dismissJourneycard": {"promise": true},
   "chat.1.local.editBotMember": {"promise": true},
   "chat.1.local.findConversationsLocal": {"promise": true},
   "chat.1.local.findGeneralConvFromTeamID": {"promise": true},
