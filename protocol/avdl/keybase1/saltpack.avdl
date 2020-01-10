@@ -74,12 +74,14 @@ protocol saltpack {
   record SaltpackPlaintextResult {
     SaltpackEncryptedMessageInfo info;
     string plaintext;
+    boolean signed;
   }
   SaltpackPlaintextResult saltpackDecryptString(int sessionID, string ciphertext);
 
   record SaltpackFileResult {
     SaltpackEncryptedMessageInfo info;
     string decryptedFilename;
+    boolean signed;
   }
   SaltpackFileResult saltpackDecryptFile(int sessionID, string encryptedFilename);
 
@@ -90,6 +92,7 @@ protocol saltpack {
     KID signingKID;
     SaltpackSender sender;
     string plaintext;
+    boolean verified;
   }
   SaltpackVerifyResult saltpackVerifyString(int sessionID, string signedMsg);
 
@@ -97,6 +100,7 @@ protocol saltpack {
     KID signingKID;
     SaltpackSender sender;
     string verifiedFilename;
+    boolean verified;
   }
   SaltpackVerifyFileResult saltpackVerifyFile(int sessionID, string signedFilename);
 }

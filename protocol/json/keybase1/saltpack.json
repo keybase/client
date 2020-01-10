@@ -179,6 +179,10 @@
         {
           "type": "string",
           "name": "plaintext"
+        },
+        {
+          "type": "boolean",
+          "name": "signed"
         }
       ]
     },
@@ -193,6 +197,10 @@
         {
           "type": "string",
           "name": "decryptedFilename"
+        },
+        {
+          "type": "boolean",
+          "name": "signed"
         }
       ]
     },
@@ -211,6 +219,10 @@
         {
           "type": "string",
           "name": "plaintext"
+        },
+        {
+          "type": "boolean",
+          "name": "verified"
         }
       ]
     },
@@ -229,6 +241,10 @@
         {
           "type": "string",
           "name": "verifiedFilename"
+        },
+        {
+          "type": "boolean",
+          "name": "verified"
         }
       ]
     }

@@ -181,13 +181,14 @@ func (h *SaltpackHandler) SaltpackDecryptString(ctx context.Context, arg keybase
 		Source: strings.NewReader(arg.Ciphertext),
 	}
 
-	info, err := h.frontendDecrypt(ctx, arg.SessionID, earg)
+	info, signed, err := h.frontendDecrypt(ctx, arg.SessionID, earg)
 	if err != nil {
 		return keybase1.SaltpackPlaintextResult{}, err
 	}
 	r := keybase1.SaltpackPlaintextResult{
 		Info:      info,
 		Plaintext: sink.String(),
+		Signed:    signed,
 	}
 	return r, nil
 }
@@ -215,20 +216,13 @@ func (h *SaltpackHandler) SaltpackVerifyString(ctx context.Context, arg keybase1
 		Source: strings.NewReader(arg.SignedMsg),
 	}
 
-	spui := &capSaltpackUI{}
-	uis := libkb.UIs{
-		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID, h.G()),
-		SecretUI:   &nopSecretUI{},
-		SaltpackUI: spui,
-		SessionID:  arg.SessionID,
-	}
-	eng := engine.NewSaltpackVerify(h.G(), earg)
-	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
-	if err := engine.RunEngine2(m, eng); err != nil {
+	spui, err := h.frontendVerify(ctx, arg.SessionID, earg)
+	if err != nil {
 		return keybase1.SaltpackVerifyResult{}, err
 	}
 	res := keybase1.SaltpackVerifyResult{
 		Plaintext: sink.String(),
+		Verified:  spui.verified,
 	}
 	if spui.signingKID != nil {
 		res.SigningKID = *spui.signingKID
@@ -284,10 +278,10 @@ func (h *SaltpackHandler) SaltpackDecryptFile(ctx context.Context, arg keybase1.
 
 	earg := &engine.SaltpackDecryptArg{
 		Sink:   bw,
-		Source: in,
+		Source: bufio.NewReader(in),
 	}
 
-	info, err := h.frontendDecrypt(ctx, arg.SessionID, earg)
+	info, signed, err := h.frontendDecrypt(ctx, arg.SessionID, earg)
 	if err != nil {
 		return keybase1.SaltpackFileResult{}, err
 	}
@@ -295,6 +289,7 @@ func (h *SaltpackHandler) SaltpackDecryptFile(ctx context.Context, arg keybase1.
 	r := keybase1.SaltpackFileResult{
 		Info:              info,
 		DecryptedFilename: outFilename,
+		Signed:            signed,
 	}
 	return r, nil
 }
@@ -315,7 +310,7 @@ func (h *SaltpackHandler) SaltpackSignFile(ctx context.Context, arg keybase1.Sal
 
 	earg := &engine.SaltpackSignArg{
 		Sink:   bw,
-		Source: in,
+		Source: ioutil.NopCloser(bufio.NewReader(in)),
 		Opts: keybase1.SaltpackSignOptions{
 			Binary: true,
 		},
@@ -330,7 +325,38 @@ func (h *SaltpackHandler) SaltpackSignFile(ctx context.Context, arg keybase1.Sal
 
 func (h *SaltpackHandler) SaltpackVerifyFile(ctx context.Context, arg keybase1.SaltpackVerifyFileArg) (keybase1.SaltpackVerifyFileResult, error) {
 	ctx = libkb.WithLogTag(ctx, "SP")
-	return keybase1.SaltpackVerifyFileResult{}, errors.New("nyi")
+	in, err := os.Open(arg.SignedFilename)
+	if err != nil {
+		return keybase1.SaltpackVerifyFileResult{}, err
+	}
+	defer in.Close()
+
+	outFilename, bw, err := decryptFilename(arg.SignedFilename)
+	if err != nil {
+		return keybase1.SaltpackVerifyFileResult{}, err
+	}
+	defer bw.Close()
+
+	earg := &engine.SaltpackVerifyArg{
+		Sink:   bw,
+		Source: bufio.NewReader(in),
+	}
+
+	spui, err := h.frontendVerify(ctx, arg.SessionID, earg)
+	if err != nil {
+		return keybase1.SaltpackVerifyFileResult{}, err
+	}
+	res := keybase1.SaltpackVerifyFileResult{
+		VerifiedFilename: outFilename,
+		Verified:         spui.verified,
+	}
+	if spui.signingKID != nil {
+		res.SigningKID = *spui.signingKID
+	}
+	if spui.sender != nil {
+		res.Sender = *spui.sender
+	}
+	return res, nil
 }
 
 func (h *SaltpackHandler) encryptOptions(opts keybase1.SaltpackFrontendEncryptOptions) keybase1.SaltpackEncryptOptions {
@@ -360,20 +386,37 @@ func (h *SaltpackHandler) frontendEncrypt(ctx context.Context, sessionID int, ar
 	return engine.RunEngine2(m, eng)
 }
 
-func (h *SaltpackHandler) frontendDecrypt(ctx context.Context, sessionID int, arg *engine.SaltpackDecryptArg) (keybase1.SaltpackEncryptedMessageInfo, error) {
+func (h *SaltpackHandler) frontendDecrypt(ctx context.Context, sessionID int, arg *engine.SaltpackDecryptArg) (keybase1.SaltpackEncryptedMessageInfo, bool, error) {
+	spui := &capSaltpackUI{}
 	uis := libkb.UIs{
 		IdentifyUI: h.NewRemoteIdentifyUI(sessionID, h.G()),
 		SecretUI:   &nopSecretUI{},
-		SaltpackUI: &capSaltpackUI{},
+		SaltpackUI: spui,
 		SessionID:  sessionID,
 	}
 	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
 	resolver := saltpackkeys.NewKeyPseudonymResolver(m)
 	eng := engine.NewSaltpackDecrypt(arg, resolver)
 	if err := engine.RunEngine2(m, eng); err != nil {
-		return keybase1.SaltpackEncryptedMessageInfo{}, err
+		return keybase1.SaltpackEncryptedMessageInfo{}, false, err
 	}
-	return eng.MessageInfo(), nil
+	return eng.MessageInfo(), spui.verified, nil
+}
+
+func (h *SaltpackHandler) frontendVerify(ctx context.Context, sessionID int, arg *engine.SaltpackVerifyArg) (*capSaltpackUI, error) {
+	spui := &capSaltpackUI{}
+	uis := libkb.UIs{
+		IdentifyUI: h.NewRemoteIdentifyUI(sessionID, h.G()),
+		SecretUI:   &nopSecretUI{},
+		SaltpackUI: spui,
+		SessionID:  sessionID,
+	}
+	eng := engine.NewSaltpackVerify(h.G(), arg)
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	if err := engine.RunEngine2(m, eng); err != nil {
+		return nil, err
+	}
+	return spui, nil
 }
 
 func (h *SaltpackHandler) frontendSign(ctx context.Context, sessionID int, arg *engine.SaltpackSignArg) error {
@@ -452,21 +495,25 @@ type capSaltpackUI struct {
 	decryptArg *keybase1.SaltpackPromptForDecryptArg
 	signingKID *keybase1.KID
 	sender     *keybase1.SaltpackSender
+	verified   bool
 }
 
 func (c *capSaltpackUI) SaltpackPromptForDecrypt(ctx context.Context, arg keybase1.SaltpackPromptForDecryptArg, _ bool) error {
 	c.decryptArg = &arg
+	c.verified = arg.Signed
 	return nil
 }
 
 func (c *capSaltpackUI) SaltpackVerifySuccess(ctx context.Context, arg keybase1.SaltpackVerifySuccessArg) error {
 	c.signingKID = &arg.SigningKID
 	c.sender = &arg.Sender
+	c.verified = true
 	return nil
 }
 
 func (c *capSaltpackUI) SaltpackVerifyBadSender(ctx context.Context, arg keybase1.SaltpackVerifyBadSenderArg) error {
 	c.signingKID = &arg.SigningKID
 	c.sender = &arg.Sender
+	c.verified = false
 	return nil
 }

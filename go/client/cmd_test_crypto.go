@@ -87,6 +87,18 @@ func (s *CmdTestCrypto) Run() (err error) {
 	}
 	dui.Printf("plaintext: %q\n\n", res.Plaintext)
 	dui.Printf("info: %+v\n\n", res.Info)
+	dui.Printf("signed: %v\n", res.Signed)
+
+	decArg = keybase1.SaltpackDecryptStringArg{
+		Ciphertext: `BEGIN KEYBASE SALTPACK ENCRYPTED MESSAGE. kiOZCh3HHJ67ruW BqTLwK4O4wu3rYb nqNg6NDZgFvmpuq I5WS7gm9v6c5G5c jTVWHsEGJwNNAfg JyJguAd07Dlns9X e5bA2n0Vn5z4ZfW OnP54P88sWJuH2Y C4cZouKLhR4h1sw bNiA1XKMaypkN3q 4F811KyR5M29kgT O2AJCMc0rpbWQqT oisyKNPyfpsbi0e sP4QhYQj5rrOiUS 3BBPw5ZDYGTpa3P Yd5PaYH3cxXA8Ym u5k3nFbsAgnt4mM lruQb4LNAz7ZwSD 8SoDqvYygGXRLVF YuPrLFyZIptNSAN htWKDhheWwUP9RM orOzspVIGB9ngOU QCKrW1xQjLQ3Q43 AKOtTWfyce2r4jp 109C40cguaDuUl5 XsygTcdDeEirm54 2fPEiDhu4DjBOCc KmdGpZxe1BzVKvI 7PlLT9KVT8THxqL VgTZzONc0swyGcn yOLW3BKZscEtNSs uPOs4y77PWVUET7 IUpddqEvbKiyLin w9nT60rWV5kQXtx J7QgINM7Z6EMHEq DavAYzeLHvY3wpb tuYYg1JAjN6lRMs vNx7oG6Vpr0brrj UBKEjG8ODaQCQOs vTpEVDAg8IVqpMN 55OPZll2JnHe35l bQpVHzUrEua7URk tBclMiFmXy72iVS OQvLjrs6UTypsFc Oe2gYNAP9u0SP3z hI6S6qFY07JdlQM MMGIuurd9Rf9J5c QfG96NzRoV8f00F BxwscX8FF9b1i4W OhXcMQrTtjNsaCN . END KEYBASE SALTPACK ENCRYPTED MESSAGE.`,
+	}
+	res, err = cli.SaltpackDecryptString(mctx.Ctx(), decArg)
+	if err != nil {
+		return err
+	}
+	dui.Printf("plaintext: %q\n\n", res.Plaintext)
+	dui.Printf("info: %+v\n\n", res.Info)
+	dui.Printf("signed: %v\n", res.Signed)
 
 	dui.Printf("signing string %q\n", plaintext)
 	signArg := keybase1.SaltpackSignStringArg{Plaintext: plaintext}
@@ -140,6 +152,14 @@ func (s *CmdTestCrypto) Run() (err error) {
 		return err
 	}
 	dui.Printf("signed file: %s\n", sfPath)
+
+	dui.Printf("verifying file %s\n", sfPath)
+	vfArg := keybase1.SaltpackVerifyFileArg{SignedFilename: sfPath}
+	vfres, err := cli.SaltpackVerifyFile(mctx.Ctx(), vfArg)
+	if err != nil {
+		return err
+	}
+	dui.Printf("verified result: %+v\n", vfres)
 
 	return nil
 }
