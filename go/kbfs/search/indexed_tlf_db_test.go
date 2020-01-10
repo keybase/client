@@ -54,6 +54,7 @@ func TestIndexedTlfDbCreate(t *testing.T) {
 }
 
 func TestIndexedTlfDb(t *testing.T) {
+	t.Skip() // TRIAGE-1674
 	t.Parallel()
 	t.Log("Test that indexed TLF db Put and Get operations work.")
 	db, tempdir := newIndexedTlfDbForTest(t)
