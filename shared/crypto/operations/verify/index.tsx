@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as Constants from '../../../constants/crypto'
 import * as Types from '../../../constants/types/crypto'
 import * as Kb from '../../../common-adapters'
 import debounce from 'lodash/debounce'
@@ -29,12 +30,17 @@ const Verify = (props: Props) => {
       <Kb.DragAndDrop allowFolders={true} fullHeight={true} fullWidth={true} onAttach={onAttach}>
         <Kb.Box2 direction="vertical" fullHeight={true}>
           {props.inputType === 'file' ? (
-            <FileInput path={props.input} onClearFiles={props.onClearInput} />
+            <FileInput
+              path={props.input}
+              onClearFiles={props.onClearInput}
+              operation={Constants.Operations.Verify}
+            />
           ) : (
             <TextInput
               value={inputValue}
               placeholder="Paste a signed message or drop a file your want to verify"
               textType="cipher"
+              operation={Constants.Operations.Verify}
               onChangeText={text => {
                 setInputValue(text)
                 debounced(props.onSetInput, 'text', text)
@@ -48,6 +54,7 @@ const Verify = (props: Props) => {
               output={props.output}
               outputType={props.outputType}
               textType="plain"
+              operation={Constants.Operations.Verify}
             />
             <OutputSigned signed={true} signedBy="cecilb" outputStatus={props.outputStatus} />
             <OutputBar

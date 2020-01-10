@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
+import * as Constants from '../../constants/crypto'
 import {TextInput, FileInput} from '.'
 
 const onClearInput = Sb.action('onClearInput')
@@ -18,6 +19,7 @@ const load = () => {
         value=""
         placeholder="Write something or drop a file you want to encrypt"
         onChangeText={onChangeText}
+        operation={Constants.Operations.Encrypt}
       />
     ))
 
@@ -27,6 +29,7 @@ const load = () => {
         value={shortText}
         placeholder="Write something or drop a file you want to encrypt"
         onChangeText={onChangeText}
+        operation={Constants.Operations.Encrypt}
       />
     ))
     .add('Value - Long', () => (
@@ -35,6 +38,7 @@ const load = () => {
         value={longText}
         placeholder="Write something or drop a file you want to encrypt"
         onChangeText={onChangeText}
+        operation={Constants.Operations.Encrypt}
       />
     ))
     .add('Empty - Cipher', () => (
@@ -43,6 +47,7 @@ const load = () => {
         value=""
         placeholder="Write something or drop a file you want to encrypt"
         onChangeText={onChangeText}
+        operation={Constants.Operations.Decrypt}
       />
     ))
 
@@ -52,6 +57,7 @@ const load = () => {
         value={shortText}
         placeholder="Write something or drop a file you want to encrypt"
         onChangeText={onChangeText}
+        operation={Constants.Operations.Decrypt}
       />
     ))
     .add('Value - Long - Cipher', () => (
@@ -60,12 +66,35 @@ const load = () => {
         value={longText}
         placeholder="Write something or drop a file you want to encrypt"
         onChangeText={onChangeText}
+        operation={Constants.Operations.Decrypt}
       />
     ))
 
   Sb.storiesOf('Crypto/Input/File', module)
-    .add('File', () => <FileInput path="/path/to/file.txt" size={1024} onClearFiles={onClearInput} />)
-    .add('Directory', () => <FileInput path="/path/to/directory" isDir={true} onClearFiles={onClearInput} />)
+    .add('Plain', () => (
+      <FileInput
+        path="/path/to/file.txt"
+        size={1024}
+        operation={Constants.Operations.Encrypt}
+        onClearFiles={onClearInput}
+      />
+    ))
+    .add('Encrypted', () => (
+      <FileInput
+        path="/path/to/file.txt"
+        size={1024}
+        operation={Constants.Operations.Decrypt}
+        onClearFiles={onClearInput}
+      />
+    ))
+    .add('Signed', () => (
+      <FileInput
+        path="/path/to/file.txt"
+        size={1024}
+        operation={Constants.Operations.Verify}
+        onClearFiles={onClearInput}
+      />
+    ))
 }
 
 export default load

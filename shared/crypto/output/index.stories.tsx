@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
+import * as Constants from '../../constants/crypto'
 import Output, {OutputBar, OutputSigned} from '.'
 
 const onCopyOutput = Sb.action('onCopyOutput')
@@ -17,10 +18,16 @@ const verifyOutput = 'Letting you know if was me'
 
 const load = () => {
   Sb.storiesOf('Crypto/Output', module)
-    .add('Encrypt', () => <Output output={encryptOutput} textType="cipher" />)
-    .add('Decrypt', () => <Output output={decryptOutput} textType="plain" />)
-    .add('Sign', () => <Output output={signOutput} textType="cipher" />)
-    .add('Verify', () => <Output output={verifyOutput} textType="plain" />)
+    .add('Encrypt', () => (
+      <Output output={encryptOutput} textType="cipher" operation={Constants.Operations.Encrypt} />
+    ))
+    .add('Decrypt', () => (
+      <Output output={decryptOutput} textType="plain" operation={Constants.Operations.Verify} />
+    ))
+    .add('Sign', () => <Output output={signOutput} textType="cipher" operation={Constants.Operations.Sign} />)
+    .add('Verify', () => (
+      <Output output={verifyOutput} textType="plain" operation={Constants.Operations.Verify} />
+    ))
 
   Sb.storiesOf('Crypto/Output/Bar', module).add('Download - Copy', () => (
     <OutputBar output="secret stuff" outputStatus="success" onCopyOutput={onCopyOutput} />

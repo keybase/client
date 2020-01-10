@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import * as Constants from '../../constants/crypto'
 import * as Types from '../../constants/types/crypto'
 
 type Props = {
@@ -8,6 +9,7 @@ type Props = {
   outputStatus?: Types.OutputStatus
   outputType?: Types.OutputType
   textType: Types.TextType
+  operation: Types.Operations
 }
 
 type OutputBarProps = {
@@ -96,16 +98,26 @@ export const OutputBar = (props: OutputBarProps) => {
 }
 
 const Output = (props: Props) => {
+  const fileOutputTextColor =
+    props.textType === 'cipher' ? Styles.globalColors.greenDark : Styles.globalColors.black
+  const fileIcon = Constants.getOutputFileIcon(props.operation)
   return props.outputStatus && props.outputStatus === 'success' ? (
     props.outputType === 'file' ? (
-      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.coverOutput}>
-        <Kb.Icon type="icon-file-saltpack-encrypted-64" sizeType="Huge" />
-        <Kb.Text
-          type={props.textType === 'cipher' ? 'Terminal' : 'Body'}
-          style={{color: Styles.globalColors.black}}
+      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
+        <Kb.Box2
+          direction="horizontal"
+          fullWidth={true}
+          alignItems="center"
+          style={styles.fileOutputContainer}
         >
-          {props.output}
-        </Kb.Text>
+          <Kb.Icon type={fileIcon} sizeType="Huge" />
+          <Kb.Text
+            type="BodyPrimaryLink"
+            style={Styles.collapseStyles([styles.fileOutputText, {color: fileOutputTextColor}])}
+          >
+            {props.output}
+          </Kb.Text>
+        </Kb.Box2>
       </Kb.Box2>
     ) : (
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
@@ -142,6 +154,12 @@ const styles = Styles.styleSheetCreate(
       }),
       coverOutput: {
         ...Styles.globalStyles.flexBoxCenter,
+      },
+      fileOutputContainer: {
+        ...Styles.padding(Styles.globalMargins.xsmall),
+      },
+      fileOutputText: {
+        ...Styles.globalStyles.fontSemibold,
       },
       output: Styles.platformStyles({
         common: {

@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as Constants from '../../../constants/crypto'
 import * as Types from '../../../constants/types/crypto'
 import * as Kb from '../../../common-adapters'
 import debounce from 'lodash/debounce'
@@ -29,12 +30,17 @@ const Sign = (props: Props) => {
       <Kb.DragAndDrop allowFolders={true} fullHeight={true} fullWidth={true} onAttach={onAttach}>
         <Kb.Box2 direction="vertical" fullHeight={true}>
           {props.inputType === 'file' ? (
-            <FileInput path={props.input} onClearFiles={props.onClearInput} />
+            <FileInput
+              path={props.input}
+              onClearFiles={props.onClearInput}
+              operation={Constants.Operations.Sign}
+            />
           ) : (
             <TextInput
               value={inputValue}
-              textType="plain"
               placeholder="Write something or drop a file you want to sign"
+              textType="plain"
+              operation={Constants.Operations.Sign}
               onChangeText={text => {
                 setInputValue(text)
                 debounced(props.onSetInput, 'text', text)
@@ -49,6 +55,7 @@ const Sign = (props: Props) => {
               output={props.output}
               outputType={props.outputType}
               textType="cipher"
+              operation={Constants.Operations.Sign}
             />
             <OutputBar
               output={props.output}

@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as Constants from '../../constants/crypto'
 import * as FsConstants from '../../constants/fs'
 import * as Types from '../../constants/types/crypto'
 import * as Kb from '../../common-adapters'
@@ -8,15 +9,15 @@ type TextProps = {
   onChangeText: (text: string) => void
   placeholder: string
   textType: Types.TextType
+  operation: Types.Operations
   value: string
 }
 
 type FileProps = {
   path: string
-  onClearFiles: () => void
-  // Used for storybook
-  isDir?: boolean
   size?: number
+  operation: Types.Operations
+  onClearFiles: () => void
 }
 
 const TextInput = (props: TextProps) => {
@@ -40,7 +41,8 @@ const TextInput = (props: TextProps) => {
 }
 
 const FileInput = (props: FileProps) => {
-  const {isDir, path, size} = props
+  const {path, size, operation} = props
+  const fileIcon = Constants.getInputFileIcon(operation)
   return (
     <Kb.Box2
       direction="vertical"
@@ -52,10 +54,16 @@ const FileInput = (props: FileProps) => {
       <Kb.Text type="BodySmallPrimaryLink" onClick={() => props.onClearFiles()} style={styles.clearButton}>
         Clear
       </Kb.Text>
-      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.fileContainer}>
-        <Kb.Icon type={isDir ? 'icon-folder-64' : 'icon-file-64'} />
-        <Kb.Text type="BodySemibold">{path}</Kb.Text>
-        {size ? <Kb.Text type="BodySmallSemibold">{FsConstants.humanReadableFileSize(size)}</Kb.Text> : null}
+      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.fileContainer}>
+          <Kb.Icon type={fileIcon} sizeType="Huge" />
+          <Kb.Box2 direction="vertical">
+            <Kb.Text type="BodySemibold">{path}</Kb.Text>
+            {size ? (
+              <Kb.Text type="BodySmallSemibold">{FsConstants.humanReadableFileSize(size)}</Kb.Text>
+            ) : null}
+          </Kb.Box2>
+        </Kb.Box2>
       </Kb.Box2>
     </Kb.Box2>
   )
@@ -66,15 +74,15 @@ const styles = Styles.styleSheetCreate(
     ({
       clearButton: {
         position: 'absolute',
-        right: Styles.globalMargins.tiny,
-        top: Styles.globalMargins.tiny,
+        right: Styles.globalMargins.small,
+        top: Styles.globalMargins.small,
       },
       container: {
         ...Styles.globalStyles.flexGrow,
         ...Styles.globalStyles.positionRelative,
       },
       fileContainer: {
-        ...Styles.globalStyles.flexBoxCenter,
+        ...Styles.padding(Styles.globalMargins.xsmall),
       },
       inputContainer: {
         // We want the immediate container not to overflow, so we tell it be height: 100% to match the parent

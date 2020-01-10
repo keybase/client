@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as Constants from '../../../constants/crypto'
 import * as Types from '../../../constants/types/crypto'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
@@ -67,12 +68,17 @@ const Encrypt = (props: Props) => {
         <Recipients operation="encrypt" />
         <Kb.Box2 direction="vertical" fullHeight={true}>
           {props.inputType === 'file' ? (
-            <FileInput path={props.input} onClearFiles={props.onClearInput} />
+            <FileInput
+              path={props.input}
+              operation={Constants.Operations.Encrypt}
+              onClearFiles={props.onClearInput}
+            />
           ) : (
             <TextInput
               value={inputValue}
-              textType="plain"
               placeholder="Write something or drop a file you want to encrypt"
+              operation={Constants.Operations.Encrypt}
+              textType="plain"
               onChangeText={text => {
                 setInputValue(text)
                 debounced(props.onSetInput, 'text', text)
@@ -93,6 +99,7 @@ const Encrypt = (props: Props) => {
               output={props.output}
               outputType={props.outputType}
               textType="cipher"
+              operation={Constants.Operations.Encrypt}
             />
             <OutputSigned
               signed={props.options.sign}

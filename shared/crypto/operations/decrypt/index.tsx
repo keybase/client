@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as Constants from '../../../constants/crypto'
 import * as Types from '../../../constants/types/crypto'
 import * as Kb from '../../../common-adapters'
 import debounce from 'lodash/debounce'
@@ -31,12 +32,17 @@ const Decrypt = (props: Props) => {
       <Kb.DragAndDrop allowFolders={true} fullHeight={true} fullWidth={true} onAttach={onAttach}>
         <Kb.Box2 direction="vertical" fullHeight={true}>
           {props.inputType === 'file' ? (
-            <FileInput path={props.input} onClearFiles={props.onClearInput} />
+            <FileInput
+              path={props.input}
+              onClearFiles={props.onClearInput}
+              operation={Constants.Operations.Decrypt}
+            />
           ) : (
             <TextInput
               value={inputValue}
               placeholder="Paste cipher text or drop an encrypted file"
               textType="cipher"
+              operation={Constants.Operations.Decrypt}
               onChangeText={text => {
                 setInputValue(text)
                 debounced(props.onSetInput, 'text', text)
@@ -51,6 +57,7 @@ const Decrypt = (props: Props) => {
               output={props.output}
               outputType={props.outputType}
               textType="plain"
+              operation={Constants.Operations.Decrypt}
             />
             <OutputSigned signed={true} signedBy="cecileb" outputStatus={props.outputStatus} />
             <OutputBar
