@@ -133,5 +133,13 @@ func (s *CmdTestCrypto) Run() (err error) {
 	}
 	dui.Printf("decrypt result: %+v\n", dfres)
 
+	dui.Printf("signing file %s\n", s.filename)
+	sfArg := keybase1.SaltpackSignFileArg{Filename: s.filename}
+	sfPath, err := cli.SaltpackSignFile(mctx.Ctx(), sfArg)
+	if err != nil {
+		return err
+	}
+	dui.Printf("signed file: %s\n", sfPath)
+
 	return nil
 }

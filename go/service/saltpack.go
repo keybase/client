@@ -200,13 +200,7 @@ func (h *SaltpackHandler) SaltpackSignString(ctx context.Context, arg keybase1.S
 		Source: ioutil.NopCloser(bytes.NewBufferString(arg.Plaintext)),
 	}
 
-	uis := libkb.UIs{
-		SecretUI:  &nopSecretUI{},
-		SessionID: arg.SessionID,
-	}
-	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
-	eng := engine.NewSaltpackSign(h.G(), earg)
-	if err := engine.RunEngine2(m, eng); err != nil {
+	if err := h.frontendSign(ctx, arg.SessionID, earg); err != nil {
 		return "", err
 	}
 
@@ -307,7 +301,31 @@ func (h *SaltpackHandler) SaltpackDecryptFile(ctx context.Context, arg keybase1.
 
 func (h *SaltpackHandler) SaltpackSignFile(ctx context.Context, arg keybase1.SaltpackSignFileArg) (string, error) {
 	ctx = libkb.WithLogTag(ctx, "SP")
-	return "", errors.New("nyi")
+	in, err := os.Open(arg.Filename)
+	if err != nil {
+		return "", err
+	}
+	defer in.Close()
+
+	outFilename, bw, err := encryptFilename(arg.Filename, ".signed")
+	if err != nil {
+		return "", err
+	}
+	defer bw.Close()
+
+	earg := &engine.SaltpackSignArg{
+		Sink:   bw,
+		Source: in,
+		Opts: keybase1.SaltpackSignOptions{
+			Binary: true,
+		},
+	}
+
+	if err := h.frontendSign(ctx, arg.SessionID, earg); err != nil {
+		return "", err
+	}
+
+	return outFilename, nil
 }
 
 func (h *SaltpackHandler) SaltpackVerifyFile(ctx context.Context, arg keybase1.SaltpackVerifyFileArg) (keybase1.SaltpackVerifyFileResult, error) {
@@ -356,6 +374,16 @@ func (h *SaltpackHandler) frontendDecrypt(ctx context.Context, sessionID int, ar
 		return keybase1.SaltpackEncryptedMessageInfo{}, err
 	}
 	return eng.MessageInfo(), nil
+}
+
+func (h *SaltpackHandler) frontendSign(ctx context.Context, sessionID int, arg *engine.SaltpackSignArg) error {
+	uis := libkb.UIs{
+		SecretUI:  &nopSecretUI{},
+		SessionID: sessionID,
+	}
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	eng := engine.NewSaltpackSign(h.G(), arg)
+	return engine.RunEngine2(m, eng)
 }
 
 const saltpackExtension = ".saltpack"
