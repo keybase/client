@@ -249,7 +249,7 @@ const saltpackSign = async (
   }
 }
 
-const saltpackVerify = async (action: CryptoGen.SaltpackVerifyPayload) => {
+const saltpackVerify = async (action: CryptoGen.SaltpackVerifyPayload, logger: Saga.SagaLogger) => {
   const {input, type} = action.payload
   switch (type) {
     // TODO @jacob : Finish this
@@ -257,7 +257,32 @@ const saltpackVerify = async (action: CryptoGen.SaltpackVerifyPayload) => {
       return
     }
     case 'text': {
-      return
+      try {
+        const result = await RPCTypes.saltpackSaltpackVerifyStringRpcPromise({signedMsg: input})
+        const {plaintext, sender} = result
+        const {username, senderType} = sender
+
+        // TODO @jacob: This is a plaeholder until the protocol is updated to included signed flag
+        const isSigned = !(
+          senderType === RPCTypes.SaltpackSenderType.unknown ||
+          senderType === RPCTypes.SaltpackSenderType.anonymous
+        )
+
+        return CryptoGen.createOnOperationSuccess({
+          operation: Constants.Operations.Verify,
+          output: plaintext,
+          outputSender: isSigned ? username : undefined,
+          outputSigned: isSigned,
+          outputType: type,
+        })
+      } catch (err) {
+        logger.error(err)
+        return CryptoGen.createOnOperationError({
+          errorMessage: 'Failed to perform verify operation',
+          errorType: '',
+          operation: Constants.Operations.Decrypt,
+        })
+      }
     }
     default: {
       logger.error(
@@ -266,12 +291,6 @@ const saltpackVerify = async (action: CryptoGen.SaltpackVerifyPayload) => {
       return
     }
   }
-  return CryptoGen.createOnOperationSuccess({
-    operation: Constants.Operations.Verify,
-    output: action.payload.input,
-    outputSigned: false,
-    outputType: action.payload.type,
-  })
 }
 
 function* cryptoSaga() {
