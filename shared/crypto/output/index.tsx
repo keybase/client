@@ -122,7 +122,11 @@ const Output = (props: Props) => {
     ) : (
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
         {props.output && (
-          <Kb.Text type={props.textType === 'cipher' ? 'Terminal' : 'Body'} style={styles.output}>
+          <Kb.Text
+            type={props.textType === 'cipher' ? 'Terminal' : 'Body'}
+            selectable={true}
+            style={styles.output}
+          >
             {props.output}
           </Kb.Text>
         )}
