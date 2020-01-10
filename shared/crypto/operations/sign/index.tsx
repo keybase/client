@@ -12,6 +12,7 @@ type Props = {
   onClearInput: () => void
   onCopyOutput: (text: string) => void
   onSetInput: (inputType: Types.InputTypes, inputValue: string) => void
+  onShowInFinder: (path: string) => void
   output: string
   outputStatus?: Types.OutputStatus
   outputType?: Types.OutputType
@@ -56,12 +57,14 @@ const Sign = (props: Props) => {
               outputType={props.outputType}
               textType="cipher"
               operation={Constants.Operations.Sign}
+              onShowInFinder={props.onShowInFinder}
             />
             <OutputBar
               output={props.output}
               outputStatus={props.outputStatus}
               outputType={props.outputType}
               onCopyOutput={props.onCopyOutput}
+              onShowInFinder={props.onShowInFinder}
             />
           </Kb.Box2>
         </Kb.Box2>

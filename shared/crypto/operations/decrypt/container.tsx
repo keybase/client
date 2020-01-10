@@ -2,6 +2,7 @@ import * as Container from '../../../util/container'
 import * as Types from '../../../constants/types/crypto'
 import * as CryptoGen from '../../../actions/crypto-gen'
 import * as ConfigGen from '../../../actions/config-gen'
+import * as FSGen from '../../../actions/fs-gen'
 import Decrypt from '.'
 
 const operation = 'decrypt'
@@ -19,6 +20,8 @@ export default Container.namedConnect(
     onCopyOutput: (text: string) => dispatch(ConfigGen.createCopyToClipboard({text})),
     onSetInput: (inputType: Types.InputTypes, inputValue: string) =>
       dispatch(CryptoGen.createSetInput({operation, type: inputType, value: inputValue})),
+    onShowInFinder: (path: string) =>
+      dispatch(FSGen.createOpenLocalPathInSystemFileManager({localPath: path})),
   }),
   (stateProps, dispatchProps) => ({
     input: stateProps.input,
@@ -26,6 +29,7 @@ export default Container.namedConnect(
     onClearInput: dispatchProps.onClearInput,
     onCopyOutput: dispatchProps.onCopyOutput,
     onSetInput: dispatchProps.onSetInput,
+    onShowInFinder: dispatchProps.onShowInFinder,
     output: stateProps.output,
     outputStatus: stateProps.outputStatus,
     outputType: stateProps.outputType,

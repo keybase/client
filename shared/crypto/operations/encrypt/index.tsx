@@ -14,6 +14,7 @@ type Props = {
   noIncludeSelf: boolean
   onClearInput: () => void
   onCopyOutput: (text: string) => void
+  onShowInFinder: (path: string) => void
   onSetInput: (inputType: Types.InputTypes, inputValue: string) => void
   onSetOptions: (options: Types.EncryptOptions) => void
   options: Types.EncryptOptions
@@ -100,6 +101,7 @@ const Encrypt = (props: Props) => {
               outputType={props.outputType}
               textType="cipher"
               operation={Constants.Operations.Encrypt}
+              onShowInFinder={props.onShowInFinder}
             />
             <OutputSigned
               signed={props.options.sign}
@@ -111,6 +113,7 @@ const Encrypt = (props: Props) => {
               outputStatus={props.outputStatus}
               outputType={props.outputType}
               onCopyOutput={props.onCopyOutput}
+              onShowInFinder={props.onShowInFinder}
             />
           </Kb.Box2>
         </Kb.Box2>

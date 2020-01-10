@@ -2,6 +2,7 @@ import * as Container from '../../../util/container'
 import * as Types from '../../../constants/types/crypto'
 import * as CryptoGen from '../../../actions/crypto-gen'
 import * as ConfigGen from '../../../actions/config-gen'
+import * as FSGen from '../../../actions/fs-gen'
 import Encrypt from '.'
 
 const operation = 'encrypt'
@@ -24,6 +25,8 @@ export default Container.namedConnect(
     onSetInput: (inputType: Types.InputTypes, inputValue: string) =>
       dispatch(CryptoGen.createSetInput({operation, type: inputType, value: inputValue})),
     onSetOptions: (options: Types.EncryptOptions) => dispatch(CryptoGen.createSetEncryptOptions({options})),
+    onShowInFinder: (path: string) =>
+      dispatch(FSGen.createOpenLocalPathInSystemFileManager({localPath: path})),
   }),
   (stateProps, dispatchProps) => ({
     hasRecipients: stateProps.hasRecipients,
@@ -34,6 +37,7 @@ export default Container.namedConnect(
     onCopyOutput: dispatchProps.onCopyOutput,
     onSetInput: dispatchProps.onSetInput,
     onSetOptions: dispatchProps.onSetOptions,
+    onShowInFinder: dispatchProps.onShowInFinder,
     options: stateProps.options,
     output: stateProps.output,
     outputStatus: stateProps.outputStatus,

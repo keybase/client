@@ -10,6 +10,7 @@ type Props = {
   outputType?: Types.OutputType
   textType: Types.TextType
   operation: Types.Operations
+  onShowInFinder: (path: string) => void
 }
 
 type OutputBarProps = {
@@ -17,6 +18,7 @@ type OutputBarProps = {
   outputStatus?: Types.OutputStatus
   outputType?: Types.OutputType
   onCopyOutput: (text: string) => void
+  onShowInFinder: (path: string) => void
 }
 
 type OutputSignedProps = {
@@ -49,7 +51,7 @@ export const OutputSigned = (props: OutputSignedProps) => {
 }
 
 export const OutputBar = (props: OutputBarProps) => {
-  const {output, onCopyOutput} = props
+  const {output, onCopyOutput, onShowInFinder} = props
   const attachmentRef = React.useRef<Kb.Box2>(null)
   const [showingToast, setShowingToast] = React.useState(false)
   const setHideToastTimeout = Kb.useTimeout(() => setShowingToast(false), 1500)
@@ -66,20 +68,25 @@ export const OutputBar = (props: OutputBarProps) => {
       <Kb.Divider />
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.outputBarContainer}>
         <Kb.ButtonBar direction="row" style={styles.buttonBar}>
-          <Kb.Button
-            mode={props.outputType === 'file' ? 'Primary' : 'Secondary'}
-            label="Download file"
-            fullWidth={true}
-          />
-          {props.outputType !== 'file' && (
-            <Kb.Box2 direction="horizontal" fullWidth={true} ref={attachmentRef}>
-              <Kb.Toast position="top center" attachTo={() => attachmentRef.current} visible={showingToast}>
-                <Kb.Text type="BodySmall" style={styles.toastText}>
-                  Copied to clipboard
-                </Kb.Text>
-              </Kb.Toast>
-              <Kb.Button mode="Primary" label="Copy to clipboard" fullWidth={true} onClick={() => copy()} />
-            </Kb.Box2>
+          {props.outputType === 'file' ? (
+            <Kb.Button
+              mode="Primary"
+              label={`Open in ${Styles.fileUIName}`}
+              fullWidth={true}
+              onClick={() => onShowInFinder(output)}
+            />
+          ) : (
+            <>
+              <Kb.Button mode="Secondary" label="Download file" fullWidth={true} />
+              <Kb.Box2 direction="horizontal" fullWidth={true} ref={attachmentRef}>
+                <Kb.Toast position="top center" attachTo={() => attachmentRef.current} visible={showingToast}>
+                  <Kb.Text type="BodySmall" style={styles.toastText}>
+                    Copied to clipboard
+                  </Kb.Text>
+                </Kb.Toast>
+                <Kb.Button mode="Primary" label="Copy to clipboard" fullWidth={true} onClick={() => copy()} />
+              </Kb.Box2>
+            </>
           )}
         </Kb.ButtonBar>
       </Kb.Box2>
@@ -114,6 +121,7 @@ const Output = (props: Props) => {
           <Kb.Text
             type="BodyPrimaryLink"
             style={Styles.collapseStyles([styles.fileOutputText, {color: fileOutputTextColor}])}
+            onClick={() => props.output && props.onShowInFinder(props.output)}
           >
             {props.output}
           </Kb.Text>
