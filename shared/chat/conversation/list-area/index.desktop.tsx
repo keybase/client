@@ -4,23 +4,23 @@
 // We group messages into a series of Waypoints. When the wayoint exits the screen we replace it with a single div instead
 // We use react-measure to cache the heights
 import * as React from 'react'
-import * as Styles from '../../../../styles'
-import * as Types from '../../../../constants/types/chat2'
+import * as Styles from '../../../styles'
+import * as Types from '../../../constants/types/chat2'
 import JumpToRecent from './jump-to-recent'
 import Measure from 'react-measure'
-import Message from '../../messages'
-import SpecialBottomMessage from '../../messages/special-bottom-message'
-import SpecialTopMessage from '../../messages/special-top-message'
-import logger from '../../../../logger'
+import Message from '../messages'
+import SpecialBottomMessage from '../messages/special-bottom-message'
+import SpecialTopMessage from '../messages/special-top-message'
+import logger from '../../../logger'
 import shallowEqual from 'shallowequal'
-import {ErrorBoundary} from '../../../../common-adapters'
+import {ErrorBoundary} from '../../../common-adapters'
 import {Props} from '.'
 import {Waypoint} from 'react-waypoint'
 import debounce from 'lodash/debounce'
 import throttle from 'lodash/throttle'
 import chunk from 'lodash/chunk'
-import {globalMargins} from '../../../../styles/shared'
-import {memoize} from '../../../../util/memoize'
+import {globalMargins} from '../../../styles/shared'
+import {memoize} from '../../../util/memoize'
 
 // hot reload isn't supported with debouncing currently so just ignore hot here
 if (module.hot) {
