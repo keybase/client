@@ -43,8 +43,9 @@
     },
     "saltpackEncrypt": {
       "_description": "Calls Saltpack RPC",
-      "recipients": "Array<string>",
       "input": "string",
+      "options": "Types.EncryptOptions",
+      "recipients": "Array<string>",
       "type": "Types.InputTypes"
     },
     "saltpackDecrypt": {

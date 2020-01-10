@@ -34,8 +34,9 @@ type _OnOperationSuccessPayload = {
 type _ResetOperationPayload = {readonly operation: Types.Operations}
 type _SaltpackDecryptPayload = {readonly input: string; readonly type: Types.InputTypes}
 type _SaltpackEncryptPayload = {
-  readonly recipients: Array<string>
   readonly input: string
+  readonly options: Types.EncryptOptions
+  readonly recipients: Array<string>
   readonly type: Types.InputTypes
 }
 type _SaltpackSignPayload = {readonly input: string; readonly type: Types.InputTypes}

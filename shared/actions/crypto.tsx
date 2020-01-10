@@ -1,9 +1,10 @@
 import * as Saga from '../util/saga'
-import * as TeamBuildingGen from './team-building-gen'
-import * as CryptoGen from './crypto-gen'
 import * as Types from '../constants/types/crypto'
 import * as Constants from '../constants/crypto'
-import {TypedState, TypedActions} from '../util/container'
+import * as TeamBuildingGen from './team-building-gen'
+import * as CryptoGen from './crypto-gen'
+import * as RPCTypes from '../constants/types/rpc-gen'
+import {TypedState} from '../util/container'
 import commonTeamBuildingSaga, {filterForNs} from './team-building'
 
 // Get list of users from crypto TeamBuilding for encrypt operation
@@ -47,21 +48,31 @@ const handleInput = (
         return CryptoGen.createClearInput({operation})
       }
 
+      // Handle recipients and options for Encrypt
       if (operation === Constants.Operations.Encrypt) {
-        return state.crypto.encrypt.meta.hasRecipients && state.crypto.encrypt.recipients?.length
-          ? makeOperationAction(operation, value, type, state.crypto.encrypt.recipients)
-          : null
+        if (state.crypto.encrypt.meta.hasRecipients && state.crypto.encrypt.recipients?.length) {
+          const {recipients, options} = state.crypto.encrypt
+          return CryptoGen.createSaltpackEncrypt({input: value, options, recipients, type})
+        } else {
+          return
+        }
       }
 
-      return makeOperationAction(operation, value, type)
+      return makeOperationAction({input: value, inputType: type, operation})
     }
     case CryptoGen.setRecipients: {
       const {recipients} = action.payload
-      const {input, inputType} = state.crypto[operation]
+      const {input, inputType, options} = state.crypto.encrypt
       // User already provided input (text or file) before setting the
       // recipients. Get the input and pass it to the operation
       if (input && inputType) {
-        return makeOperationAction(operation, input, inputType, recipients)
+        return makeOperationAction({
+          input,
+          inputType,
+          operation,
+          options,
+          recipients,
+        })
       }
       return
     }
@@ -71,15 +82,17 @@ const handleInput = (
 }
 
 // Dispatch action to appropriate operation
-const makeOperationAction = (
-  operation: Types.Operations,
-  input: string,
-  inputType: Types.InputTypes,
-  recipients: Array<string> = []
-) => {
+const makeOperationAction = (p: {
+  operation: Types.Operations
+  input: string
+  inputType: Types.InputTypes
+  recipients?: Array<string>
+  options?: Types.EncryptOptions
+}) => {
+  const {operation, input, inputType, recipients, options} = p
   switch (operation) {
     case Constants.Operations.Encrypt:
-      return CryptoGen.createSaltpackEncrypt({input, recipients, type: inputType})
+      return CryptoGen.createSaltpackEncrypt({input, recipients, type: inputType, options})
     case Constants.Operations.Decrypt:
       return CryptoGen.createSaltpackDecrypt({input, type: inputType})
     case Constants.Operations.Sign:
@@ -95,12 +108,45 @@ const makeOperationAction = (
  * For the time being these functions will echo back the input as the Saltpack RPC output (plaintext -> plaintext)
  * Saltpack RPCs need to be updated to take input as a string and handle `inputType = 'text' | 'file'`
  */
-const saltpackEncrypt = async (action: CryptoGen.SaltpackEncryptPayload) => {
-  return CryptoGen.createOnOperationSuccess({
-    operation: Constants.Operations.Encrypt,
-    output: action.payload.input,
-    outputType: action.payload.type,
-  })
+const saltpackEncrypt = async (action: CryptoGen.SaltpackEncryptPayload, logger: Saga.SagaLogger) => {
+  const {input, recipients, type, options} = action.payload
+  try {
+    switch (type) {
+      case 'file': {
+        return
+      }
+      case 'text': {
+        const ciphertext = await RPCTypes.saltpackSaltpackEncryptStringRpcPromise({
+          opts: {
+            includeSelf: options.includeSelf,
+            recipients: recipients,
+            signed: options.sign,
+          },
+          plaintext: input,
+        })
+        console.log('JRY saltpack encrypt success', {ciphertext})
+        return CryptoGen.createOnOperationSuccess({
+          operation: Constants.Operations.Encrypt,
+          output: ciphertext,
+          outputType: type,
+        })
+      }
+      default: {
+        logger.error(
+          `Attempted to call saltpackEncrypt with invalid type ${type}. Valid saltpack encrypt types are { text, file }`
+        )
+      }
+    }
+  } catch (err) {
+    console.log('JRY saltpack encrypt ERROR', err)
+    logger.error(err)
+  }
+
+  // return CryptoGen.createOnOperationSuccess({
+  //   operation: Constants.Operations.Encrypt,
+  //   output: action.payload.input,
+  //   outputType: action.payload.type,
+  // })
 }
 
 const saltpackDecrypt = async (action: CryptoGen.SaltpackDecryptPayload) => {
