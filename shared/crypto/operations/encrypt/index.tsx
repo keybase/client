@@ -128,9 +128,9 @@ const styles = Styles.styleSheetCreate(
         ...Styles.globalStyles.flexBoxCenter,
       },
       optionsContainer: {
-        ...Styles.padding(Styles.globalMargins.tiny),
+        ...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.small),
         alignItems: 'center',
-        height: Styles.globalMargins.xlarge,
+        height: 40,
       },
       outputPlaceholder: {
         backgroundColor: Styles.globalColors.blueGreyLight,
