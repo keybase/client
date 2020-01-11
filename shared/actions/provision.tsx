@@ -4,6 +4,7 @@ import * as ConfigConstants from '../constants/config'
 import * as RouteTreeGen from './route-tree-gen'
 import * as DevicesGen from './devices-gen'
 import * as ProvisionGen from './provision-gen'
+import * as SettingsGen from './provision-gen'
 import * as WaitingGen from './waiting-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
@@ -441,6 +442,12 @@ function* startProvisioning(state: Container.TypedState) {
       waitingKey: Constants.waitingKey,
     })
     ProvisioningManager.getSingleton().setDone('provision call done w/ success')
+
+    yield Saga.put(
+      SettingsGen.createUpdateShowNotificationsPrompt({
+        enabled: true,
+      })
+    )
   } catch (finalError) {
     manager.setDone(
       'startProvisioning call done w/ error ' + (finalError ? finalError.message : ' unknown error')

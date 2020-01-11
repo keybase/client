@@ -139,6 +139,7 @@ export type State = Readonly<{
   checkPasswordIsCorrect?: boolean
   proxyData?: RPCTypes.ProxyData
   didToggleCertificatePinning?: boolean
+  showNotificationPrompt?: boolean
 }>
 
 export type PlanLevel = string

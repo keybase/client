@@ -68,6 +68,9 @@ const notificationActions: Container.ActionHandler<Actions, Types.State> = {
     notifications.allowEdit = true
     notifications.groups = action.payload.notifications
   },
+  [SettingsGen.updateShowNotificationsPrompt]: (draftState, action) => {
+    draftState.showNotificationPrompt = action.payload.enabled
+  },
 }
 
 const invitesActions: Container.ActionHandler<Actions, Types.State> = {

@@ -841,6 +841,7 @@ export type TypedActionsMap = {
   'settings:loadDefaultPhoneNumberCountry': settings.LoadDefaultPhoneNumberCountryPayload
   'settings:updateDefaultPhoneNumberCountry': settings.UpdateDefaultPhoneNumberCountryPayload
   'settings:loginBrowserViaWebAuthToken': settings.LoginBrowserViaWebAuthTokenPayload
+  'settings:updateShowNotificationsPrompt': settings.UpdateShowNotificationsPromptPayload
   'signup:goBackAndClearErrors': signup.GoBackAndClearErrorsPayload
   'signup:requestAutoInvite': signup.RequestAutoInvitePayload
   'signup:requestedAutoInvite': signup.RequestedAutoInvitePayload

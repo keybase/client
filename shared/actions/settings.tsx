@@ -819,6 +819,30 @@ const loginBrowserViaWebAuthToken = async () => {
   openURL(link)
 }
 
+const displayNotificationsPushPrompt = (state: TypedState, action: ConfigGen.LoadOnStartPayload) => {
+  if (action.payload.phase !== 'reloggedIn') {
+    return
+  }
+
+  // Just a simple login
+  if (!state.settings.showNotificationPrompt) {
+    return
+  }
+
+  return [
+    ...(state.push.hasPermissions && state.push.showPushPrompt
+      ? [
+          RouteTreeGen.createNavigateAppend({
+            path: ['settingsPushPrompt'],
+          }),
+        ]
+      : []),
+    SettingsGen.createUpdateShowNotificationsPrompt({
+      enabled: false, // disable the prompt
+    }),
+  ]
+}
+
 function* settingsSaga() {
   yield* Saga.chainAction(SettingsGen.invitesReclaim, reclaimInvite)
   yield* Saga.chainAction2(SettingsGen.invitesRefresh, refreshInvites)
@@ -880,6 +904,9 @@ function* settingsSaga() {
   yield* Saga.chainAction(EngineGen.keybase1NotifyEmailAddressEmailAddressVerified, emailAddressVerified)
 
   yield* Saga.chainAction2(SettingsGen.loginBrowserViaWebAuthToken, loginBrowserViaWebAuthToken)
+
+  // Notifications push prompt after provisioning
+  yield* Saga.chainAction2(ConfigGen.loadOnStart, displayNotificationsPushPrompt)
 }
 
 export default settingsSaga
