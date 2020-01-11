@@ -82,12 +82,13 @@ const styles = Styles.styleSheetCreate(
         ...Styles.globalStyles.positionRelative,
       },
       fileContainer: {
-        ...Styles.padding(Styles.globalMargins.xsmall),
+        ...Styles.padding(Styles.globalMargins.small),
       },
       inputContainer: {
         // We want the immediate container not to overflow, so we tell it be height: 100% to match the parent
         ...Styles.globalStyles.fullHeight,
         alignItems: 'stretch',
+        padding: 0,
       },
     } as const)
 )
