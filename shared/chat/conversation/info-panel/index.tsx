@@ -532,10 +532,11 @@ const styles = Styles.styleSheetCreate(
         marginTop: Styles.globalMargins.tiny,
       },
       container: Styles.platformStyles({
-        common: {alignItems: 'stretch', flex: 1, paddingBottom: Styles.globalMargins.tiny},
+        common: {alignItems: 'stretch', paddingBottom: Styles.globalMargins.tiny},
         isElectron: {
           backgroundColor: Styles.globalColors.white,
           borderLeft: `1px solid ${Styles.globalColors.black_10}`,
+          width: 320,
         },
       }),
       tabContainerStyle: Styles.platformStyles({
