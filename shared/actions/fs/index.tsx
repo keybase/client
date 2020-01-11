@@ -91,6 +91,17 @@ const loadAdditionalTlf = async (state: Container.TypedState, action: FsGen.Load
       })
     )
   } catch (e) {
+    if (e.code === RPCTypes.StatusCode.scteamcontactsettingsblock) {
+      const users = e.fields?.filter(elem => elem.key === 'usernames')
+      const usernames = users?.map(elem => elem.value)
+      // Don't leave the user on a broken FS dir screen.
+      return [
+        RouteTreeGen.createNavigateUp(),
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {source: 'newFolder', usernames}, selected: 'contactRestricted'}],
+        }),
+      ]
+    }
     return makeRetriableErrorHandler(action, action.payload.tlfPath)(e)
   }
 }
@@ -766,6 +777,10 @@ const subscribePath = async (action: FsGen.SubscribePathPayload) => {
     })
     return null
   } catch (err) {
+    if (err.code === RPCTypes.StatusCode.scteamcontactsettingsblock) {
+      // We'll handle this error in loadAdditionalTLF instead.
+      return
+    }
     return makeUnretriableErrorHandler(action, action.payload.path)(err)
   }
 }

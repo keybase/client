@@ -573,7 +573,13 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     }
   },
   [Chat2Gen.conversationErrored]: (draftState, action) => {
-    draftState.createConversationError = action.payload.message
+    const {allowedUsers, code, disallowedUsers, message} = action.payload
+    draftState.createConversationError = {
+      allowedUsers,
+      code,
+      disallowedUsers,
+      message,
+    }
   },
   [Chat2Gen.updateUnreadline]: (draftState, action) => {
     const {conversationIDKey, messageID} = action.payload

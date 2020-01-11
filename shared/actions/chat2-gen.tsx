@@ -256,7 +256,12 @@ type _ClearMessagesPayload = void
 type _ClearMetasPayload = void
 type _ClearPaymentConfirmInfoPayload = void
 type _ConfirmScreenResponsePayload = {readonly accept: boolean}
-type _ConversationErroredPayload = {readonly message: string}
+type _ConversationErroredPayload = {
+  readonly allowedUsers: Array<string>
+  readonly code: number
+  readonly disallowedUsers: Array<string>
+  readonly message: string
+}
 type _CreateConversationPayload = {readonly participants: Array<string>}
 type _DeselectConversationPayload = {readonly ifConversationIDKey: Types.ConversationIDKey}
 type _DesktopNotificationPayload = {

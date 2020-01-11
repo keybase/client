@@ -1,6 +1,8 @@
 import * as Constants from '../../../constants/chat2'
 import * as React from 'react'
+import * as RPCTypes from '../../../constants/types/rpc-gen'
 import * as Types from '../../../constants/types/chat2'
+import * as Chat2Gen from '../../../actions/chat2-gen'
 import ProfileResetNotice from './system-profile-reset-notice/container'
 import RetentionNotice from './retention-notice/container'
 import shallowEqual from 'shallowequal'
@@ -20,19 +22,23 @@ type OwnProps = {
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
-  createConversationError: string | null
+  createConversationDisallowedUsers: Array<string>
+  createConversationErrorDescription: string
+  createConversationErrorHeader: string
   hasOlderResetConversation: boolean
   isHelloBotConversation: boolean
   isSelfConversation: boolean
   loadMoreType: 'moreToLoad' | 'noMoreToLoad'
   measure: (() => void) | null
+  onBack: (() => void) | null
+  onCreateWithoutThem: (() => void) | null
   openPrivateFolder: () => void
   pendingState: 'waiting' | 'error' | 'done'
   showRetentionNotice: boolean
   showTeamOffer: boolean
 }
 
-class TopMessage extends React.PureComponent<Props> {
+class SpecialTopMessage extends React.PureComponent<Props> {
   componentDidUpdate(prevProps: Props) {
     if (this.props.measure && !shallowEqual(this.props, prevProps)) {
       this.props.measure()
@@ -55,19 +61,62 @@ class TopMessage extends React.PureComponent<Props> {
           </Kb.Text>
         )}
         {this.props.pendingState === 'error' && (
-          <Kb.Box style={errorStyle}>
-            <Kb.Text type="BodySmallSemibold">(ノ ゜Д゜)ノ ︵ ┻━┻</Kb.Text>
-            {this.props.createConversationError ? (
-              <>
-                <Kb.Text type="BodySmallSemibold">Failed to create conversation:</Kb.Text>
-                <Kb.Text type="BodySmall" style={styles.errorText} selectable={true}>
-                  {this.props.createConversationError}
-                </Kb.Text>
-              </>
-            ) : (
-              <Kb.Text type="BodySmallSemibold">Failed to create conversation.</Kb.Text>
-            )}
-          </Kb.Box>
+          <Kb.Box2
+            direction="vertical"
+            fullWidth={true}
+            fullHeight={true}
+            gap="small"
+            gapStart={true}
+            centerChildren={true}
+          >
+            <Kb.Icon color={Styles.globalColors.black_20} sizeType="Huge" type="iconfont-warning" />
+            <Kb.Text center={true} style={styles.errorText} type="Header">
+              {this.props.createConversationErrorHeader}
+            </Kb.Text>
+            {this.props.createConversationDisallowedUsers &&
+              this.props.createConversationDisallowedUsers.length > 0 && (
+                <>
+                  {this.props.createConversationDisallowedUsers.map((username, idx) => (
+                    <Kb.ListItem2
+                      key={username}
+                      type={Styles.isMobile ? 'Large' : 'Small'}
+                      icon={<Kb.Avatar size={Styles.isMobile ? 48 : 32} username={username} />}
+                      firstItem={idx === 0}
+                      body={
+                        <Kb.Box2 direction="vertical" fullWidth={true}>
+                          <Kb.Text type="BodySemibold">{username}</Kb.Text>
+                        </Kb.Box2>
+                      }
+                    />
+                  ))}
+                </>
+              )}
+            <Kb.Text center={true} type="BodyBig" style={styles.errorText} selectable={true}>
+              {this.props.createConversationErrorDescription}
+            </Kb.Text>
+            <Kb.ButtonBar
+              direction={Styles.isMobile ? 'column' : 'row'}
+              fullWidth={true}
+              style={styles.buttonBar}
+            >
+              {this.props.onCreateWithoutThem && (
+                <Kb.WaitingButton
+                  type="Default"
+                  label="Create without them"
+                  onClick={this.props.onCreateWithoutThem}
+                  waitingKey={null}
+                />
+              )}
+              {this.props.onBack && (
+                <Kb.WaitingButton
+                  type={this.props.onCreateWithoutThem ? 'Dim' : 'Default'}
+                  label={this.props.onCreateWithoutThem ? 'Cancel' : 'Okay'}
+                  onClick={this.props.onBack}
+                  waitingKey={null}
+                />
+              )}
+            </Kb.ButtonBar>
+          </Kb.Box2>
         )}
         {this.props.loadMoreType === 'noMoreToLoad' &&
           !this.props.showRetentionNotice &&
@@ -88,7 +137,7 @@ class TopMessage extends React.PureComponent<Props> {
             <MakeTeamCard conversationIDKey={this.props.conversationIDKey} />
           </Kb.Box>
         )}
-        {this.props.loadMoreType === 'moreToLoad' && (
+        {this.props.loadMoreType === 'moreToLoad' && this.props.pendingState !== 'error' && (
           <Kb.Box style={styles.more}>
             <Kb.Text type="BodyBig">
               <Kb.Emoji size={16} emojiName=":moyai:" />
@@ -104,8 +153,11 @@ class TopMessage extends React.PureComponent<Props> {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      buttonBar: {
+        padding: Styles.globalMargins.small,
+      },
       errorText: {
-        marginTop: Styles.globalMargins.tiny,
+        padding: Styles.globalMargins.small,
       },
       loading: {
         marginLeft: Styles.globalMargins.small,
@@ -121,11 +173,6 @@ const styles = Styles.styleSheetCreate(
       },
     } as const)
 )
-
-const errorStyle = {
-  ...styles.more,
-  margin: Styles.globalMargins.medium,
-}
 
 export default Container.namedConnect(
   (state, ownProps: OwnProps) => {
@@ -159,7 +206,6 @@ export default Container.namedConnect(
     const showRetentionNotice =
       meta.retentionPolicy.type !== 'retain' &&
       !(meta.retentionPolicy.type === 'inherit' && meta.teamRetentionPolicy.type === 'retain')
-    const {createConversationError} = state.chat2
     const isHelloBotConversation =
       hasLoadedEver &&
       meta.teamType === 'adhoc' &&
@@ -171,7 +217,7 @@ export default Container.namedConnect(
       participantInfo.all.includes(state.config.username)
     return {
       conversationIDKey: ownProps.conversationIDKey,
-      createConversationError,
+      createConversationError: state.chat2.createConversationError,
       hasOlderResetConversation,
       isHelloBotConversation,
       isSelfConversation,
@@ -184,6 +230,9 @@ export default Container.namedConnect(
     }
   },
   dispatch => ({
+    _onBack: () => dispatch(Chat2Gen.createNavigateToInbox()),
+    _onCreateWithoutThem: (allowedUsers: Array<string>) =>
+      dispatch(Chat2Gen.createCreateConversation({participants: allowedUsers})),
     _openPrivateFolder: (username: string) =>
       dispatch(
         FsConstants.makeActionForOpenPathInFilesTab(FsTypes.stringToPath(`/keybase/private/${username}`))
@@ -191,10 +240,41 @@ export default Container.namedConnect(
   }),
   (stateProps, dispatchProps, __: OwnProps) => {
     const {username, ...props} = stateProps
+    let createConversationDisallowedUsers: Array<string> = []
+    let createConversationErrorDescription = ''
+    let createConversationErrorHeader = ''
+    let onCreateWithoutThem: (() => void) | null = null
+    if (stateProps.createConversationError) {
+      const {allowedUsers, code, disallowedUsers, message} = stateProps.createConversationError
+      if (code === RPCTypes.StatusCode.scteamcontactsettingsblock) {
+        if (disallowedUsers.length === 1 && allowedUsers.length === 0) {
+          // One-on-one conversation.
+          createConversationErrorHeader = `You cannot start a conversation with @${disallowedUsers[0]}.`
+          createConversationErrorDescription = `@${disallowedUsers[0]}'s contact restrictions prevent you from getting in touch. Contact them outside Keybase to proceed.`
+        } else {
+          // Group conversation.
+          createConversationDisallowedUsers = disallowedUsers
+          createConversationErrorHeader = 'The following people cannot be added to the conversation:'
+          createConversationErrorDescription =
+            'Their contact restrictions prevent you from getting in touch. Contact them outside Keybase to proceed.'
+          if (disallowedUsers.length > 0 && allowedUsers.length > 0) {
+            onCreateWithoutThem = () => dispatchProps._onCreateWithoutThem(allowedUsers)
+          }
+        }
+      } else {
+        createConversationErrorHeader = 'There was an error creating the conversation.'
+        createConversationErrorDescription = message
+      }
+    }
     return {
+      createConversationDisallowedUsers,
+      createConversationErrorDescription,
+      createConversationErrorHeader,
+      onBack: Styles.isMobile ? dispatchProps._onBack : null,
+      onCreateWithoutThem,
       openPrivateFolder: () => dispatchProps._openPrivateFolder(username),
       ...props,
     }
   },
-  'TopMessage'
-)(TopMessage)
+  'SpecialTopMessage'
+)(SpecialTopMessage)
