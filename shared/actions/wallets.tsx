@@ -698,14 +698,13 @@ const loadPaymentDetail = async (action: WalletsGen.LoadPaymentDetailPayload, lo
 
 const markAsRead = async (action: WalletsGen.MarkAsReadPayload, logger: Saga.SagaLogger) => {
   try {
-    return RPCStellarTypes.localMarkAsReadLocalRpcPromise({
+    await RPCStellarTypes.localMarkAsReadLocalRpcPromise({
       accountID: action.payload.accountID,
       mostRecentID: Types.paymentIDToRPCPaymentID(action.payload.mostRecentID),
     })
   } catch (err) {
     // No need to throw black bars.
     logger.warn(err.desc)
-    return false
   }
 }
 
