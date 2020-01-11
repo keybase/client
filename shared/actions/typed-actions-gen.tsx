@@ -559,13 +559,13 @@ export type TypedActionsMap = {
   'fs:uploadStarted': fs.UploadStartedPayload
   'fs:uploadWritingSuccess': fs.UploadWritingSuccessPayload
   'fs:journalUpdate': fs.JournalUpdatePayload
+  'fs:acceptMacOSFuseExtClosedSource': fs.AcceptMacOSFuseExtClosedSourcePayload
+  'fs:setSfmiBannerDismissed': fs.SetSfmiBannerDismissedPayload
   'fs:openLocalPathInSystemFileManager': fs.OpenLocalPathInSystemFileManagerPayload
   'fs:openPathInSystemFileManager': fs.OpenPathInSystemFileManagerPayload
   'fs:uninstallKBFSConfirm': fs.UninstallKBFSConfirmPayload
   'fs:refreshDriverStatus': fs.RefreshDriverStatusPayload
   'fs:setDriverStatus': fs.SetDriverStatusPayload
-  'fs:hideSystemFileManagerIntegrationBanner': fs.HideSystemFileManagerIntegrationBannerPayload
-  'fs:showSystemFileManagerIntegrationBanner': fs.ShowSystemFileManagerIntegrationBannerPayload
   'fs:driverEnable': fs.DriverEnablePayload
   'fs:driverDisable': fs.DriverDisablePayload
   'fs:driverDisabling': fs.DriverDisablingPayload

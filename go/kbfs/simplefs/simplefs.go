@@ -3150,3 +3150,30 @@ func (k *SimpleFS) SimpleFSGetFilesTabBadge(ctx context.Context) (
 	keybase1.FilesTabBadge, error) {
 	return k.config.KBFSOps().GetBadge(ctx)
 }
+
+// SimpleFSSetSfmiBannerDismissed implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSSetSfmiBannerDismissed(
+	ctx context.Context, dismissed bool) (err error) {
+	defer func() {
+		k.log.CDebugf(ctx, "SimpleFSSetSfmiBannerDismissed err=%+v", err)
+	}()
+	db := k.config.GetSettingsDB()
+	if db == nil {
+		return libkbfs.ErrNoSettingsDB
+	}
+	return db.SetSfmiBannerDismissed(ctx, dismissed)
+}
+
+// SimpleFSAcceptMacOSFuseExtClosedSource implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSAcceptMacOSFuseExtClosedSource(
+	ctx context.Context) (err error) {
+	defer func() {
+		k.log.CDebugf(ctx,
+			"SimpleFSAcceptMacOSFuseExtClosedSource err=%+v", err)
+	}()
+	db := k.config.GetSettingsDB()
+	if db == nil {
+		return libkbfs.ErrNoSettingsDB
+	}
+	return db.AcceptMacOSFuseExtClosedSource(ctx)
+}

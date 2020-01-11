@@ -8,7 +8,7 @@ import * as SafeElectron from '../../util/safe-electron.desktop'
 import * as Tabs from '../../constants/tabs'
 import fs from 'fs'
 import {TypedState, TypedActions} from '../../util/container'
-import {fileUIName, isWindows, isLinux} from '../../constants/platform'
+import {fileUIName, isWindows, isDarwin, isLinux} from '../../constants/platform'
 import logger from '../../logger'
 import {spawn, execFile, exec} from 'child_process'
 import path from 'path'
@@ -164,12 +164,9 @@ const fuseStatusToActions = (previousStatusType: Types.DriverStatusType) => (
             ...Constants.emptyDriverStatusEnabled,
             dokanOutdated: status.installAction === RPCTypes.InstallAction.upgrade,
             dokanUninstallExecPath: fuseStatusToUninstallExecPath(status),
+            isNew: previousStatusType === Types.DriverStatusType.Disabled,
           },
         }),
-        ...(previousStatusType === Types.DriverStatusType.Disabled ||
-        status.installAction === RPCTypes.InstallAction.upgrade
-          ? [FsGen.createShowSystemFileManagerIntegrationBanner()]
-          : []), // show banner for newly enabled
         ...(previousStatusType === Types.DriverStatusType.Disabled
           ? [
               FsGen.createOpenPathInSystemFileManager({
@@ -182,12 +179,6 @@ const fuseStatusToActions = (previousStatusType: Types.DriverStatusType) => (
         FsGen.createSetDriverStatus({
           driverStatus: Constants.emptyDriverStatusDisabled,
         }),
-        ...(previousStatusType === Types.DriverStatusType.Enabled
-          ? [FsGen.createHideSystemFileManagerIntegrationBanner()]
-          : []), // hide banner for newly disabled
-        ...(previousStatusType === Types.DriverStatusType.Unknown
-          ? [FsGen.createShowSystemFileManagerIntegrationBanner()]
-          : []), // show banner for disabled on first load
       ]
 }
 
@@ -415,6 +406,14 @@ const refreshMountDirs = async (
 
 export const ensureDownloadPermissionPromise = () => Promise.resolve()
 
+const acceptMacOSFuseExtClosedSource = () =>
+  RPCTypes.SimpleFSSimpleFSAcceptMacOSFuseExtClosedSourceRpcPromise(
+    undefined,
+    Constants.acceptMacOSFuseExtClosedSourceWaitingKey
+  )
+const setSfmiBannerDismissed = (_: TypedState, action: FsGen.SetSfmiBannerDismissedPayload) =>
+  RPCTypes.SimpleFSSimpleFSSetSfmiBannerDismissedRpcPromise({dismissed: action.payload.dismissed})
+
 function* platformSpecificSaga() {
   yield* Saga.chainAction(FsGen.openLocalPathInSystemFileManager, openLocalPathInSystemFileManager)
   yield* Saga.chainAction2(FsGen.openPathInSystemFileManager, openPathInSystemFileManager)
@@ -443,6 +442,10 @@ function* platformSpecificSaga() {
   yield* Saga.chainAction2(FsGen.openSecurityPreferences, openSecurityPreferences)
   yield* Saga.chainAction2(FsGen.openSecurityPreferences, openSecurityPreferences)
   yield* Saga.chainAction2(ConfigGen.changedFocus, changedFocus)
+  if (isDarwin) {
+    yield* Saga.chainAction2([FsGen.acceptMacOSFuseExtClosedSource], acceptMacOSFuseExtClosedSource)
+  }
+  yield* Saga.chainAction2([FsGen.setSfmiBannerDismissed], setSfmiBannerDismissed)
 }
 
 export default platformSpecificSaga

@@ -760,6 +760,16 @@
         {
           "type": "int64",
           "name": "spaceAvailableNotificationThreshold"
+        },
+        {
+          "type": "Time",
+          "name": "macOSFuseExtAcceptedClosedSource",
+          "lint": "ignore"
+        },
+        {
+          "type": "boolean",
+          "name": "sfmiBannerDismissed",
+          "lint": "ignore"
         }
       ]
     },
@@ -1446,6 +1456,21 @@
         }
       ],
       "response": null
+    },
+    "simpleFSAcceptMacOSFuseExtClosedSource": {
+      "request": [],
+      "response": null,
+      "lint": "ignore"
+    },
+    "simpleFSSetSfmiBannerDismissed": {
+      "request": [
+        {
+          "name": "dismissed",
+          "type": "boolean"
+        }
+      ],
+      "response": null,
+      "lint": "ignore"
     },
     "simpleFSObfuscatePath": {
       "request": [

@@ -15,10 +15,20 @@ const resetBannerCommon = {
   onViewProfile: (username: string) => Sb.action(`onViewProfile(${username})`),
 }
 
-const commonSystemFileManagerIntegrationBannerActions = {
+const commonSystemFileManagerIntegrationBannerSettings = {
+  isLoading: false,
+  loaded: true,
+  macOSFuseExtAcceptedClosedSource: true,
+  sfmiBannerDismissed: false,
+  spaceAvailableNotificationThreshold: 0,
+}
+
+const commonSystemFileManagerIntegrationBannerProps = {
+  onAcknowledge: Sb.action('onAcknowledge'),
   onDisable: Sb.action('onDisable'),
   onDismiss: Sb.action('onDismiss'),
   onEnable: Sb.action('onEnable'),
+  settings: commonSystemFileManagerIntegrationBannerSettings,
 }
 
 export const bannerProvider = {
@@ -48,7 +58,7 @@ export const bannerProvider = {
   }),
   SystemFileManagerIntegrationBanner: ({alwaysShow}: any) => ({
     alwaysShow,
-    ...commonSystemFileManagerIntegrationBannerActions,
+    ...commonSystemFileManagerIntegrationBannerProps,
     driverStatus: Constants.driverStatusUnknown,
   }),
 }
@@ -73,31 +83,41 @@ export default () => {
     ))
     .add('SystemFileManagerIntegrationBanner - disabled', () => (
       <SystemFileManagerIntegrationBanner
-        {...commonSystemFileManagerIntegrationBannerActions}
+        {...commonSystemFileManagerIntegrationBannerProps}
         driverStatus={Constants.emptyDriverStatusDisabled}
       />
     ))
     .add('SystemFileManagerIntegrationBanner - disabled, enabling', () => (
       <SystemFileManagerIntegrationBanner
-        {...commonSystemFileManagerIntegrationBannerActions}
+        {...commonSystemFileManagerIntegrationBannerProps}
         driverStatus={{...Constants.emptyDriverStatusDisabled, isEnabling: true}}
       />
     ))
     .add('SystemFileManagerIntegrationBanner - enabled, new', () => (
       <SystemFileManagerIntegrationBanner
-        {...commonSystemFileManagerIntegrationBannerActions}
+        {...commonSystemFileManagerIntegrationBannerProps}
         driverStatus={{...Constants.emptyDriverStatusEnabled, isNew: true}}
+      />
+    ))
+    .add('SystemFileManagerIntegrationBanner - enabled, not agreed', () => (
+      <SystemFileManagerIntegrationBanner
+        {...commonSystemFileManagerIntegrationBannerProps}
+        driverStatus={{...Constants.emptyDriverStatusEnabled, isNew: true}}
+        settings={{
+          ...commonSystemFileManagerIntegrationBannerSettings,
+          macOSFuseExtAcceptedClosedSource: false,
+        }}
       />
     ))
     .add('SystemFileManagerIntegrationBanner - enabled, disabling', () => (
       <SystemFileManagerIntegrationBanner
-        {...commonSystemFileManagerIntegrationBannerActions}
+        {...commonSystemFileManagerIntegrationBannerProps}
         driverStatus={{...Constants.emptyDriverStatusEnabled, isDisabling: true}}
       />
     ))
     .add('SystemFileManagerIntegrationBanner - enabled, dokanOutdated', () => (
       <SystemFileManagerIntegrationBanner
-        {...commonSystemFileManagerIntegrationBannerActions}
+        {...commonSystemFileManagerIntegrationBannerProps}
         driverStatus={{
           ...Constants.emptyDriverStatusEnabled,
           dokanOutdated: true,
@@ -107,7 +127,7 @@ export default () => {
     ))
     .add('SystemFileManagerIntegrationBanner - enabled, dokanOutdated, diabling', () => (
       <SystemFileManagerIntegrationBanner
-        {...commonSystemFileManagerIntegrationBannerActions}
+        {...commonSystemFileManagerIntegrationBannerProps}
         driverStatus={{
           ...Constants.emptyDriverStatusEnabled,
           dokanOutdated: true,

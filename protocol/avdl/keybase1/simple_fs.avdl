@@ -529,12 +529,20 @@ protocol SimpleFS {
 
   record FSSettings {
     int64 spaceAvailableNotificationThreshold;
+    @lint("ignore")
+    Time macOSFuseExtAcceptedClosedSource;
+    @lint("ignore")
+    boolean sfmiBannerDismissed;
   }
 
   // simpleFSSettings retrieves the settings for this client.
   FSSettings simpleFSSettings();
 
   void simpleFSSetNotificationThreshold(int64 threshold);
+  @lint("ignore")
+  void simpleFSAcceptMacOSFuseExtClosedSource();
+  @lint("ignore")
+  void simpleFSSetSfmiBannerDismissed(boolean dismissed);
 
   // simpleFSObfuscatePath returns an obfuscated path for the given KBFS path.
   string simpleFSObfuscatePath(Path path);

@@ -79,6 +79,8 @@
       "totalSyncingBytes": "number",
       "endEstimate?": "number | null"
     },
+    "acceptMacOSFuseExtClosedSource": {},
+    "setSfmiBannerDismissed": {"dismissed": "boolean"},
     "openLocalPathInSystemFileManager": {
       "localPath": "string"
     },
@@ -91,8 +93,6 @@
     "setDriverStatus": {
       "driverStatus": "Types.DriverStatus"
     },
-    "hideSystemFileManagerIntegrationBanner": {},
-    "showSystemFileManagerIntegrationBanner": {},
     "driverEnable": {
       "isRetry?": "boolean | null"
     },

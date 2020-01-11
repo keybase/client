@@ -1288,11 +1288,15 @@ func (e KbfsOnlineStatus) String() string {
 
 type FSSettings struct {
 	SpaceAvailableNotificationThreshold int64 `codec:"spaceAvailableNotificationThreshold" json:"spaceAvailableNotificationThreshold"`
+	MacOSFuseExtAcceptedClosedSource    Time  `codec:"macOSFuseExtAcceptedClosedSource" json:"macOSFuseExtAcceptedClosedSource"`
+	SfmiBannerDismissed                 bool  `codec:"sfmiBannerDismissed" json:"sfmiBannerDismissed"`
 }
 
 func (o FSSettings) DeepCopy() FSSettings {
 	return FSSettings{
 		SpaceAvailableNotificationThreshold: o.SpaceAvailableNotificationThreshold,
+		MacOSFuseExtAcceptedClosedSource:    o.MacOSFuseExtAcceptedClosedSource.DeepCopy(),
+		SfmiBannerDismissed:                 o.SfmiBannerDismissed,
 	}
 }
 
@@ -1757,6 +1761,13 @@ type SimpleFSSetNotificationThresholdArg struct {
 	Threshold int64 `codec:"threshold" json:"threshold"`
 }
 
+type SimpleFSAcceptMacOSFuseExtClosedSourceArg struct {
+}
+
+type SimpleFSSetSfmiBannerDismissedArg struct {
+	Dismissed bool `codec:"dismissed" json:"dismissed"`
+}
+
 type SimpleFSObfuscatePathArg struct {
 	Path Path `codec:"path" json:"path"`
 }
@@ -1934,6 +1945,8 @@ type SimpleFSInterface interface {
 	SimpleFSSetDebugLevel(context.Context, string) error
 	SimpleFSSettings(context.Context) (FSSettings, error)
 	SimpleFSSetNotificationThreshold(context.Context, int64) error
+	SimpleFSAcceptMacOSFuseExtClosedSource(context.Context) error
+	SimpleFSSetSfmiBannerDismissed(context.Context, bool) error
 	SimpleFSObfuscatePath(context.Context, Path) (string, error)
 	SimpleFSDeobfuscatePath(context.Context, Path) ([]string, error)
 	SimpleFSGetStats(context.Context) (SimpleFSStats, error)
@@ -2556,6 +2569,31 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return
 				},
 			},
+			"simpleFSAcceptMacOSFuseExtClosedSource": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSAcceptMacOSFuseExtClosedSourceArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					err = i.SimpleFSAcceptMacOSFuseExtClosedSource(ctx)
+					return
+				},
+			},
+			"simpleFSSetSfmiBannerDismissed": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSSetSfmiBannerDismissedArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleFSSetSfmiBannerDismissedArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSSetSfmiBannerDismissedArg)(nil), args)
+						return
+					}
+					err = i.SimpleFSSetSfmiBannerDismissed(ctx, typedArgs[0].Dismissed)
+					return
+				},
+			},
 			"simpleFSObfuscatePath": {
 				MakeArg: func() interface{} {
 					var ret [1]SimpleFSObfuscatePathArg
@@ -3080,6 +3118,17 @@ func (c SimpleFSClient) SimpleFSSettings(ctx context.Context) (res FSSettings, e
 func (c SimpleFSClient) SimpleFSSetNotificationThreshold(ctx context.Context, threshold int64) (err error) {
 	__arg := SimpleFSSetNotificationThresholdArg{Threshold: threshold}
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSetNotificationThreshold", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSAcceptMacOSFuseExtClosedSource(ctx context.Context) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSAcceptMacOSFuseExtClosedSource", []interface{}{SimpleFSAcceptMacOSFuseExtClosedSourceArg{}}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSSetSfmiBannerDismissed(ctx context.Context, dismissed bool) (err error) {
+	__arg := SimpleFSSetSfmiBannerDismissedArg{Dismissed: dismissed}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSetSfmiBannerDismissed", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 

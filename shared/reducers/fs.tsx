@@ -37,7 +37,6 @@ const initialState: Types.State = {
     directMountDir: '',
     driverStatus: Constants.defaultDriverStatus,
     preferredMountDirs: [],
-    showingBanner: false,
   },
   softErrors: {
     pathErrors: new Map(),
@@ -432,12 +431,6 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
   },
   [FsGen.setDriverStatus]: (draftState, action) => {
     draftState.sfmi.driverStatus = action.payload.driverStatus
-  },
-  [FsGen.showSystemFileManagerIntegrationBanner]: draftState => {
-    draftState.sfmi.showingBanner = true
-  },
-  [FsGen.hideSystemFileManagerIntegrationBanner]: draftState => {
-    draftState.sfmi.showingBanner = false
   },
   [FsGen.driverEnable]: draftState => {
     if (draftState.sfmi.driverStatus.type === Types.DriverStatusType.Disabled) {

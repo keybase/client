@@ -375,6 +375,16 @@ func (s SimpleFSMock) SimpleFSUserOut(_ context.Context, _ string) error {
 	return nil
 }
 
+// SimpleFSSetSfmiBannerDismissed implements the SimpleFSInterface.
+func (s SimpleFSMock) SimpleFSSetSfmiBannerDismissed(ctx context.Context, dismissed bool) error {
+	return nil
+}
+
+// SimpleFSAcceptMacOSFuseExtClosedSource implements the SimpleFSInterface.
+func (s SimpleFSMock) SimpleFSAcceptMacOSFuseExtClosedSource(ctx context.Context) error {
+	return nil
+}
+
 /*
  file source cases:
  1. file

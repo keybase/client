@@ -6,6 +6,7 @@ import * as ChatTypes from '../constants/types/chat2'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of fs but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'fs:'
+export const acceptMacOSFuseExtClosedSource = 'fs:acceptMacOSFuseExtClosedSource'
 export const cancelDownload = 'fs:cancelDownload'
 export const commitEdit = 'fs:commitEdit'
 export const copy = 'fs:copy'
@@ -30,7 +31,6 @@ export const folderListLoad = 'fs:folderListLoad'
 export const folderListLoaded = 'fs:folderListLoaded'
 export const fsError = 'fs:fsError'
 export const getOnlineStatus = 'fs:getOnlineStatus'
-export const hideSystemFileManagerIntegrationBanner = 'fs:hideSystemFileManagerIntegrationBanner'
 export const initSendAttachmentToChat = 'fs:initSendAttachmentToChat'
 export const journalUpdate = 'fs:journalUpdate'
 export const kbfsDaemonOnlineStatusChanged = 'fs:kbfsDaemonOnlineStatusChanged'
@@ -83,6 +83,7 @@ export const setPreferredMountDirs = 'fs:setPreferredMountDirs'
 export const setSendAttachmentToChatConvID = 'fs:setSendAttachmentToChatConvID'
 export const setSendAttachmentToChatFilter = 'fs:setSendAttachmentToChatFilter'
 export const setSendAttachmentToChatTitle = 'fs:setSendAttachmentToChatTitle'
+export const setSfmiBannerDismissed = 'fs:setSfmiBannerDismissed'
 export const setSpaceAvailableNotificationThreshold = 'fs:setSpaceAvailableNotificationThreshold'
 export const setTlfSoftError = 'fs:setTlfSoftError'
 export const setTlfSyncConfig = 'fs:setTlfSyncConfig'
@@ -92,7 +93,6 @@ export const shareNative = 'fs:shareNative'
 export const showHideDiskSpaceBanner = 'fs:showHideDiskSpaceBanner'
 export const showIncomingShare = 'fs:showIncomingShare'
 export const showMoveOrCopy = 'fs:showMoveOrCopy'
-export const showSystemFileManagerIntegrationBanner = 'fs:showSystemFileManagerIntegrationBanner'
 export const sortSetting = 'fs:sortSetting'
 export const startManualConflictResolution = 'fs:startManualConflictResolution'
 export const subscribeNonPath = 'fs:subscribeNonPath'
@@ -110,6 +110,7 @@ export const userOut = 'fs:userOut'
 export const waitForKbfsDaemon = 'fs:waitForKbfsDaemon'
 
 // Payload Types
+type _AcceptMacOSFuseExtClosedSourcePayload = void
 type _CancelDownloadPayload = {readonly downloadID: string}
 type _CommitEditPayload = {readonly editID: Types.EditID}
 type _CopyPayload = {readonly destinationParentPath: Types.Path}
@@ -145,7 +146,6 @@ type _FolderListLoadedPayload = {
 }
 type _FsErrorPayload = {readonly error: Types.FsError; readonly expectedIfOffline: boolean}
 type _GetOnlineStatusPayload = void
-type _HideSystemFileManagerIntegrationBannerPayload = void
 type _InitSendAttachmentToChatPayload = {readonly path: Types.Path}
 type _JournalUpdatePayload = {
   readonly syncingPaths: Array<Types.Path>
@@ -211,6 +211,7 @@ type _SetPreferredMountDirsPayload = {readonly preferredMountDirs: Array<string>
 type _SetSendAttachmentToChatConvIDPayload = {readonly convID: ChatTypes.ConversationIDKey}
 type _SetSendAttachmentToChatFilterPayload = {readonly filter: string}
 type _SetSendAttachmentToChatTitlePayload = {readonly title: string}
+type _SetSfmiBannerDismissedPayload = {readonly dismissed: boolean}
 type _SetSpaceAvailableNotificationThresholdPayload = {readonly spaceAvailableNotificationThreshold: number}
 type _SetTlfSoftErrorPayload = {readonly path: Types.Path; readonly softError: Types.SoftError | null}
 type _SetTlfSyncConfigPayload = {readonly enabled: boolean; readonly tlfPath: Types.Path}
@@ -220,7 +221,6 @@ type _ShareNativePayload = {readonly path: Types.Path}
 type _ShowHideDiskSpaceBannerPayload = {readonly show: boolean}
 type _ShowIncomingSharePayload = {readonly initialDestinationParentPath: Types.Path}
 type _ShowMoveOrCopyPayload = {readonly initialDestinationParentPath: Types.Path}
-type _ShowSystemFileManagerIntegrationBannerPayload = void
 type _SortSettingPayload = {readonly path: Types.Path; readonly sortSetting: Types.SortSetting}
 type _StartManualConflictResolutionPayload = {readonly tlfPath: Types.Path}
 type _SubscribeNonPathPayload = {readonly subscriptionID: string; readonly topic: RPCTypes.SubscriptionTopic}
@@ -246,6 +246,9 @@ type _UserOutPayload = void
 type _WaitForKbfsDaemonPayload = void
 
 // Action Creators
+export const createAcceptMacOSFuseExtClosedSource = (
+  payload: _AcceptMacOSFuseExtClosedSourcePayload
+): AcceptMacOSFuseExtClosedSourcePayload => ({payload, type: acceptMacOSFuseExtClosedSource})
 export const createCancelDownload = (payload: _CancelDownloadPayload): CancelDownloadPayload => ({
   payload,
   type: cancelDownload,
@@ -327,9 +330,6 @@ export const createGetOnlineStatus = (payload: _GetOnlineStatusPayload): GetOnli
   payload,
   type: getOnlineStatus,
 })
-export const createHideSystemFileManagerIntegrationBanner = (
-  payload: _HideSystemFileManagerIntegrationBannerPayload
-): HideSystemFileManagerIntegrationBannerPayload => ({payload, type: hideSystemFileManagerIntegrationBanner})
 export const createInitSendAttachmentToChat = (
   payload: _InitSendAttachmentToChatPayload
 ): InitSendAttachmentToChatPayload => ({payload, type: initSendAttachmentToChat})
@@ -507,6 +507,9 @@ export const createSetSendAttachmentToChatFilter = (
 export const createSetSendAttachmentToChatTitle = (
   payload: _SetSendAttachmentToChatTitlePayload
 ): SetSendAttachmentToChatTitlePayload => ({payload, type: setSendAttachmentToChatTitle})
+export const createSetSfmiBannerDismissed = (
+  payload: _SetSfmiBannerDismissedPayload
+): SetSfmiBannerDismissedPayload => ({payload, type: setSfmiBannerDismissed})
 export const createSetSpaceAvailableNotificationThreshold = (
   payload: _SetSpaceAvailableNotificationThresholdPayload
 ): SetSpaceAvailableNotificationThresholdPayload => ({payload, type: setSpaceAvailableNotificationThreshold})
@@ -540,9 +543,6 @@ export const createShowMoveOrCopy = (payload: _ShowMoveOrCopyPayload): ShowMoveO
   payload,
   type: showMoveOrCopy,
 })
-export const createShowSystemFileManagerIntegrationBanner = (
-  payload: _ShowSystemFileManagerIntegrationBannerPayload
-): ShowSystemFileManagerIntegrationBannerPayload => ({payload, type: showSystemFileManagerIntegrationBanner})
 export const createSortSetting = (payload: _SortSettingPayload): SortSettingPayload => ({
   payload,
   type: sortSetting,
@@ -591,6 +591,10 @@ export const createWaitForKbfsDaemon = (payload: _WaitForKbfsDaemonPayload): Wai
 })
 
 // Action Payloads
+export type AcceptMacOSFuseExtClosedSourcePayload = {
+  readonly payload: _AcceptMacOSFuseExtClosedSourcePayload
+  readonly type: typeof acceptMacOSFuseExtClosedSource
+}
 export type CancelDownloadPayload = {
   readonly payload: _CancelDownloadPayload
   readonly type: typeof cancelDownload
@@ -662,10 +666,6 @@ export type FsErrorPayload = {readonly payload: _FsErrorPayload; readonly type: 
 export type GetOnlineStatusPayload = {
   readonly payload: _GetOnlineStatusPayload
   readonly type: typeof getOnlineStatus
-}
-export type HideSystemFileManagerIntegrationBannerPayload = {
-  readonly payload: _HideSystemFileManagerIntegrationBannerPayload
-  readonly type: typeof hideSystemFileManagerIntegrationBanner
 }
 export type InitSendAttachmentToChatPayload = {
   readonly payload: _InitSendAttachmentToChatPayload
@@ -860,6 +860,10 @@ export type SetSendAttachmentToChatTitlePayload = {
   readonly payload: _SetSendAttachmentToChatTitlePayload
   readonly type: typeof setSendAttachmentToChatTitle
 }
+export type SetSfmiBannerDismissedPayload = {
+  readonly payload: _SetSfmiBannerDismissedPayload
+  readonly type: typeof setSfmiBannerDismissed
+}
 export type SetSpaceAvailableNotificationThresholdPayload = {
   readonly payload: _SetSpaceAvailableNotificationThresholdPayload
   readonly type: typeof setSpaceAvailableNotificationThreshold
@@ -892,10 +896,6 @@ export type ShowIncomingSharePayload = {
 export type ShowMoveOrCopyPayload = {
   readonly payload: _ShowMoveOrCopyPayload
   readonly type: typeof showMoveOrCopy
-}
-export type ShowSystemFileManagerIntegrationBannerPayload = {
-  readonly payload: _ShowSystemFileManagerIntegrationBannerPayload
-  readonly type: typeof showSystemFileManagerIntegrationBanner
 }
 export type SortSettingPayload = {readonly payload: _SortSettingPayload; readonly type: typeof sortSetting}
 export type StartManualConflictResolutionPayload = {
@@ -946,6 +946,7 @@ export type WaitForKbfsDaemonPayload = {
 // All Actions
 // prettier-ignore
 export type Actions =
+  | AcceptMacOSFuseExtClosedSourcePayload
   | CancelDownloadPayload
   | CommitEditPayload
   | CopyPayload
@@ -970,7 +971,6 @@ export type Actions =
   | FolderListLoadedPayload
   | FsErrorPayload
   | GetOnlineStatusPayload
-  | HideSystemFileManagerIntegrationBannerPayload
   | InitSendAttachmentToChatPayload
   | JournalUpdatePayload
   | KbfsDaemonOnlineStatusChangedPayload
@@ -1023,6 +1023,7 @@ export type Actions =
   | SetSendAttachmentToChatConvIDPayload
   | SetSendAttachmentToChatFilterPayload
   | SetSendAttachmentToChatTitlePayload
+  | SetSfmiBannerDismissedPayload
   | SetSpaceAvailableNotificationThresholdPayload
   | SetTlfSoftErrorPayload
   | SetTlfSyncConfigPayload
@@ -1032,7 +1033,6 @@ export type Actions =
   | ShowHideDiskSpaceBannerPayload
   | ShowIncomingSharePayload
   | ShowMoveOrCopyPayload
-  | ShowSystemFileManagerIntegrationBannerPayload
   | SortSettingPayload
   | StartManualConflictResolutionPayload
   | SubscribeNonPathPayload
