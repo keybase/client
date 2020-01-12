@@ -9,7 +9,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-const cacheLifetime = 24 * time.Hour
+const cacheLifetime = time.Hour
 
 type featuredBotsCache struct {
 	Data  keybase1.FeaturedBotsRes `codec:"d" json:"d"`
