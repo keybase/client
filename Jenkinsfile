@@ -236,6 +236,8 @@ helpers.rootLinuxNode(env, {
                   ]) {
                     dir("shared") {
                       stage("JS Tests") {
+                        sh "git config --global user.name 'Keybase Jenkins'"
+                        sh "git config --global user.email 'jenkins@keyba.se'"
                         sh "./jenkins_test.sh js ${env.COMMIT_HASH} ${env.CHANGE_TARGET}"
                       }
                     }
