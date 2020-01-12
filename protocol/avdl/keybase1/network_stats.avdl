@@ -1,0 +1,26 @@
+@namespace("keybase.1")
+protocol NetworkStats {
+  record InstrumentationDiskRecord  {
+    @mpackkey("c")
+    Time ctime;
+    @mpackkey("d")
+    DurationMsec dur;
+    @mpackkey("s")
+    int64 size;
+  }
+
+  record InstrumentationStat {
+    string tag;
+    int numCalls;
+
+    DurationMsec avgDur;
+    DurationMsec maxDur;
+    DurationMsec minDur;
+    DurationMsec totalDur;
+
+    int64 avgSize;
+    int64 maxSize;
+    int64 minSize;
+    int64 totalSize;
+  }
+}

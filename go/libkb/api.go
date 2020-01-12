@@ -22,6 +22,7 @@ import (
 	"golang.org/x/net/context/ctxhttp"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -298,6 +299,7 @@ func doRequestShared(m MetaContext, api Requester, arg APIArg, req *http.Request
 	}
 
 	timer := m.G().Timers.Start(timerType)
+	end := rpc.NewNetworkInstrumenter(m.G().NetworkInstrumenterStorage).Instrument(fmt.Sprintf("%s %s", req.Method, arg.Endpoint))
 	internalResp, canc, err := doRetry(m, arg, cli, req)
 
 	finisher = func() {
@@ -323,6 +325,7 @@ func doRequestShared(m MetaContext, api Requester, arg APIArg, req *http.Request
 	if err != nil {
 		return nil, finisher, nil, APINetError{Err: err}
 	}
+	end(internalResp.ContentLength)
 	status = internalResp.Status
 
 	// The server sends "client version out of date" messages through the API

@@ -44,17 +44,18 @@ type Transporter interface {
 var _ Transporter = (*transport)(nil)
 
 type transport struct {
-	c          net.Conn
-	enc        *framedMsgpackEncoder
-	dispatcher dispatcher
-	receiver   receiver
-	packetizer *packetizer
-	protocols  *protocolHandler
-	calls      *callContainer
-	log        LogInterface
-	closeOnce  sync.Once
-	startOnce  sync.Once
-	stopCh     chan struct{}
+	c            net.Conn
+	enc          *framedMsgpackEncoder
+	dispatcher   dispatcher
+	receiver     receiver
+	packetizer   *packetizer
+	protocols    *protocolHandler
+	calls        *callContainer
+	instrumenter *NetworkInstrumenter
+	log          LogInterface
+	closeOnce    sync.Once
+	startOnce    sync.Once
+	stopCh       chan struct{}
 
 	// Filled in right before stopCh is closed.
 	stopErr error
@@ -67,7 +68,7 @@ const DefaultMaxFrameLength = 100 * 1024 * 1024
 // NewTransporter creates a new Transporter from the given connection
 // and parameters. Both sides of a connection should use the same
 // number for maxFrameLength.
-func NewTransport(c net.Conn, l LogFactory, wef WrapErrorFunc, maxFrameLength int32) Transporter {
+func NewTransport(c net.Conn, l LogFactory, instrumenter *NetworkInstrumenter, wef WrapErrorFunc, maxFrameLength int32) Transporter {
 	if maxFrameLength <= 0 {
 		panic(fmt.Sprintf("maxFrameLength must be positive: got %d", maxFrameLength))
 	}
@@ -86,8 +87,8 @@ func NewTransport(c net.Conn, l LogFactory, wef WrapErrorFunc, maxFrameLength in
 	}
 	enc := newFramedMsgpackEncoder(maxFrameLength, c)
 	ret.enc = enc
-	ret.dispatcher = newDispatch(enc, ret.calls, log)
-	ret.receiver = newReceiveHandler(enc, ret.protocols, log)
+	ret.dispatcher = newDispatch(enc, ret.calls, log, instrumenter)
+	ret.receiver = newReceiveHandler(enc, ret.protocols, log, instrumenter)
 	ret.packetizer = newPacketizer(maxFrameLength, c, ret.protocols, ret.calls, log)
 	return ret
 }

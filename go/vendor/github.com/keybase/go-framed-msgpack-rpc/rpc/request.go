@@ -14,9 +14,10 @@ type request interface {
 }
 
 type requestImpl struct {
-	ctx        context.Context
-	cancelFunc context.CancelFunc
-	log        LogInterface
+	ctx          context.Context
+	cancelFunc   context.CancelFunc
+	instrumenter *NetworkInstrumenter
+	log          LogInterface
 }
 
 func (req *requestImpl) CancelFunc() context.CancelFunc {
@@ -28,14 +29,16 @@ type callRequest struct {
 	requestImpl
 }
 
-func newCallRequest(rpc *rpcCallMessage, log LogInterface) *callRequest {
+func newCallRequest(rpc *rpcCallMessage, log LogInterface,
+	instrumenter *NetworkInstrumenter) *callRequest {
 	ctx, cancel := context.WithCancel(rpc.Context())
 	return &callRequest{
 		rpcCallMessage: rpc,
 		requestImpl: requestImpl{
-			ctx:        ctx,
-			cancelFunc: cancel,
-			log:        log,
+			ctx:          ctx,
+			cancelFunc:   cancel,
+			log:          log,
+			instrumenter: instrumenter,
 		},
 	}
 }
@@ -55,7 +58,11 @@ func (r *callRequest) Reply(enc *framedMsgpackEncoder, res interface{}, errArg i
 		errArg,
 		res,
 	}
-	errCh := enc.EncodeAndWrite(r.ctx, v, nil)
+
+	size, errCh := enc.EncodeAndWrite(r.ctx, v, nil)
+	end := r.instrumenter.Instrument(RPCInstrumentTag(MethodResponse, r.Name()))
+	defer end(size)
+
 	select {
 	case err := <-errCh:
 		if err != nil {
@@ -87,14 +94,16 @@ type callCompressedRequest struct {
 	requestImpl
 }
 
-func newCallCompressedRequest(rpc *rpcCallCompressedMessage, log LogInterface) *callCompressedRequest {
+func newCallCompressedRequest(rpc *rpcCallCompressedMessage, log LogInterface,
+	instrumenter *NetworkInstrumenter) *callCompressedRequest {
 	ctx, cancel := context.WithCancel(rpc.Context())
 	return &callCompressedRequest{
 		rpcCallCompressedMessage: rpc,
 		requestImpl: requestImpl{
-			ctx:        ctx,
-			cancelFunc: cancel,
-			log:        log,
+			ctx:          ctx,
+			cancelFunc:   cancel,
+			log:          log,
+			instrumenter: instrumenter,
 		},
 	}
 }
@@ -118,7 +127,11 @@ func (r *callCompressedRequest) Reply(enc *framedMsgpackEncoder, res interface{}
 		errArg,
 		res,
 	}
-	errCh := enc.EncodeAndWrite(r.ctx, v, nil)
+
+	size, errCh := enc.EncodeAndWrite(r.ctx, v, nil)
+	end := r.instrumenter.Instrument(RPCInstrumentTag(MethodResponse, r.Name()))
+	defer end(size)
+
 	select {
 	case err := <-errCh:
 		if err != nil {

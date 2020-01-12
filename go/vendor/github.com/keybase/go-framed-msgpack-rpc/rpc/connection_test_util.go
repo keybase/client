@@ -133,7 +133,9 @@ func MakeConnectionForTest(t TestLogger) (net.Conn, *Connection) {
 	clientConn, serverConn := net.Pipe()
 	logOutput := testLogOutput{t}
 	logFactory := NewSimpleLogFactory(logOutput, nil)
-	transporter := NewTransport(clientConn, logFactory, testWrapError, testMaxFrameLength)
+	instrumenter := NewNetworkInstrumenter(NewMemoryInstrumentationStorage())
+	transporter := NewTransport(clientConn, logFactory,
+		instrumenter, testWrapError, testMaxFrameLength)
 	st := singleTransport{transporter}
 	opts := ConnectionOpts{
 		WrapErrorFunc: testWrapError,

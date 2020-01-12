@@ -1,0 +1,75 @@
+{
+  "protocol": "NetworkStats",
+  "imports": [],
+  "types": [
+    {
+      "type": "record",
+      "name": "InstrumentationDiskRecord",
+      "fields": [
+        {
+          "type": "Time",
+          "name": "ctime",
+          "mpackkey": "c"
+        },
+        {
+          "type": "DurationMsec",
+          "name": "dur",
+          "mpackkey": "d"
+        },
+        {
+          "type": "int64",
+          "name": "size",
+          "mpackkey": "s"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "InstrumentationStat",
+      "fields": [
+        {
+          "type": "string",
+          "name": "tag"
+        },
+        {
+          "type": "int",
+          "name": "numCalls"
+        },
+        {
+          "type": "DurationMsec",
+          "name": "avgDur"
+        },
+        {
+          "type": "DurationMsec",
+          "name": "maxDur"
+        },
+        {
+          "type": "DurationMsec",
+          "name": "minDur"
+        },
+        {
+          "type": "DurationMsec",
+          "name": "totalDur"
+        },
+        {
+          "type": "int64",
+          "name": "avgSize"
+        },
+        {
+          "type": "int64",
+          "name": "maxSize"
+        },
+        {
+          "type": "int64",
+          "name": "minSize"
+        },
+        {
+          "type": "int64",
+          "name": "totalSize"
+        }
+      ]
+    }
+  ],
+  "messages": {},
+  "namespace": "keybase.1"
+}

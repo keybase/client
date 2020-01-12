@@ -162,6 +162,12 @@ func (h ConfigHandler) GetFullStatus(ctx context.Context, sessionID int) (res *k
 	return status.GetFullStatus(mctx)
 }
 
+func (h ConfigHandler) GetNetworkStats(ctx context.Context, sessionID int) (res []keybase1.InstrumentationStat, err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("CFG")
+	defer mctx.TraceTimed("GetNetworkStats", func() error { return err })()
+	return mctx.G().NetworkInstrumenterStorage.Stats()
+}
+
 func (h ConfigHandler) LogSend(ctx context.Context, arg keybase1.LogSendArg) (res keybase1.LogSendID, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("CFG")
 	defer mctx.TraceTimed("LogSend", func() error { return err })()

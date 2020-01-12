@@ -5,6 +5,7 @@ package status
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"mime/multipart"
 	"os"
@@ -166,6 +167,19 @@ func (l *LogSendContext) post(mctx libkb.MetaContext) (keybase1.LogSendID, error
 	}
 
 	l.svcLog = redactPotentialPaperKeys(l.svcLog)
+
+	stats, err := mctx.G().NetworkInstrumenterStorage.Stats()
+	if err != nil {
+		return "", err
+	}
+	networkStatsJSON, err := json.MarshalIndent(stats, "", "    ")
+	if err != nil {
+		return "", err
+	}
+
+	if err := addGzippedFile(mpart, "network_stats_gz", "network_stats.gz", string(networkStatsJSON)); err != nil {
+		return "", err
+	}
 
 	if err := addGzippedFile(mpart, "status_gz", "status.gz", l.StatusJSON); err != nil {
 		return "", err
