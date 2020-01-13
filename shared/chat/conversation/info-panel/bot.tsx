@@ -23,9 +23,14 @@ const AddBotToChannel = ({conversationIDKey, username}: AddButtonProps) => {
   const addToChannel = () =>
     dispatch(Chat2Gen.createAddUsersToChannel({conversationIDKey, usernames: [username]}))
   return (
-    <Kb.WithTooltip tooltip="Add to this channel">
-      <Kb.Icon type="iconfont-add" onClick={addToChannel} />
-    </Kb.WithTooltip>
+    <Kb.Button
+      type="Dim"
+      mode="Secondary"
+      onClick={addToChannel}
+      style={styles.addButton}
+      icon="iconfont-new"
+      tooltip="Add to this channel"
+    />
   )
 }
 
@@ -99,6 +104,9 @@ const Bot = ({
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      addButton: {
+        marginLeft: Styles.globalMargins.tiny,
+      },
       avatarStyle: Styles.platformStyles({
         isElectron: {marginRight: Styles.globalMargins.tiny},
         isMobile: {marginRight: Styles.globalMargins.small},
