@@ -99,6 +99,7 @@ export const serviceMessageTypeToMessageTypes = (t: RPCChatTypes.MessageType): A
         'systemSimpleToComplex',
         'systemText',
         'systemUsersAddedToConversation',
+        'systemChangeAvatar',
       ]
     case RPCChatTypes.MessageType.sendpayment:
       return ['sendPayment']
@@ -133,6 +134,7 @@ export const allMessageTypes: Set<Types.MessageType> = new Set([
   'systemLeft',
   'systemSBSResolved',
   'systemSimpleToComplex',
+  'systemChangeAvatar',
   'systemText',
   'systemUsersAddedToConversation',
   'text',
@@ -485,6 +487,17 @@ const makeMessageSystemUsersAddedToConversation = (
   ...m,
 })
 
+const makeMessageSystemChangeAvatar = (
+  m?: Partial<MessageTypes.MessageSystemChangeAvatar>
+): MessageTypes.MessageSystemChangeAvatar => ({
+  ...makeMessageCommonNoDeleteNoEdit,
+  reactions: new Map(),
+  team: '',
+  type: 'systemChangeAvatar',
+  user: '',
+  ...m,
+})
+
 export const makeReaction = (m?: Partial<MessageTypes.Reaction>): MessageTypes.Reaction => ({
   timestamp: 0,
   username: '',
@@ -611,7 +624,6 @@ export const uiMessageEditToMessage = (
 }
 
 const uiMessageToSystemMessage = (
-  state: TypedState,
   minimum: Minimum,
   body: RPCChatTypes.MessageSystem,
   reactions: Map<string, Set<MessageTypes.Reaction>>
@@ -718,11 +730,12 @@ const uiMessageToSystemMessage = (
       })
     }
     case RPCChatTypes.MessageSystemType.changeavatar: {
-      const {user = '???'} = body.changeavatar || {}
-      return makeMessageSystemText({
-        reactions,
-        text: new HiddenString(`${user === state.config.username ? 'You ' : ''}changed the team's avatar.`),
+      const {user = '???', team = '???'} = body.changeavatar || {}
+      return makeMessageSystemChangeAvatar({
         ...minimum,
+        reactions,
+        team,
+        user,
       })
     }
     case RPCChatTypes.MessageSystemType.changeretention: {
@@ -986,7 +999,7 @@ const validUIMessagetoMessage = (
       })
     case RPCChatTypes.MessageType.system:
       return m.messageBody.system
-        ? uiMessageToSystemMessage(state, common, m.messageBody.system, common.reactions)
+        ? uiMessageToSystemMessage(common, m.messageBody.system, common.reactions)
         : null
     case RPCChatTypes.MessageType.headline:
       return makeMessageSetDescription({
@@ -1142,7 +1155,8 @@ const errorUIMessagetoMessage = (
     deviceName: o.senderDeviceName,
     deviceType: DeviceTypes.stringToDeviceType(o.senderDeviceType),
     errorReason: o.errMsg,
-    exploded: o.isEphemeralExpired,
+    exploded: o.isEphemeral && (o.etime < Date.now() || !!o.explodedBy),
+    explodedBy: o.explodedBy || '',
     exploding: o.isEphemeral,
     explodingUnreadable: !!o.errType && o.isEphemeral,
     id: Types.numberToMessageID(o.messageID),
@@ -1427,6 +1441,7 @@ export const shouldShowPopup = (state: TypedState, message: Types.Message) => {
     case 'systemSimpleToComplex':
     case 'systemText':
     case 'systemUsersAddedToConversation':
+    case 'systemChangeAvatar':
     case 'journeycard':
       return true
     case 'sendPayment': {

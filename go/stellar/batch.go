@@ -218,7 +218,7 @@ func prepareBatchPaymentDirect(mctx libkb.MetaContext, remoter remote.Remoter, s
 
 	var signResult stellarnet.SignResult
 	if funded {
-		signResult, err = stellarnet.PaymentXLMTransaction(senderSeed, *recipient.AccountID, payment.Amount, "", sp, nil, baseFee)
+		signResult, err = stellarnet.PaymentXLMTransactionWithMemo(senderSeed, *recipient.AccountID, payment.Amount, stellarnet.NewMemoNone(), sp, nil, baseFee)
 	} else {
 		signResult, err = stellarnet.CreateAccountXLMTransaction(senderSeed, *recipient.AccountID, payment.Amount, "", sp, nil, baseFee)
 	}

@@ -87,7 +87,7 @@ const Reply = (props: ReplyProps) => {
 }
 
 export type ClaimProps = {
-  amount: number
+  amount: string
   label: string
   onClaim: () => void
 }

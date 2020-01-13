@@ -13,18 +13,13 @@ type Props = {
   isDarkMode: boolean
 }
 
-// TODO remove this class
-class RouterSwitcheroo extends React.PureComponent<Props> {
-  render() {
-    return (
-      <Router
-        ref={r => this.props.updateNavigator(r)}
-        persistRoute={this.props.persistRoute}
-        isDarkMode={this.props.isDarkMode}
-      />
-    )
-  }
-}
+const RouterSwitcheroo = React.memo((props: Props) => (
+  <Router
+    ref={r => props.updateNavigator(r)}
+    persistRoute={props.persistRoute}
+    isDarkMode={props.isDarkMode}
+  />
+))
 
 export default connect(
   state => ({isDarkMode: Constants.isDarkMode(state.config)}),

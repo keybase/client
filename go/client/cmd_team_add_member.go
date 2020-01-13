@@ -47,9 +47,8 @@ func newCmdTeamAddMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 				Usage: "phone number to invite",
 			},
 			cli.StringFlag{
-				Name: "r, role",
-				// TODO HOTPOT-599 add bot roles
-				Usage: "team role (owner, admin, writer, reader) [required]",
+				Name:  "r, role",
+				Usage: "team role (owner, admin, writer, reader, bot, restrictedbot) [required]",
 			},
 			cli.BoolFlag{
 				Name:  "s, skip-chat-message",
@@ -59,10 +58,7 @@ func newCmdTeamAddMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 		Description: teamAddMemberDoc,
 	}
 
-	// TODO HOTPOT-599 expose publicly
-	if g.Env.GetRunMode() == libkb.DevelRunMode || libkb.IsKeybaseAdmin(g.GetMyUID()) {
-		cmd.Flags = append(cmd.Flags, botSettingsFlags...)
-	}
+	cmd.Flags = append(cmd.Flags, botSettingsFlags...)
 	return cmd
 }
 

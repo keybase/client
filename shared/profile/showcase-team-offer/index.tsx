@@ -23,7 +23,7 @@ export type Props = {
   onCancel: () => void
   onPromote: (name: Types.Teamname, promote: boolean) => void
   teams: ReadonlyArray<Types.TeamDetails>
-  waiting: {[K in string]: number}
+  waiting: Map<string, number>
 }
 
 const TeamRow = ({

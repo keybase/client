@@ -1124,13 +1124,13 @@ func prepareMiniChatPaymentDirect(m libkb.MetaContext, remoter remote.Remoter, s
 
 	var signResult stellarnet.SignResult
 	if funded {
-		signResult, err = stellarnet.PaymentXLMTransaction(senderSeed, *recipient.AccountID, xlmAmount, "", sp, tb, baseFee)
+		signResult, err = stellarnet.PaymentXLMTransactionWithMemo(senderSeed, *recipient.AccountID, xlmAmount, stellarnet.NewMemoNone(), sp, tb, baseFee)
 	} else {
 		if isAmountLessThanMin(xlmAmount, minAmountCreateAccountXLM) {
 			result.Error = fmt.Errorf("you must send at least %s XLM to fund the account", minAmountCreateAccountXLM)
 			return result
 		}
-		signResult, err = stellarnet.CreateAccountXLMTransaction(senderSeed, *recipient.AccountID, xlmAmount, "", sp, tb, baseFee)
+		signResult, err = stellarnet.CreateAccountXLMTransactionWithMemo(senderSeed, *recipient.AccountID, xlmAmount, stellarnet.NewMemoNone(), sp, tb, baseFee)
 	}
 	if err != nil {
 		result.Error = err

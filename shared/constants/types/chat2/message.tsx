@@ -318,6 +318,14 @@ export type MessageSystemLeft = {
   _MessageWithDeviceInfo &
   _MessageWithDeletableEditable
 
+export type MessageSystemChangeAvatar = {
+  team: string
+  type: 'systemChangeAvatar'
+  user: string
+} & _MessageCommon &
+  _MessageWithDeviceInfo &
+  _MessageWithReactions
+
 export type MessageSystemText = {
   text: HiddenString
   type: 'systemText'
@@ -393,6 +401,7 @@ export type Message =
   | MessageSystemText
   | MessageSystemUsersAddedToConversation
   | MessageSystemCreateTeam
+  | MessageSystemChangeAvatar
   | MessageText
   | MessagePlaceholder
   | MessagePin

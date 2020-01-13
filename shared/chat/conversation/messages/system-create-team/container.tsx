@@ -22,7 +22,7 @@ export default Container.connect(
     }
   },
   dispatch => ({
-    _onViewTeam: (teamID: TeamID, conversationIDKey) => {
+    _onViewTeam: (teamID: TeamID, conversationIDKey: Types.ConversationIDKey) => {
       if (teamID) {
         dispatch(RouteTreeGen.createNavigateAppend({path: [teamsTab, {props: {teamID}, selected: 'team'}]}))
       } else {

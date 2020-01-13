@@ -22,6 +22,7 @@ type Props = {
   body: React.ReactNode
   firstItem: boolean
   action?: React.ReactNode
+  hideHover?: boolean
   // If 'grow' is used, the width of action cannot exceed 64. If larger width
   // is needed, bump the `maxWidth: 64` below to a larger value. Note that if
   // it's too large, the animation would also seem much faster.
@@ -36,7 +37,9 @@ const ListItem = (props: Props) => (
     style={props.type === 'Small' ? styles.clickableBoxSmall : styles.clickableBoxLarge}
   >
     <Kb.Box2
-      className="listItem2"
+      className={Styles.classNames({
+        listItem2: !props.hideHover,
+      })}
       direction="horizontal"
       style={props.type === 'Small' ? styles.rowSmall : styles.rowLarge}
       fullWidth={true}

@@ -2,6 +2,7 @@ package client
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -19,6 +20,8 @@ type CmdWalletSendPathPayment struct {
 	DestinationAmount string
 	Note              string
 	FromAccountID     stellar1.AccountID
+	Memo              string
+	MemoType          stellar1.PublicNoteType
 }
 
 func newCmdWalletSendPathPayment(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -38,6 +41,14 @@ func newCmdWalletSendPathPayment(cl *libcmdline.CommandLine, g *libkb.GlobalCont
 		cli.StringFlag{
 			Name:  "from",
 			Usage: "Specify the source account for the payment.",
+		},
+		cli.StringFlag{
+			Name:  "memo",
+			Usage: "Include a public memo in the stellar transaction.",
+		},
+		cli.StringFlag{
+			Name:  "memo_type",
+			Usage: "Specify the type of memo (text, id, hash, return). hash and return should be hex-encoded.",
 		},
 	}
 	cmd := &CmdWalletSendPathPayment{
@@ -62,6 +73,22 @@ func (c *CmdWalletSendPathPayment) ParseArgv(ctx *cli.Context) error {
 	c.Recipient = ctx.Args()[0]
 	c.DestinationAmount = ctx.Args()[1]
 	c.Note = ctx.String("message")
+
+	c.Memo = ctx.String("memo")
+	memoType := ctx.String("memo_type")
+	if memoType == "" {
+		if c.Memo != "" {
+			memoType = "text"
+		} else {
+			memoType = "none"
+		}
+	}
+	var ok bool
+	c.MemoType, ok = stellar1.PublicNoteTypeMap[strings.ToUpper(memoType)]
+	if !ok {
+		return errors.New("invalid memo type")
+	}
+
 	c.FromAccountID = stellar1.AccountID(ctx.String("from"))
 	var err error
 	c.SourceAsset, err = parseAssetString(ctx.String("source-asset"))

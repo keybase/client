@@ -2978,42 +2978,48 @@ func (e MessageUnboxedErrorType) String() string {
 }
 
 type MessageUnboxedError struct {
-	ErrType            MessageUnboxedErrorType `codec:"errType" json:"errType"`
-	ErrMsg             string                  `codec:"errMsg" json:"errMsg"`
-	InternalErrMsg     string                  `codec:"internalErrMsg" json:"internalErrMsg"`
-	VersionKind        VersionKind             `codec:"versionKind" json:"versionKind"`
-	VersionNumber      int                     `codec:"versionNumber" json:"versionNumber"`
-	IsCritical         bool                    `codec:"isCritical" json:"isCritical"`
-	SenderUsername     string                  `codec:"senderUsername" json:"senderUsername"`
-	SenderDeviceName   string                  `codec:"senderDeviceName" json:"senderDeviceName"`
-	SenderDeviceType   string                  `codec:"senderDeviceType" json:"senderDeviceType"`
-	MessageID          MessageID               `codec:"messageID" json:"messageID"`
-	MessageType        MessageType             `codec:"messageType" json:"messageType"`
-	Ctime              gregor1.Time            `codec:"ctime" json:"ctime"`
-	IsEphemeral        bool                    `codec:"isEphemeral" json:"isEphemeral"`
-	IsEphemeralExpired bool                    `codec:"isEphemeralExpired" json:"isEphemeralExpired"`
-	Etime              gregor1.Time            `codec:"etime" json:"etime"`
-	BotUsername        string                  `codec:"botUsername" json:"botUsername"`
+	ErrType          MessageUnboxedErrorType `codec:"errType" json:"errType"`
+	ErrMsg           string                  `codec:"errMsg" json:"errMsg"`
+	InternalErrMsg   string                  `codec:"internalErrMsg" json:"internalErrMsg"`
+	VersionKind      VersionKind             `codec:"versionKind" json:"versionKind"`
+	VersionNumber    int                     `codec:"versionNumber" json:"versionNumber"`
+	IsCritical       bool                    `codec:"isCritical" json:"isCritical"`
+	SenderUsername   string                  `codec:"senderUsername" json:"senderUsername"`
+	SenderDeviceName string                  `codec:"senderDeviceName" json:"senderDeviceName"`
+	SenderDeviceType string                  `codec:"senderDeviceType" json:"senderDeviceType"`
+	MessageID        MessageID               `codec:"messageID" json:"messageID"`
+	MessageType      MessageType             `codec:"messageType" json:"messageType"`
+	Ctime            gregor1.Time            `codec:"ctime" json:"ctime"`
+	IsEphemeral      bool                    `codec:"isEphemeral" json:"isEphemeral"`
+	ExplodedBy       *string                 `codec:"explodedBy,omitempty" json:"explodedBy,omitempty"`
+	Etime            gregor1.Time            `codec:"etime" json:"etime"`
+	BotUsername      string                  `codec:"botUsername" json:"botUsername"`
 }
 
 func (o MessageUnboxedError) DeepCopy() MessageUnboxedError {
 	return MessageUnboxedError{
-		ErrType:            o.ErrType.DeepCopy(),
-		ErrMsg:             o.ErrMsg,
-		InternalErrMsg:     o.InternalErrMsg,
-		VersionKind:        o.VersionKind.DeepCopy(),
-		VersionNumber:      o.VersionNumber,
-		IsCritical:         o.IsCritical,
-		SenderUsername:     o.SenderUsername,
-		SenderDeviceName:   o.SenderDeviceName,
-		SenderDeviceType:   o.SenderDeviceType,
-		MessageID:          o.MessageID.DeepCopy(),
-		MessageType:        o.MessageType.DeepCopy(),
-		Ctime:              o.Ctime.DeepCopy(),
-		IsEphemeral:        o.IsEphemeral,
-		IsEphemeralExpired: o.IsEphemeralExpired,
-		Etime:              o.Etime.DeepCopy(),
-		BotUsername:        o.BotUsername,
+		ErrType:          o.ErrType.DeepCopy(),
+		ErrMsg:           o.ErrMsg,
+		InternalErrMsg:   o.InternalErrMsg,
+		VersionKind:      o.VersionKind.DeepCopy(),
+		VersionNumber:    o.VersionNumber,
+		IsCritical:       o.IsCritical,
+		SenderUsername:   o.SenderUsername,
+		SenderDeviceName: o.SenderDeviceName,
+		SenderDeviceType: o.SenderDeviceType,
+		MessageID:        o.MessageID.DeepCopy(),
+		MessageType:      o.MessageType.DeepCopy(),
+		Ctime:            o.Ctime.DeepCopy(),
+		IsEphemeral:      o.IsEphemeral,
+		ExplodedBy: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.ExplodedBy),
+		Etime:       o.Etime.DeepCopy(),
+		BotUsername: o.BotUsername,
 	}
 }
 
@@ -3312,25 +3318,26 @@ func (o ConversationPinnedMessage) DeepCopy() ConversationPinnedMessage {
 }
 
 type ConversationInfoLocal struct {
-	Id           ConversationID                 `codec:"id" json:"id"`
-	Triple       ConversationIDTriple           `codec:"triple" json:"triple"`
-	TlfName      string                         `codec:"tlfName" json:"tlfName"`
-	TopicName    string                         `codec:"topicName" json:"topicName"`
-	Headline     string                         `codec:"headline" json:"headline"`
-	SnippetMsg   *MessageUnboxed                `codec:"snippetMsg,omitempty" json:"snippetMsg,omitempty"`
-	PinnedMsg    *ConversationPinnedMessage     `codec:"pinnedMsg,omitempty" json:"pinnedMsg,omitempty"`
-	Draft        *string                        `codec:"draft,omitempty" json:"draft,omitempty"`
-	Visibility   keybase1.TLFVisibility         `codec:"visibility" json:"visibility"`
-	Status       ConversationStatus             `codec:"status" json:"status"`
-	MembersType  ConversationMembersType        `codec:"membersType" json:"membersType"`
-	MemberStatus ConversationMemberStatus       `codec:"memberStatus" json:"memberStatus"`
-	TeamType     TeamType                       `codec:"teamType" json:"teamType"`
-	Existence    ConversationExistence          `codec:"existence" json:"existence"`
-	Version      ConversationVers               `codec:"version" json:"version"`
-	LocalVersion LocalConversationVers          `codec:"localVersion" json:"localVersion"`
-	Participants []ConversationLocalParticipant `codec:"participants" json:"participants"`
-	FinalizeInfo *ConversationFinalizeInfo      `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
-	ResetNames   []string                       `codec:"resetNames" json:"resetNames"`
+	Id            ConversationID                 `codec:"id" json:"id"`
+	Triple        ConversationIDTriple           `codec:"triple" json:"triple"`
+	TlfName       string                         `codec:"tlfName" json:"tlfName"`
+	TopicName     string                         `codec:"topicName" json:"topicName"`
+	Headline      string                         `codec:"headline" json:"headline"`
+	SnippetMsg    *MessageUnboxed                `codec:"snippetMsg,omitempty" json:"snippetMsg,omitempty"`
+	PinnedMsg     *ConversationPinnedMessage     `codec:"pinnedMsg,omitempty" json:"pinnedMsg,omitempty"`
+	Draft         *string                        `codec:"draft,omitempty" json:"draft,omitempty"`
+	Visibility    keybase1.TLFVisibility         `codec:"visibility" json:"visibility"`
+	IsDefaultConv bool                           `codec:"isDefaultConv" json:"isDefaultConv"`
+	Status        ConversationStatus             `codec:"status" json:"status"`
+	MembersType   ConversationMembersType        `codec:"membersType" json:"membersType"`
+	MemberStatus  ConversationMemberStatus       `codec:"memberStatus" json:"memberStatus"`
+	TeamType      TeamType                       `codec:"teamType" json:"teamType"`
+	Existence     ConversationExistence          `codec:"existence" json:"existence"`
+	Version       ConversationVers               `codec:"version" json:"version"`
+	LocalVersion  LocalConversationVers          `codec:"localVersion" json:"localVersion"`
+	Participants  []ConversationLocalParticipant `codec:"participants" json:"participants"`
+	FinalizeInfo  *ConversationFinalizeInfo      `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
+	ResetNames    []string                       `codec:"resetNames" json:"resetNames"`
 }
 
 func (o ConversationInfoLocal) DeepCopy() ConversationInfoLocal {
@@ -3361,14 +3368,15 @@ func (o ConversationInfoLocal) DeepCopy() ConversationInfoLocal {
 			tmp := (*x)
 			return &tmp
 		})(o.Draft),
-		Visibility:   o.Visibility.DeepCopy(),
-		Status:       o.Status.DeepCopy(),
-		MembersType:  o.MembersType.DeepCopy(),
-		MemberStatus: o.MemberStatus.DeepCopy(),
-		TeamType:     o.TeamType.DeepCopy(),
-		Existence:    o.Existence.DeepCopy(),
-		Version:      o.Version.DeepCopy(),
-		LocalVersion: o.LocalVersion.DeepCopy(),
+		Visibility:    o.Visibility.DeepCopy(),
+		IsDefaultConv: o.IsDefaultConv,
+		Status:        o.Status.DeepCopy(),
+		MembersType:   o.MembersType.DeepCopy(),
+		MemberStatus:  o.MemberStatus.DeepCopy(),
+		TeamType:      o.TeamType.DeepCopy(),
+		Existence:     o.Existence.DeepCopy(),
+		Version:       o.Version.DeepCopy(),
+		LocalVersion:  o.LocalVersion.DeepCopy(),
 		Participants: (func(x []ConversationLocalParticipant) []ConversationLocalParticipant {
 			if x == nil {
 				return nil

@@ -182,6 +182,18 @@
 			"revisionTime": "2019-10-30T07:13:27Z"
 		},
 		{
+			"checksumSHA1": "l3HhhCbfDQgK7/CKWvmALzyZ8tY=",
+			"path": "github.com/blevesearch/bleve/analysis/char/html",
+			"revision": "189ee421f71e1e77dbfb5ea900988b5efadb33a4",
+			"revisionTime": "2019-10-30T07:13:27Z"
+		},
+		{
+			"checksumSHA1": "mnNyhSut6FXu4s1nSUH1c0jmH6k=",
+			"path": "github.com/blevesearch/bleve/analysis/char/regexp",
+			"revision": "189ee421f71e1e77dbfb5ea900988b5efadb33a4",
+			"revisionTime": "2019-10-30T07:13:27Z"
+		},
+		{
 			"checksumSHA1": "P+ay5l3LO/xoWJXKfyK4Ma1hGvw=",
 			"path": "github.com/blevesearch/bleve/analysis/datetime/flexible",
 			"revision": "189ee421f71e1e77dbfb5ea900988b5efadb33a4",
@@ -218,8 +230,20 @@
 			"revisionTime": "2019-10-30T07:13:27Z"
 		},
 		{
+			"checksumSHA1": "CMTaymOiaF96jRBA46FBSC+3S/Y=",
+			"path": "github.com/blevesearch/bleve/analysis/tokenizer/exception",
+			"revision": "189ee421f71e1e77dbfb5ea900988b5efadb33a4",
+			"revisionTime": "2019-10-30T07:13:27Z"
+		},
+		{
 			"checksumSHA1": "q7C04nlJLxKmemXLop0oyJhfi5M=",
 			"path": "github.com/blevesearch/bleve/analysis/tokenizer/unicode",
+			"revision": "189ee421f71e1e77dbfb5ea900988b5efadb33a4",
+			"revisionTime": "2019-10-30T07:13:27Z"
+		},
+		{
+			"checksumSHA1": "CMuNWGGtyp8p+dvNmLx0KPNHIBM=",
+			"path": "github.com/blevesearch/bleve/analysis/tokenizer/web",
 			"revision": "189ee421f71e1e77dbfb5ea900988b5efadb33a4",
 			"revisionTime": "2019-10-30T07:13:27Z"
 		},
@@ -896,16 +920,16 @@
 			"revisionTime": "2019-08-28T01:53:43Z"
 		},
 		{
-			"checksumSHA1": "9rRK1pLxOcjjNNUP/6H9EthW360=",
+			"checksumSHA1": "SkzqJzOqrobx0rcaUKGoFgsWcuc=",
 			"path": "github.com/keybase/go-updater/process",
-			"revision": "396e07f04b47f41a5593d5f8e74d32cadbd89d54",
-			"revisionTime": "2019-08-27T21:47:57Z"
+			"revision": "1508f4b2413e255882e26002f3c15f6705c3d7ad",
+			"revisionTime": "2020-01-10T21:55:44Z"
 		},
 		{
 			"checksumSHA1": "ffC5qvAmfgvFbIYgKbE2E7fwQg8=",
 			"path": "github.com/keybase/go-updater/watchdog",
-			"revision": "396e07f04b47f41a5593d5f8e74d32cadbd89d54",
-			"revisionTime": "2019-08-27T21:47:57Z"
+			"revision": "1508f4b2413e255882e26002f3c15f6705c3d7ad",
+			"revisionTime": "2020-01-10T21:55:44Z"
 		},
 		{
 			"checksumSHA1": "rRRQUZrxRapCpdmV2BUgmJRE/ww=",
@@ -974,10 +998,10 @@
 			"revisionTime": "2019-08-28T02:09:36Z"
 		},
 		{
-			"checksumSHA1": "f8oLbOSuAeeqqIVW8TrYYxj6rTw=",
+			"checksumSHA1": "Ri9/Vbes0vwOxFv/q2Y5L2aFia0=",
 			"path": "github.com/keybase/stellarnet",
-			"revision": "5d2b2e13831d7d81f3a70357611483c00f36ca19",
-			"revisionTime": "2019-10-11T15:21:56Z"
+			"revision": "2ff5fd3da3c1e53a6e270aba59d1e13153b2da82",
+			"revisionTime": "2020-01-07T17:10:57Z"
 		},
 		{
 			"checksumSHA1": "B/Qlhpd96i6Sx0DdhSzbHUdG47U=",
@@ -1186,11 +1210,11 @@
 			"revisionTime": "2019-06-21T18:08:33Z"
 		},
 		{
-			"checksumSHA1": "atGxvhJl/hBdPcAxrvJdQQ9mT9k=",
+			"checksumSHA1": "hCs9aZuNW3dnVeBqQ5bjTcvdDe0=",
 			"origin": "github.com/keybase/stellar-org/build",
 			"path": "github.com/stellar/go/build",
-			"revision": "e43266cae98f292a11218decae91a277a8489da2",
-			"revisionTime": "2019-06-21T18:08:33Z"
+			"revision": "0fc3bfe3dfa7aba69074e417e7dd47101b44e219",
+			"revisionTime": "2019-10-10T20:56:48Z"
 		},
 		{
 			"checksumSHA1": "lNNS4mTZlbciLrs24+zR03+KyA0=",
@@ -1319,11 +1343,11 @@
 			"revisionTime": "2019-06-21T18:08:33Z"
 		},
 		{
-			"checksumSHA1": "J5AQ9Qbd4n9uu2UYSTBXxfkmlGc=",
+			"checksumSHA1": "mo133jQLSnQ/CGp8jJcGggw6dq0=",
 			"origin": "github.com/keybase/stellar-org/xdr",
 			"path": "github.com/stellar/go/xdr",
-			"revision": "e43266cae98f292a11218decae91a277a8489da2",
-			"revisionTime": "2019-06-21T18:08:33Z"
+			"revision": "0fc3bfe3dfa7aba69074e417e7dd47101b44e219",
+			"revisionTime": "2019-10-10T20:56:48Z"
 		},
 		{
 			"checksumSHA1": "KE+vv2khbshw+PA9UyHHxd8WKKw=",

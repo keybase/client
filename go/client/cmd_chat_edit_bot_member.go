@@ -38,7 +38,7 @@ func newCmdChatEditBotMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext)
 	})
 	return cli.Command{
 		Name:         "edit-bot-member",
-		Usage:        "Edit the role bot or a restricted bot in a conversation",
+		Usage:        "Edit the role bot or a restricted bot in a conversation.",
 		ArgumentHelp: "[conversation]",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdChatEditBotMemberRunner(g), "edit-bot-member", c)

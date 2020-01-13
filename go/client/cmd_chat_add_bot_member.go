@@ -40,7 +40,7 @@ func newCmdChatAddBotMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) 
 	})
 	return cli.Command{
 		Name:         "add-bot-member",
-		Usage:        "Add a bot or a restricted bot to a conversation",
+		Usage:        "Add a bot or a restricted bot to a conversation.",
 		ArgumentHelp: "[conversation]",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdChatAddBotMemberRunner(g), "add-bot-member", c)

@@ -67,6 +67,30 @@ const setupWindowEvents = (win: Electron.BrowserWindow) => {
   win.on('resize', saveWindowState)
   win.on('move', saveWindowState)
 
+  // workaround a bug on osx where resizing vertically messes up draggable areas!
+  if (isDarwin) {
+    let inResize = false
+    let oldWidth = 0
+    win.on('resize', () => {
+      // don't recurse
+      if (inResize) {
+        return
+      }
+      const winBounds = win.getNormalBounds()
+      const {height, width} = winBounds
+      // only happens if resizing vertically
+      if (width === oldWidth) {
+        inResize = true
+        setTimeout(() => {
+          win.setSize(width + 1, height)
+          win.setSize(width, height)
+          inResize = false
+        }, 100)
+      }
+      oldWidth = width
+    })
+  }
+
   const hideInsteadOfClose = (event: Electron.Event) => {
     event.preventDefault()
     win.hide()

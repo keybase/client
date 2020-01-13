@@ -15,7 +15,7 @@ export type Props = {
   toPaperKeyInput: () => void
   onBackFromPaperKey: () => void
   onContinueFromPaperKey: (paperkey: string) => void
-  paperkeyError: string | null
+  paperkeyError?: string
   waiting: boolean
   onFinish: () => void
 }

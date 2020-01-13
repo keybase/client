@@ -29,7 +29,7 @@ const BuildTeam = (_: {}) => {
 const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({
     isElectron: {
-      backgroundColor: Styles.globalColors.blueGreyLight,
+      backgroundColor: Styles.globalColors.blueGrey,
       flexShrink: 0,
       padding: Styles.globalMargins.small,
       width: '100%',

@@ -1623,8 +1623,11 @@
           "name": "isEphemeral"
         },
         {
-          "type": "boolean",
-          "name": "isEphemeralExpired"
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "explodedBy"
         },
         {
           "type": "gregor1.Time",
@@ -1846,6 +1849,10 @@
         {
           "type": "keybase1.TLFVisibility",
           "name": "visibility"
+        },
+        {
+          "type": "boolean",
+          "name": "isDefaultConv"
         },
         {
           "type": "ConversationStatus",

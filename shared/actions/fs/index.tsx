@@ -91,6 +91,17 @@ const loadAdditionalTlf = async (state: Container.TypedState, action: FsGen.Load
       })
     )
   } catch (e) {
+    if (e.code === RPCTypes.StatusCode.scteamcontactsettingsblock) {
+      const users = e.fields?.filter(elem => elem.key === 'usernames')
+      const usernames = users?.map(elem => elem.value)
+      // Don't leave the user on a broken FS dir screen.
+      return [
+        RouteTreeGen.createNavigateUp(),
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {source: 'newFolder', usernames}, selected: 'contactRestricted'}],
+        }),
+      ]
+    }
     return makeRetriableErrorHandler(action, action.payload.tlfPath)(e)
   }
 }
@@ -766,6 +777,10 @@ const subscribePath = async (action: FsGen.SubscribePathPayload) => {
     })
     return null
   } catch (err) {
+    if (err.code === RPCTypes.StatusCode.scteamcontactsettingsblock) {
+      // We'll handle this error in loadAdditionalTLF instead.
+      return
+    }
     return makeUnretriableErrorHandler(action, action.payload.path)(err)
   }
 }
@@ -895,14 +910,36 @@ const loadFilesTabBadge = async () => {
     return FsGen.createLoadedFilesTabBadge({badge})
   } catch {
     // retry once HOTPOT-1226
-    const badge = await RPCTypes.SimpleFSSimpleFSGetFilesTabBadgeRpcPromise()
-    return FsGen.createLoadedFilesTabBadge({badge})
+    try {
+      const badge = await RPCTypes.SimpleFSSimpleFSGetFilesTabBadgeRpcPromise()
+      return FsGen.createLoadedFilesTabBadge({badge})
+    } catch {}
   }
 }
 
 const userInOutClientKey = Constants.makeUUID()
 const userIn = () => RPCTypes.SimpleFSSimpleFSUserInRpcPromise({clientID: userInOutClientKey})
 const userOut = () => RPCTypes.SimpleFSSimpleFSUserOutRpcPromise({clientID: userInOutClientKey})
+
+let fsBadgeSubscriptionID: string = ''
+
+const subscribeFsBadge = (state: Container.TypedState) => {
+  if (state.fs.kbfsDaemonStatus.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected) {
+    return
+  }
+  const oldFsBadgeSubscriptionID = fsBadgeSubscriptionID
+  fsBadgeSubscriptionID = Constants.makeUUID()
+  return [
+    ...(oldFsBadgeSubscriptionID
+      ? [FsGen.createUnsubscribe({subscriptionID: oldFsBadgeSubscriptionID})]
+      : []),
+    FsGen.createSubscribeNonPath({
+      subscriptionID: fsBadgeSubscriptionID,
+      topic: RPCTypes.SubscriptionTopic.filesTabBadge,
+    }),
+    FsGen.createLoadFilesTabBadge(),
+  ]
+}
 
 function* fsSaga() {
   yield* Saga.chainGenerator<FsGen.UploadPayload>(FsGen.upload, upload)
@@ -955,6 +992,7 @@ function* fsSaga() {
   yield* Saga.chainAction(FsGen.unsubscribe, unsubscribe)
   yield* Saga.chainAction(EngineGen.keybase1NotifyFSFSSubscriptionNotifyPath, onPathChange)
   yield* Saga.chainAction(EngineGen.keybase1NotifyFSFSSubscriptionNotify, onNonPathChange)
+  yield* Saga.chainAction2(FsGen.kbfsDaemonRpcStatusChanged, subscribeFsBadge)
 
   yield* Saga.chainAction(FsGen.setDebugLevel, setDebugLevel)
 

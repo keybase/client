@@ -18,8 +18,8 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const meta = Constants.getMeta(state, conversationIDKey)
   const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
   const teamname = meta.teamname
-  const generalChannel = Constants.getChannelForTeam(state, teamname, 'general')
-  const generalParts = Constants.getParticipantInfo(state, generalChannel.conversationIDKey)
+  const generalChannel = Constants.getGeneralChannelForBigTeam(state, teamname)
+  const generalParts = Constants.getParticipantInfo(state, generalChannel)
   const _fullnames = state.users.infoMap
   const title = `Add to #${meta.channelname}`
   return {
@@ -27,12 +27,22 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     _alreadyAdded: participantInfo.all,
     _conversationIDKey: conversationIDKey,
     _fullnames,
+    _generalChannel: generalChannel,
     error: anyErrors(state, Constants.waitingKeyAddUsersToChannel),
     title,
   }
 }
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
+  _onLoad: (generalChannel: Types.ConversationIDKey) => {
+    dispatch(
+      Chat2Gen.createMetaRequestTrusted({
+        conversationIDKeys: [generalChannel],
+        force: true,
+        reason: 'requestTeamsUnboxing',
+      })
+    )
+  },
   _onSubmit: (conversationIDKey: Types.ConversationIDKey, usernames: Array<string>) =>
     dispatch(Chat2Gen.createAddUsersToChannel({conversationIDKey, usernames})),
   onCancel: () => {
@@ -66,6 +76,10 @@ export default Container.namedConnect(
       error,
       onBack: null,
       onCancel: dispatchProps.onCancel,
+      onLoad:
+        stateProps._allMembers.length === 0
+          ? () => dispatchProps._onLoad(stateProps._generalChannel)
+          : undefined,
       onSubmit: (usernames: Array<string>) =>
         dispatchProps._onSubmit(stateProps._conversationIDKey, usernames),
       title: stateProps.title,

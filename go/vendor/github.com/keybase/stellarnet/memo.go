@@ -1,7 +1,11 @@
 package stellarnet
 
 import (
+	"encoding/hex"
 	"errors"
+	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/stellar/go/xdr"
 )
@@ -56,6 +60,43 @@ func NewMemoReturn(h MemoHash) *Memo {
 	return &Memo{Type: MemoTypeReturn, ReturnHash: &h}
 }
 
+// NewMemoFromStrings returns a Memo converted from a string to the specified type.
+func NewMemoFromStrings(in, kind string) (*Memo, error) {
+	switch strings.ToLower(kind) {
+	case "none", "":
+		if in != "" {
+			return nil, errors.New("invalid memo: nonempty string for memo type none")
+		}
+		return NewMemoNone(), nil
+	case "text":
+		return NewMemoText(in), nil
+	case "id":
+		n, err := strconv.ParseUint(in, 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("invalid memo: could not convert to uint64 id (%s)", err)
+		}
+		return NewMemoID(n), nil
+	case "hash":
+		decoded, err := hex.DecodeString(in)
+		if err != nil {
+			return nil, fmt.Errorf("invalid memo: could not decode hex input string for hash (%s)", err)
+		}
+		var h MemoHash
+		copy(h[:], decoded)
+		return NewMemoHash(h), nil
+	case "return":
+		decoded, err := hex.DecodeString(in)
+		if err != nil {
+			return nil, fmt.Errorf("invalid memo: could not decode hex input string for hash (%s)", err)
+		}
+		var h MemoHash
+		copy(h[:], decoded)
+		return NewMemoReturn(h), nil
+	}
+
+	return nil, errors.New("invalid memo:  unknown type")
+}
+
 // toXDR returns an xdr.Memo of this memo.
 func (m *Memo) toXDR() (xdr.Memo, error) {
 	switch m.Type {
@@ -71,4 +112,20 @@ func (m *Memo) toXDR() (xdr.Memo, error) {
 		return xdr.NewMemo(xdr.MemoTypeMemoReturn, xdr.Hash(*m.ReturnHash))
 	}
 	return xdr.Memo{}, errors.New("unknown memo type")
+}
+
+func (m *Memo) String() string {
+	switch m.Type {
+	case MemoTypeNone:
+		return "<none>"
+	case MemoTypeText:
+		return fmt.Sprintf("%q <text>", *m.Text)
+	case MemoTypeID:
+		return fmt.Sprintf("%d <id>", *m.ID)
+	case MemoTypeHash:
+		return fmt.Sprintf("%x <hash>", *m.Hash)
+	case MemoTypeReturn:
+		return fmt.Sprintf("%x <return>", *m.ReturnHash)
+	}
+	return "<unknown>"
 }

@@ -4,10 +4,7 @@ import {getOrderedMemberArray, sortInvites, getOrderedBotsArray} from './helpers
 type HeaderRow = {key: string; type: 'header'}
 type TabsRow = {key: string; type: 'tabs'}
 type MemberRow = {key: string; username: string; type: 'member'}
-type BotRow =
-  | {key: string; username: string; type: 'bot'}
-  | {key: string; type: 'bot-add'}
-  | {key: string; type: 'bot-none'}
+type BotRow = {key: string; username: string; type: 'bot'} | {key: string; type: 'bot-add'}
 type InviteRow =
   | {key: string; label: string; type: 'invites-divider'}
   | {key: string; username: string; type: 'invites-request'}
@@ -58,9 +55,6 @@ const makeRows = (
       }
       if (yourOperations.manageBots) {
         rows.push({key: 'bot:install-more', type: 'bot-add'})
-      }
-      if (bots.length === 0) {
-        rows.push({key: 'bot:none', type: 'bot-none'})
       }
       break
     }

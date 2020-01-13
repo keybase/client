@@ -524,6 +524,10 @@ func (h ConfigHandler) AppendGUILogs(ctx context.Context, content string) error 
 }
 
 func (h ConfigHandler) GenerateWebAuthToken(ctx context.Context) (ret string, err error) {
+	if err := assertLoggedIn(ctx, h.G()); err != nil {
+		return ret, err
+	}
+
 	nist, err := h.G().ActiveDevice.NISTWebAuthToken(ctx)
 	if err != nil {
 		return ret, err

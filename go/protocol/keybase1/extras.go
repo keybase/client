@@ -1401,6 +1401,18 @@ func (b TLFIdentifyBehavior) SkipExternalChecks() bool {
 	}
 }
 
+// ShouldRefreshChatView indicates that when the identify is complete, we
+// should update the chat system's view of the computed track breaks (also
+// affects username coloring in the GUI).
+func (b TLFIdentifyBehavior) ShouldRefreshChatView() bool {
+	switch b {
+	case TLFIdentifyBehavior_GUI_PROFILE, TLFIdentifyBehavior_CLI:
+		return true
+	default:
+		return false
+	}
+}
+
 func (c CanonicalTLFNameAndIDWithBreaks) Eq(r CanonicalTLFNameAndIDWithBreaks) bool {
 	if c.CanonicalName != r.CanonicalName {
 		return false
@@ -3108,6 +3120,20 @@ func (r MerkleRootV2) Eq(s MerkleRootV2) bool {
 	return r.Seqno == s.Seqno && r.HashMeta.Eq(s.HashMeta)
 }
 
+func (d *HiddenTeamChain) GetLastCommittedSeqno() Seqno {
+	if d == nil {
+		return 0
+	}
+	return d.LastCommittedSeqno
+}
+
+func (d *HiddenTeamChain) GetOuter() map[Seqno]LinkID {
+	if d == nil {
+		return nil
+	}
+	return d.Outer
+}
+
 func (d *HiddenTeamChain) PopulateLastFull() {
 	if d == nil {
 		return
@@ -3625,7 +3651,7 @@ func (b FeaturedBotsRes) Eq(o FeaturedBotsRes) bool {
 }
 
 // Redact modifies the given ClientDetails struct
-func (d ClientDetails) Redact() {
+func (d *ClientDetails) Redact() {
 	tmp := fmt.Sprintf("%v", d.Argv)
 	re := regexp.MustCompile(`\b(chat|fs|encrypt|git|accept-invite|wallet\s+send|wallet\s+import|passphrase\s+check)\b`)
 	if mtch := re.FindString(tmp); len(mtch) > 0 {

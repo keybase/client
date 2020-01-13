@@ -396,7 +396,7 @@ const styles = Styles.styleSheetCreate(
       container: Styles.platformStyles({
         isElectron: {
           ...Styles.globalStyles.flexBoxColumn,
-          backgroundColor: Styles.globalColors.blueGreyLight,
+          backgroundColor: Styles.globalColors.blueGrey,
           contain: 'strict',
           height: '100%',
           maxWidth: inboxWidth,
@@ -502,7 +502,7 @@ const styles = Styles.styleSheetCreate(
         height: 68,
       },
       spacer: {
-        backgroundColor: Styles.globalColors.blueGreyLight,
+        backgroundColor: Styles.globalColors.blueGrey,
         bottom: 0,
         height: 8,
         position: 'absolute',

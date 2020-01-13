@@ -1,41 +1,30 @@
 // A mirror of the remote menubar windows.
-import * as React from 'react'
-import SyncAvatarProps from '../desktop/remote/sync-avatar-props.desktop'
-import SyncProps from '../desktop/remote/sync-props.desktop'
-import * as Styles from '../styles'
+import * as ChatConstants from '../constants/chat2'
+import * as NotificationTypes from '../constants/types/notifications'
+import * as FSTypes from '../constants/types/fs'
 import * as Container from '../util/container'
+import * as React from 'react'
+import * as Styles from '../styles'
 import * as SafeElectron from '../util/safe-electron.desktop'
-import {conversationsToSend} from '../chat/inbox/container/remote'
+import {intersect} from '../util/set'
+import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import {serialize} from './remote-serializer.desktop'
-import {uploadsToUploadCountdownHOCProps} from '../fs/footer/upload-container'
-import * as Constants from '../constants/config'
-import {TlfUpdate} from '../constants/types/fs'
-import {BadgeType} from '../constants/types/notifications'
-import {isDarwin, isWindows} from '../constants/platform'
-import {resolveImage} from '../desktop/app/resolve-root.desktop'
 import {getMainWindow} from '../desktop/remote/util.desktop'
+import {resolveImage} from '../desktop/app/resolve-root.desktop'
+import {isDarwin, isWindows} from '../constants/platform'
 import {isSystemDarkMode} from '../styles/dark-mode'
+import {uploadsToUploadCountdownHOCProps} from '../fs/footer/upload-container'
+import {ProxyProps, RemoteTlfUpdates} from './remote-serializer.desktop'
+import {mapFilterByKey} from '../util/map'
+import {memoize} from '../util/memoize'
+import shallowEqual from 'shallowequal'
 
-const _windowOpts = {}
-
-type Props = {
-  desktopAppBadgeCount: number
-  externalRemoteWindow: SafeElectron.BrowserWindowType
-  remoteWindowNeedsProps: number
-  widgetBadge: BadgeType
-  windowComponent: string
-  windowOpts?: Object
-  windowParam: string
-  windowPositionBottomRight?: boolean
-  windowTitle: string
-}
-
-const getIcons = (iconType: BadgeType, isBadged: boolean) => {
+const getIcons = (iconType: NotificationTypes.BadgeType, isBadged: boolean) => {
   const devMode = __DEV__ ? '-dev' : ''
   let color = 'white'
   const colorSelected = 'white'
-  let platform = ''
   const badged = isBadged ? 'badged-' : ''
+  let platform = ''
 
   if (isDarwin) {
     color = isSystemDarkMode() ? 'white' : 'black'
@@ -51,170 +40,156 @@ const getIcons = (iconType: BadgeType, isBadged: boolean) => {
   return [icon, iconSelected]
 }
 
-// Like RemoteWindow but the browserWindow is handled by the 3rd party menubar class and mostly lets it handle things
-function RemoteMenubarWindow(ComposedComponent: any) {
-  class RemoteWindowComponent extends React.PureComponent<Props> {
-    subscriptionId: number | null = null
-    _updateBadges = () => {
-      const [icon, iconSelected] = getIcons(this.props.widgetBadge, this.props.desktopAppBadgeCount > 0)
-      SafeElectron.getApp().emit('KBmenu', '', {
-        payload: {
-          desktopAppBadgeCount: this.props.desktopAppBadgeCount,
-          icon,
-          iconSelected,
-        },
-        type: 'showTray',
-      })
-      // Windows just lets us set (or unset, with null) a single 16x16 icon
-      // to be used as an overlay in the bottom right of the taskbar icon.
-      if (isWindows) {
-        const mw = getMainWindow()
-        const overlay =
-          this.props.desktopAppBadgeCount > 0 ? resolveImage('icons', 'icon-windows-badge.png') : null
-        // @ts-ignore setOverlayIcon docs say null overlay's fine, TS disagrees
-        mw && mw.setOverlayIcon(overlay, 'new activity')
-      }
-    }
-
-    componentDidUpdate(prevProps: Props) {
-      if (
-        this.props.widgetBadge !== prevProps.widgetBadge ||
-        this.props.desktopAppBadgeCount !== prevProps.desktopAppBadgeCount ||
-        this.props.remoteWindowNeedsProps !== prevProps.remoteWindowNeedsProps
-      ) {
-        this._updateBadges()
-      }
-    }
-
-    componentDidMount() {
-      this._updateBadges()
-
-      if (isDarwin && SafeElectron.getSystemPreferences().subscribeNotification) {
-        this.subscriptionId = SafeElectron.getSystemPreferences().subscribeNotification(
-          'AppleInterfaceThemeChangedNotification',
-          () => {
-            this._updateBadges()
-          }
-        )
-      }
-    }
-    componentWillUnmount() {
-      if (this.subscriptionId && SafeElectron.getSystemPreferences().unsubscribeNotification) {
-        SafeElectron.getSystemPreferences().unsubscribeNotification(this.subscriptionId || -1)
-      }
-    }
-    render() {
-      const {
-        widgetBadge,
-        desktopAppBadgeCount,
-        windowOpts,
-        windowPositionBottomRight,
-        windowTitle,
-        externalRemoteWindow,
-        ...props
-      } = this.props
-      return <ComposedComponent {...props} />
-    }
-  }
-
-  return RemoteWindowComponent
+type WidgetProps = {
+  desktopAppBadgeCount: number
+  widgetBadge: NotificationTypes.BadgeType
 }
 
-const mapStateToProps = (state: Container.TypedState) => ({
-  _badgeInfo: state.notifications.navBadges,
-  _externalRemoteWindowID: state.config.menubarWindowID,
-  _pathItems: state.fs.pathItems,
-  _tlfUpdates: state.fs.tlfUpdates,
-  _uploads: state.fs.uploads,
-  conversationsToSend: conversationsToSend(
-    state.chat2.inboxLayout,
-    state.chat2.metaMap,
-    state.chat2.participantMap,
-    state.chat2.badgeMap,
-    state.chat2.unreadMap,
-    state.config.username
-  ),
-  daemonHandshakeState: state.config.daemonHandshakeState,
-  darkMode: Styles.isDarkMode(),
-  desktopAppBadgeCount: state.notifications.desktopAppBadgeCount,
-  diskSpaceStatus: state.fs.overallSyncStatus.diskSpaceStatus,
-  kbfsDaemonStatus: state.fs.kbfsDaemonStatus,
-  kbfsEnabled: state.fs.sfmi.driverStatus.type === 'enabled',
-  loggedIn: state.config.loggedIn,
-  outOfDate: state.config.outOfDate,
-  remoteWindowNeedsProps: Constants.getRemoteWindowPropsCount(state.config, 'menubar', ''),
-  showingDiskSpaceBanner: state.fs.overallSyncStatus.showingBanner,
-  userInfo: state.users.infoMap,
-  username: state.config.username,
-  widgetBadge: state.notifications.widgetBadge,
+function useDarkSubscription() {
+  const [count, setCount] = React.useState(-1)
+  React.useEffect(() => {
+    if (isDarwin) {
+      const subscriptionId = SafeElectron.getSystemPreferences().subscribeNotification(
+        'AppleInterfaceThemeChangedNotification',
+        () => {
+          setCount(count + 1)
+        }
+      )
+      return () => {
+        if (subscriptionId && SafeElectron.getSystemPreferences().unsubscribeNotification) {
+          SafeElectron.getSystemPreferences().unsubscribeNotification(subscriptionId || -1)
+        }
+      }
+    } else {
+      return undefined
+    }
+    // eslint-disable-next-line
+  }, [])
+  return count
+}
+
+function useUpdateBadges(p: WidgetProps, darkCount: number) {
+  const {widgetBadge, desktopAppBadgeCount} = p
+
+  React.useEffect(() => {
+    const [icon, iconSelected] = getIcons(widgetBadge, desktopAppBadgeCount > 0)
+    SafeElectron.getApp().emit('KBmenu', '', {
+      payload: {desktopAppBadgeCount, icon, iconSelected},
+      type: 'showTray',
+    })
+    // Windows just lets us set (or unset, with null) a single 16x16 icon
+    // to be used as an overlay in the bottom right of the taskbar icon.
+    if (isWindows) {
+      const mw = getMainWindow()
+      const overlay = desktopAppBadgeCount > 0 ? resolveImage('icons', 'icon-windows-badge.png') : null
+      // @ts-ignore setOverlayIcon docs say null overlay's fine, TS disagrees
+      mw && mw.setOverlayIcon(overlay, 'new activity')
+    }
+  }, [widgetBadge, desktopAppBadgeCount, darkCount])
+}
+
+function useWidgetBrowserWindow(p: WidgetProps) {
+  const count = useDarkSubscription()
+  useUpdateBadges(p, count)
+}
+
+const Widget = (p: ProxyProps & WidgetProps) => {
+  const windowComponent = 'menubar'
+  const windowParam = 'menubar'
+
+  const {desktopAppBadgeCount, widgetBadge, ...toSend} = p
+  useWidgetBrowserWindow({desktopAppBadgeCount, widgetBadge})
+  useSerializeProps(toSend, serialize, windowComponent, windowParam)
+  return null
+}
+
+const GetRowsFromTlfUpdate = (t: FSTypes.TlfUpdate, uploads: FSTypes.Uploads): RemoteTlfUpdates => ({
+  timestamp: t.serverTime,
+  tlf: t.path,
+  updates: t.history.map(u => {
+    const path = FSTypes.stringToPath(u.filename)
+    return {path, uploading: uploads.syncingPaths.has(path) || uploads.writingToJournal.has(path)}
+  }),
+  writer: t.writer,
 })
 
-let _lastUsername: string | undefined
-let _lastClearCacheTrigger = 0
+const getCachedUsernames = memoize(
+  (users: Array<string>) => new Set(users),
+  ([a], [b]) => shallowEqual(a, b)
+)
 
-const getUsernamesFromTlfUpdate = (tlfUpdates: Array<TlfUpdate>): Array<string> =>
-  tlfUpdates.map(update => update.writer)
+export default () => {
+  const state = Container.useSelector(s => s)
+  const {desktopAppBadgeCount, navBadges, widgetBadge} = state.notifications
+  const {daemonHandshakeState, loggedIn, outOfDate, username} = state.config
+  const {httpSrvAddress, httpSrvToken} = state.config
+  const {avatarRefreshCounter: _arc, followers: _followers, following: _following} = state.config
+  const {pathItems, tlfUpdates, uploads, overallSyncStatus, kbfsDaemonStatus, sfmi} = state.fs
+  const {inboxLayout, metaMap, badgeMap, unreadMap, participantMap} = state.chat2
+  const {infoMap: _infoMap} = state.users
+  const darkMode = Styles.isDarkMode()
+  const {diskSpaceStatus, showingBanner} = overallSyncStatus
+  const kbfsEnabled = sfmi.driverStatus.type === 'enabled'
 
-// TODO better type
-const RenderExternalWindowBranch: any = (ComposedComponent: React.ComponentType<any>) =>
-  class RemoteWindowComponent extends React.PureComponent<{
-    externalRemoteWindow?: SafeElectron.BrowserWindowType
-  }> {
-    render() {
-      return this.props.externalRemoteWindow ? <ComposedComponent {...this.props} /> : null
+  const remoteTlfUpdates = React.useMemo(() => tlfUpdates.map(t => GetRowsFromTlfUpdate(t, uploads)), [
+    tlfUpdates,
+    uploads,
+  ])
+
+  const conversationsToSend = React.useMemo(
+    () =>
+      inboxLayout?.widgetList?.map(v => ({
+        conversation: metaMap.get(v.convID) || {
+          ...ChatConstants.makeConversationMeta(),
+          conversationIDKey: v.convID,
+        },
+        hasBadge: !!badgeMap.get(v.convID),
+        hasUnread: !!unreadMap.get(v.convID),
+        participantInfo: participantMap.get(v.convID) ?? ChatConstants.noParticipantInfo,
+      })) ?? [],
+    [inboxLayout, metaMap, badgeMap, unreadMap, participantMap]
+  )
+
+  // filter some data based on visible users
+  const usernamesArr: Array<string> = []
+  tlfUpdates.forEach(update => usernamesArr.push(update.writer))
+  conversationsToSend.forEach(c => {
+    if (c.conversation.teamType === 'adhoc') {
+      usernamesArr.push(...c.participantInfo.all)
     }
+  })
+
+  // memoize so useMemos work below
+  const usernames = getCachedUsernames(usernamesArr)
+
+  const avatarRefreshCounter = React.useMemo(() => mapFilterByKey(_arc, usernames), [_arc, usernames])
+  const followers = React.useMemo(() => intersect(_followers, usernames), [_followers, usernames])
+  const following = React.useMemo(() => intersect(_following, usernames), [_following, usernames])
+  const infoMap = React.useMemo(() => mapFilterByKey(_infoMap, usernames), [_infoMap, usernames])
+
+  const p: ProxyProps & WidgetProps = {
+    ...uploadsToUploadCountdownHOCProps(pathItems, uploads),
+    avatarRefreshCounter,
+    conversationsToSend,
+    daemonHandshakeState,
+    darkMode,
+    desktopAppBadgeCount,
+    diskSpaceStatus,
+    followers,
+    following,
+    httpSrvAddress,
+    httpSrvToken,
+    infoMap,
+    kbfsDaemonStatus,
+    kbfsEnabled,
+    loggedIn,
+    navBadges,
+    outOfDate,
+    remoteTlfUpdates,
+    showingDiskSpaceBanner: showingBanner,
+    username,
+    widgetBadge,
   }
 
-// Actions are handled by remote-container
-export default Container.namedConnect(
-  mapStateToProps,
-  () => ({}),
-  stateProps => {
-    if (_lastUsername !== stateProps.username) {
-      _lastUsername = stateProps.username
-      _lastClearCacheTrigger++
-    }
-
-    // To show the following status of usernaems in the mebubar widget, we need to
-    // provide which users will appear in the menubar before rendering it.
-    // This is done for SyncAvatarProps which use the usernames to shorten the
-    // number of following/follwers that are sent to the remote window.
-    const usernamesForFollowingStatus = getUsernamesFromTlfUpdate(stateProps._tlfUpdates)
-
-    return {
-      badgeKeys: stateProps._badgeInfo,
-      badgeMap: stateProps._badgeInfo,
-      clearCacheTrigger: _lastClearCacheTrigger,
-      conversationIDs: stateProps.conversationsToSend,
-      conversationMap: stateProps.conversationsToSend,
-      daemonHandshakeState: stateProps.daemonHandshakeState,
-      darkMode: stateProps.darkMode,
-      desktopAppBadgeCount: stateProps.desktopAppBadgeCount,
-      diskSpaceStatus: stateProps.diskSpaceStatus,
-      externalRemoteWindow: stateProps._externalRemoteWindowID
-        ? SafeElectron.getRemote().BrowserWindow.fromId(stateProps._externalRemoteWindowID)
-        : null,
-      fileRows: {_tlfUpdates: stateProps._tlfUpdates, _uploads: stateProps._uploads},
-      kbfsDaemonStatus: stateProps.kbfsDaemonStatus,
-      kbfsEnabled: stateProps.kbfsEnabled,
-      loggedIn: stateProps.loggedIn,
-      outOfDate: stateProps.outOfDate,
-      remoteWindowNeedsProps: stateProps.remoteWindowNeedsProps,
-      showingDiskSpaceBanner: stateProps.showingDiskSpaceBanner,
-      userInfo: stateProps.userInfo,
-      username: stateProps.username,
-      usernames: usernamesForFollowingStatus,
-      widgetBadge: stateProps.widgetBadge,
-      windowComponent: 'menubar',
-      windowOpts: _windowOpts,
-      windowParam: '',
-      windowTitle: '',
-      ...uploadsToUploadCountdownHOCProps(stateProps._pathItems, stateProps._uploads),
-    }
-  },
-  'MenubarRemoteProxy'
-)(
-  RenderExternalWindowBranch(
-    RemoteMenubarWindow(SyncAvatarProps(SyncProps(serialize)(Container.NullComponent)))
-  )
-)
+  return <Widget {...p} />
+}

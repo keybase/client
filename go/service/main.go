@@ -409,6 +409,7 @@ func (d *Service) startChatModules() {
 	if !kuid.IsNil() {
 		uid := kuid.ToBytes()
 		g := globals.NewContext(d.G(), d.ChatG())
+		g.PushHandler.Start(context.Background(), uid)
 		g.MessageDeliverer.Start(context.Background(), uid)
 		g.ConvLoader.Start(context.Background(), uid)
 		g.FetchRetrier.Start(context.Background(), uid)
@@ -421,11 +422,13 @@ func (d *Service) startChatModules() {
 		g.LiveLocationTracker.Start(context.Background(), uid)
 		g.BotCommandManager.Start(context.Background(), uid)
 		g.UIInboxLoader.Start(context.Background(), uid)
+		g.PushShutdownHook(d.stopChatModules)
 	}
 	d.purgeOldChatAttachmentData()
 }
 
 func (d *Service) stopChatModules(m libkb.MetaContext) error {
+	<-d.ChatG().PushHandler.Stop(m.Ctx())
 	<-d.ChatG().MessageDeliverer.Stop(m.Ctx())
 	<-d.ChatG().ConvLoader.Stop(m.Ctx())
 	<-d.ChatG().FetchRetrier.Stop(m.Ctx())
@@ -451,12 +454,12 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	storage.SetupGlobalHooks(g)
 	// Set up main chat data sources
 	boxer := chat.NewBoxer(g)
-	chatStorage := storage.New(g, nil)
 	g.CtxFactory = chat.NewCtxFactory(g)
 	g.Badger = d.badger
 	inboxSource := chat.NewInboxSource(g, g.Env.GetInboxSourceType(), ri)
 	g.InboxSource = inboxSource
 	d.badger.SetLocalChatState(inboxSource)
+	chatStorage := storage.New(g, nil)
 	g.ConvSource = chat.NewConversationSource(g, g.Env.GetConvSourceType(),
 		boxer, chatStorage, ri)
 	chatStorage.SetAssetDeleter(g.ConvSource)
@@ -901,7 +904,6 @@ func (d *Service) OnLogin(mctx libkb.MetaContext) error {
 	uid := d.G().Env.GetUID()
 	if !uid.IsNil() {
 		d.startChatModules()
-		d.G().PushShutdownHook(d.stopChatModules)
 		d.runTLFUpgrade()
 		d.runTrackerLoader(mctx.Ctx())
 	}
@@ -1071,6 +1073,7 @@ func (d *Service) ConfigRPCServer() (net.Listener, error) {
 }
 
 func (d *Service) Stop(exitCode keybase1.ExitCode) {
+	d.G().Log.Info("Beginning the process of stopping the service")
 	d.stopCh <- exitCode
 }
 
@@ -1092,6 +1095,7 @@ func (d *Service) ListenLoop(l net.Listener) (err error) {
 		if c, err = l.Accept(); err != nil {
 
 			if libkb.IsSocketClosedError(err) {
+				d.G().Log.Debug("ListenLoop socket/pipe is closed")
 				err = nil
 			}
 
@@ -1433,5 +1437,13 @@ func (d *Service) StartStandaloneChat(g *libkb.GlobalContext) error {
 	d.startupGregor()
 	d.startChatModules()
 
+	return nil
+}
+
+func assertLoggedIn(ctx context.Context, g *libkb.GlobalContext) error {
+	loggedIn := g.ActiveDevice.Valid()
+	if !loggedIn {
+		return libkb.LoginRequiredError{}
+	}
 	return nil
 }

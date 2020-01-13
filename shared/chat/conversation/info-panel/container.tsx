@@ -230,6 +230,7 @@ const ConnectedInfoPanel = Container.connect(
             TeamConstants.userIsRoleInTeamWithInfo(stateProps._teamMembers, p.username, 'bot')
         )
         .map(p => p.username)
+        .sort((l, r) => l.localeCompare(r))
     }
 
     const shouldFilterBots = stateProps.smallTeam
@@ -248,6 +249,7 @@ const ConnectedInfoPanel = Container.connect(
         }
     )
 
+    const loadingBots = !stateProps._featuredBots.size
     const featuredBots = BotConstants.getFeaturedSorted(stateProps._featuredBots).filter(
       k =>
         !botUsernames.includes(k.botUsername) &&
@@ -360,6 +362,7 @@ const ConnectedInfoPanel = Container.connect(
           : noLinks,
       loadDelay: ownProps.loadDelay,
       loadedAllBots: stateProps.loadedAllBots,
+      loadingBots,
       media:
         stateProps.selectedAttachmentView === RPCChatTypes.GalleryItemTyp.media
           ? {

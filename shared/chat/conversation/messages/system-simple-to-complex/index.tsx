@@ -17,23 +17,11 @@ class ComplexTeamNotice extends React.PureComponent<Props> {
   render() {
     const {you, onManageChannels, message} = this.props
     const {team, author} = message
-    const authorComponent =
-      author === you ? (
-        'You'
-      ) : (
-        <Kb.ConnectedUsernames
-          onUsernameClicked="profile"
-          inline={true}
-          type="BodySmallSemibold"
-          colorFollowing={true}
-          underline={true}
-          usernames={[author]}
-        />
-      )
     return (
       <UserNotice>
         <Kb.Text type="BodySmall">
-          {authorComponent} made <Kb.Text type="BodySmallBold">{team}</Kb.Text> a big team! Note that:
+          {author === you ? 'You ' : ''}made <Kb.Text type="BodySmallBold">{team}</Kb.Text> a big team! Note
+          that:
         </Kb.Text>
         <Kb.Box2
           direction="vertical"

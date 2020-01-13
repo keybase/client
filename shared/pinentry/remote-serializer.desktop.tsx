@@ -1,22 +1,14 @@
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as Container from '../util/container'
-import {WireProps} from './remote-proxy.desktop'
+import * as Types from '../constants/types/pinentry'
 
-export const serialize: Container.RemoteWindowSerializeProps<WireProps> = {
-  cancelLabel: (v?: string) => v,
-  darkMode: (v: boolean) => v,
-  prompt: (v: string) => v,
-  retryLabel: (v?: string) => v,
-  showTyping: (v: RPCTypes.Feature) => v,
-  submitLabel: (v?: string) => v,
-  type: (v: RPCTypes.PassphraseType) => v,
-  windowComponent: (v: string) => v,
-  windowOpts: (v: any) => v,
-  windowPositionBottomRight: (v: boolean) => v,
-  windowTitle: (v: string) => v,
-}
+export type ProxyProps = {
+  darkMode: boolean
+} & Types.State
 
-const initialState: WireProps = {
+type SerializeProps = ProxyProps
+export type DeserializeProps = ProxyProps
+
+const initialState: DeserializeProps = {
   darkMode: false,
   prompt: '',
   showTyping: {
@@ -26,17 +18,15 @@ const initialState: WireProps = {
     readonly: false,
   },
   type: RPCTypes.PassphraseType.none,
-  windowComponent: '',
-  windowOpts: {},
-  windowPositionBottomRight: false,
   windowTitle: '',
 }
 
-export const deserialize = (state: WireProps = initialState, props: any): WireProps => {
-  if (!props) return state
+export const serialize = (p: ProxyProps): Partial<SerializeProps> => p
 
-  return {
-    ...state,
-    ...props,
-  }
-}
+export const deserialize = (
+  state: DeserializeProps = initialState,
+  props: SerializeProps
+): DeserializeProps => ({
+  ...state,
+  ...props,
+})

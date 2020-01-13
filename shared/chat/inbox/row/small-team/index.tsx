@@ -24,8 +24,6 @@ export type Props = {
   isMuted: boolean
   isSelected: boolean
   isTypingSnippet: boolean
-  layoutIsTeam: boolean
-  layoutName: string
   layoutSnippet?: string
   layoutSnippetDecoration: RPCChatTypes.SnippetDecoration
   onHideConversation: () => void

@@ -64,6 +64,9 @@ type StorageEngine interface {
 	// the maximum Seqno s' <= s (similarly to LookupNode). For each such pair,
 	// it returns the Seqno at which it was stored (in the same order).
 	LookupKEVPairsUnderPosition(ctx logger.ContextInterface, t Transaction, s Seqno, p *Position) ([]KeyEncodedValuePair, []Seqno, error)
+
+	// LookupAllKEVPairs returns all the keys and encoded values at the specified Seqno.
+	LookupAllKEVPairs(ctx logger.ContextInterface, t Transaction, s Seqno) ([]KeyEncodedValuePair, error)
 }
 
 // StorageEngineWithBlinding extends the StorageEngine interface with methods to
