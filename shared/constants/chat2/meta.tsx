@@ -391,7 +391,7 @@ export const getMeta = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.metaMap.get(id) || emptyMeta
 
 export const getGeneralChannelForBigTeam = (state: TypedState, teamname: string) => {
-  const t = [...(state.chat2.inboxLayout?.bigTeams?.values() ?? [])].find(
+  const t = (state.chat2.inboxLayout?.bigTeams ?? []).find(
     m =>
       m.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel &&
       m.channel.teamname === teamname &&

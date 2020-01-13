@@ -144,7 +144,6 @@ class AddToChannel extends React.Component<Props, State> {
                 </Kb.Text>
               )}
             </Kb.Box2>
-            )
           </Kb.Box2>
         )}
       </Kb.Box2>
