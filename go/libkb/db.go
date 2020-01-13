@@ -149,19 +149,23 @@ func tablePrefix(table string) []byte {
 	return []byte(fmt.Sprintf("%s:", table))
 }
 
-func (k DbKey) ToString(table string) string {
-	return fmt.Sprintf("%s:%s", PrefixString(table, k.Typ), k.Key)
+func (k DbKey) ToString() string {
+	return fmt.Sprintf("%s:%s", PrefixString(k.Typ), k.Key)
 }
 
-func (k DbKey) ToBytes(table string) []byte {
-	if IsPermDbKey(k.Typ) {
-		table = levelDbTablePerm
+func (t ObjType) table() string {
+	if IsPermDbKey(t) {
+		return levelDbTablePerm
 	}
-	return []byte(k.ToString(table))
+	return levelDbTableKv
 }
 
-func PrefixString(table string, typ ObjType) string {
-	return fmt.Sprintf("%s:%02x", table, typ)
+func (k DbKey) ToBytes() []byte {
+	return []byte(k.ToString())
+}
+
+func PrefixString(typ ObjType) string {
+	return fmt.Sprintf("%s:%02x", typ.table(), typ)
 }
 
 var fieldExp = regexp.MustCompile(`[a-f0-9]{2}`)

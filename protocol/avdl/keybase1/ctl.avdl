@@ -26,6 +26,7 @@ protocol ctl {
   }
 
   @typedef("bytes") record DbValue {}
+  @typedef("bytes") record DbPrefix {}
 
   void stop(int sessionID, ExitCode exitCode);
   void stopService(int sessionID, ExitCode exitCode);
@@ -38,6 +39,7 @@ protocol ctl {
   void dbDelete(int sessionID, DbKey key);
   void dbPut(int sessionID, DbKey key, DbValue value);
   union { null, DbValue } dbGet(int sessionID, DbKey key);
+  array<DbKey> dbKeysWithPrefixes(int sessionID, DbKey prefix);
 
   void setNixOnLoginStartup(boolean enabled);
 

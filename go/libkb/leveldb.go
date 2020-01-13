@@ -34,7 +34,7 @@ type levelDBOps interface {
 }
 
 func LevelDbPrefix(typ ObjType) []byte {
-	return []byte(PrefixString(levelDbTableKv, typ))
+	return []byte(PrefixString(typ))
 }
 
 func levelDbPut(ops levelDBOps, cleaner *levelDbCleaner, id DbKey, aliases []DbKey, value []byte) (err error) {
@@ -95,7 +95,7 @@ func levelDbLookup(ops levelDBOps, cleaner *levelDbCleaner, id DbKey) (val []byt
 		if tab, id2, err2 := DbKeyParse(string(val)); err2 != nil {
 			err = err2
 		} else if tab != levelDbTableKv && tab != levelDbTablePerm {
-			err = fmt.Errorf("bad alias; expected 'kv' but got '%s'", tab)
+			err = fmt.Errorf("bad alias; expected 'kv' or 'pm' but got '%s'", tab)
 		} else {
 			val, found, err = levelDbGetWhich(ops, cleaner, id2, tab)
 		}
