@@ -20,7 +20,6 @@ import HiddenString from '../../util/hidden-string'
 import {getFullname} from '../users'
 import {memoize} from '../../util/memoize'
 import * as TeamConstants from '../teams'
-import {CommonConnectionOptions} from 'tls'
 
 export const defaultTopReacjis = [':+1:', ':-1:', ':tada:', ':joy:', ':sunglasses:']
 const defaultSkinTone = 1

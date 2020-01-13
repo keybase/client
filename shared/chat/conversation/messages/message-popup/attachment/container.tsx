@@ -154,7 +154,7 @@ export default Container.connect(
       onDownload: !isMobile && !message.downloadPath ? () => dispatchProps._onDownload(message) : undefined,
       // We only show the share/save options for video if we have the file stored locally from a download
       onHidden: () => ownProps.onHidden(),
-      onInstallBot: stateProps._authorIsBot ? dispatchProps._onInstallBot(message) : undefined,
+      onInstallBot: stateProps._authorIsBot ? () => dispatchProps._onInstallBot(message) : undefined,
       onKick: () => dispatchProps._onKick(stateProps._teamID, message.author),
       onPinMessage: stateProps._canPinMessage ? () => dispatchProps._onPinMessage(message) : undefined,
       onReply: () => dispatchProps._onReply(message),
