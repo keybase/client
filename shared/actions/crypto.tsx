@@ -90,7 +90,6 @@ const handleRunOperation = (
     case CryptoGen.setEncryptOptions: {
       const {options} = action.payload
       const {recipients, input, inputType} = state.crypto.encrypt
-      console.log('JRY setEncryptOptions', {recipients, input, inputType})
       if (recipients && recipients.length && input && inputType) {
         return makeOperationAction({
           input,
