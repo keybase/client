@@ -458,21 +458,20 @@ func TestAuditFailsIfDataIsInconsistent(t *testing.T) {
 }
 
 func TestFailedProbesAreRetried(t *testing.T) {
-	fus, tcs, cleanup := setupNTests(t, 3)
+	fus, tcs, cleanup := setupNTests(t, 2)
 	defer cleanup()
 
-	// We set up codenames for 3 users, A, B, C
+	// We set up codenames for 2 users, A, B
 	const (
 		A = 0
 		B = 1
-		C = 2
 	)
 
 	makePaperKey(t, tcs[A])
 	makePaperKey(t, tcs[B])
 
 	t.Logf("create team")
-	teamName, teamID := createTeam2(*tcs[0])
+	teamName, teamID := createTeam2(*tcs[A])
 	m := make([]libkb.MetaContext, 3)
 	for i, tc := range tcs {
 		m[i] = libkb.NewMetaContextForTest(*tc)
