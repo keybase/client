@@ -3017,6 +3017,40 @@ func (h *Server) GetTeamRoleInConversation(ctx context.Context, arg chat1.GetTea
 	return teams.MemberRoleFromID(ctx, h.G().ExternalG(), teamID, arg.Username)
 }
 
+func (h *Server) AddBotConvSearch(ctx context.Context, term string) (res []chat1.AddBotConvSearchHit, err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
+	defer h.Trace(ctx, func() error { return err }, "AddBotConvSearch")()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
+	username := h.G().GetEnv().GetUsername().String()
+	allConvs, err := h.G().InboxSource.Search(ctx, uid, term, 0)
+	if err != nil {
+		return res, err
+	}
+	res = make([]chat1.AddBotConvSearchHit, 0, len(allConvs))
+	for _, conv := range allConvs {
+		switch conv.GetTeamType() {
+		case chat1.TeamType_NONE, chat1.TeamType_SIMPLE:
+			res = append(res, chat1.AddBotConvSearchHit{
+				Name:   utils.SearchableRemoteConversationName(conv, username),
+				ConvID: conv.GetConvID(),
+				IsTeam: conv.GetTeamType() == chat1.TeamType_SIMPLE,
+			})
+		case chat1.TeamType_COMPLEX:
+			if conv.Conv.Metadata.IsDefaultConv {
+				res = append(res, chat1.AddBotConvSearchHit{
+					Name:   utils.GetRemoteConvTLFName(conv),
+					ConvID: conv.GetConvID(),
+					IsTeam: true,
+				})
+			}
+		}
+	}
+	return res, nil
+}
+
 func (h *Server) TeamIDFromTLFName(ctx context.Context, arg chat1.TeamIDFromTLFNameArg) (res keybase1.TeamID, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)

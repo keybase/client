@@ -1019,6 +1019,7 @@ export enum UnfurlType {
   giphy = 2,
   maps = 3,
 }
+export type AddBotConvSearchHit = {readonly name: String; readonly convID: ConversationID; readonly isTeam: Boolean}
 export type AdvertiseBotCommandsLocalRes = {readonly rateLimits?: Array<RateLimit> | null}
 export type AdvertiseBotCommandsRes = {readonly rateLimit?: RateLimit | null}
 export type AdvertiseCommandAPIParam = {readonly typ: String; readonly commands?: Array<UserBotCommandInput> | null; readonly teamName: String}
@@ -1612,6 +1613,7 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.local.advertiseBotCommandsLocal'
 // 'chat.1.local.listBotCommandsLocal'
 // 'chat.1.local.clearBotCommandsLocal'
+// 'chat.1.local.addBotConvSearch'
 // 'chat.1.local.teamIDFromTLFName'
 // 'chat.1.local.dismissJourneycard'
 // 'chat.1.NotifyChat.NewChatActivity'
