@@ -37,6 +37,7 @@ const Recipients = (props: Props) => (
         />
       ) : null}
     </Kb.Box2>
+    <Kb.Divider />
   </Kb.Box2>
 )
 
@@ -47,14 +48,12 @@ const styles = Styles.styleSheetCreate(
       input: {
         ...Styles.globalStyles.flexGrow,
         alignSelf: 'center',
-        backgroundColor: Styles.globalColors.blueGreyLight,
         borderBottomWidth: 0,
         borderWidth: 0,
         marginLeft: Styles.globalMargins.xtiny,
         paddingLeft: 0,
       },
       recipientsContainer: {
-        backgroundColor: Styles.globalColors.blueGreyLight,
         minHeight: recipientsRowHeight,
         paddingBottom: Styles.globalMargins.tiny,
         paddingLeft: Styles.globalMargins.xsmall,
