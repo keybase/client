@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"time"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/install"
@@ -28,6 +27,7 @@ func NewCmdCtlStart(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 			cl.ChooseCommand(&CmdCtlStart{libkb.NewContextified(g)}, "start", c)
 			cl.SetForkCmd(libcmdline.NoFork)
 			cl.SetNoStandalone()
+			cl.SetLogForward(libcmdline.LogForwardNone)
 		},
 	}
 }
@@ -41,8 +41,12 @@ func (s *CmdCtlStart) ParseArgv(ctx *cli.Context) error {
 }
 
 func (s *CmdCtlStart) Run() (err error) {
-	g := s.G()
-	configCli, err := GetConfigClient(g)
+	fmt.Println("no fork, entered Run")
+	fmt.Printf("g looks like this: %+v\n", s.G())
+	mctx := libkb.NewMetaContextTODO(s.G())
+	g := mctx.G()
+
+	configCli, err := GetConfigClient(mctx.G())
 	if err != nil {
 		return err
 	}
@@ -50,11 +54,12 @@ func (s *CmdCtlStart) Run() (err error) {
 	if err != nil {
 		return err
 	}
+	fmt.Printf("config looks like this: %+v\n", config)
 
 	switch config.ForkType {
 	case keybase1.ForkType_WATCHDOG:
 		g.Log.Info("service is currently running under the watchdog, so maybe run `keybase ctl stop` first and then try again")
-	default:
+	case keybase1.ForkType_AUTO:
 		pid := os.Getpid()
 		// maybe make this a debug log instead of info
 		g.Log.Info("currently running fork type is %v at PID %d", config.ForkType, pid)
@@ -64,16 +69,18 @@ func (s *CmdCtlStart) Run() (err error) {
 			return err
 		}
 		installDir := filepath.Dir(keybaseBinPath)
-		cmd := filepath.Join(installDir, "keybaserq.exe")
 		watchdogLogPath := filepath.Join(installDir, "watchdog.")
-		args := []string{
+		fullCommand := []string{
+			"cmd.exe", "/C", "start", "/b", // tell the OS to start this
+			filepath.Join(installDir, "keybaserq.exe"),
 			keybaseBinPath,
 			"--log-format=file",
 			fmt.Sprintf("--log-prefix=\"%s\"", watchdogLogPath),
 			"ctl",
 			"watchdog2",
 		}
-
+		cmd, args := fullCommand[0], fullCommand[1:]
+		fmt.Printf("calling %v with %v", cmd, args)
 		pid, err = libcmdline.SpawnDetachedProcess(cmd, args, g.Log)
 		if err != nil {
 			return err
@@ -81,21 +88,15 @@ func (s *CmdCtlStart) Run() (err error) {
 		// maybe make this a debug log instead of info
 		g.Log.Info("spawned a new watchdog at PID: %d", pid)
 
-		myPid := os.Getpid()
-		timer := time.NewTimer(60 * time.Second)
-		ticker := time.NewTicker(1 * time.Second)
-		for {
-			select {
-			case <-ticker.C:
-				proc, err := os.FindProcess(pid)
-				g.Log.Info("status of the spawned watchdog: %+v, %+v", proc, err)
-				proc, err = os.FindProcess(myPid)
-				g.Log.Info("status of myself: %+v, %+v", proc, err)
-			case <-timer.C:
-				g.Log.Info("time's up. hopefully you know what you were looking for")
-				break
-			}
+		mctx.Info("now kill the currently running the keybase service")
+		cli, err := GetCtlClient(mctx.G())
+		if err != nil {
+			mctx.Error("failed to get ctl client for shutdown: %s", err)
+			return err
 		}
+		return cli.StopService(mctx.Ctx(), keybase1.StopServiceArg{ExitCode: keybase1.ExitCode_OK})
+	default:
+		fmt.Println("fork type is", config.ForkType)
 	}
 
 	return nil
