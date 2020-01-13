@@ -331,20 +331,15 @@ const saltpackVerify = async (action: CryptoGen.SaltpackVerifyPayload, logger: S
     case 'file': {
       try {
         const result = await RPCTypes.saltpackSaltpackVerifyFileRpcPromise({signedFilename: input})
-        const {verifiedFilename, sender} = result
-        const {username, senderType} = sender
-
-        // TODO @jacob: This is a plaeholder until the protocol is updated to included signed flag
-        const isSigned = !(
-          senderType === RPCTypes.SaltpackSenderType.unknown ||
-          senderType === RPCTypes.SaltpackSenderType.anonymous
-        )
+        const {verifiedFilename, sender, verified} = result
+        const {username} = sender
+        const outputSigned = verified
 
         return CryptoGen.createOnOperationSuccess({
           operation: Constants.Operations.Verify,
           output: verifiedFilename,
-          outputSender: isSigned ? username : undefined,
-          outputSigned: isSigned,
+          outputSender: outputSigned ? username : undefined,
+          outputSigned,
           outputType: type,
         })
       } catch (err) {
@@ -359,20 +354,15 @@ const saltpackVerify = async (action: CryptoGen.SaltpackVerifyPayload, logger: S
     case 'text': {
       try {
         const result = await RPCTypes.saltpackSaltpackVerifyStringRpcPromise({signedMsg: input})
-        const {plaintext, sender} = result
-        const {username, senderType} = sender
-
-        // TODO @jacob: This is a plaeholder until the protocol is updated to included signed flag
-        const isSigned = !(
-          senderType === RPCTypes.SaltpackSenderType.unknown ||
-          senderType === RPCTypes.SaltpackSenderType.anonymous
-        )
+        const {plaintext, sender, verified} = result
+        const {username} = sender
+        const outputSigned = verified
 
         return CryptoGen.createOnOperationSuccess({
           operation: Constants.Operations.Verify,
           output: plaintext,
-          outputSender: isSigned ? username : undefined,
-          outputSigned: isSigned,
+          outputSender: outputSigned ? username : undefined,
+          outputSigned,
           outputType: type,
         })
       } catch (err) {
