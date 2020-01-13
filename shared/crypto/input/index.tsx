@@ -27,7 +27,7 @@ const TextInput = (props: TextProps) => {
         value={props.value}
         placeholder={props.placeholder}
         multiline={true}
-        autoFocus={false}
+        autoFocus={true}
         hideBorder={true}
         growAndScroll={true}
         padding="tiny"
