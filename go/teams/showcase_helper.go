@@ -125,7 +125,7 @@ func SetTeamShowcase(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 
 func SetTeamMemberShowcase(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, isShowcased bool) error {
 	mctx := libkb.NewMetaContext(ctx, g)
-	t, err := GetForTeamManagementByTeamID(ctx, g, teamID, true)
+	t, err := GetForTeamManagementByTeamID(ctx, g, teamID, false /* needAdmin */)
 	if err != nil {
 		return err
 	}
