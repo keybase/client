@@ -910,8 +910,10 @@ const loadFilesTabBadge = async () => {
     return FsGen.createLoadedFilesTabBadge({badge})
   } catch {
     // retry once HOTPOT-1226
-    const badge = await RPCTypes.SimpleFSSimpleFSGetFilesTabBadgeRpcPromise()
-    return FsGen.createLoadedFilesTabBadge({badge})
+    try {
+      const badge = await RPCTypes.SimpleFSSimpleFSGetFilesTabBadgeRpcPromise()
+      return FsGen.createLoadedFilesTabBadge({badge})
+    } catch {}
   }
 }
 
