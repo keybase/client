@@ -659,25 +659,22 @@ func (r *Root) FindFiles(ctx context.Context, fi *dokan.FileInfo, ignored string
 	var ns dokan.NamedStat
 	var err error
 	ns.FileAttributes = dokan.FileAttributeDirectory
-	ename, esize := r.private.fs.remoteStatus.ExtraFileNameAndSize()
-	if ename != libfs.HumanNoLoginFileName {
-		ns.Name = PrivateName
-		err = callback(&ns)
-		if err != nil {
-			return err
-		}
-		ns.Name = TeamName
-		err = callback(&ns)
-		if err != nil {
-			return err
-		}
+	ns.Name = PrivateName
+	err = callback(&ns)
+	if err != nil {
+		return err
+	}
+	ns.Name = TeamName
+	err = callback(&ns)
+	if err != nil {
+		return err
 	}
 	ns.Name = PublicName
 	err = callback(&ns)
 	if err != nil {
 		return err
 	}
-	if ename != "" {
+	if ename, esize := r.private.fs.remoteStatus.ExtraFileNameAndSize(); ename != "" {
 		ns.Name = ename
 		ns.FileAttributes = dokan.FileAttributeNormal
 		ns.FileSize = esize
