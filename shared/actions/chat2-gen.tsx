@@ -15,8 +15,6 @@ export const addBotMember = 'chat2:addBotMember'
 export const addUsersToChannel = 'chat2:addUsersToChannel'
 export const attachmentDownload = 'chat2:attachmentDownload'
 export const attachmentDownloaded = 'chat2:attachmentDownloaded'
-export const attachmentFullscreenNext = 'chat2:attachmentFullscreenNext'
-export const attachmentFullscreenSelection = 'chat2:attachmentFullscreenSelection'
 export const attachmentLoading = 'chat2:attachmentLoading'
 export const attachmentMobileSave = 'chat2:attachmentMobileSave'
 export const attachmentMobileSaved = 'chat2:attachmentMobileSaved'
@@ -204,12 +202,6 @@ type _AttachmentDownloadedPayload = {
   readonly error?: string
   readonly path?: string
 }
-type _AttachmentFullscreenNextPayload = {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly messageID: Types.MessageID
-  readonly backInTime: boolean
-}
-type _AttachmentFullscreenSelectionPayload = {readonly autoPlay: boolean; readonly message: Types.Message}
 type _AttachmentLoadingPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly message: Types.Message
@@ -1382,12 +1374,6 @@ export const createAttachmentDownload = (payload: _AttachmentDownloadPayload): A
 export const createAttachmentDownloaded = (
   payload: _AttachmentDownloadedPayload
 ): AttachmentDownloadedPayload => ({payload, type: attachmentDownloaded})
-export const createAttachmentFullscreenNext = (
-  payload: _AttachmentFullscreenNextPayload
-): AttachmentFullscreenNextPayload => ({payload, type: attachmentFullscreenNext})
-export const createAttachmentFullscreenSelection = (
-  payload: _AttachmentFullscreenSelectionPayload
-): AttachmentFullscreenSelectionPayload => ({payload, type: attachmentFullscreenSelection})
 export const createAttachmentLoading = (payload: _AttachmentLoadingPayload): AttachmentLoadingPayload => ({
   payload,
   type: attachmentLoading,
@@ -1669,14 +1655,6 @@ export type AttachmentDownloadPayload = {
 export type AttachmentDownloadedPayload = {
   readonly payload: _AttachmentDownloadedPayload
   readonly type: typeof attachmentDownloaded
-}
-export type AttachmentFullscreenNextPayload = {
-  readonly payload: _AttachmentFullscreenNextPayload
-  readonly type: typeof attachmentFullscreenNext
-}
-export type AttachmentFullscreenSelectionPayload = {
-  readonly payload: _AttachmentFullscreenSelectionPayload
-  readonly type: typeof attachmentFullscreenSelection
 }
 export type AttachmentLoadingPayload = {
   readonly payload: _AttachmentLoadingPayload
@@ -2275,8 +2253,6 @@ export type Actions =
   | AddUsersToChannelPayload
   | AttachmentDownloadPayload
   | AttachmentDownloadedPayload
-  | AttachmentFullscreenNextPayload
-  | AttachmentFullscreenSelectionPayload
   | AttachmentLoadingPayload
   | AttachmentMobileSavePayload
   | AttachmentMobileSavedPayload

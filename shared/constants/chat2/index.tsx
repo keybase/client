@@ -30,7 +30,6 @@ export const blockButtonsGregorPrefix = 'blockButtons.'
 
 export const makeState = (): Types.State => ({
   accountsInfoMap: new Map(),
-  attachmentFullscreenSelection: undefined,
   attachmentViewMap: new Map(),
   audioRecording: new Map(),
   badgeMap: new Map(), // id to the badge count
