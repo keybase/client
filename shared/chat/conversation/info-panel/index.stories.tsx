@@ -220,6 +220,7 @@ const commonProps = {
 
   selectedConversationIDKey: Constants.noConversationIDKey,
   spinnerForHide: false,
+  teamID: '1234',
 } as const
 
 const conversationProps = {

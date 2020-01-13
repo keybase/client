@@ -4,6 +4,7 @@ import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
+import * as TeamsTypes from '../../../constants/types/teams'
 import flags from '../../../util/feature-flags'
 import {Props as HeaderHocProps} from '../../../common-adapters/header-hoc/types'
 import {AdhocHeader, TeamHeader} from './header'
@@ -63,8 +64,8 @@ type Link = {
   author: string
   ctime: number
   snippet: string
-  title: string
-  url: string
+  title?: string
+  url?: string
 }
 
 type LinkProps = {
@@ -87,6 +88,7 @@ export type InfoPanelProps = {
   installedBots: ReadonlyArray<RPCTypes.FeaturedBot>
   featuredBots: ReadonlyArray<RPCTypes.FeaturedBot>
   isPreview: boolean
+  teamID: TeamsTypes.TeamID
   teamname?: string
   channelname?: string
   smallTeam: boolean
@@ -104,7 +106,7 @@ export type InfoPanelProps = {
   onAttachmentViewChange: (typ: RPCChatTypes.GalleryItemTyp) => void
 
   // Used by HeaderHoc.
-  onBack: () => void
+  onBack: (() => void) | undefined
 
   // Used by Participant.
   onShowProfile: (username: string) => void
@@ -344,7 +346,7 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
               onShowBlockConversationDialog={this.props.onShowBlockConversationDialog}
               onShowClearConversationDialog={this.props.onShowClearConversationDialog}
               spinnerForHide={this.props.spinnerForHide}
-              teamname={this.props.teamname}
+              teamID={this.props.teamID}
               channelname={this.props.channelname}
             />
           )
@@ -531,10 +533,6 @@ const styles = Styles.styleSheetCreate(
         marginLeft: Styles.globalMargins.small,
         marginRight: Styles.globalMargins.small,
         marginTop: Styles.globalMargins.small,
-      },
-      attachmentsLoading: {
-        height: Styles.globalMargins.small,
-        width: Styles.globalMargins.small,
       },
       botHeaders: {
         marginBottom: Styles.globalMargins.tiny,

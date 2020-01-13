@@ -342,9 +342,9 @@ func (u *userPlusDevice) createTeam2() (teamID keybase1.TeamID, teamName keybase
 	return team.ID, team.Name()
 }
 
-func (u *userPlusDevice) teamSetSettings(teamName string, settings keybase1.TeamSettings) {
+func (u *userPlusDevice) teamSetSettings(id keybase1.TeamID, settings keybase1.TeamSettings) {
 	err := u.teamsClient.TeamSetSettings(context.Background(), keybase1.TeamSetSettingsArg{
-		Name:     teamName,
+		TeamID:   id,
 		Settings: settings,
 	})
 	require.NoError(u.tc.T, err)
@@ -1948,19 +1948,19 @@ func TestTeamMetadataUpdateNotifications(t *testing.T) {
 	tt.users[0].changeTeamMember(parentName.String(), tt.users[1].username, keybase1.TeamRole_OWNER)
 	tt.users[1].waitForMetadataUpdateGregor("now an owner")
 
-	tt.users[0].teamSetSettings(subteamRename.String(), keybase1.TeamSettings{Open: true, JoinAs: keybase1.TeamRole_READER})
+	tt.users[0].teamSetSettings(subteamRename.ToPrivateTeamID(), keybase1.TeamSettings{Open: true, JoinAs: keybase1.TeamRole_READER})
 	tt.users[1].waitForMetadataUpdateGregor("settings change of subteam")
 
 	newSubsubteamName, err := subteamRename.Append("cc2")
 	require.NoError(t, err)
-	tt.users[0].teamSetSettings(newSubsubteamName.String(), keybase1.TeamSettings{Open: true, JoinAs: keybase1.TeamRole_WRITER})
+	tt.users[0].teamSetSettings(newSubsubteamName.ToPrivateTeamID(), keybase1.TeamSettings{Open: true, JoinAs: keybase1.TeamRole_WRITER})
 	tt.users[1].waitForMetadataUpdateGregor("settings change of subsubteam")
-	tt.users[0].teamSetSettings(newSubsubteamName.String(), keybase1.TeamSettings{Open: true, JoinAs: keybase1.TeamRole_READER})
+	tt.users[0].teamSetSettings(newSubsubteamName.ToPrivateTeamID(), keybase1.TeamSettings{Open: true, JoinAs: keybase1.TeamRole_READER})
 	tt.users[1].waitForMetadataUpdateGregor("settings change of subsubteam")
 
 	val := true
 	err = tt.users[0].teamsClient.SetTeamShowcase(context.Background(), keybase1.SetTeamShowcaseArg{
-		Name:        newSubsubteamName.String(),
+		TeamID:      newSubsubteamName.ToPrivateTeamID(),
 		IsShowcased: &val,
 	})
 	require.NoError(tt.users[0].tc.T, err)
@@ -1968,7 +1968,7 @@ func TestTeamMetadataUpdateNotifications(t *testing.T) {
 
 	desc := "desc"
 	err = tt.users[0].teamsClient.SetTeamShowcase(context.Background(), keybase1.SetTeamShowcaseArg{
-		Name:        newSubsubteamName.String(),
+		TeamID:      newSubsubteamName.ToPrivateTeamID(),
 		IsShowcased: &val,
 		Description: &desc,
 	})
@@ -1976,7 +1976,7 @@ func TestTeamMetadataUpdateNotifications(t *testing.T) {
 	tt.users[1].waitForMetadataUpdateGregor("change showcase")
 
 	err = tt.users[0].teamsClient.SetTeamShowcase(context.Background(), keybase1.SetTeamShowcaseArg{
-		Name:              newSubsubteamName.String(),
+		TeamID:            newSubsubteamName.ToPrivateTeamID(),
 		IsShowcased:       &val,
 		Description:       &desc,
 		AnyMemberShowcase: &val,
@@ -1996,7 +1996,7 @@ func TestTeamMetadataUpdateNotifications(t *testing.T) {
 	tt.users[1].waitForMetadataUpdateGregor("team deleted")
 
 	err = tt.users[1].teamsClient.SetTeamMemberShowcase(context.Background(), keybase1.SetTeamMemberShowcaseArg{
-		Name:        parentName.String(),
+		TeamID:      newSubsubteamName.ToPrivateTeamID(),
 		IsShowcased: true,
 	})
 	require.NoError(tt.users[1].tc.T, err)

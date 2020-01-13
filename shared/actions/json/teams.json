@@ -72,7 +72,7 @@
       "username": "string"
     },
     "getTeamPublicity": {
-      "teamname": "string"
+      "teamID": "Types.TeamID"
     },
     "addTeamWithChosenChannels": {
       "teamID": "Types.TeamID"
@@ -134,7 +134,7 @@
       "username": "string"
     },
     "editTeamDescription": {
-      "teamname": "string",
+      "teamID": "Types.TeamID",
       "description": "string"
     },
     "uploadTeamAvatar": {
@@ -163,11 +163,11 @@
       "username": "string"
     },
     "setMemberPublicity": {
-      "teamname": "string",
+      "teamID": "Types.TeamID",
       "showcase": "boolean"
     },
     "setPublicity": {
-      "teamname": "string",
+      "teamID": "Types.TeamID",
       "settings": "Types.PublicitySettings"
     },
     "setChannelCreationError": {
@@ -191,7 +191,7 @@
       "teamname": "string"
     },
     "setTeamRetentionPolicy": {
-      "teamname": "string",
+      "teamID": "Types.TeamID",
       "retentionPolicy": "RetentionPolicy"
     },
     "setTeamLoadingInvites": {
@@ -215,7 +215,7 @@
       "teamOperation": "Types.TeamOperations"
     },
     "setTeamPublicitySettings": {
-      "teamname": "string",
+      "teamID": "Types.TeamID",
       "publicity": "Types._PublicitySettings"
     },
     "setTeamChannelInfo": {
@@ -278,12 +278,12 @@
       "teamname": "string"
     },
     "getTeamRetentionPolicy": {
-      "_description": "Gets the team retention policy and stores in `state.entities.teams.teamNameToRetentionPolicy`.",
-      "teamname": "string"
+      "_description": "Gets the team retention policy and stores in `state.entities.teams.teamIDToRetentionPolicy`.",
+      "teamID": "Types.TeamID"
     },
     "saveTeamRetentionPolicy": {
       "_description": "Sets the retention policy for a team. The store will be updated automatically.",
-      "teamname": "string",
+      "teamID": "Types.TeamID",
       "policy": "RetentionPolicy"
     },
     "renameTeam": {

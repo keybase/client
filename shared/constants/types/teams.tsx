@@ -136,12 +136,12 @@ export type State = Readonly<{
   teamDetailsMetaStale: boolean // if we've received an update since we last loaded team list
   teamDetailsMetaSubscribeCount: number // if >0 we are eagerly reloading team list
   teamIDToChannelInfos: Map<TeamID, Map<ConversationIDKey, ChannelInfo>>
+  teamIDToPublicitySettings: Map<TeamID, _PublicitySettings>
   teamIDToResetUsers: Map<TeamID, Set<ResetUser>>
+  teamIDToRetentionPolicy: Map<TeamID, RetentionPolicy>
   teamNameToID: Map<Teamname, string>
   teamNameToLoadingInvites: Map<Teamname, Map<string, boolean>>
   teamNameToMembers: Map<Teamname, Map<string, MemberInfo>> // TODO remove
-  teamNameToRetentionPolicy: Map<Teamname, RetentionPolicy>
-  teamNameToPublicitySettings: Map<Teamname, _PublicitySettings>
   teamnames: Set<Teamname> // TODO remove
   teamProfileAddList: Array<TeamProfileAddList>
   teamRoleMap: TeamRoleMap
