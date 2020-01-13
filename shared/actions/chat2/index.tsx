@@ -3321,6 +3321,23 @@ const addUsersToChannel = async (action: Chat2Gen.AddUsersToChannelPayload, logg
   }
 }
 
+const addUserToChannel = async (action: Chat2Gen.AddUserToChannelPayload, logger: Saga.SagaLogger) => {
+  const {conversationIDKey, username} = action.payload
+  try {
+    await RPCChatTypes.localBulkAddToConvRpcPromise(
+      {convID: Types.keyToConversationID(conversationIDKey), usernames: [username]},
+      Constants.waitingKeyAddUserToChannel(username, conversationIDKey)
+    )
+    return [
+      Chat2Gen.createSelectConversation({conversationIDKey, reason: 'addedToChannel'}),
+      Chat2Gen.createNavigateToThread(),
+    ]
+  } catch (err) {
+    logger.error(`addUserToChannel: ${err.message}`) // surfaced in UI via waiting key
+    return false
+  }
+}
+
 const onMarkInboxSearchOld = (state: Container.TypedState) =>
   state.chat2.inboxShowNew &&
   GregorGen.createUpdateCategory({body: 'true', category: Constants.inboxSearchNewKey})
@@ -3707,6 +3724,7 @@ function* chat2Saga() {
   )
 
   yield* Saga.chainAction(Chat2Gen.addUsersToChannel, addUsersToChannel)
+  yield* Saga.chainAction(Chat2Gen.addUserToChannel, addUserToChannel)
 
   yield* Saga.chainAction(EngineGen.chat1NotifyChatChatPromptUnfurl, onChatPromptUnfurl)
   yield* Saga.chainAction(

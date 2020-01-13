@@ -4,6 +4,7 @@ import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/chat2'
 import * as Container from '../../../util/container'
 import * as Chat2Gen from '../../../actions/chat2-gen'
+import * as Constants from '../../../constants/chat2'
 import {FeaturedBot} from 'constants/types/rpc-gen'
 
 type Props = FeaturedBot & {
@@ -20,16 +21,19 @@ type AddButtonProps = {
 
 const AddBotToChannel = ({conversationIDKey, username}: AddButtonProps) => {
   const dispatch = Container.useDispatch()
-  const addToChannel = () =>
-    dispatch(Chat2Gen.createAddUsersToChannel({conversationIDKey, usernames: [username]}))
+  const addToChannel = () => dispatch(Chat2Gen.createAddUserToChannel({conversationIDKey, username}))
   return (
-    <Kb.Button
+    <Kb.WaitingButton
       type="Dim"
       mode="Secondary"
-      onClick={addToChannel}
+      onClick={(e: React.BaseSyntheticEvent) => {
+        e.stopPropagation()
+        addToChannel()
+      }}
       style={styles.addButton}
       icon="iconfont-new"
       tooltip="Add to this channel"
+      waitingKey={Constants.waitingKeyAddUserToChannel(username, conversationIDKey)}
     />
   )
 }

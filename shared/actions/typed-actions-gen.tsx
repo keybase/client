@@ -186,6 +186,7 @@ export type TypedActionsMap = {
   'chat2:updateCoinFlipStatus': chat2.UpdateCoinFlipStatusPayload
   'chat2:setCommandMarkdown': chat2.SetCommandMarkdownPayload
   'chat2:addUsersToChannel': chat2.AddUsersToChannelPayload
+  'chat2:addUserToChannel': chat2.AddUserToChannelPayload
   'chat2:jumpToRecent': chat2.JumpToRecentPayload
   'chat2:setContainsLastMessage': chat2.SetContainsLastMessagePayload
   'chat2:threadSearch': chat2.ThreadSearchPayload

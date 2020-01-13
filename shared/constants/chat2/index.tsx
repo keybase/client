@@ -310,6 +310,8 @@ export const waitingKeyPushLoad = (conversationIDKey: Types.ConversationIDKey) =
 export const waitingKeyThreadLoad = (conversationIDKey: Types.ConversationIDKey) =>
   `chat:loadingThread:${conversationIDKeyToString(conversationIDKey)}`
 export const waitingKeyAddUsersToChannel = 'chat:addUsersToConversation'
+export const waitingKeyAddUserToChannel = (username: string, conversationIDKey: Types.ConversationIDKey) =>
+  `chat:addUserToConversation:${username}:${conversationIDKey}`
 export const waitingKeyConvStatusChange = (conversationIDKey: Types.ConversationIDKey) =>
   `chat:convStatusChange:${conversationIDKeyToString(conversationIDKey)}`
 export const waitingKeyUnpin = (conversationIDKey: Types.ConversationIDKey) =>
