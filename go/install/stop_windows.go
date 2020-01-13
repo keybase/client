@@ -8,6 +8,7 @@ package install
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 
 	"github.com/keybase/client/go/libkb"
@@ -32,6 +33,14 @@ func StopAllButService(mctx libkb.MetaContext, _ keybase1.ExitCode) {
 		err = libkb.ChangeMountIcon(mountdir, "")
 		if err != nil {
 			mctx.Error("StopAllButService: unable to change mount icon: %s", err)
+		}
+		// turn off the updater
+		updaterName, err := updaterBinName()
+		if err != nil {
+			mctx.Error("StopAllButService: error getting path to updater: %s", err)
+		}
+		if err := exec.Command("taskkill", "/F", "/IM", updaterName).Run(); err != nil {
+			mctx.Error("StopAllButService: error stopping the updater: %s\n", err)
 		}
 	}
 }
