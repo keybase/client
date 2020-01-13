@@ -113,10 +113,6 @@ const makeOperationAction = (p: {
   }
 }
 
-/*
- * For the time being these functions will echo back the input as the Saltpack RPC output (plaintext -> plaintext)
- * Saltpack RPCs need to be updated to take input as a string and handle `inputType = 'text' | 'file'`
- */
 const saltpackEncrypt = async (
   state: TypedState,
   action: CryptoGen.SaltpackEncryptPayload,
