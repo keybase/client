@@ -2248,7 +2248,8 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 		if opts.MaxNameConvs == 0 {
 			return
 		}
-		convHits, err := h.G().InboxSource.Search(ctx, uid, query, opts.MaxNameConvs)
+		convHits, err := h.G().InboxSource.Search(ctx, uid, query, opts.MaxNameConvs,
+			types.InboxSourceSearchEmptyModeUnread)
 		if err != nil {
 			h.Debug(ctx, "SearchInbox: failed to get conv hits: %s", err)
 		} else {
@@ -3025,7 +3026,7 @@ func (h *Server) AddBotConvSearch(ctx context.Context, term string) (res []chat1
 		return res, err
 	}
 	username := h.G().GetEnv().GetUsername().String()
-	allConvs, err := h.G().InboxSource.Search(ctx, uid, term, 100)
+	allConvs, err := h.G().InboxSource.Search(ctx, uid, term, 100, types.InboxSourceSearchEmptyModeAll)
 	if err != nil {
 		return res, err
 	}
