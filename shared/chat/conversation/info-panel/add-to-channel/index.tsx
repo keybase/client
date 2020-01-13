@@ -86,9 +86,7 @@ class AddToChannel extends React.Component<Props, State> {
   )
 
   componentDidMount() {
-    if (this.props.onLoad) {
-      this.props.onLoad()
-    }
+    this.props.onLoad?.()
   }
 
   render() {
