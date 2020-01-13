@@ -142,7 +142,7 @@ func (r *RemoteChatUI) ChatGiphySearchResults(ctx context.Context, convID chat1.
 	results chat1.GiphySearchResults) error {
 	return r.cli.ChatGiphySearchResults(ctx, chat1.ChatGiphySearchResultsArg{
 		SessionID: r.sessionID,
-		ConvID:    convID.String(),
+		ConvID:    chat1.ConvIDStr(convID.String()),
 		Results:   results,
 	})
 }
@@ -151,7 +151,7 @@ func (r *RemoteChatUI) ChatGiphyToggleResultWindow(ctx context.Context, convID c
 	show, clearInput bool) error {
 	return r.cli.ChatGiphyToggleResultWindow(ctx, chat1.ChatGiphyToggleResultWindowArg{
 		SessionID:  r.sessionID,
-		ConvID:     convID.String(),
+		ConvID:     chat1.ConvIDStr(convID.String()),
 		Show:       show,
 		ClearInput: clearInput,
 	})
@@ -175,7 +175,7 @@ func (r *RemoteChatUI) ChatCommandMarkdown(ctx context.Context, convID chat1.Con
 	md *chat1.UICommandMarkdown) error {
 	return r.cli.ChatCommandMarkdown(ctx, chat1.ChatCommandMarkdownArg{
 		SessionID: r.sessionID,
-		ConvID:    convID.String(),
+		ConvID:    chat1.ConvIDStr(convID.String()),
 		Md:        md,
 	})
 }
@@ -217,7 +217,7 @@ func (r *RemoteChatUI) ChatCommandStatus(ctx context.Context, convID chat1.Conve
 	typ chat1.UICommandStatusDisplayTyp, actions []chat1.UICommandStatusActionTyp) error {
 	return r.cli.ChatCommandStatus(ctx, chat1.ChatCommandStatusArg{
 		SessionID:   r.sessionID,
-		ConvID:      convID.String(),
+		ConvID:      chat1.ConvIDStr(convID.String()),
 		DisplayText: displayText,
 		Typ:         typ,
 		Actions:     actions,
@@ -228,7 +228,7 @@ func (r *RemoteChatUI) ChatBotCommandsUpdateStatus(ctx context.Context, convID c
 	status chat1.UIBotCommandsUpdateStatus) error {
 	return r.cli.ChatBotCommandsUpdateStatus(ctx, chat1.ChatBotCommandsUpdateStatusArg{
 		SessionID: r.sessionID,
-		ConvID:    convID.String(),
+		ConvID:    chat1.ConvIDStr(convID.String()),
 		Status:    status,
 	})
 }

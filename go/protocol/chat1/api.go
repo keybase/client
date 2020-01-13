@@ -9,15 +9,21 @@ import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
-type APIConvID string
+type ConvIDStr string
 
-func (o APIConvID) DeepCopy() APIConvID {
+func (o ConvIDStr) DeepCopy() ConvIDStr {
 	return o
 }
 
-type APIGameID string
+type TLFIDStr string
 
-func (o APIGameID) DeepCopy() APIGameID {
+func (o TLFIDStr) DeepCopy() TLFIDStr {
+	return o
+}
+
+type GameIDStr string
+
+func (o GameIDStr) DeepCopy() GameIDStr {
 	return o
 }
 
@@ -98,8 +104,8 @@ func (o MsgBotInfo) DeepCopy() MsgBotInfo {
 
 type MsgFlipContent struct {
 	Text         string             `codec:"text" json:"text"`
-	GameID       APIGameID          `codec:"gameID" json:"game_id"`
-	FlipConvID   APIConvID          `codec:"flipConvID" json:"flip_conv_id"`
+	GameID       GameIDStr          `codec:"gameID" json:"game_id"`
+	FlipConvID   ConvIDStr          `codec:"flipConvID" json:"flip_conv_id"`
 	UserMentions []KnownUserMention `codec:"userMentions" json:"user_mentions"`
 	TeamMentions []KnownTeamMention `codec:"teamMentions" json:"team_mentions"`
 }
@@ -250,7 +256,7 @@ func (o MsgContent) DeepCopy() MsgContent {
 
 type MsgSummary struct {
 	Id                  MessageID                `codec:"id" json:"id"`
-	ConvID              APIConvID                `codec:"convID" json:"conversation_id"`
+	ConvID              ConvIDStr                `codec:"convID" json:"conversation_id"`
 	Channel             ChatChannel              `codec:"channel" json:"channel"`
 	Sender              MsgSender                `codec:"sender" json:"sender"`
 	SentAt              int64                    `codec:"sentAt" json:"sent_at"`
@@ -420,7 +426,7 @@ func (o Thread) DeepCopy() Thread {
 
 // A chat conversation. This is essentially a chat channel plus some additional metadata.
 type ConvSummary struct {
-	Id            APIConvID                 `codec:"id" json:"id"`
+	Id            ConvIDStr                 `codec:"id" json:"id"`
 	Channel       ChatChannel               `codec:"channel" json:"channel"`
 	IsDefaultConv bool                      `codec:"isDefaultConv" json:"is_default_conv"`
 	Unread        bool                      `codec:"unread" json:"unread"`
@@ -668,7 +674,7 @@ func (o RegexpRes) DeepCopy() RegexpRes {
 }
 
 type NewConvRes struct {
-	Id               APIConvID                     `codec:"id" json:"id"`
+	Id               ConvIDStr                     `codec:"id" json:"id"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures,omitempty" json:"identify_failures,omitempty"`
 	RateLimits       []RateLimitRes                `codec:"rateLimits,omitempty" json:"ratelimits,omitempty"`
 }
@@ -840,7 +846,7 @@ func (o AdvertiseCommandAPIParam) DeepCopy() AdvertiseCommandAPIParam {
 }
 
 type ResetConvMemberAPI struct {
-	ConversationID APIConvID `codec:"conversationID" json:"conversationID"`
+	ConversationID ConvIDStr `codec:"conversationID" json:"conversationID"`
 	Username       string    `codec:"username" json:"username"`
 }
 

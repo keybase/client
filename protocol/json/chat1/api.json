@@ -31,13 +31,19 @@
   "types": [
     {
       "type": "record",
-      "name": "APIConvID",
+      "name": "ConvIDStr",
       "fields": [],
       "typedef": "string"
     },
     {
       "type": "record",
-      "name": "APIGameID",
+      "name": "TLFIDStr",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "GameIDStr",
       "fields": [],
       "typedef": "string"
     },
@@ -166,12 +172,12 @@
           "jsonkey": "text"
         },
         {
-          "type": "APIGameID",
+          "type": "GameIDStr",
           "name": "gameID",
           "jsonkey": "game_id"
         },
         {
-          "type": "APIConvID",
+          "type": "ConvIDStr",
           "name": "flipConvID",
           "jsonkey": "flip_conv_id"
         },
@@ -318,7 +324,7 @@
           "jsonkey": "id"
         },
         {
-          "type": "APIConvID",
+          "type": "ConvIDStr",
           "name": "convID",
           "jsonkey": "conversation_id"
         },
@@ -517,7 +523,7 @@
       "name": "ConvSummary",
       "fields": [
         {
-          "type": "APIConvID",
+          "type": "ConvIDStr",
           "name": "id",
           "jsonkey": "id"
         },
@@ -746,7 +752,7 @@
       "name": "NewConvRes",
       "fields": [
         {
-          "type": "APIConvID",
+          "type": "ConvIDStr",
           "name": "id",
           "jsonkey": "id"
         },
@@ -896,7 +902,7 @@
       "name": "ResetConvMemberAPI",
       "fields": [
         {
-          "type": "APIConvID",
+          "type": "ConvIDStr",
           "name": "conversationID"
         },
         {

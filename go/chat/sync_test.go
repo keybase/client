@@ -325,9 +325,9 @@ func TestSyncerNeverJoined(t *testing.T) {
 			require.Len(t, sres.Incremental().Items, 2)
 			var foundConv, foundChan bool
 			for _, item := range sres.Incremental().Items {
-				if convID.String() == item.Conv.ConvID {
+				if chat1.ConvIDStr(convID.String()) == item.Conv.ConvID {
 					foundConv = true
-				} else if chanID.String() == item.Conv.ConvID {
+				} else if chat1.ConvIDStr(chanID.String()) == item.Conv.ConvID {
 					foundChan = true
 				}
 				require.Equal(t, chat1.ConversationMemberStatus_ACTIVE, item.Conv.MemberStatus)
@@ -626,11 +626,11 @@ func TestSyncerTeamFilter(t *testing.T) {
 		require.Equal(t, chat1.SyncInboxResType_INCREMENTAL, typ)
 		require.Equal(t, 2, len(res.Incremental().Items))
 		items := res.Incremental().Items
-		if items[0].Conv.ConvID == iconv.GetConvID().String() {
+		if items[0].Conv.ConvID == chat1.ConvIDStr(iconv.GetConvID().String()) {
 			require.True(t, items[0].ShouldUnbox)
 			require.False(t, items[1].ShouldUnbox)
 			require.Equal(t, tconv.GetConvID().String(), items[1].Conv.ConvID)
-		} else if items[0].Conv.ConvID == tconv.GetConvID().String() {
+		} else if items[0].Conv.ConvID == chat1.ConvIDStr(tconv.GetConvID().String()) {
 			require.False(t, items[0].ShouldUnbox)
 			require.True(t, items[1].ShouldUnbox)
 			require.Equal(t, iconv.GetConvID().String(), items[1].Conv.ConvID)

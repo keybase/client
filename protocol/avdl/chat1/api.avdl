@@ -8,8 +8,9 @@ protocol api {
   import idl "unfurl.avdl";
   import idl "commands.avdl";
 
-  @typedef("string") record APIConvID {}
-  @typedef("string") record APIGameID {}
+  @typedef("string") record ConvIDStr {}
+  @typedef("string") record TLFIDStr {}
+  @typedef("string") record GameIDStr {}
 
   record RateLimitRes {
     string tank;
@@ -75,9 +76,9 @@ protocol api {
     @jsonkey("text")
     string text;
     @jsonkey("game_id")
-    APIGameID gameID;
+    GameIDStr gameID;
     @jsonkey("flip_conv_id")
-    APIConvID flipConvID;
+    ConvIDStr flipConvID;
     @jsonkey("user_mentions")
     array<KnownUserMention> userMentions;
     @jsonkey("team_mentions")
@@ -124,7 +125,7 @@ protocol api {
     @jsonkey("id")
     MessageID id;
     @jsonkey("conversation_id")
-    APIConvID convID;
+    ConvIDStr convID;
     @jsonkey("channel")
     ChatChannel channel;
     @jsonkey("sender")
@@ -206,7 +207,7 @@ protocol api {
    */
   record ConvSummary {
     @jsonkey("id")
-    APIConvID id;
+    ConvIDStr id;
     @jsonkey("channel")
     ChatChannel channel;
     @jsonkey("is_default_conv")
@@ -289,7 +290,7 @@ protocol api {
 
   record NewConvRes {
     @jsonkey("id")
-    APIConvID id;
+    ConvIDStr id;
     @jsonkey("identify_failures")
     @optional(true)
     array<keybase1.TLFIdentifyFailure> identifyFailures;
@@ -341,7 +342,7 @@ protocol api {
   }
 
   record ResetConvMemberAPI {
-    APIConvID conversationID;
+    ConvIDStr conversationID;
     string username;
   }
 

@@ -82,10 +82,6 @@ func (cid ConversationID) String() string {
 	return hex.EncodeToString(cid)
 }
 
-func (cid ConversationID) APIConvID() APIConvID {
-	return APIConvID(cid.String())
-}
-
 func (cid ConversationID) Bytes() []byte {
 	return []byte(cid)
 }
@@ -1736,7 +1732,7 @@ func (s TopicNameState) Eq(o TopicNameState) bool {
 }
 
 func (i InboxUIItem) GetConvID() ConversationID {
-	bConvID, _ := hex.DecodeString(i.ConvID)
+	bConvID, _ := hex.DecodeString(string(i.ConvID))
 	return ConversationID(bConvID)
 }
 
@@ -2797,7 +2793,7 @@ func (c UserBotCommandInput) ToOutput(username string) UserBotCommandOutput {
 func (r UIInboxReselectInfo) String() string {
 	newConvStr := "<none>"
 	if r.NewConvID != nil {
-		newConvStr = *r.NewConvID
+		newConvStr = string(*r.NewConvID)
 	}
 	return fmt.Sprintf("[oldconv: %s newconv: %s]", r.OldConvID, newConvStr)
 }
