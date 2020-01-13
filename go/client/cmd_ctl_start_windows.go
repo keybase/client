@@ -7,7 +7,7 @@ package client
 
 import (
 	"fmt"
-	"os"
+	"os/exec"
 	"path/filepath"
 
 	"github.com/keybase/cli"
@@ -40,66 +40,64 @@ func (s *CmdCtlStart) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (s *CmdCtlStart) Run() (err error) {
-	fmt.Println("no fork, entered Run")
-	fmt.Printf("g looks like this: %+v\n", s.G())
-	mctx := libkb.NewMetaContextTODO(s.G())
-	g := mctx.G()
-
-	configCli, err := GetConfigClient(mctx.G())
+func (s *CmdCtlStart) serviceAlreadyRunningUnderWatchdog(g *libkb.GlobalContext) bool {
+	configCli, err := GetConfigClient(g)
 	if err != nil {
-		return err
+		fmt.Printf("error in GetConfigClient (catch this specifically?): %+v\n", err)
+		// probably right here we can say the service isn't running and needs to be started
+		return false
 	}
 	config, err := configCli.GetConfig(context.TODO(), 0)
 	if err != nil {
-		return err
+		fmt.Printf("error in configCli.GetConfig: %+v\n", err)
+		return false
 	}
 	fmt.Printf("config looks like this: %+v\n", config)
+	if config.ForkType == keybase1.ForkType_WATCHDOG {
+		return true
+	}
+	return false
+}
 
-	switch config.ForkType {
-	case keybase1.ForkType_WATCHDOG:
+func (s *CmdCtlStart) Run() (err error) {
+	fmt.Printf("entered Run, g looks like this: %+v\n", s.G())
+	// with no running server, g.bindFile and g.dialFiles both have the keybased.sock
+	mctx := libkb.NewMetaContextTODO(s.G())
+	g := mctx.G()
+
+	if s.serviceAlreadyRunningUnderWatchdog(g) {
 		g.Log.Info("service is currently running under the watchdog, so maybe run `keybase ctl stop` first and then try again")
-	case keybase1.ForkType_AUTO:
-		pid := os.Getpid()
-		// maybe make this a debug log instead of info
-		g.Log.Info("currently running fork type is %v at PID %d", config.ForkType, pid)
-
-		keybaseBinPath, err := install.BinPath()
-		if err != nil {
-			return err
-		}
-		installDir := filepath.Dir(keybaseBinPath)
-		watchdogLogPath := filepath.Join(installDir, "watchdog.")
-		fullCommand := []string{
-			"cmd.exe", "/C", "start", "/b", // tell the OS to start this
-			filepath.Join(installDir, "keybaserq.exe"),
-			keybaseBinPath,
-			"--log-format=file",
-			fmt.Sprintf("--log-prefix=\"%s\"", watchdogLogPath),
-			"ctl",
-			"watchdog2",
-		}
-		cmd, args := fullCommand[0], fullCommand[1:]
-		fmt.Printf("calling %v with %v", cmd, args)
-		pid, err = libcmdline.SpawnDetachedProcess(cmd, args, g.Log)
-		if err != nil {
-			return err
-		}
-		// maybe make this a debug log instead of info
-		g.Log.Info("spawned a new watchdog at PID: %d", pid)
-
-		mctx.Info("now kill the currently running the keybase service")
-		cli, err := GetCtlClient(mctx.G())
-		if err != nil {
-			mctx.Error("failed to get ctl client for shutdown: %s", err)
-			return err
-		}
-		return cli.StopService(mctx.Ctx(), keybase1.StopServiceArg{ExitCode: keybase1.ExitCode_OK})
-	default:
-		fmt.Println("fork type is", config.ForkType)
+		return nil
 	}
 
-	return nil
+	keybaseBinPath, err := install.BinPath()
+	if err != nil {
+		return err
+	}
+	installDir := filepath.Dir(keybaseBinPath)
+	watchdogLogPath := filepath.Join(installDir, "watchdog.")
+	fullCommand := []string{
+		"cmd.exe", "/C", "start", "/b", // tell the OS to start this
+		filepath.Join(installDir, "keybaserq.exe"),
+		keybaseBinPath,
+		"--log-format=file",
+		fmt.Sprintf("--log-prefix=\"%s\"", watchdogLogPath),
+		"ctl",
+		"watchdog2",
+	}
+	arg0, err := exec.LookPath(fullCommand[0])
+	if err != nil {
+		fmt.Printf("error exec.LookPath of the first element: %+v, %+v\n", arg0, err)
+		return err
+	}
+
+	fmt.Printf("calling %v %v\n", arg0, fullCommand[1:])
+	cmd := exec.Command(arg0, fullCommand[1:]...)
+	fmt.Printf("cmd: %+v\n", cmd)
+	if err := cmd.Run(); err != nil {
+		fmt.Printf("error starting the command: %+v\n", err)
+	}
+	fmt.Println("the command has finished running. what does that actually mean?")
 }
 
 func (s *CmdCtlStart) GetUsage() libkb.Usage {
