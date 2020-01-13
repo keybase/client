@@ -3025,7 +3025,7 @@ func (h *Server) AddBotConvSearch(ctx context.Context, term string) (res []chat1
 		return res, err
 	}
 	username := h.G().GetEnv().GetUsername().String()
-	allConvs, err := h.G().InboxSource.Search(ctx, uid, term, 0)
+	allConvs, err := h.G().InboxSource.Search(ctx, uid, term, 100)
 	if err != nil {
 		return res, err
 	}

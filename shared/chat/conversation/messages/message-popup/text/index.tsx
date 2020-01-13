@@ -18,6 +18,7 @@ type Props = {
   onDeleteMessageHistory?: () => void
   onEdit?: () => void
   onHidden: () => void
+  onInstallBot?: () => void
   onKick: () => void
   onPinMessage?: () => void
   onReply?: () => void
@@ -82,6 +83,9 @@ const TextPopupMenu = (props: Props) => {
       : []),
     ...(props.onAddReaction
       ? [{icon: 'iconfont-reacji', onClick: props.onAddReaction, title: 'Add a reaction'}]
+      : []),
+    ...(props.onInstallBot
+      ? [{icon: 'iconfont-bot', onClick: props.onInstallBot, title: 'Install bot in another team or chat'}]
       : []),
     ...(props.onCopy ? [{icon: 'iconfont-clipboard', onClick: props.onCopy, title: 'Copy text'}] : []),
     ...(props.onReply ? [{icon: 'iconfont-reply', onClick: props.onReply, title: 'Reply'}] : []),

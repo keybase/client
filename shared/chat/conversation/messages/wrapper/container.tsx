@@ -143,10 +143,7 @@ export default Container.namedConnect(
     const authorIsAdmin = teamname
       ? TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'admin')
       : false
-    const authorIsBot = teamname
-      ? TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'restrictedbot') ||
-        TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'bot')
-      : !_participantInfo.name.includes(message.author) // if adhoc, check if author in participants
+    const authorIsBot = Constants.messageAuthorIsBot(state, teamname, message, _participantInfo)
     const authorIsOwner = teamname
       ? TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'owner')
       : false

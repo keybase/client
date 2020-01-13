@@ -19,6 +19,8 @@ import * as Router2 from '../router2'
 import HiddenString from '../../util/hidden-string'
 import {getFullname} from '../users'
 import {memoize} from '../../util/memoize'
+import * as TeamConstants from '../teams'
+import {CommonConnectionOptions} from 'tls'
 
 export const defaultTopReacjis = [':+1:', ':-1:', ':tada:', ':joy:', ':sunglasses:']
 const defaultSkinTone = 1
@@ -464,6 +466,17 @@ export const getParticipantSuggestions = (state: TypedState, id: Types.Conversat
   _unmemoizedState = state
   return _getParticipantSuggestionsMemoized(participants.all, teamType)
 }
+
+export const messageAuthorIsBot = (
+  state: TypedState,
+  teamname: string,
+  message: Types.Message,
+  participantInfo: Types.ParticipantInfo
+) =>
+  teamname
+    ? TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'restrictedbot') ||
+      TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'bot')
+    : !participantInfo.name.includes(message.author) // if adhoc, check if author in participants
 
 export {
   getBotCommands,
