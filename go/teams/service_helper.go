@@ -1593,27 +1593,12 @@ func GetRootID(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) 
 }
 
 func ChangeTeamSettings(ctx context.Context, g *libkb.GlobalContext, teamName string, settings keybase1.TeamSettings) error {
-	return RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
-		t, err := GetForTeamManagementByStringName(ctx, g, teamName, true)
-		if err != nil {
-			return err
-		}
-
-		if !settings.Open && !t.IsOpen() {
-			g.Log.CDebugf(ctx, "team is already closed, just returning: %s", teamName)
-			return nil
-		}
-
-		if settings.Open && t.IsOpen() && t.OpenTeamJoinAs() == settings.JoinAs {
-			g.Log.CDebugf(ctx, "team is already open with default role: team: %s role: %s",
-				teamName, strings.ToLower(t.OpenTeamJoinAs().String()))
-			return nil
-		}
-
-		// Rotate if team is moving from open to closed.
-		rotateKey := t.IsOpen() && !settings.Open
-		return t.PostTeamSettings(ctx, settings, rotateKey)
-	})
+	mctx := libkb.NewMetaContext(ctx, g)
+	id, err := GetTeamIDByNameRPC(mctx, teamName)
+	if err != nil {
+		return err
+	}
+	return ChangeTeamSettingsByID(ctx, g, id, settings)
 }
 
 func ChangeTeamSettingsByID(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID,

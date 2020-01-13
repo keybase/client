@@ -33,9 +33,14 @@ func (c *memberShowcaseRes) GetAppStatus() *libkb.AppStatus {
 
 func GetTeamAndMemberShowcase(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) (ret keybase1.TeamAndMemberShowcase,
 	err error) {
-	t, err := GetForDisplayByTeamID(ctx, g, id)
+	t, err := Load(ctx, g, keybase1.LoadTeamArg{
+		ID:                        id,
+		Public:                    false,
+		ForceRepoll:               true,
+		AllowNameLookupBurstCache: true,
+	})
 	if err != nil {
-		return ret, err
+		return ret, fixupTeamGetError(ctx, g, err, id.String(), false)
 	}
 
 	role, err := t.myRole(ctx)
