@@ -54,40 +54,42 @@ export const OutputBar = (props: OutputBarProps) => {
   const {output, onCopyOutput, onShowInFinder} = props
   const attachmentRef = React.useRef<Kb.Box2>(null)
   const [showingToast, setShowingToast] = React.useState(false)
+
   const setHideToastTimeout = Kb.useTimeout(() => setShowingToast(false), 1500)
   React.useEffect(() => {
     showingToast && setHideToastTimeout()
   }, [showingToast, setHideToastTimeout])
+
   const copy = React.useCallback(() => {
     if (!output) return
     setShowingToast(true)
     onCopyOutput(output)
   }, [output, onCopyOutput])
+
   return props.outputStatus && props.outputStatus === 'success' ? (
     <>
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.outputBarContainer}>
-        <Kb.ButtonBar direction="row" style={styles.buttonBar}>
-          {props.outputType === 'file' ? (
+        {props.outputType === 'file' ? (
+          <Kb.ButtonBar direction="row" align="flex-start" style={styles.buttonBar}>
             <Kb.Button
-              mode="Primary"
+              mode="Secondary"
               label={`Open in ${Styles.fileUIName}`}
-              fullWidth={true}
               onClick={() => onShowInFinder(output)}
             />
-          ) : (
-            <>
-              <Kb.Button mode="Secondary" label="Download file" fullWidth={true} />
-              <Kb.Box2 direction="horizontal" fullWidth={true} ref={attachmentRef}>
-                <Kb.Toast position="top center" attachTo={() => attachmentRef.current} visible={showingToast}>
-                  <Kb.Text type="BodySmall" style={styles.toastText}>
-                    Copied to clipboard
-                  </Kb.Text>
-                </Kb.Toast>
-                <Kb.Button mode="Primary" label="Copy to clipboard" fullWidth={true} onClick={() => copy()} />
-              </Kb.Box2>
-            </>
-          )}
-        </Kb.ButtonBar>
+          </Kb.ButtonBar>
+        ) : (
+          <Kb.ButtonBar direction="row" align="flex-start" style={styles.buttonBar}>
+            <Kb.Box2 direction="horizontal" ref={attachmentRef}>
+              <Kb.Toast position="top center" attachTo={() => attachmentRef.current} visible={showingToast}>
+                <Kb.Text type="BodySmall" style={styles.toastText}>
+                  Copied to clipboard
+                </Kb.Text>
+              </Kb.Toast>
+              <Kb.Button mode="Secondary" label="Copy to clipboard" onClick={() => copy()} />
+            </Kb.Box2>
+            <Kb.Button mode="Secondary" label="Download as TXT" />
+          </Kb.ButtonBar>
+        )}
       </Kb.Box2>
     </>
   ) : (
