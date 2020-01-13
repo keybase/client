@@ -148,7 +148,6 @@ func (c *CtlHandler) DbKeysWithPrefixes(_ context.Context, arg keybase1.DbKeysWi
 	default:
 		return nil, libkb.NewDBError("no such DB type")
 	}
-	c.G().Log.Debug("DbKeysWithPrefixesArg: %#v", arg, res)
 	if err != nil {
 		return nil, err
 	}

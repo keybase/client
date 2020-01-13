@@ -164,12 +164,16 @@ func (t ObjType) table() string {
 	return levelDbTableKv
 }
 
+func (k DbKey) toBytes(prefixString string) []byte {
+	return []byte(fmt.Sprintf("%s:%s", prefixString, k.Key))
+}
+
 func (k DbKey) ToBytes() []byte {
-	return []byte(fmt.Sprintf("%s:%s", PrefixString(k.Typ), k.Key))
+	return k.toBytes(PrefixString(k.Typ))
 }
 
 func (k DbKey) ToBytesLookup() []byte {
-	return []byte(fmt.Sprintf("%s:%s", PrefixStringWithTable(levelDbTableLo, k.Typ), k.Key))
+	return k.toBytes(PrefixStringWithTable(levelDbTableLo, k.Typ))
 }
 
 var fieldExp = regexp.MustCompile(`[a-f0-9]{2}`)
