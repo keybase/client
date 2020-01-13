@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import * as Constants from '../../constants/crypto'
-import Output, {OutputBar, OutputSigned} from '.'
+import Output, {OutputBar, SignedSender} from '.'
 
 const onCopyOutput = Sb.action('onCopyOutput')
 const onShowInFinder = Sb.action('onShowInFinder')
@@ -61,9 +61,10 @@ const load = () => {
     />
   ))
 
-  Sb.storiesOf('Crypto/Output/Signed Bar', module)
-    .add('Signed', () => <OutputSigned outputStatus="success" signed={true} signedBy="cecileb" />)
-    .add('Unsigned', () => <OutputSigned outputStatus="success" signed={false} signedBy="cecileb" />)
+  Sb.storiesOf('Crypto/Output/Signed Sender', module)
+    .add('Signed - You', () => <SignedSender outputStatus="success" signed={true} signedBy="cecileb" />)
+    .add('Signed', () => <SignedSender outputStatus="success" signed={true} signedBy="cecileb" />)
+    .add('Unsigned', () => <SignedSender outputStatus="success" signed={false} signedBy="cecileb" />)
 }
 
 export default load

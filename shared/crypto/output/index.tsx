@@ -27,9 +27,9 @@ type OutputSignedProps = {
   outputStatus?: Types.OutputStatus
 }
 
-export const OutputSigned = (props: OutputSignedProps) => {
+export const SignedSender = (props: OutputSignedProps) => {
   return props.outputStatus && props.outputStatus === 'success' ? (
-    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.signedContainer}>
+    <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.signedContainer}>
       {props.signed && props.signedBy ? (
         <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center">
           <Kb.Icon type="iconfont-success" sizeType="Small" style={styles.signedIcon} />
@@ -40,14 +40,7 @@ export const OutputSigned = (props: OutputSignedProps) => {
         <Kb.Text type="BodySmall">Not signed (anonymous sender)</Kb.Text>
       )}
     </Kb.Box2>
-  ) : (
-    <Kb.Box2
-      direction="horizontal"
-      fullWidth={true}
-      fullHeight={true}
-      style={Styles.collapseStyles([styles.signedContainer, styles.outputPlaceholder, {maxHeight: 34}])}
-    ></Kb.Box2>
-  )
+  ) : null
 }
 
 export const OutputBar = (props: OutputBarProps) => {
@@ -196,6 +189,8 @@ const styles = Styles.styleSheetCreate(
       },
       signedContainer: {
         ...Styles.padding(Styles.globalMargins.tiny),
+        backgroundColor: Styles.globalColors.blueGreyLight,
+        height: Styles.globalMargins.xlarge,
       },
       signedIcon: {
         color: Styles.globalColors.green,

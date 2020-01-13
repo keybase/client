@@ -5,7 +5,7 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import debounce from 'lodash/debounce'
 import {TextInput, FileInput} from '../../input'
-import OperationOutput, {OutputBar, OutputSigned} from '../../output'
+import OperationOutput, {OutputBar, SignedSender} from '../../output'
 import Recipients from '../../recipients/container'
 
 type Props = {
@@ -97,6 +97,11 @@ const Encrypt = (props: Props) => {
           />
           <Kb.Divider />
           <Kb.Box2 direction="vertical" fullHeight={true}>
+            <SignedSender
+              signed={props.options.sign}
+              signedBy={props.username}
+              outputStatus={props.outputStatus}
+            />
             <OperationOutput
               outputStatus={props.outputStatus}
               output={props.output}
@@ -104,11 +109,6 @@ const Encrypt = (props: Props) => {
               textType="cipher"
               operation={Constants.Operations.Encrypt}
               onShowInFinder={props.onShowInFinder}
-            />
-            <OutputSigned
-              signed={props.options.sign}
-              signedBy={props.username}
-              outputStatus={props.outputStatus}
             />
             <OutputBar
               output={props.output}
