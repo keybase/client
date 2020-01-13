@@ -30,7 +30,11 @@ export const TeamJourney = (props: Props) => {
   }, [])
   return (
     <>
-      <TeamJourneyHeader teamname={teamname} onAuthorClick={props.onAuthorClick} onDismiss={props.onDismiss} />
+      <TeamJourneyHeader
+        teamname={teamname}
+        onAuthorClick={props.onAuthorClick}
+        onDismiss={props.onDismiss}
+      />
       <Kb.Box2 key="content" direction="vertical" fullWidth={true} style={styles.content}>
         <Kb.Box2 direction="horizontal" fullWidth={true}>
           <Kb.Box2 direction="horizontal" style={props.image ? styles.text : undefined}>
@@ -81,7 +85,13 @@ const TeamJourneyHeader = (props: HeaderProps) => (
       style={styles.avatar}
       onClick={props.onAuthorClick}
     />
-    <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={false} alignSelf="flex-start" style={styles.bottomLine}>
+    <Kb.Box2
+      direction="horizontal"
+      gap="xtiny"
+      fullWidth={false}
+      alignSelf="flex-start"
+      style={styles.bottomLine}
+    >
       <Kb.Text
         style={styles.teamnameText}
         type="BodySmallBold"
@@ -145,10 +155,10 @@ const styles = Styles.styleSheetCreate(
           marginTop: -12,
           paddingBottom: 3,
           paddingLeft:
-          // Space for below the avatar
-          Styles.globalMargins.tiny + // right margin
-          Styles.globalMargins.tiny + // left margin
-          Styles.globalMargins.mediumLarge, // avatar
+            // Space for below the avatar
+            Styles.globalMargins.tiny + // right margin
+            Styles.globalMargins.tiny + // left margin
+            Styles.globalMargins.mediumLarge, // avatar
           paddingRight: Styles.globalMargins.tiny,
         },
       }),
