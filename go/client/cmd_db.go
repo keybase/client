@@ -81,8 +81,7 @@ func (c *CmdDbNuke) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (c *CmdDbNuke) Run() error {
-	var err error
+func (c *CmdDbNuke) Run() (err error) {
 	if !c.force {
 		err = c.G().UI.GetTerminalUI().PromptForConfirmation("Really blast away your local database?")
 	}
@@ -127,8 +126,7 @@ type CmdDbDelete struct {
 	key keybase1.DbKey
 }
 
-func (c *CmdDbDelete) ParseArgv(ctx *cli.Context) error {
-	var err error
+func (c *CmdDbDelete) ParseArgv(ctx *cli.Context) (err error) {
 	c.key, err = parseDbKey(ctx, 2, "delete needs 2 args: an 'object type' byte and a string key")
 	return err
 }
@@ -198,8 +196,7 @@ type CmdDbGet struct {
 	base64 bool
 }
 
-func (c *CmdDbGet) ParseArgv(ctx *cli.Context) error {
-	var err error
+func (c *CmdDbGet) ParseArgv(ctx *cli.Context) (err error) {
 	c.base64 = ctx.Bool("base64")
 	c.key, err = parseDbKey(ctx, 2, "get needs 2 args: an 'object type' byte and a string key")
 	return err
@@ -261,8 +258,7 @@ type CmdDbPut struct {
 	val keybase1.DbValue
 }
 
-func (c *CmdDbPut) ParseArgv(ctx *cli.Context) error {
-	var err error
+func (c *CmdDbPut) ParseArgv(ctx *cli.Context) (err error) {
 	c.key, err = parseDbKey(ctx, 3, "put needs 3 args: an 'object type' byte, a string key, and value to put")
 	if err != nil {
 		return err
@@ -333,8 +329,7 @@ type CmdDbKeysWithPrefix struct {
 	key keybase1.DbKey
 }
 
-func (c *CmdDbKeysWithPrefix) ParseArgv(ctx *cli.Context) error {
-	var err error
+func (c *CmdDbKeysWithPrefix) ParseArgv(ctx *cli.Context) (err error) {
 	c.key, err = parseDbKey(ctx, 1, "need 1 arg: an 'object type' byte")
 	return err
 }
