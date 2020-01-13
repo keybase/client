@@ -10,7 +10,7 @@ import {StylesCrossPlatform} from '../../../../styles/css'
 
 type Props = {
   attachTo?: () => React.Component<any> | null
-  message: Types.DecoratedMessage
+  message: Types.Message
   onHidden: () => void
   position: Position
   style?: StylesCrossPlatform

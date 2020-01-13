@@ -1021,7 +1021,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const map = messageMap.get(conversationIDKey)
     if (map) {
       const m: any = map.get(targetOrdinal)
-      if (m && Constants.isDecoratedMessage(m)) {
+      if (m && Constants.isMessageWithReactions(m)) {
         const reactions = m.reactions
         const rs = reactions.get(emoji) || new Set()
         reactions.set(emoji, rs)

@@ -292,7 +292,7 @@ class _DocViewRow extends React.Component<DocViewRowProps> {
         {Styles.isMobile && this.props.showingMenu && item.message && (
           <MessagePopup
             attachTo={this.props.getAttachmentRef}
-            message={item.message as Types.DecoratedMessage}
+            message={item.message as Types.Message}
             onHidden={this.props.toggleShowingMenu}
             position="top right"
             visible={this.props.showingMenu}
