@@ -276,14 +276,14 @@ const Connected = Container.connect(
   dispatch => ({
     _onOpenFolder: (conversationIDKey: Types.ConversationIDKey) =>
       dispatch(Chat2Gen.createOpenFolder({conversationIDKey})),
-    onNewChat: () => dispatch(appendNewChatBuilder()),
-    onHideInfoPanel: () => dispatch(Chat2Gen.createShowInfoPanel({show: false})),
-    onShowInfoPanel: (conversationIDKey: Types.ConversationIDKey) =>
-      dispatch(Chat2Gen.createShowInfoPanel({conversationIDKey, show: true})),
     _onToggleThreadSearch: (conversationIDKey: Types.ConversationIDKey) =>
       dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey})),
     _unMuteConversation: (conversationIDKey: Types.ConversationIDKey) =>
       dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted: false})),
+    onHideInfoPanel: () => dispatch(Chat2Gen.createShowInfoPanel({show: false})),
+    onNewChat: () => dispatch(appendNewChatBuilder()),
+    onShowInfoPanel: (conversationIDKey: Types.ConversationIDKey) =>
+      dispatch(Chat2Gen.createShowInfoPanel({conversationIDKey, show: true})),
   }),
   (stateProps, dispatchProps, _: OwnProps) => {
     const {infoPanelShowing, username, fullName, desc} = stateProps

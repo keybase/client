@@ -35,9 +35,9 @@ export default Container.connect(
     return {
       _badgeMap: state.chat2.badgeMap,
       channelName: meta.channelname,
-      participants,
       contactNames,
       muted: meta.isMuted,
+      participants,
       pendingWaiting:
         conversationIDKey === Constants.pendingWaitingConversationIDKey ||
         conversationIDKey === Constants.pendingErrorConversationIDKey,
