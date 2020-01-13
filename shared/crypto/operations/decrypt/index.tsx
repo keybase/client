@@ -44,6 +44,9 @@ const Decrypt = (props: Props) => {
               placeholder="Paste cipher text or drop an encrypted file"
               textType="cipher"
               operation={Constants.Operations.Decrypt}
+              onSetFile={path => {
+                props.onSetInput('file', path)
+              }}
               onChangeText={text => {
                 setInputValue(text)
                 debounced(props.onSetInput, 'text', text)

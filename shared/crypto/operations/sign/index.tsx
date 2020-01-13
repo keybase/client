@@ -42,6 +42,9 @@ const Sign = (props: Props) => {
               placeholder="Write something or drop a file you want to sign"
               textType="plain"
               operation={Constants.Operations.Sign}
+              onSetFile={path => {
+                props.onSetInput('file', path)
+              }}
               onChangeText={text => {
                 setInputValue(text)
                 debounced(props.onSetInput, 'text', text)

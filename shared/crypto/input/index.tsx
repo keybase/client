@@ -7,6 +7,7 @@ import * as Styles from '../../styles'
 
 type TextProps = {
   onChangeText: (text: string) => void
+  onSetFile: (path: string) => void
   placeholder: string
   textType: Types.TextType
   operation: Types.Operations
@@ -20,22 +21,66 @@ type FileProps = {
   onClearFiles: () => void
 }
 
+/*
+ * Before user enters text:
+ *  - Single line input
+ *  - Browse file button
+ *
+ * Afte user enters text:
+ *  - Multiline input
+ */
 const TextInput = (props: TextProps) => {
+  const {value, placeholder, onChangeText, onSetFile, textType} = props
+  const filePickerRef = React.useRef<HTMLInputElement>(null)
+  const selectFile = React.useCallback(() => {
+    const files = (filePickerRef && filePickerRef.current && filePickerRef.current.files) || []
+    const allPaths: Array<string> = files.length
+      ? Array.from(files)
+          .map((f: File) => f.path)
+          .filter(Boolean)
+      : ([] as any)
+    const path = allPaths.pop()
+    // Set input type to 'file' and value to 'path'
+    if (path) {
+      onSetFile(path)
+    }
+  }, [filePickerRef, onSetFile])
+  const openFilePicker = React.useCallback(() => {
+    if (filePickerRef && filePickerRef.current) {
+      filePickerRef.current.click()
+    }
+  }, [filePickerRef])
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
       <Kb.NewInput
-        value={props.value}
-        placeholder={props.placeholder}
+        value={value}
+        placeholder={placeholder}
         multiline={true}
+        rowsMax={!value && 1}
         autoFocus={true}
         hideBorder={true}
         growAndScroll={true}
         padding="tiny"
-        textType={props.textType === 'cipher' ? 'Terminal' : 'Body'}
-        containerStyle={styles.inputContainer}
-        style={{color: Styles.globalColors.black}}
-        onChangeText={props.onChangeText}
+        textType={textType === 'cipher' ? 'Terminal' : 'Body'}
+        containerStyle={value ? styles.inputContainer : styles.inputContainerEmpty}
+        style={Styles.collapseStyles([styles.input, !value && styles.inputEmpty])}
+        onChangeText={onChangeText}
       />
+      {!props.value && (
+        <>
+          <input
+            type="file"
+            accept="*"
+            ref={filePickerRef}
+            multiple={false}
+            onChange={selectFile}
+            style={styles.hidden}
+          />
+          <Kb.Text type="BodyPrimaryLink" onClick={openFilePicker} style={styles.browseFile}>
+            browse a file
+          </Kb.Text>
+        </>
+      )}
     </Kb.Box2>
   )
 }
@@ -72,6 +117,10 @@ const FileInput = (props: FileProps) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      browseFile: {
+        paddingLeft: Styles.globalMargins.tiny,
+        paddingRight: Styles.globalMargins.tiny,
+      },
       clearButton: {
         position: 'absolute',
         right: Styles.globalMargins.small,
@@ -84,11 +133,27 @@ const styles = Styles.styleSheetCreate(
       fileContainer: {
         ...Styles.padding(Styles.globalMargins.small),
       },
+      hidden: {
+        display: 'none',
+      },
+      input: {
+        color: Styles.globalColors.black,
+      },
       inputContainer: {
         // We want the immediate container not to overflow, so we tell it be height: 100% to match the parent
         ...Styles.globalStyles.fullHeight,
         alignItems: 'stretch',
         padding: 0,
+      },
+      inputContainerEmpty: {
+        padding: 0,
+      },
+      inputEmpty: {
+        minHeight: 'initial',
+        paddingBottom: 0,
+        paddingLeft: Styles.globalMargins.tiny,
+        paddingRight: Styles.globalMargins.tiny,
+        paddingTop: Styles.globalMargins.tiny,
       },
     } as const)
 )

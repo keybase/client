@@ -42,6 +42,9 @@ const Verify = (props: Props) => {
               placeholder="Paste a signed message or drop a file your want to verify"
               textType="cipher"
               operation={Constants.Operations.Verify}
+              onSetFile={path => {
+                props.onSetInput('file', path)
+              }}
               onChangeText={text => {
                 setInputValue(text)
                 debounced(props.onSetInput, 'text', text)

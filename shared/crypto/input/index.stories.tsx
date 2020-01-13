@@ -5,6 +5,7 @@ import {TextInput, FileInput} from '.'
 
 const onClearInput = Sb.action('onClearInput')
 const onChangeText = Sb.action('onChangeText')
+const onSetFile = Sb.action('onSetFile')
 
 const shortText = 'plaintext'
 const longText = Array(1500)
@@ -19,6 +20,7 @@ const load = () => {
         value=""
         placeholder="Write something or drop a file you want to encrypt"
         onChangeText={onChangeText}
+        onSetFile={onSetFile}
         operation={Constants.Operations.Encrypt}
       />
     ))
@@ -29,6 +31,7 @@ const load = () => {
         value={shortText}
         placeholder="Write something or drop a file you want to encrypt"
         onChangeText={onChangeText}
+        onSetFile={onSetFile}
         operation={Constants.Operations.Encrypt}
       />
     ))
@@ -38,6 +41,7 @@ const load = () => {
         value={longText}
         placeholder="Write something or drop a file you want to encrypt"
         onChangeText={onChangeText}
+        onSetFile={onSetFile}
         operation={Constants.Operations.Encrypt}
       />
     ))
@@ -47,6 +51,7 @@ const load = () => {
         value=""
         placeholder="Write something or drop a file you want to encrypt"
         onChangeText={onChangeText}
+        onSetFile={onSetFile}
         operation={Constants.Operations.Decrypt}
       />
     ))
@@ -57,6 +62,7 @@ const load = () => {
         value={shortText}
         placeholder="Write something or drop a file you want to encrypt"
         onChangeText={onChangeText}
+        onSetFile={onSetFile}
         operation={Constants.Operations.Decrypt}
       />
     ))
@@ -66,6 +72,7 @@ const load = () => {
         value={longText}
         placeholder="Write something or drop a file you want to encrypt"
         onChangeText={onChangeText}
+        onSetFile={onSetFile}
         operation={Constants.Operations.Decrypt}
       />
     ))

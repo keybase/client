@@ -80,6 +80,9 @@ const Encrypt = (props: Props) => {
               placeholder="Write something or drop a file you want to encrypt"
               operation={Constants.Operations.Encrypt}
               textType="plain"
+              onSetFile={path => {
+                props.onSetInput('file', path)
+              }}
               onChangeText={text => {
                 setInputValue(text)
                 debounced(props.onSetInput, 'text', text)
