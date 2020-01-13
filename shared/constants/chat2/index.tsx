@@ -468,10 +468,10 @@ export const getParticipantSuggestions = (state: TypedState, id: Types.Conversat
 
 export {
   getBotCommands,
-  getChannelForTeam,
   getCommands,
   getConversationIDKeyMetasToLoad,
   getEffectiveRetentionPolicy,
+  getGeneralChannelForBigTeam,
   getMeta,
   getRowParticipants,
   getRowStyles,

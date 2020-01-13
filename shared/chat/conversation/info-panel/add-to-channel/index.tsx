@@ -12,6 +12,7 @@ type User = {
 type Props = {
   error: string | null
   onCancel: () => void
+  onLoad?: () => void
   onSubmit: (usernames: Array<string>) => void
   title: string
   users: Array<User>
@@ -84,6 +85,12 @@ class AddToChannel extends React.Component<Props, State> {
     />
   )
 
+  componentDidMount() {
+    if (this.props.onLoad) {
+      this.props.onLoad()
+    }
+  }
+
   render() {
     const items = this.props.users.map(u => ({...u, selected: this.state.selected.has(u.username)}))
     return (
@@ -97,43 +104,49 @@ class AddToChannel extends React.Component<Props, State> {
       >
         {!Styles.isMobile && <Kb.Text type="Header">{this.props.title}</Kb.Text>}
         <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.flexOne}>
-          <Kb.BoxGrow style={styles.listContainer}>
-            <Kb.List2
-              style={styles.list}
-              items={items}
-              keyProperty="username"
-              renderItem={this._renderItem}
-              itemHeight={this._itemHeight}
-            />
-          </Kb.BoxGrow>
-          <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true}>
-            <Kb.ButtonBar direction="row">
-              {!Styles.isMobile && (
-                <Kb.WaitingButton
-                  onlyDisable={true}
-                  waitingKey={this.props.waitingKey || null}
-                  type="Dim"
-                  label="Cancel"
-                  onClick={this.props.onCancel}
+          {this.props.users.length === 0 ? (
+            <Kb.ProgressIndicator type="Large" />
+          ) : (
+            <>
+              <Kb.BoxGrow style={styles.listContainer}>
+                <Kb.List2
+                  style={styles.list}
+                  items={items}
+                  keyProperty="username"
+                  renderItem={this._renderItem}
+                  itemHeight={this._itemHeight}
                 />
-              )}
-              <Kb.WaitingButton
-                disabled={!this.state.selected.size}
-                waitingKey={this.props.waitingKey || null}
-                label={
-                  this.state.selected.size
-                    ? `Add ${this.state.selected.size} ${pluralize('user', this.state.selected.size)}`
-                    : 'Add'
-                }
-                onClick={() => this.props.onSubmit([...this.state.selected])}
-              />
-            </Kb.ButtonBar>
-            {!!this.props.error && (
-              <Kb.Text type="BodySmallError" center={true}>
-                {this.props.error}
-              </Kb.Text>
-            )}
-          </Kb.Box2>
+              </Kb.BoxGrow>
+              <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true}>
+                <Kb.ButtonBar direction="row">
+                  {!Styles.isMobile && (
+                    <Kb.WaitingButton
+                      onlyDisable={true}
+                      waitingKey={this.props.waitingKey || null}
+                      type="Dim"
+                      label="Cancel"
+                      onClick={this.props.onCancel}
+                    />
+                  )}
+                  <Kb.WaitingButton
+                    disabled={!this.state.selected.size}
+                    waitingKey={this.props.waitingKey || null}
+                    label={
+                      this.state.selected.size
+                        ? `Add ${this.state.selected.size} ${pluralize('user', this.state.selected.size)}`
+                        : 'Add'
+                    }
+                    onClick={() => this.props.onSubmit([...this.state.selected])}
+                  />
+                </Kb.ButtonBar>
+                {!!this.props.error && (
+                  <Kb.Text type="BodySmallError" center={true}>
+                    {this.props.error}
+                  </Kb.Text>
+                )}
+              </Kb.Box2>
+            </>
+          )}
         </Kb.Box2>
       </Kb.Box2>
     )
