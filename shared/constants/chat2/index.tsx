@@ -469,14 +469,18 @@ export const getParticipantSuggestions = (state: TypedState, id: Types.Conversat
 
 export const messageAuthorIsBot = (
   state: TypedState,
-  teamname: string,
+  meta: Types.ConversationMeta,
   message: Types.Message,
   participantInfo: Types.ParticipantInfo
-) =>
-  teamname
+) => {
+  const teamname = meta.teamname
+  return teamname
     ? TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'restrictedbot') ||
-      TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'bot')
-    : !participantInfo.name.includes(message.author) // if adhoc, check if author in participants
+        TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'bot')
+    : meta.teamType === 'adhoc' && participantInfo.name.length > 0 // teams without info may have type adhoc with an empty participant name list
+    ? !participantInfo.name.includes(message.author) // if adhoc, check if author in participants
+    : false // if we don't have team information, don't show bot icon
+}
 
 export {
   getBotCommands,

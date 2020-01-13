@@ -888,6 +888,12 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "username": "string",
       "role": "TeamsTypes.TeamRoleType | null"
+    },
+    "dismissJourneycard": {
+      "_description": "Dismiss a journeycard",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "cardType": "RPCChatTypes.JourneycardType",
+      "ordinal": "Types.Ordinal"
     }
   }
 }
