@@ -53,12 +53,6 @@
       "typedef": "bytes"
     },
     {
-      "type": "record",
-      "name": "DbPrefix",
-      "fields": [],
-      "typedef": "bytes"
-    },
-    {
       "type": "enum",
       "name": "OnLoginStartupStatus",
       "symbols": [

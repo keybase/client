@@ -142,9 +142,9 @@ func (c *CtlHandler) DbKeysWithPrefixes(_ context.Context, arg keybase1.DbKeysWi
 	var res libkb.DBKeySet
 	switch arg.Prefix.DbType {
 	case keybase1.DbType_MAIN:
-		res, err = c.G().LocalDb.KeysWithPrefixes(libkb.LevelDbPrefix(libkb.ObjType(arg.Prefix.ObjType)))
+		res, err = c.G().LocalDb.KeysWithPrefixes([]byte(libkb.PrefixString(libkb.ObjType(arg.Prefix.ObjType))))
 	case keybase1.DbType_CHAT:
-		res, err = c.G().LocalChatDb.KeysWithPrefixes(libkb.LevelDbPrefix(libkb.ObjType(arg.Prefix.ObjType)))
+		res, err = c.G().LocalChatDb.KeysWithPrefixes([]byte(libkb.PrefixString(libkb.ObjType(arg.Prefix.ObjType))))
 	default:
 		return nil, libkb.NewDBError("no such DB type")
 	}

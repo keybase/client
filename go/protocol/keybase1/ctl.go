@@ -102,17 +102,6 @@ func (o DbValue) DeepCopy() DbValue {
 	})(o)
 }
 
-type DbPrefix []byte
-
-func (o DbPrefix) DeepCopy() DbPrefix {
-	return (func(x []byte) []byte {
-		if x == nil {
-			return nil
-		}
-		return append([]byte{}, x...)
-	})(o)
-}
-
 type OnLoginStartupStatus int
 
 const (
