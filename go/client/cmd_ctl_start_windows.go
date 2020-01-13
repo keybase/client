@@ -98,6 +98,7 @@ func (s *CmdCtlStart) Run() (err error) {
 		fmt.Printf("error starting the command: %+v\n", err)
 	}
 	fmt.Println("the command has finished running. what does that actually mean?")
+	return nil
 }
 
 func (s *CmdCtlStart) GetUsage() libkb.Usage {
