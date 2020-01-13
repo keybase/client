@@ -62,6 +62,33 @@ func (r *RemoteSaltpackUI) SaltpackVerifyBadSender(ctx context.Context, arg keyb
 	return r.cli.SaltpackVerifyBadSender(ctx, arg)
 }
 
+type RemoteSaltpackProgressUI struct {
+	sessionID int
+	cli       keybase1.SaltpackProgressUiClient
+}
+
+func NewRemoteSaltpackProgressUI(sessionID int, c *rpc.Client) *RemoteSaltpackProgressUI {
+	return &RemoteSaltpackProgressUI{
+		sessionID: sessionID,
+		cli:       keybase1.SaltpackProgressUiClient{Cli: c},
+	}
+}
+
+func (r *RemoteSaltpackProgressUI) SaltpackOperationStart(ctx context.Context, arg keybase1.SaltpackOperationStartArg) error {
+	arg.SessionID = r.sessionID
+	return r.cli.SaltpackOperationStart(ctx, arg)
+}
+
+func (r *RemoteSaltpackProgressUI) SaltpackOperationProgress(ctx context.Context, arg keybase1.SaltpackOperationProgressArg) error {
+	arg.SessionID = r.sessionID
+	return r.cli.SaltpackOperationProgress(ctx, arg)
+}
+
+func (r *RemoteSaltpackProgressUI) SaltpackOperationDone(ctx context.Context, arg keybase1.SaltpackOperationDoneArg) error {
+	arg.SessionID = r.sessionID
+	return r.cli.SaltpackOperationDone(ctx, arg)
+}
+
 func NewSaltpackHandler(xp rpc.Transporter, g *libkb.GlobalContext) *SaltpackHandler {
 	return &SaltpackHandler{
 		BaseHandler:  NewBaseHandler(g, xp),

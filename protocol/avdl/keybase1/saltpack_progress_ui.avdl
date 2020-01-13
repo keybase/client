@@ -1,0 +1,16 @@
+
+@namespace("keybase.1")
+
+protocol saltpackProgressUi {
+
+  enum OperationType {
+    ENCRYPT_0,
+    DECRYPT_1,
+    SIGN_2,
+    VERIFY_3
+  }
+
+  void saltpackOperationStart(int sessionID, OperationType opType, string filename);
+  void saltpackOperationProgress(int sessionID, OperationType opType, string filename, long bytesComplete, long bytesTotal) oneway;
+  void saltpackOperationDone(int sessionID, OperationType opType, string filename);
+}

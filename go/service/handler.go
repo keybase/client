@@ -147,6 +147,10 @@ func (h *BaseHandler) getSaltpackUI(sessionID int) libkb.SaltpackUI {
 	return NewRemoteSaltpackUI(sessionID, h.rpcClient())
 }
 
+func (h *BaseHandler) getSaltpackProgressUI(sessionID int) keybase1.SaltpackProgressUiInterface {
+	return NewRemoteSaltpackProgressUI(sessionID, h.rpcClient())
+}
+
 func (h *BaseHandler) getChatUI(sessionID int) libkb.ChatUI {
 	return NewRemoteChatUI(sessionID, h.rpcClient())
 }

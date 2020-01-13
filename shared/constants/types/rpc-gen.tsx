@@ -1905,6 +1905,13 @@ export enum OpenFlags {
   directory = 16,
 }
 
+export enum OperationType {
+  encrypt = 0,
+  decrypt = 1,
+  sign = 2,
+  verify = 3,
+}
+
 export enum Outcome {
   none = 0,
   fixed = 1,
@@ -3245,6 +3252,9 @@ export type IncomingCallMapType = {
   'keybase.1.rekeyUI.delegateRekeyUI'?: (params: MessageTypes['keybase.1.rekeyUI.delegateRekeyUI']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.rekeyUI.refresh'?: (params: MessageTypes['keybase.1.rekeyUI.refresh']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.rekeyUI.rekeySendEvent'?: (params: MessageTypes['keybase.1.rekeyUI.rekeySendEvent']['inParam'] & {sessionID: number}) => IncomingReturn
+  'keybase.1.saltpackProgressUi.saltpackOperationStart'?: (params: MessageTypes['keybase.1.saltpackProgressUi.saltpackOperationStart']['inParam'] & {sessionID: number}) => IncomingReturn
+  'keybase.1.saltpackProgressUi.saltpackOperationProgress'?: (params: MessageTypes['keybase.1.saltpackProgressUi.saltpackOperationProgress']['inParam'] & {sessionID: number}) => IncomingReturn
+  'keybase.1.saltpackProgressUi.saltpackOperationDone'?: (params: MessageTypes['keybase.1.saltpackProgressUi.saltpackOperationDone']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.saltpackUi.saltpackPromptForDecrypt'?: (params: MessageTypes['keybase.1.saltpackUi.saltpackPromptForDecrypt']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.saltpackUi.saltpackVerifySuccess'?: (params: MessageTypes['keybase.1.saltpackUi.saltpackVerifySuccess']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.saltpackUi.saltpackVerifyBadSender'?: (params: MessageTypes['keybase.1.saltpackUi.saltpackVerifyBadSender']['inParam'] & {sessionID: number}) => IncomingReturn
@@ -3368,6 +3378,9 @@ export type CustomResponseIncomingCallMap = {
   'keybase.1.rekeyUI.delegateRekeyUI'?: (params: MessageTypes['keybase.1.rekeyUI.delegateRekeyUI']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.rekeyUI.delegateRekeyUI']['outParam']) => void}) => IncomingReturn
   'keybase.1.rekeyUI.refresh'?: (params: MessageTypes['keybase.1.rekeyUI.refresh']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.rekeyUI.refresh']['outParam']) => void}) => IncomingReturn
   'keybase.1.rekeyUI.rekeySendEvent'?: (params: MessageTypes['keybase.1.rekeyUI.rekeySendEvent']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.rekeyUI.rekeySendEvent']['outParam']) => void}) => IncomingReturn
+  'keybase.1.saltpackProgressUi.saltpackOperationStart'?: (params: MessageTypes['keybase.1.saltpackProgressUi.saltpackOperationStart']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.saltpackProgressUi.saltpackOperationStart']['outParam']) => void}) => IncomingReturn
+  'keybase.1.saltpackProgressUi.saltpackOperationProgress'?: (params: MessageTypes['keybase.1.saltpackProgressUi.saltpackOperationProgress']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.saltpackProgressUi.saltpackOperationProgress']['outParam']) => void}) => IncomingReturn
+  'keybase.1.saltpackProgressUi.saltpackOperationDone'?: (params: MessageTypes['keybase.1.saltpackProgressUi.saltpackOperationDone']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.saltpackProgressUi.saltpackOperationDone']['outParam']) => void}) => IncomingReturn
   'keybase.1.saltpackUi.saltpackPromptForDecrypt'?: (params: MessageTypes['keybase.1.saltpackUi.saltpackPromptForDecrypt']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.saltpackUi.saltpackPromptForDecrypt']['outParam']) => void}) => IncomingReturn
   'keybase.1.saltpackUi.saltpackVerifySuccess'?: (params: MessageTypes['keybase.1.saltpackUi.saltpackVerifySuccess']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.saltpackUi.saltpackVerifySuccess']['outParam']) => void}) => IncomingReturn
   'keybase.1.saltpackUi.saltpackVerifyBadSender'?: (params: MessageTypes['keybase.1.saltpackUi.saltpackVerifyBadSender']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.saltpackUi.saltpackVerifyBadSender']['outParam']) => void}) => IncomingReturn
@@ -3918,6 +3931,20 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.saltpack.saltpackDecrypt'
 // 'keybase.1.saltpack.saltpackSign'
 // 'keybase.1.saltpack.saltpackVerify'
+<<<<<<< HEAD
+=======
+// 'keybase.1.saltpack.saltpackEncryptString'
+// 'keybase.1.saltpack.saltpackEncryptFile'
+// 'keybase.1.saltpack.saltpackDecryptString'
+// 'keybase.1.saltpack.saltpackDecryptFile'
+// 'keybase.1.saltpack.saltpackSignString'
+// 'keybase.1.saltpack.saltpackSignFile'
+// 'keybase.1.saltpack.saltpackVerifyString'
+// 'keybase.1.saltpack.saltpackVerifyFile'
+// 'keybase.1.saltpackProgressUi.saltpackOperationStart'
+// 'keybase.1.saltpackProgressUi.saltpackOperationProgress'
+// 'keybase.1.saltpackProgressUi.saltpackOperationDone'
+>>>>>>> dfd88373f4... Add progress ui
 // 'keybase.1.saltpackUi.saltpackPromptForDecrypt'
 // 'keybase.1.saltpackUi.saltpackVerifySuccess'
 // 'keybase.1.saltpackUi.saltpackVerifyBadSender'

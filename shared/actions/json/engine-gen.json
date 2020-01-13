@@ -547,6 +547,15 @@
         "keybase1RekeyUIRekeySendEvent": {
             "params": "keybase1Types.MessageTypes['keybase.1.rekeyUI.rekeySendEvent']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.rekeyUI.rekeySendEvent']['outParam']) => void}"
         },
+        "keybase1SaltpackProgressUiSaltpackOperationStart": {
+            "params": "keybase1Types.MessageTypes['keybase.1.saltpackProgressUi.saltpackOperationStart']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.saltpackProgressUi.saltpackOperationStart']['outParam']) => void}"
+        },
+        "keybase1SaltpackProgressUiSaltpackOperationProgress": {
+            "params": "keybase1Types.MessageTypes['keybase.1.saltpackProgressUi.saltpackOperationProgress']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.saltpackProgressUi.saltpackOperationProgress']['outParam']) => void}"
+        },
+        "keybase1SaltpackProgressUiSaltpackOperationDone": {
+            "params": "keybase1Types.MessageTypes['keybase.1.saltpackProgressUi.saltpackOperationDone']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.saltpackProgressUi.saltpackOperationDone']['outParam']) => void}"
+        },
         "keybase1SaltpackUiSaltpackPromptForDecrypt": {
             "params": "keybase1Types.MessageTypes['keybase.1.saltpackUi.saltpackPromptForDecrypt']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.saltpackUi.saltpackPromptForDecrypt']['outParam']) => void}"
         },
