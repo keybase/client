@@ -33,9 +33,10 @@ func (c *CmdWatchdog2) Run() error {
 	env, log := c.G().Env, c.G().Log
 	log.Info("Starting watchdog")
 	runMode := env.GetRunMode()
-	if runMode != libkb.ProductionRunMode {
-		return fmt.Errorf("Watchdog is only supported in production")
-	}
+	log.Info("run mode is %s, runtime is %s", runMode, runtime.GOOS)
+	// if runMode != libkb.ProductionRunMode {
+	// 	return fmt.Errorf("Watchdog is only supported in production")
+	// }
 	if runtime.GOOS != "windows" {
 		return fmt.Errorf("Watchdog is only supported in windows")
 	}

@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/install"
@@ -79,6 +80,22 @@ func (s *CmdCtlStart) Run() (err error) {
 		}
 		// maybe make this a debug log instead of info
 		g.Log.Info("spawned a new watchdog at PID: %d", pid)
+
+		myPid := os.Getpid()
+		timer := time.NewTimer(60 * time.Second)
+		ticker := time.NewTicker(1 * time.Second)
+		for {
+			select {
+			case <-ticker.C:
+				proc, err := os.FindProcess(pid)
+				g.Log.Info("status of the spawned watchdog: %+v, %+v", proc, err)
+				proc, err = os.FindProcess(myPid)
+				g.Log.Info("status of myself: %+v, %+v", proc, err)
+			case <-timer.C:
+				g.Log.Info("time's up. hopefully you know what you were looking for")
+				break
+			}
+		}
 	}
 
 	return nil
