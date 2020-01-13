@@ -90,7 +90,7 @@ const TextInput = (props: TextProps) => {
               style={styles.hidden}
             />
             <Kb.Text type="BodyPrimaryLink" onClick={openFilePicker} style={styles.browseFile}>
-              browse a file
+              Or browse a file.
             </Kb.Text>
           </>
         )}

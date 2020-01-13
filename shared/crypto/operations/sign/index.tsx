@@ -39,7 +39,7 @@ const Sign = (props: Props) => {
           ) : (
             <TextInput
               value={inputValue}
-              placeholder="Write something or drop a file you want to sign"
+              placeholder="Write, paste, or drop a file. We'll add your signature."
               textType="plain"
               operation={Constants.Operations.Sign}
               onSetFile={path => {
@@ -54,7 +54,7 @@ const Sign = (props: Props) => {
           <Kb.Divider />
 
           <Kb.Box2 direction="vertical" fullHeight={true}>
-            <SignedSender signed={true} signedBy="cecilb" outputStatus={props.outputStatus} />
+            <SignedSender signed={true} signedBy="cecileb" outputStatus={props.outputStatus} />
             <OperationOutput
               outputStatus={props.outputStatus}
               output={props.output}

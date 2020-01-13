@@ -77,7 +77,7 @@ const Encrypt = (props: Props) => {
           ) : (
             <TextInput
               value={inputValue}
-              placeholder="Write something or drop a file you want to encrypt"
+              placeholder="Write, paste, or drop a file you want to encrypt"
               operation={Constants.Operations.Encrypt}
               textType="plain"
               onSetFile={path => {

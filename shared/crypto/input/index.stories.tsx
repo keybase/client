@@ -18,7 +18,7 @@ const load = () => {
       <TextInput
         textType="plain"
         value=""
-        placeholder="Write something or drop a file you want to encrypt"
+        placeholder="Write, paste, or drop a file you want to encrypt"
         onChangeText={onChangeText}
         onSetFile={onSetFile}
         operation={Constants.Operations.Encrypt}
@@ -29,7 +29,7 @@ const load = () => {
       <TextInput
         textType="plain"
         value={shortText}
-        placeholder="Write something or drop a file you want to encrypt"
+        placeholder="Write, paste, or drop a file you want to encrypt"
         onChangeText={onChangeText}
         onSetFile={onSetFile}
         operation={Constants.Operations.Encrypt}
@@ -39,7 +39,7 @@ const load = () => {
       <TextInput
         textType="plain"
         value={longText}
-        placeholder="Write something or drop a file you want to encrypt"
+        placeholder="Write, paste, or drop a file you want to encrypt"
         onChangeText={onChangeText}
         onSetFile={onSetFile}
         operation={Constants.Operations.Encrypt}
@@ -49,7 +49,7 @@ const load = () => {
       <TextInput
         textType="cipher"
         value=""
-        placeholder="Write something or drop a file you want to encrypt"
+        placeholder="Write, paste, or drop a file you want to encrypt"
         onChangeText={onChangeText}
         onSetFile={onSetFile}
         operation={Constants.Operations.Decrypt}
@@ -60,7 +60,7 @@ const load = () => {
       <TextInput
         textType="cipher"
         value={shortText}
-        placeholder="Write something or drop a file you want to encrypt"
+        placeholder="Write, paste, or drop a file you want to encrypt"
         onChangeText={onChangeText}
         onSetFile={onSetFile}
         operation={Constants.Operations.Decrypt}
@@ -70,7 +70,7 @@ const load = () => {
       <TextInput
         textType="cipher"
         value={longText}
-        placeholder="Write something or drop a file you want to encrypt"
+        placeholder="Write, paste, or drop a file you want to encrypt"
         onChangeText={onChangeText}
         onSetFile={onSetFile}
         operation={Constants.Operations.Decrypt}
