@@ -141,7 +141,30 @@ const saltpackEncrypt = async (
   const {input, recipients, type, options} = action.payload
   switch (type) {
     case 'file': {
-      return
+      try {
+        const file = await RPCTypes.saltpackSaltpackEncryptFileRpcPromise({
+          filename: input,
+          opts: {
+            includeSelf: options.includeSelf,
+            recipients: recipients,
+            signed: options.sign,
+          },
+        })
+        return CryptoGen.createOnOperationSuccess({
+          operation: Constants.Operations.Encrypt,
+          output: file,
+          outputSender: options.sign ? username : undefined,
+          outputSigned: options.sign,
+          outputType: type,
+        })
+      } catch (err) {
+        logger.error(err)
+        return CryptoGen.createOnOperationError({
+          errorMessage: 'Failed to perform encryption operation',
+          errorType: '',
+          operation: Constants.Operations.Encrypt,
+        })
+      }
     }
     case 'text': {
       try {
@@ -183,7 +206,29 @@ const saltpackDecrypt = async (action: CryptoGen.SaltpackDecryptPayload, logger:
 
   switch (type) {
     case 'file': {
-      return
+      try {
+        const result = await RPCTypes.saltpackSaltpackDecryptFileRpcPromise({
+          encryptedFilename: input,
+        })
+        const {decryptedFilename, info, signed} = result
+        const {sender} = info
+        const {username} = sender
+
+        return CryptoGen.createOnOperationSuccess({
+          operation: Constants.Operations.Decrypt,
+          output: decryptedFilename,
+          outputSender: signed ? username : undefined,
+          outputSigned: signed,
+          outputType: type,
+        })
+      } catch (err) {
+        logger.error(err)
+        return CryptoGen.createOnOperationError({
+          errorMessage: 'Failed to perform decrypt operation',
+          errorType: '',
+          operation: Constants.Operations.Decrypt,
+        })
+      }
     }
     case 'text': {
       try {
@@ -194,7 +239,7 @@ const saltpackDecrypt = async (action: CryptoGen.SaltpackDecryptPayload, logger:
         const {sender} = info
         const {username, senderType} = sender
 
-        // TODO @jacob: This is a plaeholder until the protocol is updated to included signed flag
+        // TODO @jacob: This is a placeholder until the protocol is updated to included signed flag
         const isSigned = !(
           senderType === RPCTypes.SaltpackSenderType.unknown ||
           senderType === RPCTypes.SaltpackSenderType.anonymous
@@ -234,7 +279,23 @@ const saltpackSign = async (
   const {input, type} = action.payload
   switch (type) {
     case 'file': {
-      return
+      try {
+        const signedFilename = await RPCTypes.saltpackSaltpackSignFileRpcPromise({filename: input})
+        return CryptoGen.createOnOperationSuccess({
+          operation: Constants.Operations.Sign,
+          output: signedFilename,
+          outputSender: username,
+          outputSigned: true,
+          outputType: type,
+        })
+      } catch (err) {
+        logger.error(err)
+        return CryptoGen.createOnOperationError({
+          errorMessage: 'Failed to perform decrypt operation',
+          errorType: '',
+          operation: Constants.Operations.Decrypt,
+        })
+      }
     }
     case 'text': {
       try {
@@ -267,9 +328,33 @@ const saltpackSign = async (
 const saltpackVerify = async (action: CryptoGen.SaltpackVerifyPayload, logger: Saga.SagaLogger) => {
   const {input, type} = action.payload
   switch (type) {
-    // TODO @jacob : Finish this
     case 'file': {
-      return
+      try {
+        const result = await RPCTypes.saltpackSaltpackVerifyFileRpcPromise({signedFilename: input})
+        const {verifiedFilename, sender} = result
+        const {username, senderType} = sender
+
+        // TODO @jacob: This is a plaeholder until the protocol is updated to included signed flag
+        const isSigned = !(
+          senderType === RPCTypes.SaltpackSenderType.unknown ||
+          senderType === RPCTypes.SaltpackSenderType.anonymous
+        )
+
+        return CryptoGen.createOnOperationSuccess({
+          operation: Constants.Operations.Verify,
+          output: verifiedFilename,
+          outputSender: isSigned ? username : undefined,
+          outputSigned: isSigned,
+          outputType: type,
+        })
+      } catch (err) {
+        logger.error(err)
+        return CryptoGen.createOnOperationError({
+          errorMessage: 'Failed to perform verify operation',
+          errorType: '',
+          operation: Constants.Operations.Decrypt,
+        })
+      }
     }
     case 'text': {
       try {
