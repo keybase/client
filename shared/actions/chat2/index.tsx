@@ -2365,14 +2365,14 @@ const deleteMessageHistory = async (
   })
 }
 
-function dismissJourneycard(
+const dismissJourneycard = (
   action: Chat2Gen.DismissJourneycardPayload,
   logger: Saga.SagaLogger
-) {
+) => {
   const {cardType, conversationIDKey, ordinal} = action.payload
   RPCChatTypes.localDismissJourneycardRpcPromise({
-    convID: Types.keyToConversationID(conversationIDKey),
     cardType: cardType,
+    convID: Types.keyToConversationID(conversationIDKey),
   }).catch((err) => {
     logger.error(`Failed to dismiss journeycard: ${err.message}`)
   })

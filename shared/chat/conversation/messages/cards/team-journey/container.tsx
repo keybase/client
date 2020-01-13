@@ -182,7 +182,7 @@ const TeamJourneyConnected = Container.connect(
       conversationIDKey: ChatTypes.ConversationIDKey,
       cardType: RPCChatTypes.JourneycardType,
       ordinal: ChatTypes.Ordinal
-    ) => dispatch(Chat2Gen.createDismissJourneycard({conversationIDKey, cardType, ordinal})),
+    ) => dispatch(Chat2Gen.createDismissJourneycard({cardType, conversationIDKey, ordinal})),
     _onGoToChannel: (channelname: string, teamname: string) =>
       dispatch(Chat2Gen.createPreviewConversation({channelname, reason: 'journeyCardPopular', teamname})),
     _onLoadTeam: (teamID: string) => dispatch(TeamsGen.createGetChannels({teamID})),
