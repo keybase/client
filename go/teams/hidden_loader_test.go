@@ -101,6 +101,17 @@ func getCurrentBlindRootHashFromMerkleRoot(t *testing.T, tc libkb.TestContext) s
 	return blindRoot
 }
 
+func makePaperKey(t *testing.T, uTc *libkb.TestContext) {
+	uis := libkb.UIs{
+		LogUI:    uTc.G.UI.GetLogUI(),
+		LoginUI:  &libkb.TestLoginUI{},
+		SecretUI: &libkb.TestSecretUI{},
+	}
+	eng := engine.NewPaperKey(uTc.G)
+	err := engine.RunEngine2(libkb.NewMetaContextForTest(*uTc).WithUIs(uis), eng)
+	require.NoError(t, err)
+}
+
 func requestNewBlindTreeFromArchitectAndWaitUntilDone(t *testing.T, uTc *libkb.TestContext) {
 	oldBlindRoot := getCurrentBlindRootHashFromMerkleRoot(t, *uTc)
 
@@ -111,14 +122,7 @@ func requestNewBlindTreeFromArchitectAndWaitUntilDone(t *testing.T, uTc *libkb.T
 	require.NoError(t, err)
 
 	// the user adds a paper key to make new main merkle tree version.
-	uis := libkb.UIs{
-		LogUI:    uTc.G.UI.GetLogUI(),
-		LoginUI:  &libkb.TestLoginUI{},
-		SecretUI: &libkb.TestSecretUI{},
-	}
-	eng := engine.NewPaperKey(uTc.G)
-	err = engine.RunEngine2(libkb.NewMetaContextForTest(*uTc).WithUIs(uis), eng)
-	require.NoError(t, err)
+	makePaperKey(t, uTc)
 
 	// ensure the architect actually updated
 	newBlindRoot := getCurrentBlindRootHashFromMerkleRoot(t, *uTc)

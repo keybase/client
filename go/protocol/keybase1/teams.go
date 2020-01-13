@@ -1377,16 +1377,18 @@ func (e AuditVersion) String() string {
 }
 
 type AuditHistory struct {
-	ID               TeamID           `codec:"ID" json:"ID"`
-	Public           bool             `codec:"public" json:"public"`
-	PriorMerkleSeqno Seqno            `codec:"priorMerkleSeqno" json:"priorMerkleSeqno"`
-	Version          AuditVersion     `codec:"version" json:"version"`
-	Audits           []Audit          `codec:"audits" json:"audits"`
-	PreProbes        map[Seqno]Probe  `codec:"preProbes" json:"preProbes"`
-	PostProbes       map[Seqno]Probe  `codec:"postProbes" json:"postProbes"`
-	Tails            map[Seqno]LinkID `codec:"tails" json:"tails"`
-	HiddenTails      map[Seqno]LinkID `codec:"hiddenTails" json:"hiddenTails"`
-	SkipUntil        Time             `codec:"skipUntil" json:"skipUntil"`
+	ID                TeamID           `codec:"ID" json:"ID"`
+	Public            bool             `codec:"public" json:"public"`
+	PriorMerkleSeqno  Seqno            `codec:"priorMerkleSeqno" json:"priorMerkleSeqno"`
+	Version           AuditVersion     `codec:"version" json:"version"`
+	Audits            []Audit          `codec:"audits" json:"audits"`
+	PreProbes         map[Seqno]Probe  `codec:"preProbes" json:"preProbes"`
+	PostProbes        map[Seqno]Probe  `codec:"postProbes" json:"postProbes"`
+	Tails             map[Seqno]LinkID `codec:"tails" json:"tails"`
+	HiddenTails       map[Seqno]LinkID `codec:"hiddenTails" json:"hiddenTails"`
+	PreProbesToRetry  []Seqno          `codec:"preProbesToRetry" json:"preProbesToRetry"`
+	PostProbesToRetry []Seqno          `codec:"postProbesToRetry" json:"postProbesToRetry"`
+	SkipUntil         Time             `codec:"skipUntil" json:"skipUntil"`
 }
 
 func (o AuditHistory) DeepCopy() AuditHistory {
@@ -1454,6 +1456,28 @@ func (o AuditHistory) DeepCopy() AuditHistory {
 			}
 			return ret
 		})(o.HiddenTails),
+		PreProbesToRetry: (func(x []Seqno) []Seqno {
+			if x == nil {
+				return nil
+			}
+			ret := make([]Seqno, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.PreProbesToRetry),
+		PostProbesToRetry: (func(x []Seqno) []Seqno {
+			if x == nil {
+				return nil
+			}
+			ret := make([]Seqno, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.PostProbesToRetry),
 		SkipUntil: o.SkipUntil.DeepCopy(),
 	}
 }

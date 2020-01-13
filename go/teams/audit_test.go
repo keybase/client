@@ -456,3 +456,258 @@ func TestAuditFailsIfDataIsInconsistent(t *testing.T) {
 	require.NoError(t, err)
 	assertAuditTo(B, 3, 2)
 }
+
+func TestFailedProbesAreRetried(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 3)
+	defer cleanup()
+
+	// We set up codenames for 3 users, A, B, C
+	const (
+		A = 0
+		B = 1
+		C = 2
+	)
+
+	makePaperKey(t, tcs[A])
+	makePaperKey(t, tcs[B])
+
+	t.Logf("create team")
+	teamName, teamID := createTeam2(*tcs[0])
+	m := make([]libkb.MetaContext, 3)
+	for i, tc := range tcs {
+		m[i] = libkb.NewMetaContextForTest(*tc)
+	}
+
+	add := func(adder, addee int) keybase1.Seqno {
+		_, err := AddMember(m[adder].Ctx(), tcs[adder].G, teamName.String(), fus[addee].Username, keybase1.TeamRole_READER, nil)
+		require.NoError(t, err)
+		return 1
+	}
+
+	setFastAudits := func(user int) {
+		m[user].G().Env.Test.TeamAuditParams = &libkb.TeamAuditParams{
+			NumPostProbes:         2,
+			MerkleMovementTrigger: keybase1.Seqno(1),
+			RootFreshness:         time.Duration(1),
+			LRUSize:               500,
+			NumPreProbes:          2,
+			Parallelism:           3,
+		}
+	}
+
+	setFastAudits(B)
+
+	// A adds B to the team
+	add(A, B)
+
+	// make some extra merkle tree versions
+	makePaperKey(t, tcs[A])
+	makePaperKey(t, tcs[B])
+	makePaperKey(t, tcs[A])
+	makePaperKey(t, tcs[B])
+
+	team, err := GetForTestByStringName(context.TODO(), m[A].G(), teamName.String())
+	require.NoError(t, err)
+	root := m[A].G().GetMerkleClient().LastRoot(m[A])
+	require.NotNil(t, root)
+	latestRootSeqno := *root.Seqno()
+	t.Logf("latest root: %v %X", root.Seqno(), root.HashMeta())
+	headMerkleSeqno := team.MainChain().Chain.HeadMerkle.Seqno
+	t.Logf("headMerkleSeqno: %v", headMerkleSeqno)
+
+	for i := headMerkleSeqno; i <= latestRootSeqno; i++ {
+		leaf, _, hiddenResp, err := m[B].G().GetMerkleClient().LookupLeafAtSeqnoForAudit(m[B], teamID.AsUserOrTeam(), i, hidden.ProcessHiddenResponseFunc)
+		require.NoError(t, err)
+		if leaf != nil && leaf.Private != nil && len(leaf.Private.LinkID) > 0 {
+			t.Logf("Seqno %v Leaf %v Hidden %v", i, leaf.Private.Seqno, hiddenResp)
+		} else {
+			t.Logf("Seqno %v Leaf EMPTY Hidden %v", i, hiddenResp)
+		}
+	}
+
+	auditor := m[B].G().GetTeamAuditor().(*Auditor)
+	lru := auditor.getLRU()
+
+	// no audits yet, history is nil.
+	history, err := auditor.getFromCache(m[B], teamID, lru)
+	require.NoError(t, err)
+	require.Nil(t, history)
+
+	merkle := m[B].G().GetMerkleClient()
+
+	corruptMerkle := CorruptingMerkleClient{
+		MerkleClientInterface: merkle,
+		corruptor: func(leaf *libkb.MerkleGenericLeaf, root *libkb.MerkleRoot, hiddenResp *libkb.MerkleHiddenResponse, err error) (*libkb.MerkleGenericLeaf, *libkb.MerkleRoot, *libkb.MerkleHiddenResponse, error) {
+			t.Logf("Corruptor: received %v,%v,%v,%v", leaf, root, hiddenResp, err)
+			if *root.Seqno() >= headMerkleSeqno {
+				if leaf != nil && leaf.Private != nil && len(leaf.Private.LinkID) > 0 {
+					leaf.Private.LinkID[0] ^= 0xff
+					t.Logf("Corruptor: altering LINKID for %v", leaf.Private.Seqno)
+				} else {
+					leaf = &libkb.MerkleGenericLeaf{
+						LeafID:  teamID.AsUserOrTeam(),
+						Private: &libkb.MerkleTriple{Seqno: keybase1.Seqno(100)},
+					}
+				}
+			}
+			return leaf, root, hiddenResp, err
+		},
+	}
+	m[B].G().SetMerkleClient(corruptMerkle)
+
+	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.HiddenChain().GetOuter(), team.MainChain().Chain.LastSeqno, team.HiddenChain().GetLastCommittedSeqno(), root, keybase1.AuditMode_STANDARD)
+	require.Error(t, err)
+	require.IsType(t, AuditError{}, err)
+
+	history, err = auditor.getFromCache(m[B], teamID, lru)
+	require.NoError(t, err)
+	require.Len(t, history.PreProbesToRetry, 0)
+	require.True(t, len(history.PostProbesToRetry) > 0)
+
+	probesToTest := make(map[keybase1.Seqno]bool)
+	numProbes := 0
+	for _, probe := range history.PostProbesToRetry {
+		probesToTest[probe] = true
+		numProbes++
+	}
+
+	corruptMerkle = CorruptingMerkleClient{
+		MerkleClientInterface: merkle,
+		corruptor: func(leaf *libkb.MerkleGenericLeaf, root *libkb.MerkleRoot, hiddenResp *libkb.MerkleHiddenResponse, err error) (*libkb.MerkleGenericLeaf, *libkb.MerkleRoot, *libkb.MerkleHiddenResponse, error) {
+			t.Logf("Corruptor: received %v,%v,%v,%v", leaf, root, hiddenResp, err)
+			probeSeqno := *root.Seqno()
+			if probeSeqno >= headMerkleSeqno {
+				if probesToTest[probeSeqno] {
+					t.Logf("PostProbes: Seqno %v was retried", probeSeqno)
+					probesToTest[probeSeqno] = false
+					numProbes--
+				}
+				if leaf != nil && leaf.Private != nil && len(leaf.Private.LinkID) > 0 {
+					leaf.Private.LinkID[0] ^= 0xff
+					t.Logf("Corruptor: altering LINKID for %v", leaf.Private.Seqno)
+				} else {
+					leaf = &libkb.MerkleGenericLeaf{
+						LeafID:  teamID.AsUserOrTeam(),
+						Private: &libkb.MerkleTriple{Seqno: keybase1.Seqno(100)},
+					}
+				}
+			}
+			return leaf, root, hiddenResp, err
+		},
+	}
+	m[B].G().SetMerkleClient(corruptMerkle)
+
+	// repeat a second time and make sure that we retry the same probes
+	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.HiddenChain().GetOuter(), team.MainChain().Chain.LastSeqno, team.HiddenChain().GetLastCommittedSeqno(), root, keybase1.AuditMode_STANDARD)
+	require.Error(t, err)
+	require.IsType(t, AuditError{}, err)
+	require.Zero(t, numProbes, "not all probes were retried")
+
+	// repeat a third time
+	probesToTest = make(map[keybase1.Seqno]bool)
+	numProbes = 0
+	for _, probe := range history.PostProbesToRetry {
+		probesToTest[probe] = true
+		numProbes++
+	}
+	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.HiddenChain().GetOuter(), team.MainChain().Chain.LastSeqno, team.HiddenChain().GetLastCommittedSeqno(), root, keybase1.AuditMode_STANDARD)
+	require.Error(t, err)
+	require.IsType(t, AuditError{}, err)
+	require.Zero(t, numProbes, "not all probes were retried")
+
+	// now test the preprobes are saved and retried on failure
+
+	corruptMerkle = CorruptingMerkleClient{
+		MerkleClientInterface: merkle,
+		corruptor: func(leaf *libkb.MerkleGenericLeaf, root *libkb.MerkleRoot, hiddenResp *libkb.MerkleHiddenResponse, err error) (*libkb.MerkleGenericLeaf, *libkb.MerkleRoot, *libkb.MerkleHiddenResponse, error) {
+			t.Logf("Corruptor: received %v,%v,%v,%v", leaf, root, hiddenResp, err)
+			if leaf == nil {
+				leaf = &libkb.MerkleGenericLeaf{
+					LeafID: teamID.AsUserOrTeam(),
+				}
+			}
+			if leaf.Private == nil {
+				t.Logf("Corruptor: creating a fake leaf when there should have been none")
+				leaf.Private = &libkb.MerkleTriple{
+					Seqno:  4,
+					LinkID: []byte{0x00, 0x01, 0x02},
+				}
+			}
+			return leaf, root, hiddenResp, err
+		},
+	}
+	m[B].G().SetMerkleClient(corruptMerkle)
+
+	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.HiddenChain().GetOuter(), team.MainChain().Chain.LastSeqno, team.HiddenChain().GetLastCommittedSeqno(), root, keybase1.AuditMode_STANDARD)
+	require.Error(t, err)
+	require.IsType(t, AuditError{}, err)
+	require.Contains(t, err.Error(), "merkle root should not have had a leaf for team")
+
+	history, err = auditor.getFromCache(m[B], teamID, lru)
+	require.NoError(t, err)
+	require.True(t, len(history.PreProbesToRetry) > 0)
+	require.True(t, len(history.PostProbesToRetry) > 0)
+
+	probesToTest = make(map[keybase1.Seqno]bool)
+	numProbes = 0
+	for _, probe := range history.PreProbesToRetry {
+		probesToTest[probe] = true
+		numProbes++
+	}
+
+	corruptMerkle = CorruptingMerkleClient{
+		MerkleClientInterface: merkle,
+		corruptor: func(leaf *libkb.MerkleGenericLeaf, root *libkb.MerkleRoot, hiddenResp *libkb.MerkleHiddenResponse, err error) (*libkb.MerkleGenericLeaf, *libkb.MerkleRoot, *libkb.MerkleHiddenResponse, error) {
+			t.Logf("Corruptor: received %v,%v,%v,%v", leaf, root, hiddenResp, err)
+			probeSeqno := *root.Seqno()
+			if probeSeqno < headMerkleSeqno {
+				if probesToTest[probeSeqno] {
+					t.Logf("PreProbes: Seqno %v was retried", probeSeqno)
+					probesToTest[probeSeqno] = false
+					numProbes--
+				}
+				if leaf == nil {
+					leaf = &libkb.MerkleGenericLeaf{
+						LeafID: teamID.AsUserOrTeam(),
+					}
+				}
+				if leaf.Private == nil {
+					t.Logf("Corruptor: creating a fake leaf when there should have been none")
+					leaf.Private = &libkb.MerkleTriple{
+						Seqno:  4,
+						LinkID: []byte{0x00, 0x01, 0x02},
+					}
+				}
+			}
+			return leaf, root, hiddenResp, err
+		},
+	}
+	m[B].G().SetMerkleClient(corruptMerkle)
+
+	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.HiddenChain().GetOuter(), team.MainChain().Chain.LastSeqno, team.HiddenChain().GetLastCommittedSeqno(), root, keybase1.AuditMode_STANDARD)
+	require.Error(t, err)
+	require.IsType(t, AuditError{}, err)
+	require.Zero(t, numProbes, "not all probes were retried")
+
+	history, err = auditor.getFromCache(m[B], teamID, lru)
+	require.NoError(t, err)
+	require.True(t, len(history.PreProbesToRetry) > 0)
+	require.True(t, len(history.PostProbesToRetry) > 0)
+
+	probesToTest = make(map[keybase1.Seqno]bool)
+	numProbes = 0
+	for _, probe := range history.PreProbesToRetry {
+		probesToTest[probe] = true
+		numProbes++
+	}
+
+	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.HiddenChain().GetOuter(), team.MainChain().Chain.LastSeqno, team.HiddenChain().GetLastCommittedSeqno(), root, keybase1.AuditMode_STANDARD)
+	require.Error(t, err)
+	require.IsType(t, AuditError{}, err)
+	require.Zero(t, numProbes, "not all probes were retried")
+
+	// now stop any corruption and ensure the audit succeeds
+	m[B].G().SetMerkleClient(merkle)
+	err = auditor.AuditTeam(m[B], teamID, false, team.MainChain().Chain.HeadMerkle.Seqno, team.MainChain().Chain.LinkIDs, team.HiddenChain().GetOuter(), team.MainChain().Chain.LastSeqno, team.HiddenChain().GetLastCommittedSeqno(), root, keybase1.AuditMode_STANDARD)
+	require.NoError(t, err)
+}
