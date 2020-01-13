@@ -361,14 +361,14 @@ type timeoutAPI struct {
 }
 
 func (r *timeoutAPI) GetDecode(mctx libkb.MetaContext, arg libkb.APIArg, w libkb.APIResponseWrapper) error {
-	return libkb.APINetError{}
+	return libkb.APINetError{Err: errors.New("timeout")}
 }
 func (r *timeoutAPI) PostDecode(mctx libkb.MetaContext, arg libkb.APIArg, w libkb.APIResponseWrapper) error {
-	return libkb.APINetError{}
+	return libkb.APINetError{Err: errors.New("timeout")}
 }
 
 func (r *timeoutAPI) Get(mctx libkb.MetaContext, arg libkb.APIArg) (*libkb.APIRes, error) {
-	return nil, libkb.APINetError{}
+	return nil, libkb.APINetError{Err: errors.New("timeout")}
 }
 
 // Signup followed by logout clears the stored secret
