@@ -240,7 +240,9 @@ const InstallBotPopup = (props: Props) => {
             </Kb.Text>
           </Kb.Box2>
         </Kb.Box2>
-        <Kb.Text type="Body">{featured.extendedDescription}</Kb.Text>
+        <Kb.Markdown smallStandaloneEmoji={true} selectable={true}>
+          {featured.extendedDescription}
+        </Kb.Markdown>
       </Kb.Box2>
       {inTeam && !inTeamUnrestricted && (
         <PermsList channelInfos={channelInfos} settings={settings} username={botUsername} />
