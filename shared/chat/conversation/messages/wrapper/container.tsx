@@ -71,6 +71,8 @@ const getUsernameToShow = (
       return message.joiners.length + message.leavers.length > 1 ? '' : message.author
     case 'systemSBSResolved':
       return message.prover
+    case 'journeycard':
+      return 'placeholder'
   }
   return message.author
 }
@@ -143,10 +145,7 @@ export default Container.namedConnect(
     const authorIsAdmin = teamname
       ? TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'admin')
       : false
-    const authorIsBot = teamname
-      ? TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'restrictedbot') ||
-        TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'bot')
-      : !_participantInfo.name.includes(message.author) // if adhoc, check if author in participants
+    const authorIsBot = Constants.messageAuthorIsBot(state, meta, message, _participantInfo)
     const authorIsOwner = teamname
       ? TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'owner')
       : false

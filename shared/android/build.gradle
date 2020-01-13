@@ -55,8 +55,11 @@ allprojects {
         if (enableV8) {
             maven {
                 // Replace AAR from original RN with AAR from react-native-v8
-                // prebuilt libv8.so
                 url("$rootDir/../node_modules/react-native-v8/dist")
+            }
+            maven {
+                // prebuilt libv8.so
+                url("$rootDir/../node_modules/v8-android-nointl/dist")
             }
         } else {
             maven {

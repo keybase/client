@@ -1241,12 +1241,20 @@ protocol local {
   PinMessageRes unpinMessage(ConversationID convID);
   void ignorePinnedMessage(ConversationID convID);
 
+  // Bot interface
   void addBotMember(ConversationID convID, string username, union { null, keybase1.TeamBotSettings } botSettings, keybase1.TeamRole role);
   void editBotMember(ConversationID convID, string username, union { null, keybase1.TeamBotSettings } botSettings, keybase1.TeamRole role);
   void removeBotMember(ConversationID convID, string username);
   void setBotMemberSettings(ConversationID convID, string username, keybase1.TeamBotSettings botSettings);
   keybase1.TeamBotSettings getBotMemberSettings(ConversationID convID, string username);
   keybase1.TeamRole getTeamRoleInConversation(ConversationID convID, string username);
+  record AddBotConvSearchHit {
+    string name;
+    ConversationID convID;
+    boolean isTeam;
+    array<string> parts;
+  }
+  array<AddBotConvSearchHit> addBotConvSearch(string term);
 
   keybase1.TeamID teamIDFromTLFName(string tlfName, ConversationMembersType membersType, boolean tlfPublic);
 

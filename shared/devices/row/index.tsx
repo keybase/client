@@ -40,7 +40,13 @@ const DeviceRow = (props: Props) => {
               <Kb.Meta title="new" style={styles.meta} backgroundColor={Styles.globalColors.orange} />
             )}
           </Kb.Box2>
-          <Kb.Text type="BodySmall">{`Last used ${formatTimeRelativeToNow(props.device.lastUsed)}`}</Kb.Text>
+          <Kb.Text type="BodySmall">
+            {props.isRevoked
+              ? `Revoked ${
+                  props.device.revokedAt ? formatTimeRelativeToNow(props.device.revokedAt) : 'device'
+                }`
+              : `Last used ${formatTimeRelativeToNow(props.device.lastUsed)}`}
+          </Kb.Text>
         </Kb.Box2>
       }
     />

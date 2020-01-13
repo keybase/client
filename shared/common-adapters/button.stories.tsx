@@ -82,6 +82,36 @@ const load = () => {
             gap="small"
             gapStart={true}
             gapEnd={true}
+            style={{alignSelf: 'flex-start'}}
+          >
+            <Text type="BodySemibold">Icon</Text>
+            {types.map(t => (
+              <Wrapper key={t}>
+                <Button
+                  {...commonProps}
+                  type={t}
+                  icon="iconfont-fire"
+                  tooltip="Icon button!"
+                  label={undefined}
+                />
+                <Button
+                  {...commonProps}
+                  type={t}
+                  icon="iconfont-fire"
+                  tooltip="Icon button!"
+                  label={undefined}
+                  mode="Secondary"
+                />
+              </Wrapper>
+            ))}
+          </Box2>
+        </Wrapper>
+        <Wrapper>
+          <Box2
+            direction="vertical"
+            gap="small"
+            gapStart={true}
+            gapEnd={true}
             style={{
               alignSelf: 'flex-start',
               borderColor: 'black',

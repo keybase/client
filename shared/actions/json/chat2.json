@@ -47,6 +47,9 @@
     },
     // Got an error while creating a conversation.
     "conversationErrored": {
+      "allowedUsers": "Array<string>",
+      "code": "number",
+      "disallowedUsers": "Array<string>",
       "message": "string"
     },
     // Select an existing conversation or setup an empty one. Can either be adhoc or a tlf (adhoc or team)
@@ -376,15 +379,6 @@
     "attachmentPasted": {
       "conversationIDKey": "Types.ConversationIDKey",
       "data": "Buffer"
-    },
-    "attachmentFullscreenSelection": {
-      "autoPlay": "boolean",
-      "message": "Types.Message"
-    },
-    "attachmentFullscreenNext": {
-      "conversationIDKey": "Types.ConversationIDKey",
-      "messageID": "Types.MessageID",
-      "backInTime": "boolean"
     },
     // We got an uploaded attachment, while online this is like an edit of the placeholder
     "messageAttachmentUploaded": {
@@ -894,6 +888,12 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "username": "string",
       "role": "TeamsTypes.TeamRoleType | null"
+    },
+    "dismissJourneycard": {
+      "_description": "Dismiss a journeycard",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "cardType": "RPCChatTypes.JourneycardType",
+      "ordinal": "Types.Ordinal"
     }
   }
 }

@@ -179,6 +179,28 @@
         {
           "type": "string",
           "name": "plaintext"
+        },
+        {
+          "type": "boolean",
+          "name": "signed"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SaltpackFileResult",
+      "fields": [
+        {
+          "type": "SaltpackEncryptedMessageInfo",
+          "name": "info"
+        },
+        {
+          "type": "string",
+          "name": "decryptedFilename"
+        },
+        {
+          "type": "boolean",
+          "name": "signed"
         }
       ]
     },
@@ -197,6 +219,32 @@
         {
           "type": "string",
           "name": "plaintext"
+        },
+        {
+          "type": "boolean",
+          "name": "verified"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SaltpackVerifyFileResult",
+      "fields": [
+        {
+          "type": "KID",
+          "name": "signingKID"
+        },
+        {
+          "type": "SaltpackSender",
+          "name": "sender"
+        },
+        {
+          "type": "string",
+          "name": "verifiedFilename"
+        },
+        {
+          "type": "boolean",
+          "name": "verified"
         }
       ]
     }
@@ -303,6 +351,23 @@
       ],
       "response": "string"
     },
+    "saltpackEncryptFile": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "filename",
+          "type": "string"
+        },
+        {
+          "name": "opts",
+          "type": "SaltpackFrontendEncryptOptions"
+        }
+      ],
+      "response": "string"
+    },
     "saltpackDecryptString": {
       "request": [
         {
@@ -316,6 +381,19 @@
       ],
       "response": "SaltpackPlaintextResult"
     },
+    "saltpackDecryptFile": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "encryptedFilename",
+          "type": "string"
+        }
+      ],
+      "response": "SaltpackFileResult"
+    },
     "saltpackSignString": {
       "request": [
         {
@@ -324,6 +402,19 @@
         },
         {
           "name": "plaintext",
+          "type": "string"
+        }
+      ],
+      "response": "string"
+    },
+    "saltpackSignFile": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "filename",
           "type": "string"
         }
       ],
@@ -341,6 +432,19 @@
         }
       ],
       "response": "SaltpackVerifyResult"
+    },
+    "saltpackVerifyFile": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "signedFilename",
+          "type": "string"
+        }
+      ],
+      "response": "SaltpackVerifyFileResult"
     }
   },
   "namespace": "keybase.1"

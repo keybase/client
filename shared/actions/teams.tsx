@@ -272,7 +272,7 @@ const addReAddErrorHandler = (username, e) => {
 const addToTeam = async (action: TeamsGen.AddToTeamPayload) => {
   const {fromTeamBuilder, teamID, users, sendChatNotification} = action.payload
   try {
-    await RPCTypes.teamsTeamAddMembersMultiRoleRpcPromise(
+    const res = await RPCTypes.teamsTeamAddMembersMultiRoleRpcPromise(
       {
         sendChatNotification,
         teamID,
@@ -283,10 +283,30 @@ const addToTeam = async (action: TeamsGen.AddToTeamPayload) => {
       },
       Constants.addMemberWaitingKey(teamID, ...users.map(({assertion}) => assertion))
     )
+    if (res.notAdded && res.notAdded.length > 0) {
+      const usernames = res.notAdded.map(elem => elem.username)
+      return [
+        TeamBuildingGen.createFinishedTeamBuilding({namespace: 'teams'}),
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {source: 'teamAddSomeFailed', usernames}, selected: 'contactRestricted'}],
+        }),
+      ]
+    }
     return TeamsGen.createAddedToTeam({fromTeamBuilder})
-  } catch (e) {
+  } catch (err) {
+    // If all of the users couldn't be added due to contact settings, the RPC fails.
+    if (err.code === RPCTypes.StatusCode.scteamcontactsettingsblock) {
+      const users = err.fields?.filter(elem => elem.key === 'usernames').map(elem => elem.value)
+      const usernames = users[0].split(',')
+      return [
+        TeamBuildingGen.createFinishedTeamBuilding({namespace: 'teams'}),
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {source: 'teamAddAllFailed', usernames}, selected: 'contactRestricted'}],
+        }),
+      ]
+    }
     // TODO this should not error on member already in team
-    return TeamsGen.createAddedToTeam({error: e.desc, fromTeamBuilder})
+    return TeamsGen.createAddedToTeam({error: err.desc, fromTeamBuilder})
   }
 }
 

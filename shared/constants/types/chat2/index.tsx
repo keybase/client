@@ -151,6 +151,13 @@ export type BotSearchResults = {
   users: Array<string>
 }
 
+export type CreateConversationError = {
+  allowedUsers: Array<string>
+  code: number
+  disallowedUsers: Array<string>
+  message: string
+}
+
 export type ParticipantInfo = {
   all: Array<string>
   name: Array<string>
@@ -162,7 +169,6 @@ export type State = Readonly<{
     Common.ConversationIDKey,
     Map<RPCChatTypes.MessageID, Message.ChatRequestInfo | Message.ChatPaymentInfo>
   > // temp cache for requestPayment and sendPayment message data,
-  attachmentFullscreenSelection?: AttachmentFullscreenSelection
   attachmentViewMap: Map<Common.ConversationIDKey, Map<RPCChatTypes.GalleryItemTyp, AttachmentViewInfo>>
   audioRecording: Map<Common.ConversationIDKey, AudioRecordingInfo>
   badgeMap: ConversationCountMap // id to the badge count,
@@ -176,7 +182,7 @@ export type State = Readonly<{
   commandMarkdownMap: Map<Common.ConversationIDKey, RPCChatTypes.UICommandMarkdown>
   commandStatusMap: Map<Common.ConversationIDKey, CommandStatusInfo>
   containsLatestMessageMap: Map<Common.ConversationIDKey, boolean>
-  createConversationError: string | null
+  createConversationError: CreateConversationError | null
   dismissedInviteBannersMap: Map<Common.ConversationIDKey, boolean>
   draftMap: Map<Common.ConversationIDKey, string>
   editingMap: Map<Common.ConversationIDKey, Message.Ordinal> // current message being edited,

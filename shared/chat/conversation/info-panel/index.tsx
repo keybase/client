@@ -494,7 +494,18 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
           if (!item.botUsername) {
             return null
           } else {
-            return <Bot {...item} onClick={this.props.onBotSelect} />
+            return (
+              <Bot
+                {...item}
+                conversationIDKey={this.props.selectedConversationIDKey}
+                onClick={this.props.onBotSelect}
+                showAddToChannel={
+                  this.props.installedBots.includes(item) &&
+                  !this.props.smallTeam &&
+                  !this.props.participants.find(p => p.username === item.botUsername)
+                }
+              />
+            )
           }
         }
         sections.push(tabsSection)

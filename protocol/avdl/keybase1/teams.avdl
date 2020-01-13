@@ -35,7 +35,10 @@ protocol teams {
   enum AuditMode {
     STANDARD_0,
     JUST_CREATED_1,
-    SKIP_2
+    SKIP_2,
+    // If we do not want to audit the hidden chain 
+    // (for example, when the client does not have access to it).
+    STANDARD_NO_HIDDEN_3
   }
 
   // PerTeamKeyGeneration describes the generation of the secret.
@@ -496,6 +499,10 @@ protocol teams {
     @mpackkey("mcs") @jsonkey("mcs")
     Seqno maxChainSeqno;
 
+    // The maximum hidden Seqno in the chain at the time of the audit.
+    @mpackkey("mhs") @jsonkey("mhs")
+    Seqno maxHiddenSeqno;
+
     // The maximum merkle Seqno probed in this audit.
     @mpackkey("mmp") @jsonkey("mmp")
     Seqno maxMerkleProbe;
@@ -506,13 +513,16 @@ protocol teams {
     int index;
     @mpackkey("s") @jsonkey("t")
     Seqno teamSeqno;
+    @mpackkey("h") @jsonkey("h")
+    Seqno teamHiddenSeqno;
   }
 
   enum AuditVersion {
     V0_0,
     V1_1,
     V2_2,
-    V3_3
+    V3_3,
+    V4_4
   }
 
   record AuditHistory {
@@ -535,6 +545,8 @@ protocol teams {
     map<Seqno,Probe> postProbes;
     // For each chain tail we audit, write down the corresponding linkID
     map<Seqno,LinkID> tails;
+    // For each hidden chain tail we audit, write down the corresponding linkID
+    map<Seqno,LinkID> hiddenTails;
 
     // If we just created this team, and it's implicit, then we can skip the audit
     // for a while (as dictated by the rootFreshness of the Audit Parameters).

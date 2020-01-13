@@ -15,8 +15,6 @@ export const addBotMember = 'chat2:addBotMember'
 export const addUsersToChannel = 'chat2:addUsersToChannel'
 export const attachmentDownload = 'chat2:attachmentDownload'
 export const attachmentDownloaded = 'chat2:attachmentDownloaded'
-export const attachmentFullscreenNext = 'chat2:attachmentFullscreenNext'
-export const attachmentFullscreenSelection = 'chat2:attachmentFullscreenSelection'
 export const attachmentLoading = 'chat2:attachmentLoading'
 export const attachmentMobileSave = 'chat2:attachmentMobileSave'
 export const attachmentMobileSaved = 'chat2:attachmentMobileSaved'
@@ -41,6 +39,7 @@ export const deselectConversation = 'chat2:deselectConversation'
 export const desktopNotification = 'chat2:desktopNotification'
 export const dismissBlockButtons = 'chat2:dismissBlockButtons'
 export const dismissBottomBanner = 'chat2:dismissBottomBanner'
+export const dismissJourneycard = 'chat2:dismissJourneycard'
 export const editBotSettings = 'chat2:editBotSettings'
 export const enableAudioRecording = 'chat2:enableAudioRecording'
 export const findGeneralConvIDFromTeamID = 'chat2:findGeneralConvIDFromTeamID'
@@ -204,12 +203,6 @@ type _AttachmentDownloadedPayload = {
   readonly error?: string
   readonly path?: string
 }
-type _AttachmentFullscreenNextPayload = {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly messageID: Types.MessageID
-  readonly backInTime: boolean
-}
-type _AttachmentFullscreenSelectionPayload = {readonly autoPlay: boolean; readonly message: Types.Message}
 type _AttachmentLoadingPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly message: Types.Message
@@ -256,7 +249,12 @@ type _ClearMessagesPayload = void
 type _ClearMetasPayload = void
 type _ClearPaymentConfirmInfoPayload = void
 type _ConfirmScreenResponsePayload = {readonly accept: boolean}
-type _ConversationErroredPayload = {readonly message: string}
+type _ConversationErroredPayload = {
+  readonly allowedUsers: Array<string>
+  readonly code: number
+  readonly disallowedUsers: Array<string>
+  readonly message: string
+}
 type _CreateConversationPayload = {readonly participants: Array<string>}
 type _DeselectConversationPayload = {readonly ifConversationIDKey: Types.ConversationIDKey}
 type _DesktopNotificationPayload = {
@@ -266,6 +264,11 @@ type _DesktopNotificationPayload = {
 }
 type _DismissBlockButtonsPayload = {readonly teamID: RPCTypes.TeamID}
 type _DismissBottomBannerPayload = {readonly conversationIDKey: Types.ConversationIDKey}
+type _DismissJourneycardPayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly cardType: RPCChatTypes.JourneycardType
+  readonly ordinal: Types.Ordinal
+}
 type _EditBotSettingsPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly username: string
@@ -856,6 +859,13 @@ export const createTabSelected = (payload: _TabSelectedPayload): TabSelectedPayl
   type: tabSelected,
 })
 /**
+ * Dismiss a journeycard
+ */
+export const createDismissJourneycard = (payload: _DismissJourneycardPayload): DismissJourneycardPayload => ({
+  payload,
+  type: dismissJourneycard,
+})
+/**
  * Explicitly set whether a thread is loaded to the most recent message
  */
 export const createSetContainsLastMessage = (
@@ -1377,12 +1387,6 @@ export const createAttachmentDownload = (payload: _AttachmentDownloadPayload): A
 export const createAttachmentDownloaded = (
   payload: _AttachmentDownloadedPayload
 ): AttachmentDownloadedPayload => ({payload, type: attachmentDownloaded})
-export const createAttachmentFullscreenNext = (
-  payload: _AttachmentFullscreenNextPayload
-): AttachmentFullscreenNextPayload => ({payload, type: attachmentFullscreenNext})
-export const createAttachmentFullscreenSelection = (
-  payload: _AttachmentFullscreenSelectionPayload
-): AttachmentFullscreenSelectionPayload => ({payload, type: attachmentFullscreenSelection})
 export const createAttachmentLoading = (payload: _AttachmentLoadingPayload): AttachmentLoadingPayload => ({
   payload,
   type: attachmentLoading,
@@ -1665,14 +1669,6 @@ export type AttachmentDownloadedPayload = {
   readonly payload: _AttachmentDownloadedPayload
   readonly type: typeof attachmentDownloaded
 }
-export type AttachmentFullscreenNextPayload = {
-  readonly payload: _AttachmentFullscreenNextPayload
-  readonly type: typeof attachmentFullscreenNext
-}
-export type AttachmentFullscreenSelectionPayload = {
-  readonly payload: _AttachmentFullscreenSelectionPayload
-  readonly type: typeof attachmentFullscreenSelection
-}
 export type AttachmentLoadingPayload = {
   readonly payload: _AttachmentLoadingPayload
   readonly type: typeof attachmentLoading
@@ -1762,6 +1758,10 @@ export type DismissBlockButtonsPayload = {
 export type DismissBottomBannerPayload = {
   readonly payload: _DismissBottomBannerPayload
   readonly type: typeof dismissBottomBanner
+}
+export type DismissJourneycardPayload = {
+  readonly payload: _DismissJourneycardPayload
+  readonly type: typeof dismissJourneycard
 }
 export type EditBotSettingsPayload = {
   readonly payload: _EditBotSettingsPayload
@@ -2270,8 +2270,6 @@ export type Actions =
   | AddUsersToChannelPayload
   | AttachmentDownloadPayload
   | AttachmentDownloadedPayload
-  | AttachmentFullscreenNextPayload
-  | AttachmentFullscreenSelectionPayload
   | AttachmentLoadingPayload
   | AttachmentMobileSavePayload
   | AttachmentMobileSavedPayload
@@ -2296,6 +2294,7 @@ export type Actions =
   | DesktopNotificationPayload
   | DismissBlockButtonsPayload
   | DismissBottomBannerPayload
+  | DismissJourneycardPayload
   | EditBotSettingsPayload
   | EnableAudioRecordingPayload
   | FindGeneralConvIDFromTeamIDPayload

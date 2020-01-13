@@ -231,31 +231,50 @@ function* requestPayment(state: TypedState, _: WalletsGen.RequestPaymentPayload,
     return false
   }
 
-  const kbRqID: Saga.RPCPromiseType<typeof RPCStellarTypes.localMakeRequestLocalRpcPromise> = yield RPCStellarTypes.localMakeRequestLocalRpcPromise(
-    {
-      amount: state.wallets.building.amount,
-      // FIXME -- support other assets.
-      asset: state.wallets.building.currency === 'XLM' ? emptyAsset : null,
-      currency:
-        state.wallets.building.currency && state.wallets.building.currency !== 'XLM'
-          ? state.wallets.building.currency
-          : null,
-      note: state.wallets.building.secretNote.stringValue(),
-      recipient: state.wallets.building.to,
-    },
-    Constants.requestPaymentWaitingKey
-  )
-  const navAction = maybeNavigateAwayFromSendForm()
-  yield Saga.sequentially([
-    ...(navAction ? navAction.map(n => Saga.put(n)) : []),
-    Saga.put(
-      WalletsGen.createRequestedPayment({
-        kbRqID: new HiddenString(kbRqID),
-        lastSentXLM: state.wallets.building.currency === 'XLM',
-        requestee: state.wallets.building.to,
-      })
-    ),
-  ])
+  try {
+    const kbRqID: Saga.RPCPromiseType<typeof RPCStellarTypes.localMakeRequestLocalRpcPromise> = yield RPCStellarTypes.localMakeRequestLocalRpcPromise(
+      {
+        amount: state.wallets.building.amount,
+        // FIXME -- support other assets.
+        asset: state.wallets.building.currency === 'XLM' ? emptyAsset : null,
+        currency:
+          state.wallets.building.currency && state.wallets.building.currency !== 'XLM'
+            ? state.wallets.building.currency
+            : null,
+        note: state.wallets.building.secretNote.stringValue(),
+        recipient: state.wallets.building.to,
+      },
+      Constants.requestPaymentWaitingKey
+    )
+    const navAction = maybeNavigateAwayFromSendForm()
+    yield Saga.sequentially([
+      ...(navAction ? navAction.map(n => Saga.put(n)) : []),
+      Saga.put(
+        WalletsGen.createRequestedPayment({
+          kbRqID: new HiddenString(kbRqID),
+          lastSentXLM: state.wallets.building.currency === 'XLM',
+          requestee: state.wallets.building.to,
+        })
+      ),
+    ])
+  } catch (err) {
+    if (err instanceof RPCError && err.code === RPCTypes.StatusCode.scteamcontactsettingsblock) {
+      const navAction = maybeNavigateAwayFromSendForm()
+      const users = err.fields?.filter(elem => elem.key === 'usernames')
+      const usernames = [users[0].value]
+      yield Saga.sequentially([
+        ...(navAction ? navAction.map(n => Saga.put(n)) : []),
+        Saga.put(
+          RouteTreeGen.createNavigateAppend({
+            path: [{props: {source: 'walletsRequest', usernames}, selected: 'contactRestricted'}],
+          })
+        ),
+      ])
+    } else {
+      _logger.error(`requestPayment error: ${err.message}`)
+      throw err
+    }
+  }
   return false
 }
 
@@ -698,14 +717,13 @@ const loadPaymentDetail = async (action: WalletsGen.LoadPaymentDetailPayload, lo
 
 const markAsRead = async (action: WalletsGen.MarkAsReadPayload, logger: Saga.SagaLogger) => {
   try {
-    return RPCStellarTypes.localMarkAsReadLocalRpcPromise({
+    await RPCStellarTypes.localMarkAsReadLocalRpcPromise({
       accountID: action.payload.accountID,
       mostRecentID: Types.paymentIDToRPCPaymentID(action.payload.mostRecentID),
     })
   } catch (err) {
     // No need to throw black bars.
     logger.warn(err.desc)
-    return false
   }
 }
 

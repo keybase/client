@@ -28,7 +28,8 @@ const isBot = (role: TeamTypes.MaybeTeamRoleType) => {
 
 const ManageComponent = (props: Props) => {
   const textType = 'BodySmallSemiboldPrimaryLink'
-  if (!props.isTeam) {
+  const bot = isBot(props.role)
+  if (!props.isTeam && !bot) {
     return null
   }
   if (props.addee === props.you) {
@@ -39,7 +40,7 @@ const ManageComponent = (props: Props) => {
         </Kb.Text>
       </Kb.Box>
     )
-  } else if (isBot(props.role)) {
+  } else if (bot) {
     return (
       <Kb.Text onClick={props.onViewBot} type={textType}>
         View bot settings
