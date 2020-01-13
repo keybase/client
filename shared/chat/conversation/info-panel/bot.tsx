@@ -2,14 +2,31 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/chat2'
+import * as Container from '../../../util/container'
+import * as Chat2Gen from '../../../actions/chat2-gen'
 import {FeaturedBot} from 'constants/types/rpc-gen'
-import AddBotToChannel from './add-bot-to-channel'
 
 type Props = FeaturedBot & {
   conversationIDKey: Types.ConversationIDKey
   description?: string
   onClick: (username: string) => void
   showAddToChannel: boolean
+}
+
+type AddButtonProps = {
+  conversationIDKey: Types.ConversationIDKey
+  username: string
+}
+
+const AddBotToChannel = ({conversationIDKey, username}: AddButtonProps) => {
+  const dispatch = Container.useDispatch()
+  const addToChannel = () =>
+    dispatch(Chat2Gen.createAddUsersToChannel({conversationIDKey, usernames: [username]}))
+  return (
+    <Kb.WithTooltip tooltip="Add to this channel">
+      <Kb.Icon type="iconfont-add" onClick={addToChannel} />
+    </Kb.WithTooltip>
+  )
 }
 
 const Bot = ({
