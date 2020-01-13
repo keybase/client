@@ -83,34 +83,23 @@ func (b *KVStoreRealBoxer) fetchEncryptionKey(mctx libkb.MetaContext, entryID ke
 	return encKey, appKey.KeyGeneration, nil
 }
 
-func (b *KVStoreRealBoxer) fetchRestrictedBotEncryptionKey(mctx libkb.MetaContext, entryID keybase1.KVEntryID, generation *keybase1.PerTeamKeyGeneration) (res [signencrypt.SecretboxKeySize]byte, gen keybase1.PerTeamKeyGeneration, err error) {
+func (b *KVStoreRealBoxer) fetchRestrictedBotEncryptionKey(mctx libkb.MetaContext, entryID keybase1.KVEntryID, generation *keybase1.PerTeamKeyGeneration) (res [signencrypt.SecretboxKeySize]byte, gen keybase1.TeambotKeyGeneration, err error) {
 	// boxing can always use the latest key, unboxing will pass in a team generation to load
-	loadArg := keybase1.LoadTeamArg{
-		ID:           entryID.TeamID,
-		Name: entryID.
-		Applications: []keybase1.TeamApplication{keybase1.TeamApplication_KVSTORE},
-	}
+	keyer := mctx.G().GetTeambotBotKeyer()
+	var key keybase1.TeambotKey
 	if generation == nil {
-		loadArg.NeedLatestKey = true
+		key, err = keyer.GetLatestTeambotKey(mctx, entryID.TeamID, keybase1.TeamApplication_KVSTORE)
+		if err != nil {
+			return res, gen, err
+		}
 	} else {
-		loadArg.KeyGenerationsNeeded = []keybase1.PerTeamKeyGeneration{*generation}
+		key, err = keyer.GetTeambotKeyAtGeneration(mctx, entryID.TeamID, keybase1.TeamApplication_KVSTORE, keybase1.TeambotKeyGeneration(*generation))
+		if err != nil {
+			return res, gen, err
+		}
 	}
-	teamData, hiddenTeamChain, err := mctx.G().GetTeamLoader().Load(mctx, loadArg)
-	if err != nil {
-		return res, gen, err
-	}
-	if len(teamLoadRes.ApplicationKeys) != 1 {
-		return res, gen, fmt.Errorf("wrong number of keys from fast-team-loading encryption key; wanted 1, got %d", len(teamLoadRes.ApplicationKeys))
-	}
-	appKey := teamLoadRes.ApplicationKeys[0]
-	if generation != nil && appKey.KeyGeneration != *generation {
-		return res, gen, fmt.Errorf("wrong app key generation; wanted %d but got %d", *generation, appKey.KeyGeneration)
-	}
-	if appKey.Application != keybase1.TeamApplication_KVSTORE {
-		return res, gen, fmt.Errorf("wrong app key application; wanted %d but got %d", keybase1.TeamApplication_KVSTORE, appKey.Application)
-	}
-	var encKey [signencrypt.SecretboxKeySize]byte = appKey.Key
-	return encKey, appKey.KeyGeneration, nil
+	var encKey [signencrypt.SecretboxKeySize]byte = key.Seed
+	return encKey, key.Metadata.Generation, nil
 }
 
 func (b *KVStoreRealBoxer) fetchVerifyKey(mctx libkb.MetaContext, uid keybase1.UID, deviceID keybase1.DeviceID) (ret signencrypt.VerifyKey, err error) {
@@ -192,34 +181,34 @@ func (b *KVStoreRealBoxer) BoxForBot(mctx libkb.MetaContext, entryID keybase1.KV
 	defer mctx.TraceTimed(fmt.Sprintf("KVStoreRealBoxer#BoxForBot: %s, %s, %s, %s", entryID.TeamID, entryID.Namespace, entryID.EntryKey, botName),
 		func() error { return err })()
 
+	arg := libkb.NewLoadUserArgWithMetaContext(mctx).WithName(botName)
+	upak, _, err := b.G().GetUPAKLoader().LoadV2(arg)
+	if err != nil {
+		return "", keybase1.PerTeamKeyGeneration(0), 0, "", 0, err ///////
+	}
+	botUID = upak.Current.Uid
+	botEldestSeqno = upak.Current.EldestSeqno
+
 	clearBytes := []byte(cleartext)
 	ciphertextVersion := 1
 	nonce, err := newNonce()
 	if err != nil {
 		mctx.Debug("error making a nonce: %v", err)
-		return "", keybase1.PerTeamKeyGeneration(0), 0, "", 0, err ///////
+		return "", keybase1.PerTeamKeyGeneration(0), 0, botUID, botEldestSeqno, err ///////
 	}
-
-
-	arg := libkb.NewLoadUserArgWithMetaContext(mctx).WithName(botName)
-	upak, _, err := m.G().GetUPAKLoader().LoadV2(arg)              
-  if err !=  nil {
-		return "", keybase1.PerTeamKeyGeneration(0), 0, "", 0, err ///////
-	}
-	botid := upak.UserPlusKeysV2.Uid
 
 	///////////////////////////// get bot key from botid
 	// get encryption key (and team generation) and this device's signing key
 	encKey, teamGen, err := b.fetchRestrictedBotEncryptionKey(mctx, entryID, nil)
 	if err != nil {
 		mctx.Debug("error fetching restricted bot encryption key for entry %+v: %v", entryID, err)
-		return "", keybase1.PerTeamKeyGeneration(0), 0, "", 0, err ///////
+		return "", keybase1.PerTeamKeyGeneration(0), 0, botUID, botEldestSeqno, err ///////
 	}
 	uv, deviceID, _, signingKey, _ := mctx.G().ActiveDevice.AllFields()
 	signingKP, ok := signingKey.(libkb.NaclSigningKeyPair)
 	if !ok || signingKP.Private == nil {
 		mctx.Debug("error with signing key: %v", err)
-		return "", keybase1.PerTeamKeyGeneration(0), 0, "", 0, libkb.KeyCannotSignError{} ////////////
+		return "", keybase1.PerTeamKeyGeneration(0), 0, botUID, botEldestSeqno, libkb.KeyCannotSignError{} ////////////
 	}
 	var signKey [ed25519.PrivateKeySize]byte = *signingKP.Private
 	// build associated data
@@ -231,8 +220,8 @@ func (b *KVStoreRealBoxer) BoxForBot(mctx libkb.MetaContext, entryID keybase1.KV
 		UID:               uv.Uid,
 		EldestSeqno:       uv.EldestSeqno,
 		DeviceID:          deviceID,
-		BotUID:            botUID,         ///////////////////
-		BotEldestSeqno:    botEldestSeqno, ////////////
+		BotUID:            botUID,
+		BotEldestSeqno:    botEldestSeqno,
 	}
 
 	// seal it all up
@@ -240,7 +229,7 @@ func (b *KVStoreRealBoxer) BoxForBot(mctx libkb.MetaContext, entryID keybase1.KV
 		clearBytes, associatedData, &encKey, &signKey, kbcrypto.SignaturePrefixTeamStore, &nonce)
 	if err != nil {
 		mctx.Debug("error sealing message and associated data: %v", err)
-		return "", keybase1.PerTeamKeyGeneration(0), 0, "", 0, err
+		return "", keybase1.PerTeamKeyGeneration(0), 0, botUID, botEldestSeqno, err
 	}
 	boxed := keybase1.EncryptedKVEntry{
 		V: 1,
@@ -251,9 +240,9 @@ func (b *KVStoreRealBoxer) BoxForBot(mctx libkb.MetaContext, entryID keybase1.KV
 	packed, err := msgpack.Encode(boxed)
 	if err != nil {
 		mctx.Debug("error msgpacking secretbox for entry %+v: %v", entryID, err)
-		return "", keybase1.PerTeamKeyGeneration(0), 0, "", 0, err
+		return "", keybase1.PerTeamKeyGeneration(0), 0, botUID, botEldestSeqno, err
 	}
-	return base64.StdEncoding.EncodeToString(packed), teamGen, ciphertextVersion, "", 0, nil /////////////
+	return base64.StdEncoding.EncodeToString(packed), keybase1.PerTeamKeyGeneration(teamGen), ciphertextVersion, botUID, botEldestSeqno, nil /////////////
 }
 
 func (b *KVStoreRealBoxer) Unbox(mctx libkb.MetaContext, entryID keybase1.KVEntryID, revision int, ciphertext string,

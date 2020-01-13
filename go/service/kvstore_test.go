@@ -494,7 +494,7 @@ func (b *KVStoreTestBoxer) Box(mctx libkb.MetaContext, entryID keybase1.KVEntryI
 
 ////
 func (b *KVStoreTestBoxer) BoxForBot(mctx libkb.MetaContext, entryID keybase1.KVEntryID, revision int, cleartextValue string, botName string) (ciphertext string,
-	teamKeyGen keybase1.PerTeamKeyGeneration, ciphertextVersion int, err error) {
+	teamKeyGen keybase1.PerTeamKeyGeneration, ciphertextVersion int, botUID keybase1.UID, botEldestSeqno keybase1.Seqno, err error) {
 	realBoxer := kvstore.NewKVStoreBoxer(mctx.G())
 	if b.BoxMutateRevision != nil {
 		revision = b.BoxMutateRevision(revision)

@@ -215,7 +215,7 @@ func (h *KVStoreHandler) PutKVEntry(ctx context.Context, arg keybase1.PutKVEntry
 	var ciphertext string
 	var teamKeyGen keybase1.PerTeamKeyGeneration
 
-	// if no botname AND not a restricted bot
+	// if no botname
 	if arg.BotName == "" {
 		ciphertext, teamKeyGen, ciphertextVersion, err := h.Boxer.Box(mctx, entryID, revision, arg.EntryValue)
 
@@ -243,8 +243,14 @@ func (h *KVStoreHandler) PutKVEntry(ctx context.Context, arg keybase1.PutKVEntry
 			},
 		}
 	} else {
-		// if botname, or is a restricted bot
+		// if botname
 		fmt.Printf(">>>>>> '''' arg botname = %+v", arg.BotName)
+		/*
+			upak, err := engine.ResolveAndCheck(mctx, arg.BotName, false) // tracking?
+			if err != nil {
+				return err
+			}
+		*/
 		ciphertext, teamKeyGen, ciphertextVersion, botUID, botEldestSeqNo, err := h.Boxer.BoxForBot(mctx, entryID, revision, arg.EntryValue, arg.BotName)
 
 		if err != nil {
