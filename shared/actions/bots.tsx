@@ -10,7 +10,7 @@ import {RPCError} from 'util/errors'
 const pageSize = 100
 
 const onFeaturedBotsUpdate = (action: EngineGen.Keybase1NotifyFeaturedBotsFeaturedBotsUpdatePayload) => {
-  const {bots, limit, offset} = action.payload
+  const {bots, limit, offset} = action.payload.params
   const loadedAllBots = !bots || bots.length < pageSize
   const page = offset / (limit ?? pageSize)
   return [
