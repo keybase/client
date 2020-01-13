@@ -7,10 +7,10 @@ import * as Chat2Gen from '../../../actions/chat2-gen'
 import {FeaturedBot} from 'constants/types/rpc-gen'
 
 type Props = FeaturedBot & {
-  conversationIDKey: Types.ConversationIDKey
+  conversationIDKey?: Types.ConversationIDKey
   description?: string
   onClick: (username: string) => void
-  showAddToChannel: boolean
+  showAddToChannel?: boolean
 }
 
 type AddButtonProps = {
@@ -90,7 +90,7 @@ const Bot = ({
               {usernameDisplay}
               {lower}
             </Kb.Box2>
-            {showAddToChannel && (
+            {showAddToChannel && conversationIDKey && (
               <AddBotToChannel username={botUsername} conversationIDKey={conversationIDKey} />
             )}
           </Kb.Box2>
