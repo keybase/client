@@ -1,4 +1,5 @@
 import * as TeamBuildingTypes from './team-building'
+import HiddenString from '../../util/hidden-string'
 import {IconType} from '../../common-adapters/icon.constants-gen'
 
 type EncryptTab = 'encryptTab'
@@ -24,12 +25,12 @@ export type ErrorTypes = ''
 export type OutputStatus = 'success' | 'error'
 
 export type CommonState = {
-  errorMessage: string
+  errorMessage: HiddenString
   errorType: ErrorTypes
-  input: string
+  input: HiddenString
   inputType: InputTypes
-  output: string
-  outputSender?: string
+  output: HiddenString
+  outputSender?: HiddenString
   outputSigned?: boolean
   outputStatus?: OutputStatus
   outputType?: OutputType

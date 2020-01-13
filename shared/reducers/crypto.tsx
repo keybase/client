@@ -4,6 +4,7 @@ import * as Constants from '../constants/crypto'
 import * as Container from '../util/container'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as CryptoGen from '../actions/crypto-gen'
+import HiddenString from '../util/hidden-string'
 import {editTeambuildingDraft} from './team-building'
 import {teamBuilderReducerCreator} from '../team-building/reducer-helper'
 
@@ -27,8 +28,8 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     if (operationGuard(operation, action)) return
 
     draftState[operation].inputType = 'text'
-    draftState[operation].input = ''
-    draftState[operation].output = ''
+    draftState[operation].input = new HiddenString('')
+    draftState[operation].output = new HiddenString('')
     draftState[operation].outputStatus = undefined
     draftState[operation].outputType = undefined
   },
@@ -43,7 +44,7 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       draftState.encrypt.meta.noIncludeSelf = false
       // Reset options since they depend on the recipients
       draftState.encrypt.options = initialState.encrypt.options
-      draftState.encrypt.output = ''
+      draftState.encrypt.output = new HiddenString('')
       draftState.encrypt.outputStatus = undefined
       draftState.encrypt.outputType = undefined
     }

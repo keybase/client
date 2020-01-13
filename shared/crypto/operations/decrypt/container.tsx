@@ -3,16 +3,17 @@ import * as Types from '../../../constants/types/crypto'
 import * as CryptoGen from '../../../actions/crypto-gen'
 import * as ConfigGen from '../../../actions/config-gen'
 import * as FSGen from '../../../actions/fs-gen'
+import HiddenString from '../../../util/hidden-string'
 import Decrypt from '.'
 
 const operation = 'decrypt'
 
 export default Container.namedConnect(
   (state: Container.TypedState) => ({
-    input: state.crypto.decrypt.input,
+    input: state.crypto.decrypt.input.stringValue(),
     inputType: state.crypto.decrypt.inputType,
-    output: state.crypto.decrypt.output,
-    outputSender: state.crypto.decrypt.outputSender,
+    output: state.crypto.decrypt.output.stringValue(),
+    outputSender: state.crypto.decrypt.outputSender?.stringValue(),
     outputSigned: state.crypto.decrypt.outputSigned,
     outputStatus: state.crypto.decrypt.outputStatus,
     outputType: state.crypto.decrypt.outputType,
@@ -21,7 +22,7 @@ export default Container.namedConnect(
     onClearInput: () => dispatch(CryptoGen.createClearInput({operation})),
     onCopyOutput: (text: string) => dispatch(ConfigGen.createCopyToClipboard({text})),
     onSetInput: (inputType: Types.InputTypes, inputValue: string) =>
-      dispatch(CryptoGen.createSetInput({operation, type: inputType, value: inputValue})),
+      dispatch(CryptoGen.createSetInput({operation, type: inputType, value: new HiddenString(inputValue)})),
     onShowInFinder: (path: string) =>
       dispatch(FSGen.createOpenLocalPathInSystemFileManager({localPath: path})),
   }),

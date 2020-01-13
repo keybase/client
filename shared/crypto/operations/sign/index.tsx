@@ -14,6 +14,7 @@ type Props = {
   onSetInput: (inputType: Types.InputTypes, inputValue: string) => void
   onShowInFinder: (path: string) => void
   output: string
+  outputSender?: string
   outputStatus?: Types.OutputStatus
   outputType?: Types.OutputType
 }
@@ -60,7 +61,7 @@ const Sign = (props: Props) => {
           <Kb.Divider />
 
           <Kb.Box2 direction="vertical" fullHeight={true}>
-            <SignedSender signed={true} signedBy="cecileb" outputStatus={props.outputStatus} />
+            <SignedSender signed={true} signedBy={props.outputSender} outputStatus={props.outputStatus} />
             <OperationOutput
               outputStatus={props.outputStatus}
               output={props.output}

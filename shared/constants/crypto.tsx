@@ -1,5 +1,6 @@
 import * as TeamBuildingConstants from './team-building'
 import * as Types from './types/crypto'
+import HiddenString from '../util/hidden-string'
 import {IconType} from '../common-adapters/icon.constants-gen'
 
 export const encryptTab = 'encryptTab'
@@ -62,11 +63,11 @@ export const getInputFileIcon = (operation: Types.Operations) => operationToInpu
 export const getOutputFileIcon = (operation: Types.Operations) => operationToOutputFileIcon[operation]
 
 const defaultCommonState = {
-  errorMessage: '',
+  errorMessage: new HiddenString(''),
   errorType: '' as Types.ErrorTypes,
-  input: '',
+  input: new HiddenString(''),
   inputType: 'text' as Types.InputTypes,
-  output: '',
+  output: new HiddenString(''),
   outputSender: undefined,
   outputSigned: false,
   outputStatus: undefined,
