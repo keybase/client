@@ -3,6 +3,7 @@ package service
 import (
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -78,7 +79,7 @@ func testSignVerifyString(tc libkb.TestContext, h *SaltpackHandler, u1, u2 *kbte
 func testEncryptDecryptFile(tc libkb.TestContext, h *SaltpackHandler, u1, u2 *kbtest.FakeUser) {
 	ctx := context.Background()
 	encArg := keybase1.SaltpackEncryptFileArg{
-		Filename: "testdata/textfile",
+		Filename: filepath.FromSlash("testdata/textfile"),
 		Opts: keybase1.SaltpackFrontendEncryptOptions{
 			Recipients:  []string{u1.Username, u2.Username},
 			Signed:      true,
@@ -103,7 +104,7 @@ func testEncryptDecryptFile(tc libkb.TestContext, h *SaltpackHandler, u1, u2 *kb
 
 func testSignVerifyFile(tc libkb.TestContext, h *SaltpackHandler, u1, u2 *kbtest.FakeUser) {
 	ctx := context.Background()
-	signArg := keybase1.SaltpackSignFileArg{Filename: "testdata/textfile"}
+	signArg := keybase1.SaltpackSignFileArg{Filename: filepath.FromSlash("testdata/textfile")}
 	signedFile, err := h.SaltpackSignFile(ctx, signArg)
 	require.NoError(tc.T, err)
 	defer os.Remove(signedFile)
