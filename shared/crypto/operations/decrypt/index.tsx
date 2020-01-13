@@ -32,7 +32,13 @@ const Decrypt = (props: Props) => {
   }
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-      <Kb.DragAndDrop allowFolders={true} fullHeight={true} fullWidth={true} onAttach={onAttach}>
+      <Kb.DragAndDrop
+        allowFolders={true}
+        fullHeight={true}
+        fullWidth={true}
+        onAttach={onAttach}
+        prompt="Drop a file to decrypt"
+      >
         <Kb.Box2 direction="vertical" fullHeight={true}>
           {props.inputType === 'file' ? (
             <FileInput
