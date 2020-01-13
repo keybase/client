@@ -5,6 +5,7 @@ import * as Container from '../../../util/container'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Types from '../../../constants/types/chat2'
+import * as BotsGen from '../../../actions/bots-gen'
 import debounce from 'lodash/debounce'
 
 type Props = Container.RouteProps<{botUsername: string}>
@@ -13,22 +14,15 @@ const BotTeamPicker = (props: Props) => {
   const botUsername = Container.getRouteProps(props, 'botUsername', '')
   const [term, setTerm] = React.useState('')
   const [results, setResults] = React.useState<Array<RPCChatTypes.AddBotConvSearchHit>>([])
-  const doSearch = (term: string) => {
+  const submit = Container.useRPC(RPCChatTypes.localAddBotConvSearchRpcPromise)
+  const dispatch = Container.useDispatch()
+  const doSearch = () => {
     submit(
-      [
-        {
-          term,
-        },
-      ],
-      result => {
-        setResults(result ?? [])
-        console.log(JSON.stringify(result))
-      },
+      [{term}],
+      result => setResults(result ?? []),
       error => console.log('ERROR: ' + error.message)
     )
   }
-  const submit = Container.useRPC(RPCChatTypes.localAddBotConvSearchRpcPromise)
-  const dispatch = Container.useDispatch()
   const onClose = () => {
     dispatch(RouteTreeGen.createClearModals())
   }
@@ -50,15 +44,20 @@ const BotTeamPicker = (props: Props) => {
     )
   }
   React.useEffect(() => {
-    doSearch(term)
+    doSearch()
   }, [term])
+  React.useEffect(() => {
+    dispatch(BotsGen.createGetFeaturedBots({}))
+  }, [])
 
   const renderResult = (index: number, item: RPCChatTypes.AddBotConvSearchHit) => {
     return (
       <Kb.ClickableBox key={index} onClick={() => onSelect(item.convID)}>
-        <Kb.Box2 direction="horizontal" fullWidth={true}>
-          <Kb.Avatar username={item.name} size={24} isTeam={item.isTeam} />
-          <Kb.Text type="Body">{item.name}</Kb.Text>
+        <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.results}>
+          <Kb.Avatar username={item.name} size={32} isTeam={item.isTeam} teamname={item.name} />
+          <Kb.Text type="Body" style={{alignSelf: 'center'}}>
+            {item.name}
+          </Kb.Text>
         </Kb.Box2>
       </Kb.ClickableBox>
     )
@@ -93,7 +92,7 @@ const BotTeamPicker = (props: Props) => {
         <Kb.List2
           indexAsKey={true}
           items={results}
-          itemHeight={{sizeType: 'Large', type: 'fixedListItem2Auto'}}
+          itemHeight={{sizeType: 'Small', type: 'fixedListItem2Auto'}}
           renderItem={renderResult}
         />
       </Kb.Box2>
@@ -109,6 +108,10 @@ const styles = Styles.styleSheetCreate(
           height: 560,
         },
       }),
+      results: {
+        paddingLeft: Styles.globalMargins.small,
+        paddingRight: Styles.globalMargins.small,
+      },
       searchFilter: Styles.platformStyles({
         common: {
           marginBottom: Styles.globalMargins.xsmall,
