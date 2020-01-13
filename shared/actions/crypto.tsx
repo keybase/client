@@ -4,7 +4,7 @@ import * as Constants from '../constants/crypto'
 import * as TeamBuildingGen from './team-building-gen'
 import * as CryptoGen from './crypto-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import {TypedState} from '../util/container'
+import {TypedState, TypedActions} from '../util/container'
 import commonTeamBuildingSaga, {filterForNs} from './team-building'
 
 // Get list of users from crypto TeamBuilding for encrypt operation
@@ -13,7 +13,7 @@ const onSetRecipients = (state: TypedState, _: TeamBuildingGen.FinishedTeamBuild
   const {options} = state.crypto.encrypt
 
   const users = [...state.crypto.teamBuilding.finishedTeam]
-  let usernames = users.map(user => user.username)
+  const usernames = users.map(user => user.username)
 
   const actions: Array<TypedActions> = [TeamBuildingGen.createCancelTeamBuilding({namespace: 'crypto'})]
 
@@ -33,15 +33,19 @@ function* teamBuildingSaga() {
   yield* Saga.chainAction2(TeamBuildingGen.finishedTeamBuilding, filterForNs('crypto', onSetRecipients))
 }
 
-const handleInput = (
+/*
+ * Handles conditions that require running or re-running Saltpack RPCs
+ * 1. User changes input (text/file)
+ * 2. User adds recipients to the Encrypt operation (after input is added)
+ * 3. User changes options to Encrypt operation (after input is added)
+ */
+const handleRunOperation = (
   state: TypedState,
-  action: CryptoGen.SetInputPayload | CryptoGen.SetRecipientsPayload
+  action: CryptoGen.SetInputPayload | CryptoGen.SetRecipientsPayload | CryptoGen.SetEncryptOptionsPayload
 ) => {
-  const {operation} = action.payload
   switch (action.type) {
-    // Handle input for any operation
     case CryptoGen.setInput: {
-      const {value, type} = action.payload
+      const {operation, value, type} = action.payload
 
       // Input (text or file) was cleared or deleted
       if (!value) {
@@ -66,16 +70,32 @@ const handleInput = (
 
       return makeOperationAction({input: value, inputType: type, operation})
     }
+    // User already provided input (text or file) before setting the
+    // recipients. Get the input and pass it to the operation
     case CryptoGen.setRecipients: {
-      const {recipients} = action.payload
+      const {operation, recipients} = action.payload
       const {input, inputType, options} = state.crypto.encrypt
-      // User already provided input (text or file) before setting the
-      // recipients. Get the input and pass it to the operation
       if (input && inputType) {
         return makeOperationAction({
           input,
           inputType,
           operation,
+          options,
+          recipients,
+        })
+      }
+      return
+    }
+    // User provided input and recipients, when options change, re-run saltpackEncrypt
+    case CryptoGen.setEncryptOptions: {
+      const {options} = action.payload
+      const {recipients, input, inputType} = state.crypto.encrypt
+      console.log('JRY setEncryptOptions', {recipients, input, inputType})
+      if (recipients && recipients.length && input && inputType) {
+        return makeOperationAction({
+          input,
+          inputType,
+          operation: Constants.Operations.Encrypt,
           options,
           recipients,
         })
@@ -290,7 +310,10 @@ const saltpackVerify = async (action: CryptoGen.SaltpackVerifyPayload, logger: S
 }
 
 function* cryptoSaga() {
-  yield* Saga.chainAction2([CryptoGen.setInput, CryptoGen.setRecipients], handleInput)
+  yield* Saga.chainAction2(
+    [CryptoGen.setInput, CryptoGen.setRecipients, CryptoGen.setEncryptOptions],
+    handleRunOperation
+  )
   yield* Saga.chainAction2(CryptoGen.saltpackEncrypt, saltpackEncrypt)
   yield* Saga.chainAction(CryptoGen.saltpackDecrypt, saltpackDecrypt)
   yield* Saga.chainAction2(CryptoGen.saltpackSign, saltpackSign)
