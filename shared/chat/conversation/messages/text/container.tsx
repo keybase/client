@@ -1,10 +1,10 @@
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import TextMessage, {Props, ClaimProps, ReplyProps} from '.'
 import * as Container from '../../../../util/container'
 import * as WalletConstants from '../../../../constants/wallets'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import TextMessage, {Props, ReplyProps} from '.'
 
 type OwnProps = {
   isHighlighted?: boolean
@@ -75,34 +75,27 @@ const getClaimProps = (state: Container.TypedState, ownProps: OwnProps) => {
   return {amount, label}
 }
 
-const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
-  const editInfo = Constants.getEditInfo(state, ownProps.message.conversationIDKey)
-  const isEditing = !!(editInfo && editInfo.ordinal === ownProps.message.ordinal)
-  const claim = getClaimProps(state, ownProps)
-  return {claim, isEditing}
-}
-
-const mapDispatchToProps = (dispatch: Container.TypedDispatch, {message}: OwnProps) => ({
-  _onClaim: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['walletOnboarding']})),
-  _onReplyClick: (messageID: Types.MessageID) =>
-    dispatch(
-      Chat2Gen.createReplyJump({
-        conversationIDKey: message.conversationIDKey,
-        messageID,
-      })
-    ),
-})
-
-const mergeClaimProps = (stateProps, dispatchProps): ClaimProps => {
-  return stateProps.claim ? {onClaim: dispatchProps._onClaim, ...stateProps.claim} : undefined
-}
-
 type MsgType = Props['type']
+
 export default Container.namedConnect(
-  mapStateToProps,
-  mapDispatchToProps,
+  (state: Container.TypedState, ownProps: OwnProps) => {
+    const editInfo = Constants.getEditInfo(state, ownProps.message.conversationIDKey)
+    const isEditing = !!(editInfo && editInfo.ordinal === ownProps.message.ordinal)
+    const claim = getClaimProps(state, ownProps)
+    return {claim, isEditing}
+  },
+  (dispatch: Container.TypedDispatch, {message}: OwnProps) => ({
+    _onClaim: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['walletOnboarding']})),
+    _onReplyClick: (messageID: Types.MessageID) =>
+      dispatch(
+        Chat2Gen.createReplyJump({
+          conversationIDKey: message.conversationIDKey,
+          messageID,
+        })
+      ),
+  }),
   (stateProps, dispatchProps, ownProps: OwnProps) => ({
-    claim: mergeClaimProps(stateProps, dispatchProps),
+    claim: stateProps.claim ? {onClaim: dispatchProps._onClaim, ...stateProps.claim} : undefined,
     isEditing: stateProps.isEditing,
     isHighlighted: ownProps.isHighlighted,
     message: ownProps.message,

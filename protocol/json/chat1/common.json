@@ -644,6 +644,11 @@
             "items": "gregor1.UID"
           },
           "name": "resetList"
+        },
+        {
+          "type": "boolean",
+          "name": "isDefaultConv",
+          "mpackkey": "d"
         }
       ]
     },

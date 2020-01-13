@@ -1,10 +1,12 @@
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Sb from '../../../../../stories/storybook'
+import * as Styles from '../../../../../styles'
 import TeamJourney from './index'
 
 const commonProps = {
   conversationIDKey: 'dummyConversationIDKey',
+  onAuthorClick: Sb.action('onAuthorClick'),
   teamname: 'foo',
 }
 
@@ -16,7 +18,10 @@ const load = () => {
         actions={['wave', {label: 'Publish team on your profile', onClick: Sb.action('onPublishTeam')}]}
         image="icon-illustration-welcome-96"
         textComponent={
-          <Kb.Text type="BodySmall">Welcome to the team! Say hi to everyone and introduce yourself.</Kb.Text>
+          <Kb.Text type="BodySmall">
+            <Kb.Emoji allowFontScaling={true} size={Styles.globalMargins.small} emojiName=":wave:" /> Welcome
+            to the team! Say hi to everyone and introduce yourself.
+          </Kb.Text>
         }
       />
     ))
@@ -24,12 +29,16 @@ const load = () => {
       <TeamJourney
         {...commonProps}
         actions={[
-          {label: 'Publish team on your profile', onClick: Sb.action('onPublishTeam')},
+          'wave',
           {label: 'Browse channels', onClick: Sb.action('onBrowseChannels')},
+          {label: 'Publish team on your profile', onClick: Sb.action('onPublishTeam')},
         ]}
         image="icon-illustration-welcome-96"
         textComponent={
-          <Kb.Text type="BodySmall">Welcome to the team! Say hi to everyone and introduce yourself.</Kb.Text>
+          <Kb.Text type="BodySmall">
+            <Kb.Emoji allowFontScaling={true} size={Styles.globalMargins.small} emojiName=":wave:" /> Welcome
+            to the team! Say hi to everyone and introduce yourself.
+          </Kb.Text>
         }
       />
     ))

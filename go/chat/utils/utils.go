@@ -571,13 +571,6 @@ func FilterExploded(conv types.UnboxConversationInfo, msgs []chat1.MessageUnboxe
 			if mvalid.IsEphemeral() && mvalid.HideExplosion(conv.GetMaxDeletedUpTo(), now) {
 				continue
 			}
-		} else if msg.IsError() {
-			// If we had an error on an expired message, it's irrelevant now
-			// that the message has exploded so we hide it.
-			merr := msg.Error()
-			if merr.IsEphemeral && merr.IsEphemeralExpired {
-				continue
-			}
 		}
 		res = append(res, msg)
 	}
@@ -1281,6 +1274,7 @@ func PresentRemoteConversation(ctx context.Context, g *globals.Context, rc types
 	res.TlfID = rawConv.Metadata.IdTriple.Tlfid.String()
 	res.TopicType = rawConv.GetTopicType()
 	res.IsPublic = rawConv.Metadata.Visibility == keybase1.TLFVisibility_PUBLIC
+	res.IsDefaultConv = rawConv.Metadata.IsDefaultConv
 	res.Name = tlfName
 	res.Status = rawConv.Metadata.Status
 	res.Time = GetConvMtime(rc)
@@ -1400,6 +1394,7 @@ func PresentConversationLocal(ctx context.Context, g *globals.Context, uid grego
 	res.TlfID = rawConv.Info.Triple.Tlfid.String()
 	res.TopicType = rawConv.GetTopicType()
 	res.IsPublic = rawConv.Info.Visibility == keybase1.TLFVisibility_PUBLIC
+	res.IsDefaultConv = rawConv.Info.IsDefaultConv
 	res.Name = rawConv.Info.TlfName
 	res.SnippetDecoration, res.Snippet = GetConvSnippet(rawConv, g.GetEnv().GetUsername().String())
 	res.Channel = rawConv.Info.TopicName
@@ -2718,6 +2713,7 @@ func DBConvLess(a pager.InboxEntry, b pager.InboxEntry) bool {
 
 func ExportToSummary(i chat1.InboxUIItem) (s chat1.ConvSummary) {
 	s.Id = i.ConvID
+	s.IsDefaultConv = i.IsDefaultConv
 	s.Unread = i.ReadMsgID < i.MaxVisibleMsgID
 	s.ActiveAt = i.Time.UnixSeconds()
 	s.ActiveAtMs = i.Time.UnixMilliseconds()

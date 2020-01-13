@@ -37,26 +37,22 @@ type OwnProps = {
   measure: (() => void) | null
 }
 
-const mapStateToProps = (state, ownProps: OwnProps) => {
-  const meta = Constants.getMeta(state, ownProps.conversationIDKey)
-  const showResetParticipants = meta.resetParticipants.size !== 0 ? ownProps.conversationIDKey : null
-  const showSuperseded =
-    meta && (meta.wasFinalizedBy || meta.supersededBy !== Constants.noConversationIDKey)
-      ? ownProps.conversationIDKey
-      : null
-
-  return {
-    measure: ownProps.measure,
-    showResetParticipants,
-    showSuperseded,
-  }
-}
-const mapDispatchToProps = () => ({})
-const mergeProps = (stateProps, dispatchProps) => ({...stateProps, ...dispatchProps})
-
 export default namedConnect(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps,
+  (state, ownProps: OwnProps) => {
+    const meta = Constants.getMeta(state, ownProps.conversationIDKey)
+    const showResetParticipants = meta.resetParticipants.size !== 0 ? ownProps.conversationIDKey : null
+    const showSuperseded =
+      meta && (meta.wasFinalizedBy || meta.supersededBy !== Constants.noConversationIDKey)
+        ? ownProps.conversationIDKey
+        : null
+
+    return {
+      measure: ownProps.measure,
+      showResetParticipants,
+      showSuperseded,
+    }
+  },
+  () => ({}),
+  (stateProps, dispatchProps) => ({...stateProps, ...dispatchProps}),
   'BottomMessage'
 )(BottomMessage) as any

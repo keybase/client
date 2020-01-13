@@ -27,7 +27,7 @@ const AddBotRow = (props: Props) => {
 
   return (
     <Kb.Box2 direction="horizontal" alignItems="center" style={styles.container}>
-      <Kb.Button type="Default" mode="Secondary" label="Install more bots" onClick={onBotAdd} />
+      <Kb.Button type="Default" mode="Secondary" label="Install bots" onClick={onBotAdd} />
     </Kb.Box2>
   )
 }

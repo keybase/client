@@ -75,14 +75,14 @@ const getUsernameToShow = (
   return message.author
 }
 
-const getFailureDescriptionAllowCancel = (message, you) => {
+const getFailureDescriptionAllowCancel = (message: Types.Message, you: string) => {
   let failureDescription = ''
   let allowCancel = false
   let allowRetry = false
   let resolveByEdit = false
   if ((message.type === 'text' || message.type === 'attachment') && message.errorReason) {
     failureDescription = message.errorReason
-    if (you && ['pending', 'failed'].includes(message.submitState)) {
+    if (you && ['pending', 'failed'].includes(message.submitState as string)) {
       // This is a message still in the outbox, we can retry/edit to fix, but
       // for flip messages, don't allow retry/cancel
       allowCancel = allowRetry = message.type === 'attachment' || !message.flipGameID
@@ -105,7 +105,7 @@ const getFailureDescriptionAllowCancel = (message, you) => {
   return {allowCancel, allowRetry, failureDescription, resolveByEdit}
 }
 
-const getDecorate = message => {
+const getDecorate = (message: Types.Message) => {
   switch (message.type) {
     case 'text':
       return !message.exploded && !message.errorReason
@@ -118,6 +118,7 @@ const getDecorate = message => {
 
 export default Container.namedConnect(
   (state: Container.TypedState, ownProps: OwnProps) => {
+    const _participantInfo = Constants.getParticipantInfo(state, ownProps.conversationIDKey)
     const message =
       Constants.getMessage(state, ownProps.conversationIDKey, ownProps.ordinal) || missingMessage
     const previous =
@@ -145,7 +146,7 @@ export default Container.namedConnect(
     const authorIsBot = teamname
       ? TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'restrictedbot') ||
         TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'bot')
-      : false
+      : !_participantInfo.name.includes(message.author) // if adhoc, check if author in participants
     const authorIsOwner = teamname
       ? TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'owner')
       : false

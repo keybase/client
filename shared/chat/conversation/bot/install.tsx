@@ -15,6 +15,8 @@ import * as Constants from '../../../constants/chat2'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 import ChannelPicker from './channel-picker'
 
+const RestrictedItem = '---RESTRICTED---'
+
 export const useBotConversationIDKey = (inConvIDKey?: Types.ConversationIDKey, teamID?: TeamTypes.TeamID) => {
   const [conversationIDKey, setConversationIDKey] = React.useState(inConvIDKey)
   const generalConvID = Container.useSelector(
@@ -110,10 +112,13 @@ const InstallBotPopup = (props: Props) => {
   // dispatch
   const dispatch = Container.useDispatch()
   const onClose = () => {
+    dispatch(RouteTreeGen.createClearModals())
+  }
+  const onLeftAction = () => {
     if (installScreen) {
       setInstallScreen(false)
     } else {
-      dispatch(RouteTreeGen.createClearModals())
+      onClose()
     }
   }
   const onInstall = () => {
@@ -188,63 +193,58 @@ const InstallBotPopup = (props: Props) => {
     dispatch(TeamsGen.createGetChannels({teamID}))
   }, [teamID])
 
-  const restrictPicker = !inTeam && !readOnly && (
-    <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
-      <Kb.Text type="BodyBigExtrabold">Install as:</Kb.Text>
-      <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
-        <Kb.RadioButton
-          label={
-            <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}}>
-              <Kb.Text type="BodySemibold">Restricted Bot</Kb.Text>
-              <Kb.Text type="BodySmall">Customize which messages get encrypted for this bot.</Kb.Text>
-            </Kb.Box2>
-          }
-          onSelect={() => setInstallWithRestrict(true)}
-          selected={installWithRestrict}
-        />
-        <Kb.RadioButton
-          label={
-            <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}}>
-              <Kb.Text type="BodySemibold">Unrestricted Bot</Kb.Text>
-              <Kb.Text type="BodySmall">All messages will be encrypted for this bot.</Kb.Text>
-            </Kb.Box2>
-          }
-          onSelect={() => setInstallWithRestrict(false)}
-          selected={!installWithRestrict}
-        />
-      </Kb.Box2>
+  const restrictedButton = (
+    <Kb.Box2 key={RestrictedItem} direction="vertical" fullWidth={true} style={styles.dropdownButton}>
+      <Kb.Text type="BodySemibold">Restricted bot (recommended)</Kb.Text>
+      <Kb.Text type="BodySmall">Customize which messages get encrypted for this bot.</Kb.Text>
     </Kb.Box2>
+  )
+  const unrestrictedButton = (
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.dropdownButton}>
+      <Kb.Text type="BodySemibold">Unrestricted bot</Kb.Text>
+      <Kb.Text type="BodySmall">All messages will be encrypted for this bot.</Kb.Text>
+    </Kb.Box2>
+  )
+  const dropdownButtons = [restrictedButton, unrestrictedButton]
+  const restrictPicker = !inTeam && !readOnly && (
+    <Kb.Dropdown
+      items={dropdownButtons}
+      selected={installWithRestrict ? restrictedButton : unrestrictedButton}
+      onChanged={selected => setInstallWithRestrict(selected.key === RestrictedItem)}
+      style={styles.dropdown}
+      overlayStyle={{width: '100%'}}
+    />
   )
   const featuredContent = !!featured && (
     <Kb.Box2
       direction="vertical"
-      style={Styles.collapseStyles([styles.container, {flex: 1, justifyContent: 'space-between'}])}
+      style={Styles.collapseStyles([styles.container, {flex: 1}])}
       fullWidth={true}
-      fullHeight={true}
       gap="tiny"
     >
       <Kb.Box2 direction="vertical" gap="small" fullWidth={true}>
         <Kb.Box2 direction="horizontal" gap="small" fullWidth={true}>
           <Kb.Avatar username={botUsername} size={64} />
-          <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}}>
-            <Kb.Text type="BodyBigExtrabold">{featured.botAlias}</Kb.Text>
-            <Kb.ConnectedUsernames
-              colorFollowing={true}
-              type="BodySemibold"
-              usernames={[botUsername]}
-              withProfileCardPopup={false}
-            />
+          <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}} gap="tiny">
+            <Kb.Box2 direction="vertical" fullWidth={true}>
+              <Kb.Text type="BodyBigExtrabold">{featured.botAlias}</Kb.Text>
+              <Kb.ConnectedUsernames
+                colorFollowing={true}
+                type="BodySemibold"
+                usernames={[botUsername]}
+                withProfileCardPopup={false}
+              />
+            </Kb.Box2>
             <Kb.Text type="BodySmall" lineClamp={1}>
               {featured.description}
             </Kb.Text>
           </Kb.Box2>
         </Kb.Box2>
-        <Kb.Text type="BodySmall">{featured.extendedDescription}</Kb.Text>
+        <Kb.Text type="Body">{featured.extendedDescription}</Kb.Text>
       </Kb.Box2>
       {inTeam && !inTeamUnrestricted && (
         <PermsList channelInfos={channelInfos} settings={settings} username={botUsername} />
       )}
-      {restrictPicker}
     </Kb.Box2>
   )
   const usernameContent = !featured && (
@@ -262,21 +262,22 @@ const InstallBotPopup = (props: Props) => {
         </Kb.Box2>
       </Kb.Box2>
       {inTeam && !inTeamUnrestricted && <PermsList settings={settings} username={botUsername} />}
-      {restrictPicker}
     </Kb.Box2>
   )
   const installContent = installScreen && (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container} gap="small">
       <Kb.Box2 direction="horizontal" gap="small" fullWidth={true}>
         <Kb.Avatar username={botUsername} size={64} />
-        <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}}>
-          <Kb.Text type="BodyBigExtrabold">{featured ? featured.botAlias : botUsername}</Kb.Text>
-          <Kb.ConnectedUsernames
-            colorFollowing={true}
-            type="BodySemibold"
-            usernames={[botUsername]}
-            withProfileCardPopup={false}
-          />
+        <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}} gap="tiny">
+          <Kb.Box2 direction="vertical" fullWidth={true}>
+            <Kb.Text type="BodyBigExtrabold">{featured ? featured.botAlias : botUsername}</Kb.Text>
+            <Kb.ConnectedUsernames
+              colorFollowing={true}
+              type="BodySemibold"
+              usernames={[botUsername]}
+              withProfileCardPopup={false}
+            />
+          </Kb.Box2>
           {!!featured && (
             <Kb.Text type="BodySmall" lineClamp={1}>
               {featured.description}
@@ -295,7 +296,12 @@ const InstallBotPopup = (props: Props) => {
             />
             <Kb.Checkbox
               checked={installWithMentions}
-              label={`messages it has been mentioned in with @${botUsername}`}
+              labelComponent={
+                <Kb.Text
+                  style={{flex: 1}}
+                  type="Body"
+                >{`messages it has been mentioned in with @${botUsername}`}</Kb.Text>
+              }
               onCheck={() => setInstallWithMentions(!installWithMentions)}
             />
           </Kb.Box2>
@@ -329,15 +335,15 @@ const InstallBotPopup = (props: Props) => {
         </Kb.Box2>
       ) : (
         <Kb.Box2 direction="vertical" gap="tiny">
-          <Kb.Text type="BodySemibold" style={{alignSelf: 'center', color: Styles.globalColors.redDark}}>
-            WARNING
+          <Kb.Text type="Body">
+            <Kb.Text type="BodySemibold">Warning:</Kb.Text> This bot will be able to read all messages,
+            channels, files, repositories, and team members.
           </Kb.Text>
-          <Kb.Text type="BodySmall">
-            This bot will be able to read all messages, channels, files, repositories, and team members.
-          </Kb.Text>
-          <Kb.Text type="BodySmall">
-            If you wish to customize which messages are encrypted for this bot, please go back and select the
-            restricted bot option.
+          <Kb.Text type="Body">
+            <Kb.Text type="BodyPrimaryLink" onClick={() => setInstallWithRestrict(true)}>
+              Install as a restricted bot
+            </Kb.Text>{' '}
+            if you’d like to customize which messages are encrypted for this bot.
           </Kb.Text>
         </Kb.Box2>
       )}
@@ -381,14 +387,29 @@ const InstallBotPopup = (props: Props) => {
     />
   )
   const reviewButton = showReviewButton && (
-    <Kb.WaitingButton
-      fullWidth={true}
-      label="Review"
-      onClick={() => setInstallScreen(true)}
-      mode="Primary"
-      type="Default"
-      waitingKey={Constants.waitingKeyBotAdd}
-    />
+    <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={{marginTop: -Styles.globalMargins.tiny}}>
+      {readOnly ? (
+        <Kb.Text style={{alignSelf: 'center'}} type="BodySmall">
+          Ask an admin or owner to install this bot
+        </Kb.Text>
+      ) : (
+        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
+          <Kb.Text type="BodySmall" style={{alignSelf: 'center'}}>
+            Install as
+          </Kb.Text>
+          {restrictPicker}
+        </Kb.Box2>
+      )}
+      <Kb.WaitingButton
+        fullWidth={true}
+        label="Review"
+        onClick={() => setInstallScreen(true)}
+        mode="Primary"
+        type="Default"
+        waitingKey={Constants.waitingKeyBotAdd}
+        disabled={readOnly}
+      />
+    </Kb.Box2>
   )
   const removeButton = showRemoveButton && (
     <Kb.WaitingButton
@@ -426,7 +447,6 @@ const InstallBotPopup = (props: Props) => {
       waitingKey={Constants.waitingKeyBotAdd}
     />
   )
-
   const doneButton = showDoneButton && (
     <Kb.Button
       fullWidth={true}
@@ -436,23 +456,27 @@ const InstallBotPopup = (props: Props) => {
       type="Default"
     />
   )
+  const backButton = Styles.isMobile ? 'Back' : <Kb.Icon type="iconfont-arrow-left" />
   const enabled = !!conversationIDKey && inTeam !== undefined
   return (
     <Kb.Modal
+      onClose={!Styles.isMobile ? onClose : undefined}
       header={{
         leftButton: channelPickerScreen ? (
           <Kb.Text type="BodyBigLink" onClick={() => setChannelPickerScreen(false)}>
             Back
           </Kb.Text>
-        ) : (
-          <Kb.Text type="BodyBigLink" onClick={onClose}>
-            {installScreen ? 'Back' : inTeam || readOnly ? 'Close' : 'Cancel'}
+        ) : Styles.isMobile || installScreen ? (
+          <Kb.Text type="BodyBigLink" onClick={onLeftAction}>
+            {installScreen ? backButton : inTeam || readOnly ? 'Close' : 'Cancel'}
           </Kb.Text>
+        ) : (
+          undefined
         ),
         title: channelPickerScreen ? 'Channels' : '',
       }}
       footer={
-        enabled && !readOnly
+        enabled && (!readOnly || showReviewButton)
           ? {
               content: (
                 <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
@@ -484,7 +508,13 @@ const InstallBotPopup = (props: Props) => {
       }
     >
       <Kb.Box2 direction="vertical" style={styles.outerContainer} fullWidth={true}>
-        {enabled ? content : <Kb.ProgressIndicator />}
+        {enabled ? (
+          content
+        ) : (
+          <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} centerChildren={true}>
+            <Kb.ProgressIndicator type="Large" />
+          </Kb.Box2>
+        )}
       </Kb.Box2>
     </Kb.Modal>
   )
@@ -498,41 +528,47 @@ const maxCommandsShown = 3
 
 const CommandsLabel = (props: CommandsLabelProps) => {
   const [expanded, setExpanded] = React.useState(false)
+  let inner: React.ReactNode | undefined
   if (!props.commands) {
-    return <Kb.ProgressIndicator />
+    inner = <Kb.ProgressIndicator />
   } else if (props.commands.loadError) {
-    return <Kb.Text type="BodySemibold">Error loading bot public commands.</Kb.Text>
+    inner = (
+      <Kb.Text type="BodySemibold" style={{color: Styles.globalColors.redDark}}>
+        Error loading bot public commands.
+      </Kb.Text>
+    )
   } else {
     const numCommands = props.commands.commands.length
-    return (
-      <Kb.Box2 direction="vertical" gap="tiny">
-        <Kb.Text type="Body">messages that begin with bot commands:</Kb.Text>
-        <Kb.Box2 direction="vertical" fullWidth={true}>
-          {props.commands.commands.map((c: string, i: number) => {
-            if (!expanded && i >= maxCommandsShown) {
-              return i === maxCommandsShown ? (
-                <Kb.Text type="Body">
-                  {'• and '}
-                  <Kb.Text
-                    type="BodyPrimaryLink"
-                    onClick={(e: React.BaseSyntheticEvent) => {
-                      e.stopPropagation()
-                      setExpanded(true)
-                    }}
-                  >{`${numCommands - maxCommandsShown} more`}</Kb.Text>
-                </Kb.Text>
-              ) : null
-            }
-            return (
-              <Kb.Text key={i} type="Body">
-                {`• !${c}`}
-              </Kb.Text>
-            )
-          })}
-        </Kb.Box2>
-      </Kb.Box2>
-    )
+    inner = props.commands.commands.map((c: string, i: number) => {
+      if (!expanded && i >= maxCommandsShown) {
+        return i === maxCommandsShown ? (
+          <Kb.Text type="Body">
+            {'• and '}
+            <Kb.Text
+              type="BodyPrimaryLink"
+              onClick={(e: React.BaseSyntheticEvent) => {
+                e.stopPropagation()
+                setExpanded(true)
+              }}
+            >{`${numCommands - maxCommandsShown} more`}</Kb.Text>
+          </Kb.Text>
+        ) : null
+      }
+      return (
+        <Kb.Text key={i} type="Body">
+          {`• !${c}`}
+        </Kb.Text>
+      )
+    })
   }
+  return (
+    <Kb.Box2 direction="vertical" gap="tiny">
+      <Kb.Text type="Body">messages that begin with bot commands:</Kb.Text>
+      <Kb.Box2 direction="vertical" fullWidth={true}>
+        {inner}
+      </Kb.Box2>
+    </Kb.Box2>
+  )
 }
 
 type PermsListProps = {
@@ -565,7 +601,7 @@ const PermsList = (props: PermsListProps) => {
           )}
         </Kb.Box2>
       ) : (
-        <Kb.ProgressIndicator />
+        <Kb.ProgressIndicator type="Large" />
       )}
     </Kb.Box2>
   )
@@ -575,9 +611,15 @@ const styles = Styles.styleSheetCreate(() => ({
   container: {
     ...Styles.padding(Styles.globalMargins.medium, Styles.globalMargins.small),
   },
+  dropdown: {
+    width: '100%',
+  },
+  dropdownButton: {
+    padding: Styles.globalMargins.tiny,
+  },
   outerContainer: Styles.platformStyles({
     isElectron: {
-      minHeight: 350,
+      height: 560,
     },
   }),
 }))

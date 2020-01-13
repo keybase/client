@@ -134,8 +134,6 @@ func TestSaltpackEncryptDecryptForTeams(t *testing.T) {
 }
 
 func TestSaltpackEncryptDecryptForImplicitTeams(t *testing.T) {
-	t.Skip() // CORE-8423 remove this after most clients update
-
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
@@ -155,7 +153,6 @@ func TestSaltpackEncryptDecryptForImplicitTeams(t *testing.T) {
 		Opts: keybase1.SaltpackEncryptOptions{
 			Recipients:    []string{(u2.username + "@rooter")},
 			UseEntityKeys: true,
-			NoSelfEncrypt: true,
 		},
 		Source: strings.NewReader(msg),
 		Sink:   sink,
@@ -185,8 +182,12 @@ func TestSaltpackEncryptDecryptForImplicitTeams(t *testing.T) {
 	}
 	dec := engine.NewSaltpackDecrypt(decarg, saltpackkeys.NewKeyPseudonymResolver(m))
 	err := engine.RunEngine2(m, dec)
-	if _, ok := err.(libkb.NoDecryptionKeyError); !ok {
-		t.Fatalf("expected error type libkb.NoDecryptionKeyError, got %T (%s)", err, err)
+	x, ok := err.(libkb.DecryptionError)
+	if !ok {
+		t.Fatalf("expected error type libkb.DecryptionError, got %T (%s)", err, err)
+	}
+	if _, ok := x.Cause.(libkb.NoDecryptionKeyError); !ok {
+		t.Fatalf("expected error Cause type libkb.NoDecryptionKeyError, got %T (%s)", x.Cause, x.Cause)
 	}
 
 	// Get current implicit team seqno so we can wait for it to be updated later

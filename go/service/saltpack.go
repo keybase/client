@@ -4,6 +4,11 @@
 package service
 
 import (
+	"bytes"
+	"errors"
+	"io/ioutil"
+	"strings"
+
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -142,4 +147,158 @@ func (h *SaltpackHandler) SaltpackVerify(ctx context.Context, arg keybase1.Saltp
 	eng := engine.NewSaltpackVerify(h.G(), earg)
 	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
 	return engine.RunEngine2(m, eng)
+}
+
+// frontend handlers:
+
+func (h *SaltpackHandler) SaltpackEncryptString(ctx context.Context, arg keybase1.SaltpackEncryptStringArg) (string, error) {
+	ctx = libkb.WithLogTag(ctx, "SP")
+
+	auth := keybase1.AuthenticityType_REPUDIABLE
+	if arg.Opts.Signed {
+		auth = keybase1.AuthenticityType_SIGNED
+	}
+	opts := keybase1.SaltpackEncryptOptions{
+		Recipients:       arg.Opts.Recipients,
+		AuthenticityType: auth,
+		NoSelfEncrypt:    !arg.Opts.IncludeSelf,
+		UseEntityKeys:    true,
+	}
+	sink := libkb.NewBufferCloser()
+	earg := &engine.SaltpackEncryptArg{
+		Opts:   opts,
+		Sink:   sink,
+		Source: strings.NewReader(arg.Plaintext),
+	}
+
+	uis := libkb.UIs{
+		SecretUI:  &nopSecretUI{},
+		SessionID: arg.SessionID,
+	}
+
+	keyfinderHook := saltpackkeys.NewRecipientKeyfinderEngineHook(false)
+
+	eng := engine.NewSaltpackEncrypt(earg, keyfinderHook)
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	err := engine.RunEngine2(m, eng)
+	if err != nil {
+		return "", err
+	}
+
+	return sink.String(), nil
+}
+
+func (h *SaltpackHandler) SaltpackDecryptString(ctx context.Context, arg keybase1.SaltpackDecryptStringArg) (keybase1.SaltpackPlaintextResult, error) {
+	ctx = libkb.WithLogTag(ctx, "SP")
+	sink := libkb.NewBufferCloser()
+	earg := &engine.SaltpackDecryptArg{
+		Sink:   sink,
+		Source: strings.NewReader(arg.Ciphertext),
+	}
+
+	uis := libkb.UIs{
+		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID, h.G()),
+		SecretUI:   &nopSecretUI{},
+		SaltpackUI: &capSaltpackUI{},
+		SessionID:  arg.SessionID,
+	}
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	resolver := saltpackkeys.NewKeyPseudonymResolver(m)
+	eng := engine.NewSaltpackDecrypt(earg, resolver)
+	err := engine.RunEngine2(m, eng)
+	if err != nil {
+		return keybase1.SaltpackPlaintextResult{}, err
+	}
+	r := keybase1.SaltpackPlaintextResult{
+		Info:      eng.MessageInfo(),
+		Plaintext: sink.String(),
+	}
+	return r, nil
+}
+
+func (h *SaltpackHandler) SaltpackSignString(ctx context.Context, arg keybase1.SaltpackSignStringArg) (string, error) {
+	ctx = libkb.WithLogTag(ctx, "SP")
+	sink := libkb.NewBufferCloser()
+	earg := &engine.SaltpackSignArg{
+		Sink:   sink,
+		Source: ioutil.NopCloser(bytes.NewBufferString(arg.Plaintext)),
+	}
+
+	uis := libkb.UIs{
+		SecretUI:  &nopSecretUI{},
+		SessionID: arg.SessionID,
+	}
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	eng := engine.NewSaltpackSign(h.G(), earg)
+	if err := engine.RunEngine2(m, eng); err != nil {
+		return "", err
+	}
+
+	return sink.String(), nil
+}
+
+func (h *SaltpackHandler) SaltpackVerifyString(ctx context.Context, arg keybase1.SaltpackVerifyStringArg) (keybase1.SaltpackVerifyResult, error) {
+	ctx = libkb.WithLogTag(ctx, "SP")
+	sink := libkb.NewBufferCloser()
+	earg := &engine.SaltpackVerifyArg{
+		Sink:   sink,
+		Source: strings.NewReader(arg.SignedMsg),
+	}
+
+	spui := &capSaltpackUI{}
+	uis := libkb.UIs{
+		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID, h.G()),
+		SecretUI:   &nopSecretUI{},
+		SaltpackUI: spui,
+		SessionID:  arg.SessionID,
+	}
+	eng := engine.NewSaltpackVerify(h.G(), earg)
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	if err := engine.RunEngine2(m, eng); err != nil {
+		return keybase1.SaltpackVerifyResult{}, err
+	}
+	res := keybase1.SaltpackVerifyResult{
+		Plaintext: sink.String(),
+	}
+	if spui.signingKID != nil {
+		res.SigningKID = *spui.signingKID
+	}
+	if spui.sender != nil {
+		res.Sender = *spui.sender
+	}
+	return res, nil
+}
+
+// nopSecretUI returns an error if it is ever called.
+// A lot of these saltpack engines say they require a secret UI.
+// They really don't, but it's dangerous to try to strip it out.
+type nopSecretUI struct{}
+
+func (n *nopSecretUI) GetPassphrase(pinentry keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error) {
+	return keybase1.GetPassphraseRes{}, errors.New("GetPassphrase called unexpectedly")
+}
+
+// capSaltpackUI captures the various sender info so the RPCs can just return that
+// directly to the caller instead of via a UI.
+type capSaltpackUI struct {
+	decryptArg *keybase1.SaltpackPromptForDecryptArg
+	signingKID *keybase1.KID
+	sender     *keybase1.SaltpackSender
+}
+
+func (c *capSaltpackUI) SaltpackPromptForDecrypt(ctx context.Context, arg keybase1.SaltpackPromptForDecryptArg, _ bool) error {
+	c.decryptArg = &arg
+	return nil
+}
+
+func (c *capSaltpackUI) SaltpackVerifySuccess(ctx context.Context, arg keybase1.SaltpackVerifySuccessArg) error {
+	c.signingKID = &arg.SigningKID
+	c.sender = &arg.Sender
+	return nil
+}
+
+func (c *capSaltpackUI) SaltpackVerifyBadSender(ctx context.Context, arg keybase1.SaltpackVerifyBadSenderArg) error {
+	c.signingKID = &arg.SigningKID
+	c.sender = &arg.Sender
+	return nil
 }

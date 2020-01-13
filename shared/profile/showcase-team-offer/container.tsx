@@ -12,7 +12,7 @@ type OwnProps = {}
 
 export default Container.connect(
   (state: Container.TypedState) => ({
-    _waiting: state.waiting,
+    _waiting: state.waiting.counts,
     _you: state.config.username,
     teamDetails: state.teams.teamDetails,
   }),

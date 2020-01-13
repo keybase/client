@@ -14,9 +14,11 @@ import debounce from 'lodash/debounce'
 
 type Props = Container.RouteProps<{conversationIDKey?: Types.ConversationIDKey; teamID?: TeamTypes.TeamID}>
 
-const renderSectionHeader = ({section}) => {
+const renderSectionHeader = ({section}: any) => {
   return <Kb.SectionDivider label={section.title} />
 }
+
+const userEmptyPlaceholder = '---EMPTYUSERS---'
 
 const SearchBotPopup = (props: Props) => {
   const conversationIDKey = Container.getRouteProps(props, 'conversationIDKey', undefined)
@@ -76,7 +78,7 @@ const SearchBotPopup = (props: Props) => {
     title: 'Featured bots',
   }
   const usersSection = {
-    data: results?.users ?? [],
+    data: !lastQuery.length ? [userEmptyPlaceholder] : results?.users.slice(0, 3) ?? [],
     renderItem: ({item}: {item: string}) => {
       return (
         <Kb.Box2
@@ -84,13 +86,17 @@ const SearchBotPopup = (props: Props) => {
           fullWidth={true}
           style={{...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny)}}
         >
-          <Kb.NameWithIcon
-            username={item}
-            horizontal={true}
-            colorFollowing={true}
-            onClick={onSelect}
-            clickType="onClick"
-          />
+          {item === userEmptyPlaceholder ? (
+            <Kb.Text type="BodySmall">Enter a bot username above</Kb.Text>
+          ) : (
+            <Kb.NameWithIcon
+              username={item}
+              horizontal={true}
+              colorFollowing={true}
+              onClick={onSelect}
+              clickType="onClick"
+            />
+          )}
         </Kb.Box2>
       )
     },
@@ -98,27 +104,32 @@ const SearchBotPopup = (props: Props) => {
   }
   return (
     <Kb.Modal
+      onClose={onClose}
       header={{
-        leftButton: (
+        leftButton: Styles.isMobile ? (
           <Kb.Text type="BodyBigLink" onClick={onClose}>
             {'Cancel'}
           </Kb.Text>
+        ) : (
+          undefined
         ),
         title: 'Add a bot',
       }}
     >
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.modal}>
-        <Kb.SearchFilter
-          size="full-width"
-          focusOnMount={true}
-          onChange={onSearch}
-          placeholderText="Search bots and users..."
-          waiting={waiting}
-        />
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputContainer}>
+          <Kb.SearchFilter
+            size="full-width"
+            focusOnMount={true}
+            onChange={onSearch}
+            placeholderText="Search featured bots or users..."
+            waiting={waiting}
+          />
+        </Kb.Box2>
         <Kb.SectionList
           renderSectionHeader={renderSectionHeader}
           stickySectionHeadersEnabled={true}
-          sections={[botSection, usersSection]}
+          sections={[usersSection, botSection]}
         />
       </Kb.Box2>
     </Kb.Modal>
@@ -126,6 +137,11 @@ const SearchBotPopup = (props: Props) => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
+  inputContainer: Styles.platformStyles({
+    isElectron: {
+      padding: Styles.globalMargins.tiny,
+    },
+  }),
   modal: Styles.platformStyles({
     isElectron: {
       height: 500,

@@ -454,12 +454,12 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	storage.SetupGlobalHooks(g)
 	// Set up main chat data sources
 	boxer := chat.NewBoxer(g)
-	chatStorage := storage.New(g, nil)
 	g.CtxFactory = chat.NewCtxFactory(g)
 	g.Badger = d.badger
 	inboxSource := chat.NewInboxSource(g, g.Env.GetInboxSourceType(), ri)
 	g.InboxSource = inboxSource
 	d.badger.SetLocalChatState(inboxSource)
+	chatStorage := storage.New(g, nil)
 	g.ConvSource = chat.NewConversationSource(g, g.Env.GetConvSourceType(),
 		boxer, chatStorage, ri)
 	chatStorage.SetAssetDeleter(g.ConvSource)
@@ -1437,5 +1437,13 @@ func (d *Service) StartStandaloneChat(g *libkb.GlobalContext) error {
 	d.startupGregor()
 	d.startChatModules()
 
+	return nil
+}
+
+func assertLoggedIn(ctx context.Context, g *libkb.GlobalContext) error {
+	loggedIn := g.ActiveDevice.Valid()
+	if !loggedIn {
+		return libkb.LoginRequiredError{}
+	}
 	return nil
 }

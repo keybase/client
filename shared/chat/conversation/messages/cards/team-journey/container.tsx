@@ -6,6 +6,7 @@ import * as Container from '../../../../../util/container'
 import * as MessageTypes from '../../../../../constants/types/chat2/message'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import * as RPCChatTypes from '../../../../../constants/types/rpc-chat-gen'
+import * as Styles from '../../../../../styles'
 import * as TeamConstants from '../../../../../constants/teams'
 import * as TeamTypes from '../../../../../constants/types/teams'
 import * as TeamsGen from '../../../../../actions/teams-gen'
@@ -32,6 +33,7 @@ type Props = {
   onPublishTeam: () => void
   onScrollBack: () => void
   onShowTeam: () => void
+  onAuthorClick: () => void
   teamname: string
   teamType: 'big' | 'small' | null
 }
@@ -47,13 +49,17 @@ const TeamJourneyContainer = (props: Props) => {
       actions =
         props.teamType === 'big'
           ? [
-              {label: 'Publish team on your profile', onClick: props.onPublishTeam},
+              'wave',
               {label: 'Browse channels', onClick: props.onBrowseChannels},
+              {label: 'Publish team on your profile', onClick: props.onPublishTeam},
             ]
           : ['wave', {label: 'Publish team on your profile', onClick: props.onPublishTeam}]
       image = 'icon-illustration-welcome-96'
       textComponent = (
-        <Kb.Text type="BodySmall">Welcome to the team! Say hi to everyone and introduce yourself.</Kb.Text>
+        <Kb.Text type="BodySmall">
+          <Kb.Emoji allowFontScaling={true} size={Styles.globalMargins.small} emojiName=":wave:" /> Welcome to
+          the team! Say hi to everyone and introduce yourself.
+        </Kb.Text>
       )
       break
     case RPCChatTypes.JourneycardType.popularChannels:
@@ -139,6 +145,7 @@ const TeamJourneyContainer = (props: Props) => {
       actions={actions}
       image={image}
       loadTeam={loadTeam}
+      onAuthorClick={props.onAuthorClick}
       teamname={props.teamname}
       conversationIDKey={props.conversationIDKey}
       textComponent={textComponent}
@@ -161,6 +168,14 @@ const TeamJourneyConnected = Container.connect(
   },
   dispatch => ({
     _onAddPeopleToTeam: (teamID: TeamTypes.TeamID) => dispatch(appendNewTeamBuilder(teamID)),
+    _onAuthorClick: (teamID: TeamTypes.TeamID) =>
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [teamsTab, {props: {teamID}, selected: 'team'}],
+        })
+      ),
+    _onCreateChannel: (teamID: string) =>
+      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'chatCreateChannel'}]})),
     _onGoToChannel: (channelname: string, teamname: string) =>
       dispatch(Chat2Gen.createPreviewConversation({channelname, reason: 'journeyCardPopular', teamname})),
     _onLoadTeam: (teamID: string) => dispatch(TeamsGen.createGetChannels({teamID})),
@@ -198,8 +213,9 @@ const TeamJourneyConnected = Container.connect(
       conversationIDKey,
       message: ownProps.message,
       onAddPeopleToTeam: () => dispatchProps._onAddPeopleToTeam(stateProps._teamID),
+      onAuthorClick: () => dispatchProps._onAuthorClick(stateProps._teamID),
       onBrowseChannels: () => dispatchProps._onManageChannels(stateProps._teamID),
-      onCreateChatChannels: () => dispatchProps._onManageChannels(stateProps._teamID),
+      onCreateChatChannels: () => dispatchProps._onCreateChannel(stateProps._teamID),
       onGoToChannel: (channelName: string) => dispatchProps._onGoToChannel(channelName, stateProps.teamname),
       onLoadTeam: () => dispatchProps._onLoadTeam(stateProps._teamID),
       onPublishTeam: () => dispatchProps._onPublishTeam(),

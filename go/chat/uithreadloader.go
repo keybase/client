@@ -287,7 +287,7 @@ func (t *UIThreadLoader) groupThreadView(ctx context.Context, uid gregor1.UID, t
 	// group duplicate ephemeral errors
 	newMsgs = t.groupGeneric(ctx, uid, newMsgs,
 		func(msg chat1.MessageUnboxed, grouped []chat1.MessageUnboxed) bool {
-			if !(msg.IsError() && msg.Error().IsEphemeralError()) {
+			if !(msg.IsError() && msg.Error().IsEphemeralError() && !msg.Error().IsEphemeralExpired(time.Now())) {
 				return false
 			}
 			// group the same error message from the same sender
@@ -488,15 +488,21 @@ func (t *UIThreadLoader) mergeLocalRemoteThread(ctx context.Context, remoteThrea
 func (t *UIThreadLoader) dispatchOldPagesJob(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, pagination *chat1.Pagination, resultPagination *chat1.Pagination) {
 	// Fire off pageback background jobs if we fetched the first page
+	num := 50
+	count := 3
+	if t.G().IsMobileAppType() {
+		num = 20
+		count = 1
+	}
 	if pagination.FirstPage() && resultPagination != nil && !resultPagination.Last {
 		p := &chat1.Pagination{
-			Num:  50,
+			Num:  num,
 			Next: resultPagination.Next,
 		}
 		t.Debug(ctx, "dispatchOldPagesJob: queuing %s because of first page fetch: p: %s", convID, p)
 		if err := t.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, p,
 			types.ConvLoaderPriorityLow, types.ConvLoaderGeneric,
-			newConvLoaderPagebackHook(t.G(), 0, 3))); err != nil {
+			newConvLoaderPagebackHook(t.G(), 0, count))); err != nil {
 			t.Debug(ctx, "dispatchOldPagesJob: failed to queue conversation load: %s", err)
 		}
 	}

@@ -6,12 +6,8 @@ type OwnProps = {
   message: Types.MessageSystemSBSResolved
 }
 
-const mapStateToProps = state => ({
-  you: state.config.username,
-})
-
 export default connect(
-  mapStateToProps,
+  state => ({you: state.config.username}),
   () => ({}),
   (stateProps, _, ownProps: OwnProps) => ({
     message: ownProps.message,

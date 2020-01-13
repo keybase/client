@@ -17,7 +17,7 @@ type Props = {
   timestamp: number
 }
 
-const getPolicySummary = props => {
+const getPolicySummary = (props: Props) => {
   if (!props.policy) {
     return 'be retained indefinitely'
   }

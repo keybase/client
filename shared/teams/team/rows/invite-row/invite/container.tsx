@@ -1,7 +1,7 @@
 import * as TeamsGen from '../../../../../actions/teams-gen'
 import * as Constants from '../../../../../constants/teams'
+import * as Container from '../../../../../util/container'
 import {TeamInviteRow} from '.'
-import {connect} from '../../../../../util/container'
 import {InviteInfo, TeamID} from '../../../../../constants/types/teams'
 
 type OwnProps = {
@@ -9,12 +9,10 @@ type OwnProps = {
   teamID: TeamID
 }
 
-export default connect(
+export default Container.connect(
   (state, {teamID}: OwnProps) => {
     const teamDetails = Constants.getTeamDetails(state, teamID)
-    return {
-      _invites: teamDetails.invites,
-    }
+    return {_invites: teamDetails.invites}
   },
   (dispatch, {teamID}: OwnProps) => ({
     _onCancelInvite: ({
@@ -34,7 +32,7 @@ export default connect(
       [...(stateProps._invites || [])].find(invite => invite.id === ownProps.id) || Constants.emptyInviteInfo
     if (!user) {
       // loading
-      return {label: '', onCancelInvite: () => {}, role: 'reader'}
+      return {label: '', onCancelInvite: () => {}, role: 'reader'} as const
     }
     let onCancelInvite
     if (user.email) {

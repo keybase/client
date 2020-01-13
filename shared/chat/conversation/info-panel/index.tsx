@@ -79,6 +79,7 @@ const inThisChannelHeader = 'bots: in this channel'
 const featuredBotsHeader = 'bots: featured bots'
 const loadMoreBotsButton = 'bots: load more'
 const addBotButton = 'bots: add bot'
+const featuredBotSpinner = 'bots: featured spinners'
 
 export type InfoPanelProps = {
   loadDelay?: number
@@ -133,6 +134,7 @@ export type InfoPanelProps = {
   // Used for bots
   canManageBots: boolean
   loadedAllBots: boolean
+  loadingBots: boolean
   onSearchFeaturedBots: (username: string) => void
   onLoadMoreBots: () => void
   onBotSelect: (username: string) => void
@@ -438,12 +440,15 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
           tabsSection.data.push(inThisChannelHeader)
         }
         tabsSection.data = tabsSection.data.concat(this.props.installedBots)
+        tabsSection.data.push(featuredBotsHeader)
         if (this.props.featuredBots.length > 0) {
-          tabsSection.data.push(featuredBotsHeader)
           tabsSection.data = tabsSection.data.concat(this.props.featuredBots)
         }
-        if (!this.props.loadedAllBots) {
+        if (!this.props.loadedAllBots && this.props.featuredBots.length > 0) {
           tabsSection.data.push(loadMoreBotsButton)
+        }
+        if (this.props.loadingBots) {
+          tabsSection.data.push(featuredBotSpinner)
         }
         tabsSection.renderItem = ({item}) => {
           if (item === addBotButton) {
@@ -471,6 +476,9 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
                 Featured
               </Kb.Text>
             )
+          }
+          if (item === featuredBotSpinner) {
+            return <Kb.ProgressIndicator type="Large" />
           }
           if (item === loadMoreBotsButton) {
             return (
@@ -516,10 +524,10 @@ const styles = Styles.styleSheetCreate(
         marginTop: Styles.globalMargins.small,
       },
       botHeaders: {
-        marginBottom: Styles.globalMargins.xsmall,
+        marginBottom: Styles.globalMargins.tiny,
         marginLeft: Styles.globalMargins.small,
         marginRight: Styles.globalMargins.small,
-        marginTop: Styles.globalMargins.xsmall,
+        marginTop: Styles.globalMargins.tiny,
       },
       container: Styles.platformStyles({
         common: {alignItems: 'stretch', flex: 1, paddingBottom: Styles.globalMargins.tiny},

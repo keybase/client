@@ -23,9 +23,8 @@ type CmdTeamEditMember struct {
 
 func newCmdTeamEditMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	cmd := cli.Command{
-		Name: "edit-member",
-		// TODO HOTPOT-599 add bot roles
-		ArgumentHelp: "<team name> --user=<username> --role=<owner|admin|writer|reader>",
+		Name:         "edit-member",
+		ArgumentHelp: "<team name> --user=<username> --role=<owner|admin|writer|reader|bot|restrictedbot>",
 		Usage:        "Change a user's role on a team.",
 		Action: func(c *cli.Context) {
 			cmd := &CmdTeamEditMember{Contextified: libkb.NewContextified(g)}
@@ -36,18 +35,14 @@ func newCmdTeamEditMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 				Name:  "u, user",
 				Usage: "username",
 			},
-			// TODO HOTPOT-599 add bot roles
 			cli.StringFlag{
 				Name:  "r, role",
-				Usage: "team role (owner, admin, writer, reader)",
+				Usage: "team role (owner, admin, writer, reader, bot, restrictedbot)",
 			},
 		},
 	}
 
-	// TODO HOTPOT-599 expose publicly
-	if g.Env.GetRunMode() == libkb.DevelRunMode || libkb.IsKeybaseAdmin(g.GetMyUID()) {
-		cmd.Flags = append(cmd.Flags, botSettingsFlags...)
-	}
+	cmd.Flags = append(cmd.Flags, botSettingsFlags...)
 	return cmd
 }
 

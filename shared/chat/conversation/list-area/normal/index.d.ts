@@ -1,6 +1,8 @@
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
 
+export type ItemType = Types.Ordinal | 'specialTop' | 'specialBottom'
+
 export type Props = {
   centeredOrdinal?: Types.Ordinal
   containsLatestMessage: boolean

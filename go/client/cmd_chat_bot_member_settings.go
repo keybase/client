@@ -34,7 +34,7 @@ func newCmdChatBotMemberSettings(cl *libcmdline.CommandLine, g *libkb.GlobalCont
 	})
 	return cli.Command{
 		Name:         "bot-member-settings",
-		Usage:        "View or modify a restricted bot's isolation settings",
+		Usage:        "View or modify a restricted bot's isolation settings.",
 		ArgumentHelp: "[conversation]",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdChatBotMemberSettingsRunner(g), "bot-member-settings", c)
