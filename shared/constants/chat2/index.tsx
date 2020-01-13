@@ -19,6 +19,7 @@ import * as Router2 from '../router2'
 import HiddenString from '../../util/hidden-string'
 import {getFullname} from '../users'
 import {memoize} from '../../util/memoize'
+import * as TeamConstants from '../teams'
 
 export const defaultTopReacjis = [':+1:', ':-1:', ':tada:', ':joy:', ':sunglasses:']
 const defaultSkinTone = 1
@@ -463,6 +464,21 @@ export const getParticipantSuggestions = (state: TypedState, id: Types.Conversat
   const {teamType} = getMeta(state, id)
   _unmemoizedState = state
   return _getParticipantSuggestionsMemoized(participants.all, teamType)
+}
+
+export const messageAuthorIsBot = (
+  state: TypedState,
+  meta: Types.ConversationMeta,
+  message: Types.Message,
+  participantInfo: Types.ParticipantInfo
+) => {
+  const teamname = meta.teamname
+  return teamname
+    ? TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'restrictedbot') ||
+        TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'bot')
+    : meta.teamType === 'adhoc' && participantInfo.name.length > 0 // teams without info may have type adhoc with an empty participant name list
+    ? !participantInfo.name.includes(message.author) // if adhoc, check if author in participants
+    : false // if we don't have team information, don't show bot icon
 }
 
 export {

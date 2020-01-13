@@ -1,4 +1,5 @@
 {
+  "chat.1.local.addBotConvSearch": {"promise": true},
   "chat.1.local.addBotMember": {"promise": true},
   "chat.1.local.bulkAddToConv": {"promise": true},
   "chat.1.local.CancelPost": {"promise": true},

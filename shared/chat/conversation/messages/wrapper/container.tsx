@@ -145,12 +145,7 @@ export default Container.namedConnect(
     const authorIsAdmin = teamname
       ? TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'admin')
       : false
-    const authorIsBot = teamname
-      ? TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'restrictedbot') ||
-        TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'bot')
-      : meta.teamType === 'adhoc' && _participantInfo.name.length > 0 // teams without info may have type adhoc with an empty participant name list
-      ? !_participantInfo.name.includes(message.author) // if adhoc, check if author in participants
-      : false // if we don't have team information, don't show bot icon
+    const authorIsBot = Constants.messageAuthorIsBot(state, meta, message, _participantInfo)
     const authorIsOwner = teamname
       ? TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'owner')
       : false
