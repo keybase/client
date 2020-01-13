@@ -1252,6 +1252,7 @@ protocol local {
     string name;
     ConversationID convID;
     boolean isTeam;
+    array<string> parts;
   }
   array<AddBotConvSearchHit> addBotConvSearch(string term);
 

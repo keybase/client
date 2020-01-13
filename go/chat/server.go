@@ -10,6 +10,7 @@ import (
 	"os"
 	"regexp"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -3033,11 +3034,18 @@ func (h *Server) AddBotConvSearch(ctx context.Context, term string) (res []chat1
 	res = make([]chat1.AddBotConvSearchHit, 0, len(allConvs))
 	for _, conv := range allConvs {
 		switch conv.GetTeamType() {
-		case chat1.TeamType_NONE, chat1.TeamType_SIMPLE:
+		case chat1.TeamType_NONE:
+			searchable := utils.SearchableRemoteConversationName(conv, username)
+			res = append(res, chat1.AddBotConvSearchHit{
+				Name:   searchable,
+				ConvID: conv.GetConvID(),
+				Parts:  strings.Split(searchable, ","),
+			})
+		case chat1.TeamType_SIMPLE:
 			res = append(res, chat1.AddBotConvSearchHit{
 				Name:   utils.SearchableRemoteConversationName(conv, username),
 				ConvID: conv.GetConvID(),
-				IsTeam: conv.GetTeamType() == chat1.TeamType_SIMPLE,
+				IsTeam: true,
 			})
 		case chat1.TeamType_COMPLEX:
 			if conv.Conv.Metadata.IsDefaultConv {

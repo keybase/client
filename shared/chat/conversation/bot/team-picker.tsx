@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
@@ -6,7 +7,9 @@ import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Types from '../../../constants/types/chat2'
 import * as BotsGen from '../../../actions/bots-gen'
+import {Avatars, TeamAvatar} from '../../avatars'
 import debounce from 'lodash/debounce'
+import logger from '../../../logger'
 
 type Props = Container.RouteProps<{botUsername: string}>
 
@@ -14,13 +17,23 @@ const BotTeamPicker = (props: Props) => {
   const botUsername = Container.getRouteProps(props, 'botUsername', '')
   const [term, setTerm] = React.useState('')
   const [results, setResults] = React.useState<Array<RPCChatTypes.AddBotConvSearchHit>>([])
+  const [waiting, setWaiting] = React.useState(false)
+  const [error, setError] = React.useState('')
   const submit = Container.useRPC(RPCChatTypes.localAddBotConvSearchRpcPromise)
   const dispatch = Container.useDispatch()
   const doSearch = () => {
+    setWaiting(true)
     submit(
       [{term}],
-      result => setResults(result ?? []),
-      error => console.log('ERROR: ' + error.message)
+      result => {
+        setWaiting(false)
+        setResults(result ?? [])
+      },
+      error => {
+        setWaiting(false)
+        setError('Something went wrong, please try again.')
+        logger.info('BotTeamPicker: error loading search results: ' + error.message)
+      }
     )
   }
   const onClose = () => {
@@ -54,7 +67,17 @@ const BotTeamPicker = (props: Props) => {
     return (
       <Kb.ClickableBox key={index} onClick={() => onSelect(item.convID)}>
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.results}>
-          <Kb.Avatar username={item.name} size={32} isTeam={item.isTeam} teamname={item.name} />
+          {item.isTeam ? (
+            <TeamAvatar isHovered={false} isMuted={false} isSelected={false} teamname={item.name} />
+          ) : (
+            <Avatars
+              isHovered={false}
+              isLocked={false}
+              isMuted={false}
+              isSelected={false}
+              participants={item.parts ?? []}
+            />
+          )}
           <Kb.Text type="Body" style={{alignSelf: 'center'}}>
             {item.name}
           </Kb.Text>
@@ -83,18 +106,24 @@ const BotTeamPicker = (props: Props) => {
             icon="iconfont-search"
             placeholderText={`Search chats and teams...`}
             placeholderCentered={true}
-            mobileCancelButton={true}
             onChange={debounce(setTerm, 200)}
             style={styles.searchFilter}
             focusOnMount={true}
+            waiting={waiting}
           />
         </Kb.Box2>
-        <Kb.List2
-          indexAsKey={true}
-          items={results}
-          itemHeight={{sizeType: 'Small', type: 'fixedListItem2Auto'}}
-          renderItem={renderResult}
-        />
+        {error.length > 0 ? (
+          <Kb.Text type="Body" style={{alignSelf: 'center', color: Styles.globalColors.redDark}}>
+            {error}
+          </Kb.Text>
+        ) : (
+          <Kb.List2
+            indexAsKey={true}
+            items={results}
+            itemHeight={{sizeType: 'Large', type: 'fixedListItem2Auto'}}
+            renderItem={renderResult}
+          />
+        )}
       </Kb.Box2>
     </Kb.Modal>
   )
@@ -108,10 +137,15 @@ const styles = Styles.styleSheetCreate(
           height: 560,
         },
       }),
-      results: {
-        paddingLeft: Styles.globalMargins.small,
-        paddingRight: Styles.globalMargins.small,
-      },
+      results: Styles.platformStyles({
+        common: {
+          paddingLeft: Styles.globalMargins.tiny,
+          paddingRight: Styles.globalMargins.tiny,
+        },
+        isMobile: {
+          paddingBottom: Styles.globalMargins.tiny,
+        },
+      }),
       searchFilter: Styles.platformStyles({
         common: {
           marginBottom: Styles.globalMargins.xsmall,

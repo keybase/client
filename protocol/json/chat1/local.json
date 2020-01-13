@@ -3636,6 +3636,13 @@
         {
           "type": "boolean",
           "name": "isTeam"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "parts"
         }
       ]
     },
