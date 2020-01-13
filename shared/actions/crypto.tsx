@@ -236,21 +236,16 @@ const saltpackDecrypt = async (action: CryptoGen.SaltpackDecryptPayload, logger:
         const result = await RPCTypes.saltpackSaltpackDecryptStringRpcPromise({
           ciphertext: input.stringValue(),
         })
-        const {plaintext, info} = result
+        const {plaintext, info, signed} = result
         const {sender} = info
         const {username, senderType} = sender
-
-        // TODO @jacob: This is a placeholder until the protocol is updated to included signed flag
-        const isSigned = !(
-          senderType === RPCTypes.SaltpackSenderType.unknown ||
-          senderType === RPCTypes.SaltpackSenderType.anonymous
-        )
+        const outputSigned = signed
 
         return CryptoGen.createOnOperationSuccess({
           operation: Constants.Operations.Decrypt,
           output: new HiddenString(plaintext),
-          outputSender: isSigned ? new HiddenString(username) : undefined,
-          outputSigned: isSigned,
+          outputSender: outputSigned ? new HiddenString(username) : undefined,
+          outputSigned,
           outputType: type,
         })
       } catch (err) {
