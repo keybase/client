@@ -915,6 +915,7 @@ const loadFilesTabBadge = async () => {
       return FsGen.createLoadedFilesTabBadge({badge})
     } catch {}
   }
+  return false
 }
 
 const userInOutClientKey = Constants.makeUUID()
