@@ -16,10 +16,18 @@
             "type": "array",
             "items": "FeaturedBot"
           }
+        },
+        {
+          "name": "limit",
+          "type": "int"
+        },
+        {
+          "name": "offset",
+          "type": "int"
         }
       ],
       "response": null,
-      "notify": ""
+      "oneway": true
     }
   },
   "namespace": "keybase.1"
