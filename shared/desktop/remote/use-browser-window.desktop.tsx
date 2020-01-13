@@ -14,6 +14,8 @@ function useBrowserWindow(options: UseBrowserOptions) {
   const {windowOpts, windowComponent, windowParam, windowPositionBottomRight} = options
   React.useEffect(() => {
     if (windowComponent) {
+      // window.open()
+      // TODO
       SafeElectron.getApp().emit('KBkeybase', '', {
         payload: {
           windowComponent,

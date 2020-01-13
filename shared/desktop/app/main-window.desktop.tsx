@@ -1,4 +1,5 @@
 import URL from 'url-parse'
+import path from 'path'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import * as Electron from 'electron'
 import * as ConfigGen from '../../actions/config-gen'
@@ -8,8 +9,8 @@ import {mainWindowDispatch} from '../remote/util.desktop'
 import {WindowState} from '../../constants/types/config'
 import {showDevTools} from '../../local-debug.desktop'
 import {guiConfigFilename, isDarwin, isWindows, defaultUseNativeFrame} from '../../constants/platform.desktop'
+import {resolveRoot, resolveRootAsURL} from './resolve-root.desktop'
 import logger from '../../logger'
-import {resolveRootAsURL} from './resolve-root.desktop'
 import debounce from 'lodash/debounce'
 
 let htmlFile = resolveRootAsURL('dist', `main${__DEV__ ? '.dev' : ''}.html`)
@@ -300,6 +301,7 @@ export default () => {
       devTools: showDevTools,
       nodeIntegration: true,
       nodeIntegrationInWorker: false,
+      preload: resolveRoot('dist', `preload-main${__DEV__ ? '.dev' : ''}.bundle.js`),
     },
     width: windowState.width,
     x: windowState.x,

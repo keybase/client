@@ -32,6 +32,7 @@ interface Window {
   DEBUGLogSagas: any
   DEBUGLogSagasWithNames: any
   DEBUGRootEffects: any
+  KB: typeof KB
 }
 
 interface Console {
@@ -39,6 +40,10 @@ interface Console {
   _warn: any
   _error: any
   _info: any
+}
+
+declare var KB: {
+  DEV?: any
 }
 
 declare namespace NodeJS {
@@ -54,5 +59,6 @@ declare namespace NodeJS {
     DEBUGSagaMiddleware: any
     DEBUGStore: any
     globalLogger: any
+    KB: typeof KB
   }
 }
