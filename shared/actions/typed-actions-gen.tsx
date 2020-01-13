@@ -248,6 +248,7 @@ export type TypedActionsMap = {
   'chat2:setGeneralConvFromTeamID': chat2.SetGeneralConvFromTeamIDPayload
   'chat2:refreshBotRoleInConv': chat2.RefreshBotRoleInConvPayload
   'chat2:setBotRoleInConv': chat2.SetBotRoleInConvPayload
+  'chat2:dismissJourneycard': chat2.DismissJourneycardPayload
   'config:startHandshake': config.StartHandshakePayload
   'config:restartHandshake': config.RestartHandshakePayload
   'config:daemonHandshake': config.DaemonHandshakePayload

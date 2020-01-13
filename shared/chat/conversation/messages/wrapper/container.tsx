@@ -71,6 +71,8 @@ const getUsernameToShow = (
       return message.joiners.length + message.leavers.length > 1 ? '' : message.author
     case 'systemSBSResolved':
       return message.prover
+    case 'journeycard':
+      return 'placeholder'
   }
   return message.author
 }
