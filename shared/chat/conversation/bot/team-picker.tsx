@@ -73,7 +73,7 @@ const BotTeamPicker = (props: Props) => {
         ) : (
           undefined
         ),
-        title: 'Add a bot',
+        title: 'Add to team or chat',
       }}
     >
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
