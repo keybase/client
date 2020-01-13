@@ -36,15 +36,12 @@ func (l *FeaturedBotLoader) debug(mctx libkb.MetaContext, msg string, args ...in
 }
 
 func (l *FeaturedBotLoader) Search(mctx libkb.MetaContext, arg keybase1.SearchArg) (res keybase1.SearchRes, err error) {
-<<<<<<< HEAD
+	defer mctx.TraceTimed("FeaturedBotLoader: Search", func() error { return err })()
 	defer func() {
 		if err == nil {
 			res.Bots = l.present(mctx, res.Bots)
 		}
 	}()
-=======
-	defer mctx.TraceTimed("FeaturedBotLoader: Search", func() error { return err })()
->>>>>>> listen to featured bots update
 	apiRes, err := mctx.G().API.Get(mctx, libkb.APIArg{
 		Endpoint:    "featured_bots/search",
 		SessionType: libkb.APISessionTypeNONE,
