@@ -68,6 +68,8 @@ const getUsernameToShow = (
       return message.joiners.length + message.leavers.length > 1 ? '' : author
     case 'systemSBSResolved':
       return message.prover
+    case 'journeycard':
+      return 'placeholder'
   }
   return author
 }
@@ -136,7 +138,9 @@ export default Container.namedConnect(
     const authorIsBot = teamname
       ? TeamConstants.userIsRoleInTeam(state, teamname, author, 'restrictedbot') ||
         TeamConstants.userIsRoleInTeam(state, teamname, author, 'bot')
-      : !_participantInfo.name.includes(author) // if adhoc, check if author in participants
+      : meta.teamType === 'adhoc' && _participantInfo.name.length > 0 // teams without info may have type adhoc with an empty participant name list
+      ? !_participantInfo.name.includes(message.author) // if adhoc, check if author in participants
+      : false // if we don't have team information, don't show bot icon
     const authorIsOwner = teamname ? TeamConstants.userIsRoleInTeam(state, teamname, author, 'owner') : false
     const ordinals = [...Constants.getMessageOrdinals(state, conversationIDKey)]
     const botAlias = botAliases[author] ?? ''

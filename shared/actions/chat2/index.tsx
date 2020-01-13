@@ -2323,6 +2323,17 @@ const deleteMessageHistory = async (
   })
 }
 
+const dismissJourneycard = (action: Chat2Gen.DismissJourneycardPayload, logger: Saga.SagaLogger) => {
+  const {cardType, conversationIDKey, ordinal} = action.payload
+  RPCChatTypes.localDismissJourneycardRpcPromise({
+    cardType: cardType,
+    convID: Types.keyToConversationID(conversationIDKey),
+  }).catch(err => {
+    logger.error(`Failed to dismiss journeycard: ${err.message}`)
+  })
+  return Chat2Gen.createMessagesWereDeleted({conversationIDKey, ordinals: [ordinal]})
+}
+
 // Get the full channel names/descs for a team if we don't already have them.
 function* loadChannelInfos(state: Container.TypedState, action: Chat2Gen.SelectConversationPayload) {
   const {conversationIDKey} = action.payload
@@ -3585,6 +3596,7 @@ function* chat2Saga() {
   yield* Saga.chainAction(Chat2Gen.messageEdit, clearMessageSetEditing)
   yield* Saga.chainAction2(Chat2Gen.messageDelete, messageDelete)
   yield* Saga.chainAction2(Chat2Gen.messageDeleteHistory, deleteMessageHistory)
+  yield* Saga.chainAction(Chat2Gen.dismissJourneycard, dismissJourneycard)
   yield* Saga.chainAction(Chat2Gen.confirmScreenResponse, confirmScreenResponse)
 
   // Giphy
