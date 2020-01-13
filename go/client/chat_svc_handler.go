@@ -428,7 +428,7 @@ func (c *chatServiceHandler) GetResetConvMembersV1(ctx context.Context) Reply {
 	var res chat1.GetResetConvMembersRes
 	for _, m := range lres.Members {
 		res.Members = append(res.Members, chat1.ResetConvMemberAPI{
-			ConversationID: m.Conv.APIConvID(),
+			ConversationID: chat1.ConvIDStr(m.Conv.String()),
 			Username:       m.Username,
 		})
 	}
@@ -502,7 +502,7 @@ func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat
 
 		msg := chat1.MsgSummary{
 			Id:     mv.ServerHeader.MessageID,
-			ConvID: conv.GetConvID().APIConvID(),
+			ConvID: chat1.ConvIDStr(conv.GetConvID().String()),
 			Channel: chat1.ChatChannel{
 				Name:        conv.Info.TlfName,
 				Public:      mv.ClientHeader.TlfPublic,
@@ -1158,7 +1158,7 @@ func (c *chatServiceHandler) NewConvV1(ctx context.Context, opts newConvOptionsV
 		return c.errReply(err)
 	}
 	newConvRes := chat1.NewConvRes{
-		Id:               res.Conv.GetConvID().APIConvID(),
+		Id:               chat1.ConvIDStr(res.Conv.GetConvID().String()),
 		IdentifyFailures: res.IdentifyFailures,
 		RateLimits:       c.aggRateLimits(res.RateLimits),
 	}
@@ -1434,8 +1434,8 @@ func (c *chatServiceHandler) displayFlipBody(flip *chat1.MessageFlip) (res *chat
 		return res
 	}
 	res = new(chat1.MsgFlipContent)
-	res.GameID = chat1.APIGameID(flip.GameID.String())
-	res.FlipConvID = flip.FlipConvID.APIConvID()
+	res.GameID = chat1.GameIDStr(flip.GameID.String())
+	res.FlipConvID = chat1.ConvIDStr(flip.FlipConvID.String())
 	res.TeamMentions = flip.TeamMentions
 	res.UserMentions = flip.UserMentions
 	res.Text = flip.Text

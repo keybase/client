@@ -1010,7 +1010,7 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 				require.NotNil(t, conv.LocalMetadata)
 				switch mt {
 				case chat1.ConversationMembersType_TEAM:
-					if conv.ConvID == firstConv.Id.String() {
+					if conv.ConvID == chat1.ConvIDStr(firstConv.Id.String()) {
 						continue
 					}
 					require.Equal(t, fmt.Sprintf("%d", numconvs-index-1), conv.LocalMetadata.ChannelName)

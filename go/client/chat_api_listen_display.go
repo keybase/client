@@ -96,7 +96,7 @@ func (d *chatNotificationDisplay) formatMessage(inMsg chat1.IncomingMessage) *ch
 		mv := inMsg.Message.Valid()
 		summary := &chat1.MsgSummary{
 			Id:     mv.MessageID,
-			ConvID: inMsg.ConvID.APIConvID(),
+			ConvID: chat1.ConvIDStr(inMsg.ConvID.String()),
 			Channel: chat1.ChatChannel{
 				Name:        inMsg.Conv.Name,
 				MembersType: strings.ToLower(inMsg.Conv.MembersType.String()),
@@ -180,7 +180,7 @@ func (d *chatNotificationDisplay) NewChatActivity(ctx context.Context, arg chat1
 		convInfo := activity.NewConversation()
 		notif := newConvNotification()
 		if convInfo.Conv == nil {
-			err := fmt.Sprintf("No conversation info found: %v", convInfo.ConvID.APIConvID())
+			err := fmt.Sprintf("No conversation info found: %v", convInfo.ConvID.String())
 			notif.Error = &err
 		} else {
 			conv := utils.ExportToSummary(*convInfo.Conv)
@@ -198,7 +198,7 @@ func (d *chatNotificationDisplay) ChatJoinedConversation(ctx context.Context, ar
 
 	notif := newConvNotification()
 	if arg.Conv == nil {
-		err := fmt.Sprintf("No conversation info found: %v", arg.ConvID.APIConvID())
+		err := fmt.Sprintf("No conversation info found: %v", arg.ConvID.String())
 		notif.Error = &err
 	} else {
 		conv := utils.ExportToSummary(*arg.Conv)

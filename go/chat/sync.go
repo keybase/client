@@ -236,10 +236,10 @@ func (s *Syncer) maxSyncUnboxConvs() int {
 }
 
 func (s *Syncer) getShouldUnboxSyncConvMap(ctx context.Context, convs []chat1.Conversation,
-	topicNameChanged []chat1.ConversationID) (m map[string]bool) {
-	m = make(map[string]bool)
+	topicNameChanged []chat1.ConversationID) (m map[chat1.ConvIDStr]bool) {
+	m = make(map[chat1.ConvIDStr]bool)
 	for _, t := range topicNameChanged {
-		m[t.String()] = true
+		m[chat1.ConvIDStr(t.String())] = true
 	}
 	rconvs := utils.RemoteConvs(convs)
 	sort.Slice(rconvs, func(i, j int) bool {
@@ -295,7 +295,7 @@ func (s *Syncer) shouldUnboxSyncConv(conv chat1.Conversation) bool {
 }
 
 func (s *Syncer) notifyIncrementalSync(ctx context.Context, uid gregor1.UID,
-	allConvs []chat1.Conversation, shouldUnboxMap map[string]bool) {
+	allConvs []chat1.Conversation, shouldUnboxMap map[chat1.ConvIDStr]bool) {
 	if len(allConvs) == 0 {
 		s.Debug(ctx, "notifyIncrementalSync: no conversations given, sending a current result")
 		s.G().ActivityNotifier.InboxSynced(ctx, uid, chat1.TopicType_NONE,
@@ -315,7 +315,7 @@ func (s *Syncer) notifyIncrementalSync(ctx context.Context, uid gregor1.UID,
 		itemsByTopicType[c.GetTopicType()] = append(itemsByTopicType[c.GetTopicType()],
 			chat1.ChatSyncIncrementalConv{
 				Conv:        utils.PresentRemoteConversation(ctx, s.G(), rc),
-				ShouldUnbox: shouldUnboxMap[c.GetConvID().String()],
+				ShouldUnbox: shouldUnboxMap[chat1.ConvIDStr(c.GetConvID().String())],
 			})
 	}
 	for _, topicType := range chat1.TopicTypeMap {

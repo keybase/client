@@ -486,7 +486,7 @@ func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox,
 	if !selectedInLayout || reselectMode == chat1.InboxLayoutReselectMode_FORCE {
 		// select a new conv for the UI
 		var reselect chat1.UIInboxReselectInfo
-		reselect.OldConvID = selectedConv.String()
+		reselect.OldConvID = chat1.ConvIDStr(selectedConv.String())
 		if len(res.SmallTeams) > 0 {
 			reselect.NewConvID = &res.SmallTeams[0].ConvID
 		}
@@ -641,7 +641,7 @@ func (h *UIInboxLoader) isTopSmallTeamInLastLayout(convID chat1.ConversationID) 
 	if len(h.lastLayout.SmallTeams) == 0 {
 		return false
 	}
-	return h.lastLayout.SmallTeams[0].ConvID == convID.String()
+	return h.lastLayout.SmallTeams[0].ConvID == chat1.ConvIDStr(convID.String())
 }
 
 func (h *UIInboxLoader) setLastLayout(l *chat1.UIInboxLayout) {
