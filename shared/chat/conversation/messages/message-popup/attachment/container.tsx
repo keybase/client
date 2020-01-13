@@ -29,12 +29,14 @@ export default Container.connect(
     const yourOperations = getCanPerformByID(state, meta.teamID)
     const _canDeleteHistory = yourOperations && yourOperations.deleteChatHistory
     const _canAdminDelete = yourOperations && yourOperations.deleteOtherMessages
+    const authorIsBot = Constants.messageAuthorIsBot(state, meta, message, participantInfo)
     let _canPinMessage = true
     if (meta.teamname) {
       // TODO: why? is this just "if loaded"?
       _canPinMessage = yourOperations && yourOperations.pinMessage
     }
     return {
+      _authorIsBot: authorIsBot,
       _canAdminDelete,
       _canDeleteHistory,
       _canPinMessage,
@@ -82,6 +84,13 @@ export default Container.connect(
       dispatch(
         Chat2Gen.createAttachmentDownload({
           message,
+        })
+      )
+    },
+    _onInstallBot: (message: Types.Message) => {
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {botUsername: message.author, navToChat: true}, selected: 'chatInstallBotPick'}],
         })
       )
     },
@@ -145,6 +154,7 @@ export default Container.connect(
       onDownload: !isMobile && !message.downloadPath ? () => dispatchProps._onDownload(message) : undefined,
       // We only show the share/save options for video if we have the file stored locally from a download
       onHidden: () => ownProps.onHidden(),
+      onInstallBot: stateProps._authorIsBot ? dispatchProps._onInstallBot(message) : undefined,
       onKick: () => dispatchProps._onKick(stateProps._teamID, message.author),
       onPinMessage: stateProps._canPinMessage ? () => dispatchProps._onPinMessage(message) : undefined,
       onReply: () => dispatchProps._onReply(message),
