@@ -26,7 +26,7 @@ export const teamWaitingKeyByID = (teamID: Types.TeamID, state: TypedState) => {
   const teamname = getTeamNameFromID(state, teamID) ?? ''
   return teamWaitingKey(teamname)
 }
-export const teamGetWaitingKey = (teamname: Types.Teamname) => `teamGet:${teamname}`
+export const teamGetWaitingKey = (teamID: Types.TeamID) => `teamGet:${teamID}`
 export const teamTarsWaitingKey = (teamID: Types.TeamID) => `teamTars:${teamID}`
 export const teamCreationWaitingKey = 'teamCreate'
 
@@ -181,6 +181,7 @@ const emptyState: Types.State = {
   teamDetails: new Map(),
   teamDetailsMetaStale: true, // start out true, we have not loaded
   teamDetailsMetaSubscribeCount: 0,
+  teamDetailsSubscriptionCount: new Map(),
   teamIDToChannelInfos: new Map(),
   teamIDToPublicitySettings: new Map(),
   teamIDToResetUsers: new Map(),

@@ -126,6 +126,7 @@ export type State = Readonly<{
   teamJoinSuccessTeamName: string
   teamCreationError: string
   teamDetails: Map<TeamID, TeamDetails>
+  teamDetailsSubscriptionCount: Map<TeamID, number> // >0 if we are eagerly reloading a team
   teamDetailsMetaStale: boolean // if we've received an update since we last loaded team list
   teamDetailsMetaSubscribeCount: number // if >0 we are eagerly reloading team list
   teamIDToChannelInfos: Map<TeamID, Map<ConversationIDKey, ChannelInfo>>

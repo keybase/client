@@ -885,6 +885,8 @@ export type TypedActionsMap = {
   'teams:getTeams': teams.GetTeamsPayload
   'teams:unsubscribeTeamList': teams.UnsubscribeTeamListPayload
   'teams:getDetails': teams.GetDetailsPayload
+  'teams:getDetailsByID': teams.GetDetailsByIDPayload
+  'teams:unsubscribeTeamDetails': teams.UnsubscribeTeamDetailsPayload
   'teams:getMembers': teams.GetMembersPayload
   'teams:setMembers': teams.SetMembersPayload
   'teams:getTeamProfileAddList': teams.GetTeamProfileAddListPayload

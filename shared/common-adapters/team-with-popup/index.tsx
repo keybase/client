@@ -5,6 +5,8 @@ import * as Styles from '../../styles'
 import {TextType} from '../text'
 import TeamInfo from '../../profile/user/teams/teaminfo'
 import DelayedMounting from '../delayed-mounting'
+import * as TeamsTypes from '../../constants/types/teams'
+import {TeamDetailsSubscriber} from '../../teams/subscriber'
 
 const Kb = {
   Box2,
@@ -15,48 +17,47 @@ export type Props = {
   isMember: boolean
   isOpen: boolean
   inline?: boolean
-  loadTeam: () => void
   memberCount: number
   onJoinTeam: () => void
   onViewTeam: () => void
   prefix?: string
   shouldLoadTeam?: boolean
+  teamID: TeamsTypes.TeamID
   teamName: string
   type: TextType
   underline?: boolean
 }
 
 export const TeamWithPopup = (props: Props) => {
-  const {loadTeam, onJoinTeam, onViewTeam, shouldLoadTeam = true} = props
+  const {onJoinTeam, onViewTeam} = props
   const {description, isMember, isOpen, memberCount} = props
   const {prefix, teamName, type, inline} = props
   const popupRef = React.useRef(null)
   const [showPopup, setShowPopup] = React.useState(false)
-  // load team details once on mount
-  React.useEffect(() => {
-    shouldLoadTeam && loadTeam()
-  }, [shouldLoadTeam, loadTeam])
 
   const _getAttachmentRef = () => popupRef.current
   const onHidePopup = () => setShowPopup(false)
   const onShowPopup = () => setShowPopup(true)
 
   const popup = showPopup && (
-    <DelayedMounting delay={Styles.isMobile ? 0 : 500}>
-      <TeamInfo
-        attachTo={_getAttachmentRef}
-        description={description}
-        inTeam={isMember}
-        isOpen={isOpen}
-        name={teamName}
-        membersCount={memberCount}
-        onHidden={onHidePopup}
-        onJoinTeam={onJoinTeam}
-        onViewTeam={onViewTeam}
-        publicAdmins={[]}
-        visible={showPopup}
-      />
-    </DelayedMounting>
+    <>
+      <TeamDetailsSubscriber teamID={props.teamID} />
+      <DelayedMounting delay={Styles.isMobile ? 0 : 500}>
+        <TeamInfo
+          attachTo={_getAttachmentRef}
+          description={description}
+          inTeam={isMember}
+          isOpen={isOpen}
+          name={teamName}
+          membersCount={memberCount}
+          onHidden={onHidePopup}
+          onJoinTeam={onJoinTeam}
+          onViewTeam={onViewTeam}
+          publicAdmins={[]}
+          visible={showPopup}
+        />
+      </DelayedMounting>
+    </>
   )
   return (
     <Kb.Box2

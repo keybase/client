@@ -113,6 +113,22 @@ export default Container.makeReducer<
       draftState.teamDetailsMetaSubscribeCount++
     }
   },
+  [TeamsGen.getDetailsByID]: (draftState, action) => {
+    if (action.payload._subscribe) {
+      const {teamID} = action.payload
+      draftState.teamDetailsSubscriptionCount.set(
+        teamID,
+        (draftState.teamDetailsSubscriptionCount.get(teamID) ?? 0) + 1
+      )
+    }
+  },
+  [TeamsGen.unsubscribeTeamDetails]: (draftState, action) => {
+    const {teamID} = action.payload
+    draftState.teamDetailsSubscriptionCount.set(
+      teamID,
+      (draftState.teamDetailsSubscriptionCount.get(teamID) ?? 1) - 1
+    )
+  },
   [TeamsGen.unsubscribeTeamList]: draftState => {
     if (draftState.teamDetailsMetaSubscribeCount > 0) {
       draftState.teamDetailsMetaSubscribeCount--

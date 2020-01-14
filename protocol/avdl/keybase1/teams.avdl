@@ -174,7 +174,8 @@ protocol teams {
     array<TeamMemberDetails> restrictedBots;
   }
 
-  record TeamDetails {
+  record TeamDetails {    
+    string name;
     TeamMembersDetails members;
     PerTeamKeyGeneration keyGeneration;
     map<TeamInviteID,AnnotatedTeamInvite> annotatedActiveInvites;
