@@ -238,7 +238,7 @@ const saltpackDecrypt = async (action: CryptoGen.SaltpackDecryptPayload, logger:
         })
         const {plaintext, info, signed} = result
         const {sender} = info
-        const {username, senderType} = sender
+        const {username} = sender
         const outputSigned = signed
 
         return CryptoGen.createOnOperationSuccess({
