@@ -120,7 +120,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.NotifyFeaturedBots.featuredBotsUpdate': {
-    inParam: {readonly bots?: Array<FeaturedBot> | null}
+    inParam: {readonly bots?: Array<FeaturedBot> | null; readonly limit: Int; readonly offset: Int}
     outParam: void
   }
   'keybase.1.NotifyKeyfamily.keyfamilyChanged': {
@@ -3277,6 +3277,7 @@ export type CustomResponseIncomingCallMap = {
   'keybase.1.NotifyEmailAddress.emailsChanged'?: (params: MessageTypes['keybase.1.NotifyEmailAddress.emailsChanged']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyEmailAddress.emailsChanged']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyEphemeral.newTeambotEk'?: (params: MessageTypes['keybase.1.NotifyEphemeral.newTeambotEk']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyEphemeral.newTeambotEk']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyEphemeral.teambotEkNeeded'?: (params: MessageTypes['keybase.1.NotifyEphemeral.teambotEkNeeded']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyEphemeral.teambotEkNeeded']['outParam']) => void}) => IncomingReturn
+  'keybase.1.NotifyFeaturedBots.featuredBotsUpdate'?: (params: MessageTypes['keybase.1.NotifyFeaturedBots.featuredBotsUpdate']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyFeaturedBots.featuredBotsUpdate']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyFS.FSSyncActivity'?: (params: MessageTypes['keybase.1.NotifyFS.FSSyncActivity']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyFS.FSSyncActivity']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyFS.FSEditListResponse'?: (params: MessageTypes['keybase.1.NotifyFS.FSEditListResponse']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyFS.FSEditListResponse']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyFS.FSSyncStatusResponse'?: (params: MessageTypes['keybase.1.NotifyFS.FSSyncStatusResponse']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyFS.FSSyncStatusResponse']['outParam']) => void}) => IncomingReturn

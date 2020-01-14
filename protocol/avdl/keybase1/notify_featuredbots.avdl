@@ -2,6 +2,5 @@
 protocol NotifyFeaturedBots {
   import idl "common.avdl";
 
-  @notify("")
-  void featuredBotsUpdate(array<FeaturedBot> bots);
+  void featuredBotsUpdate(array<FeaturedBot> bots, int limit, int offset) oneway;
 }
