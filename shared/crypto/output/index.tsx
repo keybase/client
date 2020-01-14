@@ -3,6 +3,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/crypto'
 import * as Types from '../../constants/types/crypto'
+import {getStyle} from '../../common-adapters/text'
 
 type Props = {
   output?: string
@@ -26,6 +27,8 @@ type OutputSignedProps = {
   signedBy?: string
   outputStatus?: Types.OutputStatus
 }
+
+const largeOutputLimit = 120
 
 export const SignedSender = (props: OutputSignedProps) => {
   return props.outputStatus && props.outputStatus === 'success' ? (
@@ -99,6 +102,14 @@ export const OutputBar = (props: OutputBarProps) => {
 }
 
 const Output = (props: Props) => {
+  // Output text can be 24 px when output is less that 120 characters
+  const outputTextIsLarge =
+    props.operation === Constants.Operations.Decrypt || props.operation === Constants.Operations.Verify
+  const {fontSize, lineHeight} = getStyle('HeaderBig')
+  const outputLargeStyle = outputTextIsLarge &&
+    props.output &&
+    props.output.length <= largeOutputLimit && {fontSize, lineHeight}
+
   const fileOutputTextColor =
     props.textType === 'cipher' ? Styles.globalColors.greenDark : Styles.globalColors.black
   const fileIcon = Constants.getOutputFileIcon(props.operation)
@@ -129,7 +140,7 @@ const Output = (props: Props) => {
               key={index}
               type={props.textType === 'cipher' ? 'Terminal' : 'Body'}
               selectable={true}
-              style={styles.output}
+              style={Styles.collapseStyles([styles.output, outputLargeStyle])}
             >
               {line}
             </Kb.Text>
