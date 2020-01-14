@@ -1191,6 +1191,38 @@ export type MessageTypes = {
     inParam: {readonly sigIDQueries?: Array<String> | null}
     outParam: void
   }
+  'keybase.1.saltpack.saltpackDecryptFile': {
+    inParam: {readonly encryptedFilename: String}
+    outParam: SaltpackFileResult
+  }
+  'keybase.1.saltpack.saltpackDecryptString': {
+    inParam: {readonly ciphertext: String}
+    outParam: SaltpackPlaintextResult
+  }
+  'keybase.1.saltpack.saltpackEncryptFile': {
+    inParam: {readonly filename: String; readonly opts: SaltpackFrontendEncryptOptions}
+    outParam: String
+  }
+  'keybase.1.saltpack.saltpackEncryptString': {
+    inParam: {readonly plaintext: String; readonly opts: SaltpackFrontendEncryptOptions}
+    outParam: String
+  }
+  'keybase.1.saltpack.saltpackSignFile': {
+    inParam: {readonly filename: String}
+    outParam: String
+  }
+  'keybase.1.saltpack.saltpackSignString': {
+    inParam: {readonly plaintext: String}
+    outParam: String
+  }
+  'keybase.1.saltpack.saltpackVerifyFile': {
+    inParam: {readonly signedFilename: String}
+    outParam: SaltpackVerifyFileResult
+  }
+  'keybase.1.saltpack.saltpackVerifyString': {
+    inParam: {readonly signedMsg: String}
+    outParam: SaltpackVerifyResult
+  }
   'keybase.1.saltpackUi.saltpackPromptForDecrypt': {
     inParam: {readonly signingKID: KID; readonly sender: SaltpackSender; readonly usedDelegateUI: Boolean; readonly signed: Boolean}
     outParam: void
@@ -3515,6 +3547,14 @@ export const rekeyShowPendingRekeyStatusRpcPromise = (params: MessageTypes['keyb
 export const revokeRevokeDeviceRpcPromise = (params: MessageTypes['keybase.1.revoke.revokeDevice']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.revoke.revokeDevice']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.revoke.revokeDevice', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const revokeRevokeKeyRpcPromise = (params: MessageTypes['keybase.1.revoke.revokeKey']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.revoke.revokeKey']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.revoke.revokeKey', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const revokeRevokeSigsRpcPromise = (params: MessageTypes['keybase.1.revoke.revokeSigs']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.revoke.revokeSigs']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.revoke.revokeSigs', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const saltpackSaltpackDecryptFileRpcPromise = (params: MessageTypes['keybase.1.saltpack.saltpackDecryptFile']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.saltpack.saltpackDecryptFile']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.saltpack.saltpackDecryptFile', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const saltpackSaltpackDecryptStringRpcPromise = (params: MessageTypes['keybase.1.saltpack.saltpackDecryptString']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.saltpack.saltpackDecryptString']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.saltpack.saltpackDecryptString', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const saltpackSaltpackEncryptFileRpcPromise = (params: MessageTypes['keybase.1.saltpack.saltpackEncryptFile']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.saltpack.saltpackEncryptFile']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.saltpack.saltpackEncryptFile', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const saltpackSaltpackEncryptStringRpcPromise = (params: MessageTypes['keybase.1.saltpack.saltpackEncryptString']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.saltpack.saltpackEncryptString']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.saltpack.saltpackEncryptString', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const saltpackSaltpackSignFileRpcPromise = (params: MessageTypes['keybase.1.saltpack.saltpackSignFile']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.saltpack.saltpackSignFile']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.saltpack.saltpackSignFile', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const saltpackSaltpackSignStringRpcPromise = (params: MessageTypes['keybase.1.saltpack.saltpackSignString']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.saltpack.saltpackSignString']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.saltpack.saltpackSignString', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const saltpackSaltpackVerifyFileRpcPromise = (params: MessageTypes['keybase.1.saltpack.saltpackVerifyFile']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.saltpack.saltpackVerifyFile']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.saltpack.saltpackVerifyFile', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const saltpackSaltpackVerifyStringRpcPromise = (params: MessageTypes['keybase.1.saltpack.saltpackVerifyString']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.saltpack.saltpackVerifyString']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.saltpack.saltpackVerifyString', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const signupCheckInvitationCodeRpcPromise = (params: MessageTypes['keybase.1.signup.checkInvitationCode']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.signup.checkInvitationCode']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.signup.checkInvitationCode', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const signupCheckUsernameAvailableRpcPromise = (params: MessageTypes['keybase.1.signup.checkUsernameAvailable']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.signup.checkUsernameAvailable']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.signup.checkUsernameAvailable', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const signupGetInvitationCodeRpcPromise = (params: MessageTypes['keybase.1.signup.getInvitationCode']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.signup.getInvitationCode']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.signup.getInvitationCode', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -3878,14 +3918,6 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.saltpack.saltpackDecrypt'
 // 'keybase.1.saltpack.saltpackSign'
 // 'keybase.1.saltpack.saltpackVerify'
-// 'keybase.1.saltpack.saltpackEncryptString'
-// 'keybase.1.saltpack.saltpackEncryptFile'
-// 'keybase.1.saltpack.saltpackDecryptString'
-// 'keybase.1.saltpack.saltpackDecryptFile'
-// 'keybase.1.saltpack.saltpackSignString'
-// 'keybase.1.saltpack.saltpackSignFile'
-// 'keybase.1.saltpack.saltpackVerifyString'
-// 'keybase.1.saltpack.saltpackVerifyFile'
 // 'keybase.1.saltpackUi.saltpackPromptForDecrypt'
 // 'keybase.1.saltpackUi.saltpackVerifySuccess'
 // 'keybase.1.saltpackUi.saltpackVerifyBadSender'

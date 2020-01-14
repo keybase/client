@@ -6,6 +6,7 @@ export type AllowedNamespace = typeof allowedNamespace[number]
 export type FollowingState = 'Following' | 'NotFollowing' | 'NoState' | 'You'
 export type ServiceId = _ServiceId
 
+export type GoButtonLabel = 'Start' | 'Add'
 export type ContactServiceId = 'email' | 'phone'
 // These are the possible tabs in team building, and also consts that can be
 // passed as `service` to search RPC (`userSearch.UserSearch`).
