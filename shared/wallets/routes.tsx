@@ -41,7 +41,9 @@ export const newRoutes = {
 
 export const newModalRoutes = {
   ...require('./routes-send-request-form').newModalRoutes,
-  createNewAccount: {getScreen: (): typeof CreateNewAccount => require('./create-account/container').default},
+  createNewAccount: {
+    getScreen: (): typeof CreateNewAccount => require('./create-account/container').default,
+  },
   keybaseLinkError: {getScreen: (): typeof KeybaseLinkError => require('../deeplinks/error').default},
   linkExisting: {getScreen: (): typeof LinkExisting => require('./link-existing/container').default},
   partners: {getScreen: (): typeof Partners => require('./partners/container').default},
@@ -65,7 +67,9 @@ export const newModalRoutes = {
   walletOnboarding: {
     getScreen: (): typeof RoutedOnboarding => require('./onboarding/container').RoutedOnboarding,
   },
-  walletTeamBuilder: {getScreen: (): typeof TeamBuilder => require('../team-building/container').default},
+  walletTeamBuilder: {
+    getScreen: (): typeof TeamBuilder => require('../team-building/container').default,
+  },
   whatIsStellarModal: {
     getScreen: (): typeof WhatIsStellarModal => require('./what-is-stellar-modal').default,
   },

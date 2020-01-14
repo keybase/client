@@ -138,8 +138,6 @@ export type TypedActionsMap = {
   'chat2:attachmentUploading': chat2.AttachmentUploadingPayload
   'chat2:attachmentUploaded': chat2.AttachmentUploadedPayload
   'chat2:attachmentPasted': chat2.AttachmentPastedPayload
-  'chat2:attachmentFullscreenSelection': chat2.AttachmentFullscreenSelectionPayload
-  'chat2:attachmentFullscreenNext': chat2.AttachmentFullscreenNextPayload
   'chat2:messageAttachmentUploaded': chat2.MessageAttachmentUploadedPayload
   'chat2:sendTyping': chat2.SendTypingPayload
   'chat2:markInitiallyLoadedThreadAsRead': chat2.MarkInitiallyLoadedThreadAsReadPayload
@@ -250,6 +248,7 @@ export type TypedActionsMap = {
   'chat2:setGeneralConvFromTeamID': chat2.SetGeneralConvFromTeamIDPayload
   'chat2:refreshBotRoleInConv': chat2.RefreshBotRoleInConvPayload
   'chat2:setBotRoleInConv': chat2.SetBotRoleInConvPayload
+  'chat2:dismissJourneycard': chat2.DismissJourneycardPayload
   'config:startHandshake': config.StartHandshakePayload
   'config:restartHandshake': config.RestartHandshakePayload
   'config:daemonHandshake': config.DaemonHandshakePayload

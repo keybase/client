@@ -386,7 +386,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       return {
         className: Styles.classNames(
           {
-            'WrapperMessage-author': this.props.showUsername || this.props.message.type === 'journeycard',
+            'WrapperMessage-author': this.props.showUsername,
             'WrapperMessage-centered': this.showCenteredHighlight(),
             'WrapperMessage-decorated': this.props.decorate,
             'WrapperMessage-hoverColor': !this.props.isPendingPayment,

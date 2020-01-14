@@ -11,6 +11,7 @@ import {ServiceTabBar} from './service-tab-bar'
 import UserResult from './search-result/user-result'
 import PeopleResult from './search-result/people-result'
 import PhoneSearch from './phone-search'
+import {ContactRestricted} from './contact-restricted'
 import * as Constants from '../constants/team-building'
 
 const provider = Sb.createPropProviderWithCommon(
@@ -1497,6 +1498,21 @@ const load = () => {
       teamBuildingSearchResults={new Map()}
     />
   ))
+
+  Sb.storiesOf('Team-Building/Contact restriction', module)
+    .add('New private folder failed', () => <ContactRestricted source="newFolder" usernames={['cjb']} />)
+    .add('Team add some failed', () => (
+      <ContactRestricted source="teamAddSomeFailed" usernames={['cjb', 'max']} />
+    ))
+    .add('Team add all (multiple) failed', () => (
+      <ContactRestricted source="teamAddAllFailed" usernames={['cjb', 'max']} />
+    ))
+    .add('Team add all (single) failed', () => (
+      <ContactRestricted source="teamAddAllFailed" usernames={['cjb']} />
+    ))
+    .add('Wallets request failed', () => (
+      <ContactRestricted source="walletsRequest" usernames={['cjb', 'max']} />
+    ))
 
   emailSearch()
 }

@@ -151,6 +151,10 @@ const provider = Sb.createPropProviderWithCommon({
     showSuperseded: null,
     measure: null,
   }),
+  SpecialTopMessage: () => ({
+    conversationIDKey: Constants.pendingErrorConversationIDKey,
+    pendingState: 'error',
+  }),
   TopMessage: p => ({
     conversationIDKey: p.conversationIDKey,
     hasOlderResetConversation: false,
@@ -335,6 +339,19 @@ class ThreadWrapper extends React.Component<Props, State> {
 }
 
 const providerTopMessage = Sb.createPropProviderWithCommon({
+  SpecialTopMessage: () => ({
+    conversationIDKey: Constants.pendingErrorConversationIDKey,
+    hasOlderResetConversation: false,
+    loadMoreType: 'noMoreToLoad',
+    measure: null,
+    pendingState: 'error',
+    showRetentionNotice: false,
+    showTeamOffer: false,
+    createConversationDisallowedUsers: ['cjb', 'max'],
+    createConversationErrorHeader: 'The following people cannot be added to the conversation:',
+    createConversationErrorDescription:
+      'Their contact restrictions prevent you from getting in touch. Contact them outside Keybase to proceed.',
+  }),
   TopMessage: () => ({
     conversationIDKey: Constants.pendingErrorConversationIDKey,
     createConversationError: 'I AM ERROR',
