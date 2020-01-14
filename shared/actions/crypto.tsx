@@ -5,9 +5,13 @@ import * as TeamBuildingGen from './team-building-gen'
 import * as CryptoGen from './crypto-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import HiddenString from '../util/hidden-string'
-import {TypedState, TypedActions} from '../util/container'
+import {TypedState} from '../util/container'
 import commonTeamBuildingSaga, {filterForNs} from './team-building'
 
+type SetRecipientsSagaActions =
+  | TeamBuildingGen.CancelTeamBuildingPayload
+  | CryptoGen.SetRecipientsPayload
+  | CryptoGen.SetEncryptOptionsPayload
 // Get list of users from crypto TeamBuilding for encrypt operation
 const onSetRecipients = (state: TypedState, _: TeamBuildingGen.FinishedTeamBuildingPayload) => {
   const {username: currentUser} = state.config
@@ -16,7 +20,9 @@ const onSetRecipients = (state: TypedState, _: TeamBuildingGen.FinishedTeamBuild
   const users = [...state.crypto.teamBuilding.finishedTeam]
   const usernames = users.map(user => user.username)
 
-  const actions: Array<TypedActions> = [TeamBuildingGen.createCancelTeamBuilding({namespace: 'crypto'})]
+  const actions: Array<SetRecipientsSagaActions> = [
+    TeamBuildingGen.createCancelTeamBuilding({namespace: 'crypto'}),
+  ]
 
   // User set themselves as a recipient, so don't show 'includeSelf' option
   if (usernames.includes(currentUser)) {
@@ -49,7 +55,7 @@ const handleRunOperation = (
       const {operation, value, type} = action.payload
 
       // Input (text or file) was cleared or deleted
-      if (!value) {
+      if (!value.stringValue()) {
         return CryptoGen.createClearInput({operation})
       }
 
@@ -76,7 +82,8 @@ const handleRunOperation = (
     case CryptoGen.setRecipients: {
       const {operation, recipients} = action.payload
       const {input, inputType, options} = state.crypto.encrypt
-      if (input && inputType) {
+      const unhiddenInput = input.stringValue()
+      if (unhiddenInput && inputType) {
         return makeOperationAction({
           input,
           inputType,
@@ -91,7 +98,8 @@ const handleRunOperation = (
     case CryptoGen.setEncryptOptions: {
       const {options} = action.payload
       const {recipients, input, inputType} = state.crypto.encrypt
-      if (recipients && recipients.length && input && inputType) {
+      const unhiddenInput = input.stringValue()
+      if (recipients && recipients.length && unhiddenInput && inputType) {
         return makeOperationAction({
           input,
           inputType,

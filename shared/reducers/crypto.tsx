@@ -78,7 +78,7 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     if (operationGuard(operation, action)) return
 
     // Reset input to 'text' when no value given (cleared input or removed file upload)
-    draftState[operation].inputType = value ? type : 'text'
+    draftState[operation].inputType = value.stringValue() ? type : 'text'
     draftState[operation].input = value
   },
   [CryptoGen.onOperationSuccess]: (draftState, action) => {
