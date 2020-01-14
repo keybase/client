@@ -29,6 +29,11 @@ type OutputSignedProps = {
   outputStatus?: Types.OutputStatus
 }
 
+type OutputInfoProps = {
+  outputStatus?: Types.OutputStatus
+  operation: Types.Operations
+}
+
 const largeOutputLimit = 120
 
 export const SignedSender = (props: OutputSignedProps) => {
@@ -48,12 +53,7 @@ export const SignedSender = (props: OutputSignedProps) => {
               <Kb.Text key="signedBy" type="BodySmall">
                 Signed by {canSelfSign ? ' you, ' : ''}
               </Kb.Text>,
-              <Kb.ConnectedUsernames
-                key="username"
-                type="BodySmallBold"
-                colorYou={true}
-                usernames={[props.signedBy]}
-              />,
+              <Kb.ConnectedUsernames key="username" type="BodySmallBold" usernames={[props.signedBy]} />,
             ]
           : [
               <Kb.Icon key="avatar" type="icon-placeholder-secret-user-16" />,
@@ -69,6 +69,12 @@ export const SignedSender = (props: OutputSignedProps) => {
       </Kb.Box2>
     </Kb.Box2>
   )
+}
+
+export const OutputInfoBanner = (props: OutputInfoProps) => {
+  return props.outputStatus && props.outputStatus === 'success' ? (
+    <Kb.Banner color="grey">this is saltpack</Kb.Banner>
+  ) : null
 }
 
 export const OutputBar = (props: OutputBarProps) => {
