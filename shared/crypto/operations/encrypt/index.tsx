@@ -1,18 +1,20 @@
 import * as React from 'react'
+import * as Constants from '../../../constants/crypto'
 import * as Types from '../../../constants/types/crypto'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import debounce from 'lodash/debounce'
 import {TextInput, FileInput} from '../../input'
-import OperationOutput, {OutputBar, OutputSigned} from '../../output'
+import OperationOutput, {OutputBar, SignedSender} from '../../output'
 import Recipients from '../../recipients/container'
 
 type Props = {
-  canUsePGP: boolean
   input: string
   inputType: Types.InputTypes
+  noIncludeSelf: boolean
   onClearInput: () => void
   onCopyOutput: (text: string) => void
+  onShowInFinder: (path: string) => void
   onSetInput: (inputType: Types.InputTypes, inputValue: string) => void
   onSetOptions: (options: Types.EncryptOptions) => void
   options: Types.EncryptOptions
@@ -24,48 +26,34 @@ type Props = {
 }
 
 type EncryptOptionsProps = {
-  options: Types.EncryptOptions
   hasRecipients: boolean
-  canUsePGP: boolean
+  noIncludeSelf: boolean
   onSetOptions: (options: Types.EncryptOptions) => void
+  options: Types.EncryptOptions
 }
 
 // We want to debuonce the onChangeText callback for our input so we are not sending an RPC on every keystroke
-const debounced = debounce((fn, ...args) => fn(...args), 500)
+const debounced = debounce((fn, ...args) => fn(...args), 100)
 
 const EncryptOptions = (props: EncryptOptionsProps) => {
-  const {canUsePGP, onSetOptions, options, hasRecipients} = props
-  const {includeSelf, sign, usePGP} = options
+  const {hasRecipients, noIncludeSelf, onSetOptions, options} = props
+  const {includeSelf, sign} = options
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} gap="medium" style={styles.optionsContainer}>
-      <Kb.Checkbox
-        label="Include yourself"
-        disabled={!hasRecipients}
-        checked={includeSelf}
-        onCheck={newValue => onSetOptions({includeSelf: newValue, sign, usePGP})}
-      />
+      {noIncludeSelf ? null : (
+        <Kb.Checkbox
+          label="Include yourself"
+          disabled={!hasRecipients}
+          checked={includeSelf}
+          onCheck={newValue => onSetOptions({includeSelf: newValue, sign})}
+        />
+      )}
       <Kb.Checkbox
         label="Sign"
         disabled={!hasRecipients}
         checked={sign}
-        onCheck={newValue => onSetOptions({includeSelf, sign: newValue, usePGP})}
+        onCheck={newValue => onSetOptions({includeSelf, sign: newValue})}
       />
-      <Kb.Box2 direction="horizontal">
-        <Kb.Checkbox
-          label="Use PGP"
-          disabled={!canUsePGP || !hasRecipients}
-          checked={usePGP}
-          onCheck={newValue => onSetOptions({includeSelf, sign, usePGP: newValue})}
-        />
-        <Kb.WithTooltip position="top center" tooltip="All recipients need to have a PGP key.">
-          <Kb.Icon
-            boxStyle={styles.questionMarkContainer}
-            sizeType="Small"
-            style={styles.questionMark}
-            type="iconfont-question-mark"
-          />
-        </Kb.WithTooltip>
-      </Kb.Box2>
     </Kb.Box2>
   )
 }
@@ -77,47 +65,64 @@ const Encrypt = (props: Props) => {
   }
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-      <Kb.DragAndDrop allowFolders={false} fullHeight={true} fullWidth={true} onAttach={onAttach}>
+      <Kb.DragAndDrop
+        allowFolders={false}
+        fullHeight={true}
+        fullWidth={true}
+        onAttach={onAttach}
+        prompt="Drop a file to encrypt"
+      >
         <Recipients operation="encrypt" />
         <Kb.Box2 direction="vertical" fullHeight={true}>
           {props.inputType === 'file' ? (
-            <FileInput path={props.input} onClearFiles={props.onClearInput} />
+            <FileInput
+              path={props.input}
+              operation={Constants.Operations.Encrypt}
+              onClearFiles={props.onClearInput}
+            />
           ) : (
             <TextInput
               value={inputValue}
+              placeholder="Write, paste, or drop a file you want to encrypt"
+              operation={Constants.Operations.Encrypt}
               textType="plain"
-              placeholder="Write something or drop a file you want to encrypt"
+              onSetFile={path => {
+                props.onSetInput('file', path)
+              }}
               onChangeText={text => {
                 setInputValue(text)
+                // props.onSetInput('text', text)
                 debounced(props.onSetInput, 'text', text)
               }}
             />
           )}
-          <Kb.Divider />
           <EncryptOptions
             hasRecipients={props.hasRecipients}
+            noIncludeSelf={props.noIncludeSelf}
             options={props.options}
-            canUsePGP={props.canUsePGP}
             onSetOptions={props.onSetOptions}
           />
           <Kb.Divider />
           <Kb.Box2 direction="vertical" fullHeight={true}>
+            <SignedSender
+              signed={props.options.sign}
+              signedBy={props.username}
+              outputStatus={props.outputStatus}
+            />
             <OperationOutput
               outputStatus={props.outputStatus}
               output={props.output}
               outputType={props.outputType}
               textType="cipher"
-            />
-            <OutputSigned
-              signed={props.options.sign}
-              signedBy={props.username}
-              outputStatus={props.outputStatus}
+              operation={Constants.Operations.Encrypt}
+              onShowInFinder={props.onShowInFinder}
             />
             <OutputBar
               output={props.output}
               outputStatus={props.outputStatus}
               outputType={props.outputType}
               onCopyOutput={props.onCopyOutput}
+              onShowInFinder={props.onShowInFinder}
             />
           </Kb.Box2>
         </Kb.Box2>
@@ -126,13 +131,6 @@ const Encrypt = (props: Props) => {
   )
 }
 
-export const Placeholder = (
-  <>
-    <Kb.Icon type="iconfont-lock" sizeType="Big" />
-    <Kb.Text type="BodySemibold">Your encrypted message will appear here</Kb.Text>
-  </>
-)
-
 const styles = Styles.styleSheetCreate(
   () =>
     ({
@@ -140,9 +138,9 @@ const styles = Styles.styleSheetCreate(
         ...Styles.globalStyles.flexBoxCenter,
       },
       optionsContainer: {
-        ...Styles.padding(Styles.globalMargins.tiny),
+        ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.small),
         alignItems: 'center',
-        height: Styles.globalMargins.xlarge,
+        height: 40,
       },
       outputPlaceholder: {
         backgroundColor: Styles.globalColors.blueGreyLight,
