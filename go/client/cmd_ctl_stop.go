@@ -7,7 +7,6 @@ package client
 
 import (
 	"runtime"
-	"time"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/install"
@@ -65,19 +64,8 @@ func (s *CmdCtlStop) Run() (err error) {
 			mctx.Error("failed to get ctl client for shutdown: %s", err)
 			return err
 		}
-		mctx.Info("stopping the keybase background service")
-		if err = cli.StopService(mctx.Ctx(), keybase1.StopServiceArg{ExitCode: keybase1.ExitCode_OK}); err != nil {
-			return err
-		}
-		// can't stop the updater until the service has completely exited (and spun down the watchdog)
-		// This should be enough time.
-		waitForWatchdog := time.NewTimer(3 * time.Second)
-		go func() {
-			<-waitForWatchdog.C
-			mctx.Info("stopping the keybase updater")
-			_ = install.StopUpdater(mctx)
-		}()
-		return nil
+		mctx.Info("stopping the keybase background services")
+		return cli.StopService(mctx.Ctx(), keybase1.StopServiceArg{ExitCode: keybase1.ExitCode_OK})
 	default:
 		// On Linux, StopAllButService depends on a running service to tell it
 		// what clients to shut down, so we can't call it directly from here,
