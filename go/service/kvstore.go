@@ -96,6 +96,7 @@ func (h *KVStoreHandler) serverFetch(mctx libkb.MetaContext, entryID keybase1.KV
 		mctx.Debug("error fetching %+v from server: %v", entryID, err)
 		return emptyRes, err
 	}
+	fmt.Printf("......in serverFetch: %+v\n", apiRes)
 	if apiRes.TeamID != entryID.TeamID {
 		return emptyRes, fmt.Errorf("api returned an unexpected teamID: %s isn't %s", apiRes.TeamID, entryID.TeamID)
 	}
@@ -126,6 +127,7 @@ func (h *KVStoreHandler) GetKVEntry(ctx context.Context, arg keybase1.GetKVEntry
 		Namespace: arg.Namespace,
 		EntryKey:  arg.EntryKey,
 	}
+	fmt.Printf("...in GetKVEntry: %+v\n", entryID)
 	apiRes, err := h.serverFetch(mctx, entryID)
 	if err != nil {
 		mctx.Debug("error fetching %+v from server: %v", entryID, err)
@@ -139,8 +141,9 @@ func (h *KVStoreHandler) GetKVEntry(ctx context.Context, arg keybase1.GetKVEntry
 		return res, err
 	}
 	var cleartext string
+	fmt.Printf(">>>>>>get apires: %+v, %+v\n", apiRes.BotUID, apiRes)
 	if apiRes.Ciphertext != "" /* deleted or non-existent */ {
-		cleartext, err = h.Boxer.Unbox(mctx, entryID, apiRes.Revision, apiRes.Ciphertext, apiRes.TeamKeyGen, apiRes.FormatVersion, apiRes.WriterUID, apiRes.WriterEldestSeqno, apiRes.WriterDeviceID, *apiRes.BotUID, *apiRes.BotEldestSeqno)
+		cleartext, err = h.Boxer.Unbox(mctx, entryID, apiRes.Revision, apiRes.Ciphertext, apiRes.TeamKeyGen, apiRes.FormatVersion, apiRes.WriterUID, apiRes.WriterEldestSeqno, apiRes.WriterDeviceID, apiRes.BotUID, apiRes.BotEldestSeqno)
 		if err != nil {
 			mctx.Debug("error u/nboxing %+v: %v", entryID, err)
 			return res, err
@@ -205,71 +208,57 @@ func (h *KVStoreHandler) PutKVEntry(ctx context.Context, arg keybase1.PutKVEntry
 
 	var apiArg libkb.APIArg
 	var ciphertext string
+	var ciphertextVersion int
 	var teamKeyGen keybase1.PerTeamKeyGeneration
+	var botUID keybase1.UID
+	var botEldestSeqNo keybase1.Seqno
+
+	fmt.Printf(">>>>>>put arg: %+v, %+v\n", arg.BotName, arg)
 
 	// if no botname
 	if arg.BotName == "" {
-		ciphertext, teamKeyGen, ciphertextVersion, err := h.Boxer.Box(mctx, entryID, revision, arg.EntryValue)
-
+		fmt.Printf(">>>>>> '''' no botname = %+v", arg.BotName)
+		ciphertext, teamKeyGen, ciphertextVersion, err = h.Boxer.Box(mctx, entryID, revision, arg.EntryValue)
+		fmt.Printf(">>>>>> '''' teamKeyGen  = %+v", teamKeyGen)
 		if err != nil {
 			mctx.Debug("error boxing %+v: %v", entryID, err)
 			return res, err
-		}
-		err = mctx.G().GetKVRevisionCache().CheckForUpdate(mctx, entryID, revision)
-		if err != nil {
-			mctx.Debug("error from cache for updating %+v: %s", entryID, err)
-			return res, err
-		}
-
-		apiArg = libkb.APIArg{
-			Endpoint:    "team/storage",
-			SessionType: libkb.APISessionTypeREQUIRED,
-			Args: libkb.HTTPArgs{
-				"team_id":            libkb.S{Val: entryID.TeamID.String()},
-				"team_key_gen":       libkb.I{Val: int(teamKeyGen)},
-				"namespace":          libkb.S{Val: entryID.Namespace},
-				"entry_key":          libkb.S{Val: entryID.EntryKey},
-				"ciphertext":         libkb.S{Val: ciphertext},
-				"ciphertext_version": libkb.I{Val: ciphertextVersion},
-				"revision":           libkb.I{Val: revision},
-			},
 		}
 	} else {
 		// if botname
 		fmt.Printf(">>>>>> '''' arg botname = %+v", arg.BotName)
-		/*
-			upak, err := engine.ResolveAndCheck(mctx, arg.BotName, false) // tracking?
-			if err != nil {
-				return err
-			}
-		*/
-		ciphertext, teamKeyGen, ciphertextVersion, botUID, botEldestSeqNo, err := h.Boxer.BoxForBot(mctx, entryID, revision, arg.EntryValue, arg.BotName)
-
+		ciphertext, teamKeyGen, ciphertextVersion, botUID, botEldestSeqNo, err = h.Boxer.BoxForBot(mctx, entryID, revision, arg.EntryValue, arg.BotName)
 		if err != nil {
 			mctx.Debug("error boxing %+v: %v", entryID, err)
 			return res, err
 		}
-		err = mctx.G().GetKVRevisionCache().CheckForUpdate(mctx, entryID, revision)
-		if err != nil {
-			mctx.Debug("error from cache for updating %+v: %s", entryID, err)
-			return res, err
-		}
+	}
 
-		apiArg = libkb.APIArg{
-			Endpoint:    "team/storage",
-			SessionType: libkb.APISessionTypeREQUIRED,
-			Args: libkb.HTTPArgs{
-				"team_id":            libkb.S{Val: entryID.TeamID.String()},
-				"team_key_gen":       libkb.I{Val: int(teamKeyGen)},
-				"bot_uid":            libkb.S{Val: botUID.String()},
-				"bot_eldest_seqno":   libkb.I{Val: int(botEldestSeqNo)},
-				"namespace":          libkb.S{Val: entryID.Namespace},
-				"entry_key":          libkb.S{Val: entryID.EntryKey},
-				"ciphertext":         libkb.S{Val: ciphertext},
-				"ciphertext_version": libkb.I{Val: ciphertextVersion},
-				"revision":           libkb.I{Val: revision},
-			},
-		}
+	err = mctx.G().GetKVRevisionCache().CheckForUpdate(mctx, entryID, revision)
+	if err != nil {
+		mctx.Debug("error from cache for updating %+v: %s", entryID, err)
+		return res, err
+	}
+
+	botUIDArg := ""
+	if botUID != keybase1.UID(0) {
+		botUIDArg = botUID.String()
+	}
+
+	apiArg = libkb.APIArg{
+		Endpoint:    "team/storage",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"team_id":            libkb.S{Val: entryID.TeamID.String()},
+			"team_key_gen":       libkb.I{Val: int(teamKeyGen)},
+			"bot_uid":            libkb.S{Val: botUIDArg},
+			"bot_eldest_seqno":   libkb.I{Val: int(botEldestSeqNo)},
+			"namespace":          libkb.S{Val: entryID.Namespace},
+			"entry_key":          libkb.S{Val: entryID.EntryKey},
+			"ciphertext":         libkb.S{Val: ciphertext},
+			"ciphertext_version": libkb.I{Val: ciphertextVersion},
+			"revision":           libkb.I{Val: revision},
+		},
 	}
 
 	var apiRes putEntryAPIRes
@@ -282,6 +271,7 @@ func (h *KVStoreHandler) PutKVEntry(ctx context.Context, arg keybase1.PutKVEntry
 		mctx.Debug("expected the server to return revision %d but got %d for %+v", revision, apiRes.Revision, entryID)
 		return res, fmt.Errorf("kvstore PUT revision error. expected %d, got %d", revision, apiRes.Revision)
 	}
+	fmt.Printf("......in put entry, about to revisioncachceput. teamKeyGen=%+v\n", teamKeyGen)
 	err = mctx.G().GetKVRevisionCache().Put(mctx, entryID, &ciphertext, teamKeyGen, revision)
 	if err != nil {
 		err = fmt.Errorf("error caching this new entry (try fetching it again): %s", err)

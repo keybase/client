@@ -18,7 +18,7 @@ type KVStoreBoxer interface {
 	BoxForBot(mctx libkb.MetaContext, entryID keybase1.KVEntryID, revision int, cleartextValue string, botName string) (ciphertext string,
 		teamKeyGen keybase1.PerTeamKeyGeneration, ciphertextVersion int, botUID keybase1.UID, botEldestSeqno keybase1.Seqno, err error)
 	Unbox(mctx libkb.MetaContext, entryID keybase1.KVEntryID, revision int, ciphertext string, teamKeyGen keybase1.PerTeamKeyGeneration, formatVersion int,
-		senderUID keybase1.UID, senderEldestSeqno keybase1.Seqno, senderDeviceID keybase1.DeviceID, botUID keybase1.UID, botEldestSeqno keybase1.Seqno) (cleartext string, err error)
+		senderUID keybase1.UID, senderEldestSeqno keybase1.Seqno, senderDeviceID keybase1.DeviceID, botUID *keybase1.UID, botEldestSeqno *keybase1.Seqno) (cleartext string, err error)
 }
 
 var _ KVStoreBoxer = (*KVStoreRealBoxer)(nil)
@@ -41,8 +41,8 @@ type kvStoreMetadata struct {
 	UID               keybase1.UID       `codec:"u" json:"u"`
 	EldestSeqno       keybase1.Seqno     `codec:"s" json:"s"`
 	DeviceID          keybase1.DeviceID  `codec:"d" json:"d"`
-	BotUID            keybase1.UID       `codec:"bu,omitempty" json:"bu,omitempty"`
-	BotEldestSeqno    keybase1.Seqno     `codec:"bs,omitempty" json:"bs,omitempty"`
+	BotUID            *keybase1.UID      `codec:"bu,omitempty" json:"bu,omitempty"`
+	BotEldestSeqno    *keybase1.Seqno    `codec:"bs,omitempty" json:"bs,omitempty"`
 }
 
 func newNonce() (ret [signencrypt.NonceSize]byte, err error) {
@@ -88,6 +88,7 @@ func (b *KVStoreRealBoxer) fetchRestrictedBotEncryptionKey(mctx libkb.MetaContex
 	keyer := mctx.G().GetTeambotBotKeyer()
 	var key keybase1.TeambotKey
 	if generation == nil {
+		fmt.Printf("\n... GetLatestTeambotKey: %+v, %+v, %+v\n", entryID.TeamID, entryID, keyer)
 		key, err = keyer.GetLatestTeambotKey(mctx, entryID.TeamID, keybase1.TeamApplication_KVSTORE)
 		if err != nil {
 			return res, gen, err
@@ -220,8 +221,8 @@ func (b *KVStoreRealBoxer) BoxForBot(mctx libkb.MetaContext, entryID keybase1.KV
 		UID:               uv.Uid,
 		EldestSeqno:       uv.EldestSeqno,
 		DeviceID:          deviceID,
-		BotUID:            botUID,
-		BotEldestSeqno:    botEldestSeqno,
+		BotUID:            &botUID,
+		BotEldestSeqno:    &botEldestSeqno,
 	}
 
 	// seal it all up
@@ -247,7 +248,7 @@ func (b *KVStoreRealBoxer) BoxForBot(mctx libkb.MetaContext, entryID keybase1.KV
 
 func (b *KVStoreRealBoxer) Unbox(mctx libkb.MetaContext, entryID keybase1.KVEntryID, revision int, ciphertext string,
 	teamKeyGen keybase1.PerTeamKeyGeneration, formatVersion int, senderUID keybase1.UID, senderEldestSeqno keybase1.Seqno,
-	senderDeviceID keybase1.DeviceID, botUID keybase1.UID, botEldestSeqno keybase1.Seqno) (cleartext string, err error) {
+	senderDeviceID keybase1.DeviceID, botUID *keybase1.UID, botEldestSeqno *keybase1.Seqno) (cleartext string, err error) {
 
 	defer mctx.TraceTimed(fmt.Sprintf("KVStoreRealBoxer#Unbox: t:%s, n:%s, k:%s", entryID.TeamID, entryID.Namespace, entryID.EntryKey),
 		func() error { return err })()
@@ -294,8 +295,8 @@ func (b *KVStoreRealBoxer) Unbox(mctx libkb.MetaContext, entryID keybase1.KVEntr
 		UID:               senderUID,
 		EldestSeqno:       senderEldestSeqno,
 		DeviceID:          senderDeviceID,
-		BotUID:            botUID,
-		BotEldestSeqno:    botEldestSeqno,
+		//BotUID:            botUID,
+		//BotEldestSeqno:    botEldestSeqno,
 	}
 
 	// open it up
