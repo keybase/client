@@ -81,7 +81,7 @@ func TestApplyTeamBotSettings(t *testing.T) {
 	assertMatch(true)
 
 	// restrict the bot to certain convs
-	botSettings.Convs = []keybase1.ChatConversationID{keybase1.ChatConversationID("conv")}
+	botSettings.Convs = []string{"conv"}
 	assertMatch(false)
 	msg.ClientHeader.Sender = gregor1.UID("hi")
 	botSettings.Convs = nil

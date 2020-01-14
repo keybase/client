@@ -1136,7 +1136,7 @@ protocol teams {
     boolean cmds;
     boolean mentions;
     array<string> triggers;
-    array<ChatConversationID> convs;
+    array<string> convs;
   }
 
   record TeamRequestAccessResult {

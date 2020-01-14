@@ -7335,7 +7335,7 @@ func TestTeamBotSettings(t *testing.T) {
 			require.NoError(t, err)
 
 			// take out botua1 by restricting them to a nonexistent conv.
-			botSettings.Convs = []keybase1.ChatConversationID{keybase1.ChatConversationID(chat1.ConversationID("foo").String())}
+			botSettings.Convs = []string{chat1.ConversationID("foo").String().String()}
 			err = ctc.as(t, users[0]).chatLocalHandler().SetBotMemberSettings(tc.startCtx, chat1.SetBotMemberSettingsArg{
 				ConvID:      created.Id,
 				Username:    botua.Username,

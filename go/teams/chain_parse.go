@@ -143,7 +143,7 @@ type SCTeamBot struct {
 	// check as a valid regex.
 	Triggers *[]string `json:"triggers,omitempty"`
 	// Conversations the bot can participate in, `nil` indicates all
-	Convs *[]keybase1.ChatConversationID `json:"convs,omitempty"`
+	Convs *[]string `json:"convs,omitempty"`
 }
 
 func ToSCTeamBotUV(uv keybase1.UserVersion) SCTeamBotUV {
@@ -369,12 +369,11 @@ func CreateTeamBotSettings(bots map[keybase1.UserVersion]keybase1.TeamBotSetting
 		}
 		// Sanity check the conversation IDs are well formed
 		for _, convID := range botSettings.Convs {
-			if _, err := chat1.MakeConvID(convID.String()); err != nil {
+			if _, err := chat1.MakeConvID(convID); err != nil {
 				return nil, err
 			}
 		}
-		var convs *[]keybase1.ChatConversationID
-		var triggers *[]string
+		var convs, triggers *[]string
 		if len(botSettings.Triggers) > 0 {
 			triggers = &(botSettings.Triggers)
 		}

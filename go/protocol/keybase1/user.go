@@ -726,12 +726,12 @@ type GetUserBlocksArg struct {
 }
 
 type ReportUserArg struct {
-	SessionID         int                 `codec:"sessionID" json:"sessionID"`
-	Username          string              `codec:"username" json:"username"`
-	Reason            string              `codec:"reason" json:"reason"`
-	Comment           string              `codec:"comment" json:"comment"`
-	IncludeTranscript bool                `codec:"includeTranscript" json:"includeTranscript"`
-	ConvID            *ChatConversationID `codec:"convID,omitempty" json:"convID,omitempty"`
+	SessionID         int     `codec:"sessionID" json:"sessionID"`
+	Username          string  `codec:"username" json:"username"`
+	Reason            string  `codec:"reason" json:"reason"`
+	Comment           string  `codec:"comment" json:"comment"`
+	IncludeTranscript bool    `codec:"includeTranscript" json:"includeTranscript"`
+	ConvID            *string `codec:"convID,omitempty" json:"convID,omitempty"`
 }
 
 type DismissBlockButtonsArg struct {
