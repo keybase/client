@@ -58,3 +58,8 @@ func stopPID(mctx libkb.MetaContext, pid int) error {
 	mctx.Debug("Output (kill -SIGTERM %d): %s; err=%v", pid, string(output), err)
 	return err
 }
+
+// StopUpdater is not used on nix
+func StopUpdater(mctx libkb.MetaContext) error {
+	return nil
+}

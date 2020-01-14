@@ -39,3 +39,8 @@ func StopAllButService(mctx libkb.MetaContext, _ keybase1.ExitCode) {
 	}
 	mctx.Debug("- StopAllButService")
 }
+
+// StopUpdater is not used on darwin
+func StopUpdater(mctx libkb.MetaContext) error {
+	return nil
+}
