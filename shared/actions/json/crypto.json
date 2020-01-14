@@ -1,5 +1,8 @@
 {
-  "prelude": ["import * as Types from '../constants/types/crypto'"],
+  "prelude": [
+    "import * as Types from '../constants/types/crypto'",
+    "import HiddenString from '../util/hidden-string'"
+  ],
   "actions": {
     "clearRecipients": {
       "_description": "Remove all recipients from operation",
@@ -18,7 +21,7 @@
       "_description": "Set input type (text, file) and value on user input. Either keyboard input or drag-and-drop file",
       "operation": "Types.Operations",
       "type": "Types.InputTypes",
-      "value": "string"
+      "value": "HiddenString"
     },
     "setEncryptOptions": {
       "_description": "Sets options for encrypt operations. Also takkes 'noIncludeSelf' to disable includeSelf when user includes themselves as a recipient",
@@ -28,8 +31,8 @@
     "onOperationSuccess": {
       "_description": "On saltpack RPC successful response",
       "operation": "Types.Operations",
-      "output": "string",
-      "outputSender?": "string",
+      "output": "HiddenString",
+      "outputSender?": "HiddenString",
       "outputSigned": "boolean",
       "outputType": "Types.OutputType"
     },
@@ -37,7 +40,7 @@
       "_description": "On saltpack RPC error response",
       "operation": "Types.Operations",
       "errorType": "Types.ErrorTypes",
-      "errorMessage": "string"
+      "errorMessage": "HiddenString"
     },
     "resetOperation": {
       "_description": "Resets all values in the store for the given operation",
@@ -45,24 +48,24 @@
     },
     "saltpackEncrypt": {
       "_description": "Calls Saltpack RPC",
-      "input": "string",
+      "input": "HiddenString",
       "options": "Types.EncryptOptions",
       "recipients": "Array<string>",
       "type": "Types.InputTypes"
     },
     "saltpackDecrypt": {
       "_description": "Calls Saltpack RPC",
-      "input": "string",
+      "input": "HiddenString",
       "type": "Types.InputTypes"
     },
     "saltpackSign": {
       "_description": "Calls Saltpack RPC",
-      "input": "string",
+      "input": "HiddenString",
       "type": "Types.InputTypes"
     },
     "saltpackVerify": {
       "_description": "Calls Saltpack RPC",
-      "input": "string",
+      "input": "HiddenString",
       "type": "Types.InputTypes"
     }
   }
