@@ -67,7 +67,7 @@ func TestPullTranscript(t *testing.T) {
 
 	randBytes, err := libkb.RandBytes(32)
 	require.NoError(t, err)
-	testConvID := keybase1.ChatConversationID(chat1.ConversationID(randBytes).String())
+	testConvID := chat1.ConversationID(randBytes).String().String()
 
 	apiMock := &reportTestAPIMock{t: t}
 	tc.G.API = apiMock
@@ -83,7 +83,7 @@ func TestPullTranscript(t *testing.T) {
 
 	require.Equal(t, "report/conversation", apiMock.args.Endpoint)
 	require.Contains(t, apiMock.args.Args, "username")
-	require.Equal(t, testConvID.String(), apiMock.args.Args["conv_id"].String())
+	require.Equal(t, testConvID, apiMock.args.Args["conv_id"].String())
 	require.Contains(t, apiMock.args.Args, "transcript")
 
 	require.Greater(t, cs.callsToPull, 0)

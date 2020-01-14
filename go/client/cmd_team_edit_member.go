@@ -18,7 +18,7 @@ type CmdTeamEditMember struct {
 	Team        string
 	Username    string
 	Role        keybase1.TeamRole
-	BotSettings *TeamBotSettings
+	BotSettings *keybase1.TeamBotSettings
 }
 
 func newCmdTeamEditMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -75,9 +75,8 @@ func (c *CmdTeamEditMember) Run() error {
 		return err
 	}
 
-	botSettings, err := ValidateBotSettingsConvs(c.G(), c.Team,
-		chat1.ConversationMembersType_TEAM, c.BotSettings)
-	if err != nil {
+	if err := ValidateBotSettingsConvs(c.G(), c.Team,
+		chat1.ConversationMembersType_TEAM, c.BotSettings); err != nil {
 		return err
 	}
 
@@ -85,7 +84,7 @@ func (c *CmdTeamEditMember) Run() error {
 		Name:        c.Team,
 		Username:    c.Username,
 		Role:        c.Role,
-		BotSettings: botSettings,
+		BotSettings: c.BotSettings,
 	}
 
 	if err = cli.TeamEditMember(context.Background(), arg); err != nil {

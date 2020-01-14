@@ -51,7 +51,7 @@ func (h *UserHandler) ReportUser(ctx context.Context, arg keybase1.ReportUserArg
 		"comment":  libkb.S{Val: arg.Comment},
 	}
 	if arg.ConvID != nil {
-		postArgs["conv_id"] = libkb.S{Val: arg.ConvID.String()}
+		postArgs["conv_id"] = libkb.S{Val: *arg.ConvID}
 	}
 	if arg.IncludeTranscript {
 		if arg.ConvID == nil {

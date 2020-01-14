@@ -2311,8 +2311,7 @@ func (t *teamSigchainPlayer) parseTeamBotSettings(bots []SCTeamBot, newState *Te
 			return fmt.Errorf("found bot settings for %v. Expected role RESTRICTEDBOT, found %v", bot, role)
 		}
 
-		var convs []keybase1.ChatConversationID
-		var triggers []string
+		var convs, triggers []string
 		if bot.Triggers != nil {
 			triggers = *bot.Triggers
 		}

@@ -17,7 +17,7 @@ type CmdChatEditBotMember struct {
 	resolvingRequest chatConversationResolvingRequest
 	username         string
 	role             keybase1.TeamRole
-	botSettings      *TeamBotSettings
+	botSettings      *keybase1.TeamBotSettings
 	hasTTY           bool
 }
 
@@ -55,8 +55,7 @@ func (c *CmdChatEditBotMember) Run() (err error) {
 		return err
 	}
 
-	botSettings, err := ValidateBotSettingsConvs(c.G(), conversationInfo.TlfName, conversationInfo.MembersType, c.botSettings)
-	if err != nil {
+	if err := ValidateBotSettingsConvs(c.G(), conversationInfo.TlfName, conversationInfo.MembersType, c.botSettings); err != nil {
 		return err
 	}
 
@@ -64,7 +63,7 @@ func (c *CmdChatEditBotMember) Run() (err error) {
 		ConvID:      conversationInfo.Id,
 		Username:    c.username,
 		Role:        c.role,
-		BotSettings: botSettings,
+		BotSettings: c.botSettings,
 	}); err != nil {
 		return err
 	}
