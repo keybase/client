@@ -33,7 +33,7 @@ type EncryptOptionsProps = {
 }
 
 // We want to debuonce the onChangeText callback for our input so we are not sending an RPC on every keystroke
-const debounced = debounce((fn, ...args) => fn(...args), 500)
+const debounced = debounce((fn, ...args) => fn(...args), 100)
 
 const EncryptOptions = (props: EncryptOptionsProps) => {
   const {hasRecipients, noIncludeSelf, onSetOptions, options} = props
@@ -65,7 +65,13 @@ const Encrypt = (props: Props) => {
   }
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-      <Kb.DragAndDrop allowFolders={false} fullHeight={true} fullWidth={true} onAttach={onAttach}>
+      <Kb.DragAndDrop
+        allowFolders={false}
+        fullHeight={true}
+        fullWidth={true}
+        onAttach={onAttach}
+        prompt="Drop a file to encrypt"
+      >
         <Recipients operation="encrypt" />
         <Kb.Box2 direction="vertical" fullHeight={true}>
           {props.inputType === 'file' ? (
@@ -85,6 +91,7 @@ const Encrypt = (props: Props) => {
               }}
               onChangeText={text => {
                 setInputValue(text)
+                // props.onSetInput('text', text)
                 debounced(props.onSetInput, 'text', text)
               }}
             />

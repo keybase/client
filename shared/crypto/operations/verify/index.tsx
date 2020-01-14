@@ -14,12 +14,13 @@ type Props = {
   onSetInput: (inputType: Types.InputTypes, inputValue: string) => void
   onShowInFinder: (path: string) => void
   output: string
+  outputSender?: string
   outputStatus?: Types.OutputStatus
   outputType?: Types.OutputType
 }
 
 // We want to debuonce the onChangeText callback for our input so we are not sending an RPC on every keystroke
-const debounced = debounce((fn, ...args) => fn(...args), 500)
+const debounced = debounce((fn, ...args) => fn(...args), 100)
 
 const Verify = (props: Props) => {
   const [inputValue, setInputValue] = React.useState(props.input)
@@ -28,7 +29,13 @@ const Verify = (props: Props) => {
   }
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-      <Kb.DragAndDrop allowFolders={true} fullHeight={true} fullWidth={true} onAttach={onAttach}>
+      <Kb.DragAndDrop
+        allowFolders={true}
+        fullHeight={true}
+        fullWidth={true}
+        onAttach={onAttach}
+        prompt="Drop a file to verify"
+      >
         <Kb.Box2 direction="vertical" fullHeight={true}>
           {props.inputType === 'file' ? (
             <FileInput
@@ -39,7 +46,7 @@ const Verify = (props: Props) => {
           ) : (
             <TextInput
               value={inputValue}
-              placeholder="Paste a signed message or drop a file your want to verify"
+              placeholder="Paste a signed message or drop a file you want to verify"
               textType="cipher"
               operation={Constants.Operations.Verify}
               onSetFile={path => {
@@ -53,7 +60,7 @@ const Verify = (props: Props) => {
           )}
           <Kb.Divider />
           <Kb.Box2 direction="vertical" fullHeight={true}>
-            <SignedSender signed={true} signedBy="cecilb" outputStatus={props.outputStatus} />
+            <SignedSender signed={true} signedBy={props.outputSender} outputStatus={props.outputStatus} />
             <OperationOutput
               outputStatus={props.outputStatus}
               output={props.output}

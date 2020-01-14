@@ -123,15 +123,17 @@ const Output = (props: Props) => {
       </Kb.Box2>
     ) : (
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
-        {props.output && (
-          <Kb.Text
-            type={props.textType === 'cipher' ? 'Terminal' : 'Body'}
-            selectable={true}
-            style={styles.output}
-          >
-            {props.output}
-          </Kb.Text>
-        )}
+        {props.output &&
+          props.output.split('\n').map((line, index) => (
+            <Kb.Text
+              key={index}
+              type={props.textType === 'cipher' ? 'Terminal' : 'Body'}
+              selectable={true}
+              style={styles.output}
+            >
+              {line}
+            </Kb.Text>
+          ))}
       </Kb.Box2>
     )
   ) : (
