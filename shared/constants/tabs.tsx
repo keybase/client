@@ -43,11 +43,11 @@ const desktopTabOrder: Array<AppTab> = [
   peopleTab,
   chatTab,
   fsTab,
+  cryptoTab,
   teamsTab,
   walletsTab,
   gitTab,
   devicesTab,
-  cryptoTab,
   settingsTab,
 ]
 
