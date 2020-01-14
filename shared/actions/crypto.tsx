@@ -18,7 +18,9 @@ const onSetRecipients = (state: TypedState, _: TeamBuildingGen.FinishedTeamBuild
   const {options} = state.crypto.encrypt
 
   const users = [...state.crypto.teamBuilding.finishedTeam]
-  const usernames = users.map(user => user.username)
+  const usernames = users.map(user =>
+    user.serviceId !== 'keybase' ? `${user.username}@${user.serviceId}` : user.username
+  )
 
   const actions: Array<SetRecipientsSagaActions> = [
     TeamBuildingGen.createCancelTeamBuilding({namespace: 'crypto'}),
