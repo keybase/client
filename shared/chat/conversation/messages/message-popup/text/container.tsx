@@ -36,7 +36,9 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   // you can reply privately *if* text message, someone else's message, and not in a 1-on-1 chat
   const _canReplyPrivately =
     message.type === 'text' && (['small', 'big'].includes(meta.teamType) || participantInfo.all.length > 2)
+  const authorIsBot = Constants.messageAuthorIsBot(state, meta, message, participantInfo)
   return {
+    _authorIsBot: authorIsBot,
     _canAdminDelete,
     _canDeleteHistory,
     _canPinMessage,
@@ -85,6 +87,13 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
       Chat2Gen.createMessageSetEditing({
         conversationIDKey: message.conversationIDKey,
         ordinal: message.ordinal,
+      })
+    )
+  },
+  _onInstallBot: (message: Types.Message) => {
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {botUsername: message.author, navToChat: true}, selected: 'chatInstallBotPick'}],
       })
     )
   },
@@ -176,6 +185,7 @@ export default Container.namedConnect(
         : undefined,
       onEdit: yourMessage && message.type === 'text' ? () => dispatchProps._onEdit(message) : undefined,
       onHidden: () => ownProps.onHidden(),
+      onInstallBot: stateProps._authorIsBot ? () => dispatchProps._onInstallBot(message) : undefined,
       onKick: () => dispatchProps._onKick(stateProps._teamID, message.author),
       onPinMessage: stateProps._canPinMessage ? () => dispatchProps._onPinMessage(message) : undefined,
       onReply: message.type === 'text' ? () => dispatchProps._onReply(message) : undefined,

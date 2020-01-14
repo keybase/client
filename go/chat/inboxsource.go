@@ -443,7 +443,8 @@ func (s *RemoteInboxSource) MarkAsRead(ctx context.Context, convID chat1.Convers
 	return nil
 }
 
-func (s *RemoteInboxSource) Search(ctx context.Context, uid gregor1.UID, query string, limit int) (res []types.RemoteConversation, err error) {
+func (s *RemoteInboxSource) Search(ctx context.Context, uid gregor1.UID, query string, limit int,
+	emptyMode types.InboxSourceSearchEmptyMode) (res []types.RemoteConversation, err error) {
 	return nil, errors.New("not implemented")
 }
 
@@ -1220,17 +1221,22 @@ func (s *HybridInboxSource) fullNamesForSearch(ctx context.Context, conv types.R
 }
 
 func (s *HybridInboxSource) isConvSearchHit(ctx context.Context, conv types.RemoteConversation,
-	queryToks []string, username string) (res convSearchHit) {
+	queryToks []string, username string, emptyMode types.InboxSourceSearchEmptyMode) (res convSearchHit) {
 	var convToks []string
 	res.conv = conv
 	res.queryToks = queryToks
 	if len(queryToks) == 0 {
-		if conv.Conv.IsUnread() {
-			cqe := nameContainsQueryUnread
-			if s.G().Badger.State().ConversationBadge(ctx, conv.GetConvID(), s.getDeviceType()) > 0 {
-				cqe = nameContainsQueryBadged
+		switch emptyMode {
+		case types.InboxSourceSearchEmptyModeUnread:
+			if conv.Conv.IsUnread() {
+				cqe := nameContainsQueryUnread
+				if s.G().Badger.State().ConversationBadge(ctx, conv.GetConvID(), s.getDeviceType()) > 0 {
+					cqe = nameContainsQueryBadged
+				}
+				res.hits = []nameContainsQueryRes{cqe}
 			}
-			res.hits = []nameContainsQueryRes{cqe}
+		case types.InboxSourceSearchEmptyModeAll:
+			res.hits = []nameContainsQueryRes{nameContainsQueryExact}
 		}
 		return res
 	}
@@ -1263,7 +1269,8 @@ func (s *HybridInboxSource) isConvSearchHit(ctx context.Context, conv types.Remo
 	return res
 }
 
-func (s *HybridInboxSource) Search(ctx context.Context, uid gregor1.UID, query string, limit int) (res []types.RemoteConversation, err error) {
+func (s *HybridInboxSource) Search(ctx context.Context, uid gregor1.UID, query string, limit int,
+	emptyMode types.InboxSourceSearchEmptyMode) (res []types.RemoteConversation, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Search")()
 	username := s.G().GetEnv().GetUsernameForUID(keybase1.UID(uid.String())).String()
 	ib := s.createInbox()
@@ -1290,7 +1297,7 @@ func (s *HybridInboxSource) Search(ctx context.Context, uid gregor1.UID, query s
 			!s.searchMemberStatusMap[conv.Conv.ReaderInfo.Status] {
 			continue
 		}
-		hit := s.isConvSearchHit(ctx, conv, queryToks, username)
+		hit := s.isConvSearchHit(ctx, conv, queryToks, username, emptyMode)
 		if !hit.valid() {
 			continue
 		}

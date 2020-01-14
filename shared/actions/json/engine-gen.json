@@ -350,7 +350,7 @@
             "params": "keybase1Types.MessageTypes['keybase.1.NotifyFavorites.favoritesChanged']['inParam'] & {sessionID: number}"
         },
         "keybase1NotifyFeaturedBotsFeaturedBotsUpdate": {
-            "params": "keybase1Types.MessageTypes['keybase.1.NotifyFeaturedBots.featuredBotsUpdate']['inParam'] & {sessionID: number}"
+            "params": "keybase1Types.MessageTypes['keybase.1.NotifyFeaturedBots.featuredBotsUpdate']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyFeaturedBots.featuredBotsUpdate']['outParam']) => void}"
         },
         "keybase1NotifyFSFSActivity": {
             "params": "keybase1Types.MessageTypes['keybase.1.NotifyFS.FSActivity']['inParam'] & {sessionID: number}"

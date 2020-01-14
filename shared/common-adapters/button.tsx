@@ -3,10 +3,12 @@ import Badge from './badge'
 import {Box, Box2} from './box'
 import ClickableBox from './clickable-box'
 import Icon from './icon'
+import WithTooltip from './with-tooltip'
 import * as React from 'react'
 import Text, {StylesTextCrossPlatform} from './text'
 import * as Styles from '../styles'
 import './button.css'
+import {IconType} from './icon.constants-gen'
 
 const Kb = {
   Badge,
@@ -15,12 +17,25 @@ const Kb = {
   ClickableBox,
   Icon,
   Text,
+  WithTooltip,
 }
 
 export type ButtonType = 'Default' | 'Success' | 'Danger' | 'Wallet' | 'Dim'
 export type ButtonColor = 'blue' | 'red' | 'green' | 'purple' | 'black' | 'yellow'
+
+// if icon exists, tooltip MUST exist
+type WithIconProps =
+  | {
+      icon?: never
+      tooltip?: string
+    }
+  | {
+      icon: IconType
+      tooltip: string
+    }
+
 // Either type or backgroundColor must be set
-export type Props = {
+type DefaultProps = {
   badgeNumber?: number
   children?: React.ReactNode
   onClick?: (event: React.BaseSyntheticEvent) => void
@@ -43,6 +58,8 @@ export type Props = {
   className?: string
 }
 
+export type Props = DefaultProps & WithIconProps
+
 const Progress = ({small, white}: {small?: boolean; white: boolean}) => {
   const Animation = require('./animation').default
   return (
@@ -63,6 +80,10 @@ const Button = React.forwardRef<ClickableBox, Props>((props: Props, ref: React.R
   let labelStyle: StylesTextCrossPlatform = props.backgroundColor
     ? (backgroundColorLabelStyles[mode + (mode === 'Secondary' ? '' : props.backgroundColor)] as any)
     : labelStyles[mode + type]
+
+  if (props.icon) {
+    containerStyle = Styles.collapseStyles([containerStyle, styles.icon])
+  }
 
   if (props.fullWidth) {
     containerStyle = Styles.collapseStyles([containerStyle, styles.fullWidth])
@@ -122,7 +143,7 @@ const Button = React.forwardRef<ClickableBox, Props>((props: Props, ref: React.R
       <Kb.Box className={Styles.classNames(underlayClassNames)} />
     ) : null
 
-  return (
+  const content = (
     <Kb.ClickableBox
       ref={ref}
       className={Styles.classNames(classNames)}
@@ -156,12 +177,24 @@ const Button = React.forwardRef<ClickableBox, Props>((props: Props, ref: React.R
               {props.subLabel}
             </Kb.Text>
           )}
+          {!!props.icon && (
+            <Kb.Icon
+              type={props.icon}
+              sizeType="Default"
+              style={Styles.collapseStyles([labelStyle, props.labelStyle])}
+            />
+          )}
         </Kb.Box2>
         {!!props.badgeNumber && <Kb.Badge badgeNumber={props.badgeNumber} badgeStyle={styles.badge} />}
         {!!props.waiting && <Progress small={props.small} white={whiteSpinner} />}
       </Kb.Box>
     </Kb.ClickableBox>
   )
+  if (props.tooltip) {
+    return <Kb.WithTooltip tooltip={props.tooltip}>{content}</Kb.WithTooltip>
+  }
+
+  return content
 })
 
 const typeToColorName = {
@@ -207,6 +240,14 @@ const styles = Styles.styleSheetCreate(() => ({
     flexGrow: 1,
     maxWidth: 460,
     width: '100%',
+  },
+  icon: {
+    borderRadius: Styles.borderRadius,
+    height: regularHeight,
+    minWidth: undefined,
+    paddingLeft: Styles.isMobile ? Styles.globalMargins.xtiny : Styles.globalMargins.tiny,
+    paddingRight: Styles.isMobile ? Styles.globalMargins.xtiny : Styles.globalMargins.tiny,
+    width: regularHeight,
   },
   labelContainer: Styles.platformStyles({
     common: {height: '100%', position: 'relative'},

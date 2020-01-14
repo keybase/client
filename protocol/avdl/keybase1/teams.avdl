@@ -1262,7 +1262,7 @@ protocol teams {
 
   void teamDelete(int sessionID, TeamID teamID);
 
-  void teamSetSettings(int sessionID, string name, TeamSettings settings);
+  void teamSetSettings(int sessionID, TeamID teamID, TeamSettings settings);
 
   SeitanIKey teamCreateSeitanToken(int sessionID, string name, TeamRole role, SeitanKeyLabel label);
 
@@ -1324,10 +1324,10 @@ protocol teams {
   TeamPlusApplicationKeys loadTeamPlusApplicationKeys(int sessionID, TeamID id, TeamApplication application, TeamRefreshers refreshers, boolean includeKBFSKeys, OfflineAvailability oa);
   TeamID getTeamRootID(TeamID id);
 
-  TeamShowcase getTeamShowcase(string name);
-  TeamAndMemberShowcase getTeamAndMemberShowcase(string name);
-  void setTeamShowcase(string name, union { null, boolean } isShowcased, union { null, string } description, union { null, boolean } anyMemberShowcase);
-  void setTeamMemberShowcase(string name, boolean isShowcased);
+  TeamShowcase getTeamShowcase(TeamID teamID);
+  TeamAndMemberShowcase getTeamAndMemberShowcase(TeamID teamID);
+  void setTeamShowcase(TeamID teamID, union { null, boolean } isShowcased, union { null, string } description, union { null, boolean } anyMemberShowcase);
+  void setTeamMemberShowcase(TeamID teamID, boolean isShowcased);
 
   record TeamOperation {
     boolean manageMembers;
@@ -1375,8 +1375,8 @@ protocol teams {
     TeamSigChainState chain;
   }
 
-  boolean getTarsDisabled(string name);
-  void setTarsDisabled(string name, boolean disabled);
+  boolean getTarsDisabled(TeamID teamID);
+  void setTarsDisabled(TeamID teamID, boolean disabled);
 
   // List of teams for that "Add to team..." screen on the profile screen.
   // All return values are server-trust so only use where safe.

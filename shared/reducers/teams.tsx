@@ -59,7 +59,7 @@ export default Container.makeReducer<
     draftState.teamJoinSuccessTeamName = action.payload.teamname
   },
   [TeamsGen.setTeamRetentionPolicy]: (draftState, action) => {
-    draftState.teamNameToRetentionPolicy.set(action.payload.teamname, action.payload.retentionPolicy)
+    draftState.teamIDToRetentionPolicy.set(action.payload.teamID, action.payload.retentionPolicy)
   },
   [TeamsGen.setTeamLoadingInvites]: (draftState, action) => {
     const {teamname, loadingKey, isLoading} = action.payload
@@ -90,7 +90,7 @@ export default Container.makeReducer<
     draftState.canPerform.set(action.payload.teamID, action.payload.teamOperation)
   },
   [TeamsGen.setTeamPublicitySettings]: (draftState, action) => {
-    draftState.teamNameToPublicitySettings.set(action.payload.teamname, action.payload.publicity)
+    draftState.teamIDToPublicitySettings.set(action.payload.teamID, action.payload.publicity)
   },
   [TeamsGen.setTeamChannelInfo]: (draftState, action) => {
     const {conversationIDKey, channelInfo, teamID} = action.payload

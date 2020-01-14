@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
+import * as TeamsTypes from '../../../constants/types/teams'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import RetentionPicker from '../../../teams/team/settings-tab/retention/container'
@@ -19,7 +20,7 @@ type SettingsPanelProps = {
   onShowBlockConversationDialog: () => void
   onShowClearConversationDialog: () => void
   spinnerForHide: boolean
-  teamname?: string
+  teamID: TeamsTypes.TeamID
   channelname?: string
 }
 
@@ -37,7 +38,7 @@ export const SettingsPanel = (props: SettingsPanelProps) => {
           dropdownStyle={styles.retentionDropdownStyle}
           entityType={props.entityType}
           showSaveIndicator={true}
-          teamname={props.teamname}
+          teamID={props.teamID}
           type="auto"
         />
         {(props.entityType === 'channel' || props.entityType === 'small team') && (

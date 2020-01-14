@@ -350,7 +350,8 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       this.props.message.type === 'systemSimpleToComplex' ||
       this.props.message.type === 'systemSBSResolved' ||
       this.props.message.type === 'systemText' ||
-      this.props.message.type === 'systemUsersAddedToConversation') &&
+      this.props.message.type === 'systemUsersAddedToConversation' ||
+      this.props.message.type === 'journeycard') &&
     this.props.shouldShowPopup &&
     this.props.showingMenu && (
       <MessagePopup
@@ -602,7 +603,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
             {showMenuButton ? (
               <Kb.Box className="WrapperMessage-buttons">
                 {!this.hasReactions() &&
-                  Constants.isDecoratedMessage(this.props.message) &&
+                  Constants.isMessageWithReactions(this.props.message) &&
                   !this.props.showingMenu && (
                     <EmojiRow
                       className={Styles.classNames({

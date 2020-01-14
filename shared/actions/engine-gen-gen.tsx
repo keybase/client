@@ -1229,6 +1229,12 @@ type _Keybase1NotifyFeaturedBotsFeaturedBotsUpdatePayload = {
   readonly params: keybase1Types.MessageTypes['keybase.1.NotifyFeaturedBots.featuredBotsUpdate']['inParam'] & {
     sessionID: number
   }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (
+      param: keybase1Types.MessageTypes['keybase.1.NotifyFeaturedBots.featuredBotsUpdate']['outParam']
+    ) => void
+  }
 }
 type _Keybase1NotifyKeyfamilyKeyfamilyChangedPayload = {
   readonly params: keybase1Types.MessageTypes['keybase.1.NotifyKeyfamily.keyfamilyChanged']['inParam'] & {

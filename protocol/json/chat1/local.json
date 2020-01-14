@@ -3623,6 +3623,31 @@
     },
     {
       "type": "record",
+      "name": "AddBotConvSearchHit",
+      "fields": [
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "boolean",
+          "name": "isTeam"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "parts"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "LocalMtimeUpdate",
       "fields": [
         {
@@ -5327,6 +5352,18 @@
         }
       ],
       "response": "keybase1.TeamRole"
+    },
+    "addBotConvSearch": {
+      "request": [
+        {
+          "name": "term",
+          "type": "string"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "AddBotConvSearchHit"
+      }
     },
     "teamIDFromTLFName": {
       "request": [

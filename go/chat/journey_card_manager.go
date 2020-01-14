@@ -1047,12 +1047,11 @@ func (cc *JourneyCardManagerSingleUser) DebugState(ctx context.Context, teamID k
 }
 
 func (cc *JourneyCardManagerSingleUser) getKnownTeamsForDebuggingWithLock(ctx context.Context) (teams []keybase1.TeamID, err error) {
-	levelDbTableKv := "kv"
 	innerKeyPrefix := fmt.Sprintf("jc|uid:%s|teamID:", cc.uid)
 	prefix := libkb.DbKey{
 		Typ: libkb.DBChatJourney,
 		Key: innerKeyPrefix,
-	}.ToBytes(levelDbTableKv)
+	}.ToBytes()
 	leveldb, ok := cc.G().LocalChatDb.GetEngine().(*libkb.LevelDb)
 	if !ok {
 		return nil, fmt.Errorf("could not get leveldb")
