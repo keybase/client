@@ -91,9 +91,9 @@ const ChannelPicker = (props: Props) => {
           placeholderText={`Search channels in ${props.teamName}`}
           placeholderCentered={true}
           mobileCancelButton={true}
-          hotkey="f"
           onChange={setSearchText}
           style={styles.searchFilter}
+          focusOnMount={true}
         />
       </Kb.Box2>
       <Kb.ScrollView style={styles.rowsContainer}>{rows}</Kb.ScrollView>

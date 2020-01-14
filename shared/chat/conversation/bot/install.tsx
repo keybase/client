@@ -596,14 +596,18 @@ const PermsList = (props: PermsListProps) => {
     <Kb.Box2 direction="vertical" gap="small" fullWidth={true}>
       <Kb.Text type="BodySemibold">This bot can currently read:</Kb.Text>
       {props.settings ? (
-        <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
-          {!(props.settings.cmds || props.settings.mentions) && (
-            <Kb.Text type="Body">{'• no messages, the bot is in write only mode'}</Kb.Text>
-          )}
-          {props.settings.cmds && <Kb.Text type="Body">{'• messages that begin with bot commands.'}</Kb.Text>}
-          {props.settings.mentions && (
-            <Kb.Text type="Body">{`• messages it has been mentioned in with @${props.username}`}</Kb.Text>
-          )}
+        <Kb.Box2 direction="vertical" gap="small" fullWidth={true}>
+          <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
+            {!(props.settings.cmds || props.settings.mentions) && (
+              <Kb.Text type="Body">{'• no messages, the bot is in write only mode'}</Kb.Text>
+            )}
+            {props.settings.cmds && (
+              <Kb.Text type="Body">{'• messages that begin with bot commands.'}</Kb.Text>
+            )}
+            {props.settings.mentions && (
+              <Kb.Text type="Body">{`• messages it has been mentioned in with @${props.username}`}</Kb.Text>
+            )}
+          </Kb.Box2>
           {props.settings.convs && props.channelInfos && (
             <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
               <Kb.Text type="BodySemibold">In these channels:</Kb.Text>
