@@ -7951,6 +7951,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-bot': {
+    charCode: 0xe9b2,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-calculate': {
     charCode: 0xe990,
     gridSize: 24,
