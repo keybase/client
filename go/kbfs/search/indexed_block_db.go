@@ -211,7 +211,7 @@ func (db *IndexedBlockDb) GetNextDocIDs(n int) ([]string, error) {
 // blockMD is per-block metadata for an individual indexed block.
 type blockMD struct {
 	// Exported only for serialization.
-	IndexVersion uint   `codec:"i"`
+	IndexVersion uint64 `codec:"i"`
 	DocID        string `codec:"d"`
 }
 
@@ -290,7 +290,7 @@ func (db *IndexedBlockDb) checkDbLocked(
 // Get returns the version and doc ID for the given block.
 func (db *IndexedBlockDb) Get(
 	ctx context.Context, ptr data.BlockPointer) (
-	indexVersion uint, docID string, err error) {
+	indexVersion uint64, docID string, err error) {
 	db.lock.RLock()
 	defer db.lock.RUnlock()
 	err = db.checkDbLocked(ctx, "IBD(Get)")
@@ -307,8 +307,8 @@ func (db *IndexedBlockDb) Get(
 
 // Put saves the version and doc ID for the given block.
 func (db *IndexedBlockDb) Put(
-	ctx context.Context, tlfID tlf.ID, ptr data.BlockPointer, indexVersion uint,
-	docID string) error {
+	ctx context.Context, tlfID tlf.ID, ptr data.BlockPointer,
+	indexVersion uint64, docID string) error {
 	db.lock.Lock()
 	defer db.lock.Unlock()
 	err := db.checkDbLocked(ctx, "IBD(Put)")
