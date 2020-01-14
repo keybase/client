@@ -16,7 +16,7 @@ export const updatePushToken = 'push:updatePushToken'
 type _NotificationPayload = {readonly notification: Types.PushNotification}
 type _RejectPermissionsPayload = void
 type _RequestPermissionsPayload = void
-type _ShowPermissionsPromptPayload = {readonly show: boolean}
+type _ShowPermissionsPromptPayload = {readonly show: boolean; readonly justProvisioned?: boolean}
 type _UpdateHasPermissionsPayload = {readonly hasPermissions: boolean}
 type _UpdatePushTokenPayload = {readonly token: string}
 

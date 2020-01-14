@@ -4,6 +4,7 @@ import * as Types from '../constants/types/push'
 
 const initialState: Types.State = {
   hasPermissions: true,
+  justProvisioned: false,
   showPushPrompt: false,
   token: '',
 }
@@ -19,6 +20,7 @@ export default Container.makeReducer<PushGen.Actions, Types.State>(initialState,
     draftState.hasPermissions = action.payload.hasPermissions
   },
   [PushGen.showPermissionsPrompt]: (draftState, action) => {
+    draftState.justProvisioned = !!action.payload.justProvisioned
     draftState.showPushPrompt = action.payload.show
   },
   [PushGen.updatePushToken]: (draftState, action) => {

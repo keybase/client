@@ -242,9 +242,6 @@
     "updateDefaultPhoneNumberCountry": {
       "country": "string"
     },
-    "loginBrowserViaWebAuthToken": {},
-    "updateShowNotificationsPrompt": {
-      "enabled": "boolean"
-    }
+    "loginBrowserViaWebAuthToken": {}
   }
 }

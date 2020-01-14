@@ -9,6 +9,7 @@ import * as EngineGen from '../engine-gen-gen'
 import * as DevicesGen from '../devices-gen'
 import * as ProfileGen from '../profile-gen'
 import * as FsGen from '../fs-gen'
+import * as PushGen from '../push-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/config'
 import * as ChatConstants from '../../constants/chat2'
@@ -294,6 +295,26 @@ const switchRouteDef = (
   action: ConfigGen.LoggedInPayload | ConfigGen.LoggedOutPayload
 ) => {
   if (state.config.loggedIn) {
+    // show the monster push prompt after provisioning.
+    if (
+      isMobile &&
+      action.type === ConfigGen.loggedIn &&
+      state.push.justProvisioned &&
+      state.push.showPushPrompt &&
+      !state.push.hasPermissions
+    ) {
+      return [
+        RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
+        RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}),
+        RouteTreeGen.createNavigateAppend({
+          path: ['settingsPushPrompt'],
+        }),
+        PushGen.createShowPermissionsPrompt({
+          show: false, // disable the prompt after showing it once
+        }),
+      ]
+    }
+
     if (action.type === ConfigGen.loggedIn && !action.payload.causedByStartup) {
       // only do this if we're not handling the initial loggedIn event, cause its handled by routeToInitialScreenOnce
       return [
@@ -303,7 +324,9 @@ const switchRouteDef = (
           ? [RouteTreeGen.createNavigateAppend({path: ['signupEnterPhoneNumber']})]
           : []),
       ]
-    } else if (action.type === ConfigGen.loggedIn) {
+    }
+
+    if (action.type === ConfigGen.loggedIn) {
       return RouteTreeGen.createSwitchLoggedIn({loggedIn: true})
     }
   } else {
