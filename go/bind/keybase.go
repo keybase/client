@@ -489,7 +489,7 @@ func pushPendingMessageFailure(obrs []chat1.OutboxRecord, pusher PushNotifier) {
 			kbCtx.Log.Debug("pushPendingMessageFailure: pushing convID: %s", obr.ConvID)
 			pusher.LocalNotification("failedpending",
 				"Heads up! Your message hasn't sent yet, tap here to retry.",
-				-1, "default", obr.ConvID.String(), "chat.failedpending")
+				-1, "default", obr.ConvID.String().String(), "chat.failedpending")
 			return
 		}
 	}
