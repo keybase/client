@@ -110,7 +110,7 @@ export const userOut = 'fs:userOut'
 export const waitForKbfsDaemon = 'fs:waitForKbfsDaemon'
 
 // Payload Types
-type _AcceptMacOSFuseExtClosedSourcePayload = void
+type _AcceptMacOSFuseExtClosedSourcePayload = {readonly dismiss?: boolean}
 type _CancelDownloadPayload = {readonly downloadID: string}
 type _CommitEditPayload = {readonly editID: Types.EditID}
 type _CopyPayload = {readonly destinationParentPath: Types.Path}
@@ -247,7 +247,7 @@ type _WaitForKbfsDaemonPayload = void
 
 // Action Creators
 export const createAcceptMacOSFuseExtClosedSource = (
-  payload: _AcceptMacOSFuseExtClosedSourcePayload
+  payload: _AcceptMacOSFuseExtClosedSourcePayload = Object.freeze({})
 ): AcceptMacOSFuseExtClosedSourcePayload => ({payload, type: acceptMacOSFuseExtClosedSource})
 export const createCancelDownload = (payload: _CancelDownloadPayload): CancelDownloadPayload => ({
   payload,

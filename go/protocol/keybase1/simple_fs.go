@@ -1355,6 +1355,7 @@ const (
 	SubscriptionTopic_DOWNLOAD_STATUS     SubscriptionTopic = 3
 	SubscriptionTopic_FILES_TAB_BADGE     SubscriptionTopic = 4
 	SubscriptionTopic_OVERALL_SYNC_STATUS SubscriptionTopic = 5
+	SubscriptionTopic_SETTINGS            SubscriptionTopic = 6
 )
 
 func (o SubscriptionTopic) DeepCopy() SubscriptionTopic { return o }
@@ -1366,6 +1367,7 @@ var SubscriptionTopicMap = map[string]SubscriptionTopic{
 	"DOWNLOAD_STATUS":     3,
 	"FILES_TAB_BADGE":     4,
 	"OVERALL_SYNC_STATUS": 5,
+	"SETTINGS":            6,
 }
 
 var SubscriptionTopicRevMap = map[SubscriptionTopic]string{
@@ -1375,6 +1377,7 @@ var SubscriptionTopicRevMap = map[SubscriptionTopic]string{
 	3: "DOWNLOAD_STATUS",
 	4: "FILES_TAB_BADGE",
 	5: "OVERALL_SYNC_STATUS",
+	6: "SETTINGS",
 }
 
 func (e SubscriptionTopic) String() string {

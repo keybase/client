@@ -226,10 +226,13 @@ const loadSettings = async () => {
     return FsGen.createSettingsLoaded({
       settings: {
         ...Constants.emptySettings,
+        loaded: true,
+        macOSFuseExtAcceptedClosedSource: !!settings.macOSFuseExtAcceptedClosedSource,
+        sfmiBannerDismissed: settings.sfmiBannerDismissed,
         spaceAvailableNotificationThreshold: settings.spaceAvailableNotificationThreshold,
       },
     })
-  } catch (_) {
+  } catch {
     return FsGen.createSettingsLoaded({})
   }
 }
@@ -831,6 +834,8 @@ const onNonPathChange = (action: EngineGen.Keybase1NotifyFSFSSubscriptionNotifyP
       return FsGen.createLoadDownloadStatus()
     case RPCTypes.SubscriptionTopic.filesTabBadge:
       return FsGen.createLoadFilesTabBadge()
+    case RPCTypes.SubscriptionTopic.settings:
+      return FsGen.createLoadSettings()
     case RPCTypes.SubscriptionTopic.overallSyncStatus:
       return undefined
   }
@@ -924,7 +929,7 @@ const userOut = () => RPCTypes.SimpleFSSimpleFSUserOutRpcPromise({clientID: user
 
 let fsBadgeSubscriptionID: string = ''
 
-const subscribeFsBadge = (state: Container.TypedState) => {
+const subscribeAndLoadFsBadge = (state: Container.TypedState) => {
   if (state.fs.kbfsDaemonStatus.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected) {
     return
   }
@@ -939,6 +944,25 @@ const subscribeFsBadge = (state: Container.TypedState) => {
       topic: RPCTypes.SubscriptionTopic.filesTabBadge,
     }),
     FsGen.createLoadFilesTabBadge(),
+  ]
+}
+
+let settingsSubscriptionID: string = ''
+const subscribeAndLoadSettings = (state: Container.TypedState) => {
+  if (state.fs.kbfsDaemonStatus.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected) {
+    return
+  }
+  const oldSettingsSubscriptionID = settingsSubscriptionID
+  settingsSubscriptionID = Constants.makeUUID()
+  return [
+    ...(oldSettingsSubscriptionID
+      ? [FsGen.createUnsubscribe({subscriptionID: oldSettingsSubscriptionID})]
+      : []),
+    FsGen.createSubscribeNonPath({
+      subscriptionID: settingsSubscriptionID,
+      topic: RPCTypes.SubscriptionTopic.settings,
+    }),
+    FsGen.createLoadSettings(),
   ]
 }
 
@@ -993,7 +1017,8 @@ function* fsSaga() {
   yield* Saga.chainAction(FsGen.unsubscribe, unsubscribe)
   yield* Saga.chainAction(EngineGen.keybase1NotifyFSFSSubscriptionNotifyPath, onPathChange)
   yield* Saga.chainAction(EngineGen.keybase1NotifyFSFSSubscriptionNotify, onNonPathChange)
-  yield* Saga.chainAction2(FsGen.kbfsDaemonRpcStatusChanged, subscribeFsBadge)
+  yield* Saga.chainAction2(FsGen.kbfsDaemonRpcStatusChanged, subscribeAndLoadFsBadge)
+  yield* Saga.chainAction2(FsGen.kbfsDaemonRpcStatusChanged, subscribeAndLoadSettings)
 
   yield* Saga.chainAction(FsGen.setDebugLevel, setDebugLevel)
 

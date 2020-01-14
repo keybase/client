@@ -2853,7 +2853,11 @@ func (k *SimpleFS) SimpleFSSetNotificationThreshold(ctx context.Context, thresho
 	if db == nil {
 		return libkbfs.ErrNoSettingsDB
 	}
-	return db.SetNotificationThreshold(ctx, threshold)
+	if err = db.SetNotificationThreshold(ctx, threshold); err != nil {
+		return err
+	}
+	k.config.SubscriptionManagerPublisher().PublishChange(keybase1.SubscriptionTopic_SETTINGS)
+	return nil
 }
 
 // SimpleFSObfuscatePath implements the SimpleFSInterface.
@@ -3161,7 +3165,11 @@ func (k *SimpleFS) SimpleFSSetSfmiBannerDismissed(
 	if db == nil {
 		return libkbfs.ErrNoSettingsDB
 	}
-	return db.SetSfmiBannerDismissed(ctx, dismissed)
+	if err = db.SetSfmiBannerDismissed(ctx, dismissed); err != nil {
+		return err
+	}
+	k.config.SubscriptionManagerPublisher().PublishChange(keybase1.SubscriptionTopic_SETTINGS)
+	return nil
 }
 
 // SimpleFSAcceptMacOSFuseExtClosedSource implements the SimpleFSInterface.
@@ -3175,5 +3183,9 @@ func (k *SimpleFS) SimpleFSAcceptMacOSFuseExtClosedSource(
 	if db == nil {
 		return libkbfs.ErrNoSettingsDB
 	}
-	return db.AcceptMacOSFuseExtClosedSource(ctx)
+	if err = db.AcceptMacOSFuseExtClosedSource(ctx); err != nil {
+		return err
+	}
+	k.config.SubscriptionManagerPublisher().PublishChange(keybase1.SubscriptionTopic_SETTINGS)
+	return nil
 }

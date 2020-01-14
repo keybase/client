@@ -190,6 +190,6 @@ func (db *SettingsDB) SetSfmiBannerDismissed(
 	if uid == keybase1.UID("") {
 		return errNoSession
 	}
-	return db.Put(getSettingsDbKey(uid, macOSFuseExtAcceptedClosedSourceKey),
+	return db.Put(getSettingsDbKey(uid, sfmiBannerDismissedKey),
 		[]byte(strconv.FormatBool(dismissed)), nil)
 }

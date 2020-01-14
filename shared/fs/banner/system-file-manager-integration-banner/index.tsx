@@ -8,6 +8,8 @@ import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
 import * as FsGen from '../../../actions/fs-gen'
 import * as Platform from '../../../constants/platform'
+import * as Waiting from '../../../constants/waiting'
+import * as Kbfs from '../../common'
 
 /*
  * This banner is used as part of a list in folder view and it's important to
@@ -22,6 +24,7 @@ type Props = {
   driverStatus: Types.DriverStatus
   settings: Types.Settings
   onAcknowledge: () => void
+  onAcknowledgeAndDismiss: () => void
   onDisable: () => void
   onDismiss: () => void
   onEnable: () => void
@@ -188,9 +191,14 @@ const DokanOutdated = (props: Props) => {
 }
 
 const FuseNotOpenSourceWarningWhenAlreadyEnabled = (props: Props) => {
+  const ackWaiting = Container.useSelector(state =>
+    Waiting.anyWaiting(state, Constants.acceptMacOSFuseExtClosedSourceWaitingKey)
+  )
+
   if (props.driverStatus.type !== Types.DriverStatusType.Enabled) {
     return <ThisShouldNotHappen />
   }
+
   return (
     <Banner
       background={Background.Yellow}
@@ -198,9 +206,9 @@ const FuseNotOpenSourceWarningWhenAlreadyEnabled = (props: Props) => {
       title="Note: FUSE for macOS is not opensource"
       body={`Keybase in ${fileUIName} is supported by a third-party software called FUSE for macOS (osxfuse). This software is not opensource anymore. Please acknowledge that you are OK with it, or disable ${fileUIName} integration.`}
       button={{
-        action: props.onAcknowledge,
+        action: props.onAcknowledgeAndDismiss,
         buttonText: "I'm OK with it",
-        inProgress: props.driverStatus.isDisabling, // TODO waitkey
+        inProgress: ackWaiting,
       }}
       buttonSecondary={{
         action: props.onDisable,
@@ -265,9 +273,11 @@ const Enabled = (props: Props) => {
 
 const Disabled = (props: Props) => {
   const [agreed, setAgreed] = React.useState<boolean>(false)
+
   if (props.driverStatus.type !== Types.DriverStatusType.Disabled) {
     return <ThisShouldNotHappen />
   }
+
   return (
     <Banner
       background={Background.Blue}
@@ -298,7 +308,10 @@ const Disabled = (props: Props) => {
         )
       }
       button={{
-        action: props.onEnable,
+        action: () => {
+          props.onAcknowledge()
+          props.onEnable()
+        },
         buttonText: 'Yes, enable',
         disabled: Platform.isDarwin && !agreed,
         inProgress: props.driverStatus.isEnabling,

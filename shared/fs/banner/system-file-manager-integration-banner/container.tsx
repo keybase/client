@@ -17,6 +17,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
   onAcknowledge: () => dispatch(FsGen.createAcceptMacOSFuseExtClosedSource()),
+  onAcknowledgeAndDismiss: () => dispatch(FsGen.createAcceptMacOSFuseExtClosedSource({dismiss: true})),
   onDisable: () => dispatch(FsGen.createDriverDisable()),
   onDismiss: () => dispatch(FsGen.createSetSfmiBannerDismissed({dismissed: true})),
   onEnable: () => dispatch(FsGen.createDriverEnable({})),
