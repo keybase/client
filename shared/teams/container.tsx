@@ -39,9 +39,17 @@ const useHeaderActions = (): HeaderActionProps => {
   }
 }
 
-const orderTeams = memoize((teams: Types.State['teamDetails']) =>
-  [...teams.values()].sort((a, b) => a.teamname.localeCompare(b.teamname))
-)
+const orderTeamsImpl = (
+  teams: Map<string, Types.TeamDetails>,
+  newRequests: Map<Types.TeamID, number>
+): Array<Types.TeamDetails> =>
+  [...teams.values()].sort((a, b) => {
+    const sizeDiff = (newRequests.get(b.id) || 0) - (newRequests.get(a.id) || 0)
+    if (sizeDiff != 0) return sizeDiff
+    return a.teamname.localeCompare(b.teamname)
+  })
+
+const orderTeams = memoize(orderTeamsImpl)
 
 type ReloadableProps = Omit<MainOwnProps, 'onManageChat' | 'onViewTeam'>
 
@@ -118,7 +126,7 @@ const Connected = Container.connect(
     newTeams: stateProps.newTeams,
     sawChatBanner: stateProps.sawChatBanner,
     teamresetusers: stateProps._teamresetusers,
-    teams: orderTeams(stateProps._teams),
+    teams: orderTeams(stateProps._teams, stateProps.newTeamRequests),
     ...dispatchProps,
   })
 )(Reloadable)
