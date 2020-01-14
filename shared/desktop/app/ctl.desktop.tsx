@@ -2,15 +2,24 @@ import * as SafeElectron from '../../util/safe-electron.desktop'
 import {keybaseBinPath} from './paths.desktop'
 import exec from './exec.desktop'
 import {isWindows} from '../../constants/platform'
+import {spawn} from 'child_process'
 
 export function ctlStop(callback: any) {
   const binPath = keybaseBinPath()
+  if (isWindows) {
+    if (!binPath) {
+      if (callback) callback("cannot get keybaseBinPath which shouldn't happen")
+      return
+    }
+    spawn(binPath, ['ctl', 'stop'], {
+      detached: true,
+      stdio: 'ignore',
+    })
+    if (callback) callback(null)
+    return
+  }
   var plat = 'darwin'
   var args = ['ctl', 'stop', '--exclude=app']
-  if (isWindows) {
-    args = ['ctl', 'stop']
-    plat = 'win32'
-  }
   exec(binPath, args, plat, 'prod', false, callback)
 }
 
