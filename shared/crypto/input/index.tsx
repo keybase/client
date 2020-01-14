@@ -63,7 +63,7 @@ const TextInput = (props: TextProps) => {
   }, [filePickerRef])
   return (
     <Kb.Box onClick={onFocusInput} style={styles.containerInputFocus}>
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.commonContainer}>
         <Kb.NewInput
           value={value}
           placeholder={placeholder}
@@ -108,7 +108,7 @@ const FileInput = (props: FileProps) => {
       fullWidth={true}
       fullHeight={true}
       alignItems="stretch"
-      style={styles.fileInputContainer}
+      style={styles.commonContainer}
     >
       <Kb.Text type="BodySmallPrimaryLink" onClick={() => props.onClearFiles()} style={styles.clearButton}>
         Clear
@@ -140,6 +140,11 @@ const styles = Styles.styleSheetCreate(
         right: Styles.globalMargins.small,
         top: Styles.globalMargins.small,
       },
+      commonContainer: {
+        ...Styles.globalStyles.flexGrow,
+        ...Styles.globalStyles.positionRelative,
+        flexShrink: 2,
+      },
       containerInputFocus: {
         ...Styles.globalStyles.flexGrow,
         ...Styles.globalStyles.fullHeight,
@@ -148,11 +153,6 @@ const styles = Styles.styleSheetCreate(
       },
       fileContainer: {
         ...Styles.padding(Styles.globalMargins.small),
-      },
-      fileInputContainer: {
-        ...Styles.globalStyles.flexGrow,
-        ...Styles.globalStyles.positionRelative,
-        flexShrink: 2,
       },
       hidden: {
         display: 'none',
