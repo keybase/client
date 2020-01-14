@@ -107,6 +107,7 @@ const Encrypt = (props: Props) => {
             <SignedSender
               signed={props.options.sign}
               signedBy={props.username}
+              operation={Constants.Operations.Encrypt}
               outputStatus={props.outputStatus}
             />
             <OperationOutput

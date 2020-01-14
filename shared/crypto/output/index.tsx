@@ -25,25 +25,50 @@ type OutputBarProps = {
 type OutputSignedProps = {
   signed: boolean
   signedBy?: string
+  operation: Types.Operations
   outputStatus?: Types.OutputStatus
 }
 
 const largeOutputLimit = 120
 
 export const SignedSender = (props: OutputSignedProps) => {
-  return props.outputStatus && props.outputStatus === 'success' ? (
+  const canSelfSign =
+    props.operation === Constants.Operations.Encrypt || props.operation === Constants.Operations.Sign
+
+  if (!props.outputStatus || (props.outputStatus && props.outputStatus === 'error')) {
+    return null
+  }
+
+  return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.signedContainer}>
-      {props.signed && props.signedBy ? (
-        <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center">
-          <Kb.Icon type="iconfont-success" sizeType="Small" style={styles.signedIcon} />
-          <Kb.Text type="BodySmallSuccess">Signed by</Kb.Text>
-          <Kb.ConnectedUsernames type="BodySmallBold" colorYou={true} usernames={[props.signedBy]} />
-        </Kb.Box2>
-      ) : (
-        <Kb.Text type="BodySmall">Not signed (anonymous sender)</Kb.Text>
-      )}
+      <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center">
+        {props.signed && props.signedBy
+          ? [
+              <Kb.Avatar key="avatar" size={16} username={props.signedBy} />,
+              <Kb.Text key="signedBy" type="BodySmall">
+                Signed by {canSelfSign ? ' you, ' : ''}
+              </Kb.Text>,
+              <Kb.ConnectedUsernames
+                key="username"
+                type="BodySmallBold"
+                colorYou={true}
+                usernames={[props.signedBy]}
+              />,
+            ]
+          : [
+              <Kb.Icon key="avatar" type="icon-placeholder-secret-user-16" />,
+              canSelfSign ? null : (
+                <Kb.Text key="username" type="BodySmallSemibold">
+                  Anonymous sender
+                </Kb.Text>
+              ),
+              <Kb.Text key="signedBy" type="BodySmall">
+                {canSelfSign ? `Not signed (Sending anonymously)` : `(Not signed)`}
+              </Kb.Text>,
+            ]}
+      </Kb.Box2>
     </Kb.Box2>
-  ) : null
+  )
 }
 
 export const OutputBar = (props: OutputBarProps) => {
@@ -201,9 +226,9 @@ const styles = Styles.styleSheetCreate(
         color: Styles.globalColors.black_50,
       },
       signedContainer: {
-        ...Styles.padding(Styles.globalMargins.tiny),
-        backgroundColor: Styles.globalColors.blueGreyLight,
-        height: Styles.globalMargins.xlarge,
+        paddingLeft: Styles.globalMargins.tiny,
+        paddingRight: Styles.globalMargins.tiny,
+        paddingTop: Styles.globalMargins.tiny,
       },
       signedIcon: {
         color: Styles.globalColors.green,
