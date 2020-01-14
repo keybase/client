@@ -13,6 +13,7 @@ import * as TeamTypes from '../../../constants/types/teams'
 import * as TeamConstants from '../../../constants/teams'
 import * as Constants from '../../../constants/chat2'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
+import openURL from '../../../util/open-url'
 import ChannelPicker from './channel-picker'
 
 const RestrictedItem = '---RESTRICTED---'
@@ -113,6 +114,9 @@ const InstallBotPopup = (props: Props) => {
   const dispatch = Container.useDispatch()
   const onClose = () => {
     dispatch(RouteTreeGen.createClearModals())
+  }
+  const onLearn = () => {
+    openURL('https://keybase.io/docs/chat/restricted_bots')
   }
   const onLeftAction = () => {
     if (installScreen) {
@@ -220,14 +224,14 @@ const InstallBotPopup = (props: Props) => {
       direction="vertical"
       style={Styles.collapseStyles([styles.container, {flex: 1}])}
       fullWidth={true}
-      gap="tiny"
+      gap="small"
     >
       <Kb.Box2 direction="vertical" gap="small" fullWidth={true}>
         <Kb.Box2 direction="horizontal" gap="small" fullWidth={true}>
           <Kb.Avatar username={botUsername} size={64} />
           <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}} gap="tiny">
             <Kb.Box2 direction="vertical" fullWidth={true}>
-              <Kb.Text type="BodyBigExtrabold">{featured.botAlias}</Kb.Text>
+              <Kb.Text type="BodySemibold">{featured.botAlias}</Kb.Text>
               <Kb.ConnectedUsernames
                 colorFollowing={true}
                 type="BodySemibold"
@@ -246,6 +250,14 @@ const InstallBotPopup = (props: Props) => {
       </Kb.Box2>
       {inTeam && !inTeamUnrestricted && (
         <PermsList channelInfos={channelInfos} settings={settings} username={botUsername} />
+      )}
+      {!inTeam && (
+        <Kb.Text type="BodySmall">
+          <Kb.Text type="BodySmallPrimaryLink" onClick={onLearn}>
+            Learn more
+          </Kb.Text>{' '}
+          about bots in Keybase.
+        </Kb.Text>
       )}
     </Kb.Box2>
   )
@@ -272,7 +284,7 @@ const InstallBotPopup = (props: Props) => {
         <Kb.Avatar username={botUsername} size={64} />
         <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}} gap="tiny">
           <Kb.Box2 direction="vertical" fullWidth={true}>
-            <Kb.Text type="BodyBigExtrabold">{featured ? featured.botAlias : botUsername}</Kb.Text>
+            <Kb.Text type="BodySemibold">{featured ? featured.botAlias : botUsername}</Kb.Text>
             <Kb.ConnectedUsernames
               colorFollowing={true}
               type="BodySemibold"
