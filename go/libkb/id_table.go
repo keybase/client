@@ -993,7 +993,8 @@ func (s *WalletStellarChainLink) Display(m MetaContext, ui IdentifyUI) error {
 	// First get an up to date user card, since hiding the Stellar address affects it.
 	card, err := UserCard(m, s.GetUID(), true)
 	if err != nil {
-		return fmt.Errorf("Error getting usercard: %s", err)
+		m.Info("Could not get usercard, so skipping displaying stellar chain link: %s.")
+		return nil
 	}
 	selfUID := m.G().Env.GetUID()
 	if selfUID.IsNil() {
