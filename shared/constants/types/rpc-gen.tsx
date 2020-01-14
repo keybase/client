@@ -143,6 +143,18 @@ export type MessageTypes = {
     inParam: {readonly stats?: RuntimeStats | null}
     outParam: void
   }
+  'keybase.1.NotifySaltpack.saltpackOperationDone': {
+    inParam: {readonly opType: OperationType; readonly filename: String}
+    outParam: void
+  }
+  'keybase.1.NotifySaltpack.saltpackOperationProgress': {
+    inParam: {readonly opType: OperationType; readonly filename: String; readonly bytesComplete: Long; readonly bytesTotal: Long}
+    outParam: void
+  }
+  'keybase.1.NotifySaltpack.saltpackOperationStart': {
+    inParam: {readonly opType: OperationType; readonly filename: String}
+    outParam: void
+  }
   'keybase.1.NotifyService.HTTPSrvInfoUpdate': {
     inParam: {readonly info: HttpSrvInfo}
     outParam: void
@@ -2836,7 +2848,7 @@ export type NaclSigningKeyPrivate = string | null
 export type NaclSigningKeyPublic = string | null
 export type NextMerkleRootRes = {readonly res?: MerkleRootV2 | null}
 export type NonUserDetails = {readonly isNonUser: Boolean; readonly assertionValue: String; readonly assertionKey: String; readonly description: String; readonly contact?: ProcessedContact | null; readonly service?: APIUserServiceResult | null; readonly siteIcon?: Array<SizedImage> | null; readonly siteIconFull?: Array<SizedImage> | null; readonly siteIconWhite?: Array<SizedImage> | null}
-export type NotificationChannels = {readonly session: Boolean; readonly users: Boolean; readonly kbfs: Boolean; readonly kbfsdesktop: Boolean; readonly kbfslegacy: Boolean; readonly kbfssubscription: Boolean; readonly tracking: Boolean; readonly favorites: Boolean; readonly paperkeys: Boolean; readonly keyfamily: Boolean; readonly service: Boolean; readonly app: Boolean; readonly chat: Boolean; readonly pgp: Boolean; readonly kbfsrequest: Boolean; readonly badges: Boolean; readonly reachability: Boolean; readonly team: Boolean; readonly ephemeral: Boolean; readonly teambot: Boolean; readonly chatkbfsedits: Boolean; readonly chatdev: Boolean; readonly deviceclone: Boolean; readonly chatattachments: Boolean; readonly wallet: Boolean; readonly audit: Boolean; readonly runtimestats: Boolean; readonly featuredBots: Boolean}
+export type NotificationChannels = {readonly session: Boolean; readonly users: Boolean; readonly kbfs: Boolean; readonly kbfsdesktop: Boolean; readonly kbfslegacy: Boolean; readonly kbfssubscription: Boolean; readonly tracking: Boolean; readonly favorites: Boolean; readonly paperkeys: Boolean; readonly keyfamily: Boolean; readonly service: Boolean; readonly app: Boolean; readonly chat: Boolean; readonly pgp: Boolean; readonly kbfsrequest: Boolean; readonly badges: Boolean; readonly reachability: Boolean; readonly team: Boolean; readonly ephemeral: Boolean; readonly teambot: Boolean; readonly chatkbfsedits: Boolean; readonly chatdev: Boolean; readonly deviceclone: Boolean; readonly chatattachments: Boolean; readonly wallet: Boolean; readonly audit: Boolean; readonly runtimestats: Boolean; readonly featuredBots: Boolean; readonly saltpack: Boolean}
 export type OpDescription = {asyncOp: AsyncOps.list; list: ListArgs} | {asyncOp: AsyncOps.listRecursive; listRecursive: ListArgs} | {asyncOp: AsyncOps.listRecursiveToDepth; listRecursiveToDepth: ListToDepthArgs} | {asyncOp: AsyncOps.read; read: ReadArgs} | {asyncOp: AsyncOps.write; write: WriteArgs} | {asyncOp: AsyncOps.copy; copy: CopyArgs} | {asyncOp: AsyncOps.move; move: MoveArgs} | {asyncOp: AsyncOps.remove; remove: RemoveArgs} | {asyncOp: AsyncOps.getRevisions; getRevisions: GetRevisionsArgs}
 export type OpID = string | null
 export type OpProgress = {readonly start: Time; readonly endEstimate: Time; readonly opType: AsyncOps; readonly bytesTotal: Int64; readonly bytesRead: Int64; readonly bytesWritten: Int64; readonly filesTotal: Int64; readonly filesRead: Int64; readonly filesWritten: Int64}
@@ -3202,6 +3214,9 @@ export type IncomingCallMapType = {
   'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile'?: (params: MessageTypes['keybase.1.NotifyPGP.pgpKeyInSecretStoreFile']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyPhoneNumber.phoneNumbersChanged'?: (params: MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumbersChanged']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyRuntimeStats.runtimeStatsUpdate'?: (params: MessageTypes['keybase.1.NotifyRuntimeStats.runtimeStatsUpdate']['inParam'] & {sessionID: number}) => IncomingReturn
+  'keybase.1.NotifySaltpack.saltpackOperationStart'?: (params: MessageTypes['keybase.1.NotifySaltpack.saltpackOperationStart']['inParam'] & {sessionID: number}) => IncomingReturn
+  'keybase.1.NotifySaltpack.saltpackOperationProgress'?: (params: MessageTypes['keybase.1.NotifySaltpack.saltpackOperationProgress']['inParam'] & {sessionID: number}) => IncomingReturn
+  'keybase.1.NotifySaltpack.saltpackOperationDone'?: (params: MessageTypes['keybase.1.NotifySaltpack.saltpackOperationDone']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyService.HTTPSrvInfoUpdate'?: (params: MessageTypes['keybase.1.NotifyService.HTTPSrvInfoUpdate']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyService.shutdown'?: (params: MessageTypes['keybase.1.NotifyService.shutdown']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifySession.loggedOut'?: (params: MessageTypes['keybase.1.NotifySession.loggedOut']['inParam'] & {sessionID: number}) => IncomingReturn
@@ -3252,9 +3267,6 @@ export type IncomingCallMapType = {
   'keybase.1.rekeyUI.delegateRekeyUI'?: (params: MessageTypes['keybase.1.rekeyUI.delegateRekeyUI']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.rekeyUI.refresh'?: (params: MessageTypes['keybase.1.rekeyUI.refresh']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.rekeyUI.rekeySendEvent'?: (params: MessageTypes['keybase.1.rekeyUI.rekeySendEvent']['inParam'] & {sessionID: number}) => IncomingReturn
-  'keybase.1.saltpackProgressUi.saltpackOperationStart'?: (params: MessageTypes['keybase.1.saltpackProgressUi.saltpackOperationStart']['inParam'] & {sessionID: number}) => IncomingReturn
-  'keybase.1.saltpackProgressUi.saltpackOperationProgress'?: (params: MessageTypes['keybase.1.saltpackProgressUi.saltpackOperationProgress']['inParam'] & {sessionID: number}) => IncomingReturn
-  'keybase.1.saltpackProgressUi.saltpackOperationDone'?: (params: MessageTypes['keybase.1.saltpackProgressUi.saltpackOperationDone']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.saltpackUi.saltpackPromptForDecrypt'?: (params: MessageTypes['keybase.1.saltpackUi.saltpackPromptForDecrypt']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.saltpackUi.saltpackVerifySuccess'?: (params: MessageTypes['keybase.1.saltpackUi.saltpackVerifySuccess']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.saltpackUi.saltpackVerifyBadSender'?: (params: MessageTypes['keybase.1.saltpackUi.saltpackVerifyBadSender']['inParam'] & {sessionID: number}) => IncomingReturn
@@ -3333,6 +3345,9 @@ export type CustomResponseIncomingCallMap = {
   'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile'?: (params: MessageTypes['keybase.1.NotifyPGP.pgpKeyInSecretStoreFile']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyPGP.pgpKeyInSecretStoreFile']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyPhoneNumber.phoneNumbersChanged'?: (params: MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumbersChanged']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumbersChanged']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyRuntimeStats.runtimeStatsUpdate'?: (params: MessageTypes['keybase.1.NotifyRuntimeStats.runtimeStatsUpdate']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyRuntimeStats.runtimeStatsUpdate']['outParam']) => void}) => IncomingReturn
+  'keybase.1.NotifySaltpack.saltpackOperationStart'?: (params: MessageTypes['keybase.1.NotifySaltpack.saltpackOperationStart']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifySaltpack.saltpackOperationStart']['outParam']) => void}) => IncomingReturn
+  'keybase.1.NotifySaltpack.saltpackOperationProgress'?: (params: MessageTypes['keybase.1.NotifySaltpack.saltpackOperationProgress']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifySaltpack.saltpackOperationProgress']['outParam']) => void}) => IncomingReturn
+  'keybase.1.NotifySaltpack.saltpackOperationDone'?: (params: MessageTypes['keybase.1.NotifySaltpack.saltpackOperationDone']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifySaltpack.saltpackOperationDone']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyService.HTTPSrvInfoUpdate'?: (params: MessageTypes['keybase.1.NotifyService.HTTPSrvInfoUpdate']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyService.HTTPSrvInfoUpdate']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyService.shutdown'?: (params: MessageTypes['keybase.1.NotifyService.shutdown']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyService.shutdown']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifySession.loggedIn'?: (params: MessageTypes['keybase.1.NotifySession.loggedIn']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifySession.loggedIn']['outParam']) => void}) => IncomingReturn
@@ -3378,9 +3393,6 @@ export type CustomResponseIncomingCallMap = {
   'keybase.1.rekeyUI.delegateRekeyUI'?: (params: MessageTypes['keybase.1.rekeyUI.delegateRekeyUI']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.rekeyUI.delegateRekeyUI']['outParam']) => void}) => IncomingReturn
   'keybase.1.rekeyUI.refresh'?: (params: MessageTypes['keybase.1.rekeyUI.refresh']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.rekeyUI.refresh']['outParam']) => void}) => IncomingReturn
   'keybase.1.rekeyUI.rekeySendEvent'?: (params: MessageTypes['keybase.1.rekeyUI.rekeySendEvent']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.rekeyUI.rekeySendEvent']['outParam']) => void}) => IncomingReturn
-  'keybase.1.saltpackProgressUi.saltpackOperationStart'?: (params: MessageTypes['keybase.1.saltpackProgressUi.saltpackOperationStart']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.saltpackProgressUi.saltpackOperationStart']['outParam']) => void}) => IncomingReturn
-  'keybase.1.saltpackProgressUi.saltpackOperationProgress'?: (params: MessageTypes['keybase.1.saltpackProgressUi.saltpackOperationProgress']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.saltpackProgressUi.saltpackOperationProgress']['outParam']) => void}) => IncomingReturn
-  'keybase.1.saltpackProgressUi.saltpackOperationDone'?: (params: MessageTypes['keybase.1.saltpackProgressUi.saltpackOperationDone']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.saltpackProgressUi.saltpackOperationDone']['outParam']) => void}) => IncomingReturn
   'keybase.1.saltpackUi.saltpackPromptForDecrypt'?: (params: MessageTypes['keybase.1.saltpackUi.saltpackPromptForDecrypt']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.saltpackUi.saltpackPromptForDecrypt']['outParam']) => void}) => IncomingReturn
   'keybase.1.saltpackUi.saltpackVerifySuccess'?: (params: MessageTypes['keybase.1.saltpackUi.saltpackVerifySuccess']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.saltpackUi.saltpackVerifySuccess']['outParam']) => void}) => IncomingReturn
   'keybase.1.saltpackUi.saltpackVerifyBadSender'?: (params: MessageTypes['keybase.1.saltpackUi.saltpackVerifyBadSender']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.saltpackUi.saltpackVerifyBadSender']['outParam']) => void}) => IncomingReturn
@@ -3848,6 +3860,9 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile'
 // 'keybase.1.NotifyPhoneNumber.phoneNumbersChanged'
 // 'keybase.1.NotifyRuntimeStats.runtimeStatsUpdate'
+// 'keybase.1.NotifySaltpack.saltpackOperationStart'
+// 'keybase.1.NotifySaltpack.saltpackOperationProgress'
+// 'keybase.1.NotifySaltpack.saltpackOperationDone'
 // 'keybase.1.NotifyService.HTTPSrvInfoUpdate'
 // 'keybase.1.NotifyService.shutdown'
 // 'keybase.1.NotifySession.loggedOut'
@@ -3931,8 +3946,6 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.saltpack.saltpackDecrypt'
 // 'keybase.1.saltpack.saltpackSign'
 // 'keybase.1.saltpack.saltpackVerify'
-<<<<<<< HEAD
-=======
 // 'keybase.1.saltpack.saltpackEncryptString'
 // 'keybase.1.saltpack.saltpackEncryptFile'
 // 'keybase.1.saltpack.saltpackDecryptString'
@@ -3941,10 +3954,6 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.saltpack.saltpackSignFile'
 // 'keybase.1.saltpack.saltpackVerifyString'
 // 'keybase.1.saltpack.saltpackVerifyFile'
-// 'keybase.1.saltpackProgressUi.saltpackOperationStart'
-// 'keybase.1.saltpackProgressUi.saltpackOperationProgress'
-// 'keybase.1.saltpackProgressUi.saltpackOperationDone'
->>>>>>> dfd88373f4... Add progress ui
 // 'keybase.1.saltpackUi.saltpackPromptForDecrypt'
 // 'keybase.1.saltpackUi.saltpackVerifySuccess'
 // 'keybase.1.saltpackUi.saltpackVerifyBadSender'

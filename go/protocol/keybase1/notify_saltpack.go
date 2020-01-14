@@ -1,5 +1,5 @@
 // Auto-generated to Go types and interfaces using avdl-compiler v1.4.6 (https://github.com/keybase/node-avdl-compiler)
-//   Input file: avdl/keybase1/saltpack_progress_ui.avdl
+//   Input file: avdl/keybase1/notify_saltpack.avdl
 
 package keybase1
 
@@ -43,13 +43,11 @@ func (e OperationType) String() string {
 }
 
 type SaltpackOperationStartArg struct {
-	SessionID int           `codec:"sessionID" json:"sessionID"`
-	OpType    OperationType `codec:"opType" json:"opType"`
-	Filename  string        `codec:"filename" json:"filename"`
+	OpType   OperationType `codec:"opType" json:"opType"`
+	Filename string        `codec:"filename" json:"filename"`
 }
 
 type SaltpackOperationProgressArg struct {
-	SessionID     int           `codec:"sessionID" json:"sessionID"`
 	OpType        OperationType `codec:"opType" json:"opType"`
 	Filename      string        `codec:"filename" json:"filename"`
 	BytesComplete int64         `codec:"bytesComplete" json:"bytesComplete"`
@@ -57,20 +55,19 @@ type SaltpackOperationProgressArg struct {
 }
 
 type SaltpackOperationDoneArg struct {
-	SessionID int           `codec:"sessionID" json:"sessionID"`
-	OpType    OperationType `codec:"opType" json:"opType"`
-	Filename  string        `codec:"filename" json:"filename"`
+	OpType   OperationType `codec:"opType" json:"opType"`
+	Filename string        `codec:"filename" json:"filename"`
 }
 
-type SaltpackProgressUiInterface interface {
+type NotifySaltpackInterface interface {
 	SaltpackOperationStart(context.Context, SaltpackOperationStartArg) error
 	SaltpackOperationProgress(context.Context, SaltpackOperationProgressArg) error
 	SaltpackOperationDone(context.Context, SaltpackOperationDoneArg) error
 }
 
-func SaltpackProgressUiProtocol(i SaltpackProgressUiInterface) rpc.Protocol {
+func NotifySaltpackProtocol(i NotifySaltpackInterface) rpc.Protocol {
 	return rpc.Protocol{
-		Name: "keybase.1.saltpackProgressUi",
+		Name: "keybase.1.NotifySaltpack",
 		Methods: map[string]rpc.ServeHandlerDescription{
 			"saltpackOperationStart": {
 				MakeArg: func() interface{} {
@@ -121,21 +118,21 @@ func SaltpackProgressUiProtocol(i SaltpackProgressUiInterface) rpc.Protocol {
 	}
 }
 
-type SaltpackProgressUiClient struct {
+type NotifySaltpackClient struct {
 	Cli rpc.GenericClient
 }
 
-func (c SaltpackProgressUiClient) SaltpackOperationStart(ctx context.Context, __arg SaltpackOperationStartArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.saltpackProgressUi.saltpackOperationStart", []interface{}{__arg}, nil, 0*time.Millisecond)
+func (c NotifySaltpackClient) SaltpackOperationStart(ctx context.Context, __arg SaltpackOperationStartArg) (err error) {
+	err = c.Cli.Notify(ctx, "keybase.1.NotifySaltpack.saltpackOperationStart", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
-func (c SaltpackProgressUiClient) SaltpackOperationProgress(ctx context.Context, __arg SaltpackOperationProgressArg) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.saltpackProgressUi.saltpackOperationProgress", []interface{}{__arg}, 0*time.Millisecond)
+func (c NotifySaltpackClient) SaltpackOperationProgress(ctx context.Context, __arg SaltpackOperationProgressArg) (err error) {
+	err = c.Cli.Notify(ctx, "keybase.1.NotifySaltpack.saltpackOperationProgress", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }
 
-func (c SaltpackProgressUiClient) SaltpackOperationDone(ctx context.Context, __arg SaltpackOperationDoneArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.saltpackProgressUi.saltpackOperationDone", []interface{}{__arg}, nil, 0*time.Millisecond)
+func (c NotifySaltpackClient) SaltpackOperationDone(ctx context.Context, __arg SaltpackOperationDoneArg) (err error) {
+	err = c.Cli.Notify(ctx, "keybase.1.NotifySaltpack.saltpackOperationDone", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }

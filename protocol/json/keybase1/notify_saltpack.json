@@ -1,5 +1,5 @@
 {
-  "protocol": "saltpackProgressUi",
+  "protocol": "NotifySaltpack",
   "imports": [],
   "types": [
     {
@@ -17,10 +17,6 @@
     "saltpackOperationStart": {
       "request": [
         {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
           "name": "opType",
           "type": "OperationType"
         },
@@ -29,14 +25,11 @@
           "type": "string"
         }
       ],
-      "response": null
+      "response": null,
+      "oneway": true
     },
     "saltpackOperationProgress": {
       "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
         {
           "name": "opType",
           "type": "OperationType"
@@ -60,10 +53,6 @@
     "saltpackOperationDone": {
       "request": [
         {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
           "name": "opType",
           "type": "OperationType"
         },
@@ -72,7 +61,8 @@
           "type": "string"
         }
       ],
-      "response": null
+      "response": null,
+      "oneway": true
     }
   },
   "namespace": "keybase.1"
