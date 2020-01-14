@@ -90,7 +90,6 @@ const ChannelPicker = (props: Props) => {
           icon="iconfont-search"
           placeholderText={`Search channels in ${props.teamName}`}
           placeholderCentered={true}
-          mobileCancelButton={true}
           onChange={setSearchText}
           style={styles.searchFilter}
           focusOnMount={true}
