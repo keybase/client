@@ -96,7 +96,7 @@ func (b *blockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, inbox
 		indexMap[c.ConvIDStr] = index
 	}
 	for ar := range b.localizeCb {
-		res[indexMap[chat1.ConvIDStr(ar.ConvLocal.GetConvID().String())]] = ar.ConvLocal
+		res[indexMap[ar.ConvLocal.GetConvID().String()]] = ar.ConvLocal
 	}
 	return res, nil
 }

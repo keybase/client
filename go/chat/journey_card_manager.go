@@ -282,7 +282,7 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 		return nil, nil
 	}
 
-	teamID, err := keybase1.TeamIDFromString(tlfID.String())
+	teamID, err := keybase1.TeamIDFromString(tlfID.String().String())
 	if err != nil {
 		return nil, err
 	}
@@ -973,7 +973,7 @@ func (cc *JourneyCardManagerSingleUser) saveJoinedTimeWithLockInner(ctx context.
 }
 
 func (cc *JourneyCardManagerSingleUser) isOpenTeam(ctx context.Context, conv convForJourneycard) (open bool, err error) {
-	teamID, err := keybase1.TeamIDFromString(conv.TlfID.String())
+	teamID, err := keybase1.TeamIDFromString(conv.TlfID.String().String())
 	if err != nil {
 		return false, err
 	}
@@ -999,7 +999,7 @@ func (cc *JourneyCardManagerSingleUser) TimeTravel(ctx context.Context, duration
 		}
 		for convIDStr, conv := range jcd.Convs {
 			if conv.JoinedTime != nil {
-				convID, err := chat1.MakeConvID(convIDStr)
+				convID, err := chat1.MakeConvID(string(convIDStr))
 				if err != nil {
 					return fmt.Errorf("teamID:%v convID:%v err:%v", teamID, convIDStr, err)
 				}
@@ -1086,8 +1086,8 @@ const journeycardDiskVersion int = 2
 // Storage for a single team's journey cards.
 // Bump journeycardDiskVersion when making incompatible changes.
 type journeycardData struct {
-	DiskVersion int                                                                        `codec:"v,omitempty" json:"v,omitempty"`
-	Convs       map[string] /*keyed by chat1.ConversationID.String()*/ journeycardConvData `codec:"cv,omitempty" json:"cv,omitempty"`
+	DiskVersion int                                     `codec:"v,omitempty" json:"v,omitempty"`
+	Convs       map[chat1.ConvIDStr]journeycardConvData `codec:"cv,omitempty" json:"cv,omitempty"`
 	// Some card types can only appear once. This map locks a type into a particular conv.
 	Lockin                  map[chat1.JourneycardType]chat1.ConversationID `codec:"l,omitempty" json:"l,omitempty"`
 	ShownCardBesidesWelcome bool                                           `codec:"sbw,omitempty" json:"sbw,omitempty"`
@@ -1107,7 +1107,7 @@ type journeycardConvData struct {
 func newJourneycardData() journeycardData {
 	return journeycardData{
 		DiskVersion: journeycardDiskVersion,
-		Convs:       make(map[string]journeycardConvData),
+		Convs:       make(map[chat1.ConvIDStr]journeycardConvData),
 		Lockin:      make(map[chat1.JourneycardType]chat1.ConversationID),
 		Ctime:       gregor1.ToTime(time.Now()),
 	}
@@ -1126,7 +1126,7 @@ func newJourneycardConvData() journeycardConvData {
 // If the conversation did not exist, a new entry is created.
 func (j *journeycardData) MutateConv(convID chat1.ConversationID, apply func(journeycardConvData) journeycardConvData) journeycardData {
 	selectedConvIDStr := convID.String()
-	updatedConvs := make(map[string]journeycardConvData)
+	updatedConvs := make(map[chat1.ConvIDStr]journeycardConvData)
 	for convIDStr, conv := range j.Convs {
 		if convIDStr == selectedConvIDStr {
 			updatedConvs[convIDStr] = apply(conv)

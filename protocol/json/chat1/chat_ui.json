@@ -142,7 +142,7 @@
           "name": "name"
         },
         {
-          "type": "string",
+          "type": "TLFIDStr",
           "name": "id"
         }
       ]
@@ -1040,7 +1040,7 @@
         {
           "type": [
             null,
-            "GameIDStr"
+            "FlipGameIDStr"
           ],
           "name": "flipGameID"
         },
@@ -1114,7 +1114,7 @@
         {
           "type": [
             null,
-            "GameIDStr"
+            "FlipGameIDStr"
           ],
           "name": "flipGameID"
         },
@@ -1836,7 +1836,7 @@
       "name": "UICoinFlipStatus",
       "fields": [
         {
-          "type": "GameIDStr",
+          "type": "FlipGameIDStr",
           "name": "gameID"
         },
         {

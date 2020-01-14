@@ -1271,7 +1271,7 @@ func PresentRemoteConversation(ctx context.Context, g *globals.Context, rc types
 		tlfName = latest.TlfName
 	}
 	res.ConvID = rc.ConvIDStr
-	res.TlfID = chat1.TLFIDStr(rawConv.Metadata.IdTriple.Tlfid.String())
+	res.TlfID = rawConv.Metadata.IdTriple.Tlfid.String()
 	res.TopicType = rawConv.GetTopicType()
 	res.IsPublic = rawConv.Metadata.Visibility == keybase1.TLFVisibility_PUBLIC
 	res.IsDefaultConv = rawConv.Metadata.IsDefaultConv
@@ -1350,7 +1350,7 @@ func PresentConversationErrorLocal(ctx context.Context, g *globals.Context, rawC
 	res.RekeyInfo = rawConv.RekeyInfo
 	res.RemoteConv = PresentRemoteConversation(ctx, g, types.RemoteConversation{
 		Conv:      rawConv.RemoteConv,
-		ConvIDStr: chat1.ConvIDStr(rawConv.RemoteConv.GetConvID().String()),
+		ConvIDStr: rawConv.RemoteConv.GetConvID().String(),
 	})
 	res.Typ = rawConv.Typ
 	res.UnverifiedTLFName = rawConv.UnverifiedTLFName
@@ -1390,8 +1390,8 @@ const (
 
 func PresentConversationLocal(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	rawConv chat1.ConversationLocal, partMode PresentParticipantsMode) (res chat1.InboxUIItem) {
-	res.ConvID = chat1.ConvIDStr(rawConv.GetConvID().String())
-	res.TlfID = chat1.TLFIDStr(rawConv.Info.Triple.Tlfid.String())
+	res.ConvID = rawConv.GetConvID().String()
+	res.TlfID = rawConv.Info.Triple.Tlfid.String()
 	res.TopicType = rawConv.GetTopicType()
 	res.IsPublic = rawConv.Info.Visibility == keybase1.TLFVisibility_PUBLIC
 	res.IsDefaultConv = rawConv.Info.IsDefaultConv
@@ -1473,7 +1473,7 @@ func PresentChannelNameMentions(ctx context.Context, crs []chat1.ChannelNameMent
 	for _, cr := range crs {
 		res = append(res, chat1.UIChannelNameMention{
 			Name:   cr.TopicName,
-			ConvID: chat1.ConvIDStr(cr.ConvID.String()),
+			ConvID: cr.ConvID.String(),
 		})
 	}
 	return res
@@ -1734,7 +1734,7 @@ func loadTeamMentions(ctx context.Context, g *globals.Context, uid gregor1.UID,
 }
 
 func presentFlipGameID(ctx context.Context, g *globals.Context, uid gregor1.UID,
-	convID chat1.ConversationID, msg chat1.MessageUnboxed) *chat1.GameIDStr {
+	convID chat1.ConversationID, msg chat1.MessageUnboxed) *chat1.FlipGameIDStr {
 	typ, err := msg.State()
 	if err != nil {
 		return nil
@@ -1756,7 +1756,7 @@ func presentFlipGameID(ctx context.Context, g *globals.Context, uid gregor1.UID,
 		g.CoinFlipManager.LoadFlip(ctx, uid, convID, msg.GetMessageID(), body.Flip().FlipConvID,
 			body.Flip().GameID)
 	}
-	ret := chat1.GameIDStr(body.Flip().GameID.String())
+	ret := body.Flip().GameID.String()
 	return &ret
 }
 
@@ -2046,7 +2046,7 @@ func DecodeBase64(enc []byte) ([]byte, error) {
 func RemoteConv(conv chat1.Conversation) types.RemoteConversation {
 	return types.RemoteConversation{
 		Conv:      conv,
-		ConvIDStr: chat1.ConvIDStr(conv.GetConvID().String()),
+		ConvIDStr: conv.GetConvID().String(),
 	}
 }
 
@@ -2554,7 +2554,7 @@ func DecorateWithMentions(ctx context.Context, body string, atMentions []string,
 			body, added = DecorateBody(ctx, body, c.position[0]+offset-1, c.Len()+1,
 				chat1.NewUITextDecorationWithChannelnamemention(chat1.UIChannelNameMention{
 					Name:   c.name,
-					ConvID: chat1.ConvIDStr(convID.String()),
+					ConvID: convID.String(),
 				}))
 			offset += added
 		}
@@ -2707,7 +2707,7 @@ func DBConvLess(a pager.InboxEntry, b pager.InboxEntry) bool {
 }
 
 func ExportToSummary(i chat1.InboxUIItem) (s chat1.ConvSummary) {
-	s.Id = chat1.ConvIDStr(i.ConvID)
+	s.Id = i.ConvID
 	s.IsDefaultConv = i.IsDefaultConv
 	s.Unread = i.ReadMsgID < i.MaxVisibleMsgID
 	s.ActiveAt = i.Time.UnixSeconds()

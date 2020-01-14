@@ -113,7 +113,7 @@ func getKeyViaFTL(mctx libkb.MetaContext, name string, tlfID chat1.TLFID,
 	switch membersType {
 	case chat1.ConversationMembersType_TEAM,
 		chat1.ConversationMembersType_IMPTEAMNATIVE:
-		teamID, err = keybase1.TeamIDFromString(tlfID.String())
+		teamID, err = keybase1.TeamIDFromString(tlfID.String().String())
 		if err != nil {
 			return res, err
 		}
@@ -269,7 +269,7 @@ func (t *TeamLoader) loadTeam(ctx context.Context, tlfID chat1.TLFID,
 	switch membersType {
 	case chat1.ConversationMembersType_TEAM,
 		chat1.ConversationMembersType_IMPTEAMNATIVE:
-		teamID, err := keybase1.TeamIDFromString(tlfID.String())
+		teamID, err := keybase1.TeamIDFromString(tlfID.String().String())
 		if err != nil {
 			return nil, err
 		}
@@ -355,7 +355,7 @@ func (t *TeamsNameInfoSource) LookupID(ctx context.Context, name string, public 
 func (t *TeamsNameInfoSource) LookupName(ctx context.Context, tlfID chat1.TLFID, public bool,
 	unverifiedTLFName string) (res types.NameInfo, err error) {
 	defer t.Trace(ctx, func() error { return err }, fmt.Sprintf("LookupName(%s)", tlfID))()
-	teamID, err := keybase1.TeamIDFromString(tlfID.String())
+	teamID, err := keybase1.TeamIDFromString(tlfID.String().String())
 	if err != nil {
 		return res, err
 	}
@@ -460,7 +460,7 @@ func (t *TeamsNameInfoSource) EphemeralEncryptionKey(mctx libkb.MetaContext, tlf
 		return ek, NewPublicTeamEphemeralKeyError()
 	}
 
-	teamID, err := keybase1.TeamIDFromString(tlfID.String())
+	teamID, err := keybase1.TeamIDFromString(tlfID.String().String())
 	if err != nil {
 		return ek, err
 	}
@@ -479,7 +479,7 @@ func (t *TeamsNameInfoSource) EphemeralDecryptionKey(mctx libkb.MetaContext, tlf
 		return ek, NewPublicTeamEphemeralKeyError()
 	}
 
-	teamID, err := keybase1.TeamIDFromString(tlfID.String())
+	teamID, err := keybase1.TeamIDFromString(tlfID.String().String())
 	if err != nil {
 		return ek, err
 	}
@@ -877,7 +877,7 @@ func newTlfIDToTeamIDMap() *tlfIDToTeamIDMap {
 }
 
 func TLFIDToTeamID(tlfID chat1.TLFID) (keybase1.TeamID, error) {
-	return keybase1.TeamIDFromString(tlfID.String())
+	return keybase1.TeamIDFromString(tlfID.String().String())
 }
 
 // Lookup gives the server trust mapping between tlfID and teamID
@@ -887,7 +887,7 @@ func (t *tlfIDToTeamIDMap) Lookup(mctx libkb.MetaContext, tlfID chat1.TLFID, api
 	}
 	arg := libkb.NewAPIArg("team/id")
 	arg.Args = libkb.NewHTTPArgs()
-	arg.Args.Add("tlf_id", libkb.S{Val: tlfID.String()})
+	arg.Args.Add("tlf_id", libkb.S{Val: tlfID.String().String()})
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	apiRes, err := api.Get(mctx, arg)
 	if err != nil {

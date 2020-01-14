@@ -40,9 +40,8 @@ type BadgeState struct {
 	env            *libkb.Env
 	state          keybase1.BadgeState
 
-	inboxVers chat1.InboxVers
-	// Map from ConversationID.String to BadgeConversationInfo.
-	chatUnreadMap map[string]keybase1.BadgeConversationInfo
+	inboxVers     chat1.InboxVers
+	chatUnreadMap map[chat1.ConvIDStr]keybase1.BadgeConversationInfo
 
 	walletUnreadMap map[stellar1.AccountID]int
 }
@@ -63,7 +62,7 @@ func newBadgeState(log logger.Logger, env *libkb.Env) *BadgeState {
 		log:             log,
 		env:             env,
 		inboxVers:       chat1.InboxVers(0),
-		chatUnreadMap:   make(map[string]keybase1.BadgeConversationInfo),
+		chatUnreadMap:   make(map[chat1.ConvIDStr]keybase1.BadgeConversationInfo),
 		walletUnreadMap: make(map[stellar1.AccountID]int),
 		localChatState:  dummyLocalChatState{},
 	}
@@ -433,7 +432,7 @@ func (b *BadgeState) UpdateWithChatFull(ctx context.Context, update chat1.Unread
 	case chat1.SyncInboxResType_CURRENT:
 	case chat1.SyncInboxResType_INCREMENTAL:
 	case chat1.SyncInboxResType_CLEAR:
-		b.chatUnreadMap = make(map[string]keybase1.BadgeConversationInfo)
+		b.chatUnreadMap = make(map[chat1.ConvIDStr]keybase1.BadgeConversationInfo)
 	}
 
 	for _, upd := range update.Updates {
@@ -449,7 +448,7 @@ func (b *BadgeState) Clear() {
 
 	b.state = keybase1.BadgeState{}
 	b.inboxVers = chat1.InboxVers(0)
-	b.chatUnreadMap = make(map[string]keybase1.BadgeConversationInfo)
+	b.chatUnreadMap = make(map[chat1.ConvIDStr]keybase1.BadgeConversationInfo)
 	b.walletUnreadMap = make(map[stellar1.AccountID]int)
 }
 

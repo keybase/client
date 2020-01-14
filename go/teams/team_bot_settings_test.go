@@ -55,7 +55,7 @@ func TestTeamBotSettings(t *testing.T) {
 		Cmds:     true,
 		Mentions: true,
 		Triggers: []string{"shipit"},
-		Convs:    []string{chat1.ConversationID([]byte("convo")).String()},
+		Convs:    []keybase1.ChatConversationID{keybase1.ChatConversationID(chat1.ConversationID([]byte("convo")).String())},
 	}
 	err = team.PostTeamBotSettings(context.TODO(), map[keybase1.UserVersion]keybase1.TeamBotSettings{
 		rBotua1UV: botSettings1,
@@ -133,7 +133,7 @@ func TestTeamBotSettings(t *testing.T) {
 	require.Error(t, err)
 
 	// bad conv ids
-	expectedBots[rBotua1UV] = keybase1.TeamBotSettings{Convs: []string{"not hex"}}
+	expectedBots[rBotua1UV] = keybase1.TeamBotSettings{Convs: []keybase1.ChatConversationID{keybase1.ChatConversationID("not hex")}}
 	err = team.PostTeamBotSettings(context.TODO(), expectedBots)
 	require.Error(t, err)
 }

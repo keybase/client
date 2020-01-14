@@ -23,7 +23,7 @@ func (s *Storage) GetPurgeInfo(ctx context.Context, uid gregor1.UID, convID chat
 // time we need to purge this conv.
 func (s *Storage) EphemeralPurge(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo) (newPurgeInfo *chat1.EphemeralPurgeInfo, explodedMsgs []chat1.MessageUnboxed, err Error) {
 	defer s.Trace(ctx, func() error { return err }, "EphemeralPurge")()
-	lock := locks.StorageLockTab.AcquireOnName(ctx, s.G(), convID.String())
+	lock := locks.StorageLockTab.AcquireOnName(ctx, s.G(), convID.String().String())
 	defer lock.Release(ctx)
 
 	if purgeInfo == nil {

@@ -16,7 +16,7 @@ type CmdTeamBotSettings struct {
 	libkb.Contextified
 	Team        string
 	Username    string
-	BotSettings *keybase1.TeamBotSettings
+	BotSettings *TeamBotSettings
 }
 
 func newCmdTeamBotSettings(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -63,13 +63,14 @@ func (c *CmdTeamBotSettings) Run() error {
 		return err
 	}
 
-	if err := ValidateBotSettingsConvs(c.G(), c.Team,
-		chat1.ConversationMembersType_TEAM, c.BotSettings); err != nil {
+	botSettingsPtr, err := ValidateBotSettingsConvs(c.G(), c.Team,
+		chat1.ConversationMembersType_TEAM, c.BotSettings)
+	if err != nil {
 		return err
 	}
 
 	var botSettings keybase1.TeamBotSettings
-	if c.BotSettings == nil {
+	if botSettingsPtr == nil {
 		arg := keybase1.TeamGetBotSettingsArg{
 			Name:     c.Team,
 			Username: c.Username,
@@ -79,7 +80,7 @@ func (c *CmdTeamBotSettings) Run() error {
 			return err
 		}
 	} else {
-		botSettings = *c.BotSettings
+		botSettings = *botSettingsPtr
 		arg := keybase1.TeamSetBotSettingsArg{
 			Name:        c.Team,
 			Username:    c.Username,
@@ -163,7 +164,7 @@ func renderBotSettings(g *libkb.GlobalContext, username string, convID *chat1.Co
 func getConvNames(g *libkb.GlobalContext, botSettings keybase1.TeamBotSettings) (convNames []string, err error) {
 	fetcher := chatCLIInboxFetcher{}
 	for _, convIDStr := range botSettings.Convs {
-		convID, err := chat1.MakeConvID(convIDStr)
+		convID, err := chat1.MakeConvID(convIDStr.String())
 		if err != nil {
 			return nil, err
 		}
