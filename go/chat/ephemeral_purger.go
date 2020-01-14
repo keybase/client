@@ -36,15 +36,14 @@ func (q *queueItem) String() string {
 type priorityQueue struct {
 	sync.RWMutex
 
-	queue []*queueItem
-	// convID -> *queueItem
-	itemMap map[string]*queueItem
+	queue   []*queueItem
+	itemMap map[chat1.ConvIDStr]*queueItem
 }
 
 func newPriorityQueue() *priorityQueue {
 	return &priorityQueue{
 		queue:   []*queueItem{},
-		itemMap: make(map[string]*queueItem),
+		itemMap: make(map[chat1.ConvIDStr]*queueItem),
 	}
 }
 

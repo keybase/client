@@ -2009,7 +2009,7 @@ func (e ChatEphemeralRetentionPolicyViolatedError) ToStatus() keybase1.Status {
 func (e ChatConvExistsError) ToStatus() keybase1.Status {
 	kv := keybase1.StringKVPair{
 		Key:   "ConvID",
-		Value: e.ConvID.String(),
+		Value: e.ConvID.String().String(),
 	}
 	return keybase1.Status{
 		Code:   SCChatConvExists,
@@ -2022,7 +2022,7 @@ func (e ChatConvExistsError) ToStatus() keybase1.Status {
 func (e ChatUnknownTLFIDError) ToStatus() keybase1.Status {
 	kv := keybase1.StringKVPair{
 		Key:   "TlfID",
-		Value: e.TlfID.String(),
+		Value: e.TlfID.String().String(),
 	}
 	return keybase1.Status{
 		Code:   SCChatUnknownTLFID,
@@ -2107,7 +2107,7 @@ func (e ChatAlreadyDeletedError) ToStatus() keybase1.Status {
 func (e ChatTLFFinalizedError) ToStatus() keybase1.Status {
 	kv := keybase1.StringKVPair{
 		Key:   "TlfID",
-		Value: e.TlfID.String(),
+		Value: e.TlfID.String().String(),
 	}
 	return keybase1.Status{
 		Code:   SCChatTLFFinalized,

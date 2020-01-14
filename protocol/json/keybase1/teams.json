@@ -2578,7 +2578,7 @@
         {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "ChatConversationID"
           },
           "name": "convs"
         }

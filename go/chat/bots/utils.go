@@ -50,7 +50,7 @@ func ApplyTeamBotSettings(ctx context.Context, g *globals.Context, botUID gregor
 	if convID != nil {
 		convAllowed := len(botSettings.Convs) == 0
 		for _, convIDStr := range botSettings.Convs {
-			cid, err := chat1.MakeConvID(convIDStr)
+			cid, err := chat1.MakeConvID(convIDStr.String())
 			if err != nil {
 				debug.Debug(ctx, "unable to parse convID: %v", err)
 				continue

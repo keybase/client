@@ -69,7 +69,7 @@ func (s *Syncer) Shutdown() {
 }
 
 func (s *Syncer) dedupUpdates(updates []chat1.ConversationStaleUpdate) (res []chat1.ConversationStaleUpdate) {
-	m := make(map[string]chat1.ConversationStaleUpdate)
+	m := make(map[chat1.ConvIDStr]chat1.ConversationStaleUpdate)
 	for _, update := range updates {
 		if existing, ok := m[update.ConvID.String()]; ok {
 			switch existing.UpdateType {
@@ -211,7 +211,7 @@ func (s *Syncer) handleMembersTypeChanged(ctx context.Context, uid gregor1.UID,
 
 func (s *Syncer) handleFilteredConvs(ctx context.Context, uid gregor1.UID, syncConvs []chat1.Conversation,
 	filteredConvs []types.RemoteConversation) {
-	fmap := make(map[string]bool)
+	fmap := make(map[chat1.ConvIDStr]bool)
 	for _, fconv := range filteredConvs {
 		fmap[fconv.Conv.GetConvID().String()] = true
 	}
@@ -239,7 +239,7 @@ func (s *Syncer) getShouldUnboxSyncConvMap(ctx context.Context, convs []chat1.Co
 	topicNameChanged []chat1.ConversationID) (m map[chat1.ConvIDStr]bool) {
 	m = make(map[chat1.ConvIDStr]bool)
 	for _, t := range topicNameChanged {
-		m[chat1.ConvIDStr(t.String())] = true
+		m[t.String()] = true
 	}
 	rconvs := utils.RemoteConvs(convs)
 	sort.Slice(rconvs, func(i, j int) bool {
@@ -315,7 +315,7 @@ func (s *Syncer) notifyIncrementalSync(ctx context.Context, uid gregor1.UID,
 		itemsByTopicType[c.GetTopicType()] = append(itemsByTopicType[c.GetTopicType()],
 			chat1.ChatSyncIncrementalConv{
 				Conv:        utils.PresentRemoteConversation(ctx, s.G(), rc),
-				ShouldUnbox: shouldUnboxMap[chat1.ConvIDStr(c.GetConvID().String())],
+				ShouldUnbox: shouldUnboxMap[c.GetConvID().String()],
 			})
 	}
 	for _, topicType := range chat1.TopicTypeMap {
@@ -401,7 +401,7 @@ func (s *Syncer) Sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 			vers, incr.Vers, len(incr.Convs))
 
 		var iboxSyncRes types.InboxSyncRes
-		expunges := make(map[string]chat1.Expunge)
+		expunges := make(map[chat1.ConvIDStr]chat1.Expunge)
 		if iboxSyncRes, err = s.G().InboxSource.Sync(ctx, uid, incr.Vers, incr.Convs); err != nil {
 			s.Debug(ctx, "Sync: failed to sync conversations to inbox: %s", err.Error())
 

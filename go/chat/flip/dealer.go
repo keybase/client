@@ -39,7 +39,7 @@ func (m GameMessageWrapped) GameMetadata() GameMetadata {
 }
 
 func (g GameMetadata) ToKey() GameKey {
-	return GameKey(strings.Join([]string{g.Initiator.U.String(), g.Initiator.D.String(), g.ConversationID.String(), g.GameID.String()}, ","))
+	return GameKey(strings.Join([]string{g.Initiator.U.String(), g.Initiator.D.String(), g.ConversationID.String().String(), g.GameID.String().String()}, ","))
 }
 
 func (g GameMetadata) String() string {

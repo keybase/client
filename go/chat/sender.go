@@ -1164,7 +1164,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 			}
 		}
 		if conv.GetMembersType() == chat1.ConversationMembersType_TEAM {
-			teamID, err := keybase1.TeamIDFromString(conv.Info.Triple.Tlfid.String())
+			teamID, err := keybase1.TeamIDFromString(conv.Info.Triple.Tlfid.String().String())
 			if err != nil {
 				s.Debug(ctx, "Send: failed to get team ID: %v", err)
 			} else {
@@ -1794,7 +1794,7 @@ func (s *Deliverer) deliverLoop() {
 			continue
 		}
 
-		convMap := make(map[string][]chat1.OutboxRecord)
+		convMap := make(map[chat1.ConvIDStr][]chat1.OutboxRecord)
 		for _, o := range obrs {
 			obr := o
 			convMap[obr.ConvID.String()] = append(convMap[obr.ConvID.String()], obr)

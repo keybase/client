@@ -57,7 +57,7 @@ func TestChatSubteamRename(t *testing.T) {
 		require.NoError(t, err)
 		ctc.teamCache[subSubteamName.String()] = subSubteamName.String()
 
-		versMap := make(map[string]chat1.ConversationVers)
+		versMap := make(map[chat1.ConvIDStr]chat1.ConversationVers)
 		var convs []chat1.ConversationInfoLocal
 		for _, name := range []string{subteamName.String(), subSubteamName.String()} {
 			for i := 0; i < 2; i++ {

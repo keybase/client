@@ -29,7 +29,7 @@ type chatClient struct {
 	ch         chan GameMessageWrappedEncoded
 	server     *chatServer
 	dealer     *Dealer
-	history    map[string]bool
+	history    map[chat1.ConvIDStr]bool
 	clock      clockwork.FakeClock
 	deliver    func(m GameMessageWrappedEncoded)
 }
@@ -123,7 +123,7 @@ func (s *chatServer) newClient() *chatClient {
 		me:         newTestUser(),
 		ch:         make(chan GameMessageWrappedEncoded, 1000),
 		server:     s,
-		history:    make(map[string]bool),
+		history:    make(map[chat1.ConvIDStr]bool),
 	}
 	ret.dealer = NewDealer(ret)
 	ret.deliver = func(m GameMessageWrappedEncoded) {

@@ -53,7 +53,7 @@ func TestTeamChannelSource(t *testing.T) {
 		}
 
 		// Verify all public functions of the team channel source return the expected results.
-		assertTeamChannelSource := func(g *globals.Context, uid gregor1.UID, expectedResults map[string]expectedResult) {
+		assertTeamChannelSource := func(g *globals.Context, uid gregor1.UID, expectedResults map[chat1.ConvIDStr]expectedResult) {
 			convs, err := g.TeamChannelSource.GetChannelsFull(ctx, uid, tlfID, chat1.TopicType_CHAT)
 			require.NoError(t, err)
 			require.Equal(t, len(expectedResults), len(convs))
@@ -97,8 +97,8 @@ func TestTeamChannelSource(t *testing.T) {
 			TopicName:    "general",
 		}
 		// Both members can see the #general channel and are ACTIVE
-		expectedResults1 := map[string]expectedResult{conv.Id.String(): generalChannel}
-		expectedResults2 := map[string]expectedResult{conv.Id.String(): generalChannel}
+		expectedResults1 := map[chat1.ConvIDStr]expectedResult{conv.Id.String(): generalChannel}
+		expectedResults2 := map[chat1.ConvIDStr]expectedResult{conv.Id.String(): generalChannel}
 		assertTeamChannelSource(g1, uid1, expectedResults1)
 		assertTeamChannelSource(g2, uid2, expectedResults2)
 

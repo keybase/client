@@ -26,7 +26,7 @@ func TestJourneycardStorage(t *testing.T) {
 	teamConv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_TEAM)
 	t.Logf("teamconv: %x", teamConv.Id.DbShortForm())
-	teamID, err := keybase1.TeamIDFromString(teamConv.Triple.Tlfid.String())
+	teamID, err := keybase1.TeamIDFromString(teamConv.Triple.Tlfid.String().String())
 	require.NoError(t, err)
 	convID := teamConv.Id
 
@@ -78,7 +78,7 @@ func TestJourneycardDismiss(t *testing.T) {
 	teamConv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_TEAM)
 	t.Logf("teamconv: %x", teamConv.Id.DbShortForm())
-	teamID, err := keybase1.TeamIDFromString(teamConv.Triple.Tlfid.String())
+	teamID, err := keybase1.TeamIDFromString(teamConv.Triple.Tlfid.String().String())
 	require.NoError(t, err)
 	convID := teamConv.Id
 

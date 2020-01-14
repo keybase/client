@@ -73,7 +73,7 @@ func (t *TypingMonitor) convKey(key string, convID chat1.ConversationID) bool {
 	if len(toks) != 3 {
 		return false
 	}
-	return toks[2] == convID.String()
+	return toks[2] == convID.String().String()
 }
 
 func (t *TypingMonitor) notifyConvUpdateLocked(ctx context.Context, convID chat1.ConversationID) {

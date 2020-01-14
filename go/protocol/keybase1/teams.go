@@ -2974,10 +2974,10 @@ func (o TeamSettings) DeepCopy() TeamSettings {
 }
 
 type TeamBotSettings struct {
-	Cmds     bool     `codec:"cmds" json:"cmds"`
-	Mentions bool     `codec:"mentions" json:"mentions"`
-	Triggers []string `codec:"triggers" json:"triggers"`
-	Convs    []string `codec:"convs" json:"convs"`
+	Cmds     bool                 `codec:"cmds" json:"cmds"`
+	Mentions bool                 `codec:"mentions" json:"mentions"`
+	Triggers []string             `codec:"triggers" json:"triggers"`
+	Convs    []ChatConversationID `codec:"convs" json:"convs"`
 }
 
 func (o TeamBotSettings) DeepCopy() TeamBotSettings {
@@ -2995,13 +2995,13 @@ func (o TeamBotSettings) DeepCopy() TeamBotSettings {
 			}
 			return ret
 		})(o.Triggers),
-		Convs: (func(x []string) []string {
+		Convs: (func(x []ChatConversationID) []ChatConversationID {
 			if x == nil {
 				return nil
 			}
-			ret := make([]string, len(x))
+			ret := make([]ChatConversationID, len(x))
 			for i, v := range x {
-				vCopy := v
+				vCopy := v.DeepCopy()
 				ret[i] = vCopy
 			}
 			return ret

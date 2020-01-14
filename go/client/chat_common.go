@@ -46,7 +46,7 @@ func postRetentionPolicy(ctx context.Context, lcli chat1.LocalClient, tui libkb.
 	}
 
 	if teamWide {
-		teamID, err := keybase1.TeamIDFromString(conv.Info.Triple.Tlfid.String())
+		teamID, err := keybase1.TeamIDFromString(conv.Info.Triple.Tlfid.String().String())
 		if err != nil {
 			return err
 		}
