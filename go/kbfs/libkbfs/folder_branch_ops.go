@@ -9443,7 +9443,7 @@ func (fbo *folderBranchOps) receiveNewEditChat(
 
 func (fbo *folderBranchOps) initEditChatChannels(
 	ctx context.Context, name tlf.CanonicalName) (
-	idToName map[string]string,
+	idToName map[chat1.ConvIDStr]string,
 	nameToID map[string]chat1.ConversationID,
 	nameToNextPage map[string][]byte, err error) {
 	convIDs, channelNames, err := fbo.config.Chat().GetChannels(
@@ -9452,7 +9452,7 @@ func (fbo *folderBranchOps) initEditChatChannels(
 		return nil, nil, nil, err
 	}
 
-	idToName = make(map[string]string, len(convIDs))
+	idToName = make(map[chat1.ConvIDStr]string, len(convIDs))
 	nameToID = make(map[string]chat1.ConversationID, len(convIDs))
 	nameToNextPage = make(map[string][]byte, len(convIDs))
 	for i, id := range convIDs {
@@ -9588,10 +9588,10 @@ func (fbo *folderBranchOps) handleEditActivity(
 	ctx context.Context,
 	a editChannelActivity,
 	tlfName tlf.CanonicalName,
-	idToName map[string]string,
+	idToName map[chat1.ConvIDStr]string,
 	nameToID map[string]chat1.ConversationID,
 	nameToNextPage map[string][]byte) (
-	idToNameRet map[string]string,
+	idToNameRet map[chat1.ConvIDStr]string,
 	nameToIDRet map[string]chat1.ConversationID,
 	nameToNextPageRet map[string][]byte, err error) {
 	var rmd ImmutableRootMetadata
@@ -9685,7 +9685,7 @@ func (fbo *folderBranchOps) monitorEditsChat(tlfName tlf.CanonicalName) {
 		close(monitoringCh)
 	}()
 
-	idToName := make(map[string]string)
+	idToName := make(map[chat1.ConvIDStr]string)
 	nameToID := make(map[string]chat1.ConversationID)
 	nameToNextPage := make(map[string][]byte)
 

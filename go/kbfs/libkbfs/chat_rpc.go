@@ -44,7 +44,7 @@ type ChatRPC struct {
 	client   chat1.LocalInterface
 
 	convLock          sync.RWMutex
-	convCBs           map[string][]ChatChannelNewMessageCB
+	convCBs           map[chat1.ConvIDStr][]ChatChannelNewMessageCB
 	selfConvID        chat1.ConversationID
 	lastWrittenConvID chat1.ConversationID
 }
@@ -60,7 +60,7 @@ func NewChatRPC(config Config, kbCtx Context) *ChatRPC {
 		vlog:     config.MakeVLogger(log),
 		deferLog: deferLog,
 		config:   config,
-		convCBs:  make(map[string][]ChatChannelNewMessageCB),
+		convCBs:  make(map[chat1.ConvIDStr][]ChatChannelNewMessageCB),
 	}
 	conn := NewSharedKeybaseConnection(kbCtx, config, c)
 	c.client = chat1.LocalClient{Cli: conn.GetClient()}
