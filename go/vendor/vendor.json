@@ -926,10 +926,10 @@
 			"revisionTime": "2020-01-10T21:55:44Z"
 		},
 		{
-			"checksumSHA1": "ffC5qvAmfgvFbIYgKbE2E7fwQg8=",
+			"checksumSHA1": "jjdnu/v/9fCWxjG2kzklVzbREPY=",
 			"path": "github.com/keybase/go-updater/watchdog",
-			"revision": "1508f4b2413e255882e26002f3c15f6705c3d7ad",
-			"revisionTime": "2020-01-10T21:55:44Z"
+			"revision": "2f4f1dc659efb446f52cd69ae5027e9eaef8f41b",
+			"revisionTime": "2020-01-14T21:05:03Z"
 		},
 		{
 			"checksumSHA1": "rRRQUZrxRapCpdmV2BUgmJRE/ww=",

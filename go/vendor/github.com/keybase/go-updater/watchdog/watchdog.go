@@ -42,17 +42,24 @@ type Log interface {
 // Watch monitors programs and restarts them if they aren't running
 func Watch(programs []Program, restartDelay time.Duration, log Log) error {
 	// Terminate any existing programs that we are supposed to monitor
+	log.Infof("Terminating any existing programs we will be monitoring")
 	terminateExisting(programs, log)
 
+	// any program can terminate everything if it's ExitAllOnSuccess
+	exitAll := func() {
+		log.Infof("Terminating any other programs we are monitoring")
+		terminateExisting(programs, log)
+		os.Exit(0)
+	}
 	// Start monitoring all the programs
-	watchPrograms(programs, restartDelay, log)
+	watchPrograms(programs, restartDelay, log, exitAll)
+
 	return nil
 }
 
 func terminateExisting(programs []Program, log Log) {
 	// Terminate any monitored processes
 	ospid := os.Getpid()
-	log.Infof("Terminating any existing programs we will be monitoring")
 	for _, program := range programs {
 		matcher := process.NewMatcher(program.Path, process.PathEqual, log)
 		matcher.ExceptPID(ospid)
@@ -61,15 +68,15 @@ func terminateExisting(programs []Program, log Log) {
 	}
 }
 
-func watchPrograms(programs []Program, delay time.Duration, log Log) {
+func watchPrograms(programs []Program, delay time.Duration, log Log, exitAll func()) {
 	for _, program := range programs {
-		go watchProgram(program, delay, log)
+		go watchProgram(program, delay, log, exitAll)
 	}
 }
 
 // watchProgram will monitor a program and restart it if it exits.
 // This method will run forever.
-func watchProgram(program Program, restartDelay time.Duration, log Log) {
+func watchProgram(program Program, restartDelay time.Duration, log Log, exitAll func()) {
 	for {
 		start := time.Now()
 		log.Infof("Starting %#v", program)
@@ -84,8 +91,7 @@ func watchProgram(program Program, restartDelay time.Duration, log Log) {
 				break
 			} else if program.ExitOn == ExitAllOnSuccess {
 				log.Infof("Program configured to exit on success, exiting")
-				// presumably the other watches are sleeping anyway
-				os.Exit(0)
+				exitAll()
 			}
 		}
 		log.Infof("Program ran for %s", time.Since(start))
