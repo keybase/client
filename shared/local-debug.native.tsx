@@ -6,7 +6,7 @@ import noop from 'lodash/noop'
 
 const nativeBridge = NativeModules.KeybaseEngine || {test: 'fallback'}
 
-// Uncomment this to disable yellowboxes
+// Toggle this to disable yellowboxes
 console.disableYellowBox = false
 //
 // Ignore some yellowboxes on 3rd party libs we can't control

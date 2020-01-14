@@ -165,6 +165,7 @@ const styles = Styles.styleSheetCreate(
       image: {
         left: '50%',
         position: 'absolute',
+        top: 0,
       },
       teamnameText: Styles.platformStyles({
         common: {
