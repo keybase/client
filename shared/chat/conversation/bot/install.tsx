@@ -384,6 +384,12 @@ const InstallBotPopup = (props: Props) => {
     : featured
     ? featuredContent
     : usernameContent
+  const getHeight = () => {
+    if (channelPickerScreen) {
+      return 440
+    }
+    return 560
+  }
   const showInstallButton = installScreen && !inTeam && !channelPickerScreen
   const showReviewButton = !installScreen && !inTeam
   const showRemoveButton = inTeam && !installScreen
@@ -521,7 +527,11 @@ const InstallBotPopup = (props: Props) => {
           : undefined
       }
     >
-      <Kb.Box2 direction="vertical" style={styles.outerContainer} fullWidth={true}>
+      <Kb.Box2
+        direction="vertical"
+        style={Styles.collapseStyles([styles.outerContainer, {height: getHeight()}])}
+        fullWidth={true}
+      >
         {enabled ? (
           content
         ) : (

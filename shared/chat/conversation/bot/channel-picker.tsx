@@ -125,7 +125,7 @@ const styles = Styles.styleSheetCreate(
         },
         isElectron: {
           maxHeight: 250,
-          minHeight: 250,
+          minHeight: 370,
         },
       }),
       searchFilter: Styles.platformStyles({
