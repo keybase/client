@@ -1282,7 +1282,7 @@ func (g *PushHandler) SubteamRename(ctx context.Context, m gregor.OutOfBandMessa
 		// force refresh any affected teams
 		m := libkb.NewMetaContext(ctx, g.G().ExternalG())
 		for tlfID := range tlfIDs {
-			teamID, err := keybase1.TeamIDFromString(string(tlfID))
+			teamID, err := keybase1.TeamIDFromString(tlfID.String())
 			if err != nil {
 				g.Debug(ctx, "SubteamRename: unable to get teamID: %v", err)
 				continue
