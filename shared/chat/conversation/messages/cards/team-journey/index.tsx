@@ -164,6 +164,7 @@ const styles = Styles.styleSheetCreate(
       }),
       image: {
         left: '50%',
+        marginLeft: 15,
         position: 'absolute',
         top: 0,
       },
