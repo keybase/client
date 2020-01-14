@@ -108,7 +108,7 @@ const FileInput = (props: FileProps) => {
       fullWidth={true}
       fullHeight={true}
       alignItems="stretch"
-      style={styles.container}
+      style={styles.fileInputContainer}
     >
       <Kb.Text type="BodySmallPrimaryLink" onClick={() => props.onClearFiles()} style={styles.clearButton}>
         Clear
@@ -140,17 +140,19 @@ const styles = Styles.styleSheetCreate(
         right: Styles.globalMargins.small,
         top: Styles.globalMargins.small,
       },
-      container: {
-        ...Styles.globalStyles.flexGrow,
-        ...Styles.globalStyles.positionRelative,
-      },
       containerInputFocus: {
         ...Styles.globalStyles.flexGrow,
         ...Styles.globalStyles.fullHeight,
         display: 'flex',
+        flexShrink: 2,
       },
       fileContainer: {
         ...Styles.padding(Styles.globalMargins.small),
+      },
+      fileInputContainer: {
+        ...Styles.globalStyles.flexGrow,
+        ...Styles.globalStyles.positionRelative,
+        flexShrink: 2,
       },
       hidden: {
         display: 'none',
