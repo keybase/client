@@ -31,7 +31,7 @@ const emptyStateProps = {
 export default namedConnect(
   (state, ownProps: OwnProps) => {
     const message = Constants.getMessage(state, ownProps.conversationIDKey, ownProps.ordinal)
-    if (!message || !Constants.isDecoratedMessage(message)) {
+    if (!message || !Constants.isMessageWithReactions(message)) {
       return emptyStateProps
     }
     const _reactions = message.reactions

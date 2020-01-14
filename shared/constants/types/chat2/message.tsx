@@ -411,8 +411,3 @@ type GetTypes<T> = T extends {type: string} ? T['type'] : never
 export type MessageType = GetTypes<Message>
 export type Filter<T, U> = T extends U ? T : never
 export type MessagesWithReactions = Filter<Message, _MessageWithReactions>
-export type DecoratedMessage =
-  | MessagesWithReactions
-  | MessageAttachment
-  | MessageRequestPayment
-  | MessageSendPayment

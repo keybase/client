@@ -198,12 +198,13 @@ export const getMessage = (
   const map = state.chat2.messageMap.get(id)
   return (map && map.get(ordinal)) || null
 }
-export const isDecoratedMessage = (message: Types.Message): message is Types.DecoratedMessage => {
+export const isMessageWithReactions = (message: Types.Message): message is Types.MessagesWithReactions => {
   return !(
     message.type === 'placeholder' ||
     message.type === 'deleted' ||
     message.type === 'systemJoined' ||
-    message.type === 'systemLeft'
+    message.type === 'systemLeft' ||
+    message.type === 'journeycard'
   )
 }
 export const getMessageKey = (message: Types.Message) =>
