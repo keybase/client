@@ -21,7 +21,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
     conversationIDKey: ChatTypes.ConversationIDKey,
     cardType: RPCChatTypes.JourneycardType,
     ordinal: ChatTypes.Ordinal
-  ) => dispatch(Chat2Gen.createDismissJourneycard({conversationIDKey, cardType, ordinal})),
+  ) => dispatch(Chat2Gen.createDismissJourneycard({cardType, conversationIDKey, ordinal})),
 })
 
 export default Container.namedConnect(
