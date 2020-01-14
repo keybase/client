@@ -66,7 +66,7 @@ export type Props = {
   onCancel?: () => void
   onEdit?: () => void
   onRetry?: () => void
-  onSwipeLeft: () => void
+  onSwipeLeft?: () => void
   orangeLineAbove: boolean
   previous?: Types.Message
   shouldShowPopup: boolean
