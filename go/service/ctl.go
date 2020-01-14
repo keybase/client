@@ -138,6 +138,31 @@ func (c *CtlHandler) DbGet(_ context.Context, arg keybase1.DbGetArg) (*keybase1.
 	return &val, nil
 }
 
+func (c *CtlHandler) DbKeysWithPrefixes(_ context.Context, arg keybase1.DbKeysWithPrefixesArg) (ret []keybase1.DbKey, err error) {
+	var res libkb.DBKeySet
+	switch arg.Prefix.DbType {
+	case keybase1.DbType_MAIN:
+		res, err = c.G().LocalDb.KeysWithPrefixes([]byte(libkb.PrefixString(libkb.ObjType(arg.Prefix.ObjType))))
+	case keybase1.DbType_CHAT:
+		res, err = c.G().LocalChatDb.KeysWithPrefixes([]byte(libkb.PrefixString(libkb.ObjType(arg.Prefix.ObjType))))
+	default:
+		return nil, libkb.NewDBError("no such DB type")
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	for k := range res {
+		ret = append(ret, keybase1.DbKey{
+			DbType:  arg.Prefix.DbType,
+			ObjType: int(k.Typ),
+			Key:     k.Key,
+		})
+	}
+
+	return ret, nil
+}
+
 func (c *CtlHandler) DbPut(_ context.Context, arg keybase1.DbPutArg) (err error) {
 	key := libkb.ImportDbKey(arg.Key)
 

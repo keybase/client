@@ -3622,6 +3622,7 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.ctl.dbDelete'
 // 'keybase.1.ctl.dbPut'
 // 'keybase.1.ctl.dbGet'
+// 'keybase.1.ctl.dbKeysWithPrefixes'
 // 'keybase.1.debugging.firstStep'
 // 'keybase.1.debugging.secondStep'
 // 'keybase.1.debugging.increment'
