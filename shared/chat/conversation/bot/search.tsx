@@ -78,7 +78,9 @@ const SearchBotPopup = (props: Props) => {
     title: 'Featured bots',
   }
   const usersSection = {
-    data: !lastQuery.length ? [userEmptyPlaceholder] : results?.users.slice(0, 3) ?? [],
+    data: !lastQuery.length
+      ? [userEmptyPlaceholder]
+      : results?.users.filter(u => !featuredBotsMap.get(u)).slice(0, 3) ?? [],
     renderItem: ({item}: {item: string}) => {
       return (
         <Kb.Box2
