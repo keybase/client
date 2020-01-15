@@ -32,6 +32,7 @@ type OutputSignedProps = {
 type OutputInfoProps = {
   outputStatus?: Types.OutputStatus
   operation: Types.Operations
+  children: string | React.ReactElement
 }
 
 const largeOutputLimit = 120
@@ -73,7 +74,7 @@ export const SignedSender = (props: OutputSignedProps) => {
 
 export const OutputInfoBanner = (props: OutputInfoProps) => {
   return props.outputStatus && props.outputStatus === 'success' ? (
-    <Kb.Banner color="grey">this is saltpack</Kb.Banner>
+    <Kb.Banner color="grey">{props.children}</Kb.Banner>
   ) : null
 }
 

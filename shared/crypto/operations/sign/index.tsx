@@ -3,8 +3,9 @@ import * as Constants from '../../../constants/crypto'
 import * as Types from '../../../constants/types/crypto'
 import * as Kb from '../../../common-adapters'
 import debounce from 'lodash/debounce'
+import openURL from '../../../util/open-url'
 import {TextInput, FileInput} from '../../input'
-import OperationOutput, {OutputBar, SignedSender} from '../../output'
+import OperationOutput, {OutputBar, OutputInfoBanner, SignedSender} from '../../output'
 
 type Props = {
   input: string
@@ -61,6 +62,19 @@ const Sign = (props: Props) => {
           <Kb.Divider />
 
           <Kb.Box2 direction="vertical" fullHeight={true}>
+            <OutputInfoBanner operation={Constants.Operations.Encrypt} outputStatus={props.outputStatus}>
+              <Kb.Text type="BodySmallSemibold" center={true}>
+                This is your signed {props.outputType === 'file' ? 'file' : 'message'}, using{` `}
+                <Kb.Text
+                  type="BodySecondaryLink"
+                  underline={true}
+                  onClick={() => openURL(Constants.saltpackDocumentation)}
+                >
+                  Saltpack
+                </Kb.Text>
+                .{` `}Anyone who has it can verify you signed it.
+              </Kb.Text>
+            </OutputInfoBanner>
             <SignedSender
               signed={true}
               signedBy={props.outputSender}

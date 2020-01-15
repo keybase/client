@@ -4,8 +4,9 @@ import * as Types from '../../../constants/types/crypto'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import debounce from 'lodash/debounce'
+import openURL from '../../../util/open-url'
 import {TextInput, FileInput} from '../../input'
-import OperationOutput, {OutputBar, SignedSender} from '../../output'
+import OperationOutput, {OutputBar, OutputInfoBanner, SignedSender} from '../../output'
 import Recipients from '../../recipients/container'
 
 type Props = {
@@ -22,6 +23,7 @@ type Props = {
   output: string
   outputStatus?: Types.OutputStatus
   outputType?: Types.OutputType
+  recipients: Array<string>
   username?: string
 }
 
@@ -72,6 +74,9 @@ const Encrypt = (props: Props) => {
         onAttach={onAttach}
         prompt="Drop a file to encrypt"
       >
+        <Kb.Banner color="grey">
+          <Kb.Text type="BodySmallSemibold"> Encrypt to anyone, even if they're not on Keybase yet. </Kb.Text>
+        </Kb.Banner>
         <Recipients operation="encrypt" />
         <Kb.Box2 direction="vertical" fullHeight={true}>
           {props.inputType === 'file' ? (
@@ -91,7 +96,6 @@ const Encrypt = (props: Props) => {
               }}
               onChangeText={text => {
                 setInputValue(text)
-                // props.onSetInput('text', text)
                 debounced(props.onSetInput, 'text', text)
               }}
             />
@@ -104,6 +108,21 @@ const Encrypt = (props: Props) => {
           />
           <Kb.Divider />
           <Kb.Box2 direction="vertical" fullHeight={true}>
+            <OutputInfoBanner operation={Constants.Operations.Encrypt} outputStatus={props.outputStatus}>
+              <Kb.Text type="BodySmallSemibold" center={true}>
+                This is your encrypted {props.outputType === 'file' ? 'file' : 'message'}, using{` `}
+                <Kb.Text
+                  type="BodySecondaryLink"
+                  underline={true}
+                  onClick={() => openURL(Constants.saltpackDocumentation)}
+                >
+                  Saltpack
+                </Kb.Text>
+                . It's also called ciphertext. Email it, upload it, put it on a billboard. Only{' '}
+                {props.recipients.length > 1 ? 'your recipients' : props.recipients[0]}
+                {` `}can decrypt it.
+              </Kb.Text>
+            </OutputInfoBanner>
             <SignedSender
               signed={props.options.sign}
               signedBy={props.username}
