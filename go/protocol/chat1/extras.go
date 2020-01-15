@@ -47,8 +47,8 @@ func (id TLFID) EqString(other fmt.Stringer) bool {
 	return hex.EncodeToString(id) == other.String()
 }
 
-func (id TLFID) String() TLFIDStr {
-	return TLFIDStr(hex.EncodeToString(id))
+func (id TLFID) String() string {
+	return hex.EncodeToString(id)
 }
 
 func (id TLFID) Bytes() []byte {
@@ -74,24 +74,12 @@ func (id TLFID) IsTeamID() bool {
 	}
 }
 
-func (i FlipGameIDStr) String() string {
-	return string(i)
-}
-
-func (i TLFIDStr) String() string {
-	return string(i)
-}
-
-func (i ConvIDStr) String() string {
-	return string(i)
-}
-
 func MakeConvID(val string) (ConversationID, error) {
 	return hex.DecodeString(val)
 }
 
-func (cid ConversationID) String() ConvIDStr {
-	return ConvIDStr(hex.EncodeToString(cid))
+func (cid ConversationID) String() string {
+	return hex.EncodeToString(cid)
 }
 
 func (cid ConversationID) Bytes() []byte {
@@ -1744,7 +1732,7 @@ func (s TopicNameState) Eq(o TopicNameState) bool {
 }
 
 func (i InboxUIItem) GetConvID() ConversationID {
-	bConvID, _ := hex.DecodeString(i.ConvID.String())
+	bConvID, _ := hex.DecodeString(i.ConvID)
 	return ConversationID(bConvID)
 }
 
@@ -2697,7 +2685,7 @@ func isZero(v []byte) bool {
 }
 
 func MakeFlipGameID(s string) (FlipGameID, error) { return hex.DecodeString(s) }
-func (g FlipGameID) String() FlipGameIDStr        { return FlipGameIDStr(hex.EncodeToString(g)) }
+func (g FlipGameID) String() string               { return hex.EncodeToString(g) }
 func (g FlipGameID) Eq(h FlipGameID) bool         { return hmac.Equal(g[:], h[:]) }
 func (g FlipGameID) IsZero() bool                 { return isZero(g[:]) }
 func (g FlipGameID) Check() bool                  { return g != nil && !g.IsZero() }
@@ -2749,8 +2737,8 @@ func (b BotInfo) Hash() BotInfoHash {
 
 func (b BotInfo) hashV1(hash hash.Hash) {
 	sort.Slice(b.CommandConvs, func(i, j int) bool {
-		ikey := fmt.Sprintf("%s%s", b.CommandConvs[i].Uid, b.CommandConvs[i].ConvID)
-		jkey := fmt.Sprintf("%s%s", b.CommandConvs[j].Uid, b.CommandConvs[j].ConvID)
+		ikey := b.CommandConvs[i].Uid.String() + b.CommandConvs[i].ConvID.String()
+		jkey := b.CommandConvs[j].Uid.String() + b.CommandConvs[j].ConvID.String()
 		return ikey < jkey
 	})
 	for _, cconv := range b.CommandConvs {
@@ -2805,7 +2793,7 @@ func (c UserBotCommandInput) ToOutput(username string) UserBotCommandOutput {
 func (r UIInboxReselectInfo) String() string {
 	newConvStr := "<none>"
 	if r.NewConvID != nil {
-		newConvStr = r.NewConvID.String()
+		newConvStr = *r.NewConvID
 	}
 	return fmt.Sprintf("[oldconv: %s newconv: %s]", r.OldConvID, newConvStr)
 }

@@ -67,7 +67,7 @@ func TestPullTranscript(t *testing.T) {
 
 	randBytes, err := libkb.RandBytes(32)
 	require.NoError(t, err)
-	testConvID := chat1.ConversationID(randBytes).String().String()
+	testConvID := chat1.ConversationID(randBytes).String()
 
 	apiMock := &reportTestAPIMock{t: t}
 	tc.G.API = apiMock

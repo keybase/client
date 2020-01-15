@@ -9,24 +9,6 @@ import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
-type ConvIDStr string
-
-func (o ConvIDStr) DeepCopy() ConvIDStr {
-	return o
-}
-
-type TLFIDStr string
-
-func (o TLFIDStr) DeepCopy() TLFIDStr {
-	return o
-}
-
-type FlipGameIDStr string
-
-func (o FlipGameIDStr) DeepCopy() FlipGameIDStr {
-	return o
-}
-
 type RateLimitRes struct {
 	Tank     string `codec:"tank" json:"tank"`
 	Capacity int    `codec:"capacity" json:"capacity"`
@@ -75,37 +57,37 @@ func (o ChatMessage) DeepCopy() ChatMessage {
 }
 
 type MsgSender struct {
-	Uid        keybase1.UID      `codec:"uid" json:"uid"`
-	Username   string            `codec:"username,omitempty" json:"username,omitempty"`
-	DeviceID   keybase1.DeviceID `codec:"deviceID" json:"device_id"`
-	DeviceName string            `codec:"deviceName,omitempty" json:"device_name,omitempty"`
+	Uid        string `codec:"uid" json:"uid"`
+	Username   string `codec:"username,omitempty" json:"username,omitempty"`
+	DeviceID   string `codec:"deviceID" json:"device_id"`
+	DeviceName string `codec:"deviceName,omitempty" json:"device_name,omitempty"`
 }
 
 func (o MsgSender) DeepCopy() MsgSender {
 	return MsgSender{
-		Uid:        o.Uid.DeepCopy(),
+		Uid:        o.Uid,
 		Username:   o.Username,
-		DeviceID:   o.DeviceID.DeepCopy(),
+		DeviceID:   o.DeviceID,
 		DeviceName: o.DeviceName,
 	}
 }
 
 type MsgBotInfo struct {
-	BotUID      keybase1.UID `codec:"botUID" json:"bot_uid"`
-	BotUsername string       `codec:"botUsername,omitempty" json:"bot_username,omitempty"`
+	BotUID      string `codec:"botUID" json:"bot_uid"`
+	BotUsername string `codec:"botUsername,omitempty" json:"bot_username,omitempty"`
 }
 
 func (o MsgBotInfo) DeepCopy() MsgBotInfo {
 	return MsgBotInfo{
-		BotUID:      o.BotUID.DeepCopy(),
+		BotUID:      o.BotUID,
 		BotUsername: o.BotUsername,
 	}
 }
 
 type MsgFlipContent struct {
 	Text         string             `codec:"text" json:"text"`
-	GameID       FlipGameIDStr      `codec:"gameID" json:"game_id"`
-	FlipConvID   ConvIDStr          `codec:"flipConvID" json:"flip_conv_id"`
+	GameID       string             `codec:"gameID" json:"game_id"`
+	FlipConvID   string             `codec:"flipConvID" json:"flip_conv_id"`
 	UserMentions []KnownUserMention `codec:"userMentions" json:"user_mentions"`
 	TeamMentions []KnownTeamMention `codec:"teamMentions" json:"team_mentions"`
 }
@@ -113,8 +95,8 @@ type MsgFlipContent struct {
 func (o MsgFlipContent) DeepCopy() MsgFlipContent {
 	return MsgFlipContent{
 		Text:       o.Text,
-		GameID:     o.GameID.DeepCopy(),
-		FlipConvID: o.FlipConvID.DeepCopy(),
+		GameID:     o.GameID,
+		FlipConvID: o.FlipConvID,
 		UserMentions: (func(x []KnownUserMention) []KnownUserMention {
 			if x == nil {
 				return nil
@@ -256,7 +238,7 @@ func (o MsgContent) DeepCopy() MsgContent {
 
 type MsgSummary struct {
 	Id                  MessageID                `codec:"id" json:"id"`
-	ConvID              ConvIDStr                `codec:"convID" json:"conversation_id"`
+	ConvID              string                   `codec:"convID" json:"conversation_id"`
 	Channel             ChatChannel              `codec:"channel" json:"channel"`
 	Sender              MsgSender                `codec:"sender" json:"sender"`
 	SentAt              int64                    `codec:"sentAt" json:"sent_at"`
@@ -281,7 +263,7 @@ type MsgSummary struct {
 func (o MsgSummary) DeepCopy() MsgSummary {
 	return MsgSummary{
 		Id:       o.Id.DeepCopy(),
-		ConvID:   o.ConvID.DeepCopy(),
+		ConvID:   o.ConvID,
 		Channel:  o.Channel.DeepCopy(),
 		Sender:   o.Sender.DeepCopy(),
 		SentAt:   o.SentAt,
@@ -426,7 +408,7 @@ func (o Thread) DeepCopy() Thread {
 
 // A chat conversation. This is essentially a chat channel plus some additional metadata.
 type ConvSummary struct {
-	Id            ConvIDStr                 `codec:"id" json:"id"`
+	Id            string                    `codec:"id" json:"id"`
 	Channel       ChatChannel               `codec:"channel" json:"channel"`
 	IsDefaultConv bool                      `codec:"isDefaultConv" json:"is_default_conv"`
 	Unread        bool                      `codec:"unread" json:"unread"`
@@ -435,14 +417,14 @@ type ConvSummary struct {
 	MemberStatus  string                    `codec:"memberStatus" json:"member_status"`
 	ResetUsers    []string                  `codec:"resetUsers,omitempty" json:"reset_users,omitempty"`
 	FinalizeInfo  *ConversationFinalizeInfo `codec:"finalizeInfo,omitempty" json:"finalize_info,omitempty"`
-	Supersedes    []ConvIDStr               `codec:"supersedes,omitempty" json:"supersedes,omitempty"`
-	SupersededBy  []ConvIDStr               `codec:"supersededBy,omitempty" json:"superseded_by,omitempty"`
+	Supersedes    []string                  `codec:"supersedes,omitempty" json:"supersedes,omitempty"`
+	SupersededBy  []string                  `codec:"supersededBy,omitempty" json:"superseded_by,omitempty"`
 	Error         string                    `codec:"error,omitempty" json:"error,omitempty"`
 }
 
 func (o ConvSummary) DeepCopy() ConvSummary {
 	return ConvSummary{
-		Id:            o.Id.DeepCopy(),
+		Id:            o.Id,
 		Channel:       o.Channel.DeepCopy(),
 		IsDefaultConv: o.IsDefaultConv,
 		Unread:        o.Unread,
@@ -467,24 +449,24 @@ func (o ConvSummary) DeepCopy() ConvSummary {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.FinalizeInfo),
-		Supersedes: (func(x []ConvIDStr) []ConvIDStr {
+		Supersedes: (func(x []string) []string {
 			if x == nil {
 				return nil
 			}
-			ret := make([]ConvIDStr, len(x))
+			ret := make([]string, len(x))
 			for i, v := range x {
-				vCopy := v.DeepCopy()
+				vCopy := v
 				ret[i] = vCopy
 			}
 			return ret
 		})(o.Supersedes),
-		SupersededBy: (func(x []ConvIDStr) []ConvIDStr {
+		SupersededBy: (func(x []string) []string {
 			if x == nil {
 				return nil
 			}
-			ret := make([]ConvIDStr, len(x))
+			ret := make([]string, len(x))
 			for i, v := range x {
-				vCopy := v.DeepCopy()
+				vCopy := v
 				ret[i] = vCopy
 			}
 			return ret
@@ -674,14 +656,14 @@ func (o RegexpRes) DeepCopy() RegexpRes {
 }
 
 type NewConvRes struct {
-	Id               ConvIDStr                     `codec:"id" json:"id"`
+	Id               string                        `codec:"id" json:"id"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures,omitempty" json:"identify_failures,omitempty"`
 	RateLimits       []RateLimitRes                `codec:"rateLimits,omitempty" json:"ratelimits,omitempty"`
 }
 
 func (o NewConvRes) DeepCopy() NewConvRes {
 	return NewConvRes{
-		Id: o.Id.DeepCopy(),
+		Id: o.Id,
 		IdentifyFailures: (func(x []keybase1.TLFIdentifyFailure) []keybase1.TLFIdentifyFailure {
 			if x == nil {
 				return nil
@@ -846,13 +828,13 @@ func (o AdvertiseCommandAPIParam) DeepCopy() AdvertiseCommandAPIParam {
 }
 
 type ResetConvMemberAPI struct {
-	ConversationID ConvIDStr `codec:"conversationID" json:"conversationID"`
-	Username       string    `codec:"username" json:"username"`
+	ConversationID string `codec:"conversationID" json:"conversationID"`
+	Username       string `codec:"username" json:"username"`
 }
 
 func (o ResetConvMemberAPI) DeepCopy() ResetConvMemberAPI {
 	return ResetConvMemberAPI{
-		ConversationID: o.ConversationID.DeepCopy(),
+		ConversationID: o.ConversationID,
 		Username:       o.Username,
 	}
 }
@@ -890,15 +872,15 @@ func (o GetResetConvMembersRes) DeepCopy() GetResetConvMembersRes {
 }
 
 type DeviceInfo struct {
-	DeviceID          keybase1.DeviceID `codec:"deviceID" json:"id"`
-	DeviceDescription string            `codec:"deviceDescription" json:"description"`
-	DeviceType        string            `codec:"deviceType" json:"type"`
-	DeviceCtime       int64             `codec:"deviceCtime" json:"ctime"`
+	DeviceID          string `codec:"deviceID" json:"id"`
+	DeviceDescription string `codec:"deviceDescription" json:"description"`
+	DeviceType        string `codec:"deviceType" json:"type"`
+	DeviceCtime       int64  `codec:"deviceCtime" json:"ctime"`
 }
 
 func (o DeviceInfo) DeepCopy() DeviceInfo {
 	return DeviceInfo{
-		DeviceID:          o.DeviceID.DeepCopy(),
+		DeviceID:          o.DeviceID,
 		DeviceDescription: o.DeviceDescription,
 		DeviceType:        o.DeviceType,
 		DeviceCtime:       o.DeviceCtime,

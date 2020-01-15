@@ -36,7 +36,7 @@ protocol teams {
     STANDARD_0,
     JUST_CREATED_1,
     SKIP_2,
-    // If we do not want to audit the hidden chain
+    // If we do not want to audit the hidden chain 
     // (for example, when the client does not have access to it).
     STANDARD_NO_HIDDEN_3
   }
@@ -328,7 +328,7 @@ protocol teams {
     // yet committed to the blind tree (as that is updated slowly). We trust the
     // server and accept it for now, but will complain later if this link does
     // not get added to the blind tree later within a reasonable time (or if the
-    // tree shows a different history).
+    // tree shows a different history). 
     UNCOMMITTED_3
   }
 
@@ -1011,7 +1011,7 @@ protocol teams {
     boolean forceRefresh;
 
     // Specify this flag to avoid raising an error if the server omits the hidden chain data.
-    // For example, restricted bots can use the FTL to obtain a team name, but cannot see the
+    // For example, restricted bots can use the FTL to obtain a team name, but cannot see the 
     // hidden chain for such team.
     boolean hiddenChainIsOptional;
   }
@@ -1136,6 +1136,7 @@ protocol teams {
     boolean cmds;
     boolean mentions;
     array<string> triggers;
+    // chat1.ConversationID
     array<string> convs;
   }
 

@@ -132,7 +132,7 @@ func TestBotCommandManager(t *testing.T) {
 	require.Equal(t, "status", cmds[0].Name)
 
 	// test team
-	teamID, err := keybase1.TeamIDFromString(teamConv.Triple.Tlfid.String().String())
+	teamID, err := keybase1.TeamIDFromString(teamConv.Triple.Tlfid.String())
 	require.NoError(t, err)
 	pollForSeqno := func(expectedSeqno keybase1.Seqno) {
 		found := false

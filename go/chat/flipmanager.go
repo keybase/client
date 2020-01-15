@@ -146,7 +146,7 @@ type FlipManager struct {
 
 	gamesMu        sync.Mutex
 	games          *lru.Cache
-	dirtyGames     map[chat1.FlipGameIDStr]chat1.FlipGameID
+	dirtyGames     map[string]chat1.FlipGameID
 	flipConvs      *lru.Cache
 	gameMsgIDs     *lru.Cache
 	gameOutboxIDMu sync.Mutex
@@ -155,7 +155,7 @@ type FlipManager struct {
 	partMu                     sync.Mutex
 	maxConvParticipations      int
 	maxConvParticipationsReset time.Duration
-	convParticipations         map[chat1.ConvIDStr]convParticipationsRateLimit
+	convParticipations         map[string]convParticipationsRateLimit
 
 	// testing only
 	testingServerClock clockwork.Clock
@@ -172,10 +172,10 @@ func NewFlipManager(g *globals.Context, ri func() chat1.RemoteInterface) *FlipMa
 		ri:                         ri,
 		clock:                      clockwork.NewRealClock(),
 		games:                      games,
-		dirtyGames:                 make(map[chat1.FlipGameIDStr]chat1.FlipGameID),
+		dirtyGames:                 make(map[string]chat1.FlipGameID),
 		forceCh:                    make(chan struct{}, 10),
 		loadGameCh:                 make(chan loadGameJob, 200),
-		convParticipations:         make(map[chat1.ConvIDStr]convParticipationsRateLimit),
+		convParticipations:         make(map[string]convParticipationsRateLimit),
 		maxConvParticipations:      1000,
 		maxConvParticipationsReset: 5 * time.Minute,
 		visualizer:                 NewFlipVisualizer(128, 80),
@@ -276,7 +276,7 @@ func (m *FlipManager) notifyDirtyGames() {
 		return
 	}
 	dirtyGames := m.dirtyGames
-	m.dirtyGames = make(map[chat1.FlipGameIDStr]chat1.FlipGameID)
+	m.dirtyGames = make(map[string]chat1.FlipGameID)
 	m.gamesMu.Unlock()
 
 	ctx := m.makeBkgContext()

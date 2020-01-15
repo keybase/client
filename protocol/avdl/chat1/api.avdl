@@ -8,10 +8,6 @@ protocol api {
   import idl "unfurl.avdl";
   import idl "commands.avdl";
 
-  @typedef("string") record ConvIDStr {}
-  @typedef("string") record TLFIDStr {}
-  @typedef("string") record FlipGameIDStr {}
-
   record RateLimitRes {
     string tank;
     int capacity;
@@ -53,12 +49,12 @@ protocol api {
   // MsgSender is used for JSON output of the sender of a message.
   record MsgSender {
     @jsonkey("uid")
-    keybase1.UID uid;
+    string uid;
     @jsonkey("username")
     @optional(true)
     string username;
     @jsonkey("device_id")
-    keybase1.DeviceID deviceID;
+    string deviceID;
     @jsonkey("device_name")
     @optional(true)
     string deviceName;
@@ -66,7 +62,7 @@ protocol api {
 
   record MsgBotInfo {
     @jsonkey("bot_uid")
-    keybase1.UID botUID;
+    string botUID;
     @jsonkey("bot_username")
     @optional(true)
     string botUsername;
@@ -76,9 +72,9 @@ protocol api {
     @jsonkey("text")
     string text;
     @jsonkey("game_id")
-    FlipGameIDStr gameID;
+    string gameID;
     @jsonkey("flip_conv_id")
-    ConvIDStr flipConvID;
+    string flipConvID;
     @jsonkey("user_mentions")
     array<KnownUserMention> userMentions;
     @jsonkey("team_mentions")
@@ -125,7 +121,7 @@ protocol api {
     @jsonkey("id")
     MessageID id;
     @jsonkey("conversation_id")
-    ConvIDStr convID;
+    string convID;
     @jsonkey("channel")
     ChatChannel channel;
     @jsonkey("sender")
@@ -207,7 +203,7 @@ protocol api {
    */
   record ConvSummary {
     @jsonkey("id")
-    ConvIDStr id;
+    string id;
     @jsonkey("channel")
     ChatChannel channel;
     @jsonkey("is_default_conv")
@@ -227,10 +223,10 @@ protocol api {
     union { null, ConversationFinalizeInfo } finalizeInfo;
     @jsonkey("supersedes")
     @optional(true)
-    array<ConvIDStr> supersedes;
+    array<string> supersedes;
     @jsonkey("superseded_by")
     @optional(true)
-    array<ConvIDStr> supersededBy;
+    array<string> supersededBy;
     @jsonkey("error")
     @optional(true)
     string error;
@@ -290,7 +286,7 @@ protocol api {
 
   record NewConvRes {
     @jsonkey("id")
-    ConvIDStr id;
+    string id;
     @jsonkey("identify_failures")
     @optional(true)
     array<keybase1.TLFIdentifyFailure> identifyFailures;
@@ -342,7 +338,7 @@ protocol api {
   }
 
   record ResetConvMemberAPI {
-    ConvIDStr conversationID;
+    string conversationID;
     string username;
   }
 
@@ -353,7 +349,7 @@ protocol api {
 
   record DeviceInfo {
     @jsonkey("id")
-    keybase1.DeviceID deviceID;
+    string deviceID;
     @jsonkey("description")
     string deviceDescription;
     @jsonkey("type")

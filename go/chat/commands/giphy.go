@@ -27,8 +27,8 @@ func (d defaultGiphySearcher) Search(mctx libkb.MetaContext, apiKeySource types.
 type Giphy struct {
 	sync.Mutex
 	*baseCommand
-	shownResults      map[chat1.ConvIDStr]*string
-	shownWindow       map[chat1.ConvIDStr]bool
+	shownResults      map[string]*string
+	shownWindow       map[string]bool
 	currentOpCancelFn context.CancelFunc
 	currentOpDoneCb   chan struct{}
 	searcher          giphySearcher
@@ -38,8 +38,8 @@ func NewGiphy(g *globals.Context) *Giphy {
 	usage := "Search for and post GIFs"
 	return &Giphy{
 		baseCommand:  newBaseCommand(g, "giphy", "[search terms]", usage, true),
-		shownResults: make(map[chat1.ConvIDStr]*string),
-		shownWindow:  make(map[chat1.ConvIDStr]bool),
+		shownResults: make(map[string]*string),
+		shownWindow:  make(map[string]bool),
 		searcher:     defaultGiphySearcher{},
 	}
 }

@@ -5020,7 +5020,7 @@
       "response": {
         "type": "map",
         "values": "ProfileSearchConvStats",
-        "keys": "ConvIDStr"
+        "keys": "string"
       }
     },
     "getStaticConfig": {

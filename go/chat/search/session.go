@@ -29,9 +29,9 @@ type searchSession struct {
 	numConvsSearched int
 	inboxIndexStatus *inboxIndexStatus
 	// convID -> hit
-	convMap      map[chat1.ConvIDStr]types.RemoteConversation
+	convMap      map[string]types.RemoteConversation
 	reindexConvs []chat1.ConversationID
-	hitMap       map[chat1.ConvIDStr]chat1.ChatSearchInboxHit
+	hitMap       map[string]chat1.ChatSearchInboxHit
 	convList     []types.RemoteConversation
 }
 
@@ -55,7 +55,7 @@ func newSearchSession(query, origQuery string, uid gregor1.UID,
 		indexer:          indexer,
 		opts:             opts,
 		inboxIndexStatus: newInboxIndexStatus(indexUICh),
-		hitMap:           make(map[chat1.ConvIDStr]chat1.ChatSearchInboxHit),
+		hitMap:           make(map[string]chat1.ChatSearchInboxHit),
 	}
 }
 

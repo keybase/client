@@ -145,7 +145,7 @@ type Indexer interface {
 	SearchableConvs(ctx context.Context, convID *chat1.ConversationID) ([]RemoteConversation, error)
 	OnDbNuke(mctx libkb.MetaContext) error
 	// For devel/testing
-	IndexInbox(ctx context.Context) (map[chat1.ConvIDStr]chat1.ProfileSearchConvStats, error)
+	IndexInbox(ctx context.Context) (map[string]chat1.ProfileSearchConvStats, error)
 }
 
 type Sender interface {

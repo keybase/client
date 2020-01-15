@@ -27,7 +27,7 @@ type convLocal struct {
 	mtime    time.Time
 }
 
-type convLocalByIDMap map[chat1.ConvIDStr]*convLocal
+type convLocalByIDMap map[string]*convLocal
 
 type convLocalByNameMap map[tlf.CanonicalName]convLocalByIDMap
 

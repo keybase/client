@@ -17,7 +17,7 @@ protocol chatUi {
   }
 
   record UIInboxSmallTeamRow {
-    ConvIDStr convID;
+    string convID;
     string name;
     gregor1.Time time;
     union { null, string } snippet;
@@ -33,7 +33,7 @@ protocol chatUi {
   }
 
   record UIInboxBigTeamChannelRow {
-    ConvIDStr convID;
+    string convID;
     string teamname;
     string channelname;
     union { null, string } draft;
@@ -42,7 +42,7 @@ protocol chatUi {
 
   record UIInboxBigTeamLabelRow {
     string name;
-    TLFIDStr id;
+    string id;
   }
 
   variant UIInboxBigTeamRow switch (UIInboxBigTeamRowTyp state) {
@@ -52,8 +52,8 @@ protocol chatUi {
 
   record UIInboxReselectInfo {
      // we use this to defeat any race conditions, the UI can double check it actually has this selected
-    ConvIDStr oldConvID;
-    union { null, ConvIDStr } newConvID;
+    string oldConvID;
+    union { null, string } newConvID;
   }
 
   record UIInboxLayout {
@@ -75,8 +75,8 @@ protocol chatUi {
   }
 
   record UnverifiedInboxUIItem {
-    ConvIDStr convID;
-    TLFIDStr tlfID;
+    string convID;
+    string tlfID;
     TopicType topicType;
     boolean isPublic;
     boolean isDefaultConv;
@@ -131,8 +131,8 @@ protocol chatUi {
   }
 
   record InboxUIItem {
-    ConvIDStr convID;
-    TLFIDStr tlfID;
+    string convID;
+    string tlfID;
     TopicType topicType;
     boolean isPublic;
     boolean isEmpty;
@@ -193,7 +193,7 @@ protocol chatUi {
 
   record UIChannelNameMention {
     string name;
-    ConvIDStr convID;
+    string convID;
   }
 
   record UIAssetUrlInfo {
@@ -270,7 +270,7 @@ protocol chatUi {
     union { null, UIRequestInfo } requestInfo;
     array<UIMessageUnfurlInfo> unfurls;
     boolean isCollapsed;
-    union { null, FlipGameIDStr } flipGameID;
+    union { null, string } flipGameID;
     boolean isDeleteable;
     boolean isEditable;
     union { null, UIMessage } replyTo;
@@ -288,7 +288,7 @@ protocol chatUi {
     gregor1.Time ctime;
     double ordinal;
     boolean isEphemeral;
-    union { null, FlipGameIDStr} flipGameID;
+    union { null, string} flipGameID;
     union { null, UIMessage } replyTo;
 
     // For attachments
@@ -331,7 +331,7 @@ protocol chatUi {
     union { null, string } description;
     union { null, int } numMembers;
     array<string> publicAdmins;
-    union { null, ConvIDStr } convID;
+    union { null, string } convID;
   }
 
   enum UITextDecorationTyp {
@@ -403,7 +403,7 @@ protocol chatUi {
   void chatSearchDone(int sessionID, int numHits);
 
   record UIChatSearchConvHit {
-    ConvIDStr convID;
+    string convID;
     TeamType teamType;
     string name;
     gregor1.Time mtime;
@@ -449,8 +449,8 @@ protocol chatUi {
     array<GiphySearchResult> results;
     string galleryUrl;
   }
-  void chatGiphySearchResults(int sessionID, ConvIDStr convID, GiphySearchResults results);
-  void chatGiphyToggleResultWindow(int sessionID, ConvIDStr convID, boolean show, boolean clearInput);
+  void chatGiphySearchResults(int sessionID, string convID, GiphySearchResults results);
+  void chatGiphyToggleResultWindow(int sessionID, string convID, boolean show, boolean clearInput);
 
   void chatShowManageChannels(int sessionID, string teamname);
 
@@ -514,7 +514,7 @@ protocol chatUi {
     union { null, string } reveal;
   }
   record UICoinFlipStatus {
-    FlipGameIDStr gameID;
+    string gameID;
     UICoinFlipPhase phase;
     string progressText;
     string resultText;
@@ -530,7 +530,7 @@ protocol chatUi {
     string body;
     union { null, string} title;
   }
-  void chatCommandMarkdown(int sessionID, ConvIDStr convID, union { null, UICommandMarkdown } md);
+  void chatCommandMarkdown(int sessionID, string convID, union { null, UICommandMarkdown } md);
 
   void chatMaybeMentionUpdate(int sessionID, string teamName, string channel, UIMaybeMentionInfo info);
 
@@ -554,14 +554,14 @@ protocol chatUi {
   enum UICommandStatusActionTyp {
     APPSETTINGS_0
   }
-  void chatCommandStatus(int sessionID, ConvIDStr convID, string displayText, UICommandStatusDisplayTyp typ, array<UICommandStatusActionTyp> actions);
+  void chatCommandStatus(int sessionID, string convID, string displayText, UICommandStatusDisplayTyp typ, array<UICommandStatusActionTyp> actions);
   enum UIBotCommandsUpdateStatus {
     UPTODATE_0,
     UPDATING_1,
     FAILED_2,
     BLANK_3
   }
-  void chatBotCommandsUpdateStatus(int sessionID, ConvIDStr convID, UIBotCommandsUpdateStatus status);
+  void chatBotCommandsUpdateStatus(int sessionID, string convID, UIBotCommandsUpdateStatus status);
 
   void triggerContactSync(int sessionID);
 }
