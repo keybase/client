@@ -1687,6 +1687,8 @@ func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, msg chat1
 		payments = msgBody.Text().Payments
 	case chat1.MessageType_FLIP:
 		body = msgBody.Flip().Text
+	case chat1.MessageType_REQUESTPAYMENT:
+		body = msgBody.Requestpayment().Note
 	default:
 		return nil
 	}
