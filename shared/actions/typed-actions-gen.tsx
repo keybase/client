@@ -462,6 +462,9 @@ export type TypedActionsMap = {
   'engine-gen:keybase1NotifyPGPPgpKeyInSecretStoreFile': enginegen.Keybase1NotifyPGPPgpKeyInSecretStoreFilePayload
   'engine-gen:keybase1NotifyPhoneNumberPhoneNumbersChanged': enginegen.Keybase1NotifyPhoneNumberPhoneNumbersChangedPayload
   'engine-gen:keybase1NotifyRuntimeStatsRuntimeStatsUpdate': enginegen.Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload
+  'engine-gen:keybase1NotifySaltpackSaltpackOperationStart': enginegen.Keybase1NotifySaltpackSaltpackOperationStartPayload
+  'engine-gen:keybase1NotifySaltpackSaltpackOperationProgress': enginegen.Keybase1NotifySaltpackSaltpackOperationProgressPayload
+  'engine-gen:keybase1NotifySaltpackSaltpackOperationDone': enginegen.Keybase1NotifySaltpackSaltpackOperationDonePayload
   'engine-gen:keybase1NotifyServiceHTTPSrvInfoUpdate': enginegen.Keybase1NotifyServiceHTTPSrvInfoUpdatePayload
   'engine-gen:keybase1NotifyServiceShutdown': enginegen.Keybase1NotifyServiceShutdownPayload
   'engine-gen:keybase1NotifySessionLoggedOut': enginegen.Keybase1NotifySessionLoggedOutPayload
