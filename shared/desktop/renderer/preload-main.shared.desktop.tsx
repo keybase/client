@@ -3,12 +3,16 @@ import * as Electron from 'electron'
 
 const isRenderer = typeof process !== 'undefined' && process.type === 'renderer'
 const target = isRenderer ? window : global
-const {argv, platform, env} = process
+const {argv, platform, env, type} = process
+// @ts-ignore
+const pid = isRenderer ? Electron.remote.process.pid : process.pid
 
 const kbProcess = {
   argv,
   env,
+  pid,
   platform,
+  type,
 }
 
 target.KB = {

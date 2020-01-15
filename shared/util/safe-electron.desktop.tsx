@@ -1,11 +1,14 @@
+// TODO deprecate
 // Helps deal with loading common things from remote.
 import * as Electron from 'electron'
+
+const {process} = KB
 
 // Screen is a special case. There's lots of rules about what you can / can't do and when you can load it. see https://electronjs.org/docs/api/screen
 export const getScreen = () => {
   let screen: Electron.Screen | null = null
   try {
-    const isRenderer = process && process.type === 'renderer'
+    const isRenderer = process.type === 'renderer'
     if (isRenderer) {
       screen = getRemote().screen
     } else {

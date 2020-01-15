@@ -17,7 +17,7 @@ import {skipAppFocusActions} from '../../local-debug.desktop'
 import * as Container from '../../util/container'
 
 const {resolve} = KB.path
-const {argv, env} = KB.process
+const {argv, env, pid} = KB.process
 
 export function showShareActionSheet() {
   throw new Error('Show Share Action - unsupported on this platform')
@@ -198,7 +198,7 @@ const onConnected = () => {
       argv: argv,
       clientType: RPCTypes.ClientType.guiMain,
       desc: 'Main Renderer',
-      pid: SafeElectron.getRemote().process.pid,
+      pid,
       version: __VERSION__, // eslint-disable-line no-undef
     },
   }).catch(_ => {})

@@ -60,7 +60,9 @@ declare var KB: {
   process: {
     argv: Array<string>
     env: NodeJS.ProcessEnv
+    pid: number
     platform: NodeJS.Platform
+    type: string
   }
 }
 
