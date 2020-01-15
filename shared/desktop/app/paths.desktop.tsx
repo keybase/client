@@ -34,10 +34,15 @@ export function appInstallerPath() {
   return path.resolve(resourcesPath, 'KeybaseInstaller.app', 'Contents', 'MacOS', 'Keybase')
 }
 
-// Path to keybase executable (darwin only), null if not available
+// Path to keybase executable (windows and darwin only), null if not available
 export function keybaseBinPath() {
   if (os.platform() === 'win32') {
-    var kbPath = SafeElectron.getApp()
+    var kbPath = process.env['KEYBASE_BIN_PATH'] || ''
+    if (kbPath) {
+      return path.resolve(String(kbPath), "keybase.exe")
+    }
+
+    kbPath = SafeElectron.getApp()
       .getPath('appData')
       .replace('Roaming', 'Local')
     if (!kbPath) {
