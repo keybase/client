@@ -184,12 +184,6 @@ const InstallBotPopup = (props: Props) => {
 
   // lifecycle
   React.useEffect(() => {
-    dispatch(
-      WaitingGen.createClearWaiting({key: [Constants.waitingKeyBotAdd, Constants.waitingKeyBotRemove]})
-    )
-    if (!commands?.commands?.length) {
-      dispatch(Chat2Gen.createRefreshBotPublicCommands({username: botUsername}))
-    }
     if (conversationIDKey) {
       dispatch(Chat2Gen.createRefreshBotRoleInConv({conversationIDKey, username: botUsername}))
       if (inTeam) {
@@ -203,6 +197,14 @@ const InstallBotPopup = (props: Props) => {
     }
     dispatch(TeamsGen.createGetChannels({teamID}))
   }, [teamID])
+  React.useEffect(() => {
+    dispatch(
+      WaitingGen.createClearWaiting({key: [Constants.waitingKeyBotAdd, Constants.waitingKeyBotRemove]})
+    )
+    if (!commands?.commands?.length) {
+      dispatch(Chat2Gen.createRefreshBotPublicCommands({username: botUsername}))
+    }
+  }, [])
 
   const restrictedButton = (
     <Kb.Box2 key={RestrictedItem} direction="vertical" fullWidth={true} style={styles.dropdownButton}>
