@@ -742,7 +742,7 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 
 	// apply any new failed outbox items
 	for convIDStr, failedCount := range failedOutboxMap {
-		convID, err := chat1.MakeConvID(convIDStr.String())
+		convID, err := chat1.MakeConvID(string(convIDStr))
 		if err != nil {
 			s.Debug(ctx, "ApplyLocalChatState: Unable to make convID: %v", err)
 			continue

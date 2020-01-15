@@ -999,7 +999,7 @@ func (cc *JourneyCardManagerSingleUser) TimeTravel(ctx context.Context, duration
 		}
 		for convIDStr, conv := range jcd.Convs {
 			if conv.JoinedTime != nil {
-				convID, err := chat1.MakeConvID(convIDStr.String())
+				convID, err := chat1.MakeConvID(string(convIDStr))
 				if err != nil {
 					return fmt.Errorf("teamID:%v convID:%v err:%v", teamID, convIDStr, err)
 				}
