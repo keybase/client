@@ -1754,7 +1754,7 @@ func (s TopicNameState) Eq(o TopicNameState) bool {
 }
 
 func (i InboxUIItem) GetConvID() ConversationID {
-	bConvID, _ := hex.DecodeString(string(i.ConvID))
+	bConvID, _ := hex.DecodeString(i.ConvID.String())
 	return ConversationID(bConvID)
 }
 

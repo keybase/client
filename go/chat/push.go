@@ -872,8 +872,7 @@ func (g *PushHandler) notifyMembersUpdate(ctx context.Context, uid gregor1.UID,
 	addStatus(chat1.ConversationMemberStatus_RESET, membersRes.OthersResetConvs)
 	addStatus(chat1.ConversationMemberStatus_REMOVED, membersRes.OthersRemovedConvs)
 	for strConvID, memberInfo := range convMap {
-		bConvID, _ := hex.DecodeString(strConvID.String())
-		convID := chat1.ConversationID(bConvID)
+		convID, _ := chat1.MakeConvID(strConvID.String())
 		activity := chat1.NewChatActivityWithMembersUpdate(chat1.MembersUpdateInfo{
 			ConvID:  convID,
 			Members: memberInfo,
