@@ -64,6 +64,15 @@ const TextInput = (props: TextProps) => {
   return (
     <Kb.Box onClick={onFocusInput} style={styles.containerInputFocus}>
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.commonContainer}>
+        {props.value && (
+          <Kb.Text
+            type="BodySmallPrimaryLink"
+            onClick={() => props.onChangeText('')}
+            style={styles.clearButtonTextInput}
+          >
+            Clear
+          </Kb.Text>
+        )}
         <Kb.NewInput
           value={value}
           placeholder={placeholder}
@@ -110,7 +119,11 @@ const FileInput = (props: FileProps) => {
       alignItems="stretch"
       style={styles.commonContainer}
     >
-      <Kb.Text type="BodySmallPrimaryLink" onClick={() => props.onClearFiles()} style={styles.clearButton}>
+      <Kb.Text
+        type="BodySmallPrimaryLink"
+        onClick={() => props.onClearFiles()}
+        style={styles.clearButtonFileInput}
+      >
         Clear
       </Kb.Text>
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
@@ -135,10 +148,15 @@ const styles = Styles.styleSheetCreate(
         paddingLeft: Styles.globalMargins.tiny,
         paddingRight: Styles.globalMargins.tiny,
       },
-      clearButton: {
+      clearButtonFileInput: {
         position: 'absolute',
         right: Styles.globalMargins.small,
         top: Styles.globalMargins.small,
+      },
+      clearButtonTextInput: {
+        position: 'absolute',
+        right: Styles.globalMargins.tiny,
+        top: Styles.globalMargins.tiny,
       },
       commonContainer: {
         ...Styles.globalStyles.flexGrow,
