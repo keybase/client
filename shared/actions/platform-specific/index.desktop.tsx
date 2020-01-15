@@ -2,7 +2,7 @@ import * as ConfigGen from '../config-gen'
 import * as ConfigConstants from '../../constants/config'
 import * as EngineGen from '../engine-gen-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as SafeElectron from '../../util/safe-electron.desktop'
+import * as Electron from 'electron'
 import * as Saga from '../../util/saga'
 import logger from '../../logger'
 import {NotifyPopup} from '../../native/notifications'
@@ -30,7 +30,7 @@ export async function saveAttachmentToCameraRoll() {
 }
 
 const showMainWindow = () => {
-  SafeElectron.getApp().emit('KBkeybase', '', {type: 'showMainWindow'})
+  Electron.ipcRenderer.invoke('KBkeybase', {type: 'showMainWindow'})
 }
 
 export function displayNewMessageNotification() {
@@ -79,7 +79,7 @@ function* initializeInputMonitor(): Iterable<any> {
       const userActive = type === 'active'
       yield Saga.put(ConfigGen.createChangedActive({userActive}))
       // let node thread save file
-      SafeElectron.getApp().emit('KBkeybase', '', {
+      Electron.ipcRenderer.invoke('KBkeybase', {
         payload: {changedAtMs: Date.now(), isUserActive: userActive},
         type: 'activeChanged',
       })
@@ -89,7 +89,7 @@ function* initializeInputMonitor(): Iterable<any> {
 
 export const dumpLogs = async (_?: Container.TypedState, action?: ConfigGen.DumpLogsPayload) => {
   const fromRender = await logger.dump()
-  const globalLogger: typeof logger = SafeElectron.getRemote().getGlobal('globalLogger')
+  const globalLogger: typeof logger = Electron.remote.getGlobal('globalLogger')
   const fromMain = await globalLogger.dump()
   await writeLogLinesToFile([...fromRender, ...fromMain])
   // quit as soon as possible
@@ -170,7 +170,7 @@ function* setupReachabilityWatcher() {
 
 const onExit = () => {
   console.log('App exit requested')
-  SafeElectron.getApp().exit(0)
+  Electron.remote.app.exit(0)
 }
 
 const onFSActivity = (state: Container.TypedState, action: EngineGen.Keybase1NotifyFSFSActivityPayload) => {
@@ -187,7 +187,7 @@ const onShutdown = (action: EngineGen.Keybase1NotifyServiceShutdownPayload) => {
   if (isWindows && code !== RPCTypes.ExitCode.restart) {
     console.log('Quitting due to service shutdown with code: ', code)
     // Quit just the app, not the service
-    SafeElectron.getApp().quit()
+    Electron.remote.app.quit()
   }
 }
 
@@ -223,7 +223,7 @@ const prepareLogSend = async (action: EngineGen.Keybase1LogsendPrepareLogsendPay
 }
 
 const copyToClipboard = (action: ConfigGen.CopyToClipboardPayload) => {
-  SafeElectron.getClipboard().writeText(action.payload.text)
+  Electron.clipboard.writeText(action.payload.text)
 }
 
 const sendKBServiceCheck = (state: Container.TypedState, action: ConfigGen.DaemonHandshakeWaitPayload) => {
@@ -232,7 +232,7 @@ const sendKBServiceCheck = (state: Container.TypedState, action: ConfigGen.Daemo
     state.config.daemonHandshakeWaiters.size === 0 &&
     state.config.daemonHandshakeFailedReason === ConfigConstants.noKBFSFailReason
   ) {
-    SafeElectron.getApp().emit('keybase' as any, {type: 'requestStartService'})
+    Electron.ipcRenderer.invoke('KBkeybase', {type: 'requestStartService'})
   }
 }
 
@@ -275,7 +275,7 @@ const updateNow = async () => {
 
 function* startPowerMonitor() {
   const channel = Saga.eventChannel(emitter => {
-    const pm = SafeElectron.getPowerMonitor()
+    const pm = Electron.remote.powerMonitor
     pm.on('suspend', () => emitter('suspend'))
     pm.on('resume', () => emitter('resume'))
     pm.on('shutdown', () => emitter('shutdown'))
@@ -389,9 +389,9 @@ const setOpenAtLogin = async (state: Container.TypedState) => {
       (await RPCTypes.ctlGetNixOnLoginStartupRpcPromise()) === RPCTypes.OnLoginStartupStatus.enabled
     if (enabled !== openAtLogin) await setNixOnLoginStartup(openAtLogin)
   } else {
-    if (SafeElectron.getApp().getLoginItemSettings().openAtLogin !== openAtLogin) {
+    if (Electron.remote.app.getLoginItemSettings().openAtLogin !== openAtLogin) {
       logger.info(`Login item settings changed! now ${openAtLogin}`)
-      SafeElectron.getApp().setLoginItemSettings({openAtLogin})
+      Electron.remote.app.setLoginItemSettings({openAtLogin})
     }
   }
 }

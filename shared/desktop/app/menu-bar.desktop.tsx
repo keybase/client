@@ -1,7 +1,7 @@
 // Entrypoint for the menubar node part
 import * as ConfigGen from '../../actions/config-gen'
 import * as Chat2Gen from '../../actions/chat2-gen'
-import * as SafeElectron from '../../util/safe-electron.desktop'
+import * as Electron from 'electron'
 import logger from '../../logger'
 import {isDarwin, isWindows, isLinux} from '../../constants/platform'
 import {mainWindowDispatch} from '../remote/util.desktop'
@@ -69,22 +69,22 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
     }
   }
 
-  mb.on('ready', () => {
-    SafeElectron.getApp().on('KBmenu' as any, (_: string, action: Action) => {
-      switch (action.type) {
-        case 'showTray': {
-          icon = action.payload.icon
-          selectedIcon = action.payload.iconSelected
-          updateIcon(false)
-          const dock = SafeElectron.getApp().dock
-          if (dock && dock.isVisible()) {
-            SafeElectron.getApp().badgeCount = action.payload.desktopAppBadgeCount
-          }
-          break
+  Electron.ipcMain.handle('KBmenu', (_: any, action: Action) => {
+    switch (action.type) {
+      case 'showTray': {
+        icon = action.payload.icon
+        selectedIcon = action.payload.iconSelected
+        updateIcon(false)
+        const dock = Electron.app.dock
+        if (dock && dock.isVisible()) {
+          Electron.app.badgeCount = action.payload.desktopAppBadgeCount
         }
+        break
       }
-    })
+    }
+  })
 
+  mb.on('ready', () => {
     // ask for an update in case we missed one
     mainWindowDispatch(
       ConfigGen.createRemoteWindowWantsProps({
@@ -124,8 +124,8 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
       if (!isWindows || !mb.window || !mb.tray) {
         return
       }
-      const cursorPoint = SafeElectron.getScreen().getCursorScreenPoint()
-      const screenSize = SafeElectron.getScreen().getDisplayNearestPoint(cursorPoint).workArea
+      const cursorPoint = Electron.screen.getCursorScreenPoint()
+      const screenSize = Electron.screen.getDisplayNearestPoint(cursorPoint).workArea
       const menuBounds = mb.window.getBounds()
       logger.info('Showing menu:', cursorPoint, screenSize)
       let iconBounds = mb.tray.getBounds()

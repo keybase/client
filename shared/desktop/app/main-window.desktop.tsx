@@ -100,19 +100,6 @@ const setupWindowEvents = (win: Electron.BrowserWindow) => {
   }
 
   win.on('close', hideInsteadOfClose)
-
-  type IPCPayload = {type: 'showMainWindow'} | {type: 'closeWindows'}
-  Electron.app.on('KBkeybase' as any, (_: string, payload: IPCPayload) => {
-    switch (payload.type) {
-      case 'showMainWindow':
-        win.show()
-        showDockIcon()
-        break
-      case 'closeWindows':
-        hideDockIcon()
-        break
-    }
-  })
 }
 
 const changeDock = (show: boolean) => {
