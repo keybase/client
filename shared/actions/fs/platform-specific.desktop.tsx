@@ -4,7 +4,7 @@ import * as Saga from '../../util/saga'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import * as SafeElectron from '../../util/safe-electron.desktop'
+import * as Electron from 'electron'
 import * as Tabs from '../../constants/tabs'
 import fs from 'fs'
 import {TypedState, TypedActions} from '../../util/container'
@@ -51,7 +51,7 @@ const openInDefaultDirectory = (openPath: string): Promise<void> => {
       const url = pathToURL(resolvedPath)
       logger.info('Open URL (directory):', url)
 
-      SafeElectron.getShell()
+      Electron.remote.shell
         .openExternal(url, {activate: true})
         .then(() => {
           logger.info('Opened directory:', openPath)
@@ -90,7 +90,7 @@ const _openPathInSystemFileManagerPromise = (openPath: string, isFolder: boolean
   new Promise((resolve, reject) => {
     if (isFolder) {
       if (isWindows) {
-        if (SafeElectron.getShell().openItem(openPath)) {
+        if (Electron.remote.shell.openItem(openPath)) {
           resolve()
         } else {
           reject(new Error('unable to open item'))
@@ -99,7 +99,7 @@ const _openPathInSystemFileManagerPromise = (openPath: string, isFolder: boolean
         openInDefaultDirectory(openPath).then(resolve, reject)
       }
     } else {
-      SafeElectron.getShell().showItemInFolder(openPath)
+      Electron.remote.shell.showItemInFolder(openPath)
       resolve()
     }
   })
@@ -310,7 +310,7 @@ const uninstallDokan = (state: TypedState) => {
 }
 
 const openSecurityPreferences = () => {
-  SafeElectron.getShell()
+  Electron.remote.shell
     .openExternal('x-apple.systempreferences:com.apple.preference.security?General', {activate: true})
     .then(() => {
       logger.info('Opened Security Preferences')

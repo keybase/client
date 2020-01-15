@@ -30,37 +30,6 @@ export const getSystemPreferences = () => {
 }
 
 // Both
-export const getShell = () => {
-  const shell = Electron.shell
-  if (!shell) {
-    throw new Error('Should be impossible')
-  }
-  return shell
-}
-
-export const getClipboard = () => {
-  const clipboard = Electron.clipboard
-  if (!clipboard) {
-    throw new Error('Should be impossible')
-  }
-  return clipboard
-}
-
-export const getCrashReporter = () => {
-  const crashReporter = Electron.crashReporter
-  if (!crashReporter) {
-    throw new Error('Should be impossible')
-  }
-  return crashReporter
-}
-
-export const getPowerSaveBlocker = () => {
-  const powerSaveBlocker = Electron.powerSaveBlocker
-  if (!powerSaveBlocker) {
-    throw new Error('Should be impossible')
-  }
-  return powerSaveBlocker
-}
 
 // Expose classes
 const _BrowserWindow = Electron.BrowserWindow || (Electron.remote && Electron.remote.BrowserWindow)
