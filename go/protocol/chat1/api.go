@@ -21,9 +21,9 @@ func (o TLFIDStr) DeepCopy() TLFIDStr {
 	return o
 }
 
-type FlipGameIDStr string
+type GameIDStr string
 
-func (o FlipGameIDStr) DeepCopy() FlipGameIDStr {
+func (o GameIDStr) DeepCopy() GameIDStr {
 	return o
 }
 
@@ -104,7 +104,7 @@ func (o MsgBotInfo) DeepCopy() MsgBotInfo {
 
 type MsgFlipContent struct {
 	Text         string             `codec:"text" json:"text"`
-	GameID       FlipGameIDStr      `codec:"gameID" json:"game_id"`
+	GameID       GameIDStr          `codec:"gameID" json:"game_id"`
 	FlipConvID   ConvIDStr          `codec:"flipConvID" json:"flip_conv_id"`
 	UserMentions []KnownUserMention `codec:"userMentions" json:"user_mentions"`
 	TeamMentions []KnownTeamMention `codec:"teamMentions" json:"team_mentions"`
@@ -435,8 +435,8 @@ type ConvSummary struct {
 	MemberStatus  string                    `codec:"memberStatus" json:"member_status"`
 	ResetUsers    []string                  `codec:"resetUsers,omitempty" json:"reset_users,omitempty"`
 	FinalizeInfo  *ConversationFinalizeInfo `codec:"finalizeInfo,omitempty" json:"finalize_info,omitempty"`
-	Supersedes    []ConvIDStr               `codec:"supersedes,omitempty" json:"supersedes,omitempty"`
-	SupersededBy  []ConvIDStr               `codec:"supersededBy,omitempty" json:"superseded_by,omitempty"`
+	Supersedes    []string                  `codec:"supersedes,omitempty" json:"supersedes,omitempty"`
+	SupersededBy  []string                  `codec:"supersededBy,omitempty" json:"superseded_by,omitempty"`
 	Error         string                    `codec:"error,omitempty" json:"error,omitempty"`
 }
 
@@ -467,24 +467,24 @@ func (o ConvSummary) DeepCopy() ConvSummary {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.FinalizeInfo),
-		Supersedes: (func(x []ConvIDStr) []ConvIDStr {
+		Supersedes: (func(x []string) []string {
 			if x == nil {
 				return nil
 			}
-			ret := make([]ConvIDStr, len(x))
+			ret := make([]string, len(x))
 			for i, v := range x {
-				vCopy := v.DeepCopy()
+				vCopy := v
 				ret[i] = vCopy
 			}
 			return ret
 		})(o.Supersedes),
-		SupersededBy: (func(x []ConvIDStr) []ConvIDStr {
+		SupersededBy: (func(x []string) []string {
 			if x == nil {
 				return nil
 			}
-			ret := make([]ConvIDStr, len(x))
+			ret := make([]string, len(x))
 			for i, v := range x {
-				vCopy := v.DeepCopy()
+				vCopy := v
 				ret[i] = vCopy
 			}
 			return ret

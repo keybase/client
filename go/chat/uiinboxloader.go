@@ -35,7 +35,7 @@ type UIInboxLoader struct {
 	transmitCh            chan interface{}
 	layoutCh              chan chat1.InboxLayoutReselectMode
 	bigTeamUnboxCh        chan []chat1.ConversationID
-	convTransmitBatch     map[chat1.ConvIDStr]chat1.ConversationLocal
+	convTransmitBatch     map[string]chat1.ConversationLocal
 	batchDelay            time.Duration
 	lastBatchFlush        time.Time
 	lastLayoutFlush       time.Time
@@ -58,7 +58,7 @@ func NewUIInboxLoader(g *globals.Context) *UIInboxLoader {
 	return &UIInboxLoader{
 		Contextified:          globals.NewContextified(g),
 		DebugLabeler:          utils.NewDebugLabeler(g.GetLog(), "UIInboxLoader", false),
-		convTransmitBatch:     make(map[chat1.ConvIDStr]chat1.ConversationLocal),
+		convTransmitBatch:     make(map[string]chat1.ConversationLocal),
 		clock:                 clockwork.NewRealClock(),
 		batchDelay:            200 * time.Millisecond,
 		smallTeamBound:        defaultSmallTeamBound,
@@ -159,7 +159,7 @@ func (h *UIInboxLoader) flushConvBatch() (err error) {
 		convs = append(convs, conv)
 	}
 	h.lastBatchFlush = h.clock.Now()
-	h.convTransmitBatch = make(map[chat1.ConvIDStr]chat1.ConversationLocal) // clear batch always
+	h.convTransmitBatch = make(map[string]chat1.ConversationLocal) // clear batch always
 	h.Debug(ctx, "flushConvBatch: transmitting %d convs", len(convs))
 	defer func() {
 		if err != nil {
@@ -386,11 +386,11 @@ func (h *UIInboxLoader) Query() chat1.GetInboxLocalQuery {
 
 type bigTeam struct {
 	name  string
-	id    chat1.TLFIDStr
+	id    string
 	convs []types.RemoteConversation
 }
 
-func newBigTeam(name string, id chat1.TLFIDStr) *bigTeam {
+func newBigTeam(name, id string) *bigTeam {
 	return &bigTeam{name: name, id: id}
 }
 
@@ -486,7 +486,7 @@ func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox,
 	if !selectedInLayout || reselectMode == chat1.InboxLayoutReselectMode_FORCE {
 		// select a new conv for the UI
 		var reselect chat1.UIInboxReselectInfo
-		reselect.OldConvID = selectedConv.String()
+		reselect.OldConvID = chat1.ConvIDStr(selectedConv.String())
 		if len(res.SmallTeams) > 0 {
 			reselect.NewConvID = &res.SmallTeams[0].ConvID
 		}
@@ -641,7 +641,7 @@ func (h *UIInboxLoader) isTopSmallTeamInLastLayout(convID chat1.ConversationID) 
 	if len(h.lastLayout.SmallTeams) == 0 {
 		return false
 	}
-	return h.lastLayout.SmallTeams[0].ConvID == convID.String()
+	return h.lastLayout.SmallTeams[0].ConvID == chat1.ConvIDStr(convID.String())
 }
 
 func (h *UIInboxLoader) setLastLayout(l *chat1.UIInboxLayout) {

@@ -62,13 +62,13 @@ func newSearchSession(query, origQuery string, uid gregor1.UID,
 func (s *searchSession) getConv(convID chat1.ConversationID) types.RemoteConversation {
 	s.Lock()
 	defer s.Unlock()
-	return s.convMap[convID.String()]
+	return s.convMap[chat1.ConvIDStr(convID.String())]
 }
 
 func (s *searchSession) setHit(convID chat1.ConversationID, convHit chat1.ChatSearchInboxHit) {
 	s.Lock()
 	defer s.Unlock()
-	s.hitMap[convID.String()] = convHit
+	s.hitMap[chat1.ConvIDStr(convID.String())] = convHit
 }
 
 func (s *searchSession) incrementNumConvsSearched() {

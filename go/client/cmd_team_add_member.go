@@ -21,7 +21,7 @@ type CmdTeamAddMember struct {
 	Phone                string
 	Username             string
 	Role                 keybase1.TeamRole
-	BotSettings          *TeamBotSettings
+	BotSettings          *keybase1.TeamBotSettings
 	SkipChatNotification bool
 }
 
@@ -111,9 +111,8 @@ func (c *CmdTeamAddMember) Run() error {
 		return err
 	}
 
-	botSettings, err := ValidateBotSettingsConvs(c.G(), c.Team,
-		chat1.ConversationMembersType_TEAM, c.BotSettings)
-	if err != nil {
+	if err := ValidateBotSettingsConvs(c.G(), c.Team,
+		chat1.ConversationMembersType_TEAM, c.BotSettings); err != nil {
 		return err
 	}
 
@@ -128,7 +127,7 @@ func (c *CmdTeamAddMember) Run() error {
 		Phone:                c.Phone,
 		Username:             c.Username,
 		Role:                 c.Role,
-		BotSettings:          botSettings,
+		BotSettings:          c.BotSettings,
 		SendChatNotification: !c.SkipChatNotification,
 	}
 

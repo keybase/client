@@ -1480,7 +1480,7 @@ export type MessageTypes = {
     outParam: ProofSuggestionsRes
   }
   'keybase.1.user.reportUser': {
-    inParam: {readonly username: String; readonly reason: String; readonly comment: String; readonly includeTranscript: Boolean; readonly convID?: ChatConversationID | null}
+    inParam: {readonly username: String; readonly reason: String; readonly comment: String; readonly includeTranscript: Boolean; readonly convID?: String | null}
     outParam: void
   }
   'keybase.1.user.setUserBlocks': {
@@ -3015,7 +3015,7 @@ export type TeamAddMembersResult = {readonly notAdded?: Array<User> | null}
 export type TeamAndMemberShowcase = {readonly teamShowcase: TeamShowcase; readonly isMemberShowcased: Boolean}
 export type TeamApplicationKey = {readonly application: TeamApplication; readonly keyGeneration: PerTeamKeyGeneration; readonly key: Bytes32}
 export type TeamBlock = {readonly teamName: String; readonly createTime: Time}
-export type TeamBotSettings = {readonly cmds: Boolean; readonly mentions: Boolean; readonly triggers?: Array<String> | null; readonly convs?: Array<ChatConversationID> | null}
+export type TeamBotSettings = {readonly cmds: Boolean; readonly mentions: Boolean; readonly triggers?: Array<String> | null; readonly convs?: Array<String> | null}
 export type TeamCLKRMsg = {readonly teamID: TeamID; readonly generation: PerTeamKeyGeneration; readonly score: Int; readonly resetUsersUntrusted?: Array<TeamCLKRResetUser> | null}
 export type TeamCLKRResetUser = {readonly uid: UID; readonly userEldestSeqno: Seqno; readonly memberEldestSeqno: Seqno}
 export type TeamChangeReq = {readonly owners?: Array<UserVersion> | null; readonly admins?: Array<UserVersion> | null; readonly writers?: Array<UserVersion> | null; readonly readers?: Array<UserVersion> | null; readonly bots?: Array<UserVersion> | null; readonly restrictedBots: {[key: string]: TeamBotSettings}; readonly none?: Array<UserVersion> | null; readonly completedInvites: {[key: string]: UserVersionPercentForm}}

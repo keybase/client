@@ -96,7 +96,7 @@ func (d *chatNotificationDisplay) formatMessage(inMsg chat1.IncomingMessage) *ch
 		mv := inMsg.Message.Valid()
 		summary := &chat1.MsgSummary{
 			Id:     mv.MessageID,
-			ConvID: inMsg.ConvID.String(),
+			ConvID: chat1.ConvIDStr(inMsg.ConvID.String()),
 			Channel: chat1.ChatChannel{
 				Name:        inMsg.Conv.Name,
 				MembersType: strings.ToLower(inMsg.Conv.MembersType.String()),

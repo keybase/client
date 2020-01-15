@@ -403,7 +403,7 @@ func (i *Inbox) MergeLocalMetadata(ctx context.Context, uid gregor1.UID, convs [
 
 	convMap := make(map[chat1.ConvIDStr]chat1.ConversationLocal)
 	for _, conv := range convs {
-		convMap[conv.GetConvID().String()] = conv
+		convMap[chat1.ConvIDStr(conv.GetConvID().String())] = conv
 	}
 	for index, rc := range ibox.Conversations {
 		if convLocal, ok := convMap[rc.ConvIDStr]; ok {
@@ -521,7 +521,7 @@ func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, rcs 
 	if len(query.ConvIDs) > 0 {
 		queryConvIDMap = make(map[chat1.ConvIDStr]bool, len(query.ConvIDs))
 		for _, c := range query.ConvIDs {
-			queryConvIDMap[c.String()] = true
+			queryConvIDMap[chat1.ConvIDStr(c.String())] = true
 		}
 	}
 
@@ -624,7 +624,7 @@ func (i *Inbox) queryConvIDsExist(ctx context.Context, ibox inboxDiskData,
 		m[conv.ConvIDStr] = struct{}{}
 	}
 	for _, convID := range convIDs {
-		if _, ok := m[convID.String()]; !ok {
+		if _, ok := m[chat1.ConvIDStr(convID.String())]; !ok {
 			return false
 		}
 	}
@@ -1583,7 +1583,7 @@ func (i *Inbox) Sync(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	ibox.InboxVersion = vers
 	convMap := make(map[chat1.ConvIDStr]chat1.Conversation)
 	for _, conv := range convs {
-		convMap[conv.GetConvID().String()] = conv
+		convMap[chat1.ConvIDStr(conv.GetConvID().String())] = conv
 	}
 	for index, conv := range ibox.Conversations {
 		if newConv, ok := convMap[conv.ConvIDStr]; ok {
@@ -1673,13 +1673,13 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 	removedMap := make(map[chat1.ConvIDStr]bool)
 	for _, r := range userRemoved {
 		i.Debug(ctx, "MembershipUpdate: removing user from: %s", r)
-		removedMap[r.ConvID.String()] = true
+		removedMap[chat1.ConvIDStr(r.ConvID.String())] = true
 		layoutChanged = layoutChanged || r.TopicType == chat1.TopicType_CHAT
 	}
 	resetMap := make(map[chat1.ConvIDStr]bool)
 	for _, r := range userReset {
 		i.Debug(ctx, "MembershipUpdate: user reset in: %s", r)
-		resetMap[r.ConvID.String()] = true
+		resetMap[chat1.ConvIDStr(r.ConvID.String())] = true
 	}
 	ibox.Conversations = nil
 	for _, conv := range convs {
@@ -1723,7 +1723,7 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 		convMap[c.ConvIDStr] = &ibox.Conversations[index]
 	}
 	for _, oj := range othersJoined {
-		if cp, ok := convMap[oj.ConvID.String()]; ok {
+		if cp, ok := convMap[chat1.ConvIDStr(oj.ConvID.String())]; ok {
 			// Check reset list for this UID, if we find it remove it instead of adding to all list
 			isReset := false
 			var resetIndex int
@@ -1754,7 +1754,7 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 		}
 	}
 	for _, or := range othersRemoved {
-		if cp, ok := convMap[or.ConvID.String()]; ok {
+		if cp, ok := convMap[chat1.ConvIDStr(or.ConvID.String())]; ok {
 			newAllList := make([]gregor1.UID, 0, len(cp.Conv.Metadata.AllList))
 			for _, u := range cp.Conv.Metadata.AllList {
 				if !u.Eq(or.Uid) {
@@ -1766,7 +1766,7 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 		}
 	}
 	for _, or := range othersReset {
-		if cp, ok := convMap[or.ConvID.String()]; ok {
+		if cp, ok := convMap[chat1.ConvIDStr(or.ConvID.String())]; ok {
 			cp.Conv.Metadata.ResetList = append(cp.Conv.Metadata.ResetList, or.Uid)
 			cp.Conv.Metadata.Version = vers.ToConvVers()
 		}
@@ -1811,7 +1811,7 @@ func (i *Inbox) ConversationsUpdate(ctx context.Context, uid gregor1.UID, vers c
 	// Process our own changes
 	updateMap := make(map[chat1.ConvIDStr]chat1.ConversationUpdate)
 	for _, u := range convUpdates {
-		updateMap[u.ConvID.String()] = u
+		updateMap[chat1.ConvIDStr(u.ConvID.String())] = u
 	}
 
 	for idx, conv := range ibox.Conversations {
@@ -1856,7 +1856,7 @@ func (i *Inbox) UpdateLocalMtime(ctx context.Context, uid gregor1.UID,
 	// Process our own changes
 	updateMap := make(map[chat1.ConvIDStr]chat1.LocalMtimeUpdate)
 	for _, u := range convUpdates {
-		updateMap[u.ConvID.String()] = u
+		updateMap[chat1.ConvIDStr(u.ConvID.String())] = u
 	}
 
 	for idx, conv := range ibox.Conversations {

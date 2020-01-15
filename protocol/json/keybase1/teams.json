@@ -2582,7 +2582,7 @@
         {
           "type": {
             "type": "array",
-            "items": "ChatConversationID"
+            "items": "string"
           },
           "name": "convs"
         }

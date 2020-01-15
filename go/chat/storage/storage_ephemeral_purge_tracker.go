@@ -44,7 +44,7 @@ func newEphemeralTracker(g *globals.Context) *ephemeralTracker {
 }
 
 func (t *ephemeralTracker) key(uid gregor1.UID, convID chat1.ConversationID) string {
-	return fmt.Sprintf("%s%s", fmt.Sprintf(dbKeyPrefix, uid), convID)
+	return fmt.Sprintf(dbKeyPrefix, uid) + convID.String()
 }
 
 func (t *ephemeralTracker) dbKey(uid gregor1.UID, convID chat1.ConversationID) libkb.DbKey {

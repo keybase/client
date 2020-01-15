@@ -43,7 +43,7 @@
     },
     {
       "type": "record",
-      "name": "FlipGameIDStr",
+      "name": "GameIDStr",
       "fields": [],
       "typedef": "string"
     },
@@ -172,7 +172,7 @@
           "jsonkey": "text"
         },
         {
-          "type": "FlipGameIDStr",
+          "type": "GameIDStr",
           "name": "gameID",
           "jsonkey": "game_id"
         },
@@ -577,7 +577,7 @@
         {
           "type": {
             "type": "array",
-            "items": "ConvIDStr"
+            "items": "string"
           },
           "name": "supersedes",
           "jsonkey": "supersedes",
@@ -586,7 +586,7 @@
         {
           "type": {
             "type": "array",
-            "items": "ConvIDStr"
+            "items": "string"
           },
           "name": "supersededBy",
           "jsonkey": "superseded_by",

@@ -696,7 +696,7 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 			if !isBadgableError {
 				continue
 			}
-			convIDStr := obr.ConvID.String()
+			convIDStr := chat1.ConvIDStr(obr.ConvID.String())
 			if update, ok := localUpdates[convIDStr]; ok {
 				if ctime.After(update.Mtime) {
 					localUpdates[convIDStr] = update

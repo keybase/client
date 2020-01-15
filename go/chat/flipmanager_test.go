@@ -19,7 +19,7 @@ import (
 )
 
 func consumeFlipToResult(t *testing.T, ui *kbtest.ChatUI, listener *serverChatListener,
-	gameID chat1.FlipGameIDStr, numUsers int) string {
+	gameID chat1.GameIDStr, numUsers int) string {
 	timeout := 20 * time.Second
 	consumeNewMsgRemote(t, listener, chat1.MessageType_FLIP) // host msg
 	for {

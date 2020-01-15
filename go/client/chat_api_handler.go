@@ -144,11 +144,11 @@ func (c ChatMessage) Valid() bool {
 }
 
 type listOptionsV1 struct {
-	ConversationID chat1.ConvIDStr `json:"conversation_id,omitempty"`
-	UnreadOnly     bool            `json:"unread_only,omitempty"`
-	TopicType      string          `json:"topic_type,omitempty"`
-	ShowErrors     bool            `json:"show_errors,omitempty"`
-	FailOffline    bool            `json:"fail_offline,omitempty"`
+	ConversationID string `json:"conversation_id,omitempty"`
+	UnreadOnly     bool   `json:"unread_only,omitempty"`
+	TopicType      string `json:"topic_type,omitempty"`
+	ShowErrors     bool   `json:"show_errors,omitempty"`
+	FailOffline    bool   `json:"fail_offline,omitempty"`
 }
 
 func (l listOptionsV1) Check() error {
@@ -182,7 +182,7 @@ func (l ephemeralLifetime) Valid() bool {
 
 type sendOptionsV1 struct {
 	Channel           ChatChannel
-	ConversationID    chat1.ConvIDStr `json:"conversation_id"`
+	ConversationID    string `json:"conversation_id"`
 	Message           ChatMessage
 	Nonblock          bool              `json:"nonblock"`
 	MembersType       string            `json:"members_type"`
@@ -206,7 +206,7 @@ func (s sendOptionsV1) Check() error {
 
 type readOptionsV1 struct {
 	Channel        ChatChannel
-	ConversationID chat1.ConvIDStr   `json:"conversation_id"`
+	ConversationID string            `json:"conversation_id"`
 	Pagination     *chat1.Pagination `json:"pagination,omitempty"`
 	Peek           bool
 	UnreadOnly     bool `json:"unread_only"`
@@ -219,7 +219,7 @@ func (r readOptionsV1) Check() error {
 
 type getOptionsV1 struct {
 	Channel        ChatChannel
-	ConversationID chat1.ConvIDStr   `json:"conversation_id"`
+	ConversationID string            `json:"conversation_id"`
 	MessageIDs     []chat1.MessageID `json:"message_ids"`
 	Peek           bool
 	FailOffline    bool `json:"fail_offline"`
@@ -231,7 +231,7 @@ func (r getOptionsV1) Check() error {
 
 type editOptionsV1 struct {
 	Channel        ChatChannel
-	ConversationID chat1.ConvIDStr `json:"conversation_id"`
+	ConversationID string          `json:"conversation_id"`
 	MessageID      chat1.MessageID `json:"message_id"`
 	Message        ChatMessage
 }
@@ -254,7 +254,7 @@ func (e editOptionsV1) Check() error {
 
 type reactionOptionsV1 struct {
 	Channel        ChatChannel
-	ConversationID chat1.ConvIDStr `json:"conversation_id"`
+	ConversationID string          `json:"conversation_id"`
 	MessageID      chat1.MessageID `json:"message_id"`
 	Message        ChatMessage
 }
@@ -277,7 +277,7 @@ func (e reactionOptionsV1) Check() error {
 
 type deleteOptionsV1 struct {
 	Channel        ChatChannel
-	ConversationID chat1.ConvIDStr `json:"conversation_id"`
+	ConversationID string          `json:"conversation_id"`
 	MessageID      chat1.MessageID `json:"message_id"`
 }
 
@@ -295,7 +295,7 @@ func (d deleteOptionsV1) Check() error {
 
 type attachOptionsV1 struct {
 	Channel           ChatChannel
-	ConversationID    chat1.ConvIDStr `json:"conversation_id"`
+	ConversationID    string `json:"conversation_id"`
 	Filename          string
 	Preview           string
 	Title             string
@@ -317,7 +317,7 @@ func (a attachOptionsV1) Check() error {
 
 type downloadOptionsV1 struct {
 	Channel        ChatChannel
-	ConversationID chat1.ConvIDStr `json:"conversation_id"`
+	ConversationID string          `json:"conversation_id"`
 	MessageID      chat1.MessageID `json:"message_id"`
 	Output         string
 	Preview        bool
@@ -340,8 +340,8 @@ func (a downloadOptionsV1) Check() error {
 
 type setStatusOptionsV1 struct {
 	Channel        ChatChannel
-	ConversationID chat1.ConvIDStr `json:"conversation_id"`
-	Status         string          `json:"status"`
+	ConversationID string `json:"conversation_id"`
+	Status         string `json:"status"`
 }
 
 func (o setStatusOptionsV1) Check() error {
@@ -357,7 +357,7 @@ func (o setStatusOptionsV1) Check() error {
 
 type markOptionsV1 struct {
 	Channel        ChatChannel
-	ConversationID chat1.ConvIDStr `json:"conversation_id"`
+	ConversationID string          `json:"conversation_id"`
 	MessageID      chat1.MessageID `json:"message_id"`
 }
 
@@ -374,7 +374,7 @@ type searchOptionsV1 struct {
 	BeforeContext  int    `json:"before_context"`
 	AfterContext   int    `json:"after_context"`
 	Channel        ChatChannel
-	ConversationID chat1.ConvIDStr `json:"conversation_id"`
+	ConversationID string `json:"conversation_id"`
 }
 
 type searchInboxOptionsV1 struct {
@@ -449,7 +449,7 @@ func (o listConvsOnNameOptionsV1) Check() error {
 
 type joinOptionsV1 struct {
 	Channel        ChatChannel
-	ConversationID chat1.ConvIDStr `json:"conversation_id"`
+	ConversationID string `json:"conversation_id"`
 }
 
 func (o joinOptionsV1) Check() error {
@@ -461,7 +461,7 @@ func (o joinOptionsV1) Check() error {
 
 type leaveOptionsV1 struct {
 	Channel        ChatChannel
-	ConversationID chat1.ConvIDStr `json:"conversation_id"`
+	ConversationID string `json:"conversation_id"`
 }
 
 func (o leaveOptionsV1) Check() error {
@@ -473,8 +473,8 @@ func (o leaveOptionsV1) Check() error {
 
 type addToChannelOptionsV1 struct {
 	Channel        ChatChannel
-	ConversationID chat1.ConvIDStr `json:"conversation_id"`
-	Usernames      []string        `json:"usernames"`
+	ConversationID string   `json:"conversation_id"`
+	Usernames      []string `json:"usernames"`
 }
 
 func (o addToChannelOptionsV1) Check() error {
@@ -492,8 +492,8 @@ func (o addToChannelOptionsV1) Check() error {
 }
 
 type loadFlipOptionsV1 struct {
-	ConversationID     chat1.ConvIDStr `json:"conversation_id"`
-	FlipConversationID chat1.ConvIDStr `json:"flip_conversation_id"`
+	ConversationID     string          `json:"conversation_id"`
+	FlipConversationID string          `json:"flip_conversation_id"`
 	MsgID              chat1.MessageID `json:"msg_id"`
 	GameID             string          `json:"game_id"`
 }
@@ -579,7 +579,7 @@ func (a advertiseCommandsOptionsV1) Check() error {
 
 type listCommandsOptionsV1 struct {
 	Channel        ChatChannel
-	ConversationID chat1.ConvIDStr `json:"conversation_id"`
+	ConversationID string `json:"conversation_id"`
 }
 
 func (o listCommandsOptionsV1) Check() error {
@@ -591,7 +591,7 @@ func (o listCommandsOptionsV1) Check() error {
 
 type pinOptionsV1 struct {
 	Channel        ChatChannel
-	ConversationID chat1.ConvIDStr `json:"conversation_id"`
+	ConversationID string          `json:"conversation_id"`
 	MessageID      chat1.MessageID `json:"message_id"`
 }
 
@@ -604,7 +604,7 @@ func (o pinOptionsV1) Check() error {
 
 type unpinOptionsV1 struct {
 	Channel        ChatChannel
-	ConversationID chat1.ConvIDStr `json:"conversation_id"`
+	ConversationID string `json:"conversation_id"`
 }
 
 func (o unpinOptionsV1) Check() error {
@@ -616,7 +616,7 @@ func (o unpinOptionsV1) Check() error {
 
 type listMembersOptionsV1 struct {
 	Channel        ChatChannel
-	ConversationID chat1.ConvIDStr `json:"conversation_id"`
+	ConversationID string `json:"conversation_id"`
 }
 
 func (r listMembersOptionsV1) Check() error {
@@ -1010,8 +1010,8 @@ func (a *ChatAPI) UnpinV1(ctx context.Context, c Call, w io.Writer) error {
 }
 
 type addResetConvMemberOptionsV1 struct {
-	ConversationID chat1.ConvIDStr `json:"conversation_id"`
-	Username       string          `json:"username"`
+	ConversationID string `json:"conversation_id"`
+	Username       string `json:"username"`
 }
 
 func (o addResetConvMemberOptionsV1) Check() error {
@@ -1078,7 +1078,7 @@ func (a *ChatAPI) encodeReply(call Call, reply Reply, w io.Writer) error {
 	return encodeReply(call, reply, w, a.indent)
 }
 
-func checkChannelConv(method string, channel ChatChannel, convID chat1.ConvIDStr) error {
+func checkChannelConv(method string, channel ChatChannel, convID string) error {
 	if !channel.Valid() && len(convID) == 0 {
 		return ErrInvalidOptions{version: 1, method: method, err: errors.New("need channel or conversation_id")}
 	}

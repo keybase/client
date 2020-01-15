@@ -42,7 +42,7 @@ protocol chatUi {
 
   record UIInboxBigTeamLabelRow {
     string name;
-    TLFIDStr id;
+    string id;
   }
 
   variant UIInboxBigTeamRow switch (UIInboxBigTeamRowTyp state) {
@@ -270,7 +270,7 @@ protocol chatUi {
     union { null, UIRequestInfo } requestInfo;
     array<UIMessageUnfurlInfo> unfurls;
     boolean isCollapsed;
-    union { null, FlipGameIDStr } flipGameID;
+    union { null, GameIDStr } flipGameID;
     boolean isDeleteable;
     boolean isEditable;
     union { null, UIMessage } replyTo;
@@ -288,7 +288,7 @@ protocol chatUi {
     gregor1.Time ctime;
     double ordinal;
     boolean isEphemeral;
-    union { null, FlipGameIDStr} flipGameID;
+    union { null, GameIDStr} flipGameID;
     union { null, UIMessage } replyTo;
 
     // For attachments
@@ -513,7 +513,7 @@ protocol chatUi {
     union { null, string } reveal;
   }
   record UICoinFlipStatus {
-    FlipGameIDStr gameID;
+    GameIDStr gameID;
     UICoinFlipPhase phase;
     string progressText;
     string resultText;

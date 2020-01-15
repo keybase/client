@@ -117,14 +117,14 @@ func (o UIInboxBigTeamChannelRow) DeepCopy() UIInboxBigTeamChannelRow {
 }
 
 type UIInboxBigTeamLabelRow struct {
-	Name string   `codec:"name" json:"name"`
-	Id   TLFIDStr `codec:"id" json:"id"`
+	Name string `codec:"name" json:"name"`
+	Id   string `codec:"id" json:"id"`
 }
 
 func (o UIInboxBigTeamLabelRow) DeepCopy() UIInboxBigTeamLabelRow {
 	return UIInboxBigTeamLabelRow{
 		Name: o.Name,
-		Id:   o.Id.DeepCopy(),
+		Id:   o.Id,
 	}
 }
 
@@ -919,7 +919,7 @@ type UIMessageValid struct {
 	RequestInfo           *UIRequestInfo         `codec:"requestInfo,omitempty" json:"requestInfo,omitempty"`
 	Unfurls               []UIMessageUnfurlInfo  `codec:"unfurls" json:"unfurls"`
 	IsCollapsed           bool                   `codec:"isCollapsed" json:"isCollapsed"`
-	FlipGameID            *FlipGameIDStr         `codec:"flipGameID,omitempty" json:"flipGameID,omitempty"`
+	FlipGameID            *GameIDStr             `codec:"flipGameID,omitempty" json:"flipGameID,omitempty"`
 	IsDeleteable          bool                   `codec:"isDeleteable" json:"isDeleteable"`
 	IsEditable            bool                   `codec:"isEditable" json:"isEditable"`
 	ReplyTo               *UIMessage             `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
@@ -1032,7 +1032,7 @@ func (o UIMessageValid) DeepCopy() UIMessageValid {
 			return ret
 		})(o.Unfurls),
 		IsCollapsed: o.IsCollapsed,
-		FlipGameID: (func(x *FlipGameIDStr) *FlipGameIDStr {
+		FlipGameID: (func(x *GameIDStr) *GameIDStr {
 			if x == nil {
 				return nil
 			}
@@ -1068,7 +1068,7 @@ type UIMessageOutbox struct {
 	Ctime             gregor1.Time    `codec:"ctime" json:"ctime"`
 	Ordinal           float64         `codec:"ordinal" json:"ordinal"`
 	IsEphemeral       bool            `codec:"isEphemeral" json:"isEphemeral"`
-	FlipGameID        *FlipGameIDStr  `codec:"flipGameID,omitempty" json:"flipGameID,omitempty"`
+	FlipGameID        *GameIDStr      `codec:"flipGameID,omitempty" json:"flipGameID,omitempty"`
 	ReplyTo           *UIMessage      `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
 	Filename          string          `codec:"filename" json:"filename"`
 	Title             string          `codec:"title" json:"title"`
@@ -1091,7 +1091,7 @@ func (o UIMessageOutbox) DeepCopy() UIMessageOutbox {
 		Ctime:       o.Ctime.DeepCopy(),
 		Ordinal:     o.Ordinal,
 		IsEphemeral: o.IsEphemeral,
-		FlipGameID: (func(x *FlipGameIDStr) *FlipGameIDStr {
+		FlipGameID: (func(x *GameIDStr) *GameIDStr {
 			if x == nil {
 				return nil
 			}
@@ -2609,7 +2609,7 @@ func (o UICoinFlipParticipant) DeepCopy() UICoinFlipParticipant {
 }
 
 type UICoinFlipStatus struct {
-	GameID                  FlipGameIDStr           `codec:"gameID" json:"gameID"`
+	GameID                  GameIDStr               `codec:"gameID" json:"gameID"`
 	Phase                   UICoinFlipPhase         `codec:"phase" json:"phase"`
 	ProgressText            string                  `codec:"progressText" json:"progressText"`
 	ResultText              string                  `codec:"resultText" json:"resultText"`

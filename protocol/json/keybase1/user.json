@@ -974,7 +974,7 @@
           "name": "convID",
           "type": [
             null,
-            "ChatConversationID"
+            "string"
           ]
         }
       ],

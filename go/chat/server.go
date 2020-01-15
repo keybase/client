@@ -2876,7 +2876,7 @@ func (h *Server) teamIDFromTLFName(ctx context.Context, membersType chat1.Conver
 			}
 			return team.ID, nil
 		}
-		return keybase1.TeamIDFromString(nameInfo.ID.String().String())
+		return keybase1.TeamIDFromString(nameInfo.ID.String())
 	}
 	return res, fmt.Errorf("unknown members type: %v", membersType)
 }
@@ -3094,7 +3094,7 @@ func (h *Server) DismissJourneycard(ctx context.Context, arg chat1.DismissJourne
 		if inbox.ConvsUnverified[0].LocalMetadata == nil {
 			return fmt.Errorf("no local metadata")
 		}
-		teamID, err := keybase1.TeamIDFromString(inbox.ConvsUnverified[0].Conv.Metadata.IdTriple.Tlfid.String().String())
+		teamID, err := keybase1.TeamIDFromString(inbox.ConvsUnverified[0].Conv.Metadata.IdTriple.Tlfid.String())
 		if err != nil {
 			return err
 		}

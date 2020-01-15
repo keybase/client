@@ -109,7 +109,7 @@ func CtxRateLimits(ctx context.Context) (res []chat1.RateLimit) {
 
 func CtxAddMessageCacheSkips(ctx context.Context, convID chat1.ConversationID, msgs []chat1.MessageUnboxed) {
 	val := ctx.Value(messageSkipsKey)
-	if existingSkips, ok := val.(map[chat1.ConvIDStr]MessageCacheSkip); ok {
+	if existingSkips, ok := val.(map[string]MessageCacheSkip); ok {
 		existingSkips[convID.String()] = MessageCacheSkip{
 			ConvID: convID,
 			Msgs:   append(existingSkips[convID.String()].Msgs, msgs...),
