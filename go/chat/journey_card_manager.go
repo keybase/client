@@ -532,7 +532,7 @@ func (cc *JourneyCardManagerSingleUser) cardPopularChannels(ctx context.Context,
 		if !convOther.GetConvID().Eq(conv.ConvID) {
 			debugDebug(ctx, "cardPopularChannels ReadUnverified found alternate conv: %v", convOther.GetConvID())
 			nJoinableChannels++
-			if nJoinableChannels >= nJoinableChannels {
+			if nJoinableChannels >= nJoinableChannelsMin {
 				return true
 			}
 		}
