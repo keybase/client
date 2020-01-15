@@ -530,13 +530,14 @@ func (cc *JourneyCardManagerSingleUser) cardPopularChannels(ctx context.Context,
 	var nJoinableChannels int
 	for _, convOther := range inbox.ConvsUnverified {
 		if !convOther.GetConvID().Eq(conv.ConvID) {
-			if nJoinableChannels < nJoinableChannelsMin {
-				debugDebug(ctx, "cardPopularChannels ReadUnverified found alternate conv: %v", convOther.GetConvID())
-			}
+			debugDebug(ctx, "cardPopularChannels ReadUnverified found alternate conv: %v", convOther.GetConvID())
 			nJoinableChannels++
+			if nJoinableChannels >= nJoinableChannels {
+				return true
+			}
 		}
 	}
-	return nJoinableChannels >= nJoinableChannelsMin
+	return false
 }
 
 // Card type: ADD_PEOPLE (3 on design)
