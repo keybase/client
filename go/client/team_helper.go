@@ -96,33 +96,40 @@ var botSettingsFlags = []cli.Flag{
 	},
 }
 
-func ParseBotSettings(ctx *cli.Context) *keybase1.TeamBotSettings {
+type TeamBotSettings struct {
+	Cmds       bool
+	Mentions   bool
+	Triggers   []string
+	TopicNames []string
+}
+
+func ParseBotSettings(ctx *cli.Context) *TeamBotSettings {
 	if !(ctx.IsSet("allow-commands") ||
 		ctx.IsSet("allow-mentions") ||
 		ctx.IsSet("allow-trigger") ||
 		ctx.IsSet("allow-conversation")) {
 		return nil
 	}
-	return &keybase1.TeamBotSettings{
-		Cmds:     ctx.Bool("allow-commands"),
-		Mentions: ctx.Bool("allow-mentions"),
-		Triggers: ctx.StringSlice("allow-trigger"),
-		Convs:    ctx.StringSlice("allow-conversation"),
+	return &TeamBotSettings{
+		Cmds:       ctx.Bool("allow-commands"),
+		Mentions:   ctx.Bool("allow-mentions"),
+		Triggers:   ctx.StringSlice("allow-trigger"),
+		TopicNames: ctx.StringSlice("allow-conversation"),
 	}
 }
 
 func ValidateBotSettingsConvs(g *libkb.GlobalContext, tlfName string,
-	mt chat1.ConversationMembersType, botSettings *keybase1.TeamBotSettings) error {
+	mt chat1.ConversationMembersType, botSettings *TeamBotSettings) (*keybase1.TeamBotSettings, error) {
 	if botSettings == nil {
-		return nil
+		return nil, nil
 	}
 
-	var convIDs []string
 	resolver, err := newChatConversationResolver(g)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	for _, topicName := range botSettings.Convs {
+	var convIDs []keybase1.ChatConversationID
+	for _, topicName := range botSettings.TopicNames {
 		topicName = utils.SanitizeTopicName(topicName)
 		conv, _, err := resolver.Resolve(context.TODO(), chatConversationResolvingRequest{
 			TlfName:     tlfName,
@@ -133,14 +140,17 @@ func ValidateBotSettingsConvs(g *libkb.GlobalContext, tlfName string,
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		})
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if conv == nil {
-			return fmt.Errorf("conversation %s not found", topicName)
+			return nil, fmt.Errorf("conversation %s not found", topicName)
 		}
-		convIDs = append(convIDs, conv.GetConvID().String().String())
+		convIDs = append(convIDs, keybase1.ChatConversationID(conv.GetConvID().String()))
 	}
-
-	botSettings.Convs = convIDs
-	return nil
+	return &keybase1.TeamBotSettings{
+		Cmds:     botSettings.Cmds,
+		Mentions: botSettings.Mentions,
+		Triggers: botSettings.Triggers,
+		Convs:    convIDs,
+	}, nil
 }

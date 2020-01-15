@@ -264,7 +264,7 @@ protocol user {
   array<UserBlock> getUserBlocks(int sessionID, array<string> usernames);
 
   void reportUser(int sessionID, string username, string reason, string comment,
-    boolean includeTranscript, union { null, string } convID);
+    boolean includeTranscript, union { null, ChatConversationID } convID);
 
   void dismissBlockButtons(TLFID tlfID);
 

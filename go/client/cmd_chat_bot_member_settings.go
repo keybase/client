@@ -16,7 +16,7 @@ type CmdChatBotMemberSettings struct {
 	libkb.Contextified
 	resolvingRequest chatConversationResolvingRequest
 	username         string
-	botSettings      *keybase1.TeamBotSettings
+	botSettings      *TeamBotSettings
 	hasTTY           bool
 }
 
@@ -51,13 +51,14 @@ func (c *CmdChatBotMemberSettings) Run() (err error) {
 		return err
 	}
 
-	if err := ValidateBotSettingsConvs(c.G(), conversationInfo.TlfName,
-		conversationInfo.MembersType, c.botSettings); err != nil {
+	botSettingsPtr, err := ValidateBotSettingsConvs(c.G(), conversationInfo.TlfName,
+		conversationInfo.MembersType, c.botSettings)
+	if err != nil {
 		return err
 	}
 
 	var botSettings keybase1.TeamBotSettings
-	if c.botSettings == nil {
+	if botSettingsPtr == nil {
 		botSettings, err = resolver.ChatClient.GetBotMemberSettings(context.TODO(), chat1.GetBotMemberSettingsArg{
 			ConvID:   conversationInfo.Id,
 			Username: c.username,
@@ -66,7 +67,7 @@ func (c *CmdChatBotMemberSettings) Run() (err error) {
 			return err
 		}
 	} else {
-		botSettings = *c.botSettings
+		botSettings = *botSettingsPtr
 		if err = resolver.ChatClient.SetBotMemberSettings(context.TODO(), chat1.SetBotMemberSettingsArg{
 			ConvID:      conversationInfo.Id,
 			Username:    c.username,
