@@ -166,13 +166,14 @@ const ServiceDecoration = (props: Props) => {
       />
     )
   } else if (parsed.typ === RPCChatTypes.UITextDecorationTyp.link) {
-    const link = parsed.link.display
+    const link = parsed.link.url
+    const openUrl = link.startsWith('http://') || link.startsWith('https://') ? link : 'https://' + link
     return DeeplinksConstants.linkIsKeybaseLink(link) ? (
       <KeybaseLink link={link} linkStyle={props.styleOverride.link} wrapStyle={props.styles.wrapStyle} />
     ) : parsed.link.punycode ? (
       <WarningLink
-        url={parsed.link.url}
-        display={parsed.link.display}
+        url={openUrl}
+        display={parsed.link.url}
         punycode={parsed.link.punycode}
         linkStyle={props.styleOverride.link}
         wrapStyle={props.styles.wrapStyle}
@@ -182,24 +183,27 @@ const ServiceDecoration = (props: Props) => {
         className="hover-underline hover_contained_color_blueDark"
         type="BodyPrimaryLink"
         style={Styles.collapseStyles([props.styles.wrapStyle, linkStyle, props.styleOverride.link])}
-        title={parsed.link.display}
-        onClickURL={parsed.link.url}
-        onLongPressURL={parsed.link.url}
+        title={parsed.link.url}
+        onClickURL={openUrl}
+        onLongPressURL={openUrl}
       >
-        {parsed.link.display}
+        {parsed.link.url}
       </Text>
     )
   } else if (parsed.typ === RPCChatTypes.UITextDecorationTyp.mailto) {
+    const openUrl = parsed.mailto.url.startsWith('mailto:')
+      ? parsed.mailto.url
+      : 'mailto:' + parsed.mailto.url
     return (
       <Text
         className="hover-underline hover_contained_color_blueDark"
         type="BodyPrimaryLink"
         style={Styles.collapseStyles([props.styles.wrapStyle, linkStyle, props.styleOverride.mailto])}
-        title={parsed.mailto.display}
-        onClickURL={parsed.mailto.url}
-        onLongPressURL={parsed.mailto.url}
+        title={parsed.mailto.url}
+        onClickURL={openUrl}
+        onLongPressURL={openUrl}
       >
-        {parsed.mailto.display}
+        {parsed.mailto.url}
       </Text>
     )
   } else if (parsed.typ === RPCChatTypes.UITextDecorationTyp.channelnamemention) {

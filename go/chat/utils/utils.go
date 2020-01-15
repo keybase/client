@@ -2466,16 +2466,12 @@ func DecorateWithLinks(ctx context.Context, body string) string {
 		if shouldSkipLink(bodyMatch) {
 			continue
 		}
-		if !(strings.HasPrefix(bodyMatch, "http://") || strings.HasPrefix(bodyMatch, "https://")) {
-			url = "http://" + bodyMatch
-		}
 		if encoded, err := idna.ToASCII(url); err == nil && encoded != url {
 			punycode = encoded
 		}
 		body, added = DecorateBody(ctx, body, match[lowhit]+offset, match[highhit]-match[lowhit],
 			chat1.NewUITextDecorationWithLink(chat1.UILinkDecoration{
-				Display:  bodyMatch,
-				Url:      url,
+				Url:      bodyMatch,
 				Punycode: punycode,
 			}))
 		offset += added
@@ -2489,11 +2485,9 @@ func DecorateWithLinks(ctx context.Context, body string) string {
 			continue
 		}
 		bodyMatch := origBody[match[0]:match[1]]
-		url := "mailto:" + bodyMatch
 		body, added = DecorateBody(ctx, body, match[0]+offset, match[1]-match[0],
 			chat1.NewUITextDecorationWithMailto(chat1.UILinkDecoration{
-				Display: bodyMatch,
-				Url:     url,
+				Url: bodyMatch,
 			}))
 		offset += added
 	}
