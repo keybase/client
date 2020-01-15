@@ -29,7 +29,7 @@ type chatClient struct {
 	ch         chan GameMessageWrappedEncoded
 	server     *chatServer
 	dealer     *Dealer
-	history    map[string]bool
+	history    map[chat1.ConvIDStr]bool
 	clock      clockwork.FakeClock
 	deliver    func(m GameMessageWrappedEncoded)
 }
@@ -123,7 +123,7 @@ func (s *chatServer) newClient() *chatClient {
 		me:         newTestUser(),
 		ch:         make(chan GameMessageWrappedEncoded, 1000),
 		server:     s,
-		history:    make(map[string]bool),
+		history:    make(map[chat1.ConvIDStr]bool),
 	}
 	ret.dealer = NewDealer(ret)
 	ret.deliver = func(m GameMessageWrappedEncoded) {
@@ -142,7 +142,7 @@ func (c *chatClient) run(ctx context.Context, ch chat1.ConversationID) {
 		case <-c.shutdownCh:
 			return
 		case msg := <-c.ch:
-			chKey := ch.String()
+			chKey := ch.ConvIDStr()
 			_ = c.dealer.InjectIncomingChat(ctx, msg.Sender, ch, msg.GameID, msg.Body, !c.history[chKey])
 			c.history[chKey] = true
 		}
@@ -575,7 +575,7 @@ func TestRepeatedGame(t *testing.T) {
 	defer srv.stopClients()
 
 	gameID := GenerateGameID()
-	forAllClients(clients[1:], func(c *chatClient) { c.history[conversationID.String()] = true })
+	forAllClients(clients[1:], func(c *chatClient) { c.history[conversationID.ConvIDStr()] = true })
 	start := NewStartWithBigInt(srv.clock.Now(), pi(), 5)
 	_, err := clients[0].dealer.startFlipWithGameID(ctx, start, conversationID, gameID)
 	require.NoError(t, err)

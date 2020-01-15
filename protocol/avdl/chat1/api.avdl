@@ -10,7 +10,7 @@ protocol api {
 
   @typedef("string") record ConvIDStr {}
   @typedef("string") record TLFIDStr {}
-  @typedef("string") record GameIDStr {}
+  @typedef("string") record FlipGameIDStr {}
 
   record RateLimitRes {
     string tank;
@@ -76,7 +76,7 @@ protocol api {
     @jsonkey("text")
     string text;
     @jsonkey("game_id")
-    GameIDStr gameID;
+    FlipGameIDStr gameID;
     @jsonkey("flip_conv_id")
     ConvIDStr flipConvID;
     @jsonkey("user_mentions")

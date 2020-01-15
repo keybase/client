@@ -64,7 +64,7 @@ type CachingBotCommandManager struct {
 	edb             *encrypteddb.EncryptedDB
 	commandUpdateCh chan *commandUpdaterJob
 	queuedUpdatedMu sync.Mutex
-	queuedUpdates   map[string]*commandUpdaterJob
+	queuedUpdates   map[chat1.ConvIDStr]*commandUpdaterJob
 }
 
 func NewCachingBotCommandManager(g *globals.Context, ri func() chat1.RemoteInterface) *CachingBotCommandManager {
@@ -80,7 +80,7 @@ func NewCachingBotCommandManager(g *globals.Context, ri func() chat1.RemoteInter
 		ri:              ri,
 		edb:             encrypteddb.New(g.ExternalG(), dbFn, keyFn),
 		commandUpdateCh: make(chan *commandUpdaterJob, 100),
-		queuedUpdates:   make(map[string]*commandUpdaterJob),
+		queuedUpdates:   make(map[chat1.ConvIDStr]*commandUpdaterJob),
 	}
 }
 
@@ -346,7 +346,7 @@ func (b *CachingBotCommandManager) runCommandUpdateUI(ctx context.Context, job *
 func (b *CachingBotCommandManager) queueCommandUpdate(ctx context.Context, job *commandUpdaterJob) error {
 	b.queuedUpdatedMu.Lock()
 	defer b.queuedUpdatedMu.Unlock()
-	if curJob, ok := b.queuedUpdates[job.convID.String()]; ok {
+	if curJob, ok := b.queuedUpdates[job.convID.ConvIDStr()]; ok {
 		b.Debug(ctx, "queueCommandUpdate: skipping already queued: %s", job.convID)
 		curJob.completeChs = append(curJob.completeChs, job.completeChs...)
 		return nil
@@ -354,7 +354,7 @@ func (b *CachingBotCommandManager) queueCommandUpdate(ctx context.Context, job *
 	select {
 	case b.commandUpdateCh <- job:
 		go b.runCommandUpdateUI(globals.BackgroundChatCtx(ctx, b.G()), job)
-		b.queuedUpdates[job.convID.String()] = job
+		b.queuedUpdates[job.convID.ConvIDStr()] = job
 	default:
 		return errors.New("queue full")
 	}
@@ -450,7 +450,7 @@ func (b *CachingBotCommandManager) commandUpdate(ctx context.Context, job *comma
 	defer b.Trace(ctx, func() error { return err }, "commandUpdate")()
 	defer func() {
 		b.queuedUpdatedMu.Lock()
-		delete(b.queuedUpdates, job.convID.String())
+		delete(b.queuedUpdates, job.convID.ConvIDStr())
 		b.queuedUpdatedMu.Unlock()
 		job.uiCh <- err
 		for _, completeCh := range job.completeChs {

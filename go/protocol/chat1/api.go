@@ -21,9 +21,9 @@ func (o TLFIDStr) DeepCopy() TLFIDStr {
 	return o
 }
 
-type GameIDStr string
+type FlipGameIDStr string
 
-func (o GameIDStr) DeepCopy() GameIDStr {
+func (o FlipGameIDStr) DeepCopy() FlipGameIDStr {
 	return o
 }
 
@@ -104,7 +104,7 @@ func (o MsgBotInfo) DeepCopy() MsgBotInfo {
 
 type MsgFlipContent struct {
 	Text         string             `codec:"text" json:"text"`
-	GameID       GameIDStr          `codec:"gameID" json:"game_id"`
+	GameID       FlipGameIDStr      `codec:"gameID" json:"game_id"`
 	FlipConvID   ConvIDStr          `codec:"flipConvID" json:"flip_conv_id"`
 	UserMentions []KnownUserMention `codec:"userMentions" json:"user_mentions"`
 	TeamMentions []KnownTeamMention `codec:"teamMentions" json:"team_mentions"`

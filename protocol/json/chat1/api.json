@@ -43,7 +43,7 @@
     },
     {
       "type": "record",
-      "name": "GameIDStr",
+      "name": "FlipGameIDStr",
       "fields": [],
       "typedef": "string"
     },
@@ -172,7 +172,7 @@
           "jsonkey": "text"
         },
         {
-          "type": "GameIDStr",
+          "type": "FlipGameIDStr",
           "name": "gameID",
           "jsonkey": "game_id"
         },

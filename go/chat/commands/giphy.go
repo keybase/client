@@ -27,8 +27,8 @@ func (d defaultGiphySearcher) Search(mctx libkb.MetaContext, apiKeySource types.
 type Giphy struct {
 	sync.Mutex
 	*baseCommand
-	shownResults      map[string]*string
-	shownWindow       map[string]bool
+	shownResults      map[chat1.ConvIDStr]*string
+	shownWindow       map[chat1.ConvIDStr]bool
 	currentOpCancelFn context.CancelFunc
 	currentOpDoneCb   chan struct{}
 	searcher          giphySearcher
@@ -38,8 +38,8 @@ func NewGiphy(g *globals.Context) *Giphy {
 	usage := "Search for and post GIFs"
 	return &Giphy{
 		baseCommand:  newBaseCommand(g, "giphy", "[search terms]", usage, true),
-		shownResults: make(map[string]*string),
-		shownWindow:  make(map[string]bool),
+		shownResults: make(map[chat1.ConvIDStr]*string),
+		shownWindow:  make(map[chat1.ConvIDStr]bool),
 		searcher:     defaultGiphySearcher{},
 	}
 }
@@ -112,19 +112,19 @@ func (s *Giphy) Preview(ctx context.Context, uid gregor1.UID, convID chat1.Conve
 	defer close(s.currentOpDoneCb)
 
 	if !s.Match(ctx, text) {
-		if _, ok := s.shownWindow[convID.String()]; ok {
+		if _, ok := s.shownWindow[convID.ConvIDStr()]; ok {
 			// tell UI to clear
 			err := s.getChatUI().ChatGiphyToggleResultWindow(ctx, convID, false, false)
 			if err != nil {
 				s.Debug(ctx, "Preview: error on toggle result: %+v", err)
 			}
-			delete(s.shownResults, convID.String())
-			delete(s.shownWindow, convID.String())
+			delete(s.shownResults, convID.ConvIDStr())
+			delete(s.shownWindow, convID.ConvIDStr())
 		}
 		return
 	}
 	query := s.getQuery(text)
-	if shown, ok := s.shownResults[convID.String()]; ok && s.queryEqual(query, shown) {
+	if shown, ok := s.shownResults[convID.ConvIDStr()]; ok && s.queryEqual(query, shown) {
 		s.Debug(ctx, "Preview: same query given, skipping")
 		return
 	}
@@ -133,7 +133,7 @@ func (s *Giphy) Preview(ctx context.Context, uid gregor1.UID, convID chat1.Conve
 		s.Debug(ctx, "Preview: error on toggle result: %+v", err)
 	}
 
-	s.shownWindow[convID.String()] = true
+	s.shownWindow[convID.ConvIDStr()] = true
 
 	results, err := s.searcher.Search(libkb.NewMetaContext(ctx, s.G().ExternalG()),
 		s.G().ExternalAPIKeySource, query, s.getLimit(), s.G().AttachmentURLSrv)
@@ -150,5 +150,5 @@ func (s *Giphy) Preview(ctx context.Context, uid gregor1.UID, convID chat1.Conve
 		return
 	}
 
-	s.shownResults[convID.String()] = query
+	s.shownResults[convID.ConvIDStr()] = query
 }

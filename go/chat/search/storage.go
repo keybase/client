@@ -136,8 +136,8 @@ type batchingStore struct {
 	edb        *encrypteddb.EncryptedDB
 	keyFn      func(ctx context.Context) ([32]byte, error)
 	aliasBatch map[string]*aliasEntry
-	tokenBatch map[string]*tokenBatch
-	mdBatch    map[string]*mdBatch
+	tokenBatch map[chat1.ConvIDStr]*tokenBatch
+	mdBatch    map[chat1.ConvIDStr]*mdBatch
 	flushMu    sync.Mutex
 }
 
@@ -159,15 +159,15 @@ func newBatchingStore(log logger.Logger, uid gregor1.UID,
 
 func (b *batchingStore) resetLocked() {
 	b.aliasBatch = make(map[string]*aliasEntry)
-	b.tokenBatch = make(map[string]*tokenBatch)
-	b.mdBatch = make(map[string]*mdBatch)
+	b.tokenBatch = make(map[chat1.ConvIDStr]*tokenBatch)
+	b.mdBatch = make(map[chat1.ConvIDStr]*mdBatch)
 }
 
 func (b *batchingStore) GetTokenEntry(ctx context.Context, convID chat1.ConversationID,
 	token string) (res *tokenEntry, err error) {
 	b.Lock()
 	defer b.Unlock()
-	batch, ok := b.tokenBatch[convID.String()]
+	batch, ok := b.tokenBatch[convID.ConvIDStr()]
 	if ok {
 		return batch.tokens[token].dup(), nil
 	}
@@ -190,7 +190,7 @@ func (b *batchingStore) PutTokenEntry(ctx context.Context, convID chat1.Conversa
 	token string, te *tokenEntry) (err error) {
 	b.Lock()
 	defer b.Unlock()
-	key := convID.String()
+	key := convID.ConvIDStr()
 	batch, ok := b.tokenBatch[key]
 	if !ok {
 		batch = newTokenBatch(convID)
@@ -204,7 +204,7 @@ func (b *batchingStore) RemoveTokenEntry(ctx context.Context, convID chat1.Conve
 	token string) {
 	b.Lock()
 	defer b.Unlock()
-	batch, ok := b.tokenBatch[convID.String()]
+	batch, ok := b.tokenBatch[convID.ConvIDStr()]
 	if ok {
 		delete(batch.tokens, token)
 	}
@@ -264,7 +264,7 @@ func (b *batchingStore) RemoveAliasEntry(ctx context.Context, alias string) {
 func (b *batchingStore) GetMetadata(ctx context.Context, convID chat1.ConversationID) (res *indexMetadata, err error) {
 	b.Lock()
 	defer b.Unlock()
-	if md, ok := b.mdBatch[convID.String()]; ok {
+	if md, ok := b.mdBatch[convID.ConvIDStr()]; ok {
 		return md.md.dup(), nil
 	}
 	key := metadataKey(b.uid, convID)
@@ -282,7 +282,7 @@ func (b *batchingStore) GetMetadata(ctx context.Context, convID chat1.Conversati
 func (b *batchingStore) PutMetadata(ctx context.Context, convID chat1.ConversationID, md *indexMetadata) (err error) {
 	b.Lock()
 	defer b.Unlock()
-	b.mdBatch[convID.String()] = &mdBatch{
+	b.mdBatch[convID.ConvIDStr()] = &mdBatch{
 		md:     md,
 		convID: convID,
 	}
