@@ -1311,10 +1311,6 @@
       "fields": [
         {
           "type": "string",
-          "name": "display"
-        },
-        {
-          "type": "string",
           "name": "url"
         },
         {
