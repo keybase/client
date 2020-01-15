@@ -71,6 +71,7 @@ const setupWindowEvents = (win: Electron.BrowserWindow) => {
   if (isDarwin) {
     let inResize = false
     let oldWidth = 0
+    let timerID: NodeJS.Timeout
     win.on('resize', () => {
       // don't recurse
       if (inResize) {
@@ -81,11 +82,14 @@ const setupWindowEvents = (win: Electron.BrowserWindow) => {
       // only happens if resizing vertically
       if (width === oldWidth) {
         inResize = true
-        setTimeout(() => {
+        timerID && clearTimeout(timerID)
+        timerID = setTimeout(() => {
+          const winBounds = win.getNormalBounds()
+          const {height, width} = winBounds
           win.setSize(width + 1, height)
           win.setSize(width, height)
           inResize = false
-        }, 100)
+        }, 200)
       }
       oldWidth = width
     })
