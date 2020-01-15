@@ -601,7 +601,7 @@ const CommandsLabel = (props: CommandsLabelProps) => {
       )
     })
   }
-  const punct = props.commands?.commands?.length ?? 0 > 0 ? ':' : '.'
+  const punct = (props.commands?.commands?.length ?? 0) > 0 ? ':' : '.'
   return (
     <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
       <Kb.Text type="Body">{`messages that begin with bot commands${punct}`}</Kb.Text>
