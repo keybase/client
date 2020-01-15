@@ -49,7 +49,7 @@ const Decrypt = (props: Props) => {
           ) : (
             <TextInput
               value={inputValue}
-              placeholder="Paste cipher text or drop an encrypted file"
+              placeholder="Paste some ciphertext or drop an encrypted file"
               textType="cipher"
               operation={Constants.Operations.Decrypt}
               onSetFile={path => {

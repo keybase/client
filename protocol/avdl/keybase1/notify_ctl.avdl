@@ -33,6 +33,7 @@ protocol notifyCtl {
     boolean audit;
     boolean runtimestats;
     boolean featuredBots;
+    boolean saltpack;
   }
 
   void setNotifications(NotificationChannels channels);

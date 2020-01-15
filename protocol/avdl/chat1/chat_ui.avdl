@@ -352,7 +352,6 @@ protocol chatUi {
   }
 
   record UILinkDecoration {
-    string display;
     string url;
     string punycode;
   }

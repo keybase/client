@@ -5,18 +5,23 @@ echo smoketest start!
 
 function cleanup {
   echo "cleanup on exit"
-  keybase ctl stop
+  ! command -v keybase || keybase ctl stop
 }
 trap cleanup EXIT
 
 U=vagrant
 whoami
+
+version=$1
+datetime=$2
+revision=$3
+
 if command -v apt; then
-    curl -O https://prerelease.keybase.io/keybase_amd64.deb
+    curl --output ./keybase_amd64.deb --silent --fail "https://s3.amazonaws.com/tests.keybase.io/linux_binaries/deb/keybase_${version}-${datetime}.${revision}_amd64.deb"
     echo vagrant | sudo -S apt -y install ./keybase_amd64.deb
     PIDOF=/bin/pidof
 else
-    curl -O https://prerelease.keybase.io/keybase_amd64.rpm
+    curl --output ./keybase_amd64.rpm --silent --fail "https://s3.amazonaws.com/tests.keybase.io/linux_binaries/rpm/keybase-${version}.${datetime}.${revision}-1.x86_64.rpm"
     echo vagrant | sudo -S yum install -y ./keybase_amd64.rpm
     PIDOF=/usr/sbin/pidof
 fi

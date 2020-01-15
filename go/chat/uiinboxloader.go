@@ -494,8 +494,19 @@ func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox,
 		res.ReselectInfo = &reselect
 	}
 	if !h.G().IsMobileAppType() {
+		badgeState := h.G().Badger.State()
 		sort.Slice(widgetList, func(i, j int) bool {
-			return widgetList[i].Time.After(widgetList[j].Time)
+			ibadged :=
+				badgeState.ConversationBadgeStr(ctx, widgetList[i].ConvID, keybase1.DeviceType_DESKTOP) > 0
+			jbadged :=
+				badgeState.ConversationBadgeStr(ctx, widgetList[j].ConvID, keybase1.DeviceType_DESKTOP) > 0
+			if ibadged && !jbadged {
+				return true
+			} else if !ibadged && jbadged {
+				return false
+			} else {
+				return widgetList[i].Time.After(widgetList[j].Time)
+			}
 		})
 		// only set widget entries on desktop to the top 3 overall convs
 		if len(widgetList) > 5 {

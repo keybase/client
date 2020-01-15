@@ -28,13 +28,14 @@ const RenderLastOwner = (p: Props & {_leaving: boolean; lastOwner: boolean}) => 
 export default Container.connect(
   (state, ownProps: OwnProps) => {
     const teamID = Container.getRouteProps(ownProps, 'teamID', Types.noTeamID)
-    const {teamname} = Constants.getTeamDetails(state, teamID)
+    const {teamname, settings} = Constants.getTeamDetails(state, teamID)
     const lastOwner = Constants.isLastOwner(state, teamID)
     return {
       _leaving: anyWaiting(state, Constants.leaveTeamWaitingKey(teamname)),
       error: Container.anyErrors(state, Constants.leaveTeamWaitingKey(teamname)),
       lastOwner,
       name: teamname,
+      open: settings?.open,
       teamID,
     }
   },
@@ -69,5 +70,6 @@ export default Container.connect(
     onBack: stateProps._leaving ? () => {} : dispatchProps.onBack,
     onDeleteTeam: () => dispatchProps._onDeleteTeam(stateProps.teamID),
     onLeave: () => dispatchProps._onLeave(stateProps.name),
+    open: stateProps.open,
   })
 )(Container.safeSubmit(['onLeave'], ['_leaving'])(RenderLastOwner))
