@@ -4,7 +4,6 @@ export type FeatureFlags = {
   botUI: boolean
   chatIndexProfilingEnabled: boolean
   connectThrashCheck: boolean
-  cryptoTab: boolean
   dbCleanEnabled: boolean
   fastAccountSwitch: boolean
   foldersInProfileTab: boolean
