@@ -14,7 +14,7 @@ const EditTeamDescription = (props: Props) => {
   const teamname = Container.useSelector(state => Constants.getTeamNameFromID(state, teamID))
   const waitingKey = Container.useSelector(state => Constants.teamWaitingKeyByID(teamID, state))
   const waiting = Container.useAnyWaiting(waitingKey)
-  const error = Container.useSelector(state => state.teams.editDescriptionError)
+  const error = Container.useSelector(state => state.teams.errorInEditDescription)
   const origDescription = Container.useSelector(
     state => Constants.getTeamPublicitySettings(state, teamID).description
   )

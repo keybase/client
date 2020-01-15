@@ -10,7 +10,7 @@ const makeStore = (withErr: boolean) =>
   Container.produce(Sb.createStoreWithCommon(), draftState => {
     draftState.teams = {
       ...Constants.makeState(),
-      editDescriptionError: withErr ? 'Something has gone horribly wrong!!!' : '',
+      errorInEditDescription: withErr ? 'Something has gone horribly wrong!!!' : '',
       teamDetails: new Map([[fakeTeamID, {...Constants.emptyTeamDetails, teamname: 'description_changers'}]]),
       teamIDToPublicitySettings: new Map([
         [
