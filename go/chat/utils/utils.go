@@ -1584,14 +1584,11 @@ func presentAttachmentAssetInfo(ctx context.Context, g *globals.Context, msg cha
 
 func presentPaymentInfo(ctx context.Context, g *globals.Context, msgID chat1.MessageID,
 	convID chat1.ConversationID, msg chat1.MessageUnboxedValid) []chat1.UIPaymentInfo {
-
 	typ, err := msg.MessageBody.MessageType()
 	if err != nil {
 		return nil
 	}
-
 	var infos []chat1.UIPaymentInfo
-
 	switch typ {
 	case chat1.MessageType_SENDPAYMENT:
 		body := msg.MessageBody.Sendpayment()
@@ -1619,7 +1616,9 @@ func presentPaymentInfo(ctx context.Context, g *globals.Context, msgID chat1.Mes
 			}
 		}
 	}
-
+	for index := range infos {
+		infos[index].Note = EscapeForDecorate(ctx, infos[index].Note)
+	}
 	return infos
 }
 

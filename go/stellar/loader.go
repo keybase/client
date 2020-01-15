@@ -7,6 +7,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/stellar1"
@@ -334,7 +335,7 @@ func (p *Loader) uiPaymentInfo(m libkb.MetaContext, summary *stellar1.PaymentLoc
 		Worth:             summary.Worth,
 		WorthAtSendTime:   summary.WorthAtSendTime,
 		Delta:             summary.Delta,
-		Note:              summary.Note,
+		Note:              utils.EscapeForDecorate(m.Ctx(), summary.Note),
 		IssuerDescription: summary.IssuerDescription,
 		PaymentID:         summary.Id,
 		SourceAmount:      summary.SourceAmountActual,
