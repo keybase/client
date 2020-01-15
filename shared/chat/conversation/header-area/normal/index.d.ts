@@ -13,6 +13,7 @@ export type Props = {
   participants: Array<string>
   pendingWaiting: boolean
   smallTeam: boolean
+  theirFullname?: string
   unMuteConversation: () => void
 }
 export class ChannelHeader extends Component<Props> {}

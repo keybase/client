@@ -6,6 +6,7 @@ import {ChannelHeader, UsernameHeader, PhoneOrEmailHeader, Props} from '.'
 import * as Container from '../../../../util/container'
 import {createShowUserProfile} from '../../../../actions/profile-gen'
 import {getVisiblePath} from '../../../../constants/router2'
+import {getFullname} from '../../../../constants/users'
 import * as Tabs from '../../../../constants/tabs'
 
 type OwnProps = {
@@ -28,11 +29,17 @@ const HeaderBranch = (props: Props) => {
 }
 
 export default Container.connect(
-  (state, {infoPanelOpen, conversationIDKey}: OwnProps) => {
+  (state: Container.TypedState, {infoPanelOpen, conversationIDKey}: OwnProps) => {
     const meta = Constants.getMeta(state, conversationIDKey)
     const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
     const _participants = meta.teamname ? null : participantInfo.name
     const _contactNames = participantInfo.contactName
+    const theirFullname =
+      _participants?.length === 2
+        ? _participants
+            .filter(username => username !== state.config.username)
+            .reduce((_, username) => getFullname(state, username), '')
+        : undefined
 
     return {
       _badgeMap: state.chat2.badgeMap,
@@ -47,6 +54,7 @@ export default Container.connect(
         conversationIDKey === Constants.pendingErrorConversationIDKey,
       smallTeam: meta.teamType !== 'big',
       teamName: meta.teamname,
+      theirFullname,
     }
   },
   (dispatch: Container.TypedDispatch, {onToggleInfoPanel, conversationIDKey}: OwnProps) => ({
@@ -80,6 +88,7 @@ export default Container.connect(
       pendingWaiting: stateProps.pendingWaiting,
       smallTeam: stateProps.smallTeam,
       teamName: stateProps.teamName,
+      theirFullname: stateProps.theirFullname,
       unMuteConversation: dispatchProps._onUnMuteConversation,
     }
   }

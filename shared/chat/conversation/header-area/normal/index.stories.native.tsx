@@ -17,6 +17,7 @@ const defaultProps = {
   pendingWaiting: false,
   smallTeam: true,
   teamName: 'keybase',
+  theirFullname: undefined,
   unMuteConversation: Sb.action('unMuteConversation'),
 }
 const phones = ['ayoubd', '+15558675309@phone']

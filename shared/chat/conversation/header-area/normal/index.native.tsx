@@ -79,13 +79,18 @@ const ChannelHeader = (props: Props) => (
 
 const UsernameHeader = (props: Props) => (
   <Wrapper {...props}>
-    <Box2 direction="horizontal" style={styles.usernameHeaderContainer}>
+    <Box2 direction={props.theirFullname ? 'vertical' : 'horizontal'} style={styles.usernameHeaderContainer}>
+      {props.theirFullname && (
+        <Text lineClamp={1} type="BodyBig">
+          {props.theirFullname}
+        </Text>
+      )}
       <ConnectedUsernames
         colorFollowing={true}
         inline={false}
         lineClamp={props.participants.length > 2 ? 2 : 1}
         commaColor={Styles.globalColors.black_50}
-        type={props.participants.length > 2 ? 'BodyTiny' : 'BodyBig'}
+        type={props.participants.length > 2 || props.theirFullname ? 'BodyTiny' : 'BodyBig'}
         usernames={props.participants}
         containerStyle={styles.center}
         onUsernameClicked={props.onShowProfile}
