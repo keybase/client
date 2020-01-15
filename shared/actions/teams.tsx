@@ -483,7 +483,7 @@ const ignoreRequest = async (action: TeamsGen.IgnoreRequestPayload) => {
       {name: teamname, username},
       Constants.teamWaitingKey(teamname)
     )
-    return []
+    return false
   } catch (_) {
     // TODO handle error, but for now make sure loading is unset
     // TODO get rid of this once core sends us a notification for this (CORE-7125)
@@ -606,11 +606,11 @@ function* getDetailsByID(state: TypedState, action: TeamsGen.GetDetailsByIDPaylo
   }
 }
 
-function* getDetails(state: TypedState, action: TeamsGen.GetDetailsPayload) {
+const getDetails = (state: TypedState, action: TeamsGen.GetDetailsPayload) => {
   const {teamname, clearInviteLoadingKey} = action.payload
   const teamID = Constants.getTeamID(state, teamname)
   if (teamID) {
-    yield Saga.put(TeamsGen.createGetDetailsByID({clearInviteLoadingKey, teamID}))
+    return Saga.put(TeamsGen.createGetDetailsByID({clearInviteLoadingKey, teamID}))
   } else {
     throw new Error(`Could not get team ID in getDetails for team: ${teamname}`)
   }
@@ -1412,7 +1412,7 @@ const teamsSaga = function*() {
   yield* Saga.chainAction(TeamsGen.createNewTeam, createNewTeam)
   yield* Saga.chainAction(TeamsGen.teamCreated, showTeamAfterCreation)
   yield* Saga.chainGenerator<TeamsGen.JoinTeamPayload>(TeamsGen.joinTeam, joinTeam)
-  yield* Saga.chainGenerator<TeamsGen.GetDetailsPayload>(TeamsGen.getDetails, getDetails)
+  yield* Saga.chainAction2(TeamsGen.getDetails, getDetails)
   yield* Saga.chainGenerator<TeamsGen.GetDetailsByIDPayload>(TeamsGen.getDetailsByID, getDetailsByID)
   yield* Saga.chainAction(TeamsGen.getMembers, getMembers)
   yield* Saga.chainGenerator<TeamsGen.GetTeamPublicityPayload>(TeamsGen.getTeamPublicity, getTeamPublicity)

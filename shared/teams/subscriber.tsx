@@ -28,8 +28,7 @@ const useTeamsSubscribeDesktop = () => {
   React.useEffect(() => {
     dispatch(TeamsGen.createGetTeams({_subscribe: true}))
     return () => dispatch(TeamsGen.createUnsubscribeTeamList())
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [dispatch])
 }
 export const useTeamsSubscribe = Container.isMobile ? useTeamsSubscribeMobile : useTeamsSubscribeDesktop
 export const useTeamsSubscribeMountOnly = useTeamsSubscribeDesktop
@@ -65,8 +64,7 @@ const useTeamDetailsSubscribeDesktop = (teamID: Types.TeamID) => {
   React.useEffect(() => {
     dispatch(TeamsGen.createGetDetailsByID({_subscribe: true, teamID}))
     return () => dispatch(TeamsGen.createUnsubscribeTeamDetails({teamID}))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [dispatch, teamID])
 }
 export const useTeamDetailsSubscribe = Container.isMobile
   ? useTeamDetailsSubscribeMobile
