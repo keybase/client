@@ -138,7 +138,7 @@ func ValidateBotSettingsConvs(g *libkb.GlobalContext, tlfName string,
 		if conv == nil {
 			return fmt.Errorf("conversation %s not found", topicName)
 		}
-		convIDs = append(convIDs, conv.GetConvID().String())
+		convIDs = append(convIDs, conv.GetConvID().String().String())
 	}
 
 	botSettings.Convs = convIDs

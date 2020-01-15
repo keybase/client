@@ -64,7 +64,7 @@ type CachingBotCommandManager struct {
 	edb             *encrypteddb.EncryptedDB
 	commandUpdateCh chan *commandUpdaterJob
 	queuedUpdatedMu sync.Mutex
-	queuedUpdates   map[string]*commandUpdaterJob
+	queuedUpdates   map[chat1.ConvIDStr]*commandUpdaterJob
 }
 
 func NewCachingBotCommandManager(g *globals.Context, ri func() chat1.RemoteInterface) *CachingBotCommandManager {
@@ -80,7 +80,7 @@ func NewCachingBotCommandManager(g *globals.Context, ri func() chat1.RemoteInter
 		ri:              ri,
 		edb:             encrypteddb.New(g.ExternalG(), dbFn, keyFn),
 		commandUpdateCh: make(chan *commandUpdaterJob, 100),
-		queuedUpdates:   make(map[string]*commandUpdaterJob),
+		queuedUpdates:   make(map[chat1.ConvIDStr]*commandUpdaterJob),
 	}
 }
 

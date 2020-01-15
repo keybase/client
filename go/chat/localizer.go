@@ -91,7 +91,7 @@ func (b *blockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, inbox
 	}
 
 	res = make([]chat1.ConversationLocal, len(convs))
-	indexMap := make(map[string]int)
+	indexMap := make(map[chat1.ConvIDStr]int)
 	for index, c := range convs {
 		indexMap[c.ConvIDStr] = index
 	}

@@ -89,7 +89,7 @@ type ChatMockWorld struct {
 	conversations []*chat1.Conversation
 
 	// each slice should always be sorted by message ID in desc, i.e. newest messages first
-	Msgs map[string][]*chat1.MessageBoxed
+	Msgs map[chat1.ConvIDStr][]*chat1.MessageBoxed
 }
 
 func NewChatMockWorld(t *testing.T, name string, numUsers int) (world *ChatMockWorld) {
@@ -101,7 +101,7 @@ func NewChatMockWorld(t *testing.T, name string, numUsers int) (world *ChatMockW
 		Users:   make(map[string]*FakeUser),
 		tlfs:    make(map[keybase1.CanonicalTlfName]chat1.TLFID),
 		tlfKeys: make(map[keybase1.CanonicalTlfName][]keybase1.CryptKey),
-		Msgs:    make(map[string][]*chat1.MessageBoxed),
+		Msgs:    make(map[chat1.ConvIDStr][]*chat1.MessageBoxed),
 	}
 	for i := 0; i < numUsers; i++ {
 		kbTc := externalstest.SetupTest(t, "chat_"+name, 0)
@@ -363,7 +363,7 @@ func (m *TlfMock) PublicCanonicalTLFNameAndID(ctx context.Context, tlfName strin
 
 type ChatRemoteMock struct {
 	world     *ChatMockWorld
-	readMsgid map[string]chat1.MessageID
+	readMsgid map[chat1.ConvIDStr]chat1.MessageID
 	uid       *gregor1.UID
 
 	CacheBodiesVersion int
@@ -378,7 +378,7 @@ var _ chat1.RemoteInterface = (*ChatRemoteMock)(nil)
 func NewChatRemoteMock(world *ChatMockWorld) (m *ChatRemoteMock) {
 	m = &ChatRemoteMock{
 		world:     world,
-		readMsgid: make(map[string]chat1.MessageID),
+		readMsgid: make(map[chat1.ConvIDStr]chat1.MessageID),
 	}
 	return m
 }

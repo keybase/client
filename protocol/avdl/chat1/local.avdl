@@ -1119,8 +1119,7 @@ protocol local {
     int percentIndexed;
   }
 
-  // ConversationID -> IndexSearchConvStats
-  map<string, ProfileSearchConvStats> profileChatSearch(keybase1.TLFIdentifyBehavior identifyBehavior);
+  map<ConvIDStr, ProfileSearchConvStats> profileChatSearch(keybase1.TLFIdentifyBehavior identifyBehavior);
 
   // Static data that changes only as often as the code.
   // TODO: consolidate this RPC with the wallet `getStaticConfig` in the future

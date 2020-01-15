@@ -315,7 +315,7 @@ func (h *HoleyResultCollector) Holes() int {
 }
 
 func (s *Storage) Nuke(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) Error {
-	lock := locks.StorageLockTab.AcquireOnName(ctx, s.G(), convID.String())
+	lock := locks.StorageLockTab.AcquireOnName(ctx, s.G(), convID.String().String())
 	defer lock.Release(ctx)
 	return s.maybeNukeLocked(ctx, true /* force */, nil /* error */, convID, uid)
 }
@@ -345,14 +345,14 @@ func (s *Storage) maybeNukeLocked(ctx context.Context, force bool, err Error, co
 func (s *Storage) SetMaxMsgID(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 	msgID chat1.MessageID) (err Error) {
 	defer s.Trace(ctx, func() error { return err }, "SetMaxMsgID")()
-	lock := locks.StorageLockTab.AcquireOnName(ctx, s.G(), convID.String())
+	lock := locks.StorageLockTab.AcquireOnName(ctx, s.G(), convID.String().String())
 	defer lock.Release(ctx)
 	return s.idtracker.bumpMaxMessageID(ctx, convID, uid, msgID)
 }
 
 func (s *Storage) GetMaxMsgID(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (maxMsgID chat1.MessageID, err Error) {
 	defer s.Trace(ctx, func() error { return err }, "GetMaxMsgID")()
-	lock := locks.StorageLockTab.AcquireOnName(ctx, s.G(), convID.String())
+	lock := locks.StorageLockTab.AcquireOnName(ctx, s.G(), convID.String().String())
 	defer lock.Release(ctx)
 
 	if maxMsgID, err = s.idtracker.getMaxMessageID(ctx, convID, uid); err != nil {
@@ -398,7 +398,7 @@ func (s *Storage) Expunge(ctx context.Context,
 func (s *Storage) MergeHelper(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed, expunge *chat1.Expunge) (res MergeResult, err Error) {
 	defer s.Trace(ctx, func() error { return err }, "MergeHelper")()
-	lock := locks.StorageLockTab.AcquireOnName(ctx, s.G(), convID.String())
+	lock := locks.StorageLockTab.AcquireOnName(ctx, s.G(), convID.String().String())
 	defer lock.Release(ctx)
 
 	s.Debug(ctx, "MergeHelper: convID: %s uid: %s num msgs: %d", convID, uid, len(msgs))
@@ -891,7 +891,7 @@ func (s *Storage) clearUpthrough(ctx context.Context, convID chat1.ConversationI
 func (s *Storage) ClearBefore(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 	upto chat1.MessageID) (err Error) {
 	defer s.Trace(ctx, func() error { return err }, fmt.Sprintf("ClearBefore: convID: %s, uid: %s, msgID: %d", convID, uid, upto))()
-	lock := locks.StorageLockTab.AcquireOnName(ctx, s.G(), convID.String())
+	lock := locks.StorageLockTab.AcquireOnName(ctx, s.G(), convID.String().String())
 	defer lock.Release(ctx)
 
 	// Abort, we don't want to overflow uint (chat1.MessageID)
@@ -903,7 +903,7 @@ func (s *Storage) ClearBefore(ctx context.Context, convID chat1.ConversationID, 
 
 func (s *Storage) ClearAll(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (err Error) {
 	defer s.Trace(ctx, func() error { return err }, "ClearAll")()
-	lock := locks.StorageLockTab.AcquireOnName(ctx, s.G(), convID.String())
+	lock := locks.StorageLockTab.AcquireOnName(ctx, s.G(), convID.String().String())
 	defer lock.Release(ctx)
 	maxMsgID, err := s.idtracker.getMaxMessageID(ctx, convID, uid)
 	if err != nil {
@@ -1031,7 +1031,7 @@ func (s *Storage) FetchUpToLocalMaxMsgID(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, rc ResultCollector, iboxMaxMsgID chat1.MessageID,
 	query *chat1.GetThreadQuery, pagination *chat1.Pagination) (res FetchResult, err Error) {
 	defer s.Trace(ctx, func() error { return err }, "FetchUpToLocalMaxMsgID")()
-	lock := locks.StorageLockTab.AcquireOnName(ctx, s.G(), convID.String())
+	lock := locks.StorageLockTab.AcquireOnName(ctx, s.G(), convID.String().String())
 	defer lock.Release(ctx)
 
 	maxMsgID, err := s.idtracker.getMaxMessageID(ctx, convID, uid)
@@ -1051,7 +1051,7 @@ func (s *Storage) FetchUpToLocalMaxMsgID(ctx context.Context,
 func (s *Storage) Fetch(ctx context.Context, conv chat1.Conversation,
 	uid gregor1.UID, rc ResultCollector, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (res FetchResult, err Error) {
 	defer s.Trace(ctx, func() error { return err }, "Fetch")()
-	lock := locks.StorageLockTab.AcquireOnName(ctx, s.G(), conv.GetConvID().String())
+	lock := locks.StorageLockTab.AcquireOnName(ctx, s.G(), conv.GetConvID().String().String())
 	defer lock.Release(ctx)
 
 	return s.fetchUpToMsgIDLocked(ctx, rc, conv.GetConvID(), uid, conv.ReaderInfo.MaxMsgid,
@@ -1061,7 +1061,7 @@ func (s *Storage) Fetch(ctx context.Context, conv chat1.Conversation,
 func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msgIDs []chat1.MessageID) (res []*chat1.MessageUnboxed, err Error) {
 	defer s.Trace(ctx, func() error { return err }, "FetchMessages")()
-	lock := locks.StorageLockTab.AcquireOnName(ctx, s.G(), convID.String())
+	lock := locks.StorageLockTab.AcquireOnName(ctx, s.G(), convID.String().String())
 	defer lock.Release(ctx)
 	if err = isAbortedRequest(ctx); err != nil {
 		return res, err
@@ -1122,7 +1122,7 @@ func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID
 func (s *Storage) FetchUnreadlineID(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, readMsgID chat1.MessageID) (msgID *chat1.MessageID, err Error) {
 	defer s.Trace(ctx, func() error { return err }, "FetchUnreadlineID")()
-	lock := locks.StorageLockTab.AcquireOnName(ctx, s.G(), convID.String())
+	lock := locks.StorageLockTab.AcquireOnName(ctx, s.G(), convID.String().String())
 	defer lock.Release(ctx)
 	if err = isAbortedRequest(ctx); err != nil {
 		return nil, err

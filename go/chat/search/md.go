@@ -96,8 +96,7 @@ type indexStatus struct {
 
 type inboxIndexStatus struct {
 	sync.Mutex
-	// convID -> indexStatus
-	inbox         map[string]indexStatus
+	inbox         map[chat1.ConvIDStr]indexStatus
 	uiCh          chan chat1.ChatSearchIndexStatus
 	dirty         bool
 	cachedPercent int
@@ -105,7 +104,7 @@ type inboxIndexStatus struct {
 
 func newInboxIndexStatus(uiCh chan chat1.ChatSearchIndexStatus) *inboxIndexStatus {
 	return &inboxIndexStatus{
-		inbox: make(map[string]indexStatus),
+		inbox: make(map[chat1.ConvIDStr]indexStatus),
 		uiCh:  uiCh,
 	}
 }

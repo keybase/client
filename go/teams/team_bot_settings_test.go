@@ -55,7 +55,7 @@ func TestTeamBotSettings(t *testing.T) {
 		Cmds:     true,
 		Mentions: true,
 		Triggers: []string{"shipit"},
-		Convs:    []string{chat1.ConversationID([]byte("convo")).String()},
+		Convs:    []string{chat1.ConversationID([]byte("convo")).String().String()},
 	}
 	err = team.PostTeamBotSettings(context.TODO(), map[keybase1.UserVersion]keybase1.TeamBotSettings{
 		rBotua1UV: botSettings1,
