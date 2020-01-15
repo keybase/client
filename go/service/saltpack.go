@@ -8,11 +8,13 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/keybase/client/go/chat/attachments/progress"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -243,11 +245,11 @@ func (h *SaltpackHandler) SaltpackVerifyString(ctx context.Context, arg keybase1
 
 func (h *SaltpackHandler) SaltpackEncryptFile(ctx context.Context, arg keybase1.SaltpackEncryptFileArg) (string, error) {
 	ctx = libkb.WithLogTag(ctx, "SP")
-	in, err := os.Open(arg.Filename)
+	sf, err := newSourceFile(h.G(), keybase1.OperationType_ENCRYPT, arg.Filename)
 	if err != nil {
 		return "", err
 	}
-	defer in.Close()
+	defer sf.Close()
 
 	outFilename, bw, err := boxFilename(arg.Filename, encryptedSuffix)
 	if err != nil {
@@ -261,7 +263,7 @@ func (h *SaltpackHandler) SaltpackEncryptFile(ctx context.Context, arg keybase1.
 	earg := &engine.SaltpackEncryptArg{
 		Opts:   opts,
 		Sink:   bw,
-		Source: bufio.NewReader(in),
+		Source: sf,
 	}
 
 	if err := h.frontendEncrypt(ctx, arg.SessionID, earg); err != nil {
@@ -273,11 +275,12 @@ func (h *SaltpackHandler) SaltpackEncryptFile(ctx context.Context, arg keybase1.
 
 func (h *SaltpackHandler) SaltpackDecryptFile(ctx context.Context, arg keybase1.SaltpackDecryptFileArg) (keybase1.SaltpackFileResult, error) {
 	ctx = libkb.WithLogTag(ctx, "SP")
-	in, err := os.Open(arg.EncryptedFilename)
+	sf, err := newSourceFile(h.G(), keybase1.OperationType_DECRYPT, arg.EncryptedFilename)
 	if err != nil {
 		return keybase1.SaltpackFileResult{}, err
 	}
-	defer in.Close()
+	defer sf.Close()
+
 	outFilename, bw, err := unboxFilename(arg.EncryptedFilename, decryptedExtension)
 	if err != nil {
 		return keybase1.SaltpackFileResult{}, err
@@ -286,7 +289,7 @@ func (h *SaltpackHandler) SaltpackDecryptFile(ctx context.Context, arg keybase1.
 
 	earg := &engine.SaltpackDecryptArg{
 		Sink:   bw,
-		Source: bufio.NewReader(in),
+		Source: sf,
 	}
 
 	info, signed, err := h.frontendDecrypt(ctx, arg.SessionID, earg)
@@ -304,11 +307,11 @@ func (h *SaltpackHandler) SaltpackDecryptFile(ctx context.Context, arg keybase1.
 
 func (h *SaltpackHandler) SaltpackSignFile(ctx context.Context, arg keybase1.SaltpackSignFileArg) (string, error) {
 	ctx = libkb.WithLogTag(ctx, "SP")
-	in, err := os.Open(arg.Filename)
+	sf, err := newSourceFile(h.G(), keybase1.OperationType_SIGN, arg.Filename)
 	if err != nil {
 		return "", err
 	}
-	defer in.Close()
+	defer sf.Close()
 
 	outFilename, bw, err := boxFilename(arg.Filename, signedSuffix)
 	if err != nil {
@@ -318,7 +321,7 @@ func (h *SaltpackHandler) SaltpackSignFile(ctx context.Context, arg keybase1.Sal
 
 	earg := &engine.SaltpackSignArg{
 		Sink:   bw,
-		Source: ioutil.NopCloser(bufio.NewReader(in)),
+		Source: sf,
 		Opts: keybase1.SaltpackSignOptions{
 			Binary: true,
 		},
@@ -333,11 +336,11 @@ func (h *SaltpackHandler) SaltpackSignFile(ctx context.Context, arg keybase1.Sal
 
 func (h *SaltpackHandler) SaltpackVerifyFile(ctx context.Context, arg keybase1.SaltpackVerifyFileArg) (keybase1.SaltpackVerifyFileResult, error) {
 	ctx = libkb.WithLogTag(ctx, "SP")
-	in, err := os.Open(arg.SignedFilename)
+	sf, err := newSourceFile(h.G(), keybase1.OperationType_VERIFY, arg.SignedFilename)
 	if err != nil {
 		return keybase1.SaltpackVerifyFileResult{}, err
 	}
-	defer in.Close()
+	defer sf.Close()
 
 	outFilename, bw, err := unboxFilename(arg.SignedFilename, verifiedExtension)
 	if err != nil {
@@ -347,7 +350,7 @@ func (h *SaltpackHandler) SaltpackVerifyFile(ctx context.Context, arg keybase1.S
 
 	earg := &engine.SaltpackVerifyArg{
 		Sink:   bw,
-		Source: bufio.NewReader(in),
+		Source: sf,
 	}
 
 	spui, err := h.frontendVerify(ctx, arg.SessionID, earg)
@@ -543,4 +546,49 @@ func (c *capSaltpackUI) SaltpackVerifyBadSender(ctx context.Context, arg keybase
 	c.sender = &arg.Sender
 	c.verified = false
 	return nil
+}
+
+type sourceFile struct {
+	filename string
+	op       keybase1.OperationType
+	f        *os.File
+	r        io.Reader
+	prog     *progress.ProgressWriter
+	libkb.Contextified
+}
+
+func newSourceFile(g *libkb.GlobalContext, op keybase1.OperationType, filename string) (*sourceFile, error) {
+	s, err := os.Stat(filename)
+	if err != nil {
+		return nil, err
+	}
+	f, err := os.Open(filename)
+	if err != nil {
+		return nil, err
+	}
+	sf := &sourceFile{
+		filename:     filename,
+		op:           op,
+		f:            f,
+		Contextified: libkb.NewContextified(g),
+	}
+	sf.G().NotifyRouter.HandleSaltpackOperationStart(context.Background(), sf.op, sf.filename)
+	sf.prog = progress.NewProgressWriter(sf.reporter, s.Size())
+	sf.r = io.TeeReader(bufio.NewReader(f), sf.prog)
+
+	return sf, nil
+}
+
+func (sf *sourceFile) Read(p []byte) (n int, err error) {
+	return sf.r.Read(p)
+}
+
+func (sf *sourceFile) Close() error {
+	sf.G().NotifyRouter.HandleSaltpackOperationDone(context.Background(), sf.op, sf.filename)
+	sf.prog.Finish()
+	return sf.f.Close()
+}
+
+func (sf *sourceFile) reporter(bytesComplete, bytesTotal int64) {
+	sf.G().NotifyRouter.HandleSaltpackOperationProgress(context.Background(), sf.op, sf.filename, bytesComplete, bytesTotal)
 }
