@@ -63,8 +63,8 @@ const handleRunOperation = (
 
       // Handle recipients and options for Encrypt
       if (operation === Constants.Operations.Encrypt) {
+        const {recipients, options} = state.crypto.encrypt
         if (state.crypto.encrypt.meta.hasRecipients && state.crypto.encrypt.recipients?.length) {
-          const {recipients, options} = state.crypto.encrypt
           return makeOperationAction({
             input: value,
             inputType: type,
@@ -72,8 +72,18 @@ const handleRunOperation = (
             options,
             recipients,
           })
-        } else {
-          return
+        }
+        // If no recipients are set and the user adds input, we should default
+        // to self encryption (with state.config.username as the only recipient)
+        else {
+          const {username} = state.config
+          return makeOperationAction({
+            input: value,
+            inputType: type,
+            operation,
+            options,
+            recipients: [username],
+          })
         }
       }
 
@@ -100,14 +110,18 @@ const handleRunOperation = (
     case CryptoGen.setEncryptOptions: {
       const {options} = action.payload
       const {recipients, input, inputType} = state.crypto.encrypt
+      const {username} = state.config
       const unhiddenInput = input.stringValue()
-      if (recipients && recipients.length && unhiddenInput && inputType) {
+
+      // If no recipients are set and the user adds input, we should default
+      // to self encryption (with state.config.username as the only recipient)
+      if (unhiddenInput && inputType) {
         return makeOperationAction({
           input,
           inputType,
           operation: Constants.Operations.Encrypt,
           options,
-          recipients,
+          recipients: recipients?.length ? recipients : [username],
         })
       }
       return

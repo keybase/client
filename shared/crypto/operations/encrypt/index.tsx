@@ -52,7 +52,6 @@ const EncryptOptions = (props: EncryptOptionsProps) => {
       )}
       <Kb.Checkbox
         label="Sign"
-        disabled={!hasRecipients}
         checked={sign}
         onCheck={newValue => onSetOptions({includeSelf, sign: newValue})}
       />
