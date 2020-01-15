@@ -51,9 +51,16 @@ declare var KB: {
     }
   }
   path: {
+    basename: (p: string, ext?: string) => string
+    extname: (p: string) => string
     join: (...paths: Array<string>) => string
     resolve: (...pathSegments: Array<string>) => string
     sep: '\\' | '/'
+  }
+  process: {
+    argv: Array<string>
+    env: NodeJS.ProcessEnv
+    platform: NodeJS.Platform
   }
 }
 

@@ -10,7 +10,6 @@ import menuBar from './menu-bar.desktop'
 import menuHelper from './menu-helper.desktop'
 import os from 'os'
 import fs from 'fs'
-import path from 'path'
 import * as ConfigGen from '../../actions/config-gen'
 import * as DeeplinksGen from '../../actions/deeplinks-gen'
 import * as SafeElectron from '../../util/safe-electron.desktop'
@@ -20,14 +19,17 @@ import {isDarwin, isLinux, isWindows, cacheRoot} from '../../constants/platform.
 import {mainWindowDispatch} from '../remote/util.desktop'
 import {quit} from './ctl.desktop'
 import logger from '../../logger'
-import {resolveRootAsURL} from './resolve-root.desktop'
+import {resolveRoot, resolveRootAsURL} from './resolve-root.desktop'
+
+const {join} = KB.path
+const {env} = KB.process
 
 let mainWindow: ReturnType<typeof MainWindow> | null = null
 let appStartedUp = false
 let startupURL: string | null = null
 
 const installCrashReporter = () => {
-  if (process.env.KEYBASE_CRASH_REPORT) {
+  if (env.KEYBASE_CRASH_REPORT) {
     console.log(
       `Adding crash reporting (local). Crash files located in ${SafeElectron.getApp().getPath('temp')}`
     )
@@ -230,7 +232,7 @@ const plumbEvents = () => {
         // TODO change how this works
         try {
           fs.writeFileSync(
-            path.join(SafeElectron.getApp().getPath('userData'), 'app-state.json'),
+            join(SafeElectron.getApp().getPath('userData'), 'app-state.json'),
             JSON.stringify({
               changedAtMs: action.payload.changedAtMs,
               isUserActive: action.payload.isUserActive,
@@ -298,6 +300,7 @@ const plumbEvents = () => {
           webPreferences: {
             nodeIntegration: true,
             nodeIntegrationInWorker: false,
+            preload: resolveRoot('dist', `preload-main${__DEV__ ? '.dev' : ''}.bundle.js`),
           },
           width: 500,
           ...action.payload.windowOpts,

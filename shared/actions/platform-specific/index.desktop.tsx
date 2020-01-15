@@ -5,7 +5,6 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import * as Saga from '../../util/saga'
 import logger from '../../logger'
-import path from 'path'
 import {NotifyPopup} from '../../native/notifications'
 import {execFile} from 'child_process'
 import {getEngine} from '../../engine'
@@ -16,6 +15,9 @@ import {writeLogLinesToFile} from '../../util/forward-logs'
 import InputMonitor from './input-monitor.desktop'
 import {skipAppFocusActions} from '../../local-debug.desktop'
 import * as Container from '../../util/container'
+
+const {resolve} = KB.path
+const {argv, env} = KB.process
 
 export function showShareActionSheet() {
   throw new Error('Show Share Action - unsupported on this platform')
@@ -104,8 +106,8 @@ function* checkRPCOwnership(_: Container.TypedState, action: ConfigGen.DaemonHan
   try {
     logger.info('Checking RPC ownership')
 
-    const localAppData = String(process.env.LOCALAPPDATA)
-    var binPath = localAppData ? path.resolve(localAppData, 'Keybase', 'keybase.exe') : 'keybase.exe'
+    const localAppData = String(env.LOCALAPPDATA)
+    var binPath = localAppData ? resolve(localAppData, 'Keybase', 'keybase.exe') : 'keybase.exe'
     const args = ['pipeowner', socketPath]
     yield Saga.callUntyped(
       () =>
@@ -193,7 +195,7 @@ const onConnected = () => {
   // Introduce ourselves to the service
   RPCTypes.configHelloIAmRpcPromise({
     details: {
-      argv: process.argv,
+      argv: argv,
       clientType: RPCTypes.ClientType.guiMain,
       desc: 'Main Renderer',
       pid: SafeElectron.getRemote().process.pid,
