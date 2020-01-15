@@ -61,8 +61,10 @@ type _MessageCommon = {
   author: string
   bodySummary: HiddenString
   conversationIDKey: Common.ConversationIDKey
+  deviceRevokedAt?: number
   errorReason?: string
   errorTyp?: number
+  exploded?: boolean
   hasBeenEdited?: boolean
   id: MessageID
   isDeleteable?: boolean
@@ -75,7 +77,6 @@ type _MessageCommon = {
 }
 type _MessageWithDeviceInfo = {
   deviceName: string
-  deviceRevokedAt?: number
   deviceType: DeviceType
 }
 
