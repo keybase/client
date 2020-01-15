@@ -14,7 +14,8 @@ import (
 type CmdTeamSettings struct {
 	libkb.Contextified
 
-	Team keybase1.TeamName
+	Team   keybase1.TeamName
+	teamID keybase1.TeamID
 
 	// These fields are non-zero valued when their action is requested
 	Description           *string
@@ -174,6 +175,12 @@ func (c *CmdTeamSettings) Run() error {
 		return err
 	}
 
+	teamID, err := cli.GetTeamID(context.Background(), c.Team.String())
+	if err != nil {
+		return err
+	}
+	c.teamID = teamID
+
 	if c.Description != nil {
 		err = c.setDescription(ctx, cli, *c.Description)
 		if err != nil {
@@ -226,7 +233,7 @@ func (c *CmdTeamSettings) Run() error {
 
 func (c *CmdTeamSettings) setDescription(ctx context.Context, cli keybase1.TeamsClient, desc string) error {
 	return cli.SetTeamShowcase(ctx, keybase1.SetTeamShowcaseArg{
-		Name:              c.Team.String(),
+		TeamID:            c.teamID,
 		IsShowcased:       nil,
 		Description:       &desc,
 		AnyMemberShowcase: nil,
@@ -239,7 +246,7 @@ func (c *CmdTeamSettings) setOpenness(ctx context.Context, cli keybase1.TeamsCli
 	open := joinAsRole != keybase1.TeamRole_NONE
 
 	arg := keybase1.TeamSetSettingsArg{
-		Name: c.Team.String(),
+		TeamID: c.teamID,
 		Settings: keybase1.TeamSettings{
 			Open:   open,
 			JoinAs: joinAsRole,
@@ -266,7 +273,7 @@ func (c *CmdTeamSettings) setOpenness(ctx context.Context, cli keybase1.TeamsCli
 
 func (c *CmdTeamSettings) setProfilePromote(ctx context.Context, cli keybase1.TeamsClient, promote bool) error {
 	err := cli.SetTeamMemberShowcase(ctx, keybase1.SetTeamMemberShowcaseArg{
-		Name:        c.Team.String(),
+		TeamID:      c.teamID,
 		IsShowcased: promote,
 	})
 	if err != nil {
@@ -286,7 +293,7 @@ func (c *CmdTeamSettings) setProfilePromote(ctx context.Context, cli keybase1.Te
 
 func (c *CmdTeamSettings) setAllowProfilePromote(ctx context.Context, cli keybase1.TeamsClient, allow bool) error {
 	return cli.SetTeamShowcase(ctx, keybase1.SetTeamShowcaseArg{
-		Name:              c.Team.String(),
+		TeamID:            c.teamID,
 		IsShowcased:       nil,
 		Description:       nil,
 		AnyMemberShowcase: &allow,
@@ -295,7 +302,7 @@ func (c *CmdTeamSettings) setAllowProfilePromote(ctx context.Context, cli keybas
 
 func (c *CmdTeamSettings) setShowcase(ctx context.Context, cli keybase1.TeamsClient, showcase bool) error {
 	return cli.SetTeamShowcase(ctx, keybase1.SetTeamShowcaseArg{
-		Name:              c.Team.String(),
+		TeamID:            c.teamID,
 		IsShowcased:       &showcase,
 		Description:       nil,
 		AnyMemberShowcase: nil,
@@ -304,7 +311,7 @@ func (c *CmdTeamSettings) setShowcase(ctx context.Context, cli keybase1.TeamsCli
 
 func (c *CmdTeamSettings) setDisableAccessRequests(ctx context.Context, cli keybase1.TeamsClient, disabled bool) error {
 	return cli.SetTarsDisabled(ctx, keybase1.SetTarsDisabledArg{
-		Name:     c.Team.String(),
+		TeamID:   c.teamID,
 		Disabled: disabled,
 	})
 }
@@ -316,7 +323,7 @@ func (c *CmdTeamSettings) printCurrentSettings(ctx context.Context, cli keybase1
 	}
 
 	var showcaseInfo *keybase1.TeamAndMemberShowcase
-	tmp, err := cli.GetTeamAndMemberShowcase(ctx, c.Team.String())
+	tmp, err := cli.GetTeamAndMemberShowcase(ctx, c.teamID)
 	if err != nil {
 		c.G().Log.CDebugf(ctx, "failed to get team showcase info: %v", err)
 	} else {
@@ -344,7 +351,7 @@ func (c *CmdTeamSettings) printCurrentSettings(ctx context.Context, cli keybase1
 		c.G().Log.CDebugf(ctx, "failed to get CanUserPerform info: %v", err)
 	} else {
 		if ret.ChangeTarsDisabled {
-			ok, err := cli.GetTarsDisabled(ctx, c.Team.String())
+			ok, err := cli.GetTarsDisabled(ctx, c.teamID)
 			if err != nil {
 				c.G().Log.CDebugf(ctx, "failed to call GetTarsEnabled: %v", err)
 			} else {

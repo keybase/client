@@ -10,6 +10,7 @@ import (
 	"io"
 	"sync"
 
+	"github.com/keybase/client/go/chat/attachments/progress"
 	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -119,10 +120,10 @@ func (a *S3Store) PutS3(ctx context.Context, r io.Reader, size int64, task *Uplo
 // used for anything less than 5MB.  It can be used for anything up
 // to 5GB, but putMultiPipeline best for anything over 5MB.
 func (a *S3Store) putSingle(ctx context.Context, r io.Reader, size int64, params chat1.S3Params,
-	b s3.BucketInt, progress types.ProgressReporter) (err error) {
+	b s3.BucketInt, progressReporter types.ProgressReporter) (err error) {
 	defer a.Trace(ctx, func() error { return err }, fmt.Sprintf("putSingle(size=%d)", size))()
 
-	progWriter := newProgressWriter(progress, size)
+	progWriter := progress.NewProgressWriter(progressReporter, size)
 	tee := io.TeeReader(r, progWriter)
 
 	if err := b.PutReader(ctx, params.ObjectKey, tee, size, "application/octet-stream", s3.ACL(params.Acl),
@@ -205,7 +206,7 @@ func (a *S3Store) putMultiPipeline(ctx context.Context, r io.Reader, size int64,
 	}()
 
 	var parts []s3.Part
-	progWriter := newProgressWriter(task.Progress, size)
+	progWriter := progress.NewProgressWriter(task.Progress, size)
 	for p := range retCh {
 		parts = append(parts, p)
 		progWriter.Update(int(p.Size))

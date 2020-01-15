@@ -25,6 +25,7 @@ func (d dummyUIRouter) GetChatUI() (libkb.ChatUI, error) {
 func (d dummyUIRouter) Shutdown() {}
 
 func TestBotCommandManager(t *testing.T) {
+	t.Skip()
 	useRemoteMock = false
 	defer func() { useRemoteMock = true }()
 	ctc := makeChatTestContext(t, "TestBotCommandManager", 3)

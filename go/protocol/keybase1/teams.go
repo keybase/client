@@ -3685,7 +3685,7 @@ type TeamDeleteArg struct {
 
 type TeamSetSettingsArg struct {
 	SessionID int          `codec:"sessionID" json:"sessionID"`
-	Name      string       `codec:"name" json:"name"`
+	TeamID    TeamID       `codec:"teamID" json:"teamID"`
 	Settings  TeamSettings `codec:"settings" json:"settings"`
 }
 
@@ -3740,22 +3740,22 @@ type GetTeamRootIDArg struct {
 }
 
 type GetTeamShowcaseArg struct {
-	Name string `codec:"name" json:"name"`
+	TeamID TeamID `codec:"teamID" json:"teamID"`
 }
 
 type GetTeamAndMemberShowcaseArg struct {
-	Name string `codec:"name" json:"name"`
+	TeamID TeamID `codec:"teamID" json:"teamID"`
 }
 
 type SetTeamShowcaseArg struct {
-	Name              string  `codec:"name" json:"name"`
+	TeamID            TeamID  `codec:"teamID" json:"teamID"`
 	IsShowcased       *bool   `codec:"isShowcased,omitempty" json:"isShowcased,omitempty"`
 	Description       *string `codec:"description,omitempty" json:"description,omitempty"`
 	AnyMemberShowcase *bool   `codec:"anyMemberShowcase,omitempty" json:"anyMemberShowcase,omitempty"`
 }
 
 type SetTeamMemberShowcaseArg struct {
-	Name        string `codec:"name" json:"name"`
+	TeamID      TeamID `codec:"teamID" json:"teamID"`
 	IsShowcased bool   `codec:"isShowcased" json:"isShowcased"`
 }
 
@@ -3773,11 +3773,11 @@ type TeamDebugArg struct {
 }
 
 type GetTarsDisabledArg struct {
-	Name string `codec:"name" json:"name"`
+	TeamID TeamID `codec:"teamID" json:"teamID"`
 }
 
 type SetTarsDisabledArg struct {
-	Name     string `codec:"name" json:"name"`
+	TeamID   TeamID `codec:"teamID" json:"teamID"`
 	Disabled bool   `codec:"disabled" json:"disabled"`
 }
 
@@ -3884,14 +3884,14 @@ type TeamsInterface interface {
 	// * and ignored, and stale data might still be returned.
 	LoadTeamPlusApplicationKeys(context.Context, LoadTeamPlusApplicationKeysArg) (TeamPlusApplicationKeys, error)
 	GetTeamRootID(context.Context, TeamID) (TeamID, error)
-	GetTeamShowcase(context.Context, string) (TeamShowcase, error)
-	GetTeamAndMemberShowcase(context.Context, string) (TeamAndMemberShowcase, error)
+	GetTeamShowcase(context.Context, TeamID) (TeamShowcase, error)
+	GetTeamAndMemberShowcase(context.Context, TeamID) (TeamAndMemberShowcase, error)
 	SetTeamShowcase(context.Context, SetTeamShowcaseArg) error
 	SetTeamMemberShowcase(context.Context, SetTeamMemberShowcaseArg) error
 	CanUserPerform(context.Context, string) (TeamOperation, error)
 	TeamRotateKey(context.Context, TeamRotateKeyArg) error
 	TeamDebug(context.Context, TeamID) (TeamDebugRes, error)
-	GetTarsDisabled(context.Context, string) (bool, error)
+	GetTarsDisabled(context.Context, TeamID) (bool, error)
 	SetTarsDisabled(context.Context, SetTarsDisabledArg) error
 	TeamProfileAddList(context.Context, TeamProfileAddListArg) ([]TeamProfileAddEntry, error)
 	UploadTeamAvatar(context.Context, UploadTeamAvatarArg) error
@@ -4504,7 +4504,7 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]GetTeamShowcaseArg)(nil), args)
 						return
 					}
-					ret, err = i.GetTeamShowcase(ctx, typedArgs[0].Name)
+					ret, err = i.GetTeamShowcase(ctx, typedArgs[0].TeamID)
 					return
 				},
 			},
@@ -4519,7 +4519,7 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]GetTeamAndMemberShowcaseArg)(nil), args)
 						return
 					}
-					ret, err = i.GetTeamAndMemberShowcase(ctx, typedArgs[0].Name)
+					ret, err = i.GetTeamAndMemberShowcase(ctx, typedArgs[0].TeamID)
 					return
 				},
 			},
@@ -4609,7 +4609,7 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]GetTarsDisabledArg)(nil), args)
 						return
 					}
-					ret, err = i.GetTarsDisabled(ctx, typedArgs[0].Name)
+					ret, err = i.GetTarsDisabled(ctx, typedArgs[0].TeamID)
 					return
 				},
 			},
@@ -4992,14 +4992,14 @@ func (c TeamsClient) GetTeamRootID(ctx context.Context, id TeamID) (res TeamID, 
 	return
 }
 
-func (c TeamsClient) GetTeamShowcase(ctx context.Context, name string) (res TeamShowcase, err error) {
-	__arg := GetTeamShowcaseArg{Name: name}
+func (c TeamsClient) GetTeamShowcase(ctx context.Context, teamID TeamID) (res TeamShowcase, err error) {
+	__arg := GetTeamShowcaseArg{TeamID: teamID}
 	err = c.Cli.Call(ctx, "keybase.1.teams.getTeamShowcase", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
-func (c TeamsClient) GetTeamAndMemberShowcase(ctx context.Context, name string) (res TeamAndMemberShowcase, err error) {
-	__arg := GetTeamAndMemberShowcaseArg{Name: name}
+func (c TeamsClient) GetTeamAndMemberShowcase(ctx context.Context, teamID TeamID) (res TeamAndMemberShowcase, err error) {
+	__arg := GetTeamAndMemberShowcaseArg{TeamID: teamID}
 	err = c.Cli.Call(ctx, "keybase.1.teams.getTeamAndMemberShowcase", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
@@ -5031,8 +5031,8 @@ func (c TeamsClient) TeamDebug(ctx context.Context, teamID TeamID) (res TeamDebu
 	return
 }
 
-func (c TeamsClient) GetTarsDisabled(ctx context.Context, name string) (res bool, err error) {
-	__arg := GetTarsDisabledArg{Name: name}
+func (c TeamsClient) GetTarsDisabled(ctx context.Context, teamID TeamID) (res bool, err error) {
+	__arg := GetTarsDisabledArg{TeamID: teamID}
 	err = c.Cli.Call(ctx, "keybase.1.teams.getTarsDisabled", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

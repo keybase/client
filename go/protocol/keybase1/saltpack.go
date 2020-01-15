@@ -185,12 +185,28 @@ func (o SaltpackFrontendEncryptOptions) DeepCopy() SaltpackFrontendEncryptOption
 type SaltpackPlaintextResult struct {
 	Info      SaltpackEncryptedMessageInfo `codec:"info" json:"info"`
 	Plaintext string                       `codec:"plaintext" json:"plaintext"`
+	Signed    bool                         `codec:"signed" json:"signed"`
 }
 
 func (o SaltpackPlaintextResult) DeepCopy() SaltpackPlaintextResult {
 	return SaltpackPlaintextResult{
 		Info:      o.Info.DeepCopy(),
 		Plaintext: o.Plaintext,
+		Signed:    o.Signed,
+	}
+}
+
+type SaltpackFileResult struct {
+	Info              SaltpackEncryptedMessageInfo `codec:"info" json:"info"`
+	DecryptedFilename string                       `codec:"decryptedFilename" json:"decryptedFilename"`
+	Signed            bool                         `codec:"signed" json:"signed"`
+}
+
+func (o SaltpackFileResult) DeepCopy() SaltpackFileResult {
+	return SaltpackFileResult{
+		Info:              o.Info.DeepCopy(),
+		DecryptedFilename: o.DecryptedFilename,
+		Signed:            o.Signed,
 	}
 }
 
@@ -198,6 +214,7 @@ type SaltpackVerifyResult struct {
 	SigningKID KID            `codec:"signingKID" json:"signingKID"`
 	Sender     SaltpackSender `codec:"sender" json:"sender"`
 	Plaintext  string         `codec:"plaintext" json:"plaintext"`
+	Verified   bool           `codec:"verified" json:"verified"`
 }
 
 func (o SaltpackVerifyResult) DeepCopy() SaltpackVerifyResult {
@@ -205,6 +222,23 @@ func (o SaltpackVerifyResult) DeepCopy() SaltpackVerifyResult {
 		SigningKID: o.SigningKID.DeepCopy(),
 		Sender:     o.Sender.DeepCopy(),
 		Plaintext:  o.Plaintext,
+		Verified:   o.Verified,
+	}
+}
+
+type SaltpackVerifyFileResult struct {
+	SigningKID       KID            `codec:"signingKID" json:"signingKID"`
+	Sender           SaltpackSender `codec:"sender" json:"sender"`
+	VerifiedFilename string         `codec:"verifiedFilename" json:"verifiedFilename"`
+	Verified         bool           `codec:"verified" json:"verified"`
+}
+
+func (o SaltpackVerifyFileResult) DeepCopy() SaltpackVerifyFileResult {
+	return SaltpackVerifyFileResult{
+		SigningKID:       o.SigningKID.DeepCopy(),
+		Sender:           o.Sender.DeepCopy(),
+		VerifiedFilename: o.VerifiedFilename,
+		Verified:         o.Verified,
 	}
 }
 
@@ -242,9 +276,20 @@ type SaltpackEncryptStringArg struct {
 	Opts      SaltpackFrontendEncryptOptions `codec:"opts" json:"opts"`
 }
 
+type SaltpackEncryptFileArg struct {
+	SessionID int                            `codec:"sessionID" json:"sessionID"`
+	Filename  string                         `codec:"filename" json:"filename"`
+	Opts      SaltpackFrontendEncryptOptions `codec:"opts" json:"opts"`
+}
+
 type SaltpackDecryptStringArg struct {
 	SessionID  int    `codec:"sessionID" json:"sessionID"`
 	Ciphertext string `codec:"ciphertext" json:"ciphertext"`
+}
+
+type SaltpackDecryptFileArg struct {
+	SessionID         int    `codec:"sessionID" json:"sessionID"`
+	EncryptedFilename string `codec:"encryptedFilename" json:"encryptedFilename"`
 }
 
 type SaltpackSignStringArg struct {
@@ -252,9 +297,19 @@ type SaltpackSignStringArg struct {
 	Plaintext string `codec:"plaintext" json:"plaintext"`
 }
 
+type SaltpackSignFileArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Filename  string `codec:"filename" json:"filename"`
+}
+
 type SaltpackVerifyStringArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	SignedMsg string `codec:"signedMsg" json:"signedMsg"`
+}
+
+type SaltpackVerifyFileArg struct {
+	SessionID      int    `codec:"sessionID" json:"sessionID"`
+	SignedFilename string `codec:"signedFilename" json:"signedFilename"`
 }
 
 type SaltpackInterface interface {
@@ -263,9 +318,13 @@ type SaltpackInterface interface {
 	SaltpackSign(context.Context, SaltpackSignArg) error
 	SaltpackVerify(context.Context, SaltpackVerifyArg) error
 	SaltpackEncryptString(context.Context, SaltpackEncryptStringArg) (string, error)
+	SaltpackEncryptFile(context.Context, SaltpackEncryptFileArg) (string, error)
 	SaltpackDecryptString(context.Context, SaltpackDecryptStringArg) (SaltpackPlaintextResult, error)
+	SaltpackDecryptFile(context.Context, SaltpackDecryptFileArg) (SaltpackFileResult, error)
 	SaltpackSignString(context.Context, SaltpackSignStringArg) (string, error)
+	SaltpackSignFile(context.Context, SaltpackSignFileArg) (string, error)
 	SaltpackVerifyString(context.Context, SaltpackVerifyStringArg) (SaltpackVerifyResult, error)
+	SaltpackVerifyFile(context.Context, SaltpackVerifyFileArg) (SaltpackVerifyFileResult, error)
 }
 
 func SaltpackProtocol(i SaltpackInterface) rpc.Protocol {
@@ -347,6 +406,21 @@ func SaltpackProtocol(i SaltpackInterface) rpc.Protocol {
 					return
 				},
 			},
+			"saltpackEncryptFile": {
+				MakeArg: func() interface{} {
+					var ret [1]SaltpackEncryptFileArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SaltpackEncryptFileArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SaltpackEncryptFileArg)(nil), args)
+						return
+					}
+					ret, err = i.SaltpackEncryptFile(ctx, typedArgs[0])
+					return
+				},
+			},
 			"saltpackDecryptString": {
 				MakeArg: func() interface{} {
 					var ret [1]SaltpackDecryptStringArg
@@ -359,6 +433,21 @@ func SaltpackProtocol(i SaltpackInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.SaltpackDecryptString(ctx, typedArgs[0])
+					return
+				},
+			},
+			"saltpackDecryptFile": {
+				MakeArg: func() interface{} {
+					var ret [1]SaltpackDecryptFileArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SaltpackDecryptFileArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SaltpackDecryptFileArg)(nil), args)
+						return
+					}
+					ret, err = i.SaltpackDecryptFile(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -377,6 +466,21 @@ func SaltpackProtocol(i SaltpackInterface) rpc.Protocol {
 					return
 				},
 			},
+			"saltpackSignFile": {
+				MakeArg: func() interface{} {
+					var ret [1]SaltpackSignFileArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SaltpackSignFileArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SaltpackSignFileArg)(nil), args)
+						return
+					}
+					ret, err = i.SaltpackSignFile(ctx, typedArgs[0])
+					return
+				},
+			},
 			"saltpackVerifyString": {
 				MakeArg: func() interface{} {
 					var ret [1]SaltpackVerifyStringArg
@@ -389,6 +493,21 @@ func SaltpackProtocol(i SaltpackInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.SaltpackVerifyString(ctx, typedArgs[0])
+					return
+				},
+			},
+			"saltpackVerifyFile": {
+				MakeArg: func() interface{} {
+					var ret [1]SaltpackVerifyFileArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SaltpackVerifyFileArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SaltpackVerifyFileArg)(nil), args)
+						return
+					}
+					ret, err = i.SaltpackVerifyFile(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -425,8 +544,18 @@ func (c SaltpackClient) SaltpackEncryptString(ctx context.Context, __arg Saltpac
 	return
 }
 
+func (c SaltpackClient) SaltpackEncryptFile(ctx context.Context, __arg SaltpackEncryptFileArg) (res string, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.saltpack.saltpackEncryptFile", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
 func (c SaltpackClient) SaltpackDecryptString(ctx context.Context, __arg SaltpackDecryptStringArg) (res SaltpackPlaintextResult, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.saltpack.saltpackDecryptString", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c SaltpackClient) SaltpackDecryptFile(ctx context.Context, __arg SaltpackDecryptFileArg) (res SaltpackFileResult, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.saltpack.saltpackDecryptFile", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -435,7 +564,17 @@ func (c SaltpackClient) SaltpackSignString(ctx context.Context, __arg SaltpackSi
 	return
 }
 
+func (c SaltpackClient) SaltpackSignFile(ctx context.Context, __arg SaltpackSignFileArg) (res string, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.saltpack.saltpackSignFile", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
 func (c SaltpackClient) SaltpackVerifyString(ctx context.Context, __arg SaltpackVerifyStringArg) (res SaltpackVerifyResult, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.saltpack.saltpackVerifyString", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c SaltpackClient) SaltpackVerifyFile(ctx context.Context, __arg SaltpackVerifyFileArg) (res SaltpackVerifyFileResult, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.saltpack.saltpackVerifyFile", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

@@ -21,7 +21,7 @@ const ConnectedTeamWithPopup = Container.connect(
     const details: TeamsTypes.TeamDetails = TeamsConstants.getTeamDetails(state, _teamID)
     return {
       _teamID,
-      description: TeamsConstants.getTeamPublicitySettings(state, teamName).description,
+      description: TeamsConstants.getTeamPublicitySettings(state, _teamID).description,
       isMember: details.isMember,
       isOpen: details.isOpen,
       memberCount: details.memberCount,

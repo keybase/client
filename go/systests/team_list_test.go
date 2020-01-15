@@ -155,22 +155,22 @@ func TestTeamListOpenTeamFilter(t *testing.T) {
 	bob := makeUserStandalone(t, "bob", standaloneArgs)
 	tom := makeUserStandalone(t, "tom", standaloneArgs)
 
-	team := ann.createTeam()
-	t.Logf("Team created %q", team)
-	ann.teamSetSettings(team, keybase1.TeamSettings{
+	id, teamName := ann.createTeam2()
+	t.Logf("Team created %q", teamName)
+	ann.teamSetSettings(id, keybase1.TeamSettings{
 		Open:   true,
 		JoinAs: keybase1.TeamRole_WRITER,
 	})
 
-	ann.addTeamMember(team, bob.username, keybase1.TeamRole_ADMIN)
-	ann.addTeamMember(team, tom.username, keybase1.TeamRole_WRITER)
+	ann.addTeamMember(teamName.String(), bob.username, keybase1.TeamRole_ADMIN)
+	ann.addTeamMember(teamName.String(), tom.username, keybase1.TeamRole_WRITER)
 	ann.tc.G.UIDMapper.SetTestingNoCachingMode(true)
 
 	bob.reset()
 	tom.reset()
 
-	details, err := ann.teamsClient.TeamGet(context.Background(), keybase1.TeamGetArg{
-		Name: team,
+	details, err := ann.teamsClient.TeamGetByID(context.Background(), keybase1.TeamGetByIDArg{
+		Id: id,
 	})
 	require.NoError(t, err)
 
@@ -187,13 +187,13 @@ func TestTeamListOpenTeams(t *testing.T) {
 	ann := tt.addUser("ann")
 	t.Logf("Signed up ann (%s)", ann.username)
 
-	team1 := ann.createTeam()
+	id1, team1 := ann.createTeam2()
 	t.Logf("Team 1 created (%s)", team1)
 
-	team2 := ann.createTeam()
+	id2, team2 := ann.createTeam2()
 	t.Logf("Team 2 created (%s)", team2)
 
-	ann.teamSetSettings(team2, keybase1.TeamSettings{
+	ann.teamSetSettings(id2, keybase1.TeamSettings{
 		Open:   true,
 		JoinAs: keybase1.TeamRole_WRITER,
 	})
@@ -202,9 +202,9 @@ func TestTeamListOpenTeams(t *testing.T) {
 		require.Equal(t, 2, len(list.Teams))
 		require.Equal(t, 0, len(list.AnnotatedActiveInvites))
 		for _, teamInfo := range list.Teams {
-			if teamInfo.FqName == team1 {
+			if teamInfo.TeamID == id1 {
 				require.False(t, teamInfo.IsOpenTeam)
-			} else if teamInfo.FqName == team2 {
+			} else if teamInfo.TeamID == id2 {
 				require.True(t, teamInfo.IsOpenTeam)
 			} else {
 				t.Fatalf("Unexpected team name %v", teamInfo)

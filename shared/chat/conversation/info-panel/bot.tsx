@@ -1,14 +1,53 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
+import * as Types from '../../../constants/types/chat2'
+import * as Container from '../../../util/container'
+import * as Chat2Gen from '../../../actions/chat2-gen'
+import * as Constants from '../../../constants/chat2'
 import {FeaturedBot} from 'constants/types/rpc-gen'
 
 type Props = FeaturedBot & {
+  conversationIDKey?: Types.ConversationIDKey
   description?: string
   onClick: (username: string) => void
+  showAddToChannel?: boolean
 }
 
-const Bot = ({botAlias, description, botUsername, onClick, ownerTeam, ownerUser}: Props) => {
+type AddButtonProps = {
+  conversationIDKey: Types.ConversationIDKey
+  username: string
+}
+
+const AddBotToChannel = ({conversationIDKey, username}: AddButtonProps) => {
+  const dispatch = Container.useDispatch()
+  const addToChannel = () => dispatch(Chat2Gen.createAddUserToChannel({conversationIDKey, username}))
+  return (
+    <Kb.WaitingButton
+      type="Dim"
+      mode="Secondary"
+      onClick={(e: React.BaseSyntheticEvent) => {
+        e.stopPropagation()
+        addToChannel()
+      }}
+      style={styles.addButton}
+      icon="iconfont-new"
+      tooltip="Add to this channel"
+      waitingKey={Constants.waitingKeyAddUserToChannel(username, conversationIDKey)}
+    />
+  )
+}
+
+const Bot = ({
+  botAlias,
+  conversationIDKey,
+  description,
+  botUsername,
+  showAddToChannel,
+  onClick,
+  ownerTeam,
+  ownerUser,
+}: Props) => {
   const lower = (
     <Kb.Box2
       direction="horizontal"
@@ -55,6 +94,9 @@ const Bot = ({botAlias, description, botUsername, onClick, ownerTeam, ownerUser}
               {usernameDisplay}
               {lower}
             </Kb.Box2>
+            {showAddToChannel && conversationIDKey && (
+              <AddBotToChannel username={botUsername} conversationIDKey={conversationIDKey} />
+            )}
           </Kb.Box2>
         </Kb.Box2>
         <Kb.Divider style={styles.divider} />
@@ -66,6 +108,9 @@ const Bot = ({botAlias, description, botUsername, onClick, ownerTeam, ownerUser}
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      addButton: {
+        marginLeft: Styles.globalMargins.tiny,
+      },
       avatarStyle: Styles.platformStyles({
         isElectron: {marginRight: Styles.globalMargins.tiny},
         isMobile: {marginRight: Styles.globalMargins.small},

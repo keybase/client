@@ -12,6 +12,7 @@ export const resetStore = 'common:resetStore' // not a part of chat2 but is hand
 export const typePrefix = 'chat2:'
 export const addAttachmentViewMessage = 'chat2:addAttachmentViewMessage'
 export const addBotMember = 'chat2:addBotMember'
+export const addUserToChannel = 'chat2:addUserToChannel'
 export const addUsersToChannel = 'chat2:addUsersToChannel'
 export const attachmentDownload = 'chat2:attachmentDownload'
 export const attachmentDownloaded = 'chat2:attachmentDownloaded'
@@ -192,6 +193,10 @@ type _AddBotMemberPayload = {
   readonly allowMentions: boolean
   readonly username: string
   readonly restricted: boolean
+}
+type _AddUserToChannelPayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly username: string
 }
 type _AddUsersToChannelPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
@@ -801,6 +806,13 @@ export const createCreateConversation = (payload: _CreateConversationPayload): C
 export const createAddUsersToChannel = (payload: _AddUsersToChannelPayload): AddUsersToChannelPayload => ({
   payload,
   type: addUsersToChannel,
+})
+/**
+ * Add a single user to a conversation. Creates a SystemBulkAddToConv message.
+ */
+export const createAddUserToChannel = (payload: _AddUserToChannelPayload): AddUserToChannelPayload => ({
+  payload,
+  type: addUserToChannel,
 })
 /**
  * Add an unfurl prompt to a message
@@ -1657,6 +1669,10 @@ export type AddAttachmentViewMessagePayload = {
   readonly type: typeof addAttachmentViewMessage
 }
 export type AddBotMemberPayload = {readonly payload: _AddBotMemberPayload; readonly type: typeof addBotMember}
+export type AddUserToChannelPayload = {
+  readonly payload: _AddUserToChannelPayload
+  readonly type: typeof addUserToChannel
+}
 export type AddUsersToChannelPayload = {
   readonly payload: _AddUsersToChannelPayload
   readonly type: typeof addUsersToChannel
@@ -2267,6 +2283,7 @@ export type UpdateUserReacjisPayload = {
 export type Actions =
   | AddAttachmentViewMessagePayload
   | AddBotMemberPayload
+  | AddUserToChannelPayload
   | AddUsersToChannelPayload
   | AttachmentDownloadPayload
   | AttachmentDownloadedPayload

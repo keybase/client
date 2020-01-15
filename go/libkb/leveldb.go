@@ -33,14 +33,10 @@ type levelDBOps interface {
 	Write(b *leveldb.Batch, wo *opt.WriteOptions) error
 }
 
-func LevelDbPrefix(typ ObjType) []byte {
-	return []byte(PrefixString(levelDbTableKv, typ))
-}
-
 func levelDbPut(ops levelDBOps, cleaner *levelDbCleaner, id DbKey, aliases []DbKey, value []byte) (err error) {
 	defer convertNoSpaceError(&err)
 
-	idb := id.ToBytes(levelDbTableKv)
+	idb := id.ToBytes()
 	if aliases == nil {
 		// if no aliases, just do a put
 		if err := ops.Put(idb, value, nil); err != nil {
@@ -55,7 +51,7 @@ func levelDbPut(ops levelDBOps, cleaner *levelDbCleaner, id DbKey, aliases []DbK
 	keys := make([][]byte, len(aliases))
 	keys = append(keys, idb)
 	for i, alias := range aliases {
-		aliasKey := alias.ToBytes(levelDbTableLo)
+		aliasKey := alias.ToBytesLookup()
 		batch.Put(aliasKey, idb)
 		keys[i] = aliasKey
 	}
@@ -69,8 +65,7 @@ func levelDbPut(ops levelDBOps, cleaner *levelDbCleaner, id DbKey, aliases []DbK
 	return nil
 }
 
-func levelDbGetWhich(ops levelDBOps, cleaner *levelDbCleaner, id DbKey, which string) (val []byte, found bool, err error) {
-	key := id.ToBytes(which)
+func levelDbGetWhich(ops levelDBOps, cleaner *levelDbCleaner, key []byte) (val []byte, found bool, err error) {
 	val, err = ops.Get(key, nil)
 	found = false
 	if err == nil {
@@ -86,18 +81,18 @@ func levelDbGetWhich(ops levelDBOps, cleaner *levelDbCleaner, id DbKey, which st
 }
 
 func levelDbGet(ops levelDBOps, cleaner *levelDbCleaner, id DbKey) ([]byte, bool, error) {
-	return levelDbGetWhich(ops, cleaner, id, levelDbTableKv)
+	return levelDbGetWhich(ops, cleaner, id.ToBytes())
 }
 
 func levelDbLookup(ops levelDBOps, cleaner *levelDbCleaner, id DbKey) (val []byte, found bool, err error) {
-	val, found, err = levelDbGetWhich(ops, cleaner, id, levelDbTableLo)
+	val, found, err = levelDbGetWhich(ops, cleaner, id.ToBytesLookup())
 	if found {
 		if tab, id2, err2 := DbKeyParse(string(val)); err2 != nil {
 			err = err2
 		} else if tab != levelDbTableKv && tab != levelDbTablePerm {
-			err = fmt.Errorf("bad alias; expected 'kv' but got '%s'", tab)
+			err = fmt.Errorf("bad alias; expected 'kv' or 'pm' but got '%s'", tab)
 		} else {
-			val, found, err = levelDbGetWhich(ops, cleaner, id2, tab)
+			val, found, err = levelDbGetWhich(ops, cleaner, id2.ToBytes())
 		}
 	}
 	return val, found, err
@@ -105,7 +100,7 @@ func levelDbLookup(ops levelDBOps, cleaner *levelDbCleaner, id DbKey) (val []byt
 
 func levelDbDelete(ops levelDBOps, cleaner *levelDbCleaner, id DbKey) (err error) {
 	defer convertNoSpaceError(&err)
-	key := id.ToBytes(levelDbTableKv)
+	key := id.ToBytes()
 	if err := ops.Delete(key, nil); err != nil {
 		return err
 	}

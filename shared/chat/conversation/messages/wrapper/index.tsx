@@ -200,7 +200,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                 </Kb.WithTooltip>
               )}
               {this.props.authorIsBot && (
-                <Kb.Icon fontSize={16} color={Styles.globalColors.black_35} type="iconfont-nav-2-robot" />
+                <Kb.Icon fontSize={10} color={Styles.globalColors.black_35} type="iconfont-bot" />
               )}
               <Kb.Text
                 type="BodyTiny"
@@ -350,7 +350,8 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       this.props.message.type === 'systemSimpleToComplex' ||
       this.props.message.type === 'systemSBSResolved' ||
       this.props.message.type === 'systemText' ||
-      this.props.message.type === 'systemUsersAddedToConversation') &&
+      this.props.message.type === 'systemUsersAddedToConversation' ||
+      this.props.message.type === 'journeycard') &&
     this.props.shouldShowPopup &&
     this.props.showingMenu && (
       <MessagePopup
@@ -592,9 +593,8 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
             {this.getKeyedBot() && !this.props.authorIsBot && (
               <Kb.WithTooltip tooltip={`Encrypted for @${this.getKeyedBot()}`}>
                 <Kb.Icon
-                  fontSize={16}
                   color={Styles.globalColors.black_35}
-                  type="iconfont-nav-2-robot"
+                  type="iconfont-bot"
                   onClick={() => null}
                   style={styles.paddingLeftTiny}
                 />
@@ -603,7 +603,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
             {showMenuButton ? (
               <Kb.Box className="WrapperMessage-buttons">
                 {!this.hasReactions() &&
-                  Constants.isDecoratedMessage(this.props.message) &&
+                  Constants.isMessageWithReactions(this.props.message) &&
                   !this.props.showingMenu && (
                     <EmojiRow
                       className={Styles.classNames({
