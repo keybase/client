@@ -77,15 +77,13 @@ const setupWindowEvents = (win: Electron.BrowserWindow) => {
       if (inResize) {
         return
       }
-      const winBounds = win.getNormalBounds()
-      const {height, width} = winBounds
+      const {width} = win.getNormalBounds()
       // only happens if resizing vertically
       if (width === oldWidth) {
         inResize = true
         timerID && clearTimeout(timerID)
         timerID = setTimeout(() => {
-          const winBounds = win.getNormalBounds()
-          const {height, width} = winBounds
+          const {height, width} = win.getNormalBounds()
           win.setSize(width + 1, height)
           win.setSize(width, height)
           inResize = false
