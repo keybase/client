@@ -1,4 +1,7 @@
 // Entry point for the node part of the electron app
+// MUST be first
+import './preload.desktop'
+// ^^^^^^^^
 import MainWindow, {showDockIcon} from './main-window.desktop'
 import * as Electron from 'electron'
 import devTools from './dev-tools.desktop'

@@ -6,7 +6,7 @@ import logger from '../../logger'
 import {isDarwin, isWindows, isLinux} from '../../constants/platform'
 import {mainWindowDispatch} from '../remote/util.desktop'
 import {menubar} from 'menubar'
-import {resolveImage, resolveRootAsURL} from './resolve-root.desktop'
+import {resolveRoot, resolveImage, resolveRootAsURL} from './resolve-root.desktop'
 import {showDevTools, skipSecondaryDevtools} from '../../local-debug.desktop'
 
 const htmlFile = resolveRootAsURL('dist', `menubar${__DEV__ ? '.dev' : ''}.html?param=menubar`)
@@ -33,6 +33,7 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
       webPreferences: {
         nodeIntegration: true,
         nodeIntegrationInWorker: false,
+        preload: resolveRoot('dist', `preload-main${__DEV__ ? '.dev' : ''}.bundle.js`),
       },
       width: 360,
     },

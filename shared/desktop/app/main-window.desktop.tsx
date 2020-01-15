@@ -1,5 +1,4 @@
 import URL from 'url-parse'
-import path from 'path'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import * as Electron from 'electron'
 import * as ConfigGen from '../../actions/config-gen'

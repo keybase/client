@@ -43,7 +43,18 @@ interface Console {
 }
 
 declare var KB: {
+  __dirname: string
   DEV?: any
+  electron: {
+    app: {
+      getAppPath: () => string
+    }
+  }
+  path: {
+    join: (...paths: Array<string>) => string
+    resolve: (...pathSegments: Array<string>) => string
+    sep: '\\' | '/'
+  }
 }
 
 declare namespace NodeJS {
