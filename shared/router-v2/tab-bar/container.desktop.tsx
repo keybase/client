@@ -1,5 +1,5 @@
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as SafeElectron from '../../util/safe-electron.desktop'
+import * as Electron from 'electron'
 import * as Tabs from '../../constants/tabs'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as ConfigGen from '../../actions/config-gen'
@@ -68,9 +68,7 @@ export default Container.connect(
         }
       }
       // In case dump log doesn't exit for us
-      SafeElectron.getRemote()
-        .getCurrentWindow()
-        .hide()
+      Electron.remote.getCurrentWindow().hide()
       setTimeout(() => {
         quit()
       }, 2000)

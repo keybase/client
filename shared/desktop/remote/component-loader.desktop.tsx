@@ -31,7 +31,7 @@ class RemoteComponentLoader extends React.Component<Props> {
 
   constructor(props: Props) {
     super(props)
-    this._window = SafeElectron.getRemote().getCurrentWindow()
+    this._window = Electron.remote.getCurrentWindow()
     const remoteStore = new RemoteStore({
       deserialize: props.deserialize,
       gotPropsCallback: this._onGotProps,

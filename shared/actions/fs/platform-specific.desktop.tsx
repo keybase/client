@@ -253,7 +253,7 @@ const driverEnableFuse = async (action: FsGen.DriverEnablePayload) => {
 
 const uninstallKBFSConfirm = async () => {
   const action = await new Promise<TypedActions | false>(resolve =>
-    SafeElectron.getDialog()
+    Electron.remote.dialog
       .showMessageBox({
         buttons: ['Remove & Restart', 'Cancel'],
         detail: `Are you sure you want to remove Keybase from ${fileUIName} and restart the app?`,
@@ -269,8 +269,8 @@ const uninstallKBFSConfirm = async () => {
 const uninstallKBFS = () =>
   RPCTypes.installUninstallKBFSRpcPromise().then(() => {
     // Restart since we had to uninstall KBFS and it's needed by the service (for chat)
-    SafeElectron.getApp().relaunch()
-    SafeElectron.getApp().exit(0)
+    Electron.remote.app.relaunch()
+    Electron.remote.app.exit(0)
   })
 
 // @ts-ignore
@@ -280,7 +280,7 @@ const uninstallDokanConfirm = async (state: TypedState) => {
   }
   if (!state.fs.sfmi.driverStatus.dokanUninstallExecPath) {
     const action = await new Promise<TypedActions>(resolve =>
-      SafeElectron.getDialog()
+      Electron.remote.dialog
         .showMessageBox({
           buttons: ['Got it'],
           detail:
@@ -352,8 +352,8 @@ const installCachedDokan = (action: FsGen.DriverEnablePayload) =>
     .catch(makeUnretriableErrorHandler(action, null))
 
 const openAndUploadToPromise = (action: FsGen.OpenAndUploadPayload): Promise<Array<string>> =>
-  SafeElectron.getDialog()
-    .showOpenDialog(SafeElectron.getCurrentWindowFromRemote(), {
+  Electron.remote.dialog
+    .showOpenDialog(Electron.remote.getCurrentWindow(), {
       properties: [
         'multiSelections' as const,
         ...(['file', 'both'].includes(action.payload.type) ? (['openFile'] as const) : []),

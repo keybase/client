@@ -19,9 +19,7 @@ import {quit} from '../desktop/app/ctl.desktop'
 import {urlHelper} from '../util/url-helper'
 
 const hideWindow = () => {
-  SafeElectron.getRemote()
-    .getCurrentWindow()
-    .hide()
+  Electron.remote.getCurrentWindow().hide()
 }
 
 export default () => {
