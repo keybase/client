@@ -167,7 +167,7 @@ const ServiceDecoration = (props: Props) => {
     )
   } else if (parsed.typ === RPCChatTypes.UITextDecorationTyp.link) {
     const link = parsed.link.url
-    const openUrl = link.startsWith('http://') || link.startsWith('https://') ? link : 'https://' + link
+    const openUrl = link.startsWith('http://') || link.startsWith('https://') ? link : 'http://' + link
     return DeeplinksConstants.linkIsKeybaseLink(link) ? (
       <KeybaseLink link={link} linkStyle={props.styleOverride.link} wrapStyle={props.styles.wrapStyle} />
     ) : parsed.link.punycode ? (
