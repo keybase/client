@@ -13,7 +13,6 @@ import (
 	"github.com/keybase/client/go/kbun"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol/chat1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
@@ -21,7 +20,7 @@ import (
 // pullTranscript uses chat transcript functions to pull transcript and encode
 // it to postArgs.
 func pullTranscript(mctx libkb.MetaContext, postArgs libkb.HTTPArgs, convSource types.ConversationSource,
-	convID chat1.ConvIDStr, usernames []kbun.NormalizedUsername) (err error) {
+	convID string, usernames []kbun.NormalizedUsername) (err error) {
 
 	config := chat.PullTranscriptConfigDefault()
 	transcript, err := chat.PullTranscript(mctx, convSource, convID, usernames, config)
@@ -40,9 +39,13 @@ func pullTranscript(mctx libkb.MetaContext, postArgs libkb.HTTPArgs, convSource 
 
 func (h *UserHandler) ReportUser(ctx context.Context, arg keybase1.ReportUserArg) (err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("REPORT")
+	convIDStr := "nil"
+	if arg.ConvID != nil {
+		convIDStr = *arg.ConvID
+	}
 	defer mctx.TraceTimed(fmt.Sprintf(
-		"UserHandler#ReportUser(username=%q,transcript=%t,convID=%v)",
-		arg.Username, arg.IncludeTranscript, arg.ConvID),
+		"UserHandler#ReportUser(username=%q,transcript=%t,convId=%s)",
+		arg.Username, arg.IncludeTranscript, convIDStr),
 		func() error { return err })()
 
 	postArgs := libkb.HTTPArgs{
@@ -57,12 +60,13 @@ func (h *UserHandler) ReportUser(ctx context.Context, arg keybase1.ReportUserArg
 		if arg.ConvID == nil {
 			return errors.New("invalid arguments: IncludeTranscript is true but ConvID == nil")
 		}
+		convID := *arg.ConvID
 		// Pull transcripts with messages from curent user and the reported user.
 		usernames := []kbun.NormalizedUsername{
 			kbun.NewNormalizedUsername(arg.Username),
 			mctx.CurrentUsername(),
 		}
-		err = pullTranscript(mctx, postArgs, h.ChatG().ConvSource, chat1.ConvIDStr(*arg.ConvID), usernames)
+		err = pullTranscript(mctx, postArgs, h.ChatG().ConvSource, convID, usernames)
 		if err != nil {
 			// This is not a failure of entire RPC, just warn about the error.
 			// Report can still go through without the transcript.

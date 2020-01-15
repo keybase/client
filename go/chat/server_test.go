@@ -920,7 +920,7 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 		// Create a bunch of blank convos
 		oldUILoader := tc.ChatG.UIInboxLoader
 		tc.ChatG.UIInboxLoader = types.DummyUIInboxLoader{}
-		convs := make(map[chat1.ConvIDStr]bool)
+		convs := make(map[string]bool)
 		for i := 0; i < numconvs; i++ {
 			var created chat1.ConversationInfoLocal
 			switch mt {
@@ -1059,7 +1059,7 @@ func TestChatSrvGetInboxNonblock(t *testing.T) {
 		defer func() { <-tc.ChatG.UIInboxLoader.Stop(ctx) }()
 
 		// Create a bunch of blank convos
-		convs := make(map[chat1.ConvIDStr]bool)
+		convs := make(map[string]bool)
 		for i := 0; i < numconvs; i++ {
 			created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 				mt, ctc.as(t, users[i+1]).user())
@@ -1100,7 +1100,7 @@ func TestChatSrvGetInboxNonblock(t *testing.T) {
 
 		// Send a bunch of messages
 		t.Logf("messages in convos test")
-		convs = make(map[chat1.ConvIDStr]bool)
+		convs = make(map[string]bool)
 		for i := 0; i < numconvs; i++ {
 			conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 				mt, ctc.as(t, users[i+1]).user())
@@ -4878,7 +4878,7 @@ func TestChatSrvRetentionSweepConv(t *testing.T) {
 }
 
 func tlfIDToTeamIDForce(t *testing.T, tlfID chat1.TLFID) keybase1.TeamID {
-	res, err := keybase1.TeamIDFromString(tlfID.String().String())
+	res, err := keybase1.TeamIDFromString(tlfID.String())
 	require.NoError(t, err)
 	return res
 }
@@ -4937,7 +4937,7 @@ func TestChatSrvRetentionSweepTeam(t *testing.T) {
 			convExpirePolicy := policy
 			convRetainPolicy := chat1.NewRetentionPolicyWithRetain(chat1.RpRetain{})
 
-			latestMsgMap := make(map[chat1.ConvIDStr]chat1.MessageID)
+			latestMsgMap := make(map[string] /*convID*/ chat1.MessageID)
 			latestMsg := func(convID chat1.ConversationID) chat1.MessageID {
 				return latestMsgMap[convID.String()]
 			}
@@ -5115,7 +5115,7 @@ func TestChatSrvEphemeralTeamRetention(t *testing.T) {
 		convExpirePolicy := policy
 		convRetainPolicy := chat1.NewRetentionPolicyWithRetain(chat1.RpRetain{})
 
-		latestMsgMap := make(map[chat1.ConvIDStr]chat1.MessageID)
+		latestMsgMap := make(map[string] /*convID*/ chat1.MessageID)
 		latestMsg := func(convID chat1.ConversationID) chat1.MessageID {
 			return latestMsgMap[convID.String()]
 		}
@@ -5578,7 +5578,7 @@ func TestChatSrvUnboxMobilePushNotification(t *testing.T) {
 			encMsg := base64.StdEncoding.EncodeToString(data)
 			unboxRes, err := ctc.as(t, users[0]).chatLocalHandler().UnboxMobilePushNotification(context.TODO(),
 				chat1.UnboxMobilePushNotificationArg{
-					ConvID:      convInfo.Id.String().String(),
+					ConvID:      convInfo.Id.String(),
 					MembersType: mt,
 					Payload:     encMsg,
 				})
@@ -7091,7 +7091,7 @@ func TestTeamBotSettings(t *testing.T) {
 			var err error
 			created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
 
-			teamID, err := keybase1.TeamIDFromString(created.Triple.Tlfid.String().String())
+			teamID, err := keybase1.TeamIDFromString(created.Triple.Tlfid.String())
 			require.NoError(t, err)
 
 			pollForSeqno := func(expectedSeqno keybase1.Seqno) {
@@ -7335,7 +7335,7 @@ func TestTeamBotSettings(t *testing.T) {
 			require.NoError(t, err)
 
 			// take out botua1 by restricting them to a nonexistent conv.
-			botSettings.Convs = []string{chat1.ConversationID("foo").String().String()}
+			botSettings.Convs = []string{chat1.ConversationID("foo").String()}
 			err = ctc.as(t, users[0]).chatLocalHandler().SetBotMemberSettings(tc.startCtx, chat1.SetBotMemberSettingsArg{
 				ConvID:      created.Id,
 				Username:    botua.Username,

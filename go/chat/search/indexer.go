@@ -513,7 +513,7 @@ func (idx *Indexer) SearchableConvs(ctx context.Context, convID *chat1.Conversat
 	return idx.convsPrioritySorted(ctx, convMap), nil
 }
 
-func (idx *Indexer) allConvs(ctx context.Context, convID *chat1.ConversationID) (map[chat1.ConvIDStr]types.RemoteConversation, error) {
+func (idx *Indexer) allConvs(ctx context.Context, convID *chat1.ConversationID) (map[string]types.RemoteConversation, error) {
 	// Find all conversations in our inbox
 	topicType := chat1.TopicType_CHAT
 	inboxQuery := &chat1.GetInboxQuery{
@@ -543,7 +543,7 @@ func (idx *Indexer) allConvs(ctx context.Context, convID *chat1.ConversationID) 
 	}
 
 	// convID -> remoteConv
-	convMap := make(map[chat1.ConvIDStr]types.RemoteConversation, len(inbox.ConvsUnverified))
+	convMap := make(map[string]types.RemoteConversation, len(inbox.ConvsUnverified))
 	for _, conv := range inbox.ConvsUnverified {
 		if conv.Conv.GetFinalizeInfo() != nil {
 			continue
@@ -561,7 +561,7 @@ func (idx *Indexer) allConvs(ctx context.Context, convID *chat1.ConversationID) 
 }
 
 func (idx *Indexer) convsPrioritySorted(ctx context.Context,
-	convMap map[chat1.ConvIDStr]types.RemoteConversation) (res []types.RemoteConversation) {
+	convMap map[string]types.RemoteConversation) (res []types.RemoteConversation) {
 	res = make([]types.RemoteConversation, len(convMap))
 	index := 0
 	for _, conv := range convMap {
@@ -663,7 +663,7 @@ func (idx *Indexer) SelectiveSync(ctx context.Context) (err error) {
 
 // IndexInbox is only exposed in devel for debugging/profiling the indexing
 // process.
-func (idx *Indexer) IndexInbox(ctx context.Context) (res map[chat1.ConvIDStr]chat1.ProfileSearchConvStats, err error) {
+func (idx *Indexer) IndexInbox(ctx context.Context) (res map[string]chat1.ProfileSearchConvStats, err error) {
 	defer idx.Trace(ctx, func() error { return err }, "Indexer.IndexInbox")()
 
 	convMap, err := idx.allConvs(ctx, nil)
@@ -671,7 +671,7 @@ func (idx *Indexer) IndexInbox(ctx context.Context) (res map[chat1.ConvIDStr]cha
 		return nil, err
 	}
 	// convID -> stats
-	res = map[chat1.ConvIDStr]chat1.ProfileSearchConvStats{}
+	res = map[string]chat1.ProfileSearchConvStats{}
 	for convIDStr, conv := range convMap {
 		idx.G().Log.CDebugf(ctx, "Indexing conv: %v", utils.GetRemoteConvDisplayName(conv))
 		convStats, err := idx.indexConvWithProfile(ctx, conv)

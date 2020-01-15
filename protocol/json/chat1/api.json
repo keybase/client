@@ -31,24 +31,6 @@
   "types": [
     {
       "type": "record",
-      "name": "ConvIDStr",
-      "fields": [],
-      "typedef": "string"
-    },
-    {
-      "type": "record",
-      "name": "TLFIDStr",
-      "fields": [],
-      "typedef": "string"
-    },
-    {
-      "type": "record",
-      "name": "FlipGameIDStr",
-      "fields": [],
-      "typedef": "string"
-    },
-    {
-      "type": "record",
       "name": "RateLimitRes",
       "fields": [
         {
@@ -122,7 +104,7 @@
       "name": "MsgSender",
       "fields": [
         {
-          "type": "keybase1.UID",
+          "type": "string",
           "name": "uid",
           "jsonkey": "uid"
         },
@@ -133,7 +115,7 @@
           "optional": true
         },
         {
-          "type": "keybase1.DeviceID",
+          "type": "string",
           "name": "deviceID",
           "jsonkey": "device_id"
         },
@@ -150,7 +132,7 @@
       "name": "MsgBotInfo",
       "fields": [
         {
-          "type": "keybase1.UID",
+          "type": "string",
           "name": "botUID",
           "jsonkey": "bot_uid"
         },
@@ -172,12 +154,12 @@
           "jsonkey": "text"
         },
         {
-          "type": "FlipGameIDStr",
+          "type": "string",
           "name": "gameID",
           "jsonkey": "game_id"
         },
         {
-          "type": "ConvIDStr",
+          "type": "string",
           "name": "flipConvID",
           "jsonkey": "flip_conv_id"
         },
@@ -324,7 +306,7 @@
           "jsonkey": "id"
         },
         {
-          "type": "ConvIDStr",
+          "type": "string",
           "name": "convID",
           "jsonkey": "conversation_id"
         },
@@ -523,7 +505,7 @@
       "name": "ConvSummary",
       "fields": [
         {
-          "type": "ConvIDStr",
+          "type": "string",
           "name": "id",
           "jsonkey": "id"
         },
@@ -577,7 +559,7 @@
         {
           "type": {
             "type": "array",
-            "items": "ConvIDStr"
+            "items": "string"
           },
           "name": "supersedes",
           "jsonkey": "supersedes",
@@ -586,7 +568,7 @@
         {
           "type": {
             "type": "array",
-            "items": "ConvIDStr"
+            "items": "string"
           },
           "name": "supersededBy",
           "jsonkey": "superseded_by",
@@ -752,7 +734,7 @@
       "name": "NewConvRes",
       "fields": [
         {
-          "type": "ConvIDStr",
+          "type": "string",
           "name": "id",
           "jsonkey": "id"
         },
@@ -902,7 +884,7 @@
       "name": "ResetConvMemberAPI",
       "fields": [
         {
-          "type": "ConvIDStr",
+          "type": "string",
           "name": "conversationID"
         },
         {
@@ -936,7 +918,7 @@
       "name": "DeviceInfo",
       "fields": [
         {
-          "type": "keybase1.DeviceID",
+          "type": "string",
           "name": "deviceID",
           "jsonkey": "id"
         },

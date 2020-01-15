@@ -1733,7 +1733,7 @@ func loadTeamMentions(ctx context.Context, g *globals.Context, uid gregor1.UID,
 }
 
 func presentFlipGameID(ctx context.Context, g *globals.Context, uid gregor1.UID,
-	convID chat1.ConversationID, msg chat1.MessageUnboxed) *chat1.FlipGameIDStr {
+	convID chat1.ConversationID, msg chat1.MessageUnboxed) *string {
 	typ, err := msg.State()
 	if err != nil {
 		return nil

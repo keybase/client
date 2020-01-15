@@ -136,8 +136,8 @@ type batchingStore struct {
 	edb        *encrypteddb.EncryptedDB
 	keyFn      func(ctx context.Context) ([32]byte, error)
 	aliasBatch map[string]*aliasEntry
-	tokenBatch map[chat1.ConvIDStr]*tokenBatch
-	mdBatch    map[chat1.ConvIDStr]*mdBatch
+	tokenBatch map[string]*tokenBatch
+	mdBatch    map[string]*mdBatch
 	flushMu    sync.Mutex
 }
 
@@ -159,8 +159,8 @@ func newBatchingStore(log logger.Logger, uid gregor1.UID,
 
 func (b *batchingStore) resetLocked() {
 	b.aliasBatch = make(map[string]*aliasEntry)
-	b.tokenBatch = make(map[chat1.ConvIDStr]*tokenBatch)
-	b.mdBatch = make(map[chat1.ConvIDStr]*mdBatch)
+	b.tokenBatch = make(map[string]*tokenBatch)
+	b.mdBatch = make(map[string]*mdBatch)
 }
 
 func (b *batchingStore) GetTokenEntry(ctx context.Context, convID chat1.ConversationID,

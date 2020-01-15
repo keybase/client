@@ -96,24 +96,24 @@ func (n *extensionNotifyListener) NewChatActivity(uid keybase1.UID, activity cha
 			// skip pending message notification
 			return
 		}
-		convID := activity.IncomingMessage().ConvID.String()
+		strConvID := activity.IncomingMessage().ConvID.String()
 		outboxID := msg.GetOutboxID()
 		if outboxID != nil {
 			n.trigger(*outboxID)
 		}
-		extensionPushResult(nil, convID, "message")
+		extensionPushResult(nil, strConvID, "message")
 	case chat1.ChatActivityType_FAILED_MESSAGE:
 		err := errors.New("message failed")
 		recs := activity.FailedMessage().OutboxRecords
 		for _, r := range recs {
-			convID := r.ConvID.String()
+			strConvID := r.ConvID.String()
 			n.trigger(r.OutboxID)
-			extensionPushResult(err, convID, "message")
+			extensionPushResult(err, strConvID, "message")
 		}
 		for _, r := range recs {
-			convID := r.ConvID.String()
+			strConvID := r.ConvID.String()
 			strOutboxID := r.OutboxID.String()
-			extensionRegisterFailure(ctx, n.G(), err, convID, strOutboxID)
+			extensionRegisterFailure(ctx, n.G(), err, strConvID, strOutboxID)
 		}
 	}
 }
@@ -321,12 +321,12 @@ func extensionRegisterSendNonblock(ctx context.Context, gc *globals.Context, con
 	}(bctx)
 }
 
-func extensionRegisterFailure(ctx context.Context, gc *globals.Context, err error, convIDStr chat1.ConvIDStr,
+func extensionRegisterFailure(ctx context.Context, gc *globals.Context, err error, strConvID,
 	strOutboxID string) {
 	if err == nil {
 		return
 	}
-	convID, err := chat1.MakeConvID(convIDStr.String())
+	convID, err := chat1.MakeConvID(strConvID)
 	if err != nil {
 		kbCtx.Log.CDebugf(ctx, "extensionRegisterFailure: invalid convID: %s", err)
 		return
@@ -476,14 +476,14 @@ func ExtensionPostText(strConvID, name string, public bool, membersType int, bod
 	return nil
 }
 
-func extensionPushResult(err error, convID chat1.ConvIDStr, typ string) {
+func extensionPushResult(err error, strConvID, typ string) {
 	var msg string
 	if err != nil {
 		msg = fmt.Sprintf("We could not send your %s. Please try from the Keybase app.", typ)
 	} else {
 		msg = fmt.Sprintf("Your %s was shared successfully.", typ)
 	}
-	extensionPusher.LocalNotification("extension", msg, -1, "default", convID.String(), "chat.extension")
+	extensionPusher.LocalNotification("extension", msg, -1, "default", strConvID, "chat.extension")
 }
 
 func extensionCreateUploadTemp(ctx context.Context, gc *globals.Context, outboxID chat1.OutboxID,
@@ -689,7 +689,7 @@ func savedConvFile() *encrypteddb.EncryptedFile {
 
 func putSavedConv(ctx context.Context, strConvID, name string, public bool, membersType int) {
 	item := storage.SharedInboxItem{
-		ConvID:      chat1.ConvIDStr(strConvID),
+		ConvID:      strConvID,
 		Name:        name,
 		Public:      public,
 		MembersType: chat1.ConversationMembersType(membersType),

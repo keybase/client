@@ -104,7 +104,7 @@ func TestSyncerConnected(t *testing.T) {
 		t.Logf("index: %d conv: %s", index, conv.GetConvID())
 	}
 	// background loader will pick up all the convs from the creates above
-	convMap := make(map[chat1.ConvIDStr]bool)
+	convMap := make(map[string]bool)
 	for _, c := range convs {
 		convMap[c.GetConvID().String()] = true
 	}
