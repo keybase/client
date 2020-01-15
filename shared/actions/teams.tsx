@@ -610,7 +610,7 @@ const getDetails = (state: TypedState, action: TeamsGen.GetDetailsPayload) => {
   const {teamname, clearInviteLoadingKey} = action.payload
   const teamID = Constants.getTeamID(state, teamname)
   if (teamID) {
-    return Saga.put(TeamsGen.createGetDetailsByID({clearInviteLoadingKey, teamID}))
+    return TeamsGen.createGetDetailsByID({clearInviteLoadingKey, teamID})
   } else {
     throw new Error(`Could not get team ID in getDetails for team: ${teamname}`)
   }
