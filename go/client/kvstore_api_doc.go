@@ -10,7 +10,7 @@ Get an entry (always returns the latest revision, non-existent entries have a re
 Put an entry in your implicit self-team (only your user can see and decrypt this):
 	{"method": "put", "params": {"options": {"team": "yourusername,yourusername", "namespace": "pw-manager", "entryKey": "geocities", "entryValue": "all my secrets"}}}
 
-Put an encrypted entry for anyone in team phoenix (reads value from stdin):
+Put an encrypted entry for anyone in team phoenix:
 	{"method": "put", "params": {"options": {"team": "phoenix", "namespace": "pw-manager", "entryKey": "geocities", "entryValue": "all my secrets"}}}
 
 Put an entry (specifying a non-zero revision enables custom concurrency behavior, e.g. 1 will throw an error if the entry already exists):
