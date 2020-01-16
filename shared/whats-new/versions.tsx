@@ -35,6 +35,27 @@ export const VersionTitle = ({title}: {title: string}) => (
 export const Current = ({seen}: VersionProps) => {
   return (
     <Version>
+      <NewFeatureRow noSeparator={true} seen={seen} image="release-5.2.0-crypto">
+        Crypto: encrypt, decrypt, sign, and verify all from within Keybase.
+        {` `}
+        <Kb.Emoji
+          allowFontScaling={true}
+          size={Styles.globalMargins.small}
+          emojiName=":closed_lock_with_key:"
+        />
+      </NewFeatureRow>
+      <NewFeatureRow seen={seen} image="release-5.2.0-bots">
+        Bots: you can now install bots into your conversations. Kick off a meeting with Google Meet Bot, watch
+        for commits with GitHub Bot, create new issues in JIRA, and more, all without leaving Keybase.
+      </NewFeatureRow>
+    </Version>
+  )
+}
+
+export const Last = ({seen}: VersionProps) => {
+  return (
+    <Version>
+      <VersionTitle title="Last release" />
       <NewFeatureRow noSeparator={true} seen={seen} image="release-5.1.0-blocking">
         We heard you. You can now block and report spammers from the chat conversation or from people's
         profiles.
@@ -43,10 +64,10 @@ export const Current = ({seen}: VersionProps) => {
   )
 }
 
-export const Last = ({seen, onNavigate, onNavigateExternal}: VersionProps) => {
+export const LastLast = ({seen, onNavigate, onNavigateExternal}: VersionProps) => {
   return (
     <Version>
-      <VersionTitle title="Last release" />
+      <VersionTitle title="Previous releases" />
       <NewFeatureRow noSeparator={true} seen={seen} image="release-4.7.0-fast-user-switching">
         You can now quickly switch between all your signed in accounts from the user menu.
       </NewFeatureRow>
@@ -102,14 +123,6 @@ export const Last = ({seen, onNavigate, onNavigateExternal}: VersionProps) => {
         {` `}
         to get updates and new features.
       </NewFeatureRow>
-    </Version>
-  )
-}
-
-export const LastLast = (_: VersionProps) => {
-  return (
-    <Version>
-      <VersionTitle title="Last last release" />
     </Version>
   )
 }

@@ -8853,6 +8853,22 @@ const iconMeta_ = {
     get require() {
       return require('../images/releases/release-5.1.0-blocking.png')
     },
+  },
+  'release-5.2.0-bots': {
+    extension: 'png',
+    imagesDir: 'releases',
+    isFont: false,
+    get require() {
+      return require('../images/releases/release-5.2.0-bots.png')
+    },
+  },
+  'release-5.2.0-crypto': {
+    extension: 'png',
+    imagesDir: 'releases',
+    isFont: false,
+    get require() {
+      return require('../images/releases/release-5.2.0-crypto.png')
+    },
   } /* eslint-enable */,
 }
 
