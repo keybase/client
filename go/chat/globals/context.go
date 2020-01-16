@@ -124,7 +124,7 @@ type MessageCacheSkip struct {
 
 func CtxMessageCacheSkips(ctx context.Context) (res []MessageCacheSkip) {
 	val := ctx.Value(messageSkipsKey)
-	if existingSkips, ok := val.(map[string]MessageCacheSkip); ok {
+	if existingSkips, ok := val.(map[chat1.ConvIDStr]MessageCacheSkip); ok {
 		for _, skips := range existingSkips {
 			res = append(res, skips)
 		}
@@ -229,8 +229,8 @@ func ChatCtx(ctx context.Context, g *Context, mode keybase1.TLFIdentifyBehavior,
 		res = context.WithValue(res, rlKey, make(map[string]chat1.RateLimit))
 	}
 	val = res.Value(messageSkipsKey)
-	if _, ok := val.(map[string]MessageCacheSkip); !ok {
-		res = context.WithValue(res, messageSkipsKey, make(map[string]MessageCacheSkip))
+	if _, ok := val.(map[chat1.ConvIDStr]MessageCacheSkip); !ok {
+		res = context.WithValue(res, messageSkipsKey, make(map[chat1.ConvIDStr]MessageCacheSkip))
 	}
 	val = res.Value(unboxModeKey)
 	if _, ok := val.(types.UnboxMode); !ok {
