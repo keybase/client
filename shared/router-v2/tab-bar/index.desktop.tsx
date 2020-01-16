@@ -38,7 +38,7 @@ const data = {
   [Tabs.walletsTab]: {icon: 'iconfont-nav-2-wallets', label: 'Wallet'},
 } as const
 
-const tabs = Tabs.desktopTabOrder
+const tabs = Tabs.desktopTabOrder.filter(tab => (tab === Tabs.cryptoTab ? flags.cryptoTab : true))
 
 type State = {
   showingMenu: boolean

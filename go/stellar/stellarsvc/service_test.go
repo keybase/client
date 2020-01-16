@@ -1381,13 +1381,14 @@ func TestShutdown(t *testing.T) {
 	var wg sync.WaitGroup
 	for i := 0; i < 10; i++ {
 		wg.Add(1)
-		go func() {
+		go func(index int) {
+			time.Sleep(time.Duration(index*10) * time.Millisecond)
 			_, err := tcs[0].Srv.BalancesLocal(context.Background(), accountID)
 			if err != nil {
 				t.Error(err)
 			}
 			wg.Done()
-		}()
+		}(i)
 	}
 
 	wg.Add(1)

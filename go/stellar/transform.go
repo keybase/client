@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
@@ -441,7 +442,7 @@ func decryptNote(mctx libkb.MetaContext, txid stellar1.TransactionID, note strin
 		return "", "discarded note for wrong transaction ID"
 	}
 
-	return decrypted.Note, ""
+	return utils.EscapeForDecorate(mctx.Ctx(), decrypted.Note), ""
 }
 
 func newPaymentCommonLocal(mctx libkb.MetaContext, txID stellar1.TransactionID, ctime stellar1.TimeMs, amount string, asset stellar1.Asset) (*stellar1.PaymentLocal, error) {
