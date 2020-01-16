@@ -15,7 +15,7 @@ import (
 
 func NewCmdWhoami(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:  "username",
+		Name:  "whoami",
 		Usage: "Output the name of the current user; will exit with a non-zero status if none",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdWhoami{Contextified: libkb.NewContextified(g)}, "whoami", c)
