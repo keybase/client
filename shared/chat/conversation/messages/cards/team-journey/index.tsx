@@ -35,7 +35,12 @@ export const TeamJourney = (props: Props) => {
         onAuthorClick={props.onAuthorClick}
         onDismiss={props.onDismiss}
       />
-      <Kb.Box2 key="content" direction="vertical" fullWidth={true} style={Styles.collapseStyles([styles.content, props.image ? styles.contentWithImage : null])}>
+      <Kb.Box2
+        key="content"
+        direction="vertical"
+        fullWidth={true}
+        style={Styles.collapseStyles([styles.content, props.image ? styles.contentWithImage : null])}
+      >
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.contentHorizontalPad}>
           <Kb.Box2 direction="horizontal" style={props.image ? styles.text : undefined}>
             {props.textComponent}
