@@ -261,8 +261,14 @@ func (b *CachingBotCommandManager) ListCommands(ctx context.Context, convID chat
 					return res, alias, err
 				}
 			}
-			if !teamBotSettings[keybase1.UID(ad.UID.String())].Cmds {
+			kuid := keybase1.UID(ad.UID.String())
+			if !teamBotSettings[kuid].Cmds {
 				b.Debug(ctx, "ListCommands: skipping commands from %v, a restricted bot without cmds", ad.UID)
+				continue
+			}
+			if botSettings, ok := teamBotSettings[kuid]; ok && !botSettings.ConvIDAllowed(convID.String()) {
+				b.Debug(ctx, "ListCommands: skipping commands from %v, a restricted bot restricted to channels",
+					ad.UID)
 				continue
 			}
 		}

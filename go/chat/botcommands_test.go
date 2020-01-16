@@ -219,6 +219,27 @@ func TestBotCommandManager(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 3, len(cmds))
 
+	// bots restricted to certain convs cannot advertise
+	err = ctc.as(t, users[0]).chatLocalHandler().EditBotMember(ctx, chat1.EditBotMemberArg{
+		ConvID:   teamConv.Id,
+		Username: botua.Username,
+		Role:     keybase1.TeamRole_RESTRICTEDBOT,
+		BotSettings: &keybase1.TeamBotSettings{
+			Cmds:  true,
+			Convs: []string{"deadbeef"},
+		},
+	})
+	require.NoError(t, err)
+	pollForSeqno(6)
+
+	errChT, err = tc.Context().BotCommandManager.UpdateCommands(ctx, teamConv.Id, nil)
+	require.NoError(t, err)
+	require.NoError(t, readErrCh(errChT))
+
+	cmds, _, err = tc.Context().BotCommandManager.ListCommands(ctx, teamConv.Id)
+	require.NoError(t, err)
+	require.Equal(t, 3, len(cmds))
+
 	// upgrading the role removes the restriction.
 	err = ctc.as(t, users[0]).chatLocalHandler().EditBotMember(ctx, chat1.EditBotMemberArg{
 		ConvID:   teamConv.Id,
@@ -226,7 +247,7 @@ func TestBotCommandManager(t *testing.T) {
 		Role:     keybase1.TeamRole_BOT,
 	})
 	require.NoError(t, err)
-	pollForSeqno(6)
+	pollForSeqno(7)
 
 	for i := 0; i < 5; i++ {
 		errChT, err = tc.Context().BotCommandManager.UpdateCommands(ctx, teamConv.Id, nil)
