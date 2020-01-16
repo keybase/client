@@ -1,7 +1,7 @@
 // This loads up a remote component. It makes a pass-through store which accepts its props from the main window through ipc
 // Also protects it with an error boundary
 import * as React from 'react'
-import * as SafeElectron from '../../util/safe-electron.desktop'
+import * as Electron from 'electron'
 import * as Styles from '../../styles'
 import ReactDOM from 'react-dom'
 import RemoteStore from './store.desktop'
@@ -27,7 +27,7 @@ type Props = {
 
 class RemoteComponentLoader extends React.Component<Props> {
   _store: any
-  _window: SafeElectron.BrowserWindowType | null
+  _window: Electron.BrowserWindow | null
 
   constructor(props: Props) {
     super(props)

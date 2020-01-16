@@ -3,10 +3,11 @@
 import * as Electron from 'electron'
 
 const {process} = KB
+const isRenderer = process.type === 'renderer'
 
 // Main thread only, proxy through remote
 export const getApp = () => {
-  const app = Electron.app || getRemote().app
+  const app = isRenderer ? Electron.remote.app : Electron.app
   if (!app) {
     throw new Error('Should be impossible')
   }
@@ -22,7 +23,7 @@ export const workingIsDarkMode = () => {
 }
 
 export const getSystemPreferences = () => {
-  const systemPreferences = Electron.systemPreferences || getRemote().systemPreferences
+  const systemPreferences = isRenderer ? Electron.remote.systemPreferences : Electron.systemPreferences
   if (!systemPreferences) {
     throw new Error('Should be impossible')
   }
