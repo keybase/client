@@ -1,14 +1,14 @@
-import {TeamsDivider} from '.'
-import {namedConnect, TypedState} from '../../../../util/container'
-import * as Styles from '../../../../styles'
-import {RowItem} from '../..'
-import {memoize} from '../../../../util/memoize'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
-import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
+import * as Container from '../../../../util/container'
+import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import * as Styles from '../../../../styles'
+import * as Types from '../../../../constants/types/chat2'
+import {RowItem} from '../..'
+import {TeamsDivider} from '.'
+import {memoize} from '../../../../util/memoize'
 
 type OwnProps = {
-  hiddenCountDelta: number
+  hiddenCountDelta?: number
   smallTeamsExpanded: boolean
   rows: Array<RowItem>
   showButton: boolean
@@ -16,16 +16,10 @@ type OwnProps = {
   style?: Styles.StylesCrossPlatform
 }
 
-const mapStateToProps = (state: TypedState) => ({
-  _badges: state.chat2.badgeMap,
-  _inboxLayout: state.chat2.inboxLayout,
-})
-
 const getMetaCounts = memoize(
   (badges: Types.ConversationCountMap, inboxLayout: RPCChatTypes.UIInboxLayout | null) => {
     let badgeCount = 0
-    const smallTeams = inboxLayout ? inboxLayout.smallTeams || [] : []
-    smallTeams.forEach((conv: RPCChatTypes.UIInboxSmallTeamRow) => {
+    inboxLayout?.smallTeams?.forEach((conv: RPCChatTypes.UIInboxSmallTeamRow) => {
       const id = Types.stringToConversationIDKey(conv.convID)
       badgeCount += badges.get(id) || 0
     })
@@ -36,7 +30,7 @@ const getMetaCounts = memoize(
   }
 )
 
-const getRowCounts = memoize((badges, rows) => {
+const getRowCounts = memoize((badges: Types.ConversationCountMap, rows: Array<RowItem>) => {
   let badgeCount = 0
   let hiddenCount = 0
 
@@ -47,44 +41,43 @@ const getRowCounts = memoize((badges, rows) => {
     }
   })
 
-  return {
-    badgeCount,
-    hiddenCount,
-  }
+  return {badgeCount, hiddenCount}
 })
 
-export default namedConnect(
-  mapStateToProps,
-  (dispatch, ownProps: OwnProps) => ({
-    toggle: () => {
-      if (ownProps.smallTeamsExpanded) {
-        dispatch(Chat2Gen.createLoadMoreSmalls())
-      } else {
-        ownProps.toggle()
-      }
-    },
+export default Container.namedConnect(
+  state => ({
+    _badges: state.chat2.badgeMap,
+    _inboxLayout: state.chat2.inboxLayout,
+  }),
+  dispatch => ({
+    _loadMore: () => dispatch(Chat2Gen.createLoadMoreSmalls()),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
+    const {rows, showButton, style, hiddenCountDelta, toggle} = ownProps
+    const {_badges, _inboxLayout} = stateProps
     // we remove the badge count of the stuff we're showing
-    let {badgeCount, hiddenCount} = getRowCounts(stateProps._badges, ownProps.rows)
+    let {badgeCount, hiddenCount} = getRowCounts(_badges, rows)
 
-    if (ownProps.showButton) {
-      const fromMeta = getMetaCounts(stateProps._badges, stateProps._inboxLayout)
+    if (showButton) {
+      const fromMeta = getMetaCounts(_badges, _inboxLayout)
       badgeCount += fromMeta.badgeCount
       hiddenCount += fromMeta.hiddenCount
     }
 
     if (!Styles.isMobile) {
-      hiddenCount += ownProps.hiddenCountDelta
+      hiddenCount += hiddenCountDelta ?? 0
     }
+
+    // only show if there's more to load
+    const reallyShow = showButton && !!hiddenCount
 
     return {
       badgeCount,
       hiddenCount,
-      showButton: ownProps.showButton,
-      style: ownProps.style,
-      toggle: dispatchProps.toggle,
+      loadMore: ownProps.smallTeamsExpanded ? dispatchProps._loadMore : toggle,
+      showButton: reallyShow,
+      style,
     }
   },
   'TeamsDivider'
-)(TeamsDivider) as any
+)(TeamsDivider)

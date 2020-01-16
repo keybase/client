@@ -525,7 +525,7 @@ func (m *FlipManager) addResult(ctx context.Context, status *chat1.UICoinFlipSta
 		}
 		items := make([]string, len(hmi.ShuffleItems))
 		for index, r := range result.Shuffle {
-			items[index] = hmi.ShuffleItems[r]
+			items[index] = utils.EscapeForDecorate(ctx, hmi.ShuffleItems[r])
 		}
 		var resultInfo chat1.UICoinFlipResult
 		if hmi.DeckShuffle {

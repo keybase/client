@@ -587,7 +587,6 @@
       "messageID": "Types.MessageID",
       "collapse": "boolean"
     },
-    "toggleInfoPanel": {},
     "updateCoinFlipStatus": {
       "_description": "Update status of a coin flip game",
       "statuses": "Array<RPCChatTypes.UICoinFlipStatus>"
@@ -601,6 +600,11 @@
       "_description": "Add a list of users to a conversation. Creates a SystemBulkAddToConv message.",
       "conversationIDKey": "Types.ConversationIDKey",
       "usernames": "Array<string>"
+    },
+    "addUserToChannel": {
+      "_description": "Add a single user to a conversation. Creates a SystemBulkAddToConv message.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "username": "string"
     },
     "jumpToRecent": {
       "_description": "Jump to most recent messages in a conversation",
@@ -888,6 +892,11 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "username": "string",
       "role": "TeamsTypes.TeamRoleType | null"
+    },
+    "showInfoPanel": {
+        "tab?": "'settings' | 'members' | 'attachments' | 'bots'",
+        "show": "boolean",
+        "conversationIDKey?": "Types.ConversationIDKey"
     },
     "dismissJourneycard": {
       "_description": "Dismiss a journeycard",

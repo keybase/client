@@ -1,9 +1,11 @@
+// OMG refactor this
 import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
 import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
+import * as TeamsTypes from '../../../constants/types/teams'
 import flags from '../../../util/feature-flags'
 import {Props as HeaderHocProps} from '../../../common-adapters/header-hoc/types'
 import {AdhocHeader, TeamHeader} from './header'
@@ -63,8 +65,8 @@ type Link = {
   author: string
   ctime: number
   snippet: string
-  title: string
-  url: string
+  title?: string
+  url?: string
 }
 
 type LinkProps = {
@@ -87,6 +89,7 @@ export type InfoPanelProps = {
   installedBots: ReadonlyArray<RPCTypes.FeaturedBot>
   featuredBots: ReadonlyArray<RPCTypes.FeaturedBot>
   isPreview: boolean
+  teamID: TeamsTypes.TeamID
   teamname?: string
   channelname?: string
   smallTeam: boolean
@@ -104,7 +107,7 @@ export type InfoPanelProps = {
   onAttachmentViewChange: (typ: RPCChatTypes.GalleryItemTyp) => void
 
   // Used by HeaderHoc.
-  onBack: () => void
+  onBack: (() => void) | undefined
 
   // Used by Participant.
   onShowProfile: (username: string) => void
@@ -146,19 +149,18 @@ const TabText = ({selected, text}: {selected: boolean; text: string}) => (
 )
 
 class _InfoPanel extends React.PureComponent<InfoPanelProps> {
-  private animationDelayLoad: NodeJS.Timeout | undefined
-  componentDidMount() {
-    this.animationDelayLoad = setTimeout(() => {
-      if (this.props.selectedTab === 'attachments') {
-        this.loadAttachments()
-      }
-      if (this.props.selectedTab === 'bots') {
-        this.loadBots()
-      }
-    }, this.props.loadDelay || 0)
+  componentDidUpdate(prevProps: InfoPanelProps) {
+    if (this.props.selectedConversationIDKey !== prevProps.selectedConversationIDKey) {
+      this.loadAttachments()
+    }
   }
-  componentWillUnmount() {
-    this.animationDelayLoad && clearTimeout(this.animationDelayLoad)
+  componentDidMount() {
+    if (this.props.selectedTab === 'attachments') {
+      this.loadAttachments()
+    }
+    if (this.props.selectedTab === 'bots') {
+      this.loadBots()
+    }
   }
 
   private loadAttachments = () => {
@@ -235,14 +237,15 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
         {entityType === 'small team' || entityType === 'channel' ? (
           <TeamHeader
             admin={this.props.admin}
-            teamname={this.props.teamname}
             channelname={this.props.channelname}
             conversationIDKey={this.props.selectedConversationIDKey}
-            isSmallTeam={entityType === 'small team'}
-            isPreview={this.props.isPreview}
-            participantCount={this.props.participants.length}
-            onJoinChannel={this.props.onJoinChannel}
             description={this.props.description}
+            isPreview={this.props.isPreview}
+            isSmallTeam={entityType === 'small team'}
+            onJoinChannel={this.props.onJoinChannel}
+            participantCount={this.props.participants.length}
+            teamID={this.props.teamID}
+            teamname={this.props.teamname}
           />
         ) : (
           <AdhocHeader
@@ -344,7 +347,7 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
               onShowBlockConversationDialog={this.props.onShowBlockConversationDialog}
               onShowClearConversationDialog={this.props.onShowClearConversationDialog}
               spinnerForHide={this.props.spinnerForHide}
-              teamname={this.props.teamname}
+              teamID={this.props.teamID}
               channelname={this.props.channelname}
             />
           )
@@ -492,7 +495,18 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
           if (!item.botUsername) {
             return null
           } else {
-            return <Bot {...item} onClick={this.props.onBotSelect} />
+            return (
+              <Bot
+                {...item}
+                conversationIDKey={this.props.selectedConversationIDKey}
+                onClick={this.props.onBotSelect}
+                showAddToChannel={
+                  this.props.installedBots.includes(item) &&
+                  !this.props.smallTeam &&
+                  !this.props.participants.find(p => p.username === item.botUsername)
+                }
+              />
+            )
           }
         }
         sections.push(tabsSection)
@@ -521,10 +535,6 @@ const styles = Styles.styleSheetCreate(
         marginRight: Styles.globalMargins.small,
         marginTop: Styles.globalMargins.small,
       },
-      attachmentsLoading: {
-        height: Styles.globalMargins.small,
-        width: Styles.globalMargins.small,
-      },
       botHeaders: {
         marginBottom: Styles.globalMargins.tiny,
         marginLeft: Styles.globalMargins.small,
@@ -532,10 +542,11 @@ const styles = Styles.styleSheetCreate(
         marginTop: Styles.globalMargins.tiny,
       },
       container: Styles.platformStyles({
-        common: {alignItems: 'stretch', flex: 1, paddingBottom: Styles.globalMargins.tiny},
+        common: {alignItems: 'stretch', paddingBottom: Styles.globalMargins.tiny},
         isElectron: {
           backgroundColor: Styles.globalColors.white,
           borderLeft: `1px solid ${Styles.globalColors.black_10}`,
+          width: 320,
         },
       }),
       tabContainerStyle: Styles.platformStyles({

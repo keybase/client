@@ -180,109 +180,14 @@ func (b *baseInboxSource) Localize(ctx context.Context, uid gregor1.UID, convs [
 	return res, localizeCb, err
 }
 
-func (b *baseInboxSource) notifyServerAboutReportedConv(mctx libkb.MetaContext, uid gregor1.UID, convID chat1.ConversationID) (err error) {
-	ctx := mctx.Ctx()
-	// Send word to API server about the report
-	defer b.Trace(ctx, func() error { return err }, "notifyServerAboutReportedConv")()
-	// Get TLF name to post
-	tlfname := "<error fetching TLF name>"
-	ib, _, err := b.sub.Read(ctx, uid, types.ConversationLocalizerBlocking, types.InboxSourceDataSourceAll,
-		nil, &chat1.GetInboxLocalQuery{
-			ConvIDs: []chat1.ConversationID{convID},
-		})
-	if err != nil {
-		b.Debug(ctx, "notifyServerAboutReportedConv: failed to fetch conversation: %s", err)
-	} else {
-		if len(ib.Convs) > 0 {
-			tlfname = ib.Convs[0].Info.TLFNameExpanded()
-		}
-	}
-	args := libkb.NewHTTPArgs()
-	args.Add("tlfname", libkb.S{Val: tlfname})
-	_, err = b.G().API.Post(mctx, libkb.APIArg{
-		Endpoint:    "report/conversation",
-		SessionType: libkb.APISessionTypeREQUIRED,
-		Args:        args,
-	})
-	if err != nil {
-		b.Debug(ctx, "notifyServerAboutReportedConv: failed to post report: %s", err.Error())
-	}
-	return nil
-}
-
-// blockOtherUser attempts to do a user-block based on a convID if the conversation is
-// impteam and has exactly two members: the active user and the user about to get blocked.
-func (b *baseInboxSource) blockOtherUser(mctx libkb.MetaContext, convID chat1.ConversationID) (err error) {
-	defer b.Trace(mctx.Ctx(), func() error { return err }, "blockOtherUser")()
-
-	conversations, err := mctx.G().ChatHelper.FindConversationsByID(mctx.Ctx(), []chat1.ConversationID{convID})
-	if err != nil {
-		mctx.Debug("blockOtherUser: error loading conversation by ID", convID, err)
-		return err
-	}
-	if len(conversations) != 1 {
-		mctx.Debug("blockOtherUser: did not find exactly 1 conversation, so don't user-block")
-		return nil
-	}
-	conv := conversations[0]
-	if conv.GetMembersType() != chat1.ConversationMembersType_IMPTEAMNATIVE {
-		mctx.Debug("blockOtherUser: conversation is not an implicit team, so don't user-block")
-		return nil
-	}
-	participants := conv.Info.Participants
-	if len(participants) != 2 {
-		mctx.Debug("blockOtherUser: conversation does not have exactly 2 users, so don't user-block")
-		return nil
-	}
-	myName := mctx.G().Env.GetUsername().String()
-	var otherUser string
-	var foundMyself bool
-	for _, participant := range participants {
-		if myName == participant.Username {
-			foundMyself = true
-		} else {
-			otherUser = participant.Username
-		}
-	}
-	if !foundMyself || otherUser == "" {
-		mctx.Debug("blockOtherUser: did not find myself and another user, so don't user-block")
-		return nil
-	}
-
-	otherUserUID, err := mctx.G().GetUPAKLoader().LookupUID(mctx.Ctx(), libkb.NewNormalizedUsername(otherUser))
-	if err != nil || otherUserUID.String() == "" {
-		mctx.Debug("blockOtherUser: could not load user and lookup UID, so don't user-block", err)
-		return nil
-	}
-	apiArg := libkb.APIArg{
-		Endpoint:    "user/block",
-		SessionType: libkb.APISessionTypeREQUIRED,
-		Args: libkb.HTTPArgs{
-			"block_uid": libkb.S{Val: otherUserUID.String()},
-			"unblock":   libkb.B{Val: false},
-		},
-	}
-	_, err = mctx.G().API.Post(mctx, apiArg)
-	_ = mctx.G().CardCache().Delete(keybase1.UID(otherUserUID.String()))
-	return err
-}
-
 func (b *baseInboxSource) RemoteSetConversationStatus(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, status chat1.ConversationStatus) (err error) {
-	mctx := libkb.NewMetaContext(ctx, b.G().ExternalG())
 	defer b.Trace(ctx, func() error { return err }, "RemoteSetConversationStatus")()
 	if _, err = b.getChatInterface().SetConversationStatus(ctx, chat1.SetConversationStatusArg{
 		ConversationID: convID,
 		Status:         status,
 	}); err != nil {
 		return err
-	}
-	switch status {
-	case chat1.ConversationStatus_REPORTED:
-		_ = b.notifyServerAboutReportedConv(mctx, uid, convID)
-		fallthrough
-	case chat1.ConversationStatus_BLOCKED:
-		return b.blockOtherUser(mctx, convID)
 	}
 	return nil
 }
@@ -443,7 +348,8 @@ func (s *RemoteInboxSource) MarkAsRead(ctx context.Context, convID chat1.Convers
 	return nil
 }
 
-func (s *RemoteInboxSource) Search(ctx context.Context, uid gregor1.UID, query string, limit int) (res []types.RemoteConversation, err error) {
+func (s *RemoteInboxSource) Search(ctx context.Context, uid gregor1.UID, query string, limit int,
+	emptyMode types.InboxSourceSearchEmptyMode) (res []types.RemoteConversation, err error) {
 	return nil, errors.New("not implemented")
 }
 
@@ -1220,17 +1126,22 @@ func (s *HybridInboxSource) fullNamesForSearch(ctx context.Context, conv types.R
 }
 
 func (s *HybridInboxSource) isConvSearchHit(ctx context.Context, conv types.RemoteConversation,
-	queryToks []string, username string) (res convSearchHit) {
+	queryToks []string, username string, emptyMode types.InboxSourceSearchEmptyMode) (res convSearchHit) {
 	var convToks []string
 	res.conv = conv
 	res.queryToks = queryToks
 	if len(queryToks) == 0 {
-		if conv.Conv.IsUnread() {
-			cqe := nameContainsQueryUnread
-			if s.G().Badger.State().ConversationBadge(ctx, conv.GetConvID(), s.getDeviceType()) > 0 {
-				cqe = nameContainsQueryBadged
+		switch emptyMode {
+		case types.InboxSourceSearchEmptyModeUnread:
+			if conv.Conv.IsUnread() {
+				cqe := nameContainsQueryUnread
+				if s.G().Badger.State().ConversationBadge(ctx, conv.GetConvID(), s.getDeviceType()) > 0 {
+					cqe = nameContainsQueryBadged
+				}
+				res.hits = []nameContainsQueryRes{cqe}
 			}
-			res.hits = []nameContainsQueryRes{cqe}
+		case types.InboxSourceSearchEmptyModeAll:
+			res.hits = []nameContainsQueryRes{nameContainsQueryExact}
 		}
 		return res
 	}
@@ -1263,7 +1174,8 @@ func (s *HybridInboxSource) isConvSearchHit(ctx context.Context, conv types.Remo
 	return res
 }
 
-func (s *HybridInboxSource) Search(ctx context.Context, uid gregor1.UID, query string, limit int) (res []types.RemoteConversation, err error) {
+func (s *HybridInboxSource) Search(ctx context.Context, uid gregor1.UID, query string, limit int,
+	emptyMode types.InboxSourceSearchEmptyMode) (res []types.RemoteConversation, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Search")()
 	username := s.G().GetEnv().GetUsernameForUID(keybase1.UID(uid.String())).String()
 	ib := s.createInbox()
@@ -1290,7 +1202,7 @@ func (s *HybridInboxSource) Search(ctx context.Context, uid gregor1.UID, query s
 			!s.searchMemberStatusMap[conv.Conv.ReaderInfo.Status] {
 			continue
 		}
-		hit := s.isConvSearchHit(ctx, conv, queryToks, username)
+		hit := s.isConvSearchHit(ctx, conv, queryToks, username, emptyMode)
 		if !hit.valid() {
 			continue
 		}

@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import * as Constants from '../../constants/crypto'
 import * as Types from '../../constants/types/crypto'
 
 type Props = {
@@ -8,6 +9,8 @@ type Props = {
   outputStatus?: Types.OutputStatus
   outputType?: Types.OutputType
   textType: Types.TextType
+  operation: Types.Operations
+  onShowInFinder: (path: string) => void
 }
 
 type OutputBarProps = {
@@ -15,6 +18,7 @@ type OutputBarProps = {
   outputStatus?: Types.OutputStatus
   outputType?: Types.OutputType
   onCopyOutput: (text: string) => void
+  onShowInFinder: (path: string) => void
 }
 
 type OutputSignedProps = {
@@ -23,9 +27,9 @@ type OutputSignedProps = {
   outputStatus?: Types.OutputStatus
 }
 
-export const OutputSigned = (props: OutputSignedProps) => {
+export const SignedSender = (props: OutputSignedProps) => {
   return props.outputStatus && props.outputStatus === 'success' ? (
-    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.signedContainer}>
+    <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.signedContainer}>
       {props.signed && props.signedBy ? (
         <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center">
           <Kb.Icon type="iconfont-success" sizeType="Small" style={styles.signedIcon} />
@@ -36,50 +40,49 @@ export const OutputSigned = (props: OutputSignedProps) => {
         <Kb.Text type="BodySmall">Not signed (anonymous sender)</Kb.Text>
       )}
     </Kb.Box2>
-  ) : (
-    <Kb.Box2
-      direction="horizontal"
-      fullWidth={true}
-      fullHeight={true}
-      style={Styles.collapseStyles([styles.signedContainer, styles.outputPlaceholder, {maxHeight: 34}])}
-    ></Kb.Box2>
-  )
+  ) : null
 }
 
 export const OutputBar = (props: OutputBarProps) => {
-  const {output, onCopyOutput} = props
+  const {output, onCopyOutput, onShowInFinder} = props
   const attachmentRef = React.useRef<Kb.Box2>(null)
   const [showingToast, setShowingToast] = React.useState(false)
+
   const setHideToastTimeout = Kb.useTimeout(() => setShowingToast(false), 1500)
   React.useEffect(() => {
     showingToast && setHideToastTimeout()
   }, [showingToast, setHideToastTimeout])
+
   const copy = React.useCallback(() => {
     if (!output) return
     setShowingToast(true)
     onCopyOutput(output)
   }, [output, onCopyOutput])
+
   return props.outputStatus && props.outputStatus === 'success' ? (
     <>
-      <Kb.Divider />
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.outputBarContainer}>
-        <Kb.ButtonBar direction="row" style={styles.buttonBar}>
-          <Kb.Button
-            mode={props.outputType === 'file' ? 'Primary' : 'Secondary'}
-            label="Download file"
-            fullWidth={true}
-          />
-          {props.outputType !== 'file' && (
-            <Kb.Box2 direction="horizontal" fullWidth={true} ref={attachmentRef}>
+        {props.outputType === 'file' ? (
+          <Kb.ButtonBar direction="row" align="flex-start" style={styles.buttonBar}>
+            <Kb.Button
+              mode="Secondary"
+              label={`Open in ${Styles.fileUIName}`}
+              onClick={() => onShowInFinder(output)}
+            />
+          </Kb.ButtonBar>
+        ) : (
+          <Kb.ButtonBar direction="row" align="flex-start" style={styles.buttonBar}>
+            <Kb.Box2 direction="horizontal" ref={attachmentRef}>
               <Kb.Toast position="top center" attachTo={() => attachmentRef.current} visible={showingToast}>
                 <Kb.Text type="BodySmall" style={styles.toastText}>
                   Copied to clipboard
                 </Kb.Text>
               </Kb.Toast>
-              <Kb.Button mode="Primary" label="Copy to clipboard" fullWidth={true} onClick={() => copy()} />
+              <Kb.Button mode="Secondary" label="Copy to clipboard" onClick={() => copy()} />
             </Kb.Box2>
-          )}
-        </Kb.ButtonBar>
+            <Kb.Button mode="Secondary" label="Download as TXT" />
+          </Kb.ButtonBar>
+        )}
       </Kb.Box2>
     </>
   ) : (
@@ -96,24 +99,41 @@ export const OutputBar = (props: OutputBarProps) => {
 }
 
 const Output = (props: Props) => {
+  const fileOutputTextColor =
+    props.textType === 'cipher' ? Styles.globalColors.greenDark : Styles.globalColors.black
+  const fileIcon = Constants.getOutputFileIcon(props.operation)
   return props.outputStatus && props.outputStatus === 'success' ? (
     props.outputType === 'file' ? (
-      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.coverOutput}>
-        <Kb.Icon type="icon-file-saltpack-encrypted-64" sizeType="Huge" />
-        <Kb.Text
-          type={props.textType === 'cipher' ? 'Terminal' : 'Body'}
-          style={{color: Styles.globalColors.black}}
+      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
+        <Kb.Box2
+          direction="horizontal"
+          fullWidth={true}
+          alignItems="center"
+          style={styles.fileOutputContainer}
         >
-          {props.output}
-        </Kb.Text>
+          <Kb.Icon type={fileIcon} sizeType="Huge" />
+          <Kb.Text
+            type="BodyPrimaryLink"
+            style={Styles.collapseStyles([styles.fileOutputText, {color: fileOutputTextColor}])}
+            onClick={() => props.output && props.onShowInFinder(props.output)}
+          >
+            {props.output}
+          </Kb.Text>
+        </Kb.Box2>
       </Kb.Box2>
     ) : (
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
-        {props.output && (
-          <Kb.Text type={props.textType === 'cipher' ? 'Terminal' : 'Body'} style={styles.output}>
-            {props.output}
-          </Kb.Text>
-        )}
+        {props.output &&
+          props.output.split('\n').map((line, index) => (
+            <Kb.Text
+              key={index}
+              type={props.textType === 'cipher' ? 'Terminal' : 'Body'}
+              selectable={true}
+              style={styles.output}
+            >
+              {line}
+            </Kb.Text>
+          ))}
       </Kb.Box2>
     )
   ) : (
@@ -143,6 +163,12 @@ const styles = Styles.styleSheetCreate(
       coverOutput: {
         ...Styles.globalStyles.flexBoxCenter,
       },
+      fileOutputContainer: {
+        ...Styles.padding(Styles.globalMargins.xsmall),
+      },
+      fileOutputText: {
+        ...Styles.globalStyles.fontSemibold,
+      },
       output: Styles.platformStyles({
         common: {
           color: Styles.globalColors.black,
@@ -165,6 +191,8 @@ const styles = Styles.styleSheetCreate(
       },
       signedContainer: {
         ...Styles.padding(Styles.globalMargins.tiny),
+        backgroundColor: Styles.globalColors.blueGreyLight,
+        height: Styles.globalMargins.xlarge,
       },
       signedIcon: {
         color: Styles.globalColors.green,

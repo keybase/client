@@ -1021,7 +1021,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const map = messageMap.get(conversationIDKey)
     if (map) {
       const m: any = map.get(targetOrdinal)
-      if (m && Constants.isDecoratedMessage(m)) {
+      if (m && Constants.isMessageWithReactions(m)) {
         const reactions = m.reactions
         const rs = reactions.get(emoji) || new Set()
         reactions.set(emoji, rs)
@@ -1491,6 +1491,11 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     if (m) {
       m.delete(action.payload.username)
     }
+  },
+  [Chat2Gen.showInfoPanel]: (draftState, action) => {
+    const {show, tab} = action.payload
+    draftState.infoPanelShowing = show
+    draftState.infoPanelSelectedTab = show ? tab : undefined
   },
   [Chat2Gen.setBotSettings]: (draftState, action) => {
     const m =

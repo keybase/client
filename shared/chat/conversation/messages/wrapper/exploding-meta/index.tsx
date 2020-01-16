@@ -79,7 +79,8 @@ class ExplodingMeta extends React.Component<Props, State> {
       this.setState({mode: 'boom'})
       return
     }
-    const interval = getLoopInterval(difference)
+    // we don't need a timer longer than 60000 (android complains also)
+    const interval = Math.min(getLoopInterval(difference), 60000)
     if (interval < 1000) {
       this.tickerID && removeTicker(this.tickerID)
       // switch to 'seconds' mode

@@ -1584,14 +1584,11 @@ func presentAttachmentAssetInfo(ctx context.Context, g *globals.Context, msg cha
 
 func presentPaymentInfo(ctx context.Context, g *globals.Context, msgID chat1.MessageID,
 	convID chat1.ConversationID, msg chat1.MessageUnboxedValid) []chat1.UIPaymentInfo {
-
 	typ, err := msg.MessageBody.MessageType()
 	if err != nil {
 		return nil
 	}
-
 	var infos []chat1.UIPaymentInfo
-
 	switch typ {
 	case chat1.MessageType_SENDPAYMENT:
 		body := msg.MessageBody.Sendpayment()
@@ -1619,7 +1616,9 @@ func presentPaymentInfo(ctx context.Context, g *globals.Context, msgID chat1.Mes
 			}
 		}
 	}
-
+	for index := range infos {
+		infos[index].Note = EscapeForDecorate(ctx, infos[index].Note)
+	}
 	return infos
 }
 
@@ -1688,6 +1687,8 @@ func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, msg chat1
 		payments = msgBody.Text().Payments
 	case chat1.MessageType_FLIP:
 		body = msgBody.Flip().Text
+	case chat1.MessageType_REQUESTPAYMENT:
+		body = msgBody.Requestpayment().Note
 	default:
 		return nil
 	}
@@ -2465,16 +2466,12 @@ func DecorateWithLinks(ctx context.Context, body string) string {
 		if shouldSkipLink(bodyMatch) {
 			continue
 		}
-		if !(strings.HasPrefix(bodyMatch, "http://") || strings.HasPrefix(bodyMatch, "https://")) {
-			url = "http://" + bodyMatch
-		}
 		if encoded, err := idna.ToASCII(url); err == nil && encoded != url {
 			punycode = encoded
 		}
 		body, added = DecorateBody(ctx, body, match[lowhit]+offset, match[highhit]-match[lowhit],
 			chat1.NewUITextDecorationWithLink(chat1.UILinkDecoration{
-				Display:  bodyMatch,
-				Url:      url,
+				Url:      bodyMatch,
 				Punycode: punycode,
 			}))
 		offset += added
@@ -2488,11 +2485,9 @@ func DecorateWithLinks(ctx context.Context, body string) string {
 			continue
 		}
 		bodyMatch := origBody[match[0]:match[1]]
-		url := "mailto:" + bodyMatch
 		body, added = DecorateBody(ctx, body, match[0]+offset, match[1]-match[0],
 			chat1.NewUITextDecorationWithMailto(chat1.UILinkDecoration{
-				Display: bodyMatch,
-				Url:     url,
+				Url: bodyMatch,
 			}))
 		offset += added
 	}

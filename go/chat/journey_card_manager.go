@@ -492,7 +492,7 @@ func (cc *JourneyCardManagerSingleUser) cardWelcome(ctx context.Context, convID 
 // Card type: POPULAR_CHANNELS (2 on design)
 // Gist: "You are in #general. Other popular channels in this team: diplomacy, sportsball"
 // Condition: Only in #general channel
-// Condition: The team has channels besides general that the user could join.
+// Condition: The team has at least 2 channels besides general that the user could join.
 // Condition: User has sent a first message OR a few days have passed since they joined the channel.
 func (cc *JourneyCardManagerSingleUser) cardPopularChannels(ctx context.Context, conv convForJourneycard,
 	jcd journeycardData, debugDebug logFn) bool {
@@ -526,10 +526,15 @@ func (cc *JourneyCardManagerSingleUser) cardPopularChannels(ctx context.Context,
 		return false
 	}
 	debugDebug(ctx, "cardPopularChannels ReadUnverified found %v convs", len(inbox.ConvsUnverified))
+	const nJoinableChannelsMin int = 2
+	var nJoinableChannels int
 	for _, convOther := range inbox.ConvsUnverified {
 		if !convOther.GetConvID().Eq(conv.ConvID) {
 			debugDebug(ctx, "cardPopularChannels ReadUnverified found alternate conv: %v", convOther.GetConvID())
-			return true
+			nJoinableChannels++
+			if nJoinableChannels >= nJoinableChannelsMin {
+				return true
+			}
 		}
 	}
 	return false
@@ -1047,12 +1052,11 @@ func (cc *JourneyCardManagerSingleUser) DebugState(ctx context.Context, teamID k
 }
 
 func (cc *JourneyCardManagerSingleUser) getKnownTeamsForDebuggingWithLock(ctx context.Context) (teams []keybase1.TeamID, err error) {
-	levelDbTableKv := "kv"
 	innerKeyPrefix := fmt.Sprintf("jc|uid:%s|teamID:", cc.uid)
 	prefix := libkb.DbKey{
 		Typ: libkb.DBChatJourney,
 		Key: innerKeyPrefix,
-	}.ToBytes(levelDbTableKv)
+	}.ToBytes()
 	leveldb, ok := cc.G().LocalChatDb.GetEngine().(*libkb.LevelDb)
 	if !ok {
 		return nil, fmt.Errorf("could not get leveldb")

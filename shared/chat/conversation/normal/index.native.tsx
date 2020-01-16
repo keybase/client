@@ -1,6 +1,6 @@
 import * as React from 'react'
 import Banner from '../bottom-banner/container'
-import HeaderArea from '../header-area/container'
+import HeaderArea from '../header-area/container.native'
 import InputArea from '../input-area/container'
 import ListArea from '../list-area/container'
 import {Box, Box2, LoadingLine, Text} from '../../../common-adapters'
@@ -33,7 +33,7 @@ const Conversation = React.memo((props: Props) => (
   <>
     <Box2 direction="vertical" fullWidth={true} fullHeight={true}>
       {props.threadLoadedOffline && <Offline />}
-      <HeaderArea onToggleInfoPanel={props.onToggleInfoPanel} conversationIDKey={props.conversationIDKey} />
+      <HeaderArea conversationIDKey={props.conversationIDKey} />
       <Box2 direction="vertical" fullWidth={true} style={styles.innerContainer}>
         <ThreadLoadStatus conversationIDKey={props.conversationIDKey} />
         <PinnedMessage conversationIDKey={props.conversationIDKey} />

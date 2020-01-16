@@ -727,7 +727,7 @@ func (u *smuUser) uid() keybase1.UID {
 func (u *smuUser) openTeam(team smuTeam, role keybase1.TeamRole) {
 	cli := u.getTeamsClient()
 	err := cli.TeamSetSettings(context.Background(), keybase1.TeamSetSettingsArg{
-		Name: team.name,
+		TeamID: team.ID,
 		Settings: keybase1.TeamSettings{
 			Open:   true,
 			JoinAs: role,

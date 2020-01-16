@@ -1,6 +1,7 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 
 import * as Types from '../constants/types/crypto'
+import HiddenString from '../util/hidden-string'
 
 // Constants
 export const resetStore = 'common:resetStore' // not a part of crypto but is handled by every reducer. NEVER dispatch this
@@ -24,27 +25,30 @@ type _ClearRecipientsPayload = {readonly operation: Types.Operations}
 type _OnOperationErrorPayload = {
   readonly operation: Types.Operations
   readonly errorType: Types.ErrorTypes
-  readonly errorMessage: string
+  readonly errorMessage: HiddenString
 }
 type _OnOperationSuccessPayload = {
   readonly operation: Types.Operations
-  readonly output: string
+  readonly output: HiddenString
+  readonly outputSender?: HiddenString
+  readonly outputSigned: boolean
   readonly outputType: Types.OutputType
 }
 type _ResetOperationPayload = {readonly operation: Types.Operations}
-type _SaltpackDecryptPayload = {readonly input: string; readonly type: Types.InputTypes}
+type _SaltpackDecryptPayload = {readonly input: HiddenString; readonly type: Types.InputTypes}
 type _SaltpackEncryptPayload = {
+  readonly input: HiddenString
+  readonly options: Types.EncryptOptions
   readonly recipients: Array<string>
-  readonly input: string
   readonly type: Types.InputTypes
 }
-type _SaltpackSignPayload = {readonly input: string; readonly type: Types.InputTypes}
-type _SaltpackVerifyPayload = {readonly input: string; readonly type: Types.InputTypes}
-type _SetEncryptOptionsPayload = {readonly options: Types.EncryptOptions}
+type _SaltpackSignPayload = {readonly input: HiddenString; readonly type: Types.InputTypes}
+type _SaltpackVerifyPayload = {readonly input: HiddenString; readonly type: Types.InputTypes}
+type _SetEncryptOptionsPayload = {readonly options: Types.EncryptOptions; readonly noIncludeSelf?: boolean}
 type _SetInputPayload = {
   readonly operation: Types.Operations
   readonly type: Types.InputTypes
-  readonly value: string
+  readonly value: HiddenString
 }
 type _SetRecipientsPayload = {readonly operation: Types.Operations; readonly recipients: Array<string>}
 
@@ -92,13 +96,6 @@ export const createClearInput = (payload: _ClearInputPayload): ClearInputPayload
   type: clearInput,
 })
 /**
- * Encrypt operation takes three options { 'includeSelf', 'sign', 'usePGP' }
- */
-export const createSetEncryptOptions = (payload: _SetEncryptOptionsPayload): SetEncryptOptionsPayload => ({
-  payload,
-  type: setEncryptOptions,
-})
-/**
  * On saltpack RPC error response
  */
 export const createOnOperationError = (payload: _OnOperationErrorPayload): OnOperationErrorPayload => ({
@@ -130,6 +127,13 @@ export const createResetOperation = (payload: _ResetOperationPayload): ResetOper
  * Set input type (text, file) and value on user input. Either keyboard input or drag-and-drop file
  */
 export const createSetInput = (payload: _SetInputPayload): SetInputPayload => ({payload, type: setInput})
+/**
+ * Sets options for encrypt operations. Also takkes 'noIncludeSelf' to disable includeSelf when user includes themselves as a recipient
+ */
+export const createSetEncryptOptions = (payload: _SetEncryptOptionsPayload): SetEncryptOptionsPayload => ({
+  payload,
+  type: setEncryptOptions,
+})
 
 // Action Payloads
 export type ClearInputPayload = {readonly payload: _ClearInputPayload; readonly type: typeof clearInput}

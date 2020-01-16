@@ -16,6 +16,7 @@ type Props = {
   onDelete?: () => void
   onDownload?: () => void
   onHidden: () => void
+  onInstallBot?: () => void
   onKick: () => void
   onPinMessage?: () => void
   onReply: () => void
@@ -78,6 +79,16 @@ const AttachmentPopupMenu = (props: Props) => {
       : []),
     ...(props.onShareAttachment
       ? [{disabled: props.pending, icon: 'iconfont-share', onClick: props.onShareAttachment, title: 'Share'}]
+      : []),
+    ...(props.onInstallBot
+      ? [
+          {
+            disabled: props.pending,
+            icon: 'iconfont-nav-2-robot',
+            onClick: props.onInstallBot,
+            title: 'Install bot in another team or chat',
+          },
+        ]
       : []),
     ...(props.onAllMedia ? [{icon: 'iconfont-camera', onClick: props.onAllMedia, title: 'All media'}] : []),
     ...(props.onAddReaction

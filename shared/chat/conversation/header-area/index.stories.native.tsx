@@ -1,17 +1,16 @@
 import * as React from 'react'
-import * as Sb from '../../../../stories/storybook'
-import {UsernameHeader, ChannelHeader, PhoneOrEmailHeader} from '.'
+import * as Sb from '../../../stories/storybook'
+import {UsernameHeader, ChannelHeader, PhoneOrEmailHeader} from './index.native'
 
 const defaultProps = {
   badgeNumber: 1,
   channelName: 'nyc',
   contactNames: new Map(),
-  infoPanelOpen: false,
   muted: false,
   onBack: Sb.action('onBack'),
   onOpenFolder: Sb.action('onOpenFolder'),
+  onShowInfoPanel: Sb.action('onShowInfoPanel'),
   onShowProfile: Sb.action('onShowProfile'),
-  onToggleInfoPanel: Sb.action('onToggleInfoPanel'),
   onToggleThreadSearch: Sb.action('onToggleThreadSearch'),
   participants: ['joshblum', 'ayoubd'],
   pendingWaiting: false,
@@ -50,9 +49,6 @@ const load = () => {
           'jackfruit',
         ]}
       />
-    ))
-    .add('Username Header with info panel open', () => (
-      <UsernameHeader {...defaultProps} infoPanelOpen={true} />
     ))
     .add('Username Header muted', () => <UsernameHeader {...defaultProps} muted={true} />)
     .add('Channel Header for small team', () => <ChannelHeader {...defaultProps} />)

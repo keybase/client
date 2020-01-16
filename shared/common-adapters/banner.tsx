@@ -207,7 +207,7 @@ const styles = Styles.styleSheetCreate(
 const colorToBackgroundColorStyles = Styles.styleSheetCreate(() => ({
   blue: {backgroundColor: Styles.globalColors.blue},
   green: {backgroundColor: Styles.globalColors.green},
-  grey: {backgroundColor: Styles.globalColors.grey},
+  grey: {backgroundColor: Styles.globalColors.blueGreyLight},
   red: {backgroundColor: Styles.globalColors.red},
   white: {backgroundColor: Styles.globalColors.white},
   yellow: {backgroundColor: Styles.globalColors.yellow},

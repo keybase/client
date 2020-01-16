@@ -50,13 +50,13 @@ export const HeaderTitle = Container.connect(
     return {
       _canEditDescAvatar: yourOperations.editTeamDescription,
       _canRenameTeam: yourOperations.renameTeam,
-      description: Constants.getTeamPublicitySettings(state, teamname).description,
+      description: Constants.getTeamPublicitySettings(state, teamID).description,
       members: memberCount,
       role,
       teamname,
     }
   },
-  dispatch => ({
+  (dispatch, {teamID}: OwnProps) => ({
     onEditAvatar: (teamname: string) =>
       // On mobile we show the image picker first before opening the dialog. This
       // is a desktop-only component right now, so just do this.
@@ -65,9 +65,9 @@ export const HeaderTitle = Container.connect(
           path: [{props: {sendChatNotification: true, teamname}, selected: 'teamEditTeamAvatar'}],
         })
       ),
-    onEditDescription: (teamname: string) =>
+    onEditDescription: () =>
       dispatch(
-        RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamEditTeamDescription'}]})
+        RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'teamEditTeamDescription'}]})
       ),
     onRename: (teamname: string) =>
       dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamRename'}]})),
@@ -78,9 +78,7 @@ export const HeaderTitle = Container.connect(
     onEditAvatar: stateProps._canEditDescAvatar
       ? () => dispatchProps.onEditAvatar(stateProps.teamname)
       : undefined,
-    onEditDescription: stateProps._canEditDescAvatar
-      ? () => dispatchProps.onEditDescription(stateProps.teamname)
-      : undefined,
+    onEditDescription: stateProps._canEditDescAvatar ? dispatchProps.onEditDescription : undefined,
     onRename: stateProps._canRenameTeam ? () => dispatchProps.onRename(stateProps.teamname) : undefined,
     role: stateProps.role,
     teamname: stateProps.teamname,

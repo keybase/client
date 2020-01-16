@@ -5,6 +5,7 @@ import Inbox from './inbox/container'
 import InboxSearch from './inbox-search/container'
 import Conversation from './conversation/container'
 import Header from './header.desktop'
+import InfoPanel from './conversation/info-panel/container'
 import * as Container from '../util/container'
 
 type Props = {
@@ -12,11 +13,14 @@ type Props = {
 }
 
 const InboxAndConversation = (props: Props) => {
-  const searchEnabled = Container.useSelector(s => !!s.chat2.inboxSearch)
+  const state = Container.useSelector(s => s)
+  const {inboxSearch, infoPanelShowing} = state.chat2
+
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
-      {searchEnabled ? <InboxSearch /> : <Inbox />}
+      {inboxSearch ? <InboxSearch /> : <Inbox />}
       <Conversation navigation={props.navigation} />
+      {infoPanelShowing && <InfoPanel />}
     </Kb.Box2>
   )
 }

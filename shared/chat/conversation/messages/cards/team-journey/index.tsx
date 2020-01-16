@@ -35,36 +35,47 @@ export const TeamJourney = (props: Props) => {
         onAuthorClick={props.onAuthorClick}
         onDismiss={props.onDismiss}
       />
-      <Kb.Box2 key="content" direction="vertical" fullWidth={true} style={styles.content}>
-        <Kb.Box2 direction="horizontal" fullWidth={true}>
+      <Kb.Box2
+        key="content"
+        direction="vertical"
+        fullWidth={true}
+        style={Styles.collapseStyles([styles.content, props.image ? styles.contentWithImage : null])}
+      >
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.contentHorizontalPad}>
           <Kb.Box2 direction="horizontal" style={props.image ? styles.text : undefined}>
             {props.textComponent}
           </Kb.Box2>
           {!!props.image && <Kb.Icon style={styles.image} type={props.image} />}
         </Kb.Box2>
-        <Kb.Box2
-          direction="horizontal"
-          fullWidth={true}
-          alignItems={'flex-start'}
-          gap="tiny"
-          style={styles.actionsBox}
-        >
-          {props.actions.map(action =>
-            action == 'wave' ? (
-              <Kb.WaveButton conversationIDKey={conversationIDKey} small={true} style={styles.buttonSpace} />
-            ) : (
-              <Kb.Button
-                key={action.label}
-                small={true}
-                type="Default"
-                mode="Secondary"
-                label={action.label}
-                onClick={action.onClick}
-                style={styles.buttonSpace}
-              />
-            )
-          )}
-        </Kb.Box2>
+        <Kb.ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
+          <Kb.Box2
+            direction="horizontal"
+            fullWidth={true}
+            alignItems={'flex-start'}
+            gap="tiny"
+            style={Styles.collapseStyles([styles.actionsBox, styles.contentHorizontalPad])}
+          >
+            {props.actions.map(action =>
+              action == 'wave' ? (
+                <Kb.WaveButton
+                  conversationIDKey={conversationIDKey}
+                  small={true}
+                  style={styles.buttonSpace}
+                />
+              ) : (
+                <Kb.Button
+                  key={action.label}
+                  small={true}
+                  type="Default"
+                  mode="Secondary"
+                  label={action.label}
+                  onClick={action.onClick}
+                  style={styles.buttonSpace}
+                />
+              )
+            )}
+          </Kb.Box2>
+        </Kb.ScrollView>
       </Kb.Box2>
     </>
   )
@@ -114,7 +125,6 @@ const styles = Styles.styleSheetCreate(
       actionsBox: Styles.platformStyles({
         common: {
           marginTop: Styles.globalMargins.tiny - buttonSpace,
-          minHeight: 50,
         },
         isElectron: {
           flexWrap: 'wrap',
@@ -145,27 +155,45 @@ const styles = Styles.styleSheetCreate(
       content: Styles.platformStyles({
         isElectron: {
           marginTop: -16,
+        },
+        isMobile: {
+          marginTop: -12,
+          paddingBottom: 3,
+        },
+      }),
+      contentHorizontalPad: Styles.platformStyles({
+        isElectron: {
           paddingLeft:
             // Space for below the avatar
             Styles.globalMargins.tiny + // right margin
             Styles.globalMargins.small + // left margin
             Styles.globalMargins.mediumLarge, // avatar
+          paddingRight: Styles.globalMargins.tiny,
         },
         isMobile: {
-          marginTop: -12,
-          paddingBottom: 3,
           paddingLeft:
             // Space for below the avatar
             Styles.globalMargins.tiny + // right margin
             Styles.globalMargins.tiny + // left margin
             Styles.globalMargins.mediumLarge, // avatar
-          paddingRight: Styles.globalMargins.tiny,
         },
       }),
-      image: {
-        left: '50%',
-        position: 'absolute',
+      contentWithImage: {
+        minHeight: 70,
       },
+      image: Styles.platformStyles({
+        common: {
+          position: 'absolute',
+          top: 0,
+        },
+        isElectron: {
+          left: '50%',
+          marginLeft: 15,
+        },
+        isMobile: {
+          right: 40,
+        },
+      }),
       teamnameText: Styles.platformStyles({
         common: {
           color: Styles.globalColors.black,

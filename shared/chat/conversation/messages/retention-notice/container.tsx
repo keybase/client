@@ -1,10 +1,10 @@
-import * as Container from '../../../../util/container'
+import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as ChatTypes from '../../../../constants/types/chat2'
-import {getMeta} from '../../../../constants/chat2'
-import {makeRetentionNotice} from '../../../../util/teams'
+import * as Container from '../../../../util/container'
 import * as TeamConstants from '../../../../constants/teams'
 import RetentionNotice from '.'
-import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import {getMeta} from '../../../../constants/chat2'
+import {makeRetentionNotice} from '../../../../util/teams'
 
 type OwnProps = {
   conversationIDKey: ChatTypes.ConversationIDKey
@@ -28,13 +28,10 @@ export default Container.connect(
   (dispatch, ownProps: OwnProps) => ({
     onChange: () =>
       dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [
-            {
-              props: {conversationIDKey: ownProps.conversationIDKey, tab: 'settings'},
-              selected: 'chatInfoPanel',
-            },
-          ],
+        Chat2Gen.createShowInfoPanel({
+          conversationIDKey: ownProps.conversationIDKey,
+          show: true,
+          tab: 'settings',
         })
       ),
   }),

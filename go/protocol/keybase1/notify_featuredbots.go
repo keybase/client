@@ -10,11 +10,13 @@ import (
 )
 
 type FeaturedBotsUpdateArg struct {
-	Bots []FeaturedBot `codec:"bots" json:"bots"`
+	Bots   []FeaturedBot `codec:"bots" json:"bots"`
+	Limit  int           `codec:"limit" json:"limit"`
+	Offset int           `codec:"offset" json:"offset"`
 }
 
 type NotifyFeaturedBotsInterface interface {
-	FeaturedBotsUpdate(context.Context, []FeaturedBot) error
+	FeaturedBotsUpdate(context.Context, FeaturedBotsUpdateArg) error
 }
 
 func NotifyFeaturedBotsProtocol(i NotifyFeaturedBotsInterface) rpc.Protocol {
@@ -32,7 +34,7 @@ func NotifyFeaturedBotsProtocol(i NotifyFeaturedBotsInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]FeaturedBotsUpdateArg)(nil), args)
 						return
 					}
-					err = i.FeaturedBotsUpdate(ctx, typedArgs[0].Bots)
+					err = i.FeaturedBotsUpdate(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -44,8 +46,7 @@ type NotifyFeaturedBotsClient struct {
 	Cli rpc.GenericClient
 }
 
-func (c NotifyFeaturedBotsClient) FeaturedBotsUpdate(ctx context.Context, bots []FeaturedBot) (err error) {
-	__arg := FeaturedBotsUpdateArg{Bots: bots}
+func (c NotifyFeaturedBotsClient) FeaturedBotsUpdate(ctx context.Context, __arg FeaturedBotsUpdateArg) (err error) {
 	err = c.Cli.Notify(ctx, "keybase.1.NotifyFeaturedBots.featuredBotsUpdate", []interface{}{__arg}, 0*time.Millisecond)
 	return
 }

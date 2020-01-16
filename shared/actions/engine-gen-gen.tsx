@@ -152,6 +152,12 @@ export const keybase1NotifyPhoneNumberPhoneNumbersChanged =
   'engine-gen:keybase1NotifyPhoneNumberPhoneNumbersChanged'
 export const keybase1NotifyRuntimeStatsRuntimeStatsUpdate =
   'engine-gen:keybase1NotifyRuntimeStatsRuntimeStatsUpdate'
+export const keybase1NotifySaltpackSaltpackOperationDone =
+  'engine-gen:keybase1NotifySaltpackSaltpackOperationDone'
+export const keybase1NotifySaltpackSaltpackOperationProgress =
+  'engine-gen:keybase1NotifySaltpackSaltpackOperationProgress'
+export const keybase1NotifySaltpackSaltpackOperationStart =
+  'engine-gen:keybase1NotifySaltpackSaltpackOperationStart'
 export const keybase1NotifyServiceHTTPSrvInfoUpdate = 'engine-gen:keybase1NotifyServiceHTTPSrvInfoUpdate'
 export const keybase1NotifyServiceShutdown = 'engine-gen:keybase1NotifyServiceShutdown'
 export const keybase1NotifySessionClientOutOfDate = 'engine-gen:keybase1NotifySessionClientOutOfDate'
@@ -1229,6 +1235,12 @@ type _Keybase1NotifyFeaturedBotsFeaturedBotsUpdatePayload = {
   readonly params: keybase1Types.MessageTypes['keybase.1.NotifyFeaturedBots.featuredBotsUpdate']['inParam'] & {
     sessionID: number
   }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (
+      param: keybase1Types.MessageTypes['keybase.1.NotifyFeaturedBots.featuredBotsUpdate']['outParam']
+    ) => void
+  }
 }
 type _Keybase1NotifyKeyfamilyKeyfamilyChangedPayload = {
   readonly params: keybase1Types.MessageTypes['keybase.1.NotifyKeyfamily.keyfamilyChanged']['inParam'] & {
@@ -1280,6 +1292,39 @@ type _Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload = {
     error: keybase1Types.IncomingErrorCallback
     result: (
       param: keybase1Types.MessageTypes['keybase.1.NotifyRuntimeStats.runtimeStatsUpdate']['outParam']
+    ) => void
+  }
+}
+type _Keybase1NotifySaltpackSaltpackOperationDonePayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifySaltpack.saltpackOperationDone']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (
+      param: keybase1Types.MessageTypes['keybase.1.NotifySaltpack.saltpackOperationDone']['outParam']
+    ) => void
+  }
+}
+type _Keybase1NotifySaltpackSaltpackOperationProgressPayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifySaltpack.saltpackOperationProgress']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (
+      param: keybase1Types.MessageTypes['keybase.1.NotifySaltpack.saltpackOperationProgress']['outParam']
+    ) => void
+  }
+}
+type _Keybase1NotifySaltpackSaltpackOperationStartPayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifySaltpack.saltpackOperationStart']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (
+      param: keybase1Types.MessageTypes['keybase.1.NotifySaltpack.saltpackOperationStart']['outParam']
     ) => void
   }
 }
@@ -2340,6 +2385,24 @@ export const createKeybase1NotifyRuntimeStatsRuntimeStatsUpdate = (
   payload,
   type: keybase1NotifyRuntimeStatsRuntimeStatsUpdate,
 })
+export const createKeybase1NotifySaltpackSaltpackOperationDone = (
+  payload: _Keybase1NotifySaltpackSaltpackOperationDonePayload
+): Keybase1NotifySaltpackSaltpackOperationDonePayload => ({
+  payload,
+  type: keybase1NotifySaltpackSaltpackOperationDone,
+})
+export const createKeybase1NotifySaltpackSaltpackOperationProgress = (
+  payload: _Keybase1NotifySaltpackSaltpackOperationProgressPayload
+): Keybase1NotifySaltpackSaltpackOperationProgressPayload => ({
+  payload,
+  type: keybase1NotifySaltpackSaltpackOperationProgress,
+})
+export const createKeybase1NotifySaltpackSaltpackOperationStart = (
+  payload: _Keybase1NotifySaltpackSaltpackOperationStartPayload
+): Keybase1NotifySaltpackSaltpackOperationStartPayload => ({
+  payload,
+  type: keybase1NotifySaltpackSaltpackOperationStart,
+})
 export const createKeybase1NotifyServiceHTTPSrvInfoUpdate = (
   payload: _Keybase1NotifyServiceHTTPSrvInfoUpdatePayload
 ): Keybase1NotifyServiceHTTPSrvInfoUpdatePayload => ({payload, type: keybase1NotifyServiceHTTPSrvInfoUpdate})
@@ -3104,6 +3167,18 @@ export type Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload = {
   readonly payload: _Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload
   readonly type: typeof keybase1NotifyRuntimeStatsRuntimeStatsUpdate
 }
+export type Keybase1NotifySaltpackSaltpackOperationDonePayload = {
+  readonly payload: _Keybase1NotifySaltpackSaltpackOperationDonePayload
+  readonly type: typeof keybase1NotifySaltpackSaltpackOperationDone
+}
+export type Keybase1NotifySaltpackSaltpackOperationProgressPayload = {
+  readonly payload: _Keybase1NotifySaltpackSaltpackOperationProgressPayload
+  readonly type: typeof keybase1NotifySaltpackSaltpackOperationProgress
+}
+export type Keybase1NotifySaltpackSaltpackOperationStartPayload = {
+  readonly payload: _Keybase1NotifySaltpackSaltpackOperationStartPayload
+  readonly type: typeof keybase1NotifySaltpackSaltpackOperationStart
+}
 export type Keybase1NotifyServiceHTTPSrvInfoUpdatePayload = {
   readonly payload: _Keybase1NotifyServiceHTTPSrvInfoUpdatePayload
   readonly type: typeof keybase1NotifyServiceHTTPSrvInfoUpdate
@@ -3516,6 +3591,9 @@ export type Actions =
   | Keybase1NotifyPaperKeyPaperKeyCachedPayload
   | Keybase1NotifyPhoneNumberPhoneNumbersChangedPayload
   | Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload
+  | Keybase1NotifySaltpackSaltpackOperationDonePayload
+  | Keybase1NotifySaltpackSaltpackOperationProgressPayload
+  | Keybase1NotifySaltpackSaltpackOperationStartPayload
   | Keybase1NotifyServiceHTTPSrvInfoUpdatePayload
   | Keybase1NotifyServiceShutdownPayload
   | Keybase1NotifySessionClientOutOfDatePayload

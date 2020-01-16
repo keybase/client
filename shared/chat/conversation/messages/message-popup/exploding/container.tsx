@@ -39,8 +39,10 @@ export default Container.connect(
       !yourMessage &&
       ownProps.message.type === 'text' &&
       (['small', 'big'].includes(meta.teamType) || participantInfo.all.length > 2)
+    const authorIsBot = Constants.messageAuthorIsBot(state, meta, ownProps.message, participantInfo)
 
     return {
+      _authorIsBot: authorIsBot,
       _canDeleteHistory,
       _canEdit,
       _canExplodeNow,
@@ -78,13 +80,10 @@ export default Container.connect(
     },
     _onAllMedia: () =>
       dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [
-            {
-              props: {conversationIDKey: ownProps.message.conversationIDKey, tab: 'attachments'},
-              selected: 'chatInfoPanel',
-            },
-          ],
+        Chat2Gen.createShowInfoPanel({
+          conversationIDKey: ownProps.message.conversationIDKey,
+          show: true,
+          tab: 'attachments',
         })
       ),
     _onCopy: () => {
@@ -112,6 +111,15 @@ export default Container.connect(
           ordinal: ownProps.message.ordinal,
         })
       ),
+    _onInstallBot: () => {
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [
+            {props: {botUsername: ownProps.message.author, navToChat: true}, selected: 'chatInstallBotPick'},
+          ],
+        })
+      )
+    },
     _onKick: (teamID: TeamTypes.TeamID, username: string) =>
       dispatch(
         RouteTreeGen.createNavigateAppend({
@@ -219,6 +227,11 @@ export default Container.connect(
             : {icon: 'iconfont-finder', onClick: dispatchProps._onShowInFinder, title: 'Show in finder'}
         )
       }
+      items.push({
+        icon: 'iconfont-nav-2-robot',
+        onClick: dispatchProps._onInstallBot,
+        title: 'Install bot in another team or chat',
+      })
       items.push({icon: 'iconfont-camera', onClick: dispatchProps._onAllMedia, title: 'All media'})
       items.push({icon: 'iconfont-reply', onClick: dispatchProps._onReply, title: 'Reply'})
       items.push({icon: 'iconfont-pin', onClick: dispatchProps._onPinMessage, title: 'Pin message'})
@@ -234,6 +247,11 @@ export default Container.connect(
       if (stateProps._canEdit) {
         items.push({icon: 'iconfont-edit', onClick: dispatchProps._onEdit, title: 'Edit'})
       }
+      items.push({
+        icon: 'iconfont-nav-2-robot',
+        onClick: dispatchProps._onInstallBot,
+        title: 'Install bot in another team or chat',
+      })
       items.push({icon: 'iconfont-clipboard', onClick: dispatchProps._onCopy, title: 'Copy text'})
       items.push({icon: 'iconfont-reply', onClick: dispatchProps._onReply, title: 'Reply'})
       if (stateProps._canReplyPrivately) {

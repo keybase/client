@@ -2406,8 +2406,8 @@ const navigateToThread = (state: Container.TypedState) => {
 }
 
 const maybeLoadTeamFromMeta = (meta: Types.ConversationMeta) => {
-  const {teamname} = meta
-  return teamname ? TeamsGen.createGetMembers({teamname}) : false
+  const {teamID} = meta
+  return meta.teamname ? TeamsGen.createGetMembers({teamID}) : false
 }
 
 const ensureSelectedTeamLoaded = (
@@ -2416,7 +2416,7 @@ const ensureSelectedTeamLoaded = (
 ) => {
   const meta = state.chat2.metaMap.get(state.chat2.selectedConversation)
   return meta
-    ? action.type === Chat2Gen.selectConversation || !state.teams.teamNameToMembers.get(meta.teamname)
+    ? action.type === Chat2Gen.selectConversation || !state.teams.teamDetails.get(meta.teamID)?.members
       ? maybeLoadTeamFromMeta(meta)
       : false
     : false
@@ -3063,20 +3063,6 @@ const unfurlResolvePrompt = (action: Chat2Gen.UnfurlResolvePromptPayload) => {
   })
 }
 
-const toggleInfoPanel = (state: Container.TypedState) => {
-  const visibleScreen = Router2Constants.getVisibleScreen()
-  if (visibleScreen && visibleScreen.routeName === 'chatInfoPanel') {
-    return [
-      Chat2Gen.createClearAttachmentView({conversationIDKey: state.chat2.selectedConversation}),
-      RouteTreeGen.createNavigateUp(),
-    ]
-  } else {
-    return RouteTreeGen.createNavigateAppend({
-      path: [{props: {conversationIDKey: state.chat2.selectedConversation}, selected: 'chatInfoPanel'}],
-    })
-  }
-}
-
 const unsentTextChanged = (state: Container.TypedState, action: Chat2Gen.UnsentTextChangedPayload) => {
   const {conversationIDKey, text} = action.payload
   const meta = Constants.getMeta(state, conversationIDKey)
@@ -3321,6 +3307,23 @@ const addUsersToChannel = async (action: Chat2Gen.AddUsersToChannelPayload, logg
   }
 }
 
+const addUserToChannel = async (action: Chat2Gen.AddUserToChannelPayload, logger: Saga.SagaLogger) => {
+  const {conversationIDKey, username} = action.payload
+  try {
+    await RPCChatTypes.localBulkAddToConvRpcPromise(
+      {convID: Types.keyToConversationID(conversationIDKey), usernames: [username]},
+      Constants.waitingKeyAddUserToChannel(username, conversationIDKey)
+    )
+    return [
+      Chat2Gen.createSelectConversation({conversationIDKey, reason: 'addedToChannel'}),
+      Chat2Gen.createNavigateToThread(),
+    ]
+  } catch (err) {
+    logger.error(`addUserToChannel: ${err.message}`) // surfaced in UI via waiting key
+    return false
+  }
+}
+
 const onMarkInboxSearchOld = (state: Container.TypedState) =>
   state.chat2.inboxShowNew &&
   GregorGen.createUpdateCategory({body: 'true', category: Constants.inboxSearchNewKey})
@@ -3440,7 +3443,7 @@ const closeBotModal = (state: Container.TypedState, conversationIDKey: Types.Con
   const actions: Array<Container.TypedActions> = [RouteTreeGen.createClearModals()]
   const meta = state.chat2.metaMap.get(conversationIDKey)
   if (meta && meta.teamname) {
-    actions.push(TeamsGen.createGetMembers({teamname: meta.teamname}))
+    actions.push(TeamsGen.createGetMembers({teamID: meta.teamID}))
   }
   return actions
 }
@@ -3522,6 +3525,26 @@ const refreshBotSettings = async (_: Container.TypedState, action: Chat2Gen.Refr
     return
   }
   return Chat2Gen.createSetBotSettings({conversationIDKey, settings, username})
+}
+
+const onShowInfoPanel = (action: Chat2Gen.ShowInfoPanelPayload) => {
+  const {conversationIDKey, show, tab} = action.payload
+  if (Container.isMobile) {
+    const visibleScreen = Router2Constants.getVisibleScreen()
+    if ((visibleScreen?.routeName === 'chatInfoPanel') !== show) {
+      return show
+        ? RouteTreeGen.createNavigateAppend({
+            path: [{props: {conversationIDKey, tab}, selected: 'chatInfoPanel'}],
+          })
+        : [
+            ...(conversationIDKey ? [Chat2Gen.createClearAttachmentView({conversationIDKey})] : []),
+            RouteTreeGen.createNavigateUp(),
+          ]
+    }
+    return false
+  } else {
+    return false
+  }
 }
 
 function* chat2Saga() {
@@ -3683,7 +3706,6 @@ function* chat2Saga() {
   )
   yield* Saga.chainAction2(Chat2Gen.messageReplyPrivately, messageReplyPrivately)
   yield* Saga.chainAction(Chat2Gen.openChatFromWidget, openChatFromWidget)
-  yield* Saga.chainAction2(Chat2Gen.toggleInfoPanel, toggleInfoPanel)
 
   // Exploding things
   yield* Saga.chainGenerator<Chat2Gen.SetConvExplodingModePayload>(
@@ -3707,6 +3729,7 @@ function* chat2Saga() {
   )
 
   yield* Saga.chainAction(Chat2Gen.addUsersToChannel, addUsersToChannel)
+  yield* Saga.chainAction(Chat2Gen.addUserToChannel, addUserToChannel)
 
   yield* Saga.chainAction(EngineGen.chat1NotifyChatChatPromptUnfurl, onChatPromptUnfurl)
   yield* Saga.chainAction(
@@ -3765,6 +3788,8 @@ function* chat2Saga() {
 
   yield* Saga.chainAction2(Chat2Gen.selectConversation, refreshPreviousSelected)
   yield* Saga.chainAction2(Chat2Gen.selectConversation, ensureSelectedMeta)
+
+  yield* Saga.chainAction(Chat2Gen.showInfoPanel, onShowInfoPanel)
 
   yield* Saga.chainAction2(Chat2Gen.selectConversation, fetchConversationBio)
 

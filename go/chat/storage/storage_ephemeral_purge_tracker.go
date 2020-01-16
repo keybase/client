@@ -120,12 +120,11 @@ func (t *ephemeralTracker) getPurgeInfo(ctx context.Context,
 }
 
 func (t *ephemeralTracker) getAllKeysLocked(ctx context.Context, uid gregor1.UID) (keys []libkb.DbKey, err Error) {
-	levelDbTableKv := "kv"
 	innerKeyPrefix := fmt.Sprintf(dbKeyPrefix, uid)
 	prefix := libkb.DbKey{
 		Typ: libkb.DBChatEphemeralTracker,
 		Key: innerKeyPrefix,
-	}.ToBytes(levelDbTableKv)
+	}.ToBytes()
 	leveldb, ok := t.G().LocalChatDb.GetEngine().(*libkb.LevelDb)
 	if !ok {
 		return nil, NewInternalError(ctx, t.DebugLabeler, "could not get leveldb")
