@@ -34,7 +34,7 @@ const setupNotifications = async () => {
         pgp: true,
         reachability: true,
         runtimestats: true,
-        saltpack: false,
+        saltpack: true,
         service: true,
         session: true,
         team: true,

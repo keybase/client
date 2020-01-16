@@ -63,6 +63,8 @@ export const getInputFileIcon = (operation: Types.Operations) => operationToInpu
 export const getOutputFileIcon = (operation: Types.Operations) => operationToOutputFileIcon[operation]
 
 const defaultCommonState = {
+  bytesComplete: 0,
+  bytesTotal: 0,
   errorMessage: new HiddenString(''),
   errorType: '' as Types.ErrorTypes,
   input: new HiddenString(''),

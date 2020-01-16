@@ -310,9 +310,12 @@ export type TypedActionsMap = {
   'crypto:onOperationSuccess': crypto.OnOperationSuccessPayload
   'crypto:onOperationError': crypto.OnOperationErrorPayload
   'crypto:resetOperation': crypto.ResetOperationPayload
+  'crypto:saltpackDone': crypto.SaltpackDonePayload
   'crypto:saltpackEncrypt': crypto.SaltpackEncryptPayload
   'crypto:saltpackDecrypt': crypto.SaltpackDecryptPayload
+  'crypto:saltpackProgress': crypto.SaltpackProgressPayload
   'crypto:saltpackSign': crypto.SaltpackSignPayload
+  'crypto:saltpackStart': crypto.SaltpackStartPayload
   'crypto:saltpackVerify': crypto.SaltpackVerifyPayload
   'deeplinks:handleKeybaseLink': deeplinks.HandleKeybaseLinkPayload
   'deeplinks:link': deeplinks.LinkPayload

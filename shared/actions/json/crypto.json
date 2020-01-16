@@ -46,6 +46,11 @@
       "_description": "Resets all values in the store for the given operation",
       "operation": "Types.Operations"
     },
+    "saltpackDone": {
+      "_description": "Progress logging",
+      "filename": "string",
+      "operation": "Types.Operations"
+    },
     "saltpackEncrypt": {
       "_description": "Calls Saltpack RPC",
       "input": "HiddenString",
@@ -58,10 +63,22 @@
       "input": "HiddenString",
       "type": "Types.InputTypes"
     },
+    "saltpackProgress": {
+      "_description": "Progress logging",
+      "bytesComplete": "number",
+      "bytesTotal": "number",
+      "filename": "string",
+      "operation": "Types.Operations"
+    },
     "saltpackSign": {
       "_description": "Calls Saltpack RPC",
       "input": "HiddenString",
       "type": "Types.InputTypes"
+    },
+    "saltpackStart": {
+      "_description": "Progress logging",
+      "filename": "string",
+      "operation": "Types.Operations"
     },
     "saltpackVerify": {
       "_description": "Calls Saltpack RPC",
