@@ -555,7 +555,7 @@ const styles = Styles.styleSheetCreate(
         },
         // TODO: this is less than ideal
         isElectron: {
-          overflowX: 'scroll',
+          overflowX: 'hidden',
           overflowY: 'hidden',
         },
       }),
