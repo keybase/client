@@ -17,7 +17,7 @@ import (
 // StopAllButService on windows can only stop those services which are not managed
 // by the watchdog, because this is intended to be called before the service is shut down,
 // and the watchdog dies when the service exists gracefully.
-func StopAllButService(mctx libkb.MetaContext, _ keybase1.ExitCode) {
+func StopAllButService(mctx libkb.MetaContext, exitCode keybase1.ExitCode) {
 	var err error
 	defer mctx.TraceTimed(fmt.Sprintf("StopAllButService()"),
 		func() error { return err })()
@@ -26,8 +26,12 @@ func StopAllButService(mctx libkb.MetaContext, _ keybase1.ExitCode) {
 		mctx.Error("StopAllButService: Error in GetCurrentMountDir: %s", err.Error())
 	} else {
 		// open special "file". Errors not relevant.
-		unmountPath := filepath.Join(mountdir, "\\.kbfs_unmount")
-		mctx.Info("StopAllButService: opening .kbfs_unmount at %s", unmountPath)
+		exitFile := "\\.kbfs_unmount"
+		if exitCode == keybase1.ExitCode_RESTART {
+			exitFile = "\\.kbfs_restart"
+		}
+		unmountPath := filepath.Join(mountdir, exitFile)
+		mctx.Info("StopAllButService: opening %s", unmountPath)
 		_, err = os.Open(unmountPath)
 		if err != nil {
 			mctx.Debug("StopAllButService: unable to unmount kbfs (%s) but it might still have shut down successfully", err)
