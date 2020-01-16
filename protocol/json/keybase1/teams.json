@@ -3194,6 +3194,19 @@
       ],
       "response": "TeamMembersDetails"
     },
+    "teamGetMembersByID": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "id",
+          "type": "TeamID"
+        }
+      ],
+      "response": "TeamMembersDetails"
+    },
     "teamImplicitAdmins": {
       "request": [
         {

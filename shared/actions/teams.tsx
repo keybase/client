@@ -1279,15 +1279,15 @@ const deleteChannelConfirmed = async (state: TypedState, action: TeamsGen.Delete
 }
 
 const getMembers = async (action: TeamsGen.GetMembersPayload, logger: Saga.SagaLogger) => {
-  const {teamname} = action.payload
+  const {teamID} = action.payload
   try {
-    const res = await RPCTypes.teamsTeamGetMembersRpcPromise({
-      name: teamname,
+    const res = await RPCTypes.teamsTeamGetMembersByIDRpcPromise({
+      id: teamID,
     })
     const members = Constants.rpcDetailsToMemberInfos(res)
-    return TeamsGen.createSetMembers({members, teamname})
+    return TeamsGen.createSetMembers({members, teamID})
   } catch (error) {
-    logger.error(`Error updating members for ${teamname}: ${error.desc}`)
+    logger.error(`Error updating members for ${teamID}: ${error.desc}`)
     return false
   }
 }

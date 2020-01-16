@@ -5,7 +5,6 @@ import * as TeamsTypes from '../../../constants/types/teams'
 import InfoPanelMenu from './menu/container'
 import * as ChatTypes from '../../../constants/types/chat2'
 import AddPeople from './add-people'
-import {useTeamDetailsSubscribe} from '../../../teams/subscriber'
 import {pluralize} from '../../../util/string'
 
 type SmallProps = {
@@ -29,7 +28,6 @@ const _TeamHeader = (props: SmallProps) => {
     title += '#' + props.channelname
   }
   const isGeneralChannel = !!(props.channelname && props.channelname === 'general')
-  useTeamDetailsSubscribe(props.teamID)
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
       <Kb.Box2 direction="horizontal" style={styles.smallContainer} fullWidth={true}>

@@ -186,6 +186,7 @@ const emptyState: Types.State = {
   teamDetailsMetaSubscribeCount: 0,
   teamDetailsSubscriptionCount: new Map(),
   teamIDToChannelInfos: new Map(),
+  teamIDToMembers: new Map(),
   teamIDToPublicitySettings: new Map(),
   teamIDToResetUsers: new Map(),
   teamIDToRetentionPolicy: new Map(),
@@ -297,7 +298,7 @@ export const userIsRoleInTeam = (
   role: Types.TeamRoleType
 ): boolean => {
   return userIsRoleInTeamWithInfo(
-    state.teams.teamDetails.get(teamID)?.members || new Map<string, Types.MemberInfo>(),
+    state.teams.teamIDToMembers.get(teamID) || new Map<string, Types.MemberInfo>(),
     username,
     role
   )

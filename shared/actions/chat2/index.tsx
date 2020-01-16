@@ -2405,11 +2405,9 @@ const navigateToThread = (state: Container.TypedState) => {
   return navigateToThreadRoute(state.chat2.selectedConversation)
 }
 
-// TODO: rework this whole situation
-
 const maybeLoadTeamFromMeta = (meta: Types.ConversationMeta) => {
-  const {teamname} = meta
-  return teamname ? TeamsGen.createGetMembers({teamname}) : false
+  const {teamID} = meta
+  return meta.teamname ? TeamsGen.createGetMembers({teamID}) : false
 }
 
 const ensureSelectedTeamLoaded = (
@@ -3459,7 +3457,7 @@ const closeBotModal = (state: Container.TypedState, conversationIDKey: Types.Con
   const actions: Array<Container.TypedActions> = [RouteTreeGen.createClearModals()]
   const meta = state.chat2.metaMap.get(conversationIDKey)
   if (meta && meta.teamname) {
-    actions.push(TeamsGen.createGetMembers({teamname: meta.teamname}))
+    actions.push(TeamsGen.createGetMembers({teamID: meta.teamID}))
   }
   return actions
 }
