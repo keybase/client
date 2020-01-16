@@ -36,8 +36,9 @@ func (c *CmdWatchdog2) Run() error {
 	if runMode != libkb.ProductionRunMode {
 		return fmt.Errorf("Watchdog is only supported in production")
 	}
-	// Don't run updater on linux
-	excludeUpdater := runtime.GOOS == "linux"
+	if runtime.GOOS != "windows" {
+		return fmt.Errorf("Watchdog is only supported in windows")
+	}
 
 	programs := []watchdog.Program{}
 
@@ -46,7 +47,6 @@ func (c *CmdWatchdog2) Run() error {
 	if err != nil {
 		return err
 	}
-
 	serviceLogPath := filepath.Join(env.GetLogDir(), libkb.ServiceLogFileName)
 	serviceProgram := watchdog.Program{
 		Path: keybasePath,
@@ -56,10 +56,7 @@ func (c *CmdWatchdog2) Run() error {
 			"service",
 			"--watchdog-forked",
 		},
-		ExitOn: watchdog.ExitOnSuccess,
-	}
-	if runtime.GOOS == "windows" {
-		serviceProgram.ExitOn = watchdog.ExitAllOnSuccess
+		ExitOn: watchdog.ExitAllOnSuccess,
 	}
 	programs = append(programs, serviceProgram)
 
@@ -69,15 +66,7 @@ func (c *CmdWatchdog2) Run() error {
 		return err
 	}
 
-	var mountDirArg string
-	if runtime.GOOS == "windows" {
-		mountDirArg = "-mount-from-service"
-	} else {
-		mountDirArg, err = env.GetMountDir()
-		if err != nil {
-			return err
-		}
-	}
+	mountDirArg := "-mount-from-service"
 	kbfsProgram := watchdog.Program{
 		Path: kbfsPath,
 		Args: []string{
@@ -90,20 +79,18 @@ func (c *CmdWatchdog2) Run() error {
 	programs = append(programs, kbfsProgram)
 
 	// Updater
-	if !excludeUpdater {
-		updaterPath, err := install.UpdaterBinPath()
-		if err != nil {
-			return err
-		}
-		updaterProgram := watchdog.Program{
-			Path: updaterPath,
-			Args: []string{
-				"-log-to-file",
-				"-path-to-keybase=" + keybasePath,
-			},
-		}
-		programs = append(programs, updaterProgram)
+	updaterPath, err := install.UpdaterBinPath()
+	if err != nil {
+		return err
 	}
+	updaterProgram := watchdog.Program{
+		Path: updaterPath,
+		Args: []string{
+			"-log-to-file",
+			"-path-to-keybase=" + keybasePath,
+		},
+	}
+	programs = append(programs, updaterProgram)
 
 	go c.pruneWatchdogLogs()
 
