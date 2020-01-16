@@ -1,3 +1,5 @@
+// 1. connect invidual pieces and clean out connect
+// 2. make items calc cleaner
 // OMG refactor this
 import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
@@ -9,7 +11,7 @@ import * as TeamsTypes from '../../../constants/types/teams'
 import flags from '../../../util/feature-flags'
 import {Props as HeaderHocProps} from '../../../common-adapters/header-hoc/types'
 import {AdhocHeader, TeamHeader} from './header'
-import {SettingsPanel} from './panels'
+import SettingsPanel from './settings'
 import Participant from './participant'
 import Bot from './bot'
 import {AttachmentTypeSelector, DocView, LinkView, MediaView} from './attachments'
@@ -94,8 +96,6 @@ export type InfoPanelProps = {
   channelname?: string
   smallTeam: boolean
   admin: boolean
-  ignored: boolean
-  spinnerForHide: boolean
   selectedAttachmentView: RPCChatTypes.GalleryItemTyp
   selectedTab: Panel
   showAuditingBanner: boolean
@@ -113,11 +113,7 @@ export type InfoPanelProps = {
   onShowProfile: (username: string) => void
 
   // Used for conversations.
-  onShowBlockConversationDialog: () => void
-  onShowClearConversationDialog: () => void
   onShowNewTeamDialog: () => void
-  onHideConv: () => void
-  onUnhideConv: () => void
   onSelectTab: (p: Panel) => void
 
   // Used for small and big teams.
@@ -126,10 +122,8 @@ export type InfoPanelProps = {
 
   // Used for big teams.
   canEditChannel: boolean
-  canDeleteHistory: boolean
   description?: string
   onEditChannel: () => void
-  onLeaveConversation: () => void
   onJoinChannel: () => void
 
   // Used for bots
@@ -334,23 +328,18 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
     switch (this.props.selectedTab) {
       case 'settings':
         tabsSection.renderItem = () => {
-          return (
-            <SettingsPanel
-              canDeleteHistory={this.props.canDeleteHistory}
-              conversationIDKey={this.props.selectedConversationIDKey}
-              entityType={entityType}
-              ignored={this.props.ignored}
-              key="settings"
-              onHideConv={this.props.onHideConv}
-              onUnhideConv={this.props.onUnhideConv}
-              onLeaveConversation={this.props.onLeaveConversation}
-              onShowBlockConversationDialog={this.props.onShowBlockConversationDialog}
-              onShowClearConversationDialog={this.props.onShowClearConversationDialog}
-              spinnerForHide={this.props.spinnerForHide}
-              teamID={this.props.teamID}
-              channelname={this.props.channelname}
-            />
-          )
+          // canDeleteHistory={this.props.canDeleteHistory}
+          // entityType={entityType}
+          // ignored={this.props.ignored}
+          // // onHideConv={this.props.onHideConv}
+          // onUnhideConv={this.props.onUnhideConv}
+          // onLeaveConversation={this.props.onLeaveConversation}
+          // onShowBlockConversationDialog={this.props.onShowBlockConversationDialog}
+          // onShowClearConversationDialog={this.props.onShowClearConversationDialog}
+          // spinnerForHide={this.props.spinnerForHide}
+          // teamID={this.props.teamID}
+          // channelname={this.props.channelname}
+          return <SettingsPanel conversationIDKey={this.props.selectedConversationIDKey} key="settings" />
         }
         sections.push(tabsSection)
         break

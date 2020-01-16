@@ -1,10 +1,10 @@
 import * as React from 'react'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as Types from '../../../../constants/types/chat2'
-import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
-import * as Container from '../../../../util/container'
-import * as Constants from '../../../../constants/chat2'
+import * as Chat2Gen from '../../../../../actions/chat2-gen'
+import * as Types from '../../../../../constants/types/chat2'
+import * as Kb from '../../../../../common-adapters'
+import * as Styles from '../../../../../styles'
+import * as Container from '../../../../../util/container'
+import * as Constants from '../../../../../constants/chat2'
 
 export type SaveStateType = 'same' | 'saving' | 'justSaved'
 export type Props = {

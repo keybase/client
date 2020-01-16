@@ -93,7 +93,7 @@ const ConnectedInfoPanel = Container.connect(
       canSetRetention,
       channelname: meta.channelname,
       description: meta.descriptionDecorated,
-      ignored: meta.status === RPCChatTypes.ConversationStatus.ignored,
+      // ignored: meta.status === RPCChatTypes.ConversationStatus.ignored,
       isPreview,
       loadedAllBots: state.chat2.featuredBotsLoaded,
       selectedAttachmentView,
@@ -203,6 +203,14 @@ const ConnectedInfoPanel = Container.connect(
     onUnhideConv: () => dispatch(Chat2Gen.createUnhideConversation({conversationIDKey})),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
+    // ignored: boolean
+    // spinnerForHide: boolean
+    // onHideConv: () => void
+    // onUnhideConv: () => void
+    // onShowBlockConversationDialog: () => void
+    // onShowClearConversationDialog: () => void
+    // canDeleteHistory: boolean
+    // onLeaveConversation: () => void
     let participants = stateProps._participantInfo.all
     let botUsernames: Array<string> = []
     if (stateProps.adhocTeam) {
@@ -303,7 +311,7 @@ const ConnectedInfoPanel = Container.connect(
             }
           : noDocs,
       featuredBots,
-      ignored: stateProps.ignored,
+      // ignored: stateProps.ignored,
       installedBots,
       isPreview: stateProps.isPreview,
       links:

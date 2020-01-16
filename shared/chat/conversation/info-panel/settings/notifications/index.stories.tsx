@@ -1,7 +1,7 @@
 import React from 'react'
-import * as Sb from '../../../../stories/storybook'
-import * as Container from '../../../../util/container'
-import * as Constants from '../../../../constants/chat2'
+import * as Sb from '../../../../../stories/storybook'
+import * as Container from '../../../../../util/container'
+import * as Constants from '../../../../../constants/chat2'
 import Notifications from '.'
 
 const store = Container.produce(Sb.createStoreWithCommon(), draftState => {

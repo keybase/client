@@ -1,9 +1,9 @@
-import * as Container from '../../../../util/container'
-import * as Constants from '../../../../constants/chat2'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as Types from '../../../../constants/types/chat2'
-import * as TeamTypes from '../../../../constants/types/teams'
-import * as TeamConstants from '../../../../constants/teams'
+import * as Container from '../../../../../util/container'
+import * as Constants from '../../../../../constants/chat2'
+import * as Chat2Gen from '../../../../../actions/chat2-gen'
+import * as Types from '../../../../../constants/types/chat2'
+import * as TeamTypes from '../../../../../constants/types/teams'
+import * as TeamConstants from '../../../../../constants/teams'
 import MinWriterRole from '.'
 
 type OwnProps = {

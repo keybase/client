@@ -1,30 +1,36 @@
 import * as React from 'react'
-import * as Types from '../../../constants/types/chat2'
-import * as TeamsTypes from '../../../constants/types/teams'
-import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
-import RetentionPicker from '../../../teams/team/settings-tab/retention/container'
+import * as Container from '../../../../util/container'
+import * as Types from '../../../../constants/types/chat2'
+import * as TeamsTypes from '../../../../constants/types/teams'
+import * as Constants from '../../../../constants/chat2'
+import * as Kb from '../../../../common-adapters'
+import * as Styles from '../../../../styles'
+import RetentionPicker from '../../../../teams/team/settings-tab/retention/container'
 import MinWriterRole from './min-writer-role/container'
 import Notifications from './notifications'
 import {CaptionedDangerIcon} from './channel-utils'
-import {EntityType} from '.'
+
+// type EntityType = 'adhoc' | 'small team' | 'channel'
 
 type SettingsPanelProps = {
-  canDeleteHistory: boolean
+  // canDeleteHistory: boolean
   conversationIDKey: Types.ConversationIDKey
-  entityType: EntityType
-  ignored: boolean
-  onHideConv: () => void
-  onUnhideConv: () => void
-  onLeaveConversation: () => void
-  onShowBlockConversationDialog: () => void
-  onShowClearConversationDialog: () => void
-  spinnerForHide: boolean
-  teamID: TeamsTypes.TeamID
-  channelname?: string
+  // entityType: EntityType
+  // ignored: boolean
+  // onHideConv: () => void
+  // onUnhideConv: () => void
+  // onLeaveConversation: () => void
+  // onShowBlockConversationDialog: () => void
+  // onShowClearConversationDialog: () => void
+  // spinnerForHide: boolean
+  // teamID: TeamsTypes.TeamID
+  // channelname?: string
 }
 
-export const SettingsPanel = (props: SettingsPanelProps) => {
+const SettingsPanel = (props: SettingsPanelProps) => {
+  const {conversationIDKey} = props
+  const meta = Container.useSelector(s => Constants.getMeta(state, conversationIDKey))
+  const ignored = meta.status === RPCChatTypes.ConversationStatus.ignored
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.settingsContainer}>
       <Kb.ScrollView>
@@ -131,3 +137,5 @@ const styles = Styles.styleSheetCreate(
       },
     } as const)
 )
+
+export default SettingsPanel
