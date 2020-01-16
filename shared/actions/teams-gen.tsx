@@ -143,7 +143,7 @@ type _GetDetailsByIDPayload = {
   readonly clearInviteLoadingKey?: string
 }
 type _GetDetailsPayload = {readonly teamname: string; readonly clearInviteLoadingKey?: string}
-type _GetMembersPayload = {readonly teamname: string}
+type _GetMembersPayload = {readonly teamID: Types.TeamID}
 type _GetTeamProfileAddListPayload = {readonly username: string}
 type _GetTeamPublicityPayload = {readonly teamID: Types.TeamID}
 type _GetTeamRetentionPolicyPayload = {readonly teamID: Types.TeamID}
@@ -193,7 +193,7 @@ type _SetChannelCreationErrorPayload = {readonly error: string}
 type _SetEditDescriptionErrorPayload = {readonly error: string}
 type _SetEmailInviteErrorPayload = {readonly message: string; readonly malformed: Array<string>}
 type _SetMemberPublicityPayload = {readonly teamID: Types.TeamID; readonly showcase: boolean}
-type _SetMembersPayload = {readonly teamname: string; readonly members: Map<string, Types.MemberInfo>}
+type _SetMembersPayload = {readonly teamID: Types.TeamID; readonly members: Map<string, Types.MemberInfo>}
 type _SetNewTeamInfoPayload = {
   readonly deletedTeams: Array<RPCTypes.DeletedTeamInfo>
   readonly newTeams: Set<Types.TeamID>

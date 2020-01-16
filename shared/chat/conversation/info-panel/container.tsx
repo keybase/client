@@ -74,7 +74,7 @@ const ConnectedInfoPanel = Container.connect(
     const selectedAttachmentView = ownProps.selectedAttachmentView || RPCChatTypes.GalleryItemTyp.media
     const m = state.chat2.attachmentViewMap.get(conversationIDKey)
     const attachmentInfo = (m && m.get(selectedAttachmentView)) || noAttachmentView
-    const _teamMembers = state.teams.teamDetails.get(meta.teamID)?.members || noTeamMembers
+    const _teamMembers = state.teams.teamIDToMembers.get(meta.teamID) || noTeamMembers
     const _participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
     return {
       _attachmentInfo: attachmentInfo,
