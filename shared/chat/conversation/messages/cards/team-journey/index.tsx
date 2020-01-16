@@ -35,7 +35,7 @@ export const TeamJourney = (props: Props) => {
         onAuthorClick={props.onAuthorClick}
         onDismiss={props.onDismiss}
       />
-      <Kb.Box2 key="content" direction="vertical" fullWidth={true} style={styles.content}>
+      <Kb.Box2 key="content" direction="vertical" fullWidth={true} style={Styles.collapseStyles([styles.content, props.image ? styles.contentWithImage : null])}>
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.contentHorizontalPad}>
           <Kb.Box2 direction="horizontal" style={props.image ? styles.text : undefined}>
             {props.textComponent}
@@ -120,7 +120,6 @@ const styles = Styles.styleSheetCreate(
       actionsBox: Styles.platformStyles({
         common: {
           marginTop: Styles.globalMargins.tiny - buttonSpace,
-          minHeight: 50,
         },
         isElectron: {
           flexWrap: 'wrap',
@@ -174,12 +173,22 @@ const styles = Styles.styleSheetCreate(
             Styles.globalMargins.mediumLarge, // avatar
         },
       }),
-      image: {
-        left: '50%',
-        marginLeft: 15,
-        position: 'absolute',
-        top: 0,
+      contentWithImage: {
+        minHeight: 70,
       },
+      image: Styles.platformStyles({
+        common: {
+          position: 'absolute',
+          top: 0,
+        },
+        isElectron: {
+          left: '50%',
+          marginLeft: 15,
+        },
+        isMobile: {
+          right: 40,
+        },
+      }),
       teamnameText: Styles.platformStyles({
         common: {
           color: Styles.globalColors.black,
