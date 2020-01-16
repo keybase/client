@@ -920,7 +920,7 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 		// Create a bunch of blank convos
 		oldUILoader := tc.ChatG.UIInboxLoader
 		tc.ChatG.UIInboxLoader = types.DummyUIInboxLoader{}
-		convs := make(map[string]bool)
+		convs := make(map[chat1.ConvIDStr]bool)
 		for i := 0; i < numconvs; i++ {
 			var created chat1.ConversationInfoLocal
 			switch mt {
@@ -942,7 +942,7 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 					mt, ctc.as(t, users[i+1]).user())
 			}
 			t.Logf("created: %s", created.Id)
-			convs[created.Id.String()] = true
+			convs[created.Id.ConvIDStr()] = true
 
 			mustPostLocalForTest(t, ctc, users[i+1], created,
 				chat1.NewMessageBodyWithText(chat1.MessageText{
@@ -981,7 +981,7 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 			select {
 			case conv := <-ui.InboxCb:
 				require.NotNil(t, conv.ConvRes, "no conv")
-				delete(convs, conv.ConvID.String())
+				delete(convs, conv.ConvID.ConvIDStr())
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no conv received")
 			}
@@ -1010,7 +1010,7 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 				require.NotNil(t, conv.LocalMetadata)
 				switch mt {
 				case chat1.ConversationMembersType_TEAM:
-					if conv.ConvID == firstConv.Id.String() {
+					if conv.ConvID == firstConv.Id.ConvIDStr() {
 						continue
 					}
 					require.Equal(t, fmt.Sprintf("%d", numconvs-index-1), conv.LocalMetadata.ChannelName)
@@ -1031,7 +1031,7 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 			select {
 			case conv := <-ui.InboxCb:
 				require.NotNil(t, conv.ConvRes, "no conv")
-				delete(convs, conv.ConvID.String())
+				delete(convs, conv.ConvID.ConvIDStr())
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no conv received")
 			}
@@ -1059,11 +1059,11 @@ func TestChatSrvGetInboxNonblock(t *testing.T) {
 		defer func() { <-tc.ChatG.UIInboxLoader.Stop(ctx) }()
 
 		// Create a bunch of blank convos
-		convs := make(map[string]bool)
+		convs := make(map[chat1.ConvIDStr]bool)
 		for i := 0; i < numconvs; i++ {
 			created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 				mt, ctc.as(t, users[i+1]).user())
-			convs[created.Id.String()] = true
+			convs[created.Id.ConvIDStr()] = true
 		}
 
 		t.Logf("blank convos test")
@@ -1091,7 +1091,7 @@ func TestChatSrvGetInboxNonblock(t *testing.T) {
 			select {
 			case conv := <-ui.InboxCb:
 				require.NotNil(t, conv.ConvRes, "no conv")
-				delete(convs, conv.ConvID.String())
+				delete(convs, conv.ConvID.ConvIDStr())
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no conv received")
 			}
@@ -1100,11 +1100,11 @@ func TestChatSrvGetInboxNonblock(t *testing.T) {
 
 		// Send a bunch of messages
 		t.Logf("messages in convos test")
-		convs = make(map[string]bool)
+		convs = make(map[chat1.ConvIDStr]bool)
 		for i := 0; i < numconvs; i++ {
 			conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 				mt, ctc.as(t, users[i+1]).user())
-			convs[conv.Id.String()] = true
+			convs[conv.Id.ConvIDStr()] = true
 
 			_, err := ctc.as(t, users[0]).chatLocalHandler().PostLocal(ctx, chat1.PostLocalArg{
 				ConversationID: conv.Id,
@@ -1142,7 +1142,7 @@ func TestChatSrvGetInboxNonblock(t *testing.T) {
 			select {
 			case conv := <-ui.InboxCb:
 				require.NotNil(t, conv.ConvRes, "no conv")
-				delete(convs, conv.ConvID.String())
+				delete(convs, conv.ConvID.ConvIDStr())
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no conv received")
 			}
@@ -4937,14 +4937,14 @@ func TestChatSrvRetentionSweepTeam(t *testing.T) {
 			convExpirePolicy := policy
 			convRetainPolicy := chat1.NewRetentionPolicyWithRetain(chat1.RpRetain{})
 
-			latestMsgMap := make(map[string] /*convID*/ chat1.MessageID)
+			latestMsgMap := make(map[chat1.ConvIDStr]chat1.MessageID)
 			latestMsg := func(convID chat1.ConversationID) chat1.MessageID {
-				return latestMsgMap[convID.String()]
+				return latestMsgMap[convID.ConvIDStr()]
 			}
 			for i, conv := range convs {
 				t.Logf("conv (%v/%v) %v in team %v", i+1, len(convs), conv.Id, tlfIDToTeamIDForce(t, conv.Triple.Tlfid))
 				msgID := mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
-				latestMsgMap[conv.Id.String()] = msgID
+				latestMsgMap[conv.Id.ConvIDStr()] = msgID
 
 				ignoreTypes := []chat1.MessageType{chat1.MessageType_SYSTEM, chat1.MessageType_JOIN}
 				consumeNewMsgWhileIgnoring(t, listener, chat1.MessageType_TEXT, ignoreTypes, chat1.ChatActivitySource_REMOTE)

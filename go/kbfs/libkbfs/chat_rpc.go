@@ -44,7 +44,7 @@ type ChatRPC struct {
 	client   chat1.LocalInterface
 
 	convLock          sync.RWMutex
-	convCBs           map[string][]ChatChannelNewMessageCB
+	convCBs           map[chat1.ConvIDStr][]ChatChannelNewMessageCB
 	selfConvID        chat1.ConversationID
 	lastWrittenConvID chat1.ConversationID
 }
@@ -60,7 +60,7 @@ func NewChatRPC(config Config, kbCtx Context) *ChatRPC {
 		vlog:     config.MakeVLogger(log),
 		deferLog: deferLog,
 		config:   config,
-		convCBs:  make(map[string][]ChatChannelNewMessageCB),
+		convCBs:  make(map[chat1.ConvIDStr][]ChatChannelNewMessageCB),
 	}
 	conn := NewSharedKeybaseConnection(kbCtx, config, c)
 	c.client = chat1.LocalClient{Cli: conn.GetClient()}
@@ -619,7 +619,7 @@ func (c *ChatRPC) ReadChannel(
 // RegisterForMessages implements the Chat interface.
 func (c *ChatRPC) RegisterForMessages(
 	convID chat1.ConversationID, cb ChatChannelNewMessageCB) {
-	str := convID.String()
+	str := convID.ConvIDStr()
 	c.convLock.Lock()
 	defer c.convLock.Unlock()
 	c.convCBs[str] = append(c.convCBs[str], cb)
@@ -736,7 +736,7 @@ func (c *ChatRPC) NewChatActivity(
 		body := validMsg.MessageBody.Text().Body
 
 		c.convLock.RLock()
-		cbs := c.convCBs[msg.ConvID.String()]
+		cbs := c.convCBs[msg.ConvID.ConvIDStr()]
 		c.convLock.RUnlock()
 
 		// If this is on the self-write channel, cache it and we're

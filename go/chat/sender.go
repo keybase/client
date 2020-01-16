@@ -1794,10 +1794,10 @@ func (s *Deliverer) deliverLoop() {
 			continue
 		}
 
-		convMap := make(map[string][]chat1.OutboxRecord)
+		convMap := make(map[chat1.ConvIDStr][]chat1.OutboxRecord)
 		for _, o := range obrs {
 			obr := o
-			convMap[obr.ConvID.String()] = append(convMap[obr.ConvID.String()], obr)
+			convMap[obr.ConvID.ConvIDStr()] = append(convMap[obr.ConvID.ConvIDStr()], obr)
 		}
 
 		var eg errgroup.Group
