@@ -88,8 +88,8 @@ func (b *KVStoreRealBoxer) fetchRestrictedBotEncryptionKey(mctx libkb.MetaContex
 	keyer := mctx.G().GetTeambotBotKeyer()
 	var key keybase1.TeambotKey
 	if generation == nil {
-		fmt.Printf("\n... GetLatestTeambotKey: %+v, %+v, %+v\n", entryID.TeamID, entryID, keyer)
 		key, err = keyer.GetLatestTeambotKey(mctx, entryID.TeamID, keybase1.TeamApplication_KVSTORE)
+		fmt.Printf("\n... GetLatestTeambotKey: %+v, %+v, %+v\n", entryID, key, keyer)
 		if err != nil {
 			return res, gen, err
 		}

@@ -1932,66 +1932,66 @@ func (t *Team) storeTeamEKPayload(ctx context.Context, teamEKPayload *teamEKPayl
 // member list. Runs in the background on member addition or team rotation.
 func createTeambotKeys(g *libkb.GlobalContext, teamID keybase1.TeamID, bots []keybase1.UID) {
 	mctx := libkb.NewMetaContextBackground(g)
-	go func() {
-		var err error
-		defer mctx.TraceTimed(fmt.Sprintf("createTeambotKeys: %d bot members", len(bots)), func() error { return err })()
-		if len(bots) == 0 {
-			return
-		}
+	//////go func() {
+	var err error
+	defer mctx.TraceTimed(fmt.Sprintf("createTeambotKeys: %d bot members", len(bots)), func() error { return err })()
+	if len(bots) == 0 {
+		return
+	}
 
-		// Load the team in case we need to grab the latest PTK generation after a rotation.
-		team, err := Load(mctx.Ctx(), g, keybase1.LoadTeamArg{
-			ID: teamID,
-		})
-		if err != nil {
-			return
-		}
+	// Load the team in case we need to grab the latest PTK generation after a rotation.
+	team, err := Load(mctx.Ctx(), g, keybase1.LoadTeamArg{
+		ID: teamID,
+	})
+	if err != nil {
+		return
+	}
 
-		ekLib := mctx.G().GetEKLib()
-		keyer := mctx.G().GetTeambotMemberKeyer()
-		makeChatKey, makeKVStoreKey := true, true
-		chatKey, err := team.ChatKey(mctx.Ctx())
-		if err != nil {
-			mctx.Debug("unable to get teamApplication key %v, aborting TeambotKey appkey creation", err)
-			makeChatKey = false
-		}
-		kvStoreKey, err := team.ApplicationKey(mctx.Ctx(), keybase1.TeamApplication_KVSTORE)
-		if err != nil {
-			mctx.Debug("unable to get teamApplication key %v, aborting TeambotKey creation", err)
-			makeKVStoreKey = false
-		}
+	ekLib := mctx.G().GetEKLib()
+	keyer := mctx.G().GetTeambotMemberKeyer()
+	makeChatKey, makeKVStoreKey := true, true
+	chatKey, err := team.ChatKey(mctx.Ctx())
+	if err != nil {
+		mctx.Debug("unable to get teamApplication key %v, aborting TeambotKey appkey creation", err)
+		makeChatKey = false
+	}
+	kvStoreKey, err := team.ApplicationKey(mctx.Ctx(), keybase1.TeamApplication_KVSTORE)
+	if err != nil {
+		mctx.Debug("unable to get teamApplication key %v, aborting TeambotKey creation", err)
+		makeKVStoreKey = false
+	}
 
-		for _, uid := range bots {
-			guid := gregor1.UID(uid.ToBytes())
-			if ekLib != nil {
-				if teambotEK, created, err := ekLib.GetOrCreateLatestTeambotEK(mctx, teamID, guid); err != nil {
-					mctx.Debug("unable to GetOrCreateLatestTeambotEK for %v, %v", guid, err)
+	for _, uid := range bots {
+		guid := gregor1.UID(uid.ToBytes())
+		if ekLib != nil {
+			if teambotEK, created, err := ekLib.GetOrCreateLatestTeambotEK(mctx, teamID, guid); err != nil {
+				mctx.Debug("unable to GetOrCreateLatestTeambotEK for %v, %v", guid, err)
+			} else {
+				mctx.Debug("published TeambotEK generation %d for %v, newly created: %v", teambotEK.Generation(), uid, created)
+			}
+		}
+		if keyer != nil {
+			if makeChatKey {
+				if teambotKey, created, err := keyer.GetOrCreateTeambotKey(mctx, teamID, guid, chatKey); err != nil {
+					mctx.Debug("unable to GetOrCreateTeambotKey application %v, uid: %v, %v",
+						keybase1.TeamApplication_CHAT, guid, err)
 				} else {
-					mctx.Debug("published TeambotEK generation %d for %v, newly created: %v", teambotEK.Generation(), uid, created)
+					mctx.Debug("published TeambotKey app: %v generation %d for %v, newly created: %v",
+						keybase1.TeamApplication_CHAT, teambotKey.Generation(), uid, created)
 				}
 			}
-			if keyer != nil {
-				if makeChatKey {
-					if teambotKey, created, err := keyer.GetOrCreateTeambotKey(mctx, teamID, guid, chatKey); err != nil {
-						mctx.Debug("unable to GetOrCreateTeambotKey application %v, uid: %v, %v",
-							keybase1.TeamApplication_CHAT, guid, err)
-					} else {
-						mctx.Debug("published TeambotKey app: %v generation %d for %v, newly created: %v",
-							keybase1.TeamApplication_CHAT, teambotKey.Generation(), uid, created)
-					}
-				}
-				if makeKVStoreKey {
-					if teambotKey, created, err := keyer.GetOrCreateTeambotKey(mctx, teamID, guid, kvStoreKey); err != nil {
-						mctx.Debug("unable to GetOrCreateTeambotKey application %v, uid: %v, %v",
-							keybase1.TeamApplication_KVSTORE, guid, err)
-					} else {
-						mctx.Debug("published TeambotKey app: %v generation %d for %v, newly created: %v",
-							keybase1.TeamApplication_KVSTORE, teambotKey.Generation(), uid, created)
-					}
+			if makeKVStoreKey {
+				if teambotKey, created, err := keyer.GetOrCreateTeambotKey(mctx, teamID, guid, kvStoreKey); err != nil {
+					mctx.Debug("unable to GetOrCreateTeambotKey application %v, uid: %v, %v",
+						keybase1.TeamApplication_KVSTORE, guid, err)
+				} else {
+					mctx.Debug("published TeambotKey app: %v generation %d for %v, newly created: %v",
+						keybase1.TeamApplication_KVSTORE, teambotKey.Generation(), uid, created)
 				}
 			}
 		}
-	}()
+	}
+	/////	}()
 }
 
 type sigPayloadArgs struct {

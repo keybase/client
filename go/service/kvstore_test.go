@@ -859,7 +859,6 @@ func TestKVStoreMultiUserAndRestrictedBotTeam(t *testing.T) {
 	require.NoError(t, err)
 	_, err = teams.AddMember(ctx, tcAlice.G, teamName, rbot.Username, keybase1.TeamRole_RESTRICTEDBOT, &settings)
 	require.NoError(t, err)
-
 	t.Logf("%s created team %s:%s", alice.Username, teamName, teamID)
 
 	// Alice puts a secret
