@@ -10,7 +10,7 @@ const _renderRightActions = () => {
   )
 }
 
-// See '.js.flow' for explanation
+// See './index.d.ts' for explanation
 const LongPressable = (props: {children: React.ElementType; onSwipeLeft?: () => void}) => {
   const {children, ...rest} = props
   const swipeable = React.useRef<Kb.Swipeable>(null)
@@ -18,21 +18,29 @@ const LongPressable = (props: {children: React.ElementType; onSwipeLeft?: () => 
     props.onSwipeLeft && props.onSwipeLeft()
     swipeable.current && swipeable.current.close()
   }
-  return (
-    <Kb.Swipeable
-      ref={swipeable}
-      renderRightActions={_renderRightActions}
-      onSwipeableRightWillOpen={onRightOpen}
-      friction={2}
-      rightThreshold={100}
-      // @ts-ignore failOffsetX exists in GestureHandler but not swipable
-      failOffsetX={0}
-    >
-      <Kb.NativeTouchableHighlight key="longPressbale" {...rest}>
-        <Kb.NativeView style={styles.view}>{children}</Kb.NativeView>
-      </Kb.NativeTouchableHighlight>
-    </Kb.Swipeable>
+  const inner = (
+    <Kb.NativeTouchableHighlight key="longPressbale" {...rest}>
+      <Kb.NativeView style={styles.view}>{children}</Kb.NativeView>
+    </Kb.NativeTouchableHighlight>
   )
+  // Only swipeable if there is an onSwipeLeft handler.
+  if (props.onSwipeLeft) {
+    return (
+      <Kb.Swipeable
+        ref={swipeable}
+        renderRightActions={_renderRightActions}
+        onSwipeableRightWillOpen={onRightOpen}
+        friction={2}
+        rightThreshold={100}
+        // @ts-ignore failOffsetX exists in GestureHandler but not swipable
+        failOffsetX={0}
+      >
+        {inner}
+      </Kb.Swipeable>
+    )
+  } else {
+    return inner
+  }
 }
 
 const styles = Styles.styleSheetCreate(

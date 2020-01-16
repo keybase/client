@@ -1,3 +1,4 @@
+import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
@@ -27,10 +28,10 @@ export default Container.connect(
         dispatch(RouteTreeGen.createNavigateAppend({path: [teamsTab, {props: {teamID}, selected: 'team'}]}))
       } else {
         dispatch(
-          RouteTreeGen.createNavigateAppend({
-            path: [
-              {props: {conversationIDKey: conversationIDKey, tab: 'settings'}, selected: 'chatInfoPanel'},
-            ],
+          Chat2Gen.createShowInfoPanel({
+            conversationIDKey,
+            show: true,
+            tab: 'settings',
           })
         )
       }

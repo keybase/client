@@ -173,6 +173,8 @@ func homeStateLessThan(a *homeStateBody, b homeStateBody) bool {
 
 func (b *BadgeState) ConversationBadgeStr(ctx context.Context, convIDStr string,
 	deviceType keybase1.DeviceType) int {
+	b.Lock()
+	defer b.Unlock()
 	if info, ok := b.chatUnreadMap[convIDStr]; ok {
 		return info.BadgeCounts[deviceType]
 	}

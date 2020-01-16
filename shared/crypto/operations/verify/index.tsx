@@ -46,7 +46,7 @@ const Verify = (props: Props) => {
           ) : (
             <TextInput
               value={inputValue}
-              placeholder="Paste a signed message or drop a file you want to verify"
+              placeholder="Enter a signed message, drop a signed file, or"
               textType="cipher"
               operation={Constants.Operations.Verify}
               onSetFile={path => {
@@ -60,7 +60,12 @@ const Verify = (props: Props) => {
           )}
           <Kb.Divider />
           <Kb.Box2 direction="vertical" fullHeight={true}>
-            <SignedSender signed={true} signedBy={props.outputSender} outputStatus={props.outputStatus} />
+            <SignedSender
+              signed={true}
+              signedBy={props.outputSender}
+              operation={Constants.Operations.Verify}
+              outputStatus={props.outputStatus}
+            />
             <OperationOutput
               outputStatus={props.outputStatus}
               output={props.output}

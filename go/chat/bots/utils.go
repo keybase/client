@@ -47,22 +47,8 @@ func ApplyTeamBotSettings(ctx context.Context, g *globals.Context, botUID gregor
 
 	// First make sure bot can receive on the given conversation. This ID may
 	// be null if we are creating the conversation.
-	if convID != nil {
-		convAllowed := len(botSettings.Convs) == 0
-		for _, convIDStr := range botSettings.Convs {
-			cid, err := chat1.MakeConvID(convIDStr)
-			if err != nil {
-				debug.Debug(ctx, "unable to parse convID: %v", err)
-				continue
-			}
-			if cid.Eq(*convID) {
-				convAllowed = true
-				break
-			}
-		}
-		if !convAllowed {
-			return false, nil
-		}
+	if convID != nil && !botSettings.ConvIDAllowed(convID.String()) {
+		return false, nil
 	}
 
 	// If the sender is the bot, always match

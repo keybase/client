@@ -3,6 +3,8 @@ import * as Types from './types/crypto'
 import HiddenString from '../util/hidden-string'
 import {IconType} from '../common-adapters/icon.constants-gen'
 
+export const saltpackDocumentation = 'https://saltpack.org'
+
 export const encryptTab = 'encryptTab'
 export const decryptTab = 'decryptTab'
 export const signTab = 'signTab'

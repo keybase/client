@@ -1,3 +1,4 @@
+// OMG refactor this
 import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
 import * as Styles from '../../../styles'
@@ -148,19 +149,18 @@ const TabText = ({selected, text}: {selected: boolean; text: string}) => (
 )
 
 class _InfoPanel extends React.PureComponent<InfoPanelProps> {
-  private animationDelayLoad: NodeJS.Timeout | undefined
-  componentDidMount() {
-    this.animationDelayLoad = setTimeout(() => {
-      if (this.props.selectedTab === 'attachments') {
-        this.loadAttachments()
-      }
-      if (this.props.selectedTab === 'bots') {
-        this.loadBots()
-      }
-    }, this.props.loadDelay || 0)
+  componentDidUpdate(prevProps: InfoPanelProps) {
+    if (this.props.selectedConversationIDKey !== prevProps.selectedConversationIDKey) {
+      this.loadAttachments()
+    }
   }
-  componentWillUnmount() {
-    this.animationDelayLoad && clearTimeout(this.animationDelayLoad)
+  componentDidMount() {
+    if (this.props.selectedTab === 'attachments') {
+      this.loadAttachments()
+    }
+    if (this.props.selectedTab === 'bots') {
+      this.loadBots()
+    }
   }
 
   private loadAttachments = () => {
@@ -237,14 +237,15 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
         {entityType === 'small team' || entityType === 'channel' ? (
           <TeamHeader
             admin={this.props.admin}
-            teamname={this.props.teamname}
             channelname={this.props.channelname}
             conversationIDKey={this.props.selectedConversationIDKey}
-            isSmallTeam={entityType === 'small team'}
-            isPreview={this.props.isPreview}
-            participantCount={this.props.participants.length}
-            onJoinChannel={this.props.onJoinChannel}
             description={this.props.description}
+            isPreview={this.props.isPreview}
+            isSmallTeam={entityType === 'small team'}
+            onJoinChannel={this.props.onJoinChannel}
+            participantCount={this.props.participants.length}
+            teamID={this.props.teamID}
+            teamname={this.props.teamname}
           />
         ) : (
           <AdhocHeader
@@ -541,10 +542,11 @@ const styles = Styles.styleSheetCreate(
         marginTop: Styles.globalMargins.tiny,
       },
       container: Styles.platformStyles({
-        common: {alignItems: 'stretch', flex: 1, paddingBottom: Styles.globalMargins.tiny},
+        common: {alignItems: 'stretch', paddingBottom: Styles.globalMargins.tiny},
         isElectron: {
           backgroundColor: Styles.globalColors.white,
           borderLeft: `1px solid ${Styles.globalColors.black_10}`,
+          width: 320,
         },
       }),
       tabContainerStyle: Styles.platformStyles({
@@ -553,7 +555,7 @@ const styles = Styles.styleSheetCreate(
         },
         // TODO: this is less than ideal
         isElectron: {
-          overflowX: 'scroll',
+          overflowX: 'hidden',
           overflowY: 'hidden',
         },
       }),

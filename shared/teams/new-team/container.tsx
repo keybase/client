@@ -14,7 +14,7 @@ export default Container.connect(
     const baseTeam = Constants.getTeamDetails(state, subteamOf).teamname
     return {
       baseTeam,
-      errorText: upperFirst(state.teams.teamCreationError),
+      errorText: upperFirst(state.teams.errorInTeamCreation),
     }
   },
   dispatch => ({

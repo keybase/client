@@ -387,6 +387,10 @@
       "name": "TeamDetails",
       "fields": [
         {
+          "type": "string",
+          "name": "name"
+        },
+        {
           "type": "TeamMembersDetails",
           "name": "members"
         },
@@ -3186,6 +3190,19 @@
         {
           "name": "name",
           "type": "string"
+        }
+      ],
+      "response": "TeamMembersDetails"
+    },
+    "teamGetMembersByID": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "id",
+          "type": "TeamID"
         }
       ],
       "response": "TeamMembersDetails"

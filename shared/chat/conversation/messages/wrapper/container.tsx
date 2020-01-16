@@ -132,11 +132,12 @@ export default Container.namedConnect(
       centeredOrdinalInfo && centeredOrdinalInfo.ordinal === ordinal
         ? centeredOrdinalInfo.highlightMode
         : 'none'
+    // TODO: possibly useTeamSubscribe here
     const meta = Constants.getMeta(state, conversationIDKey)
-    const {teamname, botAliases} = meta
-    const authorIsAdmin = teamname ? TeamConstants.userIsRoleInTeam(state, teamname, author, 'admin') : false
+    const {teamname, teamID, botAliases} = meta
+    const authorIsAdmin = teamname ? TeamConstants.userIsRoleInTeam(state, teamID, author, 'admin') : false
     const authorIsBot = Constants.messageAuthorIsBot(state, meta, message, _participantInfo)
-    const authorIsOwner = teamname ? TeamConstants.userIsRoleInTeam(state, teamname, author, 'owner') : false
+    const authorIsOwner = teamname ? TeamConstants.userIsRoleInTeam(state, teamID, author, 'owner') : false
     const ordinals = [...Constants.getMessageOrdinals(state, conversationIDKey)]
     const botAlias = botAliases[author] ?? ''
     return {
@@ -224,7 +225,10 @@ export default Container.namedConnect(
       onCancel,
       onEdit: resolveByEdit ? () => dispatchProps._onEdit(conversationIDKey, ordinal) : undefined,
       onRetry,
-      onSwipeLeft: () => dispatchProps._onSwipeLeft(conversationIDKey, ordinal),
+      onSwipeLeft:
+        stateProps.message.type !== 'journeycard'
+          ? () => dispatchProps._onSwipeLeft(message.conversationIDKey, message.ordinal)
+          : undefined,
       orangeLineAbove,
       previous,
       shouldShowPopup,
