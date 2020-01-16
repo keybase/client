@@ -1,13 +1,16 @@
 package client
 
-const kvStoreAPIDoc = `"keybase kvstore api" provides a JSON API to fast, encrypted key-value storage. Values are encrypted with per-team-keys, but namespaces and entry keys are visible to keybase servers. This is very much a work in progress right now, and the API is subject to change.
+const kvStoreAPIDoc = `"keybase kvstore api" provides a JSON API to fast, encrypted key-value storage. The "entryKey" and "namespace" fields are visible to the Keybase servers, "entryValue" is encrypted with the per-team-key. This is still a bit of a work in progress.
 
 EXAMPLES:
 
 Get an entry (always returns the latest revision, non-existent entries have a revision of 0):
 	{"method": "get", "params": {"options": {"team": "phoenix", "namespace": "pw-manager", "entryKey": "geocities"}}}
 
-Put an entry (reads value from stdin):
+Put an entry in your implicit self-team (only your user can see and decrypt this):
+	{"method": "put", "params": {"options": {"team": "yourusername,yourusername", "namespace": "pw-manager", "entryKey": "geocities", "entryValue": "all my secrets"}}}
+
+Put an encrypted entry for anyone in team phoenix:
 	{"method": "put", "params": {"options": {"team": "phoenix", "namespace": "pw-manager", "entryKey": "geocities", "entryValue": "all my secrets"}}}
 
 Put an entry (specifying a non-zero revision enables custom concurrency behavior, e.g. 1 will throw an error if the entry already exists):
