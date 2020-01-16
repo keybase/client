@@ -225,7 +225,10 @@ export default Container.namedConnect(
       onCancel,
       onEdit: resolveByEdit ? () => dispatchProps._onEdit(conversationIDKey, ordinal) : undefined,
       onRetry,
-      onSwipeLeft: () => dispatchProps._onSwipeLeft(conversationIDKey, ordinal),
+      onSwipeLeft:
+        stateProps.message.type !== 'journeycard'
+          ? () => dispatchProps._onSwipeLeft(message.conversationIDKey, message.ordinal)
+          : undefined,
       orangeLineAbove,
       previous,
       shouldShowPopup,
