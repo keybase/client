@@ -36,7 +36,7 @@ type CmdWhoami struct {
 
 func (c *CmdWhoami) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) > 0 {
-		return UnexpectedArgsError("status")
+		return UnexpectedArgsError("whoami")
 	}
 	c.uid = ctx.Bool("uid")
 	return nil
@@ -56,11 +56,13 @@ func (c *CmdWhoami) Run() error {
 		return errors.New("logged out")
 	}
 	dui := c.G().UI.GetDumbOutputUI()
+	var msg string
 	if c.uid {
-		dui.Printf("%s\n", status.User.Uid)
-		return nil
+		msg = string(status.User.Uid)
+	} else {
+		msg = status.User.Username
 	}
-	dui.Printf("%s\n", status.User.Username)
+	dui.Printf("%s\n", msg)
 	return nil
 }
 
