@@ -21,6 +21,13 @@ type FileProps = {
   onClearFiles: () => void
 }
 
+const operationToEmptyInputWidth = {
+  [Constants.Operations.Encrypt]: 161,
+  [Constants.Operations.Decrypt]: 274,
+  [Constants.Operations.Sign]: 161,
+  [Constants.Operations.Verify]: 296,
+}
+
 /*
  * Before user enters text:
  *  - Single line input
@@ -30,7 +37,8 @@ type FileProps = {
  *  - Multiline input
  */
 const TextInput = (props: TextProps) => {
-  const {value, placeholder, onChangeText, onSetFile, textType} = props
+  const {value, placeholder, operation, onChangeText, onSetFile} = props
+  const emptyWidth = operationToEmptyInputWidth[operation]
 
   // When 'browse file' is show, focus input by clicking anywhere in the input box
   // (despite the input being one line tall)
@@ -61,48 +69,60 @@ const TextInput = (props: TextProps) => {
       filePickerRef.current.click()
     }
   }, [filePickerRef])
+
   return (
     <Kb.Box onClick={onFocusInput} style={styles.containerInputFocus}>
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.commonContainer}>
-        {props.value && (
+        {value && (
           <Kb.Text
             type="BodySmallPrimaryLink"
-            onClick={() => props.onChangeText('')}
+            onClick={() => onChangeText('')}
             style={styles.clearButtonTextInput}
           >
             Clear
           </Kb.Text>
         )}
-        <Kb.NewInput
-          value={value}
-          placeholder={placeholder}
-          multiline={true}
-          rowsMax={value ? undefined : 1}
-          autoFocus={true}
-          hideBorder={true}
-          growAndScroll={true}
-          padding="tiny"
-          textType={textType === 'cipher' ? 'Terminal' : 'Body'}
-          containerStyle={value ? styles.inputContainer : styles.inputContainerEmpty}
-          style={Styles.collapseStyles([styles.input, !value && styles.inputEmpty])}
-          onChangeText={onChangeText}
-          ref={inputRef}
-        />
-        {!props.value && (
-          <>
-            <input
-              type="file"
-              accept="*"
-              ref={filePickerRef}
-              multiple={false}
-              onChange={selectFile}
-              style={styles.hidden}
-            />
-            <Kb.Text type="BodyPrimaryLink" onClick={openFilePicker} style={styles.browseFile}>
-              Or browse a file.
-            </Kb.Text>
-          </>
-        )}
+        <Kb.Box2
+          direction="horizontal"
+          fullWidth={false}
+          fullHeight={!!value}
+          alignItems="flex-start"
+          alignSelf="flex-start"
+        >
+          <Kb.NewInput
+            value={value}
+            placeholder={placeholder}
+            multiline={true}
+            rowsMax={value ? undefined : 1}
+            autoFocus={true}
+            hideBorder={true}
+            growAndScroll={true}
+            padding="tiny"
+            containerStyle={value ? styles.inputContainer : styles.inputContainerEmpty}
+            style={Styles.collapseStyles([
+              styles.input,
+              !value && styles.inputEmpty,
+              !value && {width: emptyWidth},
+            ])}
+            onChangeText={onChangeText}
+            ref={inputRef}
+          />
+          {!value && (
+            <>
+              <input
+                type="file"
+                accept="*"
+                ref={filePickerRef}
+                multiple={false}
+                onChange={selectFile}
+                style={styles.hidden}
+              />
+              <Kb.Text type="BodyPrimaryLink" onClick={openFilePicker} style={styles.browseFile}>
+                browse for one
+              </Kb.Text>
+            </>
+          )}
+        </Kb.Box2>
       </Kb.Box2>
     </Kb.Box>
   )
@@ -145,8 +165,9 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       browseFile: {
-        paddingLeft: Styles.globalMargins.tiny,
-        paddingRight: Styles.globalMargins.tiny,
+        flexShrink: 0,
+        height: 26,
+        paddingTop: 7,
       },
       clearButtonFileInput: {
         position: 'absolute',
@@ -191,7 +212,7 @@ const styles = Styles.styleSheetCreate(
         minHeight: 'initial',
         paddingBottom: 0,
         paddingLeft: Styles.globalMargins.tiny,
-        paddingRight: Styles.globalMargins.tiny,
+        paddingRight: 0,
         paddingTop: Styles.globalMargins.tiny,
       },
     } as const)

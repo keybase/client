@@ -38,6 +38,9 @@ const Sign = (props: Props) => {
         prompt="Drop a file to sign"
       >
         <Kb.Box2 direction="vertical" fullHeight={true}>
+          <Kb.Banner color="grey">
+            <Kb.Text type="BodySmallSemibold">We'll add your signature.</Kb.Text>
+          </Kb.Banner>
           {props.inputType === 'file' ? (
             <FileInput
               path={props.input}
@@ -47,7 +50,7 @@ const Sign = (props: Props) => {
           ) : (
             <TextInput
               value={inputValue}
-              placeholder="Write, paste, or drop a file. We'll add your signature."
+              placeholder="Enter text, drop a file, or"
               textType="plain"
               operation={Constants.Operations.Sign}
               onSetFile={path => {

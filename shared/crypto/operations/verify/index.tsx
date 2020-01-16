@@ -46,7 +46,7 @@ const Verify = (props: Props) => {
           ) : (
             <TextInput
               value={inputValue}
-              placeholder="Paste a signed message or drop a file you want to verify"
+              placeholder="Enter a signed message, drop a signed file, or"
               textType="cipher"
               operation={Constants.Operations.Verify}
               onSetFile={path => {

@@ -74,7 +74,7 @@ const Encrypt = (props: Props) => {
         prompt="Drop a file to encrypt"
       >
         <Kb.Banner color="grey">
-          <Kb.Text type="BodySmallSemibold"> Encrypt to anyone, even if they're not on Keybase yet. </Kb.Text>
+          <Kb.Text type="BodySmallSemibold">Encrypt to anyone, even if they're not on Keybase yet.</Kb.Text>
         </Kb.Banner>
         <Recipients operation="encrypt" />
         <Kb.Box2 direction="vertical" fullHeight={true}>
@@ -87,9 +87,9 @@ const Encrypt = (props: Props) => {
           ) : (
             <TextInput
               value={inputValue}
-              placeholder="Write, paste, or drop a file you want to encrypt"
-              operation={Constants.Operations.Encrypt}
               textType="plain"
+              placeholder="Enter text, drop a file, or"
+              operation={Constants.Operations.Encrypt}
               onSetFile={path => {
                 props.onSetInput('file', path)
               }}
