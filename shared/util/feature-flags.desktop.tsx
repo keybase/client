@@ -15,6 +15,7 @@ const ff: FeatureFlags = {
   botUI: false,
   chatIndexProfilingEnabled: false,
   connectThrashCheck: false,
+  cryptoTab: true,
   dbCleanEnabled: false,
   fastAccountSwitch: true,
   foldersInProfileTab: false,
