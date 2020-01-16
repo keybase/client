@@ -70,6 +70,13 @@ func (m MembershipUpdateRes) AllOtherUsers() (res []gregor1.UID) {
 	return res
 }
 
+type InboxSourceSearchEmptyMode int
+
+const (
+	InboxSourceSearchEmptyModeUnread InboxSourceSearchEmptyMode = iota
+	InboxSourceSearchEmptyModeAll
+)
+
 type InboxSourceDataSourceTyp int
 
 const (

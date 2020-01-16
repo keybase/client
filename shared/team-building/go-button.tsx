@@ -1,15 +1,14 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
-
-type Label = 'Start' | 'Add'
+import {GoButtonLabel} from '../constants/types/team-building'
 
 export type Props = {
   onClick: () => void
-  label: Label
+  label: GoButtonLabel
 }
 
-const Go = (props: {label: Label}) => (
+const Go = (props: {label: GoButtonLabel}) => (
   <Kb.Text type="BodyBig" style={styles.go}>
     {props.label}
   </Kb.Text>
@@ -32,7 +31,7 @@ const GoButton = (props: Props) => (
       containerStyle={styles.goTooltipIconContainer}
     >
       <Kb.Box2 direction="vertical" fullHeight={true} centerChildren={true}>
-        {props.label === 'Start' ? <Go label="Start" /> : <Go label="Add" />}
+        <Go label={props.label} />
       </Kb.Box2>
     </Kb.WithTooltip>
   </Kb.ClickableBox>

@@ -12,7 +12,7 @@ import * as TeamConstants from '../../../constants/teams'
 import * as TeamTypes from '../../../constants/types/teams'
 import * as Types from '../../../constants/types/chat2'
 import flags from '../../../util/feature-flags'
-import {InfoPanel, Panel, ParticipantTyp} from '.'
+import {InfoPanel, Panel, ParticipantTyp, InfoPanelProps} from '.'
 import {createShowUserProfile} from '../../../actions/profile-gen'
 
 // TODO this container does a ton of stuff for the various tabs. Really the tabs should be connected
@@ -38,9 +38,10 @@ const getFromMsgID = (info: Types.AttachmentViewInfo): Types.MessageID | null =>
 }
 
 const noAttachmentView = Constants.makeAttachmentViewInfo()
-const noDocs = {docs: [], onLoadMore: () => {}, status: 'loading'}
-const noLinks = {links: [], onLoadMore: () => {}, status: 'loading'}
-const noMedia = {onLoadMore: () => {}, status: 'loading', thumbs: []}
+const loading: Types.AttachmentViewStatus = 'loading'
+const noDocs = {docs: [], onLoadMore: () => {}, status: loading}
+const noLinks = {links: [], onLoadMore: () => {}, status: loading}
+const noMedia = {onLoadMore: () => {}, status: loading, thumbs: []}
 const noTeamMembers = new Map<string, TeamTypes.MemberInfo>()
 
 const ConnectedInfoPanel = Container.connect(
@@ -71,8 +72,7 @@ const ConnectedInfoPanel = Container.connect(
     const selectedAttachmentView = ownProps.selectedAttachmentView || RPCChatTypes.GalleryItemTyp.media
     const m = state.chat2.attachmentViewMap.get(conversationIDKey)
     const attachmentInfo = (m && m.get(selectedAttachmentView)) || noAttachmentView
-    const attachmentsLoading = selectedTab === 'attachments' && attachmentInfo.status === 'loading'
-    const _teamMembers = state.teams.teamNameToMembers.get(meta.teamname) || noTeamMembers
+    const _teamMembers = state.teams.teamDetails.get(meta.teamID)?.members || noTeamMembers
     const _participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
     return {
       _attachmentInfo: attachmentInfo,
@@ -86,7 +86,6 @@ const ConnectedInfoPanel = Container.connect(
       _username: state.config.username,
       adhocTeam: meta.teamType === 'adhoc',
       admin,
-      attachmentsLoading,
       canDeleteHistory,
       canEditChannel,
       canManageBots,
@@ -262,9 +261,8 @@ const ConnectedInfoPanel = Container.connect(
         participants = participants.filter(p => !botUsernames.includes(p))
       }
     }
-    return {
+    const p: InfoPanelProps = {
       admin: stateProps.admin,
-      attachmentsLoading: stateProps.attachmentsLoading,
       canDeleteHistory: stateProps.canDeleteHistory,
       canEditChannel: stateProps.canEditChannel,
       canManageBots: stateProps.canManageBots,
@@ -289,7 +287,9 @@ const ConnectedInfoPanel = Container.connect(
                       ? () => dispatchProps._onDocDownload(m)
                       : () => null,
                   onShowInFinder:
-                    !Container.isMobile && m.downloadPath ? () => dispatchProps._onShowInFinder(m) : null,
+                    !Container.isMobile && m.downloadPath
+                      ? () => dispatchProps._onShowInFinder(m)
+                      : undefined,
                   progress: m.transferProgress,
                 })),
               onLoadMore: stateProps._fromMsgID
@@ -298,7 +298,7 @@ const ConnectedInfoPanel = Container.connect(
                       RPCChatTypes.GalleryItemTyp.doc,
                       stateProps._fromMsgID ?? undefined
                     )
-                : null,
+                : undefined,
               status: stateProps._attachmentInfo.status,
             }
           : noDocs,
@@ -319,7 +319,7 @@ const ConnectedInfoPanel = Container.connect(
                   l.push({
                     author: m.author,
                     ctime: m.timestamp,
-                    snippet: (m.decoratedText && m.decoratedText.stringValue()) || '',
+                    snippet: (m.decoratedText && m.decoratedText.stringValue()) ?? '',
                   })
                 } else {
                   ;[...m.unfurls.values()].forEach(u => {
@@ -327,7 +327,7 @@ const ConnectedInfoPanel = Container.connect(
                       l.push({
                         author: m.author,
                         ctime: m.timestamp,
-                        snippet: (m.decoratedText && m.decoratedText.stringValue()) || '',
+                        snippet: (m.decoratedText && m.decoratedText.stringValue()) ?? '',
                         title: u.unfurl.generic.title,
                         url: u.unfurl.generic.url,
                       })
@@ -342,7 +342,7 @@ const ConnectedInfoPanel = Container.connect(
                       RPCChatTypes.GalleryItemTyp.link,
                       stateProps._fromMsgID ?? undefined
                     )
-                : null,
+                : undefined,
               status: stateProps._attachmentInfo.status,
             }
           : noLinks,
@@ -358,7 +358,7 @@ const ConnectedInfoPanel = Container.connect(
                       RPCChatTypes.GalleryItemTyp.media,
                       stateProps._fromMsgID ?? undefined
                     )
-                : null,
+                : undefined,
               status: stateProps._attachmentInfo.status,
               thumbs: (stateProps._attachmentInfo.messages as Array<Types.MessageAttachment>) // TODO dont use this cast
                 .map(m => ({
@@ -420,11 +420,12 @@ const ConnectedInfoPanel = Container.connect(
       showAuditingBanner,
       smallTeam: stateProps.smallTeam,
       spinnerForHide: stateProps.spinnerForHide,
+      teamID: stateProps.teamID,
       teamname: stateProps.teamname,
     }
+    return p
   }
-  // TODO fix this type
-)(InfoPanel) as any
+)(InfoPanel)
 
 type SelectorOwnProps =
   | Container.RouteProps<{

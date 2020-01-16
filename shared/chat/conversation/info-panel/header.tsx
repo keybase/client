@@ -1,20 +1,24 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
+import * as TeamsTypes from '../../../constants/types/teams'
 import InfoPanelMenu from './menu/container'
 import * as ChatTypes from '../../../constants/types/chat2'
 import AddPeople from './add-people'
+import {useTeamDetailsSubscribe} from '../../../teams/subscriber'
+import {pluralize} from '../../../util/string'
 
 type SmallProps = {
   admin: boolean
-  teamname?: string
   channelname?: string
   conversationIDKey: ChatTypes.ConversationIDKey
   description?: string
-  participantCount: number
   isPreview: boolean
   isSmallTeam: boolean
   onJoinChannel: () => void
+  participantCount: number
+  teamID: TeamsTypes.TeamID
+  teamname?: string
 } & Kb.OverlayParentProps
 
 const gearIconSize = Styles.isMobile ? 24 : 16
@@ -25,6 +29,7 @@ const _TeamHeader = (props: SmallProps) => {
     title += '#' + props.channelname
   }
   const isGeneralChannel = !!(props.channelname && props.channelname === 'general')
+  useTeamDetailsSubscribe(props.teamID)
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
       <Kb.Box2 direction="horizontal" style={styles.smallContainer} fullWidth={true}>
@@ -41,7 +46,11 @@ const _TeamHeader = (props: SmallProps) => {
           teamname={props.teamname}
           onClick="profile"
           title={title}
-          metaOne={props.participantCount.toString() + ' member' + (props.participantCount !== 1 ? 's' : '')}
+          metaOne={
+            props.participantCount
+              ? `${props.participantCount} ${pluralize('member', props.participantCount)}`
+              : 'Loading...'
+          }
         />
         <Kb.Icon
           type="iconfont-gear"

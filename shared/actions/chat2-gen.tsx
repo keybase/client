@@ -12,11 +12,10 @@ export const resetStore = 'common:resetStore' // not a part of chat2 but is hand
 export const typePrefix = 'chat2:'
 export const addAttachmentViewMessage = 'chat2:addAttachmentViewMessage'
 export const addBotMember = 'chat2:addBotMember'
+export const addUserToChannel = 'chat2:addUserToChannel'
 export const addUsersToChannel = 'chat2:addUsersToChannel'
 export const attachmentDownload = 'chat2:attachmentDownload'
 export const attachmentDownloaded = 'chat2:attachmentDownloaded'
-export const attachmentFullscreenNext = 'chat2:attachmentFullscreenNext'
-export const attachmentFullscreenSelection = 'chat2:attachmentFullscreenSelection'
 export const attachmentLoading = 'chat2:attachmentLoading'
 export const attachmentMobileSave = 'chat2:attachmentMobileSave'
 export const attachmentMobileSaved = 'chat2:attachmentMobileSaved'
@@ -41,6 +40,7 @@ export const deselectConversation = 'chat2:deselectConversation'
 export const desktopNotification = 'chat2:desktopNotification'
 export const dismissBlockButtons = 'chat2:dismissBlockButtons'
 export const dismissBottomBanner = 'chat2:dismissBottomBanner'
+export const dismissJourneycard = 'chat2:dismissJourneycard'
 export const editBotSettings = 'chat2:editBotSettings'
 export const enableAudioRecording = 'chat2:enableAudioRecording'
 export const findGeneralConvIDFromTeamID = 'chat2:findGeneralConvIDFromTeamID'
@@ -194,6 +194,10 @@ type _AddBotMemberPayload = {
   readonly username: string
   readonly restricted: boolean
 }
+type _AddUserToChannelPayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly username: string
+}
 type _AddUsersToChannelPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly usernames: Array<string>
@@ -204,12 +208,6 @@ type _AttachmentDownloadedPayload = {
   readonly error?: string
   readonly path?: string
 }
-type _AttachmentFullscreenNextPayload = {
-  readonly conversationIDKey: Types.ConversationIDKey
-  readonly messageID: Types.MessageID
-  readonly backInTime: boolean
-}
-type _AttachmentFullscreenSelectionPayload = {readonly autoPlay: boolean; readonly message: Types.Message}
 type _AttachmentLoadingPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly message: Types.Message
@@ -256,7 +254,12 @@ type _ClearMessagesPayload = void
 type _ClearMetasPayload = void
 type _ClearPaymentConfirmInfoPayload = void
 type _ConfirmScreenResponsePayload = {readonly accept: boolean}
-type _ConversationErroredPayload = {readonly message: string}
+type _ConversationErroredPayload = {
+  readonly allowedUsers: Array<string>
+  readonly code: number
+  readonly disallowedUsers: Array<string>
+  readonly message: string
+}
 type _CreateConversationPayload = {readonly participants: Array<string>}
 type _DeselectConversationPayload = {readonly ifConversationIDKey: Types.ConversationIDKey}
 type _DesktopNotificationPayload = {
@@ -266,6 +269,11 @@ type _DesktopNotificationPayload = {
 }
 type _DismissBlockButtonsPayload = {readonly teamID: RPCTypes.TeamID}
 type _DismissBottomBannerPayload = {readonly conversationIDKey: Types.ConversationIDKey}
+type _DismissJourneycardPayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly cardType: RPCChatTypes.JourneycardType
+  readonly ordinal: Types.Ordinal
+}
 type _EditBotSettingsPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly username: string
@@ -804,6 +812,13 @@ export const createAddUsersToChannel = (payload: _AddUsersToChannelPayload): Add
   type: addUsersToChannel,
 })
 /**
+ * Add a single user to a conversation. Creates a SystemBulkAddToConv message.
+ */
+export const createAddUserToChannel = (payload: _AddUserToChannelPayload): AddUserToChannelPayload => ({
+  payload,
+  type: addUserToChannel,
+})
+/**
  * Add an unfurl prompt to a message
  */
 export const createUnfurlTogglePrompt = (payload: _UnfurlTogglePromptPayload): UnfurlTogglePromptPayload => ({
@@ -858,6 +873,13 @@ export const createUpdateTeamRetentionPolicy = (
 export const createTabSelected = (payload: _TabSelectedPayload): TabSelectedPayload => ({
   payload,
   type: tabSelected,
+})
+/**
+ * Dismiss a journeycard
+ */
+export const createDismissJourneycard = (payload: _DismissJourneycardPayload): DismissJourneycardPayload => ({
+  payload,
+  type: dismissJourneycard,
 })
 /**
  * Explicitly set whether a thread is loaded to the most recent message
@@ -1381,12 +1403,6 @@ export const createAttachmentDownload = (payload: _AttachmentDownloadPayload): A
 export const createAttachmentDownloaded = (
   payload: _AttachmentDownloadedPayload
 ): AttachmentDownloadedPayload => ({payload, type: attachmentDownloaded})
-export const createAttachmentFullscreenNext = (
-  payload: _AttachmentFullscreenNextPayload
-): AttachmentFullscreenNextPayload => ({payload, type: attachmentFullscreenNext})
-export const createAttachmentFullscreenSelection = (
-  payload: _AttachmentFullscreenSelectionPayload
-): AttachmentFullscreenSelectionPayload => ({payload, type: attachmentFullscreenSelection})
 export const createAttachmentLoading = (payload: _AttachmentLoadingPayload): AttachmentLoadingPayload => ({
   payload,
   type: attachmentLoading,
@@ -1657,6 +1673,10 @@ export type AddAttachmentViewMessagePayload = {
   readonly type: typeof addAttachmentViewMessage
 }
 export type AddBotMemberPayload = {readonly payload: _AddBotMemberPayload; readonly type: typeof addBotMember}
+export type AddUserToChannelPayload = {
+  readonly payload: _AddUserToChannelPayload
+  readonly type: typeof addUserToChannel
+}
 export type AddUsersToChannelPayload = {
   readonly payload: _AddUsersToChannelPayload
   readonly type: typeof addUsersToChannel
@@ -1668,14 +1688,6 @@ export type AttachmentDownloadPayload = {
 export type AttachmentDownloadedPayload = {
   readonly payload: _AttachmentDownloadedPayload
   readonly type: typeof attachmentDownloaded
-}
-export type AttachmentFullscreenNextPayload = {
-  readonly payload: _AttachmentFullscreenNextPayload
-  readonly type: typeof attachmentFullscreenNext
-}
-export type AttachmentFullscreenSelectionPayload = {
-  readonly payload: _AttachmentFullscreenSelectionPayload
-  readonly type: typeof attachmentFullscreenSelection
 }
 export type AttachmentLoadingPayload = {
   readonly payload: _AttachmentLoadingPayload
@@ -1766,6 +1778,10 @@ export type DismissBlockButtonsPayload = {
 export type DismissBottomBannerPayload = {
   readonly payload: _DismissBottomBannerPayload
   readonly type: typeof dismissBottomBanner
+}
+export type DismissJourneycardPayload = {
+  readonly payload: _DismissJourneycardPayload
+  readonly type: typeof dismissJourneycard
 }
 export type EditBotSettingsPayload = {
   readonly payload: _EditBotSettingsPayload
@@ -2271,11 +2287,10 @@ export type UpdateUserReacjisPayload = {
 export type Actions =
   | AddAttachmentViewMessagePayload
   | AddBotMemberPayload
+  | AddUserToChannelPayload
   | AddUsersToChannelPayload
   | AttachmentDownloadPayload
   | AttachmentDownloadedPayload
-  | AttachmentFullscreenNextPayload
-  | AttachmentFullscreenSelectionPayload
   | AttachmentLoadingPayload
   | AttachmentMobileSavePayload
   | AttachmentMobileSavedPayload
@@ -2300,6 +2315,7 @@ export type Actions =
   | DesktopNotificationPayload
   | DismissBlockButtonsPayload
   | DismissBottomBannerPayload
+  | DismissJourneycardPayload
   | EditBotSettingsPayload
   | EnableAudioRecordingPayload
   | FindGeneralConvIDFromTeamIDPayload

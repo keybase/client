@@ -36,22 +36,24 @@ const filterRole = (r: TeamTypes.TeamRoleType): TeamRoleTypeWithoutBots =>
   r === 'bot' || r === 'restrictedbot' ? 'reader' : r
 
 type OwnProps = {
+  changeShowRolePicker: (showRolePicker: boolean) => void
+  decHighlightIndex: () => void
   filterServices?: Array<Types.ServiceIdWithContact>
-  incFocusInputCounter: () => void
   focusInputCounter: number
+  goButtonLabel?: Types.GoButtonLabel
+  recommendedHideYourself?: boolean
+  highlightedIndex: number
+  incFocusInputCounter: () => void
+  incHighlightIndex: (maxIndex: number) => void
   namespace: Types.AllowedNamespace
-  teamID?: TeamTypes.TeamID
+  onChangeService: (newService: Types.ServiceIdWithContact) => void
+  onChangeText: (newText: string) => void
+  resetHighlightIndex: (resetToHidden?: boolean) => void
   searchString: string
   selectedService: Types.ServiceIdWithContact
-  highlightedIndex: number
-  onChangeText: (newText: string) => void
-  onChangeService: (newService: Types.ServiceIdWithContact) => void
-  incHighlightIndex: (maxIndex: number) => void
-  decHighlightIndex: () => void
-  resetHighlightIndex: (resetToHidden?: boolean) => void
-  changeShowRolePicker: (showRolePicker: boolean) => void
   showRolePicker: boolean
   showServiceResultCount: boolean
+  teamID?: TeamTypes.TeamID
   title: string
 }
 
@@ -647,6 +649,7 @@ const mergeProps = (
     fetchUserRecs: dispatchProps.fetchUserRecs,
     filterServices: ownProps.filterServices,
     focusInputCounter: ownProps.focusInputCounter,
+    goButtonLabel: ownProps.goButtonLabel,
     highlightedIndex: ownProps.highlightedIndex,
     includeContacts: ownProps.namespace === 'chat2',
     namespace: ownProps.namespace,
@@ -676,6 +679,7 @@ const mergeProps = (
         ? rolePickerArrowKeyFns.upArrow
         : ownProps.decHighlightIndex,
     recommendations: recommendationsSections,
+    recommendedHideYourself: ownProps.recommendedHideYourself,
     rolePickerProps,
     search: dispatchProps._search,
     searchResults,
@@ -754,6 +758,8 @@ class StateWrapperForTeamBuilding extends React.Component<RealOwnProps, LocalSta
         focusInputCounter={this.state.focusInputCounter}
         incFocusInputCounter={this._incFocusInputCounter}
         title={Container.getRouteProps(this.props, 'title', '')}
+        goButtonLabel={Container.getRouteProps(this.props, 'goButtonLabel', 'Start')}
+        recommendedHideYourself={Container.getRouteProps(this.props, 'recommendedHideYourself', false)}
       />
     )
   }

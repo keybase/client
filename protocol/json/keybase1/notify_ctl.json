@@ -122,6 +122,10 @@
         {
           "type": "boolean",
           "name": "featuredBots"
+        },
+        {
+          "type": "boolean",
+          "name": "saltpack"
         }
       ]
     }

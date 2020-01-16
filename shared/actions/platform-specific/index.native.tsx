@@ -744,7 +744,7 @@ const stopAudioRecording = async (
   }
   logger.info('stopAudioRecording: stopping recording')
   try {
-    AudioRecorder.stopRecording()
+    AudioRecorder.stopRecording().catch(() => {})
   } catch (e) {}
   AudioRecorder.onProgress = null
 

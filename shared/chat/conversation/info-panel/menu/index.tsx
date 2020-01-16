@@ -4,7 +4,7 @@ import * as Styles from '../../../../styles'
 import * as ChatTypes from '../../../../constants/types/chat2'
 import * as TeamTypes from '../../../../constants/types/teams'
 import {Avatars, TeamAvatar} from '../../../avatars'
-import {TeamSubscriberMountOnly} from '../../../../teams/subscriber'
+import {TeamsSubscriberMountOnly} from '../../../../teams/subscriber'
 
 export type ConvProps = {
   fullname: string
@@ -175,7 +175,7 @@ class InfoPanelMenu extends React.Component<Props> {
 
     return (
       <>
-        {props.visible && <TeamSubscriberMountOnly />}
+        {props.visible && <TeamsSubscriberMountOnly />}
         <Kb.FloatingMenu
           attachTo={props.attachTo}
           visible={props.visible}

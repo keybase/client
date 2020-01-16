@@ -20,6 +20,7 @@ import ChatUnfurlMapPopup from './conversation/messages/wrapper/unfurl/map/popup
 import PunycodeLinkWarning from './punycode-link-warning'
 import BlockModal from './blocking/block-modal/container'
 import ChatInstallBot from './conversation/bot/install'
+import ChatInstallBotPick from './conversation/bot/team-picker'
 import ChatSearchBot from './conversation/bot/search'
 import ChatConfirmRemoveBot from './conversation/bot/confirm'
 
@@ -77,6 +78,9 @@ export const newModalRoutes = {
   },
   chatInstallBot: {
     getScreen: (): typeof ChatInstallBot => require('./conversation/bot/install').default,
+  },
+  chatInstallBotPick: {
+    getScreen: (): typeof ChatInstallBotPick => require('./conversation/bot/team-picker').default,
   },
   chatLocationPreview: {
     getScreen: (): typeof ChatLocationPopup =>

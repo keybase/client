@@ -25,19 +25,19 @@ export default Container.makeReducer<
     return initialState
   },
   [TeamsGen.setChannelCreationError]: (draftState, action) => {
-    draftState.channelCreationError = action.payload.error
+    draftState.errorInChannelCreation = action.payload.error
   },
   [TeamsGen.createNewTeam]: draftState => {
-    draftState.teamCreationError = ''
+    draftState.errorInTeamCreation = ''
   },
   [TeamsGen.createNewTeamFromConversation]: draftState => {
-    draftState.teamCreationError = ''
+    draftState.errorInTeamCreation = ''
   },
   [TeamsGen.teamCreated]: (draftState, action) => {
     draftState.teamNameToID.set(action.payload.teamname, action.payload.teamID)
   },
   [TeamsGen.setTeamCreationError]: (draftState, action) => {
-    draftState.teamCreationError = action.payload.error
+    draftState.errorInTeamCreation = action.payload.error
   },
   [TeamsGen.clearAddUserToTeamsResults]: draftState => {
     draftState.addUserToTeamsResults = ''
@@ -48,10 +48,10 @@ export default Container.makeReducer<
     draftState.addUserToTeamsState = action.payload.error ? 'failed' : 'succeeded'
   },
   [TeamsGen.setTeamInviteError]: (draftState, action) => {
-    draftState.teamInviteError = action.payload.error
+    draftState.errorInTeamInvite = action.payload.error
   },
   [TeamsGen.setTeamJoinError]: (draftState, action) => {
-    draftState.teamJoinError = action.payload.error
+    draftState.errorInTeamJoin = action.payload.error
   },
   [TeamsGen.setTeamJoinSuccess]: (draftState, action) => {
     draftState.teamJoinSuccess = action.payload.success
@@ -59,7 +59,7 @@ export default Container.makeReducer<
     draftState.teamJoinSuccessTeamName = action.payload.teamname
   },
   [TeamsGen.setTeamRetentionPolicy]: (draftState, action) => {
-    draftState.teamNameToRetentionPolicy.set(action.payload.teamname, action.payload.retentionPolicy)
+    draftState.teamIDToRetentionPolicy.set(action.payload.teamID, action.payload.retentionPolicy)
   },
   [TeamsGen.setTeamLoadingInvites]: (draftState, action) => {
     const {teamname, loadingKey, isLoading} = action.payload
@@ -70,8 +70,6 @@ export default Container.makeReducer<
   [TeamsGen.setTeamDetails]: (draftState, action) => {
     const {teamname, teamID} = action.payload
     const members = Constants.rpcDetailsToMemberInfos(action.payload.members)
-    draftState.teamNameToMembers.set(teamname, Constants.rpcDetailsToMemberInfos(action.payload.members))
-
     const details = mapGetEnsureValue(
       draftState.teamDetails,
       teamID,
@@ -83,14 +81,11 @@ export default Container.makeReducer<
     details.subteams = action.payload.subteamIDs
     details.requests = new Set(action.payload.requests.get(teamname))
   },
-  [TeamsGen.setMembers]: (draftState, action) => {
-    draftState.teamNameToMembers.set(action.payload.teamname, action.payload.members)
-  },
   [TeamsGen.setTeamCanPerform]: (draftState, action) => {
     draftState.canPerform.set(action.payload.teamID, action.payload.teamOperation)
   },
   [TeamsGen.setTeamPublicitySettings]: (draftState, action) => {
-    draftState.teamNameToPublicitySettings.set(action.payload.teamname, action.payload.publicity)
+    draftState.teamIDToPublicitySettings.set(action.payload.teamID, action.payload.publicity)
   },
   [TeamsGen.setTeamChannelInfo]: (draftState, action) => {
     const {conversationIDKey, channelInfo, teamID} = action.payload
@@ -107,16 +102,32 @@ export default Container.makeReducer<
   },
   [TeamsGen.setEmailInviteError]: (draftState, action) => {
     if (!action.payload.malformed.length && !action.payload.message) {
-      draftState.emailInviteError = Constants.emptyEmailInviteError
+      draftState.errorInEmailInvite = Constants.emptyEmailInviteError
       return
     }
-    draftState.emailInviteError.malformed = new Set(action.payload.malformed)
-    draftState.emailInviteError.message = action.payload.message
+    draftState.errorInEmailInvite.malformed = new Set(action.payload.malformed)
+    draftState.errorInEmailInvite.message = action.payload.message
   },
   [TeamsGen.getTeams]: (draftState, action) => {
     if (action.payload._subscribe) {
       draftState.teamDetailsMetaSubscribeCount++
     }
+  },
+  [TeamsGen.getDetailsByID]: (draftState, action) => {
+    if (action.payload._subscribe) {
+      const {teamID} = action.payload
+      draftState.teamDetailsSubscriptionCount.set(
+        teamID,
+        (draftState.teamDetailsSubscriptionCount.get(teamID) ?? 0) + 1
+      )
+    }
+  },
+  [TeamsGen.unsubscribeTeamDetails]: (draftState, action) => {
+    const {teamID} = action.payload
+    draftState.teamDetailsSubscriptionCount.set(
+      teamID,
+      (draftState.teamDetailsSubscriptionCount.get(teamID) ?? 1) - 1
+    )
   },
   [TeamsGen.unsubscribeTeamList]: draftState => {
     if (draftState.teamDetailsMetaSubscribeCount > 0) {
@@ -176,6 +187,12 @@ export default Container.makeReducer<
     if (oldChannelInfos) {
       oldChannelInfos.delete(conversationIDKey)
     }
+  },
+  [TeamsGen.setEditDescriptionError]: (draftState, action) => {
+    draftState.errorInEditDescription = action.payload.error
+  },
+  [TeamsGen.editTeamDescription]: draftState => {
+    draftState.errorInEditDescription = ''
   },
   [TeamsGen.addParticipant]: (draftState, action) => {
     const {teamID, conversationIDKey} = action.payload

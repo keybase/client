@@ -13,6 +13,7 @@ import * as TeamTypes from '../../../constants/types/teams'
 import * as TeamConstants from '../../../constants/teams'
 import * as Constants from '../../../constants/chat2'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
+import openURL from '../../../util/open-url'
 import ChannelPicker from './channel-picker'
 
 const RestrictedItem = '---RESTRICTED---'
@@ -81,8 +82,12 @@ const InstallBotPopup = (props: Props) => {
     let teamID: TeamTypes.TeamID | undefined
     let channelInfos: Map<string, TeamTypes.ChannelInfo> | undefined
     let readOnly = false
+    let commands: Array<string> = []
     if (conversationIDKey) {
       const meta = state.chat2.metaMap.get(conversationIDKey)
+      commands = Constants.getBotCommands(state, conversationIDKey)
+        .filter(c => c.username === botUsername)
+        .map(c => c.name)
       if (meta && meta.teamname) {
         teamID = meta.teamID
         teamName = meta.teamname
@@ -94,9 +99,10 @@ const InstallBotPopup = (props: Props) => {
         inTeam = !!teamRole
       }
     }
+    const convCommands: Types.BotPublicCommands = {commands, loadError: false}
     return {
       channelInfos,
-      commands: state.chat2.botPublicCommands.get(botUsername),
+      commands: commands.length > 0 ? convCommands : state.chat2.botPublicCommands.get(botUsername),
       featured: state.chat2.featuredBotsMap.get(botUsername),
       inTeam,
       inTeamUnrestricted: inTeam && teamRole === 'bot',
@@ -113,6 +119,9 @@ const InstallBotPopup = (props: Props) => {
   const dispatch = Container.useDispatch()
   const onClose = () => {
     dispatch(RouteTreeGen.createClearModals())
+  }
+  const onLearn = () => {
+    openURL('https://keybase.io/docs/chat/restricted_bots')
   }
   const onLeftAction = () => {
     if (installScreen) {
@@ -175,10 +184,6 @@ const InstallBotPopup = (props: Props) => {
 
   // lifecycle
   React.useEffect(() => {
-    dispatch(
-      WaitingGen.createClearWaiting({key: [Constants.waitingKeyBotAdd, Constants.waitingKeyBotRemove]})
-    )
-    dispatch(Chat2Gen.createRefreshBotPublicCommands({username: botUsername}))
     if (conversationIDKey) {
       dispatch(Chat2Gen.createRefreshBotRoleInConv({conversationIDKey, username: botUsername}))
       if (inTeam) {
@@ -192,6 +197,14 @@ const InstallBotPopup = (props: Props) => {
     }
     dispatch(TeamsGen.createGetChannels({teamID}))
   }, [teamID])
+  React.useEffect(() => {
+    dispatch(
+      WaitingGen.createClearWaiting({key: [Constants.waitingKeyBotAdd, Constants.waitingKeyBotRemove]})
+    )
+    if (!commands?.commands?.length) {
+      dispatch(Chat2Gen.createRefreshBotPublicCommands({username: botUsername}))
+    }
+  }, [])
 
   const restrictedButton = (
     <Kb.Box2 key={RestrictedItem} direction="vertical" fullWidth={true} style={styles.dropdownButton}>
@@ -220,14 +233,14 @@ const InstallBotPopup = (props: Props) => {
       direction="vertical"
       style={Styles.collapseStyles([styles.container, {flex: 1}])}
       fullWidth={true}
-      gap="tiny"
+      gap="small"
     >
       <Kb.Box2 direction="vertical" gap="small" fullWidth={true}>
         <Kb.Box2 direction="horizontal" gap="small" fullWidth={true}>
           <Kb.Avatar username={botUsername} size={64} />
           <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}} gap="tiny">
             <Kb.Box2 direction="vertical" fullWidth={true}>
-              <Kb.Text type="BodyBigExtrabold">{featured.botAlias}</Kb.Text>
+              <Kb.Text type="BodySemibold">{featured.botAlias}</Kb.Text>
               <Kb.ConnectedUsernames
                 colorFollowing={true}
                 type="BodySemibold"
@@ -240,10 +253,25 @@ const InstallBotPopup = (props: Props) => {
             </Kb.Text>
           </Kb.Box2>
         </Kb.Box2>
-        <Kb.Text type="Body">{featured.extendedDescription}</Kb.Text>
+        <Kb.Markdown smallStandaloneEmoji={true} selectable={true}>
+          {featured.extendedDescription}
+        </Kb.Markdown>
       </Kb.Box2>
       {inTeam && !inTeamUnrestricted && (
-        <PermsList channelInfos={channelInfos} settings={settings} username={botUsername} />
+        <PermsList
+          channelInfos={channelInfos}
+          commands={commands}
+          settings={settings}
+          username={botUsername}
+        />
+      )}
+      {!inTeam && (
+        <Kb.Text type="BodySmall">
+          <Kb.Text type="BodySmallPrimaryLink" onClick={onLearn}>
+            Learn more
+          </Kb.Text>{' '}
+          about bots in Keybase.
+        </Kb.Text>
       )}
     </Kb.Box2>
   )
@@ -261,7 +289,9 @@ const InstallBotPopup = (props: Props) => {
           />
         </Kb.Box2>
       </Kb.Box2>
-      {inTeam && !inTeamUnrestricted && <PermsList settings={settings} username={botUsername} />}
+      {inTeam && !inTeamUnrestricted && (
+        <PermsList settings={settings} commands={commands} username={botUsername} />
+      )}
     </Kb.Box2>
   )
   const installContent = installScreen && (
@@ -270,7 +300,7 @@ const InstallBotPopup = (props: Props) => {
         <Kb.Avatar username={botUsername} size={64} />
         <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}} gap="tiny">
           <Kb.Box2 direction="vertical" fullWidth={true}>
-            <Kb.Text type="BodyBigExtrabold">{featured ? featured.botAlias : botUsername}</Kb.Text>
+            <Kb.Text type="BodySemibold">{featured ? featured.botAlias : botUsername}</Kb.Text>
             <Kb.ConnectedUsernames
               colorFollowing={true}
               type="BodySemibold"
@@ -370,6 +400,12 @@ const InstallBotPopup = (props: Props) => {
     : featured
     ? featuredContent
     : usernameContent
+  const getHeight = () => {
+    if (channelPickerScreen) {
+      return 440
+    }
+    return 560
+  }
   const showInstallButton = installScreen && !inTeam && !channelPickerScreen
   const showReviewButton = !installScreen && !inTeam
   const showRemoveButton = inTeam && !installScreen
@@ -507,7 +543,11 @@ const InstallBotPopup = (props: Props) => {
           : undefined
       }
     >
-      <Kb.Box2 direction="vertical" style={styles.outerContainer} fullWidth={true}>
+      <Kb.Box2
+        direction="vertical"
+        style={Styles.collapseStyles([styles.outerContainer, {height: getHeight()}])}
+        fullWidth={true}
+      >
         {enabled ? (
           content
         ) : (
@@ -561,9 +601,10 @@ const CommandsLabel = (props: CommandsLabelProps) => {
       )
     })
   }
+  const punct = (props.commands?.commands?.length ?? 0) > 0 ? ':' : '.'
   return (
-    <Kb.Box2 direction="vertical" gap="tiny">
-      <Kb.Text type="Body">messages that begin with bot commands:</Kb.Text>
+    <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
+      <Kb.Text type="Body">{`messages that begin with bot commands${punct}`}</Kb.Text>
       <Kb.Box2 direction="vertical" fullWidth={true}>
         {inner}
       </Kb.Box2>
@@ -573,6 +614,7 @@ const CommandsLabel = (props: CommandsLabelProps) => {
 
 type PermsListProps = {
   channelInfos?: Map<string, TeamTypes.ChannelInfo>
+  commands: Types.BotPublicCommands | undefined
   settings?: RPCTypes.TeamBotSettings
   username: string
 }
@@ -582,14 +624,21 @@ const PermsList = (props: PermsListProps) => {
     <Kb.Box2 direction="vertical" gap="small" fullWidth={true}>
       <Kb.Text type="BodySemibold">This bot can currently read:</Kb.Text>
       {props.settings ? (
-        <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
-          {!(props.settings.cmds || props.settings.mentions) && (
-            <Kb.Text type="Body">{'• no messages, the bot is in write only mode'}</Kb.Text>
-          )}
-          {props.settings.cmds && <Kb.Text type="Body">{'• messages that begin with bot commands.'}</Kb.Text>}
-          {props.settings.mentions && (
-            <Kb.Text type="Body">{`• messages it has been mentioned in with @${props.username}`}</Kb.Text>
-          )}
+        <Kb.Box2 direction="vertical" gap="small" fullWidth={true}>
+          <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
+            {!(props.settings.cmds || props.settings.mentions) && (
+              <Kb.Text type="Body">{'• no messages, the bot is in write only mode'}</Kb.Text>
+            )}
+            {props.settings.cmds && (
+              <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
+                <Kb.Text type="Body">{'•'}</Kb.Text>
+                <CommandsLabel commands={props.commands} />
+              </Kb.Box2>
+            )}
+            {props.settings.mentions && (
+              <Kb.Text type="Body">{`• messages it has been mentioned in with @${props.username}`}</Kb.Text>
+            )}
+          </Kb.Box2>
           {props.settings.convs && props.channelInfos && (
             <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
               <Kb.Text type="BodySemibold">In these channels:</Kb.Text>

@@ -19,6 +19,7 @@ const renderSectionHeader = ({section}: any) => {
 }
 
 const userEmptyPlaceholder = '---EMPTYUSERS---'
+const resultEmptyPlaceholder = '---EMPTYRESULT---'
 
 const SearchBotPopup = (props: Props) => {
   const conversationIDKey = Container.getRouteProps(props, 'conversationIDKey', undefined)
@@ -70,15 +71,35 @@ const SearchBotPopup = (props: Props) => {
     dispatch(BotsGen.createGetFeaturedBots({}))
   }, [])
 
+  const botData: Array<RPCTypes.FeaturedBot | string> =
+    lastQuery.length > 0 ? results?.bots.slice() ?? [] : Constants.getFeaturedSorted(featuredBotsMap)
+  if (!botData.length) {
+    botData.push(resultEmptyPlaceholder)
+  }
   const botSection = {
-    data: lastQuery.length > 0 ? results?.bots ?? [] : Constants.getFeaturedSorted(featuredBotsMap),
-    renderItem: ({item}: {item: RPCTypes.FeaturedBot}) => {
-      return <Bot {...item} onClick={onSelect} />
+    data: botData,
+    renderItem: ({item}: {item: RPCTypes.FeaturedBot | string}) => {
+      return item === resultEmptyPlaceholder ? (
+        <Kb.Text
+          style={{...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny)}}
+          type="BodySmall"
+        >
+          No results were found
+        </Kb.Text>
+      ) : typeof item !== 'string' ? (
+        <Bot {...item} onClick={onSelect} />
+      ) : null
     },
     title: 'Featured bots',
   }
+  const userData = !lastQuery.length
+    ? [userEmptyPlaceholder]
+    : results?.users.filter(u => !featuredBotsMap.get(u)).slice(0, 3) ?? []
+  if (!userData.length) {
+    userData.push(resultEmptyPlaceholder)
+  }
   const usersSection = {
-    data: !lastQuery.length ? [userEmptyPlaceholder] : results?.users.slice(0, 3) ?? [],
+    data: userData,
     renderItem: ({item}: {item: string}) => {
       return (
         <Kb.Box2
@@ -88,6 +109,8 @@ const SearchBotPopup = (props: Props) => {
         >
           {item === userEmptyPlaceholder ? (
             <Kb.Text type="BodySmall">Enter a bot username above</Kb.Text>
+          ) : item === resultEmptyPlaceholder ? (
+            <Kb.Text type="BodySmall">No results were found</Kb.Text>
           ) : (
             <Kb.NameWithIcon
               username={item}

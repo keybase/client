@@ -1,4 +1,5 @@
 import * as TeamBuildingTypes from './team-building'
+import HiddenString from '../../util/hidden-string'
 import {IconType} from '../../common-adapters/icon.constants-gen'
 
 type EncryptTab = 'encryptTab'
@@ -24,11 +25,13 @@ export type ErrorTypes = ''
 export type OutputStatus = 'success' | 'error'
 
 export type CommonState = {
-  errorMessage: string
+  errorMessage: HiddenString
   errorType: ErrorTypes
-  input: string
+  input: HiddenString
   inputType: InputTypes
-  output: string
+  output: HiddenString
+  outputSender?: HiddenString
+  outputSigned?: boolean
   outputStatus?: OutputStatus
   outputType?: OutputType
 }
@@ -36,7 +39,6 @@ export type CommonState = {
 export type EncryptOptions = {
   includeSelf: boolean
   sign: boolean
-  usePGP: boolean
 }
 export type DecryptOptions = {}
 export type SignOptions = {}
@@ -45,8 +47,8 @@ export type OperationsOptions = EncryptOptions | DecryptOptions | SignOptions | 
 
 export type EncrypState = CommonState & {
   meta: {
-    canUsePGP: boolean
     hasRecipients: boolean
+    noIncludeSelf: boolean
   }
   options: EncryptOptions
   recipients: Array<string> // Only for encrypt operation

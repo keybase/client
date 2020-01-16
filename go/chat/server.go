@@ -10,6 +10,7 @@ import (
 	"os"
 	"regexp"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -2248,7 +2249,8 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 		if opts.MaxNameConvs == 0 {
 			return
 		}
-		convHits, err := h.G().InboxSource.Search(ctx, uid, query, opts.MaxNameConvs)
+		convHits, err := h.G().InboxSource.Search(ctx, uid, query, opts.MaxNameConvs,
+			types.InboxSourceSearchEmptyModeUnread)
 		if err != nil {
 			h.Debug(ctx, "SearchInbox: failed to get conv hits: %s", err)
 		} else {
@@ -3015,6 +3017,47 @@ func (h *Server) GetTeamRoleInConversation(ctx context.Context, arg chat1.GetTea
 		return res, err
 	}
 	return teams.MemberRoleFromID(ctx, h.G().ExternalG(), teamID, arg.Username)
+}
+
+func (h *Server) AddBotConvSearch(ctx context.Context, term string) (res []chat1.AddBotConvSearchHit, err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
+	defer h.Trace(ctx, func() error { return err }, "AddBotConvSearch")()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
+	username := h.G().GetEnv().GetUsername().String()
+	allConvs, err := h.G().InboxSource.Search(ctx, uid, term, 100, types.InboxSourceSearchEmptyModeAll)
+	if err != nil {
+		return res, err
+	}
+	res = make([]chat1.AddBotConvSearchHit, 0, len(allConvs))
+	for _, conv := range allConvs {
+		switch conv.GetTeamType() {
+		case chat1.TeamType_NONE:
+			searchable := utils.SearchableRemoteConversationName(conv, username)
+			res = append(res, chat1.AddBotConvSearchHit{
+				Name:   searchable,
+				ConvID: conv.GetConvID(),
+				Parts:  strings.Split(searchable, ","),
+			})
+		case chat1.TeamType_SIMPLE:
+			res = append(res, chat1.AddBotConvSearchHit{
+				Name:   utils.SearchableRemoteConversationName(conv, username),
+				ConvID: conv.GetConvID(),
+				IsTeam: true,
+			})
+		case chat1.TeamType_COMPLEX:
+			if conv.Conv.Metadata.IsDefaultConv {
+				res = append(res, chat1.AddBotConvSearchHit{
+					Name:   utils.GetRemoteConvTLFName(conv),
+					ConvID: conv.GetConvID(),
+					IsTeam: true,
+				})
+			}
+		}
+	}
+	return res, nil
 }
 
 func (h *Server) TeamIDFromTLFName(ctx context.Context, arg chat1.TeamIDFromTLFNameArg) (res keybase1.TeamID, err error) {

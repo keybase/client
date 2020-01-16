@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"regexp"
 	"sort"
+	"strings"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
@@ -103,8 +104,8 @@ func ApplyTeamBotSettings(ctx context.Context, g *globals.Context, botUID gregor
 		}
 	}
 
-	// Check if any commands match
-	if !botSettings.Cmds {
+	// Check if any commands match (early out if it can't be a bot message)
+	if !botSettings.Cmds || !strings.HasPrefix(matchText, "!") {
 		return false, nil
 	}
 	unn, err := g.GetUPAKLoader().LookupUsername(ctx, keybase1.UID(botUID.String()))

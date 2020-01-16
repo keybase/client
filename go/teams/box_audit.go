@@ -1133,7 +1133,7 @@ func KnownTeamIDs(mctx libkb.MetaContext) (teamIDs []keybase1.TeamID, err error)
 	if db == nil {
 		return nil, fmt.Errorf("nil db")
 	}
-	dbKeySet, err := db.KeysWithPrefixes(libkb.LevelDbPrefix(libkb.DBSlowTeamsAlias), libkb.LevelDbPrefix(libkb.DBFTLStorage))
+	dbKeySet, err := db.KeysWithPrefixes([]byte(libkb.PrefixString(libkb.DBSlowTeamsAlias)), []byte(libkb.PrefixString(libkb.DBFTLStorage)))
 	if err != nil {
 		return nil, err
 	}
