@@ -50,11 +50,15 @@ type _SetInputPayload = {
   readonly type: Types.InputTypes
   readonly value: HiddenString
 }
-type _SetRecipientsPayload = {readonly operation: Types.Operations; readonly recipients: Array<string>}
+type _SetRecipientsPayload = {
+  readonly operation: Types.Operations
+  readonly recipients: Array<string>
+  readonly hasSBS: boolean
+}
 
 // Action Creators
 /**
- * Array recipients of operations, provided via TeamBuilding
+ * Array recipients of operations, provided via TeamBuilding. Includes flag if any users are not on Keybase yet (SBS) to force includeSelf in EncryptOptions
  */
 export const createSetRecipients = (payload: _SetRecipientsPayload): SetRecipientsPayload => ({
   payload,

@@ -11,6 +11,7 @@ const operation = 'encrypt'
 export default Container.namedConnect(
   (state: Container.TypedState) => ({
     hasRecipients: state.crypto.encrypt.meta.hasRecipients,
+    hasSBS: state.crypto.encrypt.meta.hasSBS,
     input: state.crypto.encrypt.input.stringValue(),
     inputType: state.crypto.encrypt.inputType,
     noIncludeSelf: state.crypto.encrypt.meta.noIncludeSelf,
@@ -32,6 +33,7 @@ export default Container.namedConnect(
   }),
   (stateProps, dispatchProps) => ({
     hasRecipients: stateProps.hasRecipients,
+    hasSBS: stateProps.hasSBS,
     input: stateProps.input,
     inputType: stateProps.inputType,
     noIncludeSelf: stateProps.noIncludeSelf,

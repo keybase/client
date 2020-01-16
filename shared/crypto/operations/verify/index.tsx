@@ -25,6 +25,8 @@ const debounced = debounce((fn, ...args) => fn(...args), 100)
 const Verify = (props: Props) => {
   const [inputValue, setInputValue] = React.useState(props.input)
   const onAttach = (localPaths: Array<string>) => {
+    // Drag and drop allows for multi-file upload, we only want one file upload
+    setInputValue('')
     props.onSetInput('file', localPaths[0])
   }
   return (
@@ -40,7 +42,10 @@ const Verify = (props: Props) => {
           {props.inputType === 'file' ? (
             <FileInput
               path={props.input}
-              onClearFiles={props.onClearInput}
+              onClearFiles={() => {
+                setInputValue('')
+                props.onClearInput()
+              }}
               operation={Constants.Operations.Verify}
             />
           ) : (
