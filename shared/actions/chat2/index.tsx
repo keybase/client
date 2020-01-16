@@ -3457,7 +3457,7 @@ const closeBotModal = (state: Container.TypedState, conversationIDKey: Types.Con
   const actions: Array<Container.TypedActions> = [RouteTreeGen.createClearModals()]
   const meta = state.chat2.metaMap.get(conversationIDKey)
   if (meta && meta.teamname) {
-    actions.push(TeamsGen.createGetMembers({teamname: meta.teamname}))
+    actions.push(TeamsGen.createGetMembers({teamID: meta.teamID}))
   }
   return actions
 }
