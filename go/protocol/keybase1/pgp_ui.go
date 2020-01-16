@@ -10,16 +10,18 @@ import (
 )
 
 type OutputSignatureSuccessArg struct {
-	SessionID   int    `codec:"sessionID" json:"sessionID"`
-	Fingerprint string `codec:"fingerprint" json:"fingerprint"`
-	Username    string `codec:"username" json:"username"`
-	SignedAt    Time   `codec:"signedAt" json:"signedAt"`
+	SessionID   int      `codec:"sessionID" json:"sessionID"`
+	Fingerprint string   `codec:"fingerprint" json:"fingerprint"`
+	Username    string   `codec:"username" json:"username"`
+	SignedAt    Time     `codec:"signedAt" json:"signedAt"`
+	Warnings    []string `codec:"warnings" json:"warnings"`
 }
 
 type OutputSignatureSuccessNonKeybaseArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	KeyID     string `codec:"keyID" json:"keyID"`
-	SignedAt  Time   `codec:"signedAt" json:"signedAt"`
+	SessionID int      `codec:"sessionID" json:"sessionID"`
+	KeyID     string   `codec:"keyID" json:"keyID"`
+	SignedAt  Time     `codec:"signedAt" json:"signedAt"`
+	Warnings  []string `codec:"warnings" json:"warnings"`
 }
 
 type KeyGeneratedArg struct {

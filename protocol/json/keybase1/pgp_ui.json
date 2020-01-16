@@ -25,6 +25,13 @@
         {
           "name": "signedAt",
           "type": "Time"
+        },
+        {
+          "name": "warnings",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
         }
       ],
       "response": null
@@ -42,6 +49,13 @@
         {
           "name": "signedAt",
           "type": "Time"
+        },
+        {
+          "name": "warnings",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
         }
       ],
       "response": null

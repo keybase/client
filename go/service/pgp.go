@@ -177,6 +177,9 @@ func sigVer(g *libkb.GlobalContext, ss *libkb.SignatureStatus, signer *libkb.Use
 			bundle := libkb.NewPGPKeyBundle(ss.Entity)
 			res.SignKey = bundle.Export()
 		}
+		if len(ss.Warnings) > 0 {
+			res.Warnings = ss.Warnings
+		}
 	}
 	return res
 }

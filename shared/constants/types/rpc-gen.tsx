@@ -1020,11 +1020,11 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.pgpUi.outputSignatureSuccess': {
-    inParam: {readonly fingerprint: String; readonly username: String; readonly signedAt: Time}
+    inParam: {readonly fingerprint: String; readonly username: String; readonly signedAt: Time; readonly warnings?: Array<String> | null}
     outParam: void
   }
   'keybase.1.pgpUi.outputSignatureSuccessNonKeybase': {
-    inParam: {readonly keyID: String; readonly signedAt: Time}
+    inParam: {readonly keyID: String; readonly signedAt: Time; readonly warnings?: Array<String> | null}
     outParam: void
   }
   'keybase.1.pgpUi.shouldPushPrivate': {
@@ -2841,7 +2841,7 @@ export type PGPFingerprint = string | null
 export type PGPIdentity = {readonly username: String; readonly comment: String; readonly email: String}
 export type PGPPurgeRes = {readonly filenames?: Array<String> | null}
 export type PGPQuery = {readonly secret: Boolean; readonly query: String; readonly exactMatch: Boolean}
-export type PGPSigVerification = {readonly isSigned: Boolean; readonly verified: Boolean; readonly signer: User; readonly signKey: PublicKey}
+export type PGPSigVerification = {readonly isSigned: Boolean; readonly verified: Boolean; readonly signer: User; readonly signKey: PublicKey; readonly warnings?: Array<String> | null}
 export type PGPSignOptions = {readonly keyQuery: String; readonly mode: SignMode; readonly binaryIn: Boolean; readonly binaryOut: Boolean}
 export type PGPVerifyOptions = {readonly signedBy: String; readonly signature: Bytes}
 export type ParamProofJSON = {readonly sigHash: SigID; readonly kbUsername: String}
