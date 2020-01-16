@@ -403,11 +403,56 @@ func ServiceStatus(context Context, label ServiceLabel, wait time.Duration, log 
 	}
 }
 
+func automaticallyUninstallFuseIfNeeded(runMode libkb.RunMode, log Log, status keybase1.FuseStatus) (err error) {
+	return nil
+	err = libnativeinstaller.UninstallFuse(runMode, log)
+	switch e := err.(type) {
+	case nil:
+		return nil
+	case (*exec.ExitError):
+		if waitStatus, ok := e.Sys().(syscall.WaitStatus); ok {
+			if waitStatus.ExitStatus() != mountsPresentErrorCode {
+				return err
+			}
+			// Otherwise, continue with the logic after switch.
+		} else {
+			return err
+		}
+	default:
+		return err
+	}
+
+	log.Info("Can't uninstall fuse when mounts are present. " +
+		"Assuming it's the redirector and trying to uninstall it first.")
+	if err = libnativeinstaller.UninstallRedirector(runMode, log); err != nil {
+		log.Info("Uninstalling redirector failed.")
+		return err
+	}
+	log.Info(
+		"Uninstalling redirector succeeded. Trying to uninstall KBFuse again.")
+	if err = libnativeinstaller.InstallFuse(runMode, log); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // InstallAuto installs everything it can without asking for privileges or
 // extensions. If the user has already installed Fuse, we install everything.
 func InstallAuto(context Context, binPath string, sourcePath string, timeout time.Duration, log Log) keybase1.InstallResult {
 	var components []string
 	status := KeybaseFuseStatus("", log)
+	if err := automaticallyUninstallFuseIfNeeded(
+		context.GetRunMode(), log, status); err != nil {
+		log.Info("automaticallyUninstallFuseIfNeeded error: %v", err)
+		componentResults := []keybase1.ComponentResult{
+			componentResult("automaticallyUninstallFuseIfNeeded", err),
+		}
+		return keybase1.InstallResult{
+			ComponentResults: componentResults,
+			Status:           statusFromResults(componentResults),
+		}
+	}
 	if status.InstallStatus == keybase1.InstallStatus_INSTALLED {
 		components = []string{
 			ComponentNameCLI.String(),

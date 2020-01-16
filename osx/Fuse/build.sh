@@ -8,9 +8,11 @@ cd "$dir"
 rm -rf osxfuse
 
 version=${VERSION:?"Need to set VERSION for Fuse"}
-if [ "$version" = "3.10.0" ]; then
-  tar -xjf /keybase/team/keybase.builds.macos/osxfuse/osxfuse-3.10.0.tbz
-  mv osxfuse-3.10.0 osxfuse
+biggerBetweenNonGitStart=$(echo -e "3.10.0\n$version" | sort -Vr | head -n1)
+if [ "$biggerBetweenNonGitStart" = "$version" ]; then
+  osxfuse_source=${OSXFUSE_SOURCE:-/keybase/team/keybase.builds.macos/osxfuse/osxfuse-$version.tbz}
+  tar -xjf $osxfuse_source
+  mv osxfuse-$version osxfuse
 else
   branch="osxfuse-$version"
   # Checkout
