@@ -190,8 +190,10 @@ func DeletableMessageTypesByDelete() []MessageType {
 var visibleMessageTypes = []MessageType{
 	MessageType_TEXT,
 	MessageType_ATTACHMENT,
-	MessageType_JOIN,
-	MessageType_LEAVE,
+	// TODO TRIAGE-1738 Join and leave are visible but changing this list kicks off some other bugs around notifications (HOTPOT-1688).
+	// Scour the effects before changing this list.
+	// MessageType_JOIN,
+	// MessageType_LEAVE,
 	MessageType_SYSTEM,
 	MessageType_SENDPAYMENT,
 	MessageType_REQUESTPAYMENT,
