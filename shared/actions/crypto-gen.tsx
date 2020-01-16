@@ -39,7 +39,7 @@ type _OnOperationSuccessPayload = {
 }
 type _ResetOperationPayload = {readonly operation: Types.Operations}
 type _SaltpackDecryptPayload = {readonly input: HiddenString; readonly type: Types.InputTypes}
-type _SaltpackDonePayload = {readonly filename: string; readonly operation: Types.Operations}
+type _SaltpackDonePayload = {readonly filename: HiddenString; readonly operation: Types.Operations}
 type _SaltpackEncryptPayload = {
   readonly input: HiddenString
   readonly options: Types.EncryptOptions
@@ -49,11 +49,11 @@ type _SaltpackEncryptPayload = {
 type _SaltpackProgressPayload = {
   readonly bytesComplete: number
   readonly bytesTotal: number
-  readonly filename: string
+  readonly filename: HiddenString
   readonly operation: Types.Operations
 }
 type _SaltpackSignPayload = {readonly input: HiddenString; readonly type: Types.InputTypes}
-type _SaltpackStartPayload = {readonly filename: string; readonly operation: Types.Operations}
+type _SaltpackStartPayload = {readonly filename: HiddenString; readonly operation: Types.Operations}
 type _SaltpackVerifyPayload = {readonly input: HiddenString; readonly type: Types.InputTypes}
 type _SetEncryptOptionsPayload = {readonly options: Types.EncryptOptions; readonly noIncludeSelf?: boolean}
 type _SetInputPayload = {

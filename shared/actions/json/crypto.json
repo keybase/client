@@ -48,7 +48,7 @@
     },
     "saltpackDone": {
       "_description": "Progress logging",
-      "filename": "string",
+      "filename": "HiddenString",
       "operation": "Types.Operations"
     },
     "saltpackEncrypt": {
@@ -67,7 +67,7 @@
       "_description": "Progress logging",
       "bytesComplete": "number",
       "bytesTotal": "number",
-      "filename": "string",
+      "filename": "HiddenString",
       "operation": "Types.Operations"
     },
     "saltpackSign": {
@@ -77,7 +77,7 @@
     },
     "saltpackStart": {
       "_description": "Progress logging",
-      "filename": "string",
+      "filename": "HiddenString",
       "operation": "Types.Operations"
     },
     "saltpackVerify": {

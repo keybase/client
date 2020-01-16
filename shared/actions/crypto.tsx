@@ -396,7 +396,7 @@ const saltpackVerify = async (action: CryptoGen.SaltpackVerifyPayload, logger: S
 
 const saltpackStart = (action: EngineGen.Keybase1NotifySaltpackSaltpackOperationStartPayload) =>
   CryptoGen.createSaltpackStart({
-    filename: action.payload.params.filename,
+    filename: new HiddenString(action.payload.params.filename),
     operation: RPCTypes.SaltpackOperationType[action.payload.params.opType] as Types.Operations,
   })
 
@@ -404,13 +404,13 @@ const saltpackProgress = (action: EngineGen.Keybase1NotifySaltpackSaltpackOperat
   CryptoGen.createSaltpackProgress({
     bytesComplete: action.payload.params.bytesComplete,
     bytesTotal: action.payload.params.bytesTotal,
-    filename: action.payload.params.filename,
+    filename: new HiddenString(action.payload.params.filename),
     operation: RPCTypes.SaltpackOperationType[action.payload.params.opType] as Types.Operations,
   })
 
 const saltpackDone = (action: EngineGen.Keybase1NotifySaltpackSaltpackOperationDonePayload) =>
   CryptoGen.createSaltpackDone({
-    filename: action.payload.params.filename,
+    filename: new HiddenString(action.payload.params.filename),
     operation: RPCTypes.SaltpackOperationType[action.payload.params.opType] as Types.Operations,
   })
 
