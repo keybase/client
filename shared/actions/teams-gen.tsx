@@ -46,6 +46,7 @@ export const saveChannelMembership = 'teams:saveChannelMembership'
 export const saveTeamRetentionPolicy = 'teams:saveTeamRetentionPolicy'
 export const setAddUserToTeamsResults = 'teams:setAddUserToTeamsResults'
 export const setChannelCreationError = 'teams:setChannelCreationError'
+export const setEditDescriptionError = 'teams:setEditDescriptionError'
 export const setEmailInviteError = 'teams:setEmailInviteError'
 export const setMemberPublicity = 'teams:setMemberPublicity'
 export const setMembers = 'teams:setMembers'
@@ -182,6 +183,7 @@ type _SaveChannelMembershipPayload = {
 type _SaveTeamRetentionPolicyPayload = {readonly teamID: Types.TeamID; readonly policy: RetentionPolicy}
 type _SetAddUserToTeamsResultsPayload = {readonly error: boolean; readonly results: string}
 type _SetChannelCreationErrorPayload = {readonly error: string}
+type _SetEditDescriptionErrorPayload = {readonly error: string}
 type _SetEmailInviteErrorPayload = {readonly message: string; readonly malformed: Array<string>}
 type _SetMemberPublicityPayload = {readonly teamID: Types.TeamID; readonly showcase: boolean}
 type _SetMembersPayload = {readonly teamname: string; readonly members: Map<string, Types.MemberInfo>}
@@ -439,6 +441,9 @@ export const createSetAddUserToTeamsResults = (
 export const createSetChannelCreationError = (
   payload: _SetChannelCreationErrorPayload
 ): SetChannelCreationErrorPayload => ({payload, type: setChannelCreationError})
+export const createSetEditDescriptionError = (
+  payload: _SetEditDescriptionErrorPayload
+): SetEditDescriptionErrorPayload => ({payload, type: setEditDescriptionError})
 export const createSetEmailInviteError = (
   payload: _SetEmailInviteErrorPayload
 ): SetEmailInviteErrorPayload => ({payload, type: setEmailInviteError})
@@ -666,6 +671,10 @@ export type SetChannelCreationErrorPayload = {
   readonly payload: _SetChannelCreationErrorPayload
   readonly type: typeof setChannelCreationError
 }
+export type SetEditDescriptionErrorPayload = {
+  readonly payload: _SetEditDescriptionErrorPayload
+  readonly type: typeof setEditDescriptionError
+}
 export type SetEmailInviteErrorPayload = {
   readonly payload: _SetEmailInviteErrorPayload
   readonly type: typeof setEmailInviteError
@@ -818,6 +827,7 @@ export type Actions =
   | SaveTeamRetentionPolicyPayload
   | SetAddUserToTeamsResultsPayload
   | SetChannelCreationErrorPayload
+  | SetEditDescriptionErrorPayload
   | SetEmailInviteErrorPayload
   | SetMemberPublicityPayload
   | SetMembersPayload
