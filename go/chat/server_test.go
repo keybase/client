@@ -1282,8 +1282,6 @@ func TestChatSrvPostLocalAtMention(t *testing.T) {
 		ctc := makeChatTestContext(t, "PostLocal", 2)
 		defer ctc.cleanup()
 		users := ctc.users()
-		libkb.RemoveEnvironmentFeatureForTest(ctc.as(t, users[0]).m.G().GetEnv().Test, libkb.FeatureJourneycardPreview)
-		libkb.RemoveEnvironmentFeatureForTest(ctc.as(t, users[1]).m.G().GetEnv().Test, libkb.FeatureJourneycardPreview)
 
 		switch mt {
 		case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAMNATIVE,
@@ -1362,6 +1360,14 @@ func TestChatSrvPostLocalAtMention(t *testing.T) {
 				MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 			},
 		})
+		// Filter out journey cards. This test doesn't need to know about them. Destroys the original list.
+		filtered := threadRes.Thread.Messages[:0]
+		for _, msg := range threadRes.Thread.Messages {
+			if msg.Journeycard__ == nil {
+				filtered = append(filtered, msg)
+			}
+		}
+		threadRes.Thread.Messages = filtered
 		require.NoError(t, err)
 		require.Equal(t, 2, len(threadRes.Thread.Messages))
 		require.True(t, threadRes.Thread.Messages[0].IsValid())
@@ -5212,8 +5218,6 @@ func TestChatSrvSetConvMinWriterRole(t *testing.T) {
 
 		tc1 := ctc.as(t, users[0])
 		tc2 := ctc.as(t, users[1])
-		libkb.RemoveEnvironmentFeatureForTest(tc1.m.G().GetEnv().Test, libkb.FeatureJourneycardPreview)
-		libkb.RemoveEnvironmentFeatureForTest(tc2.m.G().GetEnv().Test, libkb.FeatureJourneycardPreview)
 
 		listener1 := newServerChatListener()
 		tc1.h.G().NotifyRouter.AddListener(listener1)
