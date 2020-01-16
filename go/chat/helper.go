@@ -1047,6 +1047,41 @@ func (n *newConversationHelper) getNameInfo(ctx context.Context) (res types.Name
 	return res, errors.New("unknown members type")
 }
 
+func (n *newConversationHelper) findExistingViaInboxSearch(ctx context.Context) *chat1.ConversationLocal {
+	query := utils.StripUsernameFromConvName(n.tlfName, n.G().GetEnv().GetUsername().String())
+	n.Debug(ctx, "findExistingViaInboxSearch: looking for: %s", query)
+	convs, err := n.G().InboxSource.Search(ctx, n.uid, query, 0, types.InboxSourceSearchEmptyModeAll)
+	if err != nil {
+		n.Debug(ctx, "findExistingViaInboxSearch: failed to perform inbox search: %s", err)
+		return nil
+	}
+	if len(convs) == 0 {
+		n.Debug(ctx, "findExistingViaInboxSearch: no convs found from search")
+		return nil
+	}
+
+	convsLocal, _, err := n.G().InboxSource.Localize(ctx, n.uid, convs, types.ConversationLocalizerBlocking)
+	if err != nil {
+		n.Debug(ctx, "findExistingViaInboxSearch: failed to localize: %s", err)
+		return nil
+	}
+	for _, conv := range convsLocal {
+		convName := conv.Info.TlfName
+		if conv.Error != nil {
+			convName = conv.Error.UnverifiedTLFName
+		}
+		convName = utils.StripUsernameFromConvName(convName, n.G().GetEnv().GetUsername().String())
+		n.Debug(ctx, "findExistingViaInboxSearch: candidate: %s", convName)
+		if convName == query {
+			n.Debug(ctx, "findExistingViaInboxSearch: found conv match: %s id: %s", conv.Info.TlfName,
+				conv.GetConvID())
+			return &conv
+		}
+	}
+	n.Debug(ctx, "findExistingViaInboxSearch: no convs found with exact match")
+	return nil
+}
+
 func (n *newConversationHelper) create(ctx context.Context) (res chat1.ConversationLocal, reserr error) {
 	defer n.Trace(ctx, func() error { return reserr }, "newConversationHelper")()
 	// Handle a nil topic name with default values for the members type specified
@@ -1066,6 +1101,12 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 	}
 	info, err := n.getNameInfo(ctx)
 	if err != nil {
+		// If we failed this, just do a quick inbox search to see if we can find one with the same name.
+		// This can happen if a user tries to create a conversation with the same person as a conversation
+		// in which they are currently locked out due to reset.
+		if conv := n.findExistingViaInboxSearch(ctx); conv != nil {
+			return *conv, nil
+		}
 		return res, err
 	}
 	n.tlfName = info.CanonicalName

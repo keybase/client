@@ -6067,6 +6067,32 @@ func logout(g *libkb.GlobalContext) error {
 	return m.LogoutKillSecrets()
 }
 
+func TestChatSrvNewConvAfterReset(t *testing.T) {
+	useRemoteMock = false
+	defer func() { useRemoteMock = true }()
+	ctc := makeChatTestContext(t, "TestChatSrvNewConvAfterReset", 2)
+	defer ctc.cleanup()
+
+	users := ctc.users()
+	ctx := ctc.as(t, users[0]).startCtx
+	tc := ctc.world.Tcs[users[0].Username]
+	uid := gregor1.UID(users[0].GetUID().ToBytes())
+	conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+		chat1.ConversationMembersType_IMPTEAMNATIVE, users[1])
+	mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body: "HI",
+	}))
+	t.Logf("TLF: %s", conv.TlfName)
+	require.NoError(t, libkb.ResetAccount(ctc.as(t, users[0]).m, users[0].NormalizedUsername(),
+		users[0].Passphrase))
+	require.NoError(t, users[0].Login(tc.G))
+	conv2, err := NewConversation(ctx, tc.Context(), uid, users[0].Username+","+users[1].Username, nil,
+		chat1.TopicType_CHAT, chat1.ConversationMembersType_IMPTEAMNATIVE, keybase1.TLFVisibility_PRIVATE,
+		func() chat1.RemoteInterface { return ctc.as(t, users[0]).ri }, NewConvFindExistingNormal)
+	require.NoError(t, err)
+	require.Equal(t, conv.Id, conv2.Info.Id)
+}
+
 func TestChatSrvUserResetAndDeleted(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		// Only run this test for teams
