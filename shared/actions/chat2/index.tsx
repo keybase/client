@@ -2407,7 +2407,7 @@ const navigateToThread = (state: Container.TypedState) => {
 
 const maybeLoadTeamFromMeta = (meta: Types.ConversationMeta) => {
   const {teamID} = meta
-  return teamID ? TeamsGen.createGetMembers({teamID}) : false
+  return meta.teamname ? TeamsGen.createGetMembers({teamID}) : false
 }
 
 const ensureSelectedTeamLoaded = (
