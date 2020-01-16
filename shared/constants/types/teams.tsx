@@ -112,19 +112,20 @@ export type State = Readonly<{
   addUserToTeamsState: AddUserToTeamsState
   addUserToTeamsResults: string
   canPerform: Map<TeamID, TeamOperations>
-  channelCreationError: string
   deletedTeams: Array<RPCTypes.DeletedTeamInfo>
-  emailInviteError: EmailInviteError
+  errorInChannelCreation: string
+  errorInEditDescription: string
+  errorInEmailInvite: EmailInviteError
+  errorInTeamCreation: string
+  errorInTeamInvite: string
+  errorInTeamJoin: string
   teamsWithChosenChannels: Set<Teamname>
   sawChatBanner: boolean
   sawSubteamsBanner: boolean
   teamAccessRequestsPending: Set<Teamname>
-  teamInviteError: string
-  teamJoinError: string
   teamJoinSuccess: boolean
   teamJoinSuccessOpen: boolean
   teamJoinSuccessTeamName: string
-  teamCreationError: string
   teamDetails: Map<TeamID, TeamDetails>
   teamDetailsSubscriptionCount: Map<TeamID, number> // >0 if we are eagerly reloading a team
   teamDetailsMetaStale: boolean // if we've received an update since we last loaded team list

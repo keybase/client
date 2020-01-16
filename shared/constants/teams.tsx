@@ -168,16 +168,19 @@ const emptyState: Types.State = {
   addUserToTeamsResults: '',
   addUserToTeamsState: 'notStarted',
   canPerform: new Map(),
-  channelCreationError: '',
   deletedTeams: [],
-  emailInviteError: emptyEmailInviteError,
+  errorInChannelCreation: '',
+  errorInEditDescription: '',
+  errorInEmailInvite: emptyEmailInviteError,
+  errorInTeamCreation: '',
+  errorInTeamInvite: '',
+  errorInTeamJoin: '',
   newTeamRequests: new Map(),
   newTeams: new Set(),
   sawChatBanner: false,
   sawSubteamsBanner: false,
   teamAccessRequestsPending: new Set(),
   teamBuilding: TeamBuildingConstants.makeSubState(),
-  teamCreationError: '',
   teamDetails: new Map(),
   teamDetailsMetaStale: true, // start out true, we have not loaded
   teamDetailsMetaSubscribeCount: 0,
@@ -186,8 +189,6 @@ const emptyState: Types.State = {
   teamIDToPublicitySettings: new Map(),
   teamIDToResetUsers: new Map(),
   teamIDToRetentionPolicy: new Map(),
-  teamInviteError: '',
-  teamJoinError: '',
   teamJoinSuccess: false,
   teamJoinSuccessOpen: false,
   teamJoinSuccessTeamName: '',
@@ -313,7 +314,7 @@ export const userInTeamNotBotWithInfo = (
   return memb.type !== 'bot' && memb.type !== 'restrictedbot'
 }
 
-export const getEmailInviteError = (state: TypedState) => state.teams.emailInviteError
+export const getEmailInviteError = (state: TypedState) => state.teams.errorInEmailInvite
 
 export const isTeamWithChosenChannels = (state: TypedState, teamname: string): boolean =>
   state.teams.teamsWithChosenChannels.has(teamname)

@@ -25,19 +25,19 @@ export default Container.makeReducer<
     return initialState
   },
   [TeamsGen.setChannelCreationError]: (draftState, action) => {
-    draftState.channelCreationError = action.payload.error
+    draftState.errorInChannelCreation = action.payload.error
   },
   [TeamsGen.createNewTeam]: draftState => {
-    draftState.teamCreationError = ''
+    draftState.errorInTeamCreation = ''
   },
   [TeamsGen.createNewTeamFromConversation]: draftState => {
-    draftState.teamCreationError = ''
+    draftState.errorInTeamCreation = ''
   },
   [TeamsGen.teamCreated]: (draftState, action) => {
     draftState.teamNameToID.set(action.payload.teamname, action.payload.teamID)
   },
   [TeamsGen.setTeamCreationError]: (draftState, action) => {
-    draftState.teamCreationError = action.payload.error
+    draftState.errorInTeamCreation = action.payload.error
   },
   [TeamsGen.clearAddUserToTeamsResults]: draftState => {
     draftState.addUserToTeamsResults = ''
@@ -48,10 +48,10 @@ export default Container.makeReducer<
     draftState.addUserToTeamsState = action.payload.error ? 'failed' : 'succeeded'
   },
   [TeamsGen.setTeamInviteError]: (draftState, action) => {
-    draftState.teamInviteError = action.payload.error
+    draftState.errorInTeamInvite = action.payload.error
   },
   [TeamsGen.setTeamJoinError]: (draftState, action) => {
-    draftState.teamJoinError = action.payload.error
+    draftState.errorInTeamJoin = action.payload.error
   },
   [TeamsGen.setTeamJoinSuccess]: (draftState, action) => {
     draftState.teamJoinSuccess = action.payload.success
@@ -102,11 +102,11 @@ export default Container.makeReducer<
   },
   [TeamsGen.setEmailInviteError]: (draftState, action) => {
     if (!action.payload.malformed.length && !action.payload.message) {
-      draftState.emailInviteError = Constants.emptyEmailInviteError
+      draftState.errorInEmailInvite = Constants.emptyEmailInviteError
       return
     }
-    draftState.emailInviteError.malformed = new Set(action.payload.malformed)
-    draftState.emailInviteError.message = action.payload.message
+    draftState.errorInEmailInvite.malformed = new Set(action.payload.malformed)
+    draftState.errorInEmailInvite.message = action.payload.message
   },
   [TeamsGen.getTeams]: (draftState, action) => {
     if (action.payload._subscribe) {
@@ -187,6 +187,12 @@ export default Container.makeReducer<
     if (oldChannelInfos) {
       oldChannelInfos.delete(conversationIDKey)
     }
+  },
+  [TeamsGen.setEditDescriptionError]: (draftState, action) => {
+    draftState.errorInEditDescription = action.payload.error
+  },
+  [TeamsGen.editTeamDescription]: draftState => {
+    draftState.errorInEditDescription = ''
   },
   [TeamsGen.addParticipant]: (draftState, action) => {
     const {teamID, conversationIDKey} = action.payload
