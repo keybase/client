@@ -1360,14 +1360,7 @@ func TestChatSrvPostLocalAtMention(t *testing.T) {
 				MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 			},
 		})
-		// Filter out journey cards. This test doesn't need to know about them. Destroys the original list.
-		filtered := threadRes.Thread.Messages[:0]
-		for _, msg := range threadRes.Thread.Messages {
-			if msg.Journeycard__ == nil {
-				filtered = append(filtered, msg)
-			}
-		}
-		threadRes.Thread.Messages = filtered
+		filterOutJourneycards(&threadRes.Thread)
 		require.NoError(t, err)
 		require.Equal(t, 2, len(threadRes.Thread.Messages))
 		require.True(t, threadRes.Thread.Messages[0].IsValid())
@@ -5314,6 +5307,7 @@ func TestChatSrvSetConvMinWriterRole(t *testing.T) {
 					MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 				},
 			})
+			filterOutJourneycards(&tvres.Thread)
 			require.NoError(t, err)
 			if len(tvres.Thread.Messages) != 2 {
 				t.Logf("messages: %v", chat1.MessageUnboxedDebugList(tvres.Thread.Messages))
@@ -5347,6 +5341,7 @@ func TestChatSrvSetConvMinWriterRole(t *testing.T) {
 					MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 				},
 			})
+			filterOutJourneycards(&tvres.Thread)
 			require.NoError(t, err)
 			require.Len(t, tvres.Thread.Messages, 4, "messages are accessible")
 		}
@@ -7520,4 +7515,15 @@ func TestTeamBotSettings(t *testing.T) {
 			require.False(t, isMember)
 		})
 	})
+}
+
+// Filter out journey cards. The test doesn't need to know about them. Mutates thread.Messages
+func filterOutJourneycards(thread *chat1.ThreadView) {
+	filtered := thread.Messages[:0]
+	for _, msg := range thread.Messages {
+		if msg.Journeycard__ == nil {
+			filtered = append(filtered, msg)
+		}
+	}
+	thread.Messages = filtered
 }
