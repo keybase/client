@@ -18,18 +18,18 @@ import (
 	"github.com/keybase/go-updater/watchdog"
 )
 
-// CmdWatchdog2 defines watchdog command
-type CmdWatchdog2 struct {
+// CmdWatchdog defines watchdog command
+type CmdWatchdog struct {
 	libkb.Contextified
 }
 
 // ParseArgv is args for the watchdog command
-func (c *CmdWatchdog2) ParseArgv(ctx *cli.Context) error {
+func (c *CmdWatchdog) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
 // Run watchdog
-func (c *CmdWatchdog2) Run() error {
+func (c *CmdWatchdog) Run() error {
 	env, log := c.G().Env, c.G().Log
 	log.Info("Starting watchdog")
 	runMode := env.GetRunMode()
@@ -56,6 +56,7 @@ func (c *CmdWatchdog2) Run() error {
 			"service",
 			"--watchdog-forked",
 		},
+		// when the service exits gracefully, also exit the watchdog and any other programs it is currently watching
 		ExitOn: watchdog.ExitAllOnSuccess,
 	}
 	programs = append(programs, serviceProgram)
@@ -103,13 +104,15 @@ func (c *CmdWatchdog2) Run() error {
 	select {}
 }
 
-// NewCmdWatchdog2 constructs watchdog command
-func NewCmdWatchdog2(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+// NewCmdWatchdog constructs watchdog command
+func NewCmdWatchdog(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:  "watchdog2",
-		Usage: "Start and monitor background services",
+		Name: "watchdog",
+		// watchdog2 was renamed to watchdog, so this line is for backwards compatibility. We can eventually remove it.
+		Aliases: []string{"watchdog2"},
+		Usage:   "Start and monitor background services",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdWatchdog2{Contextified: libkb.NewContextified(g)}, "watchdog2", c)
+			cl.ChooseCommand(&CmdWatchdog{Contextified: libkb.NewContextified(g)}, "watchdog", c)
 			cl.SetForkCmd(libcmdline.NoFork)
 			cl.SetLogForward(libcmdline.LogForwardNone)
 		},
@@ -117,31 +120,31 @@ func NewCmdWatchdog2(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 }
 
 // GetUsage returns library usage for this command
-func (c *CmdWatchdog2) GetUsage() libkb.Usage {
+func (c *CmdWatchdog) GetUsage() libkb.Usage {
 	return libkb.Usage{}
 }
 
 // Debugf (for watchdog.Log interface)
-func (c *CmdWatchdog2) Debugf(s string, args ...interface{}) {
+func (c *CmdWatchdog) Debugf(s string, args ...interface{}) {
 	c.G().Log.Debug(s, args...)
 }
 
 // Infof (for watchdog.Log interface)
-func (c *CmdWatchdog2) Infof(s string, args ...interface{}) {
+func (c *CmdWatchdog) Infof(s string, args ...interface{}) {
 	c.G().Log.Info(s, args...)
 }
 
 // Warningf (for watchdog Log interface)
-func (c *CmdWatchdog2) Warningf(s string, args ...interface{}) {
+func (c *CmdWatchdog) Warningf(s string, args ...interface{}) {
 	c.G().Log.Warning(s, args...)
 }
 
 // Errorf (for watchdog Log interface)
-func (c *CmdWatchdog2) Errorf(s string, args ...interface{}) {
+func (c *CmdWatchdog) Errorf(s string, args ...interface{}) {
 	c.G().Log.Errorf(s, args...)
 }
 
-func (c *CmdWatchdog2) pruneWatchdogLogs() {
+func (c *CmdWatchdog) pruneWatchdogLogs() {
 	logPrefix := c.G().Env.GetLogPrefix()
 	if logPrefix == "" {
 		return
