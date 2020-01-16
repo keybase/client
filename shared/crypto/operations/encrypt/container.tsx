@@ -18,6 +18,7 @@ export default Container.namedConnect(
     output: state.crypto.encrypt.output.stringValue(),
     outputStatus: state.crypto.encrypt.outputStatus,
     outputType: state.crypto.encrypt.outputType,
+    recipients: state.crypto.encrypt.recipients,
     username: state.config.username,
   }),
   (dispatch: Container.TypedDispatch) => ({
@@ -43,6 +44,7 @@ export default Container.namedConnect(
     output: stateProps.output,
     outputStatus: stateProps.outputStatus,
     outputType: stateProps.outputType,
+    recipients: stateProps.recipients,
     username: stateProps.username,
   }),
   'EncryptContainer'
