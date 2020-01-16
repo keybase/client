@@ -1,21 +1,19 @@
-import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as FsGen from '../../../actions/fs-gen'
-import * as BotsGen from '../../../actions/bots-gen'
-import * as Constants from '../../../constants/chat2'
 import * as BotConstants from '../../../constants/bots'
-import * as TeamConstants from '../../../constants/teams'
-import * as React from 'react'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import * as Types from '../../../constants/types/chat2'
-import * as Styles from '../../../styles'
-import {InfoPanel, Panel, ParticipantTyp, InfoPanelProps} from '.'
+import * as BotsGen from '../../../actions/bots-gen'
+import * as Chat2Gen from '../../../actions/chat2-gen'
+import * as Constants from '../../../constants/chat2'
 import * as Container from '../../../util/container'
-import {createShowUserProfile} from '../../../actions/profile-gen'
-import * as Kb from '../../../common-adapters'
+import * as FsGen from '../../../actions/fs-gen'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
+import * as React from 'react'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import * as TeamConstants from '../../../constants/teams'
 import * as TeamTypes from '../../../constants/types/teams'
+import * as Types from '../../../constants/types/chat2'
 import flags from '../../../util/feature-flags'
+import {InfoPanel, Panel, ParticipantTyp, InfoPanelProps} from '.'
+import {createShowUserProfile} from '../../../actions/profile-gen'
 
 // TODO this container does a ton of stuff for the various tabs. Really the tabs should be connected
 // and this thing is just a holder of tabs
@@ -162,15 +160,7 @@ const ConnectedInfoPanel = Container.connect(
     onBotAdd: () => {
       dispatch(
         RouteTreeGen.createNavigateAppend({
-          path: [
-            {
-              props: {
-                conversationIDKey,
-                namespace: 'chat2',
-              },
-              selected: 'chatSearchBots',
-            },
-          ],
+          path: [{props: {conversationIDKey, namespace: 'chat2'}, selected: 'chatSearchBots'}],
         })
       )
     },
@@ -179,11 +169,7 @@ const ConnectedInfoPanel = Container.connect(
         RouteTreeGen.createNavigateAppend({
           path: [
             {
-              props: {
-                botUsername: username,
-                conversationIDKey,
-                namespace: 'chat2',
-              },
+              props: {botUsername: username, conversationIDKey, namespace: 'chat2'},
               selected: 'chatInstallBot',
             },
           ],
@@ -441,11 +427,13 @@ const ConnectedInfoPanel = Container.connect(
   }
 )(InfoPanel)
 
-type SelectorOwnProps = Container.RouteProps<{
-  conversationIDKey: Types.ConversationIDKey
-  tab: Panel | null
-  attachmentview: RPCChatTypes.GalleryItemTyp
-}>
+type SelectorOwnProps =
+  | Container.RouteProps<{
+      conversationIDKey: Types.ConversationIDKey
+      tab: Panel | null
+      attachmentview: RPCChatTypes.GalleryItemTyp
+    }>
+  | {}
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
@@ -456,7 +444,7 @@ type Props = {
 }
 
 const InfoPanelSelector = (props: Props) => {
-  const {shouldNavigateOut, onGoToInbox, onBack} = props
+  const {shouldNavigateOut, onGoToInbox} = props
   const prevShouldNavigateOut = Container.usePrevious(props.shouldNavigateOut)
   React.useEffect(() => {
     !prevShouldNavigateOut && shouldNavigateOut && onGoToInbox()
@@ -465,16 +453,11 @@ const InfoPanelSelector = (props: Props) => {
   const [selectedAttachmentView, onSelectAttachmentView] = React.useState<RPCChatTypes.GalleryItemTyp>(
     RPCChatTypes.GalleryItemTyp.media
   )
-  const [show, setShow] = React.useState<boolean>(true)
-  const onDestroyed = React.useCallback(() => {
-    onBack()
-  }, [onBack])
-
   if (!props.conversationIDKey) {
     return null
   }
 
-  return Container.isMobile ? (
+  return (
     <ConnectedInfoPanel
       onBack={undefined}
       onCancel={props.onBack}
@@ -484,80 +467,41 @@ const InfoPanelSelector = (props: Props) => {
       onSelectAttachmentView={onSelectAttachmentView}
       selectedAttachmentView={selectedAttachmentView}
     />
-  ) : (
-    <Kb.Box onClick={() => setShow(false)} style={styles.clickCatcher}>
-      <Kb.Transition
-        items={show}
-        keys={item => (item ? 'showing' : 'hiding')}
-        config={(showing, state) => ({duration: showing && state == 'enter' ? 200 : 50})}
-        from={{...styles.panelContainer, right: -320}}
-        enter={{...styles.panelContainer, right: 0}}
-        leave={{...styles.panelContainer, right: -320}}
-        onDestroyed={onDestroyed}
-      >
-        {show => style => {
-          return show ? (
-            <Kb.animated.div style={style} onClick={(evt: React.BaseSyntheticEvent) => evt.stopPropagation()}>
-              <ConnectedInfoPanel
-                loadDelay={400}
-                onBack={() => setShow(false)}
-                onSelectTab={onSelectTab}
-                conversationIDKey={props.conversationIDKey}
-                selectedTab={selectedTab}
-                onSelectAttachmentView={onSelectAttachmentView}
-                selectedAttachmentView={selectedAttachmentView}
-              />
-            </Kb.animated.div>
-          ) : null
-        }}
-      </Kb.Transition>
-    </Kb.Box>
   )
 }
 
-const styles = Styles.styleSheetCreate(
-  () =>
-    ({
-      clickCatcher: {
-        bottom: 0,
-        left: 0,
-        position: 'absolute',
-        right: 0,
-        top: 39,
-      },
-      panelContainer: {
-        bottom: 0,
-        display: 'flex',
-        flexDirection: 'column',
-        position: 'absolute',
-        right: 0,
-        top: 40,
-        width: 320,
-      },
-    } as const)
-)
-
 const InfoConnected = Container.connect(
   (state, ownProps: SelectorOwnProps) => {
-    const conversationIDKey: Types.ConversationIDKey = Container.getRouteProps(
-      ownProps,
-      'conversationIDKey',
-      Constants.noConversationIDKey
-    )
+    const conversationIDKey: Types.ConversationIDKey =
+      // @ts-ignore
+      typeof ownProps.navigation !== 'undefined'
+        ? Container.getRouteProps(ownProps as any, 'conversationIDKey', Constants.noConversationIDKey)
+        : state.chat2.selectedConversation
+
     const meta = Constants.getMeta(state, conversationIDKey)
     return {
+      _panel: state.chat2.infoPanelSelectedTab,
       conversationIDKey,
       shouldNavigateOut: meta.conversationIDKey === Constants.noConversationIDKey,
     }
   },
   dispatch => ({
     // Used by HeaderHoc.
-    onBack: () => dispatch(Chat2Gen.createToggleInfoPanel()),
+    onBack: () => dispatch(Chat2Gen.createShowInfoPanel({show: false})),
     onGoToInbox: () => dispatch(Chat2Gen.createNavigateToInbox()),
   }),
   (stateProps, dispatchProps, ownProps: SelectorOwnProps) => ({
     conversationIDKey: stateProps.conversationIDKey,
-    initialTab: Container.getRouteProps(ownProps, 'tab', null),
+    initialTab:
+      // @ts-ignore
+      typeof ownProps.navigation !== 'undefined'
+        ? Container.getRouteProps(
+            // @ts-ignore
+            ownProps,
+            'tab',
+            null
+          )
+        : stateProps._panel,
     onBack: dispatchProps.onBack,
     onGoToInbox: dispatchProps.onGoToInbox,
     shouldNavigateOut: stateProps.shouldNavigateOut,

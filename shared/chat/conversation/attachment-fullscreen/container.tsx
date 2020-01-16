@@ -65,11 +65,7 @@ const Connected = (props: OwnProps) => {
       message={message}
       isVideo={Constants.isVideoAttachment(message)}
       onAllMedia={() =>
-        dispatch(
-          RouteTreeGen.createNavigateAppend({
-            path: [{props: {conversationIDKey, tab: 'attachments'}, selected: 'chatInfoPanel'}],
-          })
-        )
+        dispatch(Chat2Gen.createShowInfoPanel({conversationIDKey, show: true, tab: 'attachments'}))
       }
       onClose={() => dispatch(RouteTreeGen.createNavigateUp())}
       onDownloadAttachment={

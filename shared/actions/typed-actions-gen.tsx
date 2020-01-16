@@ -182,7 +182,6 @@ export type TypedActionsMap = {
   'chat2:setPrependText': chat2.SetPrependTextPayload
   'chat2:updateUnreadline': chat2.UpdateUnreadlinePayload
   'chat2:toggleMessageCollapse': chat2.ToggleMessageCollapsePayload
-  'chat2:toggleInfoPanel': chat2.ToggleInfoPanelPayload
   'chat2:updateCoinFlipStatus': chat2.UpdateCoinFlipStatusPayload
   'chat2:setCommandMarkdown': chat2.SetCommandMarkdownPayload
   'chat2:addUsersToChannel': chat2.AddUsersToChannelPayload
@@ -249,6 +248,7 @@ export type TypedActionsMap = {
   'chat2:setGeneralConvFromTeamID': chat2.SetGeneralConvFromTeamIDPayload
   'chat2:refreshBotRoleInConv': chat2.RefreshBotRoleInConvPayload
   'chat2:setBotRoleInConv': chat2.SetBotRoleInConvPayload
+  'chat2:showInfoPanel': chat2.ShowInfoPanelPayload
   'chat2:dismissJourneycard': chat2.DismissJourneycardPayload
   'config:startHandshake': config.StartHandshakePayload
   'config:restartHandshake': config.RestartHandshakePayload

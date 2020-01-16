@@ -200,6 +200,8 @@ export type State = Readonly<{
   inboxLayout: RPCChatTypes.UIInboxLayout | null // layout of the inbox
   inboxSearch?: InboxSearchInfo
   inboxShowNew: boolean // mark search as new,
+  infoPanelShowing: boolean
+  infoPanelSelectedTab: 'settings' | 'members' | 'attachments' | 'bots' | undefined
   isWalletsNew: boolean // controls new-ness of wallets in chat UI,
   lastCoord?: Coordinate
   maybeMentionMap: Map<string, RPCChatTypes.UIMaybeMentionInfo>

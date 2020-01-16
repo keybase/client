@@ -80,13 +80,10 @@ export default Container.connect(
     },
     _onAllMedia: () =>
       dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [
-            {
-              props: {conversationIDKey: ownProps.message.conversationIDKey, tab: 'attachments'},
-              selected: 'chatInfoPanel',
-            },
-          ],
+        Chat2Gen.createShowInfoPanel({
+          conversationIDKey: ownProps.message.conversationIDKey,
+          show: true,
+          tab: 'attachments',
         })
       ),
     _onCopy: () => {

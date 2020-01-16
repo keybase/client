@@ -3063,20 +3063,6 @@ const unfurlResolvePrompt = (action: Chat2Gen.UnfurlResolvePromptPayload) => {
   })
 }
 
-const toggleInfoPanel = (state: Container.TypedState) => {
-  const visibleScreen = Router2Constants.getVisibleScreen()
-  if (visibleScreen && visibleScreen.routeName === 'chatInfoPanel') {
-    return [
-      Chat2Gen.createClearAttachmentView({conversationIDKey: state.chat2.selectedConversation}),
-      RouteTreeGen.createNavigateUp(),
-    ]
-  } else {
-    return RouteTreeGen.createNavigateAppend({
-      path: [{props: {conversationIDKey: state.chat2.selectedConversation}, selected: 'chatInfoPanel'}],
-    })
-  }
-}
-
 const unsentTextChanged = (state: Container.TypedState, action: Chat2Gen.UnsentTextChangedPayload) => {
   const {conversationIDKey, text} = action.payload
   const meta = Constants.getMeta(state, conversationIDKey)
@@ -3541,6 +3527,26 @@ const refreshBotSettings = async (_: Container.TypedState, action: Chat2Gen.Refr
   return Chat2Gen.createSetBotSettings({conversationIDKey, settings, username})
 }
 
+const onShowInfoPanel = (action: Chat2Gen.ShowInfoPanelPayload) => {
+  const {conversationIDKey, show, tab} = action.payload
+  if (Container.isMobile) {
+    const visibleScreen = Router2Constants.getVisibleScreen()
+    if ((visibleScreen?.routeName === 'chatInfoPanel') !== show) {
+      return show
+        ? RouteTreeGen.createNavigateAppend({
+            path: [{props: {conversationIDKey, tab}, selected: 'chatInfoPanel'}],
+          })
+        : [
+            ...(conversationIDKey ? [Chat2Gen.createClearAttachmentView({conversationIDKey})] : []),
+            RouteTreeGen.createNavigateUp(),
+          ]
+    }
+    return false
+  } else {
+    return false
+  }
+}
+
 function* chat2Saga() {
   // Platform specific actions
   if (Container.isMobile) {
@@ -3700,7 +3706,6 @@ function* chat2Saga() {
   )
   yield* Saga.chainAction2(Chat2Gen.messageReplyPrivately, messageReplyPrivately)
   yield* Saga.chainAction(Chat2Gen.openChatFromWidget, openChatFromWidget)
-  yield* Saga.chainAction2(Chat2Gen.toggleInfoPanel, toggleInfoPanel)
 
   // Exploding things
   yield* Saga.chainGenerator<Chat2Gen.SetConvExplodingModePayload>(
@@ -3783,6 +3788,8 @@ function* chat2Saga() {
 
   yield* Saga.chainAction2(Chat2Gen.selectConversation, refreshPreviousSelected)
   yield* Saga.chainAction2(Chat2Gen.selectConversation, ensureSelectedMeta)
+
+  yield* Saga.chainAction(Chat2Gen.showInfoPanel, onShowInfoPanel)
 
   yield* Saga.chainAction2(Chat2Gen.selectConversation, fetchConversationBio)
 
