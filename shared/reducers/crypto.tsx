@@ -54,13 +54,14 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     }
   },
   [CryptoGen.setRecipients]: (draftState, action) => {
-    const {operation, recipients} = action.payload
+    const {operation, recipients, hasSBS} = action.payload
 
     if (operationGuard(operation, action)) return
 
     if (operation !== Constants.Operations.Encrypt) return
     if (!draftState.encrypt.recipients.length && recipients.length) {
       draftState.encrypt.meta.hasRecipients = true
+      draftState.encrypt.meta.hasSBS = hasSBS
     }
     if (recipients) draftState.encrypt.recipients = recipients
   },

@@ -84,7 +84,7 @@ const TextInput = (props: TextProps) => {
         )}
         <Kb.Box2
           direction="horizontal"
-          fullWidth={false}
+          fullWidth={!!value}
           fullHeight={!!value}
           alignItems="flex-start"
           alignSelf="flex-start"
@@ -101,7 +101,7 @@ const TextInput = (props: TextProps) => {
             containerStyle={value ? styles.inputContainer : styles.inputContainerEmpty}
             style={Styles.collapseStyles([
               styles.input,
-              !value && styles.inputEmpty,
+              value ? styles.inputFull : styles.inputEmpty,
               !value && {width: emptyWidth},
             ])}
             onChangeText={onChangeText}
@@ -208,12 +208,20 @@ const styles = Styles.styleSheetCreate(
       inputContainerEmpty: {
         padding: 0,
       },
-      inputEmpty: {
-        minHeight: 'initial',
-        paddingBottom: 0,
-        paddingLeft: Styles.globalMargins.tiny,
-        paddingRight: 0,
-        paddingTop: Styles.globalMargins.tiny,
+      inputEmpty: Styles.platformStyles({
+        common: {
+          minHeight: 'initial',
+          paddingBottom: 0,
+          paddingLeft: Styles.globalMargins.tiny,
+          paddingRight: 0,
+          paddingTop: Styles.globalMargins.tiny,
+        },
+        isElectron: {
+          overflowY: 'hidden',
+        },
+      }),
+      inputFull: {
+        paddingRight: 46,
       },
     } as const)
 )
