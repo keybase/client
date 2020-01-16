@@ -248,15 +248,18 @@ func (b *CachingBotCommandManager) ListCommands(ctx context.Context, convID chat
 		}
 		return res, alias, nil
 	}
-	cmdDedup := make(map[string]bool)
 
+	var teamBotSettings map[keybase1.UID]keybase1.TeamBotSettings
+	cmdDedup := make(map[string]bool)
 	for _, ad := range s.Advertisements {
 		// If the advertisement is by a restricted bot that will not be keyed
 		// for commands, filter the advertisement out.
 		if ad.UntrustedTeamRole.IsRestrictedBot() {
-			teamBotSettings, err := b.G().InboxSource.TeamBotSettingsForConv(ctx, b.uid, convID)
-			if err != nil {
-				return res, alias, err
+			if teamBotSettings == nil {
+				teamBotSettings, err = b.G().InboxSource.TeamBotSettingsForConv(ctx, b.uid, convID)
+				if err != nil {
+					return res, alias, err
+				}
 			}
 			if !teamBotSettings[keybase1.UID(ad.UID.String())].Cmds {
 				b.Debug(ctx, "ListCommands: skipping commands from %v, a restricted bot without cmds", ad.UID)
