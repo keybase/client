@@ -2405,6 +2405,8 @@ const navigateToThread = (state: Container.TypedState) => {
   return navigateToThreadRoute(state.chat2.selectedConversation)
 }
 
+// TODO: rework this whole situation
+
 const maybeLoadTeamFromMeta = (meta: Types.ConversationMeta) => {
   const {teamname} = meta
   return teamname ? TeamsGen.createGetMembers({teamname}) : false
@@ -2416,7 +2418,7 @@ const ensureSelectedTeamLoaded = (
 ) => {
   const meta = state.chat2.metaMap.get(state.chat2.selectedConversation)
   return meta
-    ? action.type === Chat2Gen.selectConversation || !state.teams.teamNameToMembers.get(meta.teamname)
+    ? action.type === Chat2Gen.selectConversation || !state.teams.teamDetails.get(meta.teamID)?.members
       ? maybeLoadTeamFromMeta(meta)
       : false
     : false

@@ -237,14 +237,15 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
         {entityType === 'small team' || entityType === 'channel' ? (
           <TeamHeader
             admin={this.props.admin}
-            teamname={this.props.teamname}
             channelname={this.props.channelname}
             conversationIDKey={this.props.selectedConversationIDKey}
-            isSmallTeam={entityType === 'small team'}
-            isPreview={this.props.isPreview}
-            participantCount={this.props.participants.length}
-            onJoinChannel={this.props.onJoinChannel}
             description={this.props.description}
+            isPreview={this.props.isPreview}
+            isSmallTeam={entityType === 'small team'}
+            onJoinChannel={this.props.onJoinChannel}
+            participantCount={this.props.participants.length}
+            teamID={this.props.teamID}
+            teamname={this.props.teamname}
           />
         ) : (
           <AdhocHeader

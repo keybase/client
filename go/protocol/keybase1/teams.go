@@ -582,6 +582,7 @@ func (o TeamMembersDetails) DeepCopy() TeamMembersDetails {
 }
 
 type TeamDetails struct {
+	Name                   string                               `codec:"name" json:"name"`
 	Members                TeamMembersDetails                   `codec:"members" json:"members"`
 	KeyGeneration          PerTeamKeyGeneration                 `codec:"keyGeneration" json:"keyGeneration"`
 	AnnotatedActiveInvites map[TeamInviteID]AnnotatedTeamInvite `codec:"annotatedActiveInvites" json:"annotatedActiveInvites"`
@@ -591,6 +592,7 @@ type TeamDetails struct {
 
 func (o TeamDetails) DeepCopy() TeamDetails {
 	return TeamDetails{
+		Name:          o.Name,
 		Members:       o.Members.DeepCopy(),
 		KeyGeneration: o.KeyGeneration.DeepCopy(),
 		AnnotatedActiveInvites: (func(x map[TeamInviteID]AnnotatedTeamInvite) map[TeamInviteID]AnnotatedTeamInvite {

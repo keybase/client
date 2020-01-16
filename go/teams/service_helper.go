@@ -156,6 +156,7 @@ func details(ctx context.Context, g *libkb.GlobalContext, t *Team, tracer profil
 
 	res.Settings.Open = t.IsOpen()
 	res.Settings.JoinAs = t.chain().inner.OpenTeamJoinAs
+	res.Name = t.Name().String()
 	return res, nil
 }
 

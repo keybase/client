@@ -26,6 +26,7 @@ export const editTeamDescription = 'teams:editTeamDescription'
 export const getChannelInfo = 'teams:getChannelInfo'
 export const getChannels = 'teams:getChannels'
 export const getDetails = 'teams:getDetails'
+export const getDetailsByID = 'teams:getDetailsByID'
 export const getMembers = 'teams:getMembers'
 export const getTeamProfileAddList = 'teams:getTeamProfileAddList'
 export const getTeamPublicity = 'teams:getTeamPublicity'
@@ -74,6 +75,7 @@ export const setTeamsWithChosenChannels = 'teams:setTeamsWithChosenChannels'
 export const setUpdatedChannelName = 'teams:setUpdatedChannelName'
 export const setUpdatedTopic = 'teams:setUpdatedTopic'
 export const teamCreated = 'teams:teamCreated'
+export const unsubscribeTeamDetails = 'teams:unsubscribeTeamDetails'
 export const unsubscribeTeamList = 'teams:unsubscribeTeamList'
 export const updateChannelName = 'teams:updateChannelName'
 export const updateTopic = 'teams:updateTopic'
@@ -135,6 +137,11 @@ type _GetChannelInfoPayload = {
   readonly teamID: Types.TeamID
 }
 type _GetChannelsPayload = {readonly teamID: Types.TeamID}
+type _GetDetailsByIDPayload = {
+  readonly _subscribe?: boolean
+  readonly teamID: Types.TeamID
+  readonly clearInviteLoadingKey?: string
+}
 type _GetDetailsPayload = {readonly teamname: string; readonly clearInviteLoadingKey?: string}
 type _GetMembersPayload = {readonly teamname: string}
 type _GetTeamProfileAddListPayload = {readonly username: string}
@@ -191,7 +198,7 @@ type _SetNewTeamInfoPayload = {
   readonly deletedTeams: Array<RPCTypes.DeletedTeamInfo>
   readonly newTeams: Set<Types.TeamID>
   readonly newTeamRequests: Array<Types.TeamID>
-  readonly teamIDToResetUsers: Map<Types.TeamID, Set<Types.ResetUser>>
+  readonly teamIDToResetUsers: Map<Types.TeamID, Set<string>>
 }
 type _SetPublicityPayload = {readonly teamID: Types.TeamID; readonly settings: Types.PublicitySettings}
 type _SetTeamAccessRequestsPendingPayload = {readonly accessRequestsPending: Set<Types.Teamname>}
@@ -266,6 +273,7 @@ type _TeamCreatedPayload = {
   readonly teamID: Types.TeamID
   readonly teamname: string
 }
+type _UnsubscribeTeamDetailsPayload = {readonly teamID: Types.TeamID}
 type _UnsubscribeTeamListPayload = void
 type _UpdateChannelNamePayload = {
   readonly teamID: Types.TeamID
@@ -285,6 +293,13 @@ type _UploadTeamAvatarPayload = {
 }
 
 // Action Creators
+/**
+ * Deprecated, use subscriptions or by ID in new code
+ */
+export const createGetDetails = (payload: _GetDetailsPayload): GetDetailsPayload => ({
+  payload,
+  type: getDetails,
+})
 /**
  * Don't eagerly reload team list anymore.
  */
@@ -312,6 +327,13 @@ export const createGetTeamRetentionPolicy = (
   payload: _GetTeamRetentionPolicyPayload
 ): GetTeamRetentionPolicyPayload => ({payload, type: getTeamRetentionPolicy})
 /**
+ * Load team details if we are stale. _subscribe is for use by teams/subscriber only.
+ */
+export const createGetDetailsByID = (payload: _GetDetailsByIDPayload): GetDetailsByIDPayload => ({
+  payload,
+  type: getDetailsByID,
+})
+/**
  * Load team list if we are stale. _subscribe is for use by teams/subscriber only.
  */
 export const createGetTeams = (payload: _GetTeamsPayload = Object.freeze({})): GetTeamsPayload => ({
@@ -331,6 +353,12 @@ export const createRenameTeam = (payload: _RenameTeamPayload): RenameTeamPayload
 export const createSaveTeamRetentionPolicy = (
   payload: _SaveTeamRetentionPolicyPayload
 ): SaveTeamRetentionPolicyPayload => ({payload, type: saveTeamRetentionPolicy})
+/**
+ * Stop listening for team details for this team
+ */
+export const createUnsubscribeTeamDetails = (
+  payload: _UnsubscribeTeamDetailsPayload
+): UnsubscribeTeamDetailsPayload => ({payload, type: unsubscribeTeamDetails})
 /**
  * We successfully left a team
  */
@@ -390,10 +418,6 @@ export const createEditMembership = (payload: _EditMembershipPayload): EditMembe
 export const createEditTeamDescription = (
   payload: _EditTeamDescriptionPayload
 ): EditTeamDescriptionPayload => ({payload, type: editTeamDescription})
-export const createGetDetails = (payload: _GetDetailsPayload): GetDetailsPayload => ({
-  payload,
-  type: getDetails,
-})
 export const createGetMembers = (payload: _GetMembersPayload): GetMembersPayload => ({
   payload,
   type: getMembers,
@@ -614,6 +638,10 @@ export type GetChannelInfoPayload = {
   readonly type: typeof getChannelInfo
 }
 export type GetChannelsPayload = {readonly payload: _GetChannelsPayload; readonly type: typeof getChannels}
+export type GetDetailsByIDPayload = {
+  readonly payload: _GetDetailsByIDPayload
+  readonly type: typeof getDetailsByID
+}
 export type GetDetailsPayload = {readonly payload: _GetDetailsPayload; readonly type: typeof getDetails}
 export type GetMembersPayload = {readonly payload: _GetMembersPayload; readonly type: typeof getMembers}
 export type GetTeamProfileAddListPayload = {
@@ -771,6 +799,10 @@ export type SetUpdatedTopicPayload = {
   readonly type: typeof setUpdatedTopic
 }
 export type TeamCreatedPayload = {readonly payload: _TeamCreatedPayload; readonly type: typeof teamCreated}
+export type UnsubscribeTeamDetailsPayload = {
+  readonly payload: _UnsubscribeTeamDetailsPayload
+  readonly type: typeof unsubscribeTeamDetails
+}
 export type UnsubscribeTeamListPayload = {
   readonly payload: _UnsubscribeTeamListPayload
   readonly type: typeof unsubscribeTeamList
@@ -806,6 +838,7 @@ export type Actions =
   | EditTeamDescriptionPayload
   | GetChannelInfoPayload
   | GetChannelsPayload
+  | GetDetailsByIDPayload
   | GetDetailsPayload
   | GetMembersPayload
   | GetTeamProfileAddListPayload
@@ -855,6 +888,7 @@ export type Actions =
   | SetUpdatedChannelNamePayload
   | SetUpdatedTopicPayload
   | TeamCreatedPayload
+  | UnsubscribeTeamDetailsPayload
   | UnsubscribeTeamListPayload
   | UpdateChannelNamePayload
   | UpdateTopicPayload

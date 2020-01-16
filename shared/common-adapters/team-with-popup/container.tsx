@@ -17,21 +17,19 @@ type OwnProps = {
 
 const ConnectedTeamWithPopup = Container.connect(
   (state, {teamName}: OwnProps) => {
-    const _teamID = TeamsConstants.getTeamID(state, teamName)
-    const details: TeamsTypes.TeamDetails = TeamsConstants.getTeamDetails(state, _teamID)
+    const teamID = TeamsConstants.getTeamID(state, teamName)
+    const details: TeamsTypes.TeamDetails = TeamsConstants.getTeamDetails(state, teamID)
     return {
-      _teamID,
-      description: TeamsConstants.getTeamPublicitySettings(state, _teamID).description,
+      description: TeamsConstants.getTeamPublicitySettings(state, teamID).description,
       isMember: details.isMember,
       isOpen: details.isOpen,
       memberCount: details.memberCount,
+      teamID,
     }
   },
   dispatch => ({
+    // TODO: join team by ID
     _onJoinTeam: (teamname: string) => dispatch(TeamsGen.createJoinTeam({teamname})),
-    _onLoadTeam: (teamname: string) => {
-      dispatch(TeamsGen.createGetDetails({teamname}))
-    },
     _onViewTeam: (teamID: TeamsTypes.TeamID) => {
       dispatch(RouteTreeGen.createClearModals())
       dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'team'}]}))
@@ -43,12 +41,12 @@ const ConnectedTeamWithPopup = Container.connect(
       inline: ownProps.inline,
       isMember: stateProps.isMember,
       isOpen: stateProps.isOpen,
-      loadTeam: () => dispatchProps._onLoadTeam(ownProps.teamName),
       memberCount: stateProps.memberCount,
       onJoinTeam: () => dispatchProps._onJoinTeam(ownProps.teamName),
-      onViewTeam: () => dispatchProps._onViewTeam(stateProps._teamID),
+      onViewTeam: () => dispatchProps._onViewTeam(stateProps.teamID),
       prefix: ownProps.prefix,
       shouldLoadTeam: ownProps.shouldLoadTeam,
+      teamID: stateProps.teamID,
       teamName: ownProps.teamName,
       type: ownProps.type,
       underline: ownProps.underline,

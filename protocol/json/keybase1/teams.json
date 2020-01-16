@@ -387,6 +387,10 @@
       "name": "TeamDetails",
       "fields": [
         {
+          "type": "string",
+          "name": "name"
+        },
+        {
           "type": "TeamMembersDetails",
           "name": "members"
         },

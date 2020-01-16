@@ -1347,6 +1347,10 @@ export type MessageTypes = {
     inParam: {readonly name: String}
     outParam: TeamDetails
   }
+  'keybase.1.teams.teamGetByID': {
+    inParam: {readonly id: TeamID}
+    outParam: TeamDetails
+  }
   'keybase.1.teams.teamGetMembers': {
     inParam: {readonly name: String}
     outParam: TeamMembersDetails
@@ -3017,7 +3021,7 @@ export type TeamContactSettings = {readonly teamID: TeamID; readonly enabled: Bo
 export type TeamCreateResult = {readonly teamID: TeamID; readonly chatSent: Boolean; readonly creatorAdded: Boolean}
 export type TeamData = {readonly v: /* subversion */ Int; readonly frozen: Boolean; readonly tombstoned: Boolean; readonly secretless: Boolean; readonly name: TeamName; readonly chain: TeamSigChainState; readonly perTeamKeySeeds: /* perTeamKeySeedsUnverified */ {[key: string]: PerTeamKeySeedItem}; readonly readerKeyMasks: {[key: string]: {[key: string]: MaskB64}}; readonly latestSeqnoHint: Seqno; readonly cachedAt: Time; readonly tlfCryptKeys: {[key: string]: Array<CryptKey> | null}}
 export type TeamDebugRes = {readonly chain: TeamSigChainState}
-export type TeamDetails = {readonly members: TeamMembersDetails; readonly keyGeneration: PerTeamKeyGeneration; readonly annotatedActiveInvites: {[key: string]: AnnotatedTeamInvite}; readonly settings: TeamSettings; readonly showcase: TeamShowcase}
+export type TeamDetails = {readonly name: String; readonly members: TeamMembersDetails; readonly keyGeneration: PerTeamKeyGeneration; readonly annotatedActiveInvites: {[key: string]: AnnotatedTeamInvite}; readonly settings: TeamSettings; readonly showcase: TeamShowcase}
 export type TeamEk = {readonly seed: Bytes32; readonly metadata: TeamEkMetadata}
 export type TeamEkBoxMetadata = {readonly box: String; readonly recipientGeneration: EkGeneration; readonly recipientUID: UID}
 export type TeamEkBoxed = {readonly box: String; readonly userEkGeneration: EkGeneration; readonly metadata: TeamEkMetadata}
@@ -3600,6 +3604,7 @@ export const teamsTeamCreateSeitanTokenV2RpcPromise = (params: MessageTypes['key
 export const teamsTeamDeleteRpcPromise = (params: MessageTypes['keybase.1.teams.teamDelete']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamDelete']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamDelete', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamDeleteRpcSaga = (p: {params: MessageTypes['keybase.1.teams.teamDelete']['inParam']; incomingCallMap: IncomingCallMapType; customResponseIncomingCallMap?: CustomResponseIncomingCallMap; waitingKey?: WaitingKey}) => call(getEngineSaga(), {method: 'keybase.1.teams.teamDelete', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
 export const teamsTeamEditMemberRpcPromise = (params: MessageTypes['keybase.1.teams.teamEditMember']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamEditMember']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamEditMember', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const teamsTeamGetByIDRpcPromise = (params: MessageTypes['keybase.1.teams.teamGetByID']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamGetByID']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamGetByID', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamGetMembersRpcPromise = (params: MessageTypes['keybase.1.teams.teamGetMembers']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamGetMembers']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamGetMembers', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamGetRpcPromise = (params: MessageTypes['keybase.1.teams.teamGet']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamGet']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamGet', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamGetSubteamsRpcPromise = (params: MessageTypes['keybase.1.teams.teamGetSubteams']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamGetSubteams']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamGetSubteams', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -3983,7 +3988,6 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.streamUi.reset'
 // 'keybase.1.streamUi.write'
 // 'keybase.1.teams.teamCreateWithSettings'
-// 'keybase.1.teams.teamGetByID'
 // 'keybase.1.teams.teamImplicitAdmins'
 // 'keybase.1.teams.teamListTeammates'
 // 'keybase.1.teams.teamListVerified'
