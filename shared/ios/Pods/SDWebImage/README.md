@@ -19,8 +19,9 @@ This library provides an async image downloader with cache support. For convenie
 - [x] Categories for `UIImageView`, `UIButton`, `MKAnnotationView` adding web image and cache management
 - [x] An asynchronous image downloader
 - [x] An asynchronous memory + disk image caching with automatic cache expiration handling
-- [x] A background image decompression
+- [x] A background image decompression to avoid frame rate drop
 - [x] Progressive image loading (including animated image, like GIF showing in Web browser)
+- [x] [Thumbnail image decoding](https://github.com/SDWebImage/SDWebImage/wiki/Advanced-Usage#thumbnail-decoding-550) to save CPU && Memory for large images
 - [x] [Extendable image coder](https://github.com/SDWebImage/SDWebImage/wiki/Advanced-Usage#custom-coder-420) to support massive image format, like WebP
 - [x] [Full-stack solution for animated images](https://github.com/SDWebImage/SDWebImage/wiki/Advanced-Usage#animated-image-50) which keep a balance between CPU && Memory
 - [x] [Customizable and composable transformations](https://github.com/SDWebImage/SDWebImage/wiki/Advanced-Usage#transformer-50) can be applied to the images right after download
@@ -56,10 +57,13 @@ We support SwiftUI by building with the functions (caching, loading and animatio
 - [SDWebImageBPGCoder](https://github.com/SDWebImage/SDWebImageBPGCoder) - coder for BPG format
 - [SDWebImageFLIFCoder](https://github.com/SDWebImage/SDWebImageFLIFCoder) - coder for FLIF format
 - [SDWebImageAVIFCoder](https://github.com/SDWebImage/SDWebImageAVIFCoder) - coder for AVIF (AV1-based) format
+- [SDWebImagePDFCoder](https://github.com/SDWebImage/SDWebImagePDFCoder) - coder for PDF vector format image
+- [SDWebImageSVGCoder](https://github.com/SDWebImage/SDWebImageSVGCoder) - coder for SVG vector format image
 - and more from community!
 
 #### Loaders
 - [SDWebImagePhotosPlugin](https://github.com/SDWebImage/SDWebImagePhotosPlugin) - plugin to support loading images from Photos (using `Photos.framework`) 
+- [SDWebImageLinkPlugin](https://github.com/SDWebImage/SDWebImageLinkPlugin) - plugin to support loading images from rich link url, as well as `LPLinkView` (using `LinkPresentation.framework`) 
 
 #### Integration with 3rd party libraries
 - [SDWebImageFLPlugin](https://github.com/SDWebImage/SDWebImageFLPlugin) - plugin to support [FLAnimatedImage](https://github.com/Flipboard/FLAnimatedImage) as the engine for animated GIFs
