@@ -290,15 +290,15 @@ func (g *PushHandler) TlfFinalize(ctx context.Context, m gregor.OutOfBandMessage
 			update.ConvIDs, update.FinalizeInfo); err != nil {
 			g.Debug(ctx, "tlf finalize: unable to update inbox: %v", err.Error())
 		}
-		convMap := make(map[string]chat1.ConversationLocal)
+		convMap := make(map[chat1.ConvIDStr]chat1.ConversationLocal)
 		for _, conv := range convs {
-			convMap[conv.GetConvID().String()] = conv
+			convMap[conv.GetConvID().ConvIDStr()] = conv
 		}
 
 		// Send notify for each conversation ID
 		for _, convID := range update.ConvIDs {
 			var conv *chat1.ConversationLocal
-			if mapConv, ok := convMap[convID.String()]; ok {
+			if mapConv, ok := convMap[convID.ConvIDStr()]; ok {
 				conv = &mapConv
 			} else {
 				conv = nil
@@ -851,17 +851,17 @@ func (g *PushHandler) notifyMembersUpdate(ctx context.Context, uid gregor1.UID,
 	} else {
 		g.Debug(ctx, "notifyMembersUpdate: failed to get usernames, not sending them: %v", err)
 	}
-	convMap := make(map[string][]chat1.MemberInfo)
+	convMap := make(map[chat1.ConvIDStr][]chat1.MemberInfo)
 	addStatus := func(status chat1.ConversationMemberStatus, l []chat1.ConversationMember) {
 		for _, cm := range l {
 			if cm.TopicType != chat1.TopicType_CHAT {
 				continue
 			}
-			if _, ok := convMap[cm.ConvID.String()]; !ok {
-				convMap[cm.ConvID.String()] = []chat1.MemberInfo{}
+			if _, ok := convMap[cm.ConvID.ConvIDStr()]; !ok {
+				convMap[cm.ConvID.ConvIDStr()] = []chat1.MemberInfo{}
 			}
 			if uname, ok := uidMap[cm.Uid.String()]; ok {
-				convMap[cm.ConvID.String()] = append(convMap[cm.ConvID.String()], chat1.MemberInfo{
+				convMap[cm.ConvID.ConvIDStr()] = append(convMap[cm.ConvID.ConvIDStr()], chat1.MemberInfo{
 					Member: uname,
 					Status: status,
 				})
@@ -872,8 +872,7 @@ func (g *PushHandler) notifyMembersUpdate(ctx context.Context, uid gregor1.UID,
 	addStatus(chat1.ConversationMemberStatus_RESET, membersRes.OthersResetConvs)
 	addStatus(chat1.ConversationMemberStatus_REMOVED, membersRes.OthersRemovedConvs)
 	for strConvID, memberInfo := range convMap {
-		bConvID, _ := hex.DecodeString(strConvID)
-		convID := chat1.ConversationID(bConvID)
+		convID, _ := chat1.MakeConvID(strConvID.String())
 		activity := chat1.NewChatActivityWithMembersUpdate(chat1.MembersUpdateInfo{
 			ConvID:  convID,
 			Members: memberInfo,
@@ -1270,9 +1269,9 @@ func (g *PushHandler) SubteamRename(ctx context.Context, m gregor.OutOfBandMessa
 
 		convUIItems := make(map[chat1.TopicType][]chat1.InboxUIItem)
 		convIDs := make(map[chat1.TopicType][]chat1.ConversationID)
-		tlfIDs := make(map[string]struct{})
+		tlfIDs := make(map[chat1.TLFIDStr]struct{})
 		for _, conv := range convs {
-			tlfIDs[conv.Info.Triple.Tlfid.String()] = struct{}{}
+			tlfIDs[conv.Info.Triple.Tlfid.TLFIDStr()] = struct{}{}
 			uiItem := g.presentUIItem(ctx, &conv, uid, utils.PresentParticipantsModeSkip)
 			if uiItem != nil {
 				convUIItems[uiItem.TopicType] = append(convUIItems[uiItem.TopicType], *uiItem)
@@ -1283,7 +1282,7 @@ func (g *PushHandler) SubteamRename(ctx context.Context, m gregor.OutOfBandMessa
 		// force refresh any affected teams
 		m := libkb.NewMetaContext(ctx, g.G().ExternalG())
 		for tlfID := range tlfIDs {
-			teamID, err := keybase1.TeamIDFromString(tlfID)
+			teamID, err := keybase1.TeamIDFromString(tlfID.String())
 			if err != nil {
 				g.Debug(ctx, "SubteamRename: unable to get teamID: %v", err)
 				continue

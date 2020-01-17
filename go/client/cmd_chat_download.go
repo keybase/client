@@ -109,7 +109,7 @@ func (c *CmdChatDownload) Run() (err error) {
 		return err
 	}
 	opts := downloadOptionsV1{
-		ConversationID: conversation.Info.Id.String(),
+		ConversationID: conversation.Info.Id.ConvIDStr(),
 		MessageID:      chat1.MessageID(c.messageID),
 		Output:         c.outputFile,
 		Preview:        c.preview,

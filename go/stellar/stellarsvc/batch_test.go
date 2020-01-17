@@ -3,6 +3,7 @@ package stellarsvc
 import (
 	"context"
 	"fmt"
+	"sync"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
@@ -200,11 +201,15 @@ type testChatHelper struct {
 	libkb.ChatHelper
 
 	paymentMsgs []paymentMsg
+
+	sync.Mutex
 }
 
 func (tch *testChatHelper) SendMsgByName(ctx context.Context, name string, topicName *string,
 	membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, body chat1.MessageBody,
 	msgType chat1.MessageType) error {
+	tch.Lock()
+	defer tch.Unlock()
 	if msgType == chat1.MessageType_SENDPAYMENT {
 		tch.paymentMsgs = append(tch.paymentMsgs, paymentMsg{ConvName: name, PaymentID: body.Sendpayment().PaymentID})
 	}
@@ -212,6 +217,8 @@ func (tch *testChatHelper) SendMsgByName(ctx context.Context, name string, topic
 }
 
 func (tch *testChatHelper) SendMsgByNameNonblock(ctx context.Context, name string, topicName *string, membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, body chat1.MessageBody, msgType chat1.MessageType, outboxID *chat1.OutboxID) (chat1.OutboxID, error) {
+	tch.Lock()
+	defer tch.Unlock()
 	if msgType == chat1.MessageType_SENDPAYMENT {
 		tch.paymentMsgs = append(tch.paymentMsgs, paymentMsg{ConvName: name, PaymentID: body.Sendpayment().PaymentID})
 	}
