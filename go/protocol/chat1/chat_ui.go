@@ -2758,36 +2758,121 @@ func (e UICommandStatusActionTyp) String() string {
 	return fmt.Sprintf("%v", int(e))
 }
 
-type UIBotCommandsUpdateStatus int
+type UIBotCommandsUpdateStatusTyp int
 
 const (
-	UIBotCommandsUpdateStatus_UPTODATE UIBotCommandsUpdateStatus = 0
-	UIBotCommandsUpdateStatus_UPDATING UIBotCommandsUpdateStatus = 1
-	UIBotCommandsUpdateStatus_FAILED   UIBotCommandsUpdateStatus = 2
-	UIBotCommandsUpdateStatus_BLANK    UIBotCommandsUpdateStatus = 3
+	UIBotCommandsUpdateStatusTyp_UPTODATE UIBotCommandsUpdateStatusTyp = 0
+	UIBotCommandsUpdateStatusTyp_UPDATING UIBotCommandsUpdateStatusTyp = 1
+	UIBotCommandsUpdateStatusTyp_FAILED   UIBotCommandsUpdateStatusTyp = 2
+	UIBotCommandsUpdateStatusTyp_BLANK    UIBotCommandsUpdateStatusTyp = 3
 )
 
-func (o UIBotCommandsUpdateStatus) DeepCopy() UIBotCommandsUpdateStatus { return o }
+func (o UIBotCommandsUpdateStatusTyp) DeepCopy() UIBotCommandsUpdateStatusTyp { return o }
 
-var UIBotCommandsUpdateStatusMap = map[string]UIBotCommandsUpdateStatus{
+var UIBotCommandsUpdateStatusTypMap = map[string]UIBotCommandsUpdateStatusTyp{
 	"UPTODATE": 0,
 	"UPDATING": 1,
 	"FAILED":   2,
 	"BLANK":    3,
 }
 
-var UIBotCommandsUpdateStatusRevMap = map[UIBotCommandsUpdateStatus]string{
+var UIBotCommandsUpdateStatusTypRevMap = map[UIBotCommandsUpdateStatusTyp]string{
 	0: "UPTODATE",
 	1: "UPDATING",
 	2: "FAILED",
 	3: "BLANK",
 }
 
-func (e UIBotCommandsUpdateStatus) String() string {
-	if v, ok := UIBotCommandsUpdateStatusRevMap[e]; ok {
+func (e UIBotCommandsUpdateStatusTyp) String() string {
+	if v, ok := UIBotCommandsUpdateStatusTypRevMap[e]; ok {
 		return v
 	}
 	return fmt.Sprintf("%v", int(e))
+}
+
+type UIBotCommandsUpdateSettings struct {
+	Settings map[string]keybase1.TeamBotSettings `codec:"settings" json:"settings"`
+}
+
+func (o UIBotCommandsUpdateSettings) DeepCopy() UIBotCommandsUpdateSettings {
+	return UIBotCommandsUpdateSettings{
+		Settings: (func(x map[string]keybase1.TeamBotSettings) map[string]keybase1.TeamBotSettings {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]keybase1.TeamBotSettings, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Settings),
+	}
+}
+
+type UIBotCommandsUpdateStatus struct {
+	Typ__      UIBotCommandsUpdateStatusTyp `codec:"typ" json:"typ"`
+	Uptodate__ *UIBotCommandsUpdateSettings `codec:"uptodate,omitempty" json:"uptodate,omitempty"`
+}
+
+func (o *UIBotCommandsUpdateStatus) Typ() (ret UIBotCommandsUpdateStatusTyp, err error) {
+	switch o.Typ__ {
+	case UIBotCommandsUpdateStatusTyp_UPTODATE:
+		if o.Uptodate__ == nil {
+			err = errors.New("unexpected nil value for Uptodate__")
+			return ret, err
+		}
+	}
+	return o.Typ__, nil
+}
+
+func (o UIBotCommandsUpdateStatus) Uptodate() (res UIBotCommandsUpdateSettings) {
+	if o.Typ__ != UIBotCommandsUpdateStatusTyp_UPTODATE {
+		panic("wrong case accessed")
+	}
+	if o.Uptodate__ == nil {
+		return
+	}
+	return *o.Uptodate__
+}
+
+func NewUIBotCommandsUpdateStatusWithUptodate(v UIBotCommandsUpdateSettings) UIBotCommandsUpdateStatus {
+	return UIBotCommandsUpdateStatus{
+		Typ__:      UIBotCommandsUpdateStatusTyp_UPTODATE,
+		Uptodate__: &v,
+	}
+}
+
+func NewUIBotCommandsUpdateStatusWithUpdating() UIBotCommandsUpdateStatus {
+	return UIBotCommandsUpdateStatus{
+		Typ__: UIBotCommandsUpdateStatusTyp_UPDATING,
+	}
+}
+
+func NewUIBotCommandsUpdateStatusWithFailed() UIBotCommandsUpdateStatus {
+	return UIBotCommandsUpdateStatus{
+		Typ__: UIBotCommandsUpdateStatusTyp_FAILED,
+	}
+}
+
+func NewUIBotCommandsUpdateStatusWithBlank() UIBotCommandsUpdateStatus {
+	return UIBotCommandsUpdateStatus{
+		Typ__: UIBotCommandsUpdateStatusTyp_BLANK,
+	}
+}
+
+func (o UIBotCommandsUpdateStatus) DeepCopy() UIBotCommandsUpdateStatus {
+	return UIBotCommandsUpdateStatus{
+		Typ__: o.Typ__.DeepCopy(),
+		Uptodate__: (func(x *UIBotCommandsUpdateSettings) *UIBotCommandsUpdateSettings {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Uptodate__),
+	}
 }
 
 type ChatAttachmentDownloadStartArg struct {

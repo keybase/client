@@ -1932,12 +1932,64 @@
     },
     {
       "type": "enum",
-      "name": "UIBotCommandsUpdateStatus",
+      "name": "UIBotCommandsUpdateStatusTyp",
       "symbols": [
         "UPTODATE_0",
         "UPDATING_1",
         "FAILED_2",
         "BLANK_3"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UIBotCommandsUpdateSettings",
+      "fields": [
+        {
+          "type": {
+            "type": "map",
+            "values": "keybase1.TeamBotSettings",
+            "keys": "string"
+          },
+          "name": "settings"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "UIBotCommandsUpdateStatus",
+      "switch": {
+        "type": "UIBotCommandsUpdateStatusTyp",
+        "name": "typ"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "UPTODATE",
+            "def": false
+          },
+          "body": "UIBotCommandsUpdateSettings"
+        },
+        {
+          "label": {
+            "name": "UPDATING",
+            "def": false
+          },
+          "body": null
+        },
+        {
+          "label": {
+            "name": "FAILED",
+            "def": false
+          },
+          "body": null
+        },
+        {
+          "label": {
+            "name": "BLANK",
+            "def": false
+          },
+          "body": null
+        }
       ]
     }
   ],

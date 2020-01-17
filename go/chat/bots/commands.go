@@ -322,32 +322,32 @@ func (b *CachingBotCommandManager) getChatUI(ctx context.Context) libkb.ChatUI {
 
 func (b *CachingBotCommandManager) runCommandUpdateUI(ctx context.Context, job *commandUpdaterJob) {
 	err := b.getChatUI(ctx).ChatBotCommandsUpdateStatus(ctx, job.convID,
-		chat1.UIBotCommandsUpdateStatus_BLANK)
+		chat1.NewUIBotCommandsUpdateStatusWithBlank())
 	if err != nil {
 		b.Debug(ctx, "getChatUI: error getting update status: %+v", err)
 	}
-	sentUpdating := false
 	for {
 		select {
 		case err := <-job.uiCh:
-			if sentUpdating {
-				updateStatus := chat1.UIBotCommandsUpdateStatus_UPTODATE
-				if err != nil {
-					updateStatus = chat1.UIBotCommandsUpdateStatus_FAILED
-				}
-				err := b.getChatUI(ctx).ChatBotCommandsUpdateStatus(ctx, job.convID, updateStatus)
-				if err != nil {
-					b.Debug(ctx, "getChatUI: error getting update status: %+v", err)
-				}
+			var updateStatus chat1.UIBotCommandsUpdateStatus
+			if err != nil {
+				updateStatus = chat1.NewUIBotCommandsUpdateStatusWithFailed()
+			} else {
+				updateStatus =
+					chat1.NewUIBotCommandsUpdateStatusWithUptodate(chat1.UIBotCommandsUpdateSettings{
+						Settings: make(map[string]keybase1.TeamBotSettings),
+					})
+			}
+			if err = b.getChatUI(ctx).ChatBotCommandsUpdateStatus(ctx, job.convID, updateStatus); err != nil {
+				b.Debug(ctx, "getChatUI: error getting update status: %+v", err)
 			}
 			return
 		case <-time.After(800 * time.Millisecond):
 			err := b.getChatUI(ctx).ChatBotCommandsUpdateStatus(ctx, job.convID,
-				chat1.UIBotCommandsUpdateStatus_UPDATING)
+				chat1.NewUIBotCommandsUpdateStatusWithUpdating())
 			if err != nil {
 				b.Debug(ctx, "getChatUI: error getting update status: %+v", err)
 			}
-			sentUpdating = true
 		}
 	}
 }
