@@ -76,7 +76,7 @@ func testInitConfig(
 
 func writeFile(
 	ctx context.Context, t *testing.T, kbfsOps libkbfs.KBFSOps, i *Indexer,
-	rootNode, node libkbfs.Node, name, text string, usedDocIDExpected bool) {
+	rootNode, node libkbfs.Node, name, text string, newFile bool) {
 	oldMD, err := kbfsOps.GetNodeMetadata(ctx, node)
 	require.NoError(t, err)
 
@@ -91,31 +91,19 @@ func writeFile(
 	err = i.waitForIndex(ctx)
 	require.NoError(t, err)
 
-	if !usedDocIDExpected {
-		// For this test, since the indexer isn't discovering the
-		// updated files for itself, we have to manually update the
-		// docID in the indexed blocks db, to ensure it will be re-used.
-		t.Log("Update the doc ID")
-		oldPtr := oldMD.BlockInfo.BlockPointer
-		newMD, err := kbfsOps.GetNodeMetadata(ctx, node)
+	t.Log("Index the file")
+	namePPS := data.NewPathPartString(name, nil)
+	if newFile {
+		ids, err := i.blocksDb.GetNextDocIDs(1)
 		require.NoError(t, err)
-		newPtr := newMD.BlockInfo.BlockPointer
-		v, docID, err := i.blocksDb.Get(ctx, oldPtr)
+		usedDocID, err := i.indexChild(ctx, rootNode, "", namePPS, ids[0], 1)
 		require.NoError(t, err)
-		tlfID := rootNode.GetFolderBranch().Tlf
-		err = i.blocksDb.Put(ctx, tlfID, newPtr, v, docID)
-		require.NoError(t, err)
-		err = i.blocksDb.Delete(ctx, tlfID, oldPtr)
+		require.True(t, usedDocID)
+	} else {
+		err := i.updateChild(
+			ctx, rootNode, "", namePPS, oldMD.BlockInfo.BlockPointer, 1)
 		require.NoError(t, err)
 	}
-
-	t.Log("Index the file")
-	ids, err := i.blocksDb.GetNextDocIDs(1)
-	require.NoError(t, err)
-	namePPS := data.NewPathPartString(name, nil)
-	usedDocID, err := i.indexChild(ctx, rootNode, "", namePPS, ids[0], 1)
-	require.NoError(t, err)
-	require.Equal(t, usedDocIDExpected, usedDocID)
 
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)

@@ -361,23 +361,28 @@ func (i *Indexer) SyncModeChanged(
 
 var _ libkbfs.SyncedTlfObserver = (*Indexer)(nil)
 
-func (i *Indexer) indexChild(
-	ctx context.Context, parentNode libkbfs.Node, parentDocID string,
-	childName data.PathPartString, nextDocID string, revision kbfsmd.Revision) (
-	usedDocID bool, err error) {
-	n, ei, err := i.config.KBFSOps().Lookup(ctx, parentNode, childName)
+func (i *Indexer) getCurrentPtrAndNode(
+	ctx context.Context, parentNode libkbfs.Node,
+	childName data.PathPartString) (
+	ptr data.BlockPointer, n libkbfs.Node, ei data.EntryInfo, err error) {
+	n, ei, err = i.config.KBFSOps().Lookup(ctx, parentNode, childName)
 	if err != nil {
-		return false, err
+		return data.ZeroPtr, nil, data.EntryInfo{}, err
 	}
 
-	// Let's find the current block ID. (In the future, we might need
-	// to pass the old block ID in if we're processing an update,
-	// rather than a new file.)
+	// Let's find the current block ID.
 	md, err := i.config.KBFSOps().GetNodeMetadata(ctx, n)
 	if err != nil {
-		return false, err
+		return data.ZeroPtr, nil, data.EntryInfo{}, err
 	}
-	ptr := md.BlockInfo.BlockPointer
+	return md.BlockInfo.BlockPointer, n, ei, nil
+}
+
+func (i *Indexer) indexChildWithPtrAndNode(
+	ctx context.Context, parentNode libkbfs.Node, parentDocID string,
+	childName data.PathPartString, ptr data.BlockPointer, n libkbfs.Node,
+	ei data.EntryInfo, nextDocID string, revision kbfsmd.Revision) (
+	usedDocID bool, err error) {
 	if i.blocksDb == nil {
 		return false, errors.New("No indexed blocks db")
 	}
@@ -441,6 +446,71 @@ func (i *Indexer) indexChild(
 	}
 
 	return usedDocID, nil
+}
+
+func (i *Indexer) indexChild(
+	ctx context.Context, parentNode libkbfs.Node, parentDocID string,
+	childName data.PathPartString, nextDocID string,
+	revision kbfsmd.Revision) (usedDocID bool, err error) {
+	ptr, n, ei, err := i.getCurrentPtrAndNode(ctx, parentNode, childName)
+	if err != nil {
+		return false, err
+	}
+
+	return i.indexChildWithPtrAndNode(
+		ctx, parentNode, parentDocID, childName, ptr, n, ei, nextDocID,
+		revision)
+}
+
+func (i *Indexer) updateChild(
+	ctx context.Context, parentNode libkbfs.Node, parentDocID string,
+	childName data.PathPartString, oldPtr data.BlockPointer,
+	revision kbfsmd.Revision) (err error) {
+	newPtr, n, ei, err := i.getCurrentPtrAndNode(ctx, parentNode, childName)
+	if err != nil {
+		return err
+	}
+
+	if i.blocksDb == nil {
+		return errors.New("No indexed blocks db")
+	}
+
+	// Before indexing, move the doc ID over to the new block pointer.
+	v, docID, err := i.blocksDb.Get(ctx, oldPtr)
+	switch errors.Cause(err) {
+	case nil:
+	case ldberrors.ErrNotFound:
+		// Maybe indexing was interrupted in the past, and we've
+		// already moved the doc ID to the new pointer.
+		_, docID, err = i.blocksDb.Get(ctx, newPtr)
+		if err != nil {
+			return err
+		}
+	default:
+		return err
+	}
+
+	tlfID := parentNode.GetFolderBranch().Tlf
+	err = i.blocksDb.Put(ctx, tlfID, newPtr, v, docID)
+	if err != nil {
+		return err
+	}
+	err = i.blocksDb.Delete(ctx, tlfID, oldPtr)
+	if err != nil {
+		return err
+	}
+
+	usedDocID, err := i.indexChildWithPtrAndNode(
+		ctx, parentNode, parentDocID, childName, newPtr, n, ei,
+		docID /* should get picked up from DB, not from this param*/, revision)
+	if err != nil {
+		return err
+	}
+	if usedDocID {
+		return errors.Errorf("Index update %s (%s->%s) used passed-in doc "+
+			"ID %s incorrectly", childName, oldPtr, newPtr, docID)
+	}
+	return nil
 }
 
 func (i *Indexer) fsForRev(
