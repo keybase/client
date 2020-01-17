@@ -15,9 +15,6 @@ import flags from '../../../util/feature-flags'
 import {InfoPanel, Panel, ParticipantTyp, InfoPanelProps} from '.'
 import {createShowUserProfile} from '../../../actions/profile-gen'
 
-// TODO this container does a ton of stuff for the various tabs. Really the tabs should be connected
-// and this thing is just a holder of tabs
-
 type OwnProps = {
   loadDelay?: number
   conversationIDKey: Types.ConversationIDKey
@@ -53,7 +50,6 @@ const ConnectedInfoPanel = Container.connect(
     let canEditChannel = false
     let canSetMinWriterRole = false
     let canSetRetention = false
-    let canDeleteHistory = false
     let canManageBots = false
     if (meta.teamname) {
       const yourOperations = TeamConstants.getCanPerformByID(state, meta.teamID)
@@ -61,10 +57,8 @@ const ConnectedInfoPanel = Container.connect(
       canEditChannel = yourOperations.editTeamDescription
       canSetMinWriterRole = yourOperations.setMinWriterRole
       canSetRetention = yourOperations.setRetentionPolicy
-      canDeleteHistory = yourOperations.deleteChatHistory && !meta.cannotWrite
       canManageBots = yourOperations.manageBots
     } else {
-      canDeleteHistory = true
       canManageBots = true
     }
     const isPreview = meta.membershipType === 'youArePreviewing'
@@ -86,24 +80,18 @@ const ConnectedInfoPanel = Container.connect(
       _username: state.config.username,
       adhocTeam: meta.teamType === 'adhoc',
       admin,
-      canDeleteHistory,
       canEditChannel,
       canManageBots,
       canSetMinWriterRole,
       canSetRetention,
       channelname: meta.channelname,
       description: meta.descriptionDecorated,
-      // ignored: meta.status === RPCChatTypes.ConversationStatus.ignored,
       isPreview,
       loadedAllBots: state.chat2.featuredBotsLoaded,
       selectedAttachmentView,
       selectedConversationIDKey: conversationIDKey,
       selectedTab,
       smallTeam: meta.teamType !== 'big',
-      spinnerForHide: Container.anyWaiting(
-        state,
-        Constants.waitingKeyConvStatusChange(ownProps.conversationIDKey)
-      ),
       teamID: meta.teamID,
       teamname: meta.teamname,
     }
@@ -124,18 +112,6 @@ const ConnectedInfoPanel = Container.connect(
       dispatch(Chat2Gen.createLoadAttachmentView({conversationIDKey, fromMsgID, viewType})),
     _onMediaClick: (message: Types.MessageAttachment) =>
       dispatch(Chat2Gen.createAttachmentPreviewSelect({message})),
-    _onShowBlockConversationDialog: (others: Array<string>, team: string) => {
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [
-            {
-              props: {blockUserByDefault: true, convID: conversationIDKey, others, team},
-              selected: 'chatBlockingModal',
-            },
-          ],
-        })
-      )
-    },
     _onShowClearConversationDialog: () => {
       dispatch(Chat2Gen.createNavigateToThread())
       dispatch(
@@ -182,9 +158,7 @@ const ConnectedInfoPanel = Container.connect(
           dispatch(Chat2Gen.createClearAttachmentView({conversationIDKey}))
         }
       : undefined,
-    onHideConv: () => dispatch(Chat2Gen.createHideConversation({conversationIDKey})),
     onJoinChannel: () => dispatch(Chat2Gen.createJoinConversation({conversationIDKey})),
-    onLeaveConversation: () => dispatch(Chat2Gen.createLeaveConversation({conversationIDKey})),
     onLoadMoreBots: () => dispatch(Chat2Gen.createLoadNextBotPage({pageSize: 100})),
     onSearchFeaturedBots: (query: string) => dispatch(BotsGen.createSearchFeaturedBots({query})),
     onShowNewTeamDialog: () => {
@@ -200,17 +174,8 @@ const ConnectedInfoPanel = Container.connect(
       )
     },
     onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
-    onUnhideConv: () => dispatch(Chat2Gen.createUnhideConversation({conversationIDKey})),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
-    // ignored: boolean
-    // spinnerForHide: boolean
-    // onHideConv: () => void
-    // onUnhideConv: () => void
-    // onShowBlockConversationDialog: () => void
-    // onShowClearConversationDialog: () => void
-    // canDeleteHistory: boolean
-    // onLeaveConversation: () => void
     let participants = stateProps._participantInfo.all
     let botUsernames: Array<string> = []
     if (stateProps.adhocTeam) {
@@ -255,10 +220,6 @@ const ConnectedInfoPanel = Container.connect(
     const teamMembers = stateProps._teamMembers
     const isGeneral = stateProps.channelname === 'general'
     const showAuditingBanner = isGeneral && !teamMembers
-    const membersForBlock = (stateProps._teamMembers.size
-      ? [...stateProps._teamMembers.keys()]
-      : stateProps._participantInfo.all
-    ).filter(username => username !== stateProps._username && !Constants.isAssertion(username))
     if (teamMembers && isGeneral) {
       participants = [...teamMembers.values()].reduce<Array<string>>((l, mi) => {
         l.push(mi.username)
@@ -271,7 +232,6 @@ const ConnectedInfoPanel = Container.connect(
     }
     const p: InfoPanelProps = {
       admin: stateProps.admin,
-      canDeleteHistory: stateProps.canDeleteHistory,
       canEditChannel: stateProps.canEditChannel,
       canManageBots: stateProps.canManageBots,
       canSetMinWriterRole: stateProps.canSetMinWriterRole,
@@ -311,7 +271,6 @@ const ConnectedInfoPanel = Container.connect(
             }
           : noDocs,
       featuredBots,
-      // ignored: stateProps.ignored,
       installedBots,
       isPreview: stateProps.isPreview,
       links:
@@ -385,19 +344,12 @@ const ConnectedInfoPanel = Container.connect(
       onBotSelect: dispatchProps.onBotSelect,
       onCancel: dispatchProps.onCancel,
       onEditChannel: () => dispatchProps._onEditChannel(stateProps.teamID),
-      onHideConv: dispatchProps.onHideConv,
       onJoinChannel: dispatchProps.onJoinChannel,
-      onLeaveConversation: dispatchProps.onLeaveConversation,
       onLoadMoreBots: dispatchProps.onLoadMoreBots,
       onSearchFeaturedBots: dispatchProps.onSearchFeaturedBots,
       onSelectTab: ownProps.onSelectTab,
-      onShowBlockConversationDialog: membersForBlock.length
-        ? () => dispatchProps._onShowBlockConversationDialog(membersForBlock, stateProps._team)
-        : dispatchProps.onHideConv,
-      onShowClearConversationDialog: () => dispatchProps._onShowClearConversationDialog(),
       onShowNewTeamDialog: dispatchProps.onShowNewTeamDialog,
       onShowProfile: dispatchProps.onShowProfile,
-      onUnhideConv: dispatchProps.onUnhideConv,
       participants: participants
         .map(p => ({
           fullname:
@@ -427,7 +379,6 @@ const ConnectedInfoPanel = Container.connect(
       selectedTab: stateProps.selectedTab,
       showAuditingBanner,
       smallTeam: stateProps.smallTeam,
-      spinnerForHide: stateProps.spinnerForHide,
       teamID: stateProps.teamID,
       teamname: stateProps.teamname,
     }

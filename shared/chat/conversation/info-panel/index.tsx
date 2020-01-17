@@ -307,7 +307,6 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
   }
 
   render() {
-    const entityType = this.getEntityType()
     let sections: Array<unknown> = []
     const tabsSection = this.tabsSection()
     sections.push(this.headerSection())
@@ -327,20 +326,9 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
     }
     switch (this.props.selectedTab) {
       case 'settings':
-        tabsSection.renderItem = () => {
-          // canDeleteHistory={this.props.canDeleteHistory}
-          // entityType={entityType}
-          // ignored={this.props.ignored}
-          // // onHideConv={this.props.onHideConv}
-          // onUnhideConv={this.props.onUnhideConv}
-          // onLeaveConversation={this.props.onLeaveConversation}
-          // onShowBlockConversationDialog={this.props.onShowBlockConversationDialog}
-          // onShowClearConversationDialog={this.props.onShowClearConversationDialog}
-          // spinnerForHide={this.props.spinnerForHide}
-          // teamID={this.props.teamID}
-          // channelname={this.props.channelname}
-          return <SettingsPanel conversationIDKey={this.props.selectedConversationIDKey} key="settings" />
-        }
+        tabsSection.renderItem = () => (
+          <SettingsPanel conversationIDKey={this.props.selectedConversationIDKey} key="settings" />
+        )
         sections.push(tabsSection)
         break
       case 'members':

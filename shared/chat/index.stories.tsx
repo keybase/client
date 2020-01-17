@@ -6,7 +6,7 @@ import explodingMessageExplainer from './conversation/messages/exploding-explain
 import giphy from './conversation/giphy/index.stories'
 import inbox from './inbox/index.stories'
 import infoPanel from './conversation/info-panel/index.stories'
-import infoPanelNotifications from './conversation/info-panel/notifications/index.stories'
+import infoPanelNotifications from './conversation/info-panel/settings/notifications/index.stories'
 import inputArea from './conversation/input-area/normal/index.stories'
 import manageChannels from './manage-channels/index.stories'
 import messagePopup from './conversation/messages/message-popup/index.stories'
