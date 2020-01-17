@@ -8,10 +8,7 @@
 
 #import "SDDiskCache.h"
 #import "SDImageCacheConfig.h"
-#import "SDFileAttributeHelper.h"
 #import <CommonCrypto/CommonDigest.h>
-
-static NSString * const SDDiskCacheExtendedAttributeName = @"com.hackemist.SDDiskCache";
 
 @interface SDDiskCache ()
 
@@ -98,31 +95,6 @@ static NSString * const SDDiskCacheExtendedAttributeName = @"com.hackemist.SDDis
     }
 }
 
-- (NSData *)extendedDataForKey:(NSString *)key {
-    NSParameterAssert(key);
-    
-    // get cache Path for image key
-    NSString *cachePathForKey = [self cachePathForKey:key];
-    
-    NSData *extendedData = [SDFileAttributeHelper extendedAttribute:SDDiskCacheExtendedAttributeName atPath:cachePathForKey traverseLink:NO error:nil];
-    
-    return extendedData;
-}
-
-- (void)setExtendedData:(NSData *)extendedData forKey:(NSString *)key {
-    NSParameterAssert(key);
-    // get cache Path for image key
-    NSString *cachePathForKey = [self cachePathForKey:key];
-    
-    if (!extendedData) {
-        // Remove
-        [SDFileAttributeHelper removeExtendedAttribute:SDDiskCacheExtendedAttributeName atPath:cachePathForKey traverseLink:NO error:nil];
-    } else {
-        // Override
-        [SDFileAttributeHelper setExtendedAttribute:SDDiskCacheExtendedAttributeName value:extendedData atPath:cachePathForKey traverseLink:NO overwrite:YES error:nil];
-    }
-}
-
 - (void)removeDataForKey:(NSString *)key {
     NSParameterAssert(key);
     NSString *filePath = [self cachePathForKey:key];
@@ -146,15 +118,11 @@ static NSString * const SDDiskCacheExtendedAttributeName = @"com.hackemist.SDDis
         case SDImageCacheConfigExpireTypeAccessDate:
             cacheContentDateKey = NSURLContentAccessDateKey;
             break;
+            
         case SDImageCacheConfigExpireTypeModificationDate:
             cacheContentDateKey = NSURLContentModificationDateKey;
             break;
-        case SDImageCacheConfigExpireTypeCreationDate:
-            cacheContentDateKey = NSURLCreationDateKey;
-            break;
-        case SDImageCacheConfigExpireTypeChangeDate:
-            cacheContentDateKey = NSURLAttributeModificationDateKey;
-            break;
+            
         default:
             break;
     }

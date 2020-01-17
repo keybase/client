@@ -36,8 +36,6 @@ FOUNDATION_EXPORT const unsigned char WebImageVersionString[];
 #import <SDWebImage/SDWebImageDownloaderConfig.h>
 #import <SDWebImage/SDWebImageDownloaderOperation.h>
 #import <SDWebImage/SDWebImageDownloaderRequestModifier.h>
-#import <SDWebImage/SDWebImageDownloaderResponseModifier.h>
-#import <SDWebImage/SDWebImageDownloaderDecryptor.h>
 #import <SDWebImage/SDImageLoader.h>
 #import <SDWebImage/SDImageLoadersManager.h>
 #import <SDWebImage/UIButton+WebCache.h>
@@ -46,7 +44,6 @@ FOUNDATION_EXPORT const unsigned char WebImageVersionString[];
 #import <SDWebImage/UIImage+Metadata.h>
 #import <SDWebImage/UIImage+MultiFormat.h>
 #import <SDWebImage/UIImage+MemoryCacheCost.h>
-#import <SDWebImage/UIImage+ExtendedCacheData.h>
 #import <SDWebImage/SDWebImageOperation.h>
 #import <SDWebImage/SDWebImageDownloader.h>
 #import <SDWebImage/SDWebImageTransition.h>
@@ -56,7 +53,6 @@ FOUNDATION_EXPORT const unsigned char WebImageVersionString[];
 #import <SDWebImage/SDAnimatedImage.h>
 #import <SDWebImage/SDAnimatedImageView.h>
 #import <SDWebImage/SDAnimatedImageView+WebCache.h>
-#import <SDWebImage/SDAnimatedImagePlayer.h>
 #import <SDWebImage/SDImageCodersManager.h>
 #import <SDWebImage/SDImageCoder.h>
 #import <SDWebImage/SDImageAPNGCoder.h>
@@ -65,7 +61,6 @@ FOUNDATION_EXPORT const unsigned char WebImageVersionString[];
 #import <SDWebImage/SDImageFrame.h>
 #import <SDWebImage/SDImageCoderHelper.h>
 #import <SDWebImage/SDImageGraphics.h>
-#import <SDWebImage/SDGraphicsImageRenderer.h>
 #import <SDWebImage/UIImage+GIF.h>
 #import <SDWebImage/UIImage+ForceDecode.h>
 #import <SDWebImage/NSData+ImageContentType.h>

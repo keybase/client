@@ -12,21 +12,13 @@
 /// Image Cache Expire Type
 typedef NS_ENUM(NSUInteger, SDImageCacheConfigExpireType) {
     /**
-     * When the image cache is accessed it will update this value
+     * When the image is accessed it will update this value
      */
     SDImageCacheConfigExpireTypeAccessDate,
     /**
-     * When the image cache is created or modified it will update this value (Default)
+     * The image was obtained from the disk cache (Default)
      */
-    SDImageCacheConfigExpireTypeModificationDate,
-    /**
-     * When the image cache is created it will update this value
-     */
-    SDImageCacheConfigExpireTypeCreationDate,
-    /**
-     * When the image cache is created, modified, renamed, file attribute updated (like permission, xattr)  it will update this value
-     */
-    SDImageCacheConfigExpireTypeChangeDate,
+    SDImageCacheConfigExpireTypeModificationDate
 };
 
 /**
