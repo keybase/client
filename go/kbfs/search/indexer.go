@@ -36,6 +36,7 @@ const (
 	bleveIndexType    = "upside_down"
 	fsIndexStorageDir = "kbfs_index"
 	docDbDir          = "docdb"
+	nameDocIDPrefix   = "name_"
 )
 
 const (
@@ -378,6 +379,10 @@ func (i *Indexer) getCurrentPtrAndNode(
 	return md.BlockInfo.BlockPointer, n, ei, nil
 }
 
+func nameDocID(docID string) string {
+	return nameDocIDPrefix + docID
+}
+
 func (i *Indexer) indexChildWithPtrAndNode(
 	ctx context.Context, parentNode libkbfs.Node, parentDocID string,
 	childName data.PathPartString, ptr data.BlockPointer, n libkbfs.Node,
@@ -429,7 +434,8 @@ func (i *Indexer) indexChildWithPtrAndNode(
 	}
 
 	// Get the content type and create a document based on that type.
-	d, err := makeDoc(ctx, i.config, n, ei, revision, time.Unix(0, ei.Mtime))
+	d, nameD, err := makeDoc(
+		ctx, i.config, n, ei, revision, time.Unix(0, ei.Mtime))
 	if err != nil {
 		return false, err
 	}
@@ -440,7 +446,18 @@ func (i *Indexer) indexChildWithPtrAndNode(
 		return false, errors.New("Index not loaded")
 	}
 
-	err = i.index.Index(docID, d)
+	b := i.index.NewBatch()
+
+	err = b.Index(docID, d)
+	if err != nil {
+		return false, err
+	}
+	err = b.Index(nameDocID(docID), nameD)
+	if err != nil {
+		return false, err
+	}
+
+	err = i.index.Batch(b)
 	if err != nil {
 		return false, err
 	}
