@@ -13,6 +13,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/keybase/client/go/chat/attachments/progress"
 	"github.com/keybase/client/go/engine"
@@ -575,7 +576,7 @@ func newSourceFile(g *libkb.GlobalContext, op keybase1.SaltpackOperationType, fi
 		Contextified: libkb.NewContextified(g),
 	}
 	sf.G().NotifyRouter.HandleSaltpackOperationStart(context.Background(), sf.op, sf.filename)
-	sf.prog = progress.NewProgressWriter(sf.reporter, s.Size())
+	sf.prog = progress.NewProgressWriterWithUpdateDuration(sf.reporter, s.Size(), 300*time.Millisecond)
 	sf.r = io.TeeReader(bufio.NewReader(f), sf.prog)
 
 	return sf, nil
