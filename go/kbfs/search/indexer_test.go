@@ -188,4 +188,11 @@ func TestIndexFile(t *testing.T) {
 	t.Log("Search for old and new words")
 	search("dolor", 1) // two hits in same doc
 	search("tortor", 1)
+
+	t.Log("Add a hit in a filename")
+	const dText = "Cras volutpat mi in purus interdum, sit amet luctus " +
+		"velit accumsan."
+	const dName = "dolor.txt"
+	writeNewFile(ctx, t, kbfsOps, i, rootNode, dName, dText)
+	search("dolor", 2)
 }

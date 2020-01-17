@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/blevesearch/bleve/mapping"
 	"github.com/keybase/client/go/kbfs/data"
@@ -28,7 +29,6 @@ const (
 )
 
 type indexedBase struct {
-	Name     string
 	TlfID    tlf.ID
 	Revision kbfsmd.Revision
 	Mtime    time.Time
@@ -101,37 +101,68 @@ func getTextToIndex(
 	return string(buf), nil
 }
 
+type indexedName struct {
+	indexedBase
+	Name          string
+	TokenizedName string
+}
+
+var _ mapping.Classifier = indexedName{}
+
+func (in indexedName) Type() string {
+	return textFileType
+}
+
+func removePunct(r rune) rune {
+	if unicode.IsPunct(r) {
+		return ' '
+	}
+	return r
+}
+
 func makeDoc(
 	ctx context.Context, config libkbfs.Config, n libkbfs.Node,
 	ei data.EntryInfo, revision kbfsmd.Revision, mtime time.Time) (
-	interface{}, error) {
-	contentType, err := getContentType(ctx, config, n, ei)
-	if err != nil {
-		return nil, err
-	}
-
+	doc, nameDoc interface{}, err error) {
 	base := indexedBase{
-		Name:     n.GetBasename().Plaintext(),
 		TlfID:    n.GetFolderBranch().Tlf,
 		Revision: revision,
 		Mtime:    mtime,
+	}
+
+	// Name goes in a separate doc, so we can rename a file without
+	// having to re-index all of its contents.  Turn all punctuation
+	// into spaces to allow for matching individual words within the
+	// filename.
+	fullName := n.GetBasename().Plaintext()
+	tokenizedName := strings.Map(removePunct, fullName)
+	name := indexedName{
+		indexedBase:   base,
+		Name:          fullName,
+		TokenizedName: tokenizedName,
+	}
+
+	// Make a doc for the contents, depending on the content type.
+	contentType, err := getContentType(ctx, config, n, ei)
+	if err != nil {
+		return nil, nil, err
 	}
 	s := strings.Split(contentType, ";")
 	switch s[0] {
 	case "text/html", "text/xml":
 		text, err := getTextToIndex(ctx, config, n, ei)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
-		return indexedHTMLFile{base, text}, nil
+		return indexedHTMLFile{base, text}, name, nil
 	case "text/plain":
 		text, err := getTextToIndex(ctx, config, n, ei)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
-		return indexedTextFile{base, text}, nil
+		return indexedTextFile{base, text}, name, nil
 	default:
 		// Unindexable content type.
-		return base, nil
+		return base, name, nil
 	}
 }
