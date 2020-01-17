@@ -96,7 +96,7 @@ const ChannelHeader = (props: Props) => (
 const UsernameHeader = (props: Props) => (
   <Wrapper {...props}>
     <Box2
-      direction={!!props.theirFullname ? 'vertical' : 'horizontal'}
+      direction={props.theirFullname ? 'vertical' : 'horizontal'}
       style={styles.usernameHeaderContainer}
     >
       {!!props.theirFullname && (
