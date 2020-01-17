@@ -171,52 +171,49 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
     return s === this.props.selectedTab
   }
 
-  private getTabs = (entityType: EntityType) => {
-    const res: Array<React.ReactNode> = []
-    if (entityType !== 'adhoc') {
-      res.push(
-        <Kb.Box2 key="members" style={styles.tabTextContainer} direction="horizontal">
-          <TabText selected={this.isSelected('members')} text="Members" />
-        </Kb.Box2>
-      )
-    }
-    res.push(
-      <Kb.Box2 key="attachments" style={styles.tabTextContainer} direction="horizontal">
-        <TabText selected={this.isSelected('attachments')} text="Attachments" />
-      </Kb.Box2>
-    )
-    if (flags.botUI) {
-      res.push(
-        <Kb.Box2 key="bots" style={styles.tabTextContainer} direction="horizontal">
-          <TabText selected={this.isSelected('bots')} text="Bots" />
-        </Kb.Box2>
-      )
-    }
-    if (!this.props.isPreview) {
-      res.push(
-        <Kb.Box2 key="settings" style={styles.tabTextContainer} direction="horizontal">
-          <TabText selected={this.isSelected('settings')} text="Settings" />
-        </Kb.Box2>
-      )
-    }
+  private getTabPanels = (): Array<Panel> => [
+    'members' as const,
+    'attachments' as const,
+    ...(flags.botUI ? ['bots' as const] : []),
+    ...(this.props.isPreview ? [] : ['settings' as const]),
+  ]
 
-    return res
+  private getTabs = () =>
+    this.getTabPanels().map(p => {
+      switch (p) {
+        case 'settings':
+          return (
+            <Kb.Box2 key="settings" style={styles.tabTextContainer} direction="horizontal">
+              <TabText selected={this.isSelected('settings')} text="Settings" />
+            </Kb.Box2>
+          )
+        case 'members':
+          return (
+            <Kb.Box2 key="members" style={styles.tabTextContainer} direction="horizontal">
+              <TabText selected={this.isSelected('members')} text="Members" />
+            </Kb.Box2>
+          )
+        case 'attachments':
+          return (
+            <Kb.Box2 key="attachments" style={styles.tabTextContainer} direction="horizontal">
+              <TabText selected={this.isSelected('attachments')} text="Attachments" />
+            </Kb.Box2>
+          )
+        case 'bots':
+          return (
+            <Kb.Box2 key="bots" style={styles.tabTextContainer} direction="horizontal">
+              <TabText selected={this.isSelected('bots')} text="Bots" />
+            </Kb.Box2>
+          )
+        default:
+          return null
+      }
+    })
+
+  private onSelectTab = (_tab: React.ReactNode, idx: number) => {
+    this.props.onSelectTab(this.getTabPanels()[idx] ?? ('members' as const))
   }
 
-  private onSelectTab = (tab: React.ReactNode) => {
-    // @ts-ignore TODO avoid using key on a node
-    if (tab.key === 'attachments') {
-      this.loadAttachments()
-    }
-
-    // @ts-ignore TODO avoid using key on a node
-    if (tab.key === 'bots') {
-      this.loadBots()
-    }
-
-    // @ts-ignore TODO avoid using key on a node
-    this.props.onSelectTab(tab.key)
-  }
   private renderHeader = () => {
     const entityType = this.getEntityType()
     const header = (
@@ -246,7 +243,7 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
   }
 
   private renderTabs = () => {
-    const tabs = this.getTabs(this.getEntityType())
+    const tabs = this.getTabs()
     const selected = tabs.find((tab: any) => tab && this.isSelected(tab.key)) || null
     return (
       <Kb.Box2 direction="horizontal" fullWidth={true}>
@@ -267,6 +264,7 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
       renderItem: () => (
         <SettingsPanel conversationIDKey={this.props.selectedConversationIDKey} key="settings" />
       ),
+      renderSectionHeader: this.renderTabs,
     },
   ]
 
@@ -297,6 +295,7 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
             />
           )
         },
+        renderSectionHeader: this.renderTabs,
       },
     ]
   }
@@ -311,6 +310,7 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
             onSelectView={this.props.onAttachmentViewChange}
           />
         ),
+        renderSectionHeader: this.renderTabs,
       },
     ]
     switch (this.props.selectedAttachmentView) {
@@ -421,6 +421,7 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
             )
           }
         },
+        renderSectionHeader: this.renderTabs,
       },
     ]
   }
@@ -444,11 +445,6 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
       {
         data: ['header'],
         renderItem: this.renderHeader,
-      },
-      {
-        data: ['tabs'],
-        renderItem: () => null,
-        renderSectionHeader: this.renderTabs,
       },
     ]
     let sections: Array<Section>
