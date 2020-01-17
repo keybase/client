@@ -523,6 +523,7 @@ class Input extends React.Component<InputProps, InputState> {
 
   _renderCommandSuggestion = (command: RPCChatTypes.ConversationCommand, selected: boolean) => {
     const prefix = this._getCommandPrefix(command)
+    const enabled = !this.props.botRestrictMap?.get(command.username ?? '') ?? true
     return (
       <Kb.Box2
         direction="horizontal"
@@ -548,13 +549,25 @@ class Input extends React.Component<InputProps, InputState> {
           ])}
         >
           <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
-            <Kb.Text type="BodySemibold" style={styles.boldStyle}>
+            <Kb.Text
+              type="BodySemibold"
+              style={Styles.collapseStyles([
+                styles.boldStyle,
+                !enabled ? {color: Styles.globalColors.redDark} : undefined,
+              ])}
+            >
               {prefix}
               {command.name}
             </Kb.Text>
             <Kb.Text type="Body">{command.usage}</Kb.Text>
           </Kb.Box2>
-          <Kb.Text type="BodySmall">{command.description}</Kb.Text>
+          {enabled ? (
+            <Kb.Text type="BodySmall">{command.description}</Kb.Text>
+          ) : (
+            <Kb.Text type="BodySmall" style={{color: Styles.globalColors.redDark}}>
+              Command unavailable due to bot restriction configuration.
+            </Kb.Text>
+          )}
         </Kb.Box2>
       </Kb.Box2>
     )

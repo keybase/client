@@ -104,9 +104,11 @@ export default Container.namedConnect(
     const _containsLatestMessage = state.chat2.containsLatestMessageMap.get(conversationIDKey) || false
     const suggestBotCommandsUpdateStatus =
       state.chat2.botCommandsUpdateStatusMap.get(conversationIDKey) ||
-      RPCChatTypes.UIBotCommandsUpdateStatus.blank
+      RPCChatTypes.UIBotCommandsUpdateStatusTyp.blank
+    const botSettings = state.chat2.botSettings.get(conversationIDKey)
 
     return {
+      _botSettings: botSettings,
       _containsLatestMessage,
       _draft: Constants.getDraft(state, conversationIDKey),
       _editOrdinal: editInfo ? editInfo.ordinal : null,
@@ -205,7 +207,20 @@ export default Container.namedConnect(
       dispatch(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset})),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
+    const botRestrictMap = stateProps._botSettings
+      ? Constants.getBotChannelRestrictMap(stateProps._botSettings, stateProps.conversationIDKey, [
+          ...stateProps.suggestBotCommands
+            .reduce<Set<string>>((s, c) => {
+              if (c.username) {
+                s.add(c.username)
+              }
+              return s
+            }, new Set())
+            .values(),
+        ])
+      : undefined
     return {
+      botRestrictMap,
       cannotWrite: stateProps.cannotWrite,
       clearInboxFilter: dispatchProps.clearInboxFilter,
       conversationIDKey: stateProps.conversationIDKey,

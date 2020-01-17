@@ -260,29 +260,8 @@ func (b *CachingBotCommandManager) ListCommands(ctx context.Context, convID chat
 		return res, alias, nil
 	}
 
-	var teamBotSettings map[keybase1.UID]keybase1.TeamBotSettings
 	cmdDedup := make(map[string]bool)
 	for _, ad := range s.Advertisements {
-		// If the advertisement is by a restricted bot that will not be keyed
-		// for commands, filter the advertisement out.
-		if ad.UntrustedTeamRole.IsRestrictedBot() {
-			if teamBotSettings == nil {
-				teamBotSettings, err = b.G().InboxSource.TeamBotSettingsForConv(ctx, b.uid, convID)
-				if err != nil {
-					return res, alias, err
-				}
-			}
-			kuid := keybase1.UID(ad.UID.String())
-			if !teamBotSettings[kuid].Cmds {
-				b.Debug(ctx, "ListCommands: skipping commands from %v, a restricted bot without cmds", ad.UID)
-				continue
-			}
-			if botSettings, ok := teamBotSettings[kuid]; ok && !botSettings.ConvIDAllowed(convID.String()) {
-				b.Debug(ctx, "ListCommands: skipping commands from %v, a restricted bot restricted to channels",
-					ad.UID)
-				continue
-			}
-		}
 		ad.Username = libkb.NewNormalizedUsername(ad.Username).String()
 		if ad.Advertisement.Alias != nil {
 			alias[ad.Username] = *ad.Advertisement.Alias

@@ -478,6 +478,19 @@ export const messageAuthorIsBot = (
     : false // if we don't have team information, don't show bot icon
 }
 
+export const getBotChannelRestrictMap = (
+  settings: Map<string, RPCChatTypes.Keybase1.TeamBotSettings>,
+  conversationIDKey: Types.ConversationIDKey,
+  bots: Array<string>
+) => {
+  const botChannelRestrictions = new Map<string, boolean>()
+  bots.forEach(b => {
+    const convs = settings.get(b)?.convs
+    botChannelRestrictions.set(b, !((convs?.length ?? 0) === 0) && !convs?.find(c => c === conversationIDKey))
+  })
+  return botChannelRestrictions
+}
+
 export {
   getBotCommands,
   getCommands,
