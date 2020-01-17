@@ -1,70 +1,75 @@
 import * as React from 'react'
-import * as Kb from '../../../../../common-adapters'
-import * as TeamTypes from '../../../../../constants/types/teams'
-import * as TeamConstants from '../../../../../constants/teams'
-import * as Style from '../../../../../styles'
+import * as Chat2Gen from '../../../../actions/chat2-gen'
+import * as Container from '../../../../util/container'
+import * as Types from '../../../../constants/types/chat2'
+import * as Constants from '../../../../constants/chat2'
+import * as Kb from '../../../../common-adapters'
+import * as TeamTypes from '../../../../constants/types/teams'
+import * as TeamConstants from '../../../../constants/teams'
+import * as Style from '../../../../styles'
 import upperFirst from 'lodash/upperFirst'
-import {indefiniteArticle} from '../../../../../util/string'
+import {indefiniteArticle} from '../../../../util/string'
 
-type Props = {
-  canSetMinWriterRole: boolean
-  isSmallTeam: boolean
-  minWriterRole: TeamTypes.TeamRoleType
-  onSetNewRole: (newRole: TeamTypes.TeamRoleType) => void
-}
+type Props = {conversationIDKey: Types.ConversationIDKey}
 
-type State = {
-  saving: boolean
-  selected: TeamTypes.TeamRoleType
-}
+const MinWriterRole = (props: Props) => {
+  const {conversationIDKey} = props
+  const dispatch = Container.useDispatch()
+  const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
+  const {teamname} = meta
 
-class MinWriterRole extends React.Component<Props, State> {
-  state = {saving: false, selected: this.props.minWriterRole}
-  _setSaving = (saving: boolean) => this.setState(s => (s.saving === saving ? null : {saving}))
-  _setSelected = (selected: TeamTypes.TeamRoleType) =>
-    this.setState(s => (s.selected === selected ? null : {selected}))
-  _selectRole = (role: TeamTypes.TeamRoleType) => {
-    if (role !== this.props.minWriterRole) {
-      this._setSaving(true)
-      this._setSelected(role)
-      this.props.onSetNewRole(role)
+  const canPerform = Container.useSelector(state =>
+    teamname ? TeamConstants.getCanPerform(state, teamname) : undefined
+  )
+  const canSetMinWriterRole = canPerform ? canPerform.setMinWriterRole : false
+  const minWriterRole = meta.minWriterRole ?? 'reader'
+
+  const [saving, setSaving] = React.useState(false)
+  const [selected, setSelected] = React.useState(minWriterRole)
+
+  const onSetNewRole = (role: TeamTypes.TeamRoleType) =>
+    dispatch(Chat2Gen.createSetMinWriterRole({conversationIDKey, role}))
+  const selectRole = (role: TeamTypes.TeamRoleType) => {
+    if (role !== minWriterRole) {
+      setSaving(true)
+      setSelected(role)
+      onSetNewRole(role)
     }
   }
 
-  componentDidUpdate(prevProps: Props, prevState: State) {
-    if (prevProps.minWriterRole !== this.props.minWriterRole) {
-      if (this.props.minWriterRole === prevState.selected) {
-        // just got value that matches ours. We aren't saving anymore
-        this._setSaving(false)
-      }
-      this._setSelected(this.props.minWriterRole)
-    }
-  }
+  const lastMinWriterRole = Container.usePrevious(minWriterRole)
 
-  render() {
-    // TODO: create these items somewhere else
-    const items = TeamConstants.teamRoleTypes.map(role => ({
-      onClick: () => this._selectRole(role as any),
-      title: upperFirst(role),
-    }))
-    return (
-      <Kb.Box2
-        direction="vertical"
-        gap={this.props.canSetMinWriterRole ? 'tiny' : 'xxtiny'}
-        fullWidth={true}
-        style={styles.container}
-      >
-        <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
-          <Kb.Text type="BodySmallSemibold">Minimum role to post</Kb.Text>
-        </Kb.Box2>
-        {this.props.canSetMinWriterRole ? (
-          <Dropdown minWriterRole={this.state.selected} items={items} saving={this.state.saving} />
-        ) : (
-          <Display minWriterRole={this.props.minWriterRole} />
-        )}
+  React.useEffect(() => {
+    if (minWriterRole !== lastMinWriterRole) {
+      setSelected(minWriterRole)
+    }
+    if (selected === minWriterRole) {
+      setSaving(false)
+    }
+  }, [lastMinWriterRole, minWriterRole, selected])
+
+  const items = TeamConstants.teamRoleTypes.map(role => ({
+    onClick: () => selectRole(role),
+    title: upperFirst(role),
+  }))
+
+  return (
+    <Kb.Box2
+      direction="vertical"
+      gap={canSetMinWriterRole ? 'tiny' : 'xxtiny'}
+      fullWidth={true}
+      style={styles.container}
+    >
+      <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
+        <Kb.Text type="BodySmallSemibold">Minimum role to post</Kb.Text>
       </Kb.Box2>
-    )
-  }
+      {canSetMinWriterRole ? (
+        <Dropdown minWriterRole={selected} items={items} saving={saving} />
+      ) : (
+        <Display minWriterRole={minWriterRole} />
+      )}
+    </Kb.Box2>
+  )
 }
 
 type DropdownProps = Kb.OverlayParentProps & {

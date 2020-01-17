@@ -9,7 +9,7 @@ import * as Constants from '../../../../constants/chat2'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import RetentionPicker from '../../../../teams/team/settings-tab/retention/container'
-import MinWriterRole from './min-writer-role/container'
+import MinWriterRole from './min-writer-role'
 import Notifications from './notifications'
 import {CaptionedDangerIcon} from './channel-utils'
 
@@ -100,7 +100,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
         {(entityType === 'channel' || entityType === 'small team') && (
           <>
             <Kb.Divider style={styles.divider} />
-            <MinWriterRole conversationIDKey={conversationIDKey} isSmallTeam={entityType === 'small team'} />
+            <MinWriterRole conversationIDKey={conversationIDKey} />
           </>
         )}
         <Kb.Divider style={styles.divider} />
