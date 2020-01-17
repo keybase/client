@@ -71,12 +71,14 @@ const InstallBotPopup = (props: Props) => {
     featured,
     inTeam,
     inTeamUnrestricted,
+    isBot,
     readOnly,
     settings,
     teamID,
     teamName,
   } = Container.useSelector((state: Container.TypedState) => {
     let inTeam: boolean | undefined
+    let isBot: boolean | undefined
     let teamRole: TeamTypes.TeamRoleType | null | undefined
     let teamName: string | null | undefined
     let teamID: TeamTypes.TeamID | undefined
@@ -98,6 +100,10 @@ const InstallBotPopup = (props: Props) => {
       if (teamRole !== undefined) {
         inTeam = !!teamRole
       }
+
+      if (teamRole === 'bot' || teamRole === 'restrictedbot') {
+        isBot = true
+      }
     }
     const convCommands: Types.BotPublicCommands = {commands, loadError: false}
     return {
@@ -106,6 +112,7 @@ const InstallBotPopup = (props: Props) => {
       featured: state.chat2.featuredBotsMap.get(botUsername),
       inTeam,
       inTeamUnrestricted: inTeam && teamRole === 'bot',
+      isBot,
       readOnly,
       settings: conversationIDKey
         ? state.chat2.botSettings.get(conversationIDKey)?.get(botUsername) ?? undefined
@@ -257,7 +264,7 @@ const InstallBotPopup = (props: Props) => {
           {featured.extendedDescription}
         </Kb.Markdown>
       </Kb.Box2>
-      {inTeam && !inTeamUnrestricted && (
+      {inTeam && isBot && !inTeamUnrestricted && (
         <PermsList
           channelInfos={channelInfos}
           commands={commands}
@@ -289,8 +296,13 @@ const InstallBotPopup = (props: Props) => {
           />
         </Kb.Box2>
       </Kb.Box2>
-      {inTeam && !inTeamUnrestricted && (
-        <PermsList settings={settings} commands={commands} username={botUsername} />
+      {inTeam && isBot && !inTeamUnrestricted && (
+        <PermsList
+          channelInfos={channelInfos}
+          settings={settings}
+          commands={commands}
+          username={botUsername}
+        />
       )}
     </Kb.Box2>
   )
@@ -408,8 +420,8 @@ const InstallBotPopup = (props: Props) => {
   }
   const showInstallButton = installScreen && !inTeam && !channelPickerScreen
   const showReviewButton = !installScreen && !inTeam
-  const showRemoveButton = inTeam && !installScreen
-  const showEditButton = inTeam && !inTeamUnrestricted && !installScreen
+  const showRemoveButton = inTeam && isBot && !installScreen
+  const showEditButton = inTeam && isBot && !inTeamUnrestricted && !installScreen
   const showSaveButton = inTeam && installScreen && !channelPickerContent
   const showDoneButton = channelPickerContent
   const installButton = showInstallButton && (

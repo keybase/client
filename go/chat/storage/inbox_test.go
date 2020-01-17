@@ -757,7 +757,7 @@ func TestMobileSharedInbox(t *testing.T) {
 	require.Equal(t, numConvs, len(sharedInbox))
 	convs = diskIbox.Conversations
 	for i := 0; i < numConvs; i++ {
-		require.Equal(t, convs[i].GetConvID().String(), sharedInbox[i].ConvID)
+		require.Equal(t, convs[i].GetConvID().ConvIDStr(), sharedInbox[i].ConvID)
 		require.Equal(t, utils.GetRemoteConvDisplayName(convs[i]), sharedInbox[i].Name)
 		if convs[i].GetConvID().Eq(teamConvID) {
 			require.True(t, strings.Contains(sharedInbox[i].Name, "#"))
