@@ -297,7 +297,12 @@ const InstallBotPopup = (props: Props) => {
         </Kb.Box2>
       </Kb.Box2>
       {inTeam && isBot && !inTeamUnrestricted && (
-        <PermsList settings={settings} commands={commands} username={botUsername} />
+        <PermsList
+          channelInfos={channelInfos}
+          settings={settings}
+          commands={commands}
+          username={botUsername}
+        />
       )}
     </Kb.Box2>
   )
