@@ -475,7 +475,7 @@ export const messageAuthorIsBot = (
         TeamConstants.userIsRoleInTeam(state, teamID, message.author, 'bot')
     : meta.teamType === 'adhoc' && participantInfo.name.length > 0 // teams without info may have type adhoc with an empty participant name list
     ? !participantInfo.name.includes(message.author) // if adhoc, check if author in participants
-    : false // if we don't have team information, don't show bot icon)
+    : false // if we don't have team information, don't show bot icon
 }
 
 export {
