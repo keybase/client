@@ -45,10 +45,7 @@ class Checkbox extends Component<Props> {
           color={Styles.globalColors.white}
           fontSize={9}
         />
-        <Kb.Box2
-          direction="vertical"
-          style={Styles.collapseStyles([this.props.disabled && styles.semiLessTransparent])}
-        >
+        <Kb.Box2 direction="vertical">
           <Kb.Text type="Body">{this.props.labelComponent || this.props.label}</Kb.Text>
           {!!this.props.labelSubtitle && <Kb.Text type="BodySmall">{this.props.labelSubtitle}</Kb.Text>}
         </Kb.Box2>
