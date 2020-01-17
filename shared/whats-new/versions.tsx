@@ -46,7 +46,7 @@ export const Current = ({seen, onNavigate, onNavigateExternal}: VersionProps) =>
         primaryButtonText={Styles.isMobile ? '' : 'Try it'}
         seen={seen}
       >
-        Crypto: encrypt, decrypt, sign, and verify all from within Keybase.
+        Encrypt, decrypt, sign, and verify all from within Keybase (desktop-only).
         {` `}
         <Kb.Emoji
           allowFontScaling={true}
