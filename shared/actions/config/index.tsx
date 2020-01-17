@@ -702,11 +702,11 @@ const gregorPushState = (action: GregorGen.PushStatePayload) => {
   return actions
 }
 
-const loadNixOnLoginStartup = async () => {
+const loadOnLoginStartup = async () => {
   try {
     const status =
-      (await RPCTypes.ctlGetNixOnLoginStartupRpcPromise()) === RPCTypes.OnLoginStartupStatus.enabled
-    return ConfigGen.createLoadedNixOnLoginStartup({status})
+      (await RPCTypes.ctlGetOnLoginStartupRpcPromise()) === RPCTypes.OnLoginStartupStatus.enabled
+    return ConfigGen.createLoadedOnLoginStartup({status})
   } catch (err) {
     logger.warn('Error in loading proxy data', err)
     return null
@@ -854,7 +854,7 @@ function* configSaga() {
   yield Saga.spawn(PlatformSpecific.platformConfigSaga)
   yield Saga.spawn(criticalOutOfDateCheck)
 
-  yield* Saga.chainAction2(ConfigGen.loadNixOnLoginStartup, loadNixOnLoginStartup)
+  yield* Saga.chainAction2(ConfigGen.loadOnLoginStartup, loadOnLoginStartup)
 }
 
 export default configSaga
