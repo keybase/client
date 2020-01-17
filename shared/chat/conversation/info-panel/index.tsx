@@ -88,7 +88,6 @@ export type InfoPanelProps = {
   teamname?: string
   channelname?: string
   smallTeam: boolean
-  admin: boolean
   selectedAttachmentView: RPCChatTypes.GalleryItemTyp
   selectedTab: Panel
   showAuditingBanner: boolean
@@ -114,10 +113,8 @@ export type InfoPanelProps = {
   canSetRetention: boolean
 
   // Used for big teams.
-  canEditChannel: boolean
   description?: string
   onEditChannel: () => void
-  onJoinChannel: () => void
 
   // Used for bots
   canManageBots: boolean
@@ -219,18 +216,7 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
     const header = (
       <Kb.Box2 direction="vertical" gap="tiny" gapStart={true} fullWidth={true}>
         {entityType === 'small team' || entityType === 'channel' ? (
-          <TeamHeader
-            admin={this.props.admin}
-            channelname={this.props.channelname}
-            conversationIDKey={this.props.selectedConversationIDKey}
-            description={this.props.description}
-            isPreview={this.props.isPreview}
-            isSmallTeam={entityType === 'small team'}
-            onJoinChannel={this.props.onJoinChannel}
-            participantCount={this.props.participants.length}
-            teamID={this.props.teamID}
-            teamname={this.props.teamname}
-          />
+          <TeamHeader conversationIDKey={this.props.selectedConversationIDKey} />
         ) : (
           <AdhocHeader
             onShowNewTeamDialog={this.props.onShowNewTeamDialog}

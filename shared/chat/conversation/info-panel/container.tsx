@@ -46,15 +46,11 @@ const ConnectedInfoPanel = Container.connect(
     const conversationIDKey = ownProps.conversationIDKey
     const meta = Constants.getMeta(state, conversationIDKey)
 
-    let admin = false
-    let canEditChannel = false
     let canSetMinWriterRole = false
     let canSetRetention = false
     let canManageBots = false
     if (meta.teamname) {
       const yourOperations = TeamConstants.getCanPerformByID(state, meta.teamID)
-      admin = yourOperations.manageMembers
-      canEditChannel = yourOperations.editTeamDescription
       canSetMinWriterRole = yourOperations.setMinWriterRole
       canSetRetention = yourOperations.setRetentionPolicy
       canManageBots = yourOperations.manageBots
@@ -79,8 +75,6 @@ const ConnectedInfoPanel = Container.connect(
       _teamMembers,
       _username: state.config.username,
       adhocTeam: meta.teamType === 'adhoc',
-      admin,
-      canEditChannel,
       canManageBots,
       canSetMinWriterRole,
       canSetRetention,
@@ -158,7 +152,6 @@ const ConnectedInfoPanel = Container.connect(
           dispatch(Chat2Gen.createClearAttachmentView({conversationIDKey}))
         }
       : undefined,
-    onJoinChannel: () => dispatch(Chat2Gen.createJoinConversation({conversationIDKey})),
     onLoadMoreBots: () => dispatch(Chat2Gen.createLoadNextBotPage({pageSize: 100})),
     onSearchFeaturedBots: (query: string) => dispatch(BotsGen.createSearchFeaturedBots({query})),
     onShowNewTeamDialog: () => {
@@ -231,8 +224,6 @@ const ConnectedInfoPanel = Container.connect(
       }
     }
     const p: InfoPanelProps = {
-      admin: stateProps.admin,
-      canEditChannel: stateProps.canEditChannel,
       canManageBots: stateProps.canManageBots,
       canSetMinWriterRole: stateProps.canSetMinWriterRole,
       canSetRetention: stateProps.canSetRetention,
@@ -344,7 +335,6 @@ const ConnectedInfoPanel = Container.connect(
       onBotSelect: dispatchProps.onBotSelect,
       onCancel: dispatchProps.onCancel,
       onEditChannel: () => dispatchProps._onEditChannel(stateProps.teamID),
-      onJoinChannel: dispatchProps.onJoinChannel,
       onLoadMoreBots: dispatchProps.onLoadMoreBots,
       onSearchFeaturedBots: dispatchProps.onSearchFeaturedBots,
       onSelectTab: ownProps.onSelectTab,
