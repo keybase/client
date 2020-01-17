@@ -25,6 +25,8 @@ export type ErrorTypes = ''
 export type OutputStatus = 'success' | 'error'
 
 export type CommonState = {
+  bytesComplete: number
+  bytesTotal: number
   errorMessage: HiddenString
   errorType: ErrorTypes
   input: HiddenString

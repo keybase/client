@@ -103,9 +103,9 @@ type NotifyListener interface {
 	IdentifyUpdate(okUsernames []string, brokenUsernames []string)
 	Reachability(keybase1.Reachability)
 	FeaturedBotsUpdate(bots []keybase1.FeaturedBot, limit, offset int)
-	SaltpackOperationStart(opType keybase1.OperationType, filename string)
-	SaltpackOperationProgress(opType keybase1.OperationType, filename string, bytesComplete, bytesTotal int64)
-	SaltpackOperationDone(opType keybase1.OperationType, filename string)
+	SaltpackOperationStart(opType keybase1.SaltpackOperationType, filename string)
+	SaltpackOperationProgress(opType keybase1.SaltpackOperationType, filename string, bytesComplete, bytesTotal int64)
+	SaltpackOperationDone(opType keybase1.SaltpackOperationType, filename string)
 }
 
 type NoopNotifyListener struct{}
@@ -232,13 +232,15 @@ func (n *NoopNotifyListener) RuntimeStatsUpdate(*keybase1.RuntimeStats) {}
 func (n *NoopNotifyListener) HTTPSrvInfoUpdate(keybase1.HttpSrvInfo)    {}
 func (n *NoopNotifyListener) IdentifyUpdate(okUsernames []string, brokenUsernames []string) {
 }
-func (n *NoopNotifyListener) Reachability(keybase1.Reachability)                                    {}
-func (n *NoopNotifyListener) UserBlocked(keybase1.UserBlockedBody)                                  {}
-func (n *NoopNotifyListener) FeaturedBotsUpdate(bots []keybase1.FeaturedBot, limit, offset int)     {}
-func (n *NoopNotifyListener) SaltpackOperationStart(opType keybase1.OperationType, filename string) {}
-func (n *NoopNotifyListener) SaltpackOperationProgress(opType keybase1.OperationType, filename string, bytesComplete, bytesTotal int64) {
+func (n *NoopNotifyListener) Reachability(keybase1.Reachability)                                {}
+func (n *NoopNotifyListener) UserBlocked(keybase1.UserBlockedBody)                              {}
+func (n *NoopNotifyListener) FeaturedBotsUpdate(bots []keybase1.FeaturedBot, limit, offset int) {}
+func (n *NoopNotifyListener) SaltpackOperationStart(opType keybase1.SaltpackOperationType, filename string) {
 }
-func (n *NoopNotifyListener) SaltpackOperationDone(opType keybase1.OperationType, filename string) {}
+func (n *NoopNotifyListener) SaltpackOperationProgress(opType keybase1.SaltpackOperationType, filename string, bytesComplete, bytesTotal int64) {
+}
+func (n *NoopNotifyListener) SaltpackOperationDone(opType keybase1.SaltpackOperationType, filename string) {
+}
 
 type NotifyListenerID string
 
@@ -2632,7 +2634,7 @@ func (n *NotifyRouter) HandleFeaturedBots(ctx context.Context, bots []keybase1.F
 	})
 }
 
-func (n *NotifyRouter) HandleSaltpackOperationStart(ctx context.Context, opType keybase1.OperationType, filename string) {
+func (n *NotifyRouter) HandleSaltpackOperationStart(ctx context.Context, opType keybase1.SaltpackOperationType, filename string) {
 	if n == nil {
 		return
 	}
@@ -2655,7 +2657,7 @@ func (n *NotifyRouter) HandleSaltpackOperationStart(ctx context.Context, opType 
 	})
 }
 
-func (n *NotifyRouter) HandleSaltpackOperationProgress(ctx context.Context, opType keybase1.OperationType, filename string, bytesComplete, bytesTotal int64) {
+func (n *NotifyRouter) HandleSaltpackOperationProgress(ctx context.Context, opType keybase1.SaltpackOperationType, filename string, bytesComplete, bytesTotal int64) {
 	if n == nil {
 		return
 	}
@@ -2680,7 +2682,7 @@ func (n *NotifyRouter) HandleSaltpackOperationProgress(ctx context.Context, opTy
 	})
 }
 
-func (n *NotifyRouter) HandleSaltpackOperationDone(ctx context.Context, opType keybase1.OperationType, filename string) {
+func (n *NotifyRouter) HandleSaltpackOperationDone(ctx context.Context, opType keybase1.SaltpackOperationType, filename string) {
 	if n == nil {
 		return
 	}

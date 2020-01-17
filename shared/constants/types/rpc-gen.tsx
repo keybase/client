@@ -144,15 +144,15 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.NotifySaltpack.saltpackOperationDone': {
-    inParam: {readonly opType: OperationType; readonly filename: String}
+    inParam: {readonly opType: SaltpackOperationType; readonly filename: String}
     outParam: void
   }
   'keybase.1.NotifySaltpack.saltpackOperationProgress': {
-    inParam: {readonly opType: OperationType; readonly filename: String; readonly bytesComplete: Long; readonly bytesTotal: Long}
+    inParam: {readonly opType: SaltpackOperationType; readonly filename: String; readonly bytesComplete: Long; readonly bytesTotal: Long}
     outParam: void
   }
   'keybase.1.NotifySaltpack.saltpackOperationStart': {
-    inParam: {readonly opType: OperationType; readonly filename: String}
+    inParam: {readonly opType: SaltpackOperationType; readonly filename: String}
     outParam: void
   }
   'keybase.1.NotifyService.HTTPSrvInfoUpdate': {
@@ -1925,13 +1925,6 @@ export enum OpenFlags {
   directory = 16,
 }
 
-export enum OperationType {
-  encrypt = 0,
-  decrypt = 1,
-  sign = 2,
-  verify = 3,
-}
-
 export enum Outcome {
   none = 0,
   fixed = 1,
@@ -2159,6 +2152,13 @@ export enum RuntimeGroup {
   linuxlike = 1,
   darwinlike = 2,
   windowslike = 3,
+}
+
+export enum SaltpackOperationType {
+  encrypt = 0,
+  decrypt = 1,
+  sign = 2,
+  verify = 3,
 }
 
 export enum SaltpackSenderType {

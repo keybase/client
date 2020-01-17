@@ -12,8 +12,11 @@ export const onOperationError = 'crypto:onOperationError'
 export const onOperationSuccess = 'crypto:onOperationSuccess'
 export const resetOperation = 'crypto:resetOperation'
 export const saltpackDecrypt = 'crypto:saltpackDecrypt'
+export const saltpackDone = 'crypto:saltpackDone'
 export const saltpackEncrypt = 'crypto:saltpackEncrypt'
+export const saltpackProgress = 'crypto:saltpackProgress'
 export const saltpackSign = 'crypto:saltpackSign'
+export const saltpackStart = 'crypto:saltpackStart'
 export const saltpackVerify = 'crypto:saltpackVerify'
 export const setEncryptOptions = 'crypto:setEncryptOptions'
 export const setInput = 'crypto:setInput'
@@ -36,13 +39,21 @@ type _OnOperationSuccessPayload = {
 }
 type _ResetOperationPayload = {readonly operation: Types.Operations}
 type _SaltpackDecryptPayload = {readonly input: HiddenString; readonly type: Types.InputTypes}
+type _SaltpackDonePayload = {readonly filename: HiddenString; readonly operation: Types.Operations}
 type _SaltpackEncryptPayload = {
   readonly input: HiddenString
   readonly options: Types.EncryptOptions
   readonly recipients: Array<string>
   readonly type: Types.InputTypes
 }
+type _SaltpackProgressPayload = {
+  readonly bytesComplete: number
+  readonly bytesTotal: number
+  readonly filename: HiddenString
+  readonly operation: Types.Operations
+}
 type _SaltpackSignPayload = {readonly input: HiddenString; readonly type: Types.InputTypes}
+type _SaltpackStartPayload = {readonly filename: HiddenString; readonly operation: Types.Operations}
 type _SaltpackVerifyPayload = {readonly input: HiddenString; readonly type: Types.InputTypes}
 type _SetEncryptOptionsPayload = {readonly options: Types.EncryptOptions; readonly noIncludeSelf?: boolean}
 type _SetInputPayload = {
@@ -110,6 +121,27 @@ export const createOnOperationSuccess = (payload: _OnOperationSuccessPayload): O
   type: onOperationSuccess,
 })
 /**
+ * Progress logging
+ */
+export const createSaltpackDone = (payload: _SaltpackDonePayload): SaltpackDonePayload => ({
+  payload,
+  type: saltpackDone,
+})
+/**
+ * Progress logging
+ */
+export const createSaltpackProgress = (payload: _SaltpackProgressPayload): SaltpackProgressPayload => ({
+  payload,
+  type: saltpackProgress,
+})
+/**
+ * Progress logging
+ */
+export const createSaltpackStart = (payload: _SaltpackStartPayload): SaltpackStartPayload => ({
+  payload,
+  type: saltpackStart,
+})
+/**
  * Remove all recipients from operation
  */
 export const createClearRecipients = (payload: _ClearRecipientsPayload): ClearRecipientsPayload => ({
@@ -157,11 +189,20 @@ export type SaltpackDecryptPayload = {
   readonly payload: _SaltpackDecryptPayload
   readonly type: typeof saltpackDecrypt
 }
+export type SaltpackDonePayload = {readonly payload: _SaltpackDonePayload; readonly type: typeof saltpackDone}
 export type SaltpackEncryptPayload = {
   readonly payload: _SaltpackEncryptPayload
   readonly type: typeof saltpackEncrypt
 }
+export type SaltpackProgressPayload = {
+  readonly payload: _SaltpackProgressPayload
+  readonly type: typeof saltpackProgress
+}
 export type SaltpackSignPayload = {readonly payload: _SaltpackSignPayload; readonly type: typeof saltpackSign}
+export type SaltpackStartPayload = {
+  readonly payload: _SaltpackStartPayload
+  readonly type: typeof saltpackStart
+}
 export type SaltpackVerifyPayload = {
   readonly payload: _SaltpackVerifyPayload
   readonly type: typeof saltpackVerify
@@ -185,8 +226,11 @@ export type Actions =
   | OnOperationSuccessPayload
   | ResetOperationPayload
   | SaltpackDecryptPayload
+  | SaltpackDonePayload
   | SaltpackEncryptPayload
+  | SaltpackProgressPayload
   | SaltpackSignPayload
+  | SaltpackStartPayload
   | SaltpackVerifyPayload
   | SetEncryptOptionsPayload
   | SetInputPayload
