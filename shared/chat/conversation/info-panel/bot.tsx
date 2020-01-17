@@ -111,19 +111,17 @@ const styles = Styles.styleSheetCreate(
         marginRight: Styles.globalMargins.small,
         marginTop: Styles.globalMargins.small,
       },
+      addButton: {marginLeft: Styles.globalMargins.tiny},
+      avatarStyle: Styles.platformStyles({
+        isElectron: {marginRight: Styles.globalMargins.tiny},
+        isMobile: {marginRight: Styles.globalMargins.small},
+      }),
       botHeaders: {
         marginBottom: Styles.globalMargins.tiny,
         marginLeft: Styles.globalMargins.small,
         marginRight: Styles.globalMargins.small,
         marginTop: Styles.globalMargins.tiny,
       },
-      addButton: {
-        marginLeft: Styles.globalMargins.tiny,
-      },
-      avatarStyle: Styles.platformStyles({
-        isElectron: {marginRight: Styles.globalMargins.tiny},
-        isMobile: {marginRight: Styles.globalMargins.small},
-      }),
       container: Styles.platformStyles({
         isElectron: {
           paddingBottom: Styles.globalMargins.xtiny,
@@ -135,15 +133,9 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       divider: Styles.platformStyles({
-        common: {
-          marginTop: Styles.globalMargins.tiny,
-        },
-        isElectron: {
-          marginLeft: 56,
-        },
-        isMobile: {
-          marginLeft: 81,
-        },
+        common: {marginTop: Styles.globalMargins.tiny},
+        isElectron: {marginLeft: 56},
+        isMobile: {marginLeft: 81},
       }),
       row: {
         alignItems: 'center',
@@ -175,32 +167,26 @@ const loadMoreBotsButton = 'bots: load more'
 const addBotButton = 'bots: add bot'
 const featuredBotSpinner = 'bots: featured spinners'
 
-export default (p: Props) => {
-  const {renderTabs, conversationIDKey} = p
+export default (props: Props) => {
+  const {renderTabs, conversationIDKey} = props
   const dispatch = Container.useDispatch()
-
   const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
   const {teamID, teamname, teamType, botAliases} = meta
   const yourOperations = Container.useSelector(state =>
     teamname ? TeamConstants.getCanPerformByID(state, teamID) : undefined
   )
-
   let canManageBots = false
   if (teamname) {
     canManageBots = yourOperations?.manageBots ?? false
   } else {
     canManageBots = true
   }
-
   const adhocTeam = teamType === 'adhoc'
   const smallTeam = teamType !== 'big'
-
   const participantInfo = Container.useSelector(state =>
     Constants.getParticipantInfo(state, conversationIDKey)
   )
-
   const teamMembers = Container.useSelector(state => state.teams.teamIDToMembers.get(teamID)) ?? new Map()
-
   const participantsAll = participantInfo.all
 
   let botUsernames: Array<string> = []
@@ -264,7 +250,6 @@ export default (p: Props) => {
   const loadingBots = !featuredBotsMap.size
 
   const featuredBotsLength = featuredBots.length
-
   React.useEffect(() => {
     if (featuredBotsLength === 0 && !loadedAllBots) {
       dispatch(Chat2Gen.createLoadNextBotPage({pageSize: 100}))
@@ -346,7 +331,7 @@ export default (p: Props) => {
       stickySectionHeadersEnabled={true}
       keyboardShouldPersistTaps="handled"
       renderSectionHeader={({section}) => section?.renderSectionHeader?.({section}) ?? null}
-      sections={[...p.commonSections, ...sections]}
+      sections={[...props.commonSections, ...sections]}
     />
   )
 }

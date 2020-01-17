@@ -11,21 +11,7 @@ import BotsList from './bot'
 import AttachmentsList from './attachments'
 
 export type Panel = 'settings' | 'members' | 'attachments' | 'bots'
-export type ParticipantTyp = {
-  username: string
-  fullname: string
-  isAdmin: boolean
-  isOwner: boolean
-}
-
-export type EntityType = 'adhoc' | 'small team' | 'channel'
-export type Section = {
-  data: Array<any>
-  renderItem: (i: {item: any; index: number}) => void
-  renderSectionHeader?: (i: any) => void
-}
-
-export type InfoPanelProps = {
+type InfoPanelProps = {
   channelname?: string
   isPreview: boolean
   onBack: (() => void) | undefined
@@ -43,13 +29,6 @@ const TabText = ({selected, text}: {selected: boolean; text: string}) => (
 )
 
 class _InfoPanel extends React.PureComponent<InfoPanelProps> {
-  private getEntityType = (): EntityType => {
-    if (this.props.teamname && this.props.channelname) {
-      return this.props.smallTeam ? 'small team' : 'channel'
-    }
-    return 'adhoc'
-  }
-
   private isSelected = (s: Panel) => s === this.props.selectedTab
 
   private getTabPanels = (): Array<Panel> => [
@@ -114,19 +93,15 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
   private commonSections = [
     {
       data: ['header'],
-      renderItem: () => {
-        const entityType = this.getEntityType()
-        const header = (
-          <Kb.Box2 direction="vertical" gap="tiny" gapStart={true} fullWidth={true}>
-            {entityType === 'small team' || entityType === 'channel' ? (
-              <TeamHeader conversationIDKey={this.props.selectedConversationIDKey} />
-            ) : (
-              <AdhocHeader conversationIDKey={this.props.selectedConversationIDKey} />
-            )}
-          </Kb.Box2>
-        )
-        return header
-      },
+      renderItem: () => (
+        <Kb.Box2 direction="vertical" gap="tiny" gapStart={true} fullWidth={true}>
+          {this.props.teamname && this.props.channelname ? (
+            <TeamHeader conversationIDKey={this.props.selectedConversationIDKey} />
+          ) : (
+            <AdhocHeader conversationIDKey={this.props.selectedConversationIDKey} />
+          )}
+        </Kb.Box2>
+      ),
     },
   ]
 

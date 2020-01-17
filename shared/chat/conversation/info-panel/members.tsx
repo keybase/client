@@ -16,8 +16,8 @@ type Props = {
 
 const auditingBannerItem = 'auditing banner'
 
-export default (p: Props) => {
-  const {conversationIDKey} = p
+export default (props: Props) => {
+  const {conversationIDKey} = props
   const dispatch = Container.useDispatch()
   const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
   const {teamID, channelname, teamname} = meta
@@ -84,7 +84,7 @@ export default (p: Props) => {
       keyboardShouldPersistTaps="handled"
       renderSectionHeader={({section}) => section?.renderSectionHeader?.({section}) ?? null}
       sections={[
-        ...p.commonSections,
+        ...props.commonSections,
         {
           data: [...(showAuditingBanner ? [auditingBannerItem] : []), ...participantsItems],
           renderItem: ({item}) => {
@@ -109,7 +109,7 @@ export default (p: Props) => {
               />
             )
           },
-          renderSectionHeader: p.renderTabs,
+          renderSectionHeader: props.renderTabs,
         },
       ]}
     />

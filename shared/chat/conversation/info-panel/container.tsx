@@ -3,11 +3,8 @@ import * as Constants from '../../../constants/chat2'
 import * as Container from '../../../util/container'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as React from 'react'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import * as TeamConstants from '../../../constants/teams'
-import * as TeamTypes from '../../../constants/types/teams'
 import * as Types from '../../../constants/types/chat2'
-import {InfoPanel, Panel, InfoPanelProps} from '.'
+import {InfoPanel, Panel} from '.'
 
 type OwnProps = {
   loadDelay?: number
@@ -18,61 +15,20 @@ type OwnProps = {
   selectedTab: Panel | null
 }
 
-// const loading: Types.AttachmentViewStatus = 'loading'
-const noTeamMembers = new Map<string, TeamTypes.MemberInfo>()
-
 const ConnectedInfoPanel = Container.connect(
   (state: Container.TypedState, ownProps: OwnProps) => {
     const conversationIDKey = ownProps.conversationIDKey
     const meta = Constants.getMeta(state, conversationIDKey)
-
-    let canSetMinWriterRole = false
-    let canSetRetention = false
-    if (meta.teamname) {
-      const yourOperations = TeamConstants.getCanPerformByID(state, meta.teamID)
-      canSetMinWriterRole = yourOperations.setMinWriterRole
-      canSetRetention = yourOperations.setRetentionPolicy
-    } else {
-    }
     const isPreview = meta.membershipType === 'youArePreviewing'
-    const selectedTab = ownProps.selectedTab || 'members'
-    const _teamMembers = state.teams.teamIDToMembers.get(meta.teamID) || noTeamMembers
-    const _participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
     return {
-      _infoMap: state.users.infoMap,
-      _participantInfo,
-      _team: meta.teamname,
-      _teamMembers,
-      _username: state.config.username,
-      adhocTeam: meta.teamType === 'adhoc',
-      canSetMinWriterRole,
-      canSetRetention,
       channelname: meta.channelname,
-      description: meta.descriptionDecorated,
       isPreview,
       selectedConversationIDKey: conversationIDKey,
-      selectedTab,
       smallTeam: meta.teamType !== 'big',
-      teamID: meta.teamID,
       teamname: meta.teamname,
     }
   },
   (dispatch: Container.TypedDispatch, {conversationIDKey, onBack, onCancel}: OwnProps) => ({
-    _navToRootChat: () => dispatch(Chat2Gen.createNavigateToInbox()),
-    _onEditChannel: (teamID: string) =>
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {conversationIDKey, teamID}, selected: 'chatEditChannel'}],
-        })
-      ),
-    _onShowClearConversationDialog: () => {
-      dispatch(Chat2Gen.createNavigateToThread())
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {conversationIDKey}, selected: 'chatDeleteHistoryWarning'}],
-        })
-      )
-    },
     onBack: onBack
       ? () => {
           onBack()
@@ -87,19 +43,21 @@ const ConnectedInfoPanel = Container.connect(
       : undefined,
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
-    const p: InfoPanelProps = {
-      channelname: stateProps.channelname,
+    const {channelname, isPreview, selectedConversationIDKey, smallTeam, teamname} = stateProps
+    const {onSelectTab, selectedTab} = ownProps
+    const {onBack, onCancel} = dispatchProps
+    return {
+      channelname,
       customCancelText: 'Done',
-      isPreview: stateProps.isPreview,
-      onBack: dispatchProps.onBack,
-      onCancel: dispatchProps.onCancel,
-      onSelectTab: ownProps.onSelectTab,
-      selectedConversationIDKey: stateProps.selectedConversationIDKey,
-      selectedTab: stateProps.selectedTab,
-      smallTeam: stateProps.smallTeam,
-      teamname: stateProps.teamname,
+      isPreview,
+      onBack,
+      onCancel,
+      onSelectTab,
+      selectedConversationIDKey,
+      selectedTab: selectedTab ?? 'members',
+      smallTeam,
+      teamname,
     }
-    return p
   }
 )(InfoPanel)
 

@@ -360,8 +360,8 @@ export default (p: Props) => {
     dispatch(Chat2Gen.createLoadAttachmentView({conversationIDKey, viewType: selectedAttachmentView}))
   }, [selectedAttachmentView, conversationIDKey, dispatch])
 
-  const m = Container.useSelector(state => state.chat2.attachmentViewMap.get(conversationIDKey))
-  const attachmentInfo = (m && m.get(selectedAttachmentView)) || noAttachmentView
+  const attachmentView = Container.useSelector(state => state.chat2.attachmentViewMap.get(conversationIDKey))
+  const attachmentInfo = attachmentView?.get(selectedAttachmentView) || noAttachmentView
   const fromMsgID = getFromMsgID(attachmentInfo)
 
   const onLoadMore = fromMsgID
