@@ -11,10 +11,10 @@ import * as TeamsTypes from '../../../constants/types/teams'
 import flags from '../../../util/feature-flags'
 import {Props as HeaderHocProps} from '../../../common-adapters/header-hoc/types'
 import {AdhocHeader, TeamHeader} from './header'
-import SettingsPanel from './settings'
-import Participant from './participant'
+import SettingsList from './settings'
+import MembersList from './members'
 import Bot from './bot'
-import {AttachmentTypeSelector, DocView, LinkView, MediaView} from './attachments'
+import AttachmentsList from './attachments'
 
 export type Panel = 'settings' | 'members' | 'attachments' | 'bots'
 export type ParticipantTyp = {
@@ -88,9 +88,7 @@ export type InfoPanelProps = {
   teamname?: string
   channelname?: string
   smallTeam: boolean
-  selectedAttachmentView: RPCChatTypes.GalleryItemTyp
   selectedTab: Panel
-  showAuditingBanner: boolean
 
   // Attachment stuff
   docs: DocProps
@@ -100,9 +98,6 @@ export type InfoPanelProps = {
 
   // Used by HeaderHoc.
   onBack: (() => void) | undefined
-
-  // Used by Participant.
-  onShowProfile: (username: string) => void
 
   // Used for conversations.
   onSelectTab: (p: Panel) => void
@@ -132,29 +127,11 @@ const TabText = ({selected, text}: {selected: boolean; text: string}) => (
 )
 
 class _InfoPanel extends React.PureComponent<InfoPanelProps> {
-  componentDidUpdate(prevProps: InfoPanelProps) {
-    if (this.props.selectedConversationIDKey !== prevProps.selectedConversationIDKey) {
-      this.loadAttachments()
-    }
-  }
-  componentDidMount() {
-    if (this.props.selectedTab === 'attachments') {
-      this.loadAttachments()
-    }
-    if (this.props.selectedTab === 'bots') {
-      this.loadBots()
-    }
-  }
-
-  private loadAttachments = () => {
-    this.props.onAttachmentViewChange(this.props.selectedAttachmentView)
-  }
-
-  private loadBots = () => {
-    if (this.props.featuredBots.length === 0 && !this.props.loadedAllBots) {
-      this.props.onLoadMoreBots()
-    }
-  }
+  // private loadBots = () => {
+  // if (this.props.featuredBots.length === 0 && !this.props.loadedAllBots) {
+  // this.props.onLoadMoreBots()
+  // }
+  // }
 
   private getEntityType = (): EntityType => {
     if (this.props.teamname && this.props.channelname) {
@@ -210,20 +187,6 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
     this.props.onSelectTab(this.getTabPanels()[idx] ?? ('members' as const))
   }
 
-  private renderHeader = () => {
-    const entityType = this.getEntityType()
-    const header = (
-      <Kb.Box2 direction="vertical" gap="tiny" gapStart={true} fullWidth={true}>
-        {entityType === 'small team' || entityType === 'channel' ? (
-          <TeamHeader conversationIDKey={this.props.selectedConversationIDKey} />
-        ) : (
-          <AdhocHeader conversationIDKey={this.props.selectedConversationIDKey} />
-        )}
-      </Kb.Box2>
-    )
-    return header
-  }
-
   private renderTabs = () => {
     const tabs = this.getTabs()
     const selected = tabs.find((tab: any) => tab && this.isSelected(tab.key)) || null
@@ -238,95 +201,6 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
         />
       </Kb.Box2>
     )
-  }
-
-  private getSettingsSections = () => [
-    {
-      data: ['tab'],
-      renderItem: () => (
-        <SettingsPanel conversationIDKey={this.props.selectedConversationIDKey} key="settings" />
-      ),
-      renderSectionHeader: this.renderTabs,
-    },
-  ]
-
-  private getMembersSections = () => {
-    const auditingBannerItem = 'auditing banner'
-    return [
-      {
-        data: [...(this.props.showAuditingBanner ? [auditingBannerItem] : []), ...this.props.participants],
-        renderItem: ({item}) => {
-          if (item === auditingBannerItem) {
-            return (
-              <Kb.Banner color="grey" small={true}>
-                Auditing team members...
-              </Kb.Banner>
-            )
-          }
-          if (!item.username) {
-            return null
-          }
-          return (
-            <Participant
-              botAlias={item.botAlias}
-              fullname={item.fullname}
-              isAdmin={item.isAdmin}
-              isOwner={item.isOwner}
-              username={item.username}
-              onShowProfile={this.props.onShowProfile}
-            />
-          )
-        },
-        renderSectionHeader: this.renderTabs,
-      },
-    ]
-  }
-
-  private getAttachmentsSections = () => {
-    const commonSections = [
-      {
-        data: ['avselector'],
-        renderItem: () => (
-          <AttachmentTypeSelector
-            selectedView={this.props.selectedAttachmentView}
-            onSelectView={this.props.onAttachmentViewChange}
-          />
-        ),
-        renderSectionHeader: this.renderTabs,
-      },
-    ]
-    switch (this.props.selectedAttachmentView) {
-      case RPCChatTypes.GalleryItemTyp.media:
-        return [
-          ...commonSections,
-          ...new MediaView().getSections(
-            this.props.media.thumbs,
-            this.props.media.onLoadMore,
-            this.loadAttachments,
-            this.props.media.status
-          ),
-        ]
-      case RPCChatTypes.GalleryItemTyp.doc:
-        return [
-          ...commonSections,
-          ...new DocView().getSections(
-            this.props.docs.docs,
-            this.props.docs.onLoadMore,
-            this.loadAttachments,
-            this.props.docs.status
-          ),
-        ]
-      case RPCChatTypes.GalleryItemTyp.link:
-        return [
-          ...commonSections,
-          ...new LinkView().getSections(
-            this.props.links.links,
-            this.props.links.onLoadMore,
-            this.loadAttachments,
-            this.props.links.status
-          ),
-        ]
-    }
   }
 
   private getBotsSections = () => {
@@ -408,6 +282,25 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
     ]
   }
 
+  private commonSections = [
+    {
+      data: ['header'],
+      renderItem: () => {
+        const entityType = this.getEntityType()
+        const header = (
+          <Kb.Box2 direction="vertical" gap="tiny" gapStart={true} fullWidth={true}>
+            {entityType === 'small team' || entityType === 'channel' ? (
+              <TeamHeader conversationIDKey={this.props.selectedConversationIDKey} />
+            ) : (
+              <AdhocHeader conversationIDKey={this.props.selectedConversationIDKey} />
+            )}
+          </Kb.Box2>
+        )
+        return header
+      },
+    },
+  ]
+
   render() {
     if (!this.props.selectedConversationIDKey) {
       // if we dont have a valid conversation ID, just render a spinner
@@ -423,37 +316,52 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
       )
     }
 
-    const commonSections = [
-      {
-        data: ['header'],
-        renderItem: this.renderHeader,
-      },
-    ]
-    let sections: Array<Section>
+    let sectionList: React.ReactNode
     switch (this.props.selectedTab) {
       case 'settings':
-        sections = [...commonSections, ...this.getSettingsSections()]
+        sectionList = (
+          <SettingsList
+            conversationIDKey={this.props.selectedConversationIDKey}
+            renderTabs={this.renderTabs}
+            commonSections={this.commonSections}
+          />
+        )
         break
       case 'members':
-        sections = [...commonSections, ...this.getMembersSections()]
+        sectionList = (
+          <MembersList
+            conversationIDKey={this.props.selectedConversationIDKey}
+            renderTabs={this.renderTabs}
+            commonSections={this.commonSections}
+          />
+        )
         break
       case 'attachments':
-        sections = [...commonSections, ...this.getAttachmentsSections()]
-        break
-      case 'bots':
-        sections = [...commonSections, ...this.getBotsSections()]
+        sectionList = (
+          <AttachmentsList
+            conversationIDKey={this.props.selectedConversationIDKey}
+            renderTabs={this.renderTabs}
+            commonSections={this.commonSections}
+          />
+        )
         break
       default:
-        sections = commonSections
+        sectionList = null
+      // case 'bots':
+      // sections = [...commonSections, ...this.getBotsSections()]
+      // break
+      // default:
+      // sections = commonSections
     }
+    // <Kb.SectionList
+    // stickySectionHeadersEnabled={true}
+    // keyboardShouldPersistTaps="handled"
+    // renderSectionHeader={({section}) => section?.renderSectionHeader?.({section}) ?? null}
+    // sections={sections}
+    // />
     return (
       <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
-        <Kb.SectionList
-          stickySectionHeadersEnabled={true}
-          keyboardShouldPersistTaps="handled"
-          renderSectionHeader={({section}) => section?.renderSectionHeader?.({section}) ?? null}
-          sections={sections}
-        />
+        {sectionList}
       </Kb.Box2>
     )
   }

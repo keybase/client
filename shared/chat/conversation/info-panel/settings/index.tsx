@@ -177,4 +177,26 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export default SettingsPanel
+type Props = {
+  conversationIDKey: Types.ConversationIDKey
+  renderTabs: () => React.ReactNode
+  commonSections: Array<unknown>
+}
+
+export default (p: Props) => {
+  return (
+    <Kb.SectionList
+      stickySectionHeadersEnabled={true}
+      keyboardShouldPersistTaps="handled"
+      renderSectionHeader={({section}) => section?.renderSectionHeader?.({section}) ?? null}
+      sections={[
+        ...p.commonSections,
+        {
+          data: ['tab'],
+          renderItem: () => <SettingsPanel conversationIDKey={p.conversationIDKey} key="settings" />,
+          renderSectionHeader: p.renderTabs,
+        },
+      ]}
+    />
+  )
+}
