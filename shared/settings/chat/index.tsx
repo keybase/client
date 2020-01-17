@@ -204,7 +204,7 @@ class Chat extends React.Component<Props, State> {
                   )}
                 </>
               )}
-              <Kb.Box2 direction="vertical" gap="tiny">
+              <Kb.Box2 direction="vertical" gap="tiny" style={styles.btnContainer}>
                 <Kb.WaitingButton
                   onClick={() =>
                     this.props.onContactSettingsSave(
@@ -284,7 +284,7 @@ class Chat extends React.Component<Props, State> {
                 disabled={this.props.unfurlMode === undefined}
               />
             </Kb.Box2>
-            <Kb.Box2 direction="vertical" gap="tiny">
+            <Kb.Box2 direction="vertical" gap="tiny" style={styles.btnContainer}>
               <Kb.WaitingButton
                 onClick={() => this.props.onUnfurlSave(this._getUnfurlMode(), this._getUnfurlWhitelist(true))}
                 label="Save"
@@ -329,6 +329,9 @@ const styles = Styles.styleSheetCreate(() => ({
     isElectron: {paddingLeft: Styles.globalMargins.medium},
     isMobile: {paddingBottom: Styles.globalMargins.medium, paddingLeft: Styles.globalMargins.small},
   }),
+  btnContainer: {
+    alignSelf: 'flex-start',
+  },
   container: {
     padding: Styles.globalMargins.small,
     width: '100%',
