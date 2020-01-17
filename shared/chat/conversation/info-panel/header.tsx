@@ -1,4 +1,5 @@
 import * as Container from '../../../util/container'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as TeamConstants from '../../../constants/teams'
 import * as React from 'react'
@@ -90,15 +91,23 @@ const _TeamHeader = (props: SmallProps) => {
 }
 const TeamHeader = Kb.OverlayParentHOC(_TeamHeader)
 
-type AdhocProps = {
-  onShowNewTeamDialog: () => void
-  participants: ReadonlyArray<{
-    username: string
-    fullname: string
-  }>
-}
+type AdhocHeaderProps = {conversationIDKey: ChatTypes.ConversationIDKey}
 
-export const AdhocHeader = (props: AdhocProps) => {
+export const AdhocHeader = (props: AdhocHeaderProps) => {
+  const {conversationIDKey} = props
+  const dispatch = Container.useDispatch()
+  const onShowNewTeamDialog = () => {
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {conversationIDKey},
+            selected: 'chatShowNewTeamDialog',
+          },
+        ],
+      })
+    )
+  }
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
       <Kb.Button
@@ -106,7 +115,7 @@ export const AdhocHeader = (props: AdhocProps) => {
         type="Default"
         label="Turn into a team"
         style={styles.addMembers}
-        onClick={props.onShowNewTeamDialog}
+        onClick={onShowNewTeamDialog}
       />
       <Kb.Text type="BodyTiny" center={true}>
         Add and delete members as you wish.

@@ -154,18 +154,6 @@ const ConnectedInfoPanel = Container.connect(
       : undefined,
     onLoadMoreBots: () => dispatch(Chat2Gen.createLoadNextBotPage({pageSize: 100})),
     onSearchFeaturedBots: (query: string) => dispatch(BotsGen.createSearchFeaturedBots({query})),
-    onShowNewTeamDialog: () => {
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [
-            {
-              props: {conversationIDKey},
-              selected: 'chatShowNewTeamDialog',
-            },
-          ],
-        })
-      )
-    },
     onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
@@ -338,7 +326,6 @@ const ConnectedInfoPanel = Container.connect(
       onLoadMoreBots: dispatchProps.onLoadMoreBots,
       onSearchFeaturedBots: dispatchProps.onSearchFeaturedBots,
       onSelectTab: ownProps.onSelectTab,
-      onShowNewTeamDialog: dispatchProps.onShowNewTeamDialog,
       onShowProfile: dispatchProps.onShowProfile,
       participants: participants
         .map(p => ({

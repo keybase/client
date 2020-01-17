@@ -105,7 +105,6 @@ export type InfoPanelProps = {
   onShowProfile: (username: string) => void
 
   // Used for conversations.
-  onShowNewTeamDialog: () => void
   onSelectTab: (p: Panel) => void
 
   // Used for small and big teams.
@@ -218,10 +217,7 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
         {entityType === 'small team' || entityType === 'channel' ? (
           <TeamHeader conversationIDKey={this.props.selectedConversationIDKey} />
         ) : (
-          <AdhocHeader
-            onShowNewTeamDialog={this.props.onShowNewTeamDialog}
-            participants={this.props.participants}
-          />
+          <AdhocHeader conversationIDKey={this.props.selectedConversationIDKey} />
         )}
       </Kb.Box2>
     )
