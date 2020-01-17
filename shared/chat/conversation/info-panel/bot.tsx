@@ -12,6 +12,7 @@ type Props = FeaturedBot & {
   description?: string
   onClick: (username: string) => void
   showAddToChannel?: boolean
+  isChannelRestricted: boolean
 }
 
 type AddButtonProps = {
@@ -47,6 +48,7 @@ const Bot = ({
   onClick,
   ownerTeam,
   ownerUser,
+  isChannelRestricted,
 }: Props) => {
   const lower = (
     <Kb.Box2
@@ -99,6 +101,11 @@ const Bot = ({
             )}
           </Kb.Box2>
         </Kb.Box2>
+        {isChannelRestricted && (
+          <Kb.Text type="BodySmall" style={{color: Styles.globalColors.redDark}}>
+            Unable to read from this channel due to restriction settings
+          </Kb.Text>
+        )}
         <Kb.Divider style={styles.divider} />
       </Kb.Box2>
     </Kb.ClickableBox>

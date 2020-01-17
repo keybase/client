@@ -140,6 +140,7 @@ export type InfoPanelProps = {
   onLoadMoreBots: () => void
   onBotSelect: (username: string) => void
   onBotAdd: () => void
+  botChannelRestrictions: Map<string, boolean>
 } & HeaderHocProps
 
 const TabText = ({selected, text}: {selected: boolean; text: string}) => (
@@ -505,6 +506,7 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
                   !this.props.smallTeam &&
                   !this.props.participants.find(p => p.username === item.botUsername)
                 }
+                isChannelRestricted={this.props.botChannelRestrictions.get(item.botUsername) ?? false}
               />
             )
           }

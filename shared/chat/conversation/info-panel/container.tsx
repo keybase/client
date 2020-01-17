@@ -74,9 +74,11 @@ const ConnectedInfoPanel = Container.connect(
     const attachmentInfo = (m && m.get(selectedAttachmentView)) || noAttachmentView
     const _teamMembers = state.teams.teamIDToMembers.get(meta.teamID) || noTeamMembers
     const _participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
+    const _botSettings = state.chat2.botSettings.get(conversationIDKey)
     return {
       _attachmentInfo: attachmentInfo,
       _botAliases: meta.botAliases,
+      _botSettings,
       _featuredBots: state.chat2.featuredBotsMap,
       _fromMsgID: getFromMsgID(attachmentInfo),
       _infoMap: state.users.infoMap,
@@ -261,8 +263,17 @@ const ConnectedInfoPanel = Container.connect(
         participants = participants.filter(p => !botUsernames.includes(p))
       }
     }
+    const botChannelRestrictions = new Map<string, boolean>()
+    installedBots.forEach(b => {
+      const convs = stateProps._botSettings?.get(b.botUsername)?.convs
+      botChannelRestrictions.set(
+        b.botUsername,
+        !(convs?.length ?? 0 === 0) && !convs?.find(c => c === stateProps.channelname)
+      )
+    })
     const p: InfoPanelProps = {
       admin: stateProps.admin,
+      botChannelRestrictions,
       canDeleteHistory: stateProps.canDeleteHistory,
       canEditChannel: stateProps.canEditChannel,
       canManageBots: stateProps.canManageBots,
