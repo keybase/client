@@ -198,7 +198,7 @@ func (h *KVStoreHandler) PutKVEntry(ctx context.Context, arg keybase1.PutKVEntry
 		})
 		if err != nil {
 			err = fmt.Errorf("error fetching the revision before writing this entry: %s", err)
-			mctx.Debug("%+v: %s", entryID, err)
+			mctx.Debug("%+v: %+v", entryID, err)
 			return res, err
 		}
 		revision = getRes.Revision + 1

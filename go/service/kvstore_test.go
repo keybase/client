@@ -513,7 +513,6 @@ func (b *KVStoreTestBoxer) BoxForBot(mctx libkb.MetaContext, entryID keybase1.KV
 	return realBoxer.BoxForBot(mctx, entryID, revision, cleartextValue, botName)
 }
 
-////
 func (b *KVStoreTestBoxer) Unbox(mctx libkb.MetaContext, entryID keybase1.KVEntryID, revision int, ciphertext string, teamKeyGen keybase1.PerTeamKeyGeneration,
 	formatVersion int, senderUID keybase1.UID, senderEldestSeqno keybase1.Seqno, senderDeviceID keybase1.DeviceID, botUID *keybase1.UID, botEldestSeqno *keybase1.Seqno) (cleartext string, err error) {
 	realBoxer := kvstore.NewKVStoreBoxer(mctx.G())
@@ -885,9 +884,6 @@ func TestKVStoreMultiUserAndRestrictedBotTeam(t *testing.T) {
 	require.Equal(t, 1, putRes.Revision)
 	t.Logf("alice successfully wrote an entry at revision 1")
 
-	// RBot cannot update it
-	// TODO
-
 	// RBot can't read it
 	getArg := keybase1.GetKVEntryArg{
 		TeamName:  teamName,
@@ -904,18 +900,24 @@ func TestKVStoreMultiUserAndRestrictedBotTeam(t *testing.T) {
 	}
 	t.Logf("rbot cannot GET it")
 
-	// RBot can list it
+	// RBot cannot list it
 	listNamespacesArg := keybase1.ListKVNamespacesArg{TeamName: teamName}
-	listNamespacesRes, err := bobHandler.ListKVNamespaces(ctx, listNamespacesArg)
+	listNamespacesRes, err := rbotHandler.ListKVNamespaces(ctx, listNamespacesArg)
 	require.NoError(t, err)
-	require.EqualValues(t, listNamespacesRes.Namespaces, []string{namespace})
+	require.EqualValues(t, listNamespacesRes.Namespaces, []string{})
 
 	listEntriesArg := keybase1.ListKVEntriesArg{TeamName: teamName, Namespace: namespace}
 	expectedKey := keybase1.KVListEntryKey{EntryKey: entryKey, Revision: 1}
-	listEntriesRes, err := bobHandler.ListKVEntries(ctx, listEntriesArg)
+	listEntriesRes, err := rbotHandler.ListKVEntries(ctx, listEntriesArg)
 	require.NoError(t, err)
-	require.EqualValues(t, listEntriesRes.EntryKeys, []keybase1.KVListEntryKey{expectedKey})
-	t.Logf("rbot can LIST it")
+	require.EqualValues(t, listEntriesRes.EntryKeys, []keybase1.KVListEntryKey{})
+	t.Logf("rbot cannot LIST it")
+
+	// RBot cannot update it
+	putRes, err = rbotHandler.PutKVEntry(ctx, putArg)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "error fetching the revision before writing this entry")
+	t.Logf("rbot cannot update alice's entry")
 
 	// RBot puts a secret
 	rEntryKey := "restricted bot key asdfasdf"
@@ -948,15 +950,20 @@ func TestKVStoreMultiUserAndRestrictedBotTeam(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, string(rCleartextSecret), rGetRes.EntryValue)
 	require.Equal(t, 1, rGetRes.Revision)
+
+	listNamespacesArg = keybase1.ListKVNamespacesArg{TeamName: teamName}
+	listNamespacesRes, err = rbotHandler.ListKVNamespaces(ctx, listNamespacesArg)
+	require.NoError(t, err)
+	require.EqualValues(t, listNamespacesRes.Namespaces, []string{namespace})
+
 	listEntriesArg = keybase1.ListKVEntriesArg{TeamName: teamName, Namespace: namespace}
 	rExpectedKey := keybase1.KVListEntryKey{EntryKey: rEntryKey, Revision: 1}
-	listEntriesRes, err = bobHandler.ListKVEntries(ctx, listEntriesArg)
+	listEntriesRes, err = rbotHandler.ListKVEntries(ctx, listEntriesArg)
 	require.NoError(t, err)
-	require.EqualValues(t, listEntriesRes.EntryKeys, []keybase1.KVListEntryKey{expectedKey, rExpectedKey})
+	require.EqualValues(t, listEntriesRes.EntryKeys, []keybase1.KVListEntryKey{rExpectedKey})
 	t.Logf("rbot can GET and LIST restricted bot secret")
 
-	// Alice and Bob can read restricted bot secret
-	// TODO: alice
+	// Bob can read restricted bot secret (Alice could also)
 	rGetRes, err = bobHandler.GetKVEntry(ctx, rGetArg)
 	require.NoError(t, err)
 	require.Equal(t, string(rCleartextSecret), rGetRes.EntryValue)
@@ -968,23 +975,14 @@ func TestKVStoreMultiUserAndRestrictedBotTeam(t *testing.T) {
 	t.Logf("bob can GET and LIST restricted bot secret")
 
 	// Bob can updated restricted bot secret for restricted bot
-	// TODO: Bob can updated restricted bot secret for team (not restricted bot)
-
-	rSecretData2 := map[string]interface{}{
+	rSecretData = map[string]interface{}{
 		"created": "2020-01-16T16:29:44+00:00",
 		"token":   "GHJK5678",
 	}
-	rCleartextSecret2, err := json.Marshal(rSecretData2)
+	rCleartextSecret, err = json.Marshal(rSecretData)
 	require.NoError(t, err)
-	rPutArg2 := keybase1.PutKVEntryArg{
-		SessionID:  0,
-		TeamName:   teamName,
-		Namespace:  namespace,
-		EntryKey:   rEntryKey,
-		EntryValue: string(rCleartextSecret2),
-		BotName:    rbot.Username,
-	}
-	rPutRes, err = aliceHandler.PutKVEntry(ctx, rPutArg2)
+	rPutArg.EntryValue = string(rCleartextSecret) // update secret
+	rPutRes, err = bobHandler.PutKVEntry(ctx, rPutArg)
 	require.NoError(t, err)
 	require.Equal(t, 2, rPutRes.Revision)
 	t.Logf("bob successfully updated restricted bot secret")
@@ -994,11 +992,35 @@ func TestKVStoreMultiUserAndRestrictedBotTeam(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, string(rCleartextSecret), rGetRes.EntryValue)
 	require.Equal(t, 2, rGetRes.Revision)
-	listEntriesArg = keybase1.ListKVEntriesArg{TeamName: teamName, Namespace: namespace}
-	listEntriesRes, err = bobHandler.ListKVEntries(ctx, listEntriesArg)
-	require.NoError(t, err)
-	require.EqualValues(t, listEntriesRes.EntryKeys, []keybase1.KVListEntryKey{expectedKey, rExpectedKey})
-	t.Logf("rbot can GET and LIST updated restricted bot secret")
+
+	// Bob cannot update restricted bot secret for team (not restricted bot)
+	rPutArg.BotName = "" // unset
+	rPutRes, err = bobHandler.PutKVEntry(ctx, rPutArg)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "updated entries should be keyed for the same bot")
+	aerr, _ = err.(libkb.AppStatusError)
+	if aerr.Code != libkb.SCTeamStorageNotFound {
+		t.Fatalf("expected an SCTeamStorageNotFound error but got %v", err)
+	}
+	t.Logf("bob cannot update restricted bot secret for team key")
 
 	// RBot can update restricted bot secret
+	rSecretData = map[string]interface{}{
+		"created": "2020-01-26T10:29:34+00:00",
+		"token":   "QWER0246",
+	}
+	rCleartextSecret, err = json.Marshal(rSecretData)
+	require.NoError(t, err)
+	rPutArg.EntryValue = string(rCleartextSecret) // update secret
+	rPutArg.BotName = rbot.Username
+	rPutRes, err = rbotHandler.PutKVEntry(ctx, rPutArg)
+	require.NoError(t, err)
+	require.Equal(t, 3, rPutRes.Revision)
+	t.Logf("rbot successfully updated restricted bot secret")
+
+	// RBot can read updated restricted bot secret
+	rGetRes, err = rbotHandler.GetKVEntry(ctx, rGetArg)
+	require.NoError(t, err)
+	require.Equal(t, string(rCleartextSecret), rGetRes.EntryValue)
+	require.Equal(t, 3, rGetRes.Revision)
 }
