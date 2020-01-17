@@ -139,6 +139,8 @@ protocol teams {
     TeamRole role;
     Seqno eldestSeqno;     // eldest seqno of the team member record
     TeamMemberStatus status;
+    // non-null for restricted bot members
+    union { null, TeamBotSettings } botSettings;
   }
 
   record TeamMembers {
