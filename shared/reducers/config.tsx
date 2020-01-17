@@ -309,7 +309,7 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
   [ConfigGen.setWhatsNewLastSeenVersion]: (draftState, action) => {
     draftState.whatsNewLastSeenVersion = action.payload.lastSeenVersion
   },
-  [ConfigGen.loadedNixOnLoginStartup]: (draftState, action) => {
+  [ConfigGen.loadedOnLoginStartup]: (draftState, action) => {
     draftState.openAtLogin = action.payload.status === true
   },
 })
