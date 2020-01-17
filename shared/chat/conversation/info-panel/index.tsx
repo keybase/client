@@ -1,19 +1,13 @@
-// 1. connect invidual pieces and clean out connect
-// 2. make items calc cleaner
-// OMG refactor this
 import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
 import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
-import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
-import * as RPCTypes from '../../../constants/types/rpc-gen'
-import * as TeamsTypes from '../../../constants/types/teams'
 import flags from '../../../util/feature-flags'
 import {Props as HeaderHocProps} from '../../../common-adapters/header-hoc/types'
 import {AdhocHeader, TeamHeader} from './header'
 import SettingsList from './settings'
 import MembersList from './members'
-import Bot from './bot'
+import BotsList from './bot'
 import AttachmentsList from './attachments'
 
 export type Panel = 'settings' | 'members' | 'attachments' | 'bots'
@@ -31,93 +25,15 @@ export type Section = {
   renderSectionHeader?: (i: any) => void
 }
 
-type Thumb = {
-  ctime: number
-  height: number
-  isVideo: boolean
-  onClick: () => void
-  previewURL: string
-  width: number
-}
-
-type MediaProps = {
-  onLoadMore?: () => void
-  thumbs: Array<Thumb>
-  status: Types.AttachmentViewStatus
-}
-
-type Doc = {
-  author: string
-  ctime: number
-  downloading: boolean
-  fileName: string
-  name: string
-  progress: number
-  onDownload?: () => void
-  onShowInFinder?: () => void
-}
-
-type DocProps = {
-  docs: Array<Doc>
-  onLoadMore?: () => void
-  status: Types.AttachmentViewStatus
-}
-
-type Link = {
-  author: string
-  ctime: number
-  snippet: string
-  title?: string
-  url?: string
-}
-
-type LinkProps = {
-  links: Array<Link>
-  onLoadMore?: () => void
-  status: Types.AttachmentViewStatus
-}
-
 export type InfoPanelProps = {
-  loadDelay?: number
-  selectedConversationIDKey: Types.ConversationIDKey
-  participants: ReadonlyArray<ParticipantTyp>
-  installedBots: ReadonlyArray<RPCTypes.FeaturedBot>
-  featuredBots: ReadonlyArray<RPCTypes.FeaturedBot>
-  isPreview: boolean
-  teamID: TeamsTypes.TeamID
-  teamname?: string
   channelname?: string
-  smallTeam: boolean
-  selectedTab: Panel
-
-  // Attachment stuff
-  docs: DocProps
-  links: LinkProps
-  media: MediaProps
-  onAttachmentViewChange: (typ: RPCChatTypes.GalleryItemTyp) => void
-
-  // Used by HeaderHoc.
+  isPreview: boolean
   onBack: (() => void) | undefined
-
-  // Used for conversations.
   onSelectTab: (p: Panel) => void
-
-  // Used for small and big teams.
-  canSetMinWriterRole: boolean
-  canSetRetention: boolean
-
-  // Used for big teams.
-  description?: string
-  onEditChannel: () => void
-
-  // Used for bots
-  canManageBots: boolean
-  loadedAllBots: boolean
-  loadingBots: boolean
-  onSearchFeaturedBots: (username: string) => void
-  onLoadMoreBots: () => void
-  onBotSelect: (username: string) => void
-  onBotAdd: () => void
+  selectedConversationIDKey: Types.ConversationIDKey
+  selectedTab: Panel
+  smallTeam: boolean
+  teamname?: string
 } & HeaderHocProps
 
 const TabText = ({selected, text}: {selected: boolean; text: string}) => (
@@ -127,12 +43,6 @@ const TabText = ({selected, text}: {selected: boolean; text: string}) => (
 )
 
 class _InfoPanel extends React.PureComponent<InfoPanelProps> {
-  // private loadBots = () => {
-  // if (this.props.featuredBots.length === 0 && !this.props.loadedAllBots) {
-  // this.props.onLoadMoreBots()
-  // }
-  // }
-
   private getEntityType = (): EntityType => {
     if (this.props.teamname && this.props.channelname) {
       return this.props.smallTeam ? 'small team' : 'channel'
@@ -140,9 +50,7 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
     return 'adhoc'
   }
 
-  private isSelected = (s: Panel) => {
-    return s === this.props.selectedTab
-  }
+  private isSelected = (s: Panel) => s === this.props.selectedTab
 
   private getTabPanels = (): Array<Panel> => [
     'members' as const,
@@ -201,85 +109,6 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
         />
       </Kb.Box2>
     )
-  }
-
-  private getBotsSections = () => {
-    const inThisChannelHeader = 'bots: in this channel'
-    const featuredBotsHeader = 'bots: featured bots'
-    const loadMoreBotsButton = 'bots: load more'
-    const addBotButton = 'bots: add bot'
-    const featuredBotSpinner = 'bots: featured spinners'
-    return [
-      {
-        data: [
-          ...(this.props.canManageBots ? [addBotButton] : []),
-          ...(this.props.installedBots.length > 0 ? [inThisChannelHeader] : []),
-          ...this.props.installedBots,
-          featuredBotsHeader,
-          ...(this.props.featuredBots.length > 0 ? this.props.featuredBots : []),
-          ...(!this.props.loadedAllBots && this.props.featuredBots.length > 0 ? [loadMoreBotsButton] : []),
-          ...(this.props.loadingBots ? [featuredBotSpinner] : []),
-        ],
-        renderItem: ({item}) => {
-          if (item === addBotButton) {
-            return (
-              <Kb.Button
-                mode="Primary"
-                type="Default"
-                label="Add a bot"
-                style={styles.addBot}
-                onClick={this.props.onBotAdd}
-              />
-            )
-          }
-          if (item === inThisChannelHeader) {
-            return (
-              <Kb.Text type="Header" style={styles.botHeaders}>
-                {this.props.teamname ? 'Installed in this team' : 'In this conversation'}
-              </Kb.Text>
-            )
-          }
-          if (item === featuredBotsHeader) {
-            return (
-              <Kb.Text type="Header" style={styles.botHeaders}>
-                Featured
-              </Kb.Text>
-            )
-          }
-          if (item === featuredBotSpinner) {
-            return <Kb.ProgressIndicator type="Large" />
-          }
-          if (item === loadMoreBotsButton) {
-            return (
-              <Kb.Button
-                label="Load more"
-                mode="Secondary"
-                type="Default"
-                style={styles.addBot}
-                onClick={() => this.props.onLoadMoreBots()}
-              />
-            )
-          }
-          if (!item.botUsername) {
-            return null
-          } else {
-            return (
-              <Bot
-                {...item}
-                conversationIDKey={this.props.selectedConversationIDKey}
-                onClick={this.props.onBotSelect}
-                showAddToChannel={
-                  this.props.installedBots.includes(item) &&
-                  !this.props.smallTeam &&
-                  !this.props.participants.find(p => p.username === item.botUsername)
-                }
-              />
-            )
-          }
-        },
-        renderSectionHeader: this.renderTabs,
-      },
-    ]
   }
 
   private commonSections = [
@@ -345,20 +174,18 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
           />
         )
         break
+      case 'bots':
+        sectionList = (
+          <BotsList
+            conversationIDKey={this.props.selectedConversationIDKey}
+            renderTabs={this.renderTabs}
+            commonSections={this.commonSections}
+          />
+        )
+        break
       default:
         sectionList = null
-      // case 'bots':
-      // sections = [...commonSections, ...this.getBotsSections()]
-      // break
-      // default:
-      // sections = commonSections
     }
-    // <Kb.SectionList
-    // stickySectionHeadersEnabled={true}
-    // keyboardShouldPersistTaps="handled"
-    // renderSectionHeader={({section}) => section?.renderSectionHeader?.({section}) ?? null}
-    // sections={sections}
-    // />
     return (
       <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
         {sectionList}
@@ -370,18 +197,6 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      addBot: {
-        marginBottom: Styles.globalMargins.xtiny,
-        marginLeft: Styles.globalMargins.small,
-        marginRight: Styles.globalMargins.small,
-        marginTop: Styles.globalMargins.small,
-      },
-      botHeaders: {
-        marginBottom: Styles.globalMargins.tiny,
-        marginLeft: Styles.globalMargins.small,
-        marginRight: Styles.globalMargins.small,
-        marginTop: Styles.globalMargins.tiny,
-      },
       container: Styles.platformStyles({
         common: {alignItems: 'stretch', paddingBottom: Styles.globalMargins.tiny},
         isElectron: {

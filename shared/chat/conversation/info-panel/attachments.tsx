@@ -362,18 +362,18 @@ export default (p: Props) => {
 
   const m = Container.useSelector(state => state.chat2.attachmentViewMap.get(conversationIDKey))
   const attachmentInfo = (m && m.get(selectedAttachmentView)) || noAttachmentView
+  const fromMsgID = getFromMsgID(attachmentInfo)
 
-  const onLoadMore = () =>
-    fromMsgID
-      ? () =>
-          dispatch(
-            Chat2Gen.createLoadAttachmentView({
-              conversationIDKey,
-              fromMsgID,
-              viewType: selectedAttachmentView,
-            })
-          )
-      : undefined
+  const onLoadMore = fromMsgID
+    ? () =>
+        dispatch(
+          Chat2Gen.createLoadAttachmentView({
+            conversationIDKey,
+            fromMsgID,
+            viewType: selectedAttachmentView,
+          })
+        )
+    : undefined
 
   const onAttachmentViewChange = (viewType: RPCChatTypes.GalleryItemTyp) => {
     onSelectAttachmentView(viewType)
@@ -402,8 +402,6 @@ export default (p: Props) => {
       renderSectionHeader: p.renderTabs,
     },
   ]
-
-  const fromMsgID = getFromMsgID(attachmentInfo)
 
   const loadMoreSection = {
     data: ['load more'],
@@ -595,4 +593,3 @@ export default (p: Props) => {
     />
   )
 }
-
