@@ -59,6 +59,7 @@ func Watch(programs []Program, restartDelay time.Duration, log Log) error {
 
 func terminateExisting(programs []Program, log Log) {
 	// Terminate any monitored processes
+	// this logic also exists in the updater, so if you want to change it, look there too.
 	ospid := os.Getpid()
 	for _, program := range programs {
 		matcher := process.NewMatcher(program.Path, process.PathEqual, log)
