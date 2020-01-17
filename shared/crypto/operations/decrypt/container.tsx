@@ -10,6 +10,8 @@ const operation = 'decrypt'
 
 export default Container.namedConnect(
   (state: Container.TypedState) => ({
+    bytesComplete: state.crypto.decrypt.bytesComplete,
+    bytesTotal: state.crypto.decrypt.bytesTotal,
     input: state.crypto.decrypt.input.stringValue(),
     inputType: state.crypto.decrypt.inputType,
     output: state.crypto.decrypt.output.stringValue(),
@@ -38,6 +40,7 @@ export default Container.namedConnect(
     outputSigned: stateProps.outputSigned,
     outputStatus: stateProps.outputStatus,
     outputType: stateProps.outputType,
+    progress: stateProps.bytesComplete === 0 ? 0 : stateProps.bytesComplete / stateProps.bytesTotal,
   }),
   'DecryptContainer'
 )(Decrypt)

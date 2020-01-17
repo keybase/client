@@ -18,6 +18,7 @@ type Props = {
   outputSigned: boolean
   outputStatus?: Types.OutputStatus
   outputType?: Types.OutputType
+  progress: number
   username?: string
 }
 
@@ -61,7 +62,7 @@ const Decrypt = (props: Props) => {
               }}
             />
           )}
-          <Kb.Divider />
+          <Kb.ProgressBar ratio={props.progress} style={{width: '100%'}} />
 
           <Kb.Box2 direction="vertical" fullHeight={true}>
             <SignedSender
