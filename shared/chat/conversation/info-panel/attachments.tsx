@@ -12,7 +12,6 @@ import {formatTimeForMessages} from '../../../util/timestamp'
 import MessagePopup from '../messages/message-popup'
 import chunk from 'lodash/chunk'
 import {OverlayParentProps} from '../../../common-adapters/overlay/parent-hoc'
-import {Section} from '.'
 
 const monthNames = [
   'January',
@@ -57,8 +56,6 @@ type Link = {
   title?: string
   url?: string
 }
-
-type AttachmentItem = Thumb | Doc | Link
 
 function getDateInfo<I extends {ctime: number}>(thumb: I) {
   const date = new Date(thumb.ctime)
@@ -194,88 +191,6 @@ class _DocViewRow extends React.Component<DocViewRowProps> {
 }
 
 const DocViewRow = Kb.OverlayParentHOC(_DocViewRow)
-
-export class DocView {
-  _renderSectionHeader = (_: unknown, month: string, year: number) => {
-    const label = `${month} ${year}`
-    return <Kb.SectionDivider label={label} />
-  }
-  _monthToSection = (month: Month): Section => {
-    return {
-      data: month.data,
-      renderItem: this._renderItem,
-      renderSectionHeader: ({section}) => this._renderSectionHeader(section, month.month, month.year),
-    }
-  }
-  _renderItem = ({item}: {item: Doc}) => {
-    return <DocViewRow item={item} />
-  }
-  getSections = (docs: Array<Doc>): Array<Section> => {
-    return formMonths(docs).reduce<Array<Section>>((l, m) => {
-      l.push(this._monthToSection(m))
-      return l
-    }, [])
-  }
-}
-
-export class LinkView {
-  _renderSectionHeader = (_: unknown, month: string, year: number) => {
-    const label = `${month} ${year}`
-    return <Kb.SectionDivider label={label} />
-  }
-  _monthToSection = (month: Month): Section => {
-    return {
-      data: month.data,
-      renderItem: this._renderItem,
-      renderSectionHeader: ({section}) => this._renderSectionHeader(section, month.month, month.year),
-    }
-  }
-  _renderItem = ({item}: {item: Link}) => {
-    return (
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.linkContainer} gap="tiny">
-        <Kb.Box2 direction="vertical" fullWidth={true} gap="xxtiny">
-          <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
-            <Kb.NameWithIcon
-              avatarSize={32}
-              avatarStyle={styles.avatar}
-              colorFollowing={true}
-              username={item.author}
-              horizontal={true}
-            />
-            <Kb.Text type="BodyTiny" style={styles.linkTime}>
-              {formatTimeForMessages(item.ctime)}
-            </Kb.Text>
-          </Kb.Box2>
-          <Kb.Markdown
-            serviceOnly={true}
-            smallStandaloneEmoji={true}
-            selectable={true}
-            styleOverride={linkStyleOverride}
-            style={styles.linkStyle}
-          >
-            {item.snippet}
-          </Kb.Markdown>
-        </Kb.Box2>
-        {!!item.title && (
-          <Kb.Text
-            type="BodySmallPrimaryLink"
-            onClickURL={item.url}
-            style={Styles.collapseStyles([styles.linkStyle, {color: Styles.globalColors.blueDark}])}
-          >
-            {item.title}
-          </Kb.Text>
-        )}
-        <Kb.Divider />
-      </Kb.Box2>
-    )
-  }
-  getSections = (links: Array<Link>): Array<Section> => {
-    return formMonths(links).reduce<Array<Section>>((l, m) => {
-      l.push(this._monthToSection(m))
-      return l
-    }, [])
-  }
-}
 
 type SelectorProps = {
   selectedView: RPCChatTypes.GalleryItemTyp
@@ -587,29 +502,31 @@ export default (p: Props) => {
                 })}
               </Kb.Box2>
             ),
-            renderSectionHeader: ({section}) => <Kb.SectionDivider label={`${month.month} ${month.year}`} />,
+            renderSectionHeader: () => <Kb.SectionDivider label={`${month.month} ${month.year}`} />,
           }))
-
           sections = [...commonSections, ...s, loadMoreSection]
         }
         break
       case RPCChatTypes.GalleryItemTyp.doc:
         {
-          const docs = (attachmentInfo.messages as Array<Types.MessageAttachment>) // TODO dont use this cast
-            .map(m => ({
-              author: m.author,
-              ctime: m.timestamp,
-              downloading: m.transferState === 'downloading',
-              fileName: m.fileName,
-              message: m,
-              name: m.title || m.fileName,
-              onDownload: !Container.isMobile && !m.downloadPath ? () => onDocDownload(m) : () => null,
-              onShowInFinder: !Container.isMobile && m.downloadPath ? () => onShowInFinder(m) : undefined,
-              progress: m.transferProgress,
-            }))
-          const status = attachmentInfo.status
+          const docs = (attachmentInfo.messages as Array<Types.MessageAttachment>).map(m => ({
+            author: m.author,
+            ctime: m.timestamp,
+            downloading: m.transferState === 'downloading',
+            fileName: m.fileName,
+            message: m,
+            name: m.title || m.fileName,
+            onDownload: !Container.isMobile && !m.downloadPath ? () => onDocDownload(m) : () => null,
+            onShowInFinder: !Container.isMobile && m.downloadPath ? () => onShowInFinder(m) : undefined,
+            progress: m.transferProgress,
+          }))
 
-          sections = [...commonSections, ...new DocView().getSections(docs), loadMoreSection]
+          const s = formMonths(docs).map(month => ({
+            data: month.data,
+            renderItem: ({item}: {item: Doc}) => <DocViewRow item={item} />,
+            renderSectionHeader: () => <Kb.SectionDivider label={`${month.month} ${month.year}`} />,
+          }))
+          sections = [...commonSections, ...s, loadMoreSection]
         }
         break
       case RPCChatTypes.GalleryItemTyp.link:
@@ -641,9 +558,51 @@ export default (p: Props) => {
             }
             return l
           }, [])
-          const status = attachmentInfo.status
 
-          sections = [...commonSections, ...new LinkView().getSections(links), loadMoreSection]
+          const s = formMonths(links).map(month => ({
+            data: month.data,
+            renderItem: ({item}: {item: Link}) => {
+              return (
+                <Kb.Box2 direction="vertical" fullWidth={true} style={styles.linkContainer} gap="tiny">
+                  <Kb.Box2 direction="vertical" fullWidth={true} gap="xxtiny">
+                    <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
+                      <Kb.NameWithIcon
+                        avatarSize={32}
+                        avatarStyle={styles.avatar}
+                        colorFollowing={true}
+                        username={item.author}
+                        horizontal={true}
+                      />
+                      <Kb.Text type="BodyTiny" style={styles.linkTime}>
+                        {formatTimeForMessages(item.ctime)}
+                      </Kb.Text>
+                    </Kb.Box2>
+                    <Kb.Markdown
+                      serviceOnly={true}
+                      smallStandaloneEmoji={true}
+                      selectable={true}
+                      styleOverride={linkStyleOverride}
+                      style={styles.linkStyle}
+                    >
+                      {item.snippet}
+                    </Kb.Markdown>
+                  </Kb.Box2>
+                  {!!item.title && (
+                    <Kb.Text
+                      type="BodySmallPrimaryLink"
+                      onClickURL={item.url}
+                      style={Styles.collapseStyles([styles.linkStyle, {color: Styles.globalColors.blueDark}])}
+                    >
+                      {item.title}
+                    </Kb.Text>
+                  )}
+                  <Kb.Divider />
+                </Kb.Box2>
+              )
+            },
+            renderSectionHeader: () => <Kb.SectionDivider label={`${month.month} ${month.year}`} />,
+          }))
+          sections = [...commonSections, ...s, loadMoreSection]
         }
         break
     }
