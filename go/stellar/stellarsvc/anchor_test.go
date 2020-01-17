@@ -202,6 +202,7 @@ var validAnchorTests = []anchorTest{
 
 func TestAnchorInteractor(t *testing.T) {
 	tc := SetupTest(t, "AnchorInteractor", 1)
+	defer tc.Cleanup()
 	for i, test := range errAnchorTests {
 		accountID, seed := randomStellarKeypair()
 		ai := newAnchorInteractor(accountID, &seed, test.Asset)

@@ -27,6 +27,18 @@ const ShowExplosionLifetime = time.Hour * 24 * 7
 // If a conversation is larger, only admins can @channel.
 const MaxChanMentionConvSize = 100
 
+func (i FlipGameIDStr) String() string {
+	return string(i)
+}
+
+func (i TLFIDStr) String() string {
+	return string(i)
+}
+
+func (i ConvIDStr) String() string {
+	return string(i)
+}
+
 type ByUID []gregor1.UID
 type ConvIDShort = []byte
 
@@ -53,6 +65,10 @@ func (id TLFID) String() string {
 
 func (id TLFID) Bytes() []byte {
 	return []byte(id)
+}
+
+func (id TLFID) TLFIDStr() TLFIDStr {
+	return TLFIDStr(id.String())
 }
 
 func (id TLFID) IsNil() bool {
@@ -84,6 +100,10 @@ func (cid ConversationID) String() string {
 
 func (cid ConversationID) Bytes() []byte {
 	return []byte(cid)
+}
+
+func (cid ConversationID) ConvIDStr() ConvIDStr {
+	return ConvIDStr(cid.String())
 }
 
 func (cid ConversationID) IsNil() bool {
@@ -190,8 +210,10 @@ func DeletableMessageTypesByDelete() []MessageType {
 var visibleMessageTypes = []MessageType{
 	MessageType_TEXT,
 	MessageType_ATTACHMENT,
-	MessageType_JOIN,
-	MessageType_LEAVE,
+	// TODO TRIAGE-1738 Join and leave are visible but changing this list kicks off some other bugs around notifications (HOTPOT-1688).
+	// Scour the effects before changing this list.
+	// MessageType_JOIN,
+	// MessageType_LEAVE,
 	MessageType_SYSTEM,
 	MessageType_SENDPAYMENT,
 	MessageType_REQUESTPAYMENT,
@@ -1732,7 +1754,7 @@ func (s TopicNameState) Eq(o TopicNameState) bool {
 }
 
 func (i InboxUIItem) GetConvID() ConversationID {
-	bConvID, _ := hex.DecodeString(i.ConvID)
+	bConvID, _ := hex.DecodeString(i.ConvID.String())
 	return ConversationID(bConvID)
 }
 
@@ -2686,6 +2708,7 @@ func isZero(v []byte) bool {
 
 func MakeFlipGameID(s string) (FlipGameID, error) { return hex.DecodeString(s) }
 func (g FlipGameID) String() string               { return hex.EncodeToString(g) }
+func (g FlipGameID) FlipGameIDStr() FlipGameIDStr { return FlipGameIDStr(g.String()) }
 func (g FlipGameID) Eq(h FlipGameID) bool         { return hmac.Equal(g[:], h[:]) }
 func (g FlipGameID) IsZero() bool                 { return isZero(g[:]) }
 func (g FlipGameID) Check() bool                  { return g != nil && !g.IsZero() }
@@ -2793,7 +2816,7 @@ func (c UserBotCommandInput) ToOutput(username string) UserBotCommandOutput {
 func (r UIInboxReselectInfo) String() string {
 	newConvStr := "<none>"
 	if r.NewConvID != nil {
-		newConvStr = *r.NewConvID
+		newConvStr = string(*r.NewConvID)
 	}
 	return fmt.Sprintf("[oldconv: %s newconv: %s]", r.OldConvID, newConvStr)
 }

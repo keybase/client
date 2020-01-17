@@ -1,4 +1,4 @@
-package attachments
+package progress
 
 import (
 	"time"
@@ -9,7 +9,7 @@ import (
 // desktop requested 1 update per second:
 const durationBetweenUpdates = 1 * time.Second
 
-type progressWriter struct {
+type ProgressWriter struct {
 	complete       int64
 	total          int64
 	lastReport     int64
@@ -17,25 +17,25 @@ type progressWriter struct {
 	progress       types.ProgressReporter
 }
 
-func newProgressWriter(p types.ProgressReporter, size int64) *progressWriter {
-	pw := &progressWriter{progress: p, total: size}
+func NewProgressWriter(p types.ProgressReporter, size int64) *ProgressWriter {
+	pw := &ProgressWriter{progress: p, total: size}
 	pw.initialReport()
 	return pw
 }
 
-func (p *progressWriter) Write(data []byte) (n int, err error) {
+func (p *ProgressWriter) Write(data []byte) (n int, err error) {
 	n = len(data)
 	p.complete += int64(n)
 	p.report()
 	return n, nil
 }
 
-func (p *progressWriter) Update(n int) {
+func (p *ProgressWriter) Update(n int) {
 	p.complete += int64(n)
 	p.report()
 }
 
-func (p *progressWriter) report() {
+func (p *ProgressWriter) report() {
 	percent := (100 * p.complete) / p.total
 	if percent <= p.lastReport {
 		return
@@ -54,7 +54,7 @@ func (p *progressWriter) report() {
 }
 
 // send 0% progress
-func (p *progressWriter) initialReport() {
+func (p *ProgressWriter) initialReport() {
 	if p.progress == nil {
 		return
 	}
@@ -62,7 +62,7 @@ func (p *progressWriter) initialReport() {
 	p.progress(0, p.total)
 }
 
-func (p *progressWriter) Finish() {
+func (p *ProgressWriter) Finish() {
 	if p.progress == nil {
 		return
 	}

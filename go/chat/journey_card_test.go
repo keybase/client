@@ -37,7 +37,7 @@ func TestJourneycardStorage(t *testing.T) {
 	require.NoError(t, err)
 	jcd, err := js.getTeamData(ctx0, teamID)
 	require.NoError(t, err)
-	require.True(t, jcd.Convs[convID.String()].SentMessage)
+	require.True(t, jcd.Convs[convID.ConvIDStr()].SentMessage)
 
 	t.Logf("switch users")
 	uid2kb, err := keybase1.UIDFromString("295a7eea607af32040647123732bc819")
@@ -47,14 +47,14 @@ func TestJourneycardStorage(t *testing.T) {
 	require.NoError(t, err)
 	jcd, err = js.getTeamData(ctx0, teamID)
 	require.NoError(t, err)
-	require.False(t, jcd.Convs[convID.String()].SentMessage)
+	require.False(t, jcd.Convs[convID.ConvIDStr()].SentMessage)
 
 	t.Logf("switch back")
 	js, err = tc0.ChatG.JourneyCardManager.(*JourneyCardManager).get(ctx0, uid0)
 	require.NoError(t, err)
 	jcd, err = js.getTeamData(ctx0, teamID)
 	require.NoError(t, err)
-	require.True(t, jcd.Convs[convID.String()].SentMessage)
+	require.True(t, jcd.Convs[convID.ConvIDStr()].SentMessage)
 }
 
 func TestJourneycardDismiss(t *testing.T) {

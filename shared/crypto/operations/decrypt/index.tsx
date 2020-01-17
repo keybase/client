@@ -49,7 +49,7 @@ const Decrypt = (props: Props) => {
           ) : (
             <TextInput
               value={inputValue}
-              placeholder="Paste cipher text or drop an encrypted file"
+              placeholder="Enter ciphertext, drop an encrypted file, or"
               textType="cipher"
               operation={Constants.Operations.Decrypt}
               onSetFile={path => {
@@ -64,7 +64,12 @@ const Decrypt = (props: Props) => {
           <Kb.Divider />
 
           <Kb.Box2 direction="vertical" fullHeight={true}>
-            <SignedSender signed={true} signedBy={props.outputSender} outputStatus={props.outputStatus} />
+            <SignedSender
+              signed={true}
+              signedBy={props.outputSender}
+              operation={Constants.Operations.Decrypt}
+              outputStatus={props.outputStatus}
+            />
             <OperationOutput
               outputStatus={props.outputStatus}
               output={props.output}

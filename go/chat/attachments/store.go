@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"sync"
 
+	"github.com/keybase/client/go/chat/attachments/progress"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/libkb"
@@ -245,13 +246,13 @@ func (a *S3Store) GetAssetReader(ctx context.Context, params chat1.S3Params, ass
 }
 
 func (a *S3Store) DecryptAsset(ctx context.Context, w io.Writer, body io.Reader, asset chat1.Asset,
-	progress types.ProgressReporter) error {
+	progressReporter types.ProgressReporter) error {
 	// compute hash
 	hash := sha256.New()
 	verify := io.TeeReader(body, hash)
 
 	// to keep track of download progress
-	progWriter := newProgressWriter(progress, asset.Size)
+	progWriter := progress.NewProgressWriter(progressReporter, asset.Size)
 	tee := io.TeeReader(verify, progWriter)
 
 	// decrypt body

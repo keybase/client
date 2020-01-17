@@ -963,7 +963,7 @@ func (md *MDServerRemote) RegisterForUpdate(ctx context.Context, id tlf.ID,
 	// register
 	var c chan error
 	conn := md.getConn()
-	err := conn.DoCommand(ctx, "register", func(rawClient rpc.GenericClient) error {
+	err := conn.DoCommand(ctx, "register", 0, func(rawClient rpc.GenericClient) error {
 		// set up the server to receive updates, since we may
 		// get disconnected between retries.
 		server := conn.GetServer()

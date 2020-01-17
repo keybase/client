@@ -21,6 +21,13 @@ type FileProps = {
   onClearFiles: () => void
 }
 
+const operationToEmptyInputWidth = {
+  [Constants.Operations.Encrypt]: 161,
+  [Constants.Operations.Decrypt]: 274,
+  [Constants.Operations.Sign]: 161,
+  [Constants.Operations.Verify]: 296,
+}
+
 /*
  * Before user enters text:
  *  - Single line input
@@ -30,7 +37,8 @@ type FileProps = {
  *  - Multiline input
  */
 const TextInput = (props: TextProps) => {
-  const {value, placeholder, onChangeText, onSetFile, textType} = props
+  const {value, placeholder, operation, onChangeText, onSetFile} = props
+  const emptyWidth = operationToEmptyInputWidth[operation]
 
   // When 'browse file' is show, focus input by clicking anywhere in the input box
   // (despite the input being one line tall)
@@ -61,39 +69,60 @@ const TextInput = (props: TextProps) => {
       filePickerRef.current.click()
     }
   }, [filePickerRef])
+
   return (
     <Kb.Box onClick={onFocusInput} style={styles.containerInputFocus}>
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
-        <Kb.NewInput
-          value={value}
-          placeholder={placeholder}
-          multiline={true}
-          rowsMax={value ? undefined : 1}
-          autoFocus={true}
-          hideBorder={true}
-          growAndScroll={true}
-          padding="tiny"
-          textType={textType === 'cipher' ? 'Terminal' : 'Body'}
-          containerStyle={value ? styles.inputContainer : styles.inputContainerEmpty}
-          style={Styles.collapseStyles([styles.input, !value && styles.inputEmpty])}
-          onChangeText={onChangeText}
-          ref={inputRef}
-        />
-        {!props.value && (
-          <>
-            <input
-              type="file"
-              accept="*"
-              ref={filePickerRef}
-              multiple={false}
-              onChange={selectFile}
-              style={styles.hidden}
-            />
-            <Kb.Text type="BodyPrimaryLink" onClick={openFilePicker} style={styles.browseFile}>
-              Or browse a file.
-            </Kb.Text>
-          </>
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.commonContainer}>
+        {value && (
+          <Kb.Text
+            type="BodySmallPrimaryLink"
+            onClick={() => onChangeText('')}
+            style={styles.clearButtonTextInput}
+          >
+            Clear
+          </Kb.Text>
         )}
+        <Kb.Box2
+          direction="horizontal"
+          fullWidth={false}
+          fullHeight={!!value}
+          alignItems="flex-start"
+          alignSelf="flex-start"
+        >
+          <Kb.NewInput
+            value={value}
+            placeholder={placeholder}
+            multiline={true}
+            rowsMax={value ? undefined : 1}
+            autoFocus={true}
+            hideBorder={true}
+            growAndScroll={true}
+            padding="tiny"
+            containerStyle={value ? styles.inputContainer : styles.inputContainerEmpty}
+            style={Styles.collapseStyles([
+              styles.input,
+              !value && styles.inputEmpty,
+              !value && {width: emptyWidth},
+            ])}
+            onChangeText={onChangeText}
+            ref={inputRef}
+          />
+          {!value && (
+            <>
+              <input
+                type="file"
+                accept="*"
+                ref={filePickerRef}
+                multiple={false}
+                onChange={selectFile}
+                style={styles.hidden}
+              />
+              <Kb.Text type="BodyPrimaryLink" onClick={openFilePicker} style={styles.browseFile}>
+                browse for one
+              </Kb.Text>
+            </>
+          )}
+        </Kb.Box2>
       </Kb.Box2>
     </Kb.Box>
   )
@@ -108,9 +137,13 @@ const FileInput = (props: FileProps) => {
       fullWidth={true}
       fullHeight={true}
       alignItems="stretch"
-      style={styles.container}
+      style={styles.commonContainer}
     >
-      <Kb.Text type="BodySmallPrimaryLink" onClick={() => props.onClearFiles()} style={styles.clearButton}>
+      <Kb.Text
+        type="BodySmallPrimaryLink"
+        onClick={() => props.onClearFiles()}
+        style={styles.clearButtonFileInput}
+      >
         Clear
       </Kb.Text>
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
@@ -132,22 +165,30 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       browseFile: {
-        paddingLeft: Styles.globalMargins.tiny,
-        paddingRight: Styles.globalMargins.tiny,
+        flexShrink: 0,
+        height: 26,
+        paddingTop: 7,
       },
-      clearButton: {
+      clearButtonFileInput: {
         position: 'absolute',
         right: Styles.globalMargins.small,
         top: Styles.globalMargins.small,
       },
-      container: {
+      clearButtonTextInput: {
+        position: 'absolute',
+        right: Styles.globalMargins.tiny,
+        top: Styles.globalMargins.tiny,
+      },
+      commonContainer: {
         ...Styles.globalStyles.flexGrow,
         ...Styles.globalStyles.positionRelative,
+        flexShrink: 2,
       },
       containerInputFocus: {
         ...Styles.globalStyles.flexGrow,
         ...Styles.globalStyles.fullHeight,
         display: 'flex',
+        flexShrink: 2,
       },
       fileContainer: {
         ...Styles.padding(Styles.globalMargins.small),
@@ -171,7 +212,7 @@ const styles = Styles.styleSheetCreate(
         minHeight: 'initial',
         paddingBottom: 0,
         paddingLeft: Styles.globalMargins.tiny,
-        paddingRight: Styles.globalMargins.tiny,
+        paddingRight: 0,
         paddingTop: Styles.globalMargins.tiny,
       },
     } as const)

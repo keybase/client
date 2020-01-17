@@ -180,109 +180,14 @@ func (b *baseInboxSource) Localize(ctx context.Context, uid gregor1.UID, convs [
 	return res, localizeCb, err
 }
 
-func (b *baseInboxSource) notifyServerAboutReportedConv(mctx libkb.MetaContext, uid gregor1.UID, convID chat1.ConversationID) (err error) {
-	ctx := mctx.Ctx()
-	// Send word to API server about the report
-	defer b.Trace(ctx, func() error { return err }, "notifyServerAboutReportedConv")()
-	// Get TLF name to post
-	tlfname := "<error fetching TLF name>"
-	ib, _, err := b.sub.Read(ctx, uid, types.ConversationLocalizerBlocking, types.InboxSourceDataSourceAll,
-		nil, &chat1.GetInboxLocalQuery{
-			ConvIDs: []chat1.ConversationID{convID},
-		})
-	if err != nil {
-		b.Debug(ctx, "notifyServerAboutReportedConv: failed to fetch conversation: %s", err)
-	} else {
-		if len(ib.Convs) > 0 {
-			tlfname = ib.Convs[0].Info.TLFNameExpanded()
-		}
-	}
-	args := libkb.NewHTTPArgs()
-	args.Add("tlfname", libkb.S{Val: tlfname})
-	_, err = b.G().API.Post(mctx, libkb.APIArg{
-		Endpoint:    "report/conversation",
-		SessionType: libkb.APISessionTypeREQUIRED,
-		Args:        args,
-	})
-	if err != nil {
-		b.Debug(ctx, "notifyServerAboutReportedConv: failed to post report: %s", err.Error())
-	}
-	return nil
-}
-
-// blockOtherUser attempts to do a user-block based on a convID if the conversation is
-// impteam and has exactly two members: the active user and the user about to get blocked.
-func (b *baseInboxSource) blockOtherUser(mctx libkb.MetaContext, convID chat1.ConversationID) (err error) {
-	defer b.Trace(mctx.Ctx(), func() error { return err }, "blockOtherUser")()
-
-	conversations, err := mctx.G().ChatHelper.FindConversationsByID(mctx.Ctx(), []chat1.ConversationID{convID})
-	if err != nil {
-		mctx.Debug("blockOtherUser: error loading conversation by ID", convID, err)
-		return err
-	}
-	if len(conversations) != 1 {
-		mctx.Debug("blockOtherUser: did not find exactly 1 conversation, so don't user-block")
-		return nil
-	}
-	conv := conversations[0]
-	if conv.GetMembersType() != chat1.ConversationMembersType_IMPTEAMNATIVE {
-		mctx.Debug("blockOtherUser: conversation is not an implicit team, so don't user-block")
-		return nil
-	}
-	participants := conv.Info.Participants
-	if len(participants) != 2 {
-		mctx.Debug("blockOtherUser: conversation does not have exactly 2 users, so don't user-block")
-		return nil
-	}
-	myName := mctx.G().Env.GetUsername().String()
-	var otherUser string
-	var foundMyself bool
-	for _, participant := range participants {
-		if myName == participant.Username {
-			foundMyself = true
-		} else {
-			otherUser = participant.Username
-		}
-	}
-	if !foundMyself || otherUser == "" {
-		mctx.Debug("blockOtherUser: did not find myself and another user, so don't user-block")
-		return nil
-	}
-
-	otherUserUID, err := mctx.G().GetUPAKLoader().LookupUID(mctx.Ctx(), libkb.NewNormalizedUsername(otherUser))
-	if err != nil || otherUserUID.String() == "" {
-		mctx.Debug("blockOtherUser: could not load user and lookup UID, so don't user-block", err)
-		return nil
-	}
-	apiArg := libkb.APIArg{
-		Endpoint:    "user/block",
-		SessionType: libkb.APISessionTypeREQUIRED,
-		Args: libkb.HTTPArgs{
-			"block_uid": libkb.S{Val: otherUserUID.String()},
-			"unblock":   libkb.B{Val: false},
-		},
-	}
-	_, err = mctx.G().API.Post(mctx, apiArg)
-	_ = mctx.G().CardCache().Delete(keybase1.UID(otherUserUID.String()))
-	return err
-}
-
 func (b *baseInboxSource) RemoteSetConversationStatus(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, status chat1.ConversationStatus) (err error) {
-	mctx := libkb.NewMetaContext(ctx, b.G().ExternalG())
 	defer b.Trace(ctx, func() error { return err }, "RemoteSetConversationStatus")()
 	if _, err = b.getChatInterface().SetConversationStatus(ctx, chat1.SetConversationStatusArg{
 		ConversationID: convID,
 		Status:         status,
 	}); err != nil {
 		return err
-	}
-	switch status {
-	case chat1.ConversationStatus_REPORTED:
-		_ = b.notifyServerAboutReportedConv(mctx, uid, convID)
-		fallthrough
-	case chat1.ConversationStatus_BLOCKED:
-		return b.blockOtherUser(mctx, convID)
 	}
 	return nil
 }
@@ -757,7 +662,7 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 	}
 
 	// convID -> isRead
-	readConvMap := make(map[string]bool)
+	readConvMap := make(map[chat1.ConvIDStr]bool)
 	for _, conv := range convs {
 		if conv.IsLocallyRead() {
 			readConvMap[conv.ConvIDStr] = true
@@ -770,10 +675,8 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 		s.Debug(ctx, "ApplyLocalChatState: failed to get outbox: %v", oerr)
 	}
 
-	// convID -> unreadCount
-	failedOutboxMap := make(map[string]int)
-	// convID -> mtime
-	localUpdates := make(map[string]chat1.LocalMtimeUpdate)
+	failedOutboxMap := make(map[chat1.ConvIDStr]int)
+	localUpdates := make(map[chat1.ConvIDStr]chat1.LocalMtimeUpdate)
 	s.Debug(ctx, "ApplyLocalChatState: looking through %d outbox items for badgable errors", len(obrs))
 	for _, obr := range obrs {
 		if topicType := obr.Msg.ClientHeader.Conv.TopicType; !(obr.Msg.IsBadgableType() && topicType == chat1.TopicType_CHAT) {
@@ -793,17 +696,18 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 			if !isBadgableError {
 				continue
 			}
-			if update, ok := localUpdates[obr.ConvID.String()]; ok {
+			convIDStr := obr.ConvID.ConvIDStr()
+			if update, ok := localUpdates[convIDStr]; ok {
 				if ctime.After(update.Mtime) {
-					localUpdates[obr.ConvID.String()] = update
+					localUpdates[convIDStr] = update
 				}
 			} else {
-				localUpdates[obr.ConvID.String()] = chat1.LocalMtimeUpdate{
+				localUpdates[convIDStr] = chat1.LocalMtimeUpdate{
 					ConvID: obr.ConvID,
 					Mtime:  ctime,
 				}
 			}
-			failedOutboxMap[obr.ConvID.String()]++
+			failedOutboxMap[convIDStr]++
 		}
 	}
 
@@ -817,7 +721,7 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 
 	res = make([]keybase1.BadgeConversationInfo, 0, len(infos)+len(failedOutboxMap))
 	for _, info := range infos {
-		convIDStr := info.ConvID.String()
+		convIDStr := chat1.ConvIDStr(info.ConvID.String())
 		// mark this conv as read
 		if readConvMap[convIDStr] {
 			info = makeBadgeConversationInfo(info.ConvID, 0)
@@ -838,7 +742,7 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 
 	// apply any new failed outbox items
 	for convIDStr, failedCount := range failedOutboxMap {
-		convID, err := chat1.MakeConvID(convIDStr)
+		convID, err := chat1.MakeConvID(convIDStr.String())
 		if err != nil {
 			s.Debug(ctx, "ApplyLocalChatState: Unable to make convID: %v", err)
 			continue

@@ -125,7 +125,7 @@ func (c *CmdChatUpload) Run() (err error) {
 	}
 
 	opts := attachOptionsV1{
-		ConversationID:    conversation.Info.Id.String(),
+		ConversationID:    conversation.Info.Id.ConvIDStr(),
 		Filename:          c.filename,
 		Title:             c.title,
 		EphemeralLifetime: c.ephemeralLifetime,

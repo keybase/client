@@ -147,6 +147,7 @@ export const setThreadSearchQuery = 'chat2:setThreadSearchQuery'
 export const setThreadSearchStatus = 'chat2:setThreadSearchStatus'
 export const setUnsentText = 'chat2:setUnsentText'
 export const setWalletsOld = 'chat2:setWalletsOld'
+export const showInfoPanel = 'chat2:showInfoPanel'
 export const staticConfigLoaded = 'chat2:staticConfigLoaded'
 export const stopAudioRecording = 'chat2:stopAudioRecording'
 export const tabSelected = 'chat2:tabSelected'
@@ -154,7 +155,6 @@ export const threadSearch = 'chat2:threadSearch'
 export const threadSearchResults = 'chat2:threadSearchResults'
 export const toggleGiphyPrefill = 'chat2:toggleGiphyPrefill'
 export const toggleInboxSearch = 'chat2:toggleInboxSearch'
-export const toggleInfoPanel = 'chat2:toggleInfoPanel'
 export const toggleLocalReaction = 'chat2:toggleLocalReaction'
 export const toggleMessageCollapse = 'chat2:toggleMessageCollapse'
 export const toggleMessageReaction = 'chat2:toggleMessageReaction'
@@ -693,6 +693,11 @@ type _SetUnsentTextPayload = {
   readonly text?: HiddenString
 }
 type _SetWalletsOldPayload = void
+type _ShowInfoPanelPayload = {
+  readonly tab?: 'settings' | 'members' | 'attachments' | 'bots'
+  readonly show: boolean
+  readonly conversationIDKey?: Types.ConversationIDKey
+}
 type _StaticConfigLoadedPayload = {readonly staticConfig: Types.StaticConfig}
 type _StopAudioRecordingPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
@@ -711,7 +716,6 @@ type _ThreadSearchResultsPayload = {
 }
 type _ToggleGiphyPrefillPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _ToggleInboxSearchPayload = {readonly enabled: boolean}
-type _ToggleInfoPanelPayload = void
 type _ToggleLocalReactionPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly emoji: string
@@ -1636,13 +1640,13 @@ export const createSetConversationOffline = (
 export const createSetInboxNumSmallRows = (
   payload: _SetInboxNumSmallRowsPayload
 ): SetInboxNumSmallRowsPayload => ({payload, type: setInboxNumSmallRows})
+export const createShowInfoPanel = (payload: _ShowInfoPanelPayload): ShowInfoPanelPayload => ({
+  payload,
+  type: showInfoPanel,
+})
 export const createStopAudioRecording = (payload: _StopAudioRecordingPayload): StopAudioRecordingPayload => ({
   payload,
   type: stopAudioRecording,
-})
-export const createToggleInfoPanel = (payload: _ToggleInfoPanelPayload): ToggleInfoPanelPayload => ({
-  payload,
-  type: toggleInfoPanel,
 })
 export const createToggleSmallTeamsExpanded = (
   payload: _ToggleSmallTeamsExpandedPayload
@@ -2161,6 +2165,10 @@ export type SetWalletsOldPayload = {
   readonly payload: _SetWalletsOldPayload
   readonly type: typeof setWalletsOld
 }
+export type ShowInfoPanelPayload = {
+  readonly payload: _ShowInfoPanelPayload
+  readonly type: typeof showInfoPanel
+}
 export type StaticConfigLoadedPayload = {
   readonly payload: _StaticConfigLoadedPayload
   readonly type: typeof staticConfigLoaded
@@ -2182,10 +2190,6 @@ export type ToggleGiphyPrefillPayload = {
 export type ToggleInboxSearchPayload = {
   readonly payload: _ToggleInboxSearchPayload
   readonly type: typeof toggleInboxSearch
-}
-export type ToggleInfoPanelPayload = {
-  readonly payload: _ToggleInfoPanelPayload
-  readonly type: typeof toggleInfoPanel
 }
 export type ToggleLocalReactionPayload = {
   readonly payload: _ToggleLocalReactionPayload
@@ -2418,6 +2422,7 @@ export type Actions =
   | SetThreadSearchStatusPayload
   | SetUnsentTextPayload
   | SetWalletsOldPayload
+  | ShowInfoPanelPayload
   | StaticConfigLoadedPayload
   | StopAudioRecordingPayload
   | TabSelectedPayload
@@ -2425,7 +2430,6 @@ export type Actions =
   | ThreadSearchResultsPayload
   | ToggleGiphyPrefillPayload
   | ToggleInboxSearchPayload
-  | ToggleInfoPanelPayload
   | ToggleLocalReactionPayload
   | ToggleMessageCollapsePayload
   | ToggleMessageReactionPayload

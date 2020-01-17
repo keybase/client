@@ -79,7 +79,7 @@ func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Rep
 	}
 	var convIDs []chat1.ConversationID
 	if opts.ConversationID != "" {
-		convID, err := chat1.MakeConvID(opts.ConversationID)
+		convID, err := chat1.MakeConvID(opts.ConversationID.String())
 		if err != nil {
 			return c.errReply(err)
 		}
@@ -204,11 +204,11 @@ func (c *chatServiceHandler) LoadFlipV1(ctx context.Context, opts loadFlipOption
 	if err != nil {
 		return c.errReply(err)
 	}
-	hostConvID, err := chat1.MakeConvID(opts.ConversationID)
+	hostConvID, err := chat1.MakeConvID(opts.ConversationID.String())
 	if err != nil {
 		return c.errReply(err)
 	}
-	flipConvID, err := chat1.MakeConvID(opts.FlipConversationID)
+	flipConvID, err := chat1.MakeConvID(opts.FlipConversationID.String())
 	if err != nil {
 		return c.errReply(err)
 	}
@@ -278,7 +278,7 @@ func (c *chatServiceHandler) GetDeviceInfoV1(ctx context.Context, opts getDevice
 	var res chat1.GetDeviceInfoRes
 	for _, m := range them.Current.DeviceKeys {
 		dev := chat1.DeviceInfo{
-			DeviceID:          string(m.DeviceID),
+			DeviceID:          m.DeviceID,
 			DeviceDescription: m.DeviceDescription,
 			DeviceType:        m.DeviceType,
 			DeviceCtime:       m.Base.CTime.UnixSeconds(),
@@ -428,7 +428,7 @@ func (c *chatServiceHandler) GetResetConvMembersV1(ctx context.Context) Reply {
 	var res chat1.GetResetConvMembersRes
 	for _, m := range lres.Members {
 		res.Members = append(res.Members, chat1.ResetConvMemberAPI{
-			ConversationID: m.Conv.String(),
+			ConversationID: m.Conv.ConvIDStr(),
 			Username:       m.Username,
 		})
 	}
@@ -441,7 +441,7 @@ func (c *chatServiceHandler) AddResetConvMemberV1(ctx context.Context, opts addR
 	if err != nil {
 		return c.errReply(err)
 	}
-	convID, err := chat1.MakeConvID(opts.ConversationID)
+	convID, err := chat1.MakeConvID(opts.ConversationID.String())
 	if err != nil {
 		return c.errReply(err)
 	}
@@ -502,7 +502,7 @@ func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat
 
 		msg := chat1.MsgSummary{
 			Id:     mv.ServerHeader.MessageID,
-			ConvID: conv.GetConvID().String(),
+			ConvID: conv.GetConvID().ConvIDStr(),
 			Channel: chat1.ChatChannel{
 				Name:        conv.Info.TlfName,
 				Public:      mv.ClientHeader.TlfPublic,
@@ -511,8 +511,8 @@ func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat
 				TopicName:   conv.Info.TopicName,
 			},
 			Sender: chat1.MsgSender{
-				Uid:        mv.ClientHeader.Sender.String(),
-				DeviceID:   mv.ClientHeader.SenderDevice.String(),
+				Uid:        keybase1.UID(mv.ClientHeader.Sender.String()),
+				DeviceID:   keybase1.DeviceID(mv.ClientHeader.SenderDevice.String()),
 				Username:   mv.SenderUsername,
 				DeviceName: mv.SenderDeviceName,
 			},
@@ -532,7 +532,7 @@ func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat
 			ChannelNameMentions: utils.PresentChannelNameMentions(ctx, mv.ChannelNameMentions),
 		}
 		if mv.ClientHeader.BotUID != nil {
-			botUID := mv.ClientHeader.BotUID.String()
+			botUID := keybase1.UID(mv.ClientHeader.BotUID.String())
 			msg.BotInfo = &chat1.MsgBotInfo{
 				BotUID:      botUID,
 				BotUsername: mv.BotUsername,
@@ -661,7 +661,7 @@ func (c *chatServiceHandler) GetV1(ctx context.Context, opts getOptionsV1) Reply
 
 // SendV1 implements ChatServiceHandler.SendV1.
 func (c *chatServiceHandler) SendV1(ctx context.Context, opts sendOptionsV1, chatUI chat1.ChatUiInterface) Reply {
-	convID, err := chat1.MakeConvID(opts.ConversationID)
+	convID, err := chat1.MakeConvID(opts.ConversationID.String())
 	if err != nil {
 		return c.errReply(fmt.Errorf("invalid conv ID: %s", opts.ConversationID))
 	}
@@ -701,7 +701,7 @@ func (c *chatServiceHandler) DeleteV1(ctx context.Context, opts deleteOptionsV1)
 
 // EditV1 implements ChatServiceHandler.EditV1.
 func (c *chatServiceHandler) EditV1(ctx context.Context, opts editOptionsV1) Reply {
-	convID, err := chat1.MakeConvID(opts.ConversationID)
+	convID, err := chat1.MakeConvID(opts.ConversationID.String())
 	if err != nil {
 		return c.errReply(fmt.Errorf("invalid conv ID: %s", opts.ConversationID))
 	}
@@ -718,7 +718,7 @@ func (c *chatServiceHandler) EditV1(ctx context.Context, opts editOptionsV1) Rep
 
 // ReactionV1 implements ChatServiceHandler.ReactionV1.
 func (c *chatServiceHandler) ReactionV1(ctx context.Context, opts reactionOptionsV1) Reply {
-	convID, err := chat1.MakeConvID(opts.ConversationID)
+	convID, err := chat1.MakeConvID(opts.ConversationID.String())
 	if err != nil {
 		return c.errReply(fmt.Errorf("invalid conv ID: %s", opts.ConversationID))
 	}
@@ -737,7 +737,7 @@ func (c *chatServiceHandler) ReactionV1(ctx context.Context, opts reactionOption
 func (c *chatServiceHandler) AttachV1(ctx context.Context, opts attachOptionsV1,
 	chatUI chat1.ChatUiInterface, notifyUI chat1.NotifyChatInterface) Reply {
 	var rl []chat1.RateLimit
-	convID, err := chat1.MakeConvID(opts.ConversationID)
+	convID, err := chat1.MakeConvID(opts.ConversationID.String())
 	if err != nil {
 		return c.errReply(fmt.Errorf("invalid conv ID: %s", opts.ConversationID))
 	}
@@ -1158,7 +1158,7 @@ func (c *chatServiceHandler) NewConvV1(ctx context.Context, opts newConvOptionsV
 		return c.errReply(err)
 	}
 	newConvRes := chat1.NewConvRes{
-		Id:               res.Conv.GetConvID().String(),
+		Id:               res.Conv.GetConvID().ConvIDStr(),
 		IdentifyFailures: res.IdentifyFailures,
 		RateLimits:       c.aggRateLimits(res.RateLimits),
 	}
@@ -1434,8 +1434,8 @@ func (c *chatServiceHandler) displayFlipBody(flip *chat1.MessageFlip) (res *chat
 		return res
 	}
 	res = new(chat1.MsgFlipContent)
-	res.GameID = flip.GameID.String()
-	res.FlipConvID = flip.FlipConvID.String()
+	res.GameID = flip.GameID.FlipGameIDStr()
+	res.FlipConvID = flip.FlipConvID.ConvIDStr()
 	res.TeamMentions = flip.TeamMentions
 	res.UserMentions = flip.UserMentions
 	res.Text = flip.Text
@@ -1488,9 +1488,9 @@ func (c *chatServiceHandler) aggRateLimits(rlimits []chat1.RateLimit) (res []cha
 // Resolve the ConvID of the specified conversation.
 // Prefers using ChatChannel but if it is blank (default-valued) then uses ConvIDStr.
 // Uses tlfclient and GetInboxAndUnboxLocal's ConversationsUnverified.
-func (c *chatServiceHandler) resolveAPIConvID(ctx context.Context, convIDStr string,
+func (c *chatServiceHandler) resolveAPIConvID(ctx context.Context, convID chat1.ConvIDStr,
 	channel ChatChannel) (chat1.ConversationID, []chat1.RateLimit, error) {
-	conv, limits, err := c.findConversation(ctx, convIDStr, channel)
+	conv, limits, err := c.findConversation(ctx, convID, channel)
 	if err != nil {
 		return chat1.ConversationID{}, nil, err
 	}
@@ -1500,7 +1500,7 @@ func (c *chatServiceHandler) resolveAPIConvID(ctx context.Context, convIDStr str
 // findConversation finds a conversation.
 // It prefers using ChatChannel but if it is blank (default-valued) then uses ConvIDStr.
 // Uses tlfclient and GetInboxAndUnboxLocal's ConversationsUnverified.
-func (c *chatServiceHandler) findConversation(ctx context.Context, convIDStr string,
+func (c *chatServiceHandler) findConversation(ctx context.Context, convIDStr chat1.ConvIDStr,
 	channel ChatChannel) (chat1.ConversationLocal, []chat1.RateLimit, error) {
 	var conv chat1.ConversationLocal
 	var rlimits []chat1.RateLimit
@@ -1512,7 +1512,7 @@ func (c *chatServiceHandler) findConversation(ctx context.Context, convIDStr str
 	var convID chat1.ConversationID
 	if channel.IsNil() {
 		var err error
-		convID, err = chat1.MakeConvID(convIDStr)
+		convID, err = chat1.MakeConvID(convIDStr.String())
 		if err != nil {
 			return conv, rlimits, fmt.Errorf("invalid conversation ID: %s", convIDStr)
 		}

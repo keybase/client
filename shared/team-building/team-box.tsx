@@ -75,7 +75,7 @@ const TeamBox = (props: Props) => {
 
   const addMorePrompt = props.teamSoFar.length === 1 && (
     <Kb.Text type="BodyTiny" style={styles.addMorePrompt}>
-      Keep adding people, or click Start when done.
+      {`Keep adding people, or click ${props.goButtonLabel ?? 'Start'} when done.`}
     </Kb.Text>
   )
   return Styles.isMobile ? (

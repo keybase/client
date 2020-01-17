@@ -1,9 +1,24 @@
 import * as React from 'react'
-import {Avatar, Box2, HeaderHocHeader, Icon, Text, ConnectedUsernames} from '../../../../common-adapters'
-import {assertionToDisplay} from '../../../../common-adapters/usernames'
-import * as Styles from '../../../../styles'
-import {Props} from '.'
-import * as Container from '../../../../util/container'
+import {Avatar, Box2, HeaderHocHeader, Icon, Text, ConnectedUsernames} from '../../../common-adapters'
+import {assertionToDisplay} from '../../../common-adapters/usernames'
+import * as Styles from '../../../styles'
+import * as Container from '../../../util/container'
+
+export type Props = {
+  badgeNumber?: number
+  channelName?: string
+  contactNames: Map<string, string>
+  muted: boolean
+  onOpenFolder?: () => void
+  onShowProfile: (user: string) => void
+  onShowInfoPanel: () => void
+  onToggleThreadSearch: () => void
+  teamName?: string
+  participants: Array<string>
+  pendingWaiting: boolean
+  smallTeam: boolean
+  unMuteConversation: () => void
+}
 
 const shhIconColor = Styles.globalColors.black_20
 const shhIconFontSize = 24
@@ -25,7 +40,7 @@ const Wrapper = (
           ? undefined
           : [
               {icon: 'iconfont-search', label: 'search', onPress: props.onToggleThreadSearch},
-              {icon: 'iconfont-info', label: 'Info', onPress: props.onToggleInfoPanel},
+              {icon: 'iconfont-info', label: 'Info', onPress: props.onShowInfoPanel},
             ]
       }
       titleComponent={props.children}

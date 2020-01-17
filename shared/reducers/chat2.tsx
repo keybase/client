@@ -1492,6 +1492,11 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
       m.delete(action.payload.username)
     }
   },
+  [Chat2Gen.showInfoPanel]: (draftState, action) => {
+    const {show, tab} = action.payload
+    draftState.infoPanelShowing = show
+    draftState.infoPanelSelectedTab = show ? tab : undefined
+  },
   [Chat2Gen.setBotSettings]: (draftState, action) => {
     const m =
       draftState.botSettings.get(action.payload.conversationIDKey) ||

@@ -71,19 +71,25 @@ const InstallBotPopup = (props: Props) => {
     featured,
     inTeam,
     inTeamUnrestricted,
+    isBot,
     readOnly,
     settings,
     teamID,
     teamName,
   } = Container.useSelector((state: Container.TypedState) => {
     let inTeam: boolean | undefined
+    let isBot: boolean | undefined
     let teamRole: TeamTypes.TeamRoleType | null | undefined
     let teamName: string | null | undefined
     let teamID: TeamTypes.TeamID | undefined
     let channelInfos: Map<string, TeamTypes.ChannelInfo> | undefined
     let readOnly = false
+    let commands: Array<string> = []
     if (conversationIDKey) {
       const meta = state.chat2.metaMap.get(conversationIDKey)
+      commands = Constants.getBotCommands(state, conversationIDKey)
+        .filter(c => c.username === botUsername)
+        .map(c => c.name)
       if (meta && meta.teamname) {
         teamID = meta.teamID
         teamName = meta.teamname
@@ -94,13 +100,19 @@ const InstallBotPopup = (props: Props) => {
       if (teamRole !== undefined) {
         inTeam = !!teamRole
       }
+
+      if (teamRole === 'bot' || teamRole === 'restrictedbot') {
+        isBot = true
+      }
     }
+    const convCommands: Types.BotPublicCommands = {commands, loadError: false}
     return {
       channelInfos,
-      commands: state.chat2.botPublicCommands.get(botUsername),
+      commands: commands.length > 0 ? convCommands : state.chat2.botPublicCommands.get(botUsername),
       featured: state.chat2.featuredBotsMap.get(botUsername),
       inTeam,
       inTeamUnrestricted: inTeam && teamRole === 'bot',
+      isBot,
       readOnly,
       settings: conversationIDKey
         ? state.chat2.botSettings.get(conversationIDKey)?.get(botUsername) ?? undefined
@@ -179,10 +191,6 @@ const InstallBotPopup = (props: Props) => {
 
   // lifecycle
   React.useEffect(() => {
-    dispatch(
-      WaitingGen.createClearWaiting({key: [Constants.waitingKeyBotAdd, Constants.waitingKeyBotRemove]})
-    )
-    dispatch(Chat2Gen.createRefreshBotPublicCommands({username: botUsername}))
     if (conversationIDKey) {
       dispatch(Chat2Gen.createRefreshBotRoleInConv({conversationIDKey, username: botUsername}))
       if (inTeam) {
@@ -196,6 +204,14 @@ const InstallBotPopup = (props: Props) => {
     }
     dispatch(TeamsGen.createGetChannels({teamID}))
   }, [teamID])
+  React.useEffect(() => {
+    dispatch(
+      WaitingGen.createClearWaiting({key: [Constants.waitingKeyBotAdd, Constants.waitingKeyBotRemove]})
+    )
+    if (!commands?.commands?.length) {
+      dispatch(Chat2Gen.createRefreshBotPublicCommands({username: botUsername}))
+    }
+  }, [])
 
   const restrictedButton = (
     <Kb.Box2 key={RestrictedItem} direction="vertical" fullWidth={true} style={styles.dropdownButton}>
@@ -248,8 +264,13 @@ const InstallBotPopup = (props: Props) => {
           {featured.extendedDescription}
         </Kb.Markdown>
       </Kb.Box2>
-      {inTeam && !inTeamUnrestricted && (
-        <PermsList channelInfos={channelInfos} settings={settings} username={botUsername} />
+      {inTeam && isBot && !inTeamUnrestricted && (
+        <PermsList
+          channelInfos={channelInfos}
+          commands={commands}
+          settings={settings}
+          username={botUsername}
+        />
       )}
       {!inTeam && (
         <Kb.Text type="BodySmall">
@@ -275,7 +296,14 @@ const InstallBotPopup = (props: Props) => {
           />
         </Kb.Box2>
       </Kb.Box2>
-      {inTeam && !inTeamUnrestricted && <PermsList settings={settings} username={botUsername} />}
+      {inTeam && isBot && !inTeamUnrestricted && (
+        <PermsList
+          channelInfos={channelInfos}
+          settings={settings}
+          commands={commands}
+          username={botUsername}
+        />
+      )}
     </Kb.Box2>
   )
   const installContent = installScreen && (
@@ -392,8 +420,8 @@ const InstallBotPopup = (props: Props) => {
   }
   const showInstallButton = installScreen && !inTeam && !channelPickerScreen
   const showReviewButton = !installScreen && !inTeam
-  const showRemoveButton = inTeam && !installScreen
-  const showEditButton = inTeam && !inTeamUnrestricted && !installScreen
+  const showRemoveButton = inTeam && isBot && !installScreen
+  const showEditButton = inTeam && isBot && !inTeamUnrestricted && !installScreen
   const showSaveButton = inTeam && installScreen && !channelPickerContent
   const showDoneButton = channelPickerContent
   const installButton = showInstallButton && (
@@ -585,9 +613,10 @@ const CommandsLabel = (props: CommandsLabelProps) => {
       )
     })
   }
+  const punct = (props.commands?.commands?.length ?? 0) > 0 ? ':' : '.'
   return (
-    <Kb.Box2 direction="vertical" gap="tiny">
-      <Kb.Text type="Body">messages that begin with bot commands:</Kb.Text>
+    <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true}>
+      <Kb.Text type="Body">{`messages that begin with bot commands${punct}`}</Kb.Text>
       <Kb.Box2 direction="vertical" fullWidth={true}>
         {inner}
       </Kb.Box2>
@@ -597,6 +626,7 @@ const CommandsLabel = (props: CommandsLabelProps) => {
 
 type PermsListProps = {
   channelInfos?: Map<string, TeamTypes.ChannelInfo>
+  commands: Types.BotPublicCommands | undefined
   settings?: RPCTypes.TeamBotSettings
   username: string
 }
@@ -612,7 +642,10 @@ const PermsList = (props: PermsListProps) => {
               <Kb.Text type="Body">{'• no messages, the bot is in write only mode'}</Kb.Text>
             )}
             {props.settings.cmds && (
-              <Kb.Text type="Body">{'• messages that begin with bot commands.'}</Kb.Text>
+              <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
+                <Kb.Text type="Body">{'•'}</Kb.Text>
+                <CommandsLabel commands={props.commands} />
+              </Kb.Box2>
             )}
             {props.settings.mentions && (
               <Kb.Text type="Body">{`• messages it has been mentioned in with @${props.username}`}</Kb.Text>

@@ -555,7 +555,7 @@ const newNavigation = (
 }
 
 function* criticalOutOfDateCheck() {
-  yield Saga.delay(2 * 60 * 1000) // don't bother checking during startup
+  yield Saga.delay(60 * 1000) // don't bother checking during startup
   // check every hour
   while (true) {
     try {

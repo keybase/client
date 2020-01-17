@@ -35,15 +35,15 @@ func PullTranscriptConfigDefault() PullTranscriptConfig {
 	}
 }
 
-func PullTranscript(mctx libkb.MetaContext, convSource types.ConversationSource, convIDStr string,
+func PullTranscript(mctx libkb.MetaContext, convSource types.ConversationSource, convID chat1.ConvIDStr,
 	usernames []kbun.NormalizedUsername, config PullTranscriptConfig) (res ConvTranscript, err error) {
 
-	convIDBytes, err := chat1.MakeConvID(convIDStr)
+	convIDBytes, err := chat1.MakeConvID(convID.String())
 	if err != nil {
 		return res, err
 	}
 
-	mctx.Debug("Pulling transcript for convID=%s, usernames=%v", convIDStr, usernames)
+	mctx.Debug("Pulling transcript for convID=%s, usernames=%v", convID, usernames)
 	usernameMap := make(map[string]struct{}, len(usernames))
 	if len(usernames) != 0 {
 		for _, v := range usernames {

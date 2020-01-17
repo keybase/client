@@ -143,6 +143,18 @@ export type MessageTypes = {
     inParam: {readonly stats?: RuntimeStats | null}
     outParam: void
   }
+  'keybase.1.NotifySaltpack.saltpackOperationDone': {
+    inParam: {readonly opType: OperationType; readonly filename: String}
+    outParam: void
+  }
+  'keybase.1.NotifySaltpack.saltpackOperationProgress': {
+    inParam: {readonly opType: OperationType; readonly filename: String; readonly bytesComplete: Long; readonly bytesTotal: Long}
+    outParam: void
+  }
+  'keybase.1.NotifySaltpack.saltpackOperationStart': {
+    inParam: {readonly opType: OperationType; readonly filename: String}
+    outParam: void
+  }
   'keybase.1.NotifyService.HTTPSrvInfoUpdate': {
     inParam: {readonly info: HttpSrvInfo}
     outParam: void
@@ -1335,8 +1347,16 @@ export type MessageTypes = {
     inParam: {readonly name: String}
     outParam: TeamDetails
   }
+  'keybase.1.teams.teamGetByID': {
+    inParam: {readonly id: TeamID}
+    outParam: TeamDetails
+  }
   'keybase.1.teams.teamGetMembers': {
     inParam: {readonly name: String}
+    outParam: TeamMembersDetails
+  }
+  'keybase.1.teams.teamGetMembersByID': {
+    inParam: {readonly id: TeamID}
     outParam: TeamMembersDetails
   }
   'keybase.1.teams.teamGetSubteams': {
@@ -1903,6 +1923,13 @@ export enum OpenFlags {
   write = 4,
   append = 8,
   directory = 16,
+}
+
+export enum OperationType {
+  encrypt = 0,
+  decrypt = 1,
+  sign = 2,
+  verify = 3,
 }
 
 export enum Outcome {
@@ -2829,7 +2856,7 @@ export type NaclSigningKeyPrivate = string | null
 export type NaclSigningKeyPublic = string | null
 export type NextMerkleRootRes = {readonly res?: MerkleRootV2 | null}
 export type NonUserDetails = {readonly isNonUser: Boolean; readonly assertionValue: String; readonly assertionKey: String; readonly description: String; readonly contact?: ProcessedContact | null; readonly service?: APIUserServiceResult | null; readonly siteIcon?: Array<SizedImage> | null; readonly siteIconFull?: Array<SizedImage> | null; readonly siteIconWhite?: Array<SizedImage> | null}
-export type NotificationChannels = {readonly session: Boolean; readonly users: Boolean; readonly kbfs: Boolean; readonly kbfsdesktop: Boolean; readonly kbfslegacy: Boolean; readonly kbfssubscription: Boolean; readonly tracking: Boolean; readonly favorites: Boolean; readonly paperkeys: Boolean; readonly keyfamily: Boolean; readonly service: Boolean; readonly app: Boolean; readonly chat: Boolean; readonly pgp: Boolean; readonly kbfsrequest: Boolean; readonly badges: Boolean; readonly reachability: Boolean; readonly team: Boolean; readonly ephemeral: Boolean; readonly teambot: Boolean; readonly chatkbfsedits: Boolean; readonly chatdev: Boolean; readonly deviceclone: Boolean; readonly chatattachments: Boolean; readonly wallet: Boolean; readonly audit: Boolean; readonly runtimestats: Boolean; readonly featuredBots: Boolean}
+export type NotificationChannels = {readonly session: Boolean; readonly users: Boolean; readonly kbfs: Boolean; readonly kbfsdesktop: Boolean; readonly kbfslegacy: Boolean; readonly kbfssubscription: Boolean; readonly tracking: Boolean; readonly favorites: Boolean; readonly paperkeys: Boolean; readonly keyfamily: Boolean; readonly service: Boolean; readonly app: Boolean; readonly chat: Boolean; readonly pgp: Boolean; readonly kbfsrequest: Boolean; readonly badges: Boolean; readonly reachability: Boolean; readonly team: Boolean; readonly ephemeral: Boolean; readonly teambot: Boolean; readonly chatkbfsedits: Boolean; readonly chatdev: Boolean; readonly deviceclone: Boolean; readonly chatattachments: Boolean; readonly wallet: Boolean; readonly audit: Boolean; readonly runtimestats: Boolean; readonly featuredBots: Boolean; readonly saltpack: Boolean}
 export type OpDescription = {asyncOp: AsyncOps.list; list: ListArgs} | {asyncOp: AsyncOps.listRecursive; listRecursive: ListArgs} | {asyncOp: AsyncOps.listRecursiveToDepth; listRecursiveToDepth: ListToDepthArgs} | {asyncOp: AsyncOps.read; read: ReadArgs} | {asyncOp: AsyncOps.write; write: WriteArgs} | {asyncOp: AsyncOps.copy; copy: CopyArgs} | {asyncOp: AsyncOps.move; move: MoveArgs} | {asyncOp: AsyncOps.remove; remove: RemoveArgs} | {asyncOp: AsyncOps.getRevisions; getRevisions: GetRevisionsArgs}
 export type OpID = string | null
 export type OpProgress = {readonly start: Time; readonly endEstimate: Time; readonly opType: AsyncOps; readonly bytesTotal: Int64; readonly bytesRead: Int64; readonly bytesWritten: Int64; readonly filesTotal: Int64; readonly filesRead: Int64; readonly filesWritten: Int64}
@@ -2998,7 +3025,7 @@ export type TeamContactSettings = {readonly teamID: TeamID; readonly enabled: Bo
 export type TeamCreateResult = {readonly teamID: TeamID; readonly chatSent: Boolean; readonly creatorAdded: Boolean}
 export type TeamData = {readonly v: /* subversion */ Int; readonly frozen: Boolean; readonly tombstoned: Boolean; readonly secretless: Boolean; readonly name: TeamName; readonly chain: TeamSigChainState; readonly perTeamKeySeeds: /* perTeamKeySeedsUnverified */ {[key: string]: PerTeamKeySeedItem}; readonly readerKeyMasks: {[key: string]: {[key: string]: MaskB64}}; readonly latestSeqnoHint: Seqno; readonly cachedAt: Time; readonly tlfCryptKeys: {[key: string]: Array<CryptKey> | null}}
 export type TeamDebugRes = {readonly chain: TeamSigChainState}
-export type TeamDetails = {readonly members: TeamMembersDetails; readonly keyGeneration: PerTeamKeyGeneration; readonly annotatedActiveInvites: {[key: string]: AnnotatedTeamInvite}; readonly settings: TeamSettings; readonly showcase: TeamShowcase}
+export type TeamDetails = {readonly name: String; readonly members: TeamMembersDetails; readonly keyGeneration: PerTeamKeyGeneration; readonly annotatedActiveInvites: {[key: string]: AnnotatedTeamInvite}; readonly settings: TeamSettings; readonly showcase: TeamShowcase}
 export type TeamEk = {readonly seed: Bytes32; readonly metadata: TeamEkMetadata}
 export type TeamEkBoxMetadata = {readonly box: String; readonly recipientGeneration: EkGeneration; readonly recipientUID: UID}
 export type TeamEkBoxed = {readonly box: String; readonly userEkGeneration: EkGeneration; readonly metadata: TeamEkMetadata}
@@ -3195,6 +3222,9 @@ export type IncomingCallMapType = {
   'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile'?: (params: MessageTypes['keybase.1.NotifyPGP.pgpKeyInSecretStoreFile']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyPhoneNumber.phoneNumbersChanged'?: (params: MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumbersChanged']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyRuntimeStats.runtimeStatsUpdate'?: (params: MessageTypes['keybase.1.NotifyRuntimeStats.runtimeStatsUpdate']['inParam'] & {sessionID: number}) => IncomingReturn
+  'keybase.1.NotifySaltpack.saltpackOperationStart'?: (params: MessageTypes['keybase.1.NotifySaltpack.saltpackOperationStart']['inParam'] & {sessionID: number}) => IncomingReturn
+  'keybase.1.NotifySaltpack.saltpackOperationProgress'?: (params: MessageTypes['keybase.1.NotifySaltpack.saltpackOperationProgress']['inParam'] & {sessionID: number}) => IncomingReturn
+  'keybase.1.NotifySaltpack.saltpackOperationDone'?: (params: MessageTypes['keybase.1.NotifySaltpack.saltpackOperationDone']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyService.HTTPSrvInfoUpdate'?: (params: MessageTypes['keybase.1.NotifyService.HTTPSrvInfoUpdate']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyService.shutdown'?: (params: MessageTypes['keybase.1.NotifyService.shutdown']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifySession.loggedOut'?: (params: MessageTypes['keybase.1.NotifySession.loggedOut']['inParam'] & {sessionID: number}) => IncomingReturn
@@ -3323,6 +3353,9 @@ export type CustomResponseIncomingCallMap = {
   'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile'?: (params: MessageTypes['keybase.1.NotifyPGP.pgpKeyInSecretStoreFile']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyPGP.pgpKeyInSecretStoreFile']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyPhoneNumber.phoneNumbersChanged'?: (params: MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumbersChanged']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyPhoneNumber.phoneNumbersChanged']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyRuntimeStats.runtimeStatsUpdate'?: (params: MessageTypes['keybase.1.NotifyRuntimeStats.runtimeStatsUpdate']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyRuntimeStats.runtimeStatsUpdate']['outParam']) => void}) => IncomingReturn
+  'keybase.1.NotifySaltpack.saltpackOperationStart'?: (params: MessageTypes['keybase.1.NotifySaltpack.saltpackOperationStart']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifySaltpack.saltpackOperationStart']['outParam']) => void}) => IncomingReturn
+  'keybase.1.NotifySaltpack.saltpackOperationProgress'?: (params: MessageTypes['keybase.1.NotifySaltpack.saltpackOperationProgress']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifySaltpack.saltpackOperationProgress']['outParam']) => void}) => IncomingReturn
+  'keybase.1.NotifySaltpack.saltpackOperationDone'?: (params: MessageTypes['keybase.1.NotifySaltpack.saltpackOperationDone']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifySaltpack.saltpackOperationDone']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyService.HTTPSrvInfoUpdate'?: (params: MessageTypes['keybase.1.NotifyService.HTTPSrvInfoUpdate']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyService.HTTPSrvInfoUpdate']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyService.shutdown'?: (params: MessageTypes['keybase.1.NotifyService.shutdown']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyService.shutdown']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifySession.loggedIn'?: (params: MessageTypes['keybase.1.NotifySession.loggedIn']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifySession.loggedIn']['outParam']) => void}) => IncomingReturn
@@ -3575,6 +3608,8 @@ export const teamsTeamCreateSeitanTokenV2RpcPromise = (params: MessageTypes['key
 export const teamsTeamDeleteRpcPromise = (params: MessageTypes['keybase.1.teams.teamDelete']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamDelete']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamDelete', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamDeleteRpcSaga = (p: {params: MessageTypes['keybase.1.teams.teamDelete']['inParam']; incomingCallMap: IncomingCallMapType; customResponseIncomingCallMap?: CustomResponseIncomingCallMap; waitingKey?: WaitingKey}) => call(getEngineSaga(), {method: 'keybase.1.teams.teamDelete', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
 export const teamsTeamEditMemberRpcPromise = (params: MessageTypes['keybase.1.teams.teamEditMember']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamEditMember']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamEditMember', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const teamsTeamGetByIDRpcPromise = (params: MessageTypes['keybase.1.teams.teamGetByID']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamGetByID']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamGetByID', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const teamsTeamGetMembersByIDRpcPromise = (params: MessageTypes['keybase.1.teams.teamGetMembersByID']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamGetMembersByID']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamGetMembersByID', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamGetMembersRpcPromise = (params: MessageTypes['keybase.1.teams.teamGetMembers']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamGetMembers']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamGetMembers', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamGetRpcPromise = (params: MessageTypes['keybase.1.teams.teamGet']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamGet']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamGet', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const teamsTeamGetSubteamsRpcPromise = (params: MessageTypes['keybase.1.teams.teamGetSubteams']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.teams.teamGetSubteams']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.teams.teamGetSubteams', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -3835,6 +3870,9 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile'
 // 'keybase.1.NotifyPhoneNumber.phoneNumbersChanged'
 // 'keybase.1.NotifyRuntimeStats.runtimeStatsUpdate'
+// 'keybase.1.NotifySaltpack.saltpackOperationStart'
+// 'keybase.1.NotifySaltpack.saltpackOperationProgress'
+// 'keybase.1.NotifySaltpack.saltpackOperationDone'
 // 'keybase.1.NotifyService.HTTPSrvInfoUpdate'
 // 'keybase.1.NotifyService.shutdown'
 // 'keybase.1.NotifySession.loggedOut'
@@ -3955,7 +3993,6 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.streamUi.reset'
 // 'keybase.1.streamUi.write'
 // 'keybase.1.teams.teamCreateWithSettings'
-// 'keybase.1.teams.teamGetByID'
 // 'keybase.1.teams.teamImplicitAdmins'
 // 'keybase.1.teams.teamListTeammates'
 // 'keybase.1.teams.teamListVerified'

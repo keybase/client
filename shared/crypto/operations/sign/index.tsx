@@ -3,8 +3,9 @@ import * as Constants from '../../../constants/crypto'
 import * as Types from '../../../constants/types/crypto'
 import * as Kb from '../../../common-adapters'
 import debounce from 'lodash/debounce'
+import openURL from '../../../util/open-url'
 import {TextInput, FileInput} from '../../input'
-import OperationOutput, {OutputBar, SignedSender} from '../../output'
+import OperationOutput, {OutputBar, OutputInfoBanner, SignedSender} from '../../output'
 
 type Props = {
   input: string
@@ -37,6 +38,9 @@ const Sign = (props: Props) => {
         prompt="Drop a file to sign"
       >
         <Kb.Box2 direction="vertical" fullHeight={true}>
+          <Kb.Banner color="grey">
+            <Kb.Text type="BodySmallSemibold">We'll add your signature.</Kb.Text>
+          </Kb.Banner>
           {props.inputType === 'file' ? (
             <FileInput
               path={props.input}
@@ -46,7 +50,7 @@ const Sign = (props: Props) => {
           ) : (
             <TextInput
               value={inputValue}
-              placeholder="Write, paste, or drop a file. We'll add your signature."
+              placeholder="Enter text, drop a file, or"
               textType="plain"
               operation={Constants.Operations.Sign}
               onSetFile={path => {
@@ -61,7 +65,25 @@ const Sign = (props: Props) => {
           <Kb.Divider />
 
           <Kb.Box2 direction="vertical" fullHeight={true}>
-            <SignedSender signed={true} signedBy={props.outputSender} outputStatus={props.outputStatus} />
+            <OutputInfoBanner operation={Constants.Operations.Encrypt} outputStatus={props.outputStatus}>
+              <Kb.Text type="BodySmallSemibold" center={true}>
+                This is your signed {props.outputType === 'file' ? 'file' : 'message'}, using{` `}
+                <Kb.Text
+                  type="BodySecondaryLink"
+                  underline={true}
+                  onClick={() => openURL(Constants.saltpackDocumentation)}
+                >
+                  Saltpack
+                </Kb.Text>
+                .{` `}Anyone who has it can verify you signed it.
+              </Kb.Text>
+            </OutputInfoBanner>
+            <SignedSender
+              signed={true}
+              signedBy={props.outputSender}
+              operation={Constants.Operations.Sign}
+              outputStatus={props.outputStatus}
+            />
             <OperationOutput
               outputStatus={props.outputStatus}
               output={props.output}

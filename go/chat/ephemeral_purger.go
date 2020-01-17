@@ -36,15 +36,14 @@ func (q *queueItem) String() string {
 type priorityQueue struct {
 	sync.RWMutex
 
-	queue []*queueItem
-	// convID -> *queueItem
-	itemMap map[string]*queueItem
+	queue   []*queueItem
+	itemMap map[chat1.ConvIDStr]*queueItem
 }
 
 func newPriorityQueue() *priorityQueue {
 	return &priorityQueue{
 		queue:   []*queueItem{},
-		itemMap: make(map[string]*queueItem),
+		itemMap: make(map[chat1.ConvIDStr]*queueItem),
 	}
 }
 
@@ -82,7 +81,7 @@ func (pq *priorityQueue) Push(x interface{}) {
 	item := x.(*queueItem)
 	item.index = len(pq.queue)
 	pq.queue = append(pq.queue, item)
-	pq.itemMap[item.purgeInfo.ConvID.String()] = item
+	pq.itemMap[item.purgeInfo.ConvID.ConvIDStr()] = item
 }
 
 func (pq *priorityQueue) Pop() interface{} {
@@ -93,7 +92,7 @@ func (pq *priorityQueue) Pop() interface{} {
 	item := pq.queue[n-1]
 	item.index = -1 // for safety
 	pq.queue = pq.queue[:n-1]
-	delete(pq.itemMap, item.purgeInfo.ConvID.String())
+	delete(pq.itemMap, item.purgeInfo.ConvID.ConvIDStr())
 	return item
 }
 
@@ -187,7 +186,7 @@ func (b *BackgroundEphemeralPurger) Queue(ctx context.Context, purgeInfo chat1.E
 	}
 
 	// skip duplicate items
-	item, ok := b.pq.itemMap[purgeInfo.ConvID.String()]
+	item, ok := b.pq.itemMap[purgeInfo.ConvID.ConvIDStr()]
 	if ok && item.purgeInfo.Eq(purgeInfo) {
 		return nil
 	}
@@ -243,7 +242,7 @@ func (b *BackgroundEphemeralPurger) initQueue(ctx context.Context) {
 }
 
 func (b *BackgroundEphemeralPurger) updateQueue(purgeInfo chat1.EphemeralPurgeInfo) {
-	item, ok := b.pq.itemMap[purgeInfo.ConvID.String()]
+	item, ok := b.pq.itemMap[purgeInfo.ConvID.ConvIDStr()]
 	if ok {
 		item.purgeInfo = purgeInfo
 		heap.Fix(b.pq, item.index)
