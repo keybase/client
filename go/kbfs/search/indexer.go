@@ -530,6 +530,37 @@ func (i *Indexer) updateChild(
 	return nil
 }
 
+func (i *Indexer) renameChild(
+	ctx context.Context, parentNode libkbfs.Node, parentDocID string,
+	childName data.PathPartString, revision kbfsmd.Revision) (err error) {
+	ptr, n, ei, err := i.getCurrentPtrAndNode(ctx, parentNode, childName)
+	if err != nil {
+		return err
+	}
+
+	if i.blocksDb == nil {
+		return errors.New("No indexed blocks db")
+	}
+
+	// Get the docID.
+	_, docID, err := i.blocksDb.Get(ctx, ptr)
+	if err != nil {
+		// Treat "not found" errors as real errors, since a rename
+		// implies that the doc should have already been indexed.
+		return err
+	}
+
+	// Rename the doc ID for the new name.
+	newNameDoc := makeNameDoc(n, revision, time.Unix(0, ei.Mtime))
+	err = i.index.Index(nameDocID(docID), newNameDoc)
+	if err != nil {
+		return err
+	}
+
+	// Fix the child name in the doc db.
+	return i.docDb.Put(ctx, docID, parentDocID, childName.Plaintext())
+}
+
 func (i *Indexer) fsForRev(
 	ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision) (*libfs.FS, error) {
 	if rev == kbfsmd.RevisionUninitialized {

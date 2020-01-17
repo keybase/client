@@ -120,6 +120,30 @@ func removePunct(r rune) rune {
 	return r
 }
 
+func makeNameDocWithBase(
+	n libkbfs.Node, base indexedBase) (nameDoc interface{}) {
+	// Turn all punctuation into spaces to allow for matching
+	// individual words within the filename.
+	fullName := n.GetBasename().Plaintext()
+	tokenizedName := strings.Map(removePunct, fullName)
+	return indexedName{
+		indexedBase:   base,
+		Name:          fullName,
+		TokenizedName: tokenizedName,
+	}
+}
+
+func makeNameDoc(
+	n libkbfs.Node, revision kbfsmd.Revision, mtime time.Time) (
+	nameDoc interface{}) {
+	base := indexedBase{
+		TlfID:    n.GetFolderBranch().Tlf,
+		Revision: revision,
+		Mtime:    mtime,
+	}
+	return makeNameDocWithBase(n, base)
+}
+
 func makeDoc(
 	ctx context.Context, config libkbfs.Config, n libkbfs.Node,
 	ei data.EntryInfo, revision kbfsmd.Revision, mtime time.Time) (
@@ -131,16 +155,8 @@ func makeDoc(
 	}
 
 	// Name goes in a separate doc, so we can rename a file without
-	// having to re-index all of its contents.  Turn all punctuation
-	// into spaces to allow for matching individual words within the
-	// filename.
-	fullName := n.GetBasename().Plaintext()
-	tokenizedName := strings.Map(removePunct, fullName)
-	name := indexedName{
-		indexedBase:   base,
-		Name:          fullName,
-		TokenizedName: tokenizedName,
-	}
+	// having to re-index all of its contents.
+	name := makeNameDocWithBase(n, base)
 
 	// Make a doc for the contents, depending on the content type.
 	contentType, err := getContentType(ctx, config, n, ei)
