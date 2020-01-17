@@ -208,7 +208,7 @@ export default Container.namedConnect(
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     const botRestrictMap = stateProps._botSettings
-      ? Constants.getBotChannelRestrictMap(stateProps._botSettings, stateProps.conversationIDKey, [
+      ? Constants.getBotRestrictBlockMap(stateProps._botSettings, stateProps.conversationIDKey, [
           ...stateProps.suggestBotCommands
             .reduce<Set<string>>((s, c) => {
               if (c.username) {
