@@ -4,7 +4,7 @@ import * as TeamTypes from '../../../../constants/types/teams'
 import {PlainInput} from '../../../../common-adapters'
 
 type CommonProps = {
-  botRestrictMap: Map<string, boolean>
+  botRestrictMap?: Map<string, boolean>
   cannotWrite: boolean | null
   clearInboxFilter: () => void
   conversationIDKey: Types.ConversationIDKey
