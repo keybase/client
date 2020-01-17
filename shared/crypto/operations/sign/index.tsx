@@ -18,6 +18,7 @@ type Props = {
   outputSender?: string
   outputStatus?: Types.OutputStatus
   outputType?: Types.OutputType
+  progress: number
 }
 
 // We want to debuonce the onChangeText callback for our input so we are not sending an RPC on every keystroke
@@ -62,8 +63,8 @@ const Sign = (props: Props) => {
               }}
             />
           )}
-          <Kb.Divider />
 
+          <Kb.ProgressBar ratio={props.progress} style={{width: '100%'}} />
           <Kb.Box2 direction="vertical" fullHeight={true}>
             <OutputInfoBanner operation={Constants.Operations.Encrypt} outputStatus={props.outputStatus}>
               <Kb.Text type="BodySmallSemibold" center={true}>

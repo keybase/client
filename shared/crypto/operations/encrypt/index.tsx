@@ -23,6 +23,7 @@ type Props = {
   output: string
   outputStatus?: Types.OutputStatus
   outputType?: Types.OutputType
+  progress: number
   recipients: Array<string>
   username?: string
 }
@@ -105,7 +106,7 @@ const Encrypt = (props: Props) => {
             options={props.options}
             onSetOptions={props.onSetOptions}
           />
-          <Kb.Divider />
+          <Kb.ProgressBar ratio={props.progress} style={{width: '100%'}} />
           <Kb.Box2 direction="vertical" fullHeight={true}>
             <OutputInfoBanner operation={Constants.Operations.Encrypt} outputStatus={props.outputStatus}>
               <Kb.Text type="BodySmallSemibold" center={true}>
