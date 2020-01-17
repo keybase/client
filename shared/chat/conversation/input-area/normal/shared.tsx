@@ -28,13 +28,13 @@ export const BotCommandUpdateStatus = (props: BotCommandUpdateStatusProps) => {
   let statusText = ''
   switch (props.status) {
     case RPCChatTypes.UIBotCommandsUpdateStatusTyp.uptodate:
-      statusText = 'Commands are up-to-date'
+      statusText = 'Bot commands are up-to-date'
       break
     case RPCChatTypes.UIBotCommandsUpdateStatusTyp.failed:
-      statusText = 'Failed to update commands'
+      statusText = 'Failed to update bot commands'
       break
     case RPCChatTypes.UIBotCommandsUpdateStatusTyp.updating:
-      statusText = 'Updating commands...'
+      statusText = 'Updating bot commands...'
       break
   }
   return (
