@@ -195,4 +195,16 @@ func TestIndexFile(t *testing.T) {
 	const dName = "dolor.txt"
 	writeNewFile(ctx, t, kbfsOps, i, rootNode, dName, dText)
 	search("dolor", 2)
+
+	t.Log("Rename the file")
+	const newDName = "neque.txt"
+	newDNamePPS := data.NewPathPartString(newDName, nil)
+	err = kbfsOps.Rename(
+		ctx, rootNode, data.NewPathPartString(dName, nil), rootNode,
+		newDNamePPS)
+	require.NoError(t, err)
+	err = i.renameChild(ctx, rootNode, "", newDNamePPS, 1)
+	require.NoError(t, err)
+	search("dolor", 1)
+	search("neque", 1)
 }
