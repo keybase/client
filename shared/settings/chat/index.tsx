@@ -133,11 +133,11 @@ class Chat extends React.Component<Props, State> {
         <Kb.ScrollView>
           <Kb.Box2 direction="vertical" fullHeight={true} gap="tiny" style={styles.container}>
             <Kb.Box2 direction="vertical" fullWidth={true}>
-              <Kb.Text type="Header">Contact settings</Kb.Text>
+              <Kb.Text type="Header">Contact restrictions</Kb.Text>
             </Kb.Box2>
             <Kb.Box2 direction="vertical" fullWidth={true}>
               <Kb.Checkbox
-                label="Only let someone message you or add you to a team if:"
+                label="Only let someone message you or add you to a team if..."
                 onCheck={() =>
                   this.setState(prevState => ({contactSettingsEnabled: !prevState.contactSettingsEnabled}))
                 }
