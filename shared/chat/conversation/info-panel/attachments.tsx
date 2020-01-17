@@ -115,79 +115,66 @@ type MediaThumbProps = {
   sizing: Sizing
 }
 
-type MediaThumbState = {
-  loading: boolean
+const MediaThumb = (props: MediaThumbProps) => {
+  const [loading, setLoading] = React.useState(true)
+  const {sizing, thumb} = props
+  return (
+    <Kb.Box2 direction="vertical" style={styles.thumbContainer}>
+      <Kb.ClickableBox onClick={thumb.onClick} style={{...sizing.margins}}>
+        <Kb.Image src={thumb.previewURL} style={{...sizing.dims}} onLoad={() => setLoading(false)} />
+      </Kb.ClickableBox>
+      {!!thumb.isVideo && (
+        <Kb.Box2 direction="vertical" style={styles.durationContainer}>
+          <Kb.Icon type="icon-film-64" style={styles.filmIcon} />
+        </Kb.Box2>
+      )}
+      {loading && <Kb.ProgressIndicator style={styles.loading} />}
+    </Kb.Box2>
+  )
 }
 
-class MediaThumb extends React.Component<MediaThumbProps, MediaThumbState> {
-  state = {loading: true}
-  _setLoaded = () => {
-    this.setState({loading: false})
-  }
-  render() {
-    const {sizing, thumb} = this.props
-    return (
-      <Kb.Box2 direction="vertical" style={styles.thumbContainer}>
-        <Kb.ClickableBox onClick={thumb.onClick} style={{...sizing.margins}}>
-          <Kb.Image src={thumb.previewURL} style={{...sizing.dims}} onLoad={this._setLoaded} />
-        </Kb.ClickableBox>
-        {!!thumb.isVideo && (
-          <Kb.Box2 direction="vertical" style={styles.durationContainer}>
-            <Kb.Icon type="icon-film-64" style={styles.filmIcon} />
-          </Kb.Box2>
-        )}
-        {this.state.loading && <Kb.ProgressIndicator style={styles.loading} />}
-      </Kb.Box2>
-    )
-  }
-}
+type DocViewRowProps = {item: Doc} & OverlayParentProps
 
-type DocViewRowProps = {
-  item: Doc
-} & OverlayParentProps
-
-class _DocViewRow extends React.Component<DocViewRowProps> {
-  render() {
-    const item = this.props.item
-    return (
-      <Kb.Box2 direction="vertical" fullWidth={true}>
-        <Kb.ClickableBox onClick={item.onDownload} onLongPress={this.props.toggleShowingMenu}>
-          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.docRowContainer} gap="xtiny">
-            <Kb.Icon type="icon-file-32" style={styles.docIcon} />
-            <Kb.Box2 direction="vertical" fullWidth={true} style={styles.docRowTitle}>
-              <Kb.Text type="BodySemibold">{item.name}</Kb.Text>
-              {item.name !== item.fileName && <Kb.Text type="BodyTiny">{item.fileName}</Kb.Text>}
-              <Kb.Text type="BodySmall">
-                Sent by {item.author} • {formatTimeForMessages(item.ctime)}
-              </Kb.Text>
-            </Kb.Box2>
-          </Kb.Box2>
-        </Kb.ClickableBox>
-        {item.downloading && (
-          <Kb.Box2 direction="horizontal" style={styles.docBottom} fullWidth={true} gap="tiny">
-            <Kb.Text type="BodySmall">Downloading...</Kb.Text>
-            <Kb.ProgressBar ratio={item.progress} style={styles.docProgress} />
-          </Kb.Box2>
-        )}
-        {item.onShowInFinder && (
-          <Kb.Box2 direction="horizontal" style={styles.docBottom} fullWidth={true}>
-            <Kb.Text type="BodySmallPrimaryLink" onClick={item.onShowInFinder}>
-              Show in {Styles.fileUIName}
+const _DocViewRow = (props: DocViewRowProps) => {
+  const {item, toggleShowingMenu, getAttachmentRef, showingMenu} = props
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true}>
+      <Kb.ClickableBox onClick={item.onDownload} onLongPress={toggleShowingMenu}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.docRowContainer} gap="xtiny">
+          <Kb.Icon type="icon-file-32" style={styles.docIcon} />
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.docRowTitle}>
+            <Kb.Text type="BodySemibold">{item.name}</Kb.Text>
+            {item.name !== item.fileName && <Kb.Text type="BodyTiny">{item.fileName}</Kb.Text>}
+            <Kb.Text type="BodySmall">
+              Sent by {item.author} • {formatTimeForMessages(item.ctime)}
             </Kb.Text>
           </Kb.Box2>
-        )}
-        {Styles.isMobile && this.props.showingMenu && item.message && (
-          <MessagePopup
-            attachTo={this.props.getAttachmentRef}
-            message={item.message as Types.Message}
-            onHidden={this.props.toggleShowingMenu}
-            position="top right"
-            visible={this.props.showingMenu}
-          />
-        )}
-      </Kb.Box2>
-    )
-  }
+        </Kb.Box2>
+      </Kb.ClickableBox>
+      {item.downloading && (
+        <Kb.Box2 direction="horizontal" style={styles.docBottom} fullWidth={true} gap="tiny">
+          <Kb.Text type="BodySmall">Downloading...</Kb.Text>
+          <Kb.ProgressBar ratio={item.progress} style={styles.docProgress} />
+        </Kb.Box2>
+      )}
+      {item.onShowInFinder && (
+        <Kb.Box2 direction="horizontal" style={styles.docBottom} fullWidth={true}>
+          <Kb.Text type="BodySmallPrimaryLink" onClick={item.onShowInFinder}>
+            Show in {Styles.fileUIName}
+          </Kb.Text>
+        </Kb.Box2>
+      )}
+      {Styles.isMobile && showingMenu && item.message && (
+        <MessagePopup
+          attachTo={getAttachmentRef}
+          message={item.message as Types.Message}
+          onHidden={toggleShowingMenu}
+          position="top right"
+          visible={showingMenu}
+        />
+      )}
+    </Kb.Box2>
+  )
 }
 
 const DocViewRow = Kb.OverlayParentHOC(_DocViewRow)
@@ -197,60 +184,51 @@ type SelectorProps = {
   onSelectView: (typ: RPCChatTypes.GalleryItemTyp) => void
 }
 
-export class AttachmentTypeSelector extends React.Component<SelectorProps> {
-  _getBkgColor = (typ: RPCChatTypes.GalleryItemTyp) => {
-    return typ === this.props.selectedView
-      ? {backgroundColor: Styles.globalColors.blue}
-      : {backgroundColor: undefined}
-  }
-  _getColor = (typ: RPCChatTypes.GalleryItemTyp) => {
-    return typ === this.props.selectedView
-      ? {color: Styles.globalColors.white}
-      : {color: Styles.globalColors.blueDark}
-  }
-  render() {
-    return (
-      <Kb.Box2 direction="horizontal" style={styles.selectorContainer} fullWidth={true}>
-        <Kb.ClickableBox
-          onClick={() => this.props.onSelectView(RPCChatTypes.GalleryItemTyp.media)}
-          style={Styles.collapseStyles([
-            styles.selectorItemContainer,
-            styles.selectorMediaContainer,
-            this._getBkgColor(RPCChatTypes.GalleryItemTyp.media),
-          ])}
-        >
-          <Kb.Text type="BodySemibold" style={this._getColor(RPCChatTypes.GalleryItemTyp.media)}>
-            Media
-          </Kb.Text>
-        </Kb.ClickableBox>
-        <Kb.ClickableBox
-          onClick={() => this.props.onSelectView(RPCChatTypes.GalleryItemTyp.doc)}
-          style={Styles.collapseStyles([
-            styles.selectorDocContainer,
-            styles.selectorItemContainer,
-            this._getBkgColor(RPCChatTypes.GalleryItemTyp.doc),
-          ])}
-        >
-          <Kb.Text type="BodySemibold" style={this._getColor(RPCChatTypes.GalleryItemTyp.doc)}>
-            Docs
-          </Kb.Text>
-        </Kb.ClickableBox>
-        <Kb.ClickableBox
-          onClick={() => this.props.onSelectView(RPCChatTypes.GalleryItemTyp.link)}
-          style={Styles.collapseStyles([
-            styles.selectorItemContainer,
-            styles.selectorLinkContainer,
-            this._getBkgColor(RPCChatTypes.GalleryItemTyp.link),
-          ])}
-        >
-          <Kb.Text type="BodySemibold" style={this._getColor(RPCChatTypes.GalleryItemTyp.link)}>
-            Links
-          </Kb.Text>
-        </Kb.ClickableBox>
-      </Kb.Box2>
-    )
-  }
-}
+const getBkgColor = (selected: boolean) =>
+  selected ? {backgroundColor: Styles.globalColors.blue} : {backgroundColor: undefined}
+const getColor = (selected: boolean) =>
+  selected ? {color: Styles.globalColors.white} : {color: Styles.globalColors.blueDark}
+
+const AttachmentTypeSelector = (props: SelectorProps) => (
+  <Kb.Box2 direction="horizontal" style={styles.selectorContainer} fullWidth={true}>
+    <Kb.ClickableBox
+      onClick={() => props.onSelectView(RPCChatTypes.GalleryItemTyp.media)}
+      style={Styles.collapseStyles([
+        styles.selectorItemContainer,
+        styles.selectorMediaContainer,
+        getBkgColor(props.selectedView === RPCChatTypes.GalleryItemTyp.media),
+      ])}
+    >
+      <Kb.Text type="BodySemibold" style={getColor(props.selectedView === RPCChatTypes.GalleryItemTyp.media)}>
+        Media
+      </Kb.Text>
+    </Kb.ClickableBox>
+    <Kb.ClickableBox
+      onClick={() => props.onSelectView(RPCChatTypes.GalleryItemTyp.doc)}
+      style={Styles.collapseStyles([
+        styles.selectorDocContainer,
+        styles.selectorItemContainer,
+        getBkgColor(props.selectedView === RPCChatTypes.GalleryItemTyp.doc),
+      ])}
+    >
+      <Kb.Text type="BodySemibold" style={getColor(props.selectedView === RPCChatTypes.GalleryItemTyp.doc)}>
+        Docs
+      </Kb.Text>
+    </Kb.ClickableBox>
+    <Kb.ClickableBox
+      onClick={() => props.onSelectView(RPCChatTypes.GalleryItemTyp.link)}
+      style={Styles.collapseStyles([
+        styles.selectorItemContainer,
+        styles.selectorLinkContainer,
+        getBkgColor(props.selectedView === RPCChatTypes.GalleryItemTyp.link),
+      ])}
+    >
+      <Kb.Text type="BodySemibold" style={getColor(props.selectedView === RPCChatTypes.GalleryItemTyp.link)}>
+        Links
+      </Kb.Text>
+    </Kb.ClickableBox>
+  </Kb.Box2>
+)
 
 const styles = Styles.styleSheetCreate(
   () =>
