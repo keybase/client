@@ -16,6 +16,7 @@ import (
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -24,11 +25,16 @@ import (
 
 const storageVersion = 1
 
+type uiResult struct {
+	err      error
+	settings chat1.UIBotCommandsUpdateSettings
+}
+
 type commandUpdaterJob struct {
 	convID      chat1.ConversationID
 	info        *chat1.BotInfo
 	completeChs []chan error
-	uiCh        chan error
+	uiCh        chan uiResult
 }
 
 type userCommandAdvertisement struct {
@@ -50,6 +56,8 @@ type commandsStorage struct {
 
 var commandsPublicTopicName = "___keybase_botcommands_public"
 
+type nameInfoSourceFn func(ctx context.Context, g *globals.Context, membersType chat1.ConversationMembersType) types.NameInfoSource
+
 type CachingBotCommandManager struct {
 	globals.Contextified
 	utils.DebugLabeler
@@ -61,13 +69,15 @@ type CachingBotCommandManager struct {
 	stopCh  chan struct{}
 
 	ri              func() chat1.RemoteInterface
+	nameInfoSource  nameInfoSourceFn
 	edb             *encrypteddb.EncryptedDB
 	commandUpdateCh chan *commandUpdaterJob
 	queuedUpdatedMu sync.Mutex
 	queuedUpdates   map[chat1.ConvIDStr]*commandUpdaterJob
 }
 
-func NewCachingBotCommandManager(g *globals.Context, ri func() chat1.RemoteInterface) *CachingBotCommandManager {
+func NewCachingBotCommandManager(g *globals.Context, ri func() chat1.RemoteInterface,
+	nameInfoSource nameInfoSourceFn) *CachingBotCommandManager {
 	keyFn := func(ctx context.Context) ([32]byte, error) {
 		return storage.GetSecretBoxKey(ctx, g.ExternalG())
 	}
@@ -81,6 +91,7 @@ func NewCachingBotCommandManager(g *globals.Context, ri func() chat1.RemoteInter
 		edb:             encrypteddb.New(g.ExternalG(), dbFn, keyFn),
 		commandUpdateCh: make(chan *commandUpdaterJob, 100),
 		queuedUpdates:   make(map[chat1.ConvIDStr]*commandUpdaterJob),
+		nameInfoSource:  nameInfoSource,
 	}
 }
 
@@ -302,7 +313,7 @@ func (b *CachingBotCommandManager) UpdateCommands(ctx context.Context, convID ch
 	info *chat1.BotInfo) (completeCh chan error, err error) {
 	defer b.Trace(ctx, func() error { return err }, "UpdateCommands")()
 	completeCh = make(chan error, 1)
-	uiCh := make(chan error, 1)
+	uiCh := make(chan uiResult, 1)
 	return completeCh, b.queueCommandUpdate(ctx, &commandUpdaterJob{
 		convID:      convID,
 		info:        info,
@@ -328,15 +339,12 @@ func (b *CachingBotCommandManager) runCommandUpdateUI(ctx context.Context, job *
 	}
 	for {
 		select {
-		case err := <-job.uiCh:
+		case res := <-job.uiCh:
 			var updateStatus chat1.UIBotCommandsUpdateStatus
-			if err != nil {
+			if res.err != nil {
 				updateStatus = chat1.NewUIBotCommandsUpdateStatusWithFailed()
 			} else {
-				updateStatus =
-					chat1.NewUIBotCommandsUpdateStatusWithUptodate(chat1.UIBotCommandsUpdateSettings{
-						Settings: make(map[string]keybase1.TeamBotSettings),
-					})
+				updateStatus = chat1.NewUIBotCommandsUpdateStatusWithUptodate(res.settings)
 			}
 			if err = b.getChatUI(ctx).ChatBotCommandsUpdateStatus(ctx, job.convID, updateStatus); err != nil {
 				b.Debug(ctx, "getChatUI: error getting update status: %+v", err)
@@ -455,40 +463,69 @@ func (b *CachingBotCommandManager) getConvAdvertisement(ctx context.Context, con
 }
 
 func (b *CachingBotCommandManager) commandUpdate(ctx context.Context, job *commandUpdaterJob) (err error) {
+	var botSettings chat1.UIBotCommandsUpdateSettings
 	ctx = globals.ChatCtx(ctx, b.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
 	defer b.Trace(ctx, func() error { return err }, "commandUpdate")()
 	defer func() {
 		b.queuedUpdatedMu.Lock()
 		delete(b.queuedUpdates, job.convID.ConvIDStr())
 		b.queuedUpdatedMu.Unlock()
-		job.uiCh <- err
+		job.uiCh <- uiResult{
+			err:      err,
+			settings: botSettings,
+		}
 		for _, completeCh := range job.completeChs {
 			completeCh <- err
 		}
 	}()
-	botInfo, doUpdate, err := b.getBotInfo(ctx, job)
-	if err != nil {
-		return err
-	}
-	if !doUpdate {
-		b.Debug(ctx, "commandUpdate: bot info uptodate, not updating")
-		return nil
-	}
-	s := commandsStorage{
-		Version: storageVersion,
-	}
-	for _, cconv := range botInfo.CommandConvs {
-		ad := b.getConvAdvertisement(ctx, cconv.ConvID, cconv.Uid, cconv.UntrustedTeamRole)
-		if ad != nil {
-			s.Advertisements = append(s.Advertisements, *ad)
+	var eg errgroup.Group
+	eg.Go(func() error {
+		botInfo, doUpdate, err := b.getBotInfo(ctx, job)
+		if err != nil {
+			return err
 		}
-	}
-	if err := b.edb.Put(ctx, b.dbCommandsKey(job.convID), s); err != nil {
-		return err
-	}
-	// alert that the conv is now updated
-	b.G().InboxSource.NotifyUpdate(ctx, b.uid, job.convID)
-	return nil
+		if !doUpdate {
+			b.Debug(ctx, "commandUpdate: bot info uptodate, not updating")
+			return nil
+		}
+		s := commandsStorage{
+			Version: storageVersion,
+		}
+		for _, cconv := range botInfo.CommandConvs {
+			ad := b.getConvAdvertisement(ctx, cconv.ConvID, cconv.Uid, cconv.UntrustedTeamRole)
+			if ad != nil {
+				s.Advertisements = append(s.Advertisements, *ad)
+			}
+		}
+		if err := b.edb.Put(ctx, b.dbCommandsKey(job.convID), s); err != nil {
+			return err
+		}
+		// alert that the conv is now updated
+		b.G().InboxSource.NotifyUpdate(ctx, b.uid, job.convID)
+		return nil
+	})
+	eg.Go(func() error {
+		conv, err := utils.GetVerifiedConv(ctx, b.G(), b.uid, job.convID, types.InboxSourceDataSourceAll)
+		if err != nil {
+			return err
+		}
+		ni := b.nameInfoSource(ctx, b.G(), conv.GetMembersType())
+		rawSettings, err := ni.TeamBotSettings(ctx, conv.Info.TlfName, conv.Info.Triple.Tlfid,
+			conv.GetMembersType(), conv.IsPublic())
+		if err != nil {
+			return err
+		}
+		botSettings.Settings = make(map[string]keybase1.TeamBotSettings)
+		for uv, settings := range rawSettings {
+			username, err := b.G().GetUPAKLoader().LookupUsername(ctx, uv.Uid)
+			if err != nil {
+				return err
+			}
+			botSettings.Settings[username.String()] = settings
+		}
+		return nil
+	})
+	return eg.Wait()
 }
 
 func (b *CachingBotCommandManager) commandUpdateLoop(stopCh chan struct{}) error {
