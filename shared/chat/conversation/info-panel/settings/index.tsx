@@ -160,18 +160,14 @@ const styles = Styles.styleSheetCreate(
           paddingLeft: 16,
           paddingRight: 16,
         },
-        isMobile: {
-          marginRight: 16,
-        },
+        isMobile: {marginRight: 16},
       }),
       retentionDropdownStyle: Styles.platformStyles({
         isElectron: {
           marginRight: 45 - 16,
           width: 'auto',
         },
-        isMobile: {
-          width: '100%',
-        },
+        isMobile: {width: '100%'},
       }),
       settingsContainer: {
         flex: 1,
