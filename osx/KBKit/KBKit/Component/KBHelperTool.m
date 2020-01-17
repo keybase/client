@@ -17,6 +17,8 @@
 #import "KBSemVersion.h"
 #import "KBFormatter.h"
 
+#import "KBFuseComponent.h"
+
 #define HELPER_LOCATION (@"/Library/PrivilegedHelperTools/keybase.Helper")
 
 @interface KBHelperTool () <MPLog>
@@ -72,6 +74,16 @@
   va_start(args, format);
   DDLogInfo(@"%@", [[NSString alloc] initWithFormat:format arguments:args]);
   va_end(args);
+}
+
+- (void)uninstallFuseIfNeeded:(KBSemVersion *)bundleVersion runningVersion:(KBSemVersion *)runningVersion completion:(KBCompletion)completion {
+  DDLogDebug(@"see if we need to uninstall Fuse bundleVersion=%@ runningVersion=%@", bundleVersion, runningVersion);
+  if ([runningVersion isLessThan:[KBSemVersion version:@"1.0.45"]] && [bundleVersion isGreaterThanOrEqualTo:[KBSemVersion version:@"1.0.45"]]) {
+    DDLogDebug(@"uninstalling fuse");
+    [[[KBFuseComponent alloc] initWithConfig:self.config helperTool:self.helper servicePath:nil] uninstall: completion];
+  } else {
+    completion(nil);
+  }
 }
 
 - (void)doInstallAlert:(KBSemVersion *)bundleVersion runningVersion:(KBSemVersion *)runningVersion {
@@ -135,9 +147,11 @@
       if (runningVersion) info[@"Version"] = [runningVersion description];
       if ([bundleVersion isGreaterThan:runningVersion]) {
         if (bundleVersion) info[@"Bundle Version"] = [bundleVersion description];
-        self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusInstalled installAction:KBRInstallActionUpgrade info:info error:nil];
-        [self doInstallAlert:bundleVersion runningVersion:runningVersion];
-        completion(self.componentStatus);
+        [self uninstallFuseIfNeeded:bundleVersion runningVersion:runningVersion completion:^(NSError *error) {
+          self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusInstalled installAction:KBRInstallActionUpgrade info:info error:nil];
+          [self doInstallAlert:bundleVersion runningVersion:runningVersion];
+          completion(self.componentStatus);
+        }];
       } else {
         self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusInstalled installAction:KBRInstallActionNone info:info error:nil];
         completion(self.componentStatus);
