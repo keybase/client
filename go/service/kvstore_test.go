@@ -49,7 +49,6 @@ func TestKVStoreSelfTeamPutGet(t *testing.T) {
 		EntryKey:  entryKey,
 	}
 	getRes, err := handler.GetKVEntry(ctx, getArg)
-	fmt.Printf("[TEST] getRes = %+v\n", getRes)
 	require.NoError(t, err)
 	require.Equal(t, "", getRes.EntryValue)
 	require.Equal(t, 0, getRes.Revision)
@@ -57,12 +56,10 @@ func TestKVStoreSelfTeamPutGet(t *testing.T) {
 	// and list
 	listNamespacesArg := keybase1.ListKVNamespacesArg{TeamName: teamName}
 	listNamespacesRes, err := handler.ListKVNamespaces(ctx, listNamespacesArg)
-	fmt.Printf("[TEST] listNamespacesRes = %+v\n", listNamespacesRes)
 	require.NoError(t, err)
 	require.EqualValues(t, listNamespacesRes.Namespaces, []string{})
 	listEntriesArg := keybase1.ListKVEntriesArg{TeamName: teamName, Namespace: namespace}
 	listEntriesRes, err := handler.ListKVEntries(ctx, listEntriesArg)
-	fmt.Printf("[TEST] listEntriesRes = %+v\n", listEntriesRes)
 	require.NoError(t, err)
 	require.EqualValues(t, []keybase1.KVListEntryKey{}, listEntriesRes.EntryKeys)
 
@@ -76,13 +73,11 @@ func TestKVStoreSelfTeamPutGet(t *testing.T) {
 		EntryValue: cleartextSecret,
 	}
 	putRes, err := handler.PutKVEntry(ctx, putArg)
-	fmt.Printf("[TEST] putRes= %+v\n", putRes)
 	require.NoError(t, err)
 	require.Equal(t, 1, putRes.Revision)
 
 	// fetch it and assert that it's now correct
 	getRes, err = handler.GetKVEntry(ctx, getArg)
-	fmt.Printf("[TEST] getRes = %+v\n", getRes)
 	require.NoError(t, err)
 	require.Equal(t, cleartextSecret, getRes.EntryValue)
 
@@ -98,7 +93,6 @@ func TestKVStoreSelfTeamPutGet(t *testing.T) {
 	}
 	putRes, err = handler.PutKVEntry(ctx, putArg)
 
-	fmt.Printf("[TEST] putRes= %+v\n", putRes)
 	require.NoError(t, err)
 	require.Equal(t, 2, putRes.Revision)
 	getRes, err = handler.GetKVEntry(ctx, getArg)
@@ -494,27 +488,17 @@ type KVStoreTestBoxer struct {
 	UnboxMutateCiphertext func(ciphertext string) string
 }
 
-func (b *KVStoreTestBoxer) Box(mctx libkb.MetaContext, entryID keybase1.KVEntryID, revision int, cleartextValue string) (ciphertext string,
-	teamKeyGen keybase1.PerTeamKeyGeneration, ciphertextVersion int, err error) {
-	realBoxer := kvstore.NewKVStoreBoxer(mctx.G())
-	if b.BoxMutateRevision != nil {
-		revision = b.BoxMutateRevision(revision)
-	}
-	return realBoxer.Box(mctx, entryID, revision, cleartextValue)
-}
-
-////
-func (b *KVStoreTestBoxer) BoxForBot(mctx libkb.MetaContext, entryID keybase1.KVEntryID, revision int, cleartextValue string, botName string) (ciphertext string,
+func (b *KVStoreTestBoxer) Box(mctx libkb.MetaContext, entryID keybase1.KVEntryID, revision int, cleartextValue string, botName string) (ciphertext string,
 	teamKeyGen keybase1.PerTeamKeyGeneration, ciphertextVersion int, botUID keybase1.UID, botEldestSeqno keybase1.Seqno, err error) {
 	realBoxer := kvstore.NewKVStoreBoxer(mctx.G())
 	if b.BoxMutateRevision != nil {
 		revision = b.BoxMutateRevision(revision)
 	}
-	return realBoxer.BoxForBot(mctx, entryID, revision, cleartextValue, botName)
+	return realBoxer.Box(mctx, entryID, revision, cleartextValue, botName)
 }
 
 func (b *KVStoreTestBoxer) Unbox(mctx libkb.MetaContext, entryID keybase1.KVEntryID, revision int, ciphertext string, teamKeyGen keybase1.PerTeamKeyGeneration,
-	formatVersion int, senderUID keybase1.UID, senderEldestSeqno keybase1.Seqno, senderDeviceID keybase1.DeviceID, botUID *keybase1.UID, botEldestSeqno *keybase1.Seqno) (cleartext string, err error) {
+	formatVersion int, senderUID keybase1.UID, senderEldestSeqno keybase1.Seqno, senderDeviceID keybase1.DeviceID, botUID keybase1.UID, botEldestSeqno keybase1.Seqno) (cleartext string, err error) {
 	realBoxer := kvstore.NewKVStoreBoxer(mctx.G())
 	if b.UnboxMutateTeamGen != nil {
 		teamKeyGen = b.UnboxMutateTeamGen(teamKeyGen)

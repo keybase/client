@@ -102,7 +102,6 @@ func (k *KVRevisionCache) checkForUpdateLocked(mctx libkb.MetaContext, entryID k
 	k.ensureIntermediateLocked(entryID)
 
 	entry, ok := k.data[entryID.TeamID][entryID.Namespace][entryID.EntryKey]
-	fmt.Printf("......in checkForUpdateLocked: %+v, %+v \n", entry, ok)
 	if !ok {
 		// this entry didn't exist in the cache, so there's nothing to check
 		return nil
