@@ -280,7 +280,7 @@
     "prettier": "1.19.1",
     "randexp": "0.5.3",
     "react-hot-loader": "4.12.14",
-    "react-native-v8": "git://github.com/keybase/react-native-v8#nojima/61-5",
+    "react-native-v8": "git://github.com/keybase/react-native-v8#rn0.60.5",
     "react-test-renderer": "16.8.6",
     "redux-logger": "3.0.6",
     "rimraf": "2.6.3",
