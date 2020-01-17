@@ -251,33 +251,6 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
     )
     return header
   }
-  private headerSection = (): Section => {
-    return {
-      data: ['header'],
-      renderItem: this.renderHeader,
-      renderSectionHeader: () => {
-        return null
-      },
-    }
-  }
-
-  private renderAttachmentViewSelector = () => {
-    return (
-      <AttachmentTypeSelector
-        selectedView={this.props.selectedAttachmentView}
-        onSelectView={this.props.onAttachmentViewChange}
-      />
-    )
-  }
-  private attachmentViewSelectorSection = (): Section => {
-    return {
-      data: ['avselector'],
-      renderItem: this.renderAttachmentViewSelector,
-      renderSectionHeader: () => {
-        return null
-      },
-    }
-  }
 
   private renderTabs = () => {
     const tabs = this.getTabs(this.getEntityType())
@@ -294,23 +267,96 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
       </Kb.Box2>
     )
   }
-  private tabsSection = (): Section => {
-    return {
-      data: ['tabs'],
-      renderItem: () => null,
-      renderSectionHeader: this.renderTabs,
+
+  private getSections = () => {
+    switch (this.props.selectedTab) {
+      case 'settings':
+        return [
+          {
+            data: ['tab'],
+            renderItem: () => (
+              <SettingsPanel conversationIDKey={this.props.selectedConversationIDKey} key="settings" />
+            ),
+          },
+        ]
+      case 'members':
+        return [
+          {
+            data: [
+              ...(this.props.showAuditingBanner ? [auditingBannerItem] : []),
+              ...this.props.participants,
+            ],
+            renderItem: ({item}) => {
+              if (item === auditingBannerItem) {
+                return (
+                  <Kb.Banner color="grey" small={true}>
+                    Auditing team members...
+                  </Kb.Banner>
+                )
+              }
+              if (!item.username) {
+                return null
+              }
+              return (
+                <Participant
+                  botAlias={item.botAlias}
+                  fullname={item.fullname}
+                  isAdmin={item.isAdmin}
+                  isOwner={item.isOwner}
+                  username={item.username}
+                  onShowProfile={this.props.onShowProfile}
+                />
+              )
+            },
+          },
+        ]
+      case 'attachments': {
+        let attachmentSections
+        switch (this.props.selectedAttachmentView) {
+          case RPCChatTypes.GalleryItemTyp.media:
+            attachmentSections = new MediaView().getSections(
+              this.props.media.thumbs,
+              this.props.media.onLoadMore,
+              this.loadAttachments,
+              this.props.media.status
+            )
+            break
+          case RPCChatTypes.GalleryItemTyp.doc:
+            attachmentSections = new DocView().getSections(
+              this.props.docs.docs,
+              this.props.docs.onLoadMore,
+              this.loadAttachments,
+              this.props.docs.status
+            )
+            break
+          case RPCChatTypes.GalleryItemTyp.link:
+            attachmentSections = new LinkView().getSections(
+              this.props.links.links,
+              this.props.links.onLoadMore,
+              this.loadAttachments,
+              this.props.links.status
+            )
+            break
+        }
+        return [
+          {
+            data: ['avselector'],
+            renderItem: () => (
+              <AttachmentTypeSelector
+                selectedView={this.props.selectedAttachmentView}
+                onSelectView={this.props.onAttachmentViewChange}
+              />
+            ),
+          },
+          ...attachmentSections,
+        ]
+      }
+      default:
+        return []
     }
   }
 
-  private renderSectionHeader = ({section}: any) => {
-    return section.renderSectionHeader({section})
-  }
-
   render() {
-    let sections: Array<unknown> = []
-    const tabsSection = this.tabsSection()
-    sections.push(this.headerSection())
-    let itemSizeEstimator: (() => number) | undefined
     if (!this.props.selectedConversationIDKey) {
       // if we dont have a valid conversation ID, just render a spinner
       return (
@@ -324,178 +370,112 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
         </Kb.Box2>
       )
     }
-    switch (this.props.selectedTab) {
-      case 'settings':
-        tabsSection.renderItem = () => (
-          <SettingsPanel conversationIDKey={this.props.selectedConversationIDKey} key="settings" />
-        )
-        sections.push(tabsSection)
-        break
-      case 'members':
-        if (!Styles.isMobile) {
-          itemSizeEstimator = () => {
-            return 56
-          }
-        }
-        if (this.props.showAuditingBanner) {
-          tabsSection.data.push(auditingBannerItem)
-        }
-        tabsSection.data = tabsSection.data.concat(this.props.participants)
-        tabsSection.renderItem = ({item}) => {
-          if (item === auditingBannerItem) {
-            return (
-              <Kb.Banner color="grey" small={true}>
-                Auditing team members...
-              </Kb.Banner>
-            )
-          } else if (!item.username) {
-            return null
-          } else {
-            return (
-              <Participant
-                botAlias={item.botAlias}
-                fullname={item.fullname}
-                isAdmin={item.isAdmin}
-                isOwner={item.isOwner}
-                username={item.username}
-                onShowProfile={this.props.onShowProfile}
-              />
-            )
-          }
-        }
-        sections.push(tabsSection)
-        break
-      case 'attachments':
-        {
-          if (!Styles.isMobile) {
-            itemSizeEstimator = () => {
-              return 80
-            }
-          }
-          let attachmentSections: unknown
-          switch (this.props.selectedAttachmentView) {
-            case RPCChatTypes.GalleryItemTyp.media:
-              attachmentSections = new MediaView().getSections(
-                this.props.media.thumbs,
-                this.props.media.onLoadMore,
-                this.loadAttachments,
-                this.props.media.status
-              )
-              break
-            case RPCChatTypes.GalleryItemTyp.doc:
-              attachmentSections = new DocView().getSections(
-                this.props.docs.docs,
-                this.props.docs.onLoadMore,
-                this.loadAttachments,
-                this.props.docs.status
-              )
-              break
-            case RPCChatTypes.GalleryItemTyp.link:
-              attachmentSections = new LinkView().getSections(
-                this.props.links.links,
-                this.props.links.onLoadMore,
-                this.loadAttachments,
-                this.props.links.status
-              )
-              break
-          }
-          sections.push(tabsSection)
-          sections.push(this.attachmentViewSelectorSection())
-          sections = sections.concat(attachmentSections)
-        }
-        break
-      case 'bots':
-        if (!Styles.isMobile) {
-          itemSizeEstimator = () => {
-            return 56
-          }
-        }
 
-        if (this.props.canManageBots) {
-          tabsSection.data.push(addBotButton)
-        }
-        if (this.props.installedBots.length > 0) {
-          tabsSection.data.push(inThisChannelHeader)
-        }
-        tabsSection.data = tabsSection.data.concat(this.props.installedBots)
-        tabsSection.data.push(featuredBotsHeader)
-        if (this.props.featuredBots.length > 0) {
-          tabsSection.data = tabsSection.data.concat(this.props.featuredBots)
-        }
-        if (!this.props.loadedAllBots && this.props.featuredBots.length > 0) {
-          tabsSection.data.push(loadMoreBotsButton)
-        }
-        if (this.props.loadingBots) {
-          tabsSection.data.push(featuredBotSpinner)
-        }
-        tabsSection.renderItem = ({item}) => {
-          if (item === addBotButton) {
-            return (
-              <Kb.Button
-                mode="Primary"
-                type="Default"
-                label="Add a bot"
-                style={styles.addBot}
-                onClick={this.props.onBotAdd}
-              />
-            )
-          }
-          if (item === inThisChannelHeader) {
-            const text = this.props.teamname ? 'Installed in this team' : 'In this conversation'
-            return (
-              <Kb.Text type="Header" style={styles.botHeaders}>
-                {text}
-              </Kb.Text>
-            )
-          }
-          if (item === featuredBotsHeader) {
-            return (
-              <Kb.Text type="Header" style={styles.botHeaders}>
-                Featured
-              </Kb.Text>
-            )
-          }
-          if (item === featuredBotSpinner) {
-            return <Kb.ProgressIndicator type="Large" />
-          }
-          if (item === loadMoreBotsButton) {
-            return (
-              <Kb.Button
-                label="Load more"
-                mode="Secondary"
-                type="Default"
-                style={styles.addBot}
-                onClick={() => this.props.onLoadMoreBots()}
-              />
-            )
-          }
-          if (!item.botUsername) {
-            return null
-          } else {
-            return (
-              <Bot
-                {...item}
-                conversationIDKey={this.props.selectedConversationIDKey}
-                onClick={this.props.onBotSelect}
-                showAddToChannel={
-                  this.props.installedBots.includes(item) &&
-                  !this.props.smallTeam &&
-                  !this.props.participants.find(p => p.username === item.botUsername)
-                }
-              />
-            )
-          }
-        }
-        sections.push(tabsSection)
-        break
-    }
+    const sections = [
+      {
+        data: ['header'],
+        renderItem: this.renderHeader,
+      },
+      {
+        data: ['tabs'],
+        renderItem: () => null,
+        renderSectionHeader: this.renderTabs,
+      },
+      ...this.getSections(),
+    ]
+    // switch (this.props.selectedTab) {
+    // case 'bots':
+    // if (!Styles.isMobile) {
+    // itemSizeEstimator = () => {
+    // return 56
+    // }
+    // }
+
+    // if (this.props.canManageBots) {
+    // tabsSection.data.push(addBotButton)
+    // }
+    // if (this.props.installedBots.length > 0) {
+    // tabsSection.data.push(inThisChannelHeader)
+    // }
+    // tabsSection.data = tabsSection.data.concat(this.props.installedBots)
+    // tabsSection.data.push(featuredBotsHeader)
+    // if (this.props.featuredBots.length > 0) {
+    // tabsSection.data = tabsSection.data.concat(this.props.featuredBots)
+    // }
+    // if (!this.props.loadedAllBots && this.props.featuredBots.length > 0) {
+    // tabsSection.data.push(loadMoreBotsButton)
+    // }
+    // if (this.props.loadingBots) {
+    // tabsSection.data.push(featuredBotSpinner)
+    // }
+    // tabsSection.renderItem = ({item}) => {
+    // if (item === addBotButton) {
+    // return (
+    // <Kb.Button
+    // mode="Primary"
+    // type="Default"
+    // label="Add a bot"
+    // style={styles.addBot}
+    // onClick={this.props.onBotAdd}
+    // />
+    // )
+    // }
+    // if (item === inThisChannelHeader) {
+    // const text = this.props.teamname ? 'Installed in this team' : 'In this conversation'
+    // return (
+    // <Kb.Text type="Header" style={styles.botHeaders}>
+    // {text}
+    // </Kb.Text>
+    // )
+    // }
+    // if (item === featuredBotsHeader) {
+    // return (
+    // <Kb.Text type="Header" style={styles.botHeaders}>
+    // Featured
+    // </Kb.Text>
+    // )
+    // }
+    // if (item === featuredBotSpinner) {
+    // return <Kb.ProgressIndicator type="Large" />
+    // }
+    // if (item === loadMoreBotsButton) {
+    // return (
+    // <Kb.Button
+    // label="Load more"
+    // mode="Secondary"
+    // type="Default"
+    // style={styles.addBot}
+    // onClick={() => this.props.onLoadMoreBots()}
+    // />
+    // )
+    // }
+    // if (!item.botUsername) {
+    // return null
+    // } else {
+    // return (
+    // <Bot
+    // {...item}
+    // conversationIDKey={this.props.selectedConversationIDKey}
+    // onClick={this.props.onBotSelect}
+    // showAddToChannel={
+    // this.props.installedBots.includes(item) &&
+    // !this.props.smallTeam &&
+    // !this.props.participants.find(p => p.username === item.botUsername)
+    // }
+    // />
+    // )
+    // }
+    // }
+    // sections.push(tabsSection)
+    // break
+    // }
+    // itemSizeEstimator={itemSizeEstimator}
     return (
       <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
         <Kb.SectionList
-          itemSizeEstimator={itemSizeEstimator}
           stickySectionHeadersEnabled={true}
           keyboardShouldPersistTaps="handled"
-          renderSectionHeader={this.renderSectionHeader}
+          renderSectionHeader={({section}) => section?.renderSectionHeader?.({section}) ?? null}
           sections={sections}
         />
       </Kb.Box2>
