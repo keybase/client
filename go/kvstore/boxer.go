@@ -220,7 +220,6 @@ func (b *KVStoreRealBoxer) Box(mctx libkb.MetaContext, entryID keybase1.KVEntryI
 		botEldestSeqno = upak.Current.EldestSeqno
 	}
 
-	fmt.Printf("botUID = %+v, botName = %+v \n", botUID, botName)
 	clearBytes := []byte(cleartext)
 	ciphertextVersion := 1
 	nonce, err := newNonce()
@@ -240,17 +239,13 @@ func (b *KVStoreRealBoxer) Box(mctx libkb.MetaContext, entryID keybase1.KVEntryI
 			return "", keybase1.PerTeamKeyGeneration(0), 0, botUID, botEldestSeqno, err ///////
 		}
 		teamKeyGen = keybase1.PerTeamKeyGeneration(botTeamGen)
-		fmt.Printf(">>>>>>>>. fetched boteamgen= %+v\n", botTeamGen)
-		////// botEldestSeqno???
 	} else {
 		// get team key
 		encKey, teamKeyGen, err = b.fetchEncryptionKey(mctx, entryID, nil)
-		fmt.Printf(">>>>>>>>. fetched teamKeyGen = %+v\n", teamKeyGen)
 		if err != nil {
 			mctx.Debug("error fetching encryption key for entry %+v: %v", entryID, err)
 			return "", keybase1.PerTeamKeyGeneration(0), 0, botUID, botEldestSeqno, err
 		}
-		//botEldestSeqno = keybase1.Seqno(0) // "nil"///////////
 	}
 	uv, deviceID, _, signingKey, _ := mctx.G().ActiveDevice.AllFields()
 	signingKP, ok := signingKey.(libkb.NaclSigningKeyPair)
@@ -260,12 +255,6 @@ func (b *KVStoreRealBoxer) Box(mctx libkb.MetaContext, entryID keybase1.KVEntryI
 	}
 	var signKey [ed25519.PrivateKeySize]byte = *signingKP.Private
 
-	/*
-		botUIDData := &botUID
-		if botName == "" {
-			fmt.Printf("%T, %+v, %v \n", botUID, botUID, botUID == "")
-			botUIDData = nil
-		}*/
 	// build associated data
 	associatedData := kvStoreMetadata{
 		EntryID:           entryID,
@@ -278,7 +267,6 @@ func (b *KVStoreRealBoxer) Box(mctx libkb.MetaContext, entryID keybase1.KVEntryI
 		BotUID:            botUID,
 		BotEldestSeqno:    botEldestSeqno,
 	}
-	fmt.Printf(".....box AD = %+v\n", associatedData)
 
 	// seal it all up
 	signEncryptedBytes, err := signencrypt.SealWithAssociatedData(
@@ -361,7 +349,6 @@ func (b *KVStoreRealBoxer) Unbox(mctx libkb.MetaContext, entryID keybase1.KVEntr
 		BotUID:            botUID,
 		BotEldestSeqno:    botEldestSeqno,
 	}
-	fmt.Printf(".....unbox AD = %+v\n", associatedData)
 
 	// open it up
 	clearBytes, err := signencrypt.OpenWithAssociatedData(box.E, associatedData, &encKey, verKey, kbcrypto.SignaturePrefixTeamStore, &nonce)
