@@ -337,12 +337,13 @@ const styles = Styles.styleSheetCreate(() => ({
     width: '100%',
   },
   divider: {
-    height: Styles.globalMargins.xxtiny,
+    marginBottom: Styles.globalMargins.small,
   },
   error: {
     color: Styles.globalColors.redDark,
   },
   save: {
+    marginBottom: Styles.globalMargins.small,
     marginTop: Styles.globalMargins.tiny,
   },
   teamCheckbox: Styles.platformStyles({
