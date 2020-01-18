@@ -290,29 +290,33 @@ const showDeletedSelfRootPage = () => [
   RouteTreeGen.createNavigateAppend({path: [Tabs.loginTab]}),
 ]
 
+const showMonsterPushPrompt = () => [
+  RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
+  RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}),
+  RouteTreeGen.createNavigateAppend({
+    path: ['settingsPushPrompt'],
+  }),
+  PushGen.createShowPermissionsPrompt({
+    show: false, // disable the prompt after showing it once, this does not perma-skip
+  }),
+]
+
 const switchRouteDef = (
   state: Container.TypedState,
   action: ConfigGen.LoggedInPayload | ConfigGen.LoggedOutPayload
 ) => {
   if (state.config.loggedIn) {
-    // show the monster push prompt after provisioning.
+    // Freshly logged in, haven't just started up / signed up, without permissions
     if (
       isMobile &&
       action.type === ConfigGen.loggedIn &&
-      state.push.justProvisioned &&
+      !state.push.justSignedUp &&
       state.push.showPushPrompt &&
-      !state.push.hasPermissions
+      !state.push.hasPermissions &&
+      !action.payload.causedByStartup
     ) {
-      return [
-        RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
-        RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}),
-        RouteTreeGen.createNavigateAppend({
-          path: ['settingsPushPrompt'],
-        }),
-        PushGen.createShowPermissionsPrompt({
-          show: false, // disable the prompt after showing it once
-        }),
-      ]
+      logger.info('[ShowMonsterPushPrompt] Entered through the switchRouteDef scenario')
+      return showMonsterPushPrompt()
     }
 
     if (action.type === ConfigGen.loggedIn && !action.payload.causedByStartup) {
@@ -380,6 +384,27 @@ const stashLastRoute = (_state: Container.TypedState, action: ConfigGen.PersistR
   }
 }
 
+// Monster push prompt
+// On startup, without permissions, the asynchronous check is freshly completed,
+// we haven't just signed up.
+const onShowPermissionsPrompt = (
+  state: Container.TypedState,
+  action: PushGen.ShowPermissionsPromptPayload
+) => {
+  if (
+    !isMobile ||
+    !action.payload.show ||
+    !state.config.loggedIn ||
+    state.push.justSignedUp ||
+    state.push.hasPermissions
+  ) {
+    return
+  }
+
+  logger.info('[ShowMonsterPushPrompt] Entered through the late permissions checker scenario')
+  return showMonsterPushPrompt()
+}
+
 let routeToInitialScreenOnce = false
 const routeToInitialScreen2 = (state: Container.TypedState) => {
   // bail if we don't have a navigator and loaded
@@ -410,6 +435,12 @@ const routeToInitialScreen = (state: Container.TypedState) => {
   routeToInitialScreenOnce = true
 
   if (state.config.loggedIn) {
+    // Monster push prompt - on startup, possibly won the race with initialPermissionsCheck in push-gen
+    if (isMobile && !state.push.justSignedUp && state.push.showPushPrompt && !state.push.hasPermissions) {
+      logger.info('[ShowMonsterPushPrompt] Entered through the slow startup scenario')
+      return showMonsterPushPrompt()
+    }
+
     // A chat
     if (
       state.config.startupConversation &&
@@ -823,6 +854,8 @@ function* configSaga() {
   yield* Saga.chainAction2(ConfigGen.loadOnStart, getFollowerInfo)
 
   yield* Saga.chainAction2(ConfigGen.toggleRuntimeStats, toggleRuntimeStats)
+
+  yield* Saga.chainAction2(PushGen.showPermissionsPrompt, onShowPermissionsPrompt)
 
   // Kick off platform specific stuff
   yield Saga.spawn(PlatformSpecific.platformConfigSaga)

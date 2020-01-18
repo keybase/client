@@ -280,13 +280,22 @@ const askNativeIfSystemPushPromptHasBeenShown = () =>
 const checkPermissionsFromNative = () => new Promise(resolve => PushNotifications.checkPermissions(resolve))
 const monsterStorageKey = 'shownMonsterPushPrompt'
 
-const neverShowMonsterAgain = async (state: Container.TypedState) => {
-  if (!state.push.showPushPrompt) {
-    await RPCTypes.configGuiSetValueRpcPromise({
-      path: `ui.${monsterStorageKey}`,
-      value: {b: true, isNull: false},
-    })
+const neverShowMonsterAgain = async (
+  state: Container.TypedState,
+  action: PushGen.ShowPermissionsPromptPayload | PushGen.RejectPermissionsPayload
+) => {
+  if (state.push.showPushPrompt) {
+    return
   }
+
+  if (action.type === PushGen.showPermissionsPrompt && !action.payload.persistSkip) {
+    return
+  }
+
+  await RPCTypes.configGuiSetValueRpcPromise({
+    path: `ui.${monsterStorageKey}`,
+    value: {b: true, isNull: false},
+  })
 }
 
 function* requestPermissions() {
@@ -295,7 +304,7 @@ function* requestPermissions() {
     if (shownPushPrompt) {
       // we've already shown the prompt, take them to settings
       yield Saga.put(ConfigGen.createOpenAppSettings())
-      yield Saga.put(PushGen.createShowPermissionsPrompt({show: false}))
+      yield Saga.put(PushGen.createShowPermissionsPrompt({persistSkip: true, show: false}))
       return
     }
   }
@@ -313,7 +322,7 @@ function* requestPermissions() {
     }
   } finally {
     yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.permissionsRequestingWaitingKey}))
-    yield Saga.put(PushGen.createShowPermissionsPrompt({show: false}))
+    yield Saga.put(PushGen.createShowPermissionsPrompt({persistSkip: true, show: false}))
   }
 }
 
@@ -327,7 +336,8 @@ function* initialPermissionsCheck() {
     const shownMonsterPushPromptTask = yield Saga._fork(async () => {
       try {
         const v = await RPCTypes.configGuiGetValueRpcPromise({path: `ui.${monsterStorageKey}`})
-        return !!v.b
+        return false
+        //return !!v.b
       } catch (_) {
         return false
       }

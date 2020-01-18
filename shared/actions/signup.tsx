@@ -9,6 +9,7 @@ import * as RouteTreeGen from './route-tree-gen'
 import {RPCError} from '../util/errors'
 import * as Container from '../util/container'
 import * as SettingsGen from './settings-gen'
+import * as PushGen from './push-gen'
 
 // Helpers ///////////////////////////////////////////////////////////
 // returns true if there are no errors, we check all errors at every transition just to be extra careful
@@ -169,6 +170,12 @@ function* reallySignupOnNoErrors(state: Container.TypedState) {
   }
 
   try {
+    yield Saga.put(
+      PushGen.createShowPermissionsPrompt({
+        justSignedUp: true,
+      })
+    )
+
     yield RPCTypes.signupSignupRpcSaga({
       customResponseIncomingCallMap: {
         // Do not add a gpg key for now
@@ -201,6 +208,12 @@ function* reallySignupOnNoErrors(state: Container.TypedState) {
     yield Saga.put(SignupGen.createSignedup())
   } catch (error) {
     yield Saga.put(SignupGen.createSignedup({error}))
+    yield Saga.delay(250)
+    yield Saga.put(
+      PushGen.createShowPermissionsPrompt({
+        justSignedUp: false,
+      })
+    )
   }
 }
 

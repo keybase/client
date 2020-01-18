@@ -36,7 +36,7 @@ export type PushNotification =
 
 export type State = {
   hasPermissions: boolean
-  justProvisioned: boolean
+  justSignedUp: boolean
   showPushPrompt: boolean
   token: string
 }
