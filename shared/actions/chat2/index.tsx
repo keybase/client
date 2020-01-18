@@ -2416,7 +2416,7 @@ const ensureSelectedTeamLoaded = (
 ) => {
   const meta = state.chat2.metaMap.get(state.chat2.selectedConversation)
   return meta
-    ? action.type === Chat2Gen.selectConversation || !state.teams.teamDetails.get(meta.teamID)?.members
+    ? action.type === Chat2Gen.selectConversation || !state.teams.teamIDToMembers.get(meta.teamID)
       ? maybeLoadTeamFromMeta(meta)
       : false
     : false

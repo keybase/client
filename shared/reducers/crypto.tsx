@@ -27,6 +27,8 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
 
     if (operationGuard(operation, action)) return
 
+    draftState[operation].bytesComplete = 0
+    draftState[operation].bytesTotal = 0
     draftState[operation].inputType = 'text'
     draftState[operation].input = new HiddenString('')
     draftState[operation].output = new HiddenString('')
@@ -39,6 +41,8 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     if (operationGuard(operation, action)) return
 
     if (operation === Constants.Operations.Encrypt) {
+      draftState.encrypt.bytesComplete = 0
+      draftState.encrypt.bytesTotal = 0
       draftState.encrypt.recipients = initialState.encrypt.recipients
       draftState.encrypt.meta.hasRecipients = false
       draftState.encrypt.meta.noIncludeSelf = false
@@ -90,6 +94,13 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     draftState[operation].outputType = outputType
     draftState[operation].outputSigned = outputSigned
     draftState[operation].outputSender = outputSender
+  },
+  [CryptoGen.saltpackProgress]: (draftState, action) => {
+    const {bytesComplete, bytesTotal, operation} = action.payload
+    if (operationGuard(operation, action)) return
+
+    draftState[operation].bytesComplete = bytesComplete
+    draftState[operation].bytesTotal = bytesTotal
   },
 
   // Encrypt: Handle team building when selecting keybase users

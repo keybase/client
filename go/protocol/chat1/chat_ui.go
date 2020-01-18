@@ -31,7 +31,7 @@ func (o UIPagination) DeepCopy() UIPagination {
 }
 
 type UIInboxSmallTeamRow struct {
-	ConvID            string            `codec:"convID" json:"convID"`
+	ConvID            ConvIDStr         `codec:"convID" json:"convID"`
 	Name              string            `codec:"name" json:"name"`
 	Time              gregor1.Time      `codec:"time" json:"time"`
 	Snippet           *string           `codec:"snippet,omitempty" json:"snippet,omitempty"`
@@ -43,7 +43,7 @@ type UIInboxSmallTeamRow struct {
 
 func (o UIInboxSmallTeamRow) DeepCopy() UIInboxSmallTeamRow {
 	return UIInboxSmallTeamRow{
-		ConvID: o.ConvID,
+		ConvID: o.ConvID.DeepCopy(),
 		Name:   o.Name,
 		Time:   o.Time.DeepCopy(),
 		Snippet: (func(x *string) *string {
@@ -93,16 +93,16 @@ func (e UIInboxBigTeamRowTyp) String() string {
 }
 
 type UIInboxBigTeamChannelRow struct {
-	ConvID      string  `codec:"convID" json:"convID"`
-	Teamname    string  `codec:"teamname" json:"teamname"`
-	Channelname string  `codec:"channelname" json:"channelname"`
-	Draft       *string `codec:"draft,omitempty" json:"draft,omitempty"`
-	IsMuted     bool    `codec:"isMuted" json:"isMuted"`
+	ConvID      ConvIDStr `codec:"convID" json:"convID"`
+	Teamname    string    `codec:"teamname" json:"teamname"`
+	Channelname string    `codec:"channelname" json:"channelname"`
+	Draft       *string   `codec:"draft,omitempty" json:"draft,omitempty"`
+	IsMuted     bool      `codec:"isMuted" json:"isMuted"`
 }
 
 func (o UIInboxBigTeamChannelRow) DeepCopy() UIInboxBigTeamChannelRow {
 	return UIInboxBigTeamChannelRow{
-		ConvID:      o.ConvID,
+		ConvID:      o.ConvID.DeepCopy(),
 		Teamname:    o.Teamname,
 		Channelname: o.Channelname,
 		Draft: (func(x *string) *string {
@@ -117,14 +117,14 @@ func (o UIInboxBigTeamChannelRow) DeepCopy() UIInboxBigTeamChannelRow {
 }
 
 type UIInboxBigTeamLabelRow struct {
-	Name string `codec:"name" json:"name"`
-	Id   string `codec:"id" json:"id"`
+	Name string   `codec:"name" json:"name"`
+	Id   TLFIDStr `codec:"id" json:"id"`
 }
 
 func (o UIInboxBigTeamLabelRow) DeepCopy() UIInboxBigTeamLabelRow {
 	return UIInboxBigTeamLabelRow{
 		Name: o.Name,
-		Id:   o.Id,
+		Id:   o.Id.DeepCopy(),
 	}
 }
 
@@ -205,18 +205,18 @@ func (o UIInboxBigTeamRow) DeepCopy() UIInboxBigTeamRow {
 }
 
 type UIInboxReselectInfo struct {
-	OldConvID string  `codec:"oldConvID" json:"oldConvID"`
-	NewConvID *string `codec:"newConvID,omitempty" json:"newConvID,omitempty"`
+	OldConvID ConvIDStr  `codec:"oldConvID" json:"oldConvID"`
+	NewConvID *ConvIDStr `codec:"newConvID,omitempty" json:"newConvID,omitempty"`
 }
 
 func (o UIInboxReselectInfo) DeepCopy() UIInboxReselectInfo {
 	return UIInboxReselectInfo{
-		OldConvID: o.OldConvID,
-		NewConvID: (func(x *string) *string {
+		OldConvID: o.OldConvID.DeepCopy(),
+		NewConvID: (func(x *ConvIDStr) *ConvIDStr {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x)
+			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.NewConvID),
 	}
@@ -319,8 +319,8 @@ func (o UnverifiedInboxUIItemMetadata) DeepCopy() UnverifiedInboxUIItemMetadata 
 }
 
 type UnverifiedInboxUIItem struct {
-	ConvID          string                         `codec:"convID" json:"convID"`
-	TlfID           string                         `codec:"tlfID" json:"tlfID"`
+	ConvID          ConvIDStr                      `codec:"convID" json:"convID"`
+	TlfID           TLFIDStr                       `codec:"tlfID" json:"tlfID"`
 	TopicType       TopicType                      `codec:"topicType" json:"topicType"`
 	IsPublic        bool                           `codec:"isPublic" json:"isPublic"`
 	IsDefaultConv   bool                           `codec:"isDefaultConv" json:"isDefaultConv"`
@@ -349,8 +349,8 @@ type UnverifiedInboxUIItem struct {
 
 func (o UnverifiedInboxUIItem) DeepCopy() UnverifiedInboxUIItem {
 	return UnverifiedInboxUIItem{
-		ConvID:        o.ConvID,
-		TlfID:         o.TlfID,
+		ConvID:        o.ConvID.DeepCopy(),
+		TlfID:         o.TlfID.DeepCopy(),
 		TopicType:     o.TopicType.DeepCopy(),
 		IsPublic:      o.IsPublic,
 		IsDefaultConv: o.IsDefaultConv,
@@ -531,8 +531,8 @@ func (o UIPinnedMessage) DeepCopy() UIPinnedMessage {
 }
 
 type InboxUIItem struct {
-	ConvID            string                        `codec:"convID" json:"convID"`
-	TlfID             string                        `codec:"tlfID" json:"tlfID"`
+	ConvID            ConvIDStr                     `codec:"convID" json:"convID"`
+	TlfID             TLFIDStr                      `codec:"tlfID" json:"tlfID"`
 	TopicType         TopicType                     `codec:"topicType" json:"topicType"`
 	IsPublic          bool                          `codec:"isPublic" json:"isPublic"`
 	IsEmpty           bool                          `codec:"isEmpty" json:"isEmpty"`
@@ -573,8 +573,8 @@ type InboxUIItem struct {
 
 func (o InboxUIItem) DeepCopy() InboxUIItem {
 	return InboxUIItem{
-		ConvID:            o.ConvID,
-		TlfID:             o.TlfID,
+		ConvID:            o.ConvID.DeepCopy(),
+		TlfID:             o.TlfID.DeepCopy(),
 		TopicType:         o.TopicType.DeepCopy(),
 		IsPublic:          o.IsPublic,
 		IsEmpty:           o.IsEmpty,
@@ -760,14 +760,14 @@ func (o InboxUIItems) DeepCopy() InboxUIItems {
 }
 
 type UIChannelNameMention struct {
-	Name   string `codec:"name" json:"name"`
-	ConvID string `codec:"convID" json:"convID"`
+	Name   string    `codec:"name" json:"name"`
+	ConvID ConvIDStr `codec:"convID" json:"convID"`
 }
 
 func (o UIChannelNameMention) DeepCopy() UIChannelNameMention {
 	return UIChannelNameMention{
 		Name:   o.Name,
-		ConvID: o.ConvID,
+		ConvID: o.ConvID.DeepCopy(),
 	}
 }
 
@@ -919,7 +919,7 @@ type UIMessageValid struct {
 	RequestInfo           *UIRequestInfo         `codec:"requestInfo,omitempty" json:"requestInfo,omitempty"`
 	Unfurls               []UIMessageUnfurlInfo  `codec:"unfurls" json:"unfurls"`
 	IsCollapsed           bool                   `codec:"isCollapsed" json:"isCollapsed"`
-	FlipGameID            *string                `codec:"flipGameID,omitempty" json:"flipGameID,omitempty"`
+	FlipGameID            *FlipGameIDStr         `codec:"flipGameID,omitempty" json:"flipGameID,omitempty"`
 	IsDeleteable          bool                   `codec:"isDeleteable" json:"isDeleteable"`
 	IsEditable            bool                   `codec:"isEditable" json:"isEditable"`
 	ReplyTo               *UIMessage             `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
@@ -1032,11 +1032,11 @@ func (o UIMessageValid) DeepCopy() UIMessageValid {
 			return ret
 		})(o.Unfurls),
 		IsCollapsed: o.IsCollapsed,
-		FlipGameID: (func(x *string) *string {
+		FlipGameID: (func(x *FlipGameIDStr) *FlipGameIDStr {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x)
+			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.FlipGameID),
 		IsDeleteable: o.IsDeleteable,
@@ -1068,7 +1068,7 @@ type UIMessageOutbox struct {
 	Ctime             gregor1.Time    `codec:"ctime" json:"ctime"`
 	Ordinal           float64         `codec:"ordinal" json:"ordinal"`
 	IsEphemeral       bool            `codec:"isEphemeral" json:"isEphemeral"`
-	FlipGameID        *string         `codec:"flipGameID,omitempty" json:"flipGameID,omitempty"`
+	FlipGameID        *FlipGameIDStr  `codec:"flipGameID,omitempty" json:"flipGameID,omitempty"`
 	ReplyTo           *UIMessage      `codec:"replyTo,omitempty" json:"replyTo,omitempty"`
 	Filename          string          `codec:"filename" json:"filename"`
 	Title             string          `codec:"title" json:"title"`
@@ -1091,11 +1091,11 @@ func (o UIMessageOutbox) DeepCopy() UIMessageOutbox {
 		Ctime:       o.Ctime.DeepCopy(),
 		Ordinal:     o.Ordinal,
 		IsEphemeral: o.IsEphemeral,
-		FlipGameID: (func(x *string) *string {
+		FlipGameID: (func(x *FlipGameIDStr) *FlipGameIDStr {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x)
+			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.FlipGameID),
 		ReplyTo: (func(x *UIMessage) *UIMessage {
@@ -1363,12 +1363,12 @@ func (o UIMessages) DeepCopy() UIMessages {
 }
 
 type UITeamMention struct {
-	InTeam       bool     `codec:"inTeam" json:"inTeam"`
-	Open         bool     `codec:"open" json:"open"`
-	Description  *string  `codec:"description,omitempty" json:"description,omitempty"`
-	NumMembers   *int     `codec:"numMembers,omitempty" json:"numMembers,omitempty"`
-	PublicAdmins []string `codec:"publicAdmins" json:"publicAdmins"`
-	ConvID       *string  `codec:"convID,omitempty" json:"convID,omitempty"`
+	InTeam       bool       `codec:"inTeam" json:"inTeam"`
+	Open         bool       `codec:"open" json:"open"`
+	Description  *string    `codec:"description,omitempty" json:"description,omitempty"`
+	NumMembers   *int       `codec:"numMembers,omitempty" json:"numMembers,omitempty"`
+	PublicAdmins []string   `codec:"publicAdmins" json:"publicAdmins"`
+	ConvID       *ConvIDStr `codec:"convID,omitempty" json:"convID,omitempty"`
 }
 
 func (o UITeamMention) DeepCopy() UITeamMention {
@@ -1400,11 +1400,11 @@ func (o UITeamMention) DeepCopy() UITeamMention {
 			}
 			return ret
 		})(o.PublicAdmins),
-		ConvID: (func(x *string) *string {
+		ConvID: (func(x *ConvIDStr) *ConvIDStr {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x)
+			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.ConvID),
 	}
@@ -1882,7 +1882,7 @@ func (o UIChatThreadStatus) DeepCopy() UIChatThreadStatus {
 }
 
 type UIChatSearchConvHit struct {
-	ConvID   string       `codec:"convID" json:"convID"`
+	ConvID   ConvIDStr    `codec:"convID" json:"convID"`
 	TeamType TeamType     `codec:"teamType" json:"teamType"`
 	Name     string       `codec:"name" json:"name"`
 	Mtime    gregor1.Time `codec:"mtime" json:"mtime"`
@@ -1890,7 +1890,7 @@ type UIChatSearchConvHit struct {
 
 func (o UIChatSearchConvHit) DeepCopy() UIChatSearchConvHit {
 	return UIChatSearchConvHit{
-		ConvID:   o.ConvID,
+		ConvID:   o.ConvID.DeepCopy(),
 		TeamType: o.TeamType.DeepCopy(),
 		Name:     o.Name,
 		Mtime:    o.Mtime.DeepCopy(),
@@ -2609,7 +2609,7 @@ func (o UICoinFlipParticipant) DeepCopy() UICoinFlipParticipant {
 }
 
 type UICoinFlipStatus struct {
-	GameID                  string                  `codec:"gameID" json:"gameID"`
+	GameID                  FlipGameIDStr           `codec:"gameID" json:"gameID"`
 	Phase                   UICoinFlipPhase         `codec:"phase" json:"phase"`
 	ProgressText            string                  `codec:"progressText" json:"progressText"`
 	ResultText              string                  `codec:"resultText" json:"resultText"`
@@ -2622,7 +2622,7 @@ type UICoinFlipStatus struct {
 
 func (o UICoinFlipStatus) DeepCopy() UICoinFlipStatus {
 	return UICoinFlipStatus{
-		GameID:                  o.GameID,
+		GameID:                  o.GameID.DeepCopy(),
 		Phase:                   o.Phase.DeepCopy(),
 		ProgressText:            o.ProgressText,
 		ResultText:              o.ResultText,
@@ -2900,15 +2900,15 @@ type ChatStellarDoneArg struct {
 
 type ChatGiphySearchResultsArg struct {
 	SessionID int                `codec:"sessionID" json:"sessionID"`
-	ConvID    string             `codec:"convID" json:"convID"`
+	ConvID    ConvIDStr          `codec:"convID" json:"convID"`
 	Results   GiphySearchResults `codec:"results" json:"results"`
 }
 
 type ChatGiphyToggleResultWindowArg struct {
-	SessionID  int    `codec:"sessionID" json:"sessionID"`
-	ConvID     string `codec:"convID" json:"convID"`
-	Show       bool   `codec:"show" json:"show"`
-	ClearInput bool   `codec:"clearInput" json:"clearInput"`
+	SessionID  int       `codec:"sessionID" json:"sessionID"`
+	ConvID     ConvIDStr `codec:"convID" json:"convID"`
+	Show       bool      `codec:"show" json:"show"`
+	ClearInput bool      `codec:"clearInput" json:"clearInput"`
 }
 
 type ChatShowManageChannelsArg struct {
@@ -2923,7 +2923,7 @@ type ChatCoinFlipStatusArg struct {
 
 type ChatCommandMarkdownArg struct {
 	SessionID int                `codec:"sessionID" json:"sessionID"`
-	ConvID    string             `codec:"convID" json:"convID"`
+	ConvID    ConvIDStr          `codec:"convID" json:"convID"`
 	Md        *UICommandMarkdown `codec:"md,omitempty" json:"md,omitempty"`
 }
 
@@ -2952,7 +2952,7 @@ type ChatClearWatchArg struct {
 
 type ChatCommandStatusArg struct {
 	SessionID   int                        `codec:"sessionID" json:"sessionID"`
-	ConvID      string                     `codec:"convID" json:"convID"`
+	ConvID      ConvIDStr                  `codec:"convID" json:"convID"`
 	DisplayText string                     `codec:"displayText" json:"displayText"`
 	Typ         UICommandStatusDisplayTyp  `codec:"typ" json:"typ"`
 	Actions     []UICommandStatusActionTyp `codec:"actions" json:"actions"`
@@ -2960,7 +2960,7 @@ type ChatCommandStatusArg struct {
 
 type ChatBotCommandsUpdateStatusArg struct {
 	SessionID int                       `codec:"sessionID" json:"sessionID"`
-	ConvID    string                    `codec:"convID" json:"convID"`
+	ConvID    ConvIDStr                 `codec:"convID" json:"convID"`
 	Status    UIBotCommandsUpdateStatus `codec:"status" json:"status"`
 }
 

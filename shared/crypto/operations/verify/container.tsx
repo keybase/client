@@ -10,6 +10,8 @@ const operation = 'verify'
 
 export default Container.namedConnect(
   (state: Container.TypedState) => ({
+    bytesComplete: state.crypto.verify.bytesComplete,
+    bytesTotal: state.crypto.verify.bytesTotal,
     input: state.crypto.verify.input.stringValue(),
     inputType: state.crypto.verify.inputType,
     output: state.crypto.verify.output.stringValue(),
@@ -36,6 +38,7 @@ export default Container.namedConnect(
     outputSender: stateProps.outputSender,
     outputStatus: stateProps.outputStatus,
     outputType: stateProps.outputType,
+    progress: stateProps.bytesComplete === 0 ? 0 : stateProps.bytesComplete / stateProps.bytesTotal,
   }),
   'VerifyContainer'
 )(Verify)

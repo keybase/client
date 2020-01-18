@@ -4,7 +4,7 @@
   "types": [
     {
       "type": "enum",
-      "name": "OperationType",
+      "name": "SaltpackOperationType",
       "symbols": [
         "ENCRYPT_0",
         "DECRYPT_1",
@@ -18,7 +18,7 @@
       "request": [
         {
           "name": "opType",
-          "type": "OperationType"
+          "type": "SaltpackOperationType"
         },
         {
           "name": "filename",
@@ -32,7 +32,7 @@
       "request": [
         {
           "name": "opType",
-          "type": "OperationType"
+          "type": "SaltpackOperationType"
         },
         {
           "name": "filename",
@@ -54,7 +54,7 @@
       "request": [
         {
           "name": "opType",
-          "type": "OperationType"
+          "type": "SaltpackOperationType"
         },
         {
           "name": "filename",

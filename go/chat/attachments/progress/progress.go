@@ -14,11 +14,16 @@ type ProgressWriter struct {
 	total          int64
 	lastReport     int64
 	lastReportTime time.Time
+	updateDuration time.Duration
 	progress       types.ProgressReporter
 }
 
 func NewProgressWriter(p types.ProgressReporter, size int64) *ProgressWriter {
-	pw := &ProgressWriter{progress: p, total: size}
+	return NewProgressWriterWithUpdateDuration(p, size, durationBetweenUpdates)
+}
+
+func NewProgressWriterWithUpdateDuration(p types.ProgressReporter, size int64, ud time.Duration) *ProgressWriter {
+	pw := &ProgressWriter{progress: p, total: size, updateDuration: ud}
 	pw.initialReport()
 	return pw
 }
@@ -41,7 +46,7 @@ func (p *ProgressWriter) report() {
 		return
 	}
 	now := time.Now()
-	if now.Sub(p.lastReportTime) < durationBetweenUpdates {
+	if now.Sub(p.lastReportTime) < p.updateDuration {
 		return
 	}
 

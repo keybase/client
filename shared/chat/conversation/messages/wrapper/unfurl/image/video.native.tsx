@@ -45,6 +45,7 @@ export class Video extends React.Component<Props, State> {
           style={Styles.collapseStyles([styles.player, this.props.style])}
           repeat={true}
           paused={!this.state.playingVideo}
+          muted={true}
         />
         <Kb.Box
           style={Styles.collapseStyles([

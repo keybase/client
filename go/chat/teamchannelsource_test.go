@@ -53,12 +53,12 @@ func TestTeamChannelSource(t *testing.T) {
 		}
 
 		// Verify all public functions of the team channel source return the expected results.
-		assertTeamChannelSource := func(g *globals.Context, uid gregor1.UID, expectedResults map[string]expectedResult) {
+		assertTeamChannelSource := func(g *globals.Context, uid gregor1.UID, expectedResults map[chat1.ConvIDStr]expectedResult) {
 			convs, err := g.TeamChannelSource.GetChannelsFull(ctx, uid, tlfID, chat1.TopicType_CHAT)
 			require.NoError(t, err)
 			require.Equal(t, len(expectedResults), len(convs))
 			for _, conv := range convs {
-				expected, ok := expectedResults[conv.GetConvID().String()]
+				expected, ok := expectedResults[conv.GetConvID().ConvIDStr()]
 				require.True(t, ok)
 				require.Equal(t, expected.ConvID, conv.GetConvID())
 				require.Equal(t, expected.Existence, conv.Info.Existence)
@@ -69,7 +69,7 @@ func TestTeamChannelSource(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, len(expectedResults), len(mentions))
 			for _, mention := range mentions {
-				expected, ok := expectedResults[mention.ConvID.String()]
+				expected, ok := expectedResults[mention.ConvID.ConvIDStr()]
 				require.True(t, ok)
 				require.Equal(t, expected.ConvID, mention.ConvID)
 				require.Equal(t, expected.TopicName, mention.TopicName)
@@ -97,8 +97,8 @@ func TestTeamChannelSource(t *testing.T) {
 			TopicName:    "general",
 		}
 		// Both members can see the #general channel and are ACTIVE
-		expectedResults1 := map[string]expectedResult{conv.Id.String(): generalChannel}
-		expectedResults2 := map[string]expectedResult{conv.Id.String(): generalChannel}
+		expectedResults1 := map[chat1.ConvIDStr]expectedResult{conv.Id.ConvIDStr(): generalChannel}
+		expectedResults2 := map[chat1.ConvIDStr]expectedResult{conv.Id.ConvIDStr(): generalChannel}
 		assertTeamChannelSource(g1, uid1, expectedResults1)
 		assertTeamChannelSource(g2, uid2, expectedResults2)
 
@@ -129,7 +129,7 @@ func TestTeamChannelSource(t *testing.T) {
 			MemberStatus: chat1.ConversationMemberStatus_ACTIVE,
 			TopicName:    topicName,
 		}
-		expectedResults1[channelConvID.String()] = channel1User1
+		expectedResults1[channelConvID.ConvIDStr()] = channel1User1
 
 		channel1User2 := expectedResult{
 			ConvID:       channelConvID,
@@ -137,7 +137,7 @@ func TestTeamChannelSource(t *testing.T) {
 			MemberStatus: chat1.ConversationMemberStatus_NEVER_JOINED,
 			TopicName:    topicName,
 		}
-		expectedResults2[channelConvID.String()] = channel1User2
+		expectedResults2[channelConvID.ConvIDStr()] = channel1User2
 		assertTeamChannelSource(g1, uid1, expectedResults1)
 		assertTeamChannelSource(g2, uid2, expectedResults2)
 
@@ -157,13 +157,13 @@ func TestTeamChannelSource(t *testing.T) {
 
 		channel1User1.TopicName = topicName
 		channel1User2.TopicName = topicName
-		expectedResults1[channelConvID.String()] = channel1User1
-		expectedResults2[channelConvID.String()] = channel1User2
+		expectedResults1[channelConvID.ConvIDStr()] = channel1User1
+		expectedResults2[channelConvID.ConvIDStr()] = channel1User2
 		assertTeamChannelSource(g1, uid1, expectedResults1)
 		assertTeamChannelSource(g2, uid2, expectedResults2)
 
 		channel1User2.MemberStatus = chat1.ConversationMemberStatus_ACTIVE
-		expectedResults2[channelConvID.String()] = channel1User2
+		expectedResults2[channelConvID.ConvIDStr()] = channel1User2
 		_, err = ctc.as(t, users[1]).chatLocalHandler().JoinConversationLocal(ctx1, chat1.JoinConversationLocalArg{
 			TlfName:    conv.TlfName,
 			TopicType:  chat1.TopicType_CHAT,
@@ -183,8 +183,8 @@ func TestTeamChannelSource(t *testing.T) {
 		require.NoError(t, err)
 		consumeLeaveConv(t, listener1)
 		consumeTeamType(t, listener1)
-		delete(expectedResults1, channelConvID.String())
-		delete(expectedResults2, channelConvID.String())
+		delete(expectedResults1, channelConvID.ConvIDStr())
+		delete(expectedResults2, channelConvID.ConvIDStr())
 		assertTeamChannelSource(g1, uid1, expectedResults1)
 		assertTeamChannelSource(g2, uid2, expectedResults2)
 

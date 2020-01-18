@@ -26,14 +26,14 @@ type UIThreadLoader struct {
 	sync.Mutex
 
 	clock          clockwork.Clock
-	convPageStatus map[string]chat1.Pagination
+	convPageStatus map[chat1.ConvIDStr]chat1.Pagination
 	validatedDelay time.Duration
 	offlineMu      sync.Mutex
 	offline        bool
 	connectedCh    chan struct{}
 
 	activeConvLoadsMu sync.Mutex
-	activeConvLoads   map[string]context.CancelFunc
+	activeConvLoads   map[chat1.ConvIDStr]context.CancelFunc
 
 	// testing
 	cachedThreadDelay  *time.Duration
@@ -47,11 +47,11 @@ func NewUIThreadLoader(g *globals.Context) *UIThreadLoader {
 		offline:           false,
 		Contextified:      globals.NewContextified(g),
 		DebugLabeler:      utils.NewDebugLabeler(g.GetLog(), "UIThreadLoader", false),
-		convPageStatus:    make(map[string]chat1.Pagination),
+		convPageStatus:    make(map[chat1.ConvIDStr]chat1.Pagination),
 		clock:             clockwork.NewRealClock(),
 		validatedDelay:    100 * time.Millisecond,
 		cachedThreadDelay: &cacheDelay,
-		activeConvLoads:   make(map[string]context.CancelFunc),
+		activeConvLoads:   make(map[chat1.ConvIDStr]context.CancelFunc),
 		connectedCh:       make(chan struct{}),
 	}
 }
@@ -325,7 +325,7 @@ func (t *UIThreadLoader) applyPagerModeIncoming(ctx context.Context, convID chat
 		if pagination == nil {
 			return nil
 		}
-		oldStored := t.convPageStatus[convID.String()]
+		oldStored := t.convPageStatus[convID.ConvIDStr()]
 		if len(pagination.Next) > 0 {
 			return &chat1.Pagination{
 				Num:  pagination.Num,
@@ -353,9 +353,9 @@ func (t *UIThreadLoader) applyPagerModeOutgoing(ctx context.Context, convID chat
 		}
 		if incoming.FirstPage() {
 			t.Debug(ctx, "applyPagerModeOutgoing: resetting pagination: convID: %s p: %s", convID, pagination)
-			t.convPageStatus[convID.String()] = *pagination
+			t.convPageStatus[convID.ConvIDStr()] = *pagination
 		} else {
-			oldStored := t.convPageStatus[convID.String()]
+			oldStored := t.convPageStatus[convID.ConvIDStr()]
 			if len(incoming.Next) > 0 {
 				oldStored.Next = pagination.Next
 				t.Debug(ctx, "applyPagerModeOutgoing: setting next pagination: convID: %s p: %s", convID,
@@ -366,7 +366,7 @@ func (t *UIThreadLoader) applyPagerModeOutgoing(ctx context.Context, convID chat
 				oldStored.Previous = pagination.Previous
 			}
 			oldStored.Last = pagination.Last
-			t.convPageStatus[convID.String()] = oldStored
+			t.convPageStatus[convID.ConvIDStr()] = oldStored
 		}
 	default:
 		// Nothing to do for other modes.
@@ -560,7 +560,7 @@ func (t *UIThreadLoader) shouldIgnoreError(err error) bool {
 func (t *UIThreadLoader) singleFlightConv(ctx context.Context, convID chat1.ConversationID) (context.Context, context.CancelFunc) {
 	t.activeConvLoadsMu.Lock()
 	defer t.activeConvLoadsMu.Unlock()
-	convIDStr := convID.String()
+	convIDStr := convID.ConvIDStr()
 	if cancel, ok := t.activeConvLoads[convIDStr]; ok {
 		cancel()
 	}

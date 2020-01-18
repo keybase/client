@@ -1,6 +1,7 @@
 import * as Saga from '../util/saga'
 import * as Types from '../constants/types/crypto'
 import * as Constants from '../constants/crypto'
+import * as EngineGen from './engine-gen-gen'
 import * as TeamBuildingGen from './team-building-gen'
 import * as CryptoGen from './crypto-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -409,6 +410,26 @@ const saltpackVerify = async (action: CryptoGen.SaltpackVerifyPayload, logger: S
   }
 }
 
+const saltpackStart = (action: EngineGen.Keybase1NotifySaltpackSaltpackOperationStartPayload) =>
+  CryptoGen.createSaltpackStart({
+    filename: new HiddenString(action.payload.params.filename),
+    operation: RPCTypes.SaltpackOperationType[action.payload.params.opType] as Types.Operations,
+  })
+
+const saltpackProgress = (action: EngineGen.Keybase1NotifySaltpackSaltpackOperationProgressPayload) =>
+  CryptoGen.createSaltpackProgress({
+    bytesComplete: action.payload.params.bytesComplete,
+    bytesTotal: action.payload.params.bytesTotal,
+    filename: new HiddenString(action.payload.params.filename),
+    operation: RPCTypes.SaltpackOperationType[action.payload.params.opType] as Types.Operations,
+  })
+
+const saltpackDone = (action: EngineGen.Keybase1NotifySaltpackSaltpackOperationDonePayload) =>
+  CryptoGen.createSaltpackDone({
+    filename: new HiddenString(action.payload.params.filename),
+    operation: RPCTypes.SaltpackOperationType[action.payload.params.opType] as Types.Operations,
+  })
+
 function* cryptoSaga() {
   yield* Saga.chainAction2(
     [CryptoGen.setInput, CryptoGen.setRecipients, CryptoGen.setEncryptOptions],
@@ -418,6 +439,9 @@ function* cryptoSaga() {
   yield* Saga.chainAction(CryptoGen.saltpackDecrypt, saltpackDecrypt)
   yield* Saga.chainAction2(CryptoGen.saltpackSign, saltpackSign)
   yield* Saga.chainAction(CryptoGen.saltpackVerify, saltpackVerify)
+  yield* Saga.chainAction(EngineGen.keybase1NotifySaltpackSaltpackOperationStart, saltpackStart)
+  yield* Saga.chainAction(EngineGen.keybase1NotifySaltpackSaltpackOperationProgress, saltpackProgress)
+  yield* Saga.chainAction(EngineGen.keybase1NotifySaltpackSaltpackOperationDone, saltpackDone)
   yield* teamBuildingSaga()
 }
 
