@@ -530,8 +530,6 @@ protocol SimpleFS {
   record FSSettings {
     int64 spaceAvailableNotificationThreshold;
     @lint("ignore")
-    Time macOSFuseExtAcceptedClosedSource;
-    @lint("ignore")
     boolean sfmiBannerDismissed;
   }
 
@@ -539,8 +537,6 @@ protocol SimpleFS {
   FSSettings simpleFSSettings();
 
   void simpleFSSetNotificationThreshold(int64 threshold);
-  @lint("ignore")
-  void simpleFSAcceptMacOSFuseExtClosedSource();
   @lint("ignore")
   void simpleFSSetSfmiBannerDismissed(boolean dismissed);
 

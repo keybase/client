@@ -762,11 +762,6 @@
           "name": "spaceAvailableNotificationThreshold"
         },
         {
-          "type": "Time",
-          "name": "macOSFuseExtAcceptedClosedSource",
-          "lint": "ignore"
-        },
-        {
           "type": "boolean",
           "name": "sfmiBannerDismissed",
           "lint": "ignore"
@@ -1457,11 +1452,6 @@
         }
       ],
       "response": null
-    },
-    "simpleFSAcceptMacOSFuseExtClosedSource": {
-      "request": [],
-      "response": null,
-      "lint": "ignore"
     },
     "simpleFSSetSfmiBannerDismissed": {
       "request": [

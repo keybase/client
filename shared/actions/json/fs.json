@@ -91,9 +91,6 @@
     "setDriverStatus": {
       "driverStatus": "Types.DriverStatus"
     },
-    "acceptMacOSFuseExtClosedSource": {
-      "dismiss?": "boolean"
-    },
     "setSfmiBannerDismissed": {"dismissed": "boolean"},
     "driverEnable": {
       "isRetry?": "boolean | null"

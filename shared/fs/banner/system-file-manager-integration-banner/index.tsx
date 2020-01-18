@@ -7,8 +7,6 @@ import * as Flow from '../../../util/flow'
 import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
 import * as FsGen from '../../../actions/fs-gen'
-import * as Platform from '../../../constants/platform'
-import * as Waiting from '../../../constants/waiting'
 import * as Kbfs from '../../common'
 
 /*
@@ -23,8 +21,6 @@ type Props = {
   alwaysShow?: boolean | null
   driverStatus: Types.DriverStatus
   settings: Types.Settings
-  onAcknowledge: () => void
-  onAcknowledgeAndDismiss: () => void
   onDisable: () => void
   onDismiss: () => void
   onEnable: () => void
@@ -101,13 +97,7 @@ const Banner = (props: BannerProps) => (
       type={props.okIcon ? 'icon-fancy-finder-enabled-132-96' : 'icon-fancy-finder-132-96'}
       style={styles.fancyIcon}
     />
-    <Kb.Box2
-      direction="vertical"
-      gap="small"
-      fullHeight={true}
-      style={styles.bodyContainer}
-      centerChildren={true}
-    >
+    <Kb.Box2 direction="vertical" gap="small" fullHeight={true} style={styles.bodyContainer}>
       <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
         <Kb.Text type="Header" style={backgroundToTextStyle(props.background)}>
           {props.title}
@@ -190,35 +180,6 @@ const DokanOutdated = (props: Props) => {
   )
 }
 
-const FuseNotOpenSourceWarningWhenAlreadyEnabled = (props: Props) => {
-  const ackWaiting = Container.useSelector(state =>
-    Waiting.anyWaiting(state, Constants.acceptMacOSFuseExtClosedSourceWaitingKey)
-  )
-
-  if (props.driverStatus.type !== Types.DriverStatusType.Enabled) {
-    return <ThisShouldNotHappen />
-  }
-
-  return (
-    <Banner
-      background={Background.Yellow}
-      okIcon={false}
-      title="Note: FUSE for macOS is not opensource"
-      body={`Keybase in ${fileUIName} is supported by a third-party software called FUSE for macOS (osxfuse). This software is not opensource anymore. Please acknowledge that you are OK with it, or disable ${fileUIName} integration.`}
-      button={{
-        action: props.onAcknowledgeAndDismiss,
-        buttonText: "I'm OK with it",
-        inProgress: ackWaiting,
-      }}
-      buttonSecondary={{
-        action: props.onDisable,
-        buttonText: `Disable ${fileUIName} integration`,
-        inProgress: props.driverStatus.isDisabling,
-      }}
-    />
-  )
-}
-
 type JustEnabledProps = {onDismiss: null | (() => void)}
 const JustEnabled = ({onDismiss}: JustEnabledProps) => {
   const preferredMountDirs = Container.useSelector(state => state.fs.sfmi.preferredMountDirs)
@@ -262,9 +223,6 @@ const Enabled = (props: Props) => {
       <Banner background={Background.Blue} okIcon={false} title={`Disabling Keybase in ${fileUIName} ...`} />
     )
   }
-  if (Platform.isDarwin && !props.settings.macOSFuseExtAcceptedClosedSource) {
-    return <FuseNotOpenSourceWarningWhenAlreadyEnabled {...props} />
-  }
   if (props.alwaysShow || props.driverStatus.isNew) {
     return <JustEnabled onDismiss={props.alwaysShow ? null : props.onDismiss} />
   }
@@ -272,8 +230,11 @@ const Enabled = (props: Props) => {
 }
 
 const Disabled = (props: Props) => {
-  const [agreed, setAgreed] = React.useState<boolean>(false)
-
+  const {canContinue, component} = Kbfs.useFuseClosedSourceConsent(
+    props.driverStatus.type === Types.DriverStatusType.Disabled && props.driverStatus.isEnabling,
+    Styles.globalColors.blue,
+    backgroundToTextStyle(Background.Blue)
+  )
   if (props.driverStatus.type !== Types.DriverStatusType.Disabled) {
     return <ThisShouldNotHappen />
   }
@@ -284,36 +245,11 @@ const Disabled = (props: Props) => {
       okIcon={false}
       title={`Enable Keybase in ${fileUIName}?`}
       body="Get access to your files and folders just like you normally do with your local files. It's encrypted and secure."
-      bodyExtraComponent={
-        Platform.isDarwin ? (
-          <Kb.Switch
-            style={styles.agree}
-            color="red"
-            disabled={props.driverStatus.isEnabling}
-            on={agreed}
-            onClick={() => setAgreed(a => !a)}
-            gapSize={Styles.globalMargins.small}
-            label={
-              <Kb.Text
-                type="BodySmall"
-                style={backgroundToTextStyle(Background.Blue)}
-                onClick={() => setAgreed(a => !a)}
-              >
-                {`I understand Fuse for macOS (osxfuse) will be installed, and that Fuse for macOS is not opensource software.`}
-              </Kb.Text>
-            }
-          />
-        ) : (
-          undefined
-        )
-      }
+      bodyExtraComponent={component}
       button={{
-        action: () => {
-          props.onAcknowledge()
-          props.onEnable()
-        },
+        action: props.onEnable,
         buttonText: 'Yes, enable',
-        disabled: Platform.isDarwin && !agreed,
+        disabled: !canContinue,
         inProgress: props.driverStatus.isEnabling,
       }}
       onDismiss={props.alwaysShow ? null : props.onDismiss}
@@ -346,7 +282,6 @@ export default (props: Props) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      agree: {},
       bodyContainer: {
         maxWidth: Styles.globalMargins.large * 14 + Styles.globalMargins.mediumLarge * 2,
         padding: Styles.globalMargins.mediumLarge,

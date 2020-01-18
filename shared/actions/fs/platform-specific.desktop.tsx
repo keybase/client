@@ -8,7 +8,7 @@ import * as SafeElectron from '../../util/safe-electron.desktop'
 import * as Tabs from '../../constants/tabs'
 import fs from 'fs'
 import {TypedState, TypedActions} from '../../util/container'
-import {fileUIName, isWindows, isDarwin, isLinux} from '../../constants/platform'
+import {fileUIName, isWindows, isLinux} from '../../constants/platform'
 import logger from '../../logger'
 import {spawn, execFile, exec} from 'child_process'
 import path from 'path'
@@ -406,19 +406,9 @@ const refreshMountDirs = async (
 
 export const ensureDownloadPermissionPromise = () => Promise.resolve()
 
-const acceptMacOSFuseExtClosedSource = () =>
-  RPCTypes.SimpleFSSimpleFSAcceptMacOSFuseExtClosedSourceRpcPromise(
-    undefined,
-    Constants.acceptMacOSFuseExtClosedSourceWaitingKey
-  )
-
 const setSfmiBannerDismissed = (
   _: TypedState,
-  action:
-    | FsGen.SetSfmiBannerDismissedPayload
-    | FsGen.DriverEnablePayload
-    | FsGen.DriverDisablePayload
-    | FsGen.AcceptMacOSFuseExtClosedSourcePayload
+  action: FsGen.SetSfmiBannerDismissedPayload | FsGen.DriverEnablePayload | FsGen.DriverDisablePayload
 ) => {
   switch (action.type) {
     case FsGen.setSfmiBannerDismissed:
@@ -426,10 +416,6 @@ const setSfmiBannerDismissed = (
     case FsGen.driverEnable:
     case FsGen.driverDisable:
       return RPCTypes.SimpleFSSimpleFSSetSfmiBannerDismissedRpcPromise({dismissed: false})
-    case FsGen.acceptMacOSFuseExtClosedSource:
-      return (
-        action.payload.dismiss && RPCTypes.SimpleFSSimpleFSSetSfmiBannerDismissedRpcPromise({dismissed: true})
-      )
   }
 }
 
@@ -461,16 +447,8 @@ function* platformSpecificSaga() {
   yield* Saga.chainAction2(FsGen.openSecurityPreferences, openSecurityPreferences)
   yield* Saga.chainAction2(FsGen.openSecurityPreferences, openSecurityPreferences)
   yield* Saga.chainAction2(ConfigGen.changedFocus, changedFocus)
-  if (isDarwin) {
-    yield* Saga.chainAction2([FsGen.acceptMacOSFuseExtClosedSource], acceptMacOSFuseExtClosedSource)
-  }
   yield* Saga.chainAction2(
-    [
-      FsGen.setSfmiBannerDismissed,
-      FsGen.driverEnable,
-      FsGen.driverDisable,
-      FsGen.acceptMacOSFuseExtClosedSource,
-    ],
+    [FsGen.setSfmiBannerDismissed, FsGen.driverEnable, FsGen.driverDisable],
     setSfmiBannerDismissed
   )
 }

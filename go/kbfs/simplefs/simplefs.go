@@ -3171,21 +3171,3 @@ func (k *SimpleFS) SimpleFSSetSfmiBannerDismissed(
 	k.config.SubscriptionManagerPublisher().PublishChange(keybase1.SubscriptionTopic_SETTINGS)
 	return nil
 }
-
-// SimpleFSAcceptMacOSFuseExtClosedSource implements the SimpleFSInterface.
-func (k *SimpleFS) SimpleFSAcceptMacOSFuseExtClosedSource(
-	ctx context.Context) (err error) {
-	defer func() {
-		k.log.CDebugf(ctx,
-			"SimpleFSAcceptMacOSFuseExtClosedSource err=%+v", err)
-	}()
-	db := k.config.GetSettingsDB()
-	if db == nil {
-		return libkbfs.ErrNoSettingsDB
-	}
-	if err = db.AcceptMacOSFuseExtClosedSource(ctx); err != nil {
-		return err
-	}
-	k.config.SubscriptionManagerPublisher().PublishChange(keybase1.SubscriptionTopic_SETTINGS)
-	return nil
-}

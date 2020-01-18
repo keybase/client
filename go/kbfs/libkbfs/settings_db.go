@@ -4,7 +4,6 @@ import (
 	"os"
 	"path"
 	"strconv"
-	"time"
 
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/ldbutils"
@@ -24,8 +23,7 @@ const (
 	// Settings keys
 	spaceAvailableNotificationThresholdKey = "spaceAvailableNotificationThreshold"
 
-	macOSFuseExtAcceptedClosedSourceKey = "macOSFuseExtAcceptedClosedSource"
-	sfmiBannerDismissedKey              = "sfmiBannerDismissed"
+	sfmiBannerDismissedKey = "sfmiBannerDismissed"
 )
 
 // ErrNoSettingsDB is returned when there is no settings DB potentially due to
@@ -138,14 +136,6 @@ func (db *SettingsDB) Settings(ctx context.Context) (keybase1.FSSettings, error)
 			strconv.ParseInt(string(notificationThresholdBytes), 10, 64)
 	}
 
-	var macOSFuseExtAcceptedClosedSource time.Time
-	macOSFuseExtAcceptedClosedSourceBytes, err :=
-		db.Get(getSettingsDbKey(uid, macOSFuseExtAcceptedClosedSourceKey), nil)
-	if err == nil {
-		macOSFuseExtAcceptedClosedSource, _ =
-			time.Parse(string(macOSFuseExtAcceptedClosedSourceBytes), time.RFC3339)
-	}
-
 	var sfmiBannerDismissed bool
 	sfmiBannerDismissedBytes, err :=
 		db.Get(getSettingsDbKey(uid, sfmiBannerDismissedKey), nil)
@@ -157,7 +147,6 @@ func (db *SettingsDB) Settings(ctx context.Context) (keybase1.FSSettings, error)
 	// If we have an error we just pretend there's an empty setting.
 	return keybase1.FSSettings{
 		SpaceAvailableNotificationThreshold: notificationThreshold,
-		MacOSFuseExtAcceptedClosedSource:    keybase1.ToTime(macOSFuseExtAcceptedClosedSource),
 		SfmiBannerDismissed:                 sfmiBannerDismissed,
 	}, nil
 }
@@ -172,16 +161,6 @@ func (db *SettingsDB) SetNotificationThreshold(
 	}
 	return db.Put(getSettingsDbKey(uid, spaceAvailableNotificationThresholdKey),
 		[]byte(strconv.FormatInt(threshold, 10)), nil)
-}
-
-func (db *SettingsDB) AcceptMacOSFuseExtClosedSource(
-	ctx context.Context) error {
-	uid := db.getUID(ctx)
-	if uid == keybase1.UID("") {
-		return errNoSession
-	}
-	return db.Put(getSettingsDbKey(uid, macOSFuseExtAcceptedClosedSourceKey),
-		[]byte(time.Now().Format(time.RFC3339)), nil)
 }
 
 func (db *SettingsDB) SetSfmiBannerDismissed(

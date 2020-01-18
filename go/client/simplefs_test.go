@@ -380,11 +380,6 @@ func (s SimpleFSMock) SimpleFSSetSfmiBannerDismissed(ctx context.Context, dismis
 	return nil
 }
 
-// SimpleFSAcceptMacOSFuseExtClosedSource implements the SimpleFSInterface.
-func (s SimpleFSMock) SimpleFSAcceptMacOSFuseExtClosedSource(ctx context.Context) error {
-	return nil
-}
-
 /*
  file source cases:
  1. file

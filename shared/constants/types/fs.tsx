@@ -477,7 +477,6 @@ export type DriverStatusUnknown = Readonly<{
 export type DriverStatusDisabled = Readonly<{
   type: DriverStatusType.Disabled
   isEnabling: boolean
-  isDismissed: boolean
   // macOS only
   kextPermissionError: boolean
 }>
@@ -549,7 +548,6 @@ export type SoftErrors = Readonly<{
 
 export type Settings = Readonly<{
   spaceAvailableNotificationThreshold: number
-  macOSFuseExtAcceptedClosedSource: boolean
   sfmiBannerDismissed: boolean
   isLoading: boolean
   loaded: boolean

@@ -18,13 +18,11 @@ const resetBannerCommon = {
 const commonSystemFileManagerIntegrationBannerSettings = {
   isLoading: false,
   loaded: true,
-  macOSFuseExtAcceptedClosedSource: true,
   sfmiBannerDismissed: false,
   spaceAvailableNotificationThreshold: 0,
 }
 
 const commonSystemFileManagerIntegrationBannerProps = {
-  onAcknowledge: Sb.action('onAcknowledge'),
   onDisable: Sb.action('onDisable'),
   onDismiss: Sb.action('onDismiss'),
   onEnable: Sb.action('onEnable'),
@@ -97,16 +95,6 @@ export default () => {
       <SystemFileManagerIntegrationBanner
         {...commonSystemFileManagerIntegrationBannerProps}
         driverStatus={{...Constants.emptyDriverStatusEnabled, isNew: true}}
-      />
-    ))
-    .add('SystemFileManagerIntegrationBanner - enabled, not agreed', () => (
-      <SystemFileManagerIntegrationBanner
-        {...commonSystemFileManagerIntegrationBannerProps}
-        driverStatus={{...Constants.emptyDriverStatusEnabled, isNew: true}}
-        settings={{
-          ...commonSystemFileManagerIntegrationBannerSettings,
-          macOSFuseExtAcceptedClosedSource: false,
-        }}
       />
     ))
     .add('SystemFileManagerIntegrationBanner - enabled, disabling', () => (

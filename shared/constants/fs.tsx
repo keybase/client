@@ -226,7 +226,6 @@ export const emptyDriverStatusEnabled: Types.DriverStatusEnabled = {
 } as const
 
 export const emptyDriverStatusDisabled: Types.DriverStatusDisabled = {
-  isDismissed: false,
   isEnabling: false,
   kextPermissionError: false,
   type: Types.DriverStatusType.Disabled,
@@ -244,7 +243,6 @@ export const unknownKbfsDaemonStatus: Types.KbfsDaemonStatus = {
 export const emptySettings: Types.Settings = {
   isLoading: false,
   loaded: false,
-  macOSFuseExtAcceptedClosedSource: false,
   sfmiBannerDismissed: false,
   spaceAvailableNotificationThreshold: 0,
 }

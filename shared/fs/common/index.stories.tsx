@@ -459,18 +459,7 @@ const load = () => {
     ))
     .add('OpenInSystemFileManager', () => (
       <Kb.Box2 direction="vertical" gap="small">
-        <Kb.Text type="Body">disabled</Kb.Text>
-        <OpenInSystemFileManager
-          driverEnabled={false}
-          openInSystemFileManager={Sb.action('openInSystemFileManager')}
-          enableDriver={Sb.action('enableDriver')}
-        />
-        <Kb.Text type="Body">enabled</Kb.Text>
-        <OpenInSystemFileManager
-          driverEnabled={true}
-          openInSystemFileManager={Sb.action('openInSystemFileManager')}
-          enableDriver={Sb.action('enableDriver')}
-        />
+        <OpenInSystemFileManager path={Types.stringToPath('/keybase')} />
       </Kb.Box2>
     ))
     .add('Sync Status', () => (

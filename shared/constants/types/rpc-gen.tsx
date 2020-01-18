@@ -243,10 +243,6 @@ export type MessageTypes = {
     inParam: {readonly uid: UID}
     outParam: void
   }
-  'keybase.1.SimpleFS.simpleFSAcceptMacOSFuseExtClosedSource': {
-    inParam: void
-    outParam: void
-  }
   'keybase.1.SimpleFS.simpleFSCancel': {
     inParam: {readonly opID: OpID}
     outParam: void
@@ -2703,7 +2699,7 @@ export type FSFolderWriterEdit = {readonly filename: String; readonly notificati
 export type FSFolderWriterEditHistory = {readonly writerName: String; readonly edits?: Array<FSFolderWriterEdit> | null; readonly deletes?: Array<FSFolderWriterEdit> | null}
 export type FSNotification = {readonly filename: String; readonly status: String; readonly statusCode: FSStatusCode; readonly notificationType: FSNotificationType; readonly errorType: FSErrorType; readonly params: {[key: string]: String}; readonly writerUid: UID; readonly localTime: Time; readonly folderType: FolderType}
 export type FSPathSyncStatus = {readonly folderType: FolderType; readonly path: String; readonly syncingBytes: Int64; readonly syncingOps: Int64; readonly syncedBytes: Int64}
-export type FSSettings = {readonly spaceAvailableNotificationThreshold: Int64; readonly macOSFuseExtAcceptedClosedSource: Time; readonly sfmiBannerDismissed: Boolean}
+export type FSSettings = {readonly spaceAvailableNotificationThreshold: Int64; readonly sfmiBannerDismissed: Boolean}
 export type FSSyncStatus = {readonly totalSyncingBytes: Int64; readonly syncingPaths?: Array<String> | null; readonly endEstimate?: Time | null}
 export type FSSyncStatusRequest = {readonly requestID: Int}
 export type FastTeamData = {readonly frozen: Boolean; readonly subversion: Int; readonly tombstoned: Boolean; readonly name: TeamName; readonly chain: FastTeamSigChainState; readonly perTeamKeySeeds: /* perTeamKeySeedsUnverified */ {[key: string]: PerTeamKeySeed}; readonly maxContinuousPTKGeneration: PerTeamKeyGeneration; readonly seedChecks: {[key: string]: PerTeamSeedCheck}; readonly latestKeyGeneration: PerTeamKeyGeneration; readonly readerKeyMasks: {[key: string]: {[key: string]: MaskB64}}; readonly latestSeqnoHint: Seqno; readonly cachedAt: Time; readonly loadedLatest: Boolean}
@@ -3422,7 +3418,6 @@ export type CustomResponseIncomingCallMap = {
   'keybase.1.teamsUi.confirmSubteamDelete'?: (params: MessageTypes['keybase.1.teamsUi.confirmSubteamDelete']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.teamsUi.confirmSubteamDelete']['outParam']) => void}) => IncomingReturn
   'keybase.1.ui.promptYesNo'?: (params: MessageTypes['keybase.1.ui.promptYesNo']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.ui.promptYesNo']['outParam']) => void}) => IncomingReturn
 }
-export const SimpleFSSimpleFSAcceptMacOSFuseExtClosedSourceRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSAcceptMacOSFuseExtClosedSource']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSAcceptMacOSFuseExtClosedSource']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSAcceptMacOSFuseExtClosedSource', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSCancelDownloadRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSCancelDownload']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSCancelDownload']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSCancelDownload', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSCancelRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSCancel']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSCancel']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSCancel', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSCheckReachabilityRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSCheckReachability']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSCheckReachability']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSCheckReachability', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))

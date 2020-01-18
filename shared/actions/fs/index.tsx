@@ -227,7 +227,6 @@ const loadSettings = async () => {
       settings: {
         ...Constants.emptySettings,
         loaded: true,
-        macOSFuseExtAcceptedClosedSource: !!settings.macOSFuseExtAcceptedClosedSource,
         sfmiBannerDismissed: settings.sfmiBannerDismissed,
         spaceAvailableNotificationThreshold: settings.spaceAvailableNotificationThreshold,
       },
