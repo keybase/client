@@ -549,13 +549,7 @@ class Input extends React.Component<InputProps, InputState> {
           ])}
         >
           <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
-            <Kb.Text
-              type="BodySemibold"
-              style={Styles.collapseStyles([
-                styles.boldStyle,
-                !enabled ? {color: Styles.globalColors.redDark} : undefined,
-              ])}
-            >
+            <Kb.Text type="BodySemibold" style={styles.boldStyle}>
               {prefix}
               {command.name}
             </Kb.Text>
