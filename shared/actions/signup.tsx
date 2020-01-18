@@ -208,7 +208,6 @@ function* reallySignupOnNoErrors(state: Container.TypedState) {
     yield Saga.put(SignupGen.createSignedup())
   } catch (error) {
     yield Saga.put(SignupGen.createSignedup({error}))
-    yield Saga.delay(250)
     yield Saga.put(
       PushGen.createShowPermissionsPrompt({
         justSignedUp: false,

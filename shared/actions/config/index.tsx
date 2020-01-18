@@ -306,19 +306,6 @@ const switchRouteDef = (
   action: ConfigGen.LoggedInPayload | ConfigGen.LoggedOutPayload
 ) => {
   if (state.config.loggedIn) {
-    // Freshly logged in, haven't just started up / signed up, without permissions
-    if (
-      isMobile &&
-      action.type === ConfigGen.loggedIn &&
-      !state.push.justSignedUp &&
-      state.push.showPushPrompt &&
-      !state.push.hasPermissions &&
-      !action.payload.causedByStartup
-    ) {
-      logger.info('[ShowMonsterPushPrompt] Entered through the switchRouteDef scenario')
-      return showMonsterPushPrompt()
-    }
-
     if (action.type === ConfigGen.loggedIn && !action.payload.causedByStartup) {
       // only do this if we're not handling the initial loggedIn event, cause its handled by routeToInitialScreenOnce
       return [
@@ -420,6 +407,18 @@ const routeToInitialScreen2 = (state: Container.TypedState) => {
 
 // We figure out where to go (push, link, saved state, etc) once ever in a session
 const routeToInitialScreen = (state: Container.TypedState) => {
+  // This has the feature
+  if (
+    isMobile &&
+    state.config.loggedIn &&
+    !state.push.justSignedUp &&
+    state.push.showPushPrompt &&
+    !state.push.hasPermissions
+  ) {
+    logger.info('[ShowMonsterPushPrompt] Entered through the routeToInitialScreen scenario')
+    return showMonsterPushPrompt()
+  }
+
   if (routeToInitialScreenOnce) {
     if (state.config.loggedIn) {
       // don't jump to a screen, just ensure you're logged in / out state is correct
@@ -435,12 +434,6 @@ const routeToInitialScreen = (state: Container.TypedState) => {
   routeToInitialScreenOnce = true
 
   if (state.config.loggedIn) {
-    // Monster push prompt - on startup, possibly won the race with initialPermissionsCheck in push-gen
-    if (isMobile && !state.push.justSignedUp && state.push.showPushPrompt && !state.push.hasPermissions) {
-      logger.info('[ShowMonsterPushPrompt] Entered through the slow startup scenario')
-      return showMonsterPushPrompt()
-    }
-
     // A chat
     if (
       state.config.startupConversation &&
