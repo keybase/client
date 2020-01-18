@@ -57,11 +57,10 @@ allprojects {
                 // Replace AAR from original RN with AAR from react-native-v8
                 url("$rootDir/../node_modules/react-native-v8/dist")
             }
-            // TODO put back when we fix the android build
-            // maven {
-                // // prebuilt libv8.so
-                // url("$rootDir/../node_modules/v8-android-nointl/dist")
-            // }
+            maven {
+                // prebuilt libv8.so
+                url("$rootDir/../node_modules/v8-android-nointl/dist")
+            }
         } else {
             maven {
                 url("$rootDir/../node_modules/react-native/android")

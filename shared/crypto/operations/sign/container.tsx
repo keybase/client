@@ -10,6 +10,8 @@ const operation = 'sign'
 
 export default Container.namedConnect(
   (state: Container.TypedState) => ({
+    bytesComplete: state.crypto.sign.bytesComplete,
+    bytesTotal: state.crypto.sign.bytesTotal,
     input: state.crypto.sign.input.stringValue(),
     inputType: state.crypto.sign.inputType,
     output: state.crypto.sign.output.stringValue(),
@@ -36,6 +38,7 @@ export default Container.namedConnect(
     outputSender: stateProps.outputSender,
     outputStatus: stateProps.outputStatus,
     outputType: stateProps.outputType,
+    progress: stateProps.bytesComplete === 0 ? 0 : stateProps.bytesComplete / stateProps.bytesTotal,
   }),
   'SignContainer'
 )(Sign)

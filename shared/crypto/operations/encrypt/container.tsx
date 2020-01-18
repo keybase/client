@@ -10,6 +10,8 @@ const operation = 'encrypt'
 
 export default Container.namedConnect(
   (state: Container.TypedState) => ({
+    bytesComplete: state.crypto.encrypt.bytesComplete,
+    bytesTotal: state.crypto.encrypt.bytesTotal,
     hasRecipients: state.crypto.encrypt.meta.hasRecipients,
     input: state.crypto.encrypt.input.stringValue(),
     inputType: state.crypto.encrypt.inputType,
@@ -44,6 +46,7 @@ export default Container.namedConnect(
     output: stateProps.output,
     outputStatus: stateProps.outputStatus,
     outputType: stateProps.outputType,
+    progress: stateProps.bytesComplete === 0 ? 0 : stateProps.bytesComplete / stateProps.bytesTotal,
     recipients: stateProps.recipients,
     username: stateProps.username,
   }),
