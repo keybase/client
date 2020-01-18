@@ -251,8 +251,4 @@ protocol NotifyChat {
   @notify("")
   @lint("ignore")
   void ChatConvUpdate(keybase1.UID uid, ConversationID convID, union { null, InboxUIItem } conv);
-
-  @notify("")
-  @lint("ignore")
-  void ChatBotSettingsUpdate(keybase1.UID uid, ConversationID convID, union { null, InboxUIItem } conv);
 }
