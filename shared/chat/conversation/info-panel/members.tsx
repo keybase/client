@@ -56,6 +56,9 @@ export default (props: Props) => {
     if (flags.botUI && shouldFilterBots) {
       participants = participants.filter(p => !botUsernames.includes(p))
     }
+  } else {
+    participants =
+      flags.botUI && shouldFilterBots ? participants.filter(p => !botUsernames.includes(p)) : participants
   }
 
   const participantsItems = participants
