@@ -438,14 +438,15 @@ export default (p: Props) => {
   if (attachmentInfo.messages.length === 0 && attachmentInfo.status !== 'loading') {
     sections = [
       {
-        data: ['no attachments'],
+        data: ['No attachments'],
         renderItem: ({item}) => (
           <Kb.Box2 centerChildren={true} direction="horizontal" fullWidth={true}>
-            <Kb.Text type="BodySmall">{`No ${item}`}</Kb.Text>
+            <Kb.Text type="BodySmall">{item}</Kb.Text>
           </Kb.Box2>
         ),
       },
     ]
+    sections = [...commonSections, ...sections, loadMoreSection]
   } else {
     switch (selectedAttachmentView) {
       case RPCChatTypes.GalleryItemTyp.media:
