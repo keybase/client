@@ -290,17 +290,6 @@ const showDeletedSelfRootPage = () => [
   RouteTreeGen.createNavigateAppend({path: [Tabs.loginTab]}),
 ]
 
-const showMonsterPushPrompt = () => [
-  RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
-  RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}),
-  RouteTreeGen.createNavigateAppend({
-    path: ['settingsPushPrompt'],
-  }),
-  PushGen.createShowPermissionsPrompt({
-    show: false, // disable the prompt after showing it once, this does not perma-skip
-  }),
-]
-
 const switchRouteDef = (
   state: Container.TypedState,
   action: ConfigGen.LoggedInPayload | ConfigGen.LoggedOutPayload
@@ -370,6 +359,17 @@ const stashLastRoute = (_state: Container.TypedState, action: ConfigGen.PersistR
     lastTab = path?.[2].routeName
   }
 }
+
+const showMonsterPushPrompt = () => [
+  RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
+  RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}),
+  RouteTreeGen.createNavigateAppend({
+    path: ['settingsPushPrompt'],
+  }),
+  PushGen.createShowPermissionsPrompt({
+    show: false, // disable the prompt after showing it once, this does not perma-skip
+  }),
+]
 
 // Monster push prompt
 // We've just started up, we don't have the permissions, we're logged in and we
