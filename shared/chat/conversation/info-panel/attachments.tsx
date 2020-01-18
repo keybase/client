@@ -406,6 +406,7 @@ export default (p: Props) => {
   const loadMoreSection = {
     data: ['load more'],
     renderItem: () => {
+      const status = attachmentInfo.status
       if (onLoadMore && status !== 'loading') {
         return (
           <Kb.Button
