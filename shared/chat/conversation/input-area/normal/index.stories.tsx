@@ -84,6 +84,7 @@ const boxProps = {
 
 const InputContainer = (props: Props) => {
   const inputProps: InputProps = {
+    botRestrictMap: new Map(),
     cannotWrite: props.cannotWrite || false,
     clearInboxFilter: Sb.action('clearInboxFilter'),
     conversationIDKey: stringToConversationIDKey('fake conversation id key'),
@@ -149,7 +150,7 @@ const InputContainer = (props: Props) => {
         username: 'mikem',
       },
     ],
-    suggestBotCommandsUpdateStatus: RPCChatTypes.UIBotCommandsUpdateStatus.updating,
+    suggestBotCommandsUpdateStatus: RPCChatTypes.UIBotCommandsUpdateStatusTyp.updating,
     suggestChannels: ['general', 'random', 'spelunky', 'music', 'vidya-games'],
     suggestCommands: [
       {description: 'Hide current or given conv', hasHelpText: false, name: 'hide', usage: '[conversation]'},

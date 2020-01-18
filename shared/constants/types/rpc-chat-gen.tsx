@@ -923,7 +923,7 @@ export enum TopicType {
   kbfsfileedit = 3,
 }
 
-export enum UIBotCommandsUpdateStatus {
+export enum UIBotCommandsUpdateStatusTyp {
   uptodate = 0,
   updating = 1,
   failed = 2,
@@ -1329,6 +1329,8 @@ export type TopicID = Bytes
 export type TopicNameState = Bytes
 export type TyperInfo = {readonly uid: Keybase1.UID; readonly username: String; readonly deviceID: Keybase1.DeviceID; readonly deviceName: String; readonly deviceType: String}
 export type UIAssetUrlInfo = {readonly previewUrl: String; readonly fullUrl: String; readonly fullUrlCached: Boolean; readonly mimeType: String; readonly videoDuration?: String | null; readonly inlineVideoPlayable: Boolean}
+export type UIBotCommandsUpdateSettings = {readonly settings: {[key: string]: Keybase1.TeamBotSettings}}
+export type UIBotCommandsUpdateStatus = {typ: UIBotCommandsUpdateStatusTyp.uptodate; uptodate: UIBotCommandsUpdateSettings} | {typ: UIBotCommandsUpdateStatusTyp.updating} | {typ: UIBotCommandsUpdateStatusTyp.failed} | {typ: UIBotCommandsUpdateStatusTyp.blank}
 export type UIChannelNameMention = {readonly name: String; readonly convID: ConvIDStr}
 export type UIChatPayment = {readonly username: String; readonly fullName: String; readonly xlmAmount: String; readonly error?: String | null; readonly displayAmount?: String | null}
 export type UIChatPaymentSummary = {readonly xlmTotal: String; readonly displayTotal: String; readonly payments?: Array<UIChatPayment> | null}
