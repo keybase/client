@@ -372,8 +372,9 @@ const stashLastRoute = (_state: Container.TypedState, action: ConfigGen.PersistR
 }
 
 // Monster push prompt
-// On startup, without permissions, the asynchronous check is freshly completed,
-// we haven't just signed up.
+// We've just started up, we don't have the permissions, we're logged in and we
+// haven't just signed up. This handles the scenario where the push notifications
+// permissions checker finishes after the routeToInitialScreen is done.
 const onShowPermissionsPrompt = (
   state: Container.TypedState,
   action: PushGen.ShowPermissionsPromptPayload
@@ -407,7 +408,11 @@ const routeToInitialScreen2 = (state: Container.TypedState) => {
 
 // We figure out where to go (push, link, saved state, etc) once ever in a session
 const routeToInitialScreen = (state: Container.TypedState) => {
-  // This has the feature
+  // This is potentially executed more than once - instead of sticking this code into
+  // both here and switchRouteDef, potentially risking races, we're monitoring the
+  // monster push prompt here to hook on the moment when the stack switches from
+  // logged out to logged in. This code can also be triggered if routeToInitialScreen
+  // starts _after_ the push notifications permissions are computed.
   if (
     isMobile &&
     state.config.loggedIn &&
