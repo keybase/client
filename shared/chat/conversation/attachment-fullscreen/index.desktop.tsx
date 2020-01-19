@@ -92,12 +92,20 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, State> 
           </Kb.Box>
           {this.props.path && (
             <Kb.Box
-              style={Styles.collapseStyles([styles.contentsFit, this.isLoaded() ? null : {display: 'none'}])}
+              style={Styles.collapseStyles([
+                this.state.isZoomed ? styles.contentsZoom : styles.contentsFit,
+                ,
+                this.isLoaded() ? null : {display: 'none'},
+              ])}
               key={this.props.path}
             >
-              <Arrow iconType="iconfont-arrow-left" onClick={this.props.onPreviousAttachment} />
+              {!this.state.isZoomed && (
+                <Arrow iconType="iconfont-arrow-left" onClick={this.props.onPreviousAttachment} />
+              )}
               <Kb.Box
-                style={Styles.collapseStyles([styles.contentsFit])}
+                style={Styles.collapseStyles([
+                  this.state.isZoomed ? styles.contentsZoom : styles.contentsFit,
+                ])}
                 onClick={() => {
                   if (!this.props.isVideo) {
                     this.setState(p => ({isZoomed: !p.isZoomed}))
@@ -128,7 +136,9 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, State> 
                   </video>
                 )}
               </Kb.Box>
-              <Arrow iconType="iconfont-arrow-right" onClick={this.props.onNextAttachment} />
+              {!this.state.isZoomed && (
+                <Arrow iconType="iconfont-arrow-right" onClick={this.props.onNextAttachment} />
+              )}
             </Kb.Box>
           )}
           {!this.isLoaded() && (
@@ -189,6 +199,7 @@ const styles = Styles.styleSheetCreate(
       }),
       container: {...Styles.globalStyles.flexBoxColumn, height: '100%', width: '100%'},
       contentsFit: {...Styles.globalStyles.flexBoxRow, flex: 1, height: '100%', width: '100%'},
+      contentsZoom: Styles.platformStyles({isElectron: {display: 'block', flex: 1, overflow: 'auto'}}),
       headerFooter: {
         ...Styles.globalStyles.flexBoxRow,
         alignItems: 'center',
@@ -211,7 +222,6 @@ const styles = Styles.styleSheetCreate(
           cursor: 'zoom-out',
           display: 'block',
           height: '100%',
-          objectFit: 'contain',
           width: '100%',
         },
       }),
