@@ -95,7 +95,7 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, State> 
               style={Styles.collapseStyles([
                 this.state.isZoomed ? styles.contentsZoom : styles.contentsFit,
                 ,
-                this.isLoaded() ? null : {display: 'none'},
+                this.isLoaded() ? null : styles.contentsHidden,
               ])}
               key={this.props.path}
             >
@@ -199,6 +199,7 @@ const styles = Styles.styleSheetCreate(
       }),
       container: {...Styles.globalStyles.flexBoxColumn, height: '100%', width: '100%'},
       contentsFit: {...Styles.globalStyles.flexBoxRow, flex: 1, height: '100%', width: '100%'},
+      contentsHidden: {display: 'none'},
       contentsZoom: Styles.platformStyles({isElectron: {display: 'block', flex: 1, overflow: 'auto'}}),
       headerFooter: {
         ...Styles.globalStyles.flexBoxRow,
