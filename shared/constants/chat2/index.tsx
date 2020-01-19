@@ -486,8 +486,12 @@ export const getBotRestrictBlockMap = (
   const blocks = new Map<string, boolean>()
   bots.forEach(b => {
     const botSettings = settings.get(b)
-    const convs = botSettings?.convs
-    const cmds = botSettings?.cmds
+    if (!botSettings) {
+      blocks.set(b, false)
+      return
+    }
+    const convs = botSettings.convs
+    const cmds = botSettings.cmds
     blocks.set(b, !cmds || (!((convs?.length ?? 0) === 0) && !convs?.find(c => c === conversationIDKey)))
   })
   return blocks
