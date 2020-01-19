@@ -94,7 +94,6 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, State> 
             <Kb.Box
               style={Styles.collapseStyles([
                 this.state.isZoomed ? styles.contentsZoom : styles.contentsFit,
-                ,
                 this.isLoaded() ? null : styles.contentsHidden,
               ])}
               key={this.props.path}
