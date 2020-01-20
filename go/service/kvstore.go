@@ -37,15 +37,14 @@ func NewKVStoreHandler(xp rpc.Transporter, g *libkb.GlobalContext) *KVStoreHandl
 }
 
 func (h *KVStoreHandler) resolveTeam(mctx libkb.MetaContext, userInputTeamName string) (teamID keybase1.TeamID, teamName string, err error) {
-
-	if userInputTeamName == "" {
-		// default to implicit self-team
-		selfName := mctx.ActiveDevice().Username(mctx)
+	selfName := mctx.ActiveDevice().Username(mctx).String()
+	if userInputTeamName == "" || userInputTeamName == selfName {
+		// Default to implicit self-team.
+		// Assumes that usernames and team names must be unique.
 		teamName = fmt.Sprintf("%s,%s", selfName, selfName)
 	} else {
 		teamName = userInputTeamName
 	}
-
 	if strings.Contains(teamName, ",") {
 		// it's an implicit team that might not exist yet
 		team, _, _, err := teams.LookupOrCreateImplicitTeam(mctx.Ctx(), mctx.G(), teamName, false /*public*/)

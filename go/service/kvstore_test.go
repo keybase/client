@@ -110,7 +110,7 @@ func TestKvStoreSelfTeamPutGet(t *testing.T) {
 
 	// check that it lists correctly whether teamName for implicit self team =
 	// "username,username" or ""
-	for _, name := range []string{"", teamName} {
+	for _, name := range []string{"", user.Username, teamName} {
 		listNamespacesArg.TeamName = name
 		listNamespacesRes, err = handler.ListKVNamespaces(ctx, listNamespacesArg)
 		require.NoError(t, err)
