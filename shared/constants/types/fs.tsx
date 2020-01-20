@@ -566,6 +566,7 @@ export type FileContext = Readonly<{
 
 export type State = Readonly<{
   badge: RPCTypes.FilesTabBadge
+  criticalUpdate: boolean
   destinationPicker: DestinationPicker
   downloads: Downloads
   edits: Edits

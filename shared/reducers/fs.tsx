@@ -9,6 +9,7 @@ import {produce, Draft} from 'immer'
 
 const initialState: Types.State = {
   badge: RPCTypes.FilesTabBadge.none,
+  criticalUpdate: false,
   destinationPicker: {
     destinationParentPath: [],
     source: {
@@ -505,5 +506,8 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
   },
   [FsGen.loadedFilesTabBadge]: (draftState, action) => {
     draftState.badge = action.payload.badge
+  },
+  [FsGen.setCriticalUpdate]: (draftState, action) => {
+    draftState.criticalUpdate = action.payload.val
   },
 })

@@ -564,7 +564,6 @@ export type TypedActionsMap = {
   'fs:uninstallKBFSConfirm': fs.UninstallKBFSConfirmPayload
   'fs:refreshDriverStatus': fs.RefreshDriverStatusPayload
   'fs:setDriverStatus': fs.SetDriverStatusPayload
-  'fs:acceptMacOSFuseExtClosedSource': fs.AcceptMacOSFuseExtClosedSourcePayload
   'fs:setSfmiBannerDismissed': fs.SetSfmiBannerDismissedPayload
   'fs:driverEnable': fs.DriverEnablePayload
   'fs:driverDisable': fs.DriverDisablePayload
@@ -639,6 +638,7 @@ export type TypedActionsMap = {
   'fs:userIn': fs.UserInPayload
   'fs:userOut': fs.UserOutPayload
   'fs:setDebugLevel': fs.SetDebugLevelPayload
+  'fs:setCriticalUpdate': fs.SetCriticalUpdatePayload
   'git:loadGit': git.LoadGitPayload
   'git:loaded': git.LoadedPayload
   'git:createTeamRepo': git.CreateTeamRepoPayload

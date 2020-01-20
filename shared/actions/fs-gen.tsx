@@ -6,7 +6,6 @@ import * as ChatTypes from '../constants/types/chat2'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of fs but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'fs:'
-export const acceptMacOSFuseExtClosedSource = 'fs:acceptMacOSFuseExtClosedSource'
 export const cancelDownload = 'fs:cancelDownload'
 export const commitEdit = 'fs:commitEdit'
 export const copy = 'fs:copy'
@@ -68,6 +67,7 @@ export const refreshDriverStatus = 'fs:refreshDriverStatus'
 export const refreshMountDirsAfter10s = 'fs:refreshMountDirsAfter10s'
 export const saveMedia = 'fs:saveMedia'
 export const sentAttachmentToChat = 'fs:sentAttachmentToChat'
+export const setCriticalUpdate = 'fs:setCriticalUpdate'
 export const setDebugLevel = 'fs:setDebugLevel'
 export const setDestinationPickerParentPath = 'fs:setDestinationPickerParentPath'
 export const setDirectMountDir = 'fs:setDirectMountDir'
@@ -110,7 +110,6 @@ export const userOut = 'fs:userOut'
 export const waitForKbfsDaemon = 'fs:waitForKbfsDaemon'
 
 // Payload Types
-type _AcceptMacOSFuseExtClosedSourcePayload = {readonly dismiss?: boolean}
 type _CancelDownloadPayload = {readonly downloadID: string}
 type _CommitEditPayload = {readonly editID: Types.EditID}
 type _CopyPayload = {readonly destinationParentPath: Types.Path}
@@ -193,6 +192,7 @@ type _RefreshDriverStatusPayload = void
 type _RefreshMountDirsAfter10sPayload = void
 type _SaveMediaPayload = {readonly path: Types.Path}
 type _SentAttachmentToChatPayload = void
+type _SetCriticalUpdatePayload = {readonly val: boolean}
 type _SetDebugLevelPayload = {readonly level: string}
 type _SetDestinationPickerParentPathPayload = {readonly index: number; readonly path: Types.Path}
 type _SetDirectMountDirPayload = {readonly directMountDir: string}
@@ -246,9 +246,6 @@ type _UserOutPayload = void
 type _WaitForKbfsDaemonPayload = void
 
 // Action Creators
-export const createAcceptMacOSFuseExtClosedSource = (
-  payload: _AcceptMacOSFuseExtClosedSourcePayload = Object.freeze({})
-): AcceptMacOSFuseExtClosedSourcePayload => ({payload, type: acceptMacOSFuseExtClosedSource})
 export const createCancelDownload = (payload: _CancelDownloadPayload): CancelDownloadPayload => ({
   payload,
   type: cancelDownload,
@@ -458,6 +455,10 @@ export const createSaveMedia = (payload: _SaveMediaPayload): SaveMediaPayload =>
 export const createSentAttachmentToChat = (
   payload: _SentAttachmentToChatPayload
 ): SentAttachmentToChatPayload => ({payload, type: sentAttachmentToChat})
+export const createSetCriticalUpdate = (payload: _SetCriticalUpdatePayload): SetCriticalUpdatePayload => ({
+  payload,
+  type: setCriticalUpdate,
+})
 export const createSetDebugLevel = (payload: _SetDebugLevelPayload): SetDebugLevelPayload => ({
   payload,
   type: setDebugLevel,
@@ -591,10 +592,6 @@ export const createWaitForKbfsDaemon = (payload: _WaitForKbfsDaemonPayload): Wai
 })
 
 // Action Payloads
-export type AcceptMacOSFuseExtClosedSourcePayload = {
-  readonly payload: _AcceptMacOSFuseExtClosedSourcePayload
-  readonly type: typeof acceptMacOSFuseExtClosedSource
-}
 export type CancelDownloadPayload = {
   readonly payload: _CancelDownloadPayload
   readonly type: typeof cancelDownload
@@ -800,6 +797,10 @@ export type SentAttachmentToChatPayload = {
   readonly payload: _SentAttachmentToChatPayload
   readonly type: typeof sentAttachmentToChat
 }
+export type SetCriticalUpdatePayload = {
+  readonly payload: _SetCriticalUpdatePayload
+  readonly type: typeof setCriticalUpdate
+}
 export type SetDebugLevelPayload = {
   readonly payload: _SetDebugLevelPayload
   readonly type: typeof setDebugLevel
@@ -946,7 +947,6 @@ export type WaitForKbfsDaemonPayload = {
 // All Actions
 // prettier-ignore
 export type Actions =
-  | AcceptMacOSFuseExtClosedSourcePayload
   | CancelDownloadPayload
   | CommitEditPayload
   | CopyPayload
@@ -1008,6 +1008,7 @@ export type Actions =
   | RefreshMountDirsAfter10sPayload
   | SaveMediaPayload
   | SentAttachmentToChatPayload
+  | SetCriticalUpdatePayload
   | SetDebugLevelPayload
   | SetDestinationPickerParentPathPayload
   | SetDirectMountDirPayload
