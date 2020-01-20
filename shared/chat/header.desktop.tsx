@@ -44,7 +44,9 @@ const descStyleOverride = {
 } as any
 
 const Header = (p: Props) => {
-  let description = !!p.desc && (
+  const {desc, canEditDesc, isTeam, participants, fullName, channel, showActions, muted, username} = p
+  const {onToggleInfoPanel, onToggleThreadSearch, unMuteConversation, onOpenFolder} = p
+  let description = !!desc && (
     <Kb.Markdown
       smallStandaloneEmoji={true}
       style={styles.desc}
@@ -52,17 +54,17 @@ const Header = (p: Props) => {
       lineClamp={1}
       selectable={true}
     >
-      {p.desc}
+      {desc}
     </Kb.Markdown>
   )
-  if (p.isTeam && !p.desc && p.canEditDesc) {
+  if (isTeam && !desc && canEditDesc) {
     description = (
       <Kb.Text selectable={true} type="BodySmall" lineClamp={1}>
         Set a description using the <Kb.Text type="BodySmallBold">/headline</Kb.Text> command.
       </Kb.Text>
     )
   }
-  if (p.isTeam && p.desc && p.canEditDesc) {
+  if (isTeam && desc && canEditDesc) {
     description = (
       <Kb.WithTooltip position="bottom left" tooltip="Set the description using the /headline command.">
         {description}
@@ -71,15 +73,15 @@ const Header = (p: Props) => {
   }
   // length ===1 means just you so show yourself
   const withoutSelf =
-    p.participants && p.participants.length > 1
-      ? p.participants.filter(part => part !== p.username)
-      : p.participants
+    participants && participants.length > 1 ? participants.filter(part => part !== username) : participants
 
   // if there is no description (and is not a 1-on-1), don't render the description box
-  const renderDescription = description || (p.fullName && withoutSelf && withoutSelf.length === 1)
+  const renderDescription = description || (fullName && withoutSelf && withoutSelf.length === 1)
+
+  const infoPanelOpen = Container.useSelector(state => state.chat2.infoPanelShowing)
 
   // trim() call makes sure that string is not just whitespace
-  if (withoutSelf && withoutSelf.length === 1 && p.desc.trim()) {
+  if (withoutSelf && withoutSelf.length === 1 && desc.trim()) {
     description = (
       <Kb.Markdown
         smallStandaloneEmoji={true}
@@ -88,7 +90,7 @@ const Header = (p: Props) => {
         lineClamp={1}
         selectable={true}
       >
-        {p.desc}
+        {desc}
       </Kb.Markdown>
     )
   }
@@ -109,13 +111,13 @@ const Header = (p: Props) => {
           style={renderDescription ? styles.headerTitle : styles.headerTitleNoDesc}
         >
           <Kb.Box2 direction="horizontal" fullWidth={true}>
-            {p.channel ? (
+            {channel ? (
               <Kb.Text selectable={true} type="Header" lineClamp={1}>
-                {p.channel}
+                {channel}
               </Kb.Text>
-            ) : p.fullName ? (
+            ) : fullName ? (
               <Kb.Text type="Header" lineClamp={1}>
-                {p.fullName}
+                {fullName}
               </Kb.Text>
             ) : withoutSelf ? (
               <Kb.Box2 direction="horizontal" style={Styles.globalStyles.flexOne}>
@@ -137,19 +139,19 @@ const Header = (p: Props) => {
                 </Kb.Text>
               </Kb.Box2>
             ) : null}
-            {p.muted && (
+            {muted && (
               <Kb.Icon
                 type="iconfont-shh"
                 style={styles.shhIconStyle}
                 color={Styles.globalColors.black_20}
                 fontSize={20}
-                onClick={p.unMuteConversation}
+                onClick={unMuteConversation}
               />
             )}
           </Kb.Box2>
           {renderDescription && (
             <Kb.Box2 direction="vertical" style={styles.descriptionContainer} fullWidth={true}>
-              {p.fullName && withoutSelf && withoutSelf.length === 1 ? (
+              {fullName && withoutSelf && withoutSelf.length === 1 ? (
                 <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.descriptionTextContainer}>
                   <Kb.ConnectedUsernames
                     colorFollowing={true}
@@ -175,7 +177,7 @@ const Header = (p: Props) => {
             </Kb.Box2>
           )}
         </Kb.Box2>
-        {p.showActions && (
+        {showActions && (
           <Kb.Box2
             direction="horizontal"
             gap="small"
@@ -184,13 +186,18 @@ const Header = (p: Props) => {
             style={styles.actionIcons}
           >
             <Kb.WithTooltip tooltip={`Search in this chat (${Platforms.shortcutSymbol}F)`}>
-              <Kb.Icon style={styles.clickable} type="iconfont-search" onClick={p.onToggleThreadSearch} />
+              <Kb.Icon style={styles.clickable} type="iconfont-search" onClick={onToggleThreadSearch} />
             </Kb.WithTooltip>
             <Kb.WithTooltip tooltip="Open folder">
-              <Kb.Icon style={styles.clickable} type="iconfont-folder-private" onClick={p.onOpenFolder} />
+              <Kb.Icon style={styles.clickable} type="iconfont-folder-private" onClick={onOpenFolder} />
             </Kb.WithTooltip>
             <Kb.WithTooltip tooltip="Chat info & settings">
-              <Kb.Icon style={styles.clickable} type="iconfont-info" onClick={p.onToggleInfoPanel} />
+              <Kb.Icon
+                color={infoPanelOpen ? Styles.globalColors.blue : undefined}
+                style={styles.clickable}
+                type="iconfont-info"
+                onClick={onToggleInfoPanel}
+              />
             </Kb.WithTooltip>
           </Kb.Box2>
         )}

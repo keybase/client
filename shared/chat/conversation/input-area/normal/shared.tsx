@@ -21,20 +21,20 @@ export const ExplodingMeta = ({explodingModeSeconds}: {explodingModeSeconds: num
 }
 
 type BotCommandUpdateStatusProps = {
-  status: RPCChatTypes.UIBotCommandsUpdateStatus
+  status: RPCChatTypes.UIBotCommandsUpdateStatusTyp
 }
 
 export const BotCommandUpdateStatus = (props: BotCommandUpdateStatusProps) => {
   let statusText = ''
   switch (props.status) {
-    case RPCChatTypes.UIBotCommandsUpdateStatus.uptodate:
-      statusText = 'Commands are up-to-date'
+    case RPCChatTypes.UIBotCommandsUpdateStatusTyp.uptodate:
+      statusText = 'Bot commands are up-to-date'
       break
-    case RPCChatTypes.UIBotCommandsUpdateStatus.failed:
-      statusText = 'Failed to update commands'
+    case RPCChatTypes.UIBotCommandsUpdateStatusTyp.failed:
+      statusText = 'Failed to update bot commands'
       break
-    case RPCChatTypes.UIBotCommandsUpdateStatus.updating:
-      statusText = 'Updating commands...'
+    case RPCChatTypes.UIBotCommandsUpdateStatusTyp.updating:
+      statusText = 'Updating bot commands...'
       break
   }
   return (

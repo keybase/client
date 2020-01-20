@@ -554,11 +554,20 @@ protocol chatUi {
     APPSETTINGS_0
   }
   void chatCommandStatus(int sessionID, ConvIDStr convID, string displayText, UICommandStatusDisplayTyp typ, array<UICommandStatusActionTyp> actions);
-  enum UIBotCommandsUpdateStatus {
+  enum UIBotCommandsUpdateStatusTyp {
     UPTODATE_0,
     UPDATING_1,
     FAILED_2,
     BLANK_3
+  }
+  record UIBotCommandsUpdateSettings {
+    map<string, keybase1.TeamBotSettings> settings;
+  }
+  variant UIBotCommandsUpdateStatus switch (UIBotCommandsUpdateStatusTyp typ) {
+    case UPTODATE: UIBotCommandsUpdateSettings;
+    case UPDATING: void;
+    case FAILED: void;
+    case BLANK: void;
   }
   void chatBotCommandsUpdateStatus(int sessionID, ConvIDStr convID, UIBotCommandsUpdateStatus status);
 

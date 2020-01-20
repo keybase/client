@@ -9,7 +9,7 @@ import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 import * as Styles from '../../../styles'
 import * as TeamTypes from '../../../constants/types/teams'
-import Bot from '../info-panel/bot'
+import {Bot} from '../info-panel/bot'
 import debounce from 'lodash/debounce'
 
 type Props = Container.RouteProps<{conversationIDKey?: Types.ConversationIDKey; teamID?: TeamTypes.TeamID}>

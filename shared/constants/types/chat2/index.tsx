@@ -173,7 +173,7 @@ export type State = Readonly<{
   audioRecording: Map<Common.ConversationIDKey, AudioRecordingInfo>
   badgeMap: ConversationCountMap // id to the badge count,
   blockButtonsMap: Map<RPCTypes.TeamID, BlockButtonsInfo> // Should we show block buttons for this team ID?
-  botCommandsUpdateStatusMap: Map<Common.ConversationIDKey, RPCChatTypes.UIBotCommandsUpdateStatus>
+  botCommandsUpdateStatusMap: Map<Common.ConversationIDKey, RPCChatTypes.UIBotCommandsUpdateStatusTyp>
   botPublicCommands: Map<string, BotPublicCommands>
   botSearchResults?: BotSearchResults
   botSettings: Map<Common.ConversationIDKey, Map<string, RPCTypes.TeamBotSettings>>
