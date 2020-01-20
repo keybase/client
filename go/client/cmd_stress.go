@@ -216,7 +216,7 @@ func (c *CmdStress) listTrackers() {
 		return
 	}
 	ucli := keybase1.UserClient{Cli: cli}
-	_, err = ucli.ListTrackers2(context.TODO(), keybase1.ListTrackers2Arg{})
+	_, err = ucli.ListTrackersUnverified(context.TODO(), keybase1.ListTrackersUnverifiedArg{})
 	if err != nil {
 		c.G().Log.Warning("list followers error: %s", err)
 	}

@@ -936,8 +936,8 @@ type GetBootstrapStatusArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
-type RequestFollowerInfoArg struct {
-	Uid UID `codec:"uid" json:"uid"`
+type RequestFollowingAndUnverifiedFollowersArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
 type GetRememberPassphraseArg struct {
@@ -998,7 +998,7 @@ type ConfigInterface interface {
 	// Wait for client type to connect to service.
 	WaitForClient(context.Context, WaitForClientArg) (bool, error)
 	GetBootstrapStatus(context.Context, int) (BootstrapStatus, error)
-	RequestFollowerInfo(context.Context, UID) error
+	RequestFollowingAndUnverifiedFollowers(context.Context, int) error
 	GetRememberPassphrase(context.Context, int) (bool, error)
 	SetRememberPassphrase(context.Context, SetRememberPassphraseArg) error
 	// getUpdateInfo2 is to drive the redbar on mobile and desktop apps. The redbar tells you if
@@ -1315,18 +1315,18 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 					return
 				},
 			},
-			"requestFollowerInfo": {
+			"requestFollowingAndUnverifiedFollowers": {
 				MakeArg: func() interface{} {
-					var ret [1]RequestFollowerInfoArg
+					var ret [1]RequestFollowingAndUnverifiedFollowersArg
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]RequestFollowerInfoArg)
+					typedArgs, ok := args.(*[1]RequestFollowingAndUnverifiedFollowersArg)
 					if !ok {
-						err = rpc.NewTypeError((*[1]RequestFollowerInfoArg)(nil), args)
+						err = rpc.NewTypeError((*[1]RequestFollowingAndUnverifiedFollowersArg)(nil), args)
 						return
 					}
-					err = i.RequestFollowerInfo(ctx, typedArgs[0].Uid)
+					err = i.RequestFollowingAndUnverifiedFollowers(ctx, typedArgs[0].SessionID)
 					return
 				},
 			},
@@ -1565,9 +1565,9 @@ func (c ConfigClient) GetBootstrapStatus(ctx context.Context, sessionID int) (re
 	return
 }
 
-func (c ConfigClient) RequestFollowerInfo(ctx context.Context, uid UID) (err error) {
-	__arg := RequestFollowerInfoArg{Uid: uid}
-	err = c.Cli.Call(ctx, "keybase.1.config.requestFollowerInfo", []interface{}{__arg}, nil, 0*time.Millisecond)
+func (c ConfigClient) RequestFollowingAndUnverifiedFollowers(ctx context.Context, sessionID int) (err error) {
+	__arg := RequestFollowingAndUnverifiedFollowersArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.config.requestFollowingAndUnverifiedFollowers", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 

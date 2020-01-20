@@ -33,22 +33,6 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
       ).username
     }
   },
-  [Tracker2Gen.updatedDetails]: (draftState, action) => {
-    const {username, followThem, followsYou} = action.payload
-    const {followers, following} = draftState
-
-    if (followThem) {
-      following.add(username)
-    } else {
-      following.delete(username)
-    }
-
-    if (followsYou) {
-      followers.add(username)
-    } else {
-      followers.delete(username)
-    }
-  },
   [ConfigGen.resetStore]: draftState => ({
     ...Constants.initialState,
     appFocused: draftState.appFocused,

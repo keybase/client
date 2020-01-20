@@ -965,7 +965,7 @@ export type TypedActionsMap = {
   'tracker2:updateAssertion': tracker2.UpdateAssertionPayload
   'tracker2:changeFollow': tracker2.ChangeFollowPayload
   'tracker2:ignore': tracker2.IgnorePayload
-  'tracker2:updateFollowers': tracker2.UpdateFollowersPayload
+  'tracker2:updateFollows': tracker2.UpdateFollowsPayload
   'tracker2:getProofSuggestions': tracker2.GetProofSuggestionsPayload
   'tracker2:proofSuggestionsUpdated': tracker2.ProofSuggestionsUpdatedPayload
   'tracker2:showUser': tracker2.ShowUserPayload

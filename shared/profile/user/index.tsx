@@ -151,7 +151,8 @@ const Proofs = p => {
 }
 
 type FriendshipTabsProps = {
-  loading: boolean
+  loadingFollowers: boolean
+  loadingFollowing: boolean
   onChangeFollowing: (arg0: boolean) => void
   selectedFollowing: boolean
   numFollowers: number | undefined
@@ -169,6 +170,7 @@ class FriendshipTabs extends React.Component<FriendshipTabsProps> {
         following === this.props.selectedFollowing && styles.followTabSelected,
       ])}
     >
+		<Kb.Box2 direction="horizontal" gap="xtiny">
       <Kb.Text
         type="BodySmallSemibold"
         style={
@@ -176,9 +178,11 @@ class FriendshipTabs extends React.Component<FriendshipTabsProps> {
         }
       >
         {following
-          ? `Following${!this.props.loading ? ` (${this.props.numFollowing || 0})` : ''}`
-          : `Followers${!this.props.loading ? ` (${this.props.numFollowers || 0})` : ''}`}
+          ? `Following${!this.props.loadingFollowing ? ` (${this.props.numFollowing || 0})` : ''}`
+          : `Followers${!this.props.loadingFollowers ? ` (${this.props.numFollowers || 0})` : ''}`}
       </Kb.Text>
+		{((following && this.props.loadingFollowing) || this.props.loadingFollowers) && <Kb.ProgressIndicator style={{position: 'absolute'}} />}
+		</Kb.Box2>
     </Kb.ClickableBox>
   )
 
@@ -364,11 +368,13 @@ class User extends React.Component<Props, State> {
     if (section === this._bioTeamProofsSection) return null
     if (this.props.notAUser) return null
 
-    const loading = !this.props.followers || !this.props.following
+    const loadingFollowing = this.props.following === undefined
+    const loadingFollowers = this.props.followers === undefined
     return (
       <FriendshipTabs
         key="tabs"
-        loading={loading}
+        loadingFollowing={loadingFollowing}
+        loadingFollowers={loadingFollowers}
         numFollowers={this.props.followersCount}
         numFollowing={this.props.followingCount}
         onChangeFollowing={this._changeFollowing}

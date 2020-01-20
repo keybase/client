@@ -79,7 +79,7 @@ type Service struct {
 	teamUpgrader    *teams.Upgrader
 	walletState     *stellar.WalletState
 	offlineRPCCache *offline.RPCCache
-	trackerLoader   *libkb.TrackerLoader
+	trackerLoader   *TrackerLoader
 	runtimeStats    *runtimestats.Runner
 	httpSrv         *manager.Srv
 	avatarSrv       *avatars.Srv
@@ -110,7 +110,7 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		gregor:           newGregorHandler(allG),
 		home:             home.NewHome(g),
 		tlfUpgrader:      tlfupgrade.NewBackgroundTLFUpdater(g),
-		trackerLoader:    libkb.NewTrackerLoader(g),
+		trackerLoader:    NewTrackerLoader(g),
 		runtimeStats:     runtimestats.NewRunner(allG),
 		teamUpgrader:     teams.NewUpgrader(),
 		walletState:      stellar.NewWalletState(g, remote.NewRemoteNet(g)),

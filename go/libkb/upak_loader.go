@@ -32,7 +32,6 @@ type UPAKLoader interface {
 	LookupUsernameUPAK(ctx context.Context, uid keybase1.UID) (NormalizedUsername, error)
 	LookupUID(ctx context.Context, un NormalizedUsername) (keybase1.UID, error)
 	LookupUsernameAndDevice(ctx context.Context, uid keybase1.UID, did keybase1.DeviceID) (username NormalizedUsername, deviceName string, deviceType keybase1.DeviceTypeV2, err error)
-	ListFollowedUIDs(ctx context.Context, uid keybase1.UID) ([]keybase1.UID, error)
 	PutUserToCache(ctx context.Context, user *User) error
 	LoadV2WithKID(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (*keybase1.UserPlusKeysV2AllIncarnations, error)
 	CheckDeviceForUIDAndUsername(ctx context.Context, uid keybase1.UID, did keybase1.DeviceID, n NormalizedUsername, suppressNetworkErrors bool) error
@@ -377,10 +376,15 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 		}
 	}
 
-	lock := u.locktab.AcquireOnName(ctx, g, arg.uid.String())
+	var lock *NamedLock
+	if !arg.cachedOnly {
+		lock = u.locktab.AcquireOnName(ctx, g, arg.uid.String())
+	}
 
 	defer func() {
-		lock.Release(ctx)
+		if lock != nil {
+			lock.Release(ctx)
+		}
 
 		if !shouldReturnFullUser {
 			user = nil
@@ -918,19 +922,6 @@ func (u *CachedUPAKLoader) LoadV2WithKID(ctx context.Context, uid keybase1.UID, 
 
 func (u *CachedUPAKLoader) LookupUsernameAndDevice(ctx context.Context, uid keybase1.UID, did keybase1.DeviceID) (username NormalizedUsername, deviceName string, deviceType keybase1.DeviceTypeV2, err error) {
 	return u.lookupUsernameAndDeviceWithInfo(ctx, uid, did, nil)
-}
-
-func (u *CachedUPAKLoader) ListFollowedUIDs(ctx context.Context, uid keybase1.UID) ([]keybase1.UID, error) {
-	arg := NewLoadUserByUIDArg(ctx, u.G(), uid)
-	upak, _, err := u.Load(arg)
-	if err != nil {
-		return nil, err
-	}
-	var ret []keybase1.UID
-	for _, t := range upak.RemoteTracks {
-		ret = append(ret, t.Uid)
-	}
-	return ret, nil
 }
 
 // v1 UPAKs are all legacy and need to be gradually cleaned from cache.

@@ -506,14 +506,9 @@ func (n *NotifyRouter) HandleTrackingChanged(uid keybase1.UID, username Normaliz
 	})
 }
 
-func (n *NotifyRouter) HandleTrackingInfo(uid keybase1.UID, followers, followees []string) {
+func (n *NotifyRouter) HandleTrackingInfo(arg keybase1.TrackingInfoArg) {
 	if n == nil {
 		return
-	}
-	arg := keybase1.TrackingInfoArg{
-		Uid:       uid,
-		Followees: followees,
-		Followers: followers,
 	}
 	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
@@ -530,7 +525,7 @@ func (n *NotifyRouter) HandleTrackingInfo(uid keybase1.UID, followers, followees
 		return true
 	})
 	n.runListeners(func(listener NotifyListener) {
-		listener.TrackingInfo(uid, followers, followees)
+		listener.TrackingInfo(arg.Uid, arg.Followers, arg.Followees)
 	})
 }
 

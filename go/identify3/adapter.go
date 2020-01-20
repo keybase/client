@@ -558,14 +558,6 @@ func (i *UIAdapter) DisplayTrackStatement(libkb.MetaContext, string) error {
 }
 
 func (i *UIAdapter) DisplayUserCard(mctx libkb.MetaContext, card keybase1.UserCard) error {
-
-	// Do not take the server's word on this! Overwrite with what we got above.
-	// Depends on the fact this gets called after ReportLastTrack, which is currently
-	// the case.
-	i.Lock()
-	card.YouFollowThem = i.iFollowThem
-	i.Unlock()
-
 	arg := keybase1.Identify3UpdateUserCardArg{
 		GuiID: i.session.ID(),
 		Card:  card,

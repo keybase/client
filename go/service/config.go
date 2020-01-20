@@ -346,9 +346,12 @@ func (h ConfigHandler) GetBootstrapStatus(ctx context.Context, sessionID int) (k
 	return status, nil
 }
 
-func (h ConfigHandler) RequestFollowerInfo(ctx context.Context, uid keybase1.UID) error {
+func (h ConfigHandler) RequestFollowingAndUnverifiedFollowers(ctx context.Context, sessionID int) error {
+	if err := assertLoggedIn(ctx, h.G()); err != nil {
+		return err
+	}
 	// Queue up a load for follower info
-	return h.svc.trackerLoader.Queue(ctx, uid)
+	return h.svc.trackerLoader.Queue(ctx, h.G().ActiveDevice.UID())
 }
 
 func (h ConfigHandler) GetRememberPassphrase(ctx context.Context, sessionID int) (bool, error) {
