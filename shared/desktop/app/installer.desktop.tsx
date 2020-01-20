@@ -40,6 +40,8 @@ const checkErrors = (result, errors, errorTypes) => {
   const ExitCodeFuseKextPermissionError = 5
   // See Installer.m: KBExitAuthCanceledError
   const ExitCodeAuthCanceledError = 6
+  // See Installer.m: KBExitFuseCriticalUpdate
+  const ExitFuseCriticalUpdate = 8
 
   const results = (result && result.componentResults) || []
   results.forEach(cr => {
@@ -62,6 +64,9 @@ const checkErrors = (result, errors, errorTypes) => {
       errors.push(
         `Installation was canceled. The file system will not be available until authorization is granted.`
       )
+    } else if (cr.name === 'helper' && cr.exitCode === ExitFuseCriticalUpdate) {
+      // ignore critical update error, it's just to coerce specific behavior in the Go installer
+      return
     } else if (cr.name === 'cli') {
       errorTypes.cli = true
     } else if (cr.name === 'redirector') {
