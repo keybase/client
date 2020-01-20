@@ -38,6 +38,9 @@ func (p PgpUI) OutputSignatureSuccess(_ context.Context, arg keybase1.OutputSign
 		output("Signature verified. Signed by %s %s (%s).\n", un, humanize.Time(signedAt), signedAt)
 	}
 	output("PGP Fingerprint: %s.\n", arg.Fingerprint)
+	for _, warning := range arg.Warnings {
+		output("WARNING: %s\n", warning)
+	}
 	return nil
 }
 
@@ -54,6 +57,11 @@ func (p PgpUI) OutputSignatureSuccessNonKeybase(ctx context.Context, arg keybase
 	} else {
 		output("Signature verified. Signed by key %s (unknown to keybase) %s (%s).\n", arg.KeyID, humanize.Time(signedAt), signedAt)
 	}
+
+	for _, warning := range arg.Warnings {
+		output("WARNING: %s\n", warning)
+	}
+
 	return nil
 }
 func (p PgpUI) KeyGenerated(ctx context.Context, arg keybase1.KeyGeneratedArg) error {
