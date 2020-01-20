@@ -1073,7 +1073,7 @@ func (d *Service) ConfigRPCServer() (net.Listener, error) {
 }
 
 func (d *Service) Stop(exitCode keybase1.ExitCode) {
-	d.G().Log.Info("Beginning the process of stopping the service")
+	d.G().Log.Debug("Beginning the process of stopping the service")
 	d.stopCh <- exitCode
 }
 
