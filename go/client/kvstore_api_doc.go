@@ -2,13 +2,18 @@ package client
 
 const kvStoreAPIDoc = `"keybase kvstore api" provides a JSON API to fast, encrypted key-value storage. The "entryKey" and "namespace" fields are visible to the Keybase servers, "entryValue" is encrypted with the per-team-key. This is still a bit of a work in progress.
 
+If team is not included or is "", then the command defaults to using the signed-in user's implicit self-team (only your user can see and decrypt this).
+
 EXAMPLES:
 
 Get an entry (always returns the latest revision, non-existent entries have a revision of 0):
 	{"method": "get", "params": {"options": {"team": "phoenix", "namespace": "pw-manager", "entryKey": "geocities"}}}
 
-Put an entry in your implicit self-team (only your user can see and decrypt this):
+Put an entry in your implicit self-team; if you want to write out the team name:
 	{"method": "put", "params": {"options": {"team": "yourusername,yourusername", "namespace": "pw-manager", "entryKey": "geocities", "entryValue": "all my secrets"}}}
+
+,..or leave "team" empty (""), or don't include team field:
+	{"method": "put", "params": {"options": {"namespace": "pw-manager", "entryKey": "geocities", "entryValue": "all my secrets"}}}
 
 Put an encrypted entry for anyone in team phoenix:
 	{"method": "put", "params": {"options": {"team": "phoenix", "namespace": "pw-manager", "entryKey": "geocities", "entryValue": "all my secrets"}}}

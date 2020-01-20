@@ -68,15 +68,12 @@ func (t *kvStoreAPIHandler) handleV1(ctx context.Context, c Call, w io.Writer) e
 }
 
 type getEntryOptions struct {
-	Team      string `json:"team"`
+	Team      string `json:"team,omitempty"`
 	Namespace string `json:"namespace"`
 	EntryKey  string `json:"entryKey"`
 }
 
 func (a *getEntryOptions) Check() error {
-	if len(a.Team) == 0 {
-		return errors.New("`team` field required")
-	}
 	if len(a.Namespace) == 0 {
 		return errors.New("`namespace` field required")
 	}
@@ -105,7 +102,7 @@ func (t *kvStoreAPIHandler) getEntry(ctx context.Context, c Call, w io.Writer) e
 }
 
 type putEntryOptions struct {
-	Team       string `json:"team"`
+	Team       string `json:"team,omitempty"`
 	Namespace  string `json:"namespace"`
 	EntryKey   string `json:"entryKey"`
 	Revision   *int   `json:"revision"`
@@ -113,9 +110,6 @@ type putEntryOptions struct {
 }
 
 func (a *putEntryOptions) Check() error {
-	if len(a.Team) == 0 {
-		return errors.New("`team` field required")
-	}
 	if len(a.Namespace) == 0 {
 		return errors.New("`namespace` field required")
 	}
@@ -156,16 +150,13 @@ func (t *kvStoreAPIHandler) putEntry(ctx context.Context, c Call, w io.Writer) e
 }
 
 type deleteEntryOptions struct {
-	Team      string `json:"team"`
+	Team      string `json:"team,omitempty"`
 	Namespace string `json:"namespace"`
 	EntryKey  string `json:"entryKey"`
 	Revision  *int   `json:"revision"`
 }
 
 func (a *deleteEntryOptions) Check() error {
-	if len(a.Team) == 0 {
-		return errors.New("`team` field required")
-	}
 	if len(a.Namespace) == 0 {
 		return errors.New("`namespace` field required")
 	}
@@ -202,14 +193,11 @@ func (t *kvStoreAPIHandler) deleteEntry(ctx context.Context, c Call, w io.Writer
 }
 
 type listOptions struct {
-	Team      string `json:"team"`
+	Team      string `json:"team,omitempty"`
 	Namespace string `json:"namespace"`
 }
 
 func (a *listOptions) Check() error {
-	if len(a.Team) == 0 {
-		return errors.New("`team` field required")
-	}
 	return nil
 }
 
