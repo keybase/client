@@ -178,8 +178,8 @@ func TestIndexFile(t *testing.T) {
 	search("sit", 2)
 
 	t.Log("Re-index a file using the same docID")
-	aNode, _, err := kbfsOps.Lookup(
-		ctx, rootNode, data.NewPathPartString(aName, nil))
+	aNamePPS := data.NewPathPartString(aName, nil)
+	aNode, _, err := kbfsOps.Lookup(ctx, rootNode, aNamePPS)
 	require.NoError(t, err)
 	const aNewText = "Ut feugiat dolor in tortor viverra, ac egestas justo " +
 		"tincidunt."
@@ -205,6 +205,25 @@ func TestIndexFile(t *testing.T) {
 	require.NoError(t, err)
 	err = i.renameChild(ctx, rootNode, "", newDNamePPS, 1)
 	require.NoError(t, err)
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
+	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
+	require.NoError(t, err)
 	search("dolor", 1)
 	search("neque", 1)
+
+	t.Log("Delete a file")
+	md, err := kbfsOps.GetNodeMetadata(ctx, aNode)
+	require.NoError(t, err)
+	err = kbfsOps.RemoveEntry(ctx, rootNode, aNamePPS)
+	require.NoError(t, err)
+	err = i.deleteFromUnrefs(
+		ctx, rootNode.GetFolderBranch().Tlf,
+		[]data.BlockPointer{md.BlockInfo.BlockPointer})
+	require.NoError(t, err)
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
+	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
+	require.NoError(t, err)
+	search("tortor", 0)
 }
