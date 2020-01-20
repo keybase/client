@@ -67,6 +67,7 @@ const checkErrors = (dispatch: (action: TypedActions) => void, result, errors, e
         `Installation was canceled. The file system will not be available until authorization is granted.`
       )
     } else if (cr.name === 'helper' && cr.exitCode === ExitFuseCriticalUpdate) {
+      logger.info('[Installer] fuse critical update, setting badge')
       // ignore critical update error, it's just to coerce specific behavior in the Go installer
       dispatch(FsGen.createSetCriticalUpdate({val: true}))
       return
