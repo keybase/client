@@ -94,7 +94,7 @@ export default () => {
     .add('SystemFileManagerIntegrationBanner - enabled, new', () => (
       <SystemFileManagerIntegrationBanner
         {...commonSystemFileManagerIntegrationBannerProps}
-        driverStatus={{...Constants.emptyDriverStatusEnabled, isNew: true}}
+        driverStatus={{...Constants.emptyDriverStatusEnabled}}
       />
     ))
     .add('SystemFileManagerIntegrationBanner - enabled, disabling', () => (

@@ -62,6 +62,7 @@ const FinderIntegration = (props: Props) => {
   const openMount = displayingMountDir
     ? () => dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: displayingMountDir}))
     : undefined
+  const disable = () => dispatch(FsGen.createDriverDisable())
   return Platform.isDarwin || Platform.isWindows ? (
     <>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.finderIntegrationContent}>
@@ -89,7 +90,13 @@ const FinderIntegration = (props: Props) => {
                 .
               </Kb.Text>
               <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.buttonBox}>
-                <Kb.Button mode="Secondary" small={true} type="Danger" label="Disable Finder integration" />
+                <Kb.Button
+                  mode="Secondary"
+                  small={true}
+                  type="Danger"
+                  label="Disable Finder integration"
+                  onClick={disable}
+                />
               </Kb.Box2>
             </Kb.Box2>
           ) : (

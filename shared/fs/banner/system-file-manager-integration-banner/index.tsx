@@ -223,7 +223,7 @@ const Enabled = (props: Props) => {
       <Banner background={Background.Blue} okIcon={false} title={`Disabling Keybase in ${fileUIName} ...`} />
     )
   }
-  if (props.alwaysShow || props.driverStatus.isNew) {
+  if (props.alwaysShow || !props.settings.sfmiBannerDismissed) {
     return <JustEnabled onDismiss={props.alwaysShow ? null : props.onDismiss} />
   }
   return null

@@ -164,7 +164,6 @@ const fuseStatusToActions = (previousStatusType: Types.DriverStatusType) => (
             ...Constants.emptyDriverStatusEnabled,
             dokanOutdated: status.installAction === RPCTypes.InstallAction.upgrade,
             dokanUninstallExecPath: fuseStatusToUninstallExecPath(status),
-            isNew: previousStatusType === Types.DriverStatusType.Disabled,
           },
         }),
         ...(previousStatusType === Types.DriverStatusType.Disabled

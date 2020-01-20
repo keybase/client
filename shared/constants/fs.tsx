@@ -221,7 +221,6 @@ export const emptyDriverStatusEnabled: Types.DriverStatusEnabled = {
   dokanOutdated: false,
   dokanUninstallExecPath: null,
   isDisabling: false,
-  isNew: false,
   type: Types.DriverStatusType.Enabled,
 } as const
 

@@ -30,7 +30,7 @@ const _provider = {
 
 const storeCommon = Sb.createStoreWithCommon()
 const storeShowingSfmi = produce(storeCommon, draftStoreCommon => {
-  draftStoreCommon.fs.sfmi.driverStatus = {...Constants.emptyDriverStatusEnabled, isNew: true}
+  draftStoreCommon.fs.sfmi.driverStatus = {...Constants.emptyDriverStatusEnabled}
 })
 const storeOthersReset = produce(storeCommon, draftStore => {
   // @ts-ignore

@@ -484,7 +484,6 @@ export type DriverStatusDisabled = Readonly<{
 export type DriverStatusEnabled = Readonly<{
   type: DriverStatusType.Enabled
   isDisabling: boolean
-  isNew: boolean
   // windows only
   dokanOutdated: boolean
   dokanUninstallExecPath?: string | null
