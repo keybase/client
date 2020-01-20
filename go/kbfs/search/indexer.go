@@ -561,6 +561,48 @@ func (i *Indexer) renameChild(
 	return i.docDb.Put(ctx, docID, parentDocID, childName.Plaintext())
 }
 
+func (i *Indexer) deleteFromUnrefs(
+	ctx context.Context, tlfID tlf.ID, unrefs []data.BlockPointer) (err error) {
+	if i.blocksDb == nil {
+		return errors.New("No indexed blocks db")
+	}
+
+	// Find the right doc ID.
+	var docID string
+	var unref data.BlockPointer
+unrefLoop:
+	for _, unref = range unrefs {
+		_, docID, err = i.blocksDb.Get(ctx, unref)
+		switch errors.Cause(err) {
+		case nil:
+			break unrefLoop
+		case ldberrors.ErrNotFound:
+			continue
+		default:
+			return err
+		}
+	}
+	if docID == "" {
+		i.log.CDebugf(ctx, "Couldn't find doc ID for deleted ptrs %v", unrefs)
+		return nil
+	}
+
+	i.lock.RLock()
+	defer i.lock.RUnlock()
+
+	err = i.index.Delete(docID)
+	if err != nil {
+		return err
+	}
+
+	err = i.docDb.Delete(ctx, docID)
+	if err != nil {
+		return err
+	}
+
+	return i.blocksDb.Delete(ctx, tlfID, unref)
+}
+
 func (i *Indexer) fsForRev(
 	ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision) (*libfs.FS, error) {
 	if rev == kbfsmd.RevisionUninitialized {
