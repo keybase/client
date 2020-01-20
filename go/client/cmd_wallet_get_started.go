@@ -106,7 +106,6 @@ And we believe Stellar is in a unique position to solve payments because:
 - It's ultra fast and ultra cheap
 - It natively understands currencies and tokens
 - The network itself has a decentralized exchange built into it
-- It doesn't burn more electricity than small nations
 
 But there are a few things you must agree to understand before using Stellar on Keybase:
 

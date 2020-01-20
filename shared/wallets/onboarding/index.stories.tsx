@@ -31,7 +31,6 @@ const disclaimerSections = [
       {bullet: true, text: 'it natively understands currencies and tokens'},
       {bullet: true, text: "it's ultra fast and ultra cheap"},
       {bullet: true, text: 'the network itself has a decentralized exchange built into it'},
-      {bullet: true, text: "it doesn't burn more electricity than small nations"},
       {
         bullet: false,
         text: 'But there are a few things you must agree to understand before using Stellar on Keybase:',
