@@ -842,6 +842,7 @@ func (s *store) Remove(ctx context.Context, convID chat1.ConversationID,
 }
 
 func (s *store) ClearMemory() {
+	defer s.Trace(context.Background(), func() error { return nil }, "Remove")()
 	s.aliasCache.Purge()
 	s.tokenCache.Purge()
 	s.diskStorage.Cancel()
