@@ -27,7 +27,7 @@ multiple icons with the same counter.
 4. Move SVG to `keybase/client/shared/images/iconfont`
 5. Ensure that the icon font dependencies are insatlled wtih `yarn --check-files`
 6. Run `yarn upate-icon-font`
-    * If new icons were added then `shared/common-adapters/icon-constants.gen.tsx` and `shared/fonts/kb.ttf` should be modified
+    * If new icons were added then `shared/common-adapters/icon.constants-gen.tsx` and `shared/fonts/kb.ttf` should be modified
     * If existing icons were modified/replaced then only `shared/fonts/kb.ttf` should be modified
 7. Inspect modified `kb.ttf` for SVG artifacts or entirely black boxes for icons
     * Launch `FontForge.app`
