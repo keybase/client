@@ -2,7 +2,7 @@ package client
 
 const kvStoreAPIDoc = `"keybase kvstore api" provides a JSON API to fast, encrypted key-value storage. The "entryKey" and "namespace" fields are visible to the Keybase servers, "entryValue" is encrypted with the per-team-key. 
 
-If team is not included, then the command defaults to using the logged-in user's implicit self-team (only your user can see and decrypt this).
+If team is not specified, then the command defaults to using the logged-in user's implicit self-team (only your user can see and decrypt this).
 
 EXAMPLES:
 
