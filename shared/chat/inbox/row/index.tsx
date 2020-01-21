@@ -1,6 +1,6 @@
 import React from 'react'
 import logger from '../../../logger'
-import BigTeamHeader from './big-team-header/container'
+import BigTeamHeader from './big-team-header'
 import BigTeamChannel from './big-team-channel'
 import SmallTeam from './small-team/container'
 import {BigTeamsLabel} from './big-teams-label'
