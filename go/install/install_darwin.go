@@ -54,6 +54,8 @@ const (
 	installHelperExitCodeAuthCanceled int = 6
 	// See osx/Installer/Installer.m : KBExitFuseCriticalUpdate
 	installHelperExitCodeFuseCriticalUpdate int = 8
+	// our own exit code
+	exitCodeFuseCriticalUpdateFailed int = 300
 )
 
 // KeybaseServiceStatus returns service status for Keybase service
@@ -579,6 +581,15 @@ func Install(context Context, binPath string, sourcePath string, components []st
 			err = libnativeinstaller.UninstallFuse(context.GetRunMode(), log)
 			if err != nil {
 				log.Errorf("Error uninstalling FUSE: %s", err)
+				if shouldUninstallKBFS {
+					log.Errorf("Returning critical update failure result since FUSE uninstall failed")
+					return newInstallResult([]keybase1.ComponentResult{{
+						Name: "helper",
+						Status: keybase1.StatusFromCode(keybase1.StatusCode_SCGeneric,
+							"FUSE uninstall failed"),
+						ExitCode: exitCodeFuseCriticalUpdateFailed,
+					}})
+				}
 			}
 		}
 		if shouldUninstallHelper {

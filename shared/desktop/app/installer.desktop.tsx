@@ -44,6 +44,8 @@ const checkErrors = (dispatch: (action: TypedActions) => void, result, errors, e
   const ExitCodeAuthCanceledError = 6
   // See Installer.m: KBExitFuseCriticalUpdate
   const ExitFuseCriticalUpdate = 8
+  // See install_darwin.go: exitCodeFuseCriticalUpdateFailed
+  const ExitFuseCriticalUpdateFailed = 300
 
   const results = (result && result.componentResults) || []
   results.forEach(cr => {
@@ -71,6 +73,11 @@ const checkErrors = (dispatch: (action: TypedActions) => void, result, errors, e
       // ignore critical update error, it's just to coerce specific behavior in the Go installer
       dispatch(FsGen.createSetCriticalUpdate({val: true}))
       return
+    } else if (cr.name === 'helper' && cr.exitCode === ExitFuseCriticalUpdateFailed) {
+      errorTypes.fuse = true
+      errors.push(
+        `We were unable to perform required KBFS maintenance. This is likely because you are using KBFS mounts on more than one macOS system account on this computer. In order to fix this situation, please quit all running copies of Keybase on all accounts, and try starting Keybase again.`
+      )
     } else if (cr.name === 'cli') {
       errorTypes.cli = true
     } else if (cr.name === 'redirector') {
