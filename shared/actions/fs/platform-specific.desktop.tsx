@@ -166,10 +166,6 @@ const fuseStatusToActions = (previousStatusType: Types.DriverStatusType) => (
             dokanUninstallExecPath: fuseStatusToUninstallExecPath(status),
           },
         }),
-        ...(previousStatusType === Types.DriverStatusType.Disabled ||
-        status.installAction === RPCTypes.InstallAction.upgrade
-          ? [FsGen.createShowSystemFileManagerIntegrationBanner()]
-          : []), // show banner for newly enabled
         ...(previousStatusType === Types.DriverStatusType.Disabled
           ? [
               FsGen.createOpenPathInSystemFileManager({
@@ -182,12 +178,6 @@ const fuseStatusToActions = (previousStatusType: Types.DriverStatusType) => (
         FsGen.createSetDriverStatus({
           driverStatus: Constants.emptyDriverStatusDisabled,
         }),
-        ...(previousStatusType === Types.DriverStatusType.Enabled
-          ? [FsGen.createHideSystemFileManagerIntegrationBanner()]
-          : []), // hide banner for newly disabled
-        ...(previousStatusType === Types.DriverStatusType.Unknown
-          ? [FsGen.createShowSystemFileManagerIntegrationBanner()]
-          : []), // show banner for disabled on first load
       ]
 }
 
@@ -415,6 +405,19 @@ const refreshMountDirs = async (
 
 export const ensureDownloadPermissionPromise = () => Promise.resolve()
 
+const setSfmiBannerDismissed = (
+  _: TypedState,
+  action: FsGen.SetSfmiBannerDismissedPayload | FsGen.DriverEnablePayload | FsGen.DriverDisablePayload
+) => {
+  switch (action.type) {
+    case FsGen.setSfmiBannerDismissed:
+      return RPCTypes.SimpleFSSimpleFSSetSfmiBannerDismissedRpcPromise({dismissed: action.payload.dismissed})
+    case FsGen.driverEnable:
+    case FsGen.driverDisable:
+      return RPCTypes.SimpleFSSimpleFSSetSfmiBannerDismissedRpcPromise({dismissed: false})
+  }
+}
+
 function* platformSpecificSaga() {
   yield* Saga.chainAction(FsGen.openLocalPathInSystemFileManager, openLocalPathInSystemFileManager)
   yield* Saga.chainAction2(FsGen.openPathInSystemFileManager, openPathInSystemFileManager)
@@ -443,6 +446,10 @@ function* platformSpecificSaga() {
   yield* Saga.chainAction2(FsGen.openSecurityPreferences, openSecurityPreferences)
   yield* Saga.chainAction2(FsGen.openSecurityPreferences, openSecurityPreferences)
   yield* Saga.chainAction2(ConfigGen.changedFocus, changedFocus)
+  yield* Saga.chainAction2(
+    [FsGen.setSfmiBannerDismissed, FsGen.driverEnable, FsGen.driverDisable],
+    setSfmiBannerDismissed
+  )
 }
 
 export default platformSpecificSaga

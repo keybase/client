@@ -51,11 +51,13 @@ func testEncryptDecryptString(tc libkb.TestContext, h *SaltpackHandler, u1, u2 *
 			IncludeSelf: true,
 		},
 	}
-	ciphertext, err := h.SaltpackEncryptString(ctx, encArg)
+	encRes, err := h.SaltpackEncryptString(ctx, encArg)
 	require.NoError(tc.T, err)
-	require.NotEqual(tc.T, encArg.Plaintext, ciphertext)
+	require.NotEqual(tc.T, encArg.Plaintext, encRes.Ciphertext)
+	require.False(tc.T, encRes.UsedUnresolvedSBS)
+	require.Empty(tc.T, encRes.UnresolvedSBSAssertion)
 
-	decArg := keybase1.SaltpackDecryptStringArg{Ciphertext: ciphertext}
+	decArg := keybase1.SaltpackDecryptStringArg{Ciphertext: encRes.Ciphertext}
 	decRes, err := h.SaltpackDecryptString(ctx, decArg)
 	require.NoError(tc.T, err)
 	require.Equal(tc.T, decRes.Plaintext, encArg.Plaintext)
@@ -86,13 +88,15 @@ func testEncryptDecryptFile(tc libkb.TestContext, h *SaltpackHandler, u1, u2 *kb
 			IncludeSelf: true,
 		},
 	}
-	encFile, err := h.SaltpackEncryptFile(ctx, encArg)
+	encRes, err := h.SaltpackEncryptFile(ctx, encArg)
 	require.NoError(tc.T, err)
-	defer os.Remove(encFile)
-	require.NotEqual(tc.T, encFile, encArg.Filename)
-	require.True(tc.T, strings.HasSuffix(encFile, ".encrypted.saltpack"))
+	defer os.Remove(encRes.Filename)
+	require.NotEqual(tc.T, encRes.Filename, encArg.Filename)
+	require.True(tc.T, strings.HasSuffix(encRes.Filename, ".encrypted.saltpack"))
+	require.False(tc.T, encRes.UsedUnresolvedSBS)
+	require.Empty(tc.T, encRes.UnresolvedSBSAssertion)
 
-	decArg := keybase1.SaltpackDecryptFileArg{EncryptedFilename: encFile}
+	decArg := keybase1.SaltpackDecryptFileArg{EncryptedFilename: encRes.Filename}
 	decRes, err := h.SaltpackDecryptFile(ctx, decArg)
 	require.NoError(tc.T, err)
 	defer os.Remove(decRes.DecryptedFilename)

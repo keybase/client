@@ -104,6 +104,7 @@
   "keybase.1.SimpleFS.simpleFSSetDebugLevel": {"promise": true},
   "keybase.1.SimpleFS.simpleFSSetFolderSyncConfig": {"promise": true},
   "keybase.1.SimpleFS.simpleFSSetNotificationThreshold": {"promise": true},
+  "keybase.1.SimpleFS.simpleFSSetSfmiBannerDismissed": {"promise": true},
   "keybase.1.SimpleFS.simpleFSSettings": {"promise": true},
   "keybase.1.SimpleFS.simpleFSStartDownload": {"promise": true},
   "keybase.1.SimpleFS.simpleFSStat": {"promise": true},

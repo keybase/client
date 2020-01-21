@@ -32,7 +32,10 @@ type OutputSignedProps = {
 type OutputInfoProps = {
   outputStatus?: Types.OutputStatus
   operation: Types.Operations
-  children: string | React.ReactElement
+  children:
+    | string
+    | React.ReactElement<typeof Kb.BannerParagraph>
+    | Array<React.ReactElement<typeof Kb.BannerParagraph>>
 }
 
 const largeOutputLimit = 120
@@ -74,7 +77,9 @@ export const SignedSender = (props: OutputSignedProps) => {
 
 export const OutputInfoBanner = (props: OutputInfoProps) => {
   return props.outputStatus && props.outputStatus === 'success' ? (
-    <Kb.Banner color="grey">{props.children}</Kb.Banner>
+    <Kb.Banner color="grey" style={styles.banner}>
+      {props.children}
+    </Kb.Banner>
   ) : null
 }
 
@@ -192,6 +197,10 @@ const Output = (props: Props) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      banner: {
+        ...Styles.padding(Styles.globalMargins.tiny),
+        minHeight: 40,
+      },
       buttonBar: {
         height: Styles.globalMargins.large,
         minHeight: Styles.globalMargins.large,

@@ -3573,6 +3573,9 @@ func (s *TeamBotSettings) Eq(o *TeamBotSettings) bool {
 }
 
 func (s *TeamBotSettings) ConvIDAllowed(strCID string) bool {
+	if s == nil {
+		return true
+	}
 	for _, strConvID := range s.Convs {
 		if strCID == strConvID {
 			return true

@@ -1111,6 +1111,7 @@ type SaltpackRecipientKeyfinderEngineInterface interface {
 	Engine2
 	GetPublicKIDs() []keybase1.KID
 	GetSymmetricKeys() []SaltpackReceiverSymmetricKey
+	UsedUnresolvedSBSAssertion() (bool, string)
 }
 
 type SaltpackRecipientKeyfinderArg struct {

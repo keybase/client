@@ -97,7 +97,7 @@ func (h *SaltpackHandler) SaltpackDecrypt(ctx context.Context, arg keybase1.Salt
 	return info, err
 }
 
-func (h *SaltpackHandler) SaltpackEncrypt(ctx context.Context, arg keybase1.SaltpackEncryptArg) error {
+func (h *SaltpackHandler) SaltpackEncrypt(ctx context.Context, arg keybase1.SaltpackEncryptArg) (keybase1.SaltpackEncryptResult, error) {
 	ctx = libkb.WithLogTag(ctx, "SP")
 	cli := h.getStreamUICli()
 	src := libkb.NewRemoteStreamBuffered(arg.Source, cli, arg.SessionID)
@@ -118,7 +118,14 @@ func (h *SaltpackHandler) SaltpackEncrypt(ctx context.Context, arg keybase1.Salt
 
 	eng := engine.NewSaltpackEncrypt(earg, keyfinderHook)
 	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
-	return engine.RunEngine2(m, eng)
+	if err := engine.RunEngine2(m, eng); err != nil {
+		return keybase1.SaltpackEncryptResult{}, err
+	}
+
+	return keybase1.SaltpackEncryptResult{
+		UsedUnresolvedSBS:      eng.UsedSBS,
+		UnresolvedSBSAssertion: eng.SBSAssertion,
+	}, nil
 }
 
 func (h *SaltpackHandler) SaltpackSign(ctx context.Context, arg keybase1.SaltpackSignArg) error {
@@ -166,7 +173,7 @@ func (h *SaltpackHandler) SaltpackVerify(ctx context.Context, arg keybase1.Saltp
 
 // frontend handlers:
 
-func (h *SaltpackHandler) SaltpackEncryptString(ctx context.Context, arg keybase1.SaltpackEncryptStringArg) (string, error) {
+func (h *SaltpackHandler) SaltpackEncryptString(ctx context.Context, arg keybase1.SaltpackEncryptStringArg) (keybase1.SaltpackEncryptStringResult, error) {
 	ctx = libkb.WithLogTag(ctx, "SP")
 
 	opts := h.encryptOptions(arg.Opts)
@@ -177,11 +184,16 @@ func (h *SaltpackHandler) SaltpackEncryptString(ctx context.Context, arg keybase
 		Source: strings.NewReader(arg.Plaintext),
 	}
 
-	if err := h.frontendEncrypt(ctx, arg.SessionID, earg); err != nil {
-		return "", err
+	usedSBS, assertion, err := h.frontendEncrypt(ctx, arg.SessionID, earg)
+	if err != nil {
+		return keybase1.SaltpackEncryptStringResult{}, err
 	}
 
-	return sink.String(), nil
+	return keybase1.SaltpackEncryptStringResult{
+		UsedUnresolvedSBS:      usedSBS,
+		UnresolvedSBSAssertion: assertion,
+		Ciphertext:             sink.String(),
+	}, nil
 }
 
 func (h *SaltpackHandler) SaltpackDecryptString(ctx context.Context, arg keybase1.SaltpackDecryptStringArg) (keybase1.SaltpackPlaintextResult, error) {
@@ -244,17 +256,17 @@ func (h *SaltpackHandler) SaltpackVerifyString(ctx context.Context, arg keybase1
 	return res, nil
 }
 
-func (h *SaltpackHandler) SaltpackEncryptFile(ctx context.Context, arg keybase1.SaltpackEncryptFileArg) (string, error) {
+func (h *SaltpackHandler) SaltpackEncryptFile(ctx context.Context, arg keybase1.SaltpackEncryptFileArg) (keybase1.SaltpackEncryptFileResult, error) {
 	ctx = libkb.WithLogTag(ctx, "SP")
 	sf, err := newSourceFile(h.G(), keybase1.SaltpackOperationType_ENCRYPT, arg.Filename)
 	if err != nil {
-		return "", err
+		return keybase1.SaltpackEncryptFileResult{}, err
 	}
 	defer sf.Close()
 
 	outFilename, bw, err := boxFilename(arg.Filename, encryptedSuffix)
 	if err != nil {
-		return "", err
+		return keybase1.SaltpackEncryptFileResult{}, err
 	}
 	defer bw.Close()
 
@@ -269,11 +281,16 @@ func (h *SaltpackHandler) SaltpackEncryptFile(ctx context.Context, arg keybase1.
 		Source: sf,
 	}
 
-	if err := h.frontendEncrypt(ctx, arg.SessionID, earg); err != nil {
-		return "", err
+	usedSBS, assertion, err := h.frontendEncrypt(ctx, arg.SessionID, earg)
+	if err != nil {
+		return keybase1.SaltpackEncryptFileResult{}, err
 	}
 
-	return outFilename, nil
+	return keybase1.SaltpackEncryptFileResult{
+		UsedUnresolvedSBS:      usedSBS,
+		UnresolvedSBSAssertion: assertion,
+		Filename:               outFilename,
+	}, nil
 }
 
 func (h *SaltpackHandler) SaltpackDecryptFile(ctx context.Context, arg keybase1.SaltpackDecryptFileArg) (keybase1.SaltpackFileResult, error) {
@@ -386,7 +403,7 @@ func (h *SaltpackHandler) encryptOptions(opts keybase1.SaltpackFrontendEncryptOp
 	}
 }
 
-func (h *SaltpackHandler) frontendEncrypt(ctx context.Context, sessionID int, arg *engine.SaltpackEncryptArg) error {
+func (h *SaltpackHandler) frontendEncrypt(ctx context.Context, sessionID int, arg *engine.SaltpackEncryptArg) (bool, string, error) {
 	uis := libkb.UIs{
 		SecretUI:  &nopSecretUI{},
 		SessionID: sessionID,
@@ -397,7 +414,8 @@ func (h *SaltpackHandler) frontendEncrypt(ctx context.Context, sessionID int, ar
 	eng := engine.NewSaltpackEncrypt(arg, keyfinderHook)
 	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
 
-	return engine.RunEngine2(m, eng)
+	err := engine.RunEngine2(m, eng)
+	return eng.UsedSBS, eng.SBSAssertion, err
 }
 
 func (h *SaltpackHandler) frontendDecrypt(ctx context.Context, sessionID int, arg *engine.SaltpackDecryptArg) (keybase1.SaltpackEncryptedMessageInfo, bool, error) {

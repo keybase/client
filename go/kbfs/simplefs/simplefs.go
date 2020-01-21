@@ -2853,7 +2853,11 @@ func (k *SimpleFS) SimpleFSSetNotificationThreshold(ctx context.Context, thresho
 	if db == nil {
 		return libkbfs.ErrNoSettingsDB
 	}
-	return db.SetNotificationThreshold(ctx, threshold)
+	if err = db.SetNotificationThreshold(ctx, threshold); err != nil {
+		return err
+	}
+	k.config.SubscriptionManagerPublisher().PublishChange(keybase1.SubscriptionTopic_SETTINGS)
+	return nil
 }
 
 // SimpleFSObfuscatePath implements the SimpleFSInterface.
@@ -3149,4 +3153,21 @@ func (k *SimpleFS) SimpleFSGetGUIFileContext(ctx context.Context,
 func (k *SimpleFS) SimpleFSGetFilesTabBadge(ctx context.Context) (
 	keybase1.FilesTabBadge, error) {
 	return k.config.KBFSOps().GetBadge(ctx)
+}
+
+// SimpleFSSetSfmiBannerDismissed implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSSetSfmiBannerDismissed(
+	ctx context.Context, dismissed bool) (err error) {
+	defer func() {
+		k.log.CDebugf(ctx, "SimpleFSSetSfmiBannerDismissed err=%+v", err)
+	}()
+	db := k.config.GetSettingsDB()
+	if db == nil {
+		return libkbfs.ErrNoSettingsDB
+	}
+	if err = db.SetSfmiBannerDismissed(ctx, dismissed); err != nil {
+		return err
+	}
+	k.config.SubscriptionManagerPublisher().PublishChange(keybase1.SubscriptionTopic_SETTINGS)
+	return nil
 }

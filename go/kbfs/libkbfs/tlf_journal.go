@@ -2369,8 +2369,11 @@ func (j *tlfJournal) doPutMD(
 	// the journal, to guarantee it will be replaced if the journal is
 	// converted into a branch before any of the upper layer have a
 	// chance to cache it.
-	rmd = rmd.loadCachedBlockChanges(
+	rmd, err = rmd.loadCachedBlockChanges(
 		ctx, bps, j.log, j.vlog, j.config.Codec())
+	if err != nil {
+		return ImmutableRootMetadata{}, false, err
+	}
 	irmd = MakeImmutableRootMetadata(
 		rmd, verifyingKey, mdID, j.config.Clock().Now(), false)
 
@@ -2547,8 +2550,11 @@ func (j *tlfJournal) doResolveBranch(
 	// chance to cache it. Revisions created locally should always
 	// override anything else in the cache, so use `Replace` rather
 	// than `Put`.
-	rmd = rmd.loadCachedBlockChanges(
+	rmd, err = rmd.loadCachedBlockChanges(
 		ctx, bps, j.log, j.vlog, j.config.Codec())
+	if err != nil {
+		return ImmutableRootMetadata{}, false, err
+	}
 	irmd = MakeImmutableRootMetadata(
 		rmd, verifyingKey, mdID, j.config.Clock().Now(), false)
 	err = j.config.MDCache().Replace(irmd, irmd.BID())

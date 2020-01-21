@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Constants from '../../../constants/crypto'
 import * as Types from '../../../constants/types/crypto'
+import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
 import debounce from 'lodash/debounce'
 import openURL from '../../../util/open-url'
@@ -27,6 +28,8 @@ const debounced = debounce((fn, ...args) => fn(...args), 100)
 const Sign = (props: Props) => {
   const [inputValue, setInputValue] = React.useState(props.input)
   const onAttach = (localPaths: Array<string>) => {
+    // Drag and drop allows for multi-file upload, we only want one file upload
+    setInputValue('')
     props.onSetInput('file', localPaths[0])
   }
   return (
@@ -39,13 +42,18 @@ const Sign = (props: Props) => {
         prompt="Drop a file to sign"
       >
         <Kb.Box2 direction="vertical" fullHeight={true}>
-          <Kb.Banner color="grey">
-            <Kb.Text type="BodySmallSemibold">We'll add your signature.</Kb.Text>
+          <Kb.Banner color="grey" style={styles.banner}>
+            <Kb.Text type="BodySmallSemibold" center={true} style={styles.signInputInfoBanner}>
+              Add your cryptographic signature to a message or file.
+            </Kb.Text>
           </Kb.Banner>
           {props.inputType === 'file' ? (
             <FileInput
               path={props.input}
-              onClearFiles={props.onClearInput}
+              onClearFiles={() => {
+                setInputValue('')
+                props.onClearInput()
+              }}
               operation={Constants.Operations.Sign}
             />
           ) : (
@@ -106,5 +114,19 @@ const Sign = (props: Props) => {
     </Kb.Box2>
   )
 }
+
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      banner: {
+        ...Styles.padding(Styles.globalMargins.tiny),
+        minHeight: 40,
+      },
+      signInputInfoBanner: {
+        paddingBottom: Styles.globalMargins.tiny,
+        paddingTop: Styles.globalMargins.tiny,
+      },
+    } as const)
+)
 
 export default Sign

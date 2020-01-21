@@ -347,6 +347,10 @@ export type MessageTypes = {
     inParam: {readonly threshold: Int64}
     outParam: void
   }
+  'keybase.1.SimpleFS.simpleFSSetSfmiBannerDismissed': {
+    inParam: {readonly dismissed: Boolean}
+    outParam: void
+  }
   'keybase.1.SimpleFS.simpleFSSettings': {
     inParam: void
     outParam: FSSettings
@@ -1213,11 +1217,11 @@ export type MessageTypes = {
   }
   'keybase.1.saltpack.saltpackEncryptFile': {
     inParam: {readonly filename: String; readonly opts: SaltpackFrontendEncryptOptions}
-    outParam: String
+    outParam: SaltpackEncryptFileResult
   }
   'keybase.1.saltpack.saltpackEncryptString': {
     inParam: {readonly plaintext: String; readonly opts: SaltpackFrontendEncryptOptions}
-    outParam: String
+    outParam: SaltpackEncryptStringResult
   }
   'keybase.1.saltpack.saltpackSignFile': {
     inParam: {readonly filename: String}
@@ -2443,6 +2447,7 @@ export enum SubscriptionTopic {
   downloadStatus = 3,
   filesTabBadge = 4,
   overallSyncStatus = 5,
+  settings = 6,
 }
 
 export enum TLFIdentifyBehavior {
@@ -2694,7 +2699,7 @@ export type FSFolderWriterEdit = {readonly filename: String; readonly notificati
 export type FSFolderWriterEditHistory = {readonly writerName: String; readonly edits?: Array<FSFolderWriterEdit> | null; readonly deletes?: Array<FSFolderWriterEdit> | null}
 export type FSNotification = {readonly filename: String; readonly status: String; readonly statusCode: FSStatusCode; readonly notificationType: FSNotificationType; readonly errorType: FSErrorType; readonly params: {[key: string]: String}; readonly writerUid: UID; readonly localTime: Time; readonly folderType: FolderType}
 export type FSPathSyncStatus = {readonly folderType: FolderType; readonly path: String; readonly syncingBytes: Int64; readonly syncingOps: Int64; readonly syncedBytes: Int64}
-export type FSSettings = {readonly spaceAvailableNotificationThreshold: Int64}
+export type FSSettings = {readonly spaceAvailableNotificationThreshold: Int64; readonly sfmiBannerDismissed: Boolean}
 export type FSSyncStatus = {readonly totalSyncingBytes: Int64; readonly syncingPaths?: Array<String> | null; readonly endEstimate?: Time | null}
 export type FSSyncStatusRequest = {readonly requestID: Int}
 export type FastTeamData = {readonly frozen: Boolean; readonly subversion: Int; readonly tombstoned: Boolean; readonly name: TeamName; readonly chain: FastTeamSigChainState; readonly perTeamKeySeeds: /* perTeamKeySeedsUnverified */ {[key: string]: PerTeamKeySeed}; readonly maxContinuousPTKGeneration: PerTeamKeyGeneration; readonly seedChecks: {[key: string]: PerTeamSeedCheck}; readonly latestKeyGeneration: PerTeamKeyGeneration; readonly readerKeyMasks: {[key: string]: {[key: string]: MaskB64}}; readonly latestSeqnoHint: Seqno; readonly cachedAt: Time; readonly loadedLatest: Boolean}
@@ -2944,7 +2949,10 @@ export type RevokedProof = {readonly proof: RemoteProof; readonly diff: TrackDif
 export type RuntimeStats = {readonly processStats?: Array<ProcessRuntimeStats> | null; readonly dbStats?: Array<DbStats> | null; readonly convLoaderActive: Boolean; readonly selectiveSyncActive: Boolean}
 export type SHA512 = Bytes
 export type SaltpackDecryptOptions = {readonly interactive: Boolean; readonly forceRemoteCheck: Boolean; readonly usePaperKey: Boolean}
+export type SaltpackEncryptFileResult = {readonly usedUnresolvedSBS: Boolean; readonly unresolvedSBSAssertion: String; readonly filename: String}
 export type SaltpackEncryptOptions = {readonly recipients?: Array<String> | null; readonly teamRecipients?: Array<String> | null; readonly authenticityType: AuthenticityType; readonly useEntityKeys: Boolean; readonly useDeviceKeys: Boolean; readonly usePaperKeys: Boolean; readonly noSelfEncrypt: Boolean; readonly binary: Boolean; readonly saltpackVersion: Int; readonly useKBFSKeysOnlyForTesting: Boolean}
+export type SaltpackEncryptResult = {readonly usedUnresolvedSBS: Boolean; readonly unresolvedSBSAssertion: String}
+export type SaltpackEncryptStringResult = {readonly usedUnresolvedSBS: Boolean; readonly unresolvedSBSAssertion: String; readonly ciphertext: String}
 export type SaltpackEncryptedMessageInfo = {readonly devices?: Array<Device> | null; readonly numAnonReceivers: Int; readonly receiverIsAnon: Boolean; readonly sender: SaltpackSender}
 export type SaltpackFileResult = {readonly info: SaltpackEncryptedMessageInfo; readonly decryptedFilename: String; readonly signed: Boolean}
 export type SaltpackFrontendEncryptOptions = {readonly recipients?: Array<String> | null; readonly signed: Boolean; readonly includeSelf: Boolean}
@@ -3439,6 +3447,7 @@ export const SimpleFSSimpleFSRemoveRpcPromise = (params: MessageTypes['keybase.1
 export const SimpleFSSimpleFSSetDebugLevelRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSSetDebugLevel']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSSetDebugLevel']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSSetDebugLevel', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSSetFolderSyncConfigRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSSetFolderSyncConfig']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSSetFolderSyncConfig']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSSetFolderSyncConfig', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSSetNotificationThresholdRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSSetNotificationThreshold']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSSetNotificationThreshold']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSSetNotificationThreshold', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const SimpleFSSimpleFSSetSfmiBannerDismissedRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSSetSfmiBannerDismissed']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSSetSfmiBannerDismissed']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSSetSfmiBannerDismissed', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSSettingsRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSSettings']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSSettings']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSSettings', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSStartDownloadRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSStartDownload']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSStartDownload']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSStartDownload', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSStatRpcPromise = (params: MessageTypes['keybase.1.SimpleFS.simpleFSStat']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.SimpleFS.simpleFSStat']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSStat', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))

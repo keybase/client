@@ -1283,8 +1283,6 @@ func TestChatSrvPostLocalAtMention(t *testing.T) {
 		ctc := makeChatTestContext(t, "PostLocal", 2)
 		defer ctc.cleanup()
 		users := ctc.users()
-		libkb.RemoveEnvironmentFeatureForTest(ctc.as(t, users[0]).m.G().GetEnv().Test, libkb.FeatureJourneycardPreview)
-		libkb.RemoveEnvironmentFeatureForTest(ctc.as(t, users[1]).m.G().GetEnv().Test, libkb.FeatureJourneycardPreview)
 
 		switch mt {
 		case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAMNATIVE,
@@ -1363,6 +1361,7 @@ func TestChatSrvPostLocalAtMention(t *testing.T) {
 				MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 			},
 		})
+		filterOutJourneycards(&threadRes.Thread)
 		require.NoError(t, err)
 		require.Equal(t, 2, len(threadRes.Thread.Messages))
 		require.True(t, threadRes.Thread.Messages[0].IsValid())
@@ -5213,8 +5212,6 @@ func TestChatSrvSetConvMinWriterRole(t *testing.T) {
 
 		tc1 := ctc.as(t, users[0])
 		tc2 := ctc.as(t, users[1])
-		libkb.RemoveEnvironmentFeatureForTest(tc1.m.G().GetEnv().Test, libkb.FeatureJourneycardPreview)
-		libkb.RemoveEnvironmentFeatureForTest(tc2.m.G().GetEnv().Test, libkb.FeatureJourneycardPreview)
 
 		listener1 := newServerChatListener()
 		tc1.h.G().NotifyRouter.AddListener(listener1)
@@ -5311,6 +5308,7 @@ func TestChatSrvSetConvMinWriterRole(t *testing.T) {
 					MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 				},
 			})
+			filterOutJourneycards(&tvres.Thread)
 			require.NoError(t, err)
 			if len(tvres.Thread.Messages) != 2 {
 				t.Logf("messages: %v", chat1.MessageUnboxedDebugList(tvres.Thread.Messages))
@@ -5344,6 +5342,7 @@ func TestChatSrvSetConvMinWriterRole(t *testing.T) {
 					MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 				},
 			})
+			filterOutJourneycards(&tvres.Thread)
 			require.NoError(t, err)
 			require.Len(t, tvres.Thread.Messages, 4, "messages are accessible")
 		}
@@ -7517,4 +7516,15 @@ func TestTeamBotSettings(t *testing.T) {
 			require.False(t, isMember)
 		})
 	})
+}
+
+// Filter out journey cards. The test doesn't need to know about them. Mutates thread.Messages
+func filterOutJourneycards(thread *chat1.ThreadView) {
+	filtered := thread.Messages[:0]
+	for _, msg := range thread.Messages {
+		if msg.Journeycard__ == nil {
+			filtered = append(filtered, msg)
+		}
+	}
+	thread.Messages = filtered
 }
