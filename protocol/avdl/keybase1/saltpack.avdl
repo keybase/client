@@ -83,8 +83,6 @@ protocol saltpack {
     string ciphertext;
   }
 
-  SaltpackEncryptStringResult saltpackEncryptString(int sessionID, string plaintext, SaltpackFrontendEncryptOptions opts);
-
   record SaltpackEncryptFileResult {
     @lint("ignore")
     boolean usedUnresolvedSBS;
@@ -92,6 +90,11 @@ protocol saltpack {
     string unresolvedSBSAssertion;
     string filename;
   }
+
+  SaltpackEncryptStringResult saltpackEncryptString(int sessionID, string plaintext, SaltpackFrontendEncryptOptions opts);
+
+  SaltpackEncryptFileResult saltpackEncryptStringToTextFile(int sessionID, string plaintext, SaltpackFrontendEncryptOptions opts);
+
   SaltpackEncryptFileResult saltpackEncryptFile(int sessionID, string filename, SaltpackFrontendEncryptOptions opts);
 
   record SaltpackPlaintextResult {
@@ -109,6 +112,7 @@ protocol saltpack {
   SaltpackFileResult saltpackDecryptFile(int sessionID, string encryptedFilename);
 
   string saltpackSignString(int sessionID, string plaintext);
+  string saltpackSignStringToTextFile(int sessionID, string plaintext);
   string saltpackSignFile(int sessionID, string filename);
 
   record SaltpackVerifyResult {

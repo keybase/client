@@ -407,6 +407,23 @@
       ],
       "response": "SaltpackEncryptStringResult"
     },
+    "saltpackEncryptStringToTextFile": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "plaintext",
+          "type": "string"
+        },
+        {
+          "name": "opts",
+          "type": "SaltpackFrontendEncryptOptions"
+        }
+      ],
+      "response": "SaltpackEncryptFileResult"
+    },
     "saltpackEncryptFile": {
       "request": [
         {
@@ -451,6 +468,19 @@
       "response": "SaltpackFileResult"
     },
     "saltpackSignString": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "plaintext",
+          "type": "string"
+        }
+      ],
+      "response": "string"
+    },
+    "saltpackSignStringToTextFile": {
       "request": [
         {
           "name": "sessionID",

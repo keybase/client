@@ -196,6 +196,10 @@ func (h *SaltpackHandler) SaltpackEncryptString(ctx context.Context, arg keybase
 	}, nil
 }
 
+func (h *SaltpackHandler) SaltpackEncryptStringToTextFile(ctx context.Context, arg keybase1.SaltpackEncryptStringToTextFileArg) (keybase1.SaltpackEncryptFileResult, error) {
+	return keybase1.SaltpackEncryptFileResult{}, errors.New("nyi")
+}
+
 func (h *SaltpackHandler) SaltpackDecryptString(ctx context.Context, arg keybase1.SaltpackDecryptStringArg) (keybase1.SaltpackPlaintextResult, error) {
 	ctx = libkb.WithLogTag(ctx, "SP")
 	sink := libkb.NewBufferCloser()
@@ -229,6 +233,10 @@ func (h *SaltpackHandler) SaltpackSignString(ctx context.Context, arg keybase1.S
 	}
 
 	return sink.String(), nil
+}
+
+func (h *SaltpackHandler) SaltpackSignStringToTextFile(ctx context.Context, arg keybase1.SaltpackSignStringToTextFileArg) (string, error) {
+	return "", errors.New("nyi")
 }
 
 func (h *SaltpackHandler) SaltpackVerifyString(ctx context.Context, arg keybase1.SaltpackVerifyStringArg) (keybase1.SaltpackVerifyResult, error) {
