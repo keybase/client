@@ -17,6 +17,7 @@ import (
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/kbfssync"
 	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
@@ -32,7 +33,7 @@ import (
 const (
 	textFileType      = "kbfsTextFile"
 	htmlFileType      = "kbfsHTMLFile"
-	kvstoreName       = "kbfs"
+	kvstoreNamePrefix = "kbfs"
 	bleveIndexType    = "upside_down"
 	fsIndexStorageDir = "kbfs_index"
 	docDbDir          = "docdb"
@@ -70,6 +71,8 @@ type Indexer struct {
 	remoteStatus libfs.RemoteStatus
 	configInitFn initFn
 	once         sync.Once
+	indexWG      kbfssync.RepeatedWaitGroup
+	kvstoreName  string
 
 	userChangedCh chan struct{}
 	tlfCh         chan tlfMessage
@@ -86,13 +89,15 @@ type Indexer struct {
 	fs             billy.Filesystem
 }
 
-func newIndexerWithConfigInit(config libkbfs.Config, configInitFn initFn) (
+func newIndexerWithConfigInit(config libkbfs.Config, configInitFn initFn,
+	kvstoreName string) (
 	*Indexer, error) {
 	log := config.MakeLogger("search")
 	i := &Indexer{
 		config:        config,
 		log:           log,
 		configInitFn:  configInitFn,
+		kvstoreName:   kvstoreName,
 		userChangedCh: make(chan struct{}, 1),
 		tlfCh:         make(chan tlfMessage, 1000),
 		shutdownCh:    make(chan struct{}),
@@ -111,7 +116,8 @@ func newIndexerWithConfigInit(config libkbfs.Config, configInitFn initFn) (
 
 // NewIndexer creates a new instance of an Indexer.
 func NewIndexer(config libkbfs.Config) (*Indexer, error) {
-	return newIndexerWithConfigInit(config, defaultInitConfig)
+	return newIndexerWithConfigInit(
+		config, defaultInitConfig, kvstoreNamePrefix)
 }
 
 func (i *Indexer) makeContext(ctx context.Context) context.Context {
@@ -239,7 +245,7 @@ func (i *Indexer) loadIndex(ctx context.Context) (err error) {
 			s store.KVStore, err error) {
 			return newBleveLevelDBStore(i.fs, false, mo)
 		}
-		registry.RegisterKVStore(kvstoreName, kvstoreConstructor)
+		registry.RegisterKVStore(i.kvstoreName, kvstoreConstructor)
 	})
 
 	// Create the actual index using this storage type.  Bleve has
@@ -260,7 +266,7 @@ func (i *Indexer) loadIndex(ctx context.Context) (err error) {
 			return err
 		}
 		index, err = bleve.NewUsing(
-			p, indexMapping, bleveIndexType, kvstoreName, nil)
+			p, indexMapping, bleveIndexType, i.kvstoreName, nil)
 		if err != nil {
 			return err
 		}
@@ -329,6 +335,7 @@ func (i *Indexer) FullSyncStarted(
 	ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision,
 	waitCh <-chan struct{}) {
 	i.log.CDebugf(ctx, "Sync started for %s/%d", tlfID, rev)
+	i.indexWG.Add(1)
 	go func() {
 		select {
 		case <-waitCh:
@@ -428,11 +435,6 @@ func (i *Indexer) indexChildWithPtrAndNode(
 		}
 	}()
 
-	if n.EntryType() == data.Dir {
-		// TODO: just index the child name for a directory.
-		return usedDocID, nil
-	}
-
 	// Get the content type and create a document based on that type.
 	d, nameD, err := makeDoc(
 		ctx, i.config, n, ei, revision, time.Unix(0, ei.Mtime))
@@ -448,9 +450,11 @@ func (i *Indexer) indexChildWithPtrAndNode(
 
 	b := i.index.NewBatch()
 
-	err = b.Index(docID, d)
-	if err != nil {
-		return false, err
+	if d != nil {
+		err = b.Index(docID, d)
+		if err != nil {
+			return false, err
+		}
 	}
 	err = b.Index(nameDocID(docID), nameD)
 	if err != nil {
@@ -620,6 +624,83 @@ func (i *Indexer) fsForRev(
 		ctx, i.config, h, branch, "", "", keybase1.MDPriorityNormal)
 }
 
+func (i *Indexer) indexNewlySyncedTlfDir(
+	ctx context.Context, dir libkbfs.Node,
+	dirDocID string, rev kbfsmd.Revision) error {
+	children, err := i.config.KBFSOps().GetDirChildren(ctx, dir)
+	if err != nil {
+		return err
+	}
+
+	if len(children) == 0 {
+		// Nothing to do.
+		return nil
+	}
+
+	ids, err := i.blocksDb.GetNextDocIDs(len(children))
+	if err != nil {
+		return err
+	}
+
+	currDocID := 0
+	for name, child := range children {
+		usedDocID, err := i.indexChild(
+			ctx, dir, dirDocID, name, ids[currDocID], rev)
+		if err != nil {
+			return err
+		}
+		var docID string
+		if usedDocID {
+			docID = ids[currDocID]
+			currDocID++
+		} else {
+			return errors.Errorf(
+				"Didn't use new doc ID for newly indexed child %s", name)
+		}
+
+		if child.Type == data.Dir {
+			n, _, err := i.config.KBFSOps().Lookup(ctx, dir, name)
+			if err != nil {
+				return err
+			}
+
+			err = i.indexNewlySyncedTlfDir(ctx, n, docID, rev)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (i *Indexer) indexNewlySyncedTlf(
+	ctx context.Context, fs *libfs.FS, rev kbfsmd.Revision) error {
+	root := fs.RootNode()
+
+	ids, err := i.blocksDb.GetNextDocIDs(1)
+	if err != nil {
+		return err
+	}
+	id := ids[0]
+	err = i.docDb.Put(ctx, id, "", fs.Handle().GetCanonicalPath())
+	if err != nil {
+		return err
+	}
+
+	// No need to index the root dir, since it doesn't really have a name.
+	return i.indexNewlySyncedTlfDir(ctx, root, id, rev)
+}
+
+func (i *Indexer) doFullIndex(
+	ctx context.Context, m tlfMessage, rev kbfsmd.Revision) error {
+	defer i.indexWG.Done()
+	fs, err := i.fsForRev(ctx, m.tlfID, rev)
+	if err != nil {
+		return err
+	}
+	return i.indexNewlySyncedTlf(ctx, fs, rev)
+}
+
 func (i *Indexer) loop(ctx context.Context) {
 	i.log.CDebugf(ctx, "Starting indexing loop")
 	defer i.log.CDebugf(ctx, "Ending index loop")
@@ -655,25 +736,25 @@ outerLoop:
 				continue
 			case m := <-i.tlfCh:
 				ctx := i.makeContext(ctx)
-				i.log.CDebugf(ctx, "Received TLF message for %s", m.tlfID)
+				i.log.CDebugf(
+					ctx, "Received TLF message for %s, rev=%d", m.tlfID, m.rev)
 
 				// Figure out which revision to lock to, for this
 				// indexing scan.
-				var rev kbfsmd.Revision
-				if m.rev == kbfsmd.RevisionUninitialized {
+				rev := m.rev
+				if rev == kbfsmd.RevisionUninitialized {
 					// TODO(HOTPOT-1504) -- remove indexing if the
 					// mode is no longer synced.
+					//
+					// TODO(HOTPOT-1495): initiate processing pass for
+					// updates.
 					continue
 				}
 
-				_, err := i.fsForRev(ctx, m.tlfID, rev)
+				err = i.doFullIndex(ctx, m, rev)
 				if err != nil {
-					i.log.CDebugf(ctx, "Error making FS: %+v", err)
-					continue
+					i.log.CDebugf(ctx, "Error indexing synced TLF: %+v", err)
 				}
-
-				// TODO(HOTPOT-1494, HOTPOT-1495): initiate processing
-				// pass, using the FS made above.
 			case <-ctx.Done():
 				return
 			case <-i.shutdownCh:
@@ -707,4 +788,8 @@ func (i *Indexer) waitForIndex(ctx context.Context) error {
 	case <-ctx.Done():
 		return ctx.Err()
 	}
+}
+
+func (i *Indexer) waitForSyncs(ctx context.Context) error {
+	return i.indexWG.Wait(ctx)
 }
