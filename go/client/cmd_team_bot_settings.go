@@ -144,7 +144,7 @@ func renderBotSettings(g *libkb.GlobalContext, username string, convID *chat1.Co
 	if len(output) == 0 {
 		dui.Printf("%s will not receive any messages with the current bot settings\n", username)
 	} else {
-		dui.Printf("%s will receive messages in the follow cases:\n%s", username, output)
+		dui.Printf("%s will receive messages in the following cases:\n%s", username, output)
 	}
 	if len(botSettings.Convs) == 0 {
 		dui.Printf("%s can send/receive into all conversations", username)
