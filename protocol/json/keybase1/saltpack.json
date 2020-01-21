@@ -124,6 +124,22 @@
     },
     {
       "type": "record",
+      "name": "SaltpackEncryptResult",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "usedUnresolvedSBS",
+          "lint": "ignore"
+        },
+        {
+          "type": "string",
+          "name": "unresolvedSBSAssertion",
+          "lint": "ignore"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "SaltpackEncryptedMessageInfo",
       "fields": [
         {
@@ -165,6 +181,46 @@
         {
           "type": "boolean",
           "name": "includeSelf"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SaltpackEncryptStringResult",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "usedUnresolvedSBS",
+          "lint": "ignore"
+        },
+        {
+          "type": "string",
+          "name": "unresolvedSBSAssertion",
+          "lint": "ignore"
+        },
+        {
+          "type": "string",
+          "name": "ciphertext"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SaltpackEncryptFileResult",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "usedUnresolvedSBS",
+          "lint": "ignore"
+        },
+        {
+          "type": "string",
+          "name": "unresolvedSBSAssertion",
+          "lint": "ignore"
+        },
+        {
+          "type": "string",
+          "name": "filename"
         }
       ]
     },
@@ -269,7 +325,7 @@
           "type": "SaltpackEncryptOptions"
         }
       ],
-      "response": null
+      "response": "SaltpackEncryptResult"
     },
     "saltpackDecrypt": {
       "request": [
@@ -349,7 +405,7 @@
           "type": "SaltpackFrontendEncryptOptions"
         }
       ],
-      "response": "string"
+      "response": "SaltpackEncryptStringResult"
     },
     "saltpackEncryptFile": {
       "request": [
@@ -366,7 +422,7 @@
           "type": "SaltpackFrontendEncryptOptions"
         }
       ],
-      "response": "string"
+      "response": "SaltpackEncryptFileResult"
     },
     "saltpackDecryptString": {
       "request": [

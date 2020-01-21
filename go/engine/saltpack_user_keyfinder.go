@@ -17,6 +17,8 @@ type SaltpackUserKeyfinder struct {
 	Arg                           libkb.SaltpackRecipientKeyfinderArg
 	RecipientEntityKeyMap         map[keybase1.UserOrTeamID]([]keybase1.KID)
 	RecipientDeviceAndPaperKeyMap map[keybase1.UID]([]keybase1.KID)
+	UsingSBS                      bool
+	SBSAssertion                  string
 }
 
 var _ libkb.Engine2 = (*SaltpackUserKeyfinder)(nil)
@@ -69,6 +71,10 @@ func (e *SaltpackUserKeyfinder) GetPublicKIDs() []keybase1.KID {
 
 func (e *SaltpackUserKeyfinder) GetSymmetricKeys() []libkb.SaltpackReceiverSymmetricKey {
 	return []libkb.SaltpackReceiverSymmetricKey{}
+}
+
+func (e *SaltpackUserKeyfinder) UsedUnresolvedSBSAssertion() (bool, string) {
+	return e.UsingSBS, e.SBSAssertion
 }
 
 func (e *SaltpackUserKeyfinder) Run(m libkb.MetaContext) (err error) {

@@ -26,6 +26,10 @@ type SaltpackEncrypt struct {
 
 	newKeyfinderHook (func(arg libkb.SaltpackRecipientKeyfinderArg) libkb.SaltpackRecipientKeyfinderEngineInterface)
 
+	// keep track if an SBS recipient was used so callers can tell the user
+	UsedSBS      bool
+	SBSAssertion string
+
 	// Legacy encryption-only messages include a lot more information about
 	// receivers, and it's nice to keep the helpful errors working while those
 	// messages are still around.
@@ -125,6 +129,8 @@ func (e *SaltpackEncrypt) Run(m libkb.MetaContext) (err error) {
 			Identifier: key.Identifier,
 		})
 	}
+
+	e.UsedSBS, e.SBSAssertion = kf.UsedUnresolvedSBSAssertion()
 
 	// This flag determines whether saltpack is used in signcryption (false)
 	// vs encryption (true) format.

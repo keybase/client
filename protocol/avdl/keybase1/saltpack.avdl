@@ -45,7 +45,14 @@ protocol saltpack {
     bytes signature; // detached signature data (binary or armored), can be empty
   }
 
-  void saltpackEncrypt(int sessionID, Stream source, Stream sink, SaltpackEncryptOptions opts);
+  record SaltpackEncryptResult {
+    @lint("ignore")
+    boolean usedUnresolvedSBS;
+    @lint("ignore")
+    string unresolvedSBSAssertion;
+  }
+
+  SaltpackEncryptResult saltpackEncrypt(int sessionID, Stream source, Stream sink, SaltpackEncryptOptions opts);
 
   record SaltpackEncryptedMessageInfo {
     array<Device> devices;
@@ -68,8 +75,24 @@ protocol saltpack {
     boolean includeSelf;
   }
 
-  string saltpackEncryptString(int sessionID, string plaintext, SaltpackFrontendEncryptOptions opts);
-  string saltpackEncryptFile(int sessionID, string filename, SaltpackFrontendEncryptOptions opts);
+  record SaltpackEncryptStringResult {
+    @lint("ignore")
+    boolean usedUnresolvedSBS;
+    @lint("ignore")
+    string unresolvedSBSAssertion;
+    string ciphertext;
+  }
+
+  SaltpackEncryptStringResult saltpackEncryptString(int sessionID, string plaintext, SaltpackFrontendEncryptOptions opts);
+
+  record SaltpackEncryptFileResult {
+    @lint("ignore")
+    boolean usedUnresolvedSBS;
+    @lint("ignore")
+    string unresolvedSBSAssertion;
+    string filename;
+  }
+  SaltpackEncryptFileResult saltpackEncryptFile(int sessionID, string filename, SaltpackFrontendEncryptOptions opts);
 
   record SaltpackPlaintextResult {
     SaltpackEncryptedMessageInfo info;

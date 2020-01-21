@@ -168,7 +168,7 @@ const saltpackEncrypt = async (
   switch (type) {
     case 'file': {
       try {
-        const file = await RPCTypes.saltpackSaltpackEncryptFileRpcPromise({
+        const fileRes = await RPCTypes.saltpackSaltpackEncryptFileRpcPromise({
           filename: input.stringValue(),
           opts: {
             includeSelf: options.includeSelf,
@@ -178,7 +178,7 @@ const saltpackEncrypt = async (
         })
         return CryptoGen.createOnOperationSuccess({
           operation: Constants.Operations.Encrypt,
-          output: new HiddenString(file),
+          output: new HiddenString(fileRes.filename),
           outputSender: options.sign ? new HiddenString(username) : undefined,
           outputSigned: options.sign,
           outputType: type,
@@ -194,7 +194,7 @@ const saltpackEncrypt = async (
     }
     case 'text': {
       try {
-        const ciphertext = await RPCTypes.saltpackSaltpackEncryptStringRpcPromise({
+        const encryptRes = await RPCTypes.saltpackSaltpackEncryptStringRpcPromise({
           opts: {
             includeSelf: options.includeSelf,
             recipients: recipients,
@@ -204,7 +204,7 @@ const saltpackEncrypt = async (
         })
         return CryptoGen.createOnOperationSuccess({
           operation: Constants.Operations.Encrypt,
-          output: new HiddenString(ciphertext),
+          output: new HiddenString(encryptRes.ciphertext),
           outputSender: options.sign ? new HiddenString(username) : undefined,
           outputSigned: options.sign,
           outputType: type,

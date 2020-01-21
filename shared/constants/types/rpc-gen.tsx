@@ -1213,11 +1213,11 @@ export type MessageTypes = {
   }
   'keybase.1.saltpack.saltpackEncryptFile': {
     inParam: {readonly filename: String; readonly opts: SaltpackFrontendEncryptOptions}
-    outParam: String
+    outParam: SaltpackEncryptFileResult
   }
   'keybase.1.saltpack.saltpackEncryptString': {
     inParam: {readonly plaintext: String; readonly opts: SaltpackFrontendEncryptOptions}
-    outParam: String
+    outParam: SaltpackEncryptStringResult
   }
   'keybase.1.saltpack.saltpackSignFile': {
     inParam: {readonly filename: String}
@@ -2944,7 +2944,10 @@ export type RevokedProof = {readonly proof: RemoteProof; readonly diff: TrackDif
 export type RuntimeStats = {readonly processStats?: Array<ProcessRuntimeStats> | null; readonly dbStats?: Array<DbStats> | null; readonly convLoaderActive: Boolean; readonly selectiveSyncActive: Boolean}
 export type SHA512 = Bytes
 export type SaltpackDecryptOptions = {readonly interactive: Boolean; readonly forceRemoteCheck: Boolean; readonly usePaperKey: Boolean}
+export type SaltpackEncryptFileResult = {readonly usedUnresolvedSBS: Boolean; readonly unresolvedSBSAssertion: String; readonly filename: String}
 export type SaltpackEncryptOptions = {readonly recipients?: Array<String> | null; readonly teamRecipients?: Array<String> | null; readonly authenticityType: AuthenticityType; readonly useEntityKeys: Boolean; readonly useDeviceKeys: Boolean; readonly usePaperKeys: Boolean; readonly noSelfEncrypt: Boolean; readonly binary: Boolean; readonly saltpackVersion: Int; readonly useKBFSKeysOnlyForTesting: Boolean}
+export type SaltpackEncryptResult = {readonly usedUnresolvedSBS: Boolean; readonly unresolvedSBSAssertion: String}
+export type SaltpackEncryptStringResult = {readonly usedUnresolvedSBS: Boolean; readonly unresolvedSBSAssertion: String; readonly ciphertext: String}
 export type SaltpackEncryptedMessageInfo = {readonly devices?: Array<Device> | null; readonly numAnonReceivers: Int; readonly receiverIsAnon: Boolean; readonly sender: SaltpackSender}
 export type SaltpackFileResult = {readonly info: SaltpackEncryptedMessageInfo; readonly decryptedFilename: String; readonly signed: Boolean}
 export type SaltpackFrontendEncryptOptions = {readonly recipients?: Array<String> | null; readonly signed: Boolean; readonly includeSelf: Boolean}
