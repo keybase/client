@@ -20,6 +20,7 @@ type Props = {
   onSetOptions: (options: Types.EncryptOptions) => void
   options: Types.EncryptOptions
   hasRecipients: boolean
+  hasSBS: boolean
   output: string
   outputStatus?: Types.OutputStatus
   outputType?: Types.OutputType
@@ -30,6 +31,7 @@ type Props = {
 
 type EncryptOptionsProps = {
   hasRecipients: boolean
+  hasSBS: boolean
   noIncludeSelf: boolean
   onSetOptions: (options: Types.EncryptOptions) => void
   options: Types.EncryptOptions
@@ -39,15 +41,15 @@ type EncryptOptionsProps = {
 const debounced = debounce((fn, ...args) => fn(...args), 100)
 
 const EncryptOptions = (props: EncryptOptionsProps) => {
-  const {hasRecipients, noIncludeSelf, onSetOptions, options} = props
+  const {hasRecipients, hasSBS, noIncludeSelf, onSetOptions, options} = props
   const {includeSelf, sign} = options
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} gap="medium" style={styles.optionsContainer}>
       {noIncludeSelf ? null : (
         <Kb.Checkbox
           label="Include yourself"
-          disabled={!hasRecipients}
-          checked={includeSelf}
+          disabled={hasSBS || !hasRecipients}
+          checked={hasSBS || includeSelf}
           onCheck={newValue => onSetOptions({includeSelf: newValue, sign})}
         />
       )}
@@ -63,8 +65,16 @@ const EncryptOptions = (props: EncryptOptionsProps) => {
 const Encrypt = (props: Props) => {
   const [inputValue, setInputValue] = React.useState(props.input)
   const onAttach = (localPaths: Array<string>) => {
+    // Drag and drop allows for multi-file upload, we only want one file upload
+    setInputValue('')
     props.onSetInput('file', localPaths[0])
   }
+  const youAnd = (who: string) => (props.options.includeSelf ? `you and ${who}` : who)
+  const whoCanRead = props.hasRecipients
+    ? ` Only ${
+        props.recipients?.length > 1 ? youAnd('your recipients') : youAnd(props.recipients[0])
+      } can decipher it.`
+    : ''
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
       <Kb.DragAndDrop
@@ -75,7 +85,10 @@ const Encrypt = (props: Props) => {
         prompt="Drop a file to encrypt"
       >
         <Kb.Banner color="grey">
-          <Kb.Text type="BodySmallSemibold">Encrypt to anyone, even if they're not on Keybase yet.</Kb.Text>
+          <Kb.BannerParagraph
+            bannerColor="grey"
+            content="Encrypt to anyone, even if they're not on Keybase yet."
+          />
         </Kb.Banner>
         <Recipients operation="encrypt" />
         <Kb.Box2 direction="vertical" fullHeight={true}>
@@ -83,7 +96,10 @@ const Encrypt = (props: Props) => {
             <FileInput
               path={props.input}
               operation={Constants.Operations.Encrypt}
-              onClearFiles={props.onClearInput}
+              onClearFiles={() => {
+                setInputValue('')
+                props.onClearInput()
+              }}
             />
           ) : (
             <TextInput
@@ -102,6 +118,7 @@ const Encrypt = (props: Props) => {
           )}
           <EncryptOptions
             hasRecipients={props.hasRecipients}
+            hasSBS={props.hasSBS}
             noIncludeSelf={props.noIncludeSelf}
             options={props.options}
             onSetOptions={props.onSetOptions}
@@ -109,19 +126,22 @@ const Encrypt = (props: Props) => {
           <Kb.ProgressBar ratio={props.progress} style={{width: '100%'}} />
           <Kb.Box2 direction="vertical" fullHeight={true}>
             <OutputInfoBanner operation={Constants.Operations.Encrypt} outputStatus={props.outputStatus}>
-              <Kb.Text type="BodySmallSemibold" center={true}>
-                This is your encrypted {props.outputType === 'file' ? 'file' : 'message'}, using{` `}
-                <Kb.Text
-                  type="BodySecondaryLink"
-                  underline={true}
-                  onClick={() => openURL(Constants.saltpackDocumentation)}
-                >
-                  Saltpack
-                </Kb.Text>
-                . It's also called ciphertext. Email it, upload it, put it on a billboard. Only{' '}
-                {props.recipients.length > 1 ? 'your recipients' : props.recipients[0]}
-                {` `}can decrypt it.
-              </Kb.Text>
+              <Kb.BannerParagraph
+                bannerColor="grey"
+                content={[
+                  `This is your encrypted ${props.outputType === 'file' ? 'file' : 'message'}, using `,
+                  {
+                    onClick: () => openURL(Constants.saltpackDocumentation),
+                    text: 'Saltpack',
+                  },
+                  '.',
+                  props.outputType == 'text' ? " It's also called ciphertext." : '',
+                ]}
+              />
+              <Kb.BannerParagraph
+                bannerColor="grey"
+                content={[props.hasRecipients ? ' Share it however you like.' : null, whoCanRead]}
+              />
             </OutputInfoBanner>
             <SignedSender
               signed={props.options.sign}
@@ -154,6 +174,10 @@ const Encrypt = (props: Props) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      banner: {
+        ...Styles.padding(Styles.globalMargins.tiny),
+        minHeight: 40,
+      },
       coverOutput: {
         ...Styles.globalStyles.flexBoxCenter,
       },

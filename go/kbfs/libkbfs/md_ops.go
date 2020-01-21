@@ -1381,8 +1381,11 @@ func (md *MDOpsStandard) put(ctx context.Context, rmd *RootMetadata,
 		return ImmutableRootMetadata{}, err
 	}
 
-	rmd = rmd.loadCachedBlockChanges(
+	rmd, err = rmd.loadCachedBlockChanges(
 		ctx, bps, md.log, md.vlog, md.config.Codec())
+	if err != nil {
+		return ImmutableRootMetadata{}, err
+	}
 	irmd := MakeImmutableRootMetadata(
 		rmd, verifyingKey, mdID, md.config.Clock().Now(), true)
 	// Revisions created locally should always override anything else
