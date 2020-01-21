@@ -10,9 +10,6 @@ import * as TeamConstants from '../../../constants/teams'
 import * as TeamTypes from '../../../constants/types/teams'
 import TeamMenu from '../../conversation/info-panel/menu/container'
 
-// TODO common-adapters
-import {usePopup} from '../../../common-adapters/use-popup'
-
 type Props = {
   conversationIDKey: ChatTypes.ConversationIDKey
   navKey: string
@@ -37,7 +34,7 @@ const BigTeamHeader = React.memo((props: Props) => {
     )
 
   const popupAnchor = React.useRef(null)
-  const {showingPopup, setShowingPopup, popup} = usePopup(popupAnchor, () => (
+  const {showingPopup, setShowingPopup, popup} = Kb.usePopup(popupAnchor, () => (
     <TeamMenu
       attachTo={() => popupAnchor.current}
       visible={showingPopup}

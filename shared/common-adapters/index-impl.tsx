@@ -349,4 +349,7 @@ module.exports = {
   get useTimeout() {
     return require('./use-timers').useTimeout
   },
+  get usePopup() {
+    return require('./use-popup').usePopup
+  },
 }
