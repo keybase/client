@@ -9,41 +9,14 @@ import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
-import flags from '../../../util/feature-flags'
 
 type BotProps = RPCTypes.FeaturedBot & {
-  conversationIDKey?: Types.ConversationIDKey
   description?: string
   onClick: (username: string) => void
-  showAddToChannel?: boolean
-}
-
-type AddButtonProps = {
-  conversationIDKey: Types.ConversationIDKey
-  username: string
-}
-
-const AddBotToChannel = ({conversationIDKey, username}: AddButtonProps) => {
-  const dispatch = Container.useDispatch()
-  const addToChannel = () => dispatch(Chat2Gen.createAddUserToChannel({conversationIDKey, username}))
-  return (
-    <Kb.WaitingButton
-      type="Dim"
-      mode="Secondary"
-      onClick={(e: React.BaseSyntheticEvent) => {
-        e.stopPropagation()
-        addToChannel()
-      }}
-      style={styles.addButton}
-      icon="iconfont-new"
-      tooltip="Add to this channel"
-      waitingKey={Constants.waitingKeyAddUserToChannel(username, conversationIDKey)}
-    />
-  )
 }
 
 export const Bot = (props: BotProps) => {
-  const {botAlias, conversationIDKey, description, botUsername, showAddToChannel, onClick} = props
+  const {botAlias, description, botUsername, onClick} = props
   const {ownerTeam, ownerUser} = props
   const lower = (
     <Kb.Box2
@@ -91,9 +64,6 @@ export const Bot = (props: BotProps) => {
               {usernameDisplay}
               {lower}
             </Kb.Box2>
-            {showAddToChannel && conversationIDKey && (
-              <AddBotToChannel username={botUsername} conversationIDKey={conversationIDKey} />
-            )}
           </Kb.Box2>
         </Kb.Box2>
         <Kb.Divider style={styles.divider} />
@@ -182,7 +152,6 @@ export default (props: Props) => {
     canManageBots = true
   }
   const adhocTeam = teamType === 'adhoc'
-  const smallTeam = teamType !== 'big'
   const participantInfo = Container.useSelector(state =>
     Constants.getParticipantInfo(state, conversationIDKey)
   )
@@ -202,9 +171,6 @@ export default (props: Props) => {
       .map(p => p.username)
       .sort((l, r) => l.localeCompare(r))
   }
-
-  const participants =
-    flags.botUI && smallTeam ? participantsAll.filter(p => !botUsernames.includes(p)) : participantsAll
 
   const featuredBotsMap = Container.useSelector(state => state.chat2.featuredBotsMap)
   const featuredBots = BotConstants.getFeaturedSorted(featuredBotsMap).filter(
@@ -310,16 +276,7 @@ export default (props: Props) => {
         if (!item.botUsername) {
           return null
         } else {
-          return (
-            <Bot
-              {...item}
-              conversationIDKey={conversationIDKey}
-              onClick={onBotSelect}
-              showAddToChannel={
-                installedBots.includes(item) && !smallTeam && !participants.find(p => p === item.botUsername)
-              }
-            />
-          )
+          return <Bot {...item} onClick={onBotSelect} />
         }
       },
       renderSectionHeader: renderTabs,
