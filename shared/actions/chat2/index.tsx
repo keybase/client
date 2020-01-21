@@ -25,7 +25,7 @@ import * as WaitingGen from '../waiting-gen'
 import * as Router2Constants from '../../constants/router2'
 import commonTeamBuildingSaga, {filterForNs} from '../team-building'
 import * as TeamsConstants from '../../constants/teams'
-import logger from '../../logger'
+import _logger from '../../logger'
 import {NotifyPopup} from '../../native/notifications'
 import {saveAttachmentToCameraRoll, showShareActionSheet} from '../platform-specific'
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
@@ -62,7 +62,8 @@ const onGetInboxUnverifiedConvs = (action: EngineGen.Chat1ChatUiChatInboxUnverif
 // Ask the service to refresh the inbox
 const inboxRefresh = (
   state: Container.TypedState,
-  action: Chat2Gen.InboxRefreshPayload | EngineGen.Chat1NotifyChatChatInboxStalePayload
+  action: Chat2Gen.InboxRefreshPayload | EngineGen.Chat1NotifyChatChatInboxStalePayload,
+  logger: Saga.SagaLogger
 ) => {
   if (!state.config.loggedIn) {
     return false
@@ -103,7 +104,7 @@ const inboxRefresh = (
   return actions
 }
 
-const inboxLoadMoreSmalls = async () => {
+const inboxLoadMoreSmalls = async (_: unknown, logger: Saga.SagaLogger) => {
   try {
     await RPCChatTypes.localRequestInboxSmallIncreaseRpcPromise()
   } catch (err) {
@@ -111,7 +112,7 @@ const inboxLoadMoreSmalls = async () => {
   }
 }
 
-const inboxResetSmalls = async () => {
+const inboxResetSmalls = async (_: unknown, logger: Saga.SagaLogger) => {
   try {
     await RPCChatTypes.localRequestInboxSmallResetRpcPromise()
   } catch (err) {
@@ -211,7 +212,7 @@ const onGetInboxConvsUnboxed = (
     if (meta) {
       metas.push(meta)
     }
-    let participantInfo: Types.ParticipantInfo = {all: [], contactName: new Map(), name: []}
+    const participantInfo: Types.ParticipantInfo = {all: [], contactName: new Map(), name: []}
     ;(inboxUIItem.participants ?? []).forEach((part: RPCChatTypes.UIParticipant) => {
       if (!infoMap.get(part.assertion) && part.fullName) {
         added = true
@@ -445,7 +446,7 @@ const chatActivityToMetasAction = (
 ) => {
   const conv = payload ? payload.conv : null
   const meta = conv && Constants.inboxUIItemToConversationMeta(state, conv)
-  const usernameToFullname = ((conv && conv.participants) || []).reduce((map, part) => {
+  const usernameToFullname = (conv?.participants ?? []).reduce<{[key: string]: string}>((map, part) => {
     if (part.fullName) {
       map[part.assertion] = part.fullName
     }
@@ -561,7 +562,7 @@ const messagesUpdatedToActions = (state: Container.TypedState, info: RPCChatType
 }
 
 // Get actions to update the messagemap when reactions are updated
-const reactionUpdateToActions = (info: RPCChatTypes.ReactionUpdateNotif) => {
+const reactionUpdateToActions = (info: RPCChatTypes.ReactionUpdateNotif, logger: Saga.SagaLogger) => {
   const conversationIDKey = Types.conversationIDToKey(info.convID)
   if (!info.reactionUpdates || info.reactionUpdates.length === 0) {
     logger.warn(`Got ReactionUpdateNotif with no reactionUpdates for convID=${conversationIDKey}`)
@@ -809,40 +810,33 @@ const onChatThreadStale = (
 ) => {
   const {updates} = action.payload.params
   let actions: Array<Container.TypedActions> = []
-  Object.keys(RPCChatTypes.StaleUpdateType)
-    .filter(k => typeof RPCChatTypes.StaleUpdateType[k] === 'number')
-    .forEach(function(key) {
-      const conversationIDKeys = (updates || []).reduce<Array<string>>((arr, u) => {
-        if (u.updateType === RPCChatTypes.StaleUpdateType[key]) {
-          arr.push(Types.conversationIDToKey(u.convID))
-        }
-        return arr
-      }, [])
-      // load the inbox instead
-      if (key === 'convupdate') {
-        logger.info(
-          `onChatThreadStale: dispatching inbox unbox actions for ${conversationIDKeys.length} convs of type ${key}`
-        )
-        actions = actions.concat([
-          Chat2Gen.createMetaRequestTrusted({
-            conversationIDKeys,
-            force: true,
-            reason: 'threadStale',
-          }),
-        ])
-      } else if (conversationIDKeys.length > 0) {
-        logger.info(
-          `onChatThreadStale: dispatching thread reload actions for ${conversationIDKeys.length} convs of type ${key}`
-        )
-        actions = actions.concat([
-          Chat2Gen.createMarkConversationsStale({
-            conversationIDKeys,
-            updateType: RPCChatTypes.StaleUpdateType[key],
-          }),
-          Chat2Gen.createMetaRequestTrusted({conversationIDKeys, force: true, reason: 'threadStale'}),
-        ])
+  const keys = ['clear', 'newactivity'] as const
+  if (__DEV__) {
+    if (keys.length * 2 !== Object.keys(RPCChatTypes.StaleUpdateType).length) {
+      throw new Error('onChatThreadStale invalid enum')
+    }
+  }
+  keys.forEach(key => {
+    const conversationIDKeys = (updates || []).reduce<Array<string>>((arr, u) => {
+      if (u.updateType === RPCChatTypes.StaleUpdateType[key]) {
+        arr.push(Types.conversationIDToKey(u.convID))
       }
-    })
+      return arr
+    }, [])
+    // load the inbox instead
+    if (conversationIDKeys.length > 0) {
+      logger.info(
+        `onChatThreadStale: dispatching thread reload actions for ${conversationIDKeys.length} convs of type ${key}`
+      )
+      actions = actions.concat([
+        Chat2Gen.createMarkConversationsStale({
+          conversationIDKeys,
+          updateType: RPCChatTypes.StaleUpdateType[key],
+        }),
+        Chat2Gen.createMetaRequestTrusted({conversationIDKeys, force: true, reason: 'threadStale'}),
+      ])
+    }
+  })
   return actions
 }
 
@@ -920,7 +914,7 @@ const onNewChatActivity = (
       actions = ephemeralPurgeToActions(activity.ephemeralPurge)
       break
     case RPCChatTypes.ChatActivityType.reactionUpdate:
-      actions = reactionUpdateToActions(activity.reactionUpdate)
+      actions = reactionUpdateToActions(activity.reactionUpdate, logger)
       break
     case RPCChatTypes.ChatActivityType.messagesUpdated: {
       actions = messagesUpdatedToActions(state, activity.messagesUpdated)
@@ -945,7 +939,7 @@ const onChatConvUpdate = (
 }
 
 const loadThreadMessageTypes = Object.keys(RPCChatTypes.MessageType)
-  .filter(k => typeof RPCChatTypes.MessageType[k] === 'number')
+  .filter((k: any) => typeof RPCChatTypes.MessageType[k] === 'number')
   .reduce<Array<number>>((arr, key) => {
     switch (key) {
       case 'none':
@@ -957,7 +951,7 @@ const loadThreadMessageTypes = Object.keys(RPCChatTypes.MessageType)
       case 'tlfname':
         break
       default:
-        arr.push(RPCChatTypes.MessageType[key])
+        arr.push(RPCChatTypes.MessageType[key as any] as number)
         break
     }
 
@@ -1437,7 +1431,11 @@ const messageRetry = (action: Chat2Gen.MessageRetryPayload) => {
   )
 }
 
-function* loadAttachmentView(state: Container.TypedState, action: Chat2Gen.LoadAttachmentViewPayload) {
+function* loadAttachmentView(
+  state: Container.TypedState,
+  action: Chat2Gen.LoadAttachmentViewPayload,
+  logger: Saga.SagaLogger
+) {
   const conversationIDKey = action.payload.conversationIDKey
   const viewType = action.payload.viewType
 
@@ -1742,7 +1740,9 @@ function* messageSend(
       })
     ),
   ]
-  const onHideConfirm = ({canceled}) =>
+  const onHideConfirm = ({
+    canceled,
+  }: RPCChatTypes.MessageTypes['chat.1.chatUi.chat.1.chatUi.chatStellarDone']) =>
     Saga.callUntyped(function*() {
       const visibleScreen = Router2Constants.getVisibleScreen()
       if (visibleScreen && visibleScreen.routeName === confirmRouteName) {
@@ -1864,7 +1864,8 @@ const previewConversationPersonMakesAConversation = (action: Chat2Gen.PreviewCon
 
 const findGeneralConvIDFromTeamID = async (
   state: Container.TypedState,
-  action: Chat2Gen.FindGeneralConvIDFromTeamIDPayload
+  action: Chat2Gen.FindGeneralConvIDFromTeamIDPayload,
+  logger: Saga.SagaLogger
 ) => {
   let conv: RPCChatTypes.InboxUIItem | undefined
   try {
@@ -1944,9 +1945,8 @@ const previewConversationTeam = async (
       }
     }
 
-    const conversationIDKey = first.conversationIDKey
     const results2 = await RPCChatTypes.localPreviewConversationByIDLocalRpcPromise({
-      convID: Types.keyToConversationID(conversationIDKey),
+      convID: Types.keyToConversationID(first.conversationIDKey),
     })
     const actions: Array<Container.TypedActions> = []
     const meta = Constants.inboxUIItemToConversationMeta(state, results2.conv)
@@ -1955,7 +1955,7 @@ const previewConversationTeam = async (
     }
     actions.push(
       Chat2Gen.createSelectConversation({
-        conversationIDKey,
+        conversationIDKey: first.conversationIDKey,
         reason: 'previewResolved',
       })
     )
@@ -1995,7 +1995,7 @@ const onUpdateUserReacjis = (state: Container.TypedState) => {
   // emoji-mart expects a frequency map so we convert the sorted list from the
   // service into a frequency map that will appease the lib.
   let i = 0
-  let reacjis = {}
+  const reacjis: {[key: string]: number} = {}
   userReacjis.topReacjis.forEach(el => {
     i++
     reacjis[el] = userReacjis.topReacjis.length - i
@@ -2003,7 +2003,7 @@ const onUpdateUserReacjis = (state: Container.TypedState) => {
 
   const {store} = require('emoji-mart')
   store.setHandlers({
-    getter: key => {
+    getter: (key: 'frequently' | 'last' | 'skin') => {
       switch (key) {
         case 'frequently':
           return reacjis
@@ -2025,11 +2025,14 @@ const openFolder = (state: Container.TypedState, action: Chat2Gen.OpenFolderPayl
   return FsConstants.makeActionForOpenPathInFilesTab(path)
 }
 
-function* downloadAttachment(downloadToCache: boolean, message: Types.Message) {
+function* downloadAttachment(downloadToCache: boolean, message: Types.Message, logger: Saga.SagaLogger) {
   try {
     const conversationIDKey = message.conversationIDKey
     let lastRatioSent = -1 // force the first update to show no matter what
-    const onDownloadProgress = ({bytesComplete, bytesTotal}) => {
+    const onDownloadProgress = ({
+      bytesComplete,
+      bytesTotal,
+    }: RPCChatTypes.MessageTypes['chat.1.chatUi.chatAttachmentDownloadProgress']['inParam']) => {
       const ratio = bytesComplete / bytesTotal
       // Don't spam ourselves with updates
       if (ratio - lastRatioSent > 0.05) {
@@ -2060,7 +2063,7 @@ function* downloadAttachment(downloadToCache: boolean, message: Types.Message) {
     yield Saga.put(Chat2Gen.createAttachmentDownloaded({message, path: rpcRes.filePath}))
     return rpcRes.filePath
   } catch (e) {
-    logger.error(`downloadAttachment error: ${e.message}`)
+    logger.error(`downloadAttachment error: ${e.message}`, logger)
     yield Saga.put(
       Chat2Gen.createAttachmentDownloaded({error: e.message || 'Error downloading attachment', message})
     )
@@ -2086,7 +2089,7 @@ function* attachmentDownload(
     return
   }
 
-  yield Saga.callUntyped(downloadAttachment, false, message)
+  yield Saga.callUntyped(downloadAttachment, false, message, logger)
 }
 
 const attachmentPreviewSelect = (action: Chat2Gen.AttachmentPreviewSelectPayload) =>
@@ -2510,7 +2513,7 @@ function* mobileMessageAttachmentShare(
   if (!message || message.type !== 'attachment') {
     throw new Error('Invalid share message')
   }
-  const filePath = yield* downloadAttachment(true, message)
+  const filePath = yield* downloadAttachment(true, message, logger)
   if (!filePath) {
     logger.error('Downloading attachment failed')
     throw new Error('Downloading attachment failed')
@@ -2532,7 +2535,7 @@ function* mobileMessageAttachmentSave(
   if (!message || message.type !== 'attachment') {
     throw new Error('Invalid share message')
   }
-  const fileName = yield* downloadAttachment(true, message)
+  const fileName = yield* downloadAttachment(true, message, logger)
   if (!fileName) {
     // failed to download
     logger.error('Downloading attachment failed')
@@ -2646,7 +2649,11 @@ function* blockConversation(_: Container.TypedState, action: Chat2Gen.BlockConve
   })
 }
 
-function* hideConversation(_: Container.TypedState, action: Chat2Gen.HideConversationPayload) {
+function* hideConversation(
+  _: Container.TypedState,
+  action: Chat2Gen.HideConversationPayload,
+  logger: Saga.SagaLogger
+) {
   // Nav to inbox but don't use findNewConversation since changeSelectedConversation
   // does that with better information. It knows the conversation is hidden even before
   // that state bounces back.
@@ -2665,7 +2672,11 @@ function* hideConversation(_: Container.TypedState, action: Chat2Gen.HideConvers
   }
 }
 
-function* unhideConversation(_: Container.TypedState, action: Chat2Gen.HideConversationPayload) {
+function* unhideConversation(
+  _: Container.TypedState,
+  action: Chat2Gen.HideConversationPayload,
+  logger: Saga.SagaLogger
+) {
   try {
     yield RPCChatTypes.localSetConversationStatusLocalRpcPromise(
       {
