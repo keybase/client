@@ -34,7 +34,7 @@ const PublicBanner = ({path}: Props) => {
     if (lastPublicBannerClosedTlf !== '' && lastPublicBannerClosedTlf !== tlfName) {
       clearLastClosed()
     }
-  }, [setLastClosed, tlfName, lastPublicBannerClosedTlf])
+  }, [clearLastClosed, tlfName, lastPublicBannerClosedTlf])
 
   if (parsedPath.kind !== Types.PathKind.GroupTlf && parsedPath.kind !== Types.PathKind.InGroupTlf) {
     return null
