@@ -108,22 +108,15 @@ func TestKvStoreSelfTeamPutGet(t *testing.T) {
 	putRes, err = handler.PutKVEntry(ctx, putArg)
 	require.NoError(t, err)
 
-	// check that it lists correctly whether teamName for implicit self team =
-	// "username,username" or ""
-	for _, name := range []string{"", user.Username, teamName} {
-		listNamespacesArg.TeamName = name
-		listNamespacesRes, err = handler.ListKVNamespaces(ctx, listNamespacesArg)
-		require.NoError(t, err)
-		require.EqualValues(t, listNamespacesRes.Namespaces, []string{namespace})
-		require.EqualValues(t, listNamespacesRes.TeamName, teamName)
+	// lists correctly
+	listNamespacesRes, err = handler.ListKVNamespaces(ctx, listNamespacesArg)
+	require.NoError(t, err)
+	require.EqualValues(t, listNamespacesRes.Namespaces, []string{namespace})
 
-		listEntriesArg.TeamName = name
-		listEntriesRes, err = handler.ListKVEntries(ctx, listEntriesArg)
-		require.NoError(t, err)
-		expectedKey := keybase1.KVListEntryKey{EntryKey: entryKey, Revision: 3}
-		require.EqualValues(t, []keybase1.KVListEntryKey{expectedKey}, listEntriesRes.EntryKeys)
-		require.EqualValues(t, listEntriesRes.TeamName, teamName)
-	}
+	listEntriesRes, err = handler.ListKVEntries(ctx, listEntriesArg)
+	require.NoError(t, err)
+	expectedKey := keybase1.KVListEntryKey{EntryKey: entryKey, Revision: 3}
+	require.EqualValues(t, []keybase1.KVListEntryKey{expectedKey}, listEntriesRes.EntryKeys)
 }
 
 func TestKvStoreMultiUserTeam(t *testing.T) {

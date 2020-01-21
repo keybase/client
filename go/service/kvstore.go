@@ -36,33 +36,25 @@ func NewKVStoreHandler(xp rpc.Transporter, g *libkb.GlobalContext) *KVStoreHandl
 	}
 }
 
-func (h *KVStoreHandler) resolveTeam(mctx libkb.MetaContext, userInputTeamName string) (teamID keybase1.TeamID, teamName string, err error) {
-	selfName := mctx.ActiveDevice().Username(mctx).String()
-	if userInputTeamName == "" || userInputTeamName == selfName {
-		// Default to implicit self-team.
-		// Assumes that usernames and team names must be unique.
-		teamName = fmt.Sprintf("%s,%s", selfName, selfName)
-	} else {
-		teamName = userInputTeamName
-	}
-	if strings.Contains(teamName, ",") {
+func (h *KVStoreHandler) resolveTeam(mctx libkb.MetaContext, userInputTeamName string) (teamID keybase1.TeamID, err error) {
+	if strings.Contains(userInputTeamName, ",") {
 		// it's an implicit team that might not exist yet
-		team, _, _, err := teams.LookupOrCreateImplicitTeam(mctx.Ctx(), mctx.G(), teamName, false /*public*/)
+		team, _, _, err := teams.LookupOrCreateImplicitTeam(mctx.Ctx(), mctx.G(), userInputTeamName, false /*public*/)
 		if err != nil {
 			mctx.Debug("error loading implicit team %s: %v", userInputTeamName, err)
 			err = libkb.AppStatusError{
 				Code: libkb.SCTeamReadError,
 				Desc: "You are not a member of this team",
 			}
-			return teamID, teamName, err
+			return teamID, err
 		}
-		return team.ID, teamName, nil
+		return team.ID, nil
 	}
-	teamID, err = teams.GetTeamIDByNameRPC(mctx, teamName)
+	teamID, err = teams.GetTeamIDByNameRPC(mctx, userInputTeamName)
 	if err != nil {
-		mctx.Debug("error resolving team with name %s: %v", teamName, err)
+		mctx.Debug("error resolving team with name %s: %v", userInputTeamName, err)
 	}
-	return teamID, teamName, err
+	return teamID, err
 }
 
 type getEntryAPIRes struct {
@@ -116,8 +108,7 @@ func (h *KVStoreHandler) GetKVEntry(ctx context.Context, arg keybase1.GetKVEntry
 		mctx.Debug("not logged in err: %v", err)
 		return res, err
 	}
-	teamID, teamName, err := h.resolveTeam(mctx, arg.TeamName)
-	arg.TeamName = teamName
+	teamID, err := h.resolveTeam(mctx, arg.TeamName)
 	if err != nil {
 		return res, err
 	}
@@ -174,8 +165,7 @@ func (h *KVStoreHandler) PutKVEntry(ctx context.Context, arg keybase1.PutKVEntry
 		mctx.Debug("not logged in err: %v", err)
 		return res, err
 	}
-	teamID, teamName, err := h.resolveTeam(mctx, arg.TeamName)
-	arg.TeamName = teamName
+	teamID, err := h.resolveTeam(mctx, arg.TeamName)
 	if err != nil {
 		return res, err
 	}
@@ -259,8 +249,7 @@ func (h *KVStoreHandler) DelKVEntry(ctx context.Context, arg keybase1.DelKVEntry
 		mctx.Debug("not logged in err: %v", err)
 		return res, err
 	}
-	teamID, teamName, err := h.resolveTeam(mctx, arg.TeamName)
-	arg.TeamName = teamName
+	teamID, err := h.resolveTeam(mctx, arg.TeamName)
 	if err != nil {
 		return res, err
 	}
@@ -346,8 +335,7 @@ func (h *KVStoreHandler) ListKVNamespaces(ctx context.Context, arg keybase1.List
 		mctx.Debug("not logged in err: %v", err)
 		return res, err
 	}
-	teamID, teamName, err := h.resolveTeam(mctx, arg.TeamName)
-	arg.TeamName = teamName
+	teamID, err := h.resolveTeam(mctx, arg.TeamName)
 	if err != nil {
 		return res, err
 	}
@@ -394,8 +382,7 @@ func (h *KVStoreHandler) ListKVEntries(ctx context.Context, arg keybase1.ListKVE
 		mctx.Debug("not logged in err: %v", err)
 		return res, err
 	}
-	teamID, teamName, err := h.resolveTeam(mctx, arg.TeamName)
-	arg.TeamName = teamName
+	teamID, err := h.resolveTeam(mctx, arg.TeamName)
 	if err != nil {
 		return res, err
 	}
