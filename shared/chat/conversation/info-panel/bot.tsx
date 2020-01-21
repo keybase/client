@@ -174,9 +174,6 @@ export default (props: Props) => {
       .sort((l, r) => l.localeCompare(r))
   }
 
-  const participants =
-    flags.botUI && smallTeam ? participantsAll.filter(p => !botUsernames.includes(p)) : participantsAll
-
   const featuredBotsMap = Container.useSelector(state => state.chat2.featuredBotsMap)
   const featuredBots = BotConstants.getFeaturedSorted(featuredBotsMap).filter(
     k =>
