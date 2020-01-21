@@ -355,7 +355,9 @@ func SetupTest(tb TestingTB, name string, depth int) (tc TestContext) {
 	}
 
 	AddEnvironmentFeatureForTest(tc, EnvironmentFeatureAllowHighSkips)
-	AddEnvironmentFeatureForTest(tc, FeatureJourneycardPreview)
+	// If journeycards are disabled, this may be helpful to get tests to pass:
+	// AddEnvironmentFeatureForTest(tc, FeatureJourneycard)
+	// AddEnvironmentFeatureForTest(tc, FeatureJourneycard)
 
 	return tc
 }
