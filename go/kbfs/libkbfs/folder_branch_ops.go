@@ -1732,6 +1732,45 @@ func (fbo *folderBranchOps) waitForRootBlockFetch(
 	}
 }
 
+func (fbo *folderBranchOps) startFullSync(
+	ctx context.Context, rmd ImmutableRootMetadata, updatedCh <-chan struct{}) (
+	rootPtr data.BlockPointer, waitCh <-chan struct{}) {
+	rootPtr = rmd.Data().Dir.BlockPointer
+	rev := rmd.Revision()
+	fbo.vlog.CLogf(
+		ctx, libkb.VLog1,
+		"Fetching root block of revision %d, ptr %v", rev, rootPtr)
+	rootCh := fbo.kickOffRootBlockFetch(ctx, rmd)
+	select {
+	case err := <-rootCh:
+		if err != nil {
+			fbo.log.CDebugf(ctx, "Error getting root block: %+v", err)
+			return data.ZeroPtr, nil
+		}
+	case <-updatedCh:
+		fbo.vlog.CLogf(
+			ctx, libkb.VLog1, "The latest merged rev has been updated")
+		return data.ZeroPtr, nil
+	case <-fbo.shutdownChan:
+		fbo.log.CDebugf(ctx, "Shutdown, canceling root block wait")
+		return data.ZeroPtr, nil
+	}
+
+	fbo.vlog.CLogf(
+		ctx, libkb.VLog1, "Waiting for prefetch of revision %d, ptr %v",
+		rev, rootPtr)
+	waitCh, err := fbo.config.BlockOps().Prefetcher().
+		WaitChannelForBlockPrefetch(ctx, rootPtr)
+	if err != nil {
+		fbo.log.CDebugf(ctx,
+			"Error getting wait channel for prefetch: %+v", err)
+		return data.ZeroPtr, nil
+	}
+	fbo.syncedTlfObservers.fullSyncStarted(
+		ctx, fbo.id(), rmd.Revision(), waitCh)
+	return rootPtr, waitCh
+}
+
 func (fbo *folderBranchOps) commitFlushedMD(
 	rmd ImmutableRootMetadata, updatedCh <-chan struct{}) {
 	diskMDCache := fbo.config.DiskMDCache()
@@ -1754,38 +1793,7 @@ func (fbo *folderBranchOps) commitFlushedMD(
 		// For synced TLFs, wait for prefetching to complete for
 		// `rootPtr`. When it's successfully done, commit the
 		// corresponding MD.
-		rootPtr := rmd.Data().Dir.BlockPointer
-		fbo.vlog.CLogf(
-			ctx, libkb.VLog1,
-			"Fetching root block of revision %d, ptr %v", rev, rootPtr)
-		rootCh := fbo.kickOffRootBlockFetch(ctx, rmd)
-		select {
-		case err := <-rootCh:
-			if err != nil {
-				fbo.log.CDebugf(ctx, "Error getting root block: %+v", err)
-				return
-			}
-		case <-updatedCh:
-			fbo.vlog.CLogf(
-				ctx, libkb.VLog1, "The latest merged rev has been updated")
-			return
-		case <-fbo.shutdownChan:
-			fbo.log.CDebugf(ctx, "Shutdown, canceling root block wait")
-			return
-		}
-
-		fbo.vlog.CLogf(
-			ctx, libkb.VLog1, "Waiting for prefetch of revision %d, ptr %v",
-			rev, rootPtr)
-		waitCh, err := fbo.config.BlockOps().Prefetcher().
-			WaitChannelForBlockPrefetch(ctx, rootPtr)
-		if err != nil {
-			fbo.log.CDebugf(ctx,
-				"Error getting wait channel for prefetch: %+v", err)
-			return
-		}
-		fbo.syncedTlfObservers.fullSyncStarted(
-			ctx, fbo.id(), rmd.Revision(), waitCh)
+		rootPtr, waitCh := fbo.startFullSync(ctx, rmd, updatedCh)
 
 		select {
 		case <-waitCh:
@@ -9325,6 +9333,7 @@ func (fbo *folderBranchOps) SetSyncConfig(
 		})
 	}
 
+	modeChanged := oldConfig.Mode != config.Mode
 	if config.Mode == keybase1.FolderSyncMode_ENABLED {
 		// Make a new ctx for the root block fetch, since it will
 		// continue after this function returns.
@@ -9332,17 +9341,15 @@ func (fbo *folderBranchOps) SetSyncConfig(
 		fbo.log.CDebugf(
 			ctx, "Starting full deep sync with a new context: FBOID=%s",
 			rootBlockCtx.Value(CtxFBOIDKey))
-		_ = fbo.kickOffRootBlockFetch(rootBlockCtx, md)
+		_, _ = fbo.startFullSync(ctx, md, nil)
+	} else if modeChanged {
+		fbo.syncedTlfObservers.syncModeChanged(ctx, fbo.id(), config.Mode)
 	}
 
 	// Issue notifications to client when sync mode changes (or is partial).
-	modeChanged := oldConfig.Mode != config.Mode
 	if modeChanged || config.Mode == keybase1.FolderSyncMode_PARTIAL {
 		fbo.config.Reporter().Notify(ctx, syncConfigChangeNotification(
 			md.GetTlfHandle(), config))
-	}
-	if modeChanged {
-		fbo.syncedTlfObservers.syncModeChanged(ctx, fbo.id(), config.Mode)
 	}
 	return ch, nil
 }
