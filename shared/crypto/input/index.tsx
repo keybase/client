@@ -22,10 +22,10 @@ type FileProps = {
 }
 
 const operationToEmptyInputWidth = {
-  [Constants.Operations.Encrypt]: 161,
-  [Constants.Operations.Decrypt]: 274,
-  [Constants.Operations.Sign]: 161,
-  [Constants.Operations.Verify]: 296,
+  [Constants.Operations.Encrypt]: 153,
+  [Constants.Operations.Decrypt]: 266,
+  [Constants.Operations.Sign]: 153,
+  [Constants.Operations.Verify]: 288,
 }
 
 /*
@@ -84,10 +84,11 @@ const TextInput = (props: TextProps) => {
         )}
         <Kb.Box2
           direction="horizontal"
-          fullWidth={false}
+          fullWidth={!!value}
           fullHeight={!!value}
           alignItems="flex-start"
           alignSelf="flex-start"
+          style={styles.inputAndFilePickerContainer}
         >
           <Kb.NewInput
             value={value}
@@ -101,7 +102,7 @@ const TextInput = (props: TextProps) => {
             containerStyle={value ? styles.inputContainer : styles.inputContainerEmpty}
             style={Styles.collapseStyles([
               styles.input,
-              !value && styles.inputEmpty,
+              value ? styles.inputFull : styles.inputEmpty,
               !value && {width: emptyWidth},
             ])}
             onChangeText={onChangeText}
@@ -166,8 +167,6 @@ const styles = Styles.styleSheetCreate(
     ({
       browseFile: {
         flexShrink: 0,
-        height: 26,
-        paddingTop: 7,
       },
       clearButtonFileInput: {
         position: 'absolute',
@@ -199,6 +198,12 @@ const styles = Styles.styleSheetCreate(
       input: {
         color: Styles.globalColors.black,
       },
+      inputAndFilePickerContainer: {
+        paddingBottom: 0,
+        paddingLeft: Styles.globalMargins.tiny,
+        paddingRight: 0,
+        paddingTop: Styles.globalMargins.tiny,
+      },
       inputContainer: {
         // We want the immediate container not to overflow, so we tell it be height: 100% to match the parent
         ...Styles.globalStyles.fullHeight,
@@ -208,12 +213,18 @@ const styles = Styles.styleSheetCreate(
       inputContainerEmpty: {
         padding: 0,
       },
-      inputEmpty: {
-        minHeight: 'initial',
-        paddingBottom: 0,
-        paddingLeft: Styles.globalMargins.tiny,
-        paddingRight: 0,
-        paddingTop: Styles.globalMargins.tiny,
+      inputEmpty: Styles.platformStyles({
+        common: {
+          ...Styles.padding(0),
+          minHeight: 'initial',
+        },
+        isElectron: {
+          overflowY: 'hidden',
+        },
+      }),
+      inputFull: {
+        padding: 0,
+        paddingRight: 46,
       },
     } as const)
 )

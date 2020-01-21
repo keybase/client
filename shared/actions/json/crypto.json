@@ -13,9 +13,10 @@
       "operation": "Types.Operations"
     },
     "setRecipients": {
-      "_description": "Array recipients of operations, provided via TeamBuilding",
+      "_description": "Array recipients of operations, provided via TeamBuilding. Includes flag if any users are not on Keybase yet (SBS) to force includeSelf in EncryptOptions",
       "operation": "Types.Operations",
-      "recipients": "Array<string>"
+      "recipients": "Array<string>",
+      "hasSBS": "boolean"
     },
     "setInput": {
       "_description": "Set input type (text, file) and value on user input. Either keyboard input or drag-and-drop file",

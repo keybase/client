@@ -50,6 +50,7 @@ export type OperationsOptions = EncryptOptions | DecryptOptions | SignOptions | 
 export type EncrypState = CommonState & {
   meta: {
     hasRecipients: boolean
+    hasSBS: boolean
     noIncludeSelf: boolean
   }
   options: EncryptOptions

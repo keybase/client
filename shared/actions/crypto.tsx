@@ -19,9 +19,16 @@ const onSetRecipients = (state: TypedState, _: TeamBuildingGen.FinishedTeamBuild
   const {options} = state.crypto.encrypt
 
   const users = [...state.crypto.teamBuilding.finishedTeam]
-  const usernames = users.map(user =>
-    user.serviceId !== 'keybase' ? `${user.username}@${user.serviceId}` : user.username
-  )
+  let hasSBS = false
+  const usernames = users.map(user => {
+    // If we're encrypting to service account that is not proven on keybase set
+    // (SBS) then we *must* encrypt to ourselves
+    if (user.serviceId !== 'keybase') {
+      hasSBS = true
+      return `${user.username}@${user.serviceId}`
+    }
+    return user.username
+  })
 
   const actions: Array<SetRecipientsSagaActions> = [
     TeamBuildingGen.createCancelTeamBuilding({namespace: 'crypto'}),
@@ -31,7 +38,13 @@ const onSetRecipients = (state: TypedState, _: TeamBuildingGen.FinishedTeamBuild
   if (usernames.includes(currentUser)) {
     actions.push(CryptoGen.createSetEncryptOptions({noIncludeSelf: true, options}))
   }
-  actions.push(CryptoGen.createSetRecipients({operation: 'encrypt', recipients: usernames}))
+  actions.push(
+    CryptoGen.createSetRecipients({
+      hasSBS,
+      operation: 'encrypt',
+      recipients: usernames,
+    })
+  )
   return actions
 }
 
@@ -51,7 +64,11 @@ function* teamBuildingSaga() {
  */
 const handleRunOperation = (
   state: TypedState,
-  action: CryptoGen.SetInputPayload | CryptoGen.SetRecipientsPayload | CryptoGen.SetEncryptOptionsPayload
+  action:
+    | CryptoGen.SetInputPayload
+    | CryptoGen.SetRecipientsPayload
+    | CryptoGen.SetEncryptOptionsPayload
+    | CryptoGen.ClearRecipientsPayload
 ) => {
   switch (action.type) {
     case CryptoGen.setInput: {
@@ -103,6 +120,22 @@ const handleRunOperation = (
           operation,
           options,
           recipients,
+        })
+      }
+      return
+    }
+    case CryptoGen.clearRecipients: {
+      const {operation} = action.payload
+      const {username} = state.config
+      const {input, inputType, options} = state.crypto.encrypt
+      const unhiddenInput = input.stringValue()
+      if (unhiddenInput && inputType) {
+        return makeOperationAction({
+          input,
+          inputType,
+          operation,
+          options,
+          recipients: [username],
         })
       }
       return
@@ -432,7 +465,7 @@ const saltpackDone = (action: EngineGen.Keybase1NotifySaltpackSaltpackOperationD
 
 function* cryptoSaga() {
   yield* Saga.chainAction2(
-    [CryptoGen.setInput, CryptoGen.setRecipients, CryptoGen.setEncryptOptions],
+    [CryptoGen.setInput, CryptoGen.setRecipients, CryptoGen.setEncryptOptions, CryptoGen.clearRecipients],
     handleRunOperation
   )
   yield* Saga.chainAction2(CryptoGen.saltpackEncrypt, saltpackEncrypt)
