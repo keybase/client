@@ -923,8 +923,9 @@ const loadFilesTabBadge = async () => {
 }
 
 const userInOutClientKey = Constants.makeUUID()
-const userIn = () => RPCTypes.SimpleFSSimpleFSUserInRpcPromise({clientID: userInOutClientKey})
-const userOut = () => RPCTypes.SimpleFSSimpleFSUserOutRpcPromise({clientID: userInOutClientKey})
+const userIn = () => RPCTypes.SimpleFSSimpleFSUserInRpcPromise({clientID: userInOutClientKey}).catch(() => {})
+const userOut = () =>
+  RPCTypes.SimpleFSSimpleFSUserOutRpcPromise({clientID: userInOutClientKey}).catch(() => {})
 
 let fsBadgeSubscriptionID: string = ''
 
@@ -984,7 +985,7 @@ function* fsSaga() {
   yield* Saga.chainAction2([FsGen.move, FsGen.copy], moveOrCopy)
   yield* Saga.chainAction2([FsGen.showMoveOrCopy, FsGen.showIncomingShare], showMoveOrCopy)
   yield* Saga.chainAction2(
-    [ConfigGen.installerRan, ConfigGen.loggedIn, FsGen.waitForKbfsDaemon],
+    [ConfigGen.installerRan, ConfigGen.loggedIn, FsGen.waitForKbfsDaemon, FsGen.userIn],
     waitForKbfsDaemon
   )
   yield* Saga.chainAction(FsGen.setTlfSyncConfig, setTlfSyncConfig)
