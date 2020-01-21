@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"crypto"
+	"fmt"
 	"io"
 
 	"github.com/keybase/go-crypto/openpgp"
@@ -91,4 +92,41 @@ func IsHashSecure(hash crypto.Hash) bool {
 	default:
 		return false
 	}
+}
+
+type HashSecurityWarningType uint8
+
+const (
+	HashSecurityWarningUnknown HashSecurityWarningType = iota
+	HashSecurityWarningSignatureHash
+	HashSecurityWarningIdentityHash
+)
+
+type HashSecurityWarning struct {
+	kind HashSecurityWarningType
+	hash crypto.Hash
+}
+
+func NewHashSecurityWarning(kind HashSecurityWarningType, hash crypto.Hash) HashSecurityWarning {
+	return HashSecurityWarning{kind: kind, hash: hash}
+}
+
+func (h HashSecurityWarning) String() string {
+	switch h.kind {
+	case HashSecurityWarningSignatureHash:
+		return fmt.Sprintf("Signature might be insecure due to its %s hash scheme", HashToName[h.hash])
+	case HashSecurityWarningIdentityHash:
+		return fmt.Sprintf("Key's identity could have been spoofed due to its %s hash scheme", HashToName[h.hash])
+	default:
+		return fmt.Sprintf("Hash security warning was passed an incorrect kind, got %d", h.kind)
+	}
+}
+
+type HashSecurityWarnings []HashSecurityWarning
+
+func (hs HashSecurityWarnings) Strings() (res []string) {
+	for _, h := range hs {
+		res = append(res, h.String())
+	}
+	return
 }

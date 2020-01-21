@@ -133,11 +133,16 @@ func (e *PGPEncrypt) Run(m libkb.MetaContext) error {
 	}
 
 	ks := newKeyset()
+	warnings := []string{}
 
 	for _, up := range uplus {
 		for _, k := range up.Keys {
 			if len(k.Entity.Revocations)+len(k.Entity.UnverifiedRevocations) > 0 {
 				continue
+			}
+
+			if w := k.SecurityWarnings(up.User.GetComputedKeyFamily()); len(w) > 0 {
+				warnings = append(warnings, w.Strings()...)
 			}
 
 			ks.Add(k)
@@ -161,6 +166,10 @@ func (e *PGPEncrypt) Run(m libkb.MetaContext) error {
 		if mykey != nil {
 			ks.Add(mykey)
 		}
+	}
+
+	for _, warning := range warnings {
+		m.Warning(warning)
 	}
 
 	recipients := ks.Sorted()

@@ -5,6 +5,7 @@ package engine
 
 import (
 	"bytes"
+	"crypto"
 	"errors"
 	"fmt"
 	"io"
@@ -142,7 +143,10 @@ func (e *PGPVerify) runDetached(m libkb.MetaContext) error {
 	if !libkb.IsHashSecure(hashMethod) {
 		e.signStatus.Warnings = append(
 			e.signStatus.Warnings,
-			fmt.Sprintf("The signature might be insecure due to its %s hash scheme", libkb.HashToName[hashMethod]),
+			libkb.NewHashSecurityWarning(
+				libkb.HashSecurityWarningSignatureHash,
+				hashMethod,
+			),
 		)
 	}
 
@@ -173,8 +177,23 @@ func (e *PGPVerify) runDetached(m libkb.MetaContext) error {
 			return err
 		}
 
+		var selfsigHash crypto.Hash
 		if val, ok := p.(*packet.Signature); ok {
+			selfsigHash = val.Hash
 			e.signStatus.SignatureTime = val.CreationTime
+		} else if val, ok := p.(*packet.SignatureV3); ok {
+			selfsigHash = val.Hash
+			e.signStatus.SignatureTime = val.CreationTime
+		}
+
+		if !libkb.IsHashSecure(selfsigHash) {
+			e.signStatus.Warnings = append(
+				e.signStatus.Warnings,
+				libkb.NewHashSecurityWarning(
+					libkb.HashSecurityWarningIdentityHash,
+					hashMethod,
+				),
+			)
 		}
 
 		fingerprint := libkb.PGPFingerprint(signer.PrimaryKey.Fingerprint)
@@ -225,7 +244,10 @@ func (e *PGPVerify) runClearsign(m libkb.MetaContext) error {
 	if !libkb.IsHashSecure(hashMethod) {
 		e.signStatus.Warnings = append(
 			e.signStatus.Warnings,
-			fmt.Sprintf("The signature might be insecure due to its %s hash scheme", libkb.HashToName[hashMethod]),
+			libkb.NewHashSecurityWarning(
+				libkb.HashSecurityWarningSignatureHash,
+				hashMethod,
+			),
 		)
 	}
 
@@ -247,8 +269,23 @@ func (e *PGPVerify) runClearsign(m libkb.MetaContext) error {
 			return err
 		}
 
+		var selfsigHash crypto.Hash
 		if val, ok := p.(*packet.Signature); ok {
+			selfsigHash = val.Hash
 			e.signStatus.SignatureTime = val.CreationTime
+		} else if val, ok := p.(*packet.SignatureV3); ok {
+			selfsigHash = val.Hash
+			e.signStatus.SignatureTime = val.CreationTime
+		}
+
+		if !libkb.IsHashSecure(selfsigHash) {
+			e.signStatus.Warnings = append(
+				e.signStatus.Warnings,
+				libkb.NewHashSecurityWarning(
+					libkb.HashSecurityWarningIdentityHash,
+					hashMethod,
+				),
+			)
 		}
 
 		fingerprint := libkb.PGPFingerprint(signer.PrimaryKey.Fingerprint)

@@ -24,7 +24,7 @@ type SignatureStatus struct {
 	Entity          *openpgp.Entity
 	SignatureTime   time.Time
 	RecipientKeyIDs []uint64
-	Warnings        []string
+	Warnings        HashSecurityWarnings
 }
 
 func PGPDecryptWithBundles(g *GlobalContext, source io.Reader, sink io.Writer, keys []*PGPKeyBundle) (*SignatureStatus, error) {
@@ -94,7 +94,10 @@ func PGPDecrypt(g *GlobalContext, source io.Reader, sink io.Writer, kr openpgp.K
 			if !IsHashSecure(md.Signature.Hash) {
 				status.Warnings = append(
 					status.Warnings,
-					fmt.Sprintf("The signature might be insecure due to its %s hash scheme", HashToName[md.Signature.Hash]),
+					NewHashSecurityWarning(
+						HashSecurityWarningSignatureHash,
+						md.Signature.Hash,
+					),
 				)
 			}
 		}

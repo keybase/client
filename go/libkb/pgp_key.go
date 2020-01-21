@@ -13,6 +13,7 @@ import (
 	"io"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/keybase/client/go/kbcrypto"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -671,6 +672,34 @@ func (k PGPKeyBundle) KeyInfo() (algorithm, kid, creation string) {
 	kid = pubkey.KeyIdString()
 	creation = pubkey.CreationTime.Format("2006-01-02")
 
+	return
+}
+
+var SHA1SecurityWarningsCutoff = time.Unix(1547856000, 0)
+
+// Generates hash security warnings given a CKF
+func (k PGPKeyBundle) SecurityWarnings(ckf *ComputedKeyFamily) (warnings HashSecurityWarnings) {
+	for _, identity := range k.Entity.Identities {
+		if identity.SelfSignature == nil ||
+			IsHashSecure(identity.SelfSignature.Hash) {
+			continue
+		}
+
+		if ckf != nil {
+			cki := ckf.getCkiUnchecked(keybase1.KIDFromString(k.GetFingerprint().ToKeyID()))
+			if time.Unix(cki.DelegatedAt.Unix, 0).Before(SHA1SecurityWarningsCutoff) {
+				continue
+			}
+		}
+
+		warnings = append(
+			warnings,
+			NewHashSecurityWarning(
+				HashSecurityWarningIdentityHash,
+				identity.SelfSignature.Hash,
+			),
+		)
+	}
 	return
 }
 

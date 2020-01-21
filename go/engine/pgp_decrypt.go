@@ -131,6 +131,14 @@ func (e *PGPDecrypt) Run(m libkb.MetaContext) (err error) {
 		if e.signer == nil {
 			// signer isn't a keybase user
 			m.Debug("message signed by key unknown to keybase: %X", e.signStatus.KeyID)
+
+			// Here we have
+			if e.signStatus.Entity != nil {
+				if warnings := libkb.NewPGPKeyBundle(e.signStatus.Entity).SecurityWarnings(nil); warnings != nil {
+					e.signStatus.Warnings = append(e.signStatus.Warnings, warnings...)
+				}
+			}
+
 			return OutputSignatureSuccessNonKeybase(m, e.signStatus.KeyID, e.signStatus.SignatureTime, e.signStatus.Warnings)
 		}
 
@@ -159,6 +167,12 @@ func (e *PGPDecrypt) Run(m libkb.MetaContext) (err error) {
 	}
 
 	bundle := libkb.NewPGPKeyBundle(e.signStatus.Entity)
+
+	// generate hash scheme security warnings
+	if warnings := bundle.SecurityWarnings(e.signer.GetComputedKeyFamily()); len(warnings) > 0 {
+		e.signStatus.Warnings = append(e.signStatus.Warnings, warnings...)
+	}
+
 	return OutputSignatureSuccess(m, bundle.GetFingerprint(), e.signer, e.signStatus.SignatureTime, e.signStatus.Warnings)
 }
 

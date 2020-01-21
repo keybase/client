@@ -178,7 +178,7 @@ func sigVer(g *libkb.GlobalContext, ss *libkb.SignatureStatus, signer *libkb.Use
 			res.SignKey = bundle.Export()
 		}
 		if len(ss.Warnings) > 0 {
-			res.Warnings = ss.Warnings
+			res.Warnings = ss.Warnings.Strings()
 		}
 	}
 	return res
