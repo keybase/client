@@ -10,16 +10,18 @@ import * as TeamConstants from '../../../constants/teams'
 import * as TeamTypes from '../../../constants/types/teams'
 import TeamMenu from '../../conversation/info-panel/menu/container'
 
+// TODO common-adapters
+import {usePopup} from '../../../common-adapters/use-popup'
+
 type Props = {
   conversationIDKey: ChatTypes.ConversationIDKey
   navKey: string
   teamname: string
   teamID: TeamTypes.TeamID
-} & Kb.OverlayParentProps
+}
 
-const _BigTeamHeader = (props: Props) => {
+const BigTeamHeader = React.memo((props: Props) => {
   const {navKey, teamID, teamname, conversationIDKey} = props
-  const {getAttachmentRef, showingMenu, toggleShowingMenu, setAttachmentRef} = props
   const dispatch = Container.useDispatch()
 
   const badgeSubscribe = Container.useSelector(
@@ -34,16 +36,21 @@ const _BigTeamHeader = (props: Props) => {
       })
     )
 
+  const popupAnchor = React.useRef(null)
+  const {showingPopup, setShowingPopup, popup} = usePopup(popupAnchor, () => (
+    <TeamMenu
+      attachTo={() => popupAnchor.current}
+      visible={showingPopup}
+      onHidden={() => setShowingPopup(false)}
+      conversationIDKey={conversationIDKey}
+      teamID={teamID}
+      isSmallTeam={false}
+    />
+  ))
+
   return (
     <Kb.Box style={styles.teamRowContainer}>
-      <TeamMenu
-        attachTo={getAttachmentRef}
-        visible={showingMenu}
-        onHidden={toggleShowingMenu}
-        conversationIDKey={conversationIDKey}
-        teamID={teamID}
-        isSmallTeam={false}
-      />
+      {popup}
       <Kb.Avatar onClick={onClick} teamname={teamname} size={32} />
       <Kb.BoxGrow style={styles.teamnameContainer}>
         <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true} style={{alignItems: 'center'}}>
@@ -60,8 +67,8 @@ const _BigTeamHeader = (props: Props) => {
       </Kb.BoxGrow>
       <Kb.ClickableBox
         className="hover_container"
-        onClick={toggleShowingMenu}
-        ref={setAttachmentRef}
+        onClick={() => setShowingPopup(!showingPopup)}
+        ref={popupAnchor}
         style={styles.showMenu}
       >
         <Kb.Icon
@@ -73,9 +80,7 @@ const _BigTeamHeader = (props: Props) => {
       </Kb.ClickableBox>
     </Kb.Box>
   )
-}
-
-const BigTeamHeader = React.memo(Kb.OverlayParentHOC(_BigTeamHeader))
+})
 
 const styles = Styles.styleSheetCreate(
   () =>
