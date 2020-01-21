@@ -120,6 +120,7 @@ export const OutputBar = (props: OutputBarProps) => {
               </Kb.Toast>
               <Kb.Button mode="Secondary" label="Copy to clipboard" onClick={() => copy()} />
             </Kb.Box2>
+            <Kb.Button mode="Secondary" label="Download as TXT" />
           </Kb.ButtonBar>
         )}
       </Kb.Box2>
