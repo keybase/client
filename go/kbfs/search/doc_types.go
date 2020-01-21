@@ -158,6 +158,11 @@ func makeDoc(
 	// having to re-index all of its contents.
 	name := makeNameDocWithBase(n, base)
 
+	// Non-files only get a name to index.
+	if ei.Type != data.File && ei.Type != data.Exec {
+		return nil, name, nil
+	}
+
 	// Make a doc for the contents, depending on the content type.
 	contentType, err := getContentType(ctx, config, n, ei)
 	if err != nil {
