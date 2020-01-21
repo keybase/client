@@ -9,8 +9,8 @@ EXAMPLES:
 Get an entry (always returns the latest revision, non-existent entries have a revision of 0):
 	{"method": "get", "params": {"options": {"team": "phoenix", "namespace": "pw-manager", "entryKey": "geocities"}}}
 
-Put an entry in your implicit self-team; either don't include team field, or if you want to write out the team name:
-	{"method": "put", "params": {"options": {"team": "yourusername,yourusername", "namespace": "pw-manager", "entryKey": "geocities", "entryValue": "all my secrets"}}}
+Put an entry for yourself:
+	{"method": "put", "params": {"options": {"namespace": "pw-manager", "entryKey": "geocities", "entryValue": "all my secrets"}}}
 
 Put an encrypted entry for anyone in team phoenix:
 	{"method": "put", "params": {"options": {"team": "phoenix", "namespace": "pw-manager", "entryKey": "geocities", "entryValue": "all my secrets"}}}

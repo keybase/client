@@ -2,6 +2,7 @@ package client
 
 import (
 	"errors"
+	"fmt"
 	"io"
 
 	"github.com/keybase/client/go/libkb"
@@ -11,9 +12,9 @@ import (
 
 type kvStoreAPIHandler struct {
 	libkb.Contextified
-	kvstore keybase1.KvstoreClient
-	config  keybase1.ConfigClient
-	indent  bool
+	kvstore  keybase1.KvstoreClient
+	selfTeam string
+	indent   bool
 }
 
 func newKVStoreAPIHandler(g *libkb.GlobalContext, indentOutput bool) *kvStoreAPIHandler {
@@ -58,7 +59,12 @@ func (t *kvStoreAPIHandler) handleV1(ctx context.Context, c Call, w io.Writer) e
 	if err != nil {
 		return err
 	}
-	t.config = config
+	status, err := config.GetCurrentStatus(context.Background(), 0)
+	if err != nil {
+		return err
+	}
+	username := status.User.Username
+	t.selfTeam = fmt.Sprintf("%s,%s", username, username)
 
 	switch c.Method {
 	case getEntryMethod:
@@ -81,9 +87,6 @@ type getEntryOptions struct {
 }
 
 func (a *getEntryOptions) Check() error {
-	if a.Team != nil && len(*a.Team) == 0 {
-		return errors.New("`team` field required")
-	}
 	if len(a.Namespace) == 0 {
 		return errors.New("`namespace` field required")
 	}
@@ -93,25 +96,13 @@ func (a *getEntryOptions) Check() error {
 	return nil
 }
 
-func (t *kvStoreAPIHandler) getUsername() (username string, err error) {
-	status, err := t.config.GetCurrentStatus(context.Background(), 0)
-	if err != nil {
-		return username, err
-	}
-	return status.User.Username, nil
-}
-
 func (t *kvStoreAPIHandler) getEntry(ctx context.Context, c Call, w io.Writer) error {
 	var opts getEntryOptions
 	if err := unmarshalOptions(c, &opts); err != nil {
 		return t.encodeErr(c, err, w)
 	}
 	if opts.Team == nil {
-		team, err := t.getUsername()
-		if err != nil {
-			return t.encodeErr(c, err, w)
-		}
-		opts.Team = &team
+		opts.Team = &t.selfTeam
 	}
 	arg := keybase1.GetKVEntryArg{
 		SessionID: 0,
@@ -135,9 +126,6 @@ type putEntryOptions struct {
 }
 
 func (a *putEntryOptions) Check() error {
-	if a.Team != nil && len(*a.Team) == 0 {
-		return errors.New("if setting optional `team` field, it must not be empty")
-	}
 	if len(a.Namespace) == 0 {
 		return errors.New("`namespace` field required")
 	}
@@ -159,11 +147,7 @@ func (t *kvStoreAPIHandler) putEntry(ctx context.Context, c Call, w io.Writer) e
 		return t.encodeErr(c, err, w)
 	}
 	if opts.Team == nil {
-		team, err := t.getUsername()
-		if err != nil {
-			return t.encodeErr(c, err, w)
-		}
-		opts.Team = &team
+		opts.Team = &t.selfTeam
 	}
 	var revision int
 	if opts.Revision != nil {
@@ -192,9 +176,6 @@ type deleteEntryOptions struct {
 }
 
 func (a *deleteEntryOptions) Check() error {
-	if a.Team != nil && len(*a.Team) == 0 {
-		return errors.New("if setting optional `team` field, it must not be empty")
-	}
 	if len(a.Namespace) == 0 {
 		return errors.New("`namespace` field required")
 	}
@@ -213,11 +194,7 @@ func (t *kvStoreAPIHandler) deleteEntry(ctx context.Context, c Call, w io.Writer
 		return t.encodeErr(c, err, w)
 	}
 	if opts.Team == nil {
-		team, err := t.getUsername()
-		if err != nil {
-			return t.encodeErr(c, err, w)
-		}
-		opts.Team = &team
+		opts.Team = &t.selfTeam
 	}
 	var revision int
 	if opts.Revision != nil {
@@ -243,9 +220,6 @@ type listOptions struct {
 }
 
 func (a *listOptions) Check() error {
-	if a.Team != nil && len(*a.Team) == 0 {
-		return errors.New("if setting optional `team` field, it must not be empty")
-	}
 	return nil
 }
 
@@ -255,11 +229,7 @@ func (t *kvStoreAPIHandler) list(ctx context.Context, c Call, w io.Writer) error
 		return t.encodeErr(c, err, w)
 	}
 	if opts.Team == nil {
-		team, err := t.getUsername()
-		if err != nil {
-			return t.encodeErr(c, err, w)
-		}
-		opts.Team = &team
+		opts.Team = &t.selfTeam
 	}
 	if len(opts.Namespace) == 0 {
 		// listing namespaces
