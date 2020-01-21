@@ -209,6 +209,9 @@ func (idx *Indexer) SyncLoop(stopCh chan struct{}) error {
 		cancelSync()
 		ticker.Stop()
 	}
+	defer func() {
+		idx.Debug(ctx, "shutting down SyncLoop")
+	}()
 	for {
 		select {
 		case <-idx.cancelSyncCh:
@@ -259,7 +262,9 @@ func (idx *Indexer) Stop(ctx context.Context) chan struct{} {
 		close(idx.stopCh)
 		idx.stopCh = make(chan struct{})
 		go func() {
+			idx.Debug(context.Background(), "Stop: waiting for shutdown")
 			_ = idx.eg.Wait()
+			idx.Debug(context.Background(), "Stop: shutdown complete")
 			close(ch)
 		}()
 	} else {
@@ -331,9 +336,11 @@ func (idx *Indexer) consumeResultsForTest(convID chat1.ConversationID, err error
 
 func (idx *Indexer) flushLoop(stopCh chan struct{}) error {
 	ctx := context.Background()
+	idx.Debug(ctx, "flushLoop: starting")
 	for {
 		select {
 		case <-stopCh:
+			idx.Debug(ctx, "flushLoop: shutting down")
 			return nil
 		case <-idx.clock.After(idx.flushDelay):
 			if err := idx.store.Flush(); err != nil {
