@@ -3,7 +3,6 @@ import * as React from 'react'
 export const usePopup = (_ref: React.MutableRefObject<any>, makePopup: () => React.ReactNode) => {
   const [showingPopup, setShowingPopup] = React.useState(false)
   const [popup, setPopup] = React.useState<React.ReactNode>(null)
-  // const [popupFactory, setPopupFactory] = React.useRef(null)
 
   React.useEffect(() => {
     if (showingPopup === !popup) {
