@@ -486,7 +486,7 @@ func TestChatSearchInbox(t *testing.T) {
 		// Stop the original
 		select {
 		case <-g1.Indexer.Stop(ctx):
-		case <-time.After(5 * time.Second):
+		case <-time.After(20 * time.Second):
 			require.Fail(t, "g1 Indexer did not stop")
 		}
 		g1.Indexer = indexer1
@@ -503,7 +503,7 @@ func TestChatSearchInbox(t *testing.T) {
 		// Stop the original
 		select {
 		case <-g2.Indexer.Stop(ctx):
-		case <-time.After(5 * time.Second):
+		case <-time.After(20 * time.Second):
 			require.Fail(t, "g2 Indexer did not stop")
 		}
 		g2.Indexer = indexer2
