@@ -11,7 +11,6 @@
 
 #import <IOKit/kext/KextManager.h>
 #include <sys/stat.h>
-#include <sys/mount.h>
 #import "KBLogger.h"
 
 @implementation KBKext
