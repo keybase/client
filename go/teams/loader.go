@@ -564,6 +564,11 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		// Load from cache
 		ret = tailCheckRet
 	}
+	if ret != nil {
+		mctx.Debug("AuditDebug lastSeqno: %v chain: %+v", ret.Chain.LastSeqno, ret.Chain)
+	} else {
+		mctx.Debug("AuditDebug nil ret")
+	}
 
 	if ret != nil && !ret.Chain.Reader.Eq(arg.me) {
 		// Check that we are the same person as when this team was last loaded as a courtesy.
@@ -592,6 +597,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	if discardCache {
 		ret = nil
 		repoll = true
+		mctx.Debug("AuditDebug cache discarded")
 	}
 
 	tracer.Stage("deepcopy")
@@ -659,6 +665,12 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 			return nil, err
 		}
 		filledInStubbedLinks = true
+	}
+
+	if ret != nil {
+		mctx.Debug("AuditDebug lastSeqno: %v chain: %+v", ret.Chain.LastSeqno, ret.Chain)
+	} else {
+		mctx.Debug("AuditDebug nil ret")
 	}
 
 	tracer.Stage("pre-fetch")
@@ -764,6 +776,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	for i, link := range links {
 		var err error
 		ret, prev, err = l.doOneLink(mctx, arg, ret, hiddenPackage, link, i, suppressLoggingStart, suppressLoggingUpto, lastSeqno, &parentChildOperations, prev, fullVerifyCutoff, readSubteamID, proofSet, lkc, &parentsCache)
+		mctx.Debug("AuditDebug i: %v, lastSeqno: %v chain: %+v", i, ret.Chain.LastSeqno, ret.Chain)
 		if err != nil {
 			return nil, err
 		}
@@ -2008,6 +2021,8 @@ func (l *TeamLoader) audit(ctx context.Context, readSubteamID keybase1.TeamID, s
 	if err != nil {
 		return err
 	}
+
+	mctx.Debug("AuditDebug limits %v, %v", state.LastSeqno, hiddenChain.GetLastCommittedSeqno())
 
 	err = mctx.G().GetTeamAuditor().AuditTeam(mctx, state.Id, state.Public, headMerklSeqno, state.LinkIDs, hiddenChain.GetOuter(), state.LastSeqno, hiddenChain.GetLastCommittedSeqno(), lastMerkleRoot, auditMode)
 	return err
