@@ -163,6 +163,7 @@ func (db *SettingsDB) SetNotificationThreshold(
 		[]byte(strconv.FormatInt(threshold, 10)), nil)
 }
 
+// SetSfmiBannerDismissed hello from this comment
 func (db *SettingsDB) SetSfmiBannerDismissed(
 	ctx context.Context, dismissed bool) error {
 	uid := db.getUID(ctx)
