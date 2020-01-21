@@ -594,7 +594,7 @@ func (cc *JourneyCardManagerSingleUser) cardAddPeople(ctx context.Context, conv 
 // Condition: User is at least a writer.
 // Condition: A few weeks have passed.
 // Condition: User has sent a message.
-// Condition: There are <= 2 channels in the team.
+// Condition: There is only one channel in the team.
 func (cc *JourneyCardManagerSingleUser) cardCreateChannels(ctx context.Context, conv convForJourneycard, jcd journeycardData, debugDebug logFn) bool {
 	if !conv.UntrustedTeamRole.IsWriterOrAbove() {
 		return false
@@ -605,26 +605,7 @@ func (cc *JourneyCardManagerSingleUser) cardCreateChannels(ctx context.Context, 
 	if !cc.timeSinceJoined(ctx, conv.TeamID, conv.ConvID, jcd, time.Hour*24*14) {
 		return false
 	}
-	if conv.GetTeamType() == chat1.TeamType_SIMPLE {
-		return true
-	}
-	// Figure out how many channels exist.
-	topicType := chat1.TopicType_CHAT
-	inbox, err := cc.G().InboxSource.ReadUnverified(ctx, cc.uid, types.InboxSourceDataSourceLocalOnly,
-		&chat1.GetInboxQuery{
-			TlfID:            &conv.TlfID,
-			TopicType:        &topicType,
-			MembersTypes:     []chat1.ConversationMembersType{chat1.ConversationMembersType_TEAM},
-			SummarizeMaxMsgs: true,
-			SkipBgLoads:      true,
-			AllowUnseenQuery: true, // Make an effort, it's ok if convs are missed.
-		})
-	if err != nil {
-		debugDebug(ctx, "cardCreateChannels ReadUnverified error: %v", err)
-		return false
-	}
-	debugDebug(ctx, "cardCreateChannels ReadUnverified found %v convs", len(inbox.ConvsUnverified))
-	return len(inbox.ConvsUnverified) <= 2
+	return conv.GetTeamType() == chat1.TeamType_SIMPLE
 }
 
 // Card type: MSG_NO_ANSWER (C)
