@@ -9,7 +9,6 @@ import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
-import flags from '../../../util/feature-flags'
 
 type BotProps = RPCTypes.FeaturedBot & {
   description?: string
@@ -153,7 +152,6 @@ export default (props: Props) => {
     canManageBots = true
   }
   const adhocTeam = teamType === 'adhoc'
-  const smallTeam = teamType !== 'big'
   const participantInfo = Container.useSelector(state =>
     Constants.getParticipantInfo(state, conversationIDKey)
   )
