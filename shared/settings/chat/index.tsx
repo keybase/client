@@ -327,13 +327,13 @@ const TeamRow = ({checked, isOpen, name, onCheck}) => (
   </Kb.Box2>
 )
 const styles = Styles.styleSheetCreate(() => ({
+  btnContainer: {
+    alignSelf: 'flex-start',
+  },
   checkboxIndented: Styles.platformStyles({
     isElectron: {paddingLeft: Styles.globalMargins.medium},
     isMobile: {paddingBottom: Styles.globalMargins.medium, paddingLeft: Styles.globalMargins.small},
   }),
-  btnContainer: {
-    alignSelf: 'flex-start',
-  },
   container: {
     padding: Styles.globalMargins.small,
     width: '100%',
