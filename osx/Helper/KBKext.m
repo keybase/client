@@ -14,25 +14,6 @@
 #include <sys/mount.h>
 #import "KBLogger.h"
 
-bool unmountAllFuse() {
-  struct statfs *mntinf;
-  int num = getmntinfo(&mntinf, MNT_WAIT);
-  if (num < 0) {
-    KBLog(@"Error getting mount info: %d", errno);
-    return false;
-  }
-  KBLog(@"Mounts to unmount: %d", num);
-  while (num--) {
-    if (strcmp(mntinf[num].f_fstypename, "kbfuse") == 0) {
-      if (unmount(mntinf[num].f_mntonname, MNT_FORCE) < 0) {
-        KBLog(@"Error unmounting: %d", errno);
-        return false;
-      }
-    }
-  }
-  return true;
-}
-
 @implementation KBKext
 
 + (NSDictionary *)kextInfo:(NSString *)label {
@@ -238,10 +219,6 @@ bool unmountAllFuse() {
 
 + (void)uninstallWithDestination:(NSString *)destination kextID:(NSString *)kextID completion:(KBOnCompletion)completion {
   NSError *error = nil;
-  if (!unmountAllFuse()) {
-    completion(KBMakeError(KBHelperErrorKext, @"KextManager failed to unmount all FUSE mounts"), @(0));
-    return;
-  }
   if (![self uninstallWithDestination:destination kextID:kextID error:&error]) {
     completion(error, @(0));
     return;
