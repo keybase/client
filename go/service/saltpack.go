@@ -176,15 +176,37 @@ func (h *SaltpackHandler) SaltpackVerify(ctx context.Context, arg keybase1.Saltp
 func (h *SaltpackHandler) SaltpackEncryptString(ctx context.Context, arg keybase1.SaltpackEncryptStringArg) (keybase1.SaltpackEncryptStringResult, error) {
 	ctx = libkb.WithLogTag(ctx, "SP")
 
-	opts := h.encryptOptions(arg.Opts)
+	return h.encryptString(ctx, arg.SessionID, arg.Plaintext, arg.Opts)
+}
+
+func (h *SaltpackHandler) SaltpackEncryptStringToTextFile(ctx context.Context, arg keybase1.SaltpackEncryptStringToTextFileArg) (keybase1.SaltpackEncryptFileResult, error) {
+	ctx = libkb.WithLogTag(ctx, "SP")
+	res, err := h.encryptString(ctx, arg.SessionID, arg.Plaintext, arg.Opts)
+	if err != nil {
+		return keybase1.SaltpackEncryptFileResult{}, err
+	}
+	filename, err := h.writeStringToFile(ctx, res.Ciphertext, encryptedExtension)
+	if err != nil {
+		return keybase1.SaltpackEncryptFileResult{}, err
+	}
+	fres := keybase1.SaltpackEncryptFileResult{
+		UsedUnresolvedSBS:      res.UsedUnresolvedSBS,
+		UnresolvedSBSAssertion: res.UnresolvedSBSAssertion,
+		Filename:               filename,
+	}
+	return fres, nil
+}
+
+func (h *SaltpackHandler) encryptString(ctx context.Context, sessionID int, plaintext string, opts keybase1.SaltpackFrontendEncryptOptions) (keybase1.SaltpackEncryptStringResult, error) {
+	eopts := h.encryptOptions(opts)
 	sink := libkb.NewBufferCloser()
 	earg := &engine.SaltpackEncryptArg{
-		Opts:   opts,
+		Opts:   eopts,
 		Sink:   sink,
-		Source: strings.NewReader(arg.Plaintext),
+		Source: strings.NewReader(plaintext),
 	}
 
-	usedSBS, assertion, err := h.frontendEncrypt(ctx, arg.SessionID, earg)
+	usedSBS, assertion, err := h.frontendEncrypt(ctx, sessionID, earg)
 	if err != nil {
 		return keybase1.SaltpackEncryptStringResult{}, err
 	}
@@ -194,10 +216,6 @@ func (h *SaltpackHandler) SaltpackEncryptString(ctx context.Context, arg keybase
 		UnresolvedSBSAssertion: assertion,
 		Ciphertext:             sink.String(),
 	}, nil
-}
-
-func (h *SaltpackHandler) SaltpackEncryptStringToTextFile(ctx context.Context, arg keybase1.SaltpackEncryptStringToTextFileArg) (keybase1.SaltpackEncryptFileResult, error) {
-	return keybase1.SaltpackEncryptFileResult{}, errors.New("nyi")
 }
 
 func (h *SaltpackHandler) SaltpackDecryptString(ctx context.Context, arg keybase1.SaltpackDecryptStringArg) (keybase1.SaltpackPlaintextResult, error) {
@@ -222,21 +240,31 @@ func (h *SaltpackHandler) SaltpackDecryptString(ctx context.Context, arg keybase
 
 func (h *SaltpackHandler) SaltpackSignString(ctx context.Context, arg keybase1.SaltpackSignStringArg) (string, error) {
 	ctx = libkb.WithLogTag(ctx, "SP")
+	return h.signString(ctx, arg.SessionID, arg.Plaintext)
+}
+
+func (h *SaltpackHandler) SaltpackSignStringToTextFile(ctx context.Context, arg keybase1.SaltpackSignStringToTextFileArg) (string, error) {
+	ctx = libkb.WithLogTag(ctx, "SP")
+	signed, err := h.signString(ctx, arg.SessionID, arg.Plaintext)
+	if err != nil {
+		return "", err
+	}
+
+	return h.writeStringToFile(ctx, signed, signedExtension)
+}
+
+func (h *SaltpackHandler) signString(ctx context.Context, sessionID int, plaintext string) (string, error) {
 	sink := libkb.NewBufferCloser()
 	earg := &engine.SaltpackSignArg{
 		Sink:   sink,
-		Source: ioutil.NopCloser(bytes.NewBufferString(arg.Plaintext)),
+		Source: ioutil.NopCloser(bytes.NewBufferString(plaintext)),
 	}
 
-	if err := h.frontendSign(ctx, arg.SessionID, earg); err != nil {
+	if err := h.frontendSign(ctx, sessionID, earg); err != nil {
 		return "", err
 	}
 
 	return sink.String(), nil
-}
-
-func (h *SaltpackHandler) SaltpackSignStringToTextFile(ctx context.Context, arg keybase1.SaltpackSignStringToTextFileArg) (string, error) {
-	return "", errors.New("nyi")
 }
 
 func (h *SaltpackHandler) SaltpackVerifyString(ctx context.Context, arg keybase1.SaltpackVerifyStringArg) (keybase1.SaltpackVerifyResult, error) {
@@ -537,6 +565,26 @@ func unboxFilename(inFilename, suffix string) (string, *libkb.BufferWriter, erro
 		return "", nil, err
 	}
 	return finalPath, libkb.NewBufferWriter(f), nil
+}
+
+func (h *SaltpackHandler) writeStringToFile(ctx context.Context, contents, suffix string) (filename string, err error) {
+	dir := h.G().Env.GetDownloadsDir()
+	if err := os.MkdirAll(dir, libkb.PermDir); err != nil {
+		return "", err
+	}
+	tmpfile, err := ioutil.TempFile(dir, "keybase.*"+suffix)
+	if err != nil {
+		return "", err
+	}
+	if _, err = tmpfile.Write([]byte(contents)); err != nil {
+		_ = tmpfile.Close()
+		return "", err
+	}
+	if err := tmpfile.Close(); err != nil {
+		return "", err
+	}
+
+	return tmpfile.Name(), nil
 }
 
 // nopSecretUI returns an error if it is ever called.
