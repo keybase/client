@@ -283,6 +283,7 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       bodyContainer: {
+        justifyContent: 'center',
         maxWidth: Styles.globalMargins.large * 14 + Styles.globalMargins.mediumLarge * 2,
         padding: Styles.globalMargins.mediumLarge,
       },

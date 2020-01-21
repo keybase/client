@@ -131,20 +131,35 @@ func (db *SettingsDB) Settings(ctx context.Context) (keybase1.FSSettings, error)
 	var notificationThreshold int64
 	notificationThresholdBytes, err :=
 		db.Get(getSettingsDbKey(uid, spaceAvailableNotificationThresholdKey), nil)
-	if err == nil {
-		notificationThreshold, _ =
-			strconv.ParseInt(string(notificationThresholdBytes), 10, 64)
+	if err != nil {
+		// If we have an error we just pretend there's an empty setting.
+		return keybase1.FSSettings{
+			SpaceAvailableNotificationThreshold: 0,
+			SfmiBannerDismissed:                 false,
+		}, nil
+	}
+	notificationThreshold, err =
+		strconv.ParseInt(string(notificationThresholdBytes), 10, 64)
+	if err != nil {
+		return keybase1.FSSettings{}, err
 	}
 
 	var sfmiBannerDismissed bool
 	sfmiBannerDismissedBytes, err :=
 		db.Get(getSettingsDbKey(uid, sfmiBannerDismissedKey), nil)
-	if err == nil {
-		sfmiBannerDismissed, _ =
-			strconv.ParseBool(string(sfmiBannerDismissedBytes))
+	if err != nil {
+		// If we have an error we just pretend there's an empty setting.
+		return keybase1.FSSettings{
+			SpaceAvailableNotificationThreshold: notificationThreshold,
+			SfmiBannerDismissed:                 false,
+		}, nil
+	}
+	sfmiBannerDismissed, err =
+		strconv.ParseBool(string(sfmiBannerDismissedBytes))
+	if err != nil {
+		return keybase1.FSSettings{}, err
 	}
 
-	// If we have an error we just pretend there's an empty setting.
 	return keybase1.FSSettings{
 		SpaceAvailableNotificationThreshold: notificationThreshold,
 		SfmiBannerDismissed:                 sfmiBannerDismissed,
