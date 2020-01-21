@@ -167,9 +167,9 @@ func (c *CmdEncrypt) Run() error {
 
 	if res.UsedUnresolvedSBS {
 		dui := c.G().UI.GetDumbOutputUI()
-		dui.PrintfStderr("\nNote: Encrypted for %q who is not yet a keybase user.\n\n", res.UnresolvedSBSAssertion)
-		dui.PrintfStderr("One of your devices will need to be online after they join keybase\n")
-		dui.PrintfStderr("in order for them to decrypt the message.\n\n")
+		_, _ = dui.PrintfStderr("\nNote: Encrypted for %q who is not yet a keybase user.\n\n", res.UnresolvedSBSAssertion)
+		_, _ = dui.PrintfStderr("One of your devices will need to be online after they join keybase\n")
+		_, _ = dui.PrintfStderr("in order for them to decrypt the message.\n\n")
 	}
 
 	return nil
