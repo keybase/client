@@ -13,6 +13,7 @@ import AccountSwitcher from '../account-switcher/container'
 
 export type Props = {
   badgeNumbers: Map<Tabs.Tab, number>
+  fsCriticalUpdate: boolean
   fullname: string
   isWalletsNew?: boolean
   onAddAccount: () => void
@@ -162,7 +163,11 @@ class TabBar extends React.PureComponent<Props, State> {
               index={i}
               selectedTab={p.selectedTab}
               onTabClick={p.onTabClick}
-              badge={p.badgeNumbers.get(t)}
+              badge={
+                t === Tabs.fsTab && p.fsCriticalUpdate
+                  ? (p.badgeNumbers.get(t) ?? 0) + 1
+                  : p.badgeNumbers.get(t)
+              }
             />
           ))}
           <RuntimeStats />

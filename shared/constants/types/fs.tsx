@@ -477,7 +477,6 @@ export type DriverStatusUnknown = Readonly<{
 export type DriverStatusDisabled = Readonly<{
   type: DriverStatusType.Disabled
   isEnabling: boolean
-  isDismissed: boolean
   // macOS only
   kextPermissionError: boolean
 }>
@@ -485,7 +484,6 @@ export type DriverStatusDisabled = Readonly<{
 export type DriverStatusEnabled = Readonly<{
   type: DriverStatusType.Enabled
   isDisabling: boolean
-  isNew: boolean
   // windows only
   dokanOutdated: boolean
   dokanUninstallExecPath?: string | null
@@ -497,9 +495,6 @@ export type SystemFileManagerIntegration = Readonly<{
   directMountDir: string
   driverStatus: DriverStatus
   preferredMountDirs: Array<string>
-  // This only controls if system-file-manager-integration-banner is shown in
-  // Folders view. The banner always shows in Settings/Files screen.
-  showingBanner: boolean
 }>
 
 export enum KbfsDaemonRpcStatus {
@@ -552,7 +547,9 @@ export type SoftErrors = Readonly<{
 
 export type Settings = Readonly<{
   spaceAvailableNotificationThreshold: number
+  sfmiBannerDismissed: boolean
   isLoading: boolean
+  loaded: boolean
 }>
 
 export type PathInfo = Readonly<{
@@ -568,6 +565,7 @@ export type FileContext = Readonly<{
 
 export type State = Readonly<{
   badge: RPCTypes.FilesTabBadge
+  criticalUpdate: boolean
   destinationPicker: DestinationPicker
   downloads: Downloads
   edits: Edits

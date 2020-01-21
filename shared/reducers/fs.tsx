@@ -9,6 +9,7 @@ import {produce, Draft} from 'immer'
 
 const initialState: Types.State = {
   badge: RPCTypes.FilesTabBadge.none,
+  criticalUpdate: false,
   destinationPicker: {
     destinationParentPath: [],
     source: {
@@ -37,7 +38,6 @@ const initialState: Types.State = {
     directMountDir: '',
     driverStatus: Constants.defaultDriverStatus,
     preferredMountDirs: [],
-    showingBanner: false,
   },
   softErrors: {
     pathErrors: new Map(),
@@ -433,12 +433,6 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
   [FsGen.setDriverStatus]: (draftState, action) => {
     draftState.sfmi.driverStatus = action.payload.driverStatus
   },
-  [FsGen.showSystemFileManagerIntegrationBanner]: draftState => {
-    draftState.sfmi.showingBanner = true
-  },
-  [FsGen.hideSystemFileManagerIntegrationBanner]: draftState => {
-    draftState.sfmi.showingBanner = false
-  },
   [FsGen.driverEnable]: draftState => {
     if (draftState.sfmi.driverStatus.type === Types.DriverStatusType.Disabled) {
       draftState.sfmi.driverStatus.isEnabling = true
@@ -512,5 +506,8 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
   },
   [FsGen.loadedFilesTabBadge]: (draftState, action) => {
     draftState.badge = action.payload.badge
+  },
+  [FsGen.setCriticalUpdate]: (draftState, action) => {
+    draftState.criticalUpdate = action.payload.val
   },
 })
