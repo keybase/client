@@ -1479,7 +1479,7 @@
           "name": "senderDeviceName"
         },
         {
-          "type": "string",
+          "type": "keybase1.DeviceTypeV2",
           "name": "senderDeviceType"
         },
         {

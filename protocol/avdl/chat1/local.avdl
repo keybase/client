@@ -448,7 +448,7 @@ protocol local {
     MessageBody messageBody;
     string senderUsername;
     string senderDeviceName;
-    string senderDeviceType;
+    keybase1.DeviceTypeV2 senderDeviceType;
     Hash bodyHash;
 
     // MessageBoxed.V1: Hash of the encrypted header ciphertext.

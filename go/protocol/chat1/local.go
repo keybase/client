@@ -2841,7 +2841,7 @@ type MessageUnboxedValid struct {
 	MessageBody           MessageBody                 `codec:"messageBody" json:"messageBody"`
 	SenderUsername        string                      `codec:"senderUsername" json:"senderUsername"`
 	SenderDeviceName      string                      `codec:"senderDeviceName" json:"senderDeviceName"`
-	SenderDeviceType      string                      `codec:"senderDeviceType" json:"senderDeviceType"`
+	SenderDeviceType      keybase1.DeviceTypeV2       `codec:"senderDeviceType" json:"senderDeviceType"`
 	BodyHash              Hash                        `codec:"bodyHash" json:"bodyHash"`
 	HeaderHash            Hash                        `codec:"headerHash" json:"headerHash"`
 	HeaderSignature       *SignatureInfo              `codec:"headerSignature,omitempty" json:"headerSignature,omitempty"`
@@ -2865,7 +2865,7 @@ func (o MessageUnboxedValid) DeepCopy() MessageUnboxedValid {
 		MessageBody:      o.MessageBody.DeepCopy(),
 		SenderUsername:   o.SenderUsername,
 		SenderDeviceName: o.SenderDeviceName,
-		SenderDeviceType: o.SenderDeviceType,
+		SenderDeviceType: o.SenderDeviceType.DeepCopy(),
 		BodyHash:         o.BodyHash.DeepCopy(),
 		HeaderHash:       o.HeaderHash.DeepCopy(),
 		HeaderSignature: (func(x *SignatureInfo) *SignatureInfo {
