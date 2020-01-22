@@ -910,8 +910,8 @@ func (s *BlockingSender) applyTeamBotSettings(ctx context.Context, uid gregor1.U
 		if err != nil {
 			return nil, err
 		}
-		s.Debug(ctx, "applyTeamBotSettings: applied settings for %+v for botuid: %v, senderUID: %v, isMatch: %v",
-			botSettings, uv.Uid, msg.ClientHeader.Sender, isMatch)
+		s.Debug(ctx, "applyTeamBotSettings: applied settings for %+v for botuid: %v, senderUID: %v, convID: %v isMatch: %v",
+			botSettings, uv.Uid, msg.ClientHeader.Sender, convID, isMatch)
 		// If the bot is the sender encrypt only for them.
 		if msg.ClientHeader.Sender.Eq(botUID) {
 			if !isMatch {
