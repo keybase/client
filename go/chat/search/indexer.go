@@ -75,7 +75,6 @@ func NewIndexer(g *globals.Context) *Indexer {
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Search.Indexer", false),
 		pageSize:     defaultPageSize,
-		stopCh:       make(chan struct{}),
 		suspendCh:    make(chan chan struct{}, 10),
 		resumeWait:   time.Second,
 		cancelSyncCh: make(chan struct{}, 100),
@@ -125,17 +124,32 @@ func (idx *Indexer) SetUID(uid gregor1.UID) {
 }
 
 func (idx *Indexer) StartFlushLoop() {
-	idx.started = true
+	idx.Lock()
+	defer idx.Unlock()
+	if !idx.started {
+		idx.started = true
+		idx.stopCh = make(chan struct{})
+	}
 	idx.eg.Go(func() error { return idx.flushLoop(idx.stopCh) })
 }
 
 func (idx *Indexer) StartStorageLoop() {
-	idx.started = true
+	idx.Lock()
+	defer idx.Unlock()
+	if !idx.started {
+		idx.started = true
+		idx.stopCh = make(chan struct{})
+	}
 	idx.eg.Go(func() error { return idx.storageLoop(idx.stopCh) })
 }
 
 func (idx *Indexer) StartSyncLoop() {
-	idx.started = true
+	idx.Lock()
+	defer idx.Unlock()
+	if !idx.started {
+		idx.started = true
+		idx.stopCh = make(chan struct{})
+	}
 	idx.eg.Go(func() error { return idx.SyncLoop(idx.stopCh) })
 }
 
@@ -153,6 +167,7 @@ func (idx *Indexer) Start(ctx context.Context, uid gregor1.UID) {
 	idx.uid = uid
 	idx.store = newStore(idx.G(), uid)
 	idx.started = true
+	idx.stopCh = make(chan struct{})
 	if !idx.G().IsMobileAppType() && !idx.G().GetEnv().GetDisableSearchIndexer() {
 		idx.eg.Go(func() error { return idx.SyncLoop(idx.stopCh) })
 	}
@@ -282,7 +297,6 @@ func (idx *Indexer) Stop(ctx context.Context) chan struct{} {
 		idx.store.ClearMemory()
 		idx.started = false
 		close(idx.stopCh)
-		idx.stopCh = make(chan struct{})
 		go func() {
 			idx.Debug(context.Background(), "Stop: waiting for shutdown")
 			_ = idx.eg.Wait()
@@ -375,8 +389,6 @@ func (idx *Indexer) storageLoop(stopCh chan struct{}) error {
 		case iop := <-idx.storageCh:
 			switch op := iop.(type) {
 			case storageAdd:
-				idx.Debug(ctx, "storageLoop: adding: convID: %x msgs: %d", op.convID.DbShortForm(),
-					len(op.msgs))
 				err := idx.store.Add(op.ctx, op.convID, op.msgs)
 				if err != nil {
 					idx.Debug(op.ctx, "storageLoop: add failed: %s", err)
@@ -384,8 +396,6 @@ func (idx *Indexer) storageLoop(stopCh chan struct{}) error {
 				idx.consumeResultsForTest(op.convID, err)
 				close(op.cb)
 			case storageRemove:
-				idx.Debug(ctx, "storageLoop: removing: convID: %x msgs: %d", op.convID.DbShortForm(),
-					len(op.msgs))
 				err := idx.store.Remove(op.ctx, op.convID, op.msgs)
 				if err != nil {
 					idx.Debug(op.ctx, "storageLoop: remove failed: %s", err)
