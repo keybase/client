@@ -70,6 +70,7 @@ const load = () => {
 
   Sb.storiesOf('Crypto/Output/Bar', module).add('Download - Copy', () => (
     <OutputBar
+      operation={Constants.Operations.Encrypt}
       output="secret stuff"
       outputStatus="success"
       onCopyOutput={onCopyOutput}
