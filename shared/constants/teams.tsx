@@ -379,8 +379,8 @@ const notOwnerNotSub = {owner: `Only owners can turn members into owners`}
 const emptyObj = {}
 const noRemoveLastOwner = {
   admin: `You can't demote a team's last owner`,
-  writer: `You can't demote a team's last owner`,
   reader: `You can't demote a team's last owner`,
+  writer: `You can't demote a team's last owner`,
 }
 
 export const getDisabledReasonsForRolePicker = (
