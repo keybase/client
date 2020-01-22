@@ -6,13 +6,12 @@ package chat1
 import (
 	"errors"
 	"fmt"
-	"time"
-
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	stellar1 "github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type VersionKind string
@@ -2818,7 +2817,7 @@ type MessageUnboxedValid struct {
 	MessageBody           MessageBody                 `codec:"messageBody" json:"messageBody"`
 	SenderUsername        string                      `codec:"senderUsername" json:"senderUsername"`
 	SenderDeviceName      string                      `codec:"senderDeviceName" json:"senderDeviceName"`
-	SenderDeviceType      keybase1.DeviceTypeV2       `codec:"senderDeviceType" json:"senderDeviceType"`
+	SenderDeviceType      string                      `codec:"senderDeviceType" json:"senderDeviceType"`
 	BodyHash              Hash                        `codec:"bodyHash" json:"bodyHash"`
 	HeaderHash            Hash                        `codec:"headerHash" json:"headerHash"`
 	HeaderSignature       *SignatureInfo              `codec:"headerSignature,omitempty" json:"headerSignature,omitempty"`
@@ -2987,7 +2986,7 @@ type MessageUnboxedError struct {
 	IsCritical       bool                    `codec:"isCritical" json:"isCritical"`
 	SenderUsername   string                  `codec:"senderUsername" json:"senderUsername"`
 	SenderDeviceName string                  `codec:"senderDeviceName" json:"senderDeviceName"`
-	SenderDeviceType keybase1.DeviceTypeV2   `codec:"senderDeviceType" json:"senderDeviceType"`
+	SenderDeviceType string                  `codec:"senderDeviceType" json:"senderDeviceType"`
 	MessageID        MessageID               `codec:"messageID" json:"messageID"`
 	MessageType      MessageType             `codec:"messageType" json:"messageType"`
 	Ctime            gregor1.Time            `codec:"ctime" json:"ctime"`
