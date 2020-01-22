@@ -483,6 +483,7 @@ func TestChatSearchInbox(t *testing.T) {
 		indexer1.SetUID(uid1)
 		indexer1.SetFlushDelay(100 * time.Millisecond)
 		indexer1.StartFlushLoop()
+		indexer1.StartStorageLoop()
 		// Stop the original
 		select {
 		case <-g1.Indexer.Stop(ctx):
@@ -500,6 +501,7 @@ func TestChatSearchInbox(t *testing.T) {
 		indexer2.SetUID(uid2)
 		indexer2.SetFlushDelay(10 * time.Millisecond)
 		indexer2.StartFlushLoop()
+		indexer2.StartStorageLoop()
 		// Stop the original
 		select {
 		case <-g2.Indexer.Stop(ctx):
