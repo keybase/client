@@ -309,7 +309,6 @@ func (h *SaltpackHandler) SaltpackEncryptFile(ctx context.Context, arg keybase1.
 	opts := h.encryptOptions(arg.Opts)
 	opts.Binary = true
 	opts.UseDeviceKeys = true
-	opts.UsePaperKeys = true
 
 	earg := &engine.SaltpackEncryptArg{
 		Opts:   opts,
@@ -446,6 +445,7 @@ func (h *SaltpackHandler) encryptOptions(opts keybase1.SaltpackFrontendEncryptOp
 		AuthenticityType: auth,
 		NoSelfEncrypt:    !opts.IncludeSelf,
 		UseEntityKeys:    true,
+		UsePaperKeys:     true,
 	}
 }
 
