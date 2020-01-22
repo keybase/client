@@ -16,8 +16,9 @@ type CmdAccountResetCancel struct {
 
 func NewCmdAccountResetCancel(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:  "reset-cancel",
-		Usage: "Cancel the reset process for your account",
+		Name:     "reset-cancel",
+		Usage:    "Cancel the reset process for your account",
+		Unlisted: true,
 		Action: func(c *cli.Context) {
 			cmd := NewCmdAccountResetCancelRunner(g)
 			cl.ChooseCommand(cmd, "reset-cancel", c)
