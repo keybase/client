@@ -2670,11 +2670,11 @@ function* unhideConversation(
 }
 
 const setConvRetentionPolicy = (action: Chat2Gen.SetConvRetentionPolicyPayload, logger: Saga.SagaLogger) => {
-  const {conversationIDKey, policy} = action.payload
+  const {conversationIDKey} = action.payload
   const convID = Types.keyToConversationID(conversationIDKey)
   let policy: RPCChatTypes.RetentionPolicy | null
   try {
-    policy = TeamsConstants.retentionPolicyToServiceRetentionPolicy(policy)
+    policy = TeamsConstants.retentionPolicyToServiceRetentionPolicy(action.payload.policy)
     if (policy) {
       return RPCChatTypes.localSetConvRetentionLocalRpcPromise({convID, policy})
     }
