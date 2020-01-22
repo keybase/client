@@ -566,6 +566,9 @@ func (a *Auditor) checkTail(m libkb.MetaContext, history *keybase1.AuditHistory,
 	if !link.Eq(tail) {
 		return NewAuditError("hidden chain tail mismatch (%s != %s) at chain link %d", link, tail, lastAudit.MaxHiddenSeqno)
 	}
+	if maxHiddenSeqno == 0 {
+		return NewAuditError("In the past we got an hidden chain up to %v, but now maxHiddenSeqno is 0", lastAudit.MaxHiddenSeqno)
+	}
 	link, ok = hiddenChain[maxHiddenSeqno]
 	if !ok || link.IsNil() {
 		return NewAuditError("given hidden chain didn't have a link at %d, but it was expected", maxHiddenSeqno)
