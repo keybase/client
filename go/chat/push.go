@@ -204,6 +204,7 @@ type PushHandler struct {
 	globals.Contextified
 	utils.DebugLabeler
 	sync.Mutex
+	startMu sync.Mutex
 	eg      errgroup.Group
 	started bool
 
@@ -229,8 +230,8 @@ func NewPushHandler(g *globals.Context) *PushHandler {
 
 func (g *PushHandler) Start(ctx context.Context, _ gregor1.UID) {
 	defer g.Trace(ctx, func() error { return nil }, "Start")()
-	g.Lock()
-	defer g.Unlock()
+	g.startMu.Lock()
+	defer g.startMu.Unlock()
 	if g.started {
 		return
 	}
@@ -239,8 +240,8 @@ func (g *PushHandler) Start(ctx context.Context, _ gregor1.UID) {
 
 func (g *PushHandler) Stop(ctx context.Context) chan struct{} {
 	defer g.Trace(ctx, func() error { return nil }, "Stop")()
-	g.Lock()
-	defer g.Unlock()
+	g.startMu.Lock()
+	defer g.startMu.Unlock()
 	ch := make(chan struct{})
 	if g.started {
 		g.started = false
@@ -1314,8 +1315,8 @@ func (g *PushHandler) SubteamRename(ctx context.Context, m gregor.OutOfBandMessa
 
 func (g *PushHandler) HandleOobm(ctx context.Context, obm gregor.OutOfBandMessage) (bool, error) {
 	// Don't process messages if we have not started.
-	g.Lock()
-	defer g.Unlock()
+	g.startMu.Lock()
+	defer g.startMu.Unlock()
 	if !g.started {
 		return false, nil
 	}
