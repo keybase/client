@@ -115,6 +115,9 @@ protocol saltpack {
   string saltpackSignStringToTextFile(int sessionID, string plaintext);
   string saltpackSignFile(int sessionID, string filename);
 
+  string saltpackSaveCiphertextToFile(int sessionID, string ciphertext);
+  string saltpackSaveSignedMsgToFile(int sessionID, string signedMsg);
+
   record SaltpackVerifyResult {
     KID signingKID;
     SaltpackSender sender;

@@ -426,6 +426,16 @@ func (h *SaltpackHandler) SaltpackVerifyFile(ctx context.Context, arg keybase1.S
 	return res, nil
 }
 
+func (h *SaltpackHandler) SaltpackSaveCiphertextToFile(ctx context.Context, arg keybase1.SaltpackSaveCiphertextToFileArg) (string, error) {
+	ctx = libkb.WithLogTag(ctx, "SP")
+	return h.writeStringToFile(ctx, arg.Ciphertext, encryptedExtension)
+}
+
+func (h *SaltpackHandler) SaltpackSaveSignedMsgToFile(ctx context.Context, arg keybase1.SaltpackSaveSignedMsgToFileArg) (string, error) {
+	ctx = libkb.WithLogTag(ctx, "SP")
+	return h.writeStringToFile(ctx, arg.SignedMsg, signedExtension)
+}
+
 func (h *SaltpackHandler) encryptOptions(opts keybase1.SaltpackFrontendEncryptOptions) keybase1.SaltpackEncryptOptions {
 	auth := keybase1.AuthenticityType_REPUDIABLE
 	if opts.Signed {
