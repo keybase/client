@@ -530,7 +530,7 @@ func (a *Auditor) lookupProbes(m libkb.MetaContext, teamID keybase1.TeamID, tupl
 	return err
 }
 
-func (a *Auditor) checkTail(m libkb.MetaContext, history *keybase1.AuditHistory, lastAudit keybase1.Audit, chain map[keybase1.Seqno]keybase1.LinkID, hiddenChain map[keybase1.Seqno]keybase1.LinkID, maxChainSeqno keybase1.Seqno, maxHiddenSeqno keybase1.Seqno) (err error) {
+func (a *Auditor) checkTail(m libkb.MetaContext, history *keybase1.AuditHistory, lastAudit keybase1.Audit, chain map[keybase1.Seqno]keybase1.LinkID, hiddenChain map[keybase1.Seqno]keybase1.LinkID, maxChainSeqno keybase1.Seqno, maxHiddenSeqno keybase1.Seqno, auditMode keybase1.AuditMode) (err error) {
 	link, ok := chain[lastAudit.MaxChainSeqno]
 	if !ok || link.IsNil() {
 		return NewAuditError("last audit ended at %d, but wasn't found in new chain", lastAudit.MaxChainSeqno)
@@ -547,9 +547,12 @@ func (a *Auditor) checkTail(m libkb.MetaContext, history *keybase1.AuditHistory,
 		return NewAuditError("given chain didn't have a link at %d, but it was expected", maxChainSeqno)
 	}
 
+	if auditMode == keybase1.AuditMode_STANDARD_NO_HIDDEN {
+		m.Debug("Skipping hidden tail check as the auditMode does not require it.")
+		return nil
+	}
 	if lastAudit.MaxHiddenSeqno == 0 {
-		// nothing to check for the hidden chain tail as there was none in the
-		// last audit
+		m.Debug("Skipping hidden tail check as there was none in the last audit.")
 		return nil
 	}
 	link, ok = hiddenChain[lastAudit.MaxHiddenSeqno]
@@ -637,7 +640,7 @@ func (a *Auditor) auditLocked(m libkb.MetaContext, id keybase1.TeamID, headMerkl
 	// we got down. It suffices to check that the last link in that chain
 	// appears in the given chain with the right link ID.
 	if last != nil {
-		err = a.checkTail(m, history, *last, chain, hiddenChain, maxChainSeqno, maxHiddenSeqno)
+		err = a.checkTail(m, history, *last, chain, hiddenChain, maxChainSeqno, maxHiddenSeqno, auditMode)
 		if err != nil {
 			return err
 		}
