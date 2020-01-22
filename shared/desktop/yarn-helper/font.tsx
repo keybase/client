@@ -124,10 +124,15 @@ function updateIconFont(web) {
    * Example
    * { "127-kb-iconfont-nav-2-files-24": "0xe97e" }
    */
+  let lastcounter = 0
   const codepointsMap = svgFilenames.reduce((pointsMap, {counter, filePath}) => {
     // Character code value converted from decimal to hexidecimal
     const charCodeHex = computeCounter(counter).toString(16)
     const {name} = path.parse(filePath)
+    if (counter === lastcounter) {
+      throw new Error(`There are two SVGs with the same index number ${counter}`)
+    }
+    lastcounter = counter
     return {
       ...pointsMap,
       [name]: `0x${charCodeHex}`,
