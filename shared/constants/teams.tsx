@@ -377,6 +377,11 @@ const anotherRoleChangeNotSub = {
 const notOwnerSub = {owner: 'Subteams cannot have owners.'}
 const notOwnerNotSub = {owner: `Only owners can turn members into owners`}
 const emptyObj = {}
+const noRemoveLastOwner = {
+  admin: `You can't demote a team's last owner`,
+  reader: `You can't demote a team's last owner`,
+  writer: `You can't demote a team's last owner`,
+}
 
 export const getDisabledReasonsForRolePicker = (
   state: TypedState,
@@ -385,21 +390,34 @@ export const getDisabledReasonsForRolePicker = (
 ): Types.DisabledReasonsForRolePicker => {
   const canManageMembers = getCanPerformByID(state, teamID).manageMembers
   const teamDetails = getTeamDetails(state, teamID)
-  const members = teamDetails.members || new Map()
+  const members: Map<string, Types.MemberInfo> = teamDetails.members || new Map()
   const teamname = teamDetails.teamname
-  const member = memberToModify ? members.get(memberToModify) : null
-  const theyAreOwner = member ? member.type === 'owner' : false
+  const member = memberToModify ? members.get(memberToModify) : undefined
+  const theyAreOwner = member?.type === 'owner'
   const you = members.get(state.config.username)
   // Fallback to the lowest role, although this shouldn't happen
-  const yourRole = you ? you.type : 'reader'
+  const yourRole = you?.type ?? 'reader'
 
   if (canManageMembers) {
     // If you're an implicit admin, the tests below will fail for you, but you can still change roles.
-    return isSubteam(teamname)
-      ? subteamsCannotHaveOwners
-      : yourRole !== 'owner'
-      ? onlyOwnersCanTurnTeamMembersInfoOwners
-      : emptyObj
+    if (isSubteam(teamname)) {
+      return subteamsCannotHaveOwners
+    }
+    if (yourRole !== 'owner') {
+      return onlyOwnersCanTurnTeamMembersInfoOwners
+    }
+    const modifyingSelf = memberToModify === state.config.username
+    let noOtherOwners = true
+    members.forEach(({type}, name) => {
+      if (name !== state.config.username && type === 'owner') {
+        noOtherOwners = false
+      }
+    })
+
+    if (modifyingSelf && noOtherOwners) {
+      return noRemoveLastOwner
+    }
+    return emptyObj
   }
 
   // We shouldn't get here, but in case we do this is correct.
