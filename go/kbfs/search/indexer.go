@@ -6,6 +6,7 @@ package search
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"sync"
@@ -406,37 +407,50 @@ func nameDocID(docID string) string {
 
 func (i *Indexer) indexChildWithPtrAndNode(
 	ctx context.Context, parentNode libkbfs.Node, parentDocID string,
-	childName data.PathPartString, ptr data.BlockPointer, n libkbfs.Node,
-	ei data.EntryInfo, nextDocID string, revision kbfsmd.Revision) (
-	usedDocID bool, err error) {
+	childName data.PathPartString, oldPtr, newPtr data.BlockPointer,
+	n libkbfs.Node, ei data.EntryInfo, nextDocID string,
+	revision kbfsmd.Revision) (usedDocID bool, err error) {
 	if i.blocksDb == nil {
 		return false, errors.New("No indexed blocks db")
 	}
-	ver, docID, err := i.blocksDb.Get(ctx, ptr)
+
+	// If the new pointer has already been indexed, skip indexing it again.
+	v, _, err := i.blocksDb.Get(ctx, newPtr)
 	switch errors.Cause(err) {
 	case nil:
+		if v == currentIndexedBlocksDbVersion {
+			i.log.CDebugf(ctx, "%s already indexed; skipping", newPtr)
+			return false, nil
+		}
 	case ldberrors.ErrNotFound:
-		usedDocID = true
-		docID = nextDocID
 	default:
 		return false, err
 	}
 
-	tlfID := n.GetFolderBranch().Tlf
+	var docID string
+	if oldPtr != data.ZeroPtr {
+		_, docID, err = i.blocksDb.Get(ctx, oldPtr)
+		switch errors.Cause(err) {
+		case nil:
+		case ldberrors.ErrNotFound:
+			return false, errors.WithStack(OldPtrNotFound{oldPtr})
+		default:
+			return false, err
+		}
+	} else {
+		usedDocID = true
+		docID = nextDocID
+	}
+
 	defer func() {
 		if err != nil {
 			return
 		}
 
-		// Skip the put if we got the doc ID from the DB, and the
-		// version was already up to date.
-		if !usedDocID && ver == currentIndexedBlocksDbVersion {
-			return
-		}
-
 		// Put the docID into the DB after a successful indexing.
+		tlfID := n.GetFolderBranch().Tlf
 		putErr := i.blocksDb.Put(
-			ctx, tlfID, ptr, currentIndexedBlocksDbVersion, docID)
+			ctx, tlfID, newPtr, currentIndexedBlocksDbVersion, docID)
 		if putErr != nil {
 			err = putErr
 			return
@@ -446,6 +460,16 @@ func (i *Indexer) indexChildWithPtrAndNode(
 		putErr = i.docDb.Put(ctx, docID, parentDocID, childName.Plaintext())
 		if putErr != nil {
 			err = putErr
+			return
+		}
+
+		// Delete the old pointer if one was given.
+		if oldPtr != data.ZeroPtr {
+			delErr := i.blocksDb.Delete(ctx, tlfID, oldPtr)
+			if err != nil {
+				err = delErr
+				return
+			}
 		}
 	}()
 
@@ -493,8 +517,8 @@ func (i *Indexer) indexChild(
 	}
 
 	return i.indexChildWithPtrAndNode(
-		ctx, parentNode, parentDocID, childName, ptr, n, ei, nextDocID,
-		revision)
+		ctx, parentNode, parentDocID, childName, data.ZeroPtr, ptr, n, ei,
+		nextDocID, revision)
 }
 
 func (i *Indexer) updateChild(
@@ -506,44 +530,15 @@ func (i *Indexer) updateChild(
 		return err
 	}
 
-	if i.blocksDb == nil {
-		return errors.New("No indexed blocks db")
-	}
-
-	// Before indexing, move the doc ID over to the new block pointer.
-	v, docID, err := i.blocksDb.Get(ctx, oldPtr)
-	switch errors.Cause(err) {
-	case nil:
-	case ldberrors.ErrNotFound:
-		// Maybe indexing was interrupted in the past, and we've
-		// already moved the doc ID to the new pointer.
-		_, docID, err = i.blocksDb.Get(ctx, newPtr)
-		if err != nil {
-			return err
-		}
-	default:
-		return err
-	}
-
-	tlfID := parentNode.GetFolderBranch().Tlf
-	err = i.blocksDb.Put(ctx, tlfID, newPtr, v, docID)
-	if err != nil {
-		return err
-	}
-	err = i.blocksDb.Delete(ctx, tlfID, oldPtr)
-	if err != nil {
-		return err
-	}
-
 	usedDocID, err := i.indexChildWithPtrAndNode(
-		ctx, parentNode, parentDocID, childName, newPtr, n, ei,
-		docID /* should get picked up from DB, not from this param*/, revision)
+		ctx, parentNode, parentDocID, childName, oldPtr, newPtr, n, ei,
+		"" /* should get picked up from DB, not from this param*/, revision)
 	if err != nil {
 		return err
 	}
 	if usedDocID {
-		return errors.Errorf("Index update %s (%s->%s) used passed-in doc "+
-			"ID %s incorrectly", childName, oldPtr, newPtr, docID)
+		panic(fmt.Sprintf("Index update %s (%s->%s) used passed-in doc "+
+			"ID incorrectly", childName, oldPtr, newPtr))
 	}
 	return nil
 }
