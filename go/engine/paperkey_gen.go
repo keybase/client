@@ -298,7 +298,7 @@ func (e *PaperKeyGen) push(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	if err := libkb.PostDeviceLKS(m, backupDev.ID, libkb.DeviceTypePaper, backupLks.GetServerHalf(), backupLks.Generation(), ctext, e.encKey.GetKID()); err != nil {
+	if err := libkb.PostDeviceLKS(m, backupDev.ID, keybase1.DeviceTypeV2_PAPER, backupLks.GetServerHalf(), backupLks.Generation(), ctext, e.encKey.GetKID()); err != nil {
 		return err
 	}
 

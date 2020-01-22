@@ -439,7 +439,7 @@ type PublicKey struct {
 	ParentID          string        `codec:"parentID" json:"parentID"`
 	DeviceID          DeviceID      `codec:"deviceID" json:"deviceID"`
 	DeviceDescription string        `codec:"deviceDescription" json:"deviceDescription"`
-	DeviceType        string        `codec:"deviceType" json:"deviceType"`
+	DeviceType        DeviceTypeV2  `codec:"deviceType" json:"deviceType"`
 	CTime             Time          `codec:"cTime" json:"cTime"`
 	ETime             Time          `codec:"eTime" json:"eTime"`
 	IsRevoked         bool          `codec:"isRevoked" json:"isRevoked"`
@@ -465,7 +465,7 @@ func (o PublicKey) DeepCopy() PublicKey {
 		ParentID:          o.ParentID,
 		DeviceID:          o.DeviceID.DeepCopy(),
 		DeviceDescription: o.DeviceDescription,
-		DeviceType:        o.DeviceType,
+		DeviceType:        o.DeviceType.DeepCopy(),
 		CTime:             o.CTime.DeepCopy(),
 		ETime:             o.ETime.DeepCopy(),
 		IsRevoked:         o.IsRevoked,
@@ -511,21 +511,21 @@ func (o User) DeepCopy() User {
 }
 
 type Device struct {
-	Type               string   `codec:"type" json:"type"`
-	Name               string   `codec:"name" json:"name"`
-	DeviceID           DeviceID `codec:"deviceID" json:"deviceID"`
-	DeviceNumberOfType int      `codec:"deviceNumberOfType" json:"deviceNumberOfType"`
-	CTime              Time     `codec:"cTime" json:"cTime"`
-	MTime              Time     `codec:"mTime" json:"mTime"`
-	LastUsedTime       Time     `codec:"lastUsedTime" json:"lastUsedTime"`
-	EncryptKey         KID      `codec:"encryptKey" json:"encryptKey"`
-	VerifyKey          KID      `codec:"verifyKey" json:"verifyKey"`
-	Status             int      `codec:"status" json:"status"`
+	Type               DeviceTypeV2 `codec:"type" json:"type"`
+	Name               string       `codec:"name" json:"name"`
+	DeviceID           DeviceID     `codec:"deviceID" json:"deviceID"`
+	DeviceNumberOfType int          `codec:"deviceNumberOfType" json:"deviceNumberOfType"`
+	CTime              Time         `codec:"cTime" json:"cTime"`
+	MTime              Time         `codec:"mTime" json:"mTime"`
+	LastUsedTime       Time         `codec:"lastUsedTime" json:"lastUsedTime"`
+	EncryptKey         KID          `codec:"encryptKey" json:"encryptKey"`
+	VerifyKey          KID          `codec:"verifyKey" json:"verifyKey"`
+	Status             int          `codec:"status" json:"status"`
 }
 
 func (o Device) DeepCopy() Device {
 	return Device{
-		Type:               o.Type,
+		Type:               o.Type.DeepCopy(),
 		Name:               o.Name,
 		DeviceID:           o.DeviceID.DeepCopy(),
 		DeviceNumberOfType: o.DeviceNumberOfType,
@@ -559,6 +559,41 @@ var DeviceTypeRevMap = map[DeviceType]string{
 
 func (e DeviceType) String() string {
 	if v, ok := DeviceTypeRevMap[e]; ok {
+		return v
+	}
+	return fmt.Sprintf("%v", int(e))
+}
+
+type DeviceTypeV2 int
+
+const (
+	DeviceTypeV2_NONE    DeviceTypeV2 = 0
+	DeviceTypeV2_DESKTOP DeviceTypeV2 = 1
+	DeviceTypeV2_MOBILE  DeviceTypeV2 = 2
+	DeviceTypeV2_WEB     DeviceTypeV2 = 3
+	DeviceTypeV2_PAPER   DeviceTypeV2 = 5
+)
+
+func (o DeviceTypeV2) DeepCopy() DeviceTypeV2 { return o }
+
+var DeviceTypeV2Map = map[string]DeviceTypeV2{
+	"NONE":    0,
+	"DESKTOP": 1,
+	"MOBILE":  2,
+	"WEB":     3,
+	"PAPER":   5,
+}
+
+var DeviceTypeV2RevMap = map[DeviceTypeV2]string{
+	0: "NONE",
+	1: "DESKTOP",
+	2: "MOBILE",
+	3: "WEB",
+	5: "PAPER",
+}
+
+func (e DeviceTypeV2) String() string {
+	if v, ok := DeviceTypeV2RevMap[e]; ok {
 		return v
 	}
 	return fmt.Sprintf("%v", int(e))

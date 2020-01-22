@@ -909,11 +909,11 @@ func (l LoginUI) ChooseDeviceToRecoverWith(ctx context.Context, arg keybase1.Cho
 	for i, d := range arg.Devices {
 		var ft string
 		switch d.Type {
-		case libkb.DeviceTypePaper:
+		case keybase1.DeviceTypeV2_PAPER:
 			ft = "paper key"
-		case libkb.DeviceTypeDesktop:
+		case keybase1.DeviceTypeV2_DESKTOP:
 			ft = "computer"
-		case libkb.DeviceTypeMobile:
+		case keybase1.DeviceTypeV2_MOBILE:
 			ft = "mobile"
 		}
 		l.parent.Printf("\t%d. [%s]\t%s\n", i+1, ft, d.Name)
