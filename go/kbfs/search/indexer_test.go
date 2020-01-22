@@ -311,6 +311,8 @@ func TestFullIndexSyncedTlf(t *testing.T) {
 			Mode: keybase1.FolderSyncMode_ENABLED,
 		})
 	require.NoError(t, err)
+	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
+	require.NoError(t, err)
 	err = i.waitForSyncs(ctx)
 	require.NoError(t, err)
 
