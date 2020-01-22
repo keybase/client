@@ -73,15 +73,6 @@ const TextInput = (props: TextProps) => {
   return (
     <Kb.Box onClick={onFocusInput} style={styles.containerInputFocus}>
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.commonContainer}>
-        {value && (
-          <Kb.Text
-            type="BodySmallPrimaryLink"
-            onClick={() => onChangeText('')}
-            style={styles.clearButtonTextInput}
-          >
-            Clear
-          </Kb.Text>
-        )}
         <Kb.Box2
           direction="horizontal"
           fullWidth={!!value}
@@ -125,6 +116,13 @@ const TextInput = (props: TextProps) => {
           )}
         </Kb.Box2>
       </Kb.Box2>
+      {value && (
+        <Kb.Box2 direction="vertical" style={styles.clearButtonInput}>
+          <Kb.Text type="BodySmallPrimaryLink" onClick={() => onChangeText('')}>
+            Clear
+          </Kb.Text>
+        </Kb.Box2>
+      )}
     </Kb.Box>
   )
 }
@@ -140,14 +138,7 @@ const FileInput = (props: FileProps) => {
       alignItems="stretch"
       style={styles.commonContainer}
     >
-      <Kb.Text
-        type="BodySmallPrimaryLink"
-        onClick={() => props.onClearFiles()}
-        style={styles.clearButtonFileInput}
-      >
-        Clear
-      </Kb.Text>
-      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
+      <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
         <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.fileContainer}>
           <Kb.Icon type={fileIcon} sizeType="Huge" />
           <Kb.Box2 direction="vertical">
@@ -156,6 +147,15 @@ const FileInput = (props: FileProps) => {
               <Kb.Text type="BodySmallSemibold">{FsConstants.humanReadableFileSize(size)}</Kb.Text>
             ) : null}
           </Kb.Box2>
+        </Kb.Box2>
+        <Kb.Box2 direction="vertical" style={styles.clearButtonInput}>
+          <Kb.Text
+            type="BodySmallPrimaryLink"
+            onClick={() => props.onClearFiles()}
+            style={styles.clearButtonInput}
+          >
+            Clear
+          </Kb.Text>
         </Kb.Box2>
       </Kb.Box2>
     </Kb.Box2>
@@ -168,15 +168,10 @@ const styles = Styles.styleSheetCreate(
       browseFile: {
         flexShrink: 0,
       },
-      clearButtonFileInput: {
-        position: 'absolute',
-        right: Styles.globalMargins.small,
-        top: Styles.globalMargins.small,
-      },
-      clearButtonTextInput: {
-        position: 'absolute',
-        right: Styles.globalMargins.tiny,
-        top: Styles.globalMargins.tiny,
+      clearButtonInput: {
+        alignSelf: 'flex-start',
+        flexShrink: 1,
+        padding: Styles.globalMargins.tiny,
       },
       commonContainer: {
         ...Styles.globalStyles.flexGrow,
@@ -190,6 +185,7 @@ const styles = Styles.styleSheetCreate(
         flexShrink: 2,
       },
       fileContainer: {
+        alignSelf: 'flex-start',
         ...Styles.padding(Styles.globalMargins.small),
       },
       hidden: {
