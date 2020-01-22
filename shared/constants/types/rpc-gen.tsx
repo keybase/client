@@ -3967,6 +3967,8 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.saltpack.saltpackVerify'
 // 'keybase.1.saltpack.saltpackEncryptStringToTextFile'
 // 'keybase.1.saltpack.saltpackSignStringToTextFile'
+// 'keybase.1.saltpack.saltpackSaveCiphertextToFile'
+// 'keybase.1.saltpack.saltpackSaveSignedMsgToFile'
 // 'keybase.1.saltpackUi.saltpackPromptForDecrypt'
 // 'keybase.1.saltpackUi.saltpackVerifySuccess'
 // 'keybase.1.saltpackUi.saltpackVerifyBadSender'

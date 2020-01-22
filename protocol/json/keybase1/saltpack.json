@@ -506,6 +506,32 @@
       ],
       "response": "string"
     },
+    "saltpackSaveCiphertextToFile": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "ciphertext",
+          "type": "string"
+        }
+      ],
+      "response": "string"
+    },
+    "saltpackSaveSignedMsgToFile": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "signedMsg",
+          "type": "string"
+        }
+      ],
+      "response": "string"
+    },
     "saltpackVerifyString": {
       "request": [
         {
