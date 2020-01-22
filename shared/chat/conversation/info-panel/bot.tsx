@@ -233,7 +233,7 @@ export default (props: Props) => {
         ...(!loadedAllBots && featuredBots.length > 0 ? [loadMoreBotsButton] : []),
         ...(loadingBots ? [featuredBotSpinner] : []),
       ],
-      renderItem: ({item}) => {
+      renderItem: ({item}: {item: any}) => {
         if (item === addBotButton) {
           return (
             <Kb.Button

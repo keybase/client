@@ -439,7 +439,7 @@ export default (p: Props) => {
     sections = [
       {
         data: ['No attachments'],
-        renderItem: ({item}) => (
+        renderItem: ({item}: {item: string}) => (
           <Kb.Box2 centerChildren={true} direction="horizontal" fullWidth={true}>
             <Kb.Text type="BodySmall">{item}</Kb.Text>
           </Kb.Box2>
@@ -590,7 +590,7 @@ export default (p: Props) => {
     <Kb.SectionList
       stickySectionHeadersEnabled={true}
       keyboardShouldPersistTaps="handled"
-      renderSectionHeader={({section}) => section?.renderSectionHeader?.({section}) ?? null}
+      renderSectionHeader={({section}: any) => section?.renderSectionHeader?.({section}) ?? null}
       sections={sections}
     />
   )
