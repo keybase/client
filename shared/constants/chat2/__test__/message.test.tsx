@@ -45,7 +45,7 @@ describe('serviceMessageTypeToMessageTypes', () => {
   it('handles all service message types', () => {
     const handledTypes = cases.map(c => c.in)
     const serviceTypes = Object.values(RPCChatTypes.MessageType).filter(
-      k => typeof RPCChatTypes.MessageType[k] !== 'number'
+      k => typeof RPCChatTypes.MessageType[k as any] !== 'number'
     )
     expect(handledTypes.sort()).toEqual(serviceTypes.sort())
   })
