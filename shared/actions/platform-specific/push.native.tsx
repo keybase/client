@@ -7,6 +7,7 @@ import * as FsTypes from '../../constants/types/fs'
 import * as NotificationsGen from '../notifications-gen'
 import * as ProfileGen from '../profile-gen'
 import * as PushGen from '../push-gen'
+// @ts-ignore
 import * as PushNotifications from 'react-native-push-notification'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
@@ -410,7 +411,7 @@ const getInitialPushAndroid = async () => {
 
 const getInitialPushiOS = () =>
   new Promise(resolve =>
-    PushNotifications.popInitialNotification(n => {
+    PushNotifications.popInitialNotification((n: any) => {
       const notification = Constants.normalizePush(n)
       if (notification) {
         resolve(PushGen.createNotification({notification}))

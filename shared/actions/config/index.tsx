@@ -518,7 +518,7 @@ const updateServerConfig = async (state: Container.TypedState, action: ConfigGen
       }
     } = JSON.parse(str.body)
     const features = Object.keys(obj.features).reduce((map, key) => {
-      map[key] = obj.features[key] && obj.features[key].value
+      map[key] = obj.features[key as any]?.value ?? false
       return map
     }, {}) as {[K in string]: boolean}
 

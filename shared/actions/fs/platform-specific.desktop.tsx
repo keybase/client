@@ -365,7 +365,7 @@ const loadUserFileEdits = async (state: TypedState) => {
   return false
 }
 
-const openFilesFromWidget = ({payload: {path}}) => [
+const openFilesFromWidget = ({payload: {path}}: FsGen.OpenFilesFromWidgetPayload) => [
   ConfigGen.createShowMain(),
   ...(path
     ? [Constants.makeActionForOpenPathInFilesTab(path)]
