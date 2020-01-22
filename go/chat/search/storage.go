@@ -138,7 +138,6 @@ type batchingStore struct {
 	aliasBatch map[string]*aliasEntry
 	tokenBatch map[chat1.ConvIDStr]*tokenBatch
 	mdBatch    map[chat1.ConvIDStr]*mdBatch
-	flushMu    sync.Mutex
 }
 
 func newBatchingStore(log logger.Logger, uid gregor1.UID,
@@ -291,22 +290,16 @@ func (b *batchingStore) PutMetadata(ctx context.Context, convID chat1.Conversati
 
 func (b *batchingStore) Flush() (err error) {
 	ctx := context.Background()
+	defer b.Trace(ctx, func() error { return err }, "Flush")()
 	b.Lock()
+	defer b.Unlock()
 	if len(b.tokenBatch) == 0 && len(b.aliasBatch) == 0 && len(b.mdBatch) == 0 {
-		b.Unlock()
 		return nil
 	}
-	aliasBatch := b.aliasBatch
-	tokenBatch := b.tokenBatch
-	mdBatch := b.mdBatch
-	b.resetLocked()
-	b.Unlock()
+	defer b.resetLocked()
 
-	defer b.Trace(context.Background(), func() error { return err }, "Flush")()
-	b.flushMu.Lock()
-	defer b.flushMu.Unlock()
-	b.Debug(ctx, "Flush: flushing tokens from %d convs", len(tokenBatch))
-	for _, tokenBatch := range tokenBatch {
+	b.Debug(ctx, "Flush: flushing tokens from %d convs", len(b.tokenBatch))
+	for _, tokenBatch := range b.tokenBatch {
 		b.Debug(ctx, "Flush: flushing %d tokens from %s", len(tokenBatch.tokens), tokenBatch.convID)
 		for token, te := range tokenBatch.tokens {
 			key, err := tokenKey(ctx, b.uid, tokenBatch.convID, token, b.keyFn)
@@ -318,8 +311,8 @@ func (b *batchingStore) Flush() (err error) {
 			}
 		}
 	}
-	b.Debug(ctx, "Flush: flushing %d aliases", len(aliasBatch))
-	for alias, ae := range aliasBatch {
+	b.Debug(ctx, "Flush: flushing %d aliases", len(b.aliasBatch))
+	for alias, ae := range b.aliasBatch {
 		key, err := aliasKey(ctx, alias, b.keyFn)
 		if err != nil {
 			return err
@@ -328,8 +321,8 @@ func (b *batchingStore) Flush() (err error) {
 			return err
 		}
 	}
-	b.Debug(ctx, "Flush: flushing %d conv metadata", len(mdBatch))
-	for _, mdBatch := range mdBatch {
+	b.Debug(ctx, "Flush: flushing %d conv metadata", len(b.mdBatch))
+	for _, mdBatch := range b.mdBatch {
 		b.Debug(ctx, "Flush: flushing md from %s", mdBatch.convID)
 		if err := b.mdb.PutObjMsgpack(metadataKey(b.uid, mdBatch.convID), nil, mdBatch.md); err != nil {
 			return err
@@ -842,7 +835,7 @@ func (s *store) Remove(ctx context.Context, convID chat1.ConversationID,
 }
 
 func (s *store) ClearMemory() {
-	defer s.Trace(context.Background(), func() error { return nil }, "Remove")()
+	defer s.Trace(context.Background(), func() error { return nil }, "ClearMemory")()
 	s.aliasCache.Purge()
 	s.tokenCache.Purge()
 	s.diskStorage.Cancel()

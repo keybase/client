@@ -23,6 +23,20 @@ import (
 // is read, a prerequisite for searching.
 const minPriorityScore = 10
 
+type storageAdd struct {
+	ctx    context.Context
+	convID chat1.ConversationID
+	msgs   []chat1.MessageUnboxed
+	cb     chan struct{}
+}
+
+type storageRemove struct {
+	ctx    context.Context
+	convID chat1.ConversationID
+	msgs   []chat1.MessageUnboxed
+	cb     chan struct{}
+}
+
 type Indexer struct {
 	globals.Contextified
 	utils.DebugLabeler
@@ -40,6 +54,7 @@ type Indexer struct {
 	clock        clockwork.Clock
 	eg           errgroup.Group
 	uid          gregor1.UID
+	storageCh    chan interface{}
 
 	maxSyncConvs          int
 	startSyncDelay        time.Duration
@@ -67,6 +82,7 @@ func NewIndexer(g *globals.Context) *Indexer {
 		pokeSyncCh:   make(chan struct{}, 100),
 		clock:        clockwork.NewRealClock(),
 		flushDelay:   15 * time.Second,
+		storageCh:    make(chan interface{}, 100),
 	}
 	switch idx.G().GetAppType() {
 	case libkb.MobileAppType:
@@ -113,6 +129,11 @@ func (idx *Indexer) StartFlushLoop() {
 	idx.eg.Go(func() error { return idx.flushLoop(idx.stopCh) })
 }
 
+func (idx *Indexer) StartStorageLoop() {
+	idx.started = true
+	idx.eg.Go(func() error { return idx.storageLoop(idx.stopCh) })
+}
+
 func (idx *Indexer) StartSyncLoop() {
 	idx.started = true
 	idx.eg.Go(func() error { return idx.SyncLoop(idx.stopCh) })
@@ -136,6 +157,7 @@ func (idx *Indexer) Start(ctx context.Context, uid gregor1.UID) {
 		idx.eg.Go(func() error { return idx.SyncLoop(idx.stopCh) })
 	}
 	idx.eg.Go(func() error { return idx.flushLoop(idx.stopCh) })
+	idx.eg.Go(func() error { return idx.storageLoop(idx.stopCh) })
 }
 
 func (idx *Indexer) CancelSync(ctx context.Context) {
@@ -334,6 +356,47 @@ func (idx *Indexer) consumeResultsForTest(convID chat1.ConversationID, err error
 	}
 }
 
+func (idx *Indexer) storageDispatch(op interface{}) {
+	select {
+	case idx.storageCh <- op:
+	default:
+		idx.Debug(context.Background(), "storageDispatch: failed to dispatch storage operation")
+	}
+}
+
+func (idx *Indexer) storageLoop(stopCh chan struct{}) error {
+	ctx := context.Background()
+	idx.Debug(ctx, "storageLoop: starting")
+	for {
+		select {
+		case <-stopCh:
+			idx.Debug(ctx, "storageLoop: shutting down")
+			return nil
+		case iop := <-idx.storageCh:
+			switch op := iop.(type) {
+			case storageAdd:
+				idx.Debug(ctx, "storageLoop: adding: convID: %x msgs: %d", op.convID.DbShortForm(),
+					len(op.msgs))
+				err := idx.store.Add(op.ctx, op.convID, op.msgs)
+				if err != nil {
+					idx.Debug(op.ctx, "storageLoop: add failed: %s", err)
+				}
+				idx.consumeResultsForTest(op.convID, err)
+				close(op.cb)
+			case storageRemove:
+				idx.Debug(ctx, "storageLoop: removing: convID: %x msgs: %d", op.convID.DbShortForm(),
+					len(op.msgs))
+				err := idx.store.Remove(op.ctx, op.convID, op.msgs)
+				if err != nil {
+					idx.Debug(op.ctx, "storageLoop: remove failed: %s", err)
+				}
+				idx.consumeResultsForTest(op.convID, err)
+				close(op.cb)
+			}
+		}
+	}
+}
+
 func (idx *Indexer) flushLoop(stopCh chan struct{}) error {
 	ctx := context.Background()
 	idx.Debug(ctx, "flushLoop: starting")
@@ -371,26 +434,33 @@ func (idx *Indexer) Add(ctx context.Context, convID chat1.ConversationID,
 		return nil
 	}
 	idx.Unlock()
-	return idx.add(ctx, convID, msgs, false)
+	_, err = idx.add(ctx, convID, msgs, false)
+	return err
 }
 
 func (idx *Indexer) add(ctx context.Context, convID chat1.ConversationID,
-	msgs []chat1.MessageUnboxed, force bool) (err error) {
+	msgs []chat1.MessageUnboxed, force bool) (cb chan struct{}, err error) {
 	if idx.G().GetEnv().GetDisableSearchIndexer() {
-		return nil
+		return cb, nil
 	}
 	if !idx.validBatch(msgs) {
-		return nil
+		return cb, nil
 	}
 	if !(force || idx.hasPriority(ctx, convID)) {
-		return nil
+		return cb, nil
 	}
 
 	defer idx.Trace(ctx, func() error { return err },
 		fmt.Sprintf("Indexer.Add conv: %v, msgs: %d, force: %v",
 			convID, len(msgs), force))()
-	defer idx.consumeResultsForTest(convID, err)
-	return idx.store.Add(ctx, convID, msgs)
+	cb = make(chan struct{})
+	idx.storageDispatch(storageAdd{
+		ctx:    globals.BackgroundChatCtx(ctx, idx.G()),
+		convID: convID,
+		msgs:   msgs,
+		cb:     cb,
+	})
+	return cb, nil
 }
 
 func (idx *Indexer) Remove(ctx context.Context, convID chat1.ConversationID,
@@ -401,26 +471,33 @@ func (idx *Indexer) Remove(ctx context.Context, convID chat1.ConversationID,
 		return nil
 	}
 	idx.Unlock()
-	return idx.remove(ctx, convID, msgs, false)
+	_, err = idx.remove(ctx, convID, msgs, false)
+	return err
 }
 
 func (idx *Indexer) remove(ctx context.Context, convID chat1.ConversationID,
-	msgs []chat1.MessageUnboxed, force bool) (err error) {
+	msgs []chat1.MessageUnboxed, force bool) (cb chan struct{}, err error) {
 	if idx.G().GetEnv().GetDisableSearchIndexer() {
-		return nil
+		return cb, nil
 	}
 	if !idx.validBatch(msgs) {
-		return nil
+		return cb, nil
 	}
 	if !(force || idx.hasPriority(ctx, convID)) {
-		return nil
+		return cb, nil
 	}
 
 	defer idx.Trace(ctx, func() error { return err },
 		fmt.Sprintf("Indexer.Remove conv: %v, msgs: %d, force: %v",
 			convID, len(msgs), force))()
-	defer idx.consumeResultsForTest(convID, err)
-	return idx.store.Remove(ctx, convID, msgs)
+	cb = make(chan struct{})
+	idx.storageDispatch(storageRemove{
+		ctx:    globals.BackgroundChatCtx(ctx, idx.G()),
+		convID: convID,
+		msgs:   msgs,
+		cb:     cb,
+	})
+	return cb, nil
 }
 
 // reindexConv attempts to fill in any missing messages from the index.  For a
@@ -455,9 +532,11 @@ func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversat
 			}
 			return 0, nil
 		}
-		if err := idx.add(ctx, convID, msgs, true); err != nil {
+		cb, err := idx.add(ctx, convID, msgs, true)
+		if err != nil {
 			return 0, err
 		}
+		<-cb
 		completedJobs++
 	} else {
 		query := &chat1.GetThreadQuery{
@@ -482,9 +561,11 @@ func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversat
 				}
 				continue
 			}
-			if err := idx.add(ctx, convID, tv.Messages, true); err != nil {
+			cb, err := idx.add(ctx, convID, tv.Messages, true)
+			if err != nil {
 				return 0, err
 			}
+			<-cb
 			completedJobs++
 			if numJobs > 0 && completedJobs >= numJobs {
 				break
