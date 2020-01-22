@@ -22,6 +22,7 @@ export default Container.namedConnect(
   (dispatch: Container.TypedDispatch) => ({
     onClearInput: () => dispatch(CryptoGen.createClearInput({operation})),
     onCopyOutput: (text: string) => dispatch(ConfigGen.createCopyToClipboard({text})),
+    onDownloadText: () => dispatch(CryptoGen.createDownloadSignedText()),
     onSetInput: (inputType: Types.InputTypes, inputValue: string) =>
       dispatch(CryptoGen.createSetInput({operation, type: inputType, value: new HiddenString(inputValue)})),
     onShowInFinder: (path: string) =>
@@ -32,6 +33,7 @@ export default Container.namedConnect(
     inputType: stateProps.inputType,
     onClearInput: dispatchProps.onClearInput,
     onCopyOutput: dispatchProps.onCopyOutput,
+    onDownloadText: dispatchProps.onDownloadText,
     onSetInput: dispatchProps.onSetInput,
     onShowInFinder: dispatchProps.onShowInFinder,
     output: stateProps.output,

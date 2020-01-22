@@ -13,6 +13,7 @@ type Props = {
   inputType: Types.InputTypes
   onClearInput: () => void
   onCopyOutput: (text: string) => void
+  onDownloadText: () => void
   onSetInput: (inputType: Types.InputTypes, inputValue: string) => void
   onShowInFinder: (path: string) => void
   output: string
@@ -107,6 +108,7 @@ const Sign = (props: Props) => {
               outputStatus={props.outputStatus}
               outputType={props.outputType}
               onCopyOutput={props.onCopyOutput}
+              onDownloadText={props.onDownloadText}
               onShowInFinder={props.onShowInFinder}
             />
           </Kb.Box2>

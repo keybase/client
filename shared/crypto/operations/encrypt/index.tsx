@@ -15,6 +15,7 @@ type Props = {
   noIncludeSelf: boolean
   onClearInput: () => void
   onCopyOutput: (text: string) => void
+  onDownloadText: () => void
   onShowInFinder: (path: string) => void
   onSetInput: (inputType: Types.InputTypes, inputValue: string) => void
   onSetOptions: (options: Types.EncryptOptions) => void
@@ -163,6 +164,7 @@ const Encrypt = (props: Props) => {
               outputStatus={props.outputStatus}
               outputType={props.outputType}
               onCopyOutput={props.onCopyOutput}
+              onDownloadText={props.onDownloadText}
               onShowInFinder={props.onShowInFinder}
             />
           </Kb.Box2>

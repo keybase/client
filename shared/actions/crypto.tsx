@@ -487,7 +487,37 @@ const saltpackDone = (action: EngineGen.Keybase1NotifySaltpackSaltpackOperationD
     operation: RPCTypes.SaltpackOperationType[action.payload.params.opType] as Types.Operations,
   })
 
+const downloadEncryptedText = async (state: TypedState) => {
+  const {output, outputSender, outputSigned} = state.crypto.encrypt
+  const result = await RPCTypes.saltpackSaltpackSaveCiphertextToFileRpcPromise({
+    ciphertext: output.stringValue(),
+  })
+  return CryptoGen.createOnOperationSuccess({
+    operation: Constants.Operations.Encrypt,
+    output: new HiddenString(result),
+    outputSender,
+    outputSigned: !!outputSigned,
+    outputType: 'file',
+  })
+}
+
+const downloadSignedText = async (state: TypedState) => {
+  const {output, outputSender, outputSigned} = state.crypto.sign
+  const result = await RPCTypes.saltpackSaltpackSaveSignedMsgToFileRpcPromise({
+    signedMsg: output.stringValue(),
+  })
+  return CryptoGen.createOnOperationSuccess({
+    operation: Constants.Operations.Sign,
+    output: new HiddenString(result),
+    outputSender,
+    outputSigned: !!outputSigned,
+    outputType: 'file',
+  })
+}
+
 function* cryptoSaga() {
+  yield* Saga.chainAction2(CryptoGen.downloadEncryptedText, downloadEncryptedText)
+  yield* Saga.chainAction2(CryptoGen.downloadSignedText, downloadSignedText)
   yield* Saga.chainAction2(
     [CryptoGen.setInput, CryptoGen.setRecipients, CryptoGen.setEncryptOptions, CryptoGen.clearRecipients],
     handleRunOperation
