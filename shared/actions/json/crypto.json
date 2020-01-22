@@ -12,6 +12,12 @@
       "_description": "Clear input type and value from the specified operation",
       "operation": "Types.Operations"
     },
+    "downloadEncryptedText": {
+      "_description": "Download the encrypted output to a text file"
+    },
+    "downloadSignedText": {
+      "_description": "Download the signed output to a text file"
+    },
     "setRecipients": {
       "_description": "Array recipients of operations, provided via TeamBuilding. Includes flag if any users are not on Keybase yet (SBS) to force includeSelf in EncryptOptions",
       "operation": "Types.Operations",

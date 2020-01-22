@@ -27,6 +27,7 @@ export default Container.namedConnect(
   (dispatch: Container.TypedDispatch) => ({
     onClearInput: () => dispatch(CryptoGen.createClearInput({operation})),
     onCopyOutput: (text: string) => dispatch(ConfigGen.createCopyToClipboard({text})),
+    onDownloadText: () => dispatch(CryptoGen.createDownloadEncryptedText()),
     onSetInput: (inputType: Types.InputTypes, inputValue: string) =>
       dispatch(CryptoGen.createSetInput({operation, type: inputType, value: new HiddenString(inputValue)})),
     onSetOptions: (options: Types.EncryptOptions) => dispatch(CryptoGen.createSetEncryptOptions({options})),
@@ -41,6 +42,7 @@ export default Container.namedConnect(
     noIncludeSelf: stateProps.noIncludeSelf,
     onClearInput: dispatchProps.onClearInput,
     onCopyOutput: dispatchProps.onCopyOutput,
+    onDownloadText: dispatchProps.onDownloadText,
     onSetInput: dispatchProps.onSetInput,
     onSetOptions: dispatchProps.onSetOptions,
     onShowInFinder: dispatchProps.onShowInFinder,

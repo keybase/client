@@ -1223,6 +1223,14 @@ export type MessageTypes = {
     inParam: {readonly plaintext: String; readonly opts: SaltpackFrontendEncryptOptions}
     outParam: SaltpackEncryptStringResult
   }
+  'keybase.1.saltpack.saltpackSaveCiphertextToFile': {
+    inParam: {readonly ciphertext: String}
+    outParam: String
+  }
+  'keybase.1.saltpack.saltpackSaveSignedMsgToFile': {
+    inParam: {readonly signedMsg: String}
+    outParam: String
+  }
   'keybase.1.saltpack.saltpackSignFile': {
     inParam: {readonly filename: String}
     outParam: String
@@ -3593,6 +3601,8 @@ export const saltpackSaltpackDecryptFileRpcPromise = (params: MessageTypes['keyb
 export const saltpackSaltpackDecryptStringRpcPromise = (params: MessageTypes['keybase.1.saltpack.saltpackDecryptString']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.saltpack.saltpackDecryptString']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.saltpack.saltpackDecryptString', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const saltpackSaltpackEncryptFileRpcPromise = (params: MessageTypes['keybase.1.saltpack.saltpackEncryptFile']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.saltpack.saltpackEncryptFile']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.saltpack.saltpackEncryptFile', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const saltpackSaltpackEncryptStringRpcPromise = (params: MessageTypes['keybase.1.saltpack.saltpackEncryptString']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.saltpack.saltpackEncryptString']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.saltpack.saltpackEncryptString', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const saltpackSaltpackSaveCiphertextToFileRpcPromise = (params: MessageTypes['keybase.1.saltpack.saltpackSaveCiphertextToFile']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.saltpack.saltpackSaveCiphertextToFile']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.saltpack.saltpackSaveCiphertextToFile', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const saltpackSaltpackSaveSignedMsgToFileRpcPromise = (params: MessageTypes['keybase.1.saltpack.saltpackSaveSignedMsgToFile']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.saltpack.saltpackSaveSignedMsgToFile']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.saltpack.saltpackSaveSignedMsgToFile', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const saltpackSaltpackSignFileRpcPromise = (params: MessageTypes['keybase.1.saltpack.saltpackSignFile']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.saltpack.saltpackSignFile']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.saltpack.saltpackSignFile', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const saltpackSaltpackSignStringRpcPromise = (params: MessageTypes['keybase.1.saltpack.saltpackSignString']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.saltpack.saltpackSignString']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.saltpack.saltpackSignString', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const saltpackSaltpackVerifyFileRpcPromise = (params: MessageTypes['keybase.1.saltpack.saltpackVerifyFile']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.saltpack.saltpackVerifyFile']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.saltpack.saltpackVerifyFile', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -3967,8 +3977,6 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.saltpack.saltpackVerify'
 // 'keybase.1.saltpack.saltpackEncryptStringToTextFile'
 // 'keybase.1.saltpack.saltpackSignStringToTextFile'
-// 'keybase.1.saltpack.saltpackSaveCiphertextToFile'
-// 'keybase.1.saltpack.saltpackSaveSignedMsgToFile'
 // 'keybase.1.saltpackUi.saltpackPromptForDecrypt'
 // 'keybase.1.saltpackUi.saltpackVerifySuccess'
 // 'keybase.1.saltpackUi.saltpackVerifyBadSender'
