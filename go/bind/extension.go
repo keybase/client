@@ -175,7 +175,7 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 		MobileExtension:                true,
 		LogFile:                        logFile,
 		RunMode:                        runMode,
-		Debug:                          true,
+		Debug:                          false,
 		LocalRPCDebug:                  "",
 		VDebugSetting:                  "mobile", // use empty string for same logging as desktop default
 		SecurityAccessGroupOverride:    accessGroupOverride,
