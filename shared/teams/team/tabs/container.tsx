@@ -22,6 +22,7 @@ export default Container.connect(
       _featuredBotsMap,
       _members,
       admin: yourOperations.manageMembers,
+      error: state.teams.errorInAddToTeam,
       loading: anyWaiting(
         state,
         Constants.teamWaitingKey(teamDetails.teamname),
@@ -47,6 +48,7 @@ export default Container.connect(
     )
     return {
       admin: stateProps.admin,
+      error: stateProps.error,
       loadBots: () =>
         _bots.map(
           bot =>

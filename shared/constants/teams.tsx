@@ -169,6 +169,7 @@ const emptyState: Types.State = {
   addUserToTeamsState: 'notStarted',
   canPerform: new Map(),
   deletedTeams: [],
+  errorInAddToTeam: '',
   errorInChannelCreation: '',
   errorInEditDescription: '',
   errorInEmailInvite: emptyEmailInviteError,
