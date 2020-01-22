@@ -83,6 +83,7 @@ type Indexer struct {
 	indexConfig    libkbfs.Config
 	configShutdown func(context.Context) error
 	blocksDb       *IndexedBlockDb
+	tlfDb          *IndexedTlfDb
 	docDb          *DocDb
 	indexReadyCh   chan struct{}
 	cancelCtx      context.CancelFunc
@@ -142,6 +143,7 @@ func (i *Indexer) closeIndexLocked(ctx context.Context) error {
 	}
 
 	i.blocksDb.Shutdown(ctx)
+	i.tlfDb.Shutdown(ctx)
 	i.docDb.Shutdown(ctx)
 
 	shutdownErr := i.configShutdown(ctx)
@@ -149,6 +151,7 @@ func (i *Indexer) closeIndexLocked(ctx context.Context) error {
 	i.indexConfig = nil
 	i.blocksDb = nil
 	i.docDb = nil
+	i.tlfDb = nil
 	i.cancelCtx()
 	return shutdownErr
 }
@@ -288,6 +291,12 @@ func (i *Indexer) loadIndex(ctx context.Context) (err error) {
 		return err
 	}
 
+	// Load the TLF DB.
+	tlfDb, err := newIndexedTlfDb(i.config, indexConfig.StorageRoot())
+	if err != nil {
+		return err
+	}
+
 	err = fs.MkdirAll(docDbDir, 0600)
 	if err != nil {
 		return err
@@ -311,6 +320,7 @@ func (i *Indexer) loadIndex(ctx context.Context) (err error) {
 	i.indexConfig = indexConfig
 	i.configShutdown = configShutdown
 	i.blocksDb = blocksDb
+	i.tlfDb = tlfDb
 	i.docDb = docDb
 	i.cancelCtx = cancelCtx
 	close(i.indexReadyCh)
@@ -340,6 +350,7 @@ func (i *Indexer) FullSyncStarted(
 		select {
 		case <-waitCh:
 		case <-i.shutdownCh:
+			i.indexWG.Done()
 			return
 		}
 
@@ -347,8 +358,10 @@ func (i *Indexer) FullSyncStarted(
 		select {
 		case i.tlfCh <- m:
 		default:
+			i.indexWG.Done()
 			i.log.CDebugf(
-				context.Background(), "Couldn't send TLF message for %s/%d")
+				context.Background(), "Couldn't send TLF message for %s/%d",
+				tlfID, rev)
 		}
 	}()
 }
@@ -363,7 +376,8 @@ func (i *Indexer) SyncModeChanged(
 	case i.tlfCh <- m:
 	default:
 		i.log.CDebugf(
-			context.Background(), "Couldn't send TLF message for %s/%d")
+			context.Background(), "Couldn't send TLF message for %s/%s",
+			tlfID, newMode)
 	}
 }
 
@@ -692,13 +706,108 @@ func (i *Indexer) indexNewlySyncedTlf(
 }
 
 func (i *Indexer) doFullIndex(
-	ctx context.Context, m tlfMessage, rev kbfsmd.Revision) error {
-	defer i.indexWG.Done()
+	ctx context.Context, m tlfMessage, rev kbfsmd.Revision) (err error) {
 	fs, err := i.fsForRev(ctx, m.tlfID, rev)
 	if err != nil {
 		return err
 	}
+
+	// Check whether this revision has been garbage-collected yet.  If
+	// so, return a typed error.  The caller may wish to clear out the
+	// current index for the TLF in this case.
+	status, _, err := i.config.KBFSOps().FolderStatus(
+		ctx, fs.RootNode().GetFolderBranch())
+	if err != nil {
+		return err
+	}
+	if rev <= status.LastGCRevision {
+		return errors.WithStack(
+			RevisionGCdError{m.tlfID, rev, status.LastGCRevision})
+	}
+
+	// Record that we've started a full sync for this TLF at this
+	// revision.  If it gets interrupted, it should be resumed on the
+	// next restart of the indexer.  There is no `indexedRev`, because
+	// this function should only be called when a full index is
+	// needed.
+	err = i.tlfDb.Put(ctx, m.tlfID, kbfsmd.RevisionUninitialized, rev)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err != nil {
+			return
+		}
+
+		// After a successful indexing, mark the revision as fully indexed.
+		err = i.tlfDb.Put(ctx, m.tlfID, rev, kbfsmd.RevisionUninitialized)
+	}()
+
 	return i.indexNewlySyncedTlf(ctx, fs, rev)
+}
+
+func (i *Indexer) handleTlfMessage(ctx context.Context, m tlfMessage) error {
+	defer i.indexWG.Done()
+
+	// Figure out which revision to lock to, for this
+	// indexing scan.
+	rev := m.rev
+	if rev == kbfsmd.RevisionUninitialized {
+		// TODO(HOTPOT-1504) -- remove indexing if the
+		// mode is no longer synced.
+		return nil
+	}
+
+	indexedRev, startedRev, err := i.tlfDb.Get(ctx, m.tlfID)
+	switch errors.Cause(err) {
+	case nil:
+	case ldberrors.ErrNotFound:
+	default:
+		return err
+	}
+
+	if startedRev != kbfsmd.RevisionUninitialized && startedRev != rev {
+		// We've started indexing a particular revision already; we
+		// need to continue on at that revision, or risk confusing the
+		// index.  But re-add the message for this revision later.
+		i.log.CDebugf(ctx, "Finishing incomplete index for revision %s for "+
+			"TLF %s, before indexing the requested revision %d",
+			startedRev, m.tlfID, rev)
+		rev = startedRev
+		select {
+		case i.tlfCh <- m:
+		default:
+			i.log.CDebugf(
+				context.Background(), "Couldn't send TLF message for %s/%d",
+				m.tlfID, rev)
+		}
+	}
+
+	if indexedRev != kbfsmd.RevisionUninitialized {
+		// TODO(HOTPOT-1495): Do a partial update based on the MD
+		// revision changes (assuming we haven't missed so many
+		// revisions that we should just force a fast-forward).
+		i.log.CDebugf(
+			ctx, "Ignoring incremental update for %s (HOTPOT-1495)", m.tlfID)
+		return nil
+	}
+
+	err = i.doFullIndex(ctx, m, rev)
+	switch errors.Cause(err).(type) {
+	case nil:
+	case RevisionGCdError:
+		// TODO(HOTPOT-1504) -- remove all documents from the index
+		// and trigger a new indexing at the latest revision.
+		i.log.CDebugf(
+			ctx, "Ignoring a GC-revision failure for now (HOTPOT-1504): %+v",
+			err)
+		return nil
+	default:
+		return err
+	}
+
+	return nil
 }
 
 func (i *Indexer) loop(ctx context.Context) {
@@ -739,21 +848,9 @@ outerLoop:
 				i.log.CDebugf(
 					ctx, "Received TLF message for %s, rev=%d", m.tlfID, m.rev)
 
-				// Figure out which revision to lock to, for this
-				// indexing scan.
-				rev := m.rev
-				if rev == kbfsmd.RevisionUninitialized {
-					// TODO(HOTPOT-1504) -- remove indexing if the
-					// mode is no longer synced.
-					//
-					// TODO(HOTPOT-1495): initiate processing pass for
-					// updates.
-					continue
-				}
-
-				err = i.doFullIndex(ctx, m, rev)
+				err = i.handleTlfMessage(ctx, m)
 				if err != nil {
-					i.log.CDebugf(ctx, "Error indexing synced TLF: %+v", err)
+					i.log.CDebugf(ctx, "Error handling TLF message: %+v", err)
 				}
 			case <-ctx.Done():
 				return
