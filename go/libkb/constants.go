@@ -165,7 +165,9 @@ const (
 	EphemeralKeyMerkleFreshness = 30 * time.Second
 
 	// By default, only 48 files can be opened.
-	LevelDBNumFiles = 48
+	LevelDBNumFiles            = 48
+	LevelDBWriteBufferMB       = 12
+	LevelDBWriteBufferMBMobile = 8
 
 	HomeCacheTimeout       = (time.Hour - time.Minute)
 	HomePeopleCacheTimeout = 10 * time.Minute
