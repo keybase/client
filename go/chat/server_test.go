@@ -7422,14 +7422,12 @@ func TestTeamBotSettings(t *testing.T) {
 			// expected botua keyed messages
 			// NOTE that for ephemeral messages we include deleted messages in the thread
 			var expectedBotuaTyps []chat1.MessageType
-			var expectedCount int
 			if ephemeralLifetime == nil {
 				expectedBotuaTyps = []chat1.MessageType{
 					chat1.MessageType_DELETE,
 					chat1.MessageType_DELETE,
 					chat1.MessageType_TEXT,
 				}
-				expectedCount = 7
 			} else {
 				expectedBotuaTyps = []chat1.MessageType{
 					chat1.MessageType_DELETE,
@@ -7439,12 +7437,10 @@ func TestTeamBotSettings(t *testing.T) {
 					chat1.MessageType_TEXT,
 					chat1.MessageType_TEXT,
 				}
-				expectedCount = 10
 			}
-			require.Equal(t, expectedCount, len(tv.Messages))
 			validIndex := 0
 			for i, msg := range tv.Messages {
-				t.Logf("INDEX: %d VALID: %v", i, msg.IsValid())
+				t.Logf("INDEX: %d VALID: %v, %s", i, msg.IsValid(), msg.DebugString())
 				if msg.IsValid() {
 					require.Equal(t, expectedBotuaTyps[validIndex], msg.GetMessageType())
 					validIndex++
@@ -7527,4 +7523,146 @@ func filterOutJourneycards(thread *chat1.ThreadView) {
 		}
 	}
 	thread.Messages = filtered
+}
+
+func TestTeamBotChannelMembership(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		// Only test for TEAM type
+		if mt != chat1.ConversationMembersType_TEAM {
+			return
+		}
+		ctc := makeChatTestContext(t, "TeamBotChannelMembership", 3)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		ui := kbtest.NewChatUI()
+		ctc.as(t, users[0]).h.mockChatUI = ui
+		tc := ctc.as(t, users[0])
+		listener := newServerChatListener()
+		ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener)
+		ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
+
+		botua := users[1]
+		botua2 := users[2]
+
+		botuaListener := newServerChatListener()
+		ctc.as(t, botua).h.G().NotifyRouter.AddListener(botuaListener)
+		ctc.world.Tcs[botua.Username].ChatG.Syncer.(*Syncer).isConnected = true
+		botuaListener2 := newServerChatListener()
+		ctc.as(t, botua2).h.G().NotifyRouter.AddListener(botuaListener2)
+		ctc.world.Tcs[botua2.Username].ChatG.Syncer.(*Syncer).isConnected = true
+
+		var err error
+		created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
+
+		teamID, err := keybase1.TeamIDFromString(created.Triple.Tlfid.String())
+		require.NoError(t, err)
+
+		topicName := "zjoinonsend"
+		_, err = tc.chatLocalHandler().NewConversationLocal(context.TODO(),
+			chat1.NewConversationLocalArg{
+				TlfName:       created.TlfName,
+				TopicName:     &topicName,
+				TopicType:     chat1.TopicType_CHAT,
+				TlfVisibility: keybase1.TLFVisibility_PRIVATE,
+				MembersType:   mt,
+			})
+		require.NoError(t, err)
+
+		pollForSeqno := func(expectedSeqno keybase1.Seqno) {
+			found := false
+			for !found {
+				select {
+				case teamChange := <-listener.teamChangedByID:
+					found = teamChange.TeamID == teamID &&
+						teamChange.LatestSeqno == expectedSeqno
+				case <-time.After(20 * time.Second):
+					require.Fail(t, "no event received")
+				}
+			}
+		}
+
+		// add botua as a RESTRICTEDBOT with no conv restrictions, make sure
+		// they are auto-added to the conv
+		err = ctc.as(t, users[0]).chatLocalHandler().AddBotMember(tc.startCtx, chat1.AddBotMemberArg{
+			ConvID:      created.Id,
+			Username:    botua.Username,
+			Role:        keybase1.TeamRole_RESTRICTEDBOT,
+			BotSettings: &keybase1.TeamBotSettings{},
+		})
+		require.NoError(t, err)
+		pollForSeqno(3)
+		consumeMembersUpdate(t, listener)
+		consumeMembersUpdate(t, listener)
+		consumeJoinConv(t, botuaListener)
+		consumeJoinConv(t, botuaListener)
+
+		// add botua2 as a BOT, make sure they auto-added to the convs
+		err = ctc.as(t, users[0]).chatLocalHandler().AddBotMember(tc.startCtx, chat1.AddBotMemberArg{
+			ConvID:   created.Id,
+			Username: botua2.Username,
+			Role:     keybase1.TeamRole_BOT,
+		})
+		require.NoError(t, err)
+		pollForSeqno(4)
+		consumeMembersUpdate(t, listener)
+		consumeMembersUpdate(t, listener)
+		consumeMembersUpdate(t, botuaListener)
+		consumeMembersUpdate(t, botuaListener)
+		consumeJoinConv(t, botuaListener2)
+		consumeJoinConv(t, botuaListener2)
+
+		// downgrade botua to be restricted to 0 channels
+		err = ctc.as(t, users[0]).chatLocalHandler().EditBotMember(tc.startCtx, chat1.EditBotMemberArg{
+			ConvID:   created.Id,
+			Username: botua.Username,
+			Role:     keybase1.TeamRole_RESTRICTEDBOT,
+			BotSettings: &keybase1.TeamBotSettings{
+				Convs: []string{"deadbeef"},
+			},
+		})
+		require.NoError(t, err)
+		pollForSeqno(5)
+		consumeMembersUpdate(t, listener)
+		consumeMembersUpdate(t, listener)
+		consumeMembersUpdate(t, botuaListener2)
+		consumeMembersUpdate(t, botuaListener2)
+		consumeLeaveConv(t, botuaListener)
+		consumeLeaveConv(t, botuaListener)
+
+		// create a new conv and makes sure bots are auto-added
+		topicName = "zjoinonsend2"
+		convres, err := tc.chatLocalHandler().NewConversationLocal(context.TODO(),
+			chat1.NewConversationLocalArg{
+				TlfName:       created.TlfName,
+				TopicName:     &topicName,
+				TopicType:     chat1.TopicType_CHAT,
+				TlfVisibility: keybase1.TLFVisibility_PRIVATE,
+				MembersType:   mt,
+			})
+		require.NoError(t, err)
+
+		expectedUsers := []string{users[0].Username, users[2].Username}
+		sort.Strings(expectedUsers)
+		for i, user := range users {
+			gilres, err := ctc.as(t, user).chatLocalHandler().GetInboxAndUnboxLocal(context.TODO(), chat1.GetInboxAndUnboxLocalArg{
+				Query: &chat1.GetInboxLocalQuery{
+					ConvIDs: []chat1.ConversationID{convres.Conv.GetConvID()},
+				},
+				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+			})
+			require.NoError(t, err)
+			if i == 1 {
+				require.Len(t, gilres.Conversations, 0)
+				continue
+			}
+			require.Len(t, gilres.Conversations, 1)
+			var parts []string
+			for _, part := range gilres.Conversations[0].Info.Participants {
+				parts = append(parts, part.Username)
+			}
+			sort.Strings(parts)
+			require.Equal(t, expectedUsers, parts)
+		}
+	})
 }
