@@ -920,6 +920,7 @@ export type TypedActionsMap = {
   'teams:setPublicity': teams.SetPublicityPayload
   'teams:setChannelCreationError': teams.SetChannelCreationErrorPayload
   'teams:setEditDescriptionError': teams.SetEditDescriptionErrorPayload
+  'teams:settingsError': teams.SettingsErrorPayload
   'teams:setTeamsWithChosenChannels': teams.SetTeamsWithChosenChannelsPayload
   'teams:setTeamCreationError': teams.SetTeamCreationErrorPayload
   'teams:setTeamInviteError': teams.SetTeamInviteErrorPayload
