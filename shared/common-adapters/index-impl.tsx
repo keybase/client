@@ -346,10 +346,10 @@ module.exports = {
   get useMounted() {
     return require('./use-mounted').default
   },
-  get useTimeout() {
-    return require('./use-timers').useTimeout
-  },
   get usePopup() {
     return require('./use-popup').usePopup
+  },
+  get useTimeout() {
+    return require('./use-timers').useTimeout
   },
 }
