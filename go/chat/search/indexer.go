@@ -440,20 +440,23 @@ func (idx *Indexer) Add(ctx context.Context, convID chat1.ConversationID,
 
 func (idx *Indexer) add(ctx context.Context, convID chat1.ConversationID,
 	msgs []chat1.MessageUnboxed, force bool) (cb chan struct{}, err error) {
+	cb = make(chan struct{})
 	if idx.G().GetEnv().GetDisableSearchIndexer() {
+		close(cb)
 		return cb, nil
 	}
 	if !idx.validBatch(msgs) {
+		close(cb)
 		return cb, nil
 	}
 	if !(force || idx.hasPriority(ctx, convID)) {
+		close(cb)
 		return cb, nil
 	}
 
 	defer idx.Trace(ctx, func() error { return err },
 		fmt.Sprintf("Indexer.Add conv: %v, msgs: %d, force: %v",
 			convID, len(msgs), force))()
-	cb = make(chan struct{})
 	idx.storageDispatch(storageAdd{
 		ctx:    globals.BackgroundChatCtx(ctx, idx.G()),
 		convID: convID,
@@ -477,20 +480,23 @@ func (idx *Indexer) Remove(ctx context.Context, convID chat1.ConversationID,
 
 func (idx *Indexer) remove(ctx context.Context, convID chat1.ConversationID,
 	msgs []chat1.MessageUnboxed, force bool) (cb chan struct{}, err error) {
+	cb = make(chan struct{})
 	if idx.G().GetEnv().GetDisableSearchIndexer() {
+		close(cb)
 		return cb, nil
 	}
 	if !idx.validBatch(msgs) {
+		close(cb)
 		return cb, nil
 	}
 	if !(force || idx.hasPriority(ctx, convID)) {
+		close(cb)
 		return cb, nil
 	}
 
 	defer idx.Trace(ctx, func() error { return err },
 		fmt.Sprintf("Indexer.Remove conv: %v, msgs: %d, force: %v",
 			convID, len(msgs), force))()
-	cb = make(chan struct{})
 	idx.storageDispatch(storageRemove{
 		ctx:    globals.BackgroundChatCtx(ctx, idx.G()),
 		convID: convID,
