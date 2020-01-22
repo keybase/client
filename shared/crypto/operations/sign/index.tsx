@@ -102,6 +102,7 @@ const Sign = (props: Props) => {
               onShowInFinder={props.onShowInFinder}
             />
             <OutputBar
+              operation={Constants.Operations.Sign}
               output={props.output}
               outputStatus={props.outputStatus}
               outputType={props.outputType}

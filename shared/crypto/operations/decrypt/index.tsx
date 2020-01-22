@@ -84,6 +84,7 @@ const Decrypt = (props: Props) => {
               onShowInFinder={props.onShowInFinder}
             />
             <OutputBar
+              operation={Constants.Operations.Decrypt}
               output={props.output}
               outputStatus={props.outputStatus}
               outputType={props.outputType}

@@ -141,6 +141,13 @@ func TestIndexedBlockDb(t *testing.T) {
 	require.NoError(t, err)
 	checkWrite(ver2, getVer2, docID2, getDocID2)
 
+	t.Log("Get new doc IDs")
+	res, err := db.GetNextDocIDs(11)
+	require.NoError(t, err)
+	require.Len(t, res, 11)
+	require.Equal(t, "1", res[0])
+	require.Equal(t, "b", res[10])
+
 	t.Log("Restart the db and check the MD")
 	db.Shutdown(ctx)
 	blockS, err := storage.OpenFile(filepath.Join(tempdir, "blocks"), false)
@@ -158,4 +165,8 @@ func TestIndexedBlockDb(t *testing.T) {
 	getVer3, getDocID3, err = db.Get(ctx, ptr3)
 	require.NoError(t, err)
 	checkWrite(ver3, getVer3, docID3, getDocID3)
+	res, err = db.GetNextDocIDs(1)
+	require.NoError(t, err)
+	require.Len(t, res, 1)
+	require.Equal(t, "c", res[0])
 }

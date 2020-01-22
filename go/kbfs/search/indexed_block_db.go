@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
+	"strconv"
 	"sync"
 
 	"github.com/keybase/client/go/kbfs/data"
@@ -18,6 +19,7 @@ import (
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/logger"
 	"github.com/pkg/errors"
+	ldberrors "github.com/syndtr/goleveldb/leveldb/errors"
 	"github.com/syndtr/goleveldb/leveldb/storage"
 )
 
@@ -27,6 +29,7 @@ const (
 	initialIndexedBlocksDbVersion uint64 = 1
 	currentIndexedBlocksDbVersion uint64 = initialIndexedBlocksDbVersion
 	indexedBlocksFolderName       string = "indexed_blocks"
+	indexedBlocksMDKey            string = "--md--"
 )
 
 // IndexedBlockDb is a database that holds metadata about indexed blocks.
@@ -45,6 +48,9 @@ type IndexedBlockDb struct {
 	lock    sync.RWMutex
 	blockDb *ldbutils.LevelDb // blockID -> index-related metadata
 	tlfDb   *ldbutils.LevelDb // tlfID+blockID -> nil (for cleanup when TLF is un-indexed)
+
+	docIDLock sync.Mutex
+	maxDocID  int64
 
 	shutdownCh chan struct{}
 
@@ -88,7 +94,7 @@ func newIndexedBlockDbFromStorage(
 	}
 	closers = append(closers, tlfDb)
 
-	return &IndexedBlockDb{
+	db = &IndexedBlockDb{
 		config:      config,
 		hitMeter:    ldbutils.NewCountMeter(),
 		missMeter:   ldbutils.NewCountMeter(),
@@ -99,7 +105,14 @@ func newIndexedBlockDbFromStorage(
 		tlfDb:       tlfDb,
 		shutdownCh:  make(chan struct{}),
 		closer:      closer,
-	}, nil
+	}
+
+	err = db.loadMaxDocID()
+	if err != nil {
+		return nil, err
+	}
+
+	return db, nil
 }
 
 // newIndexedBlockDb creates a new *IndexedBlockDb with a
@@ -140,6 +153,62 @@ func newIndexedBlockDb(config libkbfs.Config, dirPath string) (db *IndexedBlockD
 	return newIndexedBlockDbFromStorage(config, blockStorage, tlfStorage)
 }
 
+// indexedBlocksMD is metadata related to the entire indexed blocks DB.
+type indexedBlocksMD struct {
+	// Exported only for serialization.
+	MaxDocID int64 // stored as int here for easy incrementing
+}
+
+func (db *IndexedBlockDb) loadMaxDocID() error {
+	db.docIDLock.Lock()
+	defer db.docIDLock.Unlock()
+
+	mdBytes, err := db.blockDb.Get([]byte(indexedBlocksMDKey), nil)
+	switch errors.Cause(err) {
+	case nil:
+	case ldberrors.ErrNotFound:
+		// Leave the current ID as 0.
+		return nil
+	default:
+		return err
+	}
+
+	var md indexedBlocksMD
+	err = db.config.Codec().Decode(mdBytes, &md)
+	if err != nil {
+		return err
+	}
+
+	db.maxDocID = md.MaxDocID
+	return nil
+}
+
+// GetNextDocIDs generates and reserves the next N doc IDs.
+func (db *IndexedBlockDb) GetNextDocIDs(n int) ([]string, error) {
+	db.docIDLock.Lock()
+	defer db.docIDLock.Unlock()
+
+	res := make([]string, n)
+	for i := 0; i < n; i++ {
+		res[i] = strconv.FormatInt(db.maxDocID+int64(i+1), 16)
+	}
+
+	md := indexedBlocksMD{MaxDocID: db.maxDocID + int64(n)}
+	encodedMD, err := db.config.Codec().Encode(&md)
+	if err != nil {
+		return nil, err
+	}
+
+	err = db.blockDb.Put([]byte(indexedBlocksMDKey), encodedMD, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	db.maxDocID = md.MaxDocID
+	return res, nil
+}
+
+// blockMD is per-block metadata for an individual indexed block.
 type blockMD struct {
 	// Exported only for serialization.
 	IndexVersion uint   `codec:"i"`

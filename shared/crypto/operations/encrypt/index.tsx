@@ -158,6 +158,7 @@ const Encrypt = (props: Props) => {
               onShowInFinder={props.onShowInFinder}
             />
             <OutputBar
+              operation={Constants.Operations.Encrypt}
               output={props.output}
               outputStatus={props.outputStatus}
               outputType={props.outputType}
