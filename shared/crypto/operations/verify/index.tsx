@@ -81,6 +81,7 @@ const Verify = (props: Props) => {
               onShowInFinder={props.onShowInFinder}
             />
             <OutputBar
+              operation={Constants.Operations.Verify}
               output={props.output}
               outputStatus={props.outputStatus}
               outputType={props.outputType}

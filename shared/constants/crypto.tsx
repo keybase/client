@@ -5,6 +5,31 @@ import {IconType} from '../common-adapters/icon.constants-gen'
 
 export const saltpackDocumentation = 'https://saltpack.org'
 
+// String waiting keys
+export const encryptStringWaitingKey = 'crypto:encrypt:string' as Types.StringWaitingKey
+export const decryptStringWaitingKey = 'crypto:decrypt:string' as Types.StringWaitingKey
+export const signStringWaitingKey = 'crypto:sign:string' as Types.StringWaitingKey
+export const verifyStringWaitingKey = 'crypto:verify:string' as Types.StringWaitingKey
+export const allStringWaitingKeys = [
+  encryptStringWaitingKey,
+  decryptStringWaitingKey,
+  signStringWaitingKey,
+  verifyStringWaitingKey,
+]
+
+// File waiting keys
+export const encryptFileWaitingKey = 'crypto:encrypt:file' as Types.FileWaitingKey
+export const decryptFileWaitingKey = 'crypto:decrypt:file' as Types.FileWaitingKey
+export const signFileWaitingKey = 'crypto:sign:file' as Types.FileWaitingKey
+export const verifyFileWaitingKey = 'crypto:verify:file' as Types.FileWaitingKey
+export const allFileWaitingKeys = [
+  encryptFileWaitingKey,
+  decryptFileWaitingKey,
+  signFileWaitingKey,
+  verifyFileWaitingKey,
+]
+
+// Tab keys
 export const encryptTab = 'encryptTab'
 export const decryptTab = 'decryptTab'
 export const signTab = 'signTab'
@@ -47,7 +72,7 @@ export const Operations: {[key: string]: Types.Operations} = {
   Verify: 'verify',
 }
 
-const operationToInputFileIcon: {[K in Types.Operations]: IconType} = {
+const operationToInputFileIcon: {[k in Types.Operations]: IconType} = {
   decrypt: 'icon-file-saltpack-encrypted-64',
   encrypt: 'icon-file-64',
   sign: 'icon-file-64',
@@ -61,8 +86,24 @@ const operationToOutputFileIcon: {[k in Types.Operations]: IconType} = {
   verify: 'icon-file-64',
 } as const
 
+const operationToStringWaitingKey: {[k in Types.Operations]: Types.StringWaitingKey} = {
+  decrypt: decryptStringWaitingKey,
+  encrypt: encryptStringWaitingKey,
+  sign: signStringWaitingKey,
+  verify: verifyStringWaitingKey,
+} as const
+
+const operationToFileWaitingKey: {[k in Types.Operations]: Types.FileWaitingKey} = {
+  decrypt: decryptFileWaitingKey,
+  encrypt: encryptFileWaitingKey,
+  sign: signFileWaitingKey,
+  verify: verifyFileWaitingKey,
+} as const
+
 export const getInputFileIcon = (operation: Types.Operations) => operationToInputFileIcon[operation]
 export const getOutputFileIcon = (operation: Types.Operations) => operationToOutputFileIcon[operation]
+export const getStringWaitingKey = (operation: Types.Operations) => operationToStringWaitingKey[operation]
+export const getFileWaitingKey = (operation: Types.Operations) => operationToFileWaitingKey[operation]
 
 const defaultCommonState = {
   bytesComplete: 0,

@@ -2,6 +2,17 @@ import * as TeamBuildingTypes from './team-building'
 import HiddenString from '../../util/hidden-string'
 import {IconType} from '../../common-adapters/icon.constants-gen'
 
+export type StringWaitingKey =
+  | 'crypto:encrypt:string'
+  | 'crypto:decrypt:string'
+  | 'crypto:sign:string'
+  | 'crypto:verify:string'
+export type FileWaitingKey =
+  | 'crypto:encrypt:file'
+  | 'crypto:decrypt:file'
+  | 'crypto:sign:file'
+  | 'crypto:verify:file'
+
 type EncryptTab = 'encryptTab'
 type DecryptTab = 'decryptTab'
 type SignTab = 'signTab'
