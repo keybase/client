@@ -105,7 +105,7 @@ func (e *Kex2Provisionee) Run(m libkb.MetaContext) error {
 	defer m.G().LocalSigchainGuard().Clear(m.Ctx(), "Kex2Provisionee")
 
 	// check device struct:
-	if len(e.device.Type) == 0 {
+	if e.device.Type == keybase1.DeviceTypeV2_NONE {
 		return errors.New("provisionee device requires Type to be set")
 	}
 	if e.device.ID.IsNil() {

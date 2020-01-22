@@ -890,17 +890,17 @@ func (o GetResetConvMembersRes) DeepCopy() GetResetConvMembersRes {
 }
 
 type DeviceInfo struct {
-	DeviceID          keybase1.DeviceID `codec:"deviceID" json:"id"`
-	DeviceDescription string            `codec:"deviceDescription" json:"description"`
-	DeviceType        string            `codec:"deviceType" json:"type"`
-	DeviceCtime       int64             `codec:"deviceCtime" json:"ctime"`
+	DeviceID          keybase1.DeviceID     `codec:"deviceID" json:"id"`
+	DeviceDescription string                `codec:"deviceDescription" json:"description"`
+	DeviceType        keybase1.DeviceTypeV2 `codec:"deviceType" json:"type"`
+	DeviceCtime       int64                 `codec:"deviceCtime" json:"ctime"`
 }
 
 func (o DeviceInfo) DeepCopy() DeviceInfo {
 	return DeviceInfo{
 		DeviceID:          o.DeviceID.DeepCopy(),
 		DeviceDescription: o.DeviceDescription,
-		DeviceType:        o.DeviceType,
+		DeviceType:        o.DeviceType.DeepCopy(),
 		DeviceCtime:       o.DeviceCtime,
 	}
 }

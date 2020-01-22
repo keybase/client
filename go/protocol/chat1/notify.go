@@ -6,10 +6,11 @@ package chat1
 import (
 	"errors"
 	"fmt"
+	"time"
+
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
-	"time"
 )
 
 type ChatActivitySource int
@@ -760,11 +761,11 @@ func (o ChatActivity) DeepCopy() ChatActivity {
 }
 
 type TyperInfo struct {
-	Uid        keybase1.UID      `codec:"uid" json:"uid"`
-	Username   string            `codec:"username" json:"username"`
-	DeviceID   keybase1.DeviceID `codec:"deviceID" json:"deviceID"`
-	DeviceName string            `codec:"deviceName" json:"deviceName"`
-	DeviceType string            `codec:"deviceType" json:"deviceType"`
+	Uid        keybase1.UID          `codec:"uid" json:"uid"`
+	Username   string                `codec:"username" json:"username"`
+	DeviceID   keybase1.DeviceID     `codec:"deviceID" json:"deviceID"`
+	DeviceName string                `codec:"deviceName" json:"deviceName"`
+	DeviceType keybase1.DeviceTypeV2 `codec:"deviceType" json:"deviceType"`
 }
 
 func (o TyperInfo) DeepCopy() TyperInfo {

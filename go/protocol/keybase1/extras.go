@@ -1876,6 +1876,49 @@ func PublicKeyV1FromDeviceKeyV2(keyV2 PublicKeyV2NaCl) PublicKey {
 	}
 }
 
+func (dt *DeviceTypeV2) UnmarshalJSON(deviceType []byte) error {
+	deviceTypeStr := Unquote(deviceType)
+	switch deviceTypeStr {
+	// these values need to match the ones that the enum is defined on. We
+	// decode both numeric and lowercase text values (and both "backup" and
+	// "paper" for paper keys) as valid for backwards compatibility and
+	// compatibility with the server.
+	case "none", "0":
+		*dt = DeviceTypeV2_NONE
+	case "desktop", "1":
+		*dt = DeviceTypeV2_DESKTOP
+	case "mobile", "2":
+		*dt = DeviceTypeV2_MOBILE
+	case "backup", "paper", "3":
+		*dt = DeviceTypeV2_PAPER
+	case "web", "5":
+		*dt = DeviceTypeV2_WEB
+	default:
+		return fmt.Errorf("Unknown DeviceType: %s", deviceType)
+	}
+	return nil
+}
+
+func (dt *DeviceTypeV2) StringCustom() string {
+	// for compatibility with the server
+	if *dt == DeviceTypeV2_PAPER {
+		return "backup"
+	}
+	return strings.ToLower(DeviceTypeV2RevMap[*dt])
+}
+
+func (dt *DeviceTypeV2) MarshalJSON() (b []byte, err error) {
+	return json.Marshal(dt.StringCustom())
+}
+
+// defaults to Desktop
+func (dt *DeviceTypeV2) ToDeviceType() DeviceType {
+	if *dt == DeviceTypeV2_MOBILE {
+		return DeviceType_MOBILE
+	}
+	return DeviceType_DESKTOP
+}
+
 func RevokedKeyV1FromDeviceKeyV2(keyV2 PublicKeyV2NaCl) RevokedKey {
 	return RevokedKey{
 		Key: PublicKeyV1FromDeviceKeyV2(keyV2),

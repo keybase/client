@@ -50,7 +50,7 @@ func TestLoadDeviceKeyNew(t *testing.T) {
 	devices, _ := getActiveDevicesAndKeys(tc, fu)
 	var device1 *libkb.Device
 	for _, device := range devices {
-		if device.Type != libkb.DeviceTypePaper {
+		if device.Type != keybase1.DeviceTypeV2_PAPER {
 			device1 = device.Device
 		}
 	}
@@ -108,7 +108,7 @@ func TestLoadDeviceKeyNew(t *testing.T) {
 	devices, _ = getActiveDevicesAndKeys(tc, fu)
 	var device2 *libkb.Device
 	for _, device := range devices {
-		if device.Type != libkb.DeviceTypePaper && device.ID != device1.ID {
+		if device.Type != keybase1.DeviceTypeV2_PAPER && device.ID != device1.ID {
 			device2 = device.Device
 		}
 	}
@@ -149,7 +149,7 @@ func TestLoadDeviceKeyRevoked(t *testing.T) {
 	devices, _ := getActiveDevicesAndKeys(tc, fu)
 	var thisDevice *libkb.Device
 	for _, device := range devices {
-		if device.Type != libkb.DeviceTypePaper {
+		if device.Type != keybase1.DeviceTypeV2_PAPER {
 			thisDevice = device.Device
 		}
 	}

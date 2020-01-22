@@ -152,7 +152,7 @@ protocol Common {
     string parentID;
     DeviceID deviceID;
     string deviceDescription;
-    string deviceType;
+    DeviceTypeV2 deviceType;
     Time cTime;
     Time eTime;
     boolean isRevoked;
@@ -175,7 +175,7 @@ protocol Common {
   }
 
   record Device {
-    string type;
+    DeviceTypeV2 type;
     string name;
     DeviceID deviceID;
     // For the GUI to display the correct icon for the device
@@ -192,6 +192,18 @@ protocol Common {
     DESKTOP_0,
     MOBILE_1
   }
+
+// these enum values need to match the ones in
+// keybase/lib_public/public_constants.ts ->
+// public_constants.device.type
+  enum DeviceTypeV2 {
+    NONE_0,
+    DESKTOP_1,
+    MOBILE_2,
+    WEB_3,
+    PAPER_5
+  }
+
 
   record Stream {
     int fd;

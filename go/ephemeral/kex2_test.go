@@ -107,7 +107,7 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 			device := &libkb.Device{
 				ID:          deviceID,
 				Description: &dname,
-				Type:        libkb.DeviceTypeDesktop,
+				Type:        keybase1.DeviceTypeV2_DESKTOP,
 			}
 			provisionee := engine.NewKex2Provisionee(tcY.G, device, secretY, userX.GetUID(), fakeSalt())
 			mctxY = mctxY.WithUIs(uis).WithNewProvisionalLoginContext()
