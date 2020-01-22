@@ -2313,6 +2313,24 @@ const markThreadAsRead = async (
   })
 }
 
+const messagesAdd = (
+  state: Container.TypedState,
+  _action: Chat2Gen.MessagesAddPayload,
+  logger: Saga.SagaLogger
+) => {
+  if (!state.config.loggedIn) {
+    logger.info('bail on not logged in')
+    return
+  }
+  const actions = Array.from(state.chat2.shouldDeleteZzzJourneycard.entries()).map(([cid, jc]) =>
+    Chat2Gen.createMessagesWereDeleted({
+      conversationIDKey: cid,
+      ordinals: [jc.ordinal],
+    })
+  )
+  return actions
+}
+
 // Delete a message and any older
 const deleteMessageHistory = async (
   state: Container.TypedState,
@@ -3720,6 +3738,7 @@ function* chat2Saga() {
     ],
     markThreadAsRead
   )
+  yield* Saga.chainAction2(Chat2Gen.messagesAdd, messagesAdd)
   yield* Saga.chainAction2(
     [Chat2Gen.leaveConversation, TeamsGen.leftTeam, TeamsGen.deleteChannelConfirmed],
     clearModalsFromConvEvent

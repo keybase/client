@@ -722,13 +722,13 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     )
 
     if (shouldClearOthers) {
-      Object.keys(convoToMessages).forEach(cid =>
-        messageOrdinals.delete(Types.stringToConversationIDKey(cid))
-      )
-      Object.keys(convoToMessages).forEach(cid =>
-        oldPendingOutboxToOrdinal.delete(Types.stringToConversationIDKey(cid))
-      )
-      Object.keys(convoToMessages).forEach(cid => oldMessageMap.delete(Types.stringToConversationIDKey(cid)))
+      Object.keys(convoToMessages).forEach(cid => {
+        const conversationIDKey = Types.stringToConversationIDKey(cid)
+        messageOrdinals.delete(conversationIDKey)
+        oldPendingOutboxToOrdinal.delete(conversationIDKey)
+        oldMessageMap.delete(conversationIDKey)
+        draftState.hasZzzJourneycard.delete(conversationIDKey)
+      })
     }
 
     // Types we can send and have to deal with outbox ids
@@ -900,6 +900,28 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
         highlightMode: cm.highlightMode,
         ordinal,
       })
+    })
+
+    // Identify convs that have a zzz CHANNEL_INACTIVE journeycard.
+    // Convs that used to have a zzz journeycard and just got a newer message should delete the journeycard.
+    Object.keys(convoToMessages).forEach(cid => {
+      const messages = convoToMessages[cid]
+      const jc = messages.find(
+        m => m.type == 'journeycard' && m.cardType == RPCChatTypes.JourneycardType.channelInactive
+      ) as Types.MessageJourneycard | undefined
+      if (jc) {
+        draftState.hasZzzJourneycard.set(cid, jc)
+        draftState.shouldDeleteZzzJourneycard.delete(cid)
+      } else {
+        const priorJc = draftState.hasZzzJourneycard.get(cid)
+        if (priorJc) {
+          // Find a message that has a later ordinal and so should cause the zzz to disappear.
+          if (messages.find(m => m.ordinal > priorJc.ordinal)) {
+            draftState.hasZzzJourneycard.delete(cid)
+            draftState.shouldDeleteZzzJourneycard.set(cid, priorJc)
+          }
+        }
+      }
     })
 
     draftState.messageMap = messageMap
@@ -1145,6 +1167,12 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
 
     const os = messageOrdinals.get(conversationIDKey)
     os && allOrdinals.forEach(o => os.delete(o))
+    ;[draftState.hasZzzJourneycard, draftState.shouldDeleteZzzJourneycard].forEach(m => {
+      const el = m.get(conversationIDKey)
+      if (el && allOrdinals.has(el.ordinal)) {
+        m.delete(conversationIDKey)
+      }
+    })
   },
   [Chat2Gen.updateMoreToLoad]: (draftState, action) => {
     const {conversationIDKey, moreToLoad} = action.payload
@@ -1379,10 +1407,11 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   },
   [Chat2Gen.markConversationsStale]: (draftState, action) => {
     const {updateType, conversationIDKeys} = action.payload
-    const {messageMap, messageOrdinals} = draftState
+    const {messageMap, messageOrdinals, hasZzzJourneycard, shouldDeleteZzzJourneycard} = draftState
     if (updateType === RPCChatTypes.StaleUpdateType.clear) {
-      conversationIDKeys.forEach(k => messageMap.delete(k))
-      conversationIDKeys.forEach(o => messageOrdinals.delete(o))
+      ;[messageMap, messageOrdinals, hasZzzJourneycard, shouldDeleteZzzJourneycard].forEach(m =>
+        conversationIDKeys.forEach(convID => m.delete(convID))
+      )
     }
   },
   [Chat2Gen.notificationSettingsUpdated]: (draftState, action) => {
@@ -1481,8 +1510,12 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     })
   },
   [Chat2Gen.clearMessages]: draftState => {
-    draftState.messageMap.clear()
-    draftState.messageOrdinals.clear()
+    ;[
+      draftState.messageMap,
+      draftState.messageOrdinals,
+      draftState.hasZzzJourneycard,
+      draftState.shouldDeleteZzzJourneycard,
+    ].forEach(m => m.clear())
   },
   [Chat2Gen.clearMetas]: draftState => {
     draftState.metaMap.clear()

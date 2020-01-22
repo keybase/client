@@ -56,6 +56,8 @@ export const makeState = (): Types.State => ({
   focus: null,
   giphyResultMap: new Map(),
   giphyWindowMap: new Map(),
+  hasZzzJourneycard: new Map(),
+  shouldDeleteZzzJourneycard: new Map(),
   inboxHasLoaded: false,
   inboxLayout: null,
   inboxNumSmallRows: 5,
