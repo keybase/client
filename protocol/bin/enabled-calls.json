@@ -252,6 +252,8 @@
   "keybase.1.saltpack.saltpackDecryptString": {"promise": true},
   "keybase.1.saltpack.saltpackEncryptFile": {"promise": true},
   "keybase.1.saltpack.saltpackEncryptString": {"promise": true},
+  "keybase.1.saltpack.saltpackSaveCiphertextToFile": {"promise": true},
+  "keybase.1.saltpack.saltpackSaveSignedMsgToFile": {"promise": true},
   "keybase.1.saltpack.saltpackSignFile": {"promise": true},
   "keybase.1.saltpack.saltpackSignString": {"promise": true},
   "keybase.1.saltpack.saltpackVerifyFile": {"promise": true},

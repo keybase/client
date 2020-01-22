@@ -17,6 +17,7 @@ type Props = {
 
 type OutputBarProps = {
   onCopyOutput: (text: string) => void
+  onDownloadText?: () => void
   onShowInFinder: (path: string) => void
   operation: Types.Operations
   output: string
@@ -89,7 +90,7 @@ export const OutputInfoBanner = (props: OutputInfoProps) => {
 }
 
 export const OutputBar = (props: OutputBarProps) => {
-  const {output, onCopyOutput, onShowInFinder} = props
+  const {output, onCopyOutput, onDownloadText, onShowInFinder} = props
   const waitingKey = Constants.getStringWaitingKey(props.operation)
   const waiting = Container.useAnyWaiting(waitingKey)
   const attachmentRef = React.useRef<Kb.Box2>(null)
@@ -132,7 +133,14 @@ export const OutputBar = (props: OutputBarProps) => {
                 onClick={() => copy()}
               />
             </Kb.Box2>
-            <Kb.Button mode="Secondary" label="Download as TXT" disabled={waiting} />
+            {onDownloadText && (
+              <Kb.Button
+                mode="Secondary"
+                label="Download as TXT"
+                onClick={onDownloadText}
+                disabled={waiting}
+              />
+            )}
           </Kb.ButtonBar>
         )}
       </Kb.Box2>
