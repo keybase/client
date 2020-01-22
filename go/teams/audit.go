@@ -531,7 +531,7 @@ func (a *Auditor) lookupProbes(m libkb.MetaContext, teamID keybase1.TeamID, tupl
 }
 
 func (a *Auditor) checkTail(m libkb.MetaContext, history *keybase1.AuditHistory, lastAudit keybase1.Audit, chain map[keybase1.Seqno]keybase1.LinkID, hiddenChain map[keybase1.Seqno]keybase1.LinkID, maxChainSeqno keybase1.Seqno, maxHiddenSeqno keybase1.Seqno) (err error) {
-	m.Debug("AuditDebug: maxChainSeqno %v, maxHiddenSeqno %v, lastAudit.MaxChainSeqno %v, lastAudit.MaxHiddenSeqno %v, \n chain %+v, \n hiddenChain %+v", maxChainSeqno, maxHiddenSeqno, lastAudit.MaxChainSeqno, lastAudit.MaxHiddenSeqno, chain, hiddenChain)
+	m.Debug("AuditDebug: maxChainSeqno %v, maxHiddenSeqno %v, lastAudit.MaxChainSeqno %v, lastAudit.MaxHiddenSeqno %v, \n chain %+v, \n hiddenChain %+v \n history %+v", maxChainSeqno, maxHiddenSeqno, lastAudit.MaxChainSeqno, lastAudit.MaxHiddenSeqno, chain, hiddenChain, history)
 	link, ok := chain[lastAudit.MaxChainSeqno]
 	if !ok || link.IsNil() {
 		return NewAuditError("last audit ended at %d, but wasn't found in new chain", lastAudit.MaxChainSeqno)
