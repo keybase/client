@@ -23,7 +23,6 @@ const PublicBanner = ({path}: Props) => {
   const you = Container.useSelector(state => state.config.username)
 
   const dispatch = Container.useDispatch()
-  const clearLastClosed = () => dispatch(FsGen.createSetLastPublicBannerClosedTlf({tlf: ''}))
   const setLastClosed = () => dispatch(FsGen.createSetLastPublicBannerClosedTlf({tlf: tlfName}))
 
   const parsedPath = Constants.parsePath(path)
@@ -32,9 +31,9 @@ const PublicBanner = ({path}: Props) => {
   // If we're showing the banner for a new TLF, clear the closed state
   React.useEffect(() => {
     if (lastPublicBannerClosedTlf !== '' && lastPublicBannerClosedTlf !== tlfName) {
-      clearLastClosed()
+      dispatch(FsGen.createSetLastPublicBannerClosedTlf({tlf: ''}))
     }
-  }, [clearLastClosed, tlfName, lastPublicBannerClosedTlf])
+  }, [dispatch, tlfName, lastPublicBannerClosedTlf])
 
   if (parsedPath.kind !== Types.PathKind.GroupTlf && parsedPath.kind !== Types.PathKind.InGroupTlf) {
     return null
