@@ -566,11 +566,8 @@ func FilterByType(msgs []chat1.MessageUnboxed, query *chat1.GetThreadQuery, incl
 // (as ash lines)
 func FilterExploded(conv types.UnboxConversationInfo, msgs []chat1.MessageUnboxed, now time.Time) (res []chat1.MessageUnboxed) {
 	for _, msg := range msgs {
-		if msg.IsValid() {
-			mvalid := msg.Valid()
-			if mvalid.IsEphemeral() && mvalid.HideExplosion(conv.GetMaxDeletedUpTo(), now) {
-				continue
-			}
+		if msg.IsEphemeral() && msg.HideExplosion(conv.GetMaxDeletedUpTo(), now) {
+			continue
 		}
 		res = append(res, msg)
 	}
