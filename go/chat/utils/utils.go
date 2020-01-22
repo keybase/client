@@ -565,8 +565,9 @@ func FilterByType(msgs []chat1.MessageUnboxed, query *chat1.GetThreadQuery, incl
 // Filter messages that are both exploded that are no longer shown in the GUI
 // (as ash lines)
 func FilterExploded(conv types.UnboxConversationInfo, msgs []chat1.MessageUnboxed, now time.Time) (res []chat1.MessageUnboxed) {
+	upto := conv.GetMaxDeletedUpTo()
 	for _, msg := range msgs {
-		if msg.IsEphemeral() && msg.HideExplosion(conv.GetMaxDeletedUpTo(), now) {
+		if msg.IsEphemeral() && msg.HideExplosion(upto, now) {
 			continue
 		}
 		res = append(res, msg)
