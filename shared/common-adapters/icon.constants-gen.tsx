@@ -8752,7 +8752,7 @@ const iconMeta_ = {
     isFont: true,
   },
   'iconfont-warning': {
-    charCode: 0xe9ae,
+    charCode: 0xe9b3,
     gridSize: 16,
     isFont: true,
   },
