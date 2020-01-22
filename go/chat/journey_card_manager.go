@@ -21,6 +21,8 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
+const cardSinceJoinedCap = time.Hour * 24 * 7 * 4
+
 // JourneyCardManager handles user switching and proxies to the active JourneyCardManagerSingleUser.
 type JourneyCardManager struct {
 	globals.Contextified
@@ -480,6 +482,7 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 
 // Card type: WELCOME (1 on design)
 // Condition: Only in #general channel
+// Condition: Less than 4 weeks have passed since the user joined the team (ish: see JoinedTime).
 func (cc *JourneyCardManagerSingleUser) cardWelcome(ctx context.Context, convID chat1.ConversationID, conv convForJourneycard, jcd journeycardData, debugDebug logFn) bool {
 	// TODO PICNIC-593 Welcome's interaction with existing system message
 	// Welcome cards show not show for all pre-existing teams when a client upgrades to first support journey cards. That would be a bad transition.
@@ -488,7 +491,7 @@ func (cc *JourneyCardManagerSingleUser) cardWelcome(ctx context.Context, convID 
 		return false
 	}
 	debugDebug(ctx, "cardWelcome: welcomeEligible: %v", conv.WelcomeEligible)
-	return conv.IsGeneralChannel && conv.WelcomeEligible
+	return conv.IsGeneralChannel && conv.WelcomeEligible && cc.timeSinceJoinedLE(ctx, conv.TeamID, conv.ConvID, jcd, cardSinceJoinedCap)
 }
 
 // Card type: POPULAR_CHANNELS (2 on design)
@@ -496,10 +499,11 @@ func (cc *JourneyCardManagerSingleUser) cardWelcome(ctx context.Context, convID 
 // Condition: Only in #general channel
 // Condition: The team has at least 2 channels besides general that the user could join.
 // Condition: User has sent a first message OR a few days have passed since they joined the channel.
+// Condition: Less than 4 weeks have passed since the user joined the team (ish: see JoinedTime).
 func (cc *JourneyCardManagerSingleUser) cardPopularChannels(ctx context.Context, conv convForJourneycard,
 	jcd journeycardData, debugDebug logFn) bool {
 	otherChannelsExist := conv.GetTeamType() == chat1.TeamType_COMPLEX
-	simpleQualified := conv.IsGeneralChannel && otherChannelsExist && (jcd.Convs[conv.ConvID.ConvIDStr()].SentMessage || cc.timeSinceJoined(ctx, conv.TeamID, conv.ConvID, jcd, time.Hour*24*2))
+	simpleQualified := conv.IsGeneralChannel && otherChannelsExist && (jcd.Convs[conv.ConvID.ConvIDStr()].SentMessage || cc.timeSinceJoinedInRange(ctx, conv.TeamID, conv.ConvID, jcd, time.Hour*24*2, cardSinceJoinedCap))
 	if !simpleQualified {
 		return false
 	}
@@ -547,12 +551,13 @@ func (cc *JourneyCardManagerSingleUser) cardPopularChannels(ctx context.Context,
 // Condition: User is an admin.
 // Condition: User has sent messages OR joined channels.
 // Condition: A few days on top of POPULAR_CHANNELS have passed since the user joined the channel. In order to space it out from POPULAR_CHANNELS.
+// Condition: Less than 4 weeks have passed since the user joined the team (ish: see JoinedTime).
 func (cc *JourneyCardManagerSingleUser) cardAddPeople(ctx context.Context, conv convForJourneycard, jcd journeycardData,
 	debugDebug logFn) bool {
 	if !conv.IsGeneralChannel || !conv.UntrustedTeamRole.IsAdminOrAbove() {
 		return false
 	}
-	if !cc.timeSinceJoined(ctx, conv.TeamID, conv.ConvID, jcd, time.Hour*24*4) {
+	if !cc.timeSinceJoinedInRange(ctx, conv.TeamID, conv.ConvID, jcd, time.Hour*24*4, cardSinceJoinedCap) {
 		return false
 	}
 	if jcd.Convs[conv.ConvID.ConvIDStr()].SentMessage {
@@ -595,6 +600,7 @@ func (cc *JourneyCardManagerSingleUser) cardAddPeople(ctx context.Context, conv 
 // Condition: A few weeks have passed.
 // Condition: User has sent a message.
 // Condition: There are <= 2 channels in the team.
+// Condition: Less than 4 weeks have passed since the user joined the team (ish: see JoinedTime).
 func (cc *JourneyCardManagerSingleUser) cardCreateChannels(ctx context.Context, conv convForJourneycard, jcd journeycardData, debugDebug logFn) bool {
 	if !conv.UntrustedTeamRole.IsWriterOrAbove() {
 		return false
@@ -602,7 +608,7 @@ func (cc *JourneyCardManagerSingleUser) cardCreateChannels(ctx context.Context, 
 	if !jcd.Convs[conv.ConvID.ConvIDStr()].SentMessage {
 		return false
 	}
-	if !cc.timeSinceJoined(ctx, conv.TeamID, conv.ConvID, jcd, time.Hour*24*14) {
+	if !cc.timeSinceJoinedInRange(ctx, conv.TeamID, conv.ConvID, jcd, time.Hour*24*14, cardSinceJoinedCap) {
 		return false
 	}
 	if conv.GetTeamType() == chat1.TeamType_SIMPLE {
@@ -769,13 +775,24 @@ func (cc *JourneyCardManagerSingleUser) cardChannelInactive(ctx context.Context,
 	return result
 }
 
-func (cc *JourneyCardManagerSingleUser) timeSinceJoined(ctx context.Context, teamID keybase1.TeamID, convID chat1.ConversationID, jcd journeycardData, duration time.Duration) bool {
+func (cc *JourneyCardManagerSingleUser) timeSinceJoinedInRange(ctx context.Context, teamID keybase1.TeamID, convID chat1.ConversationID, jcd journeycardData, minDuration time.Duration, maxDuration time.Duration) bool {
 	joinedTime := jcd.Convs[convID.ConvIDStr()].JoinedTime
 	if joinedTime == nil {
 		go cc.saveJoinedTime(globals.BackgroundChatCtx(ctx, cc.G()), teamID, convID, cc.G().GetClock().Now())
 		return false
 	}
-	return cc.G().GetClock().Since(joinedTime.Time()) >= duration
+	since := cc.G().GetClock().Since(joinedTime.Time())
+	return since >= minDuration && since <= maxDuration
+}
+
+// JoinedTime <= duration
+func (cc *JourneyCardManagerSingleUser) timeSinceJoinedLE(ctx context.Context, teamID keybase1.TeamID, convID chat1.ConversationID, jcd journeycardData, duration time.Duration) bool {
+	joinedTime := jcd.Convs[convID.ConvIDStr()].JoinedTime
+	if joinedTime == nil {
+		go cc.saveJoinedTime(globals.BackgroundChatCtx(ctx, cc.G()), teamID, convID, cc.G().GetClock().Now())
+		return true
+	}
+	return cc.G().GetClock().Since(joinedTime.Time()) <= duration
 }
 
 func (cc *JourneyCardManagerSingleUser) messageSince(ctx context.Context, msgID chat1.MessageID,
