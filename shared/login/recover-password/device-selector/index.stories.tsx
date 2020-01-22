@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Sb from '../../../stories/storybook'
 import * as ProvisionConstants from '../../../constants/provision'
 import DeviceSelector from '../../../provision/select-other-device'
+import * as DeviceTypes from '../../../constants/types/devices'
 
 const rd = {
   cTime: 0,
@@ -19,28 +20,28 @@ const commonProps = {
       deviceID: '1',
       deviceNumberOfType: 1,
       name: 'iPhone',
-      type: 'mobile',
+      type: DeviceTypes.StringToDeviceTypeV2('mobile'),
     }),
     ProvisionConstants.rpcDeviceToDevice({
       ...rd,
       deviceID: '2',
       deviceNumberOfType: 3,
       name: 'Home Computer',
-      type: 'desktop',
+      type: DeviceTypes.StringToDeviceTypeV2('desktop'),
     }),
     ProvisionConstants.rpcDeviceToDevice({
       ...rd,
       deviceID: '3',
       deviceNumberOfType: 8,
       name: 'Android Nexus 5x',
-      type: 'mobile',
+      type: DeviceTypes.StringToDeviceTypeV2('mobile'),
     }),
     ProvisionConstants.rpcDeviceToDevice({
       ...rd,
       deviceID: '4',
       deviceNumberOfType: 19,
       name: 'tuba contest',
-      type: 'backup',
+      type: DeviceTypes.StringToDeviceTypeV2('backup'),
     }),
   ],
   onBack: Sb.action('onBack'),
