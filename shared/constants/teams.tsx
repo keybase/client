@@ -385,7 +385,8 @@ export const getDisabledReasonsForRolePicker = (
 ): Types.DisabledReasonsForRolePicker => {
   const canManageMembers = getCanPerformByID(state, teamID).manageMembers
   const teamDetails = getTeamDetails(state, teamID)
-  const members = teamDetails.members || new Map()
+  const members: Map<string, Types.MemberInfo> =
+    teamDetails.members || state.teams.teamIDToMembers.get(teamID) || new Map()
   const teamname = teamDetails.teamname
   const member = memberToModify ? members.get(memberToModify) : null
   const theyAreOwner = member ? member.type === 'owner' : false
