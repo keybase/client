@@ -61,7 +61,13 @@ export const SignedSender = (props: OutputSignedProps) => {
               <Kb.Text key="signedBy" type="BodySmall">
                 Signed by {canSelfSign ? ' you, ' : ''}
               </Kb.Text>,
-              <Kb.ConnectedUsernames key="username" type="BodySmallBold" usernames={[props.signedBy]} />,
+              <Kb.ConnectedUsernames
+                key="username"
+                type="BodySmallBold"
+                usernames={[props.signedBy]}
+                colorFollowing={true}
+                colorYou={true}
+              />,
             ]
           : [
               <Kb.Icon key="avatar" type="icon-placeholder-secret-user-16" />,

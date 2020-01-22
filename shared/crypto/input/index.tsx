@@ -37,7 +37,7 @@ const operationToEmptyInputWidth = {
  *  - Multiline input
  */
 const TextInput = (props: TextProps) => {
-  const {value, placeholder, operation, onChangeText, onSetFile} = props
+  const {value, placeholder, textType, operation, onChangeText, onSetFile} = props
   const emptyWidth = operationToEmptyInputWidth[operation]
 
   // When 'browse file' is show, focus input by clicking anywhere in the input box
@@ -96,6 +96,8 @@ const TextInput = (props: TextProps) => {
               value ? styles.inputFull : styles.inputEmpty,
               !value && {width: emptyWidth},
             ])}
+            textType={textType === 'cipher' ? 'Terminal' : 'Body'}
+            placeholderTextType="Body"
             onChangeText={onChangeText}
             ref={inputRef}
           />

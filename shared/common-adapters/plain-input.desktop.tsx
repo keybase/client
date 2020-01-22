@@ -173,6 +173,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
       onKeyUp: this._onKeyUp,
       placeholder: this.props.placeholder,
       placeholderColor: this.props.placeholderColor,
+      placeholderTextType: this.props.placeholderTextType,
       ref: this._setInputRef,
     }
     if (this.props.disabled) {
@@ -287,19 +288,35 @@ class PlainInput extends React.PureComponent<InternalProps> {
   }
 }
 
-// @ts-ignore
-const StyledTextArea = Styles.styled.textarea<'textarea'>((props: {placeholderColor: any}) => ({
-  '&::-webkit-inner-spin-button': {WebkitAppearance: 'none', margin: 0},
-  '&::-webkit-input-placeholder': {color: props.placeholderColor || Styles.globalColors.black_50},
-  '&::-webkit-outer-spin-button': {WebkitAppearance: 'none', margin: 0},
-}))
+const StyledTextArea = Styles.styled.textarea<'textarea'>(
+  // @ts-ignore
+  (props: {placeholderColor: any; placeholderTextType: any}) => {
+    const placeholderStyle = props.placeholderTextType ? getTextStyle(props.placeholderTextType) : {}
+    return {
+      '&::-webkit-inner-spin-button': {WebkitAppearance: 'none', margin: 0},
+      '&::-webkit-input-placeholder': {
+        ...(props.placeholderTextType && placeholderStyle ? placeholderStyle : {}),
+        color: props.placeholderColor || Styles.globalColors.black_50,
+      },
+      '&::-webkit-outer-spin-button': {WebkitAppearance: 'none', margin: 0},
+    }
+  }
+)
 
-// @ts-ignore
-const StyledInput = Styles.styled.input<'input'>((props: {placeholderColor: any}) => ({
-  '&::-webkit-inner-spin-button': {WebkitAppearance: 'none', margin: 0},
-  '&::-webkit-input-placeholder': {color: props.placeholderColor || Styles.globalColors.black_50},
-  '&::-webkit-outer-spin-button': {WebkitAppearance: 'none', margin: 0},
-}))
+const StyledInput = Styles.styled.input<'input'>(
+  // @ts-ignore
+  (props: {placeholderColor: any; placeholderTextType: any}) => {
+    const placeholderStyle = props.placeholderTextType ? getTextStyle(props.placeholderTextType) : {}
+    return {
+      '&::-webkit-inner-spin-button': {WebkitAppearance: 'none', margin: 0},
+      '&::-webkit-input-placeholder': {
+        ...(props.placeholderTextType && placeholderStyle ? placeholderStyle : {}),
+        color: props.placeholderColor || Styles.globalColors.black_50,
+      },
+      '&::-webkit-outer-spin-button': {WebkitAppearance: 'none', margin: 0},
+    }
+  }
+)
 
 const styles = Styles.styleSheetCreate(() => ({
   flexable: {
