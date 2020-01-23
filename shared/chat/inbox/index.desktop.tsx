@@ -96,6 +96,7 @@ class Inbox extends React.Component<T.Props, State> {
   }
 
   componentDidMount() {
+    console.log('inbox did mount')
     this.mounted = true
   }
 
