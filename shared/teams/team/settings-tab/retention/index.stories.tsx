@@ -21,6 +21,7 @@ const commonProps = {
   load: action('load'),
   loading: false,
   showSaveIndicator: false,
+  teamID: '',
 }
 
 const load = () => {
