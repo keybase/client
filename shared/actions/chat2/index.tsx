@@ -1638,21 +1638,22 @@ function* inboxSearch(_: Container.TypedState, action: Chat2Gen.InboxSearchPaylo
     )
 
   const onOpenTeamHits = (
-    // @ts-ignore TODO when RPC exist put back
-    resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchOpenTeamHits']['inParam']
+    // TODO fix type when rpc exists
+    resp: any // RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchOpenTeamHits']['inParam']
   ) =>
-    // @ts-ignore TODO when RPC exists put back
     Saga.put(
-      // @ts-ignore TODO when RPC exists put back
       Chat2Gen.createInboxSearchOpenTeamsResults({
-        results: (resp.hits.hits || []).reduce<Array<Types.InboxSearchOpenTeamHit>>((arr, h) => {
-          arr.push({
-            description: h.description,
-            name: h.name,
-            teamID: Types.stringToConversationIDKey(h.teamID),
-          })
-          return arr
-        }, []),
+        results: (resp.hits.hits || []).reduce(
+          /*<Array<Types.InboxSearchOpenTeamHit>>*/ (arr, h) => {
+            arr.push({
+              description: h.description,
+              name: h.name,
+              teamID: Types.stringToConversationIDKey(h.teamID),
+            })
+            return arr
+          },
+          []
+        ),
       })
     )
 
@@ -1696,8 +1697,7 @@ function* inboxSearch(_: Container.TypedState, action: Chat2Gen.InboxSearchPaylo
   try {
     yield RPCChatTypes.localSearchInboxRpcSaga({
       incomingCallMap: {
-        // @ts-ignore TODO when RPC exists put back
-        'chat.1.chatUi.chatSearchOpenTeamHits': onOpenTeamHits,
+        // 'chat.1.chatUi.chatSearchOpenTeamHits': onOpenTeamHits,
         'chat.1.chatUi.chatSearchConvHits': onConvHits,
         'chat.1.chatUi.chatSearchInboxDone': onDone,
         'chat.1.chatUi.chatSearchInboxHit': onTextHit,

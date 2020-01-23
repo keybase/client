@@ -70,6 +70,7 @@ export type InboxSearchInfo = {
   nameStatus: InboxSearchStatus
   nameResultsUnread: boolean
   openTeamsResults: Array<InboxSearchOpenTeamHit>
+  openTeamsStatus: InboxSearchStatus
   query: HiddenString
   selectedIndex: number
   textResults: Array<InboxSearchTextHit>
