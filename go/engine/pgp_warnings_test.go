@@ -74,7 +74,9 @@ func generateOpenPGPEntity(ts time.Time, hash crypto.Hash, accepts []crypto.Hash
 	}
 	// and the subkeys...
 	for _, subkey := range entity.Subkeys {
-		subkey.Sig.SignKey(subkey.PublicKey, entity.PrivateKey, cfg)
+		if err := subkey.Sig.SignKey(subkey.PublicKey, entity.PrivateKey, cfg); err != nil {
+			panic(err)
+		}
 	}
 
 	return entity, nil
