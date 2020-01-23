@@ -8,7 +8,7 @@ type Props = {
   recipients: Array<string>
 }
 
-const placeholder = 'Search Keybase'
+const placeholder = 'Search people'
 
 const Recipients = (props: Props) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
