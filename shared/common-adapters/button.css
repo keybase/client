@@ -59,3 +59,12 @@
 .button__underlay_yellow:hover {
   background-color: rgba(255, 248, 90, 0.05);
 }
+
+.buttonNyctographicHover span {
+  font-family: Nyctographic !important;
+  width: 64px;
+}
+.buttonNyctographicHover:hover span {
+  font-family: Keybase !important;
+  width: 64px;
+}
