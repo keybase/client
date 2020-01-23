@@ -2,6 +2,7 @@ import * as React from 'react'
 import {Box2} from '../common-adapters/box'
 import Text from '../common-adapters/text'
 import * as Styles from '../styles'
+import {start} from 'repl'
 /** 
 A dev only hook to measure rendering perf of a component, use the return value as a key
  */
@@ -10,24 +11,40 @@ export const usePerf = __DEV__
   ? (count: number = 10) => {
       const [numRenders, setNumRenders] = React.useState(0)
       const startTime = React.useRef<number>(0)
+      const runTime = React.useRef<number>(0)
+      const running = React.useRef<boolean>(false)
+
       const reset = React.useCallback(() => {
         setNumRenders(0)
       }, [setNumRenders])
 
-      if (startTime.current === 0) {
+      if (numRenders === 0 && !running.current) {
+        running.current = true
         startTime.current = Date.now()
+        runTime.current = 0
         console.log('usePerf start:', count)
       }
 
       React.useEffect(() => {
-        if (numRenders >= count) {
-          console.log('usePerf end: ', Date.now() - startTime.current)
-          return
+        console.log('usePerf useEffect ran')
+        if (running.current) {
+          runTime.current = Date.now() - startTime.current
+          if (numRenders === count) {
+            // done?
+            running.current = false
+            setNumRenders(-1)
+            console.log('usePerf end: ', runTime.current)
+          } else {
+            // some components defer so lets actually render them
+            setImmediate(() => {
+              console.log('usePerf increment ran')
+              setNumRenders(s => s + 1)
+            })
+          }
         }
-        setNumRenders(numRenders + 1)
-      }, [numRenders, setNumRenders])
+      }, [numRenders, setNumRenders, count])
 
-      return [String(numRenders), Date.now() - startTime.current, reset] as const
+      return [String(numRenders), runTime.current, reset] as const
     }
   : (_: number = 1000) => ['prod', 0, () => {}] as const
 
@@ -36,7 +53,7 @@ type Props = {
   children: React.ReactNode
   style?: Styles.StylesCrossPlatform
 }
-export const PerfWrapper = (props: Props) => {
+const _PerfWrapper = (props: Props) => {
   const {perfCount, children, style} = props
   const [key, time, reset] = usePerf(perfCount)
   return (
@@ -49,16 +66,22 @@ export const PerfWrapper = (props: Props) => {
   )
 }
 
+export const PerfWrapper = React.memo(_PerfWrapper)
+
 const styles = Styles.styleSheetCreate(() => ({
   container: {
     position: 'relative',
   },
   time: {
+    alignSelf: 'flex-end',
     backgroundColor: Styles.globalColors.yellow,
     color: Styles.globalColors.black,
+    minWidth: 80,
+    opacity: 0.8,
+    padding: 10,
     position: 'absolute',
-    top: 0,
     right: 0,
+    top: 0,
     zIndex: 9999,
   },
 }))
