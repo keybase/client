@@ -16,7 +16,6 @@ import {inboxWidth, getRowHeight, smallRowHeight, dividerHeight} from './row/siz
 import {makeRow} from './row'
 import {virtualListMarks} from '../../local-debug'
 import shallowEqual from 'shallowequal'
-import {PerfWrapper} from '../../util/use-perf'
 
 type State = {
   dragY: number
@@ -96,7 +95,6 @@ class Inbox extends React.Component<T.Props, State> {
   }
 
   componentDidMount() {
-    console.log('inbox did mount')
     this.mounted = true
   }
 
@@ -516,14 +514,4 @@ const styles = Styles.styleSheetCreate(
 export type RowItem = T.RowItem
 export type RowItemSmall = T.RowItemSmall
 export type RowItemBig = T.RowItemBig
-export default (p: any) => (
-  <PerfWrapper
-    style={{
-      height: '100%',
-      maxWidth: inboxWidth,
-      minWidth: inboxWidth,
-    }}
-  >
-    <Inbox {...p} />
-  </PerfWrapper>
-)
+export default Inbox
