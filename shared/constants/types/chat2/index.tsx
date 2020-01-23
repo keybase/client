@@ -60,7 +60,10 @@ export type InboxSearchConvHit = {
 
 export type InboxSearchOpenTeamHit = {
   description: string
+  inTeam: boolean
   name: string
+  numMembers: number
+  publicAdmins: Array<string>
   teamID: Team.TeamID
 }
 

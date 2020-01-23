@@ -1645,10 +1645,14 @@ function* inboxSearch(_: Container.TypedState, action: Chat2Gen.InboxSearchPaylo
       Chat2Gen.createInboxSearchOpenTeamsResults({
         results: (resp.hits.hits || []).reduce(
           /*<Array<Types.InboxSearchOpenTeamHit>>*/ (arr, h) => {
+            const {description, name, teamID, publicAdmins, numMembers, inTeam} = h
             arr.push({
-              description: h.description,
-              name: h.name,
-              teamID: Types.stringToConversationIDKey(h.teamID),
+              description,
+              inTeam,
+              name,
+              numMembers,
+              publicAdmins,
+              teamID: Types.stringToConversationIDKey(teamID),
             })
             return arr
           },
@@ -1727,9 +1731,30 @@ function* inboxSearch(_: Container.TypedState, action: Chat2Gen.InboxSearchPaylo
     yield onOpenTeamHits({
       hits: {
         hits: [
-          {description: 'team a', name: 'keybasefriends', teamID: 1},
-          {description: 'team b', name: 'chia_network.public', teamID: 2},
-          {description: 'team c', name: 'stellar.public', teamID: 3},
+          {
+            description: 'team a',
+            inTeam: true,
+            name: 'keybasefriends',
+            numMembers: 123,
+            publicAdmins: ['adm1', 'adm2'],
+            teamID: '67c99659bdc24920b56ccec3a42dd424',
+          },
+          {
+            description: 'team b',
+            inTeam: false,
+            name: 'chia_network.public',
+            numMembers: 123,
+            publicAdmins: ['adm3'],
+            teamID: '5fb23b28c317e32742cf194b42ae0525',
+          },
+          {
+            description: 'team c',
+            inTeam: false,
+            name: 'stellar.public',
+            numMembers: 123,
+            publicAdmins: ['adm4', 'adm5'],
+            teamID: '5fb23b28c317e32742cf194b42ae0525',
+          },
         ],
       },
     })

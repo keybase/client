@@ -1,7 +1,10 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Types from '../../constants/types/chat2'
+import * as Container from '../../util/container'
 import * as Constants from '../../constants/chat2'
+import * as TeamsGen from '../../actions/teams-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Styles from '../../styles'
 import SelectableSmallTeam from '../selectable-small-team-container'
 import SelectableBigTeamChannel from '../selectable-big-team-channel-container'
@@ -9,6 +12,7 @@ import {inboxWidth} from '../inbox/row/sizes'
 import {TeamAvatar} from '../avatars'
 import Rover from './background'
 import flags from '../../util/feature-flags'
+import TeamInfo from '../../profile/user/teams/teaminfo'
 
 type NameResult = {
   conversationIDKey: Types.ConversationIDKey
@@ -55,16 +59,17 @@ class InboxSearch extends React.Component<Props, State> {
     index: number
   }) => {
     const {item, section, index} = h
-    const realIndex = index + section.indexOffset
     return (
       <OpenTeamRow
         description={item.description}
         name={item.name}
         teamID={item.teamID}
-        selected={!Styles.isMobile && this.props.selectedIndex === realIndex}
+        numMembers={item.numMembers}
+        inTeam={item.inTeam}
+        publicAdmins={item.publicAdmins}
+        selected={false}
       />
     )
-    // isSelected={!Styles.isMobile && this.props.selectedIndex === realIndex}
   }
 
   private renderHit = (h: {
@@ -235,13 +240,36 @@ type OpenTeamProps = Types.InboxSearchOpenTeamHit & {
 }
 const OpenTeamRow = (p: OpenTeamProps) => {
   const [hovering, setHovering] = React.useState(false)
-  const {selected, name, description} = p
-  // TODO popup
+  const {selected, name, description, numMembers, publicAdmins, teamID, inTeam} = p
+  const dispatch = Container.useDispatch()
+  const popupAnchor = React.useRef(null)
+  const {showingPopup, setShowingPopup, popup} = Kb.usePopup(popupAnchor, () => (
+    <TeamInfo
+      attachTo={() => popupAnchor.current}
+      description={description}
+      inTeam={inTeam}
+      isOpen={true}
+      name={name}
+      membersCount={numMembers}
+      position="right center"
+      onChat={undefined}
+      onHidden={() => setShowingPopup(false)}
+      onJoinTeam={() => dispatch(TeamsGen.createJoinTeam({teamname: name}))}
+      onViewTeam={() => {
+        dispatch(RouteTreeGen.createClearModals())
+        dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'team'}]}))
+      }}
+      publicAdmins={publicAdmins}
+      visible={showingPopup}
+    />
+  ))
+
   return (
-    <Kb.ClickableBox onClick={undefined}>
+    <Kb.ClickableBox onClick={() => setShowingPopup(!showingPopup)}>
       <Kb.Box2
         direction="horizontal"
         fullWidth={true}
+        ref={popupAnchor}
         centerChildren={true}
         className="hover_background_color_blueGreyDark"
         style={Styles.collapseStyles([
@@ -251,8 +279,8 @@ const OpenTeamRow = (p: OpenTeamProps) => {
             height: rowHeight,
           },
         ])}
-        onMouseLeave={undefined}
-        onMouseOver={undefined}
+        onMouseLeave={() => setHovering(false)}
+        onMouseOver={() => setHovering(true)}
       >
         <TeamAvatar teamname={name} isMuted={false} isSelected={false} isHovered={hovering} />
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.textContainer}>
@@ -282,6 +310,7 @@ const OpenTeamRow = (p: OpenTeamProps) => {
           </Kb.Text>
         </Kb.Box2>
       </Kb.Box2>
+      {popup}
     </Kb.ClickableBox>
   )
 }
