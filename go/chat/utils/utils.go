@@ -2711,6 +2711,7 @@ func ExportToSummary(i chat1.InboxUIItem) (s chat1.ConvSummary) {
 	s.ActiveAt = i.Time.UnixSeconds()
 	s.ActiveAtMs = i.Time.UnixMilliseconds()
 	s.FinalizeInfo = i.FinalizeInfo
+	s.CreatorInfo = i.CreatorInfo
 	s.MemberStatus = strings.ToLower(i.MemberStatus.String())
 	for _, super := range i.Supersedes {
 		s.Supersedes = append(s.Supersedes,
