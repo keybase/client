@@ -6,7 +6,6 @@ import * as Container from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Tracker2Gen from '../../../actions/tracker2-gen'
 import * as ProfileGen from '../../../actions/profile-gen'
-import * as BotsGen from '../../../actions/bots-gen'
 import * as WalletsType from '../../../constants/types/wallets'
 import Actions from '.'
 
@@ -35,7 +34,6 @@ export default Container.namedConnect(
     }
   },
   dispatch => ({
-    _loadFeaturedBots: () => dispatch(BotsGen.createGetFeaturedBots({})),
     _onAddToTeam: (username: string) =>
       dispatch(
         RouteTreeGen.createNavigateAppend({path: [{props: {username}, selected: 'profileAddToTeam'}]})
@@ -84,7 +82,6 @@ export default Container.namedConnect(
     followsYou: stateProps.followsYou,
     hidFromFollowers: stateProps.hidFromFollowers,
     isBot: stateProps.isBot,
-    loadFeaturedBots: () => dispatchProps._loadFeaturedBots(),
     onAccept: () => dispatchProps._onFollow(stateProps._guiID, true),
     onAddToTeam: () => dispatchProps._onAddToTeam(stateProps.username),
     onBrowsePublicFolder: () => dispatchProps._onBrowsePublicFolder(stateProps.username),

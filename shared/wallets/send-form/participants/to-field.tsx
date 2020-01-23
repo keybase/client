@@ -97,15 +97,17 @@ const ToStellarPublicKey = (props: ToStellarPublicKeyProps) => {
     [setReadyToReview, debouncedOnChangeRecip]
   )
 
+  const {recipientPublicKey: propsRecipientPublicKey} = props
+
+  // TODO <<<<
   React.useEffect(() => {
-    if (props.recipientPublicKey !== recipientPublicKey) {
+    if (propsRecipientPublicKey !== recipientPublicKey) {
       // Hot fix to let any empty string textChange callbacks happen before we change the value.
-      defer(() => setRecipentPublicKey(props.recipientPublicKey))
+      defer(() => setRecipentPublicKey(propsRecipientPublicKey))
     }
     // We do not want this be called when the state changes
     // Only when the prop.recipientPublicKey changes.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.recipientPublicKey])
+  }, [propsRecipientPublicKey])
 
   return (
     <ParticipantsRow
