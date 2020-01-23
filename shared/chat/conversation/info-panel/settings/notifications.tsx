@@ -118,7 +118,11 @@ const Notifications = (props: Props) => {
   const [muted, setMuted] = React.useState(meta.isMuted)
   const [saving, setSaving] = React.useState(false)
   const delayUnsave = Kb.useTimeout(() => setSaving(false), 100)
-  const saveNotifications = () => {
+  const saveNotifications = (
+    desktop: Types.NotificationsType,
+    mobile: Types.NotificationsType,
+    channelWide: boolean
+  ) => {
     setSaving(true)
     dispatch(
       Chat2Gen.createUpdateNotificationSettings({
@@ -130,7 +134,7 @@ const Notifications = (props: Props) => {
     )
     delayUnsave()
   }
-  const saveMuted = () => {
+  const saveMuted = (muted: boolean) => {
     setSaving(true)
     dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted}))
     delayUnsave()
@@ -149,7 +153,7 @@ const Notifications = (props: Props) => {
           checked={muted}
           onCheck={() => {
             setMuted(!muted)
-            saveMuted()
+            saveMuted(!muted)
           }}
           label="Mute all notifications"
         />
@@ -160,17 +164,17 @@ const Notifications = (props: Props) => {
           channelWide={channelWide}
           setDesktop={(n: Types.NotificationsType) => {
             setDesktop(n)
-            saveNotifications()
+            saveNotifications(n, mobile, channelWide)
           }}
           desktop={desktop}
           setMobile={(n: Types.NotificationsType) => {
             setMobile(n)
-            saveNotifications()
+            saveNotifications(desktop, n, channelWide)
           }}
           mobile={mobile}
           toggleChannelWide={() => {
             setChannelWide(!channelWide)
-            saveNotifications()
+            saveNotifications(desktop, mobile, !channelWide)
           }}
         />
       )}
