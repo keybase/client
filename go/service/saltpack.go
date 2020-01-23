@@ -318,6 +318,7 @@ func (h *SaltpackHandler) SaltpackEncryptFile(ctx context.Context, arg keybase1.
 
 	usedSBS, assertion, err := h.frontendEncrypt(ctx, arg.SessionID, earg)
 	if err != nil {
+		_ = os.Remove(outFilename)
 		return keybase1.SaltpackEncryptFileResult{}, err
 	}
 
@@ -349,6 +350,7 @@ func (h *SaltpackHandler) SaltpackDecryptFile(ctx context.Context, arg keybase1.
 
 	info, signed, err := h.frontendDecrypt(ctx, arg.SessionID, earg)
 	if err != nil {
+		_ = os.Remove(outFilename)
 		return keybase1.SaltpackFileResult{}, err
 	}
 
@@ -383,6 +385,7 @@ func (h *SaltpackHandler) SaltpackSignFile(ctx context.Context, arg keybase1.Sal
 	}
 
 	if err := h.frontendSign(ctx, arg.SessionID, earg); err != nil {
+		_ = os.Remove(outFilename)
 		return "", err
 	}
 
@@ -410,6 +413,7 @@ func (h *SaltpackHandler) SaltpackVerifyFile(ctx context.Context, arg keybase1.S
 
 	spui, err := h.frontendVerify(ctx, arg.SessionID, earg)
 	if err != nil {
+		_ = os.Remove(outFilename)
 		return keybase1.SaltpackVerifyFileResult{}, err
 	}
 	res := keybase1.SaltpackVerifyFileResult{
