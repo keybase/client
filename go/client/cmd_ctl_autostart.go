@@ -20,6 +20,8 @@ type CmdCtlAutostart struct {
 }
 
 func NewCmdCtlAutostart(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+    const backtick = "`"
+
 	cmd := &CmdCtlAutostart{
 		Contextified: libkb.NewContextified(g),
 	}
