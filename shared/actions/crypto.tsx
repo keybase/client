@@ -221,9 +221,9 @@ const saltpackEncrypt = async (
         })
       } catch (err) {
         logger.error(err)
+        const message = Constants.getStatusCodeMessage(err.code, Constants.Operations.Verify, type)
         return CryptoGen.createOnOperationError({
-          errorMessage: new HiddenString('Failed to perform encryption operation'),
-          errorType: '',
+          errorMessage: new HiddenString(message),
           operation: Constants.Operations.Encrypt,
         })
       }
@@ -241,18 +241,21 @@ const saltpackEncrypt = async (
           },
           Constants.encryptStringWaitingKey
         )
+        const warningMessage = Constants.getWarningMessageForSBS(encryptRes.unresolvedSBSAssertion)
         return CryptoGen.createOnOperationSuccess({
           operation: Constants.Operations.Encrypt,
           output: new HiddenString(encryptRes.ciphertext),
           outputSender: options.sign ? new HiddenString(username) : undefined,
           outputSigned: options.sign,
           outputType: type,
+          warning: encryptRes.usedUnresolvedSBS,
+          warningMessage: new HiddenString(warningMessage),
         })
       } catch (err) {
         logger.error(err)
+        const message = Constants.getStatusCodeMessage(err.code, Constants.Operations.Verify, type)
         return CryptoGen.createOnOperationError({
-          errorMessage: new HiddenString('Failed to perform encryption operation'),
-          errorType: '',
+          errorMessage: new HiddenString(message),
           operation: Constants.Operations.Encrypt,
         })
       }
@@ -291,9 +294,9 @@ const saltpackDecrypt = async (action: CryptoGen.SaltpackDecryptPayload, logger:
         })
       } catch (err) {
         logger.error(err)
+        const message = Constants.getStatusCodeMessage(err.code, Constants.Operations.Decrypt, type)
         return CryptoGen.createOnOperationError({
-          errorMessage: new HiddenString('Failed to perform decrypt operation'),
-          errorType: '',
+          errorMessage: new HiddenString(message),
           operation: Constants.Operations.Decrypt,
         })
       }
@@ -320,9 +323,9 @@ const saltpackDecrypt = async (action: CryptoGen.SaltpackDecryptPayload, logger:
         })
       } catch (err) {
         logger.error(err)
+        const message = Constants.getStatusCodeMessage(err.code, Constants.Operations.Decrypt, type)
         return CryptoGen.createOnOperationError({
-          errorMessage: new HiddenString('Failed to perform decrypt operation'),
-          errorType: '',
+          errorMessage: new HiddenString(message),
           operation: Constants.Operations.Decrypt,
         })
       }
@@ -361,10 +364,10 @@ const saltpackSign = async (
         })
       } catch (err) {
         logger.error(err)
+        const message = Constants.getStatusCodeMessage(err.code, Constants.Operations.Sign, type)
         return CryptoGen.createOnOperationError({
-          errorMessage: new HiddenString('Failed to perform decrypt operation'),
-          errorType: '',
-          operation: Constants.Operations.Decrypt,
+          errorMessage: new HiddenString(message),
+          operation: Constants.Operations.Sign,
         })
       }
     }
@@ -385,10 +388,10 @@ const saltpackSign = async (
         })
       } catch (err) {
         logger.error(err)
+        const message = Constants.getStatusCodeMessage(err.code, Constants.Operations.Sign, type)
         return CryptoGen.createOnOperationError({
-          errorMessage: new HiddenString('Failed to perform decrypt operation'),
-          errorType: '',
-          operation: Constants.Operations.Decrypt,
+          errorMessage: new HiddenString(message),
+          operation: Constants.Operations.Sign,
         })
       }
     }
@@ -425,10 +428,10 @@ const saltpackVerify = async (action: CryptoGen.SaltpackVerifyPayload, logger: S
         })
       } catch (err) {
         logger.error(err)
+        const message = Constants.getStatusCodeMessage(err.code, Constants.Operations.Verify, type)
         return CryptoGen.createOnOperationError({
-          errorMessage: new HiddenString('Failed to perform verify operation'),
-          errorType: '',
-          operation: Constants.Operations.Decrypt,
+          errorMessage: new HiddenString(message),
+          operation: Constants.Operations.Verify,
         })
       }
     }
@@ -451,10 +454,10 @@ const saltpackVerify = async (action: CryptoGen.SaltpackVerifyPayload, logger: S
         })
       } catch (err) {
         logger.error(err)
+        const message = Constants.getStatusCodeMessage(err.code, Constants.Operations.Verify, type)
         return CryptoGen.createOnOperationError({
-          errorMessage: new HiddenString('Failed to perform verify operation'),
-          errorType: '',
-          operation: Constants.Operations.Decrypt,
+          errorMessage: new HiddenString(message),
+          operation: Constants.Operations.Verify,
         })
       }
     }

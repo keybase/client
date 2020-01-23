@@ -12,6 +12,7 @@ export default Container.namedConnect(
   (state: Container.TypedState) => ({
     bytesComplete: state.crypto.encrypt.bytesComplete,
     bytesTotal: state.crypto.encrypt.bytesTotal,
+    errorMessage: state.crypto.encrypt.errorMessage.stringValue(),
     hasRecipients: state.crypto.encrypt.meta.hasRecipients,
     hasSBS: state.crypto.encrypt.meta.hasSBS,
     input: state.crypto.encrypt.input.stringValue(),
@@ -23,11 +24,12 @@ export default Container.namedConnect(
     outputType: state.crypto.encrypt.outputType,
     recipients: state.crypto.encrypt.recipients,
     username: state.config.username,
+    warningMessage: state.crypto.encrypt.warningMessage.stringValue(),
   }),
   (dispatch: Container.TypedDispatch) => ({
     onClearInput: () => dispatch(CryptoGen.createClearInput({operation})),
     onCopyOutput: (text: string) => dispatch(ConfigGen.createCopyToClipboard({text})),
-    onDownloadText: () => dispatch(CryptoGen.createDownloadEncryptedText()),
+    onSaveAsText: () => dispatch(CryptoGen.createDownloadEncryptedText()),
     onSetInput: (inputType: Types.InputTypes, inputValue: string) =>
       dispatch(CryptoGen.createSetInput({operation, type: inputType, value: new HiddenString(inputValue)})),
     onSetOptions: (options: Types.EncryptOptions) => dispatch(CryptoGen.createSetEncryptOptions({options})),
@@ -35,6 +37,7 @@ export default Container.namedConnect(
       dispatch(FSGen.createOpenLocalPathInSystemFileManager({localPath: path})),
   }),
   (stateProps, dispatchProps) => ({
+    errorMessage: stateProps.errorMessage,
     hasRecipients: stateProps.hasRecipients,
     hasSBS: stateProps.hasSBS,
     input: stateProps.input,
@@ -42,7 +45,7 @@ export default Container.namedConnect(
     noIncludeSelf: stateProps.noIncludeSelf,
     onClearInput: dispatchProps.onClearInput,
     onCopyOutput: dispatchProps.onCopyOutput,
-    onDownloadText: dispatchProps.onDownloadText,
+    onSaveAsText: dispatchProps.onSaveAsText,
     onSetInput: dispatchProps.onSetInput,
     onSetOptions: dispatchProps.onSetOptions,
     onShowInFinder: dispatchProps.onShowInFinder,
@@ -53,6 +56,7 @@ export default Container.namedConnect(
     progress: stateProps.bytesComplete === 0 ? 0 : stateProps.bytesComplete / stateProps.bytesTotal,
     recipients: stateProps.recipients,
     username: stateProps.username,
+    warningMessage: stateProps.warningMessage,
   }),
   'EncryptContainer'
 )(Encrypt)

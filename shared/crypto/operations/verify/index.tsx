@@ -3,7 +3,7 @@ import * as Constants from '../../../constants/crypto'
 import * as Types from '../../../constants/types/crypto'
 import * as Kb from '../../../common-adapters'
 import debounce from 'lodash/debounce'
-import {TextInput, FileInput} from '../../input'
+import {TextInput, FileInput, OperationBanner} from '../../input'
 import OperationOutput, {SignedSender, OutputBar} from '../../output'
 
 type Props = {
@@ -18,6 +18,8 @@ type Props = {
   outputStatus?: Types.OutputStatus
   outputType?: Types.OutputType
   progress: number
+  errorMessage: string
+  warningMessage: string
 }
 
 // We want to debuonce the onChangeText callback for our input so we are not sending an RPC on every keystroke
@@ -30,6 +32,7 @@ const Verify = (props: Props) => {
     setInputValue('')
     props.onSetInput('file', localPaths[0])
   }
+
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
       <Kb.DragAndDrop
@@ -40,6 +43,7 @@ const Verify = (props: Props) => {
         prompt="Drop a file to verify"
       >
         <Kb.Box2 direction="vertical" fullHeight={true}>
+          {props.errorMessage && <OperationBanner type="error" message={props.errorMessage} />}
           {props.inputType === 'file' ? (
             <FileInput
               path={props.input}

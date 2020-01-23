@@ -12,6 +12,7 @@ export default Container.namedConnect(
   (state: Container.TypedState) => ({
     bytesComplete: state.crypto.decrypt.bytesComplete,
     bytesTotal: state.crypto.decrypt.bytesTotal,
+    errorMessage: state.crypto.decrypt.errorMessage.stringValue(),
     input: state.crypto.decrypt.input.stringValue(),
     inputType: state.crypto.decrypt.inputType,
     output: state.crypto.decrypt.output.stringValue(),
@@ -19,6 +20,7 @@ export default Container.namedConnect(
     outputSigned: state.crypto.decrypt.outputSigned,
     outputStatus: state.crypto.decrypt.outputStatus,
     outputType: state.crypto.decrypt.outputType,
+    warningMessage: state.crypto.decrypt.warningMessage.stringValue(),
   }),
   (dispatch: Container.TypedDispatch) => ({
     onClearInput: () => dispatch(CryptoGen.createClearInput({operation})),
@@ -29,6 +31,7 @@ export default Container.namedConnect(
       dispatch(FSGen.createOpenLocalPathInSystemFileManager({localPath: path})),
   }),
   (stateProps, dispatchProps) => ({
+    errorMessage: stateProps.errorMessage,
     input: stateProps.input,
     inputType: stateProps.inputType,
     onClearInput: dispatchProps.onClearInput,
@@ -41,6 +44,7 @@ export default Container.namedConnect(
     outputStatus: stateProps.outputStatus,
     outputType: stateProps.outputType,
     progress: stateProps.bytesComplete === 0 ? 0 : stateProps.bytesComplete / stateProps.bytesTotal,
+    warningMessage: stateProps.warningMessage,
   }),
   'DecryptContainer'
 )(Decrypt)

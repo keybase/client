@@ -1,11 +1,10 @@
 import * as React from 'react'
 import * as Constants from '../../../constants/crypto'
 import * as Types from '../../../constants/types/crypto'
-import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
 import debounce from 'lodash/debounce'
 import openURL from '../../../util/open-url'
-import {TextInput, FileInput} from '../../input'
+import {TextInput, FileInput, OperationBanner} from '../../input'
 import OperationOutput, {OutputBar, OutputInfoBanner, SignedSender} from '../../output'
 
 type Props = {
@@ -13,7 +12,7 @@ type Props = {
   inputType: Types.InputTypes
   onClearInput: () => void
   onCopyOutput: (text: string) => void
-  onDownloadText: () => void
+  onSaveAsText: () => void
   onSetInput: (inputType: Types.InputTypes, inputValue: string) => void
   onShowInFinder: (path: string) => void
   output: string
@@ -21,6 +20,8 @@ type Props = {
   outputStatus?: Types.OutputStatus
   outputType?: Types.OutputType
   progress: number
+  errorMessage: string
+  warningMessage: string
 }
 
 // We want to debuonce the onChangeText callback for our input so we are not sending an RPC on every keystroke
@@ -33,6 +34,7 @@ const Sign = (props: Props) => {
     setInputValue('')
     props.onSetInput('file', localPaths[0])
   }
+  const bannertype = props.errorMessage ? 'error' : props.warningMessage ? 'warning' : 'info'
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
       <Kb.DragAndDrop
@@ -43,11 +45,11 @@ const Sign = (props: Props) => {
         prompt="Drop a file to sign"
       >
         <Kb.Box2 direction="vertical" fullHeight={true}>
-          <Kb.Banner color="grey" style={styles.banner}>
-            <Kb.Text type="BodySmallSemibold" center={true} style={styles.signInputInfoBanner}>
-              Add your cryptographic signature to a message or file.
-            </Kb.Text>
-          </Kb.Banner>
+          <OperationBanner
+            type={bannertype}
+            infoMessage="Add your cryptographic signature to a message or file."
+            message={props.errorMessage}
+          />
           {props.inputType === 'file' ? (
             <FileInput
               path={props.input}
@@ -111,7 +113,7 @@ const Sign = (props: Props) => {
               outputStatus={props.outputStatus}
               outputType={props.outputType}
               onCopyOutput={props.onCopyOutput}
-              onDownloadText={props.onDownloadText}
+              onSaveAsText={props.onSaveAsText}
               onShowInFinder={props.onShowInFinder}
             />
           </Kb.Box2>
@@ -120,19 +122,5 @@ const Sign = (props: Props) => {
     </Kb.Box2>
   )
 }
-
-const styles = Styles.styleSheetCreate(
-  () =>
-    ({
-      banner: {
-        ...Styles.padding(Styles.globalMargins.tiny),
-        minHeight: 40,
-      },
-      signInputInfoBanner: {
-        paddingBottom: Styles.globalMargins.tiny,
-        paddingTop: Styles.globalMargins.tiny,
-      },
-    } as const)
-)
 
 export default Sign

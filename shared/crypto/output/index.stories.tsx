@@ -4,7 +4,7 @@ import * as Constants from '../../constants/crypto'
 import Output, {OutputBar, SignedSender} from '.'
 
 const onCopyOutput = Sb.action('onCopyOutput')
-const onDownloadText = Sb.action('onDownloadText')
+const onSaveAsText = Sb.action('onSaveAsText')
 const onShowInFinder = Sb.action('onShowInFinder')
 
 const encryptOutput = `
@@ -75,7 +75,7 @@ const load = () => {
       output="secret stuff"
       outputStatus="success"
       onCopyOutput={onCopyOutput}
-      onDownloadText={onDownloadText}
+      onSaveAsText={onSaveAsText}
       onShowInFinder={onShowInFinder}
     />
   ))

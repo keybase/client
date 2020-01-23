@@ -34,6 +34,8 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     draftState[operation].output = new HiddenString('')
     draftState[operation].outputStatus = undefined
     draftState[operation].outputType = undefined
+    draftState[operation].errorMessage = new HiddenString('')
+    draftState[operation].warningMessage = new HiddenString('')
   },
   [CryptoGen.clearRecipients]: (draftState, action) => {
     const {operation} = action.payload
@@ -51,6 +53,8 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       draftState.encrypt.output = new HiddenString('')
       draftState.encrypt.outputStatus = undefined
       draftState.encrypt.outputType = undefined
+      draftState.encrypt.errorMessage = new HiddenString('')
+      draftState.encrypt.warningMessage = new HiddenString('')
     }
   },
   [CryptoGen.setRecipients]: (draftState, action) => {
@@ -87,7 +91,15 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     draftState[operation].input = value
   },
   [CryptoGen.onOperationSuccess]: (draftState, action) => {
-    const {operation, output, outputSigned, outputSender, outputType} = action.payload
+    const {
+      operation,
+      output,
+      outputSigned,
+      outputSender,
+      outputType,
+      warning,
+      warningMessage,
+    } = action.payload
     if (operationGuard(operation, action)) return
 
     // Bail if the user has cleared the input before the RPC has returned a result
@@ -95,11 +107,32 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       return
     }
 
+    // Reset errors and warnings
+    draftState[operation].errorMessage = new HiddenString('')
+    draftState[operation].warningMessage = new HiddenString('')
+
+    // Warning was set alongside successful output
+    if (warning && warningMessage) {
+      draftState[operation].warningMessage = warningMessage
+    }
+
     draftState[operation].output = output
     draftState[operation].outputStatus = 'success'
     draftState[operation].outputType = outputType
     draftState[operation].outputSigned = outputSigned
     draftState[operation].outputSender = outputSender
+  },
+  [CryptoGen.onOperationError]: (draftState, action) => {
+    const {operation, errorMessage} = action.payload
+    if (operationGuard(operation, action)) return
+
+    // Clear output
+    draftState[operation].output = new HiddenString('')
+    draftState[operation].outputType = undefined
+
+    // Set error
+    draftState[operation].outputStatus = 'error'
+    draftState[operation].errorMessage = errorMessage
   },
   [CryptoGen.saltpackProgress]: (draftState, action) => {
     const {bytesComplete, bytesTotal, operation} = action.payload

@@ -1,4 +1,5 @@
 import * as TeamBuildingConstants from './team-building'
+import * as RPCTypes from './types/rpc-gen'
 import * as Types from './types/crypto'
 import HiddenString from '../util/hidden-string'
 import {IconType} from '../common-adapters/icon.constants-gen'
@@ -105,11 +106,29 @@ export const getOutputFileIcon = (operation: Types.Operations) => operationToOut
 export const getStringWaitingKey = (operation: Types.Operations) => operationToStringWaitingKey[operation]
 export const getFileWaitingKey = (operation: Types.Operations) => operationToFileWaitingKey[operation]
 
+export const getWarningMessageForSBS = (sbsAssertion: string) =>
+  `Note: Encrypted for "${sbsAssertion}" who is not yet a Keybase user. One of your devices will need to be online after they join Keybase in order for them to decrypt the message.`
+
+export const getStatusCodeMessage = (code: number, operation: Types.Operations, type: Types.InputTypes) => {
+  const inputType =
+    type === 'text' ? (operation === Operations.Verify ? 'signed message' : 'ciphertext') : 'file'
+  const action = type === 'text' ? (operation === Operations.Verify ? 'enter a' : 'enter') : 'drop a'
+  const addInput =
+    type === 'text' ? (operation === Operations.Verify ? 'signed message' : 'ciphertext') : 'encrypted file'
+  const invalidInputMessage = `This ${inputType} is not in a valid Saltpack format. Please ${action} Saltpack ${addInput}.`
+
+  const statusCodeToMessage = {
+    [RPCTypes.StatusCode.scstreamunknown]: invalidInputMessage,
+    [RPCTypes.StatusCode
+      .scsigcannotverify]: `Wrong message type: wanted an attached signature, but got a signed and encrypted message instead.`,
+  } as const
+  return statusCodeToMessage[code] || `Failed to ${operation} ${type}.`
+}
+
 const defaultCommonState = {
   bytesComplete: 0,
   bytesTotal: 0,
   errorMessage: new HiddenString(''),
-  errorType: '' as Types.ErrorTypes,
   input: new HiddenString(''),
   inputType: 'text' as Types.InputTypes,
   output: new HiddenString(''),
@@ -117,6 +136,7 @@ const defaultCommonState = {
   outputSigned: false,
   outputStatus: undefined,
   outputType: undefined,
+  warningMessage: new HiddenString(''),
 }
 
 export const makeState = (): Types.State => ({

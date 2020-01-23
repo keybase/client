@@ -32,14 +32,13 @@ export type TextType = 'cipher' | 'plain'
 export type Operations = 'encrypt' | 'decrypt' | 'sign' | 'verify'
 export type InputTypes = 'text' | 'file'
 export type OutputType = 'text' | 'file'
-export type ErrorTypes = ''
 export type OutputStatus = 'success' | 'error'
 
 export type CommonState = {
   bytesComplete: number
   bytesTotal: number
+  warningMessage: HiddenString
   errorMessage: HiddenString
-  errorType: ErrorTypes
   input: HiddenString
   inputType: InputTypes
   output: HiddenString

@@ -5,7 +5,7 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import debounce from 'lodash/debounce'
 import openURL from '../../../util/open-url'
-import {TextInput, FileInput} from '../../input'
+import {TextInput, FileInput, OperationBanner} from '../../input'
 import OperationOutput, {OutputBar, OutputInfoBanner, SignedSender} from '../../output'
 import Recipients from '../../recipients/container'
 
@@ -15,7 +15,7 @@ type Props = {
   noIncludeSelf: boolean
   onClearInput: () => void
   onCopyOutput: (text: string) => void
-  onDownloadText: () => void
+  onSaveAsText: () => void
   onShowInFinder: (path: string) => void
   onSetInput: (inputType: Types.InputTypes, inputValue: string) => void
   onSetOptions: (options: Types.EncryptOptions) => void
@@ -28,6 +28,8 @@ type Props = {
   progress: number
   recipients: Array<string>
   username?: string
+  errorMessage: string
+  warningMessage: string
 }
 
 type EncryptOptionsProps = {
@@ -76,6 +78,7 @@ const Encrypt = (props: Props) => {
         props.recipients?.length > 1 ? youAnd('your recipients') : youAnd(props.recipients[0])
       } can decipher it.`
     : ''
+  const bannertype = props.errorMessage ? 'error' : props.warningMessage ? 'warning' : 'info'
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
       <Kb.DragAndDrop
@@ -85,12 +88,11 @@ const Encrypt = (props: Props) => {
         onAttach={onAttach}
         prompt="Drop a file to encrypt"
       >
-        <Kb.Banner color="grey">
-          <Kb.BannerParagraph
-            bannerColor="grey"
-            content="Encrypt to anyone, even if they're not on Keybase yet."
-          />
-        </Kb.Banner>
+        <OperationBanner
+          type={bannertype}
+          infoMessage="Encrypt to anyone, even if they're not on Keybase yet."
+          message={props.errorMessage || props.warningMessage}
+        />
         <Recipients operation="encrypt" />
         <Kb.Box2 direction="vertical" fullHeight={true}>
           {props.inputType === 'file' ? (
@@ -168,7 +170,7 @@ const Encrypt = (props: Props) => {
               outputStatus={props.outputStatus}
               outputType={props.outputType}
               onCopyOutput={props.onCopyOutput}
-              onDownloadText={props.onDownloadText}
+              onSaveAsText={props.onSaveAsText}
               onShowInFinder={props.onShowInFinder}
             />
           </Kb.Box2>
