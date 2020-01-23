@@ -150,16 +150,10 @@ func (b *baseInboxSource) GetInboxQueryLocalToRemote(ctx context.Context,
 }
 
 func (b *baseInboxSource) IsMember(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (bool, error) {
-	ib, err := b.sub.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll, &chat1.GetInboxQuery{
-		ConvID: &convID,
-	})
+	conv, err := utils.GetUnverifiedConv(ctx, b.G(), uid, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
 		return false, err
 	}
-	if len(ib.ConvsUnverified) == 0 {
-		return false, fmt.Errorf("conversation not found: %s", convID)
-	}
-	conv := ib.ConvsUnverified[0]
 	switch conv.Conv.ReaderInfo.Status {
 	case chat1.ConversationMemberStatus_ACTIVE, chat1.ConversationMemberStatus_RESET:
 		return true, nil
