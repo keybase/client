@@ -420,9 +420,13 @@ const RetentionSwitcher = (
   } & Props
 ) => {
   const {load, teamID} = props
-  React.useEffect(() => {
-    load?.()
-  }, [teamID])
+  React.useEffect(
+    () => {
+      load?.()
+    },
+    // eslint-disable-next-line
+    [teamID]
+  )
   if (props.loading) {
     return <Kb.ProgressIndicator style={styles.progressIndicator} />
   }
