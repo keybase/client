@@ -75,7 +75,7 @@ export default Container.namedConnect(
       error,
       onBack: null,
       onCancel: dispatchProps.onCancel,
-      onLoad: !stateProps._allMembers ? () => dispatchProps._onLoad(stateProps._teamID) : undefined,
+      onLoad: () => dispatchProps._onLoad(stateProps._teamID),
       onSubmit: (usernames: Array<string>) =>
         dispatchProps._onSubmit(stateProps._conversationIDKey, usernames),
       title: stateProps.title,
