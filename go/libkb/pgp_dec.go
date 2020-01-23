@@ -130,7 +130,12 @@ func pgpDecryptClearsign(g *GlobalContext, source io.Reader, sink io.Writer, kr 
 		return nil, fmt.Errorf("Unable to decode clearsigned message")
 	}
 
-	signer, err := openpgp.CheckDetachedSignature(kr, bytes.NewReader(b.Bytes), b.ArmoredSignature.Body)
+	sigBytes, err := ioutil.ReadAll(b.ArmoredSignature.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	signer, err := openpgp.CheckDetachedSignature(kr, bytes.NewReader(b.Bytes), bytes.NewReader(sigBytes))
 	if err != nil {
 		return nil, fmt.Errorf("Check sig error: %s", err)
 	}
@@ -146,9 +151,25 @@ func pgpDecryptClearsign(g *GlobalContext, source io.Reader, sink io.Writer, kr 
 		return &status, nil
 	}
 
+	// Reexamine the signature to figure out its hash
+	digestHash, err := ExtractPGPSignatureHashMethod(nil, sigBytes)
+	if err != nil {
+		return nil, err
+	}
+	if !IsHashSecure(digestHash) {
+		status.Warnings = append(
+			status.Warnings,
+			NewHashSecurityWarning(
+				HashSecurityWarningSignatureHash,
+				digestHash,
+			),
+		)
+	}
+
 	status.IsSigned = true
 	status.Verified = true
 	status.Entity = signer
+	status.KeyID = signer.PrimaryKey.KeyId
 
 	return &status, nil
 }

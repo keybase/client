@@ -38,6 +38,10 @@ func ExtractPGPSignatureHashMethod(keyring openpgp.KeyRing, sig []byte) (crypto.
 	for {
 		p, err = packets.Next()
 		if err == io.EOF {
+			if hashFunc != 0 {
+				return hashFunc, nil
+			}
+
 			return 0, errors.ErrUnknownIssuer
 		}
 		if err != nil {
@@ -59,9 +63,11 @@ func ExtractPGPSignatureHashMethod(keyring openpgp.KeyRing, sig []byte) (crypto.
 			return 0, errors.StructuralError("non signature packet found")
 		}
 
-		keys := keyring.KeysByIdUsage(issuerKeyID, issuerFingerprint, packet.KeyFlagSign)
-		if len(keys) > 0 {
-			return hashFunc, nil
+		if keyring != nil {
+			keys := keyring.KeysByIdUsage(issuerKeyID, issuerFingerprint, packet.KeyFlagSign)
+			if len(keys) > 0 {
+				return hashFunc, nil
+			}
 		}
 	}
 }

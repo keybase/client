@@ -675,8 +675,6 @@ func (k PGPKeyBundle) KeyInfo() (algorithm, kid, creation string) {
 	return
 }
 
-var SHA1SecurityWarningsCutoff = time.Unix(1547856000, 0)
-
 // Generates hash security warnings given a CKF
 func (k PGPKeyBundle) SecurityWarnings(mctx MetaContext, kind HashSecurityWarningType, ckf *ComputedKeyFamily) (warnings HashSecurityWarnings) {
 	for _, identity := range k.Entity.Identities {
