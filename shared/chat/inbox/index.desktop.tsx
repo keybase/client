@@ -519,9 +519,9 @@ export type RowItemBig = T.RowItemBig
 export default (p: any) => (
   <PerfWrapper
     style={{
+      height: '100%',
       maxWidth: inboxWidth,
       minWidth: inboxWidth,
-      height: '100%',
     }}
   >
     <Inbox {...p} />

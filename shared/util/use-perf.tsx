@@ -75,7 +75,7 @@ const styles = Styles.styleSheetCreate(() => ({
   time: {
     alignSelf: 'flex-end',
     backgroundColor: Styles.globalColors.yellow,
-    color: Styles.globalColors.black,
+    color: Styles.globalColors.blackOrBlack,
     minWidth: 80,
     opacity: 0.8,
     padding: 10,

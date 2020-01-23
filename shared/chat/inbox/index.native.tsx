@@ -14,6 +14,7 @@ import debounce from 'lodash/debounce'
 import {makeRow} from './row'
 import {virtualListMarks} from '../../local-debug'
 import shallowEqual from 'shallowequal'
+import {PerfWrapper} from '../../util/use-perf'
 
 const NoChats = (props: {onNewChat: () => void}) => (
   <Kb.Box2 direction="vertical" gap="small" style={styles.noChatsContainer}>
@@ -302,6 +303,16 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export default Inbox
+// export default Inbox
+export default (p: any) => (
+  <PerfWrapper
+    style={{
+      height: '100%',
+      width: '100%',
+    }}
+  >
+    <Inbox {...p} />
+  </PerfWrapper>
+)
 export type RowItem = T.RowItem
 export type RowItemSmall = T.RowItemSmall
