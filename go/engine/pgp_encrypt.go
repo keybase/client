@@ -143,9 +143,7 @@ func (e *PGPEncrypt) Run(m libkb.MetaContext) error {
 			}
 
 			if w := k.SecurityWarnings(
-				m,
 				libkb.HashSecurityWarningRecipientsIdentityHash,
-				up.User.GetComputedKeyFamily(),
 			); len(w) > 0 {
 				e.warnings = append(e.warnings, w...)
 			}

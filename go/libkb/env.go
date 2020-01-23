@@ -248,9 +248,6 @@ type TestParameters struct {
 	// Toggle if we want to try to 'prime' the secret store before using it.
 	SecretStorePrimingDisabled bool
 
-	// Warn about all OpenPGP SHA1 signatures newer than this setting.
-	PGPSHA1SecurityWarningsCutoff time.Time
-
 	// Extra headers for API
 	APIHeaders map[string]string
 }
@@ -274,10 +271,6 @@ func (tp TestParameters) GetSecretStorePrimingDisabled() (bool, bool) {
 		return true, true
 	}
 	return false, false
-}
-
-func (tp TestParameters) GetPGPSHA1SecurityWarningsCutoff() (time.Time, bool) {
-	return tp.PGPSHA1SecurityWarningsCutoff, true
 }
 
 type Env struct {
@@ -1151,12 +1144,6 @@ func (e *Env) GetEmail() string {
 func (e *Env) GetStayLoggedOut() bool {
 	return e.GetBool(false,
 		func() (bool, bool) { return e.GetConfig().GetStayLoggedOut() },
-	)
-}
-
-func (e *Env) GetPGPSHA1SecurityWarningsCutoff() time.Time {
-	return e.GetTime(time.Unix(1547856000, 0), // 2019-01-19
-		func() (time.Time, bool) { return e.Test.GetPGPSHA1SecurityWarningsCutoff() },
 	)
 }
 

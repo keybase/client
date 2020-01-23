@@ -86,7 +86,6 @@ type encryptTest struct {
 	// Signer's hash will be always SHA256
 	DigestHash crypto.Hash // Hash used for msg digests
 	BobsHash   crypto.Hash // Hash used to self-sign the recipient's sig
-	Cutoff     time.Time   // The time at which we start warning about SHA1 sigs
 	Count      int         // How many warnings are expected
 
 	Mode  string // either encrypt, encrypt-and-sign
@@ -129,7 +128,6 @@ func (e encryptTest) test(t *testing.T, users map[string]map[crypto.Hash]*pgpWar
 		}
 	}
 	alice := users["alice"][crypto.SHA256]
-	alice.tc.Tp.PGPSHA1SecurityWarningsCutoff = e.Cutoff
 
 	// We'll only run engines as Alice because Bob is a phony who uses SHA1
 	m := NewMetaContextForTest(alice.tc).WithUIs(libkb.UIs{
@@ -349,17 +347,8 @@ func TestPGPWarnings(t *testing.T) {
 	for _, x := range []encryptTest{
 		// Encrypt
 		{
-			Name:     "Encrypt to an old SHA1",
+			Name:     "Encrypt to a SHA1 recipient",
 			BobsHash: crypto.SHA1,
-			Cutoff:   time.Now().Add(24 * time.Hour),
-			Count:    0,
-			Mode:     "encrypt",
-			Known:    true,
-		},
-		{
-			Name:     "Encrypt to a new SHA1",
-			BobsHash: crypto.SHA1,
-			Cutoff:   time.Now().Add(-1 * 24 * time.Hour),
 			Count:    1,
 			Mode:     "encrypt",
 			Known:    true,
@@ -367,33 +356,15 @@ func TestPGPWarnings(t *testing.T) {
 
 		// Encrypt and sign
 		{
-			Name:     "Encrypt and sign to an old SHA1",
+			Name:     "Encrypt and sign to a SHA1 recipient",
 			BobsHash: crypto.SHA1,
-			Cutoff:   time.Now().Add(24 * time.Hour),
-			Count:    0,
-			Mode:     "encrypt-and-sign",
-			Known:    true,
-		},
-		{
-			Name:     "Encrypt and sign to a new SHA1",
-			BobsHash: crypto.SHA1,
-			Cutoff:   time.Now().Add(-1 * 24 * time.Hour),
 			Count:    1,
 			Mode:     "encrypt-and-sign",
 			Known:    true,
 		},
 		{
-			Name:     "Encrypt and sign to an old SHA256",
+			Name:     "Encrypt and sign to a SHA256 recipient",
 			BobsHash: crypto.SHA256,
-			Cutoff:   time.Now().Add(24 * time.Hour),
-			Count:    0,
-			Mode:     "encrypt-and-sign",
-			Known:    true,
-		},
-		{
-			Name:     "Encrypt and sign to a new SHA256",
-			BobsHash: crypto.SHA256,
-			Cutoff:   time.Now().Add(-1 * 24 * time.Hour),
 			Count:    0,
 			Mode:     "encrypt-and-sign",
 			Known:    true,
@@ -401,106 +372,64 @@ func TestPGPWarnings(t *testing.T) {
 
 		// Verify - will run all 3 variants (clearsign / attached / detached)
 		{
-			Name:       "Verification of a SHA1 sig with a SHA1 self-sig, before cutoff",
+			Name:       "Verification of a SHA1 sig with a SHA1 self-sig",
 			DigestHash: crypto.SHA1,
 			BobsHash:   crypto.SHA1,
-			Cutoff:     time.Now().Add(24 * time.Hour),
-			Count:      1,
-			Mode:       "verify",
-			Known:      true,
-		},
-		{
-			Name:       "Verification of a SHA1 sig with a SHA1 self-sig, after cutoff",
-			DigestHash: crypto.SHA1,
-			BobsHash:   crypto.SHA1,
-			Cutoff:     time.Now().Add(-1 * 24 * time.Hour),
 			Count:      2,
 			Mode:       "verify",
+			Known:      true,
 		},
 		{
-			Name:       "Verification of a SHA256 sig with a SHA1 self-sig, before cutoff",
+			Name:       "Verification of a SHA256 sig with a SHA1 self-sig",
 			DigestHash: crypto.SHA256,
 			BobsHash:   crypto.SHA1,
-			Cutoff:     time.Now().Add(24 * time.Hour),
-			Count:      0,
-			Mode:       "verify",
-			Known:      true,
-		},
-		{
-			Name:       "Verification of a SHA1 sig with a SHA256 self-sig, before cutoff",
-			DigestHash: crypto.SHA1,
-			BobsHash:   crypto.SHA256,
-			Cutoff:     time.Now().Add(24 * time.Hour),
 			Count:      1,
 			Mode:       "verify",
 		},
 		{
-			Name:       "Verification of a SHA1 sig with a SHA256 self-sig, after cutoff",
+			Name:       "Verification of a SHA1 sig with a SHA256 self-sig",
 			DigestHash: crypto.SHA1,
 			BobsHash:   crypto.SHA256,
-			Cutoff:     time.Now().Add(-1 * 24 * time.Hour),
 			Count:      1,
 			Mode:       "verify",
 			Known:      true,
 		},
 		{
-			Name:       "Verification of a SHA256 sig with a SHA256 self-sig, after cutoff",
+			Name:       "Verification of a SHA256 sig with a SHA256 self-sig",
 			DigestHash: crypto.SHA256,
 			BobsHash:   crypto.SHA256,
-			Cutoff:     time.Now().Add(-1 * 24 * time.Hour),
 			Count:      0,
 			Mode:       "verify",
 		},
 
 		// Decrypt - will run all 2 variants (clearsign / attached)
 		{
-			Name:       "Decryption of a SHA1 sig with a SHA1 self-sig, before cutoff",
+			Name:       "Decryption of a SHA1 sig with a SHA1 self-sig",
 			DigestHash: crypto.SHA1,
 			BobsHash:   crypto.SHA1,
-			Cutoff:     time.Now().Add(24 * time.Hour),
-			Count:      1,
-			Mode:       "decrypt",
-			Known:      true,
-		},
-		{
-			Name:       "Decryption of a SHA1 sig with a SHA1 self-sig, after cutoff",
-			DigestHash: crypto.SHA1,
-			BobsHash:   crypto.SHA1,
-			Cutoff:     time.Now().Add(-1 * 24 * time.Hour),
 			Count:      2,
 			Mode:       "decrypt",
+			Known:      true,
 		},
 		{
-			Name:       "Decryption of a SHA256 sig with a SHA1 self-sig, before cutoff",
+			Name:       "Decryption of a SHA256 sig with a SHA1 self-sig",
 			DigestHash: crypto.SHA256,
 			BobsHash:   crypto.SHA1,
-			Cutoff:     time.Now().Add(24 * time.Hour),
-			Count:      0,
-			Mode:       "decrypt",
-			Known:      true,
-		},
-		{
-			Name:       "Decryption of a SHA1 sig with a SHA256 self-sig, before cutoff",
-			DigestHash: crypto.SHA1,
-			BobsHash:   crypto.SHA256,
-			Cutoff:     time.Now().Add(24 * time.Hour),
 			Count:      1,
 			Mode:       "decrypt",
 		},
 		{
-			Name:       "Decryption of a SHA1 sig with a SHA256 self-sig, after cutoff",
+			Name:       "Decryption of a SHA1 sig with a SHA256 self-sig",
 			DigestHash: crypto.SHA1,
 			BobsHash:   crypto.SHA256,
-			Cutoff:     time.Now().Add(-1 * 24 * time.Hour),
 			Count:      1,
 			Mode:       "decrypt",
 			Known:      true,
 		},
 		{
-			Name:       "Decryption of a SHA256 sig with a SHA256 self-sig, after cutoff",
+			Name:       "Decryption of a SHA256 sig with a SHA256 self-sig",
 			DigestHash: crypto.SHA256,
 			BobsHash:   crypto.SHA256,
-			Cutoff:     time.Now().Add(-1 * 24 * time.Hour),
 			Count:      0,
 			Mode:       "decrypt",
 		},

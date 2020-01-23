@@ -5,7 +5,6 @@ package engine
 
 import (
 	"bytes"
-	"crypto"
 	"errors"
 	"fmt"
 	"io"
@@ -177,28 +176,18 @@ func (e *PGPVerify) runDetached(m libkb.MetaContext) error {
 			return err
 		}
 
-		var selfsigHash crypto.Hash
 		if val, ok := p.(*packet.Signature); ok {
-			selfsigHash = val.Hash
 			e.signStatus.SignatureTime = val.CreationTime
 		} else if val, ok := p.(*packet.SignatureV3); ok {
-			selfsigHash = val.Hash
 			e.signStatus.SignatureTime = val.CreationTime
 		}
 
-		if !libkb.IsHashSecure(selfsigHash) {
-			var ckf *libkb.ComputedKeyFamily
-			if e.signer != nil {
-				ckf = e.signer.GetComputedKeyFamily()
-			}
-
+		if warnings := libkb.NewPGPKeyBundle(signer).SecurityWarnings(
+			libkb.HashSecurityWarningSignersIdentityHash,
+		); len(warnings) > 0 {
 			e.signStatus.Warnings = append(
 				e.signStatus.Warnings,
-				libkb.NewPGPKeyBundle(signer).SecurityWarnings(
-					m,
-					libkb.HashSecurityWarningSignersIdentityHash,
-					ckf,
-				)...,
+				warnings...,
 			)
 		}
 
@@ -275,28 +264,18 @@ func (e *PGPVerify) runClearsign(m libkb.MetaContext) error {
 			return err
 		}
 
-		var selfsigHash crypto.Hash
 		if val, ok := p.(*packet.Signature); ok {
-			selfsigHash = val.Hash
 			e.signStatus.SignatureTime = val.CreationTime
 		} else if val, ok := p.(*packet.SignatureV3); ok {
-			selfsigHash = val.Hash
 			e.signStatus.SignatureTime = val.CreationTime
 		}
 
-		if !libkb.IsHashSecure(selfsigHash) {
-			var ckf *libkb.ComputedKeyFamily
-			if e.signer != nil {
-				ckf = e.signer.GetComputedKeyFamily()
-			}
-
+		if warnings := libkb.NewPGPKeyBundle(signer).SecurityWarnings(
+			libkb.HashSecurityWarningSignersIdentityHash,
+		); len(warnings) > 0 {
 			e.signStatus.Warnings = append(
 				e.signStatus.Warnings,
-				libkb.NewPGPKeyBundle(signer).SecurityWarnings(
-					m,
-					libkb.HashSecurityWarningSignersIdentityHash,
-					ckf,
-				)...,
+				warnings...,
 			)
 		}
 
