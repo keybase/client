@@ -336,8 +336,7 @@ function* initialPermissionsCheck() {
     const shownMonsterPushPromptTask = yield Saga._fork(async () => {
       try {
         const v = await RPCTypes.configGuiGetValueRpcPromise({path: `ui.${monsterStorageKey}`})
-        return false
-        //return !!v.b
+        return !!v.b
       } catch (_) {
         return false
       }
