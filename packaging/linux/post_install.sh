@@ -177,6 +177,8 @@ if command -v gtk-update-icon-cache &> /dev/null ; then
   gtk-update-icon-cache -q -t -f /usr/share/icons/hicolor
 fi
 
+# Set suid on redirector before we restart it, in case package manager reverted
+# permissions.
 if redirector_enabled ; then
   chown root:root "$krbin"
   chmod 4755 "$krbin"
