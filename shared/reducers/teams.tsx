@@ -47,6 +47,9 @@ export default Container.makeReducer<
     draftState.addUserToTeamsResults = action.payload.results
     draftState.addUserToTeamsState = action.payload.error ? 'failed' : 'succeeded'
   },
+  [TeamsGen.settingsError]: (draftState, action) => {
+    draftState.errorInSettings = action.payload.error
+  },
   [TeamsGen.addToTeam]: draftState => {
     draftState.errorInAddToTeam = ''
   },

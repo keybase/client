@@ -23,6 +23,7 @@ export default Container.connect(
     const openTeamRole: Types.MaybeTeamRoleType = Constants.teamRoleByEnum[settings.joinAs] || 'none'
     return {
       canShowcase: teamDetails.allowPromote || teamDetails.role === 'admin' || teamDetails.role === 'owner',
+      error: state.teams.errorInSettings,
       ignoreAccessRequests: publicitySettings.ignoreAccessRequests,
       isBigTeam: Constants.isBigTeam(state, teamname),
       openTeam: settings.open,
@@ -52,6 +53,7 @@ export default Container.connect(
           path: [{props: {entityType, onConfirm, policy}, selected: 'retentionWarning'}],
         })
       ),
+    clearError: () => dispatch(TeamsGen.createSettingsError({error: ''})),
     savePublicity: (settings: Types.PublicitySettings) =>
       dispatch(TeamsGen.createSetPublicity({settings, teamID})),
     saveRetentionPolicy: (policy: RetentionPolicy) =>
@@ -75,6 +77,7 @@ export default Container.connect(
           !showRetentionWarning && dispatchProps.saveRetentionPolicy(policy)
         }
         dispatchProps.savePublicity(settings)
+        dispatchProps.clearError()
       },
     }
   }

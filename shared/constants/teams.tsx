@@ -173,6 +173,7 @@ const emptyState: Types.State = {
   errorInChannelCreation: '',
   errorInEditDescription: '',
   errorInEmailInvite: emptyEmailInviteError,
+  errorInSettings: '',
   errorInTeamCreation: '',
   errorInTeamInvite: '',
   errorInTeamJoin: '',

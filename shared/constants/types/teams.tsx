@@ -117,6 +117,7 @@ export type State = Readonly<{
   errorInChannelCreation: string
   errorInEditDescription: string
   errorInEmailInvite: EmailInviteError
+  errorInSettings: string
   errorInTeamCreation: string
   errorInTeamInvite: string
   errorInTeamJoin: string

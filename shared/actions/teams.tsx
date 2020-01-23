@@ -182,9 +182,9 @@ const saveTeamRetentionPolicy = (
   let servicePolicy: RPCChatTypes.RetentionPolicy
   try {
     servicePolicy = Constants.retentionPolicyToServiceRetentionPolicy(policy)
-  } catch (err) {
-    logger.error(err.message)
-    throw err
+  } catch (error) {
+    logger.error(error.message)
+    return TeamsGen.createSettingsError({error: error.desc})
   }
   return RPCChatTypes.localSetTeamRetentionLocalRpcPromise({policy: servicePolicy, teamID}, [
     Constants.teamWaitingKeyByID(teamID, state),
@@ -980,8 +980,8 @@ const setMemberPublicity = async (state: TypedState, action: TeamsGen.SetMemberP
       Constants.teamWaitingKeyByID(teamID, state)
     )
     return
-  } catch (_) {
-    // TODO handle error, but for now make sure loading is unset
+  } catch (error) {
+    return TeamsGen.createSettingsError({error: error.desc})
   }
 }
 

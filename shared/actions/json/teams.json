@@ -187,6 +187,9 @@
     "setEditDescriptionError": {
       "error": "string"
     },
+    "settingsError": {
+      "error": "string"
+    },
     "setTeamsWithChosenChannels": {
       "teamsWithChosenChannels": "Set<Types.TeamID>"
     },
