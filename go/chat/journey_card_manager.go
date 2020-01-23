@@ -449,7 +449,7 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 	var mostRecentCardType chat1.JourneycardType
 	var mostRecentPrev chat1.MessageID
 	for cardType, savedPos := range jcd.Convs[convID.ConvIDStr()].Positions {
-		if savedPos == nil || jcd.hasDismissed(convID, cardType) {
+		if savedPos == nil || jcd.hasDismissed(cardType) {
 			continue
 		}
 		// Break ties in PrevID using cardType's arbitrary enum value.
@@ -864,14 +864,11 @@ func (cc *JourneyCardManagerSingleUser) Dismiss(ctx context.Context, teamID keyb
 		cc.Debug(ctx, "storage get error: %v", err)
 		return
 	}
-	if jcd.Convs[convID.ConvIDStr()].Dismissals[cardType] {
+	if jcd.Dismissals[cardType] {
 		return
 	}
-	jcd = jcd.MutateConv(convID, func(conv journeycardConvData) journeycardConvData {
-		conv = conv.PrepareToMutateDismissals() // clone Dismissals to avoid modifying shared conv.
-		conv.Dismissals[cardType] = true
-		return conv
-	})
+	jcd = jcd.PrepareToMutateDismissals() // clone Dismissals to avoid modifying shared conv.
+	jcd.Dismissals[cardType] = true
 	cc.lru.Add(teamID.String(), jcd)
 	err = cc.encryptedDB.Put(ctx, cc.dbKey(teamID), jcd)
 	if err != nil {
@@ -1133,6 +1130,7 @@ const journeycardDiskVersion int = 2
 type journeycardData struct {
 	DiskVersion int                                     `codec:"v,omitempty" json:"v,omitempty"`
 	Convs       map[chat1.ConvIDStr]journeycardConvData `codec:"cv,omitempty" json:"cv,omitempty"`
+	Dismissals  map[chat1.JourneycardType]bool          `codec:"ds,omitempty" json:"ds,omitempty"`
 	// Some card types can only appear once. This map locks a type into a particular conv.
 	Lockin                  map[chat1.JourneycardType]chat1.ConversationID `codec:"l,omitempty" json:"l,omitempty"`
 	ShownCardBesidesWelcome bool                                           `codec:"sbw,omitempty" json:"sbw,omitempty"`
@@ -1141,8 +1139,8 @@ type journeycardData struct {
 }
 
 type journeycardConvData struct {
-	Positions  map[chat1.JourneycardType]*journeyCardPosition `codec:"p,omitempty" json:"p,omitempty"`
-	Dismissals map[chat1.JourneycardType]bool                 `codec:"d,omitempty" json:"d,omitempty"`
+	// codec `d` has been used in the past for Dismissals
+	Positions map[chat1.JourneycardType]*journeyCardPosition `codec:"p,omitempty" json:"p,omitempty"`
 	// Whether the user has sent a message in this channel.
 	SentMessage bool `codec:"sm,omitempty" json:"sm,omitempty"`
 	// When the user joined the channel (that's the idea, really it's some time when they saw the conv)
@@ -1153,6 +1151,7 @@ func newJourneycardData() journeycardData {
 	return journeycardData{
 		DiskVersion: journeycardDiskVersion,
 		Convs:       make(map[chat1.ConvIDStr]journeycardConvData),
+		Dismissals:  make(map[chat1.JourneycardType]bool),
 		Lockin:      make(map[chat1.JourneycardType]chat1.ConversationID),
 		Ctime:       gregor1.ToTime(time.Now()),
 	}
@@ -1160,8 +1159,7 @@ func newJourneycardData() journeycardData {
 
 func newJourneycardConvData() journeycardConvData {
 	return journeycardConvData{
-		Positions:  make(map[chat1.JourneycardType]*journeyCardPosition),
-		Dismissals: make(map[chat1.JourneycardType]bool),
+		Positions: make(map[chat1.JourneycardType]*journeyCardPosition),
 	}
 }
 
@@ -1201,23 +1199,35 @@ func (j *journeycardData) SetLockin(cardType chat1.JourneycardType, convID chat1
 
 // Whether this card type has one of:
 // - already been shown (conv)
-// - been dismissed (conv)
+// - been dismissed (team wide)
 // - lockin to a different conv (team wide)
 func (j *journeycardData) hasShownOrDismissedOrLockout(convID chat1.ConversationID, cardType chat1.JourneycardType) bool {
+	if j.Dismissals[cardType] {
+		return true
+	}
 	if lockinConvID, found := j.Lockin[cardType]; found {
 		if !lockinConvID.Eq(convID) {
-			return false
+			return true
 		}
 	}
 	if c, found := j.Convs[convID.ConvIDStr()]; found {
-		return c.Positions[cardType] != nil || c.Dismissals[cardType]
+		return c.Positions[cardType] != nil
 	}
 	return false
 }
 
 // Whether this card type has been dismissed.
-func (j *journeycardData) hasDismissed(convID chat1.ConversationID, cardType chat1.JourneycardType) bool {
-	return j.Convs[convID.ConvIDStr()].Dismissals[cardType]
+func (j *journeycardData) hasDismissed(cardType chat1.JourneycardType) bool {
+	return j.Dismissals[cardType]
+}
+
+func (j *journeycardData) PrepareToMutateDismissals() (res journeycardData) {
+	res = *j
+	res.Dismissals = make(map[chat1.JourneycardType]bool)
+	for k, v := range j.Dismissals {
+		res.Dismissals[k] = v
+	}
+	return res
 }
 
 func (j *journeycardConvData) PrepareToMutatePositions() (res journeycardConvData) {
@@ -1225,15 +1235,6 @@ func (j *journeycardConvData) PrepareToMutatePositions() (res journeycardConvDat
 	res.Positions = make(map[chat1.JourneycardType]*journeyCardPosition)
 	for k, v := range j.Positions {
 		res.Positions[k] = v
-	}
-	return res
-}
-
-func (j *journeycardConvData) PrepareToMutateDismissals() (res journeycardConvData) {
-	res = *j
-	res.Dismissals = make(map[chat1.JourneycardType]bool)
-	for k, v := range j.Dismissals {
-		res.Dismissals[k] = v
 	}
 	return res
 }
