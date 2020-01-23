@@ -1,4 +1,5 @@
 import * as TeamBuildingConstants from './team-building'
+import * as RPCTypes from './types/rpc-gen'
 import * as Types from './types/crypto'
 import HiddenString from '../util/hidden-string'
 import {IconType} from '../common-adapters/icon.constants-gen'
@@ -105,11 +106,19 @@ export const getOutputFileIcon = (operation: Types.Operations) => operationToOut
 export const getStringWaitingKey = (operation: Types.Operations) => operationToStringWaitingKey[operation]
 export const getFileWaitingKey = (operation: Types.Operations) => operationToFileWaitingKey[operation]
 
+export const getStatusCodeMessage = (code: number, operation: Types.Operations, type: Types.InputTypes) => {
+  const statusCodeToMessage = {
+    [RPCTypes.StatusCode.scstreamunknown]: `Invalid ${operation} input, ${type} must be valid Saltpack.`,
+    [RPCTypes.StatusCode
+      .scsigcannotverify]: `Wrong saltpack message type: wanted an attached signature, but got a signed and encrypted message instead`,
+  } as const
+  return statusCodeToMessage[code] || `Failed to ${operation} ${type}.`
+}
+
 const defaultCommonState = {
   bytesComplete: 0,
   bytesTotal: 0,
   errorMessage: new HiddenString(''),
-  errorType: undefined,
   input: new HiddenString(''),
   inputType: 'text' as Types.InputTypes,
   output: new HiddenString(''),
@@ -117,6 +126,7 @@ const defaultCommonState = {
   outputSigned: false,
   outputStatus: undefined,
   outputType: undefined,
+  warningMessage: new HiddenString(''),
 }
 
 export const makeState = (): Types.State => ({

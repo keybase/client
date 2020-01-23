@@ -10,8 +10,6 @@ import OperationOutput, {OutputBar, OutputInfoBanner, SignedSender} from '../../
 import Recipients from '../../recipients/container'
 
 type Props = {
-  errorType?: 'error' | 'warning'
-  errorMessage: string
   input: string
   inputType: Types.InputTypes
   noIncludeSelf: boolean
@@ -30,6 +28,8 @@ type Props = {
   progress: number
   recipients: Array<string>
   username?: string
+  errorMessage: string
+  warningMessage: string
 }
 
 type EncryptOptionsProps = {
@@ -78,7 +78,7 @@ const Encrypt = (props: Props) => {
         props.recipients?.length > 1 ? youAnd('your recipients') : youAnd(props.recipients[0])
       } can decipher it.`
     : ''
-  const bannertype = props.errorType ? props.errorType : 'info'
+  const bannertype = props.errorMessage ? 'error' : props.warningMessage ? 'warning' : 'info'
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
       <Kb.DragAndDrop
@@ -88,17 +88,11 @@ const Encrypt = (props: Props) => {
         onAttach={onAttach}
         prompt="Drop a file to encrypt"
       >
-        <Kb.Banner color="grey">
-          <OperationBanner
-            type={bannertype}
-            infoMessage="Encrypt to anyone, even if they're not on Keybase yet."
-            message={props.errorMessage}
-          />
-          <Kb.BannerParagraph
-            bannerColor="grey"
-            content="Encrypt to anyone, even if they're not on Keybase yet."
-          />
-        </Kb.Banner>
+        <OperationBanner
+          type={bannertype}
+          infoMessage="Encrypt to anyone, even if they're not on Keybase yet."
+          message={props.errorMessage}
+        />
         <Recipients operation="encrypt" />
         <Kb.Box2 direction="vertical" fullHeight={true}>
           {props.inputType === 'file' ? (

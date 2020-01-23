@@ -23,7 +23,7 @@ type FileProps = {
 
 type OperationBannerProps = {
   type: 'info' | 'warning' | 'error'
-  infoMessage: string
+  infoMessage?: string
   message: string
 }
 
@@ -176,7 +176,7 @@ export const OperationBanner = (props: OperationBannerProps) => {
     <Kb.Banner color={color} style={styles.banner}>
       <Kb.BannerParagraph
         bannerColor={color}
-        content={props.type === 'info' ? props.infoMessage : props.message}
+        content={props.type === 'info' && props.infoMessage ? props.infoMessage : props.message}
       />
     </Kb.Banner>
   )

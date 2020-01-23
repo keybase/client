@@ -41,12 +41,13 @@
       "output": "HiddenString",
       "outputSender?": "HiddenString",
       "outputSigned": "boolean",
-      "outputType": "Types.OutputType"
+      "outputType": "Types.OutputType",
+      "warning?": "boolean",
+      "warningMessage?": "HiddenString"
     },
     "onOperationError": {
       "_description": "On saltpack RPC error response",
       "operation": "Types.Operations",
-      "errorType": "Types.ErrorTypes",
       "errorMessage": "HiddenString"
     },
     "resetOperation": {

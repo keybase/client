@@ -13,7 +13,6 @@ export default Container.namedConnect(
     bytesComplete: state.crypto.encrypt.bytesComplete,
     bytesTotal: state.crypto.encrypt.bytesTotal,
     errorMessage: state.crypto.encrypt.errorMessage.stringValue(),
-    errorType: state.crypto.encrypt.errorType,
     hasRecipients: state.crypto.encrypt.meta.hasRecipients,
     hasSBS: state.crypto.encrypt.meta.hasSBS,
     input: state.crypto.encrypt.input.stringValue(),
@@ -25,6 +24,7 @@ export default Container.namedConnect(
     outputType: state.crypto.encrypt.outputType,
     recipients: state.crypto.encrypt.recipients,
     username: state.config.username,
+    warningMessage: state.crypto.encrypt.warningMessage.stringValue(),
   }),
   (dispatch: Container.TypedDispatch) => ({
     onClearInput: () => dispatch(CryptoGen.createClearInput({operation})),
@@ -38,7 +38,6 @@ export default Container.namedConnect(
   }),
   (stateProps, dispatchProps) => ({
     errorMessage: stateProps.errorMessage,
-    errorType: stateProps.errorType,
     hasRecipients: stateProps.hasRecipients,
     hasSBS: stateProps.hasSBS,
     input: stateProps.input,
@@ -57,6 +56,7 @@ export default Container.namedConnect(
     progress: stateProps.bytesComplete === 0 ? 0 : stateProps.bytesComplete / stateProps.bytesTotal,
     recipients: stateProps.recipients,
     username: stateProps.username,
+    warningMessage: stateProps.warningMessage,
   }),
   'EncryptContainer'
 )(Encrypt)

@@ -29,17 +29,15 @@ type _ClearInputPayload = {readonly operation: Types.Operations}
 type _ClearRecipientsPayload = {readonly operation: Types.Operations}
 type _DownloadEncryptedTextPayload = void
 type _DownloadSignedTextPayload = void
-type _OnOperationErrorPayload = {
-  readonly operation: Types.Operations
-  readonly errorType: Types.ErrorTypes
-  readonly errorMessage: HiddenString
-}
+type _OnOperationErrorPayload = {readonly operation: Types.Operations; readonly errorMessage: HiddenString}
 type _OnOperationSuccessPayload = {
   readonly operation: Types.Operations
   readonly output: HiddenString
   readonly outputSender?: HiddenString
   readonly outputSigned: boolean
   readonly outputType: Types.OutputType
+  readonly warning?: boolean
+  readonly warningMessage?: HiddenString
 }
 type _ResetOperationPayload = {readonly operation: Types.Operations}
 type _SaltpackDecryptPayload = {readonly input: HiddenString; readonly type: Types.InputTypes}
