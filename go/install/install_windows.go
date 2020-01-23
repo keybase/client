@@ -341,7 +341,7 @@ func ToggleAutostart(context Context, on bool, forAutoinstallIgnored bool) error
 	if on {
 		value = []byte{2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0} // magic value.
 	}
-	err := k.SetBinaryValue("KeybaseStartup.lnk")
+	err = k.SetBinaryValue("KeybaseStartup.lnk", value)
 	if err != nil {
 		return fmt.Errorf("Error reading registry value for KeybaseStartup.lnk: %v", err)
 	}
