@@ -35,6 +35,8 @@ func PGPDecryptWithBundles(g *GlobalContext, source io.Reader, sink io.Writer, k
 	return PGPDecrypt(g, source, sink, opkr)
 }
 
+// PGPDecrypt only generates warnings about insecure _message_ signatures, not
+// _key_ signatures - that is handled by engine.PGPDecrypot.
 func PGPDecrypt(g *GlobalContext, source io.Reader, sink io.Writer, kr openpgp.KeyRing) (*SignatureStatus, error) {
 
 	var sc StreamClassification
@@ -90,8 +92,6 @@ func PGPDecrypt(g *GlobalContext, source io.Reader, sink io.Writer, kr openpgp.K
 		status.KeyID = md.SignedByKeyId
 		if md.Signature != nil {
 			status.SignatureTime = md.Signature.CreationTime
-
-			// panic(HashToName[md.Signature.Hash])
 
 			if !IsHashSecure(md.Signature.Hash) {
 				status.Warnings = append(

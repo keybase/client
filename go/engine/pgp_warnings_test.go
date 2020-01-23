@@ -94,6 +94,8 @@ type encryptTest struct {
 }
 
 func (e encryptTest) test(t *testing.T) {
+	t.Logf("Processing PGP warnings test - %s", e.Name)
+
 	now := time.Now()
 	supportedHashes := []crypto.Hash{crypto.SHA1, crypto.SHA256}
 
@@ -160,6 +162,11 @@ func (e encryptTest) test(t *testing.T) {
 		return
 	}
 
+	cfg := &packet.Config{
+		DefaultHash: e.SigningHash,
+		Time:        func() time.Time { return now },
+	}
+
 	if e.Mode == "verify" {
 		// Rather than using PGPSign, we use our custom wrapper methods to make
 		// sure that we can set the low level variables.
@@ -170,11 +177,6 @@ func (e encryptTest) test(t *testing.T) {
 			clearsignSink = libkb.NewBufferCloser()
 			attachedSink  = libkb.NewBufferCloser()
 			detachedSink  = libkb.NewBufferCloser()
-
-			cfg = &packet.Config{
-				DefaultHash: e.SigningHash,
-				Time:        func() time.Time { return now },
-			}
 		)
 
 		var signedBy string
@@ -237,6 +239,72 @@ func (e encryptTest) test(t *testing.T) {
 
 		return
 	}
+
+	if e.Mode == "decrypt" {
+		// Mostly the same as decrypt, except we're using different code paths
+		// to achieve roughly the same effect.
+
+		var (
+			//clearsignSink       = libkb.NewBufferCloser()
+			//clearsignOutputSink = libkb.NewBufferCloser()
+			attachedSink       = libkb.NewBufferCloser()
+			attachedOutputSink = libkb.NewBufferCloser()
+		)
+
+		var signedBy string
+		if e.Known {
+			signedBy = u2.Username
+		}
+
+		// Start with the clearsign sig, which technically isn't even something
+		// decryptable.
+		/*
+			clearsignInput, err := clearsign.Encode(
+				clearsignSink,
+				recipient.PrivateKey,
+				cfg,
+			)
+			require.NoError(t, err, "clearsign failure")
+			_, err = clearsignInput.Write([]byte(pgpWarningsMsg))
+			require.NoError(t, err, "writing to clearsign")
+			require.NoError(t, err, clearsignInput.Close())
+			arg := &PGPDecryptArg{
+				Sink:     clearsignOutputSink,
+				Source:   clearsignSink,
+				SignedBy: signedBy,
+			}
+			eng := NewPGPDecrypt(tc1.G, arg)
+			require.NoError(t, RunEngine2(m, eng), "engine failure %s", e.Name)
+			require.Lenf(t, eng.SignatureStatus().Warnings, e.Count, "warnings count %s", e.Name)
+			require.Equal(t, []byte(pgpWarningsMsg), clearsignOutputSink.Bytes(), "output should be the same as the input")
+		*/
+
+		var arg *PGPDecryptArg
+		var eng *PGPDecrypt
+
+		// Then process the attached sig
+		attachedInput, _, err := libkb.ArmoredAttachedSign(
+			attachedSink,
+			*recipient,
+			nil,
+			cfg,
+		)
+		require.NoError(t, err, "attached sign failure")
+		require.NoError(t, err, attachedInput.Close())
+		_, err = attachedInput.Write([]byte(pgpWarningsMsg))
+		require.NoError(t, err, "writing to attached signer")
+		arg = &PGPDecryptArg{
+			Sink:     attachedOutputSink,
+			Source:   attachedSink,
+			SignedBy: signedBy,
+		}
+		eng = NewPGPDecrypt(tc1.G, arg)
+		require.NoError(t, RunEngine2(m, eng), "engine failure %s", e.Name)
+		require.Lenf(t, eng.SignatureStatus().Warnings, e.Count, "warnings count %s", e.Name)
+		require.Equal(t, []byte(pgpWarningsMsg), attachedOutputSink.Bytes(), "output should be the same as the input")
+
+		return
+	}
 }
 
 func TestPGPEncryptWarnings(t *testing.T) {
@@ -294,9 +362,9 @@ func TestPGPEncryptWarnings(t *testing.T) {
 			Known:         true,
 		},
 
-		// Verify - will run all 3 variants
+		// Verify - will run all 3 variants (clearsign / attached / detached)
 		{
-			Name:          "Verify of SHA1 sig a with a SHA1 self-sig, before cutoff",
+			Name:          "Verification of a SHA1 sig with a SHA1 self-sig, before cutoff",
 			SigningHash:   crypto.SHA1,
 			RecipientHash: crypto.SHA1,
 			Cutoff:        time.Now().Add(24 * time.Hour),
@@ -305,7 +373,7 @@ func TestPGPEncryptWarnings(t *testing.T) {
 			Known:         true,
 		},
 		{
-			Name:          "Verify of SHA1 sig a with a SHA1 self-sig, after cutoff",
+			Name:          "Verification of a SHA1 sig with a SHA1 self-sig, after cutoff",
 			SigningHash:   crypto.SHA1,
 			RecipientHash: crypto.SHA1,
 			Cutoff:        time.Now().Add(-1 * 24 * time.Hour),
@@ -313,7 +381,7 @@ func TestPGPEncryptWarnings(t *testing.T) {
 			Mode:          "verify",
 		},
 		{
-			Name:          "Verify of SHA256 sig a with a SHA1 self-sig, before cutoff",
+			Name:          "Verification of a SHA256 sig with a SHA1 self-sig, before cutoff",
 			SigningHash:   crypto.SHA256,
 			RecipientHash: crypto.SHA1,
 			Cutoff:        time.Now().Add(24 * time.Hour),
@@ -322,7 +390,7 @@ func TestPGPEncryptWarnings(t *testing.T) {
 			Known:         true,
 		},
 		{
-			Name:          "Verify of SHA1 sig a with a SHA256 self-sig, before cutoff",
+			Name:          "Verification of a SHA1 sig with a SHA256 self-sig, before cutoff",
 			SigningHash:   crypto.SHA1,
 			RecipientHash: crypto.SHA256,
 			Cutoff:        time.Now().Add(24 * time.Hour),
@@ -330,7 +398,7 @@ func TestPGPEncryptWarnings(t *testing.T) {
 			Mode:          "verify",
 		},
 		{
-			Name:          "Verify of SHA1 sig a with a SHA256 self-sig, after cutoff",
+			Name:          "Verification of a SHA1 sig with a SHA256 self-sig, after cutoff",
 			SigningHash:   crypto.SHA1,
 			RecipientHash: crypto.SHA256,
 			Cutoff:        time.Now().Add(-1 * 24 * time.Hour),
@@ -339,12 +407,65 @@ func TestPGPEncryptWarnings(t *testing.T) {
 			Known:         true,
 		},
 		{
-			Name:          "Verify of SHA256 sig a with a SHA256 self-sig, after cutoff",
+			Name:          "Verification of a SHA256 sig with a SHA256 self-sig, after cutoff",
 			SigningHash:   crypto.SHA256,
 			RecipientHash: crypto.SHA256,
 			Cutoff:        time.Now().Add(-1 * 24 * time.Hour),
 			Count:         0,
 			Mode:          "verify",
+		},
+
+		// Decrypt - will run all 2 variants (clearsign / attached)
+		{
+			Name:          "Decryption of a SHA1 sig with a SHA1 self-sig, before cutoff",
+			SigningHash:   crypto.SHA1,
+			RecipientHash: crypto.SHA1,
+			Cutoff:        time.Now().Add(24 * time.Hour),
+			Count:         1,
+			Mode:          "decrypt",
+			Known:         true,
+		},
+		{
+			Name:          "Decryption of a SHA1 sig with a SHA1 self-sig, after cutoff",
+			SigningHash:   crypto.SHA1,
+			RecipientHash: crypto.SHA1,
+			Cutoff:        time.Now().Add(-1 * 24 * time.Hour),
+			Count:         2,
+			Mode:          "decrypt",
+		},
+		{
+			Name:          "Decryption of a SHA256 sig with a SHA1 self-sig, before cutoff",
+			SigningHash:   crypto.SHA256,
+			RecipientHash: crypto.SHA1,
+			Cutoff:        time.Now().Add(24 * time.Hour),
+			Count:         0,
+			Mode:          "decrypt",
+			Known:         true,
+		},
+		{
+			Name:          "Decryption of a SHA1 sig with a SHA256 self-sig, before cutoff",
+			SigningHash:   crypto.SHA1,
+			RecipientHash: crypto.SHA256,
+			Cutoff:        time.Now().Add(24 * time.Hour),
+			Count:         1,
+			Mode:          "decrypt",
+		},
+		{
+			Name:          "Decryption of a SHA1 sig with a SHA256 self-sig, after cutoff",
+			SigningHash:   crypto.SHA1,
+			RecipientHash: crypto.SHA256,
+			Cutoff:        time.Now().Add(-1 * 24 * time.Hour),
+			Count:         1,
+			Mode:          "decrypt",
+			Known:         true,
+		},
+		{
+			Name:          "Decryption of a SHA256 sig with a SHA256 self-sig, after cutoff",
+			SigningHash:   crypto.SHA256,
+			RecipientHash: crypto.SHA256,
+			Cutoff:        time.Now().Add(-1 * 24 * time.Hour),
+			Count:         0,
+			Mode:          "decrypt",
 		},
 	} {
 		/*x := x
