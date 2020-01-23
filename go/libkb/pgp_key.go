@@ -676,7 +676,11 @@ func (k PGPKeyBundle) KeyInfo() (algorithm, kid, creation string) {
 }
 
 // Generates hash security warnings given a CKF
-func (k PGPKeyBundle) SecurityWarnings(mctx MetaContext, kind HashSecurityWarningType, ckf *ComputedKeyFamily) (warnings HashSecurityWarnings) {
+func (k PGPKeyBundle) SecurityWarnings(
+	mctx MetaContext,
+	kind HashSecurityWarningType,
+	ckf *ComputedKeyFamily,
+) (warnings HashSecurityWarnings) {
 	for _, identity := range k.Entity.Identities {
 		if identity.SelfSignature == nil ||
 			IsHashSecure(identity.SelfSignature.Hash) {
@@ -685,7 +689,9 @@ func (k PGPKeyBundle) SecurityWarnings(mctx MetaContext, kind HashSecurityWarnin
 
 		if ckf != nil {
 			cki, err := ckf.getCkiIfActiveNow(k.GetKID())
-			if err == nil && time.Unix(cki.DelegatedAt.Unix, 0).Before(ckf.G().Env.GetSHA1SecurityWarningsCutoff()) {
+			if err == nil && time.Unix(cki.DelegatedAt.Unix, 0).Before(
+				ckf.G().Env.GetPGPSHA1SecurityWarningsCutoff(),
+			) {
 				continue
 			}
 		}

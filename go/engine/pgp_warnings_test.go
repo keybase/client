@@ -129,7 +129,7 @@ func (e encryptTest) test(t *testing.T, users map[string]map[crypto.Hash]*pgpWar
 		}
 	}
 	alice := users["alice"][crypto.SHA256]
-	alice.tc.Tp.SHA1SecurityWarningsCutoff = e.Cutoff
+	alice.tc.Tp.PGPSHA1SecurityWarningsCutoff = e.Cutoff
 
 	// We'll only run engines as Alice because Bob is a phony who uses SHA1
 	m := NewMetaContextForTest(alice.tc).WithUIs(libkb.UIs{
@@ -188,7 +188,7 @@ func (e encryptTest) test(t *testing.T, users map[string]map[crypto.Hash]*pgpWar
 			Recips: []string{bob.user.Username},
 			Source: strings.NewReader(pgpWarningsMsg),
 			Sink:   sink,
-			NoSign: e.Mode == "encrypt-and-sign",
+			NoSign: e.Mode == "encrypt",
 		}
 		eng := NewPGPEncrypt(alice.tc.G, arg)
 		require.NoErrorf(t, RunEngine2(m, eng), "engine failure %s", e.Name)
