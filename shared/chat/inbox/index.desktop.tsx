@@ -16,6 +16,7 @@ import {inboxWidth, getRowHeight, smallRowHeight, dividerHeight} from './row/siz
 import {makeRow} from './row'
 import {virtualListMarks} from '../../local-debug'
 import shallowEqual from 'shallowequal'
+import {PerfWrapper} from '../../util/use-perf'
 
 type State = {
   dragY: number
@@ -514,4 +515,14 @@ const styles = Styles.styleSheetCreate(
 export type RowItem = T.RowItem
 export type RowItemSmall = T.RowItemSmall
 export type RowItemBig = T.RowItemBig
-export default Inbox
+export default (p: any) => (
+  <PerfWrapper
+    style={{
+      maxWidth: inboxWidth,
+      minWidth: inboxWidth,
+      height: '100%',
+    }}
+  >
+    <Inbox {...p} />
+  </PerfWrapper>
+)
