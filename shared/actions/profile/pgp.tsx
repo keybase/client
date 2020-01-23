@@ -1,10 +1,11 @@
+import * as Container from '../../util/container'
 import * as ProfileGen from '../profile-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
 import * as RouteTreeGen from '../route-tree-gen'
 import {peopleTab} from '../../constants/tabs'
 
-function* generatePgp(state) {
+function* generatePgp(state: Container.TypedState) {
   let canceled = false
 
   const ids = [state.profile.pgpEmail1, state.profile.pgpEmail2, state.profile.pgpEmail3]
@@ -14,39 +15,6 @@ function* generatePgp(state) {
       email: email || '',
       username: state.profile.pgpFullName || '',
     }))
-
-  const onKeyGenerated = ({key}, response) => {
-    if (canceled) {
-      response.error({code: RPCTypes.StatusCode.scinputcanceled, desc: 'Input canceled'})
-      return undefined
-    } else {
-      response.result()
-      return Saga.put(ProfileGen.createUpdatePgpPublicKey({publicKey: key.key}))
-    }
-  }
-
-  const onShouldPushPrivate = ({prompt}, response) => {
-    return Saga.callUntyped(function*() {
-      yield Saga.put(
-        RouteTreeGen.createNavigateAppend({
-          path: [
-            peopleTab,
-            'profile',
-            'profilePgp',
-            'profileProvideInfo',
-            'profileGenerate',
-            'profileFinished',
-          ],
-        })
-      )
-      yield Saga.put(
-        ProfileGen.createUpdatePromptShouldStoreKeyOnServer({promptShouldStoreKeyOnServer: prompt})
-      )
-      const action: ProfileGen.FinishedWithKeyGenPayload = yield Saga.take(ProfileGen.finishedWithKeyGen)
-      response.result(action.payload.shouldStoreKeyOnServer)
-    })
-  }
-  const onFinished = () => {}
 
   yield Saga.put(
     RouteTreeGen.createNavigateAppend({
@@ -61,10 +29,40 @@ function* generatePgp(state) {
   try {
     yield RPCTypes.pgpPgpKeyGenDefaultRpcSaga({
       customResponseIncomingCallMap: {
-        'keybase.1.pgpUi.keyGenerated': onKeyGenerated,
-        'keybase.1.pgpUi.shouldPushPrivate': onShouldPushPrivate,
+        'keybase.1.pgpUi.keyGenerated': ({key}, response) => {
+          if (canceled) {
+            response.error({code: RPCTypes.StatusCode.scinputcanceled, desc: 'Input canceled'})
+            return undefined
+          } else {
+            response.result()
+            return Saga.put(ProfileGen.createUpdatePgpPublicKey({publicKey: key.key}))
+          }
+        },
+        'keybase.1.pgpUi.shouldPushPrivate': ({prompt}, response) => {
+          return Saga.callUntyped(function*() {
+            yield Saga.put(
+              RouteTreeGen.createNavigateAppend({
+                path: [
+                  peopleTab,
+                  'profile',
+                  'profilePgp',
+                  'profileProvideInfo',
+                  'profileGenerate',
+                  'profileFinished',
+                ],
+              })
+            )
+            yield Saga.put(
+              ProfileGen.createUpdatePromptShouldStoreKeyOnServer({promptShouldStoreKeyOnServer: prompt})
+            )
+            const action: ProfileGen.FinishedWithKeyGenPayload = yield Saga.take(
+              ProfileGen.finishedWithKeyGen
+            )
+            response.result(action.payload.shouldStoreKeyOnServer)
+          })
+        },
       },
-      incomingCallMap: {'keybase.1.pgpUi.finished': onFinished},
+      incomingCallMap: {'keybase.1.pgpUi.finished': () => {}},
       params: {createUids: {ids, useDefault: false}},
     })
   } catch (e) {

@@ -15,6 +15,7 @@ import * as RouteTreeGen from '../route-tree-gen'
 import {tlfToPreferredOrder} from '../../util/kbfs'
 import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
 import {NotifyPopup} from '../../native/notifications'
+import {RPCError} from '../../util/errors'
 
 const rpcFolderTypeToTlfType = (rpcFolderType: RPCTypes.FolderType) => {
   switch (rpcFolderType) {
@@ -90,10 +91,11 @@ const loadAdditionalTlf = async (state: Container.TypedState, action: FsGen.Load
         tlfPath: action.payload.tlfPath,
       })
     )
-  } catch (e) {
+  } catch (err) {
+    const e: RPCError = err
     if (e.code === RPCTypes.StatusCode.scteamcontactsettingsblock) {
-      const users = e.fields?.filter(elem => elem.key === 'usernames')
-      const usernames = users?.map(elem => elem.value)
+      const users = e.fields?.filter((elem: any) => elem.key === 'usernames')
+      const usernames = users?.map((elem: any) => elem.value)
       // Don't leave the user on a broken FS dir screen.
       return [
         RouteTreeGen.createNavigateUp(),
@@ -559,7 +561,7 @@ function* loadPathMetadata(_: Container.TypedState, action: FsGen.LoadPathMetada
   }
 }
 
-const letResetUserBackIn = async ({payload: {id, username}}) => {
+const letResetUserBackIn = async ({payload: {id, username}}: FsGen.LetResetUserBackInPayload) => {
   await RPCTypes.teamsTeamReAddMemberAfterResetRpcPromise({id, username})
 }
 
@@ -651,14 +653,14 @@ const waitForKbfsDaemon = async () => {
   }
 }
 
-const startManualCR = async action => {
+const startManualCR = async (action: FsGen.StartManualConflictResolutionPayload) => {
   await RPCTypes.SimpleFSSimpleFSClearConflictStateRpcPromise({
     path: Constants.pathToRPCPath(action.payload.tlfPath),
   })
   return FsGen.createFavoritesLoad()
 }
 
-const finishManualCR = async action => {
+const finishManualCR = async (action: FsGen.FinishManualConflictResolutionPayload) => {
   await RPCTypes.SimpleFSSimpleFSFinishResolvingConflictRpcPromise({
     path: Constants.pathToRPCPath(action.payload.localViewTlfPath),
   })
@@ -670,7 +672,7 @@ const finishManualCR = async action => {
 // until we get through. After each try we delay for 2s, so this should give us
 // e.g. 12s when n == 6. If it still doesn't work after 12s, something's wrong
 // and we deserve a black bar.
-const checkIfWeReConnectedToMDServerUpToNTimes = async (n: number) => {
+const checkIfWeReConnectedToMDServerUpToNTimes = async (n: number): Promise<Container.TypedActions> => {
   try {
     const onlineStatus = await RPCTypes.SimpleFSSimpleFSGetOnlineStatusRpcPromise()
     return FsGen.createKbfsDaemonOnlineStatusChanged({onlineStatus})
@@ -703,7 +705,7 @@ const checkKbfsServerReachabilityIfNeeded = async (action: ConfigGen.OsNetworkSt
 }
 
 const onNotifyFSOverallSyncSyncStatusChanged = (
-  state,
+  state: Container.TypedState,
   action: EngineGen.Keybase1NotifyFSFSOverallSyncStatusChangedPayload
 ) => {
   const diskSpaceStatus = action.payload.params.status.outOfSyncSpace
@@ -1000,8 +1002,8 @@ function* fsSaga() {
   yield* Saga.chainAction2(FsGen.userOut, userOut)
   yield* Saga.chainAction2(FsGen.loadSettings, loadSettings)
   yield* Saga.chainAction(FsGen.setSpaceAvailableNotificationThreshold, setSpaceNotificationThreshold)
-  yield* Saga.chainAction2(FsGen.startManualConflictResolution, startManualCR)
-  yield* Saga.chainAction2(FsGen.finishManualConflictResolution, finishManualCR)
+  yield* Saga.chainAction(FsGen.startManualConflictResolution, startManualCR)
+  yield* Saga.chainAction(FsGen.finishManualConflictResolution, finishManualCR)
   yield* Saga.chainAction(FsGen.loadPathInfo, loadPathInfo)
   yield* Saga.chainAction(FsGen.loadFileContext, loadFileContext)
   yield* Saga.chainAction2(FsGen.loadFilesTabBadge, loadFilesTabBadge)

@@ -23,6 +23,7 @@ import openSMS from '../util/sms'
 import {convertToError, logError} from '../util/errors'
 import {TypedState, TypedActions, isMobile} from '../util/container'
 import {mapGetEnsureValue} from '../util/map'
+import {RPCError} from '../util/errors'
 
 async function createNewTeam(action: TeamsGen.CreateNewTeamPayload) {
   const {fromChat, joinSubteam, teamname, thenAddMembers} = action.payload
@@ -260,7 +261,7 @@ function* inviteByEmail(_: TypedState, action: TeamsGen.InviteToTeamByEmailPaylo
   }
 }
 
-const addReAddErrorHandler = (username, e) => {
+const addReAddErrorHandler = (username: string, e: RPCError) => {
   // identify error
   if (e.code === RPCTypes.StatusCode.scidentifysummaryerror) {
     // show profile card
@@ -296,7 +297,7 @@ const addToTeam = async (action: TeamsGen.AddToTeamPayload) => {
   } catch (err) {
     // If all of the users couldn't be added due to contact settings, the RPC fails.
     if (err.code === RPCTypes.StatusCode.scteamcontactsettingsblock) {
-      const users = err.fields?.filter(elem => elem.key === 'usernames').map(elem => elem.value)
+      const users = err.fields?.filter((elem: any) => elem.key === 'usernames').map((elem: any) => elem.value)
       const usernames = users[0].split(',')
       return [
         TeamBuildingGen.createFinishedTeamBuilding({namespace: 'teams'}),
@@ -1083,7 +1084,8 @@ function* setPublicity(state: TypedState, action: TeamsGen.SetPublicityPayload) 
     )
   }
 
-  const results = yield Saga.all(calls)
+  // TODO fix type
+  const results: any = yield Saga.all(calls)
 
   // Display any errors from the rpcs
   const errs = results
@@ -1131,7 +1133,6 @@ const refreshTeamRoleMap = async (
 }
 
 const teamDeletedOrExit = (
-  _,
   action: EngineGen.Keybase1NotifyTeamTeamDeletedPayload | EngineGen.Keybase1NotifyTeamTeamExitPayload
 ) => {
   const {teamID} = action.payload.params
@@ -1142,7 +1143,7 @@ const teamDeletedOrExit = (
   return []
 }
 
-const reloadTeamListIfSubscribed = (state: TypedState, _, logger: Saga.SagaLogger) => {
+const reloadTeamListIfSubscribed = (state: TypedState, _: unknown, logger: Saga.SagaLogger) => {
   if (state.teams.teamDetailsMetaSubscribeCount > 0) {
     logger.info('eagerly reloading')
     return TeamsGen.createGetTeams()
@@ -1172,7 +1173,7 @@ const updateTopic = async (state: TypedState, action: TeamsGen.UpdateTopicPayloa
 function* addTeamWithChosenChannels(
   state: TypedState,
   action: TeamsGen.AddTeamWithChosenChannelsPayload,
-  logger
+  logger: Saga.SagaLogger
 ) {
   const existingTeams = state.teams.teamsWithChosenChannels
   const {teamID} = action.payload
@@ -1468,7 +1469,7 @@ const teamsSaga = function*() {
     teamRoleMapChangedUpdateLatestKnownVersion
   )
 
-  yield* Saga.chainAction2(
+  yield* Saga.chainAction(
     [EngineGen.keybase1NotifyTeamTeamDeleted, EngineGen.keybase1NotifyTeamTeamExit],
     teamDeletedOrExit
   )

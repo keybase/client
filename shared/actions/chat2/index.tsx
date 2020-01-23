@@ -941,7 +941,7 @@ const loadThreadMessageTypes = Object.keys(RPCChatTypes.MessageType).reduce<Arra
         break
       default:
         {
-          const val = RPCChatTypes.MessageType[key]
+          const val = RPCChatTypes.MessageType[key as any]
           if (typeof val === 'number') {
             arr.push(val)
           }
@@ -2730,8 +2730,9 @@ function* createConversation(
       }
       yield Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'justCreated'}))
     }
-  } catch (error) {
-    let disallowedUsers = error.fields?.filter(elem => elem.key === 'usernames')
+  } catch (_error) {
+    const error = _error as RPCError
+    let disallowedUsers = error.fields?.filter((elem: any) => elem.key === 'usernames')
     if (disallowedUsers?.length) {
       const {value} = disallowedUsers[0]
       disallowedUsers = value.split(',')

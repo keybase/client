@@ -255,7 +255,13 @@ class Inbox extends React.Component<T.Props, State> {
     }
   }
 
-  private onItemsRendered = ({visibleStartIndex, visibleStopIndex}) => {
+  private onItemsRendered = ({
+    visibleStartIndex,
+    visibleStopIndex,
+  }: {
+    visibleStartIndex: number
+    visibleStopIndex: number
+  }) => {
     this.lastVisibleIdx = visibleStopIndex
     this.calculateShowUnreadShortcutThrottled()
     this.onItemsRenderedDebounced({visibleStartIndex, visibleStopIndex})
