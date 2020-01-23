@@ -134,6 +134,7 @@ func (e encryptTest) test(t *testing.T) {
 	// Recipient account
 	var u2 *FakeUser
 	if e.Known {
+		tc2.Tp.APIHeaders = map[string]string{"X-Keybase-Sigchain-Compatibility": "1"}
 		u2 = createFakeUserWithPGPSibkeyPregen(tc2, recipientBundle)
 	} else {
 		// If we're not publishing the key, we're just importing it into our

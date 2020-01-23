@@ -671,6 +671,12 @@ func (a *InternalAPIEngine) fixHeaders(m MetaContext, arg APIArg, req *http.Requ
 		}
 	}
 
+	if extras := m.G().Env.Test.APIHeaders; extras != nil {
+		for k, v := range extras {
+			req.Header.Set(k, v)
+		}
+	}
+
 	return nil
 }
 
