@@ -597,6 +597,15 @@
           "name": "error",
           "jsonkey": "error",
           "optional": true
+        },
+        {
+          "type": [
+            null,
+            "ConversationCreatorInfoLocal"
+          ],
+          "name": "creatorInfo",
+          "jsonkey": "creator_info",
+          "optional": true
         }
       ],
       "doc": "A chat conversation. This is essentially a chat channel plus some additional metadata."

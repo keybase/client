@@ -426,18 +426,19 @@ func (o Thread) DeepCopy() Thread {
 
 // A chat conversation. This is essentially a chat channel plus some additional metadata.
 type ConvSummary struct {
-	Id            ConvIDStr                 `codec:"id" json:"id"`
-	Channel       ChatChannel               `codec:"channel" json:"channel"`
-	IsDefaultConv bool                      `codec:"isDefaultConv" json:"is_default_conv"`
-	Unread        bool                      `codec:"unread" json:"unread"`
-	ActiveAt      int64                     `codec:"activeAt" json:"active_at"`
-	ActiveAtMs    int64                     `codec:"activeAtMs" json:"active_at_ms"`
-	MemberStatus  string                    `codec:"memberStatus" json:"member_status"`
-	ResetUsers    []string                  `codec:"resetUsers,omitempty" json:"reset_users,omitempty"`
-	FinalizeInfo  *ConversationFinalizeInfo `codec:"finalizeInfo,omitempty" json:"finalize_info,omitempty"`
-	Supersedes    []string                  `codec:"supersedes,omitempty" json:"supersedes,omitempty"`
-	SupersededBy  []string                  `codec:"supersededBy,omitempty" json:"superseded_by,omitempty"`
-	Error         string                    `codec:"error,omitempty" json:"error,omitempty"`
+	Id            ConvIDStr                     `codec:"id" json:"id"`
+	Channel       ChatChannel                   `codec:"channel" json:"channel"`
+	IsDefaultConv bool                          `codec:"isDefaultConv" json:"is_default_conv"`
+	Unread        bool                          `codec:"unread" json:"unread"`
+	ActiveAt      int64                         `codec:"activeAt" json:"active_at"`
+	ActiveAtMs    int64                         `codec:"activeAtMs" json:"active_at_ms"`
+	MemberStatus  string                        `codec:"memberStatus" json:"member_status"`
+	ResetUsers    []string                      `codec:"resetUsers,omitempty" json:"reset_users,omitempty"`
+	FinalizeInfo  *ConversationFinalizeInfo     `codec:"finalizeInfo,omitempty" json:"finalize_info,omitempty"`
+	Supersedes    []string                      `codec:"supersedes,omitempty" json:"supersedes,omitempty"`
+	SupersededBy  []string                      `codec:"supersededBy,omitempty" json:"superseded_by,omitempty"`
+	Error         string                        `codec:"error,omitempty" json:"error,omitempty"`
+	CreatorInfo   *ConversationCreatorInfoLocal `codec:"creatorInfo,omitempty" json:"creator_info,omitempty"`
 }
 
 func (o ConvSummary) DeepCopy() ConvSummary {
@@ -490,6 +491,13 @@ func (o ConvSummary) DeepCopy() ConvSummary {
 			return ret
 		})(o.SupersededBy),
 		Error: o.Error,
+		CreatorInfo: (func(x *ConversationCreatorInfoLocal) *ConversationCreatorInfoLocal {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.CreatorInfo),
 	}
 }
 

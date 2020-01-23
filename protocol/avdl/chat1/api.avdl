@@ -234,6 +234,9 @@ protocol api {
     @jsonkey("error")
     @optional(true)
     string error;
+    @jsonkey("creator_info")
+    @optional(true)
+    union { null, ConversationCreatorInfoLocal } creatorInfo;
   }
 
   // ChatList is a list of conversations in the inbox.
