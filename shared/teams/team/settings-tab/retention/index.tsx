@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Styles from '../../../../styles'
 import * as Kb from '../../../../common-adapters'
+import * as TeamsTypes from '../../../../constants/types/teams'
 import {RetentionPolicy} from '../../../../constants/types/retention-policy'
 import {retentionPolicies, baseRetentionPolicies} from '../../../../constants/teams'
 import SaveIndicator from '../../../../common-adapters/save-indicator'
@@ -19,6 +20,7 @@ export type Props = {
   showInheritOption: boolean
   showOverrideNotice: boolean
   showSaveIndicator: boolean
+  teamID: TeamsTypes.TeamID
   type: 'simple' | 'auto'
   saveRetentionPolicy: (policy: RetentionPolicy) => void
   onSelect?: (policy: RetentionPolicy, changed: boolean, decreased: boolean) => void
@@ -417,14 +419,10 @@ const RetentionSwitcher = (
     entityType: RetentionEntityType
   } & Props
 ) => {
-  const {load} = props
-  React.useEffect(
-    () => {
-      load?.()
-    },
-    // eslint-disable-next-line
-    []
-  )
+  const {load, teamID} = props
+  React.useEffect(() => {
+    load?.()
+  }, [teamID])
   if (props.loading) {
     return <Kb.ProgressIndicator style={styles.progressIndicator} />
   }
