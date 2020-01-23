@@ -91,7 +91,7 @@ const Encrypt = (props: Props) => {
         <OperationBanner
           type={bannertype}
           infoMessage="Encrypt to anyone, even if they're not on Keybase yet."
-          message={props.errorMessage}
+          message={props.errorMessage || props.warningMessage}
         />
         <Recipients operation="encrypt" />
         <Kb.Box2 direction="vertical" fullHeight={true}>

@@ -106,6 +106,8 @@ export const getOutputFileIcon = (operation: Types.Operations) => operationToOut
 export const getStringWaitingKey = (operation: Types.Operations) => operationToStringWaitingKey[operation]
 export const getFileWaitingKey = (operation: Types.Operations) => operationToFileWaitingKey[operation]
 
+export const getWarningMessageForSBS = (sbsAssertion: string) =>
+  `Note: Encrypted for "${sbsAssertion}" who is not yet a keybase user. One of your devices will need to be online after they join keybase in order for them to decrypt the message. `
 export const getStatusCodeMessage = (code: number, operation: Types.Operations, type: Types.InputTypes) => {
   const statusCodeToMessage = {
     [RPCTypes.StatusCode.scstreamunknown]: `Invalid ${operation} input, ${type} must be valid Saltpack.`,

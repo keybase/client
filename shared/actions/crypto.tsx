@@ -241,6 +241,7 @@ const saltpackEncrypt = async (
           },
           Constants.encryptStringWaitingKey
         )
+        const warningMessage = Constants.getWarningMessageForSBS(encryptRes.unresolvedSBSAssertion)
         return CryptoGen.createOnOperationSuccess({
           operation: Constants.Operations.Encrypt,
           output: new HiddenString(encryptRes.ciphertext),
@@ -248,7 +249,7 @@ const saltpackEncrypt = async (
           outputSigned: options.sign,
           outputType: type,
           warning: encryptRes.usedUnresolvedSBS,
-          warningMessage: new HiddenString(encryptRes.unresolvedSBSAssertion),
+          warningMessage: new HiddenString(warningMessage),
         })
       } catch (err) {
         logger.error(err)
