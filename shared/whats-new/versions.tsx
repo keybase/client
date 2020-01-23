@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
+import {encryptTab} from '../constants/crypto'
 import {displayTab} from '../constants/settings'
 import {keybaseFM} from '../constants/whats-new'
 import NewFeatureRow from './new-feature-row'
@@ -32,11 +33,20 @@ export const VersionTitle = ({title}: {title: string}) => (
   </Kb.Box2>
 )
 
-export const Current = ({seen}: VersionProps) => {
+export const Current = ({seen, onNavigate, onNavigateExternal}: VersionProps) => {
   return (
     <Version>
-      <NewFeatureRow noSeparator={true} seen={seen} image="release-5.2.0-crypto">
-        Crypto: encrypt, decrypt, sign, and verify all from within Keybase.
+      <NewFeatureRow
+        image="release-5.2.0-crypto"
+        noSeparator={true}
+        onPrimaryButtonClick={() => {
+          onNavigate({path: [{selected: encryptTab}]})
+        }}
+        primaryButtonClassName="buttonNyctographicHover"
+        primaryButtonText={Styles.isMobile ? '' : 'Try it'}
+        seen={seen}
+      >
+        Encrypt, decrypt, sign, and verify all from within Keybase (desktop-only).
         {` `}
         <Kb.Emoji
           allowFontScaling={true}
@@ -44,7 +54,14 @@ export const Current = ({seen}: VersionProps) => {
           emojiName=":closed_lock_with_key:"
         />
       </NewFeatureRow>
-      <NewFeatureRow seen={seen} image="release-5.2.0-bots">
+      <NewFeatureRow
+        seen={seen}
+        image="release-5.2.0-bots"
+        secondaryButtonText="Read more"
+        onSecondaryButtonClick={() => {
+          onNavigateExternal('https://keybase.io/blog/bots')
+        }}
+      >
         Bots: you can now install bots into your conversations. Kick off a meeting with Google Meet Bot, watch
         for commits with GitHub Bot, create new issues in JIRA, and more, all without leaving Keybase.
       </NewFeatureRow>
@@ -82,7 +99,7 @@ export const LastLast = ({seen, onNavigate, onNavigateExternal}: VersionProps) =
         image="release-4.7.0-dark-mode"
         primaryButtonText="Open display settings"
         onPrimaryButtonClick={() => {
-          onNavigate({path: [{props: {}, selected: displayTab}]})
+          onNavigate({path: [{selected: displayTab}]})
         }}
       >
         Dark mode is here! You can access theme settings under the Display section in Settings.

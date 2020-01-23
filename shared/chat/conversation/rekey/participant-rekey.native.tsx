@@ -11,7 +11,7 @@ import {
 import * as Styles from '../../../styles'
 import {Props} from './participant-rekey.types'
 
-const Row = ({username, onUsernameClicked}) => (
+const Row = ({username, onUsernameClicked}: {username: string; onUsernameClicked: (s: string) => void}) => (
   <ClickableBox onClick={() => onUsernameClicked(username)}>
     <Box style={styles.row}>
       <Avatar username={username} size={48} style={{marginRight: Styles.globalMargins.small, padding: 4}} />

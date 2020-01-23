@@ -100,6 +100,7 @@ type configGetter interface {
 	GetChatDelivererInterval() (time.Duration, bool)
 	GetFeatureFlags() (FeatureFlags, error)
 	GetLevelDBNumFiles() (int, bool)
+	GetLevelDBWriteBufferMB() (int, bool)
 	GetChatInboxSourceLocalizeThreads() (int, bool)
 	GetPayloadCacheSize() (int, bool)
 	GetRememberPassphrase(NormalizedUsername) (bool, bool)

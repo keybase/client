@@ -201,7 +201,10 @@ const Tab = React.memo(({tab, index, selectedTab, onTabClick, badge}: TabProps) 
           <Kb.Icon className="tab-icon" type={data[tab].icon} sizeType="Big" />
           {tab === Tabs.fsTab && <FilesTabBadge />}
         </Kb.Box2>
-        <Kb.Text className="tab-label" type="BodySmallSemibold">
+        <Kb.Text
+          className={`tab-label tab-${data[tab].label.toLowerCase().replace(' ', '-')}`}
+          type="BodySmallSemibold"
+        >
           {data[tab].label}
         </Kb.Text>
         {!!badge && <Kb.Badge className="tab-badge" badgeNumber={badge} />}

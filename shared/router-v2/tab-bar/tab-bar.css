@@ -75,6 +75,14 @@
   display: none !important;
 }
 
+.tab .tab-crypto {
+  font-family: Nyctographic;
+}
+.tab .tab-selected .tab-crypto,
+.tab:hover .tab-crypto {
+  font-family: Keybase;
+}
+
 @media all and (max-width: 800px) and (min-width: 0px) {
   .tab-container {
     width: 80px;

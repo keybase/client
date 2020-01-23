@@ -66,8 +66,11 @@ const Decrypt = (props: Props) => {
               }}
             />
           )}
-          <Kb.ProgressBar ratio={props.progress} style={{width: '100%'}} />
-
+          {props.progress && !props.outputStatus ? (
+            <Kb.ProgressBar ratio={props.progress} style={{width: '100%'}} />
+          ) : (
+            <Kb.Divider />
+          )}
           <Kb.Box2 direction="vertical" fullHeight={true}>
             <SignedSender
               signed={true}
@@ -84,6 +87,7 @@ const Decrypt = (props: Props) => {
               onShowInFinder={props.onShowInFinder}
             />
             <OutputBar
+              operation={Constants.Operations.Decrypt}
               output={props.output}
               outputStatus={props.outputStatus}
               outputType={props.outputType}

@@ -13,8 +13,8 @@ type Props = {
 }
 
 const InboxAndConversation = (props: Props) => {
-  const state = Container.useSelector(s => s)
-  const {inboxSearch, infoPanelShowing} = state.chat2
+  const inboxSearch = Container.useSelector(state => state.chat2.inboxSearch)
+  const infoPanelShowing = Container.useSelector(state => state.chat2.infoPanelShowing)
 
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>

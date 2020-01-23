@@ -32,22 +32,13 @@ type ExtraProps = {
   onBack: () => void
 }
 
-// keep track in the module
-let moduleExpandedSet = new Set<string>()
-
 const GitReloadable = (p: Omit<GitProps & ExtraProps, 'onToggleExpand'>) => {
-  const {clearBadges, expandedSet: initialExpandedSet, _loadGit, ...rest} = p
-  const [expandedSet, setExpandedSet] = React.useState(new Set<string>(initialExpandedSet))
+  const {clearBadges, _loadGit, ...rest} = p
 
   React.useEffect(() => {
-    moduleExpandedSet = expandedSet
     return () => clearBadges()
-  }, [expandedSet, clearBadges])
+  }, [clearBadges])
 
-  const toggleExpand = (id: string) => {
-    moduleExpandedSet.has(id) ? moduleExpandedSet.delete(id) : moduleExpandedSet.add(id)
-    setExpandedSet(new Set(moduleExpandedSet))
-  }
   return (
     <Kb.Reloadable
       waitingKeys={Constants.loadingWaitingKey}
@@ -55,7 +46,7 @@ const GitReloadable = (p: Omit<GitProps & ExtraProps, 'onToggleExpand'>) => {
       onReload={_loadGit}
       reloadOnMount={true}
     >
-      <Git expandedSet={expandedSet} onToggleExpand={toggleExpand} {...rest} />
+      <Git {...rest} />
     </Kb.Reloadable>
   )
 }
@@ -72,7 +63,7 @@ const emptySet = new Set<string>()
 export default Container.connect(
   (state: Container.TypedState, ownProps: OwnProps) => ({
     error: Constants.getError(state),
-    expandedSet: Container.getRouteProps(ownProps, 'expandedSet', emptySet),
+    initialExpandedSet: Container.getRouteProps(ownProps, 'expandedSet', emptySet),
     loading: anyWaiting(state, Constants.loadingWaitingKey),
     ...getRepos(Constants.getIdToGit(state)),
   }),

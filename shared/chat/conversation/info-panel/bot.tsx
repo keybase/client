@@ -233,7 +233,7 @@ export default (props: Props) => {
         ...(!loadedAllBots && featuredBots.length > 0 ? [loadMoreBotsButton] : []),
         ...(loadingBots ? [featuredBotSpinner] : []),
       ],
-      renderItem: ({item}) => {
+      renderItem: ({item}: {item: any}) => {
         if (item === addBotButton) {
           return (
             <Kb.Button
@@ -287,7 +287,7 @@ export default (props: Props) => {
     <Kb.SectionList
       stickySectionHeadersEnabled={true}
       keyboardShouldPersistTaps="handled"
-      renderSectionHeader={({section}) => section?.renderSectionHeader?.({section}) ?? null}
+      renderSectionHeader={({section}: any) => section?.renderSectionHeader?.({section}) ?? null}
       sections={[...props.commonSections, ...sections]}
     />
   )

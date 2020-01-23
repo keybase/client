@@ -35,11 +35,11 @@ class KeyEventHandler extends React.Component<Props & HandlerProps> {
     this.props.remove(this)
   }
 
-  onKeyDown = ev => {
+  onKeyDown = (ev: KeyboardEvent) => {
     this.props.onKeyDown && this.props.onKeyDown(ev)
   }
 
-  onKeyPress = ev => {
+  onKeyPress = (ev: KeyboardEvent) => {
     this.props.onKeyPress && this.props.onKeyPress(ev)
   }
 

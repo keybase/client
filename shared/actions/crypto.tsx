@@ -201,14 +201,17 @@ const saltpackEncrypt = async (
   switch (type) {
     case 'file': {
       try {
-        const fileRes = await RPCTypes.saltpackSaltpackEncryptFileRpcPromise({
-          filename: input.stringValue(),
-          opts: {
-            includeSelf: options.includeSelf,
-            recipients: recipients,
-            signed: options.sign,
+        const fileRes = await RPCTypes.saltpackSaltpackEncryptFileRpcPromise(
+          {
+            filename: input.stringValue(),
+            opts: {
+              includeSelf: options.includeSelf,
+              recipients: recipients,
+              signed: options.sign,
+            },
           },
-        })
+          Constants.encryptFileWaitingKey
+        )
         return CryptoGen.createOnOperationSuccess({
           operation: Constants.Operations.Encrypt,
           output: new HiddenString(fileRes.filename),
@@ -227,14 +230,17 @@ const saltpackEncrypt = async (
     }
     case 'text': {
       try {
-        const encryptRes = await RPCTypes.saltpackSaltpackEncryptStringRpcPromise({
-          opts: {
-            includeSelf: options.includeSelf,
-            recipients: recipients,
-            signed: options.sign,
+        const encryptRes = await RPCTypes.saltpackSaltpackEncryptStringRpcPromise(
+          {
+            opts: {
+              includeSelf: options.includeSelf,
+              recipients: recipients,
+              signed: options.sign,
+            },
+            plaintext: input.stringValue(),
           },
-          plaintext: input.stringValue(),
-        })
+          Constants.encryptStringWaitingKey
+        )
         return CryptoGen.createOnOperationSuccess({
           operation: Constants.Operations.Encrypt,
           output: new HiddenString(encryptRes.ciphertext),
@@ -266,9 +272,12 @@ const saltpackDecrypt = async (action: CryptoGen.SaltpackDecryptPayload, logger:
   switch (type) {
     case 'file': {
       try {
-        const result = await RPCTypes.saltpackSaltpackDecryptFileRpcPromise({
-          encryptedFilename: input.stringValue(),
-        })
+        const result = await RPCTypes.saltpackSaltpackDecryptFileRpcPromise(
+          {
+            encryptedFilename: input.stringValue(),
+          },
+          Constants.decryptFileWaitingKey
+        )
         const {decryptedFilename, info, signed} = result
         const {sender} = info
         const {username} = sender
@@ -291,9 +300,12 @@ const saltpackDecrypt = async (action: CryptoGen.SaltpackDecryptPayload, logger:
     }
     case 'text': {
       try {
-        const result = await RPCTypes.saltpackSaltpackDecryptStringRpcPromise({
-          ciphertext: input.stringValue(),
-        })
+        const result = await RPCTypes.saltpackSaltpackDecryptStringRpcPromise(
+          {
+            ciphertext: input.stringValue(),
+          },
+          Constants.decryptStringWaitingKey
+        )
         const {plaintext, info, signed} = result
         const {sender} = info
         const {username} = sender
@@ -334,9 +346,12 @@ const saltpackSign = async (
   switch (type) {
     case 'file': {
       try {
-        const signedFilename = await RPCTypes.saltpackSaltpackSignFileRpcPromise({
-          filename: input.stringValue(),
-        })
+        const signedFilename = await RPCTypes.saltpackSaltpackSignFileRpcPromise(
+          {
+            filename: input.stringValue(),
+          },
+          Constants.signFileWaitingKey
+        )
         return CryptoGen.createOnOperationSuccess({
           operation: Constants.Operations.Sign,
           output: new HiddenString(signedFilename),
@@ -355,9 +370,12 @@ const saltpackSign = async (
     }
     case 'text': {
       try {
-        const ciphertext = await RPCTypes.saltpackSaltpackSignStringRpcPromise({
-          plaintext: input.stringValue(),
-        })
+        const ciphertext = await RPCTypes.saltpackSaltpackSignStringRpcPromise(
+          {
+            plaintext: input.stringValue(),
+          },
+          Constants.signStringWaitingKey
+        )
         return CryptoGen.createOnOperationSuccess({
           operation: Constants.Operations.Sign,
           output: new HiddenString(ciphertext),
@@ -388,9 +406,12 @@ const saltpackVerify = async (action: CryptoGen.SaltpackVerifyPayload, logger: S
   switch (type) {
     case 'file': {
       try {
-        const result = await RPCTypes.saltpackSaltpackVerifyFileRpcPromise({
-          signedFilename: input.stringValue(),
-        })
+        const result = await RPCTypes.saltpackSaltpackVerifyFileRpcPromise(
+          {
+            signedFilename: input.stringValue(),
+          },
+          Constants.verifyFileWaitingKey
+        )
         const {verifiedFilename, sender, verified} = result
         const {username} = sender
         const outputSigned = verified
@@ -413,7 +434,10 @@ const saltpackVerify = async (action: CryptoGen.SaltpackVerifyPayload, logger: S
     }
     case 'text': {
       try {
-        const result = await RPCTypes.saltpackSaltpackVerifyStringRpcPromise({signedMsg: input.stringValue()})
+        const result = await RPCTypes.saltpackSaltpackVerifyStringRpcPromise(
+          {signedMsg: input.stringValue()},
+          Constants.verifyStringWaitingKey
+        )
         const {plaintext, sender, verified} = result
         const {username} = sender
         const outputSigned = verified
@@ -463,7 +487,37 @@ const saltpackDone = (action: EngineGen.Keybase1NotifySaltpackSaltpackOperationD
     operation: RPCTypes.SaltpackOperationType[action.payload.params.opType] as Types.Operations,
   })
 
+const downloadEncryptedText = async (state: TypedState) => {
+  const {output, outputSender, outputSigned} = state.crypto.encrypt
+  const result = await RPCTypes.saltpackSaltpackSaveCiphertextToFileRpcPromise({
+    ciphertext: output.stringValue(),
+  })
+  return CryptoGen.createOnOperationSuccess({
+    operation: Constants.Operations.Encrypt,
+    output: new HiddenString(result),
+    outputSender,
+    outputSigned: !!outputSigned,
+    outputType: 'file',
+  })
+}
+
+const downloadSignedText = async (state: TypedState) => {
+  const {output, outputSender, outputSigned} = state.crypto.sign
+  const result = await RPCTypes.saltpackSaltpackSaveSignedMsgToFileRpcPromise({
+    signedMsg: output.stringValue(),
+  })
+  return CryptoGen.createOnOperationSuccess({
+    operation: Constants.Operations.Sign,
+    output: new HiddenString(result),
+    outputSender,
+    outputSigned: !!outputSigned,
+    outputType: 'file',
+  })
+}
+
 function* cryptoSaga() {
+  yield* Saga.chainAction2(CryptoGen.downloadEncryptedText, downloadEncryptedText)
+  yield* Saga.chainAction2(CryptoGen.downloadSignedText, downloadSignedText)
   yield* Saga.chainAction2(
     [CryptoGen.setInput, CryptoGen.setRecipients, CryptoGen.setEncryptOptions, CryptoGen.clearRecipients],
     handleRunOperation

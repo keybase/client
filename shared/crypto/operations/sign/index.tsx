@@ -13,6 +13,7 @@ type Props = {
   inputType: Types.InputTypes
   onClearInput: () => void
   onCopyOutput: (text: string) => void
+  onDownloadText: () => void
   onSetInput: (inputType: Types.InputTypes, inputValue: string) => void
   onShowInFinder: (path: string) => void
   output: string
@@ -71,8 +72,11 @@ const Sign = (props: Props) => {
               }}
             />
           )}
-
-          <Kb.ProgressBar ratio={props.progress} style={{width: '100%'}} />
+          {props.progress && props.outputStatus && props.outputStatus !== 'success' ? (
+            <Kb.ProgressBar ratio={props.progress} style={{width: '100%'}} />
+          ) : (
+            <Kb.Divider />
+          )}
           <Kb.Box2 direction="vertical" fullHeight={true}>
             <OutputInfoBanner operation={Constants.Operations.Encrypt} outputStatus={props.outputStatus}>
               <Kb.Text type="BodySmallSemibold" center={true}>
@@ -102,10 +106,12 @@ const Sign = (props: Props) => {
               onShowInFinder={props.onShowInFinder}
             />
             <OutputBar
+              operation={Constants.Operations.Sign}
               output={props.output}
               outputStatus={props.outputStatus}
               outputType={props.outputType}
               onCopyOutput={props.onCopyOutput}
+              onDownloadText={props.onDownloadText}
               onShowInFinder={props.onShowInFinder}
             />
           </Kb.Box2>

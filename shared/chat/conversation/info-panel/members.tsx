@@ -85,12 +85,12 @@ export default (props: Props) => {
     <Kb.SectionList
       stickySectionHeadersEnabled={true}
       keyboardShouldPersistTaps="handled"
-      renderSectionHeader={({section}) => section?.renderSectionHeader?.({section}) ?? null}
+      renderSectionHeader={({section}: any) => section?.renderSectionHeader?.({section}) ?? null}
       sections={[
         ...props.commonSections,
         {
           data: [...(showAuditingBanner ? [auditingBannerItem] : []), ...participantsItems],
-          renderItem: ({item}) => {
+          renderItem: ({item}: {item: any}) => {
             if (item === auditingBannerItem) {
               return (
                 <Kb.Banner color="grey" small={true}>

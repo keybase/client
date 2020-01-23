@@ -175,11 +175,11 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 		MobileExtension:                true,
 		LogFile:                        logFile,
 		RunMode:                        runMode,
-		Debug:                          true,
+		Debug:                          false,
 		LocalRPCDebug:                  "",
 		VDebugSetting:                  "mobile", // use empty string for same logging as desktop default
 		SecurityAccessGroupOverride:    accessGroupOverride,
-		ChatInboxSourceLocalizeThreads: 5,
+		ChatInboxSourceLocalizeThreads: 1,
 		AttachmentHTTPStartPort:        16500,
 		AttachmentDisableMulti:         true,
 		LinkCacheSize:                  100,
@@ -191,6 +191,8 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 		DisableMerkleAuditor:           true,
 		DisableTeamBoxAuditor:          true,
 		DisableEKBackgroundKeygen:      true,
+		LevelDBNumFiles:                20,
+		LevelDBWriteBufferMB:           4,
 	}
 	if err = kbCtx.Configure(config, usage); err != nil {
 		return err

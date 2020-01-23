@@ -5,7 +5,7 @@ import * as React from 'react'
 import List from '.'
 
 const props = {
-  expandedSet: new Set<string>(),
+  initialExpandedSet: new Set<string>(),
   loading: false,
   onNewPersonalRepo: Sb.action('onNewPersonalRepo'),
   onNewTeamRepo: Sb.action('onNewTeamRepo'),
@@ -49,7 +49,7 @@ const load = () => {
   Sb.storiesOf('Git/List', module)
     .addDecorator(Sb.createPropProviderWithCommon(Provider))
     .add('Normal', () => <List {...props} />)
-    .add('Expanded', () => <List {...props} expandedSet={new Set(['personal2', 'team3'])} />)
+    .add('Expanded', () => <List {...props} initialExpandedSet={new Set(['personal2', 'team3'])} />)
 }
 
 export default load

@@ -3,6 +3,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/crypto'
 import * as Types from '../../constants/types/crypto'
+import * as Container from '../../util/container'
 import {getStyle} from '../../common-adapters/text'
 
 type Props = {
@@ -15,11 +16,13 @@ type Props = {
 }
 
 type OutputBarProps = {
+  onCopyOutput: (text: string) => void
+  onDownloadText?: () => void
+  onShowInFinder: (path: string) => void
+  operation: Types.Operations
   output: string
   outputStatus?: Types.OutputStatus
   outputType?: Types.OutputType
-  onCopyOutput: (text: string) => void
-  onShowInFinder: (path: string) => void
 }
 
 type OutputSignedProps = {
@@ -41,6 +44,8 @@ type OutputInfoProps = {
 const largeOutputLimit = 120
 
 export const SignedSender = (props: OutputSignedProps) => {
+  const waitingKey = Constants.getStringWaitingKey(props.operation)
+  const waiting = Container.useAnyWaiting(waitingKey)
   const canSelfSign =
     props.operation === Constants.Operations.Encrypt || props.operation === Constants.Operations.Sign
 
@@ -50,14 +55,20 @@ export const SignedSender = (props: OutputSignedProps) => {
 
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.signedContainer}>
-      <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center">
+      <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center" style={styles.signedSender}>
         {props.signed && props.signedBy
           ? [
               <Kb.Avatar key="avatar" size={16} username={props.signedBy} />,
               <Kb.Text key="signedBy" type="BodySmall">
                 Signed by {canSelfSign ? ' you, ' : ''}
               </Kb.Text>,
-              <Kb.ConnectedUsernames key="username" type="BodySmallBold" usernames={[props.signedBy]} />,
+              <Kb.ConnectedUsernames
+                key="username"
+                type="BodySmallBold"
+                usernames={[props.signedBy]}
+                colorFollowing={true}
+                colorYou={true}
+              />,
             ]
           : [
               <Kb.Icon key="avatar" type="icon-placeholder-secret-user-16" />,
@@ -71,6 +82,7 @@ export const SignedSender = (props: OutputSignedProps) => {
               </Kb.Text>,
             ]}
       </Kb.Box2>
+      {waiting && <Kb.ProgressIndicator type="Small" white={false} />}
     </Kb.Box2>
   )
 }
@@ -84,7 +96,9 @@ export const OutputInfoBanner = (props: OutputInfoProps) => {
 }
 
 export const OutputBar = (props: OutputBarProps) => {
-  const {output, onCopyOutput, onShowInFinder} = props
+  const {output, onCopyOutput, onDownloadText, onShowInFinder} = props
+  const waitingKey = Constants.getStringWaitingKey(props.operation)
+  const waiting = Container.useAnyWaiting(waitingKey)
   const attachmentRef = React.useRef<Kb.Box2>(null)
   const [showingToast, setShowingToast] = React.useState(false)
 
@@ -118,9 +132,21 @@ export const OutputBar = (props: OutputBarProps) => {
                   Copied to clipboard
                 </Kb.Text>
               </Kb.Toast>
-              <Kb.Button mode="Secondary" label="Copy to clipboard" onClick={() => copy()} />
+              <Kb.Button
+                mode="Secondary"
+                label="Copy to clipboard"
+                disabled={waiting}
+                onClick={() => copy()}
+              />
             </Kb.Box2>
-            <Kb.Button mode="Secondary" label="Download as TXT" />
+            {onDownloadText && (
+              <Kb.Button
+                mode="Secondary"
+                label="Download as TXT"
+                onClick={onDownloadText}
+                disabled={waiting}
+              />
+            )}
           </Kb.ButtonBar>
         )}
       </Kb.Box2>
@@ -139,6 +165,8 @@ export const OutputBar = (props: OutputBarProps) => {
 }
 
 const Output = (props: Props) => {
+  const waitingKey = Constants.getStringWaitingKey(props.operation)
+  const waiting = Container.useAnyWaiting(waitingKey)
   // Output text can be 24 px when output is less that 120 characters
   const outputTextIsLarge =
     props.operation === Constants.Operations.Decrypt || props.operation === Constants.Operations.Verify
@@ -176,7 +204,7 @@ const Output = (props: Props) => {
             <Kb.Text
               key={index}
               type={props.textType === 'cipher' ? 'Terminal' : 'Body'}
-              selectable={true}
+              selectable={!waiting}
               style={Styles.collapseStyles([styles.output, outputLargeStyle])}
             >
               {line}
@@ -242,12 +270,16 @@ const styles = Styles.styleSheetCreate(
         color: Styles.globalColors.black_50,
       },
       signedContainer: {
+        minHeight: Styles.globalMargins.mediumLarge,
         paddingLeft: Styles.globalMargins.tiny,
         paddingRight: Styles.globalMargins.tiny,
         paddingTop: Styles.globalMargins.tiny,
       },
       signedIcon: {
         color: Styles.globalColors.green,
+      },
+      signedSender: {
+        ...Styles.globalStyles.flexGrow,
       },
       toastText: {
         color: Styles.globalColors.white,

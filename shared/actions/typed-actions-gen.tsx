@@ -304,6 +304,8 @@ export type TypedActionsMap = {
   'config:loadOnStart': config.LoadOnStartPayload
   'crypto:clearRecipients': crypto.ClearRecipientsPayload
   'crypto:clearInput': crypto.ClearInputPayload
+  'crypto:downloadEncryptedText': crypto.DownloadEncryptedTextPayload
+  'crypto:downloadSignedText': crypto.DownloadSignedTextPayload
   'crypto:setRecipients': crypto.SetRecipientsPayload
   'crypto:setInput': crypto.SetInputPayload
   'crypto:setEncryptOptions': crypto.SetEncryptOptionsPayload

@@ -8,6 +8,8 @@ export const resetStore = 'common:resetStore' // not a part of crypto but is han
 export const typePrefix = 'crypto:'
 export const clearInput = 'crypto:clearInput'
 export const clearRecipients = 'crypto:clearRecipients'
+export const downloadEncryptedText = 'crypto:downloadEncryptedText'
+export const downloadSignedText = 'crypto:downloadSignedText'
 export const onOperationError = 'crypto:onOperationError'
 export const onOperationSuccess = 'crypto:onOperationSuccess'
 export const resetOperation = 'crypto:resetOperation'
@@ -25,6 +27,8 @@ export const setRecipients = 'crypto:setRecipients'
 // Payload Types
 type _ClearInputPayload = {readonly operation: Types.Operations}
 type _ClearRecipientsPayload = {readonly operation: Types.Operations}
+type _DownloadEncryptedTextPayload = void
+type _DownloadSignedTextPayload = void
 type _OnOperationErrorPayload = {
   readonly operation: Types.Operations
   readonly errorType: Types.ErrorTypes
@@ -111,6 +115,19 @@ export const createClearInput = (payload: _ClearInputPayload): ClearInputPayload
   type: clearInput,
 })
 /**
+ * Download the encrypted output to a text file
+ */
+export const createDownloadEncryptedText = (
+  payload: _DownloadEncryptedTextPayload
+): DownloadEncryptedTextPayload => ({payload, type: downloadEncryptedText})
+/**
+ * Download the signed output to a text file
+ */
+export const createDownloadSignedText = (payload: _DownloadSignedTextPayload): DownloadSignedTextPayload => ({
+  payload,
+  type: downloadSignedText,
+})
+/**
  * On saltpack RPC error response
  */
 export const createOnOperationError = (payload: _OnOperationErrorPayload): OnOperationErrorPayload => ({
@@ -177,6 +194,14 @@ export type ClearRecipientsPayload = {
   readonly payload: _ClearRecipientsPayload
   readonly type: typeof clearRecipients
 }
+export type DownloadEncryptedTextPayload = {
+  readonly payload: _DownloadEncryptedTextPayload
+  readonly type: typeof downloadEncryptedText
+}
+export type DownloadSignedTextPayload = {
+  readonly payload: _DownloadSignedTextPayload
+  readonly type: typeof downloadSignedText
+}
 export type OnOperationErrorPayload = {
   readonly payload: _OnOperationErrorPayload
   readonly type: typeof onOperationError
@@ -226,6 +251,8 @@ export type SetRecipientsPayload = {
 export type Actions =
   | ClearInputPayload
   | ClearRecipientsPayload
+  | DownloadEncryptedTextPayload
+  | DownloadSignedTextPayload
   | OnOperationErrorPayload
   | OnOperationSuccessPayload
   | ResetOperationPayload

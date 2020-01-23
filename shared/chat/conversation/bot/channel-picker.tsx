@@ -123,7 +123,6 @@ const styles = Styles.styleSheetCreate(
           ...Styles.padding(0, Styles.globalMargins.small),
         },
         isElectron: {
-          maxHeight: 250,
           minHeight: 370,
         },
       }),

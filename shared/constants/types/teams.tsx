@@ -113,6 +113,7 @@ export type State = Readonly<{
   addUserToTeamsResults: string
   canPerform: Map<TeamID, TeamOperations>
   deletedTeams: Array<RPCTypes.DeletedTeamInfo>
+  errorInAddToTeam: string
   errorInChannelCreation: string
   errorInEditDescription: string
   errorInEmailInvite: EmailInviteError
