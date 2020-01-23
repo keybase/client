@@ -109,7 +109,7 @@ const defaultCommonState = {
   bytesComplete: 0,
   bytesTotal: 0,
   errorMessage: new HiddenString(''),
-  errorType: '' as Types.ErrorTypes,
+  errorType: undefined,
   input: new HiddenString(''),
   inputType: 'text' as Types.InputTypes,
   output: new HiddenString(''),

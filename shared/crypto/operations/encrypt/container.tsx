@@ -12,6 +12,8 @@ export default Container.namedConnect(
   (state: Container.TypedState) => ({
     bytesComplete: state.crypto.encrypt.bytesComplete,
     bytesTotal: state.crypto.encrypt.bytesTotal,
+    errorMessage: state.crypto.encrypt.errorMessage.stringValue(),
+    errorType: state.crypto.encrypt.errorType,
     hasRecipients: state.crypto.encrypt.meta.hasRecipients,
     hasSBS: state.crypto.encrypt.meta.hasSBS,
     input: state.crypto.encrypt.input.stringValue(),
@@ -35,6 +37,8 @@ export default Container.namedConnect(
       dispatch(FSGen.createOpenLocalPathInSystemFileManager({localPath: path})),
   }),
   (stateProps, dispatchProps) => ({
+    errorMessage: stateProps.errorMessage,
+    errorType: stateProps.errorType,
     hasRecipients: stateProps.hasRecipients,
     hasSBS: stateProps.hasSBS,
     input: stateProps.input,

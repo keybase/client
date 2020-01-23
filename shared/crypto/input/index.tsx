@@ -21,6 +21,12 @@ type FileProps = {
   onClearFiles: () => void
 }
 
+type OperationBannerProps = {
+  type: 'info' | 'warning' | 'error'
+  infoMessage: string
+  message: string
+}
+
 const operationToEmptyInputWidth = {
   [Constants.Operations.Encrypt]: 153,
   [Constants.Operations.Decrypt]: 266,
@@ -36,7 +42,7 @@ const operationToEmptyInputWidth = {
  * Afte user enters text:
  *  - Multiline input
  */
-const TextInput = (props: TextProps) => {
+export const TextInput = (props: TextProps) => {
   const {value, placeholder, textType, operation, onChangeText, onSetFile} = props
   const emptyWidth = operationToEmptyInputWidth[operation]
 
@@ -129,7 +135,7 @@ const TextInput = (props: TextProps) => {
   )
 }
 
-const FileInput = (props: FileProps) => {
+export const FileInput = (props: FileProps) => {
   const {path, size, operation} = props
   const fileIcon = Constants.getInputFileIcon(operation)
   return (
@@ -164,9 +170,25 @@ const FileInput = (props: FileProps) => {
   )
 }
 
+export const OperationBanner = (props: OperationBannerProps) => {
+  const color = props.type === 'error' ? 'red' : props.type === 'warning' ? 'yellow' : 'grey'
+  return (
+    <Kb.Banner color={color} style={styles.banner}>
+      <Kb.BannerParagraph
+        bannerColor={color}
+        content={props.type === 'info' ? props.infoMessage : props.message}
+      />
+    </Kb.Banner>
+  )
+}
+
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      banner: {
+        ...Styles.padding(Styles.globalMargins.tiny),
+        minHeight: 40,
+      },
       browseFile: {
         flexShrink: 0,
       },
@@ -227,4 +249,3 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export {TextInput, FileInput}

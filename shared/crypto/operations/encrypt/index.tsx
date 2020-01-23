@@ -5,11 +5,13 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import debounce from 'lodash/debounce'
 import openURL from '../../../util/open-url'
-import {TextInput, FileInput} from '../../input'
+import {TextInput, FileInput, OperationBanner} from '../../input'
 import OperationOutput, {OutputBar, OutputInfoBanner, SignedSender} from '../../output'
 import Recipients from '../../recipients/container'
 
 type Props = {
+  errorType?: 'error' | 'warning'
+  errorMessage: string
   input: string
   inputType: Types.InputTypes
   noIncludeSelf: boolean
@@ -76,6 +78,7 @@ const Encrypt = (props: Props) => {
         props.recipients?.length > 1 ? youAnd('your recipients') : youAnd(props.recipients[0])
       } can decipher it.`
     : ''
+  const bannertype = props.errorType ? props.errorType : 'info'
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
       <Kb.DragAndDrop
@@ -86,6 +89,11 @@ const Encrypt = (props: Props) => {
         prompt="Drop a file to encrypt"
       >
         <Kb.Banner color="grey">
+          <OperationBanner
+            type={bannertype}
+            infoMessage="Encrypt to anyone, even if they're not on Keybase yet."
+            message={props.errorMessage}
+          />
           <Kb.BannerParagraph
             bannerColor="grey"
             content="Encrypt to anyone, even if they're not on Keybase yet."
