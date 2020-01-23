@@ -108,9 +108,15 @@ export const getFileWaitingKey = (operation: Types.Operations) => operationToFil
 
 export const getWarningMessageForSBS = (sbsAssertion: string) =>
   `Note: Encrypted for "${sbsAssertion}" who is not yet a keybase user. One of your devices will need to be online after they join keybase in order for them to decrypt the message. `
+
 export const getStatusCodeMessage = (code: number, operation: Types.Operations, type: Types.InputTypes) => {
+  const inputType = type === 'text' ? 'ciphertext' : 'file'
+  const action = type === 'text' ? 'enter' : 'drop a'
+  const addInput = type === 'text' ? 'ciphertext' : 'encrypted file'
+  const invalidInputMessage = `This ${inputType} is not in a valid Saltpack format. Please ${action} Saltpack ${addInput}.`
+
   const statusCodeToMessage = {
-    [RPCTypes.StatusCode.scstreamunknown]: `Invalid ${operation} input, ${type} must be valid Saltpack.`,
+    [RPCTypes.StatusCode.scstreamunknown]: invalidInputMessage,
     [RPCTypes.StatusCode
       .scsigcannotverify]: `Wrong saltpack message type: wanted an attached signature, but got a signed and encrypted message instead`,
   } as const
