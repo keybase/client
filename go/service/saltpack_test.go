@@ -41,6 +41,7 @@ func TestSaltpackFrontend(t *testing.T) {
 	testSignVerifyFile(tc, h, u1, u2)
 	testSignToTextFile(tc, h, u1, u2)
 	testEncryptToTextFile(tc, h, u1, u2)
+	testDecryptBogusFile(tc, h, u1, u2)
 }
 
 func testEncryptDecryptString(tc libkb.TestContext, h *SaltpackHandler, u1, u2 *kbtest.FakeUser) {
@@ -170,6 +171,21 @@ func testEncryptToTextFile(tc libkb.TestContext, h *SaltpackHandler, u1, u2 *kbt
 	fdata, err := ioutil.ReadFile(decRes.DecryptedFilename)
 	require.NoError(tc.T, err)
 	require.Equal(tc.T, []byte(encArg.Plaintext), fdata)
+}
+
+func testDecryptBogusFile(tc libkb.TestContext, h *SaltpackHandler, u1, u2 *kbtest.FakeUser) {
+	ctx := context.Background()
+	testFile := "testdata/textfile"
+	decFilename := testFile + ".decrypted"
+
+	// this file is not encrypted
+	decArg := keybase1.SaltpackDecryptFileArg{EncryptedFilename: filepath.FromSlash(testFile)}
+	_, err := h.SaltpackDecryptFile(ctx, decArg)
+	require.Error(tc.T, err)
+	if exists, _ := libkb.FileExists(filepath.FromSlash(decFilename)); exists {
+		os.Remove(filepath.FromSlash(decFilename))
+		tc.T.Errorf("%s exists, it should be deleted if there is an error", decFilename)
+	}
 }
 
 func filesEqual(tc libkb.TestContext, a, b string) {

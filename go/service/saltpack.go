@@ -318,6 +318,13 @@ func (h *SaltpackHandler) SaltpackEncryptFile(ctx context.Context, arg keybase1.
 
 	usedSBS, assertion, err := h.frontendEncrypt(ctx, arg.SessionID, earg)
 	if err != nil {
+		h.G().Log.Debug("encrypt error, so removing %q", outFilename)
+		if clErr := bw.Close(); clErr != nil {
+			h.G().Log.Debug("error closing bw for %q: %s", outFilename, clErr)
+		}
+		if rmErr := os.Remove(outFilename); rmErr != nil {
+			h.G().Log.Debug("error removing %q: %s", outFilename, rmErr)
+		}
 		return keybase1.SaltpackEncryptFileResult{}, err
 	}
 
@@ -349,6 +356,13 @@ func (h *SaltpackHandler) SaltpackDecryptFile(ctx context.Context, arg keybase1.
 
 	info, signed, err := h.frontendDecrypt(ctx, arg.SessionID, earg)
 	if err != nil {
+		h.G().Log.Debug("decrypt error, so removing %q", outFilename)
+		if clErr := bw.Close(); clErr != nil {
+			h.G().Log.Debug("error closing bw for %q: %s", outFilename, clErr)
+		}
+		if rmErr := os.Remove(outFilename); rmErr != nil {
+			h.G().Log.Debug("error removing %q: %s", outFilename, rmErr)
+		}
 		return keybase1.SaltpackFileResult{}, err
 	}
 
@@ -383,6 +397,13 @@ func (h *SaltpackHandler) SaltpackSignFile(ctx context.Context, arg keybase1.Sal
 	}
 
 	if err := h.frontendSign(ctx, arg.SessionID, earg); err != nil {
+		h.G().Log.Debug("sign error, so removing %q", outFilename)
+		if clErr := bw.Close(); clErr != nil {
+			h.G().Log.Debug("error closing bw for %q: %s", outFilename, clErr)
+		}
+		if rmErr := os.Remove(outFilename); rmErr != nil {
+			h.G().Log.Debug("error removing %q: %s", outFilename, rmErr)
+		}
 		return "", err
 	}
 
@@ -410,6 +431,13 @@ func (h *SaltpackHandler) SaltpackVerifyFile(ctx context.Context, arg keybase1.S
 
 	spui, err := h.frontendVerify(ctx, arg.SessionID, earg)
 	if err != nil {
+		h.G().Log.Debug("verify error, so removing %q", outFilename)
+		if clErr := bw.Close(); clErr != nil {
+			h.G().Log.Debug("error closing bw for %q: %s", outFilename, clErr)
+		}
+		if rmErr := os.Remove(outFilename); rmErr != nil {
+			h.G().Log.Debug("error removing %q: %s", outFilename, rmErr)
+		}
 		return keybase1.SaltpackVerifyFileResult{}, err
 	}
 	res := keybase1.SaltpackVerifyFileResult{
@@ -582,7 +610,7 @@ func (h *SaltpackHandler) writeStringToFile(ctx context.Context, contents, suffi
 	if err := os.MkdirAll(dir, libkb.PermDir); err != nil {
 		return "", err
 	}
-	tmpfile, err := ioutil.TempFile(dir, "keybase.*"+suffix)
+	tmpfile, err := ioutil.TempFile(dir, "keybase_*"+suffix)
 	if err != nil {
 		return "", err
 	}
