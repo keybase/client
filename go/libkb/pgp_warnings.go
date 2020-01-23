@@ -1,17 +1,22 @@
 package libkb
 
 import (
+	"bytes"
 	"crypto"
 	"fmt"
 	"io"
+
+	"github.com/keybase/go-crypto/openpgp/armor"
 
 	"github.com/keybase/go-crypto/openpgp"
 	"github.com/keybase/go-crypto/openpgp/errors"
 	"github.com/keybase/go-crypto/openpgp/packet"
 )
 
-func ExtractPGPSignatureHashMethod(keyring openpgp.KeyRing, sig io.Reader) (crypto.Hash, error) {
+func ExtractPGPSignatureHashMethod(keyring openpgp.KeyRing, sig []byte) (crypto.Hash, error) {
 	var (
+		rd io.Reader
+
 		p                 packet.Packet
 		hashFunc          crypto.Hash
 		issuerFingerprint []byte
@@ -19,7 +24,17 @@ func ExtractPGPSignatureHashMethod(keyring openpgp.KeyRing, sig io.Reader) (cryp
 		err               error
 	)
 
-	packets := packet.NewReader(sig)
+	if IsArmored(sig) {
+		armored, err := armor.Decode(bytes.NewReader(sig))
+		if err != nil {
+			return 0, err
+		}
+		rd = armored.Body
+	} else {
+		rd = bytes.NewReader(sig)
+	}
+
+	packets := packet.NewReader(rd)
 	for {
 		p, err = packets.Next()
 		if err == io.EOF {
@@ -99,7 +114,8 @@ type HashSecurityWarningType uint8
 const (
 	HashSecurityWarningUnknown HashSecurityWarningType = iota
 	HashSecurityWarningSignatureHash
-	HashSecurityWarningIdentityHash
+	HashSecurityWarningSignersIdentityHash
+	HashSecurityWarningRecipientsIdentityHash
 )
 
 type HashSecurityWarning struct {
@@ -114,9 +130,11 @@ func NewHashSecurityWarning(kind HashSecurityWarningType, hash crypto.Hash) Hash
 func (h HashSecurityWarning) String() string {
 	switch h.kind {
 	case HashSecurityWarningSignatureHash:
-		return fmt.Sprintf("Signature might be insecure due to its %s hash scheme", HashToName[h.hash])
-	case HashSecurityWarningIdentityHash:
-		return fmt.Sprintf("Key's identity could have been spoofed due to its %s hash scheme", HashToName[h.hash])
+		return fmt.Sprintf("Message's contents could've been spoofed due to its signature's %s hash scheme", HashToName[h.hash])
+	case HashSecurityWarningSignersIdentityHash:
+		return fmt.Sprintf("Signer's identity could have been spoofed due to its %s hash scheme", HashToName[h.hash])
+	case HashSecurityWarningRecipientsIdentityHash:
+		return fmt.Sprintf("Recipient's identity could have been spoofed due to its %s hash scheme", HashToName[h.hash])
 	default:
 		return fmt.Sprintf("Hash security warning was passed an incorrect kind, got %d", h.kind)
 	}

@@ -91,6 +91,8 @@ func PGPDecrypt(g *GlobalContext, source io.Reader, sink io.Writer, kr openpgp.K
 		if md.Signature != nil {
 			status.SignatureTime = md.Signature.CreationTime
 
+			// panic(HashToName[md.Signature.Hash])
+
 			if !IsHashSecure(md.Signature.Hash) {
 				status.Warnings = append(
 					status.Warnings,

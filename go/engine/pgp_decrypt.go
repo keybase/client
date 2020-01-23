@@ -132,9 +132,11 @@ func (e *PGPDecrypt) Run(m libkb.MetaContext) (err error) {
 			// signer isn't a keybase user
 			m.Debug("message signed by key unknown to keybase: %X", e.signStatus.KeyID)
 
-			// Here we have
+			// no ckf because the signer isn't on kb
 			if e.signStatus.Entity != nil {
-				if warnings := libkb.NewPGPKeyBundle(e.signStatus.Entity).SecurityWarnings(nil); warnings != nil {
+				if warnings := libkb.NewPGPKeyBundle(e.signStatus.Entity).SecurityWarnings(
+					m, libkb.HashSecurityWarningSignersIdentityHash, nil,
+				); warnings != nil {
 					e.signStatus.Warnings = append(e.signStatus.Warnings, warnings...)
 				}
 			}
@@ -169,7 +171,11 @@ func (e *PGPDecrypt) Run(m libkb.MetaContext) (err error) {
 	bundle := libkb.NewPGPKeyBundle(e.signStatus.Entity)
 
 	// generate hash scheme security warnings
-	if warnings := bundle.SecurityWarnings(e.signer.GetComputedKeyFamily()); len(warnings) > 0 {
+	if warnings := bundle.SecurityWarnings(
+		m,
+		libkb.HashSecurityWarningSignersIdentityHash,
+		e.signer.GetComputedKeyFamily(),
+	); len(warnings) > 0 {
 		e.signStatus.Warnings = append(e.signStatus.Warnings, warnings...)
 	}
 

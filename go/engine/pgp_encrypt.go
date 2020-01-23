@@ -25,8 +25,9 @@ type PGPEncryptArg struct {
 // PGPEncrypt encrypts data read from a source into a sink
 // for a set of users.  It will track them if necessary.
 type PGPEncrypt struct {
-	arg *PGPEncryptArg
-	me  *libkb.User
+	arg      *PGPEncryptArg
+	me       *libkb.User
+	warnings libkb.HashSecurityWarnings
 	libkb.Contextified
 }
 
@@ -133,7 +134,7 @@ func (e *PGPEncrypt) Run(m libkb.MetaContext) error {
 	}
 
 	ks := newKeyset()
-	warnings := []string{}
+	e.warnings = libkb.HashSecurityWarnings{}
 
 	for _, up := range uplus {
 		for _, k := range up.Keys {
@@ -141,8 +142,12 @@ func (e *PGPEncrypt) Run(m libkb.MetaContext) error {
 				continue
 			}
 
-			if w := k.SecurityWarnings(up.User.GetComputedKeyFamily()); len(w) > 0 {
-				warnings = append(warnings, w.Strings()...)
+			if w := k.SecurityWarnings(
+				m,
+				libkb.HashSecurityWarningRecipientsIdentityHash,
+				up.User.GetComputedKeyFamily(),
+			); len(w) > 0 {
+				e.warnings = append(e.warnings, w...)
 			}
 
 			ks.Add(k)
@@ -168,7 +173,7 @@ func (e *PGPEncrypt) Run(m libkb.MetaContext) error {
 		}
 	}
 
-	for _, warning := range warnings {
+	for _, warning := range e.warnings.Strings() {
 		m.Warning(warning)
 	}
 

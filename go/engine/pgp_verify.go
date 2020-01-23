@@ -132,7 +132,7 @@ func (e *PGPVerify) runDetached(m libkb.MetaContext) error {
 	if err != nil {
 		return err
 	}
-	hashMethod, err := libkb.ExtractPGPSignatureHashMethod(sk, bytes.NewReader(e.arg.Signature))
+	hashMethod, err := libkb.ExtractPGPSignatureHashMethod(sk, e.arg.Signature)
 	if err != nil {
 		return err
 	}
@@ -187,12 +187,18 @@ func (e *PGPVerify) runDetached(m libkb.MetaContext) error {
 		}
 
 		if !libkb.IsHashSecure(selfsigHash) {
+			var ckf *libkb.ComputedKeyFamily
+			if e.signer != nil {
+				ckf = e.signer.GetComputedKeyFamily()
+			}
+
 			e.signStatus.Warnings = append(
 				e.signStatus.Warnings,
-				libkb.NewHashSecurityWarning(
-					libkb.HashSecurityWarningIdentityHash,
-					hashMethod,
-				),
+				libkb.NewPGPKeyBundle(signer).SecurityWarnings(
+					m,
+					libkb.HashSecurityWarningSignersIdentityHash,
+					ckf,
+				)...,
 			)
 		}
 
@@ -233,7 +239,7 @@ func (e *PGPVerify) runClearsign(m libkb.MetaContext) error {
 	if err != nil {
 		return fmt.Errorf("Check sig error: %s", err)
 	}
-	hashMethod, err := libkb.ExtractPGPSignatureHashMethod(sk, bytes.NewReader(e.arg.Signature))
+	hashMethod, err := libkb.ExtractPGPSignatureHashMethod(sk, sigBody)
 	if err != nil {
 		return err
 	}
@@ -279,12 +285,18 @@ func (e *PGPVerify) runClearsign(m libkb.MetaContext) error {
 		}
 
 		if !libkb.IsHashSecure(selfsigHash) {
+			var ckf *libkb.ComputedKeyFamily
+			if e.signer != nil {
+				ckf = e.signer.GetComputedKeyFamily()
+			}
+
 			e.signStatus.Warnings = append(
 				e.signStatus.Warnings,
-				libkb.NewHashSecurityWarning(
-					libkb.HashSecurityWarningIdentityHash,
-					hashMethod,
-				),
+				libkb.NewPGPKeyBundle(signer).SecurityWarnings(
+					m,
+					libkb.HashSecurityWarningSignersIdentityHash,
+					ckf,
+				)...,
 			)
 		}
 

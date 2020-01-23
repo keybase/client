@@ -1,0 +1,358 @@
+package engine
+
+import (
+	"crypto"
+	"strings"
+	"testing"
+	"time"
+
+	"github.com/stretchr/testify/require"
+
+	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/go-crypto/openpgp"
+	"github.com/keybase/go-crypto/openpgp/clearsign"
+	"github.com/keybase/go-crypto/openpgp/packet"
+	"github.com/keybase/go-crypto/openpgp/s2k"
+)
+
+const pgpWarningsMsg = `Consonantia, there live the blind texts. Separated they live in Bookmarksgrove
+right at the coast of the Semantics, a large language ocean. A small river named
+Duden flows by their place and supplies it with the necessary regelialia. It is
+a paradisematic country, in which roasted parts of sentences fly into your
+mouth. Even the all-powerful Pointing has no control about the blind texts it is
+an almost unorthographic life One day however a small line of blind text by the
+name of Lorem Ipsum decided to leave for the far World of Grammar. The Big Oxmox
+advised her not to do so, because there were thousands of bad Commas, wild
+Question Marks and devious Semikoli, but the Little Blind Text didn’t listen.
+She packed her seven versalia, put her initial into the belt and made herself on
+the way. When she reached the first hills of the Italic Mountains, she had a
+last view back on the skyline of her hometown Bookmarksgrove, the headline of
+Alphabet Village and the subline of her own road, the Line Lane. Pityful a
+rethoric question ran over her cheek, then she continued her way. On her way she
+met a copy. The copy warned the Little Blind Text, that where it came from it
+would have been rewritten a thousand times and everything that was left from its
+origin would be the word "and" and the Little Blind Text should turn around and
+return to its own, safe country. But nothing the copy said could convince her
+and so it didn’t take long until a few insidious Copy Writers ambushed her, made
+her drunk with Longe and Parole and dragged her into their agency, where they
+abused her for their projects again and again. And if she hasn’t been rewritten,
+then they are still using her.Far far away, behind the word mountains, far from
+the countries Vokalia and Consonantia, there live the blind texts. Separated
+they live in Bookmarksgrove right at the coast of the Semantics, a large
+language ocean. A small river named Duden flows by their place and supplies it
+with the necessary regelialia. It is a paradisematic country, in which roasted
+parts of sentences fly into your mouth. Even the all-powerful Pointing has no
+control about the blind texts it is an almost unorthographic life One`
+
+func generateOpenPGPEntity(ts time.Time, hash crypto.Hash, accepts []crypto.Hash) (*openpgp.Entity, error) {
+	// All test keys are RSA-768 because of the ease of generation
+	cfg := &packet.Config{
+		DefaultHash: hash,
+		Time:        func() time.Time { return ts },
+		RSABits:     768,
+	}
+	hashName := libkb.HashToName[hash]
+	hashLower := strings.ToLower(hashName)
+	entity, err := openpgp.NewEntity("Test "+hashName, "", hashLower+"@example.com", cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	acceptsConverted := []uint8{}
+	for _, h := range accepts {
+		if v, ok := s2k.HashToHashId(h); ok {
+			acceptsConverted = append(acceptsConverted, v)
+		}
+	}
+
+	// Sign all the identities...
+	for _, identity := range entity.Identities {
+		identity.SelfSignature.PreferredHash = acceptsConverted
+		if err := identity.SelfSignature.SignUserId(identity.UserId.Id, entity.PrimaryKey, entity.PrivateKey, cfg); err != nil {
+			panic(err)
+		}
+	}
+	// and the subkeys...
+	for _, subkey := range entity.Subkeys {
+		subkey.Sig.SignKey(subkey.PublicKey, entity.PrivateKey, cfg)
+	}
+
+	return entity, nil
+}
+
+type encryptTest struct {
+	Name string // Name of the test
+
+	// Signer's hash will be always SHA256
+	SigningHash   crypto.Hash // Hash used for msg digests
+	RecipientHash crypto.Hash // Hash used to self-sign the recipient's sig
+	Cutoff        time.Time   // The time at which we start warning about SHA1 sigs
+	Count         int         // How many warnings are expected
+
+	Mode  string // either encrypt, encrypt-and-sign
+	Known bool   // whether to check for the key on keybase
+}
+
+func (e encryptTest) test(t *testing.T) {
+	now := time.Now()
+	supportedHashes := []crypto.Hash{crypto.SHA1, crypto.SHA256}
+
+	// Sender / signer / verifier
+	tc1 := SetupEngineTest(t, "PGPEncrypt")
+	defer tc1.Cleanup()
+	tc1.Tp.SHA1SecurityWarningsCutoff = e.Cutoff
+
+	// Recipient
+	tc2 := SetupEngineTest(t, "PGPEncrypt")
+	defer tc2.Cleanup()
+
+	// Generate the signer's keypair. It'll always be SHA256 as we don't allow
+	// the generation of weaker selfsigs in Keybase itself.
+	signer, err := generateOpenPGPEntity(now, crypto.SHA256, supportedHashes)
+	require.NoError(t, err, "signer generation")
+	signerBundle := libkb.NewPGPKeyBundle(signer)
+
+	// The recipient's keypair can have any hash
+	recipient, err := generateOpenPGPEntity(now, e.RecipientHash, supportedHashes)
+	require.NoError(t, err, "recipient generation")
+	recipientBundle := libkb.NewPGPKeyBundle(recipient)
+
+	// Signer account
+	u1 := createFakeUserWithPGPSibkeyPregen(tc1, signerBundle)
+	trackUI1 := &FakeIdentifyUI{
+		Proofs: map[string]string{},
+	}
+	m := NewMetaContextForTest(tc1).WithUIs(libkb.UIs{
+		LogUI:      tc1.G.UI.GetLogUI(),
+		IdentifyUI: trackUI1,
+		SecretUI:   u1.NewSecretUI(),
+		PgpUI:      &TestPgpUI{},
+	})
+
+	// Recipient account
+	var u2 *FakeUser
+	if e.Known {
+		u2 = createFakeUserWithPGPSibkeyPregen(tc2, recipientBundle)
+	} else {
+		// If we're not publishing the key, we're just importing it into our
+		// keyring in the "only save" mode, where it's not pushed to our sigchain.
+		importEng := NewPGPKeyImportEngine(tc1.G, PGPKeyImportEngineArg{
+			Pregen:   recipientBundle,
+			OnlySave: true,
+		})
+		require.NoError(t, RunEngine2(m, importEng), "importing pubkey failed")
+	}
+
+	// Both "encrypt" and "encrypt-and-sign" simply run engine.PGPEncrypt
+	if e.Mode == "encrypt" || e.Mode == "encrypt-and-sign" {
+		sink := libkb.NewBufferCloser()
+		arg := &PGPEncryptArg{
+			Recips: []string{u2.Username},
+			Source: strings.NewReader(pgpWarningsMsg),
+			Sink:   sink,
+			NoSign: e.Mode == "encrypt-and-sign",
+		}
+		eng := NewPGPEncrypt(tc1.G, arg)
+		require.NoErrorf(t, RunEngine2(m, eng), "engine failure %s", e.Name)
+
+		require.Greater(t, len(sink.Bytes()), 0, "no output")
+		require.Len(t, eng.warnings, e.Count, "warnings count")
+		return
+	}
+
+	if e.Mode == "verify" {
+		// Rather than using PGPSign, we use our custom wrapper methods to make
+		// sure that we can set the low level variables.
+
+		// This time there's no recipient, we're generating a message for the
+		// sender / signer / verifier using only the recipient's key.
+		var (
+			clearsignSink = libkb.NewBufferCloser()
+			attachedSink  = libkb.NewBufferCloser()
+			detachedSink  = libkb.NewBufferCloser()
+
+			cfg = &packet.Config{
+				DefaultHash: e.SigningHash,
+				Time:        func() time.Time { return now },
+			}
+		)
+
+		var signedBy string
+		if e.Known {
+			signedBy = u2.Username
+		}
+
+		// Start with the clearsign sig
+		clearsignInput, err := clearsign.Encode(
+			clearsignSink,
+			recipient.PrivateKey,
+			cfg,
+		)
+		require.NoError(t, err, "clearsign failure")
+		_, err = clearsignInput.Write([]byte(pgpWarningsMsg))
+		require.NoError(t, err, "writing to clearsign")
+		require.NoError(t, err, clearsignInput.Close())
+		arg := &PGPVerifyArg{
+			Source:   clearsignSink,
+			SignedBy: signedBy,
+		}
+		eng := NewPGPVerify(tc1.G, arg)
+		require.NoError(t, RunEngine2(m, eng), "engine failure %s", e.Name)
+		require.Lenf(t, eng.SignatureStatus().Warnings, e.Count, "warnings count %s", e.Name)
+
+		// Then process the attached sig
+		attachedInput, _, err := libkb.ArmoredAttachedSign(
+			attachedSink,
+			*recipient,
+			nil,
+			cfg,
+		)
+		require.NoError(t, err, "attached sign failure")
+		require.NoError(t, err, attachedInput.Close())
+		_, err = attachedInput.Write([]byte(pgpWarningsMsg))
+		require.NoError(t, err, "writing to attached signer")
+		arg = &PGPVerifyArg{
+			Source:   attachedSink,
+			SignedBy: signedBy,
+		}
+		eng = NewPGPVerify(tc1.G, arg)
+		require.NoError(t, RunEngine2(m, eng), "engine failure %s", e.Name)
+		require.Lenf(t, eng.SignatureStatus().Warnings, e.Count, "warnings count %s", e.Name)
+
+		// Detached signatures are probably the easiest
+		require.NoError(t, openpgp.ArmoredDetachSignText(
+			detachedSink,
+			recipient,
+			strings.NewReader(pgpWarningsMsg),
+			cfg,
+		), "detached sign failure")
+		arg = &PGPVerifyArg{
+			Source:    strings.NewReader(pgpWarningsMsg),
+			Signature: detachedSink.Bytes(),
+			SignedBy:  signedBy,
+		}
+		eng = NewPGPVerify(tc1.G, arg)
+		require.NoError(t, RunEngine2(m, eng), "engine failure %s", e.Name)
+		require.Lenf(t, eng.SignatureStatus().Warnings, e.Count, "warnings count %s", e.Name)
+
+		return
+	}
+}
+
+func TestPGPEncryptWarnings(t *testing.T) {
+	// g, _ := errgroup.WithContext(context.Background())
+	for _, x := range []encryptTest{
+		// Encrypt
+		{
+			Name:          "Encrypt to an old SHA1",
+			RecipientHash: crypto.SHA1,
+			Cutoff:        time.Now().Add(24 * time.Hour),
+			Count:         0,
+			Mode:          "encrypt",
+			Known:         true,
+		},
+		{
+			Name:          "Encrypt to a new SHA1",
+			RecipientHash: crypto.SHA1,
+			Cutoff:        time.Now().Add(-1 * 24 * time.Hour),
+			Count:         1,
+			Mode:          "encrypt",
+			Known:         true,
+		},
+
+		// Encrypt and sign
+		{
+			Name:          "Encrypt and sign to an old SHA1",
+			RecipientHash: crypto.SHA1,
+			Cutoff:        time.Now().Add(24 * time.Hour),
+			Count:         0,
+			Mode:          "encrypt-and-sign",
+			Known:         true,
+		},
+		{
+			Name:          "Encrypt and sign to a new SHA1",
+			RecipientHash: crypto.SHA1,
+			Cutoff:        time.Now().Add(-1 * 24 * time.Hour),
+			Count:         1,
+			Mode:          "encrypt-and-sign",
+			Known:         true,
+		},
+		{
+			Name:          "Encrypt and sign to an old SHA256",
+			RecipientHash: crypto.SHA256,
+			Cutoff:        time.Now().Add(24 * time.Hour),
+			Count:         0,
+			Mode:          "encrypt-and-sign",
+			Known:         true,
+		},
+		{
+			Name:          "Encrypt and sign to a new SHA256",
+			RecipientHash: crypto.SHA256,
+			Cutoff:        time.Now().Add(-1 * 24 * time.Hour),
+			Count:         0,
+			Mode:          "encrypt-and-sign",
+			Known:         true,
+		},
+
+		// Verify - will run all 3 variants
+		{
+			Name:          "Verify of SHA1 sig a with a SHA1 self-sig, before cutoff",
+			SigningHash:   crypto.SHA1,
+			RecipientHash: crypto.SHA1,
+			Cutoff:        time.Now().Add(24 * time.Hour),
+			Count:         1,
+			Mode:          "verify",
+			Known:         true,
+		},
+		{
+			Name:          "Verify of SHA1 sig a with a SHA1 self-sig, after cutoff",
+			SigningHash:   crypto.SHA1,
+			RecipientHash: crypto.SHA1,
+			Cutoff:        time.Now().Add(-1 * 24 * time.Hour),
+			Count:         2,
+			Mode:          "verify",
+		},
+		{
+			Name:          "Verify of SHA256 sig a with a SHA1 self-sig, before cutoff",
+			SigningHash:   crypto.SHA256,
+			RecipientHash: crypto.SHA1,
+			Cutoff:        time.Now().Add(24 * time.Hour),
+			Count:         0,
+			Mode:          "verify",
+			Known:         true,
+		},
+		{
+			Name:          "Verify of SHA1 sig a with a SHA256 self-sig, before cutoff",
+			SigningHash:   crypto.SHA1,
+			RecipientHash: crypto.SHA256,
+			Cutoff:        time.Now().Add(24 * time.Hour),
+			Count:         1,
+			Mode:          "verify",
+		},
+		{
+			Name:          "Verify of SHA1 sig a with a SHA256 self-sig, after cutoff",
+			SigningHash:   crypto.SHA1,
+			RecipientHash: crypto.SHA256,
+			Cutoff:        time.Now().Add(-1 * 24 * time.Hour),
+			Count:         1,
+			Mode:          "verify",
+			Known:         true,
+		},
+		{
+			Name:          "Verify of SHA256 sig a with a SHA256 self-sig, after cutoff",
+			SigningHash:   crypto.SHA256,
+			RecipientHash: crypto.SHA256,
+			Cutoff:        time.Now().Add(-1 * 24 * time.Hour),
+			Count:         0,
+			Mode:          "verify",
+		},
+	} {
+		/*x := x
+		g.Go(func() error {
+			x.test(t)
+			return nil
+		})*/
+		x.test(t)
+	}
+	// require.NoError(t, g.Wait(), "no multifail")
+}

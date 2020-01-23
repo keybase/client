@@ -469,7 +469,7 @@ func AttachedSign(out io.WriteCloser, signed Entity, hints *FileHints,
 		}
 	}
 
-	hasher := crypto.SHA512
+	hasher := config.Hash()
 
 	ops := &packet.OnePassSignature{
 		SigType:    packet.SigTypeBinary,

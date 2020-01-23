@@ -247,6 +247,9 @@ type TestParameters struct {
 
 	// Toggle if we want to try to 'prime' the secret store before using it.
 	SecretStorePrimingDisabled bool
+
+	// Warn about all OpenPGP SHA1 signatures newer than this setting.
+	SHA1SecurityWarningsCutoff time.Time
 }
 
 func (tp TestParameters) GetDebug() (bool, bool) {
@@ -268,6 +271,10 @@ func (tp TestParameters) GetSecretStorePrimingDisabled() (bool, bool) {
 		return true, true
 	}
 	return false, false
+}
+
+func (tp TestParameters) GetSHA1SecurityWarningsCutoff() (time.Time, bool) {
+	return tp.SHA1SecurityWarningsCutoff, true
 }
 
 type Env struct {
@@ -527,6 +534,15 @@ func (e *Env) GetString(flist ...(func() string)) string {
 }
 
 func (e *Env) GetBool(def bool, flist ...func() (bool, bool)) bool {
+	for _, f := range flist {
+		if val, isSet := f(); isSet {
+			return val
+		}
+	}
+	return def
+}
+
+func (e *Env) GetTime(def time.Time, flist ...func() (time.Time, bool)) time.Time {
 	for _, f := range flist {
 		if val, isSet := f(); isSet {
 			return val
@@ -1132,6 +1148,12 @@ func (e *Env) GetEmail() string {
 func (e *Env) GetStayLoggedOut() bool {
 	return e.GetBool(false,
 		func() (bool, bool) { return e.GetConfig().GetStayLoggedOut() },
+	)
+}
+
+func (e *Env) GetSHA1SecurityWarningsCutoff() time.Time {
+	return e.GetTime(time.Unix(1547856000, 0), // 2019-01-19
+		func() (time.Time, bool) { return e.Test.GetSHA1SecurityWarningsCutoff() },
 	)
 }
 
