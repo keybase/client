@@ -1,20 +1,13 @@
 import * as React from 'react'
 import * as Constants from '../../constants/teams'
-import {
-  Avatar,
-  Box,
-  ConfirmModal,
-  HeaderOnMobile,
-  Icon,
-  MaybePopup,
-  ProgressIndicator,
-} from '../../common-adapters'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
+import * as WaitingGen from '../../actions/waiting-gen'
+import * as Container from '../../util/container'
 import {useTeamsSubscribe} from '../../teams/subscriber'
-import {globalStyles, globalMargins} from '../../styles'
 
 export type Props = {
   error: string
-  clearErrors: () => void
   onBack: () => void
   onDeleteTeam: () => void
   onLeave: () => void
@@ -23,29 +16,38 @@ export type Props = {
 }
 
 const _Spinner = (props: Props) => (
-  <MaybePopup onClose={props.onBack}>
-    <Box
-      style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, padding: globalMargins.xlarge}}
+  <Kb.MaybePopup onClose={props.onBack}>
+    <Kb.Box
+      style={{
+        ...Styles.globalStyles.flexBoxColumn,
+        alignItems: 'center',
+        flex: 1,
+        padding: Styles.globalMargins.xlarge,
+      }}
     >
-      <ProgressIndicator style={{width: globalMargins.medium}} />
-    </Box>
-  </MaybePopup>
+      <Kb.ProgressIndicator style={{width: Styles.globalMargins.medium}} />
+    </Kb.Box>
+  </Kb.MaybePopup>
 )
-const Spinner = HeaderOnMobile(_Spinner)
+const Spinner = Kb.HeaderOnMobile(_Spinner)
 
 const Header = (props: Props) => (
   <>
-    <Avatar teamname={props.name} size={64} />
-    <Icon type="icon-team-leave-28" style={{marginRight: -60, marginTop: -20, zIndex: 1}} />
+    <Kb.Avatar teamname={props.name} size={64} />
+    <Kb.Icon type="icon-team-leave-28" style={{marginRight: -60, marginTop: -20, zIndex: 1}} />
   </>
 )
 
 const _ReallyLeaveTeam = (props: Props) => {
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  React.useEffect(() => () => props.clearErrors(), [])
+  const {name} = props
+  const dispatch = Container.useDispatch()
+  React.useEffect(
+    () => () => dispatch(WaitingGen.createClearWaiting({key: Constants.leaveTeamWaitingKey(name)})),
+    [name, dispatch]
+  )
   useTeamsSubscribe()
   return (
-    <ConfirmModal
+    <Kb.ConfirmModal
       error={props.error}
       confirmText="Leave team"
       description={`You will lose access to all the ${props.name} chats and folders${

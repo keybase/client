@@ -1,6 +1,8 @@
 import * as React from 'react'
+import * as Container from '../../util/container'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
+import * as RecoverPasswordGen from '../../actions/recover-password-gen'
 import {SignupScreen, errorBanner} from '../../signup/common'
 import {isMobile} from '../../constants/platform'
 
@@ -11,18 +13,16 @@ export type Props = {
   waiting: boolean
   error: string
   username?: string
-  resetRecoverState: () => void
   resetEmailSent?: boolean
 }
 
 const Password = (props: Props) => {
   const [password, setPassword] = React.useState('')
+  const dispatch = Container.useDispatch()
   const {onSubmit} = props
   const _onSubmit = React.useCallback(() => onSubmit(password), [password, onSubmit])
 
-  const {resetRecoverState} = props
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  React.useEffect(() => () => resetRecoverState(), [])
+  React.useEffect(() => () => dispatch(RecoverPasswordGen.createResetResetPasswordState()), [dispatch])
 
   return (
     <SignupScreen

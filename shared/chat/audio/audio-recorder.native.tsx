@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import * as React from 'react'
 import * as Kb from '../../common-adapters/mobile.native'
 import * as Types from '../../constants/types/chat2'
@@ -38,17 +37,20 @@ const AudioRecorder = (props: Props) => {
 
   // dispatch
   const dispatch = Container.useDispatch()
-  const meteringCb = (inamp: number) => {
-    const amp = unifyAmp(inamp)
-    ampTracker.addAmp(amp)
-    if (!closingDownRef.current) {
-      Kb.NativeAnimated.timing(ampScale, {
-        duration: 100,
-        toValue: ampToScale(amp),
-        useNativeDriver: true,
-      }).start()
-    }
-  }
+  const meteringCb = React.useCallback(
+    (inamp: number) => {
+      const amp = unifyAmp(inamp)
+      ampTracker.addAmp(amp)
+      if (!closingDownRef.current) {
+        Kb.NativeAnimated.timing(ampScale, {
+          duration: 100,
+          toValue: ampToScale(amp),
+          useNativeDriver: true,
+        }).start()
+      }
+    },
+    [ampTracker, ampScale]
+  )
   const onCancel = React.useCallback(() => {
     dispatch(Chat2Gen.createStopAudioRecording({conversationIDKey, stopType: Types.AudioStopType.CANCEL}))
   }, [dispatch, conversationIDKey])
@@ -58,16 +60,19 @@ const AudioRecorder = (props: Props) => {
   const enableRecording = React.useCallback(() => {
     ampTracker.reset()
     dispatch(Chat2Gen.createAttemptAudioRecording({conversationIDKey, meteringCb}))
-  }, [dispatch, conversationIDKey])
-  const stopRecording = (stopType: Types.AudioStopType) => {
-    dispatch(
-      Chat2Gen.createStopAudioRecording({
-        amps: ampTracker,
-        conversationIDKey,
-        stopType,
-      })
-    )
-  }
+  }, [dispatch, conversationIDKey, ampTracker, meteringCb])
+  const stopRecording = React.useCallback(
+    (stopType: Types.AudioStopType) => {
+      dispatch(
+        Chat2Gen.createStopAudioRecording({
+          amps: ampTracker,
+          conversationIDKey,
+          stopType,
+        })
+      )
+    },
+    [dispatch, ampTracker, conversationIDKey]
+  )
   const sendRecording = React.useCallback(() => stopRecording(Types.AudioStopType.SEND), [stopRecording])
   const stageRecording = React.useCallback(() => stopRecording(Types.AudioStopType.STOPBUTTON), [
     stopRecording,
@@ -143,6 +148,7 @@ const ampToScale = (amp: number) => {
 }
 
 const AudioButton = (props: ButtonProps) => {
+  const {slideTranslate, locked, closeDown} = props
   const innerScale = React.useRef(new Kb.NativeAnimated.Value(0)).current
   const outerScale = React.useRef(new Kb.NativeAnimated.Value(0)).current
   const sendTranslate = React.useRef(new Kb.NativeAnimated.Value(0)).current
@@ -164,7 +170,7 @@ const AudioButton = (props: ButtonProps) => {
           toValue: 15,
           useNativeDriver: true,
         }),
-        Kb.NativeAnimated.timing(props.slideTranslate, {
+        Kb.NativeAnimated.timing(slideTranslate, {
           easing: Kb.NativeEasing.elastic(1),
           toValue: 1,
           useNativeDriver: true,
@@ -172,18 +178,18 @@ const AudioButton = (props: ButtonProps) => {
       ],
       {stopTogether: false}
     ).start()
-  }, [])
+  }, [innerScale, outerScale, slideTranslate])
   React.useEffect(() => {
-    if (props.locked) {
+    if (locked) {
       Kb.NativeAnimated.timing(sendTranslate, {
         easing: Kb.NativeEasing.elastic(1),
         toValue: 1,
         useNativeDriver: true,
       }).start()
     }
-  }, [props.locked])
+  }, [locked, sendTranslate])
   React.useEffect(() => {
-    if (props.closeDown) {
+    if (closeDown) {
       Kb.NativeAnimated.parallel(
         [
           Kb.NativeAnimated.timing(outerScale, {
@@ -210,7 +216,7 @@ const AudioButton = (props: ButtonProps) => {
         {stopTogether: false}
       ).start()
     }
-  }, [props.closeDown])
+  }, [closeDown])
 
   const innerSize = 28
   const ampSize = 34
@@ -379,14 +385,15 @@ type CancelProps = {
 
 const AudioSlideToCancel = (props: CancelProps) => {
   const cancelTranslate = React.useRef(new Kb.NativeAnimated.Value(0)).current
+  const {closeDown} = props
   React.useEffect(() => {
-    if (props.closeDown) {
+    if (closeDown) {
       Kb.NativeAnimated.timing(cancelTranslate, {
         toValue: 1,
         useNativeDriver: true,
       }).start()
     }
-  }, [props.closeDown])
+  }, [closeDown, cancelTranslate])
   return props.locked ? (
     <Kb.NativeAnimated.View
       style={{
@@ -445,7 +452,7 @@ const AudioCounter = (props: CounterProps) => {
       setSeconds((Date.now() - startTime) / 1000)
     }, 1000)
     return () => clearTimeout(timer)
-  }, [seconds])
+  }, [seconds, startTime])
   return (
     <Kb.NativeAnimated.View
       style={{
