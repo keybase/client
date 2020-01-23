@@ -107,7 +107,7 @@ export const getStringWaitingKey = (operation: Types.Operations) => operationToS
 export const getFileWaitingKey = (operation: Types.Operations) => operationToFileWaitingKey[operation]
 
 export const getWarningMessageForSBS = (sbsAssertion: string) =>
-  `Note: Encrypted for "${sbsAssertion}" who is not yet a keybase user. One of your devices will need to be online after they join keybase in order for them to decrypt the message. `
+  `Note: Encrypted for "${sbsAssertion}" who is not yet a Keybase user. One of your devices will need to be online after they join Keybase in order for them to decrypt the message.`
 
 export const getStatusCodeMessage = (code: number, operation: Types.Operations, type: Types.InputTypes) => {
   const inputType =
