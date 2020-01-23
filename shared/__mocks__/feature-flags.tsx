@@ -18,6 +18,7 @@ const ff: FeatureFlags = {
   moveOrCopy: true,
   newTeamBuildingForChatAllowMakeTeam: false,
   outOfDateBanner: true,
+  openTeamSearch: true,
   proofProviders: true,
   stellarExternalPartners: false,
   userBlocking: true,
