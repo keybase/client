@@ -6,6 +6,7 @@ import * as Styles from '../../styles'
 import SelectableSmallTeam from '../selectable-small-team-container'
 import SelectableBigTeamChannel from '../selectable-big-team-channel-container'
 import {inboxWidth} from '../inbox/row/sizes'
+import {TeamAvatar} from '../avatars'
 import Rover from './background'
 import flags from '../../util/feature-flags'
 
@@ -54,8 +55,15 @@ class InboxSearch extends React.Component<Props, State> {
     index: number
   }) => {
     const {item, section, index} = h
-    // const realIndex = index + section.indexOffset
-    return <Kb.Text type="Body">{JSON.stringify(item)}</Kb.Text>
+    const realIndex = index + section.indexOffset
+    return (
+      <OpenTeamRow
+        description={item.description}
+        name={item.name}
+        teamID={item.teamID}
+        selected={!Styles.isMobile && this.props.selectedIndex === realIndex}
+      />
+    )
     // isSelected={!Styles.isMobile && this.props.selectedIndex === realIndex}
   }
 
@@ -176,12 +184,12 @@ class InboxSearch extends React.Component<Props, State> {
       ...(flags.openTeamSearch && !this.props.nameResultsUnread
         ? [
             {
-              data: textResults,
+              data: openTeamsResults,
               indexOffset: nameResults.length,
               isCollapsed: this.state.openTeamsCollapsed,
               onCollapse: this.toggleCollapseOpenTeams,
               onSelect: this.selectText,
-              renderHeader: this.renderTextHeader,
+              renderHeader: this.renderNameHeader,
               renderItem: this.renderOpenTeams,
               status: this.props.openTeamsStatus,
               title: 'Open Teams',
@@ -219,6 +227,63 @@ class InboxSearch extends React.Component<Props, State> {
       </Kb.Box2>
     )
   }
+}
+
+export const rowHeight = Styles.isMobile ? 64 : 56
+type OpenTeamProps = Types.InboxSearchOpenTeamHit & {
+  selected: boolean
+}
+const OpenTeamRow = (p: OpenTeamProps) => {
+  const [hovering, setHovering] = React.useState(false)
+  const {selected, name, description} = p
+  // TODO popup
+  return (
+    <Kb.ClickableBox onClick={undefined}>
+      <Kb.Box2
+        direction="horizontal"
+        fullWidth={true}
+        centerChildren={true}
+        className="hover_background_color_blueGreyDark"
+        style={Styles.collapseStyles([
+          styles.filteredRow,
+          {
+            backgroundColor: selected ? Styles.globalColors.blue : Styles.globalColors.white,
+            height: rowHeight,
+          },
+        ])}
+        onMouseLeave={undefined}
+        onMouseOver={undefined}
+      >
+        <TeamAvatar teamname={name} isMuted={false} isSelected={false} isHovered={hovering} />
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.textContainer}>
+          <Kb.Text
+            type="Body"
+            style={Styles.collapseStyles([
+              styles.teamname,
+              {color: selected ? Styles.globalColors.white : Styles.globalColors.black},
+            ])}
+            title={name}
+            lineClamp={Styles.isMobile ? 1 : undefined}
+            ellipsizeMode="tail"
+          >
+            {name}
+          </Kb.Text>
+          <Kb.Text
+            type="Body"
+            style={Styles.collapseStyles([
+              styles.channelname,
+              {color: selected ? Styles.globalColors.white : Styles.globalColors.black},
+            ])}
+            title={`#${description}`}
+            lineClamp={Styles.isMobile ? 1 : undefined}
+            ellipsizeMode="tail"
+          >
+            {description}
+          </Kb.Text>
+        </Kb.Box2>
+      </Kb.Box2>
+    </Kb.ClickableBox>
+  )
 }
 
 const styles = Styles.styleSheetCreate(

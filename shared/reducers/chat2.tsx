@@ -282,6 +282,7 @@ const searchActions: Container.ActionHandler<Actions, Types.State> = {
       inboxSearch.selectedIndex = 0
       inboxSearch.textResults = []
       inboxSearch.textStatus = 'inprogress'
+      inboxSearch.openTeamsStatus = 'inprogress'
     }
   },
   [Chat2Gen.inboxSearchNameResults]: (draftState, action) => {

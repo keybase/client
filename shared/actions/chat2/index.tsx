@@ -1678,22 +1678,6 @@ function* inboxSearch(_: Container.TypedState, action: Chat2Gen.InboxSearchPaylo
   const onIndexStatus = (resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchIndexStatus']['inParam']) =>
     Saga.put(Chat2Gen.createInboxSearchSetIndexPercent({percent: resp.status.percentIndexed}))
 
-  // mock data
-  if (flags.openTeamSearch && __DEV__) {
-    console.log('MOCK open teams data, TODO plumb!')
-    setTimeout(() => {
-      onOpenTeamHits({
-        hits: {
-          hits: [
-            {description: 'team a', name: 'keybasefriends', teamID: 1},
-            {description: 'team b', name: 'chia_network.public', teamID: 2},
-            {description: 'team c', name: 'stellar.public', teamID: 3},
-          ],
-        },
-      })
-    }, 1000)
-  }
-
   try {
     yield RPCChatTypes.localSearchInboxRpcSaga({
       incomingCallMap: {
@@ -1734,6 +1718,21 @@ function* inboxSearch(_: Container.TypedState, action: Chat2Gen.InboxSearchPaylo
       logger.error('search failed: ' + e.message)
       yield Saga.put(Chat2Gen.createInboxSearchSetTextStatus({status: 'error'}))
     }
+  }
+
+  // mock data
+  if (flags.openTeamSearch && __DEV__) {
+    console.log('MOCK open teams data, TODO plumb!')
+    yield Saga.delay(1000)
+    yield onOpenTeamHits({
+      hits: {
+        hits: [
+          {description: 'team a', name: 'keybasefriends', teamID: 1},
+          {description: 'team b', name: 'chia_network.public', teamID: 2},
+          {description: 'team c', name: 'stellar.public', teamID: 3},
+        ],
+      },
+    })
   }
 }
 
