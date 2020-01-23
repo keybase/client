@@ -734,3 +734,14 @@ func (s *SimpleFSHandler) SimpleFSUserOut(ctx context.Context, clientKey string)
 	}
 	return cli.SimpleFSUserOut(ctx, clientKey)
 }
+
+// SimpleFSSetSfmiBannerDismissed implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSSetSfmiBannerDismissed(ctx context.Context, dismissed bool) error {
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	cli, err := s.client()
+	if err != nil {
+		return err
+	}
+	return cli.SimpleFSSetSfmiBannerDismissed(ctx, dismissed)
+}

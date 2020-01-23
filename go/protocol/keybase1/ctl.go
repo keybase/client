@@ -179,6 +179,11 @@ type DbGetArg struct {
 	Key       DbKey `codec:"key" json:"key"`
 }
 
+type DbKeysWithPrefixesArg struct {
+	SessionID int   `codec:"sessionID" json:"sessionID"`
+	Prefix    DbKey `codec:"prefix" json:"prefix"`
+}
+
 type SetNixOnLoginStartupArg struct {
 	Enabled bool `codec:"enabled" json:"enabled"`
 }
@@ -197,6 +202,7 @@ type CtlInterface interface {
 	DbDelete(context.Context, DbDeleteArg) error
 	DbPut(context.Context, DbPutArg) error
 	DbGet(context.Context, DbGetArg) (*DbValue, error)
+	DbKeysWithPrefixes(context.Context, DbKeysWithPrefixesArg) ([]DbKey, error)
 	SetNixOnLoginStartup(context.Context, bool) error
 	GetNixOnLoginStartup(context.Context) (OnLoginStartupStatus, error)
 }
@@ -355,6 +361,21 @@ func CtlProtocol(i CtlInterface) rpc.Protocol {
 					return
 				},
 			},
+			"dbKeysWithPrefixes": {
+				MakeArg: func() interface{} {
+					var ret [1]DbKeysWithPrefixesArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]DbKeysWithPrefixesArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]DbKeysWithPrefixesArg)(nil), args)
+						return
+					}
+					ret, err = i.DbKeysWithPrefixes(ctx, typedArgs[0])
+					return
+				},
+			},
 			"setNixOnLoginStartup": {
 				MakeArg: func() interface{} {
 					var ret [1]SetNixOnLoginStartupArg
@@ -439,6 +460,11 @@ func (c CtlClient) DbPut(ctx context.Context, __arg DbPutArg) (err error) {
 
 func (c CtlClient) DbGet(ctx context.Context, __arg DbGetArg) (res *DbValue, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.ctl.dbGet", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c CtlClient) DbKeysWithPrefixes(ctx context.Context, __arg DbKeysWithPrefixesArg) (res []DbKey, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.ctl.dbKeysWithPrefixes", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 

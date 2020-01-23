@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as TeamsGen from '../../actions/teams-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import CustomTitle from './custom-title/container'
 import {HeaderRightActions, HeaderTitle, SubHeader} from './nav-header/container'
@@ -28,7 +27,6 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const selectedTab = ownProps.selectedTab || 'members'
 
   return {
-    _teamnameTodoRemove: Constants.getTeamDetails(state, teamID).teamname,
     selectedTab,
     teamDetails: Constants.getTeamDetails(state, teamID),
     teamID,
@@ -38,7 +36,6 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
-  _loadTeam: (teamname: string) => dispatch(TeamsGen.createGetDetails({teamname})),
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
@@ -59,14 +56,12 @@ const Connected = Container.compose(
     const customComponent = <CustomTitle teamID={stateProps.teamID} />
     return {
       customComponent,
-      load: () => dispatchProps._loadTeam(stateProps._teamnameTodoRemove),
       onBack: dispatchProps.onBack,
       rows,
       sections,
       selectedTab: stateProps.selectedTab,
       setSelectedTab: ownProps.setSelectedTab,
       teamID: stateProps.teamID,
-      teamname: stateProps._teamnameTodoRemove,
     }
   }),
   Kb.HeaderHoc

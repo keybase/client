@@ -15,6 +15,7 @@ export type FeatureFlags = {
   proofProviders: boolean
   stellarExternalPartners: boolean
   userBlocking: boolean
+  openTeamSearch: boolean
 }
 
 declare const ff: FeatureFlags

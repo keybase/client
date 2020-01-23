@@ -3,6 +3,7 @@ import * as Container from '../../util/container'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Constants from '../../constants/teams'
+import * as TeamsTypes from '../../constants/types/teams'
 import * as Tracker2Constants from '../../constants/tracker2'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
 import {HeaderOrPopup} from '../../common-adapters'
@@ -31,8 +32,8 @@ export default Container.connect(
       }, 500)
       dispatch(RouteTreeGen.createNavigateUp())
     },
-    onPromote: (teamname: string, showcase: boolean) =>
-      dispatch(TeamsGen.createSetMemberPublicity({showcase, teamname})),
+    onPromote: (teamID: TeamsTypes.TeamID, showcase: boolean) =>
+      dispatch(TeamsGen.createSetMemberPublicity({showcase, teamID})),
   }),
   (stateProps, dispatchProps, _: OwnProps) => {
     return {

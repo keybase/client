@@ -27,7 +27,7 @@ type convLocal struct {
 	mtime    time.Time
 }
 
-type convLocalByIDMap map[string]*convLocal
+type convLocalByIDMap map[chat1.ConvIDStr]*convLocal
 
 type convLocalByNameMap map[tlf.CanonicalName]convLocalByIDMap
 
@@ -124,8 +124,8 @@ func (c *chatLocal) GetConversationID(
 		convID:   id,
 		chanName: channelName,
 	}
-	c.data.convs[tlfType][tlfName][id.String()] = conv
-	c.data.convsByID[id.String()] = conv
+	c.data.convs[tlfType][tlfName][id.ConvIDStr()] = conv
+	c.data.convsByID[id.ConvIDStr()] = conv
 
 	h, err := GetHandleFromFolderNameAndType(
 		ctx, c.config.KBPKI(), c.config.MDOps(), c.config,
@@ -164,7 +164,7 @@ func (c *chatLocal) SendTextMessage(
 	convID chat1.ConversationID, body string) error {
 	c.data.lock.Lock()
 	defer c.data.lock.Unlock()
-	conv, ok := c.data.convs[tlfType][tlfName][convID.String()]
+	conv, ok := c.data.convs[tlfType][tlfName][convID.ConvIDStr()]
 	if !ok {
 		return errors.Errorf("Conversation %s doesn't exist", convID.String())
 	}
@@ -323,7 +323,7 @@ func (c *chatLocal) ReadChannel(
 	messages []string, nextPage []byte, err error) {
 	c.data.lock.RLock()
 	defer c.data.lock.RUnlock()
-	conv, ok := c.data.convsByID[convID.String()]
+	conv, ok := c.data.convsByID[convID.ConvIDStr()]
 	if !ok {
 		return nil, nil, errors.Errorf(
 			"Conversation %s doesn't exist", convID.String())
@@ -337,7 +337,7 @@ func (c *chatLocal) RegisterForMessages(
 	convID chat1.ConversationID, cb ChatChannelNewMessageCB) {
 	c.data.lock.Lock()
 	defer c.data.lock.Unlock()
-	conv, ok := c.data.convsByID[convID.String()]
+	conv, ok := c.data.convsByID[convID.ConvIDStr()]
 	if !ok {
 		panic(fmt.Sprintf("Conversation %s doesn't exist", convID.String()))
 	}

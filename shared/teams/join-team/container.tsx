@@ -8,7 +8,7 @@ type OwnProps = {}
 
 export default Container.connect(
   state => ({
-    errorText: upperFirst(state.teams.teamJoinError),
+    errorText: upperFirst(state.teams.errorInTeamJoin),
     open: state.teams.teamJoinSuccessOpen,
     success: state.teams.teamJoinSuccess,
     successTeamName: state.teams.teamJoinSuccessTeamName,

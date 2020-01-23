@@ -565,12 +565,10 @@ func FilterByType(msgs []chat1.MessageUnboxed, query *chat1.GetThreadQuery, incl
 // Filter messages that are both exploded that are no longer shown in the GUI
 // (as ash lines)
 func FilterExploded(conv types.UnboxConversationInfo, msgs []chat1.MessageUnboxed, now time.Time) (res []chat1.MessageUnboxed) {
+	upto := conv.GetMaxDeletedUpTo()
 	for _, msg := range msgs {
-		if msg.IsValid() {
-			mvalid := msg.Valid()
-			if mvalid.IsEphemeral() && mvalid.HideExplosion(conv.GetMaxDeletedUpTo(), now) {
-				continue
-			}
+		if msg.IsEphemeral() && msg.HideExplosion(upto, now) {
+			continue
 		}
 		res = append(res, msg)
 	}
@@ -1271,7 +1269,7 @@ func PresentRemoteConversation(ctx context.Context, g *globals.Context, rc types
 		tlfName = latest.TlfName
 	}
 	res.ConvID = rc.ConvIDStr
-	res.TlfID = rawConv.Metadata.IdTriple.Tlfid.String()
+	res.TlfID = rawConv.Metadata.IdTriple.Tlfid.TLFIDStr()
 	res.TopicType = rawConv.GetTopicType()
 	res.IsPublic = rawConv.Metadata.Visibility == keybase1.TLFVisibility_PUBLIC
 	res.IsDefaultConv = rawConv.Metadata.IsDefaultConv
@@ -1350,7 +1348,7 @@ func PresentConversationErrorLocal(ctx context.Context, g *globals.Context, rawC
 	res.RekeyInfo = rawConv.RekeyInfo
 	res.RemoteConv = PresentRemoteConversation(ctx, g, types.RemoteConversation{
 		Conv:      rawConv.RemoteConv,
-		ConvIDStr: rawConv.RemoteConv.GetConvID().String(),
+		ConvIDStr: rawConv.RemoteConv.GetConvID().ConvIDStr(),
 	})
 	res.Typ = rawConv.Typ
 	res.UnverifiedTLFName = rawConv.UnverifiedTLFName
@@ -1390,8 +1388,8 @@ const (
 
 func PresentConversationLocal(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	rawConv chat1.ConversationLocal, partMode PresentParticipantsMode) (res chat1.InboxUIItem) {
-	res.ConvID = rawConv.GetConvID().String()
-	res.TlfID = rawConv.Info.Triple.Tlfid.String()
+	res.ConvID = rawConv.GetConvID().ConvIDStr()
+	res.TlfID = rawConv.Info.Triple.Tlfid.TLFIDStr()
 	res.TopicType = rawConv.GetTopicType()
 	res.IsPublic = rawConv.Info.Visibility == keybase1.TLFVisibility_PUBLIC
 	res.IsDefaultConv = rawConv.Info.IsDefaultConv
@@ -1473,7 +1471,7 @@ func PresentChannelNameMentions(ctx context.Context, crs []chat1.ChannelNameMent
 	for _, cr := range crs {
 		res = append(res, chat1.UIChannelNameMention{
 			Name:   cr.TopicName,
-			ConvID: cr.ConvID.String(),
+			ConvID: cr.ConvID.ConvIDStr(),
 		})
 	}
 	return res
@@ -1584,14 +1582,11 @@ func presentAttachmentAssetInfo(ctx context.Context, g *globals.Context, msg cha
 
 func presentPaymentInfo(ctx context.Context, g *globals.Context, msgID chat1.MessageID,
 	convID chat1.ConversationID, msg chat1.MessageUnboxedValid) []chat1.UIPaymentInfo {
-
 	typ, err := msg.MessageBody.MessageType()
 	if err != nil {
 		return nil
 	}
-
 	var infos []chat1.UIPaymentInfo
-
 	switch typ {
 	case chat1.MessageType_SENDPAYMENT:
 		body := msg.MessageBody.Sendpayment()
@@ -1619,7 +1614,9 @@ func presentPaymentInfo(ctx context.Context, g *globals.Context, msgID chat1.Mes
 			}
 		}
 	}
-
+	for index := range infos {
+		infos[index].Note = EscapeForDecorate(ctx, infos[index].Note)
+	}
 	return infos
 }
 
@@ -1688,6 +1685,8 @@ func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, msg chat1
 		payments = msgBody.Text().Payments
 	case chat1.MessageType_FLIP:
 		body = msgBody.Flip().Text
+	case chat1.MessageType_REQUESTPAYMENT:
+		body = msgBody.Requestpayment().Note
 	default:
 		return nil
 	}
@@ -1733,7 +1732,7 @@ func loadTeamMentions(ctx context.Context, g *globals.Context, uid gregor1.UID,
 }
 
 func presentFlipGameID(ctx context.Context, g *globals.Context, uid gregor1.UID,
-	convID chat1.ConversationID, msg chat1.MessageUnboxed) *string {
+	convID chat1.ConversationID, msg chat1.MessageUnboxed) *chat1.FlipGameIDStr {
 	typ, err := msg.State()
 	if err != nil {
 		return nil
@@ -1755,7 +1754,7 @@ func presentFlipGameID(ctx context.Context, g *globals.Context, uid gregor1.UID,
 		g.CoinFlipManager.LoadFlip(ctx, uid, convID, msg.GetMessageID(), body.Flip().FlipConvID,
 			body.Flip().GameID)
 	}
-	ret := body.Flip().GameID.String()
+	ret := body.Flip().GameID.FlipGameIDStr()
 	return &ret
 }
 
@@ -2045,7 +2044,7 @@ func DecodeBase64(enc []byte) ([]byte, error) {
 func RemoteConv(conv chat1.Conversation) types.RemoteConversation {
 	return types.RemoteConversation{
 		Conv:      conv,
-		ConvIDStr: conv.GetConvID().String(),
+		ConvIDStr: conv.GetConvID().ConvIDStr(),
 	}
 }
 
@@ -2465,16 +2464,12 @@ func DecorateWithLinks(ctx context.Context, body string) string {
 		if shouldSkipLink(bodyMatch) {
 			continue
 		}
-		if !(strings.HasPrefix(bodyMatch, "http://") || strings.HasPrefix(bodyMatch, "https://")) {
-			url = "http://" + bodyMatch
-		}
 		if encoded, err := idna.ToASCII(url); err == nil && encoded != url {
 			punycode = encoded
 		}
 		body, added = DecorateBody(ctx, body, match[lowhit]+offset, match[highhit]-match[lowhit],
 			chat1.NewUITextDecorationWithLink(chat1.UILinkDecoration{
-				Display:  bodyMatch,
-				Url:      url,
+				Url:      bodyMatch,
 				Punycode: punycode,
 			}))
 		offset += added
@@ -2488,11 +2483,9 @@ func DecorateWithLinks(ctx context.Context, body string) string {
 			continue
 		}
 		bodyMatch := origBody[match[0]:match[1]]
-		url := "mailto:" + bodyMatch
 		body, added = DecorateBody(ctx, body, match[0]+offset, match[1]-match[0],
 			chat1.NewUITextDecorationWithMailto(chat1.UILinkDecoration{
-				Display: bodyMatch,
-				Url:     url,
+				Url: bodyMatch,
 			}))
 		offset += added
 	}
@@ -2559,7 +2552,7 @@ func DecorateWithMentions(ctx context.Context, body string, atMentions []string,
 			body, added = DecorateBody(ctx, body, c.position[0]+offset-1, c.Len()+1,
 				chat1.NewUITextDecorationWithChannelnamemention(chat1.UIChannelNameMention{
 					Name:   c.name,
-					ConvID: convID.String(),
+					ConvID: convID.ConvIDStr(),
 				}))
 			offset += added
 		}
@@ -2718,6 +2711,7 @@ func ExportToSummary(i chat1.InboxUIItem) (s chat1.ConvSummary) {
 	s.ActiveAt = i.Time.UnixSeconds()
 	s.ActiveAtMs = i.Time.UnixMilliseconds()
 	s.FinalizeInfo = i.FinalizeInfo
+	s.CreatorInfo = i.CreatorInfo
 	s.MemberStatus = strings.ToLower(i.MemberStatus.String())
 	for _, super := range i.Supersedes {
 		s.Supersedes = append(s.Supersedes,

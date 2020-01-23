@@ -61,8 +61,10 @@ type _MessageCommon = {
   author: string
   bodySummary: HiddenString
   conversationIDKey: Common.ConversationIDKey
+  deviceRevokedAt?: number
   errorReason?: string
   errorTyp?: number
+  exploded?: boolean
   hasBeenEdited?: boolean
   id: MessageID
   isDeleteable?: boolean
@@ -75,7 +77,6 @@ type _MessageCommon = {
 }
 type _MessageWithDeviceInfo = {
   deviceName: string
-  deviceRevokedAt?: number
   deviceType: DeviceType
 }
 
@@ -411,8 +412,3 @@ type GetTypes<T> = T extends {type: string} ? T['type'] : never
 export type MessageType = GetTypes<Message>
 export type Filter<T, U> = T extends U ? T : never
 export type MessagesWithReactions = Filter<Message, _MessageWithReactions>
-export type DecoratedMessage =
-  | MessagesWithReactions
-  | MessageAttachment
-  | MessageRequestPayment
-  | MessageSendPayment

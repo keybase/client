@@ -178,6 +178,7 @@ const styles = Styles.styleSheetCreate(
         marginTop: Styles.globalMargins.xtiny,
       },
       marker: {
+        flexShrink: 0,
         marginRight: Styles.globalMargins.xtiny,
         ...(Styles.isMobile ? {marginTop: -3} : null),
         minWidth: 0,

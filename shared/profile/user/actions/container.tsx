@@ -6,6 +6,7 @@ import * as Container from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Tracker2Gen from '../../../actions/tracker2-gen'
 import * as ProfileGen from '../../../actions/profile-gen'
+import * as BotsGen from '../../../actions/bots-gen'
 import * as WalletsType from '../../../constants/types/wallets'
 import Actions from '.'
 
@@ -19,6 +20,7 @@ export default Container.namedConnect(
     const d = Constants.getDetails(state, username)
     const followThem = Constants.followThem(state, username)
     const followsYou = Constants.followsYou(state, username)
+    const isBot = state.chat2.featuredBotsMap.has(username)
 
     return {
       _guiID: d.guiID,
@@ -27,11 +29,13 @@ export default Container.namedConnect(
       followThem,
       followsYou,
       hidFromFollowers: d.hidFromFollowers,
+      isBot,
       state: d.state,
       username,
     }
   },
   dispatch => ({
+    _loadFeaturedBots: () => dispatch(BotsGen.createGetFeaturedBots({})),
     _onAddToTeam: (username: string) =>
       dispatch(
         RouteTreeGen.createNavigateAppend({path: [{props: {username}, selected: 'profileAddToTeam'}]})
@@ -44,6 +48,13 @@ export default Container.namedConnect(
     _onEditProfile: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['profileEdit']})),
     _onFollow: (guiID: string, follow: boolean) => dispatch(Tracker2Gen.createChangeFollow({follow, guiID})),
     _onIgnoreFor24Hours: (guiID: string) => dispatch(Tracker2Gen.createIgnore({guiID})),
+    _onInstallBot: (username: string) => {
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {botUsername: username, navToChat: false}, selected: 'chatInstallBotPick'}],
+        })
+      )
+    },
     _onManageBlocking: (username: string) =>
       dispatch(
         RouteTreeGen.createNavigateAppend({
@@ -72,12 +83,15 @@ export default Container.namedConnect(
     followThem: stateProps.followThem,
     followsYou: stateProps.followsYou,
     hidFromFollowers: stateProps.hidFromFollowers,
+    isBot: stateProps.isBot,
+    loadFeaturedBots: () => dispatchProps._loadFeaturedBots(),
     onAccept: () => dispatchProps._onFollow(stateProps._guiID, true),
     onAddToTeam: () => dispatchProps._onAddToTeam(stateProps.username),
     onBrowsePublicFolder: () => dispatchProps._onBrowsePublicFolder(stateProps.username),
     onEditProfile: stateProps._you === stateProps.username ? dispatchProps._onEditProfile : undefined,
     onFollow: () => dispatchProps._onFollow(stateProps._guiID, true),
     onIgnoreFor24Hours: () => dispatchProps._onIgnoreFor24Hours(stateProps._guiID),
+    onInstallBot: () => dispatchProps._onInstallBot(stateProps.username),
     onManageBlocking: () => dispatchProps._onManageBlocking(stateProps.username),
     onOpenPrivateFolder: () => dispatchProps._onOpenPrivateFolder(stateProps._you, stateProps.username),
     onReload: () => dispatchProps._onReload(stateProps.username),

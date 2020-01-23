@@ -120,6 +120,10 @@ func CheckProof(m libkb.MetaContext, pvlS string, service keybase1.ProofType, in
 func checkProofInner(m metaContext, pvlS string, service keybase1.ProofType, info ProofInfo) libkb.ProofError {
 	pvl, err := parse(pvlS)
 	if err != nil {
+		if strings.Contains(err.Error(), "cannot unmarshal string into Go struct") && strings.Contains(pvlS, "from iced tests") {
+			return libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
+				"Corrupted pvl in merkle tree from iced tests. To fix see test/merkle_pvl.iced. : %v", err)
+		}
 		return libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 			"Could not parse pvl: %v", err)
 	}

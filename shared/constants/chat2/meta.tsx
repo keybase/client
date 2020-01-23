@@ -390,9 +390,15 @@ const emptyMeta = makeConversationMeta()
 export const getMeta = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.metaMap.get(id) || emptyMeta
 
-export const getChannelForTeam = (state: TypedState, teamname: string, channelname: string) =>
-  [...state.chat2.metaMap.values()].find(m => m.teamname === teamname && m.channelname === channelname) ||
-  emptyMeta
+export const getGeneralChannelForBigTeam = (state: TypedState, teamname: string) => {
+  const t = state.chat2.inboxLayout?.bigTeams?.find(
+    m =>
+      m.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel &&
+      m.channel.teamname === teamname &&
+      m.channel.channelname === 'general'
+  )
+  return t?.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel ? t.channel.convID : noConversationIDKey
+}
 
 const blankCommands: Array<RPCChatTypes.ConversationCommand> = []
 

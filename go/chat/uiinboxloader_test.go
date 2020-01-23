@@ -57,15 +57,15 @@ func TestUIInboxLoaderLayout(t *testing.T) {
 	for i := 0; i < 2; i++ {
 		layout = recvLayout()
 		require.Equal(t, 1, len(layout.SmallTeams))
-		require.Equal(t, conv1.Id.String(), layout.SmallTeams[0].ConvID)
+		require.Equal(t, conv1.Id.ConvIDStr(), layout.SmallTeams[0].ConvID)
 	}
 	conv2 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_IMPTEAMNATIVE, users[2])
 	for i := 0; i < 2; i++ {
 		layout = recvLayout()
 		require.Equal(t, 2, len(layout.SmallTeams))
-		require.Equal(t, conv2.Id.String(), layout.SmallTeams[0].ConvID)
-		require.Equal(t, conv1.Id.String(), layout.SmallTeams[1].ConvID)
+		require.Equal(t, conv2.Id.ConvIDStr(), layout.SmallTeams[0].ConvID)
+		require.Equal(t, conv1.Id.ConvIDStr(), layout.SmallTeams[1].ConvID)
 	}
 	select {
 	case <-chatUI.InboxLayoutCb:
@@ -91,13 +91,13 @@ func TestUIInboxLoaderLayout(t *testing.T) {
 	// in)
 	layout = recvLayout()
 	require.Equal(t, 2, len(layout.SmallTeams))
-	require.Equal(t, conv1.Id.String(), layout.SmallTeams[0].ConvID)
-	require.Equal(t, conv2.Id.String(), layout.SmallTeams[1].ConvID)
+	require.Equal(t, conv1.Id.ConvIDStr(), layout.SmallTeams[0].ConvID)
+	require.Equal(t, conv2.Id.ConvIDStr(), layout.SmallTeams[1].ConvID)
 	select {
 	case layout = <-chatUI.InboxLayoutCb:
 		require.Equal(t, 2, len(layout.SmallTeams))
-		require.Equal(t, conv1.Id.String(), layout.SmallTeams[0].ConvID)
-		require.Equal(t, conv2.Id.String(), layout.SmallTeams[1].ConvID)
+		require.Equal(t, conv1.Id.ConvIDStr(), layout.SmallTeams[0].ConvID)
+		require.Equal(t, conv2.Id.ConvIDStr(), layout.SmallTeams[1].ConvID)
 	case <-time.After(timeout):
 		// just don't care if we don't get anything
 	}
@@ -109,13 +109,13 @@ func TestUIInboxLoaderLayout(t *testing.T) {
 		})))
 	layout = recvLayout()
 	require.Equal(t, 2, len(layout.SmallTeams))
-	require.Equal(t, conv2.Id.String(), layout.SmallTeams[0].ConvID)
-	require.Equal(t, conv1.Id.String(), layout.SmallTeams[1].ConvID)
+	require.Equal(t, conv2.Id.ConvIDStr(), layout.SmallTeams[0].ConvID)
+	require.Equal(t, conv1.Id.ConvIDStr(), layout.SmallTeams[1].ConvID)
 	select {
 	case layout = <-chatUI.InboxLayoutCb:
 		require.Equal(t, 2, len(layout.SmallTeams))
-		require.Equal(t, conv2.Id.String(), layout.SmallTeams[0].ConvID)
-		require.Equal(t, conv1.Id.String(), layout.SmallTeams[1].ConvID)
+		require.Equal(t, conv2.Id.ConvIDStr(), layout.SmallTeams[0].ConvID)
+		require.Equal(t, conv1.Id.ConvIDStr(), layout.SmallTeams[1].ConvID)
 	case <-time.After(timeout):
 		// just don't care if we don't get anything
 	}
@@ -127,7 +127,7 @@ func TestUIInboxLoaderLayout(t *testing.T) {
 	require.NoError(t, err)
 	layout = recvLayout()
 	require.Equal(t, 1, len(layout.SmallTeams))
-	require.Equal(t, conv2.Id.String(), layout.SmallTeams[0].ConvID)
+	require.Equal(t, conv2.Id.ConvIDStr(), layout.SmallTeams[0].ConvID)
 	select {
 	case <-chatUI.InboxLayoutCb:
 		require.Fail(t, "unexpected layout")
@@ -139,9 +139,9 @@ func TestUIInboxLoaderLayout(t *testing.T) {
 		chat1.ConversationMembersType_TEAM, users[1], users[2])
 	layout = recvLayout()
 	require.Equal(t, 2, len(layout.SmallTeams))
-	require.Equal(t, teamConv.Id.String(), layout.SmallTeams[0].ConvID)
+	require.Equal(t, teamConv.Id.ConvIDStr(), layout.SmallTeams[0].ConvID)
 	require.True(t, layout.SmallTeams[0].IsTeam)
-	require.Equal(t, conv2.Id.String(), layout.SmallTeams[1].ConvID)
+	require.Equal(t, conv2.Id.ConvIDStr(), layout.SmallTeams[1].ConvID)
 	topicName := "mike"
 	channel, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
 		chat1.NewConversationLocalArg{
@@ -157,22 +157,22 @@ func TestUIInboxLoaderLayout(t *testing.T) {
 	dat, _ := json.Marshal(layout)
 	t.Logf("LAYOUT: %s", string(dat))
 	require.Equal(t, 1, len(layout.SmallTeams))
-	require.Equal(t, conv2.Id.String(), layout.SmallTeams[0].ConvID)
+	require.Equal(t, conv2.Id.ConvIDStr(), layout.SmallTeams[0].ConvID)
 	require.Equal(t, 3, len(layout.BigTeams))
 	st, err := layout.BigTeams[0].State()
 	require.NoError(t, err)
 	require.Equal(t, chat1.UIInboxBigTeamRowTyp_LABEL, st)
 	require.Equal(t, teamConv.TlfName, layout.BigTeams[0].Label().Name)
-	require.Equal(t, teamConv.Triple.Tlfid.String(), layout.BigTeams[0].Label().Id)
+	require.Equal(t, teamConv.Triple.Tlfid.TLFIDStr(), layout.BigTeams[0].Label().Id)
 	st, err = layout.BigTeams[1].State()
 	require.NoError(t, err)
 	require.Equal(t, chat1.UIInboxBigTeamRowTyp_CHANNEL, st)
-	require.Equal(t, teamConv.Id.String(), layout.BigTeams[1].Channel().ConvID)
+	require.Equal(t, teamConv.Id.ConvIDStr(), layout.BigTeams[1].Channel().ConvID)
 	require.Equal(t, teamConv.TlfName, layout.BigTeams[1].Channel().Teamname)
 	st, err = layout.BigTeams[2].State()
 	require.NoError(t, err)
 	require.Equal(t, chat1.UIInboxBigTeamRowTyp_CHANNEL, st)
-	require.Equal(t, channel.Conv.GetConvID().String(), layout.BigTeams[2].Channel().ConvID)
+	require.Equal(t, channel.Conv.GetConvID().ConvIDStr(), layout.BigTeams[2].Channel().ConvID)
 	require.Equal(t, teamConv.TlfName, layout.BigTeams[2].Channel().Teamname)
 	require.Equal(t, topicName, layout.BigTeams[2].Channel().Channelname)
 }
@@ -222,7 +222,7 @@ func TestUIInboxLoaderReselect(t *testing.T) {
 	for i := 0; i < 2; i++ {
 		layout = recvLayout()
 		require.Equal(t, 1, len(layout.SmallTeams))
-		require.Equal(t, conv1.Id.String(), layout.SmallTeams[0].ConvID)
+		require.Equal(t, conv1.Id.ConvIDStr(), layout.SmallTeams[0].ConvID)
 	}
 	tc.Context().Syncer.SelectConversation(ctx, conv1.Id)
 
@@ -244,16 +244,16 @@ func TestUIInboxLoaderReselect(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, chat1.UIInboxBigTeamRowTyp_LABEL, st)
 	require.Equal(t, conv1.TlfName, layout.BigTeams[0].Label().Name)
-	require.Equal(t, conv1.Triple.Tlfid.String(), layout.BigTeams[0].Label().Id)
+	require.Equal(t, conv1.Triple.Tlfid.TLFIDStr(), layout.BigTeams[0].Label().Id)
 	st, err = layout.BigTeams[1].State()
 	require.NoError(t, err)
 	require.Equal(t, chat1.UIInboxBigTeamRowTyp_CHANNEL, st)
-	require.Equal(t, conv1.Id.String(), layout.BigTeams[1].Channel().ConvID)
+	require.Equal(t, conv1.Id.ConvIDStr(), layout.BigTeams[1].Channel().ConvID)
 	require.Equal(t, conv1.TlfName, layout.BigTeams[1].Channel().Teamname)
 	st, err = layout.BigTeams[2].State()
 	require.NoError(t, err)
 	require.Equal(t, chat1.UIInboxBigTeamRowTyp_CHANNEL, st)
-	require.Equal(t, channel.Conv.GetConvID().String(), layout.BigTeams[2].Channel().ConvID)
+	require.Equal(t, channel.Conv.GetConvID().ConvIDStr(), layout.BigTeams[2].Channel().ConvID)
 	require.Equal(t, conv1.TlfName, layout.BigTeams[2].Channel().Teamname)
 	require.Equal(t, topicName, layout.BigTeams[2].Channel().Channelname)
 
@@ -276,5 +276,5 @@ func TestUIInboxLoaderReselect(t *testing.T) {
 	require.Zero(t, len(layout.BigTeams))
 	require.NotNil(t, layout.ReselectInfo)
 	require.NotNil(t, layout.ReselectInfo.NewConvID)
-	require.Equal(t, conv1.Id.String(), *layout.ReselectInfo.NewConvID)
+	require.Equal(t, conv1.Id.ConvIDStr(), *layout.ReselectInfo.NewConvID)
 }

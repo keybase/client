@@ -12,12 +12,15 @@ type Props = {
   followsYou: boolean
   blocked: boolean
   hidFromFollowers: boolean
+  isBot: boolean
+  loadFeaturedBots: () => void
   onAccept: () => void
   onAddToTeam: () => void
   onBrowsePublicFolder: () => void
   onEditProfile?: () => void
   onFollow: () => void
   onIgnoreFor24Hours: () => void
+  onInstallBot: () => void
   onOpenPrivateFolder: () => void
   onReload: () => void
   onRequestLumens: () => void
@@ -31,9 +34,11 @@ type Props = {
 
 type DropdownProps = Pick<
   Props,
+  | 'isBot'
   | 'onAddToTeam'
   | 'onOpenPrivateFolder'
   | 'onBrowsePublicFolder'
+  | 'onInstallBot'
   | 'onSendLumens'
   | 'onRequestLumens'
   | 'onManageBlocking'
@@ -43,6 +48,11 @@ type DropdownProps = Pick<
 }
 
 const Actions = (p: Props) => {
+  // load featured bots on first render
+  React.useEffect(() => {
+    p.loadFeaturedBots()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   if (p.blocked) {
     return (
       <Kb.Box2 gap="tiny" centerChildren={true} direction="horizontal" fullWidth={true}>
@@ -63,9 +73,11 @@ const Actions = (p: Props) => {
     <DropdownButton
       blockedOrHidFromFollowers={p.blocked || p.hidFromFollowers}
       key="dropdown"
+      isBot={p.isBot}
       onAddToTeam={p.onAddToTeam}
       onOpenPrivateFolder={p.onOpenPrivateFolder}
       onBrowsePublicFolder={p.onBrowsePublicFolder}
+      onInstallBot={p.onInstallBot}
       onSendLumens={p.onSendLumens}
       onRequestLumens={p.onRequestLumens}
       onUnfollow={p.followThem && p.state !== 'valid' ? p.onUnfollow : undefined}
@@ -151,7 +163,9 @@ const Actions = (p: Props) => {
 
 const DropdownButton = Kb.OverlayParentHOC((p: Kb.PropsWithOverlay<DropdownProps>) => {
   const items: Kb.MenuItems = [
-    {icon: 'iconfont-people', onClick: p.onAddToTeam, title: 'Add to team...'},
+    p.isBot
+      ? {icon: 'iconfont-nav-2-robot', onClick: p.onInstallBot, title: 'Install bot in team or chat'}
+      : {icon: 'iconfont-people', onClick: p.onAddToTeam, title: 'Add to team...'},
     {icon: 'iconfont-stellar-send', onClick: p.onSendLumens, title: 'Send Lumens (XLM)'},
     {icon: 'iconfont-stellar-request', onClick: p.onRequestLumens, title: 'Request Lumens (XLM)'},
     {icon: 'iconfont-folder-open', onClick: p.onOpenPrivateFolder, title: 'Open private folder'},

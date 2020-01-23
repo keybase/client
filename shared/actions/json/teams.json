@@ -58,21 +58,32 @@
       "_description": "Don't eagerly reload team list anymore."
     },
     "getDetails": {
+      "_description": "Deprecated, use subscriptions or by ID in new code",
       "teamname": "string",
       "clearInviteLoadingKey?": "string"
     },
+    "getDetailsByID": {
+      "_description": "Load team details if we are stale. _subscribe is for use by teams/subscriber only.",
+      "_subscribe?": "boolean",
+      "teamID": "Types.TeamID",
+      "clearInviteLoadingKey?": "string"
+    },
+    "unsubscribeTeamDetails": {
+      "_description": "Stop listening for team details for this team",
+      "teamID": "Types.TeamID"
+    },
     "getMembers": {
-      "teamname": "string"
+      "teamID": "Types.TeamID"
     },
     "setMembers": {
-      "teamname": "string",
+      "teamID": "Types.TeamID",
       "members": "Map<string, Types.MemberInfo>"
     },
     "getTeamProfileAddList": {
       "username": "string"
     },
     "getTeamPublicity": {
-      "teamname": "string"
+      "teamID": "Types.TeamID"
     },
     "addTeamWithChosenChannels": {
       "teamID": "Types.TeamID"
@@ -134,7 +145,7 @@
       "username": "string"
     },
     "editTeamDescription": {
-      "teamname": "string",
+      "teamID": "Types.TeamID",
       "description": "string"
     },
     "uploadTeamAvatar": {
@@ -163,14 +174,20 @@
       "username": "string"
     },
     "setMemberPublicity": {
-      "teamname": "string",
+      "teamID": "Types.TeamID",
       "showcase": "boolean"
     },
     "setPublicity": {
-      "teamname": "string",
+      "teamID": "Types.TeamID",
       "settings": "Types.PublicitySettings"
     },
     "setChannelCreationError": {
+      "error": "string"
+    },
+    "setEditDescriptionError": {
+      "error": "string"
+    },
+    "settingsError": {
       "error": "string"
     },
     "setTeamsWithChosenChannels": {
@@ -191,7 +208,7 @@
       "teamname": "string"
     },
     "setTeamRetentionPolicy": {
-      "teamname": "string",
+      "teamID": "Types.TeamID",
       "retentionPolicy": "RetentionPolicy"
     },
     "setTeamLoadingInvites": {
@@ -215,7 +232,7 @@
       "teamOperation": "Types.TeamOperations"
     },
     "setTeamPublicitySettings": {
-      "teamname": "string",
+      "teamID": "Types.TeamID",
       "publicity": "Types._PublicitySettings"
     },
     "setTeamChannelInfo": {
@@ -242,7 +259,7 @@
       "deletedTeams": "Array<RPCTypes.DeletedTeamInfo>",
       "newTeams": "Set<Types.TeamID>",
       "newTeamRequests": "Array<Types.TeamID>",
-      "teamIDToResetUsers": "Map<Types.TeamID, Set<Types.ResetUser>>"
+      "teamIDToResetUsers": "Map<Types.TeamID, Set<string>>"
     },
     "setTeamSawChatBanner": {},
     "setTeamSawSubteamsBanner": {},
@@ -278,12 +295,12 @@
       "teamname": "string"
     },
     "getTeamRetentionPolicy": {
-      "_description": "Gets the team retention policy and stores in `state.entities.teams.teamNameToRetentionPolicy`.",
-      "teamname": "string"
+      "_description": "Gets the team retention policy and stores in `state.entities.teams.teamIDToRetentionPolicy`.",
+      "teamID": "Types.TeamID"
     },
     "saveTeamRetentionPolicy": {
       "_description": "Sets the retention policy for a team. The store will be updated automatically.",
-      "teamname": "string",
+      "teamID": "Types.TeamID",
       "policy": "RetentionPolicy"
     },
     "renameTeam": {

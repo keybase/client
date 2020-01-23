@@ -312,6 +312,14 @@ func (p CommandLine) GetLevelDBNumFiles() (int, bool) {
 	return 0, false
 }
 
+func (p CommandLine) GetLevelDBWriteBufferMB() (int, bool) {
+	ret := p.GetGInt("leveldb-write-buffer-mb")
+	if ret != 0 {
+		return ret, true
+	}
+	return 0, false
+}
+
 func (p CommandLine) GetChatInboxSourceLocalizeThreads() (int, bool) {
 	ret := p.GetGInt("chat-inboxsource-localizethreads")
 	if ret != 0 {

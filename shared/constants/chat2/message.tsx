@@ -1027,7 +1027,7 @@ const validUIMessagetoMessage = (
     case RPCChatTypes.MessageType.requestpayment:
       return makeMessageRequestPayment({
         ...common,
-        note: new HiddenString(m.messageBody.requestpayment.note),
+        note: new HiddenString(m.decoratedTextBody ?? ''),
         requestID: m.messageBody.requestpayment.requestID,
         requestInfo: uiRequestInfoToChatRequestInfo(m.requestInfo || null),
       })

@@ -221,12 +221,12 @@ func TestUIThreadLoaderCache(t *testing.T) {
 	require.IsType(t, storage.MissError{}, err)
 	clock.Advance(10 * time.Second)
 	worked := false
-	for i := 0; i < 5; i++ {
+	for i := 0; i < 5 && !worked; i++ {
 		select {
 		case err := <-cb:
 			require.NoError(t, err)
+			t.Logf("cb received: %d", i)
 			worked = true
-			break
 		case <-time.After(timeout):
 			t.Logf("end failed: %d", i)
 			clock.Advance(10 * time.Second)

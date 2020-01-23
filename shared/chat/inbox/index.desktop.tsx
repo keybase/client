@@ -26,7 +26,7 @@ type State = {
 const widths = [10, 80, 2, 66]
 const stableWidth = (idx: number) => 160 + -widths[idx % widths.length]
 
-const FakeRow = ({idx}) => (
+const FakeRow = ({idx}: {idx: number}) => (
   <Kb.Box2 direction="horizontal" style={styles.fakeRow}>
     <Kb.Box2 direction="vertical" style={styles.fakeAvatar} />
     <Kb.Box2 direction="vertical" style={styles.fakeText}>
@@ -102,7 +102,7 @@ class Inbox extends React.Component<T.Props, State> {
     this.mounted = false
   }
 
-  private itemSizeGetter = index => {
+  private itemSizeGetter = (index: number) => {
     const row = this.props.rows[index]
     if (!row) {
       return 0
@@ -111,11 +111,11 @@ class Inbox extends React.Component<T.Props, State> {
     return getRowHeight(row.type, row.type === 'divider' && row.showButton)
   }
 
-  private onDragStart = ev => {
+  private onDragStart = (ev: React.DragEvent<HTMLDivElement>) => {
     ev.dataTransfer.setData(dragKey, dragKey)
   }
 
-  private itemRenderer = (index, style) => {
+  private itemRenderer = (index: number, style: Object) => {
     const row = this.props.rows[index]
     if (!row) {
       // likely small teams were just collapsed
@@ -255,7 +255,13 @@ class Inbox extends React.Component<T.Props, State> {
     }
   }
 
-  private onItemsRendered = ({visibleStartIndex, visibleStopIndex}) => {
+  private onItemsRendered = ({
+    visibleStartIndex,
+    visibleStopIndex,
+  }: {
+    visibleStartIndex: number
+    visibleStopIndex: number
+  }) => {
     this.lastVisibleIdx = visibleStopIndex
     this.calculateShowUnreadShortcutThrottled()
     this.onItemsRenderedDebounced({visibleStartIndex, visibleStopIndex})
@@ -292,9 +298,9 @@ class Inbox extends React.Component<T.Props, State> {
     this.list = list
   }
 
-  private listChild = ({index, style}) => this.itemRenderer(index, style)
+  private listChild = ({index, style}: {index: number; style: Object}) => this.itemRenderer(index, style)
 
-  private onDragOver = e => {
+  private onDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     if (this.scrollDiv.current && e.dataTransfer.types.length > 0 && e.dataTransfer.types[0] === dragKey) {
       this.setState({
         dragY:

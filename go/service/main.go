@@ -516,7 +516,7 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	g.TeamMentionLoader = chat.NewTeamMentionLoader(g)
 	g.ExternalAPIKeySource = chat.NewRemoteExternalAPIKeySource(g, ri)
 	g.LiveLocationTracker = maps.NewLiveLocationTracker(g)
-	g.BotCommandManager = bots.NewCachingBotCommandManager(g, ri)
+	g.BotCommandManager = bots.NewCachingBotCommandManager(g, ri, chat.CreateNameInfoSource)
 	g.UIInboxLoader = chat.NewUIInboxLoader(g)
 	g.UIThreadLoader = chat.NewUIThreadLoader(g)
 
@@ -1073,7 +1073,7 @@ func (d *Service) ConfigRPCServer() (net.Listener, error) {
 }
 
 func (d *Service) Stop(exitCode keybase1.ExitCode) {
-	d.G().Log.Info("Beginning the process of stopping the service")
+	d.G().Log.Debug("Beginning the process of stopping the service")
 	d.stopCh <- exitCode
 }
 

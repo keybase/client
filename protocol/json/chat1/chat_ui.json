@@ -57,7 +57,7 @@
       "name": "UIInboxSmallTeamRow",
       "fields": [
         {
-          "type": "string",
+          "type": "ConvIDStr",
           "name": "convID"
         },
         {
@@ -109,7 +109,7 @@
       "name": "UIInboxBigTeamChannelRow",
       "fields": [
         {
-          "type": "string",
+          "type": "ConvIDStr",
           "name": "convID"
         },
         {
@@ -142,7 +142,7 @@
           "name": "name"
         },
         {
-          "type": "string",
+          "type": "TLFIDStr",
           "name": "id"
         }
       ]
@@ -176,13 +176,13 @@
       "name": "UIInboxReselectInfo",
       "fields": [
         {
-          "type": "string",
+          "type": "ConvIDStr",
           "name": "oldConvID"
         },
         {
           "type": [
             null,
-            "string"
+            "ConvIDStr"
           ],
           "name": "newConvID"
         }
@@ -271,11 +271,11 @@
       "name": "UnverifiedInboxUIItem",
       "fields": [
         {
-          "type": "string",
+          "type": "ConvIDStr",
           "name": "convID"
         },
         {
-          "type": "string",
+          "type": "TLFIDStr",
           "name": "tlfID"
         },
         {
@@ -478,11 +478,11 @@
       "name": "InboxUIItem",
       "fields": [
         {
-          "type": "string",
+          "type": "ConvIDStr",
           "name": "convID"
         },
         {
-          "type": "string",
+          "type": "TLFIDStr",
           "name": "tlfID"
         },
         {
@@ -726,7 +726,7 @@
           "name": "name"
         },
         {
-          "type": "string",
+          "type": "ConvIDStr",
           "name": "convID"
         }
       ]
@@ -1040,7 +1040,7 @@
         {
           "type": [
             null,
-            "string"
+            "FlipGameIDStr"
           ],
           "name": "flipGameID"
         },
@@ -1114,7 +1114,7 @@
         {
           "type": [
             null,
-            "string"
+            "FlipGameIDStr"
           ],
           "name": "flipGameID"
         },
@@ -1276,7 +1276,7 @@
         {
           "type": [
             null,
-            "string"
+            "ConvIDStr"
           ],
           "name": "convID"
         }
@@ -1309,10 +1309,6 @@
       "type": "record",
       "name": "UILinkDecoration",
       "fields": [
-        {
-          "type": "string",
-          "name": "display"
-        },
         {
           "type": "string",
           "name": "url"
@@ -1473,7 +1469,7 @@
       "name": "UIChatSearchConvHit",
       "fields": [
         {
-          "type": "string",
+          "type": "ConvIDStr",
           "name": "convID"
         },
         {
@@ -1840,7 +1836,7 @@
       "name": "UICoinFlipStatus",
       "fields": [
         {
-          "type": "string",
+          "type": "FlipGameIDStr",
           "name": "gameID"
         },
         {
@@ -1936,12 +1932,64 @@
     },
     {
       "type": "enum",
-      "name": "UIBotCommandsUpdateStatus",
+      "name": "UIBotCommandsUpdateStatusTyp",
       "symbols": [
         "UPTODATE_0",
         "UPDATING_1",
         "FAILED_2",
         "BLANK_3"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UIBotCommandsUpdateSettings",
+      "fields": [
+        {
+          "type": {
+            "type": "map",
+            "values": "keybase1.TeamBotSettings",
+            "keys": "string"
+          },
+          "name": "settings"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "UIBotCommandsUpdateStatus",
+      "switch": {
+        "type": "UIBotCommandsUpdateStatusTyp",
+        "name": "typ"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "UPTODATE",
+            "def": false
+          },
+          "body": "UIBotCommandsUpdateSettings"
+        },
+        {
+          "label": {
+            "name": "UPDATING",
+            "def": false
+          },
+          "body": null
+        },
+        {
+          "label": {
+            "name": "FAILED",
+            "def": false
+          },
+          "body": null
+        },
+        {
+          "label": {
+            "name": "BLANK",
+            "def": false
+          },
+          "body": null
+        }
       ]
     }
   ],
@@ -2236,7 +2284,7 @@
         },
         {
           "name": "convID",
-          "type": "string"
+          "type": "ConvIDStr"
         },
         {
           "name": "results",
@@ -2253,7 +2301,7 @@
         },
         {
           "name": "convID",
-          "type": "string"
+          "type": "ConvIDStr"
         },
         {
           "name": "show",
@@ -2303,7 +2351,7 @@
         },
         {
           "name": "convID",
-          "type": "string"
+          "type": "ConvIDStr"
         },
         {
           "name": "md",
@@ -2387,7 +2435,7 @@
         },
         {
           "name": "convID",
-          "type": "string"
+          "type": "ConvIDStr"
         },
         {
           "name": "displayText",
@@ -2415,7 +2463,7 @@
         },
         {
           "name": "convID",
-          "type": "string"
+          "type": "ConvIDStr"
         },
         {
           "name": "status",

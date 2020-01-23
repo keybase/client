@@ -169,12 +169,11 @@ export type State = Readonly<{
     Common.ConversationIDKey,
     Map<RPCChatTypes.MessageID, Message.ChatRequestInfo | Message.ChatPaymentInfo>
   > // temp cache for requestPayment and sendPayment message data,
-  attachmentFullscreenSelection?: AttachmentFullscreenSelection
   attachmentViewMap: Map<Common.ConversationIDKey, Map<RPCChatTypes.GalleryItemTyp, AttachmentViewInfo>>
   audioRecording: Map<Common.ConversationIDKey, AudioRecordingInfo>
   badgeMap: ConversationCountMap // id to the badge count,
   blockButtonsMap: Map<RPCTypes.TeamID, BlockButtonsInfo> // Should we show block buttons for this team ID?
-  botCommandsUpdateStatusMap: Map<Common.ConversationIDKey, RPCChatTypes.UIBotCommandsUpdateStatus>
+  botCommandsUpdateStatusMap: Map<Common.ConversationIDKey, RPCChatTypes.UIBotCommandsUpdateStatusTyp>
   botPublicCommands: Map<string, BotPublicCommands>
   botSearchResults?: BotSearchResults
   botSettings: Map<Common.ConversationIDKey, Map<string, RPCTypes.TeamBotSettings>>
@@ -201,6 +200,8 @@ export type State = Readonly<{
   inboxLayout: RPCChatTypes.UIInboxLayout | null // layout of the inbox
   inboxSearch?: InboxSearchInfo
   inboxShowNew: boolean // mark search as new,
+  infoPanelShowing: boolean
+  infoPanelSelectedTab: 'settings' | 'members' | 'attachments' | 'bots' | undefined
   isWalletsNew: boolean // controls new-ness of wallets in chat UI,
   lastCoord?: Coordinate
   maybeMentionMap: Map<string, RPCChatTypes.UIMaybeMentionInfo>
@@ -258,7 +259,6 @@ export type TeamType = Meta.TeamType
 export type AttachmentType = Message.AttachmentType
 export type ChatPaymentInfo = Message.ChatPaymentInfo
 export type ChatRequestInfo = Message.ChatRequestInfo
-export type DecoratedMessage = Message.DecoratedMessage
 export type MessagesWithReactions = Message.MessagesWithReactions
 export type MentionsAt = Message.MentionsAt
 export type MentionsChannel = Message.MentionsChannel
@@ -285,6 +285,7 @@ export type MessageSystemSimpleToComplex = Message.MessageSystemSimpleToComplex
 export type MessageSystemText = Message.MessageSystemText
 export type MessageSystemUsersAddedToConversation = Message.MessageSystemUsersAddedToConversation
 export type MessageSystemChangeAvatar = Message.MessageSystemChangeAvatar
+export type MessageJourneycard = Message.MessageJourneycard
 export type MessageText = Message.MessageText
 export type MessageType = Message.MessageType
 export type Ordinal = Message.Ordinal

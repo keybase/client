@@ -7951,6 +7951,11 @@ const iconMeta_ = {
     gridSize: 16,
     isFont: true,
   },
+  'iconfont-bot': {
+    charCode: 0xe9b2,
+    gridSize: 16,
+    isFont: true,
+  },
   'iconfont-calculate': {
     charCode: 0xe990,
     gridSize: 24,
@@ -8747,7 +8752,7 @@ const iconMeta_ = {
     isFont: true,
   },
   'iconfont-warning': {
-    charCode: 0xe9ae,
+    charCode: 0xe9b3,
     gridSize: 16,
     isFont: true,
   },
@@ -8847,6 +8852,22 @@ const iconMeta_ = {
     isFont: false,
     get require() {
       return require('../images/releases/release-5.1.0-blocking.png')
+    },
+  },
+  'release-5.2.0-bots': {
+    extension: 'png',
+    imagesDir: 'releases',
+    isFont: false,
+    get require() {
+      return require('../images/releases/release-5.2.0-bots.png')
+    },
+  },
+  'release-5.2.0-crypto': {
+    extension: 'png',
+    imagesDir: 'releases',
+    isFont: false,
+    get require() {
+      return require('../images/releases/release-5.2.0-crypto.png')
     },
   } /* eslint-enable */,
 }

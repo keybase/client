@@ -247,6 +247,13 @@
         {
           "type": "TeamMemberStatus",
           "name": "status"
+        },
+        {
+          "type": [
+            null,
+            "TeamBotSettings"
+          ],
+          "name": "botSettings"
         }
       ]
     },
@@ -386,6 +393,10 @@
       "type": "record",
       "name": "TeamDetails",
       "fields": [
+        {
+          "type": "string",
+          "name": "name"
+        },
         {
           "type": "TeamMembersDetails",
           "name": "members"
@@ -3190,6 +3201,19 @@
       ],
       "response": "TeamMembersDetails"
     },
+    "teamGetMembersByID": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "id",
+          "type": "TeamID"
+        }
+      ],
+      "response": "TeamMembersDetails"
+    },
     "teamImplicitAdmins": {
       "request": [
         {
@@ -3658,8 +3682,8 @@
           "type": "int"
         },
         {
-          "name": "name",
-          "type": "string"
+          "name": "teamID",
+          "type": "TeamID"
         },
         {
           "name": "settings",
@@ -3816,8 +3840,8 @@
     "getTeamShowcase": {
       "request": [
         {
-          "name": "name",
-          "type": "string"
+          "name": "teamID",
+          "type": "TeamID"
         }
       ],
       "response": "TeamShowcase"
@@ -3825,8 +3849,8 @@
     "getTeamAndMemberShowcase": {
       "request": [
         {
-          "name": "name",
-          "type": "string"
+          "name": "teamID",
+          "type": "TeamID"
         }
       ],
       "response": "TeamAndMemberShowcase"
@@ -3834,8 +3858,8 @@
     "setTeamShowcase": {
       "request": [
         {
-          "name": "name",
-          "type": "string"
+          "name": "teamID",
+          "type": "TeamID"
         },
         {
           "name": "isShowcased",
@@ -3864,8 +3888,8 @@
     "setTeamMemberShowcase": {
       "request": [
         {
-          "name": "name",
-          "type": "string"
+          "name": "teamID",
+          "type": "TeamID"
         },
         {
           "name": "isShowcased",
@@ -3908,8 +3932,8 @@
     "getTarsDisabled": {
       "request": [
         {
-          "name": "name",
-          "type": "string"
+          "name": "teamID",
+          "type": "TeamID"
         }
       ],
       "response": "boolean"
@@ -3917,8 +3941,8 @@
     "setTarsDisabled": {
       "request": [
         {
-          "name": "name",
-          "type": "string"
+          "name": "teamID",
+          "type": "TeamID"
         },
         {
           "name": "disabled",

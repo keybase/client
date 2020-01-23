@@ -23,6 +23,20 @@ import (
 // is read, a prerequisite for searching.
 const minPriorityScore = 10
 
+type storageAdd struct {
+	ctx    context.Context
+	convID chat1.ConversationID
+	msgs   []chat1.MessageUnboxed
+	cb     chan struct{}
+}
+
+type storageRemove struct {
+	ctx    context.Context
+	convID chat1.ConversationID
+	msgs   []chat1.MessageUnboxed
+	cb     chan struct{}
+}
+
 type Indexer struct {
 	globals.Contextified
 	utils.DebugLabeler
@@ -40,6 +54,7 @@ type Indexer struct {
 	clock        clockwork.Clock
 	eg           errgroup.Group
 	uid          gregor1.UID
+	storageCh    chan interface{}
 
 	maxSyncConvs          int
 	startSyncDelay        time.Duration
@@ -60,13 +75,13 @@ func NewIndexer(g *globals.Context) *Indexer {
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Search.Indexer", false),
 		pageSize:     defaultPageSize,
-		stopCh:       make(chan struct{}),
 		suspendCh:    make(chan chan struct{}, 10),
 		resumeWait:   time.Second,
 		cancelSyncCh: make(chan struct{}, 100),
 		pokeSyncCh:   make(chan struct{}, 100),
 		clock:        clockwork.NewRealClock(),
 		flushDelay:   15 * time.Second,
+		storageCh:    make(chan interface{}, 100),
 	}
 	switch idx.G().GetAppType() {
 	case libkb.MobileAppType:
@@ -109,12 +124,32 @@ func (idx *Indexer) SetUID(uid gregor1.UID) {
 }
 
 func (idx *Indexer) StartFlushLoop() {
-	idx.started = true
+	idx.Lock()
+	defer idx.Unlock()
+	if !idx.started {
+		idx.started = true
+		idx.stopCh = make(chan struct{})
+	}
 	idx.eg.Go(func() error { return idx.flushLoop(idx.stopCh) })
 }
 
+func (idx *Indexer) StartStorageLoop() {
+	idx.Lock()
+	defer idx.Unlock()
+	if !idx.started {
+		idx.started = true
+		idx.stopCh = make(chan struct{})
+	}
+	idx.eg.Go(func() error { return idx.storageLoop(idx.stopCh) })
+}
+
 func (idx *Indexer) StartSyncLoop() {
-	idx.started = true
+	idx.Lock()
+	defer idx.Unlock()
+	if !idx.started {
+		idx.started = true
+		idx.stopCh = make(chan struct{})
+	}
 	idx.eg.Go(func() error { return idx.SyncLoop(idx.stopCh) })
 }
 
@@ -132,10 +167,12 @@ func (idx *Indexer) Start(ctx context.Context, uid gregor1.UID) {
 	idx.uid = uid
 	idx.store = newStore(idx.G(), uid)
 	idx.started = true
+	idx.stopCh = make(chan struct{})
 	if !idx.G().IsMobileAppType() && !idx.G().GetEnv().GetDisableSearchIndexer() {
 		idx.eg.Go(func() error { return idx.SyncLoop(idx.stopCh) })
 	}
 	idx.eg.Go(func() error { return idx.flushLoop(idx.stopCh) })
+	idx.eg.Go(func() error { return idx.storageLoop(idx.stopCh) })
 }
 
 func (idx *Indexer) CancelSync(ctx context.Context) {
@@ -209,6 +246,9 @@ func (idx *Indexer) SyncLoop(stopCh chan struct{}) error {
 		cancelSync()
 		ticker.Stop()
 	}
+	defer func() {
+		idx.Debug(ctx, "shutting down SyncLoop")
+	}()
 	for {
 		select {
 		case <-idx.cancelSyncCh:
@@ -257,9 +297,10 @@ func (idx *Indexer) Stop(ctx context.Context) chan struct{} {
 		idx.store.ClearMemory()
 		idx.started = false
 		close(idx.stopCh)
-		idx.stopCh = make(chan struct{})
 		go func() {
+			idx.Debug(context.Background(), "Stop: waiting for shutdown")
 			_ = idx.eg.Wait()
+			idx.Debug(context.Background(), "Stop: shutdown complete")
 			close(ch)
 		}()
 	} else {
@@ -329,11 +370,50 @@ func (idx *Indexer) consumeResultsForTest(convID chat1.ConversationID, err error
 	}
 }
 
-func (idx *Indexer) flushLoop(stopCh chan struct{}) error {
+func (idx *Indexer) storageDispatch(op interface{}) {
+	select {
+	case idx.storageCh <- op:
+	default:
+		idx.Debug(context.Background(), "storageDispatch: failed to dispatch storage operation")
+	}
+}
+
+func (idx *Indexer) storageLoop(stopCh chan struct{}) error {
 	ctx := context.Background()
+	idx.Debug(ctx, "storageLoop: starting")
 	for {
 		select {
 		case <-stopCh:
+			idx.Debug(ctx, "storageLoop: shutting down")
+			return nil
+		case iop := <-idx.storageCh:
+			switch op := iop.(type) {
+			case storageAdd:
+				err := idx.store.Add(op.ctx, op.convID, op.msgs)
+				if err != nil {
+					idx.Debug(op.ctx, "storageLoop: add failed: %s", err)
+				}
+				idx.consumeResultsForTest(op.convID, err)
+				close(op.cb)
+			case storageRemove:
+				err := idx.store.Remove(op.ctx, op.convID, op.msgs)
+				if err != nil {
+					idx.Debug(op.ctx, "storageLoop: remove failed: %s", err)
+				}
+				idx.consumeResultsForTest(op.convID, err)
+				close(op.cb)
+			}
+		}
+	}
+}
+
+func (idx *Indexer) flushLoop(stopCh chan struct{}) error {
+	ctx := context.Background()
+	idx.Debug(ctx, "flushLoop: starting")
+	for {
+		select {
+		case <-stopCh:
+			idx.Debug(ctx, "flushLoop: shutting down")
 			return nil
 		case <-idx.clock.After(idx.flushDelay):
 			if err := idx.store.Flush(); err != nil {
@@ -364,26 +444,36 @@ func (idx *Indexer) Add(ctx context.Context, convID chat1.ConversationID,
 		return nil
 	}
 	idx.Unlock()
-	return idx.add(ctx, convID, msgs, false)
+	_, err = idx.add(ctx, convID, msgs, false)
+	return err
 }
 
 func (idx *Indexer) add(ctx context.Context, convID chat1.ConversationID,
-	msgs []chat1.MessageUnboxed, force bool) (err error) {
+	msgs []chat1.MessageUnboxed, force bool) (cb chan struct{}, err error) {
+	cb = make(chan struct{})
 	if idx.G().GetEnv().GetDisableSearchIndexer() {
-		return nil
+		close(cb)
+		return cb, nil
 	}
 	if !idx.validBatch(msgs) {
-		return nil
+		close(cb)
+		return cb, nil
 	}
 	if !(force || idx.hasPriority(ctx, convID)) {
-		return nil
+		close(cb)
+		return cb, nil
 	}
 
 	defer idx.Trace(ctx, func() error { return err },
 		fmt.Sprintf("Indexer.Add conv: %v, msgs: %d, force: %v",
 			convID, len(msgs), force))()
-	defer idx.consumeResultsForTest(convID, err)
-	return idx.store.Add(ctx, convID, msgs)
+	idx.storageDispatch(storageAdd{
+		ctx:    globals.BackgroundChatCtx(ctx, idx.G()),
+		convID: convID,
+		msgs:   msgs,
+		cb:     cb,
+	})
+	return cb, nil
 }
 
 func (idx *Indexer) Remove(ctx context.Context, convID chat1.ConversationID,
@@ -394,26 +484,36 @@ func (idx *Indexer) Remove(ctx context.Context, convID chat1.ConversationID,
 		return nil
 	}
 	idx.Unlock()
-	return idx.remove(ctx, convID, msgs, false)
+	_, err = idx.remove(ctx, convID, msgs, false)
+	return err
 }
 
 func (idx *Indexer) remove(ctx context.Context, convID chat1.ConversationID,
-	msgs []chat1.MessageUnboxed, force bool) (err error) {
+	msgs []chat1.MessageUnboxed, force bool) (cb chan struct{}, err error) {
+	cb = make(chan struct{})
 	if idx.G().GetEnv().GetDisableSearchIndexer() {
-		return nil
+		close(cb)
+		return cb, nil
 	}
 	if !idx.validBatch(msgs) {
-		return nil
+		close(cb)
+		return cb, nil
 	}
 	if !(force || idx.hasPriority(ctx, convID)) {
-		return nil
+		close(cb)
+		return cb, nil
 	}
 
 	defer idx.Trace(ctx, func() error { return err },
 		fmt.Sprintf("Indexer.Remove conv: %v, msgs: %d, force: %v",
 			convID, len(msgs), force))()
-	defer idx.consumeResultsForTest(convID, err)
-	return idx.store.Remove(ctx, convID, msgs)
+	idx.storageDispatch(storageRemove{
+		ctx:    globals.BackgroundChatCtx(ctx, idx.G()),
+		convID: convID,
+		msgs:   msgs,
+		cb:     cb,
+	})
+	return cb, nil
 }
 
 // reindexConv attempts to fill in any missing messages from the index.  For a
@@ -448,9 +548,11 @@ func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversat
 			}
 			return 0, nil
 		}
-		if err := idx.add(ctx, convID, msgs, true); err != nil {
+		cb, err := idx.add(ctx, convID, msgs, true)
+		if err != nil {
 			return 0, err
 		}
+		<-cb
 		completedJobs++
 	} else {
 		query := &chat1.GetThreadQuery{
@@ -475,9 +577,11 @@ func (idx *Indexer) reindexConv(ctx context.Context, rconv types.RemoteConversat
 				}
 				continue
 			}
-			if err := idx.add(ctx, convID, tv.Messages, true); err != nil {
+			cb, err := idx.add(ctx, convID, tv.Messages, true)
+			if err != nil {
 				return 0, err
 			}
+			<-cb
 			completedJobs++
 			if numJobs > 0 && completedJobs >= numJobs {
 				break
@@ -513,7 +617,7 @@ func (idx *Indexer) SearchableConvs(ctx context.Context, convID *chat1.Conversat
 	return idx.convsPrioritySorted(ctx, convMap), nil
 }
 
-func (idx *Indexer) allConvs(ctx context.Context, convID *chat1.ConversationID) (map[string]types.RemoteConversation, error) {
+func (idx *Indexer) allConvs(ctx context.Context, convID *chat1.ConversationID) (map[chat1.ConvIDStr]types.RemoteConversation, error) {
 	// Find all conversations in our inbox
 	topicType := chat1.TopicType_CHAT
 	inboxQuery := &chat1.GetInboxQuery{
@@ -543,7 +647,7 @@ func (idx *Indexer) allConvs(ctx context.Context, convID *chat1.ConversationID) 
 	}
 
 	// convID -> remoteConv
-	convMap := make(map[string]types.RemoteConversation, len(inbox.ConvsUnverified))
+	convMap := make(map[chat1.ConvIDStr]types.RemoteConversation, len(inbox.ConvsUnverified))
 	for _, conv := range inbox.ConvsUnverified {
 		if conv.Conv.GetFinalizeInfo() != nil {
 			continue
@@ -561,7 +665,7 @@ func (idx *Indexer) allConvs(ctx context.Context, convID *chat1.ConversationID) 
 }
 
 func (idx *Indexer) convsPrioritySorted(ctx context.Context,
-	convMap map[string]types.RemoteConversation) (res []types.RemoteConversation) {
+	convMap map[chat1.ConvIDStr]types.RemoteConversation) (res []types.RemoteConversation) {
 	res = make([]types.RemoteConversation, len(convMap))
 	index := 0
 	for _, conv := range convMap {
@@ -663,7 +767,7 @@ func (idx *Indexer) SelectiveSync(ctx context.Context) (err error) {
 
 // IndexInbox is only exposed in devel for debugging/profiling the indexing
 // process.
-func (idx *Indexer) IndexInbox(ctx context.Context) (res map[string]chat1.ProfileSearchConvStats, err error) {
+func (idx *Indexer) IndexInbox(ctx context.Context) (res map[chat1.ConvIDStr]chat1.ProfileSearchConvStats, err error) {
 	defer idx.Trace(ctx, func() error { return err }, "Indexer.IndexInbox")()
 
 	convMap, err := idx.allConvs(ctx, nil)
@@ -671,7 +775,7 @@ func (idx *Indexer) IndexInbox(ctx context.Context) (res map[string]chat1.Profil
 		return nil, err
 	}
 	// convID -> stats
-	res = map[string]chat1.ProfileSearchConvStats{}
+	res = map[chat1.ConvIDStr]chat1.ProfileSearchConvStats{}
 	for convIDStr, conv := range convMap {
 		idx.G().Log.CDebugf(ctx, "Indexing conv: %v", utils.GetRemoteConvDisplayName(conv))
 		convStats, err := idx.indexConvWithProfile(ctx, conv)

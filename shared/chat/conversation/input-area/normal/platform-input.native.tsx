@@ -130,10 +130,10 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
 
     return (
       <Kb.Box onLayout={this.onLayout}>
-        {this.props.suggestBotCommandsUpdateStatus !== RPCChatTypes.UIBotCommandsUpdateStatus.blank &&
+        {this.props.suggestBotCommandsUpdateStatus !== RPCChatTypes.UIBotCommandsUpdateStatusTyp.blank &&
           (this.props.suggestionsVisible ||
             this.props.suggestBotCommandsUpdateStatus ===
-              RPCChatTypes.UIBotCommandsUpdateStatus.updating) && (
+              RPCChatTypes.UIBotCommandsUpdateStatusTyp.updating) && (
             <BotCommandUpdateStatus status={this.props.suggestBotCommandsUpdateStatus} />
           )}
         {this.props.showingMenu && this.whichMenu === 'filepickerpopup' ? (

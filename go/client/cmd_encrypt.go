@@ -156,9 +156,23 @@ func (c *CmdEncrypt) Run() error {
 	}
 
 	arg := keybase1.SaltpackEncryptArg{Source: src, Sink: snk, Opts: c.opts}
-	err = cli.SaltpackEncrypt(context.TODO(), arg)
-	cerr := c.filter.Close(err)
-	return libkb.PickFirstError(err, cerr)
+	res, err := cli.SaltpackEncrypt(context.TODO(), arg)
+	if err != nil {
+		return err
+	}
+	err = c.filter.Close(err)
+	if err != nil {
+		return err
+	}
+
+	if res.UsedUnresolvedSBS {
+		dui := c.G().UI.GetDumbOutputUI()
+		_, _ = dui.PrintfStderr("\nNote: Encrypted for %q who is not yet a keybase user.\n\n", res.UnresolvedSBSAssertion)
+		_, _ = dui.PrintfStderr("One of your devices will need to be online after they join keybase\n")
+		_, _ = dui.PrintfStderr("in order for them to decrypt the message.\n\n")
+	}
+
+	return nil
 }
 
 func (c *CmdEncrypt) GetUsage() libkb.Usage {

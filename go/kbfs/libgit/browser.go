@@ -141,6 +141,10 @@ func NewBrowser(
 
 func (b *Browser) getCommitFile(
 	ctx context.Context, hash plumbing.Hash) (*diffFile, error) {
+	if b.repo == nil {
+		return nil, errors.New("Empty repo")
+	}
+
 	commit, err := b.repo.CommitObject(hash)
 	if err != nil {
 		return nil, err

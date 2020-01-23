@@ -13,6 +13,7 @@ import AccountSwitcher from '../account-switcher/container'
 
 export type Props = {
   badgeNumbers: Map<Tabs.Tab, number>
+  fsCriticalUpdate: boolean
   fullname: string
   isWalletsNew?: boolean
   onAddAccount: () => void
@@ -38,7 +39,7 @@ const data = {
   [Tabs.walletsTab]: {icon: 'iconfont-nav-2-wallets', label: 'Wallet'},
 } as const
 
-const tabs = Tabs.desktopTabOrder
+const tabs = Tabs.desktopTabOrder.filter(tab => (tab === Tabs.cryptoTab ? flags.cryptoTab : true))
 
 type State = {
   showingMenu: boolean
@@ -162,7 +163,11 @@ class TabBar extends React.PureComponent<Props, State> {
               index={i}
               selectedTab={p.selectedTab}
               onTabClick={p.onTabClick}
-              badge={p.badgeNumbers.get(t)}
+              badge={
+                t === Tabs.fsTab && p.fsCriticalUpdate
+                  ? (p.badgeNumbers.get(t) ?? 0) + 1
+                  : p.badgeNumbers.get(t)
+              }
             />
           ))}
           <RuntimeStats />
@@ -196,7 +201,10 @@ const Tab = React.memo(({tab, index, selectedTab, onTabClick, badge}: TabProps) 
           <Kb.Icon className="tab-icon" type={data[tab].icon} sizeType="Big" />
           {tab === Tabs.fsTab && <FilesTabBadge />}
         </Kb.Box2>
-        <Kb.Text className="tab-label" type="BodySmallSemibold">
+        <Kb.Text
+          className={`tab-label tab-${data[tab].label.toLowerCase().replace(' ', '-')}`}
+          type="BodySmallSemibold"
+        >
           {data[tab].label}
         </Kb.Text>
         {!!badge && <Kb.Badge className="tab-badge" badgeNumber={badge} />}

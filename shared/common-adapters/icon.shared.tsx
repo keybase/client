@@ -101,7 +101,7 @@ const idealSizeMultMap: {[key: string]: MultMap} = {
 }
 
 const _getMultsMapCache: {[key: string]: MultMap} = {}
-export function getMultsMap(imgMap: {[size: string]: any}, targetSize: number): Object {
+export function getMultsMap(imgMap: {[size: string]: any}, targetSize: number): MultMap {
   const ssizes = Object.keys(imgMap)
 
   if (!ssizes.length) {

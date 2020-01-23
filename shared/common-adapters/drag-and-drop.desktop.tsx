@@ -77,7 +77,7 @@ class DragAndDrop extends React.PureComponent<Props, State> {
         {this.props.rejectReason ? (
           <Text type="Header">{this.props.rejectReason}</Text>
         ) : (
-          <Text type="Header">Drop files to upload</Text>
+          <Text type="Header">{this.props.prompt || 'Drop files to upload'}</Text>
         )}
       </Box2>
     </Box2>

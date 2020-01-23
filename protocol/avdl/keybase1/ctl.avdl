@@ -38,6 +38,7 @@ protocol ctl {
   void dbDelete(int sessionID, DbKey key);
   void dbPut(int sessionID, DbKey key, DbValue value);
   union { null, DbValue } dbGet(int sessionID, DbKey key);
+  array<DbKey> dbKeysWithPrefixes(int sessionID, DbKey prefix);
 
   void setNixOnLoginStartup(boolean enabled);
 

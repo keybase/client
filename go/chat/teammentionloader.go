@@ -183,8 +183,8 @@ func (l *TeamMentionLoader) loadMention(ctx context.Context, uid gregor1.UID,
 		if err != nil || len(convs) == 0 {
 			l.Debug(ctx, "loadMention: failed to find conversation: %v", err)
 		} else {
-			info.ConvID = new(string)
-			*info.ConvID = convs[0].GetConvID().String()
+			info.ConvID = new(chat1.ConvIDStr)
+			*info.ConvID = convs[0].GetConvID().ConvIDStr()
 		}
 	}
 	return ui.ChatMaybeMentionUpdate(ctx, maybeMention.Name, maybeMention.Channel,
