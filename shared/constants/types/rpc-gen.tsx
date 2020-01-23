@@ -2303,6 +2303,7 @@ export enum StatusCode {
   scstreamnotfound = 1502,
   scstreamwrongkind = 1503,
   scstreameof = 1504,
+  scstreamunknown = 1505,
   scgenericapierror = 1600,
   scapinetworkerror = 1601,
   sctimeout = 1602,
