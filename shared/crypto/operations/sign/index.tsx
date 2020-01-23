@@ -72,8 +72,11 @@ const Sign = (props: Props) => {
               }}
             />
           )}
-
-          <Kb.ProgressBar ratio={props.progress} style={{width: '100%'}} />
+          {props.progress && props.outputStatus && props.outputStatus !== 'success' ? (
+            <Kb.ProgressBar ratio={props.progress} style={{width: '100%'}} />
+          ) : (
+            <Kb.Divider />
+          )}
           <Kb.Box2 direction="vertical" fullHeight={true}>
             <OutputInfoBanner operation={Constants.Operations.Encrypt} outputStatus={props.outputStatus}>
               <Kb.Text type="BodySmallSemibold" center={true}>
