@@ -231,8 +231,15 @@ func (a *BoxAuditor) boxAuditTeamLocked(mctx libkb.MetaContext, teamID keybase1.
 	}
 
 	isRetry := log.InProgress
-	rotateBeforeAudit := isRetry && !mctx.G().TestOptions.NoAutorotateOnBoxAuditRetry
-	attempt := a.attemptLocked(mctx, teamID, rotateBeforeAudit, false)
+	// First, attempt the audit.
+	attempt := a.attemptLocked(mctx, teamID, false /* rotateBeforeAudit */, false /* justRotated */)
+	// In the case where it was a retry on a failed audit, *and* the audit that
+	// just happened failed, try to rotate the team before auditing again. This
+	// is so we don't unnecessarily rotate if the previous failure was due to a
+	// network error. If the network is still down, this rotate will fail.
+	if isRetry && !attempt.Result.IsOK() && !mctx.G().TestOptions.NoAutorotateOnBoxAuditRetry {
+		attempt = a.attemptLocked(mctx, teamID, true /* rotateBeforeAudit */, false /* justRotated */)
+	}
 
 	var id BoxAuditID
 	if isRetry {
