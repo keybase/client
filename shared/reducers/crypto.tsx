@@ -34,6 +34,8 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     draftState[operation].output = new HiddenString('')
     draftState[operation].outputStatus = undefined
     draftState[operation].outputType = undefined
+    draftState[operation].errorMessage = new HiddenString('')
+    draftState[operation].warningMessage = new HiddenString('')
   },
   [CryptoGen.clearRecipients]: (draftState, action) => {
     const {operation} = action.payload
@@ -51,6 +53,8 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       draftState.encrypt.output = new HiddenString('')
       draftState.encrypt.outputStatus = undefined
       draftState.encrypt.outputType = undefined
+      draftState.encrypt.errorMessage = new HiddenString('')
+      draftState.encrypt.warningMessage = new HiddenString('')
     }
   },
   [CryptoGen.setRecipients]: (draftState, action) => {
@@ -102,6 +106,10 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     if (!draftState[operation].input.stringValue()) {
       return
     }
+
+    // Reset errors and warnings
+    draftState[operation].errorMessage = new HiddenString('')
+    draftState[operation].warningMessage = new HiddenString('')
 
     // Warning was set alongside successful output
     if (warning && warningMessage) {

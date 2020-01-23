@@ -111,16 +111,16 @@ export const getWarningMessageForSBS = (sbsAssertion: string) =>
 
 export const getStatusCodeMessage = (code: number, operation: Types.Operations, type: Types.InputTypes) => {
   const inputType =
-    type === 'text' ? (operation === Operations.Verify ? 'singed message' : 'ciphertext') : 'file'
+    type === 'text' ? (operation === Operations.Verify ? 'signed message' : 'ciphertext') : 'file'
   const action = type === 'text' ? (operation === Operations.Verify ? 'enter a' : 'enter') : 'drop a'
   const addInput =
-    type === 'text' ? (operation === Operations.Verify ? 'singed message' : 'ciphertext') : 'encrypted file'
+    type === 'text' ? (operation === Operations.Verify ? 'signed message' : 'ciphertext') : 'encrypted file'
   const invalidInputMessage = `This ${inputType} is not in a valid Saltpack format. Please ${action} Saltpack ${addInput}.`
 
   const statusCodeToMessage = {
     [RPCTypes.StatusCode.scstreamunknown]: invalidInputMessage,
     [RPCTypes.StatusCode
-      .scsigcannotverify]: `Wrong saltpack message type: wanted an attached signature, but got a signed and encrypted message instead`,
+      .scsigcannotverify]: `Wrong message type: wanted an attached signature, but got a signed and encrypted message instead.`,
   } as const
   return statusCodeToMessage[code] || `Failed to ${operation} ${type}.`
 }

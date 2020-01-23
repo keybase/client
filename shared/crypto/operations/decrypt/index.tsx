@@ -44,9 +44,7 @@ const Decrypt = (props: Props) => {
         prompt="Drop a file to decrypt"
       >
         <Kb.Box2 direction="vertical" fullHeight={true}>
-          {props.outputStatus === 'error' && props.errorMessage && (
-            <OperationBanner type="error" message={props.errorMessage} />
-          )}
+          {props.errorMessage && <OperationBanner type="error" message={props.errorMessage} />}
           {props.inputType === 'file' ? (
             <FileInput
               path={props.input}
