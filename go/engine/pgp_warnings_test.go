@@ -245,10 +245,10 @@ func (e encryptTest) test(t *testing.T) {
 		// to achieve roughly the same effect.
 
 		var (
-			//clearsignSink       = libkb.NewBufferCloser()
-			//clearsignOutputSink = libkb.NewBufferCloser()
-			attachedSink       = libkb.NewBufferCloser()
-			attachedOutputSink = libkb.NewBufferCloser()
+			clearsignSink       = libkb.NewBufferCloser()
+			clearsignOutputSink = libkb.NewBufferCloser()
+			attachedSink        = libkb.NewBufferCloser()
+			attachedOutputSink  = libkb.NewBufferCloser()
 		)
 
 		var signedBy string
@@ -258,29 +258,28 @@ func (e encryptTest) test(t *testing.T) {
 
 		// Start with the clearsign sig, which technically isn't even something
 		// decryptable.
-		/*
-			clearsignInput, err := clearsign.Encode(
-				clearsignSink,
-				recipient.PrivateKey,
-				cfg,
-			)
-			require.NoError(t, err, "clearsign failure")
-			_, err = clearsignInput.Write([]byte(pgpWarningsMsg))
-			require.NoError(t, err, "writing to clearsign")
-			require.NoError(t, err, clearsignInput.Close())
-			arg := &PGPDecryptArg{
-				Sink:     clearsignOutputSink,
-				Source:   clearsignSink,
-				SignedBy: signedBy,
-			}
-			eng := NewPGPDecrypt(tc1.G, arg)
-			require.NoError(t, RunEngine2(m, eng), "engine failure %s", e.Name)
-			require.Lenf(t, eng.SignatureStatus().Warnings, e.Count, "warnings count %s", e.Name)
-			require.Equal(t, []byte(pgpWarningsMsg), clearsignOutputSink.Bytes(), "output should be the same as the input")
-		*/
+		clearsignInput, err := clearsign.Encode(
+			clearsignSink,
+			recipient.PrivateKey,
+			cfg,
+		)
+		require.NoError(t, err, "clearsign failure")
+		_, err = clearsignInput.Write([]byte(pgpWarningsMsg))
+		require.NoError(t, err, "writing to clearsign")
+		require.NoError(t, err, clearsignInput.Close())
+		arg := &PGPDecryptArg{
+			Sink:         clearsignOutputSink,
+			Source:       clearsignSink,
+			AssertSigned: true,
+			SignedBy:     signedBy,
+		}
+		eng := NewPGPDecrypt(tc1.G, arg)
+		require.NoError(t, RunEngine2(m, eng), "engine failure %s", e.Name)
+		require.Lenf(t, eng.SignatureStatus().Warnings, e.Count, "warnings count %s", e.Name)
+		require.Equal(t, []byte(pgpWarningsMsg), clearsignOutputSink.Bytes(), "output should be the same as the input")
 
-		var arg *PGPDecryptArg
-		var eng *PGPDecrypt
+		//var arg *PGPDecryptArg
+		//var eng *PGPDecrypt
 
 		// Then process the attached sig
 		attachedInput, _, err := libkb.ArmoredAttachedSign(
@@ -290,8 +289,8 @@ func (e encryptTest) test(t *testing.T) {
 			cfg,
 		)
 		require.NoError(t, err, "attached sign failure")
-		require.NoError(t, err, attachedInput.Close())
 		_, err = attachedInput.Write([]byte(pgpWarningsMsg))
+		require.NoError(t, err, attachedInput.Close())
 		require.NoError(t, err, "writing to attached signer")
 		arg = &PGPDecryptArg{
 			Sink:     attachedOutputSink,
