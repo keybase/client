@@ -58,7 +58,7 @@ class InboxSearch extends React.Component<Props, State> {
     section: {indexOffset: number; onSelect: any}
     index: number
   }) => {
-    const {item, section, index} = h
+    const {item} = h
     return (
       <OpenTeamRow
         description={item.description}
@@ -265,7 +265,7 @@ const OpenTeamRow = (p: OpenTeamProps) => {
   ))
 
   return (
-    <Kb.ClickableBox onClick={() => setShowingPopup(!showingPopup)}>
+    <Kb.ClickableBox onClick={() => setShowingPopup(!showingPopup)} style={{width: '100%'}}>
       <Kb.Box2
         direction="horizontal"
         fullWidth={true}
@@ -273,7 +273,6 @@ const OpenTeamRow = (p: OpenTeamProps) => {
         centerChildren={true}
         className="hover_background_color_blueGreyDark"
         style={Styles.collapseStyles([
-          styles.filteredRow,
           {
             backgroundColor: selected ? Styles.globalColors.blue : Styles.globalColors.white,
             height: rowHeight,
@@ -283,11 +282,10 @@ const OpenTeamRow = (p: OpenTeamProps) => {
         onMouseOver={() => setHovering(true)}
       >
         <TeamAvatar teamname={name} isMuted={false} isSelected={false} isHovered={hovering} />
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.textContainer}>
+        <Kb.Box2 direction="vertical" style={{flexGrow: 1}}>
           <Kb.Text
             type="Body"
             style={Styles.collapseStyles([
-              styles.teamname,
               {color: selected ? Styles.globalColors.white : Styles.globalColors.black},
             ])}
             title={name}
@@ -299,7 +297,6 @@ const OpenTeamRow = (p: OpenTeamProps) => {
           <Kb.Text
             type="Body"
             style={Styles.collapseStyles([
-              styles.channelname,
               {color: selected ? Styles.globalColors.white : Styles.globalColors.black},
             ])}
             title={`#${description}`}
