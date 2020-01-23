@@ -350,7 +350,11 @@ func (h *SaltpackHandler) SaltpackDecryptFile(ctx context.Context, arg keybase1.
 
 	info, signed, err := h.frontendDecrypt(ctx, arg.SessionID, earg)
 	if err != nil {
-		_ = os.Remove(outFilename)
+		h.G().Log.Debug("decrypt error, so removing %q", outFilename)
+		rmErr := os.Remove(outFilename)
+		if rmErr != nil {
+			h.G().Log.Debug("error removing %q: %s", outFilename, rmErr)
+		}
 		return keybase1.SaltpackFileResult{}, err
 	}
 
