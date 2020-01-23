@@ -99,7 +99,7 @@ const BotTeamPicker = (props: Props) => {
         title: 'Add to team or chat',
       }}
     >
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+      <Kb.Box2 direction="vertical" fullWidth={true}>
         <Kb.Box2 direction="horizontal" fullWidth={true}>
           <Kb.SearchFilter
             size="full-width"
@@ -112,18 +112,20 @@ const BotTeamPicker = (props: Props) => {
             waiting={waiting}
           />
         </Kb.Box2>
-        {error.length > 0 ? (
-          <Kb.Text type="Body" style={{alignSelf: 'center', color: Styles.globalColors.redDark}}>
-            {error}
-          </Kb.Text>
-        ) : (
-          <Kb.List2
-            indexAsKey={true}
-            items={results}
-            itemHeight={{sizeType: 'Large', type: 'fixedListItem2Auto'}}
-            renderItem={renderResult}
-          />
-        )}
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+          {error.length > 0 ? (
+            <Kb.Text type="Body" style={{alignSelf: 'center', color: Styles.globalColors.redDark}}>
+              {error}
+            </Kb.Text>
+          ) : (
+            <Kb.List2
+              indexAsKey={true}
+              items={results}
+              itemHeight={{sizeType: 'Large', type: 'fixedListItem2Auto'}}
+              renderItem={renderResult}
+            />
+          )}
+        </Kb.Box2>
       </Kb.Box2>
     </Kb.Modal>
   )
@@ -134,7 +136,7 @@ const styles = Styles.styleSheetCreate(
     ({
       container: Styles.platformStyles({
         isElectron: {
-          height: 560,
+          height: 450,
         },
       }),
       results: Styles.platformStyles({
