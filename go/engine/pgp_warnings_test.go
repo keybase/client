@@ -156,6 +156,7 @@ func (e encryptTest) test(t *testing.T, users map[string]map[crypto.Hash]*pgpWar
 	}
 	if _, ok := users[bobName][e.BobsHash]; !ok {
 		tc := SetupEngineTest(t, "PGPEncrypt")
+		tc.Tp.APIHeaders = map[string]string{"X-Keybase-Sigchain-Compatibility": "1"}
 
 		bobKeys, err := generateOpenPGPEntity(now, e.BobsHash, supportedHashes)
 		require.NoError(t, err, "bob's keys generation")

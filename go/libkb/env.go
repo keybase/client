@@ -250,6 +250,9 @@ type TestParameters struct {
 
 	// Warn about all OpenPGP SHA1 signatures newer than this setting.
 	SHA1SecurityWarningsCutoff time.Time
+
+	// Extra headers for API
+	APIHeaders map[string]string
 }
 
 func (tp TestParameters) GetDebug() (bool, bool) {
