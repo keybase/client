@@ -112,14 +112,13 @@ const Notifications = (props: Props) => {
   const {conversationIDKey} = props
   const dispatch = Container.useDispatch()
   const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
-  const [channelWide, _setChannelWide] = React.useState(meta.notificationsGlobalIgnoreMentions)
+  const [channelWide, setChannelWide] = React.useState(meta.notificationsGlobalIgnoreMentions)
   const [desktop, setDesktop] = React.useState(meta.notificationsDesktop)
   const [mobile, setMobile] = React.useState(meta.notificationsMobile)
   const [muted, setMuted] = React.useState(meta.isMuted)
   const [saving, setSaving] = React.useState(false)
   const delayUnsave = Kb.useTimeout(() => setSaving(false), 100)
-
-  Container.useDepChangeEffect(() => {
+  const saveNotifications = () => {
     setSaving(true)
     dispatch(
       Chat2Gen.createUpdateNotificationSettings({
@@ -130,38 +129,49 @@ const Notifications = (props: Props) => {
       })
     )
     delayUnsave()
-  }, [dispatch, conversationIDKey, desktop, channelWide, mobile, delayUnsave])
-
-  Container.useDepChangeEffect(() => {
+  }
+  const saveMuted = () => {
     setSaving(true)
     dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted}))
     delayUnsave()
-  }, [dispatch, conversationIDKey, muted, delayUnsave])
+  }
 
-  const writeNotifications = React.useCallback(() => {}, [])
-
-  const setChannelWide = React.useCallback(
-    (c: boolean) => {
-      _setChannelWide(c)
-      writeNotifications()
-    },
-    [_setChannelWide, writeNotifications]
-  )
-
+  React.useEffect(() => {
+    setDesktop(meta.notificationsDesktop)
+    setMobile(meta.notificationsMobile)
+    setMuted(meta.isMuted)
+    setChannelWide(meta.notificationsGlobalIgnoreMentions)
+  }, [meta])
   return (
     <Kb.Box style={styles.container}>
       <Kb.Box style={styles.top}>
-        <Kb.Checkbox checked={muted} onCheck={() => setMuted(!muted)} label="Mute all notifications" />
+        <Kb.Checkbox
+          checked={muted}
+          onCheck={() => {
+            setMuted(!muted)
+            saveMuted()
+          }}
+          label="Mute all notifications"
+        />
         <Kb.Icon type="iconfont-shh" style={styles.icon} color={Styles.globalColors.black_20} />
       </Kb.Box>
       {!muted && (
         <UnmutedNotificationPrefs
           channelWide={channelWide}
-          setDesktop={setDesktop}
+          setDesktop={(n: Types.NotificationsType) => {
+            setDesktop(n)
+            saveNotifications()
+          }}
           desktop={desktop}
-          setMobile={setMobile}
+          setMobile={(n: Types.NotificationsType) => {
+            setMobile(n)
+            saveNotifications()
+          }}
           mobile={mobile}
-          toggleChannelWide={() => setChannelWide(!channelWide)}
+          toggleChannelWide={() => {
+            setChannelWide(!channelWide)
+            saveNotifications()
+          }}
         />
       )}
       <Kb.SaveIndicator saving={saving} minSavingTimeMs={300} savedTimeoutMs={2500} />
