@@ -815,7 +815,9 @@ func TestBoxAuditRetryBehavior(t *testing.T) {
 
 	origAPI := aTc.G.API
 	aTc.G.API = &timeoutAPI{}
-	require.Error(t, auditTeam(aA, aM, teamID), "A can audit")
+	err := auditTeam(aA, aM, teamID)
+	require.Error(t, err, "A can't audit when offline")
+	require.Contains(t, err.Error(), "fake network timeout in test")
 
 	aTc.G.API = origAPI
 	require.NoError(t, auditTeam(aA, aM, teamID), "A can audit")
