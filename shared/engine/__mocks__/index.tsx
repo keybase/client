@@ -13,7 +13,6 @@ class FakeEngine {
   rpc() {}
   listenOnConnect() {}
   listenOnDisconnect() {}
-  hasEverConnected() {}
   setIncomingActionCreator() {}
   createSession() {
     return new Session({
