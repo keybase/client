@@ -177,10 +177,6 @@ if command -v gtk-update-icon-cache &> /dev/null ; then
   gtk-update-icon-cache -q -t -f /usr/share/icons/hicolor
 fi
 
-# Restart services before restarting redirector manually
-# so we know if it was already restarted via systemd.
-safe_restart_systemd_services
-
 if redirector_enabled ; then
   chown root:root "$krbin"
   chmod 4755 "$krbin"
@@ -188,6 +184,10 @@ else
   # Turn off suid if root has been turned off.
   chmod a-s "$krbin"
 fi
+
+# Restart services before restarting redirector manually
+# so we know if it was already restarted via systemd.
+safe_restart_systemd_services
 
 currlink="$(readlink "$rootmount")"
 if [ -n "$currlink" ] ; then
