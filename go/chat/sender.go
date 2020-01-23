@@ -1452,7 +1452,12 @@ func (s *Deliverer) alertFailureChannels(obrs []chat1.OutboxRecord) {
 	s.notifyFailureChs = make(map[string]chan []chat1.OutboxRecord)
 }
 
-func (s *Deliverer) doNotRetryFailure(ctx context.Context, obr chat1.OutboxRecord, err error) (chat1.OutboxErrorType, error, bool) {
+func (s *Deliverer) doNotRetryFailure(ctx context.Context, obr chat1.OutboxRecord, err error) (resType chat1.OutboxErrorType, resErr error, resFail bool) {
+	defer func() {
+		if resErr != nil && resFail {
+			s.Debug(ctx, "doNotRetryFailure: sending back to not retry: err: %s: typ: %T", resErr, resErr)
+		}
+	}()
 	// Check attempts
 	if obr.State.Sending() >= deliverMaxAttempts {
 		return chat1.OutboxErrorType_TOOMANYATTEMPTS, errors.New("max send attempts reached"), true
@@ -1477,7 +1482,8 @@ func (s *Deliverer) doNotRetryFailure(ctx context.Context, obr chat1.OutboxRecor
 		return chat1.OutboxErrorType_OFFLINE, err, !berr.Temporary()
 	case *net.DNSError:
 		return chat1.OutboxErrorType_OFFLINE, err, !berr.Temporary()
-
+	case net.Error:
+		return chat1.OutboxErrorType_OFFLINE, err, !berr.Temporary()
 	}
 	switch err {
 	case ErrChatServerTimeout, ErrDuplicateConnection, ErrKeyServerTimeout:
