@@ -113,6 +113,7 @@ export const makeInboxSearchInfo = (): Types.InboxSearchInfo => ({
   nameResults: [],
   nameResultsUnread: false,
   nameStatus: 'initial',
+  openTeamsResults: [],
   query: new HiddenString(''),
   selectedIndex: 0,
   textResults: [],

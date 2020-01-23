@@ -661,6 +661,10 @@
       "_description": "Toggle inbox search view",
       "enabled": "boolean"
     },
+    "inboxSearchOpenTeamsResults": {
+      "_description": "Inbox search open teams results received",
+      "results": "Array<Types.InboxSearchOpenTeamHit>",
+    },
     "inboxSearchNameResults": {
       "_description": "Inbox search name results received",
       "results": "Array<Types.InboxSearchConvHit>",

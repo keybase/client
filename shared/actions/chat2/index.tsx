@@ -30,6 +30,7 @@ import {saveAttachmentToCameraRoll, showShareActionSheet} from '../platform-spec
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {RPCError} from '../../util/errors'
 import * as Container from '../../util/container'
+import flags from '../../util/feature-flags'
 
 const onConnect = async () => {
   try {
@@ -1620,8 +1621,9 @@ const maybeCancelInboxSearchOnFocusChanged = (
 function* inboxSearch(_: Container.TypedState, action: Chat2Gen.InboxSearchPayload, logger: Saga.SagaLogger) {
   const {query} = action.payload
   const teamType = (t: RPCChatTypes.TeamType) => (t === RPCChatTypes.TeamType.complex ? 'big' : 'small')
-  const onConvHits = (resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchConvHits']['inParam']) => {
-    return Saga.put(
+
+  const onConvHits = (resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchConvHits']['inParam']) =>
+    Saga.put(
       Chat2Gen.createInboxSearchNameResults({
         results: (resp.hits.hits || []).reduce<Array<Types.InboxSearchConvHit>>((arr, h) => {
           arr.push({
@@ -1634,7 +1636,26 @@ function* inboxSearch(_: Container.TypedState, action: Chat2Gen.InboxSearchPaylo
         unread: resp.hits.unreadMatches,
       })
     )
-  }
+
+  const onOpenTeamHits = (
+    // @ts-ignore TODO when RPC exist put back
+    resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchOpenTeamHits']['inParam']
+  ) =>
+    // @ts-ignore TODO when RPC exists put back
+    Saga.put(
+      // @ts-ignore TODO when RPC exists put back
+      Chat2Gen.createInboxSearchOpenTeamsResults({
+        results: (resp.hits.hits || []).reduce<Array<Types.InboxSearchOpenTeamHit>>((arr, h) => {
+          arr.push({
+            description: h.description,
+            name: h.name,
+            teamID: Types.stringToConversationIDKey(h.teamID),
+          })
+          return arr
+        }, []),
+      })
+    )
+
   const onTextHit = (resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchInboxHit']['inParam']) => {
     const {convID, convName, hits, query, teamType: tt, time} = resp.searchHit
     return Saga.put(
@@ -1656,9 +1677,27 @@ function* inboxSearch(_: Container.TypedState, action: Chat2Gen.InboxSearchPaylo
   const onIndexStatus = (resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchIndexStatus']['inParam']) =>
     Saga.put(Chat2Gen.createInboxSearchSetIndexPercent({percent: resp.status.percentIndexed}))
 
+  // mock data
+  if (flags.openTeamSearch && __DEV__) {
+    console.log('MOCK open teams data, TODO plumb!')
+    setTimeout(() => {
+      onOpenTeamHits({
+        hits: {
+          hits: [
+            {description: 'team a', name: 'keybasefriends', teamID: 1},
+            {description: 'team b', name: 'chia_network.public', teamID: 2},
+            {description: 'team c', name: 'stellar.public', teamID: 3},
+          ],
+        },
+      })
+    }, 1000)
+  }
+
   try {
     yield RPCChatTypes.localSearchInboxRpcSaga({
       incomingCallMap: {
+        // @ts-ignore TODO when RPC exists put back
+        'chat.1.chatUi.chatSearchOpenTeamHits': onOpenTeamHits,
         'chat.1.chatUi.chatSearchConvHits': onConvHits,
         'chat.1.chatUi.chatSearchInboxDone': onDone,
         'chat.1.chatUi.chatSearchInboxHit': onTextHit,
