@@ -470,7 +470,7 @@ export const messageAuthorIsBot = (
   participantInfo: Types.ParticipantInfo
 ) => {
   const teamID = meta.teamID
-  return teamID
+  return meta.teamname
     ? TeamConstants.userIsRoleInTeam(state, teamID, message.author, 'restrictedbot') ||
         TeamConstants.userIsRoleInTeam(state, teamID, message.author, 'bot')
     : meta.teamType === 'adhoc' && participantInfo.name.length > 0 // teams without info may have type adhoc with an empty participant name list
