@@ -293,6 +293,7 @@ const (
 	SCStreamExists                              = int(keybase1.StatusCode_SCStreamExists)
 	SCStreamNotFound                            = int(keybase1.StatusCode_SCStreamNotFound)
 	SCStreamWrongKind                           = int(keybase1.StatusCode_SCStreamWrongKind)
+	SCStreamUnknown                             = int(keybase1.StatusCode_SCStreamUnknown)
 	SCStreamEOF                                 = int(keybase1.StatusCode_SCStreamEOF)
 	SCGenericAPIError                           = int(keybase1.StatusCode_SCGenericAPIError)
 	SCAPINetworkError                           = int(keybase1.StatusCode_SCAPINetworkError)
