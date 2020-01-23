@@ -115,7 +115,7 @@ const TeamTabs = (props: TeamTabsProps) => {
           tabStyle={styles.tab}
         />
       </Kb.Box>
-      {props.error && <Kb.Banner color="red">{props.error}</Kb.Banner>}
+      {!!props.error && <Kb.Banner color="red">{props.error}</Kb.Banner>}
     </Kb.Box2>
   )
 }
