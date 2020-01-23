@@ -123,7 +123,11 @@ const Encrypt = (props: Props) => {
             options={props.options}
             onSetOptions={props.onSetOptions}
           />
-          <Kb.ProgressBar ratio={props.progress} style={{width: '100%'}} />
+          {props.progress && !props.outputStatus ? (
+            <Kb.ProgressBar ratio={props.progress} style={{width: '100%'}} />
+          ) : (
+            <Kb.Divider />
+          )}
           <Kb.Box2 direction="vertical" fullHeight={true}>
             <OutputInfoBanner operation={Constants.Operations.Encrypt} outputStatus={props.outputStatus}>
               <Kb.BannerParagraph

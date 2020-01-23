@@ -90,6 +90,11 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     const {operation, output, outputSigned, outputSender, outputType} = action.payload
     if (operationGuard(operation, action)) return
 
+    // Bail if the user has cleared the input before the RPC has returned a result
+    if (!draftState[operation].input.stringValue()) {
+      return
+    }
+
     draftState[operation].output = output
     draftState[operation].outputStatus = 'success'
     draftState[operation].outputType = outputType
