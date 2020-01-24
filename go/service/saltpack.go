@@ -175,13 +175,15 @@ func (h *SaltpackHandler) SaltpackVerify(ctx context.Context, arg keybase1.Saltp
 
 func (h *SaltpackHandler) SaltpackEncryptString(ctx context.Context, arg keybase1.SaltpackEncryptStringArg) (keybase1.SaltpackEncryptStringResult, error) {
 	ctx = libkb.WithLogTag(ctx, "SP")
-
-	return h.encryptString(ctx, arg.SessionID, arg.Plaintext, arg.Opts)
+	eopts := h.encryptOptions(arg.Opts)
+	eopts.NoForcePoll = true
+	return h.encryptString(ctx, arg.SessionID, arg.Plaintext, eopts)
 }
 
 func (h *SaltpackHandler) SaltpackEncryptStringToTextFile(ctx context.Context, arg keybase1.SaltpackEncryptStringToTextFileArg) (keybase1.SaltpackEncryptFileResult, error) {
 	ctx = libkb.WithLogTag(ctx, "SP")
-	res, err := h.encryptString(ctx, arg.SessionID, arg.Plaintext, arg.Opts)
+	eopts := h.encryptOptions(arg.Opts)
+	res, err := h.encryptString(ctx, arg.SessionID, arg.Plaintext, eopts)
 	if err != nil {
 		return keybase1.SaltpackEncryptFileResult{}, err
 	}
@@ -197,8 +199,7 @@ func (h *SaltpackHandler) SaltpackEncryptStringToTextFile(ctx context.Context, a
 	return fres, nil
 }
 
-func (h *SaltpackHandler) encryptString(ctx context.Context, sessionID int, plaintext string, opts keybase1.SaltpackFrontendEncryptOptions) (keybase1.SaltpackEncryptStringResult, error) {
-	eopts := h.encryptOptions(opts)
+func (h *SaltpackHandler) encryptString(ctx context.Context, sessionID int, plaintext string, eopts keybase1.SaltpackEncryptOptions) (keybase1.SaltpackEncryptStringResult, error) {
 	sink := libkb.NewBufferCloser()
 	earg := &engine.SaltpackEncryptArg{
 		Opts:   eopts,
