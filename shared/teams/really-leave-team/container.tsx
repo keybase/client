@@ -8,13 +8,13 @@ import * as Types from '../../constants/types/teams'
 import ReallyLeaveTeam, {Props} from '.'
 import LastOwnerDialog from './last-owner'
 import {anyWaiting} from '../../constants/waiting'
-import {useTeamDetailsSubscribe} from '../subscriber'
+import {useTeamDetailsSubscribeMountOnly} from '../subscriber'
 
 type OwnProps = Container.RouteProps<{teamID: Types.TeamID}>
 
 const RenderLastOwner = (p: Props & {_leaving: boolean; lastOwner: boolean; teamID: Types.TeamID}) => {
   const {lastOwner, _leaving, teamID, ...rest} = p
-  useTeamDetailsSubscribe(teamID)
+  useTeamDetailsSubscribeMountOnly(teamID)
   return lastOwner ? (
     <LastOwnerDialog
       onBack={rest.onBack}
