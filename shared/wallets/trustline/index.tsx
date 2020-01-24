@@ -1,4 +1,5 @@
 import * as Container from '../../util/container'
+import * as WalletsGen from '../../actions/wallets-gen'
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
