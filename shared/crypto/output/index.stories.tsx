@@ -23,6 +23,7 @@ const load = () => {
     .add('Encrypt', () => (
       <Output
         output={encryptOutput}
+        outputMatchesInput={true}
         textType="cipher"
         operation={Constants.Operations.Encrypt}
         onShowInFinder={onShowInFinder}
@@ -31,6 +32,7 @@ const load = () => {
     .add('Decrypt', () => (
       <Output
         output={decryptOutput}
+        outputMatchesInput={true}
         textType="plain"
         operation={Constants.Operations.Verify}
         onShowInFinder={onShowInFinder}
@@ -39,6 +41,7 @@ const load = () => {
     .add('Decrypt - Large', () => (
       <Output
         output="Under 120 characters is big"
+        outputMatchesInput={true}
         textType="plain"
         operation={Constants.Operations.Verify}
         onShowInFinder={onShowInFinder}
@@ -47,6 +50,7 @@ const load = () => {
     .add('Sign', () => (
       <Output
         output={signOutput}
+        outputMatchesInput={true}
         textType="cipher"
         operation={Constants.Operations.Sign}
         onShowInFinder={onShowInFinder}
@@ -55,6 +59,7 @@ const load = () => {
     .add('Verify', () => (
       <Output
         output={verifyOutput}
+        outputMatchesInput={true}
         textType="plain"
         operation={Constants.Operations.Verify}
         onShowInFinder={onShowInFinder}
@@ -63,6 +68,7 @@ const load = () => {
     .add('Verify - Large', () => (
       <Output
         output="Under 120 characters is big"
+        outputMatchesInput={true}
         textType="plain"
         operation={Constants.Operations.Verify}
         onShowInFinder={onShowInFinder}
