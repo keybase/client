@@ -113,12 +113,23 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     } = action.payload
     if (operationGuard(operation, action)) return
 
-    const inputAction:
+    let inputAction:
       | CryptoGen.SaltpackDecryptPayload
       | CryptoGen.SaltpackEncryptPayload
       | CryptoGen.SaltpackSignPayload
       | CryptoGen.SaltpackVerifyPayload
-      | undefined = input
+      | undefined
+
+    switch (input?.type) {
+      case CryptoGen.saltpackDecrypt:
+      case CryptoGen.saltpackEncrypt:
+      case CryptoGen.saltpackSign:
+      case CryptoGen.saltpackVerify:
+        inputAction = input
+        break
+      default:
+        inputAction = undefined
+    }
 
     let outputMatchesInput = false
 
