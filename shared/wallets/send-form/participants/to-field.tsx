@@ -97,17 +97,18 @@ const ToStellarPublicKey = (props: ToStellarPublicKeyProps) => {
     [setReadyToReview, debouncedOnChangeRecip]
   )
 
+  const prevPropsRecipientPublicKey = React.useRef<string>('')
   const {recipientPublicKey: propsRecipientPublicKey} = props
 
-  // TODO <<<<
   React.useEffect(() => {
-    if (propsRecipientPublicKey !== recipientPublicKey) {
+    if (prevPropsRecipientPublicKey.current !== propsRecipientPublicKey) {
+      prevPropsRecipientPublicKey.current = propsRecipientPublicKey
       // Hot fix to let any empty string textChange callbacks happen before we change the value.
       defer(() => setRecipentPublicKey(propsRecipientPublicKey))
     }
     // We do not want this be called when the state changes
     // Only when the prop.recipientPublicKey changes.
-  }, [propsRecipientPublicKey])
+  }, [prevPropsRecipientPublicKey, propsRecipientPublicKey])
 
   return (
     <ParticipantsRow
