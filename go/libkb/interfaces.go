@@ -1123,6 +1123,7 @@ type SaltpackRecipientKeyfinderArg struct {
 	UsePaperKeys      bool
 	UseDeviceKeys     bool // Does not include Paper Keys
 	UseRepudiableAuth bool // This is needed as team keys (implicit or not) are not compatible with repudiable authentication, so we can error out.
+	NoForcePoll       bool // if we want to stop forcepolling, which is on by default, but should be off for GUI
 }
 
 type SaltpackReceiverSymmetricKey struct {

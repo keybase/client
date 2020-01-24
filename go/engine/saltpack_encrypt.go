@@ -102,6 +102,7 @@ func (e *SaltpackEncrypt) Run(m libkb.MetaContext) (err error) {
 		UsePaperKeys:      e.arg.Opts.UsePaperKeys,
 		UseDeviceKeys:     e.arg.Opts.UseDeviceKeys,
 		UseRepudiableAuth: e.arg.Opts.AuthenticityType == keybase1.AuthenticityType_REPUDIABLE,
+		NoForcePoll:       e.arg.Opts.NoForcePoll,
 	}
 
 	kf := e.newKeyfinderHook(kfarg)
