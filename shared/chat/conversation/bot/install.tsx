@@ -210,7 +210,7 @@ const InstallBotPopup = (props: Props) => {
     if (!commands?.commands?.length) {
       dispatch(Chat2Gen.createRefreshBotPublicCommands({username: botUsername}))
     }
-  }, [])
+  }, [dispatch, commands, botUsername])
 
   const restrictedButton = (
     <Kb.Box2 key={RestrictedItem} direction="vertical" fullWidth={true} style={styles.dropdownButton}>
