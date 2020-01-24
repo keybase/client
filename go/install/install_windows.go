@@ -220,7 +220,7 @@ func autostartStatus() (bool, error) {
 	defer k.Close()
 
 	// Value not existing means that we are not starting up by default!
-	_, _, err := k.GetStringValue(autoRegName)
+	_, _, err = k.GetStringValue(autoRegName)
 	return err == nil, nil
 }
 
@@ -245,7 +245,7 @@ func ToggleAutostart(context Context, on bool, forAutoinstallIgnored bool) error
 		return fmt.Errorf("Error getting AppDataDir: %v", err)
 	}
 
-	err := k.SetStringValue(autoRegName, appDataDir+`\Keybase\Gui\Keybase.exe`)
+	err = k.SetStringValue(autoRegName, appDataDir+`\Keybase\Gui\Keybase.exe`)
 	if err != nil {
 		return fmt.Errorf("Error setting registry Run value %v", err)
 	}
