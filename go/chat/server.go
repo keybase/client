@@ -2716,6 +2716,10 @@ func (h *Server) ListPublicBotCommandsLocal(ctx context.Context, username string
 
 	convID, err := h.G().BotCommandManager.PublicCommandsConv(ctx, username)
 	if err != nil {
+		if _, ok := err.(UnknownTLFNameError); ok {
+			h.Debug(ctx, "ListPublicBotCommandsLocal: unknown conv name")
+			return res, nil
+		}
 		return res, err
 	}
 	if convID == nil {

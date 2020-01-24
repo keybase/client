@@ -24,6 +24,7 @@ protocol saltpack {
     boolean noSelfEncrypt;
     boolean binary;
     int saltpackVersion;
+    boolean noForcePoll; // forcepolling is on by default, but off for GUI interactions
 
     boolean useKBFSKeysOnlyForTesting; // to test messages which use old kbfs saltpack keys/pseudonyms
   }

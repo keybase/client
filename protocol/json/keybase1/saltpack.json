@@ -68,6 +68,10 @@
         },
         {
           "type": "boolean",
+          "name": "noForcePoll"
+        },
+        {
+          "type": "boolean",
           "name": "useKBFSKeysOnlyForTesting"
         }
       ]

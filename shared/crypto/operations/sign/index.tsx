@@ -15,6 +15,7 @@ type Props = {
   onSaveAsText: () => void
   onSetInput: (inputType: Types.InputTypes, inputValue: string) => void
   onShowInFinder: (path: string) => void
+  outputMatchesInput: boolean
   output: string
   outputSender?: string
   outputStatus?: Types.OutputStatus
@@ -101,6 +102,7 @@ const Sign = (props: Props) => {
             />
             <OperationOutput
               outputStatus={props.outputStatus}
+              outputMatchesInput={props.outputMatchesInput}
               output={props.output}
               outputType={props.outputType}
               textType="cipher"
@@ -110,6 +112,7 @@ const Sign = (props: Props) => {
             <OutputBar
               operation={Constants.Operations.Sign}
               output={props.output}
+              outputMatchesInput={props.outputMatchesInput}
               outputStatus={props.outputStatus}
               outputType={props.outputType}
               onCopyOutput={props.onCopyOutput}

@@ -2717,7 +2717,7 @@ export type FastTeamLoadRes = {readonly name: TeamName; readonly applicationKeys
 export type FastTeamSigChainState = {readonly ID: TeamID; readonly public: Boolean; readonly rootAncestor: TeamName; readonly nameDepth: Int; readonly last?: LinkTriple | null; readonly perTeamKeys: {[key: string]: PerTeamKey}; readonly perTeamKeySeedsVerified: {[key: string]: PerTeamKeySeed}; readonly downPointers: {[key: string]: DownPointer}; readonly lastUpPointer?: UpPointer | null; readonly perTeamKeyCTime: UnixTime; readonly linkIDs: {[key: string]: LinkID}; readonly merkleInfo: {[key: string]: MerkleRootV2}}
 export type FavoritesResult = {readonly favoriteFolders?: Array<Folder> | null; readonly ignoredFolders?: Array<Folder> | null; readonly newFolders?: Array<Folder> | null}
 export type Feature = {readonly allow: Boolean; readonly defaultValue: Boolean; readonly readonly: Boolean; readonly label: String}
-export type FeaturedBot = {readonly botAlias: String; readonly description: String; readonly extendedDescription: String; readonly botUsername: String; readonly ownerTeam?: String | null; readonly ownerUser?: String | null; readonly rank: Int; readonly isPromoted: Boolean}
+export type FeaturedBot = {readonly botAlias: String; readonly description: String; readonly extendedDescription: String; readonly extendedDescriptionRaw: String; readonly botUsername: String; readonly ownerTeam?: String | null; readonly ownerUser?: String | null; readonly rank: Int; readonly isPromoted: Boolean}
 export type FeaturedBotsRes = {readonly bots?: Array<FeaturedBot> | null; readonly isLastPage: Boolean}
 export type File = {readonly path: String}
 export type FileContent = {readonly data: Bytes; readonly progress: Progress}
@@ -2959,7 +2959,7 @@ export type RuntimeStats = {readonly processStats?: Array<ProcessRuntimeStats> |
 export type SHA512 = Bytes
 export type SaltpackDecryptOptions = {readonly interactive: Boolean; readonly forceRemoteCheck: Boolean; readonly usePaperKey: Boolean}
 export type SaltpackEncryptFileResult = {readonly usedUnresolvedSBS: Boolean; readonly unresolvedSBSAssertion: String; readonly filename: String}
-export type SaltpackEncryptOptions = {readonly recipients?: Array<String> | null; readonly teamRecipients?: Array<String> | null; readonly authenticityType: AuthenticityType; readonly useEntityKeys: Boolean; readonly useDeviceKeys: Boolean; readonly usePaperKeys: Boolean; readonly noSelfEncrypt: Boolean; readonly binary: Boolean; readonly saltpackVersion: Int; readonly useKBFSKeysOnlyForTesting: Boolean}
+export type SaltpackEncryptOptions = {readonly recipients?: Array<String> | null; readonly teamRecipients?: Array<String> | null; readonly authenticityType: AuthenticityType; readonly useEntityKeys: Boolean; readonly useDeviceKeys: Boolean; readonly usePaperKeys: Boolean; readonly noSelfEncrypt: Boolean; readonly binary: Boolean; readonly saltpackVersion: Int; readonly noForcePoll: Boolean; readonly useKBFSKeysOnlyForTesting: Boolean}
 export type SaltpackEncryptResult = {readonly usedUnresolvedSBS: Boolean; readonly unresolvedSBSAssertion: String}
 export type SaltpackEncryptStringResult = {readonly usedUnresolvedSBS: Boolean; readonly unresolvedSBSAssertion: String; readonly ciphertext: String}
 export type SaltpackEncryptedMessageInfo = {readonly devices?: Array<Device> | null; readonly numAnonReceivers: Int; readonly receiverIsAnon: Boolean; readonly sender: SaltpackSender}
@@ -3089,6 +3089,8 @@ export type TeamRoleMapAndVersion = {readonly teams: {[key: string]: TeamRolePai
 export type TeamRoleMapStored = {readonly data: TeamRoleMapAndVersion; readonly cachedAt: Time}
 export type TeamRolePair = {readonly role: TeamRole; readonly implicitRole: TeamRole}
 export type TeamSBSMsg = {readonly teamID: TeamID; readonly score: Int; readonly invitees?: Array<TeamInvitee> | null}
+export type TeamSearchItem = {readonly id: TeamID; readonly name: String; readonly description?: String | null; readonly memberCount: Int; readonly lastActive: Time}
+export type TeamSearchRes = {readonly results?: Array<TeamSearchItem> | null}
 export type TeamSeitanMsg = {readonly teamID: TeamID; readonly seitans?: Array<TeamSeitanRequest> | null}
 export type TeamSeitanRequest = {readonly inviteID: TeamInviteID; readonly uid: UID; readonly eldestSeqno: Seqno; readonly akey: SeitanAKey; readonly role: TeamRole; readonly unixCTime: Int64}
 export type TeamSettings = {readonly open: Boolean; readonly joinAs: TeamRole}
@@ -4045,6 +4047,7 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.teams.getAnnotatedTeam'
 // 'keybase.1.teamsUi.confirmRootTeamDelete'
 // 'keybase.1.teamsUi.confirmSubteamDelete'
+// 'keybase.1.teamSearch.teamSearch'
 // 'keybase.1.test.test'
 // 'keybase.1.test.testCallback'
 // 'keybase.1.test.panic'

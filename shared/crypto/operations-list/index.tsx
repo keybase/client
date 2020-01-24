@@ -11,13 +11,14 @@ type Props = {
   routeSelected: Types.CryptoSubTab
 }
 
-type Row = Types.Tab & {isSelected: boolean}
+type Row = Types.Tab & {isSelected: boolean; key: string}
 
 class OperationsList extends React.PureComponent<Props> {
   private getRows = memoize((routeSelected: string) =>
     Constants.Tabs.map(t => ({
       ...t,
       isSelected: routeSelected === t.tab,
+      key: t.tab,
     }))
   )
 

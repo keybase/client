@@ -10,12 +10,14 @@ type Props = {
   output?: string
   outputStatus?: Types.OutputStatus
   outputType?: Types.OutputType
+  outputMatchesInput: boolean
   textType: Types.TextType
   operation: Types.Operations
   onShowInFinder: (path: string) => void
 }
 
 type OutputBarProps = {
+  outputMatchesInput: boolean
   onCopyOutput: (text: string) => void
   onSaveAsText?: () => void
   onShowInFinder: (path: string) => void
@@ -87,16 +89,16 @@ export const SignedSender = (props: OutputSignedProps) => {
   )
 }
 
-export const OutputInfoBanner = (props: OutputInfoProps) => {
+export const OutputInfoBanner = React.memo((props: OutputInfoProps) => {
   return props.outputStatus && props.outputStatus === 'success' ? (
     <Kb.Banner color="grey" style={styles.banner}>
       {props.children}
     </Kb.Banner>
   ) : null
-}
+})
 
-export const OutputBar = (props: OutputBarProps) => {
-  const {output, onCopyOutput, onSaveAsText, onShowInFinder} = props
+export const OutputBar = React.memo((props: OutputBarProps) => {
+  const {output, onCopyOutput, onSaveAsText, onShowInFinder, outputMatchesInput} = props
   const waitingKey = Constants.getStringWaitingKey(props.operation)
   const waiting = Container.useAnyWaiting(waitingKey)
   const attachmentRef = React.useRef<Kb.Box2>(null)
@@ -112,6 +114,8 @@ export const OutputBar = (props: OutputBarProps) => {
     setShowingToast(true)
     onCopyOutput(output)
   }, [output, onCopyOutput])
+
+  const actionsDisabled = waiting || !outputMatchesInput
 
   return props.outputStatus && props.outputStatus === 'success' ? (
     <>
@@ -135,12 +139,17 @@ export const OutputBar = (props: OutputBarProps) => {
               <Kb.Button
                 mode="Secondary"
                 label="Copy to clipboard"
-                disabled={waiting}
+                disabled={actionsDisabled}
                 onClick={() => copy()}
               />
             </Kb.Box2>
             {onSaveAsText && (
-              <Kb.Button mode="Secondary" label="Save as TXT" onClick={onSaveAsText} disabled={waiting} />
+              <Kb.Button
+                mode="Secondary"
+                label="Save as TXT"
+                onClick={onSaveAsText}
+                disabled={actionsDisabled}
+              />
             )}
           </Kb.ButtonBar>
         )}
@@ -157,7 +166,7 @@ export const OutputBar = (props: OutputBarProps) => {
       </Kb.ButtonBar>
     </Kb.Box2>
   )
-}
+})
 
 const Output = (props: Props) => {
   const waitingKey = Constants.getStringWaitingKey(props.operation)
@@ -173,6 +182,8 @@ const Output = (props: Props) => {
   const fileOutputTextColor =
     props.textType === 'cipher' ? Styles.globalColors.greenDark : Styles.globalColors.black
   const fileIcon = Constants.getOutputFileIcon(props.operation)
+  const actionsDisabled = waiting || !props.outputMatchesInput
+
   return props.outputStatus && props.outputStatus === 'success' ? (
     props.outputType === 'file' ? (
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
@@ -199,7 +210,7 @@ const Output = (props: Props) => {
             <Kb.Text
               key={index}
               type={props.textType === 'cipher' ? 'Terminal' : 'Body'}
-              selectable={!waiting}
+              selectable={!actionsDisabled}
               style={Styles.collapseStyles([styles.output, outputLargeStyle])}
             >
               {line}
@@ -235,47 +246,25 @@ const styles = Styles.styleSheetCreate(
           overflowY: 'auto',
         },
       }),
-      coverOutput: {
-        ...Styles.globalStyles.flexBoxCenter,
-      },
-      fileOutputContainer: {
-        ...Styles.padding(Styles.globalMargins.xsmall),
-      },
-      fileOutputText: {
-        ...Styles.globalStyles.fontSemibold,
-      },
+      coverOutput: {...Styles.globalStyles.flexBoxCenter},
+      fileOutputContainer: {...Styles.padding(Styles.globalMargins.xsmall)},
+      fileOutputText: {...Styles.globalStyles.fontSemibold},
       output: Styles.platformStyles({
-        common: {
-          color: Styles.globalColors.black,
-        },
-        isElectron: {
-          wordBreak: 'break-word',
-        },
+        common: {color: Styles.globalColors.black},
+        isElectron: {wordBreak: 'break-word'},
       }),
-      outputBarContainer: {
-        ...Styles.padding(Styles.globalMargins.tiny),
-      },
-      outputPlaceholder: {
-        backgroundColor: Styles.globalColors.blueGreyLight,
-      },
-      outputVerifiedContainer: {
-        marginBottom: Styles.globalMargins.xlarge,
-      },
-      placeholder: {
-        color: Styles.globalColors.black_50,
-      },
+      outputBarContainer: {...Styles.padding(Styles.globalMargins.tiny)},
+      outputPlaceholder: {backgroundColor: Styles.globalColors.blueGreyLight},
+      outputVerifiedContainer: {marginBottom: Styles.globalMargins.xlarge},
+      placeholder: {color: Styles.globalColors.black_50},
       signedContainer: {
         minHeight: Styles.globalMargins.mediumLarge,
         paddingLeft: Styles.globalMargins.tiny,
         paddingRight: Styles.globalMargins.tiny,
         paddingTop: Styles.globalMargins.tiny,
       },
-      signedIcon: {
-        color: Styles.globalColors.green,
-      },
-      signedSender: {
-        ...Styles.globalStyles.flexGrow,
-      },
+      signedIcon: {color: Styles.globalColors.green},
+      signedSender: {...Styles.globalStyles.flexGrow},
       toastText: {
         color: Styles.globalColors.white,
         textAlign: 'center',

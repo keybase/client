@@ -1,0 +1,19 @@
+@namespace("keybase.1")
+
+protocol teamSearch {
+    import idl "common.avdl";
+
+    record TeamSearchItem {
+        TeamID id;
+        string name;
+        union { null, string } description;
+        int memberCount;
+        Time lastActive;
+    }
+
+    record TeamSearchRes {
+        array<TeamSearchItem> results;
+    }
+
+    TeamSearchRes teamSearch(string query, int limit);
+}

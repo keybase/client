@@ -298,7 +298,7 @@ export class Settings extends React.Component<Props, State> {
     }
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} alignItems="flex-start" style={styles.main}>
-        {this.props.error && <Kb.Banner color="red">{this.props.error}</Kb.Banner>}
+        {!!this.props.error && <Kb.Banner color="red">{this.props.error}</Kb.Banner>}
         <SetMemberShowcase {...submenuProps} />
         {(this.props.yourOperations.changeOpenTeam ||
           this.props.yourOperations.setTeamShowcase ||

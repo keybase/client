@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Constants from '../../constants/crypto'
 import * as FsConstants from '../../constants/fs'
 import * as Types from '../../constants/types/crypto'
+import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
@@ -28,10 +29,10 @@ type OperationBannerProps = {
 }
 
 const operationToEmptyInputWidth = {
-  [Constants.Operations.Encrypt]: 153,
-  [Constants.Operations.Decrypt]: 266,
-  [Constants.Operations.Sign]: 153,
-  [Constants.Operations.Verify]: 288,
+  [Constants.Operations.Encrypt]: 151,
+  [Constants.Operations.Decrypt]: 264,
+  [Constants.Operations.Sign]: 151,
+  [Constants.Operations.Verify]: 286,
 }
 
 /*
@@ -138,6 +139,9 @@ export const TextInput = (props: TextProps) => {
 export const FileInput = (props: FileProps) => {
   const {path, size, operation} = props
   const fileIcon = Constants.getInputFileIcon(operation)
+  const waitingKey = Constants.getFileWaitingKey(operation)
+  const waiting = Container.useAnyWaiting(waitingKey)
+
   return (
     <Kb.Box2
       direction="vertical"
@@ -156,39 +160,37 @@ export const FileInput = (props: FileProps) => {
             ) : null}
           </Kb.Box2>
         </Kb.Box2>
-        <Kb.Box2 direction="vertical" style={styles.clearButtonInput}>
-          <Kb.Text
-            type="BodySmallPrimaryLink"
-            onClick={() => props.onClearFiles()}
-            style={styles.clearButtonInput}
-          >
-            Clear
-          </Kb.Text>
-        </Kb.Box2>
+        {path && !waiting && (
+          <Kb.Box2 direction="vertical" style={styles.clearButtonInput}>
+            <Kb.Text
+              type="BodySmallPrimaryLink"
+              onClick={() => props.onClearFiles()}
+              style={styles.clearButtonInput}
+            >
+              Clear
+            </Kb.Text>
+          </Kb.Box2>
+        )}
       </Kb.Box2>
     </Kb.Box2>
   )
 }
 
-export const OperationBanner = (props: OperationBannerProps) => {
+export const OperationBanner = React.memo((props: OperationBannerProps) => {
   const color = props.type === 'error' ? 'red' : props.type === 'warning' ? 'yellow' : 'grey'
   return (
-    <Kb.Banner color={color} style={styles.banner}>
+    <Kb.Banner color={color}>
       <Kb.BannerParagraph
         bannerColor={color}
         content={props.type === 'info' && props.infoMessage ? props.infoMessage : props.message}
       />
     </Kb.Banner>
   )
-}
+})
 
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      banner: {
-        ...Styles.padding(Styles.globalMargins.tiny),
-        minHeight: 40,
-      },
       browseFile: {
         flexShrink: 0,
       },

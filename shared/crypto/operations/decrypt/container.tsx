@@ -9,19 +9,7 @@ import Decrypt from '.'
 const operation = 'decrypt'
 
 export default Container.namedConnect(
-  (state: Container.TypedState) => ({
-    bytesComplete: state.crypto.decrypt.bytesComplete,
-    bytesTotal: state.crypto.decrypt.bytesTotal,
-    errorMessage: state.crypto.decrypt.errorMessage.stringValue(),
-    input: state.crypto.decrypt.input.stringValue(),
-    inputType: state.crypto.decrypt.inputType,
-    output: state.crypto.decrypt.output.stringValue(),
-    outputSender: state.crypto.decrypt.outputSender?.stringValue(),
-    outputSigned: state.crypto.decrypt.outputSigned,
-    outputStatus: state.crypto.decrypt.outputStatus,
-    outputType: state.crypto.decrypt.outputType,
-    warningMessage: state.crypto.decrypt.warningMessage.stringValue(),
-  }),
+  (state: Container.TypedState) => ({_decrypt: state.crypto.decrypt}),
   (dispatch: Container.TypedDispatch) => ({
     onClearInput: () => dispatch(CryptoGen.createClearInput({operation})),
     onCopyOutput: (text: string) => dispatch(ConfigGen.createCopyToClipboard({text})),
@@ -30,21 +18,28 @@ export default Container.namedConnect(
     onShowInFinder: (path: string) =>
       dispatch(FSGen.createOpenLocalPathInSystemFileManager({localPath: path})),
   }),
-  (stateProps, dispatchProps) => ({
-    errorMessage: stateProps.errorMessage,
-    input: stateProps.input,
-    inputType: stateProps.inputType,
-    onClearInput: dispatchProps.onClearInput,
-    onCopyOutput: dispatchProps.onCopyOutput,
-    onSetInput: dispatchProps.onSetInput,
-    onShowInFinder: dispatchProps.onShowInFinder,
-    output: stateProps.output,
-    outputSender: stateProps.outputSender,
-    outputSigned: stateProps.outputSigned,
-    outputStatus: stateProps.outputStatus,
-    outputType: stateProps.outputType,
-    progress: stateProps.bytesComplete === 0 ? 0 : stateProps.bytesComplete / stateProps.bytesTotal,
-    warningMessage: stateProps.warningMessage,
-  }),
+  (stateProps, dispatchProps) => {
+    const {_decrypt} = stateProps
+    const {bytesComplete, bytesTotal, errorMessage, input, inputType, warningMessage} = _decrypt
+    const {output, outputSender, outputSigned, outputStatus, outputType, outputMatchesInput} = _decrypt
+    const {onClearInput, onCopyOutput, onSetInput, onShowInFinder} = dispatchProps
+    return {
+      errorMessage: errorMessage.stringValue(),
+      input: input.stringValue(),
+      inputType,
+      onClearInput,
+      onCopyOutput,
+      onSetInput,
+      onShowInFinder,
+      output: output.stringValue(),
+      outputMatchesInput,
+      outputSender: outputSender?.stringValue(),
+      outputSigned,
+      outputStatus,
+      outputType,
+      progress: bytesComplete === 0 ? 0 : bytesComplete / bytesTotal,
+      warningMessage: warningMessage.stringValue(),
+    }
+  },
   'DecryptContainer'
 )(Decrypt)
