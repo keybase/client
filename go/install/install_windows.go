@@ -208,7 +208,51 @@ func WatchdogLogPath(logGlobPath string) (string, error) {
 	return logName, err
 }
 
+const autoRegPath = `Software\Microsoft\Windows\CurrentVersion\Run`
+const autoRegOldName = `electron.app.keybase`
+const autoRegName = `Keybase.Keybase.GUI`
+
 func autostartStatus() (bool, error) {
+	k, err := registry.OpenKey(registry.CURRENT_USER, autoRegPath, registry.QUERY_VALUE|registry.READ)
+	if err != nil {
+		return false, fmt.Errorf("Error opening Run registry key: %v", err)
+	}
+	defer k.Close()
+
+	// Value not existing means that we are not starting up by default!
+	_, _, err := k.GetStringValue(autoRegName)
+	return err == nil, nil
+}
+
+func ToggleAutostart(context Context, on bool, forAutoinstallIgnored bool) error {
+	k, err := registry.OpenKey(registry.CURRENT_USER, autoRegPath, registry.QUERY_VALUE|registry.WRITE)
+	if err != nil {
+		return fmt.Errorf("Error opening StartupFolder registry key: %v", err)
+	}
+	defer k.Close()
+
+	// Delete old key if it exists.
+	k.DeleteValue(autoRegOldName)
+
+	if !on {
+		// it might not exists, don't propagate error.
+		k.DeleteValue(autoRegName)
+		return nil
+	}
+
+	appDataDir, err := libkb.AppDataDir()
+	if err != nil {
+		return fmt.Errorf("Error getting AppDataDir: %v", err)
+	}
+
+	err := k.SetStringValue(autoRegName, appDataDir+`\Keybase\Gui\Keybase.exe`)
+	if err != nil {
+		return fmt.Errorf("Error setting registry Run value %v", err)
+	}
+	return nil
+}
+
+func autoStartOldFIXMEDELME() (bool, error) {
 	appDataDir, err := libkb.AppDataDir()
 	if err != nil {
 		return false, fmt.Errorf("Error getting AppDataDir: %v", err)
@@ -331,7 +375,7 @@ func LsofMount(mountDir string, log Log) ([]CommonLsofResult, error) {
 	return nil, fmt.Errorf("Cannot use lsof on Windows.")
 }
 
-func ToggleAutostart(context Context, on bool, forAutoinstallIgnored bool) error {
+func ToggleAutostartFIXMEDELME(context Context, on bool, forAutoinstallIgnored bool) error {
 	k, err := registry.OpenKey(registry.CURRENT_USER, "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\StartupApproved\\StartupFolder", registry.QUERY_VALUE|registry.WRITE)
 	if err != nil {
 		return fmt.Errorf("Error opening StartupFolder registry key: %v", err)
