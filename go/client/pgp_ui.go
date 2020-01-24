@@ -59,7 +59,7 @@ func (p PgpUI) OutputSignatureSuccessNonKeybase(ctx context.Context, arg keybase
 	}
 
 	for _, warning := range arg.Warnings {
-		output("WARNING: %s\n", warning)
+		_, _ = p.w.Write([]byte(ColorString(p.G(), "red", fmt.Sprintf("WARNING: %s\n", warning))))
 	}
 
 	return nil

@@ -538,15 +538,6 @@ func (e *Env) GetBool(def bool, flist ...func() (bool, bool)) bool {
 	return def
 }
 
-func (e *Env) GetTime(def time.Time, flist ...func() (time.Time, bool)) time.Time {
-	for _, f := range flist {
-		if val, isSet := f(); isSet {
-			return val
-		}
-	}
-	return def
-}
-
 type NegBoolFunc struct {
 	neg bool
 	f   func() (bool, bool)
