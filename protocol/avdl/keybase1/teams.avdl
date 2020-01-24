@@ -551,6 +551,11 @@ protocol teams {
     // For each hidden chain tail we audit, write down the corresponding linkID
     map<Seqno,LinkID> hiddenTails;
 
+    // if an audit fails, we put the failed probes here so they can be retried
+    // at the next audit.
+    array<Seqno> preProbesToRetry;
+    array<Seqno> postProbesToRetry;
+
     // If we just created this team, and it's implicit, then we can skip the audit
     // for a while (as dictated by the rootFreshness of the Audit Parameters).
     Time skipUntil;

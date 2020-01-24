@@ -1156,6 +1156,20 @@
           "name": "hiddenTails"
         },
         {
+          "type": {
+            "type": "array",
+            "items": "Seqno"
+          },
+          "name": "preProbesToRetry"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Seqno"
+          },
+          "name": "postProbesToRetry"
+        },
+        {
           "type": "Time",
           "name": "skipUntil"
         }
