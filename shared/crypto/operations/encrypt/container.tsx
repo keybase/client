@@ -25,7 +25,8 @@ export default Container.namedConnect(
   }),
   (stateProps, dispatchProps) => {
     const {_encrypt, username} = stateProps
-    const {errorMessage, hasRecipients, hasSBS, input, inputType, noIncludeSelf, options} = _encrypt
+    const {errorMessage, input, inputType, options, meta} = _encrypt
+    const {noIncludeSelf, hasSBS, hasRecipients} = meta
     const {bytesComplete, bytesTotal, recipients, warningMessage} = _encrypt
     const {output, outputStatus, outputType, outputMatchesInput} = _encrypt
     const {onClearInput, onCopyOutput, onSaveAsText, onSetInput, onSetOptions, onShowInFinder} = dispatchProps

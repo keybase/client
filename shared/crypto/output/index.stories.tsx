@@ -74,6 +74,7 @@ const load = () => {
       operation={Constants.Operations.Encrypt}
       output="secret stuff"
       outputStatus="success"
+      outputMatchesInput={true}
       onCopyOutput={onCopyOutput}
       onSaveAsText={onSaveAsText}
       onShowInFinder={onShowInFinder}

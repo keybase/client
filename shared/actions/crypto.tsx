@@ -58,8 +58,8 @@ function* teamBuildingSaga() {
 }
 
 // more of a debounce to keep things simple
-let throttleSetInputCurrentAction: SetInputPayload | undefined
-const throttleSetInput = async (action: SetInputPayload) => {
+let throttleSetInputCurrentAction: CryptoGen.SetInputPayload | undefined
+const throttleSetInput = async (action: CryptoGen.SetInputPayload) => {
   throttleSetInputCurrentAction = action
   await Container.timeoutPromise(100)
   return throttleSetInputCurrentAction === action

@@ -114,6 +114,8 @@ export const OutputBar = React.memo((props: OutputBarProps) => {
     onCopyOutput(output)
   }, [output, onCopyOutput])
 
+  const actionsDisabled = waiting || !outputMatchesInput
+
   return props.outputStatus && props.outputStatus === 'success' ? (
     <>
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.outputBarContainer}>
@@ -136,7 +138,7 @@ export const OutputBar = React.memo((props: OutputBarProps) => {
               <Kb.Button
                 mode="Secondary"
                 label="Copy to clipboard"
-                disabled={waiting || !outputMatchesInput}
+                disabled={actionsDisabled}
                 onClick={() => copy()}
               />
             </Kb.Box2>
@@ -145,7 +147,7 @@ export const OutputBar = React.memo((props: OutputBarProps) => {
                 mode="Secondary"
                 label="Save as TXT"
                 onClick={onSaveAsText}
-                disabled={waiting || !outputMatchesInput}
+                disabled={actionsDisabled}
               />
             )}
           </Kb.ButtonBar>
@@ -241,47 +243,25 @@ const styles = Styles.styleSheetCreate(
           overflowY: 'auto',
         },
       }),
-      coverOutput: {
-        ...Styles.globalStyles.flexBoxCenter,
-      },
-      fileOutputContainer: {
-        ...Styles.padding(Styles.globalMargins.xsmall),
-      },
-      fileOutputText: {
-        ...Styles.globalStyles.fontSemibold,
-      },
+      coverOutput: {...Styles.globalStyles.flexBoxCenter},
+      fileOutputContainer: {...Styles.padding(Styles.globalMargins.xsmall)},
+      fileOutputText: {...Styles.globalStyles.fontSemibold},
       output: Styles.platformStyles({
-        common: {
-          color: Styles.globalColors.black,
-        },
-        isElectron: {
-          wordBreak: 'break-word',
-        },
+        common: {color: Styles.globalColors.black},
+        isElectron: {wordBreak: 'break-word'},
       }),
-      outputBarContainer: {
-        ...Styles.padding(Styles.globalMargins.tiny),
-      },
-      outputPlaceholder: {
-        backgroundColor: Styles.globalColors.blueGreyLight,
-      },
-      outputVerifiedContainer: {
-        marginBottom: Styles.globalMargins.xlarge,
-      },
-      placeholder: {
-        color: Styles.globalColors.black_50,
-      },
+      outputBarContainer: {...Styles.padding(Styles.globalMargins.tiny)},
+      outputPlaceholder: {backgroundColor: Styles.globalColors.blueGreyLight},
+      outputVerifiedContainer: {marginBottom: Styles.globalMargins.xlarge},
+      placeholder: {color: Styles.globalColors.black_50},
       signedContainer: {
         minHeight: Styles.globalMargins.mediumLarge,
         paddingLeft: Styles.globalMargins.tiny,
         paddingRight: Styles.globalMargins.tiny,
         paddingTop: Styles.globalMargins.tiny,
       },
-      signedIcon: {
-        color: Styles.globalColors.green,
-      },
-      signedSender: {
-        ...Styles.globalStyles.flexGrow,
-      },
+      signedIcon: {color: Styles.globalColors.green},
+      signedSender: {...Styles.globalStyles.flexGrow},
       toastText: {
         color: Styles.globalColors.white,
         textAlign: 'center',
