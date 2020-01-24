@@ -25,7 +25,7 @@ const splitAndSortDevices = (deviceMap: Map<string, Types.Device>) =>
 const ReloadableDevices = (props: Props & {clearBadges: () => void}) => {
   const {clearBadges, ...rest} = props
   const {loadDevices, title, onBack} = rest
-  const dispatch = Conatiner.userDispatch()
+  const dispatch = Container.userDispatch()
   React.useEffect(() => {
     return () => {
       dispatch(DevicesGen.createClearBadges())

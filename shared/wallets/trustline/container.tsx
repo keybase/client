@@ -22,7 +22,7 @@ export default Container.namedConnect(
       waitingSearch: Waiting.anyWaiting(state, Constants.searchTrustlineAssetsWaitingKey),
     }
   },
-  (dispatch, ownProps: OwnProps) => ({
+  dispatch => ({
     onDone: () => dispatch(RouteTreeGen.createNavigateUp()),
     onSearchChange: debounce(
       (text: string) => dispatch(WalletsGen.createSetTrustlineSearchText({text})),
