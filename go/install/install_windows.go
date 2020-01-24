@@ -252,33 +252,6 @@ func ToggleAutostart(context Context, on bool, forAutoinstallIgnored bool) error
 	return nil
 }
 
-func autoStartOldFIXMEDELME() (bool, error) {
-	appDataDir, err := libkb.AppDataDir()
-	if err != nil {
-		return false, fmt.Errorf("Error getting AppDataDir: %v", err)
-	}
-
-	exists, err := libkb.FileExists(filepath.Join(appDataDir, "Microsoft\\Windows\\Start Menu\\Programs\\Startup\\KeybaseStartup.lnk"))
-	if err != nil {
-		return false, fmt.Errorf("Error checking startup shortcut: %v", err)
-	}
-	if exists == false {
-		return false, fmt.Errorf("Service startup shortcut missing!")
-	}
-
-	k, err := registry.OpenKey(registry.CURRENT_USER, "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\StartupApproved\\StartupFolder", registry.QUERY_VALUE|registry.READ)
-	if err != nil {
-		return false, fmt.Errorf("Error opening StartupFolder registry key: %v", err)
-	}
-	defer k.Close()
-
-	val, _, err := k.GetBinaryValue("KeybaseStartup.lnk")
-	if err != nil {
-		return false, fmt.Errorf("Error reading registry value for KeybaseStartup.lnk: %v", err)
-	}
-	return len(val) > 0 && val[0] == 2, nil
-}
-
 func getVersionAndDrivers(logFile *os.File) {
 	// Capture Windows Version
 	cmd := exec.Command("cmd", "ver")
@@ -373,23 +346,6 @@ func StartUpdateIfNeeded(ctx context.Context, log logger.Logger) error {
 func LsofMount(mountDir string, log Log) ([]CommonLsofResult, error) {
 	log.Warning("Cannot use lsof on Windows.")
 	return nil, fmt.Errorf("Cannot use lsof on Windows.")
-}
-
-func ToggleAutostartFIXMEDELME(context Context, on bool, forAutoinstallIgnored bool) error {
-	k, err := registry.OpenKey(registry.CURRENT_USER, "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\StartupApproved\\StartupFolder", registry.QUERY_VALUE|registry.WRITE)
-	if err != nil {
-		return fmt.Errorf("Error opening StartupFolder registry key: %v", err)
-	}
-	defer k.Close()
-	var value []byte
-	if on {
-		value = []byte{2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0} // magic value.
-	}
-	err = k.SetBinaryValue("KeybaseStartup.lnk", value)
-	if err != nil {
-		return fmt.Errorf("Error reading registry value for KeybaseStartup.lnk: %v", err)
-	}
-	return nil
 }
 
 func GetAutostart(context Context) keybase1.OnLoginStartupStatus {
