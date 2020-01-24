@@ -13,7 +13,7 @@ import (
 	"github.com/keybase/go-crypto/openpgp/packet"
 )
 
-func ExtractPGPSignatureHashMethod(keyring openpgp.KeyRing, sig []byte) (crypto.Hash, error) {
+func ExtractPGPSignatureHashMethod(keyring openpgp.KeyRing, sig []byte) (crypto.Hash, uint64, error) {
 	var (
 		rd io.Reader
 
@@ -27,7 +27,7 @@ func ExtractPGPSignatureHashMethod(keyring openpgp.KeyRing, sig []byte) (crypto.
 	if IsArmored(sig) {
 		armored, err := armor.Decode(bytes.NewReader(sig))
 		if err != nil {
-			return 0, err
+			return 0, 0, err
 		}
 		rd = armored.Body
 	} else {
@@ -39,19 +39,19 @@ func ExtractPGPSignatureHashMethod(keyring openpgp.KeyRing, sig []byte) (crypto.
 		p, err = packets.Next()
 		if err == io.EOF {
 			if hashFunc != 0 {
-				return hashFunc, nil
+				return hashFunc, 0, nil
 			}
 
-			return 0, errors.ErrUnknownIssuer
+			return 0, 0, errors.ErrUnknownIssuer
 		}
 		if err != nil {
-			return 0, err
+			return 0, 0, err
 		}
 
 		switch sig := p.(type) {
 		case *packet.Signature:
 			if sig.IssuerKeyId == nil {
-				return 0, errors.StructuralError("signature doesn't have an issuer")
+				return 0, 0, errors.StructuralError("signature doesn't have an issuer")
 			}
 			issuerKeyID = *sig.IssuerKeyId
 			hashFunc = sig.Hash
@@ -60,13 +60,13 @@ func ExtractPGPSignatureHashMethod(keyring openpgp.KeyRing, sig []byte) (crypto.
 			issuerKeyID = sig.IssuerKeyId
 			hashFunc = sig.Hash
 		default:
-			return 0, errors.StructuralError("non signature packet found")
+			return 0, 0, errors.StructuralError("non signature packet found")
 		}
 
 		if keyring != nil {
 			keys := keyring.KeysByIdUsage(issuerKeyID, issuerFingerprint, packet.KeyFlagSign)
 			if len(keys) > 0 {
-				return hashFunc, nil
+				return hashFunc, issuerKeyID, nil
 			}
 		}
 	}
