@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Constants from '../../constants/crypto'
 import * as FsConstants from '../../constants/fs'
 import * as Types from '../../constants/types/crypto'
+import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
@@ -138,6 +139,9 @@ export const TextInput = (props: TextProps) => {
 export const FileInput = (props: FileProps) => {
   const {path, size, operation} = props
   const fileIcon = Constants.getInputFileIcon(operation)
+  const waitingKey = Constants.getFileWaitingKey(operation)
+  const waiting = Container.useAnyWaiting(waitingKey)
+
   return (
     <Kb.Box2
       direction="vertical"
@@ -156,15 +160,17 @@ export const FileInput = (props: FileProps) => {
             ) : null}
           </Kb.Box2>
         </Kb.Box2>
-        <Kb.Box2 direction="vertical" style={styles.clearButtonInput}>
-          <Kb.Text
-            type="BodySmallPrimaryLink"
-            onClick={() => props.onClearFiles()}
-            style={styles.clearButtonInput}
-          >
-            Clear
-          </Kb.Text>
-        </Kb.Box2>
+        {path && !waiting && (
+          <Kb.Box2 direction="vertical" style={styles.clearButtonInput}>
+            <Kb.Text
+              type="BodySmallPrimaryLink"
+              onClick={() => props.onClearFiles()}
+              style={styles.clearButtonInput}
+            >
+              Clear
+            </Kb.Text>
+          </Kb.Box2>
+        )}
       </Kb.Box2>
     </Kb.Box2>
   )
