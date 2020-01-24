@@ -146,7 +146,7 @@ func (e encryptTest) test(t *testing.T, users map[string]map[crypto.Hash]*pgpWar
 	// 2) Sender in all other scenarios
 	// Bob's signatures (both identity sigs and msg digests) can be SHA1.
 	// Bob has a cousin called Anonybob who refuses to publish his keys to Keybase,
-	// so he sends them over email (the "unknown user" scenario)
+	// so he sends them over email (the "unknown user" scenario).
 	bobName := "bob"
 	if !e.Known {
 		bobName = "anonybob"
@@ -395,6 +395,14 @@ func TestPGPWarnings(t *testing.T) {
 			Count:      1,
 			Mode:       "verify",
 			Known:      true,
+		},
+		{
+			Name:       "Verification of a SHA1 sig with a SHA256 self-sig (unknown)",
+			DigestHash: crypto.SHA1,
+			BobsHash:   crypto.SHA256,
+			Count:      1,
+			Mode:       "verify",
+			Known:      false,
 		},
 		{
 			Name:       "Verification of a SHA256 sig with a SHA256 self-sig",

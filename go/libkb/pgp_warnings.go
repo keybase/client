@@ -136,11 +136,11 @@ func NewHashSecurityWarning(kind HashSecurityWarningType, hash crypto.Hash) Hash
 func (h HashSecurityWarning) String() string {
 	switch h.kind {
 	case HashSecurityWarningSignatureHash:
-		return fmt.Sprintf("Message's contents could've been spoofed due to its signature's %s hash scheme", HashToName[h.hash])
+		return fmt.Sprintf("Message was signed using an insecure hash scheme (%s)", HashToName[h.hash])
 	case HashSecurityWarningSignersIdentityHash:
-		return fmt.Sprintf("Signer's identity could have been spoofed due to its %s hash scheme", HashToName[h.hash])
+		return fmt.Sprintf("Signer's key uses an insecure hash scheme (%s)", HashToName[h.hash])
 	case HashSecurityWarningRecipientsIdentityHash:
-		return fmt.Sprintf("Recipient's identity could have been spoofed due to its %s hash scheme", HashToName[h.hash])
+		return fmt.Sprintf("Recipient's key uses an insecure hash scheme (%s)", HashToName[h.hash])
 	default:
 		return fmt.Sprintf("Hash security warning was passed an incorrect kind, got %d", h.kind)
 	}
