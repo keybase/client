@@ -1,9 +1,11 @@
 import Row from '.'
 import * as Constants from '../../constants/git'
+import * as TeamTypes from '../../constants/types/teams'
 import * as FsTypes from '../../constants/types/fs'
 import * as ConfigGen from '../../actions/config-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as GitGen from '../../actions/git-gen'
+import * as TeamConstants from '../../constants/teams'
 import * as FsConstants from '../../constants/fs'
 import * as Container from '../../util/container'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
@@ -19,21 +21,28 @@ type OwnProps = {
 const ConnectedRow = Container.namedConnect(
   (state, {id, expanded}: OwnProps) => {
     const git = state.git.idToInfo.get(id) || Constants.makeGitInfo()
+    const teamID = git.teamname ? TeamConstants.getTeamID(state, git.teamname) : undefined
     return {
       expanded,
       git,
       isNew: state.git.isNew.has(id),
       lastEditUserFollowing: state.config.following.has(git.lastEditUser),
+      teamID,
       you: state.config.username,
     }
   },
 
   dispatch => ({
     _onBrowseGitRepo: (path: FsTypes.Path) => dispatch(FsConstants.makeActionForOpenPathInFilesTab(path)),
-    _onOpenChannelSelection: (repoID: string, teamname: string | undefined, selected: string) =>
+    _onOpenChannelSelection: (
+      repoID: string,
+      teamID: TeamTypes.TeamID | undefined,
+      teamname: string | undefined,
+      selected: string
+    ) =>
       dispatch(
         RouteTreeGen.createNavigateAppend({
-          path: [{props: {repoID, selected, teamname}, selected: 'gitSelectChannel'}],
+          path: [{props: {repoID, selected, teamID, teamname}, selected: 'gitSelectChannel'}],
         })
       ),
     _setDisableChat: (disabled: boolean, repoID: string, teamname: string) =>
@@ -51,8 +60,14 @@ const ConnectedRow = Container.namedConnect(
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     const {git} = stateProps
     const chatDisabled = git.chatDisabled
+
     const _onOpenChannelSelection = () =>
-      dispatchProps._onOpenChannelSelection(git.repoID, git.teamname, git.channelName || 'general')
+      dispatchProps._onOpenChannelSelection(
+        git.repoID,
+        stateProps.teamID,
+        git.teamname,
+        git.channelName || 'general'
+      )
     return {
       _onOpenChannelSelection,
       canDelete: git.canDelete,

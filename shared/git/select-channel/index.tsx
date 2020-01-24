@@ -20,7 +20,7 @@ const SelectChannel = (props: Props) => {
   const dispatch = Container.useDispatch()
 
   React.useEffect(() => {
-    dispatch(TeamsGen.createGetChannels({teamID}))
+    teamID && dispatch(TeamsGen.createGetChannels({teamID}))
   }, [teamID, dispatch])
 
   const [selected, setSelected] = React.useState(props.selected)
