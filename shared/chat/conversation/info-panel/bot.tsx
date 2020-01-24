@@ -188,6 +188,7 @@ export default (props: Props) => {
         botUsername: b,
         description: infoMap.get(b)?.bio ?? '',
         extendedDescription: '',
+        extendedDescriptionRaw: '',
         isPromoted: false,
         rank: 0,
       }

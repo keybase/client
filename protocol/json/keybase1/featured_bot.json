@@ -25,6 +25,10 @@
         },
         {
           "type": "string",
+          "name": "extendedDescriptionRaw"
+        },
+        {
+          "type": "string",
           "name": "botUsername"
         },
         {

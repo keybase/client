@@ -109,6 +109,7 @@ func (l *FeaturedBotLoader) present(mctx libkb.MetaContext, bots []keybase1.Feat
 	res = make([]keybase1.FeaturedBot, len(bots))
 	for index, bot := range bots {
 		res[index] = bot
+		res[index].ExtendedDescriptionRaw = bot.ExtendedDescription
 		res[index].ExtendedDescription = utils.PresentDecoratedUserBio(mctx.Ctx(), bot.ExtendedDescription)
 	}
 	return res

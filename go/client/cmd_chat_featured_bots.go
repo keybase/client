@@ -113,7 +113,7 @@ func displayFeaturedBots(g *libkb.GlobalContext, bots []keybase1.FeaturedBot) er
 			},
 			flexibletable.Cell{
 				Alignment: flexibletable.Left,
-				Content:   flexibletable.SingleCell{Item: emoji.Sprintf(bot.ExtendedDescription)},
+				Content:   flexibletable.SingleCell{Item: emoji.Sprintf(bot.ExtendedDescriptionRaw)},
 			},
 		})
 		if err != nil {
