@@ -307,6 +307,16 @@ func (c *ChatCLIUI) ChatSearchConvHits(ctx context.Context, arg chat1.ChatSearch
 	return nil
 }
 
+func (c *ChatCLIUI) ChatSearchTeamHits(ctx context.Context, arg chat1.ChatSearchTeamHitsArg) error {
+	if c.noOutput {
+		return nil
+	}
+	for _, hit := range arg.Hits.Hits {
+		_ = c.terminal.Output(fmt.Sprintf("Team: %s found with matching name\n", hit.Name))
+	}
+	return nil
+}
+
 func (c *ChatCLIUI) ChatStellarShowConfirm(ctx context.Context, sessionID int) error {
 	return nil
 }
