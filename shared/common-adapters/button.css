@@ -62,6 +62,7 @@
 
 .buttonNyctographicHover span {
   font-family: Nyctographic !important;
+  font-style: italic;
   width: 64px;
 }
 .buttonNyctographicHover:hover span {
