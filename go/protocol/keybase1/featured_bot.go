@@ -10,22 +10,24 @@ import (
 )
 
 type FeaturedBot struct {
-	BotAlias            string  `codec:"botAlias" json:"botAlias"`
-	Description         string  `codec:"description" json:"description"`
-	ExtendedDescription string  `codec:"extendedDescription" json:"extendedDescription"`
-	BotUsername         string  `codec:"botUsername" json:"botUsername"`
-	OwnerTeam           *string `codec:"ownerTeam,omitempty" json:"ownerTeam,omitempty"`
-	OwnerUser           *string `codec:"ownerUser,omitempty" json:"ownerUser,omitempty"`
-	Rank                int     `codec:"rank" json:"rank"`
-	IsPromoted          bool    `codec:"isPromoted" json:"isPromoted"`
+	BotAlias               string  `codec:"botAlias" json:"botAlias"`
+	Description            string  `codec:"description" json:"description"`
+	ExtendedDescription    string  `codec:"extendedDescription" json:"extendedDescription"`
+	ExtendedDescriptionRaw string  `codec:"extendedDescriptionRaw" json:"extendedDescriptionRaw"`
+	BotUsername            string  `codec:"botUsername" json:"botUsername"`
+	OwnerTeam              *string `codec:"ownerTeam,omitempty" json:"ownerTeam,omitempty"`
+	OwnerUser              *string `codec:"ownerUser,omitempty" json:"ownerUser,omitempty"`
+	Rank                   int     `codec:"rank" json:"rank"`
+	IsPromoted             bool    `codec:"isPromoted" json:"isPromoted"`
 }
 
 func (o FeaturedBot) DeepCopy() FeaturedBot {
 	return FeaturedBot{
-		BotAlias:            o.BotAlias,
-		Description:         o.Description,
-		ExtendedDescription: o.ExtendedDescription,
-		BotUsername:         o.BotUsername,
+		BotAlias:               o.BotAlias,
+		Description:            o.Description,
+		ExtendedDescription:    o.ExtendedDescription,
+		ExtendedDescriptionRaw: o.ExtendedDescriptionRaw,
+		BotUsername:            o.BotUsername,
 		OwnerTeam: (func(x *string) *string {
 			if x == nil {
 				return nil
