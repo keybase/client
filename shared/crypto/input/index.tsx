@@ -28,10 +28,10 @@ type OperationBannerProps = {
 }
 
 const operationToEmptyInputWidth = {
-  [Constants.Operations.Encrypt]: 153,
-  [Constants.Operations.Decrypt]: 266,
-  [Constants.Operations.Sign]: 153,
-  [Constants.Operations.Verify]: 288,
+  [Constants.Operations.Encrypt]: 151,
+  [Constants.Operations.Decrypt]: 264,
+  [Constants.Operations.Sign]: 151,
+  [Constants.Operations.Verify]: 286,
 }
 
 /*
@@ -173,7 +173,7 @@ export const FileInput = (props: FileProps) => {
 export const OperationBanner = (props: OperationBannerProps) => {
   const color = props.type === 'error' ? 'red' : props.type === 'warning' ? 'yellow' : 'grey'
   return (
-    <Kb.Banner color={color} style={styles.banner}>
+    <Kb.Banner color={color}>
       <Kb.BannerParagraph
         bannerColor={color}
         content={props.type === 'info' && props.infoMessage ? props.infoMessage : props.message}
@@ -185,10 +185,6 @@ export const OperationBanner = (props: OperationBannerProps) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      banner: {
-        ...Styles.padding(Styles.globalMargins.tiny),
-        minHeight: 40,
-      },
       browseFile: {
         flexShrink: 0,
       },
