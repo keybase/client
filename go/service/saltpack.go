@@ -27,6 +27,7 @@ import (
 const saltpackExtension = ".saltpack"
 const encryptedSuffix = ".encrypted"
 const signedSuffix = ".signed"
+const txtExtension = ".txt"
 const encryptedExtension = encryptedSuffix + saltpackExtension
 const signedExtension = signedSuffix + saltpackExtension
 const decryptedExtension = ".decrypted"
@@ -455,12 +456,12 @@ func (h *SaltpackHandler) SaltpackVerifyFile(ctx context.Context, arg keybase1.S
 
 func (h *SaltpackHandler) SaltpackSaveCiphertextToFile(ctx context.Context, arg keybase1.SaltpackSaveCiphertextToFileArg) (string, error) {
 	ctx = libkb.WithLogTag(ctx, "SP")
-	return h.writeStringToFile(ctx, arg.Ciphertext, encryptedExtension)
+	return h.writeStringToFile(ctx, arg.Ciphertext, txtExtension+encryptedExtension)
 }
 
 func (h *SaltpackHandler) SaltpackSaveSignedMsgToFile(ctx context.Context, arg keybase1.SaltpackSaveSignedMsgToFileArg) (string, error) {
 	ctx = libkb.WithLogTag(ctx, "SP")
-	return h.writeStringToFile(ctx, arg.SignedMsg, signedExtension)
+	return h.writeStringToFile(ctx, arg.SignedMsg, txtExtension+signedExtension)
 }
 
 func (h *SaltpackHandler) encryptOptions(opts keybase1.SaltpackFrontendEncryptOptions) keybase1.SaltpackEncryptOptions {
