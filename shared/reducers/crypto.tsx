@@ -37,6 +37,7 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     op.outputType = undefined
     op.errorMessage = new HiddenString('')
     op.warningMessage = new HiddenString('')
+    op.outputMatchesInput = true
   },
   [CryptoGen.clearRecipients]: (draftState, action) => {
     const {operation} = action.payload
