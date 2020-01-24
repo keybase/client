@@ -88,6 +88,7 @@ const Decrypt = (props: Props) => {
               outputType={props.outputType}
               textType="plain"
               operation={Constants.Operations.Decrypt}
+              outputMatchesInput={props.outputMatchesInput}
               onShowInFinder={props.onShowInFinder}
             />
             <OutputBar

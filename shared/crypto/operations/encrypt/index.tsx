@@ -158,6 +158,7 @@ const Encrypt = (props: Props) => {
             <OperationOutput
               outputStatus={props.outputStatus}
               output={props.output}
+              outputMatchesInput={props.outputMatchesInput}
               outputType={props.outputType}
               textType="cipher"
               operation={Constants.Operations.Encrypt}

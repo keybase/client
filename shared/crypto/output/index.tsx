@@ -10,6 +10,7 @@ type Props = {
   output?: string
   outputStatus?: Types.OutputStatus
   outputType?: Types.OutputType
+  outputMatchesInput: boolean
   textType: Types.TextType
   operation: Types.Operations
   onShowInFinder: (path: string) => void
@@ -181,6 +182,8 @@ const Output = (props: Props) => {
   const fileOutputTextColor =
     props.textType === 'cipher' ? Styles.globalColors.greenDark : Styles.globalColors.black
   const fileIcon = Constants.getOutputFileIcon(props.operation)
+  const actionsDisabled = waiting || !props.outputMatchesInput
+
   return props.outputStatus && props.outputStatus === 'success' ? (
     props.outputType === 'file' ? (
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
@@ -207,7 +210,7 @@ const Output = (props: Props) => {
             <Kb.Text
               key={index}
               type={props.textType === 'cipher' ? 'Terminal' : 'Body'}
-              selectable={!waiting}
+              selectable={!actionsDisabled}
               style={Styles.collapseStyles([styles.output, outputLargeStyle])}
             >
               {line}

@@ -83,6 +83,7 @@ const Verify = (props: Props) => {
             />
             <OperationOutput
               outputStatus={props.outputStatus}
+              outputMatchesInput={props.outputMatchesInput}
               output={props.output}
               outputType={props.outputType}
               textType="plain"
