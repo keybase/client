@@ -145,6 +145,7 @@ func (e *PGPVerify) runDetached(m libkb.MetaContext) error {
 			libkb.NewHashSecurityWarning(
 				libkb.HashSecurityWarningSignatureHash,
 				hashMethod,
+				nil,
 			),
 		)
 	}
@@ -242,6 +243,7 @@ func (e *PGPVerify) runClearsign(m libkb.MetaContext) error {
 			libkb.NewHashSecurityWarning(
 				libkb.HashSecurityWarningSignatureHash,
 				hashMethod,
+				nil,
 			),
 		)
 	}

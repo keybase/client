@@ -99,6 +99,7 @@ func PGPDecrypt(g *GlobalContext, source io.Reader, sink io.Writer, kr openpgp.K
 					NewHashSecurityWarning(
 						HashSecurityWarningSignatureHash,
 						md.Signature.Hash,
+						nil,
 					),
 				)
 			}
@@ -162,6 +163,7 @@ func pgpDecryptClearsign(g *GlobalContext, source io.Reader, sink io.Writer, kr 
 			NewHashSecurityWarning(
 				HashSecurityWarningSignatureHash,
 				digestHash,
+				nil,
 			),
 		)
 	}

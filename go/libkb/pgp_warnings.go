@@ -125,12 +125,13 @@ const (
 )
 
 type HashSecurityWarning struct {
-	kind HashSecurityWarningType
-	hash crypto.Hash
+	kind        HashSecurityWarningType
+	hash        crypto.Hash
+	fingerprint *PGPFingerprint
 }
 
-func NewHashSecurityWarning(kind HashSecurityWarningType, hash crypto.Hash) HashSecurityWarning {
-	return HashSecurityWarning{kind: kind, hash: hash}
+func NewHashSecurityWarning(kind HashSecurityWarningType, hash crypto.Hash, fp *PGPFingerprint) HashSecurityWarning {
+	return HashSecurityWarning{kind: kind, hash: hash, fingerprint: fp}
 }
 
 func (h HashSecurityWarning) String() string {
@@ -138,9 +139,9 @@ func (h HashSecurityWarning) String() string {
 	case HashSecurityWarningSignatureHash:
 		return fmt.Sprintf("Message was signed using an insecure hash scheme (%s)", HashToName[h.hash])
 	case HashSecurityWarningSignersIdentityHash:
-		return fmt.Sprintf("Signer's key uses an insecure hash scheme (%s)", HashToName[h.hash])
+		return fmt.Sprintf("Signer's key %s uses an insecure hash scheme (%s)", h.fingerprint.String(), HashToName[h.hash])
 	case HashSecurityWarningRecipientsIdentityHash:
-		return fmt.Sprintf("Recipient's key uses an insecure hash scheme (%s)", HashToName[h.hash])
+		return fmt.Sprintf("Recipient's key %s uses an insecure hash scheme (%s)", h.fingerprint.String(), HashToName[h.hash])
 	default:
 		return fmt.Sprintf("Hash security warning was passed an incorrect kind, got %d", h.kind)
 	}
