@@ -591,6 +591,14 @@ export type MessageTypes = {
     inParam: void
     outParam: void
   }
+  'keybase.1.ctl.getOnLoginStartup': {
+    inParam: void
+    outParam: OnLoginStartupStatus
+  }
+  'keybase.1.ctl.setOnLoginStartup': {
+    inParam: {readonly enabled: Boolean}
+    outParam: void
+  }
   'keybase.1.ctl.stop': {
     inParam: {readonly exitCode: ExitCode}
     outParam: void
@@ -3523,6 +3531,8 @@ export const contactsSaveContactListRpcPromise = (params: MessageTypes['keybase.
 export const cryptocurrencyRegisterAddressRpcPromise = (params: MessageTypes['keybase.1.cryptocurrency.registerAddress']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.cryptocurrency.registerAddress']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.cryptocurrency.registerAddress', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const ctlDbCleanRpcPromise = (params: MessageTypes['keybase.1.ctl.dbClean']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.ctl.dbClean']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.ctl.dbClean', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const ctlDbNukeRpcPromise = (params: MessageTypes['keybase.1.ctl.dbNuke']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.ctl.dbNuke']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.ctl.dbNuke', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const ctlGetOnLoginStartupRpcPromise = (params: MessageTypes['keybase.1.ctl.getOnLoginStartup']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.ctl.getOnLoginStartup']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.ctl.getOnLoginStartup', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const ctlSetOnLoginStartupRpcPromise = (params: MessageTypes['keybase.1.ctl.setOnLoginStartup']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.ctl.setOnLoginStartup']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.ctl.setOnLoginStartup', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const ctlStopRpcPromise = (params: MessageTypes['keybase.1.ctl.stop']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.ctl.stop']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.ctl.stop', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const delegateUiCtlRegisterChatUIRpcPromise = (params: MessageTypes['keybase.1.delegateUiCtl.registerChatUI']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.delegateUiCtl.registerChatUI']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.delegateUiCtl.registerChatUI', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const delegateUiCtlRegisterGregorFirehoseFilteredRpcPromise = (params: MessageTypes['keybase.1.delegateUiCtl.registerGregorFirehoseFiltered']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.delegateUiCtl.registerGregorFirehoseFiltered']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.delegateUiCtl.registerGregorFirehoseFiltered', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -3724,8 +3734,6 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.ctl.dbPut'
 // 'keybase.1.ctl.dbGet'
 // 'keybase.1.ctl.dbKeysWithPrefixes'
-// 'keybase.1.ctl.setOnLoginStartup'
-// 'keybase.1.ctl.getOnLoginStartup'
 // 'keybase.1.debugging.firstStep'
 // 'keybase.1.debugging.secondStep'
 // 'keybase.1.debugging.increment'
