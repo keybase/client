@@ -8,11 +8,13 @@ import * as Types from '../../constants/types/teams'
 import ReallyLeaveTeam, {Props} from '.'
 import LastOwnerDialog from './last-owner'
 import {anyWaiting} from '../../constants/waiting'
+import {useTeamDetailsSubscribe} from '../subscriber'
 
 type OwnProps = Container.RouteProps<{teamID: Types.TeamID}>
 
-const RenderLastOwner = (p: Props & {_leaving: boolean; lastOwner: boolean}) => {
-  const {lastOwner, _leaving, ...rest} = p
+const RenderLastOwner = (p: Props & {_leaving: boolean; lastOwner: boolean; teamID: Types.TeamID}) => {
+  const {lastOwner, _leaving, teamID, ...rest} = p
+  useTeamDetailsSubscribe(teamID)
   return lastOwner ? (
     <LastOwnerDialog
       onBack={rest.onBack}
@@ -30,6 +32,7 @@ export default Container.connect(
     const teamID = Container.getRouteProps(ownProps, 'teamID', Types.noTeamID)
     const {teamname, settings} = Constants.getTeamDetails(state, teamID)
     const lastOwner = Constants.isLastOwner(state, teamID)
+    // TODO: loading state if we can't actually figure out if we're the last owner because we hvaen't loaded the team
     return {
       _leaving: anyWaiting(state, Constants.leaveTeamWaitingKey(teamname)),
       error: Container.anyErrors(state, Constants.leaveTeamWaitingKey(teamname)),
@@ -71,5 +74,6 @@ export default Container.connect(
     onDeleteTeam: () => dispatchProps._onDeleteTeam(stateProps.teamID),
     onLeave: () => dispatchProps._onLeave(stateProps.name),
     open: stateProps.open,
+    teamID: stateProps.teamID,
   })
 )(Container.safeSubmit(['onLeave'], ['_leaving'])(RenderLastOwner))
