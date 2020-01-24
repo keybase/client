@@ -25,6 +25,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/slotctx"
+
 	logger "github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	clockwork "github.com/keybase/clockwork"
@@ -140,6 +142,7 @@ type GlobalContext struct {
 	oodiMu             *sync.RWMutex             // For manipulating the OutOfDateInfo
 	outOfDateInfo      *keybase1.OutOfDateInfo   // Stores out of date messages we got from API server headers.
 	lastUpgradeWarning *time.Time                // When the last upgrade was warned for (to reate-limit nagging)
+	SaltpackSlots      SaltpackSlots             // For canceling stale crypto in the gui RPCs
 
 	uchMu               *sync.Mutex          // protects the UserChangedHandler array
 	UserChangedHandlers []UserChangedHandler // a list of handlers that deal generically with userchanged events
@@ -173,6 +176,13 @@ type GlobalContext struct {
 	avatarLoader AvatarLoaderSource
 }
 
+type SaltpackSlots struct {
+	Encrypt *slotctx.PrioritySlot
+	Decrypt *slotctx.PrioritySlot
+	Sign    *slotctx.PrioritySlot
+	Verify  *slotctx.PrioritySlot
+}
+
 type GlobalTestOptions struct {
 	NoBug3964Repair             bool
 	NoAutorotateOnBoxAuditRetry bool
@@ -200,18 +210,24 @@ type LogGetter func() logger.Logger
 func NewGlobalContext() *GlobalContext {
 	log := logger.New("keybase")
 	ret := &GlobalContext{
-		Log:                log,
-		VDL:                NewVDebugLog(log),
-		SKBKeyringMu:       new(sync.Mutex),
-		perUserKeyringMu:   new(sync.Mutex),
-		vidMu:              new(sync.Mutex),
-		cacheMu:            new(sync.RWMutex),
-		socketWrapperMu:    new(sync.RWMutex),
-		shutdownOnce:       new(sync.Once),
-		clockMu:            new(sync.Mutex),
-		clock:              clockwork.NewRealClock(),
-		hookMu:             new(sync.RWMutex),
-		oodiMu:             new(sync.RWMutex),
+		Log:              log,
+		VDL:              NewVDebugLog(log),
+		SKBKeyringMu:     new(sync.Mutex),
+		perUserKeyringMu: new(sync.Mutex),
+		vidMu:            new(sync.Mutex),
+		cacheMu:          new(sync.RWMutex),
+		socketWrapperMu:  new(sync.RWMutex),
+		shutdownOnce:     new(sync.Once),
+		clockMu:          new(sync.Mutex),
+		clock:            clockwork.NewRealClock(),
+		hookMu:           new(sync.RWMutex),
+		oodiMu:           new(sync.RWMutex),
+		SaltpackSlots: SaltpackSlots{
+			Encrypt: slotctx.NewPriority(),
+			Decrypt: slotctx.NewPriority(),
+			Sign:    slotctx.NewPriority(),
+			Verify:  slotctx.NewPriority(),
+		},
 		outOfDateInfo:      &keybase1.OutOfDateInfo{},
 		lastUpgradeWarning: new(time.Time),
 		uchMu:              new(sync.Mutex),

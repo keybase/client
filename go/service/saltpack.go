@@ -74,6 +74,7 @@ func NewSaltpackHandler(xp rpc.Transporter, g *libkb.GlobalContext) *SaltpackHan
 
 func (h *SaltpackHandler) SaltpackDecrypt(ctx context.Context, arg keybase1.SaltpackDecryptArg) (info keybase1.SaltpackEncryptedMessageInfo, err error) {
 	ctx = libkb.WithLogTag(ctx, "SP")
+	ctx = h.G().SaltpackSlots.Decrypt.Use(ctx, arg.SessionID)
 	cli := h.getStreamUICli()
 	src := libkb.NewRemoteStreamBuffered(arg.Source, cli, arg.SessionID)
 	snk := libkb.NewRemoteStreamBuffered(arg.Sink, cli, arg.SessionID)
@@ -99,6 +100,7 @@ func (h *SaltpackHandler) SaltpackDecrypt(ctx context.Context, arg keybase1.Salt
 
 func (h *SaltpackHandler) SaltpackEncrypt(ctx context.Context, arg keybase1.SaltpackEncryptArg) (keybase1.SaltpackEncryptResult, error) {
 	ctx = libkb.WithLogTag(ctx, "SP")
+	ctx = h.G().SaltpackSlots.Encrypt.Use(ctx, arg.SessionID)
 	cli := h.getStreamUICli()
 	src := libkb.NewRemoteStreamBuffered(arg.Source, cli, arg.SessionID)
 	snk := libkb.NewRemoteStreamBuffered(arg.Sink, cli, arg.SessionID)
@@ -130,6 +132,7 @@ func (h *SaltpackHandler) SaltpackEncrypt(ctx context.Context, arg keybase1.Salt
 
 func (h *SaltpackHandler) SaltpackSign(ctx context.Context, arg keybase1.SaltpackSignArg) error {
 	ctx = libkb.WithLogTag(ctx, "SP")
+	ctx = h.G().SaltpackSlots.Sign.Use(ctx, arg.SessionID)
 	cli := h.getStreamUICli()
 	src := libkb.NewRemoteStreamBuffered(arg.Source, cli, arg.SessionID)
 	snk := libkb.NewRemoteStreamBuffered(arg.Sink, cli, arg.SessionID)
@@ -151,6 +154,7 @@ func (h *SaltpackHandler) SaltpackSign(ctx context.Context, arg keybase1.Saltpac
 
 func (h *SaltpackHandler) SaltpackVerify(ctx context.Context, arg keybase1.SaltpackVerifyArg) error {
 	ctx = libkb.WithLogTag(ctx, "SP")
+	ctx = h.G().SaltpackSlots.Verify.Use(ctx, arg.SessionID)
 	cli := h.getStreamUICli()
 	src := libkb.NewRemoteStreamBuffered(arg.Source, cli, arg.SessionID)
 	snk := libkb.NewRemoteStreamBuffered(arg.Sink, cli, arg.SessionID)
@@ -175,12 +179,14 @@ func (h *SaltpackHandler) SaltpackVerify(ctx context.Context, arg keybase1.Saltp
 
 func (h *SaltpackHandler) SaltpackEncryptString(ctx context.Context, arg keybase1.SaltpackEncryptStringArg) (keybase1.SaltpackEncryptStringResult, error) {
 	ctx = libkb.WithLogTag(ctx, "SP")
+	ctx = h.G().SaltpackSlots.Encrypt.Use(ctx, arg.SessionID)
 
 	return h.encryptString(ctx, arg.SessionID, arg.Plaintext, arg.Opts)
 }
 
 func (h *SaltpackHandler) SaltpackEncryptStringToTextFile(ctx context.Context, arg keybase1.SaltpackEncryptStringToTextFileArg) (keybase1.SaltpackEncryptFileResult, error) {
 	ctx = libkb.WithLogTag(ctx, "SP")
+	ctx = h.G().SaltpackSlots.Encrypt.Use(ctx, arg.SessionID)
 	res, err := h.encryptString(ctx, arg.SessionID, arg.Plaintext, arg.Opts)
 	if err != nil {
 		return keybase1.SaltpackEncryptFileResult{}, err
@@ -220,6 +226,7 @@ func (h *SaltpackHandler) encryptString(ctx context.Context, sessionID int, plai
 
 func (h *SaltpackHandler) SaltpackDecryptString(ctx context.Context, arg keybase1.SaltpackDecryptStringArg) (keybase1.SaltpackPlaintextResult, error) {
 	ctx = libkb.WithLogTag(ctx, "SP")
+	ctx = h.G().SaltpackSlots.Decrypt.Use(ctx, arg.SessionID)
 	sink := libkb.NewBufferCloser()
 	earg := &engine.SaltpackDecryptArg{
 		Sink:   sink,
@@ -240,11 +247,13 @@ func (h *SaltpackHandler) SaltpackDecryptString(ctx context.Context, arg keybase
 
 func (h *SaltpackHandler) SaltpackSignString(ctx context.Context, arg keybase1.SaltpackSignStringArg) (string, error) {
 	ctx = libkb.WithLogTag(ctx, "SP")
+	ctx = h.G().SaltpackSlots.Sign.Use(ctx, arg.SessionID)
 	return h.signString(ctx, arg.SessionID, arg.Plaintext)
 }
 
 func (h *SaltpackHandler) SaltpackSignStringToTextFile(ctx context.Context, arg keybase1.SaltpackSignStringToTextFileArg) (string, error) {
 	ctx = libkb.WithLogTag(ctx, "SP")
+	ctx = h.G().SaltpackSlots.Sign.Use(ctx, arg.SessionID)
 	signed, err := h.signString(ctx, arg.SessionID, arg.Plaintext)
 	if err != nil {
 		return "", err
@@ -269,6 +278,7 @@ func (h *SaltpackHandler) signString(ctx context.Context, sessionID int, plainte
 
 func (h *SaltpackHandler) SaltpackVerifyString(ctx context.Context, arg keybase1.SaltpackVerifyStringArg) (keybase1.SaltpackVerifyResult, error) {
 	ctx = libkb.WithLogTag(ctx, "SP")
+	ctx = h.G().SaltpackSlots.Verify.Use(ctx, arg.SessionID)
 	sink := libkb.NewBufferCloser()
 	earg := &engine.SaltpackVerifyArg{
 		Sink:   sink,
@@ -294,6 +304,7 @@ func (h *SaltpackHandler) SaltpackVerifyString(ctx context.Context, arg keybase1
 
 func (h *SaltpackHandler) SaltpackEncryptFile(ctx context.Context, arg keybase1.SaltpackEncryptFileArg) (keybase1.SaltpackEncryptFileResult, error) {
 	ctx = libkb.WithLogTag(ctx, "SP")
+	ctx = h.G().SaltpackSlots.Encrypt.Use(ctx, arg.SessionID)
 	sf, err := newSourceFile(h.G(), keybase1.SaltpackOperationType_ENCRYPT, arg.Filename)
 	if err != nil {
 		return keybase1.SaltpackEncryptFileResult{}, err
@@ -337,6 +348,7 @@ func (h *SaltpackHandler) SaltpackEncryptFile(ctx context.Context, arg keybase1.
 
 func (h *SaltpackHandler) SaltpackDecryptFile(ctx context.Context, arg keybase1.SaltpackDecryptFileArg) (keybase1.SaltpackFileResult, error) {
 	ctx = libkb.WithLogTag(ctx, "SP")
+	ctx = h.G().SaltpackSlots.Decrypt.Use(ctx, arg.SessionID)
 	sf, err := newSourceFile(h.G(), keybase1.SaltpackOperationType_DECRYPT, arg.EncryptedFilename)
 	if err != nil {
 		return keybase1.SaltpackFileResult{}, err
@@ -376,6 +388,7 @@ func (h *SaltpackHandler) SaltpackDecryptFile(ctx context.Context, arg keybase1.
 
 func (h *SaltpackHandler) SaltpackSignFile(ctx context.Context, arg keybase1.SaltpackSignFileArg) (string, error) {
 	ctx = libkb.WithLogTag(ctx, "SP")
+	ctx = h.G().SaltpackSlots.Sign.Use(ctx, arg.SessionID)
 	sf, err := newSourceFile(h.G(), keybase1.SaltpackOperationType_SIGN, arg.Filename)
 	if err != nil {
 		return "", err
@@ -412,6 +425,7 @@ func (h *SaltpackHandler) SaltpackSignFile(ctx context.Context, arg keybase1.Sal
 
 func (h *SaltpackHandler) SaltpackVerifyFile(ctx context.Context, arg keybase1.SaltpackVerifyFileArg) (keybase1.SaltpackVerifyFileResult, error) {
 	ctx = libkb.WithLogTag(ctx, "SP")
+	ctx = h.G().SaltpackSlots.Verify.Use(ctx, arg.SessionID)
 	sf, err := newSourceFile(h.G(), keybase1.SaltpackOperationType_VERIFY, arg.SignedFilename)
 	if err != nil {
 		return keybase1.SaltpackVerifyFileResult{}, err
