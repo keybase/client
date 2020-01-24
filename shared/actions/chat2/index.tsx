@@ -2458,29 +2458,54 @@ const refreshPreviousSelected = (state: Container.TypedState) => {
   return false
 }
 
-const deselectConversation = (state: Container.TypedState, action: Chat2Gen.DeselectConversationPayload) => {
+const deselectConversation = (
+  state: Container.TypedState,
+  action: Chat2Gen.DeselectConversationPayload,
+  logger: Saga.SagaLogger
+) => {
   if (state.chat2.selectedConversation === action.payload.ifConversationIDKey) {
+    logger.info(`deselectConversation: selected conv: ${state.chat2.selectedConversation}`)
     return Chat2Gen.createSelectConversation({
       conversationIDKey: Constants.noConversationIDKey,
       reason: 'clearSelected',
     })
+  } else {
+    logger.info(
+      `deselectConversation: skipping, selected: ${state.chat2.selectedConversation} param: ${action.payload.ifConversationIDKey}`
+    )
   }
   return false
 }
 
-const mobileNavigateOnSelect = (state: Container.TypedState, action: Chat2Gen.SelectConversationPayload) => {
+const mobileNavigateOnSelect = (
+  state: Container.TypedState,
+  action: Chat2Gen.SelectConversationPayload,
+  logger: Saga.SagaLogger
+) => {
   const {conversationIDKey, navKey, reason} = action.payload
   if (Constants.isValidConversationIDKey(conversationIDKey)) {
     if (reason === 'focused') {
+      logger.info(
+        `mobileNavigateOnSelect: not navigating, reason focused: selected: ${state.chat2.selectedConversation} param: ${conversationIDKey}`
+      )
       return false // never nav if this is from a nav
     }
+    logger.info(
+      `mobileNavigateOnSelect: navigating to selected: selected: ${state.chat2.selectedConversation} param: ${conversationIDKey}`
+    )
     return navigateToThreadRoute(state.chat2.selectedConversation, navKey)
   } else if (
     conversationIDKey === Constants.pendingWaitingConversationIDKey ||
     conversationIDKey === Constants.pendingErrorConversationIDKey
   ) {
+    logger.info(
+      `mobileNavigateOnSelect: navigating to param: selected: ${state.chat2.selectedConversation} param: ${conversationIDKey}`
+    )
     return navigateToThreadRoute(conversationIDKey, navKey)
   }
+  logger.info(
+    `mobileNavigateOnSelect: not navigating, default case: selected: ${state.chat2.selectedConversation} param: ${conversationIDKey}`
+  )
   return false
 }
 
