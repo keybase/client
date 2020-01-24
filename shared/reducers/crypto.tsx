@@ -126,13 +126,6 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
 
     if (inputAction) {
       outputMatchesInput = inputAction.payload.input.stringValue() === op.input.stringValue()
-      if (!outputMatchesInput) {
-        console.log(
-          'aaa input doesnt match output',
-          inputAction.payload.input.stringValue(),
-          op.input.stringValue()
-        )
-      }
 
       // existing does match? just ignore this
       if (op.outputMatchesInput) {
