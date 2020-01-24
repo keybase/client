@@ -39,7 +39,7 @@ func (p PgpUI) OutputSignatureSuccess(_ context.Context, arg keybase1.OutputSign
 	}
 	output("PGP Fingerprint: %s.\n", arg.Fingerprint)
 	for _, warning := range arg.Warnings {
-		output("WARNING: %s\n", warning)
+		_, _ = p.w.Write([]byte(ColorString(p.G(), "red", fmt.Sprintf("WARNING: %s\n", warning))))
 	}
 	return nil
 }
