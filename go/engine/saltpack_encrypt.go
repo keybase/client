@@ -22,7 +22,7 @@ type SaltpackEncryptArg struct {
 // for a set of users.  It will track them if necessary.
 type SaltpackEncrypt struct {
 	arg *SaltpackEncryptArg
-	me  *libkb.User
+	me  keybase1.UID
 
 	newKeyfinderHook (func(arg libkb.SaltpackRecipientKeyfinderArg) libkb.SaltpackRecipientKeyfinderEngineInterface)
 
@@ -78,8 +78,8 @@ func (e *SaltpackEncrypt) loadMe(m libkb.MetaContext) error {
 	if !loggedIn {
 		return nil
 	}
-	e.me, err = libkb.LoadMeByMetaContextAndUID(m, uid)
-	return err
+	e.me = uid
+	return nil
 }
 
 // Run starts the engine.
@@ -137,14 +137,9 @@ func (e *SaltpackEncrypt) Run(m libkb.MetaContext) (err error) {
 	encryptionOnlyMode := false
 
 	var senderDH libkb.NaclDHKeyPair
-	if e.arg.Opts.AuthenticityType == keybase1.AuthenticityType_REPUDIABLE && e.me != nil {
+	if e.arg.Opts.AuthenticityType == keybase1.AuthenticityType_REPUDIABLE && !e.me.IsNil() {
 		encryptionOnlyMode = true
-
-		secretKeyArgDH := libkb.SecretKeyArg{
-			Me:      e.me,
-			KeyType: libkb.DeviceEncryptionKeyType,
-		}
-		dhKey, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, m.SecretKeyPromptArg(secretKeyArgDH, "encrypting a message/file"))
+		dhKey, err := m.G().ActiveDevice.EncryptionKeyWithUID(e.me)
 		if err != nil {
 			return err
 		}
@@ -156,12 +151,8 @@ func (e *SaltpackEncrypt) Run(m libkb.MetaContext) (err error) {
 	}
 
 	var senderSigning libkb.NaclSigningKeyPair
-	if e.arg.Opts.AuthenticityType == keybase1.AuthenticityType_SIGNED && e.me != nil {
-		secretKeyArgSigning := libkb.SecretKeyArg{
-			Me:      e.me,
-			KeyType: libkb.DeviceSigningKeyType,
-		}
-		signingKey, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, m.SecretKeyPromptArg(secretKeyArgSigning, "signing a message/file"))
+	if e.arg.Opts.AuthenticityType == keybase1.AuthenticityType_SIGNED && !e.me.IsNil() {
+		signingKey, err := m.G().ActiveDevice.SigningKeyWithUID(e.me)
 		if err != nil {
 			return err
 		}
@@ -173,7 +164,7 @@ func (e *SaltpackEncrypt) Run(m libkb.MetaContext) (err error) {
 		senderSigning = signingKeypair
 	}
 
-	if e.arg.Opts.AuthenticityType != keybase1.AuthenticityType_ANONYMOUS && e.me == nil {
+	if e.arg.Opts.AuthenticityType != keybase1.AuthenticityType_ANONYMOUS && e.me.IsNil() {
 		return libkb.NewLoginRequiredError("authenticating a message requires login. Either login or use --auth-type=anonymous")
 	}
 
