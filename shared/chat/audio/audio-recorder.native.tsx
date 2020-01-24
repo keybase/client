@@ -148,7 +148,7 @@ const ampToScale = (amp: number) => {
 }
 
 const AudioButton = (props: ButtonProps) => {
-  const {slideTranslate, locked, closeDown} = props
+  const {slideTranslate, locked, closeDown, ampScale} = props
   const innerScale = React.useRef(new Kb.NativeAnimated.Value(0)).current
   const outerScale = React.useRef(new Kb.NativeAnimated.Value(0)).current
   const sendTranslate = React.useRef(new Kb.NativeAnimated.Value(0)).current
@@ -200,7 +200,7 @@ const AudioButton = (props: ButtonProps) => {
             toValue: 0,
             useNativeDriver: true,
           }),
-          Kb.NativeAnimated.timing(props.slideTranslate, {
+          Kb.NativeAnimated.timing(slideTranslate, {
             toValue: 0,
             useNativeDriver: true,
           }),
@@ -208,7 +208,7 @@ const AudioButton = (props: ButtonProps) => {
             toValue: 0,
             useNativeDriver: true,
           }),
-          Kb.NativeAnimated.timing(props.ampScale, {
+          Kb.NativeAnimated.timing(ampScale, {
             toValue: 0,
             useNativeDriver: true,
           }),
@@ -216,7 +216,7 @@ const AudioButton = (props: ButtonProps) => {
         {stopTogether: false}
       ).start()
     }
-  }, [closeDown])
+  }, [closeDown, innerScale, outerScale, slideTranslate, sendTranslate, ampScale])
 
   const innerSize = 28
   const ampSize = 34
