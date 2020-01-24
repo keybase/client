@@ -31,6 +31,7 @@ func ServiceInit(g *libkb.GlobalContext, walletState *WalletState, badger *badge
 	g.SetStellar(s)
 	g.AddLogoutHook(s, "stellar")
 	g.AddDbNukeHook(s, "stellar")
+	g.PushShutdownHook(s.Shutdown)
 }
 
 type Stellar struct {
@@ -104,6 +105,11 @@ func (s *Stellar) OnLogout(mctx libkb.MetaContext) error {
 }
 
 func (s *Stellar) OnDbNuke(mctx libkb.MetaContext) error {
+	s.Clear(mctx)
+	return nil
+}
+
+func (s *Stellar) Shutdown(mctx libkb.MetaContext) error {
 	s.Clear(mctx)
 	return nil
 }

@@ -21,6 +21,19 @@ type FileProps = {
   onClearFiles: () => void
 }
 
+type OperationBannerProps = {
+  type: 'info' | 'warning' | 'error'
+  infoMessage?: string
+  message: string
+}
+
+const operationToEmptyInputWidth = {
+  [Constants.Operations.Encrypt]: 153,
+  [Constants.Operations.Decrypt]: 266,
+  [Constants.Operations.Sign]: 153,
+  [Constants.Operations.Verify]: 288,
+}
+
 /*
  * Before user enters text:
  *  - Single line input
@@ -29,8 +42,9 @@ type FileProps = {
  * Afte user enters text:
  *  - Multiline input
  */
-const TextInput = (props: TextProps) => {
-  const {value, placeholder, onChangeText, onSetFile, textType} = props
+export const TextInput = (props: TextProps) => {
+  const {value, placeholder, textType, operation, onChangeText, onSetFile} = props
+  const emptyWidth = operationToEmptyInputWidth[operation]
 
   // When 'browse file' is show, focus input by clicking anywhere in the input box
   // (despite the input being one line tall)
@@ -61,45 +75,67 @@ const TextInput = (props: TextProps) => {
       filePickerRef.current.click()
     }
   }, [filePickerRef])
+
   return (
     <Kb.Box onClick={onFocusInput} style={styles.containerInputFocus}>
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
-        <Kb.NewInput
-          value={value}
-          placeholder={placeholder}
-          multiline={true}
-          rowsMax={value ? undefined : 1}
-          autoFocus={true}
-          hideBorder={true}
-          growAndScroll={true}
-          padding="tiny"
-          textType={textType === 'cipher' ? 'Terminal' : 'Body'}
-          containerStyle={value ? styles.inputContainer : styles.inputContainerEmpty}
-          style={Styles.collapseStyles([styles.input, !value && styles.inputEmpty])}
-          onChangeText={onChangeText}
-          ref={inputRef}
-        />
-        {!props.value && (
-          <>
-            <input
-              type="file"
-              accept="*"
-              ref={filePickerRef}
-              multiple={false}
-              onChange={selectFile}
-              style={styles.hidden}
-            />
-            <Kb.Text type="BodyPrimaryLink" onClick={openFilePicker} style={styles.browseFile}>
-              Or browse a file.
-            </Kb.Text>
-          </>
-        )}
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.commonContainer}>
+        <Kb.Box2
+          direction="horizontal"
+          fullWidth={!!value}
+          fullHeight={!!value}
+          alignItems="flex-start"
+          alignSelf="flex-start"
+          style={styles.inputAndFilePickerContainer}
+        >
+          <Kb.NewInput
+            value={value}
+            placeholder={placeholder}
+            multiline={true}
+            rowsMax={value ? undefined : 1}
+            autoFocus={true}
+            hideBorder={true}
+            growAndScroll={true}
+            padding="tiny"
+            containerStyle={value ? styles.inputContainer : styles.inputContainerEmpty}
+            style={Styles.collapseStyles([
+              styles.input,
+              value ? styles.inputFull : styles.inputEmpty,
+              !value && {width: emptyWidth},
+            ])}
+            textType={textType === 'cipher' ? 'Terminal' : 'Body'}
+            placeholderTextType="Body"
+            onChangeText={onChangeText}
+            ref={inputRef}
+          />
+          {!value && (
+            <>
+              <input
+                type="file"
+                accept="*"
+                ref={filePickerRef}
+                multiple={false}
+                onChange={selectFile}
+                style={styles.hidden}
+              />
+              <Kb.Text type="BodyPrimaryLink" onClick={openFilePicker} style={styles.browseFile}>
+                browse for one
+              </Kb.Text>
+            </>
+          )}
+        </Kb.Box2>
       </Kb.Box2>
+      {value && (
+        <Kb.Box2 direction="vertical" style={styles.clearButtonInput}>
+          <Kb.Text type="BodySmallPrimaryLink" onClick={() => onChangeText('')}>
+            Clear
+          </Kb.Text>
+        </Kb.Box2>
+      )}
     </Kb.Box>
   )
 }
 
-const FileInput = (props: FileProps) => {
+export const FileInput = (props: FileProps) => {
   const {path, size, operation} = props
   const fileIcon = Constants.getInputFileIcon(operation)
   return (
@@ -108,12 +144,9 @@ const FileInput = (props: FileProps) => {
       fullWidth={true}
       fullHeight={true}
       alignItems="stretch"
-      style={styles.container}
+      style={styles.commonContainer}
     >
-      <Kb.Text type="BodySmallPrimaryLink" onClick={() => props.onClearFiles()} style={styles.clearButton}>
-        Clear
-      </Kb.Text>
-      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
+      <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
         <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.fileContainer}>
           <Kb.Icon type={fileIcon} sizeType="Huge" />
           <Kb.Box2 direction="vertical">
@@ -123,33 +156,60 @@ const FileInput = (props: FileProps) => {
             ) : null}
           </Kb.Box2>
         </Kb.Box2>
+        <Kb.Box2 direction="vertical" style={styles.clearButtonInput}>
+          <Kb.Text
+            type="BodySmallPrimaryLink"
+            onClick={() => props.onClearFiles()}
+            style={styles.clearButtonInput}
+          >
+            Clear
+          </Kb.Text>
+        </Kb.Box2>
       </Kb.Box2>
     </Kb.Box2>
+  )
+}
+
+export const OperationBanner = (props: OperationBannerProps) => {
+  const color = props.type === 'error' ? 'red' : props.type === 'warning' ? 'yellow' : 'grey'
+  return (
+    <Kb.Banner color={color} style={styles.banner}>
+      <Kb.BannerParagraph
+        bannerColor={color}
+        content={props.type === 'info' && props.infoMessage ? props.infoMessage : props.message}
+      />
+    </Kb.Banner>
   )
 }
 
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      banner: {
+        ...Styles.padding(Styles.globalMargins.tiny),
+        minHeight: 40,
+      },
       browseFile: {
-        paddingLeft: Styles.globalMargins.tiny,
-        paddingRight: Styles.globalMargins.tiny,
+        flexShrink: 0,
       },
-      clearButton: {
-        position: 'absolute',
-        right: Styles.globalMargins.small,
-        top: Styles.globalMargins.small,
+      clearButtonInput: {
+        alignSelf: 'flex-start',
+        flexShrink: 1,
+        padding: Styles.globalMargins.tiny,
       },
-      container: {
+      commonContainer: {
         ...Styles.globalStyles.flexGrow,
         ...Styles.globalStyles.positionRelative,
+        flexShrink: 2,
       },
       containerInputFocus: {
         ...Styles.globalStyles.flexGrow,
         ...Styles.globalStyles.fullHeight,
         display: 'flex',
+        flexShrink: 2,
       },
       fileContainer: {
+        alignSelf: 'flex-start',
         ...Styles.padding(Styles.globalMargins.small),
       },
       hidden: {
@@ -157,6 +217,12 @@ const styles = Styles.styleSheetCreate(
       },
       input: {
         color: Styles.globalColors.black,
+      },
+      inputAndFilePickerContainer: {
+        paddingBottom: 0,
+        paddingLeft: Styles.globalMargins.tiny,
+        paddingRight: 0,
+        paddingTop: Styles.globalMargins.tiny,
       },
       inputContainer: {
         // We want the immediate container not to overflow, so we tell it be height: 100% to match the parent
@@ -167,14 +233,18 @@ const styles = Styles.styleSheetCreate(
       inputContainerEmpty: {
         padding: 0,
       },
-      inputEmpty: {
-        minHeight: 'initial',
-        paddingBottom: 0,
-        paddingLeft: Styles.globalMargins.tiny,
-        paddingRight: Styles.globalMargins.tiny,
-        paddingTop: Styles.globalMargins.tiny,
+      inputEmpty: Styles.platformStyles({
+        common: {
+          ...Styles.padding(0),
+          minHeight: 'initial',
+        },
+        isElectron: {
+          overflowY: 'hidden',
+        },
+      }),
+      inputFull: {
+        padding: 0,
+        paddingRight: 46,
       },
     } as const)
 )
-
-export {TextInput, FileInput}

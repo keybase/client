@@ -105,7 +105,7 @@ class WhatsNew extends React.PureComponent<Props> {
 }
 
 const modalWidth = 288
-const modalHeight = 424
+const modalHeight = 500
 const styles = Styles.styleSheetCreate(() => ({
   contentBackground: Styles.platformStyles({
     common: {

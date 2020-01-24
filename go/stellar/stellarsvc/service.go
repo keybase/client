@@ -697,6 +697,10 @@ func (s *Server) validateStellarURI(mctx libkb.MetaContext, uri string, getter s
 		return nil, nil, err
 	}
 
+	if validated.UnknownReplaceFields {
+		return nil, nil, errors.New("This Stellar link is requesting replacements on fields in the transaction that Keybase does not handle. Sorry, there's nothing you can do with this Stellar link.")
+	}
+
 	local := stellar1.ValidateStellarURIResultLocal{
 		Operation:    validated.Operation,
 		OriginDomain: validated.OriginDomain,
@@ -766,7 +770,7 @@ func (s *Server) validateStellarURI(mctx libkb.MetaContext, uri string, getter s
 
 	if validated.TxEnv != nil {
 		tx := validated.TxEnv.Tx
-		if tx.SourceAccount.Address() != "" && tx.SourceAccount.Address() != zeroSourceAccount {
+		if !validated.ReplaceSourceAccount && tx.SourceAccount.Address() != "" && tx.SourceAccount.Address() != zeroSourceAccount {
 			local.Summary.Source = stellar1.AccountID(tx.SourceAccount.Address())
 		}
 		local.Summary.Fee = int(tx.Fee)
@@ -805,7 +809,7 @@ func (s *Server) ApproveTxURILocal(ctx context.Context, arg stellar1.ApproveTxUR
 		return "", errors.New("no tx envelope in URI")
 	}
 
-	if vp.Summary.Source == "" {
+	if validated.ReplaceSourceAccount || vp.Summary.Source == "" {
 		// need to fill in SourceAccount
 		accountID, err := stellar.GetOwnPrimaryAccountID(mctx)
 		if err != nil {

@@ -70,16 +70,16 @@ func (s *CmdTestCrypto) Run() (err error) {
 			Signed:      true,
 		},
 	}
-	ciphertext, err := cli.SaltpackEncryptString(mctx.Ctx(), arg)
+	sres, err := cli.SaltpackEncryptString(mctx.Ctx(), arg)
 	if err != nil {
 		return err
 	}
 	dui.Printf("ciphertext:\n\n")
-	dui.Printf("%s\n\n", ciphertext)
+	dui.Printf("%s\n\n", sres.Ciphertext)
 
 	dui.Printf("decrypting ciphertext\n")
 	decArg := keybase1.SaltpackDecryptStringArg{
-		Ciphertext: ciphertext,
+		Ciphertext: sres.Ciphertext,
 	}
 	res, err := cli.SaltpackDecryptString(mctx.Ctx(), decArg)
 	if err != nil {
@@ -120,14 +120,14 @@ func (s *CmdTestCrypto) Run() (err error) {
 			Signed:      true,
 		},
 	}
-	efPath, err := cli.SaltpackEncryptFile(mctx.Ctx(), efArg)
+	efres, err := cli.SaltpackEncryptFile(mctx.Ctx(), efArg)
 	if err != nil {
 		return err
 	}
-	dui.Printf("encrypted file: %s\n", efPath)
+	dui.Printf("encrypted file result: %+v\n", efres)
 
-	dui.Printf("decrypting file: %s\n", efPath)
-	dfArg := keybase1.SaltpackDecryptFileArg{EncryptedFilename: efPath}
+	dui.Printf("decrypting file: %s\n", efres.Filename)
+	dfArg := keybase1.SaltpackDecryptFileArg{EncryptedFilename: efres.Filename}
 	dfres, err := cli.SaltpackDecryptFile(mctx.Ctx(), dfArg)
 	if err != nil {
 		return err

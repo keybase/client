@@ -152,6 +152,18 @@ func (h *TeamsHandler) teamGet(ctx context.Context, details keybase1.TeamDetails
 	return details, nil
 }
 
+func (h *TeamsHandler) TeamGetMembersByID(ctx context.Context, arg keybase1.TeamGetMembersByIDArg) (res keybase1.TeamMembersDetails, err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamGetMembersByID(%s)", arg.Id), func() error { return err })()
+	t, err := teams.Load(ctx, h.G().ExternalG(), keybase1.LoadTeamArg{
+		ID: arg.Id,
+	})
+	if err != nil {
+		return res, err
+	}
+	return teams.MembersDetails(ctx, h.G().ExternalG(), t)
+}
+
 func (h *TeamsHandler) TeamGetMembers(ctx context.Context, arg keybase1.TeamGetMembersArg) (res keybase1.TeamMembersDetails, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamGetMembers(%s)", arg.Name), func() error { return err })()

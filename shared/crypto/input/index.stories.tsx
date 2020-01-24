@@ -14,7 +14,37 @@ const longText = Array(1500)
 
 const load = () => {
   Sb.storiesOf('Crypto/Input/Text', module)
-    .add('Empty', () => (
+    .add('Empty - Encrypt', () => (
+      <TextInput
+        textType="plain"
+        value=""
+        placeholder="Write, paste, or drop a file you want to encrypt"
+        onChangeText={onChangeText}
+        onSetFile={onSetFile}
+        operation={Constants.Operations.Encrypt}
+      />
+    ))
+    .add('Empty - Encrypt', () => (
+      <TextInput
+        textType="plain"
+        value=""
+        placeholder="Write, paste, or drop a file you want to encrypt"
+        onChangeText={onChangeText}
+        onSetFile={onSetFile}
+        operation={Constants.Operations.Encrypt}
+      />
+    ))
+    .add('Empty - Encrypt', () => (
+      <TextInput
+        textType="plain"
+        value=""
+        placeholder="Write, paste, or drop a file you want to encrypt"
+        onChangeText={onChangeText}
+        onSetFile={onSetFile}
+        operation={Constants.Operations.Encrypt}
+      />
+    ))
+    .add('Empty - Encrypt', () => (
       <TextInput
         textType="plain"
         value=""
@@ -43,16 +73,6 @@ const load = () => {
         onChangeText={onChangeText}
         onSetFile={onSetFile}
         operation={Constants.Operations.Encrypt}
-      />
-    ))
-    .add('Empty - Cipher', () => (
-      <TextInput
-        textType="cipher"
-        value=""
-        placeholder="Write, paste, or drop a file you want to encrypt"
-        onChangeText={onChangeText}
-        onSetFile={onSetFile}
-        operation={Constants.Operations.Decrypt}
       />
     ))
 

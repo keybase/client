@@ -486,13 +486,13 @@ func (md *RootMetadata) updateFromTlfHandle(newHandle *tlfhandle.Handle) error {
 // Possibly copies the MD, returns the copy if so, and whether copied.
 func (md *RootMetadata) loadCachedBlockChanges(
 	ctx context.Context, bps data.BlockPutState, log logger.Logger,
-	vlog *libkb.VDebugLog, codec kbfscodec.Codec) *RootMetadata {
+	vlog *libkb.VDebugLog, codec kbfscodec.Codec) (*RootMetadata, error) {
 	if md.data.Changes.Ops != nil || len(md.data.cachedChanges.Ops) == 0 {
-		return md
+		return md, nil
 	}
 	md, err := md.deepCopy(codec)
 	if err != nil {
-		panic("MD could not be copied")
+		return nil, err
 	}
 
 	md.data.Changes, md.data.cachedChanges =
@@ -549,15 +549,13 @@ func (md *RootMetadata) loadCachedBlockChanges(
 
 	infos, err := fd.GetIndirectFileBlockInfos(ctx)
 	if err != nil {
-		panic(fmt.Sprintf(
-			"Couldn't find all unembedded change blocks for %v: %v",
-			md.data.cachedChanges.Info.BlockPointer, err))
+		return nil, err
 	}
 
 	for _, info := range infos {
 		md.data.Changes.Ops[0].AddRefBlock(info.BlockPointer)
 	}
-	return md
+	return md, nil
 }
 
 // GetTLFCryptKeyParams wraps the respective method of the underlying BareRootMetadata for convenience.

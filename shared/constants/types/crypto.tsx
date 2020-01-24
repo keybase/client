@@ -2,6 +2,17 @@ import * as TeamBuildingTypes from './team-building'
 import HiddenString from '../../util/hidden-string'
 import {IconType} from '../../common-adapters/icon.constants-gen'
 
+export type StringWaitingKey =
+  | 'crypto:encrypt:string'
+  | 'crypto:decrypt:string'
+  | 'crypto:sign:string'
+  | 'crypto:verify:string'
+export type FileWaitingKey =
+  | 'crypto:encrypt:file'
+  | 'crypto:decrypt:file'
+  | 'crypto:sign:file'
+  | 'crypto:verify:file'
+
 type EncryptTab = 'encryptTab'
 type DecryptTab = 'decryptTab'
 type SignTab = 'signTab'
@@ -21,12 +32,13 @@ export type TextType = 'cipher' | 'plain'
 export type Operations = 'encrypt' | 'decrypt' | 'sign' | 'verify'
 export type InputTypes = 'text' | 'file'
 export type OutputType = 'text' | 'file'
-export type ErrorTypes = ''
 export type OutputStatus = 'success' | 'error'
 
 export type CommonState = {
+  bytesComplete: number
+  bytesTotal: number
+  warningMessage: HiddenString
   errorMessage: HiddenString
-  errorType: ErrorTypes
   input: HiddenString
   inputType: InputTypes
   output: HiddenString
@@ -48,6 +60,7 @@ export type OperationsOptions = EncryptOptions | DecryptOptions | SignOptions | 
 export type EncrypState = CommonState & {
   meta: {
     hasRecipients: boolean
+    hasSBS: boolean
     noIncludeSelf: boolean
   }
   options: EncryptOptions

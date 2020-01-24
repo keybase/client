@@ -12,10 +12,17 @@
       "_description": "Clear input type and value from the specified operation",
       "operation": "Types.Operations"
     },
+    "downloadEncryptedText": {
+      "_description": "Download the encrypted output to a text file"
+    },
+    "downloadSignedText": {
+      "_description": "Download the signed output to a text file"
+    },
     "setRecipients": {
-      "_description": "Array recipients of operations, provided via TeamBuilding",
+      "_description": "Array recipients of operations, provided via TeamBuilding. Includes flag if any users are not on Keybase yet (SBS) to force includeSelf in EncryptOptions",
       "operation": "Types.Operations",
-      "recipients": "Array<string>"
+      "recipients": "Array<string>",
+      "hasSBS": "boolean"
     },
     "setInput": {
       "_description": "Set input type (text, file) and value on user input. Either keyboard input or drag-and-drop file",
@@ -34,16 +41,22 @@
       "output": "HiddenString",
       "outputSender?": "HiddenString",
       "outputSigned": "boolean",
-      "outputType": "Types.OutputType"
+      "outputType": "Types.OutputType",
+      "warning?": "boolean",
+      "warningMessage?": "HiddenString"
     },
     "onOperationError": {
       "_description": "On saltpack RPC error response",
       "operation": "Types.Operations",
-      "errorType": "Types.ErrorTypes",
       "errorMessage": "HiddenString"
     },
     "resetOperation": {
       "_description": "Resets all values in the store for the given operation",
+      "operation": "Types.Operations"
+    },
+    "saltpackDone": {
+      "_description": "Progress logging",
+      "filename": "HiddenString",
       "operation": "Types.Operations"
     },
     "saltpackEncrypt": {
@@ -58,10 +71,22 @@
       "input": "HiddenString",
       "type": "Types.InputTypes"
     },
+    "saltpackProgress": {
+      "_description": "Progress logging",
+      "bytesComplete": "number",
+      "bytesTotal": "number",
+      "filename": "HiddenString",
+      "operation": "Types.Operations"
+    },
     "saltpackSign": {
       "_description": "Calls Saltpack RPC",
       "input": "HiddenString",
       "type": "Types.InputTypes"
+    },
+    "saltpackStart": {
+      "_description": "Progress logging",
+      "filename": "HiddenString",
+      "operation": "Types.Operations"
     },
     "saltpackVerify": {
       "_description": "Calls Saltpack RPC",

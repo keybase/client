@@ -66,7 +66,7 @@ export type Props = {
   onCancel?: () => void
   onEdit?: () => void
   onRetry?: () => void
-  onSwipeLeft: () => void
+  onSwipeLeft?: () => void
   orangeLineAbove: boolean
   previous?: Types.Message
   shouldShowPopup: boolean
@@ -200,7 +200,9 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                 </Kb.WithTooltip>
               )}
               {this.props.authorIsBot && (
-                <Kb.Icon fontSize={16} color={Styles.globalColors.black_35} type="iconfont-nav-2-robot" />
+                <Kb.WithTooltip tooltip="Bot">
+                  <Kb.Icon fontSize={10} color={Styles.globalColors.black_35} type="iconfont-bot" />
+                </Kb.WithTooltip>
               )}
               <Kb.Text
                 type="BodyTiny"
@@ -593,9 +595,8 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
             {this.getKeyedBot() && !this.props.authorIsBot && (
               <Kb.WithTooltip tooltip={`Encrypted for @${this.getKeyedBot()}`}>
                 <Kb.Icon
-                  fontSize={16}
                   color={Styles.globalColors.black_35}
-                  type="iconfont-nav-2-robot"
+                  type="iconfont-bot"
                   onClick={() => null}
                   style={styles.paddingLeftTiny}
                 />

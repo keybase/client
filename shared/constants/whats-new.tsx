@@ -23,11 +23,11 @@ import {
  */
 
 export const noVersion: NoVersion = '0.0.0'
-export const currentVersion: CurrentVersion = '5.1.0'
-export const lastVersion: LastVersion = '4.8.0'
-export const lastLastVersion: LastLastVersion = '0.0.0'
-export const versions: WhatsNewVersions = [currentVersion, lastVersion, lastLastVersion]
-export const keybaseFM = 'Keybase FM 87.8'
+export const currentVersion: CurrentVersion = '5.2.0'
+export const lastVersion: LastVersion = '5.1.0'
+export const lastLastVersion: LastLastVersion = '4.8.0'
+export const versions: WhatsNewVersions = [currentVersion, lastVersion, lastLastVersion, noVersion]
+export const keybaseFM = 'Keybase FM 87.7'
 
 type seenVersionsMap = {[key in WhatsNewVersion]: boolean}
 
@@ -47,6 +47,7 @@ export const getSeenVersions = (lastSeenVersion: string): seenVersionsMap => {
     [currentVersion]: true,
     [lastLastVersion]: true,
     [lastVersion]: true,
+    [noVersion]: true,
   }
 
   // lastSeenVersion hasn't loaded yet, so don't set a badge state
@@ -59,6 +60,7 @@ export const getSeenVersions = (lastSeenVersion: string): seenVersionsMap => {
       [currentVersion]: false,
       [lastLastVersion]: false,
       [lastVersion]: false,
+      [noVersion]: false,
     }
   }
 

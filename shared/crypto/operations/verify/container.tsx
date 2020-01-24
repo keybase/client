@@ -10,12 +10,16 @@ const operation = 'verify'
 
 export default Container.namedConnect(
   (state: Container.TypedState) => ({
+    bytesComplete: state.crypto.verify.bytesComplete,
+    bytesTotal: state.crypto.verify.bytesTotal,
+    errorMessage: state.crypto.verify.errorMessage.stringValue(),
     input: state.crypto.verify.input.stringValue(),
     inputType: state.crypto.verify.inputType,
     output: state.crypto.verify.output.stringValue(),
     outputSender: state.crypto.verify.outputSender?.stringValue(),
     outputStatus: state.crypto.verify.outputStatus,
     outputType: state.crypto.verify.outputType,
+    warningMessage: state.crypto.verify.warningMessage.stringValue(),
   }),
   (dispatch: Container.TypedDispatch) => ({
     onClearInput: () => dispatch(CryptoGen.createClearInput({operation})),
@@ -26,6 +30,7 @@ export default Container.namedConnect(
       dispatch(FSGen.createOpenLocalPathInSystemFileManager({localPath: path})),
   }),
   (stateProps, dispatchProps) => ({
+    errorMessage: stateProps.errorMessage,
     input: stateProps.input,
     inputType: stateProps.inputType,
     onClearInput: dispatchProps.onClearInput,
@@ -36,6 +41,8 @@ export default Container.namedConnect(
     outputSender: stateProps.outputSender,
     outputStatus: stateProps.outputStatus,
     outputType: stateProps.outputType,
+    progress: stateProps.bytesComplete === 0 ? 0 : stateProps.bytesComplete / stateProps.bytesTotal,
+    warningMessage: stateProps.warningMessage,
   }),
   'VerifyContainer'
 )(Verify)

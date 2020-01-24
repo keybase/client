@@ -61,6 +61,8 @@ export const makeState = (): Types.State => ({
   inboxNumSmallRows: 5,
   inboxSearch: undefined,
   inboxShowNew: false,
+  infoPanelSelectedTab: undefined,
+  infoPanelShowing: false,
   isWalletsNew: true,
   lastCoord: undefined,
   maybeMentionMap: new Map(),
@@ -284,14 +286,6 @@ export const isTeamConversationSelected = (state: TypedState, teamname: string) 
   const meta = getMeta(state, getSelectedConversation(state))
   return meta.teamname === teamname
 }
-export const isInfoPanelOpen = () => {
-  const maybeVisibleScreen = Router2.getVisibleScreen()
-  return (
-    (maybeVisibleScreen === null || maybeVisibleScreen === undefined
-      ? undefined
-      : maybeVisibleScreen.routeName) === 'chatInfoPanel'
-  )
-}
 
 export const inboxSearchNewKey = 'chat:inboxSearchNew'
 export const waitingKeyJoinConversation = 'chat:joinConversation'
@@ -475,13 +469,32 @@ export const messageAuthorIsBot = (
   message: Types.Message,
   participantInfo: Types.ParticipantInfo
 ) => {
-  const teamname = meta.teamname
-  return teamname
-    ? TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'restrictedbot') ||
-        TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'bot')
+  const teamID = meta.teamID
+  return meta.teamname
+    ? TeamConstants.userIsRoleInTeam(state, teamID, message.author, 'restrictedbot') ||
+        TeamConstants.userIsRoleInTeam(state, teamID, message.author, 'bot')
     : meta.teamType === 'adhoc' && participantInfo.name.length > 0 // teams without info may have type adhoc with an empty participant name list
     ? !participantInfo.name.includes(message.author) // if adhoc, check if author in participants
     : false // if we don't have team information, don't show bot icon
+}
+
+export const getBotRestrictBlockMap = (
+  settings: Map<string, RPCChatTypes.Keybase1.TeamBotSettings>,
+  conversationIDKey: Types.ConversationIDKey,
+  bots: Array<string>
+) => {
+  const blocks = new Map<string, boolean>()
+  bots.forEach(b => {
+    const botSettings = settings.get(b)
+    if (!botSettings) {
+      blocks.set(b, false)
+      return
+    }
+    const convs = botSettings.convs
+    const cmds = botSettings.cmds
+    blocks.set(b, !cmds || (!((convs?.length ?? 0) === 0) && !convs?.find(c => c === conversationIDKey)))
+  })
+  return blocks
 }
 
 export {

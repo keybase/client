@@ -27,7 +27,7 @@ export const HeaderTitle = () => (
   </Kb.Box2>
 )
 
-export const HeaderRightActions = Kb.OverlayParentHOC((props: Kb.PropsWithOverlay<{}>) => {
+export const HeaderRightActions = () => {
   const dispatch = Container.useDispatch()
 
   const onAddPersonal = () => {
@@ -38,38 +38,35 @@ export const HeaderRightActions = Kb.OverlayParentHOC((props: Kb.PropsWithOverla
     dispatch(GitGen.createSetError({}))
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {isTeam: true}, selected: 'gitNewRepo'}]}))
   }
+
+  const popupAnchor = React.useRef(null)
+  const {showingPopup, setShowingPopup, popup} = Kb.usePopup(popupAnchor, () => (
+    <Kb.FloatingMenu
+      attachTo={() => popupAnchor.current}
+      closeOnSelect={true}
+      visible={showingPopup}
+      onHidden={() => setShowingPopup(false)}
+      position="bottom center"
+      positionFallbacks={[]}
+      items={[
+        {icon: 'iconfont-person', onClick: onAddPersonal, title: 'New personal repository'},
+        {icon: 'iconfont-people', onClick: onAddTeam, title: 'New team repository'},
+      ]}
+    />
+  ))
   return (
     <>
       <Kb.Button
         label="New repository"
-        onClick={props.toggleShowingMenu}
+        onClick={() => setShowingPopup(!showingPopup)}
         small={true}
-        ref={props.setAttachmentRef}
+        ref={popupAnchor}
         style={styles.newRepoButton}
       />
-      <Kb.FloatingMenu
-        attachTo={props.getAttachmentRef}
-        closeOnSelect={true}
-        visible={props.showingMenu}
-        onHidden={props.toggleShowingMenu}
-        position="bottom center"
-        positionFallbacks={[]}
-        items={[
-          {
-            icon: 'iconfont-person',
-            onClick: onAddPersonal,
-            title: 'New personal repository',
-          },
-          {
-            icon: 'iconfont-people',
-            onClick: onAddTeam,
-            title: 'New team repository',
-          },
-        ]}
-      />
+      {popup}
     </>
   )
-})
+}
 
 const styles = Styles.styleSheetCreate(() => ({
   headerTitle: {flex: 1, paddingBottom: Styles.globalMargins.xtiny, paddingLeft: Styles.globalMargins.xsmall},

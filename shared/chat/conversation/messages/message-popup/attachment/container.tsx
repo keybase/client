@@ -56,17 +56,10 @@ export default Container.connect(
         })
       )
     },
-    _onAllMedia: (conversationIDKey: Types.ConversationIDKey) =>
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [
-            {
-              props: {conversationIDKey, tab: 'attachments'},
-              selected: 'chatInfoPanel',
-            },
-          ],
-        })
-      ),
+    _onAllMedia: (conversationIDKey: Types.ConversationIDKey) => {
+      dispatch(RouteTreeGen.createClearModals())
+      dispatch(Chat2Gen.createShowInfoPanel({conversationIDKey, show: true, tab: 'attachments'}))
+    },
     _onDelete: (message: Types.Message) => {
       dispatch(
         Chat2Gen.createMessageDelete({

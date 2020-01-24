@@ -3,6 +3,8 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/crypto'
 import * as Types from '../../constants/types/crypto'
+import * as Container from '../../util/container'
+import {getStyle} from '../../common-adapters/text'
 
 type Props = {
   output?: string
@@ -14,37 +16,89 @@ type Props = {
 }
 
 type OutputBarProps = {
+  onCopyOutput: (text: string) => void
+  onSaveAsText?: () => void
+  onShowInFinder: (path: string) => void
+  operation: Types.Operations
   output: string
   outputStatus?: Types.OutputStatus
   outputType?: Types.OutputType
-  onCopyOutput: (text: string) => void
-  onShowInFinder: (path: string) => void
 }
 
 type OutputSignedProps = {
   signed: boolean
   signedBy?: string
+  operation: Types.Operations
   outputStatus?: Types.OutputStatus
 }
 
+type OutputInfoProps = {
+  outputStatus?: Types.OutputStatus
+  operation: Types.Operations
+  children:
+    | string
+    | React.ReactElement<typeof Kb.BannerParagraph>
+    | Array<React.ReactElement<typeof Kb.BannerParagraph>>
+}
+
+const largeOutputLimit = 120
+
 export const SignedSender = (props: OutputSignedProps) => {
-  return props.outputStatus && props.outputStatus === 'success' ? (
+  const waitingKey = Constants.getStringWaitingKey(props.operation)
+  const waiting = Container.useAnyWaiting(waitingKey)
+  const canSelfSign =
+    props.operation === Constants.Operations.Encrypt || props.operation === Constants.Operations.Sign
+
+  if (!props.outputStatus || (props.outputStatus && props.outputStatus === 'error')) {
+    return null
+  }
+
+  return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.signedContainer}>
-      {props.signed && props.signedBy ? (
-        <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center">
-          <Kb.Icon type="iconfont-success" sizeType="Small" style={styles.signedIcon} />
-          <Kb.Text type="BodySmallSuccess">Signed by</Kb.Text>
-          <Kb.ConnectedUsernames type="BodySmallBold" colorYou={true} usernames={[props.signedBy]} />
-        </Kb.Box2>
-      ) : (
-        <Kb.Text type="BodySmall">Not signed (anonymous sender)</Kb.Text>
-      )}
+      <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center" style={styles.signedSender}>
+        {props.signed && props.signedBy
+          ? [
+              <Kb.Avatar key="avatar" size={16} username={props.signedBy} />,
+              <Kb.Text key="signedBy" type="BodySmall">
+                Signed by {canSelfSign ? ' you, ' : ''}
+              </Kb.Text>,
+              <Kb.ConnectedUsernames
+                key="username"
+                type="BodySmallBold"
+                usernames={[props.signedBy]}
+                colorFollowing={true}
+                colorYou={true}
+              />,
+            ]
+          : [
+              <Kb.Icon key="avatar" type="icon-placeholder-secret-user-16" />,
+              canSelfSign ? null : (
+                <Kb.Text key="username" type="BodySmallSemibold">
+                  Anonymous sender
+                </Kb.Text>
+              ),
+              <Kb.Text key="signedBy" type="BodySmall">
+                {canSelfSign ? `Not signed (Sending anonymously)` : `(Not signed)`}
+              </Kb.Text>,
+            ]}
+      </Kb.Box2>
+      {waiting && <Kb.ProgressIndicator type="Small" white={false} />}
     </Kb.Box2>
+  )
+}
+
+export const OutputInfoBanner = (props: OutputInfoProps) => {
+  return props.outputStatus && props.outputStatus === 'success' ? (
+    <Kb.Banner color="grey" style={styles.banner}>
+      {props.children}
+    </Kb.Banner>
   ) : null
 }
 
 export const OutputBar = (props: OutputBarProps) => {
-  const {output, onCopyOutput, onShowInFinder} = props
+  const {output, onCopyOutput, onSaveAsText, onShowInFinder} = props
+  const waitingKey = Constants.getStringWaitingKey(props.operation)
+  const waiting = Container.useAnyWaiting(waitingKey)
   const attachmentRef = React.useRef<Kb.Box2>(null)
   const [showingToast, setShowingToast] = React.useState(false)
 
@@ -78,9 +132,16 @@ export const OutputBar = (props: OutputBarProps) => {
                   Copied to clipboard
                 </Kb.Text>
               </Kb.Toast>
-              <Kb.Button mode="Secondary" label="Copy to clipboard" onClick={() => copy()} />
+              <Kb.Button
+                mode="Secondary"
+                label="Copy to clipboard"
+                disabled={waiting}
+                onClick={() => copy()}
+              />
             </Kb.Box2>
-            <Kb.Button mode="Secondary" label="Download as TXT" />
+            {onSaveAsText && (
+              <Kb.Button mode="Secondary" label="Save as TXT" onClick={onSaveAsText} disabled={waiting} />
+            )}
           </Kb.ButtonBar>
         )}
       </Kb.Box2>
@@ -99,6 +160,16 @@ export const OutputBar = (props: OutputBarProps) => {
 }
 
 const Output = (props: Props) => {
+  const waitingKey = Constants.getStringWaitingKey(props.operation)
+  const waiting = Container.useAnyWaiting(waitingKey)
+  // Output text can be 24 px when output is less that 120 characters
+  const outputTextIsLarge =
+    props.operation === Constants.Operations.Decrypt || props.operation === Constants.Operations.Verify
+  const {fontSize, lineHeight} = getStyle('HeaderBig')
+  const outputLargeStyle = outputTextIsLarge &&
+    props.output &&
+    props.output.length <= largeOutputLimit && {fontSize, lineHeight}
+
   const fileOutputTextColor =
     props.textType === 'cipher' ? Styles.globalColors.greenDark : Styles.globalColors.black
   const fileIcon = Constants.getOutputFileIcon(props.operation)
@@ -128,8 +199,8 @@ const Output = (props: Props) => {
             <Kb.Text
               key={index}
               type={props.textType === 'cipher' ? 'Terminal' : 'Body'}
-              selectable={true}
-              style={styles.output}
+              selectable={!waiting}
+              style={Styles.collapseStyles([styles.output, outputLargeStyle])}
             >
               {line}
             </Kb.Text>
@@ -149,6 +220,10 @@ const Output = (props: Props) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      banner: {
+        ...Styles.padding(Styles.globalMargins.tiny),
+        minHeight: 40,
+      },
       buttonBar: {
         height: Styles.globalMargins.large,
         minHeight: Styles.globalMargins.large,
@@ -190,12 +265,16 @@ const styles = Styles.styleSheetCreate(
         color: Styles.globalColors.black_50,
       },
       signedContainer: {
-        ...Styles.padding(Styles.globalMargins.tiny),
-        backgroundColor: Styles.globalColors.blueGreyLight,
-        height: Styles.globalMargins.xlarge,
+        minHeight: Styles.globalMargins.mediumLarge,
+        paddingLeft: Styles.globalMargins.tiny,
+        paddingRight: Styles.globalMargins.tiny,
+        paddingTop: Styles.globalMargins.tiny,
       },
       signedIcon: {
         color: Styles.globalColors.green,
+      },
+      signedSender: {
+        ...Styles.globalStyles.flexGrow,
       },
       toastText: {
         color: Styles.globalColors.white,

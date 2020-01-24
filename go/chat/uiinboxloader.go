@@ -35,7 +35,7 @@ type UIInboxLoader struct {
 	transmitCh            chan interface{}
 	layoutCh              chan chat1.InboxLayoutReselectMode
 	bigTeamUnboxCh        chan []chat1.ConversationID
-	convTransmitBatch     map[string]chat1.ConversationLocal
+	convTransmitBatch     map[chat1.ConvIDStr]chat1.ConversationLocal
 	batchDelay            time.Duration
 	lastBatchFlush        time.Time
 	lastLayoutFlush       time.Time
@@ -58,7 +58,7 @@ func NewUIInboxLoader(g *globals.Context) *UIInboxLoader {
 	return &UIInboxLoader{
 		Contextified:          globals.NewContextified(g),
 		DebugLabeler:          utils.NewDebugLabeler(g.GetLog(), "UIInboxLoader", false),
-		convTransmitBatch:     make(map[string]chat1.ConversationLocal),
+		convTransmitBatch:     make(map[chat1.ConvIDStr]chat1.ConversationLocal),
 		clock:                 clockwork.NewRealClock(),
 		batchDelay:            200 * time.Millisecond,
 		smallTeamBound:        defaultSmallTeamBound,
@@ -159,7 +159,7 @@ func (h *UIInboxLoader) flushConvBatch() (err error) {
 		convs = append(convs, conv)
 	}
 	h.lastBatchFlush = h.clock.Now()
-	h.convTransmitBatch = make(map[string]chat1.ConversationLocal) // clear batch always
+	h.convTransmitBatch = make(map[chat1.ConvIDStr]chat1.ConversationLocal) // clear batch always
 	h.Debug(ctx, "flushConvBatch: transmitting %d convs", len(convs))
 	defer func() {
 		if err != nil {
@@ -258,7 +258,7 @@ func (h *UIInboxLoader) transmitOnce(imsg interface{}) {
 		_ = h.flushConvBatch()
 		h.flushFailed(msg)
 	case conversationResponse:
-		h.convTransmitBatch[msg.Conv.GetConvID().String()] = msg.Conv
+		h.convTransmitBatch[msg.Conv.GetConvID().ConvIDStr()] = msg.Conv
 		if h.clock.Since(h.lastBatchFlush) > h.batchDelay {
 			_ = h.flushConvBatch()
 		}
@@ -386,11 +386,11 @@ func (h *UIInboxLoader) Query() chat1.GetInboxLocalQuery {
 
 type bigTeam struct {
 	name  string
-	id    string
+	id    chat1.TLFIDStr
 	convs []types.RemoteConversation
 }
 
-func newBigTeam(name, id string) *bigTeam {
+func newBigTeam(name string, id chat1.TLFIDStr) *bigTeam {
 	return &bigTeam{name: name, id: id}
 }
 
@@ -415,7 +415,7 @@ func (c *bigTeamCollector) appendConv(conv types.RemoteConversation) {
 	name := utils.GetRemoteConvTLFName(conv)
 	bt, ok := c.teams[name]
 	if !ok {
-		bt = newBigTeam(name, conv.Conv.Metadata.IdTriple.Tlfid.String())
+		bt = newBigTeam(name, conv.Conv.Metadata.IdTriple.Tlfid.TLFIDStr())
 		c.teams[name] = bt
 	}
 	bt.convs = append(bt.convs, conv)
@@ -486,7 +486,7 @@ func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox,
 	if !selectedInLayout || reselectMode == chat1.InboxLayoutReselectMode_FORCE {
 		// select a new conv for the UI
 		var reselect chat1.UIInboxReselectInfo
-		reselect.OldConvID = selectedConv.String()
+		reselect.OldConvID = selectedConv.ConvIDStr()
 		if len(res.SmallTeams) > 0 {
 			reselect.NewConvID = &res.SmallTeams[0].ConvID
 		}
@@ -494,8 +494,19 @@ func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox,
 		res.ReselectInfo = &reselect
 	}
 	if !h.G().IsMobileAppType() {
+		badgeState := h.G().Badger.State()
 		sort.Slice(widgetList, func(i, j int) bool {
-			return widgetList[i].Time.After(widgetList[j].Time)
+			ibadged :=
+				badgeState.ConversationBadgeStr(ctx, widgetList[i].ConvID, keybase1.DeviceType_DESKTOP) > 0
+			jbadged :=
+				badgeState.ConversationBadgeStr(ctx, widgetList[j].ConvID, keybase1.DeviceType_DESKTOP) > 0
+			if ibadged && !jbadged {
+				return true
+			} else if !ibadged && jbadged {
+				return false
+			} else {
+				return widgetList[i].Time.After(widgetList[j].Time)
+			}
 		})
 		// only set widget entries on desktop to the top 3 overall convs
 		if len(widgetList) > 5 {
@@ -630,7 +641,7 @@ func (h *UIInboxLoader) isTopSmallTeamInLastLayout(convID chat1.ConversationID) 
 	if len(h.lastLayout.SmallTeams) == 0 {
 		return false
 	}
-	return h.lastLayout.SmallTeams[0].ConvID == convID.String()
+	return h.lastLayout.SmallTeams[0].ConvID == convID.ConvIDStr()
 }
 
 func (h *UIInboxLoader) setLastLayout(l *chat1.UIInboxLayout) {

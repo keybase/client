@@ -89,7 +89,7 @@ const WithTooltip = (props: Props) => {
 
   return (
     <>
-      <Kb.NativeView style={props.containerStyle as any} ref={clickableRef}>
+      <Kb.NativeView style={props.containerStyle as any} ref={clickableRef} collapsable={false}>
         <Kb.ClickableBox onClick={_onClick}>{props.children}</Kb.ClickableBox>
       </Kb.NativeView>
       <Kb.Animated from={{}} to={{opacity: visible ? 1 : 0}}>
@@ -107,6 +107,7 @@ const WithTooltip = (props: Props) => {
                   props.backgroundColor && {backgroundColor: props.backgroundColor},
                 ])}
                 ref={tooltipRef}
+                collapsable={false}
               >
                 <Kb.Text
                   center={!props.multiline}

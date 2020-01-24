@@ -7,6 +7,7 @@ type Props = {
   children?: React.ReactNode
   seen: boolean
   noSeparator?: boolean
+  primaryButtonClassName?: string
   primaryButtonText?: string
   secondaryButtonText?: string
   onPrimaryButtonClick?: () => void
@@ -18,6 +19,7 @@ type Props = {
 const NewFeature = (props: Props) => {
   const primaryButton = props.primaryButtonText ? (
     <Kb.Button
+      className={props.primaryButtonClassName}
       type="Default"
       mode="Primary"
       small={true}
@@ -27,17 +29,16 @@ const NewFeature = (props: Props) => {
     />
   ) : null
 
-  const secondaryButton =
-    props.primaryButtonText && props.secondaryButtonText ? (
-      <Kb.Button
-        type="Default"
-        mode="Secondary"
-        small={true}
-        label={props.secondaryButtonText}
-        style={styles.buttons}
-        onClick={props.onSecondaryButtonClick}
-      />
-    ) : null
+  const secondaryButton = props.secondaryButtonText ? (
+    <Kb.Button
+      type="Default"
+      mode="Secondary"
+      small={true}
+      label={props.secondaryButtonText}
+      style={styles.buttons}
+      onClick={props.onSecondaryButtonClick}
+    />
+  ) : null
   return (
     <Kb.Box2
       direction="horizontal"

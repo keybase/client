@@ -8,12 +8,17 @@ export const resetStore = 'common:resetStore' // not a part of crypto but is han
 export const typePrefix = 'crypto:'
 export const clearInput = 'crypto:clearInput'
 export const clearRecipients = 'crypto:clearRecipients'
+export const downloadEncryptedText = 'crypto:downloadEncryptedText'
+export const downloadSignedText = 'crypto:downloadSignedText'
 export const onOperationError = 'crypto:onOperationError'
 export const onOperationSuccess = 'crypto:onOperationSuccess'
 export const resetOperation = 'crypto:resetOperation'
 export const saltpackDecrypt = 'crypto:saltpackDecrypt'
+export const saltpackDone = 'crypto:saltpackDone'
 export const saltpackEncrypt = 'crypto:saltpackEncrypt'
+export const saltpackProgress = 'crypto:saltpackProgress'
 export const saltpackSign = 'crypto:saltpackSign'
+export const saltpackStart = 'crypto:saltpackStart'
 export const saltpackVerify = 'crypto:saltpackVerify'
 export const setEncryptOptions = 'crypto:setEncryptOptions'
 export const setInput = 'crypto:setInput'
@@ -22,27 +27,35 @@ export const setRecipients = 'crypto:setRecipients'
 // Payload Types
 type _ClearInputPayload = {readonly operation: Types.Operations}
 type _ClearRecipientsPayload = {readonly operation: Types.Operations}
-type _OnOperationErrorPayload = {
-  readonly operation: Types.Operations
-  readonly errorType: Types.ErrorTypes
-  readonly errorMessage: HiddenString
-}
+type _DownloadEncryptedTextPayload = void
+type _DownloadSignedTextPayload = void
+type _OnOperationErrorPayload = {readonly operation: Types.Operations; readonly errorMessage: HiddenString}
 type _OnOperationSuccessPayload = {
   readonly operation: Types.Operations
   readonly output: HiddenString
   readonly outputSender?: HiddenString
   readonly outputSigned: boolean
   readonly outputType: Types.OutputType
+  readonly warning?: boolean
+  readonly warningMessage?: HiddenString
 }
 type _ResetOperationPayload = {readonly operation: Types.Operations}
 type _SaltpackDecryptPayload = {readonly input: HiddenString; readonly type: Types.InputTypes}
+type _SaltpackDonePayload = {readonly filename: HiddenString; readonly operation: Types.Operations}
 type _SaltpackEncryptPayload = {
   readonly input: HiddenString
   readonly options: Types.EncryptOptions
   readonly recipients: Array<string>
   readonly type: Types.InputTypes
 }
+type _SaltpackProgressPayload = {
+  readonly bytesComplete: number
+  readonly bytesTotal: number
+  readonly filename: HiddenString
+  readonly operation: Types.Operations
+}
 type _SaltpackSignPayload = {readonly input: HiddenString; readonly type: Types.InputTypes}
+type _SaltpackStartPayload = {readonly filename: HiddenString; readonly operation: Types.Operations}
 type _SaltpackVerifyPayload = {readonly input: HiddenString; readonly type: Types.InputTypes}
 type _SetEncryptOptionsPayload = {readonly options: Types.EncryptOptions; readonly noIncludeSelf?: boolean}
 type _SetInputPayload = {
@@ -50,11 +63,15 @@ type _SetInputPayload = {
   readonly type: Types.InputTypes
   readonly value: HiddenString
 }
-type _SetRecipientsPayload = {readonly operation: Types.Operations; readonly recipients: Array<string>}
+type _SetRecipientsPayload = {
+  readonly operation: Types.Operations
+  readonly recipients: Array<string>
+  readonly hasSBS: boolean
+}
 
 // Action Creators
 /**
- * Array recipients of operations, provided via TeamBuilding
+ * Array recipients of operations, provided via TeamBuilding. Includes flag if any users are not on Keybase yet (SBS) to force includeSelf in EncryptOptions
  */
 export const createSetRecipients = (payload: _SetRecipientsPayload): SetRecipientsPayload => ({
   payload,
@@ -96,6 +113,19 @@ export const createClearInput = (payload: _ClearInputPayload): ClearInputPayload
   type: clearInput,
 })
 /**
+ * Download the encrypted output to a text file
+ */
+export const createDownloadEncryptedText = (
+  payload: _DownloadEncryptedTextPayload
+): DownloadEncryptedTextPayload => ({payload, type: downloadEncryptedText})
+/**
+ * Download the signed output to a text file
+ */
+export const createDownloadSignedText = (payload: _DownloadSignedTextPayload): DownloadSignedTextPayload => ({
+  payload,
+  type: downloadSignedText,
+})
+/**
  * On saltpack RPC error response
  */
 export const createOnOperationError = (payload: _OnOperationErrorPayload): OnOperationErrorPayload => ({
@@ -108,6 +138,27 @@ export const createOnOperationError = (payload: _OnOperationErrorPayload): OnOpe
 export const createOnOperationSuccess = (payload: _OnOperationSuccessPayload): OnOperationSuccessPayload => ({
   payload,
   type: onOperationSuccess,
+})
+/**
+ * Progress logging
+ */
+export const createSaltpackDone = (payload: _SaltpackDonePayload): SaltpackDonePayload => ({
+  payload,
+  type: saltpackDone,
+})
+/**
+ * Progress logging
+ */
+export const createSaltpackProgress = (payload: _SaltpackProgressPayload): SaltpackProgressPayload => ({
+  payload,
+  type: saltpackProgress,
+})
+/**
+ * Progress logging
+ */
+export const createSaltpackStart = (payload: _SaltpackStartPayload): SaltpackStartPayload => ({
+  payload,
+  type: saltpackStart,
 })
 /**
  * Remove all recipients from operation
@@ -141,6 +192,14 @@ export type ClearRecipientsPayload = {
   readonly payload: _ClearRecipientsPayload
   readonly type: typeof clearRecipients
 }
+export type DownloadEncryptedTextPayload = {
+  readonly payload: _DownloadEncryptedTextPayload
+  readonly type: typeof downloadEncryptedText
+}
+export type DownloadSignedTextPayload = {
+  readonly payload: _DownloadSignedTextPayload
+  readonly type: typeof downloadSignedText
+}
 export type OnOperationErrorPayload = {
   readonly payload: _OnOperationErrorPayload
   readonly type: typeof onOperationError
@@ -157,11 +216,20 @@ export type SaltpackDecryptPayload = {
   readonly payload: _SaltpackDecryptPayload
   readonly type: typeof saltpackDecrypt
 }
+export type SaltpackDonePayload = {readonly payload: _SaltpackDonePayload; readonly type: typeof saltpackDone}
 export type SaltpackEncryptPayload = {
   readonly payload: _SaltpackEncryptPayload
   readonly type: typeof saltpackEncrypt
 }
+export type SaltpackProgressPayload = {
+  readonly payload: _SaltpackProgressPayload
+  readonly type: typeof saltpackProgress
+}
 export type SaltpackSignPayload = {readonly payload: _SaltpackSignPayload; readonly type: typeof saltpackSign}
+export type SaltpackStartPayload = {
+  readonly payload: _SaltpackStartPayload
+  readonly type: typeof saltpackStart
+}
 export type SaltpackVerifyPayload = {
   readonly payload: _SaltpackVerifyPayload
   readonly type: typeof saltpackVerify
@@ -181,12 +249,17 @@ export type SetRecipientsPayload = {
 export type Actions =
   | ClearInputPayload
   | ClearRecipientsPayload
+  | DownloadEncryptedTextPayload
+  | DownloadSignedTextPayload
   | OnOperationErrorPayload
   | OnOperationSuccessPayload
   | ResetOperationPayload
   | SaltpackDecryptPayload
+  | SaltpackDonePayload
   | SaltpackEncryptPayload
+  | SaltpackProgressPayload
   | SaltpackSignPayload
+  | SaltpackStartPayload
   | SaltpackVerifyPayload
   | SetEncryptOptionsPayload
   | SetInputPayload

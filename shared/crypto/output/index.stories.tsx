@@ -4,6 +4,7 @@ import * as Constants from '../../constants/crypto'
 import Output, {OutputBar, SignedSender} from '.'
 
 const onCopyOutput = Sb.action('onCopyOutput')
+const onSaveAsText = Sb.action('onSaveAsText')
 const onShowInFinder = Sb.action('onShowInFinder')
 
 const encryptOutput = `
@@ -35,6 +36,14 @@ const load = () => {
         onShowInFinder={onShowInFinder}
       />
     ))
+    .add('Decrypt - Large', () => (
+      <Output
+        output="Under 120 characters is big"
+        textType="plain"
+        operation={Constants.Operations.Verify}
+        onShowInFinder={onShowInFinder}
+      />
+    ))
     .add('Sign', () => (
       <Output
         output={signOutput}
@@ -51,20 +60,75 @@ const load = () => {
         onShowInFinder={onShowInFinder}
       />
     ))
+    .add('Verify - Large', () => (
+      <Output
+        output="Under 120 characters is big"
+        textType="plain"
+        operation={Constants.Operations.Verify}
+        onShowInFinder={onShowInFinder}
+      />
+    ))
 
   Sb.storiesOf('Crypto/Output/Bar', module).add('Download - Copy', () => (
     <OutputBar
+      operation={Constants.Operations.Encrypt}
       output="secret stuff"
       outputStatus="success"
       onCopyOutput={onCopyOutput}
+      onSaveAsText={onSaveAsText}
       onShowInFinder={onShowInFinder}
     />
   ))
 
   Sb.storiesOf('Crypto/Output/Signed Sender', module)
-    .add('Signed - You', () => <SignedSender outputStatus="success" signed={true} signedBy="cecileb" />)
-    .add('Signed', () => <SignedSender outputStatus="success" signed={true} signedBy="cecileb" />)
-    .add('Unsigned', () => <SignedSender outputStatus="success" signed={false} signedBy="cecileb" />)
+    .add('Signed - You - Encrypt', () => (
+      <SignedSender
+        outputStatus="success"
+        signed={true}
+        signedBy="cecileb"
+        operation={Constants.Operations.Sign}
+      />
+    ))
+    .add('Signed - You - Sign', () => (
+      <SignedSender
+        outputStatus="success"
+        signed={true}
+        signedBy="cecileb"
+        operation={Constants.Operations.Sign}
+      />
+    ))
+    .add('Signed - Someone Else - Decrypt', () => (
+      <SignedSender
+        outputStatus="success"
+        signed={true}
+        signedBy="cecileb"
+        operation={Constants.Operations.Decrypt}
+      />
+    ))
+    .add('Signed - Someone Else - Verify', () => (
+      <SignedSender
+        outputStatus="success"
+        signed={true}
+        signedBy="cecileb"
+        operation={Constants.Operations.Verify}
+      />
+    ))
+    .add('Unsigned - You', () => (
+      <SignedSender
+        outputStatus="success"
+        signed={false}
+        signedBy=""
+        operation={Constants.Operations.Encrypt}
+      />
+    ))
+    .add('Unsigned - Someone Else', () => (
+      <SignedSender
+        outputStatus="success"
+        signed={false}
+        signedBy=""
+        operation={Constants.Operations.Decrypt}
+      />
+    ))
 }
 
 export default load

@@ -264,7 +264,7 @@ const plumbEvents = () => {
         }
 
         // run installer
-        installer(err => {
+        installer(mainWindowDispatch, err => {
           err && console.log('Error: ', err)
           mainWindowDispatch(ConfigGen.createInstallerRan())
         })

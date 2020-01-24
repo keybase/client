@@ -2031,6 +2031,15 @@ func (fbo *folderBlockOps) writeDataLocked(
 	kmd KeyMetadataWithRootDirEntry, file data.Path, buf []byte, off int64) (
 	latestWrite WriteRange, dirtyPtrs []data.BlockPointer,
 	newlyDirtiedChildBytes int64, err error) {
+	_, wasAlreadyUnref := fbo.unrefCache[file.TailPointer().Ref()]
+	defer func() {
+		// if the write didn't succeed, and the file wasn't already
+		// being cached, clear out any cached state.
+		if err != nil && !wasAlreadyUnref {
+			_ = fbo.clearCacheInfoLocked(lState, file)
+		}
+	}()
+
 	if jManager, err := GetJournalManager(fbo.config); err == nil {
 		jManager.dirtyOpStart(fbo.id())
 		defer jManager.dirtyOpEnd(fbo.id())
@@ -2257,7 +2266,16 @@ func (fbo *folderBlockOps) truncateExtendLocked(
 func (fbo *folderBlockOps) truncateLocked(
 	ctx context.Context, lState *kbfssync.LockState,
 	kmd KeyMetadataWithRootDirEntry, file data.Path, size uint64) (
-	*WriteRange, []data.BlockPointer, int64, error) {
+	wr *WriteRange, ptrs []data.BlockPointer, dirtyBytes int64, err error) {
+	_, wasAlreadyUnref := fbo.unrefCache[file.TailPointer().Ref()]
+	defer func() {
+		// if the truncate didn't succeed, and the file wasn't already
+		// being cached, clear out any cached state.
+		if err != nil && !wasAlreadyUnref {
+			_ = fbo.clearCacheInfoLocked(lState, file)
+		}
+	}()
+
 	if jManager, err := GetJournalManager(fbo.config); err == nil {
 		jManager.dirtyOpStart(fbo.id())
 		defer jManager.dirtyOpEnd(fbo.id())
@@ -2304,6 +2322,9 @@ func (fbo *folderBlockOps) truncateLocked(
 		return &latestWrite, dirtyPtrs, newlyDirtiedChildBytes, err
 	case currLen == iSize && nextBlockOff < 0:
 		// same size!
+		if !wasAlreadyUnref {
+			_ = fbo.clearCacheInfoLocked(lState, file)
+		}
 		return nil, nil, 0, nil
 	}
 

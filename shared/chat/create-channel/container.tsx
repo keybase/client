@@ -49,7 +49,7 @@ export default Container.connect(
   (state, ownProps: OwnProps) => {
     const teamID = Container.getRouteProps(ownProps, 'teamID', TeamsTypes.noTeamID)
     return {
-      errorText: upperFirst(state.teams.channelCreationError),
+      errorText: upperFirst(state.teams.errorInChannelCreation),
       teamID,
       teamname: TeamsConstants.getTeamNameFromID(state, teamID) ?? '',
     }

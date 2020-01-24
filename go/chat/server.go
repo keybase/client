@@ -2303,7 +2303,8 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 	}, nil
 }
 
-func (h *Server) ProfileChatSearch(ctx context.Context, identifyBehavior keybase1.TLFIdentifyBehavior) (res map[string]chat1.ProfileSearchConvStats, err error) {
+func (h *Server) ProfileChatSearch(ctx context.Context, identifyBehavior keybase1.TLFIdentifyBehavior) (
+	res map[chat1.ConvIDStr]chat1.ProfileSearchConvStats, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), identifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "ProfileChatSearch")()
@@ -2715,6 +2716,10 @@ func (h *Server) ListPublicBotCommandsLocal(ctx context.Context, username string
 
 	convID, err := h.G().BotCommandManager.PublicCommandsConv(ctx, username)
 	if err != nil {
+		if _, ok := err.(UnknownTLFNameError); ok {
+			h.Debug(ctx, "ListPublicBotCommandsLocal: unknown conv name")
+			return res, nil
+		}
 		return res, err
 	}
 	if convID == nil {

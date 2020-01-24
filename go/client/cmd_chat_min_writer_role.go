@@ -51,7 +51,7 @@ Disable a previously set policy
 		Flags: append(getConversationResolverFlags(), []cli.Flag{
 			cli.StringFlag{
 				Name:  "r, role",
-				Usage: "team role (owner, admin, writer, reader, bot, none)",
+				Usage: "team role (owner, admin, writer, reader, none)",
 			},
 		}...),
 	}
@@ -117,6 +117,9 @@ func (c *CmdChatSetConvMinWriterRole) ParseArgv(ctx *cli.Context) (err error) {
 		role, err := ParseRole(ctx)
 		if err != nil {
 			return err
+		}
+		if role.IsBotLike() {
+			return fmt.Errorf("Bot roles cannot be used for min writer role setting")
 		}
 		c.role = &role
 	}

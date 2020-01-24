@@ -90,10 +90,9 @@ const ChannelPicker = (props: Props) => {
           icon="iconfont-search"
           placeholderText={`Search channels in ${props.teamName}`}
           placeholderCentered={true}
-          mobileCancelButton={true}
-          hotkey="f"
           onChange={setSearchText}
           style={styles.searchFilter}
+          focusOnMount={true}
         />
       </Kb.Box2>
       <Kb.ScrollView style={styles.rowsContainer}>{rows}</Kb.ScrollView>
@@ -124,8 +123,7 @@ const styles = Styles.styleSheetCreate(
           ...Styles.padding(0, Styles.globalMargins.small),
         },
         isElectron: {
-          maxHeight: 250,
-          minHeight: 250,
+          minHeight: 370,
         },
       }),
       searchFilter: Styles.platformStyles({

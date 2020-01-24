@@ -99,6 +99,7 @@ const (
 	StatusCode_SCStreamNotFound                            StatusCode = 1502
 	StatusCode_SCStreamWrongKind                           StatusCode = 1503
 	StatusCode_SCStreamEOF                                 StatusCode = 1504
+	StatusCode_SCStreamUnknown                             StatusCode = 1505
 	StatusCode_SCGenericAPIError                           StatusCode = 1600
 	StatusCode_SCAPINetworkError                           StatusCode = 1601
 	StatusCode_SCTimeout                                   StatusCode = 1602
@@ -335,6 +336,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCStreamNotFound":            1502,
 	"SCStreamWrongKind":           1503,
 	"SCStreamEOF":                 1504,
+	"SCStreamUnknown":             1505,
 	"SCGenericAPIError":           1600,
 	"SCAPINetworkError":           1601,
 	"SCTimeout":                   1602,
@@ -569,6 +571,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	1502: "SCStreamNotFound",
 	1503: "SCStreamWrongKind",
 	1504: "SCStreamEOF",
+	1505: "SCStreamUnknown",
 	1600: "SCGenericAPIError",
 	1601: "SCAPINetworkError",
 	1602: "SCTimeout",

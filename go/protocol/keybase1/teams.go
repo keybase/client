@@ -363,6 +363,7 @@ type TeamMember struct {
 	Role        TeamRole         `codec:"role" json:"role"`
 	EldestSeqno Seqno            `codec:"eldestSeqno" json:"eldestSeqno"`
 	Status      TeamMemberStatus `codec:"status" json:"status"`
+	BotSettings *TeamBotSettings `codec:"botSettings,omitempty" json:"botSettings,omitempty"`
 }
 
 func (o TeamMember) DeepCopy() TeamMember {
@@ -371,6 +372,13 @@ func (o TeamMember) DeepCopy() TeamMember {
 		Role:        o.Role.DeepCopy(),
 		EldestSeqno: o.EldestSeqno.DeepCopy(),
 		Status:      o.Status.DeepCopy(),
+		BotSettings: (func(x *TeamBotSettings) *TeamBotSettings {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.BotSettings),
 	}
 }
 
@@ -582,6 +590,7 @@ func (o TeamMembersDetails) DeepCopy() TeamMembersDetails {
 }
 
 type TeamDetails struct {
+	Name                   string                               `codec:"name" json:"name"`
 	Members                TeamMembersDetails                   `codec:"members" json:"members"`
 	KeyGeneration          PerTeamKeyGeneration                 `codec:"keyGeneration" json:"keyGeneration"`
 	AnnotatedActiveInvites map[TeamInviteID]AnnotatedTeamInvite `codec:"annotatedActiveInvites" json:"annotatedActiveInvites"`
@@ -591,6 +600,7 @@ type TeamDetails struct {
 
 func (o TeamDetails) DeepCopy() TeamDetails {
 	return TeamDetails{
+		Name:          o.Name,
 		Members:       o.Members.DeepCopy(),
 		KeyGeneration: o.KeyGeneration.DeepCopy(),
 		AnnotatedActiveInvites: (func(x map[TeamInviteID]AnnotatedTeamInvite) map[TeamInviteID]AnnotatedTeamInvite {
@@ -3534,6 +3544,11 @@ type TeamGetMembersArg struct {
 	Name      string `codec:"name" json:"name"`
 }
 
+type TeamGetMembersByIDArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Id        TeamID `codec:"id" json:"id"`
+}
+
 type TeamImplicitAdminsArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	TeamName  string `codec:"teamName" json:"teamName"`
@@ -3846,6 +3861,7 @@ type TeamsInterface interface {
 	TeamGetByID(context.Context, TeamGetByIDArg) (TeamDetails, error)
 	TeamGet(context.Context, TeamGetArg) (TeamDetails, error)
 	TeamGetMembers(context.Context, TeamGetMembersArg) (TeamMembersDetails, error)
+	TeamGetMembersByID(context.Context, TeamGetMembersByIDArg) (TeamMembersDetails, error)
 	TeamImplicitAdmins(context.Context, TeamImplicitAdminsArg) ([]TeamMemberDetails, error)
 	TeamListUnverified(context.Context, TeamListUnverifiedArg) (AnnotatedTeamList, error)
 	TeamListTeammates(context.Context, TeamListTeammatesArg) (AnnotatedTeamList, error)
@@ -3995,6 +4011,21 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.TeamGetMembers(ctx, typedArgs[0])
+					return
+				},
+			},
+			"teamGetMembersByID": {
+				MakeArg: func() interface{} {
+					var ret [1]TeamGetMembersByIDArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]TeamGetMembersByIDArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]TeamGetMembersByIDArg)(nil), args)
+						return
+					}
+					ret, err = i.TeamGetMembersByID(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -4818,6 +4849,11 @@ func (c TeamsClient) TeamGet(ctx context.Context, __arg TeamGetArg) (res TeamDet
 
 func (c TeamsClient) TeamGetMembers(ctx context.Context, __arg TeamGetMembersArg) (res TeamMembersDetails, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamGetMembers", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c TeamsClient) TeamGetMembersByID(ctx context.Context, __arg TeamGetMembersByIDArg) (res TeamMembersDetails, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamGetMembersByID", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 

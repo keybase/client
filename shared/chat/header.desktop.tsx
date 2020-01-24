@@ -16,7 +16,6 @@ type Props = {
   canEditDesc: boolean
   channel: string | null
   desc: string
-  infoPanelOpen: boolean
   isTeam: boolean
   muted: boolean
   onOpenFolder: () => void
@@ -45,7 +44,9 @@ const descStyleOverride = {
 } as any
 
 const Header = (p: Props) => {
-  let description = !!p.desc && (
+  const {desc, canEditDesc, isTeam, participants, fullName, channel, showActions, muted, username} = p
+  const {onToggleInfoPanel, onToggleThreadSearch, unMuteConversation, onOpenFolder} = p
+  let description = !!desc && (
     <Kb.Markdown
       smallStandaloneEmoji={true}
       style={styles.desc}
@@ -53,17 +54,17 @@ const Header = (p: Props) => {
       lineClamp={1}
       selectable={true}
     >
-      {p.desc}
+      {desc}
     </Kb.Markdown>
   )
-  if (p.isTeam && !p.desc && p.canEditDesc) {
+  if (isTeam && !desc && canEditDesc) {
     description = (
       <Kb.Text selectable={true} type="BodySmall" lineClamp={1}>
         Set a description using the <Kb.Text type="BodySmallBold">/headline</Kb.Text> command.
       </Kb.Text>
     )
   }
-  if (p.isTeam && p.desc && p.canEditDesc) {
+  if (isTeam && desc && canEditDesc) {
     description = (
       <Kb.WithTooltip position="bottom left" tooltip="Set the description using the /headline command.">
         {description}
@@ -72,15 +73,15 @@ const Header = (p: Props) => {
   }
   // length ===1 means just you so show yourself
   const withoutSelf =
-    p.participants && p.participants.length > 1
-      ? p.participants.filter(part => part !== p.username)
-      : p.participants
+    participants && participants.length > 1 ? participants.filter(part => part !== username) : participants
 
   // if there is no description (and is not a 1-on-1), don't render the description box
-  const renderDescription = description || (p.fullName && withoutSelf && withoutSelf.length === 1)
+  const renderDescription = description || (fullName && withoutSelf && withoutSelf.length === 1)
+
+  const infoPanelOpen = Container.useSelector(state => state.chat2.infoPanelShowing)
 
   // trim() call makes sure that string is not just whitespace
-  if (withoutSelf && withoutSelf.length === 1 && p.desc.trim()) {
+  if (withoutSelf && withoutSelf.length === 1 && desc.trim()) {
     description = (
       <Kb.Markdown
         smallStandaloneEmoji={true}
@@ -89,7 +90,7 @@ const Header = (p: Props) => {
         lineClamp={1}
         selectable={true}
       >
-        {p.desc}
+        {desc}
       </Kb.Markdown>
     )
   }
@@ -110,13 +111,13 @@ const Header = (p: Props) => {
           style={renderDescription ? styles.headerTitle : styles.headerTitleNoDesc}
         >
           <Kb.Box2 direction="horizontal" fullWidth={true}>
-            {p.channel ? (
+            {channel ? (
               <Kb.Text selectable={true} type="Header" lineClamp={1}>
-                {p.channel}
+                {channel}
               </Kb.Text>
-            ) : p.fullName ? (
+            ) : fullName ? (
               <Kb.Text type="Header" lineClamp={1}>
-                {p.fullName}
+                {fullName}
               </Kb.Text>
             ) : withoutSelf ? (
               <Kb.Box2 direction="horizontal" style={Styles.globalStyles.flexOne}>
@@ -138,19 +139,19 @@ const Header = (p: Props) => {
                 </Kb.Text>
               </Kb.Box2>
             ) : null}
-            {p.muted && (
+            {muted && (
               <Kb.Icon
                 type="iconfont-shh"
                 style={styles.shhIconStyle}
                 color={Styles.globalColors.black_20}
                 fontSize={20}
-                onClick={p.unMuteConversation}
+                onClick={unMuteConversation}
               />
             )}
           </Kb.Box2>
           {renderDescription && (
             <Kb.Box2 direction="vertical" style={styles.descriptionContainer} fullWidth={true}>
-              {p.fullName && withoutSelf && withoutSelf.length === 1 ? (
+              {fullName && withoutSelf && withoutSelf.length === 1 ? (
                 <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.descriptionTextContainer}>
                   <Kb.ConnectedUsernames
                     colorFollowing={true}
@@ -176,7 +177,7 @@ const Header = (p: Props) => {
             </Kb.Box2>
           )}
         </Kb.Box2>
-        {p.showActions && (
+        {showActions && (
           <Kb.Box2
             direction="horizontal"
             gap="small"
@@ -185,17 +186,17 @@ const Header = (p: Props) => {
             style={styles.actionIcons}
           >
             <Kb.WithTooltip tooltip={`Search in this chat (${Platforms.shortcutSymbol}F)`}>
-              <Kb.Icon style={styles.clickable} type="iconfont-search" onClick={p.onToggleThreadSearch} />
+              <Kb.Icon style={styles.clickable} type="iconfont-search" onClick={onToggleThreadSearch} />
             </Kb.WithTooltip>
             <Kb.WithTooltip tooltip="Open folder">
-              <Kb.Icon style={styles.clickable} type="iconfont-folder-private" onClick={p.onOpenFolder} />
+              <Kb.Icon style={styles.clickable} type="iconfont-folder-private" onClick={onOpenFolder} />
             </Kb.WithTooltip>
             <Kb.WithTooltip tooltip="Chat info & settings">
               <Kb.Icon
+                color={infoPanelOpen ? Styles.globalColors.blue : undefined}
                 style={styles.clickable}
                 type="iconfont-info"
-                onClick={p.onToggleInfoPanel}
-                color={p.infoPanelOpen ? Styles.globalColors.blue : undefined}
+                onClick={onToggleInfoPanel}
               />
             </Kb.WithTooltip>
           </Kb.Box2>
@@ -255,8 +256,10 @@ const Connected = Container.connect(
     const userInfo = state.users.infoMap
     const _meta = Constants.getMeta(state, _conversationIDKey)
     const participantInfo = Constants.getParticipantInfo(state, _conversationIDKey)
+    const {infoPanelShowing} = state.chat2
+    const {username} = state.config
 
-    const otherParticipants = Constants.getRowParticipants(participantInfo, state.config.username)
+    const otherParticipants = Constants.getRowParticipants(participantInfo, username)
     const first: string =
       _meta.teamType === 'adhoc' && otherParticipants.length === 1 ? otherParticipants[0] : ''
     const otherInfo = userInfo.get(first)
@@ -273,44 +276,44 @@ const Connected = Container.connect(
       canEditDesc: TeamConstants.getCanPerform(state, _meta.teamname).editChannelDescription,
       desc,
       fullName,
-      infoPanelOpen: Constants.isInfoPanelOpen(),
+      infoPanelShowing,
       username: state.config.username,
     }
   },
   dispatch => ({
     _onOpenFolder: (conversationIDKey: Types.ConversationIDKey) =>
       dispatch(Chat2Gen.createOpenFolder({conversationIDKey})),
-    onNewChat: () => dispatch(appendNewChatBuilder()),
-    onToggleInfoPanel: () => dispatch(Chat2Gen.createToggleInfoPanel()),
-    onToggleThreadSearch: (conversationIDKey: Types.ConversationIDKey) =>
+    _onToggleThreadSearch: (conversationIDKey: Types.ConversationIDKey) =>
       dispatch(Chat2Gen.createToggleThreadSearch({conversationIDKey})),
-    onUnMuteConversation: (conversationIDKey: Types.ConversationIDKey) =>
+    _unMuteConversation: (conversationIDKey: Types.ConversationIDKey) =>
       dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted: false})),
+    onHideInfoPanel: () => dispatch(Chat2Gen.createShowInfoPanel({show: false})),
+    onNewChat: () => dispatch(appendNewChatBuilder()),
+    onShowInfoPanel: (conversationIDKey: Types.ConversationIDKey) =>
+      dispatch(Chat2Gen.createShowInfoPanel({conversationIDKey, show: true})),
   }),
   (stateProps, dispatchProps, _: OwnProps) => {
-    const meta = stateProps._meta
+    const {infoPanelShowing, username, fullName, desc} = stateProps
+    const {_meta, _conversationIDKey, _participantInfo} = stateProps
+    const {teamType, channelname, teamname, isMuted} = _meta
+    const {_onOpenFolder, _onToggleThreadSearch, _unMuteConversation} = dispatchProps
+    const {onHideInfoPanel, onNewChat, onShowInfoPanel} = dispatchProps
 
     return {
       canEditDesc: stateProps.canEditDesc,
-      channel:
-        meta.teamType === 'big'
-          ? `${meta.teamname}#${meta.channelname}`
-          : meta.teamType === 'small'
-          ? meta.teamname
-          : null,
-      desc: stateProps.desc,
-      fullName: stateProps.fullName,
-      infoPanelOpen: stateProps.infoPanelOpen,
-      isTeam: ['small', 'big'].includes(meta.teamType),
-      muted: meta.isMuted,
-      onNewChat: dispatchProps.onNewChat,
-      onOpenFolder: () => dispatchProps._onOpenFolder(stateProps._conversationIDKey),
-      onToggleInfoPanel: dispatchProps.onToggleInfoPanel,
-      onToggleThreadSearch: () => dispatchProps.onToggleThreadSearch(stateProps._conversationIDKey),
-      participants: meta.teamType === 'adhoc' ? stateProps._participantInfo.name : null,
-      showActions: Constants.isValidConversationIDKey(stateProps._conversationIDKey),
-      unMuteConversation: () => dispatchProps.onUnMuteConversation(stateProps._conversationIDKey),
-      username: stateProps.username,
+      channel: teamType === 'big' ? `${teamname}#${channelname}` : teamType === 'small' ? teamname : null,
+      desc,
+      fullName,
+      isTeam: ['small', 'big'].includes(teamType),
+      muted: isMuted,
+      onNewChat,
+      onOpenFolder: () => _onOpenFolder(_conversationIDKey),
+      onToggleInfoPanel: infoPanelShowing ? onHideInfoPanel : () => onShowInfoPanel(_conversationIDKey),
+      onToggleThreadSearch: () => _onToggleThreadSearch(_conversationIDKey),
+      participants: teamType === 'adhoc' ? _participantInfo.name : null,
+      showActions: Constants.isValidConversationIDKey(_conversationIDKey),
+      unMuteConversation: () => _unMuteConversation(_conversationIDKey),
+      username,
     }
   }
 )(Header)

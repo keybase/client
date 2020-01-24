@@ -3,7 +3,7 @@ import * as Constants from '../../../constants/crypto'
 import * as Types from '../../../constants/types/crypto'
 import * as Kb from '../../../common-adapters'
 import debounce from 'lodash/debounce'
-import {TextInput, FileInput} from '../../input'
+import {TextInput, FileInput, OperationBanner} from '../../input'
 import OperationOutput, {OutputBar, SignedSender} from '../../output'
 
 type Props = {
@@ -18,7 +18,10 @@ type Props = {
   outputSigned: boolean
   outputStatus?: Types.OutputStatus
   outputType?: Types.OutputType
+  progress: number
   username?: string
+  errorMessage: string
+  warningMessage: string
 }
 
 // We want to debuonce the onChangeText callback for our input so we are not sending an RPC on every keystroke
@@ -28,6 +31,7 @@ const Decrypt = (props: Props) => {
   const [inputValue, setInputValue] = React.useState(props.input)
   const onAttach = (localPaths: Array<string>) => {
     // Drag and drop allows for multi-file upload, we only want one file upload
+    setInputValue('')
     props.onSetInput('file', localPaths[0])
   }
   return (
@@ -40,16 +44,20 @@ const Decrypt = (props: Props) => {
         prompt="Drop a file to decrypt"
       >
         <Kb.Box2 direction="vertical" fullHeight={true}>
+          {props.errorMessage && <OperationBanner type="error" message={props.errorMessage} />}
           {props.inputType === 'file' ? (
             <FileInput
               path={props.input}
-              onClearFiles={props.onClearInput}
+              onClearFiles={() => {
+                setInputValue('')
+                props.onClearInput()
+              }}
               operation={Constants.Operations.Decrypt}
             />
           ) : (
             <TextInput
               value={inputValue}
-              placeholder="Paste cipher text or drop an encrypted file"
+              placeholder="Enter ciphertext, drop an encrypted file, or"
               textType="cipher"
               operation={Constants.Operations.Decrypt}
               onSetFile={path => {
@@ -61,10 +69,18 @@ const Decrypt = (props: Props) => {
               }}
             />
           )}
-          <Kb.Divider />
-
+          {props.progress && !props.outputStatus ? (
+            <Kb.ProgressBar ratio={props.progress} style={{width: '100%'}} />
+          ) : (
+            <Kb.Divider />
+          )}
           <Kb.Box2 direction="vertical" fullHeight={true}>
-            <SignedSender signed={true} signedBy={props.outputSender} outputStatus={props.outputStatus} />
+            <SignedSender
+              signed={true}
+              signedBy={props.outputSender}
+              operation={Constants.Operations.Decrypt}
+              outputStatus={props.outputStatus}
+            />
             <OperationOutput
               outputStatus={props.outputStatus}
               output={props.output}
@@ -74,6 +90,7 @@ const Decrypt = (props: Props) => {
               onShowInFinder={props.onShowInFinder}
             />
             <OutputBar
+              operation={Constants.Operations.Decrypt}
               output={props.output}
               outputStatus={props.outputStatus}
               outputType={props.outputType}

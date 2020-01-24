@@ -8,6 +8,7 @@ import (
 
 	"github.com/keybase/client/go/chat/bots"
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 )
@@ -84,10 +85,10 @@ func (b *Bot) Preview(ctx context.Context, uid gregor1.UID, convID chat1.Convers
 			var title *string
 			if cmd.ExtendedDescription.Title != "" {
 				title = new(string)
-				*title = cmd.ExtendedDescription.Title
+				*title = utils.EscapeForDecorate(ctx, cmd.ExtendedDescription.Title)
 			}
 			err := b.getChatUI().ChatCommandMarkdown(ctx, convID, &chat1.UICommandMarkdown{
-				Body:  body,
+				Body:  utils.EscapeForDecorate(ctx, body),
 				Title: title,
 			})
 			if err != nil {

@@ -7,6 +7,8 @@ import {quit} from './ctl.desktop'
 import {isDarwin} from '../../constants/platform'
 import logger from '../../logger'
 import zlib from 'zlib'
+import {TypedActions} from '../../actions/typed-actions-gen'
+import * as FsGen from '../../actions/fs-gen'
 
 const file = path.join(SafeElectron.getApp().getPath('userData'), 'installer.json')
 
@@ -32,7 +34,7 @@ const saveHasPrompted = () => {
   }
 }
 
-const checkErrors = (result, errors, errorTypes) => {
+const checkErrors = (dispatch: (action: TypedActions) => void, result, errors, errorTypes) => {
   // Copied from old constants/favorite.js
   // See Installer.m: KBExitFuseKextError
   const ExitCodeFuseKextError = 4
@@ -40,6 +42,10 @@ const checkErrors = (result, errors, errorTypes) => {
   const ExitCodeFuseKextPermissionError = 5
   // See Installer.m: KBExitAuthCanceledError
   const ExitCodeAuthCanceledError = 6
+  // See Installer.m: KBExitFuseCriticalUpdate
+  const ExitFuseCriticalUpdate = 8
+  // See install_darwin.go: exitCodeFuseCriticalUpdateFailed
+  const ExitFuseCriticalUpdateFailed = 300
 
   const results = (result && result.componentResults) || []
   results.forEach(cr => {
@@ -62,6 +68,16 @@ const checkErrors = (result, errors, errorTypes) => {
       errors.push(
         `Installation was canceled. The file system will not be available until authorization is granted.`
       )
+    } else if (cr.name === 'helper' && cr.exitCode === ExitFuseCriticalUpdate) {
+      logger.info('[Installer] fuse critical update, setting badge')
+      // ignore critical update error, it's just to coerce specific behavior in the Go installer
+      dispatch(FsGen.createSetCriticalUpdate({val: true}))
+      return
+    } else if (cr.name === 'helper' && cr.exitCode === ExitFuseCriticalUpdateFailed) {
+      errorTypes.fuse = true
+      errors.push(
+        `We were unable to perform required KBFS maintenance. This is likely because you are using KBFS mounts on more than one macOS system account on this computer. In order to fix this situation, please quit all running copies of Keybase on all accounts, and try starting Keybase again.`
+      )
     } else if (cr.name === 'cli') {
       errorTypes.cli = true
     } else if (cr.name === 'redirector') {
@@ -80,7 +96,7 @@ const checkErrors = (result, errors, errorTypes) => {
 }
 
 type CB = (err: any) => void
-const darwinInstall = (callback: CB) => {
+const darwinInstall = (dispatch: (action: TypedActions) => void, callback: CB) => {
   logger.info('[Installer]: Installer check starting now')
   const keybaseBin = keybaseBinPath()
   if (!keybaseBin) {
@@ -128,7 +144,7 @@ const darwinInstall = (callback: CB) => {
       try {
         const result = JSON.parse(stdout)
         if (result) {
-          checkErrors(result, errors, errorTypes)
+          checkErrors(dispatch, result, errors, errorTypes)
         } else {
           errors.push(`There was an error trying to run the install. No output.`)
         }

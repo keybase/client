@@ -486,6 +486,19 @@
   color: rgba(255, 255, 255, 0.4);
 }
 
+.text_Nyctographic {
+  font-size: 14px;
+  line-height: 18px;
+  color: rgba(0, 0, 0, 0.85);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: Nyctographic;
+  font-weight: 400;
+}
+.darkMode .text_Nyctographic {
+  color: rgba(255, 255, 255, 0.85);
+}
+
 .text_Terminal {
   font-size: 13px;
   line-height: 20px;

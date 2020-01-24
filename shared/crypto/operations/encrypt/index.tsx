@@ -4,8 +4,9 @@ import * as Types from '../../../constants/types/crypto'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import debounce from 'lodash/debounce'
-import {TextInput, FileInput} from '../../input'
-import OperationOutput, {OutputBar, SignedSender} from '../../output'
+import openURL from '../../../util/open-url'
+import {TextInput, FileInput, OperationBanner} from '../../input'
+import OperationOutput, {OutputBar, OutputInfoBanner, SignedSender} from '../../output'
 import Recipients from '../../recipients/container'
 
 type Props = {
@@ -14,19 +15,26 @@ type Props = {
   noIncludeSelf: boolean
   onClearInput: () => void
   onCopyOutput: (text: string) => void
+  onSaveAsText: () => void
   onShowInFinder: (path: string) => void
   onSetInput: (inputType: Types.InputTypes, inputValue: string) => void
   onSetOptions: (options: Types.EncryptOptions) => void
   options: Types.EncryptOptions
   hasRecipients: boolean
+  hasSBS: boolean
   output: string
   outputStatus?: Types.OutputStatus
   outputType?: Types.OutputType
+  progress: number
+  recipients: Array<string>
   username?: string
+  errorMessage: string
+  warningMessage: string
 }
 
 type EncryptOptionsProps = {
   hasRecipients: boolean
+  hasSBS: boolean
   noIncludeSelf: boolean
   onSetOptions: (options: Types.EncryptOptions) => void
   options: Types.EncryptOptions
@@ -36,21 +44,20 @@ type EncryptOptionsProps = {
 const debounced = debounce((fn, ...args) => fn(...args), 100)
 
 const EncryptOptions = (props: EncryptOptionsProps) => {
-  const {hasRecipients, noIncludeSelf, onSetOptions, options} = props
+  const {hasRecipients, hasSBS, noIncludeSelf, onSetOptions, options} = props
   const {includeSelf, sign} = options
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} gap="medium" style={styles.optionsContainer}>
       {noIncludeSelf ? null : (
         <Kb.Checkbox
           label="Include yourself"
-          disabled={!hasRecipients}
-          checked={includeSelf}
+          disabled={hasSBS || !hasRecipients}
+          checked={hasSBS || includeSelf}
           onCheck={newValue => onSetOptions({includeSelf: newValue, sign})}
         />
       )}
       <Kb.Checkbox
         label="Sign"
-        disabled={!hasRecipients}
         checked={sign}
         onCheck={newValue => onSetOptions({includeSelf, sign: newValue})}
       />
@@ -61,8 +68,17 @@ const EncryptOptions = (props: EncryptOptionsProps) => {
 const Encrypt = (props: Props) => {
   const [inputValue, setInputValue] = React.useState(props.input)
   const onAttach = (localPaths: Array<string>) => {
+    // Drag and drop allows for multi-file upload, we only want one file upload
+    setInputValue('')
     props.onSetInput('file', localPaths[0])
   }
+  const youAnd = (who: string) => (props.options.includeSelf ? `you and ${who}` : who)
+  const whoCanRead = props.hasRecipients
+    ? ` Only ${
+        props.recipients?.length > 1 ? youAnd('your recipients') : youAnd(props.recipients[0])
+      } can decipher it.`
+    : ''
+  const bannertype = props.errorMessage ? 'error' : props.warningMessage ? 'warning' : 'info'
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
       <Kb.DragAndDrop
@@ -72,41 +88,72 @@ const Encrypt = (props: Props) => {
         onAttach={onAttach}
         prompt="Drop a file to encrypt"
       >
+        <OperationBanner
+          type={bannertype}
+          infoMessage="Encrypt to anyone, even if they're not on Keybase yet."
+          message={props.errorMessage || props.warningMessage}
+        />
         <Recipients operation="encrypt" />
         <Kb.Box2 direction="vertical" fullHeight={true}>
           {props.inputType === 'file' ? (
             <FileInput
               path={props.input}
               operation={Constants.Operations.Encrypt}
-              onClearFiles={props.onClearInput}
+              onClearFiles={() => {
+                setInputValue('')
+                props.onClearInput()
+              }}
             />
           ) : (
             <TextInput
               value={inputValue}
-              placeholder="Write, paste, or drop a file you want to encrypt"
-              operation={Constants.Operations.Encrypt}
               textType="plain"
+              placeholder="Enter text, drop a file, or"
+              operation={Constants.Operations.Encrypt}
               onSetFile={path => {
                 props.onSetInput('file', path)
               }}
               onChangeText={text => {
                 setInputValue(text)
-                // props.onSetInput('text', text)
                 debounced(props.onSetInput, 'text', text)
               }}
             />
           )}
           <EncryptOptions
             hasRecipients={props.hasRecipients}
+            hasSBS={props.hasSBS}
             noIncludeSelf={props.noIncludeSelf}
             options={props.options}
             onSetOptions={props.onSetOptions}
           />
-          <Kb.Divider />
+          {props.progress && !props.outputStatus ? (
+            <Kb.ProgressBar ratio={props.progress} style={{width: '100%'}} />
+          ) : (
+            <Kb.Divider />
+          )}
           <Kb.Box2 direction="vertical" fullHeight={true}>
+            <OutputInfoBanner operation={Constants.Operations.Encrypt} outputStatus={props.outputStatus}>
+              <Kb.BannerParagraph
+                bannerColor="grey"
+                content={[
+                  `This is your encrypted ${props.outputType === 'file' ? 'file' : 'message'}, using `,
+                  {
+                    onClick: () => openURL(Constants.saltpackDocumentation),
+                    text: 'Saltpack',
+                  },
+                  '.',
+                  props.outputType == 'text' ? " It's also called ciphertext." : '',
+                ]}
+              />
+              <Kb.BannerParagraph
+                bannerColor="grey"
+                content={[props.hasRecipients ? ' Share it however you like.' : null, whoCanRead]}
+              />
+            </OutputInfoBanner>
             <SignedSender
               signed={props.options.sign}
               signedBy={props.username}
+              operation={Constants.Operations.Encrypt}
               outputStatus={props.outputStatus}
             />
             <OperationOutput
@@ -118,10 +165,12 @@ const Encrypt = (props: Props) => {
               onShowInFinder={props.onShowInFinder}
             />
             <OutputBar
+              operation={Constants.Operations.Encrypt}
               output={props.output}
               outputStatus={props.outputStatus}
               outputType={props.outputType}
               onCopyOutput={props.onCopyOutput}
+              onSaveAsText={props.onSaveAsText}
               onShowInFinder={props.onShowInFinder}
             />
           </Kb.Box2>
@@ -134,6 +183,10 @@ const Encrypt = (props: Props) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      banner: {
+        ...Styles.padding(Styles.globalMargins.tiny),
+        minHeight: 40,
+      },
       coverOutput: {
         ...Styles.globalStyles.flexBoxCenter,
       },

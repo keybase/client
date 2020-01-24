@@ -117,6 +117,7 @@ func (n NullConfiguration) GetSlowGregorConn() (bool, bool)                     
 func (n NullConfiguration) GetReadDeletedSigChain() (bool, bool)                  { return false, false }
 func (n NullConfiguration) GetRememberPassphrase(NormalizedUsername) (bool, bool) { return false, false }
 func (n NullConfiguration) GetLevelDBNumFiles() (int, bool)                       { return 0, false }
+func (n NullConfiguration) GetLevelDBWriteBufferMB() (int, bool)                  { return 4, false }
 func (n NullConfiguration) GetChatInboxSourceLocalizeThreads() (int, bool)        { return 1, false }
 func (n NullConfiguration) GetAttachmentHTTPStartPort() (int, bool)               { return 0, false }
 func (n NullConfiguration) GetAttachmentDisableMulti() (bool, bool)               { return false, false }
@@ -1348,6 +1349,14 @@ func (e *Env) GetLevelDBNumFiles() int {
 	)
 }
 
+func (e *Env) GetLevelDBWriteBufferMB() int {
+	return e.GetInt(LevelDBWriteBufferMB,
+		e.cmd.GetLevelDBWriteBufferMB,
+		func() (int, bool) { return e.getEnvInt("KEYBASE_LEVELDB_WRITE_BUFFER_MB") },
+		e.GetConfig().GetLevelDBWriteBufferMB,
+	)
+}
+
 func (e *Env) GetLinkCacheCleanDur() time.Duration {
 	return e.GetDuration(LinkCacheCleanDur,
 		func() (time.Duration, bool) { return e.getEnvDuration("KEYBASE_LINK_CACHE_CLEAN_DUR") },
@@ -1780,6 +1789,8 @@ type AppConfig struct {
 	DisableMerkleAuditor           bool
 	DisableTeamBoxAuditor          bool
 	DisableEKBackgroundKeygen      bool
+	LevelDBWriteBufferMB           int
+	LevelDBNumFiles                int
 }
 
 var _ CommandLine = AppConfig{}
@@ -1863,10 +1874,18 @@ func (c AppConfig) GetChatOutboxStorageEngine() string {
 	return ""
 }
 
-// Default is 500, compacted size of each file is 2MB, so turning
-// this down on mobile to reduce mem usage.
+func (c AppConfig) GetLevelDBWriteBufferMB() (int, bool) {
+	if c.LevelDBWriteBufferMB > 0 {
+		return c.LevelDBWriteBufferMB, true
+	}
+	return LevelDBWriteBufferMBMobile, true
+}
+
 func (c AppConfig) GetLevelDBNumFiles() (int, bool) {
-	return 50, true
+	if c.LevelDBNumFiles > 0 {
+		return c.LevelDBNumFiles, true
+	}
+	return LevelDBNumFiles, true
 }
 
 func (c AppConfig) GetAttachmentHTTPStartPort() (int, bool) {

@@ -3,11 +3,15 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import {Props} from './participant-rekey.types'
 
-const Row = ({username, onUsernameClicked}) => (
-  <Kb.Box style={styles.row} onClick={() => onUsernameClicked(username)}>
-    <Kb.Avatar username={username} size={48} style={{marginRight: Styles.globalMargins.small, padding: 4}} />
+const Row = (props: {username: string; onUsernameClicked: (s: string) => void}) => (
+  <Kb.Box style={styles.row} onClick={() => props.onUsernameClicked(props.username)}>
+    <Kb.Avatar
+      username={props.username}
+      size={48}
+      style={{marginRight: Styles.globalMargins.small, padding: 4}}
+    />
     <Kb.Box style={styles.innerRow}>
-      <Kb.ConnectedUsernames inline={true} type="BodySemibold" usernames={[username]} />
+      <Kb.ConnectedUsernames inline={true} type="BodySemibold" usernames={[props.username]} />
       <Kb.Text type="BodySmall" style={Styles.platformStyles({isElectron: {lineHeight: '17px'}})}>
         Can rekey this chat by opening the Keybase app.
       </Kb.Text>

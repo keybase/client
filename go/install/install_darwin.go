@@ -52,6 +52,10 @@ const (
 
 	// See osx/Installer/Installer.m : KBExitAuthCanceledError
 	installHelperExitCodeAuthCanceled int = 6
+	// See osx/Installer/Installer.m : KBExitFuseCriticalUpdate
+	installHelperExitCodeFuseCriticalUpdate int = 8
+	// our own exit code
+	exitCodeFuseCriticalUpdateFailed int = 300
 )
 
 // KeybaseServiceStatus returns service status for Keybase service
@@ -523,9 +527,20 @@ func Install(context Context, binPath string, sourcePath string, components []st
 		if err != nil {
 			log.Errorf("Error installing Helper: %v", err)
 		}
-		if cr.ExitCode == installHelperExitCodeAuthCanceled {
+		shouldUninstallKBFS := false
+		shouldUninstallHelper := false
+		switch cr.ExitCode {
+		case installHelperExitCodeAuthCanceled:
 			log.Debug("Auth canceled; uninstalling mountdir and fuse")
 			helperCanceled = true
+			shouldUninstallKBFS = true
+		case installHelperExitCodeFuseCriticalUpdate:
+			log.Debug("FUSE critical update; uninstalling mountdir and fuse")
+			shouldUninstallKBFS = true
+			helperCanceled = true
+			shouldUninstallHelper = true
+		}
+		if shouldUninstallKBFS {
 			// Unmount the user's KBFS directory.
 			mountDir, err := context.GetMountDir()
 			if err == nil {
@@ -566,6 +581,21 @@ func Install(context Context, binPath string, sourcePath string, components []st
 			err = libnativeinstaller.UninstallFuse(context.GetRunMode(), log)
 			if err != nil {
 				log.Errorf("Error uninstalling FUSE: %s", err)
+				if shouldUninstallKBFS {
+					log.Errorf("Returning critical update failure result since FUSE uninstall failed")
+					return newInstallResult([]keybase1.ComponentResult{{
+						Name: "helper",
+						Status: keybase1.StatusFromCode(keybase1.StatusCode_SCGeneric,
+							"FUSE uninstall failed"),
+						ExitCode: exitCodeFuseCriticalUpdateFailed,
+					}})
+				}
+			}
+		}
+		if shouldUninstallHelper {
+			err = libnativeinstaller.UninstallHelper(context.GetRunMode(), log)
+			if err != nil {
+				log.Errorf("Error uninstalling helper: %s", err)
 			}
 		}
 	}
