@@ -148,7 +148,7 @@ func (db *SettingsDB) Settings(ctx context.Context) (keybase1.FSSettings, error)
 		}
 	default:
 		db.logger.CWarningf(ctx,
-			"reading notificationThreshold from leveldb error: %v", err)
+			"reading notificationThreshold from leveldb error: %+v", err)
 		return keybase1.FSSettings{}, err
 	}
 
@@ -167,7 +167,7 @@ func (db *SettingsDB) Settings(ctx context.Context) (keybase1.FSSettings, error)
 		}
 	default:
 		db.logger.CWarningf(ctx,
-			"reading sfmiBannerDismissed from leveldb error: %v", err)
+			"reading sfmiBannerDismissed from leveldb error: %+v", err)
 		return keybase1.FSSettings{}, err
 	}
 
