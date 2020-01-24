@@ -1520,6 +1520,7 @@ function* threadSearch(
           maxHits: 1000,
           maxMessages: -1,
           maxNameConvs: 0,
+          maxTeams: 0,
           reindexMode: RPCChatTypes.ReIndexingMode.postsearchSync,
           sentAfter: 0,
           sentBefore: 0,
@@ -1708,6 +1709,7 @@ function* inboxSearch(_: Container.TypedState, action: Chat2Gen.InboxSearchPaylo
             query.stringValue().length > 0
               ? Constants.inboxSearchMaxNameResults
               : Constants.inboxSearchMaxUnreadNameResults,
+          maxTeams: 0,
           reindexMode: RPCChatTypes.ReIndexingMode.postsearchSync,
           sentAfter: 0,
           sentBefore: 0,

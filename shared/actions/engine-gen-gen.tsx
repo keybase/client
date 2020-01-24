@@ -32,6 +32,7 @@ export const chat1ChatUiChatSearchInboxDone = 'engine-gen:chat1ChatUiChatSearchI
 export const chat1ChatUiChatSearchInboxHit = 'engine-gen:chat1ChatUiChatSearchInboxHit'
 export const chat1ChatUiChatSearchInboxStart = 'engine-gen:chat1ChatUiChatSearchInboxStart'
 export const chat1ChatUiChatSearchIndexStatus = 'engine-gen:chat1ChatUiChatSearchIndexStatus'
+export const chat1ChatUiChatSearchTeamHits = 'engine-gen:chat1ChatUiChatSearchTeamHits'
 export const chat1ChatUiChatShowManageChannels = 'engine-gen:chat1ChatUiChatShowManageChannels'
 export const chat1ChatUiChatStellarDataConfirm = 'engine-gen:chat1ChatUiChatStellarDataConfirm'
 export const chat1ChatUiChatStellarDataError = 'engine-gen:chat1ChatUiChatStellarDataError'
@@ -439,6 +440,15 @@ type _Chat1ChatUiChatSearchIndexStatusPayload = {
   response: {
     error: chat1Types.IncomingErrorCallback
     result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatSearchIndexStatus']['outParam']) => void
+  }
+}
+type _Chat1ChatUiChatSearchTeamHitsPayload = {
+  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatSearchTeamHits']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: chat1Types.IncomingErrorCallback
+    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatSearchTeamHits']['outParam']) => void
   }
 }
 type _Chat1ChatUiChatShowManageChannelsPayload = {
@@ -1982,6 +1992,9 @@ export const createChat1ChatUiChatSearchInboxStart = (
 export const createChat1ChatUiChatSearchIndexStatus = (
   payload: _Chat1ChatUiChatSearchIndexStatusPayload
 ): Chat1ChatUiChatSearchIndexStatusPayload => ({payload, type: chat1ChatUiChatSearchIndexStatus})
+export const createChat1ChatUiChatSearchTeamHits = (
+  payload: _Chat1ChatUiChatSearchTeamHitsPayload
+): Chat1ChatUiChatSearchTeamHitsPayload => ({payload, type: chat1ChatUiChatSearchTeamHits})
 export const createChat1ChatUiChatShowManageChannels = (
   payload: _Chat1ChatUiChatShowManageChannelsPayload
 ): Chat1ChatUiChatShowManageChannelsPayload => ({payload, type: chat1ChatUiChatShowManageChannels})
@@ -2741,6 +2754,10 @@ export type Chat1ChatUiChatSearchIndexStatusPayload = {
   readonly payload: _Chat1ChatUiChatSearchIndexStatusPayload
   readonly type: typeof chat1ChatUiChatSearchIndexStatus
 }
+export type Chat1ChatUiChatSearchTeamHitsPayload = {
+  readonly payload: _Chat1ChatUiChatSearchTeamHitsPayload
+  readonly type: typeof chat1ChatUiChatSearchTeamHits
+}
 export type Chat1ChatUiChatShowManageChannelsPayload = {
   readonly payload: _Chat1ChatUiChatShowManageChannelsPayload
   readonly type: typeof chat1ChatUiChatShowManageChannels
@@ -3483,6 +3500,7 @@ export type Actions =
   | Chat1ChatUiChatSearchInboxHitPayload
   | Chat1ChatUiChatSearchInboxStartPayload
   | Chat1ChatUiChatSearchIndexStatusPayload
+  | Chat1ChatUiChatSearchTeamHitsPayload
   | Chat1ChatUiChatShowManageChannelsPayload
   | Chat1ChatUiChatStellarDataConfirmPayload
   | Chat1ChatUiChatStellarDataErrorPayload

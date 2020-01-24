@@ -30,6 +30,7 @@ func NewCmdTeam(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command 
 		newCmdTeamProfileLoad(cl, g),
 		newCmdTeamFTL(cl, g),
 		newCmdTeamBotSettings(cl, g),
+		newCmdTeamSearch(cl, g),
 	}
 	subcommands = append(subcommands, getBuildSpecificTeamCommands(cl, g)...)
 	return cli.Command{

@@ -1167,6 +1167,10 @@ func (c *ChatUI) ChatSearchConvHits(ctx context.Context, hits chat1.UIChatSearch
 	return nil
 }
 
+func (c *ChatUI) ChatSearchTeamHits(ctx context.Context, hits chat1.UIChatSearchTeamHits) error {
+	return nil
+}
+
 func (c *ChatUI) ChatSearchInboxStart(ctx context.Context) error {
 	return nil
 }

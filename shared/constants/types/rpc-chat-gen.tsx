@@ -223,6 +223,10 @@ export type MessageTypes = {
     inParam: {readonly status: ChatSearchIndexStatus}
     outParam: void
   }
+  'chat.1.chatUi.chatSearchTeamHits': {
+    inParam: {readonly hits: UIChatSearchTeamHits}
+    outParam: void
+  }
   'chat.1.chatUi.chatShowManageChannels': {
     inParam: {readonly teamname: String}
     outParam: void
@@ -1279,7 +1283,7 @@ export type S3Params = {readonly bucket: String; readonly objectKey: String; rea
 export type SealedData = {readonly v: Int; readonly e: Bytes; readonly n: Bytes}
 export type SearchInboxRes = {readonly offline: Boolean; readonly res?: ChatSearchInboxResults | null; readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
 export type SearchInboxResOutput = {readonly results?: ChatSearchInboxResults | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null; readonly rateLimits?: Array<RateLimitRes> | null}
-export type SearchOpts = {readonly isRegex: Boolean; readonly sentBy: String; readonly sentTo: String; readonly matchMentions: Boolean; readonly sentBefore: Gregor1.Time; readonly sentAfter: Gregor1.Time; readonly maxHits: Int; readonly maxMessages: Int; readonly beforeContext: Int; readonly afterContext: Int; readonly initialPagination?: Pagination | null; readonly reindexMode: ReIndexingMode; readonly maxConvsSearched: Int; readonly maxConvsHit: Int; readonly convID?: ConversationID | null; readonly maxNameConvs: Int}
+export type SearchOpts = {readonly isRegex: Boolean; readonly sentBy: String; readonly sentTo: String; readonly matchMentions: Boolean; readonly sentBefore: Gregor1.Time; readonly sentAfter: Gregor1.Time; readonly maxHits: Int; readonly maxMessages: Int; readonly beforeContext: Int; readonly afterContext: Int; readonly initialPagination?: Pagination | null; readonly reindexMode: ReIndexingMode; readonly maxConvsSearched: Int; readonly maxConvsHit: Int; readonly convID?: ConversationID | null; readonly maxNameConvs: Int; readonly maxTeams: Int}
 export type SearchRegexpRes = {readonly offline: Boolean; readonly hits?: Array<ChatSearchHit> | null; readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
 export type SendRes = {readonly message: String; readonly messageID?: MessageID | null; readonly outboxID?: OutboxID | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null; readonly rateLimits?: Array<RateLimitRes> | null}
 export type SenderPrepareOptions = {readonly skipTopicNameState: Boolean; readonly replyTo?: MessageID | null}
@@ -1336,6 +1340,7 @@ export type UIChatPayment = {readonly username: String; readonly fullName: Strin
 export type UIChatPaymentSummary = {readonly xlmTotal: String; readonly displayTotal: String; readonly payments?: Array<UIChatPayment> | null}
 export type UIChatSearchConvHit = {readonly convID: ConvIDStr; readonly teamType: TeamType; readonly name: String; readonly mtime: Gregor1.Time}
 export type UIChatSearchConvHits = {readonly hits?: Array<UIChatSearchConvHit> | null; readonly unreadMatches: Boolean}
+export type UIChatSearchTeamHits = {readonly hits?: Array<Keybase1.TeamSearchItem> | null}
 export type UIChatThreadStatus = {typ: UIChatThreadStatusTyp.none} | {typ: UIChatThreadStatusTyp.server} | {typ: UIChatThreadStatusTyp.validating; validating: Int} | {typ: UIChatThreadStatusTyp.validated}
 export type UICoinFlipAbsenteeError = {readonly absentees?: Array<UICoinFlipErrorParticipant> | null}
 export type UICoinFlipError = {typ: UICoinFlipErrorTyp.generic; generic: String} | {typ: UICoinFlipErrorTyp.absentee; absentee: UICoinFlipAbsenteeError} | {typ: UICoinFlipErrorTyp.timeout} | {typ: UICoinFlipErrorTyp.aborted} | {typ: UICoinFlipErrorTyp.dupreg; dupreg: UICoinFlipErrorParticipant} | {typ: UICoinFlipErrorTyp.dupcommitcomplete; dupcommitcomplete: UICoinFlipErrorParticipant} | {typ: UICoinFlipErrorTyp.dupreveal; dupreveal: UICoinFlipErrorParticipant} | {typ: UICoinFlipErrorTyp.commitmismatch; commitmismatch: UICoinFlipErrorParticipant}
@@ -1418,6 +1423,7 @@ export type IncomingCallMapType = {
   'chat.1.chatUi.chatSearchInboxDone'?: (params: MessageTypes['chat.1.chatUi.chatSearchInboxDone']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.chatUi.chatSearchIndexStatus'?: (params: MessageTypes['chat.1.chatUi.chatSearchIndexStatus']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.chatUi.chatSearchConvHits'?: (params: MessageTypes['chat.1.chatUi.chatSearchConvHits']['inParam'] & {sessionID: number}) => IncomingReturn
+  'chat.1.chatUi.chatSearchTeamHits'?: (params: MessageTypes['chat.1.chatUi.chatSearchTeamHits']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.chatUi.chatConfirmChannelDelete'?: (params: MessageTypes['chat.1.chatUi.chatConfirmChannelDelete']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.chatUi.chatStellarShowConfirm'?: (params: MessageTypes['chat.1.chatUi.chatStellarShowConfirm']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.chatUi.chatStellarDataConfirm'?: (params: MessageTypes['chat.1.chatUi.chatStellarDataConfirm']['inParam'] & {sessionID: number}) => IncomingReturn
@@ -1478,6 +1484,7 @@ export type CustomResponseIncomingCallMap = {
   'chat.1.chatUi.chatSearchInboxDone'?: (params: MessageTypes['chat.1.chatUi.chatSearchInboxDone']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatSearchInboxDone']['outParam']) => void}) => IncomingReturn
   'chat.1.chatUi.chatSearchIndexStatus'?: (params: MessageTypes['chat.1.chatUi.chatSearchIndexStatus']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatSearchIndexStatus']['outParam']) => void}) => IncomingReturn
   'chat.1.chatUi.chatSearchConvHits'?: (params: MessageTypes['chat.1.chatUi.chatSearchConvHits']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatSearchConvHits']['outParam']) => void}) => IncomingReturn
+  'chat.1.chatUi.chatSearchTeamHits'?: (params: MessageTypes['chat.1.chatUi.chatSearchTeamHits']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatSearchTeamHits']['outParam']) => void}) => IncomingReturn
   'chat.1.chatUi.chatConfirmChannelDelete'?: (params: MessageTypes['chat.1.chatUi.chatConfirmChannelDelete']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatConfirmChannelDelete']['outParam']) => void}) => IncomingReturn
   'chat.1.chatUi.chatStellarShowConfirm'?: (params: MessageTypes['chat.1.chatUi.chatStellarShowConfirm']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatStellarShowConfirm']['outParam']) => void}) => IncomingReturn
   'chat.1.chatUi.chatStellarDataConfirm'?: (params: MessageTypes['chat.1.chatUi.chatStellarDataConfirm']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['chat.1.chatUi.chatStellarDataConfirm']['outParam']) => void}) => IncomingReturn
@@ -1591,6 +1598,7 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.chatUi.chatSearchInboxDone'
 // 'chat.1.chatUi.chatSearchIndexStatus'
 // 'chat.1.chatUi.chatSearchConvHits'
+// 'chat.1.chatUi.chatSearchTeamHits'
 // 'chat.1.chatUi.chatConfirmChannelDelete'
 // 'chat.1.chatUi.chatStellarShowConfirm'
 // 'chat.1.chatUi.chatStellarDataConfirm'

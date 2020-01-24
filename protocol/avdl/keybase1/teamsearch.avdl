@@ -9,6 +9,8 @@ protocol teamSearch {
         union { null, string } description;
         int memberCount;
         Time lastActive;
+        boolean inTeam;
+        array<string> publicAdmins;
     }
 
     record TeamSearchRes {

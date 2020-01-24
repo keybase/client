@@ -33,6 +33,17 @@
         {
           "type": "Time",
           "name": "lastActive"
+        },
+        {
+          "type": "boolean",
+          "name": "inTeam"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "publicAdmins"
         }
       ]
     },
