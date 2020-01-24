@@ -136,6 +136,14 @@ func (e *PGPEncrypt) Run(m libkb.MetaContext) error {
 	ks := newKeyset()
 	e.warnings = libkb.HashSecurityWarnings{}
 
+	if mykey != nil {
+		if w := mykey.SecurityWarnings(
+			libkb.HashSecurityWarningOurIdentityHash,
+		); len(w) > 0 {
+			e.warnings = append(e.warnings, w...)
+		}
+	}
+
 	for _, up := range uplus {
 		for _, k := range up.Keys {
 			if len(k.Entity.Revocations)+len(k.Entity.UnverifiedRevocations) > 0 {

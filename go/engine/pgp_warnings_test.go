@@ -2,6 +2,7 @@ package engine
 
 import (
 	"crypto"
+	"io/ioutil"
 	"strings"
 	"testing"
 	"time"
@@ -85,10 +86,10 @@ func generateOpenPGPEntity(ts time.Time, hash crypto.Hash, accepts []crypto.Hash
 type encryptTest struct {
 	Name string // Name of the test
 
-	// Signer's hash will be always SHA256
 	DigestHash crypto.Hash // Hash used for msg digests
-	BobsHash   crypto.Hash // Hash used to self-sign the recipient's sig
-	Count      int         // How many warnings are expected
+	AlicesHash crypto.Hash
+	BobsHash   crypto.Hash
+	Count      int // How many warnings are expected
 
 	Mode  string // either encrypt, encrypt-and-sign
 	Known bool   // whether to check for the key on keybase
@@ -112,26 +113,28 @@ func (e encryptTest) test(t *testing.T, users map[string]map[crypto.Hash]*pgpWar
 	if _, ok := users["alice"]; !ok {
 		users["alice"] = map[crypto.Hash]*pgpWarningsUserBundle{}
 	}
-	if _, ok := users["alice"][crypto.SHA256]; !ok {
+	if _, ok := users["alice"][e.AlicesHash]; !ok {
 		tc := SetupEngineTest(t, "PGPEncrypt")
+		tc.Tp.APIHeaders = map[string]string{"X-Keybase-Sigchain-Compatibility": "1"}
 
 		// Generate Alice's keypair. It'll always be SHA256 as we don't allow
 		// the generation of weaker selfsigs in Keybase itself.
-		aliceKeys, err := generateOpenPGPEntity(now, crypto.SHA256, supportedHashes)
+		aliceKeys, err := generateOpenPGPEntity(now, e.AlicesHash, supportedHashes)
 		require.NoError(t, err, "alice's keys generation")
 		aliceBundle := libkb.NewPGPKeyBundle(aliceKeys)
 
 		u := createFakeUserWithPGPSibkeyPregen(tc, aliceBundle)
 
-		users["alice"][crypto.SHA256] = &pgpWarningsUserBundle{
+		users["alice"][e.AlicesHash] = &pgpWarningsUserBundle{
 			tc:   tc,
 			key:  aliceBundle,
 			user: u,
 		}
 	}
-	alice := users["alice"][crypto.SHA256]
+	alice := users["alice"][e.AlicesHash]
 
-	// We'll only run engines as Alice because Bob is a phony who uses SHA1
+	// We'll only run engines as Alice because Bob ~is a phony who uses SHA1~.
+	// 24-01-2019: We're also phonies :(
 	m := NewMetaContextForTest(alice.tc).WithUIs(libkb.UIs{
 		LogUI: alice.tc.G.UI.GetLogUI(),
 		IdentifyUI: &FakeIdentifyUI{
@@ -191,10 +194,25 @@ func (e encryptTest) test(t *testing.T, users map[string]map[crypto.Hash]*pgpWar
 			NoSign: e.Mode == "encrypt",
 		}
 		eng := NewPGPEncrypt(alice.tc.G, arg)
-		require.NoErrorf(t, RunEngine2(m, eng), "engine failure %s", e.Name)
+		require.NoErrorf(t, RunEngine2(m, eng), "engine failure [%s]", e.Name)
 
-		require.Greater(t, len(sink.Bytes()), 0, "no output")
-		require.Len(t, eng.warnings, e.Count, "warnings count")
+		require.Greaterf(t, len(sink.Bytes()), 0, "no output [%s]", e.Name)
+		require.Lenf(t, eng.warnings, e.Count, "warnings count [%s]", e.Name)
+		return
+	}
+
+	// "Sign" simply runs engine.PGPSign
+	if e.Mode == "sign" {
+		sink := libkb.NewBufferCloser()
+		arg := &PGPSignArg{
+			Source: ioutil.NopCloser(strings.NewReader(pgpWarningsMsg)),
+			Sink:   sink,
+		}
+		eng := NewPGPSignEngine(alice.tc.G, arg)
+		require.NoErrorf(t, RunEngine2(m, eng), "engine failure [%s]", e.Name)
+
+		require.Greaterf(t, len(sink.Bytes()), 0, "no output [%s]", e.Name)
+		require.Lenf(t, eng.warnings, e.Count, "warnings count [%s]", e.Name)
 		return
 	}
 
@@ -226,17 +244,17 @@ func (e encryptTest) test(t *testing.T, users map[string]map[crypto.Hash]*pgpWar
 			bob.key.PrivateKey,
 			cfg,
 		)
-		require.NoError(t, err, "clearsign failure")
+		require.NoErrorf(t, err, "clearsign failure [%s]", e.Name)
 		_, err = clearsignInput.Write([]byte(pgpWarningsMsg))
-		require.NoError(t, err, "writing to clearsign")
-		require.NoError(t, err, clearsignInput.Close())
+		require.NoErrorf(t, err, "writing to clearsign [%s]", e.Name)
+		require.NoErrorf(t, clearsignInput.Close(), "finishing clearsign [%s]", e.Name)
 		arg := &PGPVerifyArg{
 			Source:   clearsignSink,
 			SignedBy: signedBy,
 		}
 		eng := NewPGPVerify(alice.tc.G, arg)
-		require.NoError(t, RunEngine2(m, eng), "engine failure %s", e.Name)
-		require.Lenf(t, eng.SignatureStatus().Warnings, e.Count, "warnings count %s", e.Name)
+		require.NoErrorf(t, RunEngine2(m, eng), "engine failure [%s]", e.Name)
+		require.Lenf(t, eng.SignatureStatus().Warnings, e.Count, "warnings count [%s]", e.Name)
 
 		// Then process the attached sig
 		attachedInput, _, err := libkb.ArmoredAttachedSign(
@@ -245,17 +263,17 @@ func (e encryptTest) test(t *testing.T, users map[string]map[crypto.Hash]*pgpWar
 			nil,
 			cfg,
 		)
-		require.NoError(t, err, "attached sign failure")
-		require.NoError(t, err, attachedInput.Close())
+		require.NoErrorf(t, err, "attached sign failure [%s]", e.Name)
 		_, err = attachedInput.Write([]byte(pgpWarningsMsg))
-		require.NoError(t, err, "writing to attached signer")
+		require.NoErrorf(t, err, "writing to attached signer [%s]", e.Name)
+		require.NoErrorf(t, attachedInput.Close(), "writing to attached sign [%s]", e.Name)
 		arg = &PGPVerifyArg{
 			Source:   attachedSink,
 			SignedBy: signedBy,
 		}
 		eng = NewPGPVerify(alice.tc.G, arg)
-		require.NoError(t, RunEngine2(m, eng), "engine failure %s", e.Name)
-		require.Lenf(t, eng.SignatureStatus().Warnings, e.Count, "warnings count %s", e.Name)
+		require.NoErrorf(t, RunEngine2(m, eng), "engine failure [%s]", e.Name)
+		require.Lenf(t, eng.SignatureStatus().Warnings, e.Count, "warnings count [%s]", e.Name)
 
 		// Detached signatures are probably the easiest
 		require.NoError(t, openpgp.ArmoredDetachSignText(
@@ -270,8 +288,8 @@ func (e encryptTest) test(t *testing.T, users map[string]map[crypto.Hash]*pgpWar
 			SignedBy:  signedBy,
 		}
 		eng = NewPGPVerify(alice.tc.G, arg)
-		require.NoError(t, RunEngine2(m, eng), "engine failure %s", e.Name)
-		require.Lenf(t, eng.SignatureStatus().Warnings, e.Count, "warnings count %s", e.Name)
+		require.NoErrorf(t, RunEngine2(m, eng), "engine failure [%s]", e.Name)
+		require.Lenf(t, eng.SignatureStatus().Warnings, e.Count, "warnings count [%s]", e.Name)
 
 		return
 	}
@@ -299,10 +317,10 @@ func (e encryptTest) test(t *testing.T, users map[string]map[crypto.Hash]*pgpWar
 			bob.key.PrivateKey,
 			cfg,
 		)
-		require.NoError(t, err, "clearsign failure")
+		require.NoErrorf(t, err, "clearsign failure [%s]", e.Name)
 		_, err = clearsignInput.Write([]byte(pgpWarningsMsg))
-		require.NoError(t, err, "writing to clearsign")
-		require.NoError(t, err, clearsignInput.Close())
+		require.NoErrorf(t, err, "writing to clearsign [%s]", e.Name)
+		require.NoErrorf(t, clearsignInput.Close(), "finishing clearsign [%s]", e.Name)
 		arg := &PGPDecryptArg{
 			Sink:         clearsignOutputSink,
 			Source:       clearsignSink,
@@ -310,11 +328,11 @@ func (e encryptTest) test(t *testing.T, users map[string]map[crypto.Hash]*pgpWar
 			SignedBy:     signedBy,
 		}
 		eng := NewPGPDecrypt(alice.tc.G, arg)
-		require.NoError(t, RunEngine2(m, eng), "engine failure %s", e.Name)
+		require.NoErrorf(t, RunEngine2(m, eng), "engine failure [%s]", e.Name)
 
 		// TODO: Y2K-1334 Fix this test
-		//require.Lenf(t, eng.SignatureStatus().Warnings, e.Count, "warnings count %s", e.Name)
-		//require.Equal(t, []byte(pgpWarningsMsg), clearsignOutputSink.Bytes(), "output should be the same as the input")
+		//require.Lenf(t, eng.SignatureStatus().Warnings, e.Count, "warnings count [%s]", e.Name)
+		//require.Equalf(t, []byte(pgpWarningsMsg), clearsignOutputSink.Bytes(), "output should be the same as the input [%s]", e.Name)
 
 		// Then process the attached sig
 		attachedInput, _, err := libkb.ArmoredAttachedSign(
@@ -323,10 +341,10 @@ func (e encryptTest) test(t *testing.T, users map[string]map[crypto.Hash]*pgpWar
 			nil,
 			cfg,
 		)
-		require.NoError(t, err, "attached sign failure")
+		require.NoErrorf(t, err, "attached sign failure [%s]", e.Name)
 		_, err = attachedInput.Write([]byte(pgpWarningsMsg))
-		require.NoError(t, err, attachedInput.Close())
-		require.NoError(t, err, "writing to attached signer")
+		require.NoErrorf(t, err, "writing to attached signer [%s]", e.Name)
+		require.NoErrorf(t, attachedInput.Close(), "closing the attached signer [%s]", e.Name)
 		arg = &PGPDecryptArg{
 			Sink:         attachedOutputSink,
 			Source:       attachedSink,
@@ -334,9 +352,9 @@ func (e encryptTest) test(t *testing.T, users map[string]map[crypto.Hash]*pgpWar
 			SignedBy:     signedBy,
 		}
 		eng = NewPGPDecrypt(alice.tc.G, arg)
-		require.NoError(t, RunEngine2(m, eng), "engine failure %s", e.Name)
-		require.Lenf(t, eng.SignatureStatus().Warnings, e.Count, "warnings count %s", e.Name)
-		require.Equal(t, []byte(pgpWarningsMsg), attachedOutputSink.Bytes(), "output should be the same as the input")
+		require.NoErrorf(t, RunEngine2(m, eng), "engine failure [%s]", e.Name)
+		require.Lenf(t, eng.SignatureStatus().Warnings, e.Count, "warnings count [%s]", e.Name)
+		require.Equalf(t, []byte(pgpWarningsMsg), attachedOutputSink.Bytes(), "output should be the same as the input [%s]", e.Name)
 
 		return
 	}
@@ -349,33 +367,71 @@ func TestPGPWarnings(t *testing.T) {
 	for _, x := range []encryptTest{
 		// Encrypt
 		{
-			Name:     "Encrypt to a SHA1 recipient",
-			BobsHash: crypto.SHA1,
-			Count:    1,
-			Mode:     "encrypt",
-			Known:    true,
+			Name:       "Encrypt to a SHA1 recipient",
+			AlicesHash: crypto.SHA256,
+			BobsHash:   crypto.SHA1,
+			Count:      1,
+			Mode:       "encrypt",
+			Known:      true,
 		},
 
 		// Encrypt and sign
 		{
-			Name:     "Encrypt and sign to a SHA1 recipient",
-			BobsHash: crypto.SHA1,
-			Count:    1,
-			Mode:     "encrypt-and-sign",
-			Known:    true,
+			Name:       "Encrypt and sign to a SHA1 recipient",
+			AlicesHash: crypto.SHA256,
+			BobsHash:   crypto.SHA1,
+			Count:      1,
+			Mode:       "encrypt-and-sign",
+			Known:      true,
 		},
 		{
-			Name:     "Encrypt and sign to a SHA256 recipient",
-			BobsHash: crypto.SHA256,
-			Count:    0,
-			Mode:     "encrypt-and-sign",
-			Known:    true,
+			Name:       "Encrypt and sign to a SHA256 recipient",
+			AlicesHash: crypto.SHA256,
+			BobsHash:   crypto.SHA256,
+			Count:      0,
+			Mode:       "encrypt-and-sign",
+			Known:      true,
+		},
+		{
+			Name:       "Encrypt and sign from SHA1 to a SHA1 recipient",
+			AlicesHash: crypto.SHA1,
+			BobsHash:   crypto.SHA1,
+			Count:      2,
+			Mode:       "encrypt-and-sign",
+			Known:      true,
+		},
+		{
+			Name:       "Encrypt and sign from SHA1 to a SHA256 recipient",
+			AlicesHash: crypto.SHA1,
+			BobsHash:   crypto.SHA256,
+			Count:      1,
+			Mode:       "encrypt-and-sign",
+			Known:      true,
+		},
+
+		// Sign
+		{
+			Name:       "Sign using SHA1",
+			AlicesHash: crypto.SHA1,
+			BobsHash:   crypto.SHA256, // unused
+			Count:      1,
+			Mode:       "sign",
+			Known:      true,
+		},
+		{
+			Name:       "Sign using SHA256",
+			AlicesHash: crypto.SHA256,
+			BobsHash:   crypto.SHA256, // unused
+			Count:      0,
+			Mode:       "sign",
+			Known:      true,
 		},
 
 		// Verify - will run all 3 variants (clearsign / attached / detached)
 		{
 			Name:       "Verification of a SHA1 sig with a SHA1 self-sig",
 			DigestHash: crypto.SHA1,
+			AlicesHash: crypto.SHA256,
 			BobsHash:   crypto.SHA1,
 			Count:      2,
 			Mode:       "verify",
@@ -384,6 +440,7 @@ func TestPGPWarnings(t *testing.T) {
 		{
 			Name:       "Verification of a SHA256 sig with a SHA1 self-sig",
 			DigestHash: crypto.SHA256,
+			AlicesHash: crypto.SHA256,
 			BobsHash:   crypto.SHA1,
 			Count:      1,
 			Mode:       "verify",
@@ -391,6 +448,7 @@ func TestPGPWarnings(t *testing.T) {
 		{
 			Name:       "Verification of a SHA1 sig with a SHA256 self-sig",
 			DigestHash: crypto.SHA1,
+			AlicesHash: crypto.SHA256,
 			BobsHash:   crypto.SHA256,
 			Count:      1,
 			Mode:       "verify",
@@ -399,6 +457,7 @@ func TestPGPWarnings(t *testing.T) {
 		{
 			Name:       "Verification of a SHA1 sig with a SHA256 self-sig (unknown)",
 			DigestHash: crypto.SHA1,
+			AlicesHash: crypto.SHA256,
 			BobsHash:   crypto.SHA256,
 			Count:      1,
 			Mode:       "verify",
@@ -407,6 +466,7 @@ func TestPGPWarnings(t *testing.T) {
 		{
 			Name:       "Verification of a SHA256 sig with a SHA256 self-sig",
 			DigestHash: crypto.SHA256,
+			AlicesHash: crypto.SHA256,
 			BobsHash:   crypto.SHA256,
 			Count:      0,
 			Mode:       "verify",
@@ -416,6 +476,7 @@ func TestPGPWarnings(t *testing.T) {
 		{
 			Name:       "Decryption of a SHA1 sig with a SHA1 self-sig",
 			DigestHash: crypto.SHA1,
+			AlicesHash: crypto.SHA256,
 			BobsHash:   crypto.SHA1,
 			Count:      2,
 			Mode:       "decrypt",
@@ -424,6 +485,7 @@ func TestPGPWarnings(t *testing.T) {
 		{
 			Name:       "Decryption of a SHA256 sig with a SHA1 self-sig",
 			DigestHash: crypto.SHA256,
+			AlicesHash: crypto.SHA256,
 			BobsHash:   crypto.SHA1,
 			Count:      1,
 			Mode:       "decrypt",
@@ -431,6 +493,7 @@ func TestPGPWarnings(t *testing.T) {
 		{
 			Name:       "Decryption of a SHA1 sig with a SHA256 self-sig",
 			DigestHash: crypto.SHA1,
+			AlicesHash: crypto.SHA256,
 			BobsHash:   crypto.SHA256,
 			Count:      1,
 			Mode:       "decrypt",
@@ -439,6 +502,7 @@ func TestPGPWarnings(t *testing.T) {
 		{
 			Name:       "Decryption of a SHA256 sig with a SHA256 self-sig",
 			DigestHash: crypto.SHA256,
+			AlicesHash: crypto.SHA256,
 			BobsHash:   crypto.SHA256,
 			Count:      0,
 			Mode:       "decrypt",

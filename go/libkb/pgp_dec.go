@@ -153,7 +153,7 @@ func pgpDecryptClearsign(g *GlobalContext, source io.Reader, sink io.Writer, kr 
 	}
 
 	// Reexamine the signature to figure out its hash
-	digestHash, signerKeyID, err := ExtractPGPSignatureHashMethod(nil, sigBytes)
+	digestHash, signerKeyID, err := ExtractPGPSignatureHashMethod(kr, sigBytes)
 	if err != nil {
 		return nil, err
 	}
