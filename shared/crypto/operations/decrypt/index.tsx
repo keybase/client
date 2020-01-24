@@ -16,6 +16,7 @@ type Props = {
   output: string
   outputSender?: string
   outputSigned: boolean
+  outputMatchesInput: boolean
   outputStatus?: Types.OutputStatus
   outputType?: Types.OutputType
   progress: number
@@ -87,12 +88,14 @@ const Decrypt = (props: Props) => {
               outputType={props.outputType}
               textType="plain"
               operation={Constants.Operations.Decrypt}
+              outputMatchesInput={props.outputMatchesInput}
               onShowInFinder={props.onShowInFinder}
             />
             <OutputBar
               operation={Constants.Operations.Decrypt}
               output={props.output}
               outputStatus={props.outputStatus}
+              outputMatchesInput={props.outputMatchesInput}
               outputType={props.outputType}
               onCopyOutput={props.onCopyOutput}
               onShowInFinder={props.onShowInFinder}

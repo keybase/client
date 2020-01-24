@@ -41,6 +41,8 @@ export type CommonState = {
   errorMessage: HiddenString
   input: HiddenString
   inputType: InputTypes
+  // to ensure what the user types matches the input
+  outputMatchesInput: boolean
   output: HiddenString
   outputSender?: HiddenString
   outputSigned?: boolean

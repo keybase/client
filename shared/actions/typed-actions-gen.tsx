@@ -308,6 +308,7 @@ export type TypedActionsMap = {
   'crypto:downloadSignedText': crypto.DownloadSignedTextPayload
   'crypto:setRecipients': crypto.SetRecipientsPayload
   'crypto:setInput': crypto.SetInputPayload
+  'crypto:setInputThrottled': crypto.SetInputThrottledPayload
   'crypto:setEncryptOptions': crypto.SetEncryptOptionsPayload
   'crypto:onOperationSuccess': crypto.OnOperationSuccessPayload
   'crypto:onOperationError': crypto.OnOperationErrorPayload
