@@ -507,7 +507,7 @@ const downloadEncryptedText = async (state: TypedState) => {
     ciphertext: output.stringValue(),
   })
   return CryptoGen.createOnOperationSuccess({
-    input: 'none',
+    input: undefined,
     operation: Constants.Operations.Encrypt,
     output: new HiddenString(result),
     outputSender,
@@ -522,7 +522,7 @@ const downloadSignedText = async (state: TypedState) => {
     signedMsg: output.stringValue(),
   })
   return CryptoGen.createOnOperationSuccess({
-    input: 'none',
+    input: undefined,
     operation: Constants.Operations.Sign,
     output: new HiddenString(result),
     outputSender,
