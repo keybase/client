@@ -170,7 +170,7 @@ export const FileInput = (props: FileProps) => {
   )
 }
 
-export const OperationBanner = (props: OperationBannerProps) => {
+export const OperationBanner = React.memo((props: OperationBannerProps) => {
   const color = props.type === 'error' ? 'red' : props.type === 'warning' ? 'yellow' : 'grey'
   return (
     <Kb.Banner color={color} style={styles.banner}>
@@ -180,7 +180,7 @@ export const OperationBanner = (props: OperationBannerProps) => {
       />
     </Kb.Banner>
   )
-}
+})
 
 const styles = Styles.styleSheetCreate(
   () =>

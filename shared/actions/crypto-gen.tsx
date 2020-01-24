@@ -22,6 +22,7 @@ export const saltpackStart = 'crypto:saltpackStart'
 export const saltpackVerify = 'crypto:saltpackVerify'
 export const setEncryptOptions = 'crypto:setEncryptOptions'
 export const setInput = 'crypto:setInput'
+export const setInputThrottled = 'crypto:setInputThrottled'
 export const setRecipients = 'crypto:setRecipients'
 
 // Payload Types
@@ -31,6 +32,7 @@ type _DownloadEncryptedTextPayload = void
 type _DownloadSignedTextPayload = void
 type _OnOperationErrorPayload = {readonly operation: Types.Operations; readonly errorMessage: HiddenString}
 type _OnOperationSuccessPayload = {
+  readonly input: any
   readonly operation: Types.Operations
   readonly output: HiddenString
   readonly outputSender?: HiddenString
@@ -59,6 +61,11 @@ type _SaltpackStartPayload = {readonly filename: HiddenString; readonly operatio
 type _SaltpackVerifyPayload = {readonly input: HiddenString; readonly type: Types.InputTypes}
 type _SetEncryptOptionsPayload = {readonly options: Types.EncryptOptions; readonly noIncludeSelf?: boolean}
 type _SetInputPayload = {
+  readonly operation: Types.Operations
+  readonly type: Types.InputTypes
+  readonly value: HiddenString
+}
+type _SetInputThrottledPayload = {
   readonly operation: Types.Operations
   readonly type: Types.InputTypes
   readonly value: HiddenString
@@ -133,7 +140,7 @@ export const createOnOperationError = (payload: _OnOperationErrorPayload): OnOpe
   type: onOperationError,
 })
 /**
- * On saltpack RPC successful response
+ * On saltpack RPC successful response. input is the operation that started it
  */
 export const createOnOperationSuccess = (payload: _OnOperationSuccessPayload): OnOperationSuccessPayload => ({
   payload,
@@ -173,6 +180,13 @@ export const createClearRecipients = (payload: _ClearRecipientsPayload): ClearRe
 export const createResetOperation = (payload: _ResetOperationPayload): ResetOperationPayload => ({
   payload,
   type: resetOperation,
+})
+/**
+ * Same as setInput but throttled
+ */
+export const createSetInputThrottled = (payload: _SetInputThrottledPayload): SetInputThrottledPayload => ({
+  payload,
+  type: setInputThrottled,
 })
 /**
  * Set input type (text, file) and value on user input. Either keyboard input or drag-and-drop file
@@ -239,6 +253,10 @@ export type SetEncryptOptionsPayload = {
   readonly type: typeof setEncryptOptions
 }
 export type SetInputPayload = {readonly payload: _SetInputPayload; readonly type: typeof setInput}
+export type SetInputThrottledPayload = {
+  readonly payload: _SetInputThrottledPayload
+  readonly type: typeof setInputThrottled
+}
 export type SetRecipientsPayload = {
   readonly payload: _SetRecipientsPayload
   readonly type: typeof setRecipients
@@ -263,5 +281,6 @@ export type Actions =
   | SaltpackVerifyPayload
   | SetEncryptOptionsPayload
   | SetInputPayload
+  | SetInputThrottledPayload
   | SetRecipientsPayload
   | {type: 'common:resetStore', payload: {}}

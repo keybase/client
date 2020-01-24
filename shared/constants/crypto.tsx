@@ -132,6 +132,7 @@ const defaultCommonState = {
   input: new HiddenString(''),
   inputType: 'text' as Types.InputTypes,
   output: new HiddenString(''),
+  outputMatchesInput: false,
   outputSender: undefined,
   outputSigned: false,
   outputStatus: undefined,

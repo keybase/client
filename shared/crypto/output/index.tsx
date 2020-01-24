@@ -16,6 +16,7 @@ type Props = {
 }
 
 type OutputBarProps = {
+  outputMatchesInput: boolean
   onCopyOutput: (text: string) => void
   onSaveAsText?: () => void
   onShowInFinder: (path: string) => void
@@ -87,16 +88,16 @@ export const SignedSender = (props: OutputSignedProps) => {
   )
 }
 
-export const OutputInfoBanner = (props: OutputInfoProps) => {
+export const OutputInfoBanner = React.memo((props: OutputInfoProps) => {
   return props.outputStatus && props.outputStatus === 'success' ? (
     <Kb.Banner color="grey" style={styles.banner}>
       {props.children}
     </Kb.Banner>
   ) : null
-}
+})
 
-export const OutputBar = (props: OutputBarProps) => {
-  const {output, onCopyOutput, onSaveAsText, onShowInFinder} = props
+export const OutputBar = React.memo((props: OutputBarProps) => {
+  const {output, onCopyOutput, onSaveAsText, onShowInFinder, outputMatchesInput} = props
   const waitingKey = Constants.getStringWaitingKey(props.operation)
   const waiting = Container.useAnyWaiting(waitingKey)
   const attachmentRef = React.useRef<Kb.Box2>(null)
@@ -135,12 +136,17 @@ export const OutputBar = (props: OutputBarProps) => {
               <Kb.Button
                 mode="Secondary"
                 label="Copy to clipboard"
-                disabled={waiting}
+                disabled={waiting || !outputMatchesInput}
                 onClick={() => copy()}
               />
             </Kb.Box2>
             {onSaveAsText && (
-              <Kb.Button mode="Secondary" label="Save as TXT" onClick={onSaveAsText} disabled={waiting} />
+              <Kb.Button
+                mode="Secondary"
+                label="Save as TXT"
+                onClick={onSaveAsText}
+                disabled={waiting || !outputMatchesInput}
+              />
             )}
           </Kb.ButtonBar>
         )}
@@ -157,7 +163,7 @@ export const OutputBar = (props: OutputBarProps) => {
       </Kb.ButtonBar>
     </Kb.Box2>
   )
-}
+})
 
 const Output = (props: Props) => {
   const waitingKey = Constants.getStringWaitingKey(props.operation)

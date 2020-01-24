@@ -3,7 +3,6 @@ import * as Constants from '../../../constants/crypto'
 import * as Types from '../../../constants/types/crypto'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import debounce from 'lodash/debounce'
 import openURL from '../../../util/open-url'
 import {TextInput, FileInput, OperationBanner} from '../../input'
 import OperationOutput, {OutputBar, OutputInfoBanner, SignedSender} from '../../output'
@@ -20,6 +19,7 @@ type Props = {
   onSetInput: (inputType: Types.InputTypes, inputValue: string) => void
   onSetOptions: (options: Types.EncryptOptions) => void
   options: Types.EncryptOptions
+  outputMatchesInput: boolean
   hasRecipients: boolean
   hasSBS: boolean
   output: string
@@ -40,10 +40,7 @@ type EncryptOptionsProps = {
   options: Types.EncryptOptions
 }
 
-// We want to debuonce the onChangeText callback for our input so we are not sending an RPC on every keystroke
-const debounced = debounce((fn, ...args) => fn(...args), 100)
-
-const EncryptOptions = (props: EncryptOptionsProps) => {
+const EncryptOptions = React.memo((props: EncryptOptionsProps) => {
   const {hasRecipients, hasSBS, noIncludeSelf, onSetOptions, options} = props
   const {includeSelf, sign} = options
   return (
@@ -63,9 +60,11 @@ const EncryptOptions = (props: EncryptOptionsProps) => {
       />
     </Kb.Box2>
   )
-}
+})
 
 const Encrypt = (props: Props) => {
+  // TODO children should be connected here, don't plumb through all these props for no reason
+  // TODO don't hoist inputValue here. Move it down into TextInput else this whole component renders all the time
   const [inputValue, setInputValue] = React.useState(props.input)
   const onAttach = (localPaths: Array<string>) => {
     // Drag and drop allows for multi-file upload, we only want one file upload
@@ -115,7 +114,7 @@ const Encrypt = (props: Props) => {
               }}
               onChangeText={text => {
                 setInputValue(text)
-                debounced(props.onSetInput, 'text', text)
+                props.onSetInput('text', text)
               }}
             />
           )}
@@ -167,6 +166,7 @@ const Encrypt = (props: Props) => {
             <OutputBar
               operation={Constants.Operations.Encrypt}
               output={props.output}
+              outputMatchesInput={props.outputMatchesInput}
               outputStatus={props.outputStatus}
               outputType={props.outputType}
               onCopyOutput={props.onCopyOutput}
