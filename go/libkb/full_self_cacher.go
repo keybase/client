@@ -284,3 +284,23 @@ func LoadSelfForTeamSignatures(ctx context.Context, g *GlobalContext) (ret UserF
 	})
 	return ret, err
 }
+
+func DeviceDecryptionKeyFromSelfer(m MetaContext) (ret NaclDHKeyPair, err error) {
+	err = m.G().GetFullSelfer().WithSelf(m.Ctx(), func(self *User) error {
+		secretKeyArgDH := SecretKeyArg{
+			Me:      self,
+			KeyType: DeviceEncryptionKeyType,
+		}
+		dhKey, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, m.SecretKeyPromptArg(secretKeyArgDH, "encrypting a message/file"))
+		if err != nil {
+			return err
+		}
+		dhKeypair, ok := dhKey.(NaclDHKeyPair)
+		if !ok || dhKeypair.Private == nil {
+			return NoKeyError{Msg: "no private decryption key found"}
+		}
+		ret = dhKeypair
+		return nil
+	})
+	return NaclDHKeyPair{}, err
+}
