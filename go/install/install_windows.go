@@ -240,7 +240,7 @@ func ToggleAutostart(context Context, on bool, forAutoinstallIgnored bool) error
 		return nil
 	}
 
-	appDataDir, err := libkb.AppDataDir()
+	appDataDir, err := libkb.LocalDataDir()
 	if err != nil {
 		return fmt.Errorf("Error getting AppDataDir: %v", err)
 	}
