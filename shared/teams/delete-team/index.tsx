@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as WaitingGen from '../../actions/waiting-gen'
 import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
 import * as Kb from '../../common-adapters'
@@ -62,7 +63,7 @@ const ReallyDeleteTeam = (props: Props) => {
   const {checkChats, checkFolder, checkNotify} = checks
   const onCheck = (which: keyof typeof checks) => (enable: boolean) => setChecks({...checks, [which]: enable})
   const disabled = !checkChats || !checkFolder || !checkNotify
-  const {deleteWaiting, onBack, clearWaiting} = props
+  const {deleteWaiting, onBack, clearWaiting, teamID} = props
   const error = Container.useAnyErrors(Constants.deleteTeamWaitingKey(props.teamID))
   const prevDeleteWaiting = Container.usePrevious(deleteWaiting)
   React.useEffect(() => {
@@ -71,12 +72,14 @@ const ReallyDeleteTeam = (props: Props) => {
       onBack()
     }
   }, [deleteWaiting, prevDeleteWaiting, onBack, error])
-  React.useEffect(
-    () => () => clearWaiting(),
-    // only once on unmount
-    // eslint-disable-next-line
-    []
-  )
+
+  const dispatch = Container.useDispatch()
+  React.useEffect(() => {
+    return () => {
+      dispatch(WaitingGen.createClearWaiting({key: Constants.deleteTeamWaitingKey(teamID)}))
+    }
+  }, [dispatch, teamID])
+
   return (
     <Kb.ConfirmModal
       error={error ? error.message : ''}

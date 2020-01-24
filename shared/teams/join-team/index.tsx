@@ -1,10 +1,10 @@
 import * as React from 'react'
+import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
 export type Props = {
   errorText: string
-  load: () => void
   open: boolean
   success: boolean
   successTeamName: string | null
@@ -17,14 +17,12 @@ const JoinTeam = (props: Props) => {
 
   const [name, _setName] = React.useState('')
   const setName = (n: string) => _setName(n.toLowerCase())
+  const dispatch = Container.useDispatch()
 
-  React.useEffect(
-    () => {
-      load()
-    },
-    // eslint-disable-next-line
-    []
-  )
+  React.useEffect(() => {
+    dispatch(TeamsGen.createSetTeamJoinError({error: ''}))
+    dispatch(TeamsGen.createSetTeamJoinSuccess({open: false, success: false, teamname: ''}))
+  }, [dispatch])
 
   const onSubmit = () => {
     props.onJoinTeam(name)

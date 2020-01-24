@@ -1,15 +1,15 @@
-import * as React from 'react'
+import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
+import * as React from 'react'
 import * as Styles from '../../styles'
-import {isMobile, isLinux} from '../../constants/platform'
 import flags from '../../util/feature-flags'
+import {isMobile, isLinux} from '../../constants/platform'
 // normally never do this but this call serves no purpose for users at all
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import {ProxySettings} from '../proxy/container'
 
 export type Props = {
-  load: () => void
   openAtLogin: boolean
   lockdownModeEnabled: boolean | null
   onChangeLockdownMode: (arg0: boolean) => void
@@ -92,11 +92,14 @@ const LockdownCheckbox = (props: Props) => {
 }
 
 const Advanced = (props: Props) => {
-  const {load} = props
+  const dispatch = Container.useDispatch()
   React.useEffect(() => {
-    load()
-    // eslint-disable-next-line
-  }, [])
+    dispatch(SettingsGen.createLoadHasRandomPw())
+    dispatch(SettingsGen.createLoadLockdownMode())
+    isLinux && dispatch(ConfigGen.createLoadNixOnLoginStartup())
+    dispatch(SettingsGen.createLoadRememberPassword())
+  }, [dispatch])
+
   return (
     <Kb.ScrollView style={styles.scrollview}>
       <Kb.Box style={styles.advancedContainer}>

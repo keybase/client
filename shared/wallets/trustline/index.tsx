@@ -1,3 +1,4 @@
+import * as Container from '../../util/container'
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
@@ -15,7 +16,6 @@ type _Props = {
   loaded: boolean
   onSearchChange: (text: string) => void
   popularAssets: Array<Types.AssetID>
-  refresh: () => void
   searchingAssets?: Array<Types.AssetID>
   totalAssetsCount?: number
   waitingSearch: boolean
@@ -103,12 +103,19 @@ const ListUpdateOnMount = (props: BodyProps) => {
 }
 
 const Body = (props: BodyProps) => {
+  const {accountID, onFocusChange} = props
+  const dispatch = Container.useDispatch()
+
   React.useEffect(() => {
-    props.refresh()
-    return () => props.clearTrustlineModal()
-    // eslint-disable-next-line
-  }, [])
-  const {onFocusChange} = props
+    if (accountID !== Types.noAccountID) {
+      dispatch(WalletsGen.createRefreshTrustlineAcceptedAssets({accountID}))
+    }
+    dispatch(WalletsGen.createRefreshTrustlinePopularAssets())
+
+    return () => {
+      dispatch(WalletsGen.createClearTrustlineSearchResults())
+    }
+  }, [dispatch, accountID])
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.body}>
       {props.loaded ? (

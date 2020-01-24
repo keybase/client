@@ -25,12 +25,12 @@ const splitAndSortDevices = (deviceMap: Map<string, Types.Device>) =>
 const ReloadableDevices = (props: Props & {clearBadges: () => void}) => {
   const {clearBadges, ...rest} = props
   const {loadDevices, title, onBack} = rest
+  const dispatch = Conatiner.userDispatch()
   React.useEffect(() => {
     return () => {
-      clearBadges()
+      dispatch(DevicesGen.createClearBadges())
     }
-    // eslint-disable-next-line
-  }, [])
+  }, [dispatch])
 
   return (
     <Kb.Reloadable
@@ -61,7 +61,6 @@ const NamedConnected = Container.namedConnect(
     waiting: Constants.isWaiting(state),
   }),
   dispatch => ({
-    clearBadges: () => dispatch(DevicesGen.createClearBadges()),
     loadDevices: () => dispatch(DevicesGen.createLoad()),
     onAddDevice: (highlight?: Array<'computer' | 'phone' | 'paper key'>) => {
       // We don't have navigateAppend in upgraded routes
@@ -77,7 +76,6 @@ const NamedConnected = Container.namedConnect(
       !!stateProps._deviceMap.size && ![...stateProps._deviceMap.values()].some(v => v.type === 'backup')
     return {
       _stateOverride: null,
-      clearBadges: dispatchProps.clearBadges,
       hasNewlyRevoked: newlyRevokedIds.size > 0,
       items: normal.map(deviceToItem) as Array<Item>,
       loadDevices: dispatchProps.loadDevices,

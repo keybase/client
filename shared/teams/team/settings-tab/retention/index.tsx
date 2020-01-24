@@ -420,13 +420,9 @@ const RetentionSwitcher = (
   } & Props
 ) => {
   const {load, teamID} = props
-  React.useEffect(
-    () => {
-      load?.()
-    },
-    // eslint-disable-next-line
-    [teamID]
-  )
+  React.useEffect(() => {
+    dispatch(TeamsGen.createGetTeamRetentionPolicy({teamID}))
+  }, [teamID])
   if (props.loading) {
     return <Kb.ProgressIndicator style={styles.progressIndicator} />
   }

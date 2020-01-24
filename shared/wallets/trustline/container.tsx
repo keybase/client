@@ -23,18 +23,11 @@ export default Container.namedConnect(
     }
   },
   (dispatch, ownProps: OwnProps) => ({
-    clearTrustlineModal: () => dispatch(WalletsGen.createClearTrustlineSearchResults()),
     onDone: () => dispatch(RouteTreeGen.createNavigateUp()),
     onSearchChange: debounce(
       (text: string) => dispatch(WalletsGen.createSetTrustlineSearchText({text})),
       500
     ),
-    refresh: () => {
-      const accountID = Container.getRouteProps(ownProps, 'accountID', Types.noAccountID)
-      accountID !== Types.noAccountID &&
-        dispatch(WalletsGen.createRefreshTrustlineAcceptedAssets({accountID}))
-      dispatch(WalletsGen.createRefreshTrustlinePopularAssets())
-    },
   }),
   (s, d, o: OwnProps) => {
     const accountID = Container.getRouteProps(o, 'accountID', Types.noAccountID)
@@ -46,7 +39,6 @@ export default Container.namedConnect(
         s.accountAssets.find(({assetCode}) => assetCode === 'XLM') ?? emptyAccountAsset
       ).balanceAvailableToSend,
       canAddTrustline: s.canAddTrustline,
-      clearTrustlineModal: d.clearTrustlineModal,
       error: s.error,
       loaded: s.trustline.loaded,
       popularAssets: s.trustline.popularAssets.filter(assetID => !acceptedAssets.has(assetID)),
