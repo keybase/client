@@ -27,15 +27,17 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
 
     if (operationGuard(operation, action)) return
 
-    draftState[operation].bytesComplete = 0
-    draftState[operation].bytesTotal = 0
-    draftState[operation].inputType = 'text'
-    draftState[operation].input = new HiddenString('')
-    draftState[operation].output = new HiddenString('')
-    draftState[operation].outputStatus = undefined
-    draftState[operation].outputType = undefined
-    draftState[operation].errorMessage = new HiddenString('')
-    draftState[operation].warningMessage = new HiddenString('')
+    const op = draftState[operation]
+    op.bytesComplete = 0
+    op.bytesTotal = 0
+    op.inputType = 'text'
+    op.input = new HiddenString('')
+    op.output = new HiddenString('')
+    op.outputStatus = undefined
+    op.outputType = undefined
+    op.errorMessage = new HiddenString('')
+    op.warningMessage = new HiddenString('')
+    op.outputMatchesInput = true
   },
   [CryptoGen.clearRecipients]: (draftState, action) => {
     const {operation} = action.payload
@@ -43,18 +45,19 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     if (operationGuard(operation, action)) return
 
     if (operation === Constants.Operations.Encrypt) {
-      draftState.encrypt.bytesComplete = 0
-      draftState.encrypt.bytesTotal = 0
-      draftState.encrypt.recipients = initialState.encrypt.recipients
-      draftState.encrypt.meta.hasRecipients = false
-      draftState.encrypt.meta.noIncludeSelf = false
+      const encrypt = draftState.encrypt
+      encrypt.bytesComplete = 0
+      encrypt.bytesTotal = 0
+      encrypt.recipients = initialState.encrypt.recipients
+      encrypt.meta.hasRecipients = false
+      encrypt.meta.noIncludeSelf = false
       // Reset options since they depend on the recipients
-      draftState.encrypt.options = initialState.encrypt.options
-      draftState.encrypt.output = new HiddenString('')
-      draftState.encrypt.outputStatus = undefined
-      draftState.encrypt.outputType = undefined
-      draftState.encrypt.errorMessage = new HiddenString('')
-      draftState.encrypt.warningMessage = new HiddenString('')
+      encrypt.options = initialState.encrypt.options
+      encrypt.output = new HiddenString('')
+      encrypt.outputStatus = undefined
+      encrypt.outputType = undefined
+      encrypt.errorMessage = new HiddenString('')
+      encrypt.warningMessage = new HiddenString('')
     }
   },
   [CryptoGen.setRecipients]: (draftState, action) => {
@@ -63,35 +66,44 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     if (operationGuard(operation, action)) return
 
     if (operation !== Constants.Operations.Encrypt) return
-    if (!draftState.encrypt.recipients.length && recipients.length) {
-      draftState.encrypt.meta.hasRecipients = true
-      draftState.encrypt.meta.hasSBS = hasSBS
+
+    const {encrypt} = draftState
+    if (!encrypt.recipients.length && recipients.length) {
+      encrypt.meta.hasRecipients = true
+      encrypt.meta.hasSBS = hasSBS
     }
-    if (recipients) draftState.encrypt.recipients = recipients
+    if (recipients) {
+      encrypt.recipients = recipients
+    }
   },
   [CryptoGen.setEncryptOptions]: (draftState, action) => {
     const {options: newOptions, noIncludeSelf} = action.payload
-    const oldOptions = draftState.encrypt.options
-    draftState.encrypt.options = {
+    const {encrypt} = draftState
+    const oldOptions = encrypt.options
+    encrypt.options = {
       ...oldOptions,
       ...newOptions,
     }
     // User set themselves as a recipient so don't show the 'includeSelf' option for encrypt (since they're encrypting to themselves)
     if (noIncludeSelf) {
-      draftState.encrypt.meta.noIncludeSelf = noIncludeSelf
-      draftState.encrypt.options.includeSelf = false
+      encrypt.meta.noIncludeSelf = noIncludeSelf
+      encrypt.options.includeSelf = false
     }
   },
   [CryptoGen.setInput]: (draftState, action) => {
     const {operation, type, value} = action.payload
     if (operationGuard(operation, action)) return
 
+    const op = draftState[operation]
+    const oldInput = op.input
     // Reset input to 'text' when no value given (cleared input or removed file upload)
-    draftState[operation].inputType = value.stringValue() ? type : 'text'
-    draftState[operation].input = value
+    op.inputType = value.stringValue() ? type : 'text'
+    op.input = value
+    op.outputMatchesInput = oldInput.stringValue() === value.stringValue()
   },
   [CryptoGen.onOperationSuccess]: (draftState, action) => {
     const {
+      input,
       operation,
       output,
       outputSigned,
@@ -102,44 +114,75 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     } = action.payload
     if (operationGuard(operation, action)) return
 
-    // Bail if the user has cleared the input before the RPC has returned a result
-    if (!draftState[operation].input.stringValue()) {
-      return
+    let inputAction:
+      | CryptoGen.SaltpackDecryptPayload
+      | CryptoGen.SaltpackEncryptPayload
+      | CryptoGen.SaltpackSignPayload
+      | CryptoGen.SaltpackVerifyPayload
+      | undefined
+
+    switch (input?.type) {
+      case CryptoGen.saltpackDecrypt:
+      case CryptoGen.saltpackEncrypt:
+      case CryptoGen.saltpackSign:
+      case CryptoGen.saltpackVerify:
+        inputAction = input
+        break
+      default:
+        inputAction = undefined
+    }
+
+    let outputMatchesInput = false
+
+    const op = draftState[operation]
+
+    if (inputAction) {
+      outputMatchesInput = inputAction.payload.input.stringValue() === op.input.stringValue()
+
+      // existing does match? just ignore this
+      if (op.outputMatchesInput) {
+        return
+      }
+
+      // otherwise show the output but don't let them interact with it, its temporary
+      op.outputMatchesInput = outputMatchesInput
     }
 
     // Reset errors and warnings
-    draftState[operation].errorMessage = new HiddenString('')
-    draftState[operation].warningMessage = new HiddenString('')
+    op.errorMessage = new HiddenString('')
+    op.warningMessage = new HiddenString('')
 
     // Warning was set alongside successful output
     if (warning && warningMessage) {
-      draftState[operation].warningMessage = warningMessage
+      op.warningMessage = warningMessage
     }
 
-    draftState[operation].output = output
-    draftState[operation].outputStatus = 'success'
-    draftState[operation].outputType = outputType
-    draftState[operation].outputSigned = outputSigned
-    draftState[operation].outputSender = outputSender
+    op.output = output
+    op.outputStatus = 'success'
+    op.outputType = outputType
+    op.outputSigned = outputSigned
+    op.outputSender = outputSender
   },
   [CryptoGen.onOperationError]: (draftState, action) => {
     const {operation, errorMessage} = action.payload
     if (operationGuard(operation, action)) return
 
+    const op = draftState[operation]
     // Clear output
-    draftState[operation].output = new HiddenString('')
-    draftState[operation].outputType = undefined
+    op.output = new HiddenString('')
+    op.outputType = undefined
 
     // Set error
-    draftState[operation].outputStatus = 'error'
-    draftState[operation].errorMessage = errorMessage
+    op.outputStatus = 'error'
+    op.errorMessage = errorMessage
   },
   [CryptoGen.saltpackProgress]: (draftState, action) => {
     const {bytesComplete, bytesTotal, operation} = action.payload
     if (operationGuard(operation, action)) return
 
-    draftState[operation].bytesComplete = bytesComplete
-    draftState[operation].bytesTotal = bytesTotal
+    const op = draftState[operation]
+    op.bytesComplete = bytesComplete
+    op.bytesTotal = bytesTotal
   },
 
   // Encrypt: Handle team building when selecting keybase users

@@ -13,6 +13,7 @@ type Props = {
   onCopyOutput: (text: string) => void
   onSetInput: (inputType: Types.InputTypes, inputValue: string) => void
   onShowInFinder: (path: string) => void
+  outputMatchesInput: boolean
   output: string
   outputSender?: string
   outputStatus?: Types.OutputStatus
@@ -82,6 +83,7 @@ const Verify = (props: Props) => {
             />
             <OperationOutput
               outputStatus={props.outputStatus}
+              outputMatchesInput={props.outputMatchesInput}
               output={props.output}
               outputType={props.outputType}
               textType="plain"
@@ -92,6 +94,7 @@ const Verify = (props: Props) => {
               operation={Constants.Operations.Verify}
               output={props.output}
               outputStatus={props.outputStatus}
+              outputMatchesInput={props.outputMatchesInput}
               outputType={props.outputType}
               onCopyOutput={props.onCopyOutput}
               onShowInFinder={props.onShowInFinder}
