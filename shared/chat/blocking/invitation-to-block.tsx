@@ -28,7 +28,7 @@ const BlockButtons = (props: Props) => {
   }
 
   const adder = blockButtonInfo.adder
-  const others = participantInfo.all.filter(
+  const others = participantInfo.name.filter(
     person => person !== currentUser && person !== adder && !Constants.isAssertion(person)
   )
   const team = conversationMeta.teamname || undefined
