@@ -46,7 +46,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
   const participantInfo = Container.useSelector(state =>
     Constants.getParticipantInfo(state, conversationIDKey)
   )
-  const membersForBlock = (teamMembers?.size ? [...teamMembers.keys()] : participantInfo.all).filter(
+  const membersForBlock = (teamMembers?.size ? [...teamMembers.keys()] : participantInfo.name).filter(
     u => u !== username && !Constants.isAssertion(u)
   )
 
