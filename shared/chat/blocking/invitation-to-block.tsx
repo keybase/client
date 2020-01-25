@@ -27,11 +27,11 @@ const BlockButtons = (props: Props) => {
     return null
   }
 
+  const team = conversationMeta.teamname || undefined
   const adder = blockButtonInfo.adder
-  const others = participantInfo.name.filter(
+  const others = (team ? participantInfo.all : participantInfo.name).filter(
     person => person !== currentUser && person !== adder && !Constants.isAssertion(person)
   )
-  const team = conversationMeta.teamname || undefined
 
   const buttonRow = (
     <Kb.ButtonBar
