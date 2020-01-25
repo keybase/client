@@ -43,6 +43,14 @@ func testInitConfig(
 	}
 	newConfig.(*libkbfs.ConfigLocal).SetStorageRoot(params.StorageRoot)
 
+	// We use disk-based servers here, instead of memory-based ones
+	// which would normally be preferrable in a test, because bleve
+	// writes out a config file during kvstore-registration that needs
+	// to persist across the multiple indexer instances that will be
+	// made during the test (one on startup, and one when the user
+	// login notification is triggered).  If we use mem-based storage,
+	// the config file is lost when the first indexer instance is
+	// destroyed, and bleve won't work after that.
 	mdserver, err := libkbfs.MakeDiskMDServer(config, params.StorageRoot)
 	if err != nil {
 		return nil, nil, nil, err
