@@ -36,7 +36,7 @@ export default Container.connect(
       participants?.length === 2
         ? participants
             .filter(username => username !== state.config.username)
-            .reduce((_, username) => getFullname(state, username) as string)
+            .map(username => getFullname(state, username))[0]
         : undefined
 
     return {
