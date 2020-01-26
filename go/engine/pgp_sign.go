@@ -40,6 +40,7 @@ func (p *PGPSignEngine) Name() string {
 func (p *PGPSignEngine) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{
 		libkb.SecretUIKind,
+		libkb.PgpUIKind,
 	}
 }
 
@@ -100,7 +101,11 @@ func (p *PGPSignEngine) Run(m libkb.MetaContext) (err error) {
 		p.warnings = append(p.warnings, w...)
 	}
 	for _, warning := range p.warnings.Strings() {
-		m.Warning(warning)
+		if err := m.UIs().PgpUI.OutputPGPWarning(m.Ctx(), keybase1.OutputPGPWarningArg{
+			Warning: warning,
+		}); err != nil {
+			return err
+		}
 	}
 
 	bo := p.arg.Opts.BinaryOut

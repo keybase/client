@@ -52,7 +52,10 @@ func (e *PGPEncrypt) Prereqs() Prereqs {
 // RequiredUIs returns the required UIs.
 func (e *PGPEncrypt) RequiredUIs() []libkb.UIKind {
 	// context.SecretKeyPromptArg requires SecretUI
-	return []libkb.UIKind{libkb.SecretUIKind}
+	return []libkb.UIKind{
+		libkb.SecretUIKind,
+		libkb.PgpUIKind,
+	}
 }
 
 // SubConsumers returns the other UI consumers for this engine.
@@ -180,7 +183,11 @@ func (e *PGPEncrypt) Run(m libkb.MetaContext) error {
 	}
 
 	for _, warning := range e.warnings.Strings() {
-		m.Warning(warning)
+		if err := m.UIs().PgpUI.OutputPGPWarning(m.Ctx(), keybase1.OutputPGPWarningArg{
+			Warning: warning,
+		}); err != nil {
+			return err
+		}
 	}
 
 	recipients := ks.Sorted()

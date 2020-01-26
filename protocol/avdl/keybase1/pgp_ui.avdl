@@ -3,6 +3,9 @@
 protocol pgpUi {
   import idl "common.avdl";
 
+  // warnings during the generation of signatures in pgp_encrypt and pgp_sign
+  void outputPGPWarning(int sessionID, string warning);
+
   // signed by known keybase key + user:
   void outputSignatureSuccess(int sessionID, string fingerprint, string username, Time signedAt, array<string> warnings);
 

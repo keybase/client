@@ -23,6 +23,11 @@ func NewRemotePgpUI(sessionID int, c *rpc.Client) *RemotePgpUI {
 	}
 }
 
+func (u *RemotePgpUI) OutputPGPWarning(ctx context.Context, arg keybase1.OutputPGPWarningArg) error {
+	arg.SessionID = u.sessionID
+	return u.cli.OutputPGPWarning(ctx, arg)
+}
+
 func (u *RemotePgpUI) OutputSignatureSuccess(ctx context.Context, arg keybase1.OutputSignatureSuccessArg) error {
 	return u.cli.OutputSignatureSuccess(ctx, arg)
 }

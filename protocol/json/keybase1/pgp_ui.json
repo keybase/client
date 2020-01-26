@@ -8,6 +8,19 @@
   ],
   "types": [],
   "messages": {
+    "outputPGPWarning": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "warning",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
     "outputSignatureSuccess": {
       "request": [
         {

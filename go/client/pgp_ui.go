@@ -23,7 +23,12 @@ func NewPgpUIProtocol(g *libkb.GlobalContext) rpc.Protocol {
 	return keybase1.PGPUiProtocol(g.UI.GetPgpUI())
 }
 
-func (p PgpUI) OutputSignatureSuccess(_ context.Context, arg keybase1.OutputSignatureSuccessArg) error {
+func (p PgpUI) OutputPGPWarning(_ context.Context, arg keybase1.OutputPGPWarningArg) error {
+	_, err := p.w.Write([]byte(ColorString(p.G(), "red", fmt.Sprintf("WARNING: %s\n", arg.Warning))))
+	return err
+}
+
+func (p PgpUI) OutputSignatureSuccess(ctx context.Context, arg keybase1.OutputSignatureSuccessArg) error {
 	signedAt := keybase1.FromTime(arg.SignedAt)
 	un := ColorString(p.G(), "bold", arg.Username)
 	output := func(fmtString string, args ...interface{}) {
@@ -32,15 +37,21 @@ func (p PgpUI) OutputSignatureSuccess(_ context.Context, arg keybase1.OutputSign
 		_, _ = p.w.Write([]byte(s))
 	}
 
+	for _, warning := range arg.Warnings {
+		if err := p.OutputPGPWarning(ctx, keybase1.OutputPGPWarningArg{
+			SessionID: arg.SessionID,
+			Warning:   warning,
+		}); err != nil {
+			return err
+		}
+	}
+
 	if signedAt.IsZero() {
 		output("Signature verified. Signed by %s.\n", un)
 	} else {
 		output("Signature verified. Signed by %s %s (%s).\n", un, humanize.Time(signedAt), signedAt)
 	}
 	output("PGP Fingerprint: %s.\n", arg.Fingerprint)
-	for _, warning := range arg.Warnings {
-		_, _ = p.w.Write([]byte(ColorString(p.G(), "red", fmt.Sprintf("WARNING: %s\n", warning))))
-	}
 	return nil
 }
 
@@ -52,14 +63,19 @@ func (p PgpUI) OutputSignatureSuccessNonKeybase(ctx context.Context, arg keybase
 		_, _ = p.w.Write([]byte(s))
 	}
 
+	for _, warning := range arg.Warnings {
+		if err := p.OutputPGPWarning(ctx, keybase1.OutputPGPWarningArg{
+			SessionID: arg.SessionID,
+			Warning:   warning,
+		}); err != nil {
+			return err
+		}
+	}
+
 	if signedAt.IsZero() {
 		output("Signature verified. Signed by key %s (unknown to keybase).\n", arg.KeyID)
 	} else {
 		output("Signature verified. Signed by key %s (unknown to keybase) %s (%s).\n", arg.KeyID, humanize.Time(signedAt), signedAt)
-	}
-
-	for _, warning := range arg.Warnings {
-		_, _ = p.w.Write([]byte(ColorString(p.G(), "red", fmt.Sprintf("WARNING: %s\n", warning))))
 	}
 
 	return nil
