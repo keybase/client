@@ -193,6 +193,10 @@ func (h *handlerTracker) ListMembersV1(context.Context, Call, io.Writer) error {
 	return nil
 }
 
+func (h *handlerTracker) CrashV1(context.Context, Call, io.Writer) error {
+	return nil
+}
+
 type echoResult struct {
 	Status string `json:"status"`
 }
@@ -319,6 +323,10 @@ func (c *chatEcho) GetDeviceInfoV1(context.Context, getDeviceInfoOptionsV1) Repl
 }
 
 func (c *chatEcho) ListMembersV1(context.Context, listMembersOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) CrashV1(context.Context) Reply {
 	return Reply{Result: echoOK}
 }
 

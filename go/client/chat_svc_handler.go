@@ -50,6 +50,7 @@ type ChatServiceHandler interface {
 	AddResetConvMemberV1(context.Context, addResetConvMemberOptionsV1) Reply
 	GetDeviceInfoV1(context.Context, getDeviceInfoOptionsV1) Reply
 	ListMembersV1(context.Context, listMembersOptionsV1) Reply
+	CrashV1(context.Context) Reply
 }
 
 // chatServiceHandler implements ChatServiceHandler.
@@ -1287,6 +1288,18 @@ func (c *chatServiceHandler) ListMembersV1(ctx context.Context, opts listMembers
 	}
 
 	return Reply{Result: details}
+}
+
+func (c *chatServiceHandler) CrashV1(ctx context.Context) Reply {
+	go func() {
+		time.Sleep(3 * time.Second)
+		panic("big fat panic")
+	}()
+
+	cres := chat1.EmptyRes{
+		RateLimits: c.aggRateLimits([]chat1.RateLimit{}),
+	}
+	return Reply{Result: cres}
 }
 
 type postHeader struct {
