@@ -207,7 +207,6 @@ export default Container.namedConnect(
       meta.retentionPolicy.type !== 'retain' &&
       !(meta.retentionPolicy.type === 'inherit' && meta.teamRetentionPolicy.type === 'retain')
     const isHelloBotConversation =
-      hasLoadedEver &&
       meta.teamType === 'adhoc' &&
       participantInfo.all.length === 2 &&
       participantInfo.all.includes('hellobot')
