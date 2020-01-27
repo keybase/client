@@ -548,6 +548,7 @@ func (cc *JourneyCardManagerSingleUser) cardPopularChannels(ctx context.Context,
 
 // Card type: ADD_PEOPLE (3 on design)
 // Gist: "Do you know people interested in joining?"
+// Condition: Only in #general channel
 // Condition: User is an admin.
 // Condition: User has sent messages OR joined channels.
 // Condition: A few days on top of POPULAR_CHANNELS have passed since the user joined the channel. In order to space it out from POPULAR_CHANNELS.
@@ -675,7 +676,7 @@ func (cc *JourneyCardManagerSingleUser) cardMsgNoAnswer(ctx context.Context, con
 					const howLongIsLong = 40
 					const howOldIsOld = time.Hour * 24 * 3
 					isLong := (len(msg.Valid().MessageBody.Text().Body) >= howLongIsLong)
-					isOld := (cc.G().GetClock().Since(msg.Valid().ServerHeader.Ctime.Time()) >= howOldIsOld)
+					isOld := (cc.G().GetClock().Since(msg.Valid().ServerHeader.Ctime.Time().Add(-jcd.TimeOffset.ToDuration())) >= howOldIsOld)
 					hasNoReactions := len(msg.Valid().Reactions.Reactions) == 0
 					answer := isLong && isOld && hasNoReactions
 					return answer
@@ -746,7 +747,7 @@ func (cc *JourneyCardManagerSingleUser) cardChannelInactive(ctx context.Context,
 					return false
 				}
 				const howOldIsOld = time.Hour * 24 * 8
-				isOld := (cc.G().GetClock().Since(msg.Valid().ServerHeader.Ctime.Time()) >= howOldIsOld)
+				isOld := (cc.G().GetClock().Since(msg.Valid().ServerHeader.Ctime.Time().Add(-jcd.TimeOffset.ToDuration())) >= howOldIsOld)
 				return isOld
 			}
 			if eligible() {
@@ -781,7 +782,7 @@ func (cc *JourneyCardManagerSingleUser) timeSinceJoinedInRange(ctx context.Conte
 		go cc.saveJoinedTime(globals.BackgroundChatCtx(ctx, cc.G()), teamID, convID, cc.G().GetClock().Now())
 		return false
 	}
-	since := cc.G().GetClock().Since(joinedTime.Time())
+	since := cc.G().GetClock().Since(joinedTime.Time().Add(-jcd.TimeOffset.ToDuration()))
 	return since >= minDuration && since <= maxDuration
 }
 
@@ -792,7 +793,7 @@ func (cc *JourneyCardManagerSingleUser) timeSinceJoinedLE(ctx context.Context, t
 		go cc.saveJoinedTime(globals.BackgroundChatCtx(ctx, cc.G()), teamID, convID, cc.G().GetClock().Now())
 		return true
 	}
-	return cc.G().GetClock().Since(joinedTime.Time()) <= duration
+	return cc.G().GetClock().Since(joinedTime.Time().Add(-jcd.TimeOffset.ToDuration())) <= duration
 }
 
 func (cc *JourneyCardManagerSingleUser) messageSince(ctx context.Context, msgID chat1.MessageID,
@@ -1039,15 +1040,13 @@ func (cc *JourneyCardManagerSingleUser) TimeTravel(ctx context.Context, duration
 		if err != nil {
 			return fmt.Errorf("teamID:%v err:%v", teamID, err)
 		}
-		for convIDStr, conv := range jcd.Convs {
-			if conv.JoinedTime != nil {
-				convID, err := chat1.MakeConvID(convIDStr.String())
-				if err != nil {
-					return fmt.Errorf("teamID:%v convID:%v err:%v", teamID, convIDStr, err)
-				}
-				cc.Debug(ctx, "time travel teamID:%v convID:%v", teamID, convID)
-				cc.saveJoinedTimeWithLockInner(ctx, teamID, convID, jcd.Convs[convID.ConvIDStr()].JoinedTime.Time().Add(-duration), true)
-			}
+		jcd.TimeOffset = gregor1.ToDurationMsec(jcd.TimeOffset.ToDuration() + duration)
+		cc.Debug(ctx, "time travel teamID:%v", teamID, jcd.TimeOffset)
+		cc.lru.Add(teamID.String(), jcd)
+		err = cc.encryptedDB.Put(ctx, cc.dbKey(teamID), jcd)
+		if err != nil {
+			cc.Debug(ctx, "storage put error: %v", err)
+			return err
 		}
 	}
 	return nil
@@ -1083,10 +1082,13 @@ func (cc *JourneyCardManagerSingleUser) DebugState(ctx context.Context, teamID k
 	convs := jcd.Convs
 	jcd.Convs = nil // Blank out convs for the first spew. They will be shown separately.
 	summary = spew.Sdump(jcd)
+	if jcd.TimeOffset != 0 {
+		summary += fmt.Sprintf("\nTime travel offset: %v", jcd.TimeOffset.ToDuration())
+	}
 	for convIDStr, conv := range convs {
 		summary += fmt.Sprintf("\n%v:\n%v", convIDStr, spew.Sdump(conv))
 		if conv.JoinedTime != nil {
-			since := cc.G().GetClock().Since(conv.JoinedTime.Time())
+			since := cc.G().GetClock().Since(conv.JoinedTime.Time().Add(jcd.TimeOffset.ToDuration()))
 			summary += fmt.Sprintf("Since joined: %v (%.1f days)", since, float64(since)/float64(time.Hour*24))
 		}
 	}
@@ -1135,7 +1137,8 @@ type journeycardData struct {
 	Lockin                  map[chat1.JourneycardType]chat1.ConversationID `codec:"l,omitempty" json:"l,omitempty"`
 	ShownCardBesidesWelcome bool                                           `codec:"sbw,omitempty" json:"sbw,omitempty"`
 	// When this data was first saved. For debugging unexpected data loss.
-	Ctime gregor1.Time `codec:"c,omitempty" json:"c,omitempty"`
+	Ctime      gregor1.Time         `codec:"c,omitempty" json:"c,omitempty"`
+	TimeOffset gregor1.DurationMsec `codec:"to,omitempty" json:"to,omitempty"` // Time travel for testing/debugging
 }
 
 type journeycardConvData struct {

@@ -2,6 +2,7 @@ package chat
 
 import (
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -107,7 +108,7 @@ func TestJourneycardDismiss(t *testing.T) {
 	}
 
 	requireJourneycard(true)
-	t.Logf("dismiss other type")
+	t.Logf("dismiss arbitrary other type that does not appear")
 	err = ctc.as(t, users[1]).chatLocalHandler().DismissJourneycard(ctx1, chat1.DismissJourneycardArg{ConvID: convID, CardType: chat1.JourneycardType_ADD_PEOPLE})
 	require.NoError(t, err)
 	requireJourneycard(true)
@@ -115,4 +116,173 @@ func TestJourneycardDismiss(t *testing.T) {
 	err = ctc.as(t, users[1]).chatLocalHandler().DismissJourneycard(ctx1, chat1.DismissJourneycardArg{ConvID: convID, CardType: chat1.JourneycardType_WELCOME})
 	require.NoError(t, err)
 	requireJourneycard(false)
+}
+
+// Test that dismissing a CHANNEL_INACTIVE in one conv actually dismisses
+// CHANNEL_INACTIVE in all convs in he team.
+func TestJourneycardDismissTeamwide(t *testing.T) {
+	useRemoteMock = false
+	defer func() { useRemoteMock = true }()
+	ctc := makeChatTestContext(t, t.Name(), 2)
+	defer ctc.cleanup()
+
+	users := ctc.users()
+	tc0 := ctc.world.Tcs[users[0].Username]
+	ctx0 := ctc.as(t, users[0]).startCtx
+	uid0 := gregor1.UID(users[0].GetUID().ToBytes())
+	t.Logf("uid0: %s", uid0)
+
+	teamConv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+		chat1.ConversationMembersType_TEAM)
+	t.Logf("teamconv: %x", teamConv.Id.DbShortForm())
+	teamID, err := keybase1.TeamIDFromString(teamConv.Triple.Tlfid.String())
+	_ = teamID
+	require.NoError(t, err)
+
+	t.Logf("create other channels")
+	topicNames := []string{"c-a", "c-b", "c-c"}
+	var otherConvs []chat1.ConversationLocal
+	allConvIDs := []chat1.ConversationID{teamConv.Id}
+	_ = allConvIDs
+	allConvInfos := []chat1.ConversationInfoLocal{teamConv}
+	for _, topicName := range topicNames {
+		res, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx0,
+			chat1.NewConversationLocalArg{
+				TlfName:       teamConv.TlfName,
+				TopicName:     &topicName,
+				TopicType:     chat1.TopicType_CHAT,
+				TlfVisibility: keybase1.TLFVisibility_PRIVATE,
+				MembersType:   chat1.ConversationMembersType_TEAM,
+			})
+		require.NoError(t, err)
+		otherConvs = append(otherConvs, res.Conv)
+		allConvIDs = append(allConvIDs, res.Conv.GetConvID())
+		allConvInfos = append(allConvInfos, res.Conv.Info)
+	}
+
+	// Send a text message for cards to glom onto.
+	for _, convInfo := range allConvInfos {
+		mustPostLocalForTest(t, ctc, users[0], convInfo, chat1.NewMessageBodyWithText(chat1.MessageText{
+			Body: "Fruit flies like a banana.",
+		}))
+	}
+
+	t.Logf("Leave two conversations to make POPULAR_CHANNELS eligible")
+	_, err = ctc.as(t, users[0]).chatLocalHandler().LeaveConversationLocal(ctx0, allConvIDs[len(allConvIDs)-1])
+	require.NoError(t, err)
+	_, err = ctc.as(t, users[0]).chatLocalHandler().LeaveConversationLocal(ctx0, allConvIDs[len(allConvIDs)-2])
+	require.NoError(t, err)
+
+	requireNoJourneycard := func(convID chat1.ConversationID) {
+		thread, err := tc0.ChatG.ConvSource.Pull(ctx0, convID, uid0,
+			chat1.GetThreadReason_GENERAL, nil, nil)
+		require.NoError(t, err)
+		t.Logf("the messages: %v", chat1.MessageUnboxedDebugList(thread.Messages))
+		require.True(t, len(thread.Messages) >= 1)
+		for _, msg := range thread.Messages {
+			require.Nil(t, msg.Journeycard__)
+		}
+	}
+
+	requireJourneycard := func(convID chat1.ConversationID, cardType chat1.JourneycardType) {
+		thread, err := tc0.ChatG.ConvSource.Pull(ctx0, convID, uid0,
+			chat1.GetThreadReason_GENERAL, nil, nil)
+		require.NoError(t, err)
+		t.Logf("the messages: %v", chat1.MessageUnboxedDebugList(thread.Messages))
+		require.True(t, len(thread.Messages) >= 1)
+		// Skip initial LEAVE message. There was a bug where journeycards couldn't attach to LEAVE messages (TRIAGE-1738).
+		msg := thread.Messages[0]
+		if msg.Valid__ != nil && msg.Valid__.ClientHeader.MessageType == chat1.MessageType_LEAVE {
+			require.True(t, len(thread.Messages) >= 2, "need more messages for LEAVE workaround")
+			msg = thread.Messages[1]
+		}
+		require.NotNil(t, msg.Journeycard__, "requireJourneycard expects a journeycard")
+		require.Equal(t, cardType, msg.Journeycard().CardType, "card type")
+	}
+
+	requireJourneycard(allConvIDs[0], chat1.JourneycardType_POPULAR_CHANNELS)
+	t.Logf("POPULAR_CHANNELS appears only in #general")
+	for _, convID := range allConvIDs[1:] {
+		requireNoJourneycard(convID)
+	}
+
+	t.Logf("Dismiss POPULAR_CHANNELS")
+	err = ctc.as(t, users[0]).chatLocalHandler().DismissJourneycard(ctx0, chat1.DismissJourneycardArg{ConvID: allConvIDs[0], CardType: chat1.JourneycardType_POPULAR_CHANNELS})
+	require.NoError(t, err)
+	for _, convID := range allConvIDs[0:] {
+		requireNoJourneycard(convID)
+	}
+
+	t.Logf("Advanced time forward enough for CHANNEL_INACTIVE to be eligible")
+	err = tc0.ChatG.JourneyCardManager.(*JourneyCardManager).TimeTravel(ctx0, uid0, time.Hour*24*40)
+	require.NoError(t, err)
+	for _, convID := range allConvIDs {
+		requireJourneycard(convID, chat1.JourneycardType_CHANNEL_INACTIVE)
+	}
+
+	t.Logf("Dismiss CHANNEL_INACTIVE")
+	err = ctc.as(t, users[0]).chatLocalHandler().DismissJourneycard(ctx0, chat1.DismissJourneycardArg{ConvID: allConvIDs[0], CardType: chat1.JourneycardType_CHANNEL_INACTIVE})
+	require.NoError(t, err)
+	for _, convID := range allConvIDs {
+		requireNoJourneycard(convID)
+	}
+}
+
+// A journeycard sticks in its position in the conv.
+// And survives a reboot.
+func TestJourneycardPersist(t *testing.T) {
+	useRemoteMock = false
+	defer func() { useRemoteMock = true }()
+	ctc := makeChatTestContext(t, t.Name(), 2)
+	defer ctc.cleanup()
+
+	users := ctc.users()
+	tc0 := ctc.world.Tcs[users[0].Username]
+	ctx0 := ctc.as(t, users[0]).startCtx
+	uid0 := gregor1.UID(users[0].GetUID().ToBytes())
+	t.Logf("uid0: %s", uid0)
+
+	teamConv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+		chat1.ConversationMembersType_TEAM)
+	t.Logf("teamconv: %x", teamConv.Id.DbShortForm())
+	teamID, err := keybase1.TeamIDFromString(teamConv.Triple.Tlfid.String())
+	_ = teamID
+	require.NoError(t, err)
+
+	// Send a text message for cards to glom onto.
+	mustPostLocalForTest(t, ctc, users[0], teamConv, chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body: "Henry [Thoreau]’s annual melon party, featuring his own delicious watermelons, was a popular event among his neighbors.",
+	}))
+
+	requireJourneycard := func(convID chat1.ConversationID, cardType chat1.JourneycardType, skipMessages int) chat1.MessageUnboxedJourneycard {
+		thread, err := tc0.ChatG.ConvSource.Pull(ctx0, convID, uid0,
+			chat1.GetThreadReason_GENERAL, nil, nil)
+		require.NoError(t, err)
+		t.Logf("the messages: %v", chat1.MessageUnboxedDebugList(thread.Messages))
+		require.True(t, len(thread.Messages) >= 1+skipMessages)
+		msg := thread.Messages[skipMessages]
+		require.NotNil(t, msg.Journeycard__, "requireJourneycard expects a journeycard")
+		require.Equal(t, cardType, msg.Journeycard().CardType, "card type")
+		return msg.Journeycard()
+	}
+
+	t.Logf("Advanced time forward enough for ADD_PEOPLE to be eligible")
+	err = tc0.ChatG.JourneyCardManager.(*JourneyCardManager).TimeTravel(ctx0, uid0, time.Hour*24*4+1)
+	require.NoError(t, err)
+	jc1 := requireJourneycard(teamConv.Id, chat1.JourneycardType_ADD_PEOPLE, 0)
+
+	t.Logf("After sending another message the journeycard stays in its original location (ordinal)")
+	mustPostLocalForTest(t, ctc, users[0], teamConv, chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body: "Henry does not pretend to be totally isolated, but tells his readers from the start that he was only half a mile (0.8 kilometers) from the railroad station and a fifth of a mile (300 meters) to the main road to Concord.",
+	}))
+	jc2 := requireJourneycard(teamConv.Id, chat1.JourneycardType_ADD_PEOPLE, 1)
+	require.Equal(t, jc1.PrevID, jc2.PrevID)
+	require.Equal(t, jc1.Ordinal, jc2.Ordinal)
+
+	t.Logf("After deleting in-memory cache the journeycard statys in its original location")
+	js, err := tc0.ChatG.JourneyCardManager.(*JourneyCardManager).get(ctx0, uid0)
+	js.lru.Purge()
+	jc3 := requireJourneycard(teamConv.Id, chat1.JourneycardType_ADD_PEOPLE, 1)
+	require.Equal(t, jc1.PrevID, jc3.PrevID)
+	require.Equal(t, jc1.Ordinal, jc3.Ordinal)
 }
