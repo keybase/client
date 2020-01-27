@@ -209,10 +209,12 @@ func WatchdogLogPath(logGlobPath string) (string, error) {
 }
 
 const autoRegPath = `Software\Microsoft\Windows\CurrentVersion\Run`
-const autoRegOldName = `electron.app.keybase`
 const autoRegName = `Keybase.Keybase.GUI`
 
-func autostartStatus() (bool, error) {
+// TODO Remove this in 2022.
+const autoRegDeprecatedName = `electron.app.keybase`
+
+func autostartStatus() (enabled bool, err error) {
 	k, err := registry.OpenKey(registry.CURRENT_USER, autoRegPath, registry.QUERY_VALUE|registry.READ)
 	if err != nil {
 		return false, fmt.Errorf("Error opening Run registry key: %v", err)
@@ -232,7 +234,8 @@ func ToggleAutostart(context Context, on bool, forAutoinstallIgnored bool) error
 	defer k.Close()
 
 	// Delete old key if it exists.
-	k.DeleteValue(autoRegOldName)
+	// TODO Remove this in 2022.
+	k.DeleteValue(autoRegDeprecatedName)
 
 	if !on {
 		// it might not exists, don't propagate error.
