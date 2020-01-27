@@ -512,6 +512,7 @@ function* addNewDevice() {
     yield Saga.put(ProvisionGen.createShowFinalErrorPage({finalError, fromDeviceAdd: true}))
     logger.error(`Provision -> Add device error: ${finalError.message}`)
   } finally {
+    yield Saga.put(WaitingGen.createClearWaiting({key: Constants.waitingKey}))
     yield Saga.put(ProvisionGen.createProvisionDone())
   }
 }
