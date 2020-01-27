@@ -57,9 +57,9 @@ class Inbox extends React.PureComponent<T.Props, State> {
     }
   }
 
-  _renderItem = ({item}) => {
+  _renderItem = ({item}: any) => {
     const row = item
-    let element
+    let element: React.ReactElement | null
     if (row.type === 'divider') {
       element = (
         <TeamsDivider
@@ -94,7 +94,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
     return element
   }
 
-  _keyExtractor = item => {
+  _keyExtractor = (item: any) => {
     const row = item
 
     if (row.type === 'divider' || row.type === 'bigTeamsLabel' || row.type === 'teamBuilder') {
@@ -119,7 +119,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
     this.props.onUntrustedInboxVisible(toUnbox)
   }
 
-  _onViewChanged = data => {
+  _onViewChanged = (data: any) => {
     if (!data) {
       return
     }
@@ -176,9 +176,9 @@ class Inbox extends React.PureComponent<T.Props, State> {
     }
   }
 
-  _onScrollUnbox = debounce(data => {
+  _onScrollUnbox = debounce((data: {viewableItems: Array<{item: T.RowItem}>}) => {
     const {viewableItems} = data
-    const item = viewableItems && viewableItems[0]
+    const item = viewableItems?.[0]
     if (item && Object.prototype.hasOwnProperty.call(item, 'index')) {
       this._askForUnboxing(viewableItems.map(i => i.item))
     }
@@ -186,11 +186,11 @@ class Inbox extends React.PureComponent<T.Props, State> {
 
   _maxVisible = Math.ceil(Kb.NativeDimensions.get('window').height / 64)
 
-  _setRef = r => {
+  _setRef = (r: Kb.NativeFlatList<T.RowItem> | null) => {
     this._list = r
   }
 
-  _getItemLayout = (data, index) => {
+  _getItemLayout = (data: null | Array<T.RowItem>, index: number) => {
     // We cache the divider location so we can divide the list into small and large. We can calculate the small cause they're all
     // the same height. We iterate over the big since that list is small and we don't know the number of channels easily
     const smallHeight = RowSizes.smallRowHeight
@@ -211,10 +211,10 @@ class Inbox extends React.PureComponent<T.Props, State> {
     let i = this._dividerIndex + 1
 
     for (; i < index; ++i) {
-      const h = data[i].type === 'big' ? RowSizes.bigRowHeight : RowSizes.bigHeaderHeight
+      const h = data?.[i].type === 'big' ? RowSizes.bigRowHeight : RowSizes.bigHeaderHeight
       offset += h
     }
-    const length = data[i].type === 'big' ? RowSizes.bigRowHeight : RowSizes.bigHeaderHeight
+    const length = data?.[i].type === 'big' ? RowSizes.bigRowHeight : RowSizes.bigHeaderHeight
     return {index, length, offset}
   }
 

@@ -20,8 +20,8 @@ type OwnProps = {
 const missingMessage = MessageConstants.makeMessageDeleted({})
 
 // Used to decide whether to show the author for sequential messages
-const authorIsCollapsible = (m: Types.Message) =>
-  m.type === 'text' || m.type === 'deleted' || m.type === 'attachment'
+const authorIsCollapsible = ({type}: Types.Message) =>
+  type === 'text' || type === 'deleted' || type === 'attachment'
 
 const getUsernameToShow = (
   message: Types.Message,
@@ -29,15 +29,12 @@ const getUsernameToShow = (
   you: string,
   orangeLineAbove: boolean
 ) => {
+  const {author} = message
   const sequentialUserMessages =
-    previous &&
-    previous.author === message.author &&
-    authorIsCollapsible(message) &&
-    authorIsCollapsible(previous)
+    previous?.author === author && authorIsCollapsible(message) && authorIsCollapsible(previous)
 
   const sequentialBotKeyed =
-    previous &&
-    previous.author === message.author &&
+    previous?.author === author &&
     previous.type === 'text' &&
     message.type === 'text' &&
     previous.botUsername === message.botUsername &&
@@ -51,28 +48,30 @@ const getUsernameToShow = (
     case 'requestPayment':
     case 'sendPayment':
     case 'text':
-      return !sequentialBotKeyed || !previous || !sequentialUserMessages || !!timestamp ? message.author : ''
+      return !sequentialBotKeyed || !previous || !sequentialUserMessages || !!timestamp ? author : ''
     case 'setChannelname':
       // suppress this message for the #general channel, it is redundant.
       return (!previous || !sequentialUserMessages || !!timestamp) && message.newChannelname !== 'general'
-        ? message.author
+        ? author
         : ''
     case 'systemAddedToTeam':
       return message.adder
     case 'systemInviteAccepted':
       return message.invitee === you ? '' : message.invitee
     case 'setDescription':
-      return message.author
+      return author
     case 'pin':
-      return message.author
+      return author
     case 'systemUsersAddedToConversation':
-      return message.author
+      return author
     case 'systemJoined':
-      return message.joiners.length + message.leavers.length > 1 ? '' : message.author
+      return message.joiners.length + message.leavers.length > 1 ? '' : author
     case 'systemSBSResolved':
       return message.prover
+    case 'journeycard':
+      return 'placeholder'
   }
-  return message.author
+  return author
 }
 
 const getFailureDescriptionAllowCancel = (message: Types.Message, you: string) => {
@@ -80,23 +79,25 @@ const getFailureDescriptionAllowCancel = (message: Types.Message, you: string) =
   let allowCancel = false
   let allowRetry = false
   let resolveByEdit = false
-  if ((message.type === 'text' || message.type === 'attachment') && message.errorReason) {
-    failureDescription = message.errorReason
+  const {type, errorReason} = message
+  if ((type === 'text' || type === 'attachment') && errorReason) {
+    failureDescription = errorReason
     if (you && ['pending', 'failed'].includes(message.submitState as string)) {
       // This is a message still in the outbox, we can retry/edit to fix, but
       // for flip messages, don't allow retry/cancel
-      allowCancel = allowRetry = message.type === 'attachment' || !message.flipGameID
-      const messageType = message.type === 'attachment' ? 'attachment' : 'message'
+      allowCancel = allowRetry =
+        message.type === 'attachment' || (message.type === 'text' && !message.flipGameID)
+      const messageType = type === 'attachment' ? 'attachment' : 'message'
       failureDescription = `This ${messageType} failed to send`
       resolveByEdit = !!message.outboxID && !!you && message.errorTyp === RPCChatTypes.OutboxErrorType.toolong
       if (resolveByEdit) {
-        failureDescription += `, ${message.errorReason}`
+        failureDescription += `, ${errorReason}`
       }
       if (!!message.outboxID && !!you) {
         switch (message.errorTyp) {
           case RPCChatTypes.OutboxErrorType.minwriter:
           case RPCChatTypes.OutboxErrorType.restrictedbot:
-            failureDescription = `Unable to send, ${message.errorReason}`
+            failureDescription = `Unable to send, ${errorReason}`
             allowRetry = false
         }
       }
@@ -107,8 +108,7 @@ const getFailureDescriptionAllowCancel = (message: Types.Message, you: string) =
 
 const getDecorate = (message: Types.Message) => {
   switch (message.type) {
-    case 'text':
-      return !message.exploded && !message.errorReason
+    case 'text': // fallthrough
     case 'attachment':
       return !message.exploded && !message.errorReason
     default:
@@ -117,41 +117,29 @@ const getDecorate = (message: Types.Message) => {
 }
 
 export default Container.namedConnect(
-  (state: Container.TypedState, ownProps: OwnProps) => {
-    const _participantInfo = Constants.getParticipantInfo(state, ownProps.conversationIDKey)
-    const message =
-      Constants.getMessage(state, ownProps.conversationIDKey, ownProps.ordinal) || missingMessage
+  (state, ownProps: OwnProps) => {
+    const {conversationIDKey, ordinal, previous: previousOrdinal} = ownProps
+    const {orangeLineMap, unfurlPromptMap, messageCenterOrdinals} = state.chat2
+    const _participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
+    const message = Constants.getMessage(state, conversationIDKey, ordinal) || missingMessage
+    const {type, id, author} = message
     const previous =
-      (ownProps.previous && Constants.getMessage(state, ownProps.conversationIDKey, ownProps.previous)) ||
-      undefined
-    const orangeLineAbove = state.chat2.orangeLineMap.get(ownProps.conversationIDKey) === message.id
-    let hasUnfurlPrompts = false
-    if (message.type === 'text') {
-      const mm = state.chat2.unfurlPromptMap.get(message.conversationIDKey)
-      if (mm) {
-        const unfurlPrompts = mm.get(message.id)
-        hasUnfurlPrompts = !!unfurlPrompts && unfurlPrompts.size > 0
-      }
-    }
-    const centeredOrdinalInfo = state.chat2.messageCenterOrdinals.get(message.conversationIDKey)
+      (previousOrdinal && Constants.getMessage(state, conversationIDKey, previousOrdinal)) || undefined
+    const orangeLineAbove = orangeLineMap.get(conversationIDKey) === id
+    const hasUnfurlPrompts = type === 'text' && !!unfurlPromptMap.get(conversationIDKey)?.get(id)?.size
+    const centeredOrdinalInfo = messageCenterOrdinals.get(conversationIDKey)
     const centeredOrdinal =
-      centeredOrdinalInfo && centeredOrdinalInfo.ordinal === ownProps.ordinal
+      centeredOrdinalInfo && centeredOrdinalInfo.ordinal === ordinal
         ? centeredOrdinalInfo.highlightMode
         : 'none'
-    const meta = Constants.getMeta(state, message.conversationIDKey)
-    const teamname = meta.teamname
-    const authorIsAdmin = teamname
-      ? TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'admin')
-      : false
-    const authorIsBot = teamname
-      ? TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'restrictedbot') ||
-        TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'bot')
-      : !_participantInfo.name.includes(message.author) // if adhoc, check if author in participants
-    const authorIsOwner = teamname
-      ? TeamConstants.userIsRoleInTeam(state, teamname, message.author, 'owner')
-      : false
-    const ordinals = [...Constants.getMessageOrdinals(state, ownProps.conversationIDKey)]
-    const botAlias = meta.botAliases[message.author] ?? ''
+    // TODO: possibly useTeamSubscribe here
+    const meta = Constants.getMeta(state, conversationIDKey)
+    const {teamname, teamID, botAliases} = meta
+    const authorIsAdmin = teamname ? TeamConstants.userIsRoleInTeam(state, teamID, author, 'admin') : false
+    const authorIsBot = Constants.messageAuthorIsBot(state, meta, message, _participantInfo)
+    const authorIsOwner = teamname ? TeamConstants.userIsRoleInTeam(state, teamID, author, 'owner') : false
+    const ordinals = [...Constants.getMessageOrdinals(state, conversationIDKey)]
+    const botAlias = botAliases[author] ?? ''
     return {
       _you: state.config.username,
       authorIsAdmin,
@@ -159,9 +147,9 @@ export default Container.namedConnect(
       authorIsOwner,
       botAlias,
       centeredOrdinal,
-      conversationIDKey: ownProps.conversationIDKey,
+      conversationIDKey,
       hasUnfurlPrompts,
-      isLastInThread: ordinals[ordinals.length - 1] === ownProps.ordinal,
+      isLastInThread: ordinals[ordinals.length - 1] === ordinal,
       isPendingPayment: Constants.isPendingPaymentMessage(state, message),
       message,
       orangeLineAbove,
@@ -171,7 +159,7 @@ export default Container.namedConnect(
       showCrowns: true,
     }
   },
-  (dispatch: Container.TypedDispatch) => ({
+  dispatch => ({
     _onAuthorClick: (username: string) =>
       Container.isMobile
         ? dispatch(ProfileGen.createShowUserProfile({username}))
@@ -186,8 +174,11 @@ export default Container.namedConnect(
       dispatch(Chat2Gen.createToggleReplyToMessage({conversationIDKey, ordinal})),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
-    const {previous, message, _you} = stateProps
-    const showUsername = getUsernameToShow(message, previous, _you, stateProps.orangeLineAbove)
+    const {measure} = ownProps
+    const {authorIsOwner, authorIsBot, authorIsAdmin, message, _you, botAlias} = stateProps
+    const {centeredOrdinal, conversationIDKey, orangeLineAbove, isLastInThread, isPendingPayment} = stateProps
+    const {previous, shouldShowPopup, showCoinsIcon, showCrowns, hasUnfurlPrompts} = stateProps
+    const showUsername = getUsernameToShow(message, previous, _you, orangeLineAbove)
     // TODO type guard
     const outboxID: Types.OutboxID | null = (message as any).outboxID || null
     const {allowCancel, allowRetry, resolveByEdit, failureDescription} = getFailureDescriptionAllowCancel(
@@ -195,51 +186,54 @@ export default Container.namedConnect(
       _you
     )
 
+    const {author, type, ordinal, id, deviceRevokedAt} = message
+
     // show send only if its possible we sent while you're looking at it
-    const youAreAuthor = _you === message.author
-    const showSendIndicator = youAreAuthor && message.ordinal !== message.id
+    const youAreAuthor = _you === author
+    const showSendIndicator = youAreAuthor && ordinal !== id
     const decorate = getDecorate(message)
-    const onCancel = allowCancel
-      ? () => dispatchProps._onCancel(message.conversationIDKey, message.ordinal)
-      : undefined
+    const onCancel = allowCancel ? () => dispatchProps._onCancel(conversationIDKey, ordinal) : undefined
     const onRetry =
       allowRetry && !resolveByEdit && outboxID
-        ? () => dispatchProps._onRetry(message.conversationIDKey, outboxID)
+        ? () => dispatchProps._onRetry(conversationIDKey, outboxID)
         : undefined
 
     // TODO type guard
     const forceAsh = !!(message as any).explodingUnreadable
+    const textOrAttachment = type === 'attachment' || type === 'text'
+    const isJoinLeave = type === 'systemJoined' || type === 'systemLeft'
 
     return {
-      authorIsAdmin: stateProps.authorIsAdmin,
-      authorIsBot: stateProps.authorIsBot,
-      authorIsOwner: stateProps.authorIsOwner,
-      botAlias: stateProps.botAlias,
-      centeredOrdinal: stateProps.centeredOrdinal,
-      conversationIDKey: stateProps.conversationIDKey,
+      authorIsAdmin,
+      authorIsBot,
+      authorIsOwner,
+      botAlias,
+      centeredOrdinal,
+      conversationIDKey,
       decorate,
-      exploded: (message.type === 'attachment' || message.type === 'text') && message.exploded,
+      exploded: textOrAttachment && !!message.exploded,
       failureDescription,
       forceAsh,
-      hasUnfurlPrompts: stateProps.hasUnfurlPrompts,
-      isJoinLeave: message.type === 'systemJoined' || message.type === 'systemLeft',
-      isLastInThread: stateProps.isLastInThread,
-      isPendingPayment: stateProps.isPendingPayment,
-      isRevoked: (message.type === 'text' || message.type === 'attachment') && !!message.deviceRevokedAt,
-      measure: ownProps.measure,
-      message: message,
+      hasUnfurlPrompts,
+      isJoinLeave,
+      isLastInThread,
+      isPendingPayment,
+      isRevoked: textOrAttachment && !!deviceRevokedAt,
+      measure,
+      message,
       onAuthorClick: () => dispatchProps._onAuthorClick(showUsername),
       onCancel,
-      onEdit: resolveByEdit
-        ? () => dispatchProps._onEdit(message.conversationIDKey, message.ordinal)
-        : undefined,
+      onEdit: resolveByEdit ? () => dispatchProps._onEdit(conversationIDKey, ordinal) : undefined,
       onRetry,
-      onSwipeLeft: () => dispatchProps._onSwipeLeft(message.conversationIDKey, message.ordinal),
-      orangeLineAbove: stateProps.orangeLineAbove,
-      previous: stateProps.previous,
-      shouldShowPopup: stateProps.shouldShowPopup,
-      showCoinsIcon: stateProps.showCoinsIcon,
-      showCrowns: stateProps.showCrowns,
+      onSwipeLeft:
+        stateProps.message.type !== 'journeycard'
+          ? () => dispatchProps._onSwipeLeft(message.conversationIDKey, message.ordinal)
+          : undefined,
+      orangeLineAbove,
+      previous,
+      shouldShowPopup,
+      showCoinsIcon,
+      showCrowns,
       showSendIndicator,
       showUsername,
       youAreAuthor,

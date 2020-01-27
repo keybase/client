@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/teams'
-import {Badge, Box, Icon, ProgressIndicator, Tabs, Text} from '../../../common-adapters'
+import * as Kb from '../../../common-adapters'
 import flags from '../../../util/feature-flags'
 import {
   globalColors,
@@ -13,6 +13,7 @@ import {
 
 type TeamTabsProps = {
   admin: boolean
+  error?: string
   newRequests: number
   numInvites: number
   numRequests: number
@@ -26,38 +27,38 @@ type TeamTabsProps = {
 }
 
 const TabText = ({selected, text}: {selected: boolean; text: string}) => (
-  <Text type="BodySmallSemibold" style={selected ? styles.tabTextSelected : styles.tabText}>
+  <Kb.Text type="BodySmallSemibold" style={selected ? styles.tabTextSelected : styles.tabText}>
     {text}
-  </Text>
+  </Kb.Text>
 )
 
 const TeamTabs = (props: TeamTabsProps) => {
   const tabs = [
-    <Box key="members" style={styles.tabTextContainer}>
+    <Kb.Box key="members" style={styles.tabTextContainer}>
       <TabText selected={props.selectedTab === 'members'} text="Members" />
-      {!!props.resetUserCount && <Badge badgeNumber={props.resetUserCount} badgeStyle={styles.badge} />}
-    </Box>,
+      {!!props.resetUserCount && <Kb.Badge badgeNumber={props.resetUserCount} badgeStyle={styles.badge} />}
+    </Kb.Box>,
   ]
 
   const requestsBadge = Math.min(props.newRequests, props.numRequests)
 
   if (props.admin) {
     tabs.push(
-      <Box key="invites" style={styles.tabTextContainer}>
+      <Kb.Box key="invites" style={styles.tabTextContainer}>
         <TabText
           selected={props.selectedTab === 'invites'}
           text={`Invites (${props.numInvites + props.numRequests})`}
         />
-        {!!requestsBadge && <Badge badgeNumber={requestsBadge} badgeStyle={styles.badge} />}
-      </Box>
+        {!!requestsBadge && <Kb.Badge badgeNumber={requestsBadge} badgeStyle={styles.badge} />}
+      </Kb.Box>
     )
   }
 
   if (flags.botUI) {
     tabs.push(
-      <Box key="bots" style={styles.tabTextContainer}>
+      <Kb.Box key="bots" style={styles.tabTextContainer}>
         <TabText selected={props.selectedTab === 'bots'} text="Bots" />
-      </Box>
+      </Kb.Box>
     )
   }
 
@@ -73,7 +74,7 @@ const TeamTabs = (props: TeamTabsProps) => {
 
   tabs.push(
     isMobile ? (
-      <Icon
+      <Kb.Icon
         key="settings"
         type="iconfont-nav-settings"
         style={props.selectedTab === 'settings' ? styles.iconSelected : styles.icon}
@@ -84,7 +85,7 @@ const TeamTabs = (props: TeamTabsProps) => {
   )
 
   if (!isMobile && props.loading) {
-    tabs.push(<ProgressIndicator style={styles.progressIndicator} />)
+    tabs.push(<Kb.ProgressIndicator style={styles.progressIndicator} />)
   }
 
   const onSelect = (tab: any) => {
@@ -103,16 +104,19 @@ const TeamTabs = (props: TeamTabsProps) => {
 
   const selected = tabs.find(tab => tab.key === props.selectedTab) || null
   return (
-    <Box style={styles.container}>
-      <Tabs
-        clickableBoxStyle={styles.clickableBox}
-        tabs={tabs}
-        selected={selected}
-        onSelect={onSelect}
-        style={styles.tabContainer}
-        tabStyle={styles.tab}
-      />
-    </Box>
+    <Kb.Box2 direction="vertical" fullWidth={true}>
+      <Kb.Box style={styles.container}>
+        <Kb.Tabs
+          clickableBoxStyle={styles.clickableBox}
+          tabs={tabs}
+          selected={selected}
+          onSelect={onSelect}
+          style={styles.tabContainer}
+          tabStyle={styles.tab}
+        />
+      </Kb.Box>
+      {!!props.error && <Kb.Banner color="red">{props.error}</Kb.Banner>}
+    </Kb.Box2>
   )
 }
 

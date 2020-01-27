@@ -14,7 +14,7 @@ type Props = {
   clickableBoxStyle?: any
   tabs: Array<React.ReactNode>
   selected: React.ReactNode
-  onSelect: (s: React.ReactNode) => any
+  onSelect: (s: React.ReactNode, idx: number) => any
   style?: any
   tabStyle?: any
 }
@@ -26,7 +26,7 @@ const Tabs = ({clickableBoxStyle, tabs, selected, onSelect, style, tabStyle}: Pr
         // @ts-ignore
         const key: string = (t && t.key) || idx
         return (
-          <Kb.ClickableBox onClick={() => onSelect(t)} key={key} style={clickableBoxStyle}>
+          <Kb.ClickableBox onClick={() => onSelect(t, idx)} key={key} style={clickableBoxStyle}>
             <Kb.Box style={styles.tabContainer}>
               <Kb.Box
                 style={Styles.collapseStyles([styles.tab, t === selected && styles.tabSelected, tabStyle])}

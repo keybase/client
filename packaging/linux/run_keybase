@@ -60,7 +60,7 @@ start_systemd() {
   # We don't want to persist this, so don't store it in the env file.
   # This is unset right after start in the unit file so subsequent direct
   # systemctl calls don't have it set.
-  systemctl --user import-environment "KEYBASE_AUTOSTART"
+  systemctl --user set-environment "KEYBASE_AUTOSTART=$KEYBASE_AUTOSTART"
 
   # The keybase.gui.service unit has keybase.service as dependencies, so we
   # don't have to list them here. But including them lets us report an error if

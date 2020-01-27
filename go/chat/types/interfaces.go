@@ -145,7 +145,7 @@ type Indexer interface {
 	SearchableConvs(ctx context.Context, convID *chat1.ConversationID) ([]RemoteConversation, error)
 	OnDbNuke(mctx libkb.MetaContext) error
 	// For devel/testing
-	IndexInbox(ctx context.Context) (map[string]chat1.ProfileSearchConvStats, error)
+	IndexInbox(ctx context.Context) (map[chat1.ConvIDStr]chat1.ProfileSearchConvStats, error)
 }
 
 type Sender interface {
@@ -171,7 +171,8 @@ type InboxSource interface {
 		localizeTyp ConversationLocalizerTyp) ([]chat1.ConversationLocal, chan AsyncInboxResult, error)
 	RemoteSetConversationStatus(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		status chat1.ConversationStatus) error
-	Search(ctx context.Context, uid gregor1.UID, query string, limit int) ([]RemoteConversation, error)
+	Search(ctx context.Context, uid gregor1.UID, query string, limit int,
+		emptyMode InboxSourceSearchEmptyMode) ([]RemoteConversation, error)
 	MarkAsRead(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 		msgID *chat1.MessageID) error
 	Draft(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, text *string) error

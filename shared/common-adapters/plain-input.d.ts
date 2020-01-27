@@ -79,6 +79,7 @@ export type Props = {
   padding?: keyof typeof globalMargins | 0 // globalMargins does not have an option for 0
   placeholder?: string
   placeholderColor?: string
+  placeholderTextType?: TextType
   rowsMin?: number
   rowsMax?: number
   secureTextEntry?: boolean

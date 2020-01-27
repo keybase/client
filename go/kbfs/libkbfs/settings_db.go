@@ -7,8 +7,10 @@ import (
 
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/ldbutils"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
+	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/storage"
 	"golang.org/x/net/context"
@@ -22,6 +24,8 @@ const (
 
 	// Settings keys
 	spaceAvailableNotificationThresholdKey = "spaceAvailableNotificationThreshold"
+
+	sfmiBannerDismissedKey = "sfmiBannerDismissed"
 )
 
 // ErrNoSettingsDB is returned when there is no settings DB potentially due to
@@ -39,7 +43,8 @@ type SettingsDB struct {
 	*ldbutils.LevelDb
 	sessionGetter currentSessionGetter
 
-	cache map[string][]byte
+	cache  map[string][]byte
+	logger logger.Logger
 }
 
 func openSettingsDBInternal(config Config) (*ldbutils.LevelDb, error) {
@@ -62,9 +67,10 @@ func openSettingsDBInternal(config Config) (*ldbutils.LevelDb, error) {
 }
 
 func openSettingsDB(config Config) *SettingsDB {
+	logger := config.MakeLogger("SDB")
 	db, err := openSettingsDBInternal(config)
 	if err != nil {
-		config.MakeLogger("SDB").CWarningf(context.Background(),
+		logger.CWarningf(context.Background(),
 			"Could not open settings DB. "+
 				"Perhaps multiple KBFS instances are being run concurrently"+
 				"? Error: %+v", err)
@@ -77,6 +83,7 @@ func openSettingsDB(config Config) *SettingsDB {
 		LevelDb:       db,
 		sessionGetter: config,
 		cache:         make(map[string][]byte),
+		logger:        logger,
 	}
 }
 
@@ -125,16 +132,48 @@ func (db *SettingsDB) Settings(ctx context.Context) (keybase1.FSSettings, error)
 	if uid == keybase1.UID("") {
 		return keybase1.FSSettings{}, errNoSession
 	}
+
 	var notificationThreshold int64
 	notificationThresholdBytes, err :=
 		db.Get(getSettingsDbKey(uid, spaceAvailableNotificationThresholdKey), nil)
-	if err == nil {
-		notificationThreshold, _ =
+	switch errors.Cause(err) {
+	case leveldb.ErrNotFound:
+		db.logger.CDebugf(ctx,
+			"notificationThreshold not set; using default value")
+	case nil:
+		notificationThreshold, err =
 			strconv.ParseInt(string(notificationThresholdBytes), 10, 64)
+		if err != nil {
+			return keybase1.FSSettings{}, err
+		}
+	default:
+		db.logger.CWarningf(ctx,
+			"reading notificationThreshold from leveldb error: %+v", err)
+		return keybase1.FSSettings{}, err
 	}
-	// If we have an error we just pretend there's an empty setting.
+
+	var sfmiBannerDismissed bool
+	sfmiBannerDismissedBytes, err :=
+		db.Get(getSettingsDbKey(uid, sfmiBannerDismissedKey), nil)
+	switch errors.Cause(err) {
+	case leveldb.ErrNotFound:
+		db.logger.CDebugf(ctx,
+			"sfmiBannerDismissed not set; using default value")
+	case nil:
+		sfmiBannerDismissed, err =
+			strconv.ParseBool(string(sfmiBannerDismissedBytes))
+		if err != nil {
+			return keybase1.FSSettings{}, err
+		}
+	default:
+		db.logger.CWarningf(ctx,
+			"reading sfmiBannerDismissed from leveldb error: %+v", err)
+		return keybase1.FSSettings{}, err
+	}
+
 	return keybase1.FSSettings{
 		SpaceAvailableNotificationThreshold: notificationThreshold,
+		SfmiBannerDismissed:                 sfmiBannerDismissed,
 	}, nil
 }
 
@@ -148,4 +187,15 @@ func (db *SettingsDB) SetNotificationThreshold(
 	}
 	return db.Put(getSettingsDbKey(uid, spaceAvailableNotificationThresholdKey),
 		[]byte(strconv.FormatInt(threshold, 10)), nil)
+}
+
+// SetSfmiBannerDismissed hello from this comment
+func (db *SettingsDB) SetSfmiBannerDismissed(
+	ctx context.Context, dismissed bool) error {
+	uid := db.getUID(ctx)
+	if uid == keybase1.UID("") {
+		return errNoSession
+	}
+	return db.Put(getSettingsDbKey(uid, sfmiBannerDismissedKey),
+		[]byte(strconv.FormatBool(dismissed)), nil)
 }

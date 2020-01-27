@@ -27,11 +27,11 @@ const BlockButtons = (props: Props) => {
     return null
   }
 
+  const team = conversationMeta.teamname || undefined
   const adder = blockButtonInfo.adder
-  const others = participantInfo.all.filter(
+  const others = (team ? participantInfo.all : participantInfo.name).filter(
     person => person !== currentUser && person !== adder && !Constants.isAssertion(person)
   )
-  const team = conversationMeta.teamname || undefined
 
   const buttonRow = (
     <Kb.ButtonBar
@@ -117,7 +117,7 @@ const BlockButtons = (props: Props) => {
   ) : (
     <Kb.Box2 direction="horizontal" gap="xsmall" style={styles.container} centerChildren={false}>
       <Kb.Text type="BodySmall">
-        {team ? `${adder} added you to this team.` : `You don't seem to know ${adder}.`}
+        {team ? `${adder} added you to this team.` : `You don't follow ${adder}.`}
       </Kb.Text>
       {buttonRow}
       <Kb.Icon

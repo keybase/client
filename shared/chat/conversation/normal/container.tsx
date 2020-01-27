@@ -94,25 +94,25 @@ export default Container.connect(
     jumpToRecent: (conversationIDKey: Types.ConversationIDKey) =>
       dispatch(Chat2Gen.createJumpToRecent({conversationIDKey})),
     onShowTracker: (username: string) => dispatch(Tracker2Gen.createShowUser({asTracker: true, username})),
-    onToggleInfoPanel: () => dispatch(Chat2Gen.createToggleInfoPanel()),
   }),
-  (stateProps, dispatchProps, _: OwnProps) => ({
-    conversationIDKey: stateProps.conversationIDKey,
-    dragAndDropRejectReason: stateProps._meta.cannotWrite
-      ? `You must be at least ${indefiniteArticle(stateProps._meta.minWriterRole)} ${
-          stateProps._meta.minWriterRole
-        } to post.`
-      : undefined,
-    jumpToRecent: () => dispatchProps.jumpToRecent(stateProps.conversationIDKey),
-    onAttach: stateProps._meta.cannotWrite
-      ? null
-      : (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
-    onPaste: (data: Buffer) => dispatchProps._onPaste(stateProps.conversationIDKey, data),
-    onShowTracker: dispatchProps.onShowTracker,
-    onToggleInfoPanel: dispatchProps.onToggleInfoPanel,
-    onToggleThreadSearch: () => dispatchProps._onToggleThreadSearch(stateProps.conversationIDKey),
-    showLoader: stateProps.showLoader,
-    showThreadSearch: stateProps.showThreadSearch,
-    threadLoadedOffline: stateProps._meta.offline,
-  })
+  (stateProps, dispatchProps, _: OwnProps) => {
+    const {conversationIDKey, _meta, showLoader, showThreadSearch} = stateProps
+    const {cannotWrite, minWriterRole, offline} = _meta
+    const {jumpToRecent, onShowTracker} = dispatchProps
+    const {_onAttach, _onPaste, _onToggleThreadSearch} = dispatchProps
+    return {
+      conversationIDKey,
+      dragAndDropRejectReason: cannotWrite
+        ? `You must be at least ${indefiniteArticle(minWriterRole)} ${minWriterRole} to post.`
+        : undefined,
+      jumpToRecent: () => jumpToRecent(conversationIDKey),
+      onAttach: cannotWrite ? null : (paths: Array<string>) => _onAttach(conversationIDKey, paths),
+      onPaste: (data: Buffer) => _onPaste(conversationIDKey, data),
+      onShowTracker,
+      onToggleThreadSearch: () => _onToggleThreadSearch(conversationIDKey),
+      showLoader,
+      showThreadSearch,
+      threadLoadedOffline: offline,
+    }
+  }
 )(NormalWrapper)

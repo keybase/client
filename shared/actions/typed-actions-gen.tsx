@@ -138,8 +138,6 @@ export type TypedActionsMap = {
   'chat2:attachmentUploading': chat2.AttachmentUploadingPayload
   'chat2:attachmentUploaded': chat2.AttachmentUploadedPayload
   'chat2:attachmentPasted': chat2.AttachmentPastedPayload
-  'chat2:attachmentFullscreenSelection': chat2.AttachmentFullscreenSelectionPayload
-  'chat2:attachmentFullscreenNext': chat2.AttachmentFullscreenNextPayload
   'chat2:messageAttachmentUploaded': chat2.MessageAttachmentUploadedPayload
   'chat2:sendTyping': chat2.SendTypingPayload
   'chat2:markInitiallyLoadedThreadAsRead': chat2.MarkInitiallyLoadedThreadAsReadPayload
@@ -184,10 +182,10 @@ export type TypedActionsMap = {
   'chat2:setPrependText': chat2.SetPrependTextPayload
   'chat2:updateUnreadline': chat2.UpdateUnreadlinePayload
   'chat2:toggleMessageCollapse': chat2.ToggleMessageCollapsePayload
-  'chat2:toggleInfoPanel': chat2.ToggleInfoPanelPayload
   'chat2:updateCoinFlipStatus': chat2.UpdateCoinFlipStatusPayload
   'chat2:setCommandMarkdown': chat2.SetCommandMarkdownPayload
   'chat2:addUsersToChannel': chat2.AddUsersToChannelPayload
+  'chat2:addUserToChannel': chat2.AddUserToChannelPayload
   'chat2:jumpToRecent': chat2.JumpToRecentPayload
   'chat2:setContainsLastMessage': chat2.SetContainsLastMessagePayload
   'chat2:threadSearch': chat2.ThreadSearchPayload
@@ -250,6 +248,8 @@ export type TypedActionsMap = {
   'chat2:setGeneralConvFromTeamID': chat2.SetGeneralConvFromTeamIDPayload
   'chat2:refreshBotRoleInConv': chat2.RefreshBotRoleInConvPayload
   'chat2:setBotRoleInConv': chat2.SetBotRoleInConvPayload
+  'chat2:showInfoPanel': chat2.ShowInfoPanelPayload
+  'chat2:dismissJourneycard': chat2.DismissJourneycardPayload
   'config:startHandshake': config.StartHandshakePayload
   'config:restartHandshake': config.RestartHandshakePayload
   'config:daemonHandshake': config.DaemonHandshakePayload
@@ -304,15 +304,21 @@ export type TypedActionsMap = {
   'config:loadOnStart': config.LoadOnStartPayload
   'crypto:clearRecipients': crypto.ClearRecipientsPayload
   'crypto:clearInput': crypto.ClearInputPayload
+  'crypto:downloadEncryptedText': crypto.DownloadEncryptedTextPayload
+  'crypto:downloadSignedText': crypto.DownloadSignedTextPayload
   'crypto:setRecipients': crypto.SetRecipientsPayload
   'crypto:setInput': crypto.SetInputPayload
+  'crypto:setInputThrottled': crypto.SetInputThrottledPayload
   'crypto:setEncryptOptions': crypto.SetEncryptOptionsPayload
   'crypto:onOperationSuccess': crypto.OnOperationSuccessPayload
   'crypto:onOperationError': crypto.OnOperationErrorPayload
   'crypto:resetOperation': crypto.ResetOperationPayload
+  'crypto:saltpackDone': crypto.SaltpackDonePayload
   'crypto:saltpackEncrypt': crypto.SaltpackEncryptPayload
   'crypto:saltpackDecrypt': crypto.SaltpackDecryptPayload
+  'crypto:saltpackProgress': crypto.SaltpackProgressPayload
   'crypto:saltpackSign': crypto.SaltpackSignPayload
+  'crypto:saltpackStart': crypto.SaltpackStartPayload
   'crypto:saltpackVerify': crypto.SaltpackVerifyPayload
   'deeplinks:handleKeybaseLink': deeplinks.HandleKeybaseLinkPayload
   'deeplinks:link': deeplinks.LinkPayload
@@ -462,6 +468,9 @@ export type TypedActionsMap = {
   'engine-gen:keybase1NotifyPGPPgpKeyInSecretStoreFile': enginegen.Keybase1NotifyPGPPgpKeyInSecretStoreFilePayload
   'engine-gen:keybase1NotifyPhoneNumberPhoneNumbersChanged': enginegen.Keybase1NotifyPhoneNumberPhoneNumbersChangedPayload
   'engine-gen:keybase1NotifyRuntimeStatsRuntimeStatsUpdate': enginegen.Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload
+  'engine-gen:keybase1NotifySaltpackSaltpackOperationStart': enginegen.Keybase1NotifySaltpackSaltpackOperationStartPayload
+  'engine-gen:keybase1NotifySaltpackSaltpackOperationProgress': enginegen.Keybase1NotifySaltpackSaltpackOperationProgressPayload
+  'engine-gen:keybase1NotifySaltpackSaltpackOperationDone': enginegen.Keybase1NotifySaltpackSaltpackOperationDonePayload
   'engine-gen:keybase1NotifyServiceHTTPSrvInfoUpdate': enginegen.Keybase1NotifyServiceHTTPSrvInfoUpdatePayload
   'engine-gen:keybase1NotifyServiceShutdown': enginegen.Keybase1NotifyServiceShutdownPayload
   'engine-gen:keybase1NotifySessionLoggedOut': enginegen.Keybase1NotifySessionLoggedOutPayload
@@ -558,8 +567,7 @@ export type TypedActionsMap = {
   'fs:uninstallKBFSConfirm': fs.UninstallKBFSConfirmPayload
   'fs:refreshDriverStatus': fs.RefreshDriverStatusPayload
   'fs:setDriverStatus': fs.SetDriverStatusPayload
-  'fs:hideSystemFileManagerIntegrationBanner': fs.HideSystemFileManagerIntegrationBannerPayload
-  'fs:showSystemFileManagerIntegrationBanner': fs.ShowSystemFileManagerIntegrationBannerPayload
+  'fs:setSfmiBannerDismissed': fs.SetSfmiBannerDismissedPayload
   'fs:driverEnable': fs.DriverEnablePayload
   'fs:driverDisable': fs.DriverDisablePayload
   'fs:driverDisabling': fs.DriverDisablingPayload
@@ -633,6 +641,7 @@ export type TypedActionsMap = {
   'fs:userIn': fs.UserInPayload
   'fs:userOut': fs.UserOutPayload
   'fs:setDebugLevel': fs.SetDebugLevelPayload
+  'fs:setCriticalUpdate': fs.SetCriticalUpdatePayload
   'git:loadGit': git.LoadGitPayload
   'git:loaded': git.LoadedPayload
   'git:createTeamRepo': git.CreateTeamRepoPayload
@@ -885,6 +894,8 @@ export type TypedActionsMap = {
   'teams:getTeams': teams.GetTeamsPayload
   'teams:unsubscribeTeamList': teams.UnsubscribeTeamListPayload
   'teams:getDetails': teams.GetDetailsPayload
+  'teams:getDetailsByID': teams.GetDetailsByIDPayload
+  'teams:unsubscribeTeamDetails': teams.UnsubscribeTeamDetailsPayload
   'teams:getMembers': teams.GetMembersPayload
   'teams:setMembers': teams.SetMembersPayload
   'teams:getTeamProfileAddList': teams.GetTeamProfileAddListPayload
@@ -911,6 +922,8 @@ export type TypedActionsMap = {
   'teams:setMemberPublicity': teams.SetMemberPublicityPayload
   'teams:setPublicity': teams.SetPublicityPayload
   'teams:setChannelCreationError': teams.SetChannelCreationErrorPayload
+  'teams:setEditDescriptionError': teams.SetEditDescriptionErrorPayload
+  'teams:settingsError': teams.SettingsErrorPayload
   'teams:setTeamsWithChosenChannels': teams.SetTeamsWithChosenChannelsPayload
   'teams:setTeamCreationError': teams.SetTeamCreationErrorPayload
   'teams:setTeamInviteError': teams.SetTeamInviteErrorPayload

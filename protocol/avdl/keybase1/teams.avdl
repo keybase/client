@@ -35,7 +35,10 @@ protocol teams {
   enum AuditMode {
     STANDARD_0,
     JUST_CREATED_1,
-    SKIP_2
+    SKIP_2,
+    // If we do not want to audit the hidden chain
+    // (for example, when the client does not have access to it).
+    STANDARD_NO_HIDDEN_3
   }
 
   // PerTeamKeyGeneration describes the generation of the secret.
@@ -136,6 +139,8 @@ protocol teams {
     TeamRole role;
     Seqno eldestSeqno;     // eldest seqno of the team member record
     TeamMemberStatus status;
+    // non-null for restricted bot members
+    union { null, TeamBotSettings } botSettings;
   }
 
   record TeamMembers {
@@ -172,6 +177,7 @@ protocol teams {
   }
 
   record TeamDetails {
+    string name;
     TeamMembersDetails members;
     PerTeamKeyGeneration keyGeneration;
     map<TeamInviteID,AnnotatedTeamInvite> annotatedActiveInvites;
@@ -325,7 +331,7 @@ protocol teams {
     // yet committed to the blind tree (as that is updated slowly). We trust the
     // server and accept it for now, but will complain later if this link does
     // not get added to the blind tree later within a reasonable time (or if the
-    // tree shows a different history). 
+    // tree shows a different history).
     UNCOMMITTED_3
   }
 
@@ -496,6 +502,10 @@ protocol teams {
     @mpackkey("mcs") @jsonkey("mcs")
     Seqno maxChainSeqno;
 
+    // The maximum hidden Seqno in the chain at the time of the audit.
+    @mpackkey("mhs") @jsonkey("mhs")
+    Seqno maxHiddenSeqno;
+
     // The maximum merkle Seqno probed in this audit.
     @mpackkey("mmp") @jsonkey("mmp")
     Seqno maxMerkleProbe;
@@ -506,13 +516,16 @@ protocol teams {
     int index;
     @mpackkey("s") @jsonkey("t")
     Seqno teamSeqno;
+    @mpackkey("h") @jsonkey("h")
+    Seqno teamHiddenSeqno;
   }
 
   enum AuditVersion {
     V0_0,
     V1_1,
     V2_2,
-    V3_3
+    V3_3,
+    V4_4
   }
 
   record AuditHistory {
@@ -535,6 +548,13 @@ protocol teams {
     map<Seqno,Probe> postProbes;
     // For each chain tail we audit, write down the corresponding linkID
     map<Seqno,LinkID> tails;
+    // For each hidden chain tail we audit, write down the corresponding linkID
+    map<Seqno,LinkID> hiddenTails;
+
+    // if an audit fails, we put the failed probes here so they can be retried
+    // at the next audit.
+    array<Seqno> preProbesToRetry;
+    array<Seqno> postProbesToRetry;
 
     // If we just created this team, and it's implicit, then we can skip the audit
     // for a while (as dictated by the rootFreshness of the Audit Parameters).
@@ -999,7 +1019,7 @@ protocol teams {
     boolean forceRefresh;
 
     // Specify this flag to avoid raising an error if the server omits the hidden chain data.
-    // For example, restricted bots can use the FTL to obtain a team name, but cannot see the 
+    // For example, restricted bots can use the FTL to obtain a team name, but cannot see the
     // hidden chain for such team.
     boolean hiddenChainIsOptional;
   }
@@ -1170,6 +1190,7 @@ protocol teams {
 
   // Get the members of the team
   TeamMembersDetails teamGetMembers(int sessionID, string name);
+  TeamMembersDetails teamGetMembersByID(int sessionID, TeamID id);
 
   // List all the admins of ancestor teams.
   // Includes admins of the specified team only if they are also admins of ancestor teams.
@@ -1250,7 +1271,7 @@ protocol teams {
 
   void teamDelete(int sessionID, TeamID teamID);
 
-  void teamSetSettings(int sessionID, string name, TeamSettings settings);
+  void teamSetSettings(int sessionID, TeamID teamID, TeamSettings settings);
 
   SeitanIKey teamCreateSeitanToken(int sessionID, string name, TeamRole role, SeitanKeyLabel label);
 
@@ -1312,10 +1333,10 @@ protocol teams {
   TeamPlusApplicationKeys loadTeamPlusApplicationKeys(int sessionID, TeamID id, TeamApplication application, TeamRefreshers refreshers, boolean includeKBFSKeys, OfflineAvailability oa);
   TeamID getTeamRootID(TeamID id);
 
-  TeamShowcase getTeamShowcase(string name);
-  TeamAndMemberShowcase getTeamAndMemberShowcase(string name);
-  void setTeamShowcase(string name, union { null, boolean } isShowcased, union { null, string } description, union { null, boolean } anyMemberShowcase);
-  void setTeamMemberShowcase(string name, boolean isShowcased);
+  TeamShowcase getTeamShowcase(TeamID teamID);
+  TeamAndMemberShowcase getTeamAndMemberShowcase(TeamID teamID);
+  void setTeamShowcase(TeamID teamID, union { null, boolean } isShowcased, union { null, string } description, union { null, boolean } anyMemberShowcase);
+  void setTeamMemberShowcase(TeamID teamID, boolean isShowcased);
 
   record TeamOperation {
     boolean manageMembers;
@@ -1363,8 +1384,8 @@ protocol teams {
     TeamSigChainState chain;
   }
 
-  boolean getTarsDisabled(string name);
-  void setTarsDisabled(string name, boolean disabled);
+  boolean getTarsDisabled(TeamID teamID);
+  void setTarsDisabled(TeamID teamID, boolean disabled);
 
   // List of teams for that "Add to team..." screen on the profile screen.
   // All return values are server-trust so only use where safe.

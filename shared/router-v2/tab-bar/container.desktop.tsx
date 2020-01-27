@@ -2,6 +2,7 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import * as Tabs from '../../constants/tabs'
 import * as Chat2Gen from '../../actions/chat2-gen'
+import * as FsGen from '../../actions/fs-gen'
 import * as ConfigGen from '../../actions/config-gen'
 import * as PeopleGen from '../../actions/people-gen'
 import * as ProfileGen from '../../actions/profile-gen'
@@ -25,17 +26,22 @@ type OwnProps = {
 
 export default Container.connect(
   (state: Container.TypedState) => ({
-    _filesTabBadge: state.fs.badge,
     _justSignedUpEmail: state.signup.justSignedUpEmail,
     _settingsEmailBanner: state.settings.email.addedEmail,
     badgeNumbers: state.notifications.navBadges,
+    fsCriticalUpdate: state.fs.criticalUpdate,
     fullname: TrackerConstants.getDetails(state, state.config.username).fullname || '',
     isWalletsNew: state.chat2.isWalletsNew,
     username: state.config.username,
   }),
   (dispatch, ownProps: OwnProps) => ({
     _onProfileClick: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
-    _onTabClick: (tab: Tabs.Tab, justSignedUpEmail: string, settingsEmailBanner?: string) => {
+    _onTabClick: (
+      tab: Tabs.Tab,
+      fsCriticalUpdate: boolean,
+      justSignedUpEmail: string,
+      settingsEmailBanner?: string
+    ) => {
       if (ownProps.selectedTab === Tabs.peopleTab && tab !== Tabs.peopleTab) {
         dispatch(PeopleGen.createMarkViewed())
       }
@@ -50,7 +56,10 @@ export default Container.connect(
       if (settingsEmailBanner && ownProps.selectedTab === Tabs.settingsTab && tab !== Tabs.settingsTab) {
         dispatch(SettingsGen.createClearAddedEmail())
       }
-
+      // Clear critical update when we nav away from tab
+      if (fsCriticalUpdate && ownProps.selectedTab === Tabs.fsTab && tab !== Tabs.fsTab) {
+        dispatch(FsGen.createSetCriticalUpdate({val: false}))
+      }
       if (ownProps.selectedTab === tab) {
         ownProps.navigation.navigate(tabRoots[tab])
       } else {
@@ -80,6 +89,7 @@ export default Container.connect(
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => ({
     badgeNumbers: stateProps.badgeNumbers,
+    fsCriticalUpdate: stateProps.fsCriticalUpdate,
     fullname: stateProps.fullname,
     isWalletsNew: stateProps.isWalletsNew,
     onAddAccount: dispatchProps.onAddAccount,
@@ -89,7 +99,12 @@ export default Container.connect(
     onSettings: dispatchProps.onSettings,
     onSignOut: dispatchProps.onSignOut,
     onTabClick: (tab: Tabs.AppTab) =>
-      dispatchProps._onTabClick(tab, stateProps._justSignedUpEmail, stateProps._settingsEmailBanner),
+      dispatchProps._onTabClick(
+        tab,
+        stateProps.fsCriticalUpdate,
+        stateProps._justSignedUpEmail,
+        stateProps._settingsEmailBanner
+      ),
     selectedTab: ownProps.selectedTab,
     username: stateProps.username,
   })

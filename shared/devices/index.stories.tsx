@@ -1,4 +1,5 @@
 import * as React from 'react'
+import moment from 'moment'
 import * as Sb from '../stories/storybook'
 import {stringToDeviceID} from '../constants/types/devices'
 import DevicesReal from './container'
@@ -31,13 +32,37 @@ const activeDevices = withNew => {
   return existingDevices
 }
 
+const secondAgo = moment()
+  .subtract(1, 'second')
+  .toDate()
+const fourHoursAgo = moment()
+  .subtract(4, 'hours')
+  .toDate()
+
 const revokedDevices = withNew => {
   const existingDevices = [
-    {deviceNumberOfType: 8, id: stringToDeviceID('4'), isNew: false, key: '4', type: 'device'},
-    {deviceNumberOfType: 9, id: stringToDeviceID('5'), isNew: false, key: '5', type: 'device'},
+    {
+      deviceNumberOfType: 8,
+      id: stringToDeviceID('4'),
+      isNew: false,
+      key: '4',
+      revokedAt: fourHoursAgo,
+      type: 'device',
+    },
+    {
+      deviceNumberOfType: 9,
+      id: stringToDeviceID('5'),
+      isNew: false,
+      key: '5',
+      revokedAt: fourHoursAgo,
+      type: 'device',
+    },
   ]
   if (withNew) {
-    return [...existingDevices, {id: stringToDeviceID('7'), isNew: true, key: '7', type: 'device'}]
+    return [
+      ...existingDevices,
+      {id: stringToDeviceID('7'), isNew: true, key: '7', revokedAt: secondAgo, type: 'device'},
+    ]
   }
   return existingDevices
 }
@@ -59,6 +84,8 @@ const provider = Sb.createPropProviderWithCommon({
         '6': 'new device',
         '7': 'newly revoked',
       }[deviceID],
+      revokedAt:
+        deviceID === '4' || deviceID === '5' ? fourHoursAgo : deviceID === '7' ? secondAgo : undefined,
     },
     firstItem: deviceID === '1',
     iconNumber: Number(deviceID),

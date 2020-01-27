@@ -16,6 +16,7 @@ type Props = {
   image: Kb.IconType | null
   loadTeam?: () => void
   onAuthorClick: () => void
+  onDismiss: () => void
   teamname: string
   textComponent: React.ReactNode
 }
@@ -29,37 +30,52 @@ export const TeamJourney = (props: Props) => {
   }, [])
   return (
     <>
-      <TeamJourneyHeader teamname={teamname} onAuthorClick={props.onAuthorClick} />
-      <Kb.Box2 key="content" direction="vertical" fullWidth={true} style={styles.content}>
-        <Kb.Box2 direction="horizontal" fullWidth={true}>
+      <TeamJourneyHeader
+        teamname={teamname}
+        onAuthorClick={props.onAuthorClick}
+        onDismiss={props.onDismiss}
+      />
+      <Kb.Box2
+        key="content"
+        direction="vertical"
+        fullWidth={true}
+        style={Styles.collapseStyles([styles.content, props.image ? styles.contentWithImage : null])}
+      >
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.contentHorizontalPad}>
           <Kb.Box2 direction="horizontal" style={props.image ? styles.text : undefined}>
             {props.textComponent}
           </Kb.Box2>
           {!!props.image && <Kb.Icon style={styles.image} type={props.image} />}
         </Kb.Box2>
-        <Kb.Box2
-          direction="horizontal"
-          fullWidth={true}
-          alignItems={'flex-start'}
-          gap="tiny"
-          style={styles.actionsBox}
-        >
-          {props.actions.map(action =>
-            action == 'wave' ? (
-              <Kb.WaveButton conversationIDKey={conversationIDKey} small={true} style={styles.buttonSpace} />
-            ) : (
-              <Kb.Button
-                key={action.label}
-                small={true}
-                type="Default"
-                mode="Secondary"
-                label={action.label}
-                onClick={action.onClick}
-                style={styles.buttonSpace}
-              />
-            )
-          )}
-        </Kb.Box2>
+        <Kb.ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
+          <Kb.Box2
+            direction="horizontal"
+            fullWidth={true}
+            alignItems={'flex-start'}
+            gap="tiny"
+            style={Styles.collapseStyles([styles.actionsBox, styles.contentHorizontalPad])}
+          >
+            {props.actions.map(action =>
+              action == 'wave' ? (
+                <Kb.WaveButton
+                  conversationIDKey={conversationIDKey}
+                  small={true}
+                  style={styles.buttonSpace}
+                />
+              ) : (
+                <Kb.Button
+                  key={action.label}
+                  small={true}
+                  type="Default"
+                  mode="Secondary"
+                  label={action.label}
+                  onClick={action.onClick}
+                  style={styles.buttonSpace}
+                />
+              )
+            )}
+          </Kb.Box2>
+        </Kb.ScrollView>
       </Kb.Box2>
     </>
   )
@@ -68,31 +84,37 @@ export const TeamJourney = (props: Props) => {
 type HeaderProps = {
   teamname: string
   onAuthorClick: () => void
+  onDismiss: () => void
 }
 const TeamJourneyHeader = (props: HeaderProps) => (
-  <>
-    <Kb.Box2 key="author" direction="horizontal" style={styles.authorContainer} gap="tiny">
-      <Kb.Avatar
-        size={32}
-        isTeam={true}
-        teamname={props.teamname}
-        skipBackground={true}
-        style={styles.avatar}
+  <Kb.Box2 key="author" direction="horizontal" fullWidth={true} style={styles.authorContainer} gap="tiny">
+    <Kb.Avatar
+      size={32}
+      isTeam={true}
+      teamname={props.teamname}
+      skipBackground={true}
+      style={styles.avatar}
+      onClick={props.onAuthorClick}
+    />
+    <Kb.Box2
+      direction="horizontal"
+      gap="xtiny"
+      fullWidth={false}
+      alignSelf="flex-start"
+      style={styles.bottomLine}
+    >
+      <Kb.Text
+        style={styles.teamnameText}
+        type="BodySmallBold"
         onClick={props.onAuthorClick}
-      />
-      <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.bottomLine}>
-        <Kb.Text
-          style={styles.teamnameText}
-          type="BodySmallBold"
-          onClick={props.onAuthorClick}
-          className="hover-underline"
-        >
-          {props.teamname}
-        </Kb.Text>
-        <Kb.Text type="BodyTiny">• System message</Kb.Text>
-      </Kb.Box2>
+        className="hover-underline"
+      >
+        {props.teamname}
+      </Kb.Text>
+      <Kb.Text type="BodyTiny">• System message</Kb.Text>
     </Kb.Box2>
-  </>
+    {!Styles.isMobile && <Kb.Icon type="iconfont-close" onClick={props.onDismiss} fontSize={12} />}
+  </Kb.Box2>
 )
 
 const buttonSpace = 6
@@ -103,7 +125,6 @@ const styles = Styles.styleSheetCreate(
       actionsBox: Styles.platformStyles({
         common: {
           marginTop: Styles.globalMargins.tiny - buttonSpace,
-          minHeight: 50,
         },
         isElectron: {
           flexWrap: 'wrap',
@@ -122,9 +143,10 @@ const styles = Styles.styleSheetCreate(
           marginLeft: Styles.globalMargins.small,
           marginTop: Styles.globalMargins.xtiny,
         },
-        isMobile: {marginLeft: Styles.globalMargins.xtiny},
+        isMobile: {marginLeft: Styles.globalMargins.tiny},
       }),
       bottomLine: {
+        ...Styles.globalStyles.flexGrow,
         alignItems: 'baseline',
       },
       buttonSpace: {
@@ -133,33 +155,48 @@ const styles = Styles.styleSheetCreate(
       content: Styles.platformStyles({
         isElectron: {
           marginTop: -16,
+        },
+        isMobile: {
+          marginTop: -12,
+          paddingBottom: 3,
+        },
+      }),
+      contentHorizontalPad: Styles.platformStyles({
+        isElectron: {
           paddingLeft:
             // Space for below the avatar
             Styles.globalMargins.tiny + // right margin
             Styles.globalMargins.small + // left margin
             Styles.globalMargins.mediumLarge, // avatar
+          paddingRight: Styles.globalMargins.tiny,
         },
         isMobile: {
-          marginTop: -12,
-          paddingBottom: 3,
           paddingLeft:
             // Space for below the avatar
             Styles.globalMargins.tiny + // right margin
             Styles.globalMargins.tiny + // left margin
             Styles.globalMargins.mediumLarge, // avatar
-          paddingRight: Styles.globalMargins.tiny,
         },
       }),
-      image: {
-        left: '50%',
-        position: 'absolute',
+      contentWithImage: {
+        minHeight: 70,
       },
+      image: Styles.platformStyles({
+        common: {
+          position: 'absolute',
+          top: 0,
+        },
+        isElectron: {
+          left: '50%',
+          marginLeft: 15,
+        },
+        isMobile: {
+          right: 40,
+        },
+      }),
       teamnameText: Styles.platformStyles({
         common: {
           color: Styles.globalColors.black,
-        },
-        isMobile: {
-          marginLeft: Styles.globalMargins.xtiny,
         },
       }),
       text: {

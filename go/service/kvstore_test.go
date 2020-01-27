@@ -103,13 +103,16 @@ func TestKvStoreSelfTeamPutGet(t *testing.T) {
 	getRes, err = eveHandler.GetKVEntry(ctx, getArg)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "You are not a member of this team")
+
+	// put again
 	putRes, err = handler.PutKVEntry(ctx, putArg)
 	require.NoError(t, err)
 
-	// it lists correctly
+	// lists correctly
 	listNamespacesRes, err = handler.ListKVNamespaces(ctx, listNamespacesArg)
 	require.NoError(t, err)
 	require.EqualValues(t, listNamespacesRes.Namespaces, []string{namespace})
+
 	listEntriesRes, err = handler.ListKVEntries(ctx, listEntriesArg)
 	require.NoError(t, err)
 	expectedKey := keybase1.KVListEntryKey{EntryKey: entryKey, Revision: 3}

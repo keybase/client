@@ -4,6 +4,7 @@ import * as TeamTypes from '../../../../constants/types/teams'
 import {PlainInput} from '../../../../common-adapters'
 
 type CommonProps = {
+  botRestrictMap?: Map<string, boolean>
   cannotWrite: boolean | null
   clearInboxFilter: () => void
   conversationIDKey: Types.ConversationIDKey
@@ -59,7 +60,7 @@ export type InputProps = {
   }>
   suggestCommands: Array<RPCChatTypes.ConversationCommand>
   suggestBotCommands: Array<RPCChatTypes.ConversationCommand>
-  suggestBotCommandsUpdateStatus: RPCChatTypes.UIBotCommandsUpdateStatus
+  suggestBotCommandsUpdateStatus: RPCChatTypes.UIBotCommandsUpdateStatusTyp
 } & CommonProps
 
 export type PlatformInputProps = {
@@ -67,5 +68,5 @@ export type PlatformInputProps = {
   onChangeText: (newText: string) => void
   onKeyDown: (evt: React.KeyboardEvent, isComposingIME: boolean) => void
   setHeight: (inputHeight: number) => void
-  suggestBotCommandsUpdateStatus: RPCChatTypes.UIBotCommandsUpdateStatus
+  suggestBotCommandsUpdateStatus: RPCChatTypes.UIBotCommandsUpdateStatusTyp
 } & CommonProps

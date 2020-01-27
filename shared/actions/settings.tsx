@@ -71,7 +71,9 @@ const toggleNotifications = async (state: TypedState) => {
       // Special case this since it will go to chat settings endpoint
       group.settings.forEach(
         setting =>
-          (chatGlobalArg[`${ChatTypes.GlobalAppNotificationSetting[setting.name]}`] = !!setting.subscribed)
+          (chatGlobalArg[
+            `${ChatTypes.GlobalAppNotificationSetting[setting.name as any]}`
+          ] = !!setting.subscribed)
       )
     } else {
       group.settings.forEach(setting =>
@@ -304,7 +306,7 @@ function* refreshNotifications() {
     unsub: false,
   }
 
-  const settingsToPayload = s =>
+  const settingsToPayload = (s: {description: string; subscribed: boolean; name: string}) =>
     ({
       description: s.description,
       name: s.name,
@@ -364,7 +366,7 @@ const loadSettings = async (
       (settings.emails ?? []).map(row => [row.email, {...Constants.makeEmailRow(), ...row}])
     )
     const phoneMap = (settings.phoneNumbers ?? []).reduce<Map<string, Types.PhoneRow>>((map, row) => {
-      if (map[row.phoneNumber] && !map[row.phoneNumber].superseded) {
+      if (map.get(row.phoneNumber) && !map.get(row.phoneNumber)?.superseded) {
         return map
       }
       map.set(row.phoneNumber, Constants.toPhoneRow(row))

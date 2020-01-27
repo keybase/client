@@ -12,11 +12,12 @@ type OwnProps = {
 
 const mapStateToProps = state => ({
   driverStatus: state.fs.sfmi.driverStatus,
+  settings: state.fs.settings,
 })
 
 const mapDispatchToProps = dispatch => ({
   onDisable: () => dispatch(FsGen.createDriverDisable()),
-  onDismiss: () => dispatch(FsGen.createHideSystemFileManagerIntegrationBanner()),
+  onDismiss: () => dispatch(FsGen.createSetSfmiBannerDismissed({dismissed: true})),
   onEnable: () => dispatch(FsGen.createDriverEnable({})),
 })
 

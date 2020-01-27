@@ -146,7 +146,7 @@ type FlipManager struct {
 
 	gamesMu        sync.Mutex
 	games          *lru.Cache
-	dirtyGames     map[string]chat1.FlipGameID
+	dirtyGames     map[chat1.FlipGameIDStr]chat1.FlipGameID
 	flipConvs      *lru.Cache
 	gameMsgIDs     *lru.Cache
 	gameOutboxIDMu sync.Mutex
@@ -155,7 +155,7 @@ type FlipManager struct {
 	partMu                     sync.Mutex
 	maxConvParticipations      int
 	maxConvParticipationsReset time.Duration
-	convParticipations         map[string]convParticipationsRateLimit
+	convParticipations         map[chat1.ConvIDStr]convParticipationsRateLimit
 
 	// testing only
 	testingServerClock clockwork.Clock
@@ -172,10 +172,10 @@ func NewFlipManager(g *globals.Context, ri func() chat1.RemoteInterface) *FlipMa
 		ri:                         ri,
 		clock:                      clockwork.NewRealClock(),
 		games:                      games,
-		dirtyGames:                 make(map[string]chat1.FlipGameID),
+		dirtyGames:                 make(map[chat1.FlipGameIDStr]chat1.FlipGameID),
 		forceCh:                    make(chan struct{}, 10),
 		loadGameCh:                 make(chan loadGameJob, 200),
-		convParticipations:         make(map[string]convParticipationsRateLimit),
+		convParticipations:         make(map[chat1.ConvIDStr]convParticipationsRateLimit),
 		maxConvParticipations:      1000,
 		maxConvParticipationsReset: 5 * time.Minute,
 		visualizer:                 NewFlipVisualizer(128, 80),
@@ -276,7 +276,7 @@ func (m *FlipManager) notifyDirtyGames() {
 		return
 	}
 	dirtyGames := m.dirtyGames
-	m.dirtyGames = make(map[string]chat1.FlipGameID)
+	m.dirtyGames = make(map[chat1.FlipGameIDStr]chat1.FlipGameID)
 	m.gamesMu.Unlock()
 
 	ctx := m.makeBkgContext()
@@ -288,7 +288,7 @@ func (m *FlipManager) notifyDirtyGames() {
 	var updates []chat1.UICoinFlipStatus
 	m.Debug(ctx, "notifyDirtyGames: notifying about %d games", len(dirtyGames))
 	for _, dg := range dirtyGames {
-		if game, ok := m.games.Get(dg.String()); ok {
+		if game, ok := m.games.Get(dg.FlipGameIDStr()); ok {
 			status := game.(chat1.UICoinFlipStatus)
 			m.getVisualizer().Visualize(&status)
 			presentStatus := status.DeepCopy()
@@ -525,7 +525,7 @@ func (m *FlipManager) addResult(ctx context.Context, status *chat1.UICoinFlipSta
 		}
 		items := make([]string, len(hmi.ShuffleItems))
 		for index, r := range result.Shuffle {
-			items[index] = hmi.ShuffleItems[r]
+			items[index] = utils.EscapeForDecorate(ctx, hmi.ShuffleItems[r])
 		}
 		var resultInfo chat1.UICoinFlipResult
 		if hmi.DeckShuffle {
@@ -549,7 +549,7 @@ func (m *FlipManager) addResult(ctx context.Context, status *chat1.UICoinFlipSta
 
 func (m *FlipManager) queueDirtyGameID(ctx context.Context, gameID chat1.FlipGameID, force bool) {
 	m.gamesMu.Lock()
-	m.dirtyGames[gameID.String()] = gameID
+	m.dirtyGames[gameID.FlipGameIDStr()] = gameID
 	m.gamesMu.Unlock()
 	if force {
 		select {
@@ -609,23 +609,23 @@ func (m *FlipManager) handleSummaryUpdate(ctx context.Context, gameID chat1.Flip
 	defer m.queueDirtyGameID(ctx, gameID, force)
 	if update.Err != nil {
 		var parts []chat1.UICoinFlipParticipant
-		oldGame, ok := m.games.Get(gameID.String())
+		oldGame, ok := m.games.Get(gameID.FlipGameIDStr())
 		if ok {
 			parts = oldGame.(chat1.UICoinFlipStatus).Participants
 		}
 		formatted := m.formatError(ctx, update.Err)
 		status = chat1.UICoinFlipStatus{
-			GameID:       gameID.String(),
+			GameID:       gameID.FlipGameIDStr(),
 			Phase:        chat1.UICoinFlipPhase_ERROR,
 			ProgressText: fmt.Sprintf("Something went wrong: %s", update.Err),
 			Participants: parts,
 			ErrorInfo:    &formatted,
 		}
-		m.games.Add(gameID.String(), status)
+		m.games.Add(gameID.FlipGameIDStr(), status)
 		return status
 	}
 	status = chat1.UICoinFlipStatus{
-		GameID: gameID.String(),
+		GameID: gameID.FlipGameIDStr(),
 		Phase:  chat1.UICoinFlipPhase_COMPLETE,
 	}
 	m.addResult(ctx, &status, update.Result, convID)
@@ -642,7 +642,7 @@ func (m *FlipManager) handleSummaryUpdate(ctx context.Context, gameID chat1.Flip
 		}
 	}
 	status.ProgressText = "Complete"
-	m.games.Add(gameID.String(), status)
+	m.games.Add(gameID.FlipGameIDStr(), status)
 	return status
 }
 
@@ -655,12 +655,12 @@ func (m *FlipManager) handleUpdate(ctx context.Context, update flip.GameStateUpd
 		}
 	}()
 	var status chat1.UICoinFlipStatus
-	rawGame, ok := m.games.Get(gameID.String())
+	rawGame, ok := m.games.Get(gameID.FlipGameIDStr())
 	if ok {
 		status = rawGame.(chat1.UICoinFlipStatus)
 	} else {
 		status = chat1.UICoinFlipStatus{
-			GameID: gameID.String(),
+			GameID: gameID.FlipGameIDStr(),
 		}
 	}
 
@@ -695,7 +695,7 @@ func (m *FlipManager) handleUpdate(ctx context.Context, update flip.GameStateUpd
 	default:
 		return errors.New("unknown update kind")
 	}
-	m.games.Add(gameID.String(), status)
+	m.games.Add(gameID.FlipGameIDStr(), status)
 	return nil
 }
 
@@ -1064,7 +1064,7 @@ func (m *FlipManager) shouldIgnoreInject(ctx context.Context, hostConvID, flipCo
 func (m *FlipManager) isConvParticipationViolation(ctx context.Context, convID chat1.ConversationID) bool {
 	m.partMu.Lock()
 	defer m.partMu.Unlock()
-	if rec, ok := m.convParticipations[convID.String()]; ok {
+	if rec, ok := m.convParticipations[convID.ConvIDStr()]; ok {
 		m.Debug(ctx, "isConvParticipationViolation: rec: count: %d remain: %v", rec.count,
 			m.clock.Now().Sub(rec.reset))
 		if rec.reset.Before(m.clock.Now()) {
@@ -1084,17 +1084,17 @@ func (m *FlipManager) recordConvParticipation(ctx context.Context, convID chat1.
 	m.partMu.Lock()
 	defer m.partMu.Unlock()
 	addNew := func() {
-		m.convParticipations[convID.String()] = convParticipationsRateLimit{
+		m.convParticipations[convID.ConvIDStr()] = convParticipationsRateLimit{
 			count: 1,
 			reset: m.clock.Now().Add(m.maxConvParticipationsReset),
 		}
 	}
-	if rec, ok := m.convParticipations[convID.String()]; ok {
+	if rec, ok := m.convParticipations[convID.ConvIDStr()]; ok {
 		if rec.reset.Before(m.clock.Now()) {
 			addNew()
 		} else {
 			rec.count++
-			m.convParticipations[convID.String()] = rec
+			m.convParticipations[convID.ConvIDStr()] = rec
 		}
 	} else {
 		addNew()
@@ -1123,7 +1123,7 @@ func (m *FlipManager) injectIncomingChat(ctx context.Context, uid gregor1.UID,
 		D: msg.Valid().ClientHeader.SenderDevice,
 	}
 	m.recordConvParticipation(ctx, hostConvID) // record the inject for rate limiting purposes
-	m.gameMsgIDs.Add(gameID.String(), msg.GetMessageID())
+	m.gameMsgIDs.Add(gameID.FlipGameIDStr(), msg.GetMessageID())
 	m.Debug(ctx, "injectIncomingChat: injecting: gameID: %s msgID: %d", gameID, msg.GetMessageID())
 	return m.dealer.InjectIncomingChat(ctx, sender, convID, gameID,
 		flip.MakeGameMessageEncoded(body.Flip().Text), m.isStartMsgID(msg.GetMessageID()))
@@ -1142,7 +1142,7 @@ func (m *FlipManager) updateActiveGame(ctx context.Context, uid gregor1.UID, con
 		nextMsg.GetMessageID())
 	// Get current msg ID of the game if we know about it
 	var msgIDStart chat1.MessageID
-	if storedMsgIDIface, ok := m.gameMsgIDs.Get(gameID.String()); ok {
+	if storedMsgIDIface, ok := m.gameMsgIDs.Get(gameID.FlipGameIDStr()); ok {
 		storedMsgID := storedMsgIDIface.(chat1.MessageID)
 		if nextMsg.GetMessageID() == storedMsgID+1 {
 			m.Debug(ctx, "updateActiveGame: truly incremental update, injecting...")
@@ -1247,7 +1247,7 @@ func (m *FlipManager) MaybeInjectFlipMessage(ctx context.Context, boxedMsg chat1
 			U: msg.Valid().ClientHeader.Sender,
 			D: msg.Valid().ClientHeader.SenderDevice,
 		}) {
-			m.gameMsgIDs.Add(body.Flip().GameID.String(), msg.GetMessageID())
+			m.gameMsgIDs.Add(body.Flip().GameID.FlipGameIDStr(), msg.GetMessageID())
 			return
 		}
 		// Check to see if we are going to participate from this inject
@@ -1347,7 +1347,7 @@ func (m *FlipManager) loadGame(ctx context.Context, job loadGameJob) (err error)
 		}
 		go func(ctx context.Context, summary *flip.GameSummary) {
 			m.clock.Sleep(5 * time.Second)
-			rawGame, ok := m.games.Get(job.gameID.String())
+			rawGame, ok := m.games.Get(job.gameID.FlipGameIDStr())
 			if ok {
 				status := rawGame.(chat1.UICoinFlipStatus)
 				switch status.Phase {
@@ -1386,7 +1386,7 @@ func (m *FlipManager) loadGameLoop(shutdownCh chan struct{}) {
 func (m *FlipManager) LoadFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID,
 	hostMsgID chat1.MessageID, flipConvID chat1.ConversationID, gameID chat1.FlipGameID) (res chan chat1.UICoinFlipStatus, err chan error) {
 	defer m.Trace(ctx, func() error { return nil }, "LoadFlip")()
-	stored, ok := m.games.Get(gameID.String())
+	stored, ok := m.games.Get(gameID.FlipGameIDStr())
 	if ok {
 		switch stored.(chat1.UICoinFlipStatus).Phase {
 		case chat1.UICoinFlipPhase_ERROR:
@@ -1484,7 +1484,7 @@ func (m *FlipManager) sendNonblock(ctx context.Context, initiatorUID gregor1.UID
 func (m *FlipManager) isSentOutboxID(ctx context.Context, gameID chat1.FlipGameID, outboxID chat1.OutboxID) bool {
 	m.gameOutboxIDMu.Lock()
 	defer m.gameOutboxIDMu.Unlock()
-	if omIface, ok := m.gameOutboxIDs.Get(gameID.String()); ok {
+	if omIface, ok := m.gameOutboxIDs.Get(gameID.FlipGameIDStr()); ok {
 		om := omIface.(map[string]bool)
 		return om[outboxID.String()]
 	}
@@ -1496,13 +1496,13 @@ func (m *FlipManager) registerSentOutboxID(ctx context.Context, gameID chat1.Fli
 	m.gameOutboxIDMu.Lock()
 	defer m.gameOutboxIDMu.Unlock()
 	var om map[string]bool
-	if omIface, ok := m.gameOutboxIDs.Get(gameID.String()); ok {
+	if omIface, ok := m.gameOutboxIDs.Get(gameID.FlipGameIDStr()); ok {
 		om = omIface.(map[string]bool)
 	} else {
 		om = make(map[string]bool)
 	}
 	om[outboxID.String()] = true
-	m.gameOutboxIDs.Add(gameID.String(), om)
+	m.gameOutboxIDs.Add(gameID.FlipGameIDStr(), om)
 }
 
 // SendChat implements the flip.DealersHelper interface

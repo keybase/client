@@ -2,7 +2,6 @@ package teams
 
 import (
 	"errors"
-	"fmt"
 
 	"golang.org/x/net/context"
 
@@ -10,18 +9,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-func GetTeamShowcase(ctx context.Context, g *libkb.GlobalContext, teamname string) (ret keybase1.TeamShowcase, err error) {
-	team, err := Load(ctx, g, keybase1.LoadTeamArg{Name: teamname})
-	if err != nil {
-		return ret, fixupTeamGetError(ctx, g, err, teamname, false)
-	}
-	if team.IsImplicit() {
-		return ret, fmt.Errorf("cannot manage implicit team by name")
-	}
-	return GetTeamShowcaseByID(ctx, g, team.ID)
-}
-
-func GetTeamShowcaseByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID) (ret keybase1.TeamShowcase, err error) {
+func GetTeamShowcase(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID) (ret keybase1.TeamShowcase, err error) {
 	arg := apiArg("team/get")
 	arg.Args.Add("id", libkb.S{Val: teamID.String()})
 	arg.Args.Add("showcase_only", libkb.B{Val: true})
@@ -43,10 +31,16 @@ func (c *memberShowcaseRes) GetAppStatus() *libkb.AppStatus {
 	return &c.Status
 }
 
-func GetTeamAndMemberShowcase(ctx context.Context, g *libkb.GlobalContext, teamname string) (ret keybase1.TeamAndMemberShowcase, err error) {
-	t, err := GetForDisplayByStringName(ctx, g, teamname)
+func GetTeamAndMemberShowcase(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) (ret keybase1.TeamAndMemberShowcase,
+	err error) {
+	t, err := Load(ctx, g, keybase1.LoadTeamArg{
+		ID:                        id,
+		Public:                    false,
+		ForceRepoll:               true,
+		AllowNameLookupBurstCache: true,
+	})
 	if err != nil {
-		return ret, err
+		return ret, fixupTeamGetError(ctx, g, err, id.String(), false)
 	}
 
 	role, err := t.myRole(ctx)
@@ -83,7 +77,7 @@ func GetTeamAndMemberShowcase(ctx context.Context, g *libkb.GlobalContext, teamn
 				// checks before calling it - but if we have outdated team
 				// information, we might still end up here not being allowed
 				// to call it and getting this error.
-				mctx.Debug("GetTeamAndMemberShowcase hit a race with team %q", teamname)
+				mctx.Debug("GetTeamAndMemberShowcase hit a race with team %q", t.Name())
 				return ret, nil
 			}
 
@@ -96,8 +90,9 @@ func GetTeamAndMemberShowcase(ctx context.Context, g *libkb.GlobalContext, teamn
 	return ret, nil
 }
 
-func SetTeamShowcase(ctx context.Context, g *libkb.GlobalContext, teamname string, isShowcased *bool, description *string, anyMemberShowcase *bool) error {
-	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
+func SetTeamShowcase(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, isShowcased *bool,
+	description *string, anyMemberShowcase *bool) error {
+	t, err := GetForTeamManagementByTeamID(ctx, g, teamID, true)
 	if err != nil {
 		return err
 	}
@@ -128,15 +123,14 @@ func SetTeamShowcase(ctx context.Context, g *libkb.GlobalContext, teamname strin
 	return t.notifyNoChainChange(ctx, keybase1.TeamChangeSet{Misc: true})
 }
 
-func SetTeamMemberShowcase(ctx context.Context, g *libkb.GlobalContext, teamname string, isShowcased bool) error {
-	t, err := GetForTeamManagementByStringName(ctx, g, teamname, false)
+func SetTeamMemberShowcase(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, isShowcased bool) error {
+	mctx := libkb.NewMetaContext(ctx, g)
+	t, err := GetForTeamManagementByTeamID(ctx, g, teamID, false /* needAdmin */)
 	if err != nil {
 		return err
 	}
-
-	mctx := libkb.NewMetaContext(ctx, g)
 	arg := apiArg("team/member_showcase")
-	arg.Args.Add("tid", libkb.S{Val: string(t.ID)})
+	arg.Args.Add("tid", libkb.S{Val: string(teamID)})
 	arg.Args.Add("is_showcased", libkb.B{Val: isShowcased})
 	_, err = mctx.G().API.Post(mctx, arg)
 	if err != nil {
@@ -151,5 +145,5 @@ func SetTeamMemberShowcase(ctx context.Context, g *libkb.GlobalContext, teamname
 		mctx.Debug("Error in CardCache.Delete: %s", err)
 	}
 	g.UserChanged(ctx, u)
-	return nil
+	return t.notifyNoChainChange(ctx, keybase1.TeamChangeSet{Misc: true})
 }

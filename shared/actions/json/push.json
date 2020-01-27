@@ -3,7 +3,7 @@
   "actions": {
     "rejectPermissions": {},
     "requestPermissions": {},
-    "showPermissionsPrompt": {"show": "boolean"},
+    "showPermissionsPrompt": {"show?": "boolean", "persistSkip?": "boolean", "justSignedUp?": "boolean"},
     "updatePushToken": {"token": "string"},
     "updateHasPermissions": {"hasPermissions": "boolean"},
     "notification": {"notification": "Types.PushNotification"}

@@ -58,6 +58,10 @@
         {
           "name": "usedDelegateUI",
           "type": "boolean"
+        },
+        {
+          "name": "signed",
+          "type": "boolean"
         }
       ],
       "response": null

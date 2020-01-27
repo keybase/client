@@ -96,8 +96,7 @@ type indexStatus struct {
 
 type inboxIndexStatus struct {
 	sync.Mutex
-	// convID -> indexStatus
-	inbox         map[string]indexStatus
+	inbox         map[chat1.ConvIDStr]indexStatus
 	uiCh          chan chat1.ChatSearchIndexStatus
 	dirty         bool
 	cachedPercent int
@@ -105,7 +104,7 @@ type inboxIndexStatus struct {
 
 func newInboxIndexStatus(uiCh chan chat1.ChatSearchIndexStatus) *inboxIndexStatus {
 	return &inboxIndexStatus{
-		inbox: make(map[string]indexStatus),
+		inbox: make(map[chat1.ConvIDStr]indexStatus),
 		uiCh:  uiCh,
 	}
 }
@@ -138,14 +137,14 @@ func (p *inboxIndexStatus) addConv(m *indexMetadata, conv chat1.Conversation) {
 	p.Lock()
 	defer p.Unlock()
 	p.dirty = true
-	p.inbox[conv.GetConvID().String()] = m.indexStatus(conv)
+	p.inbox[conv.GetConvID().ConvIDStr()] = m.indexStatus(conv)
 }
 
 func (p *inboxIndexStatus) rmConv(conv chat1.Conversation) {
 	p.Lock()
 	defer p.Unlock()
 	p.dirty = true
-	delete(p.inbox, conv.GetConvID().String())
+	delete(p.inbox, conv.GetConvID().ConvIDStr())
 }
 
 func (p *inboxIndexStatus) percentIndexed() int {

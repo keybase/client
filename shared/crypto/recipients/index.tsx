@@ -8,18 +8,18 @@ type Props = {
   recipients: Array<string>
 }
 
-const placeholder = 'Search Keybase'
+const placeholder = 'Search people'
 
 const Recipients = (props: Props) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
     <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.recipientsContainer}>
+      <Kb.Text type="BodyTinySemibold" style={styles.toField}>
+        To:
+      </Kb.Text>
       {props.recipients?.length ? (
         <Kb.ConnectedUsernames type="BodySemibold" usernames={props.recipients} colorFollowing={true} />
       ) : (
         <>
-          <Kb.Text type="BodyTinySemibold" style={styles.toField}>
-            To:
-          </Kb.Text>
           <Kb.PlainInput
             placeholder={placeholder}
             allowFontScaling={false}
@@ -56,7 +56,7 @@ const styles = Styles.styleSheetCreate(
       recipientsContainer: {
         minHeight: recipientsRowHeight,
         paddingBottom: Styles.globalMargins.tiny,
-        paddingLeft: Styles.globalMargins.small,
+        paddingLeft: Styles.globalMargins.xsmall,
         paddingRight: Styles.globalMargins.tiny,
         paddingTop: Styles.globalMargins.tiny,
       },

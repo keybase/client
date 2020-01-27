@@ -70,6 +70,13 @@ func (m MembershipUpdateRes) AllOtherUsers() (res []gregor1.UID) {
 	return res
 }
 
+type InboxSourceSearchEmptyMode int
+
+const (
+	InboxSourceSearchEmptyModeUnread InboxSourceSearchEmptyMode = iota
+	InboxSourceSearchEmptyModeAll
+)
+
 type InboxSourceDataSourceTyp int
 
 const (
@@ -91,7 +98,7 @@ type RemoteConversationMetadata struct {
 
 type RemoteConversation struct {
 	Conv           chat1.Conversation          `codec:"c"`
-	ConvIDStr      string                      `codec:"i"`
+	ConvIDStr      chat1.ConvIDStr             `codec:"i"`
 	LocalMetadata  *RemoteConversationMetadata `codec:"l"`
 	LocalReadMsgID chat1.MessageID             `codec:"r"`
 	LocalDraft     *string                     `codec:"d"`
@@ -421,7 +428,7 @@ func (d DummyIndexer) Remove(ctx context.Context, convID chat1.ConversationID, m
 func (d DummyIndexer) SearchableConvs(ctx context.Context, convID *chat1.ConversationID) ([]RemoteConversation, error) {
 	return nil, nil
 }
-func (d DummyIndexer) IndexInbox(ctx context.Context) (map[string]chat1.ProfileSearchConvStats, error) {
+func (d DummyIndexer) IndexInbox(ctx context.Context) (map[chat1.ConvIDStr]chat1.ProfileSearchConvStats, error) {
 	return nil, nil
 }
 func (d DummyIndexer) IsBackgroundActive() bool { return false }

@@ -288,7 +288,8 @@ func (ruid resolvableID) resolve(ctx context.Context) (
 		// First check if this is an implicit team.
 		iteamInfo, err := ruid.resolver.ResolveImplicitTeamByID(
 			ctx, ruid.id.AsTeamOrBust(), ruid.tlfType, ruid.offline)
-		if err == nil {
+		switch errors.Cause(err).(type) {
+		case nil:
 			if ruid.id != iteamInfo.TID.AsUserOrTeam() {
 				return nameIDPair{}, keybase1.SocialAssertion{}, tlf.NullID,
 					fmt.Errorf("Implicit team ID %s doesn't match ID in "+
@@ -299,6 +300,18 @@ func (ruid resolvableID) resolve(ctx context.Context) (
 				name: iteamInfo.Name,
 				id:   iteamInfo.TID.AsUserOrTeam(),
 			}, keybase1.SocialAssertion{}, iteamInfo.TlfID, nil
+		case libkb.AppStatusError:
+			// This could indicate a temporary error, like a network
+			// failure.  So fail it; the user should see a failure
+			// rather than possibly attempting to look up an implicit
+			// team through the path below.  See HOTPOT-1698.
+			return nameIDPair{}, keybase1.SocialAssertion{}, tlf.NullID, err
+		default:
+			// Fallthrough to the classic TLF case.  Normally this
+			// would be an error string that looks like: "Operation
+			// only allowed on implicit teams:
+			// MapImplicitTeamIDToDisplayName".  TODO: make that an
+			// exported error and treat only it specially.
 		}
 	}
 

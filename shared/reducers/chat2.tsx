@@ -416,25 +416,9 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
       map.set(ordinal, m ? Constants.upgradeMessage(m, message) : message)
     }
   },
-  [Chat2Gen.attachmentFullscreenSelection]: (draftState, action) => {
-    const {autoPlay, message} = action.payload
-    draftState.attachmentFullscreenSelection = {autoPlay, message}
-  },
   [Chat2Gen.attachmentLoading]: (draftState, action) => {
     const {conversationIDKey, message, isPreview, ratio} = action.payload
-    const {attachmentFullscreenSelection, attachmentViewMap, messageMap} = draftState
-    if (
-      attachmentFullscreenSelection?.message.conversationIDKey === message.conversationIDKey &&
-      attachmentFullscreenSelection?.message.id === message.id &&
-      message.type === 'attachment'
-    ) {
-      attachmentFullscreenSelection.message = {
-        ...message,
-        transferProgress: ratio,
-        transferState: 'downloading',
-      }
-    }
-
+    const {attachmentViewMap, messageMap} = draftState
     const viewType = RPCChatTypes.GalleryItemTyp.doc
     const viewMap = mapGetEnsureValue(attachmentViewMap, conversationIDKey, new Map())
     const info = mapGetEnsureValue(viewMap, viewType, Constants.makeAttachmentViewInfo())
@@ -463,16 +447,7 @@ const attachmentActions: Container.ActionHandler<Actions, Types.State> = {
   [Chat2Gen.attachmentDownloaded]: (draftState, action) => {
     const {message, path, error} = action.payload
     const {conversationIDKey, ordinal} = message
-    const {attachmentFullscreenSelection, messageMap} = draftState
-    if (
-      !error &&
-      attachmentFullscreenSelection?.message.conversationIDKey === message.conversationIDKey &&
-      attachmentFullscreenSelection?.message.id === message.id &&
-      message.type === 'attachment'
-    ) {
-      attachmentFullscreenSelection.message = {...message, downloadPath: path ?? null}
-    }
-
+    const {messageMap} = draftState
     const {attachmentViewMap} = draftState
     const viewMap = mapGetEnsureValue(attachmentViewMap, conversationIDKey, new Map())
     const viewType = RPCChatTypes.GalleryItemTyp.doc
@@ -573,7 +548,13 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     }
   },
   [Chat2Gen.conversationErrored]: (draftState, action) => {
-    draftState.createConversationError = action.payload.message
+    const {allowedUsers, code, disallowedUsers, message} = action.payload
+    draftState.createConversationError = {
+      allowedUsers,
+      code,
+      disallowedUsers,
+      message,
+    }
   },
   [Chat2Gen.updateUnreadline]: (draftState, action) => {
     const {conversationIDKey, messageID} = action.payload
@@ -1019,8 +1000,16 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   },
   [EngineGen.chat1ChatUiChatBotCommandsUpdateStatus]: (draftState, action) => {
     const {convID, status} = action.payload.params
-    const {botCommandsUpdateStatusMap} = draftState
-    botCommandsUpdateStatusMap.set(Types.stringToConversationIDKey(convID), status)
+    const {botCommandsUpdateStatusMap, botSettings} = draftState
+    const conversationIDKey = Types.stringToConversationIDKey(convID)
+    botCommandsUpdateStatusMap.set(conversationIDKey, status.typ)
+    if (status.typ === RPCChatTypes.UIBotCommandsUpdateStatusTyp.uptodate) {
+      const settingsMap = new Map<string, RPCTypes.TeamBotSettings>()
+      Object.keys(status.uptodate.settings).forEach(u => {
+        settingsMap.set(u, status.uptodate.settings[u])
+      })
+      botSettings.set(conversationIDKey, settingsMap)
+    }
   },
   [EngineGen.chat1NotifyChatChatTypingUpdate]: (draftState, action) => {
     const {typingUpdates} = action.payload.params
@@ -1040,7 +1029,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const map = messageMap.get(conversationIDKey)
     if (map) {
       const m: any = map.get(targetOrdinal)
-      if (m && Constants.isDecoratedMessage(m)) {
+      if (m && Constants.isMessageWithReactions(m)) {
         const reactions = m.reactions
         const rs = reactions.get(emoji) || new Set()
         reactions.set(emoji, rs)
@@ -1510,6 +1499,11 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     if (m) {
       m.delete(action.payload.username)
     }
+  },
+  [Chat2Gen.showInfoPanel]: (draftState, action) => {
+    const {show, tab} = action.payload
+    draftState.infoPanelShowing = show
+    draftState.infoPanelSelectedTab = show ? tab : undefined
   },
   [Chat2Gen.setBotSettings]: (draftState, action) => {
     const m =

@@ -17,14 +17,8 @@ if [ "$#" -gt 0 ] && [ ! -v KEYBASE_SERVICE ]; then
     exit 0
 fi
 
-# If we're called with any args, don't pollute stdout and stderr and write the
-# logs into /var/log/keybase
-KEYBASE_SERVICE_ARGS="${KEYBASE_SERVICE_ARGS:-"-debug"}"
-if [ "$#" -gt 0 ]; then
-    keybase $KEYBASE_SERVICE_ARGS service &> /var/log/keybase/service.log &
-else
-    keybase $KEYBASE_SERVICE_ARGS service &
-fi
+KEYBASE_SERVICE_ARGS="${KEYBASE_SERVICE_ARGS:-"-debug -use-default-log-file"}"
+keybase $KEYBASE_SERVICE_ARGS service &
 
 # Wait up to 10 seconds for the service to start
 SERVICE_COUNTER=0

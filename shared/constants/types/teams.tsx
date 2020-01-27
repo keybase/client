@@ -73,13 +73,6 @@ export type TypeMap = {[K in TeamRoleType]: string}
 
 export type BoolTypeMap = {[K in TeamRoleType]: boolean}
 
-export type ResetUserBadgeID = Buffer
-export type ResetUserBadgeIDKey = string
-export type ResetUser = {
-  username: string
-  badgeIDKey: ResetUserBadgeIDKey
-}
-
 export type EmailInviteError = {
   malformed: Set<string>
   message: string
@@ -119,29 +112,33 @@ export type State = Readonly<{
   addUserToTeamsState: AddUserToTeamsState
   addUserToTeamsResults: string
   canPerform: Map<TeamID, TeamOperations>
-  channelCreationError: string
   deletedTeams: Array<RPCTypes.DeletedTeamInfo>
-  emailInviteError: EmailInviteError
+  errorInAddToTeam: string
+  errorInChannelCreation: string
+  errorInEditDescription: string
+  errorInEmailInvite: EmailInviteError
+  errorInSettings: string
+  errorInTeamCreation: string
+  errorInTeamInvite: string
+  errorInTeamJoin: string
   teamsWithChosenChannels: Set<Teamname>
   sawChatBanner: boolean
   sawSubteamsBanner: boolean
   teamAccessRequestsPending: Set<Teamname>
-  teamInviteError: string
-  teamJoinError: string
   teamJoinSuccess: boolean
   teamJoinSuccessOpen: boolean
   teamJoinSuccessTeamName: string
-  teamCreationError: string
   teamDetails: Map<TeamID, TeamDetails>
+  teamDetailsSubscriptionCount: Map<TeamID, number> // >0 if we are eagerly reloading a team
   teamDetailsMetaStale: boolean // if we've received an update since we last loaded team list
   teamDetailsMetaSubscribeCount: number // if >0 we are eagerly reloading team list
   teamIDToChannelInfos: Map<TeamID, Map<ConversationIDKey, ChannelInfo>>
-  teamIDToResetUsers: Map<TeamID, Set<ResetUser>>
+  teamIDToMembers: Map<TeamID, Map<string, MemberInfo>>
+  teamIDToPublicitySettings: Map<TeamID, _PublicitySettings>
+  teamIDToResetUsers: Map<TeamID, Set<string>>
+  teamIDToRetentionPolicy: Map<TeamID, RetentionPolicy>
   teamNameToID: Map<Teamname, string>
   teamNameToLoadingInvites: Map<Teamname, Map<string, boolean>>
-  teamNameToMembers: Map<Teamname, Map<string, MemberInfo>> // TODO remove
-  teamNameToRetentionPolicy: Map<Teamname, RetentionPolicy>
-  teamNameToPublicitySettings: Map<Teamname, _PublicitySettings>
   teamnames: Set<Teamname> // TODO remove
   teamProfileAddList: Array<TeamProfileAddList>
   teamRoleMap: TeamRoleMap

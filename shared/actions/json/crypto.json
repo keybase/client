@@ -1,5 +1,8 @@
 {
-  "prelude": ["import * as Types from '../constants/types/crypto'"],
+  "prelude": [
+    "import * as Types from '../constants/types/crypto'",
+    "import HiddenString from '../util/hidden-string'"
+  ],
   "actions": {
     "clearRecipients": {
       "_description": "Remove all recipients from operation",
@@ -9,56 +12,92 @@
       "_description": "Clear input type and value from the specified operation",
       "operation": "Types.Operations"
     },
+    "downloadEncryptedText": {
+      "_description": "Download the encrypted output to a text file"
+    },
+    "downloadSignedText": {
+      "_description": "Download the signed output to a text file"
+    },
     "setRecipients": {
-      "_description": "Array recipients of operations, provided via TeamBuilding",
+      "_description": "Array recipients of operations, provided via TeamBuilding. Includes flag if any users are not on Keybase yet (SBS) to force includeSelf in EncryptOptions",
       "operation": "Types.Operations",
-      "recipients": "Array<string>"
+      "recipients": "Array<string>",
+      "hasSBS": "boolean"
     },
     "setInput": {
       "_description": "Set input type (text, file) and value on user input. Either keyboard input or drag-and-drop file",
       "operation": "Types.Operations",
       "type": "Types.InputTypes",
-      "value": "string"
+      "value": "HiddenString"
+    },
+    "setInputThrottled": {
+      "_description": "Same as setInput but throttled",
+      "operation": "Types.Operations",
+      "type": "Types.InputTypes",
+      "value": "HiddenString"
     },
     "setEncryptOptions": {
-      "_description": "Encrypt operation takes three options { 'includeSelf', 'sign', 'usePGP' }",
-      "options": "Types.EncryptOptions"
+      "_description": "Sets options for encrypt operations. Also takkes 'noIncludeSelf' to disable includeSelf when user includes themselves as a recipient",
+      "options": "Types.EncryptOptions",
+      "noIncludeSelf?": "boolean"
     },
     "onOperationSuccess": {
-      "_description": "On saltpack RPC successful response",
+      "_description": "On saltpack RPC successful response. input is the operation that started it",
+      "input": "any",
       "operation": "Types.Operations",
-      "output": "string",
-      "outputType": "Types.OutputType"
+      "output": "HiddenString",
+      "outputSender?": "HiddenString",
+      "outputSigned": "boolean",
+      "outputType": "Types.OutputType",
+      "warning?": "boolean",
+      "warningMessage?": "HiddenString"
     },
     "onOperationError": {
       "_description": "On saltpack RPC error response",
       "operation": "Types.Operations",
-      "errorType": "Types.ErrorTypes",
-      "errorMessage": "string"
+      "errorMessage": "HiddenString"
     },
     "resetOperation": {
       "_description": "Resets all values in the store for the given operation",
       "operation": "Types.Operations"
     },
+    "saltpackDone": {
+      "_description": "Progress logging",
+      "filename": "HiddenString",
+      "operation": "Types.Operations"
+    },
     "saltpackEncrypt": {
       "_description": "Calls Saltpack RPC",
+      "input": "HiddenString",
+      "options": "Types.EncryptOptions",
       "recipients": "Array<string>",
-      "input": "string",
       "type": "Types.InputTypes"
     },
     "saltpackDecrypt": {
       "_description": "Calls Saltpack RPC",
-      "input": "string",
+      "input": "HiddenString",
       "type": "Types.InputTypes"
+    },
+    "saltpackProgress": {
+      "_description": "Progress logging",
+      "bytesComplete": "number",
+      "bytesTotal": "number",
+      "filename": "HiddenString",
+      "operation": "Types.Operations"
     },
     "saltpackSign": {
       "_description": "Calls Saltpack RPC",
-      "input": "string",
+      "input": "HiddenString",
       "type": "Types.InputTypes"
+    },
+    "saltpackStart": {
+      "_description": "Progress logging",
+      "filename": "HiddenString",
+      "operation": "Types.Operations"
     },
     "saltpackVerify": {
       "_description": "Calls Saltpack RPC",
-      "input": "string",
+      "input": "HiddenString",
       "type": "Types.InputTypes"
     }
   }

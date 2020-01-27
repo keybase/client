@@ -846,7 +846,7 @@
 			files = (
 			);
 			inputPaths = (
-				"${SRCROOT}/Pods/Target Support Files/Pods-Status/Pods-Status-frameworks.sh",
+				"${PODS_ROOT}/Target Support Files/Pods-Status/Pods-Status-frameworks.sh",
 				"${BUILT_PRODUCTS_DIR}/AFNetworking/AFNetworking.framework",
 				"${BUILT_PRODUCTS_DIR}/CocoaLumberjack/CocoaLumberjack.framework",
 				"${BUILT_PRODUCTS_DIR}/GBCli/GBCli.framework",
@@ -881,7 +881,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Status/Pods-Status-frameworks.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Status/Pods-Status-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		6EBF4CB0181E5A8EE38B470D /* [CP] Embed Pods Frameworks */ = {
@@ -890,7 +890,7 @@
 			files = (
 			);
 			inputPaths = (
-				"${SRCROOT}/Pods/Target Support Files/Pods-Installer/Pods-Installer-frameworks.sh",
+				"${PODS_ROOT}/Target Support Files/Pods-Installer/Pods-Installer-frameworks.sh",
 				"${BUILT_PRODUCTS_DIR}/AFNetworking/AFNetworking.framework",
 				"${BUILT_PRODUCTS_DIR}/CocoaLumberjack/CocoaLumberjack.framework",
 				"${BUILT_PRODUCTS_DIR}/GBCli/GBCli.framework",
@@ -925,7 +925,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Installer/Pods-Installer-frameworks.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Installer/Pods-Installer-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -1093,7 +1093,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = keybase.Status;
 				PRODUCT_NAME = KeybaseStatus;
 				PROVISIONING_PROFILE = "";
-				SWIFT_VERSION = 3.0;
+				SWIFT_VERSION = 4.0;
 			};
 			name = Debug;
 		};
@@ -1114,7 +1114,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = keybase.Status;
 				PRODUCT_NAME = KeybaseStatus;
 				PROVISIONING_PROFILE = "";
-				SWIFT_VERSION = 3.0;
+				SWIFT_VERSION = 4.0;
 			};
 			name = Release;
 		};

@@ -55,16 +55,13 @@ not all source files are available if the dev tools aren't opened at launch.
 
 1) Install the [React Developer
 Tools](https://chrome.google.com/webstore/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi)
-and the [Immutable.js Object
-Formatter](https://chrome.google.com/webstore/detail/immutablejs-object-format/hgldghadipiblonfkkicmgcbbijnpeog)
-extensions in your regular Chrome browser.
 2) Set the following environment variables and make sure
 `KEYBASE_PERF` is unset. If you're using fish shell on macOS:
 
 ```
 set -e KEYBASE_PERF
 set -x KEYBASE_LOCAL_DEBUG 1
-set -x KEYBASE_DEV_TOOL_ROOTS "$HOME/Library/Application Support/Google/Chrome/Default/Extensions/fmkadmapgofadopljbjfkapdkoienihi,$HOME/Library/Application Support/Google/Chrome/Default/Extensions/hgldghadipiblonfkkicmgcbbijnpeog"
+set -x KEYBASE_DEV_TOOL_ROOTS "$HOME/Library/Application Support/Google/Chrome/Default/Extensions/fmkadmapgofadopljbjfkapdkoienihi"
 ```
 
 If you're using fish shell on Linux:
@@ -72,7 +69,7 @@ If you're using fish shell on Linux:
 ```
 set -e KEYBASE_PERF
 set -x KEYBASE_LOCAL_DEBUG 1
-set -x KEYBASE_DEV_TOOL_ROOTS "$HOME/.config/google-chrome/Default/Extensions/fmkadmapgofadopljbjfkapdkoienihi,$HOME/.config/google-chrome/Default/Extensions/hgldghadipiblonfkkicmgcbbijnpeog"
+set -x KEYBASE_DEV_TOOL_ROOTS "$HOME/.config/google-chrome/Default/Extensions/fmkadmapgofadopljbjfkapdkoienihi"
 ```
 
 If you're using bash on macOS:
@@ -80,7 +77,7 @@ If you're using bash on macOS:
 ```
 unset KEYBASE_PERF
 export KEYBASE_LOCAL_DEBUG=1
-export KEYBASE_DEV_TOOL_ROOTS="$HOME/Library/Application Support/Google/Chrome/Default/Extensions/fmkadmapgofadopljbjfkapdkoienihi,$HOME/Library/Application Support/Google/Chrome/Default/Extensions/hgldghadipiblonfkkicmgcbbijnpeog"
+export KEYBASE_DEV_TOOL_ROOTS="$HOME/Library/Application Support/Google/Chrome/Default/Extensions/fmkadmapgofadopljbjfkapdkoienihi"
 ```
 
 If you're using bash on Linux:
@@ -88,7 +85,7 @@ If you're using bash on Linux:
 ```
 unset KEYBASE_PERF
 export KEYBASE_LOCAL_DEBUG=1
-export KEYBASE_DEV_TOOL_ROOTS="$HOME/.config/google-chrome/Default/Extensions/fmkadmapgofadopljbjfkapdkoienihi,$HOME/.config/google-chrome/Default/Extensions/hgldghadipiblonfkkicmgcbbijnpeog"
+export KEYBASE_DEV_TOOL_ROOTS=",$HOME/.config/google-chrome/Default/Extensions/hgldghadipiblonfkkicmgcbbijnpeog"
 ```
 
 (See [this code](https://github.com/keybase/client/blob/master/shared/desktop/yarn-helper/electron.js#L47) for details.)
@@ -104,7 +101,7 @@ set `KEYBASE_DEV_TOOL_EXTENSIONS` instead of `KEYBASE_DEV_TOOL_ROOTS`,
 and you'll have to use the version subdirectory:
 
 ```
-set -x KEYBASE_DEV_TOOL_EXTENSIONS "$HOME/Library/Application Support/Google/Chrome/Default/Extensions/fmkadmapgofadopljbjfkapdkoienihi/2.5.2_0,$HOME/Library/Application Support/Google/Chrome/Default/Extensions/hgldghadipiblonfkkicmgcbbijnpeog/1.7_0"
+set -x KEYBASE_DEV_TOOL_EXTENSIONS "$HOME/Library/Application Support/Google/Chrome/Default/Extensions/fmkadmapgofadopljbjfkapdkoienihi/2.5.2_0"
 ```
 
 Note that this means you'll have to change the last path component if

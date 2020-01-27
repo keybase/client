@@ -104,14 +104,14 @@ func TestSyncerConnected(t *testing.T) {
 		t.Logf("index: %d conv: %s", index, conv.GetConvID())
 	}
 	// background loader will pick up all the convs from the creates above
-	convMap := make(map[string]bool)
+	convMap := make(map[chat1.ConvIDStr]bool)
 	for _, c := range convs {
-		convMap[c.GetConvID().String()] = true
+		convMap[c.GetConvID().ConvIDStr()] = true
 	}
 	for i := 0; i < len(convs); i++ {
 		select {
 		case convID := <-list.bgConvLoads:
-			delete(convMap, convID.String())
+			delete(convMap, convID.ConvIDStr())
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no background conv loaded")
 		}
@@ -175,7 +175,7 @@ func TestSyncerConnected(t *testing.T) {
 		require.Equal(t, chat1.SyncInboxResType_INCREMENTAL, typ)
 		updates := sres.Incremental().Items
 		require.Equal(t, 1, len(updates))
-		require.Equal(t, convs[1].GetConvID().String(), updates[0].Conv.ConvID)
+		require.Equal(t, convs[1].GetConvID().ConvIDStr(), updates[0].Conv.ConvID)
 		require.True(t, updates[0].ShouldUnbox)
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "no threads stale received")
@@ -325,9 +325,9 @@ func TestSyncerNeverJoined(t *testing.T) {
 			require.Len(t, sres.Incremental().Items, 2)
 			var foundConv, foundChan bool
 			for _, item := range sres.Incremental().Items {
-				if convID.String() == item.Conv.ConvID {
+				if convID.ConvIDStr() == item.Conv.ConvID {
 					foundConv = true
-				} else if chanID.String() == item.Conv.ConvID {
+				} else if chanID.ConvIDStr() == item.Conv.ConvID {
 					foundChan = true
 				}
 				require.Equal(t, chat1.ConversationMemberStatus_ACTIVE, item.Conv.MemberStatus)
@@ -350,7 +350,7 @@ func TestSyncerNeverJoined(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, chat1.SyncInboxResType_INCREMENTAL, typ)
 			require.Len(t, sres.Incremental().Items, 1)
-			require.Equal(t, convID.String(), sres.Incremental().Items[0].Conv.ConvID)
+			require.Equal(t, convID.ConvIDStr(), sres.Incremental().Items[0].Conv.ConvID)
 			require.Equal(t, chat1.ConversationMemberStatus_ACTIVE, sres.Incremental().Items[0].Conv.MemberStatus)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no inbox synced received")
@@ -418,7 +418,7 @@ func TestSyncerMembersTypeChanged(t *testing.T) {
 		typ, err := sres.SyncType()
 		require.NoError(t, err)
 		require.Equal(t, chat1.SyncInboxResType_INCREMENTAL, typ)
-		require.Equal(t, convID.String(), sres.Incremental().Items[0].Conv.ConvID)
+		require.Equal(t, convID.ConvIDStr(), sres.Incremental().Items[0].Conv.ConvID)
 		require.Equal(t, chat1.ConversationMembersType_IMPTEAMUPGRADE,
 			sres.Incremental().Items[0].Conv.MembersType)
 		require.True(t, sres.Incremental().Items[0].ShouldUnbox)
@@ -560,7 +560,7 @@ func TestSyncerRetentionExpunge(t *testing.T) {
 		require.Equal(t, chat1.SyncInboxResType_INCREMENTAL, typ)
 		updates := sres.Incremental().Items
 		require.Equal(t, 1, len(updates))
-		require.Equal(t, mconv.GetConvID().String(), updates[0].Conv.ConvID)
+		require.Equal(t, mconv.GetConvID().ConvIDStr(), updates[0].Conv.ConvID)
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "no threads stale received")
 	}
@@ -626,14 +626,14 @@ func TestSyncerTeamFilter(t *testing.T) {
 		require.Equal(t, chat1.SyncInboxResType_INCREMENTAL, typ)
 		require.Equal(t, 2, len(res.Incremental().Items))
 		items := res.Incremental().Items
-		if items[0].Conv.ConvID == iconv.GetConvID().String() {
+		if items[0].Conv.ConvID == iconv.GetConvID().ConvIDStr() {
 			require.True(t, items[0].ShouldUnbox)
 			require.False(t, items[1].ShouldUnbox)
-			require.Equal(t, tconv.GetConvID().String(), items[1].Conv.ConvID)
-		} else if items[0].Conv.ConvID == tconv.GetConvID().String() {
+			require.Equal(t, tconv.GetConvID().ConvIDStr(), items[1].Conv.ConvID)
+		} else if items[0].Conv.ConvID == tconv.GetConvID().ConvIDStr() {
 			require.False(t, items[0].ShouldUnbox)
 			require.True(t, items[1].ShouldUnbox)
-			require.Equal(t, iconv.GetConvID().String(), items[1].Conv.ConvID)
+			require.Equal(t, iconv.GetConvID().ConvIDStr(), items[1].Conv.ConvID)
 		} else {
 			require.Fail(t, "unknown conv")
 		}

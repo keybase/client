@@ -10,14 +10,17 @@ import (
 	"time"
 
 	lru "github.com/hashicorp/golang-lru"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/sig3"
+	"github.com/keybase/client/go/teams/hidden"
 	"github.com/keybase/pipeliner"
 )
 
 // AuditCurrentVersion is the version that works with this code. Older stored
 // versions will be discarded on load from level DB.
-const AuditCurrentVersion = keybase1.AuditVersion_V3
+const AuditCurrentVersion = keybase1.AuditVersion_V4
 
 var desktopParams = libkb.TeamAuditParams{
 	RootFreshness:         5 * time.Minute,
@@ -78,8 +81,8 @@ func getAuditParams(m libkb.MetaContext) libkb.TeamAuditParams {
 type dummyAuditor struct{}
 
 func (d dummyAuditor) AuditTeam(m libkb.MetaContext, id keybase1.TeamID, isPublic bool,
-	headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno,
-	lastMerkleRoot *libkb.MerkleRoot, auditMode keybase1.AuditMode) error {
+	headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, hiddenChain map[keybase1.Seqno]keybase1.LinkID,
+	maxSeqno keybase1.Seqno, maxHiddenSeqno keybase1.Seqno, lastMerkleRoot *libkb.MerkleRoot, auditMode keybase1.AuditMode) error {
 	return nil
 }
 
@@ -124,7 +127,7 @@ func NewAuditorAndInstall(g *libkb.GlobalContext) {
 // current one. headMerkleSeqno is is the Merkle Root claimed in the head of the team.
 // maxSeqno is the maximum seqno of the chainLinks passed; that is, the highest
 // Seqno for which chain[s] is defined.
-func (a *Auditor) AuditTeam(m libkb.MetaContext, id keybase1.TeamID, isPublic bool, headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno, lastMerkleRoot *libkb.MerkleRoot, auditMode keybase1.AuditMode) (err error) {
+func (a *Auditor) AuditTeam(m libkb.MetaContext, id keybase1.TeamID, isPublic bool, headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, hiddenChain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno, maxHiddenSeqno keybase1.Seqno, lastMerkleRoot *libkb.MerkleRoot, auditMode keybase1.AuditMode) (err error) {
 
 	m = m.WithLogTag("AUDIT")
 	defer m.TraceTimed(fmt.Sprintf("Auditor#AuditTeam(%+v)", id), func() error { return err })()
@@ -137,7 +140,7 @@ func (a *Auditor) AuditTeam(m libkb.MetaContext, id keybase1.TeamID, isPublic bo
 	lock := a.locktab.AcquireOnName(m.Ctx(), m.G(), id.String())
 	defer lock.Release(m.Ctx())
 
-	return a.auditLocked(m, id, headMerkleSeqno, chain, maxSeqno, lastMerkleRoot, auditMode)
+	return a.auditLocked(m, id, headMerkleSeqno, chain, hiddenChain, maxSeqno, maxHiddenSeqno, lastMerkleRoot, auditMode)
 }
 
 func (a *Auditor) getLRU() *lru.Cache {
@@ -242,12 +245,13 @@ func maxMerkleProbeInAuditHistory(h *keybase1.AuditHistory) keybase1.Seqno {
 func makeHistory(history *keybase1.AuditHistory, id keybase1.TeamID) *keybase1.AuditHistory {
 	if history == nil {
 		return &keybase1.AuditHistory{
-			ID:         id,
-			Public:     id.IsPublic(),
-			Version:    AuditCurrentVersion,
-			PreProbes:  make(map[keybase1.Seqno]keybase1.Probe),
-			PostProbes: make(map[keybase1.Seqno]keybase1.Probe),
-			Tails:      make(map[keybase1.Seqno]keybase1.LinkID),
+			ID:          id,
+			Public:      id.IsPublic(),
+			Version:     AuditCurrentVersion,
+			PreProbes:   make(map[keybase1.Seqno]keybase1.Probe),
+			PostProbes:  make(map[keybase1.Seqno]keybase1.Probe),
+			Tails:       make(map[keybase1.Seqno]keybase1.LinkID),
+			HiddenTails: make(map[keybase1.Seqno]keybase1.LinkID),
 		}
 	}
 	ret := history.DeepCopy()
@@ -255,7 +259,8 @@ func makeHistory(history *keybase1.AuditHistory, id keybase1.TeamID) *keybase1.A
 }
 
 // doPostProbes probes the sequence timeline _after_ the team was created.
-func (a *Auditor) doPostProbes(m libkb.MetaContext, history *keybase1.AuditHistory, probeID int, headMerkleSeqno keybase1.Seqno, latestMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxChainSeqno keybase1.Seqno) (numProbes int, maxMerkleProbe keybase1.Seqno, err error) {
+func (a *Auditor) doPostProbes(m libkb.MetaContext, history *keybase1.AuditHistory, probeID int, headMerkleSeqno keybase1.Seqno, latestMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID,
+	hiddenChain map[keybase1.Seqno]keybase1.LinkID, maxChainSeqno keybase1.Seqno, maxHiddenSeqno keybase1.Seqno, auditMode keybase1.AuditMode) (numProbes int, maxMerkleProbe keybase1.Seqno, probeTuples []probeTuple, err error) {
 	defer m.Trace("Auditor#doPostProbes", func() error { return err })()
 
 	var low keybase1.Seqno
@@ -277,6 +282,12 @@ func (a *Auditor) doPostProbes(m libkb.MetaContext, history *keybase1.AuditHisto
 				team:   probe.TeamSeqno,
 				// leave linkID nil, it's not needed...
 			}
+			if probe.TeamHiddenSeqno > 0 {
+				prev.hiddenResp = &libkb.MerkleHiddenResponse{
+					RespType:            libkb.MerkleHiddenResponseTypeOK,
+					CommittedHiddenTail: &sig3.Tail{Seqno: probe.TeamHiddenSeqno},
+				}
+			}
 		}
 	}
 
@@ -285,7 +296,7 @@ func (a *Auditor) doPostProbes(m libkb.MetaContext, history *keybase1.AuditHisto
 	first := m.G().GetMerkleClient().FirstExaminableHistoricalRoot(m)
 
 	if first == nil {
-		return 0, keybase1.Seqno(0), NewAuditError("cannot find a first modern merkle sequence")
+		return 0, keybase1.Seqno(0), nil, NewAuditError("cannot find a first modern merkle sequence")
 	}
 
 	if low < *first {
@@ -293,13 +304,18 @@ func (a *Auditor) doPostProbes(m libkb.MetaContext, history *keybase1.AuditHisto
 		low = *first
 	}
 
-	probeTuples, err := a.computeProbes(m, history.ID, history.PostProbes, probeID, low, latestMerkleSeqno, 0, getAuditParams(m).NumPostProbes)
+	firstRootWithHidden, err := m.G().GetMerkleClient().FirstMainRootWithHiddenRootHash(m)
 	if err != nil {
-		return 0, keybase1.Seqno(0), err
+		return 0, keybase1.Seqno(0), nil, err
+	}
+
+	probeTuples, err = a.computeProbes(m, history.ID, history.PostProbes, probeID, low, latestMerkleSeqno, 0, getAuditParams(m).NumPostProbes, history.PostProbesToRetry)
+	if err != nil {
+		return 0, keybase1.Seqno(0), probeTuples, err
 	}
 	if len(probeTuples) == 0 {
 		m.Debug("No probe tuples, so bailing")
-		return 0, keybase1.Seqno(0), nil
+		return 0, keybase1.Seqno(0), probeTuples, nil
 	}
 
 	ret := 0
@@ -316,55 +332,107 @@ func (a *Auditor) doPostProbes(m libkb.MetaContext, history *keybase1.AuditHisto
 		if tuple.team > keybase1.Seqno(0) {
 			expectedLinkID, ok := chain[tuple.team]
 			if !ok {
-				return 0, keybase1.Seqno(0), NewAuditError("team chain rollback: merkle seqno %v referred to team chain seqno %v which is not part of our chain (which at merkle seqno %v ends at %v)", tuple.merkle, tuple.team, latestMerkleSeqno, maxChainSeqno)
+				return 0, keybase1.Seqno(0), probeTuples, NewAuditError("team chain rollback: merkle seqno %v referred to team chain seqno %v which is not part of our chain (which at merkle seqno %v ends at %v)", tuple.merkle, tuple.team, latestMerkleSeqno, maxChainSeqno)
 			}
 			if !expectedLinkID.Eq(tuple.linkID) {
-				return 0, keybase1.Seqno(0), NewAuditError("team chain linkID mismatch at %d: wanted %s but got %s via merkle seqno %d", tuple.team, expectedLinkID, tuple.linkID, tuple.merkle)
+				return 0, keybase1.Seqno(0), probeTuples, NewAuditError("team chain linkID mismatch at %d: wanted %s but got %s via merkle seqno %d", tuple.team, expectedLinkID, tuple.linkID, tuple.merkle)
 			}
 		}
+		if err = checkProbeHidden(m, firstRootWithHidden, hiddenChain, &tuple, prev, latestMerkleSeqno, maxHiddenSeqno, auditMode); err != nil {
+			return 0, keybase1.Seqno(0), probeTuples, err
+		}
+
 		ret++
-		history.PostProbes[tuple.merkle] = keybase1.Probe{Index: probeID, TeamSeqno: tuple.team}
 
 		// This condition is the key ordering condition. It is still checked in the case of the race
 		// condition at tuple.team==0 mentioned just above.
 		if prev != nil && prev.team > tuple.team {
-			return 0, keybase1.Seqno(0), NewAuditError("team chain unexpected jump: %d > %d via merkle seqno %d", prev.team, tuple.team, tuple.merkle)
+			return 0, keybase1.Seqno(0), probeTuples, NewAuditError("team chain unexpected jump: %d > %d via merkle seqno %d", prev.team, tuple.team, tuple.merkle)
 		}
 		if tuple.merkle > maxMerkleProbe {
 			maxMerkleProbe = tuple.merkle
 		}
 		prev = &tuple
 	}
-	return ret, maxMerkleProbe, nil
+	return ret, maxMerkleProbe, probeTuples, nil
+}
+
+func checkProbeHidden(m libkb.MetaContext, firstRootWithHidden keybase1.Seqno, hiddenChain map[keybase1.Seqno]keybase1.LinkID, tuple *probeTuple, prev *probeTuple, latestMerkleSeqno keybase1.Seqno, maxHiddenSeqno keybase1.Seqno, auditMode keybase1.AuditMode) error {
+	if auditMode == keybase1.AuditMode_STANDARD_NO_HIDDEN {
+		return nil
+	}
+	switch tuple.hiddenResp.RespType {
+	case libkb.MerkleHiddenResponseTypeFLAGOFF:
+		// pass
+	case libkb.MerkleHiddenResponseTypeNONE:
+		if tuple.merkle >= firstRootWithHidden {
+			return NewAuditError("the server did not return any hidden chain data at seqno %v (first root with hidden data: %v)", tuple.merkle, firstRootWithHidden)
+		}
+	case libkb.MerkleHiddenResponseTypeABSENCEPROOF:
+		if prev != nil && prev.hiddenResp != nil && prev.hiddenResp.RespType != libkb.MerkleHiddenResponseTypeABSENCEPROOF {
+			return NewAuditError("the server returned an absence proof at seqno %v, but the previous probe was not %+v", tuple.merkle, prev.hiddenResp)
+		}
+	case libkb.MerkleHiddenResponseTypeOK:
+		expHiddenLinkID, ok := hiddenChain[tuple.hiddenResp.CommittedHiddenTail.Seqno]
+		if !ok {
+			return NewAuditError("team hidden chain rollback: merkle seqno %v referred to hidden team chain seqno %v which is not part of our chain (which at merkle seqno %v ends at %v)", tuple.merkle, tuple.hiddenResp.GetCommittedSeqno(), latestMerkleSeqno, maxHiddenSeqno)
+		}
+		if !expHiddenLinkID.Eq(tuple.hiddenResp.CommittedHiddenTail.Hash.Export()) {
+			return NewAuditError("hidden team chain linkID mismatch at %d: wanted %s but got %s via merkle seqno %d",
+				tuple.hiddenResp.CommittedHiddenTail.Seqno, expHiddenLinkID, tuple.hiddenResp.CommittedHiddenTail.Hash.Export(), tuple.merkle)
+		}
+		if prev != nil && prev.hiddenResp != nil && prev.hiddenResp.RespType == libkb.MerkleHiddenResponseTypeOK && tuple.hiddenResp.CommittedHiddenTail.Seqno < prev.hiddenResp.CommittedHiddenTail.Seqno {
+			return NewAuditError("team hidden chain unexpected jump: %d > %d via merkle seqno %d", prev.hiddenResp.CommittedHiddenTail.Seqno, tuple.hiddenResp.CommittedHiddenTail.Seqno, tuple.merkle)
+		}
+	default:
+		return NewAuditError("Unrecognized hidden response type %+v", tuple.hiddenResp)
+	}
+	return nil
 }
 
 // doPreProbes probabilistically checks that no team occupied the slot before the team
 // in question was created. It selects probes from before the team was created. Each
 // probed leaf must not be occupied.
-func (a *Auditor) doPreProbes(m libkb.MetaContext, history *keybase1.AuditHistory, probeID int, headMerkleSeqno keybase1.Seqno) (numProbes int, err error) {
+func (a *Auditor) doPreProbes(m libkb.MetaContext, history *keybase1.AuditHistory, probeID int, headMerkleSeqno keybase1.Seqno, auditMode keybase1.AuditMode) (numProbes int, probeTuples []probeTuple, err error) {
 	defer m.Trace("Auditor#doPreProbes", func() error { return err })()
 
 	first := m.G().GetMerkleClient().FirstExaminableHistoricalRoot(m)
 	if first == nil {
-		return 0, NewAuditError("cannot find a first modern merkle sequence")
+		return 0, nil, NewAuditError("cannot find a first modern merkle sequence")
 	}
 
-	probeTuples, err := a.computeProbes(m, history.ID, history.PreProbes, probeID, *first, headMerkleSeqno, len(history.PreProbes), getAuditParams(m).NumPreProbes)
+	firstRootWithHidden, err := m.G().GetMerkleClient().FirstMainRootWithHiddenRootHash(m)
 	if err != nil {
-		return 0, err
+		return 0, probeTuples, err
+	}
+
+	probeTuples, err = a.computeProbes(m, history.ID, history.PreProbes, probeID, *first, headMerkleSeqno, len(history.PreProbes), getAuditParams(m).NumPreProbes, history.PreProbesToRetry)
+	if err != nil {
+		return 0, probeTuples, err
 	}
 	if len(probeTuples) == 0 {
 		m.Debug("No probe pairs, so bailing")
-		return 0, nil
+		return 0, nil, nil
 	}
 	for _, tuple := range probeTuples {
 		m.Debug("preProbe: checking probe at merkle %d", tuple.merkle)
 		if tuple.team != keybase1.Seqno(0) || !tuple.linkID.IsNil() {
-			return 0, NewAuditError("merkle root at %v should have been nil for %v; got %s/%d",
-				tuple.merkle, history.ID, tuple.linkID, tuple.team)
+			return 0, probeTuples, NewAuditError("merkle root should not have had a leaf for team %v: got %s/%d at merkle seqno %v",
+				history.ID, tuple.linkID, tuple.team, tuple.merkle)
+		}
+		if tuple.hiddenResp.RespType == libkb.MerkleHiddenResponseTypeNONE {
+			if tuple.merkle > firstRootWithHidden && auditMode != keybase1.AuditMode_STANDARD_NO_HIDDEN {
+				return 0, probeTuples, NewAuditError("did not get a hidden response but one was expected (at main seqno %v)", tuple.merkle)
+			}
+			// In this case, we did not expect any hidden response as we are
+			// either not authorized, or the hidden tree was not being used yet.
+			continue
+		}
+		if tuple.hiddenResp.RespType != libkb.MerkleHiddenResponseTypeABSENCEPROOF && tuple.hiddenResp.RespType != libkb.MerkleHiddenResponseTypeFLAGOFF {
+			return 0, probeTuples, NewAuditError("expected an ABSENCE PROOF (or the flag to be off) but got %+v instead", tuple.hiddenResp)
 		}
 	}
-	return len(probeTuples), nil
+	return len(probeTuples), probeTuples, nil
 }
 
 // randSeqno picks a random number in [lo,hi] inclusively.
@@ -378,24 +446,27 @@ func randSeqno(lo keybase1.Seqno, hi keybase1.Seqno) (keybase1.Seqno, error) {
 }
 
 type probeTuple struct {
-	merkle keybase1.Seqno
-	team   keybase1.Seqno
-	linkID keybase1.LinkID
+	merkle     keybase1.Seqno
+	team       keybase1.Seqno
+	linkID     keybase1.LinkID
+	hiddenResp *libkb.MerkleHiddenResponse
 }
 
-func (a *Auditor) computeProbes(m libkb.MetaContext, teamID keybase1.TeamID, probes map[keybase1.Seqno]keybase1.Probe, probeID int, left keybase1.Seqno, right keybase1.Seqno, probesInRange int, n int) (ret []probeTuple, err error) {
-	ret, err = a.scheduleProbes(m, probes, probeID, left, right, probesInRange, n)
+func (a *Auditor) computeProbes(m libkb.MetaContext, teamID keybase1.TeamID, probes map[keybase1.Seqno]keybase1.Probe, probeID int, left keybase1.Seqno, right keybase1.Seqno, probesInRange int, n int, probesToRetry []keybase1.Seqno) (ret []probeTuple, err error) {
+	ret, err = a.scheduleProbes(m, probes, probeID, left, right, probesInRange, n, probesToRetry)
 	if err != nil {
 		return nil, err
 	}
 	err = a.lookupProbes(m, teamID, ret)
 	if err != nil {
-		return nil, err
+		// In case of error, we still return the probes we selected so they can
+		// be retried in the next audit
+		return ret, err
 	}
 	return ret, err
 }
 
-func (a *Auditor) scheduleProbes(m libkb.MetaContext, previousProbes map[keybase1.Seqno]keybase1.Probe, probeID int, left keybase1.Seqno, right keybase1.Seqno, probesInRange int, n int) (ret []probeTuple, err error) {
+func (a *Auditor) scheduleProbes(m libkb.MetaContext, previousProbes map[keybase1.Seqno]keybase1.Probe, probeID int, left keybase1.Seqno, right keybase1.Seqno, probesInRange int, n int, probesToRetry []keybase1.Seqno) (ret []probeTuple, err error) {
 	defer m.Trace(fmt.Sprintf("Auditor#scheduleProbes(left=%d,right=%d)", left, right), func() error { return err })()
 	if probesInRange > n {
 		m.Debug("no more probes needed; did %d, wanted %d", probesInRange, n)
@@ -407,7 +478,12 @@ func (a *Auditor) scheduleProbes(m libkb.MetaContext, previousProbes map[keybase
 		return nil, nil
 	}
 	currentProbes := make(map[keybase1.Seqno]bool)
-	for i := 0; i < n; i++ {
+	for _, s := range probesToRetry {
+		ret = append(ret, probeTuple{merkle: s})
+		currentProbes[s] = true
+	}
+	currentProbesWanted := n - len(probesToRetry)
+	for i := 0; i < currentProbesWanted; i++ {
 		x, err := randSeqno(left, right)
 		if err != nil {
 			return nil, err
@@ -430,10 +506,11 @@ func (a *Auditor) scheduleProbes(m libkb.MetaContext, previousProbes map[keybase
 
 func (a *Auditor) lookupProbe(m libkb.MetaContext, teamID keybase1.TeamID, probe *probeTuple) (err error) {
 	defer m.Trace(fmt.Sprintf("Auditor#lookupProbe(%v,%v)", teamID, *probe), func() error { return err })()
-	leaf, _, err := m.G().GetMerkleClient().LookupLeafAtSeqnoForAudit(m, teamID.AsUserOrTeam(), probe.merkle)
+	leaf, _, hiddenResp, err := m.G().GetMerkleClient().LookupLeafAtSeqnoForAudit(m, teamID.AsUserOrTeam(), probe.merkle, hidden.ProcessHiddenResponseFunc)
 	if err != nil {
 		return err
 	}
+	probe.hiddenResp = hiddenResp
 	if leaf == nil || leaf.Private == nil {
 		m.Debug("nil leaf at %v/%v", teamID, probe.merkle)
 		return nil
@@ -460,7 +537,7 @@ func (a *Auditor) lookupProbes(m libkb.MetaContext, teamID keybase1.TeamID, tupl
 	return err
 }
 
-func (a *Auditor) checkTail(m libkb.MetaContext, history *keybase1.AuditHistory, lastAudit keybase1.Audit, chain map[keybase1.Seqno]keybase1.LinkID, maxChainSeqno keybase1.Seqno) (err error) {
+func (a *Auditor) checkTail(m libkb.MetaContext, history *keybase1.AuditHistory, lastAudit keybase1.Audit, chain map[keybase1.Seqno]keybase1.LinkID, hiddenChain map[keybase1.Seqno]keybase1.LinkID, maxChainSeqno keybase1.Seqno, maxHiddenSeqno keybase1.Seqno, auditMode keybase1.AuditMode) (err error) {
 	link, ok := chain[lastAudit.MaxChainSeqno]
 	if !ok || link.IsNil() {
 		return NewAuditError("last audit ended at %d, but wasn't found in new chain", lastAudit.MaxChainSeqno)
@@ -475,6 +552,33 @@ func (a *Auditor) checkTail(m libkb.MetaContext, history *keybase1.AuditHistory,
 	link, ok = chain[maxChainSeqno]
 	if !ok || link.IsNil() {
 		return NewAuditError("given chain didn't have a link at %d, but it was expected", maxChainSeqno)
+	}
+
+	if auditMode == keybase1.AuditMode_STANDARD_NO_HIDDEN {
+		m.Debug("Skipping hidden tail check as the auditMode does not require it.")
+		return nil
+	}
+	if lastAudit.MaxHiddenSeqno == 0 {
+		m.Debug("Skipping hidden tail check as there was none in the last audit.")
+		return nil
+	}
+	link, ok = hiddenChain[lastAudit.MaxHiddenSeqno]
+	if !ok || link.IsNil() {
+		return NewAuditError("last audit ended at %d, but wasn't found in new chain", lastAudit.MaxHiddenSeqno)
+	}
+	tail, ok = history.HiddenTails[lastAudit.MaxHiddenSeqno]
+	if !ok || tail.IsNil() {
+		return NewAuditError("previous hidden chain tail at %d did not have a linkID", lastAudit.MaxHiddenSeqno)
+	}
+	if !link.Eq(tail) {
+		return NewAuditError("hidden chain tail mismatch (%s != %s) at chain link %d", link, tail, lastAudit.MaxHiddenSeqno)
+	}
+	if maxHiddenSeqno == 0 {
+		return NewAuditError("In the past we got an hidden chain up to %v, but now maxHiddenSeqno is 0", lastAudit.MaxHiddenSeqno)
+	}
+	link, ok = hiddenChain[maxHiddenSeqno]
+	if !ok || link.IsNil() {
+		return NewAuditError("given hidden chain didn't have a link at %d, but it was expected", maxHiddenSeqno)
 	}
 	return nil
 }
@@ -503,7 +607,7 @@ func (a *Auditor) holdOffSinceJustCreated(m libkb.MetaContext, history *keybase1
 	return true, nil
 }
 
-func (a *Auditor) auditLocked(m libkb.MetaContext, id keybase1.TeamID, headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxChainSeqno keybase1.Seqno, lastMerkleRoot *libkb.MerkleRoot, auditMode keybase1.AuditMode) (err error) {
+func (a *Auditor) auditLocked(m libkb.MetaContext, id keybase1.TeamID, headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, hiddenChain map[keybase1.Seqno]keybase1.LinkID, maxChainSeqno keybase1.Seqno, maxHiddenSeqno keybase1.Seqno, lastMerkleRoot *libkb.MerkleRoot, auditMode keybase1.AuditMode) (err error) {
 
 	defer m.Trace(fmt.Sprintf("Auditor#auditLocked(%v,%s)", id, auditMode), func() error { return err })()
 
@@ -530,6 +634,10 @@ func (a *Auditor) auditLocked(m libkb.MetaContext, id keybase1.TeamID, headMerkl
 		return nil
 	}
 
+	if lastMerkleRoot.Seqno() == nil {
+		return NewAuditError("logic error: nil lastMerkleRoot.Seqno()")
+	}
+
 	last := lastAudit(history)
 
 	// It's possible that we're bouncing back and forth between the Fast and Slow
@@ -546,7 +654,7 @@ func (a *Auditor) auditLocked(m libkb.MetaContext, id keybase1.TeamID, headMerkl
 	// we got down. It suffices to check that the last link in that chain
 	// appears in the given chain with the right link ID.
 	if last != nil {
-		err = a.checkTail(m, history, *last, chain, maxChainSeqno)
+		err = a.checkTail(m, history, *last, chain, hiddenChain, maxChainSeqno, maxHiddenSeqno, auditMode)
 		if err != nil {
 			return err
 		}
@@ -563,18 +671,28 @@ func (a *Auditor) auditLocked(m libkb.MetaContext, id keybase1.TeamID, headMerkl
 
 	var numPreProbes, numPostProbes int
 
-	numPreProbes, err = a.doPreProbes(m, history, newAuditIndex, headMerkleSeqno)
+	numPreProbes, preProbeTuples, err := a.doPreProbes(m, history, newAuditIndex, headMerkleSeqno, auditMode)
 	if err != nil {
+		history.PreProbesToRetry = getMerkleSeqnosFromProbes(preProbeTuples)
+		err2 := a.putToCache(m, id, lru, history)
+		if err2 != nil {
+			return NewAuditError("Error during doPreProbes (%v) followed by an error in storing the audit state (%v)", err.Error(), err2.Error())
+		}
 		return err
 	}
 
-	if lastMerkleRoot.Seqno() == nil {
-		return NewAuditError("logic error: nil lastMerkleRoot.Seqno()")
+	numPostProbes, maxMerkleProbe, postProbeTuples, err := a.doPostProbes(m, history, newAuditIndex, headMerkleSeqno, *(lastMerkleRoot.Seqno()), chain, hiddenChain, maxChainSeqno, maxHiddenSeqno, auditMode)
+	if err != nil {
+		history.PostProbesToRetry = getMerkleSeqnosFromProbes(postProbeTuples)
+		err2 := a.putToCache(m, id, lru, history)
+		if err2 != nil {
+			return NewAuditError("Error during doPostProbes (%v) followed by an error in storing the audit state (%v)", err.Error(), err2.Error())
+		}
+		return err
 	}
 
-	numPostProbes, maxMerkleProbe, err := a.doPostProbes(m, history, newAuditIndex, headMerkleSeqno, *(lastMerkleRoot.Seqno()), chain, maxChainSeqno)
-	if err != nil {
-		return err
+	for _, tuple := range postProbeTuples {
+		history.PostProbes[tuple.merkle] = keybase1.Probe{Index: newAuditIndex, TeamSeqno: tuple.team, TeamHiddenSeqno: tuple.hiddenResp.GetCommittedSeqno()}
 	}
 
 	if numPostProbes+numPreProbes == 0 {
@@ -588,6 +706,7 @@ func (a *Auditor) auditLocked(m libkb.MetaContext, id keybase1.TeamID, headMerkl
 		Time:           keybase1.ToTime(m.G().Clock().Now()),
 		MaxMerkleSeqno: *lastMerkleRoot.Seqno(),
 		MaxChainSeqno:  maxChainSeqno,
+		MaxHiddenSeqno: maxHiddenSeqno,
 		// Note that the MaxMerkleProbe can be 0 in the case that there were
 		// pre-probes, but no post-probes.
 		MaxMerkleProbe: maxMerkleProbe,
@@ -595,12 +714,26 @@ func (a *Auditor) auditLocked(m libkb.MetaContext, id keybase1.TeamID, headMerkl
 	history.Audits = append(history.Audits, audit)
 	history.PriorMerkleSeqno = headMerkleSeqno
 	history.Tails[maxChainSeqno] = chain[maxChainSeqno]
+	if maxHiddenSeqno != 0 {
+		history.HiddenTails[maxHiddenSeqno] = hiddenChain[maxHiddenSeqno]
+	}
+
+	// if the audit was successful, there will be nothing to retry next time
+	history.PreProbesToRetry = nil
+	history.PostProbesToRetry = nil
 
 	err = a.putToCache(m, id, lru, history)
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+func getMerkleSeqnosFromProbes(probeTuples []probeTuple) (seqnos []keybase1.Seqno) {
+	for _, tuple := range probeTuples {
+		seqnos = append(seqnos, tuple.merkle)
+	}
+	return seqnos
 }
 
 func (a *Auditor) newLRU(m libkb.MetaContext) {

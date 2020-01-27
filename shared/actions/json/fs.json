@@ -91,8 +91,7 @@
     "setDriverStatus": {
       "driverStatus": "Types.DriverStatus"
     },
-    "hideSystemFileManagerIntegrationBanner": {},
-    "showSystemFileManagerIntegrationBanner": {},
+    "setSfmiBannerDismissed": {"dismissed": "boolean"},
     "driverEnable": {
       "isRetry?": "boolean | null"
     },
@@ -280,6 +279,9 @@
 
     "setDebugLevel": {
       "level": "string"
+    },
+    "setCriticalUpdate": {
+      "val": "boolean"
     }
   }
 }

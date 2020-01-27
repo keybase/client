@@ -379,7 +379,7 @@ const Instructions = (p: Props) => (
     {p.currentDeviceAlreadyProvisioned ? (
       <Kb.Box2 direction="horizontal" centerChildren={true}>
         <Kb.Text center={true} type={textType} style={styles.instructions}>
-          Ready to authorize using{' '}
+          Ready to authorize using&nbsp;
         </Kb.Text>
         <Kb.Text center={true} type={textType} style={styles.instructionsItalic}>
           {p.currentDeviceName}.
@@ -392,7 +392,7 @@ const Instructions = (p: Props) => (
             type={textType}
             style={Styles.collapseStyles([styles.instructions, styles.instructionsUpper])}
           >
-            In the Keybase app on{' '}
+            In the Keybase app on&nbsp;
           </Kb.Text>
           <Kb.Text
             center={true}

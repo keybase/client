@@ -11,7 +11,7 @@ export declare class Engine {
   hasEverConnected(): boolean
   registerCustomResponse(s: string): void
   createSession(arg0: {
-    incomingCallMap?: any
+    incomingCallMap?: IncomingCallMapType
     waitingKey?: WaitingKey
     cancelHandler?: any
     dangling?: boolean

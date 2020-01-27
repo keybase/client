@@ -188,6 +188,22 @@
         "DbValue"
       ]
     },
+    "dbKeysWithPrefixes": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "prefix",
+          "type": "DbKey"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "DbKey"
+      }
+    },
     "setNixOnLoginStartup": {
       "request": [
         {

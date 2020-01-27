@@ -18,6 +18,7 @@ func NewCmdAccount(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 		NewCmdEmail(cl, g),
 		NewCmdPhoneNumber(cl, g),
 		newCmdUploadAvatar(cl, g, false /* hidden */),
+		NewCmdAccountResetCancel(cl, g),
 	}
 	subcommands = append(subcommands, getBuildSpecificAccountCommands(cl, g)...)
 	return cli.Command{

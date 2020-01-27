@@ -5011,3 +5011,33 @@ func TestKBFSOpsRecentHistorySync(t *testing.T) {
 	checkWorkingSetCache(3)
 	checkStatus(bNode, FinishedPrefetch)
 }
+
+// Regression test for HOTPOT-1612.
+func TestDirtyAfterTruncateNoop(t *testing.T) {
+	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, "test_user")
+	defer kbfsTestShutdownNoMocks(ctx, t, config, cancel)
+
+	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
+	kbfsOps := config.KBFSOps()
+
+	t.Log("Create 0-byte file")
+	nodeA, _, err := kbfsOps.CreateFile(
+		ctx, rootNode, testPPS("a"), false, NoExcl)
+	require.NoError(t, err)
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
+
+	t.Log("Truncate the file to 0 bytes, which should be a no-op")
+	err = kbfsOps.Truncate(ctx, nodeA, 0)
+	require.NoError(t, err)
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
+
+	t.Log("Nothing should actually be dirty")
+	ops := getOps(config, rootNode.GetFolderBranch().Tlf)
+	lState := makeFBOLockState()
+	require.Equal(t, cleanState, ops.blocks.GetState(lState))
+	status, _, err := kbfsOps.FolderStatus(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
+	require.Len(t, status.DirtyPaths, 0)
+}
