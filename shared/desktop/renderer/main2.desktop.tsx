@@ -16,7 +16,7 @@ import flags from '../../util/feature-flags'
 import {dumpLogs} from '../../actions/platform-specific/index.desktop'
 import {initDesktopStyles} from '../../styles/index.desktop'
 import {_setDarkModePreference} from '../../styles/dark-mode'
-import {isDarwin} from '../../constants/platform'
+import {isDarwin, isWindows} from '../../constants/platform'
 import {useSelector} from '../../util/container'
 import {isDarkMode} from '../../constants/config'
 import {TypedActions} from '../../actions/typed-actions-gen'
@@ -79,9 +79,11 @@ const setupApp = (store, runSagas) => {
   })
 
   // See if we're connected, and try starting keybase if not
-  setTimeout(() => {
-    SafeElectron.getApp().emit('KBkeybase', '', {type: 'requestStartService'})
-  }, 0)
+  if (isWindows) {
+    setTimeout(() => {
+      SafeElectron.getApp().emit('KBkeybase', '', {type: 'requestWindowsStartService'})
+    }, 0)
+  }
 
   // After a delay dump logs in case some startup stuff happened
   setTimeout(() => {

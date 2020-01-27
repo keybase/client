@@ -178,7 +178,7 @@ type Action =
         isUserActive: boolean
       }
     }
-  | {type: 'requestStartService'}
+  | {type: 'requestWindowsStartService'}
   | {type: 'closeWindows'}
   | {
       type: 'makeRenderer'
@@ -269,9 +269,9 @@ const plumbEvents = () => {
           mainWindowDispatch(ConfigGen.createInstallerRan())
         })
         break
-      case 'requestStartService':
+      case 'requestWindowsStartService':
         if (isWindows) {
-          console.log('requestStartService: starting keybase.exe')
+          console.log('requestWindowsStartService: starting keybase.exe')
           startWinService()
         }
         break
