@@ -38,7 +38,7 @@ export function quit(appOnly: boolean = false) {
   }
 
   console.log('Quit the app')
-  ctlStop(function(stopErr) {
+  ctlStop(function(stopErr: any) {
     console.log('Done with ctlstop')
     if (stopErr) {
       console.log('Error in ctl stop, when quitting:', stopErr)

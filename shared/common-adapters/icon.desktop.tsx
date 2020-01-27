@@ -181,11 +181,11 @@ function iconTypeToSrcSet(type: IconType) {
   return [1, 2, 3].map(mult => imgName(name, ext, imagesDir, mult)).join(', ')
 }
 
-export function iconTypeToImgSet(imgMap: {[size: string]: string}, targetSize: number): any {
-  const multsMap = Shared.getMultsMap(imgMap, targetSize)
+export function iconTypeToImgSet(imgMap: any, targetSize: number): any {
+  const multsMap: any = Shared.getMultsMap(imgMap, targetSize)
   const sets = Object.keys(multsMap)
     .map(mult => {
-      const img = imgMap[multsMap[mult]]
+      const img: string = imgMap[multsMap[mult]] as string
       if (!img) return null
       const url = resolveImageAsURL('icons', img)
       if (Styles.isDarkMode()) url.replace('icon-', 'icon-dark-')
@@ -196,8 +196,8 @@ export function iconTypeToImgSet(imgMap: {[size: string]: string}, targetSize: n
   return sets ? `-webkit-image-set(${sets})` : null
 }
 
-export function urlsToImgSet(imgMap: {[size: string]: string}, targetSize: number): any {
-  const multsMap = Shared.getMultsMap(imgMap, targetSize)
+export function urlsToImgSet(imgMap: any, targetSize: number): any {
+  const multsMap: any = Shared.getMultsMap(imgMap, targetSize)
   const sets = Object.keys(multsMap)
     .map(mult => {
       const url = imgMap[multsMap[mult]]

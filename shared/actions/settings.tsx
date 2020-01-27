@@ -65,7 +65,7 @@ const toggleNotifications = async (state: TypedState) => {
   }
 
   const JSONPayload: Array<{key: string; value: string}> = []
-  const chatGlobalArg = {}
+  const chatGlobalArg: {[key: string]: boolean} = {}
   current.groups.forEach((group, groupName) => {
     if (groupName === Constants.securityGroup) {
       // Special case this since it will go to chat settings endpoint

@@ -2,6 +2,7 @@
 import * as Tabs from '../../constants/tabs'
 import * as GitGen from '../git-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as Container from '../../util/container'
 import * as RouteTreeGen from '../route-tree-gen'
 import gitSaga from '../git'
 import * as Testing from '../../util/testing'
