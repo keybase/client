@@ -2533,7 +2533,6 @@ function* mobileMessageAttachmentShare(
   }
 
   if (isIOS && message.fileName.endsWith('.pdf')) {
-    yield Saga.delay(500) // help web view not loading?
     yield Saga.put(
       RouteTreeGen.createNavigateAppend({
         path: [{props: {title: message.title || message.fileName, url: filePath}, selected: 'chatPDF'}],
