@@ -458,13 +458,6 @@ func IsCollapsibleMessageType(messageType chat1.MessageType) bool {
 
 func IsNotifiableChatMessageType(messageType chat1.MessageType, atMentions []gregor1.UID,
 	chanMention chat1.ChannelMention) bool {
-	if IsVisibleChatMessageType(messageType) {
-		switch messageType {
-		case chat1.MessageType_JOIN, chat1.MessageType_LEAVE:
-		default:
-			return true
-		}
-	}
 	switch messageType {
 	case chat1.MessageType_EDIT:
 		// an edit with atMention or channel mention should generate notifications
@@ -475,8 +468,11 @@ func IsNotifiableChatMessageType(messageType chat1.MessageType, atMentions []gre
 		// effect of this is all reactions will notify if they are sent to a person that
 		// is notified for any messages in the conversation
 		return true
+	case chat1.MessageType_JOIN, chat1.MessageType_LEAVE:
+		return false
+	default:
+		return IsVisibleChatMessageType(messageType)
 	}
-	return false
 }
 
 type DebugLabeler struct {
@@ -857,7 +853,7 @@ func IsConvEmpty(conv chat1.Conversation) bool {
 		return false
 	default:
 		for _, msg := range conv.MaxMsgSummaries {
-			if IsVisibleChatMessageType(msg.GetMessageType()) {
+			if IsNonemptyConvMessageType(msg.GetMessageType()) {
 				return false
 			}
 		}
@@ -934,7 +930,7 @@ func GetConvMtime(rc types.RemoteConversation) (res gregor1.Time) {
 func GetConvPriorityScore(rc types.RemoteConversation) float64 {
 	readMsgID := rc.GetReadMsgID()
 	maxMsgID := rc.Conv.ReaderInfo.MaxMsgid
-	mtime := GetConvMtime(rc)
+	mtime := GetConvMtime(rc) // xxx does leaving causing a bump all the way up to inbox top?
 	dur := math.Abs(float64(time.Since(mtime.Time())) / float64(time.Hour))
 	return 100 / math.Pow(dur+float64(maxMsgID-readMsgID), 0.5)
 }
@@ -2711,7 +2707,7 @@ func DBConvLess(a pager.InboxEntry, b pager.InboxEntry) bool {
 func ExportToSummary(i chat1.InboxUIItem) (s chat1.ConvSummary) {
 	s.Id = i.ConvID
 	s.IsDefaultConv = i.IsDefaultConv
-	s.Unread = i.ReadMsgID < i.MaxVisibleMsgID
+	s.Unread = i.ReadMsgID < i.MaxVisibleMsgID // xxx this could cause a LEAVE message to make a conv appear unread.
 	s.ActiveAt = i.Time.UnixSeconds()
 	s.ActiveAtMs = i.Time.UnixMilliseconds()
 	s.FinalizeInfo = i.FinalizeInfo

@@ -1530,7 +1530,7 @@ func (c Conversation) IsUnread() bool {
 
 func (c Conversation) IsUnreadFromMsgID(readMsgID MessageID) bool {
 	maxMsgID := c.MaxVisibleMsgID()
-	return maxMsgID > 0 && maxMsgID > readMsgID
+	return maxMsgID > 0 && maxMsgID > readMsgID // xxx same problem with unread LEAVE messages.
 }
 
 func (c Conversation) HasMemberStatus(status ConversationMemberStatus) bool {
