@@ -102,7 +102,10 @@ type NotifyListener interface {
 	HTTPSrvInfoUpdate(keybase1.HttpSrvInfo)
 	IdentifyUpdate(okUsernames []string, brokenUsernames []string)
 	Reachability(keybase1.Reachability)
-	FeaturedBotsUpdate([]keybase1.FeaturedBot)
+	FeaturedBotsUpdate(bots []keybase1.FeaturedBot, limit, offset int)
+	SaltpackOperationStart(opType keybase1.SaltpackOperationType, filename string)
+	SaltpackOperationProgress(opType keybase1.SaltpackOperationType, filename string, bytesComplete, bytesTotal int64)
+	SaltpackOperationDone(opType keybase1.SaltpackOperationType, filename string)
 }
 
 type NoopNotifyListener struct{}
@@ -229,9 +232,15 @@ func (n *NoopNotifyListener) RuntimeStatsUpdate(*keybase1.RuntimeStats) {}
 func (n *NoopNotifyListener) HTTPSrvInfoUpdate(keybase1.HttpSrvInfo)    {}
 func (n *NoopNotifyListener) IdentifyUpdate(okUsernames []string, brokenUsernames []string) {
 }
-func (n *NoopNotifyListener) Reachability(keybase1.Reachability)             {}
-func (n *NoopNotifyListener) UserBlocked(keybase1.UserBlockedBody)           {}
-func (n *NoopNotifyListener) FeaturedBotsUpdate(bots []keybase1.FeaturedBot) {}
+func (n *NoopNotifyListener) Reachability(keybase1.Reachability)                                {}
+func (n *NoopNotifyListener) UserBlocked(keybase1.UserBlockedBody)                              {}
+func (n *NoopNotifyListener) FeaturedBotsUpdate(bots []keybase1.FeaturedBot, limit, offset int) {}
+func (n *NoopNotifyListener) SaltpackOperationStart(opType keybase1.SaltpackOperationType, filename string) {
+}
+func (n *NoopNotifyListener) SaltpackOperationProgress(opType keybase1.SaltpackOperationType, filename string, bytesComplete, bytesTotal int64) {
+}
+func (n *NoopNotifyListener) SaltpackOperationDone(opType keybase1.SaltpackOperationType, filename string) {
+}
 
 type NotifyListenerID string
 
@@ -512,7 +521,7 @@ func (n *NotifyRouter) HandleTrackingInfo(uid keybase1.UID, followers, followees
 		if n.getNotificationChannels(id).Tracking {
 			// In the background do...
 			go func() {
-				// A send of a `TrackingChanged` RPC with the user's UID
+				// A send of a `TrackingInfo` RPC with the user's UID
 				_ = (keybase1.NotifyTrackingClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
 				}).TrackingInfo(context.Background(), arg)
@@ -2602,7 +2611,7 @@ func (n *NotifyRouter) HandleIdentifyUpdate(ctx context.Context, okUsernames []s
 	})
 }
 
-func (n *NotifyRouter) HandleFeaturedBots(ctx context.Context, bots []keybase1.FeaturedBot) {
+func (n *NotifyRouter) HandleFeaturedBots(ctx context.Context, bots []keybase1.FeaturedBot, limit, offset int) {
 	if n == nil {
 		return
 	}
@@ -2611,12 +2620,87 @@ func (n *NotifyRouter) HandleFeaturedBots(ctx context.Context, bots []keybase1.F
 			go func() {
 				_ = (keybase1.NotifyFeaturedBotsClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).FeaturedBotsUpdate(ctx, bots)
+				}).FeaturedBotsUpdate(ctx, keybase1.FeaturedBotsUpdateArg{
+					Bots:   bots,
+					Limit:  limit,
+					Offset: offset,
+				})
 			}()
 		}
 		return true
 	})
 	n.runListeners(func(listener NotifyListener) {
-		listener.FeaturedBotsUpdate(bots)
+		listener.FeaturedBotsUpdate(bots, limit, offset)
+	})
+}
+
+func (n *NotifyRouter) HandleSaltpackOperationStart(ctx context.Context, opType keybase1.SaltpackOperationType, filename string) {
+	if n == nil {
+		return
+	}
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Saltpack {
+			go func() {
+				_ = (keybase1.NotifySaltpackClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).SaltpackOperationStart(context.Background(), keybase1.SaltpackOperationStartArg{
+					OpType:   opType,
+					Filename: filename,
+				})
+			}()
+		}
+		return true
+	})
+
+	n.runListeners(func(listener NotifyListener) {
+		listener.SaltpackOperationStart(opType, filename)
+	})
+}
+
+func (n *NotifyRouter) HandleSaltpackOperationProgress(ctx context.Context, opType keybase1.SaltpackOperationType, filename string, bytesComplete, bytesTotal int64) {
+	if n == nil {
+		return
+	}
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Saltpack {
+			go func() {
+				_ = (keybase1.NotifySaltpackClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).SaltpackOperationProgress(context.Background(), keybase1.SaltpackOperationProgressArg{
+					OpType:        opType,
+					Filename:      filename,
+					BytesComplete: bytesComplete,
+					BytesTotal:    bytesTotal,
+				})
+			}()
+		}
+		return true
+	})
+
+	n.runListeners(func(listener NotifyListener) {
+		listener.SaltpackOperationDone(opType, filename)
+	})
+}
+
+func (n *NotifyRouter) HandleSaltpackOperationDone(ctx context.Context, opType keybase1.SaltpackOperationType, filename string) {
+	if n == nil {
+		return
+	}
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Saltpack {
+			go func() {
+				_ = (keybase1.NotifySaltpackClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).SaltpackOperationDone(context.Background(), keybase1.SaltpackOperationDoneArg{
+					OpType:   opType,
+					Filename: filename,
+				})
+			}()
+		}
+		return true
+	})
+
+	n.runListeners(func(listener NotifyListener) {
+		listener.SaltpackOperationDone(opType, filename)
 	})
 }

@@ -8,6 +8,7 @@
   "files": [],
   "include": [
     "globals.d.ts",
+    "actions/**/*",
     "constants/types/chat2/**/*",
     "constants/chat2/**/*",
     "chat/**/*",

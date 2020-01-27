@@ -8,6 +8,9 @@ import * as Kb from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
 import logger from '../../logger'
 import * as NavigationHooks from '../../util/navigation-hooks'
+import * as Styles from '../../styles'
+import * as Platform from '../../constants/platform'
+import {StylesTextCrossPlatform} from '../../common-adapters/text'
 // @ts-ignore huh?
 import {NavigationEventPayload, SwitchActions} from '@react-navigation/core'
 
@@ -233,3 +236,30 @@ export const useUserIsLookingAtFs = isMobile
         }
       }, [dispatch])
     }
+
+export const useFuseClosedSourceConsent = (
+  disabled: boolean,
+  backgroundColor?: Styles.Color,
+  textStyle?: StylesTextCrossPlatform
+) => {
+  const [agreed, setAgreed] = React.useState<boolean>(false)
+
+  return {
+    canContinue: !Platform.isDarwin || agreed,
+    component: Platform.isDarwin ? (
+      <Kb.Checkbox
+        disabled={disabled}
+        checked={agreed}
+        boxBackgroundColor={backgroundColor}
+        onCheck={(v: boolean) => setAgreed(v)}
+        labelComponent={
+          <Kb.Text type="BodySmall" style={textStyle} onClick={() => setAgreed(a => !a)}>
+            {`I understand that a closed-source kernel extension (FUSE for macOS) will be installed.`}
+          </Kb.Text>
+        }
+      />
+    ) : (
+      undefined
+    ),
+  }
+}

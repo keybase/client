@@ -28,7 +28,7 @@ for platform in */; do
         ssh -o "UserKnownHostsFile /dev/null" -o "StrictHostKeyChecking no" \
             -i .vagrant/machines/default/virtualbox/private_key \
             -Y -p "$(cat port)" vagrant@localhost <<EOF
-                /vagrant/smoketest.bash
+                /vagrant/smoketest.bash "$version" "$datetime" "$revision"
                 exit
 EOF
         ret=$?

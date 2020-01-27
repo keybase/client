@@ -10,6 +10,7 @@ import (
 	"os"
 	"regexp"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -2248,7 +2249,8 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 		if opts.MaxNameConvs == 0 {
 			return
 		}
-		convHits, err := h.G().InboxSource.Search(ctx, uid, query, opts.MaxNameConvs)
+		convHits, err := h.G().InboxSource.Search(ctx, uid, query, opts.MaxNameConvs,
+			types.InboxSourceSearchEmptyModeUnread)
 		if err != nil {
 			h.Debug(ctx, "SearchInbox: failed to get conv hits: %s", err)
 		} else {
@@ -2259,6 +2261,29 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 				_ = chatUI.ChatSearchConvHits(ctx, chat1.UIChatSearchConvHits{
 					Hits:          utils.PresentRemoteConversationsAsSearchHits(convHits, username),
 					UnreadMatches: len(query) == 0,
+				})
+			}
+		}
+	}()
+
+	// send up team name matches
+	teamUIDone := make(chan struct{})
+	go func() {
+		defer close(teamUIDone)
+		if opts.MaxTeams == 0 {
+			return
+		}
+		teamHits, err := teams.Search(
+			ctx, h.G().ExternalG(), query, opts.MaxTeams)
+		if err != nil {
+			h.Debug(ctx, "SearchInbox: failed to get team hits: %s", err)
+		} else {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				_ = chatUI.ChatSearchTeamHits(ctx, chat1.UIChatSearchTeamHits{
+					Hits: teamHits,
 				})
 			}
 		}
@@ -2278,6 +2303,7 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 	<-hitUIDone
 	<-indexUIDone
 	<-convUIDone
+	<-teamUIDone
 
 	var doneRes chat1.ChatSearchInboxDone
 	if searchRes != nil {
@@ -2301,7 +2327,8 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 	}, nil
 }
 
-func (h *Server) ProfileChatSearch(ctx context.Context, identifyBehavior keybase1.TLFIdentifyBehavior) (res map[string]chat1.ProfileSearchConvStats, err error) {
+func (h *Server) ProfileChatSearch(ctx context.Context, identifyBehavior keybase1.TLFIdentifyBehavior) (
+	res map[chat1.ConvIDStr]chat1.ProfileSearchConvStats, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), identifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "ProfileChatSearch")()
@@ -2713,6 +2740,10 @@ func (h *Server) ListPublicBotCommandsLocal(ctx context.Context, username string
 
 	convID, err := h.G().BotCommandManager.PublicCommandsConv(ctx, username)
 	if err != nil {
+		if _, ok := err.(UnknownTLFNameError); ok {
+			h.Debug(ctx, "ListPublicBotCommandsLocal: unknown conv name")
+			return res, nil
+		}
 		return res, err
 	}
 	if convID == nil {
@@ -3015,6 +3046,47 @@ func (h *Server) GetTeamRoleInConversation(ctx context.Context, arg chat1.GetTea
 		return res, err
 	}
 	return teams.MemberRoleFromID(ctx, h.G().ExternalG(), teamID, arg.Username)
+}
+
+func (h *Server) AddBotConvSearch(ctx context.Context, term string) (res []chat1.AddBotConvSearchHit, err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
+	defer h.Trace(ctx, func() error { return err }, "AddBotConvSearch")()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
+	username := h.G().GetEnv().GetUsername().String()
+	allConvs, err := h.G().InboxSource.Search(ctx, uid, term, 100, types.InboxSourceSearchEmptyModeAll)
+	if err != nil {
+		return res, err
+	}
+	res = make([]chat1.AddBotConvSearchHit, 0, len(allConvs))
+	for _, conv := range allConvs {
+		switch conv.GetTeamType() {
+		case chat1.TeamType_NONE:
+			searchable := utils.SearchableRemoteConversationName(conv, username)
+			res = append(res, chat1.AddBotConvSearchHit{
+				Name:   searchable,
+				ConvID: conv.GetConvID(),
+				Parts:  strings.Split(searchable, ","),
+			})
+		case chat1.TeamType_SIMPLE:
+			res = append(res, chat1.AddBotConvSearchHit{
+				Name:   utils.SearchableRemoteConversationName(conv, username),
+				ConvID: conv.GetConvID(),
+				IsTeam: true,
+			})
+		case chat1.TeamType_COMPLEX:
+			if conv.Conv.Metadata.IsDefaultConv {
+				res = append(res, chat1.AddBotConvSearchHit{
+					Name:   utils.GetRemoteConvTLFName(conv),
+					ConvID: conv.GetConvID(),
+					IsTeam: true,
+				})
+			}
+		}
+	}
+	return res, nil
 }
 
 func (h *Server) TeamIDFromTLFName(ctx context.Context, arg chat1.TeamIDFromTLFNameArg) (res keybase1.TeamID, err error) {

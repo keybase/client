@@ -32,6 +32,7 @@ export const chat1ChatUiChatSearchInboxDone = 'engine-gen:chat1ChatUiChatSearchI
 export const chat1ChatUiChatSearchInboxHit = 'engine-gen:chat1ChatUiChatSearchInboxHit'
 export const chat1ChatUiChatSearchInboxStart = 'engine-gen:chat1ChatUiChatSearchInboxStart'
 export const chat1ChatUiChatSearchIndexStatus = 'engine-gen:chat1ChatUiChatSearchIndexStatus'
+export const chat1ChatUiChatSearchTeamHits = 'engine-gen:chat1ChatUiChatSearchTeamHits'
 export const chat1ChatUiChatShowManageChannels = 'engine-gen:chat1ChatUiChatShowManageChannels'
 export const chat1ChatUiChatStellarDataConfirm = 'engine-gen:chat1ChatUiChatStellarDataConfirm'
 export const chat1ChatUiChatStellarDataError = 'engine-gen:chat1ChatUiChatStellarDataError'
@@ -152,6 +153,12 @@ export const keybase1NotifyPhoneNumberPhoneNumbersChanged =
   'engine-gen:keybase1NotifyPhoneNumberPhoneNumbersChanged'
 export const keybase1NotifyRuntimeStatsRuntimeStatsUpdate =
   'engine-gen:keybase1NotifyRuntimeStatsRuntimeStatsUpdate'
+export const keybase1NotifySaltpackSaltpackOperationDone =
+  'engine-gen:keybase1NotifySaltpackSaltpackOperationDone'
+export const keybase1NotifySaltpackSaltpackOperationProgress =
+  'engine-gen:keybase1NotifySaltpackSaltpackOperationProgress'
+export const keybase1NotifySaltpackSaltpackOperationStart =
+  'engine-gen:keybase1NotifySaltpackSaltpackOperationStart'
 export const keybase1NotifyServiceHTTPSrvInfoUpdate = 'engine-gen:keybase1NotifyServiceHTTPSrvInfoUpdate'
 export const keybase1NotifyServiceShutdown = 'engine-gen:keybase1NotifyServiceShutdown'
 export const keybase1NotifySessionClientOutOfDate = 'engine-gen:keybase1NotifySessionClientOutOfDate'
@@ -433,6 +440,15 @@ type _Chat1ChatUiChatSearchIndexStatusPayload = {
   response: {
     error: chat1Types.IncomingErrorCallback
     result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatSearchIndexStatus']['outParam']) => void
+  }
+}
+type _Chat1ChatUiChatSearchTeamHitsPayload = {
+  readonly params: chat1Types.MessageTypes['chat.1.chatUi.chatSearchTeamHits']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: chat1Types.IncomingErrorCallback
+    result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatSearchTeamHits']['outParam']) => void
   }
 }
 type _Chat1ChatUiChatShowManageChannelsPayload = {
@@ -1229,6 +1245,12 @@ type _Keybase1NotifyFeaturedBotsFeaturedBotsUpdatePayload = {
   readonly params: keybase1Types.MessageTypes['keybase.1.NotifyFeaturedBots.featuredBotsUpdate']['inParam'] & {
     sessionID: number
   }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (
+      param: keybase1Types.MessageTypes['keybase.1.NotifyFeaturedBots.featuredBotsUpdate']['outParam']
+    ) => void
+  }
 }
 type _Keybase1NotifyKeyfamilyKeyfamilyChangedPayload = {
   readonly params: keybase1Types.MessageTypes['keybase.1.NotifyKeyfamily.keyfamilyChanged']['inParam'] & {
@@ -1280,6 +1302,39 @@ type _Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload = {
     error: keybase1Types.IncomingErrorCallback
     result: (
       param: keybase1Types.MessageTypes['keybase.1.NotifyRuntimeStats.runtimeStatsUpdate']['outParam']
+    ) => void
+  }
+}
+type _Keybase1NotifySaltpackSaltpackOperationDonePayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifySaltpack.saltpackOperationDone']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (
+      param: keybase1Types.MessageTypes['keybase.1.NotifySaltpack.saltpackOperationDone']['outParam']
+    ) => void
+  }
+}
+type _Keybase1NotifySaltpackSaltpackOperationProgressPayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifySaltpack.saltpackOperationProgress']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (
+      param: keybase1Types.MessageTypes['keybase.1.NotifySaltpack.saltpackOperationProgress']['outParam']
+    ) => void
+  }
+}
+type _Keybase1NotifySaltpackSaltpackOperationStartPayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.NotifySaltpack.saltpackOperationStart']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (
+      param: keybase1Types.MessageTypes['keybase.1.NotifySaltpack.saltpackOperationStart']['outParam']
     ) => void
   }
 }
@@ -1937,6 +1992,9 @@ export const createChat1ChatUiChatSearchInboxStart = (
 export const createChat1ChatUiChatSearchIndexStatus = (
   payload: _Chat1ChatUiChatSearchIndexStatusPayload
 ): Chat1ChatUiChatSearchIndexStatusPayload => ({payload, type: chat1ChatUiChatSearchIndexStatus})
+export const createChat1ChatUiChatSearchTeamHits = (
+  payload: _Chat1ChatUiChatSearchTeamHitsPayload
+): Chat1ChatUiChatSearchTeamHitsPayload => ({payload, type: chat1ChatUiChatSearchTeamHits})
 export const createChat1ChatUiChatShowManageChannels = (
   payload: _Chat1ChatUiChatShowManageChannelsPayload
 ): Chat1ChatUiChatShowManageChannelsPayload => ({payload, type: chat1ChatUiChatShowManageChannels})
@@ -2340,6 +2398,24 @@ export const createKeybase1NotifyRuntimeStatsRuntimeStatsUpdate = (
   payload,
   type: keybase1NotifyRuntimeStatsRuntimeStatsUpdate,
 })
+export const createKeybase1NotifySaltpackSaltpackOperationDone = (
+  payload: _Keybase1NotifySaltpackSaltpackOperationDonePayload
+): Keybase1NotifySaltpackSaltpackOperationDonePayload => ({
+  payload,
+  type: keybase1NotifySaltpackSaltpackOperationDone,
+})
+export const createKeybase1NotifySaltpackSaltpackOperationProgress = (
+  payload: _Keybase1NotifySaltpackSaltpackOperationProgressPayload
+): Keybase1NotifySaltpackSaltpackOperationProgressPayload => ({
+  payload,
+  type: keybase1NotifySaltpackSaltpackOperationProgress,
+})
+export const createKeybase1NotifySaltpackSaltpackOperationStart = (
+  payload: _Keybase1NotifySaltpackSaltpackOperationStartPayload
+): Keybase1NotifySaltpackSaltpackOperationStartPayload => ({
+  payload,
+  type: keybase1NotifySaltpackSaltpackOperationStart,
+})
 export const createKeybase1NotifyServiceHTTPSrvInfoUpdate = (
   payload: _Keybase1NotifyServiceHTTPSrvInfoUpdatePayload
 ): Keybase1NotifyServiceHTTPSrvInfoUpdatePayload => ({payload, type: keybase1NotifyServiceHTTPSrvInfoUpdate})
@@ -2677,6 +2753,10 @@ export type Chat1ChatUiChatSearchInboxStartPayload = {
 export type Chat1ChatUiChatSearchIndexStatusPayload = {
   readonly payload: _Chat1ChatUiChatSearchIndexStatusPayload
   readonly type: typeof chat1ChatUiChatSearchIndexStatus
+}
+export type Chat1ChatUiChatSearchTeamHitsPayload = {
+  readonly payload: _Chat1ChatUiChatSearchTeamHitsPayload
+  readonly type: typeof chat1ChatUiChatSearchTeamHits
 }
 export type Chat1ChatUiChatShowManageChannelsPayload = {
   readonly payload: _Chat1ChatUiChatShowManageChannelsPayload
@@ -3104,6 +3184,18 @@ export type Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload = {
   readonly payload: _Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload
   readonly type: typeof keybase1NotifyRuntimeStatsRuntimeStatsUpdate
 }
+export type Keybase1NotifySaltpackSaltpackOperationDonePayload = {
+  readonly payload: _Keybase1NotifySaltpackSaltpackOperationDonePayload
+  readonly type: typeof keybase1NotifySaltpackSaltpackOperationDone
+}
+export type Keybase1NotifySaltpackSaltpackOperationProgressPayload = {
+  readonly payload: _Keybase1NotifySaltpackSaltpackOperationProgressPayload
+  readonly type: typeof keybase1NotifySaltpackSaltpackOperationProgress
+}
+export type Keybase1NotifySaltpackSaltpackOperationStartPayload = {
+  readonly payload: _Keybase1NotifySaltpackSaltpackOperationStartPayload
+  readonly type: typeof keybase1NotifySaltpackSaltpackOperationStart
+}
 export type Keybase1NotifyServiceHTTPSrvInfoUpdatePayload = {
   readonly payload: _Keybase1NotifyServiceHTTPSrvInfoUpdatePayload
   readonly type: typeof keybase1NotifyServiceHTTPSrvInfoUpdate
@@ -3408,6 +3500,7 @@ export type Actions =
   | Chat1ChatUiChatSearchInboxHitPayload
   | Chat1ChatUiChatSearchInboxStartPayload
   | Chat1ChatUiChatSearchIndexStatusPayload
+  | Chat1ChatUiChatSearchTeamHitsPayload
   | Chat1ChatUiChatShowManageChannelsPayload
   | Chat1ChatUiChatStellarDataConfirmPayload
   | Chat1ChatUiChatStellarDataErrorPayload
@@ -3516,6 +3609,9 @@ export type Actions =
   | Keybase1NotifyPaperKeyPaperKeyCachedPayload
   | Keybase1NotifyPhoneNumberPhoneNumbersChangedPayload
   | Keybase1NotifyRuntimeStatsRuntimeStatsUpdatePayload
+  | Keybase1NotifySaltpackSaltpackOperationDonePayload
+  | Keybase1NotifySaltpackSaltpackOperationProgressPayload
+  | Keybase1NotifySaltpackSaltpackOperationStartPayload
   | Keybase1NotifyServiceHTTPSrvInfoUpdatePayload
   | Keybase1NotifyServiceShutdownPayload
   | Keybase1NotifySessionClientOutOfDatePayload

@@ -19,18 +19,18 @@ func TestSetTarsDisabled(t *testing.T) {
 	tc.G.SetService()
 	tc.G.NotifyRouter.AddListener(notifications)
 
-	name := createTeam(tc)
+	name, id := createTeam2(tc)
 	t.Logf("Created team %q", name)
 
-	disabled, err := GetTarsDisabled(context.Background(), tc.G, name)
+	disabled, err := GetTarsDisabled(context.Background(), tc.G, id)
 	require.NoError(t, err)
 	require.False(t, disabled)
 
-	err = SetTarsDisabled(context.Background(), tc.G, name, true)
+	err = SetTarsDisabled(context.Background(), tc.G, id, true)
 	require.NoError(t, err)
 	kbtest.CheckTeamMiscNotifications(tc, notifications)
 
-	disabled, err = GetTarsDisabled(context.Background(), tc.G, name)
+	disabled, err = GetTarsDisabled(context.Background(), tc.G, id)
 	require.NoError(t, err)
 	require.True(t, disabled)
 }

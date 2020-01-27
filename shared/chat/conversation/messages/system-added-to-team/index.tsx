@@ -28,7 +28,8 @@ const isBot = (role: TeamTypes.MaybeTeamRoleType) => {
 
 const ManageComponent = (props: Props) => {
   const textType = 'BodySmallSemiboldPrimaryLink'
-  if (!props.isTeam) {
+  const bot = isBot(props.role)
+  if (!props.isTeam && !bot) {
     return null
   }
   if (props.addee === props.you) {
@@ -39,7 +40,7 @@ const ManageComponent = (props: Props) => {
         </Kb.Text>
       </Kb.Box>
     )
-  } else if (isBot(props.role)) {
+  } else if (bot) {
     return (
       <Kb.Text onClick={props.onViewBot} type={textType}>
         View bot settings
@@ -69,7 +70,7 @@ const youOrUsername = (props: {username: string; you: string; capitalize: boolea
 }
 
 const AddedToTeam = (props: Props) => {
-  const role = isBot(props.role) ? typeToLabel[props.role].toLowerCase() : null
+  const role = props.role !== 'none' && isBot(props.role) ? typeToLabel[props.role].toLowerCase() : null
   if (props.addee === props.you) {
     return <YouAddedToTeam {...props} />
   }
@@ -102,7 +103,9 @@ const YouAddedToTeam = (props: Props) => {
             {teamname}
           </Kb.Text>
         )}
-        {typeToLabel[props.role] && ` as ${indefiniteArticle(props.role)} ${typeToLabel[role].toLowerCase()}`}
+        {role !== 'none' &&
+          typeToLabel[role] &&
+          ` as ${indefiniteArticle(props.role)} ${typeToLabel[role].toLowerCase()}`}
         .
       </Kb.Text>
       <ManageComponent {...props} />

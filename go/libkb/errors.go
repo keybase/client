@@ -2908,3 +2908,7 @@ func (e HiddenMerkleError) Error() string {
 }
 
 var _ error = HiddenMerkleError{}
+
+func IsTooManyFilesError(err error) bool {
+	return strings.Contains(strings.ToLower(err.Error()), "too many open files")
+}

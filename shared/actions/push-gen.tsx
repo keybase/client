@@ -16,7 +16,11 @@ export const updatePushToken = 'push:updatePushToken'
 type _NotificationPayload = {readonly notification: Types.PushNotification}
 type _RejectPermissionsPayload = void
 type _RequestPermissionsPayload = void
-type _ShowPermissionsPromptPayload = {readonly show: boolean}
+type _ShowPermissionsPromptPayload = {
+  readonly show?: boolean
+  readonly persistSkip?: boolean
+  readonly justSignedUp?: boolean
+}
 type _UpdateHasPermissionsPayload = {readonly hasPermissions: boolean}
 type _UpdatePushTokenPayload = {readonly token: string}
 
@@ -34,7 +38,7 @@ export const createRequestPermissions = (payload: _RequestPermissionsPayload): R
   type: requestPermissions,
 })
 export const createShowPermissionsPrompt = (
-  payload: _ShowPermissionsPromptPayload
+  payload: _ShowPermissionsPromptPayload = Object.freeze({})
 ): ShowPermissionsPromptPayload => ({payload, type: showPermissionsPrompt})
 export const createUpdateHasPermissions = (
   payload: _UpdateHasPermissionsPayload

@@ -18,6 +18,7 @@ type Props = {
   onDeleteMessageHistory?: () => void
   onEdit?: () => void
   onHidden: () => void
+  onInstallBot?: () => void
   onKick: () => void
   onPinMessage?: () => void
   onReply?: () => void
@@ -77,6 +78,15 @@ const TextPopupMenu = (props: Props) => {
             icon: 'iconfont-edit',
             onClick: props.onEdit,
             title: 'Edit',
+          },
+        ]
+      : []),
+    ...(props.onInstallBot
+      ? [
+          {
+            icon: 'iconfont-nav-2-robot',
+            onClick: props.onInstallBot,
+            title: 'Install bot in another team or chat',
           },
         ]
       : []),

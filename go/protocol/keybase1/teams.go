@@ -363,6 +363,7 @@ type TeamMember struct {
 	Role        TeamRole         `codec:"role" json:"role"`
 	EldestSeqno Seqno            `codec:"eldestSeqno" json:"eldestSeqno"`
 	Status      TeamMemberStatus `codec:"status" json:"status"`
+	BotSettings *TeamBotSettings `codec:"botSettings,omitempty" json:"botSettings,omitempty"`
 }
 
 func (o TeamMember) DeepCopy() TeamMember {
@@ -371,6 +372,13 @@ func (o TeamMember) DeepCopy() TeamMember {
 		Role:        o.Role.DeepCopy(),
 		EldestSeqno: o.EldestSeqno.DeepCopy(),
 		Status:      o.Status.DeepCopy(),
+		BotSettings: (func(x *TeamBotSettings) *TeamBotSettings {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.BotSettings),
 	}
 }
 
@@ -582,6 +590,7 @@ func (o TeamMembersDetails) DeepCopy() TeamMembersDetails {
 }
 
 type TeamDetails struct {
+	Name                   string                               `codec:"name" json:"name"`
 	Members                TeamMembersDetails                   `codec:"members" json:"members"`
 	KeyGeneration          PerTeamKeyGeneration                 `codec:"keyGeneration" json:"keyGeneration"`
 	AnnotatedActiveInvites map[TeamInviteID]AnnotatedTeamInvite `codec:"annotatedActiveInvites" json:"annotatedActiveInvites"`
@@ -591,6 +600,7 @@ type TeamDetails struct {
 
 func (o TeamDetails) DeepCopy() TeamDetails {
 	return TeamDetails{
+		Name:          o.Name,
 		Members:       o.Members.DeepCopy(),
 		KeyGeneration: o.KeyGeneration.DeepCopy(),
 		AnnotatedActiveInvites: (func(x map[TeamInviteID]AnnotatedTeamInvite) map[TeamInviteID]AnnotatedTeamInvite {
@@ -1377,16 +1387,18 @@ func (e AuditVersion) String() string {
 }
 
 type AuditHistory struct {
-	ID               TeamID           `codec:"ID" json:"ID"`
-	Public           bool             `codec:"public" json:"public"`
-	PriorMerkleSeqno Seqno            `codec:"priorMerkleSeqno" json:"priorMerkleSeqno"`
-	Version          AuditVersion     `codec:"version" json:"version"`
-	Audits           []Audit          `codec:"audits" json:"audits"`
-	PreProbes        map[Seqno]Probe  `codec:"preProbes" json:"preProbes"`
-	PostProbes       map[Seqno]Probe  `codec:"postProbes" json:"postProbes"`
-	Tails            map[Seqno]LinkID `codec:"tails" json:"tails"`
-	HiddenTails      map[Seqno]LinkID `codec:"hiddenTails" json:"hiddenTails"`
-	SkipUntil        Time             `codec:"skipUntil" json:"skipUntil"`
+	ID                TeamID           `codec:"ID" json:"ID"`
+	Public            bool             `codec:"public" json:"public"`
+	PriorMerkleSeqno  Seqno            `codec:"priorMerkleSeqno" json:"priorMerkleSeqno"`
+	Version           AuditVersion     `codec:"version" json:"version"`
+	Audits            []Audit          `codec:"audits" json:"audits"`
+	PreProbes         map[Seqno]Probe  `codec:"preProbes" json:"preProbes"`
+	PostProbes        map[Seqno]Probe  `codec:"postProbes" json:"postProbes"`
+	Tails             map[Seqno]LinkID `codec:"tails" json:"tails"`
+	HiddenTails       map[Seqno]LinkID `codec:"hiddenTails" json:"hiddenTails"`
+	PreProbesToRetry  []Seqno          `codec:"preProbesToRetry" json:"preProbesToRetry"`
+	PostProbesToRetry []Seqno          `codec:"postProbesToRetry" json:"postProbesToRetry"`
+	SkipUntil         Time             `codec:"skipUntil" json:"skipUntil"`
 }
 
 func (o AuditHistory) DeepCopy() AuditHistory {
@@ -1454,6 +1466,28 @@ func (o AuditHistory) DeepCopy() AuditHistory {
 			}
 			return ret
 		})(o.HiddenTails),
+		PreProbesToRetry: (func(x []Seqno) []Seqno {
+			if x == nil {
+				return nil
+			}
+			ret := make([]Seqno, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.PreProbesToRetry),
+		PostProbesToRetry: (func(x []Seqno) []Seqno {
+			if x == nil {
+				return nil
+			}
+			ret := make([]Seqno, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.PostProbesToRetry),
 		SkipUntil: o.SkipUntil.DeepCopy(),
 	}
 }
@@ -3534,6 +3568,11 @@ type TeamGetMembersArg struct {
 	Name      string `codec:"name" json:"name"`
 }
 
+type TeamGetMembersByIDArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Id        TeamID `codec:"id" json:"id"`
+}
+
 type TeamImplicitAdminsArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	TeamName  string `codec:"teamName" json:"teamName"`
@@ -3685,7 +3724,7 @@ type TeamDeleteArg struct {
 
 type TeamSetSettingsArg struct {
 	SessionID int          `codec:"sessionID" json:"sessionID"`
-	Name      string       `codec:"name" json:"name"`
+	TeamID    TeamID       `codec:"teamID" json:"teamID"`
 	Settings  TeamSettings `codec:"settings" json:"settings"`
 }
 
@@ -3740,22 +3779,22 @@ type GetTeamRootIDArg struct {
 }
 
 type GetTeamShowcaseArg struct {
-	Name string `codec:"name" json:"name"`
+	TeamID TeamID `codec:"teamID" json:"teamID"`
 }
 
 type GetTeamAndMemberShowcaseArg struct {
-	Name string `codec:"name" json:"name"`
+	TeamID TeamID `codec:"teamID" json:"teamID"`
 }
 
 type SetTeamShowcaseArg struct {
-	Name              string  `codec:"name" json:"name"`
+	TeamID            TeamID  `codec:"teamID" json:"teamID"`
 	IsShowcased       *bool   `codec:"isShowcased,omitempty" json:"isShowcased,omitempty"`
 	Description       *string `codec:"description,omitempty" json:"description,omitempty"`
 	AnyMemberShowcase *bool   `codec:"anyMemberShowcase,omitempty" json:"anyMemberShowcase,omitempty"`
 }
 
 type SetTeamMemberShowcaseArg struct {
-	Name        string `codec:"name" json:"name"`
+	TeamID      TeamID `codec:"teamID" json:"teamID"`
 	IsShowcased bool   `codec:"isShowcased" json:"isShowcased"`
 }
 
@@ -3773,11 +3812,11 @@ type TeamDebugArg struct {
 }
 
 type GetTarsDisabledArg struct {
-	Name string `codec:"name" json:"name"`
+	TeamID TeamID `codec:"teamID" json:"teamID"`
 }
 
 type SetTarsDisabledArg struct {
-	Name     string `codec:"name" json:"name"`
+	TeamID   TeamID `codec:"teamID" json:"teamID"`
 	Disabled bool   `codec:"disabled" json:"disabled"`
 }
 
@@ -3846,6 +3885,7 @@ type TeamsInterface interface {
 	TeamGetByID(context.Context, TeamGetByIDArg) (TeamDetails, error)
 	TeamGet(context.Context, TeamGetArg) (TeamDetails, error)
 	TeamGetMembers(context.Context, TeamGetMembersArg) (TeamMembersDetails, error)
+	TeamGetMembersByID(context.Context, TeamGetMembersByIDArg) (TeamMembersDetails, error)
 	TeamImplicitAdmins(context.Context, TeamImplicitAdminsArg) ([]TeamMemberDetails, error)
 	TeamListUnverified(context.Context, TeamListUnverifiedArg) (AnnotatedTeamList, error)
 	TeamListTeammates(context.Context, TeamListTeammatesArg) (AnnotatedTeamList, error)
@@ -3884,14 +3924,14 @@ type TeamsInterface interface {
 	// * and ignored, and stale data might still be returned.
 	LoadTeamPlusApplicationKeys(context.Context, LoadTeamPlusApplicationKeysArg) (TeamPlusApplicationKeys, error)
 	GetTeamRootID(context.Context, TeamID) (TeamID, error)
-	GetTeamShowcase(context.Context, string) (TeamShowcase, error)
-	GetTeamAndMemberShowcase(context.Context, string) (TeamAndMemberShowcase, error)
+	GetTeamShowcase(context.Context, TeamID) (TeamShowcase, error)
+	GetTeamAndMemberShowcase(context.Context, TeamID) (TeamAndMemberShowcase, error)
 	SetTeamShowcase(context.Context, SetTeamShowcaseArg) error
 	SetTeamMemberShowcase(context.Context, SetTeamMemberShowcaseArg) error
 	CanUserPerform(context.Context, string) (TeamOperation, error)
 	TeamRotateKey(context.Context, TeamRotateKeyArg) error
 	TeamDebug(context.Context, TeamID) (TeamDebugRes, error)
-	GetTarsDisabled(context.Context, string) (bool, error)
+	GetTarsDisabled(context.Context, TeamID) (bool, error)
 	SetTarsDisabled(context.Context, SetTarsDisabledArg) error
 	TeamProfileAddList(context.Context, TeamProfileAddListArg) ([]TeamProfileAddEntry, error)
 	UploadTeamAvatar(context.Context, UploadTeamAvatarArg) error
@@ -3995,6 +4035,21 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.TeamGetMembers(ctx, typedArgs[0])
+					return
+				},
+			},
+			"teamGetMembersByID": {
+				MakeArg: func() interface{} {
+					var ret [1]TeamGetMembersByIDArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]TeamGetMembersByIDArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]TeamGetMembersByIDArg)(nil), args)
+						return
+					}
+					ret, err = i.TeamGetMembersByID(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -4504,7 +4559,7 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]GetTeamShowcaseArg)(nil), args)
 						return
 					}
-					ret, err = i.GetTeamShowcase(ctx, typedArgs[0].Name)
+					ret, err = i.GetTeamShowcase(ctx, typedArgs[0].TeamID)
 					return
 				},
 			},
@@ -4519,7 +4574,7 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]GetTeamAndMemberShowcaseArg)(nil), args)
 						return
 					}
-					ret, err = i.GetTeamAndMemberShowcase(ctx, typedArgs[0].Name)
+					ret, err = i.GetTeamAndMemberShowcase(ctx, typedArgs[0].TeamID)
 					return
 				},
 			},
@@ -4609,7 +4664,7 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]GetTarsDisabledArg)(nil), args)
 						return
 					}
-					ret, err = i.GetTarsDisabled(ctx, typedArgs[0].Name)
+					ret, err = i.GetTarsDisabled(ctx, typedArgs[0].TeamID)
 					return
 				},
 			},
@@ -4821,6 +4876,11 @@ func (c TeamsClient) TeamGetMembers(ctx context.Context, __arg TeamGetMembersArg
 	return
 }
 
+func (c TeamsClient) TeamGetMembersByID(ctx context.Context, __arg TeamGetMembersByIDArg) (res TeamMembersDetails, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamGetMembersByID", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
 func (c TeamsClient) TeamImplicitAdmins(ctx context.Context, __arg TeamImplicitAdminsArg) (res []TeamMemberDetails, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamImplicitAdmins", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
@@ -4992,14 +5052,14 @@ func (c TeamsClient) GetTeamRootID(ctx context.Context, id TeamID) (res TeamID, 
 	return
 }
 
-func (c TeamsClient) GetTeamShowcase(ctx context.Context, name string) (res TeamShowcase, err error) {
-	__arg := GetTeamShowcaseArg{Name: name}
+func (c TeamsClient) GetTeamShowcase(ctx context.Context, teamID TeamID) (res TeamShowcase, err error) {
+	__arg := GetTeamShowcaseArg{TeamID: teamID}
 	err = c.Cli.Call(ctx, "keybase.1.teams.getTeamShowcase", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
-func (c TeamsClient) GetTeamAndMemberShowcase(ctx context.Context, name string) (res TeamAndMemberShowcase, err error) {
-	__arg := GetTeamAndMemberShowcaseArg{Name: name}
+func (c TeamsClient) GetTeamAndMemberShowcase(ctx context.Context, teamID TeamID) (res TeamAndMemberShowcase, err error) {
+	__arg := GetTeamAndMemberShowcaseArg{TeamID: teamID}
 	err = c.Cli.Call(ctx, "keybase.1.teams.getTeamAndMemberShowcase", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
@@ -5031,8 +5091,8 @@ func (c TeamsClient) TeamDebug(ctx context.Context, teamID TeamID) (res TeamDebu
 	return
 }
 
-func (c TeamsClient) GetTarsDisabled(ctx context.Context, name string) (res bool, err error) {
-	__arg := GetTarsDisabledArg{Name: name}
+func (c TeamsClient) GetTarsDisabled(ctx context.Context, teamID TeamID) (res bool, err error) {
+	__arg := GetTarsDisabledArg{TeamID: teamID}
 	err = c.Cli.Call(ctx, "keybase.1.teams.getTarsDisabled", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

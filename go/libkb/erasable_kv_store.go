@@ -263,6 +263,9 @@ func (s *FileErasableKVStore) get(mctx MetaContext, key string, val interface{})
 	noiseKey := s.noiseKey(key)
 	noise, err := s.read(mctx, noiseKey)
 	if err != nil {
+		if IsTooManyFilesError(err) {
+			return err
+		}
 		return NewUnboxError(err)
 	}
 	var noiseBytes NoiseBytes
@@ -270,6 +273,9 @@ func (s *FileErasableKVStore) get(mctx MetaContext, key string, val interface{})
 
 	data, err := s.read(mctx, key)
 	if err != nil {
+		if IsTooManyFilesError(err) {
+			return err
+		}
 		return NewUnboxError(err)
 	}
 

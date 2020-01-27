@@ -25,10 +25,11 @@ import {
 } from './shared'
 import {
   AllowedNamespace,
-  ServiceIdWithContact,
   FollowingState,
-  SelectedUser,
+  GoButtonLabel,
   SearchResults,
+  SelectedUser,
+  ServiceIdWithContact,
 } from '../constants/types/team-building'
 
 export const numSectionLabel = '0-9'
@@ -90,16 +91,20 @@ type ContactProps = {
 
 export type Props = ContactProps & {
   error?: string
-  filterServices?: Array<ServiceIdWithContact>
   fetchUserRecs: () => void
+  filterServices?: Array<ServiceIdWithContact>
   focusInputCounter: number
-  includeContacts: boolean
+  goButtonLabel?: GoButtonLabel
+  recommendedHideYourself?: boolean
   highlightedIndex: number | null
+  includeContacts: boolean
   namespace: AllowedNamespace
   onAdd: (userId: string) => void
   onBackspace: () => void
   onChangeService: (newService: ServiceIdWithContact) => void
   onChangeText: (newText: string) => void
+  onClear: () => void
+  onClose: () => void
   onDownArrowKeyDown: () => void
   onEnterKeyDown: () => void
   onFinishTeamBuilding: () => void
@@ -107,9 +112,8 @@ export type Props = ContactProps & {
   onRemove: (userId: string) => void
   onSearchForMore: () => void
   onUpArrowKeyDown: () => void
-  onClear: () => void
-  onClose: () => void
   recommendations: Array<SearchRecSection> | null
+  rolePickerProps?: RolePickerProps
   search: (query: string, service: ServiceIdWithContact) => void
   searchResults: Array<SearchResult> | undefined
   searchString: string
@@ -120,9 +124,8 @@ export type Props = ContactProps & {
   teamBuildingSearchResults: SearchResults
   teamSoFar: Array<SelectedUser>
   teamname: string | undefined
-  waitingForCreate: boolean
-  rolePickerProps?: RolePickerProps
   title: string
+  waitingForCreate: boolean
 }
 
 const ContactsBanner = (props: ContactProps & {onRedoSearch: () => void; onRedoRecs: () => void}) => {
@@ -480,7 +483,7 @@ class TeamBuilding extends React.PureComponent<Props> {
                   <ContactsImportButton {...this.props} />
                 ) : result.isSearchHint ? (
                   <SearchHintText />
-                ) : (
+                ) : this.props.recommendedHideYourself && result.isYou ? null : (
                   <ResultRow
                     namespace={this.props.namespace}
                     resultForService={this.props.selectedService}
@@ -629,6 +632,7 @@ class TeamBuilding extends React.PureComponent<Props> {
         onBackspace={props.onBackspace}
         searchString={props.searchString}
         rolePickerProps={props.rolePickerProps}
+        goButtonLabel={props.goButtonLabel}
       />
     )
 

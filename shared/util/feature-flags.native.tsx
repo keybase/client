@@ -18,6 +18,7 @@ const ff: FeatureFlags = {
   lagRadar: false,
   moveOrCopy: false,
   newTeamBuildingForChatAllowMakeTeam: false,
+  openTeamSearch: false,
   outOfDateBanner: false,
   proofProviders: true,
   stellarExternalPartners: true,

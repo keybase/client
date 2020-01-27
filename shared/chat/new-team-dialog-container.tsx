@@ -11,7 +11,7 @@ type OwnProps = Container.RouteProps<{conversationIDKey: Types.ConversationIDKey
 export default Container.connect(
   state => ({
     baseTeam: '',
-    errorText: upperFirst(state.teams.teamCreationError),
+    errorText: upperFirst(state.teams.errorInTeamCreation),
   }),
   (dispatch, ownProps: OwnProps) => ({
     onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),

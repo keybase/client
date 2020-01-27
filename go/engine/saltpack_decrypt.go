@@ -60,7 +60,7 @@ func (e *SaltpackDecrypt) SubConsumers() []libkb.UIConsumer {
 	}
 }
 
-func (e *SaltpackDecrypt) promptForDecrypt(m libkb.MetaContext, publicKey keybase1.KID, isAnon bool) (err error) {
+func (e *SaltpackDecrypt) promptForDecrypt(m libkb.MetaContext, publicKey keybase1.KID, isAnon, signed bool) (err error) {
 	defer m.Trace("SaltpackDecrypt#promptForDecrypt", func() error { return err })()
 
 	spsiArg := SaltpackSenderIdentifyArg{
@@ -82,6 +82,7 @@ func (e *SaltpackDecrypt) promptForDecrypt(m libkb.MetaContext, publicKey keybas
 	arg := keybase1.SaltpackPromptForDecryptArg{
 		Sender:     spsiEng.Result(),
 		SigningKID: publicKey,
+		Signed:     signed,
 	}
 	e.res.Sender = arg.Sender
 
@@ -190,7 +191,7 @@ func (e *SaltpackDecrypt) Run(m libkb.MetaContext) (err error) {
 	// For DH mode.
 	hookMki := func(mki *saltpack.MessageKeyInfo) error {
 		kidToIdentify := libkb.BoxPublicKeyToKeybaseKID(mki.SenderKey)
-		return e.promptForDecrypt(m, kidToIdentify, mki.SenderIsAnon)
+		return e.promptForDecrypt(m, kidToIdentify, mki.SenderIsAnon, false /* not signed */)
 	}
 
 	// For signcryption mode.
@@ -198,10 +199,12 @@ func (e *SaltpackDecrypt) Run(m libkb.MetaContext) (err error) {
 		kidToIdentify := libkb.SigningPublicKeyToKeybaseKID(senderSigningKey)
 		// See if the sender signing key is nil or all zeroes.
 		isAnon := false
+		signed := true
 		if senderSigningKey == nil || bytes.Equal(senderSigningKey.ToKID(), make([]byte, len(senderSigningKey.ToKID()))) {
 			isAnon = true
+			signed = false
 		}
-		return e.promptForDecrypt(m, kidToIdentify, isAnon)
+		return e.promptForDecrypt(m, kidToIdentify, isAnon, signed)
 	}
 
 	m.Debug("| SaltpackDecrypt")

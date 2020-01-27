@@ -1,11 +1,11 @@
+import * as Chat2Gen from '../../../../actions/chat2-gen'
+import * as Constants from '../../../../constants/chat2'
 import * as Container from '../../../../util/container'
-import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as ProfileGen from '../../../../actions/profile-gen'
-import * as Types from '../../../../constants/types/chat2'
 import * as Tracker2Gen from '../../../../actions/tracker2-gen'
+import * as Types from '../../../../constants/types/chat2'
 import SystemChangeRetention from '.'
 import {getCanPerform} from '../../../../constants/teams'
-import * as Constants from '../../../../constants/chat2'
 
 type OwnProps = {
   message: Types.MessageSystemChangeRetention
@@ -39,8 +39,10 @@ export default Container.connect(
     },
     _onManageRetention: (conversationIDKey: Types.ConversationIDKey) =>
       dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {conversationIDKey, tab: 'settings'}, selected: 'chatInfoPanel'}],
+        Chat2Gen.createShowInfoPanel({
+          conversationIDKey,
+          show: true,
+          tab: 'settings',
         })
       ),
   }),

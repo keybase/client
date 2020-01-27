@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
+import {encryptTab} from '../constants/crypto'
 import {displayTab} from '../constants/settings'
 import {keybaseFM} from '../constants/whats-new'
 import NewFeatureRow from './new-feature-row'
@@ -32,9 +33,46 @@ export const VersionTitle = ({title}: {title: string}) => (
   </Kb.Box2>
 )
 
-export const Current = ({seen}: VersionProps) => {
+export const Current = ({seen, onNavigate, onNavigateExternal}: VersionProps) => {
   return (
     <Version>
+      <NewFeatureRow
+        image="release-5.2.0-crypto"
+        noSeparator={true}
+        onPrimaryButtonClick={() => {
+          onNavigate({path: [{selected: encryptTab}]})
+        }}
+        primaryButtonClassName="buttonNyctographicHover"
+        primaryButtonText={Styles.isMobile ? '' : 'Try it'}
+        seen={seen}
+      >
+        Encrypt, decrypt, sign, and verify all from within Keybase (desktop-only).
+        {` `}
+        <Kb.Emoji
+          allowFontScaling={true}
+          size={Styles.globalMargins.small}
+          emojiName=":closed_lock_with_key:"
+        />
+      </NewFeatureRow>
+      <NewFeatureRow
+        seen={seen}
+        image="release-5.2.0-bots"
+        secondaryButtonText="Read more"
+        onSecondaryButtonClick={() => {
+          onNavigateExternal('https://keybase.io/blog/bots')
+        }}
+      >
+        Bots: you can now install bots into your conversations. Kick off a meeting with Google Meet Bot, watch
+        for commits with GitHub Bot, create new issues in JIRA, and more, all without leaving Keybase.
+      </NewFeatureRow>
+    </Version>
+  )
+}
+
+export const Last = ({seen}: VersionProps) => {
+  return (
+    <Version>
+      <VersionTitle title="Last release" />
       <NewFeatureRow noSeparator={true} seen={seen} image="release-5.1.0-blocking">
         We heard you. You can now block and report spammers from the chat conversation or from people's
         profiles.
@@ -43,10 +81,10 @@ export const Current = ({seen}: VersionProps) => {
   )
 }
 
-export const Last = ({seen, onNavigate, onNavigateExternal}: VersionProps) => {
+export const LastLast = ({seen, onNavigate, onNavigateExternal}: VersionProps) => {
   return (
     <Version>
-      <VersionTitle title="Last release" />
+      <VersionTitle title="Previous releases" />
       <NewFeatureRow noSeparator={true} seen={seen} image="release-4.7.0-fast-user-switching">
         You can now quickly switch between all your signed in accounts from the user menu.
       </NewFeatureRow>
@@ -61,7 +99,7 @@ export const Last = ({seen, onNavigate, onNavigateExternal}: VersionProps) => {
         image="release-4.7.0-dark-mode"
         primaryButtonText="Open display settings"
         onPrimaryButtonClick={() => {
-          onNavigate({path: [{props: {}, selected: displayTab}]})
+          onNavigate({path: [{selected: displayTab}]})
         }}
       >
         Dark mode is here! You can access theme settings under the Display section in Settings.
@@ -102,14 +140,6 @@ export const Last = ({seen, onNavigate, onNavigateExternal}: VersionProps) => {
         {` `}
         to get updates and new features.
       </NewFeatureRow>
-    </Version>
-  )
-}
-
-export const LastLast = (_: VersionProps) => {
-  return (
-    <Version>
-      <VersionTitle title="Last last release" />
     </Version>
   )
 }

@@ -62,7 +62,7 @@ func TestTranscript(t *testing.T) {
 
 		mctx := tc1.MetaContext().WithLogTag("REPORT")
 		res, err := PullTranscript(mctx, tc1.Context().ConvSource,
-			ncres.Conv.GetConvID().String(), nil, config)
+			ncres.Conv.GetConvID().ConvIDStr(), nil, config)
 		require.NoError(t, err)
 		require.Len(t, res.Messages, 3)
 		for i := range res.Messages {
@@ -75,7 +75,7 @@ func TestTranscript(t *testing.T) {
 			kbun.NewNormalizedUsername(users[1].Username),
 		}
 		res, err = PullTranscript(mctx, tc1.Context().ConvSource,
-			ncres.Conv.GetConvID().String(), usernames, config)
+			ncres.Conv.GetConvID().ConvIDStr(), usernames, config)
 		require.NoError(t, err)
 		require.Len(t, res.Messages, 2)
 		// Messages from users[2] should be skipped.
@@ -145,7 +145,7 @@ func TestTranscriptLimit(t *testing.T) {
 			kbun.NewNormalizedUsername(users[1].Username),
 		}
 		res, err := PullTranscript(mctx, tc1.Context().ConvSource,
-			ncres.Conv.GetConvID().String(), usernames, config)
+			ncres.Conv.GetConvID().ConvIDStr(), usernames, config)
 		require.NoError(t, err)
 		require.Len(t, res.Messages, 0)
 	})

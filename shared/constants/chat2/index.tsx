@@ -19,6 +19,7 @@ import * as Router2 from '../router2'
 import HiddenString from '../../util/hidden-string'
 import {getFullname} from '../users'
 import {memoize} from '../../util/memoize'
+import * as TeamConstants from '../teams'
 
 export const defaultTopReacjis = [':+1:', ':-1:', ':tada:', ':joy:', ':sunglasses:']
 const defaultSkinTone = 1
@@ -60,6 +61,8 @@ export const makeState = (): Types.State => ({
   inboxNumSmallRows: 5,
   inboxSearch: undefined,
   inboxShowNew: false,
+  infoPanelSelectedTab: undefined,
+  infoPanelShowing: false,
   isWalletsNew: true,
   lastCoord: undefined,
   maybeMentionMap: new Map(),
@@ -110,6 +113,8 @@ export const makeInboxSearchInfo = (): Types.InboxSearchInfo => ({
   nameResults: [],
   nameResultsUnread: false,
   nameStatus: 'initial',
+  openTeamsResults: [],
+  openTeamsStatus: 'initial',
   query: new HiddenString(''),
   selectedIndex: 0,
   textResults: [],
@@ -197,12 +202,13 @@ export const getMessage = (
   const map = state.chat2.messageMap.get(id)
   return (map && map.get(ordinal)) || null
 }
-export const isDecoratedMessage = (message: Types.Message): message is Types.DecoratedMessage => {
+export const isMessageWithReactions = (message: Types.Message): message is Types.MessagesWithReactions => {
   return !(
     message.type === 'placeholder' ||
     message.type === 'deleted' ||
     message.type === 'systemJoined' ||
-    message.type === 'systemLeft'
+    message.type === 'systemLeft' ||
+    message.type === 'journeycard'
   )
 }
 export const getMessageKey = (message: Types.Message) =>
@@ -282,14 +288,6 @@ export const isTeamConversationSelected = (state: TypedState, teamname: string) 
   const meta = getMeta(state, getSelectedConversation(state))
   return meta.teamname === teamname
 }
-export const isInfoPanelOpen = () => {
-  const maybeVisibleScreen = Router2.getVisibleScreen()
-  return (
-    (maybeVisibleScreen === null || maybeVisibleScreen === undefined
-      ? undefined
-      : maybeVisibleScreen.routeName) === 'chatInfoPanel'
-  )
-}
 
 export const inboxSearchNewKey = 'chat:inboxSearchNew'
 export const waitingKeyJoinConversation = 'chat:joinConversation'
@@ -309,6 +307,8 @@ export const waitingKeyPushLoad = (conversationIDKey: Types.ConversationIDKey) =
 export const waitingKeyThreadLoad = (conversationIDKey: Types.ConversationIDKey) =>
   `chat:loadingThread:${conversationIDKeyToString(conversationIDKey)}`
 export const waitingKeyAddUsersToChannel = 'chat:addUsersToConversation'
+export const waitingKeyAddUserToChannel = (username: string, conversationIDKey: Types.ConversationIDKey) =>
+  `chat:addUserToConversation:${username}:${conversationIDKey}`
 export const waitingKeyConvStatusChange = (conversationIDKey: Types.ConversationIDKey) =>
   `chat:convStatusChange:${conversationIDKeyToString(conversationIDKey)}`
 export const waitingKeyUnpin = (conversationIDKey: Types.ConversationIDKey) =>
@@ -463,6 +463,40 @@ export const getParticipantSuggestions = (state: TypedState, id: Types.Conversat
   const {teamType} = getMeta(state, id)
   _unmemoizedState = state
   return _getParticipantSuggestionsMemoized(participants.all, teamType)
+}
+
+export const messageAuthorIsBot = (
+  state: TypedState,
+  meta: Types.ConversationMeta,
+  message: Types.Message,
+  participantInfo: Types.ParticipantInfo
+) => {
+  const teamID = meta.teamID
+  return meta.teamname
+    ? TeamConstants.userIsRoleInTeam(state, teamID, message.author, 'restrictedbot') ||
+        TeamConstants.userIsRoleInTeam(state, teamID, message.author, 'bot')
+    : meta.teamType === 'adhoc' && participantInfo.name.length > 0 // teams without info may have type adhoc with an empty participant name list
+    ? !participantInfo.name.includes(message.author) // if adhoc, check if author in participants
+    : false // if we don't have team information, don't show bot icon
+}
+
+export const getBotRestrictBlockMap = (
+  settings: Map<string, RPCChatTypes.Keybase1.TeamBotSettings>,
+  conversationIDKey: Types.ConversationIDKey,
+  bots: Array<string>
+) => {
+  const blocks = new Map<string, boolean>()
+  bots.forEach(b => {
+    const botSettings = settings.get(b)
+    if (!botSettings) {
+      blocks.set(b, false)
+      return
+    }
+    const convs = botSettings.convs
+    const cmds = botSettings.cmds
+    blocks.set(b, !cmds || (!((convs?.length ?? 0) === 0) && !convs?.find(c => c === conversationIDKey)))
+  })
+  return blocks
 }
 
 export {

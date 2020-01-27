@@ -226,13 +226,17 @@ const copyToClipboard = (action: ConfigGen.CopyToClipboardPayload) => {
   Electron.clipboard.writeText(action.payload.text)
 }
 
-const sendKBServiceCheck = (state: Container.TypedState, action: ConfigGen.DaemonHandshakeWaitPayload) => {
+const sendWindowsKBServiceCheck = (
+  state: Container.TypedState,
+  action: ConfigGen.DaemonHandshakeWaitPayload
+) => {
   if (
+    isWindows &&
     action.payload.version === state.config.daemonHandshakeVersion &&
     state.config.daemonHandshakeWaiters.size === 0 &&
     state.config.daemonHandshakeFailedReason === ConfigConstants.noKBFSFailReason
   ) {
-    Electron.ipcRenderer.invoke('KBkeybase', {type: 'requestStartService'})
+    Electron.ipcRenderer.invoke('KBkeybase', {type: 'requestWindowsStartService'})
   }
 }
 
@@ -423,7 +427,7 @@ export function* platformConfigSaga() {
   yield* Saga.chainAction(ConfigGen.copyToClipboard, copyToClipboard)
   yield* Saga.chainAction2(ConfigGen.updateNow, updateNow)
   yield* Saga.chainAction2(ConfigGen.checkForUpdate, checkForUpdate)
-  yield* Saga.chainAction2(ConfigGen.daemonHandshakeWait, sendKBServiceCheck)
+  yield* Saga.chainAction2(ConfigGen.daemonHandshakeWait, sendWindowsKBServiceCheck)
   yield* Saga.chainAction2(ConfigGen.setUseNativeFrame, saveUseNativeFrame)
   yield* Saga.chainAction2(ConfigGen.loggedIn, initOsNetworkStatus)
   yield* Saga.chainAction2(ConfigGen.updateWindowState, saveWindowState)

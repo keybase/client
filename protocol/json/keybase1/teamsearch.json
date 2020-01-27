@@ -1,0 +1,80 @@
+{
+  "protocol": "teamSearch",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "TeamSearchItem",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "id"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "description"
+        },
+        {
+          "type": "int",
+          "name": "memberCount"
+        },
+        {
+          "type": "Time",
+          "name": "lastActive"
+        },
+        {
+          "type": "boolean",
+          "name": "inTeam"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "publicAdmins"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamSearchRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamSearchItem"
+          },
+          "name": "results"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "teamSearch": {
+      "request": [
+        {
+          "name": "query",
+          "type": "string"
+        },
+        {
+          "name": "limit",
+          "type": "int"
+        }
+      ],
+      "response": "TeamSearchRes"
+    }
+  },
+  "namespace": "keybase.1"
+}

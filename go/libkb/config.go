@@ -694,6 +694,10 @@ func (f *JSONConfigFile) GetLevelDBNumFiles() (int, bool) {
 	return f.GetIntAtPath("leveldb.num_files")
 }
 
+func (f *JSONConfigFile) GetLevelDBWriteBufferMB() (int, bool) {
+	return f.GetIntAtPath("leveldb.write_buffer_mb")
+}
+
 func (f *JSONConfigFile) GetChatInboxSourceLocalizeThreads() (int, bool) {
 	return f.GetIntAtPath("chat.inboxsource.localizethreads")
 }

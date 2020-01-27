@@ -1,9 +1,9 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/teams'
 import {RetentionPolicy} from '../../../constants/types/retention-policy'
-import {Box2, Box, Button, Checkbox, Text} from '../../../common-adapters'
+import * as Kb from '../../../common-adapters'
 import {InlineDropdown} from '../../../common-adapters/dropdown'
-import {globalColors, globalMargins, globalStyles, styleSheetCreate, platformStyles} from '../../../styles'
+import {globalColors, globalMargins, styleSheetCreate, platformStyles} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
 import {FloatingRolePicker} from '../../role-picker'
 import {pluralize} from '../../../util/string'
@@ -11,6 +11,7 @@ import RetentionPicker from './retention/container'
 
 type Props = {
   canShowcase: boolean
+  error?: string
   isBigTeam: boolean
   ignoreAccessRequests: boolean
   publicityAnyMember: boolean
@@ -19,7 +20,7 @@ type Props = {
   openTeam: boolean
   openTeamRole: Types.TeamRoleType
   savePublicity: (arg0: Types.PublicitySettings, arg1: boolean, arg2: RetentionPolicy | null) => void
-  teamname: Types.Teamname
+  teamID: Types.TeamID
   yourOperations: Types.TeamOperations
   waitingForSavePublicity: boolean
 }
@@ -51,79 +52,79 @@ type State = {
   isRolePickerOpen: boolean
 } & NewSettings
 
+type SettingName =
+  | 'newPublicityMember'
+  | 'newPublicityAnyMember'
+  | 'newPublicityTeam'
+  | 'newOpenTeam'
+  | 'newIgnoreAccessRequests'
 type SettingProps = {
-  // TODO stronger type here
-  setBoolSettings: (key: any) => (newSetting: boolean) => void
+  setBoolSettings: (key: SettingName) => (newSetting: boolean) => void
 } & Props &
   State
 
 const SetMemberShowcase = (props: SettingProps) => (
-  <Box style={{...globalStyles.flexBoxColumn, alignItems: 'flex-start', paddingRight: globalMargins.small}}>
-    <Checkbox
+  <Kb.Box2 direction="vertical" style={styles.memberShowcase} alignSelf="flex-start">
+    <Kb.Checkbox
       checked={props.newPublicityMember}
       disabled={!props.canShowcase}
       labelComponent={
-        <Box style={{...globalStyles.flexBoxColumn}}>
-          <Text
-            style={{
-              color: props.canShowcase ? globalColors.black : globalColors.black_50,
-            }}
-            type="Body"
-          >
+        <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}}>
+          <Kb.Text style={props.canShowcase ? undefined : styles.grey} type="Body">
             Feature team on your own profile
-          </Text>
-          <Text type="BodySmall">
+          </Kb.Text>
+          <Kb.Text type="BodySmall">
             {props.canShowcase
               ? 'Your profile will mention this team. Team description and number of members will be public.'
               : props.yourOperations.joinTeam
               ? 'You must join this team to feature it on your profile.'
               : "Admins aren't allowing members to feature this team on their profile."}
-          </Text>
-        </Box>
+          </Kb.Text>
+        </Kb.Box2>
       }
       onCheck={props.setBoolSettings('newPublicityMember')}
-      style={{paddingRight: globalMargins.xtiny}}
+      style={styles.paddingRight}
     />
-  </Box>
+  </Kb.Box2>
 )
 
 const PublicityAnyMember = (props: SettingProps) =>
   props.yourOperations.setPublicityAny ? (
-    <Box style={stylesPublicitySettingsBox}>
-      <Checkbox
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.publicitySettings} alignSelf="flex-start">
+      <Kb.Checkbox
         checked={props.newPublicityAnyMember}
         labelComponent={
-          <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
-            <Text type="Body">Allow non-admin members to feature the team on their profile</Text>
-            <Text type="BodySmall">Team descriptions and number of members will be public.</Text>
-          </Box>
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.shrink}>
+            <Kb.Text type="Body">Allow non-admin members to feature the team on their profile</Kb.Text>
+            <Kb.Text type="BodySmall">Team descriptions and number of members will be public.</Kb.Text>
+          </Kb.Box2>
         }
         onCheck={props.setBoolSettings('newPublicityAnyMember')}
       />
-    </Box>
+    </Kb.Box2>
   ) : null
 
 const teamsLink = 'keybase.io/popular-teams'
 
 const PublicityTeam = (props: SettingProps) =>
   props.yourOperations.setTeamShowcase ? (
-    <Box style={stylesPublicitySettingsBox}>
-      <Checkbox
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.publicitySettings} alignSelf="flex-start">
+      <Kb.Checkbox
         checked={props.newPublicityTeam}
         labelComponent={
-          <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
-            <Text type="Body">
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.shrink}>
+            <Kb.Text type="Body">
               Publicize this team on{' '}
-              <Text type="BodyPrimaryLink" onClickURL={`https://${teamsLink}`}>
+              <Kb.Text type="BodyPrimaryLink" onClickURL={`https://${teamsLink}`}>
                 {teamsLink}
-              </Text>
-            </Text>
-            <Text type="BodySmall">Team descriptions and number of members will be public.</Text>
-          </Box>
+              </Kb.Text>
+            </Kb.Text>
+            <Kb.Text type="BodySmall">Team descriptions and number of members will be public.</Kb.Text>
+          </Kb.Box2>
         }
         onCheck={props.setBoolSettings('newPublicityTeam')}
       />
-    </Box>
+    </Kb.Box2>
   ) : null
 
 const OpenTeam = (props: SettingProps & RolePickerProps) => {
@@ -131,29 +132,21 @@ const OpenTeam = (props: SettingProps & RolePickerProps) => {
     return null
   }
 
-  // <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1, paddingRight: globalMargins.small}}>
   return (
-    <Box style={stylesPublicitySettingsBox}>
-      <Checkbox
+    <Kb.Box2 direction="vertical" style={styles.publicitySettings} alignSelf="flex-start">
+      <Kb.Checkbox
         checked={props.newOpenTeam}
         labelComponent={
-          <Box
-            style={{
-              ...globalStyles.flexBoxColumn,
-              flexShrink: 1,
-              paddingRight: globalMargins.small,
-              whiteSpace: 'pre',
-            }}
-          >
-            <Text type="Body">Make this an open team</Text>
-            <Box2
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.openTeam}>
+            <Kb.Text type="Body">Make this an open team</Kb.Text>
+            <Kb.Box2
               direction={isMobile ? 'vertical' : 'horizontal'}
               alignItems={isMobile ? 'flex-start' : 'center'}
               alignSelf="flex-start"
             >
-              <Text style={styles.joinAs} type="BodySmall">
-                Anyone will be able to join immediately. Users will join as{' '}
-              </Text>
+              <Kb.Text style={styles.joinAs} type="BodySmall">
+                Anyone will be able to join immediately. Users will join as
+              </Kb.Text>
               <FloatingRolePicker
                 confirmLabel={`Let in as ${pluralize(props.newOpenTeamRole)}`}
                 selectedRole={props.newOpenTeamRole}
@@ -171,29 +164,31 @@ const OpenTeam = (props: SettingProps & RolePickerProps) => {
                   type="BodySmall"
                 />
               </FloatingRolePicker>
-            </Box2>
-          </Box>
+            </Kb.Box2>
+          </Kb.Box2>
         }
         onCheck={props.isRolePickerOpen ? null : props.setBoolSettings('newOpenTeam')}
       />
-    </Box>
+    </Kb.Box2>
   )
 }
 
 const IgnoreAccessRequests = (props: SettingProps) =>
   !props.newOpenTeam && props.yourOperations.changeTarsDisabled ? (
-    <Box style={stylesPublicitySettingsBox}>
-      <Checkbox
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.publicitySettings} alignSelf="flex-start">
+      <Kb.Checkbox
         checked={props.newIgnoreAccessRequests}
         labelComponent={
-          <Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
-            <Text type="Body">Don't allow requests to join this team</Text>
-            <Text type="BodySmall">Requests to join this team will be silently ignored by all admins.</Text>
-          </Box>
+          <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}}>
+            <Kb.Text type="Body">Don't allow requests to join this team</Kb.Text>
+            <Kb.Text type="BodySmall">
+              Requests to join this team will be silently ignored by all admins.
+            </Kb.Text>
+          </Kb.Box2>
         }
         onCheck={props.setBoolSettings('newIgnoreAccessRequests')}
       />
-    </Box>
+    </Kb.Box2>
   ) : null
 
 const toRolePickerPropsHelper = (state: State, setState) => ({
@@ -250,15 +245,15 @@ export class Settings extends React.Component<Props, State> {
     }
 
     this.setState((prevState: State) => {
-      const publicitySettingsChanged = !(
-        prevState.newIgnoreAccessRequests === this.props.ignoreAccessRequests &&
-        prevState.newOpenTeam === this.props.openTeam &&
-        prevState.newOpenTeamRole === this.props.openTeamRole &&
-        prevState.newPublicityAnyMember === this.props.publicityAnyMember &&
-        prevState.newPublicityMember === this.props.publicityMember &&
-        prevState.newPublicityTeam === this.props.publicityTeam &&
-        !prevState.retentionPolicyChanged
-      )
+      const publicitySettingsChanged =
+        prevState.newIgnoreAccessRequests !== this.props.ignoreAccessRequests ||
+        prevState.newOpenTeam !== this.props.openTeam ||
+        prevState.newOpenTeamRole !== this.props.openTeamRole ||
+        prevState.newPublicityAnyMember !== this.props.publicityAnyMember ||
+        prevState.newPublicityMember !== this.props.publicityMember ||
+        prevState.newPublicityTeam !== this.props.publicityTeam ||
+        prevState.retentionPolicyChanged
+
       return publicitySettingsChanged !== prevState.publicitySettingsChanged
         ? {publicitySettingsChanged}
         : null
@@ -266,7 +261,7 @@ export class Settings extends React.Component<Props, State> {
   }
 
   // TODO just use real keys/setState and not this abstraction
-  setBoolSettings = (key: any) => (newSetting: boolean): void => {
+  setBoolSettings = (key: SettingName) => (newSetting: boolean): void => {
     // @ts-ignore not sure how to type this
     this.setState({[key]: newSetting})
   }
@@ -296,33 +291,26 @@ export class Settings extends React.Component<Props, State> {
 
   render() {
     const rolePickerProps = toRolePickerPropsHelper(this.state, s => this.setState(s))
+    const submenuProps: SettingProps = {
+      ...this.props,
+      ...this.state,
+      setBoolSettings: this.setBoolSettings,
+    }
     return (
-      <Box
-        style={{
-          ...globalStyles.flexBoxColumn,
-          alignSelf: 'stretch',
-          flexBasis: 0,
-          flexGrow: 1,
-          padding: globalMargins.small,
-        }}
-      >
-        <SetMemberShowcase {...this.props} {...this.state} setBoolSettings={this.setBoolSettings} />
+      <Kb.Box2 direction="vertical" fullWidth={true} alignItems="flex-start" style={styles.main}>
+        {!!this.props.error && <Kb.Banner color="red">{this.props.error}</Kb.Banner>}
+        <SetMemberShowcase {...submenuProps} />
         {(this.props.yourOperations.changeOpenTeam ||
           this.props.yourOperations.setTeamShowcase ||
           this.props.yourOperations.setPublicityAny) && (
           <>
-            <Box style={{...globalStyles.flexBoxRow, paddingTop: globalMargins.small}}>
-              <Text type="Header">Team</Text>
-            </Box>
-            <PublicityAnyMember {...this.props} {...this.state} setBoolSettings={this.setBoolSettings} />
-            <PublicityTeam {...this.props} {...this.state} setBoolSettings={this.setBoolSettings} />
-            <OpenTeam
-              {...this.props}
-              {...this.state}
-              {...rolePickerProps}
-              setBoolSettings={this.setBoolSettings}
-            />
-            <IgnoreAccessRequests {...this.props} {...this.state} setBoolSettings={this.setBoolSettings} />
+            <Kb.Box2 direction="horizontal" alignSelf="flex-start" style={styles.teamPadding}>
+              <Kb.Text type="Header">Team</Kb.Text>
+            </Kb.Box2>
+            <PublicityAnyMember {...submenuProps} />
+            <PublicityTeam {...submenuProps} />
+            <OpenTeam {...submenuProps} {...rolePickerProps} />
+            <IgnoreAccessRequests {...submenuProps} />
           </>
         )}
         {this.props.yourOperations.chat && (
@@ -331,47 +319,58 @@ export class Settings extends React.Component<Props, State> {
             containerStyle={{marginTop: globalMargins.small}}
             onSelect={this._onSelectRetentionPolicy}
             showSaveIndicator={false}
-            teamname={this.props.teamname}
+            teamID={this.props.teamID}
             entityType={this.props.isBigTeam ? 'big team' : 'small team'}
           />
         )}
-        <Box
-          style={{
-            ...globalStyles.flexBoxRow,
-            justifyContent: 'center',
-            paddingBottom: isMobile ? globalMargins.tiny : globalMargins.small,
-            paddingTop: isMobile ? globalMargins.tiny : globalMargins.small,
-          }}
-        >
-          <Button
+        <Kb.Box2 direction="horizontal" style={styles.button}>
+          <Kb.Button
             label="Save"
             onClick={this.onSaveSettings}
             disabled={!this.state.publicitySettingsChanged}
             waiting={this.props.waitingForSavePublicity}
           />
-        </Box>
-      </Box>
+        </Kb.Box2>
+      </Kb.Box2>
     )
   }
 }
 
-const stylesPublicitySettingsBox = {
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'flex-start',
-  paddingRight: globalMargins.small,
-  paddingTop: globalMargins.small,
-}
-
 const styles = styleSheetCreate(() => ({
+  button: {
+    justifyContent: 'center',
+    paddingBottom: isMobile ? globalMargins.tiny : globalMargins.small,
+    paddingTop: isMobile ? globalMargins.tiny : globalMargins.small,
+  },
   floatingRolePicker: platformStyles({
     isElectron: {
       position: 'relative',
       top: -20,
     },
   }),
+  grey: {color: globalColors.black_50},
   joinAs: platformStyles({
     isElectron: {
-      paddingRight: 2,
+      paddingRight: globalMargins.xtiny,
     },
   }),
+  main: {
+    alignSelf: 'stretch',
+    flexBasis: 0,
+    flexGrow: 1,
+    justifyContent: 'flex-start',
+    padding: globalMargins.small,
+  },
+  memberShowcase: {alignItems: 'flex-start', paddingRight: globalMargins.small},
+  openTeam: {
+    flexShrink: 1,
+    paddingRight: globalMargins.small,
+  },
+  paddingRight: {paddingRight: globalMargins.xtiny},
+  publicitySettings: {
+    paddingRight: globalMargins.small,
+    paddingTop: globalMargins.small,
+  },
+  shrink: {flex: 1},
+  teamPadding: {paddingTop: globalMargins.small},
 }))

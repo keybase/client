@@ -1,4 +1,4 @@
-import React, {Component} from 'react'
+import React from 'react'
 import Box, {Box2} from './box'
 import Icon from './icon'
 import Text from './text'
@@ -15,46 +15,51 @@ const Kb = {
 export const CHECKBOX_SIZE = 13
 export const CHECKBOX_MARGIN = 8
 
-class Checkbox extends Component<Props> {
-  render() {
-    return (
-      <Kb.Box
-        style={Styles.collapseStyles([
-          styles.container,
-          !this.props.disabled && Styles.desktopStyles.clickable,
-          this.props.style,
+const Checkbox = (props: Props) => {
+  return (
+    <Kb.Box
+      style={Styles.collapseStyles([
+        styles.container,
+        !props.disabled && Styles.desktopStyles.clickable,
+        props.style,
+      ])}
+      onClick={e =>
+        // If something in labelComponent needs to catch a click without calling this, use
+        // event.preventDefault()
+        props.disabled || e.defaultPrevented ? undefined : props.onCheck && props.onCheck(!props.checked)
+      }
+    >
+      <Kb.Icon
+        boxStyle={Styles.collapseStyles([
+          styles.checkbox,
+          !!props.boxBackgroundColor && styles.checkboxWhiteBorder,
+          !props.checked &&
+            !!props.boxBackgroundColor && {
+              backgroundColor: props.boxBackgroundColor,
+            },
+          props.checked && !props.boxBackgroundColor && styles.checkboxChecked,
+          props.disabled && styles.checkboxInactive,
+          props.disabled && props.checked && styles.semiTransparent,
         ])}
-        onClick={e =>
-          // If something in labelComponent needs to catch a click without calling this, use
-          // event.preventDefault()
-          this.props.disabled || e.defaultPrevented
-            ? undefined
-            : this.props.onCheck && this.props.onCheck(!this.props.checked)
-        }
+        type="iconfont-check"
+        style={Styles.collapseStyles([
+          styles.icon,
+          !!props.boxBackgroundColor && {color: props.boxBackgroundColor},
+          !props.checked && styles.transparent,
+        ])}
+        hoverColor={Styles.globalColors.white}
+        color={Styles.globalColors.white}
+        fontSize={9}
+      />
+      <Kb.Box2
+        direction="vertical"
+        style={Styles.collapseStyles([props.disabled && styles.semiLessTransparent])}
       >
-        <Kb.Icon
-          boxStyle={Styles.collapseStyles([
-            styles.checkbox,
-            this.props.checked && styles.checkboxChecked,
-            this.props.disabled && styles.checkboxInactive,
-            this.props.disabled && this.props.checked && styles.semiTransparent,
-          ])}
-          type="iconfont-check"
-          style={Styles.collapseStyles([styles.icon, !this.props.checked && styles.transparent])}
-          hoverColor={Styles.globalColors.white}
-          color={Styles.globalColors.white}
-          fontSize={9}
-        />
-        <Kb.Box2
-          direction="vertical"
-          style={Styles.collapseStyles([this.props.disabled && styles.semiLessTransparent])}
-        >
-          <Kb.Text type="Body">{this.props.labelComponent || this.props.label}</Kb.Text>
-          {!!this.props.labelSubtitle && <Kb.Text type="BodySmall">{this.props.labelSubtitle}</Kb.Text>}
-        </Kb.Box2>
-      </Kb.Box>
-    )
-  }
+        <Kb.Text type="Body">{props.labelComponent || props.label}</Kb.Text>
+        {!!props.labelSubtitle && <Kb.Text type="BodySmall">{props.labelSubtitle}</Kb.Text>}
+      </Kb.Box2>
+    </Kb.Box>
+  )
 }
 
 const styles = Styles.styleSheetCreate(() => ({
@@ -80,6 +85,9 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   checkboxInactive: {
     borderColor: Styles.globalColors.black_10,
+  },
+  checkboxWhiteBorder: {
+    borderColor: Styles.globalColors.white,
   },
   container: {
     ...Styles.globalStyles.flexBoxRow,

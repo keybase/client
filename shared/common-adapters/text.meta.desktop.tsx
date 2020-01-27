@@ -275,6 +275,11 @@ const _metaData = (): {[K in TextType]: MetaType} => {
       isLink: true,
       styleOverride: Styles.globalStyles.fontBold,
     },
+    Nyctographic: {
+      colorForBackground: whiteNegative,
+      fontSize: 14,
+      styleOverride: Styles.globalStyles.fontNyctographic,
+    },
     Terminal: {
       colorForBackground: {
         negative: Styles.globalColors.blueLighter,

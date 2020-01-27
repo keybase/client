@@ -639,6 +639,21 @@ func (s *BlockingSender) handleMentions(ctx context.Context, uid gregor1.UID, ms
 			MessageBody:        chat1.NewMessageBodyWithText(newBody),
 			SupersedesOutboxID: msg.SupersedesOutboxID,
 		}
+	case chat1.MessageType_ATTACHMENT:
+		if err = checkHeaderBodyTypeMatch(); err != nil {
+			return res, atMentions, chanMention, err
+		}
+		knownUserMentions, maybeMentions, chanMention = utils.ParseAtMentionedItems(ctx, s.G(),
+			msg.MessageBody.Attachment().GetTitle(), nil, getConvMembers)
+		atMentions = atFromKnown(knownUserMentions)
+		newBody := msg.MessageBody.Attachment().DeepCopy()
+		newBody.TeamMentions = maybeToTeam(maybeMentions)
+		newBody.UserMentions = knownUserMentions
+		res = chat1.MessagePlaintext{
+			ClientHeader:       msg.ClientHeader,
+			MessageBody:        chat1.NewMessageBodyWithAttachment(newBody),
+			SupersedesOutboxID: msg.SupersedesOutboxID,
+		}
 	case chat1.MessageType_FLIP:
 		if err = checkHeaderBodyTypeMatch(); err != nil {
 			return res, atMentions, chanMention, err
@@ -910,8 +925,8 @@ func (s *BlockingSender) applyTeamBotSettings(ctx context.Context, uid gregor1.U
 		if err != nil {
 			return nil, err
 		}
-		s.Debug(ctx, "applyTeamBotSettings: applied settings for %+v for botuid: %v, senderUID: %v, isMatch: %v",
-			botSettings, uv.Uid, msg.ClientHeader.Sender, isMatch)
+		s.Debug(ctx, "applyTeamBotSettings: applied settings for %+v for botuid: %v, senderUID: %v, convID: %v isMatch: %v",
+			botSettings, uv.Uid, msg.ClientHeader.Sender, convID, isMatch)
 		// If the bot is the sender encrypt only for them.
 		if msg.ClientHeader.Sender.Eq(botUID) {
 			if !isMatch {
@@ -1452,7 +1467,12 @@ func (s *Deliverer) alertFailureChannels(obrs []chat1.OutboxRecord) {
 	s.notifyFailureChs = make(map[string]chan []chat1.OutboxRecord)
 }
 
-func (s *Deliverer) doNotRetryFailure(ctx context.Context, obr chat1.OutboxRecord, err error) (chat1.OutboxErrorType, error, bool) {
+func (s *Deliverer) doNotRetryFailure(ctx context.Context, obr chat1.OutboxRecord, err error) (resType chat1.OutboxErrorType, resErr error, resFail bool) {
+	defer func() {
+		if resErr != nil && resFail {
+			s.Debug(ctx, "doNotRetryFailure: sending back to not retry: err: %s: typ: %T", resErr, resErr)
+		}
+	}()
 	// Check attempts
 	if obr.State.Sending() >= deliverMaxAttempts {
 		return chat1.OutboxErrorType_TOOMANYATTEMPTS, errors.New("max send attempts reached"), true
@@ -1477,7 +1497,8 @@ func (s *Deliverer) doNotRetryFailure(ctx context.Context, obr chat1.OutboxRecor
 		return chat1.OutboxErrorType_OFFLINE, err, !berr.Temporary()
 	case *net.DNSError:
 		return chat1.OutboxErrorType_OFFLINE, err, !berr.Temporary()
-
+	case net.Error:
+		return chat1.OutboxErrorType_OFFLINE, err, !berr.Temporary()
 	}
 	switch err {
 	case ErrChatServerTimeout, ErrDuplicateConnection, ErrKeyServerTimeout:
@@ -1794,10 +1815,10 @@ func (s *Deliverer) deliverLoop() {
 			continue
 		}
 
-		convMap := make(map[string][]chat1.OutboxRecord)
+		convMap := make(map[chat1.ConvIDStr][]chat1.OutboxRecord)
 		for _, o := range obrs {
 			obr := o
-			convMap[obr.ConvID.String()] = append(convMap[obr.ConvID.String()], obr)
+			convMap[obr.ConvID.ConvIDStr()] = append(convMap[obr.ConvID.ConvIDStr()], obr)
 		}
 
 		var eg errgroup.Group

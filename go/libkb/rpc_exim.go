@@ -1569,6 +1569,12 @@ func (e StreamWrongKindError) ToStatus() (s keybase1.Status) {
 	return s
 }
 
+func (e UnknownStreamError) ToStatus() (s keybase1.Status) {
+	s.Code = SCStreamUnknown
+	s.Name = "STREAM_UNKNOWN"
+	return s
+}
+
 //=============================================================================
 
 func (u NoSecretKeyError) ToStatus() (s keybase1.Status) {

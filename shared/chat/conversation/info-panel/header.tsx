@@ -1,77 +1,89 @@
+import * as Container from '../../../util/container'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import * as Chat2Gen from '../../../actions/chat2-gen'
+import * as TeamConstants from '../../../constants/teams'
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
+import * as Constants from '../../../constants/chat2'
 import * as Styles from '../../../styles'
 import InfoPanelMenu from './menu/container'
 import * as ChatTypes from '../../../constants/types/chat2'
 import AddPeople from './add-people'
+import {pluralize} from '../../../util/string'
 
-type SmallProps = {
-  admin: boolean
-  teamname?: string
-  channelname?: string
-  conversationIDKey: ChatTypes.ConversationIDKey
-  description?: string
-  participantCount: number
-  isPreview: boolean
-  isSmallTeam: boolean
-  onJoinChannel: () => void
-} & Kb.OverlayParentProps
+type SmallProps = {conversationIDKey: ChatTypes.ConversationIDKey} & Kb.OverlayParentProps
 
 const gearIconSize = Styles.isMobile ? 24 : 16
 
 const _TeamHeader = (props: SmallProps) => {
-  let title = props.teamname
-  if (props.channelname && !props.isSmallTeam) {
-    title += '#' + props.channelname
+  const {conversationIDKey, toggleShowingMenu, getAttachmentRef, showingMenu, setAttachmentRef} = props
+  const dispatch = Container.useDispatch()
+  const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
+  const {teamname, teamID, channelname, descriptionDecorated: description, membershipType, teamType} = meta
+  const yourOperations = Container.useSelector(state =>
+    teamname ? TeamConstants.getCanPerformByID(state, teamID) : undefined
+  )
+  const admin = yourOperations?.manageMembers ?? false
+  const isPreview = membershipType === 'youArePreviewing'
+  const isSmallTeam = !!teamname && !!channelname && teamType !== 'big'
+  const onJoinChannel = () => dispatch(Chat2Gen.createJoinConversation({conversationIDKey}))
+  const participantCount = Container.useSelector(
+    state => Constants.getParticipantInfo(state, conversationIDKey)?.all?.length ?? 0
+  )
+  let title = teamname
+  if (channelname && !isSmallTeam) {
+    title += '#' + channelname
   }
-  const isGeneralChannel = !!(props.channelname && props.channelname === 'general')
+  const isGeneralChannel = !!(channelname && channelname === 'general')
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
       <Kb.Box2 direction="horizontal" style={styles.smallContainer} fullWidth={true}>
         <InfoPanelMenu
-          attachTo={props.getAttachmentRef}
-          onHidden={props.toggleShowingMenu}
-          isSmallTeam={props.isSmallTeam}
-          conversationIDKey={props.conversationIDKey}
-          visible={props.showingMenu}
+          attachTo={getAttachmentRef}
+          onHidden={toggleShowingMenu}
+          isSmallTeam={isSmallTeam}
+          conversationIDKey={conversationIDKey}
+          visible={showingMenu}
         />
         <Kb.ConnectedNameWithIcon
           containerStyle={styles.flexOne}
           horizontal={true}
-          teamname={props.teamname}
+          teamname={teamname}
           onClick="profile"
           title={title}
-          metaOne={props.participantCount.toString() + ' member' + (props.participantCount !== 1 ? 's' : '')}
+          metaOne={
+            participantCount ? `${participantCount} ${pluralize('member', participantCount)}` : 'Loading...'
+          }
         />
         <Kb.Icon
           type="iconfont-gear"
-          onClick={props.toggleShowingMenu}
-          ref={props.setAttachmentRef}
+          onClick={toggleShowingMenu}
+          ref={setAttachmentRef}
           style={styles.gear}
           fontSize={gearIconSize}
         />
       </Kb.Box2>
-      {!!props.description && (
+      {!!description && (
         <Kb.Box2 direction="horizontal" style={styles.description}>
           <Kb.Markdown smallStandaloneEmoji={true} selectable={true}>
-            {props.description}
+            {description}
           </Kb.Markdown>
         </Kb.Box2>
       )}
-      {props.isPreview && (
+      {isPreview && (
         <Kb.Button
           mode="Primary"
           type="Default"
           label="Join channel"
           style={styles.addMembers}
-          onClick={props.onJoinChannel}
+          onClick={onJoinChannel}
         />
       )}
-      {!props.isPreview && (props.admin || !isGeneralChannel) && (
+      {!isPreview && (admin || !isGeneralChannel) && (
         <AddPeople
-          isAdmin={props.admin}
+          isAdmin={admin}
           isGeneralChannel={isGeneralChannel}
-          conversationIDKey={props.conversationIDKey}
+          conversationIDKey={conversationIDKey}
         />
       )}
     </Kb.Box2>
@@ -79,37 +91,31 @@ const _TeamHeader = (props: SmallProps) => {
 }
 const TeamHeader = Kb.OverlayParentHOC(_TeamHeader)
 
-type AdhocProps = {
-  onShowNewTeamDialog: () => void
-  participants: ReadonlyArray<{
-    username: string
-    fullname: string
-  }>
-}
+type AdhocHeaderProps = {conversationIDKey: ChatTypes.ConversationIDKey}
 
-export const AdhocHeader = (props: AdhocProps) => {
+export const AdhocHeader = (props: AdhocHeaderProps) => {
+  const {conversationIDKey} = props
+  const dispatch = Container.useDispatch()
+  const onShowNewTeamDialog = () => {
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {conversationIDKey},
+            selected: 'chatShowNewTeamDialog',
+          },
+        ],
+      })
+    )
+  }
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
-      <Kb.ScrollView style={styles.adhocScrollContainer}>
-        {props.participants.map(p => {
-          return (
-            <Kb.NameWithIcon
-              key={p.username}
-              colorFollowing={true}
-              containerStyle={styles.adhocPartContainer}
-              horizontal={true}
-              username={p.username}
-              metaOne={p.fullname}
-            />
-          )
-        })}
-      </Kb.ScrollView>
       <Kb.Button
         mode="Primary"
         type="Default"
         label="Turn into a team"
         style={styles.addMembers}
-        onClick={props.onShowNewTeamDialog}
+        onClick={onShowNewTeamDialog}
       />
       <Kb.Text type="BodyTiny" center={true}>
         Add and delete members as you wish.

@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -176,6 +177,8 @@ func CanLogout(mctx MetaContext) (res keybase1.CanLogoutRes) {
 		return res
 	}
 
+	mctx, cancel := mctx.WithTimeout(5 * time.Second)
+	defer cancel()
 	if err := CheckCurrentUIDDeviceID(mctx); err != nil {
 		switch err.(type) {
 		case DeviceNotFoundError, UserNotFoundError,

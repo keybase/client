@@ -1,6 +1,9 @@
 package engine
 
 import (
+	"context"
+	"time"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
@@ -31,7 +34,9 @@ func (e *LogoutEngine) filterLoggedIn(accounts []keybase1.
 // so they don't think they are fully logged out of everything.
 func (e *LogoutEngine) printSwitchInfo(mctx libkb.MetaContext) (err error) {
 	defer mctx.Trace("Logout#printSwitchInfo", func() error { return err })()
-	accounts, err := mctx.G().GetConfiguredAccounts(mctx.Ctx())
+	ctx, cancel := context.WithTimeout(mctx.Ctx(), time.Second*3)
+	defer cancel()
+	accounts, err := mctx.G().GetConfiguredAccounts(ctx)
 	if err != nil {
 		return err
 	}

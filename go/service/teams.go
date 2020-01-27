@@ -152,6 +152,18 @@ func (h *TeamsHandler) teamGet(ctx context.Context, details keybase1.TeamDetails
 	return details, nil
 }
 
+func (h *TeamsHandler) TeamGetMembersByID(ctx context.Context, arg keybase1.TeamGetMembersByIDArg) (res keybase1.TeamMembersDetails, err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamGetMembersByID(%s)", arg.Id), func() error { return err })()
+	t, err := teams.Load(ctx, h.G().ExternalG(), keybase1.LoadTeamArg{
+		ID: arg.Id,
+	})
+	if err != nil {
+		return res, err
+	}
+	return teams.MembersDetails(ctx, h.G().ExternalG(), t)
+}
+
 func (h *TeamsHandler) TeamGetMembers(ctx context.Context, arg keybase1.TeamGetMembersArg) (res keybase1.TeamMembersDetails, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamGetMembers(%s)", arg.Name), func() error { return err })()
@@ -527,11 +539,11 @@ func (h *TeamsHandler) TeamDelete(ctx context.Context, arg keybase1.TeamDeleteAr
 
 func (h *TeamsHandler) TeamSetSettings(ctx context.Context, arg keybase1.TeamSetSettingsArg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamSetSettings(%s)", arg.Name), func() error { return err })()
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamSetSettings(%s)", arg.TeamID), func() error { return err })()
 	if err := assertLoggedIn(ctx, h.G().ExternalG()); err != nil {
 		return err
 	}
-	return teams.ChangeTeamSettings(ctx, h.G().ExternalG(), arg.Name, arg.Settings)
+	return teams.ChangeTeamSettingsByID(ctx, h.G().ExternalG(), arg.TeamID, arg.Settings)
 }
 
 func (h *TeamsHandler) LoadTeamPlusApplicationKeys(ctx context.Context, arg keybase1.LoadTeamPlusApplicationKeysArg) (res keybase1.TeamPlusApplicationKeys, err error) {
@@ -629,33 +641,33 @@ func (h *TeamsHandler) TeamAddEmailsBulk(ctx context.Context, arg keybase1.TeamA
 	return teams.AddEmailsBulk(ctx, h.G().ExternalG(), arg.Name, arg.Emails, arg.Role)
 }
 
-func (h *TeamsHandler) GetTeamShowcase(ctx context.Context, teamname string) (ret keybase1.TeamShowcase, err error) {
+func (h *TeamsHandler) GetTeamShowcase(ctx context.Context, teamID keybase1.TeamID) (ret keybase1.TeamShowcase, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("GetTeamShowcase(%s)", teamname), func() error { return err })()
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("GetTeamShowcase(%s)", teamID), func() error { return err })()
 
-	return teams.GetTeamShowcase(ctx, h.G().ExternalG(), teamname)
+	return teams.GetTeamShowcase(ctx, h.G().ExternalG(), teamID)
 }
 
-func (h *TeamsHandler) GetTeamAndMemberShowcase(ctx context.Context, teamname string) (ret keybase1.TeamAndMemberShowcase, err error) {
+func (h *TeamsHandler) GetTeamAndMemberShowcase(ctx context.Context, id keybase1.TeamID) (ret keybase1.TeamAndMemberShowcase, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("GetTeamAndMemberShowcase(%s)", teamname), func() error { return err })()
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("GetTeamAndMemberShowcase(%s)", id), func() error { return err })()
 
-	return teams.GetTeamAndMemberShowcase(ctx, h.G().ExternalG(), teamname)
+	return teams.GetTeamAndMemberShowcase(ctx, h.G().ExternalG(), id)
 }
 
 func (h *TeamsHandler) SetTeamShowcase(ctx context.Context, arg keybase1.SetTeamShowcaseArg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("SetTeamShowcase(%s)", arg.Name), func() error { return err })()
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("SetTeamShowcase(%s)", arg.TeamID), func() error { return err })()
 
-	err = teams.SetTeamShowcase(ctx, h.G().ExternalG(), arg.Name, arg.IsShowcased, arg.Description, arg.AnyMemberShowcase)
+	err = teams.SetTeamShowcase(ctx, h.G().ExternalG(), arg.TeamID, arg.IsShowcased, arg.Description, arg.AnyMemberShowcase)
 	return err
 }
 
 func (h *TeamsHandler) SetTeamMemberShowcase(ctx context.Context, arg keybase1.SetTeamMemberShowcaseArg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("SetTeamMemberShowcase(%s)", arg.Name), func() error { return err })()
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("SetTeamMemberShowcase(%s)", arg.TeamID), func() error { return err })()
 
-	err = teams.SetTeamMemberShowcase(ctx, h.G().ExternalG(), arg.Name, arg.IsShowcased)
+	err = teams.SetTeamMemberShowcase(ctx, h.G().ExternalG(), arg.TeamID, arg.IsShowcased)
 	return err
 }
 
@@ -691,18 +703,18 @@ func (h *TeamsHandler) TeamDebug(ctx context.Context, teamID keybase1.TeamID) (r
 	return teams.TeamDebug(ctx, h.G().ExternalG(), teamID)
 }
 
-func (h *TeamsHandler) GetTarsDisabled(ctx context.Context, teamname string) (res bool, err error) {
+func (h *TeamsHandler) GetTarsDisabled(ctx context.Context, teamID keybase1.TeamID) (res bool, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("GetTarsDisabled(%s)", teamname), func() error { return err })()
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("GetTarsDisabled(%s)", teamID), func() error { return err })()
 
-	return teams.GetTarsDisabled(ctx, h.G().ExternalG(), teamname)
+	return teams.GetTarsDisabled(ctx, h.G().ExternalG(), teamID)
 }
 
 func (h *TeamsHandler) SetTarsDisabled(ctx context.Context, arg keybase1.SetTarsDisabledArg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("SetTarsDisabled(%s,%t)", arg.Name, arg.Disabled), func() error { return err })()
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("SetTarsDisabled(%s,%t)", arg.TeamID, arg.Disabled), func() error { return err })()
 
-	return teams.SetTarsDisabled(ctx, h.G().ExternalG(), arg.Name, arg.Disabled)
+	return teams.SetTarsDisabled(ctx, h.G().ExternalG(), arg.TeamID, arg.Disabled)
 }
 
 func (h *TeamsHandler) TeamProfileAddList(ctx context.Context, arg keybase1.TeamProfileAddListArg) (res []keybase1.TeamProfileAddEntry, err error) {

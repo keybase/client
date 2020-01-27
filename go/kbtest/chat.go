@@ -89,7 +89,7 @@ type ChatMockWorld struct {
 	conversations []*chat1.Conversation
 
 	// each slice should always be sorted by message ID in desc, i.e. newest messages first
-	Msgs map[string][]*chat1.MessageBoxed
+	Msgs map[chat1.ConvIDStr][]*chat1.MessageBoxed
 }
 
 func NewChatMockWorld(t *testing.T, name string, numUsers int) (world *ChatMockWorld) {
@@ -101,7 +101,7 @@ func NewChatMockWorld(t *testing.T, name string, numUsers int) (world *ChatMockW
 		Users:   make(map[string]*FakeUser),
 		tlfs:    make(map[keybase1.CanonicalTlfName]chat1.TLFID),
 		tlfKeys: make(map[keybase1.CanonicalTlfName][]keybase1.CryptKey),
-		Msgs:    make(map[string][]*chat1.MessageBoxed),
+		Msgs:    make(map[chat1.ConvIDStr][]*chat1.MessageBoxed),
 	}
 	for i := 0; i < numUsers; i++ {
 		kbTc := externalstest.SetupTest(t, "chat_"+name, 0)
@@ -132,7 +132,7 @@ func (w *ChatMockWorld) Cleanup() {
 
 func (w *ChatMockWorld) GetConversationByID(convID chat1.ConversationID) *chat1.Conversation {
 	for _, conv := range w.conversations {
-		if conv.Metadata.ConversationID.String() == convID.String() {
+		if conv.Metadata.ConversationID.ConvIDStr() == convID.ConvIDStr() {
 			return conv
 		}
 	}
@@ -363,7 +363,7 @@ func (m *TlfMock) PublicCanonicalTLFNameAndID(ctx context.Context, tlfName strin
 
 type ChatRemoteMock struct {
 	world     *ChatMockWorld
-	readMsgid map[string]chat1.MessageID
+	readMsgid map[chat1.ConvIDStr]chat1.MessageID
 	uid       *gregor1.UID
 
 	CacheBodiesVersion int
@@ -378,15 +378,16 @@ var _ chat1.RemoteInterface = (*ChatRemoteMock)(nil)
 func NewChatRemoteMock(world *ChatMockWorld) (m *ChatRemoteMock) {
 	m = &ChatRemoteMock{
 		world:     world,
-		readMsgid: make(map[string]chat1.MessageID),
+		readMsgid: make(map[chat1.ConvIDStr]chat1.MessageID),
 	}
 	return m
 }
 
 func (m *ChatRemoteMock) makeReaderInfo(convID chat1.ConversationID) (ri *chat1.ConversationReaderInfo) {
 	ri = &chat1.ConversationReaderInfo{}
-	ri.ReadMsgid = m.readMsgid[convID.String()]
-	for _, m := range m.world.Msgs[convID.String()] {
+	convIDStr := convID.ConvIDStr()
+	ri.ReadMsgid = m.readMsgid[convIDStr]
+	for _, m := range m.world.Msgs[convIDStr] {
 		if m.ServerHeader.MessageID > ri.MaxMsgid {
 			ri.MaxMsgid = m.ServerHeader.MessageID
 			ri.Mtime = m.ServerHeader.Ctime
@@ -442,10 +443,10 @@ func (m *ChatRemoteMock) GetInboxRemote(ctx context.Context, arg chat1.GetInboxR
 			if arg.Query.TopicType != nil && conv.Metadata.IdTriple.TopicType != *arg.Query.TopicType {
 				continue
 			}
-			if arg.Query.UnreadOnly && m.readMsgid[conv.Metadata.ConversationID.String()] == m.makeReaderInfo(conv.Metadata.ConversationID).MaxMsgid {
+			if arg.Query.UnreadOnly && m.readMsgid[conv.Metadata.ConversationID.ConvIDStr()] == m.makeReaderInfo(conv.Metadata.ConversationID).MaxMsgid {
 				continue
 			}
-			if arg.Query.ReadOnly && m.readMsgid[conv.Metadata.ConversationID.String()] != m.makeReaderInfo(conv.Metadata.ConversationID).MaxMsgid {
+			if arg.Query.ReadOnly && m.readMsgid[conv.Metadata.ConversationID.ConvIDStr()] != m.makeReaderInfo(conv.Metadata.ConversationID).MaxMsgid {
 				continue
 			}
 			if arg.Query.TlfVisibility != nil && conv.Metadata.Visibility != *arg.Query.TlfVisibility {
@@ -523,7 +524,7 @@ func (m *ChatRemoteMock) GetThreadRemote(ctx context.Context, arg chat1.GetThrea
 	}
 	res.MembersType = conv.Conv.GetMembersType()
 	res.Visibility = conv.Conv.Metadata.Visibility
-	msgs := m.world.Msgs[arg.ConversationID.String()]
+	msgs := m.world.Msgs[arg.ConversationID.ConvIDStr()]
 	count := 0
 	for _, msg := range msgs {
 		if arg.Query != nil {
@@ -546,7 +547,7 @@ func (m *ChatRemoteMock) GetThreadRemote(ctx context.Context, arg chat1.GetThrea
 		}
 	}
 	if arg.Query != nil && arg.Query.MarkAsRead {
-		m.readMsgid[arg.ConversationID.String()] = msgs[0].ServerHeader.MessageID
+		m.readMsgid[arg.ConversationID.ConvIDStr()] = msgs[0].ServerHeader.MessageID
 	}
 	var pmsgs []pager.Message
 	for _, m := range res.Thread.Messages {
@@ -644,7 +645,7 @@ func (m *ChatRemoteMock) PostRemote(ctx context.Context, arg chat1.PostRemoteArg
 	m.world.T.Logf("PostRemote(convid:%v, msgid:%v, %v)",
 		arg.ConversationID, inserted.ServerHeader.MessageID, arg.MessageBoxed.GetMessageType())
 	if ri.ReadMsgid == ri.MaxMsgid {
-		m.readMsgid[arg.ConversationID.String()] = inserted.ServerHeader.MessageID
+		m.readMsgid[arg.ConversationID.ConvIDStr()] = inserted.ServerHeader.MessageID
 	}
 	conv.Metadata.ActiveList = m.promoteWriter(ctx, arg.MessageBoxed.ClientHeader.Sender,
 		conv.Metadata.ActiveList)
@@ -714,14 +715,14 @@ func (m *ChatRemoteMock) NewConversationRemote2(ctx context.Context, arg chat1.N
 		MaxMsgs:         []chat1.MessageBoxed{first},
 		MaxMsgSummaries: []chat1.MessageSummary{first.Summary()},
 	})
-	m.readMsgid[res.ConvID.String()] = first.ServerHeader.MessageID
+	m.readMsgid[res.ConvID.ConvIDStr()] = first.ServerHeader.MessageID
 
 	sort.Sort(convByNewlyUpdated{mock: m})
 	return res, nil
 }
 
 func (m *ChatRemoteMock) GetMessagesRemote(ctx context.Context, arg chat1.GetMessagesRemoteArg) (res chat1.GetMessagesRemoteRes, err error) {
-	msgs, ok := m.world.Msgs[arg.ConversationID.String()]
+	msgs, ok := m.world.Msgs[arg.ConversationID.ConvIDStr()]
 	if !ok {
 		return res, errors.New("conversation not found")
 	}
@@ -748,7 +749,7 @@ func (m *ChatRemoteMock) MarkAsRead(ctx context.Context, arg chat1.MarkAsReadArg
 		err = errors.New("conversation not found")
 		return res, err
 	}
-	m.readMsgid[conv.Metadata.ConversationID.String()] = arg.MsgID
+	m.readMsgid[conv.Metadata.ConversationID.ConvIDStr()] = arg.MsgID
 	return res, nil
 }
 
@@ -861,7 +862,8 @@ func (m *ChatRemoteMock) DeleteConversation(ctx context.Context, convID chat1.Co
 func (m *ChatRemoteMock) GetMessageBefore(ctx context.Context, arg chat1.GetMessageBeforeArg) (chat1.GetMessageBeforeRes, error) {
 	// Ignore age and get the latest message
 	var latest chat1.MessageID
-	for _, msg := range m.world.Msgs[arg.ConvID.String()] {
+	convID := arg.ConvID.ConvIDStr()
+	for _, msg := range m.world.Msgs[convID] {
 		if msg.ServerHeader.MessageID >= latest {
 			latest = msg.ServerHeader.MessageID
 		}
@@ -886,18 +888,21 @@ type msgByMessageIDDesc struct {
 	convID chat1.ConversationID
 }
 
-func (s msgByMessageIDDesc) Len() int { return len(s.world.Msgs[s.convID.String()]) }
+func (s msgByMessageIDDesc) Len() int { return len(s.world.Msgs[s.convID.ConvIDStr()]) }
 func (s msgByMessageIDDesc) Swap(i, j int) {
-	s.world.Msgs[s.convID.String()][i], s.world.Msgs[s.convID.String()][j] =
-		s.world.Msgs[s.convID.String()][j], s.world.Msgs[s.convID.String()][i]
+	convID := s.convID.ConvIDStr()
+	s.world.Msgs[convID][i], s.world.Msgs[convID][j] =
+		s.world.Msgs[convID][j], s.world.Msgs[convID][i]
 }
 func (s msgByMessageIDDesc) Less(i, j int) bool {
-	return s.world.Msgs[s.convID.String()][i].ServerHeader.MessageID > s.world.Msgs[s.convID.String()][j].ServerHeader.MessageID
+	convID := s.convID.ConvIDStr()
+	return s.world.Msgs[convID][i].ServerHeader.MessageID > s.world.Msgs[convID][j].ServerHeader.MessageID
 }
 
 func (m *ChatRemoteMock) getMaxMsgs(convID chat1.ConversationID) (maxMsgs []chat1.MessageBoxed) {
 	finder := make(map[chat1.MessageType]*chat1.MessageBoxed)
-	for _, msg := range m.world.Msgs[convID.String()] {
+	convIDStr := convID.ConvIDStr()
+	for _, msg := range m.world.Msgs[convIDStr] {
 		if existing, ok := finder[msg.GetMessageType()]; !ok || existing.GetMessageID() < msg.GetMessageID() {
 			finder[msg.GetMessageType()] = msg
 		}
@@ -911,17 +916,18 @@ func (m *ChatRemoteMock) getMaxMsgs(convID chat1.ConversationID) (maxMsgs []chat
 }
 
 func (m *ChatRemoteMock) insertMsgAndSort(convID chat1.ConversationID, msg chat1.MessageBoxed) (inserted chat1.MessageBoxed) {
+	convIDStr := convID.ConvIDStr()
 	msg.ServerHeader = &chat1.MessageServerHeader{
 		Ctime:     gregor1.ToTime(m.world.Fc.Now()),
 		Now:       gregor1.ToTime(m.world.Fc.Now()),
-		MessageID: chat1.MessageID(len(m.world.Msgs[convID.String()]) + 1),
+		MessageID: chat1.MessageID(len(m.world.Msgs[convIDStr]) + 1),
 	}
-	m.world.Msgs[convID.String()] = append(m.world.Msgs[convID.String()], &msg)
+	m.world.Msgs[convIDStr] = append(m.world.Msgs[convIDStr], &msg)
 	sort.Sort(msgByMessageIDDesc{world: m.world, convID: convID})
 
 	// If this message supersedes something, track it down and set supersededBy
 	if msg.ClientHeader.Supersedes > 0 {
-		for _, wmsg := range m.world.Msgs[convID.String()] {
+		for _, wmsg := range m.world.Msgs[convIDStr] {
 			if wmsg.GetMessageID() == msg.ClientHeader.Supersedes {
 				wmsg.ServerHeader.SupersededBy = msg.GetMessageID()
 			}
@@ -1158,6 +1164,10 @@ func (c *ChatUI) ChatSearchInboxHit(ctx context.Context, arg chat1.ChatSearchInb
 
 func (c *ChatUI) ChatSearchConvHits(ctx context.Context, hits chat1.UIChatSearchConvHits) error {
 	c.InboxSearchConvHitsCb <- hits.Hits
+	return nil
+}
+
+func (c *ChatUI) ChatSearchTeamHits(ctx context.Context, hits chat1.UIChatSearchTeamHits) error {
 	return nil
 }
 

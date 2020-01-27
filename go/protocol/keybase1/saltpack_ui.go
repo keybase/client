@@ -73,6 +73,7 @@ type SaltpackPromptForDecryptArg struct {
 	SigningKID     KID            `codec:"signingKID" json:"signingKID"`
 	Sender         SaltpackSender `codec:"sender" json:"sender"`
 	UsedDelegateUI bool           `codec:"usedDelegateUI" json:"usedDelegateUI"`
+	Signed         bool           `codec:"signed" json:"signed"`
 }
 
 type SaltpackVerifySuccessArg struct {

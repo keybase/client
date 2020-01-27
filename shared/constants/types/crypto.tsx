@@ -1,5 +1,17 @@
 import * as TeamBuildingTypes from './team-building'
+import HiddenString from '../../util/hidden-string'
 import {IconType} from '../../common-adapters/icon.constants-gen'
+
+export type StringWaitingKey =
+  | 'crypto:encrypt:string'
+  | 'crypto:decrypt:string'
+  | 'crypto:sign:string'
+  | 'crypto:verify:string'
+export type FileWaitingKey =
+  | 'crypto:encrypt:file'
+  | 'crypto:decrypt:file'
+  | 'crypto:sign:file'
+  | 'crypto:verify:file'
 
 type EncryptTab = 'encryptTab'
 type DecryptTab = 'decryptTab'
@@ -20,15 +32,20 @@ export type TextType = 'cipher' | 'plain'
 export type Operations = 'encrypt' | 'decrypt' | 'sign' | 'verify'
 export type InputTypes = 'text' | 'file'
 export type OutputType = 'text' | 'file'
-export type ErrorTypes = ''
 export type OutputStatus = 'success' | 'error'
 
 export type CommonState = {
-  errorMessage: string
-  errorType: ErrorTypes
-  input: string
+  bytesComplete: number
+  bytesTotal: number
+  warningMessage: HiddenString
+  errorMessage: HiddenString
+  input: HiddenString
   inputType: InputTypes
-  output: string
+  // to ensure what the user types matches the input
+  outputMatchesInput: boolean
+  output: HiddenString
+  outputSender?: HiddenString
+  outputSigned?: boolean
   outputStatus?: OutputStatus
   outputType?: OutputType
 }
@@ -36,7 +53,6 @@ export type CommonState = {
 export type EncryptOptions = {
   includeSelf: boolean
   sign: boolean
-  usePGP: boolean
 }
 export type DecryptOptions = {}
 export type SignOptions = {}
@@ -45,8 +61,9 @@ export type OperationsOptions = EncryptOptions | DecryptOptions | SignOptions | 
 
 export type EncrypState = CommonState & {
   meta: {
-    canUsePGP: boolean
     hasRecipients: boolean
+    hasSBS: boolean
+    noIncludeSelf: boolean
   }
   options: EncryptOptions
   recipients: Array<string> // Only for encrypt operation

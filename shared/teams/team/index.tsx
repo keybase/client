@@ -1,30 +1,22 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
 import * as Styles from '../../styles'
 import TeamTabs from './tabs/container'
 import {Row} from './rows'
 import renderRow from './rows/render'
-import {TeamSubscriber} from '../subscriber'
+import {TeamDetailsSubscriber} from '../subscriber'
 
 export type Sections = Array<{data: Array<Row>; header?: Row; key: string}>
 
 export type Props = {
-  load: () => void
   teamID: Types.TeamID
-  teamname: Types.Teamname
   selectedTab: string
   sections: Sections
   setSelectedTab: (arg0: Types.TabKey) => void
 }
 
 class Team extends React.Component<Props> {
-  componentDidUpdate(prevProps: Props) {
-    if (this.props.teamID !== prevProps.teamID) {
-      this.props.load()
-    }
-  }
   private renderItem = ({item}: {item: Row}) => {
     switch (item.type) {
       case 'tabs':
@@ -61,24 +53,18 @@ class Team extends React.Component<Props> {
 
   render() {
     return (
-      <Kb.Reloadable
-        waitingKeys={Constants.teamGetWaitingKey(this.props.teamname)}
-        onReload={this.props.load}
-        reloadOnMount={true}
-      >
-        <TeamSubscriber />
-        <Kb.Box style={styles.container}>
-          <Kb.SectionList
-            alwaysVounceVertical={false}
-            renderItem={this.renderItem}
-            renderSectionHeader={this.renderSectionHeader}
-            stickySectionHeadersEnabled={Styles.isMobile}
-            sections={this.props.sections}
-            style={styles.list}
-            contentContainerStyle={styles.listContentContainer}
-          />
-        </Kb.Box>
-      </Kb.Reloadable>
+      <Kb.Box style={styles.container}>
+        <TeamDetailsSubscriber teamID={this.props.teamID} />
+        <Kb.SectionList
+          alwaysVounceVertical={false}
+          renderItem={this.renderItem}
+          renderSectionHeader={this.renderSectionHeader}
+          stickySectionHeadersEnabled={Styles.isMobile}
+          sections={this.props.sections}
+          style={styles.list}
+          contentContainerStyle={styles.listContentContainer}
+        />
+      </Kb.Box>
     )
   }
 }

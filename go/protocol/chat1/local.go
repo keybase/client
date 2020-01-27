@@ -972,11 +972,13 @@ func (o MessageDeleteHistory) DeepCopy() MessageDeleteHistory {
 }
 
 type MessageAttachment struct {
-	Object   Asset   `codec:"object" json:"object"`
-	Preview  *Asset  `codec:"preview,omitempty" json:"preview,omitempty"`
-	Previews []Asset `codec:"previews" json:"previews"`
-	Metadata []byte  `codec:"metadata" json:"metadata"`
-	Uploaded bool    `codec:"uploaded" json:"uploaded"`
+	Object       Asset              `codec:"object" json:"object"`
+	Preview      *Asset             `codec:"preview,omitempty" json:"preview,omitempty"`
+	Previews     []Asset            `codec:"previews" json:"previews"`
+	Metadata     []byte             `codec:"metadata" json:"metadata"`
+	Uploaded     bool               `codec:"uploaded" json:"uploaded"`
+	UserMentions []KnownUserMention `codec:"userMentions" json:"userMentions"`
+	TeamMentions []KnownTeamMention `codec:"teamMentions" json:"teamMentions"`
 }
 
 func (o MessageAttachment) DeepCopy() MessageAttachment {
@@ -1007,6 +1009,28 @@ func (o MessageAttachment) DeepCopy() MessageAttachment {
 			return append([]byte{}, x...)
 		})(o.Metadata),
 		Uploaded: o.Uploaded,
+		UserMentions: (func(x []KnownUserMention) []KnownUserMention {
+			if x == nil {
+				return nil
+			}
+			ret := make([]KnownUserMention, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.UserMentions),
+		TeamMentions: (func(x []KnownTeamMention) []KnownTeamMention {
+			if x == nil {
+				return nil
+			}
+			ret := make([]KnownTeamMention, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.TeamMentions),
 	}
 }
 
@@ -5772,6 +5796,32 @@ func (o PinMessageRes) DeepCopy() PinMessageRes {
 	}
 }
 
+type AddBotConvSearchHit struct {
+	Name   string         `codec:"name" json:"name"`
+	ConvID ConversationID `codec:"convID" json:"convID"`
+	IsTeam bool           `codec:"isTeam" json:"isTeam"`
+	Parts  []string       `codec:"parts" json:"parts"`
+}
+
+func (o AddBotConvSearchHit) DeepCopy() AddBotConvSearchHit {
+	return AddBotConvSearchHit{
+		Name:   o.Name,
+		ConvID: o.ConvID.DeepCopy(),
+		IsTeam: o.IsTeam,
+		Parts: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Parts),
+	}
+}
+
 type LocalMtimeUpdate struct {
 	ConvID ConversationID `codec:"convID" json:"convID"`
 	Mtime  gregor1.Time   `codec:"mtime" json:"mtime"`
@@ -6392,6 +6442,10 @@ type GetTeamRoleInConversationArg struct {
 	Username string         `codec:"username" json:"username"`
 }
 
+type AddBotConvSearchArg struct {
+	Term string `codec:"term" json:"term"`
+}
+
 type TeamIDFromTLFNameArg struct {
 	TlfName     string                  `codec:"tlfName" json:"tlfName"`
 	MembersType ConversationMembersType `codec:"membersType" json:"membersType"`
@@ -6472,7 +6526,7 @@ type LocalInterface interface {
 	CancelActiveInboxSearch(context.Context) error
 	SearchInbox(context.Context, SearchInboxArg) (SearchInboxRes, error)
 	CancelActiveSearch(context.Context) error
-	ProfileChatSearch(context.Context, keybase1.TLFIdentifyBehavior) (map[string]ProfileSearchConvStats, error)
+	ProfileChatSearch(context.Context, keybase1.TLFIdentifyBehavior) (map[ConvIDStr]ProfileSearchConvStats, error)
 	GetStaticConfig(context.Context) (StaticConfig, error)
 	ResolveUnfurlPrompt(context.Context, ResolveUnfurlPromptArg) error
 	GetUnfurlSettings(context.Context) (UnfurlSettingsDisplay, error)
@@ -6497,6 +6551,7 @@ type LocalInterface interface {
 	SetBotMemberSettings(context.Context, SetBotMemberSettingsArg) error
 	GetBotMemberSettings(context.Context, GetBotMemberSettingsArg) (keybase1.TeamBotSettings, error)
 	GetTeamRoleInConversation(context.Context, GetTeamRoleInConversationArg) (keybase1.TeamRole, error)
+	AddBotConvSearch(context.Context, string) ([]AddBotConvSearchHit, error)
 	TeamIDFromTLFName(context.Context, TeamIDFromTLFNameArg) (keybase1.TeamID, error)
 	DismissJourneycard(context.Context, DismissJourneycardArg) error
 }
@@ -7850,6 +7905,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"addBotConvSearch": {
+				MakeArg: func() interface{} {
+					var ret [1]AddBotConvSearchArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]AddBotConvSearchArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]AddBotConvSearchArg)(nil), args)
+						return
+					}
+					ret, err = i.AddBotConvSearch(ctx, typedArgs[0].Term)
+					return
+				},
+			},
 			"teamIDFromTLFName": {
 				MakeArg: func() interface{} {
 					var ret [1]TeamIDFromTLFNameArg
@@ -8241,7 +8311,7 @@ func (c LocalClient) CancelActiveSearch(ctx context.Context) (err error) {
 	return
 }
 
-func (c LocalClient) ProfileChatSearch(ctx context.Context, identifyBehavior keybase1.TLFIdentifyBehavior) (res map[string]ProfileSearchConvStats, err error) {
+func (c LocalClient) ProfileChatSearch(ctx context.Context, identifyBehavior keybase1.TLFIdentifyBehavior) (res map[ConvIDStr]ProfileSearchConvStats, err error) {
 	__arg := ProfileChatSearchArg{IdentifyBehavior: identifyBehavior}
 	err = c.Cli.Call(ctx, "chat.1.local.profileChatSearch", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
@@ -8371,6 +8441,12 @@ func (c LocalClient) GetBotMemberSettings(ctx context.Context, __arg GetBotMembe
 
 func (c LocalClient) GetTeamRoleInConversation(ctx context.Context, __arg GetTeamRoleInConversationArg) (res keybase1.TeamRole, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.getTeamRoleInConversation", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) AddBotConvSearch(ctx context.Context, term string) (res []AddBotConvSearchHit, err error) {
+	__arg := AddBotConvSearchArg{Term: term}
+	err = c.Cli.Call(ctx, "chat.1.local.addBotConvSearch", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 

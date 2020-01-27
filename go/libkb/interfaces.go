@@ -100,6 +100,7 @@ type configGetter interface {
 	GetChatDelivererInterval() (time.Duration, bool)
 	GetFeatureFlags() (FeatureFlags, error)
 	GetLevelDBNumFiles() (int, bool)
+	GetLevelDBWriteBufferMB() (int, bool)
 	GetChatInboxSourceLocalizeThreads() (int, bool)
 	GetPayloadCacheSize() (int, bool)
 	GetRememberPassphrase(NormalizedUsername) (bool, bool)
@@ -431,6 +432,7 @@ type ChatUI interface {
 	ChatSearchInboxDone(context.Context, chat1.ChatSearchInboxDoneArg) error
 	ChatSearchIndexStatus(context.Context, chat1.ChatSearchIndexStatusArg) error
 	ChatSearchConvHits(context.Context, chat1.UIChatSearchConvHits) error
+	ChatSearchTeamHits(context.Context, chat1.UIChatSearchTeamHits) error
 	ChatStellarShowConfirm(context.Context) error
 	ChatStellarDataConfirm(context.Context, chat1.UIChatPaymentSummary) (bool, error)
 	ChatStellarDataError(context.Context, keybase1.Status) (bool, error)
@@ -1111,6 +1113,7 @@ type SaltpackRecipientKeyfinderEngineInterface interface {
 	Engine2
 	GetPublicKIDs() []keybase1.KID
 	GetSymmetricKeys() []SaltpackReceiverSymmetricKey
+	UsedUnresolvedSBSAssertion() (bool, string)
 }
 
 type SaltpackRecipientKeyfinderArg struct {
@@ -1121,6 +1124,7 @@ type SaltpackRecipientKeyfinderArg struct {
 	UsePaperKeys      bool
 	UseDeviceKeys     bool // Does not include Paper Keys
 	UseRepudiableAuth bool // This is needed as team keys (implicit or not) are not compatible with repudiable authentication, so we can error out.
+	NoForcePoll       bool // if we want to stop forcepolling, which is on by default, but should be off for GUI
 }
 
 type SaltpackReceiverSymmetricKey struct {

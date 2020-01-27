@@ -483,10 +483,11 @@ func TestChatSearchInbox(t *testing.T) {
 		indexer1.SetUID(uid1)
 		indexer1.SetFlushDelay(100 * time.Millisecond)
 		indexer1.StartFlushLoop()
+		indexer1.StartStorageLoop()
 		// Stop the original
 		select {
 		case <-g1.Indexer.Stop(ctx):
-		case <-time.After(5 * time.Second):
+		case <-time.After(20 * time.Second):
 			require.Fail(t, "g1 Indexer did not stop")
 		}
 		g1.Indexer = indexer1
@@ -500,10 +501,11 @@ func TestChatSearchInbox(t *testing.T) {
 		indexer2.SetUID(uid2)
 		indexer2.SetFlushDelay(10 * time.Millisecond)
 		indexer2.StartFlushLoop()
+		indexer2.StartStorageLoop()
 		// Stop the original
 		select {
 		case <-g2.Indexer.Stop(ctx):
-		case <-time.After(5 * time.Second):
+		case <-time.After(20 * time.Second):
 			require.Fail(t, "g2 Indexer did not stop")
 		}
 		g2.Indexer = indexer2
