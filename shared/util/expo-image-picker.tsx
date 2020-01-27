@@ -20,6 +20,8 @@ const retyAfterAskingPerm = (
   }
 }
 
+const quality = 0.4
+
 const mediaTypeToImagePickerMediaType = (
   mediaType: 'photo' | 'video' | 'mixed'
 ): ImagePicker.MediaTypeOptions =>
@@ -33,7 +35,11 @@ export const launchCameraAsync = (
   mediaType: 'photo' | 'video' | 'mixed',
   askPermAndRetry: boolean = true
 ): Promise<ImagePicker.ImagePickerResult> => {
-  return ImagePicker.launchCameraAsync({mediaTypes: mediaTypeToImagePickerMediaType(mediaType)}).catch(
+  return ImagePicker.launchCameraAsync({
+    exif: false,
+    mediaTypes: mediaTypeToImagePickerMediaType(mediaType),
+    quality,
+  }).catch(
     retyAfterAskingPerm(
       [Permissions.CAMERA, Permissions.CAMERA_ROLL],
       askPermAndRetry ? () => launchCameraAsync(mediaType, false) : null
@@ -45,7 +51,11 @@ export const launchImageLibraryAsync = (
   mediaType: 'photo' | 'video' | 'mixed',
   askPermAndRetry: boolean = true
 ): Promise<ImagePicker.ImagePickerResult> => {
-  return ImagePicker.launchImageLibraryAsync({mediaTypes: mediaTypeToImagePickerMediaType(mediaType)}).catch(
+  return ImagePicker.launchImageLibraryAsync({
+    exif: false,
+    mediaTypes: mediaTypeToImagePickerMediaType(mediaType),
+    quality,
+  }).catch(
     retyAfterAskingPerm(
       [Permissions.CAMERA_ROLL],
       askPermAndRetry ? () => launchImageLibraryAsync(mediaType, false) : null
