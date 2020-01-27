@@ -30,6 +30,7 @@ import {saveAttachmentToCameraRoll, showShareActionSheet} from '../platform-spec
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {RPCError} from '../../util/errors'
 import * as Container from '../../util/container'
+import flags from '../../util/feature-flags'
 
 const onConnect = async () => {
   try {
@@ -1620,8 +1621,9 @@ const maybeCancelInboxSearchOnFocusChanged = (
 function* inboxSearch(_: Container.TypedState, action: Chat2Gen.InboxSearchPayload, logger: Saga.SagaLogger) {
   const {query} = action.payload
   const teamType = (t: RPCChatTypes.TeamType) => (t === RPCChatTypes.TeamType.complex ? 'big' : 'small')
-  const onConvHits = (resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchConvHits']['inParam']) => {
-    return Saga.put(
+
+  const onConvHits = (resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchConvHits']['inParam']) =>
+    Saga.put(
       Chat2Gen.createInboxSearchNameResults({
         results: (resp.hits.hits || []).reduce<Array<Types.InboxSearchConvHit>>((arr, h) => {
           arr.push({
@@ -1634,7 +1636,31 @@ function* inboxSearch(_: Container.TypedState, action: Chat2Gen.InboxSearchPaylo
         unread: resp.hits.unreadMatches,
       })
     )
-  }
+
+  const onOpenTeamHits = (
+    // TODO fix type when rpc exists
+    resp: any // RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchOpenTeamHits']['inParam']
+  ) =>
+    Saga.put(
+      Chat2Gen.createInboxSearchOpenTeamsResults({
+        results: (resp.hits.hits || []).reduce(
+          /*<Array<Types.InboxSearchOpenTeamHit>>*/ (arr, h) => {
+            const {description, name, teamID, publicAdmins, numMembers, inTeam} = h
+            arr.push({
+              description,
+              inTeam,
+              name,
+              numMembers,
+              publicAdmins,
+              teamID: Types.stringToConversationIDKey(teamID),
+            })
+            return arr
+          },
+          []
+        ),
+      })
+    )
+
   const onTextHit = (resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchInboxHit']['inParam']) => {
     const {convID, convName, hits, query, teamType: tt, time} = resp.searchHit
     return Saga.put(
@@ -1659,6 +1685,7 @@ function* inboxSearch(_: Container.TypedState, action: Chat2Gen.InboxSearchPaylo
   try {
     yield RPCChatTypes.localSearchInboxRpcSaga({
       incomingCallMap: {
+        // 'chat.1.chatUi.chatSearchOpenTeamHits': onOpenTeamHits,
         'chat.1.chatUi.chatSearchConvHits': onConvHits,
         'chat.1.chatUi.chatSearchInboxDone': onDone,
         'chat.1.chatUi.chatSearchInboxHit': onTextHit,
@@ -1695,6 +1722,42 @@ function* inboxSearch(_: Container.TypedState, action: Chat2Gen.InboxSearchPaylo
       logger.error('search failed: ' + e.message)
       yield Saga.put(Chat2Gen.createInboxSearchSetTextStatus({status: 'error'}))
     }
+  }
+
+  // mock data
+  if (flags.openTeamSearch && __DEV__) {
+    console.log('MOCK open teams data, TODO plumb!')
+    yield Saga.delay(1000)
+    yield onOpenTeamHits({
+      hits: {
+        hits: [
+          {
+            description: 'team a',
+            inTeam: true,
+            name: 'keybasefriends',
+            numMembers: 123,
+            publicAdmins: ['adm1', 'adm2'],
+            teamID: '67c99659bdc24920b56ccec3a42dd424',
+          },
+          {
+            description: 'team b',
+            inTeam: false,
+            name: 'chia_network.public',
+            numMembers: 123,
+            publicAdmins: ['adm3'],
+            teamID: '5fb23b28c317e32742cf194b42ae0525',
+          },
+          {
+            description: 'team c',
+            inTeam: false,
+            name: 'stellar.public',
+            numMembers: 123,
+            publicAdmins: ['adm4', 'adm5'],
+            teamID: '5fb23b28c317e32742cf194b42ae0525',
+          },
+        ],
+      },
+    })
   }
 }
 

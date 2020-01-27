@@ -10,10 +10,10 @@ type OwnProps = {
   header?: React.ReactNode
 }
 
+const emptySearch = Constants.makeInboxSearchInfo()
+
 export default namedConnect(
-  state => ({
-    _inboxSearch: state.chat2.inboxSearch || Constants.makeInboxSearchInfo(),
-  }),
+  state => ({_inboxSearch: state.chat2.inboxSearch ?? emptySearch}),
   dispatch => ({
     onCancel: () => dispatch(Chat2Gen.createToggleInboxSearch({enabled: false})),
     onSelectConversation: (
@@ -29,28 +29,37 @@ export default namedConnect(
         })
       ),
   }),
-  (stateProps, dispatchProps, ownProps: OwnProps) => ({
-    header: ownProps.header,
-    indexPercent: stateProps._inboxSearch.indexPercent,
-    nameResults: stateProps._inboxSearch.nameResults.map(r => ({
-      conversationIDKey: r.conversationIDKey,
-      name: r.name,
-      type: r.teamType,
-    })),
-    nameResultsUnread: stateProps._inboxSearch.nameResultsUnread,
-    nameStatus: stateProps._inboxSearch.nameStatus,
-    onCancel: dispatchProps.onCancel,
-    onSelectConversation: dispatchProps.onSelectConversation,
-    query: stateProps._inboxSearch.query.stringValue(),
-    selectedIndex: stateProps._inboxSearch.selectedIndex,
-    textResults: stateProps._inboxSearch.textResults.map(r => ({
-      conversationIDKey: r.conversationIDKey,
-      name: r.name,
-      numHits: r.numHits,
-      query: r.query,
-      type: r.teamType,
-    })),
-    textStatus: stateProps._inboxSearch.textStatus,
-  }),
+  (stateProps, dispatchProps, ownProps: OwnProps) => {
+    const {header} = ownProps
+    const {_inboxSearch} = stateProps
+    const {indexPercent, nameResults, nameResultsUnread, nameStatus, textStatus} = _inboxSearch
+    const {openTeamsResults, openTeamsStatus, query, selectedIndex, textResults} = _inboxSearch
+    const {onCancel, onSelectConversation} = dispatchProps
+    return {
+      header,
+      indexPercent,
+      nameResults: nameResults.map(r => ({
+        conversationIDKey: r.conversationIDKey,
+        name: r.name,
+        type: r.teamType,
+      })),
+      nameResultsUnread,
+      nameStatus,
+      onCancel,
+      onSelectConversation,
+      openTeamsResults,
+      openTeamsStatus,
+      query: query.stringValue(),
+      selectedIndex,
+      textResults: textResults.map(r => ({
+        conversationIDKey: r.conversationIDKey,
+        name: r.name,
+        numHits: r.numHits,
+        query: r.query,
+        type: r.teamType,
+      })),
+      textStatus,
+    }
+  },
   'InboxSearch'
 )(InboxSearch)
