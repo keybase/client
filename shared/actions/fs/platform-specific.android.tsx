@@ -38,6 +38,8 @@ const finishedRegularDownloadIDOnce = (downloadID: string): boolean => {
 const finishedRegularDownload = async (state: TypedState, action: FsGen.FinishedRegularDownloadPayload) => {
   const {downloadID, mimeType} = action.payload
 
+  // This is fired from a hook and can happen more than once per downloadID.
+  // So just deduplicate them here.
   if (!finishedRegularDownloadIDOnce(downloadID)) {
     return null
   }
