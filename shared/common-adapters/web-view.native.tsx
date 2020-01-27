@@ -20,10 +20,21 @@ const combineJavaScriptAndCSS = (injections?: WebViewInjections) =>
 `
 
 const KBWebView = (props: WebViewProps) => {
-  const {allowFileAccess, onLoadingStateChange, onError, renderLoading} = props
+  const {
+    allowUniversalAccessFromFileURLs,
+    allowFileAccessFromFileURLs,
+    allowFileAccess,
+    onLoadingStateChange,
+    onError,
+    originWhitelist,
+    renderLoading,
+  } = props
   return (
     <NativeWebView
+      allowUniversalAccessFromFileURLs={allowUniversalAccessFromFileURLs}
+      originWhitelist={originWhitelist}
       allowFileAccess={allowFileAccess}
+      allowFileAccessFromFileURLs={allowFileAccessFromFileURLs}
       allowsInlineMediaPlayback={true}
       source={{uri: props.url}}
       injectedJavaScript={memoize(combineJavaScriptAndCSS)(props.injections)}

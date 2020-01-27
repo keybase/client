@@ -6,6 +6,11 @@ export type WebViewInjections = {
 }
 
 export type WebViewProps = {
+  allowUniversalAccessFromFileURLs?: boolean
+  allowFileAccessFromFileURLs?: boolean
+  allowFileAccess?: boolean
+  originWhitelist?: Array<string>
+  renderLoading?: () => ReactElement<any>
   url: string
   injections?: WebViewInjections
   style?: Object
