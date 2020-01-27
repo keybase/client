@@ -529,12 +529,16 @@ protocol SimpleFS {
 
   record FSSettings {
     int64 spaceAvailableNotificationThreshold;
+    @lint("ignore")
+    boolean sfmiBannerDismissed;
   }
 
   // simpleFSSettings retrieves the settings for this client.
   FSSettings simpleFSSettings();
 
   void simpleFSSetNotificationThreshold(int64 threshold);
+  @lint("ignore")
+  void simpleFSSetSfmiBannerDismissed(boolean dismissed);
 
   // simpleFSObfuscatePath returns an obfuscated path for the given KBFS path.
   string simpleFSObfuscatePath(Path path);
@@ -558,7 +562,8 @@ protocol SimpleFS {
     ONLINE_STATUS_2,
     DOWNLOAD_STATUS_3,
     FILES_TAB_BADGE_4,
-    OVERALL_SYNC_STATUS_5
+    OVERALL_SYNC_STATUS_5,
+    SETTINGS_6
   }
   enum PathSubscriptionTopic {
     CHILDREN_0,

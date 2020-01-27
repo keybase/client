@@ -58,11 +58,22 @@ export type InboxSearchConvHit = {
   teamType: 'big' | 'small'
 }
 
+export type InboxSearchOpenTeamHit = {
+  description: string
+  inTeam: boolean
+  name: string
+  numMembers: number
+  publicAdmins: Array<string>
+  teamID: Team.TeamID
+}
+
 export type InboxSearchInfo = {
   indexPercent: number
   nameResults: Array<InboxSearchConvHit>
   nameStatus: InboxSearchStatus
   nameResultsUnread: boolean
+  openTeamsResults: Array<InboxSearchOpenTeamHit>
+  openTeamsStatus: InboxSearchStatus
   query: HiddenString
   selectedIndex: number
   textResults: Array<InboxSearchTextHit>
@@ -173,7 +184,7 @@ export type State = Readonly<{
   audioRecording: Map<Common.ConversationIDKey, AudioRecordingInfo>
   badgeMap: ConversationCountMap // id to the badge count,
   blockButtonsMap: Map<RPCTypes.TeamID, BlockButtonsInfo> // Should we show block buttons for this team ID?
-  botCommandsUpdateStatusMap: Map<Common.ConversationIDKey, RPCChatTypes.UIBotCommandsUpdateStatus>
+  botCommandsUpdateStatusMap: Map<Common.ConversationIDKey, RPCChatTypes.UIBotCommandsUpdateStatusTyp>
   botPublicCommands: Map<string, BotPublicCommands>
   botSearchResults?: BotSearchResults
   botSettings: Map<Common.ConversationIDKey, Map<string, RPCTypes.TeamBotSettings>>

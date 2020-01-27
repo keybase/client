@@ -9,6 +9,7 @@ import * as EngineGen from '../engine-gen-gen'
 import * as DevicesGen from '../devices-gen'
 import * as ProfileGen from '../profile-gen'
 import * as FsGen from '../fs-gen'
+import * as PushGen from '../push-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/config'
 import * as ChatConstants from '../../constants/chat2'
@@ -303,7 +304,9 @@ const switchRouteDef = (
           ? [RouteTreeGen.createNavigateAppend({path: ['signupEnterPhoneNumber']})]
           : []),
       ]
-    } else if (action.type === ConfigGen.loggedIn) {
+    }
+
+    if (action.type === ConfigGen.loggedIn) {
       return RouteTreeGen.createSwitchLoggedIn({loggedIn: true})
     }
   } else {
@@ -357,6 +360,39 @@ const stashLastRoute = (_state: Container.TypedState, action: ConfigGen.PersistR
   }
 }
 
+const showMonsterPushPrompt = () => [
+  RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
+  RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab}),
+  RouteTreeGen.createNavigateAppend({
+    path: ['settingsPushPrompt'],
+  }),
+  PushGen.createShowPermissionsPrompt({
+    show: false, // disable the prompt after showing it once, this does not perma-skip
+  }),
+]
+
+// Monster push prompt
+// We've just started up, we don't have the permissions, we're logged in and we
+// haven't just signed up. This handles the scenario where the push notifications
+// permissions checker finishes after the routeToInitialScreen is done.
+const onShowPermissionsPrompt = (
+  state: Container.TypedState,
+  action: PushGen.ShowPermissionsPromptPayload
+) => {
+  if (
+    !isMobile ||
+    !action.payload.show ||
+    !state.config.loggedIn ||
+    state.push.justSignedUp ||
+    state.push.hasPermissions
+  ) {
+    return
+  }
+
+  logger.info('[ShowMonsterPushPrompt] Entered through the late permissions checker scenario')
+  return showMonsterPushPrompt()
+}
+
 let routeToInitialScreenOnce = false
 const routeToInitialScreen2 = (state: Container.TypedState) => {
   // bail if we don't have a navigator and loaded
@@ -372,6 +408,22 @@ const routeToInitialScreen2 = (state: Container.TypedState) => {
 
 // We figure out where to go (push, link, saved state, etc) once ever in a session
 const routeToInitialScreen = (state: Container.TypedState) => {
+  // This is potentially executed more than once - instead of sticking this code into
+  // both here and switchRouteDef, potentially risking races, we're monitoring the
+  // monster push prompt here to hook on the moment when the stack switches from
+  // logged out to logged in. This code can also be triggered if routeToInitialScreen
+  // starts _after_ the push notifications permissions are computed.
+  if (
+    isMobile &&
+    state.config.loggedIn &&
+    !state.push.justSignedUp &&
+    state.push.showPushPrompt &&
+    !state.push.hasPermissions
+  ) {
+    logger.info('[ShowMonsterPushPrompt] Entered through the routeToInitialScreen scenario')
+    return showMonsterPushPrompt()
+  }
+
   if (routeToInitialScreenOnce) {
     if (state.config.loggedIn) {
       // don't jump to a screen, just ensure you're logged in / out state is correct
@@ -518,7 +570,7 @@ const updateServerConfig = async (state: Container.TypedState, action: ConfigGen
       }
     } = JSON.parse(str.body)
     const features = Object.keys(obj.features).reduce((map, key) => {
-      map[key] = obj.features[key] && obj.features[key].value
+      map[key] = obj.features[key as any]?.value ?? false
       return map
     }, {}) as {[K in string]: boolean}
 
@@ -800,6 +852,8 @@ function* configSaga() {
   yield* Saga.chainAction2(ConfigGen.loadOnStart, getFollowerInfo)
 
   yield* Saga.chainAction2(ConfigGen.toggleRuntimeStats, toggleRuntimeStats)
+
+  yield* Saga.chainAction2(PushGen.showPermissionsPrompt, onShowPermissionsPrompt)
 
   // Kick off platform specific stuff
   yield Saga.spawn(PlatformSpecific.platformConfigSaga)

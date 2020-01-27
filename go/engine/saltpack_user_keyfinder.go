@@ -17,6 +17,8 @@ type SaltpackUserKeyfinder struct {
 	Arg                           libkb.SaltpackRecipientKeyfinderArg
 	RecipientEntityKeyMap         map[keybase1.UserOrTeamID]([]keybase1.KID)
 	RecipientDeviceAndPaperKeyMap map[keybase1.UID]([]keybase1.KID)
+	UsingSBS                      bool
+	SBSAssertion                  string
 }
 
 var _ libkb.Engine2 = (*SaltpackUserKeyfinder)(nil)
@@ -71,6 +73,10 @@ func (e *SaltpackUserKeyfinder) GetSymmetricKeys() []libkb.SaltpackReceiverSymme
 	return []libkb.SaltpackReceiverSymmetricKey{}
 }
 
+func (e *SaltpackUserKeyfinder) UsedUnresolvedSBSAssertion() (bool, string) {
+	return e.UsingSBS, e.SBSAssertion
+}
+
 func (e *SaltpackUserKeyfinder) Run(m libkb.MetaContext) (err error) {
 	defer m.Trace("SaltpackUserKeyfinder#Run", func() error { return err })()
 
@@ -98,7 +104,7 @@ func (e *SaltpackUserKeyfinder) AddOwnKeysIfNeeded(m libkb.MetaContext) error {
 	if !m.ActiveDevice().Valid() {
 		return libkb.NewLoginRequiredError("need to be logged in or use --no-self-encrypt")
 	}
-	arg := libkb.NewLoadUserArgWithMetaContext(m).WithUID(m.ActiveDevice().UID()).WithForcePoll(true)
+	arg := libkb.NewLoadUserArgWithMetaContext(m).WithUID(m.ActiveDevice().UID()).WithForcePoll(!e.Arg.NoForcePoll)
 	upak, _, err := m.G().GetUPAKLoader().LoadV2(arg)
 	if err != nil {
 		return err

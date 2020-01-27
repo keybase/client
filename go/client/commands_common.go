@@ -75,6 +75,7 @@ func GetCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Comma
 		newCmdWebAuthToken(cl, g),
 		newCmdUploadAvatar(cl, g, true /* hidden */),
 		NewCmdAudit(cl, g),
+		NewCmdWhoami(cl, g),
 	}
 	ret = append(ret, getBuildSpecificCommands(cl, g)...)
 	ret = append(ret, getPlatformSpecificCommands(cl, g)...)

@@ -14,6 +14,7 @@ import {TypedActions} from '../actions/typed-actions-gen'
 export const syncToggleWaitingKey = 'fs:syncToggle'
 export const folderListWaitingKey = 'fs:folderList'
 export const statWaitingKey = 'fs:stat'
+export const acceptMacOSFuseExtClosedSourceWaitingKey = 'fs:acceptMacOSFuseExtClosedSourceWaitingKey'
 
 export const defaultPath = Types.stringToPath('/keybase')
 
@@ -220,12 +221,10 @@ export const emptyDriverStatusEnabled: Types.DriverStatusEnabled = {
   dokanOutdated: false,
   dokanUninstallExecPath: null,
   isDisabling: false,
-  isNew: false,
   type: Types.DriverStatusType.Enabled,
 } as const
 
 export const emptyDriverStatusDisabled: Types.DriverStatusDisabled = {
-  isDismissed: false,
   isEnabling: false,
   kextPermissionError: false,
   type: Types.DriverStatusType.Disabled,
@@ -242,6 +241,8 @@ export const unknownKbfsDaemonStatus: Types.KbfsDaemonStatus = {
 
 export const emptySettings: Types.Settings = {
   isLoading: false,
+  loaded: false,
+  sfmiBannerDismissed: false,
   spaceAvailableNotificationThreshold: 0,
 }
 
@@ -995,6 +996,9 @@ export const getSoftError = (softErrors: Types.SoftErrors, path: Types.Path): Ty
 
 export const hasSpecialFileElement = (path: Types.Path): boolean =>
   Types.getPathElements(path).some(elem => elem.startsWith('.kbfs'))
+
+export const sfmiInfoLoaded = (settings: Types.Settings, driverStatus: Types.DriverStatus): boolean =>
+  settings.loaded && driverStatus !== driverStatusUnknown
 
 export const erroredActionToMessage = (action: FsGen.Actions | EngineGen.Actions, error: string): string => {
   // We have FsError.expectedIfOffline now to take care of real offline

@@ -4,7 +4,7 @@ import * as Types from '../../../constants/types/crypto'
 import * as Kb from '../../../common-adapters'
 import debounce from 'lodash/debounce'
 import openURL from '../../../util/open-url'
-import {TextInput, FileInput} from '../../input'
+import {TextInput, FileInput, OperationBanner} from '../../input'
 import OperationOutput, {OutputBar, OutputInfoBanner, SignedSender} from '../../output'
 
 type Props = {
@@ -12,12 +12,17 @@ type Props = {
   inputType: Types.InputTypes
   onClearInput: () => void
   onCopyOutput: (text: string) => void
+  onSaveAsText: () => void
   onSetInput: (inputType: Types.InputTypes, inputValue: string) => void
   onShowInFinder: (path: string) => void
+  outputMatchesInput: boolean
   output: string
   outputSender?: string
   outputStatus?: Types.OutputStatus
   outputType?: Types.OutputType
+  progress: number
+  errorMessage: string
+  warningMessage: string
 }
 
 // We want to debuonce the onChangeText callback for our input so we are not sending an RPC on every keystroke
@@ -26,8 +31,11 @@ const debounced = debounce((fn, ...args) => fn(...args), 100)
 const Sign = (props: Props) => {
   const [inputValue, setInputValue] = React.useState(props.input)
   const onAttach = (localPaths: Array<string>) => {
+    // Drag and drop allows for multi-file upload, we only want one file upload
+    setInputValue('')
     props.onSetInput('file', localPaths[0])
   }
+  const bannertype = props.errorMessage ? 'error' : props.warningMessage ? 'warning' : 'info'
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
       <Kb.DragAndDrop
@@ -38,13 +46,18 @@ const Sign = (props: Props) => {
         prompt="Drop a file to sign"
       >
         <Kb.Box2 direction="vertical" fullHeight={true}>
-          <Kb.Banner color="grey">
-            <Kb.Text type="BodySmallSemibold">We'll add your signature.</Kb.Text>
-          </Kb.Banner>
+          <OperationBanner
+            type={bannertype}
+            infoMessage="Add your cryptographic signature to a message or file."
+            message={props.errorMessage}
+          />
           {props.inputType === 'file' ? (
             <FileInput
               path={props.input}
-              onClearFiles={props.onClearInput}
+              onClearFiles={() => {
+                setInputValue('')
+                props.onClearInput()
+              }}
               operation={Constants.Operations.Sign}
             />
           ) : (
@@ -62,8 +75,11 @@ const Sign = (props: Props) => {
               }}
             />
           )}
-          <Kb.Divider />
-
+          {props.progress && props.outputStatus && props.outputStatus !== 'success' ? (
+            <Kb.ProgressBar ratio={props.progress} style={{width: '100%'}} />
+          ) : (
+            <Kb.Divider />
+          )}
           <Kb.Box2 direction="vertical" fullHeight={true}>
             <OutputInfoBanner operation={Constants.Operations.Encrypt} outputStatus={props.outputStatus}>
               <Kb.Text type="BodySmallSemibold" center={true}>
@@ -86,6 +102,7 @@ const Sign = (props: Props) => {
             />
             <OperationOutput
               outputStatus={props.outputStatus}
+              outputMatchesInput={props.outputMatchesInput}
               output={props.output}
               outputType={props.outputType}
               textType="cipher"
@@ -93,10 +110,13 @@ const Sign = (props: Props) => {
               onShowInFinder={props.onShowInFinder}
             />
             <OutputBar
+              operation={Constants.Operations.Sign}
               output={props.output}
+              outputMatchesInput={props.outputMatchesInput}
               outputStatus={props.outputStatus}
               outputType={props.outputType}
               onCopyOutput={props.onCopyOutput}
+              onSaveAsText={props.onSaveAsText}
               onShowInFinder={props.onShowInFinder}
             />
           </Kb.Box2>

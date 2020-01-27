@@ -143,6 +143,8 @@ const Button = React.forwardRef<ClickableBox, Props>((props: Props, ref: React.R
       <Kb.Box className={Styles.classNames(underlayClassNames)} />
     ) : null
 
+  if (props.className) classNames.push(props.className)
+
   const content = (
     <Kb.ClickableBox
       ref={ref}

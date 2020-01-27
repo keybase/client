@@ -271,8 +271,9 @@ func (e *SaltpackRecipientKeyfinderEngine) lookupAndAddImplicitTeamKeys(m libkb.
 		return err
 	}
 	m.Debug("adding team key for implicit team %v", impTeamName)
-	m.Warning("encrypting for %v who is not yet a keybase user (or does not have a provisioned device): one of your devices will need to be online after they join keybase (or provision a new device), or they won't be able to decrypt it.", validSocialAssertionOrExistingUser)
+	e.UsingSBS = true
+	e.SBSAssertion = validSocialAssertionOrExistingUser
 	e.SymmetricEntityKeyMap[team.ID] = appKey
 
-	return err
+	return nil
 }

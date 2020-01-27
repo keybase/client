@@ -95,6 +95,7 @@ const groups: Array<Array<{label: string; action?: boolean; type: TextType; norm
     {label: 'Body tiny Body tiny', type: 'BodyTiny'},
     {label: 'Body tiny semibold', type: 'BodyTinySemibold'},
   ],
+  [{label: 'Nyctographic', type: 'Nyctographic'}],
 ]
 
 const mapText = (secondary: boolean) => {

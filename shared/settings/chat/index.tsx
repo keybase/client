@@ -133,11 +133,11 @@ class Chat extends React.Component<Props, State> {
         <Kb.ScrollView>
           <Kb.Box2 direction="vertical" fullHeight={true} gap="tiny" style={styles.container}>
             <Kb.Box2 direction="vertical" fullWidth={true}>
-              <Kb.Text type="Header">Contact settings</Kb.Text>
+              <Kb.Text type="Header">Contact restrictions</Kb.Text>
             </Kb.Box2>
             <Kb.Box2 direction="vertical" fullWidth={true}>
               <Kb.Checkbox
-                label="Only let someone message you or add you to a team if:"
+                label="Only let someone message you or add you to a team if..."
                 onCheck={() =>
                   this.setState(prevState => ({contactSettingsEnabled: !prevState.contactSettingsEnabled}))
                 }
@@ -204,7 +204,7 @@ class Chat extends React.Component<Props, State> {
                   )}
                 </>
               )}
-              <Kb.Box2 direction="vertical" gap="tiny">
+              <Kb.Box2 direction="vertical" gap="tiny" style={styles.btnContainer}>
                 <Kb.WaitingButton
                   onClick={() =>
                     this.props.onContactSettingsSave(
@@ -215,6 +215,7 @@ class Chat extends React.Component<Props, State> {
                     )
                   }
                   label="Save"
+                  small={true}
                   style={styles.save}
                   waitingKey={Constants.contactSettingsSaveWaitingKey}
                 />
@@ -284,10 +285,11 @@ class Chat extends React.Component<Props, State> {
                 disabled={this.props.unfurlMode === undefined}
               />
             </Kb.Box2>
-            <Kb.Box2 direction="vertical" gap="tiny">
+            <Kb.Box2 direction="vertical" gap="tiny" style={styles.btnContainer}>
               <Kb.WaitingButton
                 onClick={() => this.props.onUnfurlSave(this._getUnfurlMode(), this._getUnfurlWhitelist(true))}
                 label="Save"
+                small={true}
                 style={styles.save}
                 disabled={this._isUnfurlSaveDisabled()}
                 waitingKey={Constants.chatUnfurlWaitingKey}
@@ -325,6 +327,9 @@ const TeamRow = ({checked, isOpen, name, onCheck}) => (
   </Kb.Box2>
 )
 const styles = Styles.styleSheetCreate(() => ({
+  btnContainer: {
+    alignSelf: 'flex-start',
+  },
   checkboxIndented: Styles.platformStyles({
     isElectron: {paddingLeft: Styles.globalMargins.medium},
     isMobile: {paddingBottom: Styles.globalMargins.medium, paddingLeft: Styles.globalMargins.small},
@@ -334,12 +339,13 @@ const styles = Styles.styleSheetCreate(() => ({
     width: '100%',
   },
   divider: {
-    height: Styles.globalMargins.xxtiny,
+    marginBottom: Styles.globalMargins.small,
   },
   error: {
     color: Styles.globalColors.redDark,
   },
   save: {
+    marginBottom: Styles.globalMargins.small,
     marginTop: Styles.globalMargins.tiny,
   },
   teamCheckbox: Styles.platformStyles({

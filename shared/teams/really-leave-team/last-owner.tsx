@@ -7,6 +7,7 @@ type Props = {
   onDeleteTeam: () => void
   onLeave: () => void
   name: string
+  stillLoadingTeam: boolean
 }
 
 const ReallyLeaveTeam = (props: Props) => (
@@ -17,28 +18,37 @@ const ReallyLeaveTeam = (props: Props) => (
     footer={{
       content: (
         <Kb.ButtonBar direction="row" fullWidth={true} style={styles.buttonBar}>
-          <Kb.Button onClick={props.onBack} label="Got it" fullWidth={true} />
+          <Kb.Button
+            onClick={props.onBack}
+            label="Got it"
+            fullWidth={true}
+            disabled={props.stillLoadingTeam}
+          />
         </Kb.ButtonBar>
       ),
       hideBorder: true,
     }}
   >
-    <Kb.Box2 direction="vertical" alignItems="center" gap="medium" style={styles.container}>
-      <Kb.Box2 direction="vertical" style={Styles.globalStyles.positionRelative}>
-        <Kb.Avatar teamname={props.name} size={64} />
-        <Kb.Icon type="icon-team-leave-28" style={styles.leaveIcon} />
-      </Kb.Box2>
-      <Kb.Text type="Header" center={true} style={styles.headerText}>
-        You can't leave the {props.name} team because you're the only owner.
-      </Kb.Text>
-      <Kb.Text type="Body" center={true} style={styles.bodyText}>
-        You'll have to add another user as an owner before you can leave {props.name}, or{' '}
-        <Kb.Text type="BodyPrimaryLink" onClick={props.onDeleteTeam}>
-          delete the&nbsp;team
+    {props.stillLoadingTeam ? (
+      <Kb.ProgressIndicator type="Huge" />
+    ) : (
+      <Kb.Box2 direction="vertical" alignItems="center" gap="medium" style={styles.container}>
+        <Kb.Box2 direction="vertical" style={Styles.globalStyles.positionRelative}>
+          <Kb.Avatar teamname={props.name} size={64} />
+          <Kb.Icon type="icon-team-leave-28" style={styles.leaveIcon} />
+        </Kb.Box2>
+        <Kb.Text type="Header" center={true} style={styles.headerText}>
+          You can't leave the {props.name} team because you're the only owner.
         </Kb.Text>
-        .
-      </Kb.Text>
-    </Kb.Box2>
+        <Kb.Text type="Body" center={true} style={styles.bodyText}>
+          You'll have to add another user as an owner before you can leave {props.name}, or{' '}
+          <Kb.Text type="BodyPrimaryLink" onClick={props.onDeleteTeam}>
+            delete the&nbsp;team
+          </Kb.Text>
+          .
+        </Kb.Text>
+      </Kb.Box2>
+    )}
   </Kb.Modal>
 )
 

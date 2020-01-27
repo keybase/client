@@ -111,20 +111,22 @@ func UnvalidatedStellarURIOriginDomain(uri string) (originDomain string, err err
 // ValidatedStellarURI contains the origin domain that ValidateStellarURI
 // confirmed
 type ValidatedStellarURI struct {
-	URI          string
-	Operation    string
-	OriginDomain string
-	Message      string
-	CallbackURL  string
-	XDR          string
-	TxEnv        *xdr.TransactionEnvelope
-	Recipient    string
-	Amount       string
-	AssetCode    string
-	AssetIssuer  string
-	Memo         string
-	MemoType     string
-	Signed       bool
+	URI                  string
+	Operation            string
+	OriginDomain         string
+	Message              string
+	CallbackURL          string
+	XDR                  string
+	TxEnv                *xdr.TransactionEnvelope
+	Recipient            string
+	Amount               string
+	AssetCode            string
+	AssetIssuer          string
+	Memo                 string
+	MemoType             string
+	Signed               bool
+	ReplaceSourceAccount bool
+	UnknownReplaceFields bool
 }
 
 // ValidateStellarURI will check the validity of a web+stellar SEP7 URI.
@@ -399,6 +401,21 @@ func (u *unvalidatedURI) newValidated(op string) *ValidatedStellarURI {
 	if strings.HasPrefix(callback, "url:") {
 		// strip the prefix
 		v.CallbackURL = strings.TrimPrefix(callback, "url:")
+	}
+
+	// check to see if the source account should be replaced
+	replace := u.value("replace")
+	if replace != "" {
+		pieces := strings.Split(replace, ";")
+		fieldsAndHints := strings.Split(pieces[0], ",")
+		for _, f := range fieldsAndHints {
+			parts := strings.Split(f, ":")
+			if parts[0] == "sourceAccount" {
+				v.ReplaceSourceAccount = true
+			} else {
+				v.UnknownReplaceFields = true
+			}
+		}
 	}
 
 	return v

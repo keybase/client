@@ -49,11 +49,13 @@ const delegateRekeyUI = (action: EngineGen.Keybase1RekeyUIDelegateRekeyUIPayload
     dangling: true,
     incomingCallMap: {
       'keybase.1.rekeyUI.refresh': ({sessionID, problemSetDevices}) =>
-        UnlockFoldersGen.createNewRekeyPopup({
-          devices: problemSetDevices.devices || [],
-          problemSet: problemSetDevices.problemSet,
-          sessionID,
-        }),
+        Saga.put(
+          UnlockFoldersGen.createNewRekeyPopup({
+            devices: problemSetDevices.devices || [],
+            problemSet: problemSetDevices.problemSet,
+            sessionID,
+          })
+        ),
       'keybase.1.rekeyUI.rekeySendEvent': () => {}, // ignored debug call from daemon
     },
   })

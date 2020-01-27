@@ -71,12 +71,12 @@ func makeInboxMsg(id chat1.MessageID, typ chat1.MessageType) chat1.MessageBoxed 
 func convListCompare(t *testing.T, ref []types.RemoteConversation, res []types.RemoteConversation,
 	name string) {
 	require.Equal(t, len(ref), len(res), name+" size mismatch")
-	refMap := make(map[string]types.RemoteConversation)
+	refMap := make(map[chat1.ConvIDStr]types.RemoteConversation)
 	for _, conv := range ref {
-		refMap[conv.GetConvID().String()] = conv
+		refMap[conv.GetConvID().ConvIDStr()] = conv
 	}
 	for _, conv := range res {
-		require.Equal(t, refMap[conv.GetConvID().String()], conv)
+		require.Equal(t, refMap[conv.GetConvID().ConvIDStr()], conv)
 	}
 }
 
@@ -757,7 +757,7 @@ func TestMobileSharedInbox(t *testing.T) {
 	require.Equal(t, numConvs, len(sharedInbox))
 	convs = diskIbox.Conversations
 	for i := 0; i < numConvs; i++ {
-		require.Equal(t, convs[i].GetConvID().String(), sharedInbox[i].ConvID)
+		require.Equal(t, convs[i].GetConvID().ConvIDStr(), sharedInbox[i].ConvID)
 		require.Equal(t, utils.GetRemoteConvDisplayName(convs[i]), sharedInbox[i].Name)
 		if convs[i].GetConvID().Eq(teamConvID) {
 			require.True(t, strings.Contains(sharedInbox[i].Name, "#"))

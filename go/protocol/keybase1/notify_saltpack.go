@@ -10,53 +10,53 @@ import (
 	"time"
 )
 
-type OperationType int
+type SaltpackOperationType int
 
 const (
-	OperationType_ENCRYPT OperationType = 0
-	OperationType_DECRYPT OperationType = 1
-	OperationType_SIGN    OperationType = 2
-	OperationType_VERIFY  OperationType = 3
+	SaltpackOperationType_ENCRYPT SaltpackOperationType = 0
+	SaltpackOperationType_DECRYPT SaltpackOperationType = 1
+	SaltpackOperationType_SIGN    SaltpackOperationType = 2
+	SaltpackOperationType_VERIFY  SaltpackOperationType = 3
 )
 
-func (o OperationType) DeepCopy() OperationType { return o }
+func (o SaltpackOperationType) DeepCopy() SaltpackOperationType { return o }
 
-var OperationTypeMap = map[string]OperationType{
+var SaltpackOperationTypeMap = map[string]SaltpackOperationType{
 	"ENCRYPT": 0,
 	"DECRYPT": 1,
 	"SIGN":    2,
 	"VERIFY":  3,
 }
 
-var OperationTypeRevMap = map[OperationType]string{
+var SaltpackOperationTypeRevMap = map[SaltpackOperationType]string{
 	0: "ENCRYPT",
 	1: "DECRYPT",
 	2: "SIGN",
 	3: "VERIFY",
 }
 
-func (e OperationType) String() string {
-	if v, ok := OperationTypeRevMap[e]; ok {
+func (e SaltpackOperationType) String() string {
+	if v, ok := SaltpackOperationTypeRevMap[e]; ok {
 		return v
 	}
 	return fmt.Sprintf("%v", int(e))
 }
 
 type SaltpackOperationStartArg struct {
-	OpType   OperationType `codec:"opType" json:"opType"`
-	Filename string        `codec:"filename" json:"filename"`
+	OpType   SaltpackOperationType `codec:"opType" json:"opType"`
+	Filename string                `codec:"filename" json:"filename"`
 }
 
 type SaltpackOperationProgressArg struct {
-	OpType        OperationType `codec:"opType" json:"opType"`
-	Filename      string        `codec:"filename" json:"filename"`
-	BytesComplete int64         `codec:"bytesComplete" json:"bytesComplete"`
-	BytesTotal    int64         `codec:"bytesTotal" json:"bytesTotal"`
+	OpType        SaltpackOperationType `codec:"opType" json:"opType"`
+	Filename      string                `codec:"filename" json:"filename"`
+	BytesComplete int64                 `codec:"bytesComplete" json:"bytesComplete"`
+	BytesTotal    int64                 `codec:"bytesTotal" json:"bytesTotal"`
 }
 
 type SaltpackOperationDoneArg struct {
-	OpType   OperationType `codec:"opType" json:"opType"`
-	Filename string        `codec:"filename" json:"filename"`
+	OpType   SaltpackOperationType `codec:"opType" json:"opType"`
+	Filename string                `codec:"filename" json:"filename"`
 }
 
 type NotifySaltpackInterface interface {

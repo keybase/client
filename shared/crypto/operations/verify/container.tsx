@@ -10,12 +10,7 @@ const operation = 'verify'
 
 export default Container.namedConnect(
   (state: Container.TypedState) => ({
-    input: state.crypto.verify.input.stringValue(),
-    inputType: state.crypto.verify.inputType,
-    output: state.crypto.verify.output.stringValue(),
-    outputSender: state.crypto.verify.outputSender?.stringValue(),
-    outputStatus: state.crypto.verify.outputStatus,
-    outputType: state.crypto.verify.outputType,
+    _verify: state.crypto.verify,
   }),
   (dispatch: Container.TypedDispatch) => ({
     onClearInput: () => dispatch(CryptoGen.createClearInput({operation})),
@@ -25,17 +20,27 @@ export default Container.namedConnect(
     onShowInFinder: (path: string) =>
       dispatch(FSGen.createOpenLocalPathInSystemFileManager({localPath: path})),
   }),
-  (stateProps, dispatchProps) => ({
-    input: stateProps.input,
-    inputType: stateProps.inputType,
-    onClearInput: dispatchProps.onClearInput,
-    onCopyOutput: dispatchProps.onCopyOutput,
-    onSetInput: dispatchProps.onSetInput,
-    onShowInFinder: dispatchProps.onShowInFinder,
-    output: stateProps.output,
-    outputSender: stateProps.outputSender,
-    outputStatus: stateProps.outputStatus,
-    outputType: stateProps.outputType,
-  }),
+  (stateProps, dispatchProps) => {
+    const {onClearInput, onCopyOutput, onSetInput, onShowInFinder} = dispatchProps
+    const {_verify} = stateProps
+    const {bytesComplete, bytesTotal, inputType, outputStatus, outputType} = _verify
+    const {errorMessage, warningMessage, output, outputSender, input, outputMatchesInput} = _verify
+    return {
+      errorMessage: errorMessage.stringValue(),
+      input: input.stringValue(),
+      inputType,
+      onClearInput,
+      onCopyOutput,
+      onSetInput,
+      onShowInFinder,
+      output: output.stringValue(),
+      outputMatchesInput,
+      outputSender: outputSender?.stringValue(),
+      outputStatus,
+      outputType,
+      progress: bytesComplete === 0 ? 0 : bytesComplete / bytesTotal,
+      warningMessage: warningMessage.stringValue(),
+    }
+  },
   'VerifyContainer'
 )(Verify)

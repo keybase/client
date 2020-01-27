@@ -200,7 +200,9 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                 </Kb.WithTooltip>
               )}
               {this.props.authorIsBot && (
-                <Kb.Icon fontSize={10} color={Styles.globalColors.black_35} type="iconfont-bot" />
+                <Kb.WithTooltip tooltip="Bot">
+                  <Kb.Icon fontSize={10} color={Styles.globalColors.black_35} type="iconfont-bot" />
+                </Kb.WithTooltip>
               )}
               <Kb.Text
                 type="BodyTiny"

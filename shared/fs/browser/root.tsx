@@ -90,12 +90,11 @@ const useRecentTlfs = (n: number): Array<SectionListItem> => {
 }
 
 const Root = ({destinationPickerIndex}: Props) => {
-  const shouldShowSFMIBanner = Container.useSelector(state => state.fs.sfmi.showingBanner)
   const top10 = useRecentTlfs(10)
   const sections = [
-    ...(!destinationPickerIndex && shouldShowSFMIBanner
-      ? [{data: [], key: 'banner-sfmi', keyExtractor: () => 'banner-sfmi-item', title: ''}]
-      : []),
+    ...(destinationPickerIndex
+      ? [] // don't show sfmi banner in destination picker
+      : [{data: [], key: 'banner-sfmi', keyExtractor: () => 'banner-sfmi-item', title: ''}]),
     {
       data: rootRows,
       key: 'section-top',

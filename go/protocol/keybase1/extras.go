@@ -3572,6 +3572,18 @@ func (s *TeamBotSettings) Eq(o *TeamBotSettings) bool {
 	return reflect.DeepEqual(s, o)
 }
 
+func (s *TeamBotSettings) ConvIDAllowed(strCID string) bool {
+	if s == nil {
+		return true
+	}
+	for _, strConvID := range s.Convs {
+		if strCID == strConvID {
+			return true
+		}
+	}
+	return len(s.Convs) == 0
+}
+
 func (b UserBlockedBody) Summarize() UserBlockedSummary {
 	ret := UserBlockedSummary{
 		Blocker: b.Username,

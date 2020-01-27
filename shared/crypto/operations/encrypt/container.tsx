@@ -10,42 +10,50 @@ const operation = 'encrypt'
 
 export default Container.namedConnect(
   (state: Container.TypedState) => ({
-    hasRecipients: state.crypto.encrypt.meta.hasRecipients,
-    input: state.crypto.encrypt.input.stringValue(),
-    inputType: state.crypto.encrypt.inputType,
-    noIncludeSelf: state.crypto.encrypt.meta.noIncludeSelf,
-    options: state.crypto.encrypt.options,
-    output: state.crypto.encrypt.output.stringValue(),
-    outputStatus: state.crypto.encrypt.outputStatus,
-    outputType: state.crypto.encrypt.outputType,
-    recipients: state.crypto.encrypt.recipients,
+    _encrypt: state.crypto.encrypt,
     username: state.config.username,
   }),
   (dispatch: Container.TypedDispatch) => ({
     onClearInput: () => dispatch(CryptoGen.createClearInput({operation})),
     onCopyOutput: (text: string) => dispatch(ConfigGen.createCopyToClipboard({text})),
+    onSaveAsText: () => dispatch(CryptoGen.createDownloadEncryptedText()),
     onSetInput: (inputType: Types.InputTypes, inputValue: string) =>
       dispatch(CryptoGen.createSetInput({operation, type: inputType, value: new HiddenString(inputValue)})),
     onSetOptions: (options: Types.EncryptOptions) => dispatch(CryptoGen.createSetEncryptOptions({options})),
     onShowInFinder: (path: string) =>
       dispatch(FSGen.createOpenLocalPathInSystemFileManager({localPath: path})),
   }),
-  (stateProps, dispatchProps) => ({
-    hasRecipients: stateProps.hasRecipients,
-    input: stateProps.input,
-    inputType: stateProps.inputType,
-    noIncludeSelf: stateProps.noIncludeSelf,
-    onClearInput: dispatchProps.onClearInput,
-    onCopyOutput: dispatchProps.onCopyOutput,
-    onSetInput: dispatchProps.onSetInput,
-    onSetOptions: dispatchProps.onSetOptions,
-    onShowInFinder: dispatchProps.onShowInFinder,
-    options: stateProps.options,
-    output: stateProps.output,
-    outputStatus: stateProps.outputStatus,
-    outputType: stateProps.outputType,
-    recipients: stateProps.recipients,
-    username: stateProps.username,
-  }),
+  (stateProps, dispatchProps) => {
+    const {_encrypt, username} = stateProps
+    const {errorMessage, input, inputType, options, meta} = _encrypt
+    const {noIncludeSelf, hasSBS, hasRecipients} = meta
+    const {bytesComplete, bytesTotal, recipients, warningMessage} = _encrypt
+    const {output, outputStatus, outputType, outputMatchesInput} = _encrypt
+    const {onClearInput, onCopyOutput, onSaveAsText, onSetInput, onSetOptions, onShowInFinder} = dispatchProps
+    return {
+      bytesTotal,
+      errorMessage: errorMessage.stringValue(),
+      hasRecipients,
+      hasSBS,
+      input: input.stringValue(),
+      inputType,
+      noIncludeSelf,
+      onClearInput,
+      onCopyOutput,
+      onSaveAsText,
+      onSetInput,
+      onSetOptions,
+      onShowInFinder,
+      options,
+      output: output.stringValue(),
+      outputMatchesInput,
+      outputStatus,
+      outputType,
+      progress: bytesComplete === 0 ? 0 : bytesComplete / bytesTotal,
+      recipients,
+      username,
+      warningMessage: warningMessage.stringValue(),
+    }
+  },
   'EncryptContainer'
 )(Encrypt)

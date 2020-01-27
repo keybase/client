@@ -8,17 +8,21 @@ import * as Types from '../../constants/types/teams'
 import ReallyLeaveTeam, {Props} from '.'
 import LastOwnerDialog from './last-owner'
 import {anyWaiting} from '../../constants/waiting'
+import {useTeamDetailsSubscribeMountOnly} from '../subscriber'
 
 type OwnProps = Container.RouteProps<{teamID: Types.TeamID}>
+type ExtraProps = {_leaving: boolean; lastOwner: boolean; stillLoadingTeam: boolean; teamID: Types.TeamID}
 
-const RenderLastOwner = (p: Props & {_leaving: boolean; lastOwner: boolean}) => {
-  const {lastOwner, _leaving, ...rest} = p
+const RenderLastOwner = (p: Props & ExtraProps) => {
+  const {lastOwner, _leaving, stillLoadingTeam, teamID, ...rest} = p
+  useTeamDetailsSubscribeMountOnly(teamID)
   return lastOwner ? (
     <LastOwnerDialog
       onBack={rest.onBack}
       onDeleteTeam={rest.onDeleteTeam}
       onLeave={rest.onLeave}
       name={rest.name}
+      stillLoadingTeam={stillLoadingTeam}
     />
   ) : (
     <ReallyLeaveTeam {...rest} />
@@ -28,14 +32,16 @@ const RenderLastOwner = (p: Props & {_leaving: boolean; lastOwner: boolean}) => 
 export default Container.connect(
   (state, ownProps: OwnProps) => {
     const teamID = Container.getRouteProps(ownProps, 'teamID', Types.noTeamID)
-    const {teamname, settings} = Constants.getTeamDetails(state, teamID)
+    const {teamname, settings, members} = Constants.getTeamDetails(state, teamID)
     const lastOwner = Constants.isLastOwner(state, teamID)
+    const stillLoadingTeam = !members
     return {
       _leaving: anyWaiting(state, Constants.leaveTeamWaitingKey(teamname)),
       error: Container.anyErrors(state, Constants.leaveTeamWaitingKey(teamname)),
       lastOwner,
       name: teamname,
       open: settings?.open,
+      stillLoadingTeam,
       teamID,
     }
   },
@@ -71,5 +77,7 @@ export default Container.connect(
     onDeleteTeam: () => dispatchProps._onDeleteTeam(stateProps.teamID),
     onLeave: () => dispatchProps._onLeave(stateProps.name),
     open: stateProps.open,
+    stillLoadingTeam: stateProps.stillLoadingTeam,
+    teamID: stateProps.teamID,
   })
 )(Container.safeSubmit(['onLeave'], ['_leaving'])(RenderLastOwner))

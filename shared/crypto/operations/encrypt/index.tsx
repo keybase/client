@@ -3,9 +3,8 @@ import * as Constants from '../../../constants/crypto'
 import * as Types from '../../../constants/types/crypto'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import debounce from 'lodash/debounce'
 import openURL from '../../../util/open-url'
-import {TextInput, FileInput} from '../../input'
+import {TextInput, FileInput, OperationBanner} from '../../input'
 import OperationOutput, {OutputBar, OutputInfoBanner, SignedSender} from '../../output'
 import Recipients from '../../recipients/container'
 
@@ -15,38 +14,42 @@ type Props = {
   noIncludeSelf: boolean
   onClearInput: () => void
   onCopyOutput: (text: string) => void
+  onSaveAsText: () => void
   onShowInFinder: (path: string) => void
   onSetInput: (inputType: Types.InputTypes, inputValue: string) => void
   onSetOptions: (options: Types.EncryptOptions) => void
   options: Types.EncryptOptions
+  outputMatchesInput: boolean
   hasRecipients: boolean
+  hasSBS: boolean
   output: string
   outputStatus?: Types.OutputStatus
   outputType?: Types.OutputType
+  progress: number
   recipients: Array<string>
   username?: string
+  errorMessage: string
+  warningMessage: string
 }
 
 type EncryptOptionsProps = {
   hasRecipients: boolean
+  hasSBS: boolean
   noIncludeSelf: boolean
   onSetOptions: (options: Types.EncryptOptions) => void
   options: Types.EncryptOptions
 }
 
-// We want to debuonce the onChangeText callback for our input so we are not sending an RPC on every keystroke
-const debounced = debounce((fn, ...args) => fn(...args), 100)
-
-const EncryptOptions = (props: EncryptOptionsProps) => {
-  const {hasRecipients, noIncludeSelf, onSetOptions, options} = props
+const EncryptOptions = React.memo((props: EncryptOptionsProps) => {
+  const {hasRecipients, hasSBS, noIncludeSelf, onSetOptions, options} = props
   const {includeSelf, sign} = options
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} gap="medium" style={styles.optionsContainer}>
       {noIncludeSelf ? null : (
         <Kb.Checkbox
           label="Include yourself"
-          disabled={!hasRecipients}
-          checked={includeSelf}
+          disabled={hasSBS || !hasRecipients}
+          checked={hasSBS || includeSelf}
           onCheck={newValue => onSetOptions({includeSelf: newValue, sign})}
         />
       )}
@@ -57,13 +60,24 @@ const EncryptOptions = (props: EncryptOptionsProps) => {
       />
     </Kb.Box2>
   )
-}
+})
 
 const Encrypt = (props: Props) => {
+  // TODO children should be connected here, don't plumb through all these props for no reason
+  // TODO don't hoist inputValue here. Move it down into TextInput else this whole component renders all the time
   const [inputValue, setInputValue] = React.useState(props.input)
   const onAttach = (localPaths: Array<string>) => {
+    // Drag and drop allows for multi-file upload, we only want one file upload
+    setInputValue('')
     props.onSetInput('file', localPaths[0])
   }
+  const youAnd = (who: string) => (props.options.includeSelf ? `you and ${who}` : who)
+  const whoCanRead = props.hasRecipients
+    ? ` Only ${
+        props.recipients?.length > 1 ? youAnd('your recipients') : youAnd(props.recipients[0])
+      } can decipher it.`
+    : ''
+  const bannertype = props.errorMessage ? 'error' : props.warningMessage ? 'warning' : 'info'
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
       <Kb.DragAndDrop
@@ -73,16 +87,21 @@ const Encrypt = (props: Props) => {
         onAttach={onAttach}
         prompt="Drop a file to encrypt"
       >
-        <Kb.Banner color="grey">
-          <Kb.Text type="BodySmallSemibold">Encrypt to anyone, even if they're not on Keybase yet.</Kb.Text>
-        </Kb.Banner>
+        <OperationBanner
+          type={bannertype}
+          infoMessage="Encrypt to anyone, even if they're not on Keybase yet."
+          message={props.errorMessage || props.warningMessage}
+        />
         <Recipients operation="encrypt" />
         <Kb.Box2 direction="vertical" fullHeight={true}>
           {props.inputType === 'file' ? (
             <FileInput
               path={props.input}
               operation={Constants.Operations.Encrypt}
-              onClearFiles={props.onClearInput}
+              onClearFiles={() => {
+                setInputValue('')
+                props.onClearInput()
+              }}
             />
           ) : (
             <TextInput
@@ -95,32 +114,40 @@ const Encrypt = (props: Props) => {
               }}
               onChangeText={text => {
                 setInputValue(text)
-                debounced(props.onSetInput, 'text', text)
+                props.onSetInput('text', text)
               }}
             />
           )}
           <EncryptOptions
             hasRecipients={props.hasRecipients}
+            hasSBS={props.hasSBS}
             noIncludeSelf={props.noIncludeSelf}
             options={props.options}
             onSetOptions={props.onSetOptions}
           />
-          <Kb.Divider />
+          {props.progress && !props.outputStatus ? (
+            <Kb.ProgressBar ratio={props.progress} style={{width: '100%'}} />
+          ) : (
+            <Kb.Divider />
+          )}
           <Kb.Box2 direction="vertical" fullHeight={true}>
             <OutputInfoBanner operation={Constants.Operations.Encrypt} outputStatus={props.outputStatus}>
-              <Kb.Text type="BodySmallSemibold" center={true}>
-                This is your encrypted {props.outputType === 'file' ? 'file' : 'message'}, using{` `}
-                <Kb.Text
-                  type="BodySecondaryLink"
-                  underline={true}
-                  onClick={() => openURL(Constants.saltpackDocumentation)}
-                >
-                  Saltpack
-                </Kb.Text>
-                . It's also called ciphertext. Email it, upload it, put it on a billboard. Only{' '}
-                {props.recipients.length > 1 ? 'your recipients' : props.recipients[0]}
-                {` `}can decrypt it.
-              </Kb.Text>
+              <Kb.BannerParagraph
+                bannerColor="grey"
+                content={[
+                  `This is your encrypted ${props.outputType === 'file' ? 'file' : 'message'}, using `,
+                  {
+                    onClick: () => openURL(Constants.saltpackDocumentation),
+                    text: 'Saltpack',
+                  },
+                  '.',
+                  props.outputType == 'text' ? " It's also called ciphertext." : '',
+                ]}
+              />
+              <Kb.BannerParagraph
+                bannerColor="grey"
+                content={[props.hasRecipients ? ' Share it however you like.' : null, whoCanRead]}
+              />
             </OutputInfoBanner>
             <SignedSender
               signed={props.options.sign}
@@ -131,16 +158,20 @@ const Encrypt = (props: Props) => {
             <OperationOutput
               outputStatus={props.outputStatus}
               output={props.output}
+              outputMatchesInput={props.outputMatchesInput}
               outputType={props.outputType}
               textType="cipher"
               operation={Constants.Operations.Encrypt}
               onShowInFinder={props.onShowInFinder}
             />
             <OutputBar
+              operation={Constants.Operations.Encrypt}
               output={props.output}
+              outputMatchesInput={props.outputMatchesInput}
               outputStatus={props.outputStatus}
               outputType={props.outputType}
               onCopyOutput={props.onCopyOutput}
+              onSaveAsText={props.onSaveAsText}
               onShowInFinder={props.onShowInFinder}
             />
           </Kb.Box2>
@@ -153,6 +184,10 @@ const Encrypt = (props: Props) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      banner: {
+        ...Styles.padding(Styles.globalMargins.tiny),
+        minHeight: 40,
+      },
       coverOutput: {
         ...Styles.globalStyles.flexBoxCenter,
       },

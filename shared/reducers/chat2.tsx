@@ -235,6 +235,14 @@ const searchActions: Container.ActionHandler<Actions, Types.State> = {
     const {threadSearchQueryMap} = draftState
     threadSearchQueryMap.set(conversationIDKey, query)
   },
+  [Chat2Gen.inboxSearchOpenTeamsResults]: (draftState, action) => {
+    const {inboxSearch} = draftState
+    if (inboxSearch?.openTeamsStatus === 'inprogress') {
+      const {results} = action.payload
+      inboxSearch.openTeamsResults = results
+      inboxSearch.openTeamsStatus = 'success'
+    }
+  },
   [Chat2Gen.inboxSearchSetTextStatus]: (draftState, action) => {
     const {status} = action.payload
     const inboxSearch = draftState.inboxSearch ?? Constants.makeInboxSearchInfo()
@@ -274,6 +282,7 @@ const searchActions: Container.ActionHandler<Actions, Types.State> = {
       inboxSearch.selectedIndex = 0
       inboxSearch.textResults = []
       inboxSearch.textStatus = 'inprogress'
+      inboxSearch.openTeamsStatus = 'inprogress'
     }
   },
   [Chat2Gen.inboxSearchNameResults]: (draftState, action) => {
@@ -1000,8 +1009,16 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
   },
   [EngineGen.chat1ChatUiChatBotCommandsUpdateStatus]: (draftState, action) => {
     const {convID, status} = action.payload.params
-    const {botCommandsUpdateStatusMap} = draftState
-    botCommandsUpdateStatusMap.set(Types.stringToConversationIDKey(convID), status)
+    const {botCommandsUpdateStatusMap, botSettings} = draftState
+    const conversationIDKey = Types.stringToConversationIDKey(convID)
+    botCommandsUpdateStatusMap.set(conversationIDKey, status.typ)
+    if (status.typ === RPCChatTypes.UIBotCommandsUpdateStatusTyp.uptodate) {
+      const settingsMap = new Map<string, RPCTypes.TeamBotSettings>()
+      Object.keys(status.uptodate.settings).forEach(u => {
+        settingsMap.set(u, status.uptodate.settings[u])
+      })
+      botSettings.set(conversationIDKey, settingsMap)
+    }
   },
   [EngineGen.chat1NotifyChatChatTypingUpdate]: (draftState, action) => {
     const {typingUpdates} = action.payload.params

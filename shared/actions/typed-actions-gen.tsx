@@ -198,6 +198,7 @@ export type TypedActionsMap = {
   'chat2:inboxSearch': chat2.InboxSearchPayload
   'chat2:inboxSearchStarted': chat2.InboxSearchStartedPayload
   'chat2:toggleInboxSearch': chat2.ToggleInboxSearchPayload
+  'chat2:inboxSearchOpenTeamsResults': chat2.InboxSearchOpenTeamsResultsPayload
   'chat2:inboxSearchNameResults': chat2.InboxSearchNameResultsPayload
   'chat2:inboxSearchTextResult': chat2.InboxSearchTextResultPayload
   'chat2:inboxSearchMoveSelectedIndex': chat2.InboxSearchMoveSelectedIndexPayload
@@ -304,15 +305,21 @@ export type TypedActionsMap = {
   'config:loadOnStart': config.LoadOnStartPayload
   'crypto:clearRecipients': crypto.ClearRecipientsPayload
   'crypto:clearInput': crypto.ClearInputPayload
+  'crypto:downloadEncryptedText': crypto.DownloadEncryptedTextPayload
+  'crypto:downloadSignedText': crypto.DownloadSignedTextPayload
   'crypto:setRecipients': crypto.SetRecipientsPayload
   'crypto:setInput': crypto.SetInputPayload
+  'crypto:setInputThrottled': crypto.SetInputThrottledPayload
   'crypto:setEncryptOptions': crypto.SetEncryptOptionsPayload
   'crypto:onOperationSuccess': crypto.OnOperationSuccessPayload
   'crypto:onOperationError': crypto.OnOperationErrorPayload
   'crypto:resetOperation': crypto.ResetOperationPayload
+  'crypto:saltpackDone': crypto.SaltpackDonePayload
   'crypto:saltpackEncrypt': crypto.SaltpackEncryptPayload
   'crypto:saltpackDecrypt': crypto.SaltpackDecryptPayload
+  'crypto:saltpackProgress': crypto.SaltpackProgressPayload
   'crypto:saltpackSign': crypto.SaltpackSignPayload
+  'crypto:saltpackStart': crypto.SaltpackStartPayload
   'crypto:saltpackVerify': crypto.SaltpackVerifyPayload
   'deeplinks:handleKeybaseLink': deeplinks.HandleKeybaseLinkPayload
   'deeplinks:link': deeplinks.LinkPayload
@@ -561,8 +568,7 @@ export type TypedActionsMap = {
   'fs:uninstallKBFSConfirm': fs.UninstallKBFSConfirmPayload
   'fs:refreshDriverStatus': fs.RefreshDriverStatusPayload
   'fs:setDriverStatus': fs.SetDriverStatusPayload
-  'fs:hideSystemFileManagerIntegrationBanner': fs.HideSystemFileManagerIntegrationBannerPayload
-  'fs:showSystemFileManagerIntegrationBanner': fs.ShowSystemFileManagerIntegrationBannerPayload
+  'fs:setSfmiBannerDismissed': fs.SetSfmiBannerDismissedPayload
   'fs:driverEnable': fs.DriverEnablePayload
   'fs:driverDisable': fs.DriverDisablePayload
   'fs:driverDisabling': fs.DriverDisablingPayload
@@ -636,6 +642,7 @@ export type TypedActionsMap = {
   'fs:userIn': fs.UserInPayload
   'fs:userOut': fs.UserOutPayload
   'fs:setDebugLevel': fs.SetDebugLevelPayload
+  'fs:setCriticalUpdate': fs.SetCriticalUpdatePayload
   'git:loadGit': git.LoadGitPayload
   'git:loaded': git.LoadedPayload
   'git:createTeamRepo': git.CreateTeamRepoPayload
@@ -917,6 +924,7 @@ export type TypedActionsMap = {
   'teams:setPublicity': teams.SetPublicityPayload
   'teams:setChannelCreationError': teams.SetChannelCreationErrorPayload
   'teams:setEditDescriptionError': teams.SetEditDescriptionErrorPayload
+  'teams:settingsError': teams.SettingsErrorPayload
   'teams:setTeamsWithChosenChannels': teams.SetTeamsWithChosenChannelsPayload
   'teams:setTeamCreationError': teams.SetTeamCreationErrorPayload
   'teams:setTeamInviteError': teams.SetTeamInviteErrorPayload

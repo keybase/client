@@ -782,3 +782,46 @@ func TestBoxAuditVersionBump(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, jailed)
 }
+
+type timeoutAPI struct {
+	*libkb.APIArgRecorder
+}
+
+var errFakeNetworkTimeout = errors.New("fake network timeout in test")
+
+func (r *timeoutAPI) GetDecode(mctx libkb.MetaContext, arg libkb.APIArg, w libkb.APIResponseWrapper) error {
+	return libkb.APINetError{Err: errFakeNetworkTimeout}
+}
+func (r *timeoutAPI) PostDecode(mctx libkb.MetaContext, arg libkb.APIArg, w libkb.APIResponseWrapper) error {
+	return libkb.APINetError{Err: errFakeNetworkTimeout}
+}
+
+func (r *timeoutAPI) Get(mctx libkb.MetaContext, arg libkb.APIArg) (*libkb.APIRes, error) {
+	return nil, libkb.APINetError{Err: errFakeNetworkTimeout}
+}
+
+func TestBoxAuditRetryBehavior(t *testing.T) {
+	_, tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	aTc := tcs[0]
+	aM := libkb.NewMetaContextForTest(*aTc)
+	aA := aTc.G.GetTeamBoxAuditor()
+
+	t.Logf("A creates team")
+	teamName, teamID := createTeam2(*aTc)
+
+	require.NoError(t, auditTeam(aA, aM, teamID), "A can audit")
+
+	origAPI := aTc.G.API
+	aTc.G.API = &timeoutAPI{}
+	err := auditTeam(aA, aM, teamID)
+	require.Error(t, err, "A can't audit when offline")
+	require.Contains(t, err.Error(), "fake network timeout in test")
+
+	aTc.G.API = origAPI
+	require.NoError(t, auditTeam(aA, aM, teamID), "A can audit")
+	team, err := Load(context.TODO(), aTc.G, keybase1.LoadTeamArg{Name: teamName.String(), ForceRepoll: true})
+	require.NoError(t, err)
+	require.Equal(t, keybase1.PerTeamKeyGeneration(1), team.Generation())
+}

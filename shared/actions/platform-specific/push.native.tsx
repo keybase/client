@@ -7,6 +7,7 @@ import * as FsTypes from '../../constants/types/fs'
 import * as NotificationsGen from '../notifications-gen'
 import * as ProfileGen from '../profile-gen'
 import * as PushGen from '../push-gen'
+// @ts-ignore
 import * as PushNotifications from 'react-native-push-notification'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
@@ -280,13 +281,22 @@ const askNativeIfSystemPushPromptHasBeenShown = () =>
 const checkPermissionsFromNative = () => new Promise(resolve => PushNotifications.checkPermissions(resolve))
 const monsterStorageKey = 'shownMonsterPushPrompt'
 
-const neverShowMonsterAgain = async (state: Container.TypedState) => {
-  if (!state.push.showPushPrompt) {
-    await RPCTypes.configGuiSetValueRpcPromise({
-      path: `ui.${monsterStorageKey}`,
-      value: {b: true, isNull: false},
-    })
+const neverShowMonsterAgain = async (
+  state: Container.TypedState,
+  action: PushGen.ShowPermissionsPromptPayload | PushGen.RejectPermissionsPayload
+) => {
+  if (state.push.showPushPrompt) {
+    return
   }
+
+  if (action.type === PushGen.showPermissionsPrompt && !action.payload.persistSkip) {
+    return
+  }
+
+  await RPCTypes.configGuiSetValueRpcPromise({
+    path: `ui.${monsterStorageKey}`,
+    value: {b: true, isNull: false},
+  })
 }
 
 function* requestPermissions() {
@@ -295,7 +305,7 @@ function* requestPermissions() {
     if (shownPushPrompt) {
       // we've already shown the prompt, take them to settings
       yield Saga.put(ConfigGen.createOpenAppSettings())
-      yield Saga.put(PushGen.createShowPermissionsPrompt({show: false}))
+      yield Saga.put(PushGen.createShowPermissionsPrompt({persistSkip: true, show: false}))
       return
     }
   }
@@ -313,7 +323,7 @@ function* requestPermissions() {
     }
   } finally {
     yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.permissionsRequestingWaitingKey}))
-    yield Saga.put(PushGen.createShowPermissionsPrompt({show: false}))
+    yield Saga.put(PushGen.createShowPermissionsPrompt({persistSkip: true, show: false}))
   }
 }
 
@@ -410,7 +420,7 @@ const getInitialPushAndroid = async () => {
 
 const getInitialPushiOS = () =>
   new Promise(resolve =>
-    PushNotifications.popInitialNotification(n => {
+    PushNotifications.popInitialNotification((n: any) => {
       const notification = Constants.normalizePush(n)
       if (notification) {
         resolve(PushGen.createNotification({notification}))

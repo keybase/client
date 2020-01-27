@@ -447,7 +447,8 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	g.CoinFlipManager = NewFlipManager(g, func() chat1.RemoteInterface { return ri })
 	g.CoinFlipManager.Start(context.TODO(), uid)
 	g.JourneyCardManager = NewJourneyCardManager(g)
-	g.BotCommandManager = bots.NewCachingBotCommandManager(g, func() chat1.RemoteInterface { return ri })
+	g.BotCommandManager = bots.NewCachingBotCommandManager(g, func() chat1.RemoteInterface { return ri },
+		CreateNameInfoSource)
 	g.BotCommandManager.Start(context.TODO(), uid)
 	g.UIInboxLoader = types.DummyUIInboxLoader{}
 	g.UIThreadLoader = NewUIThreadLoader(g)
@@ -920,7 +921,7 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 		// Create a bunch of blank convos
 		oldUILoader := tc.ChatG.UIInboxLoader
 		tc.ChatG.UIInboxLoader = types.DummyUIInboxLoader{}
-		convs := make(map[string]bool)
+		convs := make(map[chat1.ConvIDStr]bool)
 		for i := 0; i < numconvs; i++ {
 			var created chat1.ConversationInfoLocal
 			switch mt {
@@ -942,7 +943,7 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 					mt, ctc.as(t, users[i+1]).user())
 			}
 			t.Logf("created: %s", created.Id)
-			convs[created.Id.String()] = true
+			convs[created.Id.ConvIDStr()] = true
 
 			mustPostLocalForTest(t, ctc, users[i+1], created,
 				chat1.NewMessageBodyWithText(chat1.MessageText{
@@ -981,7 +982,7 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 			select {
 			case conv := <-ui.InboxCb:
 				require.NotNil(t, conv.ConvRes, "no conv")
-				delete(convs, conv.ConvID.String())
+				delete(convs, conv.ConvID.ConvIDStr())
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no conv received")
 			}
@@ -1010,7 +1011,7 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 				require.NotNil(t, conv.LocalMetadata)
 				switch mt {
 				case chat1.ConversationMembersType_TEAM:
-					if conv.ConvID == firstConv.Id.String() {
+					if conv.ConvID == firstConv.Id.ConvIDStr() {
 						continue
 					}
 					require.Equal(t, fmt.Sprintf("%d", numconvs-index-1), conv.LocalMetadata.ChannelName)
@@ -1031,7 +1032,7 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 			select {
 			case conv := <-ui.InboxCb:
 				require.NotNil(t, conv.ConvRes, "no conv")
-				delete(convs, conv.ConvID.String())
+				delete(convs, conv.ConvID.ConvIDStr())
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no conv received")
 			}
@@ -1059,11 +1060,11 @@ func TestChatSrvGetInboxNonblock(t *testing.T) {
 		defer func() { <-tc.ChatG.UIInboxLoader.Stop(ctx) }()
 
 		// Create a bunch of blank convos
-		convs := make(map[string]bool)
+		convs := make(map[chat1.ConvIDStr]bool)
 		for i := 0; i < numconvs; i++ {
 			created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 				mt, ctc.as(t, users[i+1]).user())
-			convs[created.Id.String()] = true
+			convs[created.Id.ConvIDStr()] = true
 		}
 
 		t.Logf("blank convos test")
@@ -1091,7 +1092,7 @@ func TestChatSrvGetInboxNonblock(t *testing.T) {
 			select {
 			case conv := <-ui.InboxCb:
 				require.NotNil(t, conv.ConvRes, "no conv")
-				delete(convs, conv.ConvID.String())
+				delete(convs, conv.ConvID.ConvIDStr())
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no conv received")
 			}
@@ -1100,11 +1101,11 @@ func TestChatSrvGetInboxNonblock(t *testing.T) {
 
 		// Send a bunch of messages
 		t.Logf("messages in convos test")
-		convs = make(map[string]bool)
+		convs = make(map[chat1.ConvIDStr]bool)
 		for i := 0; i < numconvs; i++ {
 			conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 				mt, ctc.as(t, users[i+1]).user())
-			convs[conv.Id.String()] = true
+			convs[conv.Id.ConvIDStr()] = true
 
 			_, err := ctc.as(t, users[0]).chatLocalHandler().PostLocal(ctx, chat1.PostLocalArg{
 				ConversationID: conv.Id,
@@ -1142,7 +1143,7 @@ func TestChatSrvGetInboxNonblock(t *testing.T) {
 			select {
 			case conv := <-ui.InboxCb:
 				require.NotNil(t, conv.ConvRes, "no conv")
-				delete(convs, conv.ConvID.String())
+				delete(convs, conv.ConvID.ConvIDStr())
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no conv received")
 			}
@@ -1282,8 +1283,6 @@ func TestChatSrvPostLocalAtMention(t *testing.T) {
 		ctc := makeChatTestContext(t, "PostLocal", 2)
 		defer ctc.cleanup()
 		users := ctc.users()
-		libkb.RemoveEnvironmentFeatureForTest(ctc.as(t, users[0]).m.G().GetEnv().Test, libkb.FeatureJourneycardPreview)
-		libkb.RemoveEnvironmentFeatureForTest(ctc.as(t, users[1]).m.G().GetEnv().Test, libkb.FeatureJourneycardPreview)
 
 		switch mt {
 		case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAMNATIVE,
@@ -1362,6 +1361,7 @@ func TestChatSrvPostLocalAtMention(t *testing.T) {
 				MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 			},
 		})
+		filterOutJourneycards(&threadRes.Thread)
 		require.NoError(t, err)
 		require.Equal(t, 2, len(threadRes.Thread.Messages))
 		require.True(t, threadRes.Thread.Messages[0].IsValid())
@@ -4937,14 +4937,14 @@ func TestChatSrvRetentionSweepTeam(t *testing.T) {
 			convExpirePolicy := policy
 			convRetainPolicy := chat1.NewRetentionPolicyWithRetain(chat1.RpRetain{})
 
-			latestMsgMap := make(map[string] /*convID*/ chat1.MessageID)
+			latestMsgMap := make(map[chat1.ConvIDStr]chat1.MessageID)
 			latestMsg := func(convID chat1.ConversationID) chat1.MessageID {
-				return latestMsgMap[convID.String()]
+				return latestMsgMap[convID.ConvIDStr()]
 			}
 			for i, conv := range convs {
 				t.Logf("conv (%v/%v) %v in team %v", i+1, len(convs), conv.Id, tlfIDToTeamIDForce(t, conv.Triple.Tlfid))
 				msgID := mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
-				latestMsgMap[conv.Id.String()] = msgID
+				latestMsgMap[conv.Id.ConvIDStr()] = msgID
 
 				ignoreTypes := []chat1.MessageType{chat1.MessageType_SYSTEM, chat1.MessageType_JOIN}
 				consumeNewMsgWhileIgnoring(t, listener, chat1.MessageType_TEXT, ignoreTypes, chat1.ChatActivitySource_REMOTE)
@@ -5212,8 +5212,6 @@ func TestChatSrvSetConvMinWriterRole(t *testing.T) {
 
 		tc1 := ctc.as(t, users[0])
 		tc2 := ctc.as(t, users[1])
-		libkb.RemoveEnvironmentFeatureForTest(tc1.m.G().GetEnv().Test, libkb.FeatureJourneycardPreview)
-		libkb.RemoveEnvironmentFeatureForTest(tc2.m.G().GetEnv().Test, libkb.FeatureJourneycardPreview)
 
 		listener1 := newServerChatListener()
 		tc1.h.G().NotifyRouter.AddListener(listener1)
@@ -5310,6 +5308,7 @@ func TestChatSrvSetConvMinWriterRole(t *testing.T) {
 					MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 				},
 			})
+			filterOutJourneycards(&tvres.Thread)
 			require.NoError(t, err)
 			if len(tvres.Thread.Messages) != 2 {
 				t.Logf("messages: %v", chat1.MessageUnboxedDebugList(tvres.Thread.Messages))
@@ -5343,6 +5342,7 @@ func TestChatSrvSetConvMinWriterRole(t *testing.T) {
 					MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 				},
 			})
+			filterOutJourneycards(&tvres.Thread)
 			require.NoError(t, err)
 			require.Len(t, tvres.Thread.Messages, 4, "messages are accessible")
 		}
@@ -7422,14 +7422,12 @@ func TestTeamBotSettings(t *testing.T) {
 			// expected botua keyed messages
 			// NOTE that for ephemeral messages we include deleted messages in the thread
 			var expectedBotuaTyps []chat1.MessageType
-			var expectedCount int
 			if ephemeralLifetime == nil {
 				expectedBotuaTyps = []chat1.MessageType{
 					chat1.MessageType_DELETE,
 					chat1.MessageType_DELETE,
 					chat1.MessageType_TEXT,
 				}
-				expectedCount = 7
 			} else {
 				expectedBotuaTyps = []chat1.MessageType{
 					chat1.MessageType_DELETE,
@@ -7439,12 +7437,10 @@ func TestTeamBotSettings(t *testing.T) {
 					chat1.MessageType_TEXT,
 					chat1.MessageType_TEXT,
 				}
-				expectedCount = 10
 			}
-			require.Equal(t, expectedCount, len(tv.Messages))
 			validIndex := 0
 			for i, msg := range tv.Messages {
-				t.Logf("INDEX: %d VALID: %v", i, msg.IsValid())
+				t.Logf("INDEX: %d VALID: %v, %s", i, msg.IsValid(), msg.DebugString())
 				if msg.IsValid() {
 					require.Equal(t, expectedBotuaTyps[validIndex], msg.GetMessageType())
 					validIndex++
@@ -7515,5 +7511,158 @@ func TestTeamBotSettings(t *testing.T) {
 			isMember = team.IsMember(ctx, botua2.GetUserVersion())
 			require.False(t, isMember)
 		})
+	})
+}
+
+// Filter out journey cards. The test doesn't need to know about them. Mutates thread.Messages
+func filterOutJourneycards(thread *chat1.ThreadView) {
+	filtered := thread.Messages[:0]
+	for _, msg := range thread.Messages {
+		if msg.Journeycard__ == nil {
+			filtered = append(filtered, msg)
+		}
+	}
+	thread.Messages = filtered
+}
+
+func TestTeamBotChannelMembership(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		// Only test for TEAM type
+		if mt != chat1.ConversationMembersType_TEAM {
+			return
+		}
+		ctc := makeChatTestContext(t, "TeamBotChannelMembership", 3)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		ui := kbtest.NewChatUI()
+		ctc.as(t, users[0]).h.mockChatUI = ui
+		tc := ctc.as(t, users[0])
+		listener := newServerChatListener()
+		ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener)
+		ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
+
+		botua := users[1]
+		botua2 := users[2]
+
+		botuaListener := newServerChatListener()
+		ctc.as(t, botua).h.G().NotifyRouter.AddListener(botuaListener)
+		ctc.world.Tcs[botua.Username].ChatG.Syncer.(*Syncer).isConnected = true
+		botuaListener2 := newServerChatListener()
+		ctc.as(t, botua2).h.G().NotifyRouter.AddListener(botuaListener2)
+		ctc.world.Tcs[botua2.Username].ChatG.Syncer.(*Syncer).isConnected = true
+
+		var err error
+		created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
+
+		teamID, err := keybase1.TeamIDFromString(created.Triple.Tlfid.String())
+		require.NoError(t, err)
+
+		topicName := "zjoinonsend"
+		_, err = tc.chatLocalHandler().NewConversationLocal(context.TODO(),
+			chat1.NewConversationLocalArg{
+				TlfName:       created.TlfName,
+				TopicName:     &topicName,
+				TopicType:     chat1.TopicType_CHAT,
+				TlfVisibility: keybase1.TLFVisibility_PRIVATE,
+				MembersType:   mt,
+			})
+		require.NoError(t, err)
+
+		pollForSeqno := func(expectedSeqno keybase1.Seqno) {
+			found := false
+			for !found {
+				select {
+				case teamChange := <-listener.teamChangedByID:
+					found = teamChange.TeamID == teamID &&
+						teamChange.LatestSeqno == expectedSeqno
+				case <-time.After(20 * time.Second):
+					require.Fail(t, "no event received")
+				}
+			}
+		}
+
+		// add botua as a RESTRICTEDBOT with no conv restrictions, make sure
+		// they are auto-added to the conv
+		err = ctc.as(t, users[0]).chatLocalHandler().AddBotMember(tc.startCtx, chat1.AddBotMemberArg{
+			ConvID:      created.Id,
+			Username:    botua.Username,
+			Role:        keybase1.TeamRole_RESTRICTEDBOT,
+			BotSettings: &keybase1.TeamBotSettings{},
+		})
+		require.NoError(t, err)
+		pollForSeqno(3)
+		consumeMembersUpdate(t, listener)
+		consumeMembersUpdate(t, listener)
+		consumeJoinConv(t, botuaListener)
+		consumeJoinConv(t, botuaListener)
+
+		// add botua2 as a BOT, make sure they auto-added to the convs
+		err = ctc.as(t, users[0]).chatLocalHandler().AddBotMember(tc.startCtx, chat1.AddBotMemberArg{
+			ConvID:   created.Id,
+			Username: botua2.Username,
+			Role:     keybase1.TeamRole_BOT,
+		})
+		require.NoError(t, err)
+		pollForSeqno(4)
+		consumeMembersUpdate(t, listener)
+		consumeMembersUpdate(t, listener)
+		consumeMembersUpdate(t, botuaListener)
+		consumeMembersUpdate(t, botuaListener)
+		consumeJoinConv(t, botuaListener2)
+		consumeJoinConv(t, botuaListener2)
+
+		// downgrade botua to be restricted to 0 channels
+		err = ctc.as(t, users[0]).chatLocalHandler().EditBotMember(tc.startCtx, chat1.EditBotMemberArg{
+			ConvID:   created.Id,
+			Username: botua.Username,
+			Role:     keybase1.TeamRole_RESTRICTEDBOT,
+			BotSettings: &keybase1.TeamBotSettings{
+				Convs: []string{"deadbeef"},
+			},
+		})
+		require.NoError(t, err)
+		pollForSeqno(5)
+		consumeMembersUpdate(t, listener)
+		consumeMembersUpdate(t, listener)
+		consumeMembersUpdate(t, botuaListener2)
+		consumeMembersUpdate(t, botuaListener2)
+		consumeLeaveConv(t, botuaListener)
+		consumeLeaveConv(t, botuaListener)
+
+		// create a new conv and makes sure bots are auto-added
+		topicName = "zjoinonsend2"
+		convres, err := tc.chatLocalHandler().NewConversationLocal(context.TODO(),
+			chat1.NewConversationLocalArg{
+				TlfName:       created.TlfName,
+				TopicName:     &topicName,
+				TopicType:     chat1.TopicType_CHAT,
+				TlfVisibility: keybase1.TLFVisibility_PRIVATE,
+				MembersType:   mt,
+			})
+		require.NoError(t, err)
+
+		expectedUsers := []string{users[0].Username, users[2].Username}
+		sort.Strings(expectedUsers)
+		for i, user := range users {
+			gilres, err := ctc.as(t, user).chatLocalHandler().GetInboxAndUnboxLocal(context.TODO(), chat1.GetInboxAndUnboxLocalArg{
+				Query: &chat1.GetInboxLocalQuery{
+					ConvIDs: []chat1.ConversationID{convres.Conv.GetConvID()},
+				},
+				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+			})
+			require.NoError(t, err)
+			if i == 1 {
+				require.Len(t, gilres.Conversations, 0)
+				continue
+			}
+			require.Len(t, gilres.Conversations, 1)
+			var parts []string
+			for _, part := range gilres.Conversations[0].Info.Participants {
+				parts = append(parts, part.Username)
+			}
+			sort.Strings(parts)
+			require.Equal(t, expectedUsers, parts)
+		}
 	})
 }

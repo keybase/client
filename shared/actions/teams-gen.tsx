@@ -74,6 +74,7 @@ export const setTeamSawSubteamsBanner = 'teams:setTeamSawSubteamsBanner'
 export const setTeamsWithChosenChannels = 'teams:setTeamsWithChosenChannels'
 export const setUpdatedChannelName = 'teams:setUpdatedChannelName'
 export const setUpdatedTopic = 'teams:setUpdatedTopic'
+export const settingsError = 'teams:settingsError'
 export const teamCreated = 'teams:teamCreated'
 export const unsubscribeTeamDetails = 'teams:unsubscribeTeamDetails'
 export const unsubscribeTeamList = 'teams:unsubscribeTeamList'
@@ -268,6 +269,7 @@ type _SetUpdatedTopicPayload = {
   readonly conversationIDKey: ChatTypes.ConversationIDKey
   readonly newTopic: string
 }
+type _SettingsErrorPayload = {readonly error: string}
 type _TeamCreatedPayload = {
   readonly fromChat: boolean
   readonly teamID: Types.TeamID
@@ -560,6 +562,10 @@ export const createSetUpdatedTopic = (payload: _SetUpdatedTopicPayload): SetUpda
   payload,
   type: setUpdatedTopic,
 })
+export const createSettingsError = (payload: _SettingsErrorPayload): SettingsErrorPayload => ({
+  payload,
+  type: settingsError,
+})
 export const createTeamCreated = (payload: _TeamCreatedPayload): TeamCreatedPayload => ({
   payload,
   type: teamCreated,
@@ -798,6 +804,10 @@ export type SetUpdatedTopicPayload = {
   readonly payload: _SetUpdatedTopicPayload
   readonly type: typeof setUpdatedTopic
 }
+export type SettingsErrorPayload = {
+  readonly payload: _SettingsErrorPayload
+  readonly type: typeof settingsError
+}
 export type TeamCreatedPayload = {readonly payload: _TeamCreatedPayload; readonly type: typeof teamCreated}
 export type UnsubscribeTeamDetailsPayload = {
   readonly payload: _UnsubscribeTeamDetailsPayload
@@ -887,6 +897,7 @@ export type Actions =
   | SetTeamsWithChosenChannelsPayload
   | SetUpdatedChannelNamePayload
   | SetUpdatedTopicPayload
+  | SettingsErrorPayload
   | TeamCreatedPayload
   | UnsubscribeTeamDetailsPayload
   | UnsubscribeTeamListPayload

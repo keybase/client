@@ -4,6 +4,7 @@ import * as Constants from '../../constants/crypto'
 import Output, {OutputBar, SignedSender} from '.'
 
 const onCopyOutput = Sb.action('onCopyOutput')
+const onSaveAsText = Sb.action('onSaveAsText')
 const onShowInFinder = Sb.action('onShowInFinder')
 
 const encryptOutput = `
@@ -22,6 +23,7 @@ const load = () => {
     .add('Encrypt', () => (
       <Output
         output={encryptOutput}
+        outputMatchesInput={true}
         textType="cipher"
         operation={Constants.Operations.Encrypt}
         onShowInFinder={onShowInFinder}
@@ -30,6 +32,7 @@ const load = () => {
     .add('Decrypt', () => (
       <Output
         output={decryptOutput}
+        outputMatchesInput={true}
         textType="plain"
         operation={Constants.Operations.Verify}
         onShowInFinder={onShowInFinder}
@@ -38,6 +41,7 @@ const load = () => {
     .add('Decrypt - Large', () => (
       <Output
         output="Under 120 characters is big"
+        outputMatchesInput={true}
         textType="plain"
         operation={Constants.Operations.Verify}
         onShowInFinder={onShowInFinder}
@@ -46,6 +50,7 @@ const load = () => {
     .add('Sign', () => (
       <Output
         output={signOutput}
+        outputMatchesInput={true}
         textType="cipher"
         operation={Constants.Operations.Sign}
         onShowInFinder={onShowInFinder}
@@ -54,6 +59,7 @@ const load = () => {
     .add('Verify', () => (
       <Output
         output={verifyOutput}
+        outputMatchesInput={true}
         textType="plain"
         operation={Constants.Operations.Verify}
         onShowInFinder={onShowInFinder}
@@ -62,6 +68,7 @@ const load = () => {
     .add('Verify - Large', () => (
       <Output
         output="Under 120 characters is big"
+        outputMatchesInput={true}
         textType="plain"
         operation={Constants.Operations.Verify}
         onShowInFinder={onShowInFinder}
@@ -70,9 +77,12 @@ const load = () => {
 
   Sb.storiesOf('Crypto/Output/Bar', module).add('Download - Copy', () => (
     <OutputBar
+      operation={Constants.Operations.Encrypt}
       output="secret stuff"
       outputStatus="success"
+      outputMatchesInput={true}
       onCopyOutput={onCopyOutput}
+      onSaveAsText={onSaveAsText}
       onShowInFinder={onShowInFinder}
     />
   ))
