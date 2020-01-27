@@ -6,14 +6,5 @@
     "outDir": "./.tsOuts/.tsOutStrict/emit",
   },
   "files": [],
-  "include": [
-    "globals.d.ts",
-    "actions/**/*",
-    "constants/types/chat2/**/*",
-    "constants/chat2/**/*",
-    "chat/**/*",
-    "constants/types/rpc-*.tsx",
-    "actions/*-gen.tsx",
-    "common-adapters/icon.constants.tsx"
-  ]
+  "include": ["./**/*"]
 }

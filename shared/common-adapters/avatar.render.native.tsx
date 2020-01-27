@@ -4,7 +4,7 @@ import * as Styles from '../styles'
 import ClickableBox from './clickable-box'
 import Box from './box'
 import {NativeImage} from './native-image.native'
-import {Props} from './avatar.render'
+import {Props, AvatarSize} from './avatar.render'
 
 const Kb = {
   Box,
@@ -13,15 +13,14 @@ const Kb = {
   NativeImage,
 }
 
-const sizeToTeamBorderRadius = {
-  '12': 2,
-  '128': 12,
-  '16': 4,
-  '32': 5,
-  '48': 6,
-  '64': 8,
-  '96': 10,
-}
+const sizeToTeamBorderRadius = new Map<AvatarSize, number>([
+  [128, 12],
+  [16, 4],
+  [32, 5],
+  [48, 6],
+  [64, 8],
+  [96, 10],
+])
 
 const backgroundOffset = 1
 const borderOffset = -1
@@ -30,7 +29,7 @@ const borderSize = 1
 
 const Avatar = (props: Props) => {
   const {size} = props
-  const borderRadius: number = props.isTeam ? sizeToTeamBorderRadius[String(size)] : size / 2
+  const borderRadius: number = props.isTeam ? sizeToTeamBorderRadius.get(size) : size / 2
   const containerStyle = Styles.collapseStyles([styles[`box:${size}`], props.style])
 
   return (

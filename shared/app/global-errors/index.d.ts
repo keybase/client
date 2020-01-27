@@ -3,8 +3,8 @@ import {RPCError} from '../../util/errors'
 
 export type Props = {
   onFeedback: () => void
-  error: null | Error | RPCError
-  daemonError: Error | null
+  error?: Error | RPCError
+  daemonError?: Error
   onDismiss: () => void
   copyToClipboard: (arg0: string) => void
 }
