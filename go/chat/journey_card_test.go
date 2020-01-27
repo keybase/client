@@ -141,7 +141,6 @@ func TestJourneycardDismissTeamwide(t *testing.T) {
 
 	t.Logf("create other channels")
 	topicNames := []string{"c-a", "c-b", "c-c"}
-	var otherConvs []chat1.ConversationLocal
 	allConvIDs := []chat1.ConversationID{teamConv.Id}
 	_ = allConvIDs
 	allConvInfos := []chat1.ConversationInfoLocal{teamConv}
@@ -155,7 +154,6 @@ func TestJourneycardDismissTeamwide(t *testing.T) {
 				MembersType:   chat1.ConversationMembersType_TEAM,
 			})
 		require.NoError(t, err)
-		otherConvs = append(otherConvs, res.Conv)
 		allConvIDs = append(allConvIDs, res.Conv.GetConvID())
 		allConvInfos = append(allConvInfos, res.Conv.Info)
 	}
@@ -281,6 +279,7 @@ func TestJourneycardPersist(t *testing.T) {
 
 	t.Logf("After deleting in-memory cache the journeycard statys in its original location")
 	js, err := tc0.ChatG.JourneyCardManager.(*JourneyCardManager).get(ctx0, uid0)
+	require.NoError(t, err)
 	js.lru.Purge()
 	jc3 := requireJourneycard(teamConv.Id, chat1.JourneycardType_ADD_PEOPLE, 1)
 	require.Equal(t, jc1.PrevID, jc3.PrevID)
