@@ -4,6 +4,7 @@
 package client
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/keybase/cli"
@@ -50,6 +51,9 @@ func NewCmdTeamSearchRunner(g *libkb.GlobalContext) *CmdTeamSearch {
 }
 
 func (c *CmdTeamSearch) ParseArgv(ctx *cli.Context) (err error) {
+	if len(ctx.Args()) != 1 {
+		return errors.New("usage: keybase team search <query>")
+	}
 	c.query = ctx.Args().Get(0)
 	c.limit = ctx.Int("limit")
 	return nil
@@ -83,6 +87,9 @@ func (c *CmdTeamSearch) Run() error {
 		ui.Printf("%s (%d members)\n", team.Name, team.MemberCount)
 		if team.Description != nil {
 			ui.Printf("\t%s\n", *team.Description)
+		}
+		if !team.InTeam {
+			ui.Printf("\tYou can join this open team with `keybase team request-access %s`\n", team.Name)
 		}
 	}
 
