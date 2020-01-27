@@ -23,6 +23,7 @@ import ChatInstallBot from './conversation/bot/install'
 import ChatInstallBotPick from './conversation/bot/team-picker'
 import ChatSearchBot from './conversation/bot/search'
 import ChatConfirmRemoveBot from './conversation/bot/confirm'
+import ChatPDF from './pdf'
 
 export const newRoutes = {
   chatConversation: {getScreen: (): typeof ChatConversation => require('./conversation/container').default},
@@ -91,6 +92,7 @@ export const newModalRoutes = {
     getScreen: (): typeof ChatManageChannels => require('./manage-channels/container').default,
   },
   chatNewChat: {getScreen: (): typeof ChatNewChat => require('../team-building/container').default},
+  chatPDF: {getScreen: (): typeof ChatPDF => require('./pdf').default},
   chatPaymentsConfirm: {
     getScreen: (): typeof ChatPaymentsConfirm => require('./payments/confirm/container').default,
   },

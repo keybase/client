@@ -20,9 +20,10 @@ const combineJavaScriptAndCSS = (injections?: WebViewInjections) =>
 `
 
 const KBWebView = (props: WebViewProps) => {
-  const {onLoadingStateChange, onError} = props
+  const {allowFileAccess, onLoadingStateChange, onError, renderLoading} = props
   return (
     <NativeWebView
+      allowFileAccess={allowFileAccess}
       allowsInlineMediaPlayback={true}
       source={{uri: props.url}}
       injectedJavaScript={memoize(combineJavaScriptAndCSS)(props.injections)}
@@ -30,6 +31,8 @@ const KBWebView = (props: WebViewProps) => {
       onLoadStart={onLoadingStateChange && (() => onLoadingStateChange(true))}
       onLoadEnd={onLoadingStateChange && (() => onLoadingStateChange(false))}
       onError={onError && (syntheticEvent => onError(syntheticEvent.nativeEvent.description))}
+      startInLoadingState={!!renderLoading}
+      renderLoading={renderLoading}
     />
   )
 }
