@@ -9,13 +9,13 @@ import {Props} from '.'
 const ChatPDF = (props: Props) => {
   const url = Container.getRouteProps(props, 'url', '')
   const title = Container.getRouteProps(props, 'title', 'PDF')
-  const [error, setError] = React.useState(null)
+  const [error, setError] = React.useState('')
 
   const dispatch = Container.useDispatch()
   const onBack = () => dispatch(RouteTreeGen.createNavigateUp())
   const onShare = () =>
     dispatch(ConfigGen.createShowShareActionSheet({filePath: url, mimeType: 'application/pdf'}))
-  const rightActions = [{icon: 'iconfont-share', onPress: onShare}]
+  const rightActions = [{icon: 'iconfont-share', onPress: onShare} as const]
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
       <Kb.HeaderHocHeader title={title} onBack={onBack} rightActions={rightActions} />
@@ -32,7 +32,7 @@ const ChatPDF = (props: Props) => {
           style={styles.webViewContainer}
         />
       ) : (
-        <Kb.Text type="Error">Can't load this file {error}</Kb.Text>
+        <Kb.Text type="BodySmallError">Can't load this file {error}</Kb.Text>
       )}
     </Kb.Box2>
   )
