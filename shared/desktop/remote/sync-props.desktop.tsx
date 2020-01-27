@@ -2,7 +2,6 @@
 // Listens for requests from the main process (which proxies requests from other windows) to kick off an update
 // If asked we'll send all props, otherwise we do a shallow compare and send the different ones
 import * as React from 'react'
-import * as SafeElectron from '../../util/safe-electron.desktop'
 import {measureStart, measureStop} from '../../util/user-timings'
 
 // set this to true to see details of the serialization process
@@ -35,7 +34,7 @@ function SyncPropsFactory(serializer: Serializer) {
           // Using stringify to go over the wire as the representation it sends over IPC is very verbose and blows up
           // the data a lot
           if (Object.keys(props).length) {
-            SafeElectron.getApp().emit('KBkeybase', '', {
+            KB.renderToMain({
               payload: {
                 propsStr: JSON.stringify(props),
                 windowComponent,

@@ -28,6 +28,7 @@ import * as TeamsConstants from '../../constants/teams'
 import logger from '../../logger'
 import {isMobile, isIOS} from '../../constants/platform'
 import {NotifyPopup} from '../../native/notifications'
+import {Buffer} from 'buffer/'
 import {
   requestLocationPermission,
   saveAttachmentToCameraRoll,

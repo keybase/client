@@ -2,7 +2,6 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import * as Tabs from '../../constants/tabs'
 import * as Chat2Gen from '../../actions/chat2-gen'
-import * as ConfigGen from '../../actions/config-gen'
 import * as PeopleGen from '../../actions/people-gen'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as ProvisionGen from '../../actions/provision-gen'
@@ -66,17 +65,18 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     if (!__DEV__) {
       if (isLinux) {
         dispatch(SettingsGen.createStop({exitCode: RPCTypes.ExitCode.ok}))
-      } else {
-        dispatch(ConfigGen.createDumpLogs({reason: 'quitting through menu'}))
       }
     }
     // In case dump log doesn't exit for us
     SafeElectron.getRemote()
       .getCurrentWindow()
       .hide()
-    setTimeout(() => {
-      quit()
-    }, 2000)
+    setTimeout(
+      () => {
+        quit()
+      },
+      isLinux ? 2000 : 1
+    )
   },
   onSettings: () => dispatch(RouteTreeGen.createSwitchTab({tab: Tabs.settingsTab})),
   onSignOut: () => dispatch(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.logOutTab]})),

@@ -5,13 +5,10 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import * as Saga from '../../util/saga'
 import logger from '../../logger'
-import path from 'path'
 import {NotifyPopup} from '../../native/notifications'
-import {execFile} from 'child_process'
 import {getEngine} from '../../engine'
 import {isWindows, socketPath, defaultUseNativeFrame} from '../../constants/platform.desktop'
 import {kbfsNotification} from '../../util/kbfs-notifications'
-import {quit} from '../../desktop/app/ctl.desktop'
 import {writeLogLinesToFile} from '../../util/forward-logs'
 import InputMonitor from './input-monitor.desktop'
 import {skipAppFocusActions} from '../../local-debug.desktop'
@@ -31,7 +28,7 @@ export async function saveAttachmentToCameraRoll() {
 }
 
 const showMainWindow = () => {
-  SafeElectron.getApp().emit('KBkeybase', '', {type: 'showMainWindow'})
+  KB.renderToMain({type: 'showMainWindow'})
 }
 
 export function displayNewMessageNotification() {
@@ -102,20 +99,6 @@ function* initializeInputMonitor(): Iterable<any> {
   }
 }
 
-export const dumpLogs = (_?: Container.TypedState, action?: ConfigGen.DumpLogsPayload) =>
-  logger
-    .dump()
-    .then(fromRender => {
-      const globalLogger: typeof logger = SafeElectron.getRemote().getGlobal('globalLogger')
-      return globalLogger.dump().then(fromMain => writeLogLinesToFile([...fromRender, ...fromMain]))
-    })
-    .then(() => {
-      // quit as soon as possible
-      if (action && action.payload.reason === 'quitting through menu') {
-        quit()
-      }
-    })
-
 function* checkRPCOwnership(_: Container.TypedState, action: ConfigGen.DaemonHandshakePayload) {
   const waitKey = 'pipeCheckFail'
   yield Saga.put(
@@ -124,13 +107,13 @@ function* checkRPCOwnership(_: Container.TypedState, action: ConfigGen.DaemonHan
   try {
     logger.info('Checking RPC ownership')
 
-    const localAppData = String(process.env.LOCALAPPDATA)
-    var binPath = localAppData ? path.resolve(localAppData, 'Keybase', 'keybase.exe') : 'keybase.exe'
+    const localAppData = String(KB.__process.env.LOCALAPPDATA)
+    var binPath = localAppData ? KB.__path.resolve(localAppData, 'Keybase', 'keybase.exe') : 'keybase.exe'
     const args = ['pipeowner', socketPath]
     yield Saga.callUntyped(
       () =>
         new Promise((resolve, reject) => {
-          execFile(binPath, args, {windowsHide: true}, (error, stdout) => {
+          KB.__child_process.execFile(binPath, args, {windowsHide: true}, (error, stdout) => {
             if (error) {
               logger.info(`pipeowner check result: ${stdout.toString()}`)
               // error will be logged in bootstrap check
@@ -213,7 +196,7 @@ const onConnected = () => {
   // Introduce ourselves to the service
   RPCTypes.configHelloIAmRpcPromise({
     details: {
-      argv: process.argv,
+      argv: KB.__process.argv,
       clientType: RPCTypes.ClientType.guiMain,
       desc: 'Main Renderer',
       pid: SafeElectron.getRemote().process.pid,
@@ -234,11 +217,15 @@ const onOutOfDate = (
   return ConfigGen.createUpdateInfo({critical: true, isOutOfDate: true, message: upgradeMsg})
 }
 
-const prepareLogSend = (_: Container.TypedState, action: EngineGen.Keybase1LogsendPrepareLogsendPayload) => {
+const prepareLogSend = async (
+  _: Container.TypedState,
+  action: EngineGen.Keybase1LogsendPrepareLogsendPayload
+) => {
   const response = action.payload.response
-  dumpLogs().then(() => {
-    response && response.result()
-  })
+  const fromRender = await logger.dump()
+  const fromMain = await KB.mainLoggerDump()
+  await writeLogLinesToFile([...fromRender, ...fromMain])
+  response && response.result()
 }
 
 const copyToClipboard = (_: Container.TypedState, action: ConfigGen.CopyToClipboardPayload) => {
@@ -251,7 +238,7 @@ const sendKBServiceCheck = (state: Container.TypedState, action: ConfigGen.Daemo
     state.config.daemonHandshakeWaiters.size === 0 &&
     state.config.daemonHandshakeFailedReason === ConfigConstants.noKBFSFailReason
   ) {
-    SafeElectron.getApp().emit('keybase' as any, {type: 'requestStartService'})
+    KB.renderToMain({type: 'requestStartService'})
   }
 }
 
@@ -294,12 +281,7 @@ const updateNow = () =>
 
 function* startPowerMonitor() {
   const channel = Saga.eventChannel(emitter => {
-    const pm = SafeElectron.getPowerMonitor()
-    pm.on('suspend', () => emitter('suspend'))
-    pm.on('resume', () => emitter('resume'))
-    pm.on('shutdown', () => emitter('shutdown'))
-    pm.on('lock-screen', () => emitter('lock-screen'))
-    pm.on('unlock-screen', () => emitter('unlock-screen'))
+    KB.handlePowerMonitor(type => emitter(type))
     return () => {}
   }, Saga.buffers.expanding(1))
   while (true) {
@@ -414,7 +396,6 @@ export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction2(ConfigGen.setOpenAtLogin, setOpenAtLogin)
   yield* Saga.chainAction2(ConfigGen.setNotifySound, setNotifySound)
   yield* Saga.chainAction2(ConfigGen.showMain, showMainWindow)
-  yield* Saga.chainAction2(ConfigGen.dumpLogs, dumpLogs)
   getEngine().registerCustomResponse('keybase.1.logsend.prepareLogsend')
   yield* Saga.chainAction2(EngineGen.keybase1LogsendPrepareLogsend, prepareLogSend)
   yield* Saga.chainAction2(EngineGen.connected, onConnected)

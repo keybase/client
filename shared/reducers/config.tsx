@@ -339,7 +339,6 @@ export default (state: Types.State = Constants.initialState, action: Actions): T
         draftState.useNativeFrame = action.payload.useNativeFrame
         return
       // Saga only actions
-      case ConfigGen.dumpLogs:
       case ConfigGen.logout:
       case ConfigGen.mobileAppState:
       case ConfigGen.openAppSettings:

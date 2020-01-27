@@ -9,13 +9,10 @@ import ReactDOM from 'react-dom'
 import RemoteProxies from '../remote/proxies.desktop'
 import Root from './container.desktop'
 import configureStore from '../../store/configure-store'
-import * as SafeElectron from '../../util/safe-electron.desktop'
 import {makeEngine} from '../../engine'
 import {disable as disableDragDrop} from '../../util/drag-drop'
 import flags from '../../util/feature-flags'
-import {dumpLogs} from '../../actions/platform-specific/index.desktop'
 import {initDesktopStyles} from '../../styles/index.desktop'
-import {isDarwin} from '../../constants/platform'
 import {useSelector} from '../../util/container'
 import {isDarkMode} from '../../constants/config'
 import {TypedActions} from '../../actions/typed-actions-gen'
@@ -36,9 +33,8 @@ const setupStore = () => {
     runSagas = configured.runSagas
 
     _store = store
-    if (__DEV__ && flags.admin) {
-      // @ts-ignore codemode issue
-      window.DEBUGStore = _store
+    if (__DEV__ && KB.DEV && flags.admin) {
+      KB.DEV.DEBUGStore = _store
     }
   }
 
@@ -51,35 +47,30 @@ const setupApp = (store, runSagas) => {
   runSagas && runSagas()
   eng.sagasAreReady()
 
-  SafeElectron.getApp().on('KBdispatchAction' as any, (_: string, action: TypedActions) => {
+  KB.handleAnyToMainDispatchAction((action: TypedActions) => {
     // we MUST convert this else we'll run into issues with redux. See https://github.com/rackt/redux/issues/830
     // This is because this is touched due to the remote proxying. We get a __proto__ which causes the _.isPlainObject check to fail. We use
-    setImmediate(() => {
+    setTimeout(() => {
       try {
         store.dispatch({
           payload: action.payload,
           type: action.type,
         })
       } catch (_) {}
-    })
+    }, 0)
   })
 
   // See if we're connected, and try starting keybase if not
-  setImmediate(() => {
-    if (!eng.hasEverConnected()) {
-      SafeElectron.getApp().emit('KBkeybase', '', {type: 'requestStartService'})
-    }
-  })
-
-  // After a delay dump logs in case some startup stuff happened
   setTimeout(() => {
-    dumpLogs()
-  }, 5 * 1000)
+    if (!eng.hasEverConnected()) {
+      KB.renderToMain({type: 'requestStartService'})
+    }
+  }, 0)
 
   // Handle notifications from the service
   store.dispatch(NotificationsGen.createListenForNotifications())
 
-  SafeElectron.getApp().emit('KBkeybase', '', {type: 'appStartedUp'})
+  KB.renderToMain({type: 'appStartedUp'})
 }
 
 const FontLoader = () => (
@@ -144,27 +135,20 @@ const setupHMR = _ => {
 }
 
 const setupDarkMode = () => {
-  if (isDarwin && SafeElectron.getSystemPreferences().subscribeNotification) {
-    SafeElectron.getSystemPreferences().subscribeNotification(
-      'AppleInterfaceThemeChangedNotification',
-      () => {
-        store.dispatch(
-          ConfigGen.createSetSystemDarkMode({
-            dark: isDarwin && SafeElectron.getSystemPreferences().isDarkMode(),
-          })
-        )
-      }
-    )
-  }
+  KB.handleDarkModeChanged((dark: boolean) => {
+    store.dispatch(ConfigGen.createSetSystemDarkMode({dark}))
+  })
 }
 
 const load = () => {
-  if (global.DEBUGLoaded) {
+  if (KB.DEV && KB.DEV.DEBUGLoaded) {
     // only load once
     console.log('Bail on load() on HMR')
     return
   }
-  global.DEBUGLoaded = true
+  if (KB.DEV) {
+    KB.DEV.DEBUGLoaded = true
+  }
   initDesktopStyles()
   const temp = setupStore()
   const {runSagas} = temp

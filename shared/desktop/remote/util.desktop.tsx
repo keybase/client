@@ -1,5 +1,4 @@
 import * as SafeElectron from '../../util/safe-electron.desktop'
-import {TypedActions} from '../../actions/typed-actions-gen'
 
 export const autoResize = () => {
   if (__STORYBOOK__) {
@@ -60,8 +59,4 @@ export const getMainWindow = (): SafeElectron.BrowserWindowType | null => {
     w => w.webContents.getURL().indexOf('/main.') !== -1
   )
   return w || null
-}
-
-export const mainWindowDispatch = (action: TypedActions): void => {
-  SafeElectron.getApp().emit('KBdispatchAction', '', action)
 }

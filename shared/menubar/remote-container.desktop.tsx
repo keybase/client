@@ -48,15 +48,16 @@ const mapDispatchToProps = dispatch => ({
     if (!__DEV__) {
       if (isLinux) {
         dispatch(SettingsGen.createStop({exitCode: RPCTypes.ExitCode.ok}))
-      } else {
-        dispatch(ConfigGen.createDumpLogs({reason: 'quitting through menu'}))
       }
     }
     // In case dump log doesn't exit for us
     hideWindow()
-    setTimeout(() => {
-      quit()
-    }, 2000)
+    setTimeout(
+      () => {
+        quit()
+      },
+      isLinux ? 2000 : 1
+    )
   },
   refreshUserFileEdits: throttle(() => dispatch(FsGen.createUserFileEditsLoad()), 1000 * 5),
   showBug: () => {

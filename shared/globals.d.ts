@@ -27,11 +27,8 @@ interface Window {
     opts?: RequestIdleCallbackOptions
   ) => RequestIdleCallbackHandle
   cancelIdleCallback: (handle: RequestIdleCallbackHandle) => void
-  DEBUGEffectById: any
-  DEBUGLogSagas: any
-  DEBUGLogSagasWithNames: any
-  DEBUGRootEffects: any
   KB: typeof KB
+  process: any
 }
 
 interface Console {
@@ -42,23 +39,49 @@ interface Console {
 }
 
 declare var KB: {
-  DEV?: any
+  DEV?: {
+    DEBUGActionLoop?: any
+    DEBUGEffectById?: any
+    DEBUGEngine?: any
+    DEBUGLoaded?: boolean
+    DEBUGLogSagas?: any
+    DEBUGLogSagasWithNames?: any
+    DEBUGNavigator?: any
+    DEBUGRootEffects?: any
+    DEBUGSagaMiddleware?: any
+    DEBUGStore?: any
+    events?: any
+    url?: any
+  }
+  __child_process: any
+  __dirname: string
+  __electron: any
+  __fs: any
+  __os: any
+  __path: any
+  __process: any
+  anyToMainDispatchAction: any
+  buffer: any
+  framedMsgpackRpc: any
+  handleAnyToMainDispatchAction: any
+  handleDarkModeChanged: any
+  handlePowerMonitor: any
+  handleRenderToMain: any
+  handleRendererToMainMenu: any
+  isDarkMode: any
+  mainLoggerDump: any
+  platform: any
   punycode: any
+  purepack: any
+  renderToMain: any
+  rendererToMainMenu: any
+  showMessageBox: any
+  showOpenDialog: any
+  unhandleDarkModeChanged: any
 }
 
 declare namespace NodeJS {
   interface Global {
-    DEBUGActionLoop: () => void
-    DEBUGEffectById: any
-    DEBUGEngine: any
-    DEBUGLoaded: boolean
-    DEBUGLogSagas: any
-    DEBUGLogSagasWithNames: any
-    DEBUGNavigator: any
-    DEBUGRootEffects: any
-    DEBUGSagaMiddleware: any
-    DEBUGStore: any
-    globalLogger: any
     KB: typeof KB
   }
 }

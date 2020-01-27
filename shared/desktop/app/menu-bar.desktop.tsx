@@ -1,15 +1,18 @@
 // Entrypoint for the menubar node part
 import menubar from 'menubar'
-import * as SafeElectron from '../../util/safe-electron.desktop'
+import * as Electron from 'electron'
 import {isDarwin, isWindows, isLinux} from '../../constants/platform'
-import {resolveImage, resolveRootAsURL} from './resolve-root.desktop'
+import {resolveRoot, resolveImage, resolveRootAsURL} from './resolve-root.desktop'
 import {showDevTools, skipSecondaryDevtools} from '../../local-debug.desktop'
 import logger from '../../logger'
 
 const htmlFile = resolveRootAsURL('dist', `menubar${__DEV__ ? '.dev' : ''}.html?param=`)
 
-let icon = ''
-let selectedIcon = ''
+// start with some kind of default
+let icon = isWindows
+  ? 'icon-windows-keybase-menubar-regular-black-16@2x.png'
+  : 'icon-keybase-menubar-regular-white-22@2x.png'
+let selectedIcon = icon
 
 type Bounds = {
   x: number
@@ -37,14 +40,16 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
     showDockIcon: true,
     transparent: true,
     webPreferences: {
-      nodeIntegration: true,
+      nodeIntegration: false,
       nodeIntegrationInWorker: false,
+      preload: resolveRoot('dist', `preload-main${__DEV__ ? '.dev' : ''}.bundle.js`),
     },
     width: 360,
   })
 
   const updateIcon = (selected: boolean) => {
-    mb.tray.setImage(resolveImage('menubarIcon', selected ? selectedIcon : icon))
+    const image = resolveImage('menubarIcon', selected ? selectedIcon : icon)
+    mb.tray.setImage(image)
   }
 
   type Action = {
@@ -57,15 +62,15 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
   }
 
   mb.on('ready', () => {
-    SafeElectron.getApp().on('KBmenu' as any, (_: string, action: Action) => {
+    KB.handleRendererToMainMenu((action: Action) => {
       switch (action.type) {
         case 'showTray': {
           icon = action.payload.icon
           selectedIcon = action.payload.iconSelected
           updateIcon(false)
-          const dock = SafeElectron.getApp().dock
+          const dock = Electron.app.dock
           if (dock && dock.isVisible()) {
-            SafeElectron.getApp().setBadgeCount(action.payload.desktopAppBadgeCount)
+            Electron.app.setBadgeCount(action.payload.desktopAppBadgeCount)
           }
           break
         }
@@ -81,7 +86,7 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
     // Hack: open widget when left/right/double clicked
     mb.tray.on('right-click', (e: Electron.Event, bounds: Bounds) => {
       e.preventDefault()
-      setImmediate(() => mb.tray.emit('click', {...e}, {...bounds}))
+      setTimeout(() => mb.tray.emit('click', {...e}, {...bounds}), 0)
     })
     mb.tray.on('double-click', (e: Electron.Event) => e.preventDefault())
 
@@ -102,8 +107,8 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
       if (!isWindows || !mb.window || !mb.tray) {
         return
       }
-      const cursorPoint = SafeElectron.getScreen().getCursorScreenPoint()
-      const screenSize = SafeElectron.getScreen().getDisplayNearestPoint(cursorPoint).workArea
+      const cursorPoint = Electron.screen.getCursorScreenPoint()
+      const screenSize = Electron.screen.getDisplayNearestPoint(cursorPoint).workArea
       const menuBounds = mb.window.getBounds()
       logger.info('Showing menu:', cursorPoint, screenSize)
       let iconBounds = mb.tray.getBounds()

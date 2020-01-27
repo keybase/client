@@ -1,10 +1,11 @@
-import * as Electron from 'electron'
 import {isDarwin} from '../../constants/platform'
+
+const Electron = KB.__electron
 
 let devToolsState = false
 
 const windowQuit = () => {
-  Electron.app.emit('KBkeybase', '', {type: 'closeWindows'})
+  KB.renderToMain({type: 'closeWindows'})
 }
 
 export default function makeMenu(window: Electron.BrowserWindow) {

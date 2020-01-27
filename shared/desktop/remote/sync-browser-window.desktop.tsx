@@ -1,6 +1,5 @@
 // This HOC wraps a component that represents a remote window. When this component is mounted anywhere it'll ask to make a BrowserWindow
 import * as React from 'react'
-import * as SafeElectron from '../../util/safe-electron.desktop'
 
 type Props = {
   windowOpts: Object
@@ -15,7 +14,7 @@ function SyncBrowserWindow(ComposedComponent: any) {
     React.useEffect(() => {
       const {windowOpts, windowComponent, windowParam, windowPositionBottomRight} = props
 
-      SafeElectron.getApp().emit('KBkeybase', '', {
+      KB.renderToMain({
         payload: {
           windowComponent,
           windowOpts,
@@ -25,7 +24,7 @@ function SyncBrowserWindow(ComposedComponent: any) {
         type: 'makeRenderer',
       })
       return () => {
-        SafeElectron.getApp().emit('KBkeybase', '', {
+        KB.renderToMain({
           payload: {
             windowComponent,
             windowParam,

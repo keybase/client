@@ -1,5 +1,4 @@
 import * as React from 'react'
-import fs from 'fs'
 import * as Styles from '../styles'
 import {Box2} from './box'
 import Icon from './icon'
@@ -50,7 +49,7 @@ class DragAndDrop extends React.PureComponent<Props, State> {
             // We do this synchronously
             // in testing, this is instantaneous
             // even when dragging many files
-            const stat = fs.lstatSync(path)
+            const stat = KB.__fs.lstatSync(path)
             if (stat.isDirectory()) {
               // TODO show a red error banner on failure: https://zpl.io/2jlkMLm
               this.setState({showDropOverlay: false})

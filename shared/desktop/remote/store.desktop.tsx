@@ -3,7 +3,6 @@
 // On the main window we plumb through our props and we 'mirror' the props using this helper
 // We start up and send an action to the main window which then sends us 'props'
 import * as SafeElectron from '../../util/safe-electron.desktop'
-import {mainWindowDispatch} from './util.desktop'
 import {createStore, applyMiddleware, Store} from 'redux'
 import {TypedActions} from '../../actions/typed-actions-gen'
 import * as ConfigGen from '../../actions/config-gen'
@@ -26,13 +25,13 @@ class RemoteStore {
   getStore = () => this._store
 
   _onPropsUpdated = propsStr => {
-    // setImmediate since this can be a side effect of the reducer which redux doesn't like
-    setImmediate(() => {
+    // setTimeout since this can be a side effect of the reducer which redux doesn't like
+    setTimeout(() => {
       this._store.dispatch({
         payload: {propsStr},
         type: updateStore,
       })
-    })
+    }, 0)
 
     if (this._gotPropsCallback) {
       this._gotPropsCallback()
@@ -71,12 +70,12 @@ class RemoteStore {
     this._gotPropsCallback = props.gotPropsCallback
     this._registerForRemoteUpdate()
 
-    if (__DEV__) {
-      global.DEBUGStore = this._store
+    if (__DEV__ && KB.DEV) {
+      KB.DEV.DEBUGStore = this._store
     }
 
     // Search for the main window and ask it directly for our props
-    mainWindowDispatch(
+    KB.anyToMainDispatchAction(
       ConfigGen.createRemoteWindowWantsProps({
         component: props.windowComponent,
         param: props.windowParam,
@@ -94,7 +93,7 @@ const sendToRemoteMiddleware = () => (next: (action: TypedActions | UpdateStoreA
     // Don't forward our internal updateStore call
     return next(action)
   } else {
-    mainWindowDispatch(action)
+    KB.anyToMainDispatchAction(action)
   }
   return next(action)
 }

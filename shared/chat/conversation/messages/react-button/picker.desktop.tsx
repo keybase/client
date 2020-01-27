@@ -32,7 +32,7 @@ class Picker extends React.Component<Props> {
     // There's some weird stuff happening with Modal in
     // relative-popup-hoc.desktop.js that makes calling input.focus()
     // immediately not work, but I'm not sure what.
-    setImmediate(() => input.focus())
+    setTimeout(() => input.focus(), 0)
   }
 
   componentDidMount() {

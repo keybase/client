@@ -86,10 +86,11 @@ const errorCatching = () => next => action => {
   }
 }
 
-export const sagaMiddleware = (__DEV__ && global.DEBUGSagaMiddleware) || createSagaMiddleware(crashHandler)
+export const sagaMiddleware =
+  (__DEV__ && KB.DEV && KB.DEV.DEBUGSagaMiddleware) || createSagaMiddleware(crashHandler)
 // don't overwrite this on HMR
-if (__DEV__) {
-  global.DEBUGSagaMiddleware = sagaMiddleware
+if (__DEV__ && KB.DEV) {
+  KB.DEV.DEBUGSagaMiddleware = sagaMiddleware
 }
 
 const middlewares = [
@@ -99,8 +100,8 @@ const middlewares = [
   ...(enableActionLogging ? [actionLogger] : []),
 ]
 
-if (__DEV__ && typeof window !== 'undefined') {
-  global.DEBUGActionLoop = () => {
+if (__DEV__ && KB.DEV) {
+  KB.DEV.DEBUGActionLoop = () => {
     setInterval(() => {
       theStore.dispatch(DevGen.createDebugCount())
     }, 1000)

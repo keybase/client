@@ -173,7 +173,7 @@ class Thread extends React.PureComponent<Props, State> {
 
   componentDidMount() {
     if (this._isLockedToBottom()) {
-      setImmediate(() => this._scrollToBottom('componentDidMount'))
+      setTimeout(() => this._scrollToBottom('componentDidMount'), 0)
     }
   }
 

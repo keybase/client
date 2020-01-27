@@ -27,7 +27,7 @@ function exitApp() {
 
 function exitProcess() {
   console.log('Forcing process exit')
-  process.exit(0)
+  KB.__process.exit(0)
 }
 
 export function quit(appOnly: boolean = false) {

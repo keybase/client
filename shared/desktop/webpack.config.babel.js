@@ -15,7 +15,7 @@ const config = (_, {mode}) => {
 
   console.error('Flags: ', {isDev, isHot})
 
-  const makeRules = nodeThread => {
+  const makeRules = (nodeThread, preload) => {
     const fileLoaderRule = {
       loader: 'file-loader',
       options: {name: '[name].[ext]'},
@@ -47,7 +47,10 @@ const config = (_, {mode}) => {
         use: ['null-loader'],
       },
       {
-        exclude: /((node_modules\/(?!universalify|fs-extra|react-redux|redux-saga|react-gateway))|\/dist\/)/,
+        // preload needs no node_modules so they all have to be bundled in
+        exclude: preload
+          ? undefined
+          : /((node_modules\/(?!universalify|fs-extra|react-redux|redux-saga|react-gateway))|\/dist\/)/,
         test: /\.(ts|js)x?$/,
         use: [babelRule],
       },
@@ -158,7 +161,7 @@ const config = (_, {mode}) => {
   const commonConfig = makeCommonConfig()
   const nodeConfig = merge(commonConfig, {
     entry: {node: './desktop/app/node.desktop.tsx'},
-    module: {rules: makeRules(true)},
+    module: {rules: makeRules(true, false)},
     name: 'node',
     plugins: [
       // blacklist common things from the main thread to ensure the view layer doesn't bleed into the node layer
@@ -195,6 +198,13 @@ const config = (_, {mode}) => {
 
   // multiple entries so we can chunk shared parts
   const entries = ['main', 'menubar', 'pinentry', 'unlock-folders', 'tracker2']
+  const KBExternals = {
+    'framed-msgpack-rpc': 'KB.framedMsgpackRpc',
+    purepack: 'KB.purepack',
+    process: 'KB.__process',
+    punycode: 'KB.punycode',
+    'buffer/': 'KB.buffer',
+  }
   const viewConfig = merge(commonConfig, {
     entry: entries.reduce((map, name) => {
       map[name] = `./${entryOverride[name] || name}/main.desktop.tsx`
@@ -203,16 +213,13 @@ const config = (_, {mode}) => {
     externals: {
       ...(isDev
         ? {
-            // needed by webpack dev server, fulfilled by preload
+            ...KBExternals,
             events: 'KB.DEV.events',
-            punycode: 'KB.punycode',
             url: 'KB.DEV.url',
           }
-        : {
-            punycode: 'KB.punycode',
-          }),
+        : {...KBExternals}),
     },
-    module: {rules: makeRules(false)},
+    module: {rules: makeRules(false, false)},
     name: 'Keybase',
     optimization: {splitChunks: {chunks: 'all'}},
     plugins: makeViewPlugins(entries),
@@ -220,11 +227,10 @@ const config = (_, {mode}) => {
   })
   const preloadConfig = merge(commonConfig, {
     entry: {'preload-main': `./desktop/renderer/preload-main.${isDev ? 'dev' : 'prod'}.desktop.tsx`},
-    module: {rules: makeRules(true)},
+    module: {rules: makeRules(true, true)},
     name: 'Keybase',
-    optimization: {splitChunks: {chunks: 'all'}},
     plugins: [],
-    target: 'electron-main',
+    target: 'electron-renderer',
   })
 
   return [nodeConfig, viewConfig, preloadConfig]

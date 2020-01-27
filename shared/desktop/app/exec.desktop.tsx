@@ -1,7 +1,3 @@
-import {exec} from 'child_process'
-import fs from 'fs'
-import os from 'os'
-
 import {runMode} from '../../constants/platform.desktop'
 
 // Execute at path with args.
@@ -19,7 +15,7 @@ export default function(
   killOnExit: boolean,
   callback: (err: any, attempted: boolean, stdout: string, stderr: string) => void
 ): void {
-  const platform = os.platform()
+  const platform = KB.__os.platform()
   if (platformOnly && platform !== platformOnly) {
     console.log('Exec (%s) not available for platform: %s != %s', path, platformOnly, platform)
     if (callback) callback(null, false, '', '')
@@ -37,7 +33,7 @@ export default function(
   }
 
   // @ts-ignore codemode issue
-  fs.access(path, fs.X_OK, function(err) {
+  KB.__fs.access(path, KB.__fs.X_OK, function(err) {
     if (err) {
       console.log('Exec path not found (or accessible as executable):', path)
       if (callback) callback(null, false, '', '')
@@ -47,7 +43,7 @@ export default function(
     args.unshift(path)
     var cmd = args.join(' ')
     console.log('Executing:', cmd)
-    var procExec = exec(cmd, function(execErr, stdout, stderr) {
+    var procExec = KB.__child_process.exec(cmd, function(execErr, stdout, stderr) {
       if (stdout) {
         console.log('Exec (stdout):', stdout)
       }
@@ -62,7 +58,7 @@ export default function(
 
     if (killOnExit && procExec) {
       // Kill the process if parent process exits
-      process.on('exit', function() {
+      KB.__process.on('exit', function() {
         procExec.kill()
       })
     }
