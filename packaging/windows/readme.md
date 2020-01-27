@@ -125,7 +125,7 @@ The installer places/updates all the files and adds:
 - background tile color
 
 The service is invoked by the GUI with this command:
-`[INSTALLFOLDER]\keybaserq.exe keybase.exe --log-format=file --log-prefix="[INSTALLFOLDER]watchdog." ctl watchdog2`
+`[INSTALLFOLDER]\keybaserq.exe keybase.exe --log-format=file --log-prefix="[INSTALLFOLDER]watchdog." ctl watchdog`
 This starts a copy of keybase.exe in watchdog mode, which in turn runs the service and kbfs processes, restarting them if they die or are killed.
 If the service is closed with `keybase ctl stop`, which the GUI does when the widtget menu is used, the watchdog will see a different exit code and not restart the processes.
 

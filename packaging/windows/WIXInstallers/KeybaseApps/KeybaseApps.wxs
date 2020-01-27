@@ -130,7 +130,7 @@
         <Shortcut Id="AppShortCutStartUp" Name="KeybaseStartup"
                   Description="Start Keybase at boot"
                   Target="[INSTALLFOLDER]keybaserq.exe"
-                  Arguments="keybase.exe --log-format=file --log-prefix=&quot;[INSTALLFOLDER]watchdog.&quot; ctl watchdog2"
+                  Arguments="keybase.exe --log-format=file --log-prefix=&quot;[INSTALLFOLDER]watchdog.&quot; ctl watchdog"
                   WorkingDirectory="INSTALLFOLDER"/>
         <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
           <RegistryValue Name="ShortCutStartUp" Type="integer" Value="1" KeyPath="yes"  />
@@ -198,7 +198,7 @@
   <Fragment>
     <CustomAction Id="RunMainApp"
               Directory="INSTALLFOLDER"
-              ExeCommand="[INSTALLFOLDER]keybaserq.exe &quot;[INSTALLFOLDER]keybase.exe&quot; --log-format=file --log-prefix=&quot;[INSTALLFOLDER]watchdog.&quot; ctl watchdog2"
+              ExeCommand="[INSTALLFOLDER]keybaserq.exe &quot;[INSTALLFOLDER]keybase.exe&quot; --log-format=file --log-prefix=&quot;[INSTALLFOLDER]watchdog.&quot; ctl watchdog"
               Execute="commit"
               Return="ignore"/>
   </Fragment>
