@@ -661,7 +661,7 @@ function* provisionSaga() {
   yield* Saga.chainGenerator(ProvisionGen.backToDeviceList, backToDeviceList)
 }
 
-export const _testing = {
+export const _testing: any = {
   makeProvisioningManager,
   maybeCancelProvision,
 }

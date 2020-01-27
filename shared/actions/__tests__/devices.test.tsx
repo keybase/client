@@ -122,7 +122,7 @@ const details = [
   },
 ]
 
-const startOnDevicesTab = dispatch => {
+const startOnDevicesTab = (dispatch: Container.Dispatch) => {
   dispatch(RouteTreeGen.createSwitchLoggedIn({loggedIn: true}))
   dispatch(RouteTreeGen.createNavigateAppend({path: [Tabs.devicesTab]}))
 }
@@ -143,8 +143,8 @@ const startReduxSaga = Testing.makeStartReduxSaga(devicesSaga, initialStore, sta
 // const getRoute = getState => getRoutePath(getState().routeTree.routeState, [Tabs.devicesTab])
 
 describe('reload side effects', () => {
-  let init
-  let rpc
+  let init: any
+  let rpc: any
   beforeEach(() => {
     init = startReduxSaga()
     rpc = jest.spyOn(RPCTypes, 'deviceDeviceHistoryListRpcPromise')
@@ -181,8 +181,8 @@ describe('reload side effects', () => {
 })
 
 describe('load', () => {
-  let init
-  let rpc
+  let init: any
+  let rpc: any
   beforeEach(() => {
     init = startReduxSaga()
   })
@@ -215,8 +215,8 @@ describe('load', () => {
 })
 
 describe('revoking other', () => {
-  let init
-  let rpc
+  let init: any
+  let rpc: any
   beforeEach(() => {
     init = Testing.makeStartReduxSaga(devicesSaga, loadedStore, startOnDevicesTab)()
   })
@@ -238,8 +238,8 @@ describe('revoking other', () => {
 })
 
 describe('revoking self', () => {
-  let init
-  let rpc
+  let init: any
+  let rpc: any
   beforeEach(() => {
     init = Testing.makeStartReduxSaga(devicesSaga, loadedStore, startOnDevicesTab)()
   })
@@ -264,7 +264,7 @@ describe('revoking self', () => {
 })
 
 describe('navs after revoking', () => {
-  let init
+  let init: any
   beforeEach(() => {
     init = Testing.makeStartReduxSaga(devicesSaga, loadedStore, startOnDevicesTab)()
   })
@@ -286,8 +286,8 @@ describe('navs after revoking', () => {
 })
 
 describe('shows revoke page correctly', () => {
-  let init
-  let rpc
+  let init: any
+  let rpc: any
   beforeEach(() => {
     init = Testing.makeStartReduxSaga(devicesSaga, loadedStore, startOnDevicesTab)()
   })
@@ -338,7 +338,7 @@ describe('shows revoke page correctly', () => {
 })
 
 describe('shows device page correctly', () => {
-  let init
+  let init: any
   beforeEach(() => {
     init = Testing.makeStartReduxSaga(devicesSaga, loadedStore, startOnDevicesTab)()
   })
@@ -354,8 +354,8 @@ describe('shows device page correctly', () => {
 })
 
 describe('shows paperkey page correctly', () => {
-  let init
-  let rpc
+  let init: any
+  let rpc: any
   beforeEach(() => {
     init = Testing.makeStartReduxSaga(devicesSaga, loadedStore, startOnDevicesTab)()
   })
