@@ -313,6 +313,9 @@ func (c *ChatCLIUI) ChatSearchTeamHits(ctx context.Context, arg chat1.ChatSearch
 	}
 	for _, hit := range arg.Hits.Hits {
 		_ = c.terminal.Output(fmt.Sprintf("Team: %s found with matching name\n", hit.Name))
+		if !hit.InTeam {
+			_ = c.terminal.Output(fmt.Sprintf("\tYou can join this open team with `keybase team request-access %s`\n", hit.Name))
+		}
 	}
 	return nil
 }
