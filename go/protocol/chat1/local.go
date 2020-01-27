@@ -972,11 +972,13 @@ func (o MessageDeleteHistory) DeepCopy() MessageDeleteHistory {
 }
 
 type MessageAttachment struct {
-	Object   Asset   `codec:"object" json:"object"`
-	Preview  *Asset  `codec:"preview,omitempty" json:"preview,omitempty"`
-	Previews []Asset `codec:"previews" json:"previews"`
-	Metadata []byte  `codec:"metadata" json:"metadata"`
-	Uploaded bool    `codec:"uploaded" json:"uploaded"`
+	Object       Asset              `codec:"object" json:"object"`
+	Preview      *Asset             `codec:"preview,omitempty" json:"preview,omitempty"`
+	Previews     []Asset            `codec:"previews" json:"previews"`
+	Metadata     []byte             `codec:"metadata" json:"metadata"`
+	Uploaded     bool               `codec:"uploaded" json:"uploaded"`
+	UserMentions []KnownUserMention `codec:"userMentions" json:"userMentions"`
+	TeamMentions []KnownTeamMention `codec:"teamMentions" json:"teamMentions"`
 }
 
 func (o MessageAttachment) DeepCopy() MessageAttachment {
@@ -1007,6 +1009,28 @@ func (o MessageAttachment) DeepCopy() MessageAttachment {
 			return append([]byte{}, x...)
 		})(o.Metadata),
 		Uploaded: o.Uploaded,
+		UserMentions: (func(x []KnownUserMention) []KnownUserMention {
+			if x == nil {
+				return nil
+			}
+			ret := make([]KnownUserMention, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.UserMentions),
+		TeamMentions: (func(x []KnownTeamMention) []KnownTeamMention {
+			if x == nil {
+				return nil
+			}
+			ret := make([]KnownTeamMention, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.TeamMentions),
 	}
 }
 
