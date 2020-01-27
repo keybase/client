@@ -4,8 +4,10 @@
 package watchdog
 
 import (
+	"io/ioutil"
 	"os"
 	"os/exec"
+	"strconv"
 	"time"
 
 	"github.com/keybase/go-updater/process"
@@ -26,9 +28,10 @@ const (
 
 // Program is a program at path with arguments
 type Program struct {
-	Path   string
-	Args   []string
-	ExitOn ExitOn
+	Path    string
+	Args    []string
+	ExitOn  ExitOn
+	PidFile string
 }
 
 // Log is the logging interface for the watchdog package
@@ -57,15 +60,62 @@ func Watch(programs []Program, restartDelay time.Duration, log Log) error {
 	return nil
 }
 
+// terminate will send a kill signal to the program by finding its pid from the
+// path to its executable. If the program has specified a pidfile, this function
+// will open up that file and see if the pid in there matches the pid that was just
+// terminated. If so, this function will delete the file. It is much better for
+// programs to manage their own pidfiles, but kill signals cannot always be caught
+// and handled gracefully (i.e. in windows).
+func (p Program) terminate(log Log) {
+	log.Infof("Terminating %s", p.Path)
+	thisProcess := os.Getpid()
+	matcher := process.NewMatcher(p.Path, process.PathEqual, log)
+	matcher.ExceptPID(thisProcess)
+	// this logic also exists in the updater, so if you want to change it, look there too.
+	terminatedPids := process.TerminateAll(matcher, time.Second, log)
+	if len(terminatedPids) == 0 {
+		// nothing terminated probably because nothing was running
+		return
+	}
+	// if there was a pidfile, it might not have been cleaned up, so let's take a look
+	if p.PidFile == "" {
+		// nothing more to do
+		return
+	}
+	time.Sleep(500 * time.Millisecond) // give the program a chance to clean itself up
+	pidFromFile, err := ioutil.ReadFile(p.PidFile)
+	if os.IsNotExist(err) {
+		// pidfile was successfully cleaned up by the terminated process
+		// or was never created
+		return
+	}
+	lockedPid, err := strconv.Atoi(string(pidFromFile))
+	if err != nil {
+		log.Infof("error reading pid from file after terminating program %s: %s", p.Path, err.Error())
+		return
+	}
+	var terminatedPidIsStillLockedByFile bool
+	for _, termPid := range terminatedPids {
+		if termPid == lockedPid {
+			terminatedPidIsStillLockedByFile = true
+			break
+		}
+	}
+	if !terminatedPidIsStillLockedByFile {
+		// the program updated its own pidfile
+		return
+	}
+	if err := os.Remove(p.PidFile); err != nil {
+		log.Infof("error deleting pidfile %s: %s", p.PidFile, err.Error())
+		return
+	}
+	log.Infof("Successfully deleted a pid file at %s", p.PidFile)
+}
+
 func terminateExisting(programs []Program, log Log) {
 	// Terminate any monitored processes
-	// this logic also exists in the updater, so if you want to change it, look there too.
-	ospid := os.Getpid()
-	for _, program := range programs {
-		matcher := process.NewMatcher(program.Path, process.PathEqual, log)
-		matcher.ExceptPID(ospid)
-		log.Infof("Terminating %s", program.Path)
-		process.TerminateAll(matcher, time.Second, log)
+	for _, p := range programs {
+		p.terminate(log)
 	}
 }
 

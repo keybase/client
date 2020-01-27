@@ -922,14 +922,14 @@
 		{
 			"checksumSHA1": "SkzqJzOqrobx0rcaUKGoFgsWcuc=",
 			"path": "github.com/keybase/go-updater/process",
-			"revision": "587c926461284b281f08649725f4de8b8c7a59a5",
-			"revisionTime": "2020-01-27T20:29:22Z"
+			"revision": "f8c077b6a42e5e5fe1015d564b7c80d27ae1304a",
+			"revisionTime": "2020-01-27T21:02:54Z"
 		},
 		{
-			"checksumSHA1": "/pCj/k5mmwxiRnYjf7bVeSfsiRA=",
+			"checksumSHA1": "i/O8DL3IG15EOv40nQNvaiLiEJo=",
 			"path": "github.com/keybase/go-updater/watchdog",
-			"revision": "587c926461284b281f08649725f4de8b8c7a59a5",
-			"revisionTime": "2020-01-27T20:29:22Z"
+			"revision": "f8c077b6a42e5e5fe1015d564b7c80d27ae1304a",
+			"revisionTime": "2020-01-27T21:02:54Z"
 		},
 		{
 			"checksumSHA1": "rRRQUZrxRapCpdmV2BUgmJRE/ww=",

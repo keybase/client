@@ -48,6 +48,10 @@ func (c *CmdWatchdog) Run() error {
 		return err
 	}
 	serviceLogPath := filepath.Join(env.GetLogDir(), libkb.ServiceLogFileName)
+	servicePidFile, err := env.GetPidFile()
+	if err != nil {
+		return fmt.Errorf("cannot get pidfile path for the watchdog to start the service: %s", err.Error())
+	}
 	serviceProgram := watchdog.Program{
 		Path: keybasePath,
 		Args: []string{
@@ -58,6 +62,10 @@ func (c *CmdWatchdog) Run() error {
 		},
 		// when the service exits gracefully, also exit the watchdog and any other programs it is currently watching
 		ExitOn: watchdog.ExitAllOnSuccess,
+		// If the watchdog (or more likely another instance of a watchdog process) terminates this program,
+		// it will attempt to help delete this file. On windows, terminations are not signaled and handled gracefully.
+		// This change is to mitigate that sometimes the service will not start because it thinks it's already running.
+		PidFile: servicePidFile,
 	}
 	programs = append(programs, serviceProgram)
 
