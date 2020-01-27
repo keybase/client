@@ -25,8 +25,23 @@ export const ensureDownloadPermissionPromise = async () => {
   }
 }
 
+const finishedRegularDownloadIDs = new Set<string>()
+const finishedRegularDownloadIDOnce = (downloadID: string): boolean => {
+  if (finishedRegularDownloadIDs.has(downloadID)) {
+    return false
+  }
+  finishedRegularDownloadIDs.add(downloadID)
+  setTimeout(() => finishedRegularDownloadIDs.delete(downloadID), 60 * 1000)
+  return true
+}
+
 const finishedRegularDownload = async (state: TypedState, action: FsGen.FinishedRegularDownloadPayload) => {
   const {downloadID, mimeType} = action.payload
+
+  if (!finishedRegularDownloadIDOnce(downloadID)) {
+    return null
+  }
+
   const downloadState = state.fs.downloads.state.get(downloadID) || Constants.emptyDownloadState
   const downloadInfo = state.fs.downloads.info.get(downloadID) || Constants.emptyDownloadInfo
   if (downloadState === Constants.emptyDownloadState || downloadInfo === Constants.emptyDownloadInfo) {
