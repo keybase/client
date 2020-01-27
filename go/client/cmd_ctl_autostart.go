@@ -44,7 +44,7 @@ func NewCmdCtlAutostart(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 	keybase-redirector` + backtick + `.
 
 
-    On Windows registry and shortcuts are used for this.
+    On Windows, registry and shortcuts are used for this.
 `,
 		Flags: []cli.Flag{
 			cli.BoolFlag{
