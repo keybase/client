@@ -54,6 +54,16 @@ const load = () => {
           `${curr.name} ${curr.countryCallingCodes[0].replace(' ', '\xa0')}`,
       }
 
+      // Skip all the non-GB UK numbers. This way we avoid having to write all the
+      // sub-country-prefix matching code for UK.
+      if (
+        curr.countryCallingCodes.length === 1 &&
+        curr.countryCallingCodes[0] === '+44' &&
+        curr.alpha2 !== 'GB'
+      ) {
+        return
+      }
+
       for (const code of curr.countryCallingCodes) {
         _codeToCountryRaw[code.slice(1)] = curr.alpha2
       }
