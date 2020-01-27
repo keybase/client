@@ -9,7 +9,7 @@ class ProgressIndicator extends Component<Props> {
 
     return (
       <NativeActivityIndicator
-        color={this.props.white ? globalColors.white : globalColors.black}
+        color={this.props.white ? globalColors.whiteOrWhite : globalColors.black}
         size={size}
         style={collapseStyles([style, this.props.style])}
       />
