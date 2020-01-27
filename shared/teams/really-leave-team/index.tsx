@@ -1,16 +1,8 @@
 import * as React from 'react'
 import * as Constants from '../../constants/teams'
-import {
-  Avatar,
-  Box,
-  ConfirmModal,
-  HeaderOnMobile,
-  Icon,
-  MaybePopup,
-  ProgressIndicator,
-} from '../../common-adapters'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 import {useTeamsSubscribe} from '../../teams/subscriber'
-import {globalStyles, globalMargins} from '../../styles'
 
 export type Props = {
   error: string
@@ -23,20 +15,18 @@ export type Props = {
 }
 
 const _Spinner = (props: Props) => (
-  <MaybePopup onClose={props.onBack}>
-    <Box
-      style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, padding: globalMargins.xlarge}}
-    >
-      <ProgressIndicator style={{width: globalMargins.medium}} />
-    </Box>
-  </MaybePopup>
+  <Kb.MaybePopup onClose={props.onBack}>
+    <Kb.Box2 direction="vertical" style={styles.spinnerContainer}>
+      <Kb.ProgressIndicator style={styles.spinnerProgressIndicator} />
+    </Kb.Box2>
+  </Kb.MaybePopup>
 )
-const Spinner = HeaderOnMobile(_Spinner)
+const Spinner = Kb.HeaderOnMobile(_Spinner)
 
 const Header = (props: Props) => (
   <>
-    <Avatar teamname={props.name} size={64} />
-    <Icon type="icon-team-leave-28" style={{marginRight: -60, marginTop: -20, zIndex: 1}} />
+    <Kb.Avatar teamname={props.name} size={64} />
+    <Kb.Icon type="icon-team-leave-28" style={styles.headerIcon} />
   </>
 )
 
@@ -45,7 +35,7 @@ const _ReallyLeaveTeam = (props: Props) => {
   React.useEffect(() => () => props.clearErrors(), [])
   useTeamsSubscribe()
   return (
-    <ConfirmModal
+    <Kb.ConfirmModal
       error={props.error}
       confirmText="Leave team"
       description={`You will lose access to all the ${props.name} chats and folders${
@@ -59,6 +49,22 @@ const _ReallyLeaveTeam = (props: Props) => {
     />
   )
 }
+
+const styles = Styles.styleSheetCreate(() => ({
+  headerIcon: {
+    marginRight: -60,
+    marginTop: -20,
+    zIndex: 1,
+  },
+  spinnerContainer: {
+    alignItems: 'center',
+    flex: 1,
+    padding: Styles.globalMargins.xlarge,
+  },
+  spinnerProgressIndicator: {
+    width: Styles.globalMargins.medium,
+  },
+}))
 
 export default _ReallyLeaveTeam
 export {Spinner}
