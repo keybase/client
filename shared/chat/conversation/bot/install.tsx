@@ -253,6 +253,7 @@ const InstallBotPopup = (props: Props) => {
                 type="BodySemibold"
                 usernames={[botUsername]}
                 withProfileCardPopup={false}
+                onUsernameClicked="profile"
               />
             </Kb.Box2>
             <Kb.Text type="BodySmall" lineClamp={1}>
@@ -293,6 +294,7 @@ const InstallBotPopup = (props: Props) => {
             type="BodySemibold"
             usernames={[botUsername]}
             withProfileCardPopup={false}
+            onUsernameClicked="profile"
           />
         </Kb.Box2>
       </Kb.Box2>
@@ -318,6 +320,7 @@ const InstallBotPopup = (props: Props) => {
               type="BodySemibold"
               usernames={[botUsername]}
               withProfileCardPopup={false}
+              onUsernameClicked="profile"
             />
           </Kb.Box2>
           {!!featured && (
