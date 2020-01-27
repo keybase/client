@@ -255,6 +255,28 @@ func ToggleAutostart(context Context, on bool, forAutoinstallIgnored bool) error
 	return nil
 }
 
+// This is the old startup info logging. Retain it for now, but it is soon useless.
+// TODO Remove in 2021.
+func deprecatedStartupInfo(logFile *os.File) {
+	if appDataDir, err := libkb.AppDataDir(); err != nil {
+		logFile.WriteString("Error getting AppDataDir\n")
+	} else {
+		if exists, err := libkb.FileExists(filepath.Join(appDataDir, "Microsoft\\Windows\\Start Menu\\Programs\\Startup\\KeybaseStartup.lnk")); err == nil && exists == false {
+			logFile.WriteString("  -- Service startup shortcut missing! --\n\n")
+		} else if err != nil {
+			k, err := registry.OpenKey(registry.CURRENT_USER, "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\StartupApproved\\StartupFolder", registry.QUERY_VALUE|registry.READ)
+			if err != nil {
+				logFile.WriteString("Error opening Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\StartupApproved\\StartupFolder\n")
+			} else {
+				val, _, err := k.GetBinaryValue("KeybaseStartup.lnk")
+				if err == nil && len(val) > 0 && val[0] != 2 {
+					logFile.WriteString("  -- Service startup shortcut disabled in registry! --\n\n")
+				}
+			}
+		}
+	}
+}
+
 func getVersionAndDrivers(logFile *os.File) {
 	// Capture Windows Version
 	cmd := exec.Command("cmd", "ver")
@@ -277,6 +299,7 @@ func getVersionAndDrivers(logFile *os.File) {
 	logFile.WriteString("\n")
 
 	// Check whether the service shortcut is still present and not disabled
+	deprecatedStartupInfo(logFile)
 	status, err := autostartStatus()
 	logFile.WriteString(fmt.Sprintf("AutoStart: %v, %v\n", status, err))
 
