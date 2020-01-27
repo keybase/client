@@ -448,6 +448,10 @@ func IsDeleteableByDeleteMessageType(messageType chat1.MessageType) bool {
 	return checkMessageTypeQual(messageType, chat1.DeletableMessageTypesByDelete())
 }
 
+func IsNonEmptyConvMessageType(messageType chat1.MessageType) bool {
+	return checkMessageTypeQual(messageType, chat1.NonEmptyConvMessageTypes())
+}
+
 func IsCollapsibleMessageType(messageType chat1.MessageType) bool {
 	switch messageType {
 	case chat1.MessageType_UNFURL, chat1.MessageType_ATTACHMENT:
@@ -461,9 +465,7 @@ func IsNotifiableChatMessageType(messageType chat1.MessageType, atMentions []gre
 	switch messageType {
 	case chat1.MessageType_EDIT:
 		// an edit with atMention or channel mention should generate notifications
-		if len(atMentions) > 0 || chanMention != chat1.ChannelMention_NONE {
-			return true
-		}
+		return len(atMentions) > 0 || chanMention != chat1.ChannelMention_NONE
 	case chat1.MessageType_REACTION:
 		// effect of this is all reactions will notify if they are sent to a person that
 		// is notified for any messages in the conversation
@@ -853,7 +855,7 @@ func IsConvEmpty(conv chat1.Conversation) bool {
 		return false
 	default:
 		for _, msg := range conv.MaxMsgSummaries {
-			if IsNonemptyConvMessageType(msg.GetMessageType()) {
+			if IsNonEmptyConvMessageType(msg.GetMessageType()) {
 				return false
 			}
 		}

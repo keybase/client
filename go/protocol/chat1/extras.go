@@ -225,6 +225,23 @@ func VisibleChatMessageTypes() []MessageType {
 	return visibleMessageTypes
 }
 
+var nonEmptyConvMessageTypes = []MessageType{
+	MessageType_TEXT,
+	MessageType_ATTACHMENT,
+	MessageType_SYSTEM,
+	MessageType_SENDPAYMENT,
+	MessageType_REQUESTPAYMENT,
+	MessageType_FLIP,
+	MessageType_HEADLINE,
+	MessageType_PIN,
+}
+
+// A conversation is considered 'empty' unless it has one of these message types.
+// Used for example for filtering empty convs out of the the inbox.
+func NonEmptyConvMessageTypes() []MessageType {
+	return NonEmptyConvMessageTypes()
+}
+
 var editableMessageTypesByEdit = []MessageType{
 	MessageType_TEXT,
 }
