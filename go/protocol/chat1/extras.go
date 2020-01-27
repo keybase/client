@@ -182,6 +182,97 @@ func (t MessageType) String() string {
 	return "UNKNOWN"
 }
 
+type messageTypePropertyStruct struct {
+	Visible                  bool
+	NonEmptyConv             bool
+	EditableByEdit           bool
+	DeletableByDelete        bool
+	DeletableByDeleteHistory bool
+}
+
+var messageTypeProperties = map[MessageType]messageTypePropertyStruct{
+	MessageType_NONE: {},
+	MessageType_TEXT: {
+		Visible: true,
+	},
+	MessageType_ATTACHMENT: {
+		Visible: true,
+	},
+	MessageType_EDIT:     {},
+	MessageType_DELETE:   {},
+	MessageType_METADATA: {},
+	MessageType_TLFNAME:  {},
+	MessageType_HEADLINE: {
+		Visible: true,
+	},
+	MessageType_ATTACHMENTUPLOADED: {},
+	MessageType_JOIN: {
+		Visible: true,
+	},
+	MessageType_LEAVE: {
+		Visible: true,
+	},
+	MessageType_SYSTEM: {
+		Visible: true,
+	},
+	MessageType_DELETEHISTORY: {},
+	MessageType_REACTION:      {},
+	MessageType_SENDPAYMENT: {
+		Visible: true,
+	},
+	MessageType_REQUESTPAYMENT: {
+		Visible: true,
+	},
+	MessageType_UNFURL: {},
+	MessageType_FLIP: {
+		Visible: true,
+	},
+	MessageType_PIN: {
+		Visible: true,
+	},
+}
+
+type messagePropertyCache struct {
+	sync.Mutex
+	done     bool
+	list     []MessageType
+	lookup   map[MessageType]bool
+	selector func(messageTypePropertyStruct) bool
+}
+
+func (c *messagePropertyCache) init() {
+	c.Lock()
+	defer c.Unlock()
+	c.lookup = make(map[MessageType]bool)
+	for mt, p := range messageTypeProperties {
+		if c.selector(p) {
+			c.list = append(c.list, mt)
+			c.lookup[mt] = true
+		}
+	}
+	sort.Slice(c.list, func(i, j int) bool { return c.list[i] < c.list[j] })
+}
+
+func (c *messagePropertyCache) List() []MessageType {
+	c.init()
+	return c.list
+}
+
+func (c *messagePropertyCache) Lookup(mt MessageType) bool {
+	c.init()
+	return c.lookup[mt]
+}
+
+var visiblePC = messagePropertyCache{selector: func(v messageTypePropertyStruct) bool { return v.Visible }}
+
+func VisibleChatMessageTypes() []MessageType {
+	return visiblePC.List()
+}
+
+func (mt MessageType) IsVisible() bool {
+	return visiblePC.Lookup(mt)
+}
+
 // Message types deletable by a standard DELETE message.
 var deletableMessageTypesByDelete = []MessageType{
 	MessageType_TEXT,
@@ -206,23 +297,6 @@ var nonDeletableMessageTypesByDeleteHistory = []MessageType{
 
 func DeletableMessageTypesByDelete() []MessageType {
 	return deletableMessageTypesByDelete
-}
-
-var visibleMessageTypes = []MessageType{
-	MessageType_TEXT,
-	MessageType_ATTACHMENT,
-	MessageType_JOIN,
-	MessageType_LEAVE,
-	MessageType_SYSTEM,
-	MessageType_SENDPAYMENT,
-	MessageType_REQUESTPAYMENT,
-	MessageType_FLIP,
-	MessageType_HEADLINE,
-	MessageType_PIN,
-}
-
-func VisibleChatMessageTypes() []MessageType {
-	return visibleMessageTypes
 }
 
 var nonEmptyConvMessageTypes = []MessageType{
