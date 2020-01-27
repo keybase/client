@@ -65,6 +65,9 @@ func (log *TestLogger) common(ctx context.Context, lvl logging.Level, useFatal b
 			globalFailReported[name] = struct{}{}
 		}
 		globalFailReportedLock.Unlock()
+		if stringListContains(strings.ToLower(os.Getenv("KEYBASE_TEST_LOG_AFTER_FAIL")), []string{"0", "false", "n", "no"}) {
+			return
+		}
 	}
 
 	if os.Getenv("KEYBASE_TEST_DUP_LOG_TO_STDOUT") != "" {
@@ -191,3 +194,12 @@ func (log *TestLogger) CloneWithAddedDepth(depth int) Logger {
 
 // no-op stubs to fulfill the Logger interface
 func (log *TestLogger) SetExternalHandler(_ ExternalHandler) {}
+
+func stringListContains(s string, a []string) bool {
+	for _, t := range a {
+		if s == t {
+			return true
+		}
+	}
+	return false
+}
