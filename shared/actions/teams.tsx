@@ -524,7 +524,7 @@ function* getDetailsByID(state: TypedState, action: TeamsGen.GetDetailsByIDPaylo
 
   const waitingKeys = [Constants.teamWaitingKeyByID(teamID, state), Constants.teamGetWaitingKey(teamID)]
 
-  Saga.put(TeamsGen.createGetTeamPublicity({teamID}))
+  yield Saga.put(TeamsGen.createGetTeamPublicity({teamID}))
 
   try {
     const unsafeDetails: Saga.RPCPromiseType<typeof RPCTypes.teamsTeamGetByIDRpcPromise> = yield RPCTypes.teamsTeamGetByIDRpcPromise(
