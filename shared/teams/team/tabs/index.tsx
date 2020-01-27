@@ -63,13 +63,7 @@ const TeamTabs = (props: TeamTabsProps) => {
   }
 
   if (props.numSubteams > 0 || props.showSubteams) {
-    tabs.push(
-      <TabText
-        key="subteams"
-        selected={props.selectedTab === 'subteams'}
-        text={`Subteams (${props.numSubteams})`}
-      />
-    )
+    tabs.push(<TabText key="subteams" selected={props.selectedTab === 'subteams'} text="Subteams" />)
   }
 
   tabs.push(
