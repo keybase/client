@@ -15,7 +15,6 @@ type Props = {
   blocked: boolean
   hidFromFollowers: boolean
   isBot: boolean
-  loadFeaturedBots: () => void
   onAccept: () => void
   onAddToTeam: () => void
   onBrowsePublicFolder: () => void

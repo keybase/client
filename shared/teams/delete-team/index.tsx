@@ -7,7 +7,6 @@ import * as Container from '../../util/container'
 import * as Styles from '../../styles'
 
 export type Props = {
-  clearWaiting: () => void
   deleteWaiting: boolean
   onBack: () => void
   onDelete: () => void
@@ -63,7 +62,7 @@ const ReallyDeleteTeam = (props: Props) => {
   const {checkChats, checkFolder, checkNotify} = checks
   const onCheck = (which: keyof typeof checks) => (enable: boolean) => setChecks({...checks, [which]: enable})
   const disabled = !checkChats || !checkFolder || !checkNotify
-  const {deleteWaiting, onBack, clearWaiting, teamID} = props
+  const {deleteWaiting, onBack, teamID} = props
   const error = Container.useAnyErrors(Constants.deleteTeamWaitingKey(props.teamID))
   const prevDeleteWaiting = Container.usePrevious(deleteWaiting)
   React.useEffect(() => {
