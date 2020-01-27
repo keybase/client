@@ -11,7 +11,7 @@ import (
 type withLogTagKey string
 
 func WithLogTag(ctx context.Context, k string) context.Context {
-	return WithLogTagWithValue(ctx, k, RandStringB64(3))
+	return WithLogTagWithValue(ctx, k, strings.ReplaceAll(RandStringB64(3), "-", ""))
 }
 
 func WithLogTagWithValue(ctx context.Context, k, v string) context.Context {
