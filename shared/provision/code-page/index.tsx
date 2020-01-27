@@ -387,7 +387,7 @@ const Instructions = (p: Props) => (
       </Kb.Box2>
     ) : (
       <>
-        <Kb.Text type={textType} style={styles.instructionsContainer}>
+        <Kb.Text type={textType} style={styles.instructionsContainer} center={true}>
           <Kb.Text
             type={textType}
             style={Styles.collapseStyles([styles.instructions, styles.instructionsUpper])}
