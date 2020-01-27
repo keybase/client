@@ -26,23 +26,17 @@ export const ensureDownloadPermissionPromise = async () => {
 }
 
 const finishedRegularDownloadIDs = new Set<string>()
-const finishedRegularDownloadIDOnce = (downloadID: string): boolean => {
-  if (finishedRegularDownloadIDs.has(downloadID)) {
-    return false
-  }
-  finishedRegularDownloadIDs.add(downloadID)
-  setTimeout(() => finishedRegularDownloadIDs.delete(downloadID), 60 * 1000)
-  return true
-}
 
 const finishedRegularDownload = async (state: TypedState, action: FsGen.FinishedRegularDownloadPayload) => {
   const {downloadID, mimeType} = action.payload
 
   // This is fired from a hook and can happen more than once per downloadID.
-  // So just deduplicate them here.
-  if (!finishedRegularDownloadIDOnce(downloadID)) {
+  // So just deduplicate them here. This is small enough and won't happen
+  // constantly, so don't worry about clearing them.
+  if (finishedRegularDownloadIDs.has(downloadID)) {
     return null
   }
+  finishedRegularDownloadIDs.add(downloadID)
 
   const downloadState = state.fs.downloads.state.get(downloadID) || Constants.emptyDownloadState
   const downloadInfo = state.fs.downloads.info.get(downloadID) || Constants.emptyDownloadInfo
