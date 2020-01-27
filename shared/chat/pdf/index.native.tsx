@@ -21,10 +21,7 @@ const ChatPDF = (props: Props) => {
       <Kb.HeaderHocHeader title={title} onBack={onBack} rightActions={rightActions} />
       {url && !error ? (
         <Kb.WebView
-          allowUniversalAccessFromFileURLs={true}
           originWhitelist={['*']}
-          allowFileAccess={true}
-          allowFileAccessFromFileURLs={true}
           renderLoading={() => (
             <Kb.Box2 direction="vertical" style={styles.progressContainer} fullWidth={true} fullHeight={true}>
               <Kb.ProgressIndicator white={true} />
