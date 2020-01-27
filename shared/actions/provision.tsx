@@ -420,6 +420,7 @@ const makeProvisioningManager = (addingANewDevice: boolean): ProvisioningManager
  * screens and we stash the result object so we can show the screen. When the submit on that screen is done we find the stashedReponse and respond and wait
  */
 function* startProvisioning(state: Container.TypedState) {
+  yield Saga.put(WaitingGen.createClearWaiting({key: Constants.waitingKey}))
   const manager = makeProvisioningManager(false)
   try {
     const username = state.provision.username
@@ -472,12 +473,14 @@ function* startProvisioning(state: Container.TypedState) {
         break
     }
   } finally {
+    yield Saga.put(WaitingGen.createClearWaiting({key: Constants.waitingKey}))
     yield Saga.put(ProvisionGen.createProvisionDone())
   }
 }
 
 function* addNewDevice() {
   // Make a new handler each time.
+  yield Saga.put(WaitingGen.createClearWaiting({key: Constants.waitingKey}))
   const manager = makeProvisioningManager(true)
   try {
     yield RPCTypes.deviceDeviceAddRpcSaga({
@@ -509,6 +512,7 @@ function* addNewDevice() {
     yield Saga.put(ProvisionGen.createShowFinalErrorPage({finalError, fromDeviceAdd: true}))
     logger.error(`Provision -> Add device error: ${finalError.message}`)
   } finally {
+    yield Saga.put(WaitingGen.createClearWaiting({key: Constants.waitingKey}))
     yield Saga.put(ProvisionGen.createProvisionDone())
   }
 }
