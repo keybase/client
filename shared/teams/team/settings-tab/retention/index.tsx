@@ -425,7 +425,7 @@ const RetentionSwitcher = (
   const dispatch = Container.useDispatch()
   React.useEffect(() => {
     dispatch(TeamsGen.createGetTeamRetentionPolicy({teamID}))
-  }, [teamID])
+  }, [dispatch, teamID])
   if (props.loading) {
     return <Kb.ProgressIndicator style={styles.progressIndicator} />
   }
