@@ -240,7 +240,7 @@ type OpenTeamProps = Types.InboxSearchOpenTeamHit & {
 }
 const OpenTeamRow = (p: OpenTeamProps) => {
   const [hovering, setHovering] = React.useState(false)
-  const {selected, name, description, memberCount, publicAdmins, id, inTeam} = p
+  const {name, description, memberCount, publicAdmins, id, inTeam} = p
   const dispatch = Container.useDispatch()
   const popupAnchor = React.useRef(null)
   const {showingPopup, setShowingPopup, popup} = Kb.usePopup(popupAnchor, () => (
@@ -263,6 +263,8 @@ const OpenTeamRow = (p: OpenTeamProps) => {
       visible={showingPopup}
     />
   ))
+
+  const selected = showingPopup
 
   return (
     <Kb.ClickableBox onClick={() => setShowingPopup(!showingPopup)} style={{width: '100%'}}>
