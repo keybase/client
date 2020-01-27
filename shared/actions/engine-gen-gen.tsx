@@ -182,6 +182,7 @@ export const keybase1NotifyUsersPasswordChanged = 'engine-gen:keybase1NotifyUser
 export const keybase1NotifyUsersUserChanged = 'engine-gen:keybase1NotifyUsersUserChanged'
 export const keybase1PgpUiFinished = 'engine-gen:keybase1PgpUiFinished'
 export const keybase1PgpUiKeyGenerated = 'engine-gen:keybase1PgpUiKeyGenerated'
+export const keybase1PgpUiOutputPGPWarning = 'engine-gen:keybase1PgpUiOutputPGPWarning'
 export const keybase1PgpUiOutputSignatureSuccess = 'engine-gen:keybase1PgpUiOutputSignatureSuccess'
 export const keybase1PgpUiOutputSignatureSuccessNonKeybase =
   'engine-gen:keybase1PgpUiOutputSignatureSuccessNonKeybase'
@@ -1530,6 +1531,15 @@ type _Keybase1PgpUiKeyGeneratedPayload = {
     result: (param: keybase1Types.MessageTypes['keybase.1.pgpUi.keyGenerated']['outParam']) => void
   }
 }
+type _Keybase1PgpUiOutputPGPWarningPayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.pgpUi.outputPGPWarning']['inParam'] & {
+    sessionID: number
+  }
+  response: {
+    error: keybase1Types.IncomingErrorCallback
+    result: (param: keybase1Types.MessageTypes['keybase.1.pgpUi.outputPGPWarning']['outParam']) => void
+  }
+}
 type _Keybase1PgpUiOutputSignatureSuccessNonKeybasePayload = {
   readonly params: keybase1Types.MessageTypes['keybase.1.pgpUi.outputSignatureSuccessNonKeybase']['inParam'] & {
     sessionID: number
@@ -2478,6 +2488,9 @@ export const createKeybase1PgpUiFinished = (
 export const createKeybase1PgpUiKeyGenerated = (
   payload: _Keybase1PgpUiKeyGeneratedPayload
 ): Keybase1PgpUiKeyGeneratedPayload => ({payload, type: keybase1PgpUiKeyGenerated})
+export const createKeybase1PgpUiOutputPGPWarning = (
+  payload: _Keybase1PgpUiOutputPGPWarningPayload
+): Keybase1PgpUiOutputPGPWarningPayload => ({payload, type: keybase1PgpUiOutputPGPWarning})
 export const createKeybase1PgpUiOutputSignatureSuccess = (
   payload: _Keybase1PgpUiOutputSignatureSuccessPayload
 ): Keybase1PgpUiOutputSignatureSuccessPayload => ({payload, type: keybase1PgpUiOutputSignatureSuccess})
@@ -3275,6 +3288,10 @@ export type Keybase1PgpUiKeyGeneratedPayload = {
   readonly payload: _Keybase1PgpUiKeyGeneratedPayload
   readonly type: typeof keybase1PgpUiKeyGenerated
 }
+export type Keybase1PgpUiOutputPGPWarningPayload = {
+  readonly payload: _Keybase1PgpUiOutputPGPWarningPayload
+  readonly type: typeof keybase1PgpUiOutputPGPWarning
+}
 export type Keybase1PgpUiOutputSignatureSuccessNonKeybasePayload = {
   readonly payload: _Keybase1PgpUiOutputSignatureSuccessNonKeybasePayload
   readonly type: typeof keybase1PgpUiOutputSignatureSuccessNonKeybase
@@ -3618,6 +3635,7 @@ export type Actions =
   | Keybase1NotifyUsersUserChangedPayload
   | Keybase1PgpUiFinishedPayload
   | Keybase1PgpUiKeyGeneratedPayload
+  | Keybase1PgpUiOutputPGPWarningPayload
   | Keybase1PgpUiOutputSignatureSuccessNonKeybasePayload
   | Keybase1PgpUiOutputSignatureSuccessPayload
   | Keybase1PgpUiShouldPushPrivatePayload

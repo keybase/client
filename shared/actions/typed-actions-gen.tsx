@@ -492,6 +492,7 @@ export type TypedActionsMap = {
   'engine-gen:keybase1NotifyUsersUserChanged': enginegen.Keybase1NotifyUsersUserChangedPayload
   'engine-gen:keybase1NotifyUsersPasswordChanged': enginegen.Keybase1NotifyUsersPasswordChangedPayload
   'engine-gen:keybase1NotifyUsersIdentifyUpdate': enginegen.Keybase1NotifyUsersIdentifyUpdatePayload
+  'engine-gen:keybase1PgpUiOutputPGPWarning': enginegen.Keybase1PgpUiOutputPGPWarningPayload
   'engine-gen:keybase1PgpUiOutputSignatureSuccess': enginegen.Keybase1PgpUiOutputSignatureSuccessPayload
   'engine-gen:keybase1PgpUiOutputSignatureSuccessNonKeybase': enginegen.Keybase1PgpUiOutputSignatureSuccessNonKeybasePayload
   'engine-gen:keybase1PgpUiKeyGenerated': enginegen.Keybase1PgpUiKeyGeneratedPayload
