@@ -6,8 +6,6 @@ import {isLargeScreen} from '../../../constants/platform'
 import {SelectedEntry, DropdownEntry, DropdownText} from './dropdown'
 import Search from './search'
 import {Account} from '.'
-import debounce from 'lodash/debounce'
-import defer from 'lodash/defer'
 
 export type ToKeybaseUserProps = {
   isRequest: boolean
