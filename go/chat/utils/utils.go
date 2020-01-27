@@ -459,7 +459,11 @@ func IsCollapsibleMessageType(messageType chat1.MessageType) bool {
 func IsNotifiableChatMessageType(messageType chat1.MessageType, atMentions []gregor1.UID,
 	chanMention chat1.ChannelMention) bool {
 	if IsVisibleChatMessageType(messageType) {
-		return true
+		switch messageType {
+		case chat1.MessageType_JOIN, chat1.MessageType_LEAVE:
+		default:
+			return true
+		}
 	}
 	switch messageType {
 	case chat1.MessageType_EDIT:
