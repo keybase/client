@@ -1899,7 +1899,7 @@ func (dt *DeviceTypeV2) UnmarshalJSON(deviceType []byte) error {
 	return nil
 }
 
-func (dt *DeviceTypeV2) StringCustom() string {
+func (dt *DeviceTypeV2) StringForServer() string {
 	// for compatibility with the server
 	if *dt == DeviceTypeV2_PAPER {
 		return "backup"
@@ -1908,7 +1908,7 @@ func (dt *DeviceTypeV2) StringCustom() string {
 }
 
 func (dt *DeviceTypeV2) MarshalJSON() (b []byte, err error) {
-	return json.Marshal(dt.StringCustom())
+	return json.Marshal(dt.StringForServer())
 }
 
 // defaults to Desktop
