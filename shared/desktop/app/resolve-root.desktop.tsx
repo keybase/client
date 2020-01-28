@@ -27,3 +27,4 @@ export const resolveImage = (...to: Array<string>) => join(imageRoot, ...to)
 export const resolveImageAsURL = (...to: Array<string>) => `${prefix}${fix(resolveImage(...to))}`
 
 export default resolveRoot
+
