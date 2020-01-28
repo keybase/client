@@ -2132,8 +2132,7 @@ func (e ChatClientError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
 //=============================================================================
 
 type ChatUsersAlreadyInConversationError struct {
-	Uids   []keybase1.UID
-	ConvID chat1.ConversationID
+	Uids []keybase1.UID
 }
 
 func (e ChatUsersAlreadyInConversationError) Error() string {

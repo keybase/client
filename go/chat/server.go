@@ -2547,14 +2547,14 @@ func (h *Server) BulkAddToConv(ctx context.Context, arg chat1.BulkAddToConvArg) 
 	for i := 0; i < 4 && len(usernamesToAdd) > 0; i++ {
 		h.Debug(ctx, "BulkAddToConv: trying to add %v", usernamesToAdd)
 		err = sendBulkAddToConv(ctx, sender, usernamesToAdd, arg.ConvID, info)
-		if err == nil {
-			return
-		} else if convError, ok := err.(libkb.ChatUsersAlreadyInConversationError); ok {
+		switch e := err.(type) {
+		case nil:
+			return nil
+		case libkb.ChatUsersAlreadyInConversationError:
 			// remove the usernames which are already part of the conversation and retry
-			for _, uid := range convError.Uids {
+			for _, uid := range e.Uids {
 				toExclude[uid] = true
 			}
-
 			var usernamesToRetry []string
 			for _, username := range usernamesToAdd {
 				if !toExclude[libkb.UsernameToUID(username)] {
@@ -2562,8 +2562,8 @@ func (h *Server) BulkAddToConv(ctx context.Context, arg chat1.BulkAddToConvArg) 
 				}
 			}
 			usernamesToAdd = usernamesToRetry
-		} else {
-			return err
+		default:
+			return e
 		}
 	}
 	return err
