@@ -1,4 +1,6 @@
 import * as React from 'react'
+import * as Container from '../../../../util/container'
+import * as TeamsGen from '../../../../actions/teams-gen'
 import * as Styles from '../../../../styles'
 import * as Kb from '../../../../common-adapters'
 import * as TeamsTypes from '../../../../constants/types/teams'
@@ -419,14 +421,11 @@ const RetentionSwitcher = (
     entityType: RetentionEntityType
   } & Props
 ) => {
-  const {load, teamID} = props
-  React.useEffect(
-    () => {
-      load?.()
-    },
-    // eslint-disable-next-line
-    [teamID]
-  )
+  const {teamID} = props
+  const dispatch = Container.useDispatch()
+  React.useEffect(() => {
+    dispatch(TeamsGen.createGetTeamRetentionPolicy({teamID}))
+  }, [dispatch, teamID])
   if (props.loading) {
     return <Kb.ProgressIndicator style={styles.progressIndicator} />
   }

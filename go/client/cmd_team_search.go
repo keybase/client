@@ -4,8 +4,11 @@
 package client
 
 import (
+	"errors"
 	"fmt"
+	"strings"
 
+	humanize "github.com/dustin/go-humanize"
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -50,9 +53,25 @@ func NewCmdTeamSearchRunner(g *libkb.GlobalContext) *CmdTeamSearch {
 }
 
 func (c *CmdTeamSearch) ParseArgv(ctx *cli.Context) (err error) {
+	if len(ctx.Args()) != 1 {
+		return errors.New("usage: keybase team search <query>")
+	}
 	c.query = ctx.Args().Get(0)
 	c.limit = ctx.Int("limit")
 	return nil
+}
+
+func renderTeamSearchItem(item keybase1.TeamSearchItem) (res string) {
+	res = fmt.Sprintf("%s (%d members) (last active %s) \n",
+		item.Name, item.MemberCount, humanize.Time(item.LastActive.Time()))
+	if item.Description != nil {
+		res += fmt.Sprintf(
+			"\t%s\n", strings.ReplaceAll(*item.Description, "\n", "\n\t"))
+	}
+	if !item.InTeam {
+		res += fmt.Sprintf("\tYou can join this open team with `keybase team request-access %s`\n", item.Name)
+	}
+	return res
 }
 
 func (c *CmdTeamSearch) Run() error {
@@ -79,11 +98,8 @@ func (c *CmdTeamSearch) Run() error {
 		return nil
 	}
 
-	for _, team := range res.Results {
-		ui.Printf("%s (%d members)\n", team.Name, team.MemberCount)
-		if team.Description != nil {
-			ui.Printf("\t%s\n", *team.Description)
-		}
+	for _, item := range res.Results {
+		ui.Printf(renderTeamSearchItem(item))
 	}
 
 	return nil

@@ -248,6 +248,9 @@ type TestParameters struct {
 
 	// Toggle if we want to try to 'prime' the secret store before using it.
 	SecretStorePrimingDisabled bool
+
+	// Extra headers for API
+	APIHeaders map[string]string
 }
 
 func (tp TestParameters) GetDebug() (bool, bool) {

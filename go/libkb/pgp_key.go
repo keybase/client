@@ -674,6 +674,28 @@ func (k PGPKeyBundle) KeyInfo() (algorithm, kid, creation string) {
 	return
 }
 
+// Generates hash security warnings given a CKF
+func (k PGPKeyBundle) SecurityWarnings(kind HashSecurityWarningType) (warnings HashSecurityWarnings) {
+	fingerprint := k.GetFingerprint()
+	for _, identity := range k.Entity.Identities {
+		if identity.SelfSignature == nil ||
+			IsHashSecure(identity.SelfSignature.Hash) {
+			continue
+		}
+
+		warnings = append(
+			warnings,
+			NewHashSecurityWarning(
+				kind,
+				identity.SelfSignature.Hash,
+				&fingerprint,
+			),
+		)
+		return
+	}
+	return
+}
+
 func unlockPrivateKey(k *packet.PrivateKey, pw string) error {
 	if !k.Encrypted {
 		return nil

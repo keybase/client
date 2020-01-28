@@ -56,11 +56,11 @@ type diskBlockMetadataStore struct {
 
 // newDiskBlockMetadataStore creates a new disk BlockMetadata storage.
 func newDiskBlockMetadataStore(
-	config diskBlockMetadataStoreConfig, mode InitMode) (
+	config diskBlockMetadataStoreConfig, mode InitMode, storageRoot string) (
 	BlockMetadataStore, error) {
 	log := config.MakeLogger("BMS")
 	db, err := ldbutils.OpenVersionedLevelDb(
-		log, config.StorageRoot(), blockMetadataFolderName,
+		log, storageRoot, blockMetadataFolderName,
 		currentBlockMetadataStoreVersion, blockMetadataDbFilename, mode)
 	if err != nil {
 		return nil, err

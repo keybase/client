@@ -1,13 +1,12 @@
 import * as ConfigGen from '../../actions/config-gen'
-import * as SettingsGen from '../../actions/settings-gen'
+import * as Constants from '../../constants/settings'
+import * as Container from '../../util/container'
 import * as FSGen from '../../actions/fs-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import {HeaderHoc} from '../../common-adapters'
-import * as Constants from '../../constants/settings'
-import {anyErrors, anyWaiting} from '../../constants/waiting'
+import * as SettingsGen from '../../actions/settings-gen'
 import Advanced from '.'
-import * as Container from '../../util/container'
-import {isLinux} from '../../constants/platform'
+import {HeaderHoc} from '../../common-adapters'
+import {anyErrors, anyWaiting} from '../../constants/waiting'
 
 type OwnProps = {}
 
@@ -29,10 +28,6 @@ export default Container.connect(
     }
   },
   dispatch => ({
-    _loadHasRandomPW: () => dispatch(SettingsGen.createLoadHasRandomPw()),
-    _loadLockdownMode: () => dispatch(SettingsGen.createLoadLockdownMode()),
-    _loadNixOnLoginStartup: () => isLinux && dispatch(ConfigGen.createLoadNixOnLoginStartup()),
-    _loadRememberPassword: () => dispatch(SettingsGen.createLoadRememberPassword()),
     onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
     onChangeLockdownMode: (enabled: boolean) => dispatch(SettingsGen.createOnChangeLockdownMode({enabled})),
     onChangeRememberPassword: (remember: boolean) =>
@@ -50,19 +45,5 @@ export default Container.connect(
     onToggleRuntimeStats: () => dispatch(ConfigGen.createToggleRuntimeStats()),
     onTrace: (durationSeconds: number) => dispatch(SettingsGen.createTrace({durationSeconds})),
   }),
-  (s, d, o: OwnProps) => {
-    const {_loadHasRandomPW, _loadLockdownMode, _loadNixOnLoginStartup, _loadRememberPassword, ...restD} = d
-
-    return {
-      ...o,
-      ...s,
-      ...restD,
-      load: () => {
-        _loadLockdownMode()
-        _loadHasRandomPW()
-        _loadRememberPassword()
-        _loadNixOnLoginStartup()
-      },
-    }
-  }
+  (s, d, o: OwnProps) => ({...o, ...s, ...d})
 )(HeaderHoc(Advanced))

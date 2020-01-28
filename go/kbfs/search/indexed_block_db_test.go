@@ -76,7 +76,7 @@ func TestIndexedBlockDb(t *testing.T) {
 		KeyGen:  kbfsmd.FirstValidKeyGen,
 		DataVer: 1,
 	}
-	ver1 := uint(1)
+	ver1 := uint64(1)
 	docID1 := "1"
 
 	t.Log("Put block MD into the db.")
@@ -88,7 +88,7 @@ func TestIndexedBlockDb(t *testing.T) {
 	t.Log("Get block MD from the db.")
 	getVer1, getDocID1, err := db.Get(ctx, ptr1)
 	require.NoError(t, err)
-	checkWrite := func(expectedVer, ver uint, expectedDocID, docID string) {
+	checkWrite := func(expectedVer, ver uint64, expectedDocID, docID string) {
 		require.Equal(t, expectedVer, ver)
 		require.Equal(t, expectedDocID, docID)
 	}
@@ -102,7 +102,7 @@ func TestIndexedBlockDb(t *testing.T) {
 		KeyGen:  kbfsmd.FirstValidKeyGen,
 		DataVer: 1,
 	}
-	ver2 := uint(1)
+	ver2 := uint64(1)
 	docID2 := "2"
 
 	err = db.Put(ctx, tlfID, ptr2, ver2, docID2)
@@ -130,7 +130,7 @@ func TestIndexedBlockDb(t *testing.T) {
 			RefNonce: nonce,
 		},
 	}
-	ver3 := uint(1)
+	ver3 := uint64(1)
 	docID3 := "3"
 	err = db.Put(ctx, tlfID, ptr3, ver3, docID3)
 	require.NoError(t, err)

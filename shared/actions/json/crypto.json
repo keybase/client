@@ -37,9 +37,9 @@
       "value": "HiddenString"
     },
     "setEncryptOptions": {
-      "_description": "Sets options for encrypt operations. Also takkes 'noIncludeSelf' to disable includeSelf when user includes themselves as a recipient",
+      "_description": "Sets options for encrypt operations. Also takkes 'hideIncludeSelf' to disable includeSelf when user includes themselves as a recipient",
       "options": "Types.EncryptOptions",
-      "noIncludeSelf?": "boolean"
+      "hideIncludeSelf?": "boolean"
     },
     "onOperationSuccess": {
       "_description": "On saltpack RPC successful response. input is the operation that started it",

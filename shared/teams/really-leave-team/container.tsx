@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as WaitingGen from '../../actions/waiting-gen'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
@@ -20,7 +19,6 @@ const RenderLastOwner = (p: Props & ExtraProps) => {
     <LastOwnerDialog
       onBack={rest.onBack}
       onDeleteTeam={rest.onDeleteTeam}
-      onLeave={rest.onLeave}
       name={rest.name}
       stillLoadingTeam={stillLoadingTeam}
     />
@@ -46,8 +44,6 @@ export default Container.connect(
     }
   },
   dispatch => ({
-    _clearErrors: (teamname: string) =>
-      dispatch(WaitingGen.createClearWaiting({key: Constants.leaveTeamWaitingKey(teamname)})),
     _onDeleteTeam: (teamID: Types.TeamID) => {
       dispatch(RouteTreeGen.createNavigateUp())
       dispatch(
@@ -56,11 +52,11 @@ export default Container.connect(
         })
       )
     },
-    _onLeave: (teamname: string) => {
+    _onLeave: (teamname: string, permanent: boolean) => {
       dispatch(
         TeamsGen.createLeaveTeam({
           context: 'teams',
-          permanent: false,
+          permanent,
           teamname,
         })
       )
@@ -69,13 +65,12 @@ export default Container.connect(
   }),
   (stateProps, dispatchProps, _: OwnProps) => ({
     _leaving: stateProps._leaving,
-    clearErrors: () => dispatchProps._clearErrors(stateProps.name),
     error: stateProps.error?.message ?? '',
     lastOwner: stateProps.lastOwner,
     name: stateProps.name,
     onBack: stateProps._leaving ? () => {} : dispatchProps.onBack,
     onDeleteTeam: () => dispatchProps._onDeleteTeam(stateProps.teamID),
-    onLeave: () => dispatchProps._onLeave(stateProps.name),
+    onLeave: (permanent: boolean) => dispatchProps._onLeave(stateProps.name, permanent),
     open: stateProps.open,
     stillLoadingTeam: stateProps.stillLoadingTeam,
     teamID: stateProps.teamID,

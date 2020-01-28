@@ -63,8 +63,8 @@ class InboxSearch extends React.Component<Props, State> {
       <OpenTeamRow
         description={item.description}
         name={item.name}
-        teamID={item.teamID}
-        numMembers={item.numMembers}
+        id={item.id}
+        memberCount={item.memberCount}
         inTeam={item.inTeam}
         publicAdmins={item.publicAdmins}
         selected={false}
@@ -240,29 +240,31 @@ type OpenTeamProps = Types.InboxSearchOpenTeamHit & {
 }
 const OpenTeamRow = (p: OpenTeamProps) => {
   const [hovering, setHovering] = React.useState(false)
-  const {selected, name, description, numMembers, publicAdmins, teamID, inTeam} = p
+  const {name, description, memberCount, publicAdmins, id, inTeam} = p
   const dispatch = Container.useDispatch()
   const popupAnchor = React.useRef(null)
   const {showingPopup, setShowingPopup, popup} = Kb.usePopup(popupAnchor, () => (
     <TeamInfo
       attachTo={() => popupAnchor.current}
-      description={description}
+      description={description ?? ''}
       inTeam={inTeam}
       isOpen={true}
       name={name}
-      membersCount={numMembers}
+      membersCount={memberCount}
       position="right center"
       onChat={undefined}
       onHidden={() => setShowingPopup(false)}
       onJoinTeam={() => dispatch(TeamsGen.createJoinTeam({teamname: name}))}
       onViewTeam={() => {
         dispatch(RouteTreeGen.createClearModals())
-        dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'team'}]}))
+        dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID: id}, selected: 'team'}]}))
       }}
-      publicAdmins={publicAdmins}
+      publicAdmins={publicAdmins ?? []}
       visible={showingPopup}
     />
   ))
+
+  const selected = showingPopup
 
   return (
     <Kb.ClickableBox onClick={() => setShowingPopup(!showingPopup)} style={{width: '100%'}}>
@@ -276,6 +278,8 @@ const OpenTeamRow = (p: OpenTeamProps) => {
           {
             backgroundColor: selected ? Styles.globalColors.blue : Styles.globalColors.white,
             height: rowHeight,
+            paddingLeft: Styles.globalMargins.xtiny,
+            paddingRight: Styles.globalMargins.xtiny,
           },
         ])}
         onMouseLeave={() => setHovering(false)}
@@ -284,7 +288,7 @@ const OpenTeamRow = (p: OpenTeamProps) => {
         <TeamAvatar teamname={name} isMuted={false} isSelected={false} isHovered={hovering} />
         <Kb.Box2 direction="vertical" style={{flexGrow: 1}}>
           <Kb.Text
-            type="Body"
+            type="BodySemibold"
             style={Styles.collapseStyles([
               {color: selected ? Styles.globalColors.white : Styles.globalColors.black},
             ])}
@@ -295,12 +299,12 @@ const OpenTeamRow = (p: OpenTeamProps) => {
             {name}
           </Kb.Text>
           <Kb.Text
-            type="Body"
+            type="BodySmall"
             style={Styles.collapseStyles([
-              {color: selected ? Styles.globalColors.white : Styles.globalColors.black},
+              {color: selected ? Styles.globalColors.white : Styles.globalColors.black_50},
             ])}
             title={`#${description}`}
-            lineClamp={Styles.isMobile ? 1 : undefined}
+            lineClamp={1}
             ellipsizeMode="tail"
           >
             {description}

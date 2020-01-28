@@ -46,6 +46,7 @@ protocol pgp {
     boolean verified; // true if signature verified
     User signer; // who signed it
     PublicKey signKey; // the pub key that signed it
+    array<string> warnings; // any warnings that the user should be aware of
   }
 
   record PGPDecryptOptions {
