@@ -53,11 +53,15 @@ func (c *CmdWait) Run() error {
 	ctx, cancel := context.WithTimeout(context.Background(), c.duration)
 	defer cancel()
 
-	durationSeconds := c.duration.Seconds()
-	for i := float64(0); i < durationSeconds; i++ {
+	for {
+		fmt.Println("1")
 		client, err := getConfigClientWithRetry(c.G())
 		if err != nil {
-			time.Sleep(time.Second)
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-time.After(1 * time.Second):
+			}
 			continue
 		}
 
@@ -76,8 +80,6 @@ func (c *CmdWait) Run() error {
 		case <-time.After(1 * time.Second):
 		}
 	}
-
-	return nil
 }
 
 func (c *CmdWait) GetUsage() libkb.Usage {

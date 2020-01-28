@@ -23,15 +23,7 @@ keybase $KEYBASE_SERVICE_ARGS service &
 KEYBASE_DEBUG=1 kbfsfuse $KEYBASE_KBFS_ARGS &
 
 # Wait up to 10 seconds for the service to start
-SERVICE_COUNTER=0
-until keybase --no-auto-fork status &> /dev/null; do
-    if [ $SERVICE_COUNTER -gt 10 ]; then
-        echo "Service failed to start" >&2
-        exit 1
-    fi
-    SERVICE_COUNTER=$((SERVICE_COUNTER + 1))
-    sleep 1
-done
+keybase ctl wait
 
 # Wait up to 10 seconds for KBFS to start
 KBFS_COUNTER=0
