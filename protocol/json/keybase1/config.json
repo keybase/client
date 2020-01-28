@@ -837,6 +837,15 @@
         "FullStatus"
       ]
     },
+    "isServiceRunning": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "boolean"
+    },
     "logSend": {
       "request": [
         {
@@ -1102,15 +1111,6 @@
     "generateWebAuthToken": {
       "request": [],
       "response": "string"
-    },
-    "isServiceRunning": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        }
-      ],
-      "response": "boolean"
     }
   },
   "namespace": "keybase.1"

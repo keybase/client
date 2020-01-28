@@ -856,6 +856,10 @@ type GetFullStatusArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type IsServiceRunningArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type LogSendArg struct {
 	SessionID    int    `codec:"sessionID" json:"sessionID"`
 	StatusJSON   string `codec:"statusJSON" json:"statusJSON"`
@@ -967,14 +971,11 @@ type AppendGUILogsArg struct {
 type GenerateWebAuthTokenArg struct {
 }
 
-type IsServiceRunningArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
-}
-
 type ConfigInterface interface {
 	GetCurrentStatus(context.Context, int) (CurrentStatus, error)
 	GetClientStatus(context.Context, int) ([]ClientStatus, error)
 	GetFullStatus(context.Context, int) (*FullStatus, error)
+	IsServiceRunning(context.Context, int) (bool, error)
 	LogSend(context.Context, LogSendArg) (LogSendID, error)
 	GetAllProvisionedUsernames(context.Context, int) (AllProvisionedUsernames, error)
 	GetConfig(context.Context, int) (Config, error)
@@ -1008,7 +1009,6 @@ type ConfigInterface interface {
 	ToggleRuntimeStats(context.Context) error
 	AppendGUILogs(context.Context, string) error
 	GenerateWebAuthToken(context.Context) (string, error)
-	IsServiceRunning(context.Context, int) (bool, error)
 }
 
 func ConfigProtocol(i ConfigInterface) rpc.Protocol {
@@ -1057,6 +1057,21 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.GetFullStatus(ctx, typedArgs[0].SessionID)
+					return
+				},
+			},
+			"isServiceRunning": {
+				MakeArg: func() interface{} {
+					var ret [1]IsServiceRunningArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]IsServiceRunningArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]IsServiceRunningArg)(nil), args)
+						return
+					}
+					ret, err = i.IsServiceRunning(ctx, typedArgs[0].SessionID)
 					return
 				},
 			},
@@ -1420,21 +1435,6 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 					return
 				},
 			},
-			"isServiceRunning": {
-				MakeArg: func() interface{} {
-					var ret [1]IsServiceRunningArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]IsServiceRunningArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]IsServiceRunningArg)(nil), args)
-						return
-					}
-					ret, err = i.IsServiceRunning(ctx, typedArgs[0].SessionID)
-					return
-				},
-			},
 		},
 	}
 }
@@ -1458,6 +1458,12 @@ func (c ConfigClient) GetClientStatus(ctx context.Context, sessionID int) (res [
 func (c ConfigClient) GetFullStatus(ctx context.Context, sessionID int) (res *FullStatus, err error) {
 	__arg := GetFullStatusArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.config.getFullStatus", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c ConfigClient) IsServiceRunning(ctx context.Context, sessionID int) (res bool, err error) {
+	__arg := IsServiceRunningArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.config.isServiceRunning", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -1607,11 +1613,5 @@ func (c ConfigClient) AppendGUILogs(ctx context.Context, content string) (err er
 
 func (c ConfigClient) GenerateWebAuthToken(ctx context.Context) (res string, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.config.generateWebAuthToken", []interface{}{GenerateWebAuthTokenArg{}}, &res, 0*time.Millisecond)
-	return
-}
-
-func (c ConfigClient) IsServiceRunning(ctx context.Context, sessionID int) (res bool, err error) {
-	__arg := IsServiceRunningArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.config.isServiceRunning", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
