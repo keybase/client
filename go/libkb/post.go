@@ -223,7 +223,7 @@ func PostDeviceLKS(m MetaContext, deviceID keybase1.DeviceID, deviceType keybase
 		SessionType: APISessionTypeREQUIRED,
 		Args: HTTPArgs{
 			"device_id":       S{Val: deviceID.String()},
-			"type":            S{Val: deviceType.StringCustom()},
+			"type":            S{Val: deviceType.StringForServer()},
 			"lks_server_half": S{Val: serverHalf.EncodeToHex()},
 			"ppgen":           I{Val: int(ppGen)},
 			"lks_client_half": S{Val: clientHalfRecovery},
