@@ -212,7 +212,7 @@ func TestJourneycardDismissTeamwide(t *testing.T) {
 	}
 
 	t.Logf("Advanced time forward enough for CHANNEL_INACTIVE to be eligible")
-	err = tc0.ChatG.JourneyCardManager.(*JourneyCardManager).TimeTravel(ctx0, uid0, time.Hour*24*40)
+	err = tc0.ChatG.JourneyCardManager.(*JourneyCardManager).TimeTravel(ctx0, uid0, time.Hour*24*40+1)
 	require.NoError(t, err)
 	for _, convID := range allConvIDs {
 		requireJourneycard(convID, chat1.JourneycardType_CHANNEL_INACTIVE)
