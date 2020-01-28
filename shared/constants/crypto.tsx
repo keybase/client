@@ -149,7 +149,7 @@ export const makeState = (): Types.State => ({
     meta: {
       hasRecipients: false,
       hasSBS: false,
-      noIncludeSelf: false,
+      hideIncludeSelf: false,
     },
     options: {
       includeSelf: true,

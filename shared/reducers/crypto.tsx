@@ -77,7 +77,7 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     }
   },
   [CryptoGen.setEncryptOptions]: (draftState, action) => {
-    const {options: newOptions, noIncludeSelf} = action.payload
+    const {options: newOptions, hideIncludeSelf} = action.payload
     const {encrypt} = draftState
     const oldOptions = encrypt.options
     encrypt.options = {
@@ -85,8 +85,8 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       ...newOptions,
     }
     // User set themselves as a recipient so don't show the 'includeSelf' option for encrypt (since they're encrypting to themselves)
-    if (noIncludeSelf) {
-      encrypt.meta.noIncludeSelf = noIncludeSelf
+    if (hideIncludeSelf) {
+      encrypt.meta.hideIncludeSelf = hideIncludeSelf
       encrypt.options.includeSelf = false
     }
   },

@@ -37,7 +37,7 @@ const onSetRecipients = (state: TypedState, _: TeamBuildingGen.FinishedTeamBuild
 
   // User set themselves as a recipient, so don't show 'includeSelf' option
   if (usernames.includes(currentUser)) {
-    actions.push(CryptoGen.createSetEncryptOptions({noIncludeSelf: true, options}))
+    actions.push(CryptoGen.createSetEncryptOptions({hideIncludeSelf: true, options}))
   }
   actions.push(
     CryptoGen.createSetRecipients({
