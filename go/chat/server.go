@@ -400,6 +400,26 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 	res.Conv = conv
 	res.UiConv = utils.PresentConversationLocal(ctx, h.G(), uid, conv, utils.PresentParticipantsModeInclude)
 	res.IdentifyFailures = identBreaks
+
+	if arg.MembersType == chat1.ConversationMembersType_TEAM &&
+		arg.TopicType == chat1.TopicType_CHAT &&
+		arg.TopicName != &globals.DefaultTeamTopic {
+		subBody := chat1.NewMessageSystemWithNewConversation(chat1.MessageSystemNewConversation{
+			User:        username.String(),
+			IsTeam:      false,
+			IsInherit:   isInherit,
+			MembersType: conv.GetMembersType(),
+			Policy:      policy,
+		})
+		body := chat1.NewMessageBodyWithSystem(subBody)
+		err = h.G().ChatHelper.SendMsgByID(ctx, arg.ConvID, conv.Info.TlfName, body, chat1.MessageType_SYSTEM,
+			conv.Info.Visibility)
+		if err != nil {
+			h.Debug(ctx, "unable to post new channel system message: %v", err)
+		}
+
+	}
+
 	return res, nil
 }
 

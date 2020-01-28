@@ -327,7 +327,8 @@
         "CHANGEAVATAR_5",
         "CHANGERETENTION_6",
         "BULKADDTOCONV_7",
-        "SBSRESOLVE_8"
+        "SBSRESOLVE_8",
+        "NEWCONVERSATION_9"
       ]
     },
     {
@@ -564,6 +565,24 @@
       ]
     },
     {
+      "type": "record",
+      "name": "MessageSystemNewConversation",
+      "fields": [
+        {
+          "type": "string",
+          "name": "creator"
+        },
+        {
+          "type": "string",
+          "name": "nameAtCreation"
+        },
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "MessageSystem",
       "switch": {
@@ -633,6 +652,13 @@
             "def": false
           },
           "body": "MessageSystemSbsResolve"
+        },
+        {
+          "label": {
+            "name": "NEWCONVERSATION",
+            "def": false
+          },
+          "body": "MessageSystemNewConversation"
         }
       ]
     },

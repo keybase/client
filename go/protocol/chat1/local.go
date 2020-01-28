@@ -402,6 +402,7 @@ const (
 	MessageSystemType_CHANGERETENTION   MessageSystemType = 6
 	MessageSystemType_BULKADDTOCONV     MessageSystemType = 7
 	MessageSystemType_SBSRESOLVE        MessageSystemType = 8
+	MessageSystemType_NEWCONVERSATION   MessageSystemType = 9
 )
 
 func (o MessageSystemType) DeepCopy() MessageSystemType { return o }
@@ -416,6 +417,7 @@ var MessageSystemTypeMap = map[string]MessageSystemType{
 	"CHANGERETENTION":   6,
 	"BULKADDTOCONV":     7,
 	"SBSRESOLVE":        8,
+	"NEWCONVERSATION":   9,
 }
 
 var MessageSystemTypeRevMap = map[MessageSystemType]string{
@@ -428,6 +430,7 @@ var MessageSystemTypeRevMap = map[MessageSystemType]string{
 	6: "CHANGERETENTION",
 	7: "BULKADDTOCONV",
 	8: "SBSRESOLVE",
+	9: "NEWCONVERSATION",
 }
 
 func (e MessageSystemType) String() string {
@@ -675,6 +678,20 @@ func (o MessageSystemSbsResolve) DeepCopy() MessageSystemSbsResolve {
 	}
 }
 
+type MessageSystemNewConversation struct {
+	Creator        string         `codec:"creator" json:"creator"`
+	NameAtCreation string         `codec:"nameAtCreation" json:"nameAtCreation"`
+	ConvID         ConversationID `codec:"convID" json:"convID"`
+}
+
+func (o MessageSystemNewConversation) DeepCopy() MessageSystemNewConversation {
+	return MessageSystemNewConversation{
+		Creator:        o.Creator,
+		NameAtCreation: o.NameAtCreation,
+		ConvID:         o.ConvID.DeepCopy(),
+	}
+}
+
 type MessageSystem struct {
 	SystemType__        MessageSystemType               `codec:"systemType" json:"systemType"`
 	Addedtoteam__       *MessageSystemAddedToTeam       `codec:"addedtoteam,omitempty" json:"addedtoteam,omitempty"`
@@ -686,6 +703,7 @@ type MessageSystem struct {
 	Changeretention__   *MessageSystemChangeRetention   `codec:"changeretention,omitempty" json:"changeretention,omitempty"`
 	Bulkaddtoconv__     *MessageSystemBulkAddToConv     `codec:"bulkaddtoconv,omitempty" json:"bulkaddtoconv,omitempty"`
 	Sbsresolve__        *MessageSystemSbsResolve        `codec:"sbsresolve,omitempty" json:"sbsresolve,omitempty"`
+	Newconversation__   *MessageSystemNewConversation   `codec:"newconversation,omitempty" json:"newconversation,omitempty"`
 }
 
 func (o *MessageSystem) SystemType() (ret MessageSystemType, err error) {
@@ -733,6 +751,11 @@ func (o *MessageSystem) SystemType() (ret MessageSystemType, err error) {
 	case MessageSystemType_SBSRESOLVE:
 		if o.Sbsresolve__ == nil {
 			err = errors.New("unexpected nil value for Sbsresolve__")
+			return ret, err
+		}
+	case MessageSystemType_NEWCONVERSATION:
+		if o.Newconversation__ == nil {
+			err = errors.New("unexpected nil value for Newconversation__")
 			return ret, err
 		}
 	}
@@ -829,6 +852,16 @@ func (o MessageSystem) Sbsresolve() (res MessageSystemSbsResolve) {
 	return *o.Sbsresolve__
 }
 
+func (o MessageSystem) Newconversation() (res MessageSystemNewConversation) {
+	if o.SystemType__ != MessageSystemType_NEWCONVERSATION {
+		panic("wrong case accessed")
+	}
+	if o.Newconversation__ == nil {
+		return
+	}
+	return *o.Newconversation__
+}
+
 func NewMessageSystemWithAddedtoteam(v MessageSystemAddedToTeam) MessageSystem {
 	return MessageSystem{
 		SystemType__:  MessageSystemType_ADDEDTOTEAM,
@@ -889,6 +922,13 @@ func NewMessageSystemWithSbsresolve(v MessageSystemSbsResolve) MessageSystem {
 	return MessageSystem{
 		SystemType__: MessageSystemType_SBSRESOLVE,
 		Sbsresolve__: &v,
+	}
+}
+
+func NewMessageSystemWithNewconversation(v MessageSystemNewConversation) MessageSystem {
+	return MessageSystem{
+		SystemType__:      MessageSystemType_NEWCONVERSATION,
+		Newconversation__: &v,
 	}
 }
 
@@ -958,6 +998,13 @@ func (o MessageSystem) DeepCopy() MessageSystem {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Sbsresolve__),
+		Newconversation__: (func(x *MessageSystemNewConversation) *MessageSystemNewConversation {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Newconversation__),
 	}
 }
 
