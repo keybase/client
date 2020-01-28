@@ -2266,6 +2266,29 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 		}
 	}()
 
+	// send up team name matches
+	teamUIDone := make(chan struct{})
+	go func() {
+		defer close(teamUIDone)
+		if opts.MaxTeams == 0 {
+			return
+		}
+		teamHits, err := teams.Search(
+			ctx, h.G().ExternalG(), query, opts.MaxTeams)
+		if err != nil {
+			h.Debug(ctx, "SearchInbox: failed to get team hits: %s", err)
+		} else {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				_ = chatUI.ChatSearchTeamHits(ctx, chat1.UIChatSearchTeamHits{
+					Hits: teamHits,
+				})
+			}
+		}
+	}()
+
 	var searchRes *chat1.ChatSearchInboxResults
 	if doSearch {
 		select {
@@ -2280,6 +2303,7 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 	<-hitUIDone
 	<-indexUIDone
 	<-convUIDone
+	<-teamUIDone
 
 	var doneRes chat1.ChatSearchInboxDone
 	if searchRes != nil {

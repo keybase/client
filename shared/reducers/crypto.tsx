@@ -49,13 +49,13 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       encrypt.bytesComplete = 0
       encrypt.bytesTotal = 0
       encrypt.recipients = initialState.encrypt.recipients
-      encrypt.meta.hasRecipients = false
-      encrypt.meta.noIncludeSelf = false
       // Reset options since they depend on the recipients
       encrypt.options = initialState.encrypt.options
+      encrypt.meta = initialState.encrypt.meta
       encrypt.output = new HiddenString('')
       encrypt.outputStatus = undefined
       encrypt.outputType = undefined
+      encrypt.outputMatchesInput = false
       encrypt.errorMessage = new HiddenString('')
       encrypt.warningMessage = new HiddenString('')
     }
@@ -67,17 +67,22 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
 
     if (operation !== Constants.Operations.Encrypt) return
 
-    const {encrypt} = draftState
-    if (!encrypt.recipients.length && recipients.length) {
-      encrypt.meta.hasRecipients = true
-      encrypt.meta.hasSBS = hasSBS
+    const op = draftState.encrypt
+    if (!op.recipients.length && recipients.length) {
+      op.meta.hasRecipients = true
+      op.meta.hasSBS = hasSBS
     }
+    // Force signing when user is SBS
+    if (hasSBS) {
+      op.options.sign = true
+    }
+
     if (recipients) {
-      encrypt.recipients = recipients
+      op.recipients = recipients
     }
   },
   [CryptoGen.setEncryptOptions]: (draftState, action) => {
-    const {options: newOptions, noIncludeSelf} = action.payload
+    const {options: newOptions, hideIncludeSelf} = action.payload
     const {encrypt} = draftState
     const oldOptions = encrypt.options
     encrypt.options = {
@@ -85,8 +90,8 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       ...newOptions,
     }
     // User set themselves as a recipient so don't show the 'includeSelf' option for encrypt (since they're encrypting to themselves)
-    if (noIncludeSelf) {
-      encrypt.meta.noIncludeSelf = noIncludeSelf
+    if (hideIncludeSelf) {
+      encrypt.meta.hideIncludeSelf = hideIncludeSelf
       encrypt.options.includeSelf = false
     }
   },
@@ -122,6 +127,7 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       | undefined
 
     switch (input?.type) {
+      // fallthrough
       case CryptoGen.saltpackDecrypt:
       case CryptoGen.saltpackEncrypt:
       case CryptoGen.saltpackSign:
@@ -139,12 +145,12 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     if (inputAction) {
       outputMatchesInput = inputAction.payload.input.stringValue() === op.input.stringValue()
 
-      // existing does match? just ignore this
+      // If the store's input matches its output, then we don't need to update with the value of the returning RPC.
       if (op.outputMatchesInput) {
         return
       }
 
-      // otherwise show the output but don't let them interact with it, its temporary
+      // Otherwise show the output but don't let them interact with it because the output is stale (newer RPC coming back)
       op.outputMatchesInput = outputMatchesInput
     }
 

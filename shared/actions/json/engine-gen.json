@@ -58,6 +58,9 @@
         "chat1ChatUiChatSearchConvHits": {
             "params": "chat1Types.MessageTypes['chat.1.chatUi.chatSearchConvHits']['inParam'] & {sessionID: number}, response: {error: chat1Types.IncomingErrorCallback, result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatSearchConvHits']['outParam']) => void}"
         },
+        "chat1ChatUiChatSearchTeamHits": {
+            "params": "chat1Types.MessageTypes['chat.1.chatUi.chatSearchTeamHits']['inParam'] & {sessionID: number}, response: {error: chat1Types.IncomingErrorCallback, result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatSearchTeamHits']['outParam']) => void}"
+        },
         "chat1ChatUiChatConfirmChannelDelete": {
             "params": "chat1Types.MessageTypes['chat.1.chatUi.chatConfirmChannelDelete']['inParam'] & {sessionID: number}, response: {error: chat1Types.IncomingErrorCallback, result: (param: chat1Types.MessageTypes['chat.1.chatUi.chatConfirmChannelDelete']['outParam']) => void}"
         },
@@ -471,6 +474,9 @@
         },
         "keybase1NotifyUsersIdentifyUpdate": {
             "params": "keybase1Types.MessageTypes['keybase.1.NotifyUsers.identifyUpdate']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.NotifyUsers.identifyUpdate']['outParam']) => void}"
+        },
+        "keybase1PgpUiOutputPGPWarning": {
+            "params": "keybase1Types.MessageTypes['keybase.1.pgpUi.outputPGPWarning']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.pgpUi.outputPGPWarning']['outParam']) => void}"
         },
         "keybase1PgpUiOutputSignatureSuccess": {
             "params": "keybase1Types.MessageTypes['keybase.1.pgpUi.outputSignatureSuccess']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.pgpUi.outputSignatureSuccess']['outParam']) => void}"

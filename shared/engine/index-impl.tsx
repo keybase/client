@@ -295,12 +295,6 @@ class Engine {
 
     this._customResponseAction[method] = true
   }
-
-  // Register a named callback when we fail to connect. Call if we're already disconnected
-  hasEverConnected() {
-    // If we've actually failed to connect already let's call this immediately
-    return this._hasConnected
-  }
 }
 
 // Dummy engine for snapshotting
@@ -315,7 +309,6 @@ class FakeEngine {
   cancelSession(_: SessionID) {}
   rpc() {}
   setFailOnError() {}
-  hasEverConnected() {}
   setIncomingActionCreator(
     _: MethodKey,
     __: (arg0: {param: Object; response: Object | null; state: any}) => any | null

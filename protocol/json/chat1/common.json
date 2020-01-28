@@ -1584,6 +1584,10 @@
         {
           "type": "int",
           "name": "maxNameConvs"
+        },
+        {
+          "type": "int",
+          "name": "maxTeams"
         }
       ]
     },

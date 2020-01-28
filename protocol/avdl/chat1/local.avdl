@@ -194,6 +194,8 @@ protocol local {
     array<Asset> previews;       // the previews of object              (V2)
     bytes metadata;              // generic metadata (msgpack)
     boolean uploaded;            // true if assets have been uploaded   (V2)
+    array<KnownUserMention> userMentions;
+    array<KnownTeamMention> teamMentions;
   }
 
   record MessageAttachmentUploaded {

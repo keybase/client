@@ -414,3 +414,16 @@ func (ksp KeybaseServicePassthrough) NewChat(
 	_ Config, _ InitParams, _ Context, _ logger.Logger) (Chat, error) {
 	return ksp.config.Chat(), nil
 }
+
+// MakeDiskMDServer creates a disk-based local MD server.
+func MakeDiskMDServer(config Config, serverRootDir string) (MDServer, error) {
+	mdPath := filepath.Join(serverRootDir, "kbfs_md")
+	return NewMDServerDir(mdServerLocalConfigAdapter{config}, mdPath)
+}
+
+// MakeDiskBlockServer creates a disk-based local block server.
+func MakeDiskBlockServer(config Config, serverRootDir string) BlockServer {
+	blockPath := filepath.Join(serverRootDir, "kbfs_block")
+	bserverLog := config.MakeLogger("BSD")
+	return NewBlockServerDir(config.Codec(), bserverLog, blockPath)
+}

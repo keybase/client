@@ -3,7 +3,7 @@ import * as Types from '../../../constants/types/teams'
 import {RetentionPolicy} from '../../../constants/types/retention-policy'
 import * as Kb from '../../../common-adapters'
 import {InlineDropdown} from '../../../common-adapters/dropdown'
-import {globalColors, globalMargins, globalStyles, styleSheetCreate, platformStyles} from '../../../styles'
+import {globalColors, globalMargins, styleSheetCreate, platformStyles} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
 import {FloatingRolePicker} from '../../role-picker'
 import {pluralize} from '../../../util/string'
@@ -69,7 +69,7 @@ const SetMemberShowcase = (props: SettingProps) => (
       checked={props.newPublicityMember}
       disabled={!props.canShowcase}
       labelComponent={
-        <Kb.Box2 direction="vertical">
+        <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}}>
           <Kb.Text style={props.canShowcase ? undefined : styles.grey} type="Body">
             Feature team on your own profile
           </Kb.Text>
@@ -90,11 +90,11 @@ const SetMemberShowcase = (props: SettingProps) => (
 
 const PublicityAnyMember = (props: SettingProps) =>
   props.yourOperations.setPublicityAny ? (
-    <Kb.Box2 direction="vertical" style={styles.publicitySettings} alignSelf="flex-start">
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.publicitySettings} alignSelf="flex-start">
       <Kb.Checkbox
         checked={props.newPublicityAnyMember}
         labelComponent={
-          <Kb.Box2 direction="vertical" style={styles.shrink}>
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.shrink}>
             <Kb.Text type="Body">Allow non-admin members to feature the team on their profile</Kb.Text>
             <Kb.Text type="BodySmall">Team descriptions and number of members will be public.</Kb.Text>
           </Kb.Box2>
@@ -108,11 +108,11 @@ const teamsLink = 'keybase.io/popular-teams'
 
 const PublicityTeam = (props: SettingProps) =>
   props.yourOperations.setTeamShowcase ? (
-    <Kb.Box2 direction="vertical" style={styles.publicitySettings} alignSelf="flex-start">
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.publicitySettings} alignSelf="flex-start">
       <Kb.Checkbox
         checked={props.newPublicityTeam}
         labelComponent={
-          <Kb.Box2 direction="vertical" style={styles.shrink}>
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.shrink}>
             <Kb.Text type="Body">
               Publicize this team on{' '}
               <Kb.Text type="BodyPrimaryLink" onClickURL={`https://${teamsLink}`}>
@@ -137,7 +137,7 @@ const OpenTeam = (props: SettingProps & RolePickerProps) => {
       <Kb.Checkbox
         checked={props.newOpenTeam}
         labelComponent={
-          <Kb.Box2 direction="vertical" style={styles.openTeam}>
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.openTeam}>
             <Kb.Text type="Body">Make this an open team</Kb.Text>
             <Kb.Box2
               direction={isMobile ? 'vertical' : 'horizontal'}
@@ -175,16 +175,16 @@ const OpenTeam = (props: SettingProps & RolePickerProps) => {
 
 const IgnoreAccessRequests = (props: SettingProps) =>
   !props.newOpenTeam && props.yourOperations.changeTarsDisabled ? (
-    <Kb.Box2 direction="vertical" style={styles.publicitySettings} alignSelf="flex-start">
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.publicitySettings} alignSelf="flex-start">
       <Kb.Checkbox
         checked={props.newIgnoreAccessRequests}
         labelComponent={
-          <Kb.Box style={{...globalStyles.flexBoxColumn, flexShrink: 1}}>
+          <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}}>
             <Kb.Text type="Body">Don't allow requests to join this team</Kb.Text>
             <Kb.Text type="BodySmall">
               Requests to join this team will be silently ignored by all admins.
             </Kb.Text>
-          </Kb.Box>
+          </Kb.Box2>
         }
         onCheck={props.setBoolSettings('newIgnoreAccessRequests')}
       />
@@ -371,6 +371,6 @@ const styles = styleSheetCreate(() => ({
     paddingRight: globalMargins.small,
     paddingTop: globalMargins.small,
   },
-  shrink: {flexShrink: 1},
+  shrink: {flex: 1},
   teamPadding: {paddingTop: globalMargins.small},
 }))

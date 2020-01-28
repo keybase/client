@@ -24,14 +24,14 @@ const avatarTeamTaskProps = {
   badged: true,
   buttons: defaultButtons('Edit team avatar'),
   icon: 'icon-onboarding-team-avatar-48',
-  instructions: 'NEW! Change your team’s avatar from within the Keybase app.',
+  instructions: 'Change your team’s avatar from within the Keybase app.',
 } as const
 
 const avatarUserTaskProps = {
   badged: true,
   buttons: defaultButtons('Edit avatar'),
   icon: 'icon-onboarding-user-avatar-48',
-  instructions: 'NEW! Change your photo from within the Keybase app.',
+  instructions: 'Change your photo from within the Keybase app.',
 } as const
 
 const bioTaskProps = {

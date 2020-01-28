@@ -1,9 +1,9 @@
 // The filtered inbox rows. No dividers or headers, just smallbig row items
-import * as Types from '../../../constants/types/chat2'
-import * as Constants from '../../../constants/chat2'
-import {memoize} from '../../../util/memoize'
-import {makeInsertMatcher} from '../../../util/string'
-import {RowItem, RowItemBig, RowItemSmall} from '..'
+import * as Types from '../../../../constants/types/chat2'
+import * as Constants from '../../../../constants/chat2'
+import {memoize} from '../../../../util/memoize'
+import {makeInsertMatcher} from '../../../../util/string'
+import {RowItem, RowItemBig, RowItemSmall} from '../../../../chat/inbox'
 
 const score = (lcFilter: string, lcYou: string, names: Array<string>, insertMatcher?: RegExp): number => {
   // special case, looking for yourself
