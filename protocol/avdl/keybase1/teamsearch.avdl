@@ -17,5 +17,5 @@ protocol teamSearch {
         array<TeamSearchItem> results;
     }
 
-    TeamSearchRes teamSearch(string query, int limit);
+    TeamSearchRes teamSearch(union { null, UID } uid, string query, int limit);
 }
