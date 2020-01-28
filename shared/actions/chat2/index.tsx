@@ -30,6 +30,7 @@ import {saveAttachmentToCameraRoll, showShareActionSheet} from '../platform-spec
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {RPCError} from '../../util/errors'
 import * as Container from '../../util/container'
+import {isIOS} from '../../constants/platform'
 
 const onConnect = async () => {
   try {
@@ -2552,6 +2553,16 @@ function* mobileMessageAttachmentShare(
     logger.error('Downloading attachment failed')
     throw new Error('Downloading attachment failed')
   }
+
+  if (isIOS && message.fileName.endsWith('.pdf')) {
+    yield Saga.put(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {title: message.title || message.fileName, url: filePath}, selected: 'chatPDF'}],
+      })
+    )
+    return
+  }
+
   try {
     yield showShareActionSheet({filePath, mimeType: message.fileType})
   } catch (e) {
