@@ -30,6 +30,7 @@ import {saveAttachmentToCameraRoll, showShareActionSheet} from '../platform-spec
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {RPCError} from '../../util/errors'
 import * as Container from '../../util/container'
+import {isIOS} from '../../constants/platform'
 
 const onConnect = async () => {
   try {
@@ -1519,6 +1520,7 @@ function* threadSearch(
           maxHits: 1000,
           maxMessages: -1,
           maxNameConvs: 0,
+          maxTeams: 0,
           reindexMode: RPCChatTypes.ReIndexingMode.postsearchSync,
           sentAfter: 0,
           sentBefore: 0,
@@ -1620,8 +1622,9 @@ const maybeCancelInboxSearchOnFocusChanged = (
 function* inboxSearch(_: Container.TypedState, action: Chat2Gen.InboxSearchPayload, logger: Saga.SagaLogger) {
   const {query} = action.payload
   const teamType = (t: RPCChatTypes.TeamType) => (t === RPCChatTypes.TeamType.complex ? 'big' : 'small')
-  const onConvHits = (resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchConvHits']['inParam']) => {
-    return Saga.put(
+
+  const onConvHits = (resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchConvHits']['inParam']) =>
+    Saga.put(
       Chat2Gen.createInboxSearchNameResults({
         results: (resp.hits.hits || []).reduce<Array<Types.InboxSearchConvHit>>((arr, h) => {
           arr.push({
@@ -1634,7 +1637,25 @@ function* inboxSearch(_: Container.TypedState, action: Chat2Gen.InboxSearchPaylo
         unread: resp.hits.unreadMatches,
       })
     )
-  }
+
+  const onOpenTeamHits = (resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchTeamHits']['inParam']) =>
+    Saga.put(
+      Chat2Gen.createInboxSearchOpenTeamsResults({
+        results: (resp.hits.hits || []).reduce<Array<Types.InboxSearchOpenTeamHit>>((arr, h) => {
+          const {description, name, id, publicAdmins, memberCount, inTeam} = h
+          arr.push({
+            description: description ?? '',
+            id: Types.stringToConversationIDKey(id),
+            inTeam,
+            memberCount,
+            name,
+            publicAdmins: publicAdmins ?? [],
+          })
+          return arr
+        }, []),
+      })
+    )
+
   const onTextHit = (resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchInboxHit']['inParam']) => {
     const {convID, convName, hits, query, teamType: tt, time} = resp.searchHit
     return Saga.put(
@@ -1664,6 +1685,7 @@ function* inboxSearch(_: Container.TypedState, action: Chat2Gen.InboxSearchPaylo
         'chat.1.chatUi.chatSearchInboxHit': onTextHit,
         'chat.1.chatUi.chatSearchInboxStart': onStart,
         'chat.1.chatUi.chatSearchIndexStatus': onIndexStatus,
+        'chat.1.chatUi.chatSearchTeamHits': onOpenTeamHits,
       },
       params: {
         identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
@@ -1681,6 +1703,7 @@ function* inboxSearch(_: Container.TypedState, action: Chat2Gen.InboxSearchPaylo
             query.stringValue().length > 0
               ? Constants.inboxSearchMaxNameResults
               : Constants.inboxSearchMaxUnreadNameResults,
+          maxTeams: 3,
           reindexMode: RPCChatTypes.ReIndexingMode.postsearchSync,
           sentAfter: 0,
           sentBefore: 0,
@@ -2530,6 +2553,16 @@ function* mobileMessageAttachmentShare(
     logger.error('Downloading attachment failed')
     throw new Error('Downloading attachment failed')
   }
+
+  if (isIOS && message.fileName.endsWith('.pdf')) {
+    yield Saga.put(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {title: message.title || message.fileName, url: filePath}, selected: 'chatPDF'}],
+      })
+    )
+    return
+  }
+
   try {
     yield showShareActionSheet({filePath, mimeType: message.fileType})
   } catch (e) {

@@ -610,6 +610,7 @@
     union { null, ConversationID } convID;
     // only used by conversation name search
     int maxNameConvs;
+    int maxTeams;
   }
 
   // The search indexer uses the EmptyStruct to implement a set using a map

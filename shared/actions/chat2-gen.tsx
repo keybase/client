@@ -54,6 +54,7 @@ export const inboxRefresh = 'chat2:inboxRefresh'
 export const inboxSearch = 'chat2:inboxSearch'
 export const inboxSearchMoveSelectedIndex = 'chat2:inboxSearchMoveSelectedIndex'
 export const inboxSearchNameResults = 'chat2:inboxSearchNameResults'
+export const inboxSearchOpenTeamsResults = 'chat2:inboxSearchOpenTeamsResults'
 export const inboxSearchSelect = 'chat2:inboxSearchSelect'
 export const inboxSearchSetIndexPercent = 'chat2:inboxSearchSetIndexPercent'
 export const inboxSearchSetTextStatus = 'chat2:inboxSearchSetTextStatus'
@@ -317,6 +318,7 @@ type _InboxSearchNameResultsPayload = {
   readonly results: Array<Types.InboxSearchConvHit>
   readonly unread: boolean
 }
+type _InboxSearchOpenTeamsResultsPayload = {readonly results: Array<Types.InboxSearchOpenTeamHit>}
 type _InboxSearchPayload = {readonly query: HiddenString}
 type _InboxSearchSelectPayload = {
   readonly conversationIDKey?: Types.ConversationIDKey
@@ -931,6 +933,12 @@ export const createInboxSearchStarted = (payload: _InboxSearchStartedPayload): I
 export const createInboxSearchNameResults = (
   payload: _InboxSearchNameResultsPayload
 ): InboxSearchNameResultsPayload => ({payload, type: inboxSearchNameResults})
+/**
+ * Inbox search open teams results received
+ */
+export const createInboxSearchOpenTeamsResults = (
+  payload: _InboxSearchOpenTeamsResultsPayload
+): InboxSearchOpenTeamsResultsPayload => ({payload, type: inboxSearchOpenTeamsResults})
 /**
  * Inbox text result has arrived
  */
@@ -1825,6 +1833,10 @@ export type InboxSearchNameResultsPayload = {
   readonly payload: _InboxSearchNameResultsPayload
   readonly type: typeof inboxSearchNameResults
 }
+export type InboxSearchOpenTeamsResultsPayload = {
+  readonly payload: _InboxSearchOpenTeamsResultsPayload
+  readonly type: typeof inboxSearchOpenTeamsResults
+}
 export type InboxSearchPayload = {readonly payload: _InboxSearchPayload; readonly type: typeof inboxSearch}
 export type InboxSearchSelectPayload = {
   readonly payload: _InboxSearchSelectPayload
@@ -2328,6 +2340,7 @@ export type Actions =
   | InboxRefreshPayload
   | InboxSearchMoveSelectedIndexPayload
   | InboxSearchNameResultsPayload
+  | InboxSearchOpenTeamsResultsPayload
   | InboxSearchPayload
   | InboxSearchSelectPayload
   | InboxSearchSetIndexPercentPayload

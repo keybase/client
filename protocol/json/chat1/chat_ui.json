@@ -1505,6 +1505,19 @@
     },
     {
       "type": "record",
+      "name": "UIChatSearchTeamHits",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TeamSearchItem"
+          },
+          "name": "hits"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UIChatPayment",
       "fields": [
         {
@@ -2211,6 +2224,19 @@
         {
           "name": "hits",
           "type": "UIChatSearchConvHits"
+        }
+      ],
+      "response": null
+    },
+    "chatSearchTeamHits": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "hits",
+          "type": "UIChatSearchTeamHits"
         }
       ],
       "response": null

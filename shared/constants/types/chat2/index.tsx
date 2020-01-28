@@ -58,11 +58,22 @@ export type InboxSearchConvHit = {
   teamType: 'big' | 'small'
 }
 
+export type InboxSearchOpenTeamHit = {
+  description: string
+  inTeam: boolean
+  name: string
+  memberCount: number
+  publicAdmins: Array<string>
+  id: Team.TeamID
+}
+
 export type InboxSearchInfo = {
   indexPercent: number
   nameResults: Array<InboxSearchConvHit>
   nameStatus: InboxSearchStatus
   nameResultsUnread: boolean
+  openTeamsResults: Array<InboxSearchOpenTeamHit>
+  openTeamsStatus: InboxSearchStatus
   query: HiddenString
   selectedIndex: number
   textResults: Array<InboxSearchTextHit>

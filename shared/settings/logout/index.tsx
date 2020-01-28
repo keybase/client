@@ -142,7 +142,6 @@ class LogOut extends React.Component<Props, State> {
             />
           </Kb.RoundedBox>
           <Kb.Checkbox
-            boxBackgroundColor={Styles.globalColors.white}
             checked={this.state.showTyping}
             label="Show typing"
             onCheck={() => this.setState(prevState => ({showTyping: !prevState.showTyping}))}

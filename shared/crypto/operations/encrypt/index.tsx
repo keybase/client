@@ -11,7 +11,7 @@ import Recipients from '../../recipients/container'
 type Props = {
   input: string
   inputType: Types.InputTypes
-  noIncludeSelf: boolean
+  hideIncludeSelf: boolean
   onClearInput: () => void
   onCopyOutput: (text: string) => void
   onSaveAsText: () => void
@@ -35,17 +35,17 @@ type Props = {
 type EncryptOptionsProps = {
   hasRecipients: boolean
   hasSBS: boolean
-  noIncludeSelf: boolean
+  hideIncludeSelf: boolean
   onSetOptions: (options: Types.EncryptOptions) => void
   options: Types.EncryptOptions
 }
 
 const EncryptOptions = React.memo((props: EncryptOptionsProps) => {
-  const {hasRecipients, hasSBS, noIncludeSelf, onSetOptions, options} = props
+  const {hasRecipients, hasSBS, hideIncludeSelf, onSetOptions, options} = props
   const {includeSelf, sign} = options
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} gap="medium" style={styles.optionsContainer}>
-      {noIncludeSelf ? null : (
+      {hideIncludeSelf ? null : (
         <Kb.Checkbox
           label="Include yourself"
           disabled={hasSBS || !hasRecipients}
@@ -55,6 +55,7 @@ const EncryptOptions = React.memo((props: EncryptOptionsProps) => {
       )}
       <Kb.Checkbox
         label="Sign"
+        disabled={hasSBS}
         checked={sign}
         onCheck={newValue => onSetOptions({includeSelf, sign: newValue})}
       />
@@ -121,7 +122,7 @@ const Encrypt = (props: Props) => {
           <EncryptOptions
             hasRecipients={props.hasRecipients}
             hasSBS={props.hasSBS}
-            noIncludeSelf={props.noIncludeSelf}
+            hideIncludeSelf={props.hideIncludeSelf}
             options={props.options}
             onSetOptions={props.onSetOptions}
           />

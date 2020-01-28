@@ -9,11 +9,13 @@ protocol teamSearch {
         union { null, string } description;
         int memberCount;
         Time lastActive;
+        boolean inTeam;
+        array<string> publicAdmins;
     }
 
     record TeamSearchRes {
         array<TeamSearchItem> results;
     }
 
-    TeamSearchRes teamSearch(string query, int limit);
+    TeamSearchRes teamSearch(union { null, UID } uid, string query, int limit);
 }

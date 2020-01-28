@@ -1,12 +1,18 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Types from '../../constants/types/chat2'
+import * as Container from '../../util/container'
 import * as Constants from '../../constants/chat2'
+import * as TeamsGen from '../../actions/teams-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Styles from '../../styles'
 import SelectableSmallTeam from '../selectable-small-team-container'
 import SelectableBigTeamChannel from '../selectable-big-team-channel-container'
 import {inboxWidth} from '../inbox/row/sizes'
+import {TeamAvatar} from '../avatars'
 import Rover from './background'
+import flags from '../../util/feature-flags'
+import TeamInfo from '../../profile/user/teams/teaminfo'
 
 type NameResult = {
   conversationIDKey: Types.ConversationIDKey
@@ -25,24 +31,46 @@ type TextResult = {
 export type Props = {
   header?: React.ReactNode
   indexPercent: number
-  nameStatus: Types.InboxSearchStatus
   nameResults: Array<NameResult>
   nameResultsUnread: boolean
+  nameStatus: Types.InboxSearchStatus
   onCancel: () => void
   onSelectConversation: (arg0: Types.ConversationIDKey, arg1: number, arg2: string) => void
-  selectedIndex: number
-  textStatus: Types.InboxSearchStatus
-  textResults: Array<TextResult>
+  openTeamsResults: Array<Types.InboxSearchOpenTeamHit>
+  openTeamsStatus: Types.InboxSearchStatus
   query: string
+  selectedIndex: number
+  textResults: Array<TextResult>
+  textStatus: Types.InboxSearchStatus
 }
 
 type State = {
   nameCollapsed: boolean
   textCollapsed: boolean
+  openTeamsCollapsed: boolean
 }
 
 class InboxSearch extends React.Component<Props, State> {
-  state = {nameCollapsed: false, textCollapsed: false}
+  state = {nameCollapsed: false, openTeamsCollapsed: false, textCollapsed: false}
+
+  private renderOpenTeams = (h: {
+    item: Types.InboxSearchOpenTeamHit
+    section: {indexOffset: number; onSelect: any}
+    index: number
+  }) => {
+    const {item} = h
+    return (
+      <OpenTeamRow
+        description={item.description}
+        name={item.name}
+        id={item.id}
+        memberCount={item.memberCount}
+        inTeam={item.inTeam}
+        publicAdmins={item.publicAdmins}
+        selected={false}
+      />
+    )
+  }
 
   private renderHit = (h: {
     item: TextResult
@@ -76,6 +104,9 @@ class InboxSearch extends React.Component<Props, State> {
   }
   private toggleCollapseText = () => {
     this.setState(s => ({textCollapsed: !s.textCollapsed}))
+  }
+  private toggleCollapseOpenTeams = () => {
+    this.setState(s => ({openTeamsCollapsed: !s.openTeamsCollapsed}))
   }
   private selectName = (item: NameResult, index: number) => {
     this.props.onSelectConversation(item.conversationIDKey, index, '')
@@ -133,16 +164,16 @@ class InboxSearch extends React.Component<Props, State> {
     return section.renderHeader(section)
   }
   private keyExtractor = (_: unknown, index: number) => index
-  private nameResults = () => {
-    return this.state.nameCollapsed ? [] : this.props.nameResults
-  }
-  private textResults = () => {
-    return this.state.textCollapsed ? [] : this.props.textResults
-  }
 
   render() {
-    const textResults = this.textResults()
-    const nameResults = this.nameResults()
+    const nameResults = this.state.nameCollapsed ? [] : this.props.nameResults
+    const textResults = this.state.textCollapsed ? [] : this.props.textResults
+    const openTeamsResults = this.state.openTeamsCollapsed ? [] : this.props.openTeamsResults
+
+    const indexOffset = flags.openTeamSearch
+      ? openTeamsResults.length + nameResults.length
+      : nameResults.length
+
     const sections = [
       {
         data: nameResults,
@@ -155,11 +186,26 @@ class InboxSearch extends React.Component<Props, State> {
         status: this.props.nameStatus,
         title: this.props.nameResultsUnread ? 'Unread' : 'Chats',
       },
+      ...(flags.openTeamSearch && !this.props.nameResultsUnread
+        ? [
+            {
+              data: openTeamsResults,
+              indexOffset: nameResults.length,
+              isCollapsed: this.state.openTeamsCollapsed,
+              onCollapse: this.toggleCollapseOpenTeams,
+              onSelect: this.selectText,
+              renderHeader: this.renderNameHeader,
+              renderItem: this.renderOpenTeams,
+              status: this.props.openTeamsStatus,
+              title: 'Open Teams',
+            },
+          ]
+        : []),
       ...(!this.props.nameResultsUnread
         ? [
             {
               data: textResults,
-              indexOffset: nameResults.length,
+              indexOffset,
               isCollapsed: this.state.textCollapsed,
               onCollapse: this.toggleCollapseText,
               onSelect: this.selectText,
@@ -186,6 +232,88 @@ class InboxSearch extends React.Component<Props, State> {
       </Kb.Box2>
     )
   }
+}
+
+export const rowHeight = Styles.isMobile ? 64 : 56
+type OpenTeamProps = Types.InboxSearchOpenTeamHit & {
+  selected: boolean
+}
+const OpenTeamRow = (p: OpenTeamProps) => {
+  const [hovering, setHovering] = React.useState(false)
+  const {name, description, memberCount, publicAdmins, id, inTeam} = p
+  const dispatch = Container.useDispatch()
+  const popupAnchor = React.useRef(null)
+  const {showingPopup, setShowingPopup, popup} = Kb.usePopup(popupAnchor, () => (
+    <TeamInfo
+      attachTo={() => popupAnchor.current}
+      description={description ?? ''}
+      inTeam={inTeam}
+      isOpen={true}
+      name={name}
+      membersCount={memberCount}
+      position="right center"
+      onChat={undefined}
+      onHidden={() => setShowingPopup(false)}
+      onJoinTeam={() => dispatch(TeamsGen.createJoinTeam({teamname: name}))}
+      onViewTeam={() => {
+        dispatch(RouteTreeGen.createClearModals())
+        dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID: id}, selected: 'team'}]}))
+      }}
+      publicAdmins={publicAdmins ?? []}
+      visible={showingPopup}
+    />
+  ))
+
+  const selected = showingPopup
+
+  return (
+    <Kb.ClickableBox onClick={() => setShowingPopup(!showingPopup)} style={{width: '100%'}}>
+      <Kb.Box2
+        direction="horizontal"
+        fullWidth={true}
+        ref={popupAnchor}
+        centerChildren={true}
+        className="hover_background_color_blueGreyDark"
+        style={Styles.collapseStyles([
+          {
+            backgroundColor: selected ? Styles.globalColors.blue : Styles.globalColors.white,
+            height: rowHeight,
+            paddingLeft: Styles.globalMargins.xtiny,
+            paddingRight: Styles.globalMargins.xtiny,
+          },
+        ])}
+        onMouseLeave={() => setHovering(false)}
+        onMouseOver={() => setHovering(true)}
+      >
+        <TeamAvatar teamname={name} isMuted={false} isSelected={false} isHovered={hovering} />
+        <Kb.Box2 direction="vertical" style={{flexGrow: 1}}>
+          <Kb.Text
+            type="BodySemibold"
+            style={Styles.collapseStyles([
+              {color: selected ? Styles.globalColors.white : Styles.globalColors.black},
+            ])}
+            title={name}
+            lineClamp={Styles.isMobile ? 1 : undefined}
+            ellipsizeMode="tail"
+          >
+            {name}
+          </Kb.Text>
+          <Kb.Text
+            type="BodySmall"
+            style={Styles.collapseStyles([
+              {color: selected ? Styles.globalColors.white : Styles.globalColors.black_50},
+            ])}
+            title={`#${description}`}
+            lineClamp={1}
+            ellipsizeMode="tail"
+          >
+            {description}
+          </Kb.Text>
+        </Kb.Box2>
+      </Kb.Box2>
+      {popup}
+    </Kb.ClickableBox>
+  )
 }
 
 const styles = Styles.styleSheetCreate(

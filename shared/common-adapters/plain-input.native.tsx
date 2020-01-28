@@ -270,7 +270,7 @@ const styles = styleSheetCreate(() => ({
   multiline: platformStyles({
     isMobile: {
       height: undefined,
-      textAlignVertical: 'bottom', // android centers by default
+      textAlignVertical: 'top', // android centers by default
     },
   }),
   singleline: {padding: 0},

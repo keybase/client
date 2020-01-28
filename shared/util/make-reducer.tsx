@@ -12,14 +12,11 @@ export type ActionHandler<A, S> = {
 
 function makeReducer<A, S>(initialState: S, map: ActionHandler<A, S>) {
   return (state: S = initialState, action: TypedActions): S => {
-    // @ts-ignore
     const actionReducer = map[action.type]
     if (!actionReducer) {
       return state
     }
-    // @ts-ignore
     return produce(state, (draft: Draft<S>) => {
-      // @ts-ignore
       return actionReducer(draft, action)
     })
   }

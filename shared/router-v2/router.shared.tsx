@@ -86,7 +86,7 @@ export const oldActionToNewActions = (action: any, navigation: any, allowAppendD
       return [StackActions.push({params, routeName})]
     }
     case RouteTreeGen.switchTab: {
-      return [NavigationActions.navigate({routeName: action.payload.tab})]
+      return [NavigationActions.navigate({key: action.payload.tab, routeName: action.payload.tab})]
     }
     case RouteTreeGen.switchLoggedIn: {
       return [NavigationActions.navigate({routeName: action.payload.loggedIn ? 'loggedIn' : 'loggedOut'})]

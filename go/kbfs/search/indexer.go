@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"time"
 
 	"github.com/blevesearch/bleve"
 	"github.com/blevesearch/bleve/index/store"
@@ -16,6 +17,7 @@ import (
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/kbfs/tlf"
@@ -23,6 +25,8 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
+	ldberrors "github.com/syndtr/goleveldb/leveldb/errors"
+	billy "gopkg.in/src-d/go-billy.v4"
 )
 
 const (
@@ -31,6 +35,7 @@ const (
 	kvstoreName       = "kbfs"
 	bleveIndexType    = "upside_down"
 	fsIndexStorageDir = "kbfs_index"
+	docDbDir          = "docdb"
 )
 
 const (
@@ -52,31 +57,45 @@ type tlfMessage struct {
 	mode  keybase1.FolderSyncMode
 }
 
+type initFn func(
+	context.Context, libkbfs.Config, idutil.SessionInfo, logger.Logger) (
+	context.Context, libkbfs.Config, func(context.Context) error, error)
+
 // Indexer can index and search KBFS TLFs.
 type Indexer struct {
 	config       libkbfs.Config
 	log          logger.Logger
 	cancelLoop   context.CancelFunc
 	remoteStatus libfs.RemoteStatus
+	configInitFn initFn
+	once         sync.Once
 
 	userChangedCh chan struct{}
 	tlfCh         chan tlfMessage
 	shutdownCh    chan struct{}
 
-	lock        sync.RWMutex
-	index       bleve.Index
-	indexConfig libkbfs.Config
+	lock           sync.RWMutex
+	index          bleve.Index
+	indexConfig    libkbfs.Config
+	configShutdown func(context.Context) error
+	blocksDb       *IndexedBlockDb
+	docDb          *DocDb
+	indexReadyCh   chan struct{}
+	cancelCtx      context.CancelFunc
+	fs             billy.Filesystem
 }
 
-// NewIndexer creates a new instance of an Indexer.
-func NewIndexer(config libkbfs.Config) (*Indexer, error) {
+func newIndexerWithConfigInit(config libkbfs.Config, configInitFn initFn) (
+	*Indexer, error) {
 	log := config.MakeLogger("search")
 	i := &Indexer{
 		config:        config,
 		log:           log,
+		configInitFn:  configInitFn,
 		userChangedCh: make(chan struct{}, 1),
 		tlfCh:         make(chan tlfMessage, 1000),
 		shutdownCh:    make(chan struct{}),
+		indexReadyCh:  make(chan struct{}),
 	}
 
 	ctx, cancel := context.WithCancel(i.makeContext(context.Background()))
@@ -87,6 +106,11 @@ func NewIndexer(config libkbfs.Config) (*Indexer, error) {
 		return nil, err
 	}
 	return i, nil
+}
+
+// NewIndexer creates a new instance of an Indexer.
+func NewIndexer(config libkbfs.Config) (*Indexer, error) {
+	return newIndexerWithConfigInit(config, defaultInitConfig)
 }
 
 func (i *Indexer) makeContext(ctx context.Context) context.Context {
@@ -102,9 +126,44 @@ func (i *Indexer) closeIndexLocked(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	i.index = nil
 
-	return i.indexConfig.Shutdown(ctx)
+	// If the ready channel has already been closed, make a new one.
+	select {
+	case <-i.indexReadyCh:
+		i.indexReadyCh = make(chan struct{})
+	default:
+	}
+
+	i.blocksDb.Shutdown(ctx)
+	i.docDb.Shutdown(ctx)
+
+	shutdownErr := i.configShutdown(ctx)
+	i.index = nil
+	i.indexConfig = nil
+	i.blocksDb = nil
+	i.docDb = nil
+	i.cancelCtx()
+	return shutdownErr
+}
+
+func defaultInitConfig(
+	ctx context.Context, config libkbfs.Config, session idutil.SessionInfo,
+	log logger.Logger) (
+	newCtx context.Context, newConfig libkbfs.Config,
+	shutdownFn func(context.Context) error, err error) {
+	kbCtx := config.KbContext()
+	params, err := Params(kbCtx, config.StorageRoot(), session.UID)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	newCtx, newConfig, err = Init(
+		ctx, kbCtx, params, libkbfs.NewKeybaseServicePassthrough(config),
+		log, config.VLogLevel())
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	return newCtx, newConfig, newConfig.Shutdown, err
 }
 
 func (i *Indexer) loadIndex(ctx context.Context) (err error) {
@@ -122,22 +181,18 @@ func (i *Indexer) loadIndex(ctx context.Context) (err error) {
 		return err
 	}
 	if session.Name == "" {
-		i.log.CDebugf(ctx, "Not indexing while logged out")
 		return nil
 	}
 
 	// Create a new Config object for the index data, with a storage
 	// root that's unique to this user.
-	kbCtx := i.config.KbContext()
-	params, err := Params(kbCtx, i.config.StorageRoot(), session.UID)
+	ctx, indexConfig, configShutdown, err := i.configInitFn(
+		ctx, i.config, session, i.log)
 	if err != nil {
 		return err
 	}
-	ctx, indexConfig, err := Init(
-		ctx, kbCtx, params, libkbfs.NewKeybaseServicePassthrough(i.config),
-		i.log, i.config.VLogLevel())
-	if err != nil {
-		return err
+	cancelCtx := func() {
+		_ = libcontext.CleanupCancellationDelayer(ctx)
 	}
 	defer func() {
 		if err != nil {
@@ -145,6 +200,7 @@ func (i *Indexer) loadIndex(ctx context.Context) (err error) {
 			if configErr != nil {
 				i.log.CDebugf(ctx, "Couldn't shutdown config: %+v", configErr)
 			}
+			cancelCtx()
 		}
 	}()
 
@@ -175,12 +231,15 @@ func (i *Indexer) loadIndex(ctx context.Context) (err error) {
 	// The index itself will use LevelDB storage that writes to the
 	// KBFS filesystem object made above.  Register this storage type
 	// with Bleve.
-	kvstoreConstructor := func(
-		mo store.MergeOperator, _ map[string]interface{}) (
-		s store.KVStore, err error) {
-		return newBleveLevelDBStore(fs, false, mo)
-	}
-	registry.RegisterKVStore(kvstoreName, kvstoreConstructor)
+	i.fs = fs
+	i.once.Do(func() {
+		kvstoreConstructor := func(
+			mo store.MergeOperator, _ map[string]interface{}) (
+			s store.KVStore, err error) {
+			return newBleveLevelDBStore(i.fs, false, mo)
+		}
+		registry.RegisterKVStore(kvstoreName, kvstoreConstructor)
+	})
 
 	// Create the actual index using this storage type.  Bleve has
 	// different calls for new vs. existing indicies, so we first need
@@ -216,8 +275,38 @@ func (i *Indexer) loadIndex(ctx context.Context) (err error) {
 		return err
 	}
 
+	// Load the blocks DB.
+	blocksDb, err := newIndexedBlockDb(i.config, indexConfig.StorageRoot())
+	if err != nil {
+		return err
+	}
+
+	err = fs.MkdirAll(docDbDir, 0600)
+	if err != nil {
+		return err
+	}
+	docFS, err := fs.Chroot(docDbDir)
+	if err != nil {
+		return err
+	}
+	docDb, err := newDocDb(indexConfig, docFS)
+	if err != nil {
+		return err
+	}
+
+	err = indexConfig.KBFSOps().SyncFromServer(
+		ctx, fs.RootNode().GetFolderBranch(), nil)
+	if err != nil {
+		return err
+	}
+
 	i.index = index
 	i.indexConfig = indexConfig
+	i.configShutdown = configShutdown
+	i.blocksDb = blocksDb
+	i.docDb = docDb
+	i.cancelCtx = cancelCtx
+	close(i.indexReadyCh)
 	return nil
 }
 
@@ -271,6 +360,88 @@ func (i *Indexer) SyncModeChanged(
 }
 
 var _ libkbfs.SyncedTlfObserver = (*Indexer)(nil)
+
+func (i *Indexer) indexChild(
+	ctx context.Context, parentNode libkbfs.Node, parentDocID string,
+	childName data.PathPartString, nextDocID string, revision kbfsmd.Revision) (
+	usedDocID bool, err error) {
+	n, ei, err := i.config.KBFSOps().Lookup(ctx, parentNode, childName)
+	if err != nil {
+		return false, err
+	}
+
+	// Let's find the current block ID. (In the future, we might need
+	// to pass the old block ID in if we're processing an update,
+	// rather than a new file.)
+	md, err := i.config.KBFSOps().GetNodeMetadata(ctx, n)
+	if err != nil {
+		return false, err
+	}
+	ptr := md.BlockInfo.BlockPointer
+	if i.blocksDb == nil {
+		return false, errors.New("No indexed blocks db")
+	}
+	ver, docID, err := i.blocksDb.Get(ctx, ptr)
+	switch errors.Cause(err) {
+	case nil:
+	case ldberrors.ErrNotFound:
+		usedDocID = true
+		docID = nextDocID
+	default:
+		return false, err
+	}
+
+	tlfID := n.GetFolderBranch().Tlf
+	defer func() {
+		if err != nil {
+			return
+		}
+
+		// Skip the put if we got the doc ID from the DB, and the
+		// version was already up to date.
+		if !usedDocID && ver == currentIndexedBlocksDbVersion {
+			return
+		}
+
+		// Put the docID into the DB after a successful indexing.
+		putErr := i.blocksDb.Put(
+			ctx, tlfID, ptr, currentIndexedBlocksDbVersion, docID)
+		if putErr != nil {
+			err = putErr
+			return
+		}
+
+		// Save the docID -> parentDocID mapping.
+		putErr = i.docDb.Put(ctx, docID, parentDocID, childName.Plaintext())
+		if putErr != nil {
+			err = putErr
+		}
+	}()
+
+	if n.EntryType() == data.Dir {
+		// TODO: just index the child name for a directory.
+		return usedDocID, nil
+	}
+
+	// Get the content type and create a document based on that type.
+	d, err := makeDoc(ctx, i.config, n, ei, revision, time.Unix(0, ei.Mtime))
+	if err != nil {
+		return false, err
+	}
+
+	i.lock.RLock()
+	defer i.lock.RUnlock()
+	if i.index == nil {
+		return false, errors.New("Index not loaded")
+	}
+
+	err = i.index.Index(docID, d)
+	if err != nil {
+		return false, err
+	}
+
+	return usedDocID, nil
+}
 
 func (i *Indexer) fsForRev(
 	ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision) (*libfs.FS, error) {
@@ -345,6 +516,9 @@ outerLoop:
 				// pass, using the FS made above.
 			case <-ctx.Done():
 				return
+			case <-i.shutdownCh:
+				i.cancelLoop()
+				return
 			}
 		}
 	}
@@ -352,11 +526,25 @@ outerLoop:
 
 // Shutdown shuts down this indexer.
 func (i *Indexer) Shutdown(ctx context.Context) error {
-	i.cancelLoop()
 	close(i.shutdownCh)
 
 	i.lock.Lock()
 	defer i.lock.Unlock()
 
 	return i.closeIndexLocked(ctx)
+}
+
+func (i *Indexer) waitForIndex(ctx context.Context) error {
+	ch := func() <-chan struct{} {
+		i.lock.RLock()
+		defer i.lock.RUnlock()
+		return i.indexReadyCh
+	}()
+
+	select {
+	case <-ch:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 }

@@ -639,6 +639,21 @@ func (s *BlockingSender) handleMentions(ctx context.Context, uid gregor1.UID, ms
 			MessageBody:        chat1.NewMessageBodyWithText(newBody),
 			SupersedesOutboxID: msg.SupersedesOutboxID,
 		}
+	case chat1.MessageType_ATTACHMENT:
+		if err = checkHeaderBodyTypeMatch(); err != nil {
+			return res, atMentions, chanMention, err
+		}
+		knownUserMentions, maybeMentions, chanMention = utils.ParseAtMentionedItems(ctx, s.G(),
+			msg.MessageBody.Attachment().GetTitle(), nil, getConvMembers)
+		atMentions = atFromKnown(knownUserMentions)
+		newBody := msg.MessageBody.Attachment().DeepCopy()
+		newBody.TeamMentions = maybeToTeam(maybeMentions)
+		newBody.UserMentions = knownUserMentions
+		res = chat1.MessagePlaintext{
+			ClientHeader:       msg.ClientHeader,
+			MessageBody:        chat1.NewMessageBodyWithAttachment(newBody),
+			SupersedesOutboxID: msg.SupersedesOutboxID,
+		}
 	case chat1.MessageType_FLIP:
 		if err = checkHeaderBodyTypeMatch(); err != nil {
 			return res, atMentions, chanMention, err

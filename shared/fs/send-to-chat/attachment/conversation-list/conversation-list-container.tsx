@@ -5,7 +5,7 @@ import * as Constants from '../../../../constants/chat2'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import {isMobile} from '../../../../constants/platform'
 import ConversationList, {SmallTeamRowItem, BigTeamChannelRowItem, RowItem} from './conversation-list'
-import getFilteredRowsAndMetadata from '../../../../chat/inbox/container/filtered'
+import getFilteredRowsAndMetadata from './filtered'
 
 type OwnProps = {
   filter?: string
