@@ -1,6 +1,7 @@
 package client
 
 import (
+	"fmt"
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -10,7 +11,10 @@ import (
 
 type CmdWait struct {
 	libkb.Contextified
+	duration int
 }
+
+const maxWaitTime = 60
 
 func NewCmdWait(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
@@ -21,21 +25,31 @@ func NewCmdWait(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command 
 			cl.SetLogForward(libcmdline.LogForwardNone)
 			cl.ChooseCommand(&CmdWait{Contextified: libkb.NewContextified(g)}, "wait", c)
 		},
-		Flags: []cli.Flag{},
+		Flags: []cli.Flag{
+			cli.IntFlag{
+				Name:   "duration, d",
+				Value: 10,
+				Usage:  "How many seconds to wait before timing out",
+			},
+		},
 	}
 }
 
 func (c *CmdWait) ParseArgv(ctx *cli.Context) error {
-	if len(ctx.Args()) > 0 {
+	if len(ctx.Args()) > 1 {
 		return UnexpectedArgsError("wait")
+	}
+
+	c.duration = ctx.Int("duration")
+	if c.duration <= 0 || c.duration > maxWaitTime {
+		return fmt.Errorf("invalid duration %d, must be between 1 and %d", c.duration, maxWaitTime)
 	}
 	return nil
 }
 
 func (c *CmdWait) Run() error {
-	duration := 10
-
-	for i := 0; i < duration; i++ {
+	for i := 0; i < c.duration; i++ {
+		fmt.Println(i)
 		client, err := GetConfigClient(c.G())
 		if err != nil {
 			time.Sleep(time.Second)
