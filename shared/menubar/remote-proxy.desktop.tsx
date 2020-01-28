@@ -5,7 +5,7 @@ import * as FSTypes from '../constants/types/fs'
 import * as Container from '../util/container'
 import * as React from 'react'
 import * as Styles from '../styles'
-import * as SafeElectron from '../util/safe-electron.desktop'
+import * as Electron from 'electron'
 import {intersect} from '../util/set'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import {serialize} from './remote-serializer.desktop'
@@ -49,15 +49,15 @@ function useDarkSubscription() {
   const [count, setCount] = React.useState(-1)
   React.useEffect(() => {
     if (isDarwin) {
-      const subscriptionId = SafeElectron.getSystemPreferences().subscribeNotification(
+      const subscriptionId = Electron.remote.systemPreferences.subscribeNotification(
         'AppleInterfaceThemeChangedNotification',
         () => {
           setCount(count + 1)
         }
       )
       return () => {
-        if (subscriptionId && SafeElectron.getSystemPreferences().unsubscribeNotification) {
-          SafeElectron.getSystemPreferences().unsubscribeNotification(subscriptionId || -1)
+        if (subscriptionId && Electron.remote.systemPreferences.unsubscribeNotification) {
+          Electron.systemPreferences.unsubscribeNotification(subscriptionId || -1)
         }
       }
     } else {
@@ -73,7 +73,7 @@ function useUpdateBadges(p: WidgetProps, darkCount: number) {
 
   React.useEffect(() => {
     const [icon, iconSelected] = getIcons(widgetBadge, desktopAppBadgeCount > 0)
-    SafeElectron.getApp().emit('KBmenu', '', {
+    Electron.ipcRenderer.invoke('KBmenu', {
       payload: {desktopAppBadgeCount, icon, iconSelected},
       type: 'showTray',
     })

@@ -66,7 +66,9 @@
     "transformIgnorePatterns": [
       "node_modules/(?!universalify|fs-extra|react-redux|react-gateway|@storybook|@react-navigation)"
     ],
-    "setupFiles": [],
+    "setupFiles": [ 
+      "<rootDir>/test/setupFiles.js"
+    ],
     "setupFilesAfterEnv": [
       "<rootDir>/test/setupTestFrameworkScriptFile.js"
     ],
