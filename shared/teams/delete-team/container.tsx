@@ -1,6 +1,5 @@
 import * as TeamsGen from '../../actions/teams-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as WaitingGen from '../../actions/waiting-gen'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
@@ -20,13 +19,10 @@ export default Container.connect(
     }
   },
   dispatch => ({
-    clearError: (teamID: Types.TeamID) =>
-      dispatch(WaitingGen.createClearWaiting({key: Constants.deleteTeamWaitingKey(teamID)})),
     onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
     onDelete: (teamID: string) => dispatch(TeamsGen.createDeleteTeam({teamID})),
   }),
   (stateProps, dispatchProps, _: OwnProps) => ({
-    clearWaiting: () => dispatchProps.clearError(stateProps.teamID),
     deleteWaiting: stateProps.deleteWaiting,
     onBack: stateProps.deleteWaiting ? () => {} : dispatchProps.onBack,
     onDelete: () => dispatchProps.onDelete(stateProps.teamID),
