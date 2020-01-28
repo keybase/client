@@ -9,7 +9,7 @@ export type Props = {
   clearErrors: () => void
   onBack: () => void
   onDeleteTeam: () => void
-  onLeave: () => void
+  onLeave: (boolean) => void
   name: string
   open?: boolean
 }
@@ -33,17 +33,27 @@ const Header = (props: Props) => (
 const _ReallyLeaveTeam = (props: Props) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   React.useEffect(() => () => props.clearErrors(), [])
+  const [leavePermanently, setLeavePermanently] = React.useState(false)
+  const onLeave = () => props.onLeave(leavePermanently)
   useTeamsSubscribe()
   return (
     <Kb.ConfirmModal
       error={props.error}
       confirmText="Leave team"
+      content={
+        <Kb.Checkbox
+          label="Block this team"
+          labelSubtitle="Future attempts by admins to add you to the team will be ignored."
+          onCheck={setLeavePermanently}
+          checked={leavePermanently}
+        />
+      }
       description={`You will lose access to all the ${props.name} chats and folders${
         !props.open ? ', and you won’t be able to get back unless an admin invites you' : ''
       }.`}
       header={<Header {...props} />}
       onCancel={props.onBack}
-      onConfirm={props.onLeave}
+      onConfirm={onLeave}
       prompt={`Are you sure you want to leave ${props.name}?`}
       waitingKey={Constants.leaveTeamWaitingKey(props.name)}
     />
