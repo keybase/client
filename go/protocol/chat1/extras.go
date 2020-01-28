@@ -246,6 +246,23 @@ func VisibleChatMessageTypes() []MessageType {
 	return visibleMessageTypes
 }
 
+var nonEmptyConvMessageTypes = []MessageType{
+	MessageType_TEXT,
+	MessageType_ATTACHMENT,
+	MessageType_SYSTEM,
+	MessageType_SENDPAYMENT,
+	MessageType_REQUESTPAYMENT,
+	MessageType_FLIP,
+	MessageType_HEADLINE,
+	MessageType_PIN,
+}
+
+// A conversation is considered 'empty' unless it has one of these message types.
+// Used for example for filtering empty convs out of the the inbox.
+func NonEmptyConvMessageTypes() []MessageType {
+	return nonEmptyConvMessageTypes
+}
+
 var editableMessageTypesByEdit = []MessageType{
 	MessageType_TEXT,
 }
@@ -1556,7 +1573,7 @@ func (c Conversation) IsUnread() bool {
 
 func (c Conversation) IsUnreadFromMsgID(readMsgID MessageID) bool {
 	maxMsgID := c.MaxVisibleMsgID()
-	return maxMsgID > 0 && maxMsgID > readMsgID
+	return maxMsgID > 0 && maxMsgID > readMsgID // xxx same problem with unread LEAVE messages.
 }
 
 func (c Conversation) HasMemberStatus(status ConversationMemberStatus) bool {

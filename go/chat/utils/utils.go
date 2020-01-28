@@ -459,6 +459,10 @@ func IsDeleteableByDeleteMessageType(valid chat1.MessageUnboxedValid) bool {
 	return chat1.IsSystemMsgDeletableByDelete(typ)
 }
 
+func IsNonEmptyConvMessageType(messageType chat1.MessageType) bool {
+	return checkMessageTypeQual(messageType, chat1.NonEmptyConvMessageTypes())
+}
+
 func IsCollapsibleMessageType(messageType chat1.MessageType) bool {
 	switch messageType {
 	case chat1.MessageType_UNFURL, chat1.MessageType_ATTACHMENT:
@@ -469,21 +473,19 @@ func IsCollapsibleMessageType(messageType chat1.MessageType) bool {
 
 func IsNotifiableChatMessageType(messageType chat1.MessageType, atMentions []gregor1.UID,
 	chanMention chat1.ChannelMention) bool {
-	if IsVisibleChatMessageType(messageType) {
-		return true
-	}
 	switch messageType {
 	case chat1.MessageType_EDIT:
 		// an edit with atMention or channel mention should generate notifications
-		if len(atMentions) > 0 || chanMention != chat1.ChannelMention_NONE {
-			return true
-		}
+		return len(atMentions) > 0 || chanMention != chat1.ChannelMention_NONE
 	case chat1.MessageType_REACTION:
 		// effect of this is all reactions will notify if they are sent to a person that
 		// is notified for any messages in the conversation
 		return true
+	case chat1.MessageType_JOIN, chat1.MessageType_LEAVE:
+		return false
+	default:
+		return IsVisibleChatMessageType(messageType)
 	}
-	return false
 }
 
 type DebugLabeler struct {
@@ -872,7 +874,7 @@ func IsConvEmpty(conv chat1.Conversation) bool {
 		return false
 	default:
 		for _, msg := range conv.MaxMsgSummaries {
-			if IsVisibleChatMessageType(msg.GetMessageType()) {
+			if IsNonEmptyConvMessageType(msg.GetMessageType()) {
 				return false
 			}
 		}
@@ -949,7 +951,7 @@ func GetConvMtime(rc types.RemoteConversation) (res gregor1.Time) {
 func GetConvPriorityScore(rc types.RemoteConversation) float64 {
 	readMsgID := rc.GetReadMsgID()
 	maxMsgID := rc.Conv.ReaderInfo.MaxMsgid
-	mtime := GetConvMtime(rc)
+	mtime := GetConvMtime(rc) // xxx does leaving causing a bump all the way up to inbox top?
 	dur := math.Abs(float64(time.Since(mtime.Time())) / float64(time.Hour))
 	return 100 / math.Pow(dur+float64(maxMsgID-readMsgID), 0.5)
 }
@@ -2763,7 +2765,7 @@ func DBConvLess(a pager.InboxEntry, b pager.InboxEntry) bool {
 func ExportToSummary(i chat1.InboxUIItem) (s chat1.ConvSummary) {
 	s.Id = i.ConvID
 	s.IsDefaultConv = i.IsDefaultConv
-	s.Unread = i.ReadMsgID < i.MaxVisibleMsgID
+	s.Unread = i.ReadMsgID < i.MaxVisibleMsgID // xxx this could cause a LEAVE message to make a conv appear unread.
 	s.ActiveAt = i.Time.UnixSeconds()
 	s.ActiveAtMs = i.Time.UnixMilliseconds()
 	s.FinalizeInfo = i.FinalizeInfo
@@ -2796,7 +2798,7 @@ func supersedersNotEmpty(ctx context.Context, superseders []chat1.ConversationMe
 		for _, conv := range convs {
 			if superseder.ConversationID.Eq(conv.GetConvID()) {
 				for _, msg := range conv.Conv.MaxMsgSummaries {
-					if IsVisibleChatMessageType(msg.GetMessageType()) {
+					if IsNonEmptyConvMessageType(msg.GetMessageType()) {
 						return true
 					}
 				}
