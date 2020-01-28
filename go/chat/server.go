@@ -401,23 +401,23 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 	res.UiConv = utils.PresentConversationLocal(ctx, h.G(), uid, conv, utils.PresentParticipantsModeInclude)
 	res.IdentifyFailures = identBreaks
 
+	// If we are making a new channel in a team, send a system message to
+	// indicate this.
 	if arg.MembersType == chat1.ConversationMembersType_TEAM &&
 		arg.TopicType == chat1.TopicType_CHAT &&
-		arg.TopicName != &globals.DefaultTeamTopic {
-		subBody := chat1.NewMessageSystemWithNewConversation(chat1.MessageSystemNewConversation{
-			User:        username.String(),
-			IsTeam:      false,
-			IsInherit:   isInherit,
-			MembersType: conv.GetMembersType(),
-			Policy:      policy,
+		arg.TopicName != nil && *arg.TopicName != globals.DefaultTeamTopic {
+		subBody := chat1.NewMessageSystemWithNewconversation(chat1.MessageSystemNewConversation{
+			Creator:        h.G().Env.GetUsername().String(),
+			NameAtCreation: *arg.TopicName,
+			ConvID:         conv.GetConvID(),
 		})
 		body := chat1.NewMessageBodyWithSystem(subBody)
-		err = h.G().ChatHelper.SendMsgByID(ctx, arg.ConvID, conv.Info.TlfName, body, chat1.MessageType_SYSTEM,
-			conv.Info.Visibility)
+		err = h.G().ChatHelper.SendMsgByName(ctx, conv.Info.TlfName,
+			&globals.DefaultTeamTopic, arg.MembersType, keybase1.TLFIdentifyBehavior_CHAT_CLI,
+			body, chat1.MessageType_SYSTEM)
 		if err != nil {
 			h.Debug(ctx, "unable to post new channel system message: %v", err)
 		}
-
 	}
 
 	return res, nil

@@ -2646,28 +2646,28 @@ func (m MessageSystem) String() string {
 		if role := m.Inviteaddedtoteam().Role; role != keybase1.TeamRole_NONE {
 			roleText = fmt.Sprintf(" as a %q", role.HumanString())
 		}
-		output := fmt.Sprintf("Added %s to the team (invited by @%s%s)",
+		output := fmt.Sprintf("Added @%s to the team (invited by @%s%s)",
 			m.Inviteaddedtoteam().Invitee, m.Inviteaddedtoteam().Inviter, roleText)
 		return output
 	case MessageSystemType_COMPLEXTEAM:
 		return fmt.Sprintf("Created a new channel in %s", m.Complexteam().Team)
 	case MessageSystemType_CREATETEAM:
-		return fmt.Sprintf("%s created the team %s", m.Createteam().Creator, m.Createteam().Team)
+		return fmt.Sprintf("@%s created the team %s", m.Createteam().Creator, m.Createteam().Team)
 	case MessageSystemType_GITPUSH:
 		body := m.Gitpush()
 		switch body.PushType {
 		case keybase1.GitPushType_CREATEREPO:
-			return fmt.Sprintf("git %s created the repo %s", body.Pusher, body.RepoName)
+			return fmt.Sprintf("git @%s created the repo %s", body.Pusher, body.RepoName)
 		case keybase1.GitPushType_RENAMEREPO:
-			return fmt.Sprintf("git %s changed the name of the repo %s to %s", body.Pusher, body.PreviousRepoName, body.RepoName)
+			return fmt.Sprintf("git @%s changed the name of the repo %s to %s", body.Pusher, body.PreviousRepoName, body.RepoName)
 		default:
 			total := keybase1.TotalNumberOfCommits(body.Refs)
 			names := keybase1.RefNames(body.Refs)
-			return fmt.Sprintf("git (%s) %s pushed %d commits to %s", body.RepoName,
+			return fmt.Sprintf("git (%s) @%s pushed %d commits to %s", body.RepoName,
 				body.Pusher, total, names)
 		}
 	case MessageSystemType_CHANGEAVATAR:
-		return fmt.Sprintf("%s changed team avatar", m.Changeavatar().User)
+		return fmt.Sprintf("@%s changed team avatar", m.Changeavatar().User)
 	case MessageSystemType_CHANGERETENTION:
 		return m.Changeretention().String()
 	case MessageSystemType_BULKADDTOCONV:
@@ -2676,15 +2676,19 @@ func (m MessageSystem) String() string {
 		body := m.Sbsresolve()
 		switch body.AssertionService {
 		case "phone":
-			return fmt.Sprintf("%s verified their phone number %s and joined"+
+			return fmt.Sprintf("@%s verified their phone number %s and joined"+
 				" the conversation", body.Prover, body.AssertionUsername)
 		case "email":
-			return fmt.Sprintf("%s verified their email address %s and joined"+
+			return fmt.Sprintf("@%s verified their email address %s and joined"+
 				" the conversation", body.Prover, body.AssertionUsername)
 		}
-		return fmt.Sprintf("%s proved they are %s on %s and joined"+
+		return fmt.Sprintf("@%s proved they are %s on %s and joined"+
 			" the conversation", body.Prover, body.AssertionUsername,
 			body.AssertionService)
+	case MessageSystemType_NEWCONVERSATION:
+		body := m.Newconversation()
+		return fmt.Sprintf("@%s created a new channel #%s",
+			body.Creator, body.NameAtCreation)
 	default:
 		return ""
 	}
