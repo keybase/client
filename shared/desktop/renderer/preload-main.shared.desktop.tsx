@@ -19,7 +19,7 @@ target.KB = {
   __dirname: __dirname,
   electron: {
     app: {
-      getAppPath: isRenderer ? Electron.remote.app.getAppPath : Electron.app.getAppPath,
+      appPath: isRenderer ? Electron.remote.app.getAppPath() : Electron.app.getAppPath(),
     },
   },
   path: {

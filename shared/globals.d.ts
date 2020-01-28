@@ -47,7 +47,7 @@ declare var KB: {
   DEV?: any
   electron: {
     app: {
-      getAppPath: () => string
+      appPath: string
     }
   }
   path: {

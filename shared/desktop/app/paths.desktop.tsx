@@ -1,6 +1,6 @@
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import os from 'os'
-const {getAppPath} = KB.electron.app
+const {appPath: _appPath} = KB.electron.app
 const {resolve} = KB.path
 const {env} = KB.process
 
@@ -10,7 +10,7 @@ function appPath() {
   // For testing running from DMG
   // return '/Volumes/Keybase/Keybase.app/Contents/Resources/app/'
   const ap = env['KEYBASE_GET_APP_PATH'] ?? ''
-  return ap ?? getAppPath()
+  return ap ?? _appPath
 }
 
 // Path to bundle directory, e.g. /Applications/Keybase.app (darwin only)

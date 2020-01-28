@@ -12,7 +12,9 @@ global.KB = {
   },
   electron: {
     app: {
-      getAppPath: invalidPreload,
+      get appPath() {
+        return invalidPreload()
+      },
     },
   },
   path: {

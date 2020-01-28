@@ -1,7 +1,7 @@
 import {isWindows} from '../../constants/platform'
 const {electron, path, __dirname} = KB
 const {join, resolve, sep} = path
-const {getAppPath} = electron.app
+const {appPath} = electron.app
 
 let root: string
 let prefix: string
@@ -11,7 +11,7 @@ if (__STORYBOOK__) {
   prefix = ''
 } else {
   // Gives a path to the desktop folder in dev/packaged builds. Used to load up runtime assets.
-  root = !__DEV__ ? join(getAppPath(), './desktop') : join(__dirname, '..')
+  root = !__DEV__ ? join(appPath, './desktop') : join(__dirname, '..')
   prefix = isWindows ? 'file:///' : 'file://'
 }
 
