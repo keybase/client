@@ -166,6 +166,7 @@ const TabNavigator = createNavigator(
       map[tab] = createNavigator(
         AppView,
         StackRouter(Shim.shim(routes), {
+          // @ts-ignore types are wrong, this exists
           initialRouteKey: tabRoots[tab],
           initialRouteName: tabRoots[tab],
           initialRouteParams: undefined,
