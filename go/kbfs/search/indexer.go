@@ -6,7 +6,6 @@ package search
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"path/filepath"
 	"sync"
@@ -409,37 +408,48 @@ func (i *Indexer) indexChildWithPtrAndNode(
 	ctx context.Context, parentNode libkbfs.Node, parentDocID string,
 	childName data.PathPartString, oldPtr, newPtr data.BlockPointer,
 	n libkbfs.Node, ei data.EntryInfo, nextDocID string,
-	revision kbfsmd.Revision) (usedDocID bool, err error) {
+	revision kbfsmd.Revision) (dirDoneFn func() error, err error) {
 	if i.blocksDb == nil {
-		return false, errors.New("No indexed blocks db")
+		return nil, errors.New("No indexed blocks db")
 	}
+	tlfID := n.GetFolderBranch().Tlf
 
 	// If the new pointer has already been indexed, skip indexing it again.
-	v, _, err := i.blocksDb.Get(ctx, newPtr)
+	v, docID, dirDone, err := i.blocksDb.Get(ctx, newPtr)
 	switch errors.Cause(err) {
 	case nil:
 		if v == currentIndexedBlocksDbVersion {
 			i.log.CDebugf(ctx, "%s already indexed; skipping", newPtr)
-			return false, nil
+			if dirDone {
+				return nil, nil
+			}
+			return func() error {
+				return i.blocksDb.Put(
+					ctx, tlfID, newPtr, currentIndexedBlocksDbVersion, docID,
+					true)
+			}, nil
 		}
 	case ldberrors.ErrNotFound:
 	default:
-		return false, err
+		return nil, err
 	}
 
-	var docID string
 	if oldPtr != data.ZeroPtr {
-		_, docID, err = i.blocksDb.Get(ctx, oldPtr)
+		_, docID, _, err = i.blocksDb.Get(ctx, oldPtr)
 		switch errors.Cause(err) {
 		case nil:
 		case ldberrors.ErrNotFound:
-			return false, errors.WithStack(OldPtrNotFound{oldPtr})
+			return nil, errors.WithStack(OldPtrNotFound{oldPtr})
 		default:
-			return false, err
+			return nil, err
 		}
 	} else {
-		usedDocID = true
 		docID = nextDocID
+	}
+
+	dirDoneFn = func() error {
+		return i.blocksDb.Put(
+			ctx, tlfID, newPtr, currentIndexedBlocksDbVersion, docID, true)
 	}
 
 	defer func() {
@@ -448,9 +458,8 @@ func (i *Indexer) indexChildWithPtrAndNode(
 		}
 
 		// Put the docID into the DB after a successful indexing.
-		tlfID := n.GetFolderBranch().Tlf
 		putErr := i.blocksDb.Put(
-			ctx, tlfID, newPtr, currentIndexedBlocksDbVersion, docID)
+			ctx, tlfID, newPtr, currentIndexedBlocksDbVersion, docID, false)
 		if putErr != nil {
 			err = putErr
 			return
@@ -477,13 +486,13 @@ func (i *Indexer) indexChildWithPtrAndNode(
 	d, nameD, err := makeDoc(
 		ctx, i.config, n, ei, revision, time.Unix(0, ei.Mtime))
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
 	i.lock.RLock()
 	defer i.lock.RUnlock()
 	if i.index == nil {
-		return false, errors.New("Index not loaded")
+		return nil, errors.New("Index not loaded")
 	}
 
 	b := i.index.NewBatch()
@@ -491,29 +500,29 @@ func (i *Indexer) indexChildWithPtrAndNode(
 	if d != nil {
 		err = b.Index(docID, d)
 		if err != nil {
-			return false, err
+			return nil, err
 		}
 	}
 	err = b.Index(nameDocID(docID), nameD)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
 	err = i.index.Batch(b)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
-	return usedDocID, nil
+	return dirDoneFn, nil
 }
 
 func (i *Indexer) indexChild(
 	ctx context.Context, parentNode libkbfs.Node, parentDocID string,
 	childName data.PathPartString, nextDocID string,
-	revision kbfsmd.Revision) (usedDocID bool, err error) {
+	revision kbfsmd.Revision) (dirDoneFn func() error, err error) {
 	ptr, n, ei, err := i.getCurrentPtrAndNode(ctx, parentNode, childName)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
 	return i.indexChildWithPtrAndNode(
@@ -524,23 +533,15 @@ func (i *Indexer) indexChild(
 func (i *Indexer) updateChild(
 	ctx context.Context, parentNode libkbfs.Node, parentDocID string,
 	childName data.PathPartString, oldPtr data.BlockPointer,
-	revision kbfsmd.Revision) (err error) {
+	revision kbfsmd.Revision) (dirDoneFn func() error, err error) {
 	newPtr, n, ei, err := i.getCurrentPtrAndNode(ctx, parentNode, childName)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	usedDocID, err := i.indexChildWithPtrAndNode(
+	return i.indexChildWithPtrAndNode(
 		ctx, parentNode, parentDocID, childName, oldPtr, newPtr, n, ei,
 		"" /* should get picked up from DB, not from this param*/, revision)
-	if err != nil {
-		return err
-	}
-	if usedDocID {
-		panic(fmt.Sprintf("Index update %s (%s->%s) used passed-in doc "+
-			"ID incorrectly", childName, oldPtr, newPtr))
-	}
-	return nil
 }
 
 func (i *Indexer) renameChild(
@@ -556,7 +557,7 @@ func (i *Indexer) renameChild(
 	}
 
 	// Get the docID.
-	_, docID, err := i.blocksDb.Get(ctx, ptr)
+	_, docID, _, err := i.blocksDb.Get(ctx, ptr)
 	if err != nil {
 		// Treat "not found" errors as real errors, since a rename
 		// implies that the doc should have already been indexed.
@@ -585,7 +586,7 @@ func (i *Indexer) deleteFromUnrefs(
 	var unref data.BlockPointer
 unrefLoop:
 	for _, unref = range unrefs {
-		_, docID, err = i.blocksDb.Get(ctx, unref)
+		_, docID, _, err = i.blocksDb.Get(ctx, unref)
 		switch errors.Cause(err) {
 		case nil:
 			break unrefLoop
@@ -653,27 +654,26 @@ func (i *Indexer) indexNewlySyncedTlfDir(
 
 	currDocID := 0
 	for name, child := range children {
-		usedDocID, err := i.indexChild(
+		dirDoneFn, err := i.indexChild(
 			ctx, dir, dirDocID, name, ids[currDocID], rev)
 		if err != nil {
 			return err
 		}
-		var docID string
-		if usedDocID {
-			docID = ids[currDocID]
-			currDocID++
-		} else {
-			return errors.Errorf(
-				"Didn't use new doc ID for newly indexed child %s", name)
-		}
+		docID := ids[currDocID]
+		currDocID++
 
-		if child.Type == data.Dir {
+		if child.Type == data.Dir && dirDoneFn != nil {
 			n, _, err := i.config.KBFSOps().Lookup(ctx, dir, name)
 			if err != nil {
 				return err
 			}
 
 			err = i.indexNewlySyncedTlfDir(ctx, n, docID, rev)
+			if err != nil {
+				return err
+			}
+
+			err = dirDoneFn()
 			if err != nil {
 				return err
 			}
