@@ -311,6 +311,25 @@ func createFakeUserWithPGPSibkeyPushedPaper(tc libkb.TestContext) *FakeUser {
 	return fu
 }
 
+func createFakeUserWithPGPSibkeyPregen(tc libkb.TestContext, pregen *libkb.PGPKeyBundle) *FakeUser {
+	fu := CreateAndSignupFakeUser(tc, "pgp")
+
+	arg := PGPKeyImportEngineArg{
+		Pregen: pregen,
+	}
+	uis := libkb.UIs{
+		LogUI:    tc.G.UI.GetLogUI(),
+		SecretUI: fu.NewSecretUI(),
+	}
+	eng := NewPGPKeyImportEngine(tc.G, arg)
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	err := RunEngine2(m, eng)
+	if err != nil {
+		tc.T.Fatal(err)
+	}
+	return fu
+}
+
 // fakeLKS is used to create a lks that has the server half when
 // creating a fake user that doesn't have a device.
 func (s *SignupEngine) fakeLKS(m libkb.MetaContext) error {

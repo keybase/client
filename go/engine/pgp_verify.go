@@ -131,9 +131,24 @@ func (e *PGPVerify) runDetached(m libkb.MetaContext) error {
 	if err != nil {
 		return err
 	}
+	hashMethod, _, err := libkb.ExtractPGPSignatureHashMethod(sk, e.arg.Signature)
+	if err != nil {
+		return err
+	}
 
 	e.signer = sk.KeyOwnerByEntity(signer)
 	e.signStatus = &libkb.SignatureStatus{IsSigned: true}
+
+	if !libkb.IsHashSecure(hashMethod) {
+		e.signStatus.Warnings = append(
+			e.signStatus.Warnings,
+			libkb.NewHashSecurityWarning(
+				libkb.HashSecurityWarningSignatureHash,
+				hashMethod,
+				nil,
+			),
+		)
+	}
 
 	if signer != nil {
 		if len(signer.UnverifiedRevocations) > 0 {
@@ -164,10 +179,21 @@ func (e *PGPVerify) runDetached(m libkb.MetaContext) error {
 
 		if val, ok := p.(*packet.Signature); ok {
 			e.signStatus.SignatureTime = val.CreationTime
+		} else if val, ok := p.(*packet.SignatureV3); ok {
+			e.signStatus.SignatureTime = val.CreationTime
+		}
+
+		if warnings := libkb.NewPGPKeyBundle(signer).SecurityWarnings(
+			libkb.HashSecurityWarningSignersIdentityHash,
+		); len(warnings) > 0 {
+			e.signStatus.Warnings = append(
+				e.signStatus.Warnings,
+				warnings...,
+			)
 		}
 
 		fingerprint := libkb.PGPFingerprint(signer.PrimaryKey.Fingerprint)
-		err = OutputSignatureSuccess(m, fingerprint, e.signer, e.signStatus.SignatureTime)
+		err = OutputSignatureSuccess(m, fingerprint, e.signer, e.signStatus.SignatureTime, e.signStatus.Warnings)
 		if err != nil {
 			return err
 		}
@@ -203,9 +229,24 @@ func (e *PGPVerify) runClearsign(m libkb.MetaContext) error {
 	if err != nil {
 		return fmt.Errorf("Check sig error: %s", err)
 	}
+	hashMethod, _, err := libkb.ExtractPGPSignatureHashMethod(sk, sigBody)
+	if err != nil {
+		return err
+	}
 
 	e.signer = sk.KeyOwnerByEntity(signer)
 	e.signStatus = &libkb.SignatureStatus{IsSigned: true}
+
+	if !libkb.IsHashSecure(hashMethod) {
+		e.signStatus.Warnings = append(
+			e.signStatus.Warnings,
+			libkb.NewHashSecurityWarning(
+				libkb.HashSecurityWarningSignatureHash,
+				hashMethod,
+				nil,
+			),
+		)
+	}
 
 	if signer != nil {
 		if len(signer.UnverifiedRevocations) > 0 {
@@ -227,10 +268,21 @@ func (e *PGPVerify) runClearsign(m libkb.MetaContext) error {
 
 		if val, ok := p.(*packet.Signature); ok {
 			e.signStatus.SignatureTime = val.CreationTime
+		} else if val, ok := p.(*packet.SignatureV3); ok {
+			e.signStatus.SignatureTime = val.CreationTime
+		}
+
+		if warnings := libkb.NewPGPKeyBundle(signer).SecurityWarnings(
+			libkb.HashSecurityWarningSignersIdentityHash,
+		); len(warnings) > 0 {
+			e.signStatus.Warnings = append(
+				e.signStatus.Warnings,
+				warnings...,
+			)
 		}
 
 		fingerprint := libkb.PGPFingerprint(signer.PrimaryKey.Fingerprint)
-		err = OutputSignatureSuccess(m, fingerprint, e.signer, e.signStatus.SignatureTime)
+		err = OutputSignatureSuccess(m, fingerprint, e.signer, e.signStatus.SignatureTime, e.signStatus.Warnings)
 		if err != nil {
 			return err
 		}

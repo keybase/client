@@ -17,6 +17,8 @@ import (
 type PGPSignEngine struct {
 	arg *PGPSignArg
 	libkb.Contextified
+
+	warnings libkb.HashSecurityWarnings
 }
 
 type PGPSignArg struct {
@@ -38,6 +40,7 @@ func (p *PGPSignEngine) Name() string {
 func (p *PGPSignEngine) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{
 		libkb.SecretUIKind,
+		libkb.PgpUIKind,
 	}
 }
 
@@ -89,6 +92,20 @@ func (p *PGPSignEngine) Run(m libkb.MetaContext) (err error) {
 	} else if pgp, ok = key.(*libkb.PGPKeyBundle); !ok {
 		err = fmt.Errorf("Can only sign with PGP keys")
 		return
+	}
+
+	p.warnings = libkb.HashSecurityWarnings{}
+	if w := pgp.SecurityWarnings(
+		libkb.HashSecurityWarningOurIdentityHash,
+	); len(w) > 0 {
+		p.warnings = append(p.warnings, w...)
+	}
+	for _, warning := range p.warnings.Strings() {
+		if err := m.UIs().PgpUI.OutputPGPWarning(m.Ctx(), keybase1.OutputPGPWarningArg{
+			Warning: warning,
+		}); err != nil {
+			return err
+		}
 	}
 
 	bo := p.arg.Opts.BinaryOut
