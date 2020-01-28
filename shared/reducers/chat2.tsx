@@ -916,7 +916,7 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
         const priorJc = draftState.hasZzzJourneycard.get(cid)
         if (priorJc) {
           // Find a message that has a later ordinal and so should cause the zzz to disappear.
-          if (messages.find(m => m.ordinal > priorJc.ordinal)) {
+          if (messages.some(m => m.ordinal > priorJc.ordinal)) {
             draftState.hasZzzJourneycard.delete(cid)
             draftState.shouldDeleteZzzJourneycard.set(cid, priorJc)
           }
@@ -1167,7 +1167,8 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
 
     const os = messageOrdinals.get(conversationIDKey)
     os && allOrdinals.forEach(o => os.delete(o))
-    ;[draftState.hasZzzJourneycard, draftState.shouldDeleteZzzJourneycard].forEach(m => {
+    const maps = [draftState.hasZzzJourneycard, draftState.shouldDeleteZzzJourneycard]
+    maps.forEach(m => {
       const el = m.get(conversationIDKey)
       if (el && allOrdinals.has(el.ordinal)) {
         m.delete(conversationIDKey)
@@ -1409,9 +1410,8 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     const {updateType, conversationIDKeys} = action.payload
     const {messageMap, messageOrdinals, hasZzzJourneycard, shouldDeleteZzzJourneycard} = draftState
     if (updateType === RPCChatTypes.StaleUpdateType.clear) {
-      ;[messageMap, messageOrdinals, hasZzzJourneycard, shouldDeleteZzzJourneycard].forEach(m =>
-        conversationIDKeys.forEach(convID => m.delete(convID))
-      )
+      const maps = [messageMap, messageOrdinals, hasZzzJourneycard, shouldDeleteZzzJourneycard]
+      maps.forEach(m => conversationIDKeys.forEach(convID => m.delete(convID)))
     }
   },
   [Chat2Gen.notificationSettingsUpdated]: (draftState, action) => {
@@ -1510,12 +1510,13 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     })
   },
   [Chat2Gen.clearMessages]: draftState => {
-    ;[
+    const maps = [
       draftState.messageMap,
       draftState.messageOrdinals,
       draftState.hasZzzJourneycard,
       draftState.shouldDeleteZzzJourneycard,
-    ].forEach(m => m.clear())
+    ]
+    maps.forEach(m => m.clear())
   },
   [Chat2Gen.clearMetas]: draftState => {
     draftState.metaMap.clear()
