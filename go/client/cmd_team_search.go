@@ -6,6 +6,7 @@ package client
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	humanize "github.com/dustin/go-humanize"
 	"github.com/keybase/cli"
@@ -64,7 +65,8 @@ func renderTeamSearchItem(item keybase1.TeamSearchItem) (res string) {
 	res = fmt.Sprintf("%s (%d members) (last active %s) \n",
 		item.Name, item.MemberCount, humanize.Time(item.LastActive.Time()))
 	if item.Description != nil {
-		res += fmt.Sprintf("\t%s\n", *item.Description)
+		res += fmt.Sprintf(
+			"\t%s\n", strings.ReplaceAll(*item.Description, "\n", "\n\t"))
 	}
 	if !item.InTeam {
 		res += fmt.Sprintf("\tYou can join this open team with `keybase team request-access %s`\n", item.Name)
