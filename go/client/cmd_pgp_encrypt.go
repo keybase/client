@@ -75,6 +75,7 @@ func (c *CmdPGPEncrypt) Run() error {
 		return err
 	}
 	protocols := []rpc.Protocol{
+		NewPgpUIProtocol(c.G()),
 		NewStreamUIProtocol(c.G()),
 		NewSecretUIProtocol(c.G()),
 		NewIdentifyUIProtocol(c.G()),

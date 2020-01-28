@@ -24,8 +24,8 @@ func NewPgpUIProtocol(g *libkb.GlobalContext) rpc.Protocol {
 }
 
 func (p PgpUI) OutputPGPWarning(_ context.Context, arg keybase1.OutputPGPWarningArg) error {
-	_, err := p.w.Write([]byte(ColorString(p.G(), "red", fmt.Sprintf("WARNING: %s\n", arg.Warning))))
-	return err
+	_, _ = p.w.Write([]byte(ColorString(p.G(), "red", fmt.Sprintf("WARNING: %s\n", arg.Warning))))
+	return nil
 }
 
 func (p PgpUI) OutputSignatureSuccess(ctx context.Context, arg keybase1.OutputSignatureSuccessArg) error {
