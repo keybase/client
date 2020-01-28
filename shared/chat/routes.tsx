@@ -32,7 +32,7 @@ export const newRoutes = {
   chatRoot: {
     getScreen: (): typeof ChatRoot =>
       isMobile
-        ? require('./inbox/container/defer-loading').default
+        ? require('./inbox/defer-loading').default
         : require('./inbox-and-conversation-2.desktop').default,
   },
 }
