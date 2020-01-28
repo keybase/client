@@ -136,6 +136,7 @@ const VanillaTabNavigator = createBottomTabNavigator(
         cardStyle: Styles.isAndroid ? {backgroundColor: 'rgba(0,0,0,0)'} : undefined,
         defaultNavigationOptions,
         headerMode,
+        initialRouteKey: tabRoots[tab],
         initialRouteName: tabRoots[tab],
         initialRouteParams: undefined,
         transitionConfig: () => ({

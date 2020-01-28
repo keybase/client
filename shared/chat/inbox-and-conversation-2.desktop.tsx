@@ -15,10 +15,11 @@ type Props = {
 const InboxAndConversation = (props: Props) => {
   const inboxSearch = Container.useSelector(state => state.chat2.inboxSearch)
   const infoPanelShowing = Container.useSelector(state => state.chat2.infoPanelShowing)
+  const navKey = props.navigation.state.key
 
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
-      {inboxSearch ? <InboxSearch /> : <Inbox />}
+      {inboxSearch ? <InboxSearch /> : <Inbox navKey={navKey} />}
       <Conversation navigation={props.navigation} />
       {infoPanelShowing && <InfoPanel />}
     </Kb.Box2>
