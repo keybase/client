@@ -122,6 +122,7 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       | undefined
 
     switch (input?.type) {
+      // fallthrough
       case CryptoGen.saltpackDecrypt:
       case CryptoGen.saltpackEncrypt:
       case CryptoGen.saltpackSign:
@@ -137,14 +138,17 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     const op = draftState[operation]
 
     if (inputAction) {
-      outputMatchesInput = inputAction.payload.input.stringValue() === op.input.stringValue()
+      const currentInputMatchesRPCInput = inputAction.payload.input.stringValue() === op.input.stringValue()
+      const haveOutput = !!op.output.stringValue()
+      outputMatchesInput = currentInputMatchesRPCInput
 
-      // existing does match? just ignore this
-      if (op.outputMatchesInput) {
+      // If the store's input matches its output, then we don't need to update with the value of the returning RPC.
+      // However if the user encrypted to a user and then cleared the recipients (no output in the store) then allow the returning RPC to update the output
+      if (op.outputMatchesInput && haveOutput) {
         return
       }
 
-      // otherwise show the output but don't let them interact with it, its temporary
+      // Otherwise show the output but don't let them interact with it because the output is stale (newer RPC coming back)
       op.outputMatchesInput = outputMatchesInput
     }
 
