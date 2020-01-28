@@ -5,6 +5,7 @@ import React, {PureComponent} from 'react'
 import * as Kb from '../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import * as Container from '../../../../util/container'
 import {isIOS, isLargeScreen} from '../../../../constants/platform'
 import {LayoutEvent} from '../../../../common-adapters/box'
 import {
@@ -82,7 +83,11 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
     this.props.onChangeText(text)
   }
 
-  private onSubmit = () => {
+  private onSubmit = async () => {
+    // allow auto correct to happen
+    this.input?.blur()
+    await Container.timeoutPromise(20)
+
     const text = this.getText()
     if (text) {
       this.props.onSubmit(text)
