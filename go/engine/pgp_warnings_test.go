@@ -331,7 +331,7 @@ func (e encryptTest) test(t *testing.T, users map[string]map[crypto.Hash]*pgpWar
 		require.NoErrorf(t, RunEngine2(m, eng), "engine failure [%s]", e.Name)
 
 		// TODO: Y2K-1334 Fix this test
-		//require.Lenf(t, eng.SignatureStatus().Warnings, e.Count, "warnings count [%s]", e.Name)
+		require.Lenf(t, eng.SignatureStatus().Warnings, e.Count, "warnings count [%s]", e.Name)
 		//require.Equalf(t, []byte(pgpWarningsMsg), clearsignOutputSink.Bytes(), "output should be the same as the input [%s]", e.Name)
 
 		// Then process the attached sig
