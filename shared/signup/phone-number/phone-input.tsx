@@ -283,7 +283,7 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
 
     // ACME DIGIT REMOVAL MACHINE 5000
     // This code works around iOS not letting you accurately move your cursor
-    // anymore. Should fix editing "middle" numbers in the phone number input.
+    // anymore. Fixes editing "middle" numbers in the phone number input.
     // 1) It doesn't run in reformats with skipCountry:true
     // 2) It only runs when the total length changed
     // 3) It only runs when we had formatted text before
