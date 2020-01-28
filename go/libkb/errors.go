@@ -2131,6 +2131,17 @@ func (e ChatClientError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
 
 //=============================================================================
 
+type ChatUsersAlreadyInConversationError struct {
+	Uids   []keybase1.UID
+	ConvID chat1.ConversationID
+}
+
+func (e ChatUsersAlreadyInConversationError) Error() string {
+	return fmt.Sprintf("Cannot readd existing users to this conversation")
+}
+
+//=============================================================================
+
 type ChatStalePreviousStateError struct{}
 
 func (e ChatStalePreviousStateError) Error() string {

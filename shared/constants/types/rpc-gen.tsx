@@ -2347,6 +2347,7 @@ export enum StatusCode {
   scchatnotinteam = 2517,
   scchatstalepreviousstate = 2518,
   scchatephemeralretentionpolicyviolatederror = 2519,
+  scchatusersalreadyinconversationerror = 2520,
   scteambadmembership = 2604,
   scteamselfnotowner = 2607,
   scteamnotfound = 2614,
