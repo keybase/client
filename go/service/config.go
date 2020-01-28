@@ -166,13 +166,8 @@ func (h ConfigHandler) IsServiceRunning(ctx context.Context, sessionID int) (res
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("CFG")
 	defer mctx.TraceTimed("IsServiceRunning", func() error { return err })()
 
-	extStatus, err := status.GetExtendedStatus(mctx)
-	if err != nil {
-		return false, err
-	}
-
 	// set service status
-	if extStatus.Standalone {
+	if mctx.G().Env.GetStandalone() {
 		res = false
 	} else {
 		res = true

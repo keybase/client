@@ -16,12 +16,12 @@ type CmdWait struct {
 	duration time.Duration
 }
 
-const maxWaitTime = 60
+const maxWaitTime = 60 * time.Second
 
 func NewCmdWait(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:  "wait",
-		Usage: "Waits for the keybase server to start up",
+		Usage: "Waits for the keybase service to start up",
 		Action: func(c *cli.Context) {
 			cl.SetForkCmd(libcmdline.NoFork)
 			cl.SetLogForward(libcmdline.LogForwardNone)
@@ -43,13 +43,16 @@ func (c *CmdWait) ParseArgv(ctx *cli.Context) error {
 	}
 
 	c.duration = ctx.Duration("duration")
-	if c.duration.Seconds() <= 0 || c.duration.Seconds() > maxWaitTime {
-		return fmt.Errorf("invalid duration %s, must be between 1s and %ds", c.duration, maxWaitTime)
+	if c.duration.Seconds() <= 0 || c.duration.Seconds() > maxWaitTime.Seconds() {
+		return fmt.Errorf("invalid duration %s, must be between 1s and %s", c.duration, maxWaitTime)
 	}
 	return nil
 }
 
 func (c *CmdWait) Run() error {
+	ctx, cancel := context.WithTimeout(context.Background(), c.duration)
+	defer cancel()
+
 	durationSeconds := c.duration.Seconds()
 	for i := float64(0); i < durationSeconds; i++ {
 		client, err := getConfigClientWithRetry(c.G())
@@ -58,7 +61,7 @@ func (c *CmdWait) Run() error {
 			continue
 		}
 
-		isRunning, err := client.IsServiceRunning(context.TODO(), 0)
+		isRunning, err := client.IsServiceRunning(ctx, 0)
 		if err != nil {
 			return err
 		}
@@ -67,7 +70,11 @@ func (c *CmdWait) Run() error {
 			return nil
 		}
 
-		time.Sleep(time.Second)
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(1 * time.Second):
+		}
 	}
 
 	return nil
