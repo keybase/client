@@ -223,7 +223,7 @@ func logoutLogin(t *testing.T, user *FakeUser, dev libkb.TestContext) {
 		SecretUI:    user.NewSecretUI(),
 		GPGUI:       &gpgtestui{},
 	}
-	eng := NewLogin(dev.G, libkb.DeviceTypeDesktop, user.Username, keybase1.ClientType_CLI)
+	eng := NewLogin(dev.G, keybase1.DeviceTypeV2_DESKTOP, user.Username, keybase1.ClientType_CLI)
 	m := NewMetaContextForTest(dev).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)

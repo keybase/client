@@ -99,7 +99,7 @@ func TestPGPPurgeSync(t *testing.T) {
 		SecretUI:    u1.NewSecretUI(),
 		GPGUI:       &gpgtestui{},
 	}
-	leng := NewLogin(tc.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+	leng := NewLogin(tc.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, leng); err != nil {
 		t.Fatal(err)

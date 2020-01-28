@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 type PaperProvisionEngine struct {
@@ -211,7 +212,7 @@ func (e *PaperProvisionEngine) makeDeviceWrapArgs(m libkb.MetaContext) (*DeviceW
 	return &DeviceWrapArgs{
 		Me:             e.User,
 		DeviceName:     e.DeviceName,
-		DeviceType:     "desktop",
+		DeviceType:     keybase1.DeviceTypeV2_DESKTOP,
 		Lks:            e.lks,
 		PerUserKeyring: e.perUserKeyring,
 	}, nil

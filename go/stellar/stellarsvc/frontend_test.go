@@ -2908,7 +2908,7 @@ func TestSetMobileOnly(t *testing.T) {
 	// service_test verifies that `SetAccountMobileOnlyLocal` behaves correctly under the covers
 
 	// Provision new mobile to check AccountModeEditable and DeviceReadOnly
-	tc2, cleanup2 := provisionNewDeviceForTest(t, tcs[0], libkb.DeviceTypeMobile)
+	tc2, cleanup2 := provisionNewDeviceForTest(t, tcs[0], keybase1.DeviceTypeV2_MOBILE)
 	defer cleanup2()
 	details, err = tc2.Srv.GetWalletAccountLocal(context.Background(), walletAcctLocalArg)
 	require.NoError(t, err)
@@ -2917,7 +2917,7 @@ func TestSetMobileOnly(t *testing.T) {
 	require.Equal(t, true, details.DeviceReadOnly)
 
 	// Provision new desktop device.
-	tc3, cleanup3 := provisionNewDeviceForTest(t, tcs[0], libkb.DeviceTypeDesktop)
+	tc3, cleanup3 := provisionNewDeviceForTest(t, tcs[0], keybase1.DeviceTypeV2_DESKTOP)
 	defer cleanup3()
 	details, err = tc3.Srv.GetWalletAccountLocal(context.Background(), walletAcctLocalArg)
 	require.NoError(t, err)
