@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Styles from '../../styles'
-import Text, {TextType, Background, StylesTextCrossPlatform} from '../text'
+import Text, {TextType, Background, StylesTextCrossPlatform, AllowedColors} from '../text'
 import {backgroundModeIsNegative} from '../text.shared'
 
 export type User = {
@@ -17,16 +17,16 @@ export type Props = {
   backgroundMode?: Background
   colorBroken?: boolean
   colorFollowing?: boolean
-  notFollowingColorOverride?: string
-  colorYou?: boolean | string
-  commaColor?: string
+  notFollowingColorOverride?: AllowedColors
+  colorYou?: boolean | AllowedColors
+  commaColor?: AllowedColors
   containerStyle?: Styles.StylesCrossPlatform
   inline?: boolean
   inlineGrammar?: boolean
   joinerStyle?: Styles.StylesCrossPlatform
   lineClamp?: number
   prefix?: string | null
-  redColor?: string
+  redColor?: AllowedColors
   selectable?: boolean
   showAnd?: boolean
   style?: StylesTextCrossPlatform
@@ -59,17 +59,19 @@ const UsernameText = (props: Props) => {
         let userStyle = Styles.platformStyles({
           common: {
             ...(props.colorFollowing && !u.you
-              ? {
+              ? ({
                   color: u.following
                     ? Styles.globalColors.greenDark
                     : props.notFollowingColorOverride || Styles.globalColors.blueDark,
-                }
+                } as const)
               : null),
             ...(props.colorBroken && u.broken && !u.you
-              ? {color: props.redColor || Styles.globalColors.redDark}
+              ? ({color: props.redColor || Styles.globalColors.redDark} as const)
               : null),
             ...(props.colorYou && u.you
-              ? {color: typeof props.colorYou === 'string' ? props.colorYou : Styles.globalColors.black}
+              ? ({
+                  color: typeof props.colorYou === 'string' ? props.colorYou : Styles.globalColors.black,
+                } as const)
               : null),
           },
           isElectron: props.inline ? {display: 'inline'} : {},
