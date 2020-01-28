@@ -11,14 +11,6 @@ type DisclaimerProps = {
   onAcceptDisclaimer: () => void
   onCheckDisclaimer: () => void
   onNotNow: () => void
-  sections: ReadonlyArray<{
-    lines: ReadonlyArray<{
-      bullet: boolean
-      text: string
-    }>
-    section: string
-    icon: string | null
-  }>
 }
 
 type DisclaimerState = {
@@ -133,23 +125,6 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
       )
     )
 
-    const disclaimer =
-      this.props.sections.length === 0 ? (
-        <StaticDisclaimer />
-      ) : (
-        this.props.sections.map(b =>
-          b.lines.map(l => (
-            <Kb.Markdown
-              key={l.text}
-              style={l.bullet ? Styles.collapseStyles([styles.bodyText, styles.bodyBullet]) : styles.bodyText}
-              styleOverride={l.bullet ? bulletOverride : bodyOverride}
-            >
-              {(l.bullet ? '• ' : '').concat(l.text)}
-            </Kb.Markdown>
-          ))
-        )
-      )
-
     // xxx test error presentation
     return (
       <Kb.Modal
@@ -190,7 +165,7 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
           </Kb.Box2>
           {Styles.isMobile ? (
             <Kb.Box2 direction="vertical" style={styles.disclaimerContainer}>
-              {disclaimer}
+              <StaticDisclaimer />
             </Kb.Box2>
           ) : (
             <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={{position: 'relative'}}>
@@ -198,7 +173,7 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
                 style={styles.scrollView}
                 contentContainerStyle={styles.scrollViewContentContainer}
               >
-                {disclaimer}
+                <StaticDisclaimer />
               </Kb.ScrollView>
               <Kb.Box style={styles.gradient} />
             </Kb.Box2>
@@ -290,27 +265,6 @@ const StaticDisclaimer = () => (
     )}
   </>
 )
-
-const bodyOverride = Styles.styleSheetCreate(() => ({
-  paragraph: {
-    color: Styles.globalColors.white,
-    fontSize: Styles.isMobile ? 16 : 13,
-    marginBottom: Styles.globalMargins.xsmall,
-    marginTop: Styles.globalMargins.tiny,
-    textAlign: 'left' as const,
-  },
-  strong: Styles.globalStyles.fontExtrabold,
-}))
-
-const bulletOverride = Styles.styleSheetCreate(() => ({
-  paragraph: {
-    ...bodyOverride.paragraph,
-    marginBottom: Styles.globalMargins.tiny,
-    marginLeft: Styles.globalMargins.tiny,
-    marginTop: undefined,
-  },
-  strong: bodyOverride.strong,
-}))
 
 const styles = Styles.styleSheetCreate(
   () =>
