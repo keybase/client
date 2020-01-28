@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -498,6 +499,7 @@ func (cc *JourneyCardManagerSingleUser) cardWelcome(ctx context.Context, convID 
 // Gist: "You are in #general. Other popular channels in this team: diplomacy, sportsball"
 // Condition: Only in #general channel
 // Condition: The team has at least 2 channels besides general that the user could join.
+// Condition: The user has not joined any other channels in the team.
 // Condition: User has sent a first message OR a few days have passed since they joined the channel.
 // Condition: Less than 4 weeks have passed since the user joined the team (ish: see JoinedTime).
 func (cc *JourneyCardManagerSingleUser) cardPopularChannels(ctx context.Context, conv convForJourneycard,
@@ -507,8 +509,8 @@ func (cc *JourneyCardManagerSingleUser) cardPopularChannels(ctx context.Context,
 	if !simpleQualified {
 		return false
 	}
-	// Figure out whether there are other channels that the user is not in.
-	// Don't get the actual names, since for NEVER_JOINED convs LocalMetadata,
+	// Find other channels that the user could join, or that they have joined.
+	// Don't get the actual channel names, since for NEVER_JOINED convs LocalMetadata,
 	// which has the name, is not generally available. The gui will fetch the names async.
 	topicType := chat1.TopicType_CHAT
 	joinableStatuses := []chat1.ConversationMemberStatus{ // keep in sync with cards/team-journey/container.tsx
@@ -521,7 +523,7 @@ func (cc *JourneyCardManagerSingleUser) cardPopularChannels(ctx context.Context,
 		&chat1.GetInboxQuery{
 			TlfID:            &conv.TlfID,
 			TopicType:        &topicType,
-			MemberStatus:     joinableStatuses,
+			MemberStatus:     append(append([]chat1.ConversationMemberStatus{}, joinableStatuses...), everJoinedStatuses...),
 			MembersTypes:     []chat1.ConversationMembersType{chat1.ConversationMembersType_TEAM},
 			SummarizeMaxMsgs: true,
 			SkipBgLoads:      true,
@@ -531,19 +533,24 @@ func (cc *JourneyCardManagerSingleUser) cardPopularChannels(ctx context.Context,
 		debugDebug(ctx, "cardPopularChannels ReadUnverified error: %v", err)
 		return false
 	}
-	debugDebug(ctx, "cardPopularChannels ReadUnverified found %v convs", len(inbox.ConvsUnverified))
 	const nJoinableChannelsMin int = 2
 	var nJoinableChannels int
 	for _, convOther := range inbox.ConvsUnverified {
 		if !convOther.GetConvID().Eq(conv.ConvID) {
-			debugDebug(ctx, "cardPopularChannels ReadUnverified found alternate conv: %v", convOther.GetConvID())
-			nJoinableChannels++
-			if nJoinableChannels >= nJoinableChannelsMin {
-				return true
+			if convOther.Conv.ReaderInfo == nil {
+				debugDebug(ctx, "cardPopularChannels ReadUnverified missing ReaderInfo: %v", convOther.GetConvID())
+				continue
 			}
+			if memberStatusListContains(everJoinedStatuses, convOther.Conv.ReaderInfo.Status) {
+				debugDebug(ctx, "cardPopularChannels ReadUnverified found already-joined conv among %v: %v", len(inbox.ConvsUnverified), convOther.GetConvID())
+				return false
+			}
+			// Found joinable conv
+			nJoinableChannels++
 		}
 	}
-	return false
+	debugDebug(ctx, "cardPopularChannels ReadUnverified found joinable convs %v / %v", nJoinableChannels, len(inbox.ConvsUnverified))
+	return nJoinableChannels >= nJoinableChannelsMin
 }
 
 // Card type: ADD_PEOPLE (3 on design)
@@ -563,31 +570,26 @@ func (cc *JourneyCardManagerSingleUser) cardAddPeople(ctx context.Context, conv 
 	if jcd.Convs[conv.ConvID.ConvIDStr()].SentMessage {
 		return true
 	}
-	// Figure whether the user is in other channels.
+	// Figure whether the user has ever joined other channels.
 	topicType := chat1.TopicType_CHAT
 	inbox, err := cc.G().InboxSource.ReadUnverified(ctx, cc.uid, types.InboxSourceDataSourceLocalOnly,
 		&chat1.GetInboxQuery{
-			TlfID:     &conv.TlfID,
-			TopicType: &topicType,
-			MemberStatus: []chat1.ConversationMemberStatus{
-				chat1.ConversationMemberStatus_ACTIVE,
-				chat1.ConversationMemberStatus_REMOVED,
-				chat1.ConversationMemberStatus_LEFT,
-				chat1.ConversationMemberStatus_PREVIEW,
-			},
+			TlfID:            &conv.TlfID,
+			TopicType:        &topicType,
+			MemberStatus:     everJoinedStatuses,
 			MembersTypes:     []chat1.ConversationMembersType{chat1.ConversationMembersType_TEAM},
 			SummarizeMaxMsgs: true,
 			SkipBgLoads:      true,
 			AllowUnseenQuery: true, // Make an effort, it's ok if convs are missed.
 		})
 	if err != nil {
-		debugDebug(ctx, "ReadUnverified error: %v", err)
+		debugDebug(ctx, "cardAddPeople ReadUnverified error: %v", err)
 		return false
 	}
-	debugDebug(ctx, "ReadUnverified found %v convs", len(inbox.ConvsUnverified))
+	debugDebug(ctx, "cardAddPeople ReadUnverified found %v convs", len(inbox.ConvsUnverified))
 	for _, convOther := range inbox.ConvsUnverified {
 		if !convOther.GetConvID().Eq(conv.ConvID) {
-			debugDebug(ctx, "ReadUnverified found alternate conv: %v", convOther.GetConvID())
+			debugDebug(ctx, "cardAddPeople ReadUnverified found alternate conv: %v", convOther.GetConvID())
 			return true
 		}
 	}
@@ -620,6 +622,7 @@ func (cc *JourneyCardManagerSingleUser) cardCreateChannels(ctx context.Context, 
 		&chat1.GetInboxQuery{
 			TlfID:            &conv.TlfID,
 			TopicType:        &topicType,
+			MemberStatus:     allConvMemberStatuses,
 			MembersTypes:     []chat1.ConversationMembersType{chat1.ConversationMembersType_TEAM},
 			SummarizeMaxMsgs: true,
 			SkipBgLoads:      true,
@@ -1274,4 +1277,31 @@ var journeycardShouldNotRunOnReason = map[chat1.GetThreadReason]bool{
 	chat1.GetThreadReason_KBFSFILEACTIVITY:   true,
 	chat1.GetThreadReason_COINFLIP:           true,
 	chat1.GetThreadReason_BOTCOMMANDS:        true,
+}
+
+// The user has joined the conversations at some point.
+var everJoinedStatuses = []chat1.ConversationMemberStatus{
+	chat1.ConversationMemberStatus_ACTIVE,
+	chat1.ConversationMemberStatus_REMOVED,
+	chat1.ConversationMemberStatus_LEFT,
+	chat1.ConversationMemberStatus_PREVIEW,
+}
+
+var allConvMemberStatuses []chat1.ConversationMemberStatus
+
+func init() {
+	var allConvMemberStatuses []chat1.ConversationMemberStatus
+	for s := range chat1.ConversationMemberStatusRevMap {
+		allConvMemberStatuses = append(allConvMemberStatuses, s)
+	}
+	sort.Slice(allConvMemberStatuses, func(i, j int) bool { return allConvMemberStatuses[i] < allConvMemberStatuses[j] })
+}
+
+func memberStatusListContains(a []chat1.ConversationMemberStatus, v chat1.ConversationMemberStatus) bool {
+	for _, el := range a {
+		if el == v {
+			return true
+		}
+	}
+	return false
 }
