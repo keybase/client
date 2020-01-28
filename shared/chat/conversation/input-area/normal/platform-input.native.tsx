@@ -86,7 +86,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
   private onSubmit = async () => {
     // allow auto correct to happen
     this.input?.blur()
-    await Container.timeoutPromise(100)
+    await Container.timeoutPromise(20)
 
     const text = this.getText()
     if (text) {
