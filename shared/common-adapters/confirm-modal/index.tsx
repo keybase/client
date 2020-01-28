@@ -13,7 +13,7 @@ import {IconType} from '../icon.constants-gen'
 export type Props = {
   confirmText?: string
   content?: React.ReactNode
-  description: string
+  description?: string
   error?: string
   header?: React.ReactNode
   icon?: IconType
@@ -106,9 +106,11 @@ const ConfirmModal = (props: Props) => (
       ) : (
         props.prompt
       )}
-      <Text center={true} style={styles.text} type="Body">
-        {props.description}
-      </Text>
+      {props.description && (
+        <Text center={true} style={styles.text} type="Body">
+          {props.description}
+        </Text>
+      )}
       {props.content}
     </Box2>
   </Modal>
