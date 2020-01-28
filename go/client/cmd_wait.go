@@ -5,6 +5,8 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
 	"time"
 )
@@ -49,8 +51,7 @@ func (c *CmdWait) ParseArgv(ctx *cli.Context) error {
 
 func (c *CmdWait) Run() error {
 	for i := 0; i < c.duration; i++ {
-		fmt.Println(i)
-		client, err := GetConfigClient(c.G())
+		client, err := getConfigClient(c.G())
 		if err != nil {
 			time.Sleep(time.Second)
 			continue
@@ -73,4 +74,19 @@ func (c *CmdWait) Run() error {
 
 func (c *CmdWait) GetUsage() libkb.Usage {
 	return libkb.Usage{}
+}
+
+func getConfigClient(g *libkb.GlobalContext) (cli keybase1.ConfigClient, err error) {
+	var rpcClient *rpc.Client
+	if rpcClient, _, err = getRPCClientWithContext(g); err == nil {
+		cli = keybase1.ConfigClient{Cli: rpcClient}
+	}
+	return
+}
+
+func getRPCClientWithContext(g *libkb.GlobalContext) (ret *rpc.Client, xp rpc.Transporter, err error) {
+	if xp, err = getSocketWithRetry(g); err == nil {
+		ret = rpc.NewClient(xp, libkb.NewContextifiedErrorUnwrapper(g), nil)
+	}
+	return
 }
