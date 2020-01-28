@@ -187,7 +187,7 @@ describe('text code error path', () => {
 })
 
 describe('device name empty', () => {
-  const existingDevices = []
+  const existingDevices: Array<string> = []
   const init = makeInit({
     method: 'keybase.1.provisionUi.PromptNewDeviceName',
     payload: {errorMessage: '', existingDevices: null},
@@ -233,7 +233,7 @@ describe('device name happy path', () => {
 })
 
 describe('device name error path', () => {
-  const existingDevices = []
+  const existingDevices: Array<string> = []
   const error = new HiddenString('invalid name')
   let init: ReturnType<typeof makeInit>
   beforeEach(() => {
