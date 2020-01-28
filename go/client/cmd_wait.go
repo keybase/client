@@ -29,9 +29,9 @@ func NewCmdWait(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command 
 		},
 		Flags: []cli.Flag{
 			cli.DurationFlag{
-				Name:   "duration, d",
+				Name:  "duration, d",
 				Value: 10 * time.Second,
-				Usage:  "How long to wait before timing out",
+				Usage: "How long to wait before timing out",
 			},
 		},
 	}
