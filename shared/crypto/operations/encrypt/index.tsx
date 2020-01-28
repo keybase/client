@@ -55,6 +55,7 @@ const EncryptOptions = React.memo((props: EncryptOptionsProps) => {
       )}
       <Kb.Checkbox
         label="Sign"
+        disabled={hasSBS}
         checked={sign}
         onCheck={newValue => onSetOptions({includeSelf, sign: newValue})}
       />

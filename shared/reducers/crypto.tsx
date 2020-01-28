@@ -49,10 +49,9 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       encrypt.bytesComplete = 0
       encrypt.bytesTotal = 0
       encrypt.recipients = initialState.encrypt.recipients
-      encrypt.meta.hasRecipients = false
-      encrypt.meta.noIncludeSelf = false
       // Reset options since they depend on the recipients
       encrypt.options = initialState.encrypt.options
+      encrypt.meta = initialState.encrypt.meta
       encrypt.output = new HiddenString('')
       encrypt.outputStatus = undefined
       encrypt.outputType = undefined
@@ -67,13 +66,18 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
 
     if (operation !== Constants.Operations.Encrypt) return
 
-    const {encrypt} = draftState
-    if (!encrypt.recipients.length && recipients.length) {
-      encrypt.meta.hasRecipients = true
-      encrypt.meta.hasSBS = hasSBS
+    const op = draftState.encrypt
+    if (!op.recipients.length && recipients.length) {
+      op.meta.hasRecipients = true
+      op.meta.hasSBS = hasSBS
     }
+    // Force signing when user is SBS
+    if (hasSBS) {
+      op.options.sign = true
+    }
+
     if (recipients) {
-      encrypt.recipients = recipients
+      op.recipients = recipients
     }
   },
   [CryptoGen.setEncryptOptions]: (draftState, action) => {
