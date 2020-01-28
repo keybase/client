@@ -1092,13 +1092,6 @@ export type TypedActionsMap = {
   'wallets:loadMobileOnlyMode': wallets.LoadMobileOnlyModePayload
   'wallets:loadedMobileOnlyMode': wallets.LoadedMobileOnlyModePayload
   'wallets:changeMobileOnlyMode': wallets.ChangeMobileOnlyModePayload
-  'wallets:changeAirdrop': wallets.ChangeAirdropPayload
-  'wallets:hideAirdropBanner': wallets.HideAirdropBannerPayload
-  'wallets:updateAirdropBannerState': wallets.UpdateAirdropBannerStatePayload
-  'wallets:updateAirdropState': wallets.UpdateAirdropStatePayload
-  'wallets:updatedAirdropState': wallets.UpdatedAirdropStatePayload
-  'wallets:updateAirdropDetails': wallets.UpdateAirdropDetailsPayload
-  'wallets:updatedAirdropDetails': wallets.UpdatedAirdropDetailsPayload
   'wallets:refreshTrustlineAcceptedAssets': wallets.RefreshTrustlineAcceptedAssetsPayload
   'wallets:refreshTrustlineAcceptedAssetsByUsername': wallets.RefreshTrustlineAcceptedAssetsByUsernamePayload
   'wallets:refreshTrustlinePopularAssets': wallets.RefreshTrustlinePopularAssetsPayload

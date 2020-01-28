@@ -24,7 +24,6 @@ const ConnectedOnboarding = Container.connect(
     onCheckDisclaimer: (nextScreen: Types.NextScreenAfterAcceptance) =>
       dispatch(WalletsGen.createCheckDisclaimer({nextScreen})),
     onClose: () => dispatch(WalletsGen.createRejectDisclaimer()),
-    onLoadDetails: () => dispatch(WalletsGen.createUpdateAirdropDetails()),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => ({
     acceptDisclaimerError: stateProps.acceptDisclaimerError,
@@ -33,7 +32,6 @@ const ConnectedOnboarding = Container.connect(
     onAcceptDisclaimer: dispatchProps.onAcceptDisclaimer,
     onCheckDisclaimer: dispatchProps.onCheckDisclaimer,
     onClose: dispatchProps.onClose,
-    onLoadDetails: dispatchProps.onLoadDetails,
   })
 )(Onboarding)
 

@@ -9,7 +9,6 @@ type OnboardingProps = {
   nextScreen: Types.NextScreenAfterAcceptance
   onAcceptDisclaimer: () => void
   onCheckDisclaimer: (nextScreen: Types.NextScreenAfterAcceptance) => void
-  onLoadDetails: () => void
   onClose: () => void
 }
 
@@ -21,9 +20,6 @@ class Onboarding extends React.Component<OnboardingProps, OnboardingState> {
   state = {seenIntro: false}
   _seenIntro = () => {
     this.setState({seenIntro: true})
-  }
-  componentDidMount() {
-    this.props.onLoadDetails()
   }
   render() {
     if (!this.state.seenIntro) {
