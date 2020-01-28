@@ -559,6 +559,7 @@ const updateServerConfig = async (state: Container.TypedState, action: ConfigGen
     return false
   }
   try {
+    // TODO real rpc so we get real types instead of this untyped bag of key/values
     const str = await RPCTypes.apiserverGetWithSessionRpcPromise({
       endpoint: 'user/features',
     })
