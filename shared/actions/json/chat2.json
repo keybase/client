@@ -663,7 +663,7 @@
     },
     "inboxSearchOpenTeamsResults": {
       "_description": "Inbox search open teams results received",
-      "results": "Array<Types.InboxSearchOpenTeamHit>",
+      "results": "Array<Types.InboxSearchOpenTeamHit>"
     },
     "inboxSearchNameResults": {
       "_description": "Inbox search name results received",
@@ -898,9 +898,9 @@
       "role": "TeamsTypes.TeamRoleType | null"
     },
     "showInfoPanel": {
-        "tab?": "'settings' | 'members' | 'attachments' | 'bots'",
-        "show": "boolean",
-        "conversationIDKey?": "Types.ConversationIDKey"
+      "tab?": "'settings' | 'members' | 'attachments' | 'bots'",
+      "show": "boolean",
+      "conversationIDKey?": "Types.ConversationIDKey"
     },
     "dismissJourneycard": {
       "_description": "Dismiss a journeycard",

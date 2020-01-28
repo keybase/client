@@ -83,6 +83,7 @@ const styles = Styles.styleSheetCreate(
         isElectron: {...Styles.desktopStyles.windowDraggingClickable},
       }),
       accountInfo: {
+        maxHeight: 39,
         paddingBottom: Styles.globalMargins.xtiny,
         paddingLeft: Styles.globalMargins.xsmall,
       },

@@ -123,9 +123,9 @@ export const getStatusCodeMessage = (
 
   const statusCodeToMessage: any = {
     [RPCTypes.StatusCode.scstreamunknown]: invalidInputMessage,
-    [RPCTypes.StatusCode
-      .scsigcannotverify]: `Wrong message type: wanted an attached signature, but got a signed and encrypted message instead.`,
-  }
+    [RPCTypes.StatusCode.scsigcannotverify]: `Cannot verify ${type === 'text' ? 'message' : 'file'}`,
+  } as const
+
   return statusCodeToMessage[code] || `Failed to ${operation} ${type}.`
 }
 
@@ -153,7 +153,7 @@ export const makeState = (): Types.State => ({
     meta: {
       hasRecipients: false,
       hasSBS: false,
-      noIncludeSelf: false,
+      hideIncludeSelf: false,
     },
     options: {
       includeSelf: true,

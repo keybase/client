@@ -20,7 +20,6 @@ const RenderLastOwner = (p: Props & ExtraProps) => {
     <LastOwnerDialog
       onBack={rest.onBack}
       onDeleteTeam={rest.onDeleteTeam}
-      onLeave={rest.onLeave}
       name={rest.name}
       stillLoadingTeam={stillLoadingTeam}
     />
@@ -56,11 +55,11 @@ export default Container.connect(
         })
       )
     },
-    _onLeave: (teamname: string) => {
+    _onLeave: (teamname: string, permanent: boolean) => {
       dispatch(
         TeamsGen.createLeaveTeam({
           context: 'teams',
-          permanent: false,
+          permanent,
           teamname,
         })
       )
@@ -75,7 +74,7 @@ export default Container.connect(
     name: stateProps.name,
     onBack: stateProps._leaving ? () => {} : dispatchProps.onBack,
     onDeleteTeam: () => dispatchProps._onDeleteTeam(stateProps.teamID),
-    onLeave: () => dispatchProps._onLeave(stateProps.name),
+    onLeave: (permanent: boolean) => dispatchProps._onLeave(stateProps.name, permanent),
     open: stateProps.open,
     stillLoadingTeam: stateProps.stillLoadingTeam,
     teamID: stateProps.teamID,

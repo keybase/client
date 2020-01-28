@@ -22,6 +22,7 @@ import (
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
 
@@ -357,6 +358,10 @@ func (f *FS) open(ctx context.Context, oc *openContext, ps []string) (dokan.File
 		f.log.CInfof(ctx, "Exiting due to .kbfs_unmount")
 		logger.Shutdown()
 		os.Exit(0)
+	case ".kbfs_restart" == ps[0]:
+		f.log.CInfof(ctx, "Exiting due to .kbfs_restart, should get restarted by watchdog process")
+		logger.Shutdown()
+		os.Exit(int(keybase1.ExitCode_RESTART))
 	case ".kbfs_number_of_handles" == ps[0]:
 		x := stringReadFile(strconv.Itoa(int(oc.fi.NumberOfFileHandles())))
 		return oc.returnFileNoCleanup(x)

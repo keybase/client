@@ -62,9 +62,9 @@ export type InboxSearchOpenTeamHit = {
   description: string
   inTeam: boolean
   name: string
-  numMembers: number
+  memberCount: number
   publicAdmins: Array<string>
-  teamID: Team.TeamID
+  id: Team.TeamID
 }
 
 export type InboxSearchInfo = {
