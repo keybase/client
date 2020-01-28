@@ -83,6 +83,7 @@ export const SendPaymentPopup = Container.namedConnect(
   }),
   (stateProps, dispatchProps, ownProps: SendOwnProps) => {
     if (ownProps.message.type !== 'sendPayment' && ownProps.message.type !== 'text') {
+      // @ts-ignore TS also says this is impossible!
       throw new Error(`SendPaymentPopup: impossible case encountered: ${ownProps.message.type}`)
     }
     const {paymentInfo} = stateProps

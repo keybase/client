@@ -38,7 +38,7 @@ export type Props = {
   teamname: string
   conversationIDKey: ChatTypes.ConversationIDKey
   timestamp: string
-  usernameColor: string
+  usernameColor: AllowedColors
   youAreReset: boolean
   youNeedToRekey: boolean
   isInWidget?: boolean
