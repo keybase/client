@@ -37,8 +37,8 @@ export const todoTypeToInstructions: {[K in Types.TodoType]: string} = {
   addEmail: 'Add an email address for security purposes, and to get important notifications.',
   addPhoneNumber: 'Add your phone number so your friends can find you.',
   annoncementPlaceholder: '',
-  avatarTeam: 'NEW! Change your team’s avatar from within the Keybase app.',
-  avatarUser: 'NEW! Change your avatar from within the Keybase app.',
+  avatarTeam: 'Change your team’s avatar from within the Keybase app.',
+  avatarUser: 'Change your avatar from within the Keybase app.',
   bio: 'Add your name, bio, and location to complete your profile.',
   chat: 'Start a chat! All conversations on Keybase are end-to-end encrypted.',
   device: `Install Keybase on your ${
