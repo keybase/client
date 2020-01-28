@@ -299,7 +299,7 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
       }
 
       // Make sure that the change was in the middle of the text
-      if (diffIndex !== -1 && diffIndex !== 0 && diffIndex + 1 <= this.state.formatted.length) {
+      if (diffIndex !== -1 && diffIndex + 1 <= this.state.formatted.length) {
         // Look at the original character at that location
         const changedChar = this.state.formatted[diffIndex]
 
