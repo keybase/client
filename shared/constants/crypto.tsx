@@ -109,7 +109,11 @@ export const getFileWaitingKey = (operation: Types.Operations) => operationToFil
 export const getWarningMessageForSBS = (sbsAssertion: string) =>
   `Note: Encrypted for "${sbsAssertion}" who is not yet a Keybase user. One of your devices will need to be online after they join Keybase in order for them to decrypt the message.`
 
-export const getStatusCodeMessage = (code: number, operation: Types.Operations, type: Types.InputTypes) => {
+export const getStatusCodeMessage = (
+  code: number,
+  operation: Types.Operations,
+  type: Types.InputTypes
+): string => {
   const inputType =
     type === 'text' ? (operation === Operations.Verify ? 'signed message' : 'ciphertext') : 'file'
   const action = type === 'text' ? (operation === Operations.Verify ? 'enter a' : 'enter') : 'drop a'
@@ -117,11 +121,11 @@ export const getStatusCodeMessage = (code: number, operation: Types.Operations, 
     type === 'text' ? (operation === Operations.Verify ? 'signed message' : 'ciphertext') : 'encrypted file'
   const invalidInputMessage = `This ${inputType} is not in a valid Saltpack format. Please ${action} Saltpack ${addInput}.`
 
-  const statusCodeToMessage = {
+  const statusCodeToMessage: any = {
     [RPCTypes.StatusCode.scstreamunknown]: invalidInputMessage,
-    [RPCTypes.StatusCode
-      .scsigcannotverify]: `Wrong message type: wanted an attached signature, but got a signed and encrypted message instead.`,
+    [RPCTypes.StatusCode.scsigcannotverify]: `Cannot verify ${type === 'text' ? 'message' : 'file'}`,
   } as const
+
   return statusCodeToMessage[code] || `Failed to ${operation} ${type}.`
 }
 
@@ -149,7 +153,7 @@ export const makeState = (): Types.State => ({
     meta: {
       hasRecipients: false,
       hasSBS: false,
-      noIncludeSelf: false,
+      hideIncludeSelf: false,
     },
     options: {
       includeSelf: true,

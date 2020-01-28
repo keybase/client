@@ -80,9 +80,10 @@ const userSearchMock = {
 type searchPromiseParams = RPCTypes.MessageTypes['keybase.1.userSearch.userSearch']['inParam']
 const mockUserSearchRpcPromiseRpcPromise = (params: searchPromiseParams) => {
   const {query, maxResults, service, includeServicesSummary} = params
-  let result
+  let result: any
   try {
-    result = userSearchMock[query][maxResults][service][String(includeServicesSummary)]
+    const usm: any = userSearchMock
+    result = usm[query][maxResults][service][String(includeServicesSummary)]
   } catch (e) {
     throw new Error(
       `userSearchMock not implemented for query: ${query}, num_wanted: ${maxResults}, service: ${service} and ${includeServicesSummary}. Try adding those fields to the userSearchMock hashmap.`
@@ -149,7 +150,7 @@ const parsedSearchResultsMap = {
 
 describe('Search Actions', () => {
   let init: ReturnType<typeof startReduxSaga>
-  let rpc
+  let rpc: any
   beforeEach(() => {
     init = startReduxSaga()
     rpc = jest.spyOn(RPCTypes, 'userSearchUserSearchRpcPromise')
@@ -257,7 +258,7 @@ describe('Search Actions', () => {
 
 describe('Extra search', () => {
   let init: ReturnType<typeof startReduxSaga>
-  let rpc
+  let rpc: any
   beforeEach(() => {
     init = startReduxSaga()
     rpc = jest.spyOn(RPCTypes, 'userSearchUserSearchRpcPromise')

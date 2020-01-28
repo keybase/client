@@ -52,7 +52,7 @@ function useDarkSubscription() {
       const subscriptionId = Electron.remote.systemPreferences.subscribeNotification(
         'AppleInterfaceThemeChangedNotification',
         () => {
-          setCount(count + 1)
+          setCount(c => c + 1)
         }
       )
       return () => {
@@ -63,7 +63,6 @@ function useDarkSubscription() {
     } else {
       return undefined
     }
-    // eslint-disable-next-line
   }, [])
   return count
 }

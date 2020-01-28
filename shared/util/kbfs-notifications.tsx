@@ -144,7 +144,7 @@ function decodeKBFSError(user: string, notification: FSNotification): DecodedKBF
 }
 
 export function kbfsNotification(notification: FSNotification, notify: any, state: TypedState) {
-  const action = {
+  const action: string | undefined = ({
     // For now, disable file notifications because they're really annoying and
     // we now have the syncing indicator.
     // [FSNotificationType.encrypting]: 'Encrypting and uploading',
@@ -157,7 +157,7 @@ export function kbfsNotification(notification: FSNotification, notify: any, stat
     [FSNotificationType.initialized]: '',
     [FSNotificationType.connection]: '',
     // [FSNotificationType.syncConfigChanged]: 'Synchronization config changed',
-  }[notification.notificationType]
+  } as any)[notification.notificationType] as string
 
   if (action === undefined && notification.statusCode !== FSStatusCode.error) {
     // Ignore notification types we don't care about.

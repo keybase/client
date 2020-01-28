@@ -5,7 +5,6 @@ import * as Styles from '../../styles'
 type Props = {
   onBack: () => void
   onDeleteTeam: () => void
-  onLeave: () => void
   name: string
   stillLoadingTeam: boolean
 }

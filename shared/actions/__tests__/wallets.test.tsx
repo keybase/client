@@ -1,4 +1,5 @@
 /* eslint-env jest */
+import * as Container from '../../util/container'
 import * as Constants from '../../constants/wallets'
 import * as Tabs from '../../constants/tabs'
 import * as WalletsGen from '../wallets-gen'
@@ -24,7 +25,7 @@ const initialStore = {
   },
 }
 
-const startOnWalletsTab = dispatch => {
+const startOnWalletsTab = (dispatch: Container.Dispatch) => {
   dispatch(RouteTreeGen.createSwitchLoggedIn({loggedIn: true}))
   dispatch(RouteTreeGen.createNavigateAppend({path: [Tabs.walletsTab]}))
 }

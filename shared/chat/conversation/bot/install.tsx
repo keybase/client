@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import * as React from 'react'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
@@ -197,13 +196,13 @@ const InstallBotPopup = (props: Props) => {
         dispatch(Chat2Gen.createRefreshBotSettings({conversationIDKey, username: botUsername}))
       }
     }
-  }, [conversationIDKey, inTeam])
+  }, [conversationIDKey, inTeam, dispatch, botUsername])
   React.useEffect(() => {
     if (!teamID) {
       return
     }
     dispatch(TeamsGen.createGetChannels({teamID}))
-  }, [teamID])
+  }, [teamID, dispatch])
   React.useEffect(() => {
     dispatch(
       WaitingGen.createClearWaiting({key: [Constants.waitingKeyBotAdd, Constants.waitingKeyBotRemove]})
@@ -211,7 +210,7 @@ const InstallBotPopup = (props: Props) => {
     if (!commands?.commands?.length) {
       dispatch(Chat2Gen.createRefreshBotPublicCommands({username: botUsername}))
     }
-  }, [])
+  }, [dispatch, commands, botUsername])
 
   const restrictedButton = (
     <Kb.Box2 key={RestrictedItem} direction="vertical" fullWidth={true} style={styles.dropdownButton}>

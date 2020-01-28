@@ -3,6 +3,8 @@ import SelectOtherDevice from '.'
 import {action, storiesOf} from '../../stories/storybook'
 import * as Constants from '../../constants/provision'
 import * as Types from '../../constants/types/provision'
+import * as DeviceTypes from '../../constants/types/devices'
+import * as RPCTypes from '../../constants/types/rpc-gen'
 
 const rd = {
   cTime: 0,
@@ -20,28 +22,28 @@ const props = {
       deviceID: '1',
       deviceNumberOfType: 1,
       name: 'iphone',
-      type: 'mobile',
+      type: DeviceTypes.StringToDeviceTypeV2('mobile'),
     }),
     Constants.rpcDeviceToDevice({
       ...rd,
       deviceID: '2',
       deviceNumberOfType: 2,
       name: 'Home Computer',
-      type: 'desktop',
+      type: DeviceTypes.StringToDeviceTypeV2('desktop'),
     }),
     Constants.rpcDeviceToDevice({
       ...rd,
       deviceID: '3',
       deviceNumberOfType: 3,
       name: 'Android Nexus 5x',
-      type: 'mobile',
+      type: DeviceTypes.StringToDeviceTypeV2('mobile'),
     }),
     Constants.rpcDeviceToDevice({
       ...rd,
       deviceID: '4',
       deviceNumberOfType: 4,
       name: 'Tuba Contest',
-      type: 'backup',
+      type: DeviceTypes.StringToDeviceTypeV2('backup'),
     }),
   ],
   onBack: action('onBack'),
@@ -51,16 +53,16 @@ const props = {
 
 const tonsOfDevices: Array<Types.Device> = []
 for (var i = 0; i < 100; ++i) {
-  let type: string
+  let type: RPCTypes.DeviceTypeV2
   switch (i % 3) {
     case 0:
-      type = 'desktop'
+      type = DeviceTypes.StringToDeviceTypeV2('desktop')
       break
     case 1:
-      type = 'mobile'
+      type = DeviceTypes.StringToDeviceTypeV2('mobile')
       break
     default:
-      type = 'backup'
+      type = DeviceTypes.StringToDeviceTypeV2('backup')
       break
   }
 

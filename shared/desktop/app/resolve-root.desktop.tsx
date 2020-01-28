@@ -4,15 +4,14 @@ const {join, resolve, sep} = path
 const {appPath} = electron.app
 
 let root: string
-let prefix: string
+let prefix = isWindows ? 'file:///' : 'file://'
 
 if (__STORYBOOK__) {
-  root = resolve(join(__dirname, '..', '..'))
-  prefix = ''
+    root = resolve(join(__dirname, '..', '..'))
+    prefix = ''
 } else {
-  // Gives a path to the desktop folder in dev/packaged builds. Used to load up runtime assets.
-  root = !__DEV__ ? join(appPath, './desktop') : join(__dirname, '..')
-  prefix = isWindows ? 'file:///' : 'file://'
+    // Gives a path to the desktop folder in dev/packaged builds. Used to load up runtime assets.
+    root = !__DEV__ ? join(appPath, './desktop') : join(__dirname, '..')
 }
 
 const fixRegExp = new RegExp('\\' + sep, 'g')

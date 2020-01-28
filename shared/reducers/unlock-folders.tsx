@@ -38,7 +38,7 @@ export default Container.makeReducer<UnlockFoldersGen.Actions, Types.State>(init
     draftState.devices = devices.map(({name, type, deviceID}) => ({
       deviceID,
       name,
-      type: DeviceTypes.stringToDeviceType(type),
+      type: DeviceTypes.DeviceTypeV2ToDeviceType(type),
     }))
     draftState.popupOpen = !!draftState.devices.length
     draftState.sessionID = sessionID

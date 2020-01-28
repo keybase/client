@@ -36,7 +36,7 @@ func TestEncryptContactResolutionForServer(t *testing.T) {
 	// Provision a new device to roll forward the PUK
 	tc2 := libkb.SetupTest(t, "contacts", 2)
 	defer tc2.Cleanup()
-	kbtest.ProvisionNewDeviceKex(&tc, &tc2, u, libkb.DeviceTypeDesktop)
+	kbtest.ProvisionNewDeviceKex(&tc, &tc2, u, keybase1.DeviceTypeV2_DESKTOP)
 
 	// Require the original device can decrypt the contact
 	dec, err := DecryptContactBlob(tc.MetaContext(), enc)
@@ -91,7 +91,7 @@ func TestEncryptContactResolutionForServerRevokes(t *testing.T) {
 	// Provision a new device
 	tc2 := libkb.SetupTest(t, "contacts", 2)
 	defer tc2.Cleanup()
-	kbtest.ProvisionNewDeviceKex(&tc, &tc2, u, libkb.DeviceTypeDesktop)
+	kbtest.ProvisionNewDeviceKex(&tc, &tc2, u, keybase1.DeviceTypeV2_DESKTOP)
 
 	// Encrypt a blob from the new device
 	enc, err = encryptContactBlob(tc2.MetaContext(), contact)
@@ -108,7 +108,7 @@ func TestEncryptContactResolutionForServerRevokes(t *testing.T) {
 	// Provision a third device
 	tc3 := libkb.SetupTest(t, "contacts", 2)
 	defer tc3.Cleanup()
-	kbtest.ProvisionNewDeviceKex(&tc, &tc3, u, libkb.DeviceTypeDesktop)
+	kbtest.ProvisionNewDeviceKex(&tc, &tc3, u, keybase1.DeviceTypeV2_DESKTOP)
 
 	// Encrypt a blob from the new device
 	enc, err = encryptContactBlob(tc3.MetaContext(), contact)
@@ -142,7 +142,7 @@ func TestEncryptContactResolutionForServerRevokes(t *testing.T) {
 	// Provision a fourth device
 	tc4 := libkb.SetupTest(t, "contacts", 2)
 	defer tc4.Cleanup()
-	kbtest.ProvisionNewDeviceKex(&tc, &tc4, u, libkb.DeviceTypeDesktop)
+	kbtest.ProvisionNewDeviceKex(&tc, &tc4, u, keybase1.DeviceTypeV2_DESKTOP)
 
 	// Check the new device can decrypt all the blobs
 	for _, enc := range encs {

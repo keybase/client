@@ -187,7 +187,7 @@ describe('text code error path', () => {
 })
 
 describe('device name empty', () => {
-  const existingDevices = []
+  const existingDevices: Array<string> = []
   const init = makeInit({
     method: 'keybase.1.provisionUi.PromptNewDeviceName',
     payload: {errorMessage: '', existingDevices: null},
@@ -233,7 +233,7 @@ describe('device name happy path', () => {
 })
 
 describe('device name error path', () => {
-  const existingDevices = []
+  const existingDevices: Array<string> = []
   const error = new HiddenString('invalid name')
   let init: ReturnType<typeof makeInit>
   beforeEach(() => {
@@ -270,9 +270,9 @@ describe('device name error path', () => {
 })
 
 describe('other device happy path', () => {
-  const mobile = {deviceID: '0', name: 'mobile', type: 'mobile'} as any
-  const desktop = {deviceID: '1', name: 'desktop', type: 'desktop'} as any
-  const backup = {deviceID: '2', name: 'backup', type: 'backup'} as any
+  const mobile = {deviceID: '0', name: 'mobile', type: RPCTypes.DeviceTypeV2.mobile} as any
+  const desktop = {deviceID: '1', name: 'desktop', type: RPCTypes.DeviceTypeV2.desktop} as any
+  const backup = {deviceID: '2', name: 'backup', type: RPCTypes.DeviceTypeV2.paper} as any
   const rpcDevices = [mobile, desktop, backup]
   const devices = rpcDevices.map(Constants.rpcDeviceToDevice)
   let init: ReturnType<typeof makeInit>

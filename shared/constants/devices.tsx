@@ -18,7 +18,7 @@ export const rpcDeviceToDevice = (d: RPCTypes.DeviceDetail): Types.Device =>
     provisionerName: d.provisioner ? d.provisioner.name : undefined,
     revokedAt: d.revokedAt || undefined,
     revokedByName: d.revokedByDevice ? d.revokedByDevice.name : undefined,
-    type: Types.stringToDeviceType(d.device.type),
+    type: Types.DeviceTypeV2ToDeviceType(d.device.type),
   })
 
 const emptyDevice: Types.Device = {

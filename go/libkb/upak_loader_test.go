@@ -158,7 +158,7 @@ func TestLookupUsernameAndDevice(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, un.String(), "t_tracy", "tracy was right")
 		require.Equal(t, name, "work", "right device name")
-		require.Equal(t, typ, "desktop", "right type")
+		require.Equal(t, typ, keybase1.DeviceTypeV2_DESKTOP, "right type")
 	}
 
 	for i := 0; i < 2; i++ {

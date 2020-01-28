@@ -310,7 +310,7 @@ func (s *SignupEngine) generateEldestPaperKey(m libkb.MetaContext, args *DeviceW
 	args.naclSigningKeyPair = eng.SigKey().(libkb.NaclKeyPair)
 	args.naclEncryptionKeyPair = eng.EncKey()
 	args.DeviceName = s.paperKey.Prefix()
-	args.DeviceType = libkb.DeviceTypePaper
+	args.DeviceType = keybase1.DeviceTypeV2_PAPER
 	args.DeviceID = eng.DeviceID()
 
 	return nil
@@ -330,9 +330,9 @@ func (s *SignupEngine) registerDevice(m libkb.MetaContext, deviceName string, ra
 
 	switch s.arg.DeviceType {
 	case keybase1.DeviceType_DESKTOP:
-		args.DeviceType = libkb.DeviceTypeDesktop
+		args.DeviceType = keybase1.DeviceTypeV2_DESKTOP
 	case keybase1.DeviceType_MOBILE:
-		args.DeviceType = libkb.DeviceTypeMobile
+		args.DeviceType = keybase1.DeviceTypeV2_MOBILE
 	default:
 		if s.arg.BotToken.IsNil() {
 			return fmt.Errorf("unknown device type: %v", s.arg.DeviceType)
