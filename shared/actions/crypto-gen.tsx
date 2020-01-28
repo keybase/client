@@ -59,7 +59,7 @@ type _SaltpackProgressPayload = {
 type _SaltpackSignPayload = {readonly input: HiddenString; readonly type: Types.InputTypes}
 type _SaltpackStartPayload = {readonly filename: HiddenString; readonly operation: Types.Operations}
 type _SaltpackVerifyPayload = {readonly input: HiddenString; readonly type: Types.InputTypes}
-type _SetEncryptOptionsPayload = {readonly options: Types.EncryptOptions; readonly noIncludeSelf?: boolean}
+type _SetEncryptOptionsPayload = {readonly options: Types.EncryptOptions; readonly hideIncludeSelf?: boolean}
 type _SetInputPayload = {
   readonly operation: Types.Operations
   readonly type: Types.InputTypes
@@ -193,7 +193,7 @@ export const createSetInputThrottled = (payload: _SetInputThrottledPayload): Set
  */
 export const createSetInput = (payload: _SetInputPayload): SetInputPayload => ({payload, type: setInput})
 /**
- * Sets options for encrypt operations. Also takkes 'noIncludeSelf' to disable includeSelf when user includes themselves as a recipient
+ * Sets options for encrypt operations. Also takkes 'hideIncludeSelf' to disable includeSelf when user includes themselves as a recipient
  */
 export const createSetEncryptOptions = (payload: _SetEncryptOptionsPayload): SetEncryptOptionsPayload => ({
   payload,
