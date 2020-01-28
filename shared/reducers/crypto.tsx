@@ -55,6 +55,7 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       encrypt.output = new HiddenString('')
       encrypt.outputStatus = undefined
       encrypt.outputType = undefined
+      encrypt.outputMatchesInput = false
       encrypt.errorMessage = new HiddenString('')
       encrypt.warningMessage = new HiddenString('')
     }
@@ -142,13 +143,10 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     const op = draftState[operation]
 
     if (inputAction) {
-      const currentInputMatchesRPCInput = inputAction.payload.input.stringValue() === op.input.stringValue()
-      const haveOutput = !!op.output.stringValue()
-      outputMatchesInput = currentInputMatchesRPCInput
+      outputMatchesInput = inputAction.payload.input.stringValue() === op.input.stringValue()
 
       // If the store's input matches its output, then we don't need to update with the value of the returning RPC.
-      // However if the user encrypted to a user and then cleared the recipients (no output in the store) then allow the returning RPC to update the output
-      if (op.outputMatchesInput && haveOutput) {
+      if (op.outputMatchesInput) {
         return
       }
 
