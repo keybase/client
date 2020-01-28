@@ -1,23 +1,27 @@
-import * as React from 'react'
+import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
+import * as React from 'react'
 import * as Styles from '../../styles'
+import * as TeamsGen from '../../actions/teams-gen'
+import * as Types from '../../constants/types/teams'
 
 export type Props = {
   channelNames: Array<string>
   onBack?: () => void
   onCancel: () => void
-  onLoad: () => void
   onSubmit: (channelName: string) => void
   selected: string
+  teamID: Types.TeamID
   waiting: boolean
 }
 
 const SelectChannel = (props: Props) => {
-  const {onSubmit, onCancel} = props
+  const {onSubmit, onCancel, teamID} = props
+  const dispatch = Container.useDispatch()
+
   React.useEffect(() => {
-    props.onLoad()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    teamID && dispatch(TeamsGen.createGetChannels({teamID}))
+  }, [teamID, dispatch])
 
   const [selected, setSelected] = React.useState(props.selected)
 

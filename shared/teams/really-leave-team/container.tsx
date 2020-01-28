@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as WaitingGen from '../../actions/waiting-gen'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
@@ -45,8 +44,6 @@ export default Container.connect(
     }
   },
   dispatch => ({
-    _clearErrors: (teamname: string) =>
-      dispatch(WaitingGen.createClearWaiting({key: Constants.leaveTeamWaitingKey(teamname)})),
     _onDeleteTeam: (teamID: Types.TeamID) => {
       dispatch(RouteTreeGen.createNavigateUp())
       dispatch(
@@ -68,7 +65,6 @@ export default Container.connect(
   }),
   (stateProps, dispatchProps, _: OwnProps) => ({
     _leaving: stateProps._leaving,
-    clearErrors: () => dispatchProps._clearErrors(stateProps.name),
     error: stateProps.error?.message ?? '',
     lastOwner: stateProps.lastOwner,
     name: stateProps.name,

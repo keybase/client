@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
@@ -21,7 +20,7 @@ const BotTeamPicker = (props: Props) => {
   const [error, setError] = React.useState('')
   const submit = Container.useRPC(RPCChatTypes.localAddBotConvSearchRpcPromise)
   const dispatch = Container.useDispatch()
-  const doSearch = () => {
+  const doSearch = React.useCallback(() => {
     setWaiting(true)
     submit(
       [{term}],
@@ -35,7 +34,8 @@ const BotTeamPicker = (props: Props) => {
         logger.info('BotTeamPicker: error loading search results: ' + error.message)
       }
     )
-  }
+  }, [term, submit])
+
   const onClose = () => {
     dispatch(RouteTreeGen.createClearModals())
   }
@@ -58,10 +58,10 @@ const BotTeamPicker = (props: Props) => {
   }
   React.useEffect(() => {
     doSearch()
-  }, [term])
+  }, [doSearch])
   React.useEffect(() => {
     dispatch(BotsGen.createGetFeaturedBots({}))
-  }, [])
+  }, [dispatch])
 
   const renderResult = (index: number, item: RPCChatTypes.AddBotConvSearchHit) => {
     return (

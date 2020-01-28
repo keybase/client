@@ -58,7 +58,6 @@ export default Container.connect(
     }
   },
   (dispatch, {conversationIDKey, entityType, teamID}: OwnProps) => ({
-    _loadTeamPolicy: () => dispatch(TeamsGen.createGetTeamRetentionPolicy({teamID})),
     _onShowWarning: (policy: RetentionPolicy, onConfirm: () => void, onCancel: () => void) => {
       dispatch(
         RouteTreeGen.createNavigateAppend({
@@ -83,14 +82,13 @@ export default Container.connect(
     },
   }),
   (s, d, o: OwnProps) => {
-    const {_loadTeamPolicy, _onShowWarning, ...dRest} = d
+    const {_onShowWarning, ...dRest} = d
     const p: {
       entityType: RetentionEntityType
     } & Props = {
       ...o,
       ...s,
       ...dRest,
-      load: () => _loadTeamPolicy(),
       onShowWarning: (policy: any, onConfirm: any, onCancel: any) =>
         _onShowWarning(policy, onConfirm, onCancel),
     }

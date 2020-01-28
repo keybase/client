@@ -87,14 +87,8 @@ const ResentEmailVerificationBanner = () => {
   React.useEffect(
     () =>
       // Only have a cleanup function
-      () =>
-        dispatch(
-          PeopleGen.createSetResentEmail({
-            email: '',
-          })
-        ),
-    // eslint-disable-next-line
-    []
+      () => dispatch(PeopleGen.createSetResentEmail({email: ''})),
+    [dispatch]
   )
 
   const resentEmail = Container.useSelector(s => s.people.resentEmail)
