@@ -4,7 +4,7 @@ import {isDarwin} from '../../constants/platform'
 let devToolsState = false
 
 const windowQuit = () => {
-  Electron.app.emit('KBkeybase', '', {type: 'closeWindows'})
+  Electron.ipcRenderer.invoke('KBkeybase', {type: 'closeWindows'})
 }
 
 export default function makeMenu(window: Electron.BrowserWindow) {
