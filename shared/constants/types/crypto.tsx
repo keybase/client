@@ -63,7 +63,7 @@ export type EncrypState = CommonState & {
   meta: {
     hasRecipients: boolean
     hasSBS: boolean
-    noIncludeSelf: boolean
+    hideIncludeSelf: boolean
   }
   options: EncryptOptions
   recipients: Array<string> // Only for encrypt operation
