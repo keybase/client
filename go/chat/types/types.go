@@ -149,7 +149,7 @@ func (rc RemoteConversation) GetTopicType() chat1.TopicType {
 }
 
 func (rc RemoteConversation) IsLocallyRead() bool {
-	return rc.LocalReadMsgID >= rc.Conv.MaxVisibleMsgID() // xxx same problem with LEAVE and "unread"
+	return rc.LocalReadMsgID >= rc.Conv.MaxVisibleMsgID()
 }
 
 func (rc RemoteConversation) MaxVisibleMsgID() chat1.MessageID {

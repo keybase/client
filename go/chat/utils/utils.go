@@ -951,7 +951,7 @@ func GetConvMtime(rc types.RemoteConversation) (res gregor1.Time) {
 func GetConvPriorityScore(rc types.RemoteConversation) float64 {
 	readMsgID := rc.GetReadMsgID()
 	maxMsgID := rc.Conv.ReaderInfo.MaxMsgid
-	mtime := GetConvMtime(rc) // xxx does leaving causing a bump all the way up to inbox top?
+	mtime := GetConvMtime(rc)
 	dur := math.Abs(float64(time.Since(mtime.Time())) / float64(time.Hour))
 	return 100 / math.Pow(dur+float64(maxMsgID-readMsgID), 0.5)
 }
@@ -2765,7 +2765,7 @@ func DBConvLess(a pager.InboxEntry, b pager.InboxEntry) bool {
 func ExportToSummary(i chat1.InboxUIItem) (s chat1.ConvSummary) {
 	s.Id = i.ConvID
 	s.IsDefaultConv = i.IsDefaultConv
-	s.Unread = i.ReadMsgID < i.MaxVisibleMsgID // xxx this could cause a LEAVE message to make a conv appear unread.
+	s.Unread = i.ReadMsgID < i.MaxVisibleMsgID
 	s.ActiveAt = i.Time.UnixSeconds()
 	s.ActiveAtMs = i.Time.UnixMilliseconds()
 	s.FinalizeInfo = i.FinalizeInfo
