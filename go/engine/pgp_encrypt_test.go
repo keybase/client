@@ -89,7 +89,11 @@ func TestPGPEncryptSelfNoKey(t *testing.T) {
 	trackUI := &FakeIdentifyUI{
 		Proofs: make(map[string]string),
 	}
-	uis := libkb.UIs{IdentifyUI: trackUI, SecretUI: u.NewSecretUI()}
+	uis := libkb.UIs{
+		IdentifyUI: trackUI,
+		PgpUI:      &TestPgpUI{},
+		SecretUI:   u.NewSecretUI(),
+	}
 
 	sink := libkb.NewBufferCloser()
 	arg := &PGPEncryptArg{
@@ -118,7 +122,11 @@ func TestPGPEncryptNoTrack(t *testing.T) {
 	trackUI := &FakeIdentifyUI{
 		Proofs: make(map[string]string),
 	}
-	uis := libkb.UIs{IdentifyUI: trackUI, SecretUI: u.NewSecretUI()}
+	uis := libkb.UIs{
+		IdentifyUI: trackUI,
+		PgpUI:      &TestPgpUI{},
+		SecretUI:   u.NewSecretUI(),
+	}
 
 	sink := libkb.NewBufferCloser()
 	arg := &PGPEncryptArg{
@@ -153,7 +161,11 @@ func TestPGPEncryptSelfTwice(t *testing.T) {
 	trackUI := &FakeIdentifyUI{
 		Proofs: make(map[string]string),
 	}
-	uis := libkb.UIs{IdentifyUI: trackUI, SecretUI: u.NewSecretUI()}
+	uis := libkb.UIs{
+		IdentifyUI: trackUI,
+		PgpUI:      &TestPgpUI{},
+		SecretUI:   u.NewSecretUI(),
+	}
 
 	msg := "encrypt for self only once"
 	sink := libkb.NewBufferCloser()
