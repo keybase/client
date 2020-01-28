@@ -279,8 +279,49 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
       return
     }
 
+    let newText = _newText
+
+    // ACME DIGIT REMOVAL MACHINE 5000
+    // This code works around iOS not letting you accurately move your cursor
+    // anymore. Should fix editing "middle" numbers in the phone number input.
+    // 1) It doesn't run in reformats with skipCountry:true
+    // 2) It only runs when the total length changed
+    // 3) It only runs when we had formatted text before
+    // 4) It should not do anything if it wasn't a whitespace change in the middle
+    if (!skipCountry && newText.length !== this.state.formatted.length && this.state.formatted.length !== 0) {
+      // Look at the new text and figure out which character is different
+      let diffIndex: number = -1
+      for (let i = 0; i < newText.length; i++) {
+        if (i + 1 > this.state.formatted.length || newText[i] !== this.state.formatted[i]) {
+          diffIndex = i
+          break
+        }
+      }
+
+      // Make sure that the change was in the middle of the text
+      if (diffIndex !== -1 && diffIndex !== 0 && diffIndex + 1 <= this.state.formatted.length) {
+        // Look at the original character at that location
+        const changedChar = this.state.formatted[diffIndex]
+
+        // Make sure that the changed char isn't a number
+        if (isNaN(parseInt(changedChar, 10))) {
+          // At this point we're certain we're in the special scenario.
+          // The new text should not have the last digit _before_ diffIndex.
+
+          // Take everything BUT the different character, make it all numbers
+          const beforeDiff = filterNumeric(newText.substr(0, diffIndex))
+          // We don't care about what's in the section that includes the difference
+          const afterDiff = newText.substr(diffIndex)
+
+          // Combine it back into a newText, slicing off the last character of beforeDiff
+          newText = beforeDiff.slice(0, -1).concat(afterDiff)
+        }
+      }
+    }
+
     this.state.formatter.clear()
-    const newText = filterNumeric(_newText)
+    newText = filterNumeric(newText)
+
     if (newText.trim().length === 0) {
       this.setFormattedPhoneNumber('')
       return
