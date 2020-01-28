@@ -285,10 +285,10 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
     // This code works around iOS not letting you accurately move your cursor
     // anymore. Fixes editing "middle" numbers in the phone number input.
     // 1) It doesn't run in reformats with skipCountry:true
-    // 2) It only runs when the total length changed
+    // 2) It only runs when the total length decreased
     // 3) It only runs when we had formatted text before
     // 4) It should not do anything if it wasn't a whitespace change in the middle
-    if (!skipCountry && newText.length !== this.state.formatted.length && this.state.formatted.length !== 0) {
+    if (!skipCountry && newText.length < this.state.formatted.length && this.state.formatted.length !== 0) {
       // Look at the new text and figure out which character is different
       let diffIndex: number = -1
       for (let i = 0; i < newText.length; i++) {
@@ -306,7 +306,6 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
         // Make sure that the changed char isn't a number
         if (isNaN(parseInt(changedChar, 10))) {
           // At this point we're certain we're in the special scenario.
-          // The new text should not have the last digit _before_ diffIndex.
 
           // Take everything BUT the different character, make it all numbers
           const beforeDiff = filterNumeric(newText.substr(0, diffIndex))
