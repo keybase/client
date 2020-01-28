@@ -162,6 +162,24 @@ func (h ConfigHandler) GetFullStatus(ctx context.Context, sessionID int) (res *k
 	return status.GetFullStatus(mctx)
 }
 
+func (h ConfigHandler) IsServiceRunning(ctx context.Context, sessionID int) (res bool, err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("CFG")
+	defer mctx.TraceTimed("IsServiceRunning", func() error { return err })()
+
+	extStatus, err := status.GetExtendedStatus(mctx)
+	if err != nil {
+		return false, err
+	}
+
+	// set service status
+	if extStatus.Standalone {
+		res = false
+	} else {
+		res = true
+	}
+	return
+}
+
 func (h ConfigHandler) LogSend(ctx context.Context, arg keybase1.LogSendArg) (res keybase1.LogSendID, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("CFG")
 	defer mctx.TraceTimed("LogSend", func() error { return err })()

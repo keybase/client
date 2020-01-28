@@ -57,12 +57,12 @@ func (c *CmdWait) Run() error {
 			continue
 		}
 
-		fstatus, err := client.GetFullStatus(context.TODO(), 0)
+		isRunning, err := client.IsServiceRunning(context.TODO(), 0)
 		if err != nil {
 			return err
 		}
 
-		if fstatus != nil && fstatus.Service.Running {
+		if isRunning {
 			return nil
 		}
 
