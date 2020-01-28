@@ -97,13 +97,14 @@ func writeFile(
 	if newFile {
 		ids, err := i.blocksDb.GetNextDocIDs(1)
 		require.NoError(t, err)
-		usedDocID, err := i.indexChild(ctx, rootNode, "", namePPS, ids[0], 1)
+		dirDoneFn, err := i.indexChild(ctx, rootNode, "", namePPS, ids[0], 1)
 		require.NoError(t, err)
-		require.True(t, usedDocID)
+		require.NotNil(t, dirDoneFn)
 	} else {
-		err := i.updateChild(
+		dirDoneFn, err := i.updateChild(
 			ctx, rootNode, "", namePPS, oldMD.BlockInfo.BlockPointer, 1)
 		require.NoError(t, err)
+		require.NotNil(t, dirDoneFn)
 	}
 
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
