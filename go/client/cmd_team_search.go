@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 
+	humanize "github.com/dustin/go-humanize"
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -59,6 +60,18 @@ func (c *CmdTeamSearch) ParseArgv(ctx *cli.Context) (err error) {
 	return nil
 }
 
+func renderTeamSearchItem(item keybase1.TeamSearchItem) (res string) {
+	res = fmt.Sprintf("%s (%d members) (last active %s) \n",
+		item.Name, item.MemberCount, humanize.Time(item.LastActive.Time()))
+	if item.Description != nil {
+		res += fmt.Sprintf("\t%s\n", *item.Description)
+	}
+	if !item.InTeam {
+		res += fmt.Sprintf("\tYou can join this open team with `keybase team request-access %s`\n", item.Name)
+	}
+	return res
+}
+
 func (c *CmdTeamSearch) Run() error {
 	ctx, ctxCancel := context.WithCancel(context.TODO())
 	defer ctxCancel()
@@ -83,14 +96,8 @@ func (c *CmdTeamSearch) Run() error {
 		return nil
 	}
 
-	for _, team := range res.Results {
-		ui.Printf("%s (%d members)\n", team.Name, team.MemberCount)
-		if team.Description != nil {
-			ui.Printf("\t%s\n", *team.Description)
-		}
-		if !team.InTeam {
-			ui.Printf("\tYou can join this open team with `keybase team request-access %s`\n", team.Name)
-		}
+	for _, item := range res.Results {
+		ui.Printf(renderTeamSearchItem(item))
 	}
 
 	return nil

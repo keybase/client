@@ -65,6 +65,13 @@
     "teamSearch": {
       "request": [
         {
+          "name": "uid",
+          "type": [
+            null,
+            "UID"
+          ]
+        },
+        {
           "name": "query",
           "type": "string"
         },
