@@ -70,6 +70,7 @@ func (h *PGPHandler) PGPSign(ctx context.Context, arg keybase1.PGPSignArg) (err 
 	snk := libkb.NewRemoteStreamBuffered(arg.Sink, cli, arg.SessionID)
 	earg := engine.PGPSignArg{Sink: snk, Source: src, Opts: arg.Opts}
 	uis := libkb.UIs{
+		PgpUI:     h.getPgpUI(arg.SessionID),
 		SecretUI:  h.getSecretUI(arg.SessionID, h.G()),
 		SessionID: arg.SessionID,
 	}
@@ -107,6 +108,7 @@ func (h *PGPHandler) PGPEncrypt(ctx context.Context, arg keybase1.PGPEncryptArg)
 	}
 	uis := libkb.UIs{
 		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID, h.G()),
+		PgpUI:      h.getPgpUI(arg.SessionID),
 		SecretUI:   h.getSecretUI(arg.SessionID, h.G()),
 		SessionID:  arg.SessionID,
 	}
