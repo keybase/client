@@ -54,7 +54,6 @@ func (c *CmdWait) Run() error {
 	defer cancel()
 
 	for {
-		fmt.Println("1")
 		client, err := getConfigClientWithRetry(c.G())
 		if err != nil {
 			select {

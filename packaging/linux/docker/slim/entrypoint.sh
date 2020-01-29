@@ -21,15 +21,7 @@ KEYBASE_SERVICE_ARGS="${KEYBASE_SERVICE_ARGS:-"-debug -use-default-log-file"}"
 keybase $KEYBASE_SERVICE_ARGS service &
 
 # Wait up to 10 seconds for the service to start
-SERVICE_COUNTER=0
-until keybase --no-auto-fork status &> /dev/null; do
-    if [ $SERVICE_COUNTER -gt 10 ]; then
-        echo "Service failed to start" >&2
-        exit 1
-    fi
-    SERVICE_COUNTER=$((SERVICE_COUNTER + 1))
-    sleep 1
-done
+keybase ctl wait
 
 # Possibly run oneshot if it was requested by the user
 if [ -v KEYBASE_USERNAME ] && [ -v KEYBASE_PAPERKEY ]; then
