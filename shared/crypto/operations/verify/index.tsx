@@ -44,7 +44,7 @@ const Verify = (props: Props) => {
         prompt="Drop a file to verify"
       >
         <Kb.Box2 direction="vertical" fullHeight={true}>
-          {props.errorMessage && <OperationBanner type="error" message={props.errorMessage} />}
+          <OperationBanner operation={Constants.Operations.Verify} />
           {props.inputType === 'file' ? (
             <FileInput
               path={props.input}

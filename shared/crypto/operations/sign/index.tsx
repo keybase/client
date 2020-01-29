@@ -35,7 +35,6 @@ const Sign = (props: Props) => {
     setInputValue('')
     props.onSetInput('file', localPaths[0])
   }
-  const bannertype = props.errorMessage ? 'error' : props.warningMessage ? 'warning' : 'info'
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
       <Kb.DragAndDrop
@@ -47,9 +46,8 @@ const Sign = (props: Props) => {
       >
         <Kb.Box2 direction="vertical" fullHeight={true}>
           <OperationBanner
-            type={bannertype}
+            operation={Constants.Operations.Sign}
             infoMessage="Add your cryptographic signature to a message or file."
-            message={props.errorMessage}
           />
           {props.inputType === 'file' ? (
             <FileInput

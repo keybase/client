@@ -23,9 +23,8 @@ type FileProps = {
 }
 
 type OperationBannerProps = {
-  type: 'info' | 'warning' | 'error'
+  operation: Types.Operations
   infoMessage?: string
-  message: string
 }
 
 const operationToEmptyInputWidth = {
@@ -176,17 +175,34 @@ export const FileInput = (props: FileProps) => {
   )
 }
 
-export const OperationBanner = React.memo((props: OperationBannerProps) => {
-  const color = props.type === 'error' ? 'red' : props.type === 'warning' ? 'yellow' : 'grey'
+export const OperationBanner = (props: OperationBannerProps) => {
+  const {operation, infoMessage} = props
+  const errorMessage = Container.useSelector(state => state.crypto[operation].errorMessage.stringValue())
+  const warningMessage = Container.useSelector(state => state.crypto[operation].warningMessage.stringValue())
+
+  if (!errorMessage && !warningMessage && infoMessage) {
+    return (
+      <Kb.Banner color="grey">
+        <Kb.BannerParagraph bannerColor="grey" content={infoMessage} />
+      </Kb.Banner>
+    )
+  }
+
   return (
-    <Kb.Banner color={color}>
-      <Kb.BannerParagraph
-        bannerColor={color}
-        content={props.type === 'info' && props.infoMessage ? props.infoMessage : props.message}
-      />
-    </Kb.Banner>
+    <>
+      {errorMessage ? (
+        <Kb.Banner color="red">
+          <Kb.BannerParagraph bannerColor="red" content={errorMessage} />
+        </Kb.Banner>
+      ) : null}
+      {warningMessage ? (
+        <Kb.Banner color="yellow">
+          <Kb.BannerParagraph bannerColor="yellow" content={warningMessage} />
+        </Kb.Banner>
+      ) : null}
+    </>
   )
-})
+}
 
 const styles = Styles.styleSheetCreate(
   () =>

@@ -78,7 +78,6 @@ const Encrypt = (props: Props) => {
         props.recipients?.length > 1 ? youAnd('your recipients') : youAnd(props.recipients[0])
       } can decipher it.`
     : ''
-  const bannertype = props.errorMessage ? 'error' : props.warningMessage ? 'warning' : 'info'
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
       <Kb.DragAndDrop
@@ -89,9 +88,8 @@ const Encrypt = (props: Props) => {
         prompt="Drop a file to encrypt"
       >
         <OperationBanner
-          type={bannertype}
+          operation={Constants.Operations.Encrypt}
           infoMessage="Encrypt to anyone, even if they're not on Keybase yet."
-          message={props.errorMessage || props.warningMessage}
         />
         <Recipients operation="encrypt" />
         <Kb.Box2 direction="vertical" fullHeight={true}>
