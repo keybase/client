@@ -58,7 +58,7 @@ const icons = {
 } as const
 
 type TlfTypeIconProps = {
-  badgeOverride?: any
+  badgeOverride?: IconType
   size: Size
   style?: Styles.StylesCrossPlatform
   tlfType: Types.TlfType
@@ -99,7 +99,7 @@ const TlfTypeIcon = (props: TlfTypeIconProps) => {
 }
 
 type TlfIconProps = {
-  badgeOverride?: any
+  badgeOverride?: IconType
   size: Size
   style?: Styles.StylesCrossPlatform
   tlfTypeForFolderIconOverride?: Types.TlfType
