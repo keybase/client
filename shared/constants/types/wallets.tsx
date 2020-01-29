@@ -36,11 +36,7 @@ export const accountIDToString = (accountID: AccountID): string => accountID
 // No account
 export const noAccountID = stringToAccountID('NOACCOUNTID')
 
-// Airdrop wallet row is selected
-export const airdropAccountID = stringToAccountID('AIRDROP')
-
-export const isValidAccountID = (accountID: AccountID) =>
-  !!accountID && accountID !== noAccountID && accountID !== airdropAccountID
+export const isValidAccountID = (accountID: AccountID) => !!accountID && accountID !== noAccountID
 
 export type PartnerUrl = StellarRPCTypes.PartnerUrl
 
@@ -277,55 +273,6 @@ export type Account = {
 
 export type ValidationState = 'none' | 'waiting' | 'error' | 'valid'
 
-export type AirdropState =
-  | 'loading'
-  | 'accepted'
-  | 'qualified'
-  | 'unqualified'
-  | 'needDisclaimer'
-  | 'rejected'
-
-export type AirdropQualification = {
-  title: string
-  subTitle: string
-  valid: boolean
-}
-
-export type StellarDetailsLine = {
-  bullet: boolean
-  text: string
-}
-
-export type StellarDetailsSection = {
-  lines: Array<StellarDetailsLine>
-  section: string
-  icon: string
-}
-
-export type StellarDetailsHeader = {
-  body: string
-  title: string
-}
-
-export type StellarDetailsResponse = {
-  header: StellarDetailsHeader
-  sections: Array<StellarDetailsSection>
-}
-export type AirdropDetails = {
-  details: StellarDetailsResponse
-  disclaimer: StellarDetailsResponse
-  isPromoted: boolean
-}
-
-export type StellarDetailsSections = ReadonlyArray<{
-  lines: ReadonlyArray<{
-    bullet: boolean
-    text: string
-  }>
-  section: string
-  icon: string | null
-}>
-
 export type AssetID = string
 export const makeAssetID = (issuerAccountID: string, assetCode: string): AssetID =>
   `${issuerAccountID}-${assetCode}`
@@ -352,10 +299,6 @@ export type State = Readonly<{
   accountName: string
   accountNameError: string
   accountNameValidationState: ValidationState
-  airdropDetails: AirdropDetails
-  airdropQualifications: Array<AirdropQualification>
-  airdropShowBanner: boolean
-  airdropState: AirdropState
   assetsMap: Map<AccountID, Array<Assets>>
   buildCounter: number // increments when we call buildPayment / buildRequest,
   building: Building
