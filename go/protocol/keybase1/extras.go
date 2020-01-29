@@ -22,6 +22,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -67,6 +68,10 @@ const (
 )
 
 const redactedReplacer = "[REDACTED]"
+
+func UnquoteString(data string) string {
+	return strings.Trim(data, "\"")
+}
 
 func Unquote(data []byte) string {
 	return strings.Trim(string(data), "\"")
@@ -1888,29 +1893,6 @@ func PublicKeyV1FromDeviceKeyV2(keyV2 PublicKeyV2NaCl) PublicKey {
 	}
 }
 
-func (dt *DeviceTypeV2) UnmarshalJSON(deviceType []byte) error {
-	deviceTypeStr := Unquote(deviceType)
-	switch deviceTypeStr {
-	// these values need to match the ones that the enum is defined on. We
-	// decode both numeric and lowercase text values (and both "backup" and
-	// "paper" for paper keys) as valid for backwards compatibility and
-	// compatibility with the server.
-	case "none", "0":
-		*dt = DeviceTypeV2_NONE
-	case "desktop", "1":
-		*dt = DeviceTypeV2_DESKTOP
-	case "mobile", "2":
-		*dt = DeviceTypeV2_MOBILE
-	case "backup", "paper", "3":
-		*dt = DeviceTypeV2_PAPER
-	case "web", "5":
-		*dt = DeviceTypeV2_WEB
-	default:
-		return fmt.Errorf("Unknown DeviceType: %s", deviceType)
-	}
-	return nil
-}
-
 func (dt *DeviceTypeV2) StringForServer() string {
 	// for compatibility with the server
 	if *dt == DeviceTypeV2_PAPER {
@@ -1919,8 +1901,59 @@ func (dt *DeviceTypeV2) StringForServer() string {
 	return strings.ToLower(DeviceTypeV2RevMap[*dt])
 }
 
+func StringToDeviceTypeV2(s string) (d DeviceTypeV2, err error) {
+	deviceTypeStr := UnquoteString(s)
+	switch deviceTypeStr {
+	// these values need to match the ones that the enum is defined on. We
+	// decode both numeric and lowercase text values (and both "backup" and
+	// "paper" for paper keys) as valid for backwards compatibility and
+	// compatibility with the server.
+	case "none", "0":
+		d = DeviceTypeV2_NONE
+	case "desktop", "1":
+		d = DeviceTypeV2_DESKTOP
+	case "mobile", "2":
+		d = DeviceTypeV2_MOBILE
+	case "backup", "paper", "3":
+		d = DeviceTypeV2_PAPER
+	case "web", "5":
+		d = DeviceTypeV2_WEB
+	default:
+		return DeviceTypeV2_NONE, fmt.Errorf("Unknown DeviceType: %s", deviceTypeStr)
+	}
+	return d, nil
+}
+
+func (dt *DeviceTypeV2) UnmarshalJSON(deviceType []byte) (err error) {
+	*dt, err = StringToDeviceTypeV2(string(deviceType))
+	return err
+}
+
 func (dt *DeviceTypeV2) MarshalJSON() (b []byte, err error) {
 	return json.Marshal(dt.StringForServer())
+}
+
+func (dt *DeviceTypeV2) CodecDecodeSelf(d *codec.Decoder) {
+	var container interface{}
+	d.MustDecode(&container)
+	switch v := container.(type) {
+	case int:
+		*dt = DeviceTypeV2(v)
+	case int64:
+		*dt = DeviceTypeV2(v)
+	case string:
+		var err error
+		*dt, err = StringToDeviceTypeV2(v)
+		if err != nil {
+			panic(err.Error())
+		}
+	default:
+		panic(fmt.Sprintf("Decoding error for DeviceTypeV2: unrecognized value %v of type %T", v, v))
+	}
+}
+
+func (dt *DeviceTypeV2) CodecEncodeSelf(d *codec.Encoder) {
+	d.MustEncode(dt.StringForServer())
 }
 
 // defaults to Desktop
