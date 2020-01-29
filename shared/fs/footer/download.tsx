@@ -57,7 +57,7 @@ const Download = (props: Props) => {
       >
         <Kb.Box2 direction="vertical" centerChildren={true} fullHeight={true}>
           <Kb.Icon
-            type={dlState.done ? 'iconfont-success' : 'iconfont-download'}
+            type={dlState.done ? Kb.IconType.iconfont_success : Kb.IconType.iconfont_download}
             color={Styles.globalColors.black_20}
           />
         </Kb.Box2>
@@ -74,7 +74,7 @@ const Download = (props: Props) => {
         </Kb.Box2>
         <Kb.Box2 direction="vertical" centerChildren={true} fullHeight={true}>
           <Kb.Icon
-            type="iconfont-remove"
+            type={Kb.IconType.iconfont_remove}
             color={Styles.globalColors.white}
             onClick={!Constants.downloadIsOngoing(dlState) ? dismiss : cancel}
           />

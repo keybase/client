@@ -15,7 +15,7 @@ const ChatPDF = (props: Props) => {
   const onBack = () => dispatch(RouteTreeGen.createNavigateUp())
   const onShare = () =>
     dispatch(ConfigGen.createShowShareActionSheet({filePath: url, mimeType: 'application/pdf'}))
-  const rightActions = [{icon: 'iconfont-share', onPress: onShare} as const]
+  const rightActions = [{icon: Kb.IconType.iconfont_share, onPress: onShare} as const]
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
       <Kb.HeaderHocHeader title={title} onBack={onBack} rightActions={rightActions} />

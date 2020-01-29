@@ -199,7 +199,7 @@ class CountrySelector extends React.Component<CountrySelectorProps, CountrySelec
               <Kb.Box2 style={styles.searchWrapper} direction="horizontal" fullWidth={true}>
                 <Kb.SearchFilter
                   size="full-width"
-                  icon="iconfont-search"
+                  icon={Kb.IconType.iconfont_search}
                   placeholderCentered={true}
                   mobileCancelButton={true}
                   onChange={this.onChangeFilter}
@@ -457,7 +457,7 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
               ref={this.props.setAttachmentRef}
             >
               {this.renderCountrySelector()}
-              <Kb.Icon type="iconfont-caret-down" sizeType="Tiny" />
+              <Kb.Icon type={Kb.IconType.iconfont_caret_down} sizeType="Tiny" />
             </Kb.Box2>
           </Kb.ClickableBox>
         </Kb.Box2>

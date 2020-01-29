@@ -120,7 +120,7 @@ export const VerifyBody = (props: BodyProps) => {
           ])}
         >
           <Kb.Icon
-            type="iconfont-reload"
+            type={Kb.IconType.iconfont_reload}
             color={Styles.globalColors.white}
             style={styles.iconVerticalAlign}
           />

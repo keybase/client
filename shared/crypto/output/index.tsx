@@ -73,7 +73,7 @@ export const SignedSender = (props: OutputSignedProps) => {
               />,
             ]
           : [
-              <Kb.Icon key="avatar" type="icon-placeholder-secret-user-16" />,
+              <Kb.Icon key="avatar" type={Kb.IconType.icon_placeholder_secret_user_16} />,
               canSelfSign ? null : (
                 <Kb.Text key="username" type="BodySmallSemibold">
                   Anonymous sender

@@ -136,6 +136,9 @@ module.exports = {
   get Icon() {
     return require('./icon').default
   },
+  get IconType() {
+    return require('./icon.constants-gen').IconType
+  },
   get Image() {
     return require('./image').default
   },

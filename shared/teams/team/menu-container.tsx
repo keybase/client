@@ -87,32 +87,36 @@ export default Container.connect(
     const items: Kb.MenuItems = []
     if (stateProps.canManageChat) {
       items.push({
-        icon: 'iconfont-hash',
+        icon: Kb.IconType.iconfont_hash,
         onClick: dispatchProps.onManageChat,
         subTitle: stateProps.isBigTeam ? undefined : 'Turns this into a big team',
         title: stateProps.isBigTeam ? 'Manage chat channels' : 'Make chat channels...',
       })
     }
     if (stateProps.canCreateSubteam) {
-      items.push({icon: 'iconfont-people', onClick: dispatchProps.onCreateSubteam, title: 'Create subteam'})
+      items.push({
+        icon: Kb.IconType.iconfont_people,
+        onClick: dispatchProps.onCreateSubteam,
+        title: 'Create subteam',
+      })
     }
     if (stateProps.canViewFolder) {
       items.push({
-        icon: 'iconfont-folder-open',
+        icon: Kb.IconType.iconfont_folder_open,
         onClick: () => dispatchProps.onOpenFolder(stateProps.teamname),
         title: 'Open folder',
       })
     }
     items.push({
       danger: true,
-      icon: 'iconfont-leave',
+      icon: Kb.IconType.iconfont_leave,
       onClick: dispatchProps.onLeaveTeam,
       title: 'Leave team',
     })
     if (stateProps.canDeleteTeam) {
       items.push({
         danger: true,
-        icon: 'iconfont-remove',
+        icon: Kb.IconType.iconfont_remove,
         onClick: dispatchProps.onDeleteTeam,
         title: 'Delete team',
       })

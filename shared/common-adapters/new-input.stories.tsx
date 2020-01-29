@@ -23,9 +23,9 @@ const load = () => {
     .add('Large text type', () => <NewInput textType="HeaderExtrabold" />)
     .add('With placeholder', () => <NewInput placeholder="Enter name here" />)
     .add('With actions', () => <NewInput placeholder="Type here to see actions" {...actions} />)
-    .add('With icon', () => <NewInput placeholder="Search" icon="iconfont-search" />)
+    .add('With icon', () => <NewInput placeholder="Search" icon={Kb.IconType.iconfont_search} />)
     .add('Large text w/ icon', () => (
-      <NewInput textType="HeaderExtrabold" placeholder="Search" icon="iconfont-search" />
+      <NewInput textType="HeaderExtrabold" placeholder="Search" icon={Kb.IconType.iconfont_search} />
     ))
     .add('Multiline', () => <NewInput multiline={true} rowsMin={3} rowsMax={10} />)
     .add('With decoration', () => (
@@ -33,7 +33,7 @@ const load = () => {
         placeholder="Decor"
         decoration={
           <Icon
-            type="iconfont-emoji"
+            type={Kb.IconType.iconfont_emoji}
             style={{display: 'flex'}}
             color={globalColors.black_20}
             onClick={action('onClickEmoji')}
@@ -42,7 +42,9 @@ const load = () => {
       />
     ))
     .add('Error state', () => <NewInput placeholder="Error" error={true} />)
-    .add('Borderless', () => <NewInput placeholder="Search" icon="iconfont-search" hideBorder={true} />)
+    .add('Borderless', () => (
+      <NewInput placeholder="Search" icon={Kb.IconType.iconfont_search} hideBorder={true} />
+    ))
 }
 
 export default load

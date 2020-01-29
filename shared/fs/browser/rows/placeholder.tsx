@@ -15,7 +15,11 @@ export default ({type}: PlaceholderProps) => (
     statusIcon={<Kb.Box />}
     icon={
       <Kb.Icon
-        type={type === Types.PathType.Folder ? 'icon-folder-placeholder-32' : 'icon-file-placeholder-32'}
+        type={
+          type === Types.PathType.Folder
+            ? Kb.IconType.icon_folder_placeholder_32
+            : Kb.IconType.icon_file_placeholder_32
+        }
         style={rowStyles.pathItemIcon}
       />
     }

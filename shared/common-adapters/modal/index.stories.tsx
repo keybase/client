@@ -13,7 +13,7 @@ const filler = (
   </Kb.Box2>
 )
 
-const leftButton = <Kb.Icon type="iconfont-arrow-left" onClick={Sb.action('onBack')} />
+const leftButton = <Kb.Icon type={Kb.IconType.iconfont_arrow_left} onClick={Sb.action('onBack')} />
 const rightButton = (
   <Kb.Button small={true} mode="Secondary" onClick={Sb.action('onClickMe')} label="Click me" />
 )
@@ -163,11 +163,11 @@ const load = () => {
       <Modal
         onClose={onClose}
         header={{
-          leftButton: <Kb.Icon type="iconfont-add" />,
+          leftButton: <Kb.Icon type={Kb.IconType.iconfont_add} />,
           rightButton: (
             <Kb.Box2 direction="horizontal" gap="tiny">
-              <Kb.Icon type="iconfont-file" />
-              <Kb.Icon type="iconfont-info" />
+              <Kb.Icon type={Kb.IconType.iconfont_file} />
+              <Kb.Icon type={Kb.IconType.iconfont_info} />
             </Kb.Box2>
           ),
           title: 'Do one of a few possibilities for things',
@@ -182,7 +182,7 @@ const load = () => {
       </Modal>
     ))
     .add('Icon', () => (
-      <Modal header={{icon: <Kb.Icon type="iconfont-gear" sizeType="Big" />}}>{filler}</Modal>
+      <Modal header={{icon: <Kb.Icon type={Kb.IconType.iconfont_gear} sizeType="Big" />}}>{filler}</Modal>
     ))
 }
 

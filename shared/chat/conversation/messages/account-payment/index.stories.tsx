@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {action, storiesOf, unexpected} from '../../../../stories/storybook'
-import {Box} from '../../../../common-adapters'
+import * as Kb from '../../../../common-adapters'
 import {globalColors} from '../../../../styles'
 import Payment from '.'
 
@@ -55,7 +55,7 @@ const sendingProps = {
   amount: '$35',
   balanceChange: '-90.5700999 XLM',
   balanceChangeColor: globalColors.black_50,
-  icon: 'iconfont-time',
+  icon: Kb.IconType.iconfont_time,
   loading: false,
   memo: ':beer:',
   pending: true,
@@ -77,7 +77,7 @@ const requestCommon = {
   action: 'requested Lumens worth',
   balanceChange: '',
   balanceChangeColor: undefined,
-  icon: 'iconfont-stellar-request',
+  icon: Kb.IconType.iconfont_stellar_request,
   loading: false,
   pending: false,
 } as const
@@ -153,7 +153,7 @@ const loadingProps = {
 
 const load = () => {
   storiesOf('Chat/Conversation/Account payments', module)
-    .addDecorator(story => <Box style={{maxWidth: 420}}>{story()}</Box>)
+    .addDecorator(story => <Kb.Box style={{maxWidth: 420}}>{story()}</Kb.Box>)
     .add('Sent', () => <Payment {...sentProps} />)
     .add('Sent XLM', () => <Payment {...sentXLMProps} />)
     .add('Sent (no memo)', () => <Payment {...sentNoMemoProps} />)

@@ -10,9 +10,9 @@ export type Props = {
 
 const DeviceRow = ({device}: {device: Device}) => {
   const icon = ({
-    backup: 'icon-paper-key-32',
-    desktop: 'icon-computer-32',
-    mobile: 'icon-phone-32',
+    backup: Kb.IconType.icon_paper_key_32,
+    desktop: Kb.IconType.icon_computer_32,
+    mobile: Kb.IconType.icon_phone_32,
   } as const)[device.type]
 
   return (

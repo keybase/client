@@ -18,7 +18,7 @@ const OpenInSystemFileManager = ({path}: Props) => {
   return (
     <Kb.WithTooltip tooltip={`Show in ${fileUIName}`}>
       <Kb.Icon
-        type="iconfont-finder"
+        type={Kb.IconType.iconfont_finder}
         padding="tiny"
         onClick={openInSystemFileManager}
         color={Styles.globalColors.black_50}

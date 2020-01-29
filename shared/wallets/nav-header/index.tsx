@@ -71,7 +71,7 @@ export const HeaderRightActions = (props: HeaderRightActionsProps) =>
         type="Wallet"
         disabled={props.loading}
       >
-        <Kb.Icon type="iconfont-gear" style={styles.gear} />
+        <Kb.Icon type={Kb.IconType.iconfont_gear} style={styles.gear} />
       </Kb.Button>
     </Kb.Box2>
   )

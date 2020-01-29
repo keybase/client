@@ -45,22 +45,22 @@ export const TabTitles: {[k in Types.CryptoSubTab]: Types.TabTitles} = {
 
 export const Tabs: Array<Types.Tab> = [
   {
-    icon: 'iconfont-lock',
+    icon: Kb.IconType.iconfont_lock,
     tab: encryptTab,
     title: TabTitles[encryptTab],
   },
   {
-    icon: 'iconfont-unlock',
+    icon: Kb.IconType.iconfont_unlock,
     tab: decryptTab,
     title: TabTitles[decryptTab],
   },
   {
-    icon: 'iconfont-check',
+    icon: Kb.IconType.iconfont_check,
     tab: signTab,
     title: TabTitles[signTab],
   },
   {
-    icon: 'iconfont-verify',
+    icon: Kb.IconType.iconfont_verify,
     tab: verifyTab,
     title: TabTitles[verifyTab],
   },
@@ -74,17 +74,17 @@ export const Operations: {[key: string]: Types.Operations} = {
 }
 
 const operationToInputFileIcon: {[k in Types.Operations]: IconType} = {
-  decrypt: 'icon-file-saltpack-encrypted-64',
-  encrypt: 'icon-file-64',
-  sign: 'icon-file-64',
-  verify: 'icon-file-saltpack-signed-64',
+  decrypt: Kb.IconType.icon_file_saltpack_encrypted_64,
+  encrypt: Kb.IconType.icon_file_64,
+  sign: Kb.IconType.icon_file_64,
+  verify: Kb.IconType.icon_file_saltpack_signed_64,
 } as const
 
 const operationToOutputFileIcon: {[k in Types.Operations]: IconType} = {
-  decrypt: 'icon-file-64',
-  encrypt: 'icon-file-saltpack-encrypted-64',
-  sign: 'icon-file-saltpack-signed-64',
-  verify: 'icon-file-64',
+  decrypt: Kb.IconType.icon_file_64,
+  encrypt: Kb.IconType.icon_file_saltpack_encrypted_64,
+  sign: Kb.IconType.icon_file_saltpack_signed_64,
+  verify: Kb.IconType.icon_file_64,
 } as const
 
 const operationToStringWaitingKey: {[k in Types.Operations]: Types.StringWaitingKey} = {

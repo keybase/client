@@ -24,35 +24,35 @@ const getIconSizeString = (size: Size): SizeString => {
 
 const icons = {
   file: {
-    '16': 'icon-file-16',
-    '32': 'icon-file-32',
-    '48': 'icon-file-48',
-    '96': 'icon-file-96',
+    '16': Kb.IconType.icon_file_16,
+    '32': Kb.IconType.icon_file_32,
+    '48': Kb.IconType.icon_file_48,
+    '96': Kb.IconType.icon_file_96,
   },
   folder: {
-    '16': 'icon-folder-16',
-    '32': 'icon-folder-32',
-    '48': 'icon-folder-48',
-    '96': 'icon-folder-64', // TODO: use 96 when we have it
+    '16': Kb.IconType.icon_folder_16,
+    '32': Kb.IconType.icon_folder_32,
+    '48': Kb.IconType.icon_folder_48,
+    '96': Kb.IconType.icon_folder_64, // TODO: use 96 when we have it
   },
   tlfList: {
     private: {
-      '16': 'icon-folder-private-16',
-      '32': 'icon-folder-private-32',
-      '48': 'icon-folder-private-48',
-      '96': 'icon-folder-private-64', // TODO: use 96 when we have it
+      '16': Kb.IconType.icon_folder_private_16,
+      '32': Kb.IconType.icon_folder_private_32,
+      '48': Kb.IconType.icon_folder_private_48,
+      '96': Kb.IconType.icon_folder_private_64, // TODO: use 96 when we have it
     },
     public: {
-      '16': 'icon-folder-public-16',
-      '32': 'icon-folder-public-32',
-      '48': 'icon-folder-public-48',
-      '96': 'icon-folder-public-64', // TODO: use 96 when we have it
+      '16': Kb.IconType.icon_folder_public_16,
+      '32': Kb.IconType.icon_folder_public_32,
+      '48': Kb.IconType.icon_folder_public_48,
+      '96': Kb.IconType.icon_folder_public_64, // TODO: use 96 when we have it
     },
     team: {
-      '16': 'icon-folder-team-16',
-      '32': 'icon-folder-team-32',
-      '48': 'icon-folder-team-48',
-      '96': 'icon-folder-team-64', // TODO: use 96 when we have it
+      '16': Kb.IconType.icon_folder_team_16,
+      '32': Kb.IconType.icon_folder_team_32,
+      '48': Kb.IconType.icon_folder_team_48,
+      '96': Kb.IconType.icon_folder_team_64, // TODO: use 96 when we have it
     },
   },
 } as const
@@ -138,7 +138,7 @@ const InTlfIcon = (props: InTlfItemIconProps) => {
   const downloadIntent = Constants.getDownloadIntent(props.path, downloads, pathItemActionMenu)
   const pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, props.path))
   const badgeStyle = badgeStyles[getIconSizeString(props.size)]
-  const badgeIcon = props.badgeOverride || (downloadIntent && 'icon-addon-file-downloading') || null
+  const badgeIcon = props.badgeOverride || (downloadIntent && Kb.IconType.icon_addon_file_downloading) || null
   return (
     <Kb.Box style={props.style}>
       {pathItem.type === Types.PathType.Folder ? (

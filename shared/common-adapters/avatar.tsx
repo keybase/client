@@ -55,21 +55,21 @@ type Props = {
 }
 
 const avatarPlaceHolders: {[key: string]: IconType} = {
-  '192': 'icon-placeholder-avatar-192',
-  '256': 'icon-placeholder-avatar-256',
-  '960': 'icon-placeholder-avatar-960',
+  '192': Kb.IconType.icon_placeholder_avatar_192,
+  '256': Kb.IconType.icon_placeholder_avatar_256,
+  '960': Kb.IconType.icon_placeholder_avatar_960,
 }
 
 const avatarLighterPlaceHolders: {[key: string]: IconType} = {
-  '192': 'icon-placeholder-avatar-lighter-192',
-  '256': 'icon-placeholder-avatar-lighter-256',
-  '960': 'icon-placeholder-avatar-lighter-960',
+  '192': Kb.IconType.icon_placeholder_avatar_lighter_192,
+  '256': Kb.IconType.icon_placeholder_avatar_lighter_256,
+  '960': Kb.IconType.icon_placeholder_avatar_lighter_960,
 }
 
 const teamPlaceHolders: {[key: string]: IconType} = {
-  '192': 'icon-team-placeholder-avatar-192',
-  '256': 'icon-team-placeholder-avatar-256',
-  '960': 'icon-team-placeholder-avatar-960',
+  '192': Kb.IconType.icon_team_placeholder_avatar_192,
+  '256': Kb.IconType.icon_team_placeholder_avatar_256,
+  '960': Kb.IconType.icon_team_placeholder_avatar_960,
 }
 
 const followSizeToStyle = new Map<AvatarSize, IconStyle>([

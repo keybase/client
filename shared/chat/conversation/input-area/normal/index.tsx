@@ -442,7 +442,7 @@ class Input extends React.Component<InputProps, InputState> {
       >
         {Constants.isSpecialMention(username) ? (
           <Kb.Icon
-            type="iconfont-people"
+            type={Kb.IconType.iconfont_people}
             style={styles.paddingXTiny}
             color={Styles.globalColors.blue}
             fontSize={24}

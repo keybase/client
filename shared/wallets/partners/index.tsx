@@ -30,7 +30,11 @@ const PartnerRow = (props: PartnerRowProps) => (
         <Kb.Text className="hover-underline-child" style={styles.partnerLink} type="BodyPrimaryLink">
           {props.title}
         </Kb.Text>
-        <Kb.Icon fontSize={Styles.isMobile ? 16 : 12} style={styles.openIcon} type="iconfont-open-browser" />
+        <Kb.Icon
+          fontSize={Styles.isMobile ? 16 : 12}
+          style={styles.openIcon}
+          type={Kb.IconType.iconfont_open_browser}
+        />
       </Kb.ClickableBox>
       <Kb.Text type="BodySmall">{props.description}</Kb.Text>
     </Kb.Box2>

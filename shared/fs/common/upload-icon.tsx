@@ -10,11 +10,11 @@ type Props = {
 const UploadIcon = (props: Props) => {
   switch (props.uploadIcon) {
     case Types.UploadIcon.AwaitingToUpload:
-      return <Icon type="icon-addon-file-uploading-offline" style={props.style} />
+      return <Icon type={Kb.IconType.icon_addon_file_uploading_offline} style={props.style} />
     case Types.UploadIcon.Uploading:
-      return <Icon type="icon-addon-file-uploading" style={props.style} />
+      return <Icon type={Kb.IconType.icon_addon_file_uploading} style={props.style} />
     case Types.UploadIcon.UploadingStuck:
-      return <Icon type="icon-addon-file-uploading-error" style={props.style} />
+      return <Icon type={Kb.IconType.icon_addon_file_uploading_error} style={props.style} />
   }
 }
 

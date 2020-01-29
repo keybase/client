@@ -116,7 +116,9 @@ class NewRepo extends React.Component<Props, State> {
             New {this.props.isTeam ? 'team' : 'personal'} git repository
           </Kb.Text>
           <Kb.Icon
-            type={this.props.isTeam ? 'icon-repo-team-add-48' : 'icon-repo-personal-add-48'}
+            type={
+              this.props.isTeam ? Kb.IconType.icon_repo_team_add_48 : Kb.IconType.icon_repo_personal_add_48
+            }
             style={styles.addIcon}
           />
           <Kb.Text type="Body" style={{marginBottom: 27}}>

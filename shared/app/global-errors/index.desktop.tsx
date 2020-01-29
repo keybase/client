@@ -146,7 +146,7 @@ class GlobalError extends Component<Props, State> {
               hoverColor={Styles.globalColors.white}
               onClick={onDismiss}
               style={styles.closeIcon}
-              type="iconfont-close"
+              type={Kb.IconType.iconfont_close}
             />
           )}
         </Kb.Box>

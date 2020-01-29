@@ -22,7 +22,7 @@ type InfoIconOwnProps = {
 const _InfoIcon = (props: Kb.PropsWithOverlay<InfoIconProps>) => (
   <>
     <Kb.Icon
-      type="iconfont-question-mark"
+      type={Kb.IconType.iconfont_question_mark}
       onClick={props.invisible ? undefined : props.toggleShowingMenu}
       ref={props.setAttachmentRef}
       style={Styles.collapseStyles([
@@ -94,7 +94,7 @@ const Header = (props: HeaderProps) => (
         <Kb.ClickableBox onClick={props.onBack} style={styles.backButton}>
           <Kb.Box2 direction="horizontal" alignItems="center" gap="xtiny">
             <Kb.Icon
-              type="iconfont-arrow-left"
+              type={Kb.IconType.iconfont_arrow_left}
               color={props.negative ? Styles.globalColors.white : Styles.globalColors.black_50}
               sizeType="Small"
               style={styles.fixIconAlignment}

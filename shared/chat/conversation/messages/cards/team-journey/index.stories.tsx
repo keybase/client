@@ -17,7 +17,7 @@ const load = () => {
       <TeamJourney
         {...commonProps}
         actions={['wave', {label: 'Publish team on your profile', onClick: Sb.action('onPublishTeam')}]}
-        image="icon-illustration-welcome-96"
+        image={Kb.IconType.icon_illustration_welcome_96}
         textComponent={
           <Kb.Text type="BodySmall">
             <Kb.Emoji allowFontScaling={true} size={Styles.globalMargins.small} emojiName=":wave:" /> Welcome
@@ -34,7 +34,7 @@ const load = () => {
           {label: 'Browse channels', onClick: Sb.action('onBrowseChannels')},
           {label: 'Publish team on your profile', onClick: Sb.action('onPublishTeam')},
         ]}
-        image="icon-illustration-welcome-96"
+        image={Kb.IconType.icon_illustration_welcome_96}
         textComponent={
           <Kb.Text type="BodySmall">
             <Kb.Emoji allowFontScaling={true} size={Styles.globalMargins.small} emojiName=":wave:" /> Welcome
@@ -92,7 +92,7 @@ const load = () => {
       <TeamJourney
         {...commonProps}
         actions={[{label: 'Add people to the team', onClick: Sb.action('onAddPeopleToTeam')}]}
-        image="icon-illustration-friends-96"
+        image={Kb.IconType.icon_illustration_friends_96}
         textComponent={
           <Kb.Text type="BodySmall">
             Do you know people interested in joining{' '}
@@ -108,7 +108,7 @@ const load = () => {
       <TeamJourney
         {...commonProps}
         actions={[{label: 'Add people to the team', onClick: Sb.action('onAddPeopleToTeam')}]}
-        image="icon-illustration-friends-96"
+        image={Kb.IconType.icon_illustration_friends_96}
         textComponent={
           <Kb.Text type="BodySmall">
             Do you know people interested in joining?{' '}
@@ -124,7 +124,7 @@ const load = () => {
       <TeamJourney
         {...commonProps}
         actions={[{label: 'Create chat channels', onClick: Sb.action('onCreateChatChannels')}]}
-        image="icon-illustration-happy-chat-96"
+        image={Kb.IconType.icon_illustration_happy_chat_96}
         textComponent={
           <Kb.Text type="BodySmall">
             Go ahead and create <Kb.Text type="BodySmallBold">#channels</Kb.Text> around topics you think are
@@ -137,7 +137,7 @@ const load = () => {
       <TeamJourney
         {...commonProps}
         actions={[]}
-        image="icon-illustration-attention-64"
+        image={Kb.IconType.icon_illustration_attention_64}
         textComponent={<Kb.Text type="BodySmall">One of your messages is getting lots of attention!</Kb.Text>}
       />
     ))
@@ -145,7 +145,7 @@ const load = () => {
       <TeamJourney
         {...commonProps}
         actions={[]}
-        image="icon-illustration-sleepy-96"
+        image={Kb.IconType.icon_illustration_sleepy_96}
         textComponent={
           <Kb.Text type="BodySmall">Zzz… This channel hasn’t been very active…. Revive it?</Kb.Text>
         }

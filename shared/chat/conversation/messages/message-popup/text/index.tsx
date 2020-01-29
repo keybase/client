@@ -47,7 +47,7 @@ const TextPopupMenu = (props: Props) => {
           {
             danger: true,
             disabled: !props.onDelete,
-            icon: 'iconfont-trash',
+            icon: Kb.IconType.iconfont_trash,
             onClick: props.onDelete,
             subTitle: 'Deletes this message for everyone',
             title: 'Delete',
@@ -59,7 +59,7 @@ const TextPopupMenu = (props: Props) => {
           {
             danger: true,
             disabled: !props.onKick,
-            icon: 'iconfont-block-user',
+            icon: Kb.IconType.iconfont_block_user,
             onClick: props.onKick,
             subTitle: 'Removes the user from the team',
             title: 'Kick user',
@@ -70,12 +70,12 @@ const TextPopupMenu = (props: Props) => {
       ? (['Divider'] as const)
       : []),
     ...(props.onViewMap
-      ? [{icon: 'iconfont-location', onClick: props.onViewMap, title: 'View on Google Maps'}]
+      ? [{icon: Kb.IconType.iconfont_location, onClick: props.onViewMap, title: 'View on Google Maps'}]
       : []),
     ...(props.onEdit && props.isEditable
       ? [
           {
-            icon: 'iconfont-edit',
+            icon: Kb.IconType.iconfont_edit,
             onClick: props.onEdit,
             title: 'Edit',
           },
@@ -84,31 +84,33 @@ const TextPopupMenu = (props: Props) => {
     ...(props.onInstallBot
       ? [
           {
-            icon: 'iconfont-nav-2-robot',
+            icon: Kb.IconType.iconfont_nav_2_robot,
             onClick: props.onInstallBot,
             title: 'Install bot in another team or chat',
           },
         ]
       : []),
     ...(props.onAddReaction
-      ? [{icon: 'iconfont-reacji', onClick: props.onAddReaction, title: 'Add a reaction'}]
+      ? [{icon: Kb.IconType.iconfont_reacji, onClick: props.onAddReaction, title: 'Add a reaction'}]
       : []),
-    ...(props.onCopy ? [{icon: 'iconfont-clipboard', onClick: props.onCopy, title: 'Copy text'}] : []),
-    ...(props.onReply ? [{icon: 'iconfont-reply', onClick: props.onReply, title: 'Reply'}] : []),
+    ...(props.onCopy
+      ? [{icon: Kb.IconType.iconfont_clipboard, onClick: props.onCopy, title: 'Copy text'}]
+      : []),
+    ...(props.onReply ? [{icon: Kb.IconType.iconfont_reply, onClick: props.onReply, title: 'Reply'}] : []),
     ...(props.onReplyPrivately
-      ? [{icon: 'iconfont-reply', onClick: props.onReplyPrivately, title: 'Reply privately'}]
+      ? [{icon: Kb.IconType.iconfont_reply, onClick: props.onReplyPrivately, title: 'Reply privately'}]
       : []),
     ...(props.onPinMessage
-      ? [{icon: 'iconfont-pin', onClick: props.onPinMessage, title: 'Pin message'}]
+      ? [{icon: Kb.IconType.iconfont_pin, onClick: props.onPinMessage, title: 'Pin message'}]
       : []),
     ...(props.onViewProfile
-      ? [{icon: 'iconfont-person', onClick: props.onViewProfile, title: 'View profile'}]
+      ? [{icon: Kb.IconType.iconfont_person, onClick: props.onViewProfile, title: 'View profile'}]
       : []),
     ...(!props.yourMessage
       ? [
           {
             danger: true,
-            icon: 'iconfont-block-user',
+            icon: Kb.IconType.iconfont_block_user,
             onClick: props.onUserBlock,
             title: props.isTeam ? 'Report user' : 'Block user',
           },

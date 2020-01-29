@@ -12,7 +12,11 @@ export type TlfProps = {
 const Tlf = (props: TlfProps) => (
   <Kb.ClickableBox onClick={props.openInFilesTab} style={styles.itemContainer}>
     <Kb.Icon
-      type={props.isSelf ? 'iconfont-folder-public' /* has the little head */ : 'iconfont-folder-private'}
+      type={
+        props.isSelf
+          ? Kb.IconType.iconfont_folder_public /* has the little head */
+          : Kb.IconType.iconfont_folder_private
+      }
       color={Styles.globalColors.blue}
     />
     <Kb.Text type="BodyPrimaryLink" style={styles.itemText}>
@@ -48,7 +52,7 @@ class Folders extends React.PureComponent<Props, State> {
         ))}
         {!this.state.expanded && this.props.tlfs.length > numFoldersShown && (
           <Kb.ClickableBox key="more" onClick={this.expand} style={styles.itemContainer}>
-            <Kb.Icon type="iconfont-ellipsis" />
+            <Kb.Icon type={Kb.IconType.iconfont_ellipsis} />
             <Kb.Text type="BodySmall" style={styles.itemText}>
               + {this.props.tlfs.length - numFoldersShown} more
             </Kb.Text>

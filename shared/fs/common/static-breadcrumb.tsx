@@ -6,13 +6,13 @@ import CommaSeparatedName from './comma-separated-name'
 const getIcon = (tlfType: string): Kb.IconType => {
   switch (tlfType) {
     case 'private':
-      return 'icon-folder-private-16'
+      return Kb.IconType.icon_folder_private_16
     case 'public':
-      return 'icon-folder-public-16'
+      return Kb.IconType.icon_folder_public_16
     case 'team':
-      return 'icon-folder-team-16'
+      return Kb.IconType.icon_folder_team_16
     default:
-      return 'iconfont-question-mark'
+      return Kb.IconType.iconfont_question_mark
   }
 }
 
@@ -41,7 +41,7 @@ const StaticBreadcrumb = ({pathElements, showTlfTypeIcon, includeLast}: Props) =
         .map((elem, idx) => [
           <Kb.Icon
             key={`icon-${idx}`}
-            type="iconfont-arrow-right"
+            type={Kb.IconType.iconfont_arrow_right}
             style={styles.iconArrow}
             color={Styles.globalColors.black_20}
             fontSize={12}

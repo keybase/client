@@ -62,7 +62,11 @@ const PartnerRow = (props: PartnerRowProps) => (
         <Kb.Text className="hover-underline-child" style={styles.partnerLink} type="BodyPrimaryLink">
           {props.title}
         </Kb.Text>
-        <Kb.Icon fontSize={Styles.isMobile ? 16 : 12} style={styles.openIcon} type="iconfont-open-browser" />
+        <Kb.Icon
+          fontSize={Styles.isMobile ? 16 : 12}
+          style={styles.openIcon}
+          type={Kb.IconType.iconfont_open_browser}
+        />
       </Kb.ClickableBox>
       <Kb.Text type="BodySmall">{props.description}</Kb.Text>
     </Kb.Box2>
@@ -110,7 +114,11 @@ class AccountSettings extends React.Component<SettingsProps> {
                   >
                     {props.name}
                   </Kb.Text>
-                  <Kb.Icon style={styles.icon} type="iconfont-edit" fontSize={Styles.isMobile ? 22 : 16} />
+                  <Kb.Icon
+                    style={styles.icon}
+                    type={Kb.IconType.iconfont_edit}
+                    fontSize={Styles.isMobile ? 22 : 16}
+                  />
                 </Kb.Box2>
               </Kb.Box2>
             </Kb.ClickableBox>
@@ -158,7 +166,9 @@ class AccountSettings extends React.Component<SettingsProps> {
                 ) : (
                   <Kb.Icon
                     type={
-                      Styles.isMobile ? 'icon-placeholder-secret-user-48' : 'icon-placeholder-secret-user-32'
+                      Styles.isMobile
+                        ? Kb.IconType.icon_placeholder_secret_user_48
+                        : Kb.IconType.icon_placeholder_secret_user_32
                     }
                     style={{height: Styles.isMobile ? 48 : 32, width: Styles.isMobile ? 48 : 32}}
                   />

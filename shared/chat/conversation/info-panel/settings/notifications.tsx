@@ -157,7 +157,7 @@ const Notifications = (props: Props) => {
           }}
           label="Mute all notifications"
         />
-        <Kb.Icon type="iconfont-shh" style={styles.icon} color={Styles.globalColors.black_20} />
+        <Kb.Icon type={Kb.IconType.iconfont_shh} style={styles.icon} color={Styles.globalColors.black_20} />
       </Kb.Box>
       {!muted && (
         <UnmutedNotificationPrefs

@@ -231,7 +231,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
       return (
         <Kb.ClickableBox onClick={this.props.mobileCancelButton ? this.clear : this.cancel}>
           <Kb.Icon
-            type="iconfont-remove"
+            type={Kb.IconType.iconfont_remove}
             sizeType={this.iconSizeType()}
             color={this.iconColor()}
             style={styles.removeIconNonFullWidth}
@@ -250,7 +250,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
           }
         >
           <Kb.Icon
-            type="iconfont-remove"
+            type={Kb.IconType.iconfont_remove}
             sizeType={this.iconSizeType()}
             color={this.iconColor()}
             boxStyle={styles.icon}

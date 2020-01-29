@@ -45,7 +45,7 @@ const _HeaderRightActions = (props: Props) => (
     {props.canChat && <Kb.Button label="Chat" onClick={props.onChat} small={true} />}
     {props.canAddPeople && <AddPeopleButton teamID={props.teamID} />}
     <Kb.Button mode="Secondary" small={true} ref={props.setAttachmentRef} onClick={props.toggleShowingMenu}>
-      <Kb.Icon type="iconfont-ellipsis" color={Styles.globalColors.blue} />
+      <Kb.Icon type={Kb.IconType.iconfont_ellipsis} color={Styles.globalColors.blue} />
     </Kb.Button>
     <TeamMenu
       attachTo={props.getAttachmentRef}
@@ -84,7 +84,7 @@ export const HeaderTitle = (props: HeaderTitleProps) => (
         <Kb.Text type="Header" lineClamp={1}>
           {props.teamname}
         </Kb.Text>
-        {!!props.onRename && <Kb.Icon type="iconfont-edit" onClick={props.onRename} />}
+        {!!props.onRename && <Kb.Icon type={Kb.IconType.iconfont_edit} onClick={props.onRename} />}
       </Kb.Box2>
       <Kb.Text
         type={props.onEditDescription && !props.description ? 'BodySmallItalic' : 'BodySmall'}

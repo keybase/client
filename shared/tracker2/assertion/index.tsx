@@ -46,17 +46,17 @@ const proofTypeToDesc = (proofType: string) => {
 const stateToIcon = (state: Types.AssertionState) => {
   switch (state) {
     case 'checking':
-      return 'iconfont-proof-pending'
+      return Kb.IconType.iconfont_proof_pending
     case 'valid':
-      return 'iconfont-proof-good'
+      return Kb.IconType.iconfont_proof_good
     case 'error': // fallthrough
     case 'warning':
     case 'revoked':
-      return 'iconfont-proof-broken'
+      return Kb.IconType.iconfont_proof_broken
     case 'suggestion':
-      return 'iconfont-proof-placeholder'
+      return Kb.IconType.iconfont_proof_placeholder
     default:
-      return 'iconfont-proof-pending'
+      return Kb.IconType.iconfont_proof_pending
   }
 }
 
@@ -64,17 +64,17 @@ const stateToIcon = (state: Types.AssertionState) => {
 const stateToDecorationIcon = (state: Types.AssertionState) => {
   switch (state) {
     case 'checking':
-      return 'icon-proof-pending'
+      return Kb.IconType.icon_proof_pending
     case 'valid':
-      return 'icon-proof-success'
+      return Kb.IconType.icon_proof_success
     case 'error':
     case 'warning':
     case 'revoked':
-      return 'icon-proof-broken'
+      return Kb.IconType.icon_proof_broken
     case 'suggestion':
-      return 'icon-proof-unfinished'
+      return Kb.IconType.icon_proof_unfinished
     default:
-      return 'icon-proof-pending'
+      return Kb.IconType.icon_proof_pending
   }
 }
 
@@ -394,7 +394,7 @@ class Assertion extends React.PureComponent<Props, State> {
               />
               {items ? (
                 <>
-                  <Kb.Icon className="hover-visible" type="iconfont-caret-down" sizeType="Tiny" />
+                  <Kb.Icon className="hover_visible" type={Kb.IconType.iconfont_caret_down} sizeType="Tiny" />
                   <Kb.FloatingMenu
                     closeOnSelect={true}
                     visible={this.state.showingMenu}

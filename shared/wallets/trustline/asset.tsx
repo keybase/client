@@ -34,7 +34,10 @@ const getCode = (props: Props) => (
     <Kb.Text type="BodyExtrabold" lineClamp={1} ellipsizeMode="tail">
       {props.code}
     </Kb.Text>
-    <Kb.Icon sizeType="Tiny" type={props.expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'} />
+    <Kb.Icon
+      sizeType="Tiny"
+      type={props.expanded ? Kb.IconType.iconfont_caret_down : Kb.IconType.iconfont_caret_right}
+    />
   </Kb.Box2>
 )
 

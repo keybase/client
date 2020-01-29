@@ -22,12 +22,12 @@ const _AddAccount = (props: Kb.PropsWithOverlay<AddAccountProps>) => (
     <Kb.FloatingMenu
       items={[
         {
-          icon: 'iconfont-new',
+          icon: Kb.IconType.iconfont_new,
           onClick: props.onAddNew,
           title: 'Create a new account',
         },
         {
-          icon: 'iconfont-identity-stellar',
+          icon: Kb.IconType.iconfont_identity_stellar,
           onClick: props.onLinkExisting,
           title: 'Link an existing Stellar account',
         },

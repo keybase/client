@@ -23,7 +23,7 @@ export const ShowToastAfterSaving = isMobile
         }
       }, [wasSaving, transferState, setShowingToast, setShowingToastFalseLater])
       return showingToast ? (
-        <Kb.SimpleToast iconType="iconfont-check" text="Saved" visible={showingToast} />
+        <Kb.SimpleToast iconType={Kb.IconType.iconfont_check} text="Saved" visible={showingToast} />
       ) : null
     }
   : () => null

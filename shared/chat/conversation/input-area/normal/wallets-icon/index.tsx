@@ -15,20 +15,24 @@ const WalletsIcon = (props: WalletsIconProps & Kb.OverlayParentProps) => (
     direction="horizontal"
     style={Styles.collapseStyles([styles.container, props.style])}
   >
-    <Kb.Icon type="iconfont-dollar-sign" fontSize={props.size} onClick={props.toggleShowingMenu} />
+    <Kb.Icon
+      type={Kb.IconType.iconfont_dollar_sign}
+      fontSize={props.size}
+      onClick={props.toggleShowingMenu}
+    />
     {props.isNew && <Kb.Box style={styles.newBadge} />}
     <Kb.FloatingMenu
       closeOnSelect={true}
       attachTo={props.getAttachmentRef}
       items={[
         {
-          icon: 'iconfont-stellar-send',
+          icon: Kb.IconType.iconfont_stellar_send,
           newTag: props.isNew,
           onClick: props.onSend,
           title: 'Send Lumens (XLM)',
         },
         {
-          icon: 'iconfont-stellar-request',
+          icon: Kb.IconType.iconfont_stellar_request,
           newTag: props.isNew,
           onClick: props.onRequest,
           title: 'Request Lumens (XLM)',

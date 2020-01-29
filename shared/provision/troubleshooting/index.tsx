@@ -116,7 +116,7 @@ const Troubleshooting = (props: Props) => {
           />
           <BigButton
             onClick={onWayBack}
-            icon="iconfont-reply"
+            icon={Kb.IconType.iconfont_reply}
             mainText="I'll use a different device, or reset my account."
             subText="Back to list"
             waiting={waiting}

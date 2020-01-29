@@ -70,7 +70,7 @@ const MoreMenuPopup = (props: Props) => {
     ...(onSendLumens
       ? [
           {
-            icon: 'iconfont-stellar-send',
+            icon: Kb.IconType.iconfont_stellar_send,
             onClick: onSendLumens,
             title: 'Send Lumens (XLM)',
           },
@@ -79,32 +79,32 @@ const MoreMenuPopup = (props: Props) => {
     ...(onRequestLumens
       ? [
           {
-            icon: 'iconfont-stellar-request',
+            icon: Kb.IconType.iconfont_stellar_request,
             onClick: onRequestLumens,
             title: 'Request Lumens (XLM)',
           },
         ]
       : []),
     {
-      icon: 'iconfont-gif',
+      icon: Kb.IconType.iconfont_gif,
       onClick: onGiphy,
       subTitle: '/giphy',
       title: 'Share a GIF',
     },
     {
-      icon: 'iconfont-coin-flip',
+      icon: Kb.IconType.iconfont_coin_flip,
       onClick: onCoinFlip,
       subTitle: '/flip',
       title: 'Flip a coin',
     },
     {
-      icon: 'iconfont-location',
+      icon: Kb.IconType.iconfont_location,
       onClick: onLocationShare,
       subTitle: '/location',
       title: 'Share your location',
     },
     {
-      icon: 'iconfont-ellipsis',
+      icon: Kb.IconType.iconfont_ellipsis,
       onClick: onInsertSlashCommand,
       subTitle: '/...',
       title: 'Other commands',

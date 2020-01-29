@@ -19,7 +19,7 @@ const AddSubteam = ({teamID}: {teamID: Types.TeamID}) => {
   return (
     <Kb.ClickableBox style={styles.container} onClick={onCreateSubteam}>
       <Kb.Box2 direction="horizontal" alignItems="center">
-        <Kb.Icon type="iconfont-new" color={Styles.globalColors.blueDark} />
+        <Kb.Icon type={Kb.IconType.iconfont_new} color={Styles.globalColors.blueDark} />
         <Kb.Text type="BodyBigLink" style={styles.text}>
           Create subteam
         </Kb.Text>

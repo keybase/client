@@ -89,7 +89,7 @@ class GiphySearch extends React.Component<Props, State> {
               </Kb.Box2>
             ))}
         </Kb.Box>
-        <Kb.Icon type="icon-powered-by-giphy-120-26" style={styles.poweredBy} />
+        <Kb.Icon type={Kb.IconType.icon_powered_by_giphy_120_26} style={styles.poweredBy} />
       </Kb.Box>
     )
   }

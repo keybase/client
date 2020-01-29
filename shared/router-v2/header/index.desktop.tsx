@@ -40,7 +40,7 @@ export const SystemButtons = () => (
         inheritColor={true}
         onClick={Window.minimizeWindow}
         style={styles.appIcon}
-        type="iconfont-app-minimize"
+        type={Kb.IconType.iconfont_app_minimize}
       />
     </Kb.ClickableBox>
     <Kb.ClickableBox
@@ -52,7 +52,7 @@ export const SystemButtons = () => (
         inheritColor={true}
         onClick={Window.toggleMaximizeWindow}
         style={styles.appIcon}
-        type={Window.isMaximized() ? 'iconfont-app-un-maximize' : 'iconfont-app-maximize'}
+        type={Window.isMaximized() ? Kb.IconType.iconfont_app_un_maximize : Kb.IconType.iconfont_app_maximize}
       />
     </Kb.ClickableBox>
     <Kb.ClickableBox
@@ -64,7 +64,7 @@ export const SystemButtons = () => (
         inheritColor={true}
         onClick={Window.closeWindow}
         style={styles.appIcon}
-        type="iconfont-app-close"
+        type={Kb.IconType.iconfont_app_close}
       />
     </Kb.ClickableBox>
   </Kb.Box2>
@@ -189,7 +189,7 @@ class Header extends React.PureComponent<Props> {
                 style={iconContainerStyle}
               >
                 <Kb.Icon
-                  type="iconfont-arrow-left"
+                  type={Kb.IconType.iconfont_arrow_left}
                   color={iconColor}
                   className={Styles.classNames({hover_contained_color_blackOrBlack: this.props.allowBack})}
                   boxStyle={styles.icon}

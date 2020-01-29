@@ -14,13 +14,13 @@ const Choice = p => (
         options={[
           {
             description: 'Keybase will generate a new PGP key and add it to your profile.',
-            icon: 'icon-pgp-key-new-48',
+            icon: Kb.IconType.icon_pgp_key_new_48,
             onClick: p.onShowGetNew,
             title: 'Get a new PGP key',
           },
           {
             description: 'Import an existing PGP key to your Keybase profile.',
-            icon: 'icon-pgp-key-import-48',
+            icon: Kb.IconType.icon_pgp_key_import_48,
             onClick: p.onShowImport,
             title: 'I have one already',
           },

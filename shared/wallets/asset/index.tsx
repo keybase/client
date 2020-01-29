@@ -60,7 +60,9 @@ export default class Asset extends React.Component<Props, State> {
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerContainer}>
             <Kb.Box2 direction="horizontal" gap="tiny" style={styles.labelContainer}>
               <Kb.Icon
-                type={this.state.expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
+                type={
+                  this.state.expanded ? Kb.IconType.iconfont_caret_down : Kb.IconType.iconfont_caret_right
+                }
                 sizeType="Tiny"
                 style={styles.caret}
               />
@@ -176,7 +178,7 @@ const BalanceSummary = (props: BalanceSummaryProps) => (
                 onClick={Styles.isMobile ? props.openStellarURL : null}
                 sizeType="Small"
                 style={styles.questionMark}
-                type="iconfont-question-mark"
+                type={Kb.IconType.iconfont_question_mark}
               />
             </Kb.WithTooltip>
           )}

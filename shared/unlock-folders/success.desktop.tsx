@@ -4,7 +4,7 @@ import * as Kb from '../common-adapters'
 
 const PaperKeyInput = ({onClose}: {onClose: () => void}) => (
   <div style={styles.container}>
-    <Kb.Icon type="icon-folder-success-48" />
+    <Kb.Icon type={Kb.IconType.icon_folder_success_48} />
     <Kb.Box style={Styles.globalStyles.flexBoxColumn}>
       <Kb.Text center={true} type="BodySemibold">
         Success!

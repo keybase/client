@@ -586,7 +586,7 @@ const load = () => {
           <Kb.Text type="Header">public file with badgeOverride</Kb.Text>
           {pathItemIconSizes.map(size => (
             <ItemIcon
-              badgeOverride="iconfont-attachment"
+              badgeOverride={Kb.IconType.iconfont_attachment}
               key={size.toString()}
               path={Types.stringToPath('/keybase/public/foo,bar/file')}
               size={size}

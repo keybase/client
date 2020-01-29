@@ -26,27 +26,35 @@ class FilePickerPopup extends React.Component<Props> {
   render() {
     const iosItems: Kb.MenuItems = [
       {
-        icon: 'iconfont-camera',
+        icon: Kb.IconType.iconfont_camera,
         onClick: () => this.props.onSelect('mixed', 'camera'),
         title: 'Take photo or video',
       },
       {
-        icon: 'iconfont-photo-library',
+        icon: Kb.IconType.iconfont_photo_library,
         onClick: () => this.props.onSelect('mixed', 'library'),
         title: 'Choose from library',
       },
     ]
 
     const androidItems: Kb.MenuItems = [
-      {icon: 'iconfont-camera', onClick: () => this.props.onSelect('photo', 'camera'), title: 'Take photo'},
-      {icon: 'iconfont-film', onClick: () => this.props.onSelect('video', 'camera'), title: 'Take video'},
       {
-        icon: 'iconfont-photo-library',
+        icon: Kb.IconType.iconfont_camera,
+        onClick: () => this.props.onSelect('photo', 'camera'),
+        title: 'Take photo',
+      },
+      {
+        icon: Kb.IconType.iconfont_film,
+        onClick: () => this.props.onSelect('video', 'camera'),
+        title: 'Take video',
+      },
+      {
+        icon: Kb.IconType.iconfont_photo_library,
         onClick: () => this.props.onSelect('photo', 'library'),
         title: 'Photo from library',
       },
       {
-        icon: 'iconfont-video-library',
+        icon: Kb.IconType.iconfont_video_library,
         onClick: () => this.props.onSelect('video', 'library'),
         title: 'Video from library',
       },

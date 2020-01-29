@@ -20,23 +20,23 @@ export type ServiceId = 'facebook' | 'github' | 'hackernews' | 'keybase' | 'redd
 
 export function serviceIdToIcon(service: ServiceId): IconType {
   return ({
-    facebook: 'iconfont-identity-facebook',
-    github: 'iconfont-identity-github',
-    hackernews: 'iconfont-identity-hn',
-    keybase: 'iconfont-identity-devices',
-    reddit: 'iconfont-identity-reddit',
-    twitter: 'iconfont-identity-twitter',
+    facebook: Kb.IconType.iconfont_identity_facebook,
+    github: Kb.IconType.iconfont_identity_github,
+    hackernews: Kb.IconType.iconfont_identity_hn,
+    keybase: Kb.IconType.iconfont_identity_devices,
+    reddit: Kb.IconType.iconfont_identity_reddit,
+    twitter: Kb.IconType.iconfont_identity_twitter,
   } as const)[service]
 }
 
 export function serviceIdToLogo24(service: ServiceId): IconType {
   return ({
-    facebook: 'icon-facebook-logo-24',
-    github: 'icon-github-logo-24',
-    hackernews: 'icon-hacker-news-logo-24',
-    keybase: 'icon-keybase-logo-24',
-    reddit: 'icon-reddit-logo-24',
-    twitter: 'icon-twitter-logo-24',
+    facebook: Kb.IconType.icon_facebook_logo_24,
+    github: Kb.IconType.icon_github_logo_24,
+    hackernews: Kb.IconType.icon_hacker_news_logo_24,
+    keybase: Kb.IconType.icon_keybase_logo_24,
+    reddit: Kb.IconType.icon_reddit_logo_24,
+    twitter: Kb.IconType.icon_twitter_logo_24,
   } as const)[service]
 }
 

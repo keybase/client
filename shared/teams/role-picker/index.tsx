@@ -85,7 +85,7 @@ const rolesMetaInfo = (infoForRole: Role): RolesMetaInfo => {
           <Kb.Icon
             boxStyle={{paddingBottom: 0}}
             style={styles.roleIcon}
-            type="iconfont-crown-admin"
+            type={Kb.IconType.iconfont_crown_admin}
             sizeType="Small"
           />
         ),
@@ -106,7 +106,7 @@ const rolesMetaInfo = (infoForRole: Role): RolesMetaInfo => {
           <Kb.Icon
             style={styles.roleIcon}
             boxStyle={{paddingBottom: 0}}
-            type="iconfont-crown-owner"
+            type={Kb.IconType.iconfont_crown_owner}
             sizeType="Small"
           />
         ),
@@ -155,7 +155,7 @@ const roleAbilities = (
       }
     >
       <Kb.Icon
-        type={canDo ? 'iconfont-check' : 'iconfont-close'}
+        type={canDo ? Kb.IconType.iconfont_check : Kb.IconType.iconfont_close}
         sizeType="Tiny"
         style={Styles.isMobile ? styles.abilityCheck : undefined}
         boxStyle={!Styles.isMobile ? styles.abilityCheck : undefined}
@@ -424,8 +424,8 @@ export const nextRoleUp = (currentRole: Role): Role =>
   orderedRoles[(orderedRoles.length + (orderedRoles.indexOf(currentRole) - 1)) % orderedRoles.length]
 
 export const roleIconMap = {
-  admin: 'iconfont-crown-admin',
-  owner: 'iconfont-crown-owner',
+  admin: Kb.IconType.iconfont_crown_admin,
+  owner: Kb.IconType.iconfont_crown_owner,
   reader: undefined,
   writer: undefined,
 } as const

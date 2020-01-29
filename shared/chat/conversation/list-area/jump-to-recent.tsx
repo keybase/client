@@ -13,7 +13,7 @@ const JumpToRecent = (props: Props) => {
       <Kb.Button label="Jump to recent messages" onClick={props.onClick} small={true}>
         <Kb.Icon
           color={Styles.globalColors.whiteOrWhite}
-          type="iconfont-arrow-full-down"
+          type={Kb.IconType.iconfont_arrow_full_down}
           boxStyle={styles.arrowBox}
           sizeType="Small"
           style={styles.arrowText}

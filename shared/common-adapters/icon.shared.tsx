@@ -5,15 +5,15 @@ import './icon.css'
 
 export function defaultColor(type: IconType): string | null {
   switch (type) {
-    case 'iconfont-crown-admin':
+    case Kb.IconType.iconfont_crown_admin:
       return Styles.globalColors.black_35
-    case 'iconfont-crown-owner':
+    case Kb.IconType.iconfont_crown_owner:
       return Styles.globalColors.yellowDark
-    case 'iconfont-proof-broken':
+    case Kb.IconType.iconfont_proof_broken:
       return Styles.globalColors.red
-    case 'iconfont-proof-pending':
+    case Kb.IconType.iconfont_proof_pending:
       return Styles.globalColors.black_50
-    case 'iconfont-close':
+    case Kb.IconType.iconfont_close:
       return Styles.globalColors.black_20
     default:
       return null
@@ -22,10 +22,10 @@ export function defaultColor(type: IconType): string | null {
 
 export function defaultHoverColor(type: IconType): string | null {
   switch (type) {
-    case 'iconfont-proof-broken':
-    case 'iconfont-proof-pending':
+    case Kb.IconType.iconfont_proof_broken:
+    case Kb.IconType.iconfont_proof_pending:
       return defaultColor(type)
-    case 'iconfont-close':
+    case Kb.IconType.iconfont_close:
       return Styles.globalColors.black_50
     default:
       return null

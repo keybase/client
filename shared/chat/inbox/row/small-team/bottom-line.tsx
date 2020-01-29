@@ -90,16 +90,16 @@ const BottomLine = React.memo((props: Props) => {
 
     switch (props.snippetDecoration) {
       case RPCChatTypes.SnippetDecoration.pendingMessage:
-        snippetDecoration = SnippetDecoration('iconfont-hourglass', defaultIconColor)
+        snippetDecoration = SnippetDecoration(Kb.IconType.iconfont_hourglass, defaultIconColor)
         break
       case RPCChatTypes.SnippetDecoration.failedPendingMessage:
         snippetDecoration = SnippetDecoration(
-          'iconfont-exclamation',
+          Kb.IconType.iconfont_exclamation,
           props.isSelected ? Styles.globalColors.white : Styles.globalColors.red
         )
         break
       case RPCChatTypes.SnippetDecoration.explodingMessage:
-        snippetDecoration = SnippetDecoration('iconfont-timer', defaultIconColor)
+        snippetDecoration = SnippetDecoration(Kb.IconType.iconfont_timer, defaultIconColor)
         break
       case RPCChatTypes.SnippetDecoration.explodedMessage:
         snippetDecoration = (
@@ -115,25 +115,25 @@ const BottomLine = React.memo((props: Props) => {
         exploded = true
         break
       case RPCChatTypes.SnippetDecoration.audioAttachment:
-        snippetDecoration = SnippetDecoration('iconfont-mic', defaultIconColor)
+        snippetDecoration = SnippetDecoration(Kb.IconType.iconfont_mic, defaultIconColor)
         break
       case RPCChatTypes.SnippetDecoration.videoAttachment:
-        snippetDecoration = SnippetDecoration('iconfont-film', defaultIconColor)
+        snippetDecoration = SnippetDecoration(Kb.IconType.iconfont_film, defaultIconColor)
         break
       case RPCChatTypes.SnippetDecoration.photoAttachment:
-        snippetDecoration = SnippetDecoration('iconfont-camera', defaultIconColor)
+        snippetDecoration = SnippetDecoration(Kb.IconType.iconfont_camera, defaultIconColor)
         break
       case RPCChatTypes.SnippetDecoration.fileAttachment:
-        snippetDecoration = SnippetDecoration('iconfont-file', defaultIconColor)
+        snippetDecoration = SnippetDecoration(Kb.IconType.iconfont_file, defaultIconColor)
         break
       case RPCChatTypes.SnippetDecoration.stellarReceived:
-        snippetDecoration = SnippetDecoration('iconfont-stellar-request', defaultIconColor)
+        snippetDecoration = SnippetDecoration(Kb.IconType.iconfont_stellar_request, defaultIconColor)
         break
       case RPCChatTypes.SnippetDecoration.stellarSent:
-        snippetDecoration = SnippetDecoration('iconfont-stellar-send', defaultIconColor)
+        snippetDecoration = SnippetDecoration(Kb.IconType.iconfont_stellar_send, defaultIconColor)
         break
       case RPCChatTypes.SnippetDecoration.pinnedMessage:
-        snippetDecoration = SnippetDecoration('iconfont-pin', defaultIconColor)
+        snippetDecoration = SnippetDecoration(Kb.IconType.iconfont_pin, defaultIconColor)
         break
       default:
         snippetDecoration = null

@@ -104,7 +104,7 @@ class _SimpleTopLine extends React.Component<Props> {
         </Kb.Text>
         {this.props.showGear && !Styles.isMobile && (
           <Kb.Icon
-            type="iconfont-gear"
+            type={Kb.IconType.iconfont_gear}
             className="conversation-gear"
             onClick={this.props.toggleShowingMenu}
             ref={this.props.setAttachmentRef}

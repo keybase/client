@@ -25,7 +25,7 @@ const CreateChannel = (props: Props) => (
     )}
     <Kb.Box style={styles.box}>
       <Kb.Box style={styles.back} onClick={props.onBack}>
-        <Kb.Icon style={styles.backIcon} type="iconfont-arrow-left" />
+        <Kb.Icon style={styles.backIcon} type={Kb.IconType.iconfont_arrow_left} />
         <Kb.Text type="BodyPrimaryLink">Back</Kb.Text>
       </Kb.Box>
       <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" gapEnd={true} gapStart={true}>

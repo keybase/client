@@ -125,7 +125,11 @@ const PeopleResult = React.memo((props: ResultProps) => {
         onChat()
       }}
     >
-      <Kb.Icon type="iconfont-chat" color={Styles.globalColors.whiteOrWhite} style={styles.chatIcon} />
+      <Kb.Icon
+        type={Kb.IconType.iconfont_chat}
+        color={Styles.globalColors.whiteOrWhite}
+        style={styles.chatIcon}
+      />
     </Kb.WaitingButton>
   )
 
@@ -147,28 +151,32 @@ type DropdownProps = {
 
 const DropdownButton = Kb.OverlayParentHOC((p: Kb.PropsWithOverlay<DropdownProps>) => {
   const items: Kb.MenuItems = [
-    p.onAddToTeam && {icon: 'iconfont-add', onClick: p.onAddToTeam, title: 'Add to team...'},
-    p.onSendLumens && {icon: 'iconfont-stellar-send', onClick: p.onSendLumens, title: 'Send Lumens (XLM)'},
+    p.onAddToTeam && {icon: Kb.IconType.iconfont_add, onClick: p.onAddToTeam, title: 'Add to team...'},
+    p.onSendLumens && {
+      icon: Kb.IconType.iconfont_stellar_send,
+      onClick: p.onSendLumens,
+      title: 'Send Lumens (XLM)',
+    },
     p.onRequestLumens && {
-      icon: 'iconfont-stellar-request',
+      icon: Kb.IconType.iconfont_stellar_request,
       onClick: p.onRequestLumens,
       title: 'Request Lumens (XLM)',
     },
     p.onOpenPrivateFolder && {
-      icon: 'iconfont-folder-open',
+      icon: Kb.IconType.iconfont_folder_open,
       onClick: p.onOpenPrivateFolder,
       title: 'Open private folder',
     },
     p.onBrowsePublicFolder && {
-      icon: 'iconfont-folder-public',
+      icon: Kb.IconType.iconfont_folder_public,
       onClick: p.onBrowsePublicFolder,
       title: 'Browse public folder',
     },
     p.onUnblock &&
       p.onBlock &&
       (p.blocked
-        ? {danger: true, icon: 'iconfont-add', onClick: p.onUnblock, title: 'Unblock'}
-        : {danger: true, icon: 'iconfont-remove', onClick: p.onBlock, title: 'Block'}),
+        ? {danger: true, icon: Kb.IconType.iconfont_add, onClick: p.onUnblock, title: 'Unblock'}
+        : {danger: true, icon: Kb.IconType.iconfont_remove, onClick: p.onBlock, title: 'Block'}),
   ].reduce<Kb.MenuItems>((arr, i) => {
     i && arr.push(i as Kb.MenuItem)
     return arr
@@ -184,7 +192,7 @@ const DropdownButton = Kb.OverlayParentHOC((p: Kb.PropsWithOverlay<DropdownProps
     >
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="xsmall">
         <Kb.Button onClick={undefined} mode="Secondary" style={styles.dropdownButton} small={true}>
-          <Kb.Icon color={Styles.globalColors.blue} type="iconfont-ellipsis" />
+          <Kb.Icon color={Styles.globalColors.blue} type={Kb.IconType.iconfont_ellipsis} />
         </Kb.Button>
       </Kb.Box2>
       <Kb.FloatingMenu

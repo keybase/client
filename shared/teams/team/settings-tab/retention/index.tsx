@@ -128,7 +128,7 @@ class _RetentionPicker extends React.Component<PropsWithOverlay<Props>, State> {
           return [
             ...arr,
             {
-              icon: 'iconfont-timer',
+              icon: Kb.IconType.iconfont_timer,
               onClick: () => this._onSelect(policy),
               title: policy.title,
             },
@@ -202,12 +202,12 @@ class _RetentionPicker extends React.Component<PropsWithOverlay<Props>, State> {
           >
             {this._label()}
           </Kb.Box2>
-          <Kb.Icon type="iconfont-caret-down" inheritColor={true} fontSize={7} sizeType="Tiny" />
+          <Kb.Icon type={Kb.IconType.iconfont_caret_down} inheritColor={true} fontSize={7} sizeType="Tiny" />
         </Kb.ClickableBox>
         {this.props.policyIsExploding && (
           <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} gap="xtiny">
             <Kb.Text type="BodySmall">Participants will see their message explode.</Kb.Text>
-            <Kb.Icon color={Styles.globalColors.black_50} sizeType="Big" type="iconfont-boom" />
+            <Kb.Icon color={Styles.globalColors.black_50} sizeType="Big" type={Kb.IconType.iconfont_boom} />
           </Kb.Box2>
         )}
         {this.props.showOverrideNotice && (
@@ -337,7 +337,9 @@ const policyToLabel = (p: RetentionPolicy, parent: RetentionPolicy | null) => {
       }
   }
   return [
-    timer ? <Kb.Icon color={Styles.globalColors.black} type="iconfont-timer" key="timer" /> : null,
+    timer ? (
+      <Kb.Icon color={Styles.globalColors.black} type={Kb.IconType.iconfont_timer} key="timer" />
+    ) : null,
     <Kb.Text type="BodySemibold" key="label">
       {text}
     </Kb.Text>,

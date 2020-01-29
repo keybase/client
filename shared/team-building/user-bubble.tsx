@@ -54,7 +54,7 @@ const UserBubble = (props: Props) => {
 const RemoveBubble = ({onRemove}: {onRemove: () => void}) => (
   <Kb.ClickableBox onClick={onRemove}>
     <Kb.Icon
-      type="iconfont-close"
+      type={Kb.IconType.iconfont_close}
       color={Styles.globalColors.black_50_on_white}
       fontSize={Styles.isMobile ? 14 : 12}
       style={styles.removeIcon}

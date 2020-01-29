@@ -28,11 +28,11 @@ const Kb = {
 }
 
 const sendIcon = Styles.isMobile
-  ? 'icon-fancy-stellar-sending-mobile-149-129'
-  : 'icon-fancy-stellar-sending-desktop-98-86'
+  ? Kb.IconType.icon_fancy_stellar_sending_mobile_149_129
+  : Kb.IconType.icon_fancy_stellar_sending_desktop_98_86
 const receiveIcon = Styles.isMobile
-  ? 'icon-fancy-stellar-receiving-mobile-149-129'
-  : 'icon-fancy-stellar-receiving-desktop-98-86'
+  ? Kb.IconType.icon_fancy_stellar_receiving_mobile_149_129
+  : Kb.IconType.icon_fancy_stellar_receiving_desktop_98_86
 
 const headerIconHeight = Styles.isMobile ? 129 : 86
 const pendingIconSize = 40
@@ -69,7 +69,7 @@ export type Props = {
 const headerIcon = (props: HeaderProps) =>
   props.status === 'pending' ? (
     <Kb.Icon
-      type="iconfont-time"
+      type={Kb.IconType.iconfont_time}
       color={Styles.globalColors.black_50}
       fontSize={pendingIconSize}
       style={styles.pendingHeaderIcon}
@@ -156,7 +156,7 @@ const PaymentPopup = (props: Props) => {
           ? [
               {
                 danger: true,
-                icon: 'iconfont-remove',
+                icon: Kb.IconType.iconfont_remove,
                 onClick: props.onCancel,
                 title: props.cancelButtonLabel,
               },
@@ -165,14 +165,20 @@ const PaymentPopup = (props: Props) => {
         ...(props.onSeeDetails
           ? [
               {
-                icon: 'iconfont-dollar-sign',
+                icon: Kb.IconType.iconfont_dollar_sign,
                 onClick: props.onSeeDetails,
                 title: 'See transaction details',
               },
             ]
           : []),
         ...(props.onClaimLumens
-          ? [{icon: 'iconfont-stellar-request', onClick: props.onClaimLumens, title: 'Claim lumens'}]
+          ? [
+              {
+                icon: Kb.IconType.iconfont_stellar_request,
+                onClick: props.onClaimLumens,
+                title: 'Claim lumens',
+              },
+            ]
           : []),
       ].reduce<MenuItems>((arr, i) => {
         i && arr.push(i as MenuItem)

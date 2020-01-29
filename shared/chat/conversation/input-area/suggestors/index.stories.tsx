@@ -89,7 +89,7 @@ const props = {
   renderers: {
     fruit: (fruitName: string, selected: boolean) => (
       <Kb.NameWithIcon
-        icon="iconfont-reacji-sheep"
+        icon={Kb.IconType.iconfont_reacji_sheep}
         horizontal={true}
         title={fruitName}
         containerStyle={{

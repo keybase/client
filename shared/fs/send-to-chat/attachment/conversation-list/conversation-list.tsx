@@ -97,7 +97,7 @@ const ConversationList = (props: Props) => {
             placeholderText="Search"
             onChange={props.filter.onSetFilter}
             size="small"
-            icon="iconfont-search"
+            icon={Kb.IconType.iconfont_search}
           />
         </Kb.Box2>
       )}

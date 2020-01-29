@@ -60,7 +60,7 @@ const _TeamHeader = (props: Props) => (
               <Kb.Text type="HeaderBig" lineClamp={1}>
                 {props.teamname}
               </Kb.Text>
-              <Kb.Icon type="iconfont-edit" onClick={props.onRename} />
+              <Kb.Icon type={Kb.IconType.iconfont_edit} onClick={props.onRename} />
             </Kb.Box2>
           ) : (
             props.teamname
@@ -106,7 +106,11 @@ const _TeamHeader = (props: Props) => (
       <Kb.ButtonBar direction="row" style={styles.buttonBar}>
         {props.canChat && (
           <Kb.Button label="Chat" onClick={props.onChat}>
-            <Kb.Icon type="iconfont-chat" style={styles.chatIcon} color={Styles.globalColors.whiteOrWhite} />
+            <Kb.Icon
+              type={Kb.IconType.iconfont_chat}
+              style={styles.chatIcon}
+              color={Styles.globalColors.whiteOrWhite}
+            />
           </Kb.Button>
         )}
         {props.canManageMembers && (

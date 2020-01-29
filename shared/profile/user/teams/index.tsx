@@ -46,7 +46,7 @@ const ShowcaseTeamsOffer = p => (
   <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
     <Kb.ClickableBox onClick={p.onEdit}>
       <Kb.Box2 direction="horizontal" gap="tiny">
-        <Kb.Icon type="icon-team-placeholder-avatar-32" style={styles.placeholderTeam} />
+        <Kb.Icon type={Kb.IconType.icon_team_placeholder_avatar_32} style={styles.placeholderTeam} />
         <Kb.Text style={styles.youFeatureTeam} type="BodyPrimaryLink">
           Feature the teams you're in
         </Kb.Text>
@@ -60,7 +60,7 @@ const Teams = (p: Props) =>
     <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.showcases}>
       <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
         <Kb.Text type="BodySmallSemibold">Teams</Kb.Text>
-        {!!p.onEdit && <Kb.Icon type="iconfont-edit" onClick={p.onEdit} />}
+        {!!p.onEdit && <Kb.Icon type={Kb.IconType.iconfont_edit} onClick={p.onEdit} />}
       </Kb.Box2>
       {!!p.onEdit && !p.teamShowcase.length && <ShowcaseTeamsOffer onEdit={p.onEdit} />}
       {p.teamShowcase.map(t => (

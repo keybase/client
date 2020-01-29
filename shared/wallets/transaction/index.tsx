@@ -27,11 +27,11 @@ type CounterpartyIconProps = {
 const CounterpartyIcon = (props: CounterpartyIconProps) => {
   const size = props.large ? 48 : 32
   if (!props.counterparty && props.counterpartyType !== 'airdrop') {
-    return <Icon type="iconfont-identity-stellar" fontSize={size} />
+    return <Icon type={Kb.IconType.iconfont_identity_stellar} fontSize={size} />
   }
   switch (props.counterpartyType) {
     case 'airdrop':
-      return <Icon type="icon-airdrop-logo-48" style={{height: size, width: size}} />
+      return <Icon type={Kb.IconType.icon_airdrop_logo_48} style={{height: size, width: size}} />
     case 'keybaseUser':
       return (
         <Avatar
@@ -41,7 +41,7 @@ const CounterpartyIcon = (props: CounterpartyIconProps) => {
         />
       )
     case 'stellarPublicKey':
-      return <Icon type="icon-placeholder-secret-user-48" style={{height: 48, width: 48}} />
+      return <Icon type={Kb.IconType.icon_placeholder_secret_user_48} style={{height: 48, width: 48}} />
     case 'otherAccount':
       return (
         <Box2
@@ -53,7 +53,7 @@ const CounterpartyIcon = (props: CounterpartyIconProps) => {
             color={Styles.globalColors.purple}
             sizeType={props.detailView ? 'Bigger' : 'Big'}
             style={Styles.collapseStyles([!props.detailView && styles.transferIcon])}
-            type="iconfont-wallet-transfer"
+            type={Kb.IconType.iconfont_wallet_transfer}
           />
         </Box2>
       )

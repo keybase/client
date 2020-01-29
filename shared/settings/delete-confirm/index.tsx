@@ -69,7 +69,7 @@ class DeleteConfirm extends React.Component<Props, State> {
           <>
             <Kb.Avatar size={Styles.isMobile ? 64 : 48} username={this.props.username} style={styles.avatar}>
               <Kb.Box2 direction="horizontal" style={styles.iconContainer}>
-                <Kb.Icon color={Styles.globalColors.red} type="iconfont-remove" />
+                <Kb.Icon color={Styles.globalColors.red} type={Kb.IconType.iconfont_remove} />
               </Kb.Box2>
             </Kb.Avatar>
             <Kb.Text type="BodySemibold" style={styles.strike}>

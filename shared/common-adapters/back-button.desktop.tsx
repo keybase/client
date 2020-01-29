@@ -23,7 +23,7 @@ class BackButton extends Component<Props> {
         onClick={this._onClick}
       >
         <Icon
-          type="iconfont-arrow-left"
+          type={Kb.IconType.iconfont_arrow_left}
           style={this.props.onClick ? styles.icon : styles.disabledIcon}
           color={this.props.iconColor}
         />

@@ -103,7 +103,7 @@ const BotTeamPicker = (props: Props) => {
         <Kb.Box2 direction="horizontal" fullWidth={true}>
           <Kb.SearchFilter
             size="full-width"
-            icon="iconfont-search"
+            icon={Kb.IconType.iconfont_search}
             placeholderText={`Search chats and teams...`}
             placeholderCentered={true}
             onChange={debounce(setTerm, 200)}

@@ -13,10 +13,14 @@ type SendProps = {
 
 const _SendButton = (props: Kb.PropsWithOverlay<SendProps>) => {
   const menuItems: Kb.MenuItems = [
-    {icon: 'iconfont-mention', onClick: props.onSendToKeybaseUser, title: 'To a Keybase user'},
-    {icon: 'iconfont-identity-stellar', onClick: props.onSendToStellarAddress, title: 'To a Stellar address'},
+    {icon: Kb.IconType.iconfont_mention, onClick: props.onSendToKeybaseUser, title: 'To a Keybase user'},
     {
-      icon: 'iconfont-wallet-transfer',
+      icon: Kb.IconType.iconfont_identity_stellar,
+      onClick: props.onSendToStellarAddress,
+      title: 'To a Stellar address',
+    },
+    {
+      icon: Kb.IconType.iconfont_wallet_transfer,
       onClick: props.onSendToAnotherAccount,
       title: 'To one of your other Stellar accounts',
     },

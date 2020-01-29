@@ -17,12 +17,12 @@ const _CustomComponent = (props: Props & OverlayParentProps) => (
   <Box style={styles.container}>
     {isMobile && props.loading && <ProgressIndicator style={styles.progressIndicator} />}
     {props.canChat && (
-      <Icon onClick={props.onChat} fontSize={fontSize} style={styles.icon} type="iconfont-chat" />
+      <Icon onClick={props.onChat} fontSize={fontSize} style={styles.icon} type={Kb.IconType.iconfont_chat} />
     )}
     <Icon
       ref={props.setAttachmentRef}
       onClick={props.toggleShowingMenu}
-      type="iconfont-ellipsis"
+      type={Kb.IconType.iconfont_ellipsis}
       fontSize={fontSize}
       style={styles.icon}
     />

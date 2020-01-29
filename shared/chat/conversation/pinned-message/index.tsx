@@ -66,7 +66,7 @@ const PinnedMessage = (props: Props) => {
         ) : (
           <Kb.Icon
             onClick={props.dismissUnpins ? () => setShowPopup(true) : props.onDismiss}
-            type="iconfont-close"
+            type={Kb.IconType.iconfont_close}
             sizeType="Small"
             style={styles.close}
             boxStyle={styles.close}
@@ -123,7 +123,7 @@ const UnpinPrompt = (props: UnpinProps) => {
         view: header,
       }}
       position="left center"
-      items={['Divider', {icon: 'iconfont-close', onClick: props.onUnpin, title: 'Yes, unpin'}]}
+      items={['Divider', {icon: Kb.IconType.iconfont_close, onClick: props.onUnpin, title: 'Yes, unpin'}]}
     />
   )
 }

@@ -70,7 +70,7 @@ const Input = (props: Props) => {
         size="full-width"
         valueControlled={true}
         value={props.searchString}
-        icon="iconfont-search"
+        icon={Kb.IconType.iconfont_search}
         focusOnMount={props.focusOnMount}
         onChange={props.onChangeText}
         onCancel={props.onClear}

@@ -21,7 +21,7 @@ export const HeaderHocHeader = ({
     {onCancel && (
       <Icon
         style={Styles.collapseStyles([_styleClose, _styleCloseThemed[theme]])}
-        type="iconfont-close"
+        type={Kb.IconType.iconfont_close}
         onClick={onCancel}
       />
     )}

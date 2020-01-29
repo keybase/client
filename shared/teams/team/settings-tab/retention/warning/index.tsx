@@ -11,8 +11,10 @@ type Props = {
   onBack: () => void
 }
 
-const iconType = Styles.isMobile ? 'icon-message-retention-64' : 'icon-message-retention-48'
-const explodeIconType = 'icon-illustration-exploding-messages-240'
+const iconType = Styles.isMobile
+  ? Kb.IconType.icon_message_retention_64
+  : Kb.IconType.icon_message_retention_48
+const explodeIconType = Kb.IconType.icon_illustration_exploding_messages_240
 
 const Wrapper = ({children, onBack}: {children: React.ReactNode; onBack: () => void}) =>
   Styles.isMobile ? (

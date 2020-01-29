@@ -19,7 +19,9 @@ const ConfirmOrPending = (props: Props) => {
     (props.isPending
       ? 'Some proofs can take a few hours to recognize. Check back later.'
       : 'Leave your proof up so other users can identify you!')
-  const platformIconOverlay = props.isPending ? 'icon-proof-pending' : 'icon-proof-success'
+  const platformIconOverlay = props.isPending
+    ? Kb.IconType.icon_proof_pending
+    : Kb.IconType.icon_proof_success
   const platformSubtitle = subtitle(props.platform)
   const title = props.isPending ? 'Your proof is pending.' : 'Verified!'
 

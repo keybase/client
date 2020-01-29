@@ -94,7 +94,9 @@ const Banner = (props: BannerProps) => (
     ])}
   >
     <Kb.Icon
-      type={props.okIcon ? 'icon-fancy-finder-enabled-132-96' : 'icon-fancy-finder-132-96'}
+      type={
+        props.okIcon ? Kb.IconType.icon_fancy_finder_enabled_132_96 : Kb.IconType.icon_fancy_finder_132_96
+      }
       style={styles.fancyIcon}
     />
     <Kb.Box2 direction="vertical" gap="small" fullHeight={true} style={styles.bodyContainer}>
@@ -138,7 +140,7 @@ const Banner = (props: BannerProps) => (
     {!!props.onDismiss && (
       <Kb.Box2 direction="vertical" fullHeight={true}>
         <Kb.Icon
-          type="iconfont-close"
+          type={Kb.IconType.iconfont_close}
           onClick={props.onDismiss}
           color={Styles.globalColors.white_40}
           fontSize={16}

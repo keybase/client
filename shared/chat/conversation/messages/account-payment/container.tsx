@@ -6,6 +6,7 @@ import * as WalletTypes from '../../../../constants/types/wallets'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as WalletsGen from '../../../../actions/wallets-gen'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import * as Kb from '../../../../common-adapters'
 import AccountPayment from '.'
 
 // Props for rendering the loading indicator
@@ -20,7 +21,7 @@ const loadingProps = {
   cancelButtonLabel: '',
   canceled: false,
   claimButtonLabel: '',
-  icon: 'iconfont-stellar-send',
+  icon: Kb.IconType.iconfont_stellar_send,
   loading: true,
   memo: '',
   pending: false,
@@ -96,7 +97,7 @@ const ConnectedAccountPayment = Container.connect(
             !youAreSender && cancelable && !acceptedDisclaimer
               ? `Claim${paymentInfo.worth ? ' Lumens worth' : ''}`
               : '',
-          icon: pending ? ('iconfont-clock' as const) : null,
+          icon: pending ? Kb.IconType.iconfont_clock : null,
           loading: false,
           memo: paymentInfo.note.stringValue(),
           pending: pending || canceled,
@@ -124,7 +125,7 @@ const ConnectedAccountPayment = Container.connect(
           cancelButtonLabel: '',
           canceled,
           claimButtonLabel: '',
-          icon: 'iconfont-stellar-request' as const,
+          icon: Kb.IconType.iconfont_stellar_request,
           loading: false,
           memo: message.note.stringValue(),
           pending: false,

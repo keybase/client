@@ -36,7 +36,7 @@ class Reload extends React.PureComponent<ReloadProps, {expanded: boolean}> {
   render() {
     return (
       <Kb.Box2 direction="vertical" centerChildren={true} style={styles.reload} gap="small">
-        <Kb.Icon type="icon-illustration-zen-240-180" />
+        <Kb.Icon type={Kb.IconType.icon_illustration_zen_240_180} />
         <Kb.Text center={true} type="Header">
           We're having a hard time loading this page.
         </Kb.Text>

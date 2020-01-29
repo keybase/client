@@ -52,7 +52,7 @@ export const TeamRow = React.memo<RowProps>((props: RowProps) => {
     <Kb.Icon
       style={{opacity: props.onManageChat ? 1 : 0.3}}
       onClick={props.onManageChat}
-      type="iconfont-chat"
+      type={Kb.IconType.iconfont_chat}
     />
   )
   return (
@@ -85,7 +85,9 @@ export const TeamRow = React.memo<RowProps>((props: RowProps) => {
       action={
         Styles.isMobile ? null : (
           <Kb.Box2 direction="horizontal" gap="small" gapEnd={true} gapStart={true}>
-            {props.onOpenFolder && <Kb.Icon type="iconfont-folder-private" onClick={props.onOpenFolder} />}
+            {props.onOpenFolder && (
+              <Kb.Icon type={Kb.IconType.iconfont_folder_private} onClick={props.onOpenFolder} />
+            )}
             {props.onManageChat ? (
               <ChatIcon />
             ) : (

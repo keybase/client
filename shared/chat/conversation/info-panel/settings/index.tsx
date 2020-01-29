@@ -108,21 +108,21 @@ const SettingsPanel = (props: SettingsPanelProps) => {
           <CaptionedDangerIcon
             caption="Clear entire conversation"
             onClick={onShowClearConversationDialog}
-            icon="iconfont-fire"
+            icon={Kb.IconType.iconfont_fire}
           />
         )}
         {entityType === 'adhoc' && (
           <CaptionedDangerIcon
             caption="Block"
             onClick={onShowBlockConversationDialog}
-            icon="iconfont-remove"
+            icon={Kb.IconType.iconfont_remove}
           />
         )}
         {entityType !== 'channel' &&
           (ignored ? (
             <CaptionedDangerIcon
               caption="Unhide this conversation"
-              icon="iconfont-unhide"
+              icon={Kb.IconType.iconfont_unhide}
               onClick={onUnhideConv}
               noDanger={true}
               spinner={spinnerForHide}
@@ -132,12 +132,16 @@ const SettingsPanel = (props: SettingsPanelProps) => {
               caption="Hide this conversation"
               onClick={onHideConv}
               noDanger={true}
-              icon="iconfont-hide"
+              icon={Kb.IconType.iconfont_hide}
               spinner={spinnerForHide}
             />
           ))}
         {entityType === 'channel' && channelname !== 'general' && (
-          <CaptionedDangerIcon onClick={onLeaveConversation} caption="Leave channel" icon="iconfont-leave" />
+          <CaptionedDangerIcon
+            onClick={onLeaveConversation}
+            caption="Leave channel"
+            icon={Kb.IconType.iconfont_leave}
+          />
         )}
       </Kb.ScrollView>
     </Kb.Box2>

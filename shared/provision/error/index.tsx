@@ -23,7 +23,7 @@ const List = p => (
 
 const Wrapper = (p: {onBack: () => void; children: React.ReactNode}) => (
   <Container onBack={p.onBack}>
-    <Icon type="icon-illustration-zen-240-180" style={styles.icon} />
+    <Icon type={Kb.IconType.icon_illustration_zen_240_180} style={styles.icon} />
     <Text type="Header" style={styles.header}>
       Oops, something went wrong.
     </Text>

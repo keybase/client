@@ -57,7 +57,7 @@ class Providers extends React.Component<ProvidersProps> {
           )}
         </Kb.Box2>
         <Kb.Icon
-          type="iconfont-arrow-right"
+          type={Kb.IconType.iconfont_arrow_right}
           color={Styles.globalColors.black_50}
           fontSize={Styles.isMobile ? 20 : 16}
           style={styles.iconArrow}
@@ -103,7 +103,7 @@ class _ProofsList extends React.Component<Props, State> {
           )}
           <Kb.Box style={styles.inputContainer}>
             <Kb.Icon
-              type="iconfont-search"
+              type={Kb.IconType.iconfont_search}
               color={Styles.globalColors.black_50}
               fontSize={Styles.isMobile ? 20 : 16}
             />
@@ -124,7 +124,7 @@ class _ProofsList extends React.Component<Props, State> {
             <Kb.Divider />
           </Kb.Box2>
           <HoverBox onClick={this.props.onClickLearn} style={styles.footer}>
-            <Kb.Icon color={Styles.globalColors.black_50} fontSize={16} type="iconfont-info" />
+            <Kb.Icon color={Styles.globalColors.black_50} fontSize={16} type={Kb.IconType.iconfont_info} />
             <Kb.Text center={true} type="BodySmall" style={styles.footerText}>
               Learn how to list your platform here
             </Kb.Text>

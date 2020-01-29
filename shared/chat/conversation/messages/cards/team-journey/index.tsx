@@ -118,7 +118,9 @@ const TeamJourneyHeader = (props: HeaderProps) => (
       </Kb.Text>
       <Kb.Text type="BodyTiny">• System message</Kb.Text>
     </Kb.Box2>
-    {!Styles.isMobile && <Kb.Icon type="iconfont-close" onClick={props.onDismiss} fontSize={12} />}
+    {!Styles.isMobile && (
+      <Kb.Icon type={Kb.IconType.iconfont_close} onClick={props.onDismiss} fontSize={12} />
+    )}
   </Kb.Box2>
 )
 

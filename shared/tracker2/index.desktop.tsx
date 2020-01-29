@@ -51,7 +51,11 @@ const getButtons = (props: Props) => {
   )
   const buttonChat = (
     <Kb.WaitingButton key="Chat" label="Chat" waitingKey={Constants.waitingKey} onClick={props.onChat}>
-      <Kb.Icon type="iconfont-chat" color={Styles.globalColors.whiteOrWhite} style={styles.chatIcon} />
+      <Kb.Icon
+        type={Kb.IconType.iconfont_chat}
+        color={Styles.globalColors.whiteOrWhite}
+        style={styles.chatIcon}
+      />
     </Kb.WaitingButton>
   )
 
@@ -149,7 +153,7 @@ const Tracker = (props: Props) => {
        * close button's draggingClickable style goes on top of the
        * reason's draggable style, which matters on Linux. */}
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
-        <Kb.Icon type="iconfont-close" onClick={props.onClose} style={styles.close} />
+        <Kb.Icon type={Kb.IconType.iconfont_close} onClick={props.onClose} style={styles.close} />
       </Kb.Box2>
       <Kb.ScrollView
         style={styles.scrollView}

@@ -15,7 +15,7 @@ export const WalletSwitcher = (props: Props) => {
     view: (
       <Kb.ClickableBox onClick={onWhatIsStellar}>
         <Kb.Box2 centerChildren={true} direction="horizontal" style={styles.infoTextRowContainer}>
-          <Kb.Icon type="iconfont-info" />
+          <Kb.Icon type={Kb.IconType.iconfont_info} />
           <Kb.Text style={styles.infoText} type="BodySemibold">
             What is Stellar?
           </Kb.Text>
@@ -26,12 +26,12 @@ export const WalletSwitcher = (props: Props) => {
   let items: Kb.MenuItems = []
   items.push(
     {
-      icon: 'iconfont-new',
+      icon: Kb.IconType.iconfont_new,
       onClick: props.onAddNew,
       title: 'Create a new account',
     },
     {
-      icon: 'iconfont-identity-stellar',
+      icon: Kb.IconType.iconfont_identity_stellar,
       onClick: props.onLinkExisting,
       title: 'Link an existing Stellar account',
     },

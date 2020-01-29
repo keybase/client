@@ -22,9 +22,9 @@ const body3 = (
   </Box2>
 )
 const actionButton = <Button label="Action" small={true} onClick={Sb.action('button')} />
-const icon1 = <Icon type="icon-computer-32" />
-const icon2 = <Icon type="icon-bitcoin-logo-48" />
-const icon3 = <Icon type="iconfont-cloud" sizeType="Small" color={globalColors.blue} />
+const icon1 = <Icon type={Kb.IconType.icon_computer_32} />
+const icon2 = <Icon type={Kb.IconType.icon_bitcoin_logo_48} />
+const icon3 = <Icon type={Kb.IconType.iconfont_cloud} sizeType="Small" color={globalColors.blue} />
 
 const load = () => {
   Sb.storiesOf('Common', module)

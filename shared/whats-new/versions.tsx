@@ -37,7 +37,7 @@ export const Current = ({seen, onNavigate, onNavigateExternal}: VersionProps) =>
   return (
     <Version>
       <NewFeatureRow
-        image="release-5.2.0-crypto"
+        image={Kb.IconType.release_5_2_0_crypto}
         noSeparator={true}
         onPrimaryButtonClick={() => {
           onNavigate({path: [{selected: encryptTab}]})
@@ -56,7 +56,7 @@ export const Current = ({seen, onNavigate, onNavigateExternal}: VersionProps) =>
       </NewFeatureRow>
       <NewFeatureRow
         seen={seen}
-        image="release-5.2.0-bots"
+        image={Kb.IconType.release_5_2_0_bots}
         secondaryButtonText="Read more"
         onSecondaryButtonClick={() => {
           onNavigateExternal('https://keybase.io/blog/bots')
@@ -73,7 +73,7 @@ export const Last = ({seen}: VersionProps) => {
   return (
     <Version>
       <VersionTitle title="Last release" />
-      <NewFeatureRow noSeparator={true} seen={seen} image="release-5.1.0-blocking">
+      <NewFeatureRow noSeparator={true} seen={seen} image={Kb.IconType.release_5_1_0_blocking}>
         We heard you. You can now block and report spammers from the chat conversation or from people's
         profiles.
       </NewFeatureRow>
@@ -85,18 +85,18 @@ export const LastLast = ({seen, onNavigate, onNavigateExternal}: VersionProps) =
   return (
     <Version>
       <VersionTitle title="Previous releases" />
-      <NewFeatureRow noSeparator={true} seen={seen} image="release-4.7.0-fast-user-switching">
+      <NewFeatureRow noSeparator={true} seen={seen} image={Kb.IconType.release_4_7_0_fast_user_switching}>
         You can now quickly switch between all your signed in accounts from the user menu.
       </NewFeatureRow>
-      <NewFeatureRow seen={seen} image="release-4.8.0-file-sync">
+      <NewFeatureRow seen={seen} image={Kb.IconType.release_4_8_0_file_sync}>
         Files: sync your favorite folders and have them available offline.
       </NewFeatureRow>
-      <NewFeatureRow seen={seen} image="release-4.8.0-audio-messages">
+      <NewFeatureRow seen={seen} image={Kb.IconType.release_4_8_0_audio_messages}>
         Chat: you can now send audio messages on mobile. Long press the mic and follow the magic. 🎙️
       </NewFeatureRow>
       <NewFeatureRow
         seen={seen}
-        image="release-4.7.0-dark-mode"
+        image={Kb.IconType.release_4_7_0_dark_mode}
         primaryButtonText="Open display settings"
         onPrimaryButtonClick={() => {
           onNavigate({path: [{selected: displayTab}]})
@@ -121,16 +121,16 @@ export const LastLast = ({seen, onNavigate, onNavigateExternal}: VersionProps) =
         {` `}
         <Kb.Emoji allowFontScaling={true} size={Styles.globalMargins.small} emojiName=":phone:" />
       </NewFeatureRow>
-      <NewFeatureRow seen={seen} image={'release-4.7.0-pinned-messages'}>
+      <NewFeatureRow seen={seen} image={Kb.IconType.release_4_7_0_pinned_messages}>
         Chat admins can now pin messages.
         {` `}
         <Kb.Emoji size={Styles.globalMargins.small} emojiName=":pushpin:" />
       </NewFeatureRow>
-      <NewFeatureRow seen={seen} image={'release-4.7.0-keybase-fm'}>
+      <NewFeatureRow seen={seen} image={Kb.IconType.release_4_7_0_keybase_fm}>
         Listen to
         {` `}
         <Kb.Icon
-          type="iconfont-radio"
+          type={Kb.IconType.iconfont_radio}
           color={Styles.globalColors.black_50}
           boxStyle={styles.inlineIcon}
           sizeType={Styles.isMobile ? 'Small' : 'Default'}

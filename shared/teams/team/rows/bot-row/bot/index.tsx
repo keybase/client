@@ -91,7 +91,7 @@ export const TeamBotRow = (props: Props) => {
                   : styles.menuButtonDesktop
               }
               fontSize={Styles.isMobile ? 20 : 16}
-              type="iconfont-ellipsis"
+              type={Kb.IconType.iconfont_ellipsis}
             />
           )}
           <BotMenu

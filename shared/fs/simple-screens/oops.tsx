@@ -54,7 +54,11 @@ const NoAccess = (props: Props) => (
   <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
     <Kb.Box2 direction="vertical" style={styles.main} fullWidth={true} centerChildren={true}>
       <Kb.Icon
-        type={isMobile ? 'icon-fancy-no-access-mobile-128-125' : 'icon-fancy-no-access-desktop-96-94'}
+        type={
+          isMobile
+            ? Kb.IconType.icon_fancy_no_access_mobile_128_125
+            : Kb.IconType.icon_fancy_no_access_desktop_96_94
+        }
       />
       <Kb.Text type="Header" style={styles.textYouDontHave}>
         You don't have access to this folder or file.
@@ -77,8 +81,8 @@ const NonExistent = (props: Props) => (
       <Kb.Icon
         type={
           isMobile
-            ? 'icon-fancy-folder-file-inexistant-mobile-188-120'
-            : 'icon-fancy-folder-file-inexistant-desktop-153-94'
+            ? Kb.IconType.icon_fancy_folder_file_inexistant_mobile_188_120
+            : Kb.IconType.icon_fancy_folder_file_inexistant_desktop_153_94
         }
       />
       <Kb.Text type="Header" style={styles.textYouDontHave}>

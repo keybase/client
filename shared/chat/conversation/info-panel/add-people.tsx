@@ -22,8 +22,8 @@ const _AddPeople = (props: Props) => {
   if (!props.isGeneralChannel) {
     // general channel & small teams don't need a menu
     const items: Kb.MenuItems = [
-      {icon: 'iconfont-people', onClick: props.onAddPeople, title: 'To team'},
-      {icon: 'iconfont-hash', onClick: props.onAddToChannel, title: 'To channel'},
+      {icon: Kb.IconType.iconfont_people, onClick: props.onAddPeople, title: 'To team'},
+      {icon: Kb.IconType.iconfont_hash, onClick: props.onAddToChannel, title: 'To channel'},
     ]
     menu = (
       <Kb.FloatingMenu

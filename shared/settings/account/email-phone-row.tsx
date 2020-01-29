@@ -67,14 +67,14 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
   if (!props.verified) {
     menuItems.push({
       decoration: props.verified ? undefined : badge(Styles.globalColors.orange, true),
-      icon: 'iconfont-lock',
+      icon: Kb.IconType.iconfont_lock,
       onClick: props.onVerify,
       title: 'Verify',
     })
   }
   if (props.type === 'email' && !props.primary) {
     menuItems.push({
-      icon: 'iconfont-star',
+      icon: Kb.IconType.iconfont_star,
       onClick: props.onMakePrimary,
       subTitle: 'Use this email for important notifications.',
       title: 'Make primary',
@@ -84,7 +84,7 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
     const copyType = props.type === 'email' ? 'email' : 'number'
     menuItems.push({
       decoration: props.searchable ? undefined : badge(Styles.globalColors.blue, true),
-      icon: props.searchable ? 'iconfont-hide' : 'iconfont-unhide',
+      icon: props.searchable ? Kb.IconType.iconfont_hide : Kb.IconType.iconfont_unhide,
       onClick: props.onToggleSearchable,
       subTitle: props.searchable
         ? `Don't let friends find you by this ${copyType}.`
@@ -100,13 +100,13 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
   const deleteItem: Kb.MenuItem = isUndeletableEmail
     ? {
         disabled: true,
-        icon: 'iconfont-trash',
+        icon: Kb.IconType.iconfont_trash,
         onClick: null,
         subTitle:
           'You need to delete your other emails, or make another one primary, before you can delete this email.',
         title: 'Delete',
       }
-    : {danger: true, icon: 'iconfont-trash', onClick: props.onDelete, title: 'Delete'}
+    : {danger: true, icon: Kb.IconType.iconfont_trash, onClick: props.onDelete, title: 'Delete'}
   menuItems.push(deleteItem)
 
   let gearIconBadge: React.ReactNode | null = null
@@ -148,7 +148,7 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
           >
             <Kb.Icon
               className="hover_contained_color_black"
-              type="iconfont-gear"
+              type={Kb.IconType.iconfont_gear}
               ref={props.setAttachmentRef}
               style={styles.gearIcon}
             />

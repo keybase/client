@@ -131,7 +131,13 @@ const PaperKeyNudge = ({onAddDevice}) => (
   <Kb.ClickableBox onClick={onAddDevice}>
     <Kb.Box2 direction="horizontal" style={paperKeyNudgeStyles.container} fullWidth={true}>
       <Kb.Box2 direction="horizontal" gap="xsmall" alignItems="center" style={paperKeyNudgeStyles.border}>
-        <Kb.Icon type={Styles.isMobile ? 'icon-onboarding-paper-key-48' : 'icon-onboarding-paper-key-32'} />
+        <Kb.Icon
+          type={
+            Styles.isMobile
+              ? Kb.IconType.icon_onboarding_paper_key_48
+              : Kb.IconType.icon_onboarding_paper_key_32
+          }
+        />
         <Kb.Box2 direction="vertical" style={paperKeyNudgeStyles.flexOne}>
           <Kb.Text type="BodySemibold">Create a paper key</Kb.Text>
           <Kb.Text type={Styles.isMobile ? 'BodySmall' : 'Body'} style={paperKeyNudgeStyles.desc}>

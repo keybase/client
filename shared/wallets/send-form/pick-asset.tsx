@@ -87,7 +87,9 @@ const AssetList = ({accountID, isSender, username}) => {
                         : asset.issuerVerifiedDomain || Constants.shortenAccountID(asset.issuerAccountID)}
                     </Kb.Text>
                   </Kb.Box2>
-                  {!!selected && <Kb.Icon type="iconfont-check" color={Styles.globalColors.blueDark} />}
+                  {!!selected && (
+                    <Kb.Icon type={Kb.IconType.iconfont_check} color={Styles.globalColors.blueDark} />
+                  )}
                 </Kb.Box2>
               }
             />

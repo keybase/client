@@ -6,7 +6,11 @@ import {pluralize} from '../../util/string'
 
 const Edit = ({onClick, style}: {onClick: () => void; style: Object}) => (
   <Kb.ClickableBox style={style} onClick={onClick}>
-    <Kb.Icon style={{marginRight: Styles.globalMargins.xtiny}} type="iconfont-edit" sizeType="Small" />
+    <Kb.Icon
+      style={{marginRight: Styles.globalMargins.xtiny}}
+      type={Kb.IconType.iconfont_edit}
+      sizeType="Small"
+    />
     <Kb.Text type="BodySmallPrimaryLink">Edit</Kb.Text>
   </Kb.ClickableBox>
 )
@@ -77,7 +81,7 @@ const ManageChannels = (props: Props) => (
     <Kb.Box2 direction="horizontal" fullWidth={true}>
       <Kb.SearchFilter
         size="full-width"
-        icon="iconfont-search"
+        icon={Kb.IconType.iconfont_search}
         placeholderText={`Search channels in ${props.teamname}`}
         placeholderCentered={true}
         mobileCancelButton={true}
@@ -90,7 +94,7 @@ const ManageChannels = (props: Props) => (
         <Kb.Box style={styles.create}>
           <Kb.Icon
             style={styles.createIcon}
-            type="iconfont-new"
+            type={Kb.IconType.iconfont_new}
             onClick={props.onCreate}
             color={Styles.globalColors.blue}
           />

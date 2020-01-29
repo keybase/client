@@ -8,7 +8,7 @@ const WhatIsStellarModalBody = () => (
   <Kb.ScrollView>
     <Kb.Box2 direction="vertical" style={styles.container}>
       <Kb.Icon
-        type="iconfont-identity-stellar"
+        type={Kb.IconType.iconfont_identity_stellar}
         sizeType="Huge"
         color={Styles.globalColors.black}
         boxStyle={styles.stellarIcon}

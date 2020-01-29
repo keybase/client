@@ -11,7 +11,7 @@ const HoverBox = Styles.styled(Kb.Box)(() => ({
 
 const Edit = ({onClick, style}: {onClick: () => void; style: Object}) => (
   <HoverBox style={style} onClick={onClick}>
-    <Kb.Icon style={{marginRight: Styles.globalMargins.xtiny}} type="iconfont-edit" />
+    <Kb.Icon style={{marginRight: Styles.globalMargins.xtiny}} type={Kb.IconType.iconfont_edit} />
     <Kb.Text type="BodySmallPrimaryLink">Edit</Kb.Text>
   </HoverBox>
 )
@@ -111,7 +111,7 @@ const ManageChannels = (props: Props) => {
         <Kb.Box style={styles.create}>
           <Kb.Icon
             style={styles.createIcon}
-            type="iconfont-new"
+            type={Kb.IconType.iconfont_new}
             onClick={props.onCreate}
             hoverColor={Styles.globalColors.blueLight}
             color={Styles.globalColors.blue}
@@ -130,7 +130,7 @@ const ManageChannels = (props: Props) => {
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.searchBox}>
           <Kb.SearchFilter
             size="full-width"
-            icon="iconfont-search"
+            icon={Kb.IconType.iconfont_search}
             placeholderText={`Search channels in ${props.teamname}`}
             placeholderCentered={true}
             mobileCancelButton={true}

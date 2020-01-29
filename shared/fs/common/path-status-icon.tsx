@@ -15,17 +15,17 @@ type Props = {
 function getIcon(status: Types.LocalConflictStatus | Types.NonUploadStaticSyncStatus): Kb.IconType {
   switch (status) {
     case Types.NonUploadStaticSyncStatus.AwaitingToSync:
-      return 'iconfont-time'
+      return Kb.IconType.iconfont_time
     case Types.NonUploadStaticSyncStatus.OnlineOnly:
-      return 'iconfont-cloud'
+      return Kb.IconType.iconfont_cloud
     case Types.NonUploadStaticSyncStatus.Synced:
-      return 'iconfont-success'
+      return Kb.IconType.iconfont_success
     case Types.NonUploadStaticSyncStatus.SyncError:
-      return 'iconfont-exclamation'
+      return Kb.IconType.iconfont_exclamation
     case Types.LocalConflictStatus:
-      return 'iconfont-exclamation'
+      return Kb.IconType.iconfont_exclamation
     case Types.NonUploadStaticSyncStatus.Unknown:
-      return 'iconfont-question-mark'
+      return Kb.IconType.iconfont_question_mark
   }
 }
 
@@ -96,7 +96,7 @@ const PathStatusIcon = (props: Props) =>
       )}
     </Kb.WithTooltip>
   ) : props.isTlfType ? (
-    <Kb.Icon type="iconfont-root" sizeType="Small" style={styles.iconFont} />
+    <Kb.Icon type={Kb.IconType.iconfont_root} sizeType="Small" style={styles.iconFont} />
   ) : (
     <Kb.Box style={styles.placeholder} />
   )

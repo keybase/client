@@ -41,7 +41,7 @@ const Checkbox = (props: Props) => {
           props.disabled && styles.checkboxInactive,
           props.disabled && props.checked && styles.semiTransparent,
         ])}
-        type="iconfont-check"
+        type={Kb.IconType.iconfont_check}
         style={Styles.collapseStyles([
           styles.icon,
           !!props.boxBackgroundColor && {color: props.boxBackgroundColor},

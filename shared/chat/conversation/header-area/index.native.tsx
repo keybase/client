@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {Avatar, Box2, HeaderHocHeader, Icon, Text, ConnectedUsernames} from '../../../common-adapters'
+import * as Kb from '../../../common-adapters'
 import {assertionToDisplay} from '../../../common-adapters/usernames'
 import * as Styles from '../../../styles'
 import * as Container from '../../../util/container'
@@ -33,15 +33,15 @@ const Wrapper = (
   const nav = Container.useSafeNavigation()
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
   return (
-    <HeaderHocHeader
+    <Kb.HeaderHocHeader
       badgeNumber={props.badgeNumber}
       onLeftAction={onBack}
       rightActions={
         props.pendingWaiting
           ? undefined
           : [
-              {icon: 'iconfont-search', label: 'search', onPress: props.onToggleThreadSearch},
-              {icon: 'iconfont-info', label: 'Info', onPress: props.onShowInfoPanel},
+              {icon: Kb.IconType.iconfont_search, label: 'search', onPress: props.onToggleThreadSearch},
+              {icon: Kb.IconType.iconfont_info, label: 'Info', onPress: props.onShowInfoPanel},
             ]
       }
       titleComponent={props.children}
@@ -50,8 +50,8 @@ const Wrapper = (
 }
 
 const ShhIcon = (props: {onClick: () => void}) => (
-  <Icon
-    type="iconfont-shh"
+  <Kb.Icon
+    type={Kb.IconType.iconfont_shh}
     style={styles.shhIcon}
     color={shhIconColor}
     fontSize={shhIconFontSize}
@@ -61,9 +61,9 @@ const ShhIcon = (props: {onClick: () => void}) => (
 
 const ChannelHeader = (props: Props) => (
   <Wrapper {...props}>
-    <Box2 direction="horizontal" style={styles.channelHeaderContainer}>
-      <Avatar teamname={props.teamName || undefined} size={props.smallTeam ? 16 : (12 as any)} />
-      <Text
+    <Kb.Box2 direction="horizontal" style={styles.channelHeaderContainer}>
+      <Kb.Avatar teamname={props.teamName || undefined} size={props.smallTeam ? 16 : (12 as any)} />
+      <Kb.Text
         type={
           Styles.isMobile
             ? props.smallTeam
@@ -79,29 +79,32 @@ const ChannelHeader = (props: Props) => (
       >
         &nbsp;
         {props.teamName}
-      </Text>
+      </Kb.Text>
       {props.smallTeam && props.muted && <ShhIcon onClick={props.unMuteConversation} />}
-    </Box2>
+    </Kb.Box2>
     {!props.smallTeam && (
-      <Box2 direction="horizontal" style={styles.channelHeaderContainer}>
-        <Text type="BodyBig" style={styles.channelName} lineClamp={1} ellipsizeMode="tail">
+      <Kb.Box2 direction="horizontal" style={styles.channelHeaderContainer}>
+        <Kb.Text type="BodyBig" style={styles.channelName} lineClamp={1} ellipsizeMode="tail">
           #{props.channelName}
-        </Text>
+        </Kb.Text>
         {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
-      </Box2>
+      </Kb.Box2>
     )}
   </Wrapper>
 )
 
 const UsernameHeader = (props: Props) => (
   <Wrapper {...props}>
-    <Box2 direction={props.theirFullname ? 'vertical' : 'horizontal'} style={styles.usernameHeaderContainer}>
+    <Kb.Box2
+      direction={props.theirFullname ? 'vertical' : 'horizontal'}
+      style={styles.usernameHeaderContainer}
+    >
       {!!props.theirFullname && (
-        <Text lineClamp={1} type="BodyBig">
+        <Kb.Text lineClamp={1} type="BodyBig">
           {props.theirFullname}
-        </Text>
+        </Kb.Text>
       )}
-      <ConnectedUsernames
+      <Kb.ConnectedUsernames
         colorFollowing={true}
         inline={false}
         lineClamp={props.participants.length > 2 ? 2 : 1}
@@ -113,7 +116,7 @@ const UsernameHeader = (props: Props) => (
         skipSelf={props.participants.length > 1}
       />
       {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
-    </Box2>
+    </Kb.Box2>
   </Wrapper>
 )
 
@@ -123,15 +126,15 @@ const PhoneOrEmailHeader = (props: Props) => {
   const name = props.contactNames.get(phoneOrEmail)
   return (
     <Wrapper {...props}>
-      <Box2 direction="vertical" style={styles.usernameHeaderContainer}>
-        <Box2 direction="horizontal" style={styles.lessMargins}>
-          <Text type="BodyBig" lineClamp={1} ellipsizeMode="middle">
+      <Kb.Box2 direction="vertical" style={styles.usernameHeaderContainer}>
+        <Kb.Box2 direction="horizontal" style={styles.lessMargins}>
+          <Kb.Text type="BodyBig" lineClamp={1} ellipsizeMode="middle">
             {formattedPhoneOrEmail}
-          </Text>
+          </Kb.Text>
           {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
-        </Box2>
-        {!!name && <Text type="BodyTiny">{name}</Text>}
-      </Box2>
+        </Kb.Box2>
+        {!!name && <Kb.Text type="BodyTiny">{name}</Kb.Text>}
+      </Kb.Box2>
     </Wrapper>
   )
 }

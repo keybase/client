@@ -165,16 +165,28 @@ const Actions = (p: Props) => {
 const DropdownButton = Kb.OverlayParentHOC((p: Kb.PropsWithOverlay<DropdownProps>) => {
   const items: Kb.MenuItems = [
     p.isBot
-      ? {icon: 'iconfont-nav-2-robot', onClick: p.onInstallBot, title: 'Install bot in team or chat'}
-      : {icon: 'iconfont-people', onClick: p.onAddToTeam, title: 'Add to team...'},
-    {icon: 'iconfont-stellar-send', onClick: p.onSendLumens, title: 'Send Lumens (XLM)'},
-    {icon: 'iconfont-stellar-request', onClick: p.onRequestLumens, title: 'Request Lumens (XLM)'},
-    {icon: 'iconfont-folder-open', onClick: p.onOpenPrivateFolder, title: 'Open private folder'},
-    {icon: 'iconfont-folder-public', onClick: p.onBrowsePublicFolder, title: 'Browse public folder'},
-    p.onUnfollow && {icon: 'iconfont-wave', onClick: p.onUnfollow && p.onUnfollow, title: 'Unfollow'},
+      ? {
+          icon: Kb.IconType.iconfont_nav_2_robot,
+          onClick: p.onInstallBot,
+          title: 'Install bot in team or chat',
+        }
+      : {icon: Kb.IconType.iconfont_people, onClick: p.onAddToTeam, title: 'Add to team...'},
+    {icon: Kb.IconType.iconfont_stellar_send, onClick: p.onSendLumens, title: 'Send Lumens (XLM)'},
+    {icon: Kb.IconType.iconfont_stellar_request, onClick: p.onRequestLumens, title: 'Request Lumens (XLM)'},
+    {icon: Kb.IconType.iconfont_folder_open, onClick: p.onOpenPrivateFolder, title: 'Open private folder'},
+    {
+      icon: Kb.IconType.iconfont_folder_public,
+      onClick: p.onBrowsePublicFolder,
+      title: 'Browse public folder',
+    },
+    p.onUnfollow && {
+      icon: Kb.IconType.iconfont_wave,
+      onClick: p.onUnfollow && p.onUnfollow,
+      title: 'Unfollow',
+    },
     flags.userBlocking && {
       danger: true,
-      icon: 'iconfont-remove',
+      icon: Kb.IconType.iconfont_remove,
       onClick: p.onManageBlocking,
       title: p.blockedOrHidFromFollowers ? 'Manage blocking' : 'Block',
     },
@@ -187,7 +199,7 @@ const DropdownButton = Kb.OverlayParentHOC((p: Kb.PropsWithOverlay<DropdownProps
     <Kb.ClickableBox onClick={p.toggleShowingMenu} ref={p.setAttachmentRef}>
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="xsmall">
         <Kb.Button onClick={undefined} mode="Secondary" style={styles.dropdownButton}>
-          <Kb.Icon color={Styles.globalColors.blue} type="iconfont-ellipsis" />
+          <Kb.Icon color={Styles.globalColors.blue} type={Kb.IconType.iconfont_ellipsis} />
         </Kb.Button>
       </Kb.Box2>
       <Kb.FloatingMenu

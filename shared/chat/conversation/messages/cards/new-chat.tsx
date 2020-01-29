@@ -18,8 +18,8 @@ type InnerProps = {
 }
 
 const NewCard = (outerProps: Props) => {
-  const iconEncrypted: Kb.IconType = 'icon-illustration-encrypted-116-96'
-  const iconSecure: Kb.IconType = 'icon-illustration-secure-116-96'
+  const iconEncrypted: Kb.IconType = Kb.IconType.icon_illustration_encrypted_116_96
+  const iconSecure: Kb.IconType = Kb.IconType.icon_illustration_secure_116_96
   const props: InnerProps = outerProps.self
     ? {
         action: outerProps.openPrivateFolder,
@@ -63,7 +63,7 @@ const NewCard = (outerProps: Props) => {
             <Kb.Icon
               color={Styles.globalColors.blueLighterOrWhite}
               sizeType="Tiny"
-              type="iconfont-arrow-right"
+              type={Kb.IconType.iconfont_arrow_right}
               className="hover_contained_color_white"
               style={styles.icon}
             />

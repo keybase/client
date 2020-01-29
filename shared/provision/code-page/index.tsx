@@ -419,22 +419,34 @@ const Instructions = (p: Props) => (
           {p.otherDevice.type === 'mobile' && (
             <>
               <Kb.Icon
-                type="iconfont-nav-2-hamburger"
+                type={Kb.IconType.iconfont_nav_2_hamburger}
                 color={Styles.globalColors.white}
                 sizeType="Default"
                 style={styles.hamburger}
               />
-              <Kb.Icon type="iconfont-arrow-right" color={Styles.globalColors.white} sizeType="Tiny" />
+              <Kb.Icon
+                type={Kb.IconType.iconfont_arrow_right}
+                color={Styles.globalColors.white}
+                sizeType="Tiny"
+              />
             </>
           )}
           <Kb.Text center={true} type={textType} style={styles.instructions}>
             Devices
           </Kb.Text>
-          <Kb.Icon type="iconfont-arrow-right" color={Styles.globalColors.white} sizeType="Tiny" />
+          <Kb.Icon
+            type={Kb.IconType.iconfont_arrow_right}
+            color={Styles.globalColors.white}
+            sizeType="Tiny"
+          />
           <Kb.Text center={true} type={textType} style={styles.instructions}>
             Add a device or paper key
           </Kb.Text>
-          <Kb.Icon type="iconfont-arrow-right" color={Styles.globalColors.white} sizeType="Tiny" />
+          <Kb.Icon
+            type={Kb.IconType.iconfont_arrow_right}
+            color={Styles.globalColors.white}
+            sizeType="Tiny"
+          />
           <Kb.Text center={true} type={textType} style={styles.instructions}>
             Add {currentDeviceType === 'desktop' ? 'computer' : 'phone'}.
           </Kb.Text>

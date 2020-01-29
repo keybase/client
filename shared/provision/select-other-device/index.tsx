@@ -34,7 +34,7 @@ class SelectOtherDevice extends React.Component<Props> {
             firstItem={true}
             key="reset"
             onClick={this.props.onResetAccount}
-            icon={<Kb.Icon type="icon-skull-32" />}
+            icon={<Kb.Icon type={Kb.IconType.icon_skull_32} />}
             body={
               <Kb.Box2 direction="vertical" fullWidth={true}>
                 <Kb.Text type="BodySemibold">I lost all my devices/paper keys</Kb.Text>

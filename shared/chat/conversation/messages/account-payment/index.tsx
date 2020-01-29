@@ -48,7 +48,7 @@ const AccountPayment = (props: Props) => {
           {props.balanceChange}
         </Kb.Text>
       )}
-      {props.showCoinsIcon && <Kb.Icon type="icon-stellar-coins-stacked-16" />}
+      {props.showCoinsIcon && <Kb.Icon type={Kb.IconType.icon_stellar_coins_stacked_16} />}
     </Kb.Box2>
   )
   const contents = props.loading ? (

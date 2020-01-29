@@ -30,7 +30,7 @@ const Recipients = (props: Props) => (
       )}
       {props.recipients?.length ? (
         <Kb.Icon
-          type="iconfont-remove"
+          type={Kb.IconType.iconfont_remove}
           boxStyle={styles.removeRecipients}
           color={Styles.globalColors.black_20}
           onClick={props.onClearRecipients}

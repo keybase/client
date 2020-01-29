@@ -42,28 +42,28 @@ const load = () => {
       <Box>
         <Text type="Body">FontSize</Text>
         <Text type="Body">Big</Text>
-        <Icon key="big" type="iconfont-add" {...commonProps} sizeType="Big" />
+        <Icon key="big" type={Kb.IconType.iconfont_add} {...commonProps} sizeType="Big" />
         <Text type="Body">Default</Text>
-        <Icon key="default" type="iconfont-add" {...commonProps} sizeType="Default" />
+        <Icon key="default" type={Kb.IconType.iconfont_add} {...commonProps} sizeType="Default" />
         <Text type="Body">Small</Text>
-        <Icon key="small" type="iconfont-add" {...commonProps} sizeType="Small" />
+        <Icon key="small" type={Kb.IconType.iconfont_add} {...commonProps} sizeType="Small" />
         <Text type="Body">Tiny</Text>
-        <Icon key="tiny" type="iconfont-add" {...commonProps} sizeType="Tiny" />
+        <Icon key="tiny" type={Kb.IconType.iconfont_add} {...commonProps} sizeType="Tiny" />
         <Text type="Body">Red on hover</Text>
         <Icon
           key="hoverColor"
-          type="iconfont-add"
+          type={Kb.IconType.iconfont_add}
           {...commonProps}
-          onClick={() => commonProps.onClick('iconfont-add')}
+          onClick={() => commonProps.onClick(Kb.IconType.iconfont_add)}
           hoverColor={Styles.globalColors.red}
         />
         <Text type="Body">Red due to inherit </Text>
         <Box style={Styles.isMobile ? {} : {color: 'red'}}>
           <Icon
             key="inherit"
-            type="iconfont-add"
+            type={Kb.IconType.iconfont_add}
             {...commonProps}
-            onClick={() => commonProps.onClick('iconfont-add')}
+            onClick={() => commonProps.onClick(Kb.IconType.iconfont_add)}
             inheritColor={true}
           />
         </Box>

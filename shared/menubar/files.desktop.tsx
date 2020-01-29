@@ -36,10 +36,10 @@ type FilesPreviewProps = {
 export const FileUpdate = (props: FileUpdateProps) => (
   <Kb.ClickableBox className="hover-underline-container" onClick={props.onClick} style={styles.fullWidth}>
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.fileUpdateRow} alignItems="flex-start">
-      <Kb.Icon type="icon-file-16" style={styles.iconStyle} />
+      <Kb.Icon type={Kb.IconType.icon_file_16} style={styles.iconStyle} />
       {props.uploading && (
         <Kb.Box style={styles.iconBadgeBox}>
-          <Kb.Icon type="icon-addon-file-uploading" style={styles.iconBadge} />
+          <Kb.Icon type={Kb.IconType.icon_addon_file_uploading} style={styles.iconBadge} />
         </Kb.Box>
       )}
       <Filename type="Body" path={props.path} />

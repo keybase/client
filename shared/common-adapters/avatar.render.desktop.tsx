@@ -5,13 +5,13 @@ import {Props, AvatarSize} from './avatar.render'
 
 const avatarSizeToPoopIconType = (s: AvatarSize): IconType | null =>
   s === 128
-    ? 'icon-poop-96'
+    ? Kb.IconType.icon_poop_96
     : s === 96
-    ? 'icon-poop-64'
+    ? Kb.IconType.icon_poop_64
     : s === 64
-    ? 'icon-poop-48'
+    ? Kb.IconType.icon_poop_48
     : s === 48 || s === 32
-    ? 'icon-poop-32'
+    ? Kb.IconType.icon_poop_32
     : null
 
 const Avatar = (props: Props) => {
@@ -32,7 +32,7 @@ const Avatar = (props: Props) => {
         >
           {/* ts messes up here without the || 'icon-poop-32' even though it
               can't happen due to the !!avatarSizeToPoopIconType() check above */}
-          <Icon type={avatarSizeToPoopIconType(props.size) || 'icon-poop-32'} />
+          <Icon type={avatarSizeToPoopIconType(props.size) || Kb.IconType.icon_poop_32} />
         </div>
       )}
       {!!props.url && (
@@ -65,7 +65,9 @@ const Avatar = (props: Props) => {
         />
       )}
       {props.followIconType && <Icon type={props.followIconType} style={props.followIconStyle} />}
-      {props.editable && <Icon type="iconfont-edit" style={props.isTeam ? styles.editTeam : styles.edit} />}
+      {props.editable && (
+        <Icon type={Kb.IconType.iconfont_edit} style={props.isTeam ? styles.editTeam : styles.edit} />
+      )}
       {props.children}
     </div>
   )

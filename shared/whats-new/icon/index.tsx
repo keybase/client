@@ -32,7 +32,7 @@ const Icon = (props: Props) => {
   return props.newRelease ? (
     Styles.isMobile ? (
       <Kb.Icon
-        type="iconfont-radio"
+        type={Kb.IconType.iconfont_radio}
         onClick={props.onClick}
         color={Styles.globalColors.blue}
         style={Styles.collapseStyles([{marginRight: Styles.globalMargins.small}, props.style])}
@@ -41,7 +41,7 @@ const Icon = (props: Props) => {
       <>
         <Kb.DesktopStyle style={realCSS} />
         <Kb.Icon
-          type="iconfont-radio"
+          type={Kb.IconType.iconfont_radio}
           style={styles.rainbowColor}
           className="rainbowGradient"
           onClick={props.onClick}
@@ -73,13 +73,18 @@ const Icon = (props: Props) => {
     )
   ) : Styles.isMobile ? (
     <Kb.Icon
-      type="iconfont-radio"
+      type={Kb.IconType.iconfont_radio}
       color={Styles.globalColors.black_20}
       style={Styles.collapseStyles([{marginRight: Styles.globalMargins.small}, props.style])}
     />
   ) : (
     // className will be hover_contained_color_$color so that should override the non-hover color set by the `color` prop.
-    <Kb.Icon type="iconfont-radio" className={props.className} color={props.color} onClick={props.onClick} />
+    <Kb.Icon
+      type={Kb.IconType.iconfont_radio}
+      className={props.className}
+      color={props.color}
+      onClick={props.onClick}
+    />
   )
 }
 

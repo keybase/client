@@ -195,13 +195,17 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                       this.props.authorIsOwner ? Styles.globalColors.yellowDark : Styles.globalColors.black_35
                     }
                     fontSize={10}
-                    type="iconfont-crown-owner"
+                    type={Kb.IconType.iconfont_crown_owner}
                   />
                 </Kb.WithTooltip>
               )}
               {this.props.authorIsBot && (
                 <Kb.WithTooltip tooltip="Bot">
-                  <Kb.Icon fontSize={10} color={Styles.globalColors.black_35} type="iconfont-bot" />
+                  <Kb.Icon
+                    fontSize={10}
+                    color={Styles.globalColors.black_35}
+                    type={Kb.IconType.iconfont_bot}
+                  />
                 </Kb.WithTooltip>
               )}
               <Kb.Text
@@ -257,7 +261,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         <Kb.Text type="BodySmall" style={this.isExploding() ? styles.failExploding : styles.fail}>
           {this.isExploding() && (
             <>
-              <Kb.Icon fontSize={16} boxStyle={styles.failExplodingIcon} type="iconfont-block" />{' '}
+              <Kb.Icon fontSize={16} boxStyle={styles.failExplodingIcon} type={Kb.IconType.iconfont_block} />{' '}
             </>
           )}
           {this.props.failureDescription}.{' '}
@@ -584,19 +588,19 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
             )}
             {this.props.isRevoked && (
               <Kb.Icon
-                type="iconfont-rip"
+                type={Kb.IconType.iconfont_rip}
                 style={styles.paddingLeftTiny}
                 color={Styles.globalColors.black_20}
               />
             )}
             {this.props.showCoinsIcon && (
-              <Kb.Icon type="icon-stellar-coins-stacked-16" style={styles.paddingLeftTiny} />
+              <Kb.Icon type={Kb.IconType.icon_stellar_coins_stacked_16} style={styles.paddingLeftTiny} />
             )}
             {this.getKeyedBot() && !this.props.authorIsBot && (
               <Kb.WithTooltip tooltip={`Encrypted for @${this.getKeyedBot()}`}>
                 <Kb.Icon
                   color={Styles.globalColors.black_35}
-                  type="iconfont-bot"
+                  type={Kb.IconType.iconfont_bot}
                   onClick={() => null}
                   style={styles.paddingLeftTiny}
                 />
@@ -624,7 +628,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                 <Kb.Box>
                   {this.props.shouldShowPopup && (
                     <Kb.Icon
-                      type="iconfont-ellipsis"
+                      type={Kb.IconType.iconfont_ellipsis}
                       onClick={this.props.toggleShowingMenu}
                       style={styles.ellipsis}
                       fontSize={14}

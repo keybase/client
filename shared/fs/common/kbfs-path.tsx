@@ -56,7 +56,7 @@ const KbfsPathPopup = (props: PopupProps) => {
           ? [
               'Divider',
               {
-                icon: 'iconfont-file',
+                icon: Kb.IconType.iconfont_file,
                 onClick: openInFilesTab,
                 title: 'Open',
               },

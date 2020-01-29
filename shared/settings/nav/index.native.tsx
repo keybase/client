@@ -32,19 +32,19 @@ function SettingsNav(props: Props) {
           data: [
             {
               badgeNumber: badgeNumbers.get(TabConstants.gitTab),
-              icon: 'iconfont-nav-git',
+              icon: Kb.IconType.iconfont_nav_git,
               onClick: () => props.onTabChange(Constants.gitTab),
               text: 'Git',
             },
             {
               badgeNumber: badgeNumbers.get(TabConstants.devicesTab),
-              icon: 'iconfont-nav-devices',
+              icon: Kb.IconType.iconfont_nav_devices,
               onClick: () => props.onTabChange(Constants.devicesTab),
               text: 'Devices',
             },
             {
               badgeNumber: badgeNumbers.get(TabConstants.walletsTab),
-              icon: 'iconfont-nav-wallets',
+              icon: Kb.IconType.iconfont_nav_wallets,
               onClick: () => props.onTabChange(Constants.walletsTab),
               text: 'Wallet',
             },

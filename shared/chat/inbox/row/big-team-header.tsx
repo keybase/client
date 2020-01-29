@@ -71,7 +71,7 @@ const BigTeamHeader = React.memo((props: Props) => {
         <Kb.Icon
           className="hover_contained_color_black"
           color={Styles.globalColors.black_35}
-          type="iconfont-gear"
+          type={Kb.IconType.iconfont_gear}
         />
         <Kb.Box style={Styles.collapseStyles([styles.badge, badgeSubscribe && styles.badgeVisible])} />
       </Kb.ClickableBox>

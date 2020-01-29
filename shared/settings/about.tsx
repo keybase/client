@@ -12,7 +12,7 @@ const About = ({version, onShowTerms, onShowPrivacyPolicy}: Props) => (
   <Kb.Box
     style={{...globalStyles.flexBoxColumn, alignItems: 'center', flexGrow: 1, justifyContent: 'center'}}
   >
-    <Kb.Icon type="icon-keybase-logo-64" />
+    <Kb.Icon type={Kb.IconType.icon_keybase_logo_64} />
     <Kb.Text
       center={true}
       style={{marginBottom: globalMargins.large, paddingTop: globalMargins.large}}

@@ -68,7 +68,7 @@ export const TeamRequestRow = (props: Props) => {
           style={styles.ignoreButton}
           type="Danger"
         />
-        {!Styles.isMobile && <Icon onClick={onChat} style={styles.icon} type="iconfont-chat" />}
+        {!Styles.isMobile && <Icon onClick={onChat} style={styles.icon} type={Kb.IconType.iconfont_chat} />}
       </Box>
     </Box>
   )

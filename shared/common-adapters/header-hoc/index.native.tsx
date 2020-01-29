@@ -182,7 +182,7 @@ const RightActions = ({
 const RightActionsOverflow = ({floatingMenuVisible, hideFloatingMenu, rightActions, showFloatingMenu}) =>
   rightActions && rightActions.length > MAX_RIGHT_ACTIONS ? (
     <>
-      <Icon onClick={showFloatingMenu} style={styles.action} type="iconfont-ellipsis" />
+      <Icon onClick={showFloatingMenu} style={styles.action} type={Kb.IconType.iconfont_ellipsis} />
       <FloatingMenu
         visible={floatingMenuVisible}
         items={rightActions.slice(MAX_RIGHT_ACTIONS - 1).map(action => ({

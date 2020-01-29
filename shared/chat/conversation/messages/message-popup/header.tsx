@@ -9,28 +9,28 @@ const iconNameForDeviceType = Styles.isMobile
       switch (deviceType) {
         case 'mobile':
           return isRevoked
-            ? 'icon-fancy-revoked-phone-mobile-226-96'
+            ? Kb.IconType.icon_fancy_revoked_phone_mobile_226_96
             : isLocation
-            ? 'icon-fancy-location-phone-mobile-226-96'
-            : 'icon-fancy-encrypted-phone-mobile-226-96'
+            ? Kb.IconType.icon_fancy_location_phone_mobile_226_96
+            : Kb.IconType.icon_fancy_encrypted_phone_mobile_226_96
         default:
           return isRevoked
-            ? 'icon-fancy-revoked-computer-mobile-226-96'
-            : 'icon-fancy-encrypted-computer-mobile-226-96'
+            ? Kb.IconType.icon_fancy_revoked_computer_mobile_226_96
+            : Kb.IconType.icon_fancy_encrypted_computer_mobile_226_96
       }
     }
   : (deviceType: string, isRevoked: boolean, isLocation: boolean): Kb.IconType => {
       switch (deviceType) {
         case 'mobile':
           return isRevoked
-            ? 'icon-fancy-revoked-phone-desktop-150-72'
+            ? Kb.IconType.icon_fancy_revoked_phone_desktop_150_72
             : isLocation
-            ? 'icon-fancy-location-phone-desktop-150-72'
-            : 'icon-fancy-encrypted-phone-desktop-150-72'
+            ? Kb.IconType.icon_fancy_location_phone_desktop_150_72
+            : Kb.IconType.icon_fancy_encrypted_phone_desktop_150_72
         default:
           return isRevoked
-            ? 'icon-fancy-revoked-computer-desktop-150-72'
-            : 'icon-fancy-encrypted-computer-desktop-150-72'
+            ? Kb.IconType.icon_fancy_revoked_computer_desktop_150_72
+            : Kb.IconType.icon_fancy_encrypted_computer_desktop_150_72
       }
     }
 

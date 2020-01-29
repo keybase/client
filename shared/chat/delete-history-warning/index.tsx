@@ -11,7 +11,9 @@ type Props = {
 const DeleteHistoryWarning = ({onCancel, onDeleteHistory}: Props) => (
   <Kb.MaybePopup onClose={onCancel}>
     <Kb.Box style={Styles.collapseStyles([Styles.globalStyles.flexBoxColumn, styles.padding, styles.box])}>
-      <Kb.Icon type={Styles.isMobile ? 'icon-message-deletion-64' : 'icon-message-deletion-48'} />
+      <Kb.Icon
+        type={Styles.isMobile ? Kb.IconType.icon_message_deletion_64 : Kb.IconType.icon_message_deletion_48}
+      />
       <Kb.Text style={{padding: Styles.globalMargins.small}} type="Header">
         Delete conversation history?
       </Kb.Text>

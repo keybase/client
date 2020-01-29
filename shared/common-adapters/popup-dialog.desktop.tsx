@@ -53,7 +53,7 @@ export function PopupDialog({
         >
           {onClose && (
             <Icon
-              type="iconfont-close"
+              type={Kb.IconType.iconfont_close}
               style={Styles.collapseStyles([styles.close, styleClose])}
               color={Styles.globalColors.whiteOrWhite_75}
               onClick={onClose}

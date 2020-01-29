@@ -35,15 +35,15 @@ export type Props = {
 const getIcon = (status: Status) => {
   switch (status) {
     case 'completed':
-      return 'iconfont-success'
+      return Kb.IconType.iconfont_success
     case 'claimable':
-      return 'iconfont-success'
+      return Kb.IconType.iconfont_success
     case 'pending':
-      return 'iconfont-time'
+      return Kb.IconType.iconfont_time
     case 'error':
-      return 'iconfont-remove'
+      return Kb.IconType.iconfont_remove
     default:
-      return 'iconfont-time'
+      return Kb.IconType.iconfont_time
   }
 }
 

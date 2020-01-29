@@ -81,7 +81,7 @@ const LockdownCheckbox = (props: Props) => {
           <Kb.Text type="BodySmallPrimaryLink" onClickURL="https://keybase.io/docs/lockdown/index">
             Read more{' '}
             <Kb.Icon
-              type="iconfont-open-browser"
+              type={Kb.IconType.iconfont_open_browser}
               sizeType="Tiny"
               boxStyle={styles.displayInline}
               color={Styles.globalColors.blueDark}

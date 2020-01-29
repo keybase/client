@@ -42,7 +42,7 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => {
     ...(props.newFolder
       ? [
           {
-            icon: 'iconfont-folder-new',
+            icon: Kb.IconType.iconfont_folder_new,
             onClick: hideMenuOnClick(props.newFolder, hideMenu),
             title: 'New folder',
           },
@@ -51,7 +51,7 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => {
     ...(props.openChatTeam
       ? [
           {
-            icon: 'iconfont-chat',
+            icon: Kb.IconType.iconfont_chat,
             onClick: hideMenuOnClick(props.openChatTeam, hideMenu),
             title: 'Chat with team',
           },
@@ -60,7 +60,7 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => {
     ...(props.openChatNonTeam
       ? [
           {
-            icon: 'iconfont-chat',
+            icon: Kb.IconType.iconfont_chat,
             onClick: hideMenuOnClick(props.openChatNonTeam, hideMenu),
             title: 'Chat with them',
           },
@@ -69,7 +69,7 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => {
     ...(props.showInSystemFileManager
       ? [
           {
-            icon: 'iconfont-finder',
+            icon: Kb.IconType.iconfont_finder,
             onClick: hideMenuOnClick(props.showInSystemFileManager, hideMenu),
             title: 'Show in ' + fileUIName,
           },
@@ -79,7 +79,7 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => {
       ? [
           {
             disabled: props.saveMedia === 'in-progress',
-            icon: 'iconfont-download-2',
+            icon: Kb.IconType.iconfont_download_2,
             inProgress: props.saveMedia === 'in-progress',
             onClick: props.saveMedia !== 'in-progress' ? props.saveMedia : undefined,
             title: 'Save',
@@ -89,7 +89,7 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => {
     ...(props.copyPath
       ? [
           {
-            icon: 'iconfont-clipboard',
+            icon: Kb.IconType.iconfont_clipboard,
             onClick: hideMenuOnClick(props.copyPath, hideMenu),
             title: 'Copy universal path',
           },
@@ -98,7 +98,7 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => {
     ...(props.share
       ? [
           {
-            icon: 'iconfont-share',
+            icon: Kb.IconType.iconfont_share,
             onClick: props.share,
             title: 'Share...',
           },
@@ -107,7 +107,7 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => {
     ...(props.sendAttachmentToChat
       ? [
           {
-            icon: 'iconfont-chat',
+            icon: Kb.IconType.iconfont_chat,
             onClick: () => {
               props.floatingMenuProps.hide()
               props.sendAttachmentToChat && props.sendAttachmentToChat()
@@ -123,7 +123,7 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => {
       ? [
           {
             disabled: props.sendToOtherApp === 'in-progress',
-            icon: 'iconfont-share',
+            icon: Kb.IconType.iconfont_share,
             inProgress: props.saveMedia === 'in-progress',
             onClick: props.sendToOtherApp !== 'in-progress' ? props.sendToOtherApp : undefined,
             title: 'Send to another app',
@@ -133,7 +133,7 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => {
     ...(props.download
       ? [
           {
-            icon: 'iconfont-download-2',
+            icon: Kb.IconType.iconfont_download_2,
             onClick: hideMenuOnClick(props.download, hideMenu),
             title: 'Download',
           },
@@ -144,7 +144,7 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => {
           {
             danger: true,
             disabled: props.ignoreTlf === 'disabled',
-            icon: 'iconfont-hide',
+            icon: Kb.IconType.iconfont_hide,
             onClick: props.ignoreTlf === 'disabled' ? undefined : hideMenuOnClick(props.ignoreTlf, hideMenu),
             progressIndicator: props.ignoreTlf === 'disabled',
             subTitle: 'Will hide the folder from your list.',
@@ -155,7 +155,7 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => {
     ...(props.moveOrCopy
       ? [
           {
-            icon: 'iconfont-copy',
+            icon: Kb.IconType.iconfont_copy,
             onClick: hideMenuOnClick(props.moveOrCopy, hideMenu),
             title: 'Move or Copy',
           },
@@ -165,7 +165,7 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => {
       ? [
           {
             danger: true,
-            icon: 'iconfont-trash',
+            icon: Kb.IconType.iconfont_trash,
             onClick: hideMenuOnClick(props.delete, hideMenu),
             title: 'Delete',
           },

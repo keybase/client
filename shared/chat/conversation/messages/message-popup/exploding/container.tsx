@@ -190,7 +190,7 @@ export default Container.connect(
     if (stateProps._canExplodeNow) {
       items.push({
         danger: true,
-        icon: 'iconfont-bomb',
+        icon: Kb.IconType.iconfont_bomb,
         onClick: dispatchProps._onExplodeNow,
         title: 'Explode now',
       })
@@ -198,7 +198,7 @@ export default Container.connect(
     if (stateProps._canDeleteHistory && stateProps._teamname && !stateProps.yourMessage && authorInConv) {
       items.push({
         danger: true,
-        icon: 'iconfont-block-user',
+        icon: Kb.IconType.iconfont_block_user,
         onClick: () => dispatchProps._onKick(stateProps._teamID, stateProps.author),
         title: 'Kick user',
       })
@@ -206,7 +206,7 @@ export default Container.connect(
     if (Container.isMobile) {
       // 'Add a reaction' is an option on mobile
       items.push({
-        icon: 'iconfont-reacji',
+        icon: Kb.IconType.iconfont_reacji,
         onClick: dispatchProps._onAddReaction,
         title: 'Add a reaction',
       })
@@ -215,28 +215,40 @@ export default Container.connect(
     if (message.type === 'attachment') {
       if (Container.isMobile) {
         if (message.attachmentType === 'image') {
-          items.push({icon: 'iconfont-download-2', onClick: dispatchProps._onSaveAttachment, title: 'Save'})
+          items.push({
+            icon: Kb.IconType.iconfont_download_2,
+            onClick: dispatchProps._onSaveAttachment,
+            title: 'Save',
+          })
         }
         if (isIOS) {
-          items.push({icon: 'iconfont-share', onClick: dispatchProps._onShareAttachment, title: 'Share'})
+          items.push({
+            icon: Kb.IconType.iconfont_share,
+            onClick: dispatchProps._onShareAttachment,
+            title: 'Share',
+          })
         }
       } else {
         items.push(
           !message.downloadPath
-            ? {icon: 'iconfont-download-2', onClick: dispatchProps._onDownload, title: 'Download'}
-            : {icon: 'iconfont-finder', onClick: dispatchProps._onShowInFinder, title: 'Show in finder'}
+            ? {icon: Kb.IconType.iconfont_download_2, onClick: dispatchProps._onDownload, title: 'Download'}
+            : {
+                icon: Kb.IconType.iconfont_finder,
+                onClick: dispatchProps._onShowInFinder,
+                title: 'Show in finder',
+              }
         )
       }
       if (stateProps._authorIsBot) {
         items.push({
-          icon: 'iconfont-nav-2-robot',
+          icon: Kb.IconType.iconfont_nav_2_robot,
           onClick: dispatchProps._onInstallBot,
           title: 'Install bot in another team or chat',
         })
       }
-      items.push({icon: 'iconfont-camera', onClick: dispatchProps._onAllMedia, title: 'All media'})
-      items.push({icon: 'iconfont-reply', onClick: dispatchProps._onReply, title: 'Reply'})
-      items.push({icon: 'iconfont-pin', onClick: dispatchProps._onPinMessage, title: 'Pin message'})
+      items.push({icon: Kb.IconType.iconfont_camera, onClick: dispatchProps._onAllMedia, title: 'All media'})
+      items.push({icon: Kb.IconType.iconfont_reply, onClick: dispatchProps._onReply, title: 'Reply'})
+      items.push({icon: Kb.IconType.iconfont_pin, onClick: dispatchProps._onPinMessage, title: 'Pin message'})
     } else {
       if (
         stateProps._mapUnfurl &&
@@ -244,34 +256,38 @@ export default Container.connect(
         !stateProps._mapUnfurl.mapInfo.isLiveLocationDone
       ) {
         const url = stateProps._mapUnfurl.url
-        items.push({icon: 'iconfont-location', onClick: () => openURL(url), title: 'View on Google Maps'})
+        items.push({
+          icon: Kb.IconType.iconfont_location,
+          onClick: () => openURL(url),
+          title: 'View on Google Maps',
+        })
       }
       if (stateProps._canEdit) {
-        items.push({icon: 'iconfont-edit', onClick: dispatchProps._onEdit, title: 'Edit'})
+        items.push({icon: Kb.IconType.iconfont_edit, onClick: dispatchProps._onEdit, title: 'Edit'})
       }
       if (stateProps._authorIsBot) {
         items.push({
-          icon: 'iconfont-nav-2-robot',
+          icon: Kb.IconType.iconfont_nav_2_robot,
           onClick: dispatchProps._onInstallBot,
           title: 'Install bot in another team or chat',
         })
       }
-      items.push({icon: 'iconfont-clipboard', onClick: dispatchProps._onCopy, title: 'Copy text'})
-      items.push({icon: 'iconfont-reply', onClick: dispatchProps._onReply, title: 'Reply'})
+      items.push({icon: Kb.IconType.iconfont_clipboard, onClick: dispatchProps._onCopy, title: 'Copy text'})
+      items.push({icon: Kb.IconType.iconfont_reply, onClick: dispatchProps._onReply, title: 'Reply'})
       if (stateProps._canReplyPrivately) {
         items.push({
-          icon: 'iconfont-reply',
+          icon: Kb.IconType.iconfont_reply,
           onClick: dispatchProps._onReplyPrivately,
           title: 'Reply privately',
         })
       }
-      items.push({icon: 'iconfont-pin', onClick: dispatchProps._onPinMessage, title: 'Pin message'})
+      items.push({icon: Kb.IconType.iconfont_pin, onClick: dispatchProps._onPinMessage, title: 'Pin message'})
     }
     if (!stateProps.yourMessage && message.author) {
       const blockModalSingle = !stateProps._teamname && stateProps._participants.length === 2
       items.push({
         danger: true,
-        icon: 'iconfont-block-user',
+        icon: Kb.IconType.iconfont_block_user,
         onClick: () => dispatchProps._onUserBlock(message, blockModalSingle),
         title: stateProps._teamname ? 'Report user' : 'Block user',
       })

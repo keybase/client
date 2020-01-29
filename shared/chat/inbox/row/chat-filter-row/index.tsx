@@ -71,7 +71,7 @@ class ConversationFilterInput extends React.PureComponent<Props> {
         ref={this.input}
         size="small"
         style={styles.searchBox}
-        icon="iconfont-search"
+        icon={Kb.IconType.iconfont_search}
         placeholderText={
           this.props.isSearching ? 'Search your chats...' : Styles.isMobile ? 'Search your chats' : 'Search'
         }

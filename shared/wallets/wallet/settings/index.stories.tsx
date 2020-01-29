@@ -43,7 +43,7 @@ const externalPartner = {
   canPurchase: false,
   description: 'Example description.',
   extra: 'Example extra.',
-  iconFilename: 'iconfont-identity-stellar',
+  iconFilename: Kb.IconType.iconfont_identity_stellar,
   showDivider: false,
   title: 'Example title.',
   url: 'https://example.com/%{accountId}',

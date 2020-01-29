@@ -61,7 +61,7 @@ class Pinentry extends React.Component<Props, State> {
           <Kb.Text type="Body" center={true}>
             {this.props.prompt}
           </Kb.Text>
-          {isPaperKey && <Kb.Icon type="icon-paper-key-48" style={{alignSelf: 'center'}} />}
+          {isPaperKey && <Kb.Icon type={Kb.IconType.icon_paper_key_48} style={{alignSelf: 'center'}} />}
           <Kb.Box2
             alignSelf="center"
             direction="vertical"

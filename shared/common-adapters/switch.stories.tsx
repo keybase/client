@@ -123,11 +123,11 @@ const load = () => {
             <Kb.Box2 direction="vertical">
               <Kb.Text type="Header">Custome weird label</Kb.Text>
               <Kb.Box2 direction="horizontal" fullWidth={true}>
-                <Kb.Icon type="icon-file-32" />
-                <Kb.Icon type="icon-folder-32" />
-                <Kb.Icon type="icon-folder-private-32" />
-                <Kb.Icon type="icon-folder-public-32" />
-                <Kb.Icon type="icon-folder-team-32" />
+                <Kb.Icon type={Kb.IconType.icon_file_32} />
+                <Kb.Icon type={Kb.IconType.icon_folder_32} />
+                <Kb.Icon type={Kb.IconType.icon_folder_private_32} />
+                <Kb.Icon type={Kb.IconType.icon_folder_public_32} />
+                <Kb.Icon type={Kb.IconType.icon_folder_team_32} />
               </Kb.Box2>
             </Kb.Box2>
           }

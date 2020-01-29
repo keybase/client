@@ -27,7 +27,7 @@ const Search = (props: SearchProps) => (
       {props.onScanQRCode && (
         <Kb.Icon
           color={Styles.globalColors.black_50}
-          type="iconfont-qr-code"
+          type={Kb.IconType.iconfont_qr_code}
           onClick={props.onScanQRCode}
           style={styles.qrCode}
         />

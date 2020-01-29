@@ -107,7 +107,7 @@ class Dropdown extends React.Component<Props, State> {
       <Text key="text" type="Header" style={styles.orangeText}>
         {this._label(this.state.value)}
       </Text>,
-      <Icon key="icon" type="iconfont-caret-down" style={styles.icon} sizeType="Tiny" />,
+      <Icon key="icon" type={Kb.IconType.iconfont_caret_down} style={styles.icon} sizeType="Tiny" />,
     ]
   }
 

@@ -42,7 +42,7 @@ const EnterEmail = (props: Props) => {
         showSearchable={true}
         searchable={searchable}
         onChangeSearchable={onChangeSearchable}
-        iconType={Platform.isLargeScreen ? 'icon-email-add-96' : 'icon-email-add-64'}
+        iconType={Platform.isLargeScreen ? Kb.IconType.icon_email_add_96 : Kb.IconType.icon_email_add_64}
       />
     </SignupScreen>
   )

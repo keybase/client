@@ -14,20 +14,20 @@ type Props = {
 const AddPeopleHow = (props: Props) => {
   const items: Kb.MenuItems = [
     {
-      icon: 'iconfont-mention',
+      icon: Kb.IconType.iconfont_mention,
       onClick: props.onAddPeople,
       subTitle: 'Keybase, Twitter, etc.',
       title: 'By username',
     },
     {
-      icon: 'iconfont-contact-card',
+      icon: Kb.IconType.iconfont_contact_card,
       onClick: props.onInvite,
       style: {borderTopWidth: 0},
       subTitle: 'friends@friendships.com',
       title: Styles.isMobile ? 'From address book' : 'By email',
     },
     {
-      icon: 'iconfont-hash',
+      icon: Kb.IconType.iconfont_hash,
       onClick: props.onSlackImport,
       style: {borderTopWidth: 0},
       subTitle: 'New! Migrate your team',

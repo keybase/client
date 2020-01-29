@@ -31,8 +31,8 @@ const Arrow = ({iconType, onClick}: arrowProps) => {
         color={Styles.globalColors.white}
         style={Styles.collapseStyles([
           styles.arrow,
-          iconType === 'iconfont-arrow-left' && styles.arrowLeft,
-          iconType === 'iconfont-arrow-right' && styles.arrowRight,
+          iconType === Kb.IconType.iconfont_arrow_left && styles.arrowLeft,
+          iconType === Kb.IconType.iconfont_arrow_right && styles.arrowRight,
         ])}
       />
     </HoverBox>
@@ -74,7 +74,7 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, State> 
             </Kb.Text>
             <Kb.Icon
               ref={this.props.setAttachmentRef}
-              type="iconfont-ellipsis"
+              type={Kb.IconType.iconfont_ellipsis}
               style={Styles.platformStyles({
                 common: {marginLeft: Styles.globalMargins.tiny},
                 isElectron: {cursor: 'pointer'},
@@ -99,7 +99,7 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, State> 
               key={this.props.path}
             >
               {!this.state.isZoomed && (
-                <Arrow iconType="iconfont-arrow-left" onClick={this.props.onPreviousAttachment} />
+                <Arrow iconType={Kb.IconType.iconfont_arrow_left} onClick={this.props.onPreviousAttachment} />
               )}
               <Kb.Box
                 style={Styles.collapseStyles([
@@ -136,7 +136,7 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, State> 
                 )}
               </Kb.Box>
               {!this.state.isZoomed && (
-                <Arrow iconType="iconfont-arrow-right" onClick={this.props.onNextAttachment} />
+                <Arrow iconType={Kb.IconType.iconfont_arrow_right} onClick={this.props.onNextAttachment} />
               )}
             </Kb.Box>
           )}

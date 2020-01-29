@@ -125,7 +125,7 @@ const MediaThumb = (props: MediaThumbProps) => {
       </Kb.ClickableBox>
       {!!thumb.isVideo && (
         <Kb.Box2 direction="vertical" style={styles.durationContainer}>
-          <Kb.Icon type="icon-film-64" style={styles.filmIcon} />
+          <Kb.Icon type={Kb.IconType.icon_film_64} style={styles.filmIcon} />
         </Kb.Box2>
       )}
       {loading && <Kb.ProgressIndicator style={styles.loading} />}
@@ -141,7 +141,7 @@ const _DocViewRow = (props: DocViewRowProps) => {
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.ClickableBox onClick={item.onDownload} onLongPress={toggleShowingMenu}>
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.docRowContainer} gap="xtiny">
-          <Kb.Icon type="icon-file-32" style={styles.docIcon} />
+          <Kb.Icon type={Kb.IconType.icon_file_32} style={styles.docIcon} />
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.docRowTitle}>
             <Kb.Text type="BodySemibold">{item.name}</Kb.Text>
             {item.name !== item.fileName && <Kb.Text type="BodyTiny">{item.fileName}</Kb.Text>}

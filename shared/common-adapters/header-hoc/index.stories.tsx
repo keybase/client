@@ -6,38 +6,38 @@ import {Action} from './types'
 
 const onAction = Sb.action('onAction')
 const rightActions = (length: number = 3): Action[] =>
-  [
+  ([
     {
-      icon: 'iconfont-new' as 'iconfont-new',
+      icon: Kb.IconType.iconfont_new,
       label: 'Add new…',
       onPress: onAction,
     },
     {
-      icon: 'iconfont-chat' as 'iconfont-chat',
+      icon: Kb.IconType.iconfont_chat,
       label: 'Start a conversation',
       onPress: onAction,
     },
     {
-      icon: 'iconfont-upload' as 'iconfont-upload',
+      icon: Kb.IconType.iconfont_upload,
       label: 'Upload a file',
       onPress: onAction,
     },
     {
-      icon: 'iconfont-reacji' as 'iconfont-reacji',
+      icon: Kb.IconType.iconfont_reacji,
       label: 'Add a reaction',
       onPress: onAction,
     },
     {
-      icon: 'iconfont-bomb' as 'iconfont-bomb',
+      icon: Kb.IconType.iconfont_bomb,
       label: 'Blow something up',
       onPress: onAction,
     },
     {
-      icon: 'iconfont-time-reversed' as 'iconfont-time-reversed',
+      icon: Kb.IconType.iconfont_time_reversed,
       label: 'Movie trope',
       onPress: onAction,
     },
-  ].slice(0, length)
+  ] as const).slice(0, length)
 const title = 'This is a title'
 const longTitle = 'This is an obnoxiously, over the top, ridiculously long title'
 const titleComponent = <Kb.Button label={title} small={true} style={{width: '100%'}} />

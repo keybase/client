@@ -147,7 +147,7 @@ class ExplodingMeta extends React.Component<Props, State> {
               )}
               <Kb.Icon
                 className="explodingTimeIcon"
-                type="iconfont-timer"
+                type={Kb.IconType.iconfont_timer}
                 fontSize={stopWatchIconSize}
                 color={
                   this.props.isParentHighlighted
@@ -163,7 +163,7 @@ class ExplodingMeta extends React.Component<Props, State> {
         children = (
           <Kb.Icon
             className="explodingTimeIcon"
-            type="iconfont-boom"
+            type={Kb.IconType.iconfont_boom}
             color={
               this.props.isParentHighlighted ? Styles.globalColors.blackOrBlack : Styles.globalColors.black
             }

@@ -19,7 +19,7 @@ export default class BackButton extends Component<Props> {
     return (
       <NativeTouchableWithoutFeedback onPress={e => this.onClick(e)}>
         <Box style={Styles.collapseStyles([styles.container, this.props.style])}>
-          <Icon type="iconfont-arrow-left" color={this.props.iconColor} style={styles.arrow} />
+          <Icon type={Kb.IconType.iconfont_arrow_left} color={this.props.iconColor} style={styles.arrow} />
           {!!this.props.badgeNumber && <Badge badgeNumber={this.props.badgeNumber} />}
         </Box>
       </NativeTouchableWithoutFeedback>

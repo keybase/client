@@ -68,12 +68,12 @@ const headerMode = Styles.isAndroid ? 'screen' : 'float'
 
 const tabs = Shared.mobileTabs
 const icons: {[key: string]: IconType} = {
-  [Tabs.chatTab]: 'iconfont-nav-2-chat',
-  [Tabs.fsTab]: 'iconfont-nav-2-files',
-  [Tabs.teamsTab]: 'iconfont-nav-2-teams',
-  [Tabs.peopleTab]: 'iconfont-nav-2-people',
-  [Tabs.settingsTab]: 'iconfont-nav-2-hamburger',
-  [Tabs.walletsTab]: 'iconfont-nav-2-wallets',
+  [Tabs.chatTab]: Kb.IconType.iconfont_nav_2_chat,
+  [Tabs.fsTab]: Kb.IconType.iconfont_nav_2_files,
+  [Tabs.teamsTab]: Kb.IconType.iconfont_nav_2_teams,
+  [Tabs.peopleTab]: Kb.IconType.iconfont_nav_2_people,
+  [Tabs.settingsTab]: Kb.IconType.iconfont_nav_2_hamburger,
+  [Tabs.walletsTab]: Kb.IconType.iconfont_nav_2_wallets,
 }
 
 const FilesTabBadge = () => {

@@ -4,9 +4,9 @@ import * as Styles from '../../styles'
 
 const Rover = () => (
   <Kb.Box2 direction="vertical" style={styles.container}>
-    <Kb.Icon style={styles.background} type="icon-illustration-mars-rover-background" />
-    <Kb.Icon style={styles.rover} type="icon-illustration-mars-rover" />
-    <Kb.Icon style={styles.foreground} type="icon-illustration-mars-rover-foreground" />
+    <Kb.Icon style={styles.background} type={Kb.IconType.icon_illustration_mars_rover_background} />
+    <Kb.Icon style={styles.rover} type={Kb.IconType.icon_illustration_mars_rover} />
+    <Kb.Icon style={styles.foreground} type={Kb.IconType.icon_illustration_mars_rover_foreground} />
   </Kb.Box2>
 )
 

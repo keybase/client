@@ -36,8 +36,12 @@ const Git = (props: Props) => {
   }
 
   const menuItems = [
-    {icon: 'iconfont-person', onClick: onNewPersonalRepo, title: 'New personal repository'} as const,
-    {icon: 'iconfont-people', onClick: onNewTeamRepo, title: 'New team repository'} as const,
+    {
+      icon: Kb.IconType.iconfont_person,
+      onClick: onNewPersonalRepo,
+      title: 'New personal repository',
+    } as const,
+    {icon: Kb.IconType.iconfont_people, onClick: onNewTeamRepo, title: 'New team repository'} as const,
   ]
 
   const popupAnchor = React.useRef(null)
@@ -62,7 +66,7 @@ const Git = (props: Props) => {
           onClick={() => setShowingPopup(!showingPopup)}
         >
           <Kb.Icon
-            type="iconfont-new"
+            type={Kb.IconType.iconfont_new}
             style={{marginRight: Styles.globalMargins.tiny}}
             color={Styles.globalColors.blue}
             fontSize={Styles.isMobile ? 20 : 16}

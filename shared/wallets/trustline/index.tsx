@@ -124,7 +124,7 @@ const Body = (props: BodyProps) => {
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.searchFilter}>
             <Kb.SearchFilter
               size="full-width"
-              icon="iconfont-search"
+              icon={Kb.IconType.iconfont_search}
               placeholderText={`Search ${props.totalAssetsCount || 'thousands of'} assets`}
               placeholderCentered={true}
               mobileCancelButton={true}

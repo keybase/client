@@ -90,7 +90,7 @@ class LogOut extends React.Component<Props, State> {
                   <Kb.ProgressIndicator style={styles.smallProgress} type="Small" />
                 ) : (
                   <HoverBox onClick={this.logOut} style={styles.logoutContainer}>
-                    <Kb.Icon type="iconfont-leave" />
+                    <Kb.Icon type={Kb.IconType.iconfont_leave} />
                     <Kb.Text className="text" style={styles.logout} type="BodySmallSecondaryLink">
                       Just sign out
                     </Kb.Text>

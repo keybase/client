@@ -8,13 +8,13 @@ const load = () => {
       options={[
         {
           description: 'Host a text file on your site, such as yoursite.com/keybase.txt.',
-          icon: 'icon-file-txt-48',
+          icon: Kb.IconType.icon_file_txt_48,
           onClick: () => action('first'),
           title: 'Host a TXT file',
         },
         {
           description: 'Place a Keybase proof in your DNS records.',
-          icon: 'icon-dns-48',
+          icon: Kb.IconType.icon_dns_48,
           onClick: () => action('second'),
           title: 'Set a DNS',
         },

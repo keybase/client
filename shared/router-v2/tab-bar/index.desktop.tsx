@@ -28,15 +28,15 @@ export type Props = {
 }
 
 const data = {
-  [Tabs.chatTab]: {icon: 'iconfont-nav-2-chat', label: 'Chat'},
-  [Tabs.cryptoTab]: {icon: 'iconfont-nav-2-crypto', label: 'Crypto'},
-  [Tabs.devicesTab]: {icon: 'iconfont-nav-2-devices', label: 'Devices'},
-  [Tabs.fsTab]: {icon: 'iconfont-nav-2-files', label: 'Files'},
-  [Tabs.gitTab]: {icon: 'iconfont-nav-2-git', label: 'Git'},
-  [Tabs.peopleTab]: {icon: 'iconfont-nav-2-people', label: 'People'},
-  [Tabs.settingsTab]: {icon: 'iconfont-nav-2-settings', label: 'Settings'},
-  [Tabs.teamsTab]: {icon: 'iconfont-nav-2-teams', label: 'Teams'},
-  [Tabs.walletsTab]: {icon: 'iconfont-nav-2-wallets', label: 'Wallet'},
+  [Tabs.chatTab]: {icon: Kb.IconType.iconfont_nav_2_chat, label: 'Chat'},
+  [Tabs.cryptoTab]: {icon: Kb.IconType.iconfont_nav_2_crypto, label: 'Crypto'},
+  [Tabs.devicesTab]: {icon: Kb.IconType.iconfont_nav_2_devices, label: 'Devices'},
+  [Tabs.fsTab]: {icon: Kb.IconType.iconfont_nav_2_files, label: 'Files'},
+  [Tabs.gitTab]: {icon: Kb.IconType.iconfont_nav_2_git, label: 'Git'},
+  [Tabs.peopleTab]: {icon: Kb.IconType.iconfont_nav_2_people, label: 'People'},
+  [Tabs.settingsTab]: {icon: Kb.IconType.iconfont_nav_2_settings, label: 'Settings'},
+  [Tabs.teamsTab]: {icon: Kb.IconType.iconfont_nav_2_teams, label: 'Teams'},
+  [Tabs.walletsTab]: {icon: Kb.IconType.iconfont_nav_2_wallets, label: 'Wallet'},
 } as const
 
 const tabs = Tabs.desktopTabOrder.filter(tab => (tab === Tabs.cryptoTab ? flags.cryptoTab : true))
@@ -136,7 +136,7 @@ class TabBar extends React.PureComponent<Props, State> {
                     Hi {p.username}!
                   </Kb.Text>
                   <Kb.Icon
-                    type="iconfont-arrow-down"
+                    type={Kb.IconType.iconfont_arrow_down}
                     color={Styles.globalColors.blueLighter}
                     fontSize={12}
                     style={styles.caret}

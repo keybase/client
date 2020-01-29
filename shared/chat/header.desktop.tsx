@@ -141,7 +141,7 @@ const Header = (p: Props) => {
             ) : null}
             {muted && (
               <Kb.Icon
-                type="iconfont-shh"
+                type={Kb.IconType.iconfont_shh}
                 style={styles.shhIconStyle}
                 color={Styles.globalColors.black_20}
                 fontSize={20}
@@ -186,16 +186,24 @@ const Header = (p: Props) => {
             style={styles.actionIcons}
           >
             <Kb.WithTooltip tooltip={`Search in this chat (${Platforms.shortcutSymbol}F)`}>
-              <Kb.Icon style={styles.clickable} type="iconfont-search" onClick={onToggleThreadSearch} />
+              <Kb.Icon
+                style={styles.clickable}
+                type={Kb.IconType.iconfont_search}
+                onClick={onToggleThreadSearch}
+              />
             </Kb.WithTooltip>
             <Kb.WithTooltip tooltip="Open folder">
-              <Kb.Icon style={styles.clickable} type="iconfont-folder-private" onClick={onOpenFolder} />
+              <Kb.Icon
+                style={styles.clickable}
+                type={Kb.IconType.iconfont_folder_private}
+                onClick={onOpenFolder}
+              />
             </Kb.WithTooltip>
             <Kb.WithTooltip tooltip="Chat info & settings">
               <Kb.Icon
                 color={infoPanelOpen ? Styles.globalColors.blue : undefined}
                 style={styles.clickable}
-                type="iconfont-info"
+                type={Kb.IconType.iconfont_info}
                 onClick={onToggleInfoPanel}
               />
             </Kb.WithTooltip>

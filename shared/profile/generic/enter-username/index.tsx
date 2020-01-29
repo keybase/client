@@ -114,7 +114,7 @@ const Unreachable = props => (
       <Kb.Meta title="unreachable" backgroundColor={Styles.globalColors.red} />
     </Kb.Box2>
     <Kb.Icon
-      type="iconfont-proof-broken"
+      type={Kb.IconType.iconfont_proof_broken}
       color={Styles.globalColors.red}
       boxStyle={styles.marginLeftAuto}
       style={styles.inlineIcon}
@@ -173,7 +173,7 @@ class _EnterUsername extends React.Component<Props> {
           <Kb.Box2 direction="vertical" style={styles.positionRelative}>
             <SiteIcon set={props.serviceIconFull} full={true} style={styles.serviceIconFull} />
             <Kb.Icon
-              type={props.unreachable ? 'icon-proof-broken' : 'icon-proof-unfinished'}
+              type={props.unreachable ? Kb.IconType.icon_proof_broken : Kb.IconType.icon_proof_unfinished}
               style={styles.serviceProofIcon}
             />
           </Kb.Box2>

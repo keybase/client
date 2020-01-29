@@ -21,7 +21,7 @@ const toIconType = (iconFilename: string): IconType => {
   if (IconUtils.isValidIconType(iconType)) {
     return iconType
   } else {
-    return 'iconfont-identity-stellar'
+    return Kb.IconType.iconfont_identity_stellar
   }
 }
 

@@ -115,7 +115,7 @@ export const Banner = (props: BannerProps) => (
         <Icon
           padding="xtiny"
           sizeType="Small"
-          type="iconfont-close"
+          type={Kb.IconType.iconfont_close}
           color={colorToIconColor()[props.color]}
           hoverColor={colorToIconHoverColor()[props.color]}
           onClick={props.onClose}

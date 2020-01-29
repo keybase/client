@@ -39,7 +39,7 @@ const PaperKey = (props: Props) => {
           gap={Styles.isMobile ? 'tiny' : 'medium'}
         >
           <Kb.Box2 direction="vertical" gap="tiny" centerChildren={true} gapEnd={true}>
-            <Kb.Icon type="icon-paper-key-96" />
+            <Kb.Icon type={Kb.IconType.icon_paper_key_96} />
           </Kb.Box2>
           <Kb.Box2 direction="vertical" style={styles.inputContainer} fullWidth={true}>
             <Kb.LabeledInput

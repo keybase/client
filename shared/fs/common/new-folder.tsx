@@ -14,7 +14,7 @@ const NewFolder = props =>
   props.canCreateNewFolder && (
     <Kb.WithTooltip tooltip="New Folder">
       <Kb.Icon
-        type="iconfont-folder-new"
+        type={Kb.IconType.iconfont_folder_new}
         color={Styles.globalColors.black_50}
         fontSize={16}
         onClick={props.onNewFolder}

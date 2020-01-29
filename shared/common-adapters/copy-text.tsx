@@ -106,7 +106,7 @@ const CopyText = (props: Props) => {
       style={Styles.collapseStyles([styles.container, props.containerStyle])}
     >
       <Toast position="top center" attachTo={() => attachmentRef.current} visible={showingToast}>
-        {Styles.isMobile && <Icon type="iconfont-clipboard" color="white" />}
+        {Styles.isMobile && <Icon type={Kb.IconType.iconfont_clipboard} color="white" />}
         <Text type={Styles.isMobile ? 'BodySmallSemibold' : 'BodySmall'} style={styles.toastText}>
           Copied to clipboard
         </Text>
@@ -135,7 +135,7 @@ const CopyText = (props: Props) => {
         onClick={copy}
         labelContainerStyle={styles.buttonLabelContainer}
       >
-        <Icon type="iconfont-clipboard" color={Styles.globalColors.white} sizeType="Small" />
+        <Icon type={Kb.IconType.iconfont_clipboard} color={Styles.globalColors.white} sizeType="Small" />
       </Button>
     </Box2>
   )

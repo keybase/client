@@ -24,20 +24,26 @@ const standardOffsets = {
 
 function _specsForMobileOrDesktop() {
   return {
-    btc: {icon: isMobile ? 'icon-bitcoin-logo-64' : 'icon-bitcoin-logo-48'},
-    dns: {icon: isMobile ? 'icon-website-64' : 'icon-website-48'},
-    dnsOrGenericWebSite: {icon: isMobile ? 'icon-website-64' : 'icon-website-48'},
-    facebook: {icon: isMobile ? 'icon-facebook-logo-64' : 'icon-facebook-logo-48'},
-    github: {icon: isMobile ? 'icon-github-logo-64' : 'icon-github-logo-48'},
-    hackernews: {icon: isMobile ? 'icon-hacker-news-logo-64' : 'icon-hacker-news-logo-48'},
-    http: {icon: isMobile ? 'icon-website-64' : 'icon-website-48'},
-    https: {icon: isMobile ? 'icon-website-64' : 'icon-website-48'},
-    pgp: {icon: isMobile ? 'icon-pgp-key-64' : 'icon-pgp-key-48', offsetBottom: -2, offsetRight: 4},
-    reddit: {icon: isMobile ? 'icon-reddit-logo-64' : 'icon-reddit-logo-48'},
-    rooter: {icon: isMobile ? 'icon-website-64' : 'icon-website-48'},
-    twitter: {icon: isMobile ? 'icon-twitter-logo-64' : 'icon-twitter-logo-48'},
-    web: {icon: isMobile ? 'icon-website-64' : 'icon-website-48'},
-    zcash: {icon: isMobile ? 'icon-zcash-logo-64' : 'icon-zcash-logo-48'},
+    btc: {icon: isMobile ? Kb.IconType.icon_bitcoin_logo_64 : Kb.IconType.icon_bitcoin_logo_48},
+    dns: {icon: isMobile ? Kb.IconType.icon_website_64 : Kb.IconType.icon_website_48},
+    dnsOrGenericWebSite: {icon: isMobile ? Kb.IconType.icon_website_64 : Kb.IconType.icon_website_48},
+    facebook: {icon: isMobile ? Kb.IconType.icon_facebook_logo_64 : Kb.IconType.icon_facebook_logo_48},
+    github: {icon: isMobile ? Kb.IconType.icon_github_logo_64 : Kb.IconType.icon_github_logo_48},
+    hackernews: {
+      icon: isMobile ? Kb.IconType.icon_hacker_news_logo_64 : Kb.IconType.icon_hacker_news_logo_48,
+    },
+    http: {icon: isMobile ? Kb.IconType.icon_website_64 : Kb.IconType.icon_website_48},
+    https: {icon: isMobile ? Kb.IconType.icon_website_64 : Kb.IconType.icon_website_48},
+    pgp: {
+      icon: isMobile ? Kb.IconType.icon_pgp_key_64 : Kb.IconType.icon_pgp_key_48,
+      offsetBottom: _2,
+      offsetRight: 4,
+    },
+    reddit: {icon: isMobile ? Kb.IconType.icon_reddit_logo_64 : Kb.IconType.icon_reddit_logo_48},
+    rooter: {icon: isMobile ? Kb.IconType.icon_website_64 : Kb.IconType.icon_website_48},
+    twitter: {icon: isMobile ? Kb.IconType.icon_twitter_logo_64 : Kb.IconType.icon_twitter_logo_48},
+    web: {icon: isMobile ? Kb.IconType.icon_website_64 : Kb.IconType.icon_website_48},
+    zcash: {icon: isMobile ? Kb.IconType.icon_zcash_logo_64 : Kb.IconType.icon_zcash_logo_48},
   } as any
 }
 

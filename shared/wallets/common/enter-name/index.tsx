@@ -23,7 +23,7 @@ const EnterName = (props: EnterNameProps) => {
     >
       {!Styles.isMobile && (
         <Kb.Box2 direction="vertical" centerChildren={true}>
-          <Kb.Icon type="icon-wallet-add-48" />
+          <Kb.Icon type={Kb.IconType.icon_wallet_add_48} />
           <Kb.Text type="Header">Name your account</Kb.Text>
         </Kb.Box2>
       )}

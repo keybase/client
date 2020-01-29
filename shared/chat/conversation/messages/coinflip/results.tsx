@@ -82,19 +82,19 @@ const cards = [
 const suits = {
   clubs: {
     color: Styles.globalColors.blackOrBlack,
-    icon: 'iconfont-club',
+    icon: Kb.IconType.iconfont_club,
   },
   diamonds: {
     color: Styles.globalColors.redDark,
-    icon: 'iconfont-diamond',
+    icon: Kb.IconType.iconfont_diamond,
   },
   hearts: {
     color: Styles.globalColors.redDark,
-    icon: 'iconfont-heart',
+    icon: Kb.IconType.iconfont_heart,
   },
   spades: {
     color: Styles.globalColors.blackOrBlack,
-    icon: 'iconfont-spade',
+    icon: Kb.IconType.iconfont_spade,
   },
 } as const
 
@@ -147,7 +147,7 @@ type CoinType = {
 const CoinFlipResultCoin = (props: CoinType) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.commonContainer}>
     <Kb.Box2 direction="vertical" style={styles.coin} centerChildren={true}>
-      <Kb.Icon type={props.coin ? 'icon-coin-heads-48-48' : 'icon-coin-tails-48-48'} />
+      <Kb.Icon type={props.coin ? Kb.IconType.icon_coin_heads_48_48 : Kb.IconType.icon_coin_tails_48_48} />
     </Kb.Box2>
     <Kb.Box2 direction="vertical" centerChildren={true}>
       <Kb.Text selectable={true} type="Header">

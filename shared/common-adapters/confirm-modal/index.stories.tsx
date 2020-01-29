@@ -15,7 +15,7 @@ const styles = Styles.styleSheetCreate(() => ({
 
 const props = {
   description: 'Description - Explain here what are the consequences of tapping the Confirm button.',
-  icon: 'iconfont-keybase' as 'iconfont-keybase',
+  icon: Kb.IconType.iconfont_keybase,
   onCancel: Sb.action('onCancel'),
   onConfirm: Sb.action('onConfirm'),
   prompt: 'Are you sure…? (can go on 2 lines)',

@@ -50,7 +50,7 @@ class Wrapper extends React.Component<WrapperProps, WrapperState> {
             </Kb.Text>
           }
           placeholder="Search"
-          icon="iconfont-search"
+          icon={Kb.IconType.iconfont_search}
           onChangeText={filter => this.setState({filter})}
           textType="BodySemibold"
         />

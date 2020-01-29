@@ -284,7 +284,7 @@ const AudioButton = (props: ButtonProps) => {
             }}
           >
             <Kb.NativeView>
-              <Kb.Icon type="iconfont-arrow-up" sizeType="Tiny" />
+              <Kb.Icon type={Kb.IconType.iconfont_arrow_up} sizeType="Tiny" />
             </Kb.NativeView>
           </Kb.NativeAnimated.View>
           <Kb.NativeAnimated.View
@@ -309,7 +309,7 @@ const AudioButton = (props: ButtonProps) => {
               ],
             }}
           >
-            <Kb.Icon type="iconfont-lock" />
+            <Kb.Icon type={Kb.IconType.iconfont_lock} />
           </Kb.NativeAnimated.View>
         </>
       ) : (
@@ -339,7 +339,7 @@ const AudioButton = (props: ButtonProps) => {
               <Kb.Icon
                 color={Styles.globalColors.whiteOrWhite}
                 sizeType="Small"
-                type="iconfont-arrow-full-up"
+                type={Kb.IconType.iconfont_arrow_full_up}
               />
             </Kb.ClickableBox>
           </Kb.NativeView>
@@ -354,7 +354,7 @@ const AudioButton = (props: ButtonProps) => {
             transform: [{translateY: Kb.NativeAnimated.add(micOffsetY, props.dragY)}],
           }}
         >
-          <Kb.Icon type="iconfont-mic" color={Styles.globalColors.whiteOrWhite} />
+          <Kb.Icon type={Kb.IconType.iconfont_mic} color={Styles.globalColors.whiteOrWhite} />
         </Kb.NativeAnimated.View>
       ) : (
         <Kb.TapGestureHandler onHandlerStateChange={props.stageRecording}>
@@ -368,7 +368,7 @@ const AudioButton = (props: ButtonProps) => {
               width: 48,
             }}
           >
-            <Kb.Icon type="iconfont-stop" color={Styles.globalColors.whiteOrWhite} />
+            <Kb.Icon type={Kb.IconType.iconfont_stop} color={Styles.globalColors.whiteOrWhite} />
           </Kb.NativeView>
         </Kb.TapGestureHandler>
       )}
@@ -432,7 +432,7 @@ const AudioSlideToCancel = (props: CancelProps) => {
       }}
     >
       <Kb.Box2 direction="horizontal" gap="tiny" centerChildren={true}>
-        <Kb.Icon sizeType="Tiny" type="iconfont-arrow-left" />
+        <Kb.Icon sizeType="Tiny" type={Kb.IconType.iconfont_arrow_left} />
         <Kb.Text type="BodySmall">Slide to cancel</Kb.Text>
       </Kb.Box2>
     </Kb.NativeAnimated.View>

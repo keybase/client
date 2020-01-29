@@ -79,7 +79,9 @@ class ImageAttachment extends React.PureComponent<Props, State> {
               style={styles.collapse}
               onClick={this.props.onCollapse}
               sizeType="Tiny"
-              type={this.props.isCollapsed ? 'iconfont-caret-right' : 'iconfont-caret-down'}
+              type={
+                this.props.isCollapsed ? Kb.IconType.iconfont_caret_right : Kb.IconType.iconfont_caret_down
+              }
             />
           </Kb.Box2>
           {!this.props.isCollapsed && (
@@ -146,7 +148,11 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                         >
                           {!!this.props.showButton && (
                             <Kb.Icon
-                              type={this.props.showButton === 'play' ? 'icon-play-64' : 'icon-film-64'}
+                              type={
+                                this.props.showButton === 'play'
+                                  ? Kb.IconType.icon_play_64
+                                  : Kb.IconType.icon_film_64
+                              }
                               style={styles.playButton}
                             />
                           )}
@@ -160,7 +166,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                           {!!this.props.arrowColor && (
                             <Kb.Box style={styles.downloadedIconWrapper}>
                               <Kb.Icon
-                                type="iconfont-download"
+                                type={Kb.IconType.iconfont_download}
                                 style={styles.downloadIcon}
                                 color={this.props.arrowColor}
                               />

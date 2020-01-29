@@ -149,7 +149,7 @@ const load = () => {
             onSecondaryButtonClick={Sb.action('onSecondaryButtonClick')}
             {...feature}
             seen={true}
-            image="release-4.7.0-keybase-fm"
+            image={Kb.IconType.release_4_7_0_keybase_fm}
           >
             {feature.text}
           </NewFeatureRow>
@@ -167,7 +167,7 @@ const load = () => {
             onSecondaryButtonClick={Sb.action('onSecondaryButtonClick')}
             {...feature}
             seen={true}
-            image="release-4.7.0-dark-mode"
+            image={Kb.IconType.release_4_7_0_dark_mode}
             imageStyle={styles.roundedImage}
           >
             {feature.text}

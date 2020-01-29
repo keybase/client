@@ -72,7 +72,7 @@ const EmailPhone = (props: Props) => (
         <Kb.Text type="BodySmallPrimaryLink" onClickURL="https://keybase.io/docs/chat/phones_and_emails">
           Read more{' '}
           <Kb.Icon
-            type="iconfont-open-browser"
+            type={Kb.IconType.iconfont_open_browser}
             sizeType="Tiny"
             boxStyle={styles.displayInline}
             color={Styles.globalColors.blueDark}

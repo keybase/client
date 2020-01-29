@@ -106,7 +106,7 @@ const ServiceIcons = ({userDetailsAssertions}: ServiceIconsProps) => {
               <Kb.Icon
                 fontSize={Styles.isMobile ? 12 : 10}
                 style={styles.brokenBadge}
-                type="iconfont-proof-broken"
+                type={Kb.IconType.iconfont_proof_broken}
                 color={Styles.globalColors.red}
               />
             )}
@@ -186,7 +186,12 @@ const ProfileCard = ({
       alignItems="center"
     >
       {!!showClose && (
-        <Kb.Icon type="iconfont-close" onClick={() => {}} boxStyle={styles.close} padding="tiny" />
+        <Kb.Icon
+          type={Kb.IconType.iconfont_close}
+          onClick={() => {}}
+          boxStyle={styles.close}
+          padding="tiny"
+        />
       )}
       <Kb.ConnectedNameWithIcon
         onClick={clickToProfile && openProfile}

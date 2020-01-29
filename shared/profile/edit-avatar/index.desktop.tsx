@@ -386,7 +386,7 @@ class EditAvatar extends React.Component<Props, State> {
                 color={Styles.globalColors.greyDark}
                 fontSize={48}
                 style={styles.icon}
-                type="iconfont-camera"
+                type={Kb.IconType.iconfont_camera}
               />
             )}
           </HoverBox>

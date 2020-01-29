@@ -96,9 +96,9 @@ export const Email = () => {
           iconType={
             Styles.isMobile
               ? Platform.isLargeScreen
-                ? 'icon-email-add-96'
-                : 'icon-email-add-64'
-              : 'icon-email-add-64'
+                ? Kb.IconType.icon_email_add_96
+                : Kb.IconType.icon_email_add_64
+              : Kb.IconType.icon_email_add_64
           }
         />
       </Kb.Box2>
@@ -200,9 +200,9 @@ export const Phone = () => {
           iconType={
             Styles.isMobile
               ? Platform.isLargeScreen
-                ? 'icon-phone-number-add-96'
-                : 'icon-phone-number-add-64'
-              : 'icon-phone-number-add-64'
+                ? Kb.IconType.icon_phone_number_add_96
+                : Kb.IconType.icon_phone_number_add_64
+              : Kb.IconType.icon_phone_number_add_64
           }
         />
       </Kb.Box2>

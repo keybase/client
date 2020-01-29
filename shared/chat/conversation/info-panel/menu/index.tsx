@@ -99,27 +99,27 @@ class InfoPanelMenu extends React.Component<Props> {
     const props = this.props
     const addPeopleItems = [
       {
-        icon: 'iconfont-mention',
+        icon: Kb.IconType.iconfont_mention,
         onClick: props.onAddPeople,
         style: {borderTopWidth: 0},
         subTitle: 'Keybase, Twitter, etc.',
         title: 'Add someone by username',
       },
       {
-        icon: 'iconfont-contact-book',
+        icon: Kb.IconType.iconfont_contact_book,
         onClick: props.onInvite,
         title: Styles.isMobile ? 'Add someone from address book' : 'Add someone by email',
       },
     ]
     const channelItem = props.isSmallTeam
       ? {
-          icon: 'iconfont-hash',
+          icon: Kb.IconType.iconfont_hash,
           onClick: props.onManageChannels,
           subTitle: props.manageChannelsSubtitle,
           title: props.manageChannelsTitle,
         }
       : {
-          icon: 'iconfont-hash',
+          icon: Kb.IconType.iconfont_hash,
           isBadged: props.badgeSubscribe,
           onClick: props.onManageChannels,
           title: props.manageChannelsTitle,
@@ -131,12 +131,12 @@ class InfoPanelMenu extends React.Component<Props> {
       ? [
           this.hideItem(),
           this.muteItem(),
-          {danger: true, icon: 'iconfont-block-user', onClick: props.onBlockConv, title: 'Block'},
+          {danger: true, icon: Kb.IconType.iconfont_block_user, onClick: props.onBlockConv, title: 'Block'},
         ]
       : [
           ...(props.canAddPeople ? addPeopleItems : []),
           {
-            icon: 'iconfont-people',
+            icon: Kb.IconType.iconfont_people,
             onClick: props.onViewTeam,
             style: {borderTopWidth: 0},
             title: 'View team',
@@ -144,8 +144,8 @@ class InfoPanelMenu extends React.Component<Props> {
           this.hideItem(),
           this.muteItem(),
           channelItem,
-          {danger: true, icon: 'iconfont-leave', onClick: props.onLeaveTeam, title: 'Leave team'},
-          {danger: true, icon: 'iconfont-remove', onClick: props.onBlockConv, title: 'Block team'},
+          {danger: true, icon: Kb.IconType.iconfont_leave, onClick: props.onLeaveTeam, title: 'Leave team'},
+          {danger: true, icon: Kb.IconType.iconfont_remove, onClick: props.onBlockConv, title: 'Block team'},
         ]
     ).reduce<Kb.MenuItems>((arr, i) => {
       i && arr.push(i as Kb.MenuItem)
@@ -197,14 +197,14 @@ class InfoPanelMenu extends React.Component<Props> {
     if (convProps.teamType === 'adhoc' || convProps.teamType === 'small') {
       if (convProps.ignored) {
         return {
-          icon: 'iconfont-unhide',
+          icon: Kb.IconType.iconfont_unhide,
           onClick: this.props.onUnhideConv,
           style: {borderTopWidth: 0},
           title: 'Unhide conversation',
         }
       } else {
         return {
-          icon: 'iconfont-hide',
+          icon: Kb.IconType.iconfont_hide,
           onClick: this.props.onHideConv,
           style: {borderTopWidth: 0},
           subTitle: 'Until next message',
@@ -223,7 +223,7 @@ class InfoPanelMenu extends React.Component<Props> {
     const convProps = this.props.convProps
     const title = `${convProps.muted ? 'Unmute' : 'Mute all'} notifications`
     return {
-      icon: 'iconfont-shh',
+      icon: Kb.IconType.iconfont_shh,
       onClick: () => this.props.onMuteConv(!convProps.muted),
       title,
     }

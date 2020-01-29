@@ -90,14 +90,14 @@ const load = () => {
                 <Button
                   {...commonProps}
                   type={t}
-                  icon="iconfont-fire"
+                  icon={Kb.IconType.iconfont_fire}
                   tooltip="Icon button!"
                   label={undefined}
                 />
                 <Button
                   {...commonProps}
                   type={t}
-                  icon="iconfont-fire"
+                  icon={Kb.IconType.iconfont_fire}
                   tooltip="Icon button!"
                   label={undefined}
                   mode="Secondary"

@@ -70,9 +70,9 @@ class DragAndDrop extends React.PureComponent<Props, State> {
     >
       <Box2 direction="vertical" centerChildren={true} gap="medium">
         {this.props.rejectReason ? (
-          <Icon type="iconfont-remove" color={Styles.globalColors.red} sizeType="Huge" />
+          <Icon type={Kb.IconType.iconfont_remove} color={Styles.globalColors.red} sizeType="Huge" />
         ) : (
-          <Icon type="iconfont-upload" color={Styles.globalColors.blue} sizeType="Huge" />
+          <Icon type={Kb.IconType.iconfont_upload} color={Styles.globalColors.blue} sizeType="Huge" />
         )}
         {this.props.rejectReason ? (
           <Text type="Header">{this.props.rejectReason}</Text>

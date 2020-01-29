@@ -56,7 +56,7 @@ const _TeamHeader = (props: SmallProps) => {
           }
         />
         <Kb.Icon
-          type="iconfont-gear"
+          type={Kb.IconType.iconfont_gear}
           onClick={toggleShowingMenu}
           ref={setAttachmentRef}
           style={styles.gear}

@@ -108,7 +108,7 @@ const Fallback = ({closeOnClick, info: {name, message, stack, componentStack}, s
       </Box>
       {closeOnClick && (
         <Icon
-          type="iconfont-close"
+          type={Kb.IconType.iconfont_close}
           style={{position: 'absolute', right: Styles.globalMargins.tiny, top: Styles.globalMargins.tiny}}
           onClick={closeOnClick}
         />

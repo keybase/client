@@ -32,7 +32,7 @@ const RemoveAccountPopup = (props: Props) => {
     >
       <Kb.Box2 centerChildren={true} direction="vertical" style={styles.flexOne} fullWidth={true}>
         <Kb.Icon
-          type={Styles.isMobile ? 'icon-wallet-remove-64' : 'icon-wallet-remove-48'}
+          type={Styles.isMobile ? Kb.IconType.icon_wallet_remove_64 : Kb.IconType.icon_wallet_remove_48}
           style={styles.icon}
         />
         <Kb.Text center={true} style={styles.warningText} type="Header">

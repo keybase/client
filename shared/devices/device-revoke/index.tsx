@@ -71,7 +71,7 @@ const getIcon = (deviceType: Types.DeviceType, iconNumber: number) => {
   if (Kb.isValidIconType(iconType)) {
     return iconType
   }
-  return Styles.isMobile ? 'icon-computer-revoke-64' : 'icon-computer-revoke-48'
+  return Styles.isMobile ? Kb.IconType.icon_computer_revoke_64 : Kb.IconType.icon_computer_revoke_48
 }
 const DeviceRevoke = (props: Props) => (
   <Kb.Box2

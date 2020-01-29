@@ -24,7 +24,11 @@ const Footer = (props: Props) => {
       fullWidth={true}
       style={styles.button}
       children={
-        <Kb.Icon type="iconfont-stellar-send" style={styles.icon} color={Styles.globalColors.whiteOrWhite} />
+        <Kb.Icon
+          type={Kb.IconType.iconfont_stellar_send}
+          style={styles.icon}
+          color={Styles.globalColors.whiteOrWhite}
+        />
       }
     />
   )
@@ -72,7 +76,7 @@ const Footer = (props: Props) => {
               style={styles.button}
               children={
                 <Kb.Icon
-                  type="iconfont-stellar-request"
+                  type={Kb.IconType.iconfont_stellar_request}
                   style={styles.icon}
                   color={Styles.globalColors.whiteOrWhite}
                 />

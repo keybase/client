@@ -16,8 +16,8 @@ class InviteGeneratedRender extends Component<Props> {
           position: 'relative',
         }}
       >
-        <Icon type="iconfont-close" style={styles.icon} onClick={this.props.onClose} />
-        <Icon type="icon-invite-link-48" />
+        <Icon type={Kb.IconType.iconfont_close} style={styles.icon} onClick={this.props.onClose} />
+        <Icon type={Kb.IconType.icon_invite_link_48} />
         {this.props.email ? (
           <Text center={true} type="Body" style={styles.text}>
             Yay! We emailed <Text type="BodySemibold">{this.props.email}</Text>, but you can also give them
@@ -30,7 +30,7 @@ class InviteGeneratedRender extends Component<Props> {
         )}
         <Box style={styles.linkContainer}>
           <Icon
-            type="iconfont-link"
+            type={Kb.IconType.iconfont_link}
             style={{height: 14, marginRight: Styles.globalMargins.tiny}}
             color={Styles.globalColors.black_10}
           />

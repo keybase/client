@@ -13,13 +13,13 @@ type Props = {
 const BotMenu = (props: Props) => {
   const items: Kb.MenuItems = [
     {
-      icon: 'iconfont-gear',
+      icon: Kb.IconType.iconfont_gear,
       onClick: props.onEdit,
       title: !props.canManageBots ? 'View settings' : 'Edit settings',
     },
   ]
   if (props.canManageBots) {
-    items.push({danger: true, icon: 'iconfont-remove', onClick: props.onRemove, title: 'Uninstall'})
+    items.push({danger: true, icon: Kb.IconType.iconfont_remove, onClick: props.onRemove, title: 'Uninstall'})
   }
   return (
     <Kb.FloatingMenu

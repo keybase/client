@@ -87,7 +87,7 @@ const ChannelPicker = (props: Props) => {
       <Kb.Box2 direction="horizontal" fullWidth={true}>
         <Kb.SearchFilter
           size="full-width"
-          icon="iconfont-search"
+          icon={Kb.IconType.iconfont_search}
           placeholderText={`Search channels in ${props.teamName}`}
           placeholderCentered={true}
           onChange={setSearchText}

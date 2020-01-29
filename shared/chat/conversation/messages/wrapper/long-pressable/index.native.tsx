@@ -5,7 +5,7 @@ import * as Styles from '../../../../../styles'
 const _renderRightActions = () => {
   return (
     <Kb.Box2 direction="horizontal">
-      <Kb.Icon type="iconfont-reply" style={styles.replyIcon} />
+      <Kb.Icon type={Kb.IconType.iconfont_reply} style={styles.replyIcon} />
     </Kb.Box2>
   )
 }

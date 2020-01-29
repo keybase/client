@@ -91,7 +91,7 @@ const WalletRow = (props: Props) => {
         fullWidth={true}
       >
         <Kb.Icon
-          type={props.isSelected ? 'icon-wallet-open-32' : 'icon-wallet-32'}
+          type={props.isSelected ? Kb.IconType.icon_wallet_open_32 : Kb.IconType.icon_wallet_32}
           color={Styles.globalColors.black}
           style={styles.icon}
         />

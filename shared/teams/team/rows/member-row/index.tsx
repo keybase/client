@@ -129,7 +129,7 @@ export const TeamMemberRow = (props: Props) => {
                   : styles.chatButtonDesktop
               }
               fontSize={Styles.isMobile ? 20 : 16}
-              type="iconfont-chat"
+              type={Kb.IconType.iconfont_chat}
             />
           )}
         </Box>
@@ -166,7 +166,7 @@ export const TeamMemberRow = (props: Props) => {
                 active && styles.chatButtonMobileSmallTop,
               ])}
               fontSize={20}
-              type="iconfont-chat"
+              type={Kb.IconType.iconfont_chat}
             />
           )}
         </Box>

@@ -184,7 +184,7 @@ const Row = (props: Props) => (
               onClick={props.onBrowseGitRepo}
             >
               <Kb.Icon
-                type="iconfont-file"
+                type={Kb.IconType.iconfont_file}
                 sizeType="Small"
                 color={Styles.globalColors.black_50}
                 style={{marginRight: Styles.globalMargins.xtiny}}

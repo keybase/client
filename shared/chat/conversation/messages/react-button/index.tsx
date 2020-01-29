@@ -85,10 +85,10 @@ const ReactButton = (props: Props) => (
 )
 
 const iconCycle = [
-  'iconfont-reacji',
-  'iconfont-reacji-wave',
-  'iconfont-reacji-heart',
-  'iconfont-reacji-sheep',
+  Kb.IconType.iconfont_reacji,
+  Kb.IconType.iconfont_reacji_wave,
+  Kb.IconType.iconfont_reacji_heart,
+  Kb.IconType.iconfont_reacji_sheep,
 ] as const
 export type NewReactionButtonProps = {
   getAttachmentRef?: () => React.Component<any> | null
@@ -186,7 +186,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
         >
           {Styles.isMobile ? (
             <Icon
-              type="iconfont-reacji"
+              type={Kb.IconType.iconfont_reacji}
               color={Styles.globalColors.black_50}
               fontSize={16}
               style={styles.emojiIconWrapper}

@@ -14,7 +14,7 @@ type Props = {
 
 const JourneycardPopupMenu = (props: Props) => {
   const items: Kb.MenuItems = [
-    {icon: 'iconfont-close', onClick: props.onDismiss, title: 'Dismiss message'},
+    {icon: Kb.IconType.iconfont_close, onClick: props.onDismiss, title: 'Dismiss message'},
   ].reduce<Kb.MenuItems>((arr, i) => {
     i && arr.push(i as Kb.MenuItem)
     return arr

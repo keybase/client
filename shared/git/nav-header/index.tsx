@@ -49,8 +49,8 @@ export const HeaderRightActions = () => {
       position="bottom center"
       positionFallbacks={[]}
       items={[
-        {icon: 'iconfont-person', onClick: onAddPersonal, title: 'New personal repository'},
-        {icon: 'iconfont-people', onClick: onAddTeam, title: 'New team repository'},
+        {icon: Kb.IconType.iconfont_person, onClick: onAddPersonal, title: 'New personal repository'},
+        {icon: Kb.IconType.iconfont_people, onClick: onAddTeam, title: 'New team repository'},
       ]}
     />
   ))

@@ -66,7 +66,7 @@ const CheckboxRow = (props: CheckboxRowProps) => (
         position={Styles.isMobile ? 'bottom center' : 'top center'}
         multiline={true}
       >
-        <Kb.Icon type="iconfont-question-mark" color="grey" />
+        <Kb.Icon type={Kb.IconType.iconfont_question_mark} color="grey" />
       </Kb.WithTooltip>
     )}
   </Kb.Box2>
@@ -308,7 +308,9 @@ class BlockModal extends React.PureComponent<Props, State> {
       ) : (
         undefined
       ),
-      title: <Kb.Icon type="iconfont-block-user" sizeType="Big" color={Styles.globalColors.red} />,
+      title: (
+        <Kb.Icon type={Kb.IconType.iconfont_block_user} sizeType="Big" color={Styles.globalColors.red} />
+      ),
     }
 
     if (this.props.loadingWaiting) {

@@ -85,7 +85,7 @@ type UserMatchMentionProps = {
 }
 export const UserMatchMention = ({username}: UserMatchMentionProps) => (
   <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.userMatchMention} centerChildren={true}>
-    <Kb.Icon type="iconfont-check" sizeType="Tiny" color={Styles.globalColors.greenDark} />
+    <Kb.Icon type={Kb.IconType.iconfont_check} sizeType="Tiny" color={Styles.globalColors.greenDark} />
     <Kb.Text type="BodySmall">
       Great! That's{' '}
       <Kb.ConnectedUsernames

@@ -22,7 +22,7 @@ const load = () => {
           <Kb.SearchFilter
             size="small"
             hotkey="k"
-            icon="iconfont-search"
+            icon={Kb.IconType.iconfont_search}
             placeholderText="Search in the universe"
             onChange={Sb.action('onChange')}
             waiting={true}
@@ -33,7 +33,7 @@ const load = () => {
           <Kb.SearchFilter
             size="full-width"
             hotkey="k"
-            icon="iconfont-search"
+            icon={Kb.IconType.iconfont_search}
             placeholderText="Search in the universe"
             onChange={Sb.action('onChange')}
             waiting={true}
@@ -44,7 +44,7 @@ const load = () => {
           <Kb.SearchFilter
             size="full-width"
             hotkey="k"
-            icon="iconfont-search"
+            icon={Kb.IconType.iconfont_search}
             placeholderText="Search in the universe"
             onChange={Sb.action('onChange')}
             onClick={Sb.action('onClick')}
@@ -54,7 +54,7 @@ const load = () => {
         <Kb.SearchFilter
           size="full-width"
           hotkey="k"
-          icon="iconfont-search"
+          icon={Kb.IconType.iconfont_search}
           placeholderText="Search in the universe (by itself in a column flex box)"
           onChange={Sb.action('onChange')}
         />
@@ -62,7 +62,7 @@ const load = () => {
           <Kb.SearchFilter
             size="small"
             hotkey="k"
-            icon="iconfont-search"
+            icon={Kb.IconType.iconfont_search}
             waiting={true}
             negative={true}
             placeholderText="Search in the universe"
@@ -75,13 +75,13 @@ const load = () => {
       <Kb.Box2 direction="vertical" fullWidth={true} gap="small" gapStart={true}>
         <Kb.SearchFilter
           size="small"
-          icon="iconfont-search"
+          icon={Kb.IconType.iconfont_search}
           placeholderText="Search"
           onChange={Sb.action('onChange')}
         />
         <Kb.SearchFilter
           size="small"
-          icon="iconfont-search"
+          icon={Kb.IconType.iconfont_search}
           placeholderText="Search"
           onChange={Sb.action('onChange')}
           waiting={true}
@@ -89,7 +89,7 @@ const load = () => {
         <Kb.Box style={{backgroundColor: Styles.globalColors.blue}}>
           <Kb.SearchFilter
             size="small"
-            icon="iconfont-search"
+            icon={Kb.IconType.iconfont_search}
             placeholderText="Search"
             onChange={Sb.action('onChange')}
             negative={true}
@@ -98,7 +98,7 @@ const load = () => {
         <Kb.Box style={{backgroundColor: Styles.globalColors.blue}}>
           <Kb.SearchFilter
             size="small"
-            icon="iconfont-search"
+            icon={Kb.IconType.iconfont_search}
             placeholderText="Search"
             onChange={Sb.action('onChange')}
             waiting={true}

@@ -40,7 +40,7 @@ const BigTeamChannel = (props: Props) => {
       outboxIcon = (
         <Kb.Icon
           style={styles.icon}
-          type={'iconfont-hourglass'}
+          type={Kb.IconType.iconfont_hourglass}
           color={isSelected ? Styles.globalColors.white : Styles.globalColors.black_20}
         />
       )
@@ -49,7 +49,7 @@ const BigTeamChannel = (props: Props) => {
       outboxIcon = (
         <Kb.Icon
           style={styles.icon}
-          type={'iconfont-exclamation'}
+          type={Kb.IconType.iconfont_exclamation}
           color={isSelected ? Styles.globalColors.white : Styles.globalColors.red}
         />
       )
@@ -97,14 +97,18 @@ const BigTeamChannel = (props: Props) => {
               color={isSelected ? Styles.globalColors.white : Styles.globalColors.black_20}
               style={styles.muted}
               type={
-                Styles.isMobile ? (isSelected ? 'icon-shh-active-26-21' : 'icon-shh-26-21') : 'iconfont-shh'
+                Styles.isMobile
+                  ? isSelected
+                    ? Kb.IconType.icon_shh_active_26_21
+                    : Kb.IconType.icon_shh_26_21
+                  : Kb.IconType.iconfont_shh
               }
             />
           )}
           <Kb.Box style={styles.iconContainer}>
             {hasDraft && (
               <Kb.Icon
-                type="iconfont-edit"
+                type={Kb.IconType.iconfont_edit}
                 style={styles.icon}
                 color={isSelected ? Styles.globalColors.white : undefined}
               />

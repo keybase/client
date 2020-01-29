@@ -106,7 +106,7 @@ const BlockButtons = (props: Props) => {
         </Kb.Text>
         <Kb.Icon
           style={styles.dismissIcon}
-          type="iconfont-close"
+          type={Kb.IconType.iconfont_close}
           onClick={() => dispatch(Chat2Gen.createDismissBlockButtons({teamID}))}
         />
       </Kb.Box2>
@@ -121,7 +121,7 @@ const BlockButtons = (props: Props) => {
       </Kb.Text>
       {buttonRow}
       <Kb.Icon
-        type="iconfont-remove"
+        type={Kb.IconType.iconfont_remove}
         onClick={() => dispatch(Chat2Gen.createDismissBlockButtons({teamID}))}
       />
     </Kb.Box2>

@@ -60,8 +60,8 @@ const Header = (
     {!isMobile && !props.loaded && (
       <ProgressIndicator style={{left: 12, position: 'absolute', top: 12, width: 20}} />
     )}
-    <HeaderButton iconType="iconfont-new" label="Create a team" onClick={props.onCreateTeam} />
-    <HeaderButton iconType="iconfont-team-join" label="Join a team" onClick={props.onJoinTeam} />
+    <HeaderButton iconType={Kb.IconType.iconfont_new} label="Create a team" onClick={props.onCreateTeam} />
+    <HeaderButton iconType={Kb.IconType.iconfont_team_join} label="Join a team" onClick={props.onJoinTeam} />
   </Box2>
 )
 

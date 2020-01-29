@@ -19,7 +19,7 @@ type Props = {
 
 const FileAttachment = React.memo((props: Props) => {
   const progressLabel = Constants.messageAttachmentTransferStateToProgressLabel(props.transferState)
-  const iconType = 'icon-file-32'
+  const iconType = Kb.IconType.icon_file_32
   return (
     <>
       <ShowToastAfterSaving transferState={props.transferState} />
@@ -34,7 +34,11 @@ const FileAttachment = React.memo((props: Props) => {
           </Kb.Box2>
           {!!props.arrowColor && (
             <Kb.Box style={styles.downloadedIconWrapperStyle}>
-              <Kb.Icon type="iconfont-download" style={styles.downloadedIcon} color={props.arrowColor} />
+              <Kb.Icon
+                type={Kb.IconType.iconfont_download}
+                style={styles.downloadedIcon}
+                color={props.arrowColor}
+              />
             </Kb.Box>
           )}
           {!!progressLabel && (

@@ -57,7 +57,9 @@ const EnterPhoneNumber = (props: Props) => {
         onChangeNumber={onChangeNumberCb}
         onContinue={onContinue}
         searchable={true}
-        iconType={Platform.isLargeScreen ? 'icon-phone-number-add-96' : 'icon-phone-number-add-64'}
+        iconType={
+          Platform.isLargeScreen ? Kb.IconType.icon_phone_number_add_96 : Kb.IconType.icon_phone_number_add_64
+        }
       />
     </SignupScreen>
   )

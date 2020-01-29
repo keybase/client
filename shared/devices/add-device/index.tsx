@@ -87,7 +87,7 @@ const getIconType = (deviceType: DeviceOptionProps['type'], iconNumber?: number)
   if (Kb.isValidIconType(iconType)) {
     return iconType
   }
-  return bigIcon ? 'icon-computer-96' : 'icon-computer-64'
+  return bigIcon ? Kb.IconType.icon_computer_96 : Kb.IconType.icon_computer_64
 }
 const DeviceOption = ({highlight, iconNumber, onClick, type}: DeviceOptionProps) => (
   <Kb.ClickableBox onClick={onClick}>

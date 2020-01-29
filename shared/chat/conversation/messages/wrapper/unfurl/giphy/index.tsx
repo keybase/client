@@ -29,12 +29,14 @@ class UnfurlGiphy extends React.Component<Props> {
                 style={styles.collapse}
                 onClick={this.props.onCollapse}
                 sizeType="Tiny"
-                type={this.props.isCollapsed ? 'iconfont-caret-right' : 'iconfont-caret-down'}
+                type={
+                  this.props.isCollapsed ? Kb.IconType.iconfont_caret_right : Kb.IconType.iconfont_caret_down
+                }
               />
             </Kb.Box2>
             {!!this.props.onClose && (
               <Kb.Icon
-                type="iconfont-close"
+                type={Kb.IconType.iconfont_close}
                 onClick={this.props.onClose}
                 className="unfurl-closebox"
                 fontSize={12}

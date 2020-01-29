@@ -75,7 +75,7 @@ const DisplayCurrencyDropdown = (props: Props) => {
         onDone={onDone}
         visible={showingMenu}
       />
-      <Kb.SimpleToast iconType="iconfont-check" text="Saved" visible={showingToast} />
+      <Kb.SimpleToast iconType={Kb.IconType.iconfont_check} text="Saved" visible={showingToast} />
     </>
   )
 }

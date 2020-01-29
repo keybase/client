@@ -7,7 +7,7 @@ function Stars({count}: {count: number}) {
   return (
     <Box style={globalStyles.flexBoxRow}>
       {range(count).map(i => (
-        <Icon key={i} color={globalColors.green} type="iconfont-star" />
+        <Icon key={i} color={globalColors.green} type={Kb.IconType.iconfont_star} />
       ))}
     </Box>
   )

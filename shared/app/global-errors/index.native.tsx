@@ -87,13 +87,17 @@ class GlobalError extends React.Component<Props, State> {
               onClick={this.onExpandClick}
             >
               {this.state.size !== 'Big' && (
-                <Kb.Icon type="iconfont-caret-right" color={Styles.globalColors.white_75} sizeType="Tiny" />
+                <Kb.Icon
+                  type={Kb.IconType.iconfont_caret_right}
+                  color={Styles.globalColors.white_75}
+                  sizeType="Tiny"
+                />
               )}
               {'  '}
               An error occurred.
             </Kb.Text>
             <Kb.Icon
-              type="iconfont-close"
+              type={Kb.IconType.iconfont_close}
               onClick={onDismiss}
               color={Styles.globalColors.white_75}
               fontSize={21}

@@ -105,7 +105,7 @@ class MenubarRender extends React.Component<Props, State> {
           <Kb.Icon
             color={Styles.isDarkMode() ? 'rgba(255, 255, 255, 0.85)' : Styles.globalColors.blueDarker}
             hoverColor={Styles.globalColors.white}
-            type="iconfont-nav-2-hamburger"
+            type={Kb.IconType.iconfont_nav_2_hamburger}
             sizeType="Big"
             style={styles.hamburgerIcon}
             onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
@@ -135,7 +135,7 @@ class MenubarRender extends React.Component<Props, State> {
           }}
         >
           <Kb.Icon
-            type="icon-keybase-logo-logged-out-64"
+            type={Kb.IconType.icon_keybase_logo_logged_out_64}
             style={styles.logo}
             color={Styles.globalColors.yellow}
           />
@@ -174,7 +174,7 @@ class MenubarRender extends React.Component<Props, State> {
           <Kb.Icon
             color={Styles.globalColors.blueDarker}
             hoverColor={Styles.globalColors.white}
-            type="iconfont-nav-2-hamburger"
+            type={Kb.IconType.iconfont_nav_2_hamburger}
             sizeType="Big"
             style={styles.hamburgerIcon}
             onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
@@ -198,7 +198,7 @@ class MenubarRender extends React.Component<Props, State> {
           }}
         >
           <Kb.Icon
-            type="icon-keybase-logo-logged-out-64"
+            type={Kb.IconType.icon_keybase_logo_logged_out_64}
             style={styles.logo}
             color={Styles.globalColors.yellow}
           />
@@ -244,22 +244,34 @@ class MenubarRender extends React.Component<Props, State> {
             {
               onClick: () => this.props.openApp(Tabs.walletsTab),
               title: 'Wallet',
-              view: this._menuView('Wallet', 'iconfont-nav-2-wallets', countMap.get(Tabs.walletsTab)),
+              view: this._menuView(
+                'Wallet',
+                Kb.IconType.iconfont_nav_2_wallets,
+                countMap.get(Tabs.walletsTab)
+              ),
             },
             {
               onClick: () => this.props.openApp(Tabs.gitTab),
               title: 'Git',
-              view: this._menuView('Git', 'iconfont-nav-2-git', countMap.get(Tabs.gitTab)),
+              view: this._menuView('Git', Kb.IconType.iconfont_nav_2_git, countMap.get(Tabs.gitTab)),
             },
             {
               onClick: () => this.props.openApp(Tabs.devicesTab),
               title: 'Devices',
-              view: this._menuView('Devices', 'iconfont-nav-2-devices', countMap.get(Tabs.devicesTab)),
+              view: this._menuView(
+                'Devices',
+                Kb.IconType.iconfont_nav_2_devices,
+                countMap.get(Tabs.devicesTab)
+              ),
             },
             {
               onClick: () => this.props.openApp(Tabs.settingsTab),
               title: 'Settings',
-              view: this._menuView('Settings', 'iconfont-nav-2-settings', countMap.get(Tabs.settingsTab)),
+              view: this._menuView(
+                'Settings',
+                Kb.IconType.iconfont_nav_2_settings,
+                countMap.get(Tabs.settingsTab)
+              ),
             },
             'Divider',
           ] as const)
@@ -323,7 +335,7 @@ class MenubarRender extends React.Component<Props, State> {
               }
               hoverColor={Styles.globalColors.whiteOrWhite}
               onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
-              type="iconfont-nav-2-hamburger"
+              type={Kb.IconType.iconfont_nav_2_hamburger}
               sizeType="Big"
               ref={this.attachmentRef}
             />
@@ -374,11 +386,11 @@ body {
 `
 
 const iconMap = {
-  [Tabs.peopleTab]: 'iconfont-nav-2-people',
-  [Tabs.chatTab]: 'iconfont-nav-2-chat',
-  [Tabs.devicesTab]: 'iconfont-nav-2-devices',
-  [Tabs.fsTab]: 'iconfont-nav-2-files',
-  [Tabs.teamsTab]: 'iconfont-nav-2-teams',
+  [Tabs.peopleTab]: Kb.IconType.iconfont_nav_2_people,
+  [Tabs.chatTab]: Kb.IconType.iconfont_nav_2_chat,
+  [Tabs.devicesTab]: Kb.IconType.iconfont_nav_2_devices,
+  [Tabs.fsTab]: Kb.IconType.iconfont_nav_2_files,
+  [Tabs.teamsTab]: Kb.IconType.iconfont_nav_2_teams,
 } as const
 const BadgeIcon = ({tab, countMap, openApp}) => {
   const count = countMap.get(tab)

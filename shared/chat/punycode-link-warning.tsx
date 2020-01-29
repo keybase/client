@@ -25,7 +25,7 @@ const PunycodeLinkWarning = (props: PunycodeLinkWarningProps) => {
   const description = `The link you clicked on appears to be ${display}, but actually points to ${punycode}.`
   return (
     <Kb.ConfirmModal
-      icon="iconfont-open-browser"
+      icon={Kb.IconType.iconfont_open_browser}
       iconColor={Styles.globalColors.red}
       prompt={'Open URL?'}
       description={description}

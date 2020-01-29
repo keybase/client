@@ -229,7 +229,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
                     colorOverride={this.props.cannotWrite ? Styles.globalColors.black_20 : null}
                     onClick={this.props.cannotWrite ? undefined : this._toggleShowingMenu}
                     padding="xtiny"
-                    type="iconfont-timer"
+                    type={Kb.IconType.iconfont_timer}
                   />
                 )}
               </HoverBox>
@@ -280,14 +280,22 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
             )}
             {!this.props.cannotWrite && (
               <>
-                <Kb.Icon onClick={this.props.onGiphyToggle} style={styles.icon} type="iconfont-gif" />
+                <Kb.Icon
+                  onClick={this.props.onGiphyToggle}
+                  style={styles.icon}
+                  type={Kb.IconType.iconfont_gif}
+                />
                 <Kb.Icon
                   color={this.state.emojiPickerOpen ? Styles.globalColors.black : null}
                   onClick={this._emojiPickerToggle}
                   style={styles.icon}
-                  type="iconfont-emoji"
+                  type={Kb.IconType.iconfont_emoji}
                 />
-                <Kb.Icon onClick={this._filePickerOpen} style={styles.icon} type="iconfont-attachment" />
+                <Kb.Icon
+                  onClick={this._filePickerOpen}
+                  style={styles.icon}
+                  type={Kb.IconType.iconfont_attachment}
+                />
               </>
             )}
           </Kb.Box>

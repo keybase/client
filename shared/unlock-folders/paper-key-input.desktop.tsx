@@ -22,7 +22,7 @@ class PaperKeyInput extends React.Component<Props, State> {
     return (
       <Kb.Box2 alignItems="center" direction="vertical" style={styles.container}>
         <Kb.BackButton onClick={this.props.onBack} style={styles.back} />
-        <Kb.Icon style={styles.icon} type="icon-paper-key-48" />
+        <Kb.Icon style={styles.icon} type={Kb.IconType.icon_paper_key_48} />
         <Kb.LabeledInput
           multiline={true}
           rowsMax={3}

@@ -17,8 +17,8 @@ const Header = (props: HeaderProps) => (
       <Kb.Icon
         type={
           Styles.isMobile
-            ? 'icon-fancy-stellar-sending-mobile-149-129'
-            : 'icon-fancy-stellar-sending-desktop-98-86'
+            ? Kb.IconType.icon_fancy_stellar_sending_mobile_149_129
+            : Kb.IconType.icon_fancy_stellar_sending_desktop_98_86
         }
         style={styles.headerIcon}
       />
