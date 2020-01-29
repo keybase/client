@@ -2,9 +2,9 @@ import * as React from 'react'
 import * as Shared from './icon.shared'
 import * as Styles from '../styles'
 import logger from '../logger'
-import {IconType, Props, SizeType} from './icon'
+import {Props, SizeType} from './icon'
 import {NativeImage, NativeText, NativeTouchableOpacity} from './native-wrappers.native'
-import {iconMeta} from './icon.constants-gen'
+import {iconMeta, IconType} from './icon.constants-gen'
 
 const Kb = {
   NativeImage,
@@ -229,3 +229,4 @@ const styles = Styles.styleSheetCreate(() => ({
 }))
 
 export default Icon
+export {IconType}

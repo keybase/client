@@ -1,6 +1,6 @@
 import * as Styles from '../styles'
-import {IconType, SizeType} from './icon'
-import {iconMeta} from './icon.constants-gen'
+import {SizeType} from './icon'
+import {iconMeta, IconType} from './icon.constants-gen'
 import './icon.css'
 
 const Kb = {IconType}

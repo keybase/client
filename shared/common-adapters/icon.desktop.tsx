@@ -3,10 +3,10 @@ import * as Styles from '../styles'
 import logger from '../logger'
 import React, {Component} from 'react'
 import shallowEqual from 'shallowequal'
-import {iconMeta} from './icon.constants-gen'
+import {iconMeta, IconType} from './icon.constants-gen'
 import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
 import invert from 'lodash/invert'
-import {Props, IconType} from './icon'
+import {Props} from './icon'
 
 class Icon extends Component<Props, void> {
   static defaultProps = {
@@ -222,3 +222,4 @@ const styles = Styles.styleSheetCreate(() => ({
 }))
 
 export default Icon
+export {IconType}
