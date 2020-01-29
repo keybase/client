@@ -704,8 +704,7 @@ const gregorPushState = (action: GregorGen.PushStatePayload) => {
 
 const loadOnLoginStartup = async () => {
   try {
-    const status =
-      (await RPCTypes.ctlGetOnLoginStartupRpcPromise()) === RPCTypes.OnLoginStartupStatus.enabled
+    const status = (await RPCTypes.ctlGetOnLoginStartupRpcPromise()) === RPCTypes.OnLoginStartupStatus.enabled
     return ConfigGen.createLoadedOnLoginStartup({status})
   } catch (err) {
     logger.warn('Error in loading proxy data', err)
