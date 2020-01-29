@@ -787,6 +787,8 @@ type ChangeItem struct {
 	Type            ChangeType
 	CurrPath        data.Path // Full path to the node created/renamed/deleted
 	UnrefsForDelete []data.BlockPointer
+	IsNew           bool
+	OldPtr          data.BlockPointer
 }
 
 func (ci *ChangeItem) addUnrefs(chains *crChains, op op) error {
@@ -888,6 +890,7 @@ func GetChangesBetweenRevisions(
 						}
 					}
 				}
+				item.IsNew = true
 			case *syncOp:
 				// If the create was processed first, reuse that item.
 				itemSlice, ok := items[item.CurrPath.CanonicalPathString()]
@@ -903,6 +906,7 @@ func GetChangesBetweenRevisions(
 					}
 				}
 				item.Type = ChangeTypeWrite
+				item.OldPtr = chain.original
 			case *renameOp:
 				item.Type = ChangeTypeRename
 				err := item.addUnrefs(chains, op)
@@ -936,6 +940,38 @@ func GetChangesBetweenRevisions(
 				pString := item.CurrPath.CanonicalPathString()
 				items[pString] = append(items[pString], item)
 				numItems++
+
+				// Add in an update for every directory whose blockpointer
+				// was updated.
+				currPath := item.CurrPath
+				for currPath.HasValidParent() {
+					currPath = *currPath.ParentPath()
+					pString := currPath.CanonicalPathString()
+					itemSlice, ok := items[pString]
+					needsUpdate := true
+					if ok {
+						for _, existingItem := range itemSlice {
+							if existingItem.Type == ChangeTypeWrite {
+								needsUpdate = false
+								break
+							}
+						}
+					}
+					if !needsUpdate {
+						break
+					}
+					oldPtr, err := chains.originalFromMostRecentOrSame(
+						currPath.TailPointer())
+					if err != nil {
+						return nil, err
+					}
+					item := &ChangeItem{
+						Type:     ChangeTypeWrite,
+						CurrPath: currPath,
+						OldPtr:   oldPtr,
+					}
+					items[pString] = append(items[pString], item)
+				}
 			}
 		}
 	}
