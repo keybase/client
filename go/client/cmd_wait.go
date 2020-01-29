@@ -36,7 +36,7 @@ func NewCmdWait(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command 
 			},
 			cli.BoolFlag{
 				Name:  "include-kbfs",
-				Usage: "Wait on kbfs to start as well",
+				Usage: "Wait on kbfs to start for an additional same amount of time",
 			},
 		},
 	}
@@ -58,20 +58,15 @@ func (c *CmdWait) ParseArgv(ctx *cli.Context) error {
 }
 
 func (c *CmdWait) Run() error {
-	var timeoutDuration time.Duration
-	if c.includeKBFS {
-		timeoutDuration = c.duration * 2
-	} else {
-		timeoutDuration = c.duration
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), timeoutDuration)
+	ctx, cancel := context.WithTimeout(context.Background(), c.duration)
 	defer cancel()
 
 	err := checkIsRunning(ctx, c.G(), false)
 	if err != nil {
 		return err
 	}
+
+	ctx, cancel = context.WithTimeout(context.Background(), c.duration)
 
 	if c.includeKBFS {
 		err := checkIsRunning(ctx, c.G(), true)
