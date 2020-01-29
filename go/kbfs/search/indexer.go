@@ -7,7 +7,9 @@ package search
 import (
 	"context"
 	"os"
+	"path"
 	"path/filepath"
+	"sort"
 	"sync"
 	"time"
 
@@ -568,6 +570,8 @@ func (i *Indexer) renameChild(
 		return err
 	}
 
+	i.log.CDebugf(ctx, "Found %s for child %s", ptr, childName)
+
 	if i.blocksDb == nil {
 		return errors.New("No indexed blocks db")
 	}
@@ -620,7 +624,10 @@ unrefLoop:
 	i.lock.RLock()
 	defer i.lock.RUnlock()
 
-	err = i.index.Delete(docID)
+	b := i.index.NewBatch()
+	b.Delete(docID)
+	b.Delete(nameDocID(docID))
+	err = i.index.Batch(b)
 	if err != nil {
 		return err
 	}
@@ -698,8 +705,40 @@ func (i *Indexer) indexNewlySyncedTlfDir(
 	return nil
 }
 
+func (i *Indexer) recordUpdatedNodePtr(
+	ctx context.Context, node libkbfs.Node, rev kbfsmd.Revision, docID string,
+	oldPtr data.BlockPointer) (dirDoneFn func() error, err error) {
+	md, err := i.config.KBFSOps().GetNodeMetadata(ctx, node)
+	if err != nil {
+		return nil, err
+	}
+	tlfID := node.GetFolderBranch().Tlf
+	err = i.blocksDb.Put(
+		ctx, tlfID, md.BlockInfo.BlockPointer, currentIndexedBlocksDbVersion,
+		docID, false)
+	if err != nil {
+		return nil, err
+	}
+	return func() error {
+		err := i.blocksDb.Put(
+			ctx, tlfID, md.BlockInfo.BlockPointer,
+			currentIndexedBlocksDbVersion, docID, true)
+		if err != nil {
+			return err
+		}
+
+		if oldPtr != data.ZeroPtr {
+			err := i.blocksDb.Delete(ctx, tlfID, oldPtr)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	}, nil
+}
+
 func (i *Indexer) indexNewlySyncedTlf(
-	ctx context.Context, fs *libfs.FS, rev kbfsmd.Revision) error {
+	ctx context.Context, fs *libfs.FS, rev kbfsmd.Revision) (err error) {
 	root := fs.RootNode()
 
 	ids, err := i.blocksDb.GetNextDocIDs(1)
@@ -712,7 +751,20 @@ func (i *Indexer) indexNewlySyncedTlf(
 		return err
 	}
 
-	// No need to index the root dir, since it doesn't really have a name.
+	// Record the docID for the root node. But no need to index the
+	// root dir, since it doesn't really have a name.
+	dirDoneFn, err := i.recordUpdatedNodePtr(ctx, root, rev, id, data.ZeroPtr)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err != nil {
+			return
+		}
+
+		err = dirDoneFn()
+	}()
+
 	return i.indexNewlySyncedTlfDir(ctx, root, id, rev)
 }
 
@@ -758,6 +810,161 @@ func (i *Indexer) doFullIndex(
 	return i.indexNewlySyncedTlf(ctx, fs, rev)
 }
 
+func (i *Indexer) doIncrementalIndex(
+	ctx context.Context, m tlfMessage, indexedRev, newRev kbfsmd.Revision) (
+	err error) {
+	i.log.CDebugf(ctx, "Incremental index %d -> %d", indexedRev, newRev)
+	// Gather list of changes after indexedRev, up to and including newRev.
+	changes, err := libkbfs.GetChangesBetweenRevisions(
+		ctx, i.config, m.tlfID, indexedRev, newRev)
+	if err != nil {
+		return err
+	}
+	// Sort by path length, to make sure we process directories before
+	// their children.
+	sort.Slice(changes, func(i, j int) bool {
+		return len(changes[i].CurrPath.Path) < len(changes[j].CurrPath.Path)
+	})
+
+	fs, err := i.fsForRev(ctx, m.tlfID, newRev)
+	if err != nil {
+		return err
+	}
+
+	// Save newRev as the started revision.
+	err = i.tlfDb.Put(ctx, m.tlfID, indexedRev, newRev)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err != nil {
+			return
+		}
+
+		// After a successful indexing, mark the revision as fully indexed.
+		err = i.tlfDb.Put(ctx, m.tlfID, newRev, kbfsmd.RevisionUninitialized)
+	}()
+
+	newChanges := 0
+	for _, change := range changes {
+		if change.IsNew {
+			newChanges++
+		}
+	}
+	ids, err := i.blocksDb.GetNextDocIDs(newChanges)
+	if err != nil {
+		return err
+	}
+	currID := 0
+
+	var dirDoneFns []func() error
+	if len(changes) > 0 {
+		// Update the root pointer first; it doesn't require re-indexing.
+		oldPtr := changes[0].OldPtr
+		changes = changes[1:]
+		doUpdate := true
+		_, docID, _, err := i.blocksDb.Get(ctx, oldPtr)
+		switch errors.Cause(err) {
+		case nil:
+		case ldberrors.ErrNotFound:
+			// The update already happened.
+			doUpdate = false
+		default:
+			return err
+		}
+
+		if doUpdate {
+			dirDoneFn, err := i.recordUpdatedNodePtr(
+				ctx, fs.RootNode(), newRev, docID, oldPtr)
+			if err != nil {
+				return err
+			}
+			defer func() {
+				if err != nil {
+					return
+				}
+
+				err = dirDoneFn()
+			}()
+		}
+	}
+
+	// Iterate through each change and call the appropriate index
+	// function for it.
+	for _, change := range changes {
+		plainPath, _ := change.CurrPath.PlaintextSansTlf()
+		dir, _ := path.Split(plainPath)
+		dirFS, err := fs.ChrootAsLibFS(path.Clean(dir))
+		if err != nil {
+			return err
+		}
+
+		dirNode := dirFS.RootNode()
+		md, err := i.config.KBFSOps().GetNodeMetadata(ctx, dirNode)
+		if err != nil {
+			return err
+		}
+		_, dirDocID, _, err := i.blocksDb.Get(ctx, md.BlockInfo.BlockPointer)
+		if err != nil {
+			return err
+		}
+
+		switch change.Type {
+		case libkbfs.ChangeTypeWrite:
+			var dirDoneFn func() error
+			if change.IsNew {
+				id := ids[currID]
+				currID++
+				dirDoneFn, err = i.indexChild(
+					ctx, dirNode, dirDocID, change.CurrPath.TailName(),
+					id, newRev)
+			} else {
+				dirDoneFn, err = i.updateChild(
+					ctx, dirNode, dirDocID, change.CurrPath.TailName(),
+					change.OldPtr, newRev)
+				switch errors.Cause(err).(type) {
+				case OldPtrNotFound:
+					// Already updated.
+					err = nil
+				default:
+				}
+			}
+			if err != nil {
+				return err
+			}
+			if dirDoneFn != nil {
+				dirDoneFns = append(dirDoneFns, dirDoneFn)
+			}
+		case libkbfs.ChangeTypeRename:
+			err := i.renameChild(
+				ctx, dirNode, dirDocID, change.CurrPath.TailName(), newRev)
+			if err != nil {
+				return err
+			}
+		case libkbfs.ChangeTypeDelete:
+			err := i.deleteFromUnrefs(ctx, m.tlfID, change.UnrefsForDelete)
+			if err != nil {
+				return err
+			}
+		default:
+			i.log.CDebugf(ctx, "Ignoring unknown change type %s", change.Type)
+			continue
+		}
+	}
+
+	// Finish all the dirs at the end, since we're not processing them
+	// recursively.
+	for _, f := range dirDoneFns {
+		err := f()
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (i *Indexer) handleTlfMessage(ctx context.Context, m tlfMessage) error {
 	defer i.indexWG.Done()
 
@@ -778,6 +985,11 @@ func (i *Indexer) handleTlfMessage(ctx context.Context, m tlfMessage) error {
 		return err
 	}
 
+	if rev <= indexedRev {
+		// No need to re-index this.
+		return nil
+	}
+
 	if startedRev != kbfsmd.RevisionUninitialized && startedRev != rev {
 		// We've started indexing a particular revision already; we
 		// need to continue on at that revision, or risk confusing the
@@ -793,20 +1005,16 @@ func (i *Indexer) handleTlfMessage(ctx context.Context, m tlfMessage) error {
 			i.indexWG.Done()
 			i.log.CDebugf(
 				context.Background(), "Couldn't send TLF message for %s/%d",
-				m.tlfID, rev)
+				m.tlfID, m.rev)
 		}
 	}
 
 	if indexedRev != kbfsmd.RevisionUninitialized {
-		// TODO(HOTPOT-1495): Do a partial update based on the MD
-		// revision changes (assuming we haven't missed so many
-		// revisions that we should just force a fast-forward).
-		i.log.CDebugf(
-			ctx, "Ignoring incremental update for %s (HOTPOT-1495)", m.tlfID)
-		return nil
+		err = i.doIncrementalIndex(ctx, m, indexedRev, rev)
+	} else {
+		err = i.doFullIndex(ctx, m, rev)
 	}
 
-	err = i.doFullIndex(ctx, m, rev)
 	switch errors.Cause(err).(type) {
 	case nil:
 	case RevisionGCdError:
