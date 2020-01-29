@@ -2,7 +2,7 @@ import * as React from 'react'
 import {StylesCrossPlatform} from '../styles'
 import {IconType, IconStyle} from './icon'
 
-export type AvatarSize = 128 | 96 | 64 | 48 | 32 | 24 | 16 //| 12
+export type AvatarSize = 128 | 96 | 64 | 48 | 32 | 24 | 16
 
 export type Props = {
   borderColor?: string
