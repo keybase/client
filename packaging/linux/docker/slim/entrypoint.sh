@@ -19,6 +19,9 @@ fi
 
 KEYBASE_SERVICE_ARGS="${KEYBASE_SERVICE_ARGS:-"-debug -use-default-log-file"}"
 keybase $KEYBASE_SERVICE_ARGS service &
+if [ "$#" -eq 0 ] || [ -v KEYBASE_LOG_SERVICE_TO_STDOUT ]; then
+    tail -F /home/keybase/.cache/keybase/keybase.service.log &
+fi
 
 # Wait up to 10 seconds for the service to start
 SERVICE_COUNTER=0
