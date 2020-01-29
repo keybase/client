@@ -73,6 +73,13 @@ export const Operations: {[key: string]: Types.Operations} = {
   Verify: 'verify',
 }
 
+const operationToInputPlaceholder: {[k in Types.Operations]: string} = {
+  decrypt: 'Enter ciphertext, drop an encrypted file, or',
+  encrypt: 'Enter text, drop a file, or',
+  sign: 'Enter text, drop a file, or',
+  verify: 'Enter a signed message, drop a signed file, or',
+}
+
 const operationToInputTextType: {[k in Types.Operations]: Types.TextType} = {
   decrypt: 'cipher',
   encrypt: 'plain',
@@ -115,6 +122,7 @@ const operationToFileWaitingKey: {[k in Types.Operations]: Types.FileWaitingKey}
   verify: verifyFileWaitingKey,
 } as const
 
+export const getInputPlaceholder = (operation: Types.Operations) => operationToInputPlaceholder[operation]
 export const getInputTextType = (operation: Types.Operations) => operationToInputTextType[operation]
 export const getOutputTextType = (operation: Types.Operations) => operationToOutputTextType[operation]
 export const getInputFileIcon = (operation: Types.Operations) => operationToInputFileIcon[operation]

@@ -1,16 +1,21 @@
 import * as React from 'react'
+import * as CryptoGen from '../../actions/crypto-gen'
 import * as Constants from '../../constants/crypto'
 import * as FsConstants from '../../constants/fs'
 import * as Types from '../../constants/types/crypto'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import HiddenString from '../../util/hidden-string'
+
+type InputProps = {
+  operation: Types.Operations
+  fileDroppedCounter: number
+}
 
 type TextProps = {
   onChangeText: (text: string) => void
   onSetFile: (path: string) => void
-  placeholder: string
-  textType: Types.TextType
   operation: Types.Operations
   value: string
 }
@@ -20,6 +25,13 @@ type FileProps = {
   size?: number
   operation: Types.Operations
   onClearFiles: () => void
+}
+
+type DragAndDropProps = {
+  operation: Types.Operations
+  prompt: string
+  children: React.ReactNode
+  onClearInput: () => void
 }
 
 type OperationBannerProps = {
@@ -43,7 +55,9 @@ const operationToEmptyInputWidth = {
  *  - Multiline input
  */
 export const TextInput = (props: TextProps) => {
-  const {value, placeholder, textType, operation, onChangeText, onSetFile} = props
+  const {value, operation, onChangeText, onSetFile} = props
+  const textType = Constants.getInputTextType(operation)
+  const placeholder = Constants.getInputPlaceholder(operation)
   const emptyWidth = operationToEmptyInputWidth[operation]
 
   // When 'browse file' is show, focus input by clicking anywhere in the input box
@@ -171,6 +185,86 @@ export const FileInput = (props: FileProps) => {
           </Kb.Box2>
         )}
       </Kb.Box2>
+    </Kb.Box2>
+  )
+}
+
+export const Input = (props: InputProps) => {
+  const {fileDroppedCounter, operation} = props
+  const dispatch = Container.useDispatch()
+
+  // Store
+  const input = Container.useSelector(state => state.crypto[operation].input.stringValue())
+  const inputType = Container.useSelector(state => state.crypto[operation].inputType)
+
+  // State
+  const [inputValue, setInputValue] = React.useState(input)
+
+  // Actions
+  const onSetInput = React.useCallback(
+    (type: Types.InputTypes, newValue: string) => {
+      dispatch(CryptoGen.createSetInput({operation, type, value: new HiddenString(newValue)}))
+    },
+    [dispatch, operation]
+  )
+  const onClearInput = React.useCallback(() => {
+    dispatch(CryptoGen.createClearInput({operation}))
+  }, [dispatch, operation])
+
+  // Clear the local input state when a user has dragged and dropped a file into the operation
+  // If the input is not cleared then dropping a file, then clearing the file will show old text input
+  React.useEffect(() => {
+    setInputValue('')
+  }, [fileDroppedCounter])
+
+  return inputType === 'file' ? (
+    <FileInput
+      operation={operation}
+      path={input}
+      onClearFiles={() => {
+        setInputValue('')
+        onClearInput()
+      }}
+    />
+  ) : (
+    <TextInput
+      operation={operation}
+      value={inputValue}
+      onSetFile={path => {
+        onSetInput('file', path)
+      }}
+      onChangeText={text => {
+        setInputValue(text)
+        onSetInput('text', text)
+      }}
+    />
+  )
+}
+
+export const DragAndDrop = (props: DragAndDropProps) => {
+  const {prompt, children, operation, onClearInput} = props
+  const dispatch = Container.useDispatch()
+
+  // Actions
+  const onAttach = React.useCallback(
+    (localPaths: Array<string>) => {
+      const path = localPaths[0]
+      onClearInput()
+      dispatch(CryptoGen.createSetInput({operation, type: 'file', value: new HiddenString(path)}))
+    },
+    [dispatch, onClearInput, operation]
+  )
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+      <Kb.DragAndDrop
+        allowFolders={false}
+        fullHeight={true}
+        fullWidth={true}
+        onAttach={onAttach}
+        prompt={prompt}
+      >
+        {children}
+      </Kb.DragAndDrop>
     </Kb.Box2>
   )
 }

@@ -2,8 +2,7 @@ import * as React from 'react'
 import * as Constants from '../../../constants/crypto'
 import * as Types from '../../../constants/types/crypto'
 import * as Kb from '../../../common-adapters'
-import debounce from 'lodash/debounce'
-import {TextInput, FileInput, OperationBanner} from '../../input'
+import {Input, DragAndDrop, OperationBanner} from '../../input'
 import OperationOutput, {SignedSender, OutputBar, OutputProgress} from '../../output'
 
 type Props = {
@@ -23,61 +22,25 @@ type Props = {
   warningMessage: string
 }
 
-// We want to debuonce the onChangeText callback for our input so we are not sending an RPC on every keystroke
-const debounced = debounce((fn, ...args) => fn(...args), 100)
-
 const Verify = (props: Props) => {
-  const [inputValue, setInputValue] = React.useState(props.input)
-  const onAttach = (localPaths: Array<string>) => {
-    // Drag and drop allows for multi-file upload, we only want one file upload
-    setInputValue('')
-    props.onSetInput('file', localPaths[0])
-  }
-
+  const [fileDroppedCounter, setFileDroppedCounter] = React.useState(0)
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-      <Kb.DragAndDrop
-        allowFolders={true}
-        fullHeight={true}
-        fullWidth={true}
-        onAttach={onAttach}
-        prompt="Drop a file to verify"
-      >
+    <DragAndDrop
+      operation={Constants.Operations.Sign}
+      prompt="Drop a file to verify"
+      onClearInput={() => setFileDroppedCounter(prevCount => prevCount + 1)}
+    >
+      <Kb.Box2 direction="vertical" fullHeight={true}>
+        <OperationBanner operation={Constants.Operations.Verify} />
+        <Input operation={Constants.Operations.Verify} fileDroppedCounter={fileDroppedCounter} />
+        <OutputProgress operation={Constants.Operations.Verify} />
         <Kb.Box2 direction="vertical" fullHeight={true}>
-          <OperationBanner operation={Constants.Operations.Verify} />
-          {props.inputType === 'file' ? (
-            <FileInput
-              path={props.input}
-              onClearFiles={() => {
-                setInputValue('')
-                props.onClearInput()
-              }}
-              operation={Constants.Operations.Verify}
-            />
-          ) : (
-            <TextInput
-              value={inputValue}
-              placeholder="Enter a signed message, drop a signed file, or"
-              textType="cipher"
-              operation={Constants.Operations.Verify}
-              onSetFile={path => {
-                props.onSetInput('file', path)
-              }}
-              onChangeText={text => {
-                setInputValue(text)
-                debounced(props.onSetInput, 'text', text)
-              }}
-            />
-          )}
-          <OutputProgress operation={Constants.Operations.Verify} />
-          <Kb.Box2 direction="vertical" fullHeight={true}>
-            <SignedSender operation={Constants.Operations.Verify} />
-            <OperationOutput operation={Constants.Operations.Verify} />
-            <OutputBar operation={Constants.Operations.Verify} />
-          </Kb.Box2>
+          <SignedSender operation={Constants.Operations.Verify} />
+          <OperationOutput operation={Constants.Operations.Verify} />
+          <OutputBar operation={Constants.Operations.Verify} />
         </Kb.Box2>
-      </Kb.DragAndDrop>
-    </Kb.Box2>
+      </Kb.Box2>
+    </DragAndDrop>
   )
 }
 
