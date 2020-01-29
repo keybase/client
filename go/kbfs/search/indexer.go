@@ -73,6 +73,7 @@ type Indexer struct {
 	once         sync.Once
 	indexWG      kbfssync.RepeatedWaitGroup
 	kvstoreName  string
+	fullIndexCB  func() error // helpful for testing
 
 	userChangedCh chan struct{}
 	tlfCh         chan tlfMessage
@@ -371,10 +372,12 @@ func (i *Indexer) FullSyncStarted(
 func (i *Indexer) SyncModeChanged(
 	ctx context.Context, tlfID tlf.ID, newMode keybase1.FolderSyncMode) {
 	i.log.CDebugf(ctx, "Sync mode changed for %s to %s", tlfID, newMode)
+	i.indexWG.Add(1)
 	m := tlfMessage{tlfID, kbfsmd.RevisionUninitialized, newMode}
 	select {
 	case i.tlfCh <- m:
 	default:
+		i.indexWG.Done()
 		i.log.CDebugf(
 			context.Background(), "Couldn't send TLF message for %s/%s",
 			tlfID, newMode)
@@ -412,6 +415,17 @@ func (i *Indexer) indexChildWithPtrAndNode(
 	if i.blocksDb == nil {
 		return nil, errors.New("No indexed blocks db")
 	}
+
+	if i.fullIndexCB != nil {
+		// Error on indexing this node if the callback tells us to
+		// (useful for testing).
+		err := i.fullIndexCB()
+		if err != nil {
+			i.log.CDebugf(ctx, "Stopping index due to testing error: %+v", err)
+			return nil, err
+		}
+	}
+
 	tlfID := n.GetFolderBranch().Tlf
 
 	// If the new pointer has already been indexed, skip indexing it again.
@@ -419,8 +433,10 @@ func (i *Indexer) indexChildWithPtrAndNode(
 	switch errors.Cause(err) {
 	case nil:
 		if v == currentIndexedBlocksDbVersion {
-			i.log.CDebugf(ctx, "%s already indexed; skipping", newPtr)
-			if dirDone {
+			i.log.CDebugf(
+				ctx, "%s/%s already indexed; skipping (type=%s, dirDone=%t)",
+				newPtr, childName, ei.Type, dirDone)
+			if ei.Type != data.Dir || dirDone {
 				return nil, nil
 			}
 			return func() error {
@@ -770,9 +786,11 @@ func (i *Indexer) handleTlfMessage(ctx context.Context, m tlfMessage) error {
 			"TLF %s, before indexing the requested revision %d",
 			startedRev, m.tlfID, rev)
 		rev = startedRev
+		i.indexWG.Add(1)
 		select {
 		case i.tlfCh <- m:
 		default:
+			i.indexWG.Done()
 			i.log.CDebugf(
 				context.Background(), "Couldn't send TLF message for %s/%d",
 				m.tlfID, rev)

@@ -6,6 +6,7 @@ package search
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -132,6 +133,11 @@ func testSearch(t *testing.T, i *Indexer, word string, expected int) {
 	require.Len(t, result.Hits, expected)
 }
 
+func testKVStoreName(testName string) string {
+	return fmt.Sprintf(
+		"%s_%s_%d", kvstoreNamePrefix, testName, time.Now().UnixNano())
+}
+
 func TestIndexFile(t *testing.T) {
 	ctx := libcontext.BackgroundContextWithCancellationDelayer()
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
@@ -145,7 +151,7 @@ func TestIndexFile(t *testing.T) {
 	config.SetStorageRoot(tempdir)
 
 	i, err := newIndexerWithConfigInit(
-		config, testInitConfig, kvstoreNamePrefix+"_TestIndexFile")
+		config, testInitConfig, testKVStoreName("TestIndexFile"))
 	require.NoError(t, err)
 	defer func() {
 		err := i.Shutdown(ctx)
@@ -231,40 +237,9 @@ func TestIndexFile(t *testing.T) {
 	testSearch(t, i, "tortor", 0)
 }
 
-func TestFullIndexSyncedTlf(t *testing.T) {
-	ctx := libcontext.BackgroundContextWithCancellationDelayer()
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
-	defer cancel()
-	config := libkbfs.MakeTestConfigOrBust(t, "user1", "user2")
-	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-
-	tempdir, err := ioutil.TempDir("", "indexTest")
-	require.NoError(t, err)
-	defer os.RemoveAll(tempdir)
-	config.SetStorageRoot(tempdir)
-
-	err = config.EnableDiskLimiter(tempdir)
-	require.NoError(t, err)
-	config.SetDiskCacheMode(libkbfs.DiskCacheModeLocal)
-	err = config.MakeDiskBlockCacheIfNotExists()
-	require.NoError(t, err)
-
-	i, err := newIndexerWithConfigInit(
-		config, testInitConfig, kvstoreNamePrefix+"_TestFullIndexSyncedTlf")
-	require.NoError(t, err)
-	defer func() {
-		err := i.Shutdown(ctx)
-		require.NoError(t, err)
-	}()
-
-	h, err := tlfhandle.ParseHandle(
-		ctx, config.KBPKI(), config.MDOps(), nil, "user1", tlf.Private)
-	require.NoError(t, err)
-	kbfsOps := config.KBFSOps()
-	rootNode, _, err := kbfsOps.GetOrCreateRootNode(ctx, h, data.MasterBranch)
-	require.NoError(t, err)
-
-	t.Log("Create two dirs with two files each")
+func makeDirTreeToIndex(
+	ctx context.Context, t *testing.T, kbfsOps libkbfs.KBFSOps,
+	rootNode libkbfs.Node) (names []string) {
 	mkfiles := func(dirName, text1, text2 string) {
 		dirNamePPS := data.NewPathPartString(dirName, nil)
 		dirNode, _, err := kbfsOps.CreateDir(ctx, rootNode, dirNamePPS)
@@ -297,14 +272,64 @@ func TestFullIndexSyncedTlf(t *testing.T) {
 	const b2Text = "Cras volutpat mi in purus interdum, sit amet luctus " +
 		"velit accumsan."
 	mkfiles(bName, b1Text, b2Text)
-	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	err := kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)
 	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
 	require.NoError(t, err)
+	return []string{aName, bName}
+}
+
+func TestFullIndexSyncedTlf(t *testing.T) {
+	ctx := libcontext.BackgroundContextWithCancellationDelayer()
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	config := libkbfs.MakeTestConfigOrBust(t, "user1", "user2")
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
+
+	tempdir, err := ioutil.TempDir("", "indexTest")
+	require.NoError(t, err)
+	defer os.RemoveAll(tempdir)
+	config.SetStorageRoot(tempdir)
+
+	err = config.EnableDiskLimiter(tempdir)
+	require.NoError(t, err)
+	config.SetDiskCacheMode(libkbfs.DiskCacheModeLocal)
+	err = config.MakeDiskBlockCacheIfNotExists()
+	require.NoError(t, err)
+	err = config.MakeDiskMDCacheIfNotExists()
+	require.NoError(t, err)
+
+	i, err := newIndexerWithConfigInit(
+		config, testInitConfig, testKVStoreName("TestFullIndexSyncedTlf"))
+	require.NoError(t, err)
+	defer func() {
+		err := i.Shutdown(ctx)
+		require.NoError(t, err)
+	}()
+
+	h, err := tlfhandle.ParseHandle(
+		ctx, config.KBPKI(), config.MDOps(), nil, "user1", tlf.Private)
+	require.NoError(t, err)
+	kbfsOps := config.KBFSOps()
+	rootNode, _, err := kbfsOps.GetOrCreateRootNode(ctx, h, data.MasterBranch)
+	require.NoError(t, err)
+
+	t.Log("Create two dirs with two files each")
+	names := makeDirTreeToIndex(ctx, t, kbfsOps, rootNode)
 
 	t.Log("Wait for index to load")
 	err = i.waitForIndex(ctx)
 	require.NoError(t, err)
+
+	ch := make(chan error)
+	i.fullIndexCB = func() error {
+		select {
+		case err := <-ch:
+			return err
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+	}
 
 	t.Log("Enable syncing")
 	_, err = kbfsOps.SetSyncConfig(
@@ -314,12 +339,53 @@ func TestFullIndexSyncedTlf(t *testing.T) {
 	require.NoError(t, err)
 	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
 	require.NoError(t, err)
+
+	t.Log("Index the root node and first full dir, but fail the first child " +
+		"of the second dir")
+	sendToIndexer := func(err error) {
+		select {
+		case ch <- err:
+		case <-ctx.Done():
+		}
+	}
+	sendToIndexer(nil) // alpha
+	sendToIndexer(nil) // alpha1
+	sendToIndexer(nil) // alpha2
+	sendToIndexer(nil) // beta
+	err = errors.New("STOP")
+	sendToIndexer(err)
+	// The `SetInitialHeadFromServer` call when the indexer constructs
+	// its read-only FS ends up causing two more sync requests that
+	// need to be stopped.  (In production, these should be no-ops
+	// once the first pass of the indexer is done.)
+	sendToIndexer(err)
+	sendToIndexer(err)
+
+	err = i.waitForSyncs(ctx)
+	require.NoError(t, err)
+
+	t.Log("New write will resume the interrupted indexer -- 2 children left " +
+		"to index on the old view, then 2 on the new view")
+	_, _, err = kbfsOps.CreateDir(
+		ctx, rootNode, data.NewPathPartString("omega", nil))
+	require.NoError(t, err)
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
+	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
+	require.NoError(t, err)
+
+	sendToIndexer(nil) // alpha (already done)
+	sendToIndexer(nil) // beta (name indexed, but dir not done yet)
+	sendToIndexer(nil) // beta1
+	sendToIndexer(nil) // beta2
+	// TODO(HOTPOT-1495): updates for new revision.
+
 	err = i.waitForSyncs(ctx)
 	require.NoError(t, err)
 
 	t.Log("Check searches")
 	testSearch(t, i, "dolor", 2)
 	testSearch(t, i, "feugiat", 1)
-	testSearch(t, i, aName, 3) // Child nodes have "alpha" in their name too
+	testSearch(t, i, names[0], 3) // Child nodes have "alpha" in their name too
 	testSearch(t, i, "file1", 2)
 }
