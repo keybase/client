@@ -77,7 +77,7 @@ const Sign = (props: Props) => {
           )}
           <OutputProgress operation={Constants.Operations.Sign} />
           <Kb.Box2 direction="vertical" fullHeight={true}>
-            <OutputInfoBanner operation={Constants.Operations.Encrypt} outputStatus={props.outputStatus}>
+            <OutputInfoBanner operation={Constants.Operations.Sign}>
               <Kb.Text type="BodySmallSemibold" center={true}>
                 This is your signed {props.outputType === 'file' ? 'file' : 'message'}, using{` `}
                 <Kb.Text

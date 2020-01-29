@@ -36,7 +36,6 @@ type OutputProgressProps = {
 }
 
 type OutputInfoProps = {
-  outputStatus?: Types.OutputStatus
   operation: Types.Operations
   children:
     | string
@@ -112,13 +111,15 @@ export const OutputProgress = (props: OutputProgressProps) => {
   )
 }
 
-export const OutputInfoBanner = React.memo((props: OutputInfoProps) => {
-  return props.outputStatus && props.outputStatus === 'success' ? (
+export const OutputInfoBanner = (props: OutputInfoProps) => {
+  const {operation} = props
+  const outputStatus = Container.useSelector(state => state.crypto[operation].outputStatus)
+  return outputStatus && outputStatus === 'success' ? (
     <Kb.Banner color="grey" style={styles.banner}>
       {props.children}
     </Kb.Banner>
   ) : null
-})
+}
 
 export const OutputBar = React.memo((props: OutputBarProps) => {
   const {output, onCopyOutput, onSaveAsText, onShowInFinder, outputMatchesInput} = props

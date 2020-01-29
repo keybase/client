@@ -128,7 +128,7 @@ const Encrypt = (props: Props) => {
           />
           <OutputProgress operation={Constants.Operations.Encrypt} />
           <Kb.Box2 direction="vertical" fullHeight={true}>
-            <OutputInfoBanner operation={Constants.Operations.Encrypt} outputStatus={props.outputStatus}>
+            <OutputInfoBanner operation={Constants.Operations.Encrypt}>
               <Kb.BannerParagraph
                 bannerColor="grey"
                 content={[
