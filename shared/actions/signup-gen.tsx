@@ -37,7 +37,7 @@ type _CheckedUsernamePayload = {
 }
 type _ClearJustSignedUpEmailPayload = void
 type _GoBackAndClearErrorsPayload = void
-type _RequestAutoInvitePayload = void
+type _RequestAutoInvitePayload = {readonly username?: string}
 type _RequestInvitePayload = {readonly email: string; readonly name: string}
 type _RequestedAutoInvitePayload = {readonly inviteCode?: string; readonly error?: boolean}
 type _RequestedInvitePayload = {
@@ -85,10 +85,9 @@ export const createClearJustSignedUpEmail = (
 export const createGoBackAndClearErrors = (
   payload: _GoBackAndClearErrorsPayload
 ): GoBackAndClearErrorsPayload => ({payload, type: goBackAndClearErrors})
-export const createRequestAutoInvite = (payload: _RequestAutoInvitePayload): RequestAutoInvitePayload => ({
-  payload,
-  type: requestAutoInvite,
-})
+export const createRequestAutoInvite = (
+  payload: _RequestAutoInvitePayload = Object.freeze({})
+): RequestAutoInvitePayload => ({payload, type: requestAutoInvite})
 export const createRequestInvite = (payload: _RequestInvitePayload): RequestInvitePayload => ({
   payload,
   type: requestInvite,
