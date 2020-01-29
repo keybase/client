@@ -68,6 +68,10 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     if (operation !== Constants.Operations.Encrypt) return
 
     const op = draftState.encrypt
+
+    // Output no longer valid since recipients have changed
+    op.outputMatchesInput = false
+
     if (!op.recipients.length && recipients.length) {
       op.meta.hasRecipients = true
       op.meta.hasSBS = hasSBS
@@ -89,6 +93,10 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       ...oldOptions,
       ...newOptions,
     }
+
+    // Output no longer valid since options have changed
+    encrypt.outputMatchesInput = false
+
     // User set themselves as a recipient so don't show the 'includeSelf' option for encrypt (since they're encrypting to themselves)
     if (hideIncludeSelf) {
       encrypt.meta.hideIncludeSelf = hideIncludeSelf

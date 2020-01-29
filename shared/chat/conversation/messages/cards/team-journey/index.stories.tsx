@@ -5,6 +5,7 @@ import * as Styles from '../../../../../styles'
 import TeamJourney from './index'
 
 const commonProps = {
+  cannotWrite: false,
   conversationIDKey: 'dummyConversationIDKey',
   onAuthorClick: Sb.action('onAuthorClick'),
   onDismiss: Sb.action('onDismiss'),
