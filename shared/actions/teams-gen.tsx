@@ -264,7 +264,11 @@ type _SetUpdatedTopicPayload = {
   readonly newTopic: string
 }
 type _SettingsErrorPayload = {readonly error: string}
-type _ShowTeamByNamePayload = {readonly teamName: string}
+type _ShowTeamByNamePayload = {
+  readonly teamName: string
+  readonly initialTab?: Types.TabKey
+  readonly addMembers?: boolean
+}
 type _TeamCreatedPayload = {
   readonly fromChat: boolean
   readonly teamID: Types.TeamID

@@ -1290,9 +1290,18 @@ function* teamBuildingSaga() {
 }
 
 async function showTeamByName(action: TeamsGen.ShowTeamByNamePayload) {
-  const {teamName} = action.payload
+  const {teamName, initialTab, addMembers} = action.payload
   const teamID = await RPCTypes.teamsGetTeamIDRpcPromise({teamName})
-  return [RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'team'}]})]
+  return [
+    RouteTreeGen.createNavigateAppend({
+      path: [
+        {props: {initialTab, teamID}, selected: 'team'},
+        ...(addMembers
+          ? [{props: {namespace: 'teams', teamID, title: ''}, selected: 'teamsTeamBuilder'}]
+          : []),
+      ],
+    }),
+  ]
 }
 
 const teamsSaga = function*() {

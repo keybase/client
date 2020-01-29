@@ -89,7 +89,7 @@ export const urlToTeamDeepLink = (url: URL) => {
 
   // URLSearchParams is not available in react-native. See if any of recognized
   // query parameters is passed using regular expressions.
-  const action = ['add_or_invite', 'manage_settings'].find(x =>
+  const action = (['add_or_invite', 'manage_settings'] as const).find(x =>
     queryString.match(`[?&]applink=${x}([?&].+)?$`)
   )
   return {action, teamName}

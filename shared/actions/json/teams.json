@@ -319,7 +319,9 @@
       "parentTeam?": "Types.TeamID"
     },
     "showTeamByName": {
-      "teamName": "string"
+      "teamName": "string",
+      "initialTab?": "Types.TabKey",
+      "addMembers?": "boolean"
     }
   }
 }

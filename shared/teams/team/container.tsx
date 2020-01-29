@@ -11,11 +11,13 @@ import makeRows from './rows'
 import flags from '../../util/feature-flags'
 import TabsStateNew from './container.new'
 
-type TabsStateOwnProps = Container.RouteProps<{teamID: Types.TeamID}>
+type TabsStateOwnProps = Container.RouteProps<{teamID: Types.TeamID; initialTab?: Types.TabKey}>
 type OwnProps = TabsStateOwnProps & {
   selectedTab: Types.TabKey
   setSelectedTab: (tab: Types.TabKey) => void
 }
+
+const defaultTab: Types.TabKey = 'members'
 
 // keep track during session
 const lastSelectedTabs = {}
@@ -26,7 +28,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     throw new Error('There was a problem loading the team page, please report this error.')
   }
 
-  const selectedTab = ownProps.selectedTab || 'members'
+  const selectedTab = ownProps.selectedTab || defaultTab
 
   return {
     invitesCollapsed: state.teams.invitesCollapsed,
@@ -87,7 +89,12 @@ class TabsState extends React.PureComponent<TabsStateOwnProps, {selectedTab: Typ
       ? undefined
       : () => <SubHeader teamID={Container.getRouteProps(ownProps, 'teamID', '')} />,
   })
-  state = {selectedTab: lastSelectedTabs[Container.getRouteProps(this.props, 'teamID', '')] || 'members'}
+  state = {
+    selectedTab:
+      Container.getRouteProps(this.props, 'initialTab', '') ||
+      lastSelectedTabs[Container.getRouteProps(this.props, 'teamID', '')] ||
+      defaultTab,
+  }
   private setSelectedTab = selectedTab => {
     lastSelectedTabs[Container.getRouteProps(this.props, 'teamID', '')] = selectedTab
     this.setState({selectedTab})
@@ -95,7 +102,8 @@ class TabsState extends React.PureComponent<TabsStateOwnProps, {selectedTab: Typ
   componentDidUpdate(prevProps: TabsStateOwnProps) {
     const teamID = Container.getRouteProps(this.props, 'teamID', '')
     if (teamID !== Container.getRouteProps(prevProps, 'teamID', '')) {
-      this.setSelectedTab(lastSelectedTabs[teamID] || 'members')
+      const routeTab = Container.getRouteProps(this.props, 'initialTab', '')
+      this.setSelectedTab(routeTab || lastSelectedTabs[teamID] || defaultTab)
     }
   }
   render() {

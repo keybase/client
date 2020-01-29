@@ -106,9 +106,11 @@ const handleAppLink = (state: Container.TypedState, action: DeeplinksGen.LinkPay
 
     const teamLink = Constants.urlToTeamDeepLink(url)
     if (teamLink) {
+      const initialTab = teamLink.action === 'manage_settings' ? 'settings' : undefined
+      const addMembers = teamLink.action === 'add_or_invite' ? true : undefined
       return [
         RouteTreeGen.createSwitchTab({tab: Tabs.teamsTab}),
-        TeamsGen.createShowTeamByName({teamName: teamLink.teamName}),
+        TeamsGen.createShowTeamByName({teamName: teamLink.teamName, initialTab, addMembers}),
       ]
     }
   }
