@@ -175,6 +175,20 @@ func (h ConfigHandler) IsServiceRunning(ctx context.Context, sessionID int) (res
 	return
 }
 
+func (h ConfigHandler) IsKBFSRunning(ctx context.Context, sessionID int) (res bool, err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("CFG")
+	defer mctx.TraceTimed("IsKBFSRunning", func() error { return err })()
+
+	clients := libkb.GetClientStatus(mctx)
+
+	kbfs := status.GetFirstClient(clients, keybase1.ClientType_KBFS)
+	if kbfs != nil {
+		return true, nil
+	}
+
+	return false, nil
+}
+
 func (h ConfigHandler) LogSend(ctx context.Context, arg keybase1.LogSendArg) (res keybase1.LogSendID, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("CFG")
 	defer mctx.TraceTimed("LogSend", func() error { return err })()

@@ -155,6 +155,8 @@ protocol config {
 
   boolean isServiceRunning(int sessionID);
 
+  boolean isKBFSRunning(int sessionID);
+
   @typedef("string")  record LogSendID {}
   LogSendID logSend(int sessionID, string statusJSON, string feedback,
     boolean sendLogs, boolean sendMaxBytes);

@@ -846,6 +846,15 @@
       ],
       "response": "boolean"
     },
+    "isKBFSRunning": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "boolean"
+    },
     "logSend": {
       "request": [
         {

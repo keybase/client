@@ -14,6 +14,7 @@ import (
 type CmdWait struct {
 	libkb.Contextified
 	duration time.Duration
+	includeKBFS bool
 }
 
 const maxWaitTime = 60 * time.Second
@@ -33,6 +34,10 @@ func NewCmdWait(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command 
 				Value: 10 * time.Second,
 				Usage: "How long to wait before timing out",
 			},
+			cli.BoolFlag{
+				Name:  "include-kbfs",
+				Usage: "Wait on kbfs to start as well",
+			},
 		},
 	}
 }
@@ -46,39 +51,36 @@ func (c *CmdWait) ParseArgv(ctx *cli.Context) error {
 	if c.duration.Seconds() <= 0 || c.duration.Seconds() > maxWaitTime.Seconds() {
 		return fmt.Errorf("invalid duration %s, must be between 1s and %s", c.duration, maxWaitTime)
 	}
+
+	c.includeKBFS = ctx.Bool("include-kbfs")
+
 	return nil
 }
 
 func (c *CmdWait) Run() error {
-	ctx, cancel := context.WithTimeout(context.Background(), c.duration)
+	var timeoutDuration time.Duration
+	if c.includeKBFS {
+		timeoutDuration = c.duration * 2
+	} else {
+		timeoutDuration = c.duration
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), timeoutDuration)
 	defer cancel()
 
-	for {
-		client, err := getConfigClientWithRetry(c.G())
-		if err != nil {
-			select {
-			case <-ctx.Done():
-				return ctx.Err()
-			case <-time.After(1 * time.Second):
-			}
-			continue
-		}
+	err := checkIsRunning(ctx, c.G(), false)
+	if err != nil {
+		return err
+	}
 
-		isRunning, err := client.IsServiceRunning(ctx, 0)
+	if c.includeKBFS {
+		err := checkIsRunning(ctx, c.G(), true)
 		if err != nil {
 			return err
 		}
-
-		if isRunning {
-			return nil
-		}
-
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case <-time.After(1 * time.Second):
-		}
 	}
+
+	return nil
 }
 
 func (c *CmdWait) GetUsage() libkb.Usage {
@@ -98,4 +100,42 @@ func getRPCClientWithContextWithRetry(g *libkb.GlobalContext) (ret *rpc.Client, 
 		ret = rpc.NewClient(xp, libkb.NewContextifiedErrorUnwrapper(g), nil)
 	}
 	return
+}
+
+func checkIsRunning(ctx context.Context, g *libkb.GlobalContext, kbfs bool) error {
+	for {
+		client, err := getConfigClientWithRetry(g)
+		if err != nil {
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-time.After(1 * time.Second):
+			}
+			continue
+		}
+
+		var isRunning bool
+
+		if kbfs {
+			isRunning, err = client.IsKBFSRunning(ctx, 0)
+		} else {
+			isRunning, err = client.IsServiceRunning(ctx, 0)
+		}
+
+		if err != nil {
+			return err
+		}
+
+		if isRunning {
+			break
+		}
+
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(1 * time.Second):
+		}
+	}
+
+	return nil
 }

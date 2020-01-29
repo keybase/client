@@ -3700,6 +3700,7 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.config.getClientStatus'
 // 'keybase.1.config.getFullStatus'
 // 'keybase.1.config.isServiceRunning'
+// 'keybase.1.config.isKBFSRunning'
 // 'keybase.1.config.setUserConfig'
 // 'keybase.1.config.setPath'
 // 'keybase.1.config.setValue'

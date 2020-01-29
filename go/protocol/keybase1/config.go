@@ -860,6 +860,10 @@ type IsServiceRunningArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type IsKBFSRunningArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type LogSendArg struct {
 	SessionID    int    `codec:"sessionID" json:"sessionID"`
 	StatusJSON   string `codec:"statusJSON" json:"statusJSON"`
@@ -976,6 +980,7 @@ type ConfigInterface interface {
 	GetClientStatus(context.Context, int) ([]ClientStatus, error)
 	GetFullStatus(context.Context, int) (*FullStatus, error)
 	IsServiceRunning(context.Context, int) (bool, error)
+	IsKBFSRunning(context.Context, int) (bool, error)
 	LogSend(context.Context, LogSendArg) (LogSendID, error)
 	GetAllProvisionedUsernames(context.Context, int) (AllProvisionedUsernames, error)
 	GetConfig(context.Context, int) (Config, error)
@@ -1072,6 +1077,21 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.IsServiceRunning(ctx, typedArgs[0].SessionID)
+					return
+				},
+			},
+			"isKBFSRunning": {
+				MakeArg: func() interface{} {
+					var ret [1]IsKBFSRunningArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]IsKBFSRunningArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]IsKBFSRunningArg)(nil), args)
+						return
+					}
+					ret, err = i.IsKBFSRunning(ctx, typedArgs[0].SessionID)
 					return
 				},
 			},
@@ -1464,6 +1484,12 @@ func (c ConfigClient) GetFullStatus(ctx context.Context, sessionID int) (res *Fu
 func (c ConfigClient) IsServiceRunning(ctx context.Context, sessionID int) (res bool, err error) {
 	__arg := IsServiceRunningArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.config.isServiceRunning", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c ConfigClient) IsKBFSRunning(ctx context.Context, sessionID int) (res bool, err error) {
+	__arg := IsKBFSRunningArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.config.isKBFSRunning", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
