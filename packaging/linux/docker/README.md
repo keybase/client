@@ -42,7 +42,9 @@ as locally from a filesystem mounted by the Keybase client.
   passed _and_ `KEYBASE_SERVICE` is passed / there is no command passed, the
   service automatically logs in as the paper key in oneshot mode.
 - `KEYBASE_SERVICE_ARGS` - args passed during service startup, `-debug` by default.
-- `KEYBASE_KBFS_ARGS` - args passed during KBFS startup, `-debug -mount-type=none` by default.
+- `KEYBASE_KBFS_ARGS` (unsupported in `slim`) - args passed during KBFS startup, `-debug -mount-type=none` by default.
+- `KEYBASE_LOG_SERVICE_TO_STDOUT` - prints out the service logs to stdout. Automatically enabled if no command was passed.
+- `KEYBASE_LOG_KBFS_TO_STDOUT` (unsupported in `slim`) - prints out the KBFS logs to stdout. Automatically enabled if no command was passed.
 
 ### start a keybase service
 
