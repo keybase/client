@@ -18,9 +18,16 @@ if [ "$#" -gt 0 ] && [ ! -v KEYBASE_SERVICE ]; then
 fi
 
 KEYBASE_SERVICE_ARGS="${KEYBASE_SERVICE_ARGS:-"-debug -use-default-log-file"}"
-KEYBASE_KBFS_ARGS="${KEYBASE_KBFS_ARGS:-"-debug -mount-type=none -log-to-file"}"
 keybase $KEYBASE_SERVICE_ARGS service &
+if [ "$#" -eq 0 ] || [ -v KEYBASE_LOG_SERVICE_TO_STDOUT ]; then
+    tail -F /home/keybase/.cache/keybase/keybase.service.log &
+fi
+
+KEYBASE_KBFS_ARGS="${KEYBASE_KBFS_ARGS:-"-debug -mount-type=none -log-to-file"}"
 KEYBASE_DEBUG=1 kbfsfuse $KEYBASE_KBFS_ARGS &
+if [ "$#" -eq 0 ] || [ -v KEYBASE_LOG_KBFS_TO_STDOUT ]; then
+    tail -F /home/keybase/.cache/keybase/keybase.kbfs.log &
+fi
 
 # Wait up to 10 seconds for the service to start
 SERVICE_COUNTER=0
