@@ -30,9 +30,7 @@ RUN gpg --import /gosu_key.asc \
 COPY packaging/linux/docker/slim/entrypoint.sh /usr/bin/entrypoint.sh
 RUN chmod +x /usr/bin/entrypoint.sh
 
-RUN useradd --create-home --shell /bin/bash keybase \
-    && mkdir -p /var/log/keybase \
-    && chown keybase:keybase /var/log/keybase
+RUN useradd --create-home --shell /bin/bash keybase
 VOLUME [ "/home/keybase/.config/keybase", "/home/keybase/.cache/keybase" ]
 
 COPY --from=base /usr/bin/keybase /usr/bin/keybase
