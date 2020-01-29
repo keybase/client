@@ -230,6 +230,19 @@ func (u *User) ToTrackingStatement(w *jsonw.Wrapper, outcome *IdentifyOutcome) (
 	return w.SetKey("track", track)
 }
 
+func (u *User) ToWotStatement() *jsonw.Wrapper {
+	user := jsonw.NewDictionary()
+	user.SetKey("username", u.GetUsername())
+	user.SetKey("uid", u.GetUID())
+	user.SetKey("seq_tail", u.ToTrackingStatementSeqTail())
+	eldest := jsonw.NewDictionary()
+	eldest.SetKey("kid", u.GetEldestKID())
+	eldest.SetKey("seqno", u.GetEldestSeqno())
+	user.SetKey("eldest", eldest)
+
+	return user
+}
+
 func (u *User) ToUntrackingStatementBasics() *jsonw.Wrapper {
 	ret := jsonw.NewDictionary()
 	_ = ret.SetKey("username", jsonw.NewString(u.name))
@@ -684,6 +697,21 @@ func (u *User) ServiceProof(m MetaContext, signingKey GenericKey, typ ServiceTyp
 	return ret, nil
 }
 
+func (u *User) WotAttestProof(m MetaContext, signingKey GenericKey, sigVersion SigVersion) (*ProofMetadataRes, error) {
+	md := ProofMetadata{
+		Me:         u,
+		LinkType:   LinkTypeWotAttest,
+		SigningKey: signingKey,
+		SigVersion: sigVersion,
+	}
+	ret, err := md.ToJSON2(m)
+	if err != nil {
+		return nil, err
+	}
+
+	return ret, nil
+}
+
 // SimpleSignJson marshals the given Json structure and then signs it.
 func SignJSON(jw *jsonw.Wrapper, key GenericKey) (out string, id keybase1.SigID, lid LinkID, err error) {
 	var tmp []byte
@@ -925,7 +953,7 @@ type SigMultiItem struct {
 	Type       string                  `json:"type"`
 	SeqType    keybase1.SeqType        `json:"seq_type"`
 	SigInner   string                  `json:"sig_inner"`
-	TeamID     keybase1.TeamID         `json:"team_id"`
+	TeamID     keybase1.TeamID         `json:"team_id,omitempty"`
 	PublicKeys *SigMultiItemPublicKeys `json:"public_keys,omitempty"`
 	Version    SigVersion              `json:"version"`
 }
