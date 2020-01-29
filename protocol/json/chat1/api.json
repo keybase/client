@@ -955,7 +955,7 @@
           "jsonkey": "description"
         },
         {
-          "type": "keybase1.DeviceTypeV2",
+          "type": "string",
           "name": "deviceType",
           "jsonkey": "type"
         },

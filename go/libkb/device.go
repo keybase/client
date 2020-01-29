@@ -32,13 +32,13 @@ type DeviceStatus struct {
 }
 
 type Device struct {
-	ID          keybase1.DeviceID     `json:"id"`
-	Kid         keybase1.KID          `json:"kid,omitempty"`
-	Description *string               `json:"name,omitempty"`
-	Status      *int                  `json:"status,omitempty"`
-	Type        keybase1.DeviceTypeV2 `json:"type"`
-	CTime       keybase1.Time         `json:"ctime"`
-	MTime       keybase1.Time         `json:"mtime"`
+	ID          keybase1.DeviceID `json:"id"`
+	Kid         keybase1.KID      `json:"kid,omitempty"`
+	Description *string           `json:"name,omitempty"`
+	Status      *int              `json:"status,omitempty"`
+	Type        string            `json:"type"`
+	CTime       keybase1.Time     `json:"ctime"`
+	MTime       keybase1.Time     `json:"mtime"`
 }
 
 type DeviceWithDeviceNumber struct {
@@ -57,7 +57,7 @@ func NewPaperDevice(passphrasePrefix string) (*Device, error) {
 
 	d := &Device{
 		ID:          did,
-		Type:        keybase1.DeviceTypeV2_PAPER,
+		Type:        DeviceTypePaper,
 		Status:      &s,
 		Description: &desc,
 	}

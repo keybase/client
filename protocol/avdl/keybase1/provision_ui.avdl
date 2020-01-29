@@ -104,5 +104,5 @@ protocol provisionUi {
    ProvisionerSuccess is called on provisioner when it successfully provisions another device.
    */
   @lint("ignore")
-  void ProvisionerSuccess(int sessionID, string deviceName, DeviceTypeV2 deviceType);
+  void ProvisionerSuccess(int sessionID, string deviceName, string deviceType);
 }

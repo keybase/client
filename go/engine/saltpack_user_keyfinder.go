@@ -180,7 +180,7 @@ func (e *SaltpackUserKeyfinder) AddUserRecipient(m libkb.MetaContext, upk *keyba
 }
 
 func (e *SaltpackUserKeyfinder) isPaperEncryptionKey(key *keybase1.PublicKeyV2NaCl, deviceKeys *(map[keybase1.KID]keybase1.PublicKeyV2NaCl)) bool {
-	return libkb.KIDIsDeviceEncrypt(key.Base.Kid) && key.Parent != nil && (*deviceKeys)[*key.Parent].DeviceType == keybase1.DeviceTypeV2_PAPER
+	return libkb.KIDIsDeviceEncrypt(key.Base.Kid) && key.Parent != nil && (*deviceKeys)[*key.Parent].DeviceType == libkb.DeviceTypePaper
 }
 
 // AddPUK returns no error if it adds at least one key (or no paper keys and device keys were requested), otherwise it returns a libkb.NoNaClEncryptionKeyError

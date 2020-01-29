@@ -769,7 +769,7 @@ func (u *User) RevokeKeysProof(m MetaContext, key GenericKey, kidsToRevoke []key
 		if err != nil {
 			return nil, err
 		}
-		err = deviceSection.SetKey("type", jsonw.NewString(device.Type.StringForServer()))
+		err = deviceSection.SetKey("type", jsonw.NewString(device.Type))
 		if err != nil {
 			return nil, err
 		}

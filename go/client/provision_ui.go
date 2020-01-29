@@ -137,11 +137,11 @@ func (p ProvisionUI) ChooseDevice(ctx context.Context, arg keybase1.ChooseDevice
 	for i, d := range arg.Devices {
 		var ft string
 		switch d.Type {
-		case keybase1.DeviceTypeV2_PAPER:
+		case libkb.DeviceTypePaper:
 			ft = "paper key"
-		case keybase1.DeviceTypeV2_DESKTOP:
+		case libkb.DeviceTypeDesktop:
 			ft = "computer"
-		case keybase1.DeviceTypeV2_MOBILE:
+		case libkb.DeviceTypeMobile:
 			ft = "mobile"
 		}
 		p.parent.Printf("\t%d. [%s]\t%s\n", i+1, ft, d.Name)

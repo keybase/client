@@ -251,7 +251,7 @@ func TestDeprovision(t *testing.T) {
 	secretUI := user.NewSecretUI()
 	secretUI.Passphrase = eng.Passphrase()
 	provisionUI := &kbtest.TestProvisionUI{}
-	provisionUI.DeviceType = keybase1.DeviceTypeV2_PAPER
+	provisionUI.DeviceType = "backup"
 	uis = libkb.UIs{
 		ProvisionUI: provisionUI,
 		LogUI:       tc.G.UI.GetLogUI(),
@@ -259,7 +259,7 @@ func TestDeprovision(t *testing.T) {
 		SecretUI:    secretUI,
 		LoginUI:     &libkb.TestLoginUI{Username: user.Username},
 	}
-	eng3 := engine.NewLogin(tc.G, keybase1.DeviceTypeV2_DESKTOP, user.Username, keybase1.ClientType_CLI)
+	eng3 := engine.NewLogin(tc.G, libkb.DeviceTypeDesktop, user.Username, keybase1.ClientType_CLI)
 	mctx = mctx.WithUIs(uis)
 	err = engine.RunEngine2(mctx, eng3)
 	require.NoError(t, err)

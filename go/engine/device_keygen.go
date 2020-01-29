@@ -16,7 +16,7 @@ type DeviceKeygenArgs struct {
 	Me              *libkb.User
 	DeviceID        keybase1.DeviceID
 	DeviceName      string
-	DeviceType      keybase1.DeviceTypeV2
+	DeviceType      string
 	Lks             *libkb.LKSec
 	IsEldest        bool
 	IsSelfProvision bool
@@ -267,7 +267,7 @@ func (e *DeviceKeygen) localSave(m libkb.MetaContext) {
 	if e.runErr != nil {
 		return
 	}
-	if e.args.DeviceType == keybase1.DeviceTypeV2_PAPER {
+	if e.args.DeviceType == libkb.DeviceTypePaper {
 		m.Debug("Not writing out paper key to local storage")
 		return
 	}

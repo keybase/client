@@ -198,7 +198,7 @@ func TestCancelAutoresetWhenRevoked(t *testing.T) {
 
 	tc2 := libkb.SetupTest(t, "lockdown_second", 3)
 	defer tc2.Cleanup()
-	kbtest.ProvisionNewDeviceKex(&tc1, &tc2, user, keybase1.DeviceTypeV2_DESKTOP)
+	kbtest.ProvisionNewDeviceKex(&tc1, &tc2, user, libkb.DeviceTypeDesktop)
 
 	// Reset account using tc1.
 	kbtest.ResetAccount(tc1, user)

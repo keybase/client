@@ -170,9 +170,9 @@ type ProvisioneeSuccessArg struct {
 }
 
 type ProvisionerSuccessArg struct {
-	SessionID  int          `codec:"sessionID" json:"sessionID"`
-	DeviceName string       `codec:"deviceName" json:"deviceName"`
-	DeviceType DeviceTypeV2 `codec:"deviceType" json:"deviceType"`
+	SessionID  int    `codec:"sessionID" json:"sessionID"`
+	DeviceName string `codec:"deviceName" json:"deviceName"`
+	DeviceType string `codec:"deviceType" json:"deviceType"`
 }
 
 type ProvisionUiInterface interface {

@@ -540,7 +540,7 @@ func (u *userPlusDevice) userVersion() keybase1.UserVersion {
 
 func (u *userPlusDevice) paperKeyID() keybase1.DeviceID {
 	for _, d := range u.devices() {
-		if d.Type == keybase1.DeviceTypeV2_PAPER {
+		if d.Type == libkb.DeviceTypePaper {
 			return d.DeviceID
 		}
 	}
@@ -910,7 +910,7 @@ func (u *userPlusDevice) login() {
 		SecretUI:    u.newSecretUI(),
 		LoginUI:     &libkb.TestLoginUI{Username: u.username},
 	}
-	li := engine.NewLogin(u.tc.G, keybase1.DeviceTypeV2_DESKTOP, u.username, keybase1.ClientType_CLI)
+	li := engine.NewLogin(u.tc.G, libkb.DeviceTypeDesktop, u.username, keybase1.ClientType_CLI)
 	mctx := libkb.NewMetaContextTODO(u.tc.G).WithUIs(uis)
 	err := engine.RunEngine2(mctx, li)
 	require.NoError(u.tc.T, err)
@@ -1210,7 +1210,7 @@ func TestTeamSignedByRevokedDevice(t *testing.T) {
 		devices, _ := getActiveDevicesAndKeys(alice.tc, alice.username)
 		var target *libkb.Device
 		for _, device := range devices {
-			if device.Type != keybase1.DeviceTypeV2_PAPER {
+			if device.Type != libkb.DeviceTypePaper {
 				target = device
 			}
 		}

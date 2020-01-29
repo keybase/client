@@ -274,9 +274,9 @@ func (d *testDevice) loadEncryptionKIDs() (devices []keybase1.KID, backups []bac
 		}
 
 		switch parent.DeviceType {
-		case keybase1.DeviceTypeV2_PAPER:
+		case libkb.DeviceTypePaper:
 			backups = append(backups, backupKey{KID: key.KID, deviceID: parent.DeviceID})
-		case keybase1.DeviceTypeV2_DESKTOP:
+		case libkb.DeviceTypeDesktop:
 			devices = append(devices, key.KID)
 		default:
 		}
@@ -292,7 +292,7 @@ func (d *testDevice) loadDeviceList() []keybase1.Device {
 	}
 	var ret []keybase1.Device
 	for _, device := range devices {
-		if device.Type == keybase1.DeviceTypeV2_DESKTOP {
+		if device.Type == "desktop" {
 			ret = append(ret, device)
 		}
 

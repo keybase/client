@@ -58,7 +58,7 @@ func TestLoadUserPlusKeysRevoked(t *testing.T) {
 	devices, _ := getActiveDevicesAndKeys(tc, fu)
 	var paper *libkb.Device
 	for _, device := range devices {
-		if device.Type == keybase1.DeviceTypeV2_PAPER {
+		if device.Type == libkb.DeviceTypePaper {
 			paper = device.Device
 			break
 		}

@@ -11,7 +11,6 @@ import (
 
 	"github.com/keybase/client/go/kex2"
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
 
@@ -72,7 +71,7 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 			device := &libkb.Device{
 				ID:          deviceID,
 				Description: &dname,
-				Type:        keybase1.DeviceTypeV2_DESKTOP,
+				Type:        libkb.DeviceTypeDesktop,
 			}
 			provisionee := NewKex2Provisionee(tcY.G, device, secretY, userX.UID(), fakeSalt())
 			return RunEngine2(m, provisionee)
@@ -148,7 +147,7 @@ func provisionNewDeviceKex(tcX *libkb.TestContext, userX *FakeUser) (*libkb.Test
 			device := &libkb.Device{
 				ID:          deviceID,
 				Description: &dname,
-				Type:        keybase1.DeviceTypeV2_DESKTOP,
+				Type:        libkb.DeviceTypeDesktop,
 			}
 			provisionee := NewKex2Provisionee(tcY.G, device, secretY, userX.UID(), fakeSalt())
 			return RunEngine2(m, provisionee)

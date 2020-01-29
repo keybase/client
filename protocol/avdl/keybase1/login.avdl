@@ -19,13 +19,13 @@ protocol login {
   array<ConfiguredAccount> getConfiguredAccounts(int sessionID);
 
   /**
-    Performs login.  deviceType should be keybase1.DeviceTypeV2_DESKTOP
-    or keybase1.DeviceTypeV2_MOBILE. username is optional. If the current
+    Performs login.  deviceType should be libkb.DeviceTypeDesktop
+    or libkb.DeviceTypeMobile. username is optional. If the current
     device isn't provisioned, this function will provision it.
     */
   void login(
     int sessionID,
-    DeviceTypeV2 deviceType,
+    string deviceType,
     string username,
     ClientType clientType,
     boolean doUserSwitch=false,

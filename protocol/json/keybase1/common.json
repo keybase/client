@@ -339,7 +339,7 @@
           "name": "deviceDescription"
         },
         {
-          "type": "DeviceTypeV2",
+          "type": "string",
           "name": "deviceType"
         },
         {
@@ -407,7 +407,7 @@
       "name": "Device",
       "fields": [
         {
-          "type": "DeviceTypeV2",
+          "type": "string",
           "name": "type"
         },
         {
@@ -454,17 +454,6 @@
       "symbols": [
         "DESKTOP_0",
         "MOBILE_1"
-      ]
-    },
-    {
-      "type": "enum",
-      "name": "DeviceTypeV2",
-      "symbols": [
-        "NONE_0",
-        "DESKTOP_1",
-        "MOBILE_2",
-        "WEB_3",
-        "PAPER_5"
       ]
     },
     {

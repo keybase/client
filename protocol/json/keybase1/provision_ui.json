@@ -230,7 +230,7 @@
         },
         {
           "name": "deviceType",
-          "type": "DeviceTypeV2"
+          "type": "string"
         }
       ],
       "response": null,
