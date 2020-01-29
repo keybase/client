@@ -150,6 +150,11 @@ export async function saveAttachmentToCameraRoll(filePath: string, mimeType: str
   }
 }
 
+const onShareAction = async (action: ConfigGen.ShowShareActionSheetPayload) => {
+  const {filePath, mimeType} = action.payload
+  await showShareActionSheet({filePath, mimeType})
+}
+
 export const showShareActionSheet = async (options: {
   filePath?: any | null
   message?: any | null
@@ -877,6 +882,8 @@ export function* platformConfigSaga() {
   yield* Saga.chainAction2(ProfileGen.editAvatar, editAvatar)
   yield* Saga.chainAction2(ConfigGen.loggedIn, initOsNetworkStatus)
   yield* Saga.chainAction(ConfigGen.osNetworkStatusChanged, updateMobileNetState)
+
+  yield* Saga.chainAction(ConfigGen.showShareActionSheet, onShareAction)
 
   // Contacts
   yield* Saga.chainAction2(

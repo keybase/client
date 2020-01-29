@@ -68,6 +68,7 @@ func (o TeamSearchRes) DeepCopy() TeamSearchRes {
 }
 
 type TeamSearchArg struct {
+	Uid   *UID   `codec:"uid,omitempty" json:"uid,omitempty"`
 	Query string `codec:"query" json:"query"`
 	Limit int    `codec:"limit" json:"limit"`
 }

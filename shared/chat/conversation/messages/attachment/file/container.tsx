@@ -50,11 +50,15 @@ export default Container.connect(
       errorMsg: message.transferErrMsg || '',
       fileName: message.fileName,
       hasProgress,
-      onDownload: Container.isMobile
-        ? () => dispatchProps._onShare(message)
-        : !message.downloadPath
-        ? () => dispatchProps._onDownload(message)
-        : undefined,
+      onDownload: () => {
+        if (Container.isMobile) {
+          dispatchProps._onShare(message)
+        } else {
+          if (!message.downloadPath) {
+            dispatchProps._onDownload(message)
+          }
+        }
+      },
       onShowInFinder:
         !Container.isMobile && message.downloadPath
           ? () => dispatchProps._onShowInFinder(message)

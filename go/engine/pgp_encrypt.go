@@ -25,8 +25,9 @@ type PGPEncryptArg struct {
 // PGPEncrypt encrypts data read from a source into a sink
 // for a set of users.  It will track them if necessary.
 type PGPEncrypt struct {
-	arg *PGPEncryptArg
-	me  *libkb.User
+	arg      *PGPEncryptArg
+	me       *libkb.User
+	warnings libkb.HashSecurityWarnings
 	libkb.Contextified
 }
 
@@ -51,7 +52,10 @@ func (e *PGPEncrypt) Prereqs() Prereqs {
 // RequiredUIs returns the required UIs.
 func (e *PGPEncrypt) RequiredUIs() []libkb.UIKind {
 	// context.SecretKeyPromptArg requires SecretUI
-	return []libkb.UIKind{libkb.SecretUIKind}
+	return []libkb.UIKind{
+		libkb.SecretUIKind,
+		libkb.PgpUIKind,
+	}
 }
 
 // SubConsumers returns the other UI consumers for this engine.
@@ -133,11 +137,26 @@ func (e *PGPEncrypt) Run(m libkb.MetaContext) error {
 	}
 
 	ks := newKeyset()
+	e.warnings = libkb.HashSecurityWarnings{}
+
+	if mykey != nil {
+		if w := mykey.SecurityWarnings(
+			libkb.HashSecurityWarningOurIdentityHash,
+		); len(w) > 0 {
+			e.warnings = append(e.warnings, w...)
+		}
+	}
 
 	for _, up := range uplus {
 		for _, k := range up.Keys {
 			if len(k.Entity.Revocations)+len(k.Entity.UnverifiedRevocations) > 0 {
 				continue
+			}
+
+			if w := k.SecurityWarnings(
+				libkb.HashSecurityWarningRecipientsIdentityHash,
+			); len(w) > 0 {
+				e.warnings = append(e.warnings, w...)
 			}
 
 			ks.Add(k)
@@ -160,6 +179,14 @@ func (e *PGPEncrypt) Run(m libkb.MetaContext) error {
 		// mykey could still be nil
 		if mykey != nil {
 			ks.Add(mykey)
+		}
+	}
+
+	for _, warning := range e.warnings.Strings() {
+		if err := m.UIs().PgpUI.OutputPGPWarning(m.Ctx(), keybase1.OutputPGPWarningArg{
+			Warning: warning,
+		}); err != nil {
+			return err
 		}
 	}
 

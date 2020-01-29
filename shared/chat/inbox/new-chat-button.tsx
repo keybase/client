@@ -1,8 +1,8 @@
 import * as React from 'react'
-import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
-import {namedConnect} from '../../../util/container'
-import {appendNewChatBuilder} from '../../../actions/typed-routes'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
+import {namedConnect} from '../../util/container'
+import {appendNewChatBuilder} from '../../actions/typed-routes'
 
 type OwnProps = {
   hide: boolean

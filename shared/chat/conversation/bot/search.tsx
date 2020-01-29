@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import * as React from 'react'
 import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
@@ -69,7 +68,7 @@ const SearchBotPopup = (props: Props) => {
   React.useEffect(() => {
     dispatch(BotsGen.createSetSearchFeaturedAndUsersResults({results: undefined}))
     dispatch(BotsGen.createGetFeaturedBots({}))
-  }, [])
+  }, [dispatch])
 
   const botData: Array<RPCTypes.FeaturedBot | string> =
     lastQuery.length > 0 ? results?.bots.slice() ?? [] : Constants.getFeaturedSorted(featuredBotsMap)

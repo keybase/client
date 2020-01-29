@@ -30,6 +30,11 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     draftState.usernameError = ''
     draftState.usernameTaken = ''
   },
+  [SignupGen.requestAutoInvite]: (draftState, action) => {
+    if (action.payload.username) {
+      draftState.username = action.payload.username
+    }
+  },
   [SignupGen.requestedAutoInvite]: (draftState, action) => {
     draftState.inviteCode = action.payload.error ? '' : action.payload.inviteCode ?? ''
   },

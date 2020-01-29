@@ -472,10 +472,16 @@ func TestPGPDecryptNonKeybase(t *testing.T) {
 }
 
 type TestPgpUI struct {
+	OutputWarnings        int
 	OutputCount           int
 	OutputNonKeybaseCount int
 	ShouldPush            bool
 	Generated             keybase1.KeyGeneratedArg
+}
+
+func (t *TestPgpUI) OutputPGPWarning(context.Context, keybase1.OutputPGPWarningArg) error {
+	t.OutputWarnings++
+	return nil
 }
 
 func (t *TestPgpUI) OutputSignatureSuccess(context.Context, keybase1.OutputSignatureSuccessArg) error {

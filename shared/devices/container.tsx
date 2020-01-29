@@ -1,14 +1,14 @@
-import * as React from 'react'
-import Devices, {Props, Item} from '.'
-import * as DevicesGen from '../actions/devices-gen'
-import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Constants from '../constants/devices'
-import * as Kb from '../common-adapters'
-import * as Types from '../constants/types/devices'
 import * as Container from '../util/container'
-import {intersect} from '../util/set'
+import * as DevicesGen from '../actions/devices-gen'
+import * as Kb from '../common-adapters'
+import * as React from 'react'
+import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as Types from '../constants/types/devices'
+import Devices, {Props, Item} from '.'
 import partition from 'lodash/partition'
 import {HeaderTitle, HeaderRightActions} from './nav-header/container'
+import {intersect} from '../util/set'
 
 type OwnProps = Container.RouteProps
 
@@ -22,15 +22,14 @@ const deviceToItem = (d: Types.Device) => ({id: d.deviceID, key: d.deviceID, typ
 const splitAndSortDevices = (deviceMap: Map<string, Types.Device>) =>
   partition([...deviceMap.values()].sort(sortDevices), d => d.revokedAt)
 
-const ReloadableDevices = (props: Props & {clearBadges: () => void}) => {
-  const {clearBadges, ...rest} = props
-  const {loadDevices, title, onBack} = rest
+const ReloadableDevices = (props: Props) => {
+  const {loadDevices, title, onBack} = props
+  const dispatch = Container.useDispatch()
   React.useEffect(() => {
     return () => {
-      clearBadges()
+      dispatch(DevicesGen.createClearBadges())
     }
-    // eslint-disable-next-line
-  }, [])
+  }, [dispatch])
 
   return (
     <Kb.Reloadable
@@ -40,7 +39,7 @@ const ReloadableDevices = (props: Props & {clearBadges: () => void}) => {
       reloadOnMount={true}
       title={title}
     >
-      <Devices {...rest} />
+      <Devices {...props} />
     </Kb.Reloadable>
   )
 }
@@ -61,7 +60,6 @@ const NamedConnected = Container.namedConnect(
     waiting: Constants.isWaiting(state),
   }),
   dispatch => ({
-    clearBadges: () => dispatch(DevicesGen.createClearBadges()),
     loadDevices: () => dispatch(DevicesGen.createLoad()),
     onAddDevice: (highlight?: Array<'computer' | 'phone' | 'paper key'>) => {
       // We don't have navigateAppend in upgraded routes
@@ -77,7 +75,6 @@ const NamedConnected = Container.namedConnect(
       !!stateProps._deviceMap.size && ![...stateProps._deviceMap.values()].some(v => v.type === 'backup')
     return {
       _stateOverride: null,
-      clearBadges: dispatchProps.clearBadges,
       hasNewlyRevoked: newlyRevokedIds.size > 0,
       items: normal.map(deviceToItem) as Array<Item>,
       loadDevices: dispatchProps.loadDevices,

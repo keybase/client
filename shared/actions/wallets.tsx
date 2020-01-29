@@ -259,7 +259,7 @@ function* requestPayment(state: TypedState, _: WalletsGen.RequestPaymentPayload,
   } catch (err) {
     if (err instanceof RPCError && err.code === RPCTypes.StatusCode.scteamcontactsettingsblock) {
       const navAction = maybeNavigateAwayFromSendForm()
-      const users = err.fields?.filter(elem => elem.key === 'usernames')
+      const users = err.fields?.filter((elem: any) => elem.key === 'usernames')
       const usernames = [users[0].value]
       yield Saga.sequentially([
         ...(navAction ? navAction.map(n => Saga.put(n)) : []),
@@ -451,12 +451,22 @@ const loadAccounts = async (
   }
 }
 
-const handleSelectAccountError = (action, msg, err) => {
+const handleSelectAccountError = (
+  action:
+    | WalletsGen.AccountUpdateReceivedPayload
+    | WalletsGen.AccountsReceivedPayload
+    | WalletsGen.LinkedExistingAccountPayload
+    | WalletsGen.LoadAssetsPayload
+    | WalletsGen.LoadMobileOnlyModePayload
+    | WalletsGen.SelectAccountPayload,
+  msg: string,
+  err: RPCError
+) => {
   const errMsg = `Error ${msg}: ${err.desc}`
   // Assume that for auto-selected we're on the Wallets tab.
   if (
-    (action.type === WalletsGen.selectAccount && action.payload.reason === 'user-selected') ||
-    action.payload.reason === 'auto-selected'
+    action.type === WalletsGen.selectAccount &&
+    (action.payload.reason === 'user-selected' || action.payload.reason === 'auto-selected')
   ) {
     // No need to throw black bars -- handled by Reloadable.
     _logger.warn(errMsg)
@@ -524,21 +534,26 @@ const loadAssets = async (state: TypedState, action: LoadAssetsActions, logger: 
   }
 }
 
-const createPaymentsReceived = (accountID, payments, pending, allowClearOldestUnread, error) =>
+const createPaymentsReceived = (
+  accountID: Types.AccountID,
+  payments: RPCStellarTypes.PaymentsPageLocal | undefined,
+  pending: Array<RPCStellarTypes.PaymentOrErrorLocal>,
+  allowClearOldestUnread: boolean,
+  error: string
+) =>
   WalletsGen.createPaymentsReceived({
     accountID,
     allowClearOldestUnread,
     error,
-    oldestUnread: payments.oldestUnread
+    oldestUnread: payments?.oldestUnread
       ? Types.rpcPaymentIDToPaymentID(payments.oldestUnread)
       : Types.noPaymentID,
-    paymentCursor: payments.cursor,
-    payments: (payments.payments || [])
+    paymentCursor: payments?.cursor ?? null,
+    payments: (payments?.payments || [])
       .map(elem => Constants.rpcPaymentResultToPaymentResult(elem, 'history'))
       .filter(Boolean),
-    pending: (pending || [])
-      .map(elem => Constants.rpcPaymentResultToPaymentResult(elem, 'pending'))
-      .filter(Boolean),
+    pending:
+      pending?.map(elem => Constants.rpcPaymentResultToPaymentResult(elem, 'pending')).filter(Boolean) ?? [],
   })
 
 type LoadPaymentsActions =
@@ -564,10 +579,10 @@ const loadPayments = async (state: TypedState, action: LoadPaymentsActions, logg
         RPCStellarTypes.localGetPendingPaymentsLocalRpcPromise({accountID}),
         RPCStellarTypes.localGetPaymentsLocalRpcPromise({accountID}),
       ])
-      return createPaymentsReceived(accountID, payments, pending, true, '')
+      return createPaymentsReceived(accountID, payments ?? undefined, pending ?? [], true, '')
     } catch (err) {
       const error = `There was an error loading your payment history, please try again: ${err.desc}`
-      return createPaymentsReceived(accountID, [], [], true, error)
+      return createPaymentsReceived(accountID, undefined, [], true, error)
     }
   }
   return false
@@ -1219,7 +1234,8 @@ const balancesToAction = (
   ]
 }
 
-const refreshTrustlineAcceptedAssets = async ({payload: {accountID}}) => {
+const refreshTrustlineAcceptedAssets = async (action: WalletsGen.RefreshTrustlineAcceptedAssetsPayload) => {
+  const {accountID} = action.payload
   if (!Types.isValidAccountID(accountID)) {
     return false
   }
@@ -1230,7 +1246,10 @@ const refreshTrustlineAcceptedAssets = async ({payload: {accountID}}) => {
   return balancesToAction(balances || [], accountID, '')
 }
 
-const refreshTrustlineAcceptedAssetsByUsername = async ({payload: {username}}) => {
+const refreshTrustlineAcceptedAssetsByUsername = async (
+  action: WalletsGen.RefreshTrustlineAcceptedAssetsByUsernamePayload
+) => {
+  const {username} = action.payload
   if (!username) {
     return false
   }
@@ -1255,7 +1274,8 @@ const refreshTrustlinePopularAssets = async () => {
   })
 }
 
-const addTrustline = async (state: TypedState, {payload: {accountID, assetID}}) => {
+const addTrustline = async (state: TypedState, action: WalletsGen.AddTrustlinePayload) => {
+  const {accountID, assetID} = action.payload
   const asset = state.wallets.trustline.assetMap.get(assetID) ?? Constants.emptyAssetDescription
   const refresh = WalletsGen.createRefreshTrustlineAcceptedAssets({accountID})
   if (asset === Constants.emptyAssetDescription) {
@@ -1277,7 +1297,8 @@ const addTrustline = async (state: TypedState, {payload: {accountID, assetID}}) 
   }
 }
 
-const deleteTrustline = async (state: TypedState, {payload: {accountID, assetID}}) => {
+const deleteTrustline = async (state: TypedState, action: WalletsGen.DeleteTrustlinePayload) => {
+  const {accountID, assetID} = action.payload
   const asset = state.wallets.trustline.assetMap.get(assetID) ?? Constants.emptyAssetDescription
   const refresh = WalletsGen.createRefreshTrustlineAcceptedAssets({accountID})
   if (asset === Constants.emptyAssetDescription) {
@@ -1299,7 +1320,8 @@ const deleteTrustline = async (state: TypedState, {payload: {accountID, assetID}
 }
 
 let lastSearchText = ''
-const searchTrustlineAssets = async ({payload: {text}}) => {
+const searchTrustlineAssets = async (action: WalletsGen.SetTrustlineSearchTextPayload) => {
+  const {text} = action.payload
   lastSearchText = text
   if (!text) {
     return WalletsGen.createClearTrustlineSearchResults()

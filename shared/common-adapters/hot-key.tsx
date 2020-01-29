@@ -15,8 +15,7 @@ export function useHotKey(keys: Array<string> | string, cb: (key: string) => voi
     return () => {
       unbind(keys)
     }
-    // eslint-disable-next-line
-  }, []) // on mount only
+  }, [keys, cb])
 }
 
 export const HotKey = (p: {hotKeys: Array<string> | string; onHotKey: (key: string) => void}) => {

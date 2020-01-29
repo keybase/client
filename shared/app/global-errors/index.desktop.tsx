@@ -62,12 +62,12 @@ class GlobalError extends Component<Props, State> {
     }
   }
 
-  private summaryForError(err: null | Error | RPCError) {
-    return err ? err.message : undefined
+  private summaryForError(err?: Error | RPCError) {
+    return err?.message
   }
 
-  private detailsForError(err: null | Error | RPCError) {
-    return err ? err.stack : undefined
+  private detailsForError(err?: Error | RPCError) {
+    return err?.stack
   }
 
   componentDidUpdate(prevProps: Props) {

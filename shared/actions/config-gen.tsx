@@ -53,6 +53,7 @@ export const setUseNativeFrame = 'config:setUseNativeFrame'
 export const setUserSwitching = 'config:setUserSwitching'
 export const setWhatsNewLastSeenVersion = 'config:setWhatsNewLastSeenVersion'
 export const showMain = 'config:showMain'
+export const showShareActionSheet = 'config:showShareActionSheet'
 export const startHandshake = 'config:startHandshake'
 export const toggleRuntimeStats = 'config:toggleRuntimeStats'
 export const updateCriticalCheckStatus = 'config:updateCriticalCheckStatus'
@@ -149,6 +150,7 @@ type _SetUseNativeFramePayload = {readonly useNativeFrame: boolean}
 type _SetUserSwitchingPayload = {readonly userSwitching: boolean}
 type _SetWhatsNewLastSeenVersionPayload = {readonly lastSeenVersion: string}
 type _ShowMainPayload = void
+type _ShowShareActionSheetPayload = {readonly filePath: string; readonly mimeType: string}
 type _StartHandshakePayload = void
 type _ToggleRuntimeStatsPayload = void
 type _UpdateCriticalCheckStatusPayload = {
@@ -382,6 +384,9 @@ export const createSetUserSwitching = (payload: _SetUserSwitchingPayload): SetUs
   type: setUserSwitching,
 })
 export const createShowMain = (payload: _ShowMainPayload): ShowMainPayload => ({payload, type: showMain})
+export const createShowShareActionSheet = (
+  payload: _ShowShareActionSheetPayload
+): ShowShareActionSheetPayload => ({payload, type: showShareActionSheet})
 export const createToggleRuntimeStats = (payload: _ToggleRuntimeStatsPayload): ToggleRuntimeStatsPayload => ({
   payload,
   type: toggleRuntimeStats,
@@ -531,6 +536,10 @@ export type SetWhatsNewLastSeenVersionPayload = {
   readonly type: typeof setWhatsNewLastSeenVersion
 }
 export type ShowMainPayload = {readonly payload: _ShowMainPayload; readonly type: typeof showMain}
+export type ShowShareActionSheetPayload = {
+  readonly payload: _ShowShareActionSheetPayload
+  readonly type: typeof showShareActionSheet
+}
 export type StartHandshakePayload = {
   readonly payload: _StartHandshakePayload
   readonly type: typeof startHandshake
@@ -605,6 +614,7 @@ export type Actions =
   | SetUserSwitchingPayload
   | SetWhatsNewLastSeenVersionPayload
   | ShowMainPayload
+  | ShowShareActionSheetPayload
   | StartHandshakePayload
   | ToggleRuntimeStatsPayload
   | UpdateCriticalCheckStatusPayload

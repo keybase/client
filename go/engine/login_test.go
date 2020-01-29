@@ -4166,7 +4166,10 @@ func signString(tc libkb.TestContext, input string, secUI libkb.SecretUI) error 
 	}
 
 	eng := NewPGPSignEngine(tc.G, &earg)
-	m := NewMetaContextForTest(tc).WithUIs(libkb.UIs{SecretUI: secUI})
+	m := NewMetaContextForTest(tc).WithUIs(libkb.UIs{
+		PgpUI:    &TestPgpUI{},
+		SecretUI: secUI,
+	})
 	return RunEngine2(m, eng)
 }
 

@@ -404,7 +404,7 @@ class ProvisioningManager {
 
     Object.keys(this.stashedResponse).forEach(key => {
       logger.info('ProvisioningManager - canceling ongoing stashed response')
-      Constants.cancelOnCallback(null, this.stashedResponse[key as any])
+      Constants.cancelOnCallback(null, (this.stashedResponse as any)[key])
     })
     this.stashedResponse = {}
     this.canceled = true
@@ -665,7 +665,7 @@ function* provisionSaga() {
   yield* Saga.chainGenerator(ProvisionGen.backToDeviceList, backToDeviceList)
 }
 
-export const _testing = {
+export const _testing: any = {
   makeProvisioningManager,
   maybeCancelProvision,
 }

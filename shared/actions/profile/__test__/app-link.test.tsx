@@ -3,7 +3,7 @@ import URL from 'url-parse'
 import {urlToUsername} from '../../../constants/config'
 
 describe('urlToUsername', () => {
-  function check(link, expectedUsername) {
+  function check(link: string, expectedUsername: string | null) {
     const url = new URL(link)
     const username = urlToUsername(url)
     expect(username).toBe(expectedUsername)

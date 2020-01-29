@@ -33,7 +33,7 @@ const AnimatedChild = React.memo(({children, animatingKey}: AnimatedChildProps) 
     return () => {
       animatingMap.set(animatingKey, null)
     }
-  })
+  }, [animatingKey])
   return (
     <Animated.View
       style={{opacity, overflow: 'hidden', transform: [{translateY}], width: '100%'}}

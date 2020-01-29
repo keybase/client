@@ -24,6 +24,7 @@ type Props = {
 }
 
 const CopyText = (props: Props) => {
+  const {withReveal, text, loadText, onCopy, hideOnCopy} = props
   const [revealed, setRevealed] = React.useState(!props.withReveal)
   const [showingToast, setShowingToast] = React.useState(false)
   const [requestedCopy, setRequestedCopy] = React.useState(false)
@@ -33,23 +34,20 @@ const CopyText = (props: Props) => {
   }, [showingToast, setShowingToastFalseLater])
 
   React.useEffect(() => {
-    if (!props.withReveal && !props.text) {
+    if (!withReveal && !text) {
       // only try to load text if withReveal is false
-      if (!props.loadText) {
+      if (!loadText) {
         logger.warn('no loadText method provided')
         return
       }
-      props.loadText()
+      loadText()
     }
-    //  only run this effect once, on first render
-    // eslint-disable-next-line
-  }, [])
+  }, [withReveal, text, loadText])
 
   const attachmentRef = React.useRef<Box2>(null)
   const textRef = React.useRef<Text>(null)
 
   const dispatch = Container.useDispatch()
-  const {text, loadText, onCopy, hideOnCopy} = props
 
   const copy = React.useCallback(() => {
     if (!text) {
