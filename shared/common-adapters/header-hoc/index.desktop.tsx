@@ -2,10 +2,12 @@ import * as React from 'react'
 import Text from '../text'
 import BackButton from '../back-button'
 import Box from '../box'
-import Icon from '../icon'
+import Icon, {IconType} from '../icon'
 import * as Styles from '../../styles'
 import {Props, LeftActionProps} from './types'
 import {hoistNonReactStatic} from '../../util/container'
+
+const Kb = {IconType}
 
 export const HeaderHocHeader = ({
   headerStyle,

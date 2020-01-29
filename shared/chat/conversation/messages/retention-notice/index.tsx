@@ -13,7 +13,9 @@ export type Props = {
   teamPolicy: RetentionPolicy
 }
 
-const iconType = Styles.isMobile ? 'icon-message-retention-48' : 'icon-message-retention-32'
+const iconType = Styles.isMobile
+  ? Kb.IconType.icon_message_retention_48
+  : Kb.IconType.icon_message_retention_32
 
 export default (props: Props) => {
   Container.useDepChangeEffect(() => {

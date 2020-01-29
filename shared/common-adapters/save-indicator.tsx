@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Styles from '../styles'
 import Box from './box'
-import Icon from './icon'
+import Icon, {IconType} from './icon'
 import ProgressIndicator from './progress-indicator'
 import Text from './text'
 import * as Flow from '../util/flow'
@@ -9,6 +9,7 @@ import * as Flow from '../util/flow'
 const Kb = {
   Box,
   Icon,
+  IconType,
   ProgressIndicator,
   Text,
 }

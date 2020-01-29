@@ -2,9 +2,11 @@ import * as React from 'react'
 import Box from './box'
 import ScrollView from './scroll-view'
 import Text from './text'
-import Icon from './icon'
+import Icon, {IconType} from './icon'
 import logger from '../logger'
 import * as Styles from '../styles'
+
+const Kb = {IconType}
 
 // Although not mentioned in
 // https://reactjs.org/blog/2017/07/26/error-handling-in-react-16.html ,

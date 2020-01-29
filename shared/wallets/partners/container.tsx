@@ -7,6 +7,8 @@ import * as WalletsGen from '../../actions/wallets-gen'
 import {IconType} from '../../common-adapters/icon.constants-gen'
 import Partners from '.'
 
+const Kb = {IconType}
+
 type OwnProps = {}
 
 const transformUrl = (accountID: string, url: string, username: string): string =>

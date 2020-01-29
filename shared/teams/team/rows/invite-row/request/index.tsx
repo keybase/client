@@ -1,14 +1,6 @@
 import * as React from 'react'
 import * as Types from '../../../../../constants/types/teams'
-import {
-  Avatar,
-  Box,
-  Button,
-  ClickableBox,
-  Icon,
-  Meta,
-  ConnectedUsernames,
-} from '../../../../../common-adapters'
+import * as Kb from '../../../../../common-adapters'
 import {FloatingRolePicker} from '../../../../role-picker'
 import * as Styles from '../../../../../styles'
 
@@ -37,17 +29,17 @@ export type Props = {} & RowProps & RolePickerProps
 export const TeamRequestRow = (props: Props) => {
   const {username, onOpenProfile, onChat, onIgnoreRequest, onAccept} = props
   return (
-    <Box style={styles.container}>
-      <ClickableBox style={styles.clickContainer} onClick={() => onOpenProfile(username)}>
-        <Avatar username={username} size={Styles.isMobile ? 48 : 32} />
-        <Box style={styles.userDetails}>
-          <ConnectedUsernames type="BodySemibold" colorFollowing={true} usernames={[username]} />
-          <Box style={Styles.globalStyles.flexBoxRow}>
-            <Meta title="please decide" style={styleCharm} backgroundColor={Styles.globalColors.orange} />
-          </Box>
-        </Box>
-      </ClickableBox>
-      <Box style={styles.floatingRolePickerContainer}>
+    <Kb.Box style={styles.container}>
+      <Kb.ClickableBox style={styles.clickContainer} onClick={() => onOpenProfile(username)}>
+        <Kb.Avatar username={username} size={Styles.isMobile ? 48 : 32} />
+        <Kb.Box style={styles.userDetails}>
+          <Kb.ConnectedUsernames type="BodySemibold" colorFollowing={true} usernames={[username]} />
+          <Kb.Box style={Styles.globalStyles.flexBoxRow}>
+            <Kb.Meta title="please decide" style={styleCharm} backgroundColor={Styles.globalColors.orange} />
+          </Kb.Box>
+        </Kb.Box>
+      </Kb.ClickableBox>
+      <Kb.Box style={styles.floatingRolePickerContainer}>
         <FloatingRolePicker
           selectedRole={props.selectedRole}
           onSelectRole={props.onSelectRole}
@@ -59,18 +51,20 @@ export const TeamRequestRow = (props: Props) => {
           open={props.isRolePickerOpen}
           disabledRoles={props.disabledReasonsForRolePicker}
         >
-          <Button label="Let in as..." onClick={onAccept} small={true} style={styles.letInButton} />
+          <Kb.Button label="Let in as..." onClick={onAccept} small={true} style={styles.letInButton} />
         </FloatingRolePicker>
-        <Button
+        <Kb.Button
           label="Ignore"
           onClick={onIgnoreRequest}
           small={true}
           style={styles.ignoreButton}
           type="Danger"
         />
-        {!Styles.isMobile && <Icon onClick={onChat} style={styles.icon} type={Kb.IconType.iconfont_chat} />}
-      </Box>
-    </Box>
+        {!Styles.isMobile && (
+          <Kb.Icon onClick={onChat} style={styles.icon} type={Kb.IconType.iconfont_chat} />
+        )}
+      </Kb.Box>
+    </Kb.Box>
   )
 }
 

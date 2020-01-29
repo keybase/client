@@ -3,11 +3,13 @@ import Text from '../text'
 import BackButton from '../back-button'
 import Box from '../box'
 import FloatingMenu from '../floating-menu'
-import Icon from '../icon'
+import Icon, {IconType} from '../icon'
 import SafeAreaView, {SafeAreaViewTop} from '../safe-area-view'
 import * as Styles from '../../styles'
 import {Action, Props, LeftActionProps} from './types'
 import {hoistNonReactStatic} from '../../util/container'
+
+const Kb = {IconType}
 
 const MAX_RIGHT_ACTIONS = 3
 

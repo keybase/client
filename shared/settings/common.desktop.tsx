@@ -1,15 +1,15 @@
 import * as React from 'react'
-import {Box, Icon} from '../common-adapters'
+import * as Kb from '../common-adapters'
 import range from 'lodash/range'
-import {globalStyles, globalColors} from '../styles'
+import * as Styles from '../styles'
 
 function Stars({count}: {count: number}) {
   return (
-    <Box style={globalStyles.flexBoxRow}>
+    <Kb.Box style={Styles.globalStyles.flexBoxRow}>
       {range(count).map(i => (
-        <Icon key={i} color={globalColors.green} type={Kb.IconType.iconfont_star} />
+        <Kb.Icon key={i} color={Styles.globalColors.green} type={Kb.IconType.iconfont_star} />
       ))}
-    </Box>
+    </Kb.Box>
   )
 }
 

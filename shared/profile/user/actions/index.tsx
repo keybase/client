@@ -180,7 +180,7 @@ const DropdownButton = Kb.OverlayParentHOC((p: Kb.PropsWithOverlay<DropdownProps
       title: 'Browse public folder',
     },
     p.onUnfollow && {
-      icon: Kb.IconType.iconfont_wave,
+      icon: Kb.IconType.iconfont_wave_2,
       onClick: p.onUnfollow && p.onUnfollow,
       title: 'Unfollow',
     },

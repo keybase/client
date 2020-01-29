@@ -2,9 +2,11 @@ import React, {Component} from 'react'
 import {NativeTouchableWithoutFeedback} from './native-wrappers.native'
 import Badge from './badge'
 import Box from './box'
-import Icon from './icon'
+import Icon, {IconType} from './icon'
 import * as Styles from '../styles'
 import {Props} from './back-button'
+
+const Kb = {IconType}
 
 export default class BackButton extends Component<Props> {
   onClick(event: React.BaseSyntheticEvent) {

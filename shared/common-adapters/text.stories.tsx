@@ -2,12 +2,13 @@ import * as React from 'react'
 import * as Sb from '../stories/storybook'
 import * as Styles from '../styles'
 import Box from './box'
-import Icon from './icon'
+import Icon, {IconType} from './icon'
 import Text, {allTextTypes, TextType} from './text'
 
 const Kb = {
   Box,
   Icon,
+  IconType,
   Text,
 }
 

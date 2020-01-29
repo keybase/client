@@ -1,6 +1,6 @@
-import React, {Component} from 'react'
-import {Box, Button, Input, Icon} from '../common-adapters'
-import {globalColors, globalStyles, desktopStyles, platformStyles} from '../styles'
+import * as React from 'react'
+import * as Kb from '../common-adapters'
+import * as Styles from '../styles'
 import {defaultKBFSPath} from '../constants/config'
 
 export type Props = {
@@ -15,22 +15,22 @@ type State = {
 }
 
 const UserButton = ({isPublic, onClick}: {isPublic: boolean; onClick: () => void}) => (
-  <Box
+  <Kb.Box
     style={{
       ...stylesButtonContainer,
-      backgroundColor: globalColors.white,
+      backgroundColor: Styles.globalColors.white,
     }}
   >
-    <Button
+    <Kb.Button
       small={true}
       onClick={onClick}
-      labelStyle={{color: globalColors.white}}
+      labelStyle={{color: Styles.globalColors.white}}
       style={{
-        backgroundColor: globalColors.blue,
+        backgroundColor: Styles.globalColors.blue,
       }}
       label={isPublic ? 'Open public folder' : 'New private folder'}
     />
-  </Box>
+  </Kb.Box>
 )
 
 type UserInputProps = {
@@ -44,16 +44,16 @@ type UserInputProps = {
 
 const UserInput = ({isPublic, onSubmit, onCancel, onUpdateText, username, text}: UserInputProps) => {
   return (
-    <Box
+    <Kb.Box
       style={{
         ...stylesInputContainer,
-        backgroundColor: globalColors.white,
+        backgroundColor: Styles.globalColors.white,
       }}
     >
-      <Input
+      <Kb.Input
         small={true}
         smallLabel={isPublic || !username ? '' : `${username},`}
-        smallLabelStyle={{color: globalColors.blueDarker, marginRight: 0}}
+        smallLabelStyle={{color: Styles.globalColors.blueDarker, marginRight: 0}}
         hideUnderline={true}
         autoFocus={true}
         hintText={isPublic ? 'user or user1,user2,user3' : 'user1,user2,user3,...'}
@@ -68,19 +68,19 @@ const UserInput = ({isPublic, onSubmit, onCancel, onUpdateText, username, text}:
           }
         }}
       />
-      <Icon
+      <Kb.Icon
         type={Kb.IconType.iconfont_folder_open}
         onClick={onSubmit}
-        style={platformStyles({
-          isElectron: desktopStyles.clickable,
+        style={Styles.platformStyles({
+          isElectron: Styles.desktopStyles.clickable,
         })}
-        color={globalColors.blue}
+        color={Styles.globalColors.blue}
       />
-    </Box>
+    </Kb.Box>
   )
 }
 
-class UserAdd extends Component<Props, State> {
+class UserAdd extends React.Component<Props, State> {
   state: State
 
   constructor(props: Props) {
@@ -123,7 +123,7 @@ class UserAdd extends Component<Props, State> {
 }
 
 const stylesButtonContainer = {
-  ...globalStyles.flexBoxColumn,
+  ...Styles.globalStyles.flexBoxColumn,
   alignItems: 'center',
   flex: 1,
   height: 40,
@@ -133,7 +133,7 @@ const stylesButtonContainer = {
 }
 
 const stylesInputContainer = {
-  ...globalStyles.flexBoxRow,
+  ...Styles.globalStyles.flexBoxRow,
   alignItems: 'center',
   flex: 1,
   height: 40,

@@ -134,11 +134,7 @@ const Header = (props: HeaderProps) => (
         </Kb.Text>
         {props.signed && (
           <Kb.Box2 direction="horizontal" style={styles.verifiedIconBox}>
-            <Kb.Icon
-              sizeType={Kb.IconType.Small}
-              style={styles.verifiedIcon}
-              type={Kb.IconType.iconfont_success}
-            />
+            <Kb.Icon sizeType="Small" style={styles.verifiedIcon} type={Kb.IconType.iconfont_success} />
           </Kb.Box2>
         )}
       </Kb.Box2>

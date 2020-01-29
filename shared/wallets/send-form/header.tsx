@@ -29,7 +29,11 @@ const Header = (props: Props) => (
       )}
       {props.children || (
         <Kb.Icon
-          type={props.isRequest ? 'icon-stellar-coins-receiving-48' : 'icon-stellar-coins-sending-48'}
+          type={
+            props.isRequest
+              ? Kb.IconType.icon_stellar_coins_receiving_48
+              : Kb.IconType.icon_stellar_coins_sending_48
+          }
           style={styles.icon}
         />
       )}

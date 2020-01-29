@@ -1,9 +1,11 @@
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
-import {Avatar, Box} from '..'
+import {Avatar, Box, IconType} from '..'
 import ConfirmModal from '.'
 import * as Styles from '../../styles'
 import repeat from 'lodash/repeat'
+
+const Kb = {IconType}
 
 const styles = Styles.styleSheetCreate(() => ({
   avatarBox: {

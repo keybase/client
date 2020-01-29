@@ -141,8 +141,8 @@ class CodePage2 extends React.Component<Props, State> {
           <Kb.Icon
             type={
               this.state.tab === 'QR'
-                ? 'illustration-bg-provisioning-blue'
-                : 'illustration-bg-provisioning-green'
+                ? Kb.IconType.illustration_bg_provisioning_blue
+                : Kb.IconType.illustration_bg_provisioning_green
             }
             style={
               this.props.currentDeviceAlreadyProvisioned ? styles.backgroundOnLeft : styles.backgroundOnRight

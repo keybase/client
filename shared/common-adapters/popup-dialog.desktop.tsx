@@ -1,10 +1,12 @@
 import * as React from 'react'
 import Box from './box'
-import Icon from './icon'
+import Icon, {IconType} from './icon'
 import {EscapeHandler} from '../util/key-event-handler.desktop'
 import * as Styles from '../styles'
 import {Props} from './popup-dialog'
 import ModalTabBarShim from './modal-tab-bar-shim'
+
+const Kb = {IconType}
 
 function stopBubbling(ev) {
   ev.stopPropagation()

@@ -4,6 +4,8 @@ import Box from './box'
 import Icon, {IconType} from './icon'
 import {isMobile} from '../constants/platform'
 
+const Kb = {IconType}
+
 type Props = {
   platform: PlatformsExpandedType
   overlay: IconType
@@ -36,7 +38,7 @@ function _specsForMobileOrDesktop() {
     https: {icon: isMobile ? Kb.IconType.icon_website_64 : Kb.IconType.icon_website_48},
     pgp: {
       icon: isMobile ? Kb.IconType.icon_pgp_key_64 : Kb.IconType.icon_pgp_key_48,
-      offsetBottom: _2,
+      offsetBottom: -2,
       offsetRight: 4,
     },
     reddit: {icon: isMobile ? Kb.IconType.icon_reddit_logo_64 : Kb.IconType.icon_reddit_logo_48},

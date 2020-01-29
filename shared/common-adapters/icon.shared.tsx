@@ -3,6 +3,8 @@ import {IconType, SizeType} from './icon'
 import {iconMeta} from './icon.constants-gen'
 import './icon.css'
 
+const Kb = {IconType}
+
 export function defaultColor(type: IconType): string | null {
   switch (type) {
     case Kb.IconType.iconfont_crown_admin:

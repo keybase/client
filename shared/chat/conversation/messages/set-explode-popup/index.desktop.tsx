@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {MessageExplodeDescription} from '../../../../constants/types/chat2'
-import {MenuItems, Box2, Icon, Text, FloatingMenu} from '../../../../common-adapters'
+import * as Kb from '../../../../common-adapters'
 import {platformStyles, globalColors} from '../../../../styles'
 import {Props} from '.'
 
@@ -27,26 +27,26 @@ const Item = (props: ItemProps) => {
   } else {
     content = (
       <>
-        <Text type="Body" style={quantityTextStyle}>
+        <Kb.Text type="Body" style={quantityTextStyle}>
           {words[0]}
-        </Text>
+        </Kb.Text>
         {' ' + words.slice(1).join(' ')}
       </>
     )
   }
   return (
-    <Box2 direction="horizontal" fullWidth={true}>
-      <Text type="Body" style={{flex: 1}}>
+    <Kb.Box2 direction="horizontal" fullWidth={true}>
+      <Kb.Text type="Body" style={{flex: 1}}>
         {content}
-      </Text>
-      {props.selected && <Icon type={Kb.IconType.iconfont_check} color={globalColors.blue} />}
-    </Box2>
+      </Kb.Text>
+      {props.selected && <Kb.Icon type={Kb.IconType.iconfont_check} color={globalColors.blue} />}
+    </Kb.Box2>
   )
 }
 
 const SetExplodePopup = (props: Props) => {
   const selected = props.selected || {seconds: 0, text: 'Never'}
-  const listItems: MenuItems = props.items.map(it => ({
+  const listItems: Kb.MenuItems = props.items.map(it => ({
     disabled: false,
     onClick: () => props.onSelect(it.seconds),
     title: it.text,
@@ -56,10 +56,10 @@ const SetExplodePopup = (props: Props) => {
     disabled: true,
     onClick: undefined,
     title: 'Explode message after:',
-    view: <Text type="BodySmallSemibold">Explode messages after:</Text>,
+    view: <Kb.Text type="BodySmallSemibold">Explode messages after:</Kb.Text>,
   })
   return (
-    <FloatingMenu
+    <Kb.FloatingMenu
       attachTo={props.attachTo}
       position="top left"
       visible={props.visible}

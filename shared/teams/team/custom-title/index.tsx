@@ -1,6 +1,6 @@
 import * as React from 'react'
-import {Box, Icon, ProgressIndicator, OverlayParentHOC, OverlayParentProps} from '../../../common-adapters'
-import {globalStyles, globalMargins, isMobile, styleSheetCreate} from '../../../styles'
+import * as Kb from '../../../common-adapters'
+import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/teams'
 import TeamMenu from '../menu-container'
 
@@ -11,15 +11,20 @@ type Props = {
   teamID: Types.TeamID
 }
 
-const fontSize = isMobile ? 20 : 16
+const fontSize = Styles.isMobile ? 20 : 16
 
-const _CustomComponent = (props: Props & OverlayParentProps) => (
-  <Box style={styles.container}>
-    {isMobile && props.loading && <ProgressIndicator style={styles.progressIndicator} />}
+const _CustomComponent = (props: Props & Kb.OverlayParentProps) => (
+  <Kb.Box style={styles.container}>
+    {Styles.isMobile && props.loading && <Kb.ProgressIndicator style={styles.progressIndicator} />}
     {props.canChat && (
-      <Icon onClick={props.onChat} fontSize={fontSize} style={styles.icon} type={Kb.IconType.iconfont_chat} />
+      <Kb.Icon
+        onClick={props.onChat}
+        fontSize={fontSize}
+        style={styles.icon}
+        type={Kb.IconType.iconfont_chat}
+      />
     )}
-    <Icon
+    <Kb.Icon
       ref={props.setAttachmentRef}
       onClick={props.toggleShowingMenu}
       type={Kb.IconType.iconfont_ellipsis}
@@ -32,26 +37,26 @@ const _CustomComponent = (props: Props & OverlayParentProps) => (
       teamID={props.teamID}
       visible={props.showingMenu}
     />
-  </Box>
+  </Kb.Box>
 )
 
-const styles = styleSheetCreate(() => ({
+const styles = Styles.styleSheetCreate(() => ({
   container: {
-    ...globalStyles.flexBoxRow,
+    ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
     position: 'absolute',
     right: 0,
   },
   icon: {
-    marginRight: globalMargins.tiny,
-    padding: globalMargins.tiny,
+    marginRight: Styles.globalMargins.tiny,
+    padding: Styles.globalMargins.tiny,
   },
   progressIndicator: {
     height: 17,
-    marginRight: globalMargins.tiny,
+    marginRight: Styles.globalMargins.tiny,
     width: 17,
   },
 }))
 
-const CustomComponent = OverlayParentHOC(_CustomComponent)
+const CustomComponent = Kb.OverlayParentHOC(_CustomComponent)
 export default CustomComponent

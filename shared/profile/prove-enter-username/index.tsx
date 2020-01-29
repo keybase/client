@@ -47,7 +47,7 @@ class EnterUsername extends React.Component<Props, State> {
           <Kb.PlatformIcon
             style={styles.centered}
             platform={this.props.platform}
-            overlay="icon-proof-unfinished"
+            overlay={Kb.IconType.icon_proof_unfinished}
             overlayColor={Styles.globalColors.greyDark}
           />
           <Kb.LabeledInput

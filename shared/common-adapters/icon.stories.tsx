@@ -6,6 +6,8 @@ import Text from './text'
 import * as Styles from '../styles'
 import {iconMeta} from './icon.constants-gen'
 
+const Kb = {IconType}
+
 const commonProps = {
   hint: 'hint text',
   onClick: Sb.action('onClick'),

@@ -12,7 +12,7 @@ import ClickableBox from './clickable-box'
 import ConnectedNameWithIcon from './name-with-icon/container'
 import {_setWithProfileCardPopup} from './usernames'
 import FloatingMenu from './floating-menu'
-import Icon from './icon'
+import Icon, {IconType} from './icon'
 import Meta from './meta'
 import ProgressIndicator from './progress-indicator'
 import Text from './text'
@@ -28,6 +28,7 @@ const Kb = {
   ConnectedNameWithIcon,
   FloatingMenu,
   Icon,
+  IconType,
   Meta,
   ProgressIndicator,
   Text,

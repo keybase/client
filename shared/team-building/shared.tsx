@@ -3,6 +3,8 @@ import {ServiceIdWithContact, ServiceMap} from '../constants/types/team-building
 import {IconType} from '../common-adapters/icon.constants-gen'
 import {allServices} from '../constants/team-building'
 
+const Kb = {IconType}
+
 const serviceColors: {[K in ServiceIdWithContact]: string} = {
   get email() {
     return Styles.isDarkMode() ? '#3663ea' : '#3663ea'

@@ -1,7 +1,10 @@
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import Text from '../text'
+import {IconType} from '../icon'
 import NameWithIcon from '.'
+
+const Kb = {IconType}
 
 const commonProps = {
   colorFollowing: true,
@@ -26,13 +29,19 @@ const load = () => {
       <>
         <NameWithIcon
           {...commonProps}
-          icon="icon-computer-96"
+          icon={Kb.IconType.icon_computer_96}
           title="Home laptop"
           metaOne="Current device"
           metaTwo="Computer"
           size="big"
         />
-        <NameWithIcon {...commonProps} icon="icon-phone-48" title="iPhone 8" metaTwo="Phone" size="small" />
+        <NameWithIcon
+          {...commonProps}
+          icon={Kb.IconType.icon_phone_48}
+          title="iPhone 8"
+          metaTwo="Phone"
+          size="small"
+        />
         <NameWithIcon
           {...commonProps}
           teamname="keybasefriends"

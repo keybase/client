@@ -3,15 +3,7 @@ import * as Types from '../../constants/types/wallets'
 import * as RPCTypes from '../../constants/types/rpc-stellar-gen'
 import * as Constants from '../../constants/wallets'
 import capitalize from 'lodash/capitalize'
-import {
-  Avatar,
-  Box2,
-  ClickableBox,
-  Icon,
-  ConnectedUsernames,
-  Text,
-  WaitingButton,
-} from '../../common-adapters'
+import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {formatTimeForMessages, formatTimeForStellarTooltip} from '../../util/timestamp'
 import {MarkdownMemo} from '../common'
@@ -27,35 +19,35 @@ type CounterpartyIconProps = {
 const CounterpartyIcon = (props: CounterpartyIconProps) => {
   const size = props.large ? 48 : 32
   if (!props.counterparty && props.counterpartyType !== 'airdrop') {
-    return <Icon type={Kb.IconType.iconfont_identity_stellar} fontSize={size} />
+    return <Kb.Icon type={Kb.IconType.iconfont_identity_stellar} fontSize={size} />
   }
   switch (props.counterpartyType) {
     case 'airdrop':
-      return <Icon type={Kb.IconType.icon_airdrop_logo_48} style={{height: size, width: size}} />
+      return <Kb.Icon type={Kb.IconType.icon_airdrop_logo_48} style={{height: size, width: size}} />
     case 'keybaseUser':
       return (
-        <Avatar
+        <Kb.Avatar
           onClick={() => props.onShowProfile(props.counterparty)}
           username={props.counterparty}
           size={size}
         />
       )
     case 'stellarPublicKey':
-      return <Icon type={Kb.IconType.icon_placeholder_secret_user_48} style={{height: 48, width: 48}} />
+      return <Kb.Icon type={Kb.IconType.icon_placeholder_secret_user_48} style={{height: 48, width: 48}} />
     case 'otherAccount':
       return (
-        <Box2
+        <Kb.Box2
           alignSelf="flex-start"
           direction="horizontal"
           style={Styles.collapseStyles([styles.transferIconContainer, {width: size}])}
         >
-          <Icon
+          <Kb.Icon
             color={Styles.globalColors.purple}
             sizeType={props.detailView ? 'Bigger' : 'Big'}
             style={Styles.collapseStyles([!props.detailView && styles.transferIcon])}
             type={Kb.IconType.iconfont_wallet_transfer}
           />
-        </Box2>
+        </Kb.Box2>
       )
     default:
       throw new Error(`Unexpected counterpartyType ${props.counterpartyType}`)
@@ -75,13 +67,13 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
   switch (props.counterpartyType) {
     case 'airdrop':
       return (
-        <Text style={{color: Styles.globalColors.purpleDark}} type={props.textTypeSemibold}>
+        <Kb.Text style={{color: Styles.globalColors.purpleDark}} type={props.textTypeSemibold}>
           Stellar airdrop
-        </Text>
+        </Kb.Text>
       )
     case 'keybaseUser':
       return (
-        <ConnectedUsernames
+        <Kb.ConnectedUsernames
           colorFollowing={true}
           colorBroken={true}
           inline={true}
@@ -94,13 +86,13 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
     case 'stellarPublicKey': {
       const key = props.counterparty
       return (
-        <Text type={props.textType} selectable={false} title={key}>
+        <Kb.Text type={props.textType} selectable={false} title={key}>
           {key.substr(0, 6) + '...' + key.substr(-5)}
-        </Text>
+        </Kb.Text>
       )
     }
     case 'otherAccount':
-      return <Text type={props.textTypeItalic}>{props.counterparty}</Text>
+      return <Kb.Text type={props.textTypeItalic}>{props.counterparty}</Kb.Text>
     default:
       throw new Error(`Unexpected counterpartyType ${props.counterpartyType}`)
   }
@@ -143,21 +135,24 @@ const Detail = (props: DetailProps) => {
       const assetCode = props.trustline.asset.code
       const assetIssuer = props.trustline.asset.verifiedDomain || 'Unknown'
       const asset = (
-        <Text type="BodySmall" style={{textDecorationLine: props.trustline.remove ? 'line-through' : 'none'}}>
-          <Text type="BodySmallBold">{assetCode}</Text>/{assetIssuer}
-        </Text>
+        <Kb.Text
+          type="BodySmall"
+          style={{textDecorationLine: props.trustline.remove ? 'line-through' : 'none'}}
+        >
+          <Kb.Text type="BodySmallBold">{assetCode}</Kb.Text>/{assetIssuer}
+        </Kb.Text>
       )
       const verb = props.trustline.remove ? 'removed' : 'added'
       return (
-        <Text type="BodySmall" style={{...styles.breakWord, ...textStyle}}>
+        <Kb.Text type="BodySmall" style={{...styles.breakWord, ...textStyle}}>
           You {verb} a trustline: {asset}
-        </Text>
+        </Kb.Text>
       )
     }
     return (
-      <Text type={textType} style={{...styles.breakWord, ...textStyle}}>
+      <Kb.Text type={textType} style={{...styles.breakWord, ...textStyle}}>
         {props.summaryAdvanced || 'This account was involved in a complex transaction.'}
-      </Text>
+      </Kb.Text>
     )
   }
 
@@ -166,21 +161,21 @@ const Detail = (props: DetailProps) => {
     // non-native asset
     amount = (
       <>
-        <Text selectable={props.selectableText} type={textTypeExtrabold}>
+        <Kb.Text selectable={props.selectableText} type={textTypeExtrabold}>
           {props.amountUser}
-        </Text>{' '}
-        <Text selectable={props.selectableText} type={textType}>
+        </Kb.Text>{' '}
+        <Kb.Text selectable={props.selectableText} type={textType}>
           ({props.issuerDescription})
-        </Text>
+        </Kb.Text>
       </>
     )
   } else if (props.isXLM) {
     // purely, strictly lumens
     amount = (
       <>
-        <Text selectable={props.selectableText} type={textTypeExtrabold}>
+        <Kb.Text selectable={props.selectableText} type={textTypeExtrabold}>
           {props.amountUser}
-        </Text>
+        </Kb.Text>
       </>
     )
   } else {
@@ -188,9 +183,9 @@ const Detail = (props: DetailProps) => {
     amount = (
       <>
         Lumens worth{' '}
-        <Text selectable={true} type={textTypeExtrabold}>
+        <Kb.Text selectable={true} type={textTypeExtrabold}>
           {props.amountUser}
-        </Text>
+        </Kb.Text>
       </>
     )
   }
@@ -206,10 +201,10 @@ const Detail = (props: DetailProps) => {
     />
   )
   const approxWorth = props.approxWorth ? (
-    <Text type={textType}>
+    <Kb.Text type={textType}>
       {' '}
-      (approximately <Text type={textTypeExtrabold}>{props.approxWorth}</Text>)
-    </Text>
+      (approximately <Kb.Text type={textTypeExtrabold}>{props.approxWorth}</Kb.Text>)
+    </Kb.Text>
   ) : (
     ''
   )
@@ -217,63 +212,63 @@ const Detail = (props: DetailProps) => {
   switch (props.yourRole) {
     case 'airdrop':
       return (
-        <Text type={textType} style={textStyle}>
+        <Kb.Text type={textType} style={textStyle}>
           {counterparty()}
-        </Text>
+        </Kb.Text>
       )
     case 'senderOnly':
       if (props.counterpartyType === 'otherAccount') {
         const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
         return (
-          <Text type={textType} style={textStyle}>
+          <Kb.Text type={textType} style={textStyle}>
             {verbPhrase} {amount} from this account to {counterparty()}
             {approxWorth}
             {textSentenceEnd}
-          </Text>
+          </Kb.Text>
         )
       } else {
         const verbPhrase = props.pending || props.canceled ? 'Sending' : 'You sent'
         return (
-          <Text type={textType} style={textStyle}>
+          <Kb.Text type={textType} style={textStyle}>
             {verbPhrase} {amount} to {counterparty()}
             {approxWorth}
             {textSentenceEnd}
-          </Text>
+          </Kb.Text>
         )
       }
     case 'receiverOnly':
       if (props.counterpartyType === 'otherAccount') {
         const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
         return (
-          <Text type={textType} style={textStyle}>
+          <Kb.Text type={textType} style={textStyle}>
             {verbPhrase} {amount} from {counterparty()} to this account{approxWorth}
             {textSentenceEnd}
-          </Text>
+          </Kb.Text>
         )
       } else {
         const verbPhrase = props.pending || props.canceled ? 'sending' : 'sent you'
         return (
-          <Text type={textType} style={textStyle}>
+          <Kb.Text type={textType} style={textStyle}>
             {counterparty()} {verbPhrase} {amount}
             {approxWorth}
             {textSentenceEnd}
-          </Text>
+          </Kb.Text>
         )
       }
     case 'senderAndReceiver': {
       const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
       return (
-        <Text type={textType} style={textStyle}>
+        <Kb.Text type={textType} style={textStyle}>
           {verbPhrase} {amount} from this account to itself{approxWorth}
           {textSentenceEnd}
-        </Text>
+        </Kb.Text>
       )
     }
     case 'none': {
       return (
-        <Text type={textType} style={{...styles.breakWord, ...textStyle}}>
+        <Kb.Text type={textType} style={{...styles.breakWord, ...textStyle}}>
           {props.summaryAdvanced || 'This account was involved in a complex transaction.'}
-        </Text>
+        </Kb.Text>
       )
     }
     default:
@@ -327,7 +322,7 @@ const Amount = (props: AmountProps) => {
 
   const amount = getAmount(props.yourRole, props.amountDescription, props.sourceAmountDescription)
   return (
-    <Text
+    <Kb.Text
       selectable={props.selectableText}
       style={Styles.collapseStyles([
         {color, flexShrink: 0, textAlign: 'right'},
@@ -336,7 +331,7 @@ const Amount = (props: AmountProps) => {
       type="BodyExtrabold"
     >
       {amount}
-    </Text>
+    </Kb.Text>
   )
 }
 
@@ -346,14 +341,14 @@ type TimestampErrorProps = {
 }
 
 export const TimestampError = (props: TimestampErrorProps) => (
-  <Text type="BodySmallError">
+  <Kb.Text type="BodySmallError">
     {props.status ? capitalize(props.status) + ' • ' : ''}
     The Stellar network did not approve this transaction - {props.error}
-  </Text>
+  </Kb.Text>
 )
 
 export const TimestampPending = () => (
-  <Text type="BodySmall">The Stellar network hasn't confirmed your transaction.</Text>
+  <Kb.Text type="BodySmall">The Stellar network hasn't confirmed your transaction.</Kb.Text>
 )
 
 type TimestampLineProps = {
@@ -386,7 +381,7 @@ const TimestampLine = (props: TimestampLineProps) => {
       break
   }
   return (
-    <Text
+    <Kb.Text
       selectable={props.selectableText}
       style={props.reverseColor ? {color: Styles.globalColors.white} : undefined}
       title={tooltip}
@@ -395,21 +390,24 @@ const TimestampLine = (props: TimestampLineProps) => {
       {human}
       {status ? ` • ` : null}
       {!!status && (
-        <Text selectable={props.selectableText} type={status === 'Failed' ? 'BodySmallError' : 'BodySmall'}>
+        <Kb.Text
+          selectable={props.selectableText}
+          type={status === 'Failed' ? 'BodySmallError' : 'BodySmall'}
+        >
           {status}
-        </Text>
+        </Kb.Text>
       )}
       {status === 'Failed' && !props.detailView && (
         <>
           {' '}
           (
-          <Text selectable={props.selectableText} type="BodySmallSecondaryLink">
+          <Kb.Text selectable={props.selectableText} type="BodySmallSecondaryLink">
             see more
-          </Text>
+          </Kb.Text>
           )
         </>
       )}
-    </Text>
+    </Kb.Text>
   )
 }
 
@@ -482,9 +480,9 @@ export const Transaction = (props: Props) => {
       ? Styles.globalColors.blueLighter2
       : Styles.globalColors.white
   return (
-    <Box2 direction="vertical" fullWidth={true} style={{backgroundColor}}>
-      <ClickableBox onClick={props.onSelectTransaction}>
-        <Box2 direction="horizontal" fullWidth={true} style={styles.container}>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={{backgroundColor}}>
+      <Kb.ClickableBox onClick={props.onSelectTransaction}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
           {!(props.isAdvanced && props.trustline) && (
             <CounterpartyIcon
               counterparty={props.counterparty}
@@ -494,7 +492,7 @@ export const Transaction = (props: Props) => {
               onShowProfile={props.onShowProfile}
             />
           )}
-          <Box2 direction="vertical" fullHeight={true} style={styles.rightContainer}>
+          <Kb.Box2 direction="vertical" fullHeight={true} style={styles.rightContainer}>
             <TimestampLine
               detailView={props.detailView || false}
               error={props.status === 'error' ? props.statusDetail : ''}
@@ -532,11 +530,11 @@ export const Transaction = (props: Props) => {
                 styleOverride={props.fromAirdrop ? styleMarkdownMemo : undefined}
               />
             )}
-            <Box2 direction="horizontal" fullWidth={true} style={styles.marginTopXTiny}>
+            <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.marginTopXTiny}>
               {props.onCancelPayment && (
-                <Box2 direction="vertical" gap="tiny" style={styles.flexOne}>
-                  <Text type="BodySmall">{Constants.makeCancelButtonInfo(props.counterparty)}</Text>
-                  <WaitingButton
+                <Kb.Box2 direction="vertical" gap="tiny" style={styles.flexOne}>
+                  <Kb.Text type="BodySmall">{Constants.makeCancelButtonInfo(props.counterparty)}</Kb.Text>
+                  <Kb.WaitingButton
                     type="Danger"
                     mode="Secondary"
                     label="Cancel"
@@ -548,9 +546,9 @@ export const Transaction = (props: Props) => {
                     }}
                     waitingKey={props.onCancelPaymentWaitingKey}
                   />
-                </Box2>
+                </Kb.Box2>
               )}
-              <Box2 direction="horizontal" style={styles.marginLeftAuto} />
+              <Kb.Box2 direction="horizontal" style={styles.marginLeftAuto} />
               {props.status !== 'error' && !props.isAdvanced && (
                 <Amount
                   selectableText={props.selectableText}
@@ -563,14 +561,14 @@ export const Transaction = (props: Props) => {
                   amountDescription={props.amountXLM}
                 />
               )}
-            </Box2>
-          </Box2>
-        </Box2>
+            </Kb.Box2>
+          </Kb.Box2>
+        </Kb.Box2>
         {props.readState === 'oldestUnread' && (
-          <Box2 direction="horizontal" fullWidth={true} style={styles.orangeLine} />
+          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.orangeLine} />
         )}
-      </ClickableBox>
-    </Box2>
+      </Kb.ClickableBox>
+    </Kb.Box2>
   )
 }
 

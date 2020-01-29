@@ -2,12 +2,14 @@ import * as React from 'react'
 import * as Sb from '../stories/storybook'
 import Box, {Box2} from './box'
 import Text from './text'
+import {IconType} from './icon'
 import SearchFilter from './search-filter'
 import * as Styles from '../styles'
 
 const Kb = {
   Box,
   Box2,
+  IconType,
   SearchFilter,
   Text,
 }

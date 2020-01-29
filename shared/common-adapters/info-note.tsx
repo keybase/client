@@ -1,7 +1,9 @@
 import * as React from 'react'
 import Box, {Box2} from './box'
-import Icon from './icon'
+import Icon, {IconType} from './icon'
 import * as Styles from '../styles'
+
+const Kb = {IconType}
 
 export type Props = {
   containerStyle?: Styles.StylesCrossPlatform

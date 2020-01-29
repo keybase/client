@@ -1,13 +1,12 @@
-import React, {Component} from 'react'
+import * as React from 'react'
 import * as Styles from '../../styles'
-import {Box, Button, Icon, Text} from '../../common-adapters'
+import * as Kb from '../../common-adapters'
+import {Props} from '.'
 
-import {Props} from './index'
-
-class InviteGeneratedRender extends Component<Props> {
+class InviteGeneratedRender extends React.Component<Props> {
   render() {
     return (
-      <Box
+      <Kb.Box
         style={{
           ...Styles.globalStyles.flexBoxColumn,
           alignItems: 'center',
@@ -16,30 +15,34 @@ class InviteGeneratedRender extends Component<Props> {
           position: 'relative',
         }}
       >
-        <Icon type={Kb.IconType.iconfont_close} style={styles.icon} onClick={this.props.onClose} />
-        <Icon type={Kb.IconType.icon_invite_link_48} />
+        <Kb.Icon type={Kb.IconType.iconfont_close} style={styles.icon} onClick={this.props.onClose} />
+        <Kb.Icon type={Kb.IconType.icon_invite_link_48} />
         {this.props.email ? (
-          <Text center={true} type="Body" style={styles.text}>
-            Yay! We emailed <Text type="BodySemibold">{this.props.email}</Text>, but you can also give them
-            the below link:
-          </Text>
+          <Kb.Text center={true} type="Body" style={styles.text}>
+            Yay! We emailed <Kb.Text type="BodySemibold">{this.props.email}</Kb.Text>, but you can also give
+            them the below link:
+          </Kb.Text>
         ) : (
-          <Text center={true} type="Body" style={styles.text}>
+          <Kb.Text center={true} type="Body" style={styles.text}>
             Yay! Please share the below link with your friend. It contains signup &amp; install instructions.
-          </Text>
+          </Kb.Text>
         )}
-        <Box style={styles.linkContainer}>
-          <Icon
+        <Kb.Box style={styles.linkContainer}>
+          <Kb.Icon
             type={Kb.IconType.iconfont_link}
             style={{height: 14, marginRight: Styles.globalMargins.tiny}}
             color={Styles.globalColors.black_10}
           />
-          <Text type="BodySemibold" selectable={true} style={{color: Styles.globalColors.greenDark}}>
+          <Kb.Text type="BodySemibold" selectable={true} style={{color: Styles.globalColors.greenDark}}>
             {this.props.link}
-          </Text>
-        </Box>
-        <Button style={{marginTop: Styles.globalMargins.medium}} label="Close" onClick={this.props.onClose} />
-      </Box>
+          </Kb.Text>
+        </Kb.Box>
+        <Kb.Button
+          style={{marginTop: Styles.globalMargins.medium}}
+          label="Close"
+          onClick={this.props.onClose}
+        />
+      </Kb.Box>
     )
   }
 }

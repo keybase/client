@@ -1,9 +1,11 @@
 import * as React from 'react'
 import Box from './box'
-import Icon from './icon'
+import Icon, {IconType} from './icon'
 import {action, storiesOf} from '../stories/storybook'
 import {globalColors} from '../styles'
 import NewInput from './new-input'
+
+const Kb = {IconType}
 
 const actions = {
   onBlur: action('onBlur'),

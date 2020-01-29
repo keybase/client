@@ -1,6 +1,6 @@
 import React from 'react'
 import Box, {Box2} from './box'
-import Icon from './icon'
+import Icon, {IconType} from './icon'
 import Text from './text'
 import {Props} from './checkbox'
 import * as Styles from '../styles'
@@ -9,6 +9,7 @@ const Kb = {
   Box,
   Box2,
   Icon,
+  IconType,
   Text,
 }
 

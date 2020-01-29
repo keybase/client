@@ -1,8 +1,10 @@
 import React, {Component} from 'react'
 import {Props} from './back-button'
 import Text from './text'
-import Icon from './icon'
+import Icon, {IconType} from './icon'
 import * as Styles from '../styles'
+
+const Kb = {IconType}
 
 class BackButton extends Component<Props> {
   _onClick = (event: React.BaseSyntheticEvent) => {

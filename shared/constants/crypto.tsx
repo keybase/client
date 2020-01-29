@@ -4,6 +4,8 @@ import * as Types from './types/crypto'
 import HiddenString from '../util/hidden-string'
 import {IconType} from '../common-adapters/icon.constants-gen'
 
+const Kb = {IconType}
+
 export const saltpackDocumentation = 'https://saltpack.org'
 
 // String waiting keys

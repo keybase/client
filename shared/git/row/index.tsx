@@ -63,7 +63,7 @@ const Row = (props: Props) => (
       >
         <Kb.Box style={styles.rowTop}>
           <Kb.Icon
-            type={props.expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
+            type={props.expanded ? Kb.IconType.iconfont_caret_down : Kb.IconType.iconfont_caret_right}
             style={styles.iconCaret}
             sizeType="Tiny"
           />

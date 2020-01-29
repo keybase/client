@@ -2,10 +2,12 @@ import * as React from 'react'
 import fs from 'fs'
 import * as Styles from '../styles'
 import {Box2} from './box'
-import Icon from './icon'
+import Icon, {IconType} from './icon'
 import Text from './text'
 import {Props} from './drag-and-drop'
 import logger from '../logger'
+
+const Kb = {IconType}
 
 type State = {
   showDropOverlay: boolean

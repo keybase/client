@@ -8,6 +8,10 @@ import * as ProfileGen from '../actions/profile-gen'
 import * as Tracker2Constants from '../constants/tracker2'
 import './avatar.css'
 
+const Kb = {
+  IconType,
+}
+
 export const avatarSizes = [128, 96, 64, 48, 32, 24, 16] as const
 export type AvatarSize = typeof avatarSizes[number]
 

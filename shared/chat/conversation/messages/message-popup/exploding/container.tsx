@@ -12,7 +12,7 @@ import {isIOS} from '../../../../../constants/platform'
 import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 import {StylesCrossPlatform} from '../../../../../styles/css'
 import Exploding from '.'
-import {MenuItems} from '../../../../../common-adapters'
+import * as Kb from '../../../../../common-adapters'
 import openURL from '../../../../../util/open-url'
 
 export type OwnProps = {
@@ -186,7 +186,7 @@ export default Container.connect(
   }),
   (stateProps, dispatchProps, ownProps) => {
     const authorInConv = stateProps._participants.includes(ownProps.message.author)
-    const items: MenuItems = []
+    const items: Kb.MenuItems = []
     if (stateProps._canExplodeNow) {
       items.push({
         danger: true,

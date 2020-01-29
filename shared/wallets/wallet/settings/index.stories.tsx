@@ -4,6 +4,7 @@ import Settings from '.'
 import popups from './popups/index.stories'
 import * as Types from '../../../constants/types/wallets'
 import * as Constants from '../../../constants/wallets'
+import * as Kb from '../../../common-adapters'
 
 const testCurrencies = [
   {

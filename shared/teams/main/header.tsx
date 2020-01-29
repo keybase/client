@@ -1,35 +1,28 @@
 import * as React from 'react'
-import {ClickableBox, Box2, Button, Icon, ProgressIndicator, Text, IconType} from '../../common-adapters'
-import {
-  desktopStyles,
-  platformStyles,
-  globalColors,
-  globalMargins,
-  globalStyles,
-  isMobile,
-} from '../../styles'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 
 export type HeaderButtonProps = {
-  iconType: IconType
+  iconType: Kb.IconType
   label: string
   onClick: () => void
 }
 
-const marginHorizontal = isMobile ? 0 : globalMargins.medium
+const marginHorizontal = Styles.isMobile ? 0 : Styles.globalMargins.medium
 const headerButtonBoxStyle = {
-  ...globalStyles.flexBoxRow,
+  ...Styles.globalStyles.flexBoxRow,
   alignItems: 'center',
   marginLeft: marginHorizontal,
   marginRight: marginHorizontal,
 } as const
 
 const HeaderButton = (props: HeaderButtonProps) => (
-  <ClickableBox onClick={props.onClick} style={headerButtonBoxStyle}>
-    <Icon type={props.iconType} color={globalColors.blue} fontSize={isMobile ? 20 : 16} />
-    <Text type="BodyBigLink" style={{margin: globalMargins.tiny}}>
+  <Kb.ClickableBox onClick={props.onClick} style={headerButtonBoxStyle}>
+    <Kb.Icon type={props.iconType} color={Styles.globalColors.blue} fontSize={Styles.isMobile ? 20 : 16} />
+    <Kb.Text type="BodyBigLink" style={{margin: Styles.globalMargins.tiny}}>
       {props.label}
-    </Text>
-  </ClickableBox>
+    </Kb.Text>
+  </Kb.ClickableBox>
 )
 
 export type Props = {
@@ -42,13 +35,13 @@ const Header = (
     loaded: boolean
   }
 ) => (
-  <Box2
+  <Kb.Box2
     gap="small"
     direction="horizontal"
     style={{
-      ...globalStyles.flexBoxRow,
+      ...Styles.globalStyles.flexBoxRow,
       alignItems: 'center',
-      borderBottomColor: globalColors.black_10,
+      borderBottomColor: Styles.globalColors.black_10,
       borderBottomWidth: 1,
       height: 48,
       justifyContent: 'center',
@@ -57,27 +50,27 @@ const Header = (
     }}
   >
     {/* Put progress indicator in the footer (./index.js) on mobile because it won't fit in the header on small screens */}
-    {!isMobile && !props.loaded && (
-      <ProgressIndicator style={{left: 12, position: 'absolute', top: 12, width: 20}} />
+    {!Styles.isMobile && !props.loaded && (
+      <Kb.ProgressIndicator style={{left: 12, position: 'absolute', top: 12, width: 20}} />
     )}
     <HeaderButton iconType={Kb.IconType.iconfont_new} label="Create a team" onClick={props.onCreateTeam} />
     <HeaderButton iconType={Kb.IconType.iconfont_team_join} label="Join a team" onClick={props.onJoinTeam} />
-  </Box2>
+  </Kb.Box2>
 )
 
 const HeaderRightActions = (props: Props) => (
-  <Box2
+  <Kb.Box2
     gap="tiny"
     direction="horizontal"
     alignItems="center"
-    style={platformStyles({
-      common: {marginBottom: globalMargins.xtiny, paddingRight: globalMargins.small},
-      isElectron: {...desktopStyles.windowDraggingClickable},
+    style={Styles.platformStyles({
+      common: {marginBottom: Styles.globalMargins.xtiny, paddingRight: Styles.globalMargins.small},
+      isElectron: {...Styles.desktopStyles.windowDraggingClickable},
     })}
   >
-    <Button label="Create a team" onClick={props.onCreateTeam} small={true} />
-    <Button label="Join a team" onClick={props.onJoinTeam} small={true} type="Default" mode="Secondary" />
-  </Box2>
+    <Kb.Button label="Create a team" onClick={props.onCreateTeam} small={true} />
+    <Kb.Button label="Join a team" onClick={props.onJoinTeam} small={true} type="Default" mode="Secondary" />
+  </Kb.Box2>
 )
 
 export {HeaderRightActions}

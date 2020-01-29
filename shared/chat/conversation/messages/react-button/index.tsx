@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
-import {Box2, ClickableBox, FloatingBox, Icon, Text, EmojiIfExists} from '../../../../common-adapters'
+import * as Kb from '../../../../common-adapters'
 import {Props as ClickableBoxProps} from '../../../../common-adapters/clickable-box'
 import * as Styles from '../../../../styles'
 import {Picker} from './picker'
@@ -35,7 +35,7 @@ if (!Styles.isMobile) {
   })
 }
 
-const ButtonBox = Styles.styled(ClickableBox, {shouldForwardProp: prop => prop !== 'noEffect'})(
+const ButtonBox = Styles.styled(Kb.ClickableBox, {shouldForwardProp: prop => prop !== 'noEffect'})(
   // @ts-ignore
   (props: ClickableBoxProps & {border: 1 | 0; noEffect: boolean}) =>
     Styles.isMobile || props.noEffect
@@ -70,17 +70,23 @@ const ReactButton = (props: Props) => (
       props.style,
     ])}
   >
-    <Box2 centerChildren={true} fullHeight={true} direction="horizontal" gap="xtiny" style={styles.container}>
-      <Box2 direction="horizontal" style={styles.emojiWrapper}>
-        <EmojiIfExists size={Styles.isMobile ? 16 : 18} lineClamp={1} emojiName={props.emoji} />
-      </Box2>
-      <Text
+    <Kb.Box2
+      centerChildren={true}
+      fullHeight={true}
+      direction="horizontal"
+      gap="xtiny"
+      style={styles.container}
+    >
+      <Kb.Box2 direction="horizontal" style={styles.emojiWrapper}>
+        <Kb.EmojiIfExists size={Styles.isMobile ? 16 : 18} lineClamp={1} emojiName={props.emoji} />
+      </Kb.Box2>
+      <Kb.Text
         type="BodyTinyBold"
         style={Styles.collapseStyles([styles.count, props.active && styles.countActive])}
       >
         {props.count}
-      </Text>
-    </Box2>
+      </Kb.Text>
+    </Kb.Box2>
   </ButtonBox>
 )
 
@@ -178,14 +184,14 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
           this.props.style,
         ])}
       >
-        <Box2
+        <Kb.Box2
           centerChildren={true}
           fullHeight={true}
           direction="horizontal"
           style={this.props.showBorder ? styles.container : null}
         >
           {Styles.isMobile ? (
-            <Icon
+            <Kb.Icon
               type={Kb.IconType.iconfont_reacji}
               color={Styles.globalColors.black_50}
               fontSize={16}
@@ -193,7 +199,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
             />
           ) : (
             iconCycle.map((iconName, iconIndex) => (
-              <Icon
+              <Kb.Icon
                 key={iconName}
                 type={iconName}
                 color={this.state.hovering ? Styles.globalColors.black_50 : Styles.globalColors.black_50}
@@ -210,16 +216,16 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
               />
             ))
           )}
-        </Box2>
+        </Kb.Box2>
         {this.state.showingPicker && !Styles.isMobile && (
-          <FloatingBox
+          <Kb.FloatingBox
             attachTo={this.props.getAttachmentRef}
             containerStyle={styles.emojiContainer}
             position="top right"
             onHidden={() => this._setShowingPicker(false)}
           >
             <Picker onClick={this._onAddReaction} backgroundImageFn={backgroundImageFn} />
-          </FloatingBox>
+          </Kb.FloatingBox>
         )}
       </ButtonBox>
     )

@@ -2,12 +2,12 @@ import * as React from 'react'
 import * as TabConstants from '../../constants/tabs'
 import * as Constants from '../../constants/settings'
 import {keybaseFM} from '../../constants/whats-new'
-import {globalStyles, globalColors, globalMargins, styleSheetCreate} from '../../styles'
-import {NativeSectionList, Text} from '../../common-adapters/mobile.native'
+import * as Styles from '../../styles'
+import * as Kb from '../../common-adapters/mobile.native'
 import {isAndroid} from '../../constants/platform'
 import SettingsItem from './settings-item'
 import WhatsNewIcon from '../../whats-new/icon/container'
-import {Props} from './index'
+import {Props} from '.'
 
 const renderItem = ({item}) => {
   return item.text ? <SettingsItem {...item} /> : null
@@ -16,17 +16,17 @@ const renderItem = ({item}) => {
 function SettingsNav(props: Props) {
   const {badgeNumbers} = props
   return (
-    <NativeSectionList
+    <Kb.NativeSectionList
       keyExtractor={(item, index) => item.text + index}
       renderItem={renderItem}
       renderSectionHeader={({section: {title}}) =>
         title ? (
-          <Text type="BodySmallSemibold" style={styles.sectionTitle}>
+          <Kb.Text type="BodySmallSemibold" style={styles.sectionTitle}>
             {title}
-          </Text>
+          </Kb.Text>
         ) : null
       }
-      style={globalStyles.fullHeight}
+      style={Styles.globalStyles.fullHeight}
       sections={[
         {
           data: [
@@ -104,7 +104,7 @@ function SettingsNav(props: Props) {
             {
               onClick: () => props.onTabChange(Constants.logOutTab),
               text: 'Sign out',
-              textColor: globalColors.red,
+              textColor: Styles.globalColors.red,
             },
           ],
           title: 'More',
@@ -114,13 +114,13 @@ function SettingsNav(props: Props) {
   )
 }
 
-const styles = styleSheetCreate(() => ({
+const styles = Styles.styleSheetCreate(() => ({
   sectionTitle: {
-    backgroundColor: globalColors.blueLighter3,
-    color: globalColors.black_50,
+    backgroundColor: Styles.globalColors.blueLighter3,
+    color: Styles.globalColors.black_50,
     paddingBottom: 7,
-    paddingLeft: globalMargins.small,
-    paddingRight: globalMargins.small,
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
     paddingTop: 7,
   },
 }))

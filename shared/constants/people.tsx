@@ -4,6 +4,8 @@ import invert from 'lodash/invert'
 import {IconType} from '../common-adapters/icon.constants-gen' // do NOT pull in all of common-adapters
 import {isMobile} from './platform'
 
+const Kb = {IconType}
+
 export const defaultNumFollowSuggestions = 10
 export const getPeopleDataWaitingKey = 'getPeopleData'
 
@@ -91,7 +93,7 @@ export const todoTypeToIcon: {[K in Types.TodoType]: IconType} = {
   avatarUser: Kb.IconType.icon_onboarding_user_avatar_48,
   bio: Kb.IconType.icon_onboarding_user_info_48,
   chat: Kb.IconType.icon_onboarding_chat_48,
-  device: isMobile ? Kb.IconType.icon_onboarding_computer_48 : 'icon_onboarding_phone_48',
+  device: isMobile ? Kb.IconType.icon_onboarding_computer_48 : Kb.IconType.icon_onboarding_phone_48,
   folder: Kb.IconType.icon_onboarding_folder_48,
   follow: Kb.IconType.icon_onboarding_follow_48,
   gitRepo: Kb.IconType.icon_onboarding_git_48,
@@ -290,7 +292,7 @@ export const makeTodo = (t?: Partial<Types.Todo>): Types.Todo => ({
   badged: false,
   confirmLabel: '',
   dismissable: false,
-  icon: 'iconfont-close',
+  icon: Kb.IconType.iconfont_close,
   instructions: '',
   metadata: null,
   todoType: 'none',

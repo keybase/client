@@ -9,6 +9,8 @@ import * as WalletsGen from '../../../actions/wallets-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import flags from '../../../util/feature-flags'
 
+const Kb = {IconType}
+
 type OwnProps = Container.RouteProps
 
 // Note: `props.user` is only the Keybase username if this is the primary

@@ -3,9 +3,11 @@ import * as Sb from '../stories/storybook'
 import ListItem from './list-item2'
 import {Box2} from './box'
 import Text from './text'
-import Icon from './icon'
+import Icon, {IconType} from './icon'
 import Button from './button'
 import {globalColors} from '../styles'
+
+const Kb = {IconType}
 
 const body1 = (
   <Box2 direction="vertical" style={{alignSelf: 'center', backgroundColor: globalColors.orange}}>

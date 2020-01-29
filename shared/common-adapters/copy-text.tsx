@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as ConfigGen from '../actions/config-gen'
 import {Box2} from './box'
-import Icon from './icon'
+import Icon, {IconType} from './icon'
 import Button, {Props as ButtonProps} from './button'
 import Text from './text'
 import Toast from './toast'
@@ -9,6 +9,10 @@ import {useTimeout} from './use-timers'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
 import logger from '../logger'
+
+const Kb = {
+  IconType,
+}
 
 type Props = {
   buttonType?: ButtonProps['type']

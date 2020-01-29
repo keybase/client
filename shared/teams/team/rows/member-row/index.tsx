@@ -1,14 +1,5 @@
 import * as React from 'react'
-import {
-  Avatar,
-  Box,
-  Button,
-  ButtonBar,
-  ClickableBox,
-  Text,
-  Icon,
-  ConnectedUsernames,
-} from '../../../../common-adapters'
+import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import {typeToLabel} from '../../../../constants/teams'
 import {isLargeScreen} from '../../../../constants/platform'
@@ -48,13 +39,15 @@ export const TeamMemberRow = (props: Props) => {
   let crown, fullNameLabel, resetLabel
   const active = props.status === 'active'
   if (active && props.roleType && showCrown[props.roleType]) {
-    crown = <Icon type={('iconfont-crown-' + props.roleType) as any} style={styles.crownIcon} fontSize={10} />
+    crown = (
+      <Kb.Icon type={('iconfont-crown-' + props.roleType) as any} style={styles.crownIcon} fontSize={10} />
+    )
   }
   if (props.fullName && active) {
     fullNameLabel = (
-      <Text style={styles.fullNameLabel} type="BodySmall">
+      <Kb.Text style={styles.fullNameLabel} type="BodySmall">
         {props.fullName} •
-      </Text>
+      </Kb.Text>
     )
   }
   if (!active) {
@@ -67,37 +60,37 @@ export const TeamMemberRow = (props: Props) => {
   }
 
   return (
-    <Box style={Styles.collapseStyles([styles.container, !active && styles.containerReset])}>
-      <Box style={styles.innerContainerTop}>
-        <ClickableBox
+    <Kb.Box style={Styles.collapseStyles([styles.container, !active && styles.containerReset])}>
+      <Kb.Box style={styles.innerContainerTop}>
+        <Kb.ClickableBox
           style={styles.clickable}
           onClick={active ? props.onClick : props.status === 'deleted' ? undefined : props.onShowTracker}
         >
-          <Avatar username={props.username} size={Styles.isMobile ? 48 : 32} />
-          <Box style={styles.nameContainer}>
-            <Box style={Styles.globalStyles.flexBoxRow}>
-              <ConnectedUsernames type="BodySemibold" usernames={[props.username]} />
-            </Box>
-            <Box style={styles.nameContainerInner}>
+          <Kb.Avatar username={props.username} size={Styles.isMobile ? 48 : 32} />
+          <Kb.Box style={styles.nameContainer}>
+            <Kb.Box style={Styles.globalStyles.flexBoxRow}>
+              <Kb.ConnectedUsernames type="BodySemibold" usernames={[props.username]} />
+            </Kb.Box>
+            <Kb.Box style={styles.nameContainerInner}>
               {fullNameLabel}
               {crown}
               {!active && (
-                <Text type="BodySmall" style={styles.lockedOutOrDeleted}>
+                <Kb.Text type="BodySmall" style={styles.lockedOutOrDeleted}>
                   {props.status === 'reset' ? 'LOCKED OUT' : 'DELETED'}
-                </Text>
+                </Kb.Text>
               )}
-              <Text type="BodySmall">
+              <Kb.Text type="BodySmall">
                 {!!active && !!props.roleType && typeToLabel[props.roleType]}
                 {resetLabel}
-              </Text>
-            </Box>
-          </Box>
-        </ClickableBox>
+              </Kb.Text>
+            </Kb.Box>
+          </Kb.Box>
+        </Kb.ClickableBox>
         {!active && !Styles.isMobile && props.youCanManageMembers && (
-          <Box style={styles.buttonBarContainer}>
-            <ButtonBar>
+          <Kb.Box style={styles.buttonBarContainer}>
+            <Kb.ButtonBar>
               {props.status !== 'deleted' && (
-                <Button
+                <Kb.Button
                   small={true}
                   label="Re-Admit"
                   onClick={props.onReAddToTeam}
@@ -106,7 +99,7 @@ export const TeamMemberRow = (props: Props) => {
                   disabled={props.waitingForRemove}
                 />
               )}
-              <Button
+              <Kb.Button
                 small={true}
                 label="Remove"
                 onClick={props.onRemoveFromTeam}
@@ -114,14 +107,14 @@ export const TeamMemberRow = (props: Props) => {
                 waiting={props.waitingForRemove}
                 disabled={props.waitingForAdd}
               />
-            </ButtonBar>
-          </Box>
+            </Kb.ButtonBar>
+          </Kb.Box>
         )}
-        <Box style={styles.chatIconContainer}>
+        <Kb.Box style={styles.chatIconContainer}>
           {(active || isLargeScreen) && (
             // Desktop & mobile large screen - display on the far right of the first row
             // Also when user is active
-            <Icon
+            <Kb.Icon
               onClick={props.onChat}
               style={
                 Styles.isMobile
@@ -132,13 +125,13 @@ export const TeamMemberRow = (props: Props) => {
               type={Kb.IconType.iconfont_chat}
             />
           )}
-        </Box>
-      </Box>
+        </Kb.Box>
+      </Kb.Box>
       {!active && Styles.isMobile && props.youCanManageMembers && (
-        <Box style={styles.innerContainerBottom}>
-          <ButtonBar direction="row">
+        <Kb.Box style={styles.innerContainerBottom}>
+          <Kb.ButtonBar direction="row">
             {props.status !== 'deleted' && (
-              <Button
+              <Kb.Button
                 small={true}
                 label="Re-Admit"
                 onClick={props.onReAddToTeam}
@@ -147,7 +140,7 @@ export const TeamMemberRow = (props: Props) => {
                 disabled={props.waitingForRemove}
               />
             )}
-            <Button
+            <Kb.Button
               small={true}
               label="Remove"
               onClick={props.onRemoveFromTeam}
@@ -155,11 +148,11 @@ export const TeamMemberRow = (props: Props) => {
               waiting={props.waitingForRemove}
               disabled={props.waitingForAdd}
             />
-          </ButtonBar>
+          </Kb.ButtonBar>
           {!isLargeScreen && (
             // Mobile small screens - for inactive user
             // display next to reset / deleted controls
-            <Icon
+            <Kb.Icon
               onClick={props.onChat}
               style={Styles.collapseStyles([
                 styles.chatButtonMobile,
@@ -169,9 +162,9 @@ export const TeamMemberRow = (props: Props) => {
               type={Kb.IconType.iconfont_chat}
             />
           )}
-        </Box>
+        </Kb.Box>
       )}
-    </Box>
+    </Kb.Box>
   )
 }
 

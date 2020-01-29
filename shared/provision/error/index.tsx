@@ -4,8 +4,7 @@ import * as React from 'react'
 import * as Styles from '../../styles'
 import {RPCError} from '../../util/errors'
 import {StatusCode} from '../../constants/types/rpc-gen'
-import {Box2, Button, Icon, Text, Markdown} from '../../common-adapters'
-import {styleSheetCreate, globalStyles, globalMargins, isMobile} from '../../styles'
+import * as Kb from '../../common-adapters'
 
 type Props = {
   error?: RPCError
@@ -16,21 +15,21 @@ type Props = {
 }
 
 const List = p => (
-  <Box2 direction="vertical" style={styles.list}>
+  <Kb.Box2 direction="vertical" style={styles.list}>
     {p.children}
-  </Box2>
+  </Kb.Box2>
 )
 
 const Wrapper = (p: {onBack: () => void; children: React.ReactNode}) => (
   <Container onBack={p.onBack}>
-    <Icon type={Kb.IconType.icon_illustration_zen_240_180} style={styles.icon} />
-    <Text type="Header" style={styles.header}>
+    <Kb.Icon type={Kb.IconType.icon_illustration_zen_240_180} style={styles.icon} />
+    <Kb.Text type="Header" style={styles.header}>
       Oops, something went wrong.
-    </Text>
-    <Box2 direction="vertical" gap="small" gapStart={true} gapEnd={true} style={styles.container}>
+    </Kb.Text>
+    <Kb.Box2 direction="vertical" gap="small" gapStart={true} gapEnd={true} style={styles.container}>
       {p.children}
-    </Box2>
-    {Styles.isMobile && <Button label="Close" onClick={p.onBack} />}
+    </Kb.Box2>
+    {Styles.isMobile && <Kb.Button label="Close" onClick={p.onBack} />}
   </Container>
 )
 
@@ -44,7 +43,7 @@ const Render = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}: Prop
   if (!error) {
     return (
       <Wrapper onBack={onBack}>
-        <Text type="Body">Unknown error: Please report this to us.</Text>
+        <Kb.Text type="Body">Unknown error: Please report this to us.</Kb.Text>
       </Wrapper>
     )
   }
@@ -58,89 +57,94 @@ const Render = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}: Prop
     case StatusCode.scapinetworkerror:
       return (
         <Wrapper onBack={onBack}>
-          <Text type="Body">Device authorization failed because this device went offline.</Text>
-          <Text type="Body">Please check your network connection and try again.</Text>
+          <Kb.Text type="Body">Device authorization failed because this device went offline.</Kb.Text>
+          <Kb.Text type="Body">Please check your network connection and try again.</Kb.Text>
         </Wrapper>
       )
     case StatusCode.scdevicenoprovision:
       return (
         <Wrapper onBack={onBack}>
-          <Text center={true} type="Body">
+          <Kb.Text center={true} type="Body">
             You can't authorize by password, since you have established device or paper keys.
-          </Text>
-          <Text center={true} type="Body">
+          </Kb.Text>
+          <Kb.Text center={true} type="Body">
             You can go back and pick a device or paper key, or{' '}
-            <Text type="BodyPrimaryLink" onClick={onAccountReset}>
+            <Kb.Text type="BodyPrimaryLink" onClick={onAccountReset}>
               reset your account entirely
-            </Text>
+            </Kb.Text>
             .
-          </Text>
+          </Kb.Text>
         </Wrapper>
       )
     case StatusCode.scdeviceprevprovisioned:
       return (
         <Wrapper onBack={onBack}>
-          <Text type="Body">You have already authorized this device. </Text>
-          <Text type="Body">Please use 'keybase login [username]' to log in. </Text>
+          <Kb.Text type="Body">You have already authorized this device. </Kb.Text>
+          <Kb.Text type="Body">Please use 'keybase login [username]' to log in. </Kb.Text>
         </Wrapper>
       )
     case StatusCode.sckeynomatchinggpg:
       if (fields.has_active_device) {
         return (
           <Wrapper onBack={onBack}>
-            <Text type="Body">
+            <Kb.Text type="Body">
               You can't authorize using solely a password, since you have active device keys.
-            </Text>
-            <Text type="BodySemibold">You have options:</Text>
+            </Kb.Text>
+            <Kb.Text type="BodySemibold">You have options:</Kb.Text>
             <List>
-              <Text type="Body"> - Go back and select a device or paper key</Text>
-              <Text type="Body"> - Install Keybase on a machine that has your PGP private key in it</Text>
-              <Text type="Body">
+              <Kb.Text type="Body"> - Go back and select a device or paper key</Kb.Text>
+              <Kb.Text type="Body">
+                {' '}
+                - Install Keybase on a machine that has your PGP private key in it
+              </Kb.Text>
+              <Kb.Text type="Body">
                 {' '}
                 - Login to the website and host an encrypted copy of your PGP private key
-              </Text>
-              <Text type="Body">
+              </Kb.Text>
+              <Kb.Text type="Body">
                 {' '}
                 - or,{' '}
-                <Text type="BodyPrimaryLink" onClick={onAccountReset}>
+                <Kb.Text type="BodyPrimaryLink" onClick={onAccountReset}>
                   reset your account entirely
-                </Text>
+                </Kb.Text>
                 .
-              </Text>
+              </Kb.Text>
             </List>
           </Wrapper>
         )
       } else {
         return (
           <Wrapper onBack={onBack}>
-            <Text type="Body">You can't authorize using a password, since you've established a PGP key.</Text>
-            <Text type="BodySemibold" style={{textAlign: 'left'}}>
+            <Kb.Text type="Body">
+              You can't authorize using a password, since you've established a PGP key.
+            </Kb.Text>
+            <Kb.Text type="BodySemibold" style={{textAlign: 'left'}}>
               You have options:
-            </Text>
+            </Kb.Text>
             <List>
-              <Text type="Body">
+              <Kb.Text type="Body">
                 {' '}
-                - Use <Text type="TerminalInline">keybase login</Text> on the command line to log in
-              </Text>
-              {!isMobile && (
-                <Text type="Body">
+                - Use <Kb.Text type="TerminalInline">keybase login</Kb.Text> on the command line to log in
+              </Kb.Text>
+              {!Styles.isMobile && (
+                <Kb.Text type="Body">
                   {' '}
                   - Install GPG on this machine and import your PGP private key into it
-                </Text>
+                </Kb.Text>
               )}
-              <Text type="Body"> - Install Keybase on a different machine that has your PGP key</Text>
-              <Text type="Body">
+              <Kb.Text type="Body"> - Install Keybase on a different machine that has your PGP key</Kb.Text>
+              <Kb.Text type="Body">
                 {' '}
                 - Login to the website and host an encrypted copy of your PGP private key
-              </Text>
-              <Text type="Body">
+              </Kb.Text>
+              <Kb.Text type="Body">
                 {' '}
                 - Or,{' '}
-                <Text type="BodyPrimaryLink" onClick={onAccountReset}>
+                <Kb.Text type="BodyPrimaryLink" onClick={onAccountReset}>
                   reset your account entirely
-                </Text>
+                </Kb.Text>
                 .
-              </Text>
+              </Kb.Text>
             </List>
           </Wrapper>
         )
@@ -148,26 +152,26 @@ const Render = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}: Prop
     case StatusCode.sckeynotfound:
       return error.desc ? (
         <Wrapper onBack={onBack}>
-          <Markdown>{error.desc}</Markdown>
+          <Kb.Markdown>{error.desc}</Kb.Markdown>
         </Wrapper>
       ) : (
         <Wrapper onBack={onBack}>
-          <Text center={true} type="Body">
+          <Kb.Text center={true} type="Body">
             Your PGP keychain has multiple keys installed, and we're not sure which one to use to authorize
             your account.
-          </Text>
-          <Text center={true} type="Body">
-            Please run <Text type="TerminalInline">keybase login</Text> on the command line to continue.
-          </Text>
+          </Kb.Text>
+          <Kb.Text center={true} type="Body">
+            Please run <Kb.Text type="TerminalInline">keybase login</Kb.Text> on the command line to continue.
+          </Kb.Text>
         </Wrapper>
       )
     case StatusCode.scbadloginpassword:
       return (
         <Wrapper onBack={onBack}>
-          <Text type="Body">Looks like that's a bad password.</Text>
-          <Text center={true} type="BodyPrimaryLink" onClick={onPasswordReset}>
+          <Kb.Text type="Body">Looks like that's a bad password.</Kb.Text>
+          <Kb.Text center={true} type="BodyPrimaryLink" onClick={onPasswordReset}>
             Reset your password?
-          </Text>
+          </Kb.Text>
         </Wrapper>
       )
     case StatusCode.sckeysyncedpgpnotfound:
@@ -175,78 +179,83 @@ const Render = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}: Prop
     case StatusCode.sckeynosecret:
       return (
         <Wrapper onBack={onBack}>
-          <Text center={true} type="Body">
+          <Kb.Text center={true} type="Body">
             Sorry, your account is already established with a PGP public key, but we can't access the
             corresponding private key.
-          </Text>
-          <Text type="BodySemibold" style={{textAlign: 'left'}}>
+          </Kb.Text>
+          <Kb.Text type="BodySemibold" style={{textAlign: 'left'}}>
             You have options:
-          </Text>
+          </Kb.Text>
           <List>
-            <Text type="Body">
+            <Kb.Text type="Body">
               {' '}
-              - Run <Text type="TerminalInline">keybase login</Text> on the device with the corresponding PGP
-              private key
-            </Text>
-            {!isMobile && (
-              <Text type="Body"> - Install GPG, put your PGP private key on this machine and try again</Text>
+              - Run <Kb.Text type="TerminalInline">keybase login</Kb.Text> on the device with the
+              corresponding PGP private key
+            </Kb.Text>
+            {!Styles.isMobile && (
+              <Kb.Text type="Body">
+                {' '}
+                - Install GPG, put your PGP private key on this machine and try again
+              </Kb.Text>
             )}
-            <Text type="Body"> - Go back and authorize with another device or paper key</Text>
-            <Text type="Body">
+            <Kb.Text type="Body"> - Go back and authorize with another device or paper key</Kb.Text>
+            <Kb.Text type="Body">
               {' '}
               - Or, if none of the above are possible,{' '}
-              <Text type="BodyPrimaryLink" onClick={onAccountReset}>
+              <Kb.Text type="BodyPrimaryLink" onClick={onAccountReset}>
                 reset your account and start fresh
-              </Text>
-            </Text>
+              </Kb.Text>
+            </Kb.Text>
           </List>
         </Wrapper>
       )
     case StatusCode.scinputcanceled:
       return (
         <Wrapper onBack={onBack}>
-          <Text type="Body">Login Cancelled</Text>
+          <Kb.Text type="Body">Login Cancelled</Kb.Text>
         </Wrapper>
       )
     case StatusCode.sckeycorrupted:
       return (
         <Wrapper onBack={onBack}>
-          <Text type="Body">{error.message}</Text>
-          <Text type="Body">We were able to generate a PGP signature but it was rejected by the server.</Text>
-          <Text type="Body">This often means that this PGP key is expired or unusable.</Text>
-          <Text type="Body">
+          <Kb.Text type="Body">{error.message}</Kb.Text>
+          <Kb.Text type="Body">
+            We were able to generate a PGP signature but it was rejected by the server.
+          </Kb.Text>
+          <Kb.Text type="Body">This often means that this PGP key is expired or unusable.</Kb.Text>
+          <Kb.Text type="Body">
             You can update your key on{' '}
-            <Text type="BodyPrimaryLink" onClick={onKBHome}>
+            <Kb.Text type="BodyPrimaryLink" onClick={onKBHome}>
               keybase.io
-            </Text>
+            </Kb.Text>
             .
-          </Text>
+          </Kb.Text>
         </Wrapper>
       )
     case StatusCode.scdeleted:
       return (
         <Wrapper onBack={onBack}>
-          <Text type="Body">User has been deleted.</Text>
+          <Kb.Text type="Body">User has been deleted.</Kb.Text>
         </Wrapper>
       )
     default:
       return (
         <Wrapper onBack={onBack}>
-          <Text type="Body">
-            <Text type="Body" selectable={true}>
+          <Kb.Text type="Body">
+            <Kb.Text type="Body" selectable={true}>
               {rewriteErrorDesc[error.desc] || error.desc}
-            </Text>
-            <Text type="BodySmall" selectable={true}>
+            </Kb.Text>
+            <Kb.Text type="BodySmall" selectable={true}>
               {' '}
               {error.details}
-            </Text>
-          </Text>
+            </Kb.Text>
+          </Kb.Text>
         </Wrapper>
       )
   }
 }
 
-const styles = styleSheetCreate(
+const styles = Styles.styleSheetCreate(
   () =>
     ({
       container: {
@@ -264,8 +273,8 @@ const styles = styleSheetCreate(
       },
       list: {
         marginBottom: 10,
-        marginLeft: globalMargins.tiny,
-        ...globalStyles.flexBoxColumn,
+        marginLeft: Styles.globalMargins.tiny,
+        ...Styles.globalStyles.flexBoxColumn,
         maxWidth: 460,
       },
     } as const)

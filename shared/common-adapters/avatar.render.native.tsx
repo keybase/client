@@ -1,4 +1,4 @@
-import Icon from './icon'
+import Icon, {IconType} from './icon'
 import * as React from 'react'
 import * as Styles from '../styles'
 import ClickableBox from './clickable-box'
@@ -10,6 +10,7 @@ const Kb = {
   Box,
   ClickableBox,
   Icon,
+  IconType,
   NativeImage,
 }
 

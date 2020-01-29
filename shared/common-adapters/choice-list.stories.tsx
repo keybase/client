@@ -1,6 +1,9 @@
 import * as React from 'react'
 import ChoiceList from './choice-list'
+import {IconType} from './icon'
 import {action, storiesOf} from '../stories/storybook'
+
+const Kb = {IconType}
 
 const load = () => {
   storiesOf('Common', module).add('Choice list', () => (

@@ -11,7 +11,7 @@ type Props = {
 
 const Illustration = () => (
   <Kb.Box style={styles.illustrationContainer}>
-    <Kb.Icon style={styles.image} type="illustration-security-preferences" />
+    <Kb.Icon style={styles.image} type={Kb.IconType.illustration_security_preferences} />
     <Kb.Box
       style={Styles.collapseStyles([styles.highlight, {bottom: 49, height: 24, left: 36, width: 136}])}
     />

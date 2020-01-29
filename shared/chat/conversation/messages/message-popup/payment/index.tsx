@@ -6,7 +6,7 @@ import * as Styles from '../../../../../styles'
 import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 import {Box2} from '../../../../../common-adapters/box'
 import Text, {AllowedColors} from '../../../../../common-adapters/text'
-import Icon from '../../../../../common-adapters/icon'
+import Icon, {IconType} from '../../../../../common-adapters/icon'
 import Avatar from '../../../../../common-adapters/avatar'
 import ConnectedUsernames from '../../../../../common-adapters/usernames/container'
 import ProgressIndicator from '../../../../../common-adapters/progress-indicator'
@@ -23,6 +23,7 @@ const Kb = {
   Divider,
   FloatingMenu,
   Icon,
+  IconType,
   ProgressIndicator,
   Text,
 }

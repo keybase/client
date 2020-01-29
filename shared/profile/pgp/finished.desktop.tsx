@@ -29,7 +29,7 @@ class Finished extends React.Component<Props, State> {
     return (
       <Modal>
         <Kb.Box2 direction="vertical" alignItems="center" gap="tiny">
-          <Kb.PlatformIcon platform="pgp" overlay="icon-proof-success" />
+          <Kb.PlatformIcon platform="pgp" overlay={Kb.IconType.icon_proof_success} />
           <Kb.Text type="Header">Here is your unique public key!</Kb.Text>
           <Kb.Text type="Body">
             Your private key has been written to Keybase’s local keychain. You can learn to use it with

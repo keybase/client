@@ -18,6 +18,7 @@ const Kb = {
   ClickableBox,
   HotKey,
   Icon,
+  IconType,
   NewInput,
   PlainInput,
   ProgressIndicator,

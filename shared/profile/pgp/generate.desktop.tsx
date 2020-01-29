@@ -10,7 +10,7 @@ type OwnProps = {}
 const Generate = props => (
   <Modal onCancel={props.onCancel}>
     <Kb.Box2 direction="vertical" gap="small" alignItems="center">
-      <Kb.PlatformIcon platform="pgp" overlay="icon-proof-unfinished" />
+      <Kb.PlatformIcon platform="pgp" overlay={Kb.IconType.icon_proof_unfinished} />
       <Kb.Text type="Header">Generating your unique key...</Kb.Text>
       <Kb.Text type="Body">
         Math time! You are about to discover a 4096-bit key pair.

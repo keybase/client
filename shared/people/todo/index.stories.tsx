@@ -2,6 +2,7 @@ import * as React from 'react'
 import {storiesOf, action} from '../../stories/storybook'
 import {Task} from '.'
 import {TaskButton} from '../item'
+import * as Kb from '../../common-adapters'
 
 const defaultButtons = (label, dismissLabel?) => {
   const ret = [

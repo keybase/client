@@ -1,6 +1,6 @@
 import * as React from 'react'
 import MessagePopupHeader from '../header'
-import {FloatingMenu, MenuItem, MenuItems} from '../../../../../common-adapters'
+import * as Kb from '../../../../../common-adapters'
 import {fileUIName, StylesCrossPlatform} from '../../../../../styles'
 import {DeviceType} from '../../../../../constants/types/devices'
 import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
@@ -34,7 +34,7 @@ type Props = {
 }
 
 const AttachmentPopupMenu = (props: Props) => {
-  const items: MenuItems = [
+  const items: Kb.MenuItems = [
     ...(props.isDeleteable
       ? ([
           'Divider' as const,
@@ -114,8 +114,8 @@ const AttachmentPopupMenu = (props: Props) => {
     ...(props.onPinMessage
       ? [{icon: Kb.IconType.iconfont_pin, onClick: props.onPinMessage, title: 'Pin message'}]
       : []),
-  ].reduce<MenuItems>((arr, i) => {
-    i && arr.push(i as MenuItem)
+  ].reduce<Kb.MenuItems>((arr, i) => {
+    i && arr.push(i as Kb.MenuItem)
     return arr
   }, [])
 
@@ -135,7 +135,7 @@ const AttachmentPopupMenu = (props: Props) => {
     ),
   }
   return (
-    <FloatingMenu
+    <Kb.FloatingMenu
       attachTo={props.attachTo}
       header={header}
       items={items}

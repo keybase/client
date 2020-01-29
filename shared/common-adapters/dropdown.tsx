@@ -6,8 +6,10 @@ import Overlay from './overlay'
 import ScrollView from './scroll-view'
 import OverlayParentHOC, {OverlayParentProps} from './overlay/parent-hoc'
 import {Position} from './relative-popup-hoc.types'
-import Icon from './icon'
+import Icon, {IconType} from './icon'
 import * as Styles from '../styles'
+
+const Kb = {IconType}
 
 type DropdownButtonProps = {
   disabled?: boolean

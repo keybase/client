@@ -1,8 +1,10 @@
 import * as React from 'react'
 import Box, {Box2} from './box'
-import Icon from './icon'
+import Icon, {IconType} from './icon'
 import Text from './text'
 import * as Styles from '../styles'
+
+const Kb = {IconType}
 
 type Color = 'blue' | 'red' | 'yellow' | 'green' | 'grey' | 'white'
 

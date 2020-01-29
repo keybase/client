@@ -1,9 +1,12 @@
 import {Box2} from './box'
 import Text from './text'
+import {IconType} from './icon'
 import Button, {ButtonType, ButtonColor} from './button'
 import * as React from 'react'
 import * as Sb from '../stories/storybook'
 import {globalColors, isMobile} from '../styles'
+
+const Kb = {IconType}
 
 const commonProps = {
   disabled: false,

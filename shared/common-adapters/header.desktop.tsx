@@ -1,11 +1,12 @@
 import React, {Component} from 'react'
 import Text from './text'
 import {Props} from './header'
-import Icon from './icon'
+import Icon, {IconType} from './icon'
 import * as Styles from '../styles'
 
 const Kb = {
   Icon,
+  IconType,
   Text,
 }
 

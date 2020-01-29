@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {Box2, Box} from './box'
-import Icon from './icon'
+import Icon, {IconType} from './icon'
 import Text from './text'
 import Button from './button'
 import Emoji from './emoji'
@@ -17,6 +17,7 @@ const Kb = {
   Button,
   Emoji,
   Icon,
+  IconType,
   Text,
 }
 

@@ -9,7 +9,7 @@ import HeaderHoc from './header-hoc'
 import ScrollView from './scroll-view'
 import Text from './text'
 import Button from './button'
-import Icon from './icon'
+import Icon, {IconType} from './icon'
 import {RPCError} from '../util/errors'
 import {settingsTab} from '../constants/tabs'
 import {feedbackTab} from '../constants/settings'
@@ -18,6 +18,7 @@ const Kb = {
   Box2,
   Button,
   Icon,
+  IconType,
   ScrollView,
   Text,
 }
