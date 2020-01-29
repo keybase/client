@@ -22,19 +22,8 @@ KEYBASE_KBFS_ARGS="${KEYBASE_KBFS_ARGS:-"-debug -mount-type=none -log-to-file"}"
 keybase $KEYBASE_SERVICE_ARGS service &
 KEYBASE_DEBUG=1 kbfsfuse $KEYBASE_KBFS_ARGS &
 
-# Wait up to 10 seconds for the service to start
-keybase ctl wait
-
-# Wait up to 10 seconds for KBFS to start
-KBFS_COUNTER=0
-until keybase --no-auto-fork fs ls /keybase/private &> /dev/null; do
-    if [ $KBFS_COUNTER -gt 10 ]; then
-        echo "KBFS failed to start" >&2
-        exit 1
-    fi
-    KBFS_COUNTER=$((KBFS_COUNTER + 1))
-    sleep 1
-done
+# Wait up to 10 seconds for both the service and KBFS to start
+keybase ctl wait --include-kbfs
 
 # Possibly run oneshot if it was requested by the user
 if [ -v KEYBASE_USERNAME ] && [ -v KEYBASE_PAPERKEY ]; then

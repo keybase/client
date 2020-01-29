@@ -63,7 +63,7 @@ func (c *CmdWait) Run() error {
 
 	err := checkIsRunning(ctx, c.G(), false)
 	if err != nil {
-		return err
+		return fmt.Errorf("service failed to startup: %v", err)
 	}
 
 	ctx, cancel = context.WithTimeout(context.Background(), c.duration)
@@ -72,7 +72,7 @@ func (c *CmdWait) Run() error {
 	if c.includeKBFS {
 		err := checkIsRunning(ctx, c.G(), true)
 		if err != nil {
-			return err
+			return fmt.Errorf("kbfs failed to startup: %v", err)
 		}
 	}
 
