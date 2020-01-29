@@ -1653,6 +1653,7 @@ function* inboxSearch(_: Container.TypedState, action: Chat2Gen.InboxSearchPaylo
           })
           return arr
         }, []),
+        suggested: resp.hits.suggestedMatches,
       })
     )
 

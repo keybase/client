@@ -37,6 +37,7 @@ export type Props = {
   onCancel: () => void
   onSelectConversation: (arg0: Types.ConversationIDKey, arg1: number, arg2: string) => void
   openTeamsResults: Array<Types.InboxSearchOpenTeamHit>
+  openTeamsResultsSuggested: boolean
   openTeamsStatus: Types.InboxSearchStatus
   query: string
   selectedIndex: number
@@ -79,14 +80,14 @@ class InboxSearch extends React.Component<Props, State> {
     section: {indexOffset: number; onSelect: any}
     index: number
   }) => {
-    console.warn(h)
     if (typeof h.item === 'string') {
       return h.item === emptyUnreadPlaceholder ? (
         <Kb.Text
           style={{...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny)}}
           type="BodySmall"
+          center={true}
         >
-          No unread chats
+          No unread messages or conversations
         </Kb.Text>
       ) : null
     }
@@ -188,7 +189,7 @@ class InboxSearch extends React.Component<Props, State> {
       ? openTeamsResults.length + nameResults.length
       : nameResults.length
 
-    if (this.props.nameResultsUnread && nameResults.length === 0) {
+    if (this.props.nameResultsUnread && !this.state.nameCollapsed && nameResults.length === 0) {
       nameResults.push(emptyUnreadPlaceholder)
     }
 
@@ -204,7 +205,7 @@ class InboxSearch extends React.Component<Props, State> {
         status: this.props.nameStatus,
         title: this.props.nameResultsUnread ? 'Unread' : 'Chats',
       },
-      ...(flags.openTeamSearch && !this.props.nameResultsUnread
+      ...(flags.openTeamSearch
         ? [
             {
               data: openTeamsResults,
@@ -215,7 +216,7 @@ class InboxSearch extends React.Component<Props, State> {
               renderHeader: this.renderNameHeader,
               renderItem: this.renderOpenTeams,
               status: this.props.openTeamsStatus,
-              title: this.props.query == '' ? 'Suggested Teams' : 'Open Teams',
+              title: this.props.openTeamsResultsSuggested ? 'Suggested Teams' : 'Open Teams',
             },
           ]
         : []),
