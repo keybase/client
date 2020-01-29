@@ -72,15 +72,7 @@ const Verify = (props: Props) => {
           <OutputProgress operation={Constants.Operations.Verify} />
           <Kb.Box2 direction="vertical" fullHeight={true}>
             <SignedSender operation={Constants.Operations.Verify} />
-            <OperationOutput
-              outputStatus={props.outputStatus}
-              outputMatchesInput={props.outputMatchesInput}
-              output={props.output}
-              outputType={props.outputType}
-              textType="plain"
-              operation={Constants.Operations.Verify}
-              onShowInFinder={props.onShowInFinder}
-            />
+            <OperationOutput operation={Constants.Operations.Verify} />
             <OutputBar operation={Constants.Operations.Verify} />
           </Kb.Box2>
         </Kb.Box2>

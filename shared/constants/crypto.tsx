@@ -73,6 +73,20 @@ export const Operations: {[key: string]: Types.Operations} = {
   Verify: 'verify',
 }
 
+const operationToInputTextType: {[k in Types.Operations]: Types.TextType} = {
+  decrypt: 'cipher',
+  encrypt: 'plain',
+  sign: 'plain',
+  verify: 'cipher',
+} as const
+
+const operationToOutputTextType: {[k in Types.Operations]: Types.TextType} = {
+  decrypt: 'plain',
+  encrypt: 'cipher',
+  sign: 'cipher',
+  verify: 'plain',
+} as const
+
 const operationToInputFileIcon: {[k in Types.Operations]: IconType} = {
   decrypt: 'icon-file-saltpack-encrypted-64',
   encrypt: 'icon-file-64',
@@ -101,6 +115,8 @@ const operationToFileWaitingKey: {[k in Types.Operations]: Types.FileWaitingKey}
   verify: verifyFileWaitingKey,
 } as const
 
+export const getInputTextType = (operation: Types.Operations) => operationToInputTextType[operation]
+export const getOutputTextType = (operation: Types.Operations) => operationToOutputTextType[operation]
 export const getInputFileIcon = (operation: Types.Operations) => operationToInputFileIcon[operation]
 export const getOutputFileIcon = (operation: Types.Operations) => operationToOutputFileIcon[operation]
 export const getStringWaitingKey = (operation: Types.Operations) => operationToStringWaitingKey[operation]
@@ -130,6 +146,7 @@ export const getStatusCodeMessage = (
   return statusCodeToMessage[code] || `Failed to ${operation} ${type}.`
 }
 
+// State
 const defaultCommonState = {
   bytesComplete: 0,
   bytesTotal: 0,

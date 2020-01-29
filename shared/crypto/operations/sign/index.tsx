@@ -91,15 +91,7 @@ const Sign = (props: Props) => {
               </Kb.Text>
             </OutputInfoBanner>
             <SignedSender operation={Constants.Operations.Sign} />
-            <OperationOutput
-              outputStatus={props.outputStatus}
-              outputMatchesInput={props.outputMatchesInput}
-              output={props.output}
-              outputType={props.outputType}
-              textType="cipher"
-              operation={Constants.Operations.Sign}
-              onShowInFinder={props.onShowInFinder}
-            />
+            <OperationOutput operation={Constants.Operations.Sign} />
             <OutputBar operation={Constants.Operations.Sign} />
           </Kb.Box2>
         </Kb.Box2>

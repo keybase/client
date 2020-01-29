@@ -73,15 +73,7 @@ const Decrypt = (props: Props) => {
           <OutputProgress operation={Constants.Operations.Decrypt} />
           <Kb.Box2 direction="vertical" fullHeight={true}>
             <SignedSender operation={Constants.Operations.Decrypt} />
-            <OperationOutput
-              outputStatus={props.outputStatus}
-              output={props.output}
-              outputType={props.outputType}
-              textType="plain"
-              operation={Constants.Operations.Decrypt}
-              outputMatchesInput={props.outputMatchesInput}
-              onShowInFinder={props.onShowInFinder}
-            />
+            <OperationOutput operation={Constants.Operations.Decrypt} />
             <OutputBar operation={Constants.Operations.Decrypt} />
           </Kb.Box2>
         </Kb.Box2>

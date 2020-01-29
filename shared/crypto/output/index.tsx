@@ -9,14 +9,8 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {getStyle} from '../../common-adapters/text'
 
-type Props = {
-  output?: string
-  outputStatus?: Types.OutputStatus
-  outputType?: Types.OutputType
-  outputMatchesInput: boolean
-  textType: Types.TextType
+type OutputProps = {
   operation: Types.Operations
-  onShowInFinder: (path: string) => void
 }
 
 type OutputBarProps = {
@@ -46,7 +40,7 @@ export const SignedSender = (props: SignedSenderProps) => {
   // Waiting
   const waitingKey = Constants.getStringWaitingKey(operation)
   const waiting = Container.useAnyWaiting(waitingKey)
-  // State
+  // Store
   const signed = Container.useSelector(state => state.crypto[operation].outputSigned)
   const signedBy = Container.useSelector(state => state.crypto[operation].outputSender)
   const outputStatus = Container.useSelector(state => state.crypto[operation].outputStatus)
@@ -214,24 +208,44 @@ export const OutputBar = (props: OutputBarProps) => {
   )
 }
 
-const Output = (props: Props) => {
-  const waitingKey = Constants.getStringWaitingKey(props.operation)
+const Output = (props: OutputProps) => {
+  const {operation} = props
+  const textType = Constants.getOutputTextType(operation)
+  const dispatch = Container.useDispatch()
+
+  // Store
+  const outputHidden = Container.useSelector(state => state.crypto[operation].output)
+  const outputMatchesInput = Container.useSelector(state => state.crypto[operation].outputMatchesInput)
+  const outputStatus = Container.useSelector(state => state.crypto[operation].outputStatus)
+  const outputType = Container.useSelector(state => state.crypto[operation].outputType)
+  const output = outputHidden.stringValue()
+
+  // Actions
+  const onShowInFinder = React.useCallback(() => {
+    if (!output) return
+    dispatch(FSGen.createOpenLocalPathInSystemFileManager({localPath: output}))
+  }, [dispatch, output])
+
+  // Waiting
+  const waitingKey = Constants.getStringWaitingKey(operation)
   const waiting = Container.useAnyWaiting(waitingKey)
+
+  // Styling
   // Output text can be 24 px when output is less that 120 characters
   const outputTextIsLarge =
-    props.operation === Constants.Operations.Decrypt || props.operation === Constants.Operations.Verify
+    operation === Constants.Operations.Decrypt || operation === Constants.Operations.Verify
   const {fontSize, lineHeight} = getStyle('HeaderBig')
   const outputLargeStyle = outputTextIsLarge &&
-    props.output &&
-    props.output.length <= largeOutputLimit && {fontSize, lineHeight}
+    output &&
+    output.length <= largeOutputLimit && {fontSize, lineHeight}
 
   const fileOutputTextColor =
-    props.textType === 'cipher' ? Styles.globalColors.greenDark : Styles.globalColors.black
-  const fileIcon = Constants.getOutputFileIcon(props.operation)
-  const actionsDisabled = waiting || !props.outputMatchesInput
+    textType === 'cipher' ? Styles.globalColors.greenDark : Styles.globalColors.black
+  const fileIcon = Constants.getOutputFileIcon(operation)
+  const actionsDisabled = waiting || !outputMatchesInput
 
-  return props.outputStatus && props.outputStatus === 'success' ? (
-    props.outputType === 'file' ? (
+  return outputStatus && outputStatus === 'success' ? (
+    outputType === 'file' ? (
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
         <Kb.Box2
           direction="horizontal"
@@ -243,19 +257,19 @@ const Output = (props: Props) => {
           <Kb.Text
             type="BodyPrimaryLink"
             style={Styles.collapseStyles([styles.fileOutputText, {color: fileOutputTextColor}])}
-            onClick={() => props.output && props.onShowInFinder(props.output)}
+            onClick={() => onShowInFinder()}
           >
-            {props.output}
+            {output}
           </Kb.Text>
         </Kb.Box2>
       </Kb.Box2>
     ) : (
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
-        {props.output &&
-          props.output.split('\n').map((line, index) => (
+        {output &&
+          output.split('\n').map((line, index) => (
             <Kb.Text
               key={index}
-              type={props.textType === 'cipher' ? 'Terminal' : 'Body'}
+              type={textType === 'cipher' ? 'Terminal' : 'Body'}
               selectable={!actionsDisabled}
               style={Styles.collapseStyles([styles.output, outputLargeStyle])}
             >

@@ -147,15 +147,7 @@ const Encrypt = (props: Props) => {
               />
             </OutputInfoBanner>
             <SignedSender operation={Constants.Operations.Encrypt} />
-            <OperationOutput
-              outputStatus={props.outputStatus}
-              output={props.output}
-              outputMatchesInput={props.outputMatchesInput}
-              outputType={props.outputType}
-              textType="cipher"
-              operation={Constants.Operations.Encrypt}
-              onShowInFinder={props.onShowInFinder}
-            />
+            <OperationOutput operation={Constants.Operations.Encrypt} />
             <OutputBar operation={Constants.Operations.Encrypt} />
           </Kb.Box2>
         </Kb.Box2>
