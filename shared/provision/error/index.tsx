@@ -94,11 +94,9 @@ const Render = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}: Prop
             <List>
               <Kb.Text type="Body"> - Go back and select a device or paper key</Kb.Text>
               <Kb.Text type="Body">
-                {' '}
                 - Install Keybase on a machine that has your PGP private key in it
               </Kb.Text>
               <Kb.Text type="Body">
-                {' '}
                 - Login to the website and host an encrypted copy of your PGP private key
               </Kb.Text>
               <Kb.Text type="Body">
@@ -123,18 +121,15 @@ const Render = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}: Prop
             </Kb.Text>
             <List>
               <Kb.Text type="Body">
-                {' '}
                 - Use <Kb.Text type="TerminalInline">keybase login</Kb.Text> on the command line to log in
               </Kb.Text>
               {!Styles.isMobile && (
                 <Kb.Text type="Body">
-                  {' '}
                   - Install GPG on this machine and import your PGP private key into it
                 </Kb.Text>
               )}
               <Kb.Text type="Body"> - Install Keybase on a different machine that has your PGP key</Kb.Text>
               <Kb.Text type="Body">
-                {' '}
                 - Login to the website and host an encrypted copy of your PGP private key
               </Kb.Text>
               <Kb.Text type="Body">
