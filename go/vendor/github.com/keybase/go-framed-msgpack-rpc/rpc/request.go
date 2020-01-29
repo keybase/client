@@ -61,7 +61,7 @@ func (r *callRequest) Reply(enc *framedMsgpackEncoder, res interface{}, errArg i
 
 	size, errCh := enc.EncodeAndWrite(r.ctx, v, nil)
 	end := r.instrumenter.Instrument(RPCInstrumentTag(MethodResponse, r.Name()))
-	defer end(size)
+	defer func() { _ = end(size) }()
 
 	select {
 	case err := <-errCh:
@@ -130,7 +130,7 @@ func (r *callCompressedRequest) Reply(enc *framedMsgpackEncoder, res interface{}
 
 	size, errCh := enc.EncodeAndWrite(r.ctx, v, nil)
 	end := r.instrumenter.Instrument(RPCInstrumentTag(MethodResponse, r.Name()))
-	defer end(size)
+	defer func() { _ = end(size) }()
 
 	select {
 	case err := <-errCh:

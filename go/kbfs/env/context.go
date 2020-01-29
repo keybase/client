@@ -200,7 +200,8 @@ func (c *KBFSContext) getKBFSSocketFile() string {
 }
 
 func (c *KBFSContext) newTransportFromSocket(s net.Conn) rpc.Transporter {
-	return rpc.NewTransport(s, c.NewRPCLogFactory(), libkb.WrapError, rpc.DefaultMaxFrameLength)
+	return rpc.NewTransport(s, c.NewRPCLogFactory(), rpc.NewNetworkInstrumenter(c.g.NetworkInstrumenterStorage),
+		libkb.WrapError, rpc.DefaultMaxFrameLength)
 }
 
 // GetKBFSSocket dials the socket configured in `c.kbfsSocket`.

@@ -44,18 +44,17 @@ type Transporter interface {
 var _ Transporter = (*transport)(nil)
 
 type transport struct {
-	c            net.Conn
-	enc          *framedMsgpackEncoder
-	dispatcher   dispatcher
-	receiver     receiver
-	packetizer   *packetizer
-	protocols    *protocolHandler
-	calls        *callContainer
-	instrumenter *NetworkInstrumenter
-	log          LogInterface
-	closeOnce    sync.Once
-	startOnce    sync.Once
-	stopCh       chan struct{}
+	c          net.Conn
+	enc        *framedMsgpackEncoder
+	dispatcher dispatcher
+	receiver   receiver
+	packetizer *packetizer
+	protocols  *protocolHandler
+	calls      *callContainer
+	log        LogInterface
+	closeOnce  sync.Once
+	startOnce  sync.Once
+	stopCh     chan struct{}
 
 	// Filled in right before stopCh is closed.
 	stopErr error

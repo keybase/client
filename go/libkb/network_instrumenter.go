@@ -116,10 +116,9 @@ func (s *DiskInstrumentationStorage) dbKey(tag string, ctime time.Time) DbKey {
 }
 
 func (s *DiskInstrumentationStorage) getAllKeysLocked() (keys []DbKey, err error) {
-	levelDbTableKv := "kv"
 	prefix := DbKey{
 		Typ: DBNetworkInstrumentation,
-	}.ToBytes(levelDbTableKv)
+	}.ToBytes()
 	dbKeys, err := s.G().LocalDb.KeysWithPrefixes(prefix)
 	if err != nil {
 		return nil, fmt.Errorf("could not get KeysWithPrefixes: %v", err)

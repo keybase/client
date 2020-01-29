@@ -42,9 +42,6 @@ func NewMemoryInstrumentationStorage() *MemoryInstrumentationStorage {
 func (s *MemoryInstrumentationStorage) Put(tag string, record InstrumentationRecord) error {
 	s.Lock()
 	defer s.Unlock()
-	if _, ok := s.storage[tag]; !ok {
-		s.storage[tag] = []InstrumentationRecord{}
-	}
 	s.storage[tag] = append(s.storage[tag], record)
 	return nil
 }
