@@ -67,6 +67,7 @@ func (c *CmdWait) Run() error {
 	}
 
 	ctx, cancel = context.WithTimeout(context.Background(), c.duration)
+	defer cancel()
 
 	if c.includeKBFS {
 		err := checkIsRunning(ctx, c.G(), true)
