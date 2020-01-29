@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/flexibletable"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
 
@@ -42,17 +43,20 @@ func (c *CmdNetworkStats) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (c *CmdNetworkStats) Run() error {
+func (c *CmdNetworkStats) load() ([]keybase1.InstrumentationStat, error) {
 	cli, err := GetConfigClient(c.G())
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	stats, err := cli.GetNetworkStats(context.TODO(), 0)
+	return cli.GetNetworkStats(context.TODO(), 0)
+}
+
+func (c *CmdNetworkStats) Run() error {
+	stats, err := c.load()
 	if err != nil {
 		return err
 	}
-
 	if c.json {
 		b, err := json.MarshalIndent(stats, "", "    ")
 		if err != nil {

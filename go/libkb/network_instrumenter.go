@@ -148,10 +148,6 @@ func (s *DiskInstrumentationStorage) GetAll() (res map[string][]keybase1.Instrum
 	res = make(map[string][]keybase1.InstrumentationDiskRecord)
 	for _, dbKey := range dbKeys {
 		tag := strings.Split(dbKey.Key, ":")[0]
-		if _, ok := res[tag]; !ok {
-			res[tag] = []keybase1.InstrumentationDiskRecord{}
-		}
-
 		var record keybase1.InstrumentationDiskRecord
 		ok, err := s.G().LocalDb.GetIntoMsgpack(&record, dbKey)
 		if err != nil {
@@ -217,9 +213,6 @@ func (s *DiskInstrumentationStorage) Stats() (res []keybase1.InstrumentationStat
 func (s *DiskInstrumentationStorage) Put(tag string, record rpc.InstrumentationRecord) error {
 	s.Lock()
 	defer s.Unlock()
-	if _, ok := s.storage[tag]; !ok {
-		s.storage[tag] = []rpc.InstrumentationRecord{}
-	}
 	s.storage[tag] = append(s.storage[tag], record)
 	return nil
 }

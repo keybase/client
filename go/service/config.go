@@ -183,9 +183,10 @@ func (h ConfigHandler) LogSend(ctx context.Context, arg keybase1.LogSendArg) (re
 		numBytes = status.LogSendMaxBytes
 	}
 
-	logSendContext := status.NewLogSendContext(h.G(), fstatus, statusJSON, arg.Feedback)
+	// pass empty networkStatsJSON here since we call LogSend with addNetworkStats=true below
+	logSendContext := status.NewLogSendContext(h.G(), fstatus, statusJSON, "", arg.Feedback)
 	return logSendContext.LogSend(arg.SendLogs, numBytes,
-		false /* mergeExtendedStatus */)
+		false /* mergeExtendedStatus */, true /* addNetworkStats */)
 }
 
 func (h ConfigHandler) GetAllProvisionedUsernames(ctx context.Context, sessionID int) (res keybase1.AllProvisionedUsernames, err error) {
