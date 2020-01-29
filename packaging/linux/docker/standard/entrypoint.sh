@@ -22,7 +22,7 @@ KEYBASE_KBFS_ARGS="${KEYBASE_KBFS_ARGS:-"-debug -mount-type=none -log-to-file"}"
 keybase $KEYBASE_SERVICE_ARGS service &
 KEYBASE_DEBUG=1 kbfsfuse $KEYBASE_KBFS_ARGS &
 
-# Wait up to 10 seconds for both the service and KBFS to start
+# Wait up to 10 seconds each for both the service and KBFS to start
 keybase ctl wait --include-kbfs
 
 # Possibly run oneshot if it was requested by the user

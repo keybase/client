@@ -182,11 +182,8 @@ func (h ConfigHandler) IsKBFSRunning(ctx context.Context, sessionID int) (res bo
 	clients := libkb.GetClientStatus(mctx)
 
 	kbfs := status.GetFirstClient(clients, keybase1.ClientType_KBFS)
-	if kbfs != nil {
-		return true, nil
-	}
 
-	return false, nil
+	return kbfs != nil, nil
 }
 
 func (h ConfigHandler) LogSend(ctx context.Context, arg keybase1.LogSendArg) (res keybase1.LogSendID, err error) {
