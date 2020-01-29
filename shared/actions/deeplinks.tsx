@@ -7,6 +7,7 @@ import * as RouteTreeGen from './route-tree-gen'
 import * as Saga from '../util/saga'
 import * as Tabs from '../constants/tabs'
 import * as WalletsGen from './wallets-gen'
+import * as TeamsGen from './teams-gen'
 import URL from 'url-parse'
 import logger from '../logger'
 
@@ -85,6 +86,7 @@ const handleAppLink = (state: Container.TypedState, action: DeeplinksGen.LinkPay
   } else {
     // Normal deeplink
     const url = new URL(action.payload.link)
+    console.log('zzz Deep Link', action.payload.link, url, url.query, typeof url.query)
     const username = Constants.urlToUsername(url)
     if (username === 'phone-app') {
       const phones = state.settings.phoneNumbers.phones
@@ -99,6 +101,14 @@ const handleAppLink = (state: Container.TypedState, action: DeeplinksGen.LinkPay
       return [
         RouteTreeGen.createNavigateAppend({path: [Tabs.peopleTab]}),
         ProfileGen.createShowUserProfile({username}),
+      ]
+    }
+
+    const teamLink = Constants.urlToTeamDeepLink(url)
+    if (teamLink) {
+      return [
+        RouteTreeGen.createSwitchTab({tab: Tabs.teamsTab}),
+        TeamsGen.createShowTeamByName({teamName: teamLink.teamName}),
       ]
     }
   }

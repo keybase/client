@@ -74,6 +74,7 @@ export const setTeamsWithChosenChannels = 'teams:setTeamsWithChosenChannels'
 export const setUpdatedChannelName = 'teams:setUpdatedChannelName'
 export const setUpdatedTopic = 'teams:setUpdatedTopic'
 export const settingsError = 'teams:settingsError'
+export const showTeamByName = 'teams:showTeamByName'
 export const teamCreated = 'teams:teamCreated'
 export const teamLoaded = 'teams:teamLoaded'
 export const toggleInvitesCollapsed = 'teams:toggleInvitesCollapsed'
@@ -263,6 +264,7 @@ type _SetUpdatedTopicPayload = {
   readonly newTopic: string
 }
 type _SettingsErrorPayload = {readonly error: string}
+type _ShowTeamByNamePayload = {readonly teamName: string}
 type _TeamCreatedPayload = {
   readonly fromChat: boolean
   readonly teamID: Types.TeamID
@@ -561,6 +563,10 @@ export const createSettingsError = (payload: _SettingsErrorPayload): SettingsErr
   payload,
   type: settingsError,
 })
+export const createShowTeamByName = (payload: _ShowTeamByNamePayload): ShowTeamByNamePayload => ({
+  payload,
+  type: showTeamByName,
+})
 export const createTeamCreated = (payload: _TeamCreatedPayload): TeamCreatedPayload => ({
   payload,
   type: teamCreated,
@@ -803,6 +809,10 @@ export type SettingsErrorPayload = {
   readonly payload: _SettingsErrorPayload
   readonly type: typeof settingsError
 }
+export type ShowTeamByNamePayload = {
+  readonly payload: _ShowTeamByNamePayload
+  readonly type: typeof showTeamByName
+}
 export type TeamCreatedPayload = {readonly payload: _TeamCreatedPayload; readonly type: typeof teamCreated}
 export type TeamLoadedPayload = {readonly payload: _TeamLoadedPayload; readonly type: typeof teamLoaded}
 export type ToggleInvitesCollapsedPayload = {
@@ -897,6 +907,7 @@ export type Actions =
   | SetUpdatedChannelNamePayload
   | SetUpdatedTopicPayload
   | SettingsErrorPayload
+  | ShowTeamByNamePayload
   | TeamCreatedPayload
   | TeamLoadedPayload
   | ToggleInvitesCollapsedPayload

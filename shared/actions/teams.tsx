@@ -1289,6 +1289,12 @@ function* teamBuildingSaga() {
   yield* Saga.chainAction(TeamsGen.addedToTeam, closeTeamBuilderOrSetError)
 }
 
+async function showTeamByName(action: TeamsGen.ShowTeamByNamePayload) {
+  const {teamName} = action.payload
+  const teamID = await RPCTypes.teamsGetTeamIDRpcPromise({teamName})
+  return [RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'team'}]})]
+}
+
 const teamsSaga = function*() {
   yield* Saga.chainAction(TeamsGen.leaveTeam, leaveTeam)
   yield* Saga.chainGenerator<TeamsGen.DeleteTeamPayload>(TeamsGen.deleteTeam, deleteTeam)
@@ -1365,6 +1371,8 @@ const teamsSaga = function*() {
   )
 
   yield* Saga.chainAction2(TeamsGen.clearNavBadges, clearNavBadges)
+
+  yield* Saga.chainAction(TeamsGen.showTeamByName, showTeamByName)
 
   // Hook up the team building sub saga
   yield* teamBuildingSaga()

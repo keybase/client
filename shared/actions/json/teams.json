@@ -317,6 +317,9 @@
       "_description": "Set filtering for the subteams tab.",
       "filter": "string",
       "parentTeam?": "Types.TeamID"
+    },
+    "showTeamByName": {
+      "teamName": "string"
     }
   }
 }

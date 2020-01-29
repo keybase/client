@@ -3,6 +3,7 @@ import * as ChatConstants from './chat2'
 import uniq from 'lodash/uniq'
 import {defaultUseNativeFrame, runMode} from './platform'
 import {isDarkMode as _isDarkMode} from '../styles/dark-mode'
+import URL from 'url-parse'
 
 export const loginAsOtherUserWaitingKey = 'config:loginAsOther'
 export const createOtherAccountWaitingKey = 'config:createOther'
@@ -25,15 +26,7 @@ export const prepareAccountRows = <T extends {username: string; hasStoredSecret:
   myUsername: string
 ): Array<T> => accountRows.filter(account => account.username !== myUsername)
 
-type Url = {
-  protocol: string
-  username: string
-  password: string
-  hostname: string
-  port: string
-  pathname: string
-}
-export const urlToUsername = (url: Url) => {
+export const urlToUsername = (url: URL) => {
   const protocol = url.protocol
   if (protocol !== 'http:' && protocol !== 'https:') {
     return null
@@ -76,6 +69,30 @@ export const urlToUsername = (url: Url) => {
 
   const username = usernameMatch.toLowerCase()
   return username
+}
+
+export const urlToTeamDeepLink = (url: URL) => {
+  // Similar regexp to username but allow `.` for subteams
+  const match = url.pathname.match(/^\/team\/((?:[a-zA-Z0-9][a-zA-Z0-9_.-]?)+)\/?$/)
+  if (!match) {
+    return null
+  }
+
+  const teamName = match[1]
+  if (teamName.length < 2 || teamName.length > 16) {
+    return null
+  }
+
+  // `url.query` has a wrong type in @types/url-parse. It's a `string` in the
+  // code we are pulling in, but a [string]string object in @types.
+  const queryString: string = url.query as any
+
+  // URLSearchParams is not available in react-native. See if any of recognized
+  // query parameters is passed using regular expressions.
+  const action = ['add_or_invite', 'manage_settings'].find(x =>
+    queryString.match(`[?&]applink=${x}([?&].+)?$`)
+  )
+  return {action, teamName}
 }
 
 export const getRemoteWindowPropsCount = (state: Types.State, component: string, params: string) => {
