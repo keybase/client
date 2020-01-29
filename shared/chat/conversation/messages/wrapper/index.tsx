@@ -15,6 +15,7 @@ import SystemSimpleToComplex from '../system-simple-to-complex/container'
 import SystemText from '../system-text/container'
 import SystemUsersAddedToConv from '../system-users-added-to-conv/container'
 import SystemChangeAvatar from '../system-change-avatar'
+import SystemNewChannel from '../system-new-channel/container'
 import SetDescription from '../set-description/container'
 import Pin from '../pin'
 import SetChannelname from '../set-channelname/container'
@@ -531,6 +532,9 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         break
       case 'systemChangeAvatar':
         child = <SystemChangeAvatar key="systemChangeAvatar" message={message} />
+        break
+      case 'systemNewChannel':
+        child = <SystemNewChannel key="systemNewChannel" message={message} />
         break
       case 'setDescription':
         child = <SetDescription key="setDescription" message={message} />

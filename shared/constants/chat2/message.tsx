@@ -18,6 +18,7 @@ import {ServiceId} from 'util/platforms'
 import {assertNever} from '../../util/container'
 import invert from 'lodash/invert'
 import shallowEqual from 'shallowequal'
+import {getMeta} from './meta'
 
 export const getMessageID = (m: RPCChatTypes.UIMessage) => {
   switch (m.state) {
@@ -100,6 +101,7 @@ export const serviceMessageTypeToMessageTypes = (t: RPCChatTypes.MessageType): A
         'systemText',
         'systemUsersAddedToConversation',
         'systemChangeAvatar',
+        'systemNewChannel',
       ]
     case RPCChatTypes.MessageType.sendpayment:
       return ['sendPayment']
@@ -135,6 +137,7 @@ export const allMessageTypes: Set<Types.MessageType> = new Set([
   'systemSBSResolved',
   'systemSimpleToComplex',
   'systemChangeAvatar',
+  'systemNewChannel',
   'systemText',
   'systemUsersAddedToConversation',
   'text',
@@ -498,6 +501,17 @@ const makeMessageSystemChangeAvatar = (
   ...m,
 })
 
+const makeMessageSystemNewChannel = (
+  m?: Partial<MessageTypes.MessageSystemNewChannel>
+): MessageTypes.MessageSystemNewChannel => ({
+  ...makeMessageCommonNoDeleteNoEdit,
+  createdConvID: '',
+  creator: '',
+  reactions: new Map(),
+  type: 'systemNewChannel',
+  ...m,
+})
+
 export const makeReaction = (m?: Partial<MessageTypes.Reaction>): MessageTypes.Reaction => ({
   timestamp: 0,
   username: '',
@@ -624,6 +638,7 @@ export const uiMessageEditToMessage = (
 }
 
 const uiMessageToSystemMessage = (
+  state: TypedState,
   minimum: Minimum,
   body: RPCChatTypes.MessageSystem,
   reactions: Map<string, Set<MessageTypes.Reaction>>
@@ -737,6 +752,20 @@ const uiMessageToSystemMessage = (
         team,
         user,
       })
+    }
+    case RPCChatTypes.MessageSystemType.newchannel: {
+      const {creator, convID} = body.newchannel || {}
+      const createdConvID = Types.conversationIDToKey(convID)
+      const {channelname} = getMeta(state, createdConvID)
+      // If channel no longer exists hide this message
+      return channelname
+        ? makeMessageSystemNewChannel({
+            ...minimum,
+            createdConvID,
+            creator,
+            reactions,
+          })
+        : null
     }
     case RPCChatTypes.MessageSystemType.changeretention: {
       if (!body.changeretention) {
@@ -999,7 +1028,7 @@ const validUIMessagetoMessage = (
       })
     case RPCChatTypes.MessageType.system:
       return m.messageBody.system
-        ? uiMessageToSystemMessage(common, m.messageBody.system, common.reactions)
+        ? uiMessageToSystemMessage(state, common, m.messageBody.system, common.reactions)
         : null
     case RPCChatTypes.MessageType.headline:
       return makeMessageSetDescription({
@@ -1442,6 +1471,7 @@ export const shouldShowPopup = (state: TypedState, message: Types.Message) => {
     case 'systemText':
     case 'systemUsersAddedToConversation':
     case 'systemChangeAvatar':
+    case 'systemNewChannel':
     case 'journeycard':
       return true
     case 'sendPayment': {

@@ -402,7 +402,7 @@ const (
 	MessageSystemType_CHANGERETENTION   MessageSystemType = 6
 	MessageSystemType_BULKADDTOCONV     MessageSystemType = 7
 	MessageSystemType_SBSRESOLVE        MessageSystemType = 8
-	MessageSystemType_NEWCONVERSATION   MessageSystemType = 9
+	MessageSystemType_NEWCHANNEL        MessageSystemType = 9
 )
 
 func (o MessageSystemType) DeepCopy() MessageSystemType { return o }
@@ -417,7 +417,7 @@ var MessageSystemTypeMap = map[string]MessageSystemType{
 	"CHANGERETENTION":   6,
 	"BULKADDTOCONV":     7,
 	"SBSRESOLVE":        8,
-	"NEWCONVERSATION":   9,
+	"NEWCHANNEL":        9,
 }
 
 var MessageSystemTypeRevMap = map[MessageSystemType]string{
@@ -430,7 +430,7 @@ var MessageSystemTypeRevMap = map[MessageSystemType]string{
 	6: "CHANGERETENTION",
 	7: "BULKADDTOCONV",
 	8: "SBSRESOLVE",
-	9: "NEWCONVERSATION",
+	9: "NEWCHANNEL",
 }
 
 func (e MessageSystemType) String() string {
@@ -678,14 +678,14 @@ func (o MessageSystemSbsResolve) DeepCopy() MessageSystemSbsResolve {
 	}
 }
 
-type MessageSystemNewConversation struct {
-	Creator        string         `codec:"creator" json:"creator"`
-	NameAtCreation string         `codec:"nameAtCreation" json:"nameAtCreation"`
-	ConvID         ConversationID `codec:"convID" json:"convID"`
+type MessageSystemNewChannel struct {
+	Creator        string    `codec:"creator" json:"creator"`
+	NameAtCreation string    `codec:"nameAtCreation" json:"nameAtCreation"`
+	ConvID         ConvIDStr `codec:"convID" json:"convID"`
 }
 
-func (o MessageSystemNewConversation) DeepCopy() MessageSystemNewConversation {
-	return MessageSystemNewConversation{
+func (o MessageSystemNewChannel) DeepCopy() MessageSystemNewChannel {
+	return MessageSystemNewChannel{
 		Creator:        o.Creator,
 		NameAtCreation: o.NameAtCreation,
 		ConvID:         o.ConvID.DeepCopy(),
@@ -703,7 +703,7 @@ type MessageSystem struct {
 	Changeretention__   *MessageSystemChangeRetention   `codec:"changeretention,omitempty" json:"changeretention,omitempty"`
 	Bulkaddtoconv__     *MessageSystemBulkAddToConv     `codec:"bulkaddtoconv,omitempty" json:"bulkaddtoconv,omitempty"`
 	Sbsresolve__        *MessageSystemSbsResolve        `codec:"sbsresolve,omitempty" json:"sbsresolve,omitempty"`
-	Newconversation__   *MessageSystemNewConversation   `codec:"newconversation,omitempty" json:"newconversation,omitempty"`
+	Newchannel__        *MessageSystemNewChannel        `codec:"newchannel,omitempty" json:"newchannel,omitempty"`
 }
 
 func (o *MessageSystem) SystemType() (ret MessageSystemType, err error) {
@@ -753,9 +753,9 @@ func (o *MessageSystem) SystemType() (ret MessageSystemType, err error) {
 			err = errors.New("unexpected nil value for Sbsresolve__")
 			return ret, err
 		}
-	case MessageSystemType_NEWCONVERSATION:
-		if o.Newconversation__ == nil {
-			err = errors.New("unexpected nil value for Newconversation__")
+	case MessageSystemType_NEWCHANNEL:
+		if o.Newchannel__ == nil {
+			err = errors.New("unexpected nil value for Newchannel__")
 			return ret, err
 		}
 	}
@@ -852,14 +852,14 @@ func (o MessageSystem) Sbsresolve() (res MessageSystemSbsResolve) {
 	return *o.Sbsresolve__
 }
 
-func (o MessageSystem) Newconversation() (res MessageSystemNewConversation) {
-	if o.SystemType__ != MessageSystemType_NEWCONVERSATION {
+func (o MessageSystem) Newchannel() (res MessageSystemNewChannel) {
+	if o.SystemType__ != MessageSystemType_NEWCHANNEL {
 		panic("wrong case accessed")
 	}
-	if o.Newconversation__ == nil {
+	if o.Newchannel__ == nil {
 		return
 	}
-	return *o.Newconversation__
+	return *o.Newchannel__
 }
 
 func NewMessageSystemWithAddedtoteam(v MessageSystemAddedToTeam) MessageSystem {
@@ -925,10 +925,10 @@ func NewMessageSystemWithSbsresolve(v MessageSystemSbsResolve) MessageSystem {
 	}
 }
 
-func NewMessageSystemWithNewconversation(v MessageSystemNewConversation) MessageSystem {
+func NewMessageSystemWithNewchannel(v MessageSystemNewChannel) MessageSystem {
 	return MessageSystem{
-		SystemType__:      MessageSystemType_NEWCONVERSATION,
-		Newconversation__: &v,
+		SystemType__: MessageSystemType_NEWCHANNEL,
+		Newchannel__: &v,
 	}
 }
 
@@ -998,13 +998,13 @@ func (o MessageSystem) DeepCopy() MessageSystem {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Sbsresolve__),
-		Newconversation__: (func(x *MessageSystemNewConversation) *MessageSystemNewConversation {
+		Newchannel__: (func(x *MessageSystemNewChannel) *MessageSystemNewChannel {
 			if x == nil {
 				return nil
 			}
 			tmp := (*x).DeepCopy()
 			return &tmp
-		})(o.Newconversation__),
+		})(o.Newchannel__),
 	}
 }
 

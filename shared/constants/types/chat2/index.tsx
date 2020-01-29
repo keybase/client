@@ -296,6 +296,7 @@ export type MessageSystemSimpleToComplex = Message.MessageSystemSimpleToComplex
 export type MessageSystemText = Message.MessageSystemText
 export type MessageSystemUsersAddedToConversation = Message.MessageSystemUsersAddedToConversation
 export type MessageSystemChangeAvatar = Message.MessageSystemChangeAvatar
+export type MessageSystemNewChannel = Message.MessageSystemNewChannel
 export type MessageJourneycard = Message.MessageJourneycard
 export type MessageText = Message.MessageText
 export type MessageType = Message.MessageType

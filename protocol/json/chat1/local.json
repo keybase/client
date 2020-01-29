@@ -328,7 +328,7 @@
         "CHANGERETENTION_6",
         "BULKADDTOCONV_7",
         "SBSRESOLVE_8",
-        "NEWCONVERSATION_9"
+        "NEWCHANNEL_9"
       ]
     },
     {
@@ -566,7 +566,7 @@
     },
     {
       "type": "record",
-      "name": "MessageSystemNewConversation",
+      "name": "MessageSystemNewChannel",
       "fields": [
         {
           "type": "string",
@@ -577,7 +577,7 @@
           "name": "nameAtCreation"
         },
         {
-          "type": "ConversationID",
+          "type": "ConvIDStr",
           "name": "convID"
         }
       ]
@@ -655,10 +655,10 @@
         },
         {
           "label": {
-            "name": "NEWCONVERSATION",
+            "name": "NEWCHANNEL",
             "def": false
           },
-          "body": "MessageSystemNewConversation"
+          "body": "MessageSystemNewChannel"
         }
       ]
     },

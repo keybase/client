@@ -2650,7 +2650,7 @@ func (m MessageSystem) String() string {
 			m.Inviteaddedtoteam().Invitee, m.Inviteaddedtoteam().Inviter, roleText)
 		return output
 	case MessageSystemType_COMPLEXTEAM:
-		return fmt.Sprintf("Created a new channel in %s", m.Complexteam().Team)
+		return fmt.Sprintf("%s is now a 'big' team with multiple channels", m.Complexteam().Team)
 	case MessageSystemType_CREATETEAM:
 		return fmt.Sprintf("@%s created the team %s", m.Createteam().Creator, m.Createteam().Team)
 	case MessageSystemType_GITPUSH:
@@ -2685,8 +2685,8 @@ func (m MessageSystem) String() string {
 		return fmt.Sprintf("@%s proved they are %s on %s and joined"+
 			" the conversation", body.Prover, body.AssertionUsername,
 			body.AssertionService)
-	case MessageSystemType_NEWCONVERSATION:
-		body := m.Newconversation()
+	case MessageSystemType_NEWCHANNEL:
+		body := m.Newchannel()
 		return fmt.Sprintf("@%s created a new channel #%s",
 			body.Creator, body.NameAtCreation)
 	default:
