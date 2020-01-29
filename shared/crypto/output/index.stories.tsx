@@ -1,11 +1,13 @@
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import * as Constants from '../../constants/crypto'
+import * as Container from '../../util/container'
 import HiddenString from '../../util/hidden-string'
 import Output, {OutputBar, SignedSender} from '.'
 
 const storeCommon = Sb.createPropProviderWithCommon()
-const storeSigned = {
+
+let store = {
   ...storeCommon,
   config: {
     avatarRefreshCounter: new Map(),
@@ -13,21 +15,29 @@ const storeSigned = {
   },
   crypto: {
     decrypt: {
+      output: new HiddenString(''),
+      outputMatchesInput: true,
       outputSender: new HiddenString('cecileb'),
       outputSigned: true,
       outputStatus: 'success',
     },
     encrypt: {
+      output: new HiddenString(''),
+      outputMatchesInput: true,
       outputSender: new HiddenString('jacobyoung'),
       outputSigned: true,
       outputStatus: 'success',
     },
     sign: {
+      output: new HiddenString(''),
+      outputMatchesInput: true,
       outputSender: new HiddenString('chris'),
       outputSigned: true,
       outputStatus: 'success',
     },
     verify: {
+      output: new HiddenString(''),
+      outputMatchesInput: true,
       outputSender: new HiddenString('xgess'),
       outputSigned: true,
       outputStatus: 'success',
@@ -39,42 +49,6 @@ const storeSigned = {
   },
 }
 
-const storeUnsigned = {
-  ...storeCommon,
-  config: {
-    avatarRefreshCounter: new Map(),
-    username: 'cecileb',
-  },
-  crypto: {
-    decrypt: {
-      outputSender: new HiddenString(''),
-      outputSigned: false,
-      outputStatus: 'success',
-    },
-    encrypt: {
-      outputSender: new HiddenString(''),
-      outputSigned: false,
-      outputStatus: 'success',
-    },
-    sign: {
-      outputSender: new HiddenString(''),
-      outputSigned: false,
-      outputStatus: 'success',
-    },
-    verify: {
-      outputSender: new HiddenString(''),
-      outputSigned: false,
-      outputStatus: 'success',
-    },
-  },
-  waiting: {
-    counts: new Map<string, number>(),
-    errors: new Map<string, undefined>(),
-  },
-}
-
-const onCopyOutput = Sb.action('onCopyOutput')
-const onSaveAsText = Sb.action('onSaveAsText')
 const onShowInFinder = Sb.action('onShowInFinder')
 
 const encryptOutput = `
@@ -145,27 +119,51 @@ const load = () => {
       />
     ))
 
-  Sb.storiesOf('Crypto/Output/Bar', module).add('Download - Copy', () => (
-    <OutputBar
-      operation={Constants.Operations.Encrypt}
-      output="secret stuff"
-      outputStatus="success"
-      outputMatchesInput={true}
-      onCopyOutput={onCopyOutput}
-      onSaveAsText={onSaveAsText}
-      onShowInFinder={onShowInFinder}
-    />
-  ))
+  Sb.storiesOf('Crypto/Output Bar', module)
+    .addDecorator((story: any) => (
+      <Sb.MockStore
+        store={Container.produce(store, draftState => {
+          draftState.waiting.counts.set(Constants.encryptStringWaitingKey, 1)
+        })}
+      >
+        {story()}
+      </Sb.MockStore>
+    ))
+    .add('Disabled', () => <OutputBar operation={Constants.Operations.Encrypt} />)
+
+  Sb.storiesOf('Crypto/Output Bar', module)
+    .addDecorator((story: any) => (
+      <Sb.MockStore
+        store={Container.produce(store, draftState => {
+          draftState.waiting.counts.set(Constants.encryptStringWaitingKey, 0)
+        })}
+      >
+        {story()}
+      </Sb.MockStore>
+    ))
+    .add('Enabled', () => <OutputBar operation={Constants.Operations.Encrypt} />)
 
   Sb.storiesOf('Crypto/Output Signed Sender/Signed', module)
-    .addDecorator((story: any) => <Sb.MockStore store={storeSigned}>{story()}</Sb.MockStore>)
+    .addDecorator((story: any) => <Sb.MockStore store={store}>{story()}</Sb.MockStore>)
     .add('Encrypt', () => <SignedSender operation={Constants.Operations.Sign} />)
     .add('Sign', () => <SignedSender operation={Constants.Operations.Sign} />)
     .add('Decrypt', () => <SignedSender operation={Constants.Operations.Decrypt} />)
     .add('Verify', () => <SignedSender operation={Constants.Operations.Verify} />)
 
   Sb.storiesOf('Crypto/Output Signed Sender/Unsigned', module)
-    .addDecorator((story: any) => <Sb.MockStore store={storeUnsigned}>{story()}</Sb.MockStore>)
+    .addDecorator((story: any) => (
+      <Sb.MockStore
+        store={Container.produce(store, draftState => {
+          const {encrypt, decrypt} = draftState.crypto
+          encrypt.outputSigned = false
+          encrypt.outputSender = new HiddenString('')
+          decrypt.outputSigned = false
+          decrypt.outputSender = new HiddenString('')
+        })}
+      >
+        {story()}
+      </Sb.MockStore>
+    ))
     .add('Encrypt', () => <SignedSender operation={Constants.Operations.Encrypt} />)
     .add('Decrypt', () => <SignedSender operation={Constants.Operations.Decrypt} />)
 }

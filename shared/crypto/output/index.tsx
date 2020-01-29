@@ -1,9 +1,12 @@
 import * as React from 'react'
+import * as Constants from '../../constants/crypto'
+import * as Container from '../../util/container'
+import * as Types from '../../constants/types/crypto'
+import * as FSGen from '../../actions/fs-gen'
+import * as ConfigGen from '../../actions/config-gen'
+import * as CryptoGen from '../../actions/crypto-gen'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as Constants from '../../constants/crypto'
-import * as Types from '../../constants/types/crypto'
-import * as Container from '../../util/container'
 import {getStyle} from '../../common-adapters/text'
 
 type Props = {
@@ -17,14 +20,7 @@ type Props = {
 }
 
 type OutputBarProps = {
-  outputMatchesInput: boolean
-  onCopyOutput: (text: string) => void
-  onSaveAsText?: () => void
-  onShowInFinder: (path: string) => void
   operation: Types.Operations
-  output: string
-  outputStatus?: Types.OutputStatus
-  outputType?: Types.OutputType
 }
 
 type SignedSenderProps = {
@@ -121,35 +117,61 @@ export const OutputInfoBanner = (props: OutputInfoProps) => {
   ) : null
 }
 
-export const OutputBar = React.memo((props: OutputBarProps) => {
-  const {output, onCopyOutput, onSaveAsText, onShowInFinder, outputMatchesInput} = props
+export const OutputBar = (props: OutputBarProps) => {
+  const {operation} = props
+  const dispatch = Container.useDispatch()
+
+  // Waiting
   const waitingKey = Constants.getStringWaitingKey(props.operation)
   const waiting = Container.useAnyWaiting(waitingKey)
+
+  // Store
+  const outputHidden = Container.useSelector(state => state.crypto[operation].output)
+  const outputMatchesInput = Container.useSelector(state => state.crypto[operation].outputMatchesInput)
+  const outputStatus = Container.useSelector(state => state.crypto[operation].outputStatus)
+  const outputType = Container.useSelector(state => state.crypto[operation].outputType)
+  const output = outputHidden.stringValue()
+  const actionsDisabled = waiting || !outputMatchesInput
+
+  // Actions
+  const onShowInFinder = React.useCallback(() => {
+    dispatch(FSGen.createOpenLocalPathInSystemFileManager({localPath: output}))
+  }, [dispatch, output])
+
+  const onCopyOutput = React.useCallback(() => {
+    dispatch(ConfigGen.createCopyToClipboard({text: output}))
+  }, [dispatch, output])
+
+  const onSaveAsText = React.useCallback(() => {
+    dispatch(CryptoGen.createDownloadSignedText())
+  }, [dispatch])
+
+  // State, Refs, Timers
   const attachmentRef = React.useRef<Kb.Box2>(null)
   const [showingToast, setShowingToast] = React.useState(false)
 
   const setHideToastTimeout = Kb.useTimeout(() => setShowingToast(false), 1500)
-  React.useEffect(() => {
-    showingToast && setHideToastTimeout()
-  }, [showingToast, setHideToastTimeout])
 
   const copy = React.useCallback(() => {
     if (!output) return
     setShowingToast(true)
-    onCopyOutput(output)
+    onCopyOutput()
   }, [output, onCopyOutput])
 
-  const actionsDisabled = waiting || !outputMatchesInput
+  // Start timeout to clear toast if currently displayed
+  React.useEffect(() => {
+    showingToast && setHideToastTimeout()
+  }, [showingToast, setHideToastTimeout])
 
-  return props.outputStatus && props.outputStatus === 'success' ? (
+  return outputStatus && outputStatus === 'success' ? (
     <>
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.outputBarContainer}>
-        {props.outputType === 'file' ? (
+        {outputType === 'file' ? (
           <Kb.ButtonBar direction="row" align="flex-start" style={styles.buttonBar}>
             <Kb.Button
               mode="Secondary"
               label={`Open in ${Styles.fileUIName}`}
-              onClick={() => onShowInFinder(output)}
+              onClick={() => onShowInFinder()}
             />
           </Kb.ButtonBar>
         ) : (
@@ -190,7 +212,7 @@ export const OutputBar = React.memo((props: OutputBarProps) => {
       </Kb.ButtonBar>
     </Kb.Box2>
   )
-})
+}
 
 const Output = (props: Props) => {
   const waitingKey = Constants.getStringWaitingKey(props.operation)

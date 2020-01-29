@@ -81,15 +81,7 @@ const Verify = (props: Props) => {
               operation={Constants.Operations.Verify}
               onShowInFinder={props.onShowInFinder}
             />
-            <OutputBar
-              operation={Constants.Operations.Verify}
-              output={props.output}
-              outputStatus={props.outputStatus}
-              outputMatchesInput={props.outputMatchesInput}
-              outputType={props.outputType}
-              onCopyOutput={props.onCopyOutput}
-              onShowInFinder={props.onShowInFinder}
-            />
+            <OutputBar operation={Constants.Operations.Verify} />
           </Kb.Box2>
         </Kb.Box2>
       </Kb.DragAndDrop>

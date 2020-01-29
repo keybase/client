@@ -82,15 +82,7 @@ const Decrypt = (props: Props) => {
               outputMatchesInput={props.outputMatchesInput}
               onShowInFinder={props.onShowInFinder}
             />
-            <OutputBar
-              operation={Constants.Operations.Decrypt}
-              output={props.output}
-              outputStatus={props.outputStatus}
-              outputMatchesInput={props.outputMatchesInput}
-              outputType={props.outputType}
-              onCopyOutput={props.onCopyOutput}
-              onShowInFinder={props.onShowInFinder}
-            />
+            <OutputBar operation={Constants.Operations.Decrypt} />
           </Kb.Box2>
         </Kb.Box2>
       </Kb.DragAndDrop>

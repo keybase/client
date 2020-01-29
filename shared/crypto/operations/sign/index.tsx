@@ -100,16 +100,7 @@ const Sign = (props: Props) => {
               operation={Constants.Operations.Sign}
               onShowInFinder={props.onShowInFinder}
             />
-            <OutputBar
-              operation={Constants.Operations.Sign}
-              output={props.output}
-              outputMatchesInput={props.outputMatchesInput}
-              outputStatus={props.outputStatus}
-              outputType={props.outputType}
-              onCopyOutput={props.onCopyOutput}
-              onSaveAsText={props.onSaveAsText}
-              onShowInFinder={props.onShowInFinder}
-            />
+            <OutputBar operation={Constants.Operations.Sign} />
           </Kb.Box2>
         </Kb.Box2>
       </Kb.DragAndDrop>

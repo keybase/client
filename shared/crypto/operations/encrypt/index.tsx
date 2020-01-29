@@ -156,16 +156,7 @@ const Encrypt = (props: Props) => {
               operation={Constants.Operations.Encrypt}
               onShowInFinder={props.onShowInFinder}
             />
-            <OutputBar
-              operation={Constants.Operations.Encrypt}
-              output={props.output}
-              outputMatchesInput={props.outputMatchesInput}
-              outputStatus={props.outputStatus}
-              outputType={props.outputType}
-              onCopyOutput={props.onCopyOutput}
-              onSaveAsText={props.onSaveAsText}
-              onShowInFinder={props.onShowInFinder}
-            />
+            <OutputBar operation={Constants.Operations.Encrypt} />
           </Kb.Box2>
         </Kb.Box2>
       </Kb.DragAndDrop>
