@@ -238,7 +238,7 @@ func (fu *FakeUser) LoginWithSecretUI(secui libkb.SecretUI, g *libkb.GlobalConte
 		LoginUI:     &libkb.TestLoginUI{Username: fu.Username},
 	}
 	m := libkb.NewMetaContextTODO(g).WithUIs(uis)
-	li := NewLogin(g, keybase1.DeviceTypeV2_DESKTOP, fu.Username, keybase1.ClientType_CLI)
+	li := NewLogin(g, libkb.DeviceTypeDesktop, fu.Username, keybase1.ClientType_CLI)
 	return RunEngine2(m, li)
 }
 
@@ -268,7 +268,7 @@ func (fu *FakeUser) SwitchTo(g *libkb.GlobalContext, withPassword bool) error {
 		LoginUI:     &libkb.TestLoginUI{Username: fu.Username},
 	}
 	m := libkb.NewMetaContextTODO(g).WithUIs(uis)
-	li := NewLoginWithUserSwitch(g, keybase1.DeviceTypeV2_DESKTOP, fu.Username, keybase1.ClientType_CLI, true)
+	li := NewLoginWithUserSwitch(g, libkb.DeviceTypeDesktop, fu.Username, keybase1.ClientType_CLI, true)
 	return RunEngine2(m, li)
 }
 
@@ -401,7 +401,7 @@ func SetupTwoDevicesWithHook(t *testing.T, nm string, hook func(tc *libkb.TestCo
 		LoginUI:     provLoginUI,
 		GPGUI:       &gpgtestui{},
 	}
-	eng := NewLogin(dev2.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
+	eng := NewLogin(dev2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 	m2 := NewMetaContextForTest(dev2).WithUIs(uis)
 	if err := RunEngine2(m2, eng); err != nil {
 		t.Fatal(err)

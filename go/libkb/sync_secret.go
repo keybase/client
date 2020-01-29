@@ -26,18 +26,18 @@ type ServerPrivateKey struct {
 type ServerPrivateKeyMap map[string]ServerPrivateKey
 
 type DeviceKey struct {
-	Type          keybase1.DeviceTypeV2 `json:"type"`
-	CTime         int64                 `json:"ctime"`
-	MTime         int64                 `json:"mtime"`
-	Description   string                `json:"name"`
-	Status        int                   `json:"status"`
-	LksServerHalf string                `json:"lks_server_half"`
-	PPGen         PassphraseGeneration  `json:"passphrase_generation"`
-	LastUsedTime  int64                 `json:"last_used_time"`
+	Type          string               `json:"type"`
+	CTime         int64                `json:"ctime"`
+	MTime         int64                `json:"mtime"`
+	Description   string               `json:"name"`
+	Status        int                  `json:"status"`
+	LksServerHalf string               `json:"lks_server_half"`
+	PPGen         PassphraseGeneration `json:"passphrase_generation"`
+	LastUsedTime  int64                `json:"last_used_time"`
 }
 
 func (d DeviceKey) Display() string {
-	if d.Type == keybase1.DeviceTypeV2_PAPER {
+	if d.Type == DeviceTypePaper {
 		// XXX not sure if we need to support our existing paper keys, but without this
 		// someone is surely going to complain:
 		if strings.HasPrefix(d.Description, "Paper Key") {
@@ -65,17 +65,17 @@ type SecretSyncer struct {
 	keys  *ServerPrivateKeys
 }
 
-type DeviceTypeSet map[keybase1.DeviceTypeV2]bool
+type DeviceTypeSet map[string]bool
 
 var DefaultDeviceTypes = DeviceTypeSet{
-	keybase1.DeviceTypeV2_DESKTOP: true,
-	keybase1.DeviceTypeV2_MOBILE:  true,
+	DeviceTypeDesktop: true,
+	DeviceTypeMobile:  true,
 }
 
 var AllDeviceTypes = DeviceTypeSet{
-	keybase1.DeviceTypeV2_DESKTOP: true,
-	keybase1.DeviceTypeV2_MOBILE:  true,
-	keybase1.DeviceTypeV2_PAPER:   true,
+	DeviceTypeDesktop: true,
+	DeviceTypeMobile:  true,
+	DeviceTypePaper:   true,
 }
 
 func NewSecretSyncer(g *GlobalContext) *SecretSyncer {

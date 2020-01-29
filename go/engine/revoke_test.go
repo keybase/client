@@ -100,7 +100,7 @@ func testRevokeDevice(t *testing.T, upgradePerUserKey bool) {
 	devices, _ := getActiveDevicesAndKeys(tc, u)
 	var thisDevice libkb.DeviceWithDeviceNumber
 	for _, device := range devices {
-		if device.Type != keybase1.DeviceTypeV2_PAPER {
+		if device.Type != libkb.DeviceTypePaper {
 			thisDevice = device
 		}
 	}
@@ -312,7 +312,7 @@ func _testTrackAfterRevoke(t *testing.T, sigVersion libkb.SigVersion) {
 		LoginUI:     provLoginUI,
 		GPGUI:       &gpgtestui{},
 	}
-	eng := NewLogin(tc2.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
+	eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 	m = NewMetaContextForTest(tc2).WithUIs(uis)
 	err = RunEngine2(m, eng)
 	require.NoError(t, err)
@@ -370,7 +370,7 @@ func TestSignAfterRevoke(t *testing.T) {
 		LoginUI:     provLoginUI,
 		GPGUI:       &gpgtestui{},
 	}
-	eng := NewLogin(tc2.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
+	eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 	m = NewMetaContextForTest(tc2).WithUIs(uis)
 	err = RunEngine2(m, eng)
 	require.NoError(t, err)
@@ -450,7 +450,7 @@ func revokeAnyPaperKey(tc libkb.TestContext, fu *FakeUser) *libkb.Device {
 	devices, _ := getActiveDevicesAndKeys(tc, fu)
 	var revokeDevice libkb.DeviceWithDeviceNumber
 	for _, device := range devices {
-		if device.Type == keybase1.DeviceTypeV2_PAPER {
+		if device.Type == libkb.DeviceTypePaper {
 			revokeDevice = device
 		}
 	}
@@ -514,7 +514,7 @@ func TestRevokeLastDevicePGP(t *testing.T) {
 		SecretUI:    u1.NewSecretUI(),
 		GPGUI:       &gpgtestui{},
 	}
-	eng := NewLogin(tc.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
+	eng := NewLogin(tc.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)

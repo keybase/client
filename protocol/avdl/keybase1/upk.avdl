@@ -56,7 +56,7 @@ protocol UPK {
       union { null, KID } parent;
       DeviceID deviceID;
       string deviceDescription;
-      DeviceTypeV2 deviceType;
+      string deviceType;
   }
 
   fixed PGPFingerprint(20);

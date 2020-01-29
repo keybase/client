@@ -35,7 +35,7 @@ export const makeState = (): Types.State => ({
 })
 
 export const rpcDeviceToDevice = (d: RPCTypes.Device) => {
-  const type = DeviceTypes.DeviceTypeV2ToString(d.type)
+  const type = d.type
   switch (type) {
     case 'mobile':
     case 'desktop':

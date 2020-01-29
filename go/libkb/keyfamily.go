@@ -229,7 +229,7 @@ func (cki *ComputedKeyInfos) PaperDevices() []*Device {
 		if *v.Status != DeviceStatusActive {
 			continue
 		}
-		if v.Type != keybase1.DeviceTypeV2_PAPER {
+		if v.Type != DeviceTypePaper {
 			continue
 		}
 		d = append(d, v)
@@ -1213,7 +1213,7 @@ func (ckf *ComputedKeyFamily) GetAllDevices() []DeviceWithDeviceNumber {
 	}
 	sort.Sort(byAge(devicesNoNum))
 	devices := make([]DeviceWithDeviceNumber, 0, len(devicesNoNum))
-	deviceNumMap := make(map[keybase1.DeviceTypeV2]int)
+	deviceNumMap := make(map[string]int)
 	for _, device := range devicesNoNum {
 
 		devices = append(devices, DeviceWithDeviceNumber{device, deviceNumMap[device.Type]})

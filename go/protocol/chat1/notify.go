@@ -760,11 +760,11 @@ func (o ChatActivity) DeepCopy() ChatActivity {
 }
 
 type TyperInfo struct {
-	Uid        keybase1.UID          `codec:"uid" json:"uid"`
-	Username   string                `codec:"username" json:"username"`
-	DeviceID   keybase1.DeviceID     `codec:"deviceID" json:"deviceID"`
-	DeviceName string                `codec:"deviceName" json:"deviceName"`
-	DeviceType keybase1.DeviceTypeV2 `codec:"deviceType" json:"deviceType"`
+	Uid        keybase1.UID      `codec:"uid" json:"uid"`
+	Username   string            `codec:"username" json:"username"`
+	DeviceID   keybase1.DeviceID `codec:"deviceID" json:"deviceID"`
+	DeviceName string            `codec:"deviceName" json:"deviceName"`
+	DeviceType string            `codec:"deviceType" json:"deviceType"`
 }
 
 func (o TyperInfo) DeepCopy() TyperInfo {
@@ -773,7 +773,7 @@ func (o TyperInfo) DeepCopy() TyperInfo {
 		Username:   o.Username,
 		DeviceID:   o.DeviceID.DeepCopy(),
 		DeviceName: o.DeviceName,
-		DeviceType: o.DeviceType.DeepCopy(),
+		DeviceType: o.DeviceType,
 	}
 }
 

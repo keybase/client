@@ -1141,7 +1141,7 @@ func TestMakeAccountMobileOnlyOnDesktop(t *testing.T) {
 
 	// Provision a new mobile device, and then use the newly provisioned mobile
 	// device to set mobile only.
-	tc2, cleanup2 := provisionNewDeviceForTest(t, tc, keybase1.DeviceTypeV2_MOBILE)
+	tc2, cleanup2 := provisionNewDeviceForTest(t, tc, libkb.DeviceTypeMobile)
 	defer cleanup2()
 
 	err = tc2.Srv.SetAccountMobileOnlyLocal(context.TODO(), stellar1.SetAccountMobileOnlyLocalArg{
@@ -1241,7 +1241,7 @@ func TestMakeAccountMobileOnlyOnRecentMobile(t *testing.T) {
 
 	// Get a new mobile device that will be too recent to fetch
 	// MOBILE ONLY bundle.
-	tc2, cleanup2 := provisionNewDeviceForTest(t, tc, keybase1.DeviceTypeV2_MOBILE)
+	tc2, cleanup2 := provisionNewDeviceForTest(t, tc, libkb.DeviceTypeMobile)
 	defer cleanup2()
 
 	_, err = remote.FetchAccountBundle(libkb.NewMetaContext(context.Background(), tc2.G), a1)
@@ -1622,7 +1622,7 @@ func setupTestsWithSettings(t *testing.T, settings []usetting) ([]*TestContext, 
 	return tcs, cleanup
 }
 
-func provisionNewDeviceForTest(t *testing.T, tc *TestContext, newDeviceType keybase1.DeviceTypeV2) (outTc *TestContext, cleanup func()) {
+func provisionNewDeviceForTest(t *testing.T, tc *TestContext, newDeviceType string) (outTc *TestContext, cleanup func()) {
 	bem := tc.Backend
 	tc2 := SetupTest(t, "wall_p", 1)
 	kbtest.ProvisionNewDeviceKex(&tc.TestContext, &tc2, tc.Fu, newDeviceType)

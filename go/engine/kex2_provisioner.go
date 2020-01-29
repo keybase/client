@@ -26,7 +26,7 @@ type Kex2Provisioner struct {
 	encryptionKey         libkb.NaclDHKeyPair
 	pps                   keybase1.PassphraseStream
 	provisioneeDeviceName string
-	provisioneeDeviceType keybase1.DeviceTypeV2
+	provisioneeDeviceType string
 	mctx                  libkb.MetaContext
 	proof                 *jsonw.Wrapper
 }
@@ -426,7 +426,7 @@ func (e *Kex2Provisioner) rememberDeviceInfo(jw *jsonw.Wrapper) error {
 	if err != nil {
 		return err
 	}
-	e.provisioneeDeviceType = keybase1.DeviceTypeV2Map[dtype]
+	e.provisioneeDeviceType = dtype
 
 	return nil
 }

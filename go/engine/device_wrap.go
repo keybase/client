@@ -23,7 +23,7 @@ type DeviceWrap struct {
 type DeviceWrapArgs struct {
 	Me              *libkb.User
 	DeviceName      string
-	DeviceType      keybase1.DeviceTypeV2
+	DeviceType      string
 	Lks             *libkb.LKSec
 	IsEldest        bool
 	IsSelfProvision bool
@@ -153,7 +153,7 @@ func (e *DeviceWrap) SwitchConfigAndActiveDevice(m libkb.MetaContext) (err error
 	me := e.args.Me
 
 	// Atomically swap to the new config and active device
-	if e.args.DeviceType == keybase1.DeviceTypeV2_PAPER {
+	if e.args.DeviceType == libkb.DeviceTypePaper {
 		err = m.SwitchUserToActiveOneshotDevice(me.ToUserVersion(), me.GetNormalizedName(), e.deviceWithKeys(m, libkb.KeychainModeNone))
 	} else {
 		err = m.SwitchUserNewConfigActiveDevice(me.ToUserVersion(), me.GetNormalizedName(), salt,

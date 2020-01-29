@@ -20,7 +20,7 @@ var errNoDevice = errors.New("No device provisioned locally for this user")
 // Login is an engine.
 type Login struct {
 	libkb.Contextified
-	deviceType keybase1.DeviceTypeV2
+	deviceType string
 	username   string
 	clientType keybase1.ClientType
 
@@ -38,18 +38,18 @@ type Login struct {
 }
 
 // NewLogin creates a Login engine.  username is optional.
-// deviceType should be keybase1.DeviceTypeV2_DESKTOP or
-// keybase1.DeviceTypeV2_MOBILE.
-func NewLogin(g *libkb.GlobalContext, deviceType keybase1.DeviceTypeV2, username string, ct keybase1.ClientType) *Login {
+// deviceType should be libkb.DeviceTypeDesktop or
+// libkb.DeviceTypeMobile.
+func NewLogin(g *libkb.GlobalContext, deviceType string, username string, ct keybase1.ClientType) *Login {
 	return NewLoginWithUserSwitch(g, deviceType, username, ct, false)
 }
 
 // NewLoginWithUserSwitch creates a Login engine. username is optional.
-// deviceType should be keybase1.DeviceTypeV2_DESKTOP or keybase1.DeviceTypeV2_MOBILE.
+// deviceType should be libkb.DeviceTypeDesktop or libkb.DeviceTypeMobile.
 // You can also specify a bool to say whether you'd like to doUserSwitch or not.
 // By default, this flag is off (see above), but as we roll out user switching,
 // we can start to turn this on in more places.
-func NewLoginWithUserSwitch(g *libkb.GlobalContext, deviceType keybase1.DeviceTypeV2, username string, ct keybase1.ClientType, doUserSwitch bool) *Login {
+func NewLoginWithUserSwitch(g *libkb.GlobalContext, deviceType string, username string, ct keybase1.ClientType, doUserSwitch bool) *Login {
 	return &Login{
 		Contextified: libkb.NewContextified(g),
 		deviceType:   deviceType,

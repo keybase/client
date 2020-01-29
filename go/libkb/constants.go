@@ -458,6 +458,15 @@ const (
 	DeviceStatusDefunct = 2
 )
 
+// these strings need to match the keys in
+// keybase/lib_public/public_constants.iced ->
+// public_constants.device.type
+const (
+	DeviceTypeDesktop = "desktop"
+	DeviceTypeMobile  = "mobile"
+	DeviceTypePaper   = "backup"
+)
+
 const DownloadURL = "https://keybase.io/download"
 
 var PGPVersion = "Keybase Go " + Version + " (" + runtime.GOOS + ")"

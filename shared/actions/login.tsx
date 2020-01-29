@@ -67,7 +67,7 @@ function* login(_: Container.TypedState, action: LoginGen.LoginPayload) {
       params: {
         clientType: RPCTypes.ClientType.guiMain,
         deviceName: '',
-        deviceType: isMobile ? RPCTypes.DeviceTypeV2.mobile : RPCTypes.DeviceTypeV2.desktop,
+        deviceType: isMobile ? 'mobile' : 'desktop',
         doUserSwitch: flags.fastAccountSwitch,
         paperKey: '',
         username: action.payload.username,

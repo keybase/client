@@ -250,7 +250,7 @@ protocol chatUi {
     string bodySummary;
     string senderUsername;
     string senderDeviceName;
-    keybase1.DeviceTypeV2 senderDeviceType;
+    string senderDeviceType;
     gregor1.UID senderUID;
     gregor1.DeviceID senderDeviceID;
     boolean superseded;

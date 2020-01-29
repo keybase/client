@@ -519,7 +519,7 @@ func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stella
 	if err != nil {
 		return empty, err
 	}
-	isMobile := activeDeviceType == keybase1.DeviceTypeV2_MOBILE
+	isMobile := activeDeviceType == libkb.DeviceTypeMobile
 
 	// AccountModeEditable - can user change "account mode" to mobile only or
 	// back? This setting can only be changed from a mobile device that's over

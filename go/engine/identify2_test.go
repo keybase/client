@@ -1268,7 +1268,7 @@ func TestTrackResetReuseKey(t *testing.T) {
 	ResetAccount(tcX, fuX)
 
 	// Alice logs in (and provisions) again
-	loginEng := NewLogin(tcX.G, keybase1.DeviceTypeV2_DESKTOP, fuX.Username, keybase1.ClientType_CLI)
+	loginEng := NewLogin(tcX.G, libkb.DeviceTypeDesktop, fuX.Username, keybase1.ClientType_CLI)
 	loginEng.naclSigningKeyPair = pairX
 	require.NoError(t,
 		RunEngine2(

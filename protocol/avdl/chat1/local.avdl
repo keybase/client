@@ -448,7 +448,7 @@ protocol local {
     MessageBody messageBody;
     string senderUsername;
     string senderDeviceName;
-    keybase1.DeviceTypeV2 senderDeviceType;
+    string senderDeviceType;
     Hash bodyHash;
 
     // MessageBoxed.V1: Hash of the encrypted header ciphertext.
@@ -508,7 +508,7 @@ protocol local {
     boolean isCritical;
     string senderUsername;
     string senderDeviceName;
-    keybase1.DeviceTypeV2 senderDeviceType;
+    string senderDeviceType;
     MessageID messageID;
     MessageType messageType;
     gregor1.Time ctime;

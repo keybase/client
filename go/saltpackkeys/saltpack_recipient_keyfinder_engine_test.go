@@ -350,7 +350,7 @@ func TestSaltpackRecipientKeyfinderDeviceKeys(t *testing.T) {
 	require.NoError(t, err)
 	tcY := SetupKeyfinderEngineTest(t, "SaltpackRecipientKeyfinderEngine2") // context for second device
 	defer tcY.Cleanup()
-	kbtest.ProvisionNewDeviceKex(&tc, &tcY, u2, keybase1.DeviceTypeV2_DESKTOP)
+	kbtest.ProvisionNewDeviceKex(&tc, &tcY, u2, libkb.DeviceTypeDesktop)
 	m := libkb.NewMetaContextForTest(tc)
 	tc.G.BustLocalUserCache(m.Ctx(), u2.GetUID())
 	tc.G.GetUPAKLoader().ClearMemory()
@@ -488,7 +488,7 @@ func TestSaltpackRecipientKeyfinderSkipsMissingKeys(t *testing.T) {
 
 func selectOneActivePaperDeviceID(u *libkb.User) (keybase1.DeviceID, error) {
 	for _, d := range u.GetComputedKeyFamily().GetAllActiveDevices() {
-		if d.Type == keybase1.DeviceTypeV2_PAPER {
+		if d.Type == libkb.DeviceTypePaper {
 			return d.ID, nil
 		}
 	}
@@ -497,7 +497,7 @@ func selectOneActivePaperDeviceID(u *libkb.User) (keybase1.DeviceID, error) {
 
 func selectOneActiveNonPaperDeviceID(u *libkb.User) (keybase1.DeviceID, error) {
 	for _, d := range u.GetComputedKeyFamily().GetAllActiveDevices() {
-		if d.Type != keybase1.DeviceTypeV2_PAPER {
+		if d.Type != libkb.DeviceTypePaper {
 			return d.ID, nil
 		}
 	}
@@ -582,7 +582,7 @@ func TestSaltpackRecipientKeyfinderDevicePaperAndPerUserKeys(t *testing.T) {
 	require.NoError(t, err)
 	tcY := SetupKeyfinderEngineTest(t, "SaltpackRecipientKeyfinderEngine2") // context for second device
 	defer tcY.Cleanup()
-	kbtest.ProvisionNewDeviceKex(&tc, &tcY, u2, keybase1.DeviceTypeV2_DESKTOP)
+	kbtest.ProvisionNewDeviceKex(&tc, &tcY, u2, libkb.DeviceTypeDesktop)
 	m := libkb.NewMetaContextForTest(tc)
 	tc.G.BustLocalUserCache(m.Ctx(), u2.GetUID())
 	tc.G.GetUPAKLoader().ClearMemory()

@@ -45,7 +45,7 @@ func runDeviceAddTest(t *testing.T, wg *sync.WaitGroup, tcY *libkb.TestContext, 
 		device := &libkb.Device{
 			ID:          deviceID,
 			Description: &dname,
-			Type:        keybase1.DeviceTypeV2_DESKTOP,
+			Type:        libkb.DeviceTypeDesktop,
 		}
 		provisionee := NewKex2Provisionee(tcY.G, device, secretY, uid, fakeSalt())
 		return RunEngine2(m, provisionee)

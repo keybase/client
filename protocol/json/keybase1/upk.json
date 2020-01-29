@@ -158,7 +158,7 @@
           "name": "deviceDescription"
         },
         {
-          "type": "DeviceTypeV2",
+          "type": "string",
           "name": "deviceType"
         }
       ]
