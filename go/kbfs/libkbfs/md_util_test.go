@@ -240,7 +240,10 @@ func TestGetChangesBetweenRevisions(t *testing.T) {
 		ctx, config, tlfID, kbfsmd.Revision(1), kbfsmd.Revision(2))
 	require.NoError(t, err)
 	checkChanges(
-		changes, []e{{ChangeTypeWrite, "/keybase/private/u1/a", 0, false}})
+		changes, []e{
+			{ChangeTypeWrite, "/keybase/private/u1", 0, false},
+			{ChangeTypeWrite, "/keybase/private/u1/a", 0, false},
+		})
 
 	t.Log("Check multiple revisions")
 	changes, err = GetChangesBetweenRevisions(
@@ -248,6 +251,7 @@ func TestGetChangesBetweenRevisions(t *testing.T) {
 	require.NoError(t, err)
 	checkChanges(
 		changes, []e{
+			{ChangeTypeWrite, "/keybase/private/u1", 0, false},
 			{ChangeTypeWrite, "/keybase/private/u1/a", 0, false},
 			{ChangeTypeWrite, "/keybase/private/u1/a/b", 0, false},
 			{ChangeTypeWrite, "/keybase/private/u1/c", 0, false},
@@ -259,6 +263,8 @@ func TestGetChangesBetweenRevisions(t *testing.T) {
 	require.NoError(t, err)
 	checkChanges(
 		changes, []e{
+			{ChangeTypeWrite, "/keybase/private/u1", 0, false},
+			{ChangeTypeWrite, "/keybase/private/u1/c", 0, false},
 			{ChangeTypeRename, "/keybase/private/u1/c/d", 0, false},
 		})
 
@@ -268,6 +274,7 @@ func TestGetChangesBetweenRevisions(t *testing.T) {
 	require.NoError(t, err)
 	checkChanges(
 		changes, []e{
+			{ChangeTypeWrite, "/keybase/private/u1", 0, false},
 			{ChangeTypeWrite, "/keybase/private/u1/a", 0, false},
 			{ChangeTypeWrite, "/keybase/private/u1/c", 0, false},
 			{ChangeTypeWrite, "/keybase/private/u1/c/d", 0, false},
@@ -279,6 +286,7 @@ func TestGetChangesBetweenRevisions(t *testing.T) {
 	require.NoError(t, err)
 	checkChanges(
 		changes, []e{
+			{ChangeTypeWrite, "/keybase/private/u1", 0, false},
 			{ChangeTypeDelete, "/keybase/private/u1/a", 1, false},
 		})
 
@@ -288,6 +296,7 @@ func TestGetChangesBetweenRevisions(t *testing.T) {
 	require.NoError(t, err)
 	checkChanges(
 		changes, []e{
+			{ChangeTypeWrite, "/keybase/private/u1", 0, false},
 			{ChangeTypeWrite, "/keybase/private/u1/c", 0, false},
 			{ChangeTypeWrite, "/keybase/private/u1/c/d", 0, false},
 		})
