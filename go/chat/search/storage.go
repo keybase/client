@@ -167,7 +167,7 @@ func (b *batchingStore) GetTokenEntry(ctx context.Context, convID chat1.Conversa
 	b.Lock()
 	defer b.Unlock()
 	batch, ok := b.tokenBatch[convID.ConvIDStr()]
-	if ok {
+	if ok && batch.tokens[token] != nil {
 		return batch.tokens[token].dup(), nil
 	}
 	key, err := tokenKey(ctx, b.uid, convID, token, b.keyFn)
