@@ -27,11 +27,8 @@ type OutputBarProps = {
   outputType?: Types.OutputType
 }
 
-type OutputSignedProps = {
-  signed: boolean
-  signedBy?: string
+type SignedSenderProps = {
   operation: Types.Operations
-  outputStatus?: Types.OutputStatus
 }
 
 type OutputInfoProps = {
@@ -45,29 +42,35 @@ type OutputInfoProps = {
 
 const largeOutputLimit = 120
 
-export const SignedSender = (props: OutputSignedProps) => {
-  const waitingKey = Constants.getStringWaitingKey(props.operation)
+export const SignedSender = (props: SignedSenderProps) => {
+  const {operation} = props
+  // Waiting
+  const waitingKey = Constants.getStringWaitingKey(operation)
   const waiting = Container.useAnyWaiting(waitingKey)
-  const canSelfSign =
-    props.operation === Constants.Operations.Encrypt || props.operation === Constants.Operations.Sign
+  // State
+  const signed = Container.useSelector(state => state.crypto[operation].outputSigned)
+  const signedBy = Container.useSelector(state => state.crypto[operation].outputSender)
+  const outputStatus = Container.useSelector(state => state.crypto[operation].outputStatus)
 
-  if (!props.outputStatus || (props.outputStatus && props.outputStatus === 'error')) {
+  const canSelfSign = operation === Constants.Operations.Encrypt || operation === Constants.Operations.Sign
+
+  if (!outputStatus || (outputStatus && outputStatus === 'error')) {
     return null
   }
 
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.signedContainer}>
       <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center" style={styles.signedSender}>
-        {props.signed && props.signedBy
+        {signed && signedBy
           ? [
-              <Kb.Avatar key="avatar" size={16} username={props.signedBy} />,
+              <Kb.Avatar key="avatar" size={16} username={signedBy.stringValue()} />,
               <Kb.Text key="signedBy" type="BodySmall">
                 Signed by {canSelfSign ? ' you, ' : ''}
               </Kb.Text>,
               <Kb.ConnectedUsernames
                 key="username"
                 type="BodySmallBold"
-                usernames={[props.signedBy]}
+                usernames={[signedBy.stringValue()]}
                 colorFollowing={true}
                 colorYou={true}
               />,

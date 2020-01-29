@@ -1,7 +1,77 @@
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import * as Constants from '../../constants/crypto'
+import HiddenString from '../../util/hidden-string'
 import Output, {OutputBar, SignedSender} from '.'
+
+const storeCommon = Sb.createPropProviderWithCommon()
+const storeSigned = {
+  ...storeCommon,
+  config: {
+    avatarRefreshCounter: new Map(),
+    username: 'cecileb',
+  },
+  crypto: {
+    decrypt: {
+      outputSender: new HiddenString('cecileb'),
+      outputSigned: true,
+      outputStatus: 'success',
+    },
+    encrypt: {
+      outputSender: new HiddenString('jacobyoung'),
+      outputSigned: true,
+      outputStatus: 'success',
+    },
+    sign: {
+      outputSender: new HiddenString('chris'),
+      outputSigned: true,
+      outputStatus: 'success',
+    },
+    verify: {
+      outputSender: new HiddenString('xgess'),
+      outputSigned: true,
+      outputStatus: 'success',
+    },
+  },
+  waiting: {
+    counts: new Map<string, number>(),
+    errors: new Map<string, undefined>(),
+  },
+}
+
+const storeUnsigned = {
+  ...storeCommon,
+  config: {
+    avatarRefreshCounter: new Map(),
+    username: 'cecileb',
+  },
+  crypto: {
+    decrypt: {
+      outputSender: new HiddenString(''),
+      outputSigned: false,
+      outputStatus: 'success',
+    },
+    encrypt: {
+      outputSender: new HiddenString(''),
+      outputSigned: false,
+      outputStatus: 'success',
+    },
+    sign: {
+      outputSender: new HiddenString(''),
+      outputSigned: false,
+      outputStatus: 'success',
+    },
+    verify: {
+      outputSender: new HiddenString(''),
+      outputSigned: false,
+      outputStatus: 'success',
+    },
+  },
+  waiting: {
+    counts: new Map<string, number>(),
+    errors: new Map<string, undefined>(),
+  },
+}
 
 const onCopyOutput = Sb.action('onCopyOutput')
 const onSaveAsText = Sb.action('onSaveAsText')
@@ -87,55 +157,17 @@ const load = () => {
     />
   ))
 
-  Sb.storiesOf('Crypto/Output/Signed Sender', module)
-    .add('Signed - You - Encrypt', () => (
-      <SignedSender
-        outputStatus="success"
-        signed={true}
-        signedBy="cecileb"
-        operation={Constants.Operations.Sign}
-      />
-    ))
-    .add('Signed - You - Sign', () => (
-      <SignedSender
-        outputStatus="success"
-        signed={true}
-        signedBy="cecileb"
-        operation={Constants.Operations.Sign}
-      />
-    ))
-    .add('Signed - Someone Else - Decrypt', () => (
-      <SignedSender
-        outputStatus="success"
-        signed={true}
-        signedBy="cecileb"
-        operation={Constants.Operations.Decrypt}
-      />
-    ))
-    .add('Signed - Someone Else - Verify', () => (
-      <SignedSender
-        outputStatus="success"
-        signed={true}
-        signedBy="cecileb"
-        operation={Constants.Operations.Verify}
-      />
-    ))
-    .add('Unsigned - You', () => (
-      <SignedSender
-        outputStatus="success"
-        signed={false}
-        signedBy=""
-        operation={Constants.Operations.Encrypt}
-      />
-    ))
-    .add('Unsigned - Someone Else', () => (
-      <SignedSender
-        outputStatus="success"
-        signed={false}
-        signedBy=""
-        operation={Constants.Operations.Decrypt}
-      />
-    ))
+  Sb.storiesOf('Crypto/Output Signed Sender/Signed', module)
+    .addDecorator((story: any) => <Sb.MockStore store={storeSigned}>{story()}</Sb.MockStore>)
+    .add('Encrypt', () => <SignedSender operation={Constants.Operations.Sign} />)
+    .add('Sign', () => <SignedSender operation={Constants.Operations.Sign} />)
+    .add('Decrypt', () => <SignedSender operation={Constants.Operations.Decrypt} />)
+    .add('Verify', () => <SignedSender operation={Constants.Operations.Verify} />)
+
+  Sb.storiesOf('Crypto/Output Signed Sender/Unsigned', module)
+    .addDecorator((story: any) => <Sb.MockStore store={storeUnsigned}>{story()}</Sb.MockStore>)
+    .add('Encrypt', () => <SignedSender operation={Constants.Operations.Encrypt} />)
+    .add('Decrypt', () => <SignedSender operation={Constants.Operations.Decrypt} />)
 }
 
 export default load

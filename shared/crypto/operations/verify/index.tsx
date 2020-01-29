@@ -75,12 +75,7 @@ const Verify = (props: Props) => {
             <Kb.Divider />
           )}
           <Kb.Box2 direction="vertical" fullHeight={true}>
-            <SignedSender
-              signed={true}
-              signedBy={props.outputSender}
-              operation={Constants.Operations.Verify}
-              outputStatus={props.outputStatus}
-            />
+            <SignedSender operation={Constants.Operations.Verify} />
             <OperationOutput
               outputStatus={props.outputStatus}
               outputMatchesInput={props.outputMatchesInput}

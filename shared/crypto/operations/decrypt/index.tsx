@@ -76,12 +76,7 @@ const Decrypt = (props: Props) => {
             <Kb.Divider />
           )}
           <Kb.Box2 direction="vertical" fullHeight={true}>
-            <SignedSender
-              signed={true}
-              signedBy={props.outputSender}
-              operation={Constants.Operations.Decrypt}
-              outputStatus={props.outputStatus}
-            />
+            <SignedSender operation={Constants.Operations.Decrypt} />
             <OperationOutput
               outputStatus={props.outputStatus}
               output={props.output}

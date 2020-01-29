@@ -150,12 +150,7 @@ const Encrypt = (props: Props) => {
                 content={[props.hasRecipients ? ' Share it however you like.' : null, whoCanRead]}
               />
             </OutputInfoBanner>
-            <SignedSender
-              signed={props.options.sign}
-              signedBy={props.username}
-              operation={Constants.Operations.Encrypt}
-              outputStatus={props.outputStatus}
-            />
+            <SignedSender operation={Constants.Operations.Encrypt} />
             <OperationOutput
               outputStatus={props.outputStatus}
               output={props.output}

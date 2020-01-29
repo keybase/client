@@ -94,12 +94,7 @@ const Sign = (props: Props) => {
                 .{` `}Anyone who has it can verify you signed it.
               </Kb.Text>
             </OutputInfoBanner>
-            <SignedSender
-              signed={true}
-              signedBy={props.outputSender}
-              operation={Constants.Operations.Sign}
-              outputStatus={props.outputStatus}
-            />
+            <SignedSender operation={Constants.Operations.Sign} />
             <OperationOutput
               outputStatus={props.outputStatus}
               outputMatchesInput={props.outputMatchesInput}
