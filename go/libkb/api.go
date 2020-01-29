@@ -299,7 +299,7 @@ func doRequestShared(m MetaContext, api Requester, arg APIArg, req *http.Request
 	}
 
 	timer := m.G().Timers.Start(timerType)
-	end := rpc.NewNetworkInstrumenter(m.G().NetworkInstrumenterStorage).Instrument(fmt.Sprintf("%s %s", req.Method, arg.Endpoint))
+	endInstrumentation := rpc.NewNetworkInstrumenter(m.G().NetworkInstrumenterStorage).Instrument(fmt.Sprintf("%s %s", req.Method, arg.Endpoint))
 	internalResp, canc, err := doRetry(m, arg, cli, req)
 
 	finisher = func() {
@@ -325,7 +325,9 @@ func doRequestShared(m MetaContext, api Requester, arg APIArg, req *http.Request
 	if err != nil {
 		return nil, finisher, nil, APINetError{Err: err}
 	}
-	end(internalResp.ContentLength)
+	if err := endInstrumentation(internalResp.ContentLength); err != nil {
+		m.Debug("unable to instrument API call: %v", err)
+	}
 	status = internalResp.Status
 
 	// The server sends "client version out of date" messages through the API

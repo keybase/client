@@ -2,7 +2,6 @@ package libkb
 
 import (
 	"fmt"
-	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -18,14 +17,6 @@ func toInstrumentationDiskRecord(record rpc.InstrumentationRecord) keybase1.Inst
 		Ctime: keybase1.ToTime(record.Ctime),
 		Dur:   keybase1.ToDurationMsec(record.Dur),
 		Size:  record.Size,
-	}
-}
-
-func toRPCRecord(r keybase1.InstrumentationDiskRecord) rpc.InstrumentationRecord {
-	return rpc.InstrumentationRecord{
-		Ctime: r.Ctime.Time(),
-		Dur:   r.Dur.Duration(),
-		Size:  r.Size,
 	}
 }
 
@@ -204,9 +195,6 @@ func (s *DiskInstrumentationStorage) Stats() (res []keybase1.InstrumentationStat
 		res = append(res, stat)
 	}
 
-	sort.Slice(res, func(i, j int) bool {
-		return res[i].NumCalls > res[j].NumCalls
-	})
 	return res, nil
 }
 

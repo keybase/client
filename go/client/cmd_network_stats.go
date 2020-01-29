@@ -3,6 +3,8 @@ package client
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"sort"
 	"strconv"
 
 	humanize "github.com/dustin/go-humanize"
@@ -26,13 +28,29 @@ func NewCmdNetworkStats(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 				Name:  "j, json",
 				Usage: "Output status as JSON",
 			},
+			cli.StringFlag{
+				Name:  "o, order-by",
+				Usage: "Order by a column, one of 'calls', 'duration', 'size'",
+				Value: "calls",
+			},
+			cli.BoolFlag{
+				Name:  "descending",
+				Usage: "Sort in descending order",
+			},
+			cli.StringFlag{
+				Name:  "i, infile",
+				Usage: "Seed data from an input file instead of reading data from the service. Useful for analyzing log send JSON",
+			},
 		},
 	}
 }
 
 type CmdNetworkStats struct {
 	libkb.Contextified
-	json bool
+	json       bool
+	descending bool
+	orderBy    string
+	infile     string
 }
 
 func (c *CmdNetworkStats) ParseArgv(ctx *cli.Context) error {
@@ -40,6 +58,14 @@ func (c *CmdNetworkStats) ParseArgv(ctx *cli.Context) error {
 		return UnexpectedArgsError("network-status")
 	}
 	c.json = ctx.Bool("json")
+	c.descending = ctx.Bool("descending")
+	c.infile = ctx.String("infile")
+	c.orderBy = ctx.String("order-by")
+	switch c.orderBy {
+	case "calls", "duration", "size":
+	default:
+		return fmt.Errorf("Unexpected order by %q", c.orderBy)
+	}
 	return nil
 }
 
@@ -52,11 +78,49 @@ func (c *CmdNetworkStats) load() ([]keybase1.InstrumentationStat, error) {
 	return cli.GetNetworkStats(context.TODO(), 0)
 }
 
-func (c *CmdNetworkStats) Run() error {
-	stats, err := c.load()
-	if err != nil {
-		return err
+func (c *CmdNetworkStats) Run() (err error) {
+	var stats []keybase1.InstrumentationStat
+	if c.infile != "" {
+		b, err := ioutil.ReadFile(c.infile)
+		if err != nil {
+			return err
+		}
+		if err = json.Unmarshal(b, &stats); err != nil {
+			return err
+		}
+	} else {
+		stats, err = c.load()
+		if err != nil {
+			return err
+		}
 	}
+	switch c.orderBy {
+	case "calls":
+		sort.Slice(stats, func(i, j int) bool {
+			x, y := stats[i].NumCalls, stats[j].NumCalls
+			if c.descending {
+				return x < y
+			}
+			return x > y
+		})
+	case "size":
+		sort.Slice(stats, func(i, j int) bool {
+			x, y := stats[i].TotalSize, stats[j].TotalSize
+			if c.descending {
+				return x < y
+			}
+			return x > y
+		})
+	case "duration":
+		sort.Slice(stats, func(i, j int) bool {
+			x, y := stats[i].TotalDur, stats[j].TotalDur
+			if c.descending {
+				return x < y
+			}
+			return x > y
+		})
+	}
+
 	if c.json {
 		b, err := json.MarshalIndent(stats, "", "    ")
 		if err != nil {
