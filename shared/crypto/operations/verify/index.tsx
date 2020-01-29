@@ -4,7 +4,7 @@ import * as Types from '../../../constants/types/crypto'
 import * as Kb from '../../../common-adapters'
 import debounce from 'lodash/debounce'
 import {TextInput, FileInput, OperationBanner} from '../../input'
-import OperationOutput, {SignedSender, OutputBar} from '../../output'
+import OperationOutput, {SignedSender, OutputBar, OutputProgress} from '../../output'
 
 type Props = {
   input: string
@@ -69,11 +69,7 @@ const Verify = (props: Props) => {
               }}
             />
           )}
-          {props.progress && props.outputStatus && props.outputStatus !== 'success' ? (
-            <Kb.ProgressBar ratio={props.progress} style={{width: '100%'}} />
-          ) : (
-            <Kb.Divider />
-          )}
+          <OutputProgress operation={Constants.Operations.Verify} />
           <Kb.Box2 direction="vertical" fullHeight={true}>
             <SignedSender operation={Constants.Operations.Verify} />
             <OperationOutput

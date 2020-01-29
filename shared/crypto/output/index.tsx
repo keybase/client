@@ -31,6 +31,10 @@ type SignedSenderProps = {
   operation: Types.Operations
 }
 
+type OutputProgressProps = {
+  operation: Types.Operations
+}
+
 type OutputInfoProps = {
   outputStatus?: Types.OutputStatus
   operation: Types.Operations
@@ -89,6 +93,22 @@ export const SignedSender = (props: SignedSenderProps) => {
       </Kb.Box2>
       {waiting && <Kb.ProgressIndicator type="Small" white={false} />}
     </Kb.Box2>
+  )
+}
+
+export const OutputProgress = (props: OutputProgressProps) => {
+  const {operation} = props
+  // State
+  const outputStatus = Container.useSelector(state => state.crypto[operation].outputStatus)
+  const bytesTotal = Container.useSelector(state => state.crypto[operation].bytesTotal)
+  const bytesComplete = Container.useSelector(state => state.crypto[operation].bytesComplete)
+
+  const progress = bytesComplete === 0 ? 0 : bytesComplete / bytesTotal
+
+  return progress && !outputStatus ? (
+    <Kb.ProgressBar ratio={progress} style={{width: '100%'}} />
+  ) : (
+    <Kb.Divider />
   )
 }
 

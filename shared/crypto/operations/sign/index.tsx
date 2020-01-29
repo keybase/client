@@ -5,7 +5,7 @@ import * as Kb from '../../../common-adapters'
 import debounce from 'lodash/debounce'
 import openURL from '../../../util/open-url'
 import {TextInput, FileInput, OperationBanner} from '../../input'
-import OperationOutput, {OutputBar, OutputInfoBanner, SignedSender} from '../../output'
+import OperationOutput, {OutputBar, OutputInfoBanner, SignedSender, OutputProgress} from '../../output'
 
 type Props = {
   input: string
@@ -75,11 +75,7 @@ const Sign = (props: Props) => {
               }}
             />
           )}
-          {props.progress && props.outputStatus && props.outputStatus !== 'success' ? (
-            <Kb.ProgressBar ratio={props.progress} style={{width: '100%'}} />
-          ) : (
-            <Kb.Divider />
-          )}
+          <OutputProgress operation={Constants.Operations.Sign} />
           <Kb.Box2 direction="vertical" fullHeight={true}>
             <OutputInfoBanner operation={Constants.Operations.Encrypt} outputStatus={props.outputStatus}>
               <Kb.Text type="BodySmallSemibold" center={true}>

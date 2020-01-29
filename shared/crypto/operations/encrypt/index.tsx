@@ -5,7 +5,7 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import openURL from '../../../util/open-url'
 import {TextInput, FileInput, OperationBanner} from '../../input'
-import OperationOutput, {OutputBar, OutputInfoBanner, SignedSender} from '../../output'
+import OperationOutput, {OutputBar, OutputInfoBanner, SignedSender, OutputProgress} from '../../output'
 import Recipients from '../../recipients/container'
 
 type Props = {
@@ -126,11 +126,7 @@ const Encrypt = (props: Props) => {
             options={props.options}
             onSetOptions={props.onSetOptions}
           />
-          {props.progress && !props.outputStatus ? (
-            <Kb.ProgressBar ratio={props.progress} style={{width: '100%'}} />
-          ) : (
-            <Kb.Divider />
-          )}
+          <OutputProgress operation={Constants.Operations.Encrypt} />
           <Kb.Box2 direction="vertical" fullHeight={true}>
             <OutputInfoBanner operation={Constants.Operations.Encrypt} outputStatus={props.outputStatus}>
               <Kb.BannerParagraph
