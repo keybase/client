@@ -7,7 +7,7 @@ import {Box2} from './box'
 import Icon, {IconType} from './icon'
 
 type OwnProps = {}
-const Kb = {Box2, Icon, Text, IconType}
+const Kb = {Box2, Icon, IconType, Text}
 
 const QRScanNotAuthorized = ({onOpenSettings}: {onOpenSettings: () => void}) => (
   <Kb.Box2 direction="vertical" style={styles.container} gap="tiny">
