@@ -60,6 +60,56 @@ func Watch(programs []Program, restartDelay time.Duration, log Log) error {
 	return nil
 }
 
+func pidFileIsDeletable(terminatedPids []int, path string, log Log) (deletable bool) {
+	pidFromFile, err := ioutil.ReadFile(path)
+	if os.IsNotExist(err) {
+		// pidfile was successfully cleaned up by the terminated process
+		// or was never created
+		return false
+	}
+	lockedPid, err := strconv.Atoi(string(pidFromFile))
+	if err != nil {
+		log.Infof("error reading pid from file after terminating program %s: %s", path, err.Error())
+		return false
+	}
+	var terminatedPidIsStillLockedByFile bool
+	for _, termPid := range terminatedPids {
+		if termPid == lockedPid {
+			terminatedPidIsStillLockedByFile = true
+			break
+		}
+	}
+	return terminatedPidIsStillLockedByFile
+}
+
+func (p Program) deletePidFileIfTerminated(terminatedPids []int, log Log) {
+	if p.PidFile == "" {
+		// there is no pidfile on this program
+		return
+	}
+	var err error
+	timeout := time.NewTimer(3 * time.Second)
+	for {
+		select {
+		case <-time.After(300 * time.Millisecond):
+			if !pidFileIsDeletable(terminatedPids, p.PidFile, log) {
+				return
+			}
+			err = os.Remove(p.PidFile)
+			if err != nil {
+				log.Infof("unable to delete a pidfile %s: %s", p.PidFile, err.Error())
+				continue
+			}
+			log.Infof("successfully deleted a pidfile %s", p.PidFile)
+			return
+		case <-timeout.C:
+			// time out
+			log.Infof("timed out trying to delete a pidfile %s", p.PidFile)
+			return
+		}
+	}
+}
+
 // terminate will send a kill signal to the program by finding its pid from the
 // path to its executable. If the program has specified a pidfile, this function
 // will open up that file and see if the pid in there matches the pid that was just
@@ -78,38 +128,7 @@ func (p Program) terminate(log Log) {
 		return
 	}
 	// if there was a pidfile, it might not have been cleaned up, so let's take a look
-	if p.PidFile == "" {
-		// nothing more to do
-		return
-	}
-	time.Sleep(500 * time.Millisecond) // give the program a chance to clean itself up
-	pidFromFile, err := ioutil.ReadFile(p.PidFile)
-	if os.IsNotExist(err) {
-		// pidfile was successfully cleaned up by the terminated process
-		// or was never created
-		return
-	}
-	lockedPid, err := strconv.Atoi(string(pidFromFile))
-	if err != nil {
-		log.Infof("error reading pid from file after terminating program %s: %s", p.Path, err.Error())
-		return
-	}
-	var terminatedPidIsStillLockedByFile bool
-	for _, termPid := range terminatedPids {
-		if termPid == lockedPid {
-			terminatedPidIsStillLockedByFile = true
-			break
-		}
-	}
-	if !terminatedPidIsStillLockedByFile {
-		// the program updated its own pidfile
-		return
-	}
-	if err := os.Remove(p.PidFile); err != nil {
-		log.Infof("error deleting pidfile %s: %s", p.PidFile, err.Error())
-		return
-	}
-	log.Infof("Successfully deleted a pid file at %s", p.PidFile)
+	p.deletePidFileIfTerminated(terminatedPids, log)
 }
 
 func terminateExisting(programs []Program, log Log) {
