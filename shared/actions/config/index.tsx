@@ -559,20 +559,15 @@ const updateServerConfig = async (state: Container.TypedState, action: ConfigGen
     return false
   }
   try {
+    // TODO real rpc so we get real types instead of this untyped bag of key/values
     const str = await RPCTypes.apiserverGetWithSessionRpcPromise({
       endpoint: 'user/features',
     })
-    const obj: {
-      features: {
-        admin?: {
-          value: boolean
-        }
-      }
-    } = JSON.parse(str.body)
-    const features = Object.keys(obj.features).reduce((map, key) => {
-      map[key] = obj.features[key as any]?.value ?? false
+    const obj: {features: any} = JSON.parse(str.body)
+    const features = Object.keys(obj.features).reduce<{[key: string]: boolean}>((map, key) => {
+      map[key] = (obj.features[key as any] as any)?.value ?? false
       return map
-    }, {}) as {[K in string]: boolean}
+    }, {})
 
     const serverConfig = {
       chatIndexProfilingEnabled: !!features.admin,

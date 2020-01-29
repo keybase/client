@@ -20,8 +20,7 @@ const useTeamsSubscribeMobile = () => {
   useNavigationEvents(callback)
 
   // Workaround navigation blur events flakiness, make sure we unsubscribe on unmount
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  React.useEffect(() => () => dispatch(TeamsGen.createUnsubscribeTeamList()), [])
+  React.useEffect(() => () => dispatch(TeamsGen.createUnsubscribeTeamList()), [dispatch])
 }
 const useTeamsSubscribeDesktop = () => {
   const dispatch = Container.useDispatch()
@@ -56,8 +55,7 @@ const useTeamDetailsSubscribeMobile = (teamID: Types.TeamID) => {
   useNavigationEvents(callback)
 
   // Workaround navigation blur events flakiness, make sure we unsubscribe on unmount
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  React.useEffect(() => () => dispatch(TeamsGen.createUnsubscribeTeamList()), [])
+  React.useEffect(() => () => dispatch(TeamsGen.createUnsubscribeTeamList()), [dispatch])
 }
 const useTeamDetailsSubscribeDesktop = (teamID: Types.TeamID) => {
   const dispatch = Container.useDispatch()

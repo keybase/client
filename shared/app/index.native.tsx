@@ -1,7 +1,7 @@
 import * as ConfigGen from '../actions/config-gen'
 import * as DeeplinksGen from '../actions/deeplinks-gen'
 import Main from './main.native'
-import React, {Component} from 'react'
+import * as React from 'react'
 import configureStore from '../store/configure-store'
 import {AppRegistry, AppState, Linking} from 'react-native'
 import {GatewayProvider} from 'react-gateway'
@@ -13,10 +13,12 @@ module.hot &&
     console.log('accepted update in shared/index.native')
   })
 
-let store
+let store: ReturnType<typeof configureStore>['store']
 
-class Keybase extends Component<any> {
-  constructor(props: any) {
+type Props = {}
+
+class Keybase extends React.Component<Props> {
+  constructor(props: Props) {
     super(props)
 
     if (!global.DEBUGLoaded) {

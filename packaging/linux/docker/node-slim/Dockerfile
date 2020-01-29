@@ -29,9 +29,9 @@ RUN gpg --import /gosu_key.asc \
 COPY --from=base /usr/bin/entrypoint.sh /usr/bin/entrypoint.sh
 RUN chmod +x /usr/bin/entrypoint.sh
 
-RUN useradd --create-home --shell /bin/bash keybase \
-    && mkdir -p /var/log/keybase \
-    && chown keybase:keybase /var/log/keybase
+RUN mv /home/node /home/keybase \
+    && usermod -l keybase -d /home/keybase -m node \
+    && groupmod -n keybase node
 VOLUME [ "/home/keybase/.config/keybase", "/home/keybase/.cache/keybase" ]
 
 COPY --from=base /usr/bin/keybase /usr/bin/keybase

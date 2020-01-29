@@ -1089,8 +1089,8 @@ function* setPublicity(state: TypedState, action: TeamsGen.SetPublicityPayload) 
 
   // Display any errors from the rpcs
   const errs = results
-    .filter(r => r.type === 'error')
-    .map(({payload}) => Saga.put(ConfigGen.createGlobalError({globalError: convertToError(payload)})))
+    .filter((r: any) => r.type === 'error')
+    .map(({payload}: any) => Saga.put(ConfigGen.createGlobalError({globalError: convertToError(payload)})))
   yield Saga.all(errs)
 }
 

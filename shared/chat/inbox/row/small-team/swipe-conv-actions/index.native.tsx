@@ -66,7 +66,7 @@ const renderRightActions = (
   )
 }
 
-const onOpen = ref => {
+const onOpen = (ref: React.RefObject<Kb.Swipeable>) => {
   if (curSwipeRef && curSwipeRef.current && curSwipeRef !== ref) {
     curSwipeRef.current.close()
   }

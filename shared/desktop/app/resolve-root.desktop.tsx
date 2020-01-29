@@ -2,7 +2,7 @@ import path from 'path'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import {isWindows} from '../../constants/platform'
 
-let root
+let root: string
 let prefix = isWindows ? 'file:///' : 'file://'
 
 if (__STORYBOOK__) {
@@ -15,8 +15,8 @@ if (__STORYBOOK__) {
 
 const fixRegExp = new RegExp('\\' + path.sep, 'g')
 
-const fixPath = path.sep === '/' ? s => s : s => (s ? s.replace(fixRegExp, '/') : s)
-const fix = s => encodeURI(fixPath(s))
+const fixPath = path.sep === '/' ? (s: string) => s : (s: string) => (s ? s.replace(fixRegExp, '/') : s)
+const fix = (s: string) => encodeURI(fixPath(s))
 
 const imageRoot = path.resolve(root, '..', 'images')
 

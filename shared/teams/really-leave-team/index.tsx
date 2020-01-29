@@ -2,14 +2,15 @@ import * as React from 'react'
 import * as Constants from '../../constants/teams'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import * as WaitingGen from '../../actions/waiting-gen'
+import * as Container from '../../util/container'
 import {useTeamsSubscribe} from '../../teams/subscriber'
 
 export type Props = {
   error: string
-  clearErrors: () => void
   onBack: () => void
   onDeleteTeam: () => void
-  onLeave: (boolean) => void
+  onLeave: (perm: boolean) => void
   name: string
   open?: boolean
 }
@@ -31,8 +32,12 @@ const Header = (props: Props) => (
 )
 
 const _ReallyLeaveTeam = (props: Props) => {
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  React.useEffect(() => () => props.clearErrors(), [])
+  const {name} = props
+  const dispatch = Container.useDispatch()
+  React.useEffect(
+    () => () => dispatch(WaitingGen.createClearWaiting({key: Constants.leaveTeamWaitingKey(name)})),
+    [name, dispatch]
+  )
   const [leavePermanently, setLeavePermanently] = React.useState(false)
   const onLeave = () => props.onLeave(leavePermanently)
   useTeamsSubscribe()

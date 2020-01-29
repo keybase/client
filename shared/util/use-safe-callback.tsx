@@ -21,14 +21,18 @@ function useSafeCallback<C extends (...args: Array<any>) => void>(cb: C, options
     calledThisMount.current = true
   }) as any)
 
+  const onlyOnce = options?.onlyOnce
+
   React.useEffect(() => {
-    if (typeof options?.onlyOnce === 'function') {
-      options?.onlyOnce?.(clearOnlyOnce)
+    if (typeof onlyOnce === 'function') {
+      onlyOnce?.(clearOnlyOnce)
     }
+  }, [onlyOnce, clearOnlyOnce])
+
+  React.useEffect(() => {
     return () => {
       isMounted.current = false
     }
-    // eslint-disable-next-line
   }, [])
 
   return safe.current
