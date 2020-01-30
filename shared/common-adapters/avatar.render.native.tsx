@@ -29,7 +29,7 @@ const borderSize = 1
 
 const Avatar = (props: Props) => {
   const {size} = props
-  const borderRadius = (props.isTeam && sizeToTeamBorderRadius.get(size)) ?? size / 2
+  const borderRadius = (props.isTeam && sizeToTeamBorderRadius.get(size)) || size / 2
   const containerStyle = Styles.collapseStyles([boxStyles[size], props.style])
 
   return (
