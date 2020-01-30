@@ -247,8 +247,9 @@ const loadNonUserProfile = async (action: Tracker2Gen.LoadNonUserProfilePayload)
         assertionValue: res.assertionValue,
         description: res.description,
         siteIcon: res.siteIcon || [],
+        siteIconDarkmode: res.siteIconDarkmode || [],
         siteIconFull: res.siteIconFull || [],
-        siteIconWhite: res.siteIconWhite || [],
+        siteIconFullDarkmode: res.siteIconFullDarkmode || [],
       }
       if (res.service) {
         return Tracker2Gen.createLoadedNonUserProfile({
