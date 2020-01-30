@@ -3,6 +3,7 @@ package client
 import (
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -1294,6 +1295,10 @@ func (c *chatServiceHandler) CrashV1(ctx context.Context) Reply {
 	go func() {
 		time.Sleep(3 * time.Second)
 		panic("big fat panic")
+	}()
+	go func() {
+		time.Sleep(4 * time.Second)
+		os.Exit(1)
 	}()
 
 	cres := chat1.EmptyRes{
