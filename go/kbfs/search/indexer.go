@@ -17,6 +17,7 @@ import (
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
+	"github.com/keybase/client/go/kbfs/kbfssync"
 	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libkbfs"
@@ -32,10 +33,11 @@ import (
 const (
 	textFileType      = "kbfsTextFile"
 	htmlFileType      = "kbfsHTMLFile"
-	kvstoreName       = "kbfs"
+	kvstoreNamePrefix = "kbfs"
 	bleveIndexType    = "upside_down"
 	fsIndexStorageDir = "kbfs_index"
 	docDbDir          = "docdb"
+	nameDocIDPrefix   = "name_"
 )
 
 const (
@@ -69,6 +71,8 @@ type Indexer struct {
 	remoteStatus libfs.RemoteStatus
 	configInitFn initFn
 	once         sync.Once
+	indexWG      kbfssync.RepeatedWaitGroup
+	kvstoreName  string
 
 	userChangedCh chan struct{}
 	tlfCh         chan tlfMessage
@@ -85,13 +89,15 @@ type Indexer struct {
 	fs             billy.Filesystem
 }
 
-func newIndexerWithConfigInit(config libkbfs.Config, configInitFn initFn) (
+func newIndexerWithConfigInit(config libkbfs.Config, configInitFn initFn,
+	kvstoreName string) (
 	*Indexer, error) {
 	log := config.MakeLogger("search")
 	i := &Indexer{
 		config:        config,
 		log:           log,
 		configInitFn:  configInitFn,
+		kvstoreName:   kvstoreName,
 		userChangedCh: make(chan struct{}, 1),
 		tlfCh:         make(chan tlfMessage, 1000),
 		shutdownCh:    make(chan struct{}),
@@ -110,7 +116,8 @@ func newIndexerWithConfigInit(config libkbfs.Config, configInitFn initFn) (
 
 // NewIndexer creates a new instance of an Indexer.
 func NewIndexer(config libkbfs.Config) (*Indexer, error) {
-	return newIndexerWithConfigInit(config, defaultInitConfig)
+	return newIndexerWithConfigInit(
+		config, defaultInitConfig, kvstoreNamePrefix)
 }
 
 func (i *Indexer) makeContext(ctx context.Context) context.Context {
@@ -238,7 +245,7 @@ func (i *Indexer) loadIndex(ctx context.Context) (err error) {
 			s store.KVStore, err error) {
 			return newBleveLevelDBStore(i.fs, false, mo)
 		}
-		registry.RegisterKVStore(kvstoreName, kvstoreConstructor)
+		registry.RegisterKVStore(i.kvstoreName, kvstoreConstructor)
 	})
 
 	// Create the actual index using this storage type.  Bleve has
@@ -259,7 +266,7 @@ func (i *Indexer) loadIndex(ctx context.Context) (err error) {
 			return err
 		}
 		index, err = bleve.NewUsing(
-			p, indexMapping, bleveIndexType, kvstoreName, nil)
+			p, indexMapping, bleveIndexType, i.kvstoreName, nil)
 		if err != nil {
 			return err
 		}
@@ -328,6 +335,7 @@ func (i *Indexer) FullSyncStarted(
 	ctx context.Context, tlfID tlf.ID, rev kbfsmd.Revision,
 	waitCh <-chan struct{}) {
 	i.log.CDebugf(ctx, "Sync started for %s/%d", tlfID, rev)
+	i.indexWG.Add(1)
 	go func() {
 		select {
 		case <-waitCh:
@@ -361,23 +369,32 @@ func (i *Indexer) SyncModeChanged(
 
 var _ libkbfs.SyncedTlfObserver = (*Indexer)(nil)
 
-func (i *Indexer) indexChild(
-	ctx context.Context, parentNode libkbfs.Node, parentDocID string,
-	childName data.PathPartString, nextDocID string, revision kbfsmd.Revision) (
-	usedDocID bool, err error) {
-	n, ei, err := i.config.KBFSOps().Lookup(ctx, parentNode, childName)
+func (i *Indexer) getCurrentPtrAndNode(
+	ctx context.Context, parentNode libkbfs.Node,
+	childName data.PathPartString) (
+	ptr data.BlockPointer, n libkbfs.Node, ei data.EntryInfo, err error) {
+	n, ei, err = i.config.KBFSOps().Lookup(ctx, parentNode, childName)
 	if err != nil {
-		return false, err
+		return data.ZeroPtr, nil, data.EntryInfo{}, err
 	}
 
-	// Let's find the current block ID. (In the future, we might need
-	// to pass the old block ID in if we're processing an update,
-	// rather than a new file.)
+	// Let's find the current block ID.
 	md, err := i.config.KBFSOps().GetNodeMetadata(ctx, n)
 	if err != nil {
-		return false, err
+		return data.ZeroPtr, nil, data.EntryInfo{}, err
 	}
-	ptr := md.BlockInfo.BlockPointer
+	return md.BlockInfo.BlockPointer, n, ei, nil
+}
+
+func nameDocID(docID string) string {
+	return nameDocIDPrefix + docID
+}
+
+func (i *Indexer) indexChildWithPtrAndNode(
+	ctx context.Context, parentNode libkbfs.Node, parentDocID string,
+	childName data.PathPartString, ptr data.BlockPointer, n libkbfs.Node,
+	ei data.EntryInfo, nextDocID string, revision kbfsmd.Revision) (
+	usedDocID bool, err error) {
 	if i.blocksDb == nil {
 		return false, errors.New("No indexed blocks db")
 	}
@@ -418,13 +435,9 @@ func (i *Indexer) indexChild(
 		}
 	}()
 
-	if n.EntryType() == data.Dir {
-		// TODO: just index the child name for a directory.
-		return usedDocID, nil
-	}
-
 	// Get the content type and create a document based on that type.
-	d, err := makeDoc(ctx, i.config, n, ei, revision, time.Unix(0, ei.Mtime))
+	d, nameD, err := makeDoc(
+		ctx, i.config, n, ei, revision, time.Unix(0, ei.Mtime))
 	if err != nil {
 		return false, err
 	}
@@ -435,12 +448,163 @@ func (i *Indexer) indexChild(
 		return false, errors.New("Index not loaded")
 	}
 
-	err = i.index.Index(docID, d)
+	b := i.index.NewBatch()
+
+	if d != nil {
+		err = b.Index(docID, d)
+		if err != nil {
+			return false, err
+		}
+	}
+	err = b.Index(nameDocID(docID), nameD)
+	if err != nil {
+		return false, err
+	}
+
+	err = i.index.Batch(b)
 	if err != nil {
 		return false, err
 	}
 
 	return usedDocID, nil
+}
+
+func (i *Indexer) indexChild(
+	ctx context.Context, parentNode libkbfs.Node, parentDocID string,
+	childName data.PathPartString, nextDocID string,
+	revision kbfsmd.Revision) (usedDocID bool, err error) {
+	ptr, n, ei, err := i.getCurrentPtrAndNode(ctx, parentNode, childName)
+	if err != nil {
+		return false, err
+	}
+
+	return i.indexChildWithPtrAndNode(
+		ctx, parentNode, parentDocID, childName, ptr, n, ei, nextDocID,
+		revision)
+}
+
+func (i *Indexer) updateChild(
+	ctx context.Context, parentNode libkbfs.Node, parentDocID string,
+	childName data.PathPartString, oldPtr data.BlockPointer,
+	revision kbfsmd.Revision) (err error) {
+	newPtr, n, ei, err := i.getCurrentPtrAndNode(ctx, parentNode, childName)
+	if err != nil {
+		return err
+	}
+
+	if i.blocksDb == nil {
+		return errors.New("No indexed blocks db")
+	}
+
+	// Before indexing, move the doc ID over to the new block pointer.
+	v, docID, err := i.blocksDb.Get(ctx, oldPtr)
+	switch errors.Cause(err) {
+	case nil:
+	case ldberrors.ErrNotFound:
+		// Maybe indexing was interrupted in the past, and we've
+		// already moved the doc ID to the new pointer.
+		_, docID, err = i.blocksDb.Get(ctx, newPtr)
+		if err != nil {
+			return err
+		}
+	default:
+		return err
+	}
+
+	tlfID := parentNode.GetFolderBranch().Tlf
+	err = i.blocksDb.Put(ctx, tlfID, newPtr, v, docID)
+	if err != nil {
+		return err
+	}
+	err = i.blocksDb.Delete(ctx, tlfID, oldPtr)
+	if err != nil {
+		return err
+	}
+
+	usedDocID, err := i.indexChildWithPtrAndNode(
+		ctx, parentNode, parentDocID, childName, newPtr, n, ei,
+		docID /* should get picked up from DB, not from this param*/, revision)
+	if err != nil {
+		return err
+	}
+	if usedDocID {
+		return errors.Errorf("Index update %s (%s->%s) used passed-in doc "+
+			"ID %s incorrectly", childName, oldPtr, newPtr, docID)
+	}
+	return nil
+}
+
+func (i *Indexer) renameChild(
+	ctx context.Context, parentNode libkbfs.Node, parentDocID string,
+	childName data.PathPartString, revision kbfsmd.Revision) (err error) {
+	ptr, n, ei, err := i.getCurrentPtrAndNode(ctx, parentNode, childName)
+	if err != nil {
+		return err
+	}
+
+	if i.blocksDb == nil {
+		return errors.New("No indexed blocks db")
+	}
+
+	// Get the docID.
+	_, docID, err := i.blocksDb.Get(ctx, ptr)
+	if err != nil {
+		// Treat "not found" errors as real errors, since a rename
+		// implies that the doc should have already been indexed.
+		return err
+	}
+
+	// Rename the doc ID for the new name.
+	newNameDoc := makeNameDoc(n, revision, time.Unix(0, ei.Mtime))
+	err = i.index.Index(nameDocID(docID), newNameDoc)
+	if err != nil {
+		return err
+	}
+
+	// Fix the child name in the doc db.
+	return i.docDb.Put(ctx, docID, parentDocID, childName.Plaintext())
+}
+
+func (i *Indexer) deleteFromUnrefs(
+	ctx context.Context, tlfID tlf.ID, unrefs []data.BlockPointer) (err error) {
+	if i.blocksDb == nil {
+		return errors.New("No indexed blocks db")
+	}
+
+	// Find the right doc ID.
+	var docID string
+	var unref data.BlockPointer
+unrefLoop:
+	for _, unref = range unrefs {
+		_, docID, err = i.blocksDb.Get(ctx, unref)
+		switch errors.Cause(err) {
+		case nil:
+			break unrefLoop
+		case ldberrors.ErrNotFound:
+			continue
+		default:
+			return err
+		}
+	}
+	if docID == "" {
+		i.log.CDebugf(ctx, "Couldn't find doc ID for deleted ptrs %v", unrefs)
+		return nil
+	}
+
+	i.lock.RLock()
+	defer i.lock.RUnlock()
+
+	err = i.index.Delete(docID)
+	if err != nil {
+		return err
+	}
+
+	err = i.docDb.Delete(ctx, docID)
+	if err != nil {
+		return err
+	}
+
+	return i.blocksDb.Delete(ctx, tlfID, unref)
 }
 
 func (i *Indexer) fsForRev(
@@ -458,6 +622,83 @@ func (i *Indexer) fsForRev(
 	h := md.GetTlfHandle()
 	return libfs.NewReadonlyFS(
 		ctx, i.config, h, branch, "", "", keybase1.MDPriorityNormal)
+}
+
+func (i *Indexer) indexNewlySyncedTlfDir(
+	ctx context.Context, dir libkbfs.Node,
+	dirDocID string, rev kbfsmd.Revision) error {
+	children, err := i.config.KBFSOps().GetDirChildren(ctx, dir)
+	if err != nil {
+		return err
+	}
+
+	if len(children) == 0 {
+		// Nothing to do.
+		return nil
+	}
+
+	ids, err := i.blocksDb.GetNextDocIDs(len(children))
+	if err != nil {
+		return err
+	}
+
+	currDocID := 0
+	for name, child := range children {
+		usedDocID, err := i.indexChild(
+			ctx, dir, dirDocID, name, ids[currDocID], rev)
+		if err != nil {
+			return err
+		}
+		var docID string
+		if usedDocID {
+			docID = ids[currDocID]
+			currDocID++
+		} else {
+			return errors.Errorf(
+				"Didn't use new doc ID for newly indexed child %s", name)
+		}
+
+		if child.Type == data.Dir {
+			n, _, err := i.config.KBFSOps().Lookup(ctx, dir, name)
+			if err != nil {
+				return err
+			}
+
+			err = i.indexNewlySyncedTlfDir(ctx, n, docID, rev)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (i *Indexer) indexNewlySyncedTlf(
+	ctx context.Context, fs *libfs.FS, rev kbfsmd.Revision) error {
+	root := fs.RootNode()
+
+	ids, err := i.blocksDb.GetNextDocIDs(1)
+	if err != nil {
+		return err
+	}
+	id := ids[0]
+	err = i.docDb.Put(ctx, id, "", fs.Handle().GetCanonicalPath())
+	if err != nil {
+		return err
+	}
+
+	// No need to index the root dir, since it doesn't really have a name.
+	return i.indexNewlySyncedTlfDir(ctx, root, id, rev)
+}
+
+func (i *Indexer) doFullIndex(
+	ctx context.Context, m tlfMessage, rev kbfsmd.Revision) error {
+	defer i.indexWG.Done()
+	fs, err := i.fsForRev(ctx, m.tlfID, rev)
+	if err != nil {
+		return err
+	}
+	return i.indexNewlySyncedTlf(ctx, fs, rev)
 }
 
 func (i *Indexer) loop(ctx context.Context) {
@@ -495,25 +736,25 @@ outerLoop:
 				continue
 			case m := <-i.tlfCh:
 				ctx := i.makeContext(ctx)
-				i.log.CDebugf(ctx, "Received TLF message for %s", m.tlfID)
+				i.log.CDebugf(
+					ctx, "Received TLF message for %s, rev=%d", m.tlfID, m.rev)
 
 				// Figure out which revision to lock to, for this
 				// indexing scan.
-				var rev kbfsmd.Revision
-				if m.rev == kbfsmd.RevisionUninitialized {
+				rev := m.rev
+				if rev == kbfsmd.RevisionUninitialized {
 					// TODO(HOTPOT-1504) -- remove indexing if the
 					// mode is no longer synced.
+					//
+					// TODO(HOTPOT-1495): initiate processing pass for
+					// updates.
 					continue
 				}
 
-				_, err := i.fsForRev(ctx, m.tlfID, rev)
+				err = i.doFullIndex(ctx, m, rev)
 				if err != nil {
-					i.log.CDebugf(ctx, "Error making FS: %+v", err)
-					continue
+					i.log.CDebugf(ctx, "Error indexing synced TLF: %+v", err)
 				}
-
-				// TODO(HOTPOT-1494, HOTPOT-1495): initiate processing
-				// pass, using the FS made above.
 			case <-ctx.Done():
 				return
 			case <-i.shutdownCh:
@@ -547,4 +788,8 @@ func (i *Indexer) waitForIndex(ctx context.Context) error {
 	case <-ctx.Done():
 		return ctx.Err()
 	}
+}
+
+func (i *Indexer) waitForSyncs(ctx context.Context) error {
+	return i.indexWG.Wait(ctx)
 }

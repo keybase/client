@@ -61,7 +61,8 @@ class InboxSearch extends React.Component<Props, State> {
     section: {indexOffset: number; onSelect: any}
     index: number
   }) => {
-    const {item} = h
+    const {item, index, section} = h
+    const realIndex = index + section.indexOffset
     return (
       <OpenTeamRow
         description={item.description}
@@ -70,7 +71,7 @@ class InboxSearch extends React.Component<Props, State> {
         memberCount={item.memberCount}
         inTeam={item.inTeam}
         publicAdmins={item.publicAdmins}
-        selected={false}
+        isSelected={!Styles.isMobile && this.props.selectedIndex === realIndex}
       />
     )
   }
@@ -255,13 +256,14 @@ class InboxSearch extends React.Component<Props, State> {
 
 export const rowHeight = Styles.isMobile ? 64 : 56
 type OpenTeamProps = Types.InboxSearchOpenTeamHit & {
-  selected: boolean
+  isSelected: boolean
 }
 const OpenTeamRow = (p: OpenTeamProps) => {
   const [hovering, setHovering] = React.useState(false)
-  const {name, description, memberCount, publicAdmins, id, inTeam} = p
+  const {name, description, memberCount, publicAdmins, id, inTeam, isSelected} = p
   const dispatch = Container.useDispatch()
   const popupAnchor = React.useRef(null)
+  const showingDueToSelect = React.useRef(false)
   const {showingPopup, setShowingPopup, popup} = Kb.usePopup(popupAnchor, () => (
     <TeamInfo
       attachTo={() => popupAnchor.current}
@@ -283,7 +285,15 @@ const OpenTeamRow = (p: OpenTeamProps) => {
     />
   ))
 
-  const selected = showingPopup
+  React.useEffect(() => {
+    if (!showingPopup && isSelected && !showingDueToSelect.current) {
+      showingDueToSelect.current = true
+      setShowingPopup(true)
+    } else if (showingPopup && !isSelected && showingDueToSelect.current) {
+      showingDueToSelect.current = false
+      setShowingPopup(false)
+    }
+  }, [showingDueToSelect, setShowingPopup, showingPopup, isSelected])
 
   return (
     <Kb.ClickableBox onClick={() => setShowingPopup(!showingPopup)} style={{width: '100%'}}>
@@ -295,7 +305,7 @@ const OpenTeamRow = (p: OpenTeamProps) => {
         className="hover_background_color_blueGreyDark"
         style={Styles.collapseStyles([
           {
-            backgroundColor: selected ? Styles.globalColors.blue : Styles.globalColors.white,
+            backgroundColor: isSelected ? Styles.globalColors.blue : Styles.globalColors.white,
             height: rowHeight,
             paddingLeft: Styles.globalMargins.xtiny,
             paddingRight: Styles.globalMargins.xtiny,
@@ -304,12 +314,12 @@ const OpenTeamRow = (p: OpenTeamProps) => {
         onMouseLeave={() => setHovering(false)}
         onMouseOver={() => setHovering(true)}
       >
-        <TeamAvatar teamname={name} isMuted={false} isSelected={false} isHovered={hovering} />
+        <TeamAvatar teamname={name} isMuted={false} isSelected={isSelected} isHovered={hovering} />
         <Kb.Box2 direction="vertical" style={{flexGrow: 1}}>
           <Kb.Text
             type="BodySemibold"
             style={Styles.collapseStyles([
-              {color: selected ? Styles.globalColors.white : Styles.globalColors.black},
+              {color: isSelected ? Styles.globalColors.white : Styles.globalColors.black},
             ])}
             title={name}
             lineClamp={Styles.isMobile ? 1 : undefined}
@@ -320,7 +330,7 @@ const OpenTeamRow = (p: OpenTeamProps) => {
           <Kb.Text
             type="BodySmall"
             style={Styles.collapseStyles([
-              {color: selected ? Styles.globalColors.white : Styles.globalColors.black_50},
+              {color: isSelected ? Styles.globalColors.white : Styles.globalColors.black_50},
             ])}
             title={`#${description}`}
             lineClamp={1}

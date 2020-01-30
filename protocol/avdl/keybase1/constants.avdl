@@ -134,6 +134,7 @@ protocol constants {
     SCChatNotInTeam_2517,
     SCChatStalePreviousState_2518,
     SCChatEphemeralRetentionPolicyViolatedError_2519,
+    SCChatUsersAlreadyInConversationError_2520,
     SCTeamBadMembership_2604,
     SCTeamSelfNotOwner_2607,
     SCTeamNotFound_2614,

@@ -43,7 +43,7 @@ class GlobalError extends React.Component<Props, State> {
     }
   }
 
-  private detailsForError(err: null | Error | RPCError) {
+  private detailsForError(err?: Error | RPCError) {
     return err ? err.stack : undefined
   }
 

@@ -2537,12 +2537,44 @@ func (h *Server) BulkAddToConv(ctx context.Context, arg chat1.BulkAddToConvArg) 
 	if err != nil {
 		return err
 	}
-	subBody := chat1.NewMessageSystemWithBulkaddtoconv(chat1.MessageSystemBulkAddToConv{
-		Usernames: arg.Usernames,
-	})
-	body := chat1.NewMessageBodyWithSystem(subBody)
+
 	boxer := NewBoxer(h.G())
 	sender := NewBlockingSender(h.G(), boxer, h.remoteClient)
+
+	usernamesToAdd := arg.Usernames
+	toExclude := make(map[keybase1.UID]bool)
+
+	// retry the add a few times to prevent races. Each time we remove members that are already part of the conversation.
+	for i := 0; i < 4 && len(usernamesToAdd) > 0; i++ {
+		h.Debug(ctx, "BulkAddToConv: trying to add %v", usernamesToAdd)
+		err = sendBulkAddToConv(ctx, sender, usernamesToAdd, arg.ConvID, info)
+		switch e := err.(type) {
+		case nil:
+			return nil
+		case libkb.ChatUsersAlreadyInConversationError:
+			// remove the usernames which are already part of the conversation and retry
+			for _, uid := range e.Uids {
+				toExclude[uid] = true
+			}
+			var usernamesToRetry []string
+			for _, username := range usernamesToAdd {
+				if !toExclude[libkb.UsernameToUID(username)] {
+					usernamesToRetry = append(usernamesToRetry, username)
+				}
+			}
+			usernamesToAdd = usernamesToRetry
+		default:
+			return e
+		}
+	}
+	return err
+}
+
+func sendBulkAddToConv(ctx context.Context, sender *BlockingSender, usernames []string, convID chat1.ConversationID, info types.NameInfo) (err error) {
+	subBody := chat1.NewMessageSystemWithBulkaddtoconv(chat1.MessageSystemBulkAddToConv{
+		Usernames: usernames,
+	})
+	body := chat1.NewMessageBodyWithSystem(subBody)
 	msg := chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			TlfName:     info.CanonicalName,
@@ -2551,7 +2583,7 @@ func (h *Server) BulkAddToConv(ctx context.Context, arg chat1.BulkAddToConvArg) 
 		MessageBody: body,
 	}
 	status := chat1.ConversationMemberStatus_ACTIVE
-	_, _, err = sender.Send(ctx, arg.ConvID, msg, 0, nil, &chat1.SenderSendOptions{
+	_, _, err = sender.Send(ctx, convID, msg, 0, nil, &chat1.SenderSendOptions{
 		JoinMentionsAs: &status,
 	}, nil)
 	return err
