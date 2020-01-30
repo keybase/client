@@ -12,47 +12,46 @@ import (
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/service"
 	context "golang.org/x/net/context"
 )
 
-func TestAccountDeadlock(t *testing.T) {
-	tc := setupTest(t, "deadlock")
-	defer tc.Cleanup()
-	tc2 := cloneContext(tc)
-	defer tc2.Cleanup()
+// func TestAccountDeadlock(t *testing.T) {
+// 	tc := setupTest(t, "deadlock")
+// 	defer tc.Cleanup()
+// 	tc2 := cloneContext(tc)
+// 	defer tc2.Cleanup()
 
-	stopCh := make(chan error)
-	svc := service.NewService(tc.G, false)
-	startCh := svc.GetStartChannel()
-	go func() {
-		err := svc.Run()
-		if err != nil {
-			t.Logf("Running the service produced an error: %v", err)
-		}
-		stopCh <- err
-	}()
+// 	stopCh := make(chan error)
+// 	svc := service.NewService(tc.G, false)
+// 	startCh := svc.GetStartChannel()
+// 	go func() {
+// 		err := svc.Run()
+// 		if err != nil {
+// 			t.Logf("Running the service produced an error: %v", err)
+// 		}
+// 		stopCh <- err
+// 	}()
 
-	<-startCh
+// 	<-startCh
 
-	signupDoneCh := make(chan struct{})
+// 	signupDoneCh := make(chan struct{})
 
-	go func() {
-		issueSignup(t, tc2.G)
-		signupDoneCh <- struct{}{}
-	}()
+// 	go func() {
+// 		issueSignup(t, tc2.G)
+// 		signupDoneCh <- struct{}{}
+// 	}()
 
-	currentStatusLoop(t, tc2.G, signupDoneCh)
+// 	currentStatusLoop(t, tc2.G, signupDoneCh)
 
-	if err := CtlStop(tc2.G); err != nil {
-		t.Fatal(err)
-	}
+// 	if err := CtlStop(tc2.G); err != nil {
+// 		t.Fatal(err)
+// 	}
 
-	// If the server failed, it's also an error
-	if err := <-stopCh; err != nil {
-		t.Fatal(err)
-	}
-}
+// 	// If the server failed, it's also an error
+// 	if err := <-stopCh; err != nil {
+// 		t.Fatal(err)
+// 	}
+// }
 
 func issueSignup(t *testing.T, g *libkb.GlobalContext) {
 	cli, err := client.GetSignupClient(g)

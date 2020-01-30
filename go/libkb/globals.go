@@ -519,6 +519,16 @@ func (g *GlobalContext) shutdownCachesLocked() {
 	if g.cardCache != nil {
 		g.cardCache.Shutdown()
 	}
+
+	if g.ProofCache != nil {
+		g.ProofCache.Shutdown()
+	}
+	if g.upakLoader != nil {
+		g.upakLoader.ClearMemory()
+	}
+	if g.PayloadCache != nil {
+		g.PayloadCache.Shutdown()
+	}
 }
 
 func (g *GlobalContext) TrackCache() *TrackCache {
@@ -782,6 +792,10 @@ func (g *GlobalContext) Shutdown(mctx MetaContext) error {
 
 		epick := FirstErrorPicker{}
 
+		if g.hiddenTeamChainManager != nil {
+			g.hiddenTeamChainManager.Purge(mctx)
+		}
+
 		if g.NotifyRouter != nil {
 			g.NotifyRouter.Shutdown()
 		}
@@ -804,6 +818,10 @@ func (g *GlobalContext) Shutdown(mctx MetaContext) error {
 		g.cacheMu.Lock()
 		g.shutdownCachesLocked()
 		g.cacheMu.Unlock()
+
+		if g.proofServices != nil {
+			g.proofServices.Purge(g)
+		}
 
 		if g.Resolver != nil {
 			g.Resolver.Shutdown(NewMetaContextBackground(g))

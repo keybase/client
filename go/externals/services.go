@@ -42,6 +42,10 @@ func newProofServices(g *libkb.GlobalContext) *proofServices {
 	return p
 }
 
+func (p *proofServices) Purge(g *libkb.GlobalContext) {
+	p = newProofServices(g)
+}
+
 func (p *proofServices) clearServiceTypes() {
 	p.externalServices = make(map[string]libkb.ServiceType)
 	p.displayConfigs = make(map[string]keybase1.ServiceDisplayConfig)

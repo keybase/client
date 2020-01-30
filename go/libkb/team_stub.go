@@ -188,6 +188,8 @@ func (n nullHiddenTeamChainManager) Freeze(MetaContext, keybase1.TeamID) error {
 func (n nullHiddenTeamChainManager) HintLatestSeqno(m MetaContext, id keybase1.TeamID, seqno keybase1.Seqno) error {
 	return nil
 }
+func (n nullHiddenTeamChainManager) Purge(m MetaContext) {
+}
 
 func newNullHiddenTeamChainManager() nullHiddenTeamChainManager {
 	return nullHiddenTeamChainManager{}

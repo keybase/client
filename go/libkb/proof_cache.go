@@ -117,6 +117,14 @@ func NewProofCache(g *GlobalContext, capac int) *ProofCache {
 	return &ProofCache{Contextified: NewContextified(g), capac: capac}
 }
 
+func (pc *ProofCache) Shutdown() {
+	pc.Lock()
+	defer pc.Unlock()
+	if pc.lru != nil {
+		pc.lru.Purge()
+	}
+}
+
 func (pc *ProofCache) DisableDisk() {
 	pc.Lock()
 	defer pc.Unlock()

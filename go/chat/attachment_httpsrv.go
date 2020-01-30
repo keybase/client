@@ -884,7 +884,7 @@ func (c *CachingAttachmentFetcher) DeleteAssets(ctx context.Context,
 }
 
 func (c *CachingAttachmentFetcher) OnStart(mctx libkb.MetaContext) {
-	go disklru.CleanOutOfSyncWithDelay(mctx, c.diskLRU, c.getCacheDir(), 10*time.Second)
+	// go disklru.CleanOutOfSyncWithDelay(mctx, c.diskLRU, c.getCacheDir(), 10*time.Second)
 }
 
 func (c *CachingAttachmentFetcher) OnDbNuke(mctx libkb.MetaContext) error {

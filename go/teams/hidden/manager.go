@@ -274,6 +274,10 @@ func NewChainManagerAndInstall(g *libkb.GlobalContext) *ChainManager {
 	return ret
 }
 
+func (m *ChainManager) Purge(mctx libkb.MetaContext) {
+	m.storage.ClearMem()
+}
+
 // OnLogout is called when the user logs out, which purges the LRU.
 func (m *ChainManager) OnLogout(mctx libkb.MetaContext) error {
 	m.storage.ClearMem()
