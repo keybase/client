@@ -163,6 +163,10 @@ func (c *levelDbCleaner) cacheKey(key []byte) string {
 	return string(key)
 }
 
+func (c *levelDbCleaner) clearCache() {
+	c.cache.Purge()
+}
+
 func (c *levelDbCleaner) Shutdown() {
 	c.cacheMu.Lock()
 	defer c.cacheMu.Unlock()
