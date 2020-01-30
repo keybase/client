@@ -98,7 +98,7 @@ const Advanced = (props: Props) => {
   React.useEffect(() => {
     dispatch(SettingsGen.createLoadHasRandomPw())
     dispatch(SettingsGen.createLoadLockdownMode())
-    (isLinux || isWindows) && dispatch(ConfigGen.createLoadOnLoginStartup())
+    ;(isLinux || isWindows) && dispatch(ConfigGen.createLoadOnLoginStartup())
     dispatch(SettingsGen.createLoadRememberPassword())
   }, [dispatch])
 
