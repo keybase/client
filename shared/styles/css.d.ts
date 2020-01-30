@@ -1,8 +1,6 @@
 import {CSSProperties} from 'react'
 import {ViewStyle, TextStyle, ImageStyle} from 'react-native'
 
-type StyleProp<T> = T | Array<StyleProp<T>> | undefined | null | false
-
 export type Color = null | string
 type _StylesDesktopOverride = {
   backgroundImage?: string
@@ -107,14 +105,14 @@ type StyleKeys =
   | 'zIndex'
 
 export type _StylesDesktop = Readonly<Pick<CSSProperties, StyleKeys> & _StylesDesktopOverride>
-export type StylesDesktop = StyleProp<_StylesDesktop>
+export type StylesDesktop = _StylesDesktop | undefined | null | false | Array<StylesDesktop>
 
 type _StylesMobileOverride = {
   textAlignVertical?: 'auto' | 'top' | 'bottom' | 'center'
 }
 
 export type _StylesMobile = Readonly<ViewStyle & TextStyle & ImageStyle> & _StylesMobileOverride
-export type StylesMobile = StyleProp<_StylesMobile>
+export type StylesMobile = _StylesMobile | undefined | null | false | Array<StylesMobile>
 
 // override some problematic styles
 type _StylesCrossPlatformOverride = {
@@ -137,7 +135,12 @@ export type _StylesCrossPlatform = Readonly<
   }
 >
 
-export type StylesCrossPlatform = StyleProp<_StylesCrossPlatform>
+export type StylesCrossPlatform = _StylesCrossPlatform | undefined | null | false | Array<StylesCrossPlatform>
 
 export type _CustomStyles<K extends string, C> = Omit<_StylesCrossPlatform, K> & Readonly<C>
-export type CustomStyles<K extends string, C> = StyleProp<_CustomStyles<K, C>>
+export type CustomStyles<K extends string, C> =
+  | _CustomStyles<K, C>
+  | undefined
+  | null
+  | false
+  | Array<CustomStyles<K, C>>
