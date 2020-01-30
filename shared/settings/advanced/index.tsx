@@ -5,7 +5,7 @@ import * as Kb from '../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../styles'
 import flags from '../../util/feature-flags'
-import {isMobile, isLinux} from '../../constants/platform'
+import {isMobile, isLinux, isWindows} from '../../constants/platform'
 // normally never do this but this call serves no purpose for users at all
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
@@ -98,7 +98,7 @@ const Advanced = (props: Props) => {
   React.useEffect(() => {
     dispatch(SettingsGen.createLoadHasRandomPw())
     dispatch(SettingsGen.createLoadLockdownMode())
-    isLinux && dispatch(ConfigGen.createLoadNixOnLoginStartup())
+    (isLinux || isWindows) && dispatch(ConfigGen.createLoadOnLoginStartup())
     dispatch(SettingsGen.createLoadRememberPassword())
   }, [dispatch])
 
