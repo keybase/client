@@ -166,12 +166,10 @@ const TeamJourneyConnected = Container.connect(
   (state, ownProps: OwnProps) => {
     const conv = Constants.getMeta(state, ownProps.message.conversationIDKey)
     const {cannotWrite, channelname, conversationIDKey, teamname, teamID} = conv
-    const role = TeamConstants.getRole(state, teamID)
     return {
       _channelInfos: TeamConstants.getTeamChannelInfos(state, teamID),
       _teamID: teamID,
-      canShowcase:
-        TeamConstants.getTeamDetails(state, teamID).allowPromote || role === 'admin' || role === 'owner',
+      canShowcase: TeamConstants.canShowcase(state, teamID),
       cannotWrite: cannotWrite,
       channelname,
       conversationIDKey,
