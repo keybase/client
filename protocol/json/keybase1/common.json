@@ -22,6 +22,12 @@
     },
     {
       "type": "record",
+      "name": "DurationMsec",
+      "fields": [],
+      "typedef": "double"
+    },
+    {
+      "type": "record",
       "name": "StringKVPair",
       "fields": [
         {

@@ -864,6 +864,10 @@ type IsKBFSRunningArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type GetNetworkStatsArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type LogSendArg struct {
 	SessionID    int    `codec:"sessionID" json:"sessionID"`
 	StatusJSON   string `codec:"statusJSON" json:"statusJSON"`
@@ -981,6 +985,7 @@ type ConfigInterface interface {
 	GetFullStatus(context.Context, int) (*FullStatus, error)
 	IsServiceRunning(context.Context, int) (bool, error)
 	IsKBFSRunning(context.Context, int) (bool, error)
+	GetNetworkStats(context.Context, int) ([]InstrumentationStat, error)
 	LogSend(context.Context, LogSendArg) (LogSendID, error)
 	GetAllProvisionedUsernames(context.Context, int) (AllProvisionedUsernames, error)
 	GetConfig(context.Context, int) (Config, error)
@@ -1092,6 +1097,21 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.IsKBFSRunning(ctx, typedArgs[0].SessionID)
+					return
+				},
+			},
+			"getNetworkStats": {
+				MakeArg: func() interface{} {
+					var ret [1]GetNetworkStatsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetNetworkStatsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetNetworkStatsArg)(nil), args)
+						return
+					}
+					ret, err = i.GetNetworkStats(ctx, typedArgs[0].SessionID)
 					return
 				},
 			},
@@ -1490,6 +1510,12 @@ func (c ConfigClient) IsServiceRunning(ctx context.Context, sessionID int) (res 
 func (c ConfigClient) IsKBFSRunning(ctx context.Context, sessionID int) (res bool, err error) {
 	__arg := IsKBFSRunningArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.config.isKBFSRunning", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c ConfigClient) GetNetworkStats(ctx context.Context, sessionID int) (res []InstrumentationStat, err error) {
+	__arg := GetNetworkStatsArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.config.getNetworkStats", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 

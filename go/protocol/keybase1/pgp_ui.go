@@ -9,17 +9,24 @@ import (
 	"time"
 )
 
+type OutputPGPWarningArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Warning   string `codec:"warning" json:"warning"`
+}
+
 type OutputSignatureSuccessArg struct {
-	SessionID   int    `codec:"sessionID" json:"sessionID"`
-	Fingerprint string `codec:"fingerprint" json:"fingerprint"`
-	Username    string `codec:"username" json:"username"`
-	SignedAt    Time   `codec:"signedAt" json:"signedAt"`
+	SessionID   int      `codec:"sessionID" json:"sessionID"`
+	Fingerprint string   `codec:"fingerprint" json:"fingerprint"`
+	Username    string   `codec:"username" json:"username"`
+	SignedAt    Time     `codec:"signedAt" json:"signedAt"`
+	Warnings    []string `codec:"warnings" json:"warnings"`
 }
 
 type OutputSignatureSuccessNonKeybaseArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	KeyID     string `codec:"keyID" json:"keyID"`
-	SignedAt  Time   `codec:"signedAt" json:"signedAt"`
+	SessionID int      `codec:"sessionID" json:"sessionID"`
+	KeyID     string   `codec:"keyID" json:"keyID"`
+	SignedAt  Time     `codec:"signedAt" json:"signedAt"`
+	Warnings  []string `codec:"warnings" json:"warnings"`
 }
 
 type KeyGeneratedArg struct {
@@ -38,6 +45,7 @@ type FinishedArg struct {
 }
 
 type PGPUiInterface interface {
+	OutputPGPWarning(context.Context, OutputPGPWarningArg) error
 	OutputSignatureSuccess(context.Context, OutputSignatureSuccessArg) error
 	OutputSignatureSuccessNonKeybase(context.Context, OutputSignatureSuccessNonKeybaseArg) error
 	KeyGenerated(context.Context, KeyGeneratedArg) error
@@ -49,6 +57,21 @@ func PGPUiProtocol(i PGPUiInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.pgpUi",
 		Methods: map[string]rpc.ServeHandlerDescription{
+			"outputPGPWarning": {
+				MakeArg: func() interface{} {
+					var ret [1]OutputPGPWarningArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]OutputPGPWarningArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]OutputPGPWarningArg)(nil), args)
+						return
+					}
+					err = i.OutputPGPWarning(ctx, typedArgs[0])
+					return
+				},
+			},
 			"outputSignatureSuccess": {
 				MakeArg: func() interface{} {
 					var ret [1]OutputSignatureSuccessArg
@@ -130,6 +153,11 @@ func PGPUiProtocol(i PGPUiInterface) rpc.Protocol {
 
 type PGPUiClient struct {
 	Cli rpc.GenericClient
+}
+
+func (c PGPUiClient) OutputPGPWarning(ctx context.Context, __arg OutputPGPWarningArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.pgpUi.outputPGPWarning", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
 }
 
 func (c PGPUiClient) OutputSignatureSuccess(ctx context.Context, __arg OutputSignatureSuccessArg) (err error) {

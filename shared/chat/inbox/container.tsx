@@ -1,13 +1,12 @@
 import * as React from 'react'
-import * as Container from '../../../util/container'
-import * as Constants from '../../../constants/chat2'
-import * as Types from '../../../constants/types/chat2'
-import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
-import {appendNewChatBuilder} from '../../../actions/typed-routes'
-import {getActiveKey} from '../../../constants/router2'
-import Inbox from '..'
-import {isMobile} from '../../../constants/platform'
+import * as Container from '../../util/container'
+import * as Constants from '../../constants/chat2'
+import * as Types from '../../constants/types/chat2'
+import * as Chat2Gen from '../../actions/chat2-gen'
+import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
+import {appendNewChatBuilder} from '../../actions/typed-routes'
+import Inbox from '.'
+import {isMobile} from '../../constants/platform'
 import {
   Props as _Props,
   RowItemSmall,
@@ -16,11 +15,13 @@ import {
   RowItemDivider,
   RowItemTeamBuilder,
   RowItem,
-} from '..'
-import * as Kb from '../../../common-adapters'
+} from '.'
+import * as Kb from '../../common-adapters'
 import {HeaderNewChatButton} from './new-chat-button'
 
-type OwnProps = {}
+type OwnProps = {
+  navKey: string
+}
 
 const makeBigRows = (
   bigTeams: Array<RPCChatTypes.UIInboxBigTeamRow>
@@ -163,7 +164,8 @@ const Connected = Container.namedConnect(
     setInboxNumSmallRows: (rows: number) => dispatch(Chat2Gen.createSetInboxNumSmallRows({rows})),
     toggleSmallTeamsExpanded: () => dispatch(Chat2Gen.createToggleSmallTeamsExpanded()),
   }),
-  (stateProps, dispatchProps, _: OwnProps) => {
+  (stateProps, dispatchProps, ownProps: OwnProps) => {
+    const {navKey} = ownProps
     const bigTeams = stateProps._inboxLayout ? stateProps._inboxLayout.bigTeams || [] : []
     const hasBigTeams = !!bigTeams.length
     const showAllSmallRows = stateProps.smallTeamsExpanded || !bigTeams.length
@@ -223,7 +225,7 @@ const Connected = Container.namedConnect(
       inboxNumSmallRows: stateProps.inboxNumSmallRows,
       isLoading: stateProps.isLoading,
       isSearching: stateProps.isSearching,
-      navKey: getActiveKey(),
+      navKey,
       neverLoaded: stateProps.neverLoaded,
       onNewChat: dispatchProps.onNewChat,
       onUntrustedInboxVisible: dispatchProps.onUntrustedInboxVisible,

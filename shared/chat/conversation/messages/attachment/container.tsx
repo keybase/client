@@ -9,19 +9,16 @@ type Props = {
   toggleMessageMenu: () => void
 }
 
-class Attachment extends React.PureComponent<Props> {
-  render() {
-    switch (this.props.message.attachmentType) {
-      case 'image':
-        return (
-          <ImageAttachment message={this.props.message} toggleMessageMenu={this.props.toggleMessageMenu} />
-        )
-      case 'audio':
-        return <AudioAttachment message={this.props.message} />
-      default:
-        return <FileAttachment message={this.props.message} />
-    }
+const Attachment = React.memo((props: Props) => {
+  const {message, toggleMessageMenu} = props
+  switch (message.attachmentType) {
+    case 'image':
+      return <ImageAttachment message={message} toggleMessageMenu={toggleMessageMenu} />
+    case 'audio':
+      return <AudioAttachment message={message} />
+    default:
+      return <FileAttachment message={message} />
   }
-}
+})
 
 export default Attachment

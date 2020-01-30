@@ -47,7 +47,8 @@ func makeBlockMetadataStoreForTest(t *testing.T) (
 		log:         logger.NewTestLogger(t),
 		storageRoot: tempdir,
 	}
-	s, err := newDiskBlockMetadataStore(&config, modeTest{modeDefault{}})
+	s, err := newDiskBlockMetadataStore(
+		&config, modeTest{modeDefault{}}, config.StorageRoot())
 	require.NoError(t, err)
 	return s, tempdir
 }

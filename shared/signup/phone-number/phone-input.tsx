@@ -125,7 +125,7 @@ const MenuItem = (props: {emoji: string; text: string}) => (
 
 type CountrySelectorProps = {
   attachTo?: () => React.Component<any> | null
-  onSelect: (s: string | undefined) => void
+  onSelect: (s?: string) => void
   onHidden: () => void
   selected?: string
   visible: boolean
@@ -152,8 +152,7 @@ class CountrySelector extends React.Component<CountrySelectorProps, CountrySelec
     }
   }
 
-  private onSelect = (selected: string | undefined) =>
-    this.setState(s => (s.selected === selected ? null : {selected}))
+  private onSelect = (selected?: string) => this.setState(s => (s.selected === selected ? null : {selected}))
 
   private onSelectFirst = () => {
     if (Styles.isMobile && this.mobileItems && this.mobileItems[0]) {
@@ -377,7 +376,7 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
   }
 
   private renderCountrySelector = () => {
-    if (!this.state.country) {
+    if (this.state.country === undefined) {
       return null
     }
 
@@ -410,19 +409,25 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
     this.phoneInputRef.current && this.phoneInputRef.current.focus()
   }
 
-  static getDerivedStateFromProps(props: Props, state: State) {
-    if (!state.country && props.defaultCountry) {
-      return {
-        country: props.defaultCountry,
-        formatter: new AsYouTypeFormatter(props.defaultCountry),
-        prefix: getCallingCode(props.defaultCountry).slice(1),
-      }
+  componentDidUpdate(prevProps: Props) {
+    if (prevProps.defaultCountry) {
+      return null
     }
+
+    if (!this.state.country && this.props.defaultCountry) {
+      this.setState({
+        country: this.props.defaultCountry,
+        formatter: new AsYouTypeFormatter(this.props.defaultCountry),
+        prefix: getCallingCode(this.props.defaultCountry).slice(1),
+      })
+    }
+
     return null
   }
 
   render() {
-    if (!this.state.country) {
+    // If country is falsey, the input is loading
+    if (this.state.country === undefined) {
       return (
         <Kb.Box2
           direction={isMobile ? 'vertical' : 'horizontal'}

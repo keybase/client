@@ -173,6 +173,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.LogsendProtocol(NewLogsendHandler(xp, g)),
 		CancelingProtocol(g, keybase1.TeamsProtocol(NewTeamsHandler(xp, connID, cg, d)),
 			libkb.RPCCancelerReasonLogout),
+		keybase1.TeamSearchProtocol(newTeamSearchHandler(xp, g)),
 		keybase1.BadgerProtocol(newBadgerHandler(xp, g, d.badger)),
 		keybase1.MerkleProtocol(newMerkleHandler(xp, g)),
 		keybase1.GitProtocol(NewGitHandler(xp, g)),
@@ -204,7 +205,9 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 }
 
 func (d *Service) Handle(c net.Conn) {
-	xp := rpc.NewTransport(c, libkb.NewRPCLogFactory(d.G()), libkb.MakeWrapError(d.G()), rpc.DefaultMaxFrameLength)
+	xp := rpc.NewTransport(c, libkb.NewRPCLogFactory(d.G()),
+		rpc.NewNetworkInstrumenter(d.G().NetworkInstrumenterStorage),
+		libkb.MakeWrapError(d.G()), rpc.DefaultMaxFrameLength)
 	server := rpc.NewServer(xp, libkb.MakeWrapError(d.G()))
 
 	cl := make(chan error, 1)

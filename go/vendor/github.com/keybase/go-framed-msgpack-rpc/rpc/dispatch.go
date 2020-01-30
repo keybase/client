@@ -22,17 +22,20 @@ type dispatch struct {
 	// Closed once all loops are finished
 	closedCh chan struct{}
 
-	log LogInterface
+	instrumenter *NetworkInstrumenter
+	log          LogInterface
 }
 
-func newDispatch(enc *framedMsgpackEncoder, calls *callContainer, l LogInterface) *dispatch {
+func newDispatch(enc *framedMsgpackEncoder, calls *callContainer,
+	l LogInterface, instrumenter *NetworkInstrumenter) *dispatch {
 	d := &dispatch{
 		writer:   enc,
 		calls:    calls,
 		stopCh:   make(chan struct{}),
 		closedCh: make(chan struct{}),
 
-		log: l,
+		log:          l,
+		instrumenter: instrumenter,
 	}
 	return d
 }
@@ -59,16 +62,19 @@ func (d *dispatch) Call(ctx context.Context, name string, arg interface{}, res i
 
 	var v []interface{}
 	var logCall func()
+	var method MethodType
 	switch ctype {
 	case CompressionNone:
-		v = []interface{}{MethodCall, c.seqid, c.method, c.arg}
+		method = MethodCall
+		v = []interface{}{method, c.seqid, c.method, c.arg}
 		logCall = func() { d.log.ClientCall(c.seqid, c.method, c.arg) }
 	default:
 		arg, err := d.writer.compressData(c.ctype, c.arg)
 		if err != nil {
 			return err
 		}
-		v = []interface{}{MethodCallCompressed, c.seqid, c.ctype, c.method, arg}
+		method = MethodCallCompressed
+		v = []interface{}{method, c.seqid, c.ctype, c.method, arg}
 		logCall = func() { d.log.ClientCallCompressed(c.seqid, c.method, c.arg, c.ctype) }
 	}
 
@@ -76,7 +82,9 @@ func (d *dispatch) Call(ctx context.Context, name string, arg interface{}, res i
 	if len(rpcTags) > 0 {
 		v = append(v, rpcTags)
 	}
-	errCh := d.writer.EncodeAndWrite(ctx, v, currySendNotifier(sendNotifier, c.seqid))
+	size, errCh := d.writer.EncodeAndWrite(ctx, v, currySendNotifier(sendNotifier, c.seqid))
+	end := d.instrumenter.Instrument(RPCInstrumentTag(method, c.method))
+	defer func() { _ = end(size) }()
 
 	// Wait for result from encode
 	select {
@@ -110,7 +118,11 @@ func (d *dispatch) Notify(ctx context.Context, name string, arg interface{}, sen
 	if len(rpcTags) > 0 {
 		v = append(v, rpcTags)
 	}
-	errCh := d.writer.EncodeAndWrite(ctx, v, currySendNotifier(sendNotifier, SeqNumber(-1)))
+
+	size, errCh := d.writer.EncodeAndWrite(ctx, v, currySendNotifier(sendNotifier, SeqNumber(-1)))
+	end := d.instrumenter.Instrument(name)
+	defer func() { _ = end(size) }()
+
 	select {
 	case err := <-errCh:
 		if err == nil {
@@ -131,7 +143,9 @@ func (d *dispatch) Close() {
 
 func (d *dispatch) handleCancel(c *call) error {
 	d.log.ClientCancel(c.seqid, c.method, nil)
-	errCh := d.writer.EncodeAndWriteAsync([]interface{}{MethodCancel, c.seqid, c.method})
+	size, errCh := d.writer.EncodeAndWriteAsync([]interface{}{MethodCancel, c.seqid, c.method})
+	end := d.instrumenter.Instrument(RPCInstrumentTag(MethodCancel, c.method))
+	defer func() { _ = end(size) }()
 	select {
 	case err := <-errCh:
 		if err != nil {

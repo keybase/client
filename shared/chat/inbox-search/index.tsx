@@ -37,6 +37,7 @@ export type Props = {
   onCancel: () => void
   onSelectConversation: (arg0: Types.ConversationIDKey, arg1: number, arg2: string) => void
   openTeamsResults: Array<Types.InboxSearchOpenTeamHit>
+  openTeamsResultsSuggested: boolean
   openTeamsStatus: Types.InboxSearchStatus
   query: string
   selectedIndex: number
@@ -50,6 +51,8 @@ type State = {
   openTeamsCollapsed: boolean
 }
 
+const emptyUnreadPlaceholder = '---EMPTYRESULT---'
+
 class InboxSearch extends React.Component<Props, State> {
   state = {nameCollapsed: false, openTeamsCollapsed: false, textCollapsed: false}
 
@@ -58,25 +61,38 @@ class InboxSearch extends React.Component<Props, State> {
     section: {indexOffset: number; onSelect: any}
     index: number
   }) => {
-    const {item} = h
+    const {item, index, section} = h
+    const realIndex = index + section.indexOffset
     return (
       <OpenTeamRow
         description={item.description}
         name={item.name}
-        teamID={item.teamID}
-        numMembers={item.numMembers}
+        id={item.id}
+        memberCount={item.memberCount}
         inTeam={item.inTeam}
         publicAdmins={item.publicAdmins}
-        selected={false}
+        isSelected={!Styles.isMobile && this.props.selectedIndex === realIndex}
       />
     )
   }
 
   private renderHit = (h: {
-    item: TextResult
+    item: TextResult | string
     section: {indexOffset: number; onSelect: any}
     index: number
   }) => {
+    if (typeof h.item === 'string') {
+      return h.item === emptyUnreadPlaceholder ? (
+        <Kb.Text
+          style={{...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny)}}
+          type="BodySmall"
+          center={true}
+        >
+          No unread messages or conversations
+        </Kb.Text>
+      ) : null
+    }
+
     const {item, section, index} = h
     const realIndex = index + section.indexOffset
     return item.type === 'big' ? (
@@ -166,13 +182,17 @@ class InboxSearch extends React.Component<Props, State> {
   private keyExtractor = (_: unknown, index: number) => index
 
   render() {
-    const nameResults = this.state.nameCollapsed ? [] : this.props.nameResults
+    const nameResults: Array<NameResult | string> = this.state.nameCollapsed ? [] : this.props.nameResults
     const textResults = this.state.textCollapsed ? [] : this.props.textResults
     const openTeamsResults = this.state.openTeamsCollapsed ? [] : this.props.openTeamsResults
 
     const indexOffset = flags.openTeamSearch
       ? openTeamsResults.length + nameResults.length
       : nameResults.length
+
+    if (this.props.nameResultsUnread && !this.state.nameCollapsed && nameResults.length === 0) {
+      nameResults.push(emptyUnreadPlaceholder)
+    }
 
     const sections = [
       {
@@ -186,7 +206,7 @@ class InboxSearch extends React.Component<Props, State> {
         status: this.props.nameStatus,
         title: this.props.nameResultsUnread ? 'Unread' : 'Chats',
       },
-      ...(flags.openTeamSearch && !this.props.nameResultsUnread
+      ...(flags.openTeamSearch
         ? [
             {
               data: openTeamsResults,
@@ -197,7 +217,7 @@ class InboxSearch extends React.Component<Props, State> {
               renderHeader: this.renderNameHeader,
               renderItem: this.renderOpenTeams,
               status: this.props.openTeamsStatus,
-              title: 'Open Teams',
+              title: this.props.openTeamsResultsSuggested ? 'Suggested Teams' : 'Open Teams',
             },
           ]
         : []),
@@ -236,33 +256,44 @@ class InboxSearch extends React.Component<Props, State> {
 
 export const rowHeight = Styles.isMobile ? 64 : 56
 type OpenTeamProps = Types.InboxSearchOpenTeamHit & {
-  selected: boolean
+  isSelected: boolean
 }
 const OpenTeamRow = (p: OpenTeamProps) => {
   const [hovering, setHovering] = React.useState(false)
-  const {selected, name, description, numMembers, publicAdmins, teamID, inTeam} = p
+  const {name, description, memberCount, publicAdmins, id, inTeam, isSelected} = p
   const dispatch = Container.useDispatch()
   const popupAnchor = React.useRef(null)
+  const showingDueToSelect = React.useRef(false)
   const {showingPopup, setShowingPopup, popup} = Kb.usePopup(popupAnchor, () => (
     <TeamInfo
       attachTo={() => popupAnchor.current}
-      description={description}
+      description={description ?? ''}
       inTeam={inTeam}
       isOpen={true}
       name={name}
-      membersCount={numMembers}
+      membersCount={memberCount}
       position="right center"
       onChat={undefined}
       onHidden={() => setShowingPopup(false)}
       onJoinTeam={() => dispatch(TeamsGen.createJoinTeam({teamname: name}))}
       onViewTeam={() => {
         dispatch(RouteTreeGen.createClearModals())
-        dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'team'}]}))
+        dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamID: id}, selected: 'team'}]}))
       }}
-      publicAdmins={publicAdmins}
+      publicAdmins={publicAdmins ?? []}
       visible={showingPopup}
     />
   ))
+
+  React.useEffect(() => {
+    if (!showingPopup && isSelected && !showingDueToSelect.current) {
+      showingDueToSelect.current = true
+      setShowingPopup(true)
+    } else if (showingPopup && !isSelected && showingDueToSelect.current) {
+      showingDueToSelect.current = false
+      setShowingPopup(false)
+    }
+  }, [showingDueToSelect, setShowingPopup, showingPopup, isSelected])
 
   return (
     <Kb.ClickableBox onClick={() => setShowingPopup(!showingPopup)} style={{width: '100%'}}>
@@ -273,20 +304,21 @@ const OpenTeamRow = (p: OpenTeamProps) => {
         centerChildren={true}
         className="hover_background_color_blueGreyDark"
         style={Styles.collapseStyles([
+          styles.openTeamContainer,
           {
-            backgroundColor: selected ? Styles.globalColors.blue : Styles.globalColors.white,
+            backgroundColor: isSelected ? Styles.globalColors.blue : Styles.globalColors.white,
             height: rowHeight,
           },
         ])}
         onMouseLeave={() => setHovering(false)}
         onMouseOver={() => setHovering(true)}
       >
-        <TeamAvatar teamname={name} isMuted={false} isSelected={false} isHovered={hovering} />
-        <Kb.Box2 direction="vertical" style={{flexGrow: 1}}>
+        <TeamAvatar teamname={name} isMuted={false} isSelected={isSelected} isHovered={hovering} />
+        <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}}>
           <Kb.Text
-            type="Body"
+            type="BodySemibold"
             style={Styles.collapseStyles([
-              {color: selected ? Styles.globalColors.white : Styles.globalColors.black},
+              {color: isSelected ? Styles.globalColors.white : Styles.globalColors.black},
             ])}
             title={name}
             lineClamp={Styles.isMobile ? 1 : undefined}
@@ -295,12 +327,12 @@ const OpenTeamRow = (p: OpenTeamProps) => {
             {name}
           </Kb.Text>
           <Kb.Text
-            type="Body"
+            type="BodySmall"
             style={Styles.collapseStyles([
-              {color: selected ? Styles.globalColors.white : Styles.globalColors.black},
+              {color: isSelected ? Styles.globalColors.white : Styles.globalColors.black_50},
             ])}
             title={`#${description}`}
-            lineClamp={Styles.isMobile ? 1 : undefined}
+            lineClamp={1}
             ellipsizeMode="tail"
           >
             {description}
@@ -333,6 +365,16 @@ const styles = Styles.styleSheetCreate(
       errorText: {
         color: Styles.globalColors.redDark,
       },
+      openTeamContainer: Styles.platformStyles({
+        isElectron: {
+          paddingLeft: Styles.globalMargins.xtiny,
+          paddingRight: Styles.globalMargins.xtiny,
+        },
+        isMobile: {
+          paddingLeft: Styles.globalMargins.tiny,
+          paddingRight: Styles.globalMargins.tiny,
+        },
+      }),
       percentContainer: Styles.platformStyles({
         common: {
           padding: Styles.globalMargins.tiny,

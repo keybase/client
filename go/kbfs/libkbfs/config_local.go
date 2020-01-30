@@ -842,8 +842,17 @@ func (c *ConfigLocal) MaxNameBytes() uint32 {
 	return c.maxNameBytes
 }
 
+// SetStorageRoot sets the storage root directory for this config.
+func (c *ConfigLocal) SetStorageRoot(storageRoot string) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.storageRoot = storageRoot
+}
+
 // StorageRoot implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) StorageRoot() string {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
 	return c.storageRoot
 }
 
@@ -1447,7 +1456,8 @@ func (c *ConfigLocal) MakeBlockMetadataStoreIfNotExists() (err error) {
 	if c.blockMetadataStore != nil {
 		return nil
 	}
-	c.blockMetadataStore, err = newDiskBlockMetadataStore(c, c.mode)
+	c.blockMetadataStore, err = newDiskBlockMetadataStore(
+		c, c.mode, c.storageRoot)
 	if err != nil {
 		// TODO (KBFS-3659): when we can open levelDB read-only,
 		//  do that instead of returning a Noop version.

@@ -33,6 +33,17 @@
         {
           "type": "Time",
           "name": "lastActive"
+        },
+        {
+          "type": "boolean",
+          "name": "inTeam"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "publicAdmins"
         }
       ]
     },
@@ -53,6 +64,13 @@
   "messages": {
     "teamSearch": {
       "request": [
+        {
+          "name": "uid",
+          "type": [
+            null,
+            "UID"
+          ]
+        },
         {
           "name": "query",
           "type": "string"

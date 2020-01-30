@@ -56,13 +56,17 @@ class TeamMention extends React.Component<Props, State> {
         ref={this._mentionRef}
         type="BodySemibold"
         className={Styles.classNames({'hover-underline': !Styles.isMobile})}
-        style={Styles.collapseStyles([this.props.style, styles.resolved, styles.text])}
+        style={Styles.collapseStyles([this.props.style, styles.text])}
         allowFontScaling={this.props.allowFontScaling}
         onClick={this._onClick}
       >
-        {Styles.isMobile && ' '}
-        {text}
-        {Styles.isMobile && ' '}
+        <Kb.Text
+          type="BodySemibold"
+          style={Styles.collapseStyles([this.props.style, styles.resolved, styles.text])}
+          allowFontScaling={this.props.allowFontScaling}
+        >
+          {text}
+        </Kb.Text>
       </Kb.Text>
     )
     const popups = (

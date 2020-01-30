@@ -303,6 +303,7 @@ export type TypedActionsMap = {
   'config:loadNixOnLoginStartup': config.LoadNixOnLoginStartupPayload
   'config:loadedNixOnLoginStartup': config.LoadedNixOnLoginStartupPayload
   'config:loadOnStart': config.LoadOnStartPayload
+  'config:showShareActionSheet': config.ShowShareActionSheetPayload
   'crypto:clearRecipients': crypto.ClearRecipientsPayload
   'crypto:clearInput': crypto.ClearInputPayload
   'crypto:downloadEncryptedText': crypto.DownloadEncryptedTextPayload
@@ -356,6 +357,7 @@ export type TypedActionsMap = {
   'engine-gen:chat1ChatUiChatSearchInboxDone': enginegen.Chat1ChatUiChatSearchInboxDonePayload
   'engine-gen:chat1ChatUiChatSearchIndexStatus': enginegen.Chat1ChatUiChatSearchIndexStatusPayload
   'engine-gen:chat1ChatUiChatSearchConvHits': enginegen.Chat1ChatUiChatSearchConvHitsPayload
+  'engine-gen:chat1ChatUiChatSearchTeamHits': enginegen.Chat1ChatUiChatSearchTeamHitsPayload
   'engine-gen:chat1ChatUiChatConfirmChannelDelete': enginegen.Chat1ChatUiChatConfirmChannelDeletePayload
   'engine-gen:chat1ChatUiChatStellarShowConfirm': enginegen.Chat1ChatUiChatStellarShowConfirmPayload
   'engine-gen:chat1ChatUiChatStellarDataConfirm': enginegen.Chat1ChatUiChatStellarDataConfirmPayload
@@ -494,6 +496,7 @@ export type TypedActionsMap = {
   'engine-gen:keybase1NotifyUsersUserChanged': enginegen.Keybase1NotifyUsersUserChangedPayload
   'engine-gen:keybase1NotifyUsersPasswordChanged': enginegen.Keybase1NotifyUsersPasswordChangedPayload
   'engine-gen:keybase1NotifyUsersIdentifyUpdate': enginegen.Keybase1NotifyUsersIdentifyUpdatePayload
+  'engine-gen:keybase1PgpUiOutputPGPWarning': enginegen.Keybase1PgpUiOutputPGPWarningPayload
   'engine-gen:keybase1PgpUiOutputSignatureSuccess': enginegen.Keybase1PgpUiOutputSignatureSuccessPayload
   'engine-gen:keybase1PgpUiOutputSignatureSuccessNonKeybase': enginegen.Keybase1PgpUiOutputSignatureSuccessNonKeybasePayload
   'engine-gen:keybase1PgpUiKeyGenerated': enginegen.Keybase1PgpUiKeyGeneratedPayload
@@ -1091,13 +1094,6 @@ export type TypedActionsMap = {
   'wallets:loadMobileOnlyMode': wallets.LoadMobileOnlyModePayload
   'wallets:loadedMobileOnlyMode': wallets.LoadedMobileOnlyModePayload
   'wallets:changeMobileOnlyMode': wallets.ChangeMobileOnlyModePayload
-  'wallets:changeAirdrop': wallets.ChangeAirdropPayload
-  'wallets:hideAirdropBanner': wallets.HideAirdropBannerPayload
-  'wallets:updateAirdropBannerState': wallets.UpdateAirdropBannerStatePayload
-  'wallets:updateAirdropState': wallets.UpdateAirdropStatePayload
-  'wallets:updatedAirdropState': wallets.UpdatedAirdropStatePayload
-  'wallets:updateAirdropDetails': wallets.UpdateAirdropDetailsPayload
-  'wallets:updatedAirdropDetails': wallets.UpdatedAirdropDetailsPayload
   'wallets:refreshTrustlineAcceptedAssets': wallets.RefreshTrustlineAcceptedAssetsPayload
   'wallets:refreshTrustlineAcceptedAssetsByUsername': wallets.RefreshTrustlineAcceptedAssetsByUsernamePayload
   'wallets:refreshTrustlinePopularAssets': wallets.RefreshTrustlinePopularAssetsPayload

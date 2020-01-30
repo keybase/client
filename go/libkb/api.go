@@ -22,6 +22,7 @@ import (
 	"golang.org/x/net/context/ctxhttp"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -298,6 +299,7 @@ func doRequestShared(m MetaContext, api Requester, arg APIArg, req *http.Request
 	}
 
 	timer := m.G().Timers.Start(timerType)
+	endInstrumentation := rpc.NewNetworkInstrumenter(m.G().NetworkInstrumenterStorage).Instrument(fmt.Sprintf("%s %s", req.Method, arg.Endpoint))
 	internalResp, canc, err := doRetry(m, arg, cli, req)
 
 	finisher = func() {
@@ -322,6 +324,9 @@ func doRequestShared(m MetaContext, api Requester, arg APIArg, req *http.Request
 
 	if err != nil {
 		return nil, finisher, nil, APINetError{Err: err}
+	}
+	if err := endInstrumentation(internalResp.ContentLength); err != nil {
+		m.Debug("unable to instrument API call: %v", err)
 	}
 	status = internalResp.Status
 
@@ -669,6 +674,10 @@ func (a *InternalAPIEngine) fixHeaders(m MetaContext, arg APIArg, req *http.Requ
 				req.Header.Set("X-Keybase-Install-ID", i.String())
 			}
 		}
+	}
+
+	for k, v := range m.G().Env.Test.APIHeaders {
+		req.Header.Set(k, v)
 	}
 
 	return nil

@@ -65,6 +65,7 @@ func TestPGPSign(t *testing.T) {
 
 		eng := NewPGPSignEngine(tc.G, &earg)
 		uis := libkb.UIs{
+			PgpUI:    &TestPgpUI{},
 			SecretUI: fu.NewSecretUI(),
 		}
 

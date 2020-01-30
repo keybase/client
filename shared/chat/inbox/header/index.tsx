@@ -1,6 +1,6 @@
 import * as React from 'react'
-import ChatFilterRow from '../chat-filter-row/container'
-import StartNewChat from '../start-new-chat'
+import ChatFilterRow from '../filter-row/container'
+import StartNewChat from '../row/start-new-chat'
 
 type Props = {
   isSearching: boolean

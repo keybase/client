@@ -185,6 +185,6 @@ func (h *KBFSHandler) EncryptFavorites(ctx context.Context,
 // DecryptFavorites decrypts cached favorites stored on disk.
 func (h *KBFSHandler) DecryptFavorites(ctx context.Context,
 	dataToEncrypt []byte) (res []byte, err error) {
-	err = encrypteddb.DecodeBox(ctx, dataToEncrypt, h.getKeyFn(), res)
+	err = encrypteddb.DecodeBox(ctx, dataToEncrypt, h.getKeyFn(), &res)
 	return res, err
 }

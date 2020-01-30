@@ -5,6 +5,7 @@ package status
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"mime/multipart"
 	"os"
@@ -49,10 +50,11 @@ type Logs struct {
 type LogSendContext struct {
 	libkb.Contextified
 
-	InstallID  libkb.InstallID
-	UID        keybase1.UID
-	StatusJSON string
-	Feedback   string
+	InstallID        libkb.InstallID
+	UID              keybase1.UID
+	StatusJSON       string
+	NetworkStatsJSON string
+	Feedback         string
 
 	Logs Logs
 
@@ -114,7 +116,7 @@ func redactPotentialPaperKeys(s string) string {
 	return s
 }
 
-func NewLogSendContext(g *libkb.GlobalContext, fstatus *keybase1.FullStatus, statusJSON, feedback string) *LogSendContext {
+func NewLogSendContext(g *libkb.GlobalContext, fstatus *keybase1.FullStatus, statusJSON, networkStatsJSON, feedback string) *LogSendContext {
 	logs := logFilesFromStatus(g, fstatus)
 
 	var uid keybase1.UID
@@ -128,12 +130,13 @@ func NewLogSendContext(g *libkb.GlobalContext, fstatus *keybase1.FullStatus, sta
 	}
 
 	return &LogSendContext{
-		Contextified: libkb.NewContextified(g),
-		UID:          uid,
-		InstallID:    g.Env.GetInstallID(),
-		StatusJSON:   statusJSON,
-		Feedback:     feedback,
-		Logs:         logs,
+		Contextified:     libkb.NewContextified(g),
+		UID:              uid,
+		InstallID:        g.Env.GetInstallID(),
+		StatusJSON:       statusJSON,
+		NetworkStatsJSON: networkStatsJSON,
+		Feedback:         feedback,
+		Logs:             logs,
 	}
 }
 
@@ -168,6 +171,9 @@ func (l *LogSendContext) post(mctx libkb.MetaContext) (keybase1.LogSendID, error
 	l.svcLog = redactPotentialPaperKeys(l.svcLog)
 
 	if err := addGzippedFile(mpart, "status_gz", "status.gz", l.StatusJSON); err != nil {
+		return "", err
+	}
+	if err := addGzippedFile(mpart, "network_stats_gz", "network_stats.gz", l.NetworkStatsJSON); err != nil {
 		return "", err
 	}
 	if err := addGzippedFile(mpart, "kbfs_log_gz", "kbfs_log.gz", l.kbfsLog); err != nil {
@@ -245,7 +251,7 @@ func (l *LogSendContext) post(mctx libkb.MetaContext) (keybase1.LogSendID, error
 
 // LogSend sends the tails of log files to kb, and also the last few trace
 // output files.
-func (l *LogSendContext) LogSend(sendLogs bool, numBytes int, mergeExtendedStatus bool) (id keybase1.LogSendID, err error) {
+func (l *LogSendContext) LogSend(sendLogs bool, numBytes int, mergeExtendedStatus, addNetworkStats bool) (id keybase1.LogSendID, err error) {
 	if numBytes < 1 {
 		numBytes = LogSendDefaultBytesDesktop
 	} else if numBytes > LogSendMaxBytes {
@@ -301,6 +307,17 @@ func (l *LogSendContext) LogSend(sendLogs bool, numBytes int, mergeExtendedStatu
 		if mergeExtendedStatus {
 			l.StatusJSON = l.mergeExtendedStatus(l.StatusJSON)
 		}
+		if addNetworkStats {
+			stats, err := mctx.G().NetworkInstrumenterStorage.Stats()
+			if err != nil {
+				return "", err
+			}
+			networkStatsJSON, err := json.Marshal(stats)
+			if err != nil {
+				return "", err
+			}
+			l.NetworkStatsJSON = string(networkStatsJSON)
+		}
 		l.processesLog = keybaseProcessList()
 	}
 
@@ -333,4 +350,6 @@ func (l *LogSendContext) Clear() {
 	l.traceBundle = []byte{}
 	l.cpuProfileBundle = []byte{}
 	l.processesLog = ""
+	l.StatusJSON = ""
+	l.NetworkStatsJSON = ""
 }

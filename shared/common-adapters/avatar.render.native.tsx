@@ -4,7 +4,7 @@ import * as Styles from '../styles'
 import ClickableBox from './clickable-box'
 import Box from './box'
 import {NativeImage} from './native-image.native'
-import {Props} from './avatar.render'
+import {Props, AvatarSize} from './avatar.render'
 
 const Kb = {
   Box,
@@ -13,15 +13,14 @@ const Kb = {
   NativeImage,
 }
 
-const sizeToTeamBorderRadius = {
-  '12': 2,
-  '128': 12,
-  '16': 4,
-  '32': 5,
-  '48': 6,
-  '64': 8,
-  '96': 10,
-}
+const sizeToTeamBorderRadius = new Map<AvatarSize, number>([
+  [128, 12],
+  [16, 4],
+  [32, 5],
+  [48, 6],
+  [64, 8],
+  [96, 10],
+])
 
 const backgroundOffset = 1
 const borderOffset = -1
@@ -30,8 +29,8 @@ const borderSize = 1
 
 const Avatar = (props: Props) => {
   const {size} = props
-  const borderRadius: number = props.isTeam ? sizeToTeamBorderRadius[String(size)] : size / 2
-  const containerStyle = Styles.collapseStyles([styles[`box:${size}`], props.style])
+  const borderRadius = (props.isTeam && sizeToTeamBorderRadius.get(size)) || size / 2
+  const containerStyle = Styles.collapseStyles([boxStyles[size], props.style])
 
   return (
     <Kb.ClickableBox onClick={props.onClick} feedback={false} style={containerStyle}>
@@ -40,7 +39,7 @@ const Avatar = (props: Props) => {
           <Kb.Box style={[styles.background, {backgroundColor: Styles.globalColors.white, borderRadius}]} />
         )}
         {!!props.blocked && (
-          <Kb.Box style={[styles[`image:${props.size}`], {borderRadius}]}>
+          <Kb.Box style={[imageStyles[props.size], {borderRadius}]}>
             <Icon type="icon-poop-96" style={styles[`icon:${props.size}`]} />
           </Kb.Box>
         )}
@@ -48,7 +47,7 @@ const Avatar = (props: Props) => {
           <Kb.NativeImage
             source={props.url}
             style={[
-              styles[`image:${props.size}`],
+              imageStyles[props.size],
               {
                 borderRadius,
                 opacity: props.opacity ? props.opacity : props.blocked ? 0.1 : 1,
@@ -67,7 +66,7 @@ const Avatar = (props: Props) => {
         {props.followIconType && (
           <Kb.Icon
             type={props.followIconType}
-            style={Styles.collapseStyles([styles[`icon:${props.followIconSize}`], props.followIconStyle])}
+            style={Styles.collapseStyles([iconStyles[props.followIconSize], props.followIconStyle])}
           />
         )}
         {props.editable && (
@@ -83,20 +82,28 @@ const Avatar = (props: Props) => {
   )
 }
 
-const sizes = [128, 96, 64, 48, 32, 16, 12]
+const makeIconStyle = (size: AvatarSize) => ({height: size, width: size})
+const iconStyles = Styles.styleSheetCreate(() => ({
+  [128]: makeIconStyle(128),
+  [16]: makeIconStyle(16),
+  [32]: makeIconStyle(32),
+  [48]: makeIconStyle(48),
+  [64]: makeIconStyle(64),
+  [96]: makeIconStyle(96),
+}))
 
-const iconStyles = sizes.reduce((map, size) => {
-  map[`icon:${size}`] = {height: size, width: size}
-  return map
-}, {})
+const makeBoxStyle = (size: AvatarSize) => ({height: size, position: 'relative' as const, width: size})
+const boxStyles = Styles.styleSheetCreate(() => ({
+  [128]: makeBoxStyle(128),
+  [16]: makeBoxStyle(16),
+  [32]: makeBoxStyle(32),
+  [48]: makeBoxStyle(48),
+  [64]: makeBoxStyle(64),
+  [96]: makeBoxStyle(96),
+}))
 
-const boxStyles = sizes.reduce((map, size) => {
-  map[`box:${size}`] = {height: size, position: 'relative', width: size}
-  return map
-}, {})
-
-const imageStyles = sizes.reduce((map, size) => {
-  map[`image:${size}`] = {
+const makeImageStyle = (size: AvatarSize) =>
+  ({
     backgroundColor: Styles.globalColors.fastBlank,
     bottom: 0,
     height: size,
@@ -105,16 +112,19 @@ const imageStyles = sizes.reduce((map, size) => {
     right: 0,
     top: 0,
     width: size,
-  }
-  return map
-}, {})
+  } as const)
+const imageStyles = Styles.styleSheetCreate(() => ({
+  [128]: makeImageStyle(128),
+  [16]: makeImageStyle(16),
+  [32]: makeImageStyle(32),
+  [48]: makeImageStyle(48),
+  [64]: makeImageStyle(64),
+  [96]: makeImageStyle(96),
+}))
 
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      ...boxStyles,
-      ...iconStyles,
-      ...imageStyles,
       background: {
         bottom: backgroundOffset,
         left: backgroundOffset,

@@ -30,7 +30,7 @@ import {saveAttachmentToCameraRoll, showShareActionSheet} from '../platform-spec
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {RPCError} from '../../util/errors'
 import * as Container from '../../util/container'
-import flags from '../../util/feature-flags'
+import {isIOS} from '../../constants/platform'
 
 const onConnect = async () => {
   try {
@@ -1520,6 +1520,7 @@ function* threadSearch(
           maxHits: 1000,
           maxMessages: -1,
           maxNameConvs: 0,
+          maxTeams: 0,
           reindexMode: RPCChatTypes.ReIndexingMode.postsearchSync,
           sentAfter: 0,
           sentBefore: 0,
@@ -1637,27 +1638,22 @@ function* inboxSearch(_: Container.TypedState, action: Chat2Gen.InboxSearchPaylo
       })
     )
 
-  const onOpenTeamHits = (
-    // TODO fix type when rpc exists
-    resp: any // RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchOpenTeamHits']['inParam']
-  ) =>
+  const onOpenTeamHits = (resp: RPCChatTypes.MessageTypes['chat.1.chatUi.chatSearchTeamHits']['inParam']) =>
     Saga.put(
       Chat2Gen.createInboxSearchOpenTeamsResults({
-        results: (resp.hits.hits || []).reduce(
-          /*<Array<Types.InboxSearchOpenTeamHit>>*/ (arr, h) => {
-            const {description, name, teamID, publicAdmins, numMembers, inTeam} = h
-            arr.push({
-              description,
-              inTeam,
-              name,
-              numMembers,
-              publicAdmins,
-              teamID: Types.stringToConversationIDKey(teamID),
-            })
-            return arr
-          },
-          []
-        ),
+        results: (resp.hits.hits || []).reduce<Array<Types.InboxSearchOpenTeamHit>>((arr, h) => {
+          const {description, name, id, publicAdmins, memberCount, inTeam} = h
+          arr.push({
+            description: description ?? '',
+            id: Types.stringToConversationIDKey(id),
+            inTeam,
+            memberCount,
+            name,
+            publicAdmins: publicAdmins ?? [],
+          })
+          return arr
+        }, []),
+        suggested: resp.hits.suggestedMatches,
       })
     )
 
@@ -1685,12 +1681,12 @@ function* inboxSearch(_: Container.TypedState, action: Chat2Gen.InboxSearchPaylo
   try {
     yield RPCChatTypes.localSearchInboxRpcSaga({
       incomingCallMap: {
-        // 'chat.1.chatUi.chatSearchOpenTeamHits': onOpenTeamHits,
         'chat.1.chatUi.chatSearchConvHits': onConvHits,
         'chat.1.chatUi.chatSearchInboxDone': onDone,
         'chat.1.chatUi.chatSearchInboxHit': onTextHit,
         'chat.1.chatUi.chatSearchInboxStart': onStart,
         'chat.1.chatUi.chatSearchIndexStatus': onIndexStatus,
+        'chat.1.chatUi.chatSearchTeamHits': onOpenTeamHits,
       },
       params: {
         identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
@@ -1708,6 +1704,7 @@ function* inboxSearch(_: Container.TypedState, action: Chat2Gen.InboxSearchPaylo
             query.stringValue().length > 0
               ? Constants.inboxSearchMaxNameResults
               : Constants.inboxSearchMaxUnreadNameResults,
+          maxTeams: 3,
           reindexMode: RPCChatTypes.ReIndexingMode.postsearchSync,
           sentAfter: 0,
           sentBefore: 0,
@@ -1722,42 +1719,6 @@ function* inboxSearch(_: Container.TypedState, action: Chat2Gen.InboxSearchPaylo
       logger.error('search failed: ' + e.message)
       yield Saga.put(Chat2Gen.createInboxSearchSetTextStatus({status: 'error'}))
     }
-  }
-
-  // mock data
-  if (flags.openTeamSearch && __DEV__) {
-    console.log('MOCK open teams data, TODO plumb!')
-    yield Saga.delay(1000)
-    yield onOpenTeamHits({
-      hits: {
-        hits: [
-          {
-            description: 'team a',
-            inTeam: true,
-            name: 'keybasefriends',
-            numMembers: 123,
-            publicAdmins: ['adm1', 'adm2'],
-            teamID: '67c99659bdc24920b56ccec3a42dd424',
-          },
-          {
-            description: 'team b',
-            inTeam: false,
-            name: 'chia_network.public',
-            numMembers: 123,
-            publicAdmins: ['adm3'],
-            teamID: '5fb23b28c317e32742cf194b42ae0525',
-          },
-          {
-            description: 'team c',
-            inTeam: false,
-            name: 'stellar.public',
-            numMembers: 123,
-            publicAdmins: ['adm4', 'adm5'],
-            teamID: '5fb23b28c317e32742cf194b42ae0525',
-          },
-        ],
-      },
-    })
   }
 }
 
@@ -2353,6 +2314,24 @@ const markThreadAsRead = async (
   })
 }
 
+const messagesAdd = (
+  state: Container.TypedState,
+  _action: Chat2Gen.MessagesAddPayload,
+  logger: Saga.SagaLogger
+) => {
+  if (!state.config.loggedIn) {
+    logger.info('bail on not logged in')
+    return
+  }
+  const actions = Array.from(state.chat2.shouldDeleteZzzJourneycard.entries()).map(([cid, jc]) =>
+    Chat2Gen.createMessagesWereDeleted({
+      conversationIDKey: cid,
+      ordinals: [jc.ordinal],
+    })
+  )
+  return actions
+}
+
 // Delete a message and any older
 const deleteMessageHistory = async (
   state: Container.TypedState,
@@ -2593,6 +2572,16 @@ function* mobileMessageAttachmentShare(
     logger.error('Downloading attachment failed')
     throw new Error('Downloading attachment failed')
   }
+
+  if (isIOS && message.fileName.endsWith('.pdf')) {
+    yield Saga.put(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {title: message.title || message.fileName, url: filePath}, selected: 'chatPDF'}],
+      })
+    )
+    return
+  }
+
   try {
     yield showShareActionSheet({filePath, mimeType: message.fileType})
   } catch (e) {
@@ -3750,6 +3739,7 @@ function* chat2Saga() {
     ],
     markThreadAsRead
   )
+  yield* Saga.chainAction2(Chat2Gen.messagesAdd, messagesAdd)
   yield* Saga.chainAction2(
     [Chat2Gen.leaveConversation, TeamsGen.leftTeam, TeamsGen.deleteChannelConfirmed],
     clearModalsFromConvEvent

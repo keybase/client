@@ -10,11 +10,13 @@ import (
 )
 
 type TeamSearchItem struct {
-	Id          TeamID  `codec:"id" json:"id"`
-	Name        string  `codec:"name" json:"name"`
-	Description *string `codec:"description,omitempty" json:"description,omitempty"`
-	MemberCount int     `codec:"memberCount" json:"memberCount"`
-	LastActive  Time    `codec:"lastActive" json:"lastActive"`
+	Id           TeamID   `codec:"id" json:"id"`
+	Name         string   `codec:"name" json:"name"`
+	Description  *string  `codec:"description,omitempty" json:"description,omitempty"`
+	MemberCount  int      `codec:"memberCount" json:"memberCount"`
+	LastActive   Time     `codec:"lastActive" json:"lastActive"`
+	InTeam       bool     `codec:"inTeam" json:"inTeam"`
+	PublicAdmins []string `codec:"publicAdmins" json:"publicAdmins"`
 }
 
 func (o TeamSearchItem) DeepCopy() TeamSearchItem {
@@ -30,6 +32,18 @@ func (o TeamSearchItem) DeepCopy() TeamSearchItem {
 		})(o.Description),
 		MemberCount: o.MemberCount,
 		LastActive:  o.LastActive.DeepCopy(),
+		InTeam:      o.InTeam,
+		PublicAdmins: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.PublicAdmins),
 	}
 }
 
@@ -54,6 +68,7 @@ func (o TeamSearchRes) DeepCopy() TeamSearchRes {
 }
 
 type TeamSearchArg struct {
+	Uid   *UID   `codec:"uid,omitempty" json:"uid,omitempty"`
 	Query string `codec:"query" json:"query"`
 	Limit int    `codec:"limit" json:"limit"`
 }

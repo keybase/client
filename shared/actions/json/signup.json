@@ -5,7 +5,9 @@
   ],
   "actions": {
     "goBackAndClearErrors": {},
-    "requestAutoInvite": {},
+    "requestAutoInvite": {
+      "username?": "string"
+    },
     "requestedAutoInvite": {
       "inviteCode?": "string",
       "error?": "boolean"

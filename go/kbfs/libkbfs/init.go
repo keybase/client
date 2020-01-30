@@ -397,8 +397,7 @@ func makeMDServer(kbCtx Context, config Config, mdserverAddr string,
 	if serverRootDir, ok := parseRootDir(mdserverAddr); ok {
 		log.Debug("Using on-disk mdserver at %s", serverRootDir)
 		// local persistent MD server
-		mdPath := filepath.Join(serverRootDir, "kbfs_md")
-		return NewMDServerDir(mdServerLocalConfigAdapter{config}, mdPath)
+		return MakeDiskMDServer(config, serverRootDir)
 	}
 
 	remote, err := rpc.ParsePrioritizedRoundRobinRemote(mdserverAddr)
@@ -459,10 +458,7 @@ func makeBlockServer(kbCtx Context, config Config, bserverAddr string,
 	if serverRootDir, ok := parseRootDir(bserverAddr); ok {
 		log.Debug("Using on-disk bserver at %s", serverRootDir)
 		// local persistent block server
-		blockPath := filepath.Join(serverRootDir, "kbfs_block")
-		bserverLog := config.MakeLogger("BSD")
-		return NewBlockServerDir(config.Codec(),
-			bserverLog, blockPath), nil
+		return MakeDiskBlockServer(config, serverRootDir), nil
 	}
 
 	remote, err := rpc.ParsePrioritizedRoundRobinRemote(bserverAddr)

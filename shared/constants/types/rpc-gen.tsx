@@ -1035,12 +1035,16 @@ export type MessageTypes = {
     inParam: {readonly kid: KID; readonly key: KeyInfo}
     outParam: void
   }
+  'keybase.1.pgpUi.outputPGPWarning': {
+    inParam: {readonly warning: String}
+    outParam: void
+  }
   'keybase.1.pgpUi.outputSignatureSuccess': {
-    inParam: {readonly fingerprint: String; readonly username: String; readonly signedAt: Time}
+    inParam: {readonly fingerprint: String; readonly username: String; readonly signedAt: Time; readonly warnings?: Array<String> | null}
     outParam: void
   }
   'keybase.1.pgpUi.outputSignatureSuccessNonKeybase': {
-    inParam: {readonly keyID: String; readonly signedAt: Time}
+    inParam: {readonly keyID: String; readonly signedAt: Time; readonly warnings?: Array<String> | null}
     outParam: void
   }
   'keybase.1.pgpUi.shouldPushPrivate': {
@@ -2347,6 +2351,7 @@ export enum StatusCode {
   scchatnotinteam = 2517,
   scchatstalepreviousstate = 2518,
   scchatephemeralretentionpolicyviolatederror = 2519,
+  scchatusersalreadyinconversationerror = 2520,
   scteambadmembership = 2604,
   scteamselfnotowner = 2607,
   scteamnotfound = 2614,
@@ -2686,6 +2691,7 @@ export type DowngradeReferenceRes = {readonly completed?: Array<BlockReferenceCo
 export type DownloadInfo = {readonly downloadID: String; readonly path: KBFSPath; readonly filename: String; readonly startTime: Time; readonly isRegularDownload: Boolean}
 export type DownloadState = {readonly downloadID: String; readonly progress: Double; readonly endEstimate: Time; readonly localPath: String; readonly error: String; readonly done: Boolean; readonly canceled: Boolean}
 export type DownloadStatus = {readonly regularDownloadIDs?: Array<String> | null; readonly states?: Array<DownloadState> | null}
+export type DurationMsec = Double
 export type DurationSec = Double
 export type ED25519PublicKey = string | null
 export type ED25519Signature = string | null
@@ -2806,6 +2812,7 @@ export type ImplicitTeamConflictInfo = {readonly generation: ConflictGeneration;
 export type ImplicitTeamDisplayName = {readonly isPublic: Boolean; readonly writers: ImplicitTeamUserSet; readonly readers: ImplicitTeamUserSet; readonly conflictInfo?: ImplicitTeamConflictInfo | null}
 export type ImplicitTeamUserSet = {readonly keybaseUsers?: Array<String> | null; readonly unresolvedUsers?: Array<SocialAssertion> | null}
 export type InstallResult = {readonly componentResults?: Array<ComponentResult> | null; readonly status: Status; readonly fatal: Boolean}
+export type InstrumentationStat = {readonly t: /* tag */ String; readonly n: /* numCalls */ Int; readonly c: /* ctime */ Time; readonly m: /* mtime */ Time; readonly ad: /* avgDur */ DurationMsec; readonly xd: /* maxDur */ DurationMsec; readonly nd: /* minDur */ DurationMsec; readonly td: /* totalDur */ DurationMsec; readonly as: /* avgSize */ Int64; readonly xs: /* maxSize */ Int64; readonly ns: /* minSize */ Int64; readonly ts: /* totalSize */ Int64}
 export type InterestingPerson = {readonly uid: UID; readonly username: String; readonly fullname: String; readonly serviceMap: {[key: string]: String}}
 export type KBFSArchivedParam = {KBFSArchivedType: KBFSArchivedType.revision; revision: KBFSRevision} | {KBFSArchivedType: KBFSArchivedType.time; time: Time} | {KBFSArchivedType: KBFSArchivedType.timeString; timeString: String} | {KBFSArchivedType: KBFSArchivedType.relTimeString; relTimeString: String}
 export type KBFSArchivedPath = {readonly path: String; readonly archivedParam: KBFSArchivedParam; readonly identifyBehavior?: TLFIdentifyBehavior | null}
@@ -2882,7 +2889,7 @@ export type PGPFingerprint = string | null
 export type PGPIdentity = {readonly username: String; readonly comment: String; readonly email: String}
 export type PGPPurgeRes = {readonly filenames?: Array<String> | null}
 export type PGPQuery = {readonly secret: Boolean; readonly query: String; readonly exactMatch: Boolean}
-export type PGPSigVerification = {readonly isSigned: Boolean; readonly verified: Boolean; readonly signer: User; readonly signKey: PublicKey}
+export type PGPSigVerification = {readonly isSigned: Boolean; readonly verified: Boolean; readonly signer: User; readonly signKey: PublicKey; readonly warnings?: Array<String> | null}
 export type PGPSignOptions = {readonly keyQuery: String; readonly mode: SignMode; readonly binaryIn: Boolean; readonly binaryOut: Boolean}
 export type PGPVerifyOptions = {readonly signedBy: String; readonly signature: Bytes}
 export type ParamProofJSON = {readonly sigHash: SigID; readonly kbUsername: String}
@@ -3089,7 +3096,7 @@ export type TeamRoleMapAndVersion = {readonly teams: {[key: string]: TeamRolePai
 export type TeamRoleMapStored = {readonly data: TeamRoleMapAndVersion; readonly cachedAt: Time}
 export type TeamRolePair = {readonly role: TeamRole; readonly implicitRole: TeamRole}
 export type TeamSBSMsg = {readonly teamID: TeamID; readonly score: Int; readonly invitees?: Array<TeamInvitee> | null}
-export type TeamSearchItem = {readonly id: TeamID; readonly name: String; readonly description?: String | null; readonly memberCount: Int; readonly lastActive: Time}
+export type TeamSearchItem = {readonly id: TeamID; readonly name: String; readonly description?: String | null; readonly memberCount: Int; readonly lastActive: Time; readonly inTeam: Boolean; readonly publicAdmins?: Array<String> | null}
 export type TeamSearchRes = {readonly results?: Array<TeamSearchItem> | null}
 export type TeamSeitanMsg = {readonly teamID: TeamID; readonly seitans?: Array<TeamSeitanRequest> | null}
 export type TeamSeitanRequest = {readonly inviteID: TeamInviteID; readonly uid: UID; readonly eldestSeqno: Seqno; readonly akey: SeitanAKey; readonly role: TeamRole; readonly unixCTime: Int64}
@@ -3266,6 +3273,7 @@ export type IncomingCallMapType = {
   'keybase.1.NotifyUsers.userChanged'?: (params: MessageTypes['keybase.1.NotifyUsers.userChanged']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyUsers.passwordChanged'?: (params: MessageTypes['keybase.1.NotifyUsers.passwordChanged']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.NotifyUsers.identifyUpdate'?: (params: MessageTypes['keybase.1.NotifyUsers.identifyUpdate']['inParam'] & {sessionID: number}) => IncomingReturn
+  'keybase.1.pgpUi.outputPGPWarning'?: (params: MessageTypes['keybase.1.pgpUi.outputPGPWarning']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.pgpUi.outputSignatureSuccess'?: (params: MessageTypes['keybase.1.pgpUi.outputSignatureSuccess']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.pgpUi.outputSignatureSuccessNonKeybase'?: (params: MessageTypes['keybase.1.pgpUi.outputSignatureSuccessNonKeybase']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.pgpUi.keyGenerated'?: (params: MessageTypes['keybase.1.pgpUi.keyGenerated']['inParam'] & {sessionID: number}) => IncomingReturn
@@ -3393,6 +3401,7 @@ export type CustomResponseIncomingCallMap = {
   'keybase.1.NotifyTracking.notifyUserBlocked'?: (params: MessageTypes['keybase.1.NotifyTracking.notifyUserBlocked']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyTracking.notifyUserBlocked']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyUsers.passwordChanged'?: (params: MessageTypes['keybase.1.NotifyUsers.passwordChanged']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyUsers.passwordChanged']['outParam']) => void}) => IncomingReturn
   'keybase.1.NotifyUsers.identifyUpdate'?: (params: MessageTypes['keybase.1.NotifyUsers.identifyUpdate']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyUsers.identifyUpdate']['outParam']) => void}) => IncomingReturn
+  'keybase.1.pgpUi.outputPGPWarning'?: (params: MessageTypes['keybase.1.pgpUi.outputPGPWarning']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.pgpUi.outputPGPWarning']['outParam']) => void}) => IncomingReturn
   'keybase.1.pgpUi.outputSignatureSuccess'?: (params: MessageTypes['keybase.1.pgpUi.outputSignatureSuccess']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.pgpUi.outputSignatureSuccess']['outParam']) => void}) => IncomingReturn
   'keybase.1.pgpUi.outputSignatureSuccessNonKeybase'?: (params: MessageTypes['keybase.1.pgpUi.outputSignatureSuccessNonKeybase']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.pgpUi.outputSignatureSuccessNonKeybase']['outParam']) => void}) => IncomingReturn
   'keybase.1.pgpUi.keyGenerated'?: (params: MessageTypes['keybase.1.pgpUi.keyGenerated']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.pgpUi.keyGenerated']['outParam']) => void}) => IncomingReturn
@@ -3701,6 +3710,7 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.config.getFullStatus'
 // 'keybase.1.config.isServiceRunning'
 // 'keybase.1.config.isKBFSRunning'
+// 'keybase.1.config.getNetworkStats'
 // 'keybase.1.config.setUserConfig'
 // 'keybase.1.config.setPath'
 // 'keybase.1.config.setValue'
@@ -3936,6 +3946,7 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.pgp.pgpPurge'
 // 'keybase.1.pgp.pgpPushPrivate'
 // 'keybase.1.pgp.pgpPullPrivate'
+// 'keybase.1.pgpUi.outputPGPWarning'
 // 'keybase.1.pgpUi.outputSignatureSuccess'
 // 'keybase.1.pgpUi.outputSignatureSuccessNonKeybase'
 // 'keybase.1.pgpUi.keyGenerated'

@@ -9,7 +9,6 @@ import * as RPCChatTypes from '../../../../../constants/types/rpc-chat-gen'
 import * as Styles from '../../../../../styles'
 import * as TeamConstants from '../../../../../constants/teams'
 import * as TeamTypes from '../../../../../constants/types/teams'
-import * as TeamsGen from '../../../../../actions/teams-gen'
 import {teamsTab} from '../../../../../constants/tabs'
 import {appendNewTeamBuilder} from '../../../../../actions/typed-routes'
 import * as ChatTypes from '../../../../../constants/types/chat2'
@@ -20,8 +19,10 @@ type OwnProps = {
 }
 
 type Props = {
+  cannotWrite: boolean
   channelname: string
   conversationIDKey: ChatTypes.ConversationIDKey
+  loadTeamID: TeamTypes.TeamID
   message: MessageTypes.MessageJourneycard
   otherChannelsForPopular: Array<string>
   otherChannelsForNoAnswer: Array<string>
@@ -30,7 +31,6 @@ type Props = {
   onCreateChatChannels: () => void
   onDismiss: () => void
   onGoToChannel: (channelname: string) => void
-  onLoadTeam: () => void
   onPublishTeam: () => void
   onScrollBack: () => void
   onShowTeam: () => void
@@ -43,18 +43,20 @@ const TeamJourneyContainer = (props: Props) => {
   let textComponent: React.ReactNode
   let image: Kb.IconType | null = null
   let actions: Array<Action> = []
-  let loadTeam: (() => void) | undefined
+  let loadTeamID: TeamTypes.TeamID | undefined
 
   switch (props.message.cardType) {
     case RPCChatTypes.JourneycardType.welcome:
       actions =
         props.teamType === 'big'
           ? [
-              'wave',
               {label: 'Browse channels', onClick: props.onBrowseChannels},
               {label: 'Publish team on your profile', onClick: props.onPublishTeam},
             ]
-          : ['wave', {label: 'Publish team on your profile', onClick: props.onPublishTeam}]
+          : [{label: 'Publish team on your profile', onClick: props.onPublishTeam}]
+      if (!props.cannotWrite) {
+        actions.unshift('wave')
+      }
       image = 'icon-illustration-welcome-96'
       textComponent = (
         <Kb.Text type="BodySmall">
@@ -68,7 +70,7 @@ const TeamJourneyContainer = (props: Props) => {
         label: `#${chan}`,
         onClick: () => props.onGoToChannel(chan),
       }))
-      loadTeam = props.onLoadTeam
+      loadTeamID = props.loadTeamID
       textComponent = (
         <Kb.Box2 direction="vertical">
           <Kb.Text type="BodySmall">
@@ -129,7 +131,7 @@ const TeamJourneyContainer = (props: Props) => {
         label: `#${chan}`,
         onClick: () => props.onGoToChannel(chan),
       }))
-      loadTeam = props.onLoadTeam
+      loadTeamID = props.loadTeamID
       textComponent = (
         <Kb.Text type="BodySmall">
           People haven’t been talkative in a while. Perhaps post in another channel?
@@ -145,7 +147,7 @@ const TeamJourneyContainer = (props: Props) => {
     <TeamJourney
       actions={actions}
       image={image}
-      loadTeam={loadTeam}
+      loadTeamID={loadTeamID}
       onAuthorClick={props.onAuthorClick}
       teamname={props.teamname}
       conversationIDKey={props.conversationIDKey}
@@ -158,10 +160,11 @@ const TeamJourneyContainer = (props: Props) => {
 const TeamJourneyConnected = Container.connect(
   (state, ownProps: OwnProps) => {
     const conv = Constants.getMeta(state, ownProps.message.conversationIDKey)
-    const {channelname, conversationIDKey, teamname, teamID} = conv
+    const {cannotWrite, channelname, conversationIDKey, teamname, teamID} = conv
     return {
       _channelInfos: TeamConstants.getTeamChannelInfos(state, teamID),
       _teamID: teamID,
+      cannotWrite: cannotWrite,
       channelname,
       conversationIDKey,
       teamType: TeamConstants.getTeamType(state, teamname),
@@ -185,7 +188,6 @@ const TeamJourneyConnected = Container.connect(
     ) => dispatch(Chat2Gen.createDismissJourneycard({cardType, conversationIDKey, ordinal})),
     _onGoToChannel: (channelname: string, teamname: string) =>
       dispatch(Chat2Gen.createPreviewConversation({channelname, reason: 'journeyCardPopular', teamname})),
-    _onLoadTeam: (teamID: string) => dispatch(TeamsGen.createGetChannels({teamID})),
     _onManageChannels: (teamID: string) =>
       dispatch(
         RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'chatManageChannels'}]})
@@ -195,7 +197,7 @@ const TeamJourneyConnected = Container.connect(
       dispatch(RouteTreeGen.createNavigateAppend({path: [teamsTab, {props: {teamID}, selected: 'team'}]})),
   }),
   (stateProps, dispatchProps, ownProps) => {
-    const {channelname, conversationIDKey, teamname, teamType} = stateProps
+    const {cannotWrite, channelname, conversationIDKey, teamname, teamType} = stateProps
     // Take the top three channels with most recent activity.
     const joinableStatuses = new Set([
       // keep in sync with journey_card_manager.go
@@ -216,8 +218,10 @@ const TeamJourneyConnected = Container.connect(
       .map(info => info.channelname)
 
     return {
+      cannotWrite,
       channelname,
       conversationIDKey,
+      loadTeamID: stateProps._teamID,
       message: ownProps.message,
       onAddPeopleToTeam: () => dispatchProps._onAddPeopleToTeam(stateProps._teamID),
       onAuthorClick: () => dispatchProps._onAuthorClick(stateProps._teamID),
@@ -230,7 +234,6 @@ const TeamJourneyConnected = Container.connect(
           ownProps.message.ordinal
         ),
       onGoToChannel: (channelName: string) => dispatchProps._onGoToChannel(channelName, stateProps.teamname),
-      onLoadTeam: () => dispatchProps._onLoadTeam(stateProps._teamID),
       onPublishTeam: () => dispatchProps._onPublishTeam(),
       onScrollBack: () => console.log('onScrollBack'),
       onShowTeam: () => dispatchProps._onShowTeam(stateProps._teamID),

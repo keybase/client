@@ -1919,6 +1919,28 @@ func (o UIChatSearchConvHits) DeepCopy() UIChatSearchConvHits {
 	}
 }
 
+type UIChatSearchTeamHits struct {
+	Hits             []keybase1.TeamSearchItem `codec:"hits" json:"hits"`
+	SuggestedMatches bool                      `codec:"suggestedMatches" json:"suggestedMatches"`
+}
+
+func (o UIChatSearchTeamHits) DeepCopy() UIChatSearchTeamHits {
+	return UIChatSearchTeamHits{
+		Hits: (func(x []keybase1.TeamSearchItem) []keybase1.TeamSearchItem {
+			if x == nil {
+				return nil
+			}
+			ret := make([]keybase1.TeamSearchItem, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Hits),
+		SuggestedMatches: o.SuggestedMatches,
+	}
+}
+
 type UIChatPayment struct {
 	Username      string  `codec:"username" json:"username"`
 	FullName      string  `codec:"fullName" json:"fullName"`
@@ -2959,6 +2981,11 @@ type ChatSearchConvHitsArg struct {
 	Hits      UIChatSearchConvHits `codec:"hits" json:"hits"`
 }
 
+type ChatSearchTeamHitsArg struct {
+	SessionID int                  `codec:"sessionID" json:"sessionID"`
+	Hits      UIChatSearchTeamHits `codec:"hits" json:"hits"`
+}
+
 type ChatConfirmChannelDeleteArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Channel   string `codec:"channel" json:"channel"`
@@ -3071,6 +3098,7 @@ type ChatUiInterface interface {
 	ChatSearchInboxDone(context.Context, ChatSearchInboxDoneArg) error
 	ChatSearchIndexStatus(context.Context, ChatSearchIndexStatusArg) error
 	ChatSearchConvHits(context.Context, ChatSearchConvHitsArg) error
+	ChatSearchTeamHits(context.Context, ChatSearchTeamHitsArg) error
 	ChatConfirmChannelDelete(context.Context, ChatConfirmChannelDeleteArg) (bool, error)
 	ChatStellarShowConfirm(context.Context, int) error
 	ChatStellarDataConfirm(context.Context, ChatStellarDataConfirmArg) (bool, error)
@@ -3346,6 +3374,21 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 						return
 					}
 					err = i.ChatSearchConvHits(ctx, typedArgs[0])
+					return
+				},
+			},
+			"chatSearchTeamHits": {
+				MakeArg: func() interface{} {
+					var ret [1]ChatSearchTeamHitsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ChatSearchTeamHitsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ChatSearchTeamHitsArg)(nil), args)
+						return
+					}
+					err = i.ChatSearchTeamHits(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -3697,6 +3740,11 @@ func (c ChatUiClient) ChatSearchIndexStatus(ctx context.Context, __arg ChatSearc
 
 func (c ChatUiClient) ChatSearchConvHits(ctx context.Context, __arg ChatSearchConvHitsArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchConvHits", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c ChatUiClient) ChatSearchTeamHits(ctx context.Context, __arg ChatSearchTeamHitsArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatSearchTeamHits", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 

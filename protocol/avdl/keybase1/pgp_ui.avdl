@@ -3,11 +3,14 @@
 protocol pgpUi {
   import idl "common.avdl";
 
+  // warnings during the generation of signatures in pgp_encrypt and pgp_sign
+  void outputPGPWarning(int sessionID, string warning);
+
   // signed by known keybase key + user:
-  void outputSignatureSuccess(int sessionID, string fingerprint, string username, Time signedAt);
+  void outputSignatureSuccess(int sessionID, string fingerprint, string username, Time signedAt, array<string> warnings);
 
   // signing key unknown to keybase:
-  void outputSignatureSuccessNonKeybase(int sessionID, string keyID, Time signedAt);
+  void outputSignatureSuccessNonKeybase(int sessionID, string keyID, Time signedAt, array<string> warnings);
 
   // pgpKeyGenDefault calls these:
   void keyGenerated(int sessionID, KID kid, KeyInfo key);

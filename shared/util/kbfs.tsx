@@ -46,7 +46,7 @@ export function sortUserList(users: UserList): UserList {
   const readers = users.filter(u => !u.you && !!u.readOnly)
 
   // Turn boolean into int for flow to be okay with this type
-  const sortByUsername = (a, b) => +(a.username > b.username)
+  const sortByUsername = (a: {username: string}, b: {username: string}) => +(a.username > b.username)
   return youAsRwer.concat(rwers.sort(sortByUsername), youAsReader, readers.sort(sortByUsername))
 }
 

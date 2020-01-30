@@ -36,8 +36,9 @@ const onSetRecipients = (state: TypedState, _: TeamBuildingGen.FinishedTeamBuild
   ]
 
   // User set themselves as a recipient, so don't show 'includeSelf' option
-  if (usernames.includes(currentUser)) {
-    actions.push(CryptoGen.createSetEncryptOptions({noIncludeSelf: true, options}))
+  // However we don't want to set hideIncludeSelf if we are also encrypting to an SBS user (since we must force includeSelf)
+  if (usernames.includes(currentUser) && !hasSBS) {
+    actions.push(CryptoGen.createSetEncryptOptions({hideIncludeSelf: true, options}))
   }
   actions.push(
     CryptoGen.createSetRecipients({
@@ -234,7 +235,7 @@ const saltpackEncrypt = async (
         })
       } catch (err) {
         logger.error(err)
-        const message = Constants.getStatusCodeMessage(err.code, Constants.Operations.Verify, type)
+        const message = Constants.getStatusCodeMessage(err.code, Constants.Operations.Encrypt, type)
         return CryptoGen.createOnOperationError({
           errorMessage: new HiddenString(message),
           operation: Constants.Operations.Encrypt,
@@ -268,7 +269,7 @@ const saltpackEncrypt = async (
         })
       } catch (err) {
         logger.error(err)
-        const message = Constants.getStatusCodeMessage(err.code, Constants.Operations.Verify, type)
+        const message = Constants.getStatusCodeMessage(err.code, Constants.Operations.Encrypt, type)
         return CryptoGen.createOnOperationError({
           errorMessage: new HiddenString(message),
           operation: Constants.Operations.Encrypt,
