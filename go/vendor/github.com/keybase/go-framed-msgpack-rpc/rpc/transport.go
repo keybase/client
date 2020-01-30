@@ -64,7 +64,7 @@ type transport struct {
 // the maxFrameLength parameter in NewTransporter.
 const DefaultMaxFrameLength = 100 * 1024 * 1024
 
-// NewTransporter creates a new Transporter from the given connection
+// NewTransport creates a new Transporter from the given connection
 // and parameters. Both sides of a connection should use the same
 // number for maxFrameLength.
 func NewTransport(c net.Conn, l LogFactory, instrumenter *NetworkInstrumenter, wef WrapErrorFunc, maxFrameLength int32) Transporter {
@@ -76,6 +76,9 @@ func NewTransport(c net.Conn, l LogFactory, instrumenter *NetworkInstrumenter, w
 		l = NewSimpleLogFactory(nil, nil)
 	}
 	log := l.NewLog(c.RemoteAddr())
+	if instrumenter == nil {
+		instrumenter = NewNetworkInstrumenter(NewDummyInstrumentationStorage())
+	}
 
 	ret := &transport{
 		c:         c,

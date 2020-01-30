@@ -22,6 +22,10 @@ type InstrumenterStorage interface {
 
 type DummyInstrumentationStorage struct{}
 
+func NewDummyInstrumentationStorage() *DummyInstrumentationStorage {
+	return &DummyInstrumentationStorage{}
+}
+
 var _ InstrumenterStorage = (*DummyInstrumentationStorage)(nil)
 
 func (d *DummyInstrumentationStorage) Put(tag string, record InstrumentationRecord) error { return nil }
