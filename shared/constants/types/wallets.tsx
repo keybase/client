@@ -332,16 +332,16 @@ export const makeAssetID = (issuerAccountID: string, assetCode: string): AssetID
 export const assetDescriptionToAssetID = (assetDescription: AssetDescriptionOrNative): AssetID =>
   assetDescription === 'native' ? 'XLM' : makeAssetID(assetDescription.issuerAccountID, assetDescription.code)
 
-export type Trustline = Readonly<{
-  acceptedAssets: Map<AccountID, Map<AssetID, number>>
-  acceptedAssetsByUsername: Map<string, Map<AssetID, number>>
-  assetMap: Map<AssetID, AssetDescription>
-  expandedAssets: Set<AssetID>
-  loaded: boolean
-  popularAssets: Array<AssetID>
-  searchingAssets?: Array<AssetID>
-  totalAssetsCount: number
-}>
+export type Trustline = {
+  readonly acceptedAssets: Map<AccountID, Map<AssetID, number>>
+  readonly acceptedAssetsByUsername: Map<string, Map<AssetID, number>>
+  readonly assetMap: Map<AssetID, AssetDescription>
+  readonly expandedAssets: Set<AssetID>
+  readonly loaded: boolean
+  readonly popularAssets: Array<AssetID>
+  readonly searchingAssets?: Array<AssetID>
+  readonly totalAssetsCount: number
+}
 
 export type StaticConfig = StellarRPCTypes.StaticConfig
 

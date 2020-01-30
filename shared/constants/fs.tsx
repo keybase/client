@@ -190,8 +190,8 @@ const placeholderAction = FsGen.createPlaceholderAction()
 type _MakeErrorArgs = {
   time?: number
   error: any
-  erroredAction: FsGen.Actions | EngineGen.Actions
-  retriableAction?: FsGen.Actions | EngineGen.Actions
+  erroredAction: any
+  retriableAction?: any
 }
 export const makeError = (args?: _MakeErrorArgs): Types.FsError => {
   // TS Issue: https://github.com/microsoft/TypeScript/issues/26235

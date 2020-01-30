@@ -2,12 +2,12 @@ import * as DeviceTypes from './devices'
 import HiddenString from '../../util/hidden-string'
 import {RPCError} from '../../util/errors'
 
-export type Device = Readonly<{
-  deviceNumberOfType: number
-  id: DeviceTypes.DeviceID
-  name: string
-  type: DeviceTypes.DeviceType
-}>
+export type Device = {
+  readonly deviceNumberOfType: number
+  readonly id: DeviceTypes.DeviceID
+  readonly name: string
+  readonly type: DeviceTypes.DeviceType
+}
 
 export type State = {
   readonly codePageOtherDevice: Device
