@@ -1,45 +1,58 @@
 import * as React from 'react'
+import * as CryptoGen from '../../actions/crypto-gen'
+import * as Container from '../../util/container'
+import * as Constants from '../../constants/crypto'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-
-type Props = {
-  onAddRecipients: () => void
-  onClearRecipients: () => void
-  recipients: Array<string>
-}
+import {appendEncryptRecipientsBuilder} from '../../actions/typed-routes'
 
 const placeholder = 'Search people'
 
-const Recipients = (props: Props) => (
-  <Kb.Box2 direction="vertical" fullWidth={true}>
-    <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.recipientsContainer}>
-      <Kb.Text type="BodyTinySemibold" style={styles.toField}>
-        To:
-      </Kb.Text>
-      {props.recipients?.length ? (
-        <Kb.ConnectedUsernames type="BodySemibold" usernames={props.recipients} colorFollowing={true} />
-      ) : (
-        <>
-          <Kb.PlainInput
-            placeholder={placeholder}
-            allowFontScaling={false}
-            onFocus={props.onAddRecipients}
-            style={styles.input}
+const Recipients = () => {
+  const dispatch = Container.useDispatch()
+  // Store
+  const recipients = Container.useSelector(state => state.crypto.encrypt.recipients)
+
+  // Actions
+  const onAddRecipients = React.useCallback(() => {
+    dispatch(appendEncryptRecipientsBuilder())
+  }, [dispatch])
+
+  const onClearRecipients = React.useCallback(() => {
+    dispatch(CryptoGen.createClearRecipients({operation: Constants.Operations.Encrypt}))
+  }, [dispatch])
+
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true}>
+      <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} style={styles.recipientsContainer}>
+        <Kb.Text type="BodyTinySemibold" style={styles.toField}>
+          To:
+        </Kb.Text>
+        {recipients?.length ? (
+          <Kb.ConnectedUsernames type="BodySemibold" usernames={recipients} colorFollowing={true} />
+        ) : (
+          <>
+            <Kb.PlainInput
+              placeholder={placeholder}
+              allowFontScaling={false}
+              onFocus={onAddRecipients}
+              style={styles.input}
+            />
+          </>
+        )}
+        {recipients?.length ? (
+          <Kb.Icon
+            type="iconfont-remove"
+            boxStyle={styles.removeRecipients}
+            color={Styles.globalColors.black_20}
+            onClick={onClearRecipients}
           />
-        </>
-      )}
-      {props.recipients?.length ? (
-        <Kb.Icon
-          type="iconfont-remove"
-          boxStyle={styles.removeRecipients}
-          color={Styles.globalColors.black_20}
-          onClick={props.onClearRecipients}
-        />
-      ) : null}
+        ) : null}
+      </Kb.Box2>
+      <Kb.Divider />
     </Kb.Box2>
-    <Kb.Divider />
-  </Kb.Box2>
-)
+  )
+}
 
 const recipientsRowHeight = 40
 const styles = Styles.styleSheetCreate(

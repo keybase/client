@@ -7,7 +7,7 @@ import * as Styles from '../../styles'
 import openURL from '../../util/open-url'
 import {Input, DragAndDrop, OperationBanner} from '../input'
 import OperationOutput, {OutputBar, OutputInfoBanner, SignedSender, OutputProgress} from '../output'
-import Recipients from '../recipients/container'
+import Recipients from '../recipients'
 
 const operation = Constants.Operations.Encrypt
 
@@ -95,7 +95,7 @@ const Encrypt = () => {
         operation={operation}
         infoMessage="Encrypt to anyone, even if they're not on Keybase yet."
       />
-      <Recipients operation="encrypt" />
+      <Recipients />
       <Kb.Box2 direction="vertical" fullHeight={true}>
         <Input operation={operation} fileDroppedCounter={fileDroppedCounter} />
         <EncryptOptions />
