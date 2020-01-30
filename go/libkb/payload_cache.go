@@ -25,10 +25,6 @@ func NewPayloadCache(g *GlobalContext, maxNumElements int) *PayloadCache {
 	}
 }
 
-func (p *PayloadCache) Shutdown() {
-	p.cache.Purge()
-}
-
 func (p *PayloadCache) GetOrPrime(link *ChainLink) (*jsonw.Wrapper, error) {
 	// check if failed to create cache in NewPayloadCache
 	if p.cache == nil {

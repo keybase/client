@@ -534,7 +534,7 @@ func (g *gregorHandler) pushStateNewDataDebouncer(shutdownCh chan struct{}) {
 	dur := time.Second
 	trigger := func() {
 		if shouldSend {
-			// go g.pushStateOnce(keybase1.PushReason_NEW_DATA)
+			go g.pushStateOnce(keybase1.PushReason_NEW_DATA)
 			shouldSend = false
 			lastTime = time.Now()
 		}

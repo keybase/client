@@ -65,6 +65,7 @@ type levelDbCleaner struct {
 	dbName   string
 	config   DbCleanerConfig
 	cache    *lru.Cache
+	cacheMu  sync.Mutex // protects the pointer to the cache
 	isMobile bool
 	db       *leveldb.DB
 	stopCh   chan struct{}
@@ -101,6 +102,12 @@ func newLevelDbCleanerWithConfig(mctx MetaContext, dbName string, config DbClean
 		go c.monitorAppState()
 	}
 	return c
+}
+
+func (c *levelDbCleaner) getCache() *lru.Cache {
+	c.cacheMu.Lock()
+	defer c.cacheMu.Unlock()
+	return c.cache
 }
 
 func (c *levelDbCleaner) Status() string {
@@ -156,10 +163,14 @@ func (c *levelDbCleaner) cacheKey(key []byte) string {
 	return string(key)
 }
 
-func (c *levelDbCleaner) clearCache() {
+func (c *levelDbCleaner) shutdown() {
 	c.Lock()
 	defer c.Unlock()
-	c.cache, _ = lru.New(1)
+	var err error
+	c.cache, err = lru.New(1)
+	if err != nil {
+		panic(err.Error())
+	}
 }
 
 func (c *levelDbCleaner) shouldCleanLocked(force bool) bool {
@@ -169,7 +180,7 @@ func (c *levelDbCleaner) shouldCleanLocked(force bool) bool {
 	if force {
 		return true
 	}
-	validCache := c.cache.Len() >= c.config.MinCacheSize
+	validCache := c.getCache() != nil && c.cache.Len() >= c.config.MinCacheSize
 	return validCache &&
 		c.G().GetClock().Now().Sub(c.lastRun) >= c.config.CleanInterval
 }
@@ -313,15 +324,17 @@ func (c *levelDbCleaner) attemptClean(ctx context.Context) {
 }
 
 func (c *levelDbCleaner) markRecentlyUsed(ctx context.Context, key []byte) {
-	c.Lock()
-	c.cache.Add(c.cacheKey(key), true)
-	c.Unlock()
+	cache := c.getCache()
+	if cache != nil {
+		c.cache.Add(c.cacheKey(key), true)
+	}
 	c.attemptClean(ctx)
 }
 
 func (c *levelDbCleaner) removeRecentlyUsed(ctx context.Context, key []byte) {
-	c.Lock()
-	c.cache.Remove(c.cacheKey(key))
-	c.Unlock()
+	cache := c.getCache()
+	if cache != nil {
+		c.cache.Remove(c.cacheKey(key))
+	}
 	c.attemptClean(ctx)
 }

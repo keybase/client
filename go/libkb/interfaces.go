@@ -669,7 +669,6 @@ type ExternalServicesCollector interface {
 	ListServicesThatAcceptNewProofs(MetaContext) []string
 	ListDisplayConfigs(MetaContext) (res []keybase1.ServiceDisplayConfig)
 	SuggestionFoldPriority(MetaContext) int
-	Purge(*GlobalContext)
 }
 
 // Generic store for data that is hashed into the merkle root. Used by pvl and
@@ -757,7 +756,7 @@ type HiddenTeamChainManager interface {
 	Tombstone(MetaContext, keybase1.TeamID) error
 	// Untrusted hint of what a team's latest seqno is
 	HintLatestSeqno(m MetaContext, id keybase1.TeamID, seqno keybase1.Seqno) error
-	Purge(m MetaContext)
+	Shutdown(m MetaContext)
 }
 
 type TeamRoleMapManager interface {
