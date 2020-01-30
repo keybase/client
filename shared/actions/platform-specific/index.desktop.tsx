@@ -85,7 +85,7 @@ function* initializeInputMonitor(): Iterable<any> {
   }
 }
 
-export const dumpLogs = async (_?: Container.TypedState, action?: ConfigGen.DumpLogsPayload) => {
+export const dumpLogs = async (action?: ConfigGen.DumpLogsPayload) => {
   const fromRender = await logger.dump()
   const globalLogger: typeof logger = SafeElectron.getRemote().getGlobal('globalLogger')
   const fromMain = await globalLogger.dump()
@@ -413,7 +413,7 @@ export function* platformConfigSaga() {
   yield* Saga.chainAction2(ConfigGen.setOpenAtLogin, setOpenAtLogin)
   yield* Saga.chainAction2(ConfigGen.setNotifySound, setNotifySound)
   yield* Saga.chainAction2(ConfigGen.showMain, showMainWindow)
-  yield* Saga.chainAction2(ConfigGen.dumpLogs, dumpLogs)
+  yield* Saga.chainAction(ConfigGen.dumpLogs, dumpLogs)
   getEngine().registerCustomResponse('keybase.1.logsend.prepareLogsend')
   yield* Saga.chainAction(EngineGen.keybase1LogsendPrepareLogsend, prepareLogSend)
   yield* Saga.chainAction2(EngineGen.connected, onConnected)
