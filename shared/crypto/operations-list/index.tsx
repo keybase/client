@@ -4,7 +4,7 @@ import * as Styles from '../../styles'
 import * as Constants from '../../constants/crypto'
 import * as Types from '../../constants/types/crypto'
 import {memoize} from '../../util/memoize'
-import OperationRow from './operation-row/container'
+import OperationRow from './operation-row'
 
 type Props = {
   children?: React.ReactNode
