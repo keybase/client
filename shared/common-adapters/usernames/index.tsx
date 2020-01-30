@@ -152,6 +152,10 @@ const _Usernames = (props: Props) => {
   const readers = props.users.filter(u => !!u.readOnly)
   const bgMode = props.backgroundMode || null
   const isNegative = backgroundModeIsNegative(bgMode)
+  // very slow TS
+  const anySuffixType: any = props.suffixType as any
+  const anyPropsType: any = props.type as any
+  const suffixType: TextType = props.suffix ? anySuffixType ?? anyPropsType : anyPropsType
 
   return (
     <Text
@@ -181,7 +185,7 @@ const _Usernames = (props: Props) => {
       <UsernameText {...props} users={readers} />
       {!!props.suffix && (
         <Text
-          type={props.suffixType || props.type}
+          type={suffixType}
           negative={isNegative}
           style={Styles.collapseStyles([props.style, {marginLeft: Styles.globalMargins.xtiny}])}
         >

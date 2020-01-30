@@ -183,12 +183,13 @@ const placeholderAction = FsGen.createPlaceholderAction()
 type _MakeErrorArgs = {
   time?: number
   error: any
-  erroredAction: FsGen.Actions | EngineGen.Actions
-  retriableAction?: FsGen.Actions | EngineGen.Actions
+  // this causes tons of TS time
+  erroredAction: any // FsGen.Actions | EngineGen.Actions
+  retriableAction?: any //FsGen.Actions | EngineGen.Actions
 }
-export const makeError = (args?: _MakeErrorArgs): Types.FsError => {
+export const makeError = (args?: any): Types.FsError => {
   // TS Issue: https://github.com/microsoft/TypeScript/issues/26235
-  const {time, error, erroredAction, retriableAction} = (args || {}) as Partial<NonNullable<_MakeErrorArgs>>
+  const {time, error, erroredAction, retriableAction} = args || {} //as Partial<NonNullable<_MakeErrorArgs>>
   return {
     errorMessage: !error ? 'unknown error' : error.message || JSON.stringify(error),
     erroredAction: erroredAction || placeholderAction,

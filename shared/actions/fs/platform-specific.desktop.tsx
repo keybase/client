@@ -260,13 +260,12 @@ const uninstallKBFS = () =>
     SafeElectron.getApp().exit(0)
   })
 
-// @ts-ignore
 const uninstallDokanConfirm = async (state: TypedState) => {
   if (state.fs.sfmi.driverStatus.type !== Types.DriverStatusType.Enabled) {
     return false
   }
   if (!state.fs.sfmi.driverStatus.dokanUninstallExecPath) {
-    const action = await new Promise<TypedActions>(resolve =>
+    const action = await new Promise(resolve =>
       SafeElectron.getDialog()
         .showMessageBox({
           buttons: ['Got it'],

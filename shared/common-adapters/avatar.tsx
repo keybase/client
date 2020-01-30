@@ -87,7 +87,7 @@ const followIconHelper = (size: AvatarSize, followsYou: boolean, following: bool
   const iconSize = size === 128 ? 28 : 21
   const rel =
     followsYou === following ? (followsYou ? 'mutual-follow' : null) : followsYou ? 'follow-me' : 'following'
-  const iconType = rel ? (`icon-${rel}-${iconSize}` as IconType) : undefined
+  const iconType: IconType | undefined = (rel ? `icon-${rel}-${iconSize}` : undefined) as any
   const iconStyle = followSizeToStyle.get(size)
   return {
     iconSize,

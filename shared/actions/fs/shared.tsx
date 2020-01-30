@@ -14,7 +14,7 @@ const expectedOfflineErrorMatchers = [
 const expectedOfflineErrorCodes = [RPCTypes.StatusCode.scapinetworkerror, RPCTypes.StatusCode.scstreameof]
 
 const makeErrorHandler = (
-  action: FsGen.Actions | EngineGen.Actions,
+  action: any, //FsGen.Actions | EngineGen.Actions,
   path: Types.Path | null,
   retriable: boolean
 ) => (error: any): Array<TypedActions> => {
