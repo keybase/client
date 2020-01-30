@@ -120,11 +120,10 @@ export const OutputBar = (props: OutputBarProps) => {
   const waiting = Container.useAnyWaiting(waitingKey)
 
   // Store
-  const outputHidden = Container.useSelector(state => state.crypto[operation].output)
+  const output = Container.useSelector(state => state.crypto[operation].output.stringValue())
   const outputMatchesInput = Container.useSelector(state => state.crypto[operation].outputMatchesInput)
   const outputStatus = Container.useSelector(state => state.crypto[operation].outputStatus)
   const outputType = Container.useSelector(state => state.crypto[operation].outputType)
-  const output = outputHidden.stringValue()
   const actionsDisabled = waiting || !outputMatchesInput
 
   // Actions
@@ -214,11 +213,10 @@ const Output = (props: OutputProps) => {
   const dispatch = Container.useDispatch()
 
   // Store
-  const outputHidden = Container.useSelector(state => state.crypto[operation].output)
+  const output = Container.useSelector(state => state.crypto[operation].output.stringValue())
   const outputMatchesInput = Container.useSelector(state => state.crypto[operation].outputMatchesInput)
   const outputStatus = Container.useSelector(state => state.crypto[operation].outputStatus)
   const outputType = Container.useSelector(state => state.crypto[operation].outputType)
-  const output = outputHidden.stringValue()
 
   // Actions
   const onShowInFinder = React.useCallback(() => {
