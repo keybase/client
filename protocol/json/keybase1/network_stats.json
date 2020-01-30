@@ -4,68 +4,67 @@
   "types": [
     {
       "type": "record",
-      "name": "InstrumentationDiskRecord",
+      "name": "InstrumentationStat",
       "fields": [
+        {
+          "type": "string",
+          "name": "tag",
+          "mpackkey": "t"
+        },
+        {
+          "type": "int",
+          "name": "numCalls",
+          "mpackkey": "n"
+        },
         {
           "type": "Time",
           "name": "ctime",
           "mpackkey": "c"
         },
         {
-          "type": "DurationMsec",
-          "name": "dur",
-          "mpackkey": "d"
-        },
-        {
-          "type": "int64",
-          "name": "size",
-          "mpackkey": "s"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "InstrumentationStat",
-      "fields": [
-        {
-          "type": "string",
-          "name": "tag"
-        },
-        {
-          "type": "int",
-          "name": "numCalls"
+          "type": "Time",
+          "name": "mtime",
+          "mpackkey": "m"
         },
         {
           "type": "DurationMsec",
-          "name": "avgDur"
+          "name": "avgDur",
+          "mpackkey": "ad"
         },
         {
           "type": "DurationMsec",
-          "name": "maxDur"
+          "name": "maxDur",
+          "mpackkey": "xd"
         },
         {
           "type": "DurationMsec",
-          "name": "minDur"
+          "name": "minDur",
+          "mpackkey": "nd"
         },
         {
           "type": "DurationMsec",
-          "name": "totalDur"
+          "name": "totalDur",
+          "mpackkey": "td"
         },
         {
           "type": "int64",
-          "name": "avgSize"
+          "name": "avgSize",
+          "mpackkey": "as"
         },
         {
           "type": "int64",
-          "name": "maxSize"
+          "name": "maxSize",
+          "mpackkey": "xs"
         },
         {
           "type": "int64",
-          "name": "minSize"
+          "name": "minSize",
+          "mpackkey": "ns"
         },
         {
           "type": "int64",
-          "name": "totalSize"
+          "name": "totalSize",
+          "mpackkey": "ts"
         }
       ]
     }

@@ -7,37 +7,27 @@ import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
-type InstrumentationDiskRecord struct {
-	Ctime Time         `codec:"c" json:"ctime"`
-	Dur   DurationMsec `codec:"d" json:"dur"`
-	Size  int64        `codec:"s" json:"size"`
-}
-
-func (o InstrumentationDiskRecord) DeepCopy() InstrumentationDiskRecord {
-	return InstrumentationDiskRecord{
-		Ctime: o.Ctime.DeepCopy(),
-		Dur:   o.Dur.DeepCopy(),
-		Size:  o.Size,
-	}
-}
-
 type InstrumentationStat struct {
-	Tag       string       `codec:"tag" json:"tag"`
-	NumCalls  int          `codec:"numCalls" json:"numCalls"`
-	AvgDur    DurationMsec `codec:"avgDur" json:"avgDur"`
-	MaxDur    DurationMsec `codec:"maxDur" json:"maxDur"`
-	MinDur    DurationMsec `codec:"minDur" json:"minDur"`
-	TotalDur  DurationMsec `codec:"totalDur" json:"totalDur"`
-	AvgSize   int64        `codec:"avgSize" json:"avgSize"`
-	MaxSize   int64        `codec:"maxSize" json:"maxSize"`
-	MinSize   int64        `codec:"minSize" json:"minSize"`
-	TotalSize int64        `codec:"totalSize" json:"totalSize"`
+	Tag       string       `codec:"t" json:"tag"`
+	NumCalls  int          `codec:"n" json:"numCalls"`
+	Ctime     Time         `codec:"c" json:"ctime"`
+	Mtime     Time         `codec:"m" json:"mtime"`
+	AvgDur    DurationMsec `codec:"ad" json:"avgDur"`
+	MaxDur    DurationMsec `codec:"xd" json:"maxDur"`
+	MinDur    DurationMsec `codec:"nd" json:"minDur"`
+	TotalDur  DurationMsec `codec:"td" json:"totalDur"`
+	AvgSize   int64        `codec:"as" json:"avgSize"`
+	MaxSize   int64        `codec:"xs" json:"maxSize"`
+	MinSize   int64        `codec:"ns" json:"minSize"`
+	TotalSize int64        `codec:"ts" json:"totalSize"`
 }
 
 func (o InstrumentationStat) DeepCopy() InstrumentationStat {
 	return InstrumentationStat{
 		Tag:       o.Tag,
 		NumCalls:  o.NumCalls,
+		Ctime:     o.Ctime.DeepCopy(),
+		Mtime:     o.Mtime.DeepCopy(),
 		AvgDur:    o.AvgDur.DeepCopy(),
 		MaxDur:    o.MaxDur.DeepCopy(),
 		MinDur:    o.MinDur.DeepCopy(),

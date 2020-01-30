@@ -12,18 +12,42 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-func toInstrumentationDiskRecord(record rpc.InstrumentationRecord) keybase1.InstrumentationDiskRecord {
-	return keybase1.InstrumentationDiskRecord{
-		Ctime: keybase1.ToTime(record.Ctime),
-		Dur:   keybase1.ToDurationMsec(record.Dur),
-		Size:  record.Size,
+func AddRPCRecord(tag string, stat keybase1.InstrumentationStat, record rpc.InstrumentationRecord) keybase1.InstrumentationStat {
+	if stat.NumCalls == 0 {
+		stat.Ctime = keybase1.ToTime(time.Now())
 	}
+	if stat.Tag == "" {
+		stat.Tag = tag
+	}
+
+	stat.Mtime = keybase1.ToTime(time.Now())
+	stat.NumCalls += 1
+	dur := keybase1.ToDurationMsec(record.Dur)
+	stat.TotalDur += dur
+	if dur > stat.MaxDur {
+		stat.MaxDur = dur
+	}
+	if dur < stat.MinDur || stat.NumCalls == 1 {
+		stat.MinDur = dur
+	}
+
+	stat.TotalSize += record.Size
+	if record.Size > stat.MaxSize {
+		stat.MaxSize = record.Size
+	}
+	if record.Size < stat.MinSize || stat.NumCalls == 1 {
+		stat.MinSize = record.Size
+	}
+
+	stat.AvgDur = stat.TotalDur / keybase1.DurationMsec(stat.NumCalls)
+	stat.AvgSize = stat.TotalSize / int64(stat.NumCalls)
+	return stat
 }
 
 type DiskInstrumentationStorage struct {
 	Contextified
 	sync.Mutex
-	storage map[string][]rpc.InstrumentationRecord
+	storage map[string]keybase1.InstrumentationStat
 
 	eg     errgroup.Group
 	stopCh chan struct{}
@@ -34,7 +58,7 @@ var _ rpc.InstrumenterStorage = (*DiskInstrumentationStorage)(nil)
 func NewDiskInstrumentationStorage(g *GlobalContext) *DiskInstrumentationStorage {
 	return &DiskInstrumentationStorage{
 		Contextified: NewContextified(g),
-		storage:      make(map[string][]rpc.InstrumentationRecord),
+		storage:      make(map[string]keybase1.InstrumentationStat),
 	}
 }
 
@@ -56,7 +80,7 @@ func (s *DiskInstrumentationStorage) Stop() chan struct{} {
 		s.stopCh = nil
 		go func() {
 			if err := s.eg.Wait(); err != nil {
-				s.G().Log.Debug("unable to wait for shutdown: %v", err)
+				s.G().Log.Debug("DiskInstrumentationStorage: flush: unable to wait for shutdown: %v", err)
 			}
 			close(ch)
 		}()
@@ -73,7 +97,7 @@ func (s *DiskInstrumentationStorage) flushLoop(stopCh chan struct{}) error {
 			return s.Flush()
 		case <-time.After(5 * time.Minute):
 			if err := s.Flush(); err != nil {
-				s.G().Log.Debug("unable to flush: %v", err)
+				s.G().Log.Debug("DiskInstrumentationStorage: flushLoop: unable to flush: %v", err)
 			}
 		}
 	}
@@ -82,27 +106,25 @@ func (s *DiskInstrumentationStorage) flushLoop(stopCh chan struct{}) error {
 func (s *DiskInstrumentationStorage) Flush() (err error) {
 	s.Lock()
 	storage := s.storage
-	s.storage = make(map[string][]rpc.InstrumentationRecord)
+	s.storage = make(map[string]keybase1.InstrumentationStat)
 	s.Unlock()
 	return s.flush(storage)
 }
 
-func (s *DiskInstrumentationStorage) flush(storage map[string][]rpc.InstrumentationRecord) (err error) {
+func (s *DiskInstrumentationStorage) flush(storage map[string]keybase1.InstrumentationStat) (err error) {
 	defer s.G().CTraceTimed(context.TODO(), "DiskInstrumentationStorage: flush", func() error { return err })()
-	for tag, records := range storage {
-		for _, record := range records {
-			if err := s.G().LocalDb.PutObjMsgpack(s.dbKey(tag, record.Ctime), nil, toInstrumentationDiskRecord(record)); err != nil {
-				return err
-			}
+	for tag, record := range storage {
+		if err := s.G().LocalDb.PutObjMsgpack(s.dbKey(tag), nil, record); err != nil {
+			return err
 		}
 	}
 	return nil
 }
 
-func (s *DiskInstrumentationStorage) dbKey(tag string, ctime time.Time) DbKey {
+func (s *DiskInstrumentationStorage) dbKey(tag string) DbKey {
 	return DbKey{
 		Typ: DBNetworkInstrumentation,
-		Key: fmt.Sprintf("%s:%d", tag, ctime.Unix()),
+		Key: tag,
 	}
 }
 
@@ -123,7 +145,7 @@ func (s *DiskInstrumentationStorage) getAllKeysLocked() (keys []DbKey, err error
 	return keys, nil
 }
 
-func (s *DiskInstrumentationStorage) GetAll() (res map[string][]keybase1.InstrumentationDiskRecord, err error) {
+func (s *DiskInstrumentationStorage) GetAll() (res map[string]keybase1.InstrumentationStat, err error) {
 	defer s.G().CTraceTimed(context.TODO(), "DiskInstrumentationStorage: GetAll", func() error { return err })()
 	s.Lock()
 	defer s.Unlock()
@@ -136,10 +158,10 @@ func (s *DiskInstrumentationStorage) GetAll() (res map[string][]keybase1.Instrum
 	if err != nil {
 		return nil, err
 	}
-	res = make(map[string][]keybase1.InstrumentationDiskRecord)
+	res = make(map[string]keybase1.InstrumentationStat)
 	for _, dbKey := range dbKeys {
 		tag := strings.Split(dbKey.Key, ":")[0]
-		var record keybase1.InstrumentationDiskRecord
+		var record keybase1.InstrumentationStat
 		ok, err := s.G().LocalDb.GetIntoMsgpack(&record, dbKey)
 		if err != nil {
 			return nil, err
@@ -149,12 +171,13 @@ func (s *DiskInstrumentationStorage) GetAll() (res map[string][]keybase1.Instrum
 		}
 		// Keep only window of the past month
 		if time.Since(record.Ctime.Time()) > time.Hour*24*30 {
+			s.G().Log.Debug("DiskInstrumentationStorage: GetAll: purging record from", record.Ctime.Time())
 			if err := s.G().LocalDb.Delete(dbKey); err != nil {
-				s.G().Log.Debug("unable to delete old record: %v", err)
+				s.G().Log.Debug("DiskInstrumentationStorage: GetAll: unable to delete old record: %v", err)
 			}
 			continue
 		}
-		res[tag] = append(res[tag], record)
+		res[tag] = record
 	}
 	return res, nil
 }
@@ -165,33 +188,8 @@ func (s *DiskInstrumentationStorage) Stats() (res []keybase1.InstrumentationStat
 	if err != nil {
 		return nil, err
 	}
-	for tag, records := range all {
-		stat := keybase1.InstrumentationStat{
-			Tag:      tag,
-			NumCalls: len(records),
-		}
-		for i, record := range records {
-			stat.TotalDur += record.Dur
-			if record.Dur > stat.MaxDur {
-				stat.MaxDur = record.Dur
-			}
-			if record.Dur < stat.MinDur || i == 0 {
-				stat.MinDur = record.Dur
-			}
-
-			stat.TotalSize += record.Size
-			if record.Size > stat.MaxSize {
-				stat.MaxSize = record.Size
-			}
-			if record.Size < stat.MinSize || i == 0 {
-				stat.MinSize = record.Size
-			}
-		}
-
-		if len(records) > 0 {
-			stat.AvgDur = stat.TotalDur / keybase1.DurationMsec(len(records))
-			stat.AvgSize = stat.TotalSize / int64(len(records))
-		}
+	res = make([]keybase1.InstrumentationStat, 0, len(all))
+	for _, stat := range all {
 		res = append(res, stat)
 	}
 
@@ -201,6 +199,6 @@ func (s *DiskInstrumentationStorage) Stats() (res []keybase1.InstrumentationStat
 func (s *DiskInstrumentationStorage) Put(tag string, record rpc.InstrumentationRecord) error {
 	s.Lock()
 	defer s.Unlock()
-	s.storage[tag] = append(s.storage[tag], record)
+	s.storage[tag] = AddRPCRecord(tag, s.storage[tag], record)
 	return nil
 }

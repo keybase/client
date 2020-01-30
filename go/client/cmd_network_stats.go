@@ -145,6 +145,14 @@ func (c *CmdNetworkStats) Run() (err error) {
 		},
 		flexibletable.Cell{
 			Alignment: flexibletable.Left,
+			Content:   flexibletable.SingleCell{Item: "Ctime"},
+		},
+		flexibletable.Cell{
+			Alignment: flexibletable.Left,
+			Content:   flexibletable.SingleCell{Item: "Mtime"},
+		},
+		flexibletable.Cell{
+			Alignment: flexibletable.Left,
 			Content:   flexibletable.SingleCell{Item: "Avg"},
 		},
 		flexibletable.Cell{
@@ -191,6 +199,14 @@ func (c *CmdNetworkStats) Run() (err error) {
 			},
 			flexibletable.Cell{
 				Alignment: flexibletable.Left,
+				Content:   flexibletable.SingleCell{Item: humanize.Time(stat.Ctime.Time())},
+			},
+			flexibletable.Cell{
+				Alignment: flexibletable.Left,
+				Content:   flexibletable.SingleCell{Item: humanize.Time(stat.Mtime.Time())},
+			},
+			flexibletable.Cell{
+				Alignment: flexibletable.Left,
 				Content:   flexibletable.SingleCell{Item: stat.AvgDur.Duration().String()},
 			},
 			flexibletable.Cell{
@@ -228,15 +244,17 @@ func (c *CmdNetworkStats) Run() (err error) {
 	}
 	if err := table.Render(ui.OutputWriter(), " ", w, []flexibletable.ColumnConstraint{
 		50,
-		flexibletable.Expandable,
-		flexibletable.Expandable,
-		flexibletable.Expandable,
-		flexibletable.Expandable,
-		flexibletable.Expandable,
-		flexibletable.Expandable,
-		flexibletable.Expandable,
-		flexibletable.Expandable,
-		flexibletable.Expandable,
+		20,
+		40,
+		40,
+		35,
+		35,
+		35,
+		35,
+		35,
+		35,
+		35,
+		35,
 	}); err != nil {
 		return fmt.Errorf("rendering stat info list view error: %v\n", err)
 	}
