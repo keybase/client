@@ -1,6 +1,7 @@
 package avatars
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -58,9 +59,10 @@ type populateArg struct {
 }
 
 type FullCachingSource struct {
-	diskLRU        *lru.DiskLRU
-	staleThreshold time.Duration
-	simpleSource   libkb.AvatarLoaderSource
+	diskLRU              *lru.DiskLRU
+	diskLRUCleanerCancel context.CancelFunc
+	staleThreshold       time.Duration
+	simpleSource         libkb.AvatarLoaderSource
 
 	populateCacheCh chan populateArg
 
@@ -87,11 +89,16 @@ func (c *FullCachingSource) StartBackgroundTasks(m libkb.MetaContext) {
 	for i := 0; i < 10; i++ {
 		go c.populateCacheWorker(m)
 	}
+	m, cancel := m.WithContextCancel()
+	c.diskLRUCleanerCancel = cancel
 	// go lru.CleanOutOfSyncWithDelay(m, c.diskLRU, c.getCacheDir(m), 10*time.Second)
 }
 
 func (c *FullCachingSource) StopBackgroundTasks(m libkb.MetaContext) {
 	close(c.populateCacheCh)
+	if c.diskLRUCleanerCancel != nil {
+		c.diskLRUCleanerCancel()
+	}
 	if err := c.diskLRU.Flush(m.Ctx(), m.G()); err != nil {
 		c.debug(m, "StopBackgroundTasks: unable to flush diskLRU %v", err)
 	}
