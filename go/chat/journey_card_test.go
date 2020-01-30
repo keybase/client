@@ -231,7 +231,7 @@ func TestJourneycardDismissTeamwide(t *testing.T) {
 	err = tc0.ChatG.JourneyCardManager.(*JourneyCardManager).TimeTravel(ctx0, uid0, time.Hour*24*40+1)
 	require.NoError(t, err)
 
-	for i, convID := range allConvIDs {
+	for _, convID := range allConvIDs {
 		requireJourneycard(convID, chat1.JourneycardType_CHANNEL_INACTIVE)
 	}
 
