@@ -49,26 +49,26 @@ const TeamJourneyContainer = (props: Props) => {
   switch (props.message.cardType) {
     case RPCChatTypes.JourneycardType.welcome:
       image = 'icon-illustration-welcome-96'
-      actions = props.teamType === 'big' ? [{label: 'Browse channels', onClick: props.onBrowseChannels}] : []
+      if (!props.cannotWrite) {
+        actions.push('wave')
+      }
+      if (props.teamType === 'big') {
+        actions.push({label: 'Browse channels', onClick: props.onBrowseChannels})
+      }
       if (props.canShowcase) {
         actions.push({label: 'Publish team on your profile', onClick: props.onPublishTeam})
       }
-      if (!props.cannotWrite) {
-        actions.unshift('wave')
-        textComponent = (
-          <Kb.Text type="BodySmall">
-            <Kb.Emoji allowFontScaling={true} size={Styles.globalMargins.small} emojiName=":wave:" /> Welcome
-            to the team! Say hi to everyone and introduce yourself.
-          </Kb.Text>
-        )
-      } else {
-        textComponent = (
-          <Kb.Text type="BodySmall">
-            <Kb.Emoji allowFontScaling={true} size={Styles.globalMargins.small} emojiName=":wave:" /> Welcome
-            to the team!
-          </Kb.Text>
-        )
-      }
+      textComponent = props.cannotWrite ? (
+        <Kb.Text type="BodySmall">
+          <Kb.Emoji allowFontScaling={true} size={Styles.globalMargins.small} emojiName=":wave:" /> Welcome to
+          the team!
+        </Kb.Text>
+      ) : (
+        <Kb.Text type="BodySmall">
+          <Kb.Emoji allowFontScaling={true} size={Styles.globalMargins.small} emojiName=":wave:" /> Welcome to
+          the team! Say hi to everyone and introduce yourself.
+        </Kb.Text>
+      )
       break
     case RPCChatTypes.JourneycardType.popularChannels:
       actions = props.otherChannelsForPopular.map(chan => ({
