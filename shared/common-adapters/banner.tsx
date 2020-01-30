@@ -4,7 +4,7 @@ import Icon, {IconType} from './icon'
 import Text from './text'
 import * as Styles from '../styles'
 
-const Kb = {IconType}
+const Kb = {Icon, IconType}
 
 type Color = 'blue' | 'red' | 'yellow' | 'green' | 'grey' | 'white'
 
@@ -117,7 +117,7 @@ export const Banner = (props: BannerProps) => (
         <Icon
           padding="xtiny"
           sizeType="Small"
-          type={Kb.IconType.iconfont_close}
+          type={Kb.Icon.makeFastType(Kb.IconType.iconfont_close)}
           color={colorToIconColor()[props.color]}
           hoverColor={colorToIconHoverColor()[props.color]}
           onClick={props.onClose}

@@ -69,7 +69,7 @@ const UserInput = ({isPublic, onSubmit, onCancel, onUpdateText, username, text}:
         }}
       />
       <Kb.Icon
-        type={Kb.IconType.iconfont_folder_open}
+        type={Kb.Icon.makeFastType(Kb.IconType.iconfont_folder_open)}
         onClick={onSubmit}
         style={Styles.platformStyles({
           isElectron: Styles.desktopStyles.clickable,

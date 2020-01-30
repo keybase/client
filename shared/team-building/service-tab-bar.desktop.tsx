@@ -36,7 +36,7 @@ const ServiceIcon = (props: IconProps) => {
             <Kb.Icon
               color={color}
               fontSize={16}
-              type={serviceIdToIconFont(props.service)}
+              type={Kb.Icon.makeFastType(serviceIdToIconFont(props.service))}
               boxStyle={styles.serviceIconBox}
             />
           </Kb.Box2>
@@ -123,7 +123,7 @@ const MoreNetworkItem = (props: {service: ServiceIdWithContact}) => (
     <Kb.Icon
       style={styles.moreNetworkItemIcon}
       color={serviceIdToAccentColor(props.service)}
-      type={serviceIdToIconFont(props.service)}
+      type={Kb.Icon.makeFastType(serviceIdToIconFont(props.service))}
     />
     <Kb.Text type="Body">{serviceIdToLongLabel(props.service).join(' ')}</Kb.Text>
   </Kb.Box2>

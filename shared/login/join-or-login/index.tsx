@@ -39,7 +39,7 @@ const Intro = (props: Props) => {
         centerChildren={true}
       >
         <Kb.Box2 direction="vertical" fullWidth={true} gap="small" alignItems="center">
-          <Kb.Icon type={Kb.IconType.icon_keybase_logo_64} />
+          <Kb.Icon type={Kb.Icon.makeFastType(Kb.IconType.icon_keybase_logo_64)} />
           <Kb.Text type="HeaderBig" style={styles.text}>
             Join Keybase
           </Kb.Text>

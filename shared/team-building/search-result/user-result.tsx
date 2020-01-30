@@ -58,14 +58,18 @@ const ActionButton = (props: {
 
 const AddButton = () => (
   <Kb.Icon
-    type={Kb.IconType.iconfont_circle}
+    type={Kb.Icon.makeFastType(Kb.IconType.iconfont_circle)}
     fontSize={actionButtonSize}
     color={Styles.globalColors.black_20}
   />
 )
 
 const AlreadyAddedIconButton = () => (
-  <Kb.Icon type={Kb.IconType.iconfont_success} fontSize={actionButtonSize} color={Styles.globalColors.blue} />
+  <Kb.Icon
+    type={Kb.Icon.makeFastType(Kb.IconType.iconfont_success)}
+    fontSize={actionButtonSize}
+    color={Styles.globalColors.blue}
+  />
 )
 
 const styles = Styles.styleSheetCreate(() => ({

@@ -91,7 +91,11 @@ const WalletRow = (props: Props) => {
         fullWidth={true}
       >
         <Kb.Icon
-          type={props.isSelected ? Kb.IconType.icon_wallet_open_32 : Kb.IconType.icon_wallet_32}
+          type={
+            props.isSelected
+              ? Kb.Icon.makeFastType(Kb.IconType.icon_wallet_open_32)
+              : Kb.Icon.makeFastType(Kb.IconType.icon_wallet_32)
+          }
           color={Styles.globalColors.black}
           style={styles.icon}
         />

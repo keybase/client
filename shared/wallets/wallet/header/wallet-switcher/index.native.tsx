@@ -15,7 +15,7 @@ export const WalletSwitcher = (props: Props) => {
     view: (
       <Kb.ClickableBox onClick={onWhatIsStellar}>
         <Kb.Box2 centerChildren={true} direction="horizontal" style={styles.infoTextRowContainer}>
-          <Kb.Icon type={Kb.IconType.iconfont_info} />
+          <Kb.Icon type={Kb.Icon.makeFastType(Kb.IconType.iconfont_info)} />
           <Kb.Text style={styles.infoText} type="BodySemibold">
             What is Stellar?
           </Kb.Text>

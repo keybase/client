@@ -48,7 +48,11 @@ class _DeleteChannel extends React.Component<Props, State> {
         direction="horizontal"
         style={Styles.collapseStyles([styles.container, disabled && {opacity: 0.5}])}
       >
-        <Kb.Icon type={Kb.IconType.iconfont_trash} style={styles.trashIcon} color={Styles.globalColors.red} />
+        <Kb.Icon
+          type={Kb.Icon.makeFastType(Kb.IconType.iconfont_trash)}
+          style={styles.trashIcon}
+          color={Styles.globalColors.red}
+        />
         <Kb.Text
           type="BodyBigLink"
           style={styles.colorRed}

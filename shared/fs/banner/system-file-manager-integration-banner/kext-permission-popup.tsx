@@ -11,7 +11,10 @@ type Props = {
 
 const Illustration = () => (
   <Kb.Box style={styles.illustrationContainer}>
-    <Kb.Icon style={styles.image} type={Kb.IconType.illustration_security_preferences} />
+    <Kb.Icon
+      style={styles.image}
+      type={Kb.Icon.makeFastType(Kb.IconType.illustration_security_preferences)}
+    />
     <Kb.Box
       style={Styles.collapseStyles([styles.highlight, {bottom: 49, height: 24, left: 36, width: 136}])}
     />

@@ -60,7 +60,7 @@ const Text = React.forwardRef<NativeText, TextProps>((p, ref) => {
     style.fontSize = p.fontSize || pStyle.width
   }
 
-  const temp = Shared.fontSize(Shared.typeToIconMapper(p.type))
+  const temp = Shared.fontSize(p.type)
   if (temp) {
     style.fontSize = temp.fontSize
   }
@@ -117,10 +117,11 @@ const Icon = React.memo<Props>(
   // TODO this type is a mess
   // @ts-ignore
   React.forwardRef<any, Props>((p: Props, ref: any) => {
+    const eitherType: any = p.type
+    const iconType: IconType = eitherType.isFast ? eitherType.type : eitherType
     const sizeType = p.sizeType || 'Default'
     // Only apply props.style to icon if there is no onClick
     const hasContainer = p.onClick && p.style
-    const iconType = Shared.typeToIconMapper(p.type)
 
     if (!iconType) {
       logger.warn('Null iconType passed')
@@ -145,7 +146,7 @@ const Icon = React.memo<Props>(
         <Text
           style={hasContainer ? null : p.style}
           color={color}
-          type={p.type}
+          type={iconType}
           ref={wrap ? undefined : ref}
           fontSize={p.fontSize}
           sizeType={sizeType}
@@ -179,6 +180,11 @@ const Icon = React.memo<Props>(
   })
 )
 Icon.displayName = 'Icon'
+
+// @ts-ignore
+Icon.makeFastType = (type: IconType): FastIconType => {
+  return Shared.makeFastType(type)
+}
 
 export function iconTypeToImgSet(imgMap: {[size: string]: IconType}, targetSize: number): any {
   const multsMap = Shared.getMultsMap(imgMap, targetSize)

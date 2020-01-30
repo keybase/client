@@ -1,42 +1,42 @@
 import * as React from 'react'
 import openURL from '../../util/open-url'
-import {Avatar, Box, Button, Icon, Text, HeaderHoc} from '../../common-adapters'
+import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {serviceIdToLogo24} from '../../util/platforms'
 import {Props} from '.'
 import {serviceIdToPrettyName} from '../../constants/team-building'
 
 const NonUserRender = (props: Props) => (
-  <Box style={styles.container}>
-    <Box style={styles.header} />
-    <Box style={styles.bioBlurb}>
-      <Avatar onClick={() => openURL(props.profileUrl)} size={128} />
-      <Box style={styles.usernameRow} onClick={() => openURL(props.profileUrl)}>
-        <Icon type={serviceIdToLogo24(props.serviceId)} />
-        <Text type="HeaderBig" selectable={true} style={styles.username}>
+  <Kb.Box style={styles.container}>
+    <Kb.Box style={styles.header} />
+    <Kb.Box style={styles.bioBlurb}>
+      <Kb.Avatar onClick={() => openURL(props.profileUrl)} size={128} />
+      <Kb.Box style={styles.usernameRow} onClick={() => openURL(props.profileUrl)}>
+        <Kb.Icon type={Kb.Icon.makeFastType(serviceIdToLogo24(props.serviceId))} />
+        <Kb.Text type="HeaderBig" selectable={true} style={styles.username}>
           {props.username}
-        </Text>
-      </Box>
+        </Kb.Text>
+      </Kb.Box>
       {props.fullname && (
-        <Text type="BodySemibold" selectable={true} style={styles.fullname}>
+        <Kb.Text type="BodySemibold" selectable={true} style={styles.fullname}>
           {props.fullname}
-        </Text>
+        </Kb.Text>
       )}
-      <Text type="BodySmall" style={styles.serviceLabel}>
+      <Kb.Text type="BodySmall" style={styles.serviceLabel}>
         {serviceIdToPrettyName(props.serviceId)} user
-      </Text>
-    </Box>
-    <Button
+      </Kb.Text>
+    </Kb.Box>
+    <Kb.Button
       style={{marginTop: Styles.globalMargins.medium}}
       onClick={props.onStartChat}
       label="Start a chat"
     />
-    <Text center={true} type="BodySmall" style={styles.details}>{`When ${
+    <Kb.Text center={true} type="BodySmall" style={styles.details}>{`When ${
       props.username
     } connects Keybase and their ${serviceIdToPrettyName(
       props.serviceId
-    )} account, your computer will verify them and rekey the folder or conversation.`}</Text>
-  </Box>
+    )} account, your computer will verify them and rekey the folder or conversation.`}</Kb.Text>
+  </Kb.Box>
 )
 
 const styles = Styles.styleSheetCreate(() => ({
@@ -81,4 +81,4 @@ const styles = Styles.styleSheetCreate(() => ({
   },
 }))
 
-export default HeaderHoc(NonUserRender)
+export default Kb.HeaderHoc(NonUserRender)

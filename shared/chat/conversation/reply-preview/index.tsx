@@ -46,7 +46,7 @@ const ReplyPreview = (props: Props) => {
           </Kb.Box2>
           <Kb.Icon
             onClick={props.onCancel}
-            type={Kb.IconType.iconfont_remove}
+            type={Kb.Icon.makeFastType(Kb.IconType.iconfont_remove)}
             style={styles.close}
             boxStyle={styles.close}
           />

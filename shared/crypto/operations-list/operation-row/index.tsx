@@ -27,7 +27,7 @@ const OperationRow = (props: Props) => {
         firstItem={true}
         statusIcon={
           <Kb.Icon
-            type={props.icon}
+            type={Kb.Icon.makeFastType(props.icon)}
             sizeType="Small"
             color={props.isSelected ? Styles.globalColors.whiteOrWhite : ''}
             padding="xtiny"

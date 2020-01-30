@@ -6,6 +6,8 @@ import {getStyle as getTextStyle} from './text'
 import * as Styles from '../styles'
 import './input.css'
 
+const Kb = {Icon}
+
 export type _Props = {
   containerStyle?: Styles.StylesCrossPlatform
   decoration?: React.ReactNode
@@ -62,7 +64,7 @@ class ReflessNewInput extends React.Component<Props & RefProps, State> {
           <Box style={styles.icon}>
             <Icon
               color={Styles.globalColors.black_20} // not sure how to make this dynamic
-              type={this.props.icon}
+              type={Kb.Icon.makeFastType(this.props.icon)}
               fontSize={textStyle.fontSize}
               style={styles.displayFlex}
             />

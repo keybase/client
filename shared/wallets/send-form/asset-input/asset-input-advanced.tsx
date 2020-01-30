@@ -232,7 +232,11 @@ export const AssetPathIntermediate = (props: AssetPathIntermediateProps) => {
           onClick={() => setExpanded(expanded => !expanded)}
         >
           <Kb.Icon
-            type={expanded ? Kb.IconType.iconfont_collapse : Kb.IconType.iconfont_expand}
+            type={
+              expanded
+                ? Kb.Icon.makeFastType(Kb.IconType.iconfont_collapse)
+                : Kb.Icon.makeFastType(Kb.IconType.iconfont_expand)
+            }
             sizeType="Small"
             color={Styles.globalColors.purple}
           />
@@ -349,7 +353,7 @@ const PickAssetButton = (props: PickAssetButtonProps) => {
                   : 'Pick an asset'}
               </Kb.Text>
               <Kb.Icon
-                type={Kb.IconType.iconfont_caret_down}
+                type={Kb.Icon.makeFastType(Kb.IconType.iconfont_caret_down)}
                 sizeType="Tiny"
                 color={Styles.globalColors.purple}
               />

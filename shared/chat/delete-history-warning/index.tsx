@@ -12,7 +12,11 @@ const DeleteHistoryWarning = ({onCancel, onDeleteHistory}: Props) => (
   <Kb.MaybePopup onClose={onCancel}>
     <Kb.Box style={Styles.collapseStyles([Styles.globalStyles.flexBoxColumn, styles.padding, styles.box])}>
       <Kb.Icon
-        type={Styles.isMobile ? Kb.IconType.icon_message_deletion_64 : Kb.IconType.icon_message_deletion_48}
+        type={
+          Styles.isMobile
+            ? Kb.Icon.makeFastType(Kb.IconType.icon_message_deletion_64)
+            : Kb.Icon.makeFastType(Kb.IconType.icon_message_deletion_48)
+        }
       />
       <Kb.Text style={{padding: Styles.globalMargins.small}} type="Header">
         Delete conversation history?

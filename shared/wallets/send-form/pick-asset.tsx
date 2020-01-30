@@ -88,7 +88,10 @@ const AssetList = ({accountID, isSender, username}) => {
                     </Kb.Text>
                   </Kb.Box2>
                   {!!selected && (
-                    <Kb.Icon type={Kb.IconType.iconfont_check} color={Styles.globalColors.blueDark} />
+                    <Kb.Icon
+                      type={Kb.Icon.makeFastType(Kb.IconType.iconfont_check)}
+                      color={Styles.globalColors.blueDark}
+                    />
                   )}
                 </Kb.Box2>
               }

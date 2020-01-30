@@ -30,7 +30,13 @@ const SelfReset = (_: Props) => (
       />
     </Kb.Banner>
     <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexGrow} centerChildren={true}>
-      <Kb.Icon type={isMobile ? Kb.IconType.icon_skull_64 : Kb.IconType.icon_skull_48} />
+      <Kb.Icon
+        type={
+          isMobile
+            ? Kb.Icon.makeFastType(Kb.IconType.icon_skull_64)
+            : Kb.Icon.makeFastType(Kb.IconType.icon_skull_48)
+        }
+      />
     </Kb.Box2>
   </Kb.Box2>
 )

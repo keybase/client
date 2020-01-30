@@ -12,8 +12,14 @@ export type DisallowedStyles = {
 }
 export type IconStyle = CustomStyles<'color' | 'hoverColor' | 'fontSize', {}>
 
+/**
+ * Due to a performance issue we need to not pass this type directly as props into this component
+ */
+
+export type FastIconType = {isFast: true; type: string}
+
 export type Props = {
-  type: IconType
+  type: FastIconType
   hint?: string
   noContainer?: boolean
   onClick?: ((event: React.BaseSyntheticEvent) => void) | null
@@ -41,6 +47,7 @@ declare class Icon extends React.Component<Props> {
   defaultProps: {
     sizeType: 'Default'
   }
+  static makeFastType(iconType: IconType): FastIconType
 }
 
 export default Icon

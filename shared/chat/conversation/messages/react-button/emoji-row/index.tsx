@@ -67,7 +67,7 @@ class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
               <Kb.Icon
                 className="hover_contained_color_blue"
                 style={styles.icon}
-                type={Kb.IconType.iconfont_reacji}
+                type={Kb.Icon.makeFastType(Kb.IconType.iconfont_reacji)}
               />
             </Kb.Box>
           </Kb.WithTooltip>
@@ -77,7 +77,7 @@ class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
                 <Kb.Icon
                   className="hover_contained_color_blue"
                   style={styles.icon}
-                  type={Kb.IconType.iconfont_reply}
+                  type={Kb.Icon.makeFastType(Kb.IconType.iconfont_reply)}
                 />
               </Kb.Box>
             </Kb.WithTooltip>

@@ -457,7 +457,7 @@ class _PhoneInput extends React.Component<Kb.PropsWithOverlay<Props>, State> {
               ref={this.props.setAttachmentRef}
             >
               {this.renderCountrySelector()}
-              <Kb.Icon type={Kb.IconType.iconfont_caret_down} sizeType="Tiny" />
+              <Kb.Icon type={Kb.Icon.makeFastType(Kb.IconType.iconfont_caret_down)} sizeType="Tiny" />
             </Kb.Box2>
           </Kb.ClickableBox>
         </Kb.Box2>

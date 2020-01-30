@@ -52,7 +52,7 @@ const WalletRow = (props: Props) => {
   const rightIcon = (
     <Kb.Box2 direction="horizontal" style={styles.icon}>
       {props.isSelected ? (
-        <Kb.Icon type={Kb.IconType.iconfont_check} color={Styles.globalColors.blue} />
+        <Kb.Icon type={Kb.Icon.makeFastType(Kb.IconType.iconfont_check)} color={Styles.globalColors.blue} />
       ) : props.unreadPayments > 0 ? (
         <Kb.Badge badgeNumber={props.unreadPayments} />
       ) : null}
@@ -65,7 +65,10 @@ const WalletRow = (props: Props) => {
           {props.keybaseUser ? (
             <Kb.Avatar size={16} style={styles.avatar} username={props.keybaseUser} />
           ) : (
-            <Kb.Icon style={styles.avatar} type={Kb.IconType.icon_placeholder_secret_user_16} />
+            <Kb.Icon
+              style={styles.avatar}
+              type={Kb.Icon.makeFastType(Kb.IconType.icon_placeholder_secret_user_16)}
+            />
           )}
           <Kb.Text type="BodyBig" style={props.isSelected ? styles.titleSelected : styles.title}>
             {props.name}

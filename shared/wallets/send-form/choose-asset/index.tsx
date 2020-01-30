@@ -131,7 +131,7 @@ const DisplayChoice = (props: DisplayChoiceProps) => (
       </Kb.BoxGrow>
       {props.selected && (
         <Kb.Icon
-          type={Kb.IconType.iconfont_check}
+          type={Kb.Icon.makeFastType(Kb.IconType.iconfont_check)}
           color={Styles.globalColors.blue}
           boxStyle={styles.checkIcon}
         />

@@ -59,8 +59,8 @@ class DeleteRepo extends React.Component<Props, State> {
           <Kb.Icon
             type={
               this.props.teamname
-                ? Kb.IconType.icon_repo_team_delete_48
-                : Kb.IconType.icon_repo_personal_delete_48
+                ? Kb.Icon.makeFastType(Kb.IconType.icon_repo_team_delete_48)
+                : Kb.Icon.makeFastType(Kb.IconType.icon_repo_personal_delete_48)
             }
           />
           <Kb.Box style={styles.avatarBox}>

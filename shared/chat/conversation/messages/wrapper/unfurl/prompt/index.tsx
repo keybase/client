@@ -12,8 +12,8 @@ export type Props = {
 }
 
 const promptIcon = Styles.isMobile
-  ? Kb.IconType.icon_fancy_unfurl_preview_mobile_128_128
-  : Kb.IconType.icon_fancy_unfurl_preview_desktop_96_96
+  ? Kb.Icon.makeFastType(Kb.IconType.icon_fancy_unfurl_preview_mobile_128_128)
+  : Kb.Icon.makeFastType(Kb.IconType.icon_fancy_unfurl_preview_desktop_96_96)
 
 class UnfurlPrompt extends React.PureComponent<Props> {
   render() {
@@ -43,7 +43,7 @@ class UnfurlPrompt extends React.PureComponent<Props> {
         </Kb.Box2>
         <Kb.Box2 direction="horizontal" style={styles.closeContainer}>
           <Kb.Icon
-            type={Kb.IconType.iconfont_close}
+            type={Kb.Icon.makeFastType(Kb.IconType.iconfont_close)}
             onClick={this.props.onNotnow}
             fontSize={16}
             padding="xtiny"

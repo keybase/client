@@ -4,7 +4,7 @@ import Text from './text'
 import Icon, {IconType} from './icon'
 import * as Styles from '../styles'
 
-const Kb = {IconType}
+const Kb = {Icon, IconType}
 
 class BackButton extends Component<Props> {
   _onClick = (event: React.BaseSyntheticEvent) => {
@@ -25,7 +25,7 @@ class BackButton extends Component<Props> {
         onClick={this._onClick}
       >
         <Icon
-          type={Kb.IconType.iconfont_arrow_left}
+          type={Kb.Icon.makeFastType(Kb.IconType.iconfont_arrow_left)}
           style={this.props.onClick ? styles.icon : styles.disabledIcon}
           color={this.props.iconColor}
         />

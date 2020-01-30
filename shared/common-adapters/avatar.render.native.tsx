@@ -41,7 +41,10 @@ const Avatar = (props: Props) => {
         )}
         {!!props.blocked && (
           <Kb.Box style={[imageStyles[props.size], {borderRadius}]}>
-            <Icon type={Kb.IconType.icon_poop_96} style={styles[`icon:${props.size}`]} />
+            <Icon
+              type={Kb.Icon.makeFastType(Kb.IconType.icon_poop_96)}
+              style={styles[`icon:${props.size}`]}
+            />
           </Kb.Box>
         )}
         {!!props.url && (
@@ -66,13 +69,13 @@ const Avatar = (props: Props) => {
         )}
         {props.followIconType && (
           <Kb.Icon
-            type={props.followIconType}
+            type={Kb.Icon.makeFastType(props.followIconType)}
             style={Styles.collapseStyles([iconStyles[props.followIconSize], props.followIconStyle])}
           />
         )}
         {props.editable && (
           <Kb.Icon
-            type={Kb.IconType.iconfont_edit}
+            type={Kb.Icon.makeFastType(Kb.IconType.iconfont_edit)}
             onClick={props.onEditAvatarClick}
             style={props.isTeam ? styles.editTeam : styles.edit}
           />

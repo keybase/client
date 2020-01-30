@@ -39,7 +39,9 @@ const Item = (props: ItemProps) => {
       <Kb.Text type="Body" style={{flex: 1}}>
         {content}
       </Kb.Text>
-      {props.selected && <Kb.Icon type={Kb.IconType.iconfont_check} color={globalColors.blue} />}
+      {props.selected && (
+        <Kb.Icon type={Kb.Icon.makeFastType(Kb.IconType.iconfont_check)} color={globalColors.blue} />
+      )}
     </Kb.Box2>
   )
 }

@@ -29,11 +29,11 @@ const Kb = {
 }
 
 const sendIcon = Styles.isMobile
-  ? Kb.IconType.icon_fancy_stellar_sending_mobile_149_129
-  : Kb.IconType.icon_fancy_stellar_sending_desktop_98_86
+  ? Kb.Icon.makeFastType(Kb.IconType.icon_fancy_stellar_sending_mobile_149_129)
+  : Kb.Icon.makeFastType(Kb.IconType.icon_fancy_stellar_sending_desktop_98_86)
 const receiveIcon = Styles.isMobile
-  ? Kb.IconType.icon_fancy_stellar_receiving_mobile_149_129
-  : Kb.IconType.icon_fancy_stellar_receiving_desktop_98_86
+  ? Kb.Icon.makeFastType(Kb.IconType.icon_fancy_stellar_receiving_mobile_149_129)
+  : Kb.Icon.makeFastType(Kb.IconType.icon_fancy_stellar_receiving_desktop_98_86)
 
 const headerIconHeight = Styles.isMobile ? 129 : 86
 const pendingIconSize = 40
@@ -70,7 +70,7 @@ export type Props = {
 const headerIcon = (props: HeaderProps) =>
   props.status === 'pending' ? (
     <Kb.Icon
-      type={Kb.IconType.iconfont_time}
+      type={Kb.Icon.makeFastType(Kb.IconType.iconfont_time)}
       color={Styles.globalColors.black_50}
       fontSize={pendingIconSize}
       style={styles.pendingHeaderIcon}

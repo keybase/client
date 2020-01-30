@@ -100,14 +100,14 @@ const ServiceIcons = ({userDetailsAssertions}: ServiceIconsProps) => {
             containerStyle={styles.iconContainer}
           >
             <Kb.Icon
-              type={Platforms.serviceIdToIcon(serviceId)}
+              type={Kb.Icon.makeFastType(Platforms.serviceIdToIcon(serviceId))}
               color={assertion.state === 'valid' ? Styles.globalColors.black : Styles.globalColors.black_20}
             />
             {assertion.state !== 'valid' && (
               <Kb.Icon
                 fontSize={Styles.isMobile ? 12 : 10}
                 style={styles.brokenBadge}
-                type={Kb.IconType.iconfont_proof_broken}
+                type={Kb.Icon.makeFastType(Kb.IconType.iconfont_proof_broken)}
                 color={Styles.globalColors.red}
               />
             )}
@@ -188,7 +188,7 @@ const ProfileCard = ({
     >
       {!!showClose && (
         <Kb.Icon
-          type={Kb.IconType.iconfont_close}
+          type={Kb.Icon.makeFastType(Kb.IconType.iconfont_close)}
           onClick={() => {}}
           boxStyle={styles.close}
           padding="tiny"

@@ -8,7 +8,7 @@ const Edit = ({onClick, style}: {onClick: () => void; style: Object}) => (
   <Kb.ClickableBox style={style} onClick={onClick}>
     <Kb.Icon
       style={{marginRight: Styles.globalMargins.xtiny}}
-      type={Kb.IconType.iconfont_edit}
+      type={Kb.Icon.makeFastType(Kb.IconType.iconfont_edit)}
       sizeType="Small"
     />
     <Kb.Text type="BodySmallPrimaryLink">Edit</Kb.Text>
@@ -94,7 +94,7 @@ const ManageChannels = (props: Props) => (
         <Kb.Box style={styles.create}>
           <Kb.Icon
             style={styles.createIcon}
-            type={Kb.IconType.iconfont_new}
+            type={Kb.Icon.makeFastType(Kb.IconType.iconfont_new)}
             onClick={props.onCreate}
             color={Styles.globalColors.blue}
           />

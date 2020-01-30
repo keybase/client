@@ -7,6 +7,8 @@ import Icon, {IconType} from '../icon'
 import Text, {TextType, StylesTextCrossPlatform} from '../text'
 import ConnectedUsernames from '../usernames/container'
 
+const Kb = {Icon}
+
 type Size = 'smaller' | 'small' | 'default' | 'big' | 'huge'
 
 // Exposed style props for the top-level container and box around metadata arbitrarily
@@ -86,7 +88,7 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
       avatarOrIcon = (
         <Icon
           boxStyle={this.props.iconBoxStyle}
-          type={this.props.icon}
+          type={Kb.Icon.makeFastType(this.props.icon)}
           style={
             this.props.horizontal
               ? styles.hIconStyle

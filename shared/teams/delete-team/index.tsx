@@ -17,7 +17,10 @@ export type Props = {
 const Header = (props: Props) => (
   <>
     <Kb.Avatar teamname={props.teamname} size={64} />
-    <Kb.Icon type={Kb.IconType.icon_team_delete_28} style={{marginRight: -60, marginTop: -20, zIndex: 1}} />
+    <Kb.Icon
+      type={Kb.Icon.makeFastType(Kb.IconType.icon_team_delete_28)}
+      style={{marginRight: -60, marginTop: -20, zIndex: 1}}
+    />
     <Kb.Text style={styles.headerTeamname} type="BodySemibold">
       {props.teamname}
     </Kb.Text>

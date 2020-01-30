@@ -27,7 +27,7 @@ const Spinner = Kb.HeaderOnMobile(_Spinner)
 const Header = (props: Props) => (
   <>
     <Kb.Avatar teamname={props.name} size={64} />
-    <Kb.Icon type={Kb.IconType.icon_team_leave_28} style={styles.headerIcon} />
+    <Kb.Icon type={Kb.Icon.makeFastType(Kb.IconType.icon_team_leave_28)} style={styles.headerIcon} />
   </>
 )
 

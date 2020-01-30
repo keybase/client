@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Styles from '../styles'
 import {Props, AvatarSize} from './avatar.render'
 const Kb = {
+  Icon,
   IconType,
 }
 
@@ -35,7 +36,9 @@ const Avatar = (props: Props) => {
         >
           {/* ts messes up here without the || 'icon-poop-32' even though it
               can't happen due to the !!avatarSizeToPoopIconType() check above */}
-          <Icon type={avatarSizeToPoopIconType(props.size) || Kb.IconType.icon_poop_32} />
+          <Icon
+            type={Kb.Icon.makeFastType(avatarSizeToPoopIconType(props.size) || Kb.IconType.icon_poop_32)}
+          />
         </div>
       )}
       {!!props.url && (
@@ -67,9 +70,14 @@ const Avatar = (props: Props) => {
           )}
         />
       )}
-      {props.followIconType && <Icon type={props.followIconType} style={props.followIconStyle} />}
+      {props.followIconType && (
+        <Icon type={Kb.Icon.makeFastType(props.followIconType)} style={props.followIconStyle} />
+      )}
       {props.editable && (
-        <Icon type={Kb.IconType.iconfont_edit} style={props.isTeam ? styles.editTeam : styles.edit} />
+        <Icon
+          type={Kb.Icon.makeFastType(Kb.IconType.iconfont_edit)}
+          style={props.isTeam ? styles.editTeam : styles.edit}
+        />
       )}
       {props.children}
     </div>

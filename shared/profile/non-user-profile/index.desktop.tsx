@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {Avatar, BackButton, Box, Button, Icon, Text} from '../../common-adapters'
+import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {serviceIdToLogo24} from '../../util/platforms'
 import {AVATAR_SIZE} from '../../constants/profile'
@@ -10,56 +10,56 @@ const HEADER_TOP_SPACE = 48
 const HEADER_SIZE = AVATAR_SIZE / 2 + HEADER_TOP_SPACE
 
 const NonUserRender = (props: Props) => (
-  <Box style={styles.container}>
-    <Box style={styles.header} />
-    <Box style={Styles.globalStyles.flexBoxColumn}>
-      <BackButton
+  <Kb.Box style={styles.container}>
+    <Kb.Box style={styles.header} />
+    <Kb.Box style={Styles.globalStyles.flexBoxColumn}>
+      <Kb.BackButton
         onClick={props.onBack}
         style={{left: 14, position: 'absolute', top: 16, zIndex: 12}}
         textStyle={{color: Styles.globalColors.white}}
         iconColor={Styles.globalColors.white}
       />
-    </Box>
-    <Box style={Styles.globalStyles.flexBoxRow}>
-      <Box style={styles.leftColumn}>
-        <Box style={styles.bioBlurb}>
-          <Avatar size={AVATAR_SIZE} />
-          <Box style={styles.usernameRow}>
-            <Icon type={serviceIdToLogo24(props.serviceId)} />
-            <Text type="HeaderBig" selectable={true} style={styles.username}>
+    </Kb.Box>
+    <Kb.Box style={Styles.globalStyles.flexBoxRow}>
+      <Kb.Box style={styles.leftColumn}>
+        <Kb.Box style={styles.bioBlurb}>
+          <Kb.Avatar size={AVATAR_SIZE} />
+          <Kb.Box style={styles.usernameRow}>
+            <Kb.Icon type={Kb.Icon.makeFastType(serviceIdToLogo24(props.serviceId))} />
+            <Kb.Text type="HeaderBig" selectable={true} style={styles.username}>
               {props.username}
-            </Text>
-          </Box>
+            </Kb.Text>
+          </Kb.Box>
           {props.fullname && (
-            <Text type="BodySemibold" selectable={true} style={styles.fullname}>
+            <Kb.Text type="BodySemibold" selectable={true} style={styles.fullname}>
               {props.fullname}
-            </Text>
+            </Kb.Text>
           )}
-          <Text type="BodySmall" style={styles.serviceLabel}>
+          <Kb.Text type="BodySmall" style={styles.serviceLabel}>
             {serviceIdToPrettyName(props.serviceId)} user
-          </Text>
-          <Button
+          </Kb.Text>
+          <Kb.Button
             style={{marginTop: Styles.globalMargins.medium}}
             onClick={props.onStartChat}
             label="Start a chat"
           />
-          <Button
+          <Kb.Button
             style={{marginTop: Styles.globalMargins.tiny}}
             onClick={props.onOpenPrivateFolder}
             label="Open private folder"
             type="Dim"
           />
-        </Box>
-      </Box>
-      <Box style={styles.rightColumn}>
-        <Text center={true} type="BodySmall" style={styles.details}>{`When ${
+        </Kb.Box>
+      </Kb.Box>
+      <Kb.Box style={styles.rightColumn}>
+        <Kb.Text center={true} type="BodySmall" style={styles.details}>{`When ${
           props.username
         } connects Keybase and their ${serviceIdToPrettyName(
           props.serviceId
-        )} account, your computer will verify them and rekey the folder or conversation.`}</Text>
-      </Box>
-    </Box>
-  </Box>
+        )} account, your computer will verify them and rekey the folder or conversation.`}</Kb.Text>
+      </Kb.Box>
+    </Kb.Box>
+  </Kb.Box>
 )
 
 const styles = Styles.styleSheetCreate(() => ({

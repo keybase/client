@@ -27,7 +27,7 @@ const Arrow = ({iconType, onClick}: arrowProps) => {
   return (
     <HoverBox className="hover_background_color_black" onClick={onClick} style={styles.circle}>
       <Kb.Icon
-        type={iconType}
+        type={Kb.Icon.makeFastType(iconType)}
         color={Styles.globalColors.white}
         style={Styles.collapseStyles([
           styles.arrow,
@@ -74,7 +74,7 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, State> 
             </Kb.Text>
             <Kb.Icon
               ref={this.props.setAttachmentRef}
-              type={Kb.IconType.iconfont_ellipsis}
+              type={Kb.Icon.makeFastType(Kb.IconType.iconfont_ellipsis)}
               style={Styles.platformStyles({
                 common: {marginLeft: Styles.globalMargins.tiny},
                 isElectron: {cursor: 'pointer'},

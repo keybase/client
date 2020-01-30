@@ -7,7 +7,7 @@ import * as Styles from '../../styles'
 import {Props, LeftActionProps} from './types'
 import {hoistNonReactStatic} from '../../util/container'
 
-const Kb = {IconType}
+const Kb = {Icon, IconType}
 
 export const HeaderHocHeader = ({
   headerStyle,
@@ -23,7 +23,7 @@ export const HeaderHocHeader = ({
     {onCancel && (
       <Icon
         style={Styles.collapseStyles([_styleClose, _styleCloseThemed[theme]])}
-        type={Kb.IconType.iconfont_close}
+        type={Kb.Icon.makeFastType(Kb.IconType.iconfont_close)}
         onClick={onCancel}
       />
     )}

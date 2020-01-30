@@ -152,7 +152,7 @@ export const FileInput = (props: FileProps) => {
     >
       <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
         <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.fileContainer}>
-          <Kb.Icon type={fileIcon} sizeType="Huge" />
+          <Kb.Icon type={Kb.Icon.makeFastType(fileIcon)} sizeType="Huge" />
           <Kb.Box2 direction="vertical">
             <Kb.Text type="BodySemibold">{path}</Kb.Text>
             {size ? (

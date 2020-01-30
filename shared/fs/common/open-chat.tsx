@@ -15,7 +15,7 @@ const OpenChat = props =>
   props.onChat && (
     <Kb.WithTooltip tooltip={`Chat with users in this ${props.isTeam ? 'team' : 'folder'}`}>
       <Kb.Icon
-        type={Kb.IconType.iconfont_chat}
+        type={Kb.Icon.makeFastType(Kb.IconType.iconfont_chat)}
         color={Styles.globalColors.black_50}
         fontSize={16}
         onClick={props.onChat}

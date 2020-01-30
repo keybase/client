@@ -75,7 +75,11 @@ class CoinFlip extends React.Component<Props, State> {
             {!Styles.isMobile && 'Collecting '}commitments: {this.props.participants.length}
           </Kb.Text>
           {this.props.phase === 'secrets' && (
-            <Kb.Icon type={Kb.IconType.iconfont_check} color={Styles.globalColors.green} sizeType="Small" />
+            <Kb.Icon
+              type={Kb.Icon.makeFastType(Kb.IconType.iconfont_check)}
+              color={Styles.globalColors.green}
+              sizeType="Small"
+            />
           )}
         </Kb.Box2>
         {this.props.phase === 'secrets' && (

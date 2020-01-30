@@ -175,7 +175,7 @@ const load = () => {
           <Kb.Text type="BodySemibold" lineClamp={1} style={{flex: 1}}>
             {longText}
           </Kb.Text>
-          <Icon type={Kb.IconType.iconfont_edit} />
+          <Icon type={Kb.Icon.makeFastType(Kb.IconType.iconfont_edit)} />
         </Kb.Box>
 
         <Kb.Text type="Body" style={{marginTop: Styles.globalMargins.small}}>

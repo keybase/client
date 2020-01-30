@@ -9,7 +9,7 @@ import * as Styles from '../../styles'
 import {Action, Props, LeftActionProps} from './types'
 import {hoistNonReactStatic} from '../../util/container'
 
-const Kb = {IconType}
+const Kb = {Icon, IconType}
 
 const MAX_RIGHT_ACTIONS = 3
 
@@ -184,7 +184,11 @@ const RightActions = ({
 const RightActionsOverflow = ({floatingMenuVisible, hideFloatingMenu, rightActions, showFloatingMenu}) =>
   rightActions && rightActions.length > MAX_RIGHT_ACTIONS ? (
     <>
-      <Icon onClick={showFloatingMenu} style={styles.action} type={Kb.IconType.iconfont_ellipsis} />
+      <Icon
+        onClick={showFloatingMenu}
+        style={styles.action}
+        type={Kb.Icon.makeFastType(Kb.IconType.iconfont_ellipsis)}
+      />
       <FloatingMenu
         visible={floatingMenuVisible}
         items={rightActions.slice(MAX_RIGHT_ACTIONS - 1).map(action => ({
@@ -209,7 +213,7 @@ const renderAction = (action: Action, index: number): React.ReactNode =>
       key={action.label || index}
       onClick={action.onPress}
       style={styles.action}
-      type={action.icon}
+      type={Kb.Icon.makeFastType(action.icon)}
     />
   ) : (
     <Text

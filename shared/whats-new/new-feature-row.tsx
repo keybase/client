@@ -63,7 +63,10 @@ const NewFeature = (props: Props) => {
         </Kb.Text>
         {props.image && (
           <Kb.Box2 direction="vertical" style={styles.imageContainer}>
-            <Kb.Icon type={props.image} style={Styles.collapseStyles([styles.image, props.imageStyle])} />
+            <Kb.Icon
+              type={Kb.Icon.makeFastType(props.image)}
+              style={Styles.collapseStyles([styles.image, props.imageStyle])}
+            />
           </Kb.Box2>
         )}
         <Kb.Box2 direction="horizontal" style={styles.buttonRowContainer} gap="xtiny">

@@ -9,7 +9,7 @@ type OwnProps = {}
 
 const Import = ({onCancel}) => (
   <Modal onCancel={onCancel}>
-    <Kb.Icon type={Kb.IconType.icon_pgp_key_import_48} />
+    <Kb.Icon type={Kb.Icon.makeFastType(Kb.IconType.icon_pgp_key_import_48)} />
     <Kb.Text style={styleHeader} type="Header">
       Import a PGP key
     </Kb.Text>

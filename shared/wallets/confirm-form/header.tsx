@@ -17,8 +17,8 @@ const Header = (props: HeaderProps) => (
       <Kb.Icon
         type={
           Styles.isMobile
-            ? Kb.IconType.icon_fancy_stellar_sending_mobile_149_129
-            : Kb.IconType.icon_fancy_stellar_sending_desktop_98_86
+            ? Kb.Icon.makeFastType(Kb.IconType.icon_fancy_stellar_sending_mobile_149_129)
+            : Kb.Icon.makeFastType(Kb.IconType.icon_fancy_stellar_sending_desktop_98_86)
         }
         style={styles.headerIcon}
       />

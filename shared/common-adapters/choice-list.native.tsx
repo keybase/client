@@ -6,6 +6,8 @@ import React, {Component} from 'react'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {Props} from './choice-list'
 
+const Kb = {Icon}
+
 type State = {
   activeIndex: number | null
 }
@@ -37,7 +39,7 @@ class ChoiceList extends Component<Props, State> {
               <Box style={styleEntry}>
                 <Box style={styleIconContainer(this.state.activeIndex === idx)}>
                   {typeof op.icon === 'string' ? (
-                    <Icon style={styleIcon} type={iconType} />
+                    <Icon style={styleIcon} type={Kb.Icon.makeFastType(iconType)} />
                   ) : (
                     <Box style={styleIcon}>{op.icon}</Box>
                   )}

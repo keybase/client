@@ -27,7 +27,7 @@ const BigTeamsDivider = ({toggle, badgeCount}: Props) => (
       {badgeCount > 0 && <Kb.Badge badgeStyle={styles.badge} badgeNumber={badgeCount} />}
       <Kb.Box style={styles.icon}>
         <Kb.Icon
-          type={Kb.IconType.iconfont_arrow_up}
+          type={Kb.Icon.makeFastType(Kb.IconType.iconfont_arrow_up)}
           inheritColor={true}
           fontSize={Styles.isMobile ? 20 : 16}
         />

@@ -163,7 +163,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
       this.props.icon &&
       !this.typing() && (
         <Kb.Icon
-          type={this.props.icon}
+          type={Kb.Icon.makeFastType(this.props.icon)}
           sizeType={this.iconSizeType()}
           color={this.iconColor()}
           boxStyle={styles.icon}
@@ -232,7 +232,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
       return (
         <Kb.ClickableBox onClick={this.props.mobileCancelButton ? this.clear : this.cancel}>
           <Kb.Icon
-            type={Kb.IconType.iconfont_remove}
+            type={Kb.Icon.makeFastType(Kb.IconType.iconfont_remove)}
             sizeType={this.iconSizeType()}
             color={this.iconColor()}
             style={styles.removeIconNonFullWidth}
@@ -251,7 +251,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
           }
         >
           <Kb.Icon
-            type={Kb.IconType.iconfont_remove}
+            type={Kb.Icon.makeFastType(Kb.IconType.iconfont_remove)}
             sizeType={this.iconSizeType()}
             color={this.iconColor()}
             boxStyle={styles.icon}

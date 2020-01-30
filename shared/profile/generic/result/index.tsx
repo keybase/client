@@ -13,7 +13,9 @@ type Props = {
 
 const _Result = (props: Props) => {
   const success = !props.errorText
-  const iconType = success ? Kb.IconType.icon_proof_success : Kb.IconType.icon_proof_broken
+  const iconType = success
+    ? Kb.Icon.makeFastType(Kb.IconType.icon_proof_success)
+    : Kb.Icon.makeFastType(Kb.IconType.icon_proof_broken)
   let frag = (
     <>
       <Kb.Text type="Body">You are provably</Kb.Text>

@@ -84,7 +84,7 @@ const FilesTabBadge = () => {
 const TabBarIcon = ({badgeNumber, focused, routeName}) => (
   <Kb.NativeView style={tabStyles.container}>
     <Kb.Icon
-      type={icons[routeName]}
+      type={Kb.Icon.makeFastType(icons[routeName])}
       fontSize={32}
       style={tabStyles.tab}
       color={focused ? Styles.globalColors.whiteOrWhite : Styles.globalColors.blueDarkerOrBlack}

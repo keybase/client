@@ -6,7 +6,7 @@ import Icon, {IconType} from './icon'
 import logger from '../logger'
 import * as Styles from '../styles'
 
-const Kb = {IconType}
+const Kb = {Icon, IconType}
 
 // Although not mentioned in
 // https://reactjs.org/blog/2017/07/26/error-handling-in-react-16.html ,
@@ -110,7 +110,7 @@ const Fallback = ({closeOnClick, info: {name, message, stack, componentStack}, s
       </Box>
       {closeOnClick && (
         <Icon
-          type={Kb.IconType.iconfont_close}
+          type={Kb.Icon.makeFastType(Kb.IconType.iconfont_close)}
           style={{position: 'absolute', right: Styles.globalMargins.tiny, top: Styles.globalMargins.tiny}}
           onClick={closeOnClick}
         />

@@ -36,7 +36,11 @@ const getCode = (props: Props) => (
     </Kb.Text>
     <Kb.Icon
       sizeType="Tiny"
-      type={props.expanded ? Kb.IconType.iconfont_caret_down : Kb.IconType.iconfont_caret_right}
+      type={
+        props.expanded
+          ? Kb.Icon.makeFastType(Kb.IconType.iconfont_caret_down)
+          : Kb.Icon.makeFastType(Kb.IconType.iconfont_caret_right)
+      }
     />
   </Kb.Box2>
 )

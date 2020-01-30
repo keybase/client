@@ -139,11 +139,11 @@ class CodePage2 extends React.Component<Props, State> {
           }
         >
           <Kb.Icon
-            type={
+            type={Kb.Icon.makeFastType(
               this.state.tab === 'QR'
                 ? Kb.IconType.illustration_bg_provisioning_blue
                 : Kb.IconType.illustration_bg_provisioning_green
-            }
+            )}
             style={
               this.props.currentDeviceAlreadyProvisioned ? styles.backgroundOnLeft : styles.backgroundOnRight
             }
@@ -419,13 +419,13 @@ const Instructions = (p: Props) => (
           {p.otherDevice.type === 'mobile' && (
             <>
               <Kb.Icon
-                type={Kb.IconType.iconfont_nav_2_hamburger}
+                type={Kb.Icon.makeFastType(Kb.IconType.iconfont_nav_2_hamburger)}
                 color={Styles.globalColors.white}
                 sizeType="Default"
                 style={styles.hamburger}
               />
               <Kb.Icon
-                type={Kb.IconType.iconfont_arrow_right}
+                type={Kb.Icon.makeFastType(Kb.IconType.iconfont_arrow_right)}
                 color={Styles.globalColors.white}
                 sizeType="Tiny"
               />
@@ -435,7 +435,7 @@ const Instructions = (p: Props) => (
             Devices
           </Kb.Text>
           <Kb.Icon
-            type={Kb.IconType.iconfont_arrow_right}
+            type={Kb.Icon.makeFastType(Kb.IconType.iconfont_arrow_right)}
             color={Styles.globalColors.white}
             sizeType="Tiny"
           />
@@ -443,7 +443,7 @@ const Instructions = (p: Props) => (
             Add a device or paper key
           </Kb.Text>
           <Kb.Icon
-            type={Kb.IconType.iconfont_arrow_right}
+            type={Kb.Icon.makeFastType(Kb.IconType.iconfont_arrow_right)}
             color={Styles.globalColors.white}
             sizeType="Tiny"
           />

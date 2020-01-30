@@ -24,7 +24,7 @@ const Banner = ({teamID}: Props) => {
   return (
     <Kb.Box style={styles.containerBanner}>
       <Kb.Box style={styles.containerIllustration}>
-        <Kb.Icon type={Kb.IconType.icon_illustration_subteams_380} />
+        <Kb.Icon type={Kb.Icon.makeFastType(Kb.IconType.icon_illustration_subteams_380)} />
       </Kb.Box>
 
       <Kb.Box style={styles.containerText}>
@@ -57,7 +57,7 @@ const Banner = ({teamID}: Props) => {
       </Kb.Box>
       <Kb.Box style={styles.iconCloseContainer}>
         <Kb.Icon
-          type={Kb.IconType.iconfont_close}
+          type={Kb.Icon.makeFastType(Kb.IconType.iconfont_close)}
           style={{padding: Styles.globalMargins.tiny}}
           onClick={onHide}
         />

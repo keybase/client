@@ -173,7 +173,7 @@ function PendingURLContent({invite}: {invite: Types.PendingInvite}) {
   return (
     <Kb.Box style={{...Styles.globalStyles.flexBoxRow, alignItems: 'center'}}>
       <Kb.Icon
-        type={Kb.IconType.iconfont_link}
+        type={Kb.Icon.makeFastType(Kb.IconType.iconfont_link)}
         style={{
           marginRight: Styles.globalMargins.tiny,
           marginTop: 3,

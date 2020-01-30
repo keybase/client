@@ -88,7 +88,7 @@ const PathStatusIcon = (props: Props) =>
         <UploadIcon uploadIcon={props.statusIcon} style={styles.iconNonFont} />
       ) : (
         <Kb.Icon
-          type={getIcon(props.statusIcon)}
+          type={Kb.Icon.makeFastType(getIcon(props.statusIcon))}
           sizeType="Small"
           style={styles.iconFont}
           color={getColor(props.statusIcon)}
@@ -96,7 +96,11 @@ const PathStatusIcon = (props: Props) =>
       )}
     </Kb.WithTooltip>
   ) : props.isTlfType ? (
-    <Kb.Icon type={Kb.IconType.iconfont_root} sizeType="Small" style={styles.iconFont} />
+    <Kb.Icon
+      type={Kb.Icon.makeFastType(Kb.IconType.iconfont_root)}
+      sizeType="Small"
+      style={styles.iconFont}
+    />
   ) : (
     <Kb.Box style={styles.placeholder} />
   )

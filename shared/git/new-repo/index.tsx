@@ -117,7 +117,9 @@ class NewRepo extends React.Component<Props, State> {
           </Kb.Text>
           <Kb.Icon
             type={
-              this.props.isTeam ? Kb.IconType.icon_repo_team_add_48 : Kb.IconType.icon_repo_personal_add_48
+              this.props.isTeam
+                ? Kb.Icon.makeFastType(Kb.IconType.icon_repo_team_add_48)
+                : Kb.Icon.makeFastType(Kb.IconType.icon_repo_personal_add_48)
             }
             style={styles.addIcon}
           />

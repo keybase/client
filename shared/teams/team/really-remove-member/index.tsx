@@ -54,7 +54,10 @@ const ReallyRemoveMember = (props: Props) => {
         <Kb.Box style={styles.iconContainer}>
           <Kb.Avatar username={member} size={64} />
           <Kb.Box style={styles.icon}>
-            <Kb.Icon color={Styles.globalColors.red} type={Kb.IconType.iconfont_remove} />
+            <Kb.Icon
+              color={Styles.globalColors.red}
+              type={Kb.Icon.makeFastType(Kb.IconType.iconfont_remove)}
+            />
           </Kb.Box>
         </Kb.Box>
       }

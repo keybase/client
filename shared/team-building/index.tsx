@@ -161,7 +161,10 @@ const ContactsBanner = (props: ContactProps & {onRedoSearch: () => void; onRedoR
 
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.banner}>
-      <Kb.Icon type={Kb.IconType.icon_fancy_user_card_mobile_120_149} style={styles.bannerIcon} />
+      <Kb.Icon
+        type={Kb.Icon.makeFastType(Kb.IconType.icon_fancy_user_card_mobile_120_149)}
+        style={styles.bannerIcon}
+      />
       <Kb.Box2 direction="vertical" style={styles.bannerTextContainer}>
         <Kb.Text type="BodySmallSemibold" negative={true} style={styles.bannerText}>
           Import your phone contacts and start encrypted chats with your friends.
@@ -207,13 +210,16 @@ const ContactsImportButton = (props: ContactProps) => {
         style={styles.importContactsContainer}
       >
         <Kb.Box2 direction="vertical" style={styles.iconContactBookContainer}>
-          <Kb.Icon type={Kb.IconType.iconfont_contact_book} color={Styles.globalColors.black} />
+          <Kb.Icon
+            type={Kb.Icon.makeFastType(Kb.IconType.iconfont_contact_book)}
+            color={Styles.globalColors.black}
+          />
         </Kb.Box2>
         <Kb.Text type="BodyBig" lineClamp={1}>
           Import phone contacts
         </Kb.Text>
         <Kb.Icon
-          type={Kb.IconType.iconfont_arrow_right}
+          type={Kb.Icon.makeFastType(Kb.IconType.iconfont_arrow_right)}
           sizeType="Small"
           color={Styles.globalColors.black_20}
         />
@@ -271,7 +277,7 @@ const EmptyResultText = (props: {selectedService: ServiceIdWithContact; action: 
     {!Styles.isMobile && (
       <Kb.Icon
         fontSize={Styles.isMobile ? 48 : 64}
-        type={serviceIdToIconFont(props.selectedService)}
+        type={Kb.Icon.makeFastType(serviceIdToIconFont(props.selectedService))}
         style={Styles.collapseStyles([
           !!props.selectedService && {color: serviceIdToAccentColor(props.selectedService)},
         ])}

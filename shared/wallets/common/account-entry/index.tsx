@@ -26,7 +26,11 @@ const AccountEntry = (props: AccountEntryProps) => (
   >
     {props.showWalletIcon && (
       <Kb.Icon
-        type={Styles.isMobile ? Kb.IconType.icon_wallet_32 : Kb.IconType.icon_wallet_64}
+        type={
+          Styles.isMobile
+            ? Kb.Icon.makeFastType(Kb.IconType.icon_wallet_32)
+            : Kb.Icon.makeFastType(Kb.IconType.icon_wallet_64)
+        }
         color={Styles.globalColors.black}
         style={styles.icon}
       />

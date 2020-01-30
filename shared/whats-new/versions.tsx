@@ -130,7 +130,7 @@ export const LastLast = ({seen, onNavigate, onNavigateExternal}: VersionProps) =
         Listen to
         {` `}
         <Kb.Icon
-          type={Kb.IconType.iconfont_radio}
+          type={Kb.Icon.makeFastType(Kb.IconType.iconfont_radio)}
           color={Styles.globalColors.black_50}
           boxStyle={styles.inlineIcon}
           sizeType={Styles.isMobile ? 'Small' : 'Default'}

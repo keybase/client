@@ -41,7 +41,10 @@ const Rover = () => {
           left: props.xy.interpolate(transBackgroundX),
         }}
       >
-        <Kb.Icon style={styles.background} type={Kb.IconType.icon_illustration_mars_rover_background} />
+        <Kb.Icon
+          style={styles.background}
+          type={Kb.Icon.makeFastType(Kb.IconType.icon_illustration_mars_rover_background)}
+        />
       </animated.div>
       <animated.div
         style={{
@@ -52,7 +55,7 @@ const Rover = () => {
           left: props.xy.interpolate(transRoverX),
         }}
       >
-        <Kb.Icon type={Kb.IconType.icon_illustration_mars_rover} />
+        <Kb.Icon type={Kb.Icon.makeFastType(Kb.IconType.icon_illustration_mars_rover)} />
       </animated.div>
       <animated.div
         style={{
@@ -63,7 +66,10 @@ const Rover = () => {
           left: props.xy.interpolate(transForegroundX),
         }}
       >
-        <Kb.Icon style={styles.foreground} type={Kb.IconType.icon_illustration_mars_rover_foreground} />
+        <Kb.Icon
+          style={styles.foreground}
+          type={Kb.Icon.makeFastType(Kb.IconType.icon_illustration_mars_rover_foreground)}
+        />
       </animated.div>
     </div>
   )

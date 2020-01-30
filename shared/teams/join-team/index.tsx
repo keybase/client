@@ -62,7 +62,7 @@ const JoinTeam = (props: Props) => {
         <Kb.Box2 alignItems="center" direction="horizontal" fullHeight={true} fullWidth={true}>
           {props.open ? (
             <Kb.Box2 alignItems="center" direction="vertical" gap="tiny" style={styles.container}>
-              <Kb.Icon type={Kb.IconType.icon_illustration_welcome_96} />
+              <Kb.Icon type={Kb.Icon.makeFastType(Kb.IconType.icon_illustration_welcome_96)} />
               {!!props.successTeamName && (
                 <Kb.Text center={true} type="Header">
                   You’ve joined {props.successTeamName}!
@@ -78,8 +78,8 @@ const JoinTeam = (props: Props) => {
                 style={styles.icon}
                 type={
                   Styles.isMobile
-                    ? Kb.IconType.icon_fancy_email_sent_192_x_64
-                    : Kb.IconType.icon_fancy_email_sent_144_x_48
+                    ? Kb.Icon.makeFastType(Kb.IconType.icon_fancy_email_sent_192_x_64)
+                    : Kb.Icon.makeFastType(Kb.IconType.icon_fancy_email_sent_144_x_48)
                 }
               />
               <Kb.Text center={true} type="Body">

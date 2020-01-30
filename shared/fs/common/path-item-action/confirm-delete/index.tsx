@@ -15,7 +15,13 @@ const _ReallyDeleteFile = (props: Props) =>
     <Kb.ConfirmModal
       confirmText="Yes, delete"
       description="It will be deleted for everyone. This cannot be undone."
-      header={<Kb.Icon type={Kb.IconType.iconfont_trash} sizeType="Big" color={Styles.globalColors.red} />}
+      header={
+        <Kb.Icon
+          type={Kb.Icon.makeFastType(Kb.IconType.iconfont_trash)}
+          sizeType="Big"
+          color={Styles.globalColors.red}
+        />
+      }
       onCancel={props.onBack}
       onConfirm={props.onDelete}
       prompt={`Are you sure you want to delete "${Types.getPathName(props.path)}"?`}

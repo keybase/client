@@ -105,7 +105,7 @@ class MenubarRender extends React.Component<Props, State> {
           <Kb.Icon
             color={Styles.isDarkMode() ? 'rgba(255, 255, 255, 0.85)' : Styles.globalColors.blueDarker}
             hoverColor={Styles.globalColors.white}
-            type={Kb.IconType.iconfont_nav_2_hamburger}
+            type={Kb.Icon.makeFastType(Kb.IconType.iconfont_nav_2_hamburger)}
             sizeType="Big"
             style={styles.hamburgerIcon}
             onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
@@ -135,7 +135,7 @@ class MenubarRender extends React.Component<Props, State> {
           }}
         >
           <Kb.Icon
-            type={Kb.IconType.icon_keybase_logo_logged_out_64}
+            type={Kb.Icon.makeFastType(Kb.IconType.icon_keybase_logo_logged_out_64)}
             style={styles.logo}
             color={Styles.globalColors.yellow}
           />
@@ -174,7 +174,7 @@ class MenubarRender extends React.Component<Props, State> {
           <Kb.Icon
             color={Styles.globalColors.blueDarker}
             hoverColor={Styles.globalColors.white}
-            type={Kb.IconType.iconfont_nav_2_hamburger}
+            type={Kb.Icon.makeFastType(Kb.IconType.iconfont_nav_2_hamburger)}
             sizeType="Big"
             style={styles.hamburgerIcon}
             onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
@@ -198,7 +198,7 @@ class MenubarRender extends React.Component<Props, State> {
           }}
         >
           <Kb.Icon
-            type={Kb.IconType.icon_keybase_logo_logged_out_64}
+            type={Kb.Icon.makeFastType(Kb.IconType.icon_keybase_logo_logged_out_64)}
             style={styles.logo}
             color={Styles.globalColors.yellow}
           />
@@ -335,7 +335,7 @@ class MenubarRender extends React.Component<Props, State> {
               }
               hoverColor={Styles.globalColors.whiteOrWhite}
               onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
-              type={Kb.IconType.iconfont_nav_2_hamburger}
+              type={Kb.Icon.makeFastType(Kb.IconType.iconfont_nav_2_hamburger)}
               sizeType="Big"
               ref={this.attachmentRef}
             />

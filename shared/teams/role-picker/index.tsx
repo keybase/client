@@ -85,7 +85,7 @@ const rolesMetaInfo = (infoForRole: Role): RolesMetaInfo => {
           <Kb.Icon
             boxStyle={{paddingBottom: 0}}
             style={styles.roleIcon}
-            type={Kb.IconType.iconfont_crown_admin}
+            type={Kb.Icon.makeFastType(Kb.IconType.iconfont_crown_admin)}
             sizeType="Small"
           />
         ),
@@ -106,7 +106,7 @@ const rolesMetaInfo = (infoForRole: Role): RolesMetaInfo => {
           <Kb.Icon
             style={styles.roleIcon}
             boxStyle={{paddingBottom: 0}}
-            type={Kb.IconType.iconfont_crown_owner}
+            type={Kb.Icon.makeFastType(Kb.IconType.iconfont_crown_owner)}
             sizeType="Small"
           />
         ),
@@ -155,7 +155,11 @@ const roleAbilities = (
       }
     >
       <Kb.Icon
-        type={canDo ? Kb.IconType.iconfont_check : Kb.IconType.iconfont_close}
+        type={
+          canDo
+            ? Kb.Icon.makeFastType(Kb.IconType.iconfont_check)
+            : Kb.Icon.makeFastType(Kb.IconType.iconfont_close)
+        }
         sizeType="Tiny"
         style={Styles.isMobile ? styles.abilityCheck : undefined}
         boxStyle={!Styles.isMobile ? styles.abilityCheck : undefined}

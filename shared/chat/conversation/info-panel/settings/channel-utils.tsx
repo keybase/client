@@ -49,7 +49,13 @@ const CaptionedDangerIcon = ({
   if (spinner) {
     slot = <Kb.ProgressIndicator type="Small" style={{marginRight: 10}} />
   } else if (icon) {
-    slot = <Kb.Icon type={icon} style={{marginRight: Styles.globalMargins.tiny}} color={color} />
+    slot = (
+      <Kb.Icon
+        type={Kb.Icon.makeFastType(icon)}
+        style={{marginRight: Styles.globalMargins.tiny}}
+        color={color}
+      />
+    )
   } else {
     // spacer so that spinner doesn't move the text
     slot = <Kb.Box style={{marginRight: 10, width: Styles.globalMargins.medium}} />

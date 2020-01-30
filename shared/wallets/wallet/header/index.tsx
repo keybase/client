@@ -23,7 +23,12 @@ const Header = (props: Props) => {
   // Only show caret/unread badge when we have a switcher,
   // i.e. when isMobile is true.
   const caret = Styles.isMobile && (
-    <Kb.Icon key="icon" type={Kb.IconType.iconfont_caret_down} style={styles.caret} sizeType="Tiny" />
+    <Kb.Icon
+      key="icon"
+      type={Kb.Icon.makeFastType(Kb.IconType.iconfont_caret_down)}
+      style={styles.caret}
+      sizeType="Tiny"
+    />
   )
   const unread = Styles.isMobile && props.unreadPayments && (
     <Kb.Box2 direction="vertical" style={styles.unread} />
@@ -95,7 +100,7 @@ const Header = (props: Props) => {
           narrow={Styles.isMobile}
         />
         <Kb.Button onClick={props.onSettings} mode="Secondary" style={styles.settingsButton} type="Wallet">
-          <Kb.Icon type={Kb.IconType.iconfont_gear} style={styles.gear} />
+          <Kb.Icon type={Kb.Icon.makeFastType(Kb.IconType.iconfont_gear)} style={styles.gear} />
         </Kb.Button>
       </Kb.Box2>
       {props.thisDeviceIsLockedOut && (

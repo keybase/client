@@ -223,12 +223,12 @@ class ThreadSearchDesktop extends React.Component<SearchProps & Props> {
                   <Kb.Icon
                     color={noResults ? Styles.globalColors.black_35 : Styles.globalColors.black_50}
                     onClick={!noResults ? this.props.onUp : null}
-                    type={Kb.IconType.iconfont_arrow_up}
+                    type={Kb.Icon.makeFastType(Kb.IconType.iconfont_arrow_up)}
                   />
                   <Kb.Icon
                     color={noResults ? Styles.globalColors.black_35 : Styles.globalColors.black_50}
                     onClick={!noResults ? this.props.onDown : null}
-                    type={Kb.IconType.iconfont_arrow_down}
+                    type={Kb.Icon.makeFastType(Kb.IconType.iconfont_arrow_down)}
                   />
                 </Kb.Box2>
               )}
@@ -288,12 +288,12 @@ const ThreadSearchMobile = (props: SearchProps & Props) => (
         <Kb.Icon
           color={props.hits.length > 0 ? Styles.globalColors.blue : Styles.globalColors.black_50}
           onClick={props.onUp}
-          type={Kb.IconType.iconfont_arrow_up}
+          type={Kb.Icon.makeFastType(Kb.IconType.iconfont_arrow_up)}
         />
         <Kb.Icon
           color={props.hits.length > 0 ? Styles.globalColors.blue : Styles.globalColors.black_50}
           onClick={props.onDown}
-          type={Kb.IconType.iconfont_arrow_down}
+          type={Kb.Icon.makeFastType(Kb.IconType.iconfont_arrow_down)}
         />
       </Kb.Box2>
     </Kb.Box2>

@@ -50,7 +50,7 @@ const CommandStatus = (props: Props) => {
       >
         <Kb.Icon
           onClick={props.onCancel}
-          type={Kb.IconType.iconfont_remove}
+          type={Kb.Icon.makeFastType(Kb.IconType.iconfont_remove)}
           style={styles.close}
           color={textColor(props.displayType)}
           boxStyle={styles.close}

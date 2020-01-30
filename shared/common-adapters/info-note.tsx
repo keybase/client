@@ -3,7 +3,7 @@ import Box, {Box2} from './box'
 import Icon, {IconType} from './icon'
 import * as Styles from '../styles'
 
-const Kb = {IconType}
+const Kb = {Icon, IconType}
 
 export type Props = {
   containerStyle?: Styles.StylesCrossPlatform
@@ -21,7 +21,7 @@ const InfoNote = (props: Props) => (
       <Box style={{backgroundColor: props.color || Styles.globalColors.black_10, height: 1, width: 24}} />
       <Icon
         color={props.color || Styles.globalColors.black_10}
-        type={Kb.IconType.iconfont_info}
+        type={Kb.Icon.makeFastType(Kb.IconType.iconfont_info)}
         fontSize={Styles.isMobile ? 22 : 16}
       />
       <Box style={{backgroundColor: props.color || Styles.globalColors.black_10, height: 1, width: 24}} />

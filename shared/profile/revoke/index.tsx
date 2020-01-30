@@ -33,7 +33,7 @@ const Revoke = (props: Props) => {
       <Kb.Box style={styles.contentContainer}>
         <Kb.Box style={styles.positionRelative}>
           <SiteIcon set={props.icon} full={true} style={styles.siteIcon} />
-          <Kb.Icon type={Kb.IconType.icon_proof_broken} style={styles.revokeIcon} />
+          <Kb.Icon type={Kb.Icon.makeFastType(Kb.IconType.icon_proof_broken)} style={styles.revokeIcon} />
         </Kb.Box>
         <Kb.Text center={!Styles.isMobile} style={styles.platformUsername} type="Header">
           {props.platformHandle}

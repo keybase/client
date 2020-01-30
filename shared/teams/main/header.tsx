@@ -18,7 +18,11 @@ const headerButtonBoxStyle = {
 
 const HeaderButton = (props: HeaderButtonProps) => (
   <Kb.ClickableBox onClick={props.onClick} style={headerButtonBoxStyle}>
-    <Kb.Icon type={props.iconType} color={Styles.globalColors.blue} fontSize={Styles.isMobile ? 20 : 16} />
+    <Kb.Icon
+      type={Kb.Icon.makeFastType(props.iconType)}
+      color={Styles.globalColors.blue}
+      fontSize={Styles.isMobile ? 20 : 16}
+    />
     <Kb.Text type="BodyBigLink" style={{margin: Styles.globalMargins.tiny}}>
       {props.label}
     </Kb.Text>

@@ -50,7 +50,7 @@ export const TeamJourney = (props: Props) => {
           <Kb.Box2 direction="horizontal" style={props.image ? styles.text : undefined}>
             {props.textComponent}
           </Kb.Box2>
-          {!!props.image && <Kb.Icon style={styles.image} type={props.image} />}
+          {!!props.image && <Kb.Icon style={styles.image} type={Kb.Icon.makeFastType(props.image)} />}
         </Kb.Box2>
         <Kb.ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
           <Kb.Box2
@@ -119,7 +119,11 @@ const TeamJourneyHeader = (props: HeaderProps) => (
       <Kb.Text type="BodyTiny">• System message</Kb.Text>
     </Kb.Box2>
     {!Styles.isMobile && (
-      <Kb.Icon type={Kb.IconType.iconfont_close} onClick={props.onDismiss} fontSize={12} />
+      <Kb.Icon
+        type={Kb.Icon.makeFastType(Kb.IconType.iconfont_close)}
+        onClick={props.onDismiss}
+        fontSize={12}
+      />
     )}
   </Kb.Box2>
 )

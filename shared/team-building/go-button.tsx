@@ -20,7 +20,7 @@ const GoButton = (props: Props) => (
       tooltip={
         <Kb.Box2 direction="horizontal">
           <Kb.Icon
-            type={Kb.IconType.iconfont_return}
+            type={Kb.Icon.makeFastType(Kb.IconType.iconfont_return)}
             sizeType="Small"
             color={Styles.globalColors.white}
             style={styles.goTooltipIcon}

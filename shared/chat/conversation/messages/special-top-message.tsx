@@ -72,7 +72,7 @@ class SpecialTopMessage extends React.PureComponent<Props> {
             <Kb.Icon
               color={Styles.globalColors.black_20}
               sizeType="Huge"
-              type={Kb.IconType.iconfont_warning}
+              type={Kb.Icon.makeFastType(Kb.IconType.iconfont_warning)}
             />
             <Kb.Text center={true} style={styles.errorText} type="Header">
               {this.props.createConversationErrorHeader}

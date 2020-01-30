@@ -10,7 +10,7 @@ type Props = {
 export const ExplodingExplainerElement = (props: Props) => (
   <Kb.MaybePopup onClose={props.onCancel}>
     <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={Styles.isMobile} style={styles.padding}>
-      <Kb.Icon type={Kb.IconType.icon_message_exploding_260} />
+      <Kb.Icon type={Kb.Icon.makeFastType(Kb.IconType.icon_message_exploding_260)} />
       <Kb.Text center={true} style={styles.text} type="Body">
         Exploding messages use temporary "ephemeral keys”, which enhance the security of very short-lived
         messages. We explain why they work well with short messages&nbsp;

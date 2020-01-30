@@ -4,7 +4,7 @@ import Box from './box'
 import Icon, {IconType} from './icon'
 import {isMobile} from '../constants/platform'
 
-const Kb = {IconType}
+const Kb = {Icon, IconType}
 
 type Props = {
   platform: PlatformsExpandedType
@@ -58,9 +58,9 @@ const Render = ({platform, overlay, style}: Props) => {
   const iconSpec = getSpecForPlatform(platform)
   return (
     <Box style={{position: 'relative', ...style}}>
-      <Icon type={iconSpec.icon} />
+      <Icon type={Kb.Icon.makeFastType(iconSpec.icon)} />
       <Icon
-        type={overlay}
+        type={Kb.Icon.makeFastType(overlay)}
         style={{
           bottom: iconSpec.offsetBottom,
           position: 'absolute',

@@ -40,7 +40,7 @@ const BigTeamChannel = (props: Props) => {
       outboxIcon = (
         <Kb.Icon
           style={styles.icon}
-          type={Kb.IconType.iconfont_hourglass}
+          type={Kb.Icon.makeFastType(Kb.IconType.iconfont_hourglass)}
           color={isSelected ? Styles.globalColors.white : Styles.globalColors.black_20}
         />
       )
@@ -49,7 +49,7 @@ const BigTeamChannel = (props: Props) => {
       outboxIcon = (
         <Kb.Icon
           style={styles.icon}
-          type={Kb.IconType.iconfont_exclamation}
+          type={Kb.Icon.makeFastType(Kb.IconType.iconfont_exclamation)}
           color={isSelected ? Styles.globalColors.white : Styles.globalColors.red}
         />
       )
@@ -99,16 +99,16 @@ const BigTeamChannel = (props: Props) => {
               type={
                 Styles.isMobile
                   ? isSelected
-                    ? Kb.IconType.icon_shh_active_26_21
-                    : Kb.IconType.icon_shh_26_21
-                  : Kb.IconType.iconfont_shh
+                    ? Kb.Icon.makeFastType(Kb.IconType.icon_shh_active_26_21)
+                    : Kb.Icon.makeFastType(Kb.IconType.icon_shh_26_21)
+                  : Kb.Icon.makeFastType(Kb.IconType.iconfont_shh)
               }
             />
           )}
           <Kb.Box style={styles.iconContainer}>
             {hasDraft && (
               <Kb.Icon
-                type={Kb.IconType.iconfont_edit}
+                type={Kb.Icon.makeFastType(Kb.IconType.iconfont_edit)}
                 style={styles.icon}
                 color={isSelected ? Styles.globalColors.white : undefined}
               />

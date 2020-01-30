@@ -193,7 +193,10 @@ class SaveIndicator extends React.Component<Props, State> {
       case 'justSaved':
         return (
           <>
-            <Kb.Icon type={Kb.IconType.iconfont_check} color={Styles.globalColors.green} />
+            <Kb.Icon
+              type={Kb.Icon.makeFastType(Kb.IconType.iconfont_check)}
+              color={Styles.globalColors.green}
+            />
             <Kb.Text type="BodySmall" style={{color: Styles.globalColors.greenDark}}>
               &nbsp; Saved
             </Kb.Text>

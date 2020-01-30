@@ -148,7 +148,7 @@ const _EmailPhoneRow = (props: Kb.PropsWithOverlay<Props>) => {
           >
             <Kb.Icon
               className="hover_contained_color_black"
-              type={Kb.IconType.iconfont_gear}
+              type={Kb.Icon.makeFastType(Kb.IconType.iconfont_gear)}
               ref={props.setAttachmentRef}
               style={styles.gearIcon}
             />

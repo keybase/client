@@ -84,7 +84,11 @@ class UpdatePassword extends Component<Props, State> {
       this.state.errorSaving
     ) : this.state.password.length >= 8 && this.state.passwordConfirm.length >= 8 ? (
       <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.passwordFormat}>
-        <Kb.Icon type={Kb.IconType.iconfont_check} color={Styles.globalColors.green} sizeType="Small" />
+        <Kb.Icon
+          type={Kb.Icon.makeFastType(Kb.IconType.iconfont_check)}
+          color={Styles.globalColors.green}
+          sizeType="Small"
+        />
         <Kb.Text type="BodySmallSuccess">Passwords match.</Kb.Text>
       </Kb.Box2>
     ) : (

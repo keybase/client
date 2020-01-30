@@ -23,7 +23,7 @@ export default (props: Props) => {
   }, [props.canChange, props.policy, props.teamPolicy])
   return (
     <Kb.Box style={styles.container}>
-      <Kb.Icon type={iconType} style={styles.icon} />
+      <Kb.Icon type={Kb.Icon.makeFastType(iconType)} style={styles.icon} />
       {!!props.explanation && (
         <Kb.Text center={true} type="BodySmallSemibold">
           {props.explanation}

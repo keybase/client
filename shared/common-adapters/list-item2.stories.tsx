@@ -7,7 +7,7 @@ import Icon, {IconType} from './icon'
 import Button from './button'
 import {globalColors} from '../styles'
 
-const Kb = {IconType}
+const Kb = {Icon, IconType}
 
 const body1 = (
   <Box2 direction="vertical" style={{alignSelf: 'center', backgroundColor: globalColors.orange}}>
@@ -24,9 +24,11 @@ const body3 = (
   </Box2>
 )
 const actionButton = <Button label="Action" small={true} onClick={Sb.action('button')} />
-const icon1 = <Icon type={Kb.IconType.icon_computer_32} />
-const icon2 = <Icon type={Kb.IconType.icon_bitcoin_logo_48} />
-const icon3 = <Icon type={Kb.IconType.iconfont_cloud} sizeType="Small" color={globalColors.blue} />
+const icon1 = <Icon type={Kb.Icon.makeFastType(Kb.IconType.icon_computer_32)} />
+const icon2 = <Icon type={Kb.Icon.makeFastType(Kb.IconType.icon_bitcoin_logo_48)} />
+const icon3 = (
+  <Icon type={Kb.Icon.makeFastType(Kb.IconType.iconfont_cloud)} sizeType="Small" color={globalColors.blue} />
+)
 
 const load = () => {
   Sb.storiesOf('Common', module)

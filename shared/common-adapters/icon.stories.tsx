@@ -6,7 +6,7 @@ import Text from './text'
 import * as Styles from '../styles'
 import {iconMeta} from './icon.constants-gen'
 
-const Kb = {IconType}
+const Kb = {Icon, IconType}
 
 const commonProps = {
   hint: 'hint text',
@@ -44,17 +44,37 @@ const load = () => {
       <Box>
         <Text type="Body">FontSize</Text>
         <Text type="Body">Big</Text>
-        <Icon key="big" type={Kb.IconType.iconfont_add} {...commonProps} sizeType="Big" />
+        <Icon
+          key="big"
+          type={Kb.Icon.makeFastType(Kb.IconType.iconfont_add)}
+          {...commonProps}
+          sizeType="Big"
+        />
         <Text type="Body">Default</Text>
-        <Icon key="default" type={Kb.IconType.iconfont_add} {...commonProps} sizeType="Default" />
+        <Icon
+          key="default"
+          type={Kb.Icon.makeFastType(Kb.IconType.iconfont_add)}
+          {...commonProps}
+          sizeType="Default"
+        />
         <Text type="Body">Small</Text>
-        <Icon key="small" type={Kb.IconType.iconfont_add} {...commonProps} sizeType="Small" />
+        <Icon
+          key="small"
+          type={Kb.Icon.makeFastType(Kb.IconType.iconfont_add)}
+          {...commonProps}
+          sizeType="Small"
+        />
         <Text type="Body">Tiny</Text>
-        <Icon key="tiny" type={Kb.IconType.iconfont_add} {...commonProps} sizeType="Tiny" />
+        <Icon
+          key="tiny"
+          type={Kb.Icon.makeFastType(Kb.IconType.iconfont_add)}
+          {...commonProps}
+          sizeType="Tiny"
+        />
         <Text type="Body">Red on hover</Text>
         <Icon
           key="hoverColor"
-          type={Kb.IconType.iconfont_add}
+          type={Kb.Icon.makeFastType(Kb.IconType.iconfont_add)}
           {...commonProps}
           onClick={() => commonProps.onClick(Kb.IconType.iconfont_add)}
           hoverColor={Styles.globalColors.red}
@@ -63,7 +83,7 @@ const load = () => {
         <Box style={Styles.isMobile ? {} : {color: 'red'}}>
           <Icon
             key="inherit"
-            type={Kb.IconType.iconfont_add}
+            type={Kb.Icon.makeFastType(Kb.IconType.iconfont_add)}
             {...commonProps}
             onClick={() => commonProps.onClick(Kb.IconType.iconfont_add)}
             inheritColor={true}

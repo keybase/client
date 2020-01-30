@@ -48,7 +48,9 @@ const AccountPayment = (props: Props) => {
           {props.balanceChange}
         </Kb.Text>
       )}
-      {props.showCoinsIcon && <Kb.Icon type={Kb.IconType.icon_stellar_coins_stacked_16} />}
+      {props.showCoinsIcon && (
+        <Kb.Icon type={Kb.Icon.makeFastType(Kb.IconType.icon_stellar_coins_stacked_16)} />
+      )}
     </Kb.Box2>
   )
   const contents = props.loading ? (
@@ -70,7 +72,7 @@ const AccountPayment = (props: Props) => {
         <Kb.Box2 direction="horizontal" gap="xtiny" gapEnd={true} style={styles.alignItemsCenter}>
           {!!props.icon && (
             <Kb.Icon
-              type={props.icon}
+              type={Kb.Icon.makeFastType(props.icon)}
               color={props.pending ? Styles.globalColors.purpleOrWhite : Styles.globalColors.purple}
               fontSize={12}
             />

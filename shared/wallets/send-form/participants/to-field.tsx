@@ -42,7 +42,7 @@ const ToKeybaseUser = (props: ToKeybaseUserProps) => {
               onClick="tracker"
             />
             <Kb.Icon
-              type={Kb.IconType.iconfont_remove}
+              type={Kb.Icon.makeFastType(Kb.IconType.iconfont_remove)}
               boxStyle={styles.keybaseUserRemoveButton}
               fontSize={16}
               color={Styles.globalColors.black_20}
@@ -98,7 +98,7 @@ const ToStellarPublicKey = (props: ToStellarPublicKeyProps) => {
         <Kb.Box2 direction="horizontal" gap="xxtiny" fullWidth={!Styles.isMobile} style={styles.inputInner}>
           <Kb.Icon
             sizeType={Styles.isMobile ? 'Small' : 'Default'}
-            type={Kb.IconType.iconfont_identity_stellar}
+            type={Kb.Icon.makeFastType(Kb.IconType.iconfont_identity_stellar)}
             color={
               recipientPublicKey.length === 0 || props.errorMessage
                 ? Styles.globalColors.black_20
@@ -135,7 +135,7 @@ const ToStellarPublicKey = (props: ToStellarPublicKeyProps) => {
           {!recipientPublicKey && props.onScanQRCode && (
             <Kb.Icon
               color={Styles.globalColors.black_50}
-              type={Kb.IconType.iconfont_qr_code}
+              type={Kb.Icon.makeFastType(Kb.IconType.iconfont_qr_code)}
               onClick={props.onScanQRCode}
               style={styles.qrCode}
             />

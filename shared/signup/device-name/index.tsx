@@ -48,9 +48,9 @@ const EnterDevicename = (props: Props) => {
           type={
             Styles.isMobile
               ? Platform.isLargeScreen
-                ? Kb.IconType.icon_phone_background_1_96
-                : Kb.IconType.icon_phone_background_1_64
-              : Kb.IconType.icon_computer_background_1_96
+                ? Kb.Icon.makeFastType(Kb.IconType.icon_phone_background_1_96)
+                : Kb.Icon.makeFastType(Kb.IconType.icon_phone_background_1_64)
+              : Kb.Icon.makeFastType(Kb.IconType.icon_computer_background_1_96)
           }
         />
         <Kb.Box2 direction="vertical" gap="tiny" style={styles.inputBox}>

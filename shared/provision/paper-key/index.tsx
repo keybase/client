@@ -48,7 +48,7 @@ class PaperKey extends React.Component<Props, {paperKey: string}> {
           gap={Styles.isMobile ? 'tiny' : 'medium'}
         >
           <Kb.Box2 direction="vertical" gap="tiny" centerChildren={true} gapEnd={true}>
-            <Kb.Icon type={Kb.IconType.icon_paper_key_64} />
+            <Kb.Icon type={Kb.Icon.makeFastType(Kb.IconType.icon_paper_key_64)} />
             <Kb.Text type="Header">{props.hint}</Kb.Text>
           </Kb.Box2>
           <Kb.Box2 direction="vertical" style={styles.inputContainer}>

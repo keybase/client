@@ -4,9 +4,15 @@ import * as Styles from '../../styles'
 
 const Rover = () => (
   <Kb.Box2 direction="vertical" style={styles.container}>
-    <Kb.Icon style={styles.background} type={Kb.IconType.icon_illustration_mars_rover_background} />
-    <Kb.Icon style={styles.rover} type={Kb.IconType.icon_illustration_mars_rover} />
-    <Kb.Icon style={styles.foreground} type={Kb.IconType.icon_illustration_mars_rover_foreground} />
+    <Kb.Icon
+      style={styles.background}
+      type={Kb.Icon.makeFastType(Kb.IconType.icon_illustration_mars_rover_background)}
+    />
+    <Kb.Icon style={styles.rover} type={Kb.Icon.makeFastType(Kb.IconType.icon_illustration_mars_rover)} />
+    <Kb.Icon
+      style={styles.foreground}
+      type={Kb.Icon.makeFastType(Kb.IconType.icon_illustration_mars_rover_foreground)}
+    />
   </Kb.Box2>
 )
 

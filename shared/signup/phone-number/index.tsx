@@ -84,7 +84,7 @@ export const EnterPhoneNumberBody = (props: BodyProps) => {
       fullWidth={true}
       style={Styles.globalStyles.flexOne}
     >
-      <Kb.Icon type={props.iconType} />
+      <Kb.Icon type={Kb.Icon.makeFastType(props.iconType)} />
       <Kb.Box2 direction="vertical" gap="tiny" style={styles.inputBox}>
         <PhoneInput
           autoFocus={props.autoFocus}

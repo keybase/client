@@ -4,6 +4,8 @@ import * as Styles from '../styles'
 import {Props} from './choice-list'
 import './choice-list.css'
 
+const Kb = {Icon}
+
 const ChoiceList = ({options}: Props) => {
   return (
     <Box>
@@ -26,7 +28,7 @@ const ChoiceList = ({options}: Props) => {
               className="cl-icon-container"
             >
               {typeof op.icon === 'string' ? (
-                <Icon style={styles.icon} type={iconType} className="cl-icon" />
+                <Icon style={styles.icon} type={Kb.Icon.makeFastType(iconType)} className="cl-icon" />
               ) : (
                 <Box style={styles.icon} className="cl-icon">
                   {op.icon}

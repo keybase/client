@@ -29,6 +29,6 @@ const DeviceIcon = (props: Props) => {
   } as const)[type]
   const icon: Kb.IconType = Kb.isValidIconType(maybeIcon) ? maybeIcon : defaultIcons[type]
 
-  return <Kb.Icon type={icon} style={props.style} />
+  return <Kb.Icon type={Kb.Icon.makeFastType(icon)} style={props.style} />
 }
 export default DeviceIcon

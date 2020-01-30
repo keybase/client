@@ -38,7 +38,11 @@ const Sort = (props: SortBarProps & Kb.OverlayParentProps) =>
     <>
       <Kb.ClickableBox onClick={props.toggleShowingMenu} ref={props.setAttachmentRef}>
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="xxtiny" centerChildren={Styles.isMobile}>
-          <Kb.Icon type={Kb.IconType.iconfont_arrow_full_down} padding="xtiny" sizeType="Small" />
+          <Kb.Icon
+            type={Kb.Icon.makeFastType(Kb.IconType.iconfont_arrow_full_down)}
+            padding="xtiny"
+            sizeType="Small"
+          />
           <Kb.Text type="BodySmallSemibold">{getTextFromSortSetting(props.sortSetting)}</Kb.Text>
         </Kb.Box2>
       </Kb.ClickableBox>

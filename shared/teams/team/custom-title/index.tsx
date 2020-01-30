@@ -21,13 +21,13 @@ const _CustomComponent = (props: Props & Kb.OverlayParentProps) => (
         onClick={props.onChat}
         fontSize={fontSize}
         style={styles.icon}
-        type={Kb.IconType.iconfont_chat}
+        type={Kb.Icon.makeFastType(Kb.IconType.iconfont_chat)}
       />
     )}
     <Kb.Icon
       ref={props.setAttachmentRef}
       onClick={props.toggleShowingMenu}
-      type={Kb.IconType.iconfont_ellipsis}
+      type={Kb.Icon.makeFastType(Kb.IconType.iconfont_ellipsis)}
       fontSize={fontSize}
       style={styles.icon}
     />

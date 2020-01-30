@@ -1,9 +1,22 @@
 import * as Styles from '../styles'
-import {SizeType} from './icon'
+import {FastIconType, SizeType} from './icon'
 import {iconMeta, IconType} from './icon.constants-gen'
 import './icon.css'
 
 const Kb = {IconType}
+
+// cache this so we don't mutate always
+const fastMap = new Map<string, FastIconType>()
+export function makeFastType(type: IconType): FastIconType {
+  const maybe = fastMap.get(type)
+  if (maybe) {
+    return maybe
+  }
+
+  const fast: FastIconType = {isFast: true, type}
+  fastMap.set(type, fast)
+  return fast
+}
 
 export function defaultColor(type: IconType): string | null {
   switch (type) {
@@ -34,11 +47,6 @@ export function defaultHoverColor(type: IconType): string | null {
   }
 }
 
-// Some types are the same underlying icon.
-export function typeToIconMapper(type: IconType): IconType {
-  return type
-}
-
 export function typeExtension(type: IconType): string {
   return iconMeta[type].extension || 'png'
 }
@@ -63,8 +71,7 @@ export function fontSize(type: IconType): {fontSize: number} | null {
 }
 
 export function isValidIconType(inputType: string): inputType is IconType {
-  // @ts-ignore this type is what we're checking
-  let iconType = typeToIconMapper(inputType)
+  let iconType: IconType = inputType as IconType
   return !!iconType && !!iconMeta[iconType]
 }
 

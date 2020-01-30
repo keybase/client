@@ -16,7 +16,7 @@ const WalletsIcon = (props: WalletsIconProps & Kb.OverlayParentProps) => (
     style={Styles.collapseStyles([styles.container, props.style])}
   >
     <Kb.Icon
-      type={Kb.IconType.iconfont_dollar_sign}
+      type={Kb.Icon.makeFastType(Kb.IconType.iconfont_dollar_sign)}
       fontSize={props.size}
       onClick={props.toggleShowingMenu}
     />

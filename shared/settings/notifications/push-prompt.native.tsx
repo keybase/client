@@ -50,7 +50,10 @@ const PushPrompt = () => {
       }}
     >
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} gap="small" style={styles.container}>
-        <Kb.Icon type={Kb.IconType.illustration_turn_on_notifications} style={styles.image} />
+        <Kb.Icon
+          type={Kb.Icon.makeFastType(Kb.IconType.illustration_turn_on_notifications)}
+          style={styles.image}
+        />
         <Kb.Text center={true} type="BodySemibold" negative={true}>
           Notifications are very important.
         </Kb.Text>

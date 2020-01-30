@@ -229,7 +229,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
                     colorOverride={this.props.cannotWrite ? Styles.globalColors.black_20 : null}
                     onClick={this.props.cannotWrite ? undefined : this._toggleShowingMenu}
                     padding="xtiny"
-                    type={Kb.IconType.iconfont_timer}
+                    type={Kb.Icon.makeFastType(Kb.IconType.iconfont_timer)}
                   />
                 )}
               </HoverBox>
@@ -283,18 +283,18 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
                 <Kb.Icon
                   onClick={this.props.onGiphyToggle}
                   style={styles.icon}
-                  type={Kb.IconType.iconfont_gif}
+                  type={Kb.Icon.makeFastType(Kb.IconType.iconfont_gif)}
                 />
                 <Kb.Icon
                   color={this.state.emojiPickerOpen ? Styles.globalColors.black : null}
                   onClick={this._emojiPickerToggle}
                   style={styles.icon}
-                  type={Kb.IconType.iconfont_emoji}
+                  type={Kb.Icon.makeFastType(Kb.IconType.iconfont_emoji)}
                 />
                 <Kb.Icon
                   onClick={this._filePickerOpen}
                   style={styles.icon}
-                  type={Kb.IconType.iconfont_attachment}
+                  type={Kb.Icon.makeFastType(Kb.IconType.iconfont_attachment)}
                 />
               </>
             )}

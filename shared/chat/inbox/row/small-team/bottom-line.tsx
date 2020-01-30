@@ -24,7 +24,7 @@ const SnippetDecoration = (type: Kb.IconType, color: string) => {
   return (
     <Kb.Icon
       color={color}
-      type={type}
+      type={Kb.Icon.makeFastType(type)}
       fontSize={Styles.isMobile ? 16 : 12}
       style={{alignSelf: 'flex-start'}}
     />

@@ -30,13 +30,15 @@ class UnfurlGiphy extends React.Component<Props> {
                 onClick={this.props.onCollapse}
                 sizeType="Tiny"
                 type={
-                  this.props.isCollapsed ? Kb.IconType.iconfont_caret_right : Kb.IconType.iconfont_caret_down
+                  this.props.isCollapsed
+                    ? Kb.Icon.makeFastType(Kb.IconType.iconfont_caret_right)
+                    : Kb.Icon.makeFastType(Kb.IconType.iconfont_caret_down)
                 }
               />
             </Kb.Box2>
             {!!this.props.onClose && (
               <Kb.Icon
-                type={Kb.IconType.iconfont_close}
+                type={Kb.Icon.makeFastType(Kb.IconType.iconfont_close)}
                 onClick={this.props.onClose}
                 className="unfurl-closebox"
                 fontSize={12}

@@ -20,7 +20,7 @@ const ProfileSearch = (props: Props) => {
             color={props.whiteText ? Styles.globalColors.white_75 : Styles.globalColors.black_50}
             fontSize={Styles.isMobile ? 20 : 16}
             style={styles.searchIcon}
-            type={Kb.IconType.iconfont_search}
+            type={Kb.Icon.makeFastType(Kb.IconType.iconfont_search)}
           />
           <Kb.Text
             style={Styles.collapseStyles([styles.searchText, props.whiteText && styles.colorWhite])}

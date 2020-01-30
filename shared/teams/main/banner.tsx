@@ -12,7 +12,9 @@ const Banner = ({onReadMore, onHideChatBanner}: Props) => (
     <Kb.Icon
       style={styles.illustration}
       type={
-        Styles.isMobile ? Kb.IconType.icon_illustration_teams_216 : Kb.IconType.icon_illustration_teams_180
+        Styles.isMobile
+          ? Kb.Icon.makeFastType(Kb.IconType.icon_illustration_teams_216)
+          : Kb.Icon.makeFastType(Kb.IconType.icon_illustration_teams_180)
       }
     />
     <Kb.Box style={styles.containerHeader}>
@@ -29,7 +31,7 @@ const Banner = ({onReadMore, onHideChatBanner}: Props) => (
     </Kb.Box>
     <Kb.Box style={styles.closeIconContainer}>
       <Kb.Icon
-        type={Kb.IconType.iconfont_close}
+        type={Kb.Icon.makeFastType(Kb.IconType.iconfont_close)}
         style={{padding: Styles.globalMargins.xtiny}}
         onClick={onHideChatBanner}
       />

@@ -103,7 +103,7 @@ export const TeamMember = (props: Props) => {
       <Kb.ButtonBar direction={Styles.isMobile ? 'column' : 'row'}>
         <Kb.Button label="Chat" onClick={props.onChat}>
           <Kb.Icon
-            type={Kb.IconType.iconfont_chat}
+            type={Kb.Icon.makeFastType(Kb.IconType.iconfont_chat)}
             style={{
               marginRight: 8,
             }}

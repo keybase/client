@@ -46,7 +46,10 @@ const Participants = (props: ParticipantsProps) => {
       }
       toFieldContent = (
         <Kb.Box2 direction="horizontal" gap="xtiny">
-          <Kb.Icon type={Kb.IconType.iconfont_identity_stellar} style={styles.stellarIcon} />
+          <Kb.Icon
+            type={Kb.Icon.makeFastType(Kb.IconType.iconfont_identity_stellar)}
+            style={styles.stellarIcon}
+          />
           <Kb.Text selectable={true} type="BodySemibold" style={styles.stellarAddressConfirmText}>
             {props.recipientStellarAddress}
           </Kb.Text>

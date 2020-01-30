@@ -84,7 +84,7 @@ interface ConvertedCurrencyLabelProps {
 const PartyAccount = (props: PartyAccountProps) => {
   return (
     <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.partyAccountContainer}>
-      <Kb.Icon type={Kb.IconType.icon_wallet_32} style={styles.icon32} />
+      <Kb.Icon type={Kb.Icon.makeFastType(Kb.IconType.icon_wallet_32)} style={styles.icon32} />
       <Kb.Box2 direction="vertical" style={styles.flexOne}>
         <Kb.Text type="BodySemibold">{props.accountName}</Kb.Text>
         {!!props.accountID && <SmallAccountID accountID={props.accountID} />}
@@ -132,7 +132,10 @@ const Counterparty = (props: CounterpartyProps) => {
     case 'stellarPublicKey':
       return (
         <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true}>
-          <Kb.Icon type={Kb.IconType.icon_placeholder_secret_user_32} style={styles.icon32} />
+          <Kb.Icon
+            type={Kb.Icon.makeFastType(Kb.IconType.icon_placeholder_secret_user_32)}
+            style={styles.icon32}
+          />
           <Kb.Text
             type="BodySemibold"
             selectable={true}
@@ -462,10 +465,10 @@ const TransactionDetails = (props: NotLoadingProps) => {
               style={styles.statusIcon}
               type={
                 ['error', 'canceled'].includes(props.status)
-                  ? Kb.IconType.iconfont_remove
+                  ? Kb.Icon.makeFastType(Kb.IconType.iconfont_remove)
                   : props.status === 'completed'
-                  ? Kb.IconType.iconfont_success
-                  : Kb.IconType.iconfont_clock
+                  ? Kb.Icon.makeFastType(Kb.IconType.iconfont_success)
+                  : Kb.Icon.makeFastType(Kb.IconType.iconfont_clock)
               }
             />
             <Kb.Text

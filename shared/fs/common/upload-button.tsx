@@ -64,7 +64,13 @@ const UploadButton = Kb.OverlayParentHOC((props: Kb.PropsWithOverlay<UploadButto
     return <Kb.Button small={true} onClick={props.openAndUploadBoth} label="Upload" style={props.style} />
   }
   if (props.pickAndUploadMixed) {
-    return <Kb.Icon type={Kb.IconType.iconfont_upload} padding="tiny" onClick={props.pickAndUploadMixed} />
+    return (
+      <Kb.Icon
+        type={Kb.Icon.makeFastType(Kb.IconType.iconfont_upload)}
+        padding="tiny"
+        onClick={props.pickAndUploadMixed}
+      />
+    )
   }
   // Either Android, or non-darwin desktop. Android doesn't support mixed
   // mode; Linux/Windows don't support opening file or dir from the same
@@ -72,7 +78,11 @@ const UploadButton = Kb.OverlayParentHOC((props: Kb.PropsWithOverlay<UploadButto
   return (
     <>
       {Platforms.isMobile ? (
-        <Kb.Icon type={Kb.IconType.iconfont_upload} padding="tiny" onClick={props.toggleShowingMenu} />
+        <Kb.Icon
+          type={Kb.Icon.makeFastType(Kb.IconType.iconfont_upload)}
+          padding="tiny"
+          onClick={props.toggleShowingMenu}
+        />
       ) : (
         <Kb.Button
           onClick={props.toggleShowingMenu}

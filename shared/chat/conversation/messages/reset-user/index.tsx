@@ -14,7 +14,11 @@ type Props = {
 const ResetUser = ({username, viewProfile, letThemIn, allowChatWithoutThem, chatWithoutThem}: Props) => (
   <Kb.Box style={styles.container}>
     <Kb.Icon
-      type={isMobile ? Kb.IconType.icon_skull_64 : Kb.IconType.icon_skull_48}
+      type={
+        isMobile
+          ? Kb.Icon.makeFastType(Kb.IconType.icon_skull_64)
+          : Kb.Icon.makeFastType(Kb.IconType.icon_skull_48)
+      }
       style={{height: 64, margin: Styles.globalMargins.medium}}
     />
     <Kb.Box style={styles.textContainer}>

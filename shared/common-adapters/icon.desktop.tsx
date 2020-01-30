@@ -6,12 +6,16 @@ import shallowEqual from 'shallowequal'
 import {iconMeta, IconType} from './icon.constants-gen'
 import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
 import invert from 'lodash/invert'
-import {Props} from './icon'
+import {Props, FastIconType} from './icon'
 
 class Icon extends Component<Props, void> {
   static defaultProps = {
     sizeType: 'Default',
   }
+  static makeFastType = (type: IconType): FastIconType => {
+    return Shared.makeFastType(type)
+  }
+
   shouldComponentUpdate(nextProps: Props): boolean {
     return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
       if (key === 'style') {
@@ -22,9 +26,11 @@ class Icon extends Component<Props, void> {
   }
 
   render() {
-    let color = Shared.defaultColor(this.props.type)
-    let hoverColor = Shared.defaultHoverColor(this.props.type)
-    const iconType = Shared.typeToIconMapper(this.props.type)
+    // to support non typed code that actually uses non fast
+    const eitherType: any = this.props.type
+    const iconType: IconType = eitherType.isFast ? eitherType.type : eitherType
+    let color = Shared.defaultColor(iconType)
+    let hoverColor = Shared.defaultHoverColor(iconType)
 
     if (!iconType) {
       logger.warn('Null iconType passed')

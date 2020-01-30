@@ -63,7 +63,7 @@ const NewCard = (outerProps: Props) => {
             <Kb.Icon
               color={Styles.globalColors.blueLighterOrWhite}
               sizeType="Tiny"
-              type={Kb.IconType.iconfont_arrow_right}
+              type={Kb.Icon.makeFastType(Kb.IconType.iconfont_arrow_right)}
               className="hover_contained_color_white"
               style={styles.icon}
             />
@@ -71,7 +71,7 @@ const NewCard = (outerProps: Props) => {
         </Kb.ClickableBox>
       </Kb.Box2>
       <Kb.Icon
-        type={props.icon}
+        type={Kb.Icon.makeFastType(props.icon)}
         style={Styles.collapseStyles([styles.image, props.imageLower ? styles.imageLower : null])}
       />
     </Kb.Box2>

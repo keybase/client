@@ -4,10 +4,14 @@ import * as Styles from '../../styles'
 import {SiteIconSet} from '../../constants/types/tracker2'
 
 export const ProofSuccessIcon = (
-  <Kb.Icon type={Kb.IconType.icon_proof_success} color={Styles.globalColors.green} />
+  <Kb.Icon type={Kb.Icon.makeFastType(Kb.IconType.icon_proof_success)} color={Styles.globalColors.green} />
 )
 export const MastadonIcon = (
-  <Kb.Icon type={Kb.IconType.iconfont_identity_mastodon} colorOverride="#2b90d9" fontSize={64} />
+  <Kb.Icon
+    type={Kb.Icon.makeFastType(Kb.IconType.iconfont_identity_mastodon)}
+    colorOverride="#2b90d9"
+    fontSize={64}
+  />
 )
 
 const siteIconToSrcSet = siteIcon =>

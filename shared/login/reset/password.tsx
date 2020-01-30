@@ -45,7 +45,11 @@ const KnowPassword = () => {
         centerChildren={true}
         style={styles.topGap}
       >
-        <Kb.Icon type={Kb.IconType.iconfont_password} color={Styles.globalColors.black} fontSize={24} />
+        <Kb.Icon
+          type={Kb.Icon.makeFastType(Kb.IconType.iconfont_password)}
+          color={Styles.globalColors.black}
+          fontSize={24}
+        />
         <Kb.Box2 direction="vertical" centerChildren={true}>
           <Kb.Text type="Header" center={true}>
             Do you know your

@@ -26,7 +26,11 @@ const CalculateAdvancedButton = (props: CalculateAdvancedButtonProps) => {
   return !isLoading ? (
     props.isIcon ? (
       builtPaymentAdvanced.findPathError ? (
-        <Kb.Icon type={Kb.IconType.iconfont_remove} sizeType="Big" color={Styles.globalColors.red} />
+        <Kb.Icon
+          type={Kb.Icon.makeFastType(Kb.IconType.iconfont_remove)}
+          sizeType="Big"
+          color={Styles.globalColors.red}
+        />
       ) : (
         <Kb.WithTooltip
           tooltip="Calculate the amount you will send"
@@ -34,7 +38,7 @@ const CalculateAdvancedButton = (props: CalculateAdvancedButtonProps) => {
           disabled={isDisabled}
         >
           <Kb.Icon
-            type={Kb.IconType.iconfont_calculate}
+            type={Kb.Icon.makeFastType(Kb.IconType.iconfont_calculate)}
             sizeType="Big"
             color={isDisabled ? Styles.globalColors.purple_30 : Styles.globalColors.purple}
             onClick={isDisabled ? undefined : onClick}
@@ -47,7 +51,7 @@ const CalculateAdvancedButton = (props: CalculateAdvancedButtonProps) => {
         label={hasTrivialPath ? 'Confirm details' : 'Calculate'}
         children={
           <Kb.Icon
-            type={Kb.IconType.iconfont_calculator}
+            type={Kb.Icon.makeFastType(Kb.IconType.iconfont_calculator)}
             color={Styles.globalColors.white}
             style={styles.icon}
           />

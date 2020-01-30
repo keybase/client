@@ -41,14 +41,14 @@ const MakeTeam = ({conversationIDKey}: Props) => {
             <Kb.Icon
               color={Styles.globalColors.whiteOrWhite}
               sizeType="Tiny"
-              type={Kb.IconType.iconfont_arrow_right}
+              type={Kb.Icon.makeFastType(Kb.IconType.iconfont_arrow_right)}
               className="hover_contained_color_white"
               style={styles.icon}
             />
           </Kb.Box2>
         </Kb.ClickableBox>
       </Kb.Box2>
-      <Kb.Icon type={Kb.IconType.icon_illustration_teams_80} style={styles.image} />
+      <Kb.Icon type={Kb.Icon.makeFastType(Kb.IconType.icon_illustration_teams_80)} style={styles.image} />
     </Kb.Box2>
   )
 }

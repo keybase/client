@@ -12,6 +12,8 @@ import ProgressIndicator from '../../progress-indicator'
 import {isLargeScreen} from '../../../constants/platform'
 import {MenuItem, _InnerMenuItem, MenuLayoutProps} from '.'
 
+const Kb = {Icon}
+
 type MenuRowProps = {
   centered?: boolean
   isHeader?: boolean
@@ -55,7 +57,7 @@ const MenuRow = (props: MenuRowProps) => (
                   color={props.danger ? Styles.globalColors.redDark : Styles.globalColors.black_40}
                   fontSize={16}
                   style={props.iconStyle}
-                  type={props.icon}
+                  type={Kb.Icon.makeFastType(props.icon)}
                 />
                 {props.isBadged && <Badge badgeStyle={styles.iconBadge} />}
               </>

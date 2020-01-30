@@ -130,7 +130,7 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
           )}
         </Kb.Box2>
         <Kb.Icon
-          type={Kb.IconType.iconfont_ellipsis}
+          type={Kb.Icon.makeFastType(Kb.IconType.iconfont_ellipsis)}
           // @ts-ignore TODO fix styles
           style={styles.headerFooter}
           color={Styles.globalColors.blueDark}

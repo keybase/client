@@ -126,7 +126,7 @@ const PeopleResult = React.memo((props: ResultProps) => {
       }}
     >
       <Kb.Icon
-        type={Kb.IconType.iconfont_chat}
+        type={Kb.Icon.makeFastType(Kb.IconType.iconfont_chat)}
         color={Styles.globalColors.whiteOrWhite}
         style={styles.chatIcon}
       />
@@ -192,7 +192,10 @@ const DropdownButton = Kb.OverlayParentHOC((p: Kb.PropsWithOverlay<DropdownProps
     >
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="xsmall">
         <Kb.Button onClick={undefined} mode="Secondary" style={styles.dropdownButton} small={true}>
-          <Kb.Icon color={Styles.globalColors.blue} type={Kb.IconType.iconfont_ellipsis} />
+          <Kb.Icon
+            color={Styles.globalColors.blue}
+            type={Kb.Icon.makeFastType(Kb.IconType.iconfont_ellipsis)}
+          />
         </Kb.Button>
       </Kb.Box2>
       <Kb.FloatingMenu

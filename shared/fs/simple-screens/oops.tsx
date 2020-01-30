@@ -56,8 +56,8 @@ const NoAccess = (props: Props) => (
       <Kb.Icon
         type={
           isMobile
-            ? Kb.IconType.icon_fancy_no_access_mobile_128_125
-            : Kb.IconType.icon_fancy_no_access_desktop_96_94
+            ? Kb.Icon.makeFastType(Kb.IconType.icon_fancy_no_access_mobile_128_125)
+            : Kb.Icon.makeFastType(Kb.IconType.icon_fancy_no_access_desktop_96_94)
         }
       />
       <Kb.Text type="Header" style={styles.textYouDontHave}>
@@ -81,8 +81,8 @@ const NonExistent = (props: Props) => (
       <Kb.Icon
         type={
           isMobile
-            ? Kb.IconType.icon_fancy_folder_file_inexistant_mobile_188_120
-            : Kb.IconType.icon_fancy_folder_file_inexistant_desktop_153_94
+            ? Kb.Icon.makeFastType(Kb.IconType.icon_fancy_folder_file_inexistant_mobile_188_120)
+            : Kb.Icon.makeFastType(Kb.IconType.icon_fancy_folder_file_inexistant_desktop_153_94)
         }
       />
       <Kb.Text type="Header" style={styles.textYouDontHave}>

@@ -14,8 +14,8 @@ const Tlf = (props: TlfProps) => (
     <Kb.Icon
       type={
         props.isSelf
-          ? Kb.IconType.iconfont_folder_public /* has the little head */
-          : Kb.IconType.iconfont_folder_private
+          ? Kb.Icon.makeFastType(Kb.IconType.iconfont_folder_public) /* has the little head */
+          : Kb.Icon.makeFastType(Kb.IconType.iconfont_folder_private)
       }
       color={Styles.globalColors.blue}
     />
@@ -52,7 +52,7 @@ class Folders extends React.PureComponent<Props, State> {
         ))}
         {!this.state.expanded && this.props.tlfs.length > numFoldersShown && (
           <Kb.ClickableBox key="more" onClick={this.expand} style={styles.itemContainer}>
-            <Kb.Icon type={Kb.IconType.iconfont_ellipsis} />
+            <Kb.Icon type={Kb.Icon.makeFastType(Kb.IconType.iconfont_ellipsis)} />
             <Kb.Text type="BodySmall" style={styles.itemText}>
               + {this.props.tlfs.length - numFoldersShown} more
             </Kb.Text>

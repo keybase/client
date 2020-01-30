@@ -102,7 +102,7 @@ const DeviceOption = ({highlight, iconNumber, onClick, type}: DeviceOptionProps)
       gap="xtiny"
       gapEnd={!Styles.isMobile}
     >
-      <Kb.Icon type={getIconType(type, iconNumber)} />
+      <Kb.Icon type={Kb.Icon.makeFastType(getIconType(type, iconNumber))} />
       <Kb.Text type="BodySemibold">
         {type === 'paper key' ? 'Create' : 'Add'} a {type}
       </Kb.Text>

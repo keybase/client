@@ -15,8 +15,12 @@ class InviteGeneratedRender extends React.Component<Props> {
           position: 'relative',
         }}
       >
-        <Kb.Icon type={Kb.IconType.iconfont_close} style={styles.icon} onClick={this.props.onClose} />
-        <Kb.Icon type={Kb.IconType.icon_invite_link_48} />
+        <Kb.Icon
+          type={Kb.Icon.makeFastType(Kb.IconType.iconfont_close)}
+          style={styles.icon}
+          onClick={this.props.onClose}
+        />
+        <Kb.Icon type={Kb.Icon.makeFastType(Kb.IconType.icon_invite_link_48)} />
         {this.props.email ? (
           <Kb.Text center={true} type="Body" style={styles.text}>
             Yay! We emailed <Kb.Text type="BodySemibold">{this.props.email}</Kb.Text>, but you can also give
@@ -29,7 +33,7 @@ class InviteGeneratedRender extends React.Component<Props> {
         )}
         <Kb.Box style={styles.linkContainer}>
           <Kb.Icon
-            type={Kb.IconType.iconfont_link}
+            type={Kb.Icon.makeFastType(Kb.IconType.iconfont_link)}
             style={{height: 14, marginRight: Styles.globalMargins.tiny}}
             color={Styles.globalColors.black_10}
           />

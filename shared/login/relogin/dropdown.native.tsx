@@ -100,7 +100,12 @@ class Dropdown extends React.Component<Props, State> {
       <Kb.Text key="text" type="Header" style={styles.orangeText}>
         {this._label(this.state.value)}
       </Kb.Text>,
-      <Kb.Icon key="icon" type={Kb.IconType.iconfont_caret_down} style={styles.icon} sizeType="Tiny" />,
+      <Kb.Icon
+        key="icon"
+        type={Kb.Icon.makeFastType(Kb.IconType.iconfont_caret_down)}
+        style={styles.icon}
+        sizeType="Tiny"
+      />,
     ]
   }
 

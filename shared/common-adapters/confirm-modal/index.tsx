@@ -9,6 +9,8 @@ import Modal from '../modal'
 import * as Styles from '../../styles'
 import {IconType} from '../icon.constants-gen'
 
+const Kb = {Icon}
+
 // generally one of icon or header will be given
 export type Props = {
   confirmText?: string
@@ -91,7 +93,7 @@ const ConfirmModal = (props: Props) => (
           color={props.iconColor ? props.iconColor : Styles.globalColors.black_50}
           fontSize={Styles.isMobile ? 64 : 48}
           style={styles.icon}
-          type={props.icon}
+          type={Kb.Icon.makeFastType(props.icon)}
         />
       )}
       {props.header && (

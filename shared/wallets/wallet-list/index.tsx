@@ -19,14 +19,18 @@ const _AddWallet = (props: AddProps & Kb.OverlayParentProps) => (
       fullWidth={true}
       className="hover_background_color_blueGreyDark"
     >
-      <Kb.Icon type={Kb.IconType.icon_wallet_placeholder_add_32} style={styles.icon} />
+      <Kb.Icon type={Kb.Icon.makeFastType(Kb.IconType.icon_wallet_placeholder_add_32)} style={styles.icon} />
       <Kb.Text type="BodySemibold">Add an account</Kb.Text>
     </Kb.Box2>
     <Kb.FloatingMenu
       attachTo={props.getAttachmentRef}
       closeOnSelect={true}
       items={[
-        {icon: Kb.IconType.iconfont_new, onClick: () => props.onAddNew(), title: 'Create a new account'},
+        {
+          icon: Kb.IconType.iconfont_new,
+          onClick: () => props.onAddNew(),
+          title: 'Create a new account',
+        },
         {
           icon: Kb.IconType.iconfont_identity_stellar,
           onClick: () => props.onLinkExisting(),
@@ -45,7 +49,7 @@ const AddWallet = Kb.OverlayParentHOC(_AddWallet)
 const WhatIsStellar = (props: {onWhatIsStellar: () => void}) => (
   <Kb.ClickableBox onClick={props.onWhatIsStellar} style={styles.whatIsStellar}>
     <Kb.Box2 centerChildren={true} direction="horizontal">
-      <Kb.Icon sizeType="Small" type={Kb.IconType.iconfont_info} />
+      <Kb.Icon sizeType="Small" type={Kb.Icon.makeFastType(Kb.IconType.iconfont_info)} />
       <Kb.Text style={styles.infoText} type="BodySmallSemibold">
         What is Stellar?
       </Kb.Text>

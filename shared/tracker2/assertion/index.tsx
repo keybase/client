@@ -316,7 +316,10 @@ class Assertion extends React.PureComponent<Props, State> {
           >
             <Kb.Box2 direction="vertical" style={styles.positionRelative}>
               {this._siteIcon(true)}
-              <Kb.Icon type={stateToDecorationIcon(p.state)} style={styles.siteIconFullDecoration} />
+              <Kb.Icon
+                type={Kb.Icon.makeFastType(stateToDecorationIcon(p.state))}
+                style={styles.siteIconFullDecoration}
+              />
             </Kb.Box2>
             {!!this.props.timestamp && (
               <>
@@ -387,14 +390,18 @@ class Assertion extends React.PureComponent<Props, State> {
           <Kb.ClickableBox onClick={items ? this._toggleMenu : p.onShowProof} style={styles.statusContainer}>
             <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny">
               <Kb.Icon
-                type={stateToIcon(p.state)}
+                type={Kb.Icon.makeFastType(stateToIcon(p.state))}
                 fontSize={20}
                 hoverColor={assertionColorToColor(p.color)}
                 color={p.isSuggestion ? Styles.globalColors.black_20 : assertionColorToColor(p.color)}
               />
               {items ? (
                 <>
-                  <Kb.Icon className="hover_visible" type={Kb.IconType.iconfont_caret_down} sizeType="Tiny" />
+                  <Kb.Icon
+                    className="hover_visible"
+                    type={Kb.Icon.makeFastType(Kb.IconType.iconfont_caret_down)}
+                    sizeType="Tiny"
+                  />
                   <Kb.FloatingMenu
                     closeOnSelect={true}
                     visible={this.state.showingMenu}

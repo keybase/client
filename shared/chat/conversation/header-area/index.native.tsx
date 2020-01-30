@@ -51,7 +51,7 @@ const Wrapper = (
 
 const ShhIcon = (props: {onClick: () => void}) => (
   <Kb.Icon
-    type={Kb.IconType.iconfont_shh}
+    type={Kb.Icon.makeFastType(Kb.IconType.iconfont_shh)}
     style={styles.shhIcon}
     color={shhIconColor}
     fontSize={shhIconFontSize}

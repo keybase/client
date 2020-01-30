@@ -192,7 +192,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
         >
           {Styles.isMobile ? (
             <Kb.Icon
-              type={Kb.IconType.iconfont_reacji}
+              type={Kb.Icon.makeFastType(Kb.IconType.iconfont_reacji)}
               color={Styles.globalColors.black_50}
               fontSize={16}
               style={styles.emojiIconWrapper}
@@ -201,7 +201,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
             iconCycle.map((iconName, iconIndex) => (
               <Kb.Icon
                 key={iconName}
-                type={iconName}
+                type={Kb.Icon.makeFastType(iconName)}
                 color={this.state.hovering ? Styles.globalColors.black_50 : Styles.globalColors.black_50}
                 fontSize={18}
                 style={Styles.collapseStyles([

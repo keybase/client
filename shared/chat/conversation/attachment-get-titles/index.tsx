@@ -98,7 +98,7 @@ class GetTitles extends React.Component<Props, State> {
               {info.type === 'image' ? (
                 <Kb.OrientedImage src={Styles.isAndroid ? `file://${path}` : path} style={styles.image} />
               ) : (
-                <Kb.Icon type={Kb.IconType.icon_file_uploading_48} />
+                <Kb.Icon type={Kb.Icon.makeFastType(Kb.IconType.icon_file_uploading_48)} />
               )}
             </Kb.Box2>
             {paths.length > 0 && !Styles.isMobile && (

@@ -1,10 +1,10 @@
 import React from 'react'
-import {Box2, Badge, ClickableBox, Text, Icon, IconType, ProgressIndicator} from '../../common-adapters'
+import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
 type SettingsItemProps = {
   badgeNumber?: number
-  icon?: IconType
+  icon?: Kb.IconType
   iconComponent?: React.ComponentType
   inProgress?: boolean
   largerBadgeMinWidthFix?: boolean
@@ -17,7 +17,7 @@ type SettingsItemProps = {
 
 export default function SettingsItem(props: SettingsItemProps) {
   return (
-    <ClickableBox
+    <Kb.ClickableBox
       onClick={props.onClick}
       style={Styles.collapseStyles([
         styles.item,
@@ -33,14 +33,14 @@ export default function SettingsItem(props: SettingsItemProps) {
       {props.iconComponent ? (
         <props.iconComponent />
       ) : props.icon ? (
-        <Icon
-          type={props.icon}
+        <Kb.Icon
+          type={Kb.Icon.makeFastType(props.icon)}
           color={Styles.globalColors.black_20}
           style={{marginRight: Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.tiny}}
         />
       ) : null}
-      <Box2 direction="vertical">
-        <Text
+      <Kb.Box2 direction="vertical">
+        <Kb.Text
           type="BodySemibold"
           style={Styles.collapseStyles([
             props.selected ? styles.selectedText : styles.itemText,
@@ -48,14 +48,14 @@ export default function SettingsItem(props: SettingsItemProps) {
           ])}
         >
           {props.text}
-        </Text>
-        {props.text && props.subText && <Text type="BodySmall">{props.subText}</Text>}
-      </Box2>
-      {props.inProgress && <ProgressIndicator style={styles.progress} />}
+        </Kb.Text>
+        {props.text && props.subText && <Kb.Text type="BodySmall">{props.subText}</Kb.Text>}
+      </Kb.Box2>
+      {props.inProgress && <Kb.ProgressIndicator style={styles.progress} />}
       {!!props.badgeNumber && props.badgeNumber > 0 && (
-        <Badge badgeNumber={props.badgeNumber} badgeStyle={styles.badge} />
+        <Kb.Badge badgeNumber={props.badgeNumber} badgeStyle={styles.badge} />
       )}
-    </ClickableBox>
+    </Kb.ClickableBox>
   )
 }
 

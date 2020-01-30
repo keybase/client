@@ -53,7 +53,11 @@ const ServiceIcon = React.memo((props: IconProps) => {
               leftRightPadding={0}
             />
           )}
-          <Kb.Icon fontSize={18} type={serviceIdToIconFont(props.service)} color={color} />
+          <Kb.Icon
+            fontSize={18}
+            type={Kb.Icon.makeFastType(serviceIdToIconFont(props.service))}
+            color={color}
+          />
         </Kb.Box2>
         <AnimatedBox2 direction="vertical" style={[styles.labelContainer, {opacity}]}>
           <Kb.Box2 direction="vertical" style={{height: labelHeight, width: 74}}>

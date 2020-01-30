@@ -24,7 +24,7 @@ const Row = ({onClick, icon, title, subTitle, children, style}: Props) => {
         <div className="register-background" style={styles.iconBackground} />
         <Kb.Icon
           className="register-icon"
-          type={icon}
+          type={Kb.Icon.makeFastType(icon)}
           style={styles.icon}
           color={Styles.globalColors.black}
           fontSize={35}

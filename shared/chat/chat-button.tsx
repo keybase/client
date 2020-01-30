@@ -28,7 +28,7 @@ const ChatButton = ({small, style, username}: Props) => {
       style={style}
     >
       <Kb.Icon
-        type={Kb.IconType.iconfont_chat}
+        type={Kb.Icon.makeFastType(Kb.IconType.iconfont_chat)}
         color={Styles.globalColors.whiteOrWhite}
         style={styles.chatIcon}
       />

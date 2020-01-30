@@ -63,7 +63,11 @@ const Row = (props: Props) => (
       >
         <Kb.Box style={styles.rowTop}>
           <Kb.Icon
-            type={props.expanded ? Kb.IconType.iconfont_caret_down : Kb.IconType.iconfont_caret_right}
+            type={
+              props.expanded
+                ? Kb.Icon.makeFastType(Kb.IconType.iconfont_caret_down)
+                : Kb.Icon.makeFastType(Kb.IconType.iconfont_caret_right)
+            }
             style={styles.iconCaret}
             sizeType="Tiny"
           />
@@ -184,7 +188,7 @@ const Row = (props: Props) => (
               onClick={props.onBrowseGitRepo}
             >
               <Kb.Icon
-                type={Kb.IconType.iconfont_file}
+                type={Kb.Icon.makeFastType(Kb.IconType.iconfont_file)}
                 sizeType="Small"
                 color={Styles.globalColors.black_50}
                 style={{marginRight: Styles.globalMargins.xtiny}}

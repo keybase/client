@@ -15,7 +15,11 @@ const UnreadShortcut = (props: Props) => (
       fullWidth={true}
       style={styles.unreadShortcut}
     >
-      <Kb.Icon type={Kb.IconType.iconfont_arrow_down} sizeType="Small" color={Styles.globalColors.white} />
+      <Kb.Icon
+        type={Kb.Icon.makeFastType(Kb.IconType.iconfont_arrow_down)}
+        sizeType="Small"
+        color={Styles.globalColors.white}
+      />
       <Kb.Text negative={true} type="BodySmallSemibold">
         Unread messages
       </Kb.Text>

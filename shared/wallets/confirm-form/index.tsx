@@ -71,7 +71,7 @@ const ConfirmSend = (props: ConfirmSendProps) => {
               children={
                 <>
                   <Kb.Icon
-                    type={Kb.IconType.iconfont_stellar_send}
+                    type={Kb.Icon.makeFastType(Kb.IconType.iconfont_stellar_send)}
                     style={styles.buttonIcon}
                     color={Styles.globalColors.whiteOrWhite}
                   />

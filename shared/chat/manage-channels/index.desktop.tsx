@@ -11,7 +11,10 @@ const HoverBox = Styles.styled(Kb.Box)(() => ({
 
 const Edit = ({onClick, style}: {onClick: () => void; style: Object}) => (
   <HoverBox style={style} onClick={onClick}>
-    <Kb.Icon style={{marginRight: Styles.globalMargins.xtiny}} type={Kb.IconType.iconfont_edit} />
+    <Kb.Icon
+      style={{marginRight: Styles.globalMargins.xtiny}}
+      type={Kb.Icon.makeFastType(Kb.IconType.iconfont_edit)}
+    />
     <Kb.Text type="BodySmallPrimaryLink">Edit</Kb.Text>
   </HoverBox>
 )
@@ -111,7 +114,7 @@ const ManageChannels = (props: Props) => {
         <Kb.Box style={styles.create}>
           <Kb.Icon
             style={styles.createIcon}
-            type={Kb.IconType.iconfont_new}
+            type={Kb.Icon.makeFastType(Kb.IconType.iconfont_new)}
             onClick={props.onCreate}
             hoverColor={Styles.globalColors.blueLight}
             color={Styles.globalColors.blue}

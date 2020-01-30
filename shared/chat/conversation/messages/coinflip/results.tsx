@@ -117,7 +117,7 @@ const Card = (props: CardType) => (
     <Kb.Box2 direction="horizontal">
       <Kb.Icon
         fontSize={Styles.isMobile ? 10 : 12}
-        type={suits[cards[props.card]?.suit]?.icon}
+        type={Kb.Icon.makeFastType(suits[cards[props.card]?.suit]?.icon)}
         color={suits[cards[props.card].suit].color}
         style={styles.cardSuit}
       />
@@ -147,7 +147,13 @@ type CoinType = {
 const CoinFlipResultCoin = (props: CoinType) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.commonContainer}>
     <Kb.Box2 direction="vertical" style={styles.coin} centerChildren={true}>
-      <Kb.Icon type={props.coin ? Kb.IconType.icon_coin_heads_48_48 : Kb.IconType.icon_coin_tails_48_48} />
+      <Kb.Icon
+        type={
+          props.coin
+            ? Kb.Icon.makeFastType(Kb.IconType.icon_coin_heads_48_48)
+            : Kb.Icon.makeFastType(Kb.IconType.icon_coin_tails_48_48)
+        }
+      />
     </Kb.Box2>
     <Kb.Box2 direction="vertical" centerChildren={true}>
       <Kb.Text selectable={true} type="Header">

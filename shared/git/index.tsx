@@ -66,7 +66,7 @@ const Git = (props: Props) => {
           onClick={() => setShowingPopup(!showingPopup)}
         >
           <Kb.Icon
-            type={Kb.IconType.iconfont_new}
+            type={Kb.Icon.makeFastType(Kb.IconType.iconfont_new)}
             style={{marginRight: Styles.globalMargins.tiny}}
             color={Styles.globalColors.blue}
             fontSize={Styles.isMobile ? 20 : 16}

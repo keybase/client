@@ -64,7 +64,11 @@ const ResetModal = (_: Props) => {
             centerChildren={true}
           >
             <Kb.Icon
-              type={Styles.isMobile ? Kb.IconType.icon_skull_64 : Kb.IconType.icon_skull_48}
+              type={
+                Styles.isMobile
+                  ? Kb.Icon.makeFastType(Kb.IconType.icon_skull_64)
+                  : Kb.Icon.makeFastType(Kb.IconType.icon_skull_48)
+              }
               color={Styles.globalColors.black_20}
               fontSize={48}
             />

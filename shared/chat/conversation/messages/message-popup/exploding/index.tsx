@@ -7,8 +7,8 @@ import {DeviceType} from '../../../../../constants/types/devices'
 import {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 
 const headerIconType = Styles.isMobile
-  ? Kb.IconType.icon_fancy_bomb_mobile_226_96
-  : Kb.IconType.icon_fancy_bomb_desktop_150_72
+  ? Kb.Icon.makeFastType(Kb.IconType.icon_fancy_bomb_mobile_226_96)
+  : Kb.Icon.makeFastType(Kb.IconType.icon_fancy_bomb_desktop_150_72)
 const headerIconHeight = Styles.isMobile ? 96 : 72
 
 type Props = {
@@ -150,7 +150,7 @@ class ExplodingPopupHeader extends React.Component<Props, State> {
           ) : (
             <Kb.Box2 direction="horizontal" gap="tiny" gapStart={true} gapEnd={true}>
               <Kb.Icon
-                type={Kb.IconType.iconfont_timer}
+                type={Kb.Icon.makeFastType(Kb.IconType.iconfont_timer)}
                 fontSize={Styles.isMobile ? 20 : 16}
                 color={Styles.globalColors.white}
               />

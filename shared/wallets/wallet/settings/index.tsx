@@ -48,7 +48,7 @@ type PartnerRowProps = {
 const PartnerRow = (props: PartnerRowProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
     <Kb.Icon
-      type={props.iconFilename}
+      type={Kb.Icon.makeFastType(props.iconFilename)}
       colorOverride={Styles.globalColors.black}
       fontSize={32}
       style={styles.partnerIcon}
@@ -65,7 +65,7 @@ const PartnerRow = (props: PartnerRowProps) => (
         <Kb.Icon
           fontSize={Styles.isMobile ? 16 : 12}
           style={styles.openIcon}
-          type={Kb.IconType.iconfont_open_browser}
+          type={Kb.Icon.makeFastType(Kb.IconType.iconfont_open_browser)}
         />
       </Kb.ClickableBox>
       <Kb.Text type="BodySmall">{props.description}</Kb.Text>
@@ -116,7 +116,7 @@ class AccountSettings extends React.Component<SettingsProps> {
                   </Kb.Text>
                   <Kb.Icon
                     style={styles.icon}
-                    type={Kb.IconType.iconfont_edit}
+                    type={Kb.Icon.makeFastType(Kb.IconType.iconfont_edit)}
                     fontSize={Styles.isMobile ? 22 : 16}
                   />
                 </Kb.Box2>
@@ -167,8 +167,8 @@ class AccountSettings extends React.Component<SettingsProps> {
                   <Kb.Icon
                     type={
                       Styles.isMobile
-                        ? Kb.IconType.icon_placeholder_secret_user_48
-                        : Kb.IconType.icon_placeholder_secret_user_32
+                        ? Kb.Icon.makeFastType(Kb.IconType.icon_placeholder_secret_user_48)
+                        : Kb.Icon.makeFastType(Kb.IconType.icon_placeholder_secret_user_32)
                     }
                     style={{height: Styles.isMobile ? 48 : 32, width: Styles.isMobile ? 48 : 32}}
                   />

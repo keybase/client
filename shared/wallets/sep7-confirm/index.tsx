@@ -80,7 +80,10 @@ const InfoRow = (props: InfoRowProps) => (
       </Kb.Text>
       {props.showStellarIcon ? (
         <Kb.Box2 direction="horizontal" gap="xtiny" alignSelf="flex-start">
-          <Kb.Icon type={Kb.IconType.iconfont_identity_stellar} style={styles.stellarIcon} />
+          <Kb.Icon
+            type={Kb.Icon.makeFastType(Kb.IconType.iconfont_identity_stellar)}
+            style={styles.stellarIcon}
+          />
           <Kb.Text lineClamp={2} selectable={true} type="Body" style={styles.bodyTextWithIcon}>
             {props.bodyText}
           </Kb.Text>
@@ -121,7 +124,11 @@ const Header = (props: HeaderProps) => (
         </Kb.Box2>
       )}
       {!!props.isPayment && (
-        <Kb.Icon sizeType="Tiny" type={Kb.IconType.icon_stellar_coins_sending_48} style={styles.sendIcon} />
+        <Kb.Icon
+          sizeType="Tiny"
+          type={Kb.Icon.makeFastType(Kb.IconType.icon_stellar_coins_sending_48)}
+          style={styles.sendIcon}
+        />
       )}
       <Kb.Box2
         direction="horizontal"
@@ -134,7 +141,11 @@ const Header = (props: HeaderProps) => (
         </Kb.Text>
         {props.signed && (
           <Kb.Box2 direction="horizontal" style={styles.verifiedIconBox}>
-            <Kb.Icon sizeType="Small" style={styles.verifiedIcon} type={Kb.IconType.iconfont_success} />
+            <Kb.Icon
+              sizeType="Small"
+              style={styles.verifiedIcon}
+              type={Kb.Icon.makeFastType(Kb.IconType.iconfont_success)}
+            />
           </Kb.Box2>
         )}
       </Kb.Box2>

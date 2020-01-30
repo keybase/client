@@ -136,7 +136,7 @@ class TabBar extends React.PureComponent<Props, State> {
                     Hi {p.username}!
                   </Kb.Text>
                   <Kb.Icon
-                    type={Kb.IconType.iconfont_arrow_down}
+                    type={Kb.Icon.makeFastType(Kb.IconType.iconfont_arrow_down)}
                     color={Styles.globalColors.blueLighter}
                     fontSize={12}
                     style={styles.caret}
@@ -198,7 +198,7 @@ const Tab = React.memo(({tab, index, selectedTab, onTabClick, badge}: TabProps) 
       >
         <Kb.Box2 className="tab-highlight" direction="vertical" fullHeight={true} />
         <Kb.Box2 style={styles.iconBox} direction="horizontal">
-          <Kb.Icon className="tab-icon" type={data[tab].icon} sizeType="Big" />
+          <Kb.Icon className="tab-icon" type={Kb.Icon.makeFastType(data[tab].icon)} sizeType="Big" />
           {tab === Tabs.fsTab && <FilesTabBadge />}
         </Kb.Box2>
         <Kb.Text

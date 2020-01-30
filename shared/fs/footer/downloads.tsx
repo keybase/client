@@ -56,7 +56,7 @@ const Desktop = () => {
           <Kb.WithTooltip tooltip="Open Downloads folder">
             <Kb.Icon
               style={styles.iconBoxEllipsis}
-              type={Kb.IconType.iconfont_ellipsis}
+              type={Kb.Icon.makeFastType(Kb.IconType.iconfont_ellipsis)}
               hint="Open downloads folder"
               color={Styles.globalColors.black_50}
               padding="tiny"
@@ -67,7 +67,7 @@ const Desktop = () => {
         <Kb.Box style={styles.space} />
         <Kb.WithTooltip tooltip="Open Downloads folder">
           <Kb.Icon
-            type={Kb.IconType.iconfont_folder_downloads}
+            type={Kb.Icon.makeFastType(Kb.IconType.iconfont_folder_downloads)}
             hint="Open downloads folder"
             color={Styles.globalColors.black_50}
             padding="tiny"

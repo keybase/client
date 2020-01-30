@@ -6,7 +6,7 @@ import Icon, {IconType} from './icon'
 import * as Styles from '../styles'
 import {Props} from './back-button'
 
-const Kb = {IconType}
+const Kb = {Icon, IconType}
 
 export default class BackButton extends Component<Props> {
   onClick(event: React.BaseSyntheticEvent) {
@@ -21,7 +21,11 @@ export default class BackButton extends Component<Props> {
     return (
       <NativeTouchableWithoutFeedback onPress={e => this.onClick(e)}>
         <Box style={Styles.collapseStyles([styles.container, this.props.style])}>
-          <Icon type={Kb.IconType.iconfont_arrow_left} color={this.props.iconColor} style={styles.arrow} />
+          <Icon
+            type={Kb.Icon.makeFastType(Kb.IconType.iconfont_arrow_left)}
+            color={this.props.iconColor}
+            style={styles.arrow}
+          />
           {!!this.props.badgeNumber && <Badge badgeNumber={this.props.badgeNumber} />}
         </Box>
       </NativeTouchableWithoutFeedback>

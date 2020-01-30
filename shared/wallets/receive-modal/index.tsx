@@ -38,7 +38,11 @@ const ReceiveModal = (props: Props) => {
     >
       <Kb.Box2 centerChildren={true} direction="vertical" fullWidth={true} style={styles.sidePaddings}>
         <Kb.Icon
-          type={Styles.isMobile ? Kb.IconType.icon_wallet_receive_64 : Kb.IconType.icon_wallet_receive_48}
+          type={
+            Styles.isMobile
+              ? Kb.Icon.makeFastType(Kb.IconType.icon_wallet_receive_64)
+              : Kb.Icon.makeFastType(Kb.IconType.icon_wallet_receive_48)
+          }
           style={styles.icon}
         />
         {!Styles.isMobile && header}
@@ -51,7 +55,7 @@ const ReceiveModal = (props: Props) => {
             fullWidth={true}
           >
             <Kb.Icon
-              type={Kb.IconType.iconfont_stellar_request}
+              type={Kb.Icon.makeFastType(Kb.IconType.iconfont_stellar_request)}
               sizeType="Small"
               color={Styles.globalColors.white}
               style={styles.requestIcon}

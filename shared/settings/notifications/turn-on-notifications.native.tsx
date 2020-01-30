@@ -22,7 +22,7 @@ const TurnOnNotifications = (props: Props) => (
     }}
   >
     <Kb.Box style={{height: 270, left: globalMargins.medium, position: 'absolute', top: -20, width: 250}}>
-      <Kb.Icon type={Kb.IconType.illustration_turn_on_notifications} />
+      <Kb.Icon type={Kb.Icon.makeFastType(Kb.IconType.illustration_turn_on_notifications)} />
     </Kb.Box>
     <Kb.Text
       type="BodySemibold"

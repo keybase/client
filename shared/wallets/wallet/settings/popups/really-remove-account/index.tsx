@@ -74,7 +74,9 @@ const ReallyRemoveAccountPopup = (props: Props) => {
       <Kb.Box2 centerChildren={true} direction="vertical" style={styles.flexOne} fullWidth={true}>
         <Kb.Icon
           type={
-            Styles.isMobile ? Kb.IconType.icon_wallet_secret_key_64 : Kb.IconType.icon_wallet_secret_key_48
+            Styles.isMobile
+              ? Kb.Icon.makeFastType(Kb.IconType.icon_wallet_secret_key_64)
+              : Kb.Icon.makeFastType(Kb.IconType.icon_wallet_secret_key_48)
           }
           style={styles.icon}
         />
@@ -96,7 +98,9 @@ const ReallyRemoveAccountPopup = (props: Props) => {
         </Kb.Text>
 
         <Kb.Toast visible={showingToast} attachTo={() => attachmentRef.current} position="top center">
-          {Styles.isMobile && <Kb.Icon type={Kb.IconType.iconfont_clipboard} color="white" />}
+          {Styles.isMobile && (
+            <Kb.Icon type={Kb.Icon.makeFastType(Kb.IconType.iconfont_clipboard)} color="white" />
+          )}
           <Kb.Text center={true} type="BodySmall" style={styles.toastText}>
             Copied to clipboard
           </Kb.Text>

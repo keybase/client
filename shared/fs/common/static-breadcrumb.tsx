@@ -27,7 +27,7 @@ const StaticBreadcrumb = ({pathElements, showTlfTypeIcon, includeLast}: Props) =
     {[
       showTlfTypeIcon && (
         <Kb.Icon
-          type={getIcon(pathElements[1])}
+          type={Kb.Icon.makeFastType(getIcon(pathElements[1]))}
           color={Styles.globalColors.blueDark}
           style={styles.iconFolderType}
           key="icon"
@@ -41,7 +41,7 @@ const StaticBreadcrumb = ({pathElements, showTlfTypeIcon, includeLast}: Props) =
         .map((elem, idx) => [
           <Kb.Icon
             key={`icon-${idx}`}
-            type={Kb.IconType.iconfont_arrow_right}
+            type={Kb.Icon.makeFastType(Kb.IconType.iconfont_arrow_right)}
             style={styles.iconArrow}
             color={Styles.globalColors.black_20}
             fontSize={12}

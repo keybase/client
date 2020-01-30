@@ -21,7 +21,7 @@ const Participant = ({botAlias, fullname, isAdmin, isOwner, username, onShowProf
           <Kb.Icon
             color={isOwner ? Styles.globalColors.yellowDark : Styles.globalColors.black_35}
             fontSize={10}
-            type={Kb.IconType.iconfont_crown_owner}
+            type={Kb.Icon.makeFastType(Kb.IconType.iconfont_crown_owner)}
           />
           <Kb.Text type="BodySmall">{isAdmin ? 'Admin' : 'Owner'}</Kb.Text>
           <Kb.Text type="BodySmall">)</Kb.Text>

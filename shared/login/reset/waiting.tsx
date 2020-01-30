@@ -83,7 +83,11 @@ const Waiting = (props: Props) => {
         style={styles.topGap}
       >
         <Kb.Icon
-          type={pipelineStarted ? Kb.IconType.iconfont_wave_2 : Kb.IconType.iconfont_mailbox}
+          type={
+            pipelineStarted
+              ? Kb.Icon.makeFastType(Kb.IconType.iconfont_wave_2)
+              : Kb.Icon.makeFastType(Kb.IconType.iconfont_mailbox)
+          }
           color={Styles.globalColors.black}
           fontSize={24}
         />

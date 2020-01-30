@@ -37,7 +37,10 @@ const RetentionWarning = (props: Props) => {
   return (
     <Wrapper onBack={props.onBack}>
       <Kb.Box style={styles.container}>
-        <Kb.Icon type={props.exploding ? explodeIconType : iconType} style={styles.iconStyle} />
+        <Kb.Icon
+          type={Kb.Icon.makeFastType(props.exploding ? explodeIconType : iconType)}
+          style={styles.iconStyle}
+        />
         <Kb.Text center={true} type="Header" style={styles.headerStyle}>
           {props.exploding ? 'Explode' : 'Destroy'} chat messages after {props.timePeriod}?
         </Kb.Text>

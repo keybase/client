@@ -61,7 +61,11 @@ export const TeamRequestRow = (props: Props) => {
           type="Danger"
         />
         {!Styles.isMobile && (
-          <Kb.Icon onClick={onChat} style={styles.icon} type={Kb.IconType.iconfont_chat} />
+          <Kb.Icon
+            onClick={onChat}
+            style={styles.icon}
+            type={Kb.Icon.makeFastType(Kb.IconType.iconfont_chat)}
+          />
         )}
       </Kb.Box>
     </Kb.Box>

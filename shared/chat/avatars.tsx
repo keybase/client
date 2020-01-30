@@ -35,12 +35,12 @@ const MobileMutedIcon = (p: {
   const {isMuted, isSelected, isLocked} = p
   const type = isMuted
     ? isSelected
-      ? Kb.IconType.icon_shh_active_26_21
-      : Kb.IconType.icon_shh_26_21
+      ? Kb.Icon.makeFastType(Kb.IconType.icon_shh_active_26_21)
+      : Kb.Icon.makeFastType(Kb.IconType.icon_shh_26_21)
     : isLocked
     ? isSelected
-      ? Kb.IconType.icon_addon_lock_active_22
-      : Kb.IconType.icon_addon_lock_22
+      ? Kb.Icon.makeFastType(Kb.IconType.icon_addon_lock_active_22)
+      : Kb.Icon.makeFastType(Kb.IconType.icon_addon_lock_22)
     : null
   return type ? <Kb.Icon type={type} style={styles.mutedIcon} /> : null
 }
@@ -85,7 +85,11 @@ const DesktopMutedIcon = (p: {
   isLocked: boolean
 }): React.ReactElement<any> | null => {
   const {isHovered, isMuted, isSelected, isLocked} = p
-  const type = isMuted ? Kb.IconType.iconfont_shh : isLocked ? Kb.IconType.iconfont_lock : null
+  const type = isMuted
+    ? Kb.Icon.makeFastType(Kb.IconType.iconfont_shh)
+    : isLocked
+    ? Kb.Icon.makeFastType(Kb.IconType.iconfont_lock)
+    : null
   return type ? (
     <Kb.Box style={styles.mutedIcon}>
       <StrokedIcon

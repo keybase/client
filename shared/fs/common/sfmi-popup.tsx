@@ -28,7 +28,7 @@ export default Kb.OverlayParentHOC((props: Props & Kb.OverlayParentProps) => {
       {props.mode === 'Icon' ? (
         <Kb.WithTooltip tooltip={`Show in ${fileUIName}`}>
           <Kb.Icon
-            type={Kb.IconType.iconfont_finder}
+            type={Kb.Icon.makeFastType(Kb.IconType.iconfont_finder)}
             padding="tiny"
             fontSize={16}
             color={Styles.globalColors.black_50}
@@ -60,7 +60,7 @@ export default Kb.OverlayParentHOC((props: Props & Kb.OverlayParentProps) => {
           }}
         >
           <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.fancyFinderIcon}>
-            <Kb.Icon type={Kb.IconType.icon_fancy_finder_132_96} />
+            <Kb.Icon type={Kb.Icon.makeFastType(Kb.IconType.icon_fancy_finder_132_96)} />
           </Kb.Box2>
           <Kb.Text type="BodyBig" style={styles.text}>
             Enable Keybase in {fileUIName}?

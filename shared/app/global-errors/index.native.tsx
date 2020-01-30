@@ -88,7 +88,7 @@ class GlobalError extends React.Component<Props, State> {
             >
               {this.state.size !== 'Big' && (
                 <Kb.Icon
-                  type={Kb.IconType.iconfont_caret_right}
+                  type={Kb.Icon.makeFastType(Kb.IconType.iconfont_caret_right)}
                   color={Styles.globalColors.white_75}
                   sizeType="Tiny"
                 />
@@ -97,7 +97,7 @@ class GlobalError extends React.Component<Props, State> {
               An error occurred.
             </Kb.Text>
             <Kb.Icon
-              type={Kb.IconType.iconfont_close}
+              type={Kb.Icon.makeFastType(Kb.IconType.iconfont_close)}
               onClick={onDismiss}
               color={Styles.globalColors.white_75}
               fontSize={21}

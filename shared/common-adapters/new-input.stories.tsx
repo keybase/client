@@ -5,7 +5,7 @@ import {action, storiesOf} from '../stories/storybook'
 import {globalColors} from '../styles'
 import NewInput from './new-input'
 
-const Kb = {IconType}
+const Kb = {Icon, IconType}
 
 const actions = {
   onBlur: action('onBlur'),
@@ -35,7 +35,7 @@ const load = () => {
         placeholder="Decor"
         decoration={
           <Icon
-            type={Kb.IconType.iconfont_emoji}
+            type={Kb.Icon.makeFastType(Kb.IconType.iconfont_emoji)}
             style={{display: 'flex'}}
             color={globalColors.black_20}
             onClick={action('onClickEmoji')}

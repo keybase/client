@@ -18,7 +18,7 @@ const EnterKey = (props: EnterKeyProps) => (
   >
     {!Styles.isMobile && (
       <Kb.Box2 direction="vertical" gap="medium" centerChildren={true}>
-        <Kb.Icon type={Kb.IconType.icon_wallet_add_48} />
+        <Kb.Icon type={Kb.Icon.makeFastType(Kb.IconType.icon_wallet_add_48)} />
         <Kb.Text type="Header">Link an existing account</Kb.Text>
       </Kb.Box2>
     )}

@@ -9,7 +9,7 @@ import {Position} from './relative-popup-hoc.types'
 import Icon, {IconType} from './icon'
 import * as Styles from '../styles'
 
-const Kb = {IconType}
+const Kb = {Icon, IconType}
 
 type DropdownButtonProps = {
   disabled?: boolean
@@ -25,7 +25,7 @@ export const DropdownButton = (props: DropdownButtonProps) => (
     <ButtonBox inline={props.inline} disabled={props.disabled} ref={props.setAttachmentRef}>
       <Box style={Styles.collapseStyles([styles.selectedBox, props.selectedBoxStyle])}>{props.selected}</Box>
       <Icon
-        type={Kb.IconType.iconfont_caret_down}
+        type={Kb.Icon.makeFastType(Kb.IconType.iconfont_caret_down)}
         inheritColor={true}
         sizeType="Tiny"
         style={{marginTop: Styles.isMobile ? 2 : -8}}

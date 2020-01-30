@@ -31,8 +31,8 @@ const Header = (props: Props) => (
         <Kb.Icon
           type={
             props.isRequest
-              ? Kb.IconType.icon_stellar_coins_receiving_48
-              : Kb.IconType.icon_stellar_coins_sending_48
+              ? Kb.Icon.makeFastType(Kb.IconType.icon_stellar_coins_receiving_48)
+              : Kb.Icon.makeFastType(Kb.IconType.icon_stellar_coins_sending_48)
           }
           style={styles.icon}
         />

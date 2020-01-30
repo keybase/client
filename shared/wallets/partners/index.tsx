@@ -16,7 +16,7 @@ type PartnerRowProps = {
 const PartnerRow = (props: PartnerRowProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
     <Kb.Icon
-      type={props.iconFilename}
+      type={Kb.Icon.makeFastType(props.iconFilename)}
       colorOverride={Styles.globalColors.black}
       fontSize={32}
       style={styles.partnerIcon}
@@ -33,7 +33,7 @@ const PartnerRow = (props: PartnerRowProps) => (
         <Kb.Icon
           fontSize={Styles.isMobile ? 16 : 12}
           style={styles.openIcon}
-          type={Kb.IconType.iconfont_open_browser}
+          type={Kb.Icon.makeFastType(Kb.IconType.iconfont_open_browser)}
         />
       </Kb.ClickableBox>
       <Kb.Text type="BodySmall">{props.description}</Kb.Text>

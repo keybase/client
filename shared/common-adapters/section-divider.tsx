@@ -34,7 +34,9 @@ const SectionDivider = (props: Props) => {
       {collapsible && (
         <Kb.Icon
           sizeType="Tiny"
-          type={props.collapsed ? Kb.IconType.iconfont_caret_right : Kb.IconType.iconfont_caret_down}
+          type={Kb.Icon.makeFastType(
+            props.collapsed ? Kb.IconType.iconfont_caret_right : Kb.IconType.iconfont_caret_down
+          )}
         />
       )}
       {props.showSpinner && <Kb.ProgressIndicator style={styles.progress} />}

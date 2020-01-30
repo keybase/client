@@ -31,7 +31,11 @@ const Banner = ({resetParticipants, onReAddToTeam, onViewProfile, onOpenWithoutR
     style={Styles.collapseStyles([styles.banner, fixedHeight(getHeight(resetParticipants.length))])}
   >
     <Kb.Icon
-      type={isMobile ? Kb.IconType.icon_skull_64 : Kb.IconType.icon_skull_48}
+      type={
+        isMobile
+          ? Kb.Icon.makeFastType(Kb.IconType.icon_skull_64)
+          : Kb.Icon.makeFastType(Kb.IconType.icon_skull_48)
+      }
       style={{height: Styles.globalMargins.xlarge, margin: Styles.globalMargins.medium}}
     />
     <Kb.Box2 direction="vertical" centerChildren={true} style={styles.textIntro}>

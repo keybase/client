@@ -7,7 +7,7 @@ import Text from './text'
 import {Props} from './drag-and-drop'
 import logger from '../logger'
 
-const Kb = {IconType}
+const Kb = {Icon, IconType}
 
 type State = {
   showDropOverlay: boolean
@@ -72,9 +72,17 @@ class DragAndDrop extends React.PureComponent<Props, State> {
     >
       <Box2 direction="vertical" centerChildren={true} gap="medium">
         {this.props.rejectReason ? (
-          <Icon type={Kb.IconType.iconfont_remove} color={Styles.globalColors.red} sizeType="Huge" />
+          <Icon
+            type={Kb.Icon.makeFastType(Kb.IconType.iconfont_remove)}
+            color={Styles.globalColors.red}
+            sizeType="Huge"
+          />
         ) : (
-          <Icon type={Kb.IconType.iconfont_upload} color={Styles.globalColors.blue} sizeType="Huge" />
+          <Icon
+            type={Kb.Icon.makeFastType(Kb.IconType.iconfont_upload)}
+            color={Styles.globalColors.blue}
+            sizeType="Huge"
+          />
         )}
         {this.props.rejectReason ? (
           <Text type="Header">{this.props.rejectReason}</Text>

@@ -17,7 +17,7 @@ import shallowEqual from 'shallowequal'
 
 const NoChats = (props: {onNewChat: () => void}) => (
   <Kb.Box2 direction="vertical" gap="small" style={styles.noChatsContainer}>
-    <Kb.Icon type={Kb.IconType.icon_fancy_encrypted_phone_mobile_226_96} />
+    <Kb.Icon type={Kb.Icon.makeFastType(Kb.IconType.icon_fancy_encrypted_phone_mobile_226_96)} />
     <Kb.Box2 direction="vertical">
       <Kb.Text type="BodySmall" center={true}>
         All conversations are

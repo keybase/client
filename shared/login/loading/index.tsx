@@ -37,9 +37,13 @@ const Splash = (props: Props) => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container} gap="small">
       <Kb.Icon
-        type={props.onRetry ? Kb.IconType.icon_keybase_logo_logged_out_80 : Kb.IconType.icon_keybase_logo_80}
+        type={
+          props.onRetry
+            ? Kb.Icon.makeFastType(Kb.IconType.icon_keybase_logo_logged_out_80)
+            : Kb.Icon.makeFastType(Kb.IconType.icon_keybase_logo_80)
+        }
       />
-      <Kb.Icon type={Kb.IconType.icon_keybase_wordmark_128_48} />
+      <Kb.Icon type={Kb.Icon.makeFastType(Kb.IconType.icon_keybase_wordmark_128_48)} />
       {!!props.status && <Kb.Text type="BodySmall">{props.status}</Kb.Text>}
       {!!props.failed && (
         <Kb.Text type="BodySmall">

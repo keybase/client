@@ -41,7 +41,7 @@ const UnfurlGeneric = (props: Props) => {
           </Kb.BoxGrow>
           {!!onClose && (
             <Kb.Icon
-              type={Kb.IconType.iconfont_close}
+              type={Kb.Icon.makeFastType(Kb.IconType.iconfont_close)}
               onClick={onClose}
               style={styles.closeBox}
               className="unfurl-closebox"
@@ -63,7 +63,11 @@ const UnfurlGeneric = (props: Props) => {
                   noContainer={Styles.isMobile}
                   onClick={onCollapse}
                   sizeType="Tiny"
-                  type={isCollapsed ? Kb.IconType.iconfont_caret_right : Kb.IconType.iconfont_caret_down}
+                  type={
+                    isCollapsed
+                      ? Kb.Icon.makeFastType(Kb.IconType.iconfont_caret_right)
+                      : Kb.Icon.makeFastType(Kb.IconType.iconfont_caret_down)
+                  }
                 />
               </>
             )}

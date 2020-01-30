@@ -149,7 +149,7 @@ const Avatar = ({
   return (
     <Kb.Icon
       fontSize={avatarSize}
-      type={serviceIdToAvatarIcon(resultForService)}
+      type={Kb.Icon.makeFastType(serviceIdToAvatarIcon(resultForService))}
       colorOverride={serviceIdToAccentColor(resultForService)}
     />
   )
@@ -192,7 +192,7 @@ const ServicesIcons = (props: {
             {/* On desktop the styles need to be applied to the box parent if they are to work correctly */}
             <Kb.Icon
               sizeType="Small"
-              type={serviceIdToIconFont(serviceName)}
+              type={Kb.Icon.makeFastType(serviceIdToIconFont(serviceName))}
               style={Styles.isMobile && iconStyle}
               boxStyle={!Styles.isMobile && iconStyle}
             />

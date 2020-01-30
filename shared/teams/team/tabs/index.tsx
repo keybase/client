@@ -70,7 +70,7 @@ const TeamTabs = (props: TeamTabsProps) => {
     isMobile ? (
       <Kb.Icon
         key="settings"
-        type={Kb.IconType.iconfont_nav_settings}
+        type={Kb.Icon.makeFastType(Kb.IconType.iconfont_nav_settings)}
         style={props.selectedTab === 'settings' ? styles.iconSelected : styles.icon}
       />
     ) : (

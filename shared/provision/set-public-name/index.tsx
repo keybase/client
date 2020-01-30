@@ -35,7 +35,13 @@ const SetPublicName = (props: Props) => {
       title={`Name this ${isMobile ? 'phone' : 'computer'}`}
     >
       <Kb.Box2 direction="vertical" style={styles.contents} centerChildren={true} gap="medium">
-        <Kb.Icon type={isMobile ? Kb.IconType.icon_phone_96 : Kb.IconType.icon_computer_96} />
+        <Kb.Icon
+          type={
+            isMobile
+              ? Kb.Icon.makeFastType(Kb.IconType.icon_phone_96)
+              : Kb.Icon.makeFastType(Kb.IconType.icon_computer_96)
+          }
+        />
         <Kb.Box2 direction="vertical" style={styles.wrapper} gap="xsmall">
           <Kb.NewInput
             autoFocus={true}

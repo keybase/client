@@ -29,7 +29,7 @@ const FooterAdvanced = () => {
           label="Send"
           children={
             <Kb.Icon
-              type={Kb.IconType.iconfont_stellar_send}
+              type={Kb.Icon.makeFastType(Kb.IconType.iconfont_stellar_send)}
               color={Styles.globalColors.whiteOrWhite}
               style={styles.icon}
             />

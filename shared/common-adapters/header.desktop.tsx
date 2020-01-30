@@ -25,12 +25,16 @@ class Header extends Component<Props> {
         ])}
       >
         {this.props.children}
-        {this.props.icon && <Kb.Icon type={Kb.IconType.icon_keybase_logo_24} />}
+        {this.props.icon && <Kb.Icon type={Kb.Icon.makeFastType(Kb.IconType.icon_keybase_logo_24)} />}
         <Kb.Text type="Body" style={{flex: 1, paddingLeft: 6}}>
           {this.props.title}
         </Kb.Text>
         {this.props.onClose && (
-          <Kb.Icon style={styles.closeIcon} type={Kb.IconType.iconfont_close} onClick={this.props.onClose} />
+          <Kb.Icon
+            style={styles.closeIcon}
+            type={Kb.Icon.makeFastType(Kb.IconType.iconfont_close)}
+            onClick={this.props.onClose}
+          />
         )}
       </div>
     )
@@ -61,7 +65,11 @@ class Header extends Component<Props> {
         )}
         {this.props.children}
         {this.props.onClose && (
-          <Kb.Icon style={styles.closeIcon} type={Kb.IconType.iconfont_close} onClick={this.props.onClose} />
+          <Kb.Icon
+            style={styles.closeIcon}
+            type={Kb.Icon.makeFastType(Kb.IconType.iconfont_close)}
+            onClick={this.props.onClose}
+          />
         )}
       </div>
     )

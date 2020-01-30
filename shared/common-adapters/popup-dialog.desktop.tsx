@@ -6,7 +6,7 @@ import * as Styles from '../styles'
 import {Props} from './popup-dialog'
 import ModalTabBarShim from './modal-tab-bar-shim'
 
-const Kb = {IconType}
+const Kb = {Icon, IconType}
 
 function stopBubbling(ev) {
   ev.stopPropagation()
@@ -55,7 +55,7 @@ export function PopupDialog({
         >
           {onClose && (
             <Icon
-              type={Kb.IconType.iconfont_close}
+              type={Kb.Icon.makeFastType(Kb.IconType.iconfont_close)}
               style={Styles.collapseStyles([styles.close, styleClose])}
               color={Styles.globalColors.whiteOrWhite_75}
               onClick={onClose}

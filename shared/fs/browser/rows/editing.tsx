@@ -21,10 +21,12 @@ const Editing = (props: EditingProps) => {
     <Kb.ListItem2
       type="Small"
       firstItem={true /* we add divider in Rows */}
-      statusIcon={<Kb.Icon type={Kb.IconType.iconfont_add} sizeType="Small" padding="xtiny" />}
+      statusIcon={
+        <Kb.Icon type={Kb.Icon.makeFastType(Kb.IconType.iconfont_add)} sizeType="Small" padding="xtiny" />
+      }
       icon={
         <Kb.Box style={rowStyles.pathItemIcon}>
-          <Kb.Icon type={Kb.IconType.icon_folder_32} />
+          <Kb.Icon type={Kb.Icon.makeFastType(Kb.IconType.icon_folder_32)} />
         </Kb.Box>
       }
       body={
@@ -57,7 +59,7 @@ const Editing = (props: EditingProps) => {
           />
           <Kb.Icon
             onClick={props.onCancel}
-            type={Kb.IconType.iconfont_trash}
+            type={Kb.Icon.makeFastType(Kb.IconType.iconfont_trash)}
             color={Styles.globalColors.black_50}
             hoverColor={Styles.globalColors.black}
             style={styles.iconCancel}

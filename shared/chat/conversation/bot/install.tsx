@@ -506,7 +506,11 @@ const InstallBotPopup = (props: Props) => {
       type="Default"
     />
   )
-  const backButton = Styles.isMobile ? 'Back' : <Kb.Icon type={Kb.IconType.iconfont_arrow_left} />
+  const backButton = Styles.isMobile ? (
+    'Back'
+  ) : (
+    <Kb.Icon type={Kb.Icon.makeFastType(Kb.IconType.iconfont_arrow_left)} />
+  )
   const enabled = !!conversationIDKey && inTeam !== undefined
   return (
     <Kb.Modal

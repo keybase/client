@@ -17,8 +17,8 @@ export default ({type}: PlaceholderProps) => (
       <Kb.Icon
         type={
           type === Types.PathType.Folder
-            ? Kb.IconType.icon_folder_placeholder_32
-            : Kb.IconType.icon_file_placeholder_32
+            ? Kb.Icon.makeFastType(Kb.IconType.icon_folder_placeholder_32)
+            : Kb.Icon.makeFastType(Kb.IconType.icon_file_placeholder_32)
         }
         style={rowStyles.pathItemIcon}
       />

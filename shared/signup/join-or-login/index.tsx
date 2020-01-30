@@ -16,7 +16,7 @@ const JoinOrLogin = (props: Props) => (
       <InfoIcon onDocumentation={props.onDocumentation} onFeedback={props.onFeedback} />
     </Kb.Box2>
     <Kb.Box2 centerChildren={true} direction="vertical" gap="small" style={styles.body} fullWidth={true}>
-      <Kb.Icon type={Kb.IconType.icon_keybase_logo_64} />
+      <Kb.Icon type={Kb.Icon.makeFastType(Kb.IconType.icon_keybase_logo_64)} />
       <Kb.Text type="HeaderBig" style={styles.text}>
         Join Keybase
       </Kb.Text>

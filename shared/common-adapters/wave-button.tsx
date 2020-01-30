@@ -72,7 +72,11 @@ export const WaveButton = (props: Props) => {
     <Kb.Box style={Styles.collapseStyles([props.style, styles.outer])}>
       {hideButton && (
         <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.waved} gap="xtiny">
-          <Kb.Icon type={Kb.IconType.iconfont_check} color={Styles.globalColors.black_50} sizeType="Tiny" />
+          <Kb.Icon
+            type={Kb.Icon.makeFastType(Kb.IconType.iconfont_check)}
+            color={Styles.globalColors.black_50}
+            sizeType="Tiny"
+          />
           <Kb.Text type="BodySmall"> Waved</Kb.Text>
         </Kb.Box2>
       )}

@@ -24,35 +24,35 @@ const getIconSizeString = (size: Size): SizeString => {
 
 const icons = {
   file: {
-    '16': Kb.IconType.icon_file_16,
-    '32': Kb.IconType.icon_file_32,
-    '48': Kb.IconType.icon_file_48,
-    '96': Kb.IconType.icon_file_96,
+    '16': Kb.Icon.makeFastType(Kb.IconType.icon_file_16),
+    '32': Kb.Icon.makeFastType(Kb.IconType.icon_file_32),
+    '48': Kb.Icon.makeFastType(Kb.IconType.icon_file_48),
+    '96': Kb.Icon.makeFastType(Kb.IconType.icon_file_96),
   },
   folder: {
-    '16': Kb.IconType.icon_folder_16,
-    '32': Kb.IconType.icon_folder_32,
-    '48': Kb.IconType.icon_folder_48,
-    '96': Kb.IconType.icon_folder_64, // TODO: use 96 when we have it
+    '16': Kb.Icon.makeFastType(Kb.IconType.icon_folder_16),
+    '32': Kb.Icon.makeFastType(Kb.IconType.icon_folder_32),
+    '48': Kb.Icon.makeFastType(Kb.IconType.icon_folder_48),
+    '96': Kb.Icon.makeFastType(Kb.IconType.icon_folder_64), // TODO: use 96 when we have it
   },
   tlfList: {
     private: {
-      '16': Kb.IconType.icon_folder_private_16,
-      '32': Kb.IconType.icon_folder_private_32,
-      '48': Kb.IconType.icon_folder_private_48,
-      '96': Kb.IconType.icon_folder_private_64, // TODO: use 96 when we have it
+      '16': Kb.Icon.makeFastType(Kb.IconType.icon_folder_private_16),
+      '32': Kb.Icon.makeFastType(Kb.IconType.icon_folder_private_32),
+      '48': Kb.Icon.makeFastType(Kb.IconType.icon_folder_private_48),
+      '96': Kb.Icon.makeFastType(Kb.IconType.icon_folder_private_64), // TODO: use 96 when we have it
     },
     public: {
-      '16': Kb.IconType.icon_folder_public_16,
-      '32': Kb.IconType.icon_folder_public_32,
-      '48': Kb.IconType.icon_folder_public_48,
-      '96': Kb.IconType.icon_folder_public_64, // TODO: use 96 when we have it
+      '16': Kb.Icon.makeFastType(Kb.IconType.icon_folder_public_16),
+      '32': Kb.Icon.makeFastType(Kb.IconType.icon_folder_public_32),
+      '48': Kb.Icon.makeFastType(Kb.IconType.icon_folder_public_48),
+      '96': Kb.Icon.makeFastType(Kb.IconType.icon_folder_public_64), // TODO: use 96 when we have it
     },
     team: {
-      '16': Kb.IconType.icon_folder_team_16,
-      '32': Kb.IconType.icon_folder_team_32,
-      '48': Kb.IconType.icon_folder_team_48,
-      '96': Kb.IconType.icon_folder_team_64, // TODO: use 96 when we have it
+      '16': Kb.Icon.makeFastType(Kb.IconType.icon_folder_team_16),
+      '32': Kb.Icon.makeFastType(Kb.IconType.icon_folder_team_32),
+      '48': Kb.Icon.makeFastType(Kb.IconType.icon_folder_team_48),
+      '96': Kb.Icon.makeFastType(Kb.IconType.icon_folder_team_64), // TODO: use 96 when we have it
     },
   },
 } as const
@@ -84,7 +84,7 @@ const TlfTypeIcon = (props: TlfTypeIconProps) => {
       {getTlfTypeIcon(props.size, props.tlfType)}
       {props.badgeOverride ? (
         <Kb.Box style={styles.badgeContainer}>
-          <Kb.Icon type={props.badgeOverride} style={badgeStyle.rightBottomBadge} />
+          <Kb.Icon type={Kb.Icon.makeFastType(props.badgeOverride)} style={badgeStyle.rightBottomBadge} />
           color={Styles.globalColors.greyDarker}
         </Kb.Box>
       ) : (
@@ -115,7 +115,7 @@ const TlfIcon = (props: TlfIconProps) => (
     {!!props.badgeOverride && (
       <Kb.Box style={styles.badgeContainer}>
         <Kb.Icon
-          type={props.badgeOverride}
+          type={Kb.Icon.makeFastType(props.badgeOverride)}
           style={badgeStyles[getIconSizeString(props.size)].rightBottomBadge}
           color={Styles.globalColors.greyDarker}
         />
@@ -153,7 +153,7 @@ const InTlfIcon = (props: InTlfItemIconProps) => {
       {badgeIcon && (
         <Kb.Box style={styles.badgeContainer}>
           <Kb.Icon
-            type={badgeIcon}
+            type={Kb.Icon.makeFastType(badgeIcon)}
             style={badgeStyle.rightBottomBadge}
             color={Styles.globalColors.greyDarker}
           />

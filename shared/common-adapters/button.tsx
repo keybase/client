@@ -181,7 +181,7 @@ const Button = React.forwardRef<ClickableBox, Props>((props: Props, ref: React.R
           )}
           {!!props.icon && (
             <Kb.Icon
-              type={props.icon}
+              type={Kb.Icon.makeFastType(props.icon)}
               sizeType="Default"
               style={Styles.collapseStyles([labelStyle, props.labelStyle])}
             />

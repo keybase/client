@@ -73,7 +73,10 @@ export const SignedSender = (props: OutputSignedProps) => {
               />,
             ]
           : [
-              <Kb.Icon key="avatar" type={Kb.IconType.icon_placeholder_secret_user_16} />,
+              <Kb.Icon
+                key="avatar"
+                type={Kb.Icon.makeFastType(Kb.IconType.icon_placeholder_secret_user_16)}
+              />,
               canSelfSign ? null : (
                 <Kb.Text key="username" type="BodySmallSemibold">
                   Anonymous sender
@@ -193,7 +196,7 @@ const Output = (props: Props) => {
           alignItems="center"
           style={styles.fileOutputContainer}
         >
-          <Kb.Icon type={fileIcon} sizeType="Huge" />
+          <Kb.Icon type={Kb.Icon.makeFastType(fileIcon)} sizeType="Huge" />
           <Kb.Text
             type="BodyPrimaryLink"
             style={Styles.collapseStyles([styles.fileOutputText, {color: fileOutputTextColor}])}

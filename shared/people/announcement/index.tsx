@@ -21,7 +21,7 @@ const Announcement = (props: Props) => {
         props.iconUrl ? (
           <Kb.Image src={props.iconUrl} style={styles.icon} />
         ) : (
-          <Kb.Icon type={Kb.IconType.icon_keybase_logo_80} style={styles.icon} />
+          <Kb.Icon type={Kb.Icon.makeFastType(Kb.IconType.icon_keybase_logo_80)} style={styles.icon} />
         )
       }
     >
