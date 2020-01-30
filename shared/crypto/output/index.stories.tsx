@@ -17,7 +17,7 @@ BEGIN KEYBASE SALTPACK SIGNED MESSAGE. kXR7VktZdyH7rvq v5weRa0zkIFigOx DLGV6rkJY
 const verifyOutput =
   'Verifying that this message was sent by Cecileb and far longer than 120 characters to show that the text size is regular and not large.'
 
-const storeCommon = Sb.createPropProviderWithCommon()
+const storeCommon = Sb.createStoreWithCommon()
 const store = {
   ...storeCommon,
   config: {

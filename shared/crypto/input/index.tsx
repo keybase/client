@@ -213,9 +213,12 @@ export const Input = (props: InputProps) => {
 
   // Clear the local input state when a user has dragged and dropped a file into the operation
   // If the input is not cleared then dropping a file, then clearing the file will show old text input
+  const prevCounter = Container.usePrevious(fileDroppedCounter)
   React.useEffect(() => {
-    setInputValue('')
-  }, [fileDroppedCounter])
+    if (prevCounter && fileDroppedCounter > prevCounter) {
+      setInputValue('')
+    }
+  }, [fileDroppedCounter, prevCounter])
 
   return inputType === 'file' ? (
     <FileInput
