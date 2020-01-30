@@ -872,6 +872,54 @@ func TestLeave(t *testing.T) {
 	require.False(t, team.IsMember(context.TODO(), restrictedBotua.GetUserVersion()))
 }
 
+func TestImplicitAdminBecomesExplicit(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	t.Logf("u0 creates a team (seqno:1)")
+	teamName, _ := createTeam2(*tcs[0])
+
+	t.Logf("U0 adds U1 to the team (2)")
+	_, err := AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_ADMIN, nil)
+	require.NoError(t, err)
+
+	t.Logf("U0 makes a subteam")
+	subteamNameParsed, subteamID := createSubteam(tcs[0], teamName, "subteam")
+	subteamName := subteamNameParsed.String()
+
+	t.Logf("U0 adds themself as an admin to the subteam")
+	_, err = AddMember(context.TODO(), tcs[0].G, subteamName, fus[0].Username, keybase1.TeamRole_ADMIN, nil)
+	require.NoError(t, err)
+
+	t.Logf("U0 rotates the subteam 3 times")
+	subteam, err := GetForTestByID(context.TODO(), tcs[0].G, subteamID)
+	require.NoError(t, err)
+	for i := 0; i < 3; i++ {
+		err = subteam.Rotate(context.TODO(), keybase1.RotationType_HIDDEN)
+		require.NoError(t, err)
+		subteam, err = GetForTestByID(context.TODO(), tcs[0].G, subteamID)
+		require.NoError(t, err)
+	}
+
+	t.Logf("U1 fails to read the SALTPACK RKM at gen=4")
+	subteamPartial, err := GetForTestByID(context.TODO(), tcs[1].G, subteamID)
+	require.NoError(t, err)
+	mctx := libkb.NewMetaContextForTest(*tcs[1])
+	_, err = ApplicationKeyAtGeneration(mctx, subteamPartial, keybase1.TeamApplication_SALTPACK, keybase1.PerTeamKeyGeneration(4))
+	require.Error(t, err)
+	require.IsType(t, err, libkb.KeyMaskNotFoundError{})
+
+	t.Logf("U0 adds U1 as a writer to the subteam")
+	_, err = AddMember(context.TODO(), tcs[0].G, subteamName, fus[1].Username, keybase1.TeamRole_WRITER, nil)
+	require.NoError(t, err)
+
+	t.Logf("U1 succeeds in reading the SALTPACK RKM at gen=4")
+	subteamFull, err := GetForTestByID(context.TODO(), tcs[1].G, subteamID)
+	require.NoError(t, err)
+	_, err = ApplicationKeyAtGeneration(mctx, subteamFull, keybase1.TeamApplication_SALTPACK, keybase1.PerTeamKeyGeneration(4))
+	require.NoError(t, err)
+}
+
 func TestLeaveSubteamWithImplicitAdminship(t *testing.T) {
 	tc, owner, otherA, otherB, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
