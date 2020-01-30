@@ -312,7 +312,7 @@ func (l *LogSendContext) LogSend(sendLogs bool, numBytes int, mergeExtendedStatu
 			if err != nil {
 				return "", err
 			}
-			networkStatsJSON, err := json.MarshalIndent(stats, "", "    ")
+			networkStatsJSON, err := json.Marshal(stats)
 			if err != nil {
 				return "", err
 			}
@@ -350,4 +350,6 @@ func (l *LogSendContext) Clear() {
 	l.traceBundle = []byte{}
 	l.cpuProfileBundle = []byte{}
 	l.processesLog = ""
+	l.StatusJSON = ""
+	l.NetworkStatsJSON = ""
 }

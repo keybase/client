@@ -99,7 +99,7 @@ func (c *CmdLogSend) Run() error {
 	if err != nil {
 		c.G().Log.Info("ignoring error getting keybase network stats: %s", err)
 	} else {
-		b, err := json.MarshalIndent(networkStats, "", "    ")
+		b, err := json.Marshal(networkStats)
 		if err != nil {
 			c.G().Log.Info("ignoring network stats json marshal error: %s", err)
 			networkStatsJSON = c.errJSON(err)

@@ -21,7 +21,7 @@ func AddRPCRecord(tag string, stat keybase1.InstrumentationStat, record rpc.Inst
 	}
 
 	stat.Mtime = keybase1.ToTime(time.Now())
-	stat.NumCalls += 1
+	stat.NumCalls++
 	dur := keybase1.ToDurationMsec(record.Dur)
 	stat.TotalDur += dur
 	if dur > stat.MaxDur {
