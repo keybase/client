@@ -810,7 +810,7 @@ func (g *GlobalContext) Shutdown(mctx MetaContext) error {
 		g.cacheMu.Unlock()
 
 		if g.proofServices != nil {
-			g.proofServices = nil
+			g.proofServices.Shutdown()
 		}
 
 		if g.Resolver != nil {

@@ -163,9 +163,9 @@ func (c *levelDbCleaner) cacheKey(key []byte) string {
 	return string(key)
 }
 
-func (c *levelDbCleaner) shutdown() {
-	c.Lock()
-	defer c.Unlock()
+func (c *levelDbCleaner) Shutdown() {
+	c.cacheMu.Lock()
+	defer c.cacheMu.Unlock()
 	var err error
 	c.cache, err = lru.New(1)
 	if err != nil {
@@ -180,7 +180,7 @@ func (c *levelDbCleaner) shouldCleanLocked(force bool) bool {
 	if force {
 		return true
 	}
-	validCache := c.getCache() != nil && c.cache.Len() >= c.config.MinCacheSize
+	validCache := c.getCache().Len() >= c.config.MinCacheSize
 	return validCache &&
 		c.G().GetClock().Now().Sub(c.lastRun) >= c.config.CleanInterval
 }
@@ -225,7 +225,7 @@ func (c *levelDbCleaner) clean(force bool) (err error) {
 	}
 
 	c.log("dbSize: %v, cacheSize: %v",
-		humanize.Bytes(dbSize), c.cache.Len())
+		humanize.Bytes(dbSize), c.getCache().Len())
 	// check db size, abort if small enough
 	if !force && dbSize < c.config.MaxSize {
 		return nil
@@ -286,13 +286,14 @@ func (c *levelDbCleaner) cleanBatch(startKey []byte) (int, []byte, error) {
 	batch := new(leveldb.Batch)
 	for batch.Len() < 1000 && iter.Next() {
 		key := iter.Key()
-		if _, found := c.cache.Get(c.cacheKey(key)); !found {
+		cache := c.getCache()
+		if _, found := cache.Get(c.cacheKey(key)); !found {
 			cp := make([]byte, len(key))
 			copy(cp, key)
 			batch.Delete(cp)
 		} else {
 			// clear out the value from the lru
-			c.cache.Remove(c.cacheKey(key))
+			cache.Remove(c.cacheKey(key))
 		}
 	}
 	key := make([]byte, len(iter.Key()))
@@ -324,17 +325,11 @@ func (c *levelDbCleaner) attemptClean(ctx context.Context) {
 }
 
 func (c *levelDbCleaner) markRecentlyUsed(ctx context.Context, key []byte) {
-	cache := c.getCache()
-	if cache != nil {
-		c.cache.Add(c.cacheKey(key), true)
-	}
+	c.getCache().Add(c.cacheKey(key), true)
 	c.attemptClean(ctx)
 }
 
 func (c *levelDbCleaner) removeRecentlyUsed(ctx context.Context, key []byte) {
-	cache := c.getCache()
-	if cache != nil {
-		c.cache.Remove(c.cacheKey(key))
-	}
+	c.getCache().Remove(c.cacheKey(key))
 	c.attemptClean(ctx)
 }

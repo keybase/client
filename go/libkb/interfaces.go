@@ -669,6 +669,7 @@ type ExternalServicesCollector interface {
 	ListServicesThatAcceptNewProofs(MetaContext) []string
 	ListDisplayConfigs(MetaContext) (res []keybase1.ServiceDisplayConfig)
 	SuggestionFoldPriority(MetaContext) int
+	Shutdown()
 }
 
 // Generic store for data that is hashed into the merkle root. Used by pvl and

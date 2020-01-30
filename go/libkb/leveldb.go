@@ -273,7 +273,7 @@ func (l *LevelDb) closeLocked() error {
 		l.dbOpenerOnce.Do(func() {})
 		// stop any active cleaning jobs
 		l.cleaner.Stop()
-		l.cleaner.shutdown()
+		l.cleaner.Shutdown()
 	}
 	return err
 }
