@@ -304,18 +304,17 @@ const OpenTeamRow = (p: OpenTeamProps) => {
         centerChildren={true}
         className="hover_background_color_blueGreyDark"
         style={Styles.collapseStyles([
+          styles.openTeamContainer,
           {
             backgroundColor: isSelected ? Styles.globalColors.blue : Styles.globalColors.white,
             height: rowHeight,
-            paddingLeft: Styles.globalMargins.xtiny,
-            paddingRight: Styles.globalMargins.xtiny,
           },
         ])}
         onMouseLeave={() => setHovering(false)}
         onMouseOver={() => setHovering(true)}
       >
         <TeamAvatar teamname={name} isMuted={false} isSelected={isSelected} isHovered={hovering} />
-        <Kb.Box2 direction="vertical" style={{flexGrow: 1}}>
+        <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}}>
           <Kb.Text
             type="BodySemibold"
             style={Styles.collapseStyles([
@@ -366,6 +365,16 @@ const styles = Styles.styleSheetCreate(
       errorText: {
         color: Styles.globalColors.redDark,
       },
+      openTeamContainer: Styles.platformStyles({
+        isElectron: {
+          paddingLeft: Styles.globalMargins.xtiny,
+          paddingRight: Styles.globalMargins.xtiny,
+        },
+        isMobile: {
+          paddingLeft: Styles.globalMargins.tiny,
+          paddingRight: Styles.globalMargins.tiny,
+        },
+      }),
       percentContainer: Styles.platformStyles({
         common: {
           padding: Styles.globalMargins.tiny,
