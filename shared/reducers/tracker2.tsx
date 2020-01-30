@@ -97,8 +97,7 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     d.followingCount = d.following.size
   },
   [Tracker2Gen.proofSuggestionsUpdated]: (draftState, action) => {
-    type ReadonlyProofSuggestions = Readonly<Types.State['proofSuggestions']>
-    ;(draftState.proofSuggestions as ReadonlyProofSuggestions) = action.payload.suggestions
+    draftState.proofSuggestions = Container.castDraft(action.payload.suggestions)
   },
   [Tracker2Gen.loadedNonUserProfile]: (draftState, action) => {
     const {assertion, ...rest} = action.payload
