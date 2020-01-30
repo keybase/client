@@ -3,7 +3,6 @@ package client
 import (
 	"errors"
 	"fmt"
-	"os"
 	"strings"
 	"time"
 
@@ -1292,14 +1291,14 @@ func (c *chatServiceHandler) ListMembersV1(ctx context.Context, opts listMembers
 }
 
 func (c *chatServiceHandler) CrashV1(ctx context.Context) Reply {
-	go func() {
-		time.Sleep(3 * time.Second)
-		panic("big fat panic")
-	}()
-	go func() {
-		time.Sleep(4 * time.Second)
-		os.Exit(1)
-	}()
+	client, err := GetConfigClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+
+	if err := client.Crash(ctx); err != nil {
+		return c.errReply(err)
+	}
 
 	cres := chat1.EmptyRes{
 		RateLimits: c.aggRateLimits([]chat1.RateLimit{}),

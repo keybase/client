@@ -967,6 +967,9 @@ type AppendGUILogsArg struct {
 type GenerateWebAuthTokenArg struct {
 }
 
+type CrashArg struct {
+}
+
 type ConfigInterface interface {
 	GetCurrentStatus(context.Context, int) (CurrentStatus, error)
 	GetClientStatus(context.Context, int) ([]ClientStatus, error)
@@ -1004,6 +1007,7 @@ type ConfigInterface interface {
 	ToggleRuntimeStats(context.Context) error
 	AppendGUILogs(context.Context, string) error
 	GenerateWebAuthToken(context.Context) (string, error)
+	Crash(context.Context) error
 }
 
 func ConfigProtocol(i ConfigInterface) rpc.Protocol {
@@ -1415,6 +1419,16 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 					return
 				},
 			},
+			"crash": {
+				MakeArg: func() interface{} {
+					var ret [1]CrashArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					err = i.Crash(ctx)
+					return
+				},
+			},
 		},
 	}
 }
@@ -1587,5 +1601,10 @@ func (c ConfigClient) AppendGUILogs(ctx context.Context, content string) (err er
 
 func (c ConfigClient) GenerateWebAuthToken(ctx context.Context) (res string, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.config.generateWebAuthToken", []interface{}{GenerateWebAuthTokenArg{}}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c ConfigClient) Crash(ctx context.Context) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.config.crash", []interface{}{CrashArg{}}, nil, 0*time.Millisecond)
 	return
 }

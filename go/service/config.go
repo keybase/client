@@ -538,3 +538,11 @@ func (h ConfigHandler) GenerateWebAuthToken(ctx context.Context) (ret string, er
 	uri := libkb.SiteURILookup[h.G().Env.GetRunMode()] + "/_/login/nist?tok=" + nist.Token().String()
 	return uri, nil
 }
+
+func (h ConfigHandler) Crash(ctx context.Context) error {
+	go func() {
+		time.Sleep(3 * time.Second)
+		panic("big fat panic")
+	}()
+	return nil
+}
