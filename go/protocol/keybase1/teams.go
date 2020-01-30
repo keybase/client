@@ -3657,6 +3657,12 @@ type TeamEditMemberArg struct {
 	BotSettings *TeamBotSettings `codec:"botSettings,omitempty" json:"botSettings,omitempty"`
 }
 
+type TeamEditMembersArg struct {
+	SessionID int            `codec:"sessionID" json:"sessionID"`
+	Name      string         `codec:"name" json:"name"`
+	Users     []UserRolePair `codec:"users" json:"users"`
+}
+
 type TeamGetBotSettingsArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Name      string `codec:"name" json:"name"`
@@ -3898,6 +3904,7 @@ type TeamsInterface interface {
 	TeamRemoveMember(context.Context, TeamRemoveMemberArg) error
 	TeamLeave(context.Context, TeamLeaveArg) error
 	TeamEditMember(context.Context, TeamEditMemberArg) error
+	TeamEditMembers(context.Context, TeamEditMembersArg) error
 	TeamGetBotSettings(context.Context, TeamGetBotSettingsArg) (TeamBotSettings, error)
 	TeamSetBotSettings(context.Context, TeamSetBotSettingsArg) error
 	TeamRename(context.Context, TeamRenameArg) error
@@ -4230,6 +4237,21 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						return
 					}
 					err = i.TeamEditMember(ctx, typedArgs[0])
+					return
+				},
+			},
+			"teamEditMembers": {
+				MakeArg: func() interface{} {
+					var ret [1]TeamEditMembersArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]TeamEditMembersArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]TeamEditMembersArg)(nil), args)
+						return
+					}
+					err = i.TeamEditMembers(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -4938,6 +4960,11 @@ func (c TeamsClient) TeamLeave(ctx context.Context, __arg TeamLeaveArg) (err err
 
 func (c TeamsClient) TeamEditMember(ctx context.Context, __arg TeamEditMemberArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamEditMember", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c TeamsClient) TeamEditMembers(ctx context.Context, __arg TeamEditMembersArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamEditMembers", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
