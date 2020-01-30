@@ -274,6 +274,7 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.IdentifyDispatch = NewIdentifyDispatch()
 	g.Identify3State = NewIdentify3State(g)
 	g.GregorState = newNullGregorState()
+	g.NetworkInstrumenterStorage = NewDiskInstrumentationStorage(g)
 
 	g.Log.Debug("GlobalContext#Init(%p)\n", g)
 
@@ -924,7 +925,6 @@ func (g *GlobalContext) ConfigureUsage(usage Usage) error {
 	if err = g.ConfigureCaches(); err != nil {
 		return err
 	}
-	g.NetworkInstrumenterStorage = NewDiskInstrumentationStorage(g)
 	g.NetworkInstrumenterStorage.Start()
 
 	if err = g.ConfigureMerkleClient(); err != nil {
