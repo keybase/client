@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
@@ -272,6 +273,22 @@ func TestEmailAssertions(t *testing.T) {
 	for _, expr := range exprs {
 		_, err := AssertionParse(testAssertionContext{}, expr)
 		require.NoError(t, err)
+	}
+}
+
+func TestStripEmailBrackets(t *testing.T) {
+	tests := []struct {
+		in  string
+		out string
+	}{
+		{"aaa [a@b.com]@email bbb", "aaa a@b.com bbb"},
+		{"aaa [a@b.com]@email bbb [a@b.com]@email", "aaa a@b.com bbb a@b.com"},
+		{"aaa [a@b.com]@email\n bbb", "aaa a@b.com\n bbb"},
+		{"aaa [a@b.com]@em ail bbb", "aaa [a@b.com]@em ail bbb"},
+		{"aaa bbb", "aaa bbb"},
+	}
+	for _, test := range tests {
+		assert.Equal(t, test.out, StripEmailBrackets(test.in))
 	}
 }
 

@@ -271,6 +271,14 @@ func (a AssertionEmail) String() string {
 	return fmt.Sprintf("[%s]@email", a.Value)
 }
 
+var RegexpStripEmailBrackets = regexp.MustCompile(`\[(.*?)\]@email`)
+
+// Removes []@email assertion brackets: 'aaa [a@b.com]@email bbb' -> 'aaa a@b.com bbb'
+// Useful to sanitize errors
+func StripEmailBrackets(s string) string {
+	return RegexpStripEmailBrackets.ReplaceAllString(s, `$1`)
+}
+
 func (a AssertionSocial) GetValue() string {
 	return a.Value
 }
