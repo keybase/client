@@ -9,22 +9,22 @@ export type Device = Readonly<{
   type: DeviceTypes.DeviceType
 }>
 
-export type State = Readonly<{
-  codePageOtherDevice: Device
+export type State = {
+  readonly codePageOtherDevice: Device
   // Code from the daemon
-  codePageIncomingTextCode: HiddenString
+  readonly codePageIncomingTextCode: HiddenString
   // Code from other device
-  codePageOutgoingTextCode: HiddenString
+  readonly codePageOutgoingTextCode: HiddenString
   // shared by all errors, we only ever want one error
-  error: HiddenString
+  readonly error: HiddenString
   // if the entire process is dead, we store the whole error so we can render a lot of details about it
-  finalError?: RPCError
-  forgotUsernameResult: string
-  inlineError?: RPCError
-  username: string
-  initialUsername: string
-  deviceName: string
-  devices: Array<Device>
-  gpgImportError?: string
-  existingDevices: Array<string>
-}>
+  readonly finalError?: RPCError
+  readonly forgotUsernameResult: string
+  readonly inlineError?: RPCError
+  readonly username: string
+  readonly initialUsername: string
+  readonly deviceName: string
+  readonly devices: Array<Device>
+  readonly gpgImportError?: string
+  readonly existingDevices: Array<string>
+}

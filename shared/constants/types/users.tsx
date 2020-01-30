@@ -10,7 +10,7 @@ export type BlockState = {
   followBlocked: boolean
 }
 
-export type State = Readonly<{
-  infoMap: Map<string, UserInfo>
-  blockMap: Map<string, BlockState>
-}>
+export type State = {
+  readonly infoMap: Map<string, UserInfo>
+  readonly blockMap: Map<string, BlockState>
+}

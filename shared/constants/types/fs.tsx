@@ -563,30 +563,30 @@ export type FileContext = Readonly<{
   url: string
 }>
 
-export type State = Readonly<{
-  badge: RPCTypes.FilesTabBadge
-  criticalUpdate: boolean
-  destinationPicker: DestinationPicker
-  downloads: Downloads
-  edits: Edits
-  errors: Map<string, FsError>
-  fileContext: Map<Path, FileContext>
-  folderViewFilter: string | null // on mobile, '' is exapnded empty, null is unexpanded
-  kbfsDaemonStatus: KbfsDaemonStatus
-  lastPublicBannerClosedTlf: string
-  overallSyncStatus: OverallSyncStatus
-  pathItemActionMenu: PathItemActionMenu
-  pathItems: PathItems
-  pathInfos: Map<Path, PathInfo>
-  pathUserSettings: Map<Path, PathUserSetting>
-  sendAttachmentToChat: SendAttachmentToChat
-  settings: Settings
-  sfmi: SystemFileManagerIntegration
-  softErrors: SoftErrors
-  tlfUpdates: UserTlfUpdates
-  tlfs: Tlfs
-  uploads: Uploads
-}>
+export type State = {
+  readonly badge: RPCTypes.FilesTabBadge
+  readonly criticalUpdate: boolean
+  readonly destinationPicker: DestinationPicker
+  readonly downloads: Downloads
+  readonly edits: Edits
+  readonly errors: Map<string, FsError>
+  readonly fileContext: Map<Path, FileContext>
+  readonly folderViewFilter: string | null // on mobile, '' is exapnded empty, null is unexpanded
+  readonly kbfsDaemonStatus: KbfsDaemonStatus
+  readonly lastPublicBannerClosedTlf: string
+  readonly overallSyncStatus: OverallSyncStatus
+  readonly pathItemActionMenu: PathItemActionMenu
+  readonly pathItems: PathItems
+  readonly pathInfos: Map<Path, PathInfo>
+  readonly pathUserSettings: Map<Path, PathUserSetting>
+  readonly sendAttachmentToChat: SendAttachmentToChat
+  readonly settings: Settings
+  readonly sfmi: SystemFileManagerIntegration
+  readonly softErrors: SoftErrors
+  readonly tlfUpdates: UserTlfUpdates
+  readonly tlfs: Tlfs
+  readonly uploads: Uploads
+}
 
 export type Visibility = TlfType | null
 
