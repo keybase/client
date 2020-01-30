@@ -1,8 +1,8 @@
 import * as React from 'react'
-import * as Constants from '../../../constants/crypto'
-import * as Kb from '../../../common-adapters'
-import {Input, DragAndDrop, OperationBanner} from '../../input'
-import OperationOutput, {SignedSender, OutputBar, OutputProgress} from '../../output'
+import * as Constants from '../../constants/crypto'
+import * as Kb from '../../common-adapters'
+import {Input, DragAndDrop, OperationBanner} from '../input'
+import OperationOutput, {SignedSender, OutputBar, OutputProgress} from '../output'
 
 const Verify = () => {
   const [fileDroppedCounter, setFileDroppedCounter] = React.useState(0)
