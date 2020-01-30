@@ -157,7 +157,9 @@ func (c *levelDbCleaner) cacheKey(key []byte) string {
 }
 
 func (c *levelDbCleaner) clearCache() {
-	c.cache.Purge()
+	c.Lock()
+	defer c.Unlock()
+	c.cache, _ = lru.New(1)
 }
 
 func (c *levelDbCleaner) shouldCleanLocked(force bool) bool {
@@ -311,11 +313,15 @@ func (c *levelDbCleaner) attemptClean(ctx context.Context) {
 }
 
 func (c *levelDbCleaner) markRecentlyUsed(ctx context.Context, key []byte) {
+	c.Lock()
 	c.cache.Add(c.cacheKey(key), true)
+	c.Unlock()
 	c.attemptClean(ctx)
 }
 
 func (c *levelDbCleaner) removeRecentlyUsed(ctx context.Context, key []byte) {
+	c.Lock()
 	c.cache.Remove(c.cacheKey(key))
+	c.Unlock()
 	c.attemptClean(ctx)
 }
