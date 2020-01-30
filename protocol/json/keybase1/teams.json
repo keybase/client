@@ -3519,7 +3519,7 @@
           }
         }
       ],
-      "response": null
+      "response": "TeamAddMembersResult"
     },
     "teamGetBotSettings": {
       "request": [

@@ -3904,7 +3904,7 @@ type TeamsInterface interface {
 	TeamRemoveMember(context.Context, TeamRemoveMemberArg) error
 	TeamLeave(context.Context, TeamLeaveArg) error
 	TeamEditMember(context.Context, TeamEditMemberArg) error
-	TeamEditMembers(context.Context, TeamEditMembersArg) error
+	TeamEditMembers(context.Context, TeamEditMembersArg) (TeamAddMembersResult, error)
 	TeamGetBotSettings(context.Context, TeamGetBotSettingsArg) (TeamBotSettings, error)
 	TeamSetBotSettings(context.Context, TeamSetBotSettingsArg) error
 	TeamRename(context.Context, TeamRenameArg) error
@@ -4251,7 +4251,7 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]TeamEditMembersArg)(nil), args)
 						return
 					}
-					err = i.TeamEditMembers(ctx, typedArgs[0])
+					ret, err = i.TeamEditMembers(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -4963,8 +4963,8 @@ func (c TeamsClient) TeamEditMember(ctx context.Context, __arg TeamEditMemberArg
 	return
 }
 
-func (c TeamsClient) TeamEditMembers(ctx context.Context, __arg TeamEditMembersArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamEditMembers", []interface{}{__arg}, nil, 0*time.Millisecond)
+func (c TeamsClient) TeamEditMembers(ctx context.Context, __arg TeamEditMembersArg) (res TeamAddMembersResult, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamEditMembers", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
