@@ -162,15 +162,13 @@ const darwinInstall = (dispatch: (action: TypedActions) => void, callback: CB) =
       const detail = errors.join('\n') + `\n\nPlease run \`keybase log send\` to report the error.`
       const message = 'Keybase Install Error'
       loggingPromise.then(() =>
-        SafeElectron.getDialog()
-          .showMessageBox({buttons, detail, message})
-          .then(({response}) => {
-            if (response === 1) {
-              quit()
-            } else {
-              callback(null)
-            }
-          })
+        Electron.dialog.showMessageBox({buttons, detail, message}).then(({response}) => {
+          if (response === 1) {
+            quit()
+          } else {
+            callback(null)
+          }
+        })
       )
       return
     }
