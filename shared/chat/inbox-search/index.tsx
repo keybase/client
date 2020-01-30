@@ -37,6 +37,7 @@ export type Props = {
   onCancel: () => void
   onSelectConversation: (arg0: Types.ConversationIDKey, arg1: number, arg2: string) => void
   openTeamsResults: Array<Types.InboxSearchOpenTeamHit>
+  openTeamsResultsSuggested: boolean
   openTeamsStatus: Types.InboxSearchStatus
   query: string
   selectedIndex: number
@@ -49,6 +50,8 @@ type State = {
   textCollapsed: boolean
   openTeamsCollapsed: boolean
 }
+
+const emptyUnreadPlaceholder = '---EMPTYRESULT---'
 
 class InboxSearch extends React.Component<Props, State> {
   state = {nameCollapsed: false, openTeamsCollapsed: false, textCollapsed: false}
@@ -74,10 +77,22 @@ class InboxSearch extends React.Component<Props, State> {
   }
 
   private renderHit = (h: {
-    item: TextResult
+    item: TextResult | string
     section: {indexOffset: number; onSelect: any}
     index: number
   }) => {
+    if (typeof h.item === 'string') {
+      return h.item === emptyUnreadPlaceholder ? (
+        <Kb.Text
+          style={{...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny)}}
+          type="BodySmall"
+          center={true}
+        >
+          No unread messages or conversations
+        </Kb.Text>
+      ) : null
+    }
+
     const {item, section, index} = h
     const realIndex = index + section.indexOffset
     return item.type === 'big' ? (
@@ -167,13 +182,17 @@ class InboxSearch extends React.Component<Props, State> {
   private keyExtractor = (_: unknown, index: number) => index
 
   render() {
-    const nameResults = this.state.nameCollapsed ? [] : this.props.nameResults
+    const nameResults: Array<NameResult | string> = this.state.nameCollapsed ? [] : this.props.nameResults
     const textResults = this.state.textCollapsed ? [] : this.props.textResults
     const openTeamsResults = this.state.openTeamsCollapsed ? [] : this.props.openTeamsResults
 
     const indexOffset = flags.openTeamSearch
       ? openTeamsResults.length + nameResults.length
       : nameResults.length
+
+    if (this.props.nameResultsUnread && !this.state.nameCollapsed && nameResults.length === 0) {
+      nameResults.push(emptyUnreadPlaceholder)
+    }
 
     const sections = [
       {
@@ -187,7 +206,7 @@ class InboxSearch extends React.Component<Props, State> {
         status: this.props.nameStatus,
         title: this.props.nameResultsUnread ? 'Unread' : 'Chats',
       },
-      ...(flags.openTeamSearch && !this.props.nameResultsUnread
+      ...(flags.openTeamSearch
         ? [
             {
               data: openTeamsResults,
@@ -198,7 +217,7 @@ class InboxSearch extends React.Component<Props, State> {
               renderHeader: this.renderNameHeader,
               renderItem: this.renderOpenTeams,
               status: this.props.openTeamsStatus,
-              title: 'Open Teams',
+              title: this.props.openTeamsResultsSuggested ? 'Suggested Teams' : 'Open Teams',
             },
           ]
         : []),

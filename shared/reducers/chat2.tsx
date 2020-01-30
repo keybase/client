@@ -238,7 +238,8 @@ const searchActions: Container.ActionHandler<Actions, Types.State> = {
   [Chat2Gen.inboxSearchOpenTeamsResults]: (draftState, action) => {
     const {inboxSearch} = draftState
     if (inboxSearch?.openTeamsStatus === 'inprogress') {
-      const {results} = action.payload
+      const {results, suggested} = action.payload
+      inboxSearch.openTeamsResultsSuggested = suggested
       inboxSearch.openTeamsResults = results
       inboxSearch.openTeamsStatus = 'success'
     }

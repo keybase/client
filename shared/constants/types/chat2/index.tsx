@@ -74,6 +74,7 @@ export type InboxSearchInfo = {
   nameResultsUnread: boolean
   openTeamsResults: Array<InboxSearchOpenTeamHit>
   openTeamsStatus: InboxSearchStatus
+  openTeamsResultsSuggested: boolean
   query: HiddenString
   selectedIndex: number
   textResults: Array<InboxSearchTextHit>
