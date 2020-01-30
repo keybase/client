@@ -19,6 +19,7 @@ type Props = {
   path: string
   fullPath: string
   fileName: string
+  message: Types.MessageAttachment
   progress: number
   transferState: Types.MessageAttachmentTransferState
   showButton: null | 'play' | 'film'
@@ -171,9 +172,13 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                       )}
                     </Kb.Box2>
                     {this.props.title.length > 0 && (
-                      <Kb.Text type="Body" style={Styles.collapseStyles([styles.title])}>
+                      <Kb.Markdown
+                        style={Styles.collapseStyles([styles.title])}
+                        meta={{message: this.props.message}}
+                        allowFontScaling={true}
+                      >
                         {this.props.title}
-                      </Kb.Text>
+                      </Kb.Markdown>
                     )}
                   </Kb.Box2>
                 )}

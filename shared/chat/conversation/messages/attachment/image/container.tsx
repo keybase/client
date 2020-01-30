@@ -87,7 +87,7 @@ export default Container.connect(
       path: message.previewURL,
       progress: message.transferProgress,
       showButton: buttonType,
-      title: message.title,
+      title: message.decoratedText ? message.decoratedText.stringValue() : message.title,
       toggleMessageMenu: ownProps.toggleMessageMenu,
       transferState: message.transferState,
       videoDuration: message.videoDuration || '',

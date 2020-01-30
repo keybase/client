@@ -243,6 +243,7 @@ export const makeMessageAttachment = (
   attachmentType: 'file',
   audioAmps: [],
   audioDuration: 0,
+  decoratedText: null,
   downloadPath: null,
   fileName: '',
   fileSize: 0,
@@ -253,6 +254,9 @@ export const makeMessageAttachment = (
   isCollapsed: false,
   isDeleteable: true,
   isEditable: false,
+  mentionsAt: new Set(),
+  mentionsChannel: 'none',
+  mentionsChannelName: new Map(),
   previewHeight: 0,
   previewTransferState: null,
   previewURL: '',
@@ -918,6 +922,7 @@ const validUIMessagetoMessage = (
     }
     case RPCChatTypes.MessageType.attachmentuploaded: // fallthrough
     case RPCChatTypes.MessageType.attachment: {
+      console.warn(m)
       // The attachment flow is currently pretty complicated. We'll have core do more of this so it'll be simpler but for now
       // 1. On thread load we only get attachment type. It'll have full data
       // 2. On incoming we get attachment first (placeholder), then we get the full data (attachmentuploaded)
@@ -969,6 +974,7 @@ const validUIMessagetoMessage = (
         attachmentType: pre.attachmentType,
         audioAmps: pre.audioAmps,
         audioDuration: pre.audioDuration,
+        decoratedText: m.decoratedTextBody ? new HiddenString(m.decoratedTextBody) : null,
         fileName: filename,
         fileSize: size,
         fileType,
@@ -978,6 +984,11 @@ const validUIMessagetoMessage = (
         isCollapsed: m.isCollapsed,
         isDeleteable: m.isDeleteable,
         isEditable: m.isEditable,
+        mentionsAt: new Set(m.atMentions || []),
+        mentionsChannel: channelMentionToMentionsChannel(m.channelMention),
+        mentionsChannelName: new Map(
+          (m.channelNameMentions || []).map(men => [men.name, Types.stringToConversationIDKey(men.convID)])
+        ),
         previewHeight: pre.height,
         previewURL,
         previewWidth: pre.width,
@@ -1092,6 +1103,7 @@ const outboxUIMessagetoMessage = (
         const baseMd = (o.preview && o.preview.baseMetadata) || null
         pre = previewSpecs(md, baseMd)
       }
+      // TODO: add decoratedText
       return makePendingAttachmentMessage(
         state,
         conversationIDKey,
