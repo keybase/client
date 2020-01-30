@@ -206,6 +206,8 @@ export type State = Readonly<{
   focus: Focus
   giphyResultMap: Map<Common.ConversationIDKey, RPCChatTypes.GiphySearchResults | undefined>
   giphyWindowMap: Map<Common.ConversationIDKey, boolean>
+  hasZzzJourneycard: Map<Common.ConversationIDKey, MessageJourneycard>
+  shouldDeleteZzzJourneycard: Map<Common.ConversationIDKey, MessageJourneycard> // messages scheduled for deletion
   inboxNumSmallRows?: number
   inboxHasLoaded: boolean // if we've ever loaded,
   inboxLayout: RPCChatTypes.UIInboxLayout | null // layout of the inbox
