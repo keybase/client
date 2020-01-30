@@ -431,9 +431,9 @@ func (e *Kex2Provisioner) rememberDeviceInfo(jw *jsonw.Wrapper) error {
 	if err != nil {
 		return err
 	}
-	e.provisioneeDeviceType = keybase1.DeviceTypeV2Map[dtype]
+	e.provisioneeDeviceType, err = keybase1.StringToDeviceTypeV2(dtype)
 
-	return nil
+	return err
 }
 
 // Returns nil if there are no per-user-keys.

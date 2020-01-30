@@ -564,39 +564,10 @@ func (e DeviceType) String() string {
 	return fmt.Sprintf("%v", int(e))
 }
 
-type DeviceTypeV2 int
+type DeviceTypeV2 string
 
-const (
-	DeviceTypeV2_NONE    DeviceTypeV2 = 0
-	DeviceTypeV2_DESKTOP DeviceTypeV2 = 1
-	DeviceTypeV2_MOBILE  DeviceTypeV2 = 2
-	DeviceTypeV2_WEB     DeviceTypeV2 = 3
-	DeviceTypeV2_PAPER   DeviceTypeV2 = 5
-)
-
-func (o DeviceTypeV2) DeepCopy() DeviceTypeV2 { return o }
-
-var DeviceTypeV2Map = map[string]DeviceTypeV2{
-	"NONE":    0,
-	"DESKTOP": 1,
-	"MOBILE":  2,
-	"WEB":     3,
-	"PAPER":   5,
-}
-
-var DeviceTypeV2RevMap = map[DeviceTypeV2]string{
-	0: "NONE",
-	1: "DESKTOP",
-	2: "MOBILE",
-	3: "WEB",
-	5: "PAPER",
-}
-
-func (e DeviceTypeV2) String() string {
-	if v, ok := DeviceTypeV2RevMap[e]; ok {
-		return v
-	}
-	return fmt.Sprintf("%v", int(e))
+func (o DeviceTypeV2) DeepCopy() DeviceTypeV2 {
+	return o
 }
 
 type Stream struct {

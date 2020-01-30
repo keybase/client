@@ -22,7 +22,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -1893,67 +1892,26 @@ func PublicKeyV1FromDeviceKeyV2(keyV2 PublicKeyV2NaCl) PublicKey {
 	}
 }
 
-func (dt *DeviceTypeV2) StringForServer() string {
-	// for compatibility with the server
-	if *dt == DeviceTypeV2_PAPER {
-		return "backup"
-	}
-	return strings.ToLower(DeviceTypeV2RevMap[*dt])
+const (
+	DeviceTypeV2_NONE    = "none"
+	DeviceTypeV2_PAPER   = "backup"
+	DeviceTypeV2_DESKTOP = "desktop"
+	DeviceTypeV2_MOBILE  = "mobile"
+)
+
+func (d DeviceTypeV2) String() string {
+	return string(d)
 }
 
 func StringToDeviceTypeV2(s string) (d DeviceTypeV2, err error) {
 	deviceTypeStr := UnquoteString(s)
 	switch deviceTypeStr {
-	// these values need to match the ones that the enum is defined on. We
-	// decode both numeric and lowercase text values (and both "backup" and
-	// "paper" for paper keys) as valid for backwards compatibility and
-	// compatibility with the server.
-	case "none", "0":
-		d = DeviceTypeV2_NONE
-	case "desktop", "1":
-		d = DeviceTypeV2_DESKTOP
-	case "mobile", "2":
-		d = DeviceTypeV2_MOBILE
-	case "backup", "paper", "3":
-		d = DeviceTypeV2_PAPER
-	case "web", "5":
-		d = DeviceTypeV2_WEB
+	case DeviceTypeV2_NONE, DeviceTypeV2_DESKTOP, DeviceTypeV2_MOBILE, DeviceTypeV2_PAPER:
+		//pass
 	default:
 		return DeviceTypeV2_NONE, fmt.Errorf("Unknown DeviceType: %s", deviceTypeStr)
 	}
-	return d, nil
-}
-
-func (dt *DeviceTypeV2) UnmarshalJSON(deviceType []byte) (err error) {
-	*dt, err = StringToDeviceTypeV2(string(deviceType))
-	return err
-}
-
-func (dt *DeviceTypeV2) MarshalJSON() (b []byte, err error) {
-	return json.Marshal(dt.StringForServer())
-}
-
-func (dt *DeviceTypeV2) CodecDecodeSelf(d *codec.Decoder) {
-	var container interface{}
-	d.MustDecode(&container)
-	switch v := container.(type) {
-	case int:
-		*dt = DeviceTypeV2(v)
-	case int64:
-		*dt = DeviceTypeV2(v)
-	case string:
-		var err error
-		*dt, err = StringToDeviceTypeV2(v)
-		if err != nil {
-			panic(err.Error())
-		}
-	default:
-		panic(fmt.Sprintf("Decoding error for DeviceTypeV2: unrecognized value %v of type %T", v, v))
-	}
-}
-
-func (dt *DeviceTypeV2) CodecEncodeSelf(d *codec.Encoder) {
-	d.MustEncode(dt.StringForServer())
+	return DeviceTypeV2(deviceTypeStr), nil
 }
 
 // defaults to Desktop

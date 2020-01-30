@@ -1635,14 +1635,6 @@ export enum DeviceType {
   mobile = 1,
 }
 
-export enum DeviceTypeV2 {
-  none = 0,
-  desktop = 1,
-  mobile = 2,
-  web = 3,
-  paper = 5,
-}
-
 export enum DirentType {
   file = 0,
   dir = 1,
@@ -2690,6 +2682,7 @@ export type DeviceEk = {readonly seed: Bytes32; readonly metadata: DeviceEkMetad
 export type DeviceEkMetadata = {readonly kid: KID; readonly hashMeta: HashMeta; readonly generation: EkGeneration; readonly ctime: Time; readonly deviceCtime: Time}
 export type DeviceEkStatement = {readonly currentDeviceEkMetadata: DeviceEkMetadata}
 export type DeviceID = String
+export type DeviceTypeV2 = String
 export type DirSizeInfo = {readonly numFiles: Int; readonly name: String; readonly humanSize: String}
 export type Dirent = {readonly time: Time; readonly size: Int; readonly name: String; readonly direntType: DirentType; readonly lastWriterUnverified: User; readonly writable: Boolean; readonly prefetchStatus: PrefetchStatus; readonly prefetchProgress: PrefetchProgress; readonly symlinkTarget: String}
 export type DirentWithRevision = {readonly entry: Dirent; readonly revision: KBFSRevision}

@@ -197,16 +197,8 @@ protocol Common {
     MOBILE_1
   }
 
-// these enum values need to match the ones in
-// keybase/lib_public/public_constants.ts ->
-// public_constants.device.type
-  enum DeviceTypeV2 {
-    NONE_0,
-    DESKTOP_1,
-    MOBILE_2,
-    WEB_3,
-    PAPER_5
-  }
+  @typedef("string")
+  record DeviceTypeV2{}
 
 
   record Stream {

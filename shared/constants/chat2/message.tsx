@@ -851,7 +851,7 @@ const validUIMessagetoMessage = (
     bodySummary: new HiddenString(m.bodySummary),
     deviceName: m.senderDeviceName,
     deviceRevokedAt: m.senderDeviceRevokedAt || undefined,
-    deviceType: DeviceTypes.DeviceTypeV2ToDeviceType(m.senderDeviceType),
+    deviceType: DeviceTypes.stringToDeviceType(m.senderDeviceType),
     outboxID: m.outboxID ? Types.stringToOutboxID(m.outboxID) : undefined,
     reactions,
   }
@@ -1153,7 +1153,7 @@ const errorUIMessagetoMessage = (
     botUsername: o.botUsername || undefined,
     conversationIDKey,
     deviceName: o.senderDeviceName,
-    deviceType: DeviceTypes.DeviceTypeV2ToDeviceType(o.senderDeviceType),
+    deviceType: DeviceTypes.stringToDeviceType(o.senderDeviceType),
     errorReason: o.errMsg,
     exploded: o.isEphemeral && (o.etime < Date.now() || !!o.explodedBy),
     explodedBy: o.explodedBy || '',

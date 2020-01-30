@@ -463,15 +463,10 @@
       ]
     },
     {
-      "type": "enum",
+      "type": "record",
       "name": "DeviceTypeV2",
-      "symbols": [
-        "NONE_0",
-        "DESKTOP_1",
-        "MOBILE_2",
-        "WEB_3",
-        "PAPER_5"
-      ]
+      "fields": [],
+      "typedef": "string"
     },
     {
       "type": "record",
