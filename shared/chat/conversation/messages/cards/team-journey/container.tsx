@@ -19,8 +19,8 @@ type OwnProps = {
 }
 
 type Props = {
-  cannotWrite: boolean
   canShowcase: boolean
+  cannotWrite: boolean
   channelname: string
   conversationIDKey: ChatTypes.ConversationIDKey
   loadTeamID: TeamTypes.TeamID
@@ -170,9 +170,9 @@ const TeamJourneyConnected = Container.connect(
     return {
       _channelInfos: TeamConstants.getTeamChannelInfos(state, teamID),
       _teamID: teamID,
-      cannotWrite: cannotWrite,
       canShowcase:
         TeamConstants.getTeamDetails(state, teamID).allowPromote || role === 'admin' || role === 'owner',
+      cannotWrite: cannotWrite,
       channelname,
       conversationIDKey,
       teamType: TeamConstants.getTeamType(state, teamname),
@@ -205,7 +205,7 @@ const TeamJourneyConnected = Container.connect(
       dispatch(RouteTreeGen.createNavigateAppend({path: [teamsTab, {props: {teamID}, selected: 'team'}]})),
   }),
   (stateProps, dispatchProps, ownProps) => {
-    const {cannotWrite, canShowcase, channelname, conversationIDKey, teamname, teamType} = stateProps
+    const {canShowcase, cannotWrite, channelname, conversationIDKey, teamname, teamType} = stateProps
     // Take the top three channels with most recent activity.
     const joinableStatuses = new Set([
       // keep in sync with journey_card_manager.go
@@ -226,8 +226,8 @@ const TeamJourneyConnected = Container.connect(
       .map(info => info.channelname)
 
     return {
-      cannotWrite,
       canShowcase,
+      cannotWrite,
       channelname,
       conversationIDKey,
       loadTeamID: stateProps._teamID,
