@@ -13,7 +13,7 @@ import (
 
 type CmdWait struct {
 	libkb.Contextified
-	duration time.Duration
+	duration    time.Duration
 	includeKBFS bool
 }
 
