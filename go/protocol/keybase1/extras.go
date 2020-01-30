@@ -68,10 +68,6 @@ const (
 
 const redactedReplacer = "[REDACTED]"
 
-func UnquoteString(data string) string {
-	return strings.Trim(data, "\"")
-}
-
 func Unquote(data []byte) string {
 	return strings.Trim(string(data), "\"")
 }
@@ -1893,10 +1889,10 @@ func PublicKeyV1FromDeviceKeyV2(keyV2 PublicKeyV2NaCl) PublicKey {
 }
 
 const (
-	DeviceTypeV2_NONE    = "none"
-	DeviceTypeV2_PAPER   = "backup"
-	DeviceTypeV2_DESKTOP = "desktop"
-	DeviceTypeV2_MOBILE  = "mobile"
+	DeviceTypeV2_NONE    DeviceTypeV2 = "none"
+	DeviceTypeV2_PAPER   DeviceTypeV2 = "backup"
+	DeviceTypeV2_DESKTOP DeviceTypeV2 = "desktop"
+	DeviceTypeV2_MOBILE  DeviceTypeV2 = "mobile"
 )
 
 func (d DeviceTypeV2) String() string {
@@ -1904,14 +1900,14 @@ func (d DeviceTypeV2) String() string {
 }
 
 func StringToDeviceTypeV2(s string) (d DeviceTypeV2, err error) {
-	deviceTypeStr := UnquoteString(s)
-	switch deviceTypeStr {
+	deviceType := DeviceTypeV2(s)
+	switch deviceType {
 	case DeviceTypeV2_NONE, DeviceTypeV2_DESKTOP, DeviceTypeV2_MOBILE, DeviceTypeV2_PAPER:
 		//pass
 	default:
-		return DeviceTypeV2_NONE, fmt.Errorf("Unknown DeviceType: %s", deviceTypeStr)
+		return DeviceTypeV2_NONE, fmt.Errorf("Unknown DeviceType: %s", deviceType)
 	}
-	return DeviceTypeV2(deviceTypeStr), nil
+	return deviceType, nil
 }
 
 // defaults to Desktop
