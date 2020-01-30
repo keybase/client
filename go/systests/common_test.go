@@ -22,7 +22,9 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	go http.ListenAndServe("localhost:8080", nil)
+	go func() {
+		_ = http.ListenAndServe("localhost:8080", nil)
+	}()
 	os.Exit(m.Run())
 }
 

@@ -43,7 +43,7 @@ func newProofServices(g *libkb.GlobalContext) *proofServices {
 }
 
 func (p *proofServices) Purge(g *libkb.GlobalContext) {
-	p = newProofServices(g)
+	*p = *newProofServices(g)
 }
 
 func (p *proofServices) clearServiceTypes() {
