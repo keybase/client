@@ -75,18 +75,15 @@ const PeopleResult = React.memo((props: ResultProps) => {
         to: keybaseUsername,
       })
     )
-  const onBlock = () =>
-    keybaseUsername &&
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {username: keybaseUsername}, selected: 'chatBlockingModal'}],
-      })
-    )
-  const onUnblock = React.useCallback(
+  const onManageBlocking = React.useCallback(
     () =>
       keybaseUsername &&
-      dispatch(ProfileGen.createSubmitUnblockUser({guiID: userDetails.guiID, username: keybaseUsername})),
-    [dispatch, keybaseUsername, userDetails.guiID]
+      dispatch(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {username: keybaseUsername}, selected: 'chatBlockingModal'}],
+        })
+      ),
+    [dispatch, keybaseUsername]
   )
   const onChat = () => {
     dispatch(RouteTreeGen.createNavigateUp())
@@ -102,8 +99,7 @@ const PeopleResult = React.memo((props: ResultProps) => {
       onBrowsePublicFolder={onBrowsePublicFolder}
       onSendLumens={onSendLumens}
       onRequestLumens={onRequestLumens}
-      onBlock={!resultIsMe ? onBlock : undefined}
-      onUnblock={!resultIsMe ? onUnblock : undefined}
+      onManageBlocking={!resultIsMe ? onManageBlocking : undefined}
       blocked={blocked}
     />
   ) : (
@@ -139,8 +135,7 @@ type DropdownProps = {
   onBrowsePublicFolder?: () => void
   onSendLumens?: () => void
   onRequestLumens?: () => void
-  onBlock?: () => void
-  onUnblock?: () => void
+  onManageBlocking?: () => void
   blocked?: boolean
   onUnfollow?: () => void
 }
@@ -164,11 +159,12 @@ const DropdownButton = Kb.OverlayParentHOC((p: Kb.PropsWithOverlay<DropdownProps
       onClick: p.onBrowsePublicFolder,
       title: 'Browse public folder',
     },
-    p.onUnblock &&
-      p.onBlock &&
-      (p.blocked
-        ? {danger: true, icon: 'iconfont-add', onClick: p.onUnblock, title: 'Unblock'}
-        : {danger: true, icon: 'iconfont-remove', onClick: p.onBlock, title: 'Block'}),
+    p.onManageBlocking && {
+      danger: true,
+      icon: 'iconfont-add',
+      onClick: p.onManageBlocking,
+      title: p.blocked ? 'Manage blocking' : 'Block',
+    },
   ].reduce<Kb.MenuItems>((arr, i) => {
     i && arr.push(i as Kb.MenuItem)
     return arr
