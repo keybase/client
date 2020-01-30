@@ -59,7 +59,7 @@ const font = {
 }
 
 const util = {
-  ...Shared.util({flexCommon: {display: 'flex'}}),
+  ...Shared.util,
   loadingTextStyle: {
     // this won't really work with dark mode
     backgroundColor: colors.greyLight,

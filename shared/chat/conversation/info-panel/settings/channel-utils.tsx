@@ -31,19 +31,14 @@ const DangerButton = (props: {label: string; onClick: () => void}) => (
   </Kb.ButtonBar>
 )
 
-const CaptionedDangerIcon = ({
-  icon,
-  caption,
-  noDanger,
-  onClick,
-  spinner,
-}: {
-  icon?: Kb.IconType
+const CaptionedDangerIcon = (props: {
+  icon: Kb.IconType
   caption: string
   noDanger?: boolean
   onClick: () => void
   spinner?: boolean
 }) => {
+  const {icon, caption, noDanger, onClick, spinner} = props
   const color = noDanger ? undefined : Styles.globalColors.redDark
   let slot: React.ReactNode = null
   if (spinner) {

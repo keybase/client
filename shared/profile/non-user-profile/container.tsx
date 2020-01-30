@@ -7,7 +7,7 @@ import {privateFolderWithUsers} from '../../constants/config'
 import NonUserProfile from '.'
 import {ServiceId} from 'util/platforms'
 
-type OwnProps = Container.RouteProps<{
+export type OwnProps = Container.RouteProps<{
   username: string
   avatar: string | null
   fullname: string
