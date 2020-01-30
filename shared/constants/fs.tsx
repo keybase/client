@@ -89,7 +89,11 @@ export const tlfSyncDisabled: Types.TlfSyncDisabled = {
   mode: Types.TlfSyncMode.Disabled,
 }
 
-export const makeTlfSyncPartial = ({enabledPaths}: Partial<Types.TlfSyncPartial>): Types.TlfSyncPartial => ({
+export const makeTlfSyncPartial = ({
+  enabledPaths,
+}: {
+  enabledPaths?: Types.TlfSyncPartial['enabledPaths']
+}): Types.TlfSyncPartial => ({
   enabledPaths: [...(enabledPaths || [])],
   mode: Types.TlfSyncMode.Partial,
 })
@@ -114,32 +118,35 @@ export const makeConflictStateManualResolvingLocalView = ({
   type: Types.ConflictStateType.ManualResolvingLocalView,
 })
 
-export const makeTlf = ({
-  conflictState,
-  isFavorite,
-  isIgnored,
-  isNew,
-  name,
-  resetParticipants,
-  syncConfig,
-  teamId,
-  tlfMtime,
-}: Partial<Types.Tlf>): Types.Tlf => ({
-  conflictState: conflictState || tlfNormalViewWithNoConflict,
-  isFavorite: isFavorite || false,
-  isIgnored: isIgnored || false,
-  isNew: isNew || false,
-  name: name || '',
-  resetParticipants: [...(resetParticipants || [])],
-  syncConfig: syncConfig || tlfSyncDisabled,
-  teamId: teamId || '',
-  tlfMtime: tlfMtime || 0,
-  /* See comment in constants/types/fs.js
+export const makeTlf = (p: Partial<Types.Tlf>): Types.Tlf => {
+  const {
+    conflictState,
+    isFavorite,
+    isIgnored,
+    isNew,
+    name,
+    resetParticipants,
+    syncConfig,
+    teamId,
+    tlfMtime,
+  } = p
+  return {
+    conflictState: conflictState || tlfNormalViewWithNoConflict,
+    isFavorite: isFavorite || false,
+    isIgnored: isIgnored || false,
+    isNew: isNew || false,
+    name: name || '',
+    resetParticipants: [...(resetParticipants || [])],
+    syncConfig: syncConfig || tlfSyncDisabled,
+    teamId: teamId || '',
+    tlfMtime: tlfMtime || 0,
+    /* See comment in constants/types/fs.js
   needsRekey: false,
   waitingForParticipantUnlock: I.List(),
   youCanUnlock: I.List(),
   */
-})
+  }
+}
 
 export const emptySyncingFoldersProgress: Types.SyncingFoldersProgress = {
   bytesFetched: 0,
