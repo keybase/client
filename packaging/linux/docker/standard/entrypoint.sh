@@ -58,7 +58,7 @@ fi
 
 # Run the main command in foreground if one was passed
 if [ "$#" -gt 0 ]; then
-    $@
+    exec "$@"
     exit 0
 fi
 
