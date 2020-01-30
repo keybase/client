@@ -339,4 +339,3 @@ export type State = {
   readonly trustline: Trustline
   readonly unreadPaymentsMap: Map<string, number>
 }
->>>>>>> origin/master
