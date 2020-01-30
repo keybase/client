@@ -9,6 +9,8 @@ import {Input, DragAndDrop, OperationBanner} from '../input'
 import OperationOutput, {OutputBar, OutputInfoBanner, SignedSender, OutputProgress} from '../output'
 import Recipients from '../recipients/container'
 
+const operation = Constants.Operations.Encrypt
+
 const EncryptOptions = () => {
   const dispatch = Container.useDispatch()
 
@@ -60,7 +62,7 @@ const EncryptOutputBanner = () => {
     : ''
 
   return (
-    <OutputInfoBanner operation={Constants.Operations.Encrypt}>
+    <OutputInfoBanner operation={operation}>
       <Kb.BannerParagraph
         bannerColor="grey"
         content={[
@@ -85,24 +87,24 @@ const Encrypt = () => {
   const [fileDroppedCounter, setFileDroppedCounter] = React.useState(0)
   return (
     <DragAndDrop
-      operation={Constants.Operations.Encrypt}
+      operation={operation}
       prompt="Drop a file to encrypt"
       onClearInput={() => setFileDroppedCounter(prevCount => prevCount + 1)}
     >
       <OperationBanner
-        operation={Constants.Operations.Encrypt}
+        operation={operation}
         infoMessage="Encrypt to anyone, even if they're not on Keybase yet."
       />
       <Recipients operation="encrypt" />
       <Kb.Box2 direction="vertical" fullHeight={true}>
-        <Input operation={Constants.Operations.Encrypt} fileDroppedCounter={fileDroppedCounter} />
+        <Input operation={operation} fileDroppedCounter={fileDroppedCounter} />
         <EncryptOptions />
-        <OutputProgress operation={Constants.Operations.Encrypt} />
+        <OutputProgress operation={operation} />
         <Kb.Box2 direction="vertical" fullHeight={true}>
           <EncryptOutputBanner />
-          <SignedSender operation={Constants.Operations.Encrypt} />
-          <OperationOutput operation={Constants.Operations.Encrypt} />
-          <OutputBar operation={Constants.Operations.Encrypt} />
+          <SignedSender operation={operation} />
+          <OperationOutput operation={operation} />
+          <OutputBar operation={operation} />
         </Kb.Box2>
       </Kb.Box2>
     </DragAndDrop>
@@ -112,27 +114,10 @@ const Encrypt = () => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      banner: {
-        ...Styles.padding(Styles.globalMargins.tiny),
-        minHeight: 40,
-      },
-      coverOutput: {
-        ...Styles.globalStyles.flexBoxCenter,
-      },
       optionsContainer: {
         ...Styles.padding(Styles.globalMargins.small, Styles.globalMargins.small),
         alignItems: 'center',
         height: 40,
-      },
-      outputPlaceholder: {
-        backgroundColor: Styles.globalColors.blueGreyLight,
-      },
-      questionMark: {
-        color: Styles.globalColors.black_20,
-      },
-      questionMarkContainer: {
-        marginLeft: Styles.globalMargins.xtiny,
-        marginTop: Styles.globalMargins.xtiny,
       },
     } as const)
 )

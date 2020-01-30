@@ -6,10 +6,12 @@ import openURL from '../../util/open-url'
 import {Input, DragAndDrop, OperationBanner} from '../input'
 import OperationOutput, {OutputBar, OutputInfoBanner, SignedSender, OutputProgress} from '../output'
 
+const operation = Constants.Operations.Sign
+
 const SignOutputBanner = () => {
   const outputType = Container.useSelector(state => state.crypto.sign.outputType)
   return (
-    <OutputInfoBanner operation={Constants.Operations.Sign}>
+    <OutputInfoBanner operation={operation}>
       <Kb.Text type="BodySmallSemibold" center={true}>
         This is your signed {outputType === 'file' ? 'file' : 'message'}, using{` `}
         <Kb.Text
@@ -29,22 +31,22 @@ const Sign = () => {
   const [fileDroppedCounter, setFileDroppedCounter] = React.useState(0)
   return (
     <DragAndDrop
-      operation={Constants.Operations.Sign}
+      operation={operation}
       prompt="Drop a file to sign"
       onClearInput={() => setFileDroppedCounter(prevCount => prevCount + 1)}
     >
       <Kb.Box2 direction="vertical" fullHeight={true}>
         <OperationBanner
-          operation={Constants.Operations.Sign}
+          operation={operation}
           infoMessage="Add your cryptographic signature to a message or file."
         />
-        <Input operation={Constants.Operations.Sign} fileDroppedCounter={fileDroppedCounter} />
-        <OutputProgress operation={Constants.Operations.Sign} />
+        <Input operation={operation} fileDroppedCounter={fileDroppedCounter} />
+        <OutputProgress operation={operation} />
         <Kb.Box2 direction="vertical" fullHeight={true}>
           <SignOutputBanner />
-          <SignedSender operation={Constants.Operations.Sign} />
-          <OperationOutput operation={Constants.Operations.Sign} />
-          <OutputBar operation={Constants.Operations.Sign} />
+          <SignedSender operation={operation} />
+          <OperationOutput operation={operation} />
+          <OutputBar operation={operation} />
         </Kb.Box2>
       </Kb.Box2>
     </DragAndDrop>
