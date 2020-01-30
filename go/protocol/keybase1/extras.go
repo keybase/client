@@ -1499,6 +1499,18 @@ func (u UserVersionVector) Equal(u2 UserVersionVector) bool {
 	return true
 }
 
+func ToDurationMsec(d time.Duration) DurationMsec {
+	return DurationMsec(d / time.Millisecond)
+}
+
+func (d DurationMsec) Duration() time.Duration {
+	return time.Duration(d) * time.Millisecond
+}
+
+func ToDurationSec(d time.Duration) DurationSec {
+	return DurationSec(d / time.Second)
+}
+
 func (d DurationSec) Duration() time.Duration {
 	return time.Duration(d) * time.Second
 }

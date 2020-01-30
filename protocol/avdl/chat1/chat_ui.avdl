@@ -413,6 +413,7 @@ protocol chatUi {
   }
   record UIChatSearchTeamHits {
     array<keybase1.TeamSearchItem> hits;
+    boolean suggestedMatches;
   }
   void chatSearchInboxStart(int sessionID);
   void chatSearchInboxHit(int sessionID, ChatSearchInboxHit searchHit);

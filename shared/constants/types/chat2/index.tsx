@@ -74,6 +74,7 @@ export type InboxSearchInfo = {
   nameResultsUnread: boolean
   openTeamsResults: Array<InboxSearchOpenTeamHit>
   openTeamsStatus: InboxSearchStatus
+  openTeamsResultsSuggested: boolean
   query: HiddenString
   selectedIndex: number
   textResults: Array<InboxSearchTextHit>
@@ -212,6 +213,8 @@ export type State = {
   readonly focus: Focus
   readonly giphyResultMap: Map<Common.ConversationIDKey, RPCChatTypes.GiphySearchResults | undefined>
   readonly giphyWindowMap: Map<Common.ConversationIDKey, boolean>
+  readonly hasZzzJourneycard: Map<Common.ConversationIDKey, MessageJourneycard>
+  readonly shouldDeleteZzzJourneycard: Map<Common.ConversationIDKey, MessageJourneycard> // messages scheduled for deletion
   readonly inboxNumSmallRows?: number
   readonly inboxHasLoaded: boolean // if we've ever loaded,
   readonly inboxLayout: RPCChatTypes.UIInboxLayout | null // layout of the inbox

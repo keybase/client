@@ -14,7 +14,7 @@ type OwnProps = Container.RouteProps<{username: string; teamID: Types.TeamID}>
 
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const username = Container.getRouteProps(ownProps, 'username', '')
-  const teamID = Container.getRouteProps(ownProps, 'teamID', '')
+  const teamID = Container.getRouteProps(ownProps, 'teamID', Types.noTeamID)
   const teamDetails = Constants.getTeamDetails(state, teamID)
   const {teamname} = teamDetails
   const disabledReasonsForRolePicker = Constants.getDisabledReasonsForRolePicker(state, teamID, username)
@@ -134,6 +134,7 @@ export default Container.connect(
           dispatchProps._onRemoveMember(stateProps.teamID, stateProps._username)
         }
       },
+      teamID: stateProps.teamID,
       teamname: stateProps.teamname,
       user,
       you,

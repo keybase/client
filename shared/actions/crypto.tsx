@@ -235,7 +235,7 @@ const saltpackEncrypt = async (
         })
       } catch (err) {
         logger.error(err)
-        const message = Constants.getStatusCodeMessage(err.code, Constants.Operations.Verify, type)
+        const message = Constants.getStatusCodeMessage(err.code, Constants.Operations.Encrypt, type)
         return CryptoGen.createOnOperationError({
           errorMessage: new HiddenString(message),
           operation: Constants.Operations.Encrypt,
@@ -269,7 +269,7 @@ const saltpackEncrypt = async (
         })
       } catch (err) {
         logger.error(err)
-        const message = Constants.getStatusCodeMessage(err.code, Constants.Operations.Verify, type)
+        const message = Constants.getStatusCodeMessage(err.code, Constants.Operations.Encrypt, type)
         return CryptoGen.createOnOperationError({
           errorMessage: new HiddenString(message),
           operation: Constants.Operations.Encrypt,

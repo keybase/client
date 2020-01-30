@@ -51,7 +51,7 @@ func (g *GlobalContext) BindToSocket() (net.Listener, error) {
 }
 
 func NewTransportFromSocket(g *GlobalContext, s net.Conn) rpc.Transporter {
-	return rpc.NewTransport(s, NewRPCLogFactory(g), MakeWrapError(g), rpc.DefaultMaxFrameLength)
+	return rpc.NewTransport(s, NewRPCLogFactory(g), rpc.NewNetworkInstrumenter(g.NetworkInstrumenterStorage), MakeWrapError(g), rpc.DefaultMaxFrameLength)
 }
 
 // ResetSocket clears and returns a new socket

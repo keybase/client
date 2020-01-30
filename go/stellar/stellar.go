@@ -23,6 +23,7 @@ import (
 	"github.com/keybase/stellarnet"
 	stellarAddress "github.com/stellar/go/address"
 	"github.com/stellar/go/build"
+	federationProto "github.com/stellar/go/protocols/federation"
 )
 
 const AccountNameMaxRunes = 24
@@ -345,6 +346,28 @@ func LookupSender(mctx libkb.MetaContext, accountID stellar1.AccountID) (stellar
 	return entry, ab, nil
 }
 
+// Wrapper around LookupByAddress that acts likes Context is plumbed through.
+// After context is canceled, any return from LookupByAddress is ignored.
+func federationLookupByAddressCtx(mctx libkb.MetaContext, addy string) (*federationProto.NameResponse, error) {
+	fedCli := getGlobal(mctx.G()).federationClient
+	type packT struct {
+		res *federationProto.NameResponse
+		err error
+	}
+	ch := make(chan packT, 1)
+	go func() {
+		var pack packT
+		pack.res, pack.err = fedCli.LookupByAddress(addy)
+		ch <- pack
+	}()
+	select {
+	case <-mctx.Ctx().Done():
+		return nil, mctx.Ctx().Err()
+	case pack := <-ch:
+		return pack.res, pack.err
+	}
+}
+
 // LookupRecipient finds a recipient.
 // `to` can be a username, social assertion, account ID, or federation address.
 func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput, isCLI bool) (res stellarcommon.Recipient, err error) {
@@ -389,8 +412,7 @@ func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput, isCLI
 		} else {
 			// Actual federation address that is not under keybase.io
 			// domain. Use federation client.
-			fedCli := getGlobal(m.G()).federationClient
-			nameResponse, err := fedCli.LookupByAddress(string(to))
+			nameResponse, err := federationLookupByAddressCtx(m, string(to))
 			if err != nil {
 				errStr := err.Error()
 				m.Debug("federation.LookupByAddress returned error: %s", errStr)
