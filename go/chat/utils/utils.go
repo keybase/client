@@ -2738,3 +2738,127 @@ func ExportToSummary(i chat1.InboxUIItem) (s chat1.ConvSummary) {
 	}
 	return s
 }
+
+func supersedersNotEmpty(ctx context.Context, superseders []chat1.ConversationMetadata, convs []types.RemoteConversation) bool {
+	for _, superseder := range superseders {
+		for _, conv := range convs {
+			if superseder.ConversationID.Eq(conv.GetConvID()) {
+				for _, msg := range conv.Conv.MaxMsgSummaries {
+					if IsVisibleChatMessageType(msg.GetMessageType()) {
+						return true
+					}
+				}
+			}
+		}
+	}
+	return false
+}
+
+var defaultMemberStatusFilter = []chat1.ConversationMemberStatus{
+	chat1.ConversationMemberStatus_ACTIVE,
+	chat1.ConversationMemberStatus_PREVIEW,
+	chat1.ConversationMemberStatus_RESET,
+}
+
+var defaultExistences = []chat1.ConversationExistence{
+	chat1.ConversationExistence_ACTIVE,
+}
+
+func ApplyInboxQuery(ctx context.Context, debugLabeler DebugLabeler, query *chat1.GetInboxQuery, rcs []types.RemoteConversation) (res []types.RemoteConversation) {
+	if query == nil {
+		query = &chat1.GetInboxQuery{}
+	}
+
+	var queryConvIDMap map[chat1.ConvIDStr]bool
+	if query.ConvID != nil {
+		query.ConvIDs = append(query.ConvIDs, *query.ConvID)
+	}
+	if len(query.ConvIDs) > 0 {
+		queryConvIDMap = make(map[chat1.ConvIDStr]bool, len(query.ConvIDs))
+		for _, c := range query.ConvIDs {
+			queryConvIDMap[c.ConvIDStr()] = true
+		}
+	}
+
+	memberStatus := query.MemberStatus
+	if len(memberStatus) == 0 {
+		memberStatus = defaultMemberStatusFilter
+	}
+	queryMemberStatusMap := map[chat1.ConversationMemberStatus]bool{}
+	for _, memberStatus := range memberStatus {
+		queryMemberStatusMap[memberStatus] = true
+	}
+
+	queryStatusMap := map[chat1.ConversationStatus]bool{}
+	for _, status := range query.Status {
+		queryStatusMap[status] = true
+	}
+
+	existences := query.Existences
+	if len(existences) == 0 {
+		existences = defaultExistences
+	}
+	existenceMap := map[chat1.ConversationExistence]bool{}
+	for _, status := range existences {
+		existenceMap[status] = true
+	}
+
+	for _, rc := range rcs {
+		conv := rc.Conv
+		// Existence check
+		if _, ok := existenceMap[conv.Metadata.Existence]; !ok && len(existenceMap) > 0 {
+			continue
+		}
+		// Member status check
+		if _, ok := queryMemberStatusMap[conv.ReaderInfo.Status]; !ok && len(memberStatus) > 0 {
+			continue
+		}
+		// Status check
+		if _, ok := queryStatusMap[conv.Metadata.Status]; !ok && len(query.Status) > 0 {
+			continue
+		}
+		// Basic checks
+		if queryConvIDMap != nil && !queryConvIDMap[rc.ConvIDStr] {
+			continue
+		}
+		if query.After != nil && !conv.ReaderInfo.Mtime.After(*query.After) {
+			continue
+		}
+		if query.Before != nil && !conv.ReaderInfo.Mtime.Before(*query.Before) {
+			continue
+		}
+		if query.TopicType != nil && *query.TopicType != conv.Metadata.IdTriple.TopicType {
+			continue
+		}
+		if query.TlfVisibility != nil && *query.TlfVisibility != keybase1.TLFVisibility_ANY &&
+			*query.TlfVisibility != conv.Metadata.Visibility {
+			continue
+		}
+		if query.UnreadOnly && !conv.IsUnread() {
+			continue
+		}
+		if query.ReadOnly && conv.IsUnread() {
+			continue
+		}
+		if query.TlfID != nil && !query.TlfID.Eq(conv.Metadata.IdTriple.Tlfid) {
+			continue
+		}
+		if query.TopicName != nil && rc.LocalMetadata != nil &&
+			*query.TopicName != rc.LocalMetadata.TopicName {
+			continue
+		}
+		// If we are finalized and are superseded, then don't return this
+		if query.OneChatTypePerTLF == nil ||
+			(query.OneChatTypePerTLF != nil && *query.OneChatTypePerTLF) {
+			if conv.Metadata.FinalizeInfo != nil && len(conv.Metadata.SupersededBy) > 0 && len(query.ConvIDs) == 0 {
+				if supersedersNotEmpty(ctx, conv.Metadata.SupersededBy, rcs) {
+					continue
+				}
+			}
+		}
+		res = append(res, rc)
+	}
+	filtered := len(rcs) - len(res)
+	debugLabeler.Debug(ctx, "applyQuery: query: %+v, res size: %d filtered: %d", query, len(res), filtered)
+	return res
+}
