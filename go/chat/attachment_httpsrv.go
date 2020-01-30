@@ -659,9 +659,8 @@ type CachingAttachmentFetcher struct {
 	globals.Contextified
 	utils.DebugLabeler
 
-	store                attachments.Store
-	diskLRU              *disklru.DiskLRU
-	diskLRUCleanerCancel context.CancelFunc
+	store   attachments.Store
+	diskLRU *disklru.DiskLRU
 
 	// testing
 	tempDir string

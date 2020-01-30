@@ -22,9 +22,11 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	go func() {
-		_ = http.ListenAndServe("localhost:8080", nil)
-	}()
+	if os.Getenv("KEYBASE_SYSTESTS_DEBUG") != "" {
+		go func() {
+			_ = http.ListenAndServe("localhost:8080", nil)
+		}()
+	}
 	os.Exit(m.Run())
 }
 
