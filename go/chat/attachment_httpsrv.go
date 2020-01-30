@@ -887,7 +887,6 @@ func (c *CachingAttachmentFetcher) DeleteAssets(ctx context.Context,
 func (c *CachingAttachmentFetcher) OnStart(mctx libkb.MetaContext) {
 	mctx, cancel := mctx.WithContextCancel()
 	mctx.G().PushShutdownHook(func(libkb.MetaContext) error {
-		mctx.Debug("@@@ CALLING SHUTDOWN ON CachingAttachmentFetcher")
 		cancel()
 		return nil
 	})

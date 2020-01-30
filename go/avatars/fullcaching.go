@@ -91,7 +91,7 @@ func (c *FullCachingSource) StartBackgroundTasks(m libkb.MetaContext) {
 	}
 	m, cancel := m.WithContextCancel()
 	c.diskLRUCleanerCancel = cancel
-	// go lru.CleanOutOfSyncWithDelay(m, c.diskLRU, c.getCacheDir(m), 10*time.Second)
+	go lru.CleanOutOfSyncWithDelay(m, c.diskLRU, c.getCacheDir(m), 10*time.Second)
 }
 
 func (c *FullCachingSource) StopBackgroundTasks(m libkb.MetaContext) {
