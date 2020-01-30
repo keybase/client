@@ -1,4 +1,4 @@
-import * as Electron from 'electron'
+import * as SafeElectron from './safe-electron.desktop'
 
 export type ClipboardData = {
   path: string
@@ -7,7 +7,7 @@ export type ClipboardData = {
 
 function readImage(): Promise<Buffer | null> {
   return new Promise(resolve => {
-    const image = Electron.clipboard.readImage()
+    const image = SafeElectron.getClipboard().readImage()
     if (!image) {
       // Nothing to read
       resolve(null)
@@ -22,7 +22,7 @@ export function readImageFromClipboard(
   event: React.SyntheticEvent,
   willReadData: () => void
 ): Promise<Buffer | null> {
-  const formats = Electron.clipboard.availableFormats()
+  const formats = SafeElectron.getClipboard().availableFormats()
   console.log('Read clipboard, formats:', formats)
   const imageFormats = formats.filter(f => f.startsWith('image/'))
 
