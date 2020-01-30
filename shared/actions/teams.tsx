@@ -1289,13 +1289,21 @@ function* teamBuildingSaga() {
   yield* Saga.chainAction(TeamsGen.addedToTeam, closeTeamBuilderOrSetError)
 }
 
-async function showTeamByName(action: TeamsGen.ShowTeamByNamePayload) {
+async function showTeamByName(action: TeamsGen.ShowTeamByNamePayload, logger: Saga.SagaLogger) {
   const {teamName, initialTab, addMembers} = action.payload
-  const teamID = await RPCTypes.teamsGetTeamIDRpcPromise({teamName})
+  let teamID: string
+  try {
+    teamID = await RPCTypes.teamsGetTeamIDRpcPromise({teamName})
+  } catch (e) {
+    logger.info(`showTeamByName: team "${teamName} cannot be loaded: ${e.toString()}`)
+    return null
+  }
   return [
     RouteTreeGen.createNavigateAppend({
       path: [
         {props: {initialTab, teamID}, selected: 'team'},
+        // BUG: This doesn't actually go this route when addMembers is true, it
+        // just stacks team builder without stacking `team` screen first.
         ...(addMembers
           ? [{props: {namespace: 'teams', teamID, title: ''}, selected: 'teamsTeamBuilder'}]
           : []),

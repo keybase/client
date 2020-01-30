@@ -72,6 +72,9 @@ export const urlToUsername = (url: URL) => {
 }
 
 export const urlToTeamDeepLink = (url: URL) => {
+  // TODO: generalize rest of the deeplink URL checks from urlToUsername so they
+  // are also checked for team links here.
+
   // Similar regexp to username but allow `.` for subteams
   const match = url.pathname.match(/^\/team\/((?:[a-zA-Z0-9][a-zA-Z0-9_.-]?)+)\/?$/)
   if (!match) {
@@ -79,12 +82,12 @@ export const urlToTeamDeepLink = (url: URL) => {
   }
 
   const teamName = match[1]
-  if (teamName.length < 2 || teamName.length > 16) {
+  if (teamName.length < 2 || teamName.length > 255) {
     return null
   }
 
   // `url.query` has a wrong type in @types/url-parse. It's a `string` in the
-  // code we are pulling in, but a [string]string object in @types.
+  // code, but @types claim it's a {[k: string]: string | undefined}.
   const queryString: string = url.query as any
 
   // URLSearchParams is not available in react-native. See if any of recognized
