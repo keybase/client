@@ -1,6 +1,3 @@
-Chat:
-• Replies will automatically notify who you're replying to
-
-Misc:
-• Configure a HTTP or SOCKS proxy in advanced settings
-• Support user lookup by phone number
+• New tab: Encrypt, decrypt, sign, and verify from inside the Keybase app.
+• Bots: you can now install bots into your conversations. Kick off a meeting with Google Meet Bot, watch for commits with GitHub Bot, create new issues in JIRA, and more, all without leaving Keybase.
+• Various bug fixes and performance improvements.
