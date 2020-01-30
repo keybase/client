@@ -162,6 +162,11 @@ func (e *Kex2Provisionee) GetLogFactory() rpc.LogFactory {
 	return rpc.NewSimpleLogFactory(e.G().Log, nil)
 }
 
+// GetNetworkInstrumenter implements GetNetworkInstrumenter in kex2.Provisionee.
+func (e *Kex2Provisionee) GetNetworkInstrumenter() *rpc.NetworkInstrumenter {
+	return rpc.NewNetworkInstrumenter(e.G().NetworkInstrumenterStorage)
+}
+
 // HandleHello implements HandleHello in kex2.Provisionee.
 func (e *Kex2Provisionee) HandleHello(_ context.Context, harg keybase1.HelloArg) (res keybase1.HelloRes, err error) {
 	m := e.mctx

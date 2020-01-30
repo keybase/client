@@ -46,30 +46,31 @@ type DbNukeHook interface {
 }
 
 type GlobalContext struct {
-	Log              logger.Logger         // Handles all logging
-	VDL              *VDebugLog            // verbose debug log
-	GUILogFile       *logger.LogFileWriter // GUI logs
-	Env              *Env                  // Env variables, cmdline args & config
-	SKBKeyringMu     *sync.Mutex           // Protects all attempts to mutate the SKBKeyringFile
-	Keyrings         *Keyrings             // Gpg Keychains holding keys
-	perUserKeyringMu *sync.Mutex
-	perUserKeyring   *PerUserKeyring       // Keyring holding per user keys
-	API              API                   // How to make a REST call to the server
-	Resolver         Resolver              // cache of resolve results
-	LocalDb          *JSONLocalDb          // Local DB for cache
-	LocalChatDb      *JSONLocalDb          // Local DB for cache
-	MerkleClient     MerkleClientInterface // client for querying server's merkle sig tree
-	XAPI             ExternalAPI           // for contacting Twitter, Github, etc.
-	Output           io.Writer             // where 'Stdout'-style output goes
-	DNSNSFetcher     DNSNameServerFetcher  // The mobile apps potentially pass an implementor of this interface which is used to grab currently configured DNS name servers
-	MobileNetState   *MobileNetState       // The kind of network connection for the currently running instance of the app
-	MobileAppState   *MobileAppState       // The state of focus for the currently running instance of the app
-	DesktopAppState  *DesktopAppState      // The state of focus for the currently running instance of the app
-	ChatHelper       ChatHelper            // conveniently send chat messages
-	RPCCanceler      *RPCCanceler          // register live RPCs so they can be cancelleed en masse
-	IdentifyDispatch *IdentifyDispatch     // get notified of identify successes
-	Identify3State   *Identify3State       // keep track of Identify3 sessions
-	vidMu            *sync.Mutex           // protect VID
+	Log                        logger.Logger         // Handles all logging
+	VDL                        *VDebugLog            // verbose debug log
+	GUILogFile                 *logger.LogFileWriter // GUI logs
+	Env                        *Env                  // Env variables, cmdline args & config
+	SKBKeyringMu               *sync.Mutex           // Protects all attempts to mutate the SKBKeyringFile
+	Keyrings                   *Keyrings             // Gpg Keychains holding keys
+	perUserKeyringMu           *sync.Mutex
+	perUserKeyring             *PerUserKeyring             // Keyring holding per user keys
+	API                        API                         // How to make a REST call to the server
+	Resolver                   Resolver                    // cache of resolve results
+	NetworkInstrumenterStorage *DiskInstrumentationStorage // Instrument API/RPC calls
+	LocalDb                    *JSONLocalDb                // Local DB for cache
+	LocalChatDb                *JSONLocalDb                // Local DB for cache
+	MerkleClient               MerkleClientInterface       // client for querying server's merkle sig tree
+	XAPI                       ExternalAPI                 // for contacting Twitter, Github, etc.
+	Output                     io.Writer                   // where 'Stdout'-style output goes
+	DNSNSFetcher               DNSNameServerFetcher        // The mobile apps potentially pass an implementor of this interface which is used to grab currently configured DNS name servers
+	MobileNetState             *MobileNetState             // The kind of network connection for the currently running instance of the app
+	MobileAppState             *MobileAppState             // The state of focus for the currently running instance of the app
+	DesktopAppState            *DesktopAppState            // The state of focus for the currently running instance of the app
+	ChatHelper                 ChatHelper                  // conveniently send chat messages
+	RPCCanceler                *RPCCanceler                // register live RPCs so they can be cancelleed en masse
+	IdentifyDispatch           *IdentifyDispatch           // get notified of identify successes
+	Identify3State             *Identify3State             // keep track of Identify3 sessions
+	vidMu                      *sync.Mutex                 // protect VID
 
 	cacheMu                *sync.RWMutex   // protects all caches
 	ProofCache             *ProofCache     // where to cache proof results
@@ -273,6 +274,7 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.IdentifyDispatch = NewIdentifyDispatch()
 	g.Identify3State = NewIdentify3State(g)
 	g.GregorState = newNullGregorState()
+	g.NetworkInstrumenterStorage = NewDiskInstrumentationStorage(g)
 
 	g.Log.Debug("GlobalContext#Init(%p)\n", g)
 
@@ -813,6 +815,10 @@ func (g *GlobalContext) Shutdown(mctx MetaContext) error {
 		}
 		g.Log.Debug("executed shutdown hooks; errCount=%d", epick.Count())
 
+		if g.NetworkInstrumenterStorage != nil {
+			<-g.NetworkInstrumenterStorage.Stop()
+		}
+
 		// shutdown the databases after the shutdown hooks run, we may want to
 		// flush memory caches to disk during shutdown.
 		if g.LocalDb != nil {
@@ -919,6 +925,7 @@ func (g *GlobalContext) ConfigureUsage(usage Usage) error {
 	if err = g.ConfigureCaches(); err != nil {
 		return err
 	}
+	g.NetworkInstrumenterStorage.Start()
 
 	if err = g.ConfigureMerkleClient(); err != nil {
 		return err

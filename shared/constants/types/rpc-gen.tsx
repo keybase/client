@@ -2691,6 +2691,7 @@ export type DowngradeReferenceRes = {readonly completed?: Array<BlockReferenceCo
 export type DownloadInfo = {readonly downloadID: String; readonly path: KBFSPath; readonly filename: String; readonly startTime: Time; readonly isRegularDownload: Boolean}
 export type DownloadState = {readonly downloadID: String; readonly progress: Double; readonly endEstimate: Time; readonly localPath: String; readonly error: String; readonly done: Boolean; readonly canceled: Boolean}
 export type DownloadStatus = {readonly regularDownloadIDs?: Array<String> | null; readonly states?: Array<DownloadState> | null}
+export type DurationMsec = Double
 export type DurationSec = Double
 export type ED25519PublicKey = string | null
 export type ED25519Signature = string | null
@@ -2811,6 +2812,7 @@ export type ImplicitTeamConflictInfo = {readonly generation: ConflictGeneration;
 export type ImplicitTeamDisplayName = {readonly isPublic: Boolean; readonly writers: ImplicitTeamUserSet; readonly readers: ImplicitTeamUserSet; readonly conflictInfo?: ImplicitTeamConflictInfo | null}
 export type ImplicitTeamUserSet = {readonly keybaseUsers?: Array<String> | null; readonly unresolvedUsers?: Array<SocialAssertion> | null}
 export type InstallResult = {readonly componentResults?: Array<ComponentResult> | null; readonly status: Status; readonly fatal: Boolean}
+export type InstrumentationStat = {readonly t: /* tag */ String; readonly n: /* numCalls */ Int; readonly c: /* ctime */ Time; readonly m: /* mtime */ Time; readonly ad: /* avgDur */ DurationMsec; readonly xd: /* maxDur */ DurationMsec; readonly nd: /* minDur */ DurationMsec; readonly td: /* totalDur */ DurationMsec; readonly as: /* avgSize */ Int64; readonly xs: /* maxSize */ Int64; readonly ns: /* minSize */ Int64; readonly ts: /* totalSize */ Int64}
 export type InterestingPerson = {readonly uid: UID; readonly username: String; readonly fullname: String; readonly serviceMap: {[key: string]: String}}
 export type KBFSArchivedParam = {KBFSArchivedType: KBFSArchivedType.revision; revision: KBFSRevision} | {KBFSArchivedType: KBFSArchivedType.time; time: Time} | {KBFSArchivedType: KBFSArchivedType.timeString; timeString: String} | {KBFSArchivedType: KBFSArchivedType.relTimeString; relTimeString: String}
 export type KBFSArchivedPath = {readonly path: String; readonly archivedParam: KBFSArchivedParam; readonly identifyBehavior?: TLFIdentifyBehavior | null}
@@ -3706,6 +3708,7 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.config.getCurrentStatus'
 // 'keybase.1.config.getClientStatus'
 // 'keybase.1.config.getFullStatus'
+// 'keybase.1.config.getNetworkStats'
 // 'keybase.1.config.setUserConfig'
 // 'keybase.1.config.setPath'
 // 'keybase.1.config.setValue'
