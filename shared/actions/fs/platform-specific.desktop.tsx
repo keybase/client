@@ -4,16 +4,19 @@ import * as Saga from '../../util/saga'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import * as SafeElectron from '../../util/safe-electron.desktop'
+import * as Electron from 'electron'
 import * as Tabs from '../../constants/tabs'
 import fs from 'fs'
 import {TypedState, TypedActions} from '../../util/container'
 import {fileUIName, isWindows, isLinux} from '../../constants/platform'
 import logger from '../../logger'
 import {spawn, execFile, exec} from 'child_process'
-import path from 'path'
 import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
 import * as RouteTreeGen from '../route-tree-gen'
+
+const {path} = KB
+const {sep} = path
+const {env} = KB.process
 
 type pathType = 'file' | 'directory'
 
@@ -48,7 +51,7 @@ const openInDefaultDirectory = (openPath: string): Promise<void> => {
       const url = pathToURL(resolvedPath)
       logger.info('Open URL (directory):', url)
 
-      SafeElectron.getShell()
+      Electron.remote.shell
         .openExternal(url, {activate: true})
         .then(() => {
           logger.info('Opened directory:', openPath)
@@ -87,7 +90,7 @@ const _openPathInSystemFileManagerPromise = (openPath: string, isFolder: boolean
   new Promise((resolve, reject) => {
     if (isFolder) {
       if (isWindows) {
-        if (SafeElectron.getShell().openItem(openPath)) {
+        if (Electron.remote.shell.openItem(openPath)) {
           resolve()
         } else {
           reject(new Error('unable to open item'))
@@ -96,7 +99,7 @@ const _openPathInSystemFileManagerPromise = (openPath: string, isFolder: boolean
         openInDefaultDirectory(openPath).then(resolve, reject)
       }
     } else {
-      SafeElectron.getShell().showItemInFolder(openPath)
+      Electron.remote.shell.showItemInFolder(openPath)
       resolve()
     }
   })
@@ -115,7 +118,7 @@ const _rebaseKbfsPathToMountLocation = (kbfsPath: Types.Path, mountLocation: str
     mountLocation,
     Types.getPathElements(kbfsPath)
       .slice(1)
-      .join(path.sep)
+      .join(sep)
   )
 
 const openPathInSystemFileManager = (state: TypedState, action: FsGen.OpenPathInSystemFileManagerPayload) =>
@@ -240,7 +243,7 @@ const driverEnableFuse = async (action: FsGen.DriverEnablePayload) => {
 
 const uninstallKBFSConfirm = async () => {
   const action = await new Promise<TypedActions | false>(resolve =>
-    SafeElectron.getDialog()
+    Electron.remote.dialog
       .showMessageBox({
         buttons: ['Remove & Restart', 'Cancel'],
         detail: `Are you sure you want to remove Keybase from ${fileUIName} and restart the app?`,
@@ -256,8 +259,8 @@ const uninstallKBFSConfirm = async () => {
 const uninstallKBFS = () =>
   RPCTypes.installUninstallKBFSRpcPromise().then(() => {
     // Restart since we had to uninstall KBFS and it's needed by the service (for chat)
-    SafeElectron.getApp().relaunch()
-    SafeElectron.getApp().exit(0)
+    Electron.remote.app.relaunch()
+    Electron.remote.app.exit(0)
   })
 
 // @ts-ignore
@@ -267,7 +270,7 @@ const uninstallDokanConfirm = async (state: TypedState) => {
   }
   if (!state.fs.sfmi.driverStatus.dokanUninstallExecPath) {
     const action = await new Promise<TypedActions>(resolve =>
-      SafeElectron.getDialog()
+      Electron.remote.dialog
         .showMessageBox({
           buttons: ['Got it'],
           detail:
@@ -297,7 +300,7 @@ const uninstallDokan = (state: TypedState) => {
 }
 
 const openSecurityPreferences = () => {
-  SafeElectron.getShell()
+  Electron.remote.shell
     .openExternal('x-apple.systempreferences:com.apple.preference.security?General', {activate: true})
     .then(() => {
       logger.info('Opened Security Preferences')
@@ -311,7 +314,7 @@ const openSecurityPreferences = () => {
 const installCachedDokan = (action: FsGen.DriverEnablePayload) =>
   new Promise((resolve, reject) => {
     logger.info('Invoking dokan installer')
-    const dokanPath = path.resolve(String(process.env.LOCALAPPDATA), 'Keybase', 'DokanSetup_redist.exe')
+    const dokanPath = path.resolve(String(env.LOCALAPPDATA), 'Keybase', 'DokanSetup_redist.exe')
     execFile(dokanPath, [], err => {
       if (err) {
         reject(err)
@@ -319,7 +322,7 @@ const installCachedDokan = (action: FsGen.DriverEnablePayload) =>
       }
       // restart the service, particularly kbfsdokan
       // based on desktop/app/start-win-service.js
-      const binPath = path.resolve(String(process.env.LOCALAPPDATA), 'Keybase', 'keybase.exe')
+      const binPath = path.resolve(String(env.LOCALAPPDATA), 'Keybase', 'keybase.exe')
       if (!binPath) {
         reject(new Error('resolve failed'))
         return
@@ -339,8 +342,8 @@ const installCachedDokan = (action: FsGen.DriverEnablePayload) =>
     .catch(makeUnretriableErrorHandler(action, null))
 
 const openAndUploadToPromise = (action: FsGen.OpenAndUploadPayload): Promise<Array<string>> =>
-  SafeElectron.getDialog()
-    .showOpenDialog(SafeElectron.getCurrentWindowFromRemote(), {
+  Electron.remote.dialog
+    .showOpenDialog(Electron.remote.getCurrentWindow(), {
       properties: [
         'multiSelections' as const,
         ...(['file', 'both'].includes(action.payload.type) ? (['openFile'] as const) : []),
