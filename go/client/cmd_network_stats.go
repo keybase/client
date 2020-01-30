@@ -21,7 +21,7 @@ func NewCmdNetworkStats(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 		Name:  "network-stats",
 		Usage: "Show instrumentation about network usage",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdNetworkStats{Contextified: libkb.NewContextified(g)}, "status", c)
+			cl.ChooseCommand(&CmdNetworkStats{Contextified: libkb.NewContextified(g)}, "network-stats", c)
 		},
 		Flags: []cli.Flag{
 			cli.BoolFlag{
