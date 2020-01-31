@@ -11,6 +11,7 @@ type Props = {
   onShowInFinder?: () => void
   title: string
   fileName: string
+  message: Types.MessageAttachment
   progress: number
   transferState: Types.MessageAttachmentTransferState
   hasProgress: boolean
@@ -28,7 +29,9 @@ const FileAttachment = React.memo((props: Props) => {
           <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" centerChildren={true}>
             <Kb.Icon type={iconType} style={styles.iconStyle} />
             <Kb.Box2 direction="vertical" fullWidth={true} style={styles.titleStyle}>
-              <Kb.Text type="BodySemibold">{props.title}</Kb.Text>
+              <Kb.Markdown meta={{message: props.message}} selectable={true}>
+                {props.title}
+              </Kb.Markdown>
               {props.fileName !== props.title && <Kb.Text type="BodyTiny">{props.fileName}</Kb.Text>}
             </Kb.Box2>
           </Kb.Box2>
