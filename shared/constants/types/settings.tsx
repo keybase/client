@@ -125,20 +125,20 @@ export type ContactsState = {
   waitingToShowJoinedModal: boolean
 }
 
-export type State = Readonly<{
-  allowDeleteAccount: boolean
-  contacts: ContactsState
-  invites: InvitesState
-  feedback: FeedbackState
-  notifications: NotificationsState
-  email: EmailState
-  password: PasswordState
-  phoneNumbers: PhoneNumbersState
-  lockdownModeEnabled?: boolean
-  chat: ChatState
-  checkPasswordIsCorrect?: boolean
-  proxyData?: RPCTypes.ProxyData
-  didToggleCertificatePinning?: boolean
-}>
+export type State = {
+  readonly allowDeleteAccount: boolean
+  readonly chat: ChatState
+  readonly checkPasswordIsCorrect?: boolean
+  readonly contacts: ContactsState
+  readonly didToggleCertificatePinning?: boolean
+  readonly email: EmailState
+  readonly feedback: FeedbackState
+  readonly invites: InvitesState
+  readonly lockdownModeEnabled?: boolean
+  readonly notifications: NotificationsState
+  readonly password: PasswordState
+  readonly phoneNumbers: PhoneNumbersState
+  readonly proxyData?: RPCTypes.ProxyData
+}
 
 export type PlanLevel = string

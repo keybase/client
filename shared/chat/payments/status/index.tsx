@@ -47,16 +47,16 @@ const getIcon = (status: Status) => {
   }
 }
 
-const statusIcon = (s: Status) => {
+const statusColor = (s: Status) => {
   switch (s) {
     case 'completed':
-      return 'completedIcon'
+      return Styles.globalColors.purpleDarkOrWhite
     case 'claimable':
-      return 'claimableIcon'
+      return undefined
     case 'pending':
-      return 'pendingIcon'
+      return Styles.globalColors.black_50OrWhite
     case 'error':
-      return 'errorIcon'
+      return Styles.globalColors.redDarkOrWhite
   }
 }
 
@@ -93,7 +93,7 @@ class PaymentStatus extends React.Component<Props, State> {
           type={getIcon(this.props.status)}
           fontSize={12}
           boxStyle={styles.iconBoxStyle}
-          style={styles[statusIcon(this.props.status)]}
+          color={statusColor(this.props.status)}
         />{' '}
       </Kb.Text>
     )
@@ -141,13 +141,9 @@ const styles = Styles.styleSheetCreate(
         borderRadius: Styles.globalMargins.xxtiny,
         color: Styles.globalColors.purpleDarkOrWhite,
       },
-      claimableIcon: {},
       completed: {
         backgroundColor: Styles.globalColors.purple_10OrPurple,
         borderRadius: Styles.globalMargins.xxtiny,
-        color: Styles.globalColors.purpleDarkOrWhite,
-      },
-      completedIcon: {
         color: Styles.globalColors.purpleDarkOrWhite,
       },
       container: Styles.platformStyles({
@@ -160,9 +156,6 @@ const styles = Styles.styleSheetCreate(
         borderRadius: Styles.globalMargins.xxtiny,
         color: Styles.globalColors.redDarkOrWhite,
       },
-      errorIcon: {
-        color: Styles.globalColors.redDarkOrWhite,
-      },
       iconBoxStyle: Styles.platformStyles({
         isElectron: {
           display: 'inline',
@@ -171,9 +164,6 @@ const styles = Styles.styleSheetCreate(
       pending: {
         backgroundColor: Styles.globalColors.greyLight,
         borderRadius: Styles.globalMargins.xxtiny,
-        color: Styles.globalColors.black_50OrWhite,
-      },
-      pendingIcon: {
         color: Styles.globalColors.black_50OrWhite,
       },
     } as const)

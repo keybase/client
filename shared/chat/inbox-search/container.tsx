@@ -33,7 +33,8 @@ export default namedConnect(
     const {header} = ownProps
     const {_inboxSearch} = stateProps
     const {indexPercent, nameResults, nameResultsUnread, nameStatus, textStatus} = _inboxSearch
-    const {openTeamsResults, openTeamsStatus, query, selectedIndex, textResults} = _inboxSearch
+    const {openTeamsResults, openTeamsResultsSuggested, openTeamsStatus} = _inboxSearch
+    const {query, selectedIndex, textResults} = _inboxSearch
     const {onCancel, onSelectConversation} = dispatchProps
     return {
       header,
@@ -48,6 +49,7 @@ export default namedConnect(
       onCancel,
       onSelectConversation,
       openTeamsResults,
+      openTeamsResultsSuggested,
       openTeamsStatus,
       query: query.stringValue(),
       selectedIndex,

@@ -27,6 +27,12 @@ func (o DurationSec) DeepCopy() DurationSec {
 	return o
 }
 
+type DurationMsec float64
+
+func (o DurationMsec) DeepCopy() DurationMsec {
+	return o
+}
+
 type StringKVPair struct {
 	Key   string `codec:"key" json:"key"`
 	Value string `codec:"value" json:"value"`

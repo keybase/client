@@ -318,7 +318,10 @@ type _InboxSearchNameResultsPayload = {
   readonly results: Array<Types.InboxSearchConvHit>
   readonly unread: boolean
 }
-type _InboxSearchOpenTeamsResultsPayload = {readonly results: Array<Types.InboxSearchOpenTeamHit>}
+type _InboxSearchOpenTeamsResultsPayload = {
+  readonly results: Array<Types.InboxSearchOpenTeamHit>
+  readonly suggested: boolean
+}
 type _InboxSearchPayload = {readonly query: HiddenString}
 type _InboxSearchSelectPayload = {
   readonly conversationIDKey?: Types.ConversationIDKey

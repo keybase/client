@@ -74,6 +74,7 @@ export type InboxSearchInfo = {
   nameResultsUnread: boolean
   openTeamsResults: Array<InboxSearchOpenTeamHit>
   openTeamsStatus: InboxSearchStatus
+  openTeamsResultsSuggested: boolean
   query: HiddenString
   selectedIndex: number
   textResults: Array<InboxSearchTextHit>
@@ -175,77 +176,85 @@ export type ParticipantInfo = {
   contactName: Map<string, string>
 }
 
-export type State = Readonly<{
-  accountsInfoMap: Map<
+export type State = {
+  readonly accountsInfoMap: Map<
     Common.ConversationIDKey,
     Map<RPCChatTypes.MessageID, Message.ChatRequestInfo | Message.ChatPaymentInfo>
   > // temp cache for requestPayment and sendPayment message data,
-  attachmentViewMap: Map<Common.ConversationIDKey, Map<RPCChatTypes.GalleryItemTyp, AttachmentViewInfo>>
-  audioRecording: Map<Common.ConversationIDKey, AudioRecordingInfo>
-  badgeMap: ConversationCountMap // id to the badge count,
-  blockButtonsMap: Map<RPCTypes.TeamID, BlockButtonsInfo> // Should we show block buttons for this team ID?
-  botCommandsUpdateStatusMap: Map<Common.ConversationIDKey, RPCChatTypes.UIBotCommandsUpdateStatusTyp>
-  botPublicCommands: Map<string, BotPublicCommands>
-  botSearchResults?: BotSearchResults
-  botSettings: Map<Common.ConversationIDKey, Map<string, RPCTypes.TeamBotSettings>>
-  botTeamRoleInConvMap: Map<Common.ConversationIDKey, Map<string, Team.TeamRoleType | null>>
-  channelSearchText: string
-  commandMarkdownMap: Map<Common.ConversationIDKey, RPCChatTypes.UICommandMarkdown>
-  commandStatusMap: Map<Common.ConversationIDKey, CommandStatusInfo>
-  containsLatestMessageMap: Map<Common.ConversationIDKey, boolean>
-  createConversationError: CreateConversationError | null
-  dismissedInviteBannersMap: Map<Common.ConversationIDKey, boolean>
-  draftMap: Map<Common.ConversationIDKey, string>
-  editingMap: Map<Common.ConversationIDKey, Message.Ordinal> // current message being edited,
-  explodingModeLocks: Map<Common.ConversationIDKey, number> // locks set on exploding mode while user is inputting text,
-  explodingModes: Map<Common.ConversationIDKey, number> // seconds to exploding message expiration,
-  featuredBotsMap: Map<string, RPCTypes.FeaturedBot>
-  featuredBotsPage: number
-  featuredBotsLoaded: boolean
-  flipStatusMap: Map<string, RPCChatTypes.UICoinFlipStatus>
-  focus: Focus
-  giphyResultMap: Map<Common.ConversationIDKey, RPCChatTypes.GiphySearchResults | undefined>
-  giphyWindowMap: Map<Common.ConversationIDKey, boolean>
-  inboxNumSmallRows?: number
-  inboxHasLoaded: boolean // if we've ever loaded,
-  inboxLayout: RPCChatTypes.UIInboxLayout | null // layout of the inbox
-  inboxSearch?: InboxSearchInfo
-  inboxShowNew: boolean // mark search as new,
-  infoPanelShowing: boolean
-  infoPanelSelectedTab: 'settings' | 'members' | 'attachments' | 'bots' | undefined
-  isWalletsNew: boolean // controls new-ness of wallets in chat UI,
-  lastCoord?: Coordinate
-  maybeMentionMap: Map<string, RPCChatTypes.UIMaybeMentionInfo>
-  messageCenterOrdinals: Map<Common.ConversationIDKey, CenterOrdinal> // ordinals to center threads on,
-  messageMap: Map<Common.ConversationIDKey, Map<Message.Ordinal, Message.Message>> // messages in a thread,
-  messageOrdinals: Map<Common.ConversationIDKey, Set<Message.Ordinal>> // ordered ordinals in a thread,
-  metaMap: MetaMap // metadata about a thread, There is a special node for the pending conversation,
-  moreToLoadMap: Map<Common.ConversationIDKey, boolean> // if we have more data to load,
-  mutedMap: Map<Common.ConversationIDKey, boolean> // muted convs
-  orangeLineMap: Map<Common.ConversationIDKey, number> // last message we've seen,
-  participantMap: Map<Common.ConversationIDKey, ParticipantInfo>
-  paymentConfirmInfo?: PaymentConfirmInfo // chat payment confirm screen data,
-  paymentStatusMap: Map<Wallet.PaymentID, Message.ChatPaymentInfo>
-  pendingOutboxToOrdinal: Map<Common.ConversationIDKey, Map<Message.OutboxID, Message.Ordinal>> // messages waiting to be sent,
-  prependTextMap: Map<Common.ConversationIDKey, HiddenString | null>
-  previousSelectedConversation: Common.ConversationIDKey // the previous selected conversation, if any,
-  quote?: QuoteInfo // last quoted message,
-  replyToMap: Map<Common.ConversationIDKey, Message.Ordinal>
-  selectedConversation: Common.ConversationIDKey // the selected conversation, if any,
-  smallTeamsExpanded: boolean // if we're showing all small teams,
-  staticConfig?: StaticConfig // static config stuff from the service. only needs to be loaded once. if null, it hasn't been loaded,
-  teamBuilding: TeamBuildingTypes.TeamBuildingSubState
-  teamIDToGeneralConvID: Map<Team.TeamID, Common.ConversationIDKey>
-  threadLoadStatus: Map<Common.ConversationIDKey, RPCChatTypes.UIChatThreadStatus>
-  threadSearchInfoMap: Map<Common.ConversationIDKey, ThreadSearchInfo>
-  threadSearchQueryMap: Map<Common.ConversationIDKey, HiddenString>
-  trustedInboxHasLoaded: boolean // if we've done initial trusted inbox load,
-  typingMap: Map<Common.ConversationIDKey, Set<string>> // who's typing currently,
-  unfurlPromptMap: Map<Common.ConversationIDKey, Map<Message.MessageID, Set<string>>>
-  unreadMap: ConversationCountMap // how many unread messages there are,
-  unsentTextMap: Map<Common.ConversationIDKey, HiddenString | undefined>
-  userReacjis: UserReacjis
-}>
+  readonly attachmentViewMap: Map<
+    Common.ConversationIDKey,
+    Map<RPCChatTypes.GalleryItemTyp, AttachmentViewInfo>
+  >
+  readonly audioRecording: Map<Common.ConversationIDKey, AudioRecordingInfo>
+  readonly badgeMap: ConversationCountMap // id to the badge count,
+  readonly blockButtonsMap: Map<RPCTypes.TeamID, BlockButtonsInfo> // Should we show block buttons for this team ID?
+  readonly botCommandsUpdateStatusMap: Map<
+    Common.ConversationIDKey,
+    RPCChatTypes.UIBotCommandsUpdateStatusTyp
+  >
+  readonly botPublicCommands: Map<string, BotPublicCommands>
+  readonly botSearchResults?: BotSearchResults
+  readonly botSettings: Map<Common.ConversationIDKey, Map<string, RPCTypes.TeamBotSettings>>
+  readonly botTeamRoleInConvMap: Map<Common.ConversationIDKey, Map<string, Team.TeamRoleType | null>>
+  readonly channelSearchText: string
+  readonly commandMarkdownMap: Map<Common.ConversationIDKey, RPCChatTypes.UICommandMarkdown>
+  readonly commandStatusMap: Map<Common.ConversationIDKey, CommandStatusInfo>
+  readonly containsLatestMessageMap: Map<Common.ConversationIDKey, boolean>
+  readonly createConversationError: CreateConversationError | null
+  readonly dismissedInviteBannersMap: Map<Common.ConversationIDKey, boolean>
+  readonly draftMap: Map<Common.ConversationIDKey, string>
+  readonly editingMap: Map<Common.ConversationIDKey, Message.Ordinal> // current message being edited,
+  readonly explodingModeLocks: Map<Common.ConversationIDKey, number> // locks set on exploding mode while user is inputting text,
+  readonly explodingModes: Map<Common.ConversationIDKey, number> // seconds to exploding message expiration,
+  readonly featuredBotsMap: Map<string, RPCTypes.FeaturedBot>
+  readonly featuredBotsPage: number
+  readonly featuredBotsLoaded: boolean
+  readonly flipStatusMap: Map<string, RPCChatTypes.UICoinFlipStatus>
+  readonly focus: Focus
+  readonly giphyResultMap: Map<Common.ConversationIDKey, RPCChatTypes.GiphySearchResults | undefined>
+  readonly giphyWindowMap: Map<Common.ConversationIDKey, boolean>
+  readonly hasZzzJourneycard: Map<Common.ConversationIDKey, MessageJourneycard>
+  readonly shouldDeleteZzzJourneycard: Map<Common.ConversationIDKey, MessageJourneycard> // messages scheduled for deletion
+  readonly inboxNumSmallRows?: number
+  readonly inboxHasLoaded: boolean // if we've ever loaded,
+  readonly inboxLayout: RPCChatTypes.UIInboxLayout | null // layout of the inbox
+  readonly inboxSearch?: InboxSearchInfo
+  readonly inboxShowNew: boolean // mark search as new,
+  readonly infoPanelShowing: boolean
+  readonly infoPanelSelectedTab: 'settings' | 'members' | 'attachments' | 'bots' | undefined
+  readonly isWalletsNew: boolean // controls new-ness of wallets in chat UI,
+  readonly lastCoord?: Coordinate
+  readonly maybeMentionMap: Map<string, RPCChatTypes.UIMaybeMentionInfo>
+  readonly messageCenterOrdinals: Map<Common.ConversationIDKey, CenterOrdinal> // ordinals to center threads on,
+  readonly messageMap: Map<Common.ConversationIDKey, Map<Message.Ordinal, Message.Message>> // messages in a thread,
+  readonly messageOrdinals: Map<Common.ConversationIDKey, Set<Message.Ordinal>> // ordered ordinals in a thread,
+  readonly metaMap: MetaMap // metadata about a thread, There is a special node for the pending conversation,
+  readonly moreToLoadMap: Map<Common.ConversationIDKey, boolean> // if we have more data to load,
+  readonly mutedMap: Map<Common.ConversationIDKey, boolean> // muted convs
+  readonly orangeLineMap: Map<Common.ConversationIDKey, number> // last message we've seen,
+  readonly participantMap: Map<Common.ConversationIDKey, ParticipantInfo>
+  readonly paymentConfirmInfo?: PaymentConfirmInfo // chat payment confirm screen data,
+  readonly paymentStatusMap: Map<Wallet.PaymentID, Message.ChatPaymentInfo>
+  readonly pendingOutboxToOrdinal: Map<Common.ConversationIDKey, Map<Message.OutboxID, Message.Ordinal>> // messages waiting to be sent,
+  readonly prependTextMap: Map<Common.ConversationIDKey, HiddenString | null>
+  readonly previousSelectedConversation: Common.ConversationIDKey // the previous selected conversation, if any,
+  readonly quote?: QuoteInfo // last quoted message,
+  readonly replyToMap: Map<Common.ConversationIDKey, Message.Ordinal>
+  readonly selectedConversation: Common.ConversationIDKey // the selected conversation, if any,
+  readonly smallTeamsExpanded: boolean // if we're showing all small teams,
+  readonly staticConfig?: StaticConfig // static config stuff from the service. only needs to be loaded once. if null, it hasn't been loaded,
+  readonly teamBuilding: TeamBuildingTypes.TeamBuildingSubState
+  readonly teamIDToGeneralConvID: Map<Team.TeamID, Common.ConversationIDKey>
+  readonly threadLoadStatus: Map<Common.ConversationIDKey, RPCChatTypes.UIChatThreadStatus>
+  readonly threadSearchInfoMap: Map<Common.ConversationIDKey, ThreadSearchInfo>
+  readonly threadSearchQueryMap: Map<Common.ConversationIDKey, HiddenString>
+  readonly trustedInboxHasLoaded: boolean // if we've done initial trusted inbox load,
+  readonly typingMap: Map<Common.ConversationIDKey, Set<string>> // who's typing currently,
+  readonly unfurlPromptMap: Map<Common.ConversationIDKey, Map<Message.MessageID, Set<string>>>
+  readonly unreadMap: ConversationCountMap // how many unread messages there are,
+  readonly unsentTextMap: Map<Common.ConversationIDKey, HiddenString | undefined>
+  readonly userReacjis: UserReacjis
+}
 
 export const conversationIDToKey = (conversationID: RPCChatTypes.ConversationID): Common.ConversationIDKey =>
   Common.stringToConversationIDKey(conversationID.toString('hex'))

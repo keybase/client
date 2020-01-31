@@ -7,7 +7,7 @@ import * as Types from '../../constants/types/tracker2'
 import Profile2, {BackgroundColorType} from '.'
 import flags from '../../util/feature-flags'
 
-type OwnProps = Container.RouteProps<{username: string}>
+export type OwnProps = Container.RouteProps<{username: string}>
 
 const headerBackgroundColorType = (state: Types.DetailsState, followThem: boolean): BackgroundColorType => {
   if (['broken', 'error'].includes(state)) {

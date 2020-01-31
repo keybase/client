@@ -3,6 +3,7 @@ import * as Types from '../../../constants/types/teams'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import {FloatingRolePicker, roleIconMap} from '../../role-picker'
+import {useTeamDetailsSubscribe} from '../../subscriber'
 
 type RolePickerSpecificProps = {
   isRolePickerOpen: boolean
@@ -23,6 +24,7 @@ export type MemberProps = {
     type: Types.TeamRoleType | null
     username: string
   }
+  teamID: Types.TeamID
   teamname: string
   you: {
     type: Types.TeamRoleType | null
@@ -37,6 +39,7 @@ export type MemberProps = {
 export type Props = MemberProps & RolePickerSpecificProps
 
 export const TeamMember = (props: Props) => {
+  useTeamDetailsSubscribe(props.teamID)
   const {user, you} = props
   const iconType = user.type && roleIconMap[user.type]
   return (

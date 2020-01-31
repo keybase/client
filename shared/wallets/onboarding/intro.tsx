@@ -3,8 +3,6 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
 type IntroProps = {
-  headerBody: string
-  headerTitle: string
   onClose: () => void
   onSeenIntro: () => void
 }
@@ -44,12 +42,12 @@ const Intro = (props: IntroProps) => {
     >
       <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={styles.container}>
         <Kb.Text center={true} type="Header" style={styles.headerText}>
-          {props.headerTitle || 'Keybase now supports Stellar.'}
+          Keybase now supports Stellar.
         </Kb.Text>
 
         <Kb.Markdown style={styles.bodyText} styleOverride={bodyOverride}>
-          {props.headerBody ||
-            'Stellar is built right into Keybase as a cryptographically-secure wallet. On Stellar, transactions settle in seconds, and they cost a fraction of a penny.'}
+          Stellar is built right into Keybase as a cryptographically-secure wallet. On Stellar, transactions
+          settle in seconds, and they cost a fraction of a penny.
         </Kb.Markdown>
 
         <Kb.Icon

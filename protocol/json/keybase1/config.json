@@ -837,6 +837,18 @@
         "FullStatus"
       ]
     },
+    "getNetworkStats": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "InstrumentationStat"
+      }
+    },
     "logSend": {
       "request": [
         {

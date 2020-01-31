@@ -50,9 +50,9 @@ export const TeamBotRow = (props: Props) => {
       >
         {props.botAlias || props.username}
       </Kb.Text>
-      <Kb.Text type="BodySmall">&nbsp;• by </Kb.Text>
+      <Kb.Text type="BodySmall">&nbsp;• by&nbsp;</Kb.Text>
       {props.ownerTeam ? (
-        <Kb.TeamWithPopup prefix="@" inline={true} teamName={props.ownerTeam} type="BodySmall" />
+        <Kb.Text type="BodySmall">{`@${props.ownerTeam}`}</Kb.Text>
       ) : (
         <Kb.ConnectedUsernames
           prefix="@"
@@ -60,6 +60,7 @@ export const TeamBotRow = (props: Props) => {
           usernames={[props.ownerUser ?? props.username]}
           type="BodySmall"
           withProfileCardPopup={true}
+          onUsernameClicked="profile"
         />
       )}
     </Kb.Box2>
