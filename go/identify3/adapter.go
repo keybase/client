@@ -292,9 +292,10 @@ func (i *UIAdapter) rowPartial(mctx libkb.MetaContext, proof keybase1.RemoteProo
 	default:
 		row.SiteURL = humanURLOrSigchainURL
 	}
-	row.SiteIcon = externals.MakeIcons(mctx, iconKey, "logo_black", 16)
-	row.SiteIconFull = externals.MakeIcons(mctx, iconKey, "logo_full", 64)
-	row.SiteIconWhite = externals.MakeIcons(mctx, iconKey, "logo_white", 16)
+	row.SiteIcon = externals.MakeIcons(mctx, iconKey, externals.IconTypeSmall, 16)
+	row.SiteIconDarkmode = externals.MakeIcons(mctx, iconKey, externals.IconTypeSmallDarkmode, 16)
+	row.SiteIconFull = externals.MakeIcons(mctx, iconKey, externals.IconTypeFull, 64)
+	row.SiteIconFullDarkmode = externals.MakeIcons(mctx, iconKey, externals.IconTypeFullDarkmode, 64)
 	return row
 }
 
@@ -357,11 +358,12 @@ func (i *UIAdapter) displayKey(mctx libkb.MetaContext, key keybase1.IdentifyKey)
 		Priority: i.priority("pgp"),
 		SiteURL:  i.makeKeybaseProfileURL(mctx),
 		// key.SigID is blank if the PGP key was there pre-sigchain
-		ProofURL:      i.makeSigchainViewURL(mctx, key.SigID),
-		SiteIcon:      externals.MakeIcons(mctx, "pgp", "logo_black", 16),
-		SiteIconFull:  externals.MakeIcons(mctx, "pgp", "logo_full", 64),
-		SiteIconWhite: externals.MakeIcons(mctx, "pgp", "logo_white", 16),
-		Kid:           &key.KID,
+		ProofURL:             i.makeSigchainViewURL(mctx, key.SigID),
+		SiteIcon:             externals.MakeIcons(mctx, "pgp", externals.IconTypeSmall, 16),
+		SiteIconDarkmode:     externals.MakeIcons(mctx, "pgp", externals.IconTypeSmallDarkmode, 16),
+		SiteIconFull:         externals.MakeIcons(mctx, "pgp", externals.IconTypeFull, 64),
+		SiteIconFullDarkmode: externals.MakeIcons(mctx, "pgp", externals.IconTypeFullDarkmode, 64),
+		Kid:                  &key.KID,
 	}
 
 	switch {
@@ -486,18 +488,19 @@ func (i *UIAdapter) plumbCryptocurrency(mctx libkb.MetaContext, crypto keybase1.
 		mctx.Debug("unrecgonized crypto family: %v, %v", crypto.Type, crypto.Family)
 	}
 	i.updateRow(mctx, keybase1.Identify3Row{
-		Key:           key,
-		Value:         crypto.Address,
-		Priority:      i.priority(key),
-		State:         keybase1.Identify3RowState_VALID,
-		Color:         i.getColorForValid(i.iFollowThem),
-		SigID:         crypto.SigID,
-		Ctime:         0,
-		SiteURL:       i.makeSigchainViewURL(mctx, crypto.SigID),
-		SiteIcon:      externals.MakeIcons(mctx, key, "logo_black", 16),
-		SiteIconFull:  externals.MakeIcons(mctx, key, "logo_full", 64),
-		SiteIconWhite: externals.MakeIcons(mctx, key, "logo_white", 16),
-		ProofURL:      i.makeSigchainViewURL(mctx, crypto.SigID),
+		Key:                  key,
+		Value:                crypto.Address,
+		Priority:             i.priority(key),
+		State:                keybase1.Identify3RowState_VALID,
+		Color:                i.getColorForValid(i.iFollowThem),
+		SigID:                crypto.SigID,
+		Ctime:                0,
+		SiteURL:              i.makeSigchainViewURL(mctx, crypto.SigID),
+		SiteIcon:             externals.MakeIcons(mctx, key, externals.IconTypeSmall, 16),
+		SiteIconDarkmode:     externals.MakeIcons(mctx, key, externals.IconTypeSmallDarkmode, 16),
+		SiteIconFull:         externals.MakeIcons(mctx, key, externals.IconTypeFull, 64),
+		SiteIconFullDarkmode: externals.MakeIcons(mctx, key, externals.IconTypeFullDarkmode, 64),
+		ProofURL:             i.makeSigchainViewURL(mctx, crypto.SigID),
 	})
 }
 
@@ -507,18 +510,19 @@ func (i *UIAdapter) plumbStellarAccount(mctx libkb.MetaContext, str keybase1.Ste
 		color = keybase1.Identify3RowColor_GRAY
 	}
 	i.updateRow(mctx, keybase1.Identify3Row{
-		Key:           "stellar",
-		Value:         str.FederationAddress,
-		Priority:      i.priority("stellar"),
-		State:         keybase1.Identify3RowState_VALID,
-		Color:         color,
-		SigID:         str.SigID,
-		Ctime:         0,
-		SiteURL:       i.makeSigchainViewURL(mctx, str.SigID),
-		SiteIcon:      externals.MakeIcons(mctx, "stellar", "logo_black", 16),
-		SiteIconFull:  externals.MakeIcons(mctx, "stellar", "logo_full", 64),
-		SiteIconWhite: externals.MakeIcons(mctx, "stellar", "logo_white", 16),
-		ProofURL:      i.makeSigchainViewURL(mctx, str.SigID),
+		Key:                  "stellar",
+		Value:                str.FederationAddress,
+		Priority:             i.priority("stellar"),
+		State:                keybase1.Identify3RowState_VALID,
+		Color:                color,
+		SigID:                str.SigID,
+		Ctime:                0,
+		SiteURL:              i.makeSigchainViewURL(mctx, str.SigID),
+		SiteIcon:             externals.MakeIcons(mctx, "stellar", externals.IconTypeSmall, 16),
+		SiteIconDarkmode:     externals.MakeIcons(mctx, "stellar", externals.IconTypeSmallDarkmode, 16),
+		SiteIconFull:         externals.MakeIcons(mctx, "stellar", externals.IconTypeFull, 64),
+		SiteIconFullDarkmode: externals.MakeIcons(mctx, "stellar", externals.IconTypeFullDarkmode, 64),
+		ProofURL:             i.makeSigchainViewURL(mctx, str.SigID),
 	})
 }
 

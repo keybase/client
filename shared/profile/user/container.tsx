@@ -6,6 +6,7 @@ import * as Tracker2Gen from '../../actions/tracker2-gen'
 import * as Types from '../../constants/types/tracker2'
 import Profile2, {BackgroundColorType} from '.'
 import flags from '../../util/feature-flags'
+import * as Styles from '../../styles'
 
 export type OwnProps = Container.RouteProps<{username: string}>
 
@@ -84,7 +85,7 @@ const connected = Container.namedConnect(
         name,
         sbsAvatarUrl: nonUserDetails.pictureUrl || undefined,
         service,
-        serviceIcon: nonUserDetails.siteIconFull,
+        serviceIcon: Styles.isDarkMode() ? nonUserDetails.siteIconFullDarkmode : nonUserDetails.siteIconFull,
         title,
       }
     }

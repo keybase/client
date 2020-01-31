@@ -517,9 +517,10 @@ func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext, tracer prof
 	tracer.Stage("icons")
 	for i := range suggestions {
 		suggestion := &suggestions[i]
-		suggestion.ProfileIcon = externals.MakeIcons(mctx, suggestion.LogoKey, "logo_black", 16)
-		suggestion.ProfileIconWhite = externals.MakeIcons(mctx, suggestion.LogoKey, "logo_white", 16)
-		suggestion.PickerIcon = externals.MakeIcons(mctx, suggestion.LogoKey, "logo_full", 32)
+		suggestion.ProfileIcon = externals.MakeIcons(mctx, suggestion.LogoKey, externals.IconTypeSmall, 16)
+		suggestion.ProfileIconDarkmode = externals.MakeIcons(mctx, suggestion.LogoKey, externals.IconTypeSmallDarkmode, 16)
+		suggestion.PickerIcon = externals.MakeIcons(mctx, suggestion.LogoKey, externals.IconTypeFull, 32)
+		suggestion.PickerIconDarkmode = externals.MakeIcons(mctx, suggestion.LogoKey, externals.IconTypeFullDarkmode, 32)
 	}
 
 	// Alphabetize so that ties later on in SliceStable are deterministic.

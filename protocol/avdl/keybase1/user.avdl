@@ -156,10 +156,11 @@ protocol user {
     boolean belowFold;
     string profileText; // "Prove your Twitter", "Add a PGP key"
     array<SizedImage> profileIcon;
-    array<SizedImage> profileIconWhite;
+    array<SizedImage> profileIconDarkmode;
     string pickerText; // "Twitter", "Your own website", "octodon.xyz"
     string pickerSubtext; // "twitter.com", "Mastodon instance"
     array<SizedImage> pickerIcon;
+    array<SizedImage> pickerIconDarkmode;
     array<Identify3RowMeta> metas; // for 'new' proof types
   }
 
