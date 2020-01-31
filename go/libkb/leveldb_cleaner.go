@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -70,6 +71,8 @@ type levelDbCleaner struct {
 	db       *leveldb.DB
 	stopCh   chan struct{}
 	cancelCh chan struct{}
+
+	isShutdown bool
 }
 
 func newLevelDbCleaner(mctx MetaContext, dbName string) *levelDbCleaner {
@@ -170,11 +173,8 @@ func (c *levelDbCleaner) clearCache() {
 func (c *levelDbCleaner) Shutdown() {
 	c.cacheMu.Lock()
 	defer c.cacheMu.Unlock()
-	var err error
-	c.cache, err = lru.New(1)
-	if err != nil {
-		panic(err.Error())
-	}
+	c.cache, _ = lru.New(1)
+	c.isShutdown = true
 }
 
 func (c *levelDbCleaner) shouldCleanLocked(force bool) bool {
@@ -290,7 +290,15 @@ func (c *levelDbCleaner) cleanBatch(startKey []byte) (int, []byte, error) {
 	batch := new(leveldb.Batch)
 	for batch.Len() < 1000 && iter.Next() {
 		key := iter.Key()
-		cache := c.getCache()
+
+		c.cacheMu.Lock()
+		if c.isShutdown {
+			c.cacheMu.Unlock()
+			return 0, nil, errors.New("cleanBatch: cancelled due to shutdown")
+		}
+		cache := c.cache
+		c.cacheMu.Unlock()
+
 		if _, found := cache.Get(c.cacheKey(key)); !found {
 			cp := make([]byte, len(key))
 			copy(cp, key)
