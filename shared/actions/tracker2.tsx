@@ -68,8 +68,6 @@ const updateUserCard = (
   return Tracker2Gen.createUpdatedDetails({
     bio: card.bio,
     blocked: card.blocked,
-    unverifiedFollowersCount: card.unverifiedNumFollowers,
-    unverifiedFollowingCount: card.unverifiedNumFollowing,
     fullname: card.fullName,
     guiID,
     hidFromFollowers: card.hidFromFollowers,
@@ -82,6 +80,8 @@ const updateUserCard = (
       name: t.fqName,
       publicAdmins: t.publicAdmins || [],
     })),
+    unverifiedFollowersCount: card.unverifiedNumFollowers,
+    unverifiedFollowingCount: card.unverifiedNumFollowing,
     username,
   })
 }
