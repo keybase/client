@@ -176,6 +176,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                       <Kb.Markdown
                         style={Styles.collapseStyles([styles.title])}
                         meta={{message: this.props.message}}
+                        selectable={true}
                         allowFontScaling={true}
                       >
                         {this.props.title}
