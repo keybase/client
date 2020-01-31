@@ -23,8 +23,9 @@ type Props = {
   onWhatIsStellar: () => void
   proofURL: string
   siteIcon?: Types.SiteIconSet
+  siteIconDarkmode?: Types.SiteIconSet
   siteIconFull?: Types.SiteIconSet
-  siteIconWhite?: Types.SiteIconSet
+  siteIconFullDarkmode?: Types.SiteIconSet
   siteURL: string
   state: Types.AssertionState
   stellarHidden: boolean
@@ -334,9 +335,11 @@ class Assertion extends React.PureComponent<Props, State> {
   }
   _siteIcon = (full: boolean) => {
     const set = full
-      ? this.props.siteIconFull
+      ? Styles.isDarkMode()
+        ? this.props.siteIconFullDarkmode
+        : this.props.siteIconFull
       : Styles.isDarkMode()
-      ? this.props.siteIconWhite
+      ? this.props.siteIconDarkmode
       : this.props.siteIcon
     if (!set) return null
     let child = <SiteIcon full={full} set={set} />

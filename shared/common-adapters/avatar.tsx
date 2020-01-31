@@ -32,7 +32,7 @@ export type OwnProps = {
   showFollowingStatus?: boolean // show the green dots or not
 }
 
-type Props = {
+export type Props = {
   borderColor?: string
   children?: React.ReactNode
   editable?: boolean
@@ -79,11 +79,19 @@ const followSizeToStyle = new Map<AvatarSize, IconStyle>([
   [96, {bottom: 0, left: 65, position: 'absolute'}],
 ])
 
-const followIconHelper = (size: AvatarSize, followsYou: boolean, following: boolean) => {
+const followIconHelper = (
+  size: AvatarSize,
+  followsYou: boolean,
+  following: boolean
+): {
+  iconSize: 28 | 21
+  iconStyle: IconStyle
+  iconType: IconType | undefined
+} => {
   const iconSize = size === 128 ? 28 : 21
   const rel =
     followsYou === following ? (followsYou ? 'mutual-follow' : null) : followsYou ? 'follow-me' : 'following'
-  const iconType = rel ? (`icon-${rel}-${iconSize}` as IconType) : undefined
+  const iconType: IconType | undefined = rel ? (`icon-${rel}-${iconSize}` as any) : undefined
   const iconStyle = followSizeToStyle.get(size)
   return {
     iconSize,
@@ -189,12 +197,14 @@ const mockOwnToViewProps = (
     !!(ownProps.showFollowingStatus && followsYou),
     !!(ownProps.showFollowingStatus && following)
   )
+
+  const followIconType: IconType | undefined = iconInfo.iconType || undefined
   return {
     borderColor: ownProps.borderColor,
     children: ownProps.children,
     followIconSize: iconInfo.iconSize,
     followIconStyle: iconInfo.iconStyle,
-    followIconType: iconInfo.iconType || undefined,
+    followIconType,
     isTeam,
     loadingColor: ownProps.loadingColor,
     name: name || '',

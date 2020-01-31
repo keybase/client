@@ -33,10 +33,10 @@ type Conversation = {
   participantInfo: ChatTypes.ParticipantInfo
 }
 
-type KbfsDaemonStatus = Readonly<{
-  rpcStatus: FSTypes.KbfsDaemonRpcStatus
-  onlineStatus: FSTypes.KbfsDaemonOnlineStatus
-}>
+type KbfsDaemonStatus = {
+  readonly rpcStatus: FSTypes.KbfsDaemonRpcStatus
+  readonly onlineStatus: FSTypes.KbfsDaemonOnlineStatus
+}
 
 export type ProxyProps = {
   conversationsToSend: Array<Conversation>

@@ -782,6 +782,10 @@ func (g *GlobalContext) Shutdown(mctx MetaContext) error {
 
 		epick := FirstErrorPicker{}
 
+		if g.hiddenTeamChainManager != nil {
+			g.hiddenTeamChainManager.Shutdown(mctx)
+		}
+
 		if g.NotifyRouter != nil {
 			g.NotifyRouter.Shutdown()
 		}
@@ -804,6 +808,10 @@ func (g *GlobalContext) Shutdown(mctx MetaContext) error {
 		g.cacheMu.Lock()
 		g.shutdownCachesLocked()
 		g.cacheMu.Unlock()
+
+		if g.proofServices != nil {
+			g.proofServices.Shutdown()
+		}
 
 		if g.Resolver != nil {
 			g.Resolver.Shutdown(NewMetaContextBackground(g))

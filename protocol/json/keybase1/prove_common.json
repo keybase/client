@@ -152,27 +152,6 @@
     },
     {
       "type": "record",
-      "name": "ParamProofLogoConfig",
-      "fields": [
-        {
-          "type": "string",
-          "name": "svgBlack",
-          "jsonkey": "svg_black"
-        },
-        {
-          "type": "string",
-          "name": "svgFull",
-          "jsonkey": "svg_full"
-        },
-        {
-          "type": "string",
-          "name": "svgWhite",
-          "jsonkey": "svg_white"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "ParamProofServiceConfig",
       "fields": [
         {
@@ -187,13 +166,6 @@
           "type": "string",
           "name": "displayName",
           "jsonkey": "display_name"
-        },
-        {
-          "type": [
-            null,
-            "ParamProofLogoConfig"
-          ],
-          "name": "logo"
         },
         {
           "type": "string",

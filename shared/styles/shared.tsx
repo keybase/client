@@ -54,7 +54,8 @@ export const backgroundModeToTextColor = (backgroundMode: Background) => {
   }
 }
 
-export const util = ({flexCommon}: {flexCommon?: Object | null}) => ({
+const flexCommon = isMobile ? {} : ({display: 'flex'} as const)
+export const util = {
   fillAbsolute: {bottom: 0, left: 0, position: 'absolute', right: 0, top: 0},
   flexBoxCenter: {...flexCommon, alignItems: 'center', justifyContent: 'center'},
   flexBoxColumn: {...flexCommon, flexDirection: 'column'},
@@ -69,7 +70,7 @@ export const util = ({flexCommon}: {flexCommon?: Object | null}) => ({
   opacity0: {opacity: 0},
   positionRelative: {position: 'relative'},
   rounded: {borderRadius: 3},
-})
+} as const
 
 // Take common styles and make them work on both. Deals with special cases in lineHeight and etc
 const unifyStyles = (s: any) => ({
@@ -79,15 +80,13 @@ const unifyStyles = (s: any) => ({
     : {}),
 })
 
-type AsStylesCrossPlatform<T> = Readonly<
-  {
-    [P in keyof T]: P extends keyof _StylesCrossPlatform
-      ? T[P] extends _StylesCrossPlatform[P]
-        ? Readonly<T[P]>
-        : Readonly<_StylesCrossPlatform[P]>
-      : Readonly<T[P]>
-  }
->
+type AsStylesCrossPlatform<T> = {
+  [P in keyof T]: P extends keyof _StylesCrossPlatform
+    ? T[P] extends _StylesCrossPlatform[P]
+      ? T[P]
+      : _StylesCrossPlatform[P]
+    : T[P]
+}
 
 export function platformStyles<
   Ret extends C & I & A & M & E,

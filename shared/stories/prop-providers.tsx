@@ -12,7 +12,7 @@ import {isMobile} from '../constants/platform'
 import {isSpecialMention} from '../constants/chat2'
 import * as FsConstants from '../constants/fs'
 import * as Tracker2Constants from '../constants/tracker2'
-import rootReducer from '../reducers'
+import rootReducer, {TypedState} from '../reducers'
 
 /*
  * Some common prop factory creators.
@@ -172,7 +172,7 @@ export const createPropProviderWithCommon = (custom: Object | null) =>
     ...(custom || {}),
   })
 
-export const createStoreWithCommon = () => {
+export const createStoreWithCommon = (): TypedState => {
   const root = rootReducer(undefined, {type: 'ignore'})
   return {
     ...root,

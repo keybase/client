@@ -22,7 +22,7 @@ type SwitchProps = {
   type: 'error' | 'noConvo' | 'rekey' | 'youAreReset' | 'normal' | 'rekey'
 }
 
-class Conversation extends React.PureComponent<SwitchProps> {
+export class Conversation extends React.PureComponent<SwitchProps> {
   _onDidFocus = () => {
     this.props.selectConversation()
   }

@@ -14,7 +14,7 @@ type WatcherProps = Props & {
   verificationStatus?: 'success' | 'error'
 }
 // Watches for verification to succeed and exits
-class WatchForSuccess extends React.Component<WatcherProps> {
+export class WatchForSuccess extends React.Component<WatcherProps> {
   componentDidUpdate() {
     if (this.props.verificationStatus === 'success') {
       this.props.onSuccess()

@@ -111,21 +111,11 @@ protocol proveCommon {
     int max;
   }
 
-  record ParamProofLogoConfig {
-    @jsonkey("svg_black")
-    string svgBlack;
-    @jsonkey("svg_full")
-    string svgFull;
-    @jsonkey("svg_white")
-    string svgWhite;
-  }
-
   record ParamProofServiceConfig {
     int version;
     string domain;
     @jsonkey("display_name")
     string displayName;
-    union { null, ParamProofLogoConfig} logo;
     string description;
     @jsonkey("username")
     ParamProofUsernameConfig usernameConfig;
