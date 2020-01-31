@@ -20,15 +20,7 @@ export type IncomingErrorCallback = (err?: {code?: number; desc?: string} | null
 type IncomingReturn = Effect | null | void | false | Array<Effect | null | void | false>
 
 // Dummy calls to avoid undelcared warnings in TS strict mode
-export const _doNotUse = (w: WaitingKey, i: IncomingReturn) =>
-  console.log(
-    'why did you call this function?',
-    w,
-    i,
-    call(() => {}),
-    engine(),
-    getEngineSaga()
-  )
+export const _doNotUse = (w: WaitingKey, i: IncomingReturn) => console.log('why did you call this function?', w, i, call(() => {}), engine(), getEngineSaga())
 
 export type MessageTypes = {
   'keybase.1.NotifyApp.exit': {
@@ -2602,6 +2594,15 @@ export enum UserOrTeamResult {
   user = 1,
   team = 2,
 }
+
+export enum UsernameVerificationType {
+  none = 0,
+  audio = 1,
+  video = 2,
+  email = 3,
+  otherChat = 4,
+  inPerson = 5,
+}
 export type APIRes = {readonly status: String; readonly body: String; readonly httpStatus: Int; readonly appStatus: String}
 export type APIUserKeybaseResult = {readonly username: String; readonly uid: UID; readonly pictureUrl?: String | null; readonly fullName?: String | null; readonly rawScore: Double; readonly stellar?: String | null; readonly isFollowee: Boolean}
 export type APIUserSearchResult = {readonly score: Double; readonly keybase?: APIUserKeybaseResult | null; readonly service?: APIUserServiceResult | null; readonly contact?: ProcessedContact | null; readonly imptofu?: ImpTofuSearchResult | null; readonly servicesSummary: {[key: string]: APIUserServiceSummary}; readonly rawScore: Double}
@@ -2651,6 +2652,7 @@ export type ClientDetails = {readonly pid: Int; readonly clientType: ClientType;
 export type ClientStatus = {readonly details: ClientDetails; readonly connectionID: Int; readonly notificationChannels: NotificationChannels}
 export type CompatibilityTeamID = {typ: TeamType.legacy; legacy: TLFID} | {typ: TeamType.modern; modern: TeamID} | {typ: TeamType.none}
 export type ComponentResult = {readonly name: String; readonly status: Status; readonly exitCode: Int}
+export type Confidence = {readonly vouchedBy?: Array<String> | null; readonly proofs?: Array<SigID> | null; readonly usernameVerifiedVia: UsernameVerificationType; readonly other: String; readonly knownOnKeybaseDays: Int}
 export type Config = {readonly serverURI: String; readonly socketFile: String; readonly label: String; readonly runMode: String; readonly gpgExists: Boolean; readonly gpgPath: String; readonly version: String; readonly path: String; readonly binaryRealpath: String; readonly configPath: String; readonly versionShort: String; readonly versionFull: String; readonly isAutoForked: Boolean; readonly forkType: ForkType}
 export type ConfigValue = {readonly isNull: Boolean; readonly b?: Boolean | null; readonly i?: Int | null; readonly f?: Double | null; readonly s?: String | null; readonly o?: String | null}
 export type ConfiguredAccount = {readonly username: String; readonly fullname: FullName; readonly hasStoredSecret: Boolean; readonly isCurrent: Boolean}

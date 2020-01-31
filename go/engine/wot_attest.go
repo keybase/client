@@ -8,6 +8,8 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
+	"strings"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -15,7 +17,8 @@ import (
 )
 
 type WotAttestArg struct {
-	AttesteeUID  keybase1.UID
+	Attestee     keybase1.UserVersion
+	Confidence   keybase1.Confidence
 	Attestations []string
 }
 
@@ -55,14 +58,20 @@ func (e *WotAttest) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *WotAttest) Run(mctx libkb.MetaContext) error {
-	luArg := libkb.NewLoadUserArgWithMetaContext(mctx).WithUID(e.arg.AttesteeUID)
+	luArg := libkb.NewLoadUserArgWithMetaContext(mctx).WithUID(e.arg.Attestee.Uid)
 	them, err := libkb.LoadUser(luArg)
 	if err != nil {
 		return err
 	}
+
+	if them.GetCurrentEldestSeqno() != e.arg.Attestee.EldestSeqno {
+		return errors.New("attestee has reset, make sure you still know them")
+	}
+
 	statement := jsonw.NewDictionary()
 	statement.SetKey("user", them.ToWotStatement())
-	statement.SetKey("attestations", libkb.JsonwStringArray(e.arg.Attestations))
+	statement.SetKey("attestation", libkb.JsonwStringArray(e.arg.Attestations))
+	statement.SetKey("confidence", e.confidence())
 
 	attest := jsonw.NewDictionary()
 	attest.SetKey("obj", statement)
@@ -143,4 +152,26 @@ func (e *WotAttest) Run(mctx libkb.MetaContext) error {
 		JSONPayload: payload,
 	})
 	return err
+}
+
+func (e *WotAttest) confidence() *jsonw.Wrapper {
+	c := jsonw.NewDictionary()
+	if e.arg.Confidence.UsernameVerifiedVia != keybase1.UsernameVerificationType_NONE {
+		c.SetKey("username_verified_via", jsonw.NewString(strings.ToLower(e.arg.Confidence.UsernameVerifiedVia.String())))
+	}
+	if len(e.arg.Confidence.VouchedBy) > 0 {
+		vb := jsonw.NewArray(len(e.arg.Confidence.VouchedBy))
+		for i, username := range e.arg.Confidence.VouchedBy {
+			vb.SetIndex(i, jsonw.NewString(libkb.GetUIDByUsername(e.G(), username).String()))
+		}
+		c.SetKey("vouched_by", vb)
+	}
+	if e.arg.Confidence.KnownOnKeybaseDays > 0 {
+		c.SetKey("known_on_keybase_days", jsonw.NewInt(e.arg.Confidence.KnownOnKeybaseDays))
+	}
+	if e.arg.Confidence.Other != "" {
+		c.SetKey("other", jsonw.NewString(e.arg.Confidence.Other))
+	}
+
+	return c
 }
