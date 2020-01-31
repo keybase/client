@@ -196,7 +196,15 @@ export const collapseStyles = (styles: ReadonlyArray<CollapsibleStyle>): Object 
     []
   ) as Array<Object | null | false>
   const style = flattenedStyles.reduce<Object>((o, e) => Object.assign(o, e), {})
-  return isEmpty(style) ? undefined : style
+  if (isEmpty(style)) {
+    throw new Error('TODO nojima')
+  }
+
+  const good = Object.assign({}, ...flattenedStyles)
+  if (JSON.stringify(good) !== JSON.stringify(style)) {
+    throw new Error('nojim TODO bad compare')
+  }
+  return style
 }
 export {isMobile, fileUIName, isIPhoneX, isIOS, isAndroid} from '../constants/platform'
 export {
