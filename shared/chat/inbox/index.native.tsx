@@ -305,7 +305,7 @@ const styles = Styles.styleSheetCreate(
 // export default Inbox
 import {PerfWrapper} from '../../util/use-perf'
 export default (p: any) => (
-  <PerfWrapper perfCount={100} style={{width: '100%', height: '100%'}}>
+  <PerfWrapper style={{width: '100%', height: '100%'}}>
     <Inbox {...p} />
   </PerfWrapper>
 )
