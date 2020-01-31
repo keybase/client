@@ -381,14 +381,6 @@ func TestKBFSOpsGetFavoritesFail(t *testing.T) {
 	}
 }
 
-func getOps(config Config, id tlf.ID) *folderBranchOps {
-	return config.KBFSOps().(*KBFSOpsStandard).
-		getOpsNoAdd(context.TODO(), data.FolderBranch{
-			Tlf:    id,
-			Branch: data.MasterBranch,
-		})
-}
-
 // createNewRMD creates a new RMD for the given name. Returns its ID
 // and handle also.
 func createNewRMD(t *testing.T, config Config, name string, ty tlf.Type) (

@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -155,4 +156,139 @@ func TestGetRevisionByTime(t *testing.T) {
 	t.Log(ctx, "Check too-early time")
 	_, err = GetMDRevisionByTime(ctx, config, h, t1.Add(-30*time.Second))
 	require.Error(t, err)
+}
+
+func TestGetChangesBetweenRevisions(t *testing.T) {
+	var u1 kbname.NormalizedUsername = "u1"
+	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, u1)
+	defer kbfsTestShutdownNoMocks(ctx, t, config, cancel)
+
+	t.Log("Create revision 1")
+	h, err := tlfhandle.ParseHandle(
+		ctx, config.KBPKI(), config.MDOps(), nil, string(u1), tlf.Private)
+	require.NoError(t, err)
+	kbfsOps := config.KBFSOps()
+	rootNode, _, err := kbfsOps.GetOrCreateRootNode(ctx, h, data.MasterBranch)
+	require.NoError(t, err)
+
+	t.Log("Add more revisions")
+	nodeA, _, err := kbfsOps.CreateDir(ctx, rootNode, testPPS("a"))
+	require.NoError(t, err)
+	// Revision 2.
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
+
+	nodeB, _, err := kbfsOps.CreateFile(ctx, nodeA, testPPS("b"), false, NoExcl)
+	require.NoError(t, err)
+	// Revision 3.
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
+
+	err = kbfsOps.Write(ctx, nodeB, []byte("test"), 0)
+	require.NoError(t, err)
+	// Revision 4.
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
+
+	nodeC, _, err := kbfsOps.CreateDir(ctx, rootNode, testPPS("c"))
+	require.NoError(t, err)
+	// Revision 5.
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
+
+	err = kbfsOps.Rename(ctx, nodeA, testPPS("b"), nodeC, testPPS("d"))
+	require.NoError(t, err)
+	// Revision 6.
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
+
+	err = kbfsOps.RemoveDir(ctx, rootNode, testPPS("a"))
+	require.NoError(t, err)
+	// Revision 7.
+	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
+
+	type e struct {
+		t    ChangeType
+		p    string
+		u    int // len(UnrefsForDelete)
+		used bool
+	}
+	checkChanges := func(changes []*ChangeItem, expectedChanges []e) {
+		require.Len(t, changes, len(expectedChanges))
+		for _, c := range changes {
+			found := false
+			for _, ec := range expectedChanges {
+				if !ec.used && ec.t == c.Type &&
+					ec.u == len(c.UnrefsForDelete) &&
+					ec.p == c.CurrPath.CanonicalPathPlaintext() {
+					found = true
+					ec.used = true
+					break
+				}
+			}
+			require.True(
+				t, found, fmt.Sprintf(
+					"Didn't expect change: %#v, changes=%#v, expected=%#v",
+					*c, changes, expectedChanges))
+		}
+	}
+
+	t.Log("Check single revision")
+	tlfID := rootNode.GetFolderBranch().Tlf
+	changes, err := GetChangesBetweenRevisions(
+		ctx, config, tlfID, kbfsmd.Revision(1), kbfsmd.Revision(2))
+	require.NoError(t, err)
+	checkChanges(
+		changes, []e{{ChangeTypeWrite, "/keybase/private/u1/a", 0, false}})
+
+	t.Log("Check multiple revisions")
+	changes, err = GetChangesBetweenRevisions(
+		ctx, config, tlfID, kbfsmd.Revision(1), kbfsmd.Revision(5))
+	require.NoError(t, err)
+	checkChanges(
+		changes, []e{
+			{ChangeTypeWrite, "/keybase/private/u1/a", 0, false},
+			{ChangeTypeWrite, "/keybase/private/u1/a/b", 0, false},
+			{ChangeTypeWrite, "/keybase/private/u1/c", 0, false},
+		})
+
+	t.Log("Check rename")
+	changes, err = GetChangesBetweenRevisions(
+		ctx, config, tlfID, kbfsmd.Revision(5), kbfsmd.Revision(6))
+	require.NoError(t, err)
+	checkChanges(
+		changes, []e{
+			{ChangeTypeRename, "/keybase/private/u1/c/d", 0, false},
+		})
+
+	t.Log("Check internal rename")
+	changes, err = GetChangesBetweenRevisions(
+		ctx, config, tlfID, kbfsmd.Revision(1), kbfsmd.Revision(6))
+	require.NoError(t, err)
+	checkChanges(
+		changes, []e{
+			{ChangeTypeWrite, "/keybase/private/u1/a", 0, false},
+			{ChangeTypeWrite, "/keybase/private/u1/c", 0, false},
+			{ChangeTypeWrite, "/keybase/private/u1/c/d", 0, false},
+		})
+
+	t.Log("Check delete")
+	changes, err = GetChangesBetweenRevisions(
+		ctx, config, tlfID, kbfsmd.Revision(6), kbfsmd.Revision(7))
+	require.NoError(t, err)
+	checkChanges(
+		changes, []e{
+			{ChangeTypeDelete, "/keybase/private/u1/a", 1, false},
+		})
+
+	t.Log("Check full sequence")
+	changes, err = GetChangesBetweenRevisions(
+		ctx, config, tlfID, kbfsmd.Revision(1), kbfsmd.Revision(7))
+	require.NoError(t, err)
+	checkChanges(
+		changes, []e{
+			{ChangeTypeWrite, "/keybase/private/u1/c", 0, false},
+			{ChangeTypeWrite, "/keybase/private/u1/c/d", 0, false},
+		})
 }
