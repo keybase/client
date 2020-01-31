@@ -854,10 +854,10 @@
 			"revisionTime": "2019-10-04T20:39:02Z"
 		},
 		{
-			"checksumSHA1": "Ji3qqxyGVXi6nsQwM1EdlL0lO8A=",
+			"checksumSHA1": "cVToVAflSUcimfMfrEGACvPChH0=",
 			"path": "github.com/keybase/go-jsonw",
-			"revision": "d7c43c2eb2ddf5545eefe349313ecf1e39834c59",
-			"revisionTime": "2018-09-24T21:12:44Z"
+			"revision": "3e5b58caddd98897cfd6799c561f9e21a401c771",
+			"revisionTime": "2020-01-31T15:36:05Z"
 		},
 		{
 			"checksumSHA1": "fDuhxt6a+8Kj6yAqoZ3AxaMPEB8=",

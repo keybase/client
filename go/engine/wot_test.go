@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
 
@@ -21,7 +22,12 @@ func TestWebOfTrust(t *testing.T) {
 	lenBefore := idt.Len()
 	fmt.Printf("id table: (%d) %+v\n", lenBefore, idt)
 
-	eng := NewWotAttest(tc.G)
+	arg := &WotAttestArg{
+		AttesteeUID:  keybase1.UID("295a7eea607af32040647123732bc819"), // t_alice
+		Attestations: []string{"alice is awesome"},
+	}
+
+	eng := NewWotAttest(tc.G, arg)
 	mctx := NewMetaContextForTest(tc)
 	err = RunEngine2(mctx, eng)
 	require.NoError(t, err)

@@ -4,6 +4,9 @@
 package engine
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 
 	"github.com/keybase/client/go/libkb"
@@ -77,8 +80,36 @@ func (e *WotAttest) Run(mctx libkb.MetaContext) error {
 		return err
 	}
 	statement := jsonw.NewDictionary()
-	statement.SetKey("user", them.WotStatement())
-	statement.SetKey("attestations", e.arg.Attestations)
+	statement.SetKey("user", them.ToWotStatement())
+	statement.SetKey("attestations", libkb.JsonwStringArray(e.arg.Attestations))
+
+	attest := jsonw.NewDictionary()
+	attest.SetKey("obj", statement)
+	randKey, err := libkb.RandBytes(16)
+	if err != nil {
+		return err
+	}
+	hexKey := hex.EncodeToString(randKey)
+	attest.SetKey("key", jsonw.NewString(hexKey))
+
+	marshaled, err := statement.Marshal()
+	if err != nil {
+		return err
+	}
+	mctx.Debug("\n\n\nattest statement: %s\n\n\n", marshaled)
+
+	mac := hmac.New(sha256.New, randKey)
+	mac.Write(marshaled)
+	sum := mac.Sum(nil)
+	mctx.Debug("\n\n\nhmac: %x\n\n\n", sum)
+
+	expansions := jsonw.NewDictionary()
+	expansions.SetKey(hex.EncodeToString(sum), attest)
+	em, err := expansions.Marshal()
+	if err != nil {
+		return err
+	}
+	mctx.Debug("\n\n\nexpansions: %s\n\n\n", em)
 
 	signingKey, err := mctx.G().ActiveDevice.SigningKey()
 	if err != nil {
@@ -90,7 +121,7 @@ func (e *WotAttest) Run(mctx libkb.MetaContext) error {
 		return err
 	}
 	sigVersion := libkb.KeybaseSignatureV2
-	proof, err := me.WotAttestProof(mctx, signingKey, sigVersion)
+	proof, err := me.WotAttestProof(mctx, signingKey, sigVersion, sum)
 	if err != nil {
 		return err
 	}
@@ -124,6 +155,7 @@ func (e *WotAttest) Run(mctx libkb.MetaContext) error {
 		SeqType:    keybase1.SeqType_PUBLIC,
 		SigInner:   string(inner),
 		Version:    sigVersion,
+		Expansions: expansions,
 	}
 
 	payload := make(libkb.JSONPayload)

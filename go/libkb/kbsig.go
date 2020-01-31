@@ -9,6 +9,7 @@ package libkb
 
 import (
 	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"fmt"
 
@@ -232,12 +233,12 @@ func (u *User) ToTrackingStatement(w *jsonw.Wrapper, outcome *IdentifyOutcome) (
 
 func (u *User) ToWotStatement() *jsonw.Wrapper {
 	user := jsonw.NewDictionary()
-	user.SetKey("username", u.GetUsername())
-	user.SetKey("uid", u.GetUID())
+	user.SetKey("username", jsonw.NewString(u.GetNormalizedName().String()))
+	user.SetKey("uid", UIDWrapper(u.GetUID()))
 	user.SetKey("seq_tail", u.ToTrackingStatementSeqTail())
 	eldest := jsonw.NewDictionary()
-	eldest.SetKey("kid", u.GetEldestKID())
-	eldest.SetKey("seqno", u.GetEldestSeqno())
+	eldest.SetKey("kid", jsonw.NewString(u.GetEldestKID().String()))
+	eldest.SetKey("seqno", jsonw.NewInt64(int64(u.GetCurrentEldestSeqno())))
 	user.SetKey("eldest", eldest)
 
 	return user
@@ -697,17 +698,21 @@ func (u *User) ServiceProof(m MetaContext, signingKey GenericKey, typ ServiceTyp
 	return ret, nil
 }
 
-func (u *User) WotAttestProof(m MetaContext, signingKey GenericKey, sigVersion SigVersion) (*ProofMetadataRes, error) {
+func (u *User) WotAttestProof(m MetaContext, signingKey GenericKey, sigVersion SigVersion, mac []byte) (*ProofMetadataRes, error) {
 	md := ProofMetadata{
-		Me:         u,
-		LinkType:   LinkTypeWotAttest,
-		SigningKey: signingKey,
-		SigVersion: sigVersion,
+		Me:                  u,
+		LinkType:            LinkTypeWotAttest,
+		SigningKey:          signingKey,
+		SigVersion:          sigVersion,
+		IgnoreIfUnsupported: true,
 	}
 	ret, err := md.ToJSON2(m)
 	if err != nil {
 		return nil, err
 	}
+
+	body := ret.J.AtKey("body")
+	body.SetKey("wot.attest", jsonw.NewString(hex.EncodeToString(mac)))
 
 	return ret, nil
 }
@@ -956,6 +961,7 @@ type SigMultiItem struct {
 	TeamID     keybase1.TeamID         `json:"team_id,omitempty"`
 	PublicKeys *SigMultiItemPublicKeys `json:"public_keys,omitempty"`
 	Version    SigVersion              `json:"version"`
+	Expansions *jsonw.Wrapper          `json:"expansions,omitempty"`
 }
 
 type SigMultiItemPublicKeys struct {
