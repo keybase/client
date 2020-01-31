@@ -17,14 +17,13 @@ if [ "$#" -gt 0 ] && [ ! -v KEYBASE_SERVICE ]; then
     exit 0
 fi
 
-KEYBASE_SERVICE_ARGS="${KEYBASE_SERVICE_ARGS:-"-debug -use-default-log-file"}"
-keybase $KEYBASE_SERVICE_ARGS service &
+keybase -debug -use-default-log-file $KEYBASE_SERVICE_ARGS service &
 if [ "$#" -eq 0 ] || [ -v KEYBASE_LOG_SERVICE_TO_STDOUT ]; then
     tail -F /home/keybase/.cache/keybase/keybase.service.log &
 fi
 
-KEYBASE_KBFS_ARGS="${KEYBASE_KBFS_ARGS:-"-debug -mount-type=none -log-to-file"}"
-KEYBASE_DEBUG=1 kbfsfuse $KEYBASE_KBFS_ARGS &
+KEYBASE_KBFS_ARGS="${KEYBASE_KBFS_ARGS:-"-mount-type=none"}"
+KEYBASE_DEBUG=1 kbfsfuse -debug -log-to-file $KEYBASE_KBFS_ARGS &
 if [ "$#" -eq 0 ] || [ -v KEYBASE_LOG_KBFS_TO_STDOUT ]; then
     tail -F /home/keybase/.cache/keybase/keybase.kbfs.log &
 fi
