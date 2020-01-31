@@ -509,7 +509,7 @@ func CleanOutOfSyncWithDelay(mctx libkb.MetaContext, d *DiskLRU, cacheDir string
 		select {
 		case <-mctx.Ctx().Done():
 			mctx.Debug("CleanOutOfSyncWithDelay: cancelled")
-			break
+			return
 		default:
 		}
 		if completed, err := d.cleanOutOfSync(mctx, cacheDir, batchSize); err != nil {
