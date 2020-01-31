@@ -1214,7 +1214,7 @@ export type MessageServerHeader = {readonly messageID: MessageID; readonly super
 export type MessageSummary = {readonly msgID: MessageID; readonly messageType: MessageType; readonly tlfName: String; readonly tlfPublic: Boolean; readonly ctime: Gregor1.Time}
 export type MessageSystem = {systemType: MessageSystemType.addedtoteam; addedtoteam: MessageSystemAddedToTeam} | {systemType: MessageSystemType.inviteaddedtoteam; inviteaddedtoteam: MessageSystemInviteAddedToTeam} | {systemType: MessageSystemType.complexteam; complexteam: MessageSystemComplexTeam} | {systemType: MessageSystemType.createteam; createteam: MessageSystemCreateTeam} | {systemType: MessageSystemType.gitpush; gitpush: MessageSystemGitPush} | {systemType: MessageSystemType.changeavatar; changeavatar: MessageSystemChangeAvatar} | {systemType: MessageSystemType.changeretention; changeretention: MessageSystemChangeRetention} | {systemType: MessageSystemType.bulkaddtoconv; bulkaddtoconv: MessageSystemBulkAddToConv} | {systemType: MessageSystemType.sbsresolve; sbsresolve: MessageSystemSbsResolve}
 export type MessageSystemAddedToTeam = {readonly team: String; readonly adder: String; readonly addee: String; readonly role: Keybase1.TeamRole; readonly bulkAdds?: Array<String> | null; readonly owners?: Array<String> | null; readonly admins?: Array<String> | null; readonly writers?: Array<String> | null; readonly readers?: Array<String> | null; readonly bots?: Array<String> | null; readonly restrictedBots?: Array<String> | null}
-export type MessageSystemBulkAddToConv = {readonly usernames?: Array<String> | null}
+export type MessageSystemBulkAddToConv = {readonly usernames?: Array<String> | null; readonly newStatus: ConversationMemberStatus}
 export type MessageSystemChangeAvatar = {readonly team: String; readonly user: String}
 export type MessageSystemChangeRetention = {readonly isTeam: Boolean; readonly isInherit: Boolean; readonly membersType: ConversationMembersType; readonly policy: RetentionPolicy; readonly user: String}
 export type MessageSystemComplexTeam = {readonly team: String}
@@ -1631,6 +1631,7 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.local.joinConversationLocal'
 // 'chat.1.local.getAllResetConvMembers'
 // 'chat.1.local.upgradeKBFSConversationToImpteam'
+// 'chat.1.local.bulkEditConvMembers'
 // 'chat.1.local.putReacjiSkinTone'
 // 'chat.1.local.loadFlip'
 // 'chat.1.local.advertiseBotCommandsLocal'

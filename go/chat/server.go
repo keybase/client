@@ -2510,14 +2510,22 @@ func (h *Server) ToggleMessageCollapse(ctx context.Context, arg chat1.ToggleMess
 }
 
 func (h *Server) BulkAddToConv(ctx context.Context, arg chat1.BulkAddToConvArg) (err error) {
+	return h.BulkEditConvMembers(ctx, chat1.BulkEditConvMembersArg{
+		ConvID:    arg.ConvID,
+		Usernames: arg.Usernames,
+		Status:    chat1.ConversationMemberStatus_ACTIVE,
+	})
+}
+
+func (h *Server) BulkEditConvMembers(ctx context.Context, arg chat1.BulkEditConvMembersArg) (err error) {
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, "BulkAddToConv: convID: %v, numUsers: %v", arg.ConvID, len(arg.Usernames))()
+	defer h.Trace(ctx, func() error { return err }, "BulkEditConvMembers: convID: %v, numUsers: %v, newStatus: %v", arg.ConvID, len(arg.Usernames), arg.Status)()
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return err
 	}
 	if len(arg.Usernames) == 0 {
-		return fmt.Errorf("Unable to BulkAddToConv, no users specified")
+		return fmt.Errorf("Unable to BulkEditConvMembers, no users specified")
 	}
 
 	rc, err := utils.GetUnverifiedConv(ctx, h.G(), uid, arg.ConvID, types.InboxSourceDataSourceAll)
@@ -2529,7 +2537,7 @@ func (h *Server) BulkAddToConv(ctx context.Context, arg chat1.BulkAddToConvArg) 
 	switch mt {
 	case chat1.ConversationMembersType_TEAM:
 	default:
-		return fmt.Errorf("BulkAddToConv only available to TEAM conversations. Found %v conv", mt)
+		return fmt.Errorf("BulkEditConvMembers only available to TEAM conversations. Found %v conv", mt)
 	}
 
 	info, err := CreateNameInfoSource(ctx, h.G(), mt).LookupName(
@@ -2541,28 +2549,29 @@ func (h *Server) BulkAddToConv(ctx context.Context, arg chat1.BulkAddToConvArg) 
 	boxer := NewBoxer(h.G())
 	sender := NewBlockingSender(h.G(), boxer, h.remoteClient)
 
-	usernamesToAdd := arg.Usernames
+	usernamesToEdit := arg.Usernames
 	toExclude := make(map[keybase1.UID]bool)
 
 	// retry the add a few times to prevent races. Each time we remove members that are already part of the conversation.
-	for i := 0; i < 4 && len(usernamesToAdd) > 0; i++ {
-		h.Debug(ctx, "BulkAddToConv: trying to add %v", usernamesToAdd)
-		err = sendBulkAddToConv(ctx, sender, usernamesToAdd, arg.ConvID, info)
+	for i := 0; i < 4 && len(usernamesToEdit) > 0; i++ {
+		h.Debug(ctx, "BulkEditConvMembers: trying to edit users %v to status %v", usernamesToEdit, arg.Status)
+		err = sendBulkEditConvMembers(ctx, sender, usernamesToEdit, arg.ConvID, info, arg.Status)
 		switch e := err.(type) {
 		case nil:
 			return nil
 		case libkb.ChatUsersAlreadyInConversationError:
-			// remove the usernames which are already part of the conversation and retry
+			// remove the usernames which are already part of the conversation
+			// with the appropriate status and retry
 			for _, uid := range e.Uids {
 				toExclude[uid] = true
 			}
 			var usernamesToRetry []string
-			for _, username := range usernamesToAdd {
+			for _, username := range usernamesToEdit {
 				if !toExclude[libkb.UsernameToUID(username)] {
 					usernamesToRetry = append(usernamesToRetry, username)
 				}
 			}
-			usernamesToAdd = usernamesToRetry
+			usernamesToEdit = usernamesToRetry
 		default:
 			return e
 		}
@@ -2570,9 +2579,10 @@ func (h *Server) BulkAddToConv(ctx context.Context, arg chat1.BulkAddToConvArg) 
 	return err
 }
 
-func sendBulkAddToConv(ctx context.Context, sender *BlockingSender, usernames []string, convID chat1.ConversationID, info types.NameInfo) (err error) {
+func sendBulkEditConvMembers(ctx context.Context, sender *BlockingSender, usernames []string, convID chat1.ConversationID, info types.NameInfo, status chat1.ConversationMemberStatus) (err error) {
 	subBody := chat1.NewMessageSystemWithBulkaddtoconv(chat1.MessageSystemBulkAddToConv{
 		Usernames: usernames,
+		NewStatus: status,
 	})
 	body := chat1.NewMessageBodyWithSystem(subBody)
 	msg := chat1.MessagePlaintext{
@@ -2582,7 +2592,6 @@ func sendBulkAddToConv(ctx context.Context, sender *BlockingSender, usernames []
 		},
 		MessageBody: body,
 	}
-	status := chat1.ConversationMemberStatus_ACTIVE
 	_, _, err = sender.Send(ctx, convID, msg, 0, nil, &chat1.SenderSendOptions{
 		JoinMentionsAs: &status,
 	}, nil)

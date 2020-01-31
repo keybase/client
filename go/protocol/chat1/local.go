@@ -642,7 +642,8 @@ func (o MessageSystemChangeRetention) DeepCopy() MessageSystemChangeRetention {
 }
 
 type MessageSystemBulkAddToConv struct {
-	Usernames []string `codec:"usernames" json:"usernames"`
+	Usernames []string                 `codec:"usernames" json:"usernames"`
+	NewStatus ConversationMemberStatus `codec:"newStatus" json:"newStatus"`
 }
 
 func (o MessageSystemBulkAddToConv) DeepCopy() MessageSystemBulkAddToConv {
@@ -658,6 +659,7 @@ func (o MessageSystemBulkAddToConv) DeepCopy() MessageSystemBulkAddToConv {
 			}
 			return ret
 		})(o.Usernames),
+		NewStatus: o.NewStatus.DeepCopy(),
 	}
 }
 
@@ -6351,6 +6353,12 @@ type BulkAddToConvArg struct {
 	Usernames []string       `codec:"usernames" json:"usernames"`
 }
 
+type BulkEditConvMembersArg struct {
+	ConvID    ConversationID           `codec:"convID" json:"convID"`
+	Usernames []string                 `codec:"usernames" json:"usernames"`
+	Status    ConversationMemberStatus `codec:"status" json:"status"`
+}
+
 type PutReacjiSkinToneArg struct {
 	SkinTone keybase1.ReacjiSkinTone `codec:"skinTone" json:"skinTone"`
 }
@@ -6533,6 +6541,7 @@ type LocalInterface interface {
 	SaveUnfurlSettings(context.Context, SaveUnfurlSettingsArg) error
 	ToggleMessageCollapse(context.Context, ToggleMessageCollapseArg) error
 	BulkAddToConv(context.Context, BulkAddToConvArg) error
+	BulkEditConvMembers(context.Context, BulkEditConvMembersArg) error
 	PutReacjiSkinTone(context.Context, keybase1.ReacjiSkinTone) (keybase1.UserReacjis, error)
 	ResolveMaybeMention(context.Context, MaybeMention) error
 	LoadGallery(context.Context, LoadGalleryArg) (LoadGalleryRes, error)
@@ -7640,6 +7649,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"bulkEditConvMembers": {
+				MakeArg: func() interface{} {
+					var ret [1]BulkEditConvMembersArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]BulkEditConvMembersArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]BulkEditConvMembersArg)(nil), args)
+						return
+					}
+					err = i.BulkEditConvMembers(ctx, typedArgs[0])
+					return
+				},
+			},
 			"putReacjiSkinTone": {
 				MakeArg: func() interface{} {
 					var ret [1]PutReacjiSkinToneArg
@@ -8344,6 +8368,11 @@ func (c LocalClient) ToggleMessageCollapse(ctx context.Context, __arg ToggleMess
 
 func (c LocalClient) BulkAddToConv(ctx context.Context, __arg BulkAddToConvArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.bulkAddToConv", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) BulkEditConvMembers(ctx context.Context, __arg BulkEditConvMembersArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.bulkEditConvMembers", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 

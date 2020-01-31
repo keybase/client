@@ -161,8 +161,10 @@ protocol local {
     string user;
   }
 
+  // if sent with status LEFT, can be used to remove users from a conversation
   record MessageSystemBulkAddToConv {
     array<string> usernames;
+    ConversationMemberStatus  newStatus;
   }
 
   record MessageSystemSbsResolve {
@@ -1157,6 +1159,8 @@ protocol local {
   void toggleMessageCollapse(ConversationID convID, MessageID msgID, boolean collapse);
 
   void bulkAddToConv(ConversationID convID, array<string> usernames);
+
+  void bulkEditConvMembers(ConversationID convID, array<string> usernames, ConversationMemberStatus status);
 
   keybase1.UserReacjis putReacjiSkinTone(keybase1.ReacjiSkinTone skinTone);
 

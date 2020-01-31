@@ -2614,7 +2614,16 @@ func (m MessageSystemChangeRetention) String() string {
 }
 
 func (m MessageSystemBulkAddToConv) String() string {
-	prefix := "Added %s to the conversation"
+	var prefix string
+	switch m.NewStatus {
+	case ConversationMemberStatus_ACTIVE:
+		prefix = "Added %s to the conversation"
+	case ConversationMemberStatus_LEFT:
+		prefix = "Removed %s from the conversation"
+	default:
+		// Should never happen
+		prefix = "Added %s to the conversation" + fmt.Sprintf(" with status %s", m.NewStatus.String())
+	}
 	var suffix string
 	switch len(m.Usernames) {
 	case 0:

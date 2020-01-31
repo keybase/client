@@ -542,6 +542,10 @@
             "items": "string"
           },
           "name": "usernames"
+        },
+        {
+          "type": "ConversationMemberStatus",
+          "name": "newStatus"
         }
       ]
     },
@@ -5111,6 +5115,26 @@
             "type": "array",
             "items": "string"
           }
+        }
+      ],
+      "response": null
+    },
+    "bulkEditConvMembers": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "usernames",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
+        },
+        {
+          "name": "status",
+          "type": "ConversationMemberStatus"
         }
       ],
       "response": null

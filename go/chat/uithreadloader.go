@@ -152,10 +152,9 @@ func (t *UIThreadLoader) groupThreadView(ctx context.Context, uid gregor1.UID, t
 			return &msg
 		})
 
-	var activeMap map[string]struct{}
-	// group BULKADDTOCONV system messages
-	newMsgs = t.groupGeneric(ctx, uid, newMsgs,
-		func(msg chat1.MessageUnboxed, grouped []chat1.MessageUnboxed) bool {
+	// helper functions for BULKADDTOCONV system messages
+	BulkAddToConvMatcherWithStatus := func(status chat1.ConversationMemberStatus) func(msg chat1.MessageUnboxed, grouped []chat1.MessageUnboxed) bool {
+		return func(msg chat1.MessageUnboxed, grouped []chat1.MessageUnboxed) bool {
 			if !msg.IsValid() {
 				return false
 			}
@@ -165,38 +164,23 @@ func (t *UIThreadLoader) groupThreadView(ctx context.Context, uid gregor1.UID, t
 			}
 			sysBod := msg.Valid().MessageBody.System()
 			typ, err := sysBod.SystemType()
-			return err == nil && typ == chat1.MessageSystemType_BULKADDTOCONV
-		},
-		func(grouped []chat1.MessageUnboxed) *chat1.MessageUnboxed {
+			return err == nil && typ == chat1.MessageSystemType_BULKADDTOCONV && sysBod.Bulkaddtoconv().NewStatus == status
+		}
+	}
+	BulkAddToConvGrouperWithStatus := func(status chat1.ConversationMemberStatus) func(grouped []chat1.MessageUnboxed) *chat1.MessageUnboxed {
+		return func(grouped []chat1.MessageUnboxed) *chat1.MessageUnboxed {
 			var filteredUsernames, usernames []string
 			for _, j := range grouped {
 				if j.Valid().MessageBody.IsType(chat1.MessageType_SYSTEM) {
 					body := j.Valid().MessageBody.System()
 					typ, err := body.SystemType()
-					if err == nil && typ == chat1.MessageSystemType_BULKADDTOCONV {
+					if err == nil && typ == chat1.MessageSystemType_BULKADDTOCONV && body.Bulkaddtoconv().NewStatus == status {
 						usernames = append(usernames, body.Bulkaddtoconv().Usernames...)
 					}
 				}
 			}
 
-			if activeMap == nil && len(usernames) > 0 {
-				activeMap = make(map[string]struct{})
-				for _, uid := range conv.Conv.Metadata.AllList {
-					activeMap[uid.String()] = struct{}{}
-				}
-			}
-
-			// filter the usernames for people that are actually part of the team
-			for _, username := range usernames {
-				uid, err := t.G().GetUPAKLoader().LookupUID(ctx, libkb.NewNormalizedUsername(username))
-				if err != nil {
-					continue
-				}
-				if _, ok := activeMap[uid.String()]; ok {
-					filteredUsernames = append(filteredUsernames, username)
-				}
-			}
-			if len(filteredUsernames) == 0 {
+			if len(usernames) == 0 {
 				return nil
 			}
 
@@ -204,10 +188,18 @@ func (t *UIThreadLoader) groupThreadView(ctx context.Context, uid gregor1.UID, t
 			mvalid.ClientHeader.MessageType = chat1.MessageType_SYSTEM
 			mvalid.MessageBody = chat1.NewMessageBodyWithSystem(chat1.NewMessageSystemWithBulkaddtoconv(chat1.MessageSystemBulkAddToConv{
 				Usernames: filteredUsernames,
+				NewStatus: status,
 			}))
 			msg := chat1.NewMessageUnboxedWithValid(mvalid)
 			return &msg
-		})
+		}
+	}
+
+	// group BULKADDTOCONV system messages with ACTIVE status
+	newMsgs = t.groupGeneric(ctx, uid, newMsgs, BulkAddToConvMatcherWithStatus(chat1.ConversationMemberStatus_ACTIVE), BulkAddToConvGrouperWithStatus(chat1.ConversationMemberStatus_ACTIVE))
+
+	// group BULKADDTOCONV system messages with LEFT status
+	newMsgs = t.groupGeneric(ctx, uid, newMsgs, BulkAddToConvMatcherWithStatus(chat1.ConversationMemberStatus_LEFT), BulkAddToConvGrouperWithStatus(chat1.ConversationMemberStatus_LEFT))
 
 	// group ADDEDTOTEAM system messages
 	var ownUsername *string

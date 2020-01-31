@@ -156,7 +156,7 @@
   enum ConversationMemberStatus {
     ACTIVE_0,      // in the channel
     REMOVED_1,     // user was in the channel when they left the team
-    LEFT_2,        // voluntarily left conversation
+    LEFT_2,        // voluntarily left conversation, or was removed by others without being kicked out of the team
     PREVIEW_3,     // use is previewing the channel from an @mention
     RESET_4,       // status of having an account reset in an impteam
     NEVER_JOINED_5 // member of the team but never joined the conv
