@@ -762,6 +762,22 @@ func EditMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1
 	return editMember(ctx, g, teamGetter, username, role, botSettings)
 }
 
+func EditMembers(ctx context.Context, g *libkb.GlobalContext, teamname string, users []keybase1.UserRolePair) (res keybase1.TeamAddMembersResult, err error) {
+	var notAdded []keybase1.User
+
+	for _, userRolePair := range users {
+		err := EditMember(ctx, g, teamname, userRolePair.AssertionOrEmail, userRolePair.Role, userRolePair.BotSettings)
+		if err != nil {
+			user := keybase1.User{Username: libkb.NewNormalizedUsername(userRolePair.AssertionOrEmail).String()}
+			notAdded = append(notAdded, user)
+			continue
+		}
+	}
+
+	res = keybase1.TeamAddMembersResult{NotAdded: notAdded}
+	return res, nil
+}
+
 func editMember(ctx context.Context, g *libkb.GlobalContext, teamGetter func() (*Team, error),
 	username string, role keybase1.TeamRole, botSettings *keybase1.TeamBotSettings) error {
 

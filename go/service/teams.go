@@ -439,19 +439,7 @@ func (h *TeamsHandler) TeamEditMembers(ctx context.Context, arg keybase1.TeamEdi
 		return res, err
 	}
 
-	var notAdded []keybase1.User
-
-	for _, userRolePair := range arg.Users {
-		err := teams.EditMember(ctx, h.G().ExternalG(), arg.Name, userRolePair.AssertionOrEmail, userRolePair.Role, userRolePair.BotSettings)
-		if err != nil {
-			user := keybase1.User{Username: libkb.NewNormalizedUsername(userRolePair.AssertionOrEmail).String()}
-			notAdded = append(notAdded, user)
-			continue
-		}
-	}
-
-	res = keybase1.TeamAddMembersResult{NotAdded: notAdded}
-	return res, nil
+	return teams.EditMembers(ctx, h.G().ExternalG(), arg.Name, arg.Users)
 }
 
 func (h *TeamsHandler) TeamSetBotSettings(ctx context.Context, arg keybase1.TeamSetBotSettingsArg) (err error) {

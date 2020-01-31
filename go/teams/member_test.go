@@ -162,6 +162,47 @@ func TestMemberAddOK(t *testing.T) {
 	assertRole(tc, name, other.Username, keybase1.TeamRole_READER)
 }
 
+func TestMembersEdit(t *testing.T) {
+	tc, _, otherA, otherB, name := memberSetupMultiple(t)
+	defer tc.Cleanup()
+
+	assertRole(tc, name, otherA.Username, keybase1.TeamRole_NONE)
+
+	_, err := AddMember(context.TODO(), tc.G, name, otherA.Username, keybase1.TeamRole_READER, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assertRole(tc, name, otherA.Username, keybase1.TeamRole_READER)
+
+	assertRole(tc, name, otherB.Username, keybase1.TeamRole_NONE)
+
+	_, err = AddMember(context.TODO(), tc.G, name, otherB.Username, keybase1.TeamRole_READER, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assertRole(tc, name, otherB.Username, keybase1.TeamRole_READER)
+
+	rolePairA := keybase1.UserRolePair{
+		AssertionOrEmail: otherA.Username,
+		Role:             keybase1.TeamRole_READER,
+		BotSettings:      nil,
+	}
+
+	rolePairB := keybase1.UserRolePair{
+		AssertionOrEmail: otherB.Username,
+		Role:             keybase1.TeamRole_ADMIN,
+		BotSettings:      nil,
+	}
+
+	userRolePairs := []keybase1.UserRolePair{rolePairA, rolePairB}
+
+	res, err := EditMembers(context.TODO(), tc.G, name, userRolePairs)
+	require.NoError(t, err)
+	require.Empty(t, res.NotAdded)
+}
+
 func TestMemberAddBot(t *testing.T) {
 	tc, _, otherA, otherB, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
