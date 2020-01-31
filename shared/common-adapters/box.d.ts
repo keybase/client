@@ -34,7 +34,6 @@ export type Box2Props = {
   onMouseOver?: (syntheticEvent: React.SyntheticEvent) => void // desktop only
   onCopyCapture?: (syntheticEvent: React.SyntheticEvent) => void // desktop only
   pointerEvents?: 'none'
-  ref?: never
   style?: StylesCrossPlatform
   gap?: keyof typeof globalMargins
   gapStart?: boolean
