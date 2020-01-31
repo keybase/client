@@ -1200,6 +1200,11 @@ func (o OutboxRecord) MessageType() MessageType {
 	return o.Msg.ClientHeader.MessageType
 }
 
+func (o OutboxRecord) IsBadgable() bool {
+	return o.Msg.ClientHeader.Conv.TopicType == TopicType_CHAT &&
+		o.Msg.IsBadgableType()
+}
+
 func (p MessagePreviousPointer) Eq(other MessagePreviousPointer) bool {
 	return (p.Id == other.Id) && (p.Hash.Eq(other.Hash))
 }
