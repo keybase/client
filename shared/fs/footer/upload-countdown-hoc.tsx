@@ -97,7 +97,7 @@ const UploadCountdownHOC = (Upload: React.ComponentType<UploadProps>) =>
       this.tickerID = undefined
     }
 
-    private updateState = (prevState: Readonly<State>, props: Readonly<Props>) => {
+    private updateState = (prevState: State, props: Props) => {
       const isUploading = props.isOnline && (!!props.files || !!props.totalSyncingBytes)
       const newDisplayDuration = props.endEstimate ? props.endEstimate - Date.now() : 0
       const {mode, glueTTL} = prevState

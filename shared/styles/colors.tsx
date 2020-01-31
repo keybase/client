@@ -397,7 +397,7 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   },
 }
 
-const partyFallbackColors = {
+const partyFallbackColors: {[P in keyof typeof colors]?: string | undefined} = {
   black: 'rgba(255, 255, 255, 0.85)',
   get blackOrBlack() {
     return colors.black
@@ -451,7 +451,8 @@ type Color = typeof colors
 type Names = keyof Color
 
 const names: Array<Names> = Object.keys(colors) as any
-export const themed = names.reduce<Color>(
+
+export const themed: {[P in keyof typeof colors]: typeof colors[P]} = names.reduce<Color>(
   (obj, name) =>
     Object.defineProperty(obj, name, {
       configurable: false,

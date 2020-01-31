@@ -110,7 +110,10 @@ func (tc *TestContext) Cleanup() {
 
 	tc.G.Log.Debug("global context shutdown:")
 	mctx := NewMetaContextForTest(*tc)
-	_ = tc.G.Shutdown(mctx) // could error due to missing pid file
+	err = tc.G.Shutdown(mctx) // could error due to missing pid file
+	if err != nil {
+		tc.G.Log.Warning("tc.G.Shutdown failed: %s", err)
+	}
 	if len(tc.Tp.Home) > 0 {
 		tc.G.Log.Debug("cleaning up %s", tc.Tp.Home)
 		os.RemoveAll(tc.Tp.Home)

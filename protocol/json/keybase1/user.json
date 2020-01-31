@@ -285,7 +285,7 @@
             "type": "array",
             "items": "SizedImage"
           },
-          "name": "profileIconWhite"
+          "name": "profileIconDarkmode"
         },
         {
           "type": "string",
@@ -301,6 +301,13 @@
             "items": "SizedImage"
           },
           "name": "pickerIcon"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SizedImage"
+          },
+          "name": "pickerIconDarkmode"
         },
         {
           "type": {

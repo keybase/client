@@ -173,15 +173,16 @@ func (o APIUserSearchResult) DeepCopy() APIUserSearchResult {
 }
 
 type NonUserDetails struct {
-	IsNonUser      bool                  `codec:"isNonUser" json:"isNonUser"`
-	AssertionValue string                `codec:"assertionValue" json:"assertionValue"`
-	AssertionKey   string                `codec:"assertionKey" json:"assertionKey"`
-	Description    string                `codec:"description" json:"description"`
-	Contact        *ProcessedContact     `codec:"contact,omitempty" json:"contact,omitempty"`
-	Service        *APIUserServiceResult `codec:"service,omitempty" json:"service,omitempty"`
-	SiteIcon       []SizedImage          `codec:"siteIcon" json:"siteIcon"`
-	SiteIconFull   []SizedImage          `codec:"siteIconFull" json:"siteIconFull"`
-	SiteIconWhite  []SizedImage          `codec:"siteIconWhite" json:"siteIconWhite"`
+	IsNonUser            bool                  `codec:"isNonUser" json:"isNonUser"`
+	AssertionValue       string                `codec:"assertionValue" json:"assertionValue"`
+	AssertionKey         string                `codec:"assertionKey" json:"assertionKey"`
+	Description          string                `codec:"description" json:"description"`
+	Contact              *ProcessedContact     `codec:"contact,omitempty" json:"contact,omitempty"`
+	Service              *APIUserServiceResult `codec:"service,omitempty" json:"service,omitempty"`
+	SiteIcon             []SizedImage          `codec:"siteIcon" json:"siteIcon"`
+	SiteIconDarkmode     []SizedImage          `codec:"siteIconDarkmode" json:"siteIconDarkmode"`
+	SiteIconFull         []SizedImage          `codec:"siteIconFull" json:"siteIconFull"`
+	SiteIconFullDarkmode []SizedImage          `codec:"siteIconFullDarkmode" json:"siteIconFullDarkmode"`
 }
 
 func (o NonUserDetails) DeepCopy() NonUserDetails {
@@ -215,6 +216,17 @@ func (o NonUserDetails) DeepCopy() NonUserDetails {
 			}
 			return ret
 		})(o.SiteIcon),
+		SiteIconDarkmode: (func(x []SizedImage) []SizedImage {
+			if x == nil {
+				return nil
+			}
+			ret := make([]SizedImage, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.SiteIconDarkmode),
 		SiteIconFull: (func(x []SizedImage) []SizedImage {
 			if x == nil {
 				return nil
@@ -226,7 +238,7 @@ func (o NonUserDetails) DeepCopy() NonUserDetails {
 			}
 			return ret
 		})(o.SiteIconFull),
-		SiteIconWhite: (func(x []SizedImage) []SizedImage {
+		SiteIconFullDarkmode: (func(x []SizedImage) []SizedImage {
 			if x == nil {
 				return nil
 			}
@@ -236,7 +248,7 @@ func (o NonUserDetails) DeepCopy() NonUserDetails {
 				ret[i] = vCopy
 			}
 			return ret
-		})(o.SiteIconWhite),
+		})(o.SiteIconFullDarkmode),
 	}
 }
 

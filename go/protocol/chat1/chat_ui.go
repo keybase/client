@@ -1920,7 +1920,8 @@ func (o UIChatSearchConvHits) DeepCopy() UIChatSearchConvHits {
 }
 
 type UIChatSearchTeamHits struct {
-	Hits []keybase1.TeamSearchItem `codec:"hits" json:"hits"`
+	Hits             []keybase1.TeamSearchItem `codec:"hits" json:"hits"`
+	SuggestedMatches bool                      `codec:"suggestedMatches" json:"suggestedMatches"`
 }
 
 func (o UIChatSearchTeamHits) DeepCopy() UIChatSearchTeamHits {
@@ -1936,6 +1937,7 @@ func (o UIChatSearchTeamHits) DeepCopy() UIChatSearchTeamHits {
 			}
 			return ret
 		})(o.Hits),
+		SuggestedMatches: o.SuggestedMatches,
 	}
 }
 

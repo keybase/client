@@ -5,7 +5,6 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import * as WalletsGen from './wallets-gen'
 import * as EngineGen from './engine-gen-gen'
-import * as GregorGen from './gregor-gen'
 import * as Chat2Gen from './chat2-gen'
 import * as ConfigGen from './config-gen'
 import * as NotificationsGen from './notifications-gen'
@@ -1051,7 +1050,7 @@ const acceptDisclaimer = () =>
     }
   )
 
-const checkDisclaimer = async (action: WalletsGen.CheckDisclaimerPayload, logger: Saga.SagaLogger) => {
+const checkDisclaimer = async (_: WalletsGen.CheckDisclaimerPayload, logger: Saga.SagaLogger) => {
   try {
     const accepted = await RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise()
     const actions: Array<Action> = [WalletsGen.createWalletDisclaimerReceived({accepted})]
@@ -1063,15 +1062,7 @@ const checkDisclaimer = async (action: WalletsGen.CheckDisclaimerPayload, logger
     actions.push(RouteTreeGen.createClearModals())
     actions.push(RouteTreeGen.createSwitchTab({tab: isMobile ? Tabs.settingsTab : Tabs.walletsTab}))
     if (isMobile) {
-      if (action.payload.nextScreen === 'airdrop') {
-        actions.push(
-          RouteTreeGen.createNavigateAppend({
-            path: [...Constants.rootWalletPath, ...(isMobile ? ['airdrop'] : ['wallet', 'airdrop'])],
-          })
-        )
-      } else {
-        actions.push(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.walletsTab]}))
-      }
+      actions.push(RouteTreeGen.createNavigateAppend({path: [SettingsConstants.walletsTab]}))
     }
     return actions
   } catch (err) {
@@ -1080,7 +1071,7 @@ const checkDisclaimer = async (action: WalletsGen.CheckDisclaimerPayload, logger
   }
 }
 
-const rejectDisclaimer = (__: WalletsGen.RejectDisclaimerPayload) =>
+const rejectDisclaimer = (_: WalletsGen.RejectDisclaimerPayload) =>
   isMobile ? RouteTreeGen.createNavigateUp() : RouteTreeGen.createSwitchTab({tab: Tabs.peopleTab})
 
 const loadMobileOnlyMode = async (
@@ -1160,122 +1151,6 @@ const exitFailedPayment = (state: TypedState, _: WalletsGen.ExitFailedPaymentPay
     WalletsGen.createLoadPayments({accountID}),
   ]
 }
-
-const changeAirdrop = async (action: WalletsGen.ChangeAirdropPayload) => {
-  try {
-    await RPCStellarTypes.localAirdropRegisterLocalRpcPromise(
-      {register: action.payload.accept},
-      Constants.airdropWaitingKey
-    )
-  } catch (err) {
-    switch (err.code) {
-      case RPCTypes.StatusCode.scinputerror:
-      case RPCTypes.StatusCode.scduplicate:
-        // If you're already out of (inputerror) or in (duplicate) the airdrop,
-        // ignore those errors and we'll fix it when we refresh status below.
-        break
-      case RPCTypes.StatusCode.scairdropregisterfailedmisc:
-        return WalletsGen.createUpdatedAirdropState({
-          airdropQualifications: [],
-          airdropState: 'rejected',
-        })
-      default:
-        throw err
-    }
-  }
-  return WalletsGen.createUpdateAirdropState() // reload
-}
-
-const updateAirdropDetails = async (
-  state: TypedState,
-  action: WalletsGen.UpdateAirdropDetailsPayload | ConfigGen.LoadOnStartPayload,
-  logger: Saga.SagaLogger
-) => {
-  if (!state.config.loggedIn) {
-    return false
-  }
-
-  if (action.type === ConfigGen.loadOnStart && action.payload.phase !== 'startupOrReloginButNotInARush') {
-    return false
-  }
-
-  try {
-    const response = await RPCStellarTypes.localAirdropDetailsLocalRpcPromise(
-      undefined,
-      Constants.airdropWaitingKey
-    )
-    const details: Constants.StellarDetailsJSONType = JSON.parse(response.details)
-    const disclaimer: Constants.StellarDetailsJSONType = JSON.parse(response.disclaimer)
-    return WalletsGen.createUpdatedAirdropDetails({
-      details: Constants.makeStellarDetailsFromJSON(details),
-      disclaimer: Constants.makeStellarDetailsFromJSON(disclaimer),
-      isPromoted: response.isPromoted,
-    })
-  } catch (e) {
-    logger.info(e)
-    return false
-  }
-}
-
-const updateAirdropState = async (
-  state: TypedState,
-  action: WalletsGen.UpdateAirdropStatePayload | ConfigGen.LoadOnStartPayload,
-  logger: Saga.SagaLogger
-) => {
-  if (!state.config.loggedIn) {
-    return false
-  }
-  if (action.type === ConfigGen.loadOnStart && action.payload.phase !== 'startupOrReloginButNotInARush') {
-    return false
-  }
-  try {
-    const {state, rows} = await RPCStellarTypes.localAirdropStatusLocalRpcPromise(
-      undefined,
-      Constants.airdropWaitingKey
-    )
-    let airdropState: Types.AirdropState
-    switch (state) {
-      case 'accepted':
-        airdropState = 'accepted'
-        break
-      case 'qualified':
-        airdropState = 'qualified'
-        break
-      case 'unqualified':
-        airdropState = 'unqualified'
-        break
-      default:
-        airdropState = 'loading'
-        logger.error('Invalid airdropstate', state)
-    }
-
-    const airdropQualifications = (rows || []).map(r =>
-      Constants.makeAirdropQualification({
-        subTitle: r.subtitle || '',
-        title: r.title || '',
-        valid: r.valid || false,
-      })
-    )
-
-    return WalletsGen.createUpdatedAirdropState({airdropQualifications, airdropState})
-  } catch (e) {
-    logger.info(e)
-    if (e.name === 'STELLAR_NEED_DISCLAIMER') {
-      return WalletsGen.createUpdatedAirdropState({
-        airdropQualifications: [],
-        airdropState: 'needDisclaimer',
-      })
-    }
-    return false
-  }
-}
-
-const hideAirdropBanner = (): TypedActions =>
-  GregorGen.createUpdateCategory({body: 'true', category: Constants.airdropBannerKey})
-const gregorPushState = (action: GregorGen.PushStatePayload) =>
-  WalletsGen.createUpdateAirdropBannerState({
-    show: !action.payload.state.find(i => i.item.category === Constants.airdropBannerKey),
-  })
 
 const assetDescriptionOrNativeToRpcAsset = (
   asset: 'native' | Types.AssetDescription
@@ -1834,12 +1709,6 @@ function* walletsSaga() {
   yield* Saga.chainAction(WalletsGen.acceptSEP7Pay, acceptSEP7Pay)
   yield* Saga.chainAction2(WalletsGen.acceptSEP7Path, acceptSEP7Path)
   yield* Saga.chainAction(WalletsGen.acceptSEP7Tx, acceptSEP7Tx)
-
-  yield* Saga.chainAction(GregorGen.pushState, gregorPushState)
-  yield* Saga.chainAction(WalletsGen.changeAirdrop, changeAirdrop)
-  yield* Saga.chainAction2([WalletsGen.updateAirdropDetails, ConfigGen.loadOnStart], updateAirdropDetails)
-  yield* Saga.chainAction2([WalletsGen.updateAirdropState, ConfigGen.loadOnStart], updateAirdropState)
-  yield* Saga.chainAction2([WalletsGen.hideAirdropBanner, WalletsGen.changeAirdrop], hideAirdropBanner)
 
   yield* Saga.chainAction(WalletsGen.refreshTrustlineAcceptedAssets, refreshTrustlineAcceptedAssets)
   yield* Saga.chainAction(

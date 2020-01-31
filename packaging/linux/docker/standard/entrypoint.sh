@@ -5,8 +5,8 @@ set -euo pipefail
 # chown the data dirs if running as root, then rerun the script as keybase
 if [[ "$(id -u)" -eq "0" ]]; then
     chown -R keybase:keybase \
-        /home/keybase/.config/keybase \
-        /home/keybase/.cache/keybase
+        /home/keybase/.config \
+        /home/keybase/.cache
     exec gosu keybase ${BASH_SOURCE[0]} "$@"
     exit 0
 fi
@@ -58,7 +58,7 @@ fi
 
 # Run the main command in foreground if one was passed
 if [ "$#" -gt 0 ]; then
-    $@
+    exec "$@"
     exit 0
 fi
 

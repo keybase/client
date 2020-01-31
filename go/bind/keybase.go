@@ -305,7 +305,7 @@ func LogSend(statusJSON string, feedback string, sendLogs, sendMaxBytes bool, tr
 		numBytes = status.LogSendMaxBytes
 	}
 
-	logSendID, err := logSendContext.LogSend(sendLogs, numBytes, true /* mergeExtendedStatus */)
+	logSendID, err := logSendContext.LogSend(sendLogs, numBytes, true /* mergeExtendedStatus */, true /* addNetworkStats */)
 	logSendContext.Clear()
 	return string(logSendID), err
 }

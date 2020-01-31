@@ -17,6 +17,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/go-crypto/ed25519"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/chat/s3"
@@ -200,6 +201,8 @@ func (a *S3Store) uploadAsset(ctx context.Context, task *UploadTask, enc *SignEn
 
 	// post to s3
 	length := enc.EncryptedLen(task.FileSize)
+	endInstrumentation := rpc.NewNetworkInstrumenter(a.G().NetworkInstrumenterStorage).Instrument("ChatAttachmentUpload")
+	defer func() { _ = endInstrumentation(length) }()
 	upRes, err := a.PutS3(ctx, tee, length, task, previous)
 	if err != nil {
 		if err == ErrAbortOnPartMismatch && previous != nil {

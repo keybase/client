@@ -27,89 +27,6 @@ export const chooseAssetFormRouteKey = 'chooseAssetForm'
 export const pickAssetFormRouteKey = 'pickAssetForm'
 export const confirmFormRouteKey = 'confirmForm'
 export const sendRequestFormRoutes = [sendRequestFormRouteKey, confirmFormRouteKey]
-export const airdropBannerKey = 'stellarHideAirdropBanner'
-
-export const makeAirdropQualification = (
-  a?: Partial<Types.AirdropQualification>
-): Types.AirdropQualification => ({
-  subTitle: '',
-  title: '',
-  valid: false,
-  ...a,
-})
-
-export const makeStellarDetailsLine = (d?: Partial<Types.StellarDetailsLine>): Types.StellarDetailsLine => ({
-  bullet: false,
-  text: '',
-  ...d,
-})
-
-export const makeStellarDetailsHeader = (
-  d?: Partial<Types.StellarDetailsHeader>
-): Types.StellarDetailsHeader => ({
-  body: '',
-  title: '',
-  ...d,
-})
-
-export const makeStellarDetailsSection = (
-  d?: Partial<Types.StellarDetailsSection>
-): Types.StellarDetailsSection => ({
-  icon: '',
-  lines: [],
-  section: '',
-  ...d,
-})
-
-export const makeStellarDetailsResponse = (
-  r?: Partial<Types.StellarDetailsResponse>
-): Types.StellarDetailsResponse => ({
-  header: makeStellarDetailsHeader({}),
-  sections: [],
-  ...r,
-})
-
-export type StellarDetailsJSONType = {
-  header?: {
-    body?: string | null
-    title?: string | null
-  } | null
-  sections?: Array<{
-    icon?: string | null
-    section?: string | null
-    lines?: Array<{
-      bullet?: boolean | null
-      text?: string | null
-    } | null> | null
-  } | null> | null
-} | null
-
-export const makeStellarDetailsFromJSON = (json: StellarDetailsJSONType) =>
-  makeStellarDetailsResponse({
-    header: makeStellarDetailsHeader({
-      body: (json && json.header && json.header.body) || '',
-      title: (json && json.header && json.header.title) || '',
-    }),
-    sections: ((json && json.sections) || []).map(section =>
-      makeStellarDetailsSection({
-        icon: (section && section.icon) || '',
-        lines: ((section && section.lines) || []).map(l =>
-          makeStellarDetailsLine({
-            bullet: (l && l.bullet) || false,
-            text: (l && l.text) || '',
-          })
-        ),
-        section: (section && section.section) || '',
-      })
-    ),
-  })
-
-export const makeStellarDetails = (d?: Partial<Types.AirdropDetails>): Types.AirdropDetails => ({
-  details: makeStellarDetailsResponse(),
-  disclaimer: makeStellarDetailsResponse(),
-  isPromoted: false,
-  ...d,
-})
 
 export const makeReserve = (r?: Partial<Types.Reserve>): Types.Reserve => ({
   amount: '',
@@ -275,10 +192,6 @@ export const makeState = (): Types.State => ({
   accountName: '',
   accountNameError: '',
   accountNameValidationState: 'none',
-  airdropDetails: makeStellarDetails(),
-  airdropQualifications: [],
-  airdropShowBanner: false,
-  airdropState: 'loading',
   assetsMap: new Map(),
   buildCounter: 0,
   building: makeBuilding(),
@@ -703,7 +616,6 @@ export const paymentToYourInfoAndCounterparty = (
   }
 }
 
-export const airdropWaitingKey = 'wallets:airdrop'
 export const assetDepositWaitingKey = (issuerAccountID: Types.AccountID, assetCode: string) =>
   `wallets:assetDeposit:${Types.makeAssetID(issuerAccountID, assetCode)}`
 export const assetWithdrawWaitingKey = (issuerAccountID: Types.AccountID, assetCode: string) =>
@@ -747,9 +659,6 @@ export const getAccountIDs = (state: TypedState) => getAccountMapKeys(state.wall
 
 const getAccountMapValues = memoize((accountMap: Map<string, Types.Account>) => [...accountMap.values()])
 export const getAccounts = (state: TypedState) => getAccountMapValues(state.wallets.accountMap)
-
-export const getAirdropSelected = (state: TypedState) =>
-  state.wallets.selectedAccount === Types.airdropAccountID
 
 export const getSelectedAccount = (state: TypedState) => state.wallets.selectedAccount
 
@@ -870,10 +779,3 @@ export const trustlineHoldingBalance = 0.5
 // Info text for cancelable payments
 export const makeCancelButtonInfo = (username: string) =>
   `${assertionToDisplay(username)} can claim this when they set up their wallet.`
-
-export const getShowAirdropBanner = (state: TypedState) =>
-  state.wallets.airdropDetails.isPromoted &&
-  state.wallets.airdropShowBanner &&
-  (state.wallets.airdropState === 'qualified' ||
-    state.wallets.airdropState === 'unqualified' ||
-    state.wallets.airdropState === 'needDisclaimer')

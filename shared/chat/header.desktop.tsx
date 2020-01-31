@@ -8,7 +8,7 @@ import * as Chat2Gen from '../actions/chat2-gen'
 import {appendNewChatBuilder} from '../actions/typed-routes'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
-import ChatInboxHeader from './inbox/row/chat-inbox-header/container'
+import ChatInboxHeader from './inbox/header/container'
 
 type OwnProps = {}
 

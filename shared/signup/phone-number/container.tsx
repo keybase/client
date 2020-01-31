@@ -14,7 +14,7 @@ type WatcherProps = Props & {
   pendingVerification: string
 }
 // Watches for `pendingVerification` to change and routes to the verification screen
-class WatchForGoToVerify extends React.Component<WatcherProps> {
+export class WatchForGoToVerify extends React.Component<WatcherProps> {
   componentDidUpdate(prevProps: WatcherProps) {
     if (
       !this.props.error &&

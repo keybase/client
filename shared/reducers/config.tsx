@@ -63,6 +63,7 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
     menubarWindowID: draftState.menubarWindowID,
     pushLoaded: draftState.pushLoaded,
     startupDetailsLoaded: draftState.startupDetailsLoaded,
+    useNativeFrame: draftState.useNativeFrame,
     userSwitching: draftState.userSwitching,
   }),
   [ConfigGen.restartHandshake]: draftState => {

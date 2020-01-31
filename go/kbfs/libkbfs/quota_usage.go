@@ -106,6 +106,12 @@ func (q *EventuallyConsistentQuotaUsage) getID(
 
 func (q *EventuallyConsistentQuotaUsage) cache(
 	ctx context.Context, quotaInfo *kbfsblock.QuotaInfo, doCacheToDisk bool) {
+	id, err := q.getID(ctx)
+	if err != nil {
+		q.log.CDebugf(ctx, "Can't get ID: %+v", err)
+		return
+	}
+
 	q.mu.Lock()
 	defer q.mu.Unlock()
 	q.cached.limitBytes = quotaInfo.Limit
@@ -126,11 +132,6 @@ func (q *EventuallyConsistentQuotaUsage) cache(
 		return
 	}
 
-	id, err := q.getID(ctx)
-	if err != nil {
-		q.log.CDebugf(ctx, "Can't get ID: %+v", err)
-		return
-	}
 	err = dqc.Put(ctx, id, *quotaInfo)
 	if err != nil {
 		q.log.CDebugf(ctx, "Can't cache quota for %s: %+v", id, err)

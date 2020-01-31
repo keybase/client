@@ -45,8 +45,9 @@ type _LoadedNonUserProfilePayload = {
   readonly location?: string
   readonly pictureUrl?: string
   readonly siteIcon: Array<Types.SiteIcon>
+  readonly siteIconDarkmode: Array<Types.SiteIcon>
   readonly siteIconFull: Array<Types.SiteIcon>
-  readonly siteIconWhite: Array<Types.SiteIcon>
+  readonly siteIconFullDarkmode: Array<Types.SiteIcon>
 }
 type _ProofSuggestionsUpdatedPayload = {readonly suggestions: ReadonlyArray<Types.Assertion>}
 type _ShowUserPayload = {readonly asTracker: boolean; readonly username: string; readonly skipNav?: boolean}

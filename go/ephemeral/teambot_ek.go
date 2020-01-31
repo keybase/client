@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/libkb"
@@ -119,27 +120,36 @@ func prepareNewTeambotEK(mctx libkb.MetaContext, team *teams.Team, botUID keybas
 func fetchLatestTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID) (metadata *keybase1.TeambotEkMetadata, wrongKID bool, err error) {
 	defer mctx.TraceTimed("fetchLatestTeambotEK", func() error { return err })()
 
-	apiArg := libkb.APIArg{
-		Endpoint:    "teambot/key",
-		SessionType: libkb.APISessionTypeREQUIRED,
-		Args: libkb.HTTPArgs{
-			"team_id":      libkb.S{Val: string(teamID)},
-			"is_ephemeral": libkb.B{Val: true},
-		},
-	}
-	res, err := mctx.G().GetAPI().Get(mctx, apiArg)
-	if err != nil {
-		return nil, false, err
-	}
-
 	var parsedResponse teambot.TeambotKeyResponse
-	if err = res.Body.UnmarshalAgain(&parsedResponse); err != nil {
-		return nil, false, err
+	gotResult := false
+	for i := 0; i < 10; i++ {
+		apiArg := libkb.APIArg{
+			Endpoint:    "teambot/key",
+			SessionType: libkb.APISessionTypeREQUIRED,
+			Args: libkb.HTTPArgs{
+				"team_id":      libkb.S{Val: string(teamID)},
+				"is_ephemeral": libkb.B{Val: true},
+			},
+		}
+		res, err := mctx.G().GetAPI().Get(mctx, apiArg)
+		if err != nil {
+			return nil, false, err
+		}
+
+		if err = res.Body.UnmarshalAgain(&parsedResponse); err != nil {
+			return nil, false, err
+		}
+		if parsedResponse.Result == nil {
+			mctx.Debug("no teambot ek response, trying again, attempt: %d", i)
+			time.Sleep(time.Second)
+			continue
+		}
+		gotResult = true
+		break
 	}
-	if parsedResponse.Result == nil {
+	if !gotResult {
 		return nil, false, nil
 	}
-
 	return verifyTeambotSigWithLatestPTK(mctx, teamID, parsedResponse.Result.Sig)
 }
 

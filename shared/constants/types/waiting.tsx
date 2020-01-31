@@ -1,6 +1,6 @@
 import {RPCError} from '../../util/errors'
 
-export type State = Readonly<{
-  counts: Map<string, number>
-  errors: Map<string, RPCError | undefined>
-}>
+export type State = {
+  readonly counts: Map<string, number>
+  readonly errors: Map<string, RPCError | undefined>
+}

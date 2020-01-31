@@ -381,6 +381,7 @@ type folderBranchOps struct {
 	forcedFastForwards kbfssync.RepeatedWaitGroup
 	editActivity       kbfssync.RepeatedWaitGroup
 	partialSyncs       kbfssync.RepeatedWaitGroup
+	rootWaits          kbfssync.RepeatedWaitGroup
 
 	muLastGetHead sync.Mutex
 	// We record a timestamp everytime getHead or getTrustedHead is called, and
@@ -1709,27 +1710,76 @@ func (fbo *folderBranchOps) kickOffRootBlockFetch(
 		data.TransientEntry, action)
 }
 
-func (fbo *folderBranchOps) logIfErr(
-	ctx context.Context, err error, fs string, args ...interface{}) {
-	if err != nil {
-		fbo.deferLog.CDebugf(ctx, fs, args...)
-	} else {
-		fbo.deferVlog.CLogf(ctx, libkb.VLog1, fs, args...)
+func (fbo *folderBranchOps) waitForRootBlockFetchAndSyncIfNeeded(
+	ctx context.Context, rmd ImmutableRootMetadata, rootCh <-chan error,
+	updatedCh <-chan struct{}) (
+	rootPtr data.BlockPointer, waitCh <-chan struct{}, err error) {
+	rev := rmd.Revision()
+	select {
+	case err := <-rootCh:
+		if err != nil {
+			fbo.log.CDebugf(ctx, "Error getting root block: %+v", err)
+			return data.ZeroPtr, nil, err
+		}
+	case <-updatedCh:
+		fbo.vlog.CLogf(
+			ctx, libkb.VLog1, "The latest merged rev has been updated")
+		return data.ZeroPtr, nil, nil
+	case <-fbo.shutdownChan:
+		fbo.log.CDebugf(ctx, "Shutdown, canceling root block wait")
+		return data.ZeroPtr, nil, errors.WithStack(data.ShutdownHappenedError{})
+	case <-ctx.Done():
+		fbo.log.CDebugf(ctx, "Context canceled, canceling root block wait")
+		return data.ZeroPtr, nil, errors.WithStack(ctx.Err())
 	}
+
+	rootPtr = rmd.Data().Dir.BlockPointer
+	fbo.vlog.CLogf(
+		ctx, libkb.VLog1, "Waiting for prefetch of revision %d, ptr %v",
+		rev, rootPtr)
+	waitCh, err = fbo.config.BlockOps().Prefetcher().
+		WaitChannelForBlockPrefetch(ctx, rootPtr)
+	if err != nil {
+		fbo.log.CDebugf(ctx,
+			"Error getting wait channel for prefetch: %+v", err)
+		return data.ZeroPtr, nil, err
+	}
+
+	if fbo.config.IsSyncedTlf(rmd.TlfID()) {
+		fbo.syncedTlfObservers.fullSyncStarted(
+			ctx, fbo.id(), rmd.Revision(), waitCh)
+	}
+	return rootPtr, waitCh, nil
 }
 
-func (fbo *folderBranchOps) waitForRootBlockFetch(
-	ctx context.Context, rmd ImmutableRootMetadata,
-	fetchChan <-chan error) error {
-	fbo.vlog.CLogf(ctx, libkb.VLog1, "Ensuring that the latest root directory "+
-		"block for revision %d is available", rmd.Revision())
-	select {
-	case err := <-fetchChan:
-		fbo.logIfErr(ctx, err, "Root block fetch complete: +%v", err)
-		return err
-	case <-ctx.Done():
-		return errors.WithStack(ctx.Err())
-	}
+func (fbo *folderBranchOps) kickOffRootBlockFetchAndWait(
+	ctx context.Context, rmd ImmutableRootMetadata, updatedCh <-chan struct{}) (
+	rootPtr data.BlockPointer, waitCh <-chan struct{}, err error) {
+	rootPtr = rmd.Data().Dir.BlockPointer
+	rev := rmd.Revision()
+	fbo.vlog.CLogf(
+		ctx, libkb.VLog1,
+		"Fetching root block of revision %d, ptr %v, and syncing", rev, rootPtr)
+	rootCh := fbo.kickOffRootBlockFetch(ctx, rmd)
+	return fbo.waitForRootBlockFetchAndSyncIfNeeded(ctx, rmd, rootCh, updatedCh)
+}
+
+func (fbo *folderBranchOps) kickOffRootBlockFetchAndSyncInBackground(
+	ctx context.Context, rmd ImmutableRootMetadata, updatedCh <-chan struct{}) {
+	rev := rmd.Revision()
+	fbo.vlog.CLogf(
+		ctx, libkb.VLog1,
+		"Fetching root block of revision %d, ptr %v", rev,
+		rmd.Data().Dir.BlockPointer)
+	rootCh := fbo.kickOffRootBlockFetch(ctx, rmd)
+	fbo.rootWaits.Add(1)
+	fbo.goTracked(func() {
+		defer fbo.rootWaits.Done()
+		ctx, cancelFunc := fbo.newCtxWithFBOID()
+		defer cancelFunc()
+		_, _, _ = fbo.waitForRootBlockFetchAndSyncIfNeeded(
+			ctx, rmd, rootCh, updatedCh)
+	})
 }
 
 func (fbo *folderBranchOps) commitFlushedMD(
@@ -1754,38 +1804,11 @@ func (fbo *folderBranchOps) commitFlushedMD(
 		// For synced TLFs, wait for prefetching to complete for
 		// `rootPtr`. When it's successfully done, commit the
 		// corresponding MD.
-		rootPtr := rmd.Data().Dir.BlockPointer
-		fbo.vlog.CLogf(
-			ctx, libkb.VLog1,
-			"Fetching root block of revision %d, ptr %v", rev, rootPtr)
-		rootCh := fbo.kickOffRootBlockFetch(ctx, rmd)
-		select {
-		case err := <-rootCh:
-			if err != nil {
-				fbo.log.CDebugf(ctx, "Error getting root block: %+v", err)
-				return
-			}
-		case <-updatedCh:
-			fbo.vlog.CLogf(
-				ctx, libkb.VLog1, "The latest merged rev has been updated")
-			return
-		case <-fbo.shutdownChan:
-			fbo.log.CDebugf(ctx, "Shutdown, canceling root block wait")
-			return
-		}
-
-		fbo.vlog.CLogf(
-			ctx, libkb.VLog1, "Waiting for prefetch of revision %d, ptr %v",
-			rev, rootPtr)
-		waitCh, err := fbo.config.BlockOps().Prefetcher().
-			WaitChannelForBlockPrefetch(ctx, rootPtr)
+		rootPtr, waitCh, err := fbo.kickOffRootBlockFetchAndWait(
+			ctx, rmd, updatedCh)
 		if err != nil {
-			fbo.log.CDebugf(ctx,
-				"Error getting wait channel for prefetch: %+v", err)
 			return
 		}
-		fbo.syncedTlfObservers.fullSyncStarted(
-			ctx, fbo.id(), rmd.Revision(), waitCh)
 
 		select {
 		case <-waitCh:
@@ -3011,7 +3034,8 @@ func (fbo *folderBranchOps) SetInitialHeadFromServer(
 
 		ct := mdToCommitType(md)
 		if latestRootBlockFetch != nil {
-			err := fbo.waitForRootBlockFetch(ctx, md, latestRootBlockFetch)
+			_, _, err := fbo.waitForRootBlockFetchAndSyncIfNeeded(
+				ctx, md, latestRootBlockFetch, nil)
 			if err != nil {
 				fbo.log.CDebugf(ctx,
 					"Couldn't fetch root block, so not commiting MD: %+v", err)
@@ -6809,8 +6833,8 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 		}
 
 		if i == len(rmds)-1 {
-			err := fbo.waitForRootBlockFetch(
-				ctx, latestMerged, latestRootBlockFetch)
+			_, _, err := fbo.waitForRootBlockFetchAndSyncIfNeeded(
+				ctx, latestMerged, latestRootBlockFetch, nil)
 			if err != nil {
 				return err
 			}
@@ -7467,6 +7491,10 @@ func (fbo *folderBranchOps) SyncFromServer(ctx context.Context,
 		return err
 	}
 
+	if err := fbo.rootWaits.Wait(ctx); err != nil {
+		return err
+	}
+
 	// MDServer.IsConnected() takes some time to work when you get
 	// disconnected from inside the network (as we do in a test).  To
 	// get a quick result, force a reachability check with a short
@@ -7652,8 +7680,7 @@ func (fbo *folderBranchOps) doFastForwardLocked(ctx context.Context,
 	// Fetch root block and set the head first, because if it fails we
 	// don't want to have to undo a bunch of pointer updates.  (That
 	// is, follow the same order as when usually updating the head.)
-	latestRootBlockFetch := fbo.kickOffRootBlockFetch(ctx, currHead)
-	err = fbo.waitForRootBlockFetch(ctx, currHead, latestRootBlockFetch)
+	_, _, err = fbo.kickOffRootBlockFetchAndWait(ctx, currHead, nil)
 	if err != nil {
 		return err
 	}
@@ -9325,6 +9352,7 @@ func (fbo *folderBranchOps) SetSyncConfig(
 		})
 	}
 
+	modeChanged := oldConfig.Mode != config.Mode
 	if config.Mode == keybase1.FolderSyncMode_ENABLED {
 		// Make a new ctx for the root block fetch, since it will
 		// continue after this function returns.
@@ -9332,17 +9360,15 @@ func (fbo *folderBranchOps) SetSyncConfig(
 		fbo.log.CDebugf(
 			ctx, "Starting full deep sync with a new context: FBOID=%s",
 			rootBlockCtx.Value(CtxFBOIDKey))
-		_ = fbo.kickOffRootBlockFetch(rootBlockCtx, md)
+		fbo.kickOffRootBlockFetchAndSyncInBackground(rootBlockCtx, md, nil)
+	} else if modeChanged {
+		fbo.syncedTlfObservers.syncModeChanged(ctx, fbo.id(), config.Mode)
 	}
 
 	// Issue notifications to client when sync mode changes (or is partial).
-	modeChanged := oldConfig.Mode != config.Mode
 	if modeChanged || config.Mode == keybase1.FolderSyncMode_PARTIAL {
 		fbo.config.Reporter().Notify(ctx, syncConfigChangeNotification(
 			md.GetTlfHandle(), config))
-	}
-	if modeChanged {
-		fbo.syncedTlfObservers.syncModeChanged(ctx, fbo.id(), config.Mode)
 	}
 	return ch, nil
 }

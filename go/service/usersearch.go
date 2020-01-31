@@ -546,9 +546,10 @@ func (h *UserSearchHandler) GetNonUserDetails(ctx context.Context, arg keybase1.
 			mctx.Warning("Can't get external profile data with: %s", err)
 		}
 
-		res.SiteIcon = externals.MakeIcons(mctx, service, "logo_black", 16)
-		res.SiteIconWhite = externals.MakeIcons(mctx, service, "logo_white", 16)
-		res.SiteIconFull = externals.MakeIcons(mctx, service, "logo_full", 64)
+		res.SiteIcon = externals.MakeIcons(mctx, service, externals.IconTypeSmall, 16)
+		res.SiteIconDarkmode = externals.MakeIcons(mctx, service, externals.IconTypeSmallDarkmode, 16)
+		res.SiteIconFull = externals.MakeIcons(mctx, service, externals.IconTypeFull, 64)
+		res.SiteIconFullDarkmode = externals.MakeIcons(mctx, service, externals.IconTypeFullDarkmode, 64)
 	} else if service == "phone" || service == "email" {
 		contacts, err := mctx.G().SyncedContactList.RetrieveContacts(mctx)
 		if err == nil {

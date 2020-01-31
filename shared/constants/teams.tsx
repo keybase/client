@@ -711,6 +711,11 @@ export const annotatedInvitesToInviteInfo = (
 export const getTeamDetails = (state: TypedState, teamID: Types.TeamID) =>
   state.teams.teamDetails.get(teamID) || emptyTeamDetails
 
+export const canShowcase = (state: TypedState, teamID: Types.TeamID) => {
+  const role = getRole(state, teamID)
+  return getTeamDetails(state, teamID).allowPromote || role === 'admin' || role === 'owner'
+}
+
 const _canUserPerformCache: {[key: string]: Types.TeamOperations} = {}
 const _canUserPerformCacheKey = (t: Types.TeamRoleAndDetails) => t.role + t.implicitAdmin
 const deriveCanPerform = (roleAndDetails?: Types.TeamRoleAndDetails): Types.TeamOperations => {

@@ -103,7 +103,16 @@ func TestProofSuggestions(t *testing.T) {
 		for _, icon := range b.ProfileIcon {
 			checkIcon(t, icon)
 		}
+		require.Len(t, b.ProfileIconDarkmode, 2)
+		for _, icon := range b.ProfileIconDarkmode {
+			checkIcon(t, icon)
+		}
+		require.Len(t, b.ProfileIcon, 2)
 		for _, icon := range b.PickerIcon {
+			checkIcon(t, icon)
+		}
+		require.Len(t, b.PickerIconDarkmode, 2)
+		for _, icon := range b.PickerIconDarkmode {
 			checkIcon(t, icon)
 		}
 

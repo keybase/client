@@ -20,6 +20,7 @@ import HiddenString from '../../util/hidden-string'
 import {getFullname} from '../users'
 import {memoize} from '../../util/memoize'
 import * as TeamConstants from '../teams'
+import flags from '../../util/feature-flags'
 
 export const defaultTopReacjis = [':+1:', ':-1:', ':tada:', ':joy:', ':sunglasses:']
 const defaultSkinTone = 1
@@ -56,6 +57,7 @@ export const makeState = (): Types.State => ({
   focus: null,
   giphyResultMap: new Map(),
   giphyWindowMap: new Map(),
+  hasZzzJourneycard: new Map(),
   inboxHasLoaded: false,
   inboxLayout: null,
   inboxNumSmallRows: 5,
@@ -82,6 +84,7 @@ export const makeState = (): Types.State => ({
   quote: undefined,
   replyToMap: new Map(),
   selectedConversation: noConversationIDKey,
+  shouldDeleteZzzJourneycard: new Map(),
   smallTeamsExpanded: false,
   staticConfig: undefined,
   teamBuilding: TeamBuildingConstants.makeSubState(),
@@ -114,6 +117,7 @@ export const makeInboxSearchInfo = (): Types.InboxSearchInfo => ({
   nameResultsUnread: false,
   nameStatus: 'initial',
   openTeamsResults: [],
+  openTeamsResultsSuggested: false,
   openTeamsStatus: 'initial',
   query: new HiddenString(''),
   selectedIndex: 0,
@@ -162,8 +166,14 @@ export const isCancelledAudioRecording = (audioRecording: Types.AudioRecordingIn
 }
 
 export const getInboxSearchSelected = (inboxSearch: Types.InboxSearchInfo) => {
-  if (inboxSearch.selectedIndex < inboxSearch.nameResults.length) {
-    const maybeNameResults = inboxSearch.nameResults[inboxSearch.selectedIndex]
+  const {selectedIndex, nameResults, openTeamsResults, textResults} = inboxSearch
+  const firstTextResultIdx = flags.openTeamSearch
+    ? openTeamsResults.length + nameResults.length
+    : nameResults.length
+  const firstOpenTeamResultIdx = nameResults.length
+
+  if (selectedIndex < firstOpenTeamResultIdx) {
+    const maybeNameResults = nameResults[selectedIndex]
     const conversationIDKey =
       maybeNameResults === null || maybeNameResults === undefined
         ? undefined
@@ -174,8 +184,10 @@ export const getInboxSearchSelected = (inboxSearch: Types.InboxSearchInfo) => {
         query: undefined,
       }
     }
-  } else if (inboxSearch.selectedIndex < inboxSearch.nameResults.length + inboxSearch.textResults.length) {
-    const result = inboxSearch.textResults[inboxSearch.selectedIndex - inboxSearch.nameResults.length]
+  } else if (flags.openTeamSearch && selectedIndex < firstTextResultIdx) {
+    return null
+  } else if (selectedIndex >= firstTextResultIdx) {
+    const result = textResults[selectedIndex - firstTextResultIdx]
     if (result) {
       return {
         conversationIDKey: result.conversationIDKey,
@@ -183,6 +195,7 @@ export const getInboxSearchSelected = (inboxSearch: Types.InboxSearchInfo) => {
       }
     }
   }
+
   return null
 }
 

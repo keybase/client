@@ -1513,6 +1513,10 @@
             "items": "keybase1.TeamSearchItem"
           },
           "name": "hits"
+        },
+        {
+          "type": "boolean",
+          "name": "suggestedMatches"
         }
       ]
     },
