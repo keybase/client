@@ -17,7 +17,7 @@ if [ "$#" -gt 0 ] && [ ! -v KEYBASE_SERVICE ]; then
     exit 0
 fi
 
-keybase -debug -use-default-log-file $KEYBASE_SERVICE_ARGS service &
+keybase -debug -use-default-log-file ${KEYBASE_SERVICE_ARGS:-""} service &
 if [ "$#" -eq 0 ] || [ -v KEYBASE_LOG_SERVICE_TO_STDOUT ]; then
     tail -F /home/keybase/.cache/keybase/keybase.service.log &
 fi
