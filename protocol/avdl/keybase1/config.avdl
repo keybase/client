@@ -318,4 +318,6 @@ protocol config {
   void appendGUILogs(string content);
 
   string generateWebAuthToken();
+
+  void crash();
 }

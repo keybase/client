@@ -34,10 +34,7 @@ RUN usermod -l keybase -d /home/keybase -m node \
 VOLUME [ "/home/keybase/.config/keybase", "/home/keybase/.cache/keybase" ]
 
 COPY --from=base /usr/bin/keybase /usr/bin/keybase
-COPY --from=base /usr/bin/keybase.sig /usr/bin/keybase.sig
 COPY --from=base /usr/bin/kbfsfuse /usr/bin/kbfsfuse
-COPY --from=base /usr/bin/kbfsfuse.sig /usr/bin/kbfsfuse.sig
 COPY --from=base /usr/bin/git-remote-keybase /usr/bin/git-remote-keybase
-COPY --from=base /usr/bin/git-remote-keybase.sig /usr/bin/git-remote-keybase.sig
 
 ENTRYPOINT ["/tini", "--", "entrypoint.sh"]

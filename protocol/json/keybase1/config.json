@@ -1114,6 +1114,10 @@
     "generateWebAuthToken": {
       "request": [],
       "response": "string"
+    },
+    "crash": {
+      "request": [],
+      "response": null
     }
   },
   "namespace": "keybase.1"

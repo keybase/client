@@ -34,6 +34,5 @@ RUN usermod -l keybase -d /home/keybase -m node \
 VOLUME [ "/home/keybase/.config/keybase", "/home/keybase/.cache/keybase" ]
 
 COPY --from=base /usr/bin/keybase /usr/bin/keybase
-COPY --from=base /usr/bin/keybase.sig /usr/bin/keybase.sig
 
 ENTRYPOINT ["/tini", "--", "entrypoint.sh"]

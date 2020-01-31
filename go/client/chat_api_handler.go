@@ -51,6 +51,7 @@ const (
 	methodAddResetConvMember  = "addresetconvmember"
 	methodGetDeviceInfo       = "getdeviceinfo"
 	methodListMembers         = "listmembers"
+	methodCrash               = "crash"
 )
 
 // ChatAPIHandler can handle all of the chat json api methods.
@@ -85,6 +86,7 @@ type ChatAPIHandler interface {
 	AddResetConvMemberV1(context.Context, Call, io.Writer) error
 	GetDeviceInfoV1(context.Context, Call, io.Writer) error
 	ListMembersV1(context.Context, Call, io.Writer) error
+	CrashV1(context.Context, Call, io.Writer) error
 }
 
 // ChatAPI implements ChatAPIHandler and contains a ChatServiceHandler
@@ -1074,6 +1076,11 @@ func (a *ChatAPI) ListMembersV1(ctx context.Context, c Call, w io.Writer) error 
 
 	return a.encodeReply(c, a.svcHandler.ListMembersV1(ctx, opts), w)
 }
+
+func (a *ChatAPI) CrashV1(ctx context.Context, c Call, w io.Writer) error {
+	return a.encodeReply(c, a.svcHandler.CrashV1(ctx), w)
+}
+
 func (a *ChatAPI) encodeReply(call Call, reply Reply, w io.Writer) error {
 	return encodeReply(call, reply, w, a.indent)
 }
