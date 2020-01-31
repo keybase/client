@@ -1103,7 +1103,6 @@ const outboxUIMessagetoMessage = (
         const baseMd = (o.preview && o.preview.baseMetadata) || null
         pre = previewSpecs(md, baseMd)
       }
-      // TODO: add decoratedText
       return makePendingAttachmentMessage(
         state,
         conversationIDKey,
