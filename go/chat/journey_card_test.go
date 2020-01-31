@@ -230,6 +230,7 @@ func TestJourneycardDismissTeamwide(t *testing.T) {
 // A journeycard sticks in its position in the conv.
 // And survives a reboot.
 func TestJourneycardPersist(t *testing.T) {
+	t.Skip("known flake under repair")
 	useRemoteMock = false
 	defer func() { useRemoteMock = true }()
 	ctc := makeChatTestContext(t, t.Name(), 2)
