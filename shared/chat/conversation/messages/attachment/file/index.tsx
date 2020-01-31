@@ -24,44 +24,53 @@ const FileAttachment = React.memo((props: Props) => {
   return (
     <>
       <ShowToastAfterSaving transferState={props.transferState} />
-      <Kb.ClickableBox onClick={props.onDownload} style={styles.fullWidth}>
-        <Kb.Box style={styles.containerStyle}>
-          <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" centerChildren={true}>
-            <Kb.Icon type={iconType} style={styles.iconStyle} />
-            <Kb.Box2 direction="vertical" fullWidth={true} style={styles.titleStyle}>
+      <Kb.Box style={styles.containerStyle}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" centerChildren={true}>
+          <Kb.Icon type={iconType} style={styles.iconStyle} onClick={props.onDownload} />
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.titleStyle}>
+            {props.fileName === props.title ? (
+              // if the title is the filename, don't try to parse it as markdown
+              <Kb.Text type="BodySemibold" onClick={props.onDownload}>
+                {props.fileName}
+              </Kb.Text>
+            ) : (
               <Kb.Markdown meta={{message: props.message}} selectable={true}>
                 {props.title}
               </Kb.Markdown>
-              {props.fileName !== props.title && <Kb.Text type="BodyTiny">{props.fileName}</Kb.Text>}
-            </Kb.Box2>
+            )}
+            {props.fileName !== props.title && (
+              <Kb.Text type="BodyTiny" onClick={props.onDownload}>
+                {props.fileName}
+              </Kb.Text>
+            )}
           </Kb.Box2>
-          {!!props.arrowColor && (
-            <Kb.Box style={styles.downloadedIconWrapperStyle}>
-              <Kb.Icon type="iconfont-download" style={styles.downloadedIcon} color={props.arrowColor} />
-            </Kb.Box>
-          )}
-          {!!progressLabel && (
-            <Kb.Box style={styles.progressContainerStyle}>
-              <Kb.Text type="BodySmall" style={styles.progressLabelStyle}>
-                {progressLabel}
-              </Kb.Text>
-              {props.hasProgress && <Kb.ProgressBar ratio={props.progress} />}
-            </Kb.Box>
-          )}
-          {!!props.errorMsg && (
-            <Kb.Box style={styles.progressContainerStyle}>
-              <Kb.Text type="BodySmall" style={styles.error}>
-                Failed to download attachment, please retry
-              </Kb.Text>
-            </Kb.Box>
-          )}
-          {props.onShowInFinder && (
-            <Kb.Text type="BodySmallPrimaryLink" onClick={props.onShowInFinder} style={styles.linkStyle}>
-              Show in {Styles.fileUIName}
+        </Kb.Box2>
+        {!!props.arrowColor && (
+          <Kb.Box style={styles.downloadedIconWrapperStyle}>
+            <Kb.Icon type="iconfont-download" style={styles.downloadedIcon} color={props.arrowColor} />
+          </Kb.Box>
+        )}
+        {!!progressLabel && (
+          <Kb.Box style={styles.progressContainerStyle}>
+            <Kb.Text type="BodySmall" style={styles.progressLabelStyle}>
+              {progressLabel}
             </Kb.Text>
-          )}
-        </Kb.Box>
-      </Kb.ClickableBox>
+            {props.hasProgress && <Kb.ProgressBar ratio={props.progress} />}
+          </Kb.Box>
+        )}
+        {!!props.errorMsg && (
+          <Kb.Box style={styles.progressContainerStyle}>
+            <Kb.Text type="BodySmall" style={styles.error}>
+              Failed to download attachment, please retry
+            </Kb.Text>
+          </Kb.Box>
+        )}
+        {props.onShowInFinder && (
+          <Kb.Text type="BodySmallPrimaryLink" onClick={props.onShowInFinder} style={styles.linkStyle}>
+            Show in {Styles.fileUIName}
+          </Kb.Text>
+        )}
+      </Kb.Box>
     </>
   )
 })
@@ -71,6 +80,7 @@ const styles = Styles.styleSheetCreate(
     ({
       containerStyle: {
         ...Styles.globalStyles.flexBoxColumn,
+        width: '100%',
       },
       downloadedIcon: {
         maxHeight: 14,
@@ -87,7 +97,6 @@ const styles = Styles.styleSheetCreate(
         right: 0,
       },
       error: {color: Styles.globalColors.redDark},
-      fullWidth: {width: '100%'},
       iconStyle: {
         height: 32,
         width: 32,

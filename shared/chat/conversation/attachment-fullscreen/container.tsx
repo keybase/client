@@ -83,7 +83,7 @@ const Connected = (props: OwnProps) => {
       previewWidth={clampedWidth}
       progress={transferProgress}
       progressLabel={fileURL ? undefined : 'Loading'}
-      title={title}
+      title={message.decoratedText ? message.decoratedText.stringValue() : title}
     />
   )
 }
