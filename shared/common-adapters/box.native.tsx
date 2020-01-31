@@ -87,6 +87,7 @@ const Box2 = React.forwardRef((props: Box2Props, ref: React.Ref<View>) => {
   return (
     <View
       ref={ref}
+      collapsable={true}
       style={Styles.collapseStyles([
         directionStyle,
         fullHeight && styles.fullHeight,
