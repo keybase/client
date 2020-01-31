@@ -49,16 +49,10 @@ func SendTeamChatWelcomeMessage(ctx context.Context, g *libkb.GlobalContext, tea
 	}
 	username := g.Env.GetUsername()
 	subBody := chat1.NewMessageSystemWithAddedtoteam(chat1.MessageSystemAddedToTeam{
-		Adder:          username.String(),
-		Addee:          user,
-		Role:           role,
-		Team:           team,
-		Owners:         ownerNames,
-		Admins:         adminNames,
-		Writers:        writerNames,
-		Readers:        readerNames,
-		Bots:           botNames,
-		RestrictedBots: restrictedBotNames,
+		Adder: username.String(),
+		Addee: user,
+		Role:  role,
+		Team:  team,
 	})
 	body := chat1.NewMessageBodyWithSystem(subBody)
 
