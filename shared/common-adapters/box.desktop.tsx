@@ -28,7 +28,7 @@ const hgaps = new Map(
     gap,
     new Array(100)
       .fill('')
-      .map((_, idx) => <div key={'hgap-' + idx} className={`box_gap_horizontal_${gap}`} />),
+      .map((_, idx) => <div key={'hgap-' + idx} className={`box2_gap_horizontal_${gap}`} />),
   ])
 )
 
@@ -50,7 +50,7 @@ export const Box2 = React.forwardRef<HTMLDivElement, Box2Props>(
     if (gap && React.Children.count(children) > 1) {
       let gapIdx = 1
       const gapList = horizontal ? hgaps.get(gap)! : vgaps.get(gap)!
-      gappedChildren = intersperseFn(() => gapList[gapIdx++], gappedChildren) // React.Children.toArray(children))
+      gappedChildren = intersperseFn(() => gapList[gapIdx++], React.Children.toArray(gappedChildren))
       if (gapStart) {
         gappedChildren.unshift(gapList[0])
       }

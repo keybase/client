@@ -523,7 +523,9 @@ export type RowItemBig = T.RowItemBig
 // export default Inbox
 import {PerfWrapper} from '../../util/use-perf'
 export default (p: any) => (
-  <PerfWrapper style={{width: '100%', height: '100%'}}>
-    <Inbox {...p} />
-  </PerfWrapper>
+  <div style={{position: 'relative'}}>
+    <PerfWrapper style={{width: '100%', height: '100%'}}>
+      <Inbox {...p} />
+    </PerfWrapper>
+  </div>
 )

@@ -75,7 +75,7 @@ const Box2 = React.forwardRef((props: Box2Props, ref: React.Ref<View>) => {
   if (gap && React.Children.count(children) > 1) {
     let gapIdx = 1
     const gapList = horizontal ? hgaps.get(gap)! : vgaps.get(gap)!
-    gappedChildren = intersperseFn(() => gapList[gapIdx++], gappedChildren) // React.Children.toArray(children))
+    gappedChildren = intersperseFn(() => gapList[gapIdx++], React.Children.toArray(gappedChildren))
     if (gapStart) {
       gappedChildren.unshift(gapList[0])
     }
