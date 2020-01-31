@@ -2,8 +2,10 @@ package teambot
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
+	"time"
 
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/encrypteddb"
@@ -20,6 +22,8 @@ type BotKeyer struct {
 	lru     *lru.Cache
 	edb     *encrypteddb.EncryptedDB
 	clock   clockwork.Clock
+
+	maxRemoteTries int
 }
 
 var _ libkb.TeambotBotKeyer = (*BotKeyer)(nil)
@@ -38,10 +42,11 @@ func NewBotKeyer(mctx libkb.MetaContext) *BotKeyer {
 		log.Panicf("Could not create lru cache: %v", err)
 	}
 	return &BotKeyer{
-		edb:     encrypteddb.New(mctx.G(), dbFn, keyFn),
-		lru:     nlru,
-		locktab: libkb.NewLockTable(),
-		clock:   clockwork.NewRealClock(),
+		edb:            encrypteddb.New(mctx.G(), dbFn, keyFn),
+		lru:            nlru,
+		locktab:        libkb.NewLockTable(),
+		clock:          clockwork.NewRealClock(),
+		maxRemoteTries: 10,
 	}
 }
 
@@ -212,34 +217,45 @@ type TeambotKeyBoxedResponse struct {
 	} `json:"result"`
 }
 
+func (k *BotKeyer) remoteFetch(mctx libkb.MetaContext, teamID keybase1.TeamID,
+	app keybase1.TeamApplication, generation keybase1.TeambotKeyGeneration) (res TeambotKeyBoxedResponse, err error) {
+	for i := 0; i < k.maxRemoteTries; i++ {
+		apiArg := libkb.APIArg{
+			Endpoint:    "teambot/box",
+			SessionType: libkb.APISessionTypeREQUIRED,
+			Args: libkb.HTTPArgs{
+				"team_id":      libkb.S{Val: string(teamID)},
+				"application":  libkb.I{Val: int(app)},
+				"generation":   libkb.U{Val: uint64(generation)},
+				"is_ephemeral": libkb.B{Val: false},
+			},
+		}
+		resp, err := mctx.G().GetAPI().Get(mctx, apiArg)
+		if err != nil {
+			return res, err
+		}
+		if err = resp.Body.UnmarshalAgain(&res); err != nil {
+			return res, err
+		}
+		if res.Result == nil {
+			// we retry on these blank responses to avoid race conditions where the bot
+			// wants to send a message before the bot key has been created
+			mctx.Debug("not bot key found, trying again, attempt: %d", i)
+			time.Sleep(time.Second)
+			continue
+		}
+		return res, nil
+	}
+	return res, newTeambotTransientKeyError(errors.New("missing box"), generation)
+}
+
 func (k *BotKeyer) fetch(mctx libkb.MetaContext, teamID keybase1.TeamID,
 	app keybase1.TeamApplication, generation keybase1.TeambotKeyGeneration) (boxed keybase1.TeambotKeyBoxed, wrongKID bool, err error) {
-	apiArg := libkb.APIArg{
-		Endpoint:    "teambot/box",
-		SessionType: libkb.APISessionTypeREQUIRED,
-		Args: libkb.HTTPArgs{
-			"team_id":      libkb.S{Val: string(teamID)},
-			"application":  libkb.I{Val: int(app)},
-			"generation":   libkb.U{Val: uint64(generation)},
-			"is_ephemeral": libkb.B{Val: false},
-		},
-	}
-
-	var resp TeambotKeyBoxedResponse
-	res, err := mctx.G().GetAPI().Get(mctx, apiArg)
+	// fetch boxed key from server
+	resp, err := k.remoteFetch(mctx, teamID, app, generation)
 	if err != nil {
 		return boxed, false, err
 	}
-
-	if err = res.Body.UnmarshalAgain(&resp); err != nil {
-		return boxed, false, err
-	}
-
-	if resp.Result == nil {
-		err = newTeambotTransientKeyError(fmt.Errorf("missing box"), generation)
-		return boxed, false, err
-	}
-
 	// It's possible that this key was signed with a PTK that is not our latest
 	// and greatest. We allow this when we are using this key for *decryption*.
 	// When getting a key for *encryption* callers are responsible for
