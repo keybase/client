@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
@@ -20,7 +19,6 @@ func TestWebOfTrust(t *testing.T) {
 	require.NoError(tc.T, err)
 	idt := me.IDTable()
 	lenBefore := idt.Len()
-	fmt.Printf("id table: (%d) %+v\n", lenBefore, idt)
 
 	arg := &WotAttestArg{
 		AttesteeUID:  keybase1.UID("295a7eea607af32040647123732bc819"), // t_alice
@@ -35,7 +33,6 @@ func TestWebOfTrust(t *testing.T) {
 	me, err = libkb.LoadMe(libkb.NewLoadUserArg(tc.G))
 	require.NoError(tc.T, err)
 	idt = me.IDTable()
-	fmt.Printf("id table: (%d) %+v\n", idt.Len(), idt)
 
 	// for now, let's just check that it got bigger:
 	require.Equal(tc.T, lenBefore+1, idt.Len())
