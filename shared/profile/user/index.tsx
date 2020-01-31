@@ -170,19 +170,21 @@ class FriendshipTabs extends React.Component<FriendshipTabsProps> {
         following === this.props.selectedFollowing && styles.followTabSelected,
       ])}
     >
-		<Kb.Box2 direction="horizontal" gap="xtiny">
-      <Kb.Text
-        type="BodySmallSemibold"
-        style={
-          following === this.props.selectedFollowing ? styles.followTabTextSelected : styles.followTabText
-        }
-      >
-        {following
-          ? `Following${!this.props.loadingFollowing ? ` (${this.props.numFollowing || 0})` : ''}`
-          : `Followers${!this.props.loadingFollowers ? ` (${this.props.numFollowers || 0})` : ''}`}
-      </Kb.Text>
-		{((following && this.props.loadingFollowing) || this.props.loadingFollowers) && <Kb.ProgressIndicator style={{position: 'absolute'}} />}
-		</Kb.Box2>
+      <Kb.Box2 direction="horizontal" gap="xtiny">
+        <Kb.Text
+          type="BodySmallSemibold"
+          style={
+            following === this.props.selectedFollowing ? styles.followTabTextSelected : styles.followTabText
+          }
+        >
+          {following
+            ? `Following${!this.props.loadingFollowing ? ` (${this.props.numFollowing || 0})` : ''}`
+            : `Followers${!this.props.loadingFollowers ? ` (${this.props.numFollowers || 0})` : ''}`}
+        </Kb.Text>
+        {((following && this.props.loadingFollowing) || this.props.loadingFollowers) && (
+          <Kb.ProgressIndicator style={{position: 'absolute'}} />
+        )}
+      </Kb.Box2>
     </Kb.ClickableBox>
   )
 
