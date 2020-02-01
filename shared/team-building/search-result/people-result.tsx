@@ -37,41 +37,36 @@ const PeopleResult = React.memo((props: ResultProps) => {
         path: [{props: {username: keybaseUsername}, selected: 'profileAddToTeam'}],
       })
     )
-  const onOpenPrivateFolder = React.useCallback(() => {
+  const onOpenPrivateFolder = () => {
     dispatch(RouteTreeGen.createNavigateUp())
     dispatch(
       FsConstants.makeActionForOpenPathInFilesTab(
         FsTypes.stringToPath(`/keybase/private/${decoratedUsername},${myUsername}`)
       )
     )
-  }, [dispatch, myUsername, decoratedUsername])
-  const onBrowsePublicFolder = React.useCallback(() => {
+  }
+  const onBrowsePublicFolder = () => {
     dispatch(RouteTreeGen.createNavigateUp())
     dispatch(
       FsConstants.makeActionForOpenPathInFilesTab(
         FsTypes.stringToPath(`/keybase/public/${decoratedUsername}`)
       )
     )
-  }, [dispatch, decoratedUsername])
+  }
 
-  const onManageBlocking = React.useCallback(
-    () =>
-      keybaseUsername &&
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {username: keybaseUsername}, selected: 'chatBlockingModal'}],
-        })
-      ),
-    [dispatch, keybaseUsername]
-  )
-  const onReload = React.useCallback(
-    () => keybaseUsername && dispatch(UsersGen.createGetBlockState({usernames: [keybaseUsername]})),
-    [dispatch, keybaseUsername]
-  )
-  const onChat = React.useCallback(() => {
+  const onManageBlocking = () =>
+    keybaseUsername &&
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {username: keybaseUsername}, selected: 'chatBlockingModal'}],
+      })
+    )
+  const onReload = () =>
+    keybaseUsername && dispatch(UsersGen.createGetBlockState({usernames: [keybaseUsername]}))
+  const onChat = () => {
     dispatch(RouteTreeGen.createNavigateUp())
     dispatch(Chat2Gen.createPreviewConversation({participants: [decoratedUsername], reason: 'search'}))
-  }, [dispatch, decoratedUsername])
+  }
   const onSendLumens = () =>
     keybaseUsername &&
     dispatch(
@@ -180,7 +175,7 @@ const DropdownButton = Kb.OverlayParentHOC((p: Kb.PropsWithOverlay<DropdownProps
       onClick={e => {
         e.stopPropagation()
         p.toggleShowingMenu()
-        p.onReload && p.onReload()
+        p.onReload?.()
       }}
       ref={p.setAttachmentRef}
     >
