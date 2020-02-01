@@ -2557,7 +2557,18 @@ function* mobileMessageAttachmentShare(
   if (isIOS && message.fileName.endsWith('.pdf')) {
     yield Saga.put(
       RouteTreeGen.createNavigateAppend({
-        path: [{props: {title: message.title || message.fileName, url: filePath}, selected: 'chatPDF'}],
+        path: [
+          {
+            props: {
+              title: message.title || message.fileName,
+              // Prepend the 'file://' prefix here. Otherwise when webview
+              // automatically does that, it triggers onNavigationStateChange
+              // with the new address and we'd call stoploading().
+              url: 'file://' + filePath,
+            },
+            selected: 'chatPDF',
+          },
+        ],
       })
     )
     return
