@@ -31,7 +31,7 @@ const KBWebView = (props: WebViewProps) => {
     renderLoading,
     url,
   } = props
-  const ref = React.useRef<NativeWebView>(undefined)
+  const ref = React.useRef<NativeWebView>(null)
   const previousUrl = Container.usePrevious(url)
   return (
     <NativeWebView
