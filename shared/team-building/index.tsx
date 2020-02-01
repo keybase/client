@@ -426,11 +426,10 @@ class TeamBuilding extends React.PureComponent<Props> {
   )
 
   _listBody = () => {
-    const {namespace, searchResults} = this.props
-    const ResultRow = namespace === 'people' ? PeopleResult : UserResult
+    const ResultRow = this.props.namespace === 'people' ? PeopleResult : UserResult
     const showRecPending =
       !this.props.searchString && !this.props.recommendations && this.props.selectedService === 'keybase'
-    const showLoading = !!this.props.searchString && !searchResults
+    const showLoading = !!this.props.searchString && !this.props.searchResults
     if (showRecPending || showLoading) {
       return (
         <Kb.Box2
@@ -446,7 +445,7 @@ class TeamBuilding extends React.PureComponent<Props> {
       )
     }
     if (!this.props.showRecs && !this.props.showResults && !!this.props.selectedService) {
-      if (namespace === 'people') {
+      if (this.props.namespace === 'people') {
         return <EmptyResultText selectedService={this.props.selectedService} action="Search for" />
       } else {
         return (
@@ -527,10 +526,10 @@ class TeamBuilding extends React.PureComponent<Props> {
 
     return (
       <>
-        {searchResults === undefined || searchResults?.length ? (
+        {this.props.searchResults === undefined || this.props.searchResults?.length ? (
           <Kb.List
             reAnimated={true}
-            items={searchResults || []}
+            items={this.props.searchResults || []}
             onScroll={this.onScroll}
             selectedIndex={this.props.highlightedIndex || 0}
             style={styles.list}
