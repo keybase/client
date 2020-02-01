@@ -96,7 +96,6 @@ const FilePreviewView = ({path, onLoadingStateChange, onUrlError}: Props) => {
         </>
       )
     case RPCTypes.GUIViewType.pdf:
-      // Security risks to links in PDF viewing. See DESKTOP-6888.
       return Platform.isIOS ? <PdfView url={url} onUrlError={onUrlError} /> : <DefaultView path={path} />
     default:
       return <Kb.Text type="BodySmallError">This shouldn't happen</Kb.Text>

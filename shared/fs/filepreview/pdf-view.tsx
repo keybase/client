@@ -37,4 +37,5 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
+// Only supported on iOS for now. Should try to prevent link navigation when adding support for other platforms.
 export default Platform.isIOS ? TextView : () => null
