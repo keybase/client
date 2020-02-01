@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	hidden "github.com/keybase/client/go/teams/hidden"
 	storage "github.com/keybase/client/go/teams/storage"
+	pkgErrors "github.com/pkg/errors"
 )
 
 // Show detailed team profiling
@@ -424,6 +425,7 @@ type load2ArgT struct {
 	public                    bool
 	skipNeedHiddenRotateCheck bool
 	skipSeedCheck             bool
+	foundRKMHole              bool // if the previous load found an RKM hole, this is set
 
 	auditMode keybase1.AuditMode
 
@@ -481,9 +483,18 @@ func (l *TeamLoader) load2InnerLocked(ctx context.Context, arg load2ArgT) (res *
 	const nRetries = 3
 	for i := 0; i < nRetries; i++ {
 		res, err = l.load2InnerLockedRetry(ctx, arg)
-		switch err.(type) {
+		switch pkgErrors.Cause(err).(type) {
 		case nil:
 			return res, nil
+		case MissingReaderKeyMaskError:
+			l.G().Log.CDebugf(ctx, "Got MissingReaderKeyMaskError (%s); retrying with forceFullReload=true", err.Error())
+			arg.foundRKMHole = true
+			origErr := err
+			res, err = l.load2InnerLockedRetry(ctx, arg)
+			if err == nil {
+				l.G().Log.CDebugf(ctx, "Found an holes in RKMS in which busting the cache saved the day (original error was: %s)", origErr.Error())
+			}
+			return res, err
 		case ProofError:
 			if arg.forceRepoll {
 				return res, err
@@ -713,7 +724,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	tracer.Stage("fetch")
 	var teamUpdate *rawTeam
 	if fetchLinksAndOrSecrets {
-		lows := l.lows(mctx, ret, hiddenPackage)
+		lows := l.lows(mctx, ret, hiddenPackage, arg)
 		mctx.Debug("TeamLoader getting links from server (%+v)", lows)
 		teamUpdate, err = l.world.getNewLinksFromServer(ctx, arg.teamID, lows, arg.readSubteamID)
 		if err != nil {
@@ -877,7 +888,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 			if !role.IsRestrictedBot() && (!ret.Chain.Public || (teamUpdate.Box != nil)) {
 				err = l.addSecrets(mctx, teamShim(), arg.me, teamUpdate.Box, teamUpdate.Prevs, teamUpdate.ReaderKeyMasks)
 				if err != nil {
-					return nil, fmt.Errorf("loading team secrets: %v", err)
+					return nil, pkgErrors.Wrap(err, "loading team secrets")
 				}
 
 				err = l.computeSeedChecks(ctx, ret)
@@ -1729,18 +1740,13 @@ func (l *TeamLoader) logIfUnsyncedSecrets(ctx context.Context, state *keybase1.T
 	}
 }
 
-func (l *TeamLoader) lows(mctx libkb.MetaContext, state *keybase1.TeamData, hp *hidden.LoaderPackage) getLinksLows {
+func (l *TeamLoader) lows(mctx libkb.MetaContext, state *keybase1.TeamData, hp *hidden.LoaderPackage, arg load2ArgT) getLinksLows {
 	var lows getLinksLows
 	if state != nil {
 		chain := TeamSigChainState{inner: state.Chain}
 		lows.Seqno = chain.GetLatestSeqno()
-		lows.PerTeamKey = keybase1.PerTeamKeyGeneration(len(state.PerTeamKeySeedsUnverified))
-		// Use an arbitrary application to get the number of known RKMs.
-		// TODO: using an arbitrary RKM is wrong and could lead to stuck caches.
-		//       See CORE-8445
-		rkms, ok := state.ReaderKeyMasks[keybase1.TeamApplication_CHAT]
-		if ok {
-			lows.ReaderKeyMask = keybase1.PerTeamKeyGeneration(len(rkms))
+		if !arg.foundRKMHole {
+			lows.PerTeamKey = keybase1.PerTeamKeyGeneration(len(state.PerTeamKeySeedsUnverified))
 		}
 	}
 	if hp != nil {

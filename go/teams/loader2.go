@@ -879,10 +879,10 @@ func (l *TeamLoader) checkReaderKeyMaskCoverage(mctx libkb.MetaContext,
 			continue
 		}
 		if _, ok := state.ReaderKeyMasks[app]; !ok {
-			return fmt.Errorf("missing reader key mask for gen:%v app:%v", gen, app)
+			return NewMissingReaderKeyMaskError(gen, app)
 		}
 		if _, ok := state.ReaderKeyMasks[app][gen]; !ok {
-			return fmt.Errorf("missing reader key mask for gen:%v app:%v", gen, app)
+			return NewMissingReaderKeyMaskError(gen, app)
 		}
 	}
 
