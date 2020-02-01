@@ -15,6 +15,7 @@ import * as WaitingConstants from '../constants/waiting'
 import * as ChatConstants from '../constants/chat2'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 import * as SettingsGen from '../actions/settings-gen'
+import * as UsersGen from '../actions/users-gen'
 import * as Container from '../util/container'
 import * as Constants from '../constants/team-building'
 import * as Types from '../constants/types/team-building'
@@ -238,6 +239,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {namespace, teamI
     dispatch(SettingsGen.createEditContactImportEnabled({enable: true, fromSettings: false})),
   _onImportContactsPermissionsNotGranted: () =>
     dispatch(SettingsGen.createRequestContactPermissions({fromSettings: false, thenToggleImportOn: true})),
+  _refreshBlockList: (usernames: Array<string>) => dispatch(UsersGen.createGetBlockState({usernames})),
   _search: (query: string, service: Types.ServiceIdWithContact, limit?: number) => {
     const func = service === 'keybase' ? debouncedSearchKeybase : debouncedSearch
     return func(dispatch, namespace, query, service, namespace === 'chat2', limit)
@@ -680,6 +682,10 @@ const mergeProps = (
         : ownProps.decHighlightIndex,
     recommendations: recommendationsSections,
     recommendedHideYourself: ownProps.recommendedHideYourself,
+    refreshBlockList: () =>
+      ownProps.namespace === 'people' && searchResults
+        ? dispatchProps._refreshBlockList(searchResults.map(r => r.services['keybase'] || '').filter(r => r))
+        : undefined,
     rolePickerProps,
     search: dispatchProps._search,
     searchResults,

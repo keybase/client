@@ -113,6 +113,7 @@ export type Props = ContactProps & {
   onSearchForMore: () => void
   onUpArrowKeyDown: () => void
   recommendations: Array<SearchRecSection> | null
+  refreshBlockList?: () => void
   rolePickerProps?: RolePickerProps
   search: (query: string, service: ServiceIdWithContact) => void
   searchResults: Array<SearchResult> | undefined
@@ -295,6 +296,10 @@ class TeamBuilding extends React.PureComponent<Props> {
     this.props.fetchUserRecs()
   }
 
+  componentWillUpdate = () => {
+    this.props.refreshBlockList?.()
+  }
+
   _alphabetIndex = () => {
     let showNumSection = false
     let labels: Array<string> = []
@@ -421,10 +426,11 @@ class TeamBuilding extends React.PureComponent<Props> {
   )
 
   _listBody = () => {
-    const ResultRow = this.props.namespace === 'people' ? PeopleResult : UserResult
+    const {namespace, searchResults} = this.props
+    const ResultRow = namespace === 'people' ? PeopleResult : UserResult
     const showRecPending =
       !this.props.searchString && !this.props.recommendations && this.props.selectedService === 'keybase'
-    const showLoading = !!this.props.searchString && !this.props.searchResults
+    const showLoading = !!this.props.searchString && !searchResults
     if (showRecPending || showLoading) {
       return (
         <Kb.Box2
@@ -440,7 +446,7 @@ class TeamBuilding extends React.PureComponent<Props> {
       )
     }
     if (!this.props.showRecs && !this.props.showResults && !!this.props.selectedService) {
-      if (this.props.namespace === 'people') {
+      if (namespace === 'people') {
         return <EmptyResultText selectedService={this.props.selectedService} action="Search for" />
       } else {
         return (
@@ -521,10 +527,10 @@ class TeamBuilding extends React.PureComponent<Props> {
 
     return (
       <>
-        {this.props.searchResults === undefined || this.props.searchResults?.length ? (
+        {searchResults === undefined || searchResults?.length ? (
           <Kb.List
             reAnimated={true}
-            items={this.props.searchResults || []}
+            items={searchResults || []}
             onScroll={this.onScroll}
             selectedIndex={this.props.highlightedIndex || 0}
             style={styles.list}
