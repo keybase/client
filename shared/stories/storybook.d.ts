@@ -20,6 +20,10 @@ export declare function createPropProvider(
 export declare function createPropProviderWithCommon(
   ...maps: SelectorMap[]
 ): (arg0: () => React.ReactNode) => React.ReactNode
+export declare function updateStoreDecorator(
+  store: TypedState,
+  update: (draftState: TypedState) => void
+): (story: any) => React.ReactNode
 export declare function unexpected(name: string): () => void
 export declare class Rnd {
   constructor(seed: number | string)

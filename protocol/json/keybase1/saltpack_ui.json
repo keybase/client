@@ -34,6 +34,10 @@
           "name": "username"
         },
         {
+          "type": "string",
+          "name": "fullname"
+        },
+        {
           "type": "SaltpackSenderType",
           "name": "senderType"
         }

@@ -42,10 +42,13 @@ export const SignedSender = (props: SignedSenderProps) => {
   const waiting = Container.useAnyWaiting(waitingKey)
   // Store
   const signed = Container.useSelector(state => state.crypto[operation].outputSigned)
-  const signedBy = Container.useSelector(state => state.crypto[operation].outputSender)
+  const signedByUsername = Container.useSelector(state => state.crypto[operation].outputSenderUsername)
+  const signedByFullname = Container.useSelector(state => state.crypto[operation].outputSenderFullname)
   const outputStatus = Container.useSelector(state => state.crypto[operation].outputStatus)
 
-  const canSelfSign = operation === Constants.Operations.Encrypt || operation === Constants.Operations.Sign
+  const isSelfSigned = operation === Constants.Operations.Encrypt || operation === Constants.Operations.Sign
+  const avatarSize = isSelfSigned ? 16 : 48
+  const usernameType = isSelfSigned ? 'BodySmallBold' : 'BodyBold'
 
   if (!outputStatus || (outputStatus && outputStatus === 'error')) {
     return null
@@ -53,33 +56,53 @@ export const SignedSender = (props: SignedSenderProps) => {
 
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.signedContainer}>
-      <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center" style={styles.signedSender}>
-        {signed && signedBy
-          ? [
-              <Kb.Avatar key="avatar" size={16} username={signedBy.stringValue()} />,
-              <Kb.Text key="signedBy" type="BodySmall">
-                Signed by {canSelfSign ? ' you, ' : ''}
+      {signed && signedByUsername ? (
+        <Kb.Box2
+          direction="horizontal"
+          gap={isSelfSigned ? 'xtiny' : 'xsmall'}
+          alignItems="center"
+          style={styles.signedSender}
+        >
+          <Kb.Avatar key="avatar" size={avatarSize} username={signedByUsername.stringValue()} />
+
+          {isSelfSigned ? (
+            [
+              <Kb.Text key="signedByUsername" type="BodySmall">
+                Signed by {isSelfSigned ? ' you, ' : ''}
               </Kb.Text>,
               <Kb.ConnectedUsernames
                 key="username"
-                type="BodySmallBold"
-                usernames={[signedBy.stringValue()]}
+                type={usernameType}
+                usernames={[signedByUsername.stringValue()]}
                 colorFollowing={true}
                 colorYou={true}
               />,
             ]
-          : [
-              <Kb.Icon key="avatar" type="icon-placeholder-secret-user-16" />,
-              canSelfSign ? null : (
-                <Kb.Text key="username" type="BodySmallSemibold">
-                  Anonymous sender
-                </Kb.Text>
-              ),
-              <Kb.Text key="signedBy" type="BodySmall">
-                {canSelfSign ? `Not signed (Sending anonymously)` : `(Not signed)`}
-              </Kb.Text>,
-            ]}
-      </Kb.Box2>
+          ) : (
+            <Kb.Box2 key="signedByUsername" direction="vertical">
+              <Kb.ConnectedUsernames
+                type={usernameType}
+                usernames={[signedByUsername.stringValue()]}
+                colorFollowing={true}
+                colorYou={true}
+              />
+              {signedByFullname && <Kb.Text type="BodySmall">{signedByFullname.stringValue()}</Kb.Text>}
+            </Kb.Box2>
+          )}
+        </Kb.Box2>
+      ) : (
+        <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center" style={styles.signedSender}>
+          <Kb.Icon key="avatar" type="icon-placeholder-secret-user-16" />
+          {isSelfSigned ? null : (
+            <Kb.Text key="username" type="BodySmallSemibold">
+              Anonymous sender
+            </Kb.Text>
+          )}
+          <Kb.Text key="signedByUsername" type="BodySmall">
+            {isSelfSigned ? `Not signed (Sending anonymously)` : `(Not signed)`}
+          </Kb.Text>
+        </Kb.Box2>
+      )}
       {waiting && <Kb.ProgressIndicator type="Small" white={false} />}
     </Kb.Box2>
   )
@@ -160,43 +183,41 @@ export const OutputBar = (props: OutputBarProps) => {
   }, [showingToast, setHideToastTimeout])
 
   return outputStatus && outputStatus === 'success' ? (
-    <>
-      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.outputBarContainer}>
-        {outputType === 'file' ? (
-          <Kb.ButtonBar direction="row" align="flex-start" style={styles.buttonBar}>
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.outputBarContainer}>
+      {outputType === 'file' ? (
+        <Kb.ButtonBar direction="row" align="flex-start" style={styles.buttonBar}>
+          <Kb.Button
+            mode="Secondary"
+            label={`Open in ${Styles.fileUIName}`}
+            onClick={() => onShowInFinder()}
+          />
+        </Kb.ButtonBar>
+      ) : (
+        <Kb.ButtonBar direction="row" align="flex-start" style={styles.buttonBar}>
+          <Kb.Box2 direction="horizontal" ref={attachmentRef}>
+            <Kb.Toast position="top center" attachTo={() => attachmentRef.current} visible={showingToast}>
+              <Kb.Text type="BodySmall" style={styles.toastText}>
+                Copied to clipboard
+              </Kb.Text>
+            </Kb.Toast>
             <Kb.Button
               mode="Secondary"
-              label={`Open in ${Styles.fileUIName}`}
-              onClick={() => onShowInFinder()}
+              label="Copy to clipboard"
+              disabled={actionsDisabled}
+              onClick={() => copy()}
             />
-          </Kb.ButtonBar>
-        ) : (
-          <Kb.ButtonBar direction="row" align="flex-start" style={styles.buttonBar}>
-            <Kb.Box2 direction="horizontal" ref={attachmentRef}>
-              <Kb.Toast position="top center" attachTo={() => attachmentRef.current} visible={showingToast}>
-                <Kb.Text type="BodySmall" style={styles.toastText}>
-                  Copied to clipboard
-                </Kb.Text>
-              </Kb.Toast>
-              <Kb.Button
-                mode="Secondary"
-                label="Copy to clipboard"
-                disabled={actionsDisabled}
-                onClick={() => copy()}
-              />
-            </Kb.Box2>
-            {canSaveAsText && (
-              <Kb.Button
-                mode="Secondary"
-                label="Save as TXT"
-                onClick={onSaveAsText}
-                disabled={actionsDisabled}
-              />
-            )}
-          </Kb.ButtonBar>
-        )}
-      </Kb.Box2>
-    </>
+          </Kb.Box2>
+          {canSaveAsText && (
+            <Kb.Button
+              mode="Secondary"
+              label="Save as TXT"
+              onClick={onSaveAsText}
+              disabled={actionsDisabled}
+            />
+          )}
+        </Kb.ButtonBar>
+      )}
+    </Kb.Box2>
   ) : (
     <Kb.Box2
       direction="horizontal"
