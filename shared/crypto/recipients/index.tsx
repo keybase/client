@@ -14,13 +14,13 @@ const Recipients = () => {
   const recipients = Container.useSelector(state => state.crypto.encrypt.recipients)
 
   // Actions
-  const onAddRecipients = React.useCallback(() => {
+  const onAddRecipients = () => {
     dispatch(appendEncryptRecipientsBuilder())
-  }, [dispatch])
+  }
 
-  const onClearRecipients = React.useCallback(() => {
+  const onClearRecipients = () => {
     dispatch(CryptoGen.createClearRecipients({operation: Constants.Operations.Encrypt}))
-  }, [dispatch])
+  }
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>

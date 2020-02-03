@@ -3,19 +3,10 @@ import * as Container from '../../util/container'
 import * as Sb from '../../stories/storybook'
 import Recipients from '.'
 
-const noUsers: Array<string> = []
 const oneUser = ['cecileb']
 const muiltipleUsers = ['chris', 'cecileb', 'cdixon', 'max']
 
-const storeCommon = Sb.createStoreWithCommon()
-const store = {
-  ...storeCommon,
-  crypto: {
-    encrypt: {
-      recipients: noUsers,
-    },
-  },
-}
+const store = Sb.createStoreWithCommon()
 
 const load = () => {
   Sb.storiesOf('Crypto/Recipients', module)

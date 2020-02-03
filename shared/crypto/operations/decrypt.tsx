@@ -16,7 +16,7 @@ const Decrypt = () => {
     >
       <Kb.Box2 direction="vertical" fullHeight={true}>
         <OperationBanner operation={operation} />
-        <Input operation={Constants.Operations.Decrypt} fileDroppedCounter={fileDroppedCounter} />
+        <Input operation={operation} fileDroppedCounter={fileDroppedCounter} />
         <OutputProgress operation={operation} />
         <Kb.Box2 direction="vertical" fullHeight={true}>
           <SignedSender operation={operation} />

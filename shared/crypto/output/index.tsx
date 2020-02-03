@@ -87,7 +87,8 @@ export const SignedSender = (props: SignedSenderProps) => {
 
 export const OutputProgress = (props: OutputProgressProps) => {
   const {operation} = props
-  // State
+
+  // Store
   const outputStatus = Container.useSelector(state => state.crypto[operation].outputStatus)
   const bytesTotal = Container.useSelector(state => state.crypto[operation].bytesTotal)
   const bytesComplete = Container.useSelector(state => state.crypto[operation].bytesComplete)
@@ -127,17 +128,17 @@ export const OutputBar = (props: OutputBarProps) => {
   const actionsDisabled = waiting || !outputMatchesInput
 
   // Actions
-  const onShowInFinder = React.useCallback(() => {
+  const onShowInFinder = () => {
     dispatch(FSGen.createOpenLocalPathInSystemFileManager({localPath: output}))
-  }, [dispatch, output])
+  }
 
-  const onCopyOutput = React.useCallback(() => {
+  const onCopyOutput = () => {
     dispatch(ConfigGen.createCopyToClipboard({text: output}))
-  }, [dispatch, output])
+  }
 
-  const onSaveAsText = React.useCallback(() => {
+  const onSaveAsText = () => {
     dispatch(CryptoGen.createDownloadSignedText())
-  }, [dispatch])
+  }
 
   // State, Refs, Timers
   const attachmentRef = React.useRef<Kb.Box2>(null)
@@ -145,11 +146,11 @@ export const OutputBar = (props: OutputBarProps) => {
 
   const setHideToastTimeout = Kb.useTimeout(() => setShowingToast(false), 1500)
 
-  const copy = React.useCallback(() => {
+  const copy = () => {
     if (!output) return
     setShowingToast(true)
     onCopyOutput()
-  }, [output, onCopyOutput])
+  }
 
   // Start timeout to clear toast if currently displayed
   React.useEffect(() => {
@@ -219,10 +220,10 @@ const Output = (props: OutputProps) => {
   const outputType = Container.useSelector(state => state.crypto[operation].outputType)
 
   // Actions
-  const onShowInFinder = React.useCallback(() => {
+  const onShowInFinder = () => {
     if (!output) return
     dispatch(FSGen.createOpenLocalPathInSystemFileManager({localPath: output}))
-  }, [dispatch, output])
+  }
 
   // Waiting
   const waitingKey = Constants.getStringWaitingKey(operation)

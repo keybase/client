@@ -63,15 +63,15 @@ export const TextInput = (props: TextProps) => {
   // When 'browse file' is show, focus input by clicking anywhere in the input box
   // (despite the input being one line tall)
   const inputRef = React.useRef<Kb.PlainInput>(null)
-  const onFocusInput = React.useCallback(() => {
+  const onFocusInput = () => {
     if (inputRef && inputRef.current) {
       inputRef.current.focus()
     }
-  }, [inputRef])
+  }
 
   // Handle native file browser via <input type='file' ... />
   const filePickerRef = React.useRef<HTMLInputElement>(null)
-  const selectFile = React.useCallback(() => {
+  const selectFile = () => {
     const files = (filePickerRef && filePickerRef.current && filePickerRef.current.files) || []
     const allPaths: Array<string> = files.length
       ? Array.from(files)
@@ -83,12 +83,12 @@ export const TextInput = (props: TextProps) => {
     if (path) {
       onSetFile(path)
     }
-  }, [filePickerRef, onSetFile])
-  const openFilePicker = React.useCallback(() => {
+  }
+  const openFilePicker = () => {
     if (filePickerRef && filePickerRef.current) {
       filePickerRef.current.click()
     }
-  }, [filePickerRef])
+  }
 
   return (
     <Kb.Box onClick={onFocusInput} style={styles.containerInputFocus}>
@@ -201,24 +201,20 @@ export const Input = (props: InputProps) => {
   const [inputValue, setInputValue] = React.useState(input)
 
   // Actions
-  const onSetInput = React.useCallback(
-    (type: Types.InputTypes, newValue: string) => {
-      dispatch(CryptoGen.createSetInput({operation, type, value: new HiddenString(newValue)}))
-    },
-    [dispatch, operation]
-  )
-  const onClearInput = React.useCallback(() => {
+  const onSetInput = (type: Types.InputTypes, newValue: string) => {
+    dispatch(CryptoGen.createSetInput({operation, type, value: new HiddenString(newValue)}))
+  }
+  const onClearInput = () => {
     dispatch(CryptoGen.createClearInput({operation}))
-  }, [dispatch, operation])
+  }
 
   // Clear the local input state when a user has dragged and dropped a file into the operation
   // If the input is not cleared then dropping a file, then clearing the file will show old text input
-  const prevCounter = Container.usePrevious(fileDroppedCounter)
   React.useEffect(() => {
-    if (prevCounter && fileDroppedCounter > prevCounter) {
+    if (fileDroppedCounter > 0) {
       setInputValue('')
     }
-  }, [fileDroppedCounter, prevCounter])
+  }, [fileDroppedCounter])
 
   return inputType === 'file' ? (
     <FileInput
@@ -249,14 +245,12 @@ export const DragAndDrop = (props: DragAndDropProps) => {
   const dispatch = Container.useDispatch()
 
   // Actions
-  const onAttach = React.useCallback(
-    (localPaths: Array<string>) => {
-      const path = localPaths[0]
-      onClearInput()
-      dispatch(CryptoGen.createSetInput({operation, type: 'file', value: new HiddenString(path)}))
-    },
-    [dispatch, onClearInput, operation]
-  )
+  const onAttach = (localPaths: Array<string>) => {
+    const path = localPaths[0]
+    onClearInput()
+    dispatch(CryptoGen.createSetInput({operation, type: 'file', value: new HiddenString(path)}))
+  }
+
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
       <Kb.DragAndDrop

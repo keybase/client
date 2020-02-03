@@ -2,23 +2,9 @@ import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/crypto'
-import HiddenString from '../../util/hidden-string'
 import {Input} from '.'
 
-const cryptoCommon = {
-  input: new HiddenString(''),
-  inputType: 'text',
-}
-const storeCommon = Sb.createStoreWithCommon()
-const store = {
-  ...storeCommon,
-  crypto: {
-    decrypt: cryptoCommon,
-    encrypt: cryptoCommon,
-    sign: cryptoCommon,
-    verify: cryptoCommon,
-  },
-}
+const store = Sb.createStoreWithCommon()
 
 const fileDroppedCounter = 0
 const filePathPlaintext = '/path/to/file.pdf'
@@ -39,7 +25,7 @@ const load = () => {
     .addDecorator((story: any) => (
       <Sb.MockStore
         store={Container.produce(store, draftState => {
-          draftState.crypto.encrypt.input = new HiddenString(shortText)
+          draftState.crypto.encrypt.input = new Container.HiddenString(shortText)
         })}
       >
         {story()}
@@ -52,7 +38,7 @@ const load = () => {
     .addDecorator((story: any) => (
       <Sb.MockStore
         store={Container.produce(store, draftState => {
-          draftState.crypto.encrypt.input = new HiddenString(longText)
+          draftState.crypto.encrypt.input = new Container.HiddenString(longText)
         })}
       >
         {story()}
@@ -67,7 +53,7 @@ const load = () => {
       <Sb.MockStore
         store={Container.produce(store, draftState => {
           draftState.crypto.encrypt.inputType = 'file'
-          draftState.crypto.encrypt.input = new HiddenString(filePathPlaintext)
+          draftState.crypto.encrypt.input = new Container.HiddenString(filePathPlaintext)
         })}
       >
         {story()}
@@ -81,7 +67,7 @@ const load = () => {
       <Sb.MockStore
         store={Container.produce(store, draftState => {
           draftState.crypto.decrypt.inputType = 'file'
-          draftState.crypto.decrypt.input = new HiddenString(filePathEncrypted)
+          draftState.crypto.decrypt.input = new Container.HiddenString(filePathEncrypted)
         })}
       >
         {story()}
@@ -96,7 +82,7 @@ const load = () => {
       <Sb.MockStore
         store={Container.produce(store, draftState => {
           draftState.crypto.verify.inputType = 'file'
-          draftState.crypto.verify.input = new HiddenString(filePathSigned)
+          draftState.crypto.verify.input = new Container.HiddenString(filePathSigned)
         })}
       >
         {story()}

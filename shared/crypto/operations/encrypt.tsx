@@ -22,13 +22,10 @@ const EncryptOptions = () => {
   const sign = Container.useSelector(state => state.crypto.encrypt.options.sign)
 
   // Actions
-  const onSetOptions = React.useCallback(
-    (opts: {newIncludeSelf: boolean; newSign: boolean}) => {
-      const {newIncludeSelf, newSign} = opts
-      dispatch(CryptoGen.createSetEncryptOptions({options: {includeSelf: newIncludeSelf, sign: newSign}}))
-    },
-    [dispatch]
-  )
+  const onSetOptions = (opts: {newIncludeSelf: boolean; newSign: boolean}) => {
+    const {newIncludeSelf, newSign} = opts
+    dispatch(CryptoGen.createSetEncryptOptions({options: {includeSelf: newIncludeSelf, sign: newSign}}))
+  }
 
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} gap="medium" style={styles.optionsContainer}>

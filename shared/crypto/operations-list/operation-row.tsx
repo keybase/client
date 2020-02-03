@@ -17,9 +17,9 @@ const OperationRow = (props: Props) => {
   const {tab, isSelected, title, icon} = props
   const dispatch = Container.useDispatch()
 
-  const onSelect = React.useCallback(() => {
+  const onSelect = () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: [tab], replace: true}))
-  }, [dispatch, tab])
+  }
 
   return (
     <Kb.Box2
