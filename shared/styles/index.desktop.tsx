@@ -1,11 +1,11 @@
 import {themed, colors, darkColors} from './colors'
 import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
+import path from 'path'
 import * as Shared from './shared'
 import {isDarkMode} from './dark-mode'
 import isEmpty from 'lodash/isEmpty'
 import styleSheeCreateProxy from './style-sheet-proxy'
 import * as CSS from './css'
-const {extname, basename} = KB.path
 
 type _Elem = Object | null | false | void
 // CollapsibleStyle is a generic version of ?StylesMobile and family,
@@ -59,7 +59,7 @@ const font = {
 }
 
 const util = {
-  ...Shared.util({flexCommon: {display: 'flex'}}),
+  ...Shared.util,
   loadingTextStyle: {
     // this won't really work with dark mode
     backgroundColor: colors.greyLight,
@@ -107,8 +107,8 @@ export const backgroundURL = (...to: Array<string>) => {
 
   if (goodPath && goodPath.length) {
     const last = goodPath[goodPath.length - 1]
-    const ext = extname(last)
-    goodPath[goodPath.length - 1] = basename(last, ext)
+    const ext = path.extname(last)
+    goodPath[goodPath.length - 1] = path.basename(last, ext)
     const guiModePath = `${isDarkMode() ? 'dark-' : ''}${goodPath}`
 
     const images = [1, 2, 3].map(

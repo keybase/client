@@ -162,6 +162,12 @@ func (h ConfigHandler) GetFullStatus(ctx context.Context, sessionID int) (res *k
 	return status.GetFullStatus(mctx)
 }
 
+func (h ConfigHandler) GetNetworkStats(ctx context.Context, sessionID int) (res []keybase1.InstrumentationStat, err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("CFG")
+	defer mctx.TraceTimed("GetNetworkStats", func() error { return err })()
+	return mctx.G().NetworkInstrumenterStorage.Stats()
+}
+
 func (h ConfigHandler) LogSend(ctx context.Context, arg keybase1.LogSendArg) (res keybase1.LogSendID, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("CFG")
 	defer mctx.TraceTimed("LogSend", func() error { return err })()
@@ -177,9 +183,10 @@ func (h ConfigHandler) LogSend(ctx context.Context, arg keybase1.LogSendArg) (re
 		numBytes = status.LogSendMaxBytes
 	}
 
-	logSendContext := status.NewLogSendContext(h.G(), fstatus, statusJSON, arg.Feedback)
+	// pass empty networkStatsJSON here since we call LogSend with addNetworkStats=true below
+	logSendContext := status.NewLogSendContext(h.G(), fstatus, statusJSON, "", arg.Feedback)
 	return logSendContext.LogSend(arg.SendLogs, numBytes,
-		false /* mergeExtendedStatus */)
+		false /* mergeExtendedStatus */, true /* addNetworkStats */)
 }
 
 func (h ConfigHandler) GetAllProvisionedUsernames(ctx context.Context, sessionID int) (res keybase1.AllProvisionedUsernames, err error) {

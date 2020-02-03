@@ -12,8 +12,8 @@ export type GitInfo = {
   url: string
 }
 
-export type State = Readonly<{
-  error?: Error
-  idToInfo: Map<string, GitInfo>
-  isNew: Set<string>
-}>
+export type State = {
+  readonly error?: Error
+  readonly idToInfo: Map<string, GitInfo>
+  readonly isNew: Set<string>
+}

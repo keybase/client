@@ -2,7 +2,7 @@
 // This acts as a fake store for remote windows
 // On the main window we plumb through our props and we 'mirror' the props using this helper
 // We start up and send an action to the main window which then sends us 'props'
-import * as Electron from 'electron'
+import * as SafeElectron from '../../util/safe-electron.desktop'
 import {mainWindowDispatch} from './util.desktop'
 import {createStore, applyMiddleware, Store} from 'redux'
 import {TypedActions} from '../../actions/typed-actions-gen'
@@ -18,7 +18,7 @@ type UpdateStoreAction = {
 }
 
 class RemoteStore {
-  _window: Electron.BrowserWindow | null = null
+  _window: SafeElectron.BrowserWindowType | null = null
   _store: Store<any, any>
   _gotPropsCallback: (() => void) | null = null // let component know it loaded once so it can show itself. Set to null after calling once
   _deserialize: (arg0: any, arg1: any) => any
@@ -41,7 +41,7 @@ class RemoteStore {
   }
 
   _registerForRemoteUpdate = () => {
-    this._window = Electron.remote.getCurrentWindow()
+    this._window = SafeElectron.getRemote().getCurrentWindow()
     // @ts-ignore custom event
     this._window.on('KBprops', this._onPropsUpdated)
   }

@@ -190,7 +190,7 @@ func TestCanLogoutWhenRevoked(t *testing.T) {
 	// Provision second device
 	tc2 := libkb.SetupTest(t, "randompw2", 3)
 	defer tc2.Cleanup()
-	kbtest.ProvisionNewDeviceKex(&tc, &tc2, user, libkb.DeviceTypeDesktop)
+	kbtest.ProvisionNewDeviceKex(&tc, &tc2, user, keybase1.DeviceTypeV2_DESKTOP)
 
 	// Should still see "can't logout" on second device (also populate
 	// HasRandomPW cache).

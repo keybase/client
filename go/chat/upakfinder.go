@@ -12,8 +12,9 @@ import (
 )
 
 type udStoredRes struct {
-	username               libkb.NormalizedUsername
-	deviceName, deviceType string
+	username   libkb.NormalizedUsername
+	deviceName string
+	deviceType keybase1.DeviceTypeV2
 }
 
 type checkKidStoredRes struct {
@@ -56,7 +57,7 @@ func (u *CachingUPAKFinder) lookupUDKey(key string) (udStoredRes, bool) {
 	return existing, ok
 }
 
-func (u *CachingUPAKFinder) writeUDKey(key string, username libkb.NormalizedUsername, deviceName, deviceType string) {
+func (u *CachingUPAKFinder) writeUDKey(key string, username libkb.NormalizedUsername, deviceName string, deviceType keybase1.DeviceTypeV2) {
 	u.udLock.Lock()
 	defer u.udLock.Unlock()
 	u.udCache[key] = udStoredRes{
@@ -84,7 +85,7 @@ func (u *CachingUPAKFinder) writeCheckKidKey(key string, found bool, revokedAt *
 	}
 }
 
-func (u *CachingUPAKFinder) LookupUsernameAndDevice(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID) (username libkb.NormalizedUsername, deviceName string, deviceType string, err error) {
+func (u *CachingUPAKFinder) LookupUsernameAndDevice(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID) (username libkb.NormalizedUsername, deviceName string, deviceType keybase1.DeviceTypeV2, err error) {
 	key := u.udKey(uid, deviceID)
 	existing, ok := u.lookupUDKey(key)
 	if ok {

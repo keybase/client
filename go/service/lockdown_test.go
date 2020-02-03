@@ -105,7 +105,7 @@ func TestLockdownProvisionAndLogin(t *testing.T) {
 
 	tc2 := libkb.SetupTest(t, "lockdown_second", 3)
 	defer tc2.Cleanup()
-	kbtest.ProvisionNewDeviceKex(&tc, &tc2, user, libkb.DeviceTypeDesktop)
+	kbtest.ProvisionNewDeviceKex(&tc, &tc2, user, keybase1.DeviceTypeV2_DESKTOP)
 
 	kbtest.Logout(tc)
 

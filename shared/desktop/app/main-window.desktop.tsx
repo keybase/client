@@ -8,11 +8,9 @@ import {mainWindowDispatch} from '../remote/util.desktop'
 import {WindowState} from '../../constants/types/config'
 import {showDevTools} from '../../local-debug.desktop'
 import {guiConfigFilename, isDarwin, isWindows, defaultUseNativeFrame} from '../../constants/platform.desktop'
-import {resolveRoot, resolveRootAsURL} from './resolve-root.desktop'
 import logger from '../../logger'
+import {resolveRootAsURL} from './resolve-root.desktop'
 import debounce from 'lodash/debounce'
-
-const {env} = KB.process
 
 let htmlFile = resolveRootAsURL('dist', `main${__DEV__ ? '.dev' : ''}.html`)
 
@@ -76,6 +74,19 @@ const setupWindowEvents = (win: Electron.BrowserWindow) => {
   }
 
   win.on('close', hideInsteadOfClose)
+
+  type IPCPayload = {type: 'showMainWindow'} | {type: 'closeWindows'}
+  Electron.app.on('KBkeybase' as any, (_: string, payload: IPCPayload) => {
+    switch (payload.type) {
+      case 'showMainWindow':
+        win.show()
+        showDockIcon()
+        break
+      case 'closeWindows':
+        hideDockIcon()
+        break
+    }
+  })
 }
 
 const changeDock = (show: boolean) => {
@@ -195,11 +206,11 @@ const maybeShowWindowOrDock = (win: Electron.BrowserWindow) => {
   const openedAtLogin = Electron.app.getLoginItemSettings().wasOpenedAtLogin
   // app.getLoginItemSettings().restoreState is Mac only, so consider it always on in Windows
   const isRestore =
-    !!env['KEYBASE_RESTORE_UI'] || Electron.app.getLoginItemSettings().restoreState || isWindows
-  const hideWindowOnStart = env['KEYBASE_AUTOSTART'] === '1'
+    !!process.env['KEYBASE_RESTORE_UI'] || Electron.app.getLoginItemSettings().restoreState || isWindows
+  const hideWindowOnStart = process.env['KEYBASE_AUTOSTART'] === '1'
   const openHidden = Electron.app.getLoginItemSettings().wasOpenedAsHidden
-  logger.info('KEYBASE_AUTOSTART =', env['KEYBASE_AUTOSTART'])
-  logger.info('KEYBASE_START_UI =', env['KEYBASE_START_UI'])
+  logger.info('KEYBASE_AUTOSTART =', process.env['KEYBASE_AUTOSTART'])
+  logger.info('KEYBASE_START_UI =', process.env['KEYBASE_START_UI'])
   logger.info('Opened at login:', openedAtLogin)
   logger.info('Is restore:', isRestore)
   logger.info('Open hidden:', openHidden)
@@ -265,7 +276,6 @@ export default () => {
       devTools: showDevTools,
       nodeIntegration: true,
       nodeIntegrationInWorker: false,
-      preload: resolveRoot('dist', `preload-main${__DEV__ ? '.dev' : ''}.bundle.js`),
     },
     width: windowState.width,
     x: windowState.x,

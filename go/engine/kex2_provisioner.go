@@ -26,7 +26,7 @@ type Kex2Provisioner struct {
 	encryptionKey         libkb.NaclDHKeyPair
 	pps                   keybase1.PassphraseStream
 	provisioneeDeviceName string
-	provisioneeDeviceType string
+	provisioneeDeviceType keybase1.DeviceTypeV2
 	mctx                  libkb.MetaContext
 	proof                 *jsonw.Wrapper
 }
@@ -168,6 +168,11 @@ func (e *Kex2Provisioner) AddSecret(s kex2.Secret) {
 // GetLogFactory implements GetLogFactory in kex2.Provisioner.
 func (e *Kex2Provisioner) GetLogFactory() rpc.LogFactory {
 	return rpc.NewSimpleLogFactory(e.G().Log, nil)
+}
+
+// GetNetworkInstrumenter implements GetNetworkInstrumenter in kex2.Provisioner.
+func (e *Kex2Provisioner) GetNetworkInstrumenter() *rpc.NetworkInstrumenter {
+	return rpc.NewNetworkInstrumenter(e.G().NetworkInstrumenterStorage)
 }
 
 // GetHelloArg implements GetHelloArg in kex2.Provisioner.
@@ -426,9 +431,9 @@ func (e *Kex2Provisioner) rememberDeviceInfo(jw *jsonw.Wrapper) error {
 	if err != nil {
 		return err
 	}
-	e.provisioneeDeviceType = dtype
+	e.provisioneeDeviceType, err = keybase1.StringToDeviceTypeV2(dtype)
 
-	return nil
+	return err
 }
 
 // Returns nil if there are no per-user-keys.

@@ -63,6 +63,7 @@ type ConnectionTransport interface {
 
 type connTransport struct {
 	uri             *FMPURI
+	instrumenter    *NetworkInstrumenter
 	l               LogFactory
 	wef             WrapErrorFunc
 	maxFrameLength  int32
@@ -75,20 +76,24 @@ type connTransport struct {
 var _ ConnectionTransport = (*connTransport)(nil)
 
 // NewConnectionTransport creates a ConnectionTransport for a given FMPURI.
-func NewConnectionTransport(uri *FMPURI, l LogFactory, wef WrapErrorFunc, maxFrameLength int32) ConnectionTransport {
+func NewConnectionTransport(uri *FMPURI, l LogFactory, instrumenter *NetworkInstrumenter,
+	wef WrapErrorFunc, maxFrameLength int32) ConnectionTransport {
 	return &connTransport{
 		uri:            uri,
 		l:              l,
+		instrumenter:   instrumenter,
 		wef:            wef,
 		maxFrameLength: maxFrameLength,
 	}
 }
 
 // NewConnectionTransportWithDialable creates a ConnectionTransport for a given FMPURI via the given Dialable
-func NewConnectionTransportWithDialable(uri *FMPURI, l LogFactory, wef WrapErrorFunc, maxFrameLength int32, dialable Dialable) ConnectionTransport {
+func NewConnectionTransportWithDialable(uri *FMPURI, l LogFactory, instrumenter *NetworkInstrumenter,
+	wef WrapErrorFunc, maxFrameLength int32, dialable Dialable) ConnectionTransport {
 	return &connTransport{
 		uri:            uri,
 		l:              l,
+		instrumenter:   instrumenter,
 		wef:            wef,
 		maxFrameLength: maxFrameLength,
 		dialable:       dialable,
@@ -126,7 +131,7 @@ func (t *connTransport) Dial(ctx context.Context) (Transporter, error) {
 	if t.stagedTransport != nil {
 		t.stagedTransport.Close()
 	}
-	t.stagedTransport = NewTransport(t.conn, t.l, t.wef, t.maxFrameLength)
+	t.stagedTransport = NewTransport(t.conn, t.l, t.instrumenter, t.wef, t.maxFrameLength)
 	return t.stagedTransport, nil
 }
 
@@ -203,6 +208,7 @@ type ConnectionTransportTLS struct {
 	conn             net.Conn
 	dialerTimeout    time.Duration
 	handshakeTimeout time.Duration
+	instrumenter     *NetworkInstrumenter
 	logFactory       LogFactory
 	wef              WrapErrorFunc
 	log              ConnectionLog
@@ -306,7 +312,7 @@ func (ct *ConnectionTransportTLS) Dial(ctx context.Context) (
 	if ct.conn != nil {
 		ct.conn.Close()
 	}
-	transport := NewTransport(conn, ct.logFactory, ct.wef, ct.maxFrameLength)
+	transport := NewTransport(conn, ct.logFactory, ct.instrumenter, ct.wef, ct.maxFrameLength)
 	ct.conn = conn
 	if ct.stagedTransport != nil {
 		ct.stagedTransport.Close()
@@ -420,6 +426,7 @@ func NewTLSConnectionWithConnectionLogFactory(
 	errorUnwrapper ErrorUnwrapper,
 	handler ConnectionHandler,
 	logFactory LogFactory,
+	instrumenter *NetworkInstrumenter,
 	connectionLogFactory ConnectionLogFactory,
 	maxFrameLength int32,
 	opts ConnectionOpts,
@@ -428,6 +435,7 @@ func NewTLSConnectionWithConnectionLogFactory(
 		rootCerts:        rootCerts,
 		srvRemote:        srvRemote,
 		maxFrameLength:   maxFrameLength,
+		instrumenter:     instrumenter,
 		logFactory:       logFactory,
 		wef:              opts.WrapErrorFunc,
 		dialerTimeout:    opts.DialerTimeout,
@@ -447,6 +455,7 @@ func NewTLSConnection(
 	errorUnwrapper ErrorUnwrapper,
 	handler ConnectionHandler,
 	logFactory LogFactory,
+	instrumenter *NetworkInstrumenter,
 	logOutput LogOutputWithDepthAdder,
 	maxFrameLength int32,
 	opts ConnectionOpts,
@@ -456,6 +465,7 @@ func NewTLSConnection(
 		srvRemote:        srvRemote,
 		maxFrameLength:   maxFrameLength,
 		logFactory:       logFactory,
+		instrumenter:     instrumenter,
 		wef:              opts.WrapErrorFunc,
 		dialerTimeout:    opts.DialerTimeout,
 		handshakeTimeout: opts.HandshakeTimeout,
@@ -472,6 +482,7 @@ func NewTLSConnectionWithTLSConfig(
 	errorUnwrapper ErrorUnwrapper,
 	handler ConnectionHandler,
 	logFactory LogFactory,
+	instrumenter *NetworkInstrumenter,
 	logOutput LogOutputWithDepthAdder,
 	maxFrameLength int32,
 	opts ConnectionOpts,
@@ -481,6 +492,7 @@ func NewTLSConnectionWithTLSConfig(
 		tlsConfig:        copyTLSConfig(tlsConfig),
 		maxFrameLength:   maxFrameLength,
 		logFactory:       logFactory,
+		instrumenter:     instrumenter,
 		wef:              opts.WrapErrorFunc,
 		dialerTimeout:    opts.DialerTimeout,
 		handshakeTimeout: opts.HandshakeTimeout,
@@ -497,6 +509,7 @@ func NewTLSConnectionWithDialable(
 	errorUnwrapper ErrorUnwrapper,
 	handler ConnectionHandler,
 	logFactory LogFactory,
+	instrumenter *NetworkInstrumenter,
 	logOutput LogOutputWithDepthAdder,
 	maxFrameLength int32,
 	opts ConnectionOpts,
@@ -507,6 +520,7 @@ func NewTLSConnectionWithDialable(
 		srvRemote:        srvRemote,
 		maxFrameLength:   maxFrameLength,
 		logFactory:       logFactory,
+		instrumenter:     instrumenter,
 		wef:              opts.WrapErrorFunc,
 		dialerTimeout:    opts.DialerTimeout,
 		handshakeTimeout: opts.HandshakeTimeout,

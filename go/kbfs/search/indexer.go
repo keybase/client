@@ -73,6 +73,7 @@ type Indexer struct {
 	once         sync.Once
 	indexWG      kbfssync.RepeatedWaitGroup
 	kvstoreName  string
+	fullIndexCB  func() error // helpful for testing
 
 	userChangedCh chan struct{}
 	tlfCh         chan tlfMessage
@@ -83,6 +84,7 @@ type Indexer struct {
 	indexConfig    libkbfs.Config
 	configShutdown func(context.Context) error
 	blocksDb       *IndexedBlockDb
+	tlfDb          *IndexedTlfDb
 	docDb          *DocDb
 	indexReadyCh   chan struct{}
 	cancelCtx      context.CancelFunc
@@ -142,6 +144,7 @@ func (i *Indexer) closeIndexLocked(ctx context.Context) error {
 	}
 
 	i.blocksDb.Shutdown(ctx)
+	i.tlfDb.Shutdown(ctx)
 	i.docDb.Shutdown(ctx)
 
 	shutdownErr := i.configShutdown(ctx)
@@ -149,6 +152,7 @@ func (i *Indexer) closeIndexLocked(ctx context.Context) error {
 	i.indexConfig = nil
 	i.blocksDb = nil
 	i.docDb = nil
+	i.tlfDb = nil
 	i.cancelCtx()
 	return shutdownErr
 }
@@ -288,6 +292,12 @@ func (i *Indexer) loadIndex(ctx context.Context) (err error) {
 		return err
 	}
 
+	// Load the TLF DB.
+	tlfDb, err := newIndexedTlfDb(i.config, indexConfig.StorageRoot())
+	if err != nil {
+		return err
+	}
+
 	err = fs.MkdirAll(docDbDir, 0600)
 	if err != nil {
 		return err
@@ -311,6 +321,7 @@ func (i *Indexer) loadIndex(ctx context.Context) (err error) {
 	i.indexConfig = indexConfig
 	i.configShutdown = configShutdown
 	i.blocksDb = blocksDb
+	i.tlfDb = tlfDb
 	i.docDb = docDb
 	i.cancelCtx = cancelCtx
 	close(i.indexReadyCh)
@@ -340,6 +351,7 @@ func (i *Indexer) FullSyncStarted(
 		select {
 		case <-waitCh:
 		case <-i.shutdownCh:
+			i.indexWG.Done()
 			return
 		}
 
@@ -347,8 +359,10 @@ func (i *Indexer) FullSyncStarted(
 		select {
 		case i.tlfCh <- m:
 		default:
+			i.indexWG.Done()
 			i.log.CDebugf(
-				context.Background(), "Couldn't send TLF message for %s/%d")
+				context.Background(), "Couldn't send TLF message for %s/%d",
+				tlfID, rev)
 		}
 	}()
 }
@@ -358,12 +372,15 @@ func (i *Indexer) FullSyncStarted(
 func (i *Indexer) SyncModeChanged(
 	ctx context.Context, tlfID tlf.ID, newMode keybase1.FolderSyncMode) {
 	i.log.CDebugf(ctx, "Sync mode changed for %s to %s", tlfID, newMode)
+	i.indexWG.Add(1)
 	m := tlfMessage{tlfID, kbfsmd.RevisionUninitialized, newMode}
 	select {
 	case i.tlfCh <- m:
 	default:
+		i.indexWG.Done()
 		i.log.CDebugf(
-			context.Background(), "Couldn't send TLF message for %s/%d")
+			context.Background(), "Couldn't send TLF message for %s/%s",
+			tlfID, newMode)
 	}
 }
 
@@ -392,37 +409,73 @@ func nameDocID(docID string) string {
 
 func (i *Indexer) indexChildWithPtrAndNode(
 	ctx context.Context, parentNode libkbfs.Node, parentDocID string,
-	childName data.PathPartString, ptr data.BlockPointer, n libkbfs.Node,
-	ei data.EntryInfo, nextDocID string, revision kbfsmd.Revision) (
-	usedDocID bool, err error) {
+	childName data.PathPartString, oldPtr, newPtr data.BlockPointer,
+	n libkbfs.Node, ei data.EntryInfo, nextDocID string,
+	revision kbfsmd.Revision) (dirDoneFn func() error, err error) {
 	if i.blocksDb == nil {
-		return false, errors.New("No indexed blocks db")
+		return nil, errors.New("No indexed blocks db")
 	}
-	ver, docID, err := i.blocksDb.Get(ctx, ptr)
-	switch errors.Cause(err) {
-	case nil:
-	case ldberrors.ErrNotFound:
-		usedDocID = true
-		docID = nextDocID
-	default:
-		return false, err
+
+	if i.fullIndexCB != nil {
+		// Error on indexing this node if the callback tells us to
+		// (useful for testing).
+		err := i.fullIndexCB()
+		if err != nil {
+			i.log.CDebugf(ctx, "Stopping index due to testing error: %+v", err)
+			return nil, err
+		}
 	}
 
 	tlfID := n.GetFolderBranch().Tlf
+
+	// If the new pointer has already been indexed, skip indexing it again.
+	v, docID, dirDone, err := i.blocksDb.Get(ctx, newPtr)
+	switch errors.Cause(err) {
+	case nil:
+		if v == currentIndexedBlocksDbVersion {
+			i.log.CDebugf(
+				ctx, "%s/%s already indexed; skipping (type=%s, dirDone=%t)",
+				newPtr, childName, ei.Type, dirDone)
+			if ei.Type != data.Dir || dirDone {
+				return nil, nil
+			}
+			return func() error {
+				return i.blocksDb.Put(
+					ctx, tlfID, newPtr, currentIndexedBlocksDbVersion, docID,
+					true)
+			}, nil
+		}
+	case ldberrors.ErrNotFound:
+	default:
+		return nil, err
+	}
+
+	if oldPtr != data.ZeroPtr {
+		_, docID, _, err = i.blocksDb.Get(ctx, oldPtr)
+		switch errors.Cause(err) {
+		case nil:
+		case ldberrors.ErrNotFound:
+			return nil, errors.WithStack(OldPtrNotFound{oldPtr})
+		default:
+			return nil, err
+		}
+	} else {
+		docID = nextDocID
+	}
+
+	dirDoneFn = func() error {
+		return i.blocksDb.Put(
+			ctx, tlfID, newPtr, currentIndexedBlocksDbVersion, docID, true)
+	}
+
 	defer func() {
 		if err != nil {
 			return
 		}
 
-		// Skip the put if we got the doc ID from the DB, and the
-		// version was already up to date.
-		if !usedDocID && ver == currentIndexedBlocksDbVersion {
-			return
-		}
-
 		// Put the docID into the DB after a successful indexing.
 		putErr := i.blocksDb.Put(
-			ctx, tlfID, ptr, currentIndexedBlocksDbVersion, docID)
+			ctx, tlfID, newPtr, currentIndexedBlocksDbVersion, docID, false)
 		if putErr != nil {
 			err = putErr
 			return
@@ -432,6 +485,16 @@ func (i *Indexer) indexChildWithPtrAndNode(
 		putErr = i.docDb.Put(ctx, docID, parentDocID, childName.Plaintext())
 		if putErr != nil {
 			err = putErr
+			return
+		}
+
+		// Delete the old pointer if one was given.
+		if oldPtr != data.ZeroPtr {
+			delErr := i.blocksDb.Delete(ctx, tlfID, oldPtr)
+			if err != nil {
+				err = delErr
+				return
+			}
 		}
 	}()
 
@@ -439,13 +502,13 @@ func (i *Indexer) indexChildWithPtrAndNode(
 	d, nameD, err := makeDoc(
 		ctx, i.config, n, ei, revision, time.Unix(0, ei.Mtime))
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
 	i.lock.RLock()
 	defer i.lock.RUnlock()
 	if i.index == nil {
-		return false, errors.New("Index not loaded")
+		return nil, errors.New("Index not loaded")
 	}
 
 	b := i.index.NewBatch()
@@ -453,85 +516,48 @@ func (i *Indexer) indexChildWithPtrAndNode(
 	if d != nil {
 		err = b.Index(docID, d)
 		if err != nil {
-			return false, err
+			return nil, err
 		}
 	}
 	err = b.Index(nameDocID(docID), nameD)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
 	err = i.index.Batch(b)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
-	return usedDocID, nil
+	return dirDoneFn, nil
 }
 
 func (i *Indexer) indexChild(
 	ctx context.Context, parentNode libkbfs.Node, parentDocID string,
 	childName data.PathPartString, nextDocID string,
-	revision kbfsmd.Revision) (usedDocID bool, err error) {
+	revision kbfsmd.Revision) (dirDoneFn func() error, err error) {
 	ptr, n, ei, err := i.getCurrentPtrAndNode(ctx, parentNode, childName)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
 	return i.indexChildWithPtrAndNode(
-		ctx, parentNode, parentDocID, childName, ptr, n, ei, nextDocID,
-		revision)
+		ctx, parentNode, parentDocID, childName, data.ZeroPtr, ptr, n, ei,
+		nextDocID, revision)
 }
 
 func (i *Indexer) updateChild(
 	ctx context.Context, parentNode libkbfs.Node, parentDocID string,
 	childName data.PathPartString, oldPtr data.BlockPointer,
-	revision kbfsmd.Revision) (err error) {
+	revision kbfsmd.Revision) (dirDoneFn func() error, err error) {
 	newPtr, n, ei, err := i.getCurrentPtrAndNode(ctx, parentNode, childName)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	if i.blocksDb == nil {
-		return errors.New("No indexed blocks db")
-	}
-
-	// Before indexing, move the doc ID over to the new block pointer.
-	v, docID, err := i.blocksDb.Get(ctx, oldPtr)
-	switch errors.Cause(err) {
-	case nil:
-	case ldberrors.ErrNotFound:
-		// Maybe indexing was interrupted in the past, and we've
-		// already moved the doc ID to the new pointer.
-		_, docID, err = i.blocksDb.Get(ctx, newPtr)
-		if err != nil {
-			return err
-		}
-	default:
-		return err
-	}
-
-	tlfID := parentNode.GetFolderBranch().Tlf
-	err = i.blocksDb.Put(ctx, tlfID, newPtr, v, docID)
-	if err != nil {
-		return err
-	}
-	err = i.blocksDb.Delete(ctx, tlfID, oldPtr)
-	if err != nil {
-		return err
-	}
-
-	usedDocID, err := i.indexChildWithPtrAndNode(
-		ctx, parentNode, parentDocID, childName, newPtr, n, ei,
-		docID /* should get picked up from DB, not from this param*/, revision)
-	if err != nil {
-		return err
-	}
-	if usedDocID {
-		return errors.Errorf("Index update %s (%s->%s) used passed-in doc "+
-			"ID %s incorrectly", childName, oldPtr, newPtr, docID)
-	}
-	return nil
+	return i.indexChildWithPtrAndNode(
+		ctx, parentNode, parentDocID, childName, oldPtr, newPtr, n, ei,
+		"" /* should get picked up from DB, not from this param*/, revision)
 }
 
 func (i *Indexer) renameChild(
@@ -547,7 +573,7 @@ func (i *Indexer) renameChild(
 	}
 
 	// Get the docID.
-	_, docID, err := i.blocksDb.Get(ctx, ptr)
+	_, docID, _, err := i.blocksDb.Get(ctx, ptr)
 	if err != nil {
 		// Treat "not found" errors as real errors, since a rename
 		// implies that the doc should have already been indexed.
@@ -576,7 +602,7 @@ func (i *Indexer) deleteFromUnrefs(
 	var unref data.BlockPointer
 unrefLoop:
 	for _, unref = range unrefs {
-		_, docID, err = i.blocksDb.Get(ctx, unref)
+		_, docID, _, err = i.blocksDb.Get(ctx, unref)
 		switch errors.Cause(err) {
 		case nil:
 			break unrefLoop
@@ -644,27 +670,26 @@ func (i *Indexer) indexNewlySyncedTlfDir(
 
 	currDocID := 0
 	for name, child := range children {
-		usedDocID, err := i.indexChild(
+		dirDoneFn, err := i.indexChild(
 			ctx, dir, dirDocID, name, ids[currDocID], rev)
 		if err != nil {
 			return err
 		}
-		var docID string
-		if usedDocID {
-			docID = ids[currDocID]
-			currDocID++
-		} else {
-			return errors.Errorf(
-				"Didn't use new doc ID for newly indexed child %s", name)
-		}
+		docID := ids[currDocID]
+		currDocID++
 
-		if child.Type == data.Dir {
+		if child.Type == data.Dir && dirDoneFn != nil {
 			n, _, err := i.config.KBFSOps().Lookup(ctx, dir, name)
 			if err != nil {
 				return err
 			}
 
 			err = i.indexNewlySyncedTlfDir(ctx, n, docID, rev)
+			if err != nil {
+				return err
+			}
+
+			err = dirDoneFn()
 			if err != nil {
 				return err
 			}
@@ -692,13 +717,110 @@ func (i *Indexer) indexNewlySyncedTlf(
 }
 
 func (i *Indexer) doFullIndex(
-	ctx context.Context, m tlfMessage, rev kbfsmd.Revision) error {
-	defer i.indexWG.Done()
+	ctx context.Context, m tlfMessage, rev kbfsmd.Revision) (err error) {
 	fs, err := i.fsForRev(ctx, m.tlfID, rev)
 	if err != nil {
 		return err
 	}
+
+	// Check whether this revision has been garbage-collected yet.  If
+	// so, return a typed error.  The caller may wish to clear out the
+	// current index for the TLF in this case.
+	status, _, err := i.config.KBFSOps().FolderStatus(
+		ctx, fs.RootNode().GetFolderBranch())
+	if err != nil {
+		return err
+	}
+	if rev <= status.LastGCRevision {
+		return errors.WithStack(
+			RevisionGCdError{m.tlfID, rev, status.LastGCRevision})
+	}
+
+	// Record that we've started a full sync for this TLF at this
+	// revision.  If it gets interrupted, it should be resumed on the
+	// next restart of the indexer.  There is no `indexedRev`, because
+	// this function should only be called when a full index is
+	// needed.
+	err = i.tlfDb.Put(ctx, m.tlfID, kbfsmd.RevisionUninitialized, rev)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err != nil {
+			return
+		}
+
+		// After a successful indexing, mark the revision as fully indexed.
+		err = i.tlfDb.Put(ctx, m.tlfID, rev, kbfsmd.RevisionUninitialized)
+	}()
+
 	return i.indexNewlySyncedTlf(ctx, fs, rev)
+}
+
+func (i *Indexer) handleTlfMessage(ctx context.Context, m tlfMessage) error {
+	defer i.indexWG.Done()
+
+	// Figure out which revision to lock to, for this
+	// indexing scan.
+	rev := m.rev
+	if rev == kbfsmd.RevisionUninitialized {
+		// TODO(HOTPOT-1504) -- remove indexing if the
+		// mode is no longer synced.
+		return nil
+	}
+
+	indexedRev, startedRev, err := i.tlfDb.Get(ctx, m.tlfID)
+	switch errors.Cause(err) {
+	case nil:
+	case ldberrors.ErrNotFound:
+	default:
+		return err
+	}
+
+	if startedRev != kbfsmd.RevisionUninitialized && startedRev != rev {
+		// We've started indexing a particular revision already; we
+		// need to continue on at that revision, or risk confusing the
+		// index.  But re-add the message for this revision later.
+		i.log.CDebugf(ctx, "Finishing incomplete index for revision %s for "+
+			"TLF %s, before indexing the requested revision %d",
+			startedRev, m.tlfID, rev)
+		rev = startedRev
+		i.indexWG.Add(1)
+		select {
+		case i.tlfCh <- m:
+		default:
+			i.indexWG.Done()
+			i.log.CDebugf(
+				context.Background(), "Couldn't send TLF message for %s/%d",
+				m.tlfID, rev)
+		}
+	}
+
+	if indexedRev != kbfsmd.RevisionUninitialized {
+		// TODO(HOTPOT-1495): Do a partial update based on the MD
+		// revision changes (assuming we haven't missed so many
+		// revisions that we should just force a fast-forward).
+		i.log.CDebugf(
+			ctx, "Ignoring incremental update for %s (HOTPOT-1495)", m.tlfID)
+		return nil
+	}
+
+	err = i.doFullIndex(ctx, m, rev)
+	switch errors.Cause(err).(type) {
+	case nil:
+	case RevisionGCdError:
+		// TODO(HOTPOT-1504) -- remove all documents from the index
+		// and trigger a new indexing at the latest revision.
+		i.log.CDebugf(
+			ctx, "Ignoring a GC-revision failure for now (HOTPOT-1504): %+v",
+			err)
+		return nil
+	default:
+		return err
+	}
+
+	return nil
 }
 
 func (i *Indexer) loop(ctx context.Context) {
@@ -739,21 +861,9 @@ outerLoop:
 				i.log.CDebugf(
 					ctx, "Received TLF message for %s, rev=%d", m.tlfID, m.rev)
 
-				// Figure out which revision to lock to, for this
-				// indexing scan.
-				rev := m.rev
-				if rev == kbfsmd.RevisionUninitialized {
-					// TODO(HOTPOT-1504) -- remove indexing if the
-					// mode is no longer synced.
-					//
-					// TODO(HOTPOT-1495): initiate processing pass for
-					// updates.
-					continue
-				}
-
-				err = i.doFullIndex(ctx, m, rev)
+				err = i.handleTlfMessage(ctx, m)
 				if err != nil {
-					i.log.CDebugf(ctx, "Error indexing synced TLF: %+v", err)
+					i.log.CDebugf(ctx, "Error handling TLF message: %+v", err)
 				}
 			case <-ctx.Done():
 				return

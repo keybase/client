@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as Electron from 'electron'
 import * as Kb from '../common-adapters'
 import * as ConfigTypes from '../constants/types/config'
 import * as FsTypes from '../constants/types/fs'
@@ -9,6 +8,7 @@ import {_setDarkModePreference} from '../styles/dark-mode'
 import ChatContainer from './chat-container.desktop'
 import FilesPreview from './files-container.desktop'
 import {isDarwin} from '../constants/platform'
+import * as SafeElectron from '../util/safe-electron.desktop'
 import OutOfDate from './out-of-date'
 import Upload from '../fs/footer/upload'
 import UploadCountdownHOC from '../fs/footer/upload-countdown-hoc'
@@ -66,11 +66,15 @@ class MenubarRender extends React.Component<Props, State> {
 
   componentDidMount() {
     this._refreshUserFileEditsOrWaitForKbfsDaemon()
-    Electron.remote.getCurrentWindow().on('show', this._refreshUserFileEditsOrWaitForKbfsDaemon)
+    SafeElectron.getRemote()
+      .getCurrentWindow()
+      .on('show', this._refreshUserFileEditsOrWaitForKbfsDaemon)
   }
 
   componentWillUnmount() {
-    Electron.remote.getCurrentWindow().removeListener('show', this._refreshUserFileEditsOrWaitForKbfsDaemon)
+    SafeElectron.getRemote()
+      .getCurrentWindow()
+      .removeListener('show', this._refreshUserFileEditsOrWaitForKbfsDaemon)
   }
 
   render() {

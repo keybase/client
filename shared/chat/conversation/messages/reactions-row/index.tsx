@@ -45,8 +45,8 @@ class ReactionsRow extends React.Component<Props, State> {
     this.setState(s => (s.showMobileTooltip === showMobileTooltip ? null : {showMobileTooltip}))
 
   _newAttachmentRef: typeof ReactButton | null = null
-  _getNewAttachmentRef = () => this._newAttachmentRef
-  _setNewAttachmentRef = (r: typeof ReactButton) => {
+  private _getNewAttachmentRef = () => this._newAttachmentRef
+  private _setNewAttachmentRef = (r: typeof ReactButton) => {
     this._newAttachmentRef = r
   }
 

@@ -18,7 +18,7 @@ type State = {
   shouldStoreKeyOnServer: boolean
 }
 
-class Finished extends React.Component<Props, State> {
+export class Finished extends React.Component<Props, State> {
   state = {shouldStoreKeyOnServer: false}
 
   _onCheckToggle(shouldStoreKeyOnServer: boolean) {

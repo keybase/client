@@ -27,7 +27,6 @@ type Props = {
   onRequestLumens: () => void
   onSendLumens: () => void
   onUnfollow: () => void
-  onUnblock: () => void
   onManageBlocking: () => void
   state: Types.DetailsState
   username: string

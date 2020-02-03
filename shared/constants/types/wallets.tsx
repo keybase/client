@@ -279,63 +279,63 @@ export const makeAssetID = (issuerAccountID: string, assetCode: string): AssetID
 export const assetDescriptionToAssetID = (assetDescription: AssetDescriptionOrNative): AssetID =>
   assetDescription === 'native' ? 'XLM' : makeAssetID(assetDescription.issuerAccountID, assetDescription.code)
 
-export type Trustline = Readonly<{
-  acceptedAssets: Map<AccountID, Map<AssetID, number>>
-  acceptedAssetsByUsername: Map<string, Map<AssetID, number>>
-  assetMap: Map<AssetID, AssetDescription>
-  expandedAssets: Set<AssetID>
-  loaded: boolean
-  popularAssets: Array<AssetID>
-  searchingAssets?: Array<AssetID>
-  totalAssetsCount: number
-}>
+export type Trustline = {
+  readonly acceptedAssets: Map<AccountID, Map<AssetID, number>>
+  readonly acceptedAssetsByUsername: Map<string, Map<AssetID, number>>
+  readonly assetMap: Map<AssetID, AssetDescription>
+  readonly expandedAssets: Set<AssetID>
+  readonly loaded: boolean
+  readonly popularAssets: Array<AssetID>
+  readonly searchingAssets?: Array<AssetID>
+  readonly totalAssetsCount: number
+}
 
 export type StaticConfig = StellarRPCTypes.StaticConfig
 
-export type State = Readonly<{
-  acceptedDisclaimer: boolean
-  acceptingDisclaimerDelay: boolean
-  accountMap: Map<AccountID, Account>
-  accountName: string
-  accountNameError: string
-  accountNameValidationState: ValidationState
-  assetsMap: Map<AccountID, Array<Assets>>
-  buildCounter: number // increments when we call buildPayment / buildRequest,
-  building: Building
-  buildingAdvanced: BuildingAdvanced
-  builtPayment: BuiltPayment
-  builtPaymentAdvanced: BuiltPaymentAdvanced
-  builtRequest: BuiltRequest
-  changeTrustlineError: string
-  createNewAccountError: string
-  currencies: Array<Currency>
-  exportedSecretKey: HiddenString
-  exportedSecretKeyAccountID: AccountID
-  externalPartners: Array<PartnerUrl>
-  lastSentXLM: boolean
-  linkExistingAccountError: string
-  loadPaymentsError: string
-  mobileOnlyMap: Map<AccountID, boolean>
-  paymentCursorMap: Map<AccountID, StellarRPCTypes.PageCursor | null>
-  paymentLoadingMoreMap: Map<AccountID, boolean>
-  paymentOldestUnreadMap: Map<AccountID, PaymentID>
-  paymentsMap: Map<AccountID, Map<PaymentID, Payment>>
-  reviewCounter: number // increments when we call reviewPayment,
-  reviewLastSeqno?: number // last UIPaymentReviewed.seqno received from the active review,
-  secretKey: HiddenString
-  secretKeyError: string
-  secretKeyValidationState: ValidationState
-  selectedAccount: AccountID
-  sentPaymentError: string
-  sep6Error: boolean
-  sep6Message: string
-  sep7ConfirmError: string
-  sep7ConfirmInfo?: SEP7ConfirmInfo
-  sep7ConfirmPath: BuiltPaymentAdvanced
-  sep7ConfirmURI: string
-  sep7SendError: string
-  staticConfig?: StaticConfig
-  teamBuilding: TeamBuildingTypes.TeamBuildingSubState
-  trustline: Trustline
-  unreadPaymentsMap: Map<string, number>
-}>
+export type State = {
+  readonly acceptedDisclaimer: boolean
+  readonly acceptingDisclaimerDelay: boolean
+  readonly accountMap: Map<AccountID, Account>
+  readonly accountName: string
+  readonly accountNameError: string
+  readonly accountNameValidationState: ValidationState
+  readonly assetsMap: Map<AccountID, Array<Assets>>
+  readonly buildCounter: number // increments when we call buildPayment / buildRequest,
+  readonly building: Building
+  readonly buildingAdvanced: BuildingAdvanced
+  readonly builtPayment: BuiltPayment
+  readonly builtPaymentAdvanced: BuiltPaymentAdvanced
+  readonly builtRequest: BuiltRequest
+  readonly changeTrustlineError: string
+  readonly createNewAccountError: string
+  readonly currencies: Array<Currency>
+  readonly exportedSecretKey: HiddenString
+  readonly exportedSecretKeyAccountID: AccountID
+  readonly externalPartners: Array<PartnerUrl>
+  readonly lastSentXLM: boolean
+  readonly linkExistingAccountError: string
+  readonly loadPaymentsError: string
+  readonly mobileOnlyMap: Map<AccountID, boolean>
+  readonly paymentCursorMap: Map<AccountID, StellarRPCTypes.PageCursor | null>
+  readonly paymentLoadingMoreMap: Map<AccountID, boolean>
+  readonly paymentOldestUnreadMap: Map<AccountID, PaymentID>
+  readonly paymentsMap: Map<AccountID, Map<PaymentID, Payment>>
+  readonly reviewCounter: number // increments when we call reviewPayment,
+  readonly reviewLastSeqno?: number // last UIPaymentReviewed.seqno received from the active review,
+  readonly secretKey: HiddenString
+  readonly secretKeyError: string
+  readonly secretKeyValidationState: ValidationState
+  readonly selectedAccount: AccountID
+  readonly sentPaymentError: string
+  readonly sep6Error: boolean
+  readonly sep6Message: string
+  readonly sep7ConfirmError: string
+  readonly sep7ConfirmInfo?: SEP7ConfirmInfo
+  readonly sep7ConfirmPath: BuiltPaymentAdvanced
+  readonly sep7ConfirmURI: string
+  readonly sep7SendError: string
+  readonly staticConfig?: StaticConfig
+  readonly teamBuilding: TeamBuildingTypes.TeamBuildingSubState
+  readonly trustline: Trustline
+  readonly unreadPaymentsMap: Map<string, number>
+}

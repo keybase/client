@@ -246,6 +246,13 @@
             "type": "array",
             "items": "SizedImage"
           },
+          "name": "siteIconDarkmode"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SizedImage"
+          },
           "name": "siteIconFull"
         },
         {
@@ -253,7 +260,7 @@
             "type": "array",
             "items": "SizedImage"
           },
-          "name": "siteIconWhite"
+          "name": "siteIconFullDarkmode"
         }
       ]
     }

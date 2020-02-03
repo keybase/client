@@ -36,7 +36,7 @@ type Props = {
   waiting: boolean
 }
 
-class LoadOnMount extends React.PureComponent<Props> {
+export class LoadOnMount extends React.PureComponent<Props> {
   static navigationOptions = {
     header: undefined,
     headerTitle: () => <ConnectedHeader />,

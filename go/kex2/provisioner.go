@@ -28,6 +28,7 @@ type Provisioner interface {
 	CounterSign(keybase1.HelloRes) ([]byte, error)
 	CounterSign2(keybase1.Hello2Res) (keybase1.DidCounterSign2Arg, error)
 	GetLogFactory() rpc.LogFactory
+	GetNetworkInstrumenter() *rpc.NetworkInstrumenter
 }
 
 // ProvisionerArg provides the details that a provisioner needs in order
@@ -119,7 +120,8 @@ func (p *provisioner) pickFirstConnection() (err error) {
 			return err
 		}
 		prot := keybase1.Kex2ProvisionerProtocol(p)
-		xp = rpc.NewTransport(conn, p.arg.Provisioner.GetLogFactory(), nil, rpc.DefaultMaxFrameLength)
+		xp = rpc.NewTransport(conn, p.arg.Provisioner.GetLogFactory(),
+			p.arg.Provisioner.GetNetworkInstrumenter(), nil, rpc.DefaultMaxFrameLength)
 		srv := rpc.NewServer(xp, nil)
 		if err = srv.Register(prot); err != nil {
 			return err
@@ -141,7 +143,8 @@ func (p *provisioner) pickFirstConnection() (err error) {
 		if p.conn, err = NewConn(p.arg.Ctx, p.arg.LogCtx, p.arg.Mr, sec, p.deviceID, p.arg.Timeout); err != nil {
 			return err
 		}
-		p.xp = rpc.NewTransport(p.conn, p.arg.Provisioner.GetLogFactory(), nil, rpc.DefaultMaxFrameLength)
+		p.xp = rpc.NewTransport(p.conn, p.arg.Provisioner.GetLogFactory(),
+			p.arg.Provisioner.GetNetworkInstrumenter(), nil, rpc.DefaultMaxFrameLength)
 	case <-p.arg.Ctx.Done():
 		err = ErrCanceled
 	case <-time.After(p.arg.Timeout):

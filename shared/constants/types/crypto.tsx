@@ -75,10 +75,10 @@ export type SignState = CommonState & {}
 
 export type VerifyState = CommonState & {}
 
-export type State = Readonly<{
-  decrypt: DecryptState
-  encrypt: EncrypState
-  sign: SignState
-  teamBuilding: TeamBuildingTypes.TeamBuildingSubState
-  verify: VerifyState
-}>
+export type State = {
+  readonly decrypt: DecryptState
+  readonly encrypt: EncrypState
+  readonly sign: SignState
+  readonly teamBuilding: TeamBuildingTypes.TeamBuildingSubState
+  readonly verify: VerifyState
+}
