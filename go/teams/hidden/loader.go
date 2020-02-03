@@ -28,6 +28,7 @@ type LoaderPackage struct {
 	newRatchetSet      keybase1.HiddenTeamChainRatchetSet
 	role               keybase1.TeamRole
 	lastCommittedSeqno keybase1.Seqno
+	disabled           bool
 }
 
 // NewLoaderPackage creates a loader package that can work in the FTL of slow team loading settings. As a preliminary,
@@ -740,4 +741,15 @@ func (l *LoaderPackage) CheckParentPointersOnFastLoad(mctx libkb.MetaContext, te
 		}
 	}
 	return nil
+}
+
+// Disable the LoaderPackage if we are a subteam reader, or if we are feature-flagged off
+func (l *LoaderPackage) Disable() {
+	l.disabled = true
+}
+
+// Enabled is true if we are doing a full hidden chain load (and off if we're skipping
+// due to the above).
+func (l *LoaderPackage) Enabled() bool {
+	return !l.disabled
 }
