@@ -9,7 +9,6 @@ import * as WalletsType from '../../constants/types/wallets'
 import * as ChatConstants from '../../constants/chat2'
 import * as Container from '../../util/container'
 import * as Chat2Gen from '../../actions/chat2-gen'
-import * as UsersGen from '../../actions/users-gen'
 import CommonResult, {ResultProps} from './common-result'
 
 /*
@@ -26,8 +25,7 @@ const PeopleResult = React.memo((props: ResultProps) => {
   // action button specific definitions
   const dispatch = Container.useDispatch()
   const myUsername = Container.useSelector(state => state.config.username)
-  const blocks = Container.useSelector(state => state.users.blockMap.get(keybaseUsername || ''))
-  const blocked = blocks?.chatBlocked
+  const blocked = Container.useSelector(state => state.users.blockMap.get(keybaseUsername || '')?.chatBlocked)
   const decoratedUsername = keybaseUsername ? keybaseUsername : `${serviceUsername}@${props.resultForService}`
 
   const onMenuAddToTeam = () =>
@@ -61,8 +59,6 @@ const PeopleResult = React.memo((props: ResultProps) => {
         path: [{props: {username: keybaseUsername}, selected: 'chatBlockingModal'}],
       })
     )
-  const onReload = () =>
-    keybaseUsername && dispatch(UsersGen.createGetBlockState({usernames: [keybaseUsername]}))
   const onChat = () => {
     dispatch(RouteTreeGen.createNavigateUp())
     dispatch(Chat2Gen.createPreviewConversation({participants: [decoratedUsername], reason: 'search'}))
@@ -96,7 +92,6 @@ const PeopleResult = React.memo((props: ResultProps) => {
       onBrowsePublicFolder={onBrowsePublicFolder}
       onManageBlocking={!resultIsMe ? onManageBlocking : undefined}
       onOpenPrivateFolder={onOpenPrivateFolder}
-      onReload={onReload}
       onRequestLumens={onRequestLumens}
       onSendLumens={onSendLumens}
       blocked={blocked}
@@ -134,7 +129,6 @@ type DropdownProps = {
   onBrowsePublicFolder?: () => void
   onSendLumens?: () => void
   onRequestLumens?: () => void
-  onReload?: () => void
   onManageBlocking?: () => void
   blocked?: boolean
   onUnfollow?: () => void
@@ -175,7 +169,6 @@ const DropdownButton = Kb.OverlayParentHOC((p: Kb.PropsWithOverlay<DropdownProps
       onClick={e => {
         e.stopPropagation()
         p.toggleShowingMenu()
-        p.onReload?.()
       }}
       ref={p.setAttachmentRef}
     >
