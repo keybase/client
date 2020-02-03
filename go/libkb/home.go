@@ -45,7 +45,7 @@ type HomeFinder interface {
 	ServiceSpawnDir() (string, error)
 	SandboxCacheDir() string // For macOS
 	InfoDir() string
-	IsLinuxNonstandardHome() (bool, error)
+	IsNonstandardHome() (bool, error)
 }
 
 func (b Base) getHome() string {
@@ -64,7 +64,7 @@ func (b Base) getHome() string {
 	return ""
 }
 
-func (b Base) IsLinuxNonstandardHome() (bool, error) {
+func (b Base) IsNonstandardHome() (bool, error) {
 	return false, fmt.Errorf("unsupported on %s", runtime.GOOS)
 }
 
@@ -92,17 +92,36 @@ func (x XdgPosix) Home(emptyOk bool) string {
 	if len(ret) == 0 && !emptyOk {
 		ret = x.getenv("HOME")
 	}
-	return ret
+	if ret == "" {
+		return ""
+	}
+	resolved, err := filepath.Abs(ret)
+	if err != nil {
+		return ret
+	}
+	return resolved
 }
 
-// IsLinuxNonstandardHome is true if the user supplied a custom home directory
-// via cmdline or config.json (but not if passed via env).
-func (x XdgPosix) IsLinuxNonstandardHome() (bool, error) {
+// IsNonstandardHome is true if the home directory gleaned via cmdline,
+// env, or config is different from that in /etc/passwd.
+func (x XdgPosix) IsNonstandardHome() (bool, error) {
 	passwd, err := user.Current()
 	if err != nil {
+		fmt.Println(err)
 		return false, err
 	}
-	return passwd.HomeDir != x.Home(false), nil
+	passwdAbs, err := filepath.Abs(passwd.HomeDir)
+	if err != nil {
+		fmt.Println(err)
+		return false, err
+	}
+	passedAbs, err := filepath.Abs(x.Home(false))
+	if err != nil {
+		fmt.Println(err)
+		return false, err
+	}
+	fmt.Println(passedAbs, passwdAbs)
+	return passedAbs != "" && passedAbs != passwdAbs, nil
 }
 
 func (x XdgPosix) MobileSharedHome(emptyOk bool) string {
@@ -110,45 +129,26 @@ func (x XdgPosix) MobileSharedHome(emptyOk bool) string {
 }
 
 func (x XdgPosix) dirHelper(env string, prefixDirs ...string) string {
-	var prfx string
-	var doAppend bool
-
-	// If the user explicitly provided a `--home` directory, it overrides any XDG_*
-	// variables. All XDG dirs are taken relative to that.
-	if x.getHomeFromCmd != nil {
-		prfx = x.getHomeFromCmd()
-		if prfx != "" {
-			doAppend = true
-		}
-	}
-
-	// If the command line didn't specify anything, then we're going to go with the XDG_
-	// environment variable specification.
-	if prfx == "" {
-		prfx = x.getenv(env)
-	}
-
-	// If there was no XDG_ environment variable, then we wind up falling back to
-	// (1) the config file first, and if not there, then: (2) the HOME environment
-	// variable.
-	if prfx == "" {
-		prfx = x.Home(false)
-		doAppend = true
-	}
-
-	// If we're not using XDG_, and we're either using --home or HOME=, then
-	// append on the given prefixDirs, separated by the OS-appropriate path
-	// separator (which should be '/' for XdgPosix).
-	if doAppend {
-		v := append([]string{prfx}, prefixDirs...)
-		prfx = x.Join(v...)
-	}
-
 	appName := x.appName
 	if x.getRunMode() != ProductionRunMode {
 		appName = appName + "." + string(x.getRunMode())
 	}
-	return x.Join(prfx, appName)
+
+	isNonstandard, isNonstandardErr := x.IsNonstandardHome()
+	xdgSpecified := x.getenv(env)
+
+	fmt.Println("isn", isNonstandardErr, isNonstandard, xdgSpecified)
+
+	// If the user specified a nonstandard home directory, or there's no XDG
+	// environment variable present, use the home directory from the
+	// commandline/environment/config.
+	if (isNonstandardErr == nil && isNonstandard) || xdgSpecified == "" {
+		alternateDir := x.Join(append([]string{x.Home(false)}, prefixDirs...)...)
+		return x.Join(alternateDir, appName)
+	}
+
+	// Otherwise, use the XDG standard.
+	return x.Join(xdgSpecified, appName)
 }
 
 func (x XdgPosix) ConfigDir() string       { return x.dirHelper("XDG_CONFIG_HOME", ".config") }
