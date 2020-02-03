@@ -1,7 +1,9 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Types from '../../../../constants/types/chat2'
+import * as Container from '../../../../util/container'
 import * as Styles from '../../../../styles'
+import * as Chat2Gen from '../../../../actions/chat2-gen'
 import SelectableSmallTeam from '../../../../chat/selectable-small-team-container'
 import SelectableBigTeamChannel from '../../../../chat/selectable-big-team-channel-container'
 import {rowHeight} from '../../../../chat/selectable-big-team-channel'
@@ -84,6 +86,10 @@ const _itemRenderer = (_: number, row: RowItem) => {
 }
 
 const ConversationList = (props: Props) => {
+  const dispatch = Container.useDispatch()
+  React.useEffect(() => {
+    dispatch(Chat2Gen.createInboxRefresh({reason: 'shareConfigSearch'}))
+  }, [dispatch])
   if (rowHeight !== shouldEqualToRowHeight) {
     // Sanity check, in case this changes in the future
     return <Kb.Text type="BodyBigExtrabold">item size changes, should use use variable size list</Kb.Text>

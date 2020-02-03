@@ -31,7 +31,7 @@ export type WindowState = {
 }
 
 export type State = {
-  androidShare: {
+  androidShare?: {
     url: string
   }
   appFocused: boolean

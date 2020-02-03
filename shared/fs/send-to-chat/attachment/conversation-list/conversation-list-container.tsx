@@ -153,6 +153,7 @@ const selectNext = (rows: Array<RowItem>, current: null | number, delta: 1 | -1)
   return rows[nextIndex].conversationIDKey
 }
 
+// TODO use inbox layout and not meta
 export default namedConnect(
   state => ({
     _metaMap: state.chat2.metaMap,

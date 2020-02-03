@@ -33,7 +33,7 @@ export default Container.namedConnect(
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     const {onCancel, onSetTitle} = dispatchProps
     const {_sendAttachmentToChat} = stateProps
-    const url = Container.getRouteProps(ownProps, 'url', undefined)
+    const url = Container.getRouteProps(ownProps, 'url', '')
 
     return {
       onCancel,

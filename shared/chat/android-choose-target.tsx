@@ -9,7 +9,7 @@ import * as FsTypes from '../constants/types/fs'
 const AndroidChooseTarget = () => {
   const dispatch = Container.useDispatch()
   const onBack = () => dispatch(RouteTreeGen.createNavigateUp())
-  const url = Container.useSelector(state => state.config.androidShare.url)
+  const url = Container.useSelector(state => state.config.androidShare?.url ?? '')
   const onKBFS = () => {
     dispatch(FsGen.createSetIncomingShareLocalPath({localPath: FsTypes.stringToLocalPath(url)}))
     dispatch(FsGen.createShowIncomingShare({initialDestinationParentPath: FsTypes.stringToPath('/keybase')}))
@@ -17,7 +17,7 @@ const AndroidChooseTarget = () => {
   const onChat = () =>
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {url}, selected: 'sendAttachmentToChat'}]}))
   const parts = url.split('/')
-  const name = parts[parts.lenght - 1]
+  const name = parts[parts.length - 1]
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
