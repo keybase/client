@@ -296,7 +296,7 @@ class TeamBuilding extends React.PureComponent<Props> {
     this.props.fetchUserRecs()
   }
 
-  componentWillUpdate = () => {
+  componentDidUpdate = () => {
     this.props.refreshBlockList?.()
   }
 
