@@ -226,7 +226,13 @@ type getOptionsV1 struct {
 }
 
 func (r getOptionsV1) Check() error {
-	return checkChannelConv(methodGet, r.Channel, r.ConversationID)
+	if err := checkChannelConv(methodGet, r.Channel, r.ConversationID); err != nil {
+		return err
+	}
+	if len(r.MessageIDs) == 0 {
+		return errors.New("message_ids required")
+	}
+	return nil
 }
 
 type editOptionsV1 struct {
