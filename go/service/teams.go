@@ -420,7 +420,7 @@ func (h *TeamsHandler) TeamEditMember(ctx context.Context, arg keybase1.TeamEdit
 	return teams.EditMember(ctx, h.G().ExternalG(), arg.Name, arg.Username, arg.Role, arg.BotSettings)
 }
 
-func (h *TeamsHandler) TeamEditMembers(ctx context.Context, arg keybase1.TeamEditMembersArg) (res keybase1.TeamAddMembersResult, err error) {
+func (h *TeamsHandler) TeamEditMembers(ctx context.Context, arg keybase1.TeamEditMembersArg) (res keybase1.TeamEditMembersResult, err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	debugString := "0"
 	if len(arg.Users) > 0 {
@@ -432,7 +432,7 @@ func (h *TeamsHandler) TeamEditMembers(ctx context.Context, arg keybase1.TeamEdi
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamEditMembers(%s, %s)", arg.Name, debugString),
 		func() error { return err })()
 	if len(arg.Users) == 0 {
-		return res, fmt.Errorf("attempted to add 0 users to a team")
+		return res, nil
 	}
 
 	if err := assertLoggedIn(ctx, h.G().ExternalG()); err != nil {

@@ -3049,6 +3049,7 @@ export type TeamCreateResult = {readonly teamID: TeamID; readonly chatSent: Bool
 export type TeamData = {readonly v: /* subversion */ Int; readonly frozen: Boolean; readonly tombstoned: Boolean; readonly secretless: Boolean; readonly name: TeamName; readonly chain: TeamSigChainState; readonly perTeamKeySeeds: /* perTeamKeySeedsUnverified */ {[key: string]: PerTeamKeySeedItem}; readonly readerKeyMasks: {[key: string]: {[key: string]: MaskB64}}; readonly latestSeqnoHint: Seqno; readonly cachedAt: Time; readonly tlfCryptKeys: {[key: string]: Array<CryptKey> | null}}
 export type TeamDebugRes = {readonly chain: TeamSigChainState}
 export type TeamDetails = {readonly name: String; readonly members: TeamMembersDetails; readonly keyGeneration: PerTeamKeyGeneration; readonly annotatedActiveInvites: {[key: string]: AnnotatedTeamInvite}; readonly settings: TeamSettings; readonly showcase: TeamShowcase}
+export type TeamEditMembersResult = {readonly failures?: Array<UserRolePair> | null}
 export type TeamEk = {readonly seed: Bytes32; readonly metadata: TeamEkMetadata}
 export type TeamEkBoxMetadata = {readonly box: String; readonly recipientGeneration: EkGeneration; readonly recipientUID: UID}
 export type TeamEkBoxed = {readonly box: String; readonly userEkGeneration: EkGeneration; readonly metadata: TeamEkMetadata}

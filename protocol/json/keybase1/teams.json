@@ -2709,6 +2709,19 @@
     },
     {
       "type": "record",
+      "name": "TeamEditMembersResult",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "UserRolePair"
+          },
+          "name": "failures"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "BulkRes",
       "fields": [
         {
@@ -3519,7 +3532,7 @@
           }
         }
       ],
-      "response": "TeamAddMembersResult"
+      "response": "TeamEditMembersResult"
     },
     "teamGetBotSettings": {
       "request": [

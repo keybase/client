@@ -200,7 +200,7 @@ func TestMembersEdit(t *testing.T) {
 
 	res, err := EditMembers(context.TODO(), tc.G, name, userRolePairs)
 	require.NoError(t, err)
-	require.Empty(t, res.NotAdded)
+	require.Empty(t, res.Failures)
 }
 
 func TestMemberAddBot(t *testing.T) {

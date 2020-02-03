@@ -3129,6 +3129,26 @@ func (o UserRolePair) DeepCopy() UserRolePair {
 	}
 }
 
+type TeamEditMembersResult struct {
+	Failures []UserRolePair `codec:"failures" json:"failures"`
+}
+
+func (o TeamEditMembersResult) DeepCopy() TeamEditMembersResult {
+	return TeamEditMembersResult{
+		Failures: (func(x []UserRolePair) []UserRolePair {
+			if x == nil {
+				return nil
+			}
+			ret := make([]UserRolePair, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Failures),
+	}
+}
+
 type BulkRes struct {
 	Invited        []string `codec:"invited" json:"invited"`
 	AlreadyInvited []string `codec:"alreadyInvited" json:"alreadyInvited"`
@@ -3904,7 +3924,7 @@ type TeamsInterface interface {
 	TeamRemoveMember(context.Context, TeamRemoveMemberArg) error
 	TeamLeave(context.Context, TeamLeaveArg) error
 	TeamEditMember(context.Context, TeamEditMemberArg) error
-	TeamEditMembers(context.Context, TeamEditMembersArg) (TeamAddMembersResult, error)
+	TeamEditMembers(context.Context, TeamEditMembersArg) (TeamEditMembersResult, error)
 	TeamGetBotSettings(context.Context, TeamGetBotSettingsArg) (TeamBotSettings, error)
 	TeamSetBotSettings(context.Context, TeamSetBotSettingsArg) error
 	TeamRename(context.Context, TeamRenameArg) error
@@ -4963,7 +4983,7 @@ func (c TeamsClient) TeamEditMember(ctx context.Context, __arg TeamEditMemberArg
 	return
 }
 
-func (c TeamsClient) TeamEditMembers(ctx context.Context, __arg TeamEditMembersArg) (res TeamAddMembersResult, err error) {
+func (c TeamsClient) TeamEditMembers(ctx context.Context, __arg TeamEditMembersArg) (res TeamEditMembersResult, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamEditMembers", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
