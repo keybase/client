@@ -1,6 +1,7 @@
 // The filtered inbox rows. No dividers or headers, just smallbig row items
 import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
+import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import {memoize} from '../../../../util/memoize'
 import {makeInsertMatcher} from '../../../../util/string'
 import {RowItem, RowItemBig, RowItemSmall} from '../../../../chat/inbox'
@@ -112,13 +113,9 @@ const makeBigItem = (meta: Types.ConversationMeta, filter: string, insertMatcher
 
 // Ignore headers, score based on matches of participants, ignore total non matches
 const getFilteredRowsAndMetadata = memoize(
-  (
-    metaMap: Types.MetaMap,
-    participantMap: Map<Types.ConversationIDKey, Types.ParticipantInfo>,
-    filter: string,
-    username: string
-  ) => {
-    const metas = [...metaMap.values()]
+  (inboxLayout: RPCChatTypes.UIInboxLayout, filter: string, username: string) => {
+    // TODO fix this
+    // const metas = [...inboxLayout.smallTeams, ...inboxLayout.bigTeams]
     const lcFilter = filter.toLowerCase()
     const lcYou = username.toLowerCase()
     const insertMatcher = makeInsertMatcher(filter)

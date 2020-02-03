@@ -3,6 +3,7 @@ import {memoize} from '../../../../util/memoize'
 import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import * as RPCChatTypes from '../../../../rpc-chat-gen'
 import {isMobile} from '../../../../constants/platform'
 import ConversationList, {SmallTeamRowItem, BigTeamChannelRowItem, RowItem} from './conversation-list'
 import getFilteredRowsAndMetadata from './filtered'
@@ -80,7 +81,7 @@ const getSortedConversationIDKeys = memoize(
 )
 
 const getRows = (
-  metaMap: Types.MetaMap,
+  inboxLayout: RPCChatTypes.UIInboxLayout,
   participantMap: Map<Types.ConversationIDKey, Types.ParticipantInfo>,
   username: string,
   ownProps: OwnProps
@@ -156,20 +157,14 @@ const selectNext = (rows: Array<RowItem>, current: null | number, delta: 1 | -1)
 // TODO use inbox layout and not meta
 export default namedConnect(
   state => ({
-    _metaMap: state.chat2.metaMap,
-    _participantMap: state.chat2.participantMap,
+    _inboxLayout: state.chat2.inboxLayout,
     _username: state.config.username,
   }),
   dispatch => ({
     onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
-    const {selectedIndex, rows} = getRows(
-      stateProps._metaMap,
-      stateProps._participantMap,
-      stateProps._username,
-      ownProps
-    )
+    const {selectedIndex, rows} = getRows(stateProps._inboxLayout, stateProps._username, ownProps)
     return {
       filter: ownProps.onSetFilter && {
         filter: ownProps.filter || '',
