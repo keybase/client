@@ -177,6 +177,7 @@ const emptyState: Types.State = {
   errorInTeamCreation: '',
   errorInTeamInvite: '',
   errorInTeamJoin: '',
+  invitesCollapsed: new Set(),
   newTeamRequests: new Map(),
   newTeams: new Set(),
   sawChatBanner: false,
