@@ -28,6 +28,7 @@ const hgaps = new Map(
 
 const Box2 = React.forwardRef((props: Box2Props, ref: React.Ref<View>) => {
   const {direction, fullHeight, fullWidth, centerChildren, alignSelf, alignItems, noShrink} = props
+  const {collapsable = true} = props
   const {style, onLayout, pointerEvents, children, gap, gapStart, gapEnd} = props
   const horizontal = direction === 'horizontal' || direction === 'horizontalReverse'
   let directionStyle: Styles.StylesCrossPlatform
@@ -87,7 +88,7 @@ const Box2 = React.forwardRef((props: Box2Props, ref: React.Ref<View>) => {
   return (
     <View
       ref={ref}
-      collapsable={true}
+      collapsable={collapsable}
       style={Styles.collapseStyles([
         directionStyle,
         fullHeight && styles.fullHeight,
