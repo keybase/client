@@ -68,18 +68,28 @@ func (e *WotAttest) Run(mctx libkb.MetaContext) error {
 	}
 
 	statement := jsonw.NewDictionary()
-	statement.SetKey("user", them.ToWotStatement())
-	statement.SetKey("attestation", libkb.JsonwStringArray(e.arg.Attestations))
-	statement.SetKey("confidence", e.confidence())
+	if err := statement.SetKey("user", them.ToWotStatement()); err != nil {
+		return err
+	}
+	if err := statement.SetKey("attestation", libkb.JsonwStringArray(e.arg.Attestations)); err != nil {
+		return err
+	}
+	if err := statement.SetKey("confidence", e.confidence()); err != nil {
+		return err
+	}
 
 	attest := jsonw.NewDictionary()
-	attest.SetKey("obj", statement)
+	if err := attest.SetKey("obj", statement); err != nil {
+		return err
+	}
 	randKey, err := libkb.RandBytes(16)
 	if err != nil {
 		return err
 	}
 	hexKey := hex.EncodeToString(randKey)
-	attest.SetKey("key", jsonw.NewString(hexKey))
+	if err := attest.SetKey("key", jsonw.NewString(hexKey)); err != nil {
+		return err
+	}
 
 	marshaled, err := statement.Marshal()
 	if err != nil {
@@ -87,11 +97,15 @@ func (e *WotAttest) Run(mctx libkb.MetaContext) error {
 	}
 
 	mac := hmac.New(sha256.New, randKey)
-	mac.Write(marshaled)
+	if _, err := mac.Write(marshaled); err != nil {
+		return err
+	}
 	sum := mac.Sum(nil)
 
 	expansions := jsonw.NewDictionary()
-	expansions.SetKey(hex.EncodeToString(sum), attest)
+	if err := expansions.SetKey(hex.EncodeToString(sum), attest); err != nil {
+		return err
+	}
 
 	signingKey, err := mctx.G().ActiveDevice.SigningKey()
 	if err != nil {
@@ -125,7 +139,7 @@ func (e *WotAttest) Run(mctx libkb.MetaContext) error {
 			sigVersion,
 		)
 
-		return nil
+		return err
 	})
 
 	if err != nil {
@@ -156,20 +170,20 @@ func (e *WotAttest) Run(mctx libkb.MetaContext) error {
 func (e *WotAttest) confidence() *jsonw.Wrapper {
 	c := jsonw.NewDictionary()
 	if e.arg.Confidence.UsernameVerifiedVia != keybase1.UsernameVerificationType_NONE {
-		c.SetKey("username_verified_via", jsonw.NewString(strings.ToLower(e.arg.Confidence.UsernameVerifiedVia.String())))
+		_ = c.SetKey("username_verified_via", jsonw.NewString(strings.ToLower(e.arg.Confidence.UsernameVerifiedVia.String())))
 	}
 	if len(e.arg.Confidence.VouchedBy) > 0 {
 		vb := jsonw.NewArray(len(e.arg.Confidence.VouchedBy))
 		for i, username := range e.arg.Confidence.VouchedBy {
-			vb.SetIndex(i, jsonw.NewString(libkb.GetUIDByUsername(e.G(), username).String()))
+			_ = vb.SetIndex(i, jsonw.NewString(libkb.GetUIDByUsername(e.G(), username).String()))
 		}
-		c.SetKey("vouched_by", vb)
+		_ = c.SetKey("vouched_by", vb)
 	}
 	if e.arg.Confidence.KnownOnKeybaseDays > 0 {
-		c.SetKey("known_on_keybase_days", jsonw.NewInt(e.arg.Confidence.KnownOnKeybaseDays))
+		_ = c.SetKey("known_on_keybase_days", jsonw.NewInt(e.arg.Confidence.KnownOnKeybaseDays))
 	}
 	if e.arg.Confidence.Other != "" {
-		c.SetKey("other", jsonw.NewString(e.arg.Confidence.Other))
+		_ = c.SetKey("other", jsonw.NewString(e.arg.Confidence.Other))
 	}
 
 	return c

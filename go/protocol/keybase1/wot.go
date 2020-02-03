@@ -47,11 +47,11 @@ func (e UsernameVerificationType) String() string {
 }
 
 type Confidence struct {
-	VouchedBy           []string                 `codec:"vouchedBy" json:"vouchedBy"`
+	VouchedBy           []string                 `codec:"vouchedBy" json:"vouched_by,omitempty"`
 	Proofs              []SigID                  `codec:"proofs" json:"proofs"`
-	UsernameVerifiedVia UsernameVerificationType `codec:"usernameVerifiedVia" json:"usernameVerifiedVia"`
+	UsernameVerifiedVia UsernameVerificationType `codec:"usernameVerifiedVia" json:"username_verified_via,omitempty"`
 	Other               string                   `codec:"other" json:"other"`
-	KnownOnKeybaseDays  int                      `codec:"knownOnKeybaseDays" json:"knownOnKeybaseDays"`
+	KnownOnKeybaseDays  int                      `codec:"knownOnKeybaseDays" json:"known_on_keybase_days,omitempty"`
 }
 
 func (o Confidence) DeepCopy() Confidence {

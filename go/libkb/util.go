@@ -1180,7 +1180,7 @@ func FindFilePathWithNumberSuffix(parentDir string, basename string, useArbitrar
 func JsonwStringArray(a []string) *jsonw.Wrapper {
 	aj := jsonw.NewArray(len(a))
 	for i, s := range a {
-		aj.SetIndex(i, jsonw.NewString(s))
+		_ = aj.SetIndex(i, jsonw.NewString(s))
 	}
 	return aj
 }

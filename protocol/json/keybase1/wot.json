@@ -28,7 +28,8 @@
             "type": "array",
             "items": "string"
           },
-          "name": "vouchedBy"
+          "name": "vouchedBy",
+          "jsonkey": "vouched_by,omitempty"
         },
         {
           "type": {
@@ -39,7 +40,8 @@
         },
         {
           "type": "UsernameVerificationType",
-          "name": "usernameVerifiedVia"
+          "name": "usernameVerifiedVia",
+          "jsonkey": "username_verified_via,omitempty"
         },
         {
           "type": "string",
@@ -47,7 +49,8 @@
         },
         {
           "type": "int",
-          "name": "knownOnKeybaseDays"
+          "name": "knownOnKeybaseDays",
+          "jsonkey": "known_on_keybase_days,omitempty"
         }
       ]
     }

@@ -13,10 +13,13 @@ protocol wot {
   }
 
   record Confidence {
+    @jsonkey("vouched_by,omitempty")
     array<string> vouchedBy; // usernames
     array<SigID> proofs;
+    @jsonkey("username_verified_via,omitempty")
     UsernameVerificationType usernameVerifiedVia;
     string other;
+    @jsonkey("known_on_keybase_days,omitempty")
     int knownOnKeybaseDays;
   }
 

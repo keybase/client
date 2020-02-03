@@ -233,13 +233,13 @@ func (u *User) ToTrackingStatement(w *jsonw.Wrapper, outcome *IdentifyOutcome) (
 
 func (u *User) ToWotStatement() *jsonw.Wrapper {
 	user := jsonw.NewDictionary()
-	user.SetKey("username", jsonw.NewString(u.GetNormalizedName().String()))
-	user.SetKey("uid", UIDWrapper(u.GetUID()))
-	user.SetKey("seq_tail", u.ToTrackingStatementSeqTail())
+	_ = user.SetKey("username", jsonw.NewString(u.GetNormalizedName().String()))
+	_ = user.SetKey("uid", UIDWrapper(u.GetUID()))
+	_ = user.SetKey("seq_tail", u.ToTrackingStatementSeqTail())
 	eldest := jsonw.NewDictionary()
-	eldest.SetKey("kid", jsonw.NewString(u.GetEldestKID().String()))
-	eldest.SetKey("seqno", jsonw.NewInt64(int64(u.GetCurrentEldestSeqno())))
-	user.SetKey("eldest", eldest)
+	_ = eldest.SetKey("kid", jsonw.NewString(u.GetEldestKID().String()))
+	_ = eldest.SetKey("seqno", jsonw.NewInt64(int64(u.GetCurrentEldestSeqno())))
+	_ = user.SetKey("eldest", eldest)
 
 	return user
 }
@@ -712,7 +712,9 @@ func (u *User) WotAttestProof(m MetaContext, signingKey GenericKey, sigVersion S
 	}
 
 	body := ret.J.AtKey("body")
-	body.SetKey("wot.attest", jsonw.NewString(hex.EncodeToString(mac)))
+	if err := body.SetKey("wot.attest", jsonw.NewString(hex.EncodeToString(mac))); err != nil {
+		return nil, err
+	}
 
 	return ret, nil
 }
