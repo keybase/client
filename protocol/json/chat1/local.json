@@ -577,7 +577,7 @@
           "name": "nameAtCreation"
         },
         {
-          "type": "ConvIDStr",
+          "type": "ConversationID",
           "name": "convID"
         }
       ]

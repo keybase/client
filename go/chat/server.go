@@ -409,7 +409,7 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 		subBody := chat1.NewMessageSystemWithNewchannel(chat1.MessageSystemNewChannel{
 			Creator:        h.G().Env.GetUsername().String(),
 			NameAtCreation: *arg.TopicName,
-			ConvID:         conv.GetConvID().ConvIDStr(),
+			ConvID:         conv.GetConvID(),
 		})
 		body := chat1.NewMessageBodyWithSystem(subBody)
 		err = h.G().ChatHelper.SendMsgByName(ctx, conv.Info.TlfName,

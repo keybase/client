@@ -176,8 +176,7 @@ protocol local {
     string creator;
     // CLI renders the name at creation
     string nameAtCreation;
-    // GUI looks up the current name
-    ConvIDStr convID;
+    ConversationID convID;
   }
 
   variant MessageSystem switch (MessageSystemType systemType) {

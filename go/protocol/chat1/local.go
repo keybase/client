@@ -679,9 +679,9 @@ func (o MessageSystemSbsResolve) DeepCopy() MessageSystemSbsResolve {
 }
 
 type MessageSystemNewChannel struct {
-	Creator        string    `codec:"creator" json:"creator"`
-	NameAtCreation string    `codec:"nameAtCreation" json:"nameAtCreation"`
-	ConvID         ConvIDStr `codec:"convID" json:"convID"`
+	Creator        string         `codec:"creator" json:"creator"`
+	NameAtCreation string         `codec:"nameAtCreation" json:"nameAtCreation"`
+	ConvID         ConversationID `codec:"convID" json:"convID"`
 }
 
 func (o MessageSystemNewChannel) DeepCopy() MessageSystemNewChannel {
