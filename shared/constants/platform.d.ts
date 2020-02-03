@@ -23,4 +23,5 @@ export declare const version: string
 export declare const pprofDir: string
 export declare const serverConfigFileName: string
 export declare const shortcutSymbol: string
+export declare const deviceName: string
 export const appColorSchemeChanged: (pref: DarkModePreference) => void

@@ -1,6 +1,7 @@
 import {Dimensions, Platform, NativeModules} from 'react-native'
 import RNFB from 'rn-fetch-blob'
 import * as iPhoneXHelper from 'react-native-iphone-x-helper'
+import Constants from 'expo-constants'
 
 const nativeBridge = NativeModules.KeybaseEngine || {
   isDeviceSecure: 'fallback',
@@ -36,6 +37,7 @@ const mobileOsVersionNumber = typeof mobileOsVersion === 'string' ? parseInt(mob
 export const isAndroidNewerThanM = isAndroid && mobileOsVersionNumber > 22
 export const isAndroidNewerThanN = isAndroid && mobileOsVersionNumber >= 26
 export const shortcutSymbol = ''
+export const deviceName = Constants.deviceName ?? ''
 
 export const isIPhoneX = iPhoneXHelper.isIphoneX()
 
