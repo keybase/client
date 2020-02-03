@@ -72,6 +72,7 @@ const Avatar = (props: Props) => {
         )}
         {props.editable && (
           <Kb.Icon
+            color={props.isTeam ? Styles.globalColors.white : undefined}
             type="iconfont-edit"
             onClick={props.onEditAvatarClick}
             style={props.isTeam ? styles.editTeam : styles.edit}
@@ -137,9 +138,16 @@ const styles = Styles.styleSheetCreate(
         right: 0,
       },
       editTeam: {
-        bottom: -2,
+        backgroundColor: Styles.globalColors.blue,
+        borderColor: 'white',
+        borderRadius: 100,
+        borderStyle: 'solid',
+        borderWidth: 2,
+        bottom: -6,
+        color: Styles.globalColors.whiteOrWhite,
+        padding: 4,
         position: 'absolute',
-        right: -28,
+        right: -6,
       },
     } as const)
 )

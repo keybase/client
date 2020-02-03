@@ -1,12 +1,15 @@
 import * as React from 'react'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import CustomTitle from './custom-title/container'
-import {HeaderTitle, SubHeader} from './nav-header/container.new'
+import {HeaderRightActions, HeaderTitle, SubHeader} from './nav-header/container'
+import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
 import Team, {Sections} from '.'
 import makeRows from './rows'
+import flags from '../../util/feature-flags'
+import TabsStateNew from './container.new'
 
 type TabsStateOwnProps = Container.RouteProps<{teamID: Types.TeamID}>
 type OwnProps = TabsStateOwnProps & {
@@ -38,17 +41,20 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
-const Connected = Container.connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  (stateProps, dispatchProps, ownProps: OwnProps) => {
+const Connected = Container.compose(
+  Container.connect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps, ownProps: OwnProps) => {
     const rows = makeRows(
       stateProps.teamDetails,
       stateProps.selectedTab,
       stateProps.yourUsername,
       stateProps.yourOperations
     )
-    const sections: Sections = [{data: rows, header: {key: 'tabs', type: 'tabs'}, key: 'body'}]
+    const sections: Sections = [
+      ...(Container.isMobile
+        ? [{data: [{key: 'header-inner', type: 'header' as const}], key: 'header'}]
+        : []),
+      {data: rows, header: {key: 'tabs', type: 'tabs'}, key: 'body'},
+    ]
     const customComponent = <CustomTitle teamID={stateProps.teamID} />
     return {
       customComponent,
@@ -59,18 +65,23 @@ const Connected = Container.connect(
       setSelectedTab: ownProps.setSelectedTab,
       teamID: stateProps.teamID,
     }
-  }
-)(Team)
+  }),
+  Kb.HeaderHoc
+)(Team) as any
 
 class TabsState extends React.PureComponent<TabsStateOwnProps, {selectedTab: Types.TabKey}> {
   static navigationOptions = (ownProps: TabsStateOwnProps) => ({
-    header: Container.isMobile
-      ? () => <HeaderTitle teamID={Container.getRouteProps(ownProps, 'teamID', '')} />
-      : undefined,
     headerExpandable: true,
     headerHideBorder: true,
-    headerTitle: () => <HeaderTitle teamID={Container.getRouteProps(ownProps, 'teamID', '')} />,
-    subHeader: () => <SubHeader teamID={Container.getRouteProps(ownProps, 'teamID', '')} />,
+    headerRightActions: Container.isMobile
+      ? undefined
+      : () => <HeaderRightActions teamID={Container.getRouteProps(ownProps, 'teamID', '')} />,
+    headerTitle: Container.isMobile
+      ? undefined
+      : () => <HeaderTitle teamID={Container.getRouteProps(ownProps, 'teamID', '')} />,
+    subHeader: Container.isMobile
+      ? undefined
+      : () => <SubHeader teamID={Container.getRouteProps(ownProps, 'teamID', '')} />,
   })
   state = {selectedTab: lastSelectedTabs[Container.getRouteProps(this.props, 'teamID', '')] || 'members'}
   private setSelectedTab = selectedTab => {
@@ -90,4 +101,4 @@ class TabsState extends React.PureComponent<TabsStateOwnProps, {selectedTab: Typ
   }
 }
 
-export default TabsState
+export default flags.teamsRedesign ? TabsStateNew : TabsState

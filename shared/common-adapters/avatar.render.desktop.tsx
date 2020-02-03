@@ -86,11 +86,18 @@ const styles = Styles.styleSheetCreate(
         position: 'absolute',
         right: 0,
       },
-      editTeam: {
-        bottom: -2,
-        position: 'absolute',
-        right: -18,
-      },
+      editTeam: Styles.platformStyles({
+        isElectron: {
+          backgroundColor: Styles.globalColors.blue,
+          border: 'solid white 2px',
+          borderRadius: 100,
+          bottom: -6,
+          color: Styles.globalColors.whiteOrWhite,
+          padding: 4,
+          position: 'absolute',
+          right: -6,
+        },
+      }),
       poopContainer: {
         alignItems: 'center',
         display: 'flex',
