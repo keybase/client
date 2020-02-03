@@ -106,10 +106,7 @@ const ConnectedAvatar = Container.connect(
     _followsYou: ownProps.showFollowingStatus ? state.config.followers.has(ownProps.username || '') : false,
     _httpSrvAddress: state.config.httpSrvAddress,
     _httpSrvToken: state.config.httpSrvToken,
-    blocked:
-      state.users &&
-      state.users.blockMap &&
-      state.users.blockMap.get(ownProps.username || ownProps.teamname || '')?.chatBlocked,
+    blocked: state.users?.blockMap?.get(ownProps.username || ownProps.teamname || '')?.chatBlocked,
   }),
   dispatch => ({
     _goToProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
