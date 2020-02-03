@@ -31,6 +31,9 @@ export type WindowState = {
 }
 
 export type State = {
+  androidShare: {
+    url: string
+  }
   appFocused: boolean
   appFocusedCount: number
   appOutOfDateMessage: string

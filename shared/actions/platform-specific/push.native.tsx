@@ -72,14 +72,12 @@ const listenForNativeAndroidIntentNotifications = async (
   // TODO: fixme this is buggy. See: TRIAGE-462
   RNEmitter.addListener('onShareData', evt => {
     logger.debug('[ShareDataIntent]', evt)
-    emitter(RouteTreeGen.createSwitchLoggedIn({loggedIn: true}))
-    emitter(FsGen.createSetIncomingShareLocalPath({localPath: FsTypes.stringToLocalPath(evt.localPath)}))
-    emitter(FsGen.createShowIncomingShare({initialDestinationParentPath: FsTypes.stringToPath('/keybase')}))
+    emitter(ConfigGen.createAndroidShare({url: evt.localPath}))
   })
-  RNEmitter.addListener('onShareText', evt => {
-    logger.debug('[ShareTextIntent]', evt)
-    // TODO: implement
-  })
+  // RNEmitter.addListener('onShareText', evt => {
+  // logger.debug('[ShareTextIntent]', evt)
+  // // TODO: implement
+  // })
 }
 
 const listenForPushNotificationsFromJS = (emitter: (action: Container.TypedActions) => void) => {

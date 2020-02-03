@@ -49,6 +49,7 @@ import io.keybase.ossifrage.modules.NativeLogger;
 import io.keybase.ossifrage.util.DNSNSFetcher;
 import io.keybase.ossifrage.util.GuiConfig;
 import io.keybase.ossifrage.util.VideoHelper;
+import javassist.bytecode.ExceptionTable;
 import keybase.Keybase;
 
 import static keybase.Keybase.initOnce;
@@ -146,7 +147,9 @@ public class MainActivity extends ReactActivity {
 
     new android.os.Handler().postDelayed(new Runnable() {
       public void run() {
-        setBackgroundColor(GuiConfig.getInstance(getFilesDir()).getDarkMode());
+        try {
+          setBackgroundColor(GuiConfig.getInstance(getFilesDir()).getDarkMode());
+        } catch (Exception e) {}
       }
     }, 300);
 
@@ -254,21 +257,8 @@ public class MainActivity extends ReactActivity {
       Bundle bundleFromNotification = intent.getBundleExtra("notification");
       intent.removeExtra("notification");
 
-      // TODO this doesn't work and didn't work before
-      String fromShareText = intent.getStringExtra(Intent.EXTRA_TEXT);
-      intent.removeExtra(Intent.EXTRA_TEXT);
-      if (fromShareText == null) {
-        fromShareText = "";
-      }
-      String finalFromShareText = fromShareText;
-
       Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
       intent.removeExtra(Intent.EXTRA_STREAM);
-
-      // If there isn't any data we care about, let's just return
-      if (bundleFromNotification == null && fromShareText.isEmpty() && uri == null) {
-        return;
-      }
 
       // Closure like class so we can keep our emit logic together
       class Emit {
@@ -290,12 +280,6 @@ public class MainActivity extends ReactActivity {
           // If there are any other bundle sources we care about, emit them here
           if (bundleFromNotification != null) {
             emitter.emit("initialIntentFromNotification", Arguments.fromBundle(bundleFromNotification));
-          }
-
-          if (!finalFromShareText.isEmpty()) {
-            WritableMap args = Arguments.createMap();
-            args.putString("text", finalFromShareText);
-            emitter.emit("onShareText", args);
           }
 
           if (uri != null) {
@@ -395,7 +379,11 @@ public class MainActivity extends ReactActivity {
       }
     }
 
-    setBackgroundColor(GuiConfig.getInstance(getFilesDir()).getDarkMode());
+    try {
+      setBackgroundColor(GuiConfig.getInstance(getFilesDir()).getDarkMode());
+    } catch (Exception e) {
+
+    }
   }
 
   public void setBackgroundColor(DarkModePreference pref) {

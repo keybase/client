@@ -304,6 +304,7 @@ export type TypedActionsMap = {
   'config:loadedNixOnLoginStartup': config.LoadedNixOnLoginStartupPayload
   'config:loadOnStart': config.LoadOnStartPayload
   'config:showShareActionSheet': config.ShowShareActionSheetPayload
+  'config:androidShare': config.AndroidSharePayload
   'crypto:clearRecipients': crypto.ClearRecipientsPayload
   'crypto:clearInput': crypto.ClearInputPayload
   'crypto:downloadEncryptedText': crypto.DownloadEncryptedTextPayload

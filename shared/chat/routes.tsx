@@ -39,6 +39,9 @@ export const newRoutes = {
 }
 
 export const newModalRoutes = {
+  androidChooseTarget: {
+    getScreen: (): typeof AndroidChooseTarget => require('./android-choose-target').default,
+  },
   chatAddToChannel: {
     getScreen: (): typeof ChatAddToChannel =>
       require('./conversation/info-panel/add-to-channel/container').default,

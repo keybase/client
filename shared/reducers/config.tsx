@@ -312,4 +312,7 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
   [ConfigGen.loadedNixOnLoginStartup]: (draftState, action) => {
     draftState.openAtLogin = action.payload.status === true
   },
+  [ConfigGen.androidShare]: (draftState, action) => {
+    draftState.androidShare = action.payload
+  },
 })

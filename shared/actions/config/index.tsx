@@ -393,6 +393,14 @@ const onShowPermissionsPrompt = (
   return showMonsterPushPrompt()
 }
 
+const onAndroidShare = (state: Container.TypedState) => {
+  // already loaded, so just go now
+  if (routeToInitialScreenOnce && state.config.startupDetailsLoaded) {
+    return RouteTreeGen.createNavigateAppend({path: ['androidChooseTarget']})
+  }
+  return false
+}
+
 let routeToInitialScreenOnce = false
 const routeToInitialScreen2 = (state: Container.TypedState) => {
   // bail if we don't have a navigator and loaded
@@ -502,6 +510,15 @@ const routeToInitialScreen = (state: Container.TypedState) => {
       } catch {
         logger.info('AppLink: could not parse link', state.config.startupLink)
       }
+    }
+
+    // External android share?
+    if (state.config.androidShare) {
+      return [
+        RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
+        RouteTreeGen.createSwitchTab({tab: (state.config.startupTab as any) || Tabs.peopleTab}),
+        RouteTreeGen.createNavigateAppend({path: ['androidChooseTarget']}),
+      ]
     }
 
     // Just a saved tab
@@ -849,6 +866,7 @@ function* configSaga() {
   yield* Saga.chainAction2(ConfigGen.toggleRuntimeStats, toggleRuntimeStats)
 
   yield* Saga.chainAction2(PushGen.showPermissionsPrompt, onShowPermissionsPrompt)
+  yield* Saga.chainAction2(ConfigGen.androidShare, onAndroidShare)
 
   // Kick off platform specific stuff
   yield Saga.spawn(PlatformSpecific.platformConfigSaga)
