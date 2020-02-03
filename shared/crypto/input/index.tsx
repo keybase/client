@@ -10,7 +10,6 @@ import HiddenString from '../../util/hidden-string'
 
 type InputProps = {
   operation: Types.Operations
-  fileDroppedCounter: number
 }
 
 type TextProps = {
@@ -31,7 +30,6 @@ type DragAndDropProps = {
   operation: Types.Operations
   prompt: string
   children: React.ReactNode
-  onClearInput: () => void
 }
 
 type OperationBannerProps = {
@@ -190,7 +188,7 @@ export const FileInput = (props: FileProps) => {
 }
 
 export const Input = (props: InputProps) => {
-  const {fileDroppedCounter, operation} = props
+  const {operation} = props
   const dispatch = Container.useDispatch()
 
   // Store
@@ -207,14 +205,6 @@ export const Input = (props: InputProps) => {
   const onClearInput = () => {
     dispatch(CryptoGen.createClearInput({operation}))
   }
-
-  // Clear the local input state when a user has dragged and dropped a file into the operation
-  // If the input is not cleared then dropping a file, then clearing the file will show old text input
-  React.useEffect(() => {
-    if (fileDroppedCounter > 0) {
-      setInputValue('')
-    }
-  }, [fileDroppedCounter])
 
   return inputType === 'file' ? (
     <FileInput
@@ -241,13 +231,12 @@ export const Input = (props: InputProps) => {
 }
 
 export const DragAndDrop = (props: DragAndDropProps) => {
-  const {prompt, children, operation, onClearInput} = props
+  const {prompt, children, operation} = props
   const dispatch = Container.useDispatch()
 
   // Actions
   const onAttach = (localPaths: Array<string>) => {
     const path = localPaths[0]
-    onClearInput()
     dispatch(CryptoGen.createSetInput({operation, type: 'file', value: new HiddenString(path)}))
   }
 

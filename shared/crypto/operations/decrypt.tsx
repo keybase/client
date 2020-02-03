@@ -7,16 +7,11 @@ import OperationOutput, {OutputBar, SignedSender, OutputProgress} from '../outpu
 const operation = Constants.Operations.Decrypt
 
 const Decrypt = () => {
-  const [fileDroppedCounter, setFileDroppedCounter] = React.useState(0)
   return (
-    <DragAndDrop
-      operation={operation}
-      prompt="Drop a file to encrypt"
-      onClearInput={() => setFileDroppedCounter(prevCount => prevCount + 1)}
-    >
+    <DragAndDrop operation={operation} prompt="Drop a file to encrypt">
       <Kb.Box2 direction="vertical" fullHeight={true}>
         <OperationBanner operation={operation} />
-        <Input operation={operation} fileDroppedCounter={fileDroppedCounter} />
+        <Input operation={operation} />
         <OutputProgress operation={operation} />
         <Kb.Box2 direction="vertical" fullHeight={true}>
           <SignedSender operation={operation} />

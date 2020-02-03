@@ -81,20 +81,15 @@ const EncryptOutputBanner = () => {
 }
 
 const Encrypt = () => {
-  const [fileDroppedCounter, setFileDroppedCounter] = React.useState(0)
   return (
-    <DragAndDrop
-      operation={operation}
-      prompt="Drop a file to encrypt"
-      onClearInput={() => setFileDroppedCounter(prevCount => prevCount + 1)}
-    >
+    <DragAndDrop operation={operation} prompt="Drop a file to encrypt">
       <OperationBanner
         operation={operation}
         infoMessage="Encrypt to anyone, even if they're not on Keybase yet."
       />
       <Recipients />
       <Kb.Box2 direction="vertical" fullHeight={true}>
-        <Input operation={operation} fileDroppedCounter={fileDroppedCounter} />
+        <Input operation={operation} />
         <EncryptOptions />
         <OutputProgress operation={operation} />
         <Kb.Box2 direction="vertical" fullHeight={true}>

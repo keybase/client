@@ -6,7 +6,6 @@ import {Input} from '.'
 
 const store = Sb.createStoreWithCommon()
 
-const fileDroppedCounter = 0
 const filePathPlaintext = '/path/to/file.pdf'
 const filePathEncrypted = '/path/to/file.pdf.encrypted.saltpack'
 const filePathSigned = '/path/to/file.pdf.signed.saltpack'
@@ -18,9 +17,7 @@ const longText = Array(1500)
 const load = () => {
   Sb.storiesOf('Crypto/Input', module)
     .addDecorator((story: any) => <Sb.MockStore store={store}>{story()}</Sb.MockStore>)
-    .add('Text - Empty ', () => (
-      <Input operation={Constants.Operations.Encrypt} fileDroppedCounter={fileDroppedCounter} />
-    ))
+    .add('Text - Empty ', () => <Input operation={Constants.Operations.Encrypt} />)
   Sb.storiesOf('Crypto/Input', module)
     .addDecorator((story: any) => (
       <Sb.MockStore
@@ -31,9 +28,7 @@ const load = () => {
         {story()}
       </Sb.MockStore>
     ))
-    .add('Text - Short ', () => (
-      <Input operation={Constants.Operations.Encrypt} fileDroppedCounter={fileDroppedCounter} />
-    ))
+    .add('Text - Short ', () => <Input operation={Constants.Operations.Encrypt} />)
   Sb.storiesOf('Crypto/Input', module)
     .addDecorator((story: any) => (
       <Sb.MockStore
@@ -44,9 +39,7 @@ const load = () => {
         {story()}
       </Sb.MockStore>
     ))
-    .add('Text - Long ', () => (
-      <Input operation={Constants.Operations.Encrypt} fileDroppedCounter={fileDroppedCounter} />
-    ))
+    .add('Text - Long ', () => <Input operation={Constants.Operations.Encrypt} />)
 
   Sb.storiesOf('Crypto/Input', module)
     .addDecorator((story: any) => (
@@ -59,9 +52,7 @@ const load = () => {
         {story()}
       </Sb.MockStore>
     ))
-    .add('File - Plain (Encrypt & Sign) ', () => (
-      <Input operation={Constants.Operations.Encrypt} fileDroppedCounter={fileDroppedCounter} />
-    ))
+    .add('File - Plain (Encrypt & Sign) ', () => <Input operation={Constants.Operations.Encrypt} />)
   Sb.storiesOf('Crypto/Input', module)
     .addDecorator((story: any) => (
       <Sb.MockStore
@@ -73,9 +64,7 @@ const load = () => {
         {story()}
       </Sb.MockStore>
     ))
-    .add('File - Encrypted (Decrypt)', () => (
-      <Input operation={Constants.Operations.Decrypt} fileDroppedCounter={fileDroppedCounter} />
-    ))
+    .add('File - Encrypted (Decrypt)', () => <Input operation={Constants.Operations.Decrypt} />)
 
   Sb.storiesOf('Crypto/Input', module)
     .addDecorator((story: any) => (
@@ -88,9 +77,7 @@ const load = () => {
         {story()}
       </Sb.MockStore>
     ))
-    .add('File - Signed (Verify)', () => (
-      <Input operation={Constants.Operations.Verify} fileDroppedCounter={fileDroppedCounter} />
-    ))
+    .add('File - Signed (Verify)', () => <Input operation={Constants.Operations.Verify} />)
 }
 
 export default load

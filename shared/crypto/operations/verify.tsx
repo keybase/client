@@ -7,16 +7,11 @@ import OperationOutput, {SignedSender, OutputBar, OutputProgress} from '../outpu
 const operation = Constants.Operations.Verify
 
 const Verify = () => {
-  const [fileDroppedCounter, setFileDroppedCounter] = React.useState(0)
   return (
-    <DragAndDrop
-      operation={operation}
-      prompt="Drop a file to verify"
-      onClearInput={() => setFileDroppedCounter(prevCount => prevCount + 1)}
-    >
+    <DragAndDrop operation={operation} prompt="Drop a file to verify">
       <Kb.Box2 direction="vertical" fullHeight={true}>
         <OperationBanner operation={operation} />
-        <Input operation={operation} fileDroppedCounter={fileDroppedCounter} />
+        <Input operation={operation} />
         <OutputProgress operation={operation} />
         <Kb.Box2 direction="vertical" fullHeight={true}>
           <SignedSender operation={operation} />

@@ -28,19 +28,14 @@ const SignOutputBanner = () => {
 }
 
 const Sign = () => {
-  const [fileDroppedCounter, setFileDroppedCounter] = React.useState(0)
   return (
-    <DragAndDrop
-      operation={operation}
-      prompt="Drop a file to sign"
-      onClearInput={() => setFileDroppedCounter(prevCount => prevCount + 1)}
-    >
+    <DragAndDrop operation={operation} prompt="Drop a file to sign">
       <Kb.Box2 direction="vertical" fullHeight={true}>
         <OperationBanner
           operation={operation}
           infoMessage="Add your cryptographic signature to a message or file."
         />
-        <Input operation={operation} fileDroppedCounter={fileDroppedCounter} />
+        <Input operation={operation} />
         <OutputProgress operation={operation} />
         <Kb.Box2 direction="vertical" fullHeight={true}>
           <SignOutputBanner />
