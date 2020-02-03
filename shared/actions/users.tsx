@@ -65,11 +65,10 @@ const reportUser = async (action: UsersGen.ReportUserPayload) => {
 }
 
 const refreshBlockList = async (action: TeamBuildingGen.SearchResultsLoadedPayload) =>
-  action.payload.namespace === 'people'
-    ? UsersGen.createGetBlockState({
-        usernames: action.payload.users.map(u => u.serviceMap['keybase'] || '').filter(Boolean),
-      })
-    : Promise.resolve()
+  action.payload.namespace === 'people' &&
+  UsersGen.createGetBlockState({
+    usernames: action.payload.users.map(u => u.serviceMap['keybase'] || '').filter(Boolean),
+  })
 
 function* usersSaga() {
   yield* Saga.chainAction(EngineGen.keybase1NotifyUsersIdentifyUpdate, onIdentifyUpdate)
