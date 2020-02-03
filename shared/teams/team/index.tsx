@@ -33,6 +33,7 @@ class Team extends React.Component<Props> {
       case 'member':
       case 'bot':
       case 'bot-add':
+      case 'invites-divider':
       case 'invites-invite':
       case 'invites-request':
       case 'invites-none':

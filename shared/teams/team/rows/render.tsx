@@ -3,7 +3,7 @@ import * as Types from '../../../constants/types/teams'
 import {Row} from '.'
 import MemberRow from './member-row/container'
 import {BotRow, AddBotRow} from './bot-row'
-import {RequestRow, InviteRow, InvitesEmptyRow} from './invite-row'
+import {RequestRow, InviteRow, InvitesEmptyRow, DividerRow} from './invite-row'
 import {SubteamAddRow, SubteamIntroRow, SubteamNoneRow, SubteamTeamRow} from './subteam-row'
 import TeamPageDivider from './divider'
 import LoadingRow from './loading'
@@ -20,6 +20,8 @@ const renderRow = (row: Row, teamID: Types.TeamID) => {
       return <BotRow teamID={teamID} username={row.username} />
     case 'bot-add':
       return <AddBotRow teamID={teamID} />
+    case 'invites-divider':
+      return <DividerRow label={row.label} />
     case 'invites-invite':
       return <InviteRow teamID={teamID} id={row.id} />
     case 'invites-request':

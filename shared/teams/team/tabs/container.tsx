@@ -28,6 +28,9 @@ export default Container.connect(
         Constants.teamWaitingKey(teamDetails.teamname),
         Constants.teamTarsWaitingKey(teamDetails.teamname)
       ),
+      newTeamRequests: state.teams.newTeamRequests,
+      numInvites: teamDetails.invites?.size ?? 0,
+      numRequests: teamDetails.requests?.size ?? 0,
       numSubteams: teamDetails.subteams?.size ?? 0,
       resetUserCount: Constants.getTeamResetUsers(state, teamDetails.teamname).size,
       selectedTab,
@@ -39,7 +42,7 @@ export default Container.connect(
   dispatch => ({
     _searchFeaturedBot: (query: string) => dispatch(BotsGen.createSearchFeaturedBots({query})),
   }),
-  (stateProps, dispatchProps) => {
+  (stateProps, dispatchProps, ownProps) => {
     const _bots = [...(stateProps._members?.values() ?? [])].filter(
       m => m.type === 'restrictedbot' || m.type === 'bot'
     )
@@ -52,6 +55,9 @@ export default Container.connect(
             !stateProps._featuredBotsMap.has(bot.username) && dispatchProps._searchFeaturedBot(bot.username)
         ),
       loading: stateProps.loading,
+      newRequests: stateProps.newTeamRequests.get(ownProps.teamID) || 0,
+      numInvites: stateProps.numInvites,
+      numRequests: stateProps.numRequests,
       numSubteams: stateProps.numSubteams,
       resetUserCount: stateProps.resetUserCount,
       selectedTab: stateProps.selectedTab,

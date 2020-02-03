@@ -1,6 +1,7 @@
 import * as Types from '../../../constants/types/teams'
 import {getOrderedMemberArray, sortInvites, getOrderedBotsArray} from './helpers'
 import {isMobile} from '../../../constants/platform'
+import flags from '../../../util/feature-flags'
 
 type HeaderRow = {key: string; type: 'header'}
 type DividerRow = {
@@ -13,6 +14,7 @@ type TabsRow = {key: string; type: 'tabs'}
 type MemberRow = {key: string; username: string; type: 'member'}
 type BotRow = {key: string; username: string; type: 'bot'} | {key: string; type: 'bot-add'}
 type InviteRow =
+  | {key: string; label: string; type: 'invites-divider'}
   | {key: string; username: string; type: 'invites-request'}
   | {key: string; id: string; type: 'invites-invite'}
   | {key: string; type: 'invites-none'}
@@ -48,7 +50,7 @@ const makeRows = (
       // Requests (w/ header on mobile only)
       // Invites (w/ header)
       // Already in team (w/ header)
-      if (yourOperations.manageMembers) {
+      if (yourOperations.manageMembers && flags.teamsRedesign) {
         if (details.requests?.size) {
           if (isMobile) {
             rows.push({
@@ -82,12 +84,14 @@ const makeRows = (
           }
         }
       }
-      rows.push({
-        count: details.memberCount,
-        dividerType: 'members',
-        key: 'member-divider:members',
-        type: 'divider',
-      })
+      if (flags.teamsRedesign) {
+        rows.push({
+          count: details.memberCount,
+          dividerType: 'members',
+          key: 'member-divider:members',
+          type: 'divider',
+        })
+      }
       rows.push(
         ...getOrderedMemberArray(details.members, yourUsername, yourOperations).map(user => ({
           key: `member:${user.username}`,
@@ -115,6 +119,34 @@ const makeRows = (
       }
       if (yourOperations.manageBots) {
         rows.push({key: 'bot:install-more', type: 'bot-add'})
+      }
+      break
+    }
+    case 'invites': {
+      const {invites, requests} = details
+      let empty = true
+      if (requests && requests.size) {
+        empty = false
+        rows.push({key: 'invites-divider:requests', label: 'Requests', type: 'invites-divider'})
+        rows.push(
+          ...[...requests].sort().map(username => ({
+            key: `invites-request:${username}`,
+            type: 'invites-request' as const,
+            username,
+          }))
+        )
+      }
+      if (invites && invites.size) {
+        empty = false
+        rows.push({key: 'invites-divider:invites', label: 'Invites', type: 'invites-divider'})
+        rows.push(
+          ...[...invites]
+            .sort(sortInvites)
+            .map(i => ({id: i.id, key: `invites-invite:${i.id}`, type: 'invites-invite' as const}))
+        )
+      }
+      if (empty) {
+        rows.push({key: 'invites-none', type: 'invites-none'})
       }
       break
     }

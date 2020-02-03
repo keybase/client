@@ -14,11 +14,14 @@ import {
 type TeamTabsProps = {
   admin: boolean
   error?: string
+  newRequests: number
+  numInvites: number
+  numRequests: number
   numSubteams: number
   resetUserCount: number
   loadBots: () => void
   loading: boolean
-  selectedTab?: Types.TabKey
+  selectedTab?: string
   setSelectedTab: (arg0: Types.TabKey) => void
   showSubteams: boolean
 }
@@ -36,6 +39,20 @@ const TeamTabs = (props: TeamTabsProps) => {
       {!!props.resetUserCount && <Kb.Badge badgeNumber={props.resetUserCount} badgeStyle={styles.badge} />}
     </Kb.Box>,
   ]
+
+  const requestsBadge = Math.min(props.newRequests, props.numRequests)
+
+  if (props.admin && !flags.teamsRedesign) {
+    tabs.push(
+      <Kb.Box key="invites" style={styles.tabTextContainer}>
+        <TabText
+          selected={props.selectedTab === 'invites'}
+          text={`Invites (${props.numInvites + props.numRequests})`}
+        />
+        {!!requestsBadge && <Kb.Badge badgeNumber={requestsBadge} badgeStyle={styles.badge} />}
+      </Kb.Box>
+    )
+  }
 
   if (flags.botUI) {
     tabs.push(
