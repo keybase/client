@@ -2436,9 +2436,9 @@ func DecorateWithLinks(ctx context.Context, body string) string {
 	origBody := body
 
 	// early out of here if there is no dot
-	/*	if !strings.Contains(body, ".") {
+	if !strings.Contains(body, ".") {
 		return body
-	}*/
+	}
 	shouldSkipLink := func(body string) bool {
 		if strings.Contains(strings.Split(body, "/")[0], "@") {
 			return true
