@@ -4,11 +4,13 @@
 package libkb
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"os/user"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -43,7 +45,7 @@ type HomeFinder interface {
 	ServiceSpawnDir() (string, error)
 	SandboxCacheDir() string // For macOS
 	InfoDir() string
-	IsLinuxNonstandardHome() bool
+	IsLinuxNonstandardHome() (bool, error)
 }
 
 func (b Base) getHome() string {
@@ -62,7 +64,9 @@ func (b Base) getHome() string {
 	return ""
 }
 
-func (b Base) IsLinuxNonstandardHome() bool { return false }
+func (b Base) IsLinuxNonstandardHome() (bool, error) {
+	return false, fmt.Errorf("unsupported on %s", runtime.GOOS)
+}
 
 func (b Base) getenv(s string) string {
 	if b.getenvFunc != nil {
@@ -91,8 +95,14 @@ func (x XdgPosix) Home(emptyOk bool) string {
 	return ret
 }
 
-func (x XdgPosix) IsLinuxNonstandardHome() bool {
-	return x.Home(false) != ""
+// IsLinuxNonstandardHome is true if the user supplied a custom home directory
+// via cmdline or config.json (but not if passed via env).
+func (x XdgPosix) IsLinuxNonstandardHome() (bool, error) {
+	passwd, err := user.Current()
+	if err != nil {
+		return false, err
+	}
+	return passwd.HomeDir != x.Home(false), nil
 }
 
 func (x XdgPosix) MobileSharedHome(emptyOk bool) string {
