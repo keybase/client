@@ -105,39 +105,37 @@ func (x XdgPosix) Home(emptyOk bool) string {
 // IsNonstandardHome is true if the home directory gleaned via cmdline,
 // env, or config is different from that in /etc/passwd.
 func (x XdgPosix) IsNonstandardHome() (bool, error) {
+	passed := x.Home(false)
+	if passed == "" {
+		return false, nil
+	}
 	passwd, err := user.Current()
 	if err != nil {
-		fmt.Println(err)
 		return false, err
 	}
 	passwdAbs, err := filepath.Abs(passwd.HomeDir)
 	if err != nil {
-		fmt.Println(err)
 		return false, err
 	}
-	passedAbs, err := filepath.Abs(x.Home(false))
+	passedAbs, err := filepath.Abs(passed)
 	if err != nil {
-		fmt.Println(err)
 		return false, err
 	}
-	fmt.Println(passedAbs, passwdAbs)
-	return passedAbs != "" && passedAbs != passwdAbs, nil
+	return passedAbs != passwdAbs, nil
 }
 
 func (x XdgPosix) MobileSharedHome(emptyOk bool) string {
 	return x.Home(emptyOk)
 }
 
-func (x XdgPosix) dirHelper(env string, prefixDirs ...string) string {
+func (x XdgPosix) dirHelper(xdgEnvVar string, prefixDirs ...string) string {
 	appName := x.appName
 	if x.getRunMode() != ProductionRunMode {
 		appName = appName + "." + string(x.getRunMode())
 	}
 
 	isNonstandard, isNonstandardErr := x.IsNonstandardHome()
-	xdgSpecified := x.getenv(env)
-
-	fmt.Println("isn", isNonstandardErr, isNonstandard, xdgSpecified)
+	xdgSpecified := x.getenv(xdgEnvVar)
 
 	// If the user specified a nonstandard home directory, or there's no XDG
 	// environment variable present, use the home directory from the
