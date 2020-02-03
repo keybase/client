@@ -38,7 +38,8 @@ const makeRows = (
   details: Types.TeamDetails,
   selectedTab: Types.TabKey,
   yourUsername: string,
-  yourOperations: Types.TeamOperations
+  yourOperations: Types.TeamOperations,
+  invitesCollapsed: Set<Types.TeamID>
 ): Array<Row> => {
   const rows: Array<Row> = []
   switch (selectedTab) {
@@ -72,11 +73,13 @@ const makeRows = (
             key: 'member-divider:invites',
             type: 'divider',
           })
-          rows.push(
-            ...[...details.invites]
-              .sort(sortInvites)
-              .map(i => ({id: i.id, key: `invites-invite:${i.id}`, type: 'invites-invite' as const}))
-          )
+          if (!invitesCollapsed.has(details.id)) {
+            rows.push(
+              ...[...details.invites]
+                .sort(sortInvites)
+                .map(i => ({id: i.id, key: `invites-invite:${i.id}`, type: 'invites-invite' as const}))
+            )
+          }
         }
       }
       rows.push({
