@@ -191,20 +191,7 @@ export const collapseStyles = (styles: ReadonlyArray<CollapsibleStyle>): Object 
     }
   }
 
-  const flattenedStyles = styles.reduce(
-    (a: Array<CollapsibleStyle>, e: CollapsibleStyle) => a.concat(e),
-    []
-  ) as Array<Object | null | false>
-  const style = flattenedStyles.reduce<Object>((o, e) => Object.assign(o, e), {})
-  if (isEmpty(style)) {
-    throw new Error('TODO nojima')
-  }
-
-  const good = Object.assign({}, ...flattenedStyles)
-  if (JSON.stringify(good) !== JSON.stringify(style)) {
-    throw new Error('nojim TODO bad compare')
-  }
-  return style
+  return Object.assign({}, ...styles.flat())
 }
 export {isMobile, fileUIName, isIPhoneX, isIOS, isAndroid} from '../constants/platform'
 export {
