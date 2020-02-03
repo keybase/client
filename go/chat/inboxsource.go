@@ -920,10 +920,11 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UI
 			bgEnqueued++
 		}
 	}
-
+	convs := utils.RemoteConvs(ib.Inbox.Full().Conversations)
+	convs = utils.ApplyInboxQuery(ctx, s.DebugLabeler, query, convs)
 	return types.Inbox{
 		Version:         ib.Inbox.Full().Vers,
-		ConvsUnverified: utils.RemoteConvs(ib.Inbox.Full().Conversations),
+		ConvsUnverified: convs,
 	}, nil
 }
 
