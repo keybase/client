@@ -333,6 +333,9 @@ body {
 .hover-underline-container:hover .hover-underline-child {
   text-decoration: underline;
 }
+.underline-never {
+  text-decoration: none !important;
+}
 
 .hover-opacity {
   opacity: 0.8;
