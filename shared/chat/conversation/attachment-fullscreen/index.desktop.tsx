@@ -69,7 +69,11 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, State> 
         <Kb.Box style={styles.container}>
           <Kb.HotKey hotKeys={this.hotKeys} onHotKey={this.onHotKey} />
           <Kb.Box style={styles.headerFooter}>
-            <Kb.Markdown lineClamp={2} style={{flex: 1}} meta={{message: this.props.message}}>
+            <Kb.Markdown
+              lineClamp={2}
+              style={Styles.globalStyles.flexOne}
+              meta={{message: this.props.message}}
+            >
               {this.props.title}
             </Kb.Markdown>
             <Kb.Icon

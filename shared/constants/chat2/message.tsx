@@ -922,7 +922,6 @@ const validUIMessagetoMessage = (
     }
     case RPCChatTypes.MessageType.attachmentuploaded: // fallthrough
     case RPCChatTypes.MessageType.attachment: {
-      console.warn(m)
       // The attachment flow is currently pretty complicated. We'll have core do more of this so it'll be simpler but for now
       // 1. On thread load we only get attachment type. It'll have full data
       // 2. On incoming we get attachment first (placeholder), then we get the full data (attachmentuploaded)
