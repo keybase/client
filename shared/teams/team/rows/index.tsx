@@ -118,9 +118,6 @@ const makeRows = (
       }
       break
     }
-    case 'invites': {
-      break
-    }
     case 'subteams': {
       const {subteams} = details
       // always push subteam intro, it can decide not to render if already seen

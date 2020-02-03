@@ -11,7 +11,7 @@ export type Sections = Array<{data: Array<Row>; header?: Row; key: string}>
 
 export type Props = {
   teamID: Types.TeamID
-  selectedTab: string
+  selectedTab: Types.TabKey
   sections: Sections
   setSelectedTab: (arg0: Types.TabKey) => void
 }

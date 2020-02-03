@@ -28,10 +28,9 @@ const InvitesDivider = (props: Props) => {
   const invitesCollapsed = Container.useSelector(state => state.teams.invitesCollapsed)
   const collapsed = invitesCollapsed.has(teamID)
 
-  const onToggle = () => dispatch(TeamsGen.createToggleInvitesCollapsed({teamID}))
-  return (
-    <Kb.SectionDivider collapsed={collapsed} onToggleCollapsed={onToggle} label={`Invitations (${count})`} />
-  )
+  const onToggleCollapsed = () => dispatch(TeamsGen.createToggleInvitesCollapsed({teamID}))
+  const collapseProps = Container.isMobile ? {} : {collapsed, onToggleCollapsed}
+  return <Kb.SectionDivider {...collapseProps} label={`Invitations (${count})`} />
 }
 
 export default TeamPageDivider
