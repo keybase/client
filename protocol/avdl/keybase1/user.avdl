@@ -22,14 +22,31 @@ protocol user {
   record UserSummary {
     UID uid;
     string username;
-    string thumbnail;
-    int idVersion;
     string fullName;
-    string bio;
-    Proofs proofs;
-    string sigIDDisplay;
-    Time trackTime;
+    union { null, LinkID } linkID;
   }
+
+  record UserSummarySet {
+    array<UserSummary> users;
+    Time time;
+    int version;
+  }
+
+  /**
+    listTracking gets verified data from the tracking statements in the user's
+    sigchain. However, it does not check to make sure the tracked users have
+    not reset since the track statement.
+
+    If assertion is empty, it will use the current logged in user.
+    */
+  UserSummarySet listTracking(int sessionID, string filter, string assertion);
+  string listTrackingJSON(int sessionID, string filter, boolean verbose, string assertion);
+
+  /**
+    listTrackersUnverified returns the users following the given user, and is unverified
+    and server-trust.
+  */
+  UserSummarySet listTrackersUnverified(int sessionID, string assertion);
 
   @typedef("string")
   record EmailAddress {}
@@ -46,13 +63,6 @@ protocol user {
     array<Email> emails;
     array<UserPhoneNumber> phoneNumbers;
   }
-
-  /**
-    Load user summaries for the supplied uids.
-    They are "unchecked" in that the client is not verifying the info from the server.
-    If len(uids) > 500, the first 500 will be returned.
-    */
-  array<UserSummary> loadUncheckedUserSummaries(int sessionID, array<UID> uids);
 
   /**
     Load a user from the server.
@@ -87,36 +97,10 @@ protocol user {
   UserSettings loadMySettings(int sessionID);
 
   /**
-    The list-tracking functions get verified data from the tracking statements
-    in the user's sigchain.
-
-    If assertion is empty, it will use the current logged in user.
-    */
-  array<UserSummary> listTracking(int sessionID, string filter, string assertion);
-  string listTrackingJSON(int sessionID, string filter, boolean verbose, string assertion);
-
-  /**
     Load all the user's public keys (even those in reset key families)
     from the server with no verification
     */
   array<PublicKey> loadAllPublicKeysUnverified(int sessionID, UID uid);
-
-  record UserSummary2 {
-    UID uid;
-    string username;
-    string thumbnail;
-    string fullName;
-    boolean isFollower;
-    boolean isFollowee;
-  }
-
-  record UserSummary2Set {
-    array<UserSummary2> users;
-    Time time;
-    int version;
-  }
-
-  UserSummary2Set listTrackers2(int sessionID, string assertion, boolean reverse);
 
   void profileEdit(int sessionID, string fullName, string location, string bio);
 
@@ -134,7 +118,7 @@ protocol user {
    getUPAK returns a UPAK. Used mainly for debugging.
   */
   @lint("ignore")
-  UPAKVersioned getUPAK(UID uid);
+  UPAKVersioned getUPAK(UID uid, boolean unstubbed);
 
   /**
    getUPAKLite returns a UPKLiteV1AllIncarnations. Used mainly for debugging.

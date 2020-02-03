@@ -543,8 +543,8 @@ export type MessageTypes = {
     inParam: {readonly statusJSON: String; readonly feedback: String; readonly sendLogs: Boolean; readonly sendMaxBytes: Boolean}
     outParam: LogSendID
   }
-  'keybase.1.config.requestFollowerInfo': {
-    inParam: {readonly uid: UID}
+  'keybase.1.config.requestFollowingAndUnverifiedFollowers': {
+    inParam: void
     outParam: void
   }
   'keybase.1.config.setProxyData': {
@@ -1475,9 +1475,13 @@ export type MessageTypes = {
     inParam: {readonly maxUsers: Int; readonly namespace: String}
     outParam: Array<InterestingPerson> | null
   }
-  'keybase.1.user.listTrackers2': {
-    inParam: {readonly assertion: String; readonly reverse: Boolean}
-    outParam: UserSummary2Set
+  'keybase.1.user.listTrackersUnverified': {
+    inParam: {readonly assertion: String}
+    outParam: UserSummarySet
+  }
+  'keybase.1.user.listTracking': {
+    inParam: {readonly filter: String; readonly assertion: String}
+    outParam: UserSummarySet
   }
   'keybase.1.user.loadMySettings': {
     inParam: void
@@ -3139,7 +3143,7 @@ export type UserBlockState = {readonly blockType: UserBlockType; readonly blocke
 export type UserBlockedBody = {readonly blocks?: Array<UserBlockedRow> | null; readonly uid: UID; readonly username: String}
 export type UserBlockedRow = {readonly uid: UID; readonly username: String; readonly chat?: Boolean | null; readonly follow?: Boolean | null}
 export type UserBlockedSummary = {readonly blocker: String; readonly blocks: {[key: string]: Array<UserBlockState> | null}}
-export type UserCard = {readonly following: Int; readonly followers: Int; readonly uid: UID; readonly fullName: String; readonly location: String; readonly bio: String; readonly bioDecorated: String; readonly website: String; readonly twitter: String; readonly youFollowThem: Boolean; readonly theyFollowYou: Boolean; readonly teamShowcase?: Array<UserTeamShowcase> | null; readonly registeredForAirdrop: Boolean; readonly stellarHidden: Boolean; readonly blocked: Boolean; readonly hidFromFollowers: Boolean}
+export type UserCard = {readonly unverifiedNumFollowing: Int; readonly unverifiedNumFollowers: Int; readonly uid: UID; readonly fullName: String; readonly location: String; readonly bio: String; readonly bioDecorated: String; readonly website: String; readonly twitter: String; readonly teamShowcase?: Array<UserTeamShowcase> | null; readonly registeredForAirdrop: Boolean; readonly stellarHidden: Boolean; readonly blocked: Boolean; readonly hidFromFollowers: Boolean}
 export type UserEk = {readonly seed: Bytes32; readonly metadata: UserEkMetadata}
 export type UserEkBoxMetadata = {readonly box: String; readonly recipientGeneration: EkGeneration; readonly recipientDeviceID: DeviceID}
 export type UserEkBoxed = {readonly box: String; readonly deviceEkGeneration: EkGeneration; readonly metadata: UserEkMetadata}
@@ -3158,9 +3162,8 @@ export type UserPlusKeysV2AllIncarnations = {readonly current: UserPlusKeysV2; r
 export type UserReacjis = {readonly topReacjis?: Array<String> | null; readonly skinTone: ReacjiSkinTone}
 export type UserRolePair = {readonly assertionOrEmail: String; readonly role: TeamRole; readonly botSettings?: TeamBotSettings | null}
 export type UserSettings = {readonly emails?: Array<Email> | null; readonly phoneNumbers?: Array<UserPhoneNumber> | null}
-export type UserSummary = {readonly uid: UID; readonly username: String; readonly thumbnail: String; readonly idVersion: Int; readonly fullName: String; readonly bio: String; readonly proofs: Proofs; readonly sigIDDisplay: String; readonly trackTime: Time}
-export type UserSummary2 = {readonly uid: UID; readonly username: String; readonly thumbnail: String; readonly fullName: String; readonly isFollower: Boolean; readonly isFollowee: Boolean}
-export type UserSummary2Set = {readonly users?: Array<UserSummary2> | null; readonly time: Time; readonly version: Int}
+export type UserSummary = {readonly uid: UID; readonly username: String; readonly fullName: String; readonly linkID?: LinkID | null}
+export type UserSummarySet = {readonly users?: Array<UserSummary> | null; readonly time: Time; readonly version: Int}
 export type UserTeamShowcase = {readonly fqName: String; readonly open: Boolean; readonly teamIsShowcased: Boolean; readonly description: String; readonly role: TeamRole; readonly publicAdmins?: Array<String> | null; readonly numMembers: Int}
 export type UserTeamVersion = Int
 export type UserTeamVersionUpdate = {readonly version: UserTeamVersion}
@@ -3516,7 +3519,7 @@ export const configGuiGetValueRpcPromise = (params: MessageTypes['keybase.1.conf
 export const configGuiSetValueRpcPromise = (params: MessageTypes['keybase.1.config.guiSetValue']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.config.guiSetValue']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.guiSetValue', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const configHelloIAmRpcPromise = (params: MessageTypes['keybase.1.config.helloIAm']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.config.helloIAm']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.helloIAm', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const configLogSendRpcPromise = (params: MessageTypes['keybase.1.config.logSend']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.config.logSend']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.logSend', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
-export const configRequestFollowerInfoRpcPromise = (params: MessageTypes['keybase.1.config.requestFollowerInfo']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.config.requestFollowerInfo']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.requestFollowerInfo', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const configRequestFollowingAndUnverifiedFollowersRpcPromise = (params: MessageTypes['keybase.1.config.requestFollowingAndUnverifiedFollowers']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.config.requestFollowingAndUnverifiedFollowers']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.requestFollowingAndUnverifiedFollowers', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const configSetProxyDataRpcPromise = (params: MessageTypes['keybase.1.config.setProxyData']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.config.setProxyData']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.setProxyData', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const configSetRememberPassphraseRpcPromise = (params: MessageTypes['keybase.1.config.setRememberPassphrase']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.config.setRememberPassphrase']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.setRememberPassphrase', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const configStartUpdateIfNeededRpcPromise = (params: MessageTypes['keybase.1.config.startUpdateIfNeeded']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.config.startUpdateIfNeeded']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.config.startUpdateIfNeeded', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -3665,7 +3668,8 @@ export const userCanLogoutRpcPromise = (params: MessageTypes['keybase.1.user.can
 export const userDismissBlockButtonsRpcPromise = (params: MessageTypes['keybase.1.user.dismissBlockButtons']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.user.dismissBlockButtons']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.dismissBlockButtons', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const userGetUserBlocksRpcPromise = (params: MessageTypes['keybase.1.user.getUserBlocks']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.user.getUserBlocks']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.getUserBlocks', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const userInterestingPeopleRpcPromise = (params: MessageTypes['keybase.1.user.interestingPeople']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.user.interestingPeople']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.interestingPeople', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
-export const userListTrackers2RpcPromise = (params: MessageTypes['keybase.1.user.listTrackers2']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.user.listTrackers2']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.listTrackers2', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const userListTrackersUnverifiedRpcPromise = (params: MessageTypes['keybase.1.user.listTrackersUnverified']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.user.listTrackersUnverified']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.listTrackersUnverified', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const userListTrackingRpcPromise = (params: MessageTypes['keybase.1.user.listTracking']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.user.listTracking']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.listTracking', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const userLoadMySettingsRpcPromise = (params: MessageTypes['keybase.1.user.loadMySettings']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.user.loadMySettings']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.loadMySettings', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const userLoadPassphraseStateRpcPromise = (params: MessageTypes['keybase.1.user.loadPassphraseState']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.user.loadPassphraseState']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.loadPassphraseState', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const userProfileEditRpcPromise = (params: MessageTypes['keybase.1.user.profileEdit']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['keybase.1.user.profileEdit']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.profileEdit', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -4071,15 +4075,13 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.track.track'
 // 'keybase.1.track.fakeTrackingChanged'
 // 'keybase.1.ui.promptYesNo'
-// 'keybase.1.user.loadUncheckedUserSummaries'
+// 'keybase.1.user.listTrackingJSON'
 // 'keybase.1.user.loadUser'
 // 'keybase.1.user.loadUserByName'
 // 'keybase.1.user.loadUserPlusKeys'
 // 'keybase.1.user.loadUserPlusKeysV2'
 // 'keybase.1.user.loadPublicKeys'
 // 'keybase.1.user.loadMyPublicKeys'
-// 'keybase.1.user.listTracking'
-// 'keybase.1.user.listTrackingJSON'
 // 'keybase.1.user.loadAllPublicKeysUnverified'
 // 'keybase.1.user.meUserVersion'
 // 'keybase.1.user.getUPAK'

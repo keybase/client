@@ -134,7 +134,7 @@ func (c *cmdFNMR) Run() error {
 	}
 	ctx := context.Background()
 
-	c.upak, err = userClient.GetUPAK(ctx, c.uid)
+	c.upak, err = userClient.GetUPAK(ctx, keybase1.GetUPAKArg{Uid: c.uid})
 	if err != nil {
 		return err
 	}

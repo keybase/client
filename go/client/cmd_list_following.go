@@ -5,7 +5,6 @@ package client
 
 import (
 	"fmt"
-	"strings"
 
 	"golang.org/x/net/context"
 
@@ -55,10 +54,8 @@ func displayTable(g *libkb.GlobalContext, entries []keybase1.UserSummary, verbos
 		if verbose {
 			cols = []string{
 				"Username",
-				"Sig ID",
-				"PGP fingerprints",
-				"When Followed",
-				"Proofs",
+				"UID",
+				"Link ID",
 			}
 		} else {
 			cols = []string{"Username"}
@@ -77,21 +74,10 @@ func displayTable(g *libkb.GlobalContext, entries []keybase1.UserSummary, verbos
 			return []string{entry.Username}
 		}
 
-		fps := make([]string, len(entry.Proofs.PublicKeys))
-		for i, k := range entry.Proofs.PublicKeys {
-			if k.PGPFingerprint != "" {
-				fps[i] = k.PGPFingerprint
-			}
-		}
-
 		row := []string{
 			entry.Username,
-			entry.SigIDDisplay,
-			strings.Join(fps, ", "),
-			keybase1.FormatTime(entry.TrackTime),
-		}
-		for _, proof := range entry.Proofs.Social {
-			row = append(row, proof.IdString)
+			entry.Uid.String(),
+			entry.LinkID.String(),
 		}
 		return row
 	}
@@ -124,11 +110,11 @@ func (s *CmdListTracking) Run() error {
 		return displayJSON(s.G(), jsonStr)
 	}
 
-	table, err := cli.ListTracking(context.TODO(), keybase1.ListTrackingArg{Filter: s.filter, Assertion: s.assertion})
+	ret, err := cli.ListTracking(context.TODO(), keybase1.ListTrackingArg{Filter: s.filter, Assertion: s.assertion})
 	if err != nil {
 		return err
 	}
-	return displayTable(s.G(), table, s.verbose, s.headers)
+	return displayTable(s.G(), ret.Users, s.verbose, s.headers)
 }
 
 func NewCmdListTracking(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {

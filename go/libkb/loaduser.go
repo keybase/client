@@ -157,8 +157,8 @@ func (arg LoadUserArg) EnsureCtxAndLogTag() LoadUserArg {
 	return arg
 }
 
-func (arg LoadUserArg) WithCachedOnly() LoadUserArg {
-	arg.cachedOnly = true
+func (arg LoadUserArg) WithCachedOnly(b bool) LoadUserArg {
+	arg.cachedOnly = b
 	return arg
 }
 
@@ -655,7 +655,7 @@ func IsUserByUsernameOffline(m MetaContext, un NormalizedUsername) bool {
 	uid := usernameToUIDPreserveCase(un.String())
 
 	// use the UPAKLoader with StaleOK, CachedOnly in order to get cached upak
-	arg := NewLoadUserArgWithMetaContext(m).WithUID(uid).WithPublicKeyOptional().WithStaleOK(true).WithCachedOnly()
+	arg := NewLoadUserArgWithMetaContext(m).WithUID(uid).WithPublicKeyOptional().WithStaleOK(true).WithCachedOnly(true)
 	_, _, err := m.G().GetUPAKLoader().LoadV2(arg)
 
 	if err == nil {

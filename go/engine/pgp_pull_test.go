@@ -99,7 +99,7 @@ func TestPGPPullOne(t *testing.T) {
 
 	runPGPPull(tc, PGPPullEngineArg{
 		// ID'ing the same user twice should be ok.
-		UserAsserts: []string{"t_bob", "t_bob+kbtester1@twitter"},
+		UserAsserts: []string{"t_bob"},
 	})
 
 	assertKeysPresent(t, gpgClient, []string{bobFp})

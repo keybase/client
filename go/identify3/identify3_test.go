@@ -192,7 +192,6 @@ func TestFollowUnfollowTracy(t *testing.T) {
 	require.Equal(t, res.resultType, keybase1.Identify3ResultType_OK)
 	require.Equal(t, len(res.rows), 9)
 	require.Equal(t, len(res.cards), 1)
-	require.False(t, res.cards[0].YouFollowThem)
 
 	findRows(t, res.rows, []keybase1.Identify3Row{
 		{
@@ -228,7 +227,6 @@ func TestFollowUnfollowTracy(t *testing.T) {
 	require.Equal(t, res.resultType, keybase1.Identify3ResultType_OK)
 	require.Equal(t, len(res.rows), 9)
 	require.Equal(t, len(res.cards), 1)
-	require.True(t, res.cards[0].YouFollowThem)
 
 	findRows(t, res.rows, []keybase1.Identify3Row{
 		{

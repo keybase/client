@@ -75,7 +75,7 @@ const getFollowerInfo = (state: Container.TypedState, action: ConfigGen.LoadOnSt
   }
   if (uid) {
     // request follower info in the background
-    RPCTypes.configRequestFollowerInfoRpcPromise({uid: state.config.uid})
+    RPCTypes.configRequestFollowingAndUnverifiedFollowersRpcPromise()
   }
 }
 

@@ -91,28 +91,48 @@ func (o Proofs) DeepCopy() Proofs {
 }
 
 type UserSummary struct {
-	Uid          UID    `codec:"uid" json:"uid"`
-	Username     string `codec:"username" json:"username"`
-	Thumbnail    string `codec:"thumbnail" json:"thumbnail"`
-	IdVersion    int    `codec:"idVersion" json:"idVersion"`
-	FullName     string `codec:"fullName" json:"fullName"`
-	Bio          string `codec:"bio" json:"bio"`
-	Proofs       Proofs `codec:"proofs" json:"proofs"`
-	SigIDDisplay string `codec:"sigIDDisplay" json:"sigIDDisplay"`
-	TrackTime    Time   `codec:"trackTime" json:"trackTime"`
+	Uid      UID     `codec:"uid" json:"uid"`
+	Username string  `codec:"username" json:"username"`
+	FullName string  `codec:"fullName" json:"fullName"`
+	LinkID   *LinkID `codec:"linkID,omitempty" json:"linkID,omitempty"`
 }
 
 func (o UserSummary) DeepCopy() UserSummary {
 	return UserSummary{
-		Uid:          o.Uid.DeepCopy(),
-		Username:     o.Username,
-		Thumbnail:    o.Thumbnail,
-		IdVersion:    o.IdVersion,
-		FullName:     o.FullName,
-		Bio:          o.Bio,
-		Proofs:       o.Proofs.DeepCopy(),
-		SigIDDisplay: o.SigIDDisplay,
-		TrackTime:    o.TrackTime.DeepCopy(),
+		Uid:      o.Uid.DeepCopy(),
+		Username: o.Username,
+		FullName: o.FullName,
+		LinkID: (func(x *LinkID) *LinkID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.LinkID),
+	}
+}
+
+type UserSummarySet struct {
+	Users   []UserSummary `codec:"users" json:"users"`
+	Time    Time          `codec:"time" json:"time"`
+	Version int           `codec:"version" json:"version"`
+}
+
+func (o UserSummarySet) DeepCopy() UserSummarySet {
+	return UserSummarySet{
+		Users: (func(x []UserSummary) []UserSummary {
+			if x == nil {
+				return nil
+			}
+			ret := make([]UserSummary, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Users),
+		Time:    o.Time.DeepCopy(),
+		Version: o.Version,
 	}
 }
 
@@ -169,50 +189,6 @@ func (o UserSettings) DeepCopy() UserSettings {
 			}
 			return ret
 		})(o.PhoneNumbers),
-	}
-}
-
-type UserSummary2 struct {
-	Uid        UID    `codec:"uid" json:"uid"`
-	Username   string `codec:"username" json:"username"`
-	Thumbnail  string `codec:"thumbnail" json:"thumbnail"`
-	FullName   string `codec:"fullName" json:"fullName"`
-	IsFollower bool   `codec:"isFollower" json:"isFollower"`
-	IsFollowee bool   `codec:"isFollowee" json:"isFollowee"`
-}
-
-func (o UserSummary2) DeepCopy() UserSummary2 {
-	return UserSummary2{
-		Uid:        o.Uid.DeepCopy(),
-		Username:   o.Username,
-		Thumbnail:  o.Thumbnail,
-		FullName:   o.FullName,
-		IsFollower: o.IsFollower,
-		IsFollowee: o.IsFollowee,
-	}
-}
-
-type UserSummary2Set struct {
-	Users   []UserSummary2 `codec:"users" json:"users"`
-	Time    Time           `codec:"time" json:"time"`
-	Version int            `codec:"version" json:"version"`
-}
-
-func (o UserSummary2Set) DeepCopy() UserSummary2Set {
-	return UserSummary2Set{
-		Users: (func(x []UserSummary2) []UserSummary2 {
-			if x == nil {
-				return nil
-			}
-			ret := make([]UserSummary2, len(x))
-			for i, v := range x {
-				vCopy := v.DeepCopy()
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.Users),
-		Time:    o.Time.DeepCopy(),
-		Version: o.Version,
 	}
 }
 
@@ -601,9 +577,22 @@ func (o TeamBlock) DeepCopy() TeamBlock {
 	}
 }
 
-type LoadUncheckedUserSummariesArg struct {
-	SessionID int   `codec:"sessionID" json:"sessionID"`
-	Uids      []UID `codec:"uids" json:"uids"`
+type ListTrackingArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Filter    string `codec:"filter" json:"filter"`
+	Assertion string `codec:"assertion" json:"assertion"`
+}
+
+type ListTrackingJSONArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Filter    string `codec:"filter" json:"filter"`
+	Verbose   bool   `codec:"verbose" json:"verbose"`
+	Assertion string `codec:"assertion" json:"assertion"`
+}
+
+type ListTrackersUnverifiedArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Assertion string `codec:"assertion" json:"assertion"`
 }
 
 type LoadUserArg struct {
@@ -642,28 +631,9 @@ type LoadMySettingsArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
-type ListTrackingArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Filter    string `codec:"filter" json:"filter"`
-	Assertion string `codec:"assertion" json:"assertion"`
-}
-
-type ListTrackingJSONArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Filter    string `codec:"filter" json:"filter"`
-	Verbose   bool   `codec:"verbose" json:"verbose"`
-	Assertion string `codec:"assertion" json:"assertion"`
-}
-
 type LoadAllPublicKeysUnverifiedArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 	Uid       UID `codec:"uid" json:"uid"`
-}
-
-type ListTrackers2Arg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Assertion string `codec:"assertion" json:"assertion"`
-	Reverse   bool   `codec:"reverse" json:"reverse"`
 }
 
 type ProfileEditArg struct {
@@ -684,7 +654,8 @@ type MeUserVersionArg struct {
 }
 
 type GetUPAKArg struct {
-	Uid UID `codec:"uid" json:"uid"`
+	Uid       UID  `codec:"uid" json:"uid"`
+	Unstubbed bool `codec:"unstubbed" json:"unstubbed"`
 }
 
 type GetUPAKLiteArg struct {
@@ -763,10 +734,16 @@ type GetTeamBlocksArg struct {
 }
 
 type UserInterface interface {
-	// Load user summaries for the supplied uids.
-	// They are "unchecked" in that the client is not verifying the info from the server.
-	// If len(uids) > 500, the first 500 will be returned.
-	LoadUncheckedUserSummaries(context.Context, LoadUncheckedUserSummariesArg) ([]UserSummary, error)
+	// listTracking gets verified data from the tracking statements in the user's
+	// sigchain. However, it does not check to make sure the tracked users have
+	// not reset since the track statement.
+	//
+	// If assertion is empty, it will use the current logged in user.
+	ListTracking(context.Context, ListTrackingArg) (UserSummarySet, error)
+	ListTrackingJSON(context.Context, ListTrackingJSONArg) (string, error)
+	// listTrackersUnverified returns the users following the given user, and is unverified
+	// and server-trust.
+	ListTrackersUnverified(context.Context, ListTrackersUnverifiedArg) (UserSummarySet, error)
 	// Load a user from the server.
 	LoadUser(context.Context, LoadUserArg) (User, error)
 	LoadUserByName(context.Context, LoadUserByNameArg) (User, error)
@@ -779,21 +756,14 @@ type UserInterface interface {
 	LoadMyPublicKeys(context.Context, int) ([]PublicKey, error)
 	// Load user settings (for logged in user).
 	LoadMySettings(context.Context, int) (UserSettings, error)
-	// The list-tracking functions get verified data from the tracking statements
-	// in the user's sigchain.
-	//
-	// If assertion is empty, it will use the current logged in user.
-	ListTracking(context.Context, ListTrackingArg) ([]UserSummary, error)
-	ListTrackingJSON(context.Context, ListTrackingJSONArg) (string, error)
 	// Load all the user's public keys (even those in reset key families)
 	// from the server with no verification
 	LoadAllPublicKeysUnverified(context.Context, LoadAllPublicKeysUnverifiedArg) ([]PublicKey, error)
-	ListTrackers2(context.Context, ListTrackers2Arg) (UserSummary2Set, error)
 	ProfileEdit(context.Context, ProfileEditArg) error
 	InterestingPeople(context.Context, InterestingPeopleArg) ([]InterestingPerson, error)
 	MeUserVersion(context.Context, MeUserVersionArg) (UserVersion, error)
 	// getUPAK returns a UPAK. Used mainly for debugging.
-	GetUPAK(context.Context, UID) (UPAKVersioned, error)
+	GetUPAK(context.Context, GetUPAKArg) (UPAKVersioned, error)
 	// getUPAKLite returns a UPKLiteV1AllIncarnations. Used mainly for debugging.
 	GetUPAKLite(context.Context, UID) (UPKLiteV1AllIncarnations, error)
 	UploadUserAvatar(context.Context, UploadUserAvatarArg) error
@@ -822,18 +792,48 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.user",
 		Methods: map[string]rpc.ServeHandlerDescription{
-			"loadUncheckedUserSummaries": {
+			"listTracking": {
 				MakeArg: func() interface{} {
-					var ret [1]LoadUncheckedUserSummariesArg
+					var ret [1]ListTrackingArg
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]LoadUncheckedUserSummariesArg)
+					typedArgs, ok := args.(*[1]ListTrackingArg)
 					if !ok {
-						err = rpc.NewTypeError((*[1]LoadUncheckedUserSummariesArg)(nil), args)
+						err = rpc.NewTypeError((*[1]ListTrackingArg)(nil), args)
 						return
 					}
-					ret, err = i.LoadUncheckedUserSummaries(ctx, typedArgs[0])
+					ret, err = i.ListTracking(ctx, typedArgs[0])
+					return
+				},
+			},
+			"listTrackingJSON": {
+				MakeArg: func() interface{} {
+					var ret [1]ListTrackingJSONArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ListTrackingJSONArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ListTrackingJSONArg)(nil), args)
+						return
+					}
+					ret, err = i.ListTrackingJSON(ctx, typedArgs[0])
+					return
+				},
+			},
+			"listTrackersUnverified": {
+				MakeArg: func() interface{} {
+					var ret [1]ListTrackersUnverifiedArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ListTrackersUnverifiedArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ListTrackersUnverifiedArg)(nil), args)
+						return
+					}
+					ret, err = i.ListTrackersUnverified(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -942,36 +942,6 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 					return
 				},
 			},
-			"listTracking": {
-				MakeArg: func() interface{} {
-					var ret [1]ListTrackingArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]ListTrackingArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]ListTrackingArg)(nil), args)
-						return
-					}
-					ret, err = i.ListTracking(ctx, typedArgs[0])
-					return
-				},
-			},
-			"listTrackingJSON": {
-				MakeArg: func() interface{} {
-					var ret [1]ListTrackingJSONArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]ListTrackingJSONArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]ListTrackingJSONArg)(nil), args)
-						return
-					}
-					ret, err = i.ListTrackingJSON(ctx, typedArgs[0])
-					return
-				},
-			},
 			"loadAllPublicKeysUnverified": {
 				MakeArg: func() interface{} {
 					var ret [1]LoadAllPublicKeysUnverifiedArg
@@ -984,21 +954,6 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.LoadAllPublicKeysUnverified(ctx, typedArgs[0])
-					return
-				},
-			},
-			"listTrackers2": {
-				MakeArg: func() interface{} {
-					var ret [1]ListTrackers2Arg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]ListTrackers2Arg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]ListTrackers2Arg)(nil), args)
-						return
-					}
-					ret, err = i.ListTrackers2(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -1058,7 +1013,7 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]GetUPAKArg)(nil), args)
 						return
 					}
-					ret, err = i.GetUPAK(ctx, typedArgs[0].Uid)
+					ret, err = i.GetUPAK(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -1295,11 +1250,25 @@ type UserClient struct {
 	Cli rpc.GenericClient
 }
 
-// Load user summaries for the supplied uids.
-// They are "unchecked" in that the client is not verifying the info from the server.
-// If len(uids) > 500, the first 500 will be returned.
-func (c UserClient) LoadUncheckedUserSummaries(ctx context.Context, __arg LoadUncheckedUserSummariesArg) (res []UserSummary, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.loadUncheckedUserSummaries", []interface{}{__arg}, &res, 0*time.Millisecond)
+// listTracking gets verified data from the tracking statements in the user's
+// sigchain. However, it does not check to make sure the tracked users have
+// not reset since the track statement.
+//
+// If assertion is empty, it will use the current logged in user.
+func (c UserClient) ListTracking(ctx context.Context, __arg ListTrackingArg) (res UserSummarySet, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.user.listTracking", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c UserClient) ListTrackingJSON(ctx context.Context, __arg ListTrackingJSONArg) (res string, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.user.listTrackingJSON", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+// listTrackersUnverified returns the users following the given user, and is unverified
+// and server-trust.
+func (c UserClient) ListTrackersUnverified(ctx context.Context, __arg ListTrackersUnverifiedArg) (res UserSummarySet, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.user.listTrackersUnverified", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -1345,29 +1314,10 @@ func (c UserClient) LoadMySettings(ctx context.Context, sessionID int) (res User
 	return
 }
 
-// The list-tracking functions get verified data from the tracking statements
-// in the user's sigchain.
-//
-// If assertion is empty, it will use the current logged in user.
-func (c UserClient) ListTracking(ctx context.Context, __arg ListTrackingArg) (res []UserSummary, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.listTracking", []interface{}{__arg}, &res, 0*time.Millisecond)
-	return
-}
-
-func (c UserClient) ListTrackingJSON(ctx context.Context, __arg ListTrackingJSONArg) (res string, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.listTrackingJSON", []interface{}{__arg}, &res, 0*time.Millisecond)
-	return
-}
-
 // Load all the user's public keys (even those in reset key families)
 // from the server with no verification
 func (c UserClient) LoadAllPublicKeysUnverified(ctx context.Context, __arg LoadAllPublicKeysUnverifiedArg) (res []PublicKey, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.user.loadAllPublicKeysUnverified", []interface{}{__arg}, &res, 0*time.Millisecond)
-	return
-}
-
-func (c UserClient) ListTrackers2(ctx context.Context, __arg ListTrackers2Arg) (res UserSummary2Set, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.user.listTrackers2", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
@@ -1387,8 +1337,7 @@ func (c UserClient) MeUserVersion(ctx context.Context, __arg MeUserVersionArg) (
 }
 
 // getUPAK returns a UPAK. Used mainly for debugging.
-func (c UserClient) GetUPAK(ctx context.Context, uid UID) (res UPAKVersioned, err error) {
-	__arg := GetUPAKArg{Uid: uid}
+func (c UserClient) GetUPAK(ctx context.Context, __arg GetUPAKArg) (res UPAKVersioned, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.user.getUPAK", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
