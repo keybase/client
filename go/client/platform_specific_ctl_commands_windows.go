@@ -1,6 +1,5 @@
-// Copyright 2019 Keybase, Inc. All rights reserved. Use of
+// Copyright 2020 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
-// +build darwin netbsd openbsd freebsd
 
 package client
 
@@ -11,5 +10,7 @@ import (
 )
 
 func platformSpecificCtlCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
-	return nil
+	return []cli.Command{
+		NewCmdCtlAutostart(cl, g),
+	}
 }

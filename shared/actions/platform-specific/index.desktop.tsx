@@ -388,10 +388,10 @@ const setOpenAtLogin = async (state: Container.TypedState) => {
   })
 
   if (__DEV__) return
-  if (isLinux) {
+  if (isLinux || isWindows) {
     const enabled =
-      (await RPCTypes.ctlGetNixOnLoginStartupRpcPromise()) === RPCTypes.OnLoginStartupStatus.enabled
-    if (enabled !== openAtLogin) await setNixOnLoginStartup(openAtLogin)
+      (await RPCTypes.ctlGetOnLoginStartupRpcPromise()) === RPCTypes.OnLoginStartupStatus.enabled
+    if (enabled !== openAtLogin) await setOnLoginStartup(openAtLogin)
   } else {
     if (Electron.remote.app.getLoginItemSettings().openAtLogin !== openAtLogin) {
       logger.info(`Login item settings changed! now ${openAtLogin}`)
@@ -400,9 +400,9 @@ const setOpenAtLogin = async (state: Container.TypedState) => {
   }
 }
 
-const setNixOnLoginStartup = async (enabled: boolean) => {
-  RPCTypes.ctlSetNixOnLoginStartupRpcPromise({enabled}).catch(err => {
-    logger.warn(`Error in sending ctlSetNixOnLoginStartup: ${err.message}`)
+const setOnLoginStartup = async (enabled: boolean) => {
+  RPCTypes.ctlSetOnLoginStartupRpcPromise({enabled}).catch(err => {
+    logger.warn(`Error in sending ctlSetOnLoginStartup: ${err.message}`)
   })
 }
 

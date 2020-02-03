@@ -184,11 +184,11 @@ type DbKeysWithPrefixesArg struct {
 	Prefix    DbKey `codec:"prefix" json:"prefix"`
 }
 
-type SetNixOnLoginStartupArg struct {
+type SetOnLoginStartupArg struct {
 	Enabled bool `codec:"enabled" json:"enabled"`
 }
 
-type GetNixOnLoginStartupArg struct {
+type GetOnLoginStartupArg struct {
 }
 
 type CtlInterface interface {
@@ -203,8 +203,8 @@ type CtlInterface interface {
 	DbPut(context.Context, DbPutArg) error
 	DbGet(context.Context, DbGetArg) (*DbValue, error)
 	DbKeysWithPrefixes(context.Context, DbKeysWithPrefixesArg) ([]DbKey, error)
-	SetNixOnLoginStartup(context.Context, bool) error
-	GetNixOnLoginStartup(context.Context) (OnLoginStartupStatus, error)
+	SetOnLoginStartup(context.Context, bool) error
+	GetOnLoginStartup(context.Context) (OnLoginStartupStatus, error)
 }
 
 func CtlProtocol(i CtlInterface) rpc.Protocol {
@@ -376,28 +376,28 @@ func CtlProtocol(i CtlInterface) rpc.Protocol {
 					return
 				},
 			},
-			"setNixOnLoginStartup": {
+			"setOnLoginStartup": {
 				MakeArg: func() interface{} {
-					var ret [1]SetNixOnLoginStartupArg
+					var ret [1]SetOnLoginStartupArg
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]SetNixOnLoginStartupArg)
+					typedArgs, ok := args.(*[1]SetOnLoginStartupArg)
 					if !ok {
-						err = rpc.NewTypeError((*[1]SetNixOnLoginStartupArg)(nil), args)
+						err = rpc.NewTypeError((*[1]SetOnLoginStartupArg)(nil), args)
 						return
 					}
-					err = i.SetNixOnLoginStartup(ctx, typedArgs[0].Enabled)
+					err = i.SetOnLoginStartup(ctx, typedArgs[0].Enabled)
 					return
 				},
 			},
-			"getNixOnLoginStartup": {
+			"getOnLoginStartup": {
 				MakeArg: func() interface{} {
-					var ret [1]GetNixOnLoginStartupArg
+					var ret [1]GetOnLoginStartupArg
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					ret, err = i.GetNixOnLoginStartup(ctx)
+					ret, err = i.GetOnLoginStartup(ctx)
 					return
 				},
 			},
@@ -468,13 +468,13 @@ func (c CtlClient) DbKeysWithPrefixes(ctx context.Context, __arg DbKeysWithPrefi
 	return
 }
 
-func (c CtlClient) SetNixOnLoginStartup(ctx context.Context, enabled bool) (err error) {
-	__arg := SetNixOnLoginStartupArg{Enabled: enabled}
-	err = c.Cli.Call(ctx, "keybase.1.ctl.setNixOnLoginStartup", []interface{}{__arg}, nil, 0*time.Millisecond)
+func (c CtlClient) SetOnLoginStartup(ctx context.Context, enabled bool) (err error) {
+	__arg := SetOnLoginStartupArg{Enabled: enabled}
+	err = c.Cli.Call(ctx, "keybase.1.ctl.setOnLoginStartup", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 
-func (c CtlClient) GetNixOnLoginStartup(ctx context.Context) (res OnLoginStartupStatus, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.ctl.getNixOnLoginStartup", []interface{}{GetNixOnLoginStartupArg{}}, &res, 0*time.Millisecond)
+func (c CtlClient) GetOnLoginStartup(ctx context.Context) (res OnLoginStartupStatus, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.ctl.getOnLoginStartup", []interface{}{GetOnLoginStartupArg{}}, &res, 0*time.Millisecond)
 	return
 }

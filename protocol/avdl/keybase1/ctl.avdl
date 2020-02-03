@@ -40,7 +40,7 @@ protocol ctl {
   union { null, DbValue } dbGet(int sessionID, DbKey key);
   array<DbKey> dbKeysWithPrefixes(int sessionID, DbKey prefix);
 
-  void setNixOnLoginStartup(boolean enabled);
+  void setOnLoginStartup(boolean enabled);
 
   enum OnLoginStartupStatus {
     UNKNOWN_0,
@@ -48,5 +48,5 @@ protocol ctl {
     ENABLED_2
   }
 
-  OnLoginStartupStatus getNixOnLoginStartup();
+  OnLoginStartupStatus getOnLoginStartup();
 }

@@ -300,8 +300,8 @@ export type TypedActionsMap = {
   'config:setUseNativeFrame': config.SetUseNativeFramePayload
   'config:setWhatsNewLastSeenVersion': config.SetWhatsNewLastSeenVersionPayload
   'config:toggleRuntimeStats': config.ToggleRuntimeStatsPayload
-  'config:loadNixOnLoginStartup': config.LoadNixOnLoginStartupPayload
-  'config:loadedNixOnLoginStartup': config.LoadedNixOnLoginStartupPayload
+  'config:loadOnLoginStartup': config.LoadOnLoginStartupPayload
+  'config:loadedOnLoginStartup': config.LoadedOnLoginStartupPayload
   'config:loadOnStart': config.LoadOnStartPayload
   'config:showShareActionSheet': config.ShowShareActionSheetPayload
   'crypto:clearRecipients': crypto.ClearRecipientsPayload
