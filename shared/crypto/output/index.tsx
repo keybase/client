@@ -115,6 +115,7 @@ export const OutputInfoBanner = (props: OutputInfoProps) => {
 export const OutputBar = (props: OutputBarProps) => {
   const {operation} = props
   const dispatch = Container.useDispatch()
+  const canSaveAsText = operation === Constants.Operations.Encrypt || operation === Constants.Operations.Sign
 
   // Waiting
   const waitingKey = Constants.getStringWaitingKey(props.operation)
@@ -137,7 +138,13 @@ export const OutputBar = (props: OutputBarProps) => {
   }
 
   const onSaveAsText = () => {
-    dispatch(CryptoGen.createDownloadSignedText())
+    if (operation === Constants.Operations.Sign) {
+      return dispatch(CryptoGen.createDownloadSignedText())
+    }
+
+    if (operation === Constants.Operations.Encrypt) {
+      return dispatch(CryptoGen.createDownloadEncryptedText())
+    }
   }
 
   // State, Refs, Timers
@@ -183,7 +190,7 @@ export const OutputBar = (props: OutputBarProps) => {
                 onClick={() => copy()}
               />
             </Kb.Box2>
-            {onSaveAsText && (
+            {canSaveAsText && (
               <Kb.Button
                 mode="Secondary"
                 label="Save as TXT"
