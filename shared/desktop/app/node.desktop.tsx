@@ -1,8 +1,5 @@
 // Entry point for the node part of the electron app
-// MUST be first
-import './preload.desktop'
-// ^^^^^^^^
-import MainWindow, {showDockIcon, hideDockIcon} from './main-window.desktop'
+import MainWindow, {showDockIcon} from './main-window.desktop'
 import * as Electron from 'electron'
 import devTools from './dev-tools.desktop'
 import installer from './installer.desktop'
@@ -10,27 +7,28 @@ import menuBar from './menu-bar.desktop'
 import menuHelper from './menu-helper.desktop'
 import os from 'os'
 import fs from 'fs'
+import path from 'path'
 import * as ConfigGen from '../../actions/config-gen'
 import * as DeeplinksGen from '../../actions/deeplinks-gen'
+import * as SafeElectron from '../../util/safe-electron.desktop'
 import {showDevTools, skipSecondaryDevtools, allowMultipleInstances} from '../../local-debug.desktop'
 import startWinService from './start-win-service.desktop'
 import {isDarwin, isLinux, isWindows, cacheRoot} from '../../constants/platform.desktop'
 import {mainWindowDispatch} from '../remote/util.desktop'
 import {quit} from './ctl.desktop'
 import logger from '../../logger'
-import {resolveRoot, resolveRootAsURL} from './resolve-root.desktop'
-
-const {join} = KB.path
-const {env} = KB.process
+import {resolveRootAsURL} from './resolve-root.desktop'
 
 let mainWindow: ReturnType<typeof MainWindow> | null = null
 let appStartedUp = false
 let startupURL: string | null = null
 
 const installCrashReporter = () => {
-  if (env.KEYBASE_CRASH_REPORT) {
-    console.log(`Adding crash reporting (local). Crash files located in ${Electron.app.getPath('temp')}`)
-    Electron.crashReporter.start({
+  if (process.env.KEYBASE_CRASH_REPORT) {
+    console.log(
+      `Adding crash reporting (local). Crash files located in ${SafeElectron.getApp().getPath('temp')}`
+    )
+    SafeElectron.getCrashReporter().start({
       companyName: 'Keybase',
       crashesDirectory: cacheRoot,
       productName: 'Keybase',
@@ -44,7 +42,7 @@ const areWeThePrimaryInstance = () => {
   if (allowMultipleInstances) {
     return true
   }
-  return Electron.app.requestSingleInstanceLock()
+  return SafeElectron.getApp().requestSingleInstanceLock()
 }
 
 const appShouldDieOnStartup = () => {
@@ -59,7 +57,10 @@ const appShouldDieOnStartup = () => {
     // 14.0.0 == 10.10.0
     // 15.0.0 == 10.11.0
     if (parseInt(os.release().split('.')[0], 10) < 14) {
-      Electron.dialog.showErrorBox('Keybase Error', "This version of macOS isn't currently supported.")
+      SafeElectron.getDialog().showErrorBox(
+        'Keybase Error',
+        "This version of macOS isn't currently supported."
+      )
       return true
     }
   }
@@ -92,7 +93,7 @@ const focusSelfOnAnotherInstanceLaunching = (commandLine: Array<string>) => {
 
 const changeCommandLineSwitches = () => {
   // MUST do this else we get limited by simultaneous hot reload event streams
-  Electron.app.commandLine.appendSwitch('ignore-connections-limit', 'localhost')
+  SafeElectron.getApp().commandLine.appendSwitch('ignore-connections-limit', 'localhost')
 
   if (__DEV__) {
     // too noisy any higher than 0 now
@@ -104,7 +105,7 @@ const changeCommandLineSwitches = () => {
 const fixWindowsNotifications = () => {
   // Windows needs this for notifications to show on certain versions
   // https://msdn.microsoft.com/en-us/library/windows/desktop/dd378459(v=vs.85).aspx
-  Electron.app.setAppUserModelId('Keybase.Keybase.GUI')
+  SafeElectron.getApp().setAppUserModelId('Keybase.Keybase.GUI')
 }
 
 const isRelevantDeepLink = (x: string) => {
@@ -120,7 +121,7 @@ const handleCrashes = () => {
     return
   }
 
-  Electron.app.on('browser-window-created', (_, win) => {
+  SafeElectron.getApp().on('browser-window-created', (_, win) => {
     if (!win) {
       return
     }
@@ -156,7 +157,7 @@ const handleQuitting = (event: Electron.Event) => {
 }
 
 const willFinishLaunching = () => {
-  Electron.app.on('open-url', (event, link) => {
+  SafeElectron.getApp().on('open-url', (event, link) => {
     event.preventDefault()
     if (!appStartedUp) {
       startupURL = link
@@ -206,7 +207,6 @@ type Action =
         windowParam: string
       }
     }
-  | {type: 'showMainWindow'}
 
 const remoteURL = (windowComponent: string, windowParam: string) =>
   resolveRootAsURL('dist', `${windowComponent}${__DEV__ ? '.dev' : ''}.html?param=${windowParam}`)
@@ -220,24 +220,14 @@ const findRemoteComponent = (windowComponent: string, windowParam: string) => {
 }
 
 const plumbEvents = () => {
-  Electron.ipcMain.handle('KBdispatchAction', (_: any, action: any) => {
-    mainWindow?.webContents.send('KBdispatchAction', action)
-  })
-
-  Electron.ipcMain.handle('KBkeybase', async (_event, action: Action) => {
+  Electron.app.on('KBkeybase' as any, (_: string, action: Action) => {
     switch (action.type) {
-      case 'showMainWindow':
-        {
-          mainWindow?.show()
-          showDockIcon()
-        }
-        break
       case 'activeChanged':
         // the installer reads this file to understand the gui state to not interrupt
         // TODO change how this works
         try {
           fs.writeFileSync(
-            join(Electron.app.getPath('userData'), 'app-state.json'),
+            path.join(SafeElectron.getApp().getPath('userData'), 'app-state.json'),
             JSON.stringify({
               changedAtMs: action.payload.changedAtMs,
               isUserActive: action.payload.isUserActive,
@@ -286,23 +276,12 @@ const plumbEvents = () => {
         }
         break
       case 'closeWindows': {
-        const windows = Electron.BrowserWindow.getAllWindows()
+        const windows = SafeElectron.BrowserWindow.getAllWindows()
         windows.forEach(w => {
           // We tell it to close, we can register handlers for the 'close' event if we want to
           // keep this window alive or hide it instead.
           w.close()
         })
-        hideDockIcon()
-        break
-      }
-      case 'rendererNewProps': {
-        const w = findRemoteComponent(action.payload.windowComponent, action.payload.windowParam)
-        w && w.emit('KBprops', action.payload.propsStr)
-        break
-      }
-      case 'closeRenderer': {
-        const w = findRemoteComponent(action.payload.windowComponent, action.payload.windowParam)
-        w && w.close()
         break
       }
       case 'makeRenderer': {
@@ -316,7 +295,6 @@ const plumbEvents = () => {
           webPreferences: {
             nodeIntegration: true,
             nodeIntegrationInWorker: false,
-            preload: resolveRoot('dist', `preload-main${__DEV__ ? '.dev' : ''}.bundle.js`),
           },
           width: 500,
           ...action.payload.windowOpts,
@@ -344,6 +322,17 @@ const plumbEvents = () => {
         }
 
         showDockIcon()
+
+        break
+      }
+      case 'closeRenderer': {
+        const w = findRemoteComponent(action.payload.windowComponent, action.payload.windowParam)
+        w && w.close()
+        break
+      }
+      case 'rendererNewProps': {
+        const w = findRemoteComponent(action.payload.windowComponent, action.payload.windowParam)
+        w && w.emit('KBprops', action.payload.propsStr)
         break
       }
     }
@@ -355,14 +344,16 @@ const start = () => {
   installCrashReporter()
 
   if (appShouldDieOnStartup()) {
-    Electron.app.quit()
+    SafeElectron.getApp().quit()
     return
   }
 
-  console.log('Version:', Electron.app.getVersion())
+  console.log('Version:', SafeElectron.getApp().getVersion())
 
   // Foreground if another instance tries to launch, look for SEP7 link
-  Electron.app.on('second-instance', (_, commandLine) => focusSelfOnAnotherInstanceLaunching(commandLine))
+  SafeElectron.getApp().on('second-instance', (_, commandLine) =>
+    focusSelfOnAnotherInstanceLaunching(commandLine)
+  )
 
   fixWindowsNotifications()
   changeCommandLineSwitches()

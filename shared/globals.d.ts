@@ -32,7 +32,6 @@ interface Window {
   DEBUGLogSagas: any
   DEBUGLogSagasWithNames: any
   DEBUGRootEffects: any
-  KB: typeof KB
 }
 
 interface Console {
@@ -40,30 +39,6 @@ interface Console {
   _warn: any
   _error: any
   _info: any
-}
-
-declare var KB: {
-  __dirname: string
-  DEV?: any
-  electron: {
-    app: {
-      appPath: string
-    }
-  }
-  path: {
-    basename: (p: string, ext?: string) => string
-    extname: (p: string) => string
-    join: (...paths: Array<string>) => string
-    resolve: (...pathSegments: Array<string>) => string
-    sep: '\\' | '/'
-  }
-  process: {
-    argv: Array<string>
-    env: NodeJS.ProcessEnv
-    pid: number
-    platform: NodeJS.Platform
-    type: string
-  }
 }
 
 declare namespace NodeJS {
@@ -79,6 +54,5 @@ declare namespace NodeJS {
     DEBUGSagaMiddleware: any
     DEBUGStore: any
     globalLogger: any
-    KB: typeof KB
   }
 }

@@ -1,7 +1,11 @@
 import {featureFlagsOverride} from '../local-debug.desktop'
 import {FeatureFlags} from './feature-flags'
 
-const features = (featureFlagsOverride && featureFlagsOverride.split(',')) || []
+if (process.env['KEYBASE_FEATURES']) {
+  console.error('KEYBASE_FEATURES is no longer supported. Edit the "*.app.debug" json file instead')
+}
+
+let features = (featureFlagsOverride && featureFlagsOverride.split(',')) || []
 
 const featureOn = (key: keyof FeatureFlags) => features.includes(key)
 

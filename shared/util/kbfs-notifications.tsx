@@ -1,8 +1,8 @@
 import capitalize from 'lodash/capitalize'
 import {FSErrorType, FSNotificationType, FSStatusCode, FSNotification} from '../constants/types/rpc-gen'
+import path from 'path'
 import {parseFolderNameToUsers} from './kbfs'
 import {TypedState} from '../constants/reducer'
-const {sep} = KB.path
 
 type DecodedKBFSError = {
   title: string
@@ -10,7 +10,7 @@ type DecodedKBFSError = {
 }
 
 function usernamesForNotification(notification: FSNotification) {
-  return parseFolderNameToUsers(null, notification.filename.split(sep)[3] || notification.filename).map(
+  return parseFolderNameToUsers(null, notification.filename.split(path.sep)[3] || notification.filename).map(
     i => i.username
   )
 }
@@ -20,9 +20,9 @@ function tlfForNotification(notification: FSNotification): string {
   // To get the TLF we can look at the first 3 directories.
   // /keybase/private/gabrielh/foo.txt => /keybase/private/gabrielh
   return notification.filename
-    .split(sep)
+    .split(path.sep)
     .slice(0, 4)
-    .join(sep)
+    .join(path.sep)
 }
 
 function decodeKBFSError(user: string, notification: FSNotification): DecodedKBFSError {
