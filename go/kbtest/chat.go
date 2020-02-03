@@ -1436,8 +1436,8 @@ func (m *MockChatHelper) UserReacjis(ctx context.Context, uid gregor1.UID) keyba
 	return keybase1.UserReacjis{}
 }
 
-func (m *MockChatHelper) JourneycardTimeTravel(ctx context.Context, uid gregor1.UID, duration time.Duration) error {
-	return fmt.Errorf("JourneycardTimeTravel not implemented on mock")
+func (m *MockChatHelper) JourneycardTimeTravel(ctx context.Context, uid gregor1.UID, duration time.Duration) (int, int, error) {
+	return 0, 0, fmt.Errorf("JourneycardTimeTravel not implemented on mock")
 }
 
 func (m *MockChatHelper) JourneycardResetAllConvs(ctx context.Context, uid gregor1.UID) error {

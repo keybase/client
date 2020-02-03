@@ -134,7 +134,7 @@ const Header = (props: HeaderProps) => (
         </Kb.Text>
         {props.signed && (
           <Kb.Box2 direction="horizontal" style={styles.verifiedIconBox}>
-            <Kb.Icon sizeType="Small" style={styles.verifiedIcon} type="iconfont-success" />
+            <Kb.Icon sizeType="Small" type="iconfont-success" color={Styles.globalColors.green} />
           </Kb.Box2>
         )}
       </Kb.Box2>
@@ -455,9 +455,6 @@ const styles = Styles.styleSheetCreate(
       subHeaderText: {
         color: Styles.globalColors.white_75,
         paddingTop: Styles.globalMargins.tiny,
-      },
-      verifiedIcon: {
-        color: Styles.globalColors.green,
       },
       verifiedIconBox: {
         backgroundColor: Styles.globalColors.transparent,

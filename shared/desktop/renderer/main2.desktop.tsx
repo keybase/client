@@ -2,6 +2,7 @@
 import '../../util/user-timings'
 import Main from '../../app/main.desktop'
 // order of the above 2 must NOT change. needed for patching / hot loading to be correct
+import * as Electron from 'electron'
 import * as NotificationsGen from '../../actions/notifications-gen'
 import * as React from 'react'
 import * as ConfigGen from '../../actions/config-gen'
@@ -65,7 +66,7 @@ const setupApp = (store, runSagas) => {
   runSagas && runSagas()
   eng.sagasAreReady()
 
-  SafeElectron.getApp().on('KBdispatchAction' as any, (_: string, action: TypedActions) => {
+  Electron.ipcRenderer.on('KBdispatchAction', (_: any, action: TypedActions) => {
     // we MUST convert this else we'll run into issues with redux. See https://github.com/rackt/redux/issues/830
     // This is because this is touched due to the remote proxying. We get a __proto__ which causes the _.isPlainObject check to fail. We use
     setTimeout(() => {
@@ -81,7 +82,7 @@ const setupApp = (store, runSagas) => {
   // See if we're connected, and try starting keybase if not
   if (isWindows) {
     setTimeout(() => {
-      SafeElectron.getApp().emit('KBkeybase', '', {type: 'requestWindowsStartService'})
+      Electron.ipcRenderer.invoke('KBkeybase', {type: 'requestWindowsStartService'})
     }, 0)
   }
 
@@ -93,7 +94,7 @@ const setupApp = (store, runSagas) => {
   // Handle notifications from the service
   store.dispatch(NotificationsGen.createListenForNotifications())
 
-  SafeElectron.getApp().emit('KBkeybase', '', {type: 'appStartedUp'})
+  Electron.ipcRenderer.invoke('KBkeybase', {type: 'appStartedUp'})
 }
 
 const FontLoader = () => (

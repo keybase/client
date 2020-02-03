@@ -124,6 +124,7 @@ export const getStatusCodeMessage = (
   const statusCodeToMessage: any = {
     [RPCTypes.StatusCode.scstreamunknown]: invalidInputMessage,
     [RPCTypes.StatusCode.scsigcannotverify]: `Cannot verify ${type === 'text' ? 'message' : 'file'}`,
+    [RPCTypes.StatusCode.scapinetworkerror]: `Cannot ${operation} offline.`,
   } as const
 
   return statusCodeToMessage[code] || `Failed to ${operation} ${type}.`

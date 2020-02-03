@@ -663,7 +663,8 @@
     },
     "inboxSearchOpenTeamsResults": {
       "_description": "Inbox search open teams results received",
-      "results": "Array<Types.InboxSearchOpenTeamHit>"
+      "results": "Array<Types.InboxSearchOpenTeamHit>",
+      "suggested": "boolean"
     },
     "inboxSearchNameResults": {
       "_description": "Inbox search name results received",

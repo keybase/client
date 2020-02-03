@@ -79,7 +79,7 @@ type Service struct {
 	teamUpgrader    *teams.Upgrader
 	walletState     *stellar.WalletState
 	offlineRPCCache *offline.RPCCache
-	trackerLoader   *libkb.TrackerLoader
+	trackerLoader   *TrackerLoader
 	runtimeStats    *runtimestats.Runner
 	httpSrv         *manager.Srv
 	avatarSrv       *avatars.Srv
@@ -110,7 +110,7 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		gregor:           newGregorHandler(allG),
 		home:             home.NewHome(g),
 		tlfUpgrader:      tlfupgrade.NewBackgroundTLFUpdater(g),
-		trackerLoader:    libkb.NewTrackerLoader(g),
+		trackerLoader:    NewTrackerLoader(g),
 		runtimeStats:     runtimestats.NewRunner(allG),
 		teamUpgrader:     teams.NewUpgrader(),
 		walletState:      stellar.NewWalletState(g, remote.NewRemoteNet(g)),
@@ -205,7 +205,9 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 }
 
 func (d *Service) Handle(c net.Conn) {
-	xp := rpc.NewTransport(c, libkb.NewRPCLogFactory(d.G()), libkb.MakeWrapError(d.G()), rpc.DefaultMaxFrameLength)
+	xp := rpc.NewTransport(c, libkb.NewRPCLogFactory(d.G()),
+		rpc.NewNetworkInstrumenter(d.G().NetworkInstrumenterStorage),
+		libkb.MakeWrapError(d.G()), rpc.DefaultMaxFrameLength)
 	server := rpc.NewServer(xp, libkb.MakeWrapError(d.G()))
 
 	cl := make(chan error, 1)

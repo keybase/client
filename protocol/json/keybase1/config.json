@@ -837,6 +837,36 @@
         "FullStatus"
       ]
     },
+    "isServiceRunning": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "boolean"
+    },
+    "isKBFSRunning": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "boolean"
+    },
+    "getNetworkStats": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "InstrumentationStat"
+      }
+    },
     "logSend": {
       "request": [
         {
@@ -1022,11 +1052,11 @@
       ],
       "response": "BootstrapStatus"
     },
-    "requestFollowerInfo": {
+    "requestFollowingAndUnverifiedFollowers": {
       "request": [
         {
-          "name": "uid",
-          "type": "UID"
+          "name": "sessionID",
+          "type": "int"
         }
       ],
       "response": null

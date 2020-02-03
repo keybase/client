@@ -108,41 +108,41 @@ export type TeamRoleMap = {
   roles: Map<TeamID, TeamRoleAndDetails>
 }
 
-export type State = Readonly<{
-  addUserToTeamsState: AddUserToTeamsState
-  addUserToTeamsResults: string
-  canPerform: Map<TeamID, TeamOperations>
-  deletedTeams: Array<RPCTypes.DeletedTeamInfo>
-  errorInAddToTeam: string
-  errorInChannelCreation: string
-  errorInEditDescription: string
-  errorInEmailInvite: EmailInviteError
-  errorInSettings: string
-  errorInTeamCreation: string
-  errorInTeamInvite: string
-  errorInTeamJoin: string
-  teamsWithChosenChannels: Set<Teamname>
-  sawChatBanner: boolean
-  sawSubteamsBanner: boolean
-  teamAccessRequestsPending: Set<Teamname>
-  teamJoinSuccess: boolean
-  teamJoinSuccessOpen: boolean
-  teamJoinSuccessTeamName: string
-  teamDetails: Map<TeamID, TeamDetails>
-  teamDetailsSubscriptionCount: Map<TeamID, number> // >0 if we are eagerly reloading a team
-  teamDetailsMetaStale: boolean // if we've received an update since we last loaded team list
-  teamDetailsMetaSubscribeCount: number // if >0 we are eagerly reloading team list
-  teamIDToChannelInfos: Map<TeamID, Map<ConversationIDKey, ChannelInfo>>
-  teamIDToMembers: Map<TeamID, Map<string, MemberInfo>> // Used by chat sidebar until team loading gets easier
-  teamIDToPublicitySettings: Map<TeamID, _PublicitySettings>
-  teamIDToResetUsers: Map<TeamID, Set<string>>
-  teamIDToRetentionPolicy: Map<TeamID, RetentionPolicy>
-  teamNameToID: Map<Teamname, string>
-  teamNameToLoadingInvites: Map<Teamname, Map<string, boolean>>
-  teamnames: Set<Teamname> // TODO remove
-  teamProfileAddList: Array<TeamProfileAddList>
-  teamRoleMap: TeamRoleMap
-  newTeams: Set<TeamID>
-  newTeamRequests: Map<TeamID, number>
-  teamBuilding: TeamBuildingSubState
-}>
+export type State = {
+  readonly addUserToTeamsState: AddUserToTeamsState
+  readonly addUserToTeamsResults: string
+  readonly canPerform: Map<TeamID, TeamOperations>
+  readonly deletedTeams: Array<RPCTypes.DeletedTeamInfo>
+  readonly errorInAddToTeam: string
+  readonly errorInChannelCreation: string
+  readonly errorInEditDescription: string
+  readonly errorInEmailInvite: EmailInviteError
+  readonly errorInSettings: string
+  readonly errorInTeamCreation: string
+  readonly errorInTeamInvite: string
+  readonly errorInTeamJoin: string
+  readonly teamsWithChosenChannels: Set<Teamname>
+  readonly sawChatBanner: boolean
+  readonly sawSubteamsBanner: boolean
+  readonly teamAccessRequestsPending: Set<Teamname>
+  readonly teamJoinSuccess: boolean
+  readonly teamJoinSuccessOpen: boolean
+  readonly teamJoinSuccessTeamName: string
+  readonly teamDetails: Map<TeamID, TeamDetails>
+  readonly teamDetailsSubscriptionCount: Map<TeamID, number> // >0 if we are eagerly reloading a team
+  readonly teamDetailsMetaStale: boolean // if we've received an update since we last loaded team list
+  readonly teamDetailsMetaSubscribeCount: number // if >0 we are eagerly reloading team list
+  readonly teamIDToChannelInfos: Map<TeamID, Map<ConversationIDKey, ChannelInfo>>
+  readonly teamIDToMembers: Map<TeamID, Map<string, MemberInfo>> // Used by chat sidebar until team loading gets easier
+  readonly teamIDToPublicitySettings: Map<TeamID, _PublicitySettings>
+  readonly teamIDToResetUsers: Map<TeamID, Set<string>>
+  readonly teamIDToRetentionPolicy: Map<TeamID, RetentionPolicy>
+  readonly teamNameToID: Map<Teamname, string>
+  readonly teamNameToLoadingInvites: Map<Teamname, Map<string, boolean>>
+  readonly teamnames: Set<Teamname> // TODO remove
+  readonly teamProfileAddList: Array<TeamProfileAddList>
+  readonly teamRoleMap: TeamRoleMap
+  readonly newTeams: Set<TeamID>
+  readonly newTeamRequests: Map<TeamID, number>
+  readonly teamBuilding: TeamBuildingSubState
+}

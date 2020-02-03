@@ -42,6 +42,13 @@ func newProofServices(g *libkb.GlobalContext) *proofServices {
 	return p
 }
 
+func (p *proofServices) Shutdown() {
+	p.Lock()
+	defer p.Unlock()
+	p.clearServiceTypes()
+	p.loadedHash = nil
+}
+
 func (p *proofServices) clearServiceTypes() {
 	p.externalServices = make(map[string]libkb.ServiceType)
 	p.displayConfigs = make(map[string]keybase1.ServiceDisplayConfig)

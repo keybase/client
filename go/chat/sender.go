@@ -171,6 +171,7 @@ func (s *BlockingSender) addPrevPointersAndCheckConvID(ctx context.Context, msg 
 	for _, msg2 := range thread.Messages {
 		if msg2.IsValid() {
 			if err = s.checkConvID(ctx, conv, msg, msg2); err != nil {
+				s.Debug(ctx, "Unable to checkConvID: %s", msg2.DebugString())
 				return resMsg, err
 			}
 			break
@@ -1488,6 +1489,8 @@ func (s *Deliverer) doNotRetryFailure(ctx context.Context, obr chat1.OutboxRecor
 	}
 	// Check for any errors that should cause us to give up right away
 	switch berr := err.(type) {
+	case types.UnboxingError:
+		return chat1.OutboxErrorType_MISC, err, berr.IsPermanent()
 	case DelivererInfoError:
 		if typ, ok := berr.IsImmediateFail(); ok {
 			return typ, err, true

@@ -900,7 +900,7 @@ type UIMessageValid struct {
 	BodySummary           string                 `codec:"bodySummary" json:"bodySummary"`
 	SenderUsername        string                 `codec:"senderUsername" json:"senderUsername"`
 	SenderDeviceName      string                 `codec:"senderDeviceName" json:"senderDeviceName"`
-	SenderDeviceType      string                 `codec:"senderDeviceType" json:"senderDeviceType"`
+	SenderDeviceType      keybase1.DeviceTypeV2  `codec:"senderDeviceType" json:"senderDeviceType"`
 	SenderUID             gregor1.UID            `codec:"senderUID" json:"senderUID"`
 	SenderDeviceID        gregor1.DeviceID       `codec:"senderDeviceID" json:"senderDeviceID"`
 	Superseded            bool                   `codec:"superseded" json:"superseded"`
@@ -949,7 +949,7 @@ func (o UIMessageValid) DeepCopy() UIMessageValid {
 		BodySummary:      o.BodySummary,
 		SenderUsername:   o.SenderUsername,
 		SenderDeviceName: o.SenderDeviceName,
-		SenderDeviceType: o.SenderDeviceType,
+		SenderDeviceType: o.SenderDeviceType.DeepCopy(),
 		SenderUID:        o.SenderUID.DeepCopy(),
 		SenderDeviceID:   o.SenderDeviceID.DeepCopy(),
 		Superseded:       o.Superseded,
@@ -1920,7 +1920,8 @@ func (o UIChatSearchConvHits) DeepCopy() UIChatSearchConvHits {
 }
 
 type UIChatSearchTeamHits struct {
-	Hits []keybase1.TeamSearchItem `codec:"hits" json:"hits"`
+	Hits             []keybase1.TeamSearchItem `codec:"hits" json:"hits"`
+	SuggestedMatches bool                      `codec:"suggestedMatches" json:"suggestedMatches"`
 }
 
 func (o UIChatSearchTeamHits) DeepCopy() UIChatSearchTeamHits {
@@ -1936,6 +1937,7 @@ func (o UIChatSearchTeamHits) DeepCopy() UIChatSearchTeamHits {
 			}
 			return ret
 		})(o.Hits),
+		SuggestedMatches: o.SuggestedMatches,
 	}
 }
 

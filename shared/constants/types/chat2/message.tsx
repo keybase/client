@@ -157,6 +157,7 @@ export type MessageAttachment = {
   attachmentType: AttachmentType
   audioAmps: Array<number>
   audioDuration: number
+  decoratedText: HiddenString | null
   showPlayButton: boolean
   fileURL: string
   fileURLCached: boolean
@@ -173,6 +174,9 @@ export type MessageAttachment = {
   // id: MessageID  that of first attachment message, not second attachment-uploaded message,
   inlineVideoPlayable: boolean
   isCollapsed: boolean
+  mentionsAt: MentionsAt
+  mentionsChannel: MentionsChannel
+  mentionsChannelName: MentionsChannelName
   previewHeight: number
   previewWidth: number
   previewTransferState: 'downloading' | null // only for preview,

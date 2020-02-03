@@ -11,28 +11,39 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-type Tracker2Syncer struct {
+type FollowDirection int
+
+const (
+	FollowDirectionFollowing FollowDirection = 0
+	FollowDirectionFollowers FollowDirection = 1
+)
+
+func directionToReverse(direction FollowDirection) (reverse bool) {
+	return direction == FollowDirectionFollowing
+}
+
+type ServertrustTrackerSyncer struct {
 	sync.Mutex
 	Contextified
-	res       *keybase1.UserSummary2Set
-	reverse   bool
+	res       *keybase1.UserSummarySet
+	direction FollowDirection
 	dirty     bool
 	callerUID keybase1.UID
 }
 
 const cacheTimeout = 10 * time.Minute
 
-func (t *Tracker2Syncer) dbKey(u keybase1.UID) DbKey {
-	if t.reverse {
-		return DbKeyUID(DBTrackers2Reverse, u)
+func (t *ServertrustTrackerSyncer) dbKey(u keybase1.UID) DbKey {
+	if t.direction == FollowDirectionFollowing {
+		return DbKeyUID(DBUnverifiedTrackersFollowing, u)
 	}
-	return DbKeyUID(DBTrackers2, u)
+	return DbKeyUID(DBUnverifiedTrackersFollowers, u)
 }
 
-func (t *Tracker2Syncer) loadFromStorage(m MetaContext, uid keybase1.UID, useExpiration bool) error {
+func (t *ServertrustTrackerSyncer) loadFromStorage(m MetaContext, uid keybase1.UID, useExpiration bool) error {
 	var err error
 	var found bool
-	var tmp keybase1.UserSummary2Set
+	var tmp keybase1.UserSummarySet
 	defer m.Trace(fmt.Sprintf("loadFromStorage(%s)", uid), func() error { return err })()
 	found, err = t.G().LocalDb.GetInto(&tmp, t.dbKey(uid))
 	if err != nil {
@@ -52,7 +63,7 @@ func (t *Tracker2Syncer) loadFromStorage(m MetaContext, uid keybase1.UID, useExp
 	return nil
 }
 
-func (t *Tracker2Syncer) getLoadedVersion() int {
+func (t *ServertrustTrackerSyncer) getLoadedVersion() int {
 	ret := -1
 	if t.res != nil {
 		ret = t.res.Version
@@ -60,13 +71,13 @@ func (t *Tracker2Syncer) getLoadedVersion() int {
 	return ret
 }
 
-func (t *Tracker2Syncer) syncFromServer(m MetaContext, uid keybase1.UID, forceReload bool) (err error) {
+func (t *ServertrustTrackerSyncer) syncFromServer(m MetaContext, uid keybase1.UID, forceReload bool) (err error) {
 
 	defer m.Trace(fmt.Sprintf("syncFromServer(%s)", uid), func() error { return err })()
 
 	hargs := HTTPArgs{
 		"uid":        UIDArg(uid),
-		"reverse":    B{t.reverse},
+		"reverse":    B{directionToReverse(t.direction)},
 		"autoCamel":  B{true},
 		"caller_uid": UIDArg(t.callerUID),
 	}
@@ -83,7 +94,7 @@ func (t *Tracker2Syncer) syncFromServer(m MetaContext, uid keybase1.UID, forceRe
 	if err != nil {
 		return err
 	}
-	var tmp keybase1.UserSummary2Set
+	var tmp keybase1.UserSummarySet
 	if err = res.Body.UnmarshalAgain(&tmp); err != nil {
 		return
 	}
@@ -99,7 +110,7 @@ func (t *Tracker2Syncer) syncFromServer(m MetaContext, uid keybase1.UID, forceRe
 	return nil
 }
 
-func (t *Tracker2Syncer) store(m MetaContext, uid keybase1.UID) error {
+func (t *ServertrustTrackerSyncer) store(m MetaContext, uid keybase1.UID) error {
 	var err error
 	if !t.dirty {
 		return err
@@ -113,14 +124,19 @@ func (t *Tracker2Syncer) store(m MetaContext, uid keybase1.UID) error {
 	return nil
 }
 
-func (t *Tracker2Syncer) needsLogin(m MetaContext) bool {
+func (t *ServertrustTrackerSyncer) needsLogin(m MetaContext) bool {
 	return false
 }
 
-func (t *Tracker2Syncer) Block(m MetaContext, badUIDs map[keybase1.UID]bool) (err error) {
-	defer m.Trace(fmt.Sprintf("Tracker2Syncer#Block(%+v)", badUIDs), func() error { return err })()
+func (t *ServertrustTrackerSyncer) Block(m MetaContext, badUIDs map[keybase1.UID]bool) (err error) {
+	defer m.Trace(fmt.Sprintf("ServertrustTrackerSyncer#Block(%+v)", badUIDs), func() error { return err })()
 	t.Lock()
 	defer t.Unlock()
+
+	if t.direction != FollowDirectionFollowers {
+		return fmt.Errorf("can only delete users out of followers cache")
+	}
+
 	if t.res == nil {
 		m.Debug("No followers loaded, so nothing to do")
 		return nil
@@ -131,7 +147,7 @@ func (t *Tracker2Syncer) Block(m MetaContext, badUIDs map[keybase1.UID]bool) (er
 		return err
 	}
 
-	var newUsers []keybase1.UserSummary2
+	var newUsers []keybase1.UserSummary
 	for _, userSummary := range t.res.Users {
 		if badUIDs[userSummary.Uid] {
 			m.Debug("Filtering bad user out of state: %s", userSummary.Uid)
@@ -145,13 +161,13 @@ func (t *Tracker2Syncer) Block(m MetaContext, badUIDs map[keybase1.UID]bool) (er
 	return err
 }
 
-func (t *Tracker2Syncer) Result() keybase1.UserSummary2Set {
+func (t *ServertrustTrackerSyncer) Result() keybase1.UserSummarySet {
 	if t.res == nil {
-		return keybase1.UserSummary2Set{}
+		return keybase1.UserSummarySet{}
 	}
 
 	// Normalize usernames
-	var normalizedUsers []keybase1.UserSummary2
+	var normalizedUsers []keybase1.UserSummary
 	for _, u := range t.res.Users {
 		normalizedUser := u
 		normalizedUser.Username = NewNormalizedUsername(u.Username).String()
@@ -162,10 +178,10 @@ func (t *Tracker2Syncer) Result() keybase1.UserSummary2Set {
 	return *t.res
 }
 
-func NewTracker2Syncer(g *GlobalContext, callerUID keybase1.UID, reverse bool) *Tracker2Syncer {
-	return &Tracker2Syncer{
+func NewServertrustTrackerSyncer(g *GlobalContext, callerUID keybase1.UID, direction FollowDirection) *ServertrustTrackerSyncer {
+	return &ServertrustTrackerSyncer{
 		Contextified: NewContextified(g),
-		reverse:      reverse,
+		direction:    direction,
 		callerUID:    callerUID,
 	}
 }

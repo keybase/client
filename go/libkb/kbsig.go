@@ -9,6 +9,7 @@ package libkb
 
 import (
 	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"fmt"
 
@@ -228,6 +229,19 @@ func (u *User) ToTrackingStatement(w *jsonw.Wrapper, outcome *IdentifyOutcome) (
 	}
 
 	return w.SetKey("track", track)
+}
+
+func (u *User) ToWotStatement() *jsonw.Wrapper {
+	user := jsonw.NewDictionary()
+	_ = user.SetKey("username", jsonw.NewString(u.GetNormalizedName().String()))
+	_ = user.SetKey("uid", UIDWrapper(u.GetUID()))
+	_ = user.SetKey("seq_tail", u.ToTrackingStatementSeqTail())
+	eldest := jsonw.NewDictionary()
+	_ = eldest.SetKey("kid", jsonw.NewString(u.GetEldestKID().String()))
+	_ = eldest.SetKey("seqno", jsonw.NewInt64(int64(u.GetCurrentEldestSeqno())))
+	_ = user.SetKey("eldest", eldest)
+
+	return user
 }
 
 func (u *User) ToUntrackingStatementBasics() *jsonw.Wrapper {
@@ -684,6 +698,27 @@ func (u *User) ServiceProof(m MetaContext, signingKey GenericKey, typ ServiceTyp
 	return ret, nil
 }
 
+func (u *User) WotAttestProof(m MetaContext, signingKey GenericKey, sigVersion SigVersion, mac []byte) (*ProofMetadataRes, error) {
+	md := ProofMetadata{
+		Me:                  u,
+		LinkType:            LinkTypeWotAttest,
+		SigningKey:          signingKey,
+		SigVersion:          sigVersion,
+		IgnoreIfUnsupported: true,
+	}
+	ret, err := md.ToJSON2(m)
+	if err != nil {
+		return nil, err
+	}
+
+	body := ret.J.AtKey("body")
+	if err := body.SetKey("wot.attest", jsonw.NewString(hex.EncodeToString(mac))); err != nil {
+		return nil, err
+	}
+
+	return ret, nil
+}
+
 // SimpleSignJson marshals the given Json structure and then signs it.
 func SignJSON(jw *jsonw.Wrapper, key GenericKey) (out string, id keybase1.SigID, lid LinkID, err error) {
 	var tmp []byte
@@ -769,7 +804,7 @@ func (u *User) RevokeKeysProof(m MetaContext, key GenericKey, kidsToRevoke []key
 		if err != nil {
 			return nil, err
 		}
-		err = deviceSection.SetKey("type", jsonw.NewString(device.Type))
+		err = deviceSection.SetKey("type", jsonw.NewString(device.Type.String()))
 		if err != nil {
 			return nil, err
 		}
@@ -925,9 +960,10 @@ type SigMultiItem struct {
 	Type       string                  `json:"type"`
 	SeqType    keybase1.SeqType        `json:"seq_type"`
 	SigInner   string                  `json:"sig_inner"`
-	TeamID     keybase1.TeamID         `json:"team_id"`
+	TeamID     keybase1.TeamID         `json:"team_id,omitempty"`
 	PublicKeys *SigMultiItemPublicKeys `json:"public_keys,omitempty"`
 	Version    SigVersion              `json:"version"`
+	Expansions *jsonw.Wrapper          `json:"expansions,omitempty"`
 }
 
 type SigMultiItemPublicKeys struct {

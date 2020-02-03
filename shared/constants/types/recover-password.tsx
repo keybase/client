@@ -2,15 +2,15 @@ import * as ProvisionTypes from './provision'
 import * as RPCTypes from './rpc-gen'
 import HiddenString from '../../util/hidden-string'
 
-export type State = Readonly<{
-  devices: Array<ProvisionTypes.Device>
-  error: HiddenString
-  explainedDevice?: {
+export type State = {
+  readonly devices: Array<ProvisionTypes.Device>
+  readonly error: HiddenString
+  readonly explainedDevice?: {
     name: string
     type: RPCTypes.DeviceType
   }
-  paperKeyError: HiddenString
-  passwordError: HiddenString
-  resetEmailSent?: boolean
-  username: string
-}>
+  readonly paperKeyError: HiddenString
+  readonly passwordError: HiddenString
+  readonly resetEmailSent?: boolean
+  readonly username: string
+}

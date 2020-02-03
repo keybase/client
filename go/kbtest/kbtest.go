@@ -76,7 +76,7 @@ func (fu *FakeUser) Login(g *libkb.GlobalContext) error {
 		SecretUI:    fu.NewSecretUI(),
 		LoginUI:     &libkb.TestLoginUI{Username: fu.Username},
 	}
-	li := engine.NewLogin(g, libkb.DeviceTypeDesktop, fu.Username, keybase1.ClientType_CLI)
+	li := engine.NewLogin(g, keybase1.DeviceTypeV2_DESKTOP, fu.Username, keybase1.ClientType_CLI)
 	m := libkb.NewMetaContextTODO(g).WithUIs(uis)
 	return engine.RunEngine2(m, li)
 }
@@ -201,7 +201,7 @@ func RotatePaper(tc libkb.TestContext, u *FakeUser) {
 
 	var revokeDevice *libkb.Device
 	for _, device := range activeDevices {
-		if device.Type == libkb.DeviceTypePaper {
+		if device.Type == keybase1.DeviceTypeV2_PAPER {
 			revokeDevice = device
 		}
 	}
@@ -234,8 +234,8 @@ func FakeSalt() []byte {
 // the test will not fail until later.
 // `tcX` is a TestContext where device X (the provisioner) is already provisioned and logged in.
 // this function will provision a new device Y inside `tcY`
-// `newDeviceType` is libkb.DeviceTypeMobile or libkb.DeviceTypeDesktop.
-func ProvisionNewDeviceKex(tcX *libkb.TestContext, tcY *libkb.TestContext, userX *FakeUser, newDeviceType string) {
+// `newDeviceType` is keybase1.DeviceTypeV2_MOBILE or keybase1.DeviceTypeV2_DESKTOP.
+func ProvisionNewDeviceKex(tcX *libkb.TestContext, tcY *libkb.TestContext, userX *FakeUser, newDeviceType keybase1.DeviceTypeV2) {
 	// tcX is the device X (provisioner) context:
 	// tcX should already have been logged in.
 	t := tcX.T
@@ -303,7 +303,7 @@ func ProvisionNewDeviceKex(tcX *libkb.TestContext, tcY *libkb.TestContext, userX
 
 type TestProvisionUI struct {
 	SecretCh   chan kex2.Secret
-	DeviceType string
+	DeviceType keybase1.DeviceTypeV2
 }
 
 func (u *TestProvisionUI) ChooseProvisioningMethod(_ context.Context, _ keybase1.ChooseProvisioningMethodArg) (keybase1.ProvisionMethod, error) {

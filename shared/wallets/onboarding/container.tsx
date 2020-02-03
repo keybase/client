@@ -13,14 +13,10 @@ type OwnProps = {
 const ConnectedOnboarding = Container.connect(
   state => {
     const error = anyErrors(state, Constants.acceptDisclaimerWaitingKey)
-    const {airdropDetails, acceptingDisclaimerDelay} = state.wallets
-    const {disclaimer} = airdropDetails
+    const {acceptingDisclaimerDelay} = state.wallets
     return {
       acceptDisclaimerError: error && error.message ? error.message : '',
       acceptingDisclaimerDelay: acceptingDisclaimerDelay,
-      headerBody: disclaimer.header.body,
-      headerTitle: disclaimer.header.title,
-      sections: disclaimer.sections,
     }
   },
   dispatch => ({
@@ -28,19 +24,14 @@ const ConnectedOnboarding = Container.connect(
     onCheckDisclaimer: (nextScreen: Types.NextScreenAfterAcceptance) =>
       dispatch(WalletsGen.createCheckDisclaimer({nextScreen})),
     onClose: () => dispatch(WalletsGen.createRejectDisclaimer()),
-    onLoadDetails: () => dispatch(WalletsGen.createUpdateAirdropDetails()),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => ({
     acceptDisclaimerError: stateProps.acceptDisclaimerError,
     acceptingDisclaimerDelay: stateProps.acceptingDisclaimerDelay,
-    headerBody: stateProps.headerBody,
-    headerTitle: stateProps.headerTitle,
     nextScreen: ownProps.nextScreen,
     onAcceptDisclaimer: dispatchProps.onAcceptDisclaimer,
     onCheckDisclaimer: dispatchProps.onCheckDisclaimer,
     onClose: dispatchProps.onClose,
-    onLoadDetails: dispatchProps.onLoadDetails,
-    sections: stateProps.sections,
   })
 )(Onboarding)
 

@@ -4,6 +4,7 @@ import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
 import {isWindows, socketPath} from '../constants/platform.desktop'
 import {createClientType, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
 import {printRPCBytes} from '../local-debug'
+const {process} = KB
 
 class NativeTransport extends TransportShared {
   constructor(incomingRPCCallback, connectCallback, disconnectCallback) {

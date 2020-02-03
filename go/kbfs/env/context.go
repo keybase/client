@@ -53,6 +53,7 @@ type Context interface {
 	CheckService() error
 	GetSocket(clearError bool) (net.Conn, rpc.Transporter, bool, error)
 	NewRPCLogFactory() rpc.LogFactory
+	NewNetworkInstrumenter() *rpc.NetworkInstrumenter
 	GetKBFSSocket(clearError bool) (net.Conn, rpc.Transporter, bool, error)
 	BindToKBFSSocket() (net.Listener, error)
 	GetVDebugSetting() string
@@ -181,6 +182,11 @@ func (c *KBFSContext) NewRPCLogFactory() rpc.LogFactory {
 	return &libkb.RPCLogFactory{Contextified: libkb.NewContextified(c.g)}
 }
 
+// NewNetworkInstrumenter constructs an RPC NetworkInstrumenter
+func (c *KBFSContext) NewNetworkInstrumenter() *rpc.NetworkInstrumenter {
+	return rpc.NewNetworkInstrumenter(c.g.NetworkInstrumenterStorage)
+}
+
 func (c *KBFSContext) getSandboxSocketFile() string {
 	sandboxDir := c.g.Env.HomeFinder.SandboxCacheDir()
 	if sandboxDir == "" {
@@ -200,7 +206,8 @@ func (c *KBFSContext) getKBFSSocketFile() string {
 }
 
 func (c *KBFSContext) newTransportFromSocket(s net.Conn) rpc.Transporter {
-	return rpc.NewTransport(s, c.NewRPCLogFactory(), libkb.WrapError, rpc.DefaultMaxFrameLength)
+	return rpc.NewTransport(s, c.NewRPCLogFactory(), c.NewNetworkInstrumenter(),
+		libkb.WrapError, rpc.DefaultMaxFrameLength)
 }
 
 // GetKBFSSocket dials the socket configured in `c.kbfsSocket`.

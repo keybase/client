@@ -49,8 +49,10 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     const d = getDetails(draftState, username)
     d.bio = action.payload.bio
     d.blocked = action.payload.blocked
-    d.followersCount = action.payload.followersCount
-    d.followingCount = action.payload.followingCount
+    // These will be overridden by a later updateFollows, if it happens (will
+    // happen when viewing profile, but not in tracker pop up.
+    d.followersCount = action.payload.unverifiedFollowersCount
+    d.followingCount = action.payload.unverifiedFollowingCount
     d.fullname = action.payload.fullname
     d.location = action.payload.location
     d.stellarHidden = action.payload.stellarHidden
@@ -88,17 +90,20 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     d.assertions = assertions
     assertions.set(assertion.assertionKey, assertion)
   },
-  [Tracker2Gen.updateFollowers]: (draftState, action) => {
+  [Tracker2Gen.updateFollows]: (draftState, action) => {
     const {username, followers, following} = action.payload
     const d = getDetails(draftState, username)
-    d.followers = new Set(followers.map(f => f.username))
-    d.following = new Set(following.map(f => f.username))
-    d.followersCount = d.followers.size
-    d.followingCount = d.following.size
+    if (followers) {
+      d.followers = new Set(followers.map(f => f.username))
+      d.followersCount = d.followers.size
+    }
+    if (following) {
+      d.following = new Set(following.map(f => f.username))
+      d.followingCount = d.following.size
+    }
   },
   [Tracker2Gen.proofSuggestionsUpdated]: (draftState, action) => {
-    type ReadonlyProofSuggestions = Readonly<Types.State['proofSuggestions']>
-    ;(draftState.proofSuggestions as ReadonlyProofSuggestions) = action.payload.suggestions
+    draftState.proofSuggestions = Container.castDraft(action.payload.suggestions)
   },
   [Tracker2Gen.loadedNonUserProfile]: (draftState, action) => {
     const {assertion, ...rest} = action.payload
@@ -109,6 +114,9 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       ...rest,
     })
   },
+  // This allows the server to send us a notification to *remove* (not add)
+  // arbitrary followers from arbitrary tracker2 results, so we can hide
+  // blocked users from follower lists.
   [EngineGen.keybase1NotifyTrackingNotifyUserBlocked]: (draftState, action) => {
     const {blocker, blocks} = action.payload.params.b
     const d = getDetails(draftState, blocker)

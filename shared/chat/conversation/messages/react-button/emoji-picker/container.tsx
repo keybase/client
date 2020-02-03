@@ -22,7 +22,7 @@ type WrapperState = {
   width: number
 }
 
-class Wrapper extends React.Component<WrapperProps, WrapperState> {
+export class Wrapper extends React.Component<WrapperProps, WrapperState> {
   state = {filter: '', width: 0}
 
   _onLayout = (evt: LayoutEvent) => {

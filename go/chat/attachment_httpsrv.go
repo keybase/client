@@ -884,6 +884,11 @@ func (c *CachingAttachmentFetcher) DeleteAssets(ctx context.Context,
 }
 
 func (c *CachingAttachmentFetcher) OnStart(mctx libkb.MetaContext) {
+	mctx, cancel := mctx.WithContextCancel()
+	mctx.G().PushShutdownHook(func(libkb.MetaContext) error {
+		cancel()
+		return nil
+	})
 	go disklru.CleanOutOfSyncWithDelay(mctx, c.diskLRU, c.getCacheDir(), 10*time.Second)
 }
 
