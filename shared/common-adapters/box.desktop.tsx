@@ -90,6 +90,6 @@ const _Box2 = (props: Box2Props, ref: React.Ref<HTMLDivElement>) => {
   )
 }
 
-export const Box2 = React.forwardRef<HTMLDivElement, Box2Props>(_Box2)
+export const Box2 = React.memo(React.forwardRef<HTMLDivElement, Box2Props>(_Box2))
 
 export default Box
