@@ -10,8 +10,6 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-FLAGS="-timeout 50m"
-
 for i
 do
     case "$1" in
@@ -21,6 +19,8 @@ do
     esac
     shift
 done
+
+(cd citogo && go install)
 
 # Log the Go version.
 echo "Running tests on commit $(git rev-parse --short HEAD) with $(go version)."
@@ -35,9 +35,11 @@ go get "github.com/stretchr/testify/assert"
 
 failures=()
 
+PID=$$
+
 for i in $DIRS; do
   echo -n "$i......."
-  if ! (cd $i && go test $FLAGS ) ; then
+  if ! (cd $i && citogo --flakes 4 --fails 5 --build pid-$PID --prefix $i) ; then
     failures+=("$i")
   fi
 done

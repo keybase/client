@@ -165,12 +165,15 @@ func testProtocolXWithBehavior(t *testing.T, provisioneeBehavior int) (results [
 
 	ctx, cancelFn := context.WithCancel(context.Background())
 
+	testLogCtx, cleanup := newTestLogCtx(t)
+	defer cleanup()
+
 	// Run the provisioner
 	go func() {
 		err := RunProvisioner(ProvisionerArg{
 			KexBaseArg: KexBaseArg{
 				Ctx:           ctx,
-				LogCtx:        testLogCtx{t},
+				LogCtx:        testLogCtx,
 				Mr:            router,
 				Secret:        genSecret(t),
 				DeviceID:      genKeybase1DeviceID(t),
@@ -187,7 +190,7 @@ func testProtocolXWithBehavior(t *testing.T, provisioneeBehavior int) (results [
 		err := RunProvisionee(ProvisioneeArg{
 			KexBaseArg: KexBaseArg{
 				Ctx:           context.Background(),
-				LogCtx:        testLogCtx{t},
+				LogCtx:        testLogCtx,
 				Mr:            router,
 				Secret:        s2,
 				DeviceID:      genKeybase1DeviceID(t),
@@ -289,13 +292,15 @@ func TestFullProtocolY(t *testing.T) {
 	ch := make(chan error, 3)
 
 	secretCh := make(chan Secret)
+	testLogCtx, cleanup := newTestLogCtx(t)
+	defer cleanup()
 
 	// Run the provisioner
 	go func() {
 		err := RunProvisioner(ProvisionerArg{
 			KexBaseArg: KexBaseArg{
 				Ctx:           context.TODO(),
-				LogCtx:        testLogCtx{t},
+				LogCtx:        testLogCtx,
 				Mr:            router,
 				Secret:        s1,
 				DeviceID:      genKeybase1DeviceID(t),
@@ -312,7 +317,7 @@ func TestFullProtocolY(t *testing.T) {
 		err := RunProvisionee(ProvisioneeArg{
 			KexBaseArg: KexBaseArg{
 				Ctx:           context.TODO(),
-				LogCtx:        testLogCtx{t},
+				LogCtx:        testLogCtx,
 				Mr:            router,
 				Secret:        genSecret(t),
 				DeviceID:      genKeybase1DeviceID(t),
