@@ -83,18 +83,22 @@ export const serialize = (p: ProxyProps): Partial<SerializeProps> => {
     blockMap,
     counts,
     errors,
+    trackerUsername,
     ...toSend
   } = p
   return {
     ...toSend,
     assertions: [...(assertions?.entries() ?? [])],
     avatarRefreshCounter: [...avatarRefreshCounter.entries()],
-    blockMap: [...blockMap.entries()],
+    blockMap: blockMap.has(trackerUsername)
+      ? [[trackerUsername, blockMap.get(trackerUsername) ?? {chatBlocked: false, followBlocked: false}]]
+      : [],
     counts: [...counts.entries()],
     errors: [...errors.entries()],
     followers: [...followers],
     following: [...following],
     infoMap: [...infoMap.entries()],
+    trackerUsername,
   }
 }
 
