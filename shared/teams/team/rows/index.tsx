@@ -1,12 +1,18 @@
 import * as Types from '../../../constants/types/teams'
 import {getOrderedMemberArray, sortInvites, getOrderedBotsArray} from './helpers'
+import {isMobile} from '../../../constants/platform'
 
 type HeaderRow = {key: string; type: 'header'}
+type DividerRow = {
+  key: string
+  count: number
+  dividerType: 'requests' | 'invites' | 'members'
+  type: 'divider'
+}
 type TabsRow = {key: string; type: 'tabs'}
 type MemberRow = {key: string; username: string; type: 'member'}
 type BotRow = {key: string; username: string; type: 'bot'} | {key: string; type: 'bot-add'}
 type InviteRow =
-  | {key: string; label: string; type: 'invites-divider'}
   | {key: string; username: string; type: 'invites-request'}
   | {key: string; id: string; type: 'invites-invite'}
   | {key: string; type: 'invites-none'}
@@ -17,7 +23,16 @@ type SubteamRow =
   | {key: string; type: 'subteam-none'}
 type SettingsRow = {key: string; type: 'settings'}
 type LoadingRow = {key: string; type: 'loading'}
-export type Row = HeaderRow | TabsRow | MemberRow | BotRow | InviteRow | SubteamRow | SettingsRow | LoadingRow
+export type Row =
+  | HeaderRow
+  | DividerRow
+  | TabsRow
+  | MemberRow
+  | BotRow
+  | InviteRow
+  | SubteamRow
+  | SettingsRow
+  | LoadingRow
 
 const makeRows = (
   details: Types.TeamDetails,
@@ -28,6 +43,48 @@ const makeRows = (
   const rows: Array<Row> = []
   switch (selectedTab) {
     case 'members':
+      // For admins, 3 sections here
+      // Requests (w/ header on mobile only)
+      // Invites (w/ header)
+      // Already in team (w/ header)
+      if (yourOperations.manageMembers) {
+        if (details.requests?.size) {
+          if (isMobile) {
+            rows.push({
+              count: details.requests.size,
+              dividerType: 'requests',
+              key: 'member-divider:requests',
+              type: 'divider',
+            })
+          }
+          rows.push(
+            ...[...details.requests].sort().map(username => ({
+              key: `invites-request:${username}`,
+              type: 'invites-request' as const,
+              username,
+            }))
+          )
+        }
+        if (details.invites?.size) {
+          rows.push({
+            count: details.invites.size,
+            dividerType: 'invites',
+            key: 'member-divider:invites',
+            type: 'divider',
+          })
+          rows.push(
+            ...[...details.invites]
+              .sort(sortInvites)
+              .map(i => ({id: i.id, key: `invites-invite:${i.id}`, type: 'invites-invite' as const}))
+          )
+        }
+      }
+      rows.push({
+        count: details.memberCount,
+        dividerType: 'members',
+        key: 'member-divider:members',
+        type: 'divider',
+      })
       rows.push(
         ...getOrderedMemberArray(details.members, yourUsername, yourOperations).map(user => ({
           key: `member:${user.username}`,
@@ -59,31 +116,6 @@ const makeRows = (
       break
     }
     case 'invites': {
-      const {invites, requests} = details
-      let empty = true
-      if (requests && requests.size) {
-        empty = false
-        rows.push({key: 'invites-divider:requests', label: 'Requests', type: 'invites-divider'})
-        rows.push(
-          ...[...requests].sort().map(username => ({
-            key: `invites-request:${username}`,
-            type: 'invites-request' as const,
-            username,
-          }))
-        )
-      }
-      if (invites && invites.size) {
-        empty = false
-        rows.push({key: 'invites-divider:invites', label: 'Invites', type: 'invites-divider'})
-        rows.push(
-          ...[...invites]
-            .sort(sortInvites)
-            .map(i => ({id: i.id, key: `invites-invite:${i.id}`, type: 'invites-invite' as const}))
-        )
-      }
-      if (empty) {
-        rows.push({key: 'invites-none', type: 'invites-none'})
-      }
       break
     }
     case 'subteams': {

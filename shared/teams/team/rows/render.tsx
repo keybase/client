@@ -3,8 +3,9 @@ import * as Types from '../../../constants/types/teams'
 import {Row} from '.'
 import MemberRow from './member-row/container'
 import {BotRow, AddBotRow} from './bot-row'
-import {RequestRow, InviteRow, InvitesEmptyRow, DividerRow} from './invite-row'
+import {RequestRow, InviteRow, InvitesEmptyRow} from './invite-row'
 import {SubteamAddRow, SubteamIntroRow, SubteamNoneRow, SubteamTeamRow} from './subteam-row'
+import TeamPageDivider from './divider'
 import LoadingRow from './loading'
 import TeamHeaderRow from '../header/container'
 import SettingsRow from '../settings-tab/container'
@@ -23,8 +24,8 @@ const renderRow = (row: Row, teamID: Types.TeamID) => {
       return <InviteRow teamID={teamID} id={row.id} />
     case 'invites-request':
       return <RequestRow teamID={teamID} username={row.username} />
-    case 'invites-divider':
-      return <DividerRow label={row.label} />
+    case 'divider':
+      return <TeamPageDivider count={row.count} type={row.dividerType} />
     case 'invites-none':
       return <InvitesEmptyRow />
     case 'subteam-add':
