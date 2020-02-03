@@ -3,6 +3,7 @@ import * as Saga from '../util/saga'
 import * as Container from '../util/container'
 import * as EngineGen from './engine-gen-gen'
 import * as UsersGen from './users-gen'
+import * as TeamBuildingGen from './team-building-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Constants from '../constants/users'
 import {TypedState} from '../util/container'
@@ -63,12 +64,20 @@ const reportUser = async (action: UsersGen.ReportUserPayload) => {
   await RPCTypes.userReportUserRpcPromise(action.payload, Constants.reportUserWaitingKey)
 }
 
+const refreshBlockList = async (action: TeamBuildingGen.SearchResultsLoadedPayload) =>
+  action.payload.namespace === 'people'
+    ? UsersGen.createGetBlockState({
+        usernames: action.payload.users.map(u => u.serviceMap['keybase'] || '').filter(Boolean),
+      })
+    : Promise.resolve()
+
 function* usersSaga() {
   yield* Saga.chainAction(EngineGen.keybase1NotifyUsersIdentifyUpdate, onIdentifyUpdate)
   yield* Saga.chainAction2(UsersGen.getBio, getBio)
   yield* Saga.chainAction(UsersGen.setUserBlocks, setUserBlocks)
   yield* Saga.chainAction(UsersGen.getBlockState, getBlockState)
   yield* Saga.chainAction(UsersGen.reportUser, reportUser)
+  yield* Saga.chainAction(TeamBuildingGen.searchResultsLoaded, refreshBlockList)
 }
 
 export default usersSaga

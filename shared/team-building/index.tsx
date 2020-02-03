@@ -113,7 +113,6 @@ export type Props = ContactProps & {
   onSearchForMore: () => void
   onUpArrowKeyDown: () => void
   recommendations: Array<SearchRecSection> | null
-  refreshBlockList?: () => void
   rolePickerProps?: RolePickerProps
   search: (query: string, service: ServiceIdWithContact) => void
   searchResults: Array<SearchResult> | undefined
@@ -294,10 +293,6 @@ class TeamBuilding extends React.PureComponent<Props> {
   sectionListRef = React.createRef<Kb.SectionList>()
   componentDidMount = () => {
     this.props.fetchUserRecs()
-  }
-
-  componentDidUpdate = () => {
-    this.props.refreshBlockList?.()
   }
 
   _alphabetIndex = () => {
