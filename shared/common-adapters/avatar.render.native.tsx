@@ -5,7 +5,7 @@ import ClickableBox from './clickable-box'
 import Box from './box'
 import {NativeImage} from './native-image.native'
 import {Props} from './avatar.render'
-
+import flags from '../util/feature-flags'
 const Kb = {
   Box,
   ClickableBox,
@@ -137,18 +137,24 @@ const styles = Styles.styleSheetCreate(
         position: 'absolute',
         right: 0,
       },
-      editTeam: {
-        backgroundColor: Styles.globalColors.blue,
-        borderColor: 'white',
-        borderRadius: 100,
-        borderStyle: 'solid',
-        borderWidth: 2,
-        bottom: -6,
-        color: Styles.globalColors.whiteOrWhite,
-        padding: 4,
-        position: 'absolute',
-        right: -6,
-      },
+      editTeam: flags.teamsRedesign
+        ? ({
+            backgroundColor: Styles.globalColors.blue,
+            borderColor: tyles.globalColors.white,
+            borderRadius: 100,
+            borderStyle: 'solid',
+            borderWidth: 2,
+            bottom: -6,
+            color: Styles.globalColors.whiteOrWhite,
+            padding: 4,
+            position: 'absolute',
+            right: -6,
+          } as const)
+        : ({
+            bottom: -2,
+            position: 'absolute',
+            right: -28,
+          } as const),
     } as const)
 )
 

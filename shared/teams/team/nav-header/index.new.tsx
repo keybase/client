@@ -7,31 +7,6 @@ import {TeamID} from '../../../constants/types/teams'
 import {pluralize} from '../../../util/string'
 import capitalize from 'lodash/capitalize'
 
-// TODO: delete this component when we implement the invite widget
-// const _AddPeopleButton = (
-//   props: {
-//     teamID: TeamID
-//   } & Kb.OverlayParentProps
-// ) => (
-//   <>
-//     <Kb.Button
-//       label="Add members"
-//       onClick={props.toggleShowingMenu}
-//       ref={props.setAttachmentRef}
-//       small={true}
-//       type="Default"
-//       mode="Secondary"
-//     />
-//     <AddPeopleHow
-//       attachTo={props.getAttachmentRef}
-//       onHidden={props.toggleShowingMenu}
-//       teamID={props.teamID}
-//       visible={props.showingMenu}
-//     />
-//   </>
-// )
-// const AddPeopleButton = Kb.OverlayParentHOC(_AddPeopleButton)
-
 type HeaderTitleProps = {
   active: boolean
   canAddPeople: boolean
@@ -150,7 +125,6 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
         {props.canChat && <Kb.Button label="Chat" onClick={props.onChat} small={true} />}
         {props.canEdit && <Kb.Button label="Edit" onClick={props.onEdit} small={true} mode="Secondary" />}
         <Kb.Button label="Share" onClick={props.onShare} small={true} mode="Secondary" />
-        {/* {props.canAddPeople && <AddPeopleButton teamID={props.teamID} />} */}
         <Kb.Button
           mode="Secondary"
           small={true}

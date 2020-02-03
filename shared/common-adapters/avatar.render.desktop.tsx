@@ -65,7 +65,12 @@ const Avatar = (props: Props) => {
         />
       )}
       {props.followIconType && <Icon type={props.followIconType} style={props.followIconStyle} />}
-      {props.editable && <Icon type="iconfont-edit" style={props.isTeam ? styles.editTeam : styles.edit} />}
+      {props.editable && (
+        <Icon
+          type="iconfont-edit"
+          style={props.isTeam ? (flags.teamsRedesign ? styles.editTeam : styles.editTeamOld) : styles.edit}
+        />
+      )}
       {props.children}
     </div>
   )
@@ -98,6 +103,11 @@ const styles = Styles.styleSheetCreate(
           right: -6,
         },
       }),
+      editTeamOld: {
+        bottom: -2,
+        position: 'absolute',
+        right: -18,
+      },
       poopContainer: {
         alignItems: 'center',
         display: 'flex',
