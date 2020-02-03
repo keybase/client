@@ -37,7 +37,7 @@ const mobileOsVersionNumber = typeof mobileOsVersion === 'string' ? parseInt(mob
 export const isAndroidNewerThanM = isAndroid && mobileOsVersionNumber > 22
 export const isAndroidNewerThanN = isAndroid && mobileOsVersionNumber >= 26
 export const shortcutSymbol = ''
-export const deviceName = Constants.deviceName ?? ''
+export const realDeviceName = Constants.deviceName ?? ''
 
 export const isIPhoneX = iPhoneXHelper.isIphoneX()
 

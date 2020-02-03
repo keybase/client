@@ -3,22 +3,38 @@ import * as Kb from '../../common-adapters'
 import * as Constants from '../../constants/provision'
 import * as Styles from '../../styles'
 import * as Platform from '../../constants/platform'
+import * as Devices from '../../constants/devices'
+import * as Container from '../../util/container'
+
 import {SignupScreen, errorBanner} from '../../signup/common'
 
 type Props = {
   onBack: () => void
   onSubmit: (name: string) => void
+  deviceIconNumber: number
   error: string
   waiting: boolean
 }
 
 const SetPublicName = (props: Props) => {
-  const [deviceName, setDeviceName] = React.useState(Platform.deviceName)
+  const [deviceName, setDeviceName] = React.useState(Platform.realDeviceName ?? '')
   const cleanDeviceName = Constants.cleanDeviceName(deviceName)
   const _onSubmit = props.onSubmit
   const onSubmit = React.useCallback(() => {
     _onSubmit(Constants.cleanDeviceName(cleanDeviceName))
   }, [cleanDeviceName, _onSubmit])
+
+  const maybeIcon = Styles.isMobile
+    ? Platform.isLargeScreen
+      ? `icon-phone-background-${props.deviceIconNumber}-96`
+      : `icon-phone-background-${props.deviceIconNumber}-64`
+    : `icon-computer-background-${props.deviceIconNumber}-96`
+
+  const defaultIcon = Styles.isMobile
+    ? Platform.isLargeScreen
+      ? `icon-phone-96`
+      : `icon-phone-64`
+    : `icon-computer-96`
 
   return (
     <SignupScreen
@@ -36,15 +52,7 @@ const SetPublicName = (props: Props) => {
       title={`Name this ${Styles.isMobile ? 'phone' : 'computer'}`}
     >
       <Kb.Box2 direction="vertical" style={styles.contents} centerChildren={true} gap="medium">
-        <Kb.Icon
-          type={
-            Styles.isMobile
-              ? Platform.isLargeScreen
-                ? 'icon-phone-background-1-96'
-                : 'icon-phone-background-1-64'
-              : 'icon-computer-background-1-96'
-          }
-        />
+        <Kb.Icon type={Kb.isValidIconType(maybeIcon) ? maybeIcon : defaultIcon} />
         <Kb.Box2 direction="vertical" style={styles.wrapper} gap="xsmall">
           <Kb.NewInput
             autoFocus={true}
