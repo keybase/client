@@ -1,6 +1,7 @@
 import * as Tracker2Gen from './tracker2-gen'
 import * as EngineGen from './engine-gen-gen'
 import * as ProfileGen from './profile-gen'
+import * as UsersGen from './users-gen'
 import * as Saga from '../util/saga'
 import * as Container from '../util/container'
 import * as Constants from '../constants/tracker2'
@@ -301,6 +302,11 @@ const loadNonUserProfile = async (action: Tracker2Gen.LoadNonUserProfilePayload)
   }
 }
 
+const refreshTrackerBlock = async (action: Tracker2Gen.UpdatedDetailsPayload) =>
+  UsersGen.createGetBlockState({
+    usernames: [action.payload.username],
+  })
+
 function* tracker2Saga() {
   yield* Saga.chainAction2(EngineGen.keybase1Identify3UiIdentify3UpdateUserCard, updateUserCard)
   yield* Saga.chainAction(Tracker2Gen.changeFollow, changeFollow)
@@ -319,6 +325,7 @@ function* tracker2Saga() {
   yield* Saga.chainAction(Tracker2Gen.showUser, showUser)
   yield* Saga.chainAction2(EngineGen.keybase1NotifyUsersUserChanged, refreshSelf)
   yield* Saga.chainAction(Tracker2Gen.loadNonUserProfile, loadNonUserProfile)
+  yield* Saga.chainAction(Tracker2Gen.updatedDetails, refreshTrackerBlock)
 }
 
 export default tracker2Saga
