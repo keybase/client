@@ -3,8 +3,6 @@ import * as Kb from '../../common-adapters'
 import * as Constants from '../../constants/provision'
 import * as Styles from '../../styles'
 import * as Platform from '../../constants/platform'
-import * as Devices from '../../constants/devices'
-import * as Container from '../../util/container'
 
 import {SignupScreen, errorBanner} from '../../signup/common'
 
