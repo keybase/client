@@ -81,6 +81,10 @@ func (r *runner) parseArgs() (err error) {
 }
 
 func (r *runner) compile() error {
+	if r.opts.NoCompile {
+		return nil
+	}
+	fmt.Printf("CMPL: %s\n", r.testerName())
 	cmd := exec.Command("go", "test", "-c")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -260,11 +264,9 @@ func (r *runner) run() error {
 		return err
 	}
 	r.debugStartup()
-	if !r.opts.NoCompile {
-		err = r.compile()
-		if err != nil {
-			return err
-		}
+	err = r.compile()
+	if err != nil {
+		return err
 	}
 	err = r.listTests()
 	if err != nil {
