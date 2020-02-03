@@ -57,11 +57,11 @@ func (t *DebuggingHandler) Script(ctx context.Context, arg keybase1.ScriptArg) (
 			}
 			advance = time.Duration(days) * 24 * time.Hour
 		}
-		err = t.G().ChatHelper.JourneycardTimeTravel(m.Ctx(), uidGregor, advance)
+		nTeams, nConvs, err := t.G().ChatHelper.JourneycardTimeTravel(m.Ctx(), uidGregor, advance)
 		if err != nil {
 			return "", err
 		}
-		log("time advanced by %v for all convs", advance)
+		log("time advanced by %v for %v teams and %v convs", advance, nTeams, nConvs)
 		return "", err
 	case "journeycard-resetall":
 		uidGregor := gregor1.UID(m.G().ActiveDevice.UID().ToBytes())
