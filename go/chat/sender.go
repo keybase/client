@@ -1488,6 +1488,8 @@ func (s *Deliverer) doNotRetryFailure(ctx context.Context, obr chat1.OutboxRecor
 	}
 	// Check for any errors that should cause us to give up right away
 	switch berr := err.(type) {
+	case types.UnboxingError:
+		return chat1.OutboxErrorType_MISC, err, berr.IsPermanent()
 	case DelivererInfoError:
 		if typ, ok := berr.IsImmediateFail(); ok {
 			return typ, err, true
