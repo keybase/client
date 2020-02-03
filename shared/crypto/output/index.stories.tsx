@@ -17,82 +17,54 @@ BEGIN KEYBASE SALTPACK SIGNED MESSAGE. kXR7VktZdyH7rvq v5weRa0zkIFigOx DLGV6rkJY
 const verifyOutput =
   'Verifying that this message was sent by Cecileb and far longer than 120 characters to show that the text size is regular and not large.'
 
-const storeCommon = Sb.createStoreWithCommon()
-const store = {
-  ...storeCommon,
-  config: {
-    avatarRefreshCounter: new Map(),
-    username: 'cecileb',
-  },
-  crypto: {
-    decrypt: {
-      output: new HiddenString(decryptOutput),
-      outputSender: new HiddenString('cecileb'),
-      outputSigned: true,
-      outputStatus: 'success',
-      outputValid: true,
-    },
-    encrypt: {
-      output: new HiddenString(encryptOutput),
-      outputSender: new HiddenString('jacobyoung'),
-      outputSigned: true,
-      outputStatus: 'success',
-      outputValid: true,
-    },
-    sign: {
-      output: new HiddenString(signOutput),
-      outputSender: new HiddenString('chris'),
-      outputSigned: true,
-      outputStatus: 'success',
-      outputValid: true,
-    },
-    verify: {
-      output: new HiddenString(verifyOutput),
-      outputSender: new HiddenString('xgess'),
-      outputSigned: true,
-      outputStatus: 'success',
-      outputValid: true,
-    },
-  },
-  waiting: {
-    counts: new Map<string, number>(),
-    errors: new Map<string, undefined>(),
-  },
-}
+const store = Container.produce(Sb.createStoreWithCommon(), draftState => {
+  const {crypto} = draftState
+  const {encrypt, decrypt, sign, verify} = crypto
+
+  encrypt.outputStatus = 'success'
+  decrypt.outputStatus = 'success'
+  sign.outputStatus = 'success'
+  verify.outputStatus = 'success'
+
+  encrypt.outputValid = true
+  decrypt.outputValid = true
+  sign.outputValid = true
+  verify.outputValid = true
+})
 
 const load = () => {
   Sb.storiesOf('Crypto/Output', module)
-    .addDecorator((story: any) => <Sb.MockStore store={store}>{story()}</Sb.MockStore>)
+    .addDecorator(
+      Sb.updateStoreDecorator(store, draftState => {
+        const {encrypt, decrypt, sign, verify} = draftState.crypto
+        encrypt.output = new Container.HiddenString(encryptOutput)
+        decrypt.output = new Container.HiddenString(decryptOutput)
+        sign.output = new Container.HiddenString(signOutput)
+        verify.output = new Container.HiddenString(verifyOutput)
+      })
+    )
     .add('Encrypt', () => <Output operation={Constants.Operations.Encrypt} />)
     .add('Decrypt', () => <Output operation={Constants.Operations.Verify} />)
     .add('Sign', () => <Output operation={Constants.Operations.Sign} />)
     .add('Verify', () => <Output operation={Constants.Operations.Verify} />)
 
   Sb.storiesOf('Crypto/Output', module)
-    .addDecorator((story: any) => (
-      <Sb.MockStore
-        store={Container.produce(store, draftState => {
-          const {decrypt, verify} = draftState.crypto
-          decrypt.output = new HiddenString('Decrypt: Under 120 characters is big')
-          verify.output = new HiddenString('Verify: Under 120 characters is big')
-        })}
-      >
-        {story()}
-      </Sb.MockStore>
-    ))
-    .add('Decrypt - Large', () => <Output operation={Constants.Operations.Verify} />)
+    .addDecorator(
+      Sb.updateStoreDecorator(store, draftState => {
+        const {decrypt, verify} = draftState.crypto
+        decrypt.output = new HiddenString('Decrypt: Under 120 characters is big')
+        verify.output = new HiddenString('Verify: Under 120 characters is big')
+      })
+    )
+    .add('Decrypt - Large', () => <Output operation={Constants.Operations.Decrypt} />)
     .add('Verify - Large', () => <Output operation={Constants.Operations.Verify} />)
 
   Sb.storiesOf('Crypto/Output Bar', module)
-    .addDecorator((story: any) => (
-      <Sb.MockStore
-        store={Container.produce(store, draftState => {
-          draftState.waiting.counts.set(Constants.encryptStringWaitingKey, 1)
-        })}
-      >
-        {story()}
-      </Sb.MockStore>
-    ))
+    .addDecorator(
+      Sb.updateStoreDecorator(store, draftState => {
+        draftState.waiting.counts.set(Constants.encryptStringWaitingKey, 1)
+      })
+    )
     .add('Disabled', () => <OutputBar operation={Constants.Operations.Encrypt} />)
 
   Sb.storiesOf('Crypto/Output Bar', module)
@@ -108,28 +80,83 @@ const load = () => {
     .add('Enabled', () => <OutputBar operation={Constants.Operations.Encrypt} />)
 
   Sb.storiesOf('Crypto/Output Signed Sender', module)
-    .addDecorator((story: any) => <Sb.MockStore store={store}>{story()}</Sb.MockStore>)
-    .add('Signed - Encrypt', () => <SignedSender operation={Constants.Operations.Sign} />)
-    .add('Signed - Sign', () => <SignedSender operation={Constants.Operations.Sign} />)
-    .add('Signed - Decrypt', () => <SignedSender operation={Constants.Operations.Decrypt} />)
-    .add('Signed - Verify', () => <SignedSender operation={Constants.Operations.Verify} />)
+    .addDecorator(
+      Sb.updateStoreDecorator(store, draftState => {
+        draftState.crypto.encrypt.outputSigned = false
+        draftState.crypto.encrypt.outputSenderUsername = undefined
+      })
+    )
+    .add('Unsigned - Encrypt - Anonymous', () => <SignedSender operation={Constants.Operations.Encrypt} />)
 
   Sb.storiesOf('Crypto/Output Signed Sender', module)
-    .addDecorator((story: any) => (
-      <Sb.MockStore
-        store={Container.produce(store, draftState => {
-          const {encrypt, decrypt} = draftState.crypto
-          encrypt.outputSigned = false
-          encrypt.outputSender = new HiddenString('')
-          decrypt.outputSigned = false
-          decrypt.outputSender = new HiddenString('')
-        })}
-      >
-        {story()}
-      </Sb.MockStore>
+    .addDecorator(
+      Sb.updateStoreDecorator(store, draftState => {
+        draftState.crypto.encrypt.outputSigned = true
+        draftState.crypto.encrypt.outputSenderUsername = new HiddenString('cecileb')
+      })
+    )
+    .add('Signed - Encrypt - You', () => <SignedSender operation={Constants.Operations.Encrypt} />)
+
+  Sb.storiesOf('Crypto/Output Signed Sender', module)
+    .addDecorator(
+      Sb.updateStoreDecorator(store, draftState => {
+        draftState.crypto.sign.outputSigned = true
+        draftState.crypto.sign.outputSenderUsername = new HiddenString('cecileb')
+      })
+    )
+    .add('Signed - Sign - You', () => <SignedSender operation={Constants.Operations.Sign} />)
+
+  Sb.storiesOf('Crypto/Output Signed Sender', module)
+    .addDecorator(
+      Sb.updateStoreDecorator(store, draftState => {
+        draftState.crypto.decrypt.outputSigned = false
+        draftState.crypto.decrypt.outputSenderUsername = undefined
+        draftState.crypto.decrypt.outputSenderFullname = undefined
+      })
+    )
+    .add('Unsigned - Decrypt - Anonymous', () => <SignedSender operation={Constants.Operations.Decrypt} />)
+
+  Sb.storiesOf('Crypto/Output Signed Sender', module)
+    .addDecorator(
+      Sb.updateStoreDecorator(store, draftState => {
+        draftState.crypto.decrypt.outputSigned = true
+        draftState.crypto.decrypt.outputSenderUsername = new HiddenString('modalduality')
+        draftState.crypto.decrypt.outputSenderFullname = undefined
+      })
+    )
+    .add('Signed - Decrypt - User', () => <SignedSender operation={Constants.Operations.Decrypt} />)
+
+  Sb.storiesOf('Crypto/Output Signed Sender', module)
+    .addDecorator(
+      Sb.updateStoreDecorator(store, draftState => {
+        draftState.crypto.decrypt.outputSigned = true
+        draftState.crypto.decrypt.outputSenderUsername = new HiddenString('chris')
+        draftState.crypto.decrypt.outputSenderFullname = new HiddenString('Chris Coyne')
+      })
+    )
+    .add('Signed - Decrypt - User - Fullname', () => (
+      <SignedSender operation={Constants.Operations.Decrypt} />
     ))
-    .add('Unsigned - Encrypt', () => <SignedSender operation={Constants.Operations.Encrypt} />)
-    .add('Unsigned - Decrypt', () => <SignedSender operation={Constants.Operations.Decrypt} />)
+
+  Sb.storiesOf('Crypto/Output Signed Sender', module)
+    .addDecorator(
+      Sb.updateStoreDecorator(store, draftState => {
+        draftState.crypto.verify.outputSigned = true
+        draftState.crypto.verify.outputSenderUsername = new HiddenString('modalduality')
+        draftState.crypto.verify.outputSenderFullname = undefined
+      })
+    )
+    .add('Signed - Verify - User', () => <SignedSender operation={Constants.Operations.Verify} />)
+
+  Sb.storiesOf('Crypto/Output Signed Sender', module)
+    .addDecorator(
+      Sb.updateStoreDecorator(store, draftState => {
+        draftState.crypto.verify.outputSigned = true
+        draftState.crypto.verify.outputSenderUsername = new HiddenString('cjb')
+        draftState.crypto.verify.outputSenderFullname = new HiddenString('Chris Ball')
+      })
+    )
+    .add('Signed - Verify - User - Fullname', () => <SignedSender operation={Constants.Operations.Verify} />)
 }
 
 export default load
