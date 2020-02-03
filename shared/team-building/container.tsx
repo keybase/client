@@ -684,7 +684,7 @@ const mergeProps = (
     recommendedHideYourself: ownProps.recommendedHideYourself,
     refreshBlockList: () =>
       ownProps.namespace === 'people' && searchResults
-        ? dispatchProps._refreshBlockList(searchResults.map(r => r.services['keybase'] || '').filter(r => r))
+        ? dispatchProps._refreshBlockList(searchResults.map(r => r.services['keybase'] || '').filter(Boolean))
         : undefined,
     rolePickerProps,
     search: dispatchProps._search,
