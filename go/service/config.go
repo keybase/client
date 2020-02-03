@@ -162,6 +162,30 @@ func (h ConfigHandler) GetFullStatus(ctx context.Context, sessionID int) (res *k
 	return status.GetFullStatus(mctx)
 }
 
+func (h ConfigHandler) IsServiceRunning(ctx context.Context, sessionID int) (res bool, err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("CFG")
+	defer mctx.TraceTimed("IsServiceRunning", func() error { return err })()
+
+	// set service status
+	if mctx.G().Env.GetStandalone() {
+		res = false
+	} else {
+		res = true
+	}
+	return
+}
+
+func (h ConfigHandler) IsKBFSRunning(ctx context.Context, sessionID int) (res bool, err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("CFG")
+	defer mctx.TraceTimed("IsKBFSRunning", func() error { return err })()
+
+	clients := libkb.GetClientStatus(mctx)
+
+	kbfs := status.GetFirstClient(clients, keybase1.ClientType_KBFS)
+
+	return kbfs != nil, nil
+}
+
 func (h ConfigHandler) GetNetworkStats(ctx context.Context, sessionID int) (res []keybase1.InstrumentationStat, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("CFG")
 	defer mctx.TraceTimed("GetNetworkStats", func() error { return err })()
