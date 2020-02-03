@@ -207,7 +207,7 @@ func checkPostedMaybeBustProofCache(mctx MetaContext, sigID keybase1.SigID, foun
 	return nil
 }
 
-func PostDeviceLKS(m MetaContext, deviceID keybase1.DeviceID, deviceType string, serverHalf LKSecServerHalf,
+func PostDeviceLKS(m MetaContext, deviceID keybase1.DeviceID, deviceType keybase1.DeviceTypeV2, serverHalf LKSecServerHalf,
 	ppGen PassphraseGeneration,
 	clientHalfRecovery string, clientHalfRecoveryKID keybase1.KID) error {
 	m.Debug("| PostDeviceLKS: %s", deviceID)
@@ -223,7 +223,7 @@ func PostDeviceLKS(m MetaContext, deviceID keybase1.DeviceID, deviceType string,
 		SessionType: APISessionTypeREQUIRED,
 		Args: HTTPArgs{
 			"device_id":       S{Val: deviceID.String()},
-			"type":            S{Val: deviceType},
+			"type":            S{Val: deviceType.String()},
 			"lks_server_half": S{Val: serverHalf.EncodeToHex()},
 			"ppgen":           I{Val: int(ppGen)},
 			"lks_client_half": S{Val: clientHalfRecovery},

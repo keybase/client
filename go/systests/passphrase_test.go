@@ -289,7 +289,7 @@ func (r *testRecoverUIProvision) ProvisionerSuccess(context.Context, keybase1.Pr
 }
 func (r *testRecoverUIProvision) ChooseDevice(ctx context.Context, arg keybase1.ChooseDeviceArg) (ret keybase1.DeviceID, err error) {
 	for _, d := range arg.Devices {
-		if d.Type == libkb.DeviceTypePaper {
+		if d.Type == keybase1.DeviceTypeV2_PAPER {
 			return d.DeviceID, nil
 		}
 	}

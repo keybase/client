@@ -706,7 +706,7 @@ func TestChatMessageRevokedKeyThenSent(t *testing.T) {
 		devices, _ := getActiveDevicesAndKeys(tc, u)
 		var thisDevice *libkb.Device
 		for _, device := range devices {
-			if device.Type != libkb.DeviceTypePaper {
+			if device.Type != keybase1.DeviceTypeV2_PAPER {
 				thisDevice = device
 			}
 		}
@@ -783,7 +783,7 @@ func TestChatMessageSentThenRevokedSenderKey(t *testing.T) {
 		devices, _ := getActiveDevicesAndKeys(tc, u)
 		var thisDevice *libkb.Device
 		for _, device := range devices {
-			if device.Type != libkb.DeviceTypePaper {
+			if device.Type != keybase1.DeviceTypeV2_PAPER {
 				thisDevice = device
 			}
 		}
@@ -1401,7 +1401,7 @@ func TestV1Message5(t *testing.T) {
 }
 
 func modifyBoxerForTesting(t *testing.T, boxer *Boxer, canned *cannedMessage) {
-	boxer.testingGetSenderInfoLocal = func(ctx context.Context, uid gregor1.UID, did gregor1.DeviceID) (senderUsername string, senderDeviceName string, senderDeviceType string) {
+	boxer.testingGetSenderInfoLocal = func(ctx context.Context, uid gregor1.UID, did gregor1.DeviceID) (senderUsername string, senderDeviceName string, senderDeviceType keybase1.DeviceTypeV2) {
 		require.Equal(t, canned.SenderUID(t), uid)
 		require.Equal(t, canned.SenderDeviceID(t), did)
 		return canned.senderUsername, canned.senderDeviceName, canned.senderDeviceType

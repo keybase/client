@@ -360,7 +360,7 @@ protocol api {
     @jsonkey("description")
     string deviceDescription;
     @jsonkey("type")
-    string deviceType;
+    keybase1.DeviceTypeV2 deviceType;
     @jsonkey("ctime")
     int64 deviceCtime;
   }

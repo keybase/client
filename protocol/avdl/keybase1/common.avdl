@@ -156,7 +156,7 @@ protocol Common {
     string parentID;
     DeviceID deviceID;
     string deviceDescription;
-    string deviceType;
+    DeviceTypeV2 deviceType;
     Time cTime;
     Time eTime;
     boolean isRevoked;
@@ -179,7 +179,7 @@ protocol Common {
   }
 
   record Device {
-    string type;
+    DeviceTypeV2 type;
     string name;
     DeviceID deviceID;
     // For the GUI to display the correct icon for the device
@@ -196,6 +196,10 @@ protocol Common {
     DESKTOP_0,
     MOBILE_1
   }
+
+  @typedef("string")
+  record DeviceTypeV2{}
+
 
   record Stream {
     int fd;

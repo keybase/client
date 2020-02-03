@@ -121,7 +121,7 @@ func (c *CmdLogin) Run() error {
 	err = client.Login(ctx,
 		keybase1.LoginArg{
 			Username:     c.Username,
-			DeviceType:   libkb.DeviceTypeDesktop,
+			DeviceType:   keybase1.DeviceTypeV2_DESKTOP,
 			ClientType:   c.clientType,
 			SessionID:    c.SessionID,
 			DoUserSwitch: c.doUserSwitch,

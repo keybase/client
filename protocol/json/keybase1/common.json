@@ -345,7 +345,7 @@
           "name": "deviceDescription"
         },
         {
-          "type": "string",
+          "type": "DeviceTypeV2",
           "name": "deviceType"
         },
         {
@@ -413,7 +413,7 @@
       "name": "Device",
       "fields": [
         {
-          "type": "string",
+          "type": "DeviceTypeV2",
           "name": "type"
         },
         {
@@ -461,6 +461,12 @@
         "DESKTOP_0",
         "MOBILE_1"
       ]
+    },
+    {
+      "type": "record",
+      "name": "DeviceTypeV2",
+      "fields": [],
+      "typedef": "string"
     },
     {
       "type": "record",
