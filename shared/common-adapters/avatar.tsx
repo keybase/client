@@ -5,7 +5,6 @@ import {iconTypeToImgSet, urlsToImgSet, IconType, IconStyle} from './icon'
 import * as Container from '../util/container'
 import * as Styles from '../styles'
 import * as ProfileGen from '../actions/profile-gen'
-import * as Tracker2Constants from '../constants/tracker2'
 import './avatar.css'
 
 export const avatarSizes = [128, 96, 64, 48, 32, 24, 16] as const
@@ -108,13 +107,9 @@ const ConnectedAvatar = Container.connect(
     _httpSrvAddress: state.config.httpSrvAddress,
     _httpSrvToken: state.config.httpSrvToken,
     blocked:
-      (
-        (state.tracker2 &&
-          state.tracker2.usernameToDetails &&
-          Tracker2Constants.getDetails(state, ownProps.username || ownProps.teamname || '')) || {
-          blocked: false,
-        }
-      ).blocked || false,
+      state.users &&
+      state.users.blockMap &&
+      state.users.blockMap.get(ownProps.username || ownProps.teamname || '')?.chatBlocked,
   }),
   dispatch => ({
     _goToProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
