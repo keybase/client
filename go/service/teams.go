@@ -429,7 +429,7 @@ func (h *TeamsHandler) TeamEditMembers(ctx context.Context, arg keybase1.TeamEdi
 			debugString = fmt.Sprintf("'%v' + %v more", arg.Users[0].AssertionOrEmail, len(arg.Users)-1)
 		}
 	}
-	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamEditMembers(%s, %s)", arg.Name, debugString),
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamEditMembers(%s, %s)", arg.TeamID, debugString),
 		func() error { return err })()
 	if len(arg.Users) == 0 {
 		return res, nil
@@ -439,7 +439,7 @@ func (h *TeamsHandler) TeamEditMembers(ctx context.Context, arg keybase1.TeamEdi
 		return res, err
 	}
 
-	return teams.EditMembers(ctx, h.G().ExternalG(), arg.Name, arg.Users)
+	return teams.EditMembers(ctx, h.G().ExternalG(), arg.TeamID, arg.Users)
 }
 
 func (h *TeamsHandler) TeamSetBotSettings(ctx context.Context, arg keybase1.TeamSetBotSettingsArg) (err error) {

@@ -762,11 +762,11 @@ func EditMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1
 	return editMember(ctx, g, teamGetter, username, role, botSettings)
 }
 
-func EditMembers(ctx context.Context, g *libkb.GlobalContext, teamname string, users []keybase1.UserRolePair) (res keybase1.TeamEditMembersResult, err error) {
+func EditMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, users []keybase1.UserRolePair) (res keybase1.TeamEditMembersResult, err error) {
 	var failedToEdit []keybase1.UserRolePair
 
 	for _, userRolePair := range users {
-		err := EditMember(ctx, g, teamname, userRolePair.AssertionOrEmail, userRolePair.Role, userRolePair.BotSettings)
+		err := EditMemberByID(ctx, g, teamID, userRolePair.AssertionOrEmail, userRolePair.Role, userRolePair.BotSettings)
 		if err != nil {
 			failedToEdit = append(failedToEdit, userRolePair)
 			continue
