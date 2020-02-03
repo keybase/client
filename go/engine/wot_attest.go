@@ -7,7 +7,6 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"strings"
 
@@ -99,31 +98,39 @@ func (e *WotAttest) Run(mctx libkb.MetaContext) error {
 		return err
 	}
 
-	me, err := libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(mctx).WithForceReload())
-	if err != nil {
-		return err
-	}
 	sigVersion := libkb.KeybaseSignatureV2
-	proof, err := me.WotAttestProof(mctx, signingKey, sigVersion, sum)
-	if err != nil {
-		return err
-	}
-	inner, err := proof.J.Marshal()
-	if err != nil {
-		return err
-	}
+	var inner []byte
+	var sig string
 
-	sig, _, _, err := libkb.MakeSig(
-		mctx,
-		signingKey,
-		libkb.LinkTypeWotAttest,
-		inner,
-		libkb.SigHasRevokes(false),
-		keybase1.SeqType_PUBLIC,
-		libkb.SigIgnoreIfUnsupported(true),
-		me,
-		sigVersion,
-	)
+	// ForcePoll is required.
+	err = mctx.G().GetFullSelfer().WithSelfForcePoll(mctx.Ctx(), func(me *libkb.User) error {
+		proof, err := me.WotAttestProof(mctx, signingKey, sigVersion, sum)
+		if err != nil {
+			return err
+		}
+		inner, err = proof.J.Marshal()
+		if err != nil {
+			return err
+		}
+
+		sig, _, _, err = libkb.MakeSig(
+			mctx,
+			signingKey,
+			libkb.LinkTypeWotAttest,
+			inner,
+			libkb.SigHasRevokes(false),
+			keybase1.SeqType_PUBLIC,
+			libkb.SigIgnoreIfUnsupported(true),
+			me,
+			sigVersion,
+		)
+
+		return nil
+	})
+
+	if err != nil {
+		return err
+	}
 
 	item := libkb.SigMultiItem{
 		Sig:        sig,
@@ -137,14 +144,6 @@ func (e *WotAttest) Run(mctx libkb.MetaContext) error {
 
 	payload := make(libkb.JSONPayload)
 	payload["sigs"] = []interface{}{item}
-
-	if false {
-		jsonString, err := json.MarshalIndent(payload, "", "    ")
-		if err != nil {
-			return err
-		}
-		mctx.Debug("payload: %s", jsonString)
-	}
 
 	_, err = e.G().API.PostJSON(mctx, libkb.APIArg{
 		Endpoint:    "sig/multi",
