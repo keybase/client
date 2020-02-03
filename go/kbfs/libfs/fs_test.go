@@ -706,7 +706,7 @@ func TestArchivedByRevision(t *testing.T) {
 
 	_, _, fsArchived := makeFSWithBranch(
 		t, data.MakeRevBranchName(kbfsmd.Revision(1)), "")
-	defer fsArchived.config.Shutdown(ctx)
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, fsArchived.config)
 	fis, err = fsArchived.ReadDir("")
 	require.NoError(t, err)
 	require.Len(t, fis, 0)
