@@ -410,6 +410,28 @@ func (h *TeamsHandler) TeamRemoveMember(ctx context.Context, arg keybase1.TeamRe
 	return teams.RemoveMemberByID(ctx, h.G().ExternalG(), arg.TeamID, arg.Username)
 }
 
+func (h *TeamsHandler) TeamRemoveMembers(ctx context.Context, arg keybase1.TeamRemoveMembersArg) (res keybase1.TeamRemoveMembersResult, err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	debugString := "0"
+	if len(arg.Users) > 0 {
+		debugString = fmt.Sprintf("'%v'", arg.Users[0].Username)
+		if len(arg.Users) > 1 {
+			debugString = fmt.Sprintf("'%v' + %v more", arg.Users[0].Username, len(arg.Users)-1)
+		}
+	}
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamRemoveMembers(%s, %s)", arg.TeamID, debugString),
+		func() error { return err })()
+	if len(arg.Users) == 0 {
+		return res, nil
+	}
+
+	if err := assertLoggedIn(ctx, h.G().ExternalG()); err != nil {
+		return res, err
+	}
+
+	return teams.RemoveMembersByID(ctx, h.G().ExternalG(), arg.TeamID, arg.Users)
+}
+
 func (h *TeamsHandler) TeamEditMember(ctx context.Context, arg keybase1.TeamEditMemberArg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "TM")
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamEditMember(%s,%s,%s)", arg.Name, arg.Username, arg.Role),

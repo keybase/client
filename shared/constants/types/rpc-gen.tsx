@@ -2964,6 +2964,7 @@ export type RekeyRequest = {readonly folderID: String; readonly revision: Long}
 export type RemoteProof = {readonly proofType: ProofType; readonly key: String; readonly value: String; readonly displayMarkup: String; readonly sigID: SigID; readonly mTime: Time}
 export type RemoteTrack = {readonly username: String; readonly uid: UID; readonly linkID: LinkID}
 export type RemoveArgs = {readonly opID: OpID; readonly path: Path; readonly recursive: Boolean}
+export type RemoveMemberArgs = {readonly username: String; readonly email: String; readonly inviteID: TeamInviteID; readonly allowInaction: Boolean}
 export type RepoID = String
 export type ResetLink = {readonly ctime: UnixTime; readonly merkleRoot: ResetMerkleRoot; readonly prev: ResetPrev; readonly resetSeqno: Seqno; readonly type: ResetType; readonly uid: UID}
 export type ResetMerkleRoot = {readonly hashMeta: HashMeta; readonly seqno: Seqno}
@@ -3105,6 +3106,7 @@ export type TeamOperation = {readonly manageMembers: Boolean; readonly manageSub
 export type TeamPlusApplicationKeys = {readonly id: TeamID; readonly name: String; readonly implicit: Boolean; readonly public: Boolean; readonly application: TeamApplication; readonly writers?: Array<UserVersion> | null; readonly onlyReaders?: Array<UserVersion> | null; readonly onlyRestrictedBots?: Array<UserVersion> | null; readonly applicationKeys?: Array<TeamApplicationKey> | null}
 export type TeamProfileAddEntry = {readonly teamID: TeamID; readonly teamName: TeamName; readonly open: Boolean; readonly disabledReason: String}
 export type TeamRefreshers = {readonly needKeyGeneration: PerTeamKeyGeneration; readonly needApplicationsAtGenerations: {[key: string]: Array<TeamApplication> | null}; readonly needApplicationsAtGenerationsWithKBFS: {[key: string]: Array<TeamApplication> | null}; readonly wantMembers?: Array<UserVersion> | null; readonly wantMembersRole: TeamRole; readonly needKBFSKeyGeneration: TeamKBFSKeyRefresher}
+export type TeamRemoveMembersResult = {readonly failures?: Array<RemoveMemberArgs> | null}
 export type TeamRequestAccessResult = {readonly open: Boolean}
 export type TeamResetUser = {readonly username: String; readonly uid: UID; readonly eldestSeqno: Seqno; readonly isDelete: Boolean}
 export type TeamRoleMapAndVersion = {readonly teams: {[key: string]: TeamRolePair}; readonly version: UserTeamVersion}
@@ -4051,6 +4053,7 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.teams.teamListSubteamsRecursive'
 // 'keybase.1.teams.teamChangeMembership'
 // 'keybase.1.teams.teamAddMembers'
+// 'keybase.1.teams.teamRemoveMembers'
 // 'keybase.1.teams.teamEditMembers'
 // 'keybase.1.teams.teamGetBotSettings'
 // 'keybase.1.teams.teamSetBotSettings'
