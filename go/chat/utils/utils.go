@@ -1161,12 +1161,12 @@ func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, curre
 		return chat1.SnippetDecoration_NONE, ""
 	}
 
-	if msg.IsOutbox() {
+	if msg.IsOutbox() && msg.Outbox().IsBadgable() {
 		decoration = chat1.SnippetDecoration_PENDING_MESSAGE
 		if msg.Outbox().IsError() {
 			decoration = chat1.SnippetDecoration_FAILED_PENDING_MESSAGE
 		}
-	} else if msg.Valid().IsEphemeral() {
+	} else if msg.IsValid() && msg.Valid().IsEphemeral() {
 		decoration = chat1.SnippetDecoration_EXPLODING_MESSAGE
 	} else {
 		decoration = getMsgSnippetDecoration(msg)
