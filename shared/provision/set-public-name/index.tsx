@@ -1,7 +1,8 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Constants from '../../constants/provision'
-import {globalMargins, styleSheetCreate, isMobile, platformStyles} from '../../styles'
+import * as Styles from '../../styles'
+import * as Platform from '../../constants/platform'
 import {SignupScreen, errorBanner} from '../../signup/common'
 
 type Props = {
@@ -32,10 +33,18 @@ const SetPublicName = (props: Props) => {
         },
       ]}
       onBack={props.onBack}
-      title={`Name this ${isMobile ? 'phone' : 'computer'}`}
+      title={`Name this ${Styles.isMobile ? 'phone' : 'computer'}`}
     >
       <Kb.Box2 direction="vertical" style={styles.contents} centerChildren={true} gap="medium">
-        <Kb.Icon type={isMobile ? 'icon-phone-96' : 'icon-computer-96'} />
+        <Kb.Icon
+          type={
+            Styles.isMobile
+              ? Platform.isLargeScreen
+                ? 'icon-phone-background-1-96'
+                : 'icon-phone-background-1-64'
+              : 'icon-computer-background-1-96'
+          }
+        />
         <Kb.Box2 direction="vertical" style={styles.wrapper} gap="xsmall">
           <Kb.NewInput
             autoFocus={true}
@@ -52,11 +61,11 @@ const SetPublicName = (props: Props) => {
   )
 }
 
-const styles = styleSheetCreate(() => ({
-  backButton: platformStyles({
+const styles = Styles.styleSheetCreate(() => ({
+  backButton: Styles.platformStyles({
     isElectron: {
-      marginLeft: globalMargins.medium,
-      marginTop: globalMargins.medium,
+      marginLeft: Styles.globalMargins.medium,
+      marginTop: Styles.globalMargins.medium,
     },
     isMobile: {
       marginLeft: 0,
@@ -66,15 +75,15 @@ const styles = styleSheetCreate(() => ({
   contents: {
     width: '100%',
   },
-  nameInput: platformStyles({
+  nameInput: Styles.platformStyles({
     common: {
-      padding: globalMargins.tiny,
+      padding: Styles.globalMargins.tiny,
     },
     isMobile: {
       minHeight: 48,
     },
   }),
-  wrapper: platformStyles({
+  wrapper: Styles.platformStyles({
     isElectron: {
       width: 400,
     },
