@@ -3,6 +3,7 @@ import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
+import * as TeamConstants from '../../../../constants/teams'
 import {TeamID} from '../../../../constants/types/teams'
 import SystemAddedToTeam from '.'
 import {teamsTab} from '../../../../constants/tabs'
@@ -14,10 +15,13 @@ type OwnProps = {
 const Connected = Container.connect(
   (state, ownProps: OwnProps) => {
     const {teamID, teamname, teamType} = Constants.getMeta(state, ownProps.message.conversationIDKey)
+    const authorIsAdmin = TeamConstants.userIsRoleInTeam(state, teamID, ownProps.message.author, 'admin')
+    const authorIsOwner = TeamConstants.userIsRoleInTeam(state, teamID, ownProps.message.author, 'owner')
     return {
       addee: ownProps.message.addee,
       adder: ownProps.message.adder,
       bulkAdds: ownProps.message.bulkAdds,
+      isAdmin: authorIsAdmin || authorIsOwner,
       isTeam: teamType === 'big' || teamType === 'small',
       role: ownProps.message.role,
       teamID,
@@ -69,6 +73,7 @@ const Connected = Container.connect(
     addee: stateProps.addee,
     adder: stateProps.adder,
     bulkAdds: stateProps.bulkAdds,
+    isAdmin: stateProps.isAdmin,
     isTeam: stateProps.isTeam,
     onManageNotifications: () => dispatchProps._onManageNotifications(ownProps.message.conversationIDKey),
     onViewBot: () => dispatchProps._onViewBot(stateProps.addee),

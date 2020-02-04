@@ -19,6 +19,7 @@ type Props = {
   teamname: string
   timestamp: number
   you: string
+  isAdmin: boolean
 }
 
 const isBot = (role: TeamTypes.MaybeTeamRoleType) => {
@@ -43,6 +44,12 @@ const ManageComponent = (props: Props) => {
     return (
       <Kb.Text onClick={props.onViewBot} type={textType}>
         View bot settings
+      </Kb.Text>
+    )
+  } else if (props.isAdmin) {
+    return (
+      <Kb.Text onClick={props.onViewTeam} type={textType}>
+        Manage members
       </Kb.Text>
     )
   } else {
