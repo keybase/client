@@ -159,9 +159,6 @@ const styles = Styles.styleSheetCreate(
       errorText: {
         padding: Styles.globalMargins.small,
       },
-      loading: {
-        marginLeft: Styles.globalMargins.small,
-      },
       more: {
         ...Styles.globalStyles.flexBoxColumn,
         alignItems: 'center',
