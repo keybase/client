@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams/storage"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/sync/errgroup"
 )
 
 func TestLoaderBasic(t *testing.T) {
@@ -1443,20 +1444,23 @@ func TestLoaderPICNIC_669(t *testing.T) {
 		}
 	}
 
-	go func() {
+	var eg errgroup.Group
+	eg.Go(func() error {
 		t.Logf("rotate A.B.C.D")
 		team, err := Load(context.Background(), tcs[0].G, keybase1.LoadTeamArg{
 			ID:          teamDID,
 			ForceRepoll: true,
 		})
-		require.NoError(t, err)
-		err = team.Rotate(context.Background(), keybase1.RotationType_VISIBLE) // xxx todo try all types
-		require.NoError(t, err)
-	}()
+		if err != nil {
+			return err
+		}
+		return team.Rotate(context.Background(), keybase1.RotationType_VISIBLE) // xxx todo try all types
+	})
 
-	go func() {
+	eg.Go(func() error {
 		t.Logf("demote in A.B")
-		err = EditMemberByID(context.Background(), tcs[0].G, teamBID, fus[0].Username, keybase1.TeamRole_WRITER, nil)
-		require.NoError(t, err)
-	}()
+		return EditMemberByID(context.Background(), tcs[0].G, teamBID, fus[0].Username, keybase1.TeamRole_WRITER, nil)
+	})
+
+	require.NoError(t, eg.Wait())
 }
