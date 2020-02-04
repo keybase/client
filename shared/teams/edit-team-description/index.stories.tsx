@@ -22,7 +22,7 @@ const makeStore = (withErr: boolean) =>
           fakeTeamID,
           {
             ...Constants.emptyTeamMeta,
-            teamname: 'description changers',
+            teamname: 'description_changers',
           },
         ],
       ]),
