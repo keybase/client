@@ -2,6 +2,7 @@ package client
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -31,6 +32,10 @@ func newCmdWotVouch(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 			Name:  "verified-via",
 			Usage: "How you verified their identity: audio, video, email, other_chat, in_person",
 		},
+		cli.StringFlag{
+			Name:  "other",
+			Usage: "Other information about your confidence in knowing this user",
+		},
 		cli.IntFlag{
 			Name:  "known-for",
 			Usage: "Number of days you have known this user on keybase",
@@ -56,6 +61,20 @@ func (c *cmdWotVouch) ParseArgv(ctx *cli.Context) error {
 	}
 	c.assertion = ctx.Args()[0]
 	c.message = ctx.String("message")
+	kf := ctx.Int("known-for")
+	if kf > 0 {
+		c.confidence.KnownOnKeybaseDays = kf
+	}
+	via := ctx.String("verified-via")
+	if via != "" {
+		viaType, ok := keybase1.UsernameVerificationTypeMap[strings.ToUpper(via)]
+		if !ok {
+			return errors.New("invalid verified-via option")
+		}
+		c.confidence.UsernameVerifiedVia = viaType
+	}
+	c.confidence.Other = ctx.String("other")
+
 	return nil
 }
 
@@ -63,6 +82,7 @@ func (c *cmdWotVouch) Run() error {
 	arg := keybase1.WotVouchCLIArg{
 		Assertion:    c.assertion,
 		Attestations: []string{c.message},
+		Confidence:   c.confidence,
 	}
 
 	cli, err := GetWebOfTrustClient(c.G())

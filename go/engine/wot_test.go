@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
 
@@ -32,14 +32,13 @@ func TestWebOfTrust(t *testing.T) {
 
 	err = fu1.LoadUser(tc1)
 	require.NoError(tc1.T, err)
-	//	me, err := libkb.LoadMe(libkb.NewLoadUserArg(tc1.G))
-	//	require.NoError(tc1.T, err)
 	idt := fu1.User.IDTable()
 	lenBefore := idt.Len()
 	// should be logged in as fu1, double check:
 	require.Equal(t, tc1.G.ActiveDevice.UID(), fu1.UID())
 	mctx := NewMetaContextForTest(tc1)
 
+	// fu1 vouches for fu2
 	arg := &WotAttestArg{
 		Attestee:     fu2.User.ToUserVersion(),
 		Attestations: []string{"alice is awesome"},
@@ -47,8 +46,6 @@ func TestWebOfTrust(t *testing.T) {
 
 	eng := NewWotAttest(tc1.G, arg)
 	err = RunEngine2(mctx, eng)
-	t.Logf("user %s (%s) following %s (%s)", fu2.Username, fu2.UID(), fu1.Username, fu1.UID())
-	t.Logf("user %s (%s) following %s (%s)", fu1.Username, fu1.UID(), fu2.Username, fu2.UID())
 	require.NoError(t, err)
 
 	err = fu1.LoadUser(tc1)
@@ -78,7 +75,7 @@ func TestWebOfTrust(t *testing.T) {
 	idt = fu1.User.IDTable()
 	require.Equal(tc1.T, lenBefore+1, idt.Len())
 
-	// make an attest with confidence stuff
+	// make an fu1 -> fu3 attest with confidence stuff
 	arg = &WotAttestArg{
 		Attestee:     fu3.User.ToUserVersion(),
 		Attestations: []string{"charlie rocks"},
