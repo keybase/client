@@ -787,3 +787,25 @@ func TestFTLFailsIfHiddenTailIsTamperedBeforeFirstLoad(t *testing.T) {
 	require.IsType(t, hidden.LoaderError{}, err)
 	require.Contains(t, err.Error(), "link ID at 1 fails to check against ratchet")
 }
+
+func TestSubteamReaderFTL(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 3)
+	defer cleanup()
+
+	t.Logf("create team")
+	teamName, _ := createTeam2(*tcs[0])
+	for i := 0; i < 4; i++ {
+		makeHiddenRotation(t, tcs[0].G, teamName)
+	}
+	createSubteam(tcs[0], teamName, "unused")
+	subteamName, subteamID := createSubteam(tcs[0], teamName, "sub")
+	_, err := AddMember(context.TODO(), tcs[0].G, subteamName.String(), fus[1].Username, keybase1.TeamRole_WRITER, nil)
+	require.NoError(t, err)
+	_, err = tcs[1].G.GetFastTeamLoader().Load(libkb.NewMetaContextForTest(*tcs[1]), keybase1.FastTeamLoadArg{
+		ID:                   subteamID,
+		ForceRefresh:         true,
+		Applications:         []keybase1.TeamApplication{keybase1.TeamApplication_CHAT},
+		KeyGenerationsNeeded: []keybase1.PerTeamKeyGeneration{keybase1.PerTeamKeyGeneration(1)},
+	})
+	require.NoError(t, err)
+}
