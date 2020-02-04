@@ -125,7 +125,7 @@ func signAndPostDeviceEK(mctx libkb.MetaContext, generation keybase1.EkGeneratio
 	err = postNewDeviceEK(mctx, signedStatement)
 	if err != nil {
 		storage.ClearCache()
-		serr := NewDeviceEKStorage(mctx).Delete(mctx, generation)
+		serr := NewDeviceEKStorage(mctx).Delete(mctx, generation, "unable to post deviceEK: %v", err)
 		if serr != nil {
 			mctx.Debug("DeviceEK deletion failed %v", err)
 		}

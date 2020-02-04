@@ -70,7 +70,7 @@ func TestEphemeralCloneError(t *testing.T) {
 	allDevicEKs, err := s.GetAll(mctx)
 	require.NoError(t, err)
 	for _, dek := range allDevicEKs {
-		err = s.Delete(mctx, dek.Metadata.Generation)
+		err = s.Delete(mctx, dek.Metadata.Generation, "")
 		require.NoError(t, err)
 	}
 	_, err = g.GetTeamEKBoxStorage().Get(mctx, teamID, teamEK1.Generation(), nil)
@@ -97,7 +97,7 @@ func TestEphemeralDeviceProvisionedAfterContent(t *testing.T) {
 	allDevicEKs, err := s.GetAll(mctx)
 	require.NoError(t, err)
 	for _, dek := range allDevicEKs {
-		err = s.Delete(mctx, dek.Metadata.Generation)
+		err = s.Delete(mctx, dek.Metadata.Generation, "")
 		require.NoError(t, err)
 	}
 

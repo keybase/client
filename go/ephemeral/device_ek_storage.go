@@ -293,14 +293,16 @@ func (s *DeviceEKStorage) get(mctx libkb.MetaContext, generation keybase1.EkGene
 	return deviceEK, nil
 }
 
-func (s *DeviceEKStorage) Delete(mctx libkb.MetaContext, generation keybase1.EkGeneration) (err error) {
+func (s *DeviceEKStorage) Delete(mctx libkb.MetaContext, generation keybase1.EkGeneration,
+	reason string, args ...interface{}) (err error) {
 	s.Lock()
 	defer s.Unlock()
-	return s.delete(mctx, generation)
+	return s.delete(mctx, generation, reason, args...)
 }
 
-func (s *DeviceEKStorage) delete(mctx libkb.MetaContext, generation keybase1.EkGeneration) (err error) {
-	defer s.ekLogCTraceTimed(mctx, fmt.Sprintf("DeviceEKStorage#delete: generation:%v", generation), func() error { return err })()
+func (s *DeviceEKStorage) delete(mctx libkb.MetaContext, generation keybase1.EkGeneration,
+	reason string, args ...interface{}) (err error) {
+	defer s.ekLogCTraceTimed(mctx, fmt.Sprintf("DeviceEKStorage#delete: generation:%v reason: %s", generation, fmt.Sprintf(reason, args...)), func() error { return err })()
 
 	// clear the cache
 	cache, err := s.getCache(mctx)
@@ -499,7 +501,7 @@ func (s *DeviceEKStorage) DeleteExpired(mctx libkb.MetaContext, merkleRoot libkb
 	expired = s.getExpiredGenerations(mctx, keyMap, now)
 	epick := libkb.FirstErrorPicker{}
 	for _, generation := range expired {
-		epick.Push(s.delete(mctx, generation))
+		epick.Push(s.delete(mctx, generation, "generation expired"))
 	}
 
 	epick.Push(s.deletedWrongEldestSeqno(mctx))

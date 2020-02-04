@@ -72,7 +72,7 @@ func TestUserEKBoxStorage(t *testing.T) {
 
 	// Let's delete our deviceEK and verify we can't unbox the userEK
 	rawDeviceEKStorage := NewDeviceEKStorage(mctx)
-	err = rawDeviceEKStorage.Delete(mctx, deviceEKMaxGen)
+	err = rawDeviceEKStorage.Delete(mctx, deviceEKMaxGen, "")
 	require.NoError(t, err)
 
 	deviceEKStorage.ClearCache()

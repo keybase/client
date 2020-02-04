@@ -105,7 +105,7 @@ func TestDeviceEKStorage(t *testing.T) {
 	}
 
 	// Test Delete
-	require.NoError(t, s.Delete(mctx, 2))
+	require.NoError(t, s.Delete(mctx, 2, ""))
 
 	deviceEK, err := s.Get(mctx, 2)
 	require.Error(t, err)
@@ -129,7 +129,7 @@ func TestDeviceEKStorage(t *testing.T) {
 	require.EqualValues(t, 3, maxGeneration)
 	s.ClearCache()
 
-	require.NoError(t, s.Delete(mctx, 3))
+	require.NoError(t, s.Delete(mctx, 3, ""))
 
 	maxGeneration, err = s.MaxGeneration(mctx, false)
 	require.NoError(t, err)
