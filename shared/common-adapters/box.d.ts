@@ -19,6 +19,7 @@ export type Box2Props = {
   children?: React.ReactNode
   centerChildren?: boolean
   className?: string | null
+  collapsable?: boolean
   direction: 'horizontal' | 'vertical' | 'horizontalReverse' | 'verticalReverse'
   fullHeight?: boolean
   fullWidth?: boolean

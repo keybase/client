@@ -2,7 +2,6 @@ import {themed, colors, darkColors} from './colors'
 import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
 import * as Shared from './shared'
 import {isDarkMode} from './dark-mode'
-import isEmpty from 'lodash/isEmpty'
 import styleSheeCreateProxy from './style-sheet-proxy'
 import * as CSS from './css'
 const {extname, basename} = KB.path
@@ -191,12 +190,17 @@ export const collapseStyles = (styles: ReadonlyArray<CollapsibleStyle>): Object 
     }
   }
 
-  const flattenedStyles = styles.reduce(
-    (a: Array<CollapsibleStyle>, e: CollapsibleStyle) => a.concat(e),
-    []
-  ) as Array<Object | null | false>
-  const style = flattenedStyles.reduce<Object>((o, e) => Object.assign(o, e), {})
-  return isEmpty(style) ? undefined : style
+  // jenkins doesn't support flat yet
+  let s: Object
+  if (__STORYSHOT__) {
+    const flat = styles.reduce((a: Array<CollapsibleStyle>, e: CollapsibleStyle) => a.concat(e), []) as Array<
+      Object | null | false
+    >
+    s = Object.assign({}, ...flat)
+  } else {
+    s = Object.assign({}, ...styles.flat())
+  }
+  return Object.keys(s).length ? s : undefined
 }
 export {isMobile, fileUIName, isIPhoneX, isIOS, isAndroid} from '../constants/platform'
 export {
