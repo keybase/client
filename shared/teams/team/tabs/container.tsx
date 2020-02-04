@@ -13,6 +13,7 @@ type OwnProps = {
 
 export default Container.connect(
   (state, {teamID, selectedTab, setSelectedTab}: OwnProps) => {
+    const teamMeta = Constants.getTeamMeta(state, teamID)
     const teamDetails = Constants.getTeamDetails(state, teamID)
     const yourOperations = Constants.getCanPerformByID(state, teamID)
 
@@ -25,18 +26,18 @@ export default Container.connect(
       error: state.teams.errorInAddToTeam,
       loading: anyWaiting(
         state,
-        Constants.teamWaitingKey(teamDetails.teamname),
-        Constants.teamTarsWaitingKey(teamDetails.teamname)
+        Constants.teamWaitingKey(teamMeta.teamname),
+        Constants.teamTarsWaitingKey(teamMeta.teamname)
       ),
       newTeamRequests: state.teams.newTeamRequests,
       numInvites: teamDetails.invites?.size ?? 0,
       numRequests: teamDetails.requests?.size ?? 0,
       numSubteams: teamDetails.subteams?.size ?? 0,
-      resetUserCount: Constants.getTeamResetUsers(state, teamDetails.teamname).size,
+      resetUserCount: Constants.getTeamResetUsers(state, teamMeta.teamname).size,
       selectedTab,
       setSelectedTab,
       showSubteams: yourOperations.manageSubteams,
-      teamname: teamDetails.teamname,
+      teamname: teamMeta.teamname,
     }
   },
   dispatch => ({

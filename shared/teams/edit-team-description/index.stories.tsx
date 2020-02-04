@@ -11,13 +11,18 @@ const makeStore = (withErr: boolean) =>
     draftState.teams = {
       ...Constants.makeState(),
       errorInEditDescription: withErr ? 'Something has gone horribly wrong!!!' : '',
-      teamDetails: new Map([[fakeTeamID, {...Constants.emptyTeamDetails, teamname: 'description_changers'}]]),
-      teamIDToPublicitySettings: new Map([
+      teamDetails: new Map([
+        [
+          fakeTeamID,
+          {...Constants.emptyTeamDetails, description: 'A team for people who change team descriptions'},
+        ],
+      ]),
+      teamMeta: new Map([
         [
           fakeTeamID,
           {
-            ...Constants.initialPublicitySettings,
-            description: 'A team for people who change team descriptions',
+            ...Constants.emptyTeamMeta,
+            teamname: 'description changers',
           },
         ],
       ]),

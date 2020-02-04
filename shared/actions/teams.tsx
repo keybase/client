@@ -484,10 +484,10 @@ const ignoreRequest = async (action: TeamsGen.IgnoreRequestPayload) => {
       {name: teamname, username},
       Constants.teamWaitingKey(teamname)
     )
-    return false
   } catch (_) {
     // TODO handle error
   }
+  return false
 }
 
 async function createNewTeamFromConversation(

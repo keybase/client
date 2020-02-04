@@ -711,7 +711,7 @@ export const annotatedInvitesToInviteInfo = (
     return arr
   }, [])
 
-const emptyTeamDetails = Object.freeze<Types.TeamDetails>({
+export const emptyTeamDetails = Object.freeze<Types.TeamDetails>({
   description: '',
   invites: new Set(),
   members: new Map(),
