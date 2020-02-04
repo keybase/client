@@ -21,10 +21,10 @@ import * as RouteTreeGen from '../route-tree-gen'
 import * as Tabs from '../../constants/tabs'
 import * as Router2 from '../../constants/router2'
 import * as FsTypes from '../../constants/types/fs'
+import * as Platform from '../../constants/platform'
 import URL from 'url-parse'
 import {noVersion} from '../../constants/whats-new'
 import {isAndroid, isMobile, appColorSchemeChanged} from '../../constants/platform'
-import {updateServerConfigLastLoggedIn} from '../../app/server-config'
 import * as Container from '../../util/container'
 
 const onLoggedIn = (state: Container.TypedState, action: EngineGen.Keybase1NotifySessionLoggedInPayload) => {
@@ -554,34 +554,12 @@ function* allowLogoutWaiters(_: Container.TypedState, action: ConfigGen.LogoutHa
   )
 }
 
-const updateServerConfig = async (state: Container.TypedState, action: ConfigGen.LoadOnStartPayload) => {
-  if (action.payload.phase !== 'startupOrReloginButNotInARush') {
-    return false
-  }
-  try {
-    // TODO real rpc so we get real types instead of this untyped bag of key/values
-    const str = await RPCTypes.apiserverGetWithSessionRpcPromise({
-      endpoint: 'user/features',
-    })
-    const obj: {features: any} = JSON.parse(str.body)
-    const features = Object.keys(obj.features).reduce<{[key: string]: boolean}>((map, key) => {
-      map[key] = (obj.features[key as any] as any)?.value ?? false
-      return map
-    }, {})
+const updateServerConfig = async (_: Container.TypedState, action: ConfigGen.LoadOnStartPayload) =>
+  action.payload.phase === 'startupOrReloginButNotInARush' &&
+  RPCTypes.configUpdateLastLoggedInAndServerConfigRpcPromise({
+    serverConfigPath: Platform.serverConfigFileName,
+  })
 
-    const serverConfig = {
-      chatIndexProfilingEnabled: !!features.admin,
-      dbCleanEnabled: !!features.admin,
-      printRPCStats: !!features.admin,
-    }
-
-    logger.info('updateServerConfig', serverConfig)
-    updateServerConfigLastLoggedIn(state.config.username, serverConfig)
-  } catch (e) {
-    logger.info('updateServerConfig fail', e)
-  }
-  return false
-}
 const setNavigator = (action: ConfigGen.SetNavigatorPayload) => {
   const navigator = action.payload.navigator
   Router2._setNavigator(navigator)

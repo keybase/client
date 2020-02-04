@@ -979,6 +979,10 @@ type AppendGUILogsArg struct {
 type GenerateWebAuthTokenArg struct {
 }
 
+type UpdateLastLoggedInAndServerConfigArg struct {
+	ServerConfigPath string `codec:"serverConfigPath" json:"serverConfigPath"`
+}
+
 type ConfigInterface interface {
 	GetCurrentStatus(context.Context, int) (CurrentStatus, error)
 	GetClientStatus(context.Context, int) ([]ClientStatus, error)
@@ -1019,6 +1023,7 @@ type ConfigInterface interface {
 	ToggleRuntimeStats(context.Context) error
 	AppendGUILogs(context.Context, string) error
 	GenerateWebAuthToken(context.Context) (string, error)
+	UpdateLastLoggedInAndServerConfig(context.Context, string) error
 }
 
 func ConfigProtocol(i ConfigInterface) rpc.Protocol {
@@ -1475,6 +1480,21 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 					return
 				},
 			},
+			"updateLastLoggedInAndServerConfig": {
+				MakeArg: func() interface{} {
+					var ret [1]UpdateLastLoggedInAndServerConfigArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]UpdateLastLoggedInAndServerConfigArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]UpdateLastLoggedInAndServerConfigArg)(nil), args)
+						return
+					}
+					err = i.UpdateLastLoggedInAndServerConfig(ctx, typedArgs[0].ServerConfigPath)
+					return
+				},
+			},
 		},
 	}
 }
@@ -1665,5 +1685,11 @@ func (c ConfigClient) AppendGUILogs(ctx context.Context, content string) (err er
 
 func (c ConfigClient) GenerateWebAuthToken(ctx context.Context) (res string, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.config.generateWebAuthToken", []interface{}{GenerateWebAuthTokenArg{}}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c ConfigClient) UpdateLastLoggedInAndServerConfig(ctx context.Context, serverConfigPath string) (err error) {
+	__arg := UpdateLastLoggedInAndServerConfigArg{ServerConfigPath: serverConfigPath}
+	err = c.Cli.Call(ctx, "keybase.1.config.updateLastLoggedInAndServerConfig", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
