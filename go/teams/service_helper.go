@@ -778,7 +778,10 @@ func EditMember(ctx context.Context, g *libkb.GlobalContext, teamname, username 
 }
 
 func EditMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID,
-	username string, role keybase1.TeamRole, botSettings *keybase1.TeamBotSettings) error {
+	username string, role keybase1.TeamRole, botSettings *keybase1.TeamBotSettings) (err error) {
+	mctx := libkb.NewMetaContext(ctx, g).WithLogTag("TM")
+	defer mctx.Trace(fmt.Sprintf("EditMemberByID(%s,%s,%v,%v)", teamID, username, role, botSettings != nil), func() error { return err })()
+	ctx = mctx.Ctx()
 	teamGetter := func() (*Team, error) { return GetForTeamManagementByTeamID(ctx, g, teamID, true) }
 	return editMember(ctx, g, teamGetter, username, role, botSettings)
 }

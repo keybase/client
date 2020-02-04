@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"strings"
 	"testing"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -1458,9 +1459,18 @@ func TestLoaderPICNIC_669(t *testing.T) {
 	})
 
 	eg.Go(func() error {
+		time.Sleep(50 * time.Millisecond)
 		t.Logf("demote in A.B")
 		return EditMemberByID(context.Background(), tcs[0].G, teamBID, fus[0].Username, keybase1.TeamRole_WRITER, nil)
 	})
 
-	require.NoError(t, eg.Wait())
+	require.NoError(t, eg.Wait(), "'permission denied' here means the test did not elicit the race")
+
+	t.Logf("clear storage and load from scratch")
+	tcs[0].G.CallDbNukeHooks(tcs[0].MetaContext())
+	_, err = Load(context.Background(), tcs[0].G, keybase1.LoadTeamArg{
+		ID:          teamDID,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
 }
