@@ -2,7 +2,6 @@ import * as NetInfo from '@react-native-community/netinfo'
 import * as RPCTypes from './rpc-gen'
 import {ConversationIDKey} from './chat2'
 import {DarkModePreference} from '../../styles/dark-mode'
-import {LocalPath} from './fs'
 import {RPCError} from '../../util/errors'
 import {Tab} from '../tabs'
 
