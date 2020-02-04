@@ -11,6 +11,7 @@ import {TypedState} from './reducer'
 import HiddenString from '../util/hidden-string'
 import * as TeamBuildingConstants from './team-building'
 import {memoize} from '../util/memoize'
+import sortBy from 'lodash/sortBy'
 
 export const balanceDeltaToString = invert(RPCTypes.BalanceDelta) as {
   [K in RPCTypes.BalanceDelta]: keyof typeof RPCTypes.BalanceDelta
@@ -654,7 +655,12 @@ export const searchTrustlineAssetsWaitingKey = 'wallets:searchTrustlineAssets'
 export const calculateBuildingAdvancedWaitingKey = 'wallets:calculateBuildingAdvanced'
 export const sendPaymentAdvancedWaitingKey = 'wallets:sendPaymentAdvanced'
 
-const getAccountMapKeys = memoize((accountMap: Map<string, Types.Account>) => [...accountMap.keys()])
+const getAccountMapKeys = memoize((accountMap: Map<string, Types.Account>) =>
+  // sort by account name but with primary account first
+  sortBy([...accountMap.entries()], ([_, {name, isDefault}]) => (isDefault ? '' : 'b' + name)).map(
+    ([id, _]) => id
+  )
+)
 export const getAccountIDs = (state: TypedState) => getAccountMapKeys(state.wallets.accountMap)
 
 const getAccountMapValues = memoize((accountMap: Map<string, Types.Account>) => [...accountMap.values()])
