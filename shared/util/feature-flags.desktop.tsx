@@ -22,7 +22,7 @@ const ff: FeatureFlags = {
   outOfDateBanner: false,
   proofProviders: true,
   stellarExternalPartners: true,
-  teamsRedesign: true,
+  teamsRedesign: false,
   userBlocking: true,
 }
 
