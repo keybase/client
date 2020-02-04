@@ -11,6 +11,7 @@ import (
 	gomock "github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/kbfs/data"
 	"github.com/keybase/client/go/kbfs/favorites"
+	"github.com/keybase/client/go/kbfs/libcontext"
 	"github.com/keybase/client/go/kbfs/tlf"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
@@ -31,22 +32,32 @@ func waitForCall(t *testing.T, timeout time.Duration) (
 		}
 }
 
-func initSubscriptionMagagerTest(t *testing.T) (config Config,
+func initSubscriptionManagerTest(t *testing.T) (config Config,
 	subscriber Subscriber, notifier *MockSubscriptionNotifier,
 	finish func()) {
 	ctl := gomock.NewController(t)
-	finish = ctl.Finish
 	config = MakeTestConfigOrBust(t, "jdoe")
 	notifier = NewMockSubscriptionNotifier(ctl)
 	subscriber = config.SubscriptionManager().Subscriber(notifier)
-	return config, subscriber, notifier, finish
+	return config, subscriber, notifier, func() {
+		err := config.Shutdown(context.Background())
+		require.NoError(t, err)
+		ctl.Finish()
+	}
 }
 
 func TestSubscriptionManagerSubscribePath(t *testing.T) {
-	config, subscriber, notifier, finish := initSubscriptionMagagerTest(t)
+	config, subscriber, notifier, finish := initSubscriptionManagerTest(t)
 	defer finish()
 
-	ctx := context.Background()
+	ctx, cancelFn := context.WithCancel(context.Background())
+	defer cancelFn()
+	ctx, err := libcontext.NewContextWithCancellationDelayer(
+		libcontext.NewContextReplayable(
+			ctx, func(c context.Context) context.Context {
+				return ctx
+			}))
+	require.NoError(t, err)
 
 	waiter1, done1 := waitForCall(t, 4*time.Second)
 	waiter2, done2 := waitForCall(t, 4*time.Second)
@@ -113,10 +124,13 @@ func TestSubscriptionManagerSubscribePath(t *testing.T) {
 
 	t.Logf("Waiting for last notification (done3) before finishing the test.")
 	waiter3()
+
+	err = config.KBFSOps().SyncAll(ctx, rootNode.GetFolderBranch())
+	require.NoError(t, err)
 }
 
 func TestSubscriptionManagerFavoritesChange(t *testing.T) {
-	config, subscriber, notifier, finish := initSubscriptionMagagerTest(t)
+	config, subscriber, notifier, finish := initSubscriptionManagerTest(t)
 	defer finish()
 	ctx := context.Background()
 
