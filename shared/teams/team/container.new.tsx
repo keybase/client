@@ -26,6 +26,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const selectedTab = ownProps.selectedTab || 'members'
 
   return {
+    invitesCollapsed: state.teams.invitesCollapsed,
     selectedTab,
     teamDetails: Constants.getTeamDetails(state, teamID),
     teamID,
@@ -46,7 +47,8 @@ const Connected = Container.connect(
       stateProps.teamDetails,
       stateProps.selectedTab,
       stateProps.yourUsername,
-      stateProps.yourOperations
+      stateProps.yourOperations,
+      stateProps.invitesCollapsed
     )
     const sections: Sections = [{data: rows, header: {key: 'tabs', type: 'tabs'}, key: 'body'}]
     const customComponent = <CustomTitle teamID={stateProps.teamID} />
