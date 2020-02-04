@@ -55,6 +55,7 @@ const updateAppBadge = (action: NotificationsGen.ReceivedBadgeStatePayload) => {
 const listenForNativeAndroidIntentNotifications = async (
   emitter: (action: Container.TypedActions) => void
 ) => {
+  console.log('aaaa push event loop listen for native')
   const pushToken = await NativeModules.Utils.getRegistrationToken()
   logger.debug('[PushToken] received new token: ', pushToken)
   emitter(PushGen.createUpdatePushToken({token: pushToken}))
@@ -69,6 +70,7 @@ const listenForNativeAndroidIntentNotifications = async (
   // FIXME: sometimes this doubles up on a cold start--we've already executed the previous code.
   // TODO: fixme this is buggy. See: TRIAGE-462
   RNEmitter.addListener('onShareData', evt => {
+    console.log('aaaa push event loop listen for native, got onsharedata')
     logger.debug('[ShareDataIntent]', evt)
     emitter(ConfigGen.createAndroidShare({url: evt.localPath}))
   })
@@ -109,6 +111,7 @@ const listenForPushNotificationsFromJS = (emitter: (action: Container.TypedActio
 }
 
 function* setupPushEventLoop() {
+  console.log('aaaa push event loop start')
   const pushChannel = yield Saga.eventChannel(emitter => {
     if (isAndroid) {
       listenForNativeAndroidIntentNotifications(emitter)
@@ -385,6 +388,16 @@ function* _checkPermissions(action: ConfigGen.MobileAppStatePayload | null) {
   }
 }
 
+function* getStartupDetailsFromInitialShare() {
+  if (isAndroid) {
+    const share = yield NativeModules.KeybaseEngine.getInitialShareData()
+    console.log('aaa getStartupDetailsFromInitialSharel', share)
+    return share
+  } else {
+    return null
+  }
+}
+
 function* getStartupDetailsFromInitialPush() {
   const {push, pushTimeout}: {push: PushGen.NotificationPayload; pushTimeout: boolean} = yield Saga.race({
     push: isAndroid ? getInitialPushAndroid() : getInitialPushiOS(),
@@ -409,7 +422,7 @@ function* getStartupDetailsFromInitialPush() {
 }
 
 const getInitialPushAndroid = async () => {
-  const n = await NativeModules.KeybaseEngine.getInitialIntent()
+  const n = await NativeModules.KeybaseEngine.getInitialBundleFromNotification()
   const notification = n && Constants.normalizePush(n)
   return notification && PushGen.createNotification({notification})
 }
@@ -445,4 +458,4 @@ function* pushSaga() {
 }
 
 export default pushSaga
-export {getStartupDetailsFromInitialPush}
+export {getStartupDetailsFromInitialPush, getStartupDetailsFromInitialShare}

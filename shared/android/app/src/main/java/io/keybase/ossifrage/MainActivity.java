@@ -24,8 +24,14 @@ import com.facebook.react.ReactActivityDelegate;
 import com.facebook.react.ReactApplication;
 import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.Dynamic;
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.ReactActivity;
+import com.facebook.react.bridge.ReadableArray;
+import com.facebook.react.bridge.ReadableMap;
+import com.facebook.react.bridge.ReadableMapKeySetIterator;
+import com.facebook.react.bridge.ReadableType;
+import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.facebook.react.modules.core.PermissionListener;
@@ -41,7 +47,13 @@ import java.io.OutputStream;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.UUID;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import io.keybase.ossifrage.modules.AppearanceModule;
 import io.keybase.ossifrage.modules.KeybaseEngine;
@@ -260,6 +272,10 @@ public class MainActivity extends ReactActivity {
       Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
       intent.removeExtra(Intent.EXTRA_STREAM);
 
+      if (uri != null ) {
+        Log.d("aaa", "emit1" + uri.toString());
+      }
+
       // Closure like class so we can keep our emit logic together
       class Emit {
         private final ReactContext context;
@@ -273,7 +289,12 @@ public class MainActivity extends ReactActivity {
         private void run() {
           KeybaseEngine engine = context.getNativeModule(KeybaseEngine.class);
           if (bundleFromNotification != null) {
-            engine.setInitialIntent(Arguments.fromBundle(bundleFromNotification));
+            engine.setInitialBundleFromNotification(bundleFromNotification);
+          } else if (uri != null) {
+            String filePath = readFileFromUri(getReactContext(), uri);
+            if (filePath != null) {
+              engine.setInitialShareData(filePath);
+            }
           }
 
           assert emitter != null;
@@ -330,11 +351,13 @@ public class MainActivity extends ReactActivity {
   @Override
   protected void onResume() {
     super.onResume();
+    Log.d("aaa", "onresume1");
     Keybase.setAppStateForeground();
 
     // Emit the intent data to JS
     Intent intent = getIntent();
     if (intent != null) {
+      Log.d("aaa", "onresume2");
       (new IntentEmitter(intent)).emit();
     }
   }

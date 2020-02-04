@@ -2,7 +2,9 @@ package io.keybase.ossifrage.modules;
 
 import android.app.KeyguardManager;
 import android.content.Context;
+import android.util.Log;
 
+import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.LifecycleEventListener;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -23,6 +25,9 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import android.os.Bundle;
+
+import androidx.annotation.RequiresPermission;
 
 import io.keybase.ossifrage.BuildConfig;
 import io.keybase.ossifrage.DarkModePrefHelper;
@@ -47,7 +52,9 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
     private ExecutorService executor;
     private Boolean started = false;
     private ReactApplicationContext reactContext;
-    private WritableMap initialIntent;
+    private Bundle initialBundleFromNotification;
+    private HashMap<String, String> initialIntent;
+    private String shareData;
     private boolean misTestDevice;
 
     private static void relayReset(ReactApplicationContext reactContext) {
@@ -216,8 +223,19 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
     // its own react module. That's because starting up a react module is a bit expensive and we
     // wouldn't be able to lazy load this because we need it on startup.
     @ReactMethod
-    public void getInitialIntent(Promise promise) {
-        promise.resolve(initialIntent);
+    public void getInitialBundleFromNotification(Promise promise) {
+        if (this.initialBundleFromNotification != null) {
+            WritableMap map = Arguments.fromBundle(this.initialBundleFromNotification);
+            promise.resolve(map);
+        }
+        else {
+            promise.resolve(null);
+        }
+    }
+
+    @ReactMethod
+    public void getInitialShareData(Promise promise) {
+        promise.resolve(this.shareData);
     }
 
     // Same type as DarkModePreference: 'system' | 'alwaysDark' | 'alwaysLight'
@@ -230,7 +248,11 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
         }
     }
 
-    public void setInitialIntent(WritableMap initialIntent) {
-        this.initialIntent = initialIntent;
+    public void setInitialBundleFromNotification(Bundle bundle) {
+        this.initialBundleFromNotification = bundle;
+    }
+
+    public void setInitialShareData(String s) {
+        this.shareData = s;
     }
 }
