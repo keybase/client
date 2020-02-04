@@ -55,7 +55,6 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     // this is because we get the sort order from the full accounts load,
     // and can't figure it out from these notifications alone.
     if (account) {
-      // } && state.accountMap.get(account.accountID)) {
       const {accountID} = account
       const old = draftState.accountMap.get(accountID)
       if (old) {
