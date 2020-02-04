@@ -42,7 +42,7 @@ const TeamTabs = (props: TeamTabsProps) => {
 
   const requestsBadge = Math.min(props.newRequests, props.numRequests)
 
-  if (props.admin) {
+  if (props.admin && !flags.teamsRedesign) {
     tabs.push(
       <Kb.Box key="invites" style={styles.tabTextContainer}>
         <TabText

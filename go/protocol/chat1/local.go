@@ -402,6 +402,7 @@ const (
 	MessageSystemType_CHANGERETENTION   MessageSystemType = 6
 	MessageSystemType_BULKADDTOCONV     MessageSystemType = 7
 	MessageSystemType_SBSRESOLVE        MessageSystemType = 8
+	MessageSystemType_NEWCHANNEL        MessageSystemType = 9
 )
 
 func (o MessageSystemType) DeepCopy() MessageSystemType { return o }
@@ -416,6 +417,7 @@ var MessageSystemTypeMap = map[string]MessageSystemType{
 	"CHANGERETENTION":   6,
 	"BULKADDTOCONV":     7,
 	"SBSRESOLVE":        8,
+	"NEWCHANNEL":        9,
 }
 
 var MessageSystemTypeRevMap = map[MessageSystemType]string{
@@ -428,6 +430,7 @@ var MessageSystemTypeRevMap = map[MessageSystemType]string{
 	6: "CHANGERETENTION",
 	7: "BULKADDTOCONV",
 	8: "SBSRESOLVE",
+	9: "NEWCHANNEL",
 }
 
 func (e MessageSystemType) String() string {
@@ -603,6 +606,20 @@ func (o MessageSystemSbsResolve) DeepCopy() MessageSystemSbsResolve {
 	}
 }
 
+type MessageSystemNewChannel struct {
+	Creator        string         `codec:"creator" json:"creator"`
+	NameAtCreation string         `codec:"nameAtCreation" json:"nameAtCreation"`
+	ConvID         ConversationID `codec:"convID" json:"convID"`
+}
+
+func (o MessageSystemNewChannel) DeepCopy() MessageSystemNewChannel {
+	return MessageSystemNewChannel{
+		Creator:        o.Creator,
+		NameAtCreation: o.NameAtCreation,
+		ConvID:         o.ConvID.DeepCopy(),
+	}
+}
+
 type MessageSystem struct {
 	SystemType__        MessageSystemType               `codec:"systemType" json:"systemType"`
 	Addedtoteam__       *MessageSystemAddedToTeam       `codec:"addedtoteam,omitempty" json:"addedtoteam,omitempty"`
@@ -614,6 +631,7 @@ type MessageSystem struct {
 	Changeretention__   *MessageSystemChangeRetention   `codec:"changeretention,omitempty" json:"changeretention,omitempty"`
 	Bulkaddtoconv__     *MessageSystemBulkAddToConv     `codec:"bulkaddtoconv,omitempty" json:"bulkaddtoconv,omitempty"`
 	Sbsresolve__        *MessageSystemSbsResolve        `codec:"sbsresolve,omitempty" json:"sbsresolve,omitempty"`
+	Newchannel__        *MessageSystemNewChannel        `codec:"newchannel,omitempty" json:"newchannel,omitempty"`
 }
 
 func (o *MessageSystem) SystemType() (ret MessageSystemType, err error) {
@@ -661,6 +679,11 @@ func (o *MessageSystem) SystemType() (ret MessageSystemType, err error) {
 	case MessageSystemType_SBSRESOLVE:
 		if o.Sbsresolve__ == nil {
 			err = errors.New("unexpected nil value for Sbsresolve__")
+			return ret, err
+		}
+	case MessageSystemType_NEWCHANNEL:
+		if o.Newchannel__ == nil {
+			err = errors.New("unexpected nil value for Newchannel__")
 			return ret, err
 		}
 	}
@@ -757,6 +780,16 @@ func (o MessageSystem) Sbsresolve() (res MessageSystemSbsResolve) {
 	return *o.Sbsresolve__
 }
 
+func (o MessageSystem) Newchannel() (res MessageSystemNewChannel) {
+	if o.SystemType__ != MessageSystemType_NEWCHANNEL {
+		panic("wrong case accessed")
+	}
+	if o.Newchannel__ == nil {
+		return
+	}
+	return *o.Newchannel__
+}
+
 func NewMessageSystemWithAddedtoteam(v MessageSystemAddedToTeam) MessageSystem {
 	return MessageSystem{
 		SystemType__:  MessageSystemType_ADDEDTOTEAM,
@@ -817,6 +850,13 @@ func NewMessageSystemWithSbsresolve(v MessageSystemSbsResolve) MessageSystem {
 	return MessageSystem{
 		SystemType__: MessageSystemType_SBSRESOLVE,
 		Sbsresolve__: &v,
+	}
+}
+
+func NewMessageSystemWithNewchannel(v MessageSystemNewChannel) MessageSystem {
+	return MessageSystem{
+		SystemType__: MessageSystemType_NEWCHANNEL,
+		Newchannel__: &v,
 	}
 }
 
@@ -886,6 +926,13 @@ func (o MessageSystem) DeepCopy() MessageSystem {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Sbsresolve__),
+		Newchannel__: (func(x *MessageSystemNewChannel) *MessageSystemNewChannel {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Newchannel__),
 	}
 }
 

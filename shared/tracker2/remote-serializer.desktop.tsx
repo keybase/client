@@ -1,6 +1,6 @@
 import {Details, Assertion} from '../constants/types/tracker2'
 import {State as ConfigState} from '../constants/types/config'
-import {State as UsersState, UserInfo} from '../constants/types/users'
+import {State as UsersState, UserInfo, BlockState} from '../constants/types/users'
 import {State as WaitingState} from '../constants/types/waiting'
 import {RPCError} from '../util/errors'
 
@@ -12,7 +12,7 @@ type ConfigHoistedProps =
   | 'httpSrvAddress'
   | 'httpSrvToken'
   | 'username'
-type UsersHoistedProps = 'infoMap'
+type UsersHoistedProps = 'infoMap' | 'blockMap'
 type WaitingHoistedProps = 'counts' | 'errors'
 
 export type ProxyProps = {
@@ -25,7 +25,14 @@ export type ProxyProps = {
 
 type SerializeProps = Omit<
   ProxyProps,
-  'avatarRefreshCounter' | 'assertions' | 'infoMap' | 'following' | 'followers' | 'counts' | 'errors'
+  | 'avatarRefreshCounter'
+  | 'assertions'
+  | 'blockMap'
+  | 'infoMap'
+  | 'following'
+  | 'followers'
+  | 'counts'
+  | 'errors'
 > & {
   assertions: Array<[string, Assertion]>
   avatarRefreshCounter: Array<[string, number]>
@@ -34,6 +41,7 @@ type SerializeProps = Omit<
   followers: Array<string>
   following: Array<string>
   infoMap: Array<[string, UserInfo]>
+  blockMap: Array<[string, BlockState]>
 }
 export type DeserializeProps = {
   darkMode: boolean
@@ -58,21 +66,39 @@ const initialState: DeserializeProps = {
   teams: {teamNameToID: new Map()},
   tracker2: {usernameToDetails: new Map()},
   trackerUsername: '',
-  users: {infoMap: new Map()},
+  users: {
+    blockMap: new Map(),
+    infoMap: new Map(),
+  },
   waiting: {counts: new Map(), errors: new Map()},
 }
 
 export const serialize = (p: ProxyProps): Partial<SerializeProps> => {
-  const {assertions, avatarRefreshCounter, following, followers, infoMap, counts, errors, ...toSend} = p
+  const {
+    assertions,
+    avatarRefreshCounter,
+    following,
+    followers,
+    infoMap,
+    blockMap,
+    counts,
+    errors,
+    trackerUsername,
+    ...toSend
+  } = p
   return {
     ...toSend,
     assertions: [...(assertions?.entries() ?? [])],
     avatarRefreshCounter: [...avatarRefreshCounter.entries()],
+    blockMap: blockMap.has(trackerUsername)
+      ? [[trackerUsername, blockMap.get(trackerUsername) ?? {chatBlocked: false, followBlocked: false}]]
+      : [],
     counts: [...counts.entries()],
     errors: [...errors.entries()],
     followers: [...followers],
     following: [...following],
     infoMap: [...infoMap.entries()],
+    trackerUsername,
   }
 }
 
@@ -86,7 +112,6 @@ export const deserialize = (
     assertions,
     avatarRefreshCounter,
     bio,
-    blocked,
     counts,
     errors,
     followers,
@@ -98,7 +123,6 @@ export const deserialize = (
     hidFromFollowers,
     httpSrvAddress,
     httpSrvToken,
-    infoMap,
     location,
     reason,
     showTracker,
@@ -109,14 +133,17 @@ export const deserialize = (
     username,
     ...rest
   } = props
+  const infoMap = props.infoMap ? new Map(props.infoMap) : state.users.infoMap
+  const blockMap = props.blockMap ? new Map(props.blockMap) : state.users.blockMap
 
   const trackerUsername = _trackerUsername ?? state.trackerUsername
   const oldDetails = state.tracker2.usernameToDetails.get(trackerUsername)
+  const oldBlocked = state.users.blockMap.get(trackerUsername)?.chatBlocked ?? false
 
   const details: Details = {
     assertions: assertions ? new Map(assertions) : oldDetails?.assertions,
     bio: bio ?? oldDetails?.bio,
-    blocked: blocked ?? oldDetails?.blocked,
+    blocked: blockMap.get(trackerUsername)?.chatBlocked ?? oldBlocked,
     followersCount: followersCount ?? oldDetails?.followersCount,
     followingCount: followingCount ?? oldDetails?.followingCount,
     fullname: fullname ?? oldDetails?.fullname,
@@ -147,7 +174,10 @@ export const deserialize = (
     },
     tracker2: {usernameToDetails: new Map([[trackerUsername, details]])},
     trackerUsername,
-    users: {infoMap: infoMap ? new Map(infoMap) : state.users.infoMap},
+    users: {
+      blockMap,
+      infoMap,
+    },
     waiting: {
       counts: counts ? new Map(counts) : state.waiting.counts,
       errors: errors ? new Map(errors) : state.waiting.errors,

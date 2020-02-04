@@ -3679,7 +3679,7 @@ type TeamEditMemberArg struct {
 
 type TeamEditMembersArg struct {
 	SessionID int            `codec:"sessionID" json:"sessionID"`
-	Name      string         `codec:"name" json:"name"`
+	TeamID    TeamID         `codec:"teamID" json:"teamID"`
 	Users     []UserRolePair `codec:"users" json:"users"`
 }
 

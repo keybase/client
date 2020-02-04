@@ -4,7 +4,7 @@ import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Electron from 'electron'
 import logger from '../../logger'
 import {isDarwin, isWindows, isLinux} from '../../constants/platform'
-import {mainWindowDispatch} from '../remote/util.desktop'
+import {mainWindowDispatch, getMainWindow} from '../remote/util.desktop'
 import {menubar} from 'menubar'
 import {resolveRoot, resolveImage, resolveRootAsURL} from './resolve-root.desktop'
 import {showDevTools, skipSecondaryDevtools} from '../../local-debug.desktop'
@@ -79,6 +79,17 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
         if (dock && dock.isVisible()) {
           Electron.app.badgeCount = action.payload.desktopAppBadgeCount
         }
+
+        // Windows just lets us set (or unset, with null) a single 16x16 icon
+        // to be used as an overlay in the bottom right of the taskbar icon.
+        if (isWindows) {
+          const mw = getMainWindow()
+          const overlay =
+            action.payload.desktopAppBadgeCount > 0 ? resolveImage('icons', 'icon-windows-badge.png') : null
+          // @ts-ignore setOverlayIcon docs say null overlay's fine, TS disagrees
+          mw && mw.setOverlayIcon(overlay, 'new activity')
+        }
+
         break
       }
     }

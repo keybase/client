@@ -1,41 +1,31 @@
 import * as React from 'react'
+import * as Constants from '../../constants/crypto'
+import * as Container from '../../util/container'
+import * as Types from '../../constants/types/crypto'
+import * as FSGen from '../../actions/fs-gen'
+import * as ConfigGen from '../../actions/config-gen'
+import * as CryptoGen from '../../actions/crypto-gen'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as Constants from '../../constants/crypto'
-import * as Types from '../../constants/types/crypto'
-import * as Container from '../../util/container'
 import {getStyle} from '../../common-adapters/text'
 
-type Props = {
-  output?: string
-  outputStatus?: Types.OutputStatus
-  outputType?: Types.OutputType
-  outputMatchesInput: boolean
-  textType: Types.TextType
+type OutputProps = {
   operation: Types.Operations
-  onShowInFinder: (path: string) => void
 }
 
 type OutputBarProps = {
-  outputMatchesInput: boolean
-  onCopyOutput: (text: string) => void
-  onSaveAsText?: () => void
-  onShowInFinder: (path: string) => void
   operation: Types.Operations
-  output: string
-  outputStatus?: Types.OutputStatus
-  outputType?: Types.OutputType
 }
 
-type OutputSignedProps = {
-  signed: boolean
-  signedBy?: string
+type SignedSenderProps = {
   operation: Types.Operations
-  outputStatus?: Types.OutputStatus
+}
+
+type OutputProgressProps = {
+  operation: Types.Operations
 }
 
 type OutputInfoProps = {
-  outputStatus?: Types.OutputStatus
   operation: Types.Operations
   children:
     | string
@@ -45,29 +35,35 @@ type OutputInfoProps = {
 
 const largeOutputLimit = 120
 
-export const SignedSender = (props: OutputSignedProps) => {
-  const waitingKey = Constants.getStringWaitingKey(props.operation)
+export const SignedSender = (props: SignedSenderProps) => {
+  const {operation} = props
+  // Waiting
+  const waitingKey = Constants.getStringWaitingKey(operation)
   const waiting = Container.useAnyWaiting(waitingKey)
-  const canSelfSign =
-    props.operation === Constants.Operations.Encrypt || props.operation === Constants.Operations.Sign
+  // Store
+  const signed = Container.useSelector(state => state.crypto[operation].outputSigned)
+  const signedBy = Container.useSelector(state => state.crypto[operation].outputSender)
+  const outputStatus = Container.useSelector(state => state.crypto[operation].outputStatus)
 
-  if (!props.outputStatus || (props.outputStatus && props.outputStatus === 'error')) {
+  const canSelfSign = operation === Constants.Operations.Encrypt || operation === Constants.Operations.Sign
+
+  if (!outputStatus || (outputStatus && outputStatus === 'error')) {
     return null
   }
 
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.signedContainer}>
       <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center" style={styles.signedSender}>
-        {props.signed && props.signedBy
+        {signed && signedBy
           ? [
-              <Kb.Avatar key="avatar" size={16} username={props.signedBy} />,
+              <Kb.Avatar key="avatar" size={16} username={signedBy.stringValue()} />,
               <Kb.Text key="signedBy" type="BodySmall">
                 Signed by {canSelfSign ? ' you, ' : ''}
               </Kb.Text>,
               <Kb.ConnectedUsernames
                 key="username"
                 type="BodySmallBold"
-                usernames={[props.signedBy]}
+                usernames={[signedBy.stringValue()]}
                 colorFollowing={true}
                 colorYou={true}
               />,
@@ -89,43 +85,89 @@ export const SignedSender = (props: OutputSignedProps) => {
   )
 }
 
-export const OutputInfoBanner = React.memo((props: OutputInfoProps) => {
-  return props.outputStatus && props.outputStatus === 'success' ? (
+export const OutputProgress = (props: OutputProgressProps) => {
+  const {operation} = props
+
+  // Store
+  const bytesTotal = Container.useSelector(state => state.crypto[operation].bytesTotal)
+  const bytesComplete = Container.useSelector(state => state.crypto[operation].bytesComplete)
+
+  const progress = bytesComplete === 0 ? 0 : bytesComplete / bytesTotal
+
+  return progress ? <Kb.ProgressBar ratio={progress} style={{width: '100%'}} /> : <Kb.Divider />
+}
+
+export const OutputInfoBanner = (props: OutputInfoProps) => {
+  const {operation} = props
+  const outputStatus = Container.useSelector(state => state.crypto[operation].outputStatus)
+  return outputStatus && outputStatus === 'success' ? (
     <Kb.Banner color="grey" style={styles.banner}>
       {props.children}
     </Kb.Banner>
   ) : null
-})
+}
 
-export const OutputBar = React.memo((props: OutputBarProps) => {
-  const {output, onCopyOutput, onSaveAsText, onShowInFinder, outputMatchesInput} = props
+export const OutputBar = (props: OutputBarProps) => {
+  const {operation} = props
+  const dispatch = Container.useDispatch()
+  const canSaveAsText = operation === Constants.Operations.Encrypt || operation === Constants.Operations.Sign
+
+  // Waiting
   const waitingKey = Constants.getStringWaitingKey(props.operation)
   const waiting = Container.useAnyWaiting(waitingKey)
+
+  // Store
+  const output = Container.useSelector(state => state.crypto[operation].output.stringValue())
+  const outputValid = Container.useSelector(state => state.crypto[operation].outputValid)
+  const outputStatus = Container.useSelector(state => state.crypto[operation].outputStatus)
+  const outputType = Container.useSelector(state => state.crypto[operation].outputType)
+  const actionsDisabled = waiting || !outputValid
+
+  // Actions
+  const onShowInFinder = () => {
+    dispatch(FSGen.createOpenLocalPathInSystemFileManager({localPath: output}))
+  }
+
+  const onCopyOutput = () => {
+    dispatch(ConfigGen.createCopyToClipboard({text: output}))
+  }
+
+  const onSaveAsText = () => {
+    if (operation === Constants.Operations.Sign) {
+      return dispatch(CryptoGen.createDownloadSignedText())
+    }
+
+    if (operation === Constants.Operations.Encrypt) {
+      return dispatch(CryptoGen.createDownloadEncryptedText())
+    }
+  }
+
+  // State, Refs, Timers
   const attachmentRef = React.useRef<Kb.Box2>(null)
   const [showingToast, setShowingToast] = React.useState(false)
 
   const setHideToastTimeout = Kb.useTimeout(() => setShowingToast(false), 1500)
+
+  const copy = () => {
+    if (!output) return
+    setShowingToast(true)
+    onCopyOutput()
+  }
+
+  // Start timeout to clear toast if currently displayed
   React.useEffect(() => {
     showingToast && setHideToastTimeout()
   }, [showingToast, setHideToastTimeout])
 
-  const copy = React.useCallback(() => {
-    if (!output) return
-    setShowingToast(true)
-    onCopyOutput(output)
-  }, [output, onCopyOutput])
-
-  const actionsDisabled = waiting || !outputMatchesInput
-
-  return props.outputStatus && props.outputStatus === 'success' ? (
+  return outputStatus && outputStatus === 'success' ? (
     <>
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.outputBarContainer}>
-        {props.outputType === 'file' ? (
+        {outputType === 'file' ? (
           <Kb.ButtonBar direction="row" align="flex-start" style={styles.buttonBar}>
             <Kb.Button
               mode="Secondary"
               label={`Open in ${Styles.fileUIName}`}
-              onClick={() => onShowInFinder(output)}
+              onClick={() => onShowInFinder()}
             />
           </Kb.ButtonBar>
         ) : (
@@ -143,7 +185,7 @@ export const OutputBar = React.memo((props: OutputBarProps) => {
                 onClick={() => copy()}
               />
             </Kb.Box2>
-            {onSaveAsText && (
+            {canSaveAsText && (
               <Kb.Button
                 mode="Secondary"
                 label="Save as TXT"
@@ -166,26 +208,45 @@ export const OutputBar = React.memo((props: OutputBarProps) => {
       </Kb.ButtonBar>
     </Kb.Box2>
   )
-})
+}
 
-const Output = (props: Props) => {
-  const waitingKey = Constants.getStringWaitingKey(props.operation)
+const Output = (props: OutputProps) => {
+  const {operation} = props
+  const textType = Constants.getOutputTextType(operation)
+  const dispatch = Container.useDispatch()
+
+  // Store
+  const output = Container.useSelector(state => state.crypto[operation].output.stringValue())
+  const outputValid = Container.useSelector(state => state.crypto[operation].outputValid)
+  const outputStatus = Container.useSelector(state => state.crypto[operation].outputStatus)
+  const outputType = Container.useSelector(state => state.crypto[operation].outputType)
+
+  // Actions
+  const onShowInFinder = () => {
+    if (!output) return
+    dispatch(FSGen.createOpenLocalPathInSystemFileManager({localPath: output}))
+  }
+
+  // Waiting
+  const waitingKey = Constants.getStringWaitingKey(operation)
   const waiting = Container.useAnyWaiting(waitingKey)
+
+  // Styling
   // Output text can be 24 px when output is less that 120 characters
   const outputTextIsLarge =
-    props.operation === Constants.Operations.Decrypt || props.operation === Constants.Operations.Verify
+    operation === Constants.Operations.Decrypt || operation === Constants.Operations.Verify
   const {fontSize, lineHeight} = getStyle('HeaderBig')
   const outputLargeStyle = outputTextIsLarge &&
-    props.output &&
-    props.output.length <= largeOutputLimit && {fontSize, lineHeight}
+    output &&
+    output.length <= largeOutputLimit && {fontSize, lineHeight}
 
   const fileOutputTextColor =
-    props.textType === 'cipher' ? Styles.globalColors.greenDark : Styles.globalColors.black
-  const fileIcon = Constants.getOutputFileIcon(props.operation)
-  const actionsDisabled = waiting || !props.outputMatchesInput
+    textType === 'cipher' ? Styles.globalColors.greenDark : Styles.globalColors.black
+  const fileIcon = Constants.getOutputFileIcon(operation)
+  const actionsDisabled = waiting || !outputValid
 
-  return props.outputStatus && props.outputStatus === 'success' ? (
-    props.outputType === 'file' ? (
+  return outputStatus && outputStatus === 'success' ? (
+    outputType === 'file' ? (
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
         <Kb.Box2
           direction="horizontal"
@@ -197,19 +258,19 @@ const Output = (props: Props) => {
           <Kb.Text
             type="BodyPrimaryLink"
             style={Styles.collapseStyles([styles.fileOutputText, {color: fileOutputTextColor}])}
-            onClick={() => props.output && props.onShowInFinder(props.output)}
+            onClick={() => onShowInFinder()}
           >
-            {props.output}
+            {output}
           </Kb.Text>
         </Kb.Box2>
       </Kb.Box2>
     ) : (
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
-        {props.output &&
-          props.output.split('\n').map((line, index) => (
+        {output &&
+          output.split('\n').map((line, index) => (
             <Kb.Text
               key={index}
-              type={props.textType === 'cipher' ? 'Terminal' : 'Body'}
+              type={textType === 'cipher' ? 'Terminal' : 'Body'}
               selectable={!actionsDisabled}
               style={Styles.collapseStyles([styles.output, outputLargeStyle])}
             >

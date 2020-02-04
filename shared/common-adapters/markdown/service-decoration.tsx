@@ -216,7 +216,7 @@ const ServiceDecoration = (props: Props) => {
         allowFontScaling={props.allowFontScaling || false}
         convID={parsed.channelnamemention.convID}
         name={parsed.channelnamemention.name}
-        style={props.styles.linkStyle}
+        style={Styles.collapseStyles([props.styles.linkStyle, linkStyle, props.styleOverride.link])}
       />
     )
   } else if (parsed.typ === RPCChatTypes.UITextDecorationTyp.kbfspath) {

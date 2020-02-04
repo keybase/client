@@ -958,6 +958,7 @@ export type TypedActionsMap = {
   'teams:renameTeam': teams.RenameTeamPayload
   'teams:setTeamRoleMapLatestKnownVersion': teams.SetTeamRoleMapLatestKnownVersionPayload
   'teams:setTeamRoleMap': teams.SetTeamRoleMapPayload
+  'teams:toggleInvitesCollapsed': teams.ToggleInvitesCollapsedPayload
   'tracker2:load': tracker2.LoadPayload
   'tracker2:updatedDetails': tracker2.UpdatedDetailsPayload
   'tracker2:updateResult': tracker2.UpdateResultPayload

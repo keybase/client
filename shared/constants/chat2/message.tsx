@@ -100,6 +100,7 @@ export const serviceMessageTypeToMessageTypes = (t: RPCChatTypes.MessageType): A
         'systemText',
         'systemUsersAddedToConversation',
         'systemChangeAvatar',
+        'systemNewChannel',
       ]
     case RPCChatTypes.MessageType.sendpayment:
       return ['sendPayment']
@@ -135,6 +136,7 @@ export const allMessageTypes: Set<Types.MessageType> = new Set([
   'systemSBSResolved',
   'systemSimpleToComplex',
   'systemChangeAvatar',
+  'systemNewChannel',
   'systemText',
   'systemUsersAddedToConversation',
   'text',
@@ -501,6 +503,16 @@ const makeMessageSystemChangeAvatar = (
   ...m,
 })
 
+const makeMessageSystemNewChannel = (
+  m?: Partial<MessageTypes.MessageSystemNewChannel>
+): MessageTypes.MessageSystemNewChannel => ({
+  ...makeMessageCommonNoDeleteNoEdit,
+  reactions: new Map(),
+  text: '',
+  type: 'systemNewChannel',
+  ...m,
+})
+
 export const makeReaction = (m?: Partial<MessageTypes.Reaction>): MessageTypes.Reaction => ({
   timestamp: 0,
   username: '',
@@ -629,7 +641,8 @@ export const uiMessageEditToMessage = (
 const uiMessageToSystemMessage = (
   minimum: Minimum,
   body: RPCChatTypes.MessageSystem,
-  reactions: Map<string, Set<MessageTypes.Reaction>>
+  reactions: Map<string, Set<MessageTypes.Reaction>>,
+  m: RPCChatTypes.UIMessageValid
 ): Types.Message | null => {
   switch (body.systemType) {
     case RPCChatTypes.MessageSystemType.addedtoteam: {
@@ -737,6 +750,15 @@ const uiMessageToSystemMessage = (
         team,
         user,
       })
+    }
+    case RPCChatTypes.MessageSystemType.newchannel: {
+      return m.decoratedTextBody
+        ? makeMessageSystemNewChannel({
+            ...minimum,
+            reactions,
+            text: m.decoratedTextBody,
+          })
+        : null
     }
     case RPCChatTypes.MessageSystemType.changeretention: {
       if (!body.changeretention) {
@@ -1005,7 +1027,7 @@ const validUIMessagetoMessage = (
       })
     case RPCChatTypes.MessageType.system:
       return m.messageBody.system
-        ? uiMessageToSystemMessage(common, m.messageBody.system, common.reactions)
+        ? uiMessageToSystemMessage(common, m.messageBody.system, common.reactions, m)
         : null
     case RPCChatTypes.MessageType.headline:
       return makeMessageSetDescription({
@@ -1448,6 +1470,7 @@ export const shouldShowPopup = (state: TypedState, message: Types.Message) => {
     case 'systemText':
     case 'systemUsersAddedToConversation':
     case 'systemChangeAvatar':
+    case 'systemNewChannel':
     case 'journeycard':
       return true
     case 'sendPayment': {

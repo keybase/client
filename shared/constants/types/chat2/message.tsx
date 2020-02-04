@@ -330,6 +330,14 @@ export type MessageSystemChangeAvatar = {
   _MessageWithDeviceInfo &
   _MessageWithReactions
 
+export type MessageSystemNewChannel = {
+  text: string
+  type: 'systemNewChannel'
+} & _MessageCommon &
+  _MessageWithDeviceInfo &
+  _MessageWithDeletableEditable &
+  _MessageWithReactions
+
 export type MessageSystemText = {
   text: HiddenString
   type: 'systemText'
@@ -406,6 +414,7 @@ export type Message =
   | MessageSystemUsersAddedToConversation
   | MessageSystemCreateTeam
   | MessageSystemChangeAvatar
+  | MessageSystemNewChannel
   | MessageText
   | MessagePlaceholder
   | MessagePin

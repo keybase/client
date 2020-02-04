@@ -1,127 +1,83 @@
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
+import * as Container from '../../util/container'
 import * as Constants from '../../constants/crypto'
-import {TextInput, FileInput} from '.'
+import {Input} from '.'
 
-const onClearInput = Sb.action('onClearInput')
-const onChangeText = Sb.action('onChangeText')
-const onSetFile = Sb.action('onSetFile')
+const store = Sb.createStoreWithCommon()
 
+const filePathPlaintext = '/path/to/file.pdf'
+const filePathEncrypted = '/path/to/file.pdf.encrypted.saltpack'
+const filePathSigned = '/path/to/file.pdf.signed.saltpack'
 const shortText = 'plaintext'
 const longText = Array(1500)
   .fill(shortText)
   .join(' ')
 
 const load = () => {
-  Sb.storiesOf('Crypto/Input/Text', module)
-    .add('Empty - Encrypt', () => (
-      <TextInput
-        textType="plain"
-        value=""
-        placeholder="Write, paste, or drop a file you want to encrypt"
-        onChangeText={onChangeText}
-        onSetFile={onSetFile}
-        operation={Constants.Operations.Encrypt}
-      />
+  Sb.storiesOf('Crypto/Input', module)
+    .addDecorator((story: any) => <Sb.MockStore store={store}>{story()}</Sb.MockStore>)
+    .add('Text - Empty ', () => <Input operation={Constants.Operations.Encrypt} />)
+  Sb.storiesOf('Crypto/Input', module)
+    .addDecorator((story: any) => (
+      <Sb.MockStore
+        store={Container.produce(store, draftState => {
+          draftState.crypto.encrypt.input = new Container.HiddenString(shortText)
+        })}
+      >
+        {story()}
+      </Sb.MockStore>
     ))
-    .add('Empty - Encrypt', () => (
-      <TextInput
-        textType="plain"
-        value=""
-        placeholder="Write, paste, or drop a file you want to encrypt"
-        onChangeText={onChangeText}
-        onSetFile={onSetFile}
-        operation={Constants.Operations.Encrypt}
-      />
+    .add('Text - Short ', () => <Input operation={Constants.Operations.Encrypt} />)
+  Sb.storiesOf('Crypto/Input', module)
+    .addDecorator((story: any) => (
+      <Sb.MockStore
+        store={Container.produce(store, draftState => {
+          draftState.crypto.encrypt.input = new Container.HiddenString(longText)
+        })}
+      >
+        {story()}
+      </Sb.MockStore>
     ))
-    .add('Empty - Encrypt', () => (
-      <TextInput
-        textType="plain"
-        value=""
-        placeholder="Write, paste, or drop a file you want to encrypt"
-        onChangeText={onChangeText}
-        onSetFile={onSetFile}
-        operation={Constants.Operations.Encrypt}
-      />
-    ))
-    .add('Empty - Encrypt', () => (
-      <TextInput
-        textType="plain"
-        value=""
-        placeholder="Write, paste, or drop a file you want to encrypt"
-        onChangeText={onChangeText}
-        onSetFile={onSetFile}
-        operation={Constants.Operations.Encrypt}
-      />
-    ))
+    .add('Text - Long ', () => <Input operation={Constants.Operations.Encrypt} />)
 
-    .add('Value - Short', () => (
-      <TextInput
-        textType="plain"
-        value={shortText}
-        placeholder="Write, paste, or drop a file you want to encrypt"
-        onChangeText={onChangeText}
-        onSetFile={onSetFile}
-        operation={Constants.Operations.Encrypt}
-      />
+  Sb.storiesOf('Crypto/Input', module)
+    .addDecorator((story: any) => (
+      <Sb.MockStore
+        store={Container.produce(store, draftState => {
+          draftState.crypto.encrypt.inputType = 'file'
+          draftState.crypto.encrypt.input = new Container.HiddenString(filePathPlaintext)
+        })}
+      >
+        {story()}
+      </Sb.MockStore>
     ))
-    .add('Value - Long', () => (
-      <TextInput
-        textType="plain"
-        value={longText}
-        placeholder="Write, paste, or drop a file you want to encrypt"
-        onChangeText={onChangeText}
-        onSetFile={onSetFile}
-        operation={Constants.Operations.Encrypt}
-      />
+    .add('File - Plain (Encrypt & Sign) ', () => <Input operation={Constants.Operations.Encrypt} />)
+  Sb.storiesOf('Crypto/Input', module)
+    .addDecorator((story: any) => (
+      <Sb.MockStore
+        store={Container.produce(store, draftState => {
+          draftState.crypto.decrypt.inputType = 'file'
+          draftState.crypto.decrypt.input = new Container.HiddenString(filePathEncrypted)
+        })}
+      >
+        {story()}
+      </Sb.MockStore>
     ))
+    .add('File - Encrypted (Decrypt)', () => <Input operation={Constants.Operations.Decrypt} />)
 
-    .add('Value - Short - Cipher', () => (
-      <TextInput
-        textType="cipher"
-        value={shortText}
-        placeholder="Write, paste, or drop a file you want to encrypt"
-        onChangeText={onChangeText}
-        onSetFile={onSetFile}
-        operation={Constants.Operations.Decrypt}
-      />
+  Sb.storiesOf('Crypto/Input', module)
+    .addDecorator((story: any) => (
+      <Sb.MockStore
+        store={Container.produce(store, draftState => {
+          draftState.crypto.verify.inputType = 'file'
+          draftState.crypto.verify.input = new Container.HiddenString(filePathSigned)
+        })}
+      >
+        {story()}
+      </Sb.MockStore>
     ))
-    .add('Value - Long - Cipher', () => (
-      <TextInput
-        textType="cipher"
-        value={longText}
-        placeholder="Write, paste, or drop a file you want to encrypt"
-        onChangeText={onChangeText}
-        onSetFile={onSetFile}
-        operation={Constants.Operations.Decrypt}
-      />
-    ))
-
-  Sb.storiesOf('Crypto/Input/File', module)
-    .add('Plain', () => (
-      <FileInput
-        path="/path/to/file.txt"
-        size={1024}
-        operation={Constants.Operations.Encrypt}
-        onClearFiles={onClearInput}
-      />
-    ))
-    .add('Encrypted', () => (
-      <FileInput
-        path="/path/to/file.txt"
-        size={1024}
-        operation={Constants.Operations.Decrypt}
-        onClearFiles={onClearInput}
-      />
-    ))
-    .add('Signed', () => (
-      <FileInput
-        path="/path/to/file.txt"
-        size={1024}
-        operation={Constants.Operations.Verify}
-        onClearFiles={onClearInput}
-      />
-    ))
+    .add('File - Signed (Verify)', () => <Input operation={Constants.Operations.Verify} />)
 }
 
 export default load

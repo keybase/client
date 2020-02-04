@@ -721,7 +721,7 @@ func (a fastLoadArg) toHTTPArgs(m libkb.MetaContext, s shoppingList, hp *hidden.
 		ret["read_subteam_id"] = libkb.S{Val: a.readSubteamID.String()}
 	}
 
-	if hp.Enabled() {
+	if hp.HiddenChainDataEnabled() {
 		ret["ftl_hidden_low"] = libkb.I{Val: int(s.hiddenLinksSince)}
 	}
 	return ret
@@ -1329,11 +1329,11 @@ func (f *FastTeamChainLoader) hiddenPackage(m libkb.MetaContext, arg fastLoadArg
 	}
 	if !arg.readSubteamID.IsNil() {
 		m.Debug("hiddenPackage: disabling checks since we a subteam reader looking for parent chain")
-		hp.Disable()
+		hp.DisableHiddenChainData()
 	}
 	if tmp := hidden.CheckFeatureGateForSupport(m, arg.ID, false /* isWrite */); tmp != nil {
 		m.Debug("hiddenPackage: disabling checks since we are feature-flagged off")
-		hp.Disable()
+		hp.DisableHiddenChainData()
 	}
 	return hp, nil
 }
@@ -1348,13 +1348,6 @@ func (f *FastTeamChainLoader) consumeRatchets(m libkb.MetaContext, newLinks []*C
 }
 
 func (f *FastTeamChainLoader) processHidden(m libkb.MetaContext, arg fastLoadArg, state *keybase1.FastTeamData, groceries *groceries, hp *hidden.LoaderPackage) (err error) {
-
-	// Hidden Package is disabled if we're checking parent teams for subteam readers or if we
-	// are feature flagged off. TODO: we should still consume the ratchets and commit them,
-	// in case we later get added to the parent team.
-	if !hp.Enabled() {
-		return nil
-	}
 
 	err = f.consumeRatchets(m, groceries.newLinks, hp)
 	if err != nil {
