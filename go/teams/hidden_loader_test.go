@@ -793,7 +793,7 @@ func TestSubteamReaderFTL(t *testing.T) {
 	defer cleanup()
 
 	t.Logf("create team")
-	teamName, _ := createTeam2(*tcs[0])
+	teamName, teamID := createTeam2(*tcs[0])
 	for i := 0; i < 4; i++ {
 		makeHiddenRotation(t, tcs[0].G, teamName)
 	}
@@ -801,11 +801,24 @@ func TestSubteamReaderFTL(t *testing.T) {
 	subteamName, subteamID := createSubteam(tcs[0], teamName, "sub")
 	_, err := AddMember(context.TODO(), tcs[0].G, subteamName.String(), fus[1].Username, keybase1.TeamRole_WRITER, nil)
 	require.NoError(t, err)
-	_, err = tcs[1].G.GetFastTeamLoader().Load(libkb.NewMetaContextForTest(*tcs[1]), keybase1.FastTeamLoadArg{
+	mctx := libkb.NewMetaContextForTest(*tcs[1])
+	_, err = mctx.G().GetFastTeamLoader().Load(mctx, keybase1.FastTeamLoadArg{
 		ID:                   subteamID,
 		ForceRefresh:         true,
 		Applications:         []keybase1.TeamApplication{keybase1.TeamApplication_CHAT},
 		KeyGenerationsNeeded: []keybase1.PerTeamKeyGeneration{keybase1.PerTeamKeyGeneration(1)},
 	})
 	require.NoError(t, err)
+
+	// Check that U1's hidden team data for the parent team is still stored, and that
+	// the ratchets persist (even though there's no other data there).
+	var htc *keybase1.HiddenTeamChain
+	htc, err = mctx.G().GetHiddenTeamChainManager().Load(mctx, teamID)
+	require.NoError(t, err)
+	require.NotNil(t, htc)
+	ratchet, ok := htc.RatchetSet.Ratchets[keybase1.RatchetType_MAIN]
+	require.True(t, ok)
+	require.Equal(t, ratchet.Triple.Seqno, keybase1.Seqno(4))
+	require.Equal(t, htc.Last, keybase1.Seqno(0))
+	require.Equal(t, len(htc.Outer), 0)
 }
