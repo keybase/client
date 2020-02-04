@@ -73,6 +73,27 @@ export const Operations: {[key: string]: Types.Operations} = {
   Verify: 'verify',
 }
 
+const operationToInputPlaceholder: {[k in Types.Operations]: string} = {
+  decrypt: 'Enter ciphertext, drop an encrypted file, or',
+  encrypt: 'Enter text, drop a file, or',
+  sign: 'Enter text, drop a file, or',
+  verify: 'Enter a signed message, drop a signed file, or',
+}
+
+const operationToInputTextType: {[k in Types.Operations]: Types.TextType} = {
+  decrypt: 'cipher',
+  encrypt: 'plain',
+  sign: 'plain',
+  verify: 'cipher',
+} as const
+
+const operationToOutputTextType: {[k in Types.Operations]: Types.TextType} = {
+  decrypt: 'plain',
+  encrypt: 'cipher',
+  sign: 'cipher',
+  verify: 'plain',
+} as const
+
 const operationToInputFileIcon: {[k in Types.Operations]: IconType} = {
   decrypt: 'icon-file-saltpack-encrypted-64',
   encrypt: 'icon-file-64',
@@ -101,6 +122,9 @@ const operationToFileWaitingKey: {[k in Types.Operations]: Types.FileWaitingKey}
   verify: verifyFileWaitingKey,
 } as const
 
+export const getInputPlaceholder = (operation: Types.Operations) => operationToInputPlaceholder[operation]
+export const getInputTextType = (operation: Types.Operations) => operationToInputTextType[operation]
+export const getOutputTextType = (operation: Types.Operations) => operationToOutputTextType[operation]
 export const getInputFileIcon = (operation: Types.Operations) => operationToInputFileIcon[operation]
 export const getOutputFileIcon = (operation: Types.Operations) => operationToOutputFileIcon[operation]
 export const getStringWaitingKey = (operation: Types.Operations) => operationToStringWaitingKey[operation]
@@ -130,6 +154,7 @@ export const getStatusCodeMessage = (
   return statusCodeToMessage[code] || `Failed to ${operation} ${type}.`
 }
 
+// State
 const defaultCommonState = {
   bytesComplete: 0,
   bytesTotal: 0,
@@ -137,11 +162,11 @@ const defaultCommonState = {
   input: new HiddenString(''),
   inputType: 'text' as Types.InputTypes,
   output: new HiddenString(''),
-  outputMatchesInput: false,
   outputSender: undefined,
   outputSigned: false,
   outputStatus: undefined,
   outputType: undefined,
+  outputValid: false,
   warningMessage: new HiddenString(''),
 }
 

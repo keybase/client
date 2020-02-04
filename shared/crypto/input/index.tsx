@@ -1,16 +1,20 @@
 import * as React from 'react'
+import * as CryptoGen from '../../actions/crypto-gen'
 import * as Constants from '../../constants/crypto'
 import * as FsConstants from '../../constants/fs'
 import * as Types from '../../constants/types/crypto'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import HiddenString from '../../util/hidden-string'
+
+type InputProps = {
+  operation: Types.Operations
+}
 
 type TextProps = {
   onChangeText: (text: string) => void
   onSetFile: (path: string) => void
-  placeholder: string
-  textType: Types.TextType
   operation: Types.Operations
   value: string
 }
@@ -22,10 +26,15 @@ type FileProps = {
   onClearFiles: () => void
 }
 
+type DragAndDropProps = {
+  operation: Types.Operations
+  prompt: string
+  children: React.ReactNode
+}
+
 type OperationBannerProps = {
-  type: 'info' | 'warning' | 'error'
+  operation: Types.Operations
   infoMessage?: string
-  message: string
 }
 
 const operationToEmptyInputWidth = {
@@ -44,21 +53,23 @@ const operationToEmptyInputWidth = {
  *  - Multiline input
  */
 export const TextInput = (props: TextProps) => {
-  const {value, placeholder, textType, operation, onChangeText, onSetFile} = props
+  const {value, operation, onChangeText, onSetFile} = props
+  const textType = Constants.getInputTextType(operation)
+  const placeholder = Constants.getInputPlaceholder(operation)
   const emptyWidth = operationToEmptyInputWidth[operation]
 
   // When 'browse file' is show, focus input by clicking anywhere in the input box
   // (despite the input being one line tall)
   const inputRef = React.useRef<Kb.PlainInput>(null)
-  const onFocusInput = React.useCallback(() => {
+  const onFocusInput = () => {
     if (inputRef && inputRef.current) {
       inputRef.current.focus()
     }
-  }, [inputRef])
+  }
 
   // Handle native file browser via <input type='file' ... />
   const filePickerRef = React.useRef<HTMLInputElement>(null)
-  const selectFile = React.useCallback(() => {
+  const selectFile = () => {
     const files = (filePickerRef && filePickerRef.current && filePickerRef.current.files) || []
     const allPaths: Array<string> = files.length
       ? Array.from(files)
@@ -70,12 +81,12 @@ export const TextInput = (props: TextProps) => {
     if (path) {
       onSetFile(path)
     }
-  }, [filePickerRef, onSetFile])
-  const openFilePicker = React.useCallback(() => {
+  }
+  const openFilePicker = () => {
     if (filePickerRef && filePickerRef.current) {
       filePickerRef.current.click()
     }
-  }, [filePickerRef])
+  }
 
   return (
     <Kb.Box onClick={onFocusInput} style={styles.containerInputFocus}>
@@ -176,17 +187,102 @@ export const FileInput = (props: FileProps) => {
   )
 }
 
-export const OperationBanner = React.memo((props: OperationBannerProps) => {
-  const color = props.type === 'error' ? 'red' : props.type === 'warning' ? 'yellow' : 'grey'
-  return (
-    <Kb.Banner color={color}>
-      <Kb.BannerParagraph
-        bannerColor={color}
-        content={props.type === 'info' && props.infoMessage ? props.infoMessage : props.message}
-      />
-    </Kb.Banner>
+export const Input = (props: InputProps) => {
+  const {operation} = props
+  const dispatch = Container.useDispatch()
+
+  // Store
+  const input = Container.useSelector(state => state.crypto[operation].input.stringValue())
+  const inputType = Container.useSelector(state => state.crypto[operation].inputType)
+
+  // State
+  const [inputValue, setInputValue] = React.useState(input)
+
+  // Actions
+  const onSetInput = (type: Types.InputTypes, newValue: string) => {
+    dispatch(CryptoGen.createSetInput({operation, type, value: new HiddenString(newValue)}))
+  }
+  const onClearInput = () => {
+    dispatch(CryptoGen.createClearInput({operation}))
+  }
+
+  return inputType === 'file' ? (
+    <FileInput
+      operation={operation}
+      path={input}
+      onClearFiles={() => {
+        setInputValue('')
+        onClearInput()
+      }}
+    />
+  ) : (
+    <TextInput
+      operation={operation}
+      value={inputValue}
+      onSetFile={path => {
+        onSetInput('file', path)
+      }}
+      onChangeText={text => {
+        setInputValue(text)
+        onSetInput('text', text)
+      }}
+    />
   )
-})
+}
+
+export const DragAndDrop = (props: DragAndDropProps) => {
+  const {prompt, children, operation} = props
+  const dispatch = Container.useDispatch()
+
+  // Actions
+  const onAttach = (localPaths: Array<string>) => {
+    const path = localPaths[0]
+    dispatch(CryptoGen.createSetInput({operation, type: 'file', value: new HiddenString(path)}))
+  }
+
+  return (
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+      <Kb.DragAndDrop
+        allowFolders={false}
+        fullHeight={true}
+        fullWidth={true}
+        onAttach={onAttach}
+        prompt={prompt}
+      >
+        {children}
+      </Kb.DragAndDrop>
+    </Kb.Box2>
+  )
+}
+
+export const OperationBanner = (props: OperationBannerProps) => {
+  const {operation, infoMessage} = props
+  const errorMessage = Container.useSelector(state => state.crypto[operation].errorMessage.stringValue())
+  const warningMessage = Container.useSelector(state => state.crypto[operation].warningMessage.stringValue())
+
+  if (!errorMessage && !warningMessage && infoMessage) {
+    return (
+      <Kb.Banner color="grey">
+        <Kb.BannerParagraph bannerColor="grey" content={infoMessage} />
+      </Kb.Banner>
+    )
+  }
+
+  return (
+    <>
+      {errorMessage ? (
+        <Kb.Banner color="red">
+          <Kb.BannerParagraph bannerColor="red" content={errorMessage} />
+        </Kb.Banner>
+      ) : null}
+      {warningMessage ? (
+        <Kb.Banner color="yellow">
+          <Kb.BannerParagraph bannerColor="yellow" content={warningMessage} />
+        </Kb.Banner>
+      ) : null}
+    </>
+  )
+}
 
 const styles = Styles.styleSheetCreate(
   () =>

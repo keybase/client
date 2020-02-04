@@ -1,37 +1,41 @@
 import * as React from 'react'
+import * as Container from '../../util/container'
 import * as Sb from '../../stories/storybook'
 import Recipients from '.'
 
-const onClearRecipients = Sb.action('onClearRecipients')
-const onAddRecipients = Sb.action('onAddRecipients')
-
-const noUsers = []
 const oneUser = ['cecileb']
 const muiltipleUsers = ['chris', 'cecileb', 'cdixon', 'max']
 
+const store = Sb.createStoreWithCommon()
+
 const load = () => {
   Sb.storiesOf('Crypto/Recipients', module)
-    .add('Empty', () => (
-      <Recipients
-        recipients={noUsers}
-        onClearRecipients={onClearRecipients}
-        onAddRecipients={onAddRecipients}
-      />
+    .addDecorator((story: any) => <Sb.MockStore store={store}>{story()}</Sb.MockStore>)
+    .add('Empty', () => <Recipients />)
+
+  Sb.storiesOf('Crypto/Recipients', module)
+    .addDecorator((story: any) => (
+      <Sb.MockStore
+        store={Container.produce(store, draftState => {
+          draftState.crypto.encrypt.recipients = oneUser
+        })}
+      >
+        {story()}
+      </Sb.MockStore>
     ))
-    .add('Single User', () => (
-      <Recipients
-        recipients={oneUser}
-        onClearRecipients={onClearRecipients}
-        onAddRecipients={onAddRecipients}
-      />
+    .add('Single User', () => <Recipients />)
+
+  Sb.storiesOf('Crypto/Recipients', module)
+    .addDecorator((story: any) => (
+      <Sb.MockStore
+        store={Container.produce(store, draftState => {
+          draftState.crypto.encrypt.recipients = muiltipleUsers
+        })}
+      >
+        {story()}
+      </Sb.MockStore>
     ))
-    .add('Multiple Users', () => (
-      <Recipients
-        recipients={muiltipleUsers}
-        onClearRecipients={onClearRecipients}
-        onAddRecipients={onAddRecipients}
-      />
-    ))
+    .add('Multiple Users', () => <Recipients />)
 }
 
 export default load
