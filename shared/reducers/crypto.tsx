@@ -116,10 +116,13 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
   },
   [CryptoGen.saltpackDone]: (draftState, action) => {
     const {operation} = action.payload
+    const op = draftState[operation]
     // For any file operation that completes, invalidate the output since multiple decrypt/verify operations will produce filenames with unqiue
     // counters on the end (as to not overwrite any existing files in the user's FS).
     // E.g. `${plaintextFilename} (n).ext`
-    draftState[operation].outputValid = false
+    op.outputValid = false
+    op.bytesComplete = 0
+    op.bytesTotal = 0
   },
   [CryptoGen.onOperationSuccess]: (draftState, action) => {
     const {
@@ -202,6 +205,13 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     if (operationGuard(operation, action)) return
 
     const op = draftState[operation]
+    // The final progress notification might come after saltpackDone.
+    // Reset progress when finsihed
+    if (bytesComplete === bytesTotal) {
+      op.bytesComplete = 0
+      op.bytesTotal = 0
+      return
+    }
     op.bytesComplete = bytesComplete
     op.bytesTotal = bytesTotal
   },
