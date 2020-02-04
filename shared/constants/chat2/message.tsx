@@ -508,8 +508,8 @@ const makeMessageSystemNewChannel = (
   m?: Partial<MessageTypes.MessageSystemNewChannel>
 ): MessageTypes.MessageSystemNewChannel => ({
   ...makeMessageCommonNoDeleteNoEdit,
-  text: '',
   reactions: new Map(),
+  text: '',
   type: 'systemNewChannel',
   ...m,
 })
