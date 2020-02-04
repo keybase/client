@@ -94,7 +94,7 @@ export default namedConnect(
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     const {selectedIndex, rows} = stateProps._inboxLayout
       ? getRows(stateProps._inboxLayout, stateProps._username, ownProps)
-      : {selectedIndex: 0, rows: []}
+      : {rows: [], selectedIndex: 0}
     return {
       filter: ownProps.onSetFilter && {
         filter: ownProps.filter || '',
