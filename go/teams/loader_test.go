@@ -1402,3 +1402,61 @@ func TestTombstoneViaDelete(t *testing.T) {
 	_, ok = err.(*TeamTombstonedError)
 	require.True(t, ok)
 }
+
+func TestLoaderPICNIC_669(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	t.Logf("U0 creates A")
+	rootName, rootID := createTeam2(*tcs[0])
+
+	t.Logf("U0 creates A.B")
+	teamBName, teamBID := createSubteam(tcs[0], rootName, "bbb")
+	_ = teamBName
+
+	t.Logf("U0 creates A.B.C")
+	teamCName, teamCID := createSubteam(tcs[0], teamBName, "ccc")
+	_ = teamCName
+
+	t.Logf("U0 creates A.B.C.D")
+	teamDName, teamDID := createSubteam(tcs[0], teamCName, "ddd")
+	_ = teamDName
+
+	t.Logf("U0 becomes an admin of A.B")
+	_, err := AddMemberByID(context.Background(), tcs[0].G, teamBID, fus[0].Username, keybase1.TeamRole_ADMIN, nil)
+	require.NoError(t, err)
+
+	t.Logf("assert roles after setup")
+	for i, teamID := range []keybase1.TeamID{rootID, teamBID, teamCID, teamDID} {
+		team, err := Load(context.Background(), tcs[0].G, keybase1.LoadTeamArg{ID: teamID})
+		require.NoError(t, err)
+		role, err := team.MemberRole(context.Background(), fus[0].GetUserVersion())
+		require.NoError(t, err)
+		t.Logf("[%v] role: %v", i, role)
+		switch i {
+		case 0:
+			require.Equal(t, keybase1.TeamRole_OWNER, role)
+		case 1:
+			require.Equal(t, keybase1.TeamRole_ADMIN, role)
+		case 2, 3:
+			require.Equal(t, keybase1.TeamRole_NONE, role)
+		}
+	}
+
+	go func() {
+		t.Logf("rotate A.B.C.D")
+		team, err := Load(context.Background(), tcs[0].G, keybase1.LoadTeamArg{
+			ID:          teamDID,
+			ForceRepoll: true,
+		})
+		require.NoError(t, err)
+		err = team.Rotate(context.Background(), keybase1.RotationType_VISIBLE) // xxx todo try all types
+		require.NoError(t, err)
+	}()
+
+	go func() {
+		t.Logf("demote in A.B")
+		err = EditMemberByID(context.Background(), tcs[0].G, teamBID, fus[0].Username, keybase1.TeamRole_WRITER, nil)
+		require.NoError(t, err)
+	}()
+}
