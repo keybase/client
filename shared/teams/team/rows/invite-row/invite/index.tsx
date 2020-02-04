@@ -55,7 +55,7 @@ const TeamInviteRowNew = (props: Props) => {
       }
       action={<TeamInviteMenu onCancelInvite={onCancelInvite} />}
       onlyShowActionOnHover="fade"
-      firstItem={false /* TODO */}
+      firstItem={true /* TODO */}
     />
   )
 }
@@ -73,7 +73,9 @@ const _TeamInviteMenu = (props: Kb.PropsWithOverlay<{onCancelInvite?: () => void
         onClick={props.toggleShowingMenu}
       />
       <Kb.FloatingMenu
-        items={[{danger: true, icon: 'iconfont-remove', title: 'Cancel invite'}]}
+        items={[
+          {danger: true, icon: 'iconfont-remove', onClick: props.onCancelInvite, title: 'Cancel invite'},
+        ]}
         visible={props.showingMenu}
         onHidden={props.toggleShowingMenu}
         closeOnSelect={true}
