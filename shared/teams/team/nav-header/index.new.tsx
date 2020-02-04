@@ -6,6 +6,31 @@ import TeamMenu from '../menu-container'
 import {TeamID} from '../../../constants/types/teams'
 import {pluralize} from '../../../util/string'
 import capitalize from 'lodash/capitalize'
+import AddPeopleHow from '../header/add-people-how/container'
+import flags from '../../../util/feature-flags'
+const _AddPeopleButton = (
+  props: {
+    teamID: TeamID
+  } & Kb.OverlayParentProps
+) => (
+  <>
+    <Kb.Button
+      label="Add/Invite people"
+      onClick={props.toggleShowingMenu}
+      ref={props.setAttachmentRef}
+      type="Success"
+      mode="Primary"
+      fullWidth={true}
+    />
+    <AddPeopleHow
+      attachTo={props.getAttachmentRef}
+      onHidden={props.toggleShowingMenu}
+      teamID={props.teamID}
+      visible={props.showingMenu}
+    />
+  </>
+)
+const AddPeopleButton = Kb.OverlayParentHOC(_AddPeopleButton)
 
 type HeaderTitleProps = {
   active: boolean
@@ -23,6 +48,7 @@ type HeaderTitleProps = {
   onEdit: () => void
   onEditAvatar?: () => void
   onEditDescription?: () => void
+  onManageInvites: () => void
   onRename?: () => void
   onShare: () => void
   role: string
@@ -154,6 +180,28 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
     </Kb.Box2>
   )
 
+  const addInviteAndLinkBox = (
+    <Kb.Box2
+      direction="vertical"
+      gap="tiny"
+      style={styles.addInviteAndLinkBox}
+      alignItems="center"
+      alignSelf="flex-end"
+    >
+      <AddPeopleButton teamID={props.teamID} />
+      {flags.teamInvites && <Kb.Text type="BodySmall">or share a link:</Kb.Text>}
+      {flags.teamInvites && (
+        <Kb.Box2 direction="vertical" gap="xtiny" alignItems="flex-start">
+          <Kb.CopyText text="https://keybase.io/team/link/blahblah/" />
+          <Kb.Text type="BodyTiny">Adds as writer • Expires 10,000 ys</Kb.Text>
+          <Kb.Text type="BodyTiny" onClick={props.onManageInvites} className="hover-underline">
+            Manage invite links
+          </Kb.Text>
+        </Kb.Box2>
+      )}
+    </Kb.Box2>
+  )
+
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
@@ -168,15 +216,22 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
           {topDescriptors}
         </Kb.Box2>
         {bottomDescriptorsAndButtons}
+        {props.canAddPeople && addInviteAndLinkBox}
       </Kb.Box2>
     </Kb.Box2>
   ) : (
-    <Kb.Box2 alignItems="center" direction="horizontal" gap="small" gapStart={true}>
+    <Kb.Box2 alignItems="center" direction="horizontal" gap="small" gapStart={true} fullWidth={true}>
       {avatar}
-      <Kb.Box2 direction="vertical" alignItems="flex-start">
+      <Kb.Box2
+        direction="vertical"
+        alignItems="flex-start"
+        alignSelf="flex-start"
+        style={styles.flexShrinkGrow}
+      >
         {topDescriptors}
         {bottomDescriptorsAndButtons}
       </Kb.Box2>
+      {props.canAddPeople && addInviteAndLinkBox}
     </Kb.Box2>
   )
 }
@@ -206,6 +261,27 @@ export const SubHeader = (props: SubHeaderProps) =>
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      addInviteAndLinkBox: Styles.platformStyles({
+        common: {
+          borderRadius: 4,
+          flexShrink: 0,
+          height: 165,
+          marginBottom: Styles.globalMargins.xsmall,
+          marginRight: Styles.globalMargins.small,
+          marginTop: Styles.globalMargins.tiny,
+          padding: Styles.globalMargins.tiny,
+          width: 220,
+        },
+        isElectron: {
+          boxShadow: `0 2px 10px 0 ${Styles.globalColors.black_20}`,
+        },
+        isMobile: {
+          shadowColor: Styles.globalColors.black_20,
+          shadowOffset: {height: 0, width: 2},
+          shadowOpacity: 1,
+          shadowRadius: 5,
+        },
+      }),
       addSelfLink: {
         marginLeft: Styles.globalMargins.xtiny,
         textDecorationLine: 'underline',
@@ -218,7 +294,7 @@ const styles = Styles.styleSheetCreate(
         marginTop: Styles.globalMargins.xtiny,
       },
       banner: {
-        ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.xsmall, 0),
+        ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall, 0),
       },
       clickable: Styles.platformStyles({
         isElectron: {
@@ -226,6 +302,10 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       flexShrink: {
+        flexShrink: 1,
+      },
+      flexShrinkGrow: {
+        flexGrow: 1,
         flexShrink: 1,
       },
       greenText: {

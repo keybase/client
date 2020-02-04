@@ -75,6 +75,7 @@ export const HeaderTitle = Container.connect(
       ? () => dispatchProps.onEditAvatar(stateProps.teamname)
       : undefined,
     onEditDescription: stateProps._canEditDescAvatar ? dispatchProps.onEditDescription : undefined,
+    onManageInvites: () => {}, // TODO
     onRename: stateProps._canRenameTeam ? () => dispatchProps.onRename(stateProps.teamname) : undefined,
     onShare: () => {}, // TODO
     role: stateProps.role,
