@@ -81,7 +81,27 @@ func GetAnnotatedTeam(ctx context.Context, g *libkb.GlobalContext, id keybase1.T
 	}
 
 	name := t.Data.Name.String()
-	joinRequests, err := ListRequests(ctx, g, &name)
+	myRole, err := t.myRole(ctx)
+	var isAdmin bool
+	if err != nil {
+		g.Log.CDebugf(ctx, "Error getting role; skipping getting requests: %v", err)
+	} else {
+		isAdmin = myRole.IsOrAbove(keybase1.TeamRole_ADMIN)
+	}
+	var joinRequests []keybase1.TeamJoinRequest
+	var tarsDisabled bool
+	if isAdmin {
+		joinRequests, err = ListRequests(ctx, g, &name)
+		if err != nil {
+			return res, err
+		}
+		tarsDisabled, err = GetTarsDisabled(ctx, g, id)
+		if err != nil {
+			return res, err
+		}
+	}
+
+	showcase, err := GetTeamShowcase(ctx, g, id)
 	if err != nil {
 		return res, err
 	}
@@ -95,8 +115,9 @@ func GetAnnotatedTeam(ctx context.Context, g *libkb.GlobalContext, id keybase1.T
 		Invites:      invites,
 		JoinRequests: joinRequests,
 
-		Settings: det.Settings,
-		Showcase: det.Showcase,
+		TarsDisabled: tarsDisabled,
+		Settings:     det.Settings,
+		Showcase:     showcase,
 	}
 	return res, nil
 }
