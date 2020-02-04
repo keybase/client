@@ -1693,11 +1693,11 @@ func systemMsgPresentText(ctx context.Context, uid gregor1.UID, msg chat1.Messag
 		if len(msg.ChannelNameMentions) != 1 {
 			return ""
 		}
-		author := sysMsg.Newchannel().Creator
+		author := ""
 		if uid.Eq(msg.ClientHeader.Sender) {
-			author = "You"
+			author = "You "
 		}
-		return fmt.Sprintf("%s created a new channel #%s", author, msg.ChannelNameMentions[0].TopicName)
+		return fmt.Sprintf("%screated a new channel #%s", author, msg.ChannelNameMentions[0].TopicName)
 	default:
 	}
 	return ""
