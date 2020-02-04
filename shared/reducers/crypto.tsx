@@ -114,6 +114,13 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     op.input = value
     op.outputValid = oldInput.stringValue() === value.stringValue()
   },
+  [CryptoGen.saltpackDone]: (draftState, action) => {
+    const {operation} = action.payload
+    // For any file operation that completes, invalidate the output since multiple decrypt/verify operations will produce filenames with unqiue
+    // counters on the end (as to not overwrite any existing files in the user's FS).
+    // E.g. `${plaintextFilename} (n).ext`
+    draftState[operation].outputValid = false
+  },
   [CryptoGen.onOperationSuccess]: (draftState, action) => {
     const {
       input,
