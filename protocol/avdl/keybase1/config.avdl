@@ -322,4 +322,6 @@ protocol config {
   void appendGUILogs(string content);
 
   string generateWebAuthToken();
+
+  void updateLastLoggedInAndServerConfig(string serverConfigPath);
 }

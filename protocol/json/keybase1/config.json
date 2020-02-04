@@ -1132,6 +1132,15 @@
     "generateWebAuthToken": {
       "request": [],
       "response": "string"
+    },
+    "updateLastLoggedInAndServerConfig": {
+      "request": [
+        {
+          "name": "serverConfigPath",
+          "type": "string"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"
