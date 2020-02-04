@@ -68,7 +68,7 @@ func TestFindNextMerkleRootAfterRevoke(t *testing.T) {
 	devices, _ := getActiveDevicesAndKeys(tc, fu)
 	var paperDevice *libkb.Device
 	for _, device := range devices {
-		if device.Type == libkb.DeviceTypePaper {
+		if device.Type == keybase1.DeviceTypeV2_PAPER {
 			paperDevice = device.Device
 		}
 	}

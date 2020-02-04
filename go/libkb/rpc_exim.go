@@ -601,6 +601,14 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		}
 	case SCChatClientError:
 		return ChatClientError{Msg: s.Desc}
+	case SCChatUsersAlreadyInConversationError:
+		var uids []keybase1.UID
+		for _, field := range s.Fields {
+			if field.Key == "uid" {
+				uids = append(uids, keybase1.UID(field.Value))
+			}
+		}
+		return ChatUsersAlreadyInConversationError{Uids: uids}
 	case SCNeedSelfRekey:
 		ret := NeedSelfRekeyError{Msg: s.Desc}
 		for _, field := range s.Fields {
@@ -2162,6 +2170,18 @@ func (e ChatClientError) ToStatus() keybase1.Status {
 		Code: SCChatClientError,
 		Name: "SC_CHAT_CLIENT_ERROR",
 		Desc: e.Msg,
+	}
+}
+
+func (e ChatUsersAlreadyInConversationError) ToStatus() keybase1.Status {
+	fields := []keybase1.StringKVPair{}
+	for _, uid := range e.Uids {
+		fields = append(fields, keybase1.StringKVPair{Key: "uid", Value: uid.String()})
+	}
+	return keybase1.Status{
+		Code:   SCChatUsersAlreadyInConversationError,
+		Name:   "SC_CHAT_USERS_ALREADY_IN_CONVERSATION_ERROR",
+		Fields: fields,
 	}
 }
 

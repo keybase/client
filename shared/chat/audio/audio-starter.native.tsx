@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import * as React from 'react'
 import * as Kb from '../../common-adapters/mobile.native'
 import * as Types from '../../constants/types/chat2'
@@ -26,8 +25,9 @@ type TooltipProps = {
 const Tooltip = (props: TooltipProps) => {
   const opacity = React.useRef(new Kb.NativeAnimated.Value(0)).current
   const [visible, setVisible] = React.useState(false)
+  const {shouldBeVisible} = props
   React.useEffect(() => {
-    if (props.shouldBeVisible) {
+    if (shouldBeVisible) {
       setVisible(true)
       Kb.NativeAnimated.timing(opacity, {
         duration: 200,
@@ -41,7 +41,7 @@ const Tooltip = (props: TooltipProps) => {
         useNativeDriver: true,
       }).start(() => setVisible(false))
     }
-  }, [props.shouldBeVisible])
+  }, [shouldBeVisible, opacity])
   return visible ? (
     <Kb.NativeAnimated.View style={{opacity}}>
       <Kb.Box2 direction="horizontal" style={styles.tooltipContainer}>

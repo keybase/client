@@ -352,7 +352,7 @@ const createElectronApp = Component => {
   return ElectronApp
 }
 
-const ElectronApp = createElectronApp(RootStackNavigator)
+const ElectronApp: any = createElectronApp(RootStackNavigator)
 
 const styles = Styles.styleSheetCreate(
   () =>

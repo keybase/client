@@ -39,21 +39,21 @@ type Query = string
 export type SearchResults = Map<Query, Map<ServiceIdWithContact, Array<User>>>
 export type ServiceResultCount = Map<SearchString, Map<ServiceIdWithContact, number>>
 
-export type TeamBuildingSubState = Readonly<{
-  error: string
-  teamSoFar: Set<User>
-  searchResults: SearchResults
-  serviceResultCount: ServiceResultCount
-  finishedTeam: Set<User>
-  finishedSelectedRole: TeamRoleType
-  finishedSendNotification: boolean
-  searchQuery: Query
-  selectedService: ServiceIdWithContact
-  searchLimit: number
-  userRecs?: Array<User>
-  selectedRole: TeamRoleType
-  sendNotification: boolean
-}>
+export type TeamBuildingSubState = {
+  readonly error: string
+  readonly teamSoFar: Set<User>
+  readonly searchResults: SearchResults
+  readonly serviceResultCount: ServiceResultCount
+  readonly finishedTeam: Set<User>
+  readonly finishedSelectedRole: TeamRoleType
+  readonly finishedSendNotification: boolean
+  readonly searchQuery: Query
+  readonly selectedService: ServiceIdWithContact
+  readonly searchLimit: number
+  readonly userRecs?: Array<User>
+  readonly selectedRole: TeamRoleType
+  readonly sendNotification: boolean
+}
 
 export type SelectedUser = {
   userId: string

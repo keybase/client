@@ -8,7 +8,9 @@ import DefaultView from './default-view-container'
 import ImageView from './image-view'
 import TextView from './text-view'
 import AVView from './av-view'
+import PdfView from './pdf-view'
 import * as Kb from '../../common-adapters'
+import * as Platform from '../../constants/platform'
 
 type Props = {
   path: Types.Path
@@ -94,8 +96,7 @@ const FilePreviewView = ({path, onLoadingStateChange, onUrlError}: Props) => {
         </>
       )
     case RPCTypes.GUIViewType.pdf:
-      // Security risks to links in PDF viewing. See DESKTOP-6888.
-      return <DefaultView path={path} />
+      return Platform.isIOS ? <PdfView url={url} onUrlError={onUrlError} /> : <DefaultView path={path} />
     default:
       return <Kb.Text type="BodySmallError">This shouldn't happen</Kb.Text>
   }

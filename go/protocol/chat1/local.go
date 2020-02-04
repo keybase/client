@@ -2841,7 +2841,7 @@ type MessageUnboxedValid struct {
 	MessageBody           MessageBody                 `codec:"messageBody" json:"messageBody"`
 	SenderUsername        string                      `codec:"senderUsername" json:"senderUsername"`
 	SenderDeviceName      string                      `codec:"senderDeviceName" json:"senderDeviceName"`
-	SenderDeviceType      string                      `codec:"senderDeviceType" json:"senderDeviceType"`
+	SenderDeviceType      keybase1.DeviceTypeV2       `codec:"senderDeviceType" json:"senderDeviceType"`
 	BodyHash              Hash                        `codec:"bodyHash" json:"bodyHash"`
 	HeaderHash            Hash                        `codec:"headerHash" json:"headerHash"`
 	HeaderSignature       *SignatureInfo              `codec:"headerSignature,omitempty" json:"headerSignature,omitempty"`
@@ -2865,7 +2865,7 @@ func (o MessageUnboxedValid) DeepCopy() MessageUnboxedValid {
 		MessageBody:      o.MessageBody.DeepCopy(),
 		SenderUsername:   o.SenderUsername,
 		SenderDeviceName: o.SenderDeviceName,
-		SenderDeviceType: o.SenderDeviceType,
+		SenderDeviceType: o.SenderDeviceType.DeepCopy(),
 		BodyHash:         o.BodyHash.DeepCopy(),
 		HeaderHash:       o.HeaderHash.DeepCopy(),
 		HeaderSignature: (func(x *SignatureInfo) *SignatureInfo {
@@ -3010,7 +3010,7 @@ type MessageUnboxedError struct {
 	IsCritical       bool                    `codec:"isCritical" json:"isCritical"`
 	SenderUsername   string                  `codec:"senderUsername" json:"senderUsername"`
 	SenderDeviceName string                  `codec:"senderDeviceName" json:"senderDeviceName"`
-	SenderDeviceType string                  `codec:"senderDeviceType" json:"senderDeviceType"`
+	SenderDeviceType keybase1.DeviceTypeV2   `codec:"senderDeviceType" json:"senderDeviceType"`
 	MessageID        MessageID               `codec:"messageID" json:"messageID"`
 	MessageType      MessageType             `codec:"messageType" json:"messageType"`
 	Ctime            gregor1.Time            `codec:"ctime" json:"ctime"`
@@ -3030,7 +3030,7 @@ func (o MessageUnboxedError) DeepCopy() MessageUnboxedError {
 		IsCritical:       o.IsCritical,
 		SenderUsername:   o.SenderUsername,
 		SenderDeviceName: o.SenderDeviceName,
-		SenderDeviceType: o.SenderDeviceType,
+		SenderDeviceType: o.SenderDeviceType.DeepCopy(),
 		MessageID:        o.MessageID.DeepCopy(),
 		MessageType:      o.MessageType.DeepCopy(),
 		Ctime:            o.Ctime.DeepCopy(),

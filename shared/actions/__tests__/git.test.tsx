@@ -2,6 +2,7 @@
 import * as Tabs from '../../constants/tabs'
 import * as GitGen from '../git-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as Container from '../../util/container'
 import * as RouteTreeGen from '../route-tree-gen'
 import gitSaga from '../git'
 import * as Testing from '../../util/testing'
@@ -117,7 +118,7 @@ const loadedStore = {
   },
 }
 
-const startOnGitTab = dispatch => {
+const startOnGitTab = (dispatch: Container.Dispatch) => {
   dispatch(RouteTreeGen.createSwitchLoggedIn({loggedIn: true}))
   dispatch(RouteTreeGen.createNavigateAppend({path: [Tabs.gitTab]}))
 }
@@ -129,8 +130,8 @@ const startReduxSagaWithLoadedStore = Testing.makeStartReduxSaga(gitSaga, loaded
 // const getRouteState = getState => getRoutePathState(getState().routeTree.routeState, [Tabs.gitTab])
 
 describe('reload side effects', () => {
-  let init
-  let rpc
+  let init: any
+  let rpc: any
   beforeEach(() => {
     init = startReduxSaga()
     rpc = jest.spyOn(RPCTypes, 'gitGetAllGitMetadataRpcPromise')
@@ -155,9 +156,9 @@ describe('reload side effects', () => {
 })
 
 describe('load', () => {
-  let init
-  let rpc
-  let date
+  let init: any
+  let rpc: any
+  let date: any
   beforeEach(() => {
     init = startReduxSaga()
     date = jest.spyOn(Date, 'now')
@@ -192,9 +193,9 @@ describe('load', () => {
 })
 
 describe('Team Repos', () => {
-  let init
-  let rpc
-  let date
+  let init: any
+  let rpc: any
+  let date: any
   beforeEach(() => {
     init = startReduxSagaWithLoadedStore()
     date = jest.spyOn(Date, 'now')
@@ -235,9 +236,9 @@ describe('Team Repos', () => {
 })
 
 describe('Create / Delete', () => {
-  let init
-  let rpc
-  let date
+  let init: any
+  let rpc: any
+  let date: any
   beforeEach(() => {
     init = startReduxSagaWithLoadedStore()
     date = jest.spyOn(Date, 'now')

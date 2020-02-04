@@ -52,7 +52,7 @@
         },
         {
           "name": "deviceType",
-          "type": "string"
+          "type": "DeviceTypeV2"
         },
         {
           "name": "username",
@@ -77,7 +77,7 @@
         }
       ],
       "response": null,
-      "doc": "Performs login.  deviceType should be libkb.DeviceTypeDesktop\n    or libkb.DeviceTypeMobile. username is optional. If the current\n    device isn't provisioned, this function will provision it."
+      "doc": "Performs login.  deviceType should be keybase1.DeviceTypeV2_DESKTOP\n    or keybase1.DeviceTypeV2_MOBILE. username is optional. If the current\n    device isn't provisioned, this function will provision it."
     },
     "loginProvisionedDevice": {
       "request": [

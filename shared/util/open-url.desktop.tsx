@@ -1,11 +1,11 @@
-import * as SafeElectron from './safe-electron.desktop'
+import * as Electron from 'electron'
 
 const openURL = (url: string | null) => {
   if (!url) {
     console.warn('openURL received empty url')
     return
   }
-  SafeElectron.getShell().openExternal(url)
+  Electron.remote.shell.openExternal(url)
 }
 
 export default openURL

@@ -1,3 +1,3 @@
-export type State = Readonly<{
-  keybaseLinkError: string
-}>
+export type State = {
+  readonly keybaseLinkError: string
+}

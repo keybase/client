@@ -1,8 +1,6 @@
 import {CSSProperties} from 'react'
 import {ViewStyle, TextStyle, ImageStyle} from 'react-native'
 
-type StyleProp<T> = T | Array<StyleProp<T>> | undefined | null | false
-
 export type Color = null | string
 type _StylesDesktopOverride = {
   backgroundImage?: string
@@ -106,15 +104,15 @@ type StyleKeys =
   | 'wordWrap'
   | 'zIndex'
 
-export type _StylesDesktop = Readonly<Pick<CSSProperties, StyleKeys> & _StylesDesktopOverride>
-export type StylesDesktop = StyleProp<_StylesDesktop>
+export type _StylesDesktop = Pick<CSSProperties, StyleKeys> & _StylesDesktopOverride
+export type StylesDesktop = _StylesDesktop | undefined | null | false | Array<StylesDesktop>
 
 type _StylesMobileOverride = {
   textAlignVertical?: 'auto' | 'top' | 'bottom' | 'center'
 }
 
-export type _StylesMobile = Readonly<ViewStyle & TextStyle & ImageStyle> & _StylesMobileOverride
-export type StylesMobile = StyleProp<_StylesMobile>
+export type _StylesMobile = ViewStyle & TextStyle & ImageStyle & _StylesMobileOverride
+export type StylesMobile = _StylesMobile | undefined | null | false | Array<StylesMobile>
 
 // override some problematic styles
 type _StylesCrossPlatformOverride = {
@@ -123,21 +121,24 @@ type _StylesCrossPlatformOverride = {
   textAlign: _StylesMobile['textAlign']
 }
 
-export type _StylesCrossPlatform = Readonly<
-  {
-    [k in keyof _StylesDesktop]: k extends keyof _StylesCrossPlatformOverride // use override
-      ? _StylesCrossPlatformOverride[k] // or if its shared between desktop and mobile choose one which extends the other
-      : k extends keyof _StylesMobile
-      ? _StylesMobile[k] extends _StylesDesktop[k]
-        ? _StylesMobile[k]
-        : _StylesDesktop[k] extends _StylesMobile[k]
-        ? _StylesDesktop[k]
-        : never
+export type _StylesCrossPlatform = {
+  [k in keyof _StylesDesktop]: k extends keyof _StylesCrossPlatformOverride // use override
+    ? _StylesCrossPlatformOverride[k] // or if its shared between desktop and mobile choose one which extends the other
+    : k extends keyof _StylesMobile
+    ? _StylesMobile[k] extends _StylesDesktop[k]
+      ? _StylesMobile[k]
+      : _StylesDesktop[k] extends _StylesMobile[k]
+      ? _StylesDesktop[k]
       : never
-  }
->
+    : never
+}
 
-export type StylesCrossPlatform = StyleProp<_StylesCrossPlatform>
+export type StylesCrossPlatform = _StylesCrossPlatform | undefined | null | false | Array<StylesCrossPlatform>
 
-export type _CustomStyles<K extends string, C> = Omit<_StylesCrossPlatform, K> & Readonly<C>
-export type CustomStyles<K extends string, C> = StyleProp<_CustomStyles<K, C>>
+export type _CustomStyles<K extends string, C> = Omit<_StylesCrossPlatform, K> & C
+export type CustomStyles<K extends string, C> =
+  | _CustomStyles<K, C>
+  | undefined
+  | null
+  | false
+  | Array<CustomStyles<K, C>>

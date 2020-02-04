@@ -315,25 +315,10 @@ func (o ParamProofUsernameConfig) DeepCopy() ParamProofUsernameConfig {
 	}
 }
 
-type ParamProofLogoConfig struct {
-	SvgBlack string `codec:"svgBlack" json:"svg_black"`
-	SvgFull  string `codec:"svgFull" json:"svg_full"`
-	SvgWhite string `codec:"svgWhite" json:"svg_white"`
-}
-
-func (o ParamProofLogoConfig) DeepCopy() ParamProofLogoConfig {
-	return ParamProofLogoConfig{
-		SvgBlack: o.SvgBlack,
-		SvgFull:  o.SvgFull,
-		SvgWhite: o.SvgWhite,
-	}
-}
-
 type ParamProofServiceConfig struct {
 	Version        int                      `codec:"version" json:"version"`
 	Domain         string                   `codec:"domain" json:"domain"`
 	DisplayName    string                   `codec:"displayName" json:"display_name"`
-	Logo           *ParamProofLogoConfig    `codec:"logo,omitempty" json:"logo,omitempty"`
 	Description    string                   `codec:"description" json:"description"`
 	UsernameConfig ParamProofUsernameConfig `codec:"usernameConfig" json:"username"`
 	BrandColor     string                   `codec:"brandColor" json:"brand_color"`
@@ -346,16 +331,9 @@ type ParamProofServiceConfig struct {
 
 func (o ParamProofServiceConfig) DeepCopy() ParamProofServiceConfig {
 	return ParamProofServiceConfig{
-		Version:     o.Version,
-		Domain:      o.Domain,
-		DisplayName: o.DisplayName,
-		Logo: (func(x *ParamProofLogoConfig) *ParamProofLogoConfig {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.Logo),
+		Version:        o.Version,
+		Domain:         o.Domain,
+		DisplayName:    o.DisplayName,
 		Description:    o.Description,
 		UsernameConfig: o.UsernameConfig.DeepCopy(),
 		BrandColor:     o.BrandColor,

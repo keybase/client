@@ -111,8 +111,8 @@ protocol identifyUi {
   }
 
   record UserCard {
-    int following;
-    int followers;
+    int unverifiedNumFollowing;
+    int unverifiedNumFollowers;
     UID uid;
     string fullName;
     string location;
@@ -120,8 +120,6 @@ protocol identifyUi {
     string bioDecorated;
     string website;
     string twitter;
-    boolean youFollowThem;
-    boolean theyFollowYou;
     array<UserTeamShowcase> teamShowcase;
     boolean registeredForAirdrop;
     boolean stellarHidden;

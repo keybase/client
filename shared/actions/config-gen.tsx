@@ -23,9 +23,9 @@ export const filePickerError = 'config:filePickerError'
 export const followerInfoUpdated = 'config:followerInfoUpdated'
 export const globalError = 'config:globalError'
 export const installerRan = 'config:installerRan'
-export const loadNixOnLoginStartup = 'config:loadNixOnLoginStartup'
+export const loadOnLoginStartup = 'config:loadOnLoginStartup'
 export const loadOnStart = 'config:loadOnStart'
-export const loadedNixOnLoginStartup = 'config:loadedNixOnLoginStartup'
+export const loadedOnLoginStartup = 'config:loadedOnLoginStartup'
 export const loggedIn = 'config:loggedIn'
 export const loggedOut = 'config:loggedOut'
 export const logout = 'config:logout'
@@ -53,6 +53,7 @@ export const setUseNativeFrame = 'config:setUseNativeFrame'
 export const setUserSwitching = 'config:setUserSwitching'
 export const setWhatsNewLastSeenVersion = 'config:setWhatsNewLastSeenVersion'
 export const showMain = 'config:showMain'
+export const showShareActionSheet = 'config:showShareActionSheet'
 export const startHandshake = 'config:startHandshake'
 export const toggleRuntimeStats = 'config:toggleRuntimeStats'
 export const updateCriticalCheckStatus = 'config:updateCriticalCheckStatus'
@@ -96,7 +97,7 @@ type _FollowerInfoUpdatedPayload = {
 }
 type _GlobalErrorPayload = {readonly globalError?: Error | RPCError}
 type _InstallerRanPayload = void
-type _LoadNixOnLoginStartupPayload = void
+type _LoadOnLoginStartupPayload = void
 type _LoadOnStartPayload = {
   readonly phase:
     | 'initialStartupAsEarlyAsPossible'
@@ -104,7 +105,7 @@ type _LoadOnStartPayload = {
     | 'reloggedIn'
     | 'startupOrReloginButNotInARush'
 }
-type _LoadedNixOnLoginStartupPayload = {readonly status: boolean | null}
+type _LoadedOnLoginStartupPayload = {readonly status: boolean | null}
 type _LoggedInPayload = {readonly causedBySignup: boolean; readonly causedByStartup: boolean}
 type _LoggedOutPayload = void
 type _LogoutAndTryToLogInAsPayload = {readonly username: string}
@@ -149,6 +150,7 @@ type _SetUseNativeFramePayload = {readonly useNativeFrame: boolean}
 type _SetUserSwitchingPayload = {readonly userSwitching: boolean}
 type _SetWhatsNewLastSeenVersionPayload = {readonly lastSeenVersion: string}
 type _ShowMainPayload = void
+type _ShowShareActionSheetPayload = {readonly filePath: string; readonly mimeType: string}
 type _StartHandshakePayload = void
 type _ToggleRuntimeStatsPayload = void
 type _UpdateCriticalCheckStatusPayload = {
@@ -317,12 +319,13 @@ export const createGlobalError = (payload: _GlobalErrorPayload = Object.freeze({
   payload,
   type: globalError,
 })
-export const createLoadNixOnLoginStartup = (
-  payload: _LoadNixOnLoginStartupPayload
-): LoadNixOnLoginStartupPayload => ({payload, type: loadNixOnLoginStartup})
-export const createLoadedNixOnLoginStartup = (
-  payload: _LoadedNixOnLoginStartupPayload
-): LoadedNixOnLoginStartupPayload => ({payload, type: loadedNixOnLoginStartup})
+export const createLoadOnLoginStartup = (payload: _LoadOnLoginStartupPayload): LoadOnLoginStartupPayload => ({
+  payload,
+  type: loadOnLoginStartup,
+})
+export const createLoadedOnLoginStartup = (
+  payload: _LoadedOnLoginStartupPayload
+): LoadedOnLoginStartupPayload => ({payload, type: loadedOnLoginStartup})
 export const createLoggedOut = (payload: _LoggedOutPayload): LoggedOutPayload => ({payload, type: loggedOut})
 export const createMobileAppState = (payload: _MobileAppStatePayload): MobileAppStatePayload => ({
   payload,
@@ -382,6 +385,9 @@ export const createSetUserSwitching = (payload: _SetUserSwitchingPayload): SetUs
   type: setUserSwitching,
 })
 export const createShowMain = (payload: _ShowMainPayload): ShowMainPayload => ({payload, type: showMain})
+export const createShowShareActionSheet = (
+  payload: _ShowShareActionSheetPayload
+): ShowShareActionSheetPayload => ({payload, type: showShareActionSheet})
 export const createToggleRuntimeStats = (payload: _ToggleRuntimeStatsPayload): ToggleRuntimeStatsPayload => ({
   payload,
   type: toggleRuntimeStats,
@@ -441,14 +447,14 @@ export type FollowerInfoUpdatedPayload = {
 }
 export type GlobalErrorPayload = {readonly payload: _GlobalErrorPayload; readonly type: typeof globalError}
 export type InstallerRanPayload = {readonly payload: _InstallerRanPayload; readonly type: typeof installerRan}
-export type LoadNixOnLoginStartupPayload = {
-  readonly payload: _LoadNixOnLoginStartupPayload
-  readonly type: typeof loadNixOnLoginStartup
+export type LoadOnLoginStartupPayload = {
+  readonly payload: _LoadOnLoginStartupPayload
+  readonly type: typeof loadOnLoginStartup
 }
 export type LoadOnStartPayload = {readonly payload: _LoadOnStartPayload; readonly type: typeof loadOnStart}
-export type LoadedNixOnLoginStartupPayload = {
-  readonly payload: _LoadedNixOnLoginStartupPayload
-  readonly type: typeof loadedNixOnLoginStartup
+export type LoadedOnLoginStartupPayload = {
+  readonly payload: _LoadedOnLoginStartupPayload
+  readonly type: typeof loadedOnLoginStartup
 }
 export type LoggedInPayload = {readonly payload: _LoggedInPayload; readonly type: typeof loggedIn}
 export type LoggedOutPayload = {readonly payload: _LoggedOutPayload; readonly type: typeof loggedOut}
@@ -531,6 +537,10 @@ export type SetWhatsNewLastSeenVersionPayload = {
   readonly type: typeof setWhatsNewLastSeenVersion
 }
 export type ShowMainPayload = {readonly payload: _ShowMainPayload; readonly type: typeof showMain}
+export type ShowShareActionSheetPayload = {
+  readonly payload: _ShowShareActionSheetPayload
+  readonly type: typeof showShareActionSheet
+}
 export type StartHandshakePayload = {
   readonly payload: _StartHandshakePayload
   readonly type: typeof startHandshake
@@ -575,9 +585,9 @@ export type Actions =
   | FollowerInfoUpdatedPayload
   | GlobalErrorPayload
   | InstallerRanPayload
-  | LoadNixOnLoginStartupPayload
+  | LoadOnLoginStartupPayload
   | LoadOnStartPayload
-  | LoadedNixOnLoginStartupPayload
+  | LoadedOnLoginStartupPayload
   | LoggedInPayload
   | LoggedOutPayload
   | LogoutAndTryToLogInAsPayload
@@ -605,6 +615,7 @@ export type Actions =
   | SetUserSwitchingPayload
   | SetWhatsNewLastSeenVersionPayload
   | ShowMainPayload
+  | ShowShareActionSheetPayload
   | StartHandshakePayload
   | ToggleRuntimeStatsPayload
   | UpdateCriticalCheckStatusPayload

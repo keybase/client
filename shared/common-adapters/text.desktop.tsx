@@ -40,6 +40,7 @@ class Text extends React.Component<Props> {
     const meta = metaData()[props.type]
     return Styles.classNames(`text_${props.type}`, props.className, {
       underline: props.underline,
+      'underline-never': props.underlineNever,
       // eslint-disable-next-line sort-keys
       'hover-underline': meta.isLink && !props.negative,
       text_center: props.center,

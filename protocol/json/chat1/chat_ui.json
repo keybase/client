@@ -938,7 +938,7 @@
           "name": "senderDeviceName"
         },
         {
-          "type": "string",
+          "type": "keybase1.DeviceTypeV2",
           "name": "senderDeviceType"
         },
         {
@@ -1513,6 +1513,10 @@
             "items": "keybase1.TeamSearchItem"
           },
           "name": "hits"
+        },
+        {
+          "type": "boolean",
+          "name": "suggestedMatches"
         }
       ]
     },

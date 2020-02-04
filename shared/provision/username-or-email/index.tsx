@@ -11,7 +11,7 @@ type Props = {
   inlineSignUpLink: boolean
   onBack: () => void
   onForgotUsername: () => void
-  onGoToSignup: () => void
+  onGoToSignup: (username: string) => void
   onSubmit: (username: string) => void
   resetBannerUser: string | null
   submittedUsername: string
@@ -47,7 +47,7 @@ const Username = (props: Props) => {
                   content={[
                     "This username doesn't exist. Did you mean to ",
                     {
-                      onClick: () => props.inlineSignUpLink && props.onGoToSignup(),
+                      onClick: () => props.onGoToSignup(username),
                       text: 'create a new account',
                     },
                     '?',

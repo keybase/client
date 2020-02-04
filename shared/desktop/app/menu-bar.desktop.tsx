@@ -1,12 +1,12 @@
 // Entrypoint for the menubar node part
 import * as ConfigGen from '../../actions/config-gen'
 import * as Chat2Gen from '../../actions/chat2-gen'
-import * as SafeElectron from '../../util/safe-electron.desktop'
+import * as Electron from 'electron'
 import logger from '../../logger'
 import {isDarwin, isWindows, isLinux} from '../../constants/platform'
-import {mainWindowDispatch} from '../remote/util.desktop'
+import {mainWindowDispatch, getMainWindow} from '../remote/util.desktop'
 import {menubar} from 'menubar'
-import {resolveImage, resolveRootAsURL} from './resolve-root.desktop'
+import {resolveRoot, resolveImage, resolveRootAsURL} from './resolve-root.desktop'
 import {showDevTools, skipSecondaryDevtools} from '../../local-debug.desktop'
 
 const htmlFile = resolveRootAsURL('dist', `menubar${__DEV__ ? '.dev' : ''}.html?param=menubar`)
@@ -33,6 +33,7 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
       webPreferences: {
         nodeIntegration: true,
         nodeIntegrationInWorker: false,
+        preload: resolveRoot('dist', `preload-main${__DEV__ ? '.dev' : ''}.bundle.js`),
       },
       width: 360,
     },
@@ -68,22 +69,33 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
     }
   }
 
-  mb.on('ready', () => {
-    SafeElectron.getApp().on('KBmenu' as any, (_: string, action: Action) => {
-      switch (action.type) {
-        case 'showTray': {
-          icon = action.payload.icon
-          selectedIcon = action.payload.iconSelected
-          updateIcon(false)
-          const dock = SafeElectron.getApp().dock
-          if (dock && dock.isVisible()) {
-            SafeElectron.getApp().badgeCount = action.payload.desktopAppBadgeCount
-          }
-          break
+  Electron.ipcMain.handle('KBmenu', (_: any, action: Action) => {
+    switch (action.type) {
+      case 'showTray': {
+        icon = action.payload.icon
+        selectedIcon = action.payload.iconSelected
+        updateIcon(false)
+        const dock = Electron.app.dock
+        if (dock && dock.isVisible()) {
+          Electron.app.badgeCount = action.payload.desktopAppBadgeCount
         }
-      }
-    })
 
+        // Windows just lets us set (or unset, with null) a single 16x16 icon
+        // to be used as an overlay in the bottom right of the taskbar icon.
+        if (isWindows) {
+          const mw = getMainWindow()
+          const overlay =
+            action.payload.desktopAppBadgeCount > 0 ? resolveImage('icons', 'icon-windows-badge.png') : null
+          // @ts-ignore setOverlayIcon docs say null overlay's fine, TS disagrees
+          mw && mw.setOverlayIcon(overlay, 'new activity')
+        }
+
+        break
+      }
+    }
+  })
+
+  mb.on('ready', () => {
     // ask for an update in case we missed one
     mainWindowDispatch(
       ConfigGen.createRemoteWindowWantsProps({
@@ -123,8 +135,8 @@ export default (menubarWindowIDCallback: (id: number) => void) => {
       if (!isWindows || !mb.window || !mb.tray) {
         return
       }
-      const cursorPoint = SafeElectron.getScreen().getCursorScreenPoint()
-      const screenSize = SafeElectron.getScreen().getDisplayNearestPoint(cursorPoint).workArea
+      const cursorPoint = Electron.screen.getCursorScreenPoint()
+      const screenSize = Electron.screen.getDisplayNearestPoint(cursorPoint).workArea
       const menuBounds = mb.window.getBounds()
       logger.info('Showing menu:', cursorPoint, screenSize)
       let iconBounds = mb.tray.getBounds()

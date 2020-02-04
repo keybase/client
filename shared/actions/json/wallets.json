@@ -438,23 +438,6 @@
       "accountID": "Types.AccountID",
       "enabled": "boolean"
     },
-    "changeAirdrop": {
-      "_description": "Turn participation in airdrop on/off",
-      "accept": "boolean"
-    },
-    "hideAirdropBanner": {},
-    "updateAirdropBannerState": {"show": "boolean"},
-    "updateAirdropState": {},
-    "updatedAirdropState": {
-      "airdropQualifications": "Array<Types.AirdropQualification>",
-      "airdropState": "Types.AirdropState"
-    },
-    "updateAirdropDetails": {},
-    "updatedAirdropDetails": {
-      "details": "Types.StellarDetailsResponse",
-      "disclaimer": "Types.StellarDetailsResponse",
-      "isPromoted": "boolean"
-    },
     "refreshTrustlineAcceptedAssets": {
       "accountID": "Types.AccountID"
     },

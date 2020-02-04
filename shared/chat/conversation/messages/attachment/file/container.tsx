@@ -50,17 +50,22 @@ export default Container.connect(
       errorMsg: message.transferErrMsg || '',
       fileName: message.fileName,
       hasProgress,
-      onDownload: Container.isMobile
-        ? () => dispatchProps._onShare(message)
-        : !message.downloadPath
-        ? () => dispatchProps._onDownload(message)
-        : undefined,
+      message,
+      onDownload: () => {
+        if (Container.isMobile) {
+          dispatchProps._onShare(message)
+        } else {
+          if (!message.downloadPath) {
+            dispatchProps._onDownload(message)
+          }
+        }
+      },
       onShowInFinder:
         !Container.isMobile && message.downloadPath
           ? () => dispatchProps._onShowInFinder(message)
           : undefined,
       progress: message.transferProgress,
-      title: message.title || message.fileName,
+      title: message.decoratedText?.stringValue() || message.title || message.fileName,
       transferState,
     }
   }

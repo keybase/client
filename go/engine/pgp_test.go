@@ -168,7 +168,11 @@ func (p *pgpPair) isTracking(meContext libkb.TestContext, username string) bool 
 }
 
 func (p *pgpPair) encrypt(sign bool) (string, int) {
-	uis := libkb.UIs{IdentifyUI: &FakeIdentifyUI{}, SecretUI: p.sender.NewSecretUI()}
+	uis := libkb.UIs{
+		IdentifyUI: &FakeIdentifyUI{},
+		PgpUI:      &TestPgpUI{},
+		SecretUI:   p.sender.NewSecretUI(),
+	}
 	sink := libkb.NewBufferCloser()
 	arg := &PGPEncryptArg{
 		Recips: []string{p.recipient.Username},

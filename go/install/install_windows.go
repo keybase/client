@@ -208,6 +208,75 @@ func WatchdogLogPath(logGlobPath string) (string, error) {
 	return logName, err
 }
 
+const autoRegPath = `Software\Microsoft\Windows\CurrentVersion\Run`
+const autoRegName = `Keybase.Keybase.GUI`
+
+// TODO Remove this in 2022.
+const autoRegDeprecatedName = `electron.app.keybase`
+
+func autostartStatus() (enabled bool, err error) {
+	k, err := registry.OpenKey(registry.CURRENT_USER, autoRegPath, registry.QUERY_VALUE|registry.READ)
+	if err != nil {
+		return false, fmt.Errorf("Error opening Run registry key: %v", err)
+	}
+	defer k.Close()
+
+	// Value not existing means that we are not starting up by default!
+	_, _, err = k.GetStringValue(autoRegName)
+	return err == nil, nil
+}
+
+func ToggleAutostart(context Context, on bool, forAutoinstallIgnored bool) error {
+	k, err := registry.OpenKey(registry.CURRENT_USER, autoRegPath, registry.QUERY_VALUE|registry.WRITE)
+	if err != nil {
+		return fmt.Errorf("Error opening StartupFolder registry key: %v", err)
+	}
+	defer k.Close()
+
+	// Delete old key if it exists.
+	// TODO Remove this in 2022.
+	k.DeleteValue(autoRegDeprecatedName)
+
+	if !on {
+		// it might not exists, don't propagate error.
+		k.DeleteValue(autoRegName)
+		return nil
+	}
+
+	appDataDir, err := libkb.LocalDataDir()
+	if err != nil {
+		return fmt.Errorf("Error getting AppDataDir: %v", err)
+	}
+
+	err = k.SetStringValue(autoRegName, appDataDir+`\Keybase\Gui\Keybase.exe`)
+	if err != nil {
+		return fmt.Errorf("Error setting registry Run value %v", err)
+	}
+	return nil
+}
+
+// This is the old startup info logging. Retain it for now, but it is soon useless.
+// TODO Remove in 2021.
+func deprecatedStartupInfo(logFile *os.File) {
+	if appDataDir, err := libkb.AppDataDir(); err != nil {
+		logFile.WriteString("Error getting AppDataDir\n")
+	} else {
+		if exists, err := libkb.FileExists(filepath.Join(appDataDir, "Microsoft\\Windows\\Start Menu\\Programs\\Startup\\KeybaseStartup.lnk")); err == nil && exists == false {
+			logFile.WriteString("  -- Service startup shortcut missing! --\n\n")
+		} else if err != nil {
+			k, err := registry.OpenKey(registry.CURRENT_USER, "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\StartupApproved\\StartupFolder", registry.QUERY_VALUE|registry.READ)
+			if err != nil {
+				logFile.WriteString("Error opening Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\StartupApproved\\StartupFolder\n")
+			} else {
+				val, _, err := k.GetBinaryValue("KeybaseStartup.lnk")
+				if err == nil && len(val) > 0 && val[0] != 2 {
+					logFile.WriteString("  -- Service startup shortcut disabled in registry! --\n\n")
+				}
+			}
+		}
+	}
+}
+
 func getVersionAndDrivers(logFile *os.File) {
 	// Capture Windows Version
 	cmd := exec.Command("cmd", "ver")
@@ -230,23 +299,9 @@ func getVersionAndDrivers(logFile *os.File) {
 	logFile.WriteString("\n")
 
 	// Check whether the service shortcut is still present and not disabled
-	if appDataDir, err := libkb.AppDataDir(); err != nil {
-		logFile.WriteString("Error getting AppDataDir\n")
-	} else {
-		if exists, err := libkb.FileExists(filepath.Join(appDataDir, "Microsoft\\Windows\\Start Menu\\Programs\\Startup\\KeybaseStartup.lnk")); err == nil && exists == false {
-			logFile.WriteString("  -- Service startup shortcut missing! --\n\n")
-		} else if err != nil {
-			k, err := registry.OpenKey(registry.CURRENT_USER, "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\StartupApproved\\StartupFolder", registry.QUERY_VALUE|registry.READ)
-			if err != nil {
-				logFile.WriteString("Error opening Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\StartupApproved\\StartupFolder\n")
-			} else {
-				val, _, err := k.GetBinaryValue("KeybaseStartup.lnk")
-				if err == nil && len(val) > 0 && val[0] != 2 {
-					logFile.WriteString("  -- Service startup shortcut disabled in registry! --\n\n")
-				}
-			}
-		}
-	}
+	deprecatedStartupInfo(logFile)
+	status, err := autostartStatus()
+	logFile.WriteString(fmt.Sprintf("AutoStart: %v, %v\n", status, err))
 
 	// List filesystem drivers
 	outputBytes, err := exec.Command("driverquery").Output()
@@ -317,4 +372,15 @@ func StartUpdateIfNeeded(ctx context.Context, log logger.Logger) error {
 func LsofMount(mountDir string, log Log) ([]CommonLsofResult, error) {
 	log.Warning("Cannot use lsof on Windows.")
 	return nil, fmt.Errorf("Cannot use lsof on Windows.")
+}
+
+func GetAutostart(context Context) keybase1.OnLoginStartupStatus {
+	status, err := autostartStatus()
+	if err != nil {
+		return keybase1.OnLoginStartupStatus_UNKNOWN
+	}
+	if status {
+		return keybase1.OnLoginStartupStatus_ENABLED
+	}
+	return keybase1.OnLoginStartupStatus_DISABLED
 }

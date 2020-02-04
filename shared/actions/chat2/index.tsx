@@ -30,6 +30,7 @@ import {saveAttachmentToCameraRoll, showShareActionSheet} from '../platform-spec
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {RPCError} from '../../util/errors'
 import * as Container from '../../util/container'
+import {isIOS} from '../../constants/platform'
 
 const onConnect = async () => {
   try {
@@ -1652,6 +1653,7 @@ function* inboxSearch(_: Container.TypedState, action: Chat2Gen.InboxSearchPaylo
           })
           return arr
         }, []),
+        suggested: resp.hits.suggestedMatches,
       })
     )
 
@@ -2312,6 +2314,24 @@ const markThreadAsRead = async (
   })
 }
 
+const messagesAdd = (
+  state: Container.TypedState,
+  _action: Chat2Gen.MessagesAddPayload,
+  logger: Saga.SagaLogger
+) => {
+  if (!state.config.loggedIn) {
+    logger.info('bail on not logged in')
+    return
+  }
+  const actions = Array.from(state.chat2.shouldDeleteZzzJourneycard.entries()).map(([cid, jc]) =>
+    Chat2Gen.createMessagesWereDeleted({
+      conversationIDKey: cid,
+      ordinals: [jc.ordinal],
+    })
+  )
+  return actions
+}
+
 // Delete a message and any older
 const deleteMessageHistory = async (
   state: Container.TypedState,
@@ -2552,6 +2572,27 @@ function* mobileMessageAttachmentShare(
     logger.error('Downloading attachment failed')
     throw new Error('Downloading attachment failed')
   }
+
+  if (isIOS && message.fileName.endsWith('.pdf')) {
+    yield Saga.put(
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {
+              title: message.title || message.fileName,
+              // Prepend the 'file://' prefix here. Otherwise when webview
+              // automatically does that, it triggers onNavigationStateChange
+              // with the new address and we'd call stoploading().
+              url: 'file://' + filePath,
+            },
+            selected: 'chatPDF',
+          },
+        ],
+      })
+    )
+    return
+  }
+
   try {
     yield showShareActionSheet({filePath, mimeType: message.fileType})
   } catch (e) {
@@ -3709,6 +3750,7 @@ function* chat2Saga() {
     ],
     markThreadAsRead
   )
+  yield* Saga.chainAction2(Chat2Gen.messagesAdd, messagesAdd)
   yield* Saga.chainAction2(
     [Chat2Gen.leaveConversation, TeamsGen.leftTeam, TeamsGen.deleteChannelConfirmed],
     clearModalsFromConvEvent

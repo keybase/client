@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
 )
 
@@ -52,19 +53,21 @@ func SinkFromFilename(ctx context.Context, g *globals.Context, uid gregor1.UID,
 
 func Download(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	convID chat1.ConversationID, messageID chat1.MessageID, sink io.WriteCloser, showPreview bool,
-	progress func(int64, int64), ri func() chat1.RemoteInterface) error {
+	progress func(int64, int64), ri func() chat1.RemoteInterface) (err error) {
 
 	obj, err := AssetFromMessage(ctx, g, uid, convID, messageID, showPreview)
 	if err != nil {
 		return err
 	}
+	endInstrumentation := rpc.NewNetworkInstrumenter(g.ExternalG().NetworkInstrumenterStorage).Instrument("ChatAttachmentDownload")
+	defer func() { _ = endInstrumentation(obj.Size) }()
 	fetcher := g.AttachmentURLSrv.GetAttachmentFetcher()
-	if err := fetcher.FetchAttachment(ctx, sink, convID, obj, ri,
+	if err = fetcher.FetchAttachment(ctx, sink, convID, obj, ri,
 		NewS3Signer(ri), progress); err != nil {
 		sink.Close()
 		return err
 	}
-	if err := sink.Close(); err != nil {
+	if err = sink.Close(); err != nil {
 		return err
 	}
 	return nil

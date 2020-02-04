@@ -2,10 +2,9 @@ import * as ConfigGen from '../config-gen'
 import * as ConfigConstants from '../../constants/config'
 import * as EngineGen from '../engine-gen-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as SafeElectron from '../../util/safe-electron.desktop'
+import * as Electron from 'electron'
 import * as Saga from '../../util/saga'
 import logger from '../../logger'
-import path from 'path'
 import {NotifyPopup} from '../../native/notifications'
 import {execFile} from 'child_process'
 import {getEngine} from '../../engine'
@@ -16,6 +15,9 @@ import {writeLogLinesToFile} from '../../util/forward-logs'
 import InputMonitor from './input-monitor.desktop'
 import {skipAppFocusActions} from '../../local-debug.desktop'
 import * as Container from '../../util/container'
+
+const {resolve} = KB.path
+const {argv, env, pid} = KB.process
 
 export function showShareActionSheet() {
   throw new Error('Show Share Action - unsupported on this platform')
@@ -28,7 +30,7 @@ export async function saveAttachmentToCameraRoll() {
 }
 
 const showMainWindow = () => {
-  SafeElectron.getApp().emit('KBkeybase', '', {type: 'showMainWindow'})
+  Electron.ipcRenderer.invoke('KBkeybase', {type: 'showMainWindow'})
 }
 
 export function displayNewMessageNotification() {
@@ -77,7 +79,7 @@ function* initializeInputMonitor(): Iterable<any> {
       const userActive = type === 'active'
       yield Saga.put(ConfigGen.createChangedActive({userActive}))
       // let node thread save file
-      SafeElectron.getApp().emit('KBkeybase', '', {
+      Electron.ipcRenderer.invoke('KBkeybase', {
         payload: {changedAtMs: Date.now(), isUserActive: userActive},
         type: 'activeChanged',
       })
@@ -85,9 +87,9 @@ function* initializeInputMonitor(): Iterable<any> {
   }
 }
 
-export const dumpLogs = async (_?: Container.TypedState, action?: ConfigGen.DumpLogsPayload) => {
+export const dumpLogs = async (action?: ConfigGen.DumpLogsPayload) => {
   const fromRender = await logger.dump()
-  const globalLogger: typeof logger = SafeElectron.getRemote().getGlobal('globalLogger')
+  const globalLogger: typeof logger = Electron.remote.getGlobal('globalLogger')
   const fromMain = await globalLogger.dump()
   await writeLogLinesToFile([...fromRender, ...fromMain])
   // quit as soon as possible
@@ -104,8 +106,8 @@ function* checkRPCOwnership(_: Container.TypedState, action: ConfigGen.DaemonHan
   try {
     logger.info('Checking RPC ownership')
 
-    const localAppData = String(process.env.LOCALAPPDATA)
-    var binPath = localAppData ? path.resolve(localAppData, 'Keybase', 'keybase.exe') : 'keybase.exe'
+    const localAppData = String(env.LOCALAPPDATA)
+    var binPath = localAppData ? resolve(localAppData, 'Keybase', 'keybase.exe') : 'keybase.exe'
     const args = ['pipeowner', socketPath]
     yield Saga.callUntyped(
       () =>
@@ -168,7 +170,7 @@ function* setupReachabilityWatcher() {
 
 const onExit = () => {
   console.log('App exit requested')
-  SafeElectron.getApp().exit(0)
+  Electron.remote.app.exit(0)
 }
 
 const onFSActivity = (state: Container.TypedState, action: EngineGen.Keybase1NotifyFSFSActivityPayload) => {
@@ -185,7 +187,7 @@ const onShutdown = (action: EngineGen.Keybase1NotifyServiceShutdownPayload) => {
   if (isWindows && code !== RPCTypes.ExitCode.restart) {
     console.log('Quitting due to service shutdown with code: ', code)
     // Quit just the app, not the service
-    SafeElectron.getApp().quit()
+    Electron.remote.app.quit()
   }
 }
 
@@ -193,10 +195,10 @@ const onConnected = () => {
   // Introduce ourselves to the service
   RPCTypes.configHelloIAmRpcPromise({
     details: {
-      argv: process.argv,
+      argv: argv,
       clientType: RPCTypes.ClientType.guiMain,
       desc: 'Main Renderer',
-      pid: SafeElectron.getRemote().process.pid,
+      pid,
       version: __VERSION__, // eslint-disable-line no-undef
     },
   }).catch(_ => {})
@@ -221,7 +223,7 @@ const prepareLogSend = async (action: EngineGen.Keybase1LogsendPrepareLogsendPay
 }
 
 const copyToClipboard = (action: ConfigGen.CopyToClipboardPayload) => {
-  SafeElectron.getClipboard().writeText(action.payload.text)
+  Electron.clipboard.writeText(action.payload.text)
 }
 
 const sendWindowsKBServiceCheck = (
@@ -234,7 +236,7 @@ const sendWindowsKBServiceCheck = (
     state.config.daemonHandshakeWaiters.size === 0 &&
     state.config.daemonHandshakeFailedReason === ConfigConstants.noKBFSFailReason
   ) {
-    SafeElectron.getApp().emit('keybase' as any, {type: 'requestWindowsStartService'})
+    Electron.ipcRenderer.invoke('KBkeybase', {type: 'requestWindowsStartService'})
   }
 }
 
@@ -277,7 +279,7 @@ const updateNow = async () => {
 
 function* startPowerMonitor() {
   const channel = Saga.eventChannel(emitter => {
-    const pm = SafeElectron.getPowerMonitor()
+    const pm = Electron.remote.powerMonitor
     pm.on('suspend', () => emitter('suspend'))
     pm.on('resume', () => emitter('resume'))
     pm.on('shutdown', () => emitter('shutdown'))
@@ -386,21 +388,21 @@ const setOpenAtLogin = async (state: Container.TypedState) => {
   })
 
   if (__DEV__) return
-  if (isLinux) {
+  if (isLinux || isWindows) {
     const enabled =
-      (await RPCTypes.ctlGetNixOnLoginStartupRpcPromise()) === RPCTypes.OnLoginStartupStatus.enabled
-    if (enabled !== openAtLogin) await setNixOnLoginStartup(openAtLogin)
+      (await RPCTypes.ctlGetOnLoginStartupRpcPromise()) === RPCTypes.OnLoginStartupStatus.enabled
+    if (enabled !== openAtLogin) await setOnLoginStartup(openAtLogin)
   } else {
-    if (SafeElectron.getApp().getLoginItemSettings().openAtLogin !== openAtLogin) {
+    if (Electron.remote.app.getLoginItemSettings().openAtLogin !== openAtLogin) {
       logger.info(`Login item settings changed! now ${openAtLogin}`)
-      SafeElectron.getApp().setLoginItemSettings({openAtLogin})
+      Electron.remote.app.setLoginItemSettings({openAtLogin})
     }
   }
 }
 
-const setNixOnLoginStartup = async (enabled: boolean) => {
-  RPCTypes.ctlSetNixOnLoginStartupRpcPromise({enabled}).catch(err => {
-    logger.warn(`Error in sending ctlSetNixOnLoginStartup: ${err.message}`)
+const setOnLoginStartup = async (enabled: boolean) => {
+  RPCTypes.ctlSetOnLoginStartupRpcPromise({enabled}).catch(err => {
+    logger.warn(`Error in sending ctlSetOnLoginStartup: ${err.message}`)
   })
 }
 
@@ -413,7 +415,7 @@ export function* platformConfigSaga() {
   yield* Saga.chainAction2(ConfigGen.setOpenAtLogin, setOpenAtLogin)
   yield* Saga.chainAction2(ConfigGen.setNotifySound, setNotifySound)
   yield* Saga.chainAction2(ConfigGen.showMain, showMainWindow)
-  yield* Saga.chainAction2(ConfigGen.dumpLogs, dumpLogs)
+  yield* Saga.chainAction(ConfigGen.dumpLogs, dumpLogs)
   getEngine().registerCustomResponse('keybase.1.logsend.prepareLogsend')
   yield* Saga.chainAction(EngineGen.keybase1LogsendPrepareLogsend, prepareLogSend)
   yield* Saga.chainAction2(EngineGen.connected, onConnected)

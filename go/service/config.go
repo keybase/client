@@ -162,6 +162,36 @@ func (h ConfigHandler) GetFullStatus(ctx context.Context, sessionID int) (res *k
 	return status.GetFullStatus(mctx)
 }
 
+func (h ConfigHandler) IsServiceRunning(ctx context.Context, sessionID int) (res bool, err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("CFG")
+	defer mctx.TraceTimed("IsServiceRunning", func() error { return err })()
+
+	// set service status
+	if mctx.G().Env.GetStandalone() {
+		res = false
+	} else {
+		res = true
+	}
+	return
+}
+
+func (h ConfigHandler) IsKBFSRunning(ctx context.Context, sessionID int) (res bool, err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("CFG")
+	defer mctx.TraceTimed("IsKBFSRunning", func() error { return err })()
+
+	clients := libkb.GetClientStatus(mctx)
+
+	kbfs := status.GetFirstClient(clients, keybase1.ClientType_KBFS)
+
+	return kbfs != nil, nil
+}
+
+func (h ConfigHandler) GetNetworkStats(ctx context.Context, sessionID int) (res []keybase1.InstrumentationStat, err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("CFG")
+	defer mctx.TraceTimed("GetNetworkStats", func() error { return err })()
+	return mctx.G().NetworkInstrumenterStorage.Stats()
+}
+
 func (h ConfigHandler) LogSend(ctx context.Context, arg keybase1.LogSendArg) (res keybase1.LogSendID, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("CFG")
 	defer mctx.TraceTimed("LogSend", func() error { return err })()
@@ -177,9 +207,10 @@ func (h ConfigHandler) LogSend(ctx context.Context, arg keybase1.LogSendArg) (re
 		numBytes = status.LogSendMaxBytes
 	}
 
-	logSendContext := status.NewLogSendContext(h.G(), fstatus, statusJSON, arg.Feedback)
+	// pass empty networkStatsJSON here since we call LogSend with addNetworkStats=true below
+	logSendContext := status.NewLogSendContext(h.G(), fstatus, statusJSON, "", arg.Feedback)
 	return logSendContext.LogSend(arg.SendLogs, numBytes,
-		false /* mergeExtendedStatus */)
+		false /* mergeExtendedStatus */, true /* addNetworkStats */)
 }
 
 func (h ConfigHandler) GetAllProvisionedUsernames(ctx context.Context, sessionID int) (res keybase1.AllProvisionedUsernames, err error) {
@@ -339,9 +370,12 @@ func (h ConfigHandler) GetBootstrapStatus(ctx context.Context, sessionID int) (k
 	return status, nil
 }
 
-func (h ConfigHandler) RequestFollowerInfo(ctx context.Context, uid keybase1.UID) error {
+func (h ConfigHandler) RequestFollowingAndUnverifiedFollowers(ctx context.Context, sessionID int) error {
+	if err := assertLoggedIn(ctx, h.G()); err != nil {
+		return err
+	}
 	// Queue up a load for follower info
-	return h.svc.trackerLoader.Queue(ctx, uid)
+	return h.svc.trackerLoader.Queue(ctx, h.G().ActiveDevice.UID())
 }
 
 func (h ConfigHandler) GetRememberPassphrase(ctx context.Context, sessionID int) (bool, error) {

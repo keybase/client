@@ -81,9 +81,13 @@ class UnknownMention extends React.Component<Props, State> {
         style={Styles.collapseStyles([this.props.style, styles.text])}
         onClick={this._onMouseOver}
       >
-        {Styles.isMobile && ' '}
-        {text}
-        {Styles.isMobile && ' '}
+        <Kb.Text
+          type="Body"
+          allowFontScaling={this.props.allowFontScaling}
+          style={Styles.collapseStyles([this.props.style, styles.text])}
+        >
+          {text}
+        </Kb.Text>
       </Kb.Text>
     )
     const popups = (

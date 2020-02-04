@@ -86,7 +86,6 @@ type AgeProps = {
 
 const UpdateAge = (props: AgeProps) => {
   const [timerCounter, setTimerCounter] = React.useState(0)
-  //lifecycle
   React.useEffect(() => {
     const timer = setInterval(() => {
       setTimerCounter(timerCounter + 1)
@@ -114,7 +113,6 @@ type DurationProps = {
 
 const LiveDuration = (props: DurationProps) => {
   const [timerCounter, setTimerCounter] = React.useState(0)
-  //lifecycle
   React.useEffect(() => {
     const timer = setInterval(() => {
       setTimerCounter(timerCounter + 1)
@@ -124,7 +122,6 @@ const LiveDuration = (props: DurationProps) => {
     }
   }, [timerCounter])
 
-  //render
   const duration = props.liveLocationEndTime - Date.now()
   return (
     <Kb.Text type="BodyTinySemibold">

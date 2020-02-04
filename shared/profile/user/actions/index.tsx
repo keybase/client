@@ -1,4 +1,6 @@
 import * as Constants from '../../../constants/tracker2'
+import * as BotsGen from '../../../actions/bots-gen'
+import * as Container from '../../../util/container'
 import * as Kb from '../../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../../styles'
@@ -13,7 +15,6 @@ type Props = {
   blocked: boolean
   hidFromFollowers: boolean
   isBot: boolean
-  loadFeaturedBots: () => void
   onAccept: () => void
   onAddToTeam: () => void
   onBrowsePublicFolder: () => void
@@ -26,7 +27,6 @@ type Props = {
   onRequestLumens: () => void
   onSendLumens: () => void
   onUnfollow: () => void
-  onUnblock: () => void
   onManageBlocking: () => void
   state: Types.DetailsState
   username: string
@@ -48,11 +48,11 @@ type DropdownProps = Pick<
 }
 
 const Actions = (p: Props) => {
+  const dispatch = Container.useDispatch()
   // load featured bots on first render
   React.useEffect(() => {
-    p.loadFeaturedBots()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    dispatch(BotsGen.createGetFeaturedBots({}))
+  }, [dispatch])
   if (p.blocked) {
     return (
       <Kb.Box2 gap="tiny" centerChildren={true} direction="horizontal" fullWidth={true}>

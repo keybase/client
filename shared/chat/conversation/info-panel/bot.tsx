@@ -50,6 +50,7 @@ export const Bot = (props: BotProps) => {
           usernames={[ownerUser ?? botUsername]}
           type="BodySmall"
           withProfileCardPopup={true}
+          onUsernameClicked="profile"
         />
       )}
     </Kb.Box2>

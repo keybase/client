@@ -300,9 +300,10 @@ export type TypedActionsMap = {
   'config:setUseNativeFrame': config.SetUseNativeFramePayload
   'config:setWhatsNewLastSeenVersion': config.SetWhatsNewLastSeenVersionPayload
   'config:toggleRuntimeStats': config.ToggleRuntimeStatsPayload
-  'config:loadNixOnLoginStartup': config.LoadNixOnLoginStartupPayload
-  'config:loadedNixOnLoginStartup': config.LoadedNixOnLoginStartupPayload
+  'config:loadOnLoginStartup': config.LoadOnLoginStartupPayload
+  'config:loadedOnLoginStartup': config.LoadedOnLoginStartupPayload
   'config:loadOnStart': config.LoadOnStartPayload
+  'config:showShareActionSheet': config.ShowShareActionSheetPayload
   'crypto:clearRecipients': crypto.ClearRecipientsPayload
   'crypto:clearInput': crypto.ClearInputPayload
   'crypto:downloadEncryptedText': crypto.DownloadEncryptedTextPayload
@@ -495,6 +496,7 @@ export type TypedActionsMap = {
   'engine-gen:keybase1NotifyUsersUserChanged': enginegen.Keybase1NotifyUsersUserChangedPayload
   'engine-gen:keybase1NotifyUsersPasswordChanged': enginegen.Keybase1NotifyUsersPasswordChangedPayload
   'engine-gen:keybase1NotifyUsersIdentifyUpdate': enginegen.Keybase1NotifyUsersIdentifyUpdatePayload
+  'engine-gen:keybase1PgpUiOutputPGPWarning': enginegen.Keybase1PgpUiOutputPGPWarningPayload
   'engine-gen:keybase1PgpUiOutputSignatureSuccess': enginegen.Keybase1PgpUiOutputSignatureSuccessPayload
   'engine-gen:keybase1PgpUiOutputSignatureSuccessNonKeybase': enginegen.Keybase1PgpUiOutputSignatureSuccessNonKeybasePayload
   'engine-gen:keybase1PgpUiKeyGenerated': enginegen.Keybase1PgpUiKeyGeneratedPayload
@@ -956,6 +958,7 @@ export type TypedActionsMap = {
   'teams:renameTeam': teams.RenameTeamPayload
   'teams:setTeamRoleMapLatestKnownVersion': teams.SetTeamRoleMapLatestKnownVersionPayload
   'teams:setTeamRoleMap': teams.SetTeamRoleMapPayload
+  'teams:toggleInvitesCollapsed': teams.ToggleInvitesCollapsedPayload
   'tracker2:load': tracker2.LoadPayload
   'tracker2:updatedDetails': tracker2.UpdatedDetailsPayload
   'tracker2:updateResult': tracker2.UpdateResultPayload
@@ -963,7 +966,7 @@ export type TypedActionsMap = {
   'tracker2:updateAssertion': tracker2.UpdateAssertionPayload
   'tracker2:changeFollow': tracker2.ChangeFollowPayload
   'tracker2:ignore': tracker2.IgnorePayload
-  'tracker2:updateFollowers': tracker2.UpdateFollowersPayload
+  'tracker2:updateFollows': tracker2.UpdateFollowsPayload
   'tracker2:getProofSuggestions': tracker2.GetProofSuggestionsPayload
   'tracker2:proofSuggestionsUpdated': tracker2.ProofSuggestionsUpdatedPayload
   'tracker2:showUser': tracker2.ShowUserPayload
@@ -1092,13 +1095,6 @@ export type TypedActionsMap = {
   'wallets:loadMobileOnlyMode': wallets.LoadMobileOnlyModePayload
   'wallets:loadedMobileOnlyMode': wallets.LoadedMobileOnlyModePayload
   'wallets:changeMobileOnlyMode': wallets.ChangeMobileOnlyModePayload
-  'wallets:changeAirdrop': wallets.ChangeAirdropPayload
-  'wallets:hideAirdropBanner': wallets.HideAirdropBannerPayload
-  'wallets:updateAirdropBannerState': wallets.UpdateAirdropBannerStatePayload
-  'wallets:updateAirdropState': wallets.UpdateAirdropStatePayload
-  'wallets:updatedAirdropState': wallets.UpdatedAirdropStatePayload
-  'wallets:updateAirdropDetails': wallets.UpdateAirdropDetailsPayload
-  'wallets:updatedAirdropDetails': wallets.UpdatedAirdropDetailsPayload
   'wallets:refreshTrustlineAcceptedAssets': wallets.RefreshTrustlineAcceptedAssetsPayload
   'wallets:refreshTrustlineAcceptedAssetsByUsername': wallets.RefreshTrustlineAcceptedAssetsByUsernamePayload
   'wallets:refreshTrustlinePopularAssets': wallets.RefreshTrustlinePopularAssetsPayload

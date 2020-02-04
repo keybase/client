@@ -63,7 +63,7 @@ export type EncrypState = CommonState & {
   meta: {
     hasRecipients: boolean
     hasSBS: boolean
-    noIncludeSelf: boolean
+    hideIncludeSelf: boolean
   }
   options: EncryptOptions
   recipients: Array<string> // Only for encrypt operation
@@ -75,10 +75,10 @@ export type SignState = CommonState & {}
 
 export type VerifyState = CommonState & {}
 
-export type State = Readonly<{
-  decrypt: DecryptState
-  encrypt: EncrypState
-  sign: SignState
-  teamBuilding: TeamBuildingTypes.TeamBuildingSubState
-  verify: VerifyState
-}>
+export type State = {
+  readonly decrypt: DecryptState
+  readonly encrypt: EncrypState
+  readonly sign: SignState
+  readonly teamBuilding: TeamBuildingTypes.TeamBuildingSubState
+  readonly verify: VerifyState
+}

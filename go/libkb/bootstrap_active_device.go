@@ -107,7 +107,7 @@ func LoadUnlockedDeviceKeys(m MetaContext, uid keybase1.UID, deviceID keybase1.D
 	arg := NewLoadUserArgWithMetaContext(m).WithUID(uid).WithPublicKeyOptional()
 
 	if mode == LoadUnlockedDeviceKeysModeOffline {
-		arg = arg.WithStaleOK(true).WithCachedOnly()
+		arg = arg.WithStaleOK(true).WithCachedOnly(true)
 	} else if mode == LoadUnlockedDeviceKeysModeStaleOK {
 		arg = arg.WithStaleOK(true)
 	}

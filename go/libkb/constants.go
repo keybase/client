@@ -333,6 +333,7 @@ const (
 	SCChatMessageCollision                      = int(keybase1.StatusCode_SCChatMessageCollision)
 	SCChatDuplicateMessage                      = int(keybase1.StatusCode_SCChatDuplicateMessage)
 	SCChatClientError                           = int(keybase1.StatusCode_SCChatClientError)
+	SCChatUsersAlreadyInConversationError       = int(keybase1.StatusCode_SCChatUsersAlreadyInConversationError)
 	SCAccountReset                              = int(keybase1.StatusCode_SCAccountReset)
 	SCIdentifiesFailed                          = int(keybase1.StatusCode_SCIdentifiesFailed)
 	SCTeamReadError                             = int(keybase1.StatusCode_SCTeamReadError)
@@ -405,6 +406,7 @@ const (
 	LinkTypeWebServiceBinding LinkType = "web_service_binding"
 	LinkTypePerUserKey        LinkType = "per_user_key"
 	LinkTypeWalletStellar     LinkType = "wallet.stellar"
+	LinkTypeWotAttest         LinkType = "wot.attest"
 
 	// team links
 	LinkTypeTeamRoot         LinkType = "team.root"
@@ -456,15 +458,6 @@ const (
 	DeviceStatusNone    = 0
 	DeviceStatusActive  = 1
 	DeviceStatusDefunct = 2
-)
-
-// these strings need to match the keys in
-// keybase/lib_public/public_constants.iced ->
-// public_constants.device.type
-const (
-	DeviceTypeDesktop = "desktop"
-	DeviceTypeMobile  = "mobile"
-	DeviceTypePaper   = "backup"
 )
 
 const DownloadURL = "https://keybase.io/download"

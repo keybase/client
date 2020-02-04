@@ -1,9 +1,9 @@
-import * as Chat2Gen from '../../../../actions/chat2-gen'
-import * as RouteTreeGen from '../../../../actions/route-tree-gen'
-import {namedConnect, isMobile} from '../../../../util/container'
+import * as Chat2Gen from '../../../actions/chat2-gen'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import {namedConnect, isMobile} from '../../../util/container'
 import ChatInboxHeader from '.'
-import HiddenString from '../../../../util/hidden-string'
-import {appendNewChatBuilder} from '../../../../actions/typed-routes'
+import HiddenString from '../../../util/hidden-string'
+import {appendNewChatBuilder} from '../../../actions/typed-routes'
 
 export default namedConnect(
   state => {

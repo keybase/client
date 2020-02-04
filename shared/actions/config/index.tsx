@@ -75,7 +75,7 @@ const getFollowerInfo = (state: Container.TypedState, action: ConfigGen.LoadOnSt
   }
   if (uid) {
     // request follower info in the background
-    RPCTypes.configRequestFollowerInfoRpcPromise({uid: state.config.uid})
+    RPCTypes.configRequestFollowingAndUnverifiedFollowersRpcPromise()
   }
 }
 
@@ -559,20 +559,15 @@ const updateServerConfig = async (state: Container.TypedState, action: ConfigGen
     return false
   }
   try {
+    // TODO real rpc so we get real types instead of this untyped bag of key/values
     const str = await RPCTypes.apiserverGetWithSessionRpcPromise({
       endpoint: 'user/features',
     })
-    const obj: {
-      features: {
-        admin?: {
-          value: boolean
-        }
-      }
-    } = JSON.parse(str.body)
-    const features = Object.keys(obj.features).reduce((map, key) => {
-      map[key] = obj.features[key as any]?.value ?? false
+    const obj: {features: any} = JSON.parse(str.body)
+    const features = Object.keys(obj.features).reduce<{[key: string]: boolean}>((map, key) => {
+      map[key] = (obj.features[key as any] as any)?.value ?? false
       return map
-    }, {}) as {[K in string]: boolean}
+    }, {})
 
     const serverConfig = {
       chatIndexProfilingEnabled: !!features.admin,
@@ -707,11 +702,10 @@ const gregorPushState = (action: GregorGen.PushStatePayload) => {
   return actions
 }
 
-const loadNixOnLoginStartup = async () => {
+const loadOnLoginStartup = async () => {
   try {
-    const status =
-      (await RPCTypes.ctlGetNixOnLoginStartupRpcPromise()) === RPCTypes.OnLoginStartupStatus.enabled
-    return ConfigGen.createLoadedNixOnLoginStartup({status})
+    const status = (await RPCTypes.ctlGetOnLoginStartupRpcPromise()) === RPCTypes.OnLoginStartupStatus.enabled
+    return ConfigGen.createLoadedOnLoginStartup({status})
   } catch (err) {
     logger.warn('Error in loading proxy data', err)
     return null
@@ -859,7 +853,7 @@ function* configSaga() {
   yield Saga.spawn(PlatformSpecific.platformConfigSaga)
   yield Saga.spawn(criticalOutOfDateCheck)
 
-  yield* Saga.chainAction2(ConfigGen.loadNixOnLoginStartup, loadNixOnLoginStartup)
+  yield* Saga.chainAction2(ConfigGen.loadOnLoginStartup, loadOnLoginStartup)
 }
 
 export default configSaga

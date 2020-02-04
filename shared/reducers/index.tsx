@@ -51,8 +51,35 @@ const reducers = {
   wallets,
 }
 
-const rootReducer = combineReducers(reducers)
-export type TypedState = ReturnType<typeof rootReducer>
+// this is to help TS make this type more static so it emits cleanly
+const rootReducer: any = combineReducers(reducers as any)
+
+export type TypedState = {
+  autoreset: ReturnType<typeof autoreset>
+  chat2: ReturnType<typeof chat2>
+  config: ReturnType<typeof config>
+  crypto: ReturnType<typeof crypto>
+  deeplinks: ReturnType<typeof deeplinks>
+  devices: ReturnType<typeof devices>
+  fs: ReturnType<typeof fs>
+  git: ReturnType<typeof git>
+  login: ReturnType<typeof login>
+  notifications: ReturnType<typeof notifications>
+  people: ReturnType<typeof people>
+  pinentry: ReturnType<typeof pinentry>
+  profile: ReturnType<typeof profile>
+  provision: ReturnType<typeof provision>
+  push: ReturnType<typeof push>
+  recoverPassword: ReturnType<typeof recoverPassword>
+  settings: ReturnType<typeof settings>
+  signup: ReturnType<typeof signup>
+  teams: ReturnType<typeof teams>
+  tracker2: ReturnType<typeof tracker2>
+  unlockFolders: ReturnType<typeof unlockFolders>
+  users: ReturnType<typeof users>
+  waiting: ReturnType<typeof waiting>
+  wallets: ReturnType<typeof wallets>
+}
 
 export default function(state: TypedState | undefined, action: any): TypedState {
   return rootReducer(state, action)

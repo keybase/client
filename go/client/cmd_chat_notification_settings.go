@@ -1,7 +1,6 @@
 package client
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/keybase/cli"
@@ -61,8 +60,8 @@ func (c *CmdChatSetNotificationSettings) Run() error {
 }
 
 func (c *CmdChatSetNotificationSettings) ParseArgv(ctx *cli.Context) (err error) {
-	if len(ctx.Args()) != 0 {
-		return fmt.Errorf("Command accepts no arguments")
+	if len(ctx.Args()) > 0 {
+		return UnexpectedArgsError("notification-settings")
 	}
 	c.settings.Settings = make(map[chat1.GlobalAppNotificationSetting]bool)
 	for _, setting := range chat1.GlobalAppNotificationSettingsSorted() {

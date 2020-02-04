@@ -53,29 +53,25 @@ const orderTeams = memoize(orderTeamsImpl)
 
 type ReloadableProps = Omit<MainOwnProps, 'onManageChat' | 'onViewTeam'>
 
-const Reloadable = (
-  props: ReloadableProps & {
-    loadTeams: () => void
-    onClearBadges: () => void
-  }
-) => {
+const Reloadable = (props: ReloadableProps) => {
+  const dispatch = Container.useDispatch()
+  const loadTeams = React.useCallback(() => dispatch(TeamsGen.createGetTeams()), [dispatch])
+  const onClearBadges = React.useCallback(() => dispatch(TeamsGen.createClearNavBadges()), [dispatch])
+
   // On desktop, clear the badges upon navigating away from this tab. This is more reliable than nav events.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  React.useEffect(() => () => props.onClearBadges(), [])
+  React.useEffect(() => () => onClearBadges(), [onClearBadges])
   // Since this component does not unmount on mobile, also clear badge with nav events.
   useNavigationEvents(e => {
     if (e.type === 'willBlur') {
-      props.onClearBadges()
+      onClearBadges()
     }
   })
 
   // subscribe to teams changes
   useTeamsSubscribe()
 
-  const {loadTeams, onClearBadges, ...rest} = props
   const headerActions = useHeaderActions()
 
-  const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const otherActions = {
     onManageChat: (teamID: Types.TeamID) =>
@@ -86,7 +82,7 @@ const Reloadable = (
 
   return (
     <Kb.Reloadable waitingKeys={Constants.teamsLoadedWaitingKey} onReload={loadTeams}>
-      <Teams {...rest} {...headerActions} {...otherActions} />
+      <Teams {...props} {...headerActions} {...otherActions} />
     </Kb.Reloadable>
   )
 }
@@ -107,8 +103,6 @@ const Connected = Container.connect(
     sawChatBanner: state.teams.sawChatBanner || false,
   }),
   (dispatch: Container.TypedDispatch) => ({
-    loadTeams: () => dispatch(TeamsGen.createGetTeams()),
-    onClearBadges: () => dispatch(TeamsGen.createClearNavBadges()),
     onHideChatBanner: () =>
       dispatch(GregorGen.createUpdateCategory({body: 'true', category: 'sawChatBanner'})),
     onOpenFolder: (teamname: Types.Teamname) =>

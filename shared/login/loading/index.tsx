@@ -33,8 +33,7 @@ const Splash = (props: Props) => {
     if (!__STORYBOOK__) {
       setShowFeedbackTrueLater()
     }
-    // eslint-disable-next-line
-  }, [])
+  }, [setShowFeedbackTrueLater])
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container} gap="small">
       <Kb.Icon type={props.onRetry ? 'icon-keybase-logo-logged-out-80' : 'icon-keybase-logo-80'} />

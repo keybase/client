@@ -27,13 +27,13 @@ export type Assertion = {
   metas: ReadonlyArray<AssertionMeta>
   pickerText: string // Text + subtext for 'Other identities' dialog,
   pickerSubtext: string
-  pickerIcon: SiteIconSet // Icon for 'Other identities' dialog,
   priority: number // sort order,
   proofURL: string // http://twitter.com/bob/post/1234,
   sigID: string
   siteIcon: SiteIconSet
-  siteIconFull: SiteIconSet // full color icon,
-  siteIconWhite: SiteIconSet
+  siteIconDarkmode: SiteIconSet
+  siteIconFull: SiteIconSet // Full color icon for 'Other identities' dialog
+  siteIconFullDarkmode: SiteIconSet
   siteURL: string // https://twitter.com/bob,
   state: AssertionState
   timestamp: number // can be 0,
@@ -74,13 +74,14 @@ export type NonUserDetails = {
   pictureUrl?: string
   formattedName?: string
   siteIcon: SiteIconSet
-  siteIconFull: SiteIconSet // full color icon,
-  siteIconWhite: SiteIconSet
+  siteIconDarkmode: SiteIconSet // full color icon,
+  siteIconFull: SiteIconSet
+  siteIconFullDarkmode: SiteIconSet
   siteURL: string // https://twitter.com/bob,
 }
 
-export type State = Readonly<{
-  usernameToDetails: Map<string, Details>
-  usernameToNonUserDetails: Map<string, NonUserDetails>
-  proofSuggestions: ReadonlyArray<Assertion>
-}>
+export type State = {
+  readonly usernameToDetails: Map<string, Details>
+  readonly usernameToNonUserDetails: Map<string, NonUserDetails>
+  readonly proofSuggestions: ReadonlyArray<Assertion>
+}

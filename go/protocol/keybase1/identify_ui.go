@@ -340,37 +340,33 @@ func (o UserTeamShowcase) DeepCopy() UserTeamShowcase {
 }
 
 type UserCard struct {
-	Following            int                `codec:"following" json:"following"`
-	Followers            int                `codec:"followers" json:"followers"`
-	Uid                  UID                `codec:"uid" json:"uid"`
-	FullName             string             `codec:"fullName" json:"fullName"`
-	Location             string             `codec:"location" json:"location"`
-	Bio                  string             `codec:"bio" json:"bio"`
-	BioDecorated         string             `codec:"bioDecorated" json:"bioDecorated"`
-	Website              string             `codec:"website" json:"website"`
-	Twitter              string             `codec:"twitter" json:"twitter"`
-	YouFollowThem        bool               `codec:"youFollowThem" json:"youFollowThem"`
-	TheyFollowYou        bool               `codec:"theyFollowYou" json:"theyFollowYou"`
-	TeamShowcase         []UserTeamShowcase `codec:"teamShowcase" json:"teamShowcase"`
-	RegisteredForAirdrop bool               `codec:"registeredForAirdrop" json:"registeredForAirdrop"`
-	StellarHidden        bool               `codec:"stellarHidden" json:"stellarHidden"`
-	Blocked              bool               `codec:"blocked" json:"blocked"`
-	HidFromFollowers     bool               `codec:"hidFromFollowers" json:"hidFromFollowers"`
+	UnverifiedNumFollowing int                `codec:"unverifiedNumFollowing" json:"unverifiedNumFollowing"`
+	UnverifiedNumFollowers int                `codec:"unverifiedNumFollowers" json:"unverifiedNumFollowers"`
+	Uid                    UID                `codec:"uid" json:"uid"`
+	FullName               string             `codec:"fullName" json:"fullName"`
+	Location               string             `codec:"location" json:"location"`
+	Bio                    string             `codec:"bio" json:"bio"`
+	BioDecorated           string             `codec:"bioDecorated" json:"bioDecorated"`
+	Website                string             `codec:"website" json:"website"`
+	Twitter                string             `codec:"twitter" json:"twitter"`
+	TeamShowcase           []UserTeamShowcase `codec:"teamShowcase" json:"teamShowcase"`
+	RegisteredForAirdrop   bool               `codec:"registeredForAirdrop" json:"registeredForAirdrop"`
+	StellarHidden          bool               `codec:"stellarHidden" json:"stellarHidden"`
+	Blocked                bool               `codec:"blocked" json:"blocked"`
+	HidFromFollowers       bool               `codec:"hidFromFollowers" json:"hidFromFollowers"`
 }
 
 func (o UserCard) DeepCopy() UserCard {
 	return UserCard{
-		Following:     o.Following,
-		Followers:     o.Followers,
-		Uid:           o.Uid.DeepCopy(),
-		FullName:      o.FullName,
-		Location:      o.Location,
-		Bio:           o.Bio,
-		BioDecorated:  o.BioDecorated,
-		Website:       o.Website,
-		Twitter:       o.Twitter,
-		YouFollowThem: o.YouFollowThem,
-		TheyFollowYou: o.TheyFollowYou,
+		UnverifiedNumFollowing: o.UnverifiedNumFollowing,
+		UnverifiedNumFollowers: o.UnverifiedNumFollowers,
+		Uid:                    o.Uid.DeepCopy(),
+		FullName:               o.FullName,
+		Location:               o.Location,
+		Bio:                    o.Bio,
+		BioDecorated:           o.BioDecorated,
+		Website:                o.Website,
+		Twitter:                o.Twitter,
 		TeamShowcase: (func(x []UserTeamShowcase) []UserTeamShowcase {
 			if x == nil {
 				return nil

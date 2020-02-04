@@ -21,7 +21,6 @@ export default Container.connect(
     onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
     onSubmit: (password: string) =>
       dispatch(ProvisionGen.createSubmitPassword({password: new HiddenString(password)})),
-    resetRecoverState: () => dispatch(RecoverPasswordGen.createResetResetPasswordState()),
   }),
   (s, d, o: OwnProps) => ({
     ...o,

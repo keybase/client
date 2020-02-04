@@ -1499,6 +1499,18 @@ func (u UserVersionVector) Equal(u2 UserVersionVector) bool {
 	return true
 }
 
+func ToDurationMsec(d time.Duration) DurationMsec {
+	return DurationMsec(d / time.Millisecond)
+}
+
+func (d DurationMsec) Duration() time.Duration {
+	return time.Duration(d) * time.Millisecond
+}
+
+func ToDurationSec(d time.Duration) DurationSec {
+	return DurationSec(d / time.Second)
+}
+
 func (d DurationSec) Duration() time.Duration {
 	return time.Duration(d) * time.Second
 }
@@ -1874,6 +1886,36 @@ func PublicKeyV1FromDeviceKeyV2(keyV2 PublicKeyV2NaCl) PublicKey {
 		ETime:             keyV2.Base.ETime,
 		IsRevoked:         (keyV2.Base.Revocation != nil),
 	}
+}
+
+const (
+	DeviceTypeV2_NONE    DeviceTypeV2 = "none"
+	DeviceTypeV2_PAPER   DeviceTypeV2 = "backup"
+	DeviceTypeV2_DESKTOP DeviceTypeV2 = "desktop"
+	DeviceTypeV2_MOBILE  DeviceTypeV2 = "mobile"
+)
+
+func (d DeviceTypeV2) String() string {
+	return string(d)
+}
+
+func StringToDeviceTypeV2(s string) (d DeviceTypeV2, err error) {
+	deviceType := DeviceTypeV2(s)
+	switch deviceType {
+	case DeviceTypeV2_NONE, DeviceTypeV2_DESKTOP, DeviceTypeV2_MOBILE, DeviceTypeV2_PAPER:
+		//pass
+	default:
+		return DeviceTypeV2_NONE, fmt.Errorf("Unknown DeviceType: %s", deviceType)
+	}
+	return deviceType, nil
+}
+
+// defaults to Desktop
+func (dt *DeviceTypeV2) ToDeviceType() DeviceType {
+	if *dt == DeviceTypeV2_MOBILE {
+		return DeviceType_MOBILE
+	}
+	return DeviceType_DESKTOP
 }
 
 func RevokedKeyV1FromDeviceKeyV2(keyV2 PublicKeyV2NaCl) RevokedKey {
@@ -3675,4 +3717,11 @@ func (d *ClientDetails) Redact() {
 			d.Argv[i+1] = redactedReplacer
 		}
 	}
+}
+
+func (s UserSummarySet) Usernames() (ret []string) {
+	for _, x := range s.Users {
+		ret = append(ret, x.Username)
+	}
+	return ret
 }

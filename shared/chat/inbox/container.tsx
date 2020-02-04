@@ -74,7 +74,7 @@ type Props = {
   _onMountedDesktop: () => void
 } & _Props
 
-class InboxWrapper extends React.PureComponent<Props> {
+export class InboxWrapper extends React.PureComponent<Props> {
   static navigationOptions = {
     header: undefined,
     headerRight: <HeaderNewChatButton />,

@@ -50,7 +50,7 @@ export default Container.compose(
       onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
       onForgotUsername: () =>
         dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: 'forgotUsername'}]})),
-      onGoToSignup: () => dispatch(SignupGen.createRequestAutoInvite()),
+      onGoToSignup: (username: string) => dispatch(SignupGen.createRequestAutoInvite({username})),
       onSubmit: (username: string) => dispatch(ProvisionGen.createSubmitUsername({username})),
     }),
     (s, d, o: OwnProps) => ({

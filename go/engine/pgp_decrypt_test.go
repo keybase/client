@@ -472,10 +472,16 @@ func TestPGPDecryptNonKeybase(t *testing.T) {
 }
 
 type TestPgpUI struct {
+	OutputWarnings        int
 	OutputCount           int
 	OutputNonKeybaseCount int
 	ShouldPush            bool
 	Generated             keybase1.KeyGeneratedArg
+}
+
+func (t *TestPgpUI) OutputPGPWarning(context.Context, keybase1.OutputPGPWarningArg) error {
+	t.OutputWarnings++
+	return nil
 }
 
 func (t *TestPgpUI) OutputSignatureSuccess(context.Context, keybase1.OutputSignatureSuccessArg) error {
@@ -535,7 +541,7 @@ func TestPGPDecryptWithSyncedKey(t *testing.T) {
 		SecretUI:    u.NewSecretUI(),
 		GPGUI:       &gpgtestui{},
 	}
-	eng := NewLogin(tc.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+	eng := NewLogin(tc.G, keybase1.DeviceTypeV2_DESKTOP, "", keybase1.ClientType_CLI)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	err = RunEngine2(m, eng)
 	require.NoError(t, err, "no error when checking login")

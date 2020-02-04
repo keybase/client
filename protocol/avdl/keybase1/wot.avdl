@@ -1,0 +1,26 @@
+@namespace("keybase.1")
+
+protocol wot {
+  import idl "common.avdl";
+
+  enum UsernameVerificationType {
+    NONE_0,
+    AUDIO_1,
+    VIDEO_2,
+    EMAIL_3,
+    OTHER_CHAT_4,
+    IN_PERSON_5
+  }
+
+  record Confidence {
+    @jsonkey("vouched_by,omitempty")
+    array<string> vouchedBy; // usernames
+    array<SigID> proofs;
+    @jsonkey("username_verified_via,omitempty")
+    UsernameVerificationType usernameVerifiedVia;
+    string other;
+    @jsonkey("known_on_keybase_days,omitempty")
+    int knownOnKeybaseDays;
+  }
+
+}

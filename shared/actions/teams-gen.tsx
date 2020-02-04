@@ -76,6 +76,7 @@ export const setUpdatedChannelName = 'teams:setUpdatedChannelName'
 export const setUpdatedTopic = 'teams:setUpdatedTopic'
 export const settingsError = 'teams:settingsError'
 export const teamCreated = 'teams:teamCreated'
+export const toggleInvitesCollapsed = 'teams:toggleInvitesCollapsed'
 export const unsubscribeTeamDetails = 'teams:unsubscribeTeamDetails'
 export const unsubscribeTeamList = 'teams:unsubscribeTeamList'
 export const updateChannelName = 'teams:updateChannelName'
@@ -275,6 +276,7 @@ type _TeamCreatedPayload = {
   readonly teamID: Types.TeamID
   readonly teamname: string
 }
+type _ToggleInvitesCollapsedPayload = {readonly teamID: Types.TeamID}
 type _UnsubscribeTeamDetailsPayload = {readonly teamID: Types.TeamID}
 type _UnsubscribeTeamListPayload = void
 type _UpdateChannelNamePayload = {
@@ -361,6 +363,12 @@ export const createSaveTeamRetentionPolicy = (
 export const createUnsubscribeTeamDetails = (
   payload: _UnsubscribeTeamDetailsPayload
 ): UnsubscribeTeamDetailsPayload => ({payload, type: unsubscribeTeamDetails})
+/**
+ * Toggle whether invites are collapsed in the member list for this team
+ */
+export const createToggleInvitesCollapsed = (
+  payload: _ToggleInvitesCollapsedPayload
+): ToggleInvitesCollapsedPayload => ({payload, type: toggleInvitesCollapsed})
 /**
  * We successfully left a team
  */
@@ -809,6 +817,10 @@ export type SettingsErrorPayload = {
   readonly type: typeof settingsError
 }
 export type TeamCreatedPayload = {readonly payload: _TeamCreatedPayload; readonly type: typeof teamCreated}
+export type ToggleInvitesCollapsedPayload = {
+  readonly payload: _ToggleInvitesCollapsedPayload
+  readonly type: typeof toggleInvitesCollapsed
+}
 export type UnsubscribeTeamDetailsPayload = {
   readonly payload: _UnsubscribeTeamDetailsPayload
   readonly type: typeof unsubscribeTeamDetails
@@ -899,6 +911,7 @@ export type Actions =
   | SetUpdatedTopicPayload
   | SettingsErrorPayload
   | TeamCreatedPayload
+  | ToggleInvitesCollapsedPayload
   | UnsubscribeTeamDetailsPayload
   | UnsubscribeTeamListPayload
   | UpdateChannelNamePayload

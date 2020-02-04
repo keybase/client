@@ -1,0 +1,32 @@
+@namespace("keybase.1")
+protocol NetworkStats {
+  record InstrumentationStat {
+    @mpackkey("t")
+    string tag;
+    @mpackkey("n")
+    int numCalls;
+
+    @mpackkey("c")
+    Time ctime;
+    @mpackkey("m")
+    Time mtime;
+
+    @mpackkey("ad")
+    DurationMsec avgDur;
+    @mpackkey("xd")
+    DurationMsec maxDur;
+    @mpackkey("nd")
+    DurationMsec minDur;
+    @mpackkey("td")
+    DurationMsec totalDur;
+
+    @mpackkey("as")
+    int64 avgSize;
+    @mpackkey("xs")
+    int64 maxSize;
+    @mpackkey("ns")
+    int64 minSize;
+    @mpackkey("ts")
+    int64 totalSize;
+  }
+}

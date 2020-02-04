@@ -69,6 +69,7 @@ type Props = {
   title?: string | null
   type: TextType
   underline?: boolean
+  underlineNever?: boolean
 }
 
 type MetaType = {

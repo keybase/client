@@ -1,17 +1,19 @@
-package libkb
+package service
 
 import (
 	"errors"
 	"fmt"
 	"sync"
 
+	"github.com/keybase/client/go/engine"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
 )
 
 type TrackerLoader struct {
-	Contextified
+	libkb.Contextified
 	sync.Mutex
 
 	eg         errgroup.Group
@@ -20,14 +22,14 @@ type TrackerLoader struct {
 	queueCh    chan keybase1.UID
 }
 
-func NewTrackerLoader(g *GlobalContext) *TrackerLoader {
+func NewTrackerLoader(g *libkb.GlobalContext) *TrackerLoader {
 	l := &TrackerLoader{
-		Contextified: NewContextified(g),
+		Contextified: libkb.NewContextified(g),
 		shutdownCh:   make(chan struct{}),
 		queueCh:      make(chan keybase1.UID, 100),
 	}
 
-	g.PushShutdownHook(func(mctx MetaContext) error {
+	g.PushShutdownHook(func(mctx libkb.MetaContext) error {
 		<-l.Shutdown(mctx.Ctx())
 		return nil
 	})
@@ -78,44 +80,51 @@ func (l *TrackerLoader) Queue(ctx context.Context, uid keybase1.UID) (err error)
 	return nil
 }
 
-func (l *TrackerLoader) argsFromSyncer(syncer *Tracker2Syncer) (followers []string, followees []string) {
-	res := syncer.Result()
-	for _, u := range res.Users {
-		if u.IsFollower {
-			followers = append(followers, u.Username)
-		}
-		if u.IsFollowee {
-			followees = append(followees, u.Username)
-		}
+func (l *TrackerLoader) trackingArg(mctx libkb.MetaContext, uid keybase1.UID, withNetwork bool) *engine.ListTrackingEngineArg {
+	return &engine.ListTrackingEngineArg{UID: uid, CachedOnly: !withNetwork}
+}
+
+func (l *TrackerLoader) trackersArg(uid keybase1.UID, withNetwork bool) engine.ListTrackersUnverifiedEngineArg {
+	return engine.ListTrackersUnverifiedEngineArg{UID: uid, CachedOnly: !withNetwork}
+}
+
+func (l *TrackerLoader) loadInner(mctx libkb.MetaContext, uid keybase1.UID, withNetwork bool) error {
+	eng := engine.NewListTrackingEngine(mctx.G(), l.trackingArg(mctx, uid, withNetwork))
+	err := engine.RunEngine2(mctx, eng)
+	if err != nil {
+		return err
 	}
-	return followers, followees
+	following := eng.TableResult()
+
+	eng2 := engine.NewListTrackersUnverifiedEngine(mctx.G(), l.trackersArg(uid, withNetwork))
+	err = engine.RunEngine2(mctx, eng2)
+	if err != nil {
+		return err
+	}
+	followers := eng2.GetResults()
+
+	l.debug(mctx.Ctx(), "loadInner: loaded %d followers, %d following", len(followers.Users), len(following.Users))
+	l.G().NotifyRouter.HandleTrackingInfo(keybase1.TrackingInfoArg{
+		Uid:       uid,
+		Followees: following.Usernames(),
+		Followers: followers.Usernames(),
+	})
+
+	return nil
 }
 
 func (l *TrackerLoader) load(ctx context.Context, uid keybase1.UID) error {
 	defer l.G().CTraceTimed(ctx, "TrackerLoader.load", func() error { return nil })()
-	syncer := NewTracker2Syncer(l.G(), uid, true)
-	mctx := NewMetaContext(ctx, l.G())
 
-	// send up local copy first quickly
-	if err := syncer.loadFromStorage(mctx, uid, false); err != nil {
+	mctx := libkb.NewMetaContext(ctx, l.G())
+
+	withNetwork := false
+	if err := l.loadInner(mctx, uid, withNetwork); err != nil {
 		l.debug(ctx, "load: failed to load from local storage: %s", err)
-	} else {
-		// Notify with results
-		followers, followees := l.argsFromSyncer(syncer)
-		l.G().NotifyRouter.HandleTrackingInfo(uid, followers, followees)
 	}
 
-	// go get remote copy
-	if err := syncer.syncFromServer(mctx, uid, false); err != nil {
-		l.debug(ctx, "load: failed to load from server: %s", err)
-		return err
-	}
-	if err := syncer.store(mctx, uid); err != nil {
-		l.debug(ctx, "load: failed to store result: %s", err)
-	}
-	followers, followees := l.argsFromSyncer(syncer)
-	l.G().NotifyRouter.HandleTrackingInfo(uid, followers, followees)
-	return nil
+	withNetwork = true
+	return l.loadInner(mctx, uid, withNetwork)
 }
 
 func (l *TrackerLoader) loadLoop(stopCh chan struct{}) error {
@@ -123,8 +132,11 @@ func (l *TrackerLoader) loadLoop(stopCh chan struct{}) error {
 	for {
 		select {
 		case uid := <-l.queueCh:
-			if err := l.load(ctx, uid); err != nil {
+			err := l.load(ctx, uid)
+			if err != nil {
 				l.debug(ctx, "loadLoop: failed to load: %s", err)
+			} else {
+				l.debug(ctx, "loadLoop: load tracks for %s successfully", uid)
 			}
 		case <-stopCh:
 			return nil

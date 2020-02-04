@@ -67,12 +67,12 @@ export type FollowSuggestion = {
   iFollow: boolean
 }
 
-export type State = Readonly<{
-  lastViewed: Date
-  version: number
-  newItems: Array<PeopleScreenItem>
-  oldItems: Array<PeopleScreenItem>
-  followSuggestions: Array<FollowSuggestion>
-  resentEmail: string
-  teamBuilding: TeamBuildingTypes.TeamBuildingSubState
-}>
+export type State = {
+  readonly lastViewed: Date
+  readonly version: number
+  readonly newItems: Array<PeopleScreenItem>
+  readonly oldItems: Array<PeopleScreenItem>
+  readonly followSuggestions: Array<FollowSuggestion>
+  readonly resentEmail: string
+  readonly teamBuilding: TeamBuildingTypes.TeamBuildingSubState
+}
