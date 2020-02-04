@@ -54,10 +54,21 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
   )
 
   const topDescriptors = (
-    <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="xtiny">
-      <Kb.Box2 direction={Styles.isMobile ? 'vertical' : 'horizontal'} gap="xtiny" alignSelf="flex-start">
-        <Kb.Box2 direction="horizontal" alignItems="flex-end" gap="xtiny" alignSelf="flex-start">
-          <Kb.Text type="Header" lineClamp={1}>
+    <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="xtiny" style={styles.flexShrink}>
+      <Kb.Box2
+        direction={Styles.isMobile ? 'vertical' : 'horizontal'}
+        gap="xtiny"
+        alignSelf="flex-start"
+        style={styles.flexShrink}
+      >
+        <Kb.Box2
+          direction="horizontal"
+          alignItems="flex-end"
+          gap="xtiny"
+          alignSelf="flex-start"
+          style={styles.flexShrink}
+        >
+          <Kb.Text type="Header" lineClamp={3} style={styles.header}>
             {props.teamname}
           </Kb.Text>
           {!!props.onRename && <Kb.Icon type="iconfont-edit" onClick={props.onRename} />}
@@ -195,7 +206,10 @@ export const SubHeader = (props: SubHeaderProps) =>
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      addSelfLink: {marginLeft: Styles.globalMargins.xtiny},
+      addSelfLink: {
+        marginLeft: Styles.globalMargins.xtiny,
+        textDecorationLine: 'underline',
+      },
       alignSelfFlexStart: {
         alignSelf: 'flex-start',
       },
@@ -211,8 +225,14 @@ const styles = Styles.styleSheetCreate(
           ...Styles.desktopStyles.windowDraggingClickable,
         },
       }),
+      flexShrink: {
+        flexShrink: 1,
+      },
       greenText: {
         color: Styles.globalColors.greenDark,
+      },
+      header: {
+        flexShrink: 1,
       },
       marginBottomRightTiny: {
         marginBottom: Styles.globalMargins.tiny,

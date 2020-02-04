@@ -2,6 +2,7 @@ import Icon, {IconType} from './icon'
 import * as React from 'react'
 import * as Styles from '../styles'
 import {Props, AvatarSize} from './avatar.render'
+import flags from '../util/feature-flags'
 
 const avatarSizeToPoopIconType = (s: AvatarSize): IconType | null =>
   s === 128

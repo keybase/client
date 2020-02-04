@@ -140,7 +140,7 @@ const styles = Styles.styleSheetCreate(
       editTeam: flags.teamsRedesign
         ? ({
             backgroundColor: Styles.globalColors.blue,
-            borderColor: tyles.globalColors.white,
+            borderColor: Styles.globalColors.white,
             borderRadius: 100,
             borderStyle: 'solid',
             borderWidth: 2,
