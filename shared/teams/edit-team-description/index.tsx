@@ -15,9 +15,7 @@ const EditTeamDescription = (props: Props) => {
   const waitingKey = Container.useSelector(state => Constants.teamWaitingKeyByID(teamID, state))
   const waiting = Container.useAnyWaiting(waitingKey)
   const error = Container.useSelector(state => state.teams.errorInEditDescription)
-  const origDescription = Container.useSelector(
-    state => Constants.getTeamPublicitySettings(state, teamID).description
-  )
+  const origDescription = Container.useSelector(state => Constants.getTeamDetails(state, teamID).description)
 
   if (teamID === Types.noTeamID || teamname === null) {
     throw new Error(

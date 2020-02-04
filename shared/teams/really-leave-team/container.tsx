@@ -30,7 +30,8 @@ const RenderLastOwner = (p: Props & ExtraProps) => {
 export default Container.connect(
   (state, ownProps: OwnProps) => {
     const teamID = Container.getRouteProps(ownProps, 'teamID', Types.noTeamID)
-    const {teamname, settings, members} = Constants.getTeamDetails(state, teamID)
+    const {teamname} = Constants.getTeamMeta(state, teamID)
+    const {settings, members} = Constants.getTeamDetails(state, teamID)
     const lastOwner = Constants.isLastOwner(state, teamID)
     const stillLoadingTeam = !members
     return {
