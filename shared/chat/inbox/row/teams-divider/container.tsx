@@ -16,20 +16,6 @@ type OwnProps = {
   style?: Styles.StylesCrossPlatform
 }
 
-const getMetaCounts = memoize(
-  (badges: Types.ConversationCountMap, inboxLayout: RPCChatTypes.UIInboxLayout | null) => {
-    let badgeCount = 0
-    inboxLayout?.smallTeams?.forEach((conv: RPCChatTypes.UIInboxSmallTeamRow) => {
-      const id = Types.stringToConversationIDKey(conv.convID)
-      badgeCount += badges.get(id) || 0
-    })
-    return {
-      badgeCount,
-      hiddenCount: inboxLayout?.totalSmallTeams ?? 0,
-    }
-  }
-)
-
 const getRowCounts = memoize((badges: Types.ConversationCountMap, rows: Array<RowItem>) => {
   let badgeCount = 0
   let hiddenCount = 0
@@ -57,13 +43,8 @@ export default Container.namedConnect(
     const {_badges, _inboxLayout} = stateProps
     // we remove the badge count of the stuff we're showing
     let {badgeCount, hiddenCount} = getRowCounts(_badges, rows)
-
-    if (showButton) {
-      const fromMeta = getMetaCounts(_badges, _inboxLayout)
-      badgeCount += fromMeta.badgeCount
-      hiddenCount += fromMeta.hiddenCount
-    }
-
+    badgeCount += _inboxLayout?.smallTeamBadgeCount ?? 0
+    hiddenCount += _inboxLayout?.totalSmallTeams ?? 0
     if (!Styles.isMobile) {
       hiddenCount += hiddenCountDelta ?? 0
     }

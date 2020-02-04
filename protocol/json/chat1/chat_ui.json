@@ -197,6 +197,14 @@
           "name": "totalSmallTeams"
         },
         {
+          "type": "int",
+          "name": "smallTeamBadgeCount"
+        },
+        {
+          "type": "int",
+          "name": "bigTeamBadgeCount"
+        },
+        {
           "type": {
             "type": "array",
             "items": "UIInboxSmallTeamRow"

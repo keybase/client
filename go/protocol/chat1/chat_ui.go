@@ -223,16 +223,20 @@ func (o UIInboxReselectInfo) DeepCopy() UIInboxReselectInfo {
 }
 
 type UIInboxLayout struct {
-	TotalSmallTeams int                   `codec:"totalSmallTeams" json:"totalSmallTeams"`
-	SmallTeams      []UIInboxSmallTeamRow `codec:"smallTeams" json:"smallTeams"`
-	BigTeams        []UIInboxBigTeamRow   `codec:"bigTeams" json:"bigTeams"`
-	ReselectInfo    *UIInboxReselectInfo  `codec:"reselectInfo,omitempty" json:"reselectInfo,omitempty"`
-	WidgetList      []UIInboxSmallTeamRow `codec:"widgetList" json:"widgetList"`
+	TotalSmallTeams     int                   `codec:"totalSmallTeams" json:"totalSmallTeams"`
+	SmallTeamBadgeCount int                   `codec:"smallTeamBadgeCount" json:"smallTeamBadgeCount"`
+	BigTeamBadgeCount   int                   `codec:"bigTeamBadgeCount" json:"bigTeamBadgeCount"`
+	SmallTeams          []UIInboxSmallTeamRow `codec:"smallTeams" json:"smallTeams"`
+	BigTeams            []UIInboxBigTeamRow   `codec:"bigTeams" json:"bigTeams"`
+	ReselectInfo        *UIInboxReselectInfo  `codec:"reselectInfo,omitempty" json:"reselectInfo,omitempty"`
+	WidgetList          []UIInboxSmallTeamRow `codec:"widgetList" json:"widgetList"`
 }
 
 func (o UIInboxLayout) DeepCopy() UIInboxLayout {
 	return UIInboxLayout{
-		TotalSmallTeams: o.TotalSmallTeams,
+		TotalSmallTeams:     o.TotalSmallTeams,
+		SmallTeamBadgeCount: o.SmallTeamBadgeCount,
+		BigTeamBadgeCount:   o.BigTeamBadgeCount,
 		SmallTeams: (func(x []UIInboxSmallTeamRow) []UIInboxSmallTeamRow {
 			if x == nil {
 				return nil

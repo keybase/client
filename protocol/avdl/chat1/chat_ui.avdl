@@ -58,6 +58,8 @@ protocol chatUi {
 
   record UIInboxLayout {
     int totalSmallTeams;
+    int smallTeamBadgeCount;
+    int bigTeamBadgeCount;
     array<UIInboxSmallTeamRow> smallTeams;
     array<UIInboxBigTeamRow> bigTeams;
     union { null, UIInboxReselectInfo } reselectInfo;

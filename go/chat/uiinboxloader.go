@@ -448,6 +448,11 @@ func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox,
 	selectedInLayout := false
 	selectedConv := h.G().Syncer.GetSelectedConversation()
 	username := h.G().Env.GetUsername().String()
+	badgeState := h.G().Badger.State()
+	deviceType := keybase1.DeviceType_DESKTOP
+	if h.G().IsMobileAppType() {
+		deviceType = keybase1.DeviceType_MOBILE
+	}
 	for _, conv := range inbox.ConvsUnverified {
 		if conv.Conv.IsSelfFinalized(username) {
 			h.Debug(ctx, "buildLayout: skipping self finalized conv: %s", conv.ConvIDStr)
@@ -461,6 +466,7 @@ func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox,
 			if conv.LocalMetadata == nil {
 				btunboxes = append(btunboxes, conv.GetConvID())
 			}
+			res.BigTeamBadgeCount += badgeState.ConversationBadgeStr(ctx, conv.ConvIDStr, deviceType)
 			btcollector.appendConv(conv)
 		default:
 			// filter empty convs we didn't create
@@ -468,6 +474,7 @@ func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox,
 				!conv.Conv.CreatorInfo.Uid.Eq(h.uid) {
 				continue
 			}
+			res.SmallTeamBadgeCount += badgeState.ConversationBadgeStr(ctx, conv.ConvIDStr, deviceType)
 			res.SmallTeams = append(res.SmallTeams,
 				utils.PresentRemoteConversationAsSmallTeamRow(ctx, conv,
 					h.G().GetEnv().GetUsername().String(), len(res.SmallTeams) < 50))
@@ -494,7 +501,6 @@ func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox,
 		res.ReselectInfo = &reselect
 	}
 	if !h.G().IsMobileAppType() {
-		badgeState := h.G().Badger.State()
 		sort.Slice(widgetList, func(i, j int) bool {
 			ibadged :=
 				badgeState.ConversationBadgeStr(ctx, widgetList[i].ConvID, keybase1.DeviceType_DESKTOP) > 0
