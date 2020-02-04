@@ -301,7 +301,6 @@ export type MessageSystemAddedToTeam = {
   adder: string
   bulkAdds: Array<string>
   role: TeamTypes.MaybeTeamRoleType
-  isAdmin: boolean
   team: string
   type: 'systemAddedToTeam'
 } & _MessageCommon &

@@ -634,18 +634,15 @@ const uiMessageToSystemMessage = (
 ): Types.Message | null => {
   switch (body.systemType) {
     case RPCChatTypes.MessageSystemType.addedtoteam: {
-      // TODO @mikem admins is always empty?
-      const {adder = '', addee = '', team = '', admins = null} = body.addedtoteam || {}
+      const {adder = '', addee = '', team = ''} = body.addedtoteam || {}
       const roleEnum = body.addedtoteam ? body.addedtoteam.role : undefined
       const role = roleEnum ? TeamConstants.teamRoleByEnum[roleEnum] : 'none'
-      const isAdmin = (admins || []).includes(minimum.author)
       const bulkAdds = body.addedtoteam.bulkAdds || []
       return makeMessageSystemAddedToTeam({
         ...minimum,
         addee,
         adder,
         bulkAdds,
-        isAdmin,
         reactions,
         role,
         team,
