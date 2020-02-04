@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import * as Constants from '../../constants/crypto'
 import * as Container from '../../util/container'
-import HiddenString from '../../util/hidden-string'
 import Output, {OutputBar, SignedSender} from '.'
 
 const encryptOutput = `
@@ -52,8 +51,8 @@ const load = () => {
     .addDecorator(
       Sb.updateStoreDecorator(store, draftState => {
         const {decrypt, verify} = draftState.crypto
-        decrypt.output = new HiddenString('Decrypt: Under 120 characters is big')
-        verify.output = new HiddenString('Verify: Under 120 characters is big')
+        decrypt.output = new Container.HiddenString('Decrypt: Under 120 characters is big')
+        verify.output = new Container.HiddenString('Verify: Under 120 characters is big')
       })
     )
     .add('Decrypt - Large', () => <Output operation={Constants.Operations.Decrypt} />)
@@ -92,7 +91,7 @@ const load = () => {
     .addDecorator(
       Sb.updateStoreDecorator(store, draftState => {
         draftState.crypto.encrypt.outputSigned = true
-        draftState.crypto.encrypt.outputSenderUsername = new HiddenString('cecileb')
+        draftState.crypto.encrypt.outputSenderUsername = new Container.HiddenString('cecileb')
       })
     )
     .add('Signed - Encrypt - You', () => <SignedSender operation={Constants.Operations.Encrypt} />)
@@ -101,7 +100,7 @@ const load = () => {
     .addDecorator(
       Sb.updateStoreDecorator(store, draftState => {
         draftState.crypto.sign.outputSigned = true
-        draftState.crypto.sign.outputSenderUsername = new HiddenString('cecileb')
+        draftState.crypto.sign.outputSenderUsername = new Container.HiddenString('cecileb')
       })
     )
     .add('Signed - Sign - You', () => <SignedSender operation={Constants.Operations.Sign} />)
@@ -120,7 +119,7 @@ const load = () => {
     .addDecorator(
       Sb.updateStoreDecorator(store, draftState => {
         draftState.crypto.decrypt.outputSigned = true
-        draftState.crypto.decrypt.outputSenderUsername = new HiddenString('modalduality')
+        draftState.crypto.decrypt.outputSenderUsername = new Container.HiddenString('modalduality')
         draftState.crypto.decrypt.outputSenderFullname = undefined
       })
     )
@@ -130,8 +129,8 @@ const load = () => {
     .addDecorator(
       Sb.updateStoreDecorator(store, draftState => {
         draftState.crypto.decrypt.outputSigned = true
-        draftState.crypto.decrypt.outputSenderUsername = new HiddenString('chris')
-        draftState.crypto.decrypt.outputSenderFullname = new HiddenString('Chris Coyne')
+        draftState.crypto.decrypt.outputSenderUsername = new Container.HiddenString('chris')
+        draftState.crypto.decrypt.outputSenderFullname = new Container.HiddenString('Chris Coyne')
       })
     )
     .add('Signed - Decrypt - User - Fullname', () => (
@@ -142,7 +141,7 @@ const load = () => {
     .addDecorator(
       Sb.updateStoreDecorator(store, draftState => {
         draftState.crypto.verify.outputSigned = true
-        draftState.crypto.verify.outputSenderUsername = new HiddenString('modalduality')
+        draftState.crypto.verify.outputSenderUsername = new Container.HiddenString('modalduality')
         draftState.crypto.verify.outputSenderFullname = undefined
       })
     )
@@ -152,8 +151,8 @@ const load = () => {
     .addDecorator(
       Sb.updateStoreDecorator(store, draftState => {
         draftState.crypto.verify.outputSigned = true
-        draftState.crypto.verify.outputSenderUsername = new HiddenString('cjb')
-        draftState.crypto.verify.outputSenderFullname = new HiddenString('Chris Ball')
+        draftState.crypto.verify.outputSenderUsername = new Container.HiddenString('cjb')
+        draftState.crypto.verify.outputSenderFullname = new Container.HiddenString('Chris Ball')
       })
     )
     .add('Signed - Verify - User - Fullname', () => <SignedSender operation={Constants.Operations.Verify} />)

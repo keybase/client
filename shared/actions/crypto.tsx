@@ -3,7 +3,6 @@ import * as Container from '../util/container'
 import * as Types from '../constants/types/crypto'
 import * as Constants from '../constants/crypto'
 import * as EngineGen from './engine-gen-gen'
-import * as UsersGen from './users-gen'
 import * as TeamBuildingGen from './team-building-gen'
 import * as CryptoGen from './crypto-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -311,9 +310,6 @@ const saltpackDecrypt = async (action: CryptoGen.SaltpackDecryptPayload, logger:
             outputSigned,
             outputType: type,
           }),
-          // If the message was signed, we should attempt to show the user's full name in the SignedSender bar.
-          // getBio will set the user's full name in state.users.infoMap if it has not been loaded already
-          outputSigned ? UsersGen.createGetBio({username}) : undefined,
         ]
       } catch (err) {
         logger.error(err)
@@ -345,9 +341,6 @@ const saltpackDecrypt = async (action: CryptoGen.SaltpackDecryptPayload, logger:
             outputSigned,
             outputType: type,
           }),
-          // If the message was signed, we should attempt to show the user's full name in the SignedSender bar.
-          // getBio will set the user's full name in state.users.infoMap if it has not been loaded already
-          outputSigned ? UsersGen.createGetBio({username}) : undefined,
         ]
       } catch (err) {
         logger.error(err)
@@ -453,9 +446,6 @@ const saltpackVerify = async (action: CryptoGen.SaltpackVerifyPayload, logger: S
             outputSigned,
             outputType: type,
           }),
-          // If the message was signed, we should attempt to show the user's full name in the SignedSender bar.
-          // getBio will set the user's full name in state.users.infoMap if it has not been loaded already
-          outputSigned ? UsersGen.createGetBio({username}) : undefined,
         ]
       } catch (err) {
         logger.error(err)
@@ -486,9 +476,6 @@ const saltpackVerify = async (action: CryptoGen.SaltpackVerifyPayload, logger: S
             outputSigned,
             outputType: type,
           }),
-          // If the message was signed, we should attempt to show the user's full name in the SignedSender bar.
-          // getBio will set the user's full name in state.users.infoMap if it has not been loaded already
-          outputSigned ? UsersGen.createGetBio({username}) : undefined,
         ]
       } catch (err) {
         logger.error(err)
