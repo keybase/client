@@ -23,4 +23,7 @@ protocol wot {
     int knownOnKeybaseDays;
   }
 
+  void wotVouch(int sessionID, UserVersion uv, array<string> attestations, Confidence confidence);
+
+  void wotVouchCLI(int sessionID, string assertion, array<string> attestations, Confidence confidence);
 }

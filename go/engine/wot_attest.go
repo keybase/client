@@ -7,6 +7,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"strings"
 
@@ -126,6 +127,7 @@ func (e *WotAttest) Run(mctx libkb.MetaContext) error {
 		if err != nil {
 			return err
 		}
+		mctx.Debug("inner: %s", inner)
 
 		sig, _, _, err = libkb.MakeSig(
 			mctx,
@@ -158,6 +160,12 @@ func (e *WotAttest) Run(mctx libkb.MetaContext) error {
 
 	payload := make(libkb.JSONPayload)
 	payload["sigs"] = []interface{}{item}
+
+	jsonString, err := json.MarshalIndent(payload, "", "    ")
+	if err != nil {
+		return err
+	}
+	mctx.Debug("payload: %s", jsonString)
 
 	_, err = e.G().API.PostJSON(mctx, libkb.APIArg{
 		Endpoint:    "sig/multi",

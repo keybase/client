@@ -1,15 +1,19 @@
 package client
 
 import (
+	"errors"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	context "golang.org/x/net/context"
 )
 
 type cmdWotVouch struct {
-	attestation string
-	confidence  keybase1.Confidence
+	assertion  string
+	message    string
+	confidence keybase1.Confidence
 	libkb.Contextified
 }
 
@@ -47,11 +51,25 @@ func newCmdWotVouch(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 }
 
 func (c *cmdWotVouch) ParseArgv(ctx *cli.Context) error {
+	if len(ctx.Args()) != 1 {
+		return errors.New("vouch requires a user assertion argument")
+	}
+	c.assertion = ctx.Args()[0]
+	c.message = ctx.String("message")
 	return nil
 }
 
 func (c *cmdWotVouch) Run() error {
-	return nil
+	arg := keybase1.WotVouchCLIArg{
+		Assertion:    c.assertion,
+		Attestations: []string{c.message},
+	}
+
+	cli, err := GetWebOfTrustClient(c.G())
+	if err != nil {
+		return err
+	}
+	return cli.WotVouchCLI(context.Background(), arg)
 }
 
 func (c *cmdWotVouch) GetUsage() libkb.Usage {
