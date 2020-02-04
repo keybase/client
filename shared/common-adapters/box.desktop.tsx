@@ -46,7 +46,7 @@ const _Box2 = (props: Box2Props, ref: React.Ref<HTMLDivElement>) => {
   // }
 
   let gappedChildren: Array<React.ReactNode> = children as any
-  if (gap && React.Children.count(children) > 1) {
+  if (gap && (gapStart || gapEnd || React.Children.count(children) > 1)) {
     let gapIdx = 1
     const gapList = horizontal ? hgaps.get(gap)! : vgaps.get(gap)!
     gappedChildren = intersperseFn(() => gapList[gapIdx++], React.Children.toArray(gappedChildren))

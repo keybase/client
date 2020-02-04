@@ -190,7 +190,8 @@ export const collapseStyles = (styles: ReadonlyArray<CollapsibleStyle>): Object 
     }
   }
 
-  return Object.assign({}, ...styles.flat())
+  const s = Object.assign({}, ...styles.flat())
+  return Object.keys(s).length ? s : undefined
 }
 export {isMobile, fileUIName, isIPhoneX, isIOS, isAndroid} from '../constants/platform'
 export {
