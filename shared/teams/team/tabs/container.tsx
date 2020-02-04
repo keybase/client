@@ -7,7 +7,7 @@ import {anyWaiting} from '../../../constants/waiting'
 
 type OwnProps = {
   teamID: Types.TeamID
-  selectedTab: string
+  selectedTab: Types.TabKey
   setSelectedTab: (tab: Types.TabKey) => void
 }
 

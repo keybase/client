@@ -231,6 +231,15 @@ export default Container.makeReducer<
       roles: action.payload.map.roles,
     }
   },
+  [TeamsGen.toggleInvitesCollapsed]: (draftState, action) => {
+    const {teamID} = action.payload
+    const {invitesCollapsed} = draftState
+    if (invitesCollapsed.has(teamID)) {
+      invitesCollapsed.delete(teamID)
+    } else {
+      invitesCollapsed.add(teamID)
+    }
+  },
   [TeamBuildingGen.tbResetStore]: handleTeamBuilding,
   [TeamBuildingGen.cancelTeamBuilding]: handleTeamBuilding,
   [TeamBuildingGen.addUsersToTeamSoFar]: handleTeamBuilding,

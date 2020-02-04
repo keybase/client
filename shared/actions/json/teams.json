@@ -313,6 +313,10 @@
     },
     "setTeamRoleMap": {
       "map": "Types.TeamRoleMap"
+    },
+    "toggleInvitesCollapsed": {
+      "_description": "Toggle whether invites are collapsed in the member list for this team",
+      "teamID": "Types.TeamID"
     }
   }
 }
