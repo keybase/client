@@ -18,7 +18,6 @@ import {ServiceId} from 'util/platforms'
 import {assertNever} from '../../util/container'
 import invert from 'lodash/invert'
 import shallowEqual from 'shallowequal'
-import {getMeta} from './meta'
 
 export const getMessageID = (m: RPCChatTypes.UIMessage) => {
   switch (m.state) {
@@ -509,8 +508,7 @@ const makeMessageSystemNewChannel = (
   m?: Partial<MessageTypes.MessageSystemNewChannel>
 ): MessageTypes.MessageSystemNewChannel => ({
   ...makeMessageCommonNoDeleteNoEdit,
-  createdConvID: '',
-  creator: '',
+  text: '',
   reactions: new Map(),
   type: 'systemNewChannel',
   ...m,
@@ -642,10 +640,10 @@ export const uiMessageEditToMessage = (
 }
 
 const uiMessageToSystemMessage = (
-  state: TypedState,
   minimum: Minimum,
   body: RPCChatTypes.MessageSystem,
-  reactions: Map<string, Set<MessageTypes.Reaction>>
+  reactions: Map<string, Set<MessageTypes.Reaction>>,
+  m: RPCChatTypes.UIMessageValid
 ): Types.Message | null => {
   switch (body.systemType) {
     case RPCChatTypes.MessageSystemType.addedtoteam: {
@@ -758,16 +756,11 @@ const uiMessageToSystemMessage = (
       })
     }
     case RPCChatTypes.MessageSystemType.newchannel: {
-      const {creator, convID} = body.newchannel || {}
-      const createdConvID = Types.conversationIDToKey(convID)
-      const {channelname} = getMeta(state, createdConvID)
-      // If channel no longer exists hide this message
-      return channelname
+      return m.decoratedTextBody
         ? makeMessageSystemNewChannel({
             ...minimum,
-            createdConvID,
-            creator,
             reactions,
+            text: m.decoratedTextBody,
           })
         : null
     }
@@ -1038,7 +1031,7 @@ const validUIMessagetoMessage = (
       })
     case RPCChatTypes.MessageType.system:
       return m.messageBody.system
-        ? uiMessageToSystemMessage(state, common, m.messageBody.system, common.reactions)
+        ? uiMessageToSystemMessage(common, m.messageBody.system, common.reactions, m)
         : null
     case RPCChatTypes.MessageType.headline:
       return makeMessageSetDescription({

@@ -1679,7 +1679,32 @@ func PresentDecoratedUserBio(ctx context.Context, bio string) (res string) {
 	return res
 }
 
-func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, msg chat1.MessageUnboxedValid) *string {
+func systemMsgPresentText(ctx context.Context, uid gregor1.UID, msg chat1.MessageUnboxedValid) string {
+	if !msg.MessageBody.IsType(chat1.MessageType_SYSTEM) {
+		return ""
+	}
+	sysMsg := msg.MessageBody.System()
+	typ, err := sysMsg.SystemType()
+	if err != nil {
+		return ""
+	}
+	switch typ {
+	case chat1.MessageSystemType_NEWCHANNEL:
+		if len(msg.ChannelNameMentions) != 1 {
+			return ""
+		}
+		author := sysMsg.Newchannel().Creator
+		if uid.Eq(msg.ClientHeader.Sender) {
+			author = "You"
+		}
+		return fmt.Sprintf("%s created a new channel #%s", author, msg.ChannelNameMentions[0].TopicName)
+	default:
+	}
+	return ""
+}
+
+func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, uid gregor1.UID,
+	msg chat1.MessageUnboxedValid) *string {
 	msgBody := msg.MessageBody
 	typ, err := msgBody.MessageType()
 	if err != nil {
@@ -1697,6 +1722,8 @@ func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, msg chat1
 		body = msgBody.Requestpayment().Note
 	case chat1.MessageType_ATTACHMENT:
 		body = msgBody.Attachment().Object.Title
+	case chat1.MessageType_SYSTEM:
+		body = systemMsgPresentText(ctx, uid, msg)
 	default:
 		return nil
 	}
@@ -1827,7 +1854,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			Ctime:                 valid.ServerHeader.Ctime,
 			OutboxID:              strOutboxID,
 			MessageBody:           valid.MessageBody,
-			DecoratedTextBody:     PresentDecoratedTextBody(ctx, g, valid),
+			DecoratedTextBody:     PresentDecoratedTextBody(ctx, g, uid, valid),
 			BodySummary:           GetMsgSnippetBody(rawMsg),
 			SenderUsername:        valid.SenderUsername,
 			SenderDeviceName:      valid.SenderDeviceName,

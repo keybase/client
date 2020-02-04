@@ -104,6 +104,7 @@ func TestParseChannelNameMentions(t *testing.T) {
 }
 
 type testUIDSource struct {
+	libkb.UPAKLoader
 	users map[string]keybase1.UID
 }
 
@@ -126,6 +127,10 @@ func (s *testUIDSource) AddUser(username string, uid gregor1.UID) {
 }
 
 func TestSystemMessageMentions(t *testing.T) {
+	tc := externalstest.SetupTest(t, "chat-utils", 0)
+	defer tc.Cleanup()
+
+	g := globals.NewContext(tc.G, &globals.ChatContext{})
 	// test all the system message types gives us the right mentions
 	u1 := gregor1.UID([]byte{4, 5, 6})
 	u2 := gregor1.UID([]byte{4, 5, 7})
@@ -137,11 +142,12 @@ func TestSystemMessageMentions(t *testing.T) {
 	usource.AddUser(u1name, u1)
 	usource.AddUser(u2name, u2)
 	usource.AddUser(u3name, u3)
+	tc.G.SetUPAKLoader(usource)
 	body := chat1.NewMessageSystemWithAddedtoteam(chat1.MessageSystemAddedToTeam{
 		Adder: u1name,
 		Addee: u2name,
 	})
-	atMentions, chanMention := SystemMessageMentions(context.TODO(), body, usource)
+	atMentions, chanMention, _ := SystemMessageMentions(context.TODO(), g, u1, body)
 	require.Equal(t, 1, len(atMentions))
 	require.Equal(t, u2, atMentions[0])
 	require.Equal(t, chat1.ChannelMention_NONE, chanMention)
@@ -150,7 +156,7 @@ func TestSystemMessageMentions(t *testing.T) {
 		Inviter: u1name,
 		Adder:   u2name,
 	})
-	atMentions, chanMention = SystemMessageMentions(context.TODO(), body, usource)
+	atMentions, chanMention, _ = SystemMessageMentions(context.TODO(), g, u1, body)
 	require.Equal(t, 2, len(atMentions))
 	require.Equal(t, u1, atMentions[0])
 	require.Equal(t, u3, atMentions[1])
@@ -158,7 +164,7 @@ func TestSystemMessageMentions(t *testing.T) {
 	body = chat1.NewMessageSystemWithComplexteam(chat1.MessageSystemComplexTeam{
 		Team: "MIKE",
 	})
-	atMentions, chanMention = SystemMessageMentions(context.TODO(), body, usource)
+	atMentions, chanMention, _ = SystemMessageMentions(context.TODO(), g, u1, body)
 	require.Zero(t, len(atMentions))
 	require.Equal(t, chat1.ChannelMention_ALL, chanMention)
 }

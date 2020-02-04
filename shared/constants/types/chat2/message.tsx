@@ -332,8 +332,7 @@ export type MessageSystemChangeAvatar = {
   _MessageWithReactions
 
 export type MessageSystemNewChannel = {
-  creator: string
-  createdConvID: Common.ConversationIDKey
+  text: string
   type: 'systemNewChannel'
 } & _MessageCommon &
   _MessageWithDeviceInfo &
