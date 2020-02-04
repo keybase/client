@@ -46,7 +46,7 @@ func TestNewDeviceEK(t *testing.T) {
 
 	rawStorage := NewDeviceEKStorage(mctx)
 	// Put our storage in a bad state by deleting the maxGeneration
-	err = rawStorage.Delete(mctx, maxGeneration+1)
+	err = rawStorage.Delete(mctx, maxGeneration+1, "")
 	require.NoError(t, err)
 
 	// If we publish in a bad local state, we can successfully get the
