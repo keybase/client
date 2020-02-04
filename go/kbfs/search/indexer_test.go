@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 	"testing"
 	"time"
 
@@ -422,4 +423,95 @@ func TestFullIndexSyncedTlf(t *testing.T) {
 	testSearch(t, i, "dolor", 1)
 	testSearch(t, i, names[0], 1)
 	testSearch(t, i, newName, 1)
+}
+
+func TestFullIndexSearch(t *testing.T) {
+	ctx := libcontext.BackgroundContextWithCancellationDelayer()
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	config := libkbfs.MakeTestConfigOrBust(t, "user1", "user2")
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
+
+	tempdir, err := ioutil.TempDir("", "indexTest")
+	require.NoError(t, err)
+	defer os.RemoveAll(tempdir)
+	config.SetStorageRoot(tempdir)
+
+	err = config.EnableDiskLimiter(tempdir)
+	require.NoError(t, err)
+	config.SetDiskCacheMode(libkbfs.DiskCacheModeLocal)
+	err = config.MakeDiskBlockCacheIfNotExists()
+	require.NoError(t, err)
+	err = config.MakeDiskMDCacheIfNotExists()
+	require.NoError(t, err)
+
+	i, err := newIndexerWithConfigInit(
+		config, testInitConfig, testKVStoreName("TestFullIndexSyncedTlf"))
+	require.NoError(t, err)
+	defer func() {
+		err := i.Shutdown(ctx)
+		require.NoError(t, err)
+	}()
+
+	h, err := tlfhandle.ParseHandle(
+		ctx, config.KBPKI(), config.MDOps(), nil, "user1", tlf.Private)
+	require.NoError(t, err)
+	kbfsOps := config.KBFSOps()
+	rootNode, _, err := kbfsOps.GetOrCreateRootNode(ctx, h, data.MasterBranch)
+	require.NoError(t, err)
+
+	t.Log("Create two dirs with two files each")
+	names := makeDirTreesToIndex(ctx, t, kbfsOps, rootNode)
+
+	t.Log("Wait for index to load")
+	err = i.waitForIndex(ctx)
+	require.NoError(t, err)
+
+	t.Log("Enable syncing")
+	_, err = kbfsOps.SetSyncConfig(
+		ctx, rootNode.GetFolderBranch().Tlf, keybase1.FolderSyncConfig{
+			Mode: keybase1.FolderSyncMode_ENABLED,
+		})
+	require.NoError(t, err)
+	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
+	require.NoError(t, err)
+
+	err = i.waitForSyncs(ctx)
+	require.NoError(t, err)
+
+	t.Log("Search!")
+	checkSearch := func(
+		query string, numResults, start int, expectedResults map[string]bool) {
+		results, err := i.Search(ctx, query, numResults, start)
+		require.NoError(t, err)
+		for _, r := range results {
+			_, ok := expectedResults[r.Path]
+			require.True(t, ok, r.Path)
+			delete(expectedResults, r.Path)
+		}
+		require.Len(t, expectedResults, 0)
+	}
+
+	userPath := func(dir, child string) string {
+		return path.Clean("/keybase/private/user1/" + dir + "/" + child)
+	}
+
+	checkSearch("dolor", 10, 0, map[string]bool{
+		userPath(names[0], names[0]+"_file1"): true,
+		userPath(names[1], names[1]+"_file1"): true,
+	})
+
+	checkSearch(names[0], 10, 0, map[string]bool{
+		userPath(names[0], ""):                true,
+		userPath(names[0], names[0]+"_file1"): true,
+		userPath(names[0], names[0]+"_file2"): true,
+	})
+
+	t.Log("Try partial results")
+	results, err := i.Search(ctx, names[0], 2, 0)
+	require.NoError(t, err)
+	require.Len(t, results, 2)
+	results2, err := i.Search(ctx, names[0], 2, 2)
+	require.NoError(t, err)
+	require.Len(t, results2, 1)
 }

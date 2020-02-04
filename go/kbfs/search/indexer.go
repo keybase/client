@@ -10,6 +10,7 @@ import (
 	"path"
 	"path/filepath"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -1110,4 +1111,53 @@ func (i *Indexer) waitForIndex(ctx context.Context) error {
 
 func (i *Indexer) waitForSyncs(ctx context.Context) error {
 	return i.indexWG.Wait(ctx)
+}
+
+// Search executes the given query and returns the results in the form
+// of full KBFS paths to each hit.  `numResults` limits the number of
+// returned results, and `startingResult` indicates the number of
+// results that have been previously fetched -- basically it indicates
+// the starting index number of the next page of desired results.
+func (i *Indexer) Search(
+	ctx context.Context, query string, numResults, startingResult int) (
+	results []Result, err error) {
+	i.lock.RLock()
+	defer i.lock.RUnlock()
+
+	if i.index == nil {
+		return nil, errors.New("Index not loaded")
+	}
+
+	sQuery := bleve.NewQueryStringQuery(query)
+	req := bleve.NewSearchRequestOptions(
+		sQuery, numResults, startingResult, false)
+	indexResults, err := i.index.Search(req)
+	if err != nil {
+		return nil, err
+	}
+
+	// Build up the path for each result.
+	results = make([]Result, len(indexResults.Hits))
+	for j, hit := range indexResults.Hits {
+		docID := hit.ID
+		var p []string // reversed list of path components
+		for docID != "" {
+			parentDocID, name, err := i.docDb.Get(
+				ctx, strings.TrimPrefix(docID, nameDocIDPrefix))
+			if err != nil {
+				return nil, err
+			}
+			p = append(p, name)
+			docID = parentDocID
+		}
+
+		// Reverse the path name.
+		for k := len(p)/2 - 1; k >= 0; k-- {
+			opp := len(p) - 1 - k
+			p[k], p[opp] = p[opp], p[k]
+		}
+		results[j] = Result{path.Join(p...)}
+	}
+
+	return results, nil
 }
