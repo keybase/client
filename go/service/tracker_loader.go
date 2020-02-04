@@ -20,6 +20,8 @@ type TrackerLoader struct {
 	started    bool
 	shutdownCh chan struct{}
 	queueCh    chan keybase1.UID
+
+	cancel context.CancelFunc
 }
 
 func NewTrackerLoader(g *libkb.GlobalContext) *TrackerLoader {
@@ -49,7 +51,9 @@ func (l *TrackerLoader) Run(ctx context.Context) {
 	}
 	l.started = true
 	l.shutdownCh = make(chan struct{})
-	l.eg.Go(func() error { return l.loadLoop(l.shutdownCh) })
+	lctx, lcancel := context.WithCancel(ctx)
+	l.cancel = lcancel
+	l.eg.Go(func() error { return l.loadLoop(lctx, l.shutdownCh) })
 }
 
 func (l *TrackerLoader) Shutdown(ctx context.Context) chan struct{} {
@@ -58,6 +62,7 @@ func (l *TrackerLoader) Shutdown(ctx context.Context) chan struct{} {
 	defer l.Unlock()
 	ch := make(chan struct{})
 	if l.started {
+		l.cancel()
 		close(l.shutdownCh)
 		l.started = false
 		go func() {
@@ -127,8 +132,7 @@ func (l *TrackerLoader) load(ctx context.Context, uid keybase1.UID) error {
 	return l.loadInner(mctx, uid, withNetwork)
 }
 
-func (l *TrackerLoader) loadLoop(stopCh chan struct{}) error {
-	ctx := context.Background()
+func (l *TrackerLoader) loadLoop(ctx context.Context, stopCh chan struct{}) error {
 	for {
 		select {
 		case uid := <-l.queueCh:
