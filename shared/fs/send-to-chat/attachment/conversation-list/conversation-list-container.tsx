@@ -1,10 +1,8 @@
 import {namedConnect} from '../../../../util/container'
-import {memoize} from '../../../../util/memoize'
 import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
-import * as RPCChatTypes from '../../../../rpc-chat-gen'
-import {isMobile} from '../../../../constants/platform'
+import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import ConversationList, {SmallTeamRowItem, BigTeamChannelRowItem, RowItem} from './conversation-list'
 import getFilteredRowsAndMetadata from './filtered'
 
@@ -17,105 +15,13 @@ type OwnProps = {
   selected: Types.ConversationIDKey
 }
 
-const notificationsTypeToNumber = (t: Types.NotificationsType): number => {
-  switch (t) {
-    case 'onAnyActivity':
-      return 1
-    case 'onWhenAtMentioned':
-      return 2
-    case 'never':
-      return 3
-    default:
-      return 0
-  }
-}
-
-const boolToNumber = (b: boolean): number => (b ? 1 : 0)
-
-const staleToNumber = (convTime: number, staleCutoff: number) => (convTime < staleCutoff ? 1 : 0)
-
-const getAWeekAgo = () => {
-  const t = new Date()
-  return t.setDate(t.getDate() - 7) // works fine for cross-boundary; returns a number
-}
-
-const getSortedConversationIDKeys = memoize(
-  (
-    metaMap: Types.MetaMap
-  ): Array<{
-    conversationIDKey: Types.ConversationIDKey
-    type: 'small' | 'big'
-  }> => {
-    const staleCutoff = getAWeekAgo()
-    return [...metaMap.values()]
-      .sort((a, b) => {
-        // leveled order rules:
-        // 1. unmuted before muted
-        // 2. active conversations before inactive (has activity in the past week)
-        // 3. notification type: onAnyActivity before onWhenAtMentioned, before never
-        // 4. activity timestamp being the last tie breaker
-        const mutedBased = boolToNumber(a.isMuted) - boolToNumber(b.isMuted)
-        if (mutedBased !== 0) {
-          return mutedBased
-        }
-        const staleBased = staleToNumber(a.timestamp, staleCutoff) - staleToNumber(b.timestamp, staleCutoff)
-        if (staleBased !== 0) {
-          return staleBased
-        }
-        const notificationsTypeBased = isMobile
-          ? notificationsTypeToNumber(a.notificationsMobile) -
-            notificationsTypeToNumber(b.notificationsMobile)
-          : notificationsTypeToNumber(a.notificationsDesktop) -
-            notificationsTypeToNumber(b.notificationsDesktop)
-        if (notificationsTypeBased !== 0) {
-          return notificationsTypeBased
-        }
-        return b.timestamp - a.timestamp
-      })
-      .filter(({conversationIDKey}) => conversationIDKey !== Constants.noConversationIDKey)
-      .map(({conversationIDKey, teamType}) => ({
-        conversationIDKey,
-        type: teamType === 'big' ? 'big' : 'small',
-      }))
-  }
-)
-
-const getRows = (
-  inboxLayout: RPCChatTypes.UIInboxLayout,
-  participantMap: Map<Types.ConversationIDKey, Types.ParticipantInfo>,
-  username: string,
-  ownProps: OwnProps
-) => {
+const getRows = (inboxLayout: RPCChatTypes.UIInboxLayout, username: string, ownProps: OwnProps) => {
   let selectedIndex: number | null = null
   const rows = ownProps.filter
-    ? getFilteredRowsAndMetadata(metaMap, participantMap, ownProps.filter, username).rows.map(
-        (row, index) => {
-          // This should never happen to have empty conversationIDKey, but
-          // provide default to make flow happy
-          const conversationIDKey = row.conversationIDKey || Constants.noConversationIDKey
-          const common = {
-            conversationIDKey,
-            isSelected: conversationIDKey === ownProps.selected,
-            onSelectConversation: () => {
-              ownProps.onSelect(conversationIDKey)
-              ownProps.onDone && ownProps.onDone()
-            },
-          }
-          if (common.isSelected) {
-            selectedIndex = index
-          }
-          return row.type === 'big'
-            ? ({
-                ...common,
-                type: 'big',
-              } as BigTeamChannelRowItem)
-            : ({
-                ...common,
-                type: 'small',
-              } as SmallTeamRowItem)
-        }
-      )
-    : getSortedConversationIDKeys(metaMap).map(({conversationIDKey, type}, index) => {
+    ? getFilteredRowsAndMetadata(inboxLayout, ownProps.filter, username).rows.map((row, index) => {
+        // This should never happen to have empty conversationIDKey, but
+        // provide default to make flow happy
+        const conversationIDKey = row.conversationIDKey || Constants.noConversationIDKey
         const common = {
           conversationIDKey,
           isSelected: conversationIDKey === ownProps.selected,
@@ -127,7 +33,7 @@ const getRows = (
         if (common.isSelected) {
           selectedIndex = index
         }
-        return type === 'big'
+        return row.type === 'big'
           ? ({
               ...common,
               type: 'big',
@@ -137,6 +43,28 @@ const getRows = (
               type: 'small',
             } as SmallTeamRowItem)
       })
+    : inboxLayout.widgetList?.map((wl, index) => {
+        const common = {
+          conversationIDKey: wl.convID,
+          isSelected: wl.convID === ownProps.selected,
+          onSelectConversation: () => {
+            ownProps.onSelect(wl.convID)
+            ownProps.onDone && ownProps.onDone()
+          },
+        }
+        if (common.isSelected) {
+          selectedIndex = index
+        }
+        return wl.isTeam
+          ? ({
+              ...common,
+              type: 'big',
+            } as BigTeamChannelRowItem)
+          : ({
+              ...common,
+              type: 'small',
+            } as SmallTeamRowItem)
+      }) ?? []
   return {rows, selectedIndex}
 }
 
@@ -164,7 +92,9 @@ export default namedConnect(
     onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
-    const {selectedIndex, rows} = getRows(stateProps._inboxLayout, stateProps._username, ownProps)
+    const {selectedIndex, rows} = stateProps._inboxLayout
+      ? getRows(stateProps._inboxLayout, stateProps._username, ownProps)
+      : {selectedIndex: 0, rows: []}
     return {
       filter: ownProps.onSetFilter && {
         filter: ownProps.filter || '',

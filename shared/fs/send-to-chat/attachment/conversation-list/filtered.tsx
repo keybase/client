@@ -1,10 +1,8 @@
 // The filtered inbox rows. No dividers or headers, just smallbig row items
-import * as Types from '../../../../constants/types/chat2'
-import * as Constants from '../../../../constants/chat2'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import {memoize} from '../../../../util/memoize'
 import {makeInsertMatcher} from '../../../../util/string'
-import {RowItem, RowItemBig, RowItemSmall} from '../../../../chat/inbox'
+import {RowItem} from '../../../../chat/inbox'
 
 const score = (lcFilter: string, lcYou: string, names: Array<string>, insertMatcher?: RegExp): number => {
   // special case, looking for yourself
@@ -78,61 +76,62 @@ const score = (lcFilter: string, lcYou: string, names: Array<string>, insertMatc
   return rawScore > 0 ? Math.max(1, rawScore - inputLength) : 0
 }
 
-const makeSmallItem = (
-  meta: Types.ConversationMeta,
-  participantInfo: Types.ParticipantInfo,
-  filter: string,
-  you: string,
-  insertMatcher: RegExp
-) => {
-  const s = score(filter, you, meta.teamname ? [meta.teamname] : participantInfo.all, insertMatcher)
-  return s > 0
-    ? {
-        data: {conversationIDKey: meta.conversationIDKey, type: 'small'} as RowItemSmall,
-        score: s,
-        timestamp: meta.timestamp,
-      }
-    : null
-}
-
-const makeBigItem = (meta: Types.ConversationMeta, filter: string, insertMatcher: RegExp) => {
-  const s = score(filter, '', [meta.teamname, meta.channelname].filter(Boolean), insertMatcher)
-  return s > 0
-    ? {
-        data: {
-          channelname: meta.channelname,
-          conversationIDKey: meta.conversationIDKey,
-          teamname: meta.teamname,
-          type: 'big',
-        } as RowItemBig,
-        score: s,
-        timestamp: 0,
-      }
-    : null
-}
-
+type SortedRowItem = {score: number; timestamp: number; data: RowItem}
 // Ignore headers, score based on matches of participants, ignore total non matches
 const getFilteredRowsAndMetadata = memoize(
-  (inboxLayout: RPCChatTypes.UIInboxLayout, filter: string, username: string) => {
-    // TODO fix this
-    // const metas = [...inboxLayout.smallTeams, ...inboxLayout.bigTeams]
-    const lcFilter = filter.toLowerCase()
-    const lcYou = username.toLowerCase()
+  (inboxLayout: RPCChatTypes.UIInboxLayout, _filter: string, _username: string) => {
+    const you = _username.toLowerCase()
+    const filter = _filter.toLowerCase()
     const insertMatcher = makeInsertMatcher(filter)
-    const rows: Array<RowItem> = metas
-      .map(meta => {
-        if (!Constants.isValidConversationIDKey(meta.conversationIDKey)) {
-          return null
+
+    const st = 
+    const smallRows: Array<SortedRowItem> =
+      inboxLayout.smallTeams ? inboxLayout.smallTeams.reduce<Array<SortedRowItem>>((arr, t) => {
+        const s = score(filter, you, t.name.split(','), insertMatcher)
+        if (s > 0) {
+          arr.push({
+            data: {
+              conversationIDKey: t.convID,
+              isTeam: t.isTeam,
+              snippetDecoration: RPCChatTypes.SnippetDecoration.none,
+              teamname: t.isTeam ? t.name : '',
+              time: 0,
+              type: 'small',
+            } as const,
+            score: s,
+            timestamp: t.time,
+          })
         }
-        const participantInfo = participantMap.get(meta.conversationIDKey) ?? Constants.noParticipantInfo
-        return meta.teamType !== 'big'
-          ? makeSmallItem(meta, participantInfo, lcFilter, lcYou, insertMatcher)
-          : makeBigItem(meta, lcFilter, insertMatcher)
-      })
-      .reduce<Array<{score: number; timestamp: number; data: RowItemSmall | RowItemBig}>>((arr, r) => {
-        r && arr.push(r)
         return arr
-      }, [])
+    }, []) : []
+    const bigRows: Array<SortedRowItem> =
+      inboxLayout.bigTeams ? inboxLayout.bigTeams.reduce<Array<SortedRowItem>>((arr, t) => {
+        if (t.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel) {
+          const s = score(
+            filter,
+            '',
+            [t.channel.teamname, t.channel.channelname].filter(Boolean),
+            insertMatcher
+          )
+          if (s > 0) {
+            arr.push({
+              data: {
+                channelname: t.channel.channelname,
+                conversationIDKey: t.channel.convID,
+                snippetDecoration: RPCChatTypes.SnippetDecoration.none,
+                teamname: t.channel.teamname,
+                type: 'big',
+              } as const,
+              score: s,
+              timestamp: 0,
+            })
+          }
+        }
+
+        return arr
+    }, []) : []
+
+    const rows: Array<RowItem> = [...smallRows, ...bigRows]
       .sort((a, b) => {
         return a.score === b.score ? b.timestamp - a.timestamp : b.score - a.score
       })
