@@ -185,21 +185,22 @@ const emptyState: Types.State = {
   teamAccessRequestsPending: new Set(),
   teamBuilding: TeamBuildingConstants.makeSubState(),
   teamDetails: new Map(),
-  teamDetailsMetaStale: true, // start out true, we have not loaded
-  teamDetailsMetaSubscribeCount: 0,
   teamDetailsSubscriptionCount: new Map(),
   teamIDToChannelInfos: new Map(),
   teamIDToMembers: new Map(),
-  teamIDToPublicitySettings: new Map(),
   teamIDToResetUsers: new Map(),
   teamIDToRetentionPolicy: new Map(),
   teamJoinSuccess: false,
   teamJoinSuccessOpen: false,
   teamJoinSuccessTeamName: '',
+  teamMeta: new Map(),
+  teamMetaStale: true, // start out true, we have not loaded
+  teamMetaSubscribeCount: 0,
   teamNameToID: new Map(),
   teamNameToLoadingInvites: new Map(),
   teamProfileAddList: [],
   teamRoleMap: {latestKnownVersion: -1, loadedVersion: -1, roles: new Map()},
+  teamVersion: new Map(),
   teamnames: new Set(),
   teamsWithChosenChannels: new Set(),
 }
@@ -392,10 +393,11 @@ export const getDisabledReasonsForRolePicker = (
   memberToModify: string | null
 ): Types.DisabledReasonsForRolePicker => {
   const canManageMembers = getCanPerformByID(state, teamID).manageMembers
-  const teamDetails = getTeamDetails(state, teamID)
+  const teamMeta = getTeamMeta(state, teamID)
+  const teamDetails: Types.TeamDetails = getTeamDetails(state, teamID)
   const members: Map<string, Types.MemberInfo> =
     teamDetails.members || state.teams.teamIDToMembers.get(teamID) || new Map()
-  const teamname = teamDetails.teamname
+  const teamname = teamMeta.teamname
   const member = memberToModify ? members.get(memberToModify) : undefined
   const theyAreOwner = member?.type === 'owner'
   const you = members.get(state.config.username)
@@ -458,7 +460,7 @@ export const getTeamID = (state: TypedState, teamname: Types.Teamname): string =
   state.teams.teamNameToID.get(teamname) || Types.noTeamID
 
 export const getTeamNameFromID = (state: TypedState, teamID: Types.TeamID): Types.Teamname | null =>
-  state.teams.teamDetails.get(teamID)?.teamname ?? null
+  state.teams.teamMeta.get(teamID)?.teamname ?? null
 
 export const getTeamRetentionPolicyByID = (state: TypedState, teamID: Types.TeamID): RetentionPolicy | null =>
   state.teams.teamIDToRetentionPolicy.get(teamID) ?? null
@@ -507,9 +509,6 @@ export const initialPublicitySettings = Object.freeze<Types._PublicitySettings>(
   team: false,
 })
 
-export const getTeamPublicitySettings = (state: TypedState, teamID: Types.TeamID): Types._PublicitySettings =>
-  state.teams.teamIDToPublicitySettings.get(teamID) || initialPublicitySettings
-
 // Note that for isInTeam and isInSomeTeam, we don't use 'teamnames',
 // since that may contain subteams you're not a member of.
 
@@ -545,12 +544,12 @@ const _memoizedSorted = memoize((names: Set<Types.Teamname>) => [...names].sort(
 export const getSortedTeamnames = (state: TypedState): Types.Teamname[] =>
   _memoizedSorted(state.teams.teamnames)
 
-export const sortTeamsByName = memoize((teamDetails: Map<Types.TeamID, Types.TeamDetails>) =>
-  [...teamDetails.values()].sort((a, b) => sortTeamnames(a.teamname, b.teamname))
+export const sortTeamsByName = memoize((teamMeta: Map<Types.TeamID, Types.TeamMeta>) =>
+  [...teamMeta.values()].sort((a, b) => sortTeamnames(a.teamname, b.teamname))
 )
 
 // sorted by name
-export const getSortedTeams = (state: TypedState) => sortTeamsByName(state.teams.teamDetails)
+export const getSortedTeams = (state: TypedState) => sortTeamsByName(state.teams.teamMeta)
 
 export const isAdmin = (type: Types.MaybeTeamRoleType) => type === 'admin'
 export const isOwner = (type: Types.MaybeTeamRoleType) => type === 'owner'
@@ -639,16 +638,16 @@ export const isOnTeamsTab = () => {
   return Array.isArray(path) ? path.some(p => p.routeName === teamsTab) : false
 }
 
-// Merge new teamDetails objs into old ones, removing any old teams that are not in the new map
-export const mergeTeamDetails = (oldMap: Types.State['teamDetails'], newMap: Types.State['teamDetails']) => {
+// Merge new teamMeta objs into old ones, removing any old teams that are not in the new map
+export const mergeTeamMeta = (oldMap: Types.State['teamMeta'], newMap: Types.State['teamMeta']) => {
   const ret = new Map(newMap)
-  for (const [teamID, teamDetails] of newMap.entries()) {
-    ret.set(teamID, {...oldMap.get(teamID), ...teamDetails})
+  for (const [teamID, teamMeta] of newMap.entries()) {
+    ret.set(teamID, {...oldMap.get(teamID), ...teamMeta})
   }
   return ret
 }
 
-export const emptyTeamDetails = Object.freeze<Types.TeamDetails>({
+export const emptyTeamMeta = Object.freeze<Types.TeamMeta>({
   allowPromote: false,
   id: Types.noTeamID,
   isMember: false,
@@ -659,12 +658,15 @@ export const emptyTeamDetails = Object.freeze<Types.TeamDetails>({
   teamname: '',
 })
 
-export const makeTeamDetails = (td: Partial<Types.TeamDetails>): Types.TeamDetails =>
-  td ? Object.assign({...emptyTeamDetails}, td) : emptyTeamDetails
+export const makeTeamMeta = (td: Partial<Types.TeamMeta>): Types.TeamMeta =>
+  td ? Object.assign({...emptyTeamMeta}, td) : emptyTeamMeta
 
-export const teamListToDetails = (
+export const getTeamMeta = (state: TypedState, teamID: Types.TeamID) =>
+  state.teams.teamMeta.get(teamID) ?? emptyTeamMeta
+
+export const teamListToMeta = (
   list: Array<RPCTypes.AnnotatedMemberInfo>
-): Map<Types.TeamID, Types.TeamDetails> => {
+): Map<Types.TeamID, Types.TeamMeta> => {
   return new Map(
     list.map(t => [
       t.teamID,
@@ -683,7 +685,7 @@ export const teamListToDetails = (
 }
 
 export const annotatedInvitesToInviteInfo = (
-  invites: RPCTypes.TeamDetails['annotatedActiveInvites']
+  invites: Array<RPCTypes.AnnotatedTeamInvite>
 ): Array<Types.InviteInfo> =>
   Object.values(invites).reduce<Array<Types.InviteInfo>>((arr, invite) => {
     const role = teamRoleByEnum[invite.role]
@@ -709,12 +711,51 @@ export const annotatedInvitesToInviteInfo = (
     return arr
   }, [])
 
+const emptyTeamDetails = Object.freeze<Types.TeamDetails>({
+  description: '',
+  invites: new Set(),
+  members: new Map(),
+  requests: new Set(),
+  settings: {open: false, openJoinAs: 'reader', tarsDisabled: false, teamShowcased: false},
+  subteams: new Set(),
+} as Types.TeamDetails)
+
+export const emptyTeamSettings = Object.freeze(emptyTeamDetails.settings)
+
 export const getTeamDetails = (state: TypedState, teamID: Types.TeamID) =>
-  state.teams.teamDetails.get(teamID) || emptyTeamDetails
+  state.teams.teamDetails.get(teamID) ?? emptyTeamDetails
+
+export const annotatedTeamToDetails = (t: RPCTypes.AnnotatedTeam): Types.TeamDetails => {
+  const maybeOpenJoinAs = teamRoleByEnum[t.settings.joinAs] ?? 'reader'
+  const members = new Map<string, Types.MemberInfo>()
+  t.members?.forEach(member => {
+    const {fullName, status, username} = member.details
+    const maybeRole = teamRoleByEnum[member.role]
+    members.set(username, {
+      fullName,
+      status: rpcMemberStatusToStatus[status],
+      type: !maybeRole || maybeRole === 'none' ? 'reader' : maybeRole,
+      username,
+    })
+  })
+  return {
+    description: t.showcase.description ?? '',
+    invites: t.invites ? new Set(annotatedInvitesToInviteInfo(t.invites)) : new Set(),
+    members,
+    requests: new Set(t.joinRequests?.map(r => r.username) ?? []),
+    settings: {
+      open: !!t.settings.open,
+      openJoinAs: maybeOpenJoinAs === 'none' ? 'reader' : maybeOpenJoinAs,
+      tarsDisabled: t.tarsDisabled,
+      teamShowcased: t.showcase.isShowcased,
+    },
+    subteams: new Set(t.transitiveSubteamsUnverified?.entries?.map(e => e.teamID) ?? []),
+  }
+}
 
 export const canShowcase = (state: TypedState, teamID: Types.TeamID) => {
   const role = getRole(state, teamID)
-  return getTeamDetails(state, teamID).allowPromote || role === 'admin' || role === 'owner'
+  return getTeamMeta(state, teamID).allowPromote || role === 'admin' || role === 'owner'
 }
 
 const _canUserPerformCache: {[key: string]: Types.TeamOperations} = {}
@@ -767,3 +808,13 @@ export const getCanPerform = (state: TypedState, teamname: Types.Teamname): Type
 
 export const getCanPerformByID = (state: TypedState, teamID: Types.TeamID): Types.TeamOperations =>
   deriveCanPerform(state.teams.teamRoleMap.roles.get(teamID))
+
+// Don't allow version to roll back
+export const ratchetTeamVersion = (newVersion: Types.TeamVersion, oldVersion?: Types.TeamVersion) =>
+  oldVersion
+    ? {
+        latestHiddenSeqno: Math.max(newVersion.latestHiddenSeqno, oldVersion.latestHiddenSeqno),
+        latestOffchainSeqno: Math.max(newVersion.latestOffchainSeqno, oldVersion.latestOffchainSeqno),
+        latestSeqno: Math.max(newVersion.latestSeqno, oldVersion.latestSeqno),
+      }
+    : newVersion
