@@ -17,6 +17,7 @@ import (
 
 type AssertionExpression interface {
 	String() string
+	Display() string
 	MatchSet(ps ProofSet) bool
 	HasOr() bool
 	NeedsParens() bool
@@ -54,6 +55,10 @@ func (a AssertionOr) CollectUrls(v []AssertionURL) []AssertionURL {
 		v = t.CollectUrls(v)
 	}
 	return v
+}
+
+func (a AssertionOr) Display() string {
+	return a.String()
 }
 
 func (a AssertionOr) String() string {
@@ -118,6 +123,10 @@ func (a AssertionAnd) HasFactor(pf Proof) bool {
 		}
 	}
 	return false
+}
+
+func (a AssertionAnd) Display() string {
+	return a.String()
 }
 
 func (a AssertionAnd) String() string {
@@ -271,14 +280,6 @@ func (a AssertionEmail) String() string {
 	return fmt.Sprintf("[%s]@email", a.Value)
 }
 
-var RegexpStripEmailBrackets = regexp.MustCompile(`\[(.*?)\]@email`)
-
-// Removes []@email assertion brackets: 'aaa [a@b.com]@email bbb' -> 'aaa a@b.com bbb'
-// Useful to sanitize errors
-func StripEmailBrackets(s string) string {
-	return RegexpStripEmailBrackets.ReplaceAllString(s, `$1`)
-}
-
 func (a AssertionSocial) GetValue() string {
 	return a.Value
 }
@@ -394,6 +395,19 @@ func (b AssertionURLBase) String() string {
 	return fmt.Sprintf("%s@%s", b.Value, b.Key)
 }
 func (a AssertionKeybase) String() string {
+	return a.Value
+}
+
+func (b AssertionURLBase) Display() string {
+	return b.String()
+}
+func (a AssertionKeybase) Display() string {
+	return a.Value
+}
+func (a AssertionPhoneNumber) Display() string {
+	return a.Value
+}
+func (a AssertionEmail) Display() string {
 	return a.Value
 }
 

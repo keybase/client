@@ -5,6 +5,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -404,7 +405,12 @@ func NewAddMembersError(a string, e error) AddMembersError {
 }
 
 func (a AddMembersError) Error() string {
-	return fmt.Sprintf("Error adding user '%v': %v", a.Assertion, a.Err)
+	actx := externals.MakeStaticAssertionContext(context.TODO())
+	parsed, err := libkb.ParseAssertionURL(actx, a.Assertion, false /* strict */)
+	if err != nil {
+		return fmt.Sprintf("Error adding user %q: %v", a.Assertion, a.Err)
+	}
+	return fmt.Sprintf("Error adding user %q: %v", parsed.Display(), a.Err)
 }
 
 type BadNameError struct {

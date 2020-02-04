@@ -691,6 +691,7 @@ func InviteEmailPhoneMember(ctx context.Context, g *libkb.GlobalContext, teamID 
 }
 
 func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails string, role keybase1.TeamRole) (res keybase1.BulkRes, err error) {
+	mctx := libkb.NewMetaContext(ctx, g)
 	unparsedEmailList := splitBulk(emails)
 	g.Log.CDebugf(ctx, "team %s: bulk email invite count: %d", teamname, len(unparsedEmailList))
 
@@ -708,11 +709,17 @@ func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails
 		// api server side of this only accepts x.yy domain name:
 		parts := strings.Split(addr.Address, ".")
 		if len(parts[len(parts)-1]) < 2 {
-			g.Log.CDebugf(ctx, "team %s: skipping malformed email (domain) %q: %s", teamname, email, parseErr)
+			g.Log.CDebugf(ctx, "team %s: skipping malformed email (domain) %q", teamname, email)
 			res.Malformed = append(res.Malformed, email)
 			continue
 		}
-		toAdd = append(toAdd, keybase1.UserRolePair{AssertionOrEmail: "[" + addr.Address + "]@email", Role: role})
+		a, parseErr := libkb.ParseAssertionURLKeyValue(g.MakeAssertionContext(mctx), "email", addr.Address, false)
+		if parseErr != nil {
+			g.Log.CDebugf(ctx, "team %q: skipping malformed email %q; could not parse into assertion: %s", teamname, email, parseErr)
+			res.Malformed = append(res.Malformed, email)
+			continue
+		}
+		toAdd = append(toAdd, keybase1.UserRolePair{AssertionOrEmail: a.String(), Role: role})
 		emailsParsed = append(emailsParsed, addr.Address)
 	}
 
@@ -734,17 +741,12 @@ func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails
 	})
 
 	if err != nil {
-		switch err.(type) {
-		case libkb.ExistsError:
-			return res, libkb.ExistsError{Msg: libkb.StripEmailBrackets(err.Error())}
-		default:
-			return res, fmt.Errorf("%v", libkb.StripEmailBrackets(err.Error()))
-		}
+		return res, err
 	}
 
 	res.Invited = emailsParsed
 
-	return res, err
+	return res, nil
 }
 
 func EditMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string,
