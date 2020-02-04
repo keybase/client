@@ -15,6 +15,8 @@ import {rowHeight as shouldEqualToRowHeight} from '../../../../chat/selectable-s
 export type SmallTeamRowItem = {
   conversationIDKey: Types.ConversationIDKey
   isSelected: boolean
+  name: string
+  participants: Array<string>
   onSelectConversation: () => void
   type: 'small'
 }
@@ -22,6 +24,7 @@ export type SmallTeamRowItem = {
 export type BigTeamChannelRowItem = {
   conversationIDKey: Types.ConversationIDKey
   isSelected: boolean
+  name: string
   onSelectConversation: () => void
   type: 'big'
 }
@@ -56,7 +59,8 @@ const _itemRenderer = (_: number, row: RowItem) => {
         <SelectableSmallTeam
           conversationIDKey={row.conversationIDKey}
           isSelected={row.isSelected}
-          name=""
+          name={row.name}
+          participants={row.participants}
           onSelectConversation={row.onSelectConversation}
         />
       )
@@ -65,7 +69,7 @@ const _itemRenderer = (_: number, row: RowItem) => {
         <SelectableBigTeamChannel
           conversationIDKey={row.conversationIDKey}
           isSelected={row.isSelected}
-          name=""
+          name={row.name}
           onSelectConversation={row.onSelectConversation}
         />
       )

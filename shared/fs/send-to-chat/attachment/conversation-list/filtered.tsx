@@ -84,52 +84,53 @@ const getFilteredRowsAndMetadata = memoize(
     const filter = _filter.toLowerCase()
     const insertMatcher = makeInsertMatcher(filter)
 
-    const st = 
-    const smallRows: Array<SortedRowItem> =
-      inboxLayout.smallTeams ? inboxLayout.smallTeams.reduce<Array<SortedRowItem>>((arr, t) => {
-        const s = score(filter, you, t.name.split(','), insertMatcher)
-        if (s > 0) {
-          arr.push({
-            data: {
-              conversationIDKey: t.convID,
-              isTeam: t.isTeam,
-              snippetDecoration: RPCChatTypes.SnippetDecoration.none,
-              teamname: t.isTeam ? t.name : '',
-              time: 0,
-              type: 'small',
-            } as const,
-            score: s,
-            timestamp: t.time,
-          })
-        }
-        return arr
-    }, []) : []
-    const bigRows: Array<SortedRowItem> =
-      inboxLayout.bigTeams ? inboxLayout.bigTeams.reduce<Array<SortedRowItem>>((arr, t) => {
-        if (t.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel) {
-          const s = score(
-            filter,
-            '',
-            [t.channel.teamname, t.channel.channelname].filter(Boolean),
-            insertMatcher
-          )
+    const smallRows: Array<SortedRowItem> = inboxLayout.smallTeams
+      ? inboxLayout.smallTeams.reduce<Array<SortedRowItem>>((arr, t) => {
+          const s = score(filter, you, t.name.split(','), insertMatcher)
           if (s > 0) {
             arr.push({
               data: {
-                channelname: t.channel.channelname,
-                conversationIDKey: t.channel.convID,
+                conversationIDKey: t.convID,
+                isTeam: t.isTeam,
                 snippetDecoration: RPCChatTypes.SnippetDecoration.none,
-                teamname: t.channel.teamname,
-                type: 'big',
+                teamname: t.name,
+                time: 0,
+                type: 'small',
               } as const,
               score: s,
-              timestamp: 0,
+              timestamp: t.time,
             })
           }
-        }
+          return arr
+        }, [])
+      : []
+    const bigRows: Array<SortedRowItem> = inboxLayout.bigTeams
+      ? inboxLayout.bigTeams.reduce<Array<SortedRowItem>>((arr, t) => {
+          if (t.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel) {
+            const s = score(
+              filter,
+              '',
+              [t.channel.teamname, t.channel.channelname].filter(Boolean),
+              insertMatcher
+            )
+            if (s > 0) {
+              arr.push({
+                data: {
+                  channelname: t.channel.channelname,
+                  conversationIDKey: t.channel.convID,
+                  snippetDecoration: RPCChatTypes.SnippetDecoration.none,
+                  teamname: t.channel.teamname,
+                  type: 'big',
+                } as const,
+                score: s,
+                timestamp: 0,
+              })
+            }
+          }
 
-        return arr
-    }, []) : []
+          return arr
+        }, [])
+      : []
 
     const rows: Array<RowItem> = [...smallRows, ...bigRows]
       .sort((a, b) => {

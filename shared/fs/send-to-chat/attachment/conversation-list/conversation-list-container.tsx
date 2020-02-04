@@ -1,6 +1,5 @@
 import {namedConnect} from '../../../../util/container'
 import * as Types from '../../../../constants/types/chat2'
-import * as Constants from '../../../../constants/chat2'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import ConversationList, {SmallTeamRowItem, BigTeamChannelRowItem, RowItem} from './conversation-list'
@@ -19,15 +18,14 @@ const getRows = (inboxLayout: RPCChatTypes.UIInboxLayout, username: string, ownP
   let selectedIndex: number | null = null
   const rows = ownProps.filter
     ? getFilteredRowsAndMetadata(inboxLayout, ownProps.filter, username).rows.map((row, index) => {
-        // This should never happen to have empty conversationIDKey, but
-        // provide default to make flow happy
-        const conversationIDKey = row.conversationIDKey || Constants.noConversationIDKey
+        const conversationIDKey = row.conversationIDKey
         const common = {
           conversationIDKey,
           isSelected: conversationIDKey === ownProps.selected,
+          name: row.teamname,
           onSelectConversation: () => {
-            ownProps.onSelect(conversationIDKey)
-            ownProps.onDone && ownProps.onDone()
+            ownProps.onSelect(row.conversationIDKey!)
+            ownProps.onDone?.()
           },
         }
         if (common.isSelected) {
@@ -40,6 +38,7 @@ const getRows = (inboxLayout: RPCChatTypes.UIInboxLayout, username: string, ownP
             } as BigTeamChannelRowItem)
           : ({
               ...common,
+              participants: row.teamname!?.split(','),
               type: 'small',
             } as SmallTeamRowItem)
       })
@@ -49,7 +48,7 @@ const getRows = (inboxLayout: RPCChatTypes.UIInboxLayout, username: string, ownP
           isSelected: wl.convID === ownProps.selected,
           onSelectConversation: () => {
             ownProps.onSelect(wl.convID)
-            ownProps.onDone && ownProps.onDone()
+            ownProps.onDone?.()
           },
         }
         if (common.isSelected) {
@@ -62,6 +61,7 @@ const getRows = (inboxLayout: RPCChatTypes.UIInboxLayout, username: string, ownP
             } as BigTeamChannelRowItem)
           : ({
               ...common,
+              participants: wl.name.split(','),
               type: 'small',
             } as SmallTeamRowItem)
       }) ?? []
