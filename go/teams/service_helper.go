@@ -1006,20 +1006,20 @@ func RemoveMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 			exclusiveActions = append(exclusiveActions, "inviteID")
 		}
 		if len(exclusiveActions) > 1 {
-			g.Log.CDebugf(ctx, "TeamRemoveMember: can only do 1 of %v at a time", exclusiveActions)
+			g.Log.CDebugf(ctx, "RemoveMembers: can only do 1 of %v at a time", exclusiveActions)
 			failedToRemove = append(failedToRemove, user)
 			continue
 		}
 
 		if len(user.Email) > 0 {
-			g.Log.CDebugf(ctx, "TeamRemoveMember: received email address, using CancelEmailInvite for %q in team %q", user.Email, teamID)
+			g.Log.CDebugf(ctx, "RemoveMembers: received email address, using CancelEmailInvite for %q in team %q", user.Email, teamID)
 			err = CancelEmailInvite(ctx, g, teamID, user.Email, user.AllowInaction)
 			if err != nil {
 				failedToRemove = append(failedToRemove, user)
 			}
 			continue
 		} else if len(user.InviteID) > 0 {
-			g.Log.CDebugf(ctx, "TeamRemoveMember: received inviteID, using CancelInviteByID for %q in team %q", user.InviteID, teamID)
+			g.Log.CDebugf(ctx, "RemoveMembers: received inviteID, using CancelInviteByID for %q in team %q", user.InviteID, teamID)
 			err = CancelInviteByID(ctx, g, teamID, user.InviteID, user.AllowInaction)
 			if err != nil {
 				failedToRemove = append(failedToRemove, user)
@@ -1027,7 +1027,7 @@ func RemoveMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 			continue
 		}
 		// Note: AllowInaction is not supported for non-invite removes.
-		g.Log.CDebugf(ctx, "TeamRemoveMember: using RemoveMember for %q in team %q", user.Username, teamID)
+		g.Log.CDebugf(ctx, "RemoveMembers: using RemoveMember for %q in team %q", user.Username, teamID)
 		err := remove(ctx, g, teamGetter, user.Username)
 		if err != nil {
 			failedToRemove = append(failedToRemove, user)
