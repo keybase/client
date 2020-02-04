@@ -42,7 +42,7 @@ type gpgInterface interface {
 }
 
 type loginProvisionArg struct {
-	DeviceType string // desktop or mobile
+	DeviceType keybase1.DeviceTypeV2 // desktop or mobile
 	ClientType keybase1.ClientType
 	User       *libkb.User
 
@@ -186,7 +186,7 @@ func (e *loginProvision) deviceWithType(m libkb.MetaContext, provisionerType key
 
 	// Continue to generate legacy Kex2 secret types
 	kex2SecretTyp := libkb.Kex2SecretTypeV1Desktop
-	if e.arg.DeviceType == libkb.DeviceTypeMobile || provisionerType == keybase1.DeviceType_MOBILE {
+	if e.arg.DeviceType == keybase1.DeviceTypeV2_MOBILE || provisionerType == keybase1.DeviceType_MOBILE {
 		kex2SecretTyp = libkb.Kex2SecretTypeV1Mobile
 	}
 	m.Debug("Generating Kex2 secret for uid=%s, typ=%d", uid, kex2SecretTyp)
@@ -681,7 +681,7 @@ func (e *loginProvision) gpgPrivateIndex(m libkb.MetaContext) (*libkb.GpgKeyInde
 
 // gpgClient returns a gpg client.
 func (e *loginProvision) gpgClient(m libkb.MetaContext) (gpgInterface, error) {
-	if e.arg.DeviceType == libkb.DeviceTypeMobile {
+	if e.arg.DeviceType == keybase1.DeviceTypeV2_MOBILE {
 		return nil, libkb.GPGUnavailableError{}
 	}
 	if e.gpgCli != nil {
@@ -703,8 +703,8 @@ func (e *loginProvision) gpgClient(m libkb.MetaContext) (gpgInterface, error) {
 // checkArg checks loginProvisionArg for sane arguments.
 func (e *loginProvision) checkArg() error {
 	// check we have a good device type:
-	if e.arg.DeviceType != libkb.DeviceTypeDesktop && e.arg.DeviceType != libkb.DeviceTypeMobile {
-		return libkb.InvalidArgumentError{Msg: fmt.Sprintf("device type must be %q or %q, not %q", libkb.DeviceTypeDesktop, libkb.DeviceTypeMobile, e.arg.DeviceType)}
+	if e.arg.DeviceType != keybase1.DeviceTypeV2_DESKTOP && e.arg.DeviceType != keybase1.DeviceTypeV2_MOBILE {
+		return libkb.InvalidArgumentError{Msg: fmt.Sprintf("device type must be %q or %q, not %q", keybase1.DeviceTypeV2_DESKTOP, keybase1.DeviceTypeV2_MOBILE, e.arg.DeviceType)}
 	}
 
 	if e.arg.User == nil {
@@ -839,11 +839,11 @@ func (e *loginProvision) chooseDevice(m libkb.MetaContext, pgp bool) (err error)
 	m.Debug("device details: %+v", selected)
 
 	switch selected.Type {
-	case libkb.DeviceTypePaper:
+	case keybase1.DeviceTypeV2_PAPER:
 		return e.paper(m, &selected, nil)
-	case libkb.DeviceTypeDesktop:
+	case keybase1.DeviceTypeV2_DESKTOP:
 		return e.deviceWithType(m, keybase1.DeviceType_DESKTOP)
-	case libkb.DeviceTypeMobile:
+	case keybase1.DeviceTypeV2_MOBILE:
 		return e.deviceWithType(m, keybase1.DeviceType_MOBILE)
 	default:
 		return fmt.Errorf("unknown device type: %v", selected.Type)
@@ -860,7 +860,7 @@ func (e *loginProvision) preloadedPaperKey(m libkb.MetaContext, devices []libkb.
 	// ... then match it to the paper keys that can be used with this account
 	var matchedDevice *libkb.DeviceWithDeviceNumber
 	for _, d := range devices {
-		if d.Type != libkb.DeviceTypePaper {
+		if d.Type != keybase1.DeviceTypeV2_PAPER {
 			continue
 		}
 		if prefix != *d.Description {
@@ -1221,7 +1221,7 @@ func (e *loginProvision) AccountReset() bool {
 	return e.resetComplete
 }
 
-var devtypeSortOrder = map[string]int{libkb.DeviceTypeMobile: 0, libkb.DeviceTypeDesktop: 1, libkb.DeviceTypePaper: 2}
+var devtypeSortOrder = map[keybase1.DeviceTypeV2]int{keybase1.DeviceTypeV2_MOBILE: 0, keybase1.DeviceTypeV2_DESKTOP: 1, keybase1.DeviceTypeV2_PAPER: 2}
 
 type partitionDeviceList []libkb.DeviceWithDeviceNumber
 

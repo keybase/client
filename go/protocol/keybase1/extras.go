@@ -1888,6 +1888,36 @@ func PublicKeyV1FromDeviceKeyV2(keyV2 PublicKeyV2NaCl) PublicKey {
 	}
 }
 
+const (
+	DeviceTypeV2_NONE    DeviceTypeV2 = "none"
+	DeviceTypeV2_PAPER   DeviceTypeV2 = "backup"
+	DeviceTypeV2_DESKTOP DeviceTypeV2 = "desktop"
+	DeviceTypeV2_MOBILE  DeviceTypeV2 = "mobile"
+)
+
+func (d DeviceTypeV2) String() string {
+	return string(d)
+}
+
+func StringToDeviceTypeV2(s string) (d DeviceTypeV2, err error) {
+	deviceType := DeviceTypeV2(s)
+	switch deviceType {
+	case DeviceTypeV2_NONE, DeviceTypeV2_DESKTOP, DeviceTypeV2_MOBILE, DeviceTypeV2_PAPER:
+		//pass
+	default:
+		return DeviceTypeV2_NONE, fmt.Errorf("Unknown DeviceType: %s", deviceType)
+	}
+	return deviceType, nil
+}
+
+// defaults to Desktop
+func (dt *DeviceTypeV2) ToDeviceType() DeviceType {
+	if *dt == DeviceTypeV2_MOBILE {
+		return DeviceType_MOBILE
+	}
+	return DeviceType_DESKTOP
+}
+
 func RevokedKeyV1FromDeviceKeyV2(keyV2 PublicKeyV2NaCl) RevokedKey {
 	return RevokedKey{
 		Key: PublicKeyV1FromDeviceKeyV2(keyV2),
@@ -3687,4 +3717,11 @@ func (d *ClientDetails) Redact() {
 			d.Argv[i+1] = redactedReplacer
 		}
 	}
+}
+
+func (s UserSummarySet) Usernames() (ret []string) {
+	for _, x := range s.Users {
+		ret = append(ret, x.Username)
+	}
+	return ret
 }

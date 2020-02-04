@@ -6,7 +6,6 @@ package engine
 import (
 	"fmt"
 	"sort"
-	"strings"
 
 	"github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
@@ -143,7 +142,7 @@ func (e *PassphraseRecover) chooseDevice(mctx libkb.MetaContext, ckf *libkb.Comp
 	idMap := make(map[keybase1.DeviceID]libkb.DeviceWithDeviceNumber)
 	for _, d := range devices {
 		// Don't show paper keys if the user has not provisioned on this device
-		if !e.usernameFound && d.Type == libkb.DeviceTypePaper {
+		if !e.usernameFound && d.Type == keybase1.DeviceTypeV2_PAPER {
 			continue
 		}
 		expDevices = append(expDevices, *d.ProtExportWithDeviceNum())
@@ -171,9 +170,9 @@ func (e *PassphraseRecover) chooseDevice(mctx libkb.MetaContext, ckf *libkb.Comp
 
 	// Roughly the same flow as in provisioning
 	switch selected.Type {
-	case libkb.DeviceTypePaper:
+	case keybase1.DeviceTypeV2_PAPER:
 		return e.loginWithPaperKey(mctx)
-	case libkb.DeviceTypeDesktop, libkb.DeviceTypeMobile:
+	case keybase1.DeviceTypeV2_DESKTOP, keybase1.DeviceTypeV2_MOBILE:
 		return e.explainChange(mctx, selected)
 	default:
 		return fmt.Errorf("unknown device type: %v", selected.Type)
@@ -312,7 +311,7 @@ func (e *PassphraseRecover) explainChange(mctx libkb.MetaContext, device libkb.D
 	// The actual contents of the shown prompt will depend on the UI impl
 	return mctx.UIs().LoginUI.ExplainDeviceRecovery(mctx.Ctx(), keybase1.ExplainDeviceRecoveryArg{
 		Name: name,
-		Kind: keybase1.DeviceTypeMap[strings.ToUpper(device.Type)],
+		Kind: device.Type.ToDeviceType(),
 	})
 }
 

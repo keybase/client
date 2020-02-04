@@ -1,13 +1,18 @@
-import * as SafeElectron from '../../util/safe-electron.desktop'
+import * as Electron from 'electron'
 import {TypedActions} from '../../actions/typed-actions-gen'
 
-export const getMainWindow = (): SafeElectron.BrowserWindowType | null => {
-  const w = SafeElectron.BrowserWindow.getAllWindows().find(
-    w => w.webContents.getURL().indexOf('/main.') !== -1
-  )
+const {type} = KB.process
+const isRenderer = type === 'renderer'
+
+export const getMainWindow = (): Electron.BrowserWindow | null => {
+  const w = Electron.BrowserWindow.getAllWindows().find(w => w.webContents.getURL().indexOf('/main.') !== -1)
   return w || null
 }
 
 export const mainWindowDispatch = (action: TypedActions): void => {
-  SafeElectron.getApp().emit('KBdispatchAction', '', action)
+  if (isRenderer) {
+    Electron.ipcRenderer.invoke('KBdispatchAction', action)
+  } else {
+    getMainWindow()?.webContents.send('KBdispatchAction', action)
+  }
 }

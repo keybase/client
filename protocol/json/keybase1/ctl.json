@@ -204,7 +204,7 @@
         "items": "DbKey"
       }
     },
-    "setNixOnLoginStartup": {
+    "setOnLoginStartup": {
       "request": [
         {
           "name": "enabled",
@@ -213,7 +213,7 @@
       ],
       "response": null
     },
-    "getNixOnLoginStartup": {
+    "getOnLoginStartup": {
       "request": [],
       "response": "OnLoginStartupStatus"
     }

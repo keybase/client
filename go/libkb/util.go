@@ -39,6 +39,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
 	"github.com/keybase/go-codec/codec"
+	jsonw "github.com/keybase/go-jsonw"
 	"golang.org/x/net/context"
 )
 
@@ -1174,4 +1175,12 @@ func FindFilePathWithNumberSuffix(parentDir string, basename string, useArbitrar
 	}
 	// Could race but it should be rare enough so fine.
 	return destPath, nil
+}
+
+func JsonwStringArray(a []string) *jsonw.Wrapper {
+	aj := jsonw.NewArray(len(a))
+	for i, s := range a {
+		_ = aj.SetIndex(i, jsonw.NewString(s))
+	}
+	return aj
 }

@@ -169,12 +169,12 @@ func (v *CmdDumpKeyfamily) printKey(key keybase1.PublicKey, subkeys []keybase1.P
 			dui.Printf("%s%s%s%s\n", indentSpace(indent+2), identity.Username, commentStr, emailStr)
 		}
 	}
-	if key.DeviceID != "" || key.DeviceType != "" || key.DeviceDescription != "" {
+	if key.DeviceID != "" || key.DeviceType != keybase1.DeviceTypeV2_NONE || key.DeviceDescription != "" {
 		dui.Printf("%sDevice:\n", indentSpace(indent+1))
 		if key.DeviceID != "" {
 			dui.Printf("%sID: %s\n", indentSpace(indent+2), key.DeviceID)
 		}
-		if key.DeviceType != "" {
+		if key.DeviceType != keybase1.DeviceTypeV2_NONE {
 			dui.Printf("%sType: %s\n", indentSpace(indent+2), key.DeviceType)
 		}
 		if key.DeviceDescription != "" {

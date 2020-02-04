@@ -360,11 +360,11 @@
       "fields": [
         {
           "type": "int",
-          "name": "following"
+          "name": "unverifiedNumFollowing"
         },
         {
           "type": "int",
-          "name": "followers"
+          "name": "unverifiedNumFollowers"
         },
         {
           "type": "UID",
@@ -393,14 +393,6 @@
         {
           "type": "string",
           "name": "twitter"
-        },
-        {
-          "type": "boolean",
-          "name": "youFollowThem"
-        },
-        {
-          "type": "boolean",
-          "name": "theyFollowYou"
         },
         {
           "type": {

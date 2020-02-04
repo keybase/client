@@ -111,7 +111,7 @@ func (r *userHandler) userBlocked(m libkb.MetaContext, cli gregor1.IncomingInter
 	}
 
 	// Ignore the error if we fail to block properly
-	_ = libkb.NewTracker2Syncer(m.G(), msg.Uid, true /* reverse */).Block(m, badUIDs)
+	_ = libkb.NewServertrustTrackerSyncer(m.G(), msg.Uid, libkb.FollowDirectionFollowing).Block(m, badUIDs)
 
 	m.Debug("Got user.blocked blocked UIDs %+v", badUIDs)
 	for _, h := range r.userBlockedHandlers {

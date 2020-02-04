@@ -7,8 +7,8 @@ import (
 type card struct {
 	Status        AppStatus `json:"status"`
 	FollowSummary struct {
-		Following int `json:"following"`
-		Followers int `json:"followers"`
+		UnverifiedNumFollowing int `json:"following"`
+		UnverifiedNumFollowers int `json:"followers"`
 	} `json:"follow_summary"`
 	Profile struct {
 		FullName string `json:"full_name"`
@@ -17,8 +17,6 @@ type card struct {
 		Website  string `json:"website"`
 		Twitter  string `json:"twitter"`
 	} `json:"profile"`
-	YouFollowThem        bool                        `json:"you_follow_them"`
-	TheyFollowYou        bool                        `json:"they_follow_you"`
 	TeamShowcase         []keybase1.UserTeamShowcase `json:"team_showcase"`
 	RegisteredForAirdrop bool                        `json:"airdrop_registered"`
 	StellarHidden        bool                        `json:"stellar_hidden"`
@@ -63,21 +61,19 @@ func UserCard(m MetaContext, uid keybase1.UID, useSession bool) (ret *keybase1.U
 	}
 
 	ret = &keybase1.UserCard{
-		Following:            card.FollowSummary.Following,
-		Followers:            card.FollowSummary.Followers,
-		Uid:                  uid,
-		FullName:             card.Profile.FullName,
-		Location:             card.Profile.Location,
-		Bio:                  card.Profile.Bio,
-		Website:              card.Profile.Website,
-		Twitter:              card.Profile.Twitter,
-		YouFollowThem:        card.YouFollowThem,
-		TheyFollowYou:        card.TheyFollowYou,
-		TeamShowcase:         card.TeamShowcase,
-		RegisteredForAirdrop: card.RegisteredForAirdrop,
-		StellarHidden:        card.StellarHidden,
-		Blocked:              card.UserBlocks.Chat,
-		HidFromFollowers:     card.UserBlocks.Follow,
+		UnverifiedNumFollowing: card.FollowSummary.UnverifiedNumFollowing,
+		UnverifiedNumFollowers: card.FollowSummary.UnverifiedNumFollowers,
+		Uid:                    uid,
+		FullName:               card.Profile.FullName,
+		Location:               card.Profile.Location,
+		Bio:                    card.Profile.Bio,
+		Website:                card.Profile.Website,
+		Twitter:                card.Profile.Twitter,
+		TeamShowcase:           card.TeamShowcase,
+		RegisteredForAirdrop:   card.RegisteredForAirdrop,
+		StellarHidden:          card.StellarHidden,
+		Blocked:                card.UserBlocks.Chat,
+		HidFromFollowers:       card.UserBlocks.Follow,
 	}
 
 	if err := m.G().CardCache().Set(ret, useSession); err != nil {

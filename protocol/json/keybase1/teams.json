@@ -2709,6 +2709,19 @@
     },
     {
       "type": "record",
+      "name": "TeamEditMembersResult",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "UserRolePair"
+          },
+          "name": "failures"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "BulkRes",
       "fields": [
         {
@@ -3500,6 +3513,26 @@
         }
       ],
       "response": null
+    },
+    "teamEditMembers": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "users",
+          "type": {
+            "type": "array",
+            "items": "UserRolePair"
+          }
+        }
+      ],
+      "response": "TeamEditMembersResult"
     },
     "teamGetBotSettings": {
       "request": [

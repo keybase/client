@@ -30,13 +30,13 @@ type GetConfiguredAccountsArg struct {
 }
 
 type LoginArg struct {
-	SessionID    int        `codec:"sessionID" json:"sessionID"`
-	DeviceType   string     `codec:"deviceType" json:"deviceType"`
-	Username     string     `codec:"username" json:"username"`
-	ClientType   ClientType `codec:"clientType" json:"clientType"`
-	DoUserSwitch bool       `codec:"doUserSwitch" json:"doUserSwitch"`
-	PaperKey     string     `codec:"paperKey" json:"paperKey"`
-	DeviceName   string     `codec:"deviceName" json:"deviceName"`
+	SessionID    int          `codec:"sessionID" json:"sessionID"`
+	DeviceType   DeviceTypeV2 `codec:"deviceType" json:"deviceType"`
+	Username     string       `codec:"username" json:"username"`
+	ClientType   ClientType   `codec:"clientType" json:"clientType"`
+	DoUserSwitch bool         `codec:"doUserSwitch" json:"doUserSwitch"`
+	PaperKey     string       `codec:"paperKey" json:"paperKey"`
+	DeviceName   string       `codec:"deviceName" json:"deviceName"`
 }
 
 type LoginProvisionedDeviceArg struct {
@@ -107,8 +107,8 @@ type LoginInterface interface {
 	// machine. Currently configured accounts are defined as those that have stored
 	// secrets, but this definition may be expanded in the future.
 	GetConfiguredAccounts(context.Context, int) ([]ConfiguredAccount, error)
-	// Performs login.  deviceType should be libkb.DeviceTypeDesktop
-	// or libkb.DeviceTypeMobile. username is optional. If the current
+	// Performs login.  deviceType should be keybase1.DeviceTypeV2_DESKTOP
+	// or keybase1.DeviceTypeV2_MOBILE. username is optional. If the current
 	// device isn't provisioned, this function will provision it.
 	Login(context.Context, LoginArg) error
 	// Login a user only if the user is on a provisioned device. Username is optional.
@@ -386,8 +386,8 @@ func (c LoginClient) GetConfiguredAccounts(ctx context.Context, sessionID int) (
 	return
 }
 
-// Performs login.  deviceType should be libkb.DeviceTypeDesktop
-// or libkb.DeviceTypeMobile. username is optional. If the current
+// Performs login.  deviceType should be keybase1.DeviceTypeV2_DESKTOP
+// or keybase1.DeviceTypeV2_MOBILE. username is optional. If the current
 // device isn't provisioned, this function will provision it.
 func (c LoginClient) Login(ctx context.Context, __arg LoginArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.login.login", []interface{}{__arg}, nil, 0*time.Millisecond)

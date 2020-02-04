@@ -856,6 +856,14 @@ type GetFullStatusArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type IsServiceRunningArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
+type IsKBFSRunningArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type GetNetworkStatsArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -936,8 +944,8 @@ type GetBootstrapStatusArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
-type RequestFollowerInfoArg struct {
-	Uid UID `codec:"uid" json:"uid"`
+type RequestFollowingAndUnverifiedFollowersArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
 type GetRememberPassphraseArg struct {
@@ -975,6 +983,8 @@ type ConfigInterface interface {
 	GetCurrentStatus(context.Context, int) (CurrentStatus, error)
 	GetClientStatus(context.Context, int) ([]ClientStatus, error)
 	GetFullStatus(context.Context, int) (*FullStatus, error)
+	IsServiceRunning(context.Context, int) (bool, error)
+	IsKBFSRunning(context.Context, int) (bool, error)
 	GetNetworkStats(context.Context, int) ([]InstrumentationStat, error)
 	LogSend(context.Context, LogSendArg) (LogSendID, error)
 	GetAllProvisionedUsernames(context.Context, int) (AllProvisionedUsernames, error)
@@ -998,7 +1008,7 @@ type ConfigInterface interface {
 	// Wait for client type to connect to service.
 	WaitForClient(context.Context, WaitForClientArg) (bool, error)
 	GetBootstrapStatus(context.Context, int) (BootstrapStatus, error)
-	RequestFollowerInfo(context.Context, UID) error
+	RequestFollowingAndUnverifiedFollowers(context.Context, int) error
 	GetRememberPassphrase(context.Context, int) (bool, error)
 	SetRememberPassphrase(context.Context, SetRememberPassphraseArg) error
 	// getUpdateInfo2 is to drive the redbar on mobile and desktop apps. The redbar tells you if
@@ -1057,6 +1067,36 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.GetFullStatus(ctx, typedArgs[0].SessionID)
+					return
+				},
+			},
+			"isServiceRunning": {
+				MakeArg: func() interface{} {
+					var ret [1]IsServiceRunningArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]IsServiceRunningArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]IsServiceRunningArg)(nil), args)
+						return
+					}
+					ret, err = i.IsServiceRunning(ctx, typedArgs[0].SessionID)
+					return
+				},
+			},
+			"isKBFSRunning": {
+				MakeArg: func() interface{} {
+					var ret [1]IsKBFSRunningArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]IsKBFSRunningArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]IsKBFSRunningArg)(nil), args)
+						return
+					}
+					ret, err = i.IsKBFSRunning(ctx, typedArgs[0].SessionID)
 					return
 				},
 			},
@@ -1315,18 +1355,18 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 					return
 				},
 			},
-			"requestFollowerInfo": {
+			"requestFollowingAndUnverifiedFollowers": {
 				MakeArg: func() interface{} {
-					var ret [1]RequestFollowerInfoArg
+					var ret [1]RequestFollowingAndUnverifiedFollowersArg
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]RequestFollowerInfoArg)
+					typedArgs, ok := args.(*[1]RequestFollowingAndUnverifiedFollowersArg)
 					if !ok {
-						err = rpc.NewTypeError((*[1]RequestFollowerInfoArg)(nil), args)
+						err = rpc.NewTypeError((*[1]RequestFollowingAndUnverifiedFollowersArg)(nil), args)
 						return
 					}
-					err = i.RequestFollowerInfo(ctx, typedArgs[0].Uid)
+					err = i.RequestFollowingAndUnverifiedFollowers(ctx, typedArgs[0].SessionID)
 					return
 				},
 			},
@@ -1461,6 +1501,18 @@ func (c ConfigClient) GetFullStatus(ctx context.Context, sessionID int) (res *Fu
 	return
 }
 
+func (c ConfigClient) IsServiceRunning(ctx context.Context, sessionID int) (res bool, err error) {
+	__arg := IsServiceRunningArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.config.isServiceRunning", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c ConfigClient) IsKBFSRunning(ctx context.Context, sessionID int) (res bool, err error) {
+	__arg := IsKBFSRunningArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.config.isKBFSRunning", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
 func (c ConfigClient) GetNetworkStats(ctx context.Context, sessionID int) (res []InstrumentationStat, err error) {
 	__arg := GetNetworkStatsArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.config.getNetworkStats", []interface{}{__arg}, &res, 0*time.Millisecond)
@@ -1565,9 +1617,9 @@ func (c ConfigClient) GetBootstrapStatus(ctx context.Context, sessionID int) (re
 	return
 }
 
-func (c ConfigClient) RequestFollowerInfo(ctx context.Context, uid UID) (err error) {
-	__arg := RequestFollowerInfoArg{Uid: uid}
-	err = c.Cli.Call(ctx, "keybase.1.config.requestFollowerInfo", []interface{}{__arg}, nil, 0*time.Millisecond)
+func (c ConfigClient) RequestFollowingAndUnverifiedFollowers(ctx context.Context, sessionID int) (err error) {
+	__arg := RequestFollowingAndUnverifiedFollowersArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.config.requestFollowingAndUnverifiedFollowers", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 

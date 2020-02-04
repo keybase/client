@@ -17,39 +17,20 @@ if [ "$#" -gt 0 ] && [ ! -v KEYBASE_SERVICE ]; then
     exit 0
 fi
 
-KEYBASE_SERVICE_ARGS="${KEYBASE_SERVICE_ARGS:-"-debug -use-default-log-file"}"
+KEYBASE_SERVICE_ARGS="-debug -use-default-log-file ${KEYBASE_SERVICE_ARGS:-""}"
 keybase $KEYBASE_SERVICE_ARGS service &
 if [ "$#" -eq 0 ] || [ -v KEYBASE_LOG_SERVICE_TO_STDOUT ]; then
     tail -F /home/keybase/.cache/keybase/keybase.service.log &
 fi
 
-KEYBASE_KBFS_ARGS="${KEYBASE_KBFS_ARGS:-"-debug -mount-type=none -log-to-file"}"
+KEYBASE_KBFS_ARGS="-debug -log-to-file ${KEYBASE_KBFS_ARGS:-"-mount-type=none"}"
 KEYBASE_DEBUG=1 kbfsfuse $KEYBASE_KBFS_ARGS &
 if [ "$#" -eq 0 ] || [ -v KEYBASE_LOG_KBFS_TO_STDOUT ]; then
     tail -F /home/keybase/.cache/keybase/keybase.kbfs.log &
 fi
 
-# Wait up to 10 seconds for the service to start
-SERVICE_COUNTER=0
-until keybase --no-auto-fork status &> /dev/null; do
-    if [ $SERVICE_COUNTER -gt 10 ]; then
-        echo "Service failed to start" >&2
-        exit 1
-    fi
-    SERVICE_COUNTER=$((SERVICE_COUNTER + 1))
-    sleep 1
-done
-
-# Wait up to 10 seconds for KBFS to start
-KBFS_COUNTER=0
-until keybase --no-auto-fork fs ls /keybase/private &> /dev/null; do
-    if [ $KBFS_COUNTER -gt 10 ]; then
-        echo "KBFS failed to start" >&2
-        exit 1
-    fi
-    KBFS_COUNTER=$((KBFS_COUNTER + 1))
-    sleep 1
-done
+# Wait up to 10 seconds each for both the service and KBFS to start
+keybase ctl wait --include-kbfs
 
 # Possibly run oneshot if it was requested by the user
 if [ -v KEYBASE_USERNAME ] && [ -v KEYBASE_PAPERKEY ]; then

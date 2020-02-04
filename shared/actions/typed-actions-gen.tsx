@@ -300,8 +300,8 @@ export type TypedActionsMap = {
   'config:setUseNativeFrame': config.SetUseNativeFramePayload
   'config:setWhatsNewLastSeenVersion': config.SetWhatsNewLastSeenVersionPayload
   'config:toggleRuntimeStats': config.ToggleRuntimeStatsPayload
-  'config:loadNixOnLoginStartup': config.LoadNixOnLoginStartupPayload
-  'config:loadedNixOnLoginStartup': config.LoadedNixOnLoginStartupPayload
+  'config:loadOnLoginStartup': config.LoadOnLoginStartupPayload
+  'config:loadedOnLoginStartup': config.LoadedOnLoginStartupPayload
   'config:loadOnStart': config.LoadOnStartPayload
   'config:showShareActionSheet': config.ShowShareActionSheetPayload
   'crypto:clearRecipients': crypto.ClearRecipientsPayload
@@ -965,7 +965,7 @@ export type TypedActionsMap = {
   'tracker2:updateAssertion': tracker2.UpdateAssertionPayload
   'tracker2:changeFollow': tracker2.ChangeFollowPayload
   'tracker2:ignore': tracker2.IgnorePayload
-  'tracker2:updateFollowers': tracker2.UpdateFollowersPayload
+  'tracker2:updateFollows': tracker2.UpdateFollowsPayload
   'tracker2:getProofSuggestions': tracker2.GetProofSuggestionsPayload
   'tracker2:proofSuggestionsUpdated': tracker2.ProofSuggestionsUpdatedPayload
   'tracker2:showUser': tracker2.ShowUserPayload

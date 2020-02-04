@@ -1,12 +1,14 @@
 package chat
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
+	"github.com/keybase/clockwork"
 
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/stretchr/testify/require"
@@ -121,7 +123,6 @@ func TestJourneycardDismiss(t *testing.T) {
 // Test that dismissing a CHANNEL_INACTIVE in one conv actually dismisses
 // CHANNEL_INACTIVE in all convs in he team.
 func TestJourneycardDismissTeamwide(t *testing.T) {
-	t.Skip("wrong")
 	useRemoteMock = false
 	defer func() { useRemoteMock = true }()
 	ctc := makeChatTestContext(t, t.Name(), 2)
@@ -132,21 +133,27 @@ func TestJourneycardDismissTeamwide(t *testing.T) {
 	ctx0 := ctc.as(t, users[0]).startCtx
 	uid0 := gregor1.UID(users[0].GetUID().ToBytes())
 	t.Logf("uid0: %s", uid0)
+	tc1 := ctc.world.Tcs[users[1].Username]
+	ctx1 := ctc.as(t, users[1]).startCtx
+	uid1 := gregor1.UID(users[1].GetUID().ToBytes())
+	_ = tc1
+	_ = ctx1
+	t.Logf("uid1: %s", uid1)
 
 	teamConv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
-		chat1.ConversationMembersType_TEAM)
+		chat1.ConversationMembersType_TEAM, users[1])
 	t.Logf("teamconv: %x", teamConv.Id.DbShortForm())
 	teamID, err := keybase1.TeamIDFromString(teamConv.Triple.Tlfid.String())
 	_ = teamID
 	require.NoError(t, err)
 
-	t.Logf("create other channels")
+	t.Logf("[User u1] create other channels to make POPULAR_CHANNELS eligible for User u0")
 	topicNames := []string{"c-a", "c-b", "c-c"}
 	allConvIDs := []chat1.ConversationID{teamConv.Id}
 	_ = allConvIDs
 	allConvInfos := []chat1.ConversationInfoLocal{teamConv}
 	for _, topicName := range topicNames {
-		res, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx0,
+		res, err := ctc.as(t, users[1]).chatLocalHandler().NewConversationLocal(ctx1,
 			chat1.NewConversationLocalArg{
 				TlfName:       teamConv.TlfName,
 				TopicName:     &topicName,
@@ -159,18 +166,17 @@ func TestJourneycardDismissTeamwide(t *testing.T) {
 		allConvInfos = append(allConvInfos, res.Conv.Info)
 	}
 
-	// Send a text message for cards to glom onto.
-	for _, convInfo := range allConvInfos {
-		mustPostLocalForTest(t, ctc, users[0], convInfo, chat1.NewMessageBodyWithText(chat1.MessageText{
+	// [User u0] Send a message to make POPULAR_CHANNELS eligible later by SentMessage.
+	// [User u1] Send a text message for cards to glom onto.
+	for i, convInfo := range allConvInfos {
+		var whichUser int
+		if i > 0 {
+			whichUser = 1
+		}
+		mustPostLocalForTest(t, ctc, users[whichUser], convInfo, chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: "Fruit flies like a banana.",
 		}))
 	}
-
-	t.Logf("Leave two conversations to make POPULAR_CHANNELS eligible")
-	_, err = ctc.as(t, users[0]).chatLocalHandler().LeaveConversationLocal(ctx0, allConvIDs[len(allConvIDs)-1])
-	require.NoError(t, err)
-	_, err = ctc.as(t, users[0]).chatLocalHandler().LeaveConversationLocal(ctx0, allConvIDs[len(allConvIDs)-2])
-	require.NoError(t, err)
 
 	requireNoJourneycard := func(convID chat1.ConversationID) {
 		thread, err := tc0.ChatG.ConvSource.Pull(ctx0, convID, uid0,
@@ -189,15 +195,25 @@ func TestJourneycardDismissTeamwide(t *testing.T) {
 		require.NoError(t, err)
 		t.Logf("the messages: %v", chat1.MessageUnboxedDebugList(thread.Messages))
 		require.True(t, len(thread.Messages) >= 1)
-		// Skip initial LEAVE message. There was a bug where journeycards couldn't attach to LEAVE messages (TRIAGE-1738).
+		// Skip initial JOIN/LEAVE message. There was a bug where journeycards couldn't attach to JOIN/LEAVE messages (TRIAGE-1738).
 		msg := thread.Messages[0]
-		if msg.Valid__ != nil && msg.Valid__.ClientHeader.MessageType == chat1.MessageType_LEAVE {
+		if msg.Valid__ != nil && (msg.Valid__.ClientHeader.MessageType == chat1.MessageType_JOIN || msg.Valid__.ClientHeader.MessageType == chat1.MessageType_LEAVE) {
 			require.True(t, len(thread.Messages) >= 2, "need more messages for LEAVE workaround")
 			msg = thread.Messages[1]
 		}
 		require.NotNil(t, msg.Journeycard__, "requireJourneycard expects a journeycard")
 		require.Equal(t, cardType, msg.Journeycard().CardType, "card type")
 	}
+
+	// Wait for journeycardmanager to find out about the team. Calls to SentMessage happen
+	// in background goroutines. So sometimes on CI this must be waited for.
+	pollFor(t, "hasTeam", 10*time.Second, func(_ int) bool {
+		jcm, err := tc0.ChatG.JourneyCardManager.(*JourneyCardManager).get(ctx0, uid0)
+		require.NoError(t, err)
+		found, nConvs, err := jcm.hasTeam(ctx0, teamID)
+		require.NoError(t, err)
+		return found && nConvs >= 1
+	})
 
 	requireJourneycard(allConvIDs[0], chat1.JourneycardType_POPULAR_CHANNELS)
 	t.Logf("POPULAR_CHANNELS appears only in #general")
@@ -208,13 +224,26 @@ func TestJourneycardDismissTeamwide(t *testing.T) {
 	t.Logf("Dismiss POPULAR_CHANNELS")
 	err = ctc.as(t, users[0]).chatLocalHandler().DismissJourneycard(ctx0, chat1.DismissJourneycardArg{ConvID: allConvIDs[0], CardType: chat1.JourneycardType_POPULAR_CHANNELS})
 	require.NoError(t, err)
-	for _, convID := range allConvIDs[0:] {
+	for _, convID := range allConvIDs {
 		requireNoJourneycard(convID)
 	}
 
+	t.Logf("Join all conversations")
+	for i := 1; i < len(allConvIDs); i++ {
+		_, err := ctc.as(t, users[0]).chatLocalHandler().JoinConversationLocal(ctx0, chat1.JoinConversationLocalArg{
+			TlfName:    allConvInfos[i].TLFNameExpanded(),
+			TopicType:  chat1.TopicType_CHAT,
+			Visibility: keybase1.TLFVisibility_PRIVATE,
+			TopicName:  allConvInfos[i].TopicName,
+		})
+		require.NoError(t, err)
+	}
+
 	t.Logf("Advanced time forward enough for CHANNEL_INACTIVE to be eligible")
-	err = tc0.ChatG.JourneyCardManager.(*JourneyCardManager).TimeTravel(ctx0, uid0, time.Hour*24*40+1)
+	nTeams, nConvs, err := tc0.ChatG.JourneyCardManager.(*JourneyCardManager).TimeTravel(ctx0, uid0, time.Hour*24*40+1)
 	require.NoError(t, err)
+	require.GreaterOrEqual(t, nTeams, 1, "expected known teams to time travel")
+	require.GreaterOrEqual(t, nConvs, 1, "expected known convs to time travel")
 	for _, convID := range allConvIDs {
 		requireJourneycard(convID, chat1.JourneycardType_CHANNEL_INACTIVE)
 	}
@@ -265,9 +294,21 @@ func TestJourneycardPersist(t *testing.T) {
 		return msg.Journeycard()
 	}
 
+	// Wait for journeycardmanager to find out about the team. Calls to SentMessage happen
+	// in background goroutines. So sometimes on CI this must be waited for.
+	pollFor(t, "hasTeam", 10*time.Second, func(_ int) bool {
+		jcm, err := tc0.ChatG.JourneyCardManager.(*JourneyCardManager).get(ctx0, uid0)
+		require.NoError(t, err)
+		found, nConvs, err := jcm.hasTeam(ctx0, teamID)
+		require.NoError(t, err)
+		return found && nConvs >= 1
+	})
+
 	t.Logf("Advanced time forward enough for ADD_PEOPLE to be eligible")
-	err = tc0.ChatG.JourneyCardManager.(*JourneyCardManager).TimeTravel(ctx0, uid0, time.Hour*24*4+1)
+	nTeams, nConvs, err := tc0.ChatG.JourneyCardManager.(*JourneyCardManager).TimeTravel(ctx0, uid0, time.Hour*24*4+1)
 	require.NoError(t, err)
+	require.GreaterOrEqual(t, nTeams, 1, "expected known teams to time travel")
+	require.GreaterOrEqual(t, nConvs, 1, "expected known convs to time travel")
 	jc1 := requireJourneycard(teamConv.Id, chat1.JourneycardType_ADD_PEOPLE, 0)
 
 	t.Logf("After sending another message the journeycard stays in its original location (ordinal)")
@@ -285,4 +326,37 @@ func TestJourneycardPersist(t *testing.T) {
 	jc3 := requireJourneycard(teamConv.Id, chat1.JourneycardType_ADD_PEOPLE, 1)
 	require.Equal(t, jc1.PrevID, jc3.PrevID)
 	require.Equal(t, jc1.Ordinal, jc3.Ordinal)
+}
+
+func pollFor(t *testing.T, label string, totalTime time.Duration, poller func(i int) bool) {
+	t.Logf("pollFor '%s'", label)
+	clock := clockwork.NewRealClock()
+	start := clock.Now()
+	endCh := clock.After(totalTime)
+	wait := 10 * time.Millisecond
+	var i int
+	for {
+		satisfied := poller(i)
+		since := clock.Since(start)
+		t.Logf("pollFor '%s' round:%v -> %v running:%v", label, i, satisfied, since)
+		if satisfied {
+			t.Logf("pollFor '%s' succeeded after %v attempts over %v", label, i, since)
+			return
+		}
+		if since > totalTime {
+			// Game over
+			msg := fmt.Sprintf("pollFor '%s' timed out after %v attempts over %v", label, i, since)
+			t.Logf(msg)
+			require.Fail(t, msg)
+			require.FailNow(t, msg)
+			return
+		}
+		t.Logf("pollFor '%s' wait:%v", label, wait)
+		select {
+		case <-endCh:
+		case <-clock.After(wait):
+		}
+		wait *= 2
+		i++
+	}
 }

@@ -4,7 +4,9 @@
 package engine
 
 import (
+	"errors"
 	"fmt"
+	"net/http"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
@@ -28,34 +30,9 @@ func _verifyListTrackingEntries(entries []keybase1.UserSummary) error {
 	if alice.Username != "t_alice" {
 		return fmt.Errorf("Username: %q, Expected t_alice.", alice.Username)
 	}
-	if len(alice.Proofs.Social) != 2 {
-		return fmt.Errorf("Num social proofs: %d, expected 2", len(alice.Proofs.Social))
-	}
-	if len(alice.Proofs.Web) != 0 {
-		return fmt.Errorf("Num web proofs: %d, expected 0", len(alice.Proofs.Web))
-	}
-	if len(alice.Proofs.PublicKeys) != 1 {
-		return fmt.Errorf("Num pub keys: %d, expected 1", len(alice.Proofs.PublicKeys))
-	}
-
-	expectedFp := "2373fd089f28f328916b88f99c7927c0bdfdadf9"
-	foundFp := alice.Proofs.PublicKeys[0].PGPFingerprint
-	if foundFp != expectedFp {
-		return fmt.Errorf("fp: %q, expected %q", foundFp, expectedFp)
-	}
-
 	bob := entries[1]
 	if bob.Username != "t_bob" {
 		return fmt.Errorf("Username: %q, Expected t_bob.", bob.Username)
-	}
-	if len(bob.Proofs.Social) != 2 {
-		return fmt.Errorf("Num social proofs: %d, expected 2", len(bob.Proofs.Social))
-	}
-	if len(bob.Proofs.Web) != 0 {
-		return fmt.Errorf("Num web proofs: %d, expected 0", len(bob.Proofs.Web))
-	}
-	if len(bob.Proofs.PublicKeys) != 1 {
-		return fmt.Errorf("Num pub keys: %d, expected 1", len(bob.Proofs.PublicKeys))
 	}
 
 	return nil
@@ -84,7 +61,7 @@ func _testListTracking(t *testing.T, sigVersion libkb.SigVersion) {
 	if err := RunEngine2(NewMetaContextForTest(tc), eng); err != nil {
 		t.Fatal("Error in ListTrackingEngine:", err)
 	}
-	if err := _verifyListTrackingEntries(eng.TableResult()); err != nil {
+	if err := _verifyListTrackingEntries(eng.TableResult().Users); err != nil {
 		t.Fatal("Error in tracking engine result entries verification:", err)
 	}
 
@@ -94,12 +71,12 @@ func _testListTracking(t *testing.T, sigVersion libkb.SigVersion) {
 	defer tc2.Cleanup()
 
 	eng = NewListTrackingEngine(tc2.G, &ListTrackingEngineArg{
-		ForAssertion: fu.Username,
+		Assertion: fu.Username,
 	})
 	if err := RunEngine2(NewMetaContextForTest(tc2), eng); err != nil {
 		t.Fatal("Error in ListTrackingEngine:", err)
 	}
-	if err := _verifyListTrackingEntries(eng.TableResult()); err != nil {
+	if err := _verifyListTrackingEntries(eng.TableResult().Users); err != nil {
 		t.Fatal("Error in tracking engine result entries verification:", err)
 	}
 }
@@ -122,17 +99,9 @@ func TestListTrackingJSON(t *testing.T) {
 		t.Fatal("Error in ListTrackingEngine:", err)
 	}
 
-	jw, err := jsonw.Unmarshal([]byte(eng.JSONResult()))
+	_, err = jsonw.Unmarshal([]byte(eng.JSONResult()))
 	if err != nil {
 		t.Fatal(err)
-	}
-	pgpKeys := jw.AtIndex(0).AtPath("body.track.pgp_keys")
-	n, err := pgpKeys.Len()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if n != 1 {
-		t.Errorf("num pgp_keys: %d, expected 1", n)
 	}
 }
 
@@ -158,29 +127,140 @@ func TestListTrackingLocal(t *testing.T) {
 		t.Fatal("Error in ListTrackingEngine:", err)
 	}
 
-	entries := eng.TableResult()
+	entries := eng.TableResult().Users
 	if len(entries) != 2 {
 		t.Errorf("Num tracks: %d, exected 2", len(entries))
 	}
+}
 
-	// they are sorted so can use indices.
-	for _, entry := range entries {
-		if entry.Username == "t_alice" {
-			if len(entry.Proofs.Social) != 2 {
-				t.Errorf("Num social proofs: %d, expected 2", len(entry.Proofs.Social))
-			}
-			if len(entry.Proofs.Web) != 0 {
-				t.Errorf("Num web proofs: %d, expected 0", len(entry.Proofs.Web))
-			}
-			if len(entry.Proofs.PublicKeys) != 1 {
-				t.Fatalf("Num pub keys: %d, expected 1", len(entry.Proofs.PublicKeys))
-			}
+func TestListTrackingServerInterference(t *testing.T) {
+	atc := SetupEngineTest(t, "track")
+	defer atc.Cleanup()
+	btc := SetupEngineTest(t, "track")
+	defer btc.Cleanup()
+	ctc := SetupEngineTest(t, "track")
+	defer ctc.Cleanup()
+	sigVersion := libkb.GetDefaultSigVersion(atc.G)
 
-			expectedFp := "2373fd089f28f328916b88f99c7927c0bdfdadf9"
-			foundFp := entry.Proofs.PublicKeys[0].PGPFingerprint
-			if foundFp != expectedFp {
-				t.Errorf("fp: %q, expected %q", foundFp, expectedFp)
-			}
+	alice := CreateAndSignupFakeUser(atc, "track")
+	bob := CreateAndSignupFakeUser(btc, "track")
+	charlie := CreateAndSignupFakeUser(ctc, "track")
+	alice.LoginOrBust(atc)
+
+	_, _, err := runTrack(atc, alice, bob.Username, sigVersion)
+	require.NoError(t, err)
+
+	eng := NewListTrackingEngine(atc.G, &ListTrackingEngineArg{})
+	if err := RunEngine2(NewMetaContextForTest(atc), eng); err != nil {
+		t.Fatal("Error in ListTrackingEngine:", err)
+	}
+	found := false
+	for _, user := range eng.TableResult().Users {
+		if user.Username == bob.Username {
+			found = true
 		}
 	}
+	if !found {
+		t.Fatalf("expected to be following bob, but wasn't")
+	}
+
+	ResetAccount(btc, bob)
+
+	// (MD/TRIAGE-1837) Due to a server bug, it seems the follow version doesn't
+	// update immediately on resets, only on the next follow, so we're not
+	// going to get the proper filtration until we bump it e.g. by following
+	// another random user.
+	_, _, err = runTrack(atc, alice, charlie.Username, sigVersion)
+	require.NoError(t, err)
+
+	eng = NewListTrackingEngine(atc.G, &ListTrackingEngineArg{})
+	if err := RunEngine2(NewMetaContextForTest(atc), eng); err != nil {
+		t.Fatal("Error in ListTrackingEngine:", err)
+	}
+	found = false
+	for _, user := range eng.TableResult().Users {
+		if user.Username == bob.Username {
+			found = true
+		}
+	}
+	if found {
+		t.Fatalf("expected server to filter out reset bob, but didn't; still following after reset")
+	}
+
+	eng = NewListTrackingEngine(atc.G, &ListTrackingEngineArg{})
+	eng.disableTrackerSyncerForTest = true
+	if err := RunEngine2(NewMetaContextForTest(atc), eng); err != nil {
+		t.Fatal("Error in ListTrackingEngine:", err)
+	}
+	found = false
+	for _, user := range eng.TableResult().Users {
+		if user.Username == bob.Username {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("tracker syncer returned error; so we should still succeed but not filter")
+	}
+}
+
+type errorAPIMock struct {
+	*libkb.APIArgRecorder
+	callCount int
+}
+
+func (r *errorAPIMock) GetDecode(mctx libkb.MetaContext, arg libkb.APIArg, w libkb.APIResponseWrapper) error {
+	r.callCount++
+	return errors.New("timeout or something")
+}
+
+func (r errorAPIMock) GetResp(mctx libkb.MetaContext, arg libkb.APIArg) (*http.Response, func(), error) {
+	r.callCount++
+	return nil, func() {}, errors.New("timeout or something")
+}
+
+func (r errorAPIMock) Get(mctx libkb.MetaContext, arg libkb.APIArg) (*libkb.APIRes, error) {
+	r.callCount++
+	return nil, errors.New("timeout or something")
+}
+
+func TestListTrackingOfflineBehavior(t *testing.T) {
+	atc := SetupEngineTest(t, "track")
+	defer atc.Cleanup()
+	btc := SetupEngineTest(t, "track")
+	defer btc.Cleanup()
+	ctc := SetupEngineTest(t, "track")
+	defer ctc.Cleanup()
+	sigVersion := libkb.GetDefaultSigVersion(atc.G)
+
+	alice := CreateAndSignupFakeUser(atc, "track")
+	bob := CreateAndSignupFakeUser(btc, "track")
+	charlie := CreateAndSignupFakeUser(ctc, "track")
+	alice.LoginOrBust(atc)
+
+	_, _, err := runTrack(atc, alice, bob.Username, sigVersion)
+	require.NoError(t, err)
+
+	// Prime UPAK and TrackerSyncer caches when online
+	eng := NewListTrackingEngine(atc.G, &ListTrackingEngineArg{})
+	if err := RunEngine2(NewMetaContextForTest(atc), eng); err != nil {
+		t.Fatal("Error in ListTrackingEngine:", err)
+	}
+	res1 := eng.TableResult()
+
+	// realAPI := atc.G.API
+	fakeAPI := &errorAPIMock{}
+	atc.G.API = fakeAPI
+
+	// We're offline now
+	_, _, err = runTrack(atc, alice, charlie.Username, sigVersion)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "timeout or something")
+
+	// But ListTracking with CachedOnly=true should still work.
+	eng = NewListTrackingEngine(atc.G, &ListTrackingEngineArg{CachedOnly: true})
+	err = RunEngine2(NewMetaContextForTest(atc), eng)
+	require.NoError(t, err)
+	res2 := eng.TableResult()
+
+	require.Equal(t, res1, res2, "got same results even when offline")
 }

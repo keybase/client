@@ -153,6 +153,10 @@ protocol config {
   // commands
   union { null, FullStatus } getFullStatus(int sessionID);
 
+  boolean isServiceRunning(int sessionID);
+
+  boolean isKBFSRunning(int sessionID);
+
   array<InstrumentationStat> getNetworkStats(int sessionID);
 
   @typedef("string")  record LogSendID {}
@@ -269,7 +273,7 @@ protocol config {
   }
 
   BootstrapStatus getBootstrapStatus(int sessionID);
-  void requestFollowerInfo(UID uid);
+  void requestFollowingAndUnverifiedFollowers(int sessionID);
 
   boolean getRememberPassphrase(int sessionID);
   void setRememberPassphrase(int sessionID, boolean remember);

@@ -673,36 +673,29 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 	localUpdates := make(map[chat1.ConvIDStr]chat1.LocalMtimeUpdate)
 	s.Debug(ctx, "ApplyLocalChatState: looking through %d outbox items for badgable errors", len(obrs))
 	for _, obr := range obrs {
-		if topicType := obr.Msg.ClientHeader.Conv.TopicType; !(obr.Msg.IsBadgableType() && topicType == chat1.TopicType_CHAT) {
-			s.Debug(ctx, "ApplyLocalChatState: skipping msgTyp: %v, topicType: %v", obr.Msg.MessageType(), topicType)
+		if !(obr.IsBadgable() && obr.IsError()) {
+			s.Debug(ctx, "ApplyLocalChatState: skipping msgTyp: %v", obr.Msg.MessageType())
 			continue
 		}
-		state, err := obr.State.State()
-		if err != nil {
-			s.Debug(ctx, "ApplyLocalChatState: unknown state item: skipping: err: %v", err)
+		ctime := obr.Ctime
+		isBadgableError := obr.State.Error().Typ.IsBadgableError()
+		s.Debug(ctx, "ApplyLocalChatState: found erred outbox item ctime: %v, error: %v, messageType: %v, IsBadgableError: %v",
+			ctime.Time(), obr.State.Error(), obr.Msg.MessageType(), isBadgableError)
+		if !isBadgableError {
 			continue
 		}
-		if state == chat1.OutboxStateType_ERROR {
-			ctime := obr.Ctime
-			isBadgableError := obr.State.Error().Typ.IsBadgableError()
-			s.Debug(ctx, "ApplyLocalChatState: found erred outbox item ctime: %v, error: %v, messageType: %v, IsBadgableError: %v",
-				ctime.Time(), obr.State.Error(), obr.Msg.MessageType(), isBadgableError)
-			if !isBadgableError {
-				continue
+		convIDStr := obr.ConvID.ConvIDStr()
+		if update, ok := localUpdates[convIDStr]; ok {
+			if ctime.After(update.Mtime) {
+				localUpdates[convIDStr] = update
 			}
-			convIDStr := obr.ConvID.ConvIDStr()
-			if update, ok := localUpdates[convIDStr]; ok {
-				if ctime.After(update.Mtime) {
-					localUpdates[convIDStr] = update
-				}
-			} else {
-				localUpdates[convIDStr] = chat1.LocalMtimeUpdate{
-					ConvID: obr.ConvID,
-					Mtime:  ctime,
-				}
+		} else {
+			localUpdates[convIDStr] = chat1.LocalMtimeUpdate{
+				ConvID: obr.ConvID,
+				Mtime:  ctime,
 			}
-			failedOutboxMap[convIDStr]++
 		}
+		failedOutboxMap[convIDStr]++
 	}
 
 	updates := make([]chat1.LocalMtimeUpdate, 0, len(localUpdates))
@@ -920,10 +913,11 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UI
 			bgEnqueued++
 		}
 	}
-
+	convs := utils.RemoteConvs(ib.Inbox.Full().Conversations)
+	convs = utils.ApplyInboxQuery(ctx, s.DebugLabeler, query, convs)
 	return types.Inbox{
 		Version:         ib.Inbox.Full().Vers,
-		ConvsUnverified: utils.RemoteConvs(ib.Inbox.Full().Conversations),
+		ConvsUnverified: convs,
 	}, nil
 }
 

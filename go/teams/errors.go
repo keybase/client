@@ -532,3 +532,16 @@ type NeedHiddenChainRotationError struct{}
 func (e NeedHiddenChainRotationError) Error() string {
 	return "need hidden chain rotation"
 }
+
+type MissingReaderKeyMaskError struct {
+	gen keybase1.PerTeamKeyGeneration
+	app keybase1.TeamApplication
+}
+
+func NewMissingReaderKeyMaskError(gen keybase1.PerTeamKeyGeneration, app keybase1.TeamApplication) error {
+	return MissingReaderKeyMaskError{gen, app}
+}
+
+func (e MissingReaderKeyMaskError) Error() string {
+	return fmt.Sprintf("missing reader key mask for gen:%v app:%v", e.gen, e.app)
+}
