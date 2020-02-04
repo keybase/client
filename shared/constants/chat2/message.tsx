@@ -356,7 +356,6 @@ const makeMessageSystemAddedToTeam = (
   addee: '',
   adder: '',
   bulkAdds: Array(),
-  isAdmin: false,
   reactions: new Map(),
   role: 'none',
   team: '',
