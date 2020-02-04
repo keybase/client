@@ -121,7 +121,6 @@ export const initialState: Types.State = {
   startupDetailsLoaded: false,
   startupFollowUser: '',
   startupLink: '',
-  startupSharePath: '',
   startupWasFromPush: false,
   systemDarkMode: false,
   uid: '',

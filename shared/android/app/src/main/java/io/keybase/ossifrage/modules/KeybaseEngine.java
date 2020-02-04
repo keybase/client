@@ -227,6 +227,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
         if (this.initialBundleFromNotification != null) {
             WritableMap map = Arguments.fromBundle(this.initialBundleFromNotification);
             promise.resolve(map);
+            this.initialBundleFromNotification = null;
         }
         else {
             promise.resolve(null);
@@ -236,6 +237,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
     @ReactMethod
     public void getInitialShareData(Promise promise) {
         promise.resolve(this.shareData);
+        this.shareData = null;
     }
 
     // Same type as DarkModePreference: 'system' | 'alwaysDark' | 'alwaysLight'

@@ -76,7 +76,6 @@ export type State = {
   startupFollowUser: string
   startupLink: string
   startupTab?: Tab
-  startupSharePath?: LocalPath
   systemDarkMode: boolean
   windowState: WindowState
   uid: string

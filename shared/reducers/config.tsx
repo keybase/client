@@ -126,9 +126,11 @@ export default Container.makeReducer<Actions, Types.State>(Constants.initialStat
       draftState.startupConversation = action.payload.startupConversation || ChatConstants.noConversationIDKey
       draftState.startupFollowUser = action.payload.startupFollowUser
       draftState.startupLink = action.payload.startupLink
-      draftState.startupSharePath = action.payload.startupSharePath
       draftState.startupTab = action.payload.startupTab
       draftState.startupWasFromPush = action.payload.startupWasFromPush
+      if (action.payload.startupSharePath) {
+        draftState.androidShare = {url: action.payload.startupSharePath}
+      }
     }
   },
   [ConfigGen.pushLoaded]: (draftState, action) => {

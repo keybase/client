@@ -469,20 +469,6 @@ const routeToInitialScreen = (state: Container.TypedState) => {
       ]
     }
 
-    // A share
-    if (state.config.startupSharePath) {
-      // TODO/FIXME: this seems unused. [ShareDataIntent] in
-      // actions/platform-specific/push.native.tsx happens at cold-start too,
-      // so maybe we can just use that. Though that happens before this
-      // (routeToInitialScreen), so in the end it just routes to the saved tab
-      // which gets rid of the destination-picker modal.
-      return [
-        RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
-        FsGen.createSetIncomingShareLocalPath({localPath: state.config.startupSharePath}),
-        FsGen.createShowIncomingShare({initialDestinationParentPath: FsTypes.stringToPath('/keybase')}),
-      ]
-    }
-
     // A follow
     if (state.config.startupFollowUser) {
       return [
