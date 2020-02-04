@@ -58,6 +58,23 @@ const packagerOpts: any = {
     },
   },
   electronVersion: 0,
+  extendInfo: {
+    CFBundleDocumentTypes: [
+      {
+        CFBundleTypeExtensions: ['encrypted.saltpack'],
+        CFBundleTypeIconFile: 'saltpack-encrypted.icns',
+        CFBundleTypeName: 'SaltpackEncrypted',
+        CFBundleTypeRole: 'Editor',
+      },
+      {
+        CFBundleTypeExtensions: ['signed.saltpack'],
+        CFBundleTypeIconFile: 'saltpack-signed.icns',
+        CFBundleTypeName: 'SaltpackSigned',
+        CFBundleTypeRole: 'Editor',
+      },
+    ],
+  },
+  extraResource: [],
   helperBundleId: 'keybase.ElectronHelper',
   icon: null,
   ignore: ['.map', '/test($|/)', '/tools($|/)', '/release($|/)', '/node_modules($|/)'],
