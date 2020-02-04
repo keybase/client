@@ -12,20 +12,16 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-type trackerLoaderContext struct {
-	ctx    context.Context
-	cancel context.CancelFunc
-}
-
 type TrackerLoader struct {
 	libkb.Contextified
 	sync.Mutex
 
 	eg         errgroup.Group
-	ctx        *trackerLoaderContext
 	started    bool
 	shutdownCh chan struct{}
 	queueCh    chan keybase1.UID
+
+	cancel context.CancelFunc
 }
 
 func NewTrackerLoader(g *libkb.GlobalContext) *TrackerLoader {
@@ -55,9 +51,9 @@ func (l *TrackerLoader) Run(ctx context.Context) {
 	}
 	l.started = true
 	l.shutdownCh = make(chan struct{})
-	ctx, cancel := context.WithCancel(ctx)
-	l.ctx = &trackerLoaderContext{ctx: ctx, cancel: cancel}
-	l.eg.Go(func() error { return l.loadLoop(l.ctx.ctx, l.shutdownCh) })
+	lctx, lcancel := context.WithCancel(ctx)
+	l.cancel = lcancel
+	l.eg.Go(func() error { return l.loadLoop(lctx, l.shutdownCh) })
 }
 
 func (l *TrackerLoader) Shutdown(ctx context.Context) chan struct{} {
@@ -66,7 +62,7 @@ func (l *TrackerLoader) Shutdown(ctx context.Context) chan struct{} {
 	defer l.Unlock()
 	ch := make(chan struct{})
 	if l.started {
-		l.ctx.cancel()
+		l.cancel()
 		close(l.shutdownCh)
 		l.started = false
 		go func() {
