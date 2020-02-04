@@ -73,6 +73,7 @@ func (c *cmdWotVouch) ParseArgv(ctx *cli.Context) error {
 		}
 		c.confidence.UsernameVerifiedVia = viaType
 	}
+	c.confidence.VouchedBy = strings.Split(ctx.String("vouched-by"), ",")
 	c.confidence.Other = ctx.String("other")
 
 	return nil
