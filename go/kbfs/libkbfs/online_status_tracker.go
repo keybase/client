@@ -163,7 +163,7 @@ func ostFsm(
 		return
 	default:
 	}
-	// log.CDebugf(ctx, "ostFsm initialState=%s", initialState)
+	log.CDebugf(ctx, "ostFsm initialState=%s", initialState)
 
 	state := initialState
 	for {
