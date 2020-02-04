@@ -272,10 +272,6 @@ public class MainActivity extends ReactActivity {
       Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
       intent.removeExtra(Intent.EXTRA_STREAM);
 
-      if (uri != null ) {
-        Log.d("aaa", "emit1" + uri.toString());
-      }
-
       // Closure like class so we can keep our emit logic together
       class Emit {
         private final ReactContext context;
@@ -351,13 +347,11 @@ public class MainActivity extends ReactActivity {
   @Override
   protected void onResume() {
     super.onResume();
-    Log.d("aaa", "onresume1");
     Keybase.setAppStateForeground();
 
     // Emit the intent data to JS
     Intent intent = getIntent();
     if (intent != null) {
-      Log.d("aaa", "onresume2");
       (new IntentEmitter(intent)).emit();
     }
   }

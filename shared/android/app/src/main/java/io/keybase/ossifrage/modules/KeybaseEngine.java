@@ -27,8 +27,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import android.os.Bundle;
 
-import androidx.annotation.RequiresPermission;
-
 import io.keybase.ossifrage.BuildConfig;
 import io.keybase.ossifrage.DarkModePrefHelper;
 import io.keybase.ossifrage.DarkModePreference;

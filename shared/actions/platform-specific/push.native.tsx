@@ -55,7 +55,6 @@ const updateAppBadge = (action: NotificationsGen.ReceivedBadgeStatePayload) => {
 const listenForNativeAndroidIntentNotifications = async (
   emitter: (action: Container.TypedActions) => void
 ) => {
-  console.log('aaaa push event loop listen for native')
   const pushToken = await NativeModules.Utils.getRegistrationToken()
   logger.debug('[PushToken] received new token: ', pushToken)
   emitter(PushGen.createUpdatePushToken({token: pushToken}))
@@ -66,18 +65,10 @@ const listenForNativeAndroidIntentNotifications = async (
     notification && emitter(PushGen.createNotification({notification}))
   })
 
-  // TODO: move this out of this file.
-  // FIXME: sometimes this doubles up on a cold start--we've already executed the previous code.
-  // TODO: fixme this is buggy. See: TRIAGE-462
   RNEmitter.addListener('onShareData', evt => {
-    console.log('aaaa push event loop listen for native, got onsharedata')
     logger.debug('[ShareDataIntent]', evt)
     emitter(ConfigGen.createAndroidShare({url: evt.localPath}))
   })
-  // RNEmitter.addListener('onShareText', evt => {
-  // logger.debug('[ShareTextIntent]', evt)
-  // // TODO: implement
-  // })
 }
 
 const listenForPushNotificationsFromJS = (emitter: (action: Container.TypedActions) => void) => {
@@ -111,7 +102,6 @@ const listenForPushNotificationsFromJS = (emitter: (action: Container.TypedActio
 }
 
 function* setupPushEventLoop() {
-  console.log('aaaa push event loop start')
   const pushChannel = yield Saga.eventChannel(emitter => {
     if (isAndroid) {
       listenForNativeAndroidIntentNotifications(emitter)
@@ -391,7 +381,6 @@ function* _checkPermissions(action: ConfigGen.MobileAppStatePayload | null) {
 function* getStartupDetailsFromInitialShare() {
   if (isAndroid) {
     const share = yield NativeModules.KeybaseEngine.getInitialShareData()
-    console.log('aaa getStartupDetailsFromInitialSharel', share)
     return share
   } else {
     return null
