@@ -310,7 +310,7 @@ type API interface {
 	Get(MetaContext, APIArg) (*APIRes, error)
 	GetDecode(MetaContext, APIArg, APIResponseWrapper) error
 	GetDecodeCtx(context.Context, APIArg, APIResponseWrapper) error
-	GetResp(MetaContext, APIArg) (*http.Response, func(), error)
+	GetResp(MetaContext, APIArg) (*http.Response, func(int64), error)
 	Post(MetaContext, APIArg) (*APIRes, error)
 	PostJSON(MetaContext, APIArg) (*APIRes, error)
 	PostDecode(MetaContext, APIArg, APIResponseWrapper) error

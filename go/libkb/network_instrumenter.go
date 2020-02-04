@@ -53,7 +53,7 @@ type DiskInstrumentationStorage struct {
 	stopCh chan struct{}
 }
 
-var _ rpc.InstrumenterStorage = (*DiskInstrumentationStorage)(nil)
+var _ rpc.NetworkInstrumenterStorage = (*DiskInstrumentationStorage)(nil)
 
 func NewDiskInstrumentationStorage(g *GlobalContext) *DiskInstrumentationStorage {
 	return &DiskInstrumentationStorage{

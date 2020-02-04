@@ -97,7 +97,7 @@ func (t *pingGregorTransport) Dial(context.Context) (rpc.Transporter, error) {
 		return nil, err
 	}
 	t.stagedTransport = rpc.NewTransport(t.conn, nil,
-		rpc.NewNetworkInstrumenter(t.G().NetworkInstrumenterStorage),
+		t.G().NetworkInstrumenterStorage,
 		nil, rpc.DefaultMaxFrameLength)
 	return t.stagedTransport, nil
 }
