@@ -809,6 +809,9 @@ func TestSubteamReaderFTL(t *testing.T) {
 		KeyGenerationsNeeded: []keybase1.PerTeamKeyGeneration{keybase1.PerTeamKeyGeneration(1)},
 	})
 	require.NoError(t, err)
+
+	// Check that U1's hidden team data for the parent team is still stored, and that
+	// the ratchets persist (even though there's no other data there).
 	var htc *keybase1.HiddenTeamChain
 	htc, err = mctx.G().GetHiddenTeamChainManager().Load(mctx, teamID)
 	require.NoError(t, err)
@@ -816,4 +819,6 @@ func TestSubteamReaderFTL(t *testing.T) {
 	ratchet, ok := htc.RatchetSet.Ratchets[keybase1.RatchetType_MAIN]
 	require.True(t, ok)
 	require.Equal(t, ratchet.Triple.Seqno, keybase1.Seqno(4))
+	require.Equal(t, htc.Last, keybase1.Seqno(0))
+	require.Equal(t, len(htc.Outer), 0)
 }
