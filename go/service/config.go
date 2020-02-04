@@ -599,7 +599,7 @@ func (h ConfigHandler) UpdateLastLoggedInAndServerConfig(
 		return err
 	}
 
-	// Try to read from the old config file. But ignore any error and justu
+	// Try to read from the old config file. But ignore any error and just
 	// create a new one.
 	oldBytes, err := ioutil.ReadFile(serverConfigPath)
 	if err != nil {
@@ -624,5 +624,5 @@ func (h ConfigHandler) UpdateLastLoggedInAndServerConfig(
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(serverConfigPath, newBytes, 0644)
+	return libkb.NewFile(serverConfigPath, newBytes, 0644).Save(h.G().Log)
 }
