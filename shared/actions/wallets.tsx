@@ -469,9 +469,11 @@ const handleSelectAccountError = (
     (action.payload.reason === 'user-selected' || action.payload.reason === 'auto-selected')
   ) {
     // No need to throw black bars -- handled by Reloadable.
-    _logger.warn(errMsg)
+    _logger.warn('selectAccountError', action.type, action.payload.reason, errMsg)
+  } else if (action.type === WalletsGen.accountUpdateReceived) {
+    _logger.warn('selectAccountError', action.type, errMsg)
   } else {
-    _logger.error(errMsg)
+    _logger.error('selectAccountError', action.type, errMsg)
     throw err
   }
 }
@@ -512,6 +514,7 @@ const loadAssets = async (state: TypedState, action: LoadAssetsActions, logger: 
 
   // should be impossible
   if (!accountID) {
+    logger.error('loadAssets unexpected empty accountID', action.type)
     return
   }
 
@@ -1699,7 +1702,6 @@ function* walletsSaga() {
   yield* Saga.chainAction(WalletsGen.changeMobileOnlyMode, changeMobileOnlyMode)
   yield* Saga.chainAction2(WalletsGen.setLastSentXLM, writeLastSentXLM)
   yield* Saga.chainAction(ConfigGen.daemonHandshakeDone, readLastSentXLM)
-  yield* Saga.chainAction(EngineGen.stellar1NotifyAccountDetailsUpdate, accountDetailsUpdate)
   yield* Saga.chainAction(EngineGen.stellar1NotifyAccountsUpdate, accountsUpdate)
   yield* Saga.chainAction(EngineGen.stellar1NotifyPendingPaymentsUpdate, pendingPaymentsUpdate)
   yield* Saga.chainAction(EngineGen.stellar1NotifyRecentPaymentsUpdate, recentPaymentsUpdate)
