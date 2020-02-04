@@ -14,6 +14,7 @@ export const isLinux = platform === 'linux'
 export const isAndroidNewerThanN = false
 export const isMac = isDarwin && !isIOS
 export const shortcutSymbol = isDarwin ? '⌘' : 'Ctrl-'
+export const realDeviceName = ''
 
 export const defaultUseNativeFrame = isDarwin || isLinux
 
