@@ -119,6 +119,9 @@ func (e *WotAttest) Run(mctx libkb.MetaContext) error {
 
 	// ForcePoll is required.
 	err = mctx.G().GetFullSelfer().WithSelfForcePoll(mctx.Ctx(), func(me *libkb.User) error {
+		if me.GetUID() == e.arg.Attestee.Uid {
+			return errors.New("can't write an attestation about yourself")
+		}
 		proof, err := me.WotAttestProof(mctx, signingKey, sigVersion, sum)
 		if err != nil {
 			return err
