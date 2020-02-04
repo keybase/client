@@ -50,6 +50,10 @@ func shutdownIndexedBlockDbTest(db *IndexedBlockDb, tempdir string) {
 
 func TestIndexedBlockDbCreate(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "user1")
+	defer func() {
+		err := config.Shutdown(context.Background())
+		require.NoError(t, err)
+	}()
 	tempdir, err := ioutil.TempDir(os.TempDir(), "indexed_blocks_db")
 	require.NoError(t, err)
 	db, err := newIndexedBlockDb(config, tempdir)
