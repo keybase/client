@@ -7,7 +7,7 @@ import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import SendAttachmentToChat from '.'
 
 // send can override, we do this for android share
-type OwnProps = Container.RouteProps<{url: string}>
+type OwnProps = Container.RouteProps<{url?: string}>
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   _send: (conversationIDKey: ChatTypes.ConversationIDKey, path: Types.Path, title: string) => {
@@ -33,7 +33,7 @@ export default Container.namedConnect(
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     const {onCancel, onSetTitle} = dispatchProps
     const {_sendAttachmentToChat} = stateProps
-    const url = Container.getRouteProps(ownProps, 'url', '')
+    const url = Container.getRouteProps(ownProps, 'url', undefined)
 
     return {
       onCancel,
