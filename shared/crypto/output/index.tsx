@@ -123,10 +123,10 @@ export const OutputBar = (props: OutputBarProps) => {
 
   // Store
   const output = Container.useSelector(state => state.crypto[operation].output.stringValue())
-  const outputMatchesInput = Container.useSelector(state => state.crypto[operation].outputMatchesInput)
+  const outputValid = Container.useSelector(state => state.crypto[operation].outputValid)
   const outputStatus = Container.useSelector(state => state.crypto[operation].outputStatus)
   const outputType = Container.useSelector(state => state.crypto[operation].outputType)
-  const actionsDisabled = waiting || !outputMatchesInput
+  const actionsDisabled = waiting || !outputValid
 
   // Actions
   const onShowInFinder = () => {
@@ -222,7 +222,7 @@ const Output = (props: OutputProps) => {
 
   // Store
   const output = Container.useSelector(state => state.crypto[operation].output.stringValue())
-  const outputMatchesInput = Container.useSelector(state => state.crypto[operation].outputMatchesInput)
+  const outputValid = Container.useSelector(state => state.crypto[operation].outputValid)
   const outputStatus = Container.useSelector(state => state.crypto[operation].outputStatus)
   const outputType = Container.useSelector(state => state.crypto[operation].outputType)
 
@@ -248,7 +248,7 @@ const Output = (props: OutputProps) => {
   const fileOutputTextColor =
     textType === 'cipher' ? Styles.globalColors.greenDark : Styles.globalColors.black
   const fileIcon = Constants.getOutputFileIcon(operation)
-  const actionsDisabled = waiting || !outputMatchesInput
+  const actionsDisabled = waiting || !outputValid
 
   return outputStatus && outputStatus === 'success' ? (
     outputType === 'file' ? (

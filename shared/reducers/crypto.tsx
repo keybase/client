@@ -37,7 +37,7 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     op.outputType = undefined
     op.errorMessage = new HiddenString('')
     op.warningMessage = new HiddenString('')
-    op.outputMatchesInput = true
+    op.outputValid = true
   },
   [CryptoGen.clearRecipients]: (draftState, action) => {
     const {operation} = action.payload
@@ -55,7 +55,7 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       encrypt.output = new HiddenString('')
       encrypt.outputStatus = undefined
       encrypt.outputType = undefined
-      encrypt.outputMatchesInput = false
+      encrypt.outputValid = false
       encrypt.errorMessage = new HiddenString('')
       encrypt.warningMessage = new HiddenString('')
     }
@@ -70,7 +70,7 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     const op = draftState.encrypt
 
     // Output no longer valid since recipients have changed
-    op.outputMatchesInput = false
+    op.outputValid = false
 
     if (!op.recipients.length && recipients.length) {
       op.meta.hasRecipients = true
@@ -95,7 +95,7 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     }
 
     // Output no longer valid since options have changed
-    encrypt.outputMatchesInput = false
+    encrypt.outputValid = false
 
     // User set themselves as a recipient so don't show the 'includeSelf' option for encrypt (since they're encrypting to themselves)
     if (hideIncludeSelf) {
@@ -112,7 +112,7 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     // Reset input to 'text' when no value given (cleared input or removed file upload)
     op.inputType = value.stringValue() ? type : 'text'
     op.input = value
-    op.outputMatchesInput = oldInput.stringValue() === value.stringValue()
+    op.outputValid = oldInput.stringValue() === value.stringValue()
   },
   [CryptoGen.onOperationSuccess]: (draftState, action) => {
     const {
@@ -146,20 +146,20 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
         inputAction = undefined
     }
 
-    let outputMatchesInput = false
+    let outputValid = false
 
     const op = draftState[operation]
 
     if (inputAction) {
-      outputMatchesInput = inputAction.payload.input.stringValue() === op.input.stringValue()
+      outputValid = inputAction.payload.input.stringValue() === op.input.stringValue()
 
       // If the store's input matches its output, then we don't need to update with the value of the returning RPC.
-      if (op.outputMatchesInput) {
+      if (op.outputValid) {
         return
       }
 
       // Otherwise show the output but don't let them interact with it because the output is stale (newer RPC coming back)
-      op.outputMatchesInput = outputMatchesInput
+      op.outputValid = outputValid
     }
 
     // Reset errors and warnings

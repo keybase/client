@@ -27,31 +27,31 @@ const store = {
   crypto: {
     decrypt: {
       output: new HiddenString(decryptOutput),
-      outputMatchesInput: true,
       outputSender: new HiddenString('cecileb'),
       outputSigned: true,
       outputStatus: 'success',
+      outputValid: true,
     },
     encrypt: {
       output: new HiddenString(encryptOutput),
-      outputMatchesInput: true,
       outputSender: new HiddenString('jacobyoung'),
       outputSigned: true,
       outputStatus: 'success',
+      outputValid: true,
     },
     sign: {
       output: new HiddenString(signOutput),
-      outputMatchesInput: true,
       outputSender: new HiddenString('chris'),
       outputSigned: true,
       outputStatus: 'success',
+      outputValid: true,
     },
     verify: {
       output: new HiddenString(verifyOutput),
-      outputMatchesInput: true,
       outputSender: new HiddenString('xgess'),
       outputSigned: true,
       outputStatus: 'success',
+      outputValid: true,
     },
   },
   waiting: {
