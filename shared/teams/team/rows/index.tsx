@@ -100,7 +100,7 @@ const makeRows = (
           username: user.username,
         }))
       )
-      if (meta.memberCount > 0 && !details.members) {
+      if (meta.memberCount > 0 && !details.members.size) {
         // loading
         rows.push({key: 'loading', type: 'loading'})
       }
