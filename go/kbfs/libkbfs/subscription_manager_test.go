@@ -43,7 +43,6 @@ func initSubscriptionMagagerTest(t *testing.T) (config Config,
 }
 
 func TestSubscriptionManagerSubscribePath(t *testing.T) {
-	t.Skip()
 	config, subscriber, notifier, finish := initSubscriptionMagagerTest(t)
 	defer finish()
 
@@ -117,7 +116,6 @@ func TestSubscriptionManagerSubscribePath(t *testing.T) {
 }
 
 func TestSubscriptionManagerFavoritesChange(t *testing.T) {
-	t.Skip()
 	config, subscriber, notifier, finish := initSubscriptionMagagerTest(t)
 	defer finish()
 	ctx := context.Background()
