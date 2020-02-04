@@ -787,27 +787,27 @@ func ParseAtMentionedItems(ctx context.Context, g *globals.Context, body string,
 	return atRes, maybeRes, chanRes
 }
 
-type SystemMessageUIDSource interface {
-	LookupUID(ctx context.Context, un libkb.NormalizedUsername) (keybase1.UID, error)
-}
-
-func SystemMessageMentions(ctx context.Context, body chat1.MessageSystem, upak SystemMessageUIDSource) (atMentions []gregor1.UID, chanMention chat1.ChannelMention) {
+func SystemMessageMentions(ctx context.Context, g *globals.Context, uid gregor1.UID,
+	body chat1.MessageSystem) (atMentions []gregor1.UID, chanMention chat1.ChannelMention, channelNameMentions []chat1.ChannelNameMention) {
 	typ, err := body.SystemType()
 	if err != nil {
-		return nil, 0
+		return nil, 0, nil
 	}
 	switch typ {
 	case chat1.MessageSystemType_ADDEDTOTEAM:
-		addeeUID, err := upak.LookupUID(ctx, libkb.NewNormalizedUsername(body.Addedtoteam().Addee))
+		addeeUID, err := g.GetUPAKLoader().LookupUID(ctx,
+			libkb.NewNormalizedUsername(body.Addedtoteam().Addee))
 		if err == nil {
 			atMentions = append(atMentions, addeeUID.ToBytes())
 		}
 	case chat1.MessageSystemType_INVITEADDEDTOTEAM:
-		inviteeUID, err := upak.LookupUID(ctx, libkb.NewNormalizedUsername(body.Inviteaddedtoteam().Invitee))
+		inviteeUID, err := g.GetUPAKLoader().LookupUID(ctx,
+			libkb.NewNormalizedUsername(body.Inviteaddedtoteam().Invitee))
 		if err == nil {
 			atMentions = append(atMentions, inviteeUID.ToBytes())
 		}
-		inviterUID, err := upak.LookupUID(ctx, libkb.NewNormalizedUsername(body.Inviteaddedtoteam().Inviter))
+		inviterUID, err := g.GetUPAKLoader().LookupUID(ctx,
+			libkb.NewNormalizedUsername(body.Inviteaddedtoteam().Inviter))
 		if err == nil {
 			atMentions = append(atMentions, inviterUID.ToBytes())
 		}
@@ -815,14 +815,22 @@ func SystemMessageMentions(ctx context.Context, body chat1.MessageSystem, upak S
 		chanMention = chat1.ChannelMention_ALL
 	case chat1.MessageSystemType_BULKADDTOCONV:
 		for _, username := range body.Bulkaddtoconv().Usernames {
-			uid, err := upak.LookupUID(ctx, libkb.NewNormalizedUsername(username))
+			uid, err := g.GetUPAKLoader().LookupUID(ctx, libkb.NewNormalizedUsername(username))
 			if err == nil {
 				atMentions = append(atMentions, uid.ToBytes())
 			}
 		}
+	case chat1.MessageSystemType_NEWCHANNEL:
+		conv, err := GetVerifiedConv(ctx, g, uid, body.Newchannel().ConvID, types.InboxSourceDataSourceAll)
+		if err == nil {
+			channelNameMentions = append(channelNameMentions, chat1.ChannelNameMention{
+				ConvID:    conv.GetConvID(),
+				TopicName: conv.GetTopicName(),
+			})
+		}
 	}
 	sort.Sort(chat1.ByUID(atMentions))
-	return atMentions, chanMention
+	return atMentions, chanMention, channelNameMentions
 }
 
 func PluckMessageIDs(msgs []chat1.MessageSummary) []chat1.MessageID {
@@ -1671,7 +1679,32 @@ func PresentDecoratedUserBio(ctx context.Context, bio string) (res string) {
 	return res
 }
 
-func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, msg chat1.MessageUnboxedValid) *string {
+func systemMsgPresentText(ctx context.Context, uid gregor1.UID, msg chat1.MessageUnboxedValid) string {
+	if !msg.MessageBody.IsType(chat1.MessageType_SYSTEM) {
+		return ""
+	}
+	sysMsg := msg.MessageBody.System()
+	typ, err := sysMsg.SystemType()
+	if err != nil {
+		return ""
+	}
+	switch typ {
+	case chat1.MessageSystemType_NEWCHANNEL:
+		if len(msg.ChannelNameMentions) != 1 {
+			return ""
+		}
+		author := ""
+		if uid.Eq(msg.ClientHeader.Sender) {
+			author = "You "
+		}
+		return fmt.Sprintf("%screated a new channel #%s", author, msg.ChannelNameMentions[0].TopicName)
+	default:
+	}
+	return ""
+}
+
+func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, uid gregor1.UID,
+	msg chat1.MessageUnboxedValid) *string {
 	msgBody := msg.MessageBody
 	typ, err := msgBody.MessageType()
 	if err != nil {
@@ -1689,6 +1722,8 @@ func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, msg chat1
 		body = msgBody.Requestpayment().Note
 	case chat1.MessageType_ATTACHMENT:
 		body = msgBody.Attachment().Object.Title
+	case chat1.MessageType_SYSTEM:
+		body = systemMsgPresentText(ctx, uid, msg)
 	default:
 		return nil
 	}
@@ -1819,7 +1854,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			Ctime:                 valid.ServerHeader.Ctime,
 			OutboxID:              strOutboxID,
 			MessageBody:           valid.MessageBody,
-			DecoratedTextBody:     PresentDecoratedTextBody(ctx, g, valid),
+			DecoratedTextBody:     PresentDecoratedTextBody(ctx, g, uid, valid),
 			BodySummary:           GetMsgSnippetBody(rawMsg),
 			SenderUsername:        valid.SenderUsername,
 			SenderDeviceName:      valid.SenderDeviceName,

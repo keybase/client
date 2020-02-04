@@ -103,7 +103,8 @@ protocol local {
     CHANGEAVATAR_5,
     CHANGERETENTION_6,
     BULKADDTOCONV_7,
-    SBSRESOLVE_8
+    SBSRESOLVE_8,
+    NEWCHANNEL_9
   }
 
   record MessageSystemAddedToTeam {
@@ -171,6 +172,13 @@ protocol local {
     string prover;
   }
 
+  record MessageSystemNewChannel {
+    string creator;
+    // CLI renders the name at creation
+    string nameAtCreation;
+    ConversationID convID;
+  }
+
   variant MessageSystem switch (MessageSystemType systemType) {
     case ADDEDTOTEAM: MessageSystemAddedToTeam;
     case INVITEADDEDTOTEAM: MessageSystemInviteAddedToTeam;
@@ -181,6 +189,7 @@ protocol local {
     case CHANGERETENTION: MessageSystemChangeRetention;
     case BULKADDTOCONV: MessageSystemBulkAddToConv;
     case SBSRESOLVE: MessageSystemSbsResolve;
+    case NEWCHANNEL: MessageSystemNewChannel;
   }
 
   record MessageDeleteHistory {
