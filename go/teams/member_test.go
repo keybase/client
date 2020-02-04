@@ -449,6 +449,43 @@ func TestMemberRemoveWithoutDemotion(t *testing.T) {
 	require.IsType(t, libkb.NotFoundError{}, err)
 }
 
+func TestMembersRemove(t *testing.T) {
+	tc, _, otherA, otherB, name, teamID := memberSetupMultipleWithTeamID(t)
+	defer tc.Cleanup()
+
+	assertRole(tc, name.String(), otherA.Username, keybase1.TeamRole_NONE)
+
+	_, err := AddMember(context.TODO(), tc.G, name.String(), otherA.Username, keybase1.TeamRole_READER, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assertRole(tc, name.String(), otherA.Username, keybase1.TeamRole_READER)
+
+	assertRole(tc, name.String(), otherB.Username, keybase1.TeamRole_NONE)
+
+	_, err = AddMember(context.TODO(), tc.G, name.String(), otherB.Username, keybase1.TeamRole_READER, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assertRole(tc, name.String(), otherB.Username, keybase1.TeamRole_READER)
+
+	rolePairA := keybase1.RemoveMemberArgs{
+		Username: otherA.Username,
+	}
+
+	rolePairB := keybase1.RemoveMemberArgs{
+		Username: otherB.Username,
+	}
+
+	users := []keybase1.RemoveMemberArgs{rolePairA, rolePairB}
+
+	res, err := RemoveMembers(context.TODO(), tc.G, teamID, users)
+	require.NoError(t, err)
+	require.Empty(t, res.Failures)
+}
+
 // make sure that adding a member creates new recipient boxes
 func TestMemberAddHasBoxes(t *testing.T) {
 	tc, owner, other, _, name := memberSetupMultiple(t)

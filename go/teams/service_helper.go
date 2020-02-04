@@ -987,7 +987,7 @@ func MemberRoleFromID(ctx context.Context, g *libkb.GlobalContext, teamID keybas
 	return role, err
 }
 
-func RemoveMembersByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, users []keybase1.RemoveMemberArgs) (res keybase1.TeamRemoveMembersResult, err error) {
+func RemoveMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, users []keybase1.RemoveMemberArgs) (res keybase1.TeamRemoveMembersResult, err error) {
 	teamGetter := func() (*Team, error) {
 		return GetForTeamManagementByTeamID(ctx, g, teamID, false)
 	}

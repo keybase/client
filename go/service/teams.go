@@ -429,7 +429,7 @@ func (h *TeamsHandler) TeamRemoveMembers(ctx context.Context, arg keybase1.TeamR
 		return res, err
 	}
 
-	return teams.RemoveMembersByID(ctx, h.G().ExternalG(), arg.TeamID, arg.Users)
+	return teams.RemoveMembers(ctx, h.G().ExternalG(), arg.TeamID, arg.Users)
 }
 
 func (h *TeamsHandler) TeamEditMember(ctx context.Context, arg keybase1.TeamEditMemberArg) (err error) {
