@@ -58,6 +58,28 @@ func memberSetupMultiple(t *testing.T) (tc libkb.TestContext, owner, otherA, oth
 	return tc, owner, otherA, otherB, name
 }
 
+func memberSetupMultipleWithTeamID(t *testing.T) (tc libkb.TestContext, owner, otherA, otherB *kbtest.FakeUser, name keybase1.TeamName, teamID keybase1.TeamID) {
+	tc = SetupTest(t, "team", 1)
+
+	otherA, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+	err = tc.Logout()
+	require.NoError(t, err)
+
+	otherB, err = kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+	err = tc.Logout()
+	require.NoError(t, err)
+
+	owner, err = kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+
+	name, teamID = createTeam2(tc)
+	t.Logf("Created team %q", name)
+
+	return tc, owner, otherA, otherB, name, teamID
+}
+
 // creates a root team and a subteam.  owner is the owner of root, otherA is an admin, otherB is just a user.
 // no members in subteam.
 func memberSetupSubteam(t *testing.T) (tc libkb.TestContext, owner, otherA, otherB *kbtest.FakeUser, root, sub string) {
@@ -163,26 +185,26 @@ func TestMemberAddOK(t *testing.T) {
 }
 
 func TestMembersEdit(t *testing.T) {
-	tc, _, otherA, otherB, name := memberSetupMultiple(t)
+	tc, _, otherA, otherB, name, teamID := memberSetupMultipleWithTeamID(t)
 	defer tc.Cleanup()
 
-	assertRole(tc, name, otherA.Username, keybase1.TeamRole_NONE)
+	assertRole(tc, name.String(), otherA.Username, keybase1.TeamRole_NONE)
 
-	_, err := AddMember(context.TODO(), tc.G, name, otherA.Username, keybase1.TeamRole_READER, nil)
+	_, err := AddMember(context.TODO(), tc.G, name.String(), otherA.Username, keybase1.TeamRole_READER, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	assertRole(tc, name, otherA.Username, keybase1.TeamRole_READER)
+	assertRole(tc, name.String(), otherA.Username, keybase1.TeamRole_READER)
 
-	assertRole(tc, name, otherB.Username, keybase1.TeamRole_NONE)
+	assertRole(tc, name.String(), otherB.Username, keybase1.TeamRole_NONE)
 
-	_, err = AddMember(context.TODO(), tc.G, name, otherB.Username, keybase1.TeamRole_READER, nil)
+	_, err = AddMember(context.TODO(), tc.G, name.String(), otherB.Username, keybase1.TeamRole_READER, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	assertRole(tc, name, otherB.Username, keybase1.TeamRole_READER)
+	assertRole(tc, name.String(), otherB.Username, keybase1.TeamRole_READER)
 
 	rolePairA := keybase1.UserRolePair{
 		AssertionOrEmail: otherA.Username,
@@ -198,7 +220,7 @@ func TestMembersEdit(t *testing.T) {
 
 	userRolePairs := []keybase1.UserRolePair{rolePairA, rolePairB}
 
-	res, err := EditMembers(context.TODO(), tc.G, name, userRolePairs)
+	res, err := EditMembers(context.TODO(), tc.G, teamID, userRolePairs)
 	require.NoError(t, err)
 	require.Empty(t, res.Failures)
 }
