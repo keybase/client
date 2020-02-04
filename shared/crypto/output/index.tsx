@@ -89,17 +89,12 @@ export const OutputProgress = (props: OutputProgressProps) => {
   const {operation} = props
 
   // Store
-  const outputStatus = Container.useSelector(state => state.crypto[operation].outputStatus)
   const bytesTotal = Container.useSelector(state => state.crypto[operation].bytesTotal)
   const bytesComplete = Container.useSelector(state => state.crypto[operation].bytesComplete)
 
   const progress = bytesComplete === 0 ? 0 : bytesComplete / bytesTotal
 
-  return progress && !outputStatus ? (
-    <Kb.ProgressBar ratio={progress} style={{width: '100%'}} />
-  ) : (
-    <Kb.Divider />
-  )
+  return progress ? <Kb.ProgressBar ratio={progress} style={{width: '100%'}} /> : <Kb.Divider />
 }
 
 export const OutputInfoBanner = (props: OutputInfoProps) => {
