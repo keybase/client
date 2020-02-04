@@ -441,17 +441,11 @@ func (e MessageSystemType) String() string {
 }
 
 type MessageSystemAddedToTeam struct {
-	Team           string            `codec:"team" json:"team"`
-	Adder          string            `codec:"adder" json:"adder"`
-	Addee          string            `codec:"addee" json:"addee"`
-	Role           keybase1.TeamRole `codec:"role" json:"role"`
-	BulkAdds       []string          `codec:"bulkAdds" json:"bulkAdds"`
-	Owners         []string          `codec:"owners" json:"owners"`
-	Admins         []string          `codec:"admins" json:"admins"`
-	Writers        []string          `codec:"writers" json:"writers"`
-	Readers        []string          `codec:"readers" json:"readers"`
-	Bots           []string          `codec:"bots" json:"bots"`
-	RestrictedBots []string          `codec:"restrictedBots" json:"restrictedBots"`
+	Team     string            `codec:"team" json:"team"`
+	Adder    string            `codec:"adder" json:"adder"`
+	Addee    string            `codec:"addee" json:"addee"`
+	Role     keybase1.TeamRole `codec:"role" json:"role"`
+	BulkAdds []string          `codec:"bulkAdds" json:"bulkAdds"`
 }
 
 func (o MessageSystemAddedToTeam) DeepCopy() MessageSystemAddedToTeam {
@@ -471,72 +465,6 @@ func (o MessageSystemAddedToTeam) DeepCopy() MessageSystemAddedToTeam {
 			}
 			return ret
 		})(o.BulkAdds),
-		Owners: (func(x []string) []string {
-			if x == nil {
-				return nil
-			}
-			ret := make([]string, len(x))
-			for i, v := range x {
-				vCopy := v
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.Owners),
-		Admins: (func(x []string) []string {
-			if x == nil {
-				return nil
-			}
-			ret := make([]string, len(x))
-			for i, v := range x {
-				vCopy := v
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.Admins),
-		Writers: (func(x []string) []string {
-			if x == nil {
-				return nil
-			}
-			ret := make([]string, len(x))
-			for i, v := range x {
-				vCopy := v
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.Writers),
-		Readers: (func(x []string) []string {
-			if x == nil {
-				return nil
-			}
-			ret := make([]string, len(x))
-			for i, v := range x {
-				vCopy := v
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.Readers),
-		Bots: (func(x []string) []string {
-			if x == nil {
-				return nil
-			}
-			ret := make([]string, len(x))
-			for i, v := range x {
-				vCopy := v
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.Bots),
-		RestrictedBots: (func(x []string) []string {
-			if x == nil {
-				return nil
-			}
-			ret := make([]string, len(x))
-			for i, v := range x {
-				vCopy := v
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.RestrictedBots),
 	}
 }
 

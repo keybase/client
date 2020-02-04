@@ -113,12 +113,6 @@ protocol local {
     string addee;
     keybase1.TeamRole role;
     array<string> bulkAdds;
-    array<string> owners;
-    array<string> admins;
-    array<string> writers;
-    array<string> readers;
-    array<string> bots;
-    array<string> restrictedBots;
   }
 
   record MessageSystemInviteAddedToTeam {

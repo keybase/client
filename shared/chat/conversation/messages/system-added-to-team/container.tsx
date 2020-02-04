@@ -15,11 +15,13 @@ type OwnProps = {
 const Connected = Container.connect(
   (state, ownProps: OwnProps) => {
     const {teamID, teamname, teamType} = Constants.getMeta(state, ownProps.message.conversationIDKey)
+    const authorIsAdmin = TeamConstants.userIsRoleInTeam(state, teamID, ownProps.message.author, 'admin')
+    const authorIsOwner = TeamConstants.userIsRoleInTeam(state, teamID, ownProps.message.author, 'owner')
     return {
       addee: ownProps.message.addee,
       adder: ownProps.message.adder,
       bulkAdds: ownProps.message.bulkAdds,
-      isAdmin: TeamConstants.isAdmin(TeamConstants.getRole(state, teamID)),
+      isAdmin: authorIsAdmin || authorIsOwner,
       isTeam: teamType === 'big' || teamType === 'small',
       role: ownProps.message.role,
       teamID,

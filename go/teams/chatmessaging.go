@@ -10,17 +10,8 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-func SendTeamChatWelcomeMessage(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, team, user string,
-	membersType chat1.ConversationMembersType, role keybase1.TeamRole) (err error) {
-	var teamDetails keybase1.TeamDetails
-	if teamID.IsNil() {
-		teamDetails, err = Details(ctx, g, team)
-	} else {
-		teamDetails, err = DetailsByID(ctx, g, teamID)
-	}
-	if err != nil {
-		return fmt.Errorf("getting team details: %v", err)
-	}
+func SendTeamChatWelcomeMessage(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, team,
+	user string, membersType chat1.ConversationMembersType, role keybase1.TeamRole) (err error) {
 	if team == "" && !teamID.IsNil() {
 		teamname, err := ResolveIDToName(ctx, g, teamID)
 		if err != nil {
@@ -28,37 +19,12 @@ func SendTeamChatWelcomeMessage(ctx context.Context, g *libkb.GlobalContext, tea
 		}
 		team = teamname.String()
 	}
-	var ownerNames, adminNames, writerNames, readerNames, botNames, restrictedBotNames []string
-	for _, owner := range teamDetails.Members.Owners {
-		ownerNames = append(ownerNames, owner.Username)
-	}
-	for _, admin := range teamDetails.Members.Admins {
-		adminNames = append(adminNames, admin.Username)
-	}
-	for _, writer := range teamDetails.Members.Writers {
-		writerNames = append(writerNames, writer.Username)
-	}
-	for _, reader := range teamDetails.Members.Readers {
-		readerNames = append(readerNames, reader.Username)
-	}
-	for _, bot := range teamDetails.Members.Bots {
-		botNames = append(botNames, bot.Username)
-	}
-	for _, restrictedBot := range teamDetails.Members.RestrictedBots {
-		restrictedBotNames = append(restrictedBotNames, restrictedBot.Username)
-	}
 	username := g.Env.GetUsername()
 	subBody := chat1.NewMessageSystemWithAddedtoteam(chat1.MessageSystemAddedToTeam{
-		Adder:          username.String(),
-		Addee:          user,
-		Role:           role,
-		Team:           team,
-		Owners:         ownerNames,
-		Admins:         adminNames,
-		Writers:        writerNames,
-		Readers:        readerNames,
-		Bots:           botNames,
-		RestrictedBots: restrictedBotNames,
+		Adder: username.String(),
+		Addee: user,
+		Role:  role,
+		Team:  team,
 	})
 	body := chat1.NewMessageBodyWithSystem(subBody)
 
