@@ -44,6 +44,9 @@ module.exports = {
   get Checkbox() {
     return require('./checkbox').default
   },
+  get CheckCircle() {
+    return require('./check-circle').default
+  },
   get ChoiceList() {
     return require('./choice-list').default
   },
