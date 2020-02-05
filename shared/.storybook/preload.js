@@ -29,4 +29,3 @@ global.KB = {
   },
   // punycode, // used by a dep
 }
-
