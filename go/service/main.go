@@ -509,7 +509,8 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	g.StellarSender = wallet.NewSender(g)
 	g.StellarPushHandler = g.ExternalG().GetStellar()
 
-	convStorage := chat.NewDevConversationBackedStorage(g, ri)
+	convStorage := chat.NewDevConversationBackedStorage(g, chat1.ConversationMembersType_IMPTEAMNATIVE,
+		false /* adminOnly */, ri)
 
 	g.Unfurler = unfurl.NewUnfurler(g, store, s3signer, convStorage, chat.NewNonblockingSender(g, sender),
 		ri)
