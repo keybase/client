@@ -1,4 +1,5 @@
 import path from 'path'
+import os from 'os'
 import * as Electron from 'electron'
 
 const isRenderer = typeof process !== 'undefined' && process.type === 'renderer'
@@ -21,6 +22,9 @@ target.KB = {
     app: {
       appPath: __STORYSHOT__ ? '' : isRenderer ? Electron.remote.app.getAppPath() : Electron.app.getAppPath(),
     },
+  },
+  os: {
+    homedir: os.homedir(),
   },
   path: {
     basename: path.basename,

@@ -18,6 +18,7 @@ export const defaultUseNativeFrame: boolean
 export const isTestDevice: boolean
 export const isRemoteDebuggerAttached: boolean
 
+export declare const downloadFolder: string
 export declare const fileUIName: string
 export declare const version: string
 export declare const pprofDir: string
