@@ -440,6 +440,10 @@ body {
   border-color: rgba(0, 0, 0, 0.85);
 }
 
+.addInviteAndLinkBox {
+  transition: box-shadow 0.35s;
+}
+
 .headerTitle:hover .addInviteAndLinkBox {
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
