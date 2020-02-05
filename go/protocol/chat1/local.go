@@ -5191,6 +5191,40 @@ func (o GetTLFConversationsLocalRes) DeepCopy() GetTLFConversationsLocalRes {
 	}
 }
 
+type GetChannelMembershipsLocalRes struct {
+	Channels   []ChannelNameMention `codec:"channels" json:"channels"`
+	Offline    bool                 `codec:"offline" json:"offline"`
+	RateLimits []RateLimit          `codec:"rateLimits" json:"rateLimits"`
+}
+
+func (o GetChannelMembershipsLocalRes) DeepCopy() GetChannelMembershipsLocalRes {
+	return GetChannelMembershipsLocalRes{
+		Channels: (func(x []ChannelNameMention) []ChannelNameMention {
+			if x == nil {
+				return nil
+			}
+			ret := make([]ChannelNameMention, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Channels),
+		Offline: o.Offline,
+		RateLimits: (func(x []RateLimit) []RateLimit {
+			if x == nil {
+				return nil
+			}
+			ret := make([]RateLimit, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.RateLimits),
+	}
+}
+
 type SetAppNotificationSettingsLocalRes struct {
 	Offline    bool        `codec:"offline" json:"offline"`
 	RateLimits []RateLimit `codec:"rateLimits" json:"rateLimits"`
@@ -6400,6 +6434,13 @@ type GetTLFConversationsLocalArg struct {
 	MembersType ConversationMembersType `codec:"membersType" json:"membersType"`
 }
 
+type GetChannelMembershipsLocalArg struct {
+	TlfName     string                  `codec:"tlfName" json:"tlfName"`
+	Uid         gregor1.UID             `codec:"uid" json:"uid"`
+	TopicType   TopicType               `codec:"topicType" json:"topicType"`
+	MembersType ConversationMembersType `codec:"membersType" json:"membersType"`
+}
+
 type SetAppNotificationSettingsLocalArg struct {
 	ConvID      ConversationID                `codec:"convID" json:"convID"`
 	ChannelWide bool                          `codec:"channelWide" json:"channelWide"`
@@ -6695,6 +6736,7 @@ type LocalInterface interface {
 	PreviewConversationByIDLocal(context.Context, ConversationID) (PreviewConversationLocalRes, error)
 	DeleteConversationLocal(context.Context, DeleteConversationLocalArg) (DeleteConversationLocalRes, error)
 	GetTLFConversationsLocal(context.Context, GetTLFConversationsLocalArg) (GetTLFConversationsLocalRes, error)
+	GetChannelMembershipsLocal(context.Context, GetChannelMembershipsLocalArg) (GetChannelMembershipsLocalRes, error)
 	SetAppNotificationSettingsLocal(context.Context, SetAppNotificationSettingsLocalArg) (SetAppNotificationSettingsLocalRes, error)
 	SetGlobalAppNotificationSettingsLocal(context.Context, map[string]bool) error
 	GetGlobalAppNotificationSettingsLocal(context.Context) (GlobalAppNotificationSettings, error)
@@ -7542,6 +7584,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.GetTLFConversationsLocal(ctx, typedArgs[0])
+					return
+				},
+			},
+			"getChannelMembershipsLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]GetChannelMembershipsLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetChannelMembershipsLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetChannelMembershipsLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetChannelMembershipsLocal(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -8530,6 +8587,11 @@ func (c LocalClient) DeleteConversationLocal(ctx context.Context, __arg DeleteCo
 
 func (c LocalClient) GetTLFConversationsLocal(ctx context.Context, __arg GetTLFConversationsLocalArg) (res GetTLFConversationsLocalRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.getTLFConversationsLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) GetChannelMembershipsLocal(ctx context.Context, __arg GetChannelMembershipsLocalArg) (res GetChannelMembershipsLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.getChannelMembershipsLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 

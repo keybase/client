@@ -3200,6 +3200,30 @@
     },
     {
       "type": "record",
+      "name": "GetChannelMembershipsLocalRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "ChannelNameMention"
+          },
+          "name": "channels"
+        },
+        {
+          "type": "boolean",
+          "name": "offline"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "SetAppNotificationSettingsLocalRes",
       "fields": [
         {
@@ -4975,6 +4999,27 @@
         }
       ],
       "response": "GetTLFConversationsLocalRes"
+    },
+    "getChannelMembershipsLocal": {
+      "request": [
+        {
+          "name": "tlfName",
+          "type": "string"
+        },
+        {
+          "name": "uid",
+          "type": "gregor1.UID"
+        },
+        {
+          "name": "topicType",
+          "type": "TopicType"
+        },
+        {
+          "name": "membersType",
+          "type": "ConversationMembersType"
+        }
+      ],
+      "response": "GetChannelMembershipsLocalRes"
     },
     "setAppNotificationSettingsLocal": {
       "request": [

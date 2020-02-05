@@ -1677,6 +1677,56 @@ func (h *Server) GetTLFConversationsLocal(ctx context.Context, arg chat1.GetTLFC
 	return res, nil
 }
 
+func (h *Server) GetChannelMembershipsLocal(ctx context.Context, arg chat1.GetChannelMembershipsLocalArg) (res chat1.GetChannelMembershipsLocalRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI,
+		&identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("GetTLFConversationsLocal(%s)",
+		arg.TlfName))()
+	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
+	defer func() { h.setResultRateLimit(ctx, &res) }()
+	defer func() {
+		if res.Offline {
+			h.Debug(ctx, "GetTLFConversationsLocal: result obtained offline")
+		}
+	}()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
+
+	// Fetch the TLF ID from specified name
+	nameInfo, err := CreateNameInfoSource(ctx, h.G(), arg.MembersType).LookupID(ctx, arg.TlfName, false)
+	if err != nil {
+		h.Debug(ctx, "GetTLFConversationsLocal: failed to get TLFID from name: %s", err.Error())
+		return res, err
+	}
+
+	var convs []chat1.ConversationLocal
+	convs, err = h.G().TeamChannelSource.GetChannelsFull(ctx, uid, nameInfo.ID, arg.TopicType)
+	if err != nil {
+		return res, err
+	}
+	if err != nil {
+		return res, err
+	}
+
+	for _, conv := range convs {
+		isInConv, err := h.G().InboxSource.IsMember(ctx, arg.Uid, chat1.ConversationID(conv.GetConvID()))
+		if err != nil {
+			return res, err
+		}
+
+		if isInConv {
+			res.Channels = append(res.Channels, chat1.ChannelNameMention{
+				ConvID:    conv.GetConvID(),
+				TopicName: conv.GetTopicName(),
+			})
+		}
+	}
+	return res, nil
+}
+
 func (h *Server) SetAppNotificationSettingsLocal(ctx context.Context,
 	arg chat1.SetAppNotificationSettingsLocalArg) (res chat1.SetAppNotificationSettingsLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
