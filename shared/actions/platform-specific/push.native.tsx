@@ -22,11 +22,7 @@ import * as Container from '../../util/container'
 
 let lastCount = -1
 const updateAppBadge = (action: NotificationsGen.ReceivedBadgeStatePayload) => {
-  const count = (action.payload.badgeState.conversations || []).reduce(
-    (total, c) => (c.badgeCounts ? total + c.badgeCounts[`${RPCTypes.DeviceType.mobile}`] : total),
-    0
-  )
-
+  const count = action.payload.badgeState.bigTeamBadgeCount + action.payload.badgeState.smallTeamBadgeCount
   PushNotifications.setApplicationIconBadgeNumber(count)
   // Only do this native call if the count actually changed, not over and over if its zero
   if (count === 0 && lastCount !== 0) {

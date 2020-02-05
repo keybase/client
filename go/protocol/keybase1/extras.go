@@ -3605,9 +3605,7 @@ func NewBotToken(s string) (BotToken, error) {
 }
 
 func (b BadgeConversationInfo) IsEmpty() bool {
-	return (b.UnreadMessages == 0 &&
-		b.BadgeCounts[DeviceType_DESKTOP] == 0 &&
-		b.BadgeCounts[DeviceType_MOBILE] == 0)
+	return b.UnreadMessages == 0 && b.BadgeCount == 0
 }
 
 func (s *TeamBotSettings) Eq(o *TeamBotSettings) bool {

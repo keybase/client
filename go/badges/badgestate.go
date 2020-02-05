@@ -20,13 +20,13 @@ import (
 )
 
 type LocalChatState interface {
-	ApplyLocalChatState(context.Context, []keybase1.BadgeConversationInfo) []keybase1.BadgeConversationInfo
+	ApplyLocalChatState(context.Context, []keybase1.BadgeConversationInfo) ([]keybase1.BadgeConversationInfo, int, int)
 }
 
 type dummyLocalChatState struct{}
 
-func (d dummyLocalChatState) ApplyLocalChatState(ctx context.Context, i []keybase1.BadgeConversationInfo) []keybase1.BadgeConversationInfo {
-	return i
+func (d dummyLocalChatState) ApplyLocalChatState(ctx context.Context, i []keybase1.BadgeConversationInfo) ([]keybase1.BadgeConversationInfo, int, int) {
+	return i, 0, 0
 }
 
 // BadgeState represents the number of badges on the app. It's threadsafe.
@@ -81,7 +81,8 @@ func (b *BadgeState) Export(ctx context.Context) (keybase1.BadgeState, error) {
 	for _, info := range b.chatUnreadMap {
 		b.state.Conversations = append(b.state.Conversations, info)
 	}
-	b.state.Conversations = b.localChatState.ApplyLocalChatState(ctx, b.state.Conversations)
+	b.state.Conversations, b.state.SmallTeamBadgeCount, b.state.BigTeamBadgeCount =
+		b.localChatState.ApplyLocalChatState(ctx, b.state.Conversations)
 	b.state.InboxVers = int(b.inboxVers)
 
 	b.state.UnreadWalletAccounts = []keybase1.WalletAccountInfo{}
@@ -170,19 +171,17 @@ func homeStateLessThan(a *homeStateBody, b homeStateBody) bool {
 	return false
 }
 
-func (b *BadgeState) ConversationBadgeStr(ctx context.Context, convIDStr chat1.ConvIDStr,
-	deviceType keybase1.DeviceType) int {
+func (b *BadgeState) ConversationBadgeStr(ctx context.Context, convIDStr chat1.ConvIDStr) int {
 	b.Lock()
 	defer b.Unlock()
 	if info, ok := b.chatUnreadMap[convIDStr]; ok {
-		return info.BadgeCounts[deviceType]
+		return info.BadgeCount
 	}
 	return 0
 }
 
-func (b *BadgeState) ConversationBadge(ctx context.Context, convID chat1.ConversationID,
-	deviceType keybase1.DeviceType) int {
-	return b.ConversationBadgeStr(ctx, convID.ConvIDStr(), deviceType)
+func (b *BadgeState) ConversationBadge(ctx context.Context, convID chat1.ConversationID) int {
+	return b.ConversationBadgeStr(ctx, convID.ConvIDStr())
 }
 
 // UpdateWithGregor updates the badge state from a gregor state.
@@ -402,7 +401,7 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 }
 
 func (b *BadgeState) UpdateWithChat(ctx context.Context, update chat1.UnreadUpdate,
-	inboxVers chat1.InboxVers) {
+	inboxVers chat1.InboxVers, isMobile bool) {
 	b.Lock()
 	defer b.Unlock()
 
@@ -412,10 +411,10 @@ func (b *BadgeState) UpdateWithChat(ctx context.Context, update chat1.UnreadUpda
 	}
 
 	b.inboxVers = inboxVers
-	b.updateWithChat(ctx, update)
+	b.updateWithChat(ctx, update, isMobile)
 }
 
-func (b *BadgeState) UpdateWithChatFull(ctx context.Context, update chat1.UnreadUpdateFull) {
+func (b *BadgeState) UpdateWithChatFull(ctx context.Context, update chat1.UnreadUpdateFull, isMobile bool) {
 	b.Lock()
 	defer b.Unlock()
 
@@ -436,7 +435,7 @@ func (b *BadgeState) UpdateWithChatFull(ctx context.Context, update chat1.Unread
 	}
 
 	for _, upd := range update.Updates {
-		b.updateWithChat(ctx, upd)
+		b.updateWithChat(ctx, upd, isMobile)
 	}
 
 	b.inboxVers = update.InboxVers
@@ -452,24 +451,23 @@ func (b *BadgeState) Clear() {
 	b.walletUnreadMap = make(map[stellar1.AccountID]int)
 }
 
-func (b *BadgeState) updateWithChat(ctx context.Context, update chat1.UnreadUpdate) {
+func (b *BadgeState) updateWithChat(ctx context.Context, update chat1.UnreadUpdate, isMobile bool) {
 	b.log.CDebugf(ctx, "updateWithChat: %s", update)
+	deviceType := keybase1.DeviceType_DESKTOP
+	if isMobile {
+		deviceType = keybase1.DeviceType_MOBILE
+	}
 	if update.Diff {
 		cur := b.chatUnreadMap[update.ConvID.ConvIDStr()]
 		cur.ConvID = keybase1.ChatConversationID(update.ConvID)
 		cur.UnreadMessages += update.UnreadMessages
-		if cur.BadgeCounts == nil {
-			cur.BadgeCounts = make(map[keybase1.DeviceType]int)
-		}
-		for dt, c := range update.UnreadNotifyingMessages {
-			cur.BadgeCounts[dt] += c
-		}
+		cur.BadgeCount += update.UnreadNotifyingMessages[deviceType]
 		b.chatUnreadMap[update.ConvID.ConvIDStr()] = cur
 	} else {
 		b.chatUnreadMap[update.ConvID.ConvIDStr()] = keybase1.BadgeConversationInfo{
 			ConvID:         keybase1.ChatConversationID(update.ConvID),
 			UnreadMessages: update.UnreadMessages,
-			BadgeCounts:    update.UnreadNotifyingMessages,
+			BadgeCount:     update.UnreadNotifyingMessages[deviceType],
 		}
 	}
 }

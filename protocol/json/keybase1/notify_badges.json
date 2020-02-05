@@ -125,6 +125,14 @@
           "name": "unverifiedPhones"
         },
         {
+          "type": "int",
+          "name": "smallTeamBadgeCount"
+        },
+        {
+          "type": "int",
+          "name": "bigTeamBadgeCount"
+        },
+        {
           "type": {
             "type": "array",
             "items": "DeviceID"
@@ -202,12 +210,8 @@
           "name": "convID"
         },
         {
-          "type": {
-            "type": "map",
-            "values": "int",
-            "keys": "DeviceType"
-          },
-          "name": "badgeCounts"
+          "type": "int",
+          "name": "badgeCount"
         },
         {
           "type": "int",
