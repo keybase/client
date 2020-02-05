@@ -195,20 +195,20 @@ const Tab = React.memo(({tab, index, selectedTab, onTabClick, badge}: TabProps) 
   const labelLength = label.length - 1
 
   const [animationState, setAnimationState] = React.useState<AnimationState>('none')
-  // right of divider is 'normal'
-  const [divider, setDivider] = React.useState(labelLength)
+  // left of divider is 'normal'
+  const [divider, setDivider] = React.useState(-1)
 
   Kb.useInterval(
     () => {
       if (animationState === 'encrypt') {
-        if (divider < labelLength) {
-          setDivider(divider + 1)
+        if (divider >= 0) {
+          setDivider(divider - 1)
         } else {
           setAnimationState('none')
         }
       } else if (animationState === 'decrypt') {
-        if (divider >= 0) {
-          setDivider(divider - 1)
+        if (divider < labelLength) {
+          setDivider(divider + 1)
         } else {
           setAnimationState('none')
         }
@@ -225,15 +225,15 @@ const Tab = React.memo(({tab, index, selectedTab, onTabClick, badge}: TabProps) 
   let animatedLabel: string | React.ReactNode
   if (isCrypto) {
     const parts = label.split('')
-    const encrypted = parts.slice(0, divider + 1)
-    const decrypted = parts.slice(divider + 1)
+    const decrypted = parts.slice(0, divider + 1)
+    const encrypted = parts.slice(divider + 1)
     animatedLabel = (
       <Kb.Text type="BodySmallSemibold">
-        <Kb.Text type="BodySmallSemibold" className="tab-label tab-encrypted">
-          {encrypted}
-        </Kb.Text>
         <Kb.Text type="BodySmallSemibold" className="tab-label">
           {decrypted}
+        </Kb.Text>
+        <Kb.Text type="BodySmallSemibold" className="tab-encrypted">
+          {encrypted}
         </Kb.Text>
       </Kb.Text>
     )
