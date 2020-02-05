@@ -187,6 +187,8 @@ export type State = {
   >
   readonly audioRecording: Map<Common.ConversationIDKey, AudioRecordingInfo>
   readonly badgeMap: ConversationCountMap // id to the badge count,
+  readonly smallTeamBadgeCount: number
+  readonly bigTeamBadgeCount: number
   readonly blockButtonsMap: Map<RPCTypes.TeamID, BlockButtonsInfo> // Should we show block buttons for this team ID?
   readonly botCommandsUpdateStatusMap: Map<
     Common.ConversationIDKey,

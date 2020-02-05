@@ -39,6 +39,8 @@ protocol NotifyBadges {
     int homeTodoItems;
     int unverifiedEmails;
     int unverifiedPhones;
+    int smallTeamBadgeCount;
+    int bigTeamBadgeCount;
 
     array<DeviceID> newDevices;
     array<DeviceID> revokedDevices;
@@ -54,7 +56,7 @@ protocol NotifyBadges {
 
   record BadgeConversationInfo {
     ChatConversationID convID;
-    map<DeviceType, int> badgeCounts;
+    int badgeCount;
     int unreadMessages;
   }
 

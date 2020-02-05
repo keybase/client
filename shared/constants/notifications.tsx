@@ -18,7 +18,6 @@ export const badgeStateToBadgeCounts = (state: Container.TypedState, bs: RPCType
     return undefined
   }
 
-  const deviceType = String(Container.isMobile ? RPCTypes.DeviceType.mobile : RPCTypes.DeviceType.desktop)
   const counts = new Map<Tabs.Tab, number>()
 
   counts.set(Tabs.peopleTab, bs.homeTodoItems)
@@ -31,7 +30,7 @@ export const badgeStateToBadgeCounts = (state: Container.TypedState, bs: RPCType
   counts.set(Tabs.devicesTab, allDeviceChanges.size - (allDeviceChanges.has(state.config.deviceID) ? 1 : 0))
   counts.set(
     Tabs.chatTab,
-    conversations.reduce<number>((total, c) => (c.badgeCounts ? total + c.badgeCounts[deviceType] : total), 0)
+    conversations.reduce<number>((total, c) => total + c.badgeCount, 0)
   )
   counts.set(
     Tabs.walletsTab,

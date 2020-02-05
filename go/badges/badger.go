@@ -86,7 +86,7 @@ func (b *Badger) PushState(ctx context.Context, state gregor.State) {
 
 func (b *Badger) PushChatUpdate(ctx context.Context, update chat1.UnreadUpdate, inboxVers chat1.InboxVers) {
 	b.G().Log.CDebugf(ctx, "Badger update with chat update")
-	b.badgeState.UpdateWithChat(ctx, update, inboxVers)
+	b.badgeState.UpdateWithChat(ctx, update, inboxVers, b.G().IsMobileAppType())
 	if err := b.Send(ctx); err != nil {
 		b.G().Log.CDebugf(ctx, "Badger send (PushChatUpdate) failed: %v", err)
 	}
@@ -94,7 +94,7 @@ func (b *Badger) PushChatUpdate(ctx context.Context, update chat1.UnreadUpdate, 
 
 func (b *Badger) PushChatFullUpdate(ctx context.Context, update chat1.UnreadUpdateFull) {
 	b.G().Log.CDebugf(ctx, "Badger update with chat full update")
-	b.badgeState.UpdateWithChatFull(ctx, update)
+	b.badgeState.UpdateWithChatFull(ctx, update, b.G().IsMobileAppType())
 	if err := b.Send(ctx); err != nil {
 		b.G().Log.CDebugf(ctx, "Badger send (PushChatFullUpdate) failed: %v", err)
 	}
@@ -156,7 +156,7 @@ func (b *Badger) log(ctx context.Context, state1 keybase1.BadgeState) {
 		c2 := keybase1.BadgeConversationInfo{
 			ConvID:         c2id,
 			UnreadMessages: c1.UnreadMessages,
-			BadgeCounts:    c1.BadgeCounts,
+			BadgeCount:     c1.BadgeCount,
 		}
 		state2.Conversations = append(state2.Conversations, c2)
 		if index >= 50 {

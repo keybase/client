@@ -229,8 +229,8 @@ func (b *baseInboxSource) Disconnected(ctx context.Context) {
 	b.localizer.Disconnected()
 }
 
-func (b *baseInboxSource) ApplyLocalChatState(ctx context.Context, i []keybase1.BadgeConversationInfo) []keybase1.BadgeConversationInfo {
-	return i
+func (b *baseInboxSource) ApplyLocalChatState(ctx context.Context, i []keybase1.BadgeConversationInfo) ([]keybase1.BadgeConversationInfo, int, int) {
+	return i, 0, 0
 }
 
 func GetInboxQueryNameInfo(ctx context.Context, g *globals.Context,
@@ -630,18 +630,15 @@ func (s *HybridInboxSource) markAsReadDeliverLoop(uid gregor1.UID, stopCh chan s
 
 func makeBadgeConversationInfo(convID keybase1.ChatConversationID, count int) keybase1.BadgeConversationInfo {
 	return keybase1.BadgeConversationInfo{
-		ConvID: convID,
-		BadgeCounts: map[keybase1.DeviceType]int{
-			keybase1.DeviceType_DESKTOP: count,
-			keybase1.DeviceType_MOBILE:  count,
-		},
+		ConvID:         convID,
+		BadgeCount:     count,
 		UnreadMessages: count,
 	}
 }
 
 // ApplyLocalChatState marks items locally as read and badges conversations
 // that have failed outbox items.
-func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []keybase1.BadgeConversationInfo) (res []keybase1.BadgeConversationInfo) {
+func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []keybase1.BadgeConversationInfo) (res []keybase1.BadgeConversationInfo, smallTeamBadgeCount, bigTeamBadgeCount int) {
 	convIDs := make([]chat1.ConversationID, 0, len(infos))
 	for _, info := range infos {
 		if !info.IsEmpty() {
@@ -657,10 +654,12 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 
 	// convID -> isRead
 	readConvMap := make(map[chat1.ConvIDStr]bool)
+	smallTeamConvMap := make(map[chat1.ConvIDStr]bool, len(convs))
 	for _, conv := range convs {
 		if conv.IsLocallyRead() {
 			readConvMap[conv.ConvIDStr] = true
 		}
+		smallTeamConvMap[conv.ConvIDStr] = conv.GetTeamType() != chat1.TeamType_COMPLEX
 	}
 
 	outbox := storage.NewOutbox(s.G(), s.uid)
@@ -717,12 +716,18 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 		// badge qualifying failed outbox items
 		if failedCount, ok := failedOutboxMap[convIDStr]; ok {
 			newInfo := makeBadgeConversationInfo(info.ConvID, failedCount)
-			newInfo.BadgeCounts[keybase1.DeviceType_DESKTOP] += info.BadgeCounts[keybase1.DeviceType_DESKTOP]
-			newInfo.BadgeCounts[keybase1.DeviceType_MOBILE] += info.BadgeCounts[keybase1.DeviceType_MOBILE]
+			newInfo.BadgeCount += info.BadgeCount
 			newInfo.UnreadMessages += info.UnreadMessages
 			info = newInfo
 			delete(failedOutboxMap, convIDStr)
 			s.Debug(ctx, "ApplyLocalChatState, applying failed to existing info %+v", info)
+		}
+		if isSmallTeam, ok := smallTeamConvMap[convIDStr]; ok {
+			if isSmallTeam {
+				smallTeamBadgeCount += info.BadgeCount
+			} else {
+				bigTeamBadgeCount += info.BadgeCount
+			}
 		}
 		res = append(res, info)
 	}
@@ -738,7 +743,7 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 		s.Debug(ctx, "ApplyLocalChatState, applying failed to new info %+v", newInfo)
 		res = append(res, newInfo)
 	}
-	return res
+	return res, smallTeamBadgeCount, bigTeamBadgeCount
 }
 
 func (s *HybridInboxSource) Draft(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
@@ -1080,13 +1085,6 @@ func (h convSearchHit) valid() bool {
 	return len(h.hits) > 0
 }
 
-func (s *HybridInboxSource) getDeviceType() keybase1.DeviceType {
-	if s.G().IsMobileAppType() {
-		return keybase1.DeviceType_MOBILE
-	}
-	return keybase1.DeviceType_DESKTOP
-}
-
 func (s *HybridInboxSource) fullNamesForSearch(ctx context.Context, conv types.RemoteConversation,
 	convName, username string) (res []string) {
 	switch conv.GetMembersType() {
@@ -1122,7 +1120,7 @@ func (s *HybridInboxSource) isConvSearchHit(ctx context.Context, conv types.Remo
 		case types.InboxSourceSearchEmptyModeUnread:
 			if conv.Conv.IsUnread() {
 				cqe := nameContainsQueryUnread
-				if s.G().Badger.State().ConversationBadge(ctx, conv.GetConvID(), s.getDeviceType()) > 0 {
+				if s.G().Badger.State().ConversationBadge(ctx, conv.GetConvID()) > 0 {
 					cqe = nameContainsQueryBadged
 				}
 				res.hits = []nameContainsQueryRes{cqe}

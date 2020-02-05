@@ -95,7 +95,9 @@
     },
     // Update our badges in the nav
     "badgesUpdated": {
-      "conversations": "Array<RPCTypes.BadgeConversationInfo>"
+      "bigTeamBadgeCount": "number",
+      "conversations": "Array<RPCTypes.BadgeConversationInfo>",
+      "smallTeamBadgeCount": "number"
     },
     // Refresh the inbox
     "inboxRefresh": {

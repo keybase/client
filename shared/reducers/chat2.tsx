@@ -10,7 +10,6 @@ import * as Types from '../constants/types/chat2'
 import * as TeamTypes from '../constants/types/teams'
 import {editTeambuildingDraft} from './team-building'
 import {teamBuilderReducerCreator} from '../team-building/reducer-helper'
-import {isMobile} from '../constants/platform'
 import logger from '../logger'
 import HiddenString from '../util/hidden-string'
 import partition from 'lodash/partition'
@@ -629,16 +628,17 @@ const reducer = Container.makeReducer<Actions, Types.State>(initialState, {
     draftState.lastCoord = action.payload.coord
   },
   [Chat2Gen.badgesUpdated]: (draftState, action) => {
-    const {conversations} = action.payload
-    const badgeKey = String(isMobile ? RPCTypes.DeviceType.mobile : RPCTypes.DeviceType.desktop)
+    const {bigTeamBadgeCount, conversations, smallTeamBadgeCount} = action.payload
     const badgeMap = new Map<Types.ConversationIDKey, number>()
     const unreadMap = new Map<Types.ConversationIDKey, number>()
-    conversations.forEach(({convID, badgeCounts, unreadMessages}) => {
+    conversations.forEach(({convID, badgeCount, unreadMessages}) => {
       const key = Types.conversationIDToKey(convID)
-      badgeMap.set(key, badgeCounts[badgeKey] || 0)
+      badgeMap.set(key, badgeCount)
       unreadMap.set(key, unreadMessages)
     })
 
+    draftState.smallTeamBadgeCount = smallTeamBadgeCount
+    draftState.bigTeamBadgeCount = bigTeamBadgeCount
     if (!mapEqual(draftState.badgeMap, badgeMap)) {
       draftState.badgeMap = badgeMap
     }
