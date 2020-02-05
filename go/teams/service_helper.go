@@ -496,9 +496,9 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Tea
 		}
 		var sweep []sweepEntry
 		for _, user := range users {
-			upak, single, doInvite, err := tx.ResolveUPKV2FromAssertionOrEmail(mctx, user.AssertionOrEmail)
+			upak, single, doInvite, assertion, err := tx.ResolveUPKV2FromAssertionOrEmail(mctx, user.AssertionOrEmail)
 			if err != nil {
-				return NewAddMembersError(user.AssertionOrEmail, err)
+				return NewAddMembersError(assertion, err)
 			}
 
 			if _, ok := restrictedUsers[upak.Uid]; ok {
@@ -513,7 +513,7 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Tea
 				if _, ok := err.(AttemptedInviteSocialOwnerError); ok {
 					return err
 				}
-				return NewAddMembersError(user.AssertionOrEmail, err)
+				return NewAddMembersError(assertion, err)
 			}
 			var normalizedUsername libkb.NormalizedUsername
 			if !username.IsNil() {

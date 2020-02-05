@@ -5,7 +5,6 @@ import (
 
 	"golang.org/x/net/context"
 
-	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -396,21 +395,23 @@ func NewUserHasNotResetError(format string, args ...interface{}) error {
 func (e UserHasNotResetError) Error() string { return e.Msg }
 
 type AddMembersError struct {
-	Assertion string
+	Assertion libkb.AssertionExpression
 	Err       error
 }
 
-func NewAddMembersError(a string, e error) AddMembersError {
+func NewAddMembersError(a libkb.AssertionExpression, e error) AddMembersError {
 	return AddMembersError{a, e}
 }
 
 func (a AddMembersError) Error() string {
-	actx := externals.MakeStaticAssertionContext(context.TODO())
-	parsed, err := libkb.ParseAssertionURL(actx, a.Assertion, false /* strict */)
-	if err == nil && parsed.IsEmail() {
-		return fmt.Sprintf("Error adding email %q: %v", parsed.GetValue(), a.Err)
+	if a.Assertion == nil {
+		return fmt.Sprintf("Error adding members: %v", a.Err)
 	}
-	return fmt.Sprintf("Error adding %q: %v", a.Assertion, a.Err)
+	urls := a.Assertion.CollectUrls(nil)
+	if len(urls) == 1 && urls[0].IsEmail() {
+		return fmt.Sprintf("Error adding email %q: %v", urls[0].GetValue(), a.Err)
+	}
+	return fmt.Sprintf("Error adding %q: %v", a.Assertion.String(), a.Err)
 }
 
 type BadNameError struct {
