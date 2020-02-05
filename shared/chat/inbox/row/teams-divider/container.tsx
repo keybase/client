@@ -53,8 +53,8 @@ export default Container.namedConnect(
     const reallyShow = showButton && !!hiddenCount
 
     return {
-      badgeCount,
-      hiddenCount,
+      badgeCount: Math.max(0, badgeCount),
+      hiddenCount: Math.max(0, hiddenCount),
       loadMore: ownProps.smallTeamsExpanded ? dispatchProps._loadMore : toggle,
       showButton: reallyShow,
       style,
