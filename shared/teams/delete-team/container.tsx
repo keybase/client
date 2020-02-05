@@ -11,7 +11,7 @@ type OwnProps = Container.RouteProps<{teamID: Types.TeamID}>
 export default Container.connect(
   (state, ownProps: OwnProps) => {
     const teamID = Container.getRouteProps(ownProps, 'teamID', Types.noTeamID)
-    const {teamname} = Constants.getTeamDetails(state, teamID)
+    const {teamname} = Constants.getTeamMeta(state, teamID)
     return {
       deleteWaiting: anyWaiting(state, Constants.deleteTeamWaitingKey(teamID)),
       teamID,

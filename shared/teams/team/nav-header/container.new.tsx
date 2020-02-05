@@ -15,18 +15,18 @@ type OwnProps = {
 
 export const HeaderTitle = Container.connect(
   (state, {teamID}: OwnProps) => {
-    const details = Constants.getTeamDetails(state, teamID)
-    const {role, memberCount, teamname, isOpen} = details
+    const meta = Constants.getTeamMeta(state, teamID)
+    const {role, memberCount, teamname, isOpen} = meta
     const yourOperations = Constants.getCanPerformByID(state, teamID)
     return {
       _canAddSelf: Constants.getCanPerformByID(state, teamID).joinTeam,
       _canEditDescAvatar: yourOperations.editTeamDescription,
       _canRenameTeam: yourOperations.renameTeam,
-      _teamname: Constants.getTeamDetails(state, teamID).teamname,
+      _teamname: teamname,
       _you: state.config.username,
       canAddPeople: yourOperations.manageMembers,
       canChat: !yourOperations.joinTeam,
-      description: Constants.getTeamPublicitySettings(state, teamID).description,
+      description: Constants.getTeamDetails(state, teamID).description,
       isOpen,
       loading: anyWaiting(state, Constants.teamWaitingKey(teamname)),
       members: memberCount,
@@ -86,7 +86,7 @@ export const HeaderTitle = Container.connect(
 export const SubHeader = Container.namedConnect(
   (state, {teamID}: OwnProps) => ({
     _canAddSelf: Constants.getCanPerformByID(state, teamID).joinTeam,
-    _teamname: Constants.getTeamDetails(state, teamID).teamname,
+    _teamname: Constants.getTeamMeta(state, teamID).teamname,
     _you: state.config.username,
   }),
   (dispatch, {teamID}) => ({

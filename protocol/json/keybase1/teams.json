@@ -1742,7 +1742,7 @@
         {
           "type": "Seqno",
           "name": "latestOffchainSeqno",
-          "jsonkey": "latest_offchain_seqno"
+          "jsonkey": "latest_offchain_version"
         },
         {
           "type": "boolean",
@@ -3165,10 +3165,6 @@
             "items": "TeamJoinRequest"
           },
           "name": "joinRequests"
-        },
-        {
-          "type": "boolean",
-          "name": "userIsShowcasing"
         },
         {
           "type": "boolean",

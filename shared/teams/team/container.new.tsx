@@ -30,6 +30,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     selectedTab,
     teamDetails: Constants.getTeamDetails(state, teamID),
     teamID,
+    teamMeta: Constants.getTeamMeta(state, teamID),
     yourOperations: Constants.getCanPerformByID(state, teamID),
     yourUsername: state.config.username,
   }
@@ -44,6 +45,7 @@ const Connected = Container.connect(
   mapDispatchToProps,
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     const rows = makeRows(
+      stateProps.teamMeta,
       stateProps.teamDetails,
       stateProps.selectedTab,
       stateProps.yourUsername,

@@ -57,20 +57,22 @@
     "unsubscribeTeamList": {
       "_description": "Don't eagerly reload team list anymore."
     },
-    "getDetails": {
-      "_description": "Deprecated, use subscriptions or by ID in new code",
-      "teamname": "string",
-      "clearInviteLoadingKey?": "string"
-    },
-    "getDetailsByID": {
+    "loadTeam": {
       "_description": "Load team details if we are stale. _subscribe is for use by teams/subscriber only.",
       "_subscribe?": "boolean",
+      "teamID": "Types.TeamID"
+    },
+    "teamLoaded": {
       "teamID": "Types.TeamID",
-      "clearInviteLoadingKey?": "string"
+      "details": "Types.TeamDetails"
     },
     "unsubscribeTeamDetails": {
       "_description": "Stop listening for team details for this team",
       "teamID": "Types.TeamID"
+    },
+    "setTeamVersion": {
+      "teamID": "Types.TeamID",
+      "version": "Types.TeamVersion"
     },
     "getMembers": {
       "teamID": "Types.TeamID"
@@ -81,9 +83,6 @@
     },
     "getTeamProfileAddList": {
       "username": "string"
-    },
-    "getTeamPublicity": {
-      "teamID": "Types.TeamID"
     },
     "addTeamWithChosenChannels": {
       "teamID": "Types.TeamID"
@@ -231,10 +230,6 @@
       "teamID": "Types.TeamID",
       "teamOperation": "Types.TeamOperations"
     },
-    "setTeamPublicitySettings": {
-      "teamID": "Types.TeamID",
-      "publicity": "Types._PublicitySettings"
-    },
     "setTeamChannelInfo": {
       "teamID": "Types.TeamID",
       "conversationIDKey": "ChatTypes.ConversationIDKey",
@@ -247,7 +242,7 @@
     "setTeamInfo": {
       "teamnames": "Set<Types.Teamname>",
       "teamNameToID": "Map<Types.Teamname, string>",
-      "teamDetails": "Map<Types.TeamID, Types.TeamDetails>"
+      "teamMeta": "Map<Types.TeamID, Types.TeamMeta>"
     },
     "setTeamProfileAddList": {
       "teamlist": "Array<Types.TeamProfileAddList>"

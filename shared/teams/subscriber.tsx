@@ -47,7 +47,7 @@ const useTeamDetailsSubscribeMobile = (teamID: Types.TeamID) => {
   const dispatch = Container.useDispatch()
   const callback: NavigationEventCallback = e => {
     if (e.type === 'didFocus') {
-      dispatch(TeamsGen.createGetDetailsByID({_subscribe: true, teamID}))
+      dispatch(TeamsGen.createLoadTeam({_subscribe: true, teamID}))
     } else if (e.type === 'willBlur') {
       dispatch(TeamsGen.createUnsubscribeTeamDetails({teamID}))
     }
@@ -60,7 +60,7 @@ const useTeamDetailsSubscribeMobile = (teamID: Types.TeamID) => {
 const useTeamDetailsSubscribeDesktop = (teamID: Types.TeamID) => {
   const dispatch = Container.useDispatch()
   React.useEffect(() => {
-    dispatch(TeamsGen.createGetDetailsByID({_subscribe: true, teamID}))
+    dispatch(TeamsGen.createLoadTeam({_subscribe: true, teamID}))
     return () => dispatch(TeamsGen.createUnsubscribeTeamDetails({teamID}))
   }, [dispatch, teamID])
 }

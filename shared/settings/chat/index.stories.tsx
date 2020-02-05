@@ -13,22 +13,22 @@ const actions = {
   },
 }
 
-const teamDetails = [
-  Constants.makeTeamDetails({
+const teamMeta = [
+  Constants.makeTeamMeta({
     id: 'openteam1',
     isMember: true,
     isOpen: true,
     teamname: 'openteam1',
   }),
-  Constants.makeTeamDetails({
+  Constants.makeTeamMeta({
     id: 'closedteam1',
     teamname: 'closedteam1',
   }),
-  Constants.makeTeamDetails({
+  Constants.makeTeamMeta({
     id: 'closedteam2',
     teamname: 'closedteam2',
   }),
-  Constants.makeTeamDetails({
+  Constants.makeTeamMeta({
     id: 'closedteam3',
     teamname: 'closedteam3',
   }),
@@ -45,7 +45,7 @@ const props = {
     openteam1: false,
   },
   contactSettingsTeamsEnabled: false,
-  teamDetails,
+  teamMeta,
   unfurlMode: RPCChatTypes.UnfurlMode.whitelisted,
   unfurlWhitelist: [
     'amazon.com',
@@ -72,7 +72,7 @@ const loadErrorProps = {
   contactSettingsIndirectFollowees: false,
   contactSettingsSelectedTeams: {},
   contactSettingsTeamsEnabled: false,
-  teamDetails: [],
+  teamMeta: [],
   unfurlError: 'Unable to load link preview settings, please try again.',
   ...actions,
 }
