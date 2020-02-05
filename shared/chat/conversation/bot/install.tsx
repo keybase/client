@@ -207,7 +207,7 @@ const InstallBotPopup = (props: Props) => {
     dispatch(
       WaitingGen.createClearWaiting({key: [Constants.waitingKeyBotAdd, Constants.waitingKeyBotRemove]})
     )
-    if (!commands?.commands?.length) {
+    if (!commands?.commands) {
       dispatch(Chat2Gen.createRefreshBotPublicCommands({username: botUsername}))
     }
   }, [dispatch, commands, botUsername])
