@@ -2764,20 +2764,6 @@
             "type": "array",
             "items": "string"
           },
-          "name": "invited"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "string"
-          },
-          "name": "alreadyInvited"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "string"
-          },
           "name": "malformed"
         }
       ]

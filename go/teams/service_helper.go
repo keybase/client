@@ -696,7 +696,6 @@ func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails
 	g.Log.CDebugf(ctx, "team %s: bulk email invite count: %d", teamname, len(unparsedEmailList))
 
 	var toAdd []keybase1.UserRolePair
-	var emailsParsed []string
 
 	for _, email := range unparsedEmailList {
 		addr, parseErr := mail.ParseAddress(email)
@@ -720,7 +719,6 @@ func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails
 			continue
 		}
 		toAdd = append(toAdd, keybase1.UserRolePair{AssertionOrEmail: a.String(), Role: role})
-		emailsParsed = append(emailsParsed, addr.Address)
 	}
 
 	if len(toAdd) == 0 {
@@ -734,7 +732,6 @@ func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails
 			return err
 		}
 
-		// TRIAGE-1864 to handle this output better in case of errors
 		_, _, err = AddMembers(ctx, g, t.ID, toAdd)
 
 		return err
@@ -743,8 +740,6 @@ func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails
 	if err != nil {
 		return res, err
 	}
-
-	res.Invited = emailsParsed
 
 	return res, nil
 }

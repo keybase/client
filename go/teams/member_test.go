@@ -811,13 +811,6 @@ func TestMemberAddEmailBulk(t *testing.T) {
 	}
 	emails := []string{"u1@keybase.io", "u2@keybase.io", "u3@keybase.io", "u4@keybase.io", "u5@keybase.io", "u6@keybase.io", "u7@keybase.io", "fullname@keybase.io", "someone@keybase.io", "u8@keybase.io"}
 
-	if len(res.Invited) != len(emails) {
-		t.Logf("invited: %+v", res.Invited)
-		t.Errorf("num invited: %d, expected %d", len(res.Invited), len(emails))
-	}
-	if len(res.AlreadyInvited) != 0 {
-		t.Errorf("num already invited: %d, expected 0", len(res.AlreadyInvited))
-	}
 	require.Len(t, res.Malformed, 2)
 	for _, e := range emails {
 		assertInvite(tc, name, e, "email", keybase1.TeamRole_WRITER)
