@@ -3751,6 +3751,20 @@
         "STELLAR_SENT_10",
         "PINNED_MESSAGE_11"
       ]
+    },
+    {
+      "type": "record",
+      "name": "WelcomeMessage",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "set"
+        },
+        {
+          "type": "string",
+          "name": "text"
+        }
+      ]
     }
   ],
   "messages": {
@@ -5484,6 +5498,28 @@
         }
       ],
       "response": null
+    },
+    "setWelcomeMessage": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "keybase1.TeamID"
+        },
+        {
+          "name": "message",
+          "type": "WelcomeMessage"
+        }
+      ],
+      "response": null
+    },
+    "getWelcomeMessage": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "keybase1.TeamID"
+        }
+      ],
+      "response": "WelcomeMessage"
     }
   },
   "namespace": "chat.1"

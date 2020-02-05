@@ -448,7 +448,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	g.TeamMentionLoader = types.DummyTeamMentionLoader{}
 	g.CoinFlipManager = NewFlipManager(g, func() chat1.RemoteInterface { return ri })
 	g.CoinFlipManager.Start(context.TODO(), uid)
-	g.JourneyCardManager = NewJourneyCardManager(g)
+	g.JourneyCardManager = NewJourneyCardManager(g, func() chat1.RemoteInterface { return ri })
 	g.BotCommandManager = bots.NewCachingBotCommandManager(g, func() chat1.RemoteInterface { return ri },
 		CreateNameInfoSource)
 	g.BotCommandManager.Start(context.TODO(), uid)
@@ -2086,6 +2086,7 @@ type serverChatListener struct {
 	resolveConv      chan resolveRes
 	subteamRename    chan []chat1.ConversationID
 	unfurlPrompt     chan chat1.MessageID
+	welcomeMessage   chan keybase1.TeamID
 	setStatus        chan chat1.SetStatusInfo
 	teamChangedByID  chan keybase1.TeamChangedByIDArg
 }
@@ -2179,6 +2180,10 @@ func (n *serverChatListener) ChatSubteamRename(uid keybase1.UID, convIDs []chat1
 func (n *serverChatListener) ChatPromptUnfurl(uid keybase1.UID, convID chat1.ConversationID,
 	msgID chat1.MessageID, domain string) {
 	n.unfurlPrompt <- msgID
+}
+func (n *serverChatListener) ChatWelcomeMessageLoaded(teamID keybase1.TeamID,
+	_ chat1.WelcomeMessage) {
+	n.welcomeMessage <- teamID
 }
 func (n *serverChatListener) TeamChangedByID(teamID keybase1.TeamID, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet, latestHiddenSeqno keybase1.Seqno) {
 	n.teamChangedByID <- keybase1.TeamChangedByIDArg{

@@ -3225,3 +3225,48 @@ func (h *Server) DismissJourneycard(ctx context.Context, arg chat1.DismissJourne
 		return fmt.Errorf("got %v conversations but expected 1", len(inbox.ConvsUnverified))
 	}
 }
+
+const welcomeMessageName = "__welcome_message"
+
+func getWelcomeMessage(ctx context.Context, g *globals.Context, ri func() chat1.RemoteInterface, uid gregor1.UID, teamID keybase1.TeamID) (message chat1.WelcomeMessage, err error) {
+	s := NewTeamDevConversationBackedStorage(g, true /* adminOnly */, ri)
+	found, err := s.Get(ctx, uid, teamID, welcomeMessageName, &message)
+	if !found {
+		return chat1.WelcomeMessage{Set: false}, nil
+	}
+	switch err.(type) {
+	case nil:
+		return message, nil
+	case *DevStorageAdminOnlyError:
+		return chat1.WelcomeMessage{Set: false}, nil
+	default:
+		return message, err
+	}
+}
+
+func setWelcomeMessage(ctx context.Context, g *globals.Context, ri func() chat1.RemoteInterface, uid gregor1.UID, teamID keybase1.TeamID, message chat1.WelcomeMessage) (err error) {
+	s := NewTeamDevConversationBackedStorage(g, true /* adminOnly */, ri)
+	return s.Put(ctx, uid, teamID, welcomeMessageName, message)
+}
+
+func (h *Server) SetWelcomeMessage(ctx context.Context, arg chat1.SetWelcomeMessageArg) (err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "SetWelcomeMessage")()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return err
+	}
+	return setWelcomeMessage(ctx, h.G(), h.remoteClient, uid, arg.TeamID, arg.Message)
+}
+
+func (h *Server) GetWelcomeMessage(ctx context.Context, teamID keybase1.TeamID) (res chat1.WelcomeMessage, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "GetWelcomeMessage")()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
+	return getWelcomeMessage(ctx, h.G(), h.remoteClient, uid, teamID)
+}

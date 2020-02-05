@@ -225,3 +225,6 @@ func (d DummyChatNotifications) ChatPromptUnfurl(context.Context, chat1.ChatProm
 func (d DummyChatNotifications) ChatConvUpdate(context.Context, chat1.ChatConvUpdateArg) error {
 	return nil
 }
+func (d DummyChatNotifications) ChatWelcomeMessageLoaded(context.Context, chat1.ChatWelcomeMessageLoadedArg) error {
+	return nil
+}
