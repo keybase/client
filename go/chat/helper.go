@@ -28,6 +28,8 @@ type Helper struct {
 	ri func() chat1.RemoteInterface
 }
 
+var _ (libkb.ChatHelper) = (*Helper)(nil)
+
 func NewHelper(g *globals.Context, ri func() chat1.RemoteInterface) *Helper {
 	return &Helper{
 		Contextified: globals.NewContextified(g),
@@ -291,10 +293,10 @@ func (h *Helper) UserReacjis(ctx context.Context, uid gregor1.UID) keybase1.User
 	return storage.NewReacjiStore(h.G()).UserReacjis(ctx, uid)
 }
 
-func (h *Helper) JourneycardTimeTravel(ctx context.Context, uid gregor1.UID, duration time.Duration) error {
+func (h *Helper) JourneycardTimeTravel(ctx context.Context, uid gregor1.UID, duration time.Duration) (int, int, error) {
 	j, ok := h.G().JourneyCardManager.(*JourneyCardManager)
 	if !ok {
-		return fmt.Errorf("could not get JourneyCardManager")
+		return 0, 0, fmt.Errorf("could not get JourneyCardManager")
 	}
 	return j.TimeTravel(ctx, uid, duration)
 }

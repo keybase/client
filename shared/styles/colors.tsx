@@ -41,6 +41,9 @@ export const colors = {
   get black_50OrWhite() {
     return this.black_50
   },
+  get black_50OrWhite_40() {
+    return this.black_50
+  },
   get black_50OrWhite_75() {
     return this.black_50
   },
@@ -237,6 +240,9 @@ export const darkColors: {[P in keyof typeof colors]: string | undefined} = {
   },
   get black_50OrWhite() {
     return colors.white
+  },
+  get black_50OrWhite_40() {
+    return colors.white_40
   },
   get black_50OrWhite_75() {
     return colors.white_75

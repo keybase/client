@@ -81,16 +81,16 @@ const Button = React.forwardRef<ClickableBox, Props>((props: Props, ref: React.R
     ? (backgroundColorLabelStyles[mode + (mode === 'Secondary' ? '' : props.backgroundColor)] as any)
     : labelStyles[mode + type]
 
-  if (props.icon) {
-    containerStyle = Styles.collapseStyles([containerStyle, styles.icon])
-  }
-
   if (props.fullWidth) {
     containerStyle = Styles.collapseStyles([containerStyle, styles.fullWidth])
   }
 
   if (props.small) {
     containerStyle = Styles.collapseStyles([containerStyle, styles.small])
+  }
+
+  if (props.icon) {
+    containerStyle = Styles.collapseStyles([containerStyle, styles.icon])
   }
 
   if (props.narrow) {
@@ -245,7 +245,6 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   icon: {
     borderRadius: Styles.borderRadius,
-    height: regularHeight,
     minWidth: undefined,
     paddingLeft: Styles.isMobile ? Styles.globalMargins.xtiny : Styles.globalMargins.tiny,
     paddingRight: Styles.isMobile ? Styles.globalMargins.xtiny : Styles.globalMargins.tiny,

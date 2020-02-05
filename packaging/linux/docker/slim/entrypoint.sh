@@ -17,22 +17,14 @@ if [ "$#" -gt 0 ] && [ ! -v KEYBASE_SERVICE ]; then
     exit 0
 fi
 
-KEYBASE_SERVICE_ARGS="${KEYBASE_SERVICE_ARGS:-"-debug -use-default-log-file"}"
+KEYBASE_SERVICE_ARGS="-debug -use-default-log-file ${KEYBASE_SERVICE_ARGS:-""}"
 keybase $KEYBASE_SERVICE_ARGS service &
 if [ "$#" -eq 0 ] || [ -v KEYBASE_LOG_SERVICE_TO_STDOUT ]; then
     tail -F /home/keybase/.cache/keybase/keybase.service.log &
 fi
 
 # Wait up to 10 seconds for the service to start
-SERVICE_COUNTER=0
-until keybase --no-auto-fork status &> /dev/null; do
-    if [ $SERVICE_COUNTER -gt 10 ]; then
-        echo "Service failed to start" >&2
-        exit 1
-    fi
-    SERVICE_COUNTER=$((SERVICE_COUNTER + 1))
-    sleep 1
-done
+keybase ctl wait
 
 # Possibly run oneshot if it was requested by the user
 if [ -v KEYBASE_USERNAME ] && [ -v KEYBASE_PAPERKEY ]; then

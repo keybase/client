@@ -121,6 +121,7 @@ export type State = {
   readonly errorInTeamCreation: string
   readonly errorInTeamInvite: string
   readonly errorInTeamJoin: string
+  readonly invitesCollapsed: Set<TeamID>
   readonly teamsWithChosenChannels: Set<Teamname>
   readonly sawChatBanner: boolean
   readonly sawSubteamsBanner: boolean

@@ -113,7 +113,7 @@ func TestTeamEKBoxStorage(t *testing.T) {
 
 	// No let's the deviceEK which we can't recover from
 	rawDeviceEKStorage := NewDeviceEKStorage(mctx)
-	err = rawDeviceEKStorage.Delete(mctx, deviceEKMaxGen)
+	err = rawDeviceEKStorage.Delete(mctx, deviceEKMaxGen, "")
 	require.NoError(t, err)
 
 	deviceEKStorage.ClearCache()

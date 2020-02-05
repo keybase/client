@@ -1,11 +1,10 @@
 import fs from 'fs'
 import os from 'os'
-import path from 'path'
 import {WriteStream, Encoding} from './file'
+const {join} = KB.path
+const {env} = KB.process
 
-export const downloadFolder = __STORYBOOK__
-  ? ''
-  : process.env.XDG_DOWNLOAD_DIR || path.join(os.homedir(), 'Downloads')
+export const downloadFolder = __STORYBOOK__ ? '' : env.XDG_DOWNLOAD_DIR || join(os.homedir(), 'Downloads')
 
 export function writeStream(filepath: string, encoding: string, append?: boolean): Promise<WriteStream> {
   const ws = fs.createWriteStream(filepath, {encoding, flags: append ? 'a' : 'w'})

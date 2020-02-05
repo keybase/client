@@ -1,12 +1,14 @@
 package chat
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
+	"github.com/keybase/clockwork"
 
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/stretchr/testify/require"
@@ -203,6 +205,16 @@ func TestJourneycardDismissTeamwide(t *testing.T) {
 		require.Equal(t, cardType, msg.Journeycard().CardType, "card type")
 	}
 
+	// Wait for journeycardmanager to find out about the team. Calls to SentMessage happen
+	// in background goroutines. So sometimes on CI this must be waited for.
+	pollFor(t, "hasTeam", 10*time.Second, func(_ int) bool {
+		jcm, err := tc0.ChatG.JourneyCardManager.(*JourneyCardManager).get(ctx0, uid0)
+		require.NoError(t, err)
+		found, nConvs, err := jcm.hasTeam(ctx0, teamID)
+		require.NoError(t, err)
+		return found && nConvs >= 1
+	})
+
 	requireJourneycard(allConvIDs[0], chat1.JourneycardType_POPULAR_CHANNELS)
 	t.Logf("POPULAR_CHANNELS appears only in #general")
 	for _, convID := range allConvIDs[1:] {
@@ -228,9 +240,10 @@ func TestJourneycardDismissTeamwide(t *testing.T) {
 	}
 
 	t.Logf("Advanced time forward enough for CHANNEL_INACTIVE to be eligible")
-	err = tc0.ChatG.JourneyCardManager.(*JourneyCardManager).TimeTravel(ctx0, uid0, time.Hour*24*40+1)
+	nTeams, nConvs, err := tc0.ChatG.JourneyCardManager.(*JourneyCardManager).TimeTravel(ctx0, uid0, time.Hour*24*40+1)
 	require.NoError(t, err)
-
+	require.GreaterOrEqual(t, nTeams, 1, "expected known teams to time travel")
+	require.GreaterOrEqual(t, nConvs, 1, "expected known convs to time travel")
 	for _, convID := range allConvIDs {
 		requireJourneycard(convID, chat1.JourneycardType_CHANNEL_INACTIVE)
 	}
@@ -246,7 +259,6 @@ func TestJourneycardDismissTeamwide(t *testing.T) {
 // A journeycard sticks in its position in the conv.
 // And survives a reboot.
 func TestJourneycardPersist(t *testing.T) {
-	t.Skip("known flake under repair")
 	useRemoteMock = false
 	defer func() { useRemoteMock = true }()
 	ctc := makeChatTestContext(t, t.Name(), 2)
@@ -282,9 +294,21 @@ func TestJourneycardPersist(t *testing.T) {
 		return msg.Journeycard()
 	}
 
+	// Wait for journeycardmanager to find out about the team. Calls to SentMessage happen
+	// in background goroutines. So sometimes on CI this must be waited for.
+	pollFor(t, "hasTeam", 10*time.Second, func(_ int) bool {
+		jcm, err := tc0.ChatG.JourneyCardManager.(*JourneyCardManager).get(ctx0, uid0)
+		require.NoError(t, err)
+		found, nConvs, err := jcm.hasTeam(ctx0, teamID)
+		require.NoError(t, err)
+		return found && nConvs >= 1
+	})
+
 	t.Logf("Advanced time forward enough for ADD_PEOPLE to be eligible")
-	err = tc0.ChatG.JourneyCardManager.(*JourneyCardManager).TimeTravel(ctx0, uid0, time.Hour*24*4+1)
+	nTeams, nConvs, err := tc0.ChatG.JourneyCardManager.(*JourneyCardManager).TimeTravel(ctx0, uid0, time.Hour*24*4+1)
 	require.NoError(t, err)
+	require.GreaterOrEqual(t, nTeams, 1, "expected known teams to time travel")
+	require.GreaterOrEqual(t, nConvs, 1, "expected known convs to time travel")
 	jc1 := requireJourneycard(teamConv.Id, chat1.JourneycardType_ADD_PEOPLE, 0)
 
 	t.Logf("After sending another message the journeycard stays in its original location (ordinal)")
@@ -302,4 +326,37 @@ func TestJourneycardPersist(t *testing.T) {
 	jc3 := requireJourneycard(teamConv.Id, chat1.JourneycardType_ADD_PEOPLE, 1)
 	require.Equal(t, jc1.PrevID, jc3.PrevID)
 	require.Equal(t, jc1.Ordinal, jc3.Ordinal)
+}
+
+func pollFor(t *testing.T, label string, totalTime time.Duration, poller func(i int) bool) {
+	t.Logf("pollFor '%s'", label)
+	clock := clockwork.NewRealClock()
+	start := clock.Now()
+	endCh := clock.After(totalTime)
+	wait := 10 * time.Millisecond
+	var i int
+	for {
+		satisfied := poller(i)
+		since := clock.Since(start)
+		t.Logf("pollFor '%s' round:%v -> %v running:%v", label, i, satisfied, since)
+		if satisfied {
+			t.Logf("pollFor '%s' succeeded after %v attempts over %v", label, i, since)
+			return
+		}
+		if since > totalTime {
+			// Game over
+			msg := fmt.Sprintf("pollFor '%s' timed out after %v attempts over %v", label, i, since)
+			t.Logf(msg)
+			require.Fail(t, msg)
+			require.FailNow(t, msg)
+			return
+		}
+		t.Logf("pollFor '%s' wait:%v", label, wait)
+		select {
+		case <-endCh:
+		case <-clock.After(wait):
+		}
+		wait *= 2
+		i++
+	}
 }

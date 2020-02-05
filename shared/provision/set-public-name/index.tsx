@@ -1,23 +1,38 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Constants from '../../constants/provision'
-import {globalMargins, styleSheetCreate, isMobile, platformStyles} from '../../styles'
+import * as Styles from '../../styles'
+import * as Platform from '../../constants/platform'
+
 import {SignupScreen, errorBanner} from '../../signup/common'
 
 type Props = {
   onBack: () => void
   onSubmit: (name: string) => void
+  deviceIconNumber: number
   error: string
   waiting: boolean
 }
 
 const SetPublicName = (props: Props) => {
-  const [deviceName, setDeviceName] = React.useState('')
+  const [deviceName, setDeviceName] = React.useState(Platform.realDeviceName ?? '')
   const cleanDeviceName = Constants.cleanDeviceName(deviceName)
   const _onSubmit = props.onSubmit
   const onSubmit = React.useCallback(() => {
     _onSubmit(Constants.cleanDeviceName(cleanDeviceName))
   }, [cleanDeviceName, _onSubmit])
+
+  const maybeIcon = Styles.isMobile
+    ? Platform.isLargeScreen
+      ? `icon-phone-background-${props.deviceIconNumber}-96`
+      : `icon-phone-background-${props.deviceIconNumber}-64`
+    : `icon-computer-background-${props.deviceIconNumber}-96`
+
+  const defaultIcon = Styles.isMobile
+    ? Platform.isLargeScreen
+      ? `icon-phone-96`
+      : `icon-phone-64`
+    : `icon-computer-96`
 
   return (
     <SignupScreen
@@ -32,10 +47,10 @@ const SetPublicName = (props: Props) => {
         },
       ]}
       onBack={props.onBack}
-      title={`Name this ${isMobile ? 'phone' : 'computer'}`}
+      title={`Name this ${Styles.isMobile ? 'phone' : 'computer'}`}
     >
       <Kb.Box2 direction="vertical" style={styles.contents} centerChildren={true} gap="medium">
-        <Kb.Icon type={isMobile ? 'icon-phone-96' : 'icon-computer-96'} />
+        <Kb.Icon type={Kb.isValidIconType(maybeIcon) ? maybeIcon : defaultIcon} />
         <Kb.Box2 direction="vertical" style={styles.wrapper} gap="xsmall">
           <Kb.NewInput
             autoFocus={true}
@@ -52,11 +67,11 @@ const SetPublicName = (props: Props) => {
   )
 }
 
-const styles = styleSheetCreate(() => ({
-  backButton: platformStyles({
+const styles = Styles.styleSheetCreate(() => ({
+  backButton: Styles.platformStyles({
     isElectron: {
-      marginLeft: globalMargins.medium,
-      marginTop: globalMargins.medium,
+      marginLeft: Styles.globalMargins.medium,
+      marginTop: Styles.globalMargins.medium,
     },
     isMobile: {
       marginLeft: 0,
@@ -66,15 +81,15 @@ const styles = styleSheetCreate(() => ({
   contents: {
     width: '100%',
   },
-  nameInput: platformStyles({
+  nameInput: Styles.platformStyles({
     common: {
-      padding: globalMargins.tiny,
+      padding: Styles.globalMargins.tiny,
     },
     isMobile: {
       minHeight: 48,
     },
   }),
-  wrapper: platformStyles({
+  wrapper: Styles.platformStyles({
     isElectron: {
       width: 400,
     },

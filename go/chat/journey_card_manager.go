@@ -79,10 +79,10 @@ func (j *JourneyCardManager) PickCard(ctx context.Context, uid gregor1.UID,
 	return js.PickCard(ctx, convID, convLocalOptional, thread)
 }
 
-func (j *JourneyCardManager) TimeTravel(ctx context.Context, uid gregor1.UID, duration time.Duration) (err error) {
+func (j *JourneyCardManager) TimeTravel(ctx context.Context, uid gregor1.UID, duration time.Duration) (int, int, error) {
 	js, err := j.get(ctx, uid)
 	if err != nil {
-		return err
+		return 0, 0, err
 	}
 	return js.TimeTravel(ctx, duration)
 }
@@ -938,6 +938,20 @@ func (cc *JourneyCardManagerSingleUser) getTeamDataWithLock(ctx context.Context,
 	return res, nil
 }
 
+func (cc *JourneyCardManagerSingleUser) hasTeam(ctx context.Context, teamID keybase1.TeamID) (found bool, nConvs int, err error) {
+	err = libkb.AcquireWithContextAndTimeout(ctx, &cc.storageLock, 10*time.Second)
+	if err != nil {
+		return false, 0, fmt.Errorf("getTeamData storageLock error: %v", err)
+	}
+	defer cc.storageLock.Unlock()
+	var jcd journeycardData
+	found, err = cc.encryptedDB.Get(ctx, cc.dbKey(teamID), &jcd)
+	if err != nil || !found {
+		return found, 0, err
+	}
+	return found, len(jcd.Convs), nil
+}
+
 func (cc *JourneyCardManagerSingleUser) savePosition(ctx context.Context, teamID keybase1.TeamID, convID chat1.ConversationID, cardType chat1.JourneycardType, pos journeyCardPosition) {
 	err := libkb.AcquireWithContextAndTimeout(ctx, &cc.storageLock, 10*time.Second)
 	if err != nil {
@@ -1028,31 +1042,33 @@ func (cc *JourneyCardManagerSingleUser) isOpenTeam(ctx context.Context, conv con
 
 // TimeTravel simulates moving all known conversations forward in time.
 // For use simulating a user experience without the need to wait hours for cards to appear.
-func (cc *JourneyCardManagerSingleUser) TimeTravel(ctx context.Context, duration time.Duration) (err error) {
+// Returns the number of known teams and convs.
+func (cc *JourneyCardManagerSingleUser) TimeTravel(ctx context.Context, duration time.Duration) (nTeams, nConvs int, err error) {
 	err = libkb.AcquireWithContextAndTimeout(ctx, &cc.storageLock, 10*time.Second)
 	if err != nil {
-		return err
+		return 0, 0, err
 	}
 	defer cc.storageLock.Unlock()
 	teamIDs, err := cc.getKnownTeamsForDebuggingWithLock(ctx)
 	if err != nil {
-		return err
+		return 0, 0, err
 	}
 	for _, teamID := range teamIDs {
 		jcd, err := cc.getTeamDataWithLock(ctx, teamID)
 		if err != nil {
-			return fmt.Errorf("teamID:%v err:%v", teamID, err)
+			return len(teamIDs), 0, fmt.Errorf("teamID:%v err:%v", teamID, err)
 		}
 		jcd.TimeOffset = gregor1.ToDurationMsec(jcd.TimeOffset.ToDuration() + duration)
 		cc.Debug(ctx, "time travel teamID:%v", teamID, jcd.TimeOffset)
+		nConvs += len(jcd.Convs)
 		cc.lru.Add(teamID.String(), jcd)
 		err = cc.encryptedDB.Put(ctx, cc.dbKey(teamID), jcd)
 		if err != nil {
 			cc.Debug(ctx, "storage put error: %v", err)
-			return err
+			return len(teamIDs), 0, err
 		}
 	}
-	return nil
+	return nConvs, len(teamIDs), nil
 }
 
 // ResetAllConvs deletes storage for all conversations.

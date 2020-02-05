@@ -153,6 +153,10 @@ protocol config {
   // commands
   union { null, FullStatus } getFullStatus(int sessionID);
 
+  boolean isServiceRunning(int sessionID);
+
+  boolean isKBFSRunning(int sessionID);
+
   array<InstrumentationStat> getNetworkStats(int sessionID);
 
   @typedef("string")  record LogSendID {}
@@ -318,4 +322,6 @@ protocol config {
   void appendGUILogs(string content);
 
   string generateWebAuthToken();
+
+  void updateLastLoggedInAndServerConfig(string serverConfigPath);
 }

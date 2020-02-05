@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as Styles from '../../styles'
 import {StylesTextCrossPlatform} from '../../common-adapters/text'
-import {MessageText} from '../../constants/types/chat2'
+import {MessageText, MessageAttachment} from '../../constants/types/chat2'
 
 type MarkdownComponentType =
   | 'inline-code'
@@ -27,7 +27,7 @@ export type MarkdownCreateComponent = (
 ) => React.ReactNode | null
 
 export type MarkdownMeta = {
-  message: MessageText
+  message: MessageText | MessageAttachment
 }
 
 export type StyleOverride = {

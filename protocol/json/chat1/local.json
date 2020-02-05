@@ -327,7 +327,8 @@
         "CHANGEAVATAR_5",
         "CHANGERETENTION_6",
         "BULKADDTOCONV_7",
-        "SBSRESOLVE_8"
+        "SBSRESOLVE_8",
+        "NEWCHANNEL_9"
       ]
     },
     {
@@ -356,48 +357,6 @@
             "items": "string"
           },
           "name": "bulkAdds"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "string"
-          },
-          "name": "owners"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "string"
-          },
-          "name": "admins"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "string"
-          },
-          "name": "writers"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "string"
-          },
-          "name": "readers"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "string"
-          },
-          "name": "bots"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "string"
-          },
-          "name": "restrictedBots"
         }
       ]
     },
@@ -564,6 +523,24 @@
       ]
     },
     {
+      "type": "record",
+      "name": "MessageSystemNewChannel",
+      "fields": [
+        {
+          "type": "string",
+          "name": "creator"
+        },
+        {
+          "type": "string",
+          "name": "nameAtCreation"
+        },
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "MessageSystem",
       "switch": {
@@ -633,6 +610,13 @@
             "def": false
           },
           "body": "MessageSystemSbsResolve"
+        },
+        {
+          "label": {
+            "name": "NEWCHANNEL",
+            "def": false
+          },
+          "body": "MessageSystemNewChannel"
         }
       ]
     },

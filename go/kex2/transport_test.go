@@ -206,34 +206,50 @@ func genDeviceID(t *testing.T) (ret DeviceID) {
 }
 
 type testLogCtx struct {
+	sync.Mutex
 	t *testing.T
 }
 
-func (t testLogCtx) Debug(format string, args ...interface{}) {
-	t.t.Logf(format, args...)
+func newTestLogCtx(t *testing.T) (ret *testLogCtx, closer func()) {
+	ret = &testLogCtx{t: t}
+	closer = func() {
+		ret.Lock()
+		defer ret.Unlock()
+		ret.t = nil
+	}
+	return ret, closer
 }
 
-func genNewConn(t *testing.T, mr MessageRouter, s Secret, d DeviceID, rt time.Duration) net.Conn {
-	logCtx := testLogCtx{t}
-	ret, err := NewConn(context.TODO(), logCtx, mr, s, d, rt)
+func (t *testLogCtx) Debug(format string, args ...interface{}) {
+	t.Lock()
+	if t.t != nil {
+		t.t.Logf(format, args...)
+	}
+	t.Unlock()
+}
+
+func genNewConn(t *testLogCtx, mr MessageRouter, s Secret, d DeviceID, rt time.Duration) net.Conn {
+	ret, err := NewConn(context.TODO(), t, mr, s, d, rt)
 	if err != nil {
-		t.Fatal(err)
+		t.t.Fatal(err)
 	}
 	return ret
 }
 
-func genConnPair(t *testing.T, behavior int, readTimeout time.Duration) (c1 net.Conn, c2 net.Conn, d1 DeviceID, d2 DeviceID) {
+func genConnPair(t *testLogCtx, behavior int, readTimeout time.Duration) (c1 net.Conn, c2 net.Conn, d1 DeviceID, d2 DeviceID) {
 	r := newMockRouterWithBehavior(behavior)
-	s := genSecret(t)
-	d1 = genDeviceID(t)
-	d2 = genDeviceID(t)
+	s := genSecret(t.t)
+	d1 = genDeviceID(t.t)
+	d2 = genDeviceID(t.t)
 	c1 = genNewConn(t, r, s, d1, readTimeout)
 	c2 = genNewConn(t, r, s, d2, readTimeout)
 	return
 }
 
 func TestHello(t *testing.T) {
-	c1, c2, _, _ := genConnPair(t, GoodRouter, time.Duration(0))
+	testLogCtx, cleanup := newTestLogCtx(t)
+	defer cleanup()
+	c1, c2, _, _ := genConnPair(testLogCtx, GoodRouter, time.Duration(0))
 	txt := []byte("hello friend")
 	if _, err := c1.Write(txt); err != nil {
 		t.Fatal(err)
@@ -259,9 +275,11 @@ func TestHello(t *testing.T) {
 }
 
 func TestBadMetadata(t *testing.T) {
+	testLogCtx, cleanup := newTestLogCtx(t)
+	defer cleanup()
 
-	testBehavior := func(b int, t *testing.T, wanted error) {
-		c1, c2, _, _ := genConnPair(t, b, time.Duration(0))
+	testBehavior := func(b int, wanted error) {
+		c1, c2, _, _ := genConnPair(testLogCtx, b, time.Duration(0))
 		txt := []byte("hello friend")
 		if _, err := c1.Write(txt); err != nil {
 			t.Fatal(err)
@@ -273,13 +291,15 @@ func TestBadMetadata(t *testing.T) {
 			t.Fatalf("behavior %d: wanted error '%v', got '%v'", b, err, wanted)
 		}
 	}
-	testBehavior(BadRouterCorruptedSession, t, ErrBadMetadata)
-	testBehavior(BadRouterCorruptedSender, t, ErrBadMetadata)
-	testBehavior(BadRouterCorruptedCiphertext, t, ErrDecryption)
+	testBehavior(BadRouterCorruptedSession, ErrBadMetadata)
+	testBehavior(BadRouterCorruptedSender, ErrBadMetadata)
+	testBehavior(BadRouterCorruptedCiphertext, ErrDecryption)
 }
 
 func TestReadDeadline(t *testing.T) {
-	c1, c2, _, _ := genConnPair(t, GoodRouter, time.Duration(0))
+	testLogCtx, cleanup := newTestLogCtx(t)
+	defer cleanup()
+	c1, c2, _, _ := genConnPair(testLogCtx, GoodRouter, time.Duration(0))
 	wait := time.Duration(10) * time.Millisecond
 	err := c2.SetReadDeadline(time.Now().Add(wait))
 	require.NoError(t, err)
@@ -295,8 +315,10 @@ func TestReadDeadline(t *testing.T) {
 }
 
 func TestReadTimeout(t *testing.T) {
+	testLogCtx, cleanup := newTestLogCtx(t)
+	defer cleanup()
 	wait := time.Duration(10) * time.Millisecond
-	c1, c2, _, _ := genConnPair(t, GoodRouter, wait)
+	c1, c2, _, _ := genConnPair(testLogCtx, GoodRouter, wait)
 	go func() {
 		time.Sleep(wait * 2)
 		_, _ = c1.Write([]byte("hello friend"))
@@ -309,7 +331,9 @@ func TestReadTimeout(t *testing.T) {
 }
 
 func TestReadDelayedWrite(t *testing.T) {
-	c1, c2, _, _ := genConnPair(t, GoodRouter, time.Duration(0))
+	testLogCtx, cleanup := newTestLogCtx(t)
+	defer cleanup()
+	c1, c2, _, _ := genConnPair(testLogCtx, GoodRouter, time.Duration(0))
 	wait := time.Duration(50) * time.Millisecond
 	err := c2.SetReadDeadline(time.Now().Add(wait))
 	require.NoError(t, err)
@@ -329,7 +353,9 @@ func TestReadDelayedWrite(t *testing.T) {
 }
 
 func TestMultipleWritesOneRead(t *testing.T) {
-	c1, c2, _, _ := genConnPair(t, GoodRouter, time.Duration(0))
+	testLogCtx, cleanup := newTestLogCtx(t)
+	defer cleanup()
+	c1, c2, _, _ := genConnPair(testLogCtx, GoodRouter, time.Duration(0))
 	msgs := []string{
 		"Alas, poor Yorick! I knew him, Horatio: a fellow",
 		"of infinite jest, of most excellent fancy: he hath",
@@ -354,7 +380,9 @@ func TestMultipleWritesOneRead(t *testing.T) {
 }
 
 func TestOneWriteMultipleReads(t *testing.T) {
-	c1, c2, _, _ := genConnPair(t, GoodRouter, time.Duration(0))
+	testLogCtx, cleanup := newTestLogCtx(t)
+	defer cleanup()
+	c1, c2, _, _ := genConnPair(testLogCtx, GoodRouter, time.Duration(0))
 	msg := `Crows maunder on the petrified fairway.
 Absence! My heart grows tense
 as though a harpoon were sparring for the kill.`
@@ -381,7 +409,9 @@ as though a harpoon were sparring for the kill.`
 }
 
 func TestReorder(t *testing.T) {
-	c1, c2, _, _ := genConnPair(t, BadRouterReorder, time.Duration(0))
+	testLogCtx, cleanup := newTestLogCtx(t)
+	defer cleanup()
+	c1, c2, _, _ := genConnPair(testLogCtx, BadRouterReorder, time.Duration(0))
 	msgs := []string{
 		"Alas, poor Yorick! I knew him, Horatio: a fellow",
 		"of infinite jest, of most excellent fancy: he hath",
@@ -405,7 +435,9 @@ func TestReorder(t *testing.T) {
 }
 
 func TestDrop(t *testing.T) {
-	c1, c2, _, _ := genConnPair(t, BadRouterDrop, time.Duration(0))
+	testLogCtx, cleanup := newTestLogCtx(t)
+	defer cleanup()
+	c1, c2, _, _ := genConnPair(testLogCtx, BadRouterDrop, time.Duration(0))
 	msgs := []string{
 		"Alas, poor Yorick! I knew him, Horatio: a fellow",
 		"of infinite jest, of most excellent fancy: he hath",
@@ -429,7 +461,9 @@ func TestDrop(t *testing.T) {
 }
 
 func TestClose(t *testing.T) {
-	c1, c2, _, _ := genConnPair(t, GoodRouter, time.Duration(4)*time.Second)
+	testLogCtx, cleanup := newTestLogCtx(t)
+	defer cleanup()
+	c1, c2, _, _ := genConnPair(testLogCtx, GoodRouter, time.Duration(4)*time.Second)
 	msg := "Hello friend. I'm going to mic drop."
 	if _, err := c1.Write([]byte(msg)); err != nil {
 		t.Fatal(err)
@@ -457,7 +491,9 @@ func TestClose(t *testing.T) {
 }
 
 func TestErrAgain(t *testing.T) {
-	_, c2, _, _ := genConnPair(t, GoodRouter, time.Duration(0))
+	testLogCtx, cleanup := newTestLogCtx(t)
+	defer cleanup()
+	_, c2, _, _ := genConnPair(testLogCtx, GoodRouter, time.Duration(0))
 	buf := make([]byte, 100)
 	if n, err := c2.Read(buf); err != ErrAgain {
 		t.Fatalf("wanted ErrAgain, but got err = %v", err)
@@ -467,14 +503,16 @@ func TestErrAgain(t *testing.T) {
 }
 
 func TestPollLoopSuccess(t *testing.T) {
+	testLogCtx, cleanup := newTestLogCtx(t)
+	defer cleanup()
 
 	wait := time.Duration(100) * time.Millisecond
 	r := newMockRouterWithBehaviorAndMaxPoll(GoodRouter, wait/128)
 	s := genSecret(t)
 	d1 := genDeviceID(t)
 	d2 := genDeviceID(t)
-	c1 := genNewConn(t, r, s, d1, wait)
-	c2 := genNewConn(t, r, s, d2, wait)
+	c1 := genNewConn(testLogCtx, r, s, d1, wait)
+	c2 := genNewConn(testLogCtx, r, s, d2, wait)
 
 	text := "poll for this, will you?"
 
@@ -493,14 +531,16 @@ func TestPollLoopSuccess(t *testing.T) {
 }
 
 func TestPollLoopTimeout(t *testing.T) {
+	testLogCtx, cleanup := newTestLogCtx(t)
+	defer cleanup()
 
 	wait := time.Duration(8) * time.Millisecond
 	r := newMockRouterWithBehaviorAndMaxPoll(GoodRouter, wait/32)
 	s := genSecret(t)
 	d1 := genDeviceID(t)
 	d2 := genDeviceID(t)
-	c1 := genNewConn(t, r, s, d1, wait)
-	c2 := genNewConn(t, r, s, d2, wait)
+	c1 := genNewConn(testLogCtx, r, s, d1, wait)
+	c2 := genNewConn(testLogCtx, r, s, d2, wait)
 
 	text := "poll for this, will you?"
 

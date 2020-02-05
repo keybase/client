@@ -42,12 +42,12 @@ export type CommonState = {
   input: HiddenString
   inputType: InputTypes
   // to ensure what the user types matches the input
-  outputMatchesInput: boolean
   output: HiddenString
   outputSender?: HiddenString
   outputSigned?: boolean
   outputStatus?: OutputStatus
   outputType?: OutputType
+  outputValid: boolean
 }
 
 export type EncryptOptions = {

@@ -19,10 +19,9 @@ import * as PlatformSpecific from '../platform-specific'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Tabs from '../../constants/tabs'
 import * as Router2 from '../../constants/router2'
+import * as Platform from '../../constants/platform'
 import URL from 'url-parse'
 import {noVersion} from '../../constants/whats-new'
-import {isAndroid, isMobile, appColorSchemeChanged} from '../../constants/platform'
-import {updateServerConfigLastLoggedIn} from '../../app/server-config'
 import * as Container from '../../util/container'
 
 const onLoggedIn = (state: Container.TypedState, action: EngineGen.Keybase1NotifySessionLoggedInPayload) => {
@@ -324,7 +323,7 @@ const startLogoutHandshakeIfAllowed = async (state: Container.TypedState) => {
     return startLogoutHandshake(state)
   } else {
     const heading = canLogoutRes.reason
-    if (isMobile) {
+    if (Platform.isMobile) {
       return RouteTreeGen.createNavigateAppend({
         path: [Tabs.settingsTab, {props: {heading}, selected: SettingsConstants.passwordTab}],
       })
@@ -378,7 +377,7 @@ const onShowPermissionsPrompt = (
   action: PushGen.ShowPermissionsPromptPayload
 ) => {
   if (
-    !isMobile ||
+    !Platform.isMobile ||
     !action.payload.show ||
     !state.config.loggedIn ||
     state.push.justSignedUp ||
@@ -420,7 +419,7 @@ const routeToInitialScreen = (state: Container.TypedState) => {
   // logged out to logged in. This code can also be triggered if routeToInitialScreen
   // starts _after_ the push notifications permissions are computed.
   if (
-    isMobile &&
+    Platform.isMobile &&
     state.config.loggedIn &&
     !state.push.justSignedUp &&
     state.push.showPushPrompt &&
@@ -555,34 +554,12 @@ function* allowLogoutWaiters(_: Container.TypedState, action: ConfigGen.LogoutHa
   )
 }
 
-const updateServerConfig = async (state: Container.TypedState, action: ConfigGen.LoadOnStartPayload) => {
-  if (action.payload.phase !== 'startupOrReloginButNotInARush') {
-    return false
-  }
-  try {
-    // TODO real rpc so we get real types instead of this untyped bag of key/values
-    const str = await RPCTypes.apiserverGetWithSessionRpcPromise({
-      endpoint: 'user/features',
-    })
-    const obj: {features: any} = JSON.parse(str.body)
-    const features = Object.keys(obj.features).reduce<{[key: string]: boolean}>((map, key) => {
-      map[key] = (obj.features[key as any] as any)?.value ?? false
-      return map
-    }, {})
+const updateServerConfig = async (_: Container.TypedState, action: ConfigGen.LoadOnStartPayload) =>
+  action.payload.phase === 'startupOrReloginButNotInARush' &&
+  RPCTypes.configUpdateLastLoggedInAndServerConfigRpcPromise({
+    serverConfigPath: Platform.serverConfigFileName,
+  })
 
-    const serverConfig = {
-      chatIndexProfilingEnabled: !!features.admin,
-      dbCleanEnabled: !!features.admin,
-      printRPCStats: !!features.admin,
-    }
-
-    logger.info('updateServerConfig', serverConfig)
-    updateServerConfigLastLoggedIn(state.config.username, serverConfig)
-  } catch (e) {
-    logger.info('updateServerConfig fail', e)
-  }
-  return false
-}
 const setNavigator = (action: ConfigGen.SetNavigatorPayload) => {
   const navigator = action.payload.navigator
   Router2._setNavigator(navigator)
@@ -631,7 +608,7 @@ function* criticalOutOfDateCheck() {
       logger.error("Can't call critical check", e)
     }
     // We just need this once on mobile. Long timers don't work there.
-    if (isMobile) {
+    if (Platform.isMobile) {
       return
     }
     yield Saga.delay(3600 * 1000) // 1 hr
@@ -703,11 +680,10 @@ const gregorPushState = (action: GregorGen.PushStatePayload) => {
   return actions
 }
 
-const loadNixOnLoginStartup = async () => {
+const loadOnLoginStartup = async () => {
   try {
-    const status =
-      (await RPCTypes.ctlGetNixOnLoginStartupRpcPromise()) === RPCTypes.OnLoginStartupStatus.enabled
-    return ConfigGen.createLoadedNixOnLoginStartup({status})
+    const status = (await RPCTypes.ctlGetOnLoginStartupRpcPromise()) === RPCTypes.OnLoginStartupStatus.enabled
+    return ConfigGen.createLoadedOnLoginStartup({status})
   } catch (err) {
     logger.warn('Error in loading proxy data', err)
     return null
@@ -839,9 +815,9 @@ function* configSaga() {
   yield* Saga.chainAction2(SettingsGen.loadedSettings, maybeLoadAppLink)
 
   yield* Saga.chainAction2(ConfigGen.setDarkModePreference, saveDarkPrefs)
-  if (isAndroid) {
+  if (Platform.isAndroid) {
     yield* Saga.chainAction2(ConfigGen.setDarkModePreference, (state: Container.TypedState) =>
-      appColorSchemeChanged(state.config.darkModePreference)
+      Platform.appColorSchemeChanged(state.config.darkModePreference)
     )
   }
 
@@ -856,7 +832,7 @@ function* configSaga() {
   yield Saga.spawn(PlatformSpecific.platformConfigSaga)
   yield Saga.spawn(criticalOutOfDateCheck)
 
-  yield* Saga.chainAction2(ConfigGen.loadNixOnLoginStartup, loadNixOnLoginStartup)
+  yield* Saga.chainAction2(ConfigGen.loadOnLoginStartup, loadOnLoginStartup)
 }
 
 export default configSaga

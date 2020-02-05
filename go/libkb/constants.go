@@ -406,6 +406,7 @@ const (
 	LinkTypeWebServiceBinding LinkType = "web_service_binding"
 	LinkTypePerUserKey        LinkType = "per_user_key"
 	LinkTypeWalletStellar     LinkType = "wallet.stellar"
+	LinkTypeWotAttest         LinkType = "wot.attest"
 
 	// team links
 	LinkTypeTeamRoot         LinkType = "team.root"

@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -160,6 +161,30 @@ func (h ConfigHandler) GetFullStatus(ctx context.Context, sessionID int) (res *k
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("CFG")
 	defer mctx.TraceTimed("GetFullStatus", func() error { return err })()
 	return status.GetFullStatus(mctx)
+}
+
+func (h ConfigHandler) IsServiceRunning(ctx context.Context, sessionID int) (res bool, err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("CFG")
+	defer mctx.TraceTimed("IsServiceRunning", func() error { return err })()
+
+	// set service status
+	if mctx.G().Env.GetStandalone() {
+		res = false
+	} else {
+		res = true
+	}
+	return
+}
+
+func (h ConfigHandler) IsKBFSRunning(ctx context.Context, sessionID int) (res bool, err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("CFG")
+	defer mctx.TraceTimed("IsKBFSRunning", func() error { return err })()
+
+	clients := libkb.GetClientStatus(mctx)
+
+	kbfs := status.GetFirstClient(clients, keybase1.ClientType_KBFS)
+
+	return kbfs != nil, nil
 }
 
 func (h ConfigHandler) GetNetworkStats(ctx context.Context, sessionID int) (res []keybase1.InstrumentationStat, err error) {
@@ -547,4 +572,57 @@ func (h ConfigHandler) GenerateWebAuthToken(ctx context.Context) (ret string, er
 	}
 	uri := libkb.SiteURILookup[h.G().Env.GetRunMode()] + "/_/login/nist?tok=" + nist.Token().String()
 	return uri, nil
+}
+
+func (h ConfigHandler) UpdateLastLoggedInAndServerConfig(
+	ctx context.Context, serverConfigPath string) error {
+	arg := libkb.APIArg{
+		Endpoint:    "user/features",
+		SessionType: libkb.APISessionTypeREQUIRED,
+	}
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	resp, finisher, err := h.G().API.GetResp(mctx, arg)
+	defer finisher()
+	if err != nil {
+		return err
+	}
+	userFeatureusBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	jw, err := jsonw.Unmarshal(userFeatureusBytes)
+	if err != nil {
+		return err
+	}
+	isAdmin, err := jw.AtPath("features.admin.value").GetBool()
+	if err != nil {
+		return err
+	}
+
+	// Try to read from the old config file. But ignore any error and just
+	// create a new one.
+	oldBytes, err := ioutil.ReadFile(serverConfigPath)
+	if err != nil {
+		jw = jsonw.NewDictionary()
+	} else if jw, err = jsonw.Unmarshal(oldBytes); err != nil {
+		jw = jsonw.NewDictionary()
+	}
+	username := h.G().GetEnv().GetUsername().String()
+	if err = jw.SetValueAtPath(fmt.Sprintf("%s.chatIndexProfilingEnabled", username), jsonw.NewBool(isAdmin)); err != nil {
+		return err
+	}
+	if err = jw.SetValueAtPath(fmt.Sprintf("%s.dbCleanEnabled", username), jsonw.NewBool(isAdmin)); err != nil {
+		return err
+	}
+	if err = jw.SetValueAtPath(fmt.Sprintf("%s.printRPCStaus", username), jsonw.NewBool(isAdmin)); err != nil {
+		return err
+	}
+	if err = jw.SetKey("lastLoggedInUser", jsonw.NewString(username)); err != nil {
+		return err
+	}
+	newBytes, err := jw.Marshal()
+	if err != nil {
+		return err
+	}
+	return libkb.NewFile(serverConfigPath, newBytes, 0644).Save(h.G().Log)
 }

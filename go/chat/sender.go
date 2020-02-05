@@ -171,6 +171,7 @@ func (s *BlockingSender) addPrevPointersAndCheckConvID(ctx context.Context, msg 
 	for _, msg2 := range thread.Messages {
 		if msg2.IsValid() {
 			if err = s.checkConvID(ctx, conv, msg, msg2); err != nil {
+				s.Debug(ctx, "Unable to checkConvID: %s", msg2.DebugString())
 				return resMsg, err
 			}
 			break
@@ -689,8 +690,7 @@ func (s *BlockingSender) handleMentions(ctx context.Context, uid gregor1.UID, ms
 			return res, atMentions, chanMention, err
 		}
 		res = msg
-		atMentions, chanMention = utils.SystemMessageMentions(ctx, msg.MessageBody.System(),
-			s.G().GetUPAKLoader())
+		atMentions, chanMention, _ = utils.SystemMessageMentions(ctx, s.G(), uid, msg.MessageBody.System())
 	default:
 		res = msg
 	}

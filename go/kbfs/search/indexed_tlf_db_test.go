@@ -46,6 +46,11 @@ func shutdownIndexedTlfDbTest(db *IndexedTlfDb, tempdir string) {
 
 func TestIndexedTlfDbCreate(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "user1")
+	defer func() {
+		err := config.Shutdown(context.Background())
+		require.NoError(t, err)
+	}()
+
 	tempdir, err := ioutil.TempDir(os.TempDir(), "indexed_tlfs_db")
 	require.NoError(t, err)
 	db, err := newIndexedTlfDb(config, tempdir)

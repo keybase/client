@@ -1,25 +1,33 @@
 import * as React from 'react'
-import * as Kb from '../../../common-adapters'
-import * as Types from '../../../constants/types/crypto'
-import * as Styles from '../../../styles'
-import {IconType} from '../../../common-adapters/icon.constants-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as Container from '../../util/container'
+import * as Kb from '../../common-adapters'
+import * as Types from '../../constants/types/crypto'
+import * as Styles from '../../styles'
+import {IconType} from '../../common-adapters/icon.constants-gen'
 
 type Props = {
   title: string
   tab: Types.CryptoSubTab
   icon: IconType
   isSelected: boolean
-  onSelect: () => void
 }
 
 const OperationRow = (props: Props) => {
+  const {tab, isSelected, title, icon} = props
+  const dispatch = Container.useDispatch()
+
+  const onSelect = () => {
+    dispatch(RouteTreeGen.createNavigateAppend({path: [tab], replace: true}))
+  }
+
   return (
     <Kb.Box2
       direction="horizontal"
       fullWidth={true}
       className={Styles.classNames({
-        background_color_blue: props.isSelected,
-        hover_background_color_blueGreyDark: !props.isSelected,
+        background_color_blue: isSelected,
+        hover_background_color_blueGreyDark: !isSelected,
       })}
     >
       <Kb.ListItem2
@@ -27,13 +35,13 @@ const OperationRow = (props: Props) => {
         firstItem={true}
         statusIcon={
           <Kb.Icon
-            type={props.icon}
+            type={icon}
             sizeType="Small"
-            color={props.isSelected ? Styles.globalColors.whiteOrWhite : ''}
+            color={isSelected ? Styles.globalColors.whiteOrWhite : ''}
             padding="xtiny"
           />
         }
-        onClick={props.onSelect}
+        onClick={onSelect}
         hideHover={true}
         body={
           <Kb.Box2
@@ -45,10 +53,10 @@ const OperationRow = (props: Props) => {
             <Kb.Text
               type="BodySemibold"
               style={{
-                color: props.isSelected ? Styles.globalColors.whiteOrWhite : Styles.globalColors.blackOrWhite,
+                color: isSelected ? Styles.globalColors.whiteOrWhite : Styles.globalColors.blackOrWhite,
               }}
             >
-              {props.title}
+              {title}
             </Kb.Text>
           </Kb.Box2>
         }

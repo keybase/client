@@ -247,7 +247,7 @@ type fastLoadRes struct {
 	upPointer       *keybase1.UpPointer
 }
 
-// fastLoadRes is used internally to pass arguments to the #load() call. It is a small wrapper
+// fastLoadArg is used internally to pass arguments to the #load() call. It is a small wrapper
 // around the keybase1.FastTeamLoadArg that's passed through to the public #Load() call.
 type fastLoadArg struct {
 	keybase1.FastTeamLoadArg
@@ -700,7 +700,7 @@ func generationsToString(generations []keybase1.PerTeamKeyGeneration) string {
 // must be returned unstubbed, and might be in the sequence *before* `low`. We specify
 // key generations and applications, and need reader key masks for all applications
 // in the (apps X gens) cartesian product.
-func (a fastLoadArg) toHTTPArgs(m libkb.MetaContext, s shoppingList) libkb.HTTPArgs {
+func (a fastLoadArg) toHTTPArgs(m libkb.MetaContext, s shoppingList, hp *hidden.LoaderPackage) libkb.HTTPArgs {
 	ret := libkb.HTTPArgs{
 		"id":                  libkb.S{Val: a.ID.String()},
 		"public":              libkb.B{Val: a.Public},
@@ -720,7 +720,8 @@ func (a fastLoadArg) toHTTPArgs(m libkb.MetaContext, s shoppingList) libkb.HTTPA
 	if !a.readSubteamID.IsNil() {
 		ret["read_subteam_id"] = libkb.S{Val: a.readSubteamID.String()}
 	}
-	if tmp := hidden.CheckFeatureGateForSupport(m, a.ID, false /* isWrite */); tmp == nil {
+
+	if hp.HiddenChainDataEnabled() {
 		ret["ftl_hidden_low"] = libkb.I{Val: int(s.hiddenLinksSince)}
 	}
 	return ret
@@ -817,7 +818,7 @@ func (f *FastTeamChainLoader) loadFromServerOnce(m libkb.MetaContext, arg fastLo
 		return nil, nil
 	}
 
-	teamUpdate, err = f.makeHTTPRequest(m, arg.toHTTPArgs(m, shoppingList), arg.Public)
+	teamUpdate, err = f.makeHTTPRequest(m, arg.toHTTPArgs(m, shoppingList, hp), arg.Public)
 	if err != nil {
 		f.featureFlagGate.DigestError(m, err)
 		return nil, err
@@ -1307,7 +1308,7 @@ func makeState(arg fastLoadArg, s *keybase1.FastTeamData) *keybase1.FastTeamData
 
 func (f *FastTeamChainLoader) hiddenPackage(m libkb.MetaContext, arg fastLoadArg, state *keybase1.FastTeamData) (hp *hidden.LoaderPackage, err error) {
 	defer m.Trace(fmt.Sprintf("FastTeamChainLoader#hiddenPackage(%+v)", arg), func() error { return err })()
-	return hidden.NewLoaderPackage(m, arg.ID,
+	hp, err = hidden.NewLoaderPackage(m, arg.ID,
 		func() (encKID keybase1.KID, gen keybase1.PerTeamKeyGeneration, role keybase1.TeamRole, err error) {
 			// Always return TeamRole_NONE since ftl does not have access to
 			// member roles. The hidden chain uses the role to skip checks bot
@@ -1323,6 +1324,18 @@ func (f *FastTeamChainLoader) hiddenPackage(m libkb.MetaContext, arg fastLoadArg
 			}
 			return ptk.EncKID, ptk.Gen, keybase1.TeamRole_NONE, nil
 		})
+	if err != nil {
+		return nil, err
+	}
+	if !arg.readSubteamID.IsNil() {
+		m.Debug("hiddenPackage: disabling checks since we a subteam reader looking for parent chain")
+		hp.DisableHiddenChainData()
+	}
+	if tmp := hidden.CheckFeatureGateForSupport(m, arg.ID, false /* isWrite */); tmp != nil {
+		m.Debug("hiddenPackage: disabling checks since we are feature-flagged off")
+		hp.DisableHiddenChainData()
+	}
+	return hp, nil
 }
 
 func (f *FastTeamChainLoader) consumeRatchets(m libkb.MetaContext, newLinks []*ChainLinkUnpacked, hp *hidden.LoaderPackage) (err error) {

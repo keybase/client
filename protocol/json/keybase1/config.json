@@ -837,6 +837,24 @@
         "FullStatus"
       ]
     },
+    "isServiceRunning": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "boolean"
+    },
+    "isKBFSRunning": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "boolean"
+    },
     "getNetworkStats": {
       "request": [
         {
@@ -1114,6 +1132,15 @@
     "generateWebAuthToken": {
       "request": [],
       "response": "string"
+    },
+    "updateLastLoggedInAndServerConfig": {
+      "request": [
+        {
+          "name": "serverConfigPath",
+          "type": "string"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"

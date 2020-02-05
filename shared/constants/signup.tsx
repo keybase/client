@@ -9,6 +9,7 @@ export const noEmail = 'NOEMAIL'
 export const waitingKey = 'signup:waiting'
 
 const defaultDevicename =
+  Platforms.realDeviceName ||
   (Platforms.isAndroid && 'My Android Device') ||
   (Platforms.isIOS && 'My iOS Device') ||
   (Platforms.isDarwin && 'My Mac Device') ||

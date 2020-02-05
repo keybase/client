@@ -171,6 +171,10 @@ func testList(
 func TestStatNonExistent(t *testing.T) {
 	ctx := context.Background()
 	config := libkbfs.MakeTestConfigOrBust(t, "dog", "cat")
+	defer func() {
+		err := config.Shutdown(ctx)
+		require.NoError(t, err)
+	}()
 	sfs := newSimpleFS(env.EmptyAppStateUpdater{}, config)
 
 	t.Logf("/private/dog,cat should be writable for dog")
@@ -194,6 +198,7 @@ func TestSymlink(t *testing.T) {
 	ctx := context.Background()
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	sfs := newSimpleFS(env.EmptyAppStateUpdater{}, config)
+	defer closeSimpleFS(ctx, t, sfs)
 
 	t.Logf("Make a file and then symlink it")
 	p := keybase1.NewPathWithKbfsPath(`/private/jdoe`)

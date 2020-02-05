@@ -146,8 +146,8 @@
       "lastSeenVersion": "string"
     },
     "toggleRuntimeStats": {},
-    "loadNixOnLoginStartup": {},
-    "loadedNixOnLoginStartup": {
+    "loadOnLoginStartup": {},
+    "loadedOnLoginStartup": {
       "status": "boolean | null"
     },
     "loadOnStart": {

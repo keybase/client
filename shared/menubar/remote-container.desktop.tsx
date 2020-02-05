@@ -5,7 +5,7 @@ import * as FsConstants from '../constants/fs'
 import * as FsGen from '../actions/fs-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
-import * as SafeElectron from '../util/safe-electron.desktop'
+import * as Electron from 'electron'
 import * as SettingsGen from '../actions/settings-gen'
 import * as Tabs from '../constants/tabs'
 import * as Types from '../constants/types/fs'
@@ -19,9 +19,7 @@ import {quit} from '../desktop/app/ctl.desktop'
 import {urlHelper} from '../util/url-helper'
 
 const hideWindow = () => {
-  SafeElectron.getRemote()
-    .getCurrentWindow()
-    .hide()
+  Electron.remote.getCurrentWindow().hide()
 }
 
 export default () => {
@@ -72,7 +70,7 @@ export default () => {
       refreshUserFileEdits={throttle(() => dispatch(FsGen.createUserFileEditsLoad()), 1000 * 5)}
       showBug={() => {
         const version = __VERSION__
-        SafeElectron.getShell().openExternal(
+        Electron.remote.shell.openExternal(
           `https://github.com/keybase/client/issues/new?body=Keybase%20GUI%20Version:%20${encodeURIComponent(
             version
           )}`

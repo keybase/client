@@ -1,11 +1,7 @@
 import {featureFlagsOverride} from '../local-debug.desktop'
 import {FeatureFlags} from './feature-flags'
 
-if (process.env['KEYBASE_FEATURES']) {
-  console.error('KEYBASE_FEATURES is no longer supported. Edit the "*.app.debug" json file instead')
-}
-
-let features = (featureFlagsOverride && featureFlagsOverride.split(',')) || []
+const features = (featureFlagsOverride && featureFlagsOverride.split(',')) || []
 
 const featureOn = (key: keyof FeatureFlags) => features.includes(key)
 
@@ -26,6 +22,7 @@ const ff: FeatureFlags = {
   outOfDateBanner: false,
   proofProviders: true,
   stellarExternalPartners: true,
+  teamsRedesign: false,
   userBlocking: true,
 }
 
