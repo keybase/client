@@ -316,6 +316,7 @@ type _InboxRefreshPayload = {
     | 'teamTypeChanged'
     | 'maybeKickedFromTeam'
     | 'widgetRefresh'
+    | 'shareConfigSearch'
 }
 type _InboxSearchMoveSelectedIndexPayload = {readonly increment: boolean}
 type _InboxSearchNameResultsPayload = {

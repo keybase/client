@@ -111,7 +111,8 @@
         "'leftAConversation'",
         "'teamTypeChanged'",
         "'maybeKickedFromTeam'",
-        "'widgetRefresh'"
+        "'widgetRefresh'",
+        "'shareConfigSearch'"
       ]
     },
     // We want to unbox an inbox row

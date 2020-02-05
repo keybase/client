@@ -8,7 +8,6 @@ import * as ChatGen from '../chat2-gen'
 import * as EngineGen from '../engine-gen-gen'
 import * as DevicesGen from '../devices-gen'
 import * as ProfileGen from '../profile-gen'
-import * as FsGen from '../fs-gen'
 import * as PushGen from '../push-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/config'
@@ -20,11 +19,9 @@ import * as PlatformSpecific from '../platform-specific'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Tabs from '../../constants/tabs'
 import * as Router2 from '../../constants/router2'
-import * as FsTypes from '../../constants/types/fs'
 import * as Platform from '../../constants/platform'
 import URL from 'url-parse'
 import {noVersion} from '../../constants/whats-new'
-import {isAndroid, isMobile, appColorSchemeChanged} from '../../constants/platform'
 import * as Container from '../../util/container'
 
 const onLoggedIn = (state: Container.TypedState, action: EngineGen.Keybase1NotifySessionLoggedInPayload) => {
@@ -326,7 +323,7 @@ const startLogoutHandshakeIfAllowed = async (state: Container.TypedState) => {
     return startLogoutHandshake(state)
   } else {
     const heading = canLogoutRes.reason
-    if (isMobile) {
+    if (Platform.isMobile) {
       return RouteTreeGen.createNavigateAppend({
         path: [Tabs.settingsTab, {props: {heading}, selected: SettingsConstants.passwordTab}],
       })
@@ -380,7 +377,7 @@ const onShowPermissionsPrompt = (
   action: PushGen.ShowPermissionsPromptPayload
 ) => {
   if (
-    !isMobile ||
+    !Platform.isMobile ||
     !action.payload.show ||
     !state.config.loggedIn ||
     state.push.justSignedUp ||
@@ -391,6 +388,14 @@ const onShowPermissionsPrompt = (
 
   logger.info('[ShowMonsterPushPrompt] Entered through the late permissions checker scenario')
   return showMonsterPushPrompt()
+}
+
+const onAndroidShare = (state: Container.TypedState) => {
+  // already loaded, so just go now
+  if (routeToInitialScreenOnce && state.config.startupDetailsLoaded) {
+    return RouteTreeGen.createNavigateAppend({path: ['androidChooseTarget']})
+  }
+  return false
 }
 
 let routeToInitialScreenOnce = false
@@ -414,7 +419,7 @@ const routeToInitialScreen = (state: Container.TypedState) => {
   // logged out to logged in. This code can also be triggered if routeToInitialScreen
   // starts _after_ the push notifications permissions are computed.
   if (
-    isMobile &&
+    Platform.isMobile &&
     state.config.loggedIn &&
     !state.push.justSignedUp &&
     state.push.showPushPrompt &&
@@ -461,20 +466,6 @@ const routeToInitialScreen = (state: Container.TypedState) => {
       ]
     }
 
-    // A share
-    if (state.config.startupSharePath) {
-      // TODO/FIXME: this seems unused. [ShareDataIntent] in
-      // actions/platform-specific/push.native.tsx happens at cold-start too,
-      // so maybe we can just use that. Though that happens before this
-      // (routeToInitialScreen), so in the end it just routes to the saved tab
-      // which gets rid of the destination-picker modal.
-      return [
-        RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
-        FsGen.createSetIncomingShareLocalPath({localPath: state.config.startupSharePath}),
-        FsGen.createShowIncomingShare({initialDestinationParentPath: FsTypes.stringToPath('/keybase')}),
-      ]
-    }
-
     // A follow
     if (state.config.startupFollowUser) {
       return [
@@ -502,6 +493,15 @@ const routeToInitialScreen = (state: Container.TypedState) => {
       } catch {
         logger.info('AppLink: could not parse link', state.config.startupLink)
       }
+    }
+
+    // External android share?
+    if (state.config.androidShare) {
+      return [
+        RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
+        RouteTreeGen.createSwitchTab({tab: (state.config.startupTab as any) || Tabs.peopleTab}),
+        RouteTreeGen.createNavigateAppend({path: ['androidChooseTarget']}),
+      ]
     }
 
     // Just a saved tab
@@ -608,7 +608,7 @@ function* criticalOutOfDateCheck() {
       logger.error("Can't call critical check", e)
     }
     // We just need this once on mobile. Long timers don't work there.
-    if (isMobile) {
+    if (Platform.isMobile) {
       return
     }
     yield Saga.delay(3600 * 1000) // 1 hr
@@ -815,9 +815,9 @@ function* configSaga() {
   yield* Saga.chainAction2(SettingsGen.loadedSettings, maybeLoadAppLink)
 
   yield* Saga.chainAction2(ConfigGen.setDarkModePreference, saveDarkPrefs)
-  if (isAndroid) {
+  if (Platform.isAndroid) {
     yield* Saga.chainAction2(ConfigGen.setDarkModePreference, (state: Container.TypedState) =>
-      appColorSchemeChanged(state.config.darkModePreference)
+      Platform.appColorSchemeChanged(state.config.darkModePreference)
     )
   }
 
@@ -826,6 +826,7 @@ function* configSaga() {
   yield* Saga.chainAction2(ConfigGen.toggleRuntimeStats, toggleRuntimeStats)
 
   yield* Saga.chainAction2(PushGen.showPermissionsPrompt, onShowPermissionsPrompt)
+  yield* Saga.chainAction2(ConfigGen.androidShare, onAndroidShare)
 
   // Kick off platform specific stuff
   yield Saga.spawn(PlatformSpecific.platformConfigSaga)

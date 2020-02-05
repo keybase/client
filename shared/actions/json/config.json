@@ -157,6 +157,10 @@
     "showShareActionSheet": {
       "filePath": "string",
       "mimeType": "string"
+    },
+    "androidShare": {
+        "_description": "Intent fired with a share url",
+        "url": "string"
     }
   }
 }

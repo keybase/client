@@ -1,6 +1,6 @@
 import * as Container from '../../../../util/container'
 import * as Types from '../../../../constants/types/chat2'
-import * as Constants from '../../../../constants/chat2'
+import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Styles from '../../../../styles'
 import ChooseConversation from './choose-conversation'
 
@@ -13,29 +13,40 @@ type OwnProps = {
 }
 //
 // Temporary until we make proper component for dropdown button content.
-const getConversationText = (
-  conv: Types.ConversationMeta,
-  participantInfo: Types.ParticipantInfo
-): string => {
-  if (conv.teamType === 'big') {
-    return conv.teamname + '#' + conv.channelname
-  }
-  if (conv.teamType === 'small') {
-    return conv.teamname
-  }
-  return Constants.getRowParticipants(participantInfo, '').join(',')
-}
-
 export default Container.connect(
-  (state, ownProps: OwnProps) => ({
-    _conv: state.chat2.metaMap.get(ownProps.selected),
-    _participantInfo: Constants.getParticipantInfo(state, ownProps.selected),
-  }),
+  state => ({_inboxLayout: state.chat2.inboxLayout}),
   () => ({}),
-  (stateProps, _, ownProps: OwnProps) => ({
-    ...ownProps,
-    selectedText: stateProps._conv
-      ? getConversationText(stateProps._conv, stateProps._participantInfo)
-      : 'Choose a conversation',
-  })
+  (stateProps, _, ownProps: OwnProps) => {
+    let selectedText: string = ''
+
+    const {_inboxLayout} = stateProps
+    if (_inboxLayout) {
+      const st = _inboxLayout.smallTeams
+      if (st) {
+        const found = st.find(s => s.convID === ownProps.selected)
+        if (found) {
+          selectedText = found.name
+        }
+      }
+
+      const bt = _inboxLayout.bigTeams
+      if (!selectedText && bt) {
+        const found = bt.find(
+          b => b.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel && b.channel.convID === ownProps.selected
+        )
+        if (found && found.state === RPCChatTypes.UIInboxBigTeamRowTyp.channel) {
+          selectedText = `${found.channel.teamname}#${found.channel.channelname}`
+        }
+      }
+    }
+
+    if (!selectedText) {
+      selectedText = 'Choose a conversation'
+    }
+
+    return {
+      ...ownProps,
+      selectedText,
+    }
+  }
 )(ChooseConversation)

@@ -2,7 +2,6 @@ import * as NetInfo from '@react-native-community/netinfo'
 import * as RPCTypes from './rpc-gen'
 import {ConversationIDKey} from './chat2'
 import {DarkModePreference} from '../../styles/dark-mode'
-import {LocalPath} from './fs'
 import {RPCError} from '../../util/errors'
 import {Tab} from '../tabs'
 
@@ -31,6 +30,9 @@ export type WindowState = {
 }
 
 export type State = {
+  androidShare?: {
+    url: string
+  }
   appFocused: boolean
   appFocusedCount: number
   appOutOfDateMessage: string
@@ -73,7 +75,6 @@ export type State = {
   startupFollowUser: string
   startupLink: string
   startupTab?: Tab
-  startupSharePath?: LocalPath
   systemDarkMode: boolean
   windowState: WindowState
   uid: string
