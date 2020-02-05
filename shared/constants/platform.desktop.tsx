@@ -1,4 +1,4 @@
-const {path, process} = KB
+const {path, process, os} = KB
 const {platform, env} = process
 const {join} = path
 export const isTestDevice = false
@@ -109,6 +109,8 @@ export const {
   serverConfigFileName,
   guiConfigFilename,
 } = paths
+
+export const downloadFolder = __STORYBOOK__ ? '' : env.XDG_DOWNLOAD_DIR || join(os.homedir, 'Downloads')
 
 // Empty string means let the service figure out the right directory.
 export const pprofDir = ''

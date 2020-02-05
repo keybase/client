@@ -5,7 +5,7 @@ import * as Container from '../../util/container'
 import * as FsGen from '../../actions/fs-gen'
 import * as Kbfs from '../common'
 import Download from './download'
-import {downloadFolder} from '../../util/file'
+import {downloadFolder} from '../../constants/platform'
 
 const Mobile = () => {
   Kbfs.useFsDownloadStatus()
