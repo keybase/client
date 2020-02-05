@@ -1009,11 +1009,15 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 				t.Logf("metadata snippet: index: %d snippet: %s time: %v", index, conv.LocalMetadata.Snippet,
 					conv.Time)
 			}
-			for index, conv := range ibox.InboxRes.Items {
+			index := 0
+			for _, conv := range ibox.InboxRes.Items {
 				require.NotNil(t, conv.LocalMetadata)
 				switch mt {
 				case chat1.ConversationMembersType_TEAM:
 					if conv.ConvID == firstConv.Id.ConvIDStr() {
+						continue
+					}
+					if strings.Contains(conv.LocalMetadata.Snippet, "created a new channel") {
 						continue
 					}
 					require.Equal(t, fmt.Sprintf("%d", numconvs-index-1), conv.LocalMetadata.ChannelName)
@@ -1025,6 +1029,7 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 					require.Equal(t, fmt.Sprintf("%d", numconvs-index), conv.LocalMetadata.Snippet)
 					require.Equal(t, 2, len(conv.LocalMetadata.WriterNames))
 				}
+				index++
 			}
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no inbox received")
@@ -2298,6 +2303,8 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 				consumeNewMsgLocal(t, listener, chat1.MessageType_JOIN)
 				consumeNewMsgRemote(t, listener, chat1.MessageType_JOIN)
 				consumeNewPendingMsg(t, listener)
+				consumeNewMsgLocal(t, listener, chat1.MessageType_SYSTEM)
+				consumeNewMsgRemote(t, listener, chat1.MessageType_SYSTEM)
 				consumeNewMsgLocal(t, listener, chat1.MessageType_SYSTEM)
 				consumeNewMsgRemote(t, listener, chat1.MessageType_SYSTEM)
 			default:
