@@ -135,7 +135,7 @@ func TestDevConversationBackedStorageTeamAdminOnlyReaderMisbehavior(t *testing.T
 	readerstorage := NewDevConversationBackedStorage(readertc.Context(), chat1.ConversationMembersType_TEAM, true /* adminOnly */, func() chat1.RemoteInterface { return readerri })
 	var readermsg string
 
-	conv := mustCreateChannelForTest(t, ctc, users[0], chat1.TopicType_CHAT, nil, chat1.ConversationMembersType_TEAM, bob)
+	conv := mustCreateChannelForTest(t, ctc, alice, chat1.TopicType_CHAT, nil, chat1.ConversationMembersType_TEAM, bob)
 	tlfid := conv.Triple.Tlfid
 	key0 := "mykey"
 
@@ -150,8 +150,8 @@ func TestDevConversationBackedStorageTeamAdminOnlyReaderMisbehavior(t *testing.T
 	require.Error(t, err)
 	require.IsType(t, &DevStoragePermissionDeniedError{}, err, "got right error")
 
-	// hack around side-protection and make channel anyway
-	devconv := mustCreateChannelForTest(t, ctc, users[1], chat1.TopicType_DEV, &key0, chat1.ConversationMembersType_TEAM, users[0])
+	// work around client-side protection and make dev channel/msg anyway
+	devconv := mustCreateChannelForTest(t, ctc, bob, chat1.TopicType_DEV, &key0, chat1.ConversationMembersType_TEAM, alice)
 	larg := chat1.PostLocalArg{
 		ConversationID: devconv.Id,
 		Msg: chat1.MessagePlaintext{
@@ -163,7 +163,7 @@ func TestDevConversationBackedStorageTeamAdminOnlyReaderMisbehavior(t *testing.T
 			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: "reallyevil"}),
 		},
 	}
-	_, err = ctc.as(t, users[1]).chatLocalHandler().PostLocal(ctc.as(t, users[1]).startCtx, larg)
+	_, err = ctc.as(t, bob).chatLocalHandler().PostLocal(ctc.as(t, bob).startCtx, larg)
 	require.NoError(t, err)
 
 	found, err = storage.Get(ctx, uid, tlfid, key0, &msg)
