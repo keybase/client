@@ -21,6 +21,7 @@ const _AddPeopleButton = (
       type="Success"
       mode="Primary"
       fullWidth={true}
+      style={styles.addPeopleButton}
     />
     <AddPeopleHow
       attachTo={props.getAttachmentRef}
@@ -183,22 +184,35 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
   const addInviteAndLinkBox = (
     <Kb.Box2
       direction="vertical"
-      gap="tiny"
+      gap={Styles.isMobile ? 'xtiny' : 'tiny'}
       style={styles.addInviteAndLinkBox}
       alignItems="center"
       alignSelf="flex-end"
     >
       <AddPeopleButton teamID={props.teamID} />
-      {flags.teamInvites && <Kb.Text type="BodySmall">or share a link:</Kb.Text>}
       {flags.teamInvites && (
-        <Kb.Box2 direction="vertical" gap="xtiny" alignItems="flex-start">
-          <Kb.CopyText text="https://keybase.io/team/link/blahblah/" />
-          <Kb.Text type="BodyTiny">Adds as writer • Expires 10,000 ys</Kb.Text>
-          <Kb.Text type="BodyTiny" onClick={props.onManageInvites} className="hover-underline">
-            Manage invite links
-          </Kb.Text>
-        </Kb.Box2>
+        <Kb.Text type={Styles.isMobile ? 'BodyTiny' : 'BodySmall'}>
+          {Styles.isMobile ? 'or' : 'or share a link:'}
+        </Kb.Text>
       )}
+      {flags.teamInvites &&
+        (Styles.isMobile ? (
+          <Kb.Button
+            label="Generate invite link"
+            onClick={props.onManageInvites}
+            style={Styles.globalStyles.flexGrow}
+            mode="Secondary"
+            fullWidth={true}
+          />
+        ) : (
+          <Kb.Box2 direction="vertical" gap="xtiny" alignItems="flex-start">
+            <Kb.CopyText text="https://keybase.io/team/link/blahblah/" />
+            <Kb.Text type="BodyTiny">Adds as writer • Expires 10,000 ys</Kb.Text>
+            <Kb.Text type="BodyTiny" onClick={props.onManageInvites} className="hover-underline">
+              Manage invite links
+            </Kb.Text>
+          </Kb.Box2>
+        ))}
     </Kb.Box2>
   )
 
@@ -216,7 +230,11 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
           {topDescriptors}
         </Kb.Box2>
         {bottomDescriptorsAndButtons}
-        {props.canAddPeople && addInviteAndLinkBox}
+        {props.canAddPeople && (
+          <Kb.Box2 direction="horizontal" fullWidth={true}>
+            {addInviteAndLinkBox}
+          </Kb.Box2>
+        )}
       </Kb.Box2>
     </Kb.Box2>
   ) : (
@@ -263,25 +281,30 @@ const styles = Styles.styleSheetCreate(
     ({
       addInviteAndLinkBox: Styles.platformStyles({
         common: {
-          borderRadius: 4,
           flexShrink: 0,
+          padding: Styles.globalMargins.tiny,
+        },
+        isElectron: {
+          borderRadius: 4,
+          boxShadow: `0 2px 10px 0 ${Styles.globalColors.black_20}`,
           height: 165,
           marginBottom: Styles.globalMargins.xsmall,
           marginRight: Styles.globalMargins.small,
           marginTop: Styles.globalMargins.tiny,
-          padding: Styles.globalMargins.tiny,
           width: 220,
         },
-        isElectron: {
-          boxShadow: `0 2px 10px 0 ${Styles.globalColors.black_20}`,
-        },
         isMobile: {
-          shadowColor: Styles.globalColors.black_20,
-          shadowOffset: {height: 0, width: 2},
-          shadowOpacity: 1,
-          shadowRadius: 5,
+          borderColor: Styles.globalColors.black_10,
+          borderRadius: 8,
+          borderStyle: 'solid',
+          borderWidth: 1,
+          flexGrow: 1,
+          margin: Styles.globalMargins.tiny,
         },
       }),
+      addPeopleButton: {
+        flexGrow: 0,
+      },
       addSelfLink: {
         marginLeft: Styles.globalMargins.xtiny,
         textDecorationLine: 'underline',
