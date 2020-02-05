@@ -11,5 +11,5 @@ import (
 
 func TestDiscardAndCloseBody(t *testing.T) {
 	_, err := DiscardAndCloseBody(nil)
-	require.NoError(t, err)
+	require.Error(t, err)
 }
