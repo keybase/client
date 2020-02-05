@@ -546,7 +546,7 @@ func (tx *AddMemberTx) AddOrInviteMemberByUPKV2(ctx context.Context, upak keybas
 		return "", uv, false, err
 	}
 	if existing {
-		return "", uv, false, libkb.ExistsError{Msg: fmt.Sprintf("Invite for %q already exists", single.Display())}
+		return "", uv, false, libkb.ExistsError{Msg: fmt.Sprintf("Invite for %q already exists", single.String())}
 	}
 
 	// All good - add invite to tx.

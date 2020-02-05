@@ -17,7 +17,6 @@ import (
 
 type AssertionExpression interface {
 	String() string
-	Display() string
 	MatchSet(ps ProofSet) bool
 	HasOr() bool
 	NeedsParens() bool
@@ -55,10 +54,6 @@ func (a AssertionOr) CollectUrls(v []AssertionURL) []AssertionURL {
 		v = t.CollectUrls(v)
 	}
 	return v
-}
-
-func (a AssertionOr) Display() string {
-	return a.String()
 }
 
 func (a AssertionOr) String() string {
@@ -125,10 +120,6 @@ func (a AssertionAnd) HasFactor(pf Proof) bool {
 	return false
 }
 
-func (a AssertionAnd) Display() string {
-	return a.String()
-}
-
 func (a AssertionAnd) String() string {
 	v := make([]string, len(a.factors))
 	for i, f := range a.factors {
@@ -155,6 +146,7 @@ type AssertionURL interface {
 	IsSocial() bool
 	IsRemote() bool
 	IsFingerprint() bool
+	IsEmail() bool
 	MatchProof(p Proof) bool
 	ToUID() keybase1.UID
 	ToTeamID() keybase1.TeamID
@@ -219,6 +211,7 @@ func (b AssertionURLBase) IsSocial() bool                      { return false }
 func (b AssertionURLBase) IsRemote() bool                      { return false }
 func (b AssertionURLBase) IsFingerprint() bool                 { return false }
 func (b AssertionURLBase) IsUID() bool                         { return false }
+func (b AssertionURLBase) IsEmail() bool                       { return b.Key == "email" }
 func (b AssertionURLBase) ToUID() (ret keybase1.UID)           { return ret }
 func (b AssertionURLBase) IsTeamID() bool                      { return false }
 func (b AssertionURLBase) IsTeamName() bool                    { return false }
@@ -395,19 +388,6 @@ func (b AssertionURLBase) String() string {
 	return fmt.Sprintf("%s@%s", b.Value, b.Key)
 }
 func (a AssertionKeybase) String() string {
-	return a.Value
-}
-
-func (b AssertionURLBase) Display() string {
-	return b.String()
-}
-func (a AssertionKeybase) Display() string {
-	return a.Value
-}
-func (a AssertionPhoneNumber) Display() string {
-	return a.Value
-}
-func (a AssertionEmail) Display() string {
 	return a.Value
 }
 

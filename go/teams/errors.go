@@ -407,10 +407,10 @@ func NewAddMembersError(a string, e error) AddMembersError {
 func (a AddMembersError) Error() string {
 	actx := externals.MakeStaticAssertionContext(context.TODO())
 	parsed, err := libkb.ParseAssertionURL(actx, a.Assertion, false /* strict */)
-	if err != nil {
-		return fmt.Sprintf("Error adding user %q: %v", a.Assertion, a.Err)
+	if err == nil && parsed.IsEmail() {
+		return fmt.Sprintf("Error adding email %q: %v", parsed.GetValue(), a.Err)
 	}
-	return fmt.Sprintf("Error adding user %q: %v", parsed.Display(), a.Err)
+	return fmt.Sprintf("Error adding %q: %v", a.Assertion, a.Err)
 }
 
 type BadNameError struct {

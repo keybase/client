@@ -725,23 +725,13 @@ func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails
 		return res, err
 	}
 
-	err = RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
-
-		t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
-		if err != nil {
-			return err
-		}
-
-		_, _, err = AddMembers(ctx, g, t.ID, toAdd)
-
-		return err
-	})
-
+	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
 	if err != nil {
 		return res, err
 	}
 
-	return res, nil
+	_, _, err = AddMembers(ctx, g, t.ID, toAdd)
+	return res, err
 }
 
 func EditMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string,
