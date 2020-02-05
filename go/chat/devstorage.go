@@ -32,14 +32,30 @@ func NewDevConversationBackedStorage(g *globals.Context, mt chat1.ConversationMe
 	}
 }
 
+func (s *DevConversationBackedStorage) tlfName(ctx context.Context, tlfid chat1.TLFID) (tlfname string, err error) {
+	switch s.mt {
+	case chat1.ConversationMembersType_IMPTEAMNATIVE:
+		name, err := s.G().GetUPAKLoader().LookupUsername(ctx, keybase1.UID(tlfid.String()))
+		if err != nil {
+			return tlfname, err
+		}
+		return name.String(), nil
+	default:
+		info, err := CreateNameInfoSource(ctx, s.G(), s.mt).LookupName(ctx, tlfid, false /* public */, "")
+		if err != nil {
+			return tlfname, err
+		}
+		return info.CanonicalName, nil
+	}
+}
+
 func (s *DevConversationBackedStorage) Put(ctx context.Context, uid gregor1.UID, tlfid chat1.TLFID, name string, src interface{}) (err error) {
 	defer s.Trace(ctx, func() error { return err }, "Put(%s)", name)()
 
-	info, err := CreateNameInfoSource(ctx, s.G(), s.mt).LookupName(ctx, tlfid, false /* public */, "")
+	tlfname, err := s.tlfName(ctx, tlfid)
 	if err != nil {
 		return err
 	}
-	tlfname := info.CanonicalName
 
 	dat, err := json.Marshal(src)
 	if err != nil {
@@ -68,6 +84,7 @@ func (s *DevConversationBackedStorage) Put(ctx context.Context, uid gregor1.UID,
 		return err
 	}
 	if s.adminOnly && (conv.ConvSettings == nil || conv.ConvSettings.MinWriterRoleInfo == nil || conv.ConvSettings.MinWriterRoleInfo.Role != keybase1.TeamRole_ADMIN) {
+		s.Debug(ctx, "writing minwriterrole... ")
 		_, err := s.ri().SetConvMinWriterRole(ctx, chat1.SetConvMinWriterRoleArg{ConvID: conv.Info.Id, Role: keybase1.TeamRole_ADMIN})
 		if err != nil {
 			return err
@@ -80,11 +97,10 @@ func (s *DevConversationBackedStorage) Get(ctx context.Context, uid gregor1.UID,
 	dest interface{}) (found bool, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Get(%s)", name)()
 
-	info, err := CreateNameInfoSource(ctx, s.G(), s.mt).LookupName(ctx, tlfid, false /* public */, "")
+	tlfname, err := s.tlfName(ctx, tlfid)
 	if err != nil {
 		return false, err
 	}
-	tlfname := info.CanonicalName
 
 	convs, err := FindConversations(ctx, s.G(), s.DebugLabeler, types.InboxSourceDataSourceAll, s.ri, uid,
 		tlfname, chat1.TopicType_DEV, s.mt,
