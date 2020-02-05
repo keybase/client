@@ -70,9 +70,27 @@ const getRows = (numShown?: number, upstreamOnSelect?: () => void): Array<RowIte
     sbOnSelect(args)
   }
   const rows = [
-    {conversationIDKey: id('small1'), isSelected: false, onSelectConversation, type: 'small'},
-    {conversationIDKey: id('small2'), isSelected: false, onSelectConversation, type: 'small'},
-    {conversationIDKey: id('small3'), isSelected: false, onSelectConversation, type: 'small'},
+    {
+      conversationIDKey: id('small1'),
+      isSelected: false,
+      onSelectConversation,
+      type: 'small',
+      participants: selectableSmalls['small1'].participants,
+    },
+    {
+      conversationIDKey: id('small2'),
+      isSelected: false,
+      onSelectConversation,
+      type: 'small',
+      participants: selectableSmalls['small2'].participants,
+    },
+    {
+      conversationIDKey: id('small3'),
+      isSelected: false,
+      onSelectConversation,
+      type: 'small',
+      participants: selectableSmalls['small3'].participants,
+    },
     {conversationIDKey: id('bigA1'), isSelected: false, onSelectConversation, type: 'big'},
     {conversationIDKey: id('bigA2'), isSelected: false, onSelectConversation, type: 'big'},
     {conversationIDKey: id('bigA3'), isSelected: false, onSelectConversation, type: 'big'},
