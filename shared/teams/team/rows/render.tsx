@@ -38,6 +38,8 @@ const renderRow = (row: Row, teamID: Types.TeamID) => {
       return <SubteamNoneRow />
     case 'subteam-subteam':
       return <SubteamTeamRow teamID={row.teamID} />
+    case 'subteam-info':
+      return null
     case 'settings':
       return <SettingsRow teamID={teamID} />
     case 'loading':
