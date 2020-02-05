@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
@@ -8,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestWebOfTrust(t *testing.T) {
+func TestWebOfTrustAttest(t *testing.T) {
 	tc := SetupEngineTest(t, "wot")
 	defer tc.Cleanup()
 
@@ -70,4 +71,44 @@ func TestWebOfTrust(t *testing.T) {
 	require.NoError(tc.T, err)
 	idt = me.IDTable()
 	require.Equal(tc.T, lenBefore+2, idt.Len())
+}
+
+func TestWebOfTrustReactAccept(t *testing.T) {
+	// alice accepts attestation from bob
+	tcA := SetupEngineTest(t, "wotA")
+	defer tcA.Cleanup()
+	tcB := SetupEngineTest(t, "wotB")
+	defer tcB.Cleanup()
+	alice := CreateAndSignupFakeUser(tcA, "wotA")
+	bob := CreateAndSignupFakeUser(tcB, "wotB")
+	fmt.Printf("bob: %+v\n", bob)
+	var err error
+
+	// bob makes an attestation about alice
+	arg := &WotAttestArg{
+		Attestee:     keybase1.UserVersion{Uid: alice.UID(), EldestSeqno: 1},
+		Attestations: []string{"alice is wondibar"},
+		Confidence: keybase1.Confidence{
+			UsernameVerifiedVia: keybase1.UsernameVerificationType_VIDEO,
+			VouchedBy:           []string{"t_doug"},
+			KnownOnKeybaseDays:  5,
+		},
+	}
+	eng := NewWotAttest(tcB.G, arg)
+	mctxB := NewMetaContextForTest(tcB)
+	err = RunEngine2(mctxB, eng)
+	require.NoError(t, err)
+
+	// me, err := libkb.LoadMe(libkb.NewLoadUserArg(tc.G))
+	// require.NoError(tc.T, err)
+	// idt := me.IDTable()
+	// fmt.Printf("%+v\n", idt)
+
+	aliceMe, err := libkb.LoadMe(libkb.NewLoadUserArg(tcA.G))
+	require.NoError(tcA.T, err)
+	fmt.Printf("alice idtable: %+v\n", aliceMe.IDTable())
+	bobMe, err := libkb.LoadMe(libkb.NewLoadUserArg(tcB.G))
+	require.NoError(tcB.T, err)
+	fmt.Printf("bob idtable: %+v\n", bobMe.IDTable())
+
 }
