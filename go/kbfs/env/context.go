@@ -53,7 +53,7 @@ type Context interface {
 	CheckService() error
 	GetSocket(clearError bool) (net.Conn, rpc.Transporter, bool, error)
 	NewRPCLogFactory() rpc.LogFactory
-	NewNetworkInstrumenter() *rpc.NetworkInstrumenter
+	NewNetworkInstrumenter() rpc.NetworkInstrumenterStorage
 	GetKBFSSocket(clearError bool) (net.Conn, rpc.Transporter, bool, error)
 	BindToKBFSSocket() (net.Listener, error)
 	GetVDebugSetting() string
@@ -182,9 +182,9 @@ func (c *KBFSContext) NewRPCLogFactory() rpc.LogFactory {
 	return &libkb.RPCLogFactory{Contextified: libkb.NewContextified(c.g)}
 }
 
-// NewNetworkInstrumenter constructs an RPC NetworkInstrumenter
-func (c *KBFSContext) NewNetworkInstrumenter() *rpc.NetworkInstrumenter {
-	return rpc.NewNetworkInstrumenter(c.g.NetworkInstrumenterStorage)
+// NewNetworkInstrumenter constructs an RPC NetworkInstrumenterStorage
+func (c *KBFSContext) NewNetworkInstrumenter() rpc.NetworkInstrumenterStorage {
+	return c.g.NetworkInstrumenterStorage
 }
 
 func (c *KBFSContext) getSandboxSocketFile() string {
