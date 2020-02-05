@@ -3,7 +3,6 @@ package chat
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
@@ -61,8 +60,8 @@ func (s *DevConversationBackedStorage) Put(ctx context.Context, uid gregor1.UID,
 	if err != nil {
 		return err
 	}
-	if s.isAdminOnly() && conv.ReaderInfo.UntrustedTeamRole.IsAdminOrAbove() {
-		return fmt.Errorf("failed to put; role %q is too low", conv.ReaderInfo.UntrustedTeamRole)
+	if s.isAdminOnly() && !conv.ReaderInfo.UntrustedTeamRole.IsAdminOrAbove() {
+		return NewStorageRoleError(conv.ReaderInfo.UntrustedTeamRole)
 	}
 	if _, _, err = NewBlockingSender(s.G(), NewBoxer(s.G()), s.ri).Send(ctx, conv.GetConvID(),
 		chat1.MessagePlaintext{
@@ -77,7 +76,7 @@ func (s *DevConversationBackedStorage) Put(ctx context.Context, uid gregor1.UID,
 		}, 0, nil, nil, nil); err != nil {
 		return err
 	}
-	if s.isAdminOnly() && conv.ConvSettings.MinWriterRoleInfo.Role != keybase1.TeamRole_ADMIN {
+	if s.isAdminOnly() && (conv.ConvSettings == nil || conv.ConvSettings.MinWriterRoleInfo.Role != keybase1.TeamRole_ADMIN) {
 		_, err := s.ri().SetConvMinWriterRole(ctx, chat1.SetConvMinWriterRoleArg{ConvID: conv.Info.Id, Role: keybase1.TeamRole_ADMIN})
 		if err != nil {
 			return err
@@ -124,8 +123,13 @@ func (s *DevConversationBackedStorage) Get(ctx context.Context, uid gregor1.UID,
 	if !body.IsType(chat1.MessageType_TEXT) {
 		return false, nil
 	}
-	if s.isAdminOnly() && !conv.ConvSettings.MinWriterRoleInfo.Role.IsAdminOrAbove() {
-		return false, nil
+	if s.isAdminOnly() {
+		if conv.ConvSettings == nil {
+			return false, NewDevStorageNonAdminError("no conversation settings")
+		}
+		if conv.ConvSettings.MinWriterRoleInfo.Role != keybase1.TeamRole_ADMIN {
+			return false, NewDevStorageNonAdminError("minWriterRole was not admin")
+		}
 	}
 	if err = json.Unmarshal([]byte(body.Text().Body), dest); err != nil {
 		return false, err
