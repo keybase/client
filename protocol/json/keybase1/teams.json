@@ -2709,7 +2709,7 @@
     },
     {
       "type": "record",
-      "name": "RemoveMemberArgs",
+      "name": "TeamMemberToRemove",
       "fields": [
         {
           "type": "string",
@@ -2736,7 +2736,7 @@
         {
           "type": {
             "type": "array",
-            "items": "RemoveMemberArgs"
+            "items": "TeamMemberToRemove"
           },
           "name": "failures"
         }
@@ -3518,7 +3518,7 @@
           "name": "users",
           "type": {
             "type": "array",
-            "items": "RemoveMemberArgs"
+            "items": "TeamMemberToRemove"
           }
         }
       ],

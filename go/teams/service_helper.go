@@ -987,26 +987,19 @@ func MemberRoleFromID(ctx context.Context, g *libkb.GlobalContext, teamID keybas
 	return role, err
 }
 
-func RemoveMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, users []keybase1.RemoveMemberArgs) (res keybase1.TeamRemoveMembersResult, err error) {
+func RemoveMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, users []keybase1.TeamMemberToRemove) (res keybase1.TeamRemoveMembersResult, err error) {
 	teamGetter := func() (*Team, error) {
 		return GetForTeamManagementByTeamID(ctx, g, teamID, false)
 	}
 
-	var failedToRemove []keybase1.RemoveMemberArgs
+	var failedToRemove []keybase1.TeamMemberToRemove
 
 	for _, user := range users {
-		var exclusiveActions []string
-		if len(user.Username) > 0 {
-			exclusiveActions = append(exclusiveActions, "username")
-		}
-		if len(user.Email) > 0 {
-			exclusiveActions = append(exclusiveActions, "email")
-		}
-		if len(user.InviteID) > 0 {
-			exclusiveActions = append(exclusiveActions, "inviteID")
-		}
-		if len(exclusiveActions) > 1 {
-			g.Log.CDebugf(ctx, "RemoveMembers: can only do 1 of %v at a time", exclusiveActions)
+		exclusiveActions := user.Username + user.Email + string(user.InviteID)
+		lenExclActions := len(exclusiveActions)
+
+		if lenExclActions > len(user.Username) && lenExclActions > len(user.Email) && lenExclActions > len(user.InviteID) {
+			g.Log.CDebugf(ctx, "RemoveMembers: can only do 1 of [username: %s, email: %s, inviteID: %s] at a time", user.Username, user.Email, user.InviteID)
 			failedToRemove = append(failedToRemove, user)
 			continue
 		}

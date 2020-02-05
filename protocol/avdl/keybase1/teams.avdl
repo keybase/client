@@ -1233,7 +1233,7 @@ protocol teams {
   // Note: allowInaction only applies to invite removals, just because that was what was needed.
   void teamRemoveMember(int sessionID, TeamID teamID, string username, string email, TeamInviteID inviteID, boolean allowInaction);
 
-  record RemoveMemberArgs {
+  record TeamMemberToRemove {
     string username;
     string email;
     TeamInviteID inviteID;
@@ -1241,10 +1241,10 @@ protocol teams {
   }
 
   record TeamRemoveMembersResult {
-    array<RemoveMemberArgs> failures;
+    array<TeamMemberToRemove> failures;
   }
 
-  TeamRemoveMembersResult teamRemoveMembers(int sessionID, TeamID teamID, array<RemoveMemberArgs> users);
+  TeamRemoveMembersResult teamRemoveMembers(int sessionID, TeamID teamID, array<TeamMemberToRemove> users);
 
   void teamLeave(int sessionID, string name, boolean permanent);
 

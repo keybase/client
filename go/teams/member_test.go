@@ -471,17 +471,21 @@ func TestMembersRemove(t *testing.T) {
 
 	assertRole(tc, name.String(), otherB.Username, keybase1.TeamRole_READER)
 
-	rolePairA := keybase1.RemoveMemberArgs{
+	rolePairA := keybase1.TeamMemberToRemove{
 		Username: otherA.Username,
 	}
 
-	rolePairB := keybase1.RemoveMemberArgs{
+	rolePairB := keybase1.TeamMemberToRemove{
 		Username: otherB.Username,
 	}
 
-	users := []keybase1.RemoveMemberArgs{rolePairA, rolePairB}
+	users := []keybase1.TeamMemberToRemove{rolePairA, rolePairB}
 
 	res, err := RemoveMembers(context.TODO(), tc.G, teamID, users)
+
+	assertRole(tc, name.String(), otherA.Username, keybase1.TeamRole_NONE)
+	assertRole(tc, name.String(), otherB.Username, keybase1.TeamRole_NONE)
+
 	require.NoError(t, err)
 	require.Empty(t, res.Failures)
 }

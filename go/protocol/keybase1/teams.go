@@ -3129,15 +3129,15 @@ func (o UserRolePair) DeepCopy() UserRolePair {
 	}
 }
 
-type RemoveMemberArgs struct {
+type TeamMemberToRemove struct {
 	Username      string       `codec:"username" json:"username"`
 	Email         string       `codec:"email" json:"email"`
 	InviteID      TeamInviteID `codec:"inviteID" json:"inviteID"`
 	AllowInaction bool         `codec:"allowInaction" json:"allowInaction"`
 }
 
-func (o RemoveMemberArgs) DeepCopy() RemoveMemberArgs {
-	return RemoveMemberArgs{
+func (o TeamMemberToRemove) DeepCopy() TeamMemberToRemove {
+	return TeamMemberToRemove{
 		Username:      o.Username,
 		Email:         o.Email,
 		InviteID:      o.InviteID.DeepCopy(),
@@ -3146,16 +3146,16 @@ func (o RemoveMemberArgs) DeepCopy() RemoveMemberArgs {
 }
 
 type TeamRemoveMembersResult struct {
-	Failures []RemoveMemberArgs `codec:"failures" json:"failures"`
+	Failures []TeamMemberToRemove `codec:"failures" json:"failures"`
 }
 
 func (o TeamRemoveMembersResult) DeepCopy() TeamRemoveMembersResult {
 	return TeamRemoveMembersResult{
-		Failures: (func(x []RemoveMemberArgs) []RemoveMemberArgs {
+		Failures: (func(x []TeamMemberToRemove) []TeamMemberToRemove {
 			if x == nil {
 				return nil
 			}
-			ret := make([]RemoveMemberArgs, len(x))
+			ret := make([]TeamMemberToRemove, len(x))
 			for i, v := range x {
 				vCopy := v.DeepCopy()
 				ret[i] = vCopy
@@ -3700,9 +3700,9 @@ type TeamRemoveMemberArg struct {
 }
 
 type TeamRemoveMembersArg struct {
-	SessionID int                `codec:"sessionID" json:"sessionID"`
-	TeamID    TeamID             `codec:"teamID" json:"teamID"`
-	Users     []RemoveMemberArgs `codec:"users" json:"users"`
+	SessionID int                  `codec:"sessionID" json:"sessionID"`
+	TeamID    TeamID               `codec:"teamID" json:"teamID"`
+	Users     []TeamMemberToRemove `codec:"users" json:"users"`
 }
 
 type TeamLeaveArg struct {
