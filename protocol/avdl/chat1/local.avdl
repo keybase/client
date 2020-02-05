@@ -1302,4 +1302,11 @@ protocol local {
     STELLAR_SENT_10,
     PINNED_MESSAGE_11
   }
+
+  void setWelcomeMessage(keybase1.TeamID teamID, string message);
+  GetWelcomeMessageRes getWelcomeMessage(keybase1.TeamID teamID);
+  record GetWelcomeMessageRes {
+    boolean found;
+    string message;
+  }
 }

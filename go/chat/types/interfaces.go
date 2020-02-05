@@ -449,8 +449,8 @@ type StellarSender interface {
 }
 
 type ConversationBackedStorage interface {
-	Put(ctx context.Context, uid gregor1.UID, name string, data interface{}) error
-	Get(ctx context.Context, uid gregor1.UID, name string, res interface{}) (bool, error)
+	Put(ctx context.Context, uid gregor1.UID, tlfid chat1.TLFID, name string, data interface{}) error
+	Get(ctx context.Context, uid gregor1.UID, tlfid chat1.TLFID, name string, res interface{}) (bool, error)
 }
 
 type WhitelistExemption interface {

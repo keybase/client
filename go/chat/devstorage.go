@@ -3,6 +3,7 @@ package chat
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
@@ -16,39 +17,58 @@ type DevConversationBackedStorage struct {
 	globals.Contextified
 	utils.DebugLabeler
 
+	mt chat1.ConversationMembersType
+	// If mt is ConversationMembersType_TEAM, and adminOnly is true, then Get
+	// will return nil if the minWriterRole is not admin, and Put (if the user
+	// is an admin) will set the min-writer-role as admin. This is
+	// server-trust.
+	adminOnly bool
+
 	ri func() chat1.RemoteInterface
 }
 
-func NewDevConversationBackedStorage(g *globals.Context, ri func() chat1.RemoteInterface) *DevConversationBackedStorage {
+func NewDevConversationBackedStorage(g *globals.Context, mt chat1.ConversationMembersType, adminOnly bool, ri func() chat1.RemoteInterface) *DevConversationBackedStorage {
 	return &DevConversationBackedStorage{
 		Contextified: globals.NewContextified(g),
+		mt:           mt,
+		adminOnly:    adminOnly,
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "DevConversationBackedStorage", false),
 		ri:           ri,
 	}
 }
 
-func (s *DevConversationBackedStorage) Put(ctx context.Context, uid gregor1.UID, name string, src interface{}) (err error) {
+func (s *DevConversationBackedStorage) isAdminOnly() bool {
+	return s.mt == chat1.ConversationMembersType_TEAM && s.adminOnly
+}
+
+func (s *DevConversationBackedStorage) Put(ctx context.Context, uid gregor1.UID, tlfid chat1.TLFID, name string, src interface{}) (err error) {
 	defer s.Trace(ctx, func() error { return err }, "Put(%s)", name)()
-	un, err := s.G().GetUPAKLoader().LookupUsername(ctx, keybase1.UID(uid.String()))
+
+	info, err := CreateNameInfoSource(ctx, s.G(), s.mt).LookupName(ctx, tlfid, false /* public */, "")
 	if err != nil {
 		return err
 	}
-	username := un.String()
+	tlfname := info.CanonicalName
+
 	dat, err := json.Marshal(src)
 	if err != nil {
 		return err
 	}
-	conv, err := NewConversation(ctx, s.G(), uid, username, &name, chat1.TopicType_DEV,
-		chat1.ConversationMembersType_IMPTEAMNATIVE, keybase1.TLFVisibility_PRIVATE, s.ri,
+
+	conv, err := NewConversation(ctx, s.G(), uid, tlfname, &name, chat1.TopicType_DEV,
+		s.mt, keybase1.TLFVisibility_PRIVATE, s.ri,
 		NewConvFindExistingNormal)
 	if err != nil {
 		return err
+	}
+	if s.isAdminOnly() && conv.ReaderInfo.UntrustedTeamRole.IsAdminOrAbove() {
+		return fmt.Errorf("failed to put; role %q is too low", conv.ReaderInfo.UntrustedTeamRole)
 	}
 	if _, _, err = NewBlockingSender(s.G(), NewBoxer(s.G()), s.ri).Send(ctx, conv.GetConvID(),
 		chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				Conv:        conv.Info.Triple,
-				TlfName:     username,
+				TlfName:     tlfname,
 				MessageType: chat1.MessageType_TEXT,
 			},
 			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
@@ -57,19 +77,27 @@ func (s *DevConversationBackedStorage) Put(ctx context.Context, uid gregor1.UID,
 		}, 0, nil, nil, nil); err != nil {
 		return err
 	}
+	if s.isAdminOnly() && conv.ConvSettings.MinWriterRoleInfo.Role != keybase1.TeamRole_ADMIN {
+		_, err := s.ri().SetConvMinWriterRole(ctx, chat1.SetConvMinWriterRoleArg{ConvID: conv.Info.Id, Role: keybase1.TeamRole_ADMIN})
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
-func (s *DevConversationBackedStorage) Get(ctx context.Context, uid gregor1.UID, name string,
+func (s *DevConversationBackedStorage) Get(ctx context.Context, uid gregor1.UID, tlfid chat1.TLFID, name string,
 	dest interface{}) (found bool, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Get(%s)", name)()
-	un, err := s.G().GetUPAKLoader().LookupUsername(ctx, keybase1.UID(uid.String()))
+
+	info, err := CreateNameInfoSource(ctx, s.G(), s.mt).LookupName(ctx, tlfid, false /* public */, "")
 	if err != nil {
 		return false, err
 	}
-	username := un.String()
+	tlfname := info.CanonicalName
+
 	convs, err := FindConversations(ctx, s.G(), s.DebugLabeler, types.InboxSourceDataSourceAll, s.ri, uid,
-		username, chat1.TopicType_DEV, chat1.ConversationMembersType_IMPTEAMNATIVE,
+		tlfname, chat1.TopicType_DEV, s.mt,
 		keybase1.TLFVisibility_PRIVATE, name, nil)
 	if err != nil {
 		return false, err
@@ -94,6 +122,9 @@ func (s *DevConversationBackedStorage) Get(ctx context.Context, uid gregor1.UID,
 	}
 	body := msg.Valid().MessageBody
 	if !body.IsType(chat1.MessageType_TEXT) {
+		return false, nil
+	}
+	if s.isAdminOnly() && !conv.ConvSettings.MinWriterRoleInfo.Role.IsAdminOrAbove() {
 		return false, nil
 	}
 	if err = json.Unmarshal([]byte(body.Text().Body), dest); err != nil {

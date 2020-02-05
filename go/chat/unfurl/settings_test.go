@@ -23,7 +23,7 @@ func newMemConversationBackedStorage() *memConversationBackedStorage {
 	}
 }
 
-func (s *memConversationBackedStorage) Get(ctx context.Context, uid gregor1.UID, name string, res interface{}) (bool, error) {
+func (s *memConversationBackedStorage) Get(ctx context.Context, uid gregor1.UID, tlfid chat1.TLFID, name string, res interface{}) (bool, error) {
 	s.Lock()
 	defer s.Unlock()
 	dat, ok := s.storage[name]
@@ -34,7 +34,7 @@ func (s *memConversationBackedStorage) Get(ctx context.Context, uid gregor1.UID,
 	return true, err
 }
 
-func (s *memConversationBackedStorage) Put(ctx context.Context, uid gregor1.UID, name string, src interface{}) error {
+func (s *memConversationBackedStorage) Put(ctx context.Context, uid gregor1.UID, tlfid chat1.TLFID, name string, src interface{}) error {
 	s.Lock()
 	defer s.Unlock()
 	dat, err := json.Marshal(src)

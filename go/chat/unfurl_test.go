@@ -131,7 +131,7 @@ func TestChatSrvUnfurl(t *testing.T) {
 		httpSrv := newDummyHTTPSrv(t)
 		httpAddr := httpSrv.Start()
 		defer httpSrv.Stop()
-		storage := NewDevConversationBackedStorage(tc.Context(), func() chat1.RemoteInterface { return ri })
+		storage := NewDevConversationBackedStorage(tc.Context(), chat1.ConversationMembersType_IMPTEAMNATIVE, false /* adminOnly */, func() chat1.RemoteInterface { return ri })
 		sender := NewNonblockingSender(tc.Context(),
 			NewBlockingSender(tc.Context(), NewBoxer(tc.Context()),
 				func() chat1.RemoteInterface { return ri }))

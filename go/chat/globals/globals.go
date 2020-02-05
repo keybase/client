@@ -31,6 +31,7 @@ type ChatContext struct {
 	StellarSender        types.StellarSender       // stellar in-chat payment sender
 	StellarPushHandler   types.OobmHandler
 	Unfurler             types.Unfurler                   // unfurl messages with URLs
+	WelcomeStorage       types.ConversationBackedStorage  // stores welcome messages for teams
 	CommandsSource       types.ConversationCommandsSource // source for / commands for conversations
 	CoinFlipManager      types.CoinFlipManager            // manage /flip games
 	JourneyCardManager   types.JourneyCardManager         // manages team journey cards

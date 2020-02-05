@@ -1151,6 +1151,7 @@ export type GetThreadLocalRes = {readonly thread: ThreadView; readonly offline: 
 export type GetThreadQuery = {readonly markAsRead: Boolean; readonly messageTypes?: Array<MessageType> | null; readonly disableResolveSupersedes: Boolean; readonly enableDeletePlaceholders: Boolean; readonly disablePostProcessThread: Boolean; readonly before?: Gregor1.Time | null; readonly after?: Gregor1.Time | null; readonly messageIDControl?: MessageIDControl | null}
 export type GetThreadRemoteRes = {readonly thread: ThreadViewBoxed; readonly membersType: ConversationMembersType; readonly visibility: Keybase1.TLFVisibility; readonly rateLimit?: RateLimit | null}
 export type GetUnreadlineRemoteRes = {readonly unreadlineID?: MessageID | null; readonly rateLimit?: RateLimit | null}
+export type GetWelcomeMessageRes = {readonly found: Boolean; readonly message: String}
 export type GiphySearchResult = {readonly targetUrl: String; readonly previewUrl: String; readonly previewWidth: Int; readonly previewHeight: Int; readonly previewIsVideo: Boolean}
 export type GiphySearchResults = {readonly results?: Array<GiphySearchResult> | null; readonly galleryUrl: String}
 export type GlobalAppNotificationSettings = {readonly settings: {[key: string]: Bool}}
@@ -1643,6 +1644,8 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.local.listBotCommandsLocal'
 // 'chat.1.local.clearBotCommandsLocal'
 // 'chat.1.local.teamIDFromTLFName'
+// 'chat.1.local.setWelcomeMessage'
+// 'chat.1.local.getWelcomeMessage'
 // 'chat.1.NotifyChat.NewChatActivity'
 // 'chat.1.NotifyChat.ChatIdentifyUpdate'
 // 'chat.1.NotifyChat.ChatTLFFinalize'

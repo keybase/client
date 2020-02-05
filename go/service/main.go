@@ -509,10 +509,9 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	g.StellarSender = wallet.NewSender(g)
 	g.StellarPushHandler = g.ExternalG().GetStellar()
 
-	convStorage := chat.NewDevConversationBackedStorage(g, ri)
-
-	g.Unfurler = unfurl.NewUnfurler(g, store, s3signer, convStorage, chat.NewNonblockingSender(g, sender),
-		ri)
+	unfurlStorage := chat.NewDevConversationBackedStorage(g, chat1.ConversationMembersType_IMPTEAMNATIVE, false /* adminOnly */, ri)
+	g.Unfurler = unfurl.NewUnfurler(g, store, s3signer, unfurlStorage, chat.NewNonblockingSender(g, sender), ri)
+	g.WelcomeStorage = chat.NewDevConversationBackedStorage(g, chat1.ConversationMembersType_TEAM, true /* adminOnly */, ri)
 	g.CommandsSource = commands.NewSource(g)
 	g.CoinFlipManager = chat.NewFlipManager(g, ri)
 	g.JourneyCardManager = chat.NewJourneyCardManager(g)

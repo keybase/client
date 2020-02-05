@@ -3219,3 +3219,42 @@ func (h *Server) DismissJourneycard(ctx context.Context, arg chat1.DismissJourne
 		return fmt.Errorf("got %v conversations but expected 1", len(inbox.ConvsUnverified))
 	}
 }
+
+const welcomeMessageName = "__welcome_message"
+
+func (h *Server) SetWelcomeMessage(ctx context.Context, arg chat1.SetWelcomeMessageArg) (err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "SetWelcomeMessage")()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return err
+	}
+
+	tlfID, err := chat1.TeamIDToTLFID(arg.TeamID)
+	if err != nil {
+		return err
+	}
+	return h.G().WelcomeStorage.Put(ctx, uid, tlfID, welcomeMessageName, arg.Message)
+}
+
+func (h *Server) GetWelcomeMessage(ctx context.Context, teamID keybase1.TeamID) (res chat1.GetWelcomeMessageRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "SetWelcomeMessage")()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
+
+	tlfID, err := chat1.TeamIDToTLFID(teamID)
+	if err != nil {
+		return res, err
+	}
+	var message string
+	found, err := h.G().WelcomeStorage.Get(ctx, uid, tlfID, welcomeMessageName, &message)
+	if err != nil {
+		return res, err
+	}
+	return chat1.GetWelcomeMessageRes{Found: found, Message: message}, nil
+}

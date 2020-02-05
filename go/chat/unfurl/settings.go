@@ -38,7 +38,7 @@ func (s *Settings) Get(ctx context.Context, uid gregor1.UID) (res chat1.UnfurlSe
 	defer s.Trace(ctx, func() error { return err }, "Get")()
 
 	var mr modeRecord
-	found, err := s.storage.Get(ctx, uid, settingsModeName, &mr)
+	found, err := s.storage.Get(ctx, uid, chat1.TLFID(uid), settingsModeName, &mr)
 	if err != nil {
 		return res, err
 	}
@@ -49,7 +49,7 @@ func (s *Settings) Get(ctx context.Context, uid gregor1.UID) (res chat1.UnfurlSe
 
 	var wr whitelistRecord
 	whitelist := make(map[string]bool)
-	if found, err = s.storage.Get(ctx, uid, settingsWhitelistName, &wr); err != nil {
+	if found, err = s.storage.Get(ctx, uid, chat1.TLFID(uid), settingsWhitelistName, &wr); err != nil {
 		return res, err
 	}
 	if found {
@@ -64,7 +64,7 @@ func (s *Settings) Get(ctx context.Context, uid gregor1.UID) (res chat1.UnfurlSe
 func (s *Settings) WhitelistAdd(ctx context.Context, uid gregor1.UID, domain string) (err error) {
 	defer s.Trace(ctx, func() error { return err }, "WhitelistAdd(%s)", domain)()
 	var wr whitelistRecord
-	found, err := s.storage.Get(ctx, uid, settingsWhitelistName, &wr)
+	found, err := s.storage.Get(ctx, uid, chat1.TLFID(uid), settingsWhitelistName, &wr)
 	if err != nil {
 		return err
 	}
@@ -75,13 +75,13 @@ func (s *Settings) WhitelistAdd(ctx context.Context, uid gregor1.UID, domain str
 		return nil
 	}
 	wr.Whitelist[domain] = true
-	return s.storage.Put(ctx, uid, settingsWhitelistName, wr)
+	return s.storage.Put(ctx, uid, chat1.TLFID(uid), settingsWhitelistName, wr)
 }
 
 func (s *Settings) WhitelistRemove(ctx context.Context, uid gregor1.UID, domain string) (err error) {
 	defer s.Trace(ctx, func() error { return err }, "WhitelistRemove(%s)", domain)()
 	var wr whitelistRecord
-	found, err := s.storage.Get(ctx, uid, settingsWhitelistName, &wr)
+	found, err := s.storage.Get(ctx, uid, chat1.TLFID(uid), settingsWhitelistName, &wr)
 	if err != nil {
 		return err
 	}
@@ -93,24 +93,24 @@ func (s *Settings) WhitelistRemove(ctx context.Context, uid gregor1.UID, domain 
 		return nil
 	}
 	delete(wr.Whitelist, domain)
-	return s.storage.Put(ctx, uid, settingsWhitelistName, wr)
+	return s.storage.Put(ctx, uid, chat1.TLFID(uid), settingsWhitelistName, wr)
 }
 
 func (s *Settings) SetMode(ctx context.Context, uid gregor1.UID, mode chat1.UnfurlMode) (err error) {
 	defer s.Trace(ctx, func() error { return err }, "SetMode(%v)", mode)()
-	return s.storage.Put(ctx, uid, settingsModeName, modeRecord{
+	return s.storage.Put(ctx, uid, chat1.TLFID(uid), settingsModeName, modeRecord{
 		Mode: mode,
 	})
 }
 
 func (s *Settings) Set(ctx context.Context, uid gregor1.UID, settings chat1.UnfurlSettings) (err error) {
 	defer s.Trace(ctx, func() error { return err }, "Set")()
-	if err = s.storage.Put(ctx, uid, settingsModeName, modeRecord{
+	if err = s.storage.Put(ctx, uid, chat1.TLFID(uid), settingsModeName, modeRecord{
 		Mode: settings.Mode,
 	}); err != nil {
 		return err
 	}
-	if err = s.storage.Put(ctx, uid, settingsWhitelistName, whitelistRecord{
+	if err = s.storage.Put(ctx, uid, chat1.TLFID(uid), settingsWhitelistName, whitelistRecord{
 		Whitelist: settings.Whitelist,
 	}); err != nil {
 		return err
