@@ -22,7 +22,8 @@ type DevConversationBackedStorage struct {
 	ri func() chat1.RemoteInterface
 }
 
-func NewDevConversationBackedStorage(g *globals.Context, mt chat1.ConversationMembersType, adminOnly bool, ri func() chat1.RemoteInterface) *DevConversationBackedStorage {
+func NewDevConversationBackedStorage(g *globals.Context, mt chat1.ConversationMembersType,
+	adminOnly bool, ri func() chat1.RemoteInterface) *DevConversationBackedStorage {
 	return &DevConversationBackedStorage{
 		Contextified: globals.NewContextified(g),
 		mt:           mt,
@@ -41,7 +42,8 @@ func (s *DevConversationBackedStorage) tlfName(ctx context.Context, tlfid chat1.
 		}
 		return name.String(), nil
 	default:
-		info, err := CreateNameInfoSource(ctx, s.G(), s.mt).LookupName(ctx, tlfid, false /* public */, "")
+		info, err := CreateNameInfoSource(ctx, s.G(), s.mt).
+			LookupName(ctx, tlfid, false /* public */, "")
 		if err != nil {
 			return tlfname, err
 		}
@@ -49,7 +51,8 @@ func (s *DevConversationBackedStorage) tlfName(ctx context.Context, tlfid chat1.
 	}
 }
 
-func (s *DevConversationBackedStorage) Put(ctx context.Context, uid gregor1.UID, tlfid chat1.TLFID, name string, src interface{}) (err error) {
+func (s *DevConversationBackedStorage) Put(ctx context.Context, uid gregor1.UID,
+	tlfid chat1.TLFID, name string, src interface{}) (err error) {
 	defer s.Trace(ctx, func() error { return err }, "Put(%s)", name)()
 
 	tlfname, err := s.tlfName(ctx, tlfid)
@@ -83,9 +86,15 @@ func (s *DevConversationBackedStorage) Put(ctx context.Context, uid gregor1.UID,
 		}, 0, nil, nil, nil); err != nil {
 		return err
 	}
-	if s.adminOnly && (conv.ConvSettings == nil || conv.ConvSettings.MinWriterRoleInfo == nil || conv.ConvSettings.MinWriterRoleInfo.Role != keybase1.TeamRole_ADMIN) {
-		s.Debug(ctx, "writing minwriterrole... ")
-		_, err := s.ri().SetConvMinWriterRole(ctx, chat1.SetConvMinWriterRoleArg{ConvID: conv.Info.Id, Role: keybase1.TeamRole_ADMIN})
+	minWriterUnset := conv.ConvSettings == nil ||
+		conv.ConvSettings.MinWriterRoleInfo == nil ||
+		conv.ConvSettings.MinWriterRoleInfo.Role != keybase1.TeamRole_ADMIN
+	if s.adminOnly && minWriterUnset {
+		arg := chat1.SetConvMinWriterRoleArg{
+			ConvID: conv.Info.Id,
+			Role:   keybase1.TeamRole_ADMIN,
+		}
+		_, err := s.ri().SetConvMinWriterRole(ctx, arg)
 		if err != nil {
 			return err
 		}
@@ -93,8 +102,8 @@ func (s *DevConversationBackedStorage) Put(ctx context.Context, uid gregor1.UID,
 	return nil
 }
 
-func (s *DevConversationBackedStorage) Get(ctx context.Context, uid gregor1.UID, tlfid chat1.TLFID, name string,
-	dest interface{}) (found bool, err error) {
+func (s *DevConversationBackedStorage) Get(ctx context.Context, uid gregor1.UID,
+	tlfid chat1.TLFID, name string, dest interface{}) (found bool, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Get(%s)", name)()
 
 	tlfname, err := s.tlfName(ctx, tlfid)
@@ -103,8 +112,7 @@ func (s *DevConversationBackedStorage) Get(ctx context.Context, uid gregor1.UID,
 	}
 
 	convs, err := FindConversations(ctx, s.G(), s.DebugLabeler, types.InboxSourceDataSourceAll, s.ri, uid,
-		tlfname, chat1.TopicType_DEV, s.mt,
-		keybase1.TLFVisibility_PRIVATE, name, nil)
+		tlfname, chat1.TopicType_DEV, s.mt, keybase1.TLFVisibility_PRIVATE, name, nil)
 	if err != nil {
 		return false, err
 	}
