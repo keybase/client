@@ -197,7 +197,7 @@ type _SetNewTeamInfoPayload = {
   readonly teamIDToResetUsers: Map<Types.TeamID, Set<string>>
 }
 type _SetPublicityPayload = {readonly teamID: Types.TeamID; readonly settings: Types.PublicitySettings}
-type _SetSubteamFilterPayload = {readonly filter: string}
+type _SetSubteamFilterPayload = {readonly filter: string; readonly parentTeam?: Types.TeamID}
 type _SetTeamAccessRequestsPendingPayload = {readonly accessRequestsPending: Set<Types.Teamname>}
 type _SetTeamCanPerformPayload = {
   readonly teamname: string

@@ -235,7 +235,21 @@ export default Container.makeReducer<
     }
   },
   [TeamsGen.setSubteamFilter]: (draftState, action) => {
-    draftState.subteamFilter = action.payload.filter
+    const {filter, parentTeam} = action.payload
+    draftState.subteamFilter = filter
+    if (parentTeam && filter) {
+      const flc = filter.toLowerCase()
+      draftState.subteamsFiltered = new Set(
+        [...(draftState.teamDetails.get(parentTeam)?.subteams || [])].filter(sID =>
+          draftState.teamMeta
+            .get(sID)
+            ?.teamname.toLowerCase()
+            .includes(flc)
+        )
+      )
+    } else {
+      draftState.subteamsFiltered = new Set()
+    }
   },
   [TeamBuildingGen.tbResetStore]: handleTeamBuilding,
   [TeamBuildingGen.cancelTeamBuilding]: handleTeamBuilding,

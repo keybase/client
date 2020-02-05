@@ -315,7 +315,8 @@
     },
     "setSubteamFilter": {
       "_description": "Set filtering for the subteams tab.",
-      "filter": "string"
+      "filter": "string",
+      "parentTeam?": "Types.TeamID"
     }
   }
 }

@@ -39,7 +39,8 @@ const AddSubteamNew = ({teamID}: {teamID: Types.TeamID}) => {
         path: [{props: {subteamOf: teamID}, selected: 'teamNewTeamDialog'}],
       })
     )
-  const onChangeFilter = (filter: string) => dispatch(TeamsGen.createSetSubteamFilter({filter}))
+  const onChangeFilter = (filter: string) =>
+    dispatch(TeamsGen.createSetSubteamFilter({filter, parentTeam: teamID}))
   // clear filter on unmount
   React.useEffect(() => () => dispatch(TeamsGen.createSetSubteamFilter({filter: ''})), [dispatch])
   return (
