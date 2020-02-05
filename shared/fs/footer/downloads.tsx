@@ -34,7 +34,7 @@ const Mobile = () => {
 const Desktop = () => {
   Kbfs.useFsDownloadStatus()
   const downloadIDs = Container.useSelector(state => state.fs.downloads.regularDownloads)
-  const dispatch = Kbfs.useDispatchWhenKbfsIsConnected()
+  const dispatch = Container.useDispatch()
   const openDownloadFolder = () =>
     dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: downloadFolder}))
   return downloadIDs.length ? (
