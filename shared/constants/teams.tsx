@@ -182,6 +182,7 @@ const emptyState: Types.State = {
   newTeams: new Set(),
   sawChatBanner: false,
   sawSubteamsBanner: false,
+  subteamFilter: '',
   teamAccessRequestsPending: new Set(),
   teamBuilding: TeamBuildingConstants.makeSubState(),
   teamDetails: new Map(),

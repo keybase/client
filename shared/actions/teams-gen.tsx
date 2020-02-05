@@ -51,6 +51,7 @@ export const setMemberPublicity = 'teams:setMemberPublicity'
 export const setMembers = 'teams:setMembers'
 export const setNewTeamInfo = 'teams:setNewTeamInfo'
 export const setPublicity = 'teams:setPublicity'
+export const setSubteamFilter = 'teams:setSubteamFilter'
 export const setTeamAccessRequestsPending = 'teams:setTeamAccessRequestsPending'
 export const setTeamCanPerform = 'teams:setTeamCanPerform'
 export const setTeamChannelInfo = 'teams:setTeamChannelInfo'
@@ -196,6 +197,7 @@ type _SetNewTeamInfoPayload = {
   readonly teamIDToResetUsers: Map<Types.TeamID, Set<string>>
 }
 type _SetPublicityPayload = {readonly teamID: Types.TeamID; readonly settings: Types.PublicitySettings}
+type _SetSubteamFilterPayload = {readonly filter: string}
 type _SetTeamAccessRequestsPendingPayload = {readonly accessRequestsPending: Set<Types.Teamname>}
 type _SetTeamCanPerformPayload = {
   readonly teamname: string
@@ -331,6 +333,13 @@ export const createGetTeams = (payload: _GetTeamsPayload = Object.freeze({})): G
 export const createRenameTeam = (payload: _RenameTeamPayload): RenameTeamPayload => ({
   payload,
   type: renameTeam,
+})
+/**
+ * Set filtering for the subteams tab.
+ */
+export const createSetSubteamFilter = (payload: _SetSubteamFilterPayload): SetSubteamFilterPayload => ({
+  payload,
+  type: setSubteamFilter,
 })
 /**
  * Sets the retention policy for a team. The store will be updated automatically.
@@ -705,6 +714,10 @@ export type SetNewTeamInfoPayload = {
   readonly type: typeof setNewTeamInfo
 }
 export type SetPublicityPayload = {readonly payload: _SetPublicityPayload; readonly type: typeof setPublicity}
+export type SetSubteamFilterPayload = {
+  readonly payload: _SetSubteamFilterPayload
+  readonly type: typeof setSubteamFilter
+}
 export type SetTeamAccessRequestsPendingPayload = {
   readonly payload: _SetTeamAccessRequestsPendingPayload
   readonly type: typeof setTeamAccessRequestsPending
@@ -861,6 +874,7 @@ export type Actions =
   | SetMembersPayload
   | SetNewTeamInfoPayload
   | SetPublicityPayload
+  | SetSubteamFilterPayload
   | SetTeamAccessRequestsPendingPayload
   | SetTeamCanPerformPayload
   | SetTeamChannelInfoPayload

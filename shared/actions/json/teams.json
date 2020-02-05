@@ -312,6 +312,10 @@
     "toggleInvitesCollapsed": {
       "_description": "Toggle whether invites are collapsed in the member list for this team",
       "teamID": "Types.TeamID"
+    },
+    "setSubteamFilter": {
+      "_description": "Set filtering for the subteams tab.",
+      "filter": "string"
     }
   }
 }

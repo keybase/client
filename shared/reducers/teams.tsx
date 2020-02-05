@@ -234,6 +234,9 @@ export default Container.makeReducer<
       invitesCollapsed.add(teamID)
     }
   },
+  [TeamsGen.setSubteamFilter]: (draftState, action) => {
+    draftState.subteamFilter = action.payload.filter
+  },
   [TeamBuildingGen.tbResetStore]: handleTeamBuilding,
   [TeamBuildingGen.cancelTeamBuilding]: handleTeamBuilding,
   [TeamBuildingGen.addUsersToTeamSoFar]: handleTeamBuilding,
