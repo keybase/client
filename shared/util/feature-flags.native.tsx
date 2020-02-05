@@ -24,6 +24,7 @@ const ff: FeatureFlags = {
   stellarExternalPartners: true,
   teamsRedesign: false,
   userBlocking: true,
+  webOfTrust: false,
 }
 
 // load overrides

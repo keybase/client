@@ -24,6 +24,7 @@ const ff: FeatureFlags = {
   stellarExternalPartners: true,
   teamsRedesign: false,
   userBlocking: true,
+  webOfTrust: false,
 }
 
 const inAdmin: {[K in keyof FeatureFlags]?: boolean} = {
@@ -37,6 +38,7 @@ const inAdmin: {[K in keyof FeatureFlags]?: boolean} = {
   outOfDateBanner: true,
   proofProviders: true,
   userBlocking: false,
+  webOfTrust: false,
 }
 
 // load overrides
