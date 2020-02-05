@@ -2022,6 +2022,9 @@ type InitMode interface {
 	// BackgroundWorkPeriod indicates how long to wait between
 	// non-critical background work tasks.
 	BackgroundWorkPeriod() time.Duration
+	// IndexingEnabled indicates whether or not synced TLFs are
+	// indexed and searchable.
+	IndexingEnabled() bool
 
 	ldbutils.DbWriteBufferSizeGetter
 }
