@@ -3246,7 +3246,7 @@ func (h *Server) SetWelcomeMessage(ctx context.Context, arg chat1.SetWelcomeMess
 func (h *Server) GetWelcomeMessage(ctx context.Context, teamID keybase1.TeamID) (res chat1.GetWelcomeMessageRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, "SetWelcomeMessage")()
+	defer h.Trace(ctx, func() error { return err }, "GetWelcomeMessage")()
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
