@@ -22,6 +22,7 @@ type opts struct {
 	S3Bucket    string
 	DirBasename string
 	BuildID     string
+	Branch      string
 	Preserve    bool
 	BuildURL    string
 	NoCompile   bool
@@ -35,14 +36,6 @@ func logError(f string, args ...interface{}) {
 		s += "\n"
 	}
 	fmt.Fprintf(os.Stderr, "%s", s)
-}
-
-func reportTestOutcome(outcome string, test string, where string) {
-	fmt.Printf("%s: %s", outcome, test)
-	if where != "" {
-		fmt.Printf(" %s", where)
-	}
-	fmt.Printf("\n")
 }
 
 type runner struct {
@@ -63,7 +56,8 @@ func (r *runner) parseArgs() (err error) {
 	var prfx string
 	flag.StringVar(&prfx, "prefix", "", "test set prefix")
 	flag.StringVar(&r.opts.S3Bucket, "s3bucket", "", "AWS S3 bucket to write failures to")
-	flag.StringVar(&r.opts.BuildID, "build", "", "build ID of the current build")
+	flag.StringVar(&r.opts.BuildID, "build-id", "", "build ID of the current build")
+	flag.StringVar(&r.opts.Branch, "branch", "", "the branch of the current build")
 	flag.BoolVar(&r.opts.Preserve, "preserve", false, "preserve test binary after done")
 	flag.StringVar(&r.opts.BuildURL, "build-url", "", "URL for this build (in CI mainly)")
 	flag.BoolVar(&r.opts.NoCompile, "no-compile", false, "specify flag if you've pre-compiled the test")
@@ -122,7 +116,8 @@ func (r *runner) listTests() error {
 
 func (r *runner) flushTestLogs(test string, log bytes.Buffer) (string, error) {
 	buildID := strings.ReplaceAll(r.opts.BuildID, "-", "_")
-	logName := fmt.Sprintf("citogo-%s-%s-%s", buildID, r.opts.Prefix, test)
+	branch := strings.ReplaceAll(r.opts.Branch, "-", "_")
+	logName := fmt.Sprintf("citogo-%s-%s-%s-%s", branch, buildID, r.opts.Prefix, test)
 	if r.opts.S3Bucket != "" {
 		return r.flushLogsToS3(logName, log)
 	}
@@ -154,11 +149,54 @@ func (r *runner) reportFlake(test string, logs string) {
 	if hook == "" {
 		return
 	}
-	hook += url.QueryEscape(fmt.Sprintf("❄️ _client_ %s %s *%s* %s [%s]", r.opts.BuildID, r.opts.Prefix, test, logs, r.opts.BuildURL))
+
+	r.doHook(hook, test, logs, "❄️")
+}
+
+func (r *runner) doHook(hook string, test string, logs string, emoji string) {
+	hook += url.QueryEscape(fmt.Sprintf("%s _client_ %s-%s %s *%s* %s [%s]", emoji, r.opts.Branch, r.opts.BuildID, r.opts.Prefix, test, logs, r.opts.BuildURL))
 	_, err := http.Get(hook)
 	if err != nil {
 		logError("error reporting flake: %s", err.Error())
 	}
+}
+
+type outcome string
+
+const (
+	success outcome = "success"
+	flake   outcome = "flake"
+	fail    outcome = "fail"
+)
+
+func (o outcome) abbrv() string {
+	switch o {
+	case success:
+		return "PASS"
+	case flake:
+		return "FLK?"
+	case fail:
+		return "FAIL"
+	default:
+		return "????"
+	}
+}
+
+func (r *runner) reportTestOutcome(outcome outcome, test string, where string) {
+	fmt.Printf("%s: %s", outcome.abbrv(), test)
+	if where != "" {
+		fmt.Printf(" %s", where)
+	}
+	fmt.Printf("\n")
+	if outcome == success {
+		return
+	}
+
+	hook := os.Getenv("CITOGO_MASTER_FAIL_WEBHOOK")
+	if hook == "" || r.opts.Branch != "master" {
+		return
+	}
+	r.doHook(hook, test, where, "🐳")
 }
 
 func (r *runner) runTest(test string) error {
@@ -189,7 +227,7 @@ func (r *runner) runTestOnce(test string, canRerun bool, isRerun bool) (string, 
 		err = errTestFailed
 	}
 	var where string
-	var status string
+	var status outcome
 	if err != nil {
 		var flushErr error
 		where, flushErr = r.flushTestLogs(test, combined)
@@ -197,14 +235,14 @@ func (r *runner) runTestOnce(test string, canRerun bool, isRerun bool) (string, 
 			return "", flushErr
 		}
 		if canRerun {
-			status = "FLK?"
+			status = flake
 		} else {
-			status = "FAIL"
+			status = fail
 		}
 	} else {
-		status = "PASS"
+		status = success
 	}
-	reportTestOutcome(status, test, where)
+	r.reportTestOutcome(status, test, where)
 	return where, err
 }
 
