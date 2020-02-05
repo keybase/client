@@ -313,7 +313,6 @@ func (i *InstrumentedTransport) RoundTrip(req *http.Request) (resp *http.Respons
 		}
 	}()
 	resp, err = i.Transport.RoundTrip(req)
-	defer resp.Body.Close()
 	record.EndCall()
 	if err != nil {
 		bytesRead, discardErr := DiscardAndCloseBody(resp)
@@ -323,6 +322,7 @@ func (i *InstrumentedTransport) RoundTrip(req *http.Request) (resp *http.Respons
 		}
 		return nil, err
 	}
+	defer resp.Body.Close()
 
 	var buf bytes.Buffer
 	bodyTee := io.TeeReader(resp.Body, &buf)
