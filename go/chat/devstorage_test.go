@@ -21,7 +21,8 @@ func TestDevConversationBackedStorage(t *testing.T) {
 
 	key0 := "storage0"
 	key1 := "storage1"
-	storage := NewDevConversationBackedStorage(tc.Context(), chat1.ConversationMembersType_IMPTEAMNATIVE, false /* adminOnly */, func() chat1.RemoteInterface { return ri })
+	storage := NewDevConversationBackedStorage(tc.Context(), chat1.ConversationMembersType_IMPTEAMNATIVE,
+		false /* adminOnly */, func() chat1.RemoteInterface { return ri })
 	settings := chat1.UnfurlSettings{
 		Mode:      chat1.UnfurlMode_WHITELISTED,
 		Whitelist: make(map[string]bool),
@@ -75,7 +76,8 @@ func TestDevConversationBackedStorageTeamAdminOnly(t *testing.T) {
 	ri := ctc.as(t, alice).ri
 	ctx := ctc.as(t, alice).startCtx
 	uid := alice.User.GetUID().ToBytes()
-	storage := NewDevConversationBackedStorage(tc.Context(), chat1.ConversationMembersType_TEAM, true /* adminOnly */, func() chat1.RemoteInterface { return ri })
+	storage := NewDevConversationBackedStorage(tc.Context(), chat1.ConversationMembersType_TEAM,
+		true /* adminOnly */, func() chat1.RemoteInterface { return ri })
 	var msg string
 
 	bob := users[1]
@@ -83,7 +85,8 @@ func TestDevConversationBackedStorageTeamAdminOnly(t *testing.T) {
 	readertc := ctc.world.Tcs[bob.Username]
 	readerri := ctc.as(t, bob).ri
 	readerctx := ctc.as(t, bob).startCtx
-	readerstorage := NewDevConversationBackedStorage(readertc.Context(), chat1.ConversationMembersType_TEAM, true /* adminOnly */, func() chat1.RemoteInterface { return readerri })
+	readerstorage := NewDevConversationBackedStorage(readertc.Context(), chat1.ConversationMembersType_TEAM,
+		true /* adminOnly */, func() chat1.RemoteInterface { return readerri })
 	var readermsg string
 
 	conv := mustCreateChannelForTest(t, ctc, alice, chat1.TopicType_CHAT, nil, chat1.ConversationMembersType_TEAM, bob)
@@ -124,7 +127,8 @@ func TestDevConversationBackedStorageTeamAdminOnlyReaderMisbehavior(t *testing.T
 	ri := ctc.as(t, alice).ri
 	ctx := ctc.as(t, alice).startCtx
 	uid := alice.User.GetUID().ToBytes()
-	storage := NewDevConversationBackedStorage(tc.Context(), chat1.ConversationMembersType_TEAM, true /* adminOnly */, func() chat1.RemoteInterface { return ri })
+	storage := NewDevConversationBackedStorage(tc.Context(), chat1.ConversationMembersType_TEAM,
+		true /* adminOnly */, func() chat1.RemoteInterface { return ri })
 	var msg string
 
 	bob := users[1]
@@ -132,10 +136,12 @@ func TestDevConversationBackedStorageTeamAdminOnlyReaderMisbehavior(t *testing.T
 	readerri := ctc.as(t, bob).ri
 	readerctx := ctc.as(t, bob).startCtx
 	readeruid := bob.User.GetUID().ToBytes()
-	readerstorage := NewDevConversationBackedStorage(readertc.Context(), chat1.ConversationMembersType_TEAM, true /* adminOnly */, func() chat1.RemoteInterface { return readerri })
+	readerstorage := NewDevConversationBackedStorage(readertc.Context(), chat1.ConversationMembersType_TEAM,
+		true /* adminOnly */, func() chat1.RemoteInterface { return readerri })
 	var readermsg string
 
-	conv := mustCreateChannelForTest(t, ctc, alice, chat1.TopicType_CHAT, nil, chat1.ConversationMembersType_TEAM, bob)
+	conv := mustCreateChannelForTest(t, ctc, alice, chat1.TopicType_CHAT, nil,
+		chat1.ConversationMembersType_TEAM, bob)
 	tlfid := conv.Triple.Tlfid
 	key0 := "mykey"
 
@@ -151,7 +157,8 @@ func TestDevConversationBackedStorageTeamAdminOnlyReaderMisbehavior(t *testing.T
 	require.IsType(t, &DevStoragePermissionDeniedError{}, err, "got right error")
 
 	// work around client-side protection and make dev channel/msg anyway
-	devconv := mustCreateChannelForTest(t, ctc, bob, chat1.TopicType_DEV, &key0, chat1.ConversationMembersType_TEAM, alice)
+	devconv := mustCreateChannelForTest(t, ctc, bob, chat1.TopicType_DEV, &key0,
+		chat1.ConversationMembersType_TEAM, alice)
 	larg := chat1.PostLocalArg{
 		ConversationID: devconv.Id,
 		Msg: chat1.MessagePlaintext{

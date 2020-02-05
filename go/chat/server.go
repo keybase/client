@@ -3222,6 +3222,11 @@ func (h *Server) DismissJourneycard(ctx context.Context, arg chat1.DismissJourne
 
 const welcomeMessageName = "__welcome_message"
 
+func (h *Server) welcomeStorage() types.ConversationBackedStorage {
+	return NewDevConversationBackedStorage(h.G(), chat1.ConversationMembersType_TEAM,
+		true /* adminOnly */, h.remoteClient)
+}
+
 func (h *Server) SetWelcomeMessage(ctx context.Context, arg chat1.SetWelcomeMessageArg) (err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
@@ -3235,7 +3240,7 @@ func (h *Server) SetWelcomeMessage(ctx context.Context, arg chat1.SetWelcomeMess
 	if err != nil {
 		return err
 	}
-	return h.G().WelcomeStorage.Put(ctx, uid, tlfID, welcomeMessageName, arg.Message)
+	return h.welcomeStorage().Put(ctx, uid, tlfID, welcomeMessageName, arg.Message)
 }
 
 func (h *Server) GetWelcomeMessage(ctx context.Context, teamID keybase1.TeamID) (res chat1.GetWelcomeMessageRes, err error) {
@@ -3252,7 +3257,7 @@ func (h *Server) GetWelcomeMessage(ctx context.Context, teamID keybase1.TeamID) 
 		return res, err
 	}
 	var message string
-	found, err := h.G().WelcomeStorage.Get(ctx, uid, tlfID, welcomeMessageName, &message)
+	found, err := h.welcomeStorage().Get(ctx, uid, tlfID, welcomeMessageName, &message)
 	switch err.(type) {
 	case nil:
 		return chat1.GetWelcomeMessageRes{Found: found, Message: message}, nil
