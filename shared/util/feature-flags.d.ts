@@ -11,12 +11,13 @@ export type FeatureFlags = {
   lagRadar: boolean
   moveOrCopy: boolean
   newTeamBuildingForChatAllowMakeTeam: boolean
+  openTeamSearch: boolean
   outOfDateBanner: boolean
   proofProviders: boolean
   stellarExternalPartners: boolean
   teamsRedesign: boolean
   userBlocking: boolean
-  openTeamSearch: boolean
+  webOfTrust: boolean
 }
 
 declare const ff: FeatureFlags

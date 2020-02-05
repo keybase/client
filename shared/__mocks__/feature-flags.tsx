@@ -23,6 +23,7 @@ const ff: FeatureFlags = {
   stellarExternalPartners: false,
   teamsRedesign: false,
   userBlocking: true,
+  webOfTrust: false,
 }
 
 console.warn('feature flag mock in effect')

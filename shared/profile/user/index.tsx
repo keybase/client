@@ -13,7 +13,9 @@ import Friend from './friend/container'
 import Measure from './measure'
 import Teams from './teams/container'
 import Folders from '../folders/container'
+import WebOfTrust from './weboftrust/container'
 import shallowEqual from 'shallowequal'
+import flags from '../../util/feature-flags'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Flow from '../../util/flow'
 import {SiteIcon} from '../generic/shared'
@@ -46,6 +48,7 @@ export type Props = {
   serviceIcon?: Array<Types.SiteIcon>
   fullName?: string // full name from external profile
   title: string
+  webOfTrustEntries: Array<Types.WebOfTrustEntry>
 }
 
 const colorTypeToStyle = (type: 'red' | 'green' | 'blue') => {
@@ -150,38 +153,45 @@ const Proofs = p => {
   )
 }
 
-type FriendshipTabsProps = {
+type TabsProps = {
   loadingFollowers: boolean
   loadingFollowing: boolean
-  onChangeFollowing: (arg0: boolean) => void
-  selectedFollowing: boolean
+  onSelectTab: (tab: Tab) => void
+  selectedTab: string
   numFollowers: number | undefined
   numFollowing: number | undefined
 }
 
-class FriendshipTabs extends React.Component<FriendshipTabsProps> {
-  _onClickFollowing = () => this.props.onChangeFollowing(true)
-  _onClickFollowers = () => this.props.onChangeFollowing(false)
-  _tab = following => (
+class Tabs extends React.Component<TabsProps> {
+  _onClickFollowing = () => this.props.onSelectTab('following')
+  _onClickFollowers = () => this.props.onSelectTab('followers')
+  _onClickWebOfTrust = () => this.props.onSelectTab('webOfTrust')
+  _tab = (tab: Tab) => (
     <Kb.ClickableBox
-      onClick={following ? this._onClickFollowing : this._onClickFollowers}
+      onClick={
+        tab === 'following'
+          ? this._onClickFollowing
+          : tab === 'followers'
+          ? this._onClickFollowers
+          : this._onClickWebOfTrust
+      }
       style={Styles.collapseStyles([
         styles.followTab,
-        following === this.props.selectedFollowing && styles.followTabSelected,
+        tab === this.props.selectedTab && styles.followTabSelected,
       ])}
     >
       <Kb.Box2 direction="horizontal" gap="xtiny">
         <Kb.Text
           type="BodySmallSemibold"
-          style={
-            following === this.props.selectedFollowing ? styles.followTabTextSelected : styles.followTabText
-          }
+          style={tab === this.props.selectedTab ? styles.followTabTextSelected : styles.followTabText}
         >
-          {following
+          {tab === 'following'
             ? `Following${!this.props.loadingFollowing ? ` (${this.props.numFollowing || 0})` : ''}`
-            : `Followers${!this.props.loadingFollowers ? ` (${this.props.numFollowers || 0})` : ''}`}
+            : tab === 'followers'
+            ? `Followers${!this.props.loadingFollowers ? ` (${this.props.numFollowers || 0})` : ''}`
+            : 'Web of Trust'}
         </Kb.Text>
-        {((following && this.props.loadingFollowing) || this.props.loadingFollowers) && (
+        {((tab === 'following' && this.props.loadingFollowing) || this.props.loadingFollowers) && (
           <Kb.ProgressIndicator style={{position: 'absolute'}} />
         )}
       </Kb.Box2>
@@ -191,14 +201,15 @@ class FriendshipTabs extends React.Component<FriendshipTabsProps> {
   render() {
     return (
       <Kb.Box2 direction="horizontal" style={styles.followTabContainer} fullWidth={true}>
-        {this._tab(false)}
-        {this._tab(true)}
+        {flags.webOfTrust && this._tab('webOfTrust')}
+        {this._tab('followers')}
+        {this._tab('following')}f
       </Kb.Box2>
     )
   }
 }
 
-const widthToDimentions = width => {
+const widthToDimensions = width => {
   const singleItemWidth = Styles.isMobile ? 130 : 120
   const itemsInARow = Math.floor(Math.max(1, width / singleItemWidth))
   const itemWidth = Math.floor(width / itemsInARow)
@@ -218,6 +229,7 @@ class FriendRow extends React.Component<FriendRowProps> {
   }
 
   render() {
+    console.warn('in render, usernames', this.props.usernames)
     return (
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.friendRow}>
         {this.props.usernames.map(u => (
@@ -321,9 +333,11 @@ const Header = () => (
 )
 
 type State = {
-  selectedFollowing: boolean
+  selectedTab: string
   width: number
 }
+
+type Tab = 'followers' | 'following' | 'webOfTrust'
 
 class User extends React.Component<Props, State> {
   static navigationOptions = () => ({
@@ -350,19 +364,19 @@ class User extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props)
     this.state = {
-      selectedFollowing: !!usernameSelectedFollowing[props.username],
+      selectedTab: usernameSelectedTab[props.username] || 'followers',
       width: Styles.dimensionWidth,
     }
   }
 
-  _changeFollowing = (following: boolean) => {
+  _changeTab = (tab: Tab) => {
     this.setState(p => {
-      if (p.selectedFollowing === following) {
+      if (p.selectedTab === tab) {
         return null
       }
-      const selectedFollowing = !p.selectedFollowing
-      usernameSelectedFollowing[this.props.username] = selectedFollowing
-      return {selectedFollowing}
+      const selectedTab = tab
+      usernameSelectedTab[this.props.username] = selectedTab
+      return {selectedTab}
     })
   }
 
@@ -373,14 +387,14 @@ class User extends React.Component<Props, State> {
     const loadingFollowing = this.props.following === undefined
     const loadingFollowers = this.props.followers === undefined
     return (
-      <FriendshipTabs
+      <Tabs
         key="tabs"
         loadingFollowing={loadingFollowing}
         loadingFollowers={loadingFollowers}
         numFollowers={this.props.followersCount}
         numFollowing={this.props.followingCount}
-        onChangeFollowing={this._changeFollowing}
-        selectedFollowing={this.state.selectedFollowing}
+        onSelectTab={this._changeTab}
+        selectedTab={this.state.selectedTab}
       />
     )
   }
@@ -390,6 +404,8 @@ class User extends React.Component<Props, State> {
       <Kb.Box2 direction="horizontal" style={styles.textEmpty} centerChildren={true}>
         <Kb.Text type="BodySmall">{item.text}</Kb.Text>
       </Kb.Box2>
+    ) : this.state.selectedTab === 'webOfTrust' ? (
+      <WebOfTrust webOfTrustAttestation={item} />
     ) : (
       <FriendRow key={'friend' + index} usernames={item} itemWidth={section.itemWidth} />
     )
@@ -428,18 +444,29 @@ class User extends React.Component<Props, State> {
   _errorFilter = e => e.code !== RPCTypes.StatusCode.scresolutionfailed
 
   render() {
-    const friends = this.state.selectedFollowing ? this.props.following : this.props.followers
-    const {itemsInARow, itemWidth} = widthToDimentions(this.state.width)
+    const friends =
+      this.state.selectedTab === 'following'
+        ? this.props.following
+        : this.state.selectedTab === 'followers'
+        ? this.props.followers
+        : null
+    const {itemsInARow, itemWidth} = widthToDimensions(this.state.width)
     // TODO memoize?
-    let chunks: Array<
-      Array<string> | {type: 'noFriends'; text: string} | {type: 'loading'; text: string}
-    > = this.state.width ? chunk(friends, itemsInARow) : []
-    if (chunks.length === 0) {
+    let chunks:
+      | Array<Types.WebOfTrustEntry>
+      | Array<Array<string> | {type: 'noFriends'; text: string} | {type: 'loading'; text: string}> = this
+      .state.width
+      ? chunk(friends, itemsInARow)
+      : []
+    if (this.state.selectedTab === 'webOfTrust') {
+      chunks = this.props.webOfTrustEntries
+    } else if (chunks.length === 0) {
       if (this.props.following && this.props.followers) {
         chunks.push({
-          text: this.state.selectedFollowing
-            ? `${this.props.userIsYou ? 'You are' : `${this.props.username} is`} not following anyone.`
-            : `${this.props.userIsYou ? 'You have' : `${this.props.username} has`} no followers.`,
+          text:
+            this.state.selectedTab === 'following'
+              ? `${this.props.userIsYou ? 'You are' : `${this.props.username} is`} not following anyone.`
+              : `${this.props.userIsYou ? 'You have' : `${this.props.username} has`} no followers.`,
           type: 'noFriends',
         })
       } else {
@@ -495,7 +522,7 @@ class User extends React.Component<Props, State> {
 }
 
 // don't bother to keep this in the store
-const usernameSelectedFollowing = {}
+const usernameSelectedTab = {}
 
 const avatarSize = 128
 const headerHeight = Styles.isAndroid ? 30 : Styles.isIOS ? Styles.statusBarHeight + 46 : 80
