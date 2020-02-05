@@ -61,16 +61,24 @@ const packagerOpts: any = {
   extendInfo: {
     CFBundleDocumentTypes: [
       {
-        CFBundleTypeExtensions: ['encrypted.saltpack'],
-        CFBundleTypeIconFile: 'saltpack-encrypted.icns',
-        CFBundleTypeName: 'SaltpackEncrypted',
+        CFBundleTypeExtensions: ['saltpack'],
+        CFBundleTypeIconFile: 'electron.icns',
+        CFBundleTypeName: 'io.keybase.saltpack',
         CFBundleTypeRole: 'Editor',
+        LSHandlerRank: 'Owner',
+        LSItemContentTypes: ['io.keybase.saltpack'],
       },
+    ],
+    UTExportedTypeDeclarations: [
       {
-        CFBundleTypeExtensions: ['signed.saltpack'],
-        CFBundleTypeIconFile: 'saltpack-signed.icns',
-        CFBundleTypeName: 'SaltpackSigned',
-        CFBundleTypeRole: 'Editor',
+        UTTypeConformsTo: ['public.data'],
+        UTTypeDescription: 'Saltpack file format',
+        UTTypeIconFile: 'electron.icns',
+        UTTypeIdentifier: 'io.keybase.saltpack',
+        UTTypeReferenceURL: 'https://saltpack.org',
+        UTTypeTagSpecification: {
+          'public.filename-extension': ['saltpack'],
+        },
       },
     ],
   },
@@ -113,7 +121,6 @@ function main() {
     packagerOpts.icon = icon
   }
 
-  console.log('JRY package', {saltpackEncryptedIcon, saltpackSignedIcon})
   if (saltpackEncryptedIcon && saltpackSignedIcon) {
     packagerOpts.extraResource = [...packagerOpts.extraResource, saltpackEncryptedIcon, saltpackSignedIcon]
   } else {
