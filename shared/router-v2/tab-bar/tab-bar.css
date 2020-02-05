@@ -75,16 +75,11 @@
   display: none !important;
 }
 
-.tab .tab-crypto {
+.tab .tab-encrypted {
+  color: #a8ccff;
   font-family: Nyctographic;
   font-style: italic;
   letter-spacing: 0.1em;
-}
-.tab .tab-selected .tab-crypto,
-.tab:hover .tab-crypto {
-  font-family: Keybase;
-  font-style: normal;
-  letter-spacing: initial;
 }
 
 @media all and (max-width: 800px) and (min-width: 0px) {
