@@ -854,6 +854,26 @@ protocol local {
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
+  // newConversationsLocal tries to make many conversations at once. If the conversation triple already exists,
+  // it is not considered an error. Any errors are returned in the results.
+  NewConversationsLocalRes newConversationsLocal(array<NewConversationLocalArgument> newConversationLocalArguments, keybase1.TLFIdentifyBehavior identifyBehavior);
+  record NewConversationsLocalRes {
+    array<NewConversationsLocalResult> results;
+    array<RateLimit> rateLimits;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
+  }
+  record NewConversationsLocalResult {
+    union { null, NewConversationLocalRes } result;
+    union { null, string } err;
+  }
+  record NewConversationLocalArgument {
+    string tlfName;
+    TopicType topicType;
+    keybase1.TLFVisibility tlfVisibility;
+    union { null, string } topicName;
+    ConversationMembersType membersType;
+  }
+
   NewConversationLocalRes newConversationLocal(string tlfName, TopicType topicType, keybase1.TLFVisibility tlfVisibility, union { null, string } topicName, ConversationMembersType membersType, keybase1.TLFIdentifyBehavior identifyBehavior);
   record NewConversationLocalRes {
     ConversationLocal conv;
@@ -861,7 +881,6 @@ protocol local {
     array<RateLimit> rateLimits;
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
-
 
   // if since is given, limit is ignored
   GetInboxSummaryForCLILocalRes getInboxSummaryForCLILocal(GetInboxSummaryForCLILocalQuery query);

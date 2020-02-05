@@ -2,6 +2,7 @@ import Icon, {IconType} from './icon'
 import * as React from 'react'
 import * as Styles from '../styles'
 import {Props, AvatarSize} from './avatar.render'
+import flags from '../util/feature-flags'
 
 const avatarSizeToPoopIconType = (s: AvatarSize): IconType | null =>
   s === 128
@@ -65,7 +66,12 @@ const Avatar = (props: Props) => {
         />
       )}
       {props.followIconType && <Icon type={props.followIconType} style={props.followIconStyle} />}
-      {props.editable && <Icon type="iconfont-edit" style={props.isTeam ? styles.editTeam : styles.edit} />}
+      {props.editable && (
+        <Icon
+          type="iconfont-edit"
+          style={props.isTeam ? (flags.teamsRedesign ? styles.editTeam : styles.editTeamOld) : styles.edit}
+        />
+      )}
       {props.children}
     </div>
   )
@@ -86,7 +92,19 @@ const styles = Styles.styleSheetCreate(
         position: 'absolute',
         right: 0,
       },
-      editTeam: {
+      editTeam: Styles.platformStyles({
+        isElectron: {
+          backgroundColor: Styles.globalColors.blue,
+          border: 'solid white 2px',
+          borderRadius: 100,
+          bottom: -6,
+          color: Styles.globalColors.whiteOrWhite,
+          padding: 4,
+          position: 'absolute',
+          right: -6,
+        },
+      }),
+      editTeamOld: {
         bottom: -2,
         position: 'absolute',
         right: -18,

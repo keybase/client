@@ -173,14 +173,19 @@ class ImageAttachment extends React.PureComponent<Props, State> {
                       </Kb.Box2>
                     </Kb.ClickableBox>
                     {this.props.title.length > 0 && (
-                      <Kb.Markdown
+                      <Kb.Box2
+                        direction="vertical"
                         style={Styles.collapseStyles([styles.title])}
-                        meta={{message: this.props.message}}
-                        selectable={true}
-                        allowFontScaling={true}
+                        alignItems="flex-start"
                       >
-                        {this.props.title}
-                      </Kb.Markdown>
+                        <Kb.Markdown
+                          meta={{message: this.props.message}}
+                          selectable={true}
+                          allowFontScaling={true}
+                        >
+                          {this.props.title}
+                        </Kb.Markdown>
+                      </Kb.Box2>
                     )}
                   </Kb.Box2>
                 )}
