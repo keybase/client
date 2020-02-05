@@ -28,10 +28,7 @@ export const badgeStateToBadgeCounts = (state: Container.TypedState, bs: RPCType
 
   // don't see badges related to this device
   counts.set(Tabs.devicesTab, allDeviceChanges.size - (allDeviceChanges.has(state.config.deviceID) ? 1 : 0))
-  counts.set(
-    Tabs.chatTab,
-    conversations.reduce<number>((total, c) => total + c.badgeCount, 0)
-  )
+  counts.set(Tabs.chatTab, bs.smallTeamBadgeCount + bs.bigTeamBadgeCount)
   counts.set(
     Tabs.walletsTab,
     unreadWalletAccounts.reduce<number>((total, a) => total + a.numUnread, 0)
