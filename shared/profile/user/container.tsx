@@ -150,6 +150,7 @@ const connected = Container.namedConnect(
       onAddIdentity,
       onBack: dispatchProps.onBack,
       onEditAvatar: stateProps.userIsYou ? dispatchProps._onEditAvatar : undefined,
+      onIKnowThem: () => {},
       onReload: () => dispatchProps._onReload(stateProps.username, stateProps.userIsYou, stateProps.state),
       reason: stateProps.reason,
       sbsAvatarUrl: stateProps.sbsAvatarUrl,

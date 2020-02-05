@@ -37,6 +37,7 @@ export type Props = {
   onBack: () => void
   onReload: () => void
   onEditAvatar?: (e?: React.BaseSyntheticEvent) => void
+  onIKnowThem?: () => void
   reason: string
   sbsAvatarUrl?: string
   state: Types.DetailsState
@@ -160,6 +161,7 @@ type TabsProps = {
   selectedTab: string
   numFollowers: number | undefined
   numFollowing: number | undefined
+  numWebOfTrust: number | undefined
 }
 
 class Tabs extends React.Component<TabsProps> {
@@ -189,7 +191,7 @@ class Tabs extends React.Component<TabsProps> {
             ? `Following${!this.props.loadingFollowing ? ` (${this.props.numFollowing || 0})` : ''}`
             : tab === 'followers'
             ? `Followers${!this.props.loadingFollowers ? ` (${this.props.numFollowers || 0})` : ''}`
-            : 'Web of Trust'}
+            : `Web of Trust (${this.props.numWebOfTrust})`}
         </Kb.Text>
         {((tab === 'following' && this.props.loadingFollowing) || this.props.loadingFollowers) && (
           <Kb.ProgressIndicator style={{position: 'absolute'}} />
@@ -393,19 +395,29 @@ class User extends React.Component<Props, State> {
         loadingFollowers={loadingFollowers}
         numFollowers={this.props.followersCount}
         numFollowing={this.props.followingCount}
+        numWebOfTrust={this.props.webOfTrustEntries.length}
         onSelectTab={this._changeTab}
         selectedTab={this.state.selectedTab}
       />
     )
   }
 
+  _renderWebOfTrust = ({item}) =>
+    item.type === 'IKnowThem' ? (
+      <Kb.Box2 key="iknowthem" direction="horizontal" fullWidth={true} style={styles.knowThemBox}>
+        <Kb.Button key="iknowthembtn" onClick={this.props.onIKnowThem} type="Default" label={item.text}>
+          <Kb.Icon type="iconfont-proof-good" style={styles.knowThemIcon} />
+        </Kb.Button>
+      </Kb.Box2>
+    ) : (
+      <WebOfTrust webOfTrustAttestation={item} />
+    )
+
   _renderOtherUsers = ({item, section, index}) =>
     this.props.notAUser ? null : item.type === 'noFriends' || item.type === 'loading' ? (
       <Kb.Box2 direction="horizontal" style={styles.textEmpty} centerChildren={true}>
         <Kb.Text type="BodySmall">{item.text}</Kb.Text>
       </Kb.Box2>
-    ) : this.state.selectedTab === 'webOfTrust' ? (
-      <WebOfTrust webOfTrustAttestation={item} />
     ) : (
       <FriendRow key={'friend' + index} usernames={item} itemWidth={section.itemWidth} />
     )
@@ -452,14 +464,21 @@ class User extends React.Component<Props, State> {
         : null
     const {itemsInARow, itemWidth} = widthToDimensions(this.state.width)
     // TODO memoize?
-    let chunks:
-      | Array<Types.WebOfTrustEntry>
-      | Array<Array<string> | {type: 'noFriends'; text: string} | {type: 'loading'; text: string}> = this
-      .state.width
-      ? chunk(friends, itemsInARow)
-      : []
+    type ChunkType = Array<
+      | Types.WebOfTrustEntry
+      | Array<string>
+      | {type: 'IKnowThem'; text: string}
+      | {type: 'noFriends'; text: string}
+      | {type: 'loading'; text: string}
+    >
+    let chunks: ChunkType = this.state.width ? chunk(friends, itemsInARow) : []
     if (this.state.selectedTab === 'webOfTrust') {
-      chunks = this.props.webOfTrustEntries
+      chunks = this.props.onIKnowThem
+        ? (this.props.webOfTrustEntries as ChunkType).concat({
+            text: 'I know them!',
+            type: 'IKnowThem',
+          })
+        : this.props.webOfTrustEntries
     } else if (chunks.length === 0) {
       if (this.props.following && this.props.followers) {
         chunks.push({
@@ -472,7 +491,7 @@ class User extends React.Component<Props, State> {
       } else {
         chunks.push({
           text: 'Loading...',
-          type: 'loading' as 'loading',
+          type: 'loading',
         })
       }
     }
@@ -507,7 +526,10 @@ class User extends React.Component<Props, State> {
                   {
                     data: chunks,
                     itemWidth,
-                    renderItem: this._renderOtherUsers,
+                    renderItem:
+                      this.state.selectedTab === 'webOfTrust'
+                        ? this._renderWebOfTrust
+                        : this._renderOtherUsers,
                   },
                 ]}
                 style={styles.sectionList}
@@ -615,6 +637,8 @@ export const styles = Styles.styleSheetCreate(() => ({
     width: '100%',
   },
   invisible: {opacity: 0},
+  knowThemBox: {padding: Styles.globalMargins.small},
+  knowThemIcon: {paddingRight: Styles.globalMargins.tiny},
   label: {
     color: Styles.globalColors.black,
   },
