@@ -190,6 +190,10 @@ func (n nullHiddenTeamChainManager) HintLatestSeqno(m MetaContext, id keybase1.T
 }
 func (n nullHiddenTeamChainManager) Shutdown(m MetaContext) {}
 
+func (n nullHiddenTeamChainManager) TeamSupportsHiddenChain(m MetaContext, id keybase1.TeamID) (state bool, err error) {
+	return false, fmt.Errorf("null hidden team chain manager")
+}
+
 func newNullHiddenTeamChainManager() nullHiddenTeamChainManager {
 	return nullHiddenTeamChainManager{}
 }

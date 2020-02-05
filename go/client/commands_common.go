@@ -73,6 +73,7 @@ func GetCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Comma
 		NewCmdVersion(cl, g),
 		newCmdWallet(cl, g),
 		newCmdWebAuthToken(cl, g),
+		newCmdWebOfTrust(cl, g),
 		newCmdUploadAvatar(cl, g, true /* hidden */),
 		NewCmdAudit(cl, g),
 		NewCmdWhoami(cl, g),

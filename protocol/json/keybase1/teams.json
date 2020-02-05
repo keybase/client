@@ -2709,6 +2709,41 @@
     },
     {
       "type": "record",
+      "name": "TeamMemberToRemove",
+      "fields": [
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "string",
+          "name": "email"
+        },
+        {
+          "type": "TeamInviteID",
+          "name": "inviteID"
+        },
+        {
+          "type": "boolean",
+          "name": "allowInaction"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamRemoveMembersResult",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamMemberToRemove"
+          },
+          "name": "failures"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "TeamEditMembersResult",
       "fields": [
         {
@@ -3464,6 +3499,26 @@
         }
       ],
       "response": null
+    },
+    "teamRemoveMembers": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "teamID",
+          "type": "TeamID"
+        },
+        {
+          "name": "users",
+          "type": {
+            "type": "array",
+            "items": "TeamMemberToRemove"
+          }
+        }
+      ],
+      "response": "TeamRemoveMembersResult"
     },
     "teamLeave": {
       "request": [

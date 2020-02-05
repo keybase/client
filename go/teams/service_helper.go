@@ -1008,6 +1008,51 @@ func MemberRoleFromID(ctx context.Context, g *libkb.GlobalContext, teamID keybas
 	return role, err
 }
 
+func RemoveMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, users []keybase1.TeamMemberToRemove) (res keybase1.TeamRemoveMembersResult, err error) {
+	teamGetter := func() (*Team, error) {
+		return GetForTeamManagementByTeamID(ctx, g, teamID, false)
+	}
+
+	var failedToRemove []keybase1.TeamMemberToRemove
+
+	for _, user := range users {
+		exclusiveActions := user.Username + user.Email + string(user.InviteID)
+		lenExclActions := len(exclusiveActions)
+
+		if lenExclActions > len(user.Username) && lenExclActions > len(user.Email) && lenExclActions > len(user.InviteID) {
+			g.Log.CDebugf(ctx, "RemoveMembers: can only do 1 of [username: %s, email: %s, inviteID: %s] at a time", user.Username, user.Email, user.InviteID)
+			failedToRemove = append(failedToRemove, user)
+			continue
+		}
+
+		if len(user.Email) > 0 {
+			g.Log.CDebugf(ctx, "RemoveMembers: received email address, using CancelEmailInvite for %q in team %q", user.Email, teamID)
+			err = CancelEmailInvite(ctx, g, teamID, user.Email, user.AllowInaction)
+			if err != nil {
+				failedToRemove = append(failedToRemove, user)
+			}
+			continue
+		} else if len(user.InviteID) > 0 {
+			g.Log.CDebugf(ctx, "RemoveMembers: received inviteID, using CancelInviteByID for %q in team %q", user.InviteID, teamID)
+			err = CancelInviteByID(ctx, g, teamID, user.InviteID, user.AllowInaction)
+			if err != nil {
+				failedToRemove = append(failedToRemove, user)
+			}
+			continue
+		}
+		// Note: AllowInaction is not supported for non-invite removes.
+		g.Log.CDebugf(ctx, "RemoveMembers: using RemoveMember for %q in team %q", user.Username, teamID)
+		err := remove(ctx, g, teamGetter, user.Username)
+		if err != nil {
+			failedToRemove = append(failedToRemove, user)
+		}
+	}
+
+	res = keybase1.TeamRemoveMembersResult{Failures: failedToRemove}
+
+	return res, nil
+}
+
 func RemoveMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, username string) error {
 	teamGetter := func() (*Team, error) {
 		return GetForTeamManagementByTeamID(ctx, g, teamID, false)

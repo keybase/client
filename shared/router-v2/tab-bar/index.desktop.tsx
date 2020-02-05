@@ -184,34 +184,94 @@ type TabProps = {
   onTabClick: (t: Tabs.AppTab) => void
   badge?: number
 }
-const Tab = React.memo(({tab, index, selectedTab, onTabClick, badge}: TabProps) => (
-  <Kb.ClickableBox key={tab} onClick={() => onTabClick(tab)}>
-    <Kb.WithTooltip
-      tooltip={`${data[tab].label} (${Platforms.shortcutSymbol}${index + 1})`}
-      toastClassName="tab-tooltip"
-    >
-      <Kb.Box2
-        direction="horizontal"
-        fullWidth={true}
-        className={tab === selectedTab ? 'tab-selected' : 'tab'}
-        style={styles.tab}
-      >
-        <Kb.Box2 className="tab-highlight" direction="vertical" fullHeight={true} />
-        <Kb.Box2 style={styles.iconBox} direction="horizontal">
-          <Kb.Icon className="tab-icon" type={data[tab].icon} sizeType="Big" />
-          {tab === Tabs.fsTab && <FilesTabBadge />}
-        </Kb.Box2>
-        <Kb.Text
-          className={`tab-label tab-${data[tab].label.toLowerCase().replace(' ', '-')}`}
-          type="BodySmallSemibold"
-        >
-          {data[tab].label}
+
+type AnimationState = 'none' | 'encrypt' | 'decrypt'
+
+const Tab = React.memo(({tab, index, selectedTab, onTabClick, badge}: TabProps) => {
+  const [hovering, setHovering] = React.useState(false)
+  const isCrypto = tab === Tabs.cryptoTab
+  const tabData = data[tab]
+  const {label} = tabData
+  const labelLength = label.length - 1
+
+  const [animationState, setAnimationState] = React.useState<AnimationState>('none')
+  // right of divider is 'normal'
+  const [divider, setDivider] = React.useState(labelLength)
+
+  Kb.useInterval(
+    () => {
+      if (animationState === 'encrypt') {
+        if (divider < labelLength) {
+          setDivider(divider + 1)
+        } else {
+          setAnimationState('none')
+        }
+      } else if (animationState === 'decrypt') {
+        if (divider >= 0) {
+          setDivider(divider - 1)
+        } else {
+          setAnimationState('none')
+        }
+      }
+    },
+    animationState === 'none' ? undefined : 50
+  )
+
+  React.useEffect(() => {
+    if (!isCrypto) return
+    setAnimationState(hovering ? 'decrypt' : 'encrypt')
+  }, [isCrypto, hovering])
+
+  let animatedLabel: string | React.ReactNode
+  if (isCrypto) {
+    const parts = label.split('')
+    const encrypted = parts.slice(0, divider + 1)
+    const decrypted = parts.slice(divider + 1)
+    animatedLabel = (
+      <Kb.Text type="BodySmallSemibold">
+        <Kb.Text type="BodySmallSemibold" className="tab-encrypted">
+          {encrypted}
         </Kb.Text>
-        {!!badge && <Kb.Badge className="tab-badge" badgeNumber={badge} />}
-      </Kb.Box2>
-    </Kb.WithTooltip>
-  </Kb.ClickableBox>
-))
+        <Kb.Text type="BodySmallSemibold" className="tab-label">
+          {decrypted}
+        </Kb.Text>
+      </Kb.Text>
+    )
+  } else {
+    animatedLabel = label
+  }
+
+  return (
+    <Kb.ClickableBox
+      key={tab}
+      onClick={() => onTabClick(tab)}
+      onMouseOver={isCrypto ? () => setHovering(true) : undefined}
+      onMouseLeave={isCrypto ? () => setHovering(false) : undefined}
+    >
+      <Kb.WithTooltip
+        tooltip={`${label} (${Platforms.shortcutSymbol}${index + 1})`}
+        toastClassName="tab-tooltip"
+      >
+        <Kb.Box2
+          direction="horizontal"
+          fullWidth={true}
+          className={tab === selectedTab ? 'tab-selected' : 'tab'}
+          style={styles.tab}
+        >
+          <Kb.Box2 className="tab-highlight" direction="vertical" fullHeight={true} />
+          <Kb.Box2 style={styles.iconBox} direction="horizontal">
+            <Kb.Icon className="tab-icon" type={data[tab].icon} sizeType="Big" />
+            {tab === Tabs.fsTab && <FilesTabBadge />}
+          </Kb.Box2>
+          <Kb.Text className="tab-label" type="BodySmallSemibold">
+            {animatedLabel}
+          </Kb.Text>
+          {!!badge && <Kb.Badge className="tab-badge" badgeNumber={badge} />}
+        </Kb.Box2>
+      </Kb.WithTooltip>
+    </Kb.ClickableBox>
+  )
+})
 
 const styles = Styles.styleSheetCreate(
   () =>

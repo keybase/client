@@ -1,4 +1,4 @@
-import Team from './team/container'
+import {TeamScreenType} from './team/container'
 import TeamMember from './team/member/container'
 import TeamsRoot from './container'
 import ContactRestricted from '../team-building/contact-restricted'
@@ -16,7 +16,7 @@ import TeamRename from './rename-team/container'
 import TeamsTeamBuilder from '../team-building/container'
 
 export const newRoutes = {
-  team: {getScreen: (): typeof Team => require('./team/container').default},
+  team: {getScreen: (): TeamScreenType => require('./team/container').default},
   teamMember: {getScreen: (): typeof TeamMember => require('./team/member/container').default},
   // TODO connect broken
   teamsRoot: {getScreen: (): typeof TeamsRoot => require('./container').default},
