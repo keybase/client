@@ -461,23 +461,13 @@ func (b *BadgeState) updateWithChat(ctx context.Context, update chat1.UnreadUpda
 		cur := b.chatUnreadMap[update.ConvID.ConvIDStr()]
 		cur.ConvID = keybase1.ChatConversationID(update.ConvID)
 		cur.UnreadMessages += update.UnreadMessages
-		for dt, c := range update.UnreadNotifyingMessages {
-			if dt == deviceType {
-				cur.BadgeCount += c
-			}
-		}
+		cur.BadgeCount += update.UnreadNotifyingMessages[deviceType]
 		b.chatUnreadMap[update.ConvID.ConvIDStr()] = cur
 	} else {
-		count := 0
-		for dt, c := range update.UnreadNotifyingMessages {
-			if dt == deviceType {
-				count += c
-			}
-		}
 		b.chatUnreadMap[update.ConvID.ConvIDStr()] = keybase1.BadgeConversationInfo{
 			ConvID:         keybase1.ChatConversationID(update.ConvID),
 			UnreadMessages: update.UnreadMessages,
-			BadgeCount:     count,
+			BadgeCount:     update.UnreadNotifyingMessages[deviceType],
 		}
 	}
 }
