@@ -9,7 +9,6 @@ import (
 	"image/png"
 	"io"
 	"io/ioutil"
-	"net/http"
 	"net/url"
 	"os"
 	"runtime"
@@ -44,15 +43,14 @@ func FetchAvatar(ctx context.Context, g *globals.Context, username string) (res 
 	}
 	switch parsed.Scheme {
 	case "http", "https":
-		var avResp *http.Response
-		avResp, err = libkb.ProxyHTTPGet(g.GetEnv(), avatarURL)
+		resp, err := libkb.ProxyHTTPGet(g.ExternalG(), g.GetEnv(), avatarURL)
 		if err != nil {
 			return res, err
 		}
-		if avResp.StatusCode >= 400 {
+		if resp.StatusCode >= 400 {
 			avatarReader = getAvatarPlaceholder()
 		} else {
-			avatarReader = avResp.Body
+			avatarReader = resp.Body
 		}
 	case "file":
 		filePath := parsed.Path
@@ -74,6 +72,7 @@ func GetBorderedCircleAvatar(ctx context.Context, g *globals.Context, username s
 	if err != nil {
 		return res, length, err
 	}
+	defer avatarReader.Close()
 	avatarImg, _, err := image.Decode(avatarReader)
 	if err != nil {
 		return res, length, err

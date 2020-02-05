@@ -2,15 +2,25 @@ package libkb
 
 import (
 	"fmt"
+	"net/http"
 	"strings"
 	"sync"
 	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/colly"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
 )
+
+func InstrumentationTagFromCollyRequest(req *colly.Request) string {
+	return fmt.Sprintf("%s %s", req.Method, req.URL)
+}
+
+func InstrumentationTagFromRequest(req *http.Request) string {
+	return fmt.Sprintf("%s %s", req.Method, req.URL)
+}
 
 func AddRPCRecord(tag string, stat keybase1.InstrumentationStat, record rpc.InstrumentationRecord) keybase1.InstrumentationStat {
 	if stat.NumCalls == 0 {

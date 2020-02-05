@@ -57,6 +57,8 @@ type NetworkInstrumenter struct {
 	tag     string
 }
 
+// NewNetworkInstrumenter records network usage of a single call.
+// Not safe for concurrent use.
 func NewNetworkInstrumenter(storage NetworkInstrumenterStorage, tag string) *NetworkInstrumenter {
 	return &NetworkInstrumenter{
 		InstrumentationRecord: &InstrumentationRecord{

@@ -13,8 +13,11 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/image/draw"
 	"golang.org/x/net/context/ctxhttp"
 )
@@ -92,15 +95,25 @@ func httpClient(host string) *http.Client {
 	}
 }
 
-func MapReaderFromURL(ctx context.Context, url string) (res io.ReadCloser, length int64, err error) {
+func MapReaderFromURL(ctx context.Context, g *globals.Context, url string) (res io.ReadCloser, length int64, err error) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return res, length, err
+		return nil, 0, err
 	}
 	req.Host = mapsHost
+	record := rpc.NewNetworkInstrumenter(g.ExternalG().NetworkInstrumenterStorage, libkb.InstrumentationTagFromRequest(req))
 	resp, err := ctxhttp.Do(ctx, httpClient(mapsHost), req)
+	defer func() {
+		var size int64
+		if length > 0 {
+			size = length
+		}
+		if err := record.RecordAndFinish(size); err != nil {
+			g.ExternalG().Log.CDebugf(ctx, "MapReaderFromURL: unable to instrument: %v", err)
+		}
+	}()
 	if err != nil {
-		return res, length, err
+		return nil, 0, err
 	}
 	return resp.Body, resp.ContentLength, nil
 }

@@ -15,6 +15,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/keybase/stellarnet"
 	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/network"
@@ -289,13 +290,21 @@ func httpGet(mctx libkb.MetaContext, url, authToken string) (int, []byte, error)
 		req.Header.Add("Authorization", "Bearer "+authToken)
 	}
 
+	record := rpc.NewNetworkInstrumenter(mctx.G().NetworkInstrumenterStorage, libkb.InstrumentationTagFromRequest(req))
+	defer func() {
+		if err := record.Finish(); err != nil {
+			mctx.Debug("httpGet: unable to finish api instrumentation: %v", err)
+		}
+	}()
 	res, err := client.Do(req.WithContext(mctx.Ctx()))
+	record.EndCall()
 	if err != nil {
 		return 0, nil, err
 	}
+	defer res.Body.Close()
 
 	body, err := ioutil.ReadAll(res.Body)
-	res.Body.Close()
+	record.IncrementSize(int64(len(body)))
 	if err != nil {
 		return 0, nil, err
 	}
@@ -313,13 +322,21 @@ func httpPost(mctx libkb.MetaContext, url string, data url.Values) (int, []byte,
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
+	record := rpc.NewNetworkInstrumenter(mctx.G().NetworkInstrumenterStorage, libkb.InstrumentationTagFromRequest(req))
+	defer func() {
+		if err := record.Finish(); err != nil {
+			mctx.Debug("httpPost: unable to finish api instrumentation: %v", err)
+		}
+	}()
 	res, err := client.Do(req.WithContext(mctx.Ctx()))
+	record.EndCall()
 	if err != nil {
 		return 0, nil, err
 	}
+	defer res.Body.Close()
 
 	body, err := ioutil.ReadAll(res.Body)
-	res.Body.Close()
+	record.IncrementSize(int64(len(body)))
 	if err != nil {
 		return 0, nil, err
 	}

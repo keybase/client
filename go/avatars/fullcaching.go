@@ -246,7 +246,7 @@ func (c *FullCachingSource) populateCacheWorker(m libkb.MetaContext) {
 		c.debug(m, "populateCacheWorker: fetching: name: %s format: %s url: %s", arg.name,
 			arg.format, arg.url)
 		// Grab image data first
-		resp, err := libkb.ProxyHTTPGet(m.G().Env, arg.url.String())
+		resp, err := libkb.ProxyHTTPGet(m.G(), m.G().GetEnv(), arg.url.String())
 		if err != nil {
 			c.debug(m, "populateCacheWorker: failed to download avatar: %s", err)
 			continue
@@ -257,9 +257,9 @@ func (c *FullCachingSource) populateCacheWorker(m libkb.MetaContext) {
 		found, ent, err := c.diskLRU.Get(m.Ctx(), m.G(), key)
 		if err != nil {
 			c.debug(m, "populateCacheWorker: failed to read previous entry in LRU: %s", err)
-			_, err := libkb.DiscardAndCloseBody(resp)
-			if err != nil {
-				c.debug(m, "populateCacheWorker: error closing body: %+v", err)
+			_, discardErr := libkb.DiscardAndCloseBody(resp)
+			if discardErr != nil {
+				c.debug(m, "populateCacheWorker: error closing body: %+v", discardErr)
 			}
 			continue
 		}
