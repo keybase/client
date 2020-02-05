@@ -4344,6 +4344,98 @@ func (o SetConversationStatusLocalRes) DeepCopy() SetConversationStatusLocalRes 
 	}
 }
 
+type NewConversationsLocalRes struct {
+	Results          []NewConversationsLocalResult `codec:"results" json:"results"`
+	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
+}
+
+func (o NewConversationsLocalRes) DeepCopy() NewConversationsLocalRes {
+	return NewConversationsLocalRes{
+		Results: (func(x []NewConversationsLocalResult) []NewConversationsLocalResult {
+			if x == nil {
+				return nil
+			}
+			ret := make([]NewConversationsLocalResult, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Results),
+		RateLimits: (func(x []RateLimit) []RateLimit {
+			if x == nil {
+				return nil
+			}
+			ret := make([]RateLimit, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.RateLimits),
+		IdentifyFailures: (func(x []keybase1.TLFIdentifyFailure) []keybase1.TLFIdentifyFailure {
+			if x == nil {
+				return nil
+			}
+			ret := make([]keybase1.TLFIdentifyFailure, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.IdentifyFailures),
+	}
+}
+
+type NewConversationsLocalResult struct {
+	Result *NewConversationLocalRes `codec:"result,omitempty" json:"result,omitempty"`
+	Err    *string                  `codec:"err,omitempty" json:"err,omitempty"`
+}
+
+func (o NewConversationsLocalResult) DeepCopy() NewConversationsLocalResult {
+	return NewConversationsLocalResult{
+		Result: (func(x *NewConversationLocalRes) *NewConversationLocalRes {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Result),
+		Err: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Err),
+	}
+}
+
+type NewConversationLocalArgument struct {
+	TlfName       string                  `codec:"tlfName" json:"tlfName"`
+	TopicType     TopicType               `codec:"topicType" json:"topicType"`
+	TlfVisibility keybase1.TLFVisibility  `codec:"tlfVisibility" json:"tlfVisibility"`
+	TopicName     *string                 `codec:"topicName,omitempty" json:"topicName,omitempty"`
+	MembersType   ConversationMembersType `codec:"membersType" json:"membersType"`
+}
+
+func (o NewConversationLocalArgument) DeepCopy() NewConversationLocalArgument {
+	return NewConversationLocalArgument{
+		TlfName:       o.TlfName,
+		TopicType:     o.TopicType.DeepCopy(),
+		TlfVisibility: o.TlfVisibility.DeepCopy(),
+		TopicName: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.TopicName),
+		MembersType: o.MembersType.DeepCopy(),
+	}
+}
+
 type NewConversationLocalRes struct {
 	Conv             ConversationLocal             `codec:"conv" json:"conv"`
 	UiConv           InboxUIItem                   `codec:"uiConv" json:"uiConv"`
@@ -6055,6 +6147,11 @@ type SetConversationStatusLocalArg struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
+type NewConversationsLocalArg struct {
+	NewConversationLocalArguments []NewConversationLocalArgument `codec:"newConversationLocalArguments" json:"newConversationLocalArguments"`
+	IdentifyBehavior              keybase1.TLFIdentifyBehavior   `codec:"identifyBehavior" json:"identifyBehavior"`
+}
+
 type NewConversationLocalArg struct {
 	TlfName          string                       `codec:"tlfName" json:"tlfName"`
 	TopicType        TopicType                    `codec:"topicType" json:"topicType"`
@@ -6458,6 +6555,7 @@ type LocalInterface interface {
 	PostDeleteHistoryThrough(context.Context, PostDeleteHistoryThroughArg) (PostLocalRes, error)
 	PostDeleteHistoryByAge(context.Context, PostDeleteHistoryByAgeArg) (PostLocalRes, error)
 	SetConversationStatusLocal(context.Context, SetConversationStatusLocalArg) (SetConversationStatusLocalRes, error)
+	NewConversationsLocal(context.Context, NewConversationsLocalArg) (NewConversationsLocalRes, error)
 	NewConversationLocal(context.Context, NewConversationLocalArg) (NewConversationLocalRes, error)
 	GetInboxSummaryForCLILocal(context.Context, GetInboxSummaryForCLILocalQuery) (GetInboxSummaryForCLILocalRes, error)
 	GetConversationForCLILocal(context.Context, GetConversationForCLILocalQuery) (GetConversationForCLILocalRes, error)
@@ -6892,6 +6990,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.SetConversationStatusLocal(ctx, typedArgs[0])
+					return
+				},
+			},
+			"newConversationsLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]NewConversationsLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]NewConversationsLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]NewConversationsLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.NewConversationsLocal(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -8057,6 +8170,11 @@ func (c LocalClient) PostDeleteHistoryByAge(ctx context.Context, __arg PostDelet
 
 func (c LocalClient) SetConversationStatusLocal(ctx context.Context, __arg SetConversationStatusLocalArg) (res SetConversationStatusLocalRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.SetConversationStatusLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) NewConversationsLocal(ctx context.Context, __arg NewConversationsLocalArg) (res NewConversationsLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.newConversationsLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 

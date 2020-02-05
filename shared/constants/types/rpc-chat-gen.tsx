@@ -1242,9 +1242,12 @@ export type MsgSummary = {readonly id: MessageID; readonly convID: ConvIDStr; re
 export type NameQuery = {readonly name: String; readonly tlfID?: TLFID | null; readonly membersType: ConversationMembersType}
 export type NewConvRes = {readonly id: ConvIDStr; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null; readonly rateLimits?: Array<RateLimitRes> | null}
 export type NewConversationInfo = {readonly convID: ConversationID; readonly conv?: InboxUIItem | null}
+export type NewConversationLocalArgument = {readonly tlfName: String; readonly topicType: TopicType; readonly tlfVisibility: Keybase1.TLFVisibility; readonly topicName?: String | null; readonly membersType: ConversationMembersType}
 export type NewConversationLocalRes = {readonly conv: ConversationLocal; readonly uiConv: InboxUIItem; readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
 export type NewConversationPayload = {readonly Action: String; readonly convID: ConversationID; readonly inboxVers: InboxVers; readonly topicType: TopicType; readonly unreadUpdate?: UnreadUpdate | null}
 export type NewConversationRemoteRes = {readonly convID: ConversationID; readonly createdComplexTeam: Boolean; readonly rateLimit?: RateLimit | null}
+export type NewConversationsLocalRes = {readonly results?: Array<NewConversationsLocalResult> | null; readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
+export type NewConversationsLocalResult = {readonly result?: NewConversationLocalRes | null; readonly err?: String | null}
 export type NewMessagePayload = {readonly Action: String; readonly convID: ConversationID; readonly message: MessageBoxed; readonly inboxVers: InboxVers; readonly topicType: TopicType; readonly unreadUpdate?: UnreadUpdate | null; readonly untrustedTeamRole: Keybase1.TeamRole; readonly maxMsgs?: Array<MessageSummary> | null}
 export type NonblockFetchRes = {readonly offline: Boolean; readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
 export type OutboxID = Bytes
@@ -1625,6 +1628,7 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.local.postMetadataNonblock'
 // 'chat.1.local.postDeleteHistoryUpto'
 // 'chat.1.local.postDeleteHistoryThrough'
+// 'chat.1.local.newConversationsLocal'
 // 'chat.1.local.getInboxSummaryForCLILocal'
 // 'chat.1.local.getConversationForCLILocal'
 // 'chat.1.local.GetMessagesLocal'
