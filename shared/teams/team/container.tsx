@@ -104,3 +104,4 @@ class TabsState extends React.PureComponent<TabsStateOwnProps, {selectedTab: Typ
 }
 
 export default flags.teamsRedesign ? TabsStateNew : TabsState
+export type TeamScreenType = React.ComponentType<TabsStateOwnProps>
