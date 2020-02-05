@@ -69,27 +69,43 @@ func TestDevConversationBackedStorageTeamAdminOnly(t *testing.T) {
 	defer ctc.cleanup()
 
 	users := ctc.users()
-	tc := ctc.world.Tcs[users[0].Username]
-	ri := ctc.as(t, users[0]).ri
-	ctx := ctc.as(t, users[0]).startCtx
-	uid := users[0].User.GetUID().ToBytes()
-	readeruid := users[1].User.GetUID().ToBytes()
 
-	conv := mustCreateChannelForTest(t, ctc, users[0], chat1.TopicType_CHAT, nil, chat1.ConversationMembersType_TEAM, users[1:]...)
+	alice := users[0]
+	tc := ctc.world.Tcs[alice.Username]
+	ri := ctc.as(t, alice).ri
+	ctx := ctc.as(t, alice).startCtx
+	uid := alice.User.GetUID().ToBytes()
+	storage := NewDevConversationBackedStorage(tc.Context(), chat1.ConversationMembersType_TEAM, true /* adminOnly */, func() chat1.RemoteInterface { return ri })
+	var msg string
+
+	bob := users[1]
+	readeruid := bob.User.GetUID().ToBytes()
+	readertc := ctc.world.Tcs[bob.Username]
+	readerri := ctc.as(t, bob).ri
+	readerctx := ctc.as(t, bob).startCtx
+	readerstorage := NewDevConversationBackedStorage(readertc.Context(), chat1.ConversationMembersType_TEAM, true /* adminOnly */, func() chat1.RemoteInterface { return readerri })
+	var readermsg string
+
+	conv := mustCreateChannelForTest(t, ctc, alice, chat1.TopicType_CHAT, nil, chat1.ConversationMembersType_TEAM, bob)
 	tlfid := conv.Triple.Tlfid
 
 	key0 := "mykey"
-	storage := NewDevConversationBackedStorage(tc.Context(), chat1.ConversationMembersType_TEAM, true /* adminOnly */, func() chat1.RemoteInterface { return ri })
 
-	var msg string
 	found, err := storage.Get(ctx, uid, tlfid, key0, &msg)
+	require.NoError(t, err)
+	require.False(t, found)
+	found, err = readerstorage.Get(readerctx, readeruid, tlfid, key0, &readermsg)
 	require.NoError(t, err)
 	require.False(t, found)
 
 	err = storage.Put(ctx, uid, tlfid, key0, "hello")
 	require.NoError(t, err)
 
-	found, err = storage.Get(ctx, readeruid, tlfid, key0, &msg)
+	found, err = storage.Get(ctx, uid, tlfid, key0, &msg)
+	require.NoError(t, err)
+	require.True(t, found)
+	require.Equal(t, msg, "hello")
+	found, err = readerstorage.Get(readerctx, readeruid, tlfid, key0, &readermsg)
 	require.NoError(t, err)
 	require.True(t, found)
 	require.Equal(t, msg, "hello")
@@ -102,24 +118,27 @@ func TestDevConversationBackedStorageTeamAdminOnlyReaderMisbehavior(t *testing.T
 	defer ctc.cleanup()
 
 	users := ctc.users()
-	tc := ctc.world.Tcs[users[0].Username]
-	ri := ctc.as(t, users[0]).ri
-	ctx := ctc.as(t, users[0]).startCtx
-	uid := users[0].User.GetUID().ToBytes()
 
-	readertc := ctc.world.Tcs[users[1].Username]
-	readerri := ctc.as(t, users[1]).ri
-	readerctx := ctc.as(t, users[1]).startCtx
-	readeruid := users[1].User.GetUID().ToBytes()
-
-	conv := mustCreateChannelForTest(t, ctc, users[0], chat1.TopicType_CHAT, nil, chat1.ConversationMembersType_TEAM, users[1:]...)
-	tlfid := conv.Triple.Tlfid
-
-	key0 := "mykey"
+	alice := users[0]
+	tc := ctc.world.Tcs[alice.Username]
+	ri := ctc.as(t, alice).ri
+	ctx := ctc.as(t, alice).startCtx
+	uid := alice.User.GetUID().ToBytes()
 	storage := NewDevConversationBackedStorage(tc.Context(), chat1.ConversationMembersType_TEAM, true /* adminOnly */, func() chat1.RemoteInterface { return ri })
-	readerstorage := NewDevConversationBackedStorage(readertc.Context(), chat1.ConversationMembersType_TEAM, true /* adminOnly */, func() chat1.RemoteInterface { return readerri })
 	var msg string
+
+	bob := users[1]
+	readertc := ctc.world.Tcs[bob.Username]
+	readerri := ctc.as(t, bob).ri
+	readerctx := ctc.as(t, bob).startCtx
+	readeruid := bob.User.GetUID().ToBytes()
+	readerstorage := NewDevConversationBackedStorage(readertc.Context(), chat1.ConversationMembersType_TEAM, true /* adminOnly */, func() chat1.RemoteInterface { return readerri })
 	var readermsg string
+
+	conv := mustCreateChannelForTest(t, ctc, users[0], chat1.TopicType_CHAT, nil, chat1.ConversationMembersType_TEAM, bob)
+	tlfid := conv.Triple.Tlfid
+	key0 := "mykey"
+
 	found, err := storage.Get(ctx, uid, tlfid, key0, &msg)
 	require.NoError(t, err)
 	require.False(t, found)
