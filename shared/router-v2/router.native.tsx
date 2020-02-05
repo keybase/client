@@ -218,6 +218,7 @@ const tabStyles = Styles.styleSheetCreate(
         paddingLeft: 16,
         paddingRight: 16,
         paddingTop: 6,
+        width: '100%',
       },
     } as const)
 )
