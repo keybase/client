@@ -24,7 +24,7 @@ import (
 type transporterWaiter struct {
 	getter func() rpc.Transporter
 
-	// Just use atomic instead of having cond protect this, to mimize the
+	// Just use atomic instead of having cond protect this, to minimize the
 	// chance that multiple calls wait on the same Mutex (which is not
 	// necessarily FIFO).
 	lastWaitingNumber uint64
@@ -45,9 +45,13 @@ func newTransporterWaiter(
 }
 
 const waitForTransporterInterval = time.Second / 4
+const waitForTransporterTimeout = time.Minute
 
-func (w *transporterWaiter) get() (xp rpc.Transporter) {
+func (w *transporterWaiter) get(ctx context.Context) (xp rpc.Transporter) {
 	myNumber := atomic.AddUint64(&w.lastWaitingNumber, 1)
+
+	ctx, cancel := context.WithTimeout(ctx, waitForTransporterTimeout)
+	defer cancel()
 
 	w.cond.L.Lock()
 	defer w.cond.L.Unlock()
@@ -56,9 +60,14 @@ func (w *transporterWaiter) get() (xp rpc.Transporter) {
 	}
 
 	xp = w.getter()
+loop:
 	for xp == nil {
-		xp = w.getter()
 		time.Sleep(waitForTransporterInterval)
+		xp = w.getter()
+		select {
+		case <-ctx.Done():
+			break loop
+		}
 	}
 
 	w.lastProcessedNumber = myNumber
@@ -82,11 +91,6 @@ type SimpleFSHandler struct {
 	transporterWaiter *transporterWaiter
 }
 
-func (s *SimpleFSHandler) transporterGetter() (transporter rpc.Transporter) {
-	transporter = s.G().ConnectionManager.LookupByClientType(keybase1.ClientType_KBFS)
-	return transporter
-}
-
 func NewSimpleFSHandler(xp rpc.Transporter, g *libkb.GlobalContext) *SimpleFSHandler {
 	h := &SimpleFSHandler{
 		BaseHandler:  NewBaseHandler(g, xp),
@@ -98,21 +102,32 @@ func NewSimpleFSHandler(xp rpc.Transporter, g *libkb.GlobalContext) *SimpleFSHan
 
 var _ keybase1.SimpleFSInterface = (*SimpleFSHandler)(nil)
 
+func (s *SimpleFSHandler) transporterGetter() (transporter rpc.Transporter) {
+	return s.G().ConnectionManager.LookupByClientType(keybase1.ClientType_KBFS)
+}
+
 func (s *SimpleFSHandler) wrapContextWithTimeout(ctx context.Context) (newCtx context.Context, cancel func()) {
 	return context.WithTimeout(ctx, simpleFSTimeout)
 }
 
-func (s *SimpleFSHandler) client() *keybase1.SimpleFSClient {
-	return &keybase1.SimpleFSClient{
-		Cli: rpc.NewClient(s.transporterWaiter.get(), libkb.NewContextifiedErrorUnwrapper(s.G()), nil),
+func (s *SimpleFSHandler) client(ctx context.Context) (*keybase1.SimpleFSClient, error) {
+	xp := s.transporterWaiter.get(ctx)
+	if xp == nil {
+		return nil, libkb.KBFSNotRunningError{}
 	}
+	return &keybase1.SimpleFSClient{
+		Cli: rpc.NewClient(xp, libkb.NewContextifiedErrorUnwrapper(s.G()), nil),
+	}, nil
 }
 
 // SimpleFSList - Begin list of items in directory at path
 // Retrieve results with readList()
 // Can be a single file to get flags/status
 func (s *SimpleFSHandler) SimpleFSList(ctx context.Context, arg keybase1.SimpleFSListArg) error {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSList(ctx, arg)
@@ -120,7 +135,10 @@ func (s *SimpleFSHandler) SimpleFSList(ctx context.Context, arg keybase1.SimpleF
 
 // SimpleFSListRecursive - Begin recursive list of items in directory at path
 func (s *SimpleFSHandler) SimpleFSListRecursive(ctx context.Context, arg keybase1.SimpleFSListRecursiveArg) error {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSListRecursive(ctx, arg)
@@ -129,7 +147,10 @@ func (s *SimpleFSHandler) SimpleFSListRecursive(ctx context.Context, arg keybase
 // SimpleFSFolderSetSyncConfig implements the SimpleFSInterface.
 func (s *SimpleFSHandler) SimpleFSListFavorites(ctx context.Context) (
 	keybase1.FavoritesResult, error) {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return keybase1.FavoritesResult{}, err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSListFavorites(ctx)
@@ -138,7 +159,10 @@ func (s *SimpleFSHandler) SimpleFSListFavorites(ctx context.Context) (
 // SimpleFSListRecursiveToDepth - Begin recursive list of items in directory at
 // path to a given depth.
 func (s *SimpleFSHandler) SimpleFSListRecursiveToDepth(ctx context.Context, arg keybase1.SimpleFSListRecursiveToDepthArg) error {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSListRecursiveToDepth(ctx, arg)
@@ -147,7 +171,10 @@ func (s *SimpleFSHandler) SimpleFSListRecursiveToDepth(ctx context.Context, arg 
 // SimpleFSReadList - Get list of Paths in progress. Can indicate status of pending
 // to get more entries.
 func (s *SimpleFSHandler) SimpleFSReadList(ctx context.Context, arg keybase1.OpID) (keybase1.SimpleFSListResult, error) {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return keybase1.SimpleFSListResult{}, err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSReadList(ctx, arg)
@@ -155,7 +182,10 @@ func (s *SimpleFSHandler) SimpleFSReadList(ctx context.Context, arg keybase1.OpI
 
 // SimpleFSCopy - Begin copy of file or directory
 func (s *SimpleFSHandler) SimpleFSCopy(ctx context.Context, arg keybase1.SimpleFSCopyArg) error {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSCopy(ctx, arg)
@@ -163,7 +193,10 @@ func (s *SimpleFSHandler) SimpleFSCopy(ctx context.Context, arg keybase1.SimpleF
 
 // SimpleFSCopyRecursive - Begin recursive copy of directory
 func (s *SimpleFSHandler) SimpleFSCopyRecursive(ctx context.Context, arg keybase1.SimpleFSCopyRecursiveArg) error {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSCopyRecursive(ctx, arg)
@@ -171,7 +204,10 @@ func (s *SimpleFSHandler) SimpleFSCopyRecursive(ctx context.Context, arg keybase
 
 // SimpleFSMove - Begin move of file or directory, from/to KBFS only
 func (s *SimpleFSHandler) SimpleFSMove(ctx context.Context, arg keybase1.SimpleFSMoveArg) error {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSMove(ctx, arg)
@@ -179,7 +215,10 @@ func (s *SimpleFSHandler) SimpleFSMove(ctx context.Context, arg keybase1.SimpleF
 
 // SimpleFSRename - Rename file or directory, KBFS side only
 func (s *SimpleFSHandler) SimpleFSRename(ctx context.Context, arg keybase1.SimpleFSRenameArg) error {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSRename(ctx, arg)
@@ -187,7 +226,10 @@ func (s *SimpleFSHandler) SimpleFSRename(ctx context.Context, arg keybase1.Simpl
 
 // SimpleFSSymlink - Make a symlink from KBFS to either elsewhere in KBFS or in the regular filesystem
 func (s *SimpleFSHandler) SimpleFSSymlink(ctx context.Context, arg keybase1.SimpleFSSymlinkArg) error {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSSymlink(ctx, arg)
@@ -197,7 +239,10 @@ func (s *SimpleFSHandler) SimpleFSSymlink(ctx context.Context, arg keybase1.Simp
 // or create a directory
 // Files must be closed afterwards.
 func (s *SimpleFSHandler) SimpleFSOpen(ctx context.Context, arg keybase1.SimpleFSOpenArg) error {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSOpen(ctx, arg)
@@ -205,7 +250,10 @@ func (s *SimpleFSHandler) SimpleFSOpen(ctx context.Context, arg keybase1.SimpleF
 
 // SimpleFSSetStat - Set/clear file bits - only executable for now
 func (s *SimpleFSHandler) SimpleFSSetStat(ctx context.Context, arg keybase1.SimpleFSSetStatArg) error {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSSetStat(ctx, arg)
@@ -216,7 +264,10 @@ func (s *SimpleFSHandler) SimpleFSSetStat(ctx context.Context, arg keybase1.Simp
 // Repeat until zero bytes are returned or error.
 // If size is zero, read an arbitrary amount.
 func (s *SimpleFSHandler) SimpleFSRead(ctx context.Context, arg keybase1.SimpleFSReadArg) (keybase1.FileContent, error) {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return keybase1.FileContent{}, err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSRead(ctx, arg)
@@ -225,7 +276,10 @@ func (s *SimpleFSHandler) SimpleFSRead(ctx context.Context, arg keybase1.SimpleF
 // SimpleFSWrite - Append content to opened file.
 // May be repeated until OpID is closed.
 func (s *SimpleFSHandler) SimpleFSWrite(ctx context.Context, arg keybase1.SimpleFSWriteArg) error {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSWrite(ctx, arg)
@@ -233,7 +287,10 @@ func (s *SimpleFSHandler) SimpleFSWrite(ctx context.Context, arg keybase1.Simple
 
 // SimpleFSRemove - Remove file or directory from filesystem
 func (s *SimpleFSHandler) SimpleFSRemove(ctx context.Context, arg keybase1.SimpleFSRemoveArg) error {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSRemove(ctx, arg)
@@ -241,7 +298,10 @@ func (s *SimpleFSHandler) SimpleFSRemove(ctx context.Context, arg keybase1.Simpl
 
 // SimpleFSStat - Get info about file
 func (s *SimpleFSHandler) SimpleFSStat(ctx context.Context, arg keybase1.SimpleFSStatArg) (keybase1.Dirent, error) {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return keybase1.Dirent{}, err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSStat(ctx, arg)
@@ -250,7 +310,10 @@ func (s *SimpleFSHandler) SimpleFSStat(ctx context.Context, arg keybase1.SimpleF
 // SimpleFSGetRevisions - Get revision info for a directory entry
 func (s *SimpleFSHandler) SimpleFSGetRevisions(
 	ctx context.Context, arg keybase1.SimpleFSGetRevisionsArg) error {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSGetRevisions(ctx, arg)
@@ -261,7 +324,10 @@ func (s *SimpleFSHandler) SimpleFSGetRevisions(
 func (s *SimpleFSHandler) SimpleFSReadRevisions(
 	ctx context.Context, opID keybase1.OpID) (
 	keybase1.GetRevisionsResult, error) {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return keybase1.GetRevisionsResult{}, err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSReadRevisions(ctx, opID)
@@ -269,7 +335,10 @@ func (s *SimpleFSHandler) SimpleFSReadRevisions(
 
 // SimpleFSMakeOpid - Convenience helper for generating new random value
 func (s *SimpleFSHandler) SimpleFSMakeOpid(ctx context.Context) (keybase1.OpID, error) {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return keybase1.OpID{}, err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSMakeOpid(ctx)
@@ -278,7 +347,10 @@ func (s *SimpleFSHandler) SimpleFSMakeOpid(ctx context.Context) (keybase1.OpID, 
 // SimpleFSClose - Close OpID, cancels any pending operation.
 // Must be called after list/copy/remove
 func (s *SimpleFSHandler) SimpleFSClose(ctx context.Context, arg keybase1.OpID) error {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSClose(ctx, arg)
@@ -286,7 +358,10 @@ func (s *SimpleFSHandler) SimpleFSClose(ctx context.Context, arg keybase1.OpID) 
 
 // SimpleFSCancel - Cancels a running operation, like copy.
 func (s *SimpleFSHandler) SimpleFSCancel(ctx context.Context, arg keybase1.OpID) error {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSCancel(ctx, arg)
@@ -294,7 +369,10 @@ func (s *SimpleFSHandler) SimpleFSCancel(ctx context.Context, arg keybase1.OpID)
 
 // SimpleFSCheck - Check progress of pending operation
 func (s *SimpleFSHandler) SimpleFSCheck(ctx context.Context, arg keybase1.OpID) (keybase1.OpProgress, error) {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return keybase1.OpProgress{}, err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSCheck(ctx, arg)
@@ -302,7 +380,10 @@ func (s *SimpleFSHandler) SimpleFSCheck(ctx context.Context, arg keybase1.OpID) 
 
 // SimpleFSGetOps - Get all the outstanding operations
 func (s *SimpleFSHandler) SimpleFSGetOps(ctx context.Context) ([]keybase1.OpDescription, error) {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return nil, err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSGetOps(ctx)
@@ -310,14 +391,20 @@ func (s *SimpleFSHandler) SimpleFSGetOps(ctx context.Context) ([]keybase1.OpDesc
 
 // SimpleFSWait - Blocking wait for the pending operation to finish
 func (s *SimpleFSHandler) SimpleFSWait(ctx context.Context, arg keybase1.OpID) error {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return err
+	}
 	return cli.SimpleFSWait(ctx, arg)
 }
 
 // SimpleFSDumpDebuggingInfo - Instructs KBFS to dump debugging info
 // into its logs.
 func (s *SimpleFSHandler) SimpleFSDumpDebuggingInfo(ctx context.Context) error {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSDumpDebuggingInfo(ctx)
@@ -325,7 +412,10 @@ func (s *SimpleFSHandler) SimpleFSDumpDebuggingInfo(ctx context.Context) error {
 
 // SimpleFSSyncStatus - Get sync status.
 func (s *SimpleFSHandler) SimpleFSSyncStatus(ctx context.Context, filter keybase1.ListFilter) (keybase1.FSSyncStatus, error) {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return keybase1.FSSyncStatus{}, err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSSyncStatus(ctx, filter)
@@ -334,7 +424,10 @@ func (s *SimpleFSHandler) SimpleFSSyncStatus(ctx context.Context, filter keybase
 // SimpleFSUserEditHistory implements the SimpleFSInterface.
 func (s *SimpleFSHandler) SimpleFSUserEditHistory(ctx context.Context) (
 	res []keybase1.FSFolderEditHistory, err error) {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return nil, err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSUserEditHistory(ctx)
@@ -344,7 +437,10 @@ func (s *SimpleFSHandler) SimpleFSUserEditHistory(ctx context.Context) (
 func (s *SimpleFSHandler) SimpleFSFolderEditHistory(
 	ctx context.Context, path keybase1.Path) (
 	res keybase1.FSFolderEditHistory, err error) {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return keybase1.FSFolderEditHistory{}, err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSFolderEditHistory(ctx, path)
@@ -353,7 +449,10 @@ func (s *SimpleFSHandler) SimpleFSFolderEditHistory(
 // SimpleFSReset implements the SimpleFSInterface.
 func (s *SimpleFSHandler) SimpleFSReset(
 	ctx context.Context, arg keybase1.SimpleFSResetArg) (err error) {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSReset(ctx, arg)
@@ -362,7 +461,10 @@ func (s *SimpleFSHandler) SimpleFSReset(
 // SimpleFSGetUserQuotaUsage implements the SimpleFSInterface.
 func (s *SimpleFSHandler) SimpleFSGetUserQuotaUsage(ctx context.Context) (
 	keybase1.SimpleFSQuotaUsage, error) {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return keybase1.SimpleFSQuotaUsage{}, err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSGetUserQuotaUsage(ctx)
@@ -372,7 +474,10 @@ func (s *SimpleFSHandler) SimpleFSGetUserQuotaUsage(ctx context.Context) (
 func (s *SimpleFSHandler) SimpleFSGetTeamQuotaUsage(
 	ctx context.Context, teamName keybase1.TeamName) (
 	keybase1.SimpleFSQuotaUsage, error) {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return keybase1.SimpleFSQuotaUsage{}, err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSGetTeamQuotaUsage(ctx, teamName)
@@ -382,7 +487,10 @@ func (s *SimpleFSHandler) SimpleFSGetTeamQuotaUsage(
 func (s *SimpleFSHandler) SimpleFSGetFolder(
 	ctx context.Context, kbfsPath keybase1.KBFSPath) (
 	res keybase1.FolderWithFavFlags, err error) {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return keybase1.FolderWithFavFlags{}, err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSGetFolder(ctx, kbfsPath)
@@ -392,7 +500,10 @@ func (s *SimpleFSHandler) SimpleFSGetFolder(
 func (s *SimpleFSHandler) SimpleFSFolderSyncConfigAndStatus(
 	ctx context.Context, path keybase1.Path) (
 	keybase1.FolderSyncConfigAndStatus, error) {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return keybase1.FolderSyncConfigAndStatus{}, err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSFolderSyncConfigAndStatus(ctx, path)
@@ -401,7 +512,10 @@ func (s *SimpleFSHandler) SimpleFSFolderSyncConfigAndStatus(
 // SimpleFSFolderSetSyncConfig implements the SimpleFSInterface.
 func (s *SimpleFSHandler) SimpleFSSetFolderSyncConfig(
 	ctx context.Context, arg keybase1.SimpleFSSetFolderSyncConfigArg) error {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSSetFolderSyncConfig(ctx, arg)
@@ -410,7 +524,10 @@ func (s *SimpleFSHandler) SimpleFSSetFolderSyncConfig(
 // SimpleFSSyncConfigAndStatus implements the SimpleFSInterface.
 func (s *SimpleFSHandler) SimpleFSSyncConfigAndStatus(
 	ctx context.Context, identifyBehavior *keybase1.TLFIdentifyBehavior) (keybase1.SyncConfigAndStatusRes, error) {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return keybase1.SyncConfigAndStatusRes{}, err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSSyncConfigAndStatus(ctx, identifyBehavior)
@@ -419,7 +536,10 @@ func (s *SimpleFSHandler) SimpleFSSyncConfigAndStatus(
 // SimpleFSClearConflictState implements the SimpleFSInterface.
 func (s *SimpleFSHandler) SimpleFSClearConflictState(ctx context.Context,
 	path keybase1.Path) error {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSClearConflictState(ctx, path)
@@ -428,7 +548,10 @@ func (s *SimpleFSHandler) SimpleFSClearConflictState(ctx context.Context,
 // SimpleFSFinishResolvingConflict implements the SimpleFSInterface.
 func (s *SimpleFSHandler) SimpleFSFinishResolvingConflict(ctx context.Context,
 	path keybase1.Path) error {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSFinishResolvingConflict(ctx, path)
@@ -437,7 +560,10 @@ func (s *SimpleFSHandler) SimpleFSFinishResolvingConflict(ctx context.Context,
 // SimpleFSForceStuckConflict implements the SimpleFSInterface.
 func (s *SimpleFSHandler) SimpleFSForceStuckConflict(
 	ctx context.Context, path keybase1.Path) error {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSForceStuckConflict(ctx, path)
@@ -446,7 +572,10 @@ func (s *SimpleFSHandler) SimpleFSForceStuckConflict(
 // SimpleFSGetOnlineStatus implements the SimpleFSInterface.
 func (s *SimpleFSHandler) SimpleFSGetOnlineStatus(
 	ctx context.Context) (keybase1.KbfsOnlineStatus, error) {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return keybase1.KbfsOnlineStatus_OFFLINE, err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSGetOnlineStatus(ctx)
@@ -454,7 +583,10 @@ func (s *SimpleFSHandler) SimpleFSGetOnlineStatus(
 
 // SimpleFSCheckReachability implements the SimpleFSInterface.
 func (s *SimpleFSHandler) SimpleFSCheckReachability(ctx context.Context) error {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSCheckReachability(ctx)
@@ -463,7 +595,10 @@ func (s *SimpleFSHandler) SimpleFSCheckReachability(ctx context.Context) error {
 // SimpleFSSetDebugLevel implements the SimpleFSInterface.
 func (s *SimpleFSHandler) SimpleFSSetDebugLevel(
 	ctx context.Context, level string) error {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSSetDebugLevel(ctx, level)
@@ -472,7 +607,10 @@ func (s *SimpleFSHandler) SimpleFSSetDebugLevel(
 // SimpleFSSettings implements the SimpleFSInterface.
 func (s *SimpleFSHandler) SimpleFSSettings(
 	ctx context.Context) (keybase1.FSSettings, error) {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return keybase1.FSSettings{}, err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSSettings(ctx)
@@ -481,7 +619,10 @@ func (s *SimpleFSHandler) SimpleFSSettings(
 // SimpleFSSetNotificationThreshold implements the SimpleFSInterface.
 func (s *SimpleFSHandler) SimpleFSSetNotificationThreshold(
 	ctx context.Context, threshold int64) error {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSSetNotificationThreshold(ctx, threshold)
@@ -490,7 +631,10 @@ func (s *SimpleFSHandler) SimpleFSSetNotificationThreshold(
 // SimpleFSObfuscatePath implements the SimpleFSInterface.
 func (s *SimpleFSHandler) SimpleFSObfuscatePath(
 	ctx context.Context, path keybase1.Path) (res string, err error) {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return "", err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSObfuscatePath(ctx, path)
@@ -499,7 +643,10 @@ func (s *SimpleFSHandler) SimpleFSObfuscatePath(
 // SimpleFSDeobfuscatePath implements the SimpleFSInterface.
 func (s *SimpleFSHandler) SimpleFSDeobfuscatePath(
 	ctx context.Context, path keybase1.Path) (res []string, err error) {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return nil, err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSDeobfuscatePath(ctx, path)
@@ -508,28 +655,40 @@ func (s *SimpleFSHandler) SimpleFSDeobfuscatePath(
 // SimpleFSGetStats implements the SimpleFSInterface.
 func (s *SimpleFSHandler) SimpleFSGetStats(ctx context.Context) (
 	keybase1.SimpleFSStats, error) {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return keybase1.SimpleFSStats{}, err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSGetStats(ctx)
 }
 
 func (s *SimpleFSHandler) SimpleFSSubscribeNonPath(ctx context.Context, arg keybase1.SimpleFSSubscribeNonPathArg) error {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSSubscribeNonPath(ctx, arg)
 }
 
 func (s *SimpleFSHandler) SimpleFSSubscribePath(ctx context.Context, arg keybase1.SimpleFSSubscribePathArg) error {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSSubscribePath(ctx, arg)
 }
 
 func (s *SimpleFSHandler) SimpleFSUnsubscribe(ctx context.Context, arg keybase1.SimpleFSUnsubscribeArg) error {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSUnsubscribe(ctx, arg)
@@ -537,7 +696,10 @@ func (s *SimpleFSHandler) SimpleFSUnsubscribe(ctx context.Context, arg keybase1.
 
 func (s *SimpleFSHandler) SimpleFSStartDownload(
 	ctx context.Context, arg keybase1.SimpleFSStartDownloadArg) (downloadID string, err error) {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return "", err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSStartDownload(ctx, arg)
@@ -545,7 +707,10 @@ func (s *SimpleFSHandler) SimpleFSStartDownload(
 
 func (s *SimpleFSHandler) SimpleFSGetDownloadStatus(ctx context.Context) (
 	status keybase1.DownloadStatus, err error) {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return keybase1.DownloadStatus{}, err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSGetDownloadStatus(ctx)
@@ -553,7 +718,10 @@ func (s *SimpleFSHandler) SimpleFSGetDownloadStatus(ctx context.Context) (
 
 func (s *SimpleFSHandler) SimpleFSCancelDownload(
 	ctx context.Context, downloadID string) (err error) {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSCancelDownload(ctx, downloadID)
@@ -561,7 +729,10 @@ func (s *SimpleFSHandler) SimpleFSCancelDownload(
 
 func (s *SimpleFSHandler) SimpleFSDismissDownload(
 	ctx context.Context, downloadID string) (err error) {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSDismissDownload(ctx, downloadID)
@@ -569,7 +740,10 @@ func (s *SimpleFSHandler) SimpleFSDismissDownload(
 
 func (s *SimpleFSHandler) SimpleFSGetDownloadInfo(
 	ctx context.Context, downloadID string) (downloadInfo keybase1.DownloadInfo, err error) {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return keybase1.DownloadInfo{}, err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSGetDownloadInfo(ctx, downloadID)
@@ -577,7 +751,10 @@ func (s *SimpleFSHandler) SimpleFSGetDownloadInfo(
 
 func (s *SimpleFSHandler) SimpleFSConfigureDownload(
 	ctx context.Context, arg keybase1.SimpleFSConfigureDownloadArg) (err error) {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSConfigureDownload(ctx, arg)
@@ -586,7 +763,10 @@ func (s *SimpleFSHandler) SimpleFSConfigureDownload(
 // SimpleFSGetGUIFileContext implements the SimpleFSInterface.
 func (s *SimpleFSHandler) SimpleFSGetGUIFileContext(ctx context.Context,
 	path keybase1.KBFSPath) (resource keybase1.GUIFileContext, err error) {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return keybase1.GUIFileContext{}, err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSGetGUIFileContext(ctx, path)
@@ -595,7 +775,10 @@ func (s *SimpleFSHandler) SimpleFSGetGUIFileContext(ctx context.Context,
 // SimpleFSGetFilesTabBadge implements the SimpleFSInterface.
 func (s *SimpleFSHandler) SimpleFSGetFilesTabBadge(ctx context.Context) (
 	keybase1.FilesTabBadge, error) {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return keybase1.FilesTabBadge_NONE, err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSGetFilesTabBadge(ctx)
@@ -603,7 +786,10 @@ func (s *SimpleFSHandler) SimpleFSGetFilesTabBadge(ctx context.Context) (
 
 // SimpleFSUserIn implements the SimpleFSInterface.
 func (s *SimpleFSHandler) SimpleFSUserIn(ctx context.Context, clientKey string) error {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSUserIn(ctx, clientKey)
@@ -611,7 +797,10 @@ func (s *SimpleFSHandler) SimpleFSUserIn(ctx context.Context, clientKey string) 
 
 // SimpleFSUserOut implements the SimpleFSInterface.
 func (s *SimpleFSHandler) SimpleFSUserOut(ctx context.Context, clientKey string) error {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSUserOut(ctx, clientKey)
@@ -619,7 +808,10 @@ func (s *SimpleFSHandler) SimpleFSUserOut(ctx context.Context, clientKey string)
 
 // SimpleFSSetSfmiBannerDismissed implements the SimpleFSInterface.
 func (s *SimpleFSHandler) SimpleFSSetSfmiBannerDismissed(ctx context.Context, dismissed bool) error {
-	cli := s.client()
+	cli, err := s.client(ctx)
+	if err != nil {
+		return err
+	}
 	ctx, cancel := s.wrapContextWithTimeout(ctx)
 	defer cancel()
 	return cli.SimpleFSSetSfmiBannerDismissed(ctx, dismissed)
