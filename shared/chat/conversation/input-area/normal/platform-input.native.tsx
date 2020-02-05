@@ -28,9 +28,9 @@ type State = {
 
 const {call, set, cond, timing, block, debug, Value, Clock} = Kb.ReAnimated
 const {startClock, stopClock, clockRunning, not} = Kb.ReAnimated
-const runTiming = (from, dest, onDone) => {
+const runTiming = (clock, from, dest, onDone) => {
   console.log('aaa run timing called', from, dest)
-  const clock = new Clock()
+  // const clock = new Clock()
 
   const state = {
     finished: new Value(0),
@@ -59,8 +59,8 @@ const runTiming = (from, dest, onDone) => {
     timing(clock, state, config),
     cond(
       state.finished,
-      [stopClock(clock), call([state.finished], onDone)]
-      // debug('aaa pos', state.position)
+      [stopClock(clock), call([state.finished], onDone)],
+      debug('aaa pos', state.position)
     ),
     state.position,
   ])
@@ -108,7 +108,15 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
   private lastText?: string
   private whichMenu?: menuType
   private clock = new Clock()
-  private anim: Kb.ReAnimated.Node<number> = new Value(minInputArea)
+  // private anim: Kb.ReAnimated.Node<number> = new Value(minInputArea)
+  private animateState = new Value(0) // 0 nothing, 1, up, -1 down
+
+  private anim = runTiming(
+    this.clock,
+    minInputArea,
+    this.props.maxInputArea ?? Styles.dimensionHeight,
+    () => {} //this.setState({animatedExpanded: expanded})
+  )
 
   state = {
     animatedExpanded: false, // updates after animations are done
@@ -257,28 +265,30 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
     // startClock(this.clock)
     // this.anim = runSpring(this.clock, 150, 800)
 
-    const onDone = (...a) => {
-      console.log('aaa on done called', a)
-      this.setState({animatedExpanded: expanded})
-    }
+    // const onDone = (...a) => {
+    // console.log('aaa on done called', a)
+    // this.setState({animatedExpanded: expanded})
+    // }
     // startClock(this.clock)
     console.log('aaa expand input ', expanded)
-    startClock(this.clock)
-    if (expanded) {
-      this.anim = runTiming(
-        // this.clock,
-        minInputArea,
-        this.props.maxInputArea ?? Styles.dimensionHeight,
-        onDone
-      )
-    } else {
-      this.anim = runTiming(
-        // this.clock,
-        this.props.maxInputArea ?? Styles.dimensionHeight,
-        minInputArea,
-        onDone
-      )
-    }
+    // startClock(this.clock)
+
+    this.animateState.setValue(expand ? 1 : -1)
+    // if (expanded) {
+    // this.anim = runTiming(
+    // // this.clock,
+    // minInputArea,
+    // this.props.maxInputArea ?? Styles.dimensionHeight,
+    // onDone
+    // )
+    // } else {
+    // this.anim = runTiming(
+    // // this.clock,
+    // this.props.maxInputArea ?? Styles.dimensionHeight,
+    // minInputArea,
+    // onDone
+    // )
+    // }
   }
 
   render() {
