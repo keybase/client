@@ -24,7 +24,6 @@ type opts struct {
 	BuildID     string
 	Preserve    bool
 	BuildURL    string
-	GetLogCmd   string
 	NoCompile   bool
 	TestBinary  string
 }
@@ -66,7 +65,6 @@ func (r *runner) parseArgs() (err error) {
 	flag.StringVar(&r.opts.BuildID, "build", "", "build ID of the current build")
 	flag.BoolVar(&r.opts.Preserve, "preserve", false, "preserve test binary after done")
 	flag.StringVar(&r.opts.BuildURL, "build-url", "", "URL for this build (in CI mainly)")
-	flag.StringVar(&r.opts.GetLogCmd, "get-log-cmd", "", "Command to get logs from S3")
 	flag.BoolVar(&r.opts.NoCompile, "no-compile", false, "specify flag if you've pre-compiled the test")
 	flag.StringVar(&r.opts.TestBinary, "test-binary", "", "specify the test binary to run")
 	flag.Parse()
@@ -130,7 +128,7 @@ func (r *runner) flushTestLogs(test string, log bytes.Buffer) (string, error) {
 }
 
 func (r *runner) flushLogsToS3(logName string, log bytes.Buffer) (string, error) {
-	return s3put(&log, r.opts.S3Bucket, logName, r.opts.GetLogCmd)
+	return s3put(&log, r.opts.S3Bucket, logName)
 }
 
 func (r *runner) flushTestLogsToTemp(logName string, log bytes.Buffer) (string, error) {
