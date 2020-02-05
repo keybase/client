@@ -831,6 +831,11 @@ func (t *Team) ChangeMembershipWithOptions(ctx context.Context, req keybase1.Tea
 			}
 		}()
 	}
+
+	t.G().Log.CDebugf(ctx, "xxx changem sleep with lease")
+	time.Sleep(2 * time.Second) // xxx
+	t.G().Log.CDebugf(ctx, "xxx changem wake")
+
 	// post the change to the server
 	sigPayloadArgs := sigPayloadArgs{
 		secretBoxes:         secretBoxes,

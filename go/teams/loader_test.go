@@ -1447,6 +1447,7 @@ func TestLoaderPICNIC_669(t *testing.T) {
 
 	var eg errgroup.Group
 	eg.Go(func() error {
+		time.Sleep(1 * time.Second) // xxx
 		t.Logf("rotate A.B.C.D")
 		team, err := Load(context.Background(), tcs[0].G, keybase1.LoadTeamArg{
 			ID:          teamDID,
@@ -1455,13 +1456,17 @@ func TestLoaderPICNIC_669(t *testing.T) {
 		if err != nil {
 			return err
 		}
-		return team.Rotate(context.Background(), keybase1.RotationType_VISIBLE) // xxx todo try all types
+		err = team.Rotate(context.Background(), keybase1.RotationType_VISIBLE) // xxx todo try all types
+		t.Logf("rotated %v", err)
+		return err
 	})
 
 	eg.Go(func() error {
 		time.Sleep(50 * time.Millisecond)
 		t.Logf("demote in A.B")
-		return EditMemberByID(context.Background(), tcs[0].G, teamBID, fus[0].Username, keybase1.TeamRole_WRITER, nil)
+		err := EditMemberByID(context.Background(), tcs[0].G, teamBID, fus[0].Username, keybase1.TeamRole_WRITER, nil)
+		t.Logf("demoted %v", err)
+		return err
 	})
 
 	require.NoError(t, eg.Wait(), "'permission denied' here means the test did not elicit the race")
