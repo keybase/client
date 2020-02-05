@@ -88,18 +88,19 @@ func TestFastLoaderKeyGen(t *testing.T) {
 	arg = keybase1.FastTeamLoadArg{
 		ID: teamID,
 	}
-	// since D is a restricted bot, they should not have access to any keys, so the fast loader can fail here.
 	team, err = tcs[3].G.GetFastTeamLoader().Load(m[3], arg)
-	require.Error(t, err)
-	require.IsType(t, libkb.HiddenChainDataMissingError{}, err)
+	require.NoError(t, err)
+	// since D is a restricted bot, they should not have access to any keys
 	require.Zero(t, len(team.ApplicationKeys))
+	require.True(t, teamName.Eq(team.Name))
 	arg = keybase1.FastTeamLoadArg{
 		ID:            teamID,
 		Applications:  []keybase1.TeamApplication{keybase1.TeamApplication_CHAT},
 		NeedLatestKey: true,
 	}
+	team, err = tcs[3].G.GetFastTeamLoader().Load(m[3], arg)
 	require.Error(t, err)
-	require.IsType(t, libkb.HiddenChainDataMissingError{}, err)
+	require.IsType(t, FTLMissingSeedError{}, err)
 	require.Zero(t, len(team.ApplicationKeys))
 
 	t.Logf("rotate the key a bunch of times")
@@ -171,9 +172,9 @@ func TestFastLoaderKeyGen(t *testing.T) {
 		ID: teamID,
 	}
 	team, err = tcs[3].G.GetFastTeamLoader().Load(m[3], arg)
-	require.Error(t, err)
-	require.IsType(t, libkb.HiddenChainDataMissingError{}, err)
+	require.NoError(t, err)
 	require.Zero(t, len(team.ApplicationKeys))
+	require.True(t, teamName.Eq(team.Name))
 
 	arg = keybase1.FastTeamLoadArg{
 		ID:                   teamID,
@@ -182,7 +183,7 @@ func TestFastLoaderKeyGen(t *testing.T) {
 	}
 	team, err = tcs[3].G.GetFastTeamLoader().Load(m[3], arg)
 	require.Error(t, err)
-	require.IsType(t, libkb.HiddenChainDataMissingError{}, err)
+	require.IsType(t, FTLMissingSeedError{}, err)
 	require.Zero(t, len(team.ApplicationKeys))
 
 	t.Logf("upgrade D to a bot and check they have access")
