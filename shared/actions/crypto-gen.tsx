@@ -35,7 +35,8 @@ type _OnOperationSuccessPayload = {
   readonly input: any
   readonly operation: Types.Operations
   readonly output: HiddenString
-  readonly outputSender?: HiddenString
+  readonly outputSenderUsername?: HiddenString
+  readonly outputSenderFullname?: HiddenString
   readonly outputSigned: boolean
   readonly outputType: Types.OutputType
   readonly warning?: boolean

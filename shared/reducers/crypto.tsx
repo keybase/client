@@ -35,6 +35,8 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     op.output = new HiddenString('')
     op.outputStatus = undefined
     op.outputType = undefined
+    op.outputSenderUsername = undefined
+    op.outputSenderFullname = undefined
     op.errorMessage = new HiddenString('')
     op.warningMessage = new HiddenString('')
     op.outputValid = true
@@ -55,6 +57,8 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       encrypt.output = new HiddenString('')
       encrypt.outputStatus = undefined
       encrypt.outputType = undefined
+      encrypt.outputSenderUsername = undefined
+      encrypt.outputSenderFullname = undefined
       encrypt.outputValid = false
       encrypt.errorMessage = new HiddenString('')
       encrypt.warningMessage = new HiddenString('')
@@ -130,7 +134,8 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       operation,
       output,
       outputSigned,
-      outputSender,
+      outputSenderFullname,
+      outputSenderUsername,
       outputType,
       warning,
       warningMessage,
@@ -185,7 +190,8 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     op.outputStatus = 'success'
     op.outputType = outputType
     op.outputSigned = outputSigned
-    op.outputSender = outputSender
+    op.outputSenderUsername = outputSenderUsername
+    op.outputSenderFullname = outputSenderFullname
   },
   [CryptoGen.onOperationError]: (draftState, action) => {
     const {operation, errorMessage} = action.payload
