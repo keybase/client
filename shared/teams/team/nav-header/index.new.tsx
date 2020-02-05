@@ -6,6 +6,32 @@ import TeamMenu from '../menu-container'
 import {TeamID} from '../../../constants/types/teams'
 import {pluralize} from '../../../util/string'
 import capitalize from 'lodash/capitalize'
+import AddPeopleHow from '../header/add-people-how/container'
+import flags from '../../../util/feature-flags'
+const _AddPeopleButton = (
+  props: {
+    teamID: TeamID
+  } & Kb.OverlayParentProps
+) => (
+  <>
+    <Kb.Button
+      label="Add/Invite people"
+      onClick={props.toggleShowingMenu}
+      ref={props.setAttachmentRef}
+      type="Success"
+      mode="Primary"
+      fullWidth={true}
+      style={styles.addPeopleButton}
+    />
+    <AddPeopleHow
+      attachTo={props.getAttachmentRef}
+      onHidden={props.toggleShowingMenu}
+      teamID={props.teamID}
+      visible={props.showingMenu}
+    />
+  </>
+)
+const AddPeopleButton = Kb.OverlayParentHOC(_AddPeopleButton)
 
 type HeaderTitleProps = {
   active: boolean
@@ -23,6 +49,7 @@ type HeaderTitleProps = {
   onEdit: () => void
   onEditAvatar?: () => void
   onEditDescription?: () => void
+  onManageInvites: () => void
   onRename?: () => void
   onShare: () => void
   role: string
@@ -154,6 +181,42 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
     </Kb.Box2>
   )
 
+  const addInviteAndLinkBox = (
+    <Kb.Box2
+      direction="vertical"
+      gap={Styles.isMobile ? 'xtiny' : 'tiny'}
+      style={styles.addInviteAndLinkBox}
+      className="addInviteAndLinkBox"
+      alignItems="center"
+      alignSelf="flex-end"
+    >
+      <AddPeopleButton teamID={props.teamID} />
+      {flags.teamInvites && (
+        <Kb.Text type={Styles.isMobile ? 'BodyTiny' : 'BodySmall'}>
+          {Styles.isMobile ? 'or' : 'or share a link:'}
+        </Kb.Text>
+      )}
+      {flags.teamInvites &&
+        (Styles.isMobile ? (
+          <Kb.Button
+            label="Generate invite link"
+            onClick={props.onManageInvites}
+            style={Styles.globalStyles.flexGrow}
+            mode="Secondary"
+            fullWidth={true}
+          />
+        ) : (
+          <Kb.Box2 direction="vertical" gap="xtiny" alignItems="flex-start">
+            <Kb.CopyText text="https://keybase.io/team/link/blahblah/" />
+            <Kb.Text type="BodyTiny">Adds as writer • Expires 10,000 ys</Kb.Text>
+            <Kb.Text type="BodyTiny" onClick={props.onManageInvites} className="hover-underline">
+              Manage invite links
+            </Kb.Text>
+          </Kb.Box2>
+        ))}
+    </Kb.Box2>
+  )
+
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
@@ -168,15 +231,33 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
           {topDescriptors}
         </Kb.Box2>
         {bottomDescriptorsAndButtons}
+        {props.canAddPeople && (
+          <Kb.Box2 direction="horizontal" fullWidth={true}>
+            {addInviteAndLinkBox}
+          </Kb.Box2>
+        )}
       </Kb.Box2>
     </Kb.Box2>
   ) : (
-    <Kb.Box2 alignItems="center" direction="horizontal" gap="small" gapStart={true}>
+    <Kb.Box2
+      alignItems="center"
+      direction="horizontal"
+      gap="small"
+      gapStart={true}
+      fullWidth={true}
+      className="headerTitle"
+    >
       {avatar}
-      <Kb.Box2 direction="vertical" alignItems="flex-start">
+      <Kb.Box2
+        direction="vertical"
+        alignItems="flex-start"
+        alignSelf="flex-start"
+        style={styles.flexShrinkGrow}
+      >
         {topDescriptors}
         {bottomDescriptorsAndButtons}
       </Kb.Box2>
+      {props.canAddPeople && addInviteAndLinkBox}
     </Kb.Box2>
   )
 }
@@ -206,6 +287,31 @@ export const SubHeader = (props: SubHeaderProps) =>
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      addInviteAndLinkBox: Styles.platformStyles({
+        common: {
+          borderColor: Styles.globalColors.black_10,
+          borderStyle: 'solid',
+          borderWidth: 1,
+          flexShrink: 0,
+          padding: Styles.globalMargins.tiny,
+        },
+        isElectron: {
+          borderRadius: 4,
+          height: 165,
+          marginBottom: Styles.globalMargins.xsmall,
+          marginRight: Styles.globalMargins.small,
+          marginTop: Styles.globalMargins.tiny,
+          width: 220,
+        },
+        isMobile: {
+          borderRadius: 8,
+          flexGrow: 1,
+          margin: Styles.globalMargins.tiny,
+        },
+      }),
+      addPeopleButton: {
+        flexGrow: 0,
+      },
       addSelfLink: {
         marginLeft: Styles.globalMargins.xtiny,
         textDecorationLine: 'underline',
@@ -218,7 +324,7 @@ const styles = Styles.styleSheetCreate(
         marginTop: Styles.globalMargins.xtiny,
       },
       banner: {
-        ...Styles.padding(Styles.globalMargins.xsmall, Styles.globalMargins.xsmall, 0),
+        ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall, 0),
       },
       clickable: Styles.platformStyles({
         isElectron: {
@@ -226,6 +332,10 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       flexShrink: {
+        flexShrink: 1,
+      },
+      flexShrinkGrow: {
+        flexGrow: 1,
         flexShrink: 1,
       },
       greenText: {

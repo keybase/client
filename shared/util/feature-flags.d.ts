@@ -15,6 +15,7 @@ export type FeatureFlags = {
   outOfDateBanner: boolean
   proofProviders: boolean
   stellarExternalPartners: boolean
+  teamInvites: boolean
   teamsRedesign: boolean
   userBlocking: boolean
   webOfTrust: boolean
