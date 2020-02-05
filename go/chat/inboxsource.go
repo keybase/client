@@ -645,22 +645,6 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 			convIDs = append(convIDs, chat1.ConversationID(info.ConvID.Bytes()))
 		}
 	}
-	_, convs, err := s.createInbox().Read(ctx, s.uid, &chat1.GetInboxQuery{
-		ConvIDs: convIDs,
-	})
-	if err != nil {
-		s.Debug(ctx, "ApplyLocalChatState: failed to get convs: %v", err)
-	}
-
-	// convID -> isRead
-	readConvMap := make(map[chat1.ConvIDStr]bool)
-	smallTeamConvMap := make(map[chat1.ConvIDStr]bool, len(convs))
-	for _, conv := range convs {
-		if conv.IsLocallyRead() {
-			readConvMap[conv.ConvIDStr] = true
-		}
-		smallTeamConvMap[conv.ConvIDStr] = conv.GetTeamType() != chat1.TeamType_COMPLEX
-	}
 
 	outbox := storage.NewOutbox(s.G(), s.uid)
 	obrs, oerr := outbox.PullAllConversations(ctx, true /*includeErrors */, false /*remove*/)
@@ -694,7 +678,24 @@ func (s *HybridInboxSource) ApplyLocalChatState(ctx context.Context, infos []key
 				Mtime:  ctime,
 			}
 		}
+		convIDs = append(convIDs, obr.ConvID)
 		failedOutboxMap[convIDStr]++
+	}
+
+	_, convs, err := s.createInbox().Read(ctx, s.uid, &chat1.GetInboxQuery{
+		ConvIDs: convIDs,
+	})
+	if err != nil {
+		s.Debug(ctx, "ApplyLocalChatState: failed to get convs: %v", err)
+	}
+	// convID -> isRead
+	readConvMap := make(map[chat1.ConvIDStr]bool)
+	smallTeamConvMap := make(map[chat1.ConvIDStr]bool, len(convs))
+	for _, conv := range convs {
+		if conv.IsLocallyRead() {
+			readConvMap[conv.ConvIDStr] = true
+		}
+		smallTeamConvMap[conv.ConvIDStr] = conv.GetTeamType() != chat1.TeamType_COMPLEX
 	}
 
 	updates := make([]chat1.LocalMtimeUpdate, 0, len(localUpdates))

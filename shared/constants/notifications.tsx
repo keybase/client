@@ -4,7 +4,6 @@ import * as Container from '../util/container'
 
 export const badgeStateToBadgeCounts = (state: Container.TypedState, bs: RPCTypes.BadgeState) => {
   const {inboxVers, unverifiedEmails, unverifiedPhones} = bs
-  const conversations = bs.conversations || []
   const deletedTeams = bs.deletedTeams || []
   const newDevices = bs.newDevices || []
   const newGitRepoGlobalUniqueIDs = bs.newGitRepoGlobalUniqueIDs || []
