@@ -1,5 +1,4 @@
 import * as ImagePicker from 'expo-image-picker'
-import * as Types from '../../../../constants/types/chat2'
 import React, {PureComponent} from 'react'
 import * as Kb from '../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../styles'
@@ -28,6 +27,7 @@ type menuType = 'exploding' | 'filepickerpopup' | 'moremenu'
 type State = {animatedMaxHeight: NativeAnimated.Value; expanded: boolean; hasText: boolean}
 
 const AnimatedBox2 = NativeAnimated.createAnimatedComponent(Kb.Box2)
+AnimatedBox2.displayName = 'AnimatedBox2'
 
 class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
   private input: null | Kb.PlainInput = null
@@ -169,10 +169,12 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
   }
 
   private expandInput = () => {
-    this.setState(s => ({expanded: !s.expanded}))
-    NativeAnimated.spring(this.state.animatedMaxHeight, {
-      toValue: !this.state.expanded ? 145 : this.props.maxInputArea ?? Styles.dimensionHeight,
-    }).start()
+    const expanded = !this.state.expanded
+    NativeAnimated.timing(this.state.animatedMaxHeight, {
+      toValue: !expanded ? 145 : this.props.maxInputArea ?? Styles.dimensionHeight,
+    }).start(() => {
+      this.setState(s => ({expanded: !s.expanded}))
+    })
   }
 
   render() {
@@ -217,16 +219,22 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
         direction="vertical"
         onLayout={this.onLayout}
         fullWidth={true}
-        style={{
-          maxHeight: this.state.animatedMaxHeight,
-        }}
+        style={
+          this.state.expanded
+            ? {height: this.state.animatedMaxHeight}
+            : {maxHeight: this.state.animatedMaxHeight}
+        }
       >
         {commandUpdateStatus}
         {this.getMenu()}
         {this.props.showTypingStatus && !this.props.suggestionsVisible && (
           <Typing conversationIDKey={this.props.conversationIDKey} />
         )}
-        <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
+        <Kb.Box2
+          direction="vertical"
+          style={Styles.collapseStyles([styles.container, this.state.expanded && {height: '100%'}])}
+          fullWidth={true}
+        >
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputContainer}>
             {editing}
             <Kb.PlainInput
@@ -353,6 +361,7 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       inputContainer: {
+        flexGrow: 1,
         flexShrink: 1,
         maxHeight: '100%',
         paddingBottom: Styles.globalMargins.tiny,
