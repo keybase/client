@@ -3257,6 +3257,7 @@ func (h *Server) GetWelcomeMessage(ctx context.Context, teamID keybase1.TeamID) 
 	case nil:
 		return chat1.GetWelcomeMessageRes{Found: found, Message: message}, nil
 	case *DevStorageAdminOnlyError:
+		h.Debug(ctx, "ignoring welcome message set in channel without minWriterRole: %s", err)
 		return chat1.GetWelcomeMessageRes{Found: false}, nil
 	default:
 		return res, err
