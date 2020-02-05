@@ -184,7 +184,6 @@ const load = () => {
     .add('Web of Trust - pending', () => <WebOfTrust {...webOfTrustPending} />)
     .add('Web of Trust - you authored', () => <WebOfTrust {...webOfTrustSent} />)
 
-
   Sb.storiesOf('Profile/Profile', module)
     .addDecorator(providerSBS)
     .add('SBS Profile', () => <BioTeamProofs {...bioPropsSBS} />)
