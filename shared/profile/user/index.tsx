@@ -205,7 +205,7 @@ class Tabs extends React.Component<TabsProps> {
       <Kb.Box2 direction="horizontal" style={styles.followTabContainer} fullWidth={true}>
         {flags.webOfTrust && this._tab('webOfTrust')}
         {this._tab('followers')}
-        {this._tab('following')}f
+        {this._tab('following')}
       </Kb.Box2>
     )
   }
