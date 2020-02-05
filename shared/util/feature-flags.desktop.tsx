@@ -38,7 +38,7 @@ const inAdmin: {[K in keyof FeatureFlags]?: boolean} = {
   outOfDateBanner: true,
   proofProviders: true,
   userBlocking: false,
-  webOfTrust: true,
+  webOfTrust: false,
 }
 
 // load overrides
