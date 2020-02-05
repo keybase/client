@@ -556,17 +556,18 @@ function* getDetailsByID(state: TypedState, action: TeamsGen.GetDetailsByIDPaylo
     if (!requests) {
       requests = []
     }
-    requests.sort((a, b) => a.username.localeCompare(b.username))
 
-    const requestMap = new Map<string, Array<string>>()
+    const requestMap = new Map<string, Array<RPCTypes.TeamJoinRequest>>()
     requests.forEach(request => {
       let arr = requestMap.get(request.name)
       if (!arr) {
         arr = []
         requestMap.set(request.name, arr)
       }
-      arr.push(request.username)
+      arr.push(request)
     })
+
+    requestMap.forEach(arr => arr.sort((a, b) => b.ctime - a.ctime))
 
     const invites = Constants.annotatedInvitesToInviteInfo(details.annotatedActiveInvites)
 

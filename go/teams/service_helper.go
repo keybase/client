@@ -1490,6 +1490,7 @@ type accessRequest struct {
 	FQName   string          `json:"fq_name"`
 	TeamID   keybase1.TeamID `json:"team_id"`
 	UID      keybase1.UID    `json:"uid"`
+	Ctime    time.Time       `json:"ctime"`
 	Username string          `json:"username"`
 }
 
@@ -1522,6 +1523,7 @@ func ListRequests(ctx context.Context, g *libkb.GlobalContext, teamName *string)
 		joinRequests[i] = keybase1.TeamJoinRequest{
 			Name:     ar.FQName,
 			Username: libkb.NewNormalizedUsername(ar.Username).String(),
+			Ctime:    keybase1.ToUnixTime(ar.Ctime),
 		}
 	}
 

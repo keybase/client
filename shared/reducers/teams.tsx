@@ -91,7 +91,16 @@ export default Container.makeReducer<
     details.settings = action.payload.settings
     details.invites = new Set(action.payload.invites)
     details.subteams = action.payload.subteamIDs
-    details.requests = new Set(action.payload.requests.get(teamname))
+
+    const requests = action.payload.requests.get(teamname)
+    if (requests) {
+      details.requests = new Set(
+        requests.map(request => ({
+          ctime: request.ctime * 1000,
+          username: request.username,
+        }))
+      )
+    }
   },
   [TeamsGen.setTeamCanPerform]: (draftState, action) => {
     draftState.canPerform.set(action.payload.teamID, action.payload.teamOperation)

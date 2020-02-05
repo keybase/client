@@ -2904,14 +2904,16 @@ func (o TeamAddMembersResult) DeepCopy() TeamAddMembersResult {
 }
 
 type TeamJoinRequest struct {
-	Name     string `codec:"name" json:"name"`
-	Username string `codec:"username" json:"username"`
+	Name     string   `codec:"name" json:"name"`
+	Username string   `codec:"username" json:"username"`
+	Ctime    UnixTime `codec:"ctime" json:"ctime"`
 }
 
 func (o TeamJoinRequest) DeepCopy() TeamJoinRequest {
 	return TeamJoinRequest{
 		Name:     o.Name,
 		Username: o.Username,
+		Ctime:    o.Ctime.DeepCopy(),
 	}
 }
 

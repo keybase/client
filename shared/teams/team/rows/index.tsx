@@ -65,10 +65,10 @@ const makeRows = (
         empty = false
         rows.push({key: 'invites-divider:requests', label: 'Requests', type: 'invites-divider'})
         rows.push(
-          ...[...requests].sort().map(username => ({
-            key: `invites-request:${username}`,
+          ...[...requests].sort().map(req => ({
+            key: `invites-request:${req.username}`,
             type: 'invites-request' as const,
-            username,
+            username: req.username,
           }))
         )
       }
