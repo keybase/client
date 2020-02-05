@@ -43,7 +43,8 @@ const makeRows = (
   selectedTab: Types.TabKey,
   yourUsername: string,
   yourOperations: Types.TeamOperations,
-  invitesCollapsed: Set<Types.TeamID>
+  invitesCollapsed: Set<Types.TeamID>,
+  subteamsFiltered?: Set<Types.TeamID>
 ): Array<Row> => {
   const rows: Array<Row> = []
   switch (selectedTab) {
@@ -154,7 +155,7 @@ const makeRows = (
     }
     case 'subteams': {
       if (flags.teamsRedesign) {
-        const {subteams} = details
+        const subteams = subteamsFiltered || details.subteams
         if (yourOperations.manageSubteams) {
           rows.push({key: 'subteam-add', type: 'subteam-add'})
         }
