@@ -154,11 +154,25 @@ const bioPropsSBS = {
   username: 'chris@twitter',
 }
 
-const webOfTrustProps = {
+const webOfTrustPending = {
   attestation:
     'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
   attestingUser: 'chris',
   dateString: '2 months ago',
+  onAccept: Sb.action('onAccept'),
+  onReject: Sb.action('onReject'),
+  pending: true,
+  verificationType: 'video' as 'video',
+}
+
+const webOfTrustSent = {
+  ...webOfTrustPending,
+  attestingUser: 'max',
+  dateString: '2 months ago',
+  onAccept: undefined,
+  onHide: Sb.action('onHide'),
+  onReject: undefined,
+  pending: false,
 }
 
 const load = () => {
@@ -167,7 +181,9 @@ const load = () => {
   Sb.storiesOf('Profile/Profile', module)
     .addDecorator(providerUser)
     .add('BioTeamProofs', () => <BioTeamProofs {...bioPropsUser} />)
-    .add('Web of Trust', () => <WebOfTrust {...webOfTrustProps} />)
+    .add('Web of Trust - pending', () => <WebOfTrust {...webOfTrustPending} />)
+    .add('Web of Trust - you authored', () => <WebOfTrust {...webOfTrustSent} />)
+
 
   Sb.storiesOf('Profile/Profile', module)
     .addDecorator(providerSBS)
