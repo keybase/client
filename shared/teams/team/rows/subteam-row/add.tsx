@@ -53,6 +53,7 @@ const AddSubteamNew = ({teamID}: {teamID: Types.TeamID}) => {
           hotkey="k"
           value={subteamFilter}
           valueControlled={true}
+          style={styles.filterInput}
         />
       )}
     </Kb.Box2>
@@ -77,6 +78,7 @@ const styles = Styles.styleSheetCreate(() => ({
     backgroundColor: Styles.globalColors.blueGrey,
     justifyContent: 'space-between',
   },
+  filterInput: {maxWidth: 148},
   text: {padding: Styles.globalMargins.xtiny},
 }))
 
