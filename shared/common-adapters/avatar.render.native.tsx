@@ -4,6 +4,7 @@ import * as Styles from '../styles'
 import ClickableBox from './clickable-box'
 import Box from './box'
 import {NativeImage} from './native-image.native'
+import flags from '../util/feature-flags'
 import {Props, AvatarSize} from './avatar.render'
 
 const Kb = {
@@ -71,6 +72,7 @@ const Avatar = (props: Props) => {
         )}
         {props.editable && (
           <Kb.Icon
+            color={props.isTeam ? Styles.globalColors.white : undefined}
             type="iconfont-edit"
             onClick={props.onEditAvatarClick}
             style={props.isTeam ? styles.editTeam : styles.edit}
@@ -146,11 +148,24 @@ const styles = Styles.styleSheetCreate(
         position: 'absolute',
         right: 0,
       },
-      editTeam: {
-        bottom: -2,
-        position: 'absolute',
-        right: -28,
-      },
+      editTeam: flags.teamsRedesign
+        ? ({
+            backgroundColor: Styles.globalColors.blue,
+            borderColor: Styles.globalColors.white,
+            borderRadius: 100,
+            borderStyle: 'solid',
+            borderWidth: 2,
+            bottom: -6,
+            color: Styles.globalColors.whiteOrWhite,
+            padding: 4,
+            position: 'absolute',
+            right: -6,
+          } as const)
+        : ({
+            bottom: -2,
+            position: 'absolute',
+            right: -28,
+          } as const),
     } as const)
 )
 
