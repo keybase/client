@@ -43,6 +43,7 @@ func TestUIThreadLoaderGrouper(t *testing.T) {
 	require.NoError(t, err)
 	consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
 	consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
+	consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
 	conv := convFull.Conv.Info
 
 	err = ctc.as(t, users[0]).chatLocalHandler().BulkAddToConv(ctx,

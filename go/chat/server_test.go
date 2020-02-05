@@ -4329,7 +4329,10 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		assertNoNewConversation(t, listener2)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener2, chat1.MessageType_SYSTEM)
 		consumeNewMsgRemote(t, listener2, chat1.MessageType_SYSTEM)
 		_, err = postLocalForTest(t, ctc, users[1], ncres.Conv.Info, chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: fmt.Sprintf("JOINME"),
@@ -4391,6 +4394,9 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		assertNoNewConversation(t, listener1)
 		assertNoNewConversation(t, listener2)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener2, chat1.MessageType_SYSTEM)
 		getTLFRes, err := ctc.as(t, users[1]).chatLocalHandler().GetTLFConversationsLocal(ctx1,
 			chat1.GetTLFConversationsLocalArg{
 				TlfName:     conv.TlfName,
@@ -5375,6 +5381,8 @@ func TestChatSrvSetConvMinWriterRole(t *testing.T) {
 		consumeTeamType(t, listener1)
 		consumeTeamType(t, listener2)
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener2, chat1.MessageType_SYSTEM)
 		consumeNewMsgRemote(t, listener2, chat1.MessageType_SYSTEM)
 
 		channelID := channelInfo.Id
@@ -5441,6 +5449,7 @@ func TestChatSrvTopicNameState(t *testing.T) {
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
 		consumeTeamType(t, listener0)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
 
 		// Delete the conv, make sure we can still create a new channel after
 		_, err = ctc.as(t, users[0]).chatLocalHandler().DeleteConversationLocal(ctx,
@@ -5467,6 +5476,7 @@ func TestChatSrvTopicNameState(t *testing.T) {
 		consumeNewConversation(t, listener0, convInfo.Id)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
 
 		// Creating a conversation with same topic name just returns the matching one
 		topicName = "random"
@@ -5482,11 +5492,13 @@ func TestChatSrvTopicNameState(t *testing.T) {
 		randomConvID := ncres.Conv.GetConvID()
 		consumeNewConversation(t, listener0, randomConvID)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
 
 		ncres, err = ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx, ncarg)
 		require.NoError(t, err)
 		require.Equal(t, randomConvID, ncres.Conv.GetConvID())
 		assertNoNewConversation(t, listener0)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
 
 		// Try to change topic name to one that exists
 		plarg := chat1.PostLocalArg{
@@ -5898,6 +5910,8 @@ func TestChatSrvDeleteConversation(t *testing.T) {
 		consumeTeamType(t, listener0)
 		consumeTeamType(t, listener1)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
 
 		uid := users[0].User.GetUID().ToBytes()
@@ -6400,6 +6414,8 @@ func TestChatSrvTeamChannelNameMentions(t *testing.T) {
 				consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
 				consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
 			}
+			consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
+			consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
 
 			_, err = ctc.as(t, users[0]).chatLocalHandler().JoinConversationByIDLocal(ctx1,
 				channel.Conv.GetConvID())
@@ -6844,6 +6860,8 @@ func TestChatBulkAddToConv(t *testing.T) {
 		require.NoError(t, err)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
 
 		usernames := []string{users[1].Username}
