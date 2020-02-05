@@ -26,6 +26,7 @@ type opts struct {
 	BuildURL    string
 	NoCompile   bool
 	TestBinary  string
+	Timeout     string
 }
 
 func logError(f string, args ...interface{}) {
@@ -67,6 +68,7 @@ func (r *runner) parseArgs() (err error) {
 	flag.StringVar(&r.opts.BuildURL, "build-url", "", "URL for this build (in CI mainly)")
 	flag.BoolVar(&r.opts.NoCompile, "no-compile", false, "specify flag if you've pre-compiled the test")
 	flag.StringVar(&r.opts.TestBinary, "test-binary", "", "specify the test binary to run")
+	flag.StringVar(&r.opts.Timeout, "timeout", "60s", "timeout (in seconds) for any one individual test")
 	flag.Parse()
 	r.opts.Prefix = convertPrefix(prfx)
 	var d string
@@ -175,7 +177,7 @@ func (r *runner) runTest(test string) error {
 var errTestFailed = errors.New("test failed")
 
 func (r *runner) runTestOnce(test string, canRerun bool, isRerun bool) (string, error) {
-	cmd := exec.Command(r.testerName(), "-test.run", "^"+test+"$")
+	cmd := exec.Command(r.testerName(), "-test.run", "^"+test+"$", "-test.timeout", r.opts.Timeout)
 	var combined bytes.Buffer
 	if isRerun {
 		cmd.Env = append(os.Environ(), "CITOGO_FLAKE_RERUN=1")
