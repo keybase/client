@@ -48,6 +48,7 @@ js_tests() {
     has_js_files
 
     echo 'yarn install'
+    yarn install --network-concurrency 1 --prefer-offline --pure-lockfile --ignore-optional --ignore-engines
     yarn modules --ignore-engines
     check_rc $? 'yarn install fail' 1
 
