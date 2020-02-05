@@ -25,8 +25,8 @@ type ChainManager struct {
 	storage *storage.HiddenStorage
 }
 
-// HiddenChainSupportState wether a team supports the hidden chain or not. This
-// information is fetched from the server and cached.
+// HiddenChainSupportState describes whether a team supports the hidden chain or
+// not. This information is fetched from the server and cached.
 type HiddenChainSupportState struct {
 	state      bool
 	cacheUntil time.Time
@@ -43,7 +43,7 @@ func (m *ChainManager) TeamSupportsHiddenChain(mctx libkb.MetaContext, id keybas
 	m.hiddenSupportCacheLock.Lock()
 	defer m.hiddenSupportCacheLock.Unlock()
 	if supports, found := m.hiddenSupportCache[id]; found {
-		if time.Now().Before(supports.cacheUntil) {
+		if mctx.G().Clock().Now().Before(supports.cacheUntil) {
 			return supports.state, nil
 		}
 	}
@@ -51,7 +51,7 @@ func (m *ChainManager) TeamSupportsHiddenChain(mctx libkb.MetaContext, id keybas
 	if err != nil {
 		return false, err
 	}
-	m.hiddenSupportCache[id] = HiddenChainSupportState{state: state, cacheUntil: time.Now().Add(1 * time.Hour)}
+	m.hiddenSupportCache[id] = HiddenChainSupportState{state: state, cacheUntil: mctx.G().Clock().Now().Add(1 * time.Hour)}
 	return state, nil
 }
 
