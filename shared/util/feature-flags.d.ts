@@ -8,6 +8,7 @@ export type FeatureFlags = {
   dbCleanEnabled: boolean
   fastAccountSwitch: boolean
   foldersInProfileTab: boolean
+  ipadSupport: boolean
   lagRadar: boolean
   moveOrCopy: boolean
   newTeamBuildingForChatAllowMakeTeam: boolean

@@ -14,6 +14,7 @@ const ff: FeatureFlags = {
   dbCleanEnabled: false,
   fastAccountSwitch: true,
   foldersInProfileTab: true,
+  ipadSupport: false,
   lagRadar: false,
   moveOrCopy: true,
   newTeamBuildingForChatAllowMakeTeam: false,

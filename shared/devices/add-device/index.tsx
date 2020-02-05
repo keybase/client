@@ -3,6 +3,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {isLargeScreen} from '../../constants/platform'
 import {useSafeCallback} from '../../util/container'
+import flags from '../../util/feature-flags'
 
 type Props = {
   highlight?: Array<'computer' | 'phone' | 'paper key'>
@@ -104,7 +105,8 @@ const DeviceOption = ({highlight, iconNumber, onClick, type}: DeviceOptionProps)
     >
       <Kb.Icon type={getIconType(type, iconNumber)} />
       <Kb.Text type="BodySemibold">
-        {type === 'paper key' ? 'Create' : 'Add'} a {type}
+        {type === 'paper key' ? 'Create' : 'Add'} a{' '}
+        {flags.ipadSupport && type === 'phone' ? 'phone or tablet' : type}
       </Kb.Text>
     </Kb.Box2>
   </Kb.ClickableBox>
