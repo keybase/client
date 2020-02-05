@@ -5,11 +5,6 @@ import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import {isIOS, isLargeScreen} from '../../../../constants/platform'
 import {LayoutEvent} from '../../../../common-adapters/box'
-import {
-  NativeAnimated,
-  NativeKeyboard,
-  NativeTouchableWithoutFeedback,
-} from '../../../../common-adapters/native-wrappers.native'
 import SetExplodingMessagePicker from '../../messages/set-explode-popup/container'
 import Typing from './typing/container'
 import FilePickerPopup from '../filepicker-popup'
@@ -26,32 +21,109 @@ type menuType = 'exploding' | 'filepickerpopup' | 'moremenu'
 
 type State = {
   animatedExpanded: boolean
-  animatedMaxHeight: NativeAnimated.Value
+  animatedMaxHeight: Kb.NativeAnimated.Value
   expanded: boolean
   hasText: boolean
 }
 
-const AnimatedBox2 = NativeAnimated.createAnimatedComponent(Kb.Box2)
-AnimatedBox2.displayName = 'AnimatedBox2'
+const {call, set, cond, timing, block, debug, Value, Clock} = Kb.ReAnimated
+const {startClock, stopClock, clockRunning, not} = Kb.ReAnimated
+const runTiming = (from, dest, onDone) => {
+  console.log('aaa run timing called', from, dest)
+  const clock = new Clock()
+
+  const state = {
+    finished: new Value(0),
+    frameTime: new Value(0),
+    position: new Value(0),
+    time: new Value(0),
+  }
+
+  const config = {
+    duration: 1000,
+    easing: Kb.ReAnimatedEasing.inOut(Kb.ReAnimatedEasing.ease),
+    toValue: new Value(0),
+  }
+
+  return block([
+    cond(not(clockRunning(clock)), [
+      debug('aaa clock init1', state.position),
+      set(state.finished, 0),
+      set(state.frameTime, 0),
+      set(state.time, 0),
+      set(state.position, from),
+      set(config.toValue, dest),
+      startClock(clock),
+      // debug('aaa starting clock again', startClock(clock)),
+    ]),
+    timing(clock, state, config),
+    cond(
+      state.finished,
+      [stopClock(clock), call([state.finished], onDone)]
+      // debug('aaa pos', state.position)
+    ),
+    state.position,
+  ])
+}
+// const runSpring = (clock, value, dest) => {
+// const state = {
+// finished: new Value(0),
+// position: new Value(0),
+// time: new Value(0),
+// velocity: new Value(0),
+// }
+
+// const config = {
+// damping: 10,
+// mass: 5,
+// overshootClamping: false,
+// restDisplacementThreshold: 0.001,
+// restSpeedThreshold: 0.001,
+// stiffness: 101.6,
+// toValue: new Value(0),
+// }
+
+// return block([
+// cond(clockRunning(clock), 0, [
+// debug('clock init1', state.position),
+// set(state.finished, 0),
+// set(state.time, 0),
+// set(state.position, value),
+// set(state.velocity, -2500),
+// set(config.toValue, dest),
+// startClock(clock),
+// ]),
+// spring(clock, state, config),
+// cond(state.finished, debug('aaaa stop clock', stopClock(clock))),
+// state.position,
+// ])
+// }
+
+const AnimatedBox2 = Kb.ReAnimated.createAnimatedComponent(Kb.Box2)
+
+const minInputArea = 145
 
 class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
   private input: null | Kb.PlainInput = null
   private lastText?: string
   private whichMenu?: menuType
+  private clock = new Clock()
+  private anim: Kb.ReAnimated.Node<number> = new Value(minInputArea)
+
   state = {
     animatedExpanded: false, // updates after animations are done
-    animatedMaxHeight: new NativeAnimated.Value(Styles.dimensionHeight),
+    // animatedMaxHeight: new Kb.NativeAnimated.Value(Styles.dimensionHeight),
     expanded: false, // updates immediately, used for the icon etc
     hasText: false,
   }
 
-  componentDidUpdate(prevProps: PlatformInputPropsInternal) {
-    if (this.props.maxInputArea !== prevProps.maxInputArea) {
-      this.setState({
-        animatedMaxHeight: new NativeAnimated.Value(this.props.maxInputArea ?? Styles.dimensionHeight),
-      })
-    }
-  }
+  // componentDidUpdate(prevProps: PlatformInputPropsInternal) {
+  // if (this.props.maxInputArea !== prevProps.maxInputArea) {
+  // this.setState({
+  // animatedMaxHeight: new Kb.NativeAnimated.Value(this.props.maxInputArea ?? Styles.dimensionHeight),
+  // })
+  // }
+  // }
 
   private inputSetRef = (ref: null | Kb.PlainInput) => {
     this.input = ref
@@ -111,7 +183,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
 
   private toggleShowingMenu = (menu: menuType) => {
     // Hide the keyboard on mobile when showing the menu.
-    NativeKeyboard.dismiss()
+    Kb.NativeKeyboard.dismiss()
     this.whichMenu = menu
     this.props.toggleShowingMenu()
   }
@@ -177,14 +249,40 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
   private expandInput = () => {
     const expanded = !this.state.expanded
     this.setState(s => ({expanded: !s.expanded}))
-    NativeAnimated.timing(this.state.animatedMaxHeight, {
-      toValue: !expanded ? 145 : this.props.maxInputArea ?? Styles.dimensionHeight,
-    }).start(() => {
+    // Kb.NativeAnimated.timing(this.state.animatedMaxHeight, {
+    // toValue: !expanded ? 145 : this.props.maxInputArea ?? Styles.dimensionHeight,
+    // }).start(() => {
+    // this.setState({animatedExpanded: expanded})
+    // })
+    // startClock(this.clock)
+    // this.anim = runSpring(this.clock, 150, 800)
+
+    const onDone = (...a) => {
+      console.log('aaa on done called', a)
       this.setState({animatedExpanded: expanded})
-    })
+    }
+    // startClock(this.clock)
+    console.log('aaa expand input ', expanded)
+    startClock(this.clock)
+    if (expanded) {
+      this.anim = runTiming(
+        // this.clock,
+        minInputArea,
+        this.props.maxInputArea ?? Styles.dimensionHeight,
+        onDone
+      )
+    } else {
+      this.anim = runTiming(
+        // this.clock,
+        this.props.maxInputArea ?? Styles.dimensionHeight,
+        minInputArea,
+        onDone
+      )
+    }
   }
 
   render() {
+    console.log('aaa rerendering')
     const commandUpdateStatus = this.props.suggestBotCommandsUpdateStatus !==
       RPCChatTypes.UIBotCommandsUpdateStatusTyp.blank &&
       (this.props.suggestionsVisible ||
@@ -193,7 +291,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
       )
 
     const explodingIcon = !this.props.isEditing && !this.props.cannotWrite && (
-      <NativeTouchableWithoutFeedback onPress={() => this.toggleShowingMenu('exploding')}>
+      <Kb.NativeTouchableWithoutFeedback onPress={() => this.toggleShowingMenu('exploding')}>
         <Kb.Box style={explodingIconContainer}>
           {this.props.isExploding ? (
             <Kb.Box2 direction="horizontal" style={styles.exploding} centerChildren={true}>
@@ -209,7 +307,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
             />
           )}
         </Kb.Box>
-      </NativeTouchableWithoutFeedback>
+      </Kb.NativeTouchableWithoutFeedback>
     )
 
     const editing = this.props.isEditing && (
@@ -226,11 +324,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
         direction="vertical"
         onLayout={this.onLayout}
         fullWidth={true}
-        style={
-          this.state.animatedExpanded
-            ? {height: this.state.animatedMaxHeight}
-            : {maxHeight: this.state.animatedMaxHeight}
-        }
+        style={this.state.animatedExpanded ? {height: this.anim} : {maxHeight: this.anim}}
       >
         {commandUpdateStatus}
         {this.getMenu()}

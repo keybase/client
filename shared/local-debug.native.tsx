@@ -67,7 +67,7 @@ if (__DEV__) {
   config.printOutstandingRPCs = true
   config.printOutstandingTimerListeners = true
   config.printRPCWaitingSession = false
-  config.printRPC = true
+  config.printRPC = false
   // TODO is this even used?
   config.printRPCStats = true
   config.userTimings = false
