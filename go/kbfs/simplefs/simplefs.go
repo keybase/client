@@ -3171,3 +3171,10 @@ func (k *SimpleFS) SimpleFSSetSfmiBannerDismissed(
 	k.config.SubscriptionManagerPublisher().PublishChange(keybase1.SubscriptionTopic_SETTINGS)
 	return nil
 }
+
+// SimpleFSSearch implements the SimpleFSInterface.
+func (k *SimpleFS) SimpleFSSearch(
+	ctx context.Context, arg keybase1.SimpleFSSearchArg) (
+	keybase1.SimpleFSSearchResults, error) {
+	return keybase1.SimpleFSSearchResults{}, nil
+}
