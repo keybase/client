@@ -29,7 +29,6 @@ func AddRPCRecord(tag string, stat keybase1.InstrumentationStat, record rpc.Inst
 	if stat.Tag == "" {
 		stat.Tag = tag
 	}
-
 	stat.Mtime = keybase1.ToTime(time.Now())
 	stat.NumCalls++
 	dur := keybase1.ToDurationMsec(record.Dur)
@@ -124,6 +123,14 @@ func (s *DiskInstrumentationStorage) Flush() (err error) {
 func (s *DiskInstrumentationStorage) flush(storage map[string]keybase1.InstrumentationStat) (err error) {
 	defer s.G().CTraceTimed(context.TODO(), "DiskInstrumentationStorage: flush", func() error { return err })()
 	for tag, record := range storage {
+		var existing keybase1.InstrumentationStat
+		found, err := s.G().LocalDb.GetIntoMsgpack(&existing, s.dbKey(tag))
+		if err != nil {
+			return err
+		}
+		if found {
+			record = existing.AppendStat(record)
+		}
 		if err := s.G().LocalDb.PutObjMsgpack(s.dbKey(tag), nil, record); err != nil {
 			return err
 		}

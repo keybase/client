@@ -257,9 +257,9 @@ func (c *FullCachingSource) populateCacheWorker(m libkb.MetaContext) {
 		found, ent, err := c.diskLRU.Get(m.Ctx(), m.G(), key)
 		if err != nil {
 			c.debug(m, "populateCacheWorker: failed to read previous entry in LRU: %s", err)
-			_, discardErr := libkb.DiscardAndCloseBody(resp)
-			if discardErr != nil {
-				c.debug(m, "populateCacheWorker: error closing body: %+v", discardErr)
+			_, err = libkb.DiscardAndCloseBody(resp)
+			if err != nil {
+				c.debug(m, "populateCacheWorker: error closing body: %+v", err)
 			}
 			continue
 		}
