@@ -44,6 +44,7 @@ has_js_files() {
 js_tests() {
     echo 'js-tests'
     node --version
+    npm i -g yarn
     has_js_files
 
     echo 'yarn install'
