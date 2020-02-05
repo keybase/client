@@ -24,7 +24,12 @@ import AudioRecorder from '../../../audio/audio-recorder.native'
 
 type menuType = 'exploding' | 'filepickerpopup' | 'moremenu'
 
-type State = {animatedMaxHeight: NativeAnimated.Value; expanded: boolean; hasText: boolean}
+type State = {
+  animatedExpanded: boolean
+  animatedMaxHeight: NativeAnimated.Value
+  expanded: boolean
+  hasText: boolean
+}
 
 const AnimatedBox2 = NativeAnimated.createAnimatedComponent(Kb.Box2)
 AnimatedBox2.displayName = 'AnimatedBox2'
@@ -34,8 +39,9 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
   private lastText?: string
   private whichMenu?: menuType
   state = {
+    animatedExpanded: false, // updates after animations are done
     animatedMaxHeight: new NativeAnimated.Value(Styles.dimensionHeight),
-    expanded: false,
+    expanded: false, // updates immediately, used for the icon etc
     hasText: false,
   }
 
@@ -170,10 +176,11 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
 
   private expandInput = () => {
     const expanded = !this.state.expanded
+    this.setState(s => ({expanded: !s.expanded}))
     NativeAnimated.timing(this.state.animatedMaxHeight, {
       toValue: !expanded ? 145 : this.props.maxInputArea ?? Styles.dimensionHeight,
     }).start(() => {
-      this.setState(s => ({expanded: !s.expanded}))
+      this.setState({animatedExpanded: expanded})
     })
   }
 
@@ -220,7 +227,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
         onLayout={this.onLayout}
         fullWidth={true}
         style={
-          this.state.expanded
+          this.state.animatedExpanded
             ? {height: this.state.animatedMaxHeight}
             : {maxHeight: this.state.animatedMaxHeight}
         }
@@ -232,7 +239,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
         )}
         <Kb.Box2
           direction="vertical"
-          style={Styles.collapseStyles([styles.container, this.state.expanded && {height: '100%'}])}
+          style={Styles.collapseStyles([styles.container, this.state.animatedExpanded && {height: '100%'}])}
           fullWidth={true}
         >
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputContainer}>
@@ -255,6 +262,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
               rowsMin={1}
             />
             <Kb.Icon
+              padding="xtiny"
               onClick={this.expandInput}
               type={this.state.expanded ? 'iconfont-expand' : 'iconfont-collapse'}
               style={styles.expandIcon}
