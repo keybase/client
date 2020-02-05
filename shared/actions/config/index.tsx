@@ -67,7 +67,11 @@ const onHTTPSrvInfoUpdated = (action: EngineGen.Keybase1NotifyServiceHTTPSrvInfo
 
 const getFollowerInfo = (state: Container.TypedState, action: ConfigGen.LoadOnStartPayload) => {
   const {uid} = state.config
+  console.log(`getFollowerInfo: init; uid=${uid}`)
   if (action.type === ConfigGen.loadOnStart && action.payload.phase !== 'startupOrReloginButNotInARush') {
+    console.log(
+      `getFollowerInfo: bailing out early due to type=${action.type}; phase=${action.payload.phase}`
+    )
     return
   }
   if (uid) {
