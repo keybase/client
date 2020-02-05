@@ -29,6 +29,7 @@ import (
 	"github.com/keybase/client/go/kbfs/libfs"
 	"github.com/keybase/client/go/kbfs/libhttpserver"
 	"github.com/keybase/client/go/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbfs/search"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbfs/tlfhandle"
 	"github.com/keybase/client/go/libkb"
@@ -105,6 +106,8 @@ type SimpleFS struct {
 	newFS newFSFunc
 	// For dumping debug info to the logs.
 	idd *libkbfs.ImpatientDebugDumper
+	// Indexes synced TLFs.
+	indexer *search.Indexer
 
 	// lock protects handles and inProgress
 	lock sync.RWMutex
@@ -190,6 +193,17 @@ func newSimpleFS(appStateUpdater env.AppStateUpdater, config libkbfs.Config) *Si
 			log.Fatalf("initializing localHTTPServer error: %v", err)
 		}
 	}
+
+	var indexer *search.Indexer
+	if config.Mode().IndexingEnabled() {
+		newIndexer, err := search.NewIndexer(config)
+		if err != nil {
+			log.Warning("Couldn't make indexer: %+v", err)
+		} else {
+			indexer = newIndexer
+		}
+	}
+
 	k := &SimpleFS{
 		config: config,
 
@@ -199,6 +213,7 @@ func newSimpleFS(appStateUpdater env.AppStateUpdater, config libkbfs.Config) *Si
 		vlog:                config.MakeVLogger(log),
 		newFS:               defaultNewFS,
 		idd:                 libkbfs.NewImpatientDebugDumperForForcedDumps(config),
+		indexer:             indexer,
 		localHTTPServer:     localHTTPServer,
 		subscriber:          config.SubscriptionManager().Subscriber(subscriptionNotifier{config}),
 		onlineStatusTracker: config.SubscriptionManager().OnlineStatusTracker(),
@@ -209,8 +224,12 @@ func newSimpleFS(appStateUpdater env.AppStateUpdater, config libkbfs.Config) *Si
 }
 
 // NewSimpleFS creates a new SimpleFS instance.
-func NewSimpleFS(appStateUpdater env.AppStateUpdater, config libkbfs.Config) keybase1.SimpleFSInterface {
-	return newSimpleFS(appStateUpdater, config)
+func NewSimpleFS(
+	appStateUpdater env.AppStateUpdater, config libkbfs.Config) (
+	iface keybase1.SimpleFSInterface,
+	shutdownFn func(context.Context) error) {
+	simpleFS := newSimpleFS(appStateUpdater, config)
+	return simpleFS, simpleFS.Shutdown
 }
 
 func (k *SimpleFS) makeContext(ctx context.Context) context.Context {
@@ -3252,6 +3271,30 @@ func (k *SimpleFS) SimpleFSSetSfmiBannerDismissed(
 // SimpleFSSearch implements the SimpleFSInterface.
 func (k *SimpleFS) SimpleFSSearch(
 	ctx context.Context, arg keybase1.SimpleFSSearchArg) (
-	keybase1.SimpleFSSearchResults, error) {
-	return keybase1.SimpleFSSearchResults{}, nil
+	res keybase1.SimpleFSSearchResults, err error) {
+	if k.indexer == nil {
+		return keybase1.SimpleFSSearchResults{},
+			errors.New("Indexing not enabled")
+	}
+
+	results, nextResult, err := k.indexer.Search(
+		ctx, arg.Query, arg.NumResults, arg.StartingFrom)
+	if err != nil {
+		return keybase1.SimpleFSSearchResults{}, err
+	}
+
+	res.Hits = make([]keybase1.SimpleFSSearchHit, len(results))
+	for i, result := range results {
+		res.Hits[i].Path = result.Path
+	}
+	res.NextResult = nextResult
+	return res, nil
+}
+
+// Shutdown shuts down SimpleFS.
+func (k *SimpleFS) Shutdown(ctx context.Context) error {
+	if k.indexer == nil {
+		return nil
+	}
+	return k.indexer.Shutdown(ctx)
 }
