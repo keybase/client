@@ -511,13 +511,21 @@ async function createNewTeamFromConversation(
   })
 }
 
-const loadTeam = async (_: TypedState, action: TeamsGen.LoadTeamPayload, logger: Saga.SagaLogger) => {
-  const {teamID} = action.payload
+const loadTeam = async (state: TypedState, action: TeamsGen.LoadTeamPayload, logger: Saga.SagaLogger) => {
+  const {_subscribe, teamID} = action.payload
 
   if (!teamID || teamID === Types.noTeamID) {
     logger.warn(`bail on invalid team ID ${teamID}`)
     return
   }
+
+  // If we're already subscribed to team details for this team ID, we're already up to date
+  const subscriptions = state.teams.teamDetailsSubscriptionCount.get(teamID) ?? 0
+  if (_subscribe && subscriptions > 1) {
+    logger.info('bail on already subscribed')
+    return
+  }
+
   const team = await RPCTypes.teamsGetAnnotatedTeamRpcPromise({teamID})
   return TeamsGen.createTeamLoaded({details: Constants.annotatedTeamToDetails(team), teamID})
 }
