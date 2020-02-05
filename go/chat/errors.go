@@ -615,28 +615,28 @@ func (f FTLError) Error() string {
 
 //=============================================================================
 
-type StorageRoleError struct {
+type DevStoragePermissionDeniedError struct {
 	role keybase1.TeamRole
 }
 
-func NewStorageRoleError(role keybase1.TeamRole) error {
-	return &StorageRoleError{role: role}
+func NewDevStoragePermissionDeniedError(role keybase1.TeamRole) error {
+	return &DevStoragePermissionDeniedError{role: role}
 }
 
-func (e *StorageRoleError) Error() string {
+func (e *DevStoragePermissionDeniedError) Error() string {
 	return fmt.Sprintf("role %q is not high enough", e.role)
 }
 
 //=============================================================================
 
-type DevStorageNonAdminError struct {
+type DevStorageAdminOnlyError struct {
 	msg string
 }
 
-func NewDevStorageNonAdminError(msg string) error {
-	return &DevStorageNonAdminError{msg: msg}
+func NewDevStorageAdminOnlyError(msg string) error {
+	return &DevStorageAdminOnlyError{msg: msg}
 }
 
-func (e *DevStorageNonAdminError) Error() string {
+func (e *DevStorageAdminOnlyError) Error() string {
 	return fmt.Sprintf("found a conversation and a message, but role checking failed: %s", e.msg)
 }

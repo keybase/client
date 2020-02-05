@@ -3253,8 +3253,12 @@ func (h *Server) GetWelcomeMessage(ctx context.Context, teamID keybase1.TeamID) 
 	}
 	var message string
 	found, err := h.G().WelcomeStorage.Get(ctx, uid, tlfID, welcomeMessageName, &message)
-	if err != nil {
+	switch err.(type) {
+	case nil:
+		return chat1.GetWelcomeMessageRes{Found: found, Message: message}, nil
+	case *DevStorageAdminOnlyError:
+		return chat1.GetWelcomeMessageRes{Found: false}, nil
+	default:
 		return res, err
 	}
-	return chat1.GetWelcomeMessageRes{Found: found, Message: message}, nil
 }

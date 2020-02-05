@@ -129,7 +129,7 @@ func TestDevConversationBackedStorageTeamAdminOnlyReaderMisbehavior(t *testing.T
 
 	err = readerstorage.Put(readerctx, readeruid, tlfid, key0, "evil")
 	require.Error(t, err)
-	require.IsType(t, &StorageRoleError{}, err, "got right error")
+	require.IsType(t, &DevStoragePermissionDeniedError{}, err, "got right error")
 
 	// hack around side-protection and make channel anyway
 	devconv := mustCreateChannelForTest(t, ctc, users[1], chat1.TopicType_DEV, &key0, chat1.ConversationMembersType_TEAM, users[0])
@@ -149,9 +149,9 @@ func TestDevConversationBackedStorageTeamAdminOnlyReaderMisbehavior(t *testing.T
 
 	found, err = storage.Get(ctx, uid, tlfid, key0, &msg)
 	require.Error(t, err, "got an error after misbehavior")
-	require.IsType(t, &DevStorageNonAdminError{}, err, "got a permission error")
+	require.IsType(t, &DevStorageAdminOnlyError{}, err, "got a permission error")
 
 	found, err = readerstorage.Get(readerctx, readeruid, tlfid, key0, &readermsg)
 	require.Error(t, err, "got an error after misbehavior")
-	require.IsType(t, &DevStorageNonAdminError{}, err, "got a permission error")
+	require.IsType(t, &DevStorageAdminOnlyError{}, err, "got a permission error")
 }
