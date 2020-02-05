@@ -24,13 +24,13 @@ import AudioRecorder from '../../../audio/audio-recorder.native'
 
 type menuType = 'exploding' | 'filepickerpopup' | 'moremenu'
 
-type State = {hasText: boolean}
+type State = {expanded: boolean; hasText: boolean}
 
 class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
   private input: null | Kb.PlainInput = null
   private lastText?: string
   private whichMenu?: menuType
-  state = {hasText: false}
+  state = {expanded: false, hasText: false}
 
   private inputSetRef = (ref: null | Kb.PlainInput) => {
     this.input = ref
@@ -153,6 +153,12 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
     )
   }
 
+  private expandInput = () => {
+    this.setState(s => ({
+      expanded: !s.expanded,
+    }))
+  }
+
   render() {
     const commandUpdateStatus = this.props.suggestBotCommandsUpdateStatus !==
       RPCChatTypes.UIBotCommandsUpdateStatusTyp.blank &&
@@ -191,7 +197,16 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
     )
 
     return (
-      <Kb.Box2 direction="vertical" onLayout={this.onLayout} fullWidth={true}>
+      <Kb.Box2
+        direction="vertical"
+        onLayout={this.onLayout}
+        fullWidth={true}
+        style={
+          !this.state.expanded && {
+            maxHeight: 145,
+          }
+        }
+      >
         {commandUpdateStatus}
         {this.getMenu()}
         {this.props.showTypingStatus && !this.props.suggestionsVisible && (
@@ -217,7 +232,11 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
               textType="Body"
               rowsMin={1}
             />
-            <Kb.Icon onClick={this.expandInput} type="iconfont-expand" style={styles.expandIcon} />
+            <Kb.Icon
+              onClick={this.expandInput}
+              type={this.state.expanded ? 'iconfont-expand' : 'iconfont-collapse'}
+              style={styles.expandIcon}
+            />
           </Kb.Box2>
           <Kb.Box2
             direction="horizontal"
