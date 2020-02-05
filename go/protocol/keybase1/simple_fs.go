@@ -1567,6 +1567,38 @@ func (o GUIFileContext) DeepCopy() GUIFileContext {
 	}
 }
 
+type SimpleFSSearchHit struct {
+	Path string `codec:"path" json:"path"`
+}
+
+func (o SimpleFSSearchHit) DeepCopy() SimpleFSSearchHit {
+	return SimpleFSSearchHit{
+		Path: o.Path,
+	}
+}
+
+type SimpleFSSearchResults struct {
+	Hits       []SimpleFSSearchHit `codec:"hits" json:"hits"`
+	NextResult int                 `codec:"nextResult" json:"nextResult"`
+}
+
+func (o SimpleFSSearchResults) DeepCopy() SimpleFSSearchResults {
+	return SimpleFSSearchResults{
+		Hits: (func(x []SimpleFSSearchHit) []SimpleFSSearchHit {
+			if x == nil {
+				return nil
+			}
+			ret := make([]SimpleFSSearchHit, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Hits),
+		NextResult: o.NextResult,
+	}
+}
+
 type SimpleFSListArg struct {
 	OpID                OpID       `codec:"opID" json:"opID"`
 	Path                Path       `codec:"path" json:"path"`
@@ -1837,6 +1869,12 @@ type SimpleFSUserOutArg struct {
 	ClientID string `codec:"clientID" json:"clientID"`
 }
 
+type SimpleFSSearchArg struct {
+	Query        string `codec:"query" json:"query"`
+	NumResults   int    `codec:"numResults" json:"numResults"`
+	StartingFrom int    `codec:"startingFrom" json:"startingFrom"`
+}
+
 type SimpleFSInterface interface {
 	// Begin list of items in directory at path.
 	// Retrieve results with readList().
@@ -1960,6 +1998,7 @@ type SimpleFSInterface interface {
 	SimpleFSGetGUIFileContext(context.Context, KBFSPath) (GUIFileContext, error)
 	SimpleFSUserIn(context.Context, string) error
 	SimpleFSUserOut(context.Context, string) error
+	SimpleFSSearch(context.Context, SimpleFSSearchArg) (SimpleFSSearchResults, error)
 }
 
 func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
@@ -2806,6 +2845,21 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return
 				},
 			},
+			"simpleFSSearch": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleFSSearchArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleFSSearchArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleFSSearchArg)(nil), args)
+						return
+					}
+					ret, err = i.SimpleFSSearch(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -3199,5 +3253,10 @@ func (c SimpleFSClient) SimpleFSUserIn(ctx context.Context, clientID string) (er
 func (c SimpleFSClient) SimpleFSUserOut(ctx context.Context, clientID string) (err error) {
 	__arg := SimpleFSUserOutArg{ClientID: clientID}
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSUserOut", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c SimpleFSClient) SimpleFSSearch(ctx context.Context, __arg SimpleFSSearchArg) (res SimpleFSSearchResults, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSearch", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
