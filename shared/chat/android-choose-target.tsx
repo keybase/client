@@ -36,7 +36,7 @@ const AndroidChooseTarget = () => {
         </>
         <Kb.ButtonBar>
           <Kb.Button mode="Primary" label="Chat" onClick={onChat} />
-          <Kb.Button mode="Secondary" label="KBFS" onClick={onKBFS} />
+          <Kb.Button mode="Secondary" label="Files" onClick={onKBFS} />
         </Kb.ButtonBar>
       </Kb.Box2>
     </Kb.Box2>

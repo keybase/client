@@ -10,7 +10,7 @@ import SendAttachmentToChat from '.'
 type OwnProps = Container.RouteProps<{url?: string}>
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
-  _send: (conversationIDKey: ChatTypes.ConversationIDKey, path: Types.Path, title: string) => {
+  _send: (conversationIDKey: ChatTypes.ConversationIDKey, path: Types.Path | string, title: string) => {
     dispatch(
       ChatGen.createAttachmentsUpload({
         conversationIDKey,
