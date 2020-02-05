@@ -3,8 +3,8 @@ import Banner from '../bottom-banner/container'
 import HeaderArea from '../header-area/container.native'
 import InputArea from '../input-area/container'
 import ListArea from '../list-area/container'
-import {Box, Box2, LoadingLine, Text} from '../../../common-adapters'
-import {globalStyles, globalColors, globalMargins, styleSheetCreate} from '../../../styles'
+import * as Kb from '../../../common-adapters'
+import * as Styles from '../../../styles'
 import {Props} from '.'
 import ThreadLoadStatus from '../load-status/container'
 import PinnedMessage from '../pinned-message/container'
@@ -12,56 +12,58 @@ import {GatewayDest} from 'react-gateway'
 import InvitationToBlock from '../../blocking/invitation-to-block'
 
 const Offline = () => (
-  <Box
+  <Kb.Box
     style={{
-      ...globalStyles.flexBoxCenter,
-      backgroundColor: globalColors.greyDark,
-      paddingBottom: globalMargins.tiny,
-      paddingLeft: globalMargins.medium,
-      paddingRight: globalMargins.medium,
-      paddingTop: globalMargins.tiny,
+      ...Styles.globalStyles.flexBoxCenter,
+      backgroundColor: Styles.globalColors.greyDark,
+      paddingBottom: Styles.globalMargins.tiny,
+      paddingLeft: Styles.globalMargins.medium,
+      paddingRight: Styles.globalMargins.medium,
+      paddingTop: Styles.globalMargins.tiny,
       width: '100%',
     }}
   >
-    <Text center={true} type="BodySmallSemibold">
+    <Kb.Text center={true} type="BodySmallSemibold">
       Couldn't load all chat messages due to network connectivity. Retrying...
-    </Text>
-  </Box>
+    </Kb.Text>
+  </Kb.Box>
 )
 
 const Conversation = React.memo((props: Props) => (
   <>
-    <Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
       {props.threadLoadedOffline && <Offline />}
       <HeaderArea conversationIDKey={props.conversationIDKey} />
-      <Box2 direction="vertical" fullWidth={true} style={styles.innerContainer}>
-        <ThreadLoadStatus conversationIDKey={props.conversationIDKey} />
-        <PinnedMessage conversationIDKey={props.conversationIDKey} />
-        <ListArea
-          scrollListDownCounter={props.scrollListDownCounter}
-          scrollListToBottomCounter={props.scrollListToBottomCounter}
-          scrollListUpCounter={props.scrollListUpCounter}
-          onFocusInput={props.onFocusInput}
+      <Kb.BoxGrow>
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.innerContainer}>
+          <ThreadLoadStatus conversationIDKey={props.conversationIDKey} />
+          <PinnedMessage conversationIDKey={props.conversationIDKey} />
+          <ListArea
+            scrollListDownCounter={props.scrollListDownCounter}
+            scrollListToBottomCounter={props.scrollListToBottomCounter}
+            scrollListUpCounter={props.scrollListUpCounter}
+            onFocusInput={props.onFocusInput}
+            conversationIDKey={props.conversationIDKey}
+          />
+          {props.showLoader && <Kb.LoadingLine />}
+        </Kb.Box2>
+        <InvitationToBlock conversationID={props.conversationIDKey} />
+        <Banner conversationIDKey={props.conversationIDKey} />
+        <InputArea
+          focusInputCounter={props.focusInputCounter}
+          jumpToRecent={props.jumpToRecent}
+          onRequestScrollDown={props.onRequestScrollDown}
+          onRequestScrollToBottom={props.onRequestScrollToBottom}
+          onRequestScrollUp={props.onRequestScrollUp}
           conversationIDKey={props.conversationIDKey}
         />
-        {props.showLoader && <LoadingLine />}
-      </Box2>
-      <InvitationToBlock conversationID={props.conversationIDKey} />
-      <Banner conversationIDKey={props.conversationIDKey} />
-      <InputArea
-        focusInputCounter={props.focusInputCounter}
-        jumpToRecent={props.jumpToRecent}
-        onRequestScrollDown={props.onRequestScrollDown}
-        onRequestScrollToBottom={props.onRequestScrollToBottom}
-        onRequestScrollUp={props.onRequestScrollUp}
-        conversationIDKey={props.conversationIDKey}
-      />
-    </Box2>
-    <GatewayDest name="convOverlay" component={Box} />
+      </Kb.BoxGrow>
+    </Kb.Box2>
+    <GatewayDest name="convOverlay" component={Kb.Box} />
   </>
 ))
 
-const styles = styleSheetCreate(
+const styles = Styles.styleSheetCreate(
   () =>
     ({
       innerContainer: {

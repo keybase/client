@@ -623,14 +623,9 @@ class Input extends React.Component<InputProps, InputState> {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      boldStyle: {
-        fontWeight: '700',
-      },
+      boldStyle: {fontWeight: '700'},
       container: Styles.platformStyles({
-        isMobile: {
-          justifyContent: 'flex-end',
-          maxHeight: '70%',
-        },
+        isMobile: {justifyContent: 'flex-end'},
       }),
       fixSuggestionHeight: Styles.platformStyles({
         isMobile: {height: 48},
