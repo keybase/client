@@ -106,9 +106,25 @@ function main() {
   })
 
   const icon = argv.icon
+  const saltpackEncryptedIcon = argv.saltpackEncryptedIcon
+  const saltpackSignedIcon = argv.saltpackSignedIcon
 
   if (icon) {
     packagerOpts.icon = icon
+  }
+
+  console.log('JRY package', {saltpackEncryptedIcon, saltpackSignedIcon})
+  if (saltpackEncryptedIcon && saltpackSignedIcon) {
+    packagerOpts.extraResource = [...packagerOpts.extraResource, saltpackEncryptedIcon, saltpackSignedIcon]
+  } else {
+    const missingIcon = !saltpackEncryptedIcon
+      ? 'saltpackEncryptedIcon'
+      : !saltpackSignedIcon
+      ? 'saltpackSignedIcon'
+      : ''
+    console.log(
+      `Missing ${missingIcon} from yarn package arguments. Need ${missingIcon} to associate ".saltpack" files with Electron on macOS, Windows, and Linux.`
+    )
   }
 
   // use the same version as the currently-installed electron
