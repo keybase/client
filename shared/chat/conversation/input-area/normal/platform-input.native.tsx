@@ -7,6 +7,7 @@ import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import {isIOS, isLargeScreen} from '../../../../constants/platform'
 import {LayoutEvent} from '../../../../common-adapters/box'
 import {
+  NativeAnimated,
   NativeKeyboard,
   NativeTouchableWithoutFeedback,
 } from '../../../../common-adapters/native-wrappers.native'
@@ -24,13 +25,27 @@ import AudioRecorder from '../../../audio/audio-recorder.native'
 
 type menuType = 'exploding' | 'filepickerpopup' | 'moremenu'
 
-type State = {expanded: boolean; hasText: boolean}
+type State = {animatedMaxHeight: NativeAnimated.Value; expanded: boolean; hasText: boolean}
+
+const AnimatedBox2 = NativeAnimated.createAnimatedComponent(Kb.Box2)
 
 class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
   private input: null | Kb.PlainInput = null
   private lastText?: string
   private whichMenu?: menuType
-  state = {expanded: false, hasText: false}
+  state = {
+    animatedMaxHeight: new NativeAnimated.Value(Styles.dimensionHeight),
+    expanded: false,
+    hasText: false,
+  }
+
+  componentDidUpdate(prevProps: PlatformInputPropsInternal) {
+    if (this.props.maxInputArea !== prevProps.maxInputArea) {
+      this.setState({
+        animatedMaxHeight: new NativeAnimated.Value(this.props.maxInputArea ?? Styles.dimensionHeight),
+      })
+    }
+  }
 
   private inputSetRef = (ref: null | Kb.PlainInput) => {
     this.input = ref
@@ -154,9 +169,10 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
   }
 
   private expandInput = () => {
-    this.setState(s => ({
-      expanded: !s.expanded,
-    }))
+    this.setState(s => ({expanded: !s.expanded}))
+    NativeAnimated.spring(this.state.animatedMaxHeight, {
+      toValue: !this.state.expanded ? 145 : this.props.maxInputArea ?? Styles.dimensionHeight,
+    }).start()
   }
 
   render() {
@@ -197,15 +213,13 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
     )
 
     return (
-      <Kb.Box2
+      <AnimatedBox2
         direction="vertical"
         onLayout={this.onLayout}
         fullWidth={true}
-        style={
-          !this.state.expanded && {
-            maxHeight: 145,
-          }
-        }
+        style={{
+          maxHeight: this.state.animatedMaxHeight,
+        }}
       >
         {commandUpdateStatus}
         {this.getMenu()}
@@ -260,7 +274,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
             />
           </Kb.Box2>
         </Kb.Box2>
-      </Kb.Box2>
+      </AnimatedBox2>
     )
   }
 }

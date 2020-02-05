@@ -598,6 +598,7 @@ class Input extends React.Component<InputProps, InputState> {
         <PlatformInput
           {...platformInputProps}
           dataSources={this._suggestorDatasource}
+          maxInputArea={this.props.maxInputArea}
           renderers={this._suggestorRenderer}
           suggestorToMarker={suggestorToMarker}
           suggestionListStyle={Styles.collapseStyles([
