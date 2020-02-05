@@ -3129,6 +3129,42 @@ func (o UserRolePair) DeepCopy() UserRolePair {
 	}
 }
 
+type TeamMemberToRemove struct {
+	Username      string       `codec:"username" json:"username"`
+	Email         string       `codec:"email" json:"email"`
+	InviteID      TeamInviteID `codec:"inviteID" json:"inviteID"`
+	AllowInaction bool         `codec:"allowInaction" json:"allowInaction"`
+}
+
+func (o TeamMemberToRemove) DeepCopy() TeamMemberToRemove {
+	return TeamMemberToRemove{
+		Username:      o.Username,
+		Email:         o.Email,
+		InviteID:      o.InviteID.DeepCopy(),
+		AllowInaction: o.AllowInaction,
+	}
+}
+
+type TeamRemoveMembersResult struct {
+	Failures []TeamMemberToRemove `codec:"failures" json:"failures"`
+}
+
+func (o TeamRemoveMembersResult) DeepCopy() TeamRemoveMembersResult {
+	return TeamRemoveMembersResult{
+		Failures: (func(x []TeamMemberToRemove) []TeamMemberToRemove {
+			if x == nil {
+				return nil
+			}
+			ret := make([]TeamMemberToRemove, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Failures),
+	}
+}
+
 type TeamEditMembersResult struct {
 	Failures []UserRolePair `codec:"failures" json:"failures"`
 }
@@ -3663,6 +3699,12 @@ type TeamRemoveMemberArg struct {
 	AllowInaction bool         `codec:"allowInaction" json:"allowInaction"`
 }
 
+type TeamRemoveMembersArg struct {
+	SessionID int                  `codec:"sessionID" json:"sessionID"`
+	TeamID    TeamID               `codec:"teamID" json:"teamID"`
+	Users     []TeamMemberToRemove `codec:"users" json:"users"`
+}
+
 type TeamLeaveArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Name      string `codec:"name" json:"name"`
@@ -3922,6 +3964,7 @@ type TeamsInterface interface {
 	TeamAddMembers(context.Context, TeamAddMembersArg) (TeamAddMembersResult, error)
 	TeamAddMembersMultiRole(context.Context, TeamAddMembersMultiRoleArg) (TeamAddMembersResult, error)
 	TeamRemoveMember(context.Context, TeamRemoveMemberArg) error
+	TeamRemoveMembers(context.Context, TeamRemoveMembersArg) (TeamRemoveMembersResult, error)
 	TeamLeave(context.Context, TeamLeaveArg) error
 	TeamEditMember(context.Context, TeamEditMemberArg) error
 	TeamEditMembers(context.Context, TeamEditMembersArg) (TeamEditMembersResult, error)
@@ -4227,6 +4270,21 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						return
 					}
 					err = i.TeamRemoveMember(ctx, typedArgs[0])
+					return
+				},
+			},
+			"teamRemoveMembers": {
+				MakeArg: func() interface{} {
+					var ret [1]TeamRemoveMembersArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]TeamRemoveMembersArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]TeamRemoveMembersArg)(nil), args)
+						return
+					}
+					ret, err = i.TeamRemoveMembers(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -4970,6 +5028,11 @@ func (c TeamsClient) TeamAddMembersMultiRole(ctx context.Context, __arg TeamAddM
 
 func (c TeamsClient) TeamRemoveMember(ctx context.Context, __arg TeamRemoveMemberArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamRemoveMember", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c TeamsClient) TeamRemoveMembers(ctx context.Context, __arg TeamRemoveMembersArg) (res TeamRemoveMembersResult, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamRemoveMembers", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 
