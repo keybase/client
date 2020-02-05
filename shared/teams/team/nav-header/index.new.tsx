@@ -186,6 +186,7 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
       direction="vertical"
       gap={Styles.isMobile ? 'xtiny' : 'tiny'}
       style={styles.addInviteAndLinkBox}
+      className="addInviteAndLinkBox"
       alignItems="center"
       alignSelf="flex-end"
     >
@@ -238,7 +239,14 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
       </Kb.Box2>
     </Kb.Box2>
   ) : (
-    <Kb.Box2 alignItems="center" direction="horizontal" gap="small" gapStart={true} fullWidth={true}>
+    <Kb.Box2
+      alignItems="center"
+      direction="horizontal"
+      gap="small"
+      gapStart={true}
+      fullWidth={true}
+      className="headerTitle"
+    >
       {avatar}
       <Kb.Box2
         direction="vertical"
@@ -281,12 +289,14 @@ const styles = Styles.styleSheetCreate(
     ({
       addInviteAndLinkBox: Styles.platformStyles({
         common: {
+          borderColor: Styles.globalColors.black_10,
+          borderStyle: 'solid',
+          borderWidth: 1,
           flexShrink: 0,
           padding: Styles.globalMargins.tiny,
         },
         isElectron: {
           borderRadius: 4,
-          boxShadow: `0 2px 10px 0 ${Styles.globalColors.black_20}`,
           height: 165,
           marginBottom: Styles.globalMargins.xsmall,
           marginRight: Styles.globalMargins.small,
@@ -294,10 +304,7 @@ const styles = Styles.styleSheetCreate(
           width: 220,
         },
         isMobile: {
-          borderColor: Styles.globalColors.black_10,
           borderRadius: 8,
-          borderStyle: 'solid',
-          borderWidth: 1,
           flexGrow: 1,
           margin: Styles.globalMargins.tiny,
         },
