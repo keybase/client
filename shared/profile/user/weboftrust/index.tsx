@@ -8,7 +8,7 @@ type Props = {
   dateString: string
 }
 
-export default (props: Props) => (
+const WebOfTrust = (props: Props) => (
   <Kb.Box2 direction="horizontal" fullWidth={true}>
     <Kb.Box2 direction="vertical" style={styles.avatarContainer} centerChildren={true}>
       <Kb.Avatar size={96} username={props.attestingUser} style={styles.avatar} showFollowingStatus={false} />
@@ -52,3 +52,5 @@ const styles = Styles.styleSheetCreate(() => ({
     top: -1,
   },
 }))
+
+export default WebOfTrust
