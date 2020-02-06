@@ -7,6 +7,7 @@ const Kb = {Icon}
 type Props = {
   onCheck: ((newCheckedValue: boolean) => void) | null
   checked: boolean
+  className?: string
   disabled?: boolean
   fontSize?: number
 }
@@ -23,9 +24,14 @@ const CheckCircle = (props: Props) => {
   return (
     <Kb.Icon
       type={checked ? 'iconfont-success' : 'iconfont-circle'}
-      color={props.disabled ? Styles.globalColors.black_20 : Styles.globalColors.blue}
+      color={
+        !props.disabled && (checked || Styles.isMobile)
+          ? Styles.globalColors.blue
+          : Styles.globalColors.black_20
+      }
       onClick={props.disabled ? null : onClick}
       fontSize={props.fontSize}
+      className={props.className}
     />
   )
 }
