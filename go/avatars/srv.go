@@ -67,7 +67,7 @@ func (s *Srv) loadFromURL(raw string) (io.ReadCloser, error) {
 	}
 	switch parsed.Scheme {
 	case "http", "https":
-		resp, err := libkb.ProxyHTTPGet(s.G(), s.G().GetEnv(), raw)
+		resp, err := libkb.ProxyHTTPGet(s.G(), s.G().GetEnv(), raw, "AvatarSrv")
 		if err != nil {
 			return nil, err
 		}

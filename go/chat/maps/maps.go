@@ -89,7 +89,7 @@ func httpClient(g *libkb.GlobalContext, host string) *http.Client {
 	}
 	xprt.TLSClientConfig = tlsConfig
 	return &http.Client{
-		Transport: libkb.NewInstrumentedTransport(g, &xprt),
+		Transport: libkb.NewInstrumentedTransport(g, func(*http.Request) string { return "LocationShare" }, &xprt),
 		Timeout:   10 * time.Second,
 	}
 }

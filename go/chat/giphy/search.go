@@ -114,7 +114,7 @@ func httpClient(mctx libkb.MetaContext, host string) *http.Client {
 	xprt.Proxy = libkb.MakeProxy(env)
 
 	return &http.Client{
-		Transport: libkb.NewInstrumentedTransport(mctx.G(), &xprt),
+		Transport: libkb.NewInstrumentedTransport(mctx.G(), func(*http.Request) string { return host + " Giphy" }, &xprt),
 		Timeout:   10 * time.Second,
 	}
 }

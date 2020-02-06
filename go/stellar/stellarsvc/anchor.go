@@ -280,8 +280,9 @@ func (a *anchorInteractor) get(mctx libkb.MetaContext, u *url.URL, okResponse fm
 // by default.
 func httpGet(mctx libkb.MetaContext, url, authToken string) (int, []byte, error) {
 	client := http.Client{
-		Timeout:   10 * time.Second,
-		Transport: libkb.NewInstrumentedTransport(mctx.G(), http.DefaultTransport.(*http.Transport)),
+		Timeout: 10 * time.Second,
+		Transport: libkb.NewInstrumentedTransport(mctx.G(), func(*http.Request) string { return "GET StellarAnchor" },
+			http.DefaultTransport.(*http.Transport)),
 	}
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
@@ -310,8 +311,9 @@ func httpGet(mctx libkb.MetaContext, url, authToken string) (int, []byte, error)
 // by default.
 func httpPost(mctx libkb.MetaContext, url string, data url.Values) (int, []byte, error) {
 	client := http.Client{
-		Timeout:   10 * time.Second,
-		Transport: libkb.NewInstrumentedTransport(mctx.G(), http.DefaultTransport.(*http.Transport)),
+		Timeout: 10 * time.Second,
+		Transport: libkb.NewInstrumentedTransport(mctx.G(), func(*http.Request) string { return "POST StellarAnchor" },
+			http.DefaultTransport.(*http.Transport)),
 	}
 	req, err := http.NewRequest(http.MethodPost, url, strings.NewReader(data.Encode()))
 	if err != nil {

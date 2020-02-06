@@ -16,7 +16,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -236,7 +235,7 @@ func NewClient(g *GlobalContext, config *ClientConfig, needCookie bool) (*Client
 	if jar != nil {
 		ret.cli.Jar = jar
 	}
-	ret.cli.Transport = NewInstrumentedTransport(g, &xprt)
+	ret.cli.Transport = NewInstrumentedTransport(g, InstrumentationTagFromRequest, &xprt)
 	return ret, nil
 }
 
@@ -260,7 +259,6 @@ func ServerLookup(env *Env, mode RunMode) (string, error) {
 }
 
 type InstrumentedBody struct {
-	sync.Mutex
 	Contextified
 	record *rpc.NetworkInstrumenter
 	body   io.ReadCloser
@@ -278,19 +276,14 @@ func NewInstrumentedBody(g *GlobalContext, record *rpc.NetworkInstrumenter, body
 }
 
 func (b *InstrumentedBody) Read(p []byte) (n int, err error) {
-	b.Lock()
-	defer b.Unlock()
 	n, err = b.body.Read(p)
 	b.n += n
 	return n, err
 }
 
 func (b *InstrumentedBody) Close() error {
-	b.Lock()
-	defer b.Unlock()
 	// instrument the full body size even if the caller hasn't consumed it.
 	_, _ = io.Copy(ioutil.Discard, b.body)
-	_ = discardAndClose(b.body)
 	b.record.IncrementSize(int64(b.n))
 	if err := b.record.Finish(); err != nil {
 		b.G().Log.CDebugf(context.TODO(), "InstrumentedBody: unable to instrument network request: %v", err)
@@ -302,19 +295,21 @@ func (b *InstrumentedBody) Close() error {
 type InstrumentedTransport struct {
 	Contextified
 	Transport *http.Transport
+	tagger    func(*http.Request) string
 }
 
 var _ http.RoundTripper = (*InstrumentedTransport)(nil)
 
-func NewInstrumentedTransport(g *GlobalContext, xprt *http.Transport) *InstrumentedTransport {
+func NewInstrumentedTransport(g *GlobalContext, tagger func(*http.Request) string, xprt *http.Transport) *InstrumentedTransport {
 	return &InstrumentedTransport{
 		Contextified: NewContextified(g),
 		Transport:    xprt,
+		tagger:       tagger,
 	}
 }
 
 func (i *InstrumentedTransport) RoundTrip(req *http.Request) (resp *http.Response, err error) {
-	record := rpc.NewNetworkInstrumenter(i.G().NetworkInstrumenterStorage, InstrumentationTagFromRequest(req))
+	record := rpc.NewNetworkInstrumenter(i.G().NetworkInstrumenterStorage, i.tagger(req))
 	resp, err = i.Transport.RoundTrip(req)
 	record.EndCall()
 	if err != nil {

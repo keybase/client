@@ -246,7 +246,7 @@ func (c *FullCachingSource) populateCacheWorker(m libkb.MetaContext) {
 		c.debug(m, "populateCacheWorker: fetching: name: %s format: %s url: %s", arg.name,
 			arg.format, arg.url)
 		// Grab image data first
-		resp, err := libkb.ProxyHTTPGet(m.G(), m.G().GetEnv(), arg.url.String())
+		resp, err := libkb.ProxyHTTPGet(m.G(), m.G().GetEnv(), arg.url.String(), "FullCachingSource: Avatar")
 		if err != nil {
 			c.debug(m, "populateCacheWorker: failed to download avatar: %s", err)
 			continue

@@ -58,7 +58,7 @@ func (p *Packager) assetFilename(url string) string {
 }
 
 func (p *Packager) assetBodyAndLength(ctx context.Context, url string) (body io.ReadCloser, size int64, err error) {
-	resp, err := libkb.ProxyHTTPGet(p.G().ExternalG(), p.G().Env, url)
+	resp, err := libkb.ProxyHTTPGet(p.G().ExternalG(), p.G().Env, url, "UnfurlPackager")
 	if err != nil {
 		return body, size, err
 	}

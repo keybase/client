@@ -8,7 +8,6 @@ import (
 	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/colly"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
@@ -21,17 +20,17 @@ var internalHosts = map[string]struct{}{
 	ProductionSiteURI:   struct{}{},
 }
 
-func InstrumentationTagFromCollyRequest(req *colly.Request) string {
-	return fmt.Sprintf("%s %s%s", req.Method, req.URL.Host, req.URL.Path)
-}
-
 func InstrumentationTagFromRequest(req *http.Request) string {
+	if req.URL == nil {
+		return ""
+	}
 	host := req.URL.Host
+	path := req.URL.Path
 	if _, ok := internalHosts[fmt.Sprintf("%s://%s", req.URL.Scheme, host)]; ok {
 		host = ""
+		path = strings.TrimPrefix(req.URL.Path, APIURIPathPrefix)
+		path = strings.TrimPrefix(path, "/")
 	}
-	path := strings.TrimPrefix(req.URL.Path, APIURIPathPrefix)
-	path = strings.TrimPrefix(path, "/")
 	return fmt.Sprintf("%s %s%s", req.Method, host, path)
 }
 

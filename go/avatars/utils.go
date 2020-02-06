@@ -43,7 +43,7 @@ func FetchAvatar(ctx context.Context, g *globals.Context, username string) (res 
 	}
 	switch parsed.Scheme {
 	case "http", "https":
-		resp, err := libkb.ProxyHTTPGet(g.ExternalG(), g.GetEnv(), avatarURL)
+		resp, err := libkb.ProxyHTTPGet(g.ExternalG(), g.GetEnv(), avatarURL, "FetchAvatar")
 		if err != nil {
 			return res, err
 		}
