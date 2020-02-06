@@ -106,7 +106,7 @@ export const TeamMemberHeader = (props: Props) => {
                     {member.fullName}
                   </Kb.Text>
                 )}
-                <Kb.Text type="BodySmall">Joined 1m ago</Kb.Text>
+                <Kb.Text type="BodySmall">Joined 1m ago{/* TODO Y2K-1378 */}</Kb.Text>
               </Kb.Box2>
             </Kb.Box2>
             {!Styles.isMobile && buttons}
