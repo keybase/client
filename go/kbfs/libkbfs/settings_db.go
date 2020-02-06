@@ -45,7 +45,7 @@ type SettingsDB struct {
 	sessionGetter currentSessionGetter
 	logger        logger.Logger
 
-	lock  *sync.RWMutex
+	lock  sync.RWMutex
 	cache map[string][]byte
 }
 
@@ -85,7 +85,6 @@ func openSettingsDB(config Config) *SettingsDB {
 		LevelDb:       db,
 		sessionGetter: config,
 		logger:        logger,
-		lock:          &sync.RWMutex{},
 		cache:         make(map[string][]byte),
 	}
 }
