@@ -11,6 +11,15 @@ import * as TeamsGen from './teams-gen'
 import URL from 'url-parse'
 import logger from '../logger'
 
+const handleTeamPageLink = (teamName: string, action: 'add_or_invite' | 'manage_settings' | undefined) => {
+  const initialTab = action === 'manage_settings' ? 'settings' : undefined
+  const addMembers = action === 'add_or_invite' ? true : undefined
+  return [
+    RouteTreeGen.createSwitchTab({tab: Tabs.teamsTab}),
+    TeamsGen.createShowTeamByName({teamName: teamName, initialTab, addMembers}),
+  ]
+}
+
 const handleKeybaseLink = (action: DeeplinksGen.HandleKeybaseLinkPayload) => {
   const error =
     "We couldn't read this link. The link might be bad, or your Keybase app might be out of date and need to be updated."
@@ -66,6 +75,16 @@ const handleKeybaseLink = (action: DeeplinksGen.HandleKeybaseLinkPayload) => {
         }
       }
       break
+    case 'team-page': // keybase://team-page/{team_name}/{manage_settings,add_or_invite}
+      console.log('team page deeplink', parts)
+      if (parts.length == 3) {
+        const teamName = parts[1]
+        const action = parts[2]
+        if (action === 'add_or_invite' || action === 'manage_settings') {
+          return handleTeamPageLink(teamName, action)
+        }
+      }
+      break
     default:
     // Fall through to the error return below.
   }
@@ -106,12 +125,7 @@ const handleAppLink = (state: Container.TypedState, action: DeeplinksGen.LinkPay
 
     const teamLink = Constants.urlToTeamDeepLink(url)
     if (teamLink) {
-      const initialTab = teamLink.action === 'manage_settings' ? 'settings' : undefined
-      const addMembers = teamLink.action === 'add_or_invite' ? true : undefined
-      return [
-        RouteTreeGen.createSwitchTab({tab: Tabs.teamsTab}),
-        TeamsGen.createShowTeamByName({teamName: teamLink.teamName, initialTab, addMembers}),
-      ]
+      return handleTeamPageLink(teamLink.teamName, teamLink.action)
     }
   }
   return false
