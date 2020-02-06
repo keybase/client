@@ -14,10 +14,10 @@ import (
 )
 
 var internalHosts = map[string]struct{}{
-	DevelServerURI:      struct{}{},
-	StagingServerURI:    struct{}{},
-	ProductionServerURI: struct{}{},
-	ProductionSiteURI:   struct{}{},
+	DevelServerURI:      {},
+	StagingServerURI:    {},
+	ProductionServerURI: {},
+	ProductionSiteURI:   {},
 }
 
 func InstrumentationTagFromRequest(req *http.Request) string {
