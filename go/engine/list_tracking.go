@@ -5,8 +5,10 @@ package engine
 
 import (
 	"errors"
+	"fmt"
 	"regexp"
 	"sort"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -17,6 +19,10 @@ type ListTrackingEngineArg struct {
 	Assertion  string
 	UID        keybase1.UID
 	CachedOnly bool
+
+	// If CachedOnly is set and StalenessWindow is non-nil, will load with
+	// StaleOK and use the relaxed CachedOnlyStalenessWindow instead.
+	CachedOnlyStalenessWindow *time.Duration
 
 	JSON    bool
 	Verbose bool
@@ -88,6 +94,9 @@ func (e *ListTrackingEngine) Run(m libkb.MetaContext) (err error) {
 		WithStubMode(libkb.StubModeUnstubbed).
 		WithCachedOnly(e.arg.CachedOnly).
 		WithSelf(uid.Exists() && uid.Equal(m.G().GetMyUID()))
+	if e.arg.CachedOnly && e.arg.CachedOnlyStalenessWindow != nil {
+		larg = larg.WithStaleOK(true)
+	}
 	upak, _, err := m.G().GetUPAKLoader().LoadV2(larg)
 	if err != nil {
 		return err
@@ -95,6 +104,13 @@ func (e *ListTrackingEngine) Run(m libkb.MetaContext) (err error) {
 	if upak == nil {
 		return libkb.UserNotFoundError{}
 	}
+
+	if e.arg.CachedOnly && e.arg.CachedOnlyStalenessWindow != nil {
+		if m.G().Clock().Since(keybase1.FromTime(upak.Uvv.CachedAt)) > *e.arg.CachedOnlyStalenessWindow {
+			return fmt.Errorf("upak was cached but exceeded custom staleness window %v", e.arg.CachedOnlyStalenessWindow)
+		}
+	}
+
 	unfilteredTracks := upak.Current.RemoteTracks
 
 	var rxx *regexp.Regexp
