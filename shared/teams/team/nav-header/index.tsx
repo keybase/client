@@ -8,23 +8,26 @@ import {TeamID} from '../../../constants/types/teams'
 import {pluralize} from '../../../util/string'
 
 const AddPeopleButton = ({teamID}: {teamID: TeamID}) => {
-  const overlayParentProps = Kb.useOverlayParent()
+  const ref = React.useRef<React.Component>(null)
+  const {popup, showingPopup, toggleShowingPopup} = Kb.usePopup(ref, () => (
+    <AddPeopleHow
+      attachTo={() => ref.current}
+      onHidden={toggleShowingPopup}
+      teamID={teamID}
+      visible={showingPopup}
+    />
+  ))
   return (
     <>
       <Kb.Button
         label="Add members"
-        onClick={overlayParentProps.toggleShowingMenu}
-        ref={overlayParentProps.setAttachmentRef}
+        onClick={toggleShowingPopup}
+        ref={ref}
         small={true}
         type="Default"
         mode="Secondary"
       />
-      <AddPeopleHow
-        attachTo={overlayParentProps.getAttachmentRef}
-        onHidden={overlayParentProps.toggleShowingMenu}
-        teamID={teamID}
-        visible={overlayParentProps.showingMenu}
-      />
+      {popup}
     </>
   )
 }
