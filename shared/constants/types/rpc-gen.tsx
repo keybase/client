@@ -3091,6 +3091,7 @@ export type TeamGetLegacyTLFUpgrade = {readonly encryptedKeyset: String; readonl
 export type TeamID = String
 export type TeamIDAndName = {readonly id: TeamID; readonly name: TeamName}
 export type TeamIDWithVisibility = {readonly teamID: TeamID; readonly visibility: TLFVisibility}
+export type TeamInfo = {readonly name: TeamName; readonly inTeam: Boolean; readonly open: Boolean; readonly description: String; readonly publicAdmins?: Array<String> | null; readonly numMembers: Int; readonly publicMembers: {[key: string]: TeamMemberRole}}
 export type TeamInvite = {readonly role: TeamRole; readonly id: TeamInviteID; readonly type: TeamInviteType; readonly name: TeamInviteName; readonly inviter: UserVersion}
 export type TeamInviteID = String
 export type TeamInviteName = String
@@ -3105,6 +3106,7 @@ export type TeamMember = {readonly uid: UID; readonly role: TeamRole; readonly e
 export type TeamMemberDetails = {readonly uv: UserVersion; readonly username: String; readonly fullName: FullName; readonly needsPUK: Boolean; readonly status: TeamMemberStatus}
 export type TeamMemberOutFromReset = {readonly teamID: TeamID; readonly teamName: String; readonly resetUser: TeamResetUser}
 export type TeamMemberOutReset = {readonly teamID: TeamID; readonly teamname: String; readonly username: String; readonly uid: UID; readonly id: Gregor1.MsgID}
+export type TeamMemberRole = {readonly userID: UID; readonly username: String; readonly fullName: FullName; readonly role: TeamRole}
 export type TeamMemberToRemove = {readonly username: String; readonly email: String; readonly inviteID: TeamInviteID; readonly allowInaction: Boolean}
 export type TeamMembers = {readonly owners?: Array<UserVersion> | null; readonly admins?: Array<UserVersion> | null; readonly writers?: Array<UserVersion> | null; readonly readers?: Array<UserVersion> | null; readonly bots?: Array<UserVersion> | null; readonly restrictedBots?: Array<UserVersion> | null}
 export type TeamMembersDetails = {readonly owners?: Array<TeamMemberDetails> | null; readonly admins?: Array<TeamMemberDetails> | null; readonly writers?: Array<TeamMemberDetails> | null; readonly readers?: Array<TeamMemberDetails> | null; readonly bots?: Array<TeamMemberDetails> | null; readonly restrictedBots?: Array<TeamMemberDetails> | null}
@@ -4062,6 +4064,7 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.streamUi.read'
 // 'keybase.1.streamUi.reset'
 // 'keybase.1.streamUi.write'
+// 'keybase.1.teams.getUntrustedTeamInfo'
 // 'keybase.1.teams.teamCreateWithSettings'
 // 'keybase.1.teams.teamImplicitAdmins'
 // 'keybase.1.teams.teamListTeammates'

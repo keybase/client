@@ -8,6 +8,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/engine"
+
 	"golang.org/x/net/context"
 
 	"github.com/davecgh/go-spew/spew"
@@ -1860,4 +1862,77 @@ func TestAddMembersWithRestrictiveContactSettingsFailIfNoneAdded(t *testing.T) {
 	require.IsType(t, err, libkb.TeamContactSettingsBlockError{})
 	require.Nil(t, added)
 	require.Nil(t, notAdded)
+}
+
+func TestGetUntrustedTeamInfo(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 7)
+	defer cleanup()
+
+	// prepare a mock team
+	owner := 0
+	publicAdmin := 1
+	privateAdmin := 2
+	publicReader := 3
+	privateReader := 4
+	restrictedBot := 5
+	nonMember := 6
+
+	pAdmFullName := "TheMostAmazing Admin"
+	eng := engine.NewProfileEdit(tcs[publicAdmin].G, keybase1.ProfileEditArg{Location: "", FullName: pAdmFullName, Bio: ""})
+	err := eng.Run(tcs[publicAdmin].MetaContext())
+	require.NoError(t, err)
+
+	teamName, teamID := createTeam2(*tcs[owner])
+	team := teamName.String()
+	added, notAdded, err := AddMembers(context.TODO(), tcs[owner].G, teamID, []keybase1.UserRolePair{
+		{AssertionOrEmail: fus[publicAdmin].Username, Role: keybase1.TeamRole_ADMIN},
+		{AssertionOrEmail: fus[privateAdmin].Username, Role: keybase1.TeamRole_ADMIN},
+		{AssertionOrEmail: fus[publicReader].Username, Role: keybase1.TeamRole_READER},
+		{AssertionOrEmail: fus[privateReader].Username, Role: keybase1.TeamRole_READER},
+		{AssertionOrEmail: fus[restrictedBot].Username, Role: keybase1.TeamRole_RESTRICTEDBOT, BotSettings: &keybase1.TeamBotSettings{Cmds: false, Mentions: true}},
+	})
+	require.NoError(t, err)
+	require.Len(t, notAdded, 0)
+	require.Len(t, added, 5)
+	t.Logf("Created team %q", team)
+
+	// showcase the team, make it open and set some public members
+	isShowcased := true
+	description := "best team ever"
+
+	err = ChangeTeamSettingsByID(context.TODO(), tcs[owner].G, teamID, keybase1.TeamSettings{Open: true, JoinAs: keybase1.TeamRole_WRITER})
+	require.NoError(t, err)
+
+	err = SetTeamShowcase(context.TODO(), tcs[owner].G, teamID, &isShowcased, &description, nil)
+	require.NoError(t, err)
+
+	err = SetTeamMemberShowcase(context.TODO(), tcs[publicAdmin].G, teamID, true)
+	require.NoError(t, err)
+
+	err = SetTeamMemberShowcase(context.TODO(), tcs[publicReader].G, teamID, true)
+	require.NoError(t, err)
+
+	// load the team as a non member
+	ret, err := GetUntrustedTeamInfo(tcs[nonMember].MetaContext(), teamName)
+	require.NoError(t, err)
+	// check the information matches what we expect
+	require.Equal(t, teamName, ret.Name)
+	require.Equal(t, description, ret.Description)
+	require.Equal(t, false, ret.InTeam)
+	require.Equal(t, true, ret.Open)
+	require.Equal(t, 6, ret.NumMembers) // TRIAGE-1922 restricted bots are counted for now
+	require.Len(t, ret.PublicAdmins, 1)
+	require.Equal(t, fus[publicAdmin].Username, ret.PublicAdmins[0])
+	require.Len(t, ret.PublicMembers, 2)
+	require.Contains(t, ret.PublicMembers, fus[publicAdmin].User.GetUID())
+	pAdm := ret.PublicMembers[fus[publicAdmin].User.GetUID()]
+	require.Equal(t, fus[publicAdmin].User.GetUID(), pAdm.UserID)
+	require.Equal(t, fus[publicAdmin].Username, pAdm.Username)
+	require.Equal(t, keybase1.FullName(pAdmFullName), pAdm.FullName)
+	require.Equal(t, keybase1.TeamRole_ADMIN, pAdm.Role)
+	require.Contains(t, ret.PublicMembers, fus[publicReader].User.GetUID())
+	pRead := ret.PublicMembers[fus[publicReader].User.GetUID()]
+	require.Equal(t, fus[publicReader].User.GetUID(), pRead.UserID)
+	require.Equal(t, fus[publicReader].Username, pRead.Username)
+	require.Equal(t, keybase1.TeamRole_READER, pRead.Role)
 }

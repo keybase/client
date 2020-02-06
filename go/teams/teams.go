@@ -2707,3 +2707,75 @@ func KeySummary(t Teamer) string {
 	}
 	return fmt.Sprintf("{main:%s, hidden:%s}", t.MainChain().KeySummary(), t.HiddenChain().KeySummary())
 }
+
+type TeamInfo struct {
+	Status          libkb.AppStatus `json:"status"`
+	Name            string
+	InTeam          bool `json:"in_team"`
+	Open            bool
+	Description     string
+	PublicAdmins    []string `json:"public_admins"`
+	NumMembers      int      `json:"num_members"`
+	PublicUserCards []struct {
+		FullName string `json:"full_name"`
+		UID      keybase1.UID
+	} `json:"public_cards"`
+	PublicMembers []struct {
+		Role     keybase1.TeamRole
+		UID      keybase1.UID
+		Username string
+	} `json:"public_members"`
+}
+
+var _ libkb.APIResponseWrapper = (*TeamInfo)(nil)
+
+func (r *TeamInfo) GetAppStatus() *libkb.AppStatus {
+	return &r.Status
+}
+
+func GetUntrustedTeamInfo(mctx libkb.MetaContext, name keybase1.TeamName) (info keybase1.TeamInfo, err error) {
+	arg := libkb.APIArg{
+		Endpoint:    "team/mentiondesc",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"name":                libkb.S{Val: name.String()},
+			"include_all_members": libkb.B{Val: true}, // refers to members who showcased the team on their profile only
+		},
+	}
+
+	var resp TeamInfo
+	if err = mctx.G().API.GetDecode(mctx, arg, &resp); err != nil {
+		mctx.Debug("GetUntrustedTeamInfo: failed to get team info: %s", err)
+	}
+	if err != nil {
+		return info, err
+	}
+
+	teamName, err := keybase1.TeamNameFromString(resp.Name)
+	if err != nil {
+		return info, err
+	}
+
+	teamInfo := keybase1.TeamInfo{
+		Name:          teamName,
+		Description:   resp.Description,
+		InTeam:        resp.InTeam,
+		NumMembers:    resp.NumMembers,
+		Open:          resp.Open,
+		PublicAdmins:  resp.PublicAdmins,
+		PublicMembers: make(map[keybase1.UID]keybase1.TeamMemberRole),
+	}
+
+	for _, uc := range resp.PublicUserCards {
+		teamInfo.PublicMembers[uc.UID] = keybase1.TeamMemberRole{UserID: uc.UID, FullName: keybase1.FullName(uc.FullName)}
+	}
+
+	for _, mem := range resp.PublicMembers {
+		tmr := teamInfo.PublicMembers[mem.UID]
+		tmr.Role = mem.Role
+		tmr.Username = mem.Username
+		teamInfo.PublicMembers[mem.UID] = tmr
+	}
+
+	return teamInfo, nil
+}

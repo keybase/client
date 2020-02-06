@@ -832,3 +832,10 @@ func (h *TeamsHandler) GetTeamRoleMap(ctx context.Context) (res keybase1.TeamRol
 	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
 	return mctx.G().GetTeamRoleMapManager().Get(mctx, true /* retry on fail */)
 }
+
+func (h *TeamsHandler) GetUntrustedTeamInfo(ctx context.Context, name keybase1.TeamName) (info keybase1.TeamInfo, err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("GetUntrustedTeamInfo(%s)", name), func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
+	return teams.GetUntrustedTeamInfo(mctx, name)
+}
