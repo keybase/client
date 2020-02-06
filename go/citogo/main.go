@@ -190,15 +190,15 @@ func (r *runner) reportTestOutcome(outcome outcome, test string, where string) {
 		fmt.Printf(" %s", where)
 	}
 	fmt.Printf("\n")
-	if outcome == success {
-		return
-	}
 
-	hook := os.Getenv("CITOGO_MASTER_FAIL_WEBHOOK")
-	if hook == "" || r.opts.Branch != "master" {
+	if outcome != fail || r.opts.Branch != "master" {
 		return
 	}
-	r.doHook(hook, test, where, "🐳")
+	hook := os.Getenv("CITOGO_MASTER_FAIL_WEBHOOK")
+	if hook == "" {
+		return
+	}
+	r.doHook(hook, test, where, "🥴")
 }
 
 func (r *runner) runTest(test string) error {
