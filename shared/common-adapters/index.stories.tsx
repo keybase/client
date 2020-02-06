@@ -8,6 +8,7 @@ import box from './box.stories'
 import button from './button.stories'
 import buttonBar from './button-bar.stories'
 import checkbox from './checkbox.stories'
+import checkCircle from './check-circle.stories'
 import choiceList from './choice-list.stories'
 import confirmModal from './confirm-modal/index.stories'
 import copyText from './copy-text.stories'
@@ -54,6 +55,7 @@ const load = () => {
     box,
     button,
     buttonBar,
+    checkCircle,
     checkbox,
     choiceList,
     confirmModal,
