@@ -191,7 +191,7 @@ export default (props: Props) => {
     justDoneWithIntent && hide()
   }, [justDoneWithIntent, hide])
 
-  const dispatch = Kbfs.useDispatchWhenKbfsIsConnected()
+  const dispatch = Container.useDispatch()
   const userInitiatedHide = React.useCallback(() => {
     hide()
     downloadID && dispatch(FsGen.createDismissDownload({downloadID}))

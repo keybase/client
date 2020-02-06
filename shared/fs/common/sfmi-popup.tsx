@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as Types from '../../constants/types/fs'
-import {useFuseClosedSourceConsent, useDispatchWhenConnected} from './hooks'
+import {useFuseClosedSourceConsent} from './hooks'
 import * as FsGen from '../../actions/fs-gen'
 import {fileUIName} from '../../constants/platform'
 import * as Container from '../../util/container'
@@ -13,7 +13,7 @@ type Props = {
 
 export default Kb.OverlayParentHOC((props: Props & Kb.OverlayParentProps) => {
   const driverStatus = Container.useSelector(state => state.fs.sfmi.driverStatus)
-  const dispatch = useDispatchWhenConnected()
+  const dispatch = Container.useDispatch()
   const enableDriver = () => dispatch(FsGen.createDriverEnable())
   const {canContinue, component: fuseConsentComponent} = useFuseClosedSourceConsent(
     driverStatus.type === Types.DriverStatusType.Disabled && driverStatus.isEnabling,
