@@ -32,6 +32,7 @@ const {call, set, cond, timing, block, debug, Value, Clock} = Kb.ReAnimated
 const {startClock, stopClock, clockRunning, not, eq, and} = Kb.ReAnimated
 const runToggle = (clock, state, value, small, _big, cb) => {
   const big = new Value(500)
+
   return block([
     cond(eq(state, AnimationState.expanding), set(value, runTiming(clock, value, big, cb))),
     cond(
@@ -62,7 +63,7 @@ const runTiming = (clock, value, dest, cb) => {
     cond(clockRunning(clock), 0, [
       set(state.finished, 0),
       set(state.frameTime, 0),
-      set(state.time, clock),
+      set(state.time, 0),
       set(state.position, value),
       set(config.toValue, dest),
       debug('aaa clock pos', state.position),
@@ -80,6 +81,7 @@ type State = {
   animating: boolean // delayed due to setstate, updates after
   // animatedMaxHeight: Kb.NativeAnimated.Value
   expanded: boolean
+  expandedDownCounter: number
   hasText: boolean
 }
 
@@ -89,7 +91,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
   private whichMenu?: menuType
   private clock = new Clock()
   // private anim: Kb.ReAnimated.Node<number> = new Value(minInputArea)
-  private animateState = new Value(AnimationState.none)
+  private animateState = new Value<AnimationState>(AnimationState.none)
   private animateHeight = new Value<number>(defaultMaxHeight)
   private animating: boolean = false // immediate value
   private watchSizeChanges = true
@@ -99,6 +101,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
     animating: false,
     // animatedMaxHeight: new Kb.NativeAnimated.Value(Styles.dimensionHeight),
     expanded: false, // updates immediately, used for the icon etc
+    expandedDownCounter: 0, // reset keys so auto expand works again
     hasText: false,
   }
 
@@ -178,6 +181,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
     const {nativeEvent} = p
     const {layout} = nativeEvent
     const {height} = layout
+    console.log('aaa onlayout', this.watchSizeChanges, height)
     if (this.watchSizeChanges) {
       console.log('aaa set last height', height)
       this.lastHeight = height
@@ -241,7 +245,10 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
     console.log('aaa ondone called ')
     this.animating = false
     console.log('aaa cb called', this.state.expanded)
-    this.setState(s => ({animating: false}))
+    this.setState(s => ({
+      animating: false,
+      expandedDownCounter: s.expandedDownCounter + (s.expanded ? 0 : 1),
+    }))
   }
 
   private expandInput = () => {
@@ -249,9 +256,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
     this.watchSizeChanges = false
     const nextState = !this.state.expanded
     this.setState(s => ({expanded: nextState}))
-    this.setState(
-      s => ({animating: true}),
-
+    this.setState({animating: true}, () =>
       this.animateState.setValue(nextState ? AnimationState.expanding : AnimationState.contracting)
     )
     // Kb.NativeAnimated.timing(this.state.animatedMaxHeight, {
@@ -335,12 +340,11 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
       this.animateHeight._value
     )
 
-    // key={'inputBoxContainer' + (this.state.animating ? 'expanded' : 'fixed')}
-    // key={'animatingBox' + (this.state.animating ? 'expanded' : 'fixed')}
     return (
       <AnimatedBox2
         direction="vertical"
         onLayout={this.onLayout}
+        key={'animatingBox' /*+ this.state.expandedDownCounter*/}
         fullWidth={true}
         style={
           this.state.expanded || this.state.animating
@@ -369,9 +373,10 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
         )}
         <Kb.Box2
           direction="vertical"
+          key={'inputBoxContainer' /* + this.state.expandedDownCounter*/}
           style={Styles.collapseStyles([
             styles.container,
-            (this.state.expanded || this.state.animating) && {height: '100%'},
+            (this.state.expanded || this.state.animating) && {height: '100%', minHeight: 0},
           ])}
           fullWidth={true}
         >
