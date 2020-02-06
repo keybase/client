@@ -12,7 +12,7 @@ export const waitingKey = 'signup:waiting'
 const cleanupDeviceName = (name: string) => name.replace(/[()]/g, '')
 
 export const defaultDevicename =
-  cleanupDeviceName(Platforms.realDeviceName) ||
+  (Platforms.realDeviceName && cleanupDeviceName(Platforms.realDeviceName)) ||
   (Platforms.isAndroid && 'My Android Device') ||
   (Platforms.isIOS && 'My iOS Device') ||
   (Platforms.isDarwin && 'My Mac Device') ||
