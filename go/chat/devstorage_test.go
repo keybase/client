@@ -105,16 +105,17 @@ func TestDevConversationBackedStorageTeamAdminOnly(t *testing.T) {
 	require.NoError(t, err)
 
 	err = readerstorage.Put(readerctx, readeruid, tlfid, key0, "hello")
-	require.NoError(t, err)
+	require.Error(t, err)
+	require.IsType(t, &DevStoragePermissionDeniedError{}, err, "got right error")
 
-	// found, err = storage.Get(ctx, uid, tlfid, key0, &msg)
-	// require.NoError(t, err)
-	// require.True(t, found)
-	// require.Equal(t, msg, "hello")
-	// found, err = readerstorage.Get(readerctx, readeruid, tlfid, key0, &readermsg)
-	// require.NoError(t, err)
-	// require.True(t, found)
-	// require.Equal(t, msg, "hello")
+	found, err = storage.Get(ctx, uid, tlfid, key0, &msg)
+	require.NoError(t, err)
+	require.True(t, found)
+	require.Equal(t, msg, "hello")
+	found, err = readerstorage.Get(readerctx, readeruid, tlfid, key0, &readermsg)
+	require.NoError(t, err)
+	require.True(t, found)
+	require.Equal(t, msg, "hello")
 }
 
 func TestDevConversationBackedStorageTeamAdminOnlyReaderMisbehavior(t *testing.T) {

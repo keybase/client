@@ -65,11 +65,23 @@ func (s *DevConversationBackedStorage) Put(ctx context.Context, uid gregor1.UID,
 		return err
 	}
 
-	conv, err := NewConversation(ctx, s.G(), uid, tlfname, &name, chat1.TopicType_DEV,
-		s.mt, keybase1.TLFVisibility_PRIVATE, s.ri, NewConvFindExistingNormal)
+	var conv chat1.ConversationLocal
+
+	convs, err := FindConversations(ctx, s.G(), s.DebugLabeler, types.InboxSourceDataSourceAll, s.ri, uid,
+		tlfname, chat1.TopicType_DEV, s.mt, keybase1.TLFVisibility_PRIVATE, name, nil)
 	if err != nil {
 		return err
 	}
+	if len(convs) == 0 {
+		conv, err = NewConversation(ctx, s.G(), uid, tlfname, &name, chat1.TopicType_DEV,
+			s.mt, keybase1.TLFVisibility_PRIVATE, s.ri, NewConvFindExistingNormal)
+		if err != nil {
+			return err
+		}
+	} else {
+		conv = convs[0]
+	}
+
 	if s.adminOnly && !conv.ReaderInfo.UntrustedTeamRole.IsAdminOrAbove() {
 		return NewDevStoragePermissionDeniedError(conv.ReaderInfo.UntrustedTeamRole)
 	}
