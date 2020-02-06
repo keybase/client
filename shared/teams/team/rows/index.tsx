@@ -155,7 +155,7 @@ const makeRows = (
     }
     case 'subteams': {
       if (flags.teamsRedesign) {
-        const subteams = subteamsFiltered || details.subteams
+        const subteams = subteamsFiltered ?? details.subteams
         if (yourOperations.manageSubteams) {
           rows.push({key: 'subteam-add', type: 'subteam-add'})
         }
