@@ -743,8 +743,7 @@ func TestManualControlOfRevisionWithoutCache(t *testing.T) {
 	require.Equal(t, delRes.Revision, 3)
 }
 
-// TestKVStoreLocalRace tests that multiple requests at the same time are caught by the server
-// and do not wreck the local revision cache.
+// TestKVStoreLocalRace tests that multiple requests at the same time do not cause errors
 func TestKVStoreLocalRace(t *testing.T) {
 	tc := kvTestSetup(t)
 	defer tc.Cleanup()
@@ -768,46 +767,19 @@ func TestKVStoreLocalRace(t *testing.T) {
 		EntryKey:   entryKey,
 		EntryValue: secretData,
 	}
-	var sawTheRace bool
-	for attempt := 0; attempt < 5; attempt++ {
-		var wg sync.WaitGroup
-		errChan := make(chan error, 10)
-		for i := 0; i < 10; i++ {
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
-				_, err = handler.PutKVEntry(ctx, putArg)
-				errChan <- err
-			}()
-		}
-		wg.Wait()
-		close(errChan)
-		for err := range errChan {
-			if err != nil {
-				require.Error(t, err)
-				aerr, _ := err.(libkb.AppStatusError)
-				if aerr.Code != libkb.SCTeamStorageWrongRevision {
-					t.Fatalf("expected only SCTeamStorageWrongRevision errors but got %v", err)
-				}
-				raceRegex := regexp.MustCompile("revision [0-9]+ already exists for this entry")
-				if raceRegex.MatchString(err.Error()) {
-					sawTheRace = true
-					break
-				}
-			}
-		}
-		if sawTheRace {
-			break
-		}
+	var wg sync.WaitGroup
+	errChan := make(chan error, 10)
+	for i := 0; i < 10; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			_, err = handler.PutKVEntry(ctx, putArg)
+			errChan <- err
+		}()
 	}
-	require.True(t, sawTheRace, "didn't generate a race")
-	// after the race, getting and putting should still work fine
-	_, err = handler.PutKVEntry(ctx, putArg)
-	require.NoError(t, err)
-	_, err = handler.GetKVEntry(ctx, keybase1.GetKVEntryArg{
-		TeamName:  teamName,
-		Namespace: namespace,
-		EntryKey:  entryKey,
-	})
-	require.NoError(t, err)
+	wg.Wait()
+	close(errChan)
+	for err := range errChan {
+		require.NoError(t, err)
+	}
 }
