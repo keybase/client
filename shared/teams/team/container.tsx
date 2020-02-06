@@ -9,7 +9,6 @@ import * as Types from '../../constants/types/teams'
 import Team, {Sections} from '.'
 import makeRows from './rows'
 import flags from '../../util/feature-flags'
-import TabsStateNew from './container.new'
 
 type TabsStateOwnProps = Container.RouteProps<{teamID: Types.TeamID}>
 type OwnProps = TabsStateOwnProps & {
