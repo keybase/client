@@ -35,7 +35,8 @@ class TeamMember extends React.Component<Container.RouteProps<Props>> {
   }
 }
 
-const TeamMemberHeader = (props: Props) => {
+// exported for stories
+export const TeamMemberHeader = (props: Props) => {
   const {teamID, username} = props
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
