@@ -4,76 +4,14 @@
 package service
 
 import (
-	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
-
-// transporterWaiter exposes a get() method to get a transporter, and waits for
-// it if it's not available yet. Additionally, it also tries to have get()
-// calls from different goroutines return in the same order they come in. This
-// is done by assigning a number to each call, and process them one-by-one.
-// Only the current processing goroutine actively checks and waits for the
-// transporter. Other calls won't start until their previous ones have
-// finished.
-type transporterWaiter struct {
-	getter func() rpc.Transporter
-
-	// Just use atomic instead of having cond protect this, to minimize the
-	// chance that multiple calls wait on the same Mutex (which is not
-	// necessarily FIFO).
-	lastWaitingNumber uint64
-
-	cond                *sync.Cond
-	lastProcessedNumber uint64
-}
-
-func newTransporterWaiter(
-	tranporterGetter func() (transporter rpc.Transporter),
-) *transporterWaiter {
-	return &transporterWaiter{
-		getter:              tranporterGetter,
-		lastWaitingNumber:   0,
-		cond:                sync.NewCond(&sync.Mutex{}),
-		lastProcessedNumber: 0,
-	}
-}
-
-const waitForTransporterInterval = time.Second / 4
-const waitForTransporterTimeout = time.Minute
-
-func (w *transporterWaiter) get(ctx context.Context) (xp rpc.Transporter) {
-	myNumber := atomic.AddUint64(&w.lastWaitingNumber, 1)
-
-	ctx, cancel := context.WithTimeout(ctx, waitForTransporterTimeout)
-	defer cancel()
-
-	w.cond.L.Lock()
-	defer w.cond.L.Unlock()
-	for w.lastProcessedNumber != myNumber-1 {
-		w.cond.Wait()
-	}
-
-	xp = w.getter()
-loop:
-	for xp == nil {
-		time.Sleep(waitForTransporterInterval)
-		xp = w.getter()
-		select {
-		case <-ctx.Done():
-			break loop
-		}
-	}
-
-	w.lastProcessedNumber = myNumber
-	w.cond.Broadcast()
-	return xp
-}
 
 // Fast operations like Stat usually finish fairly quickly. Slow
 // operations in SimpleFS are handled in an async manner, where the RPC starts
@@ -87,17 +25,13 @@ const simpleFSTimeout = 1 * time.Minute
 type SimpleFSHandler struct {
 	*BaseHandler
 	libkb.Contextified
-
-	transporterWaiter *transporterWaiter
 }
 
 func NewSimpleFSHandler(xp rpc.Transporter, g *libkb.GlobalContext) *SimpleFSHandler {
-	h := &SimpleFSHandler{
+	return &SimpleFSHandler{
 		BaseHandler:  NewBaseHandler(g, xp),
 		Contextified: libkb.NewContextified(g),
 	}
-	h.transporterWaiter = newTransporterWaiter(h.transporterGetter)
-	return h
 }
 
 var _ keybase1.SimpleFSInterface = (*SimpleFSHandler)(nil)
@@ -110,10 +44,21 @@ func (s *SimpleFSHandler) wrapContextWithTimeout(ctx context.Context) (newCtx co
 	return context.WithTimeout(ctx, simpleFSTimeout)
 }
 
+const waitForTransporterInterval = time.Second / 4
+const waitForTransporterTimeout = time.Minute
+
 func (s *SimpleFSHandler) client(ctx context.Context) (*keybase1.SimpleFSClient, error) {
-	xp := s.transporterWaiter.get(ctx)
-	if xp == nil {
-		return nil, libkb.KBFSNotRunningError{}
+	ctx, cancel := context.WithTimeout(ctx, waitForTransporterTimeout)
+	defer cancel()
+	xp := s.G().ConnectionManager.LookupByClientType(keybase1.ClientType_KBFS)
+	for xp == nil {
+		select {
+		case <-ctx.Done():
+			return nil, errors.WithStack(ctx.Err())
+		default:
+		}
+		time.Sleep(waitForTransporterInterval)
+		xp = s.G().ConnectionManager.LookupByClientType(keybase1.ClientType_KBFS)
 	}
 	return &keybase1.SimpleFSClient{
 		Cli: rpc.NewClient(xp, libkb.NewContextifiedErrorUnwrapper(s.G()), nil),
