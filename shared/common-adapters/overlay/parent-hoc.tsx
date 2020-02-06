@@ -52,3 +52,16 @@ const OverlayParentHOC = <Props extends {}>(
 }
 
 export default OverlayParentHOC
+
+export const useOverlayParent = () => {
+  const [showingMenu, setShowingMenu] = React.useState(false)
+  const toggleShowingMenu = () => setShowingMenu(!showingMenu)
+  const [_ref, _setRef] = React.useState<React.Component<any> | null>(null)
+  const getAttachmentRef = () => _ref
+  const setAttachmentRef = isMobile
+    ? () => {}
+    : (attachmentRef: React.Component<any> | null) => {
+        _setRef(attachmentRef)
+      }
+  return {getAttachmentRef, setAttachmentRef, setShowingMenu, showingMenu, toggleShowingMenu}
+}

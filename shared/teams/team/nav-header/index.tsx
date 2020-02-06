@@ -7,29 +7,27 @@ import TeamMenu from '../menu-container'
 import {TeamID} from '../../../constants/types/teams'
 import {pluralize} from '../../../util/string'
 
-const _AddPeopleButton = (
-  props: {
-    teamID: TeamID
-  } & Kb.OverlayParentProps
-) => (
-  <>
-    <Kb.Button
-      label="Add members"
-      onClick={props.toggleShowingMenu}
-      ref={props.setAttachmentRef}
-      small={true}
-      type="Default"
-      mode="Secondary"
-    />
-    <AddPeopleHow
-      attachTo={props.getAttachmentRef}
-      onHidden={props.toggleShowingMenu}
-      teamID={props.teamID}
-      visible={props.showingMenu}
-    />
-  </>
-)
-const AddPeopleButton = Kb.OverlayParentHOC(_AddPeopleButton)
+const AddPeopleButton = ({teamID}: {teamID: TeamID}) => {
+  const overlayParentProps = Kb.useOverlayParent()
+  return (
+    <>
+      <Kb.Button
+        label="Add members"
+        onClick={overlayParentProps.toggleShowingMenu}
+        ref={overlayParentProps.setAttachmentRef}
+        small={true}
+        type="Default"
+        mode="Secondary"
+      />
+      <AddPeopleHow
+        attachTo={overlayParentProps.getAttachmentRef}
+        onHidden={overlayParentProps.toggleShowingMenu}
+        teamID={teamID}
+        visible={overlayParentProps.showingMenu}
+      />
+    </>
+  )
+}
 
 type Props = {
   onChat: () => void

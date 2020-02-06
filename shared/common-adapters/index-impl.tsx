@@ -346,6 +346,9 @@ module.exports = {
   get useMounted() {
     return require('./use-mounted').default
   },
+  get useOverlayParent() {
+    return require('./overlay/parent-hoc').useOverlayParent
+  },
   get usePopup() {
     return require('./use-popup').usePopup
   },
