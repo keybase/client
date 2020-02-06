@@ -1300,15 +1300,15 @@ async function showTeamByName(action: TeamsGen.ShowTeamByNamePayload, logger: Sa
   }
   return [
     RouteTreeGen.createNavigateAppend({
-      path: [
-        {props: {initialTab, teamID}, selected: 'team'},
-        // BUG: This doesn't actually go this route when addMembers is true, it
-        // just stacks team builder without stacking `team` screen first.
-        ...(addMembers
-          ? [{props: {namespace: 'teams', teamID, title: ''}, selected: 'teamsTeamBuilder'}]
-          : []),
-      ],
+      path: [{props: {initialTab, teamID}, selected: 'team'}],
     }),
+    ...(addMembers
+      ? [
+          RouteTreeGen.createNavigateAppend({
+            path: [{props: {namespace: 'teams', teamID, title: ''}, selected: 'teamsTeamBuilder'}],
+          }),
+        ]
+      : []),
   ]
 }
 

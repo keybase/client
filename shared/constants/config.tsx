@@ -26,30 +26,38 @@ export const prepareAccountRows = <T extends {username: string; hasStoredSecret:
   myUsername: string
 ): Array<T> => accountRows.filter(account => account.username !== myUsername)
 
-export const urlToUsername = (url: URL) => {
-  const protocol = url.protocol
+function isKeybaseIoUrl(url: URL) {
+  const {protocol} = url
   if (protocol !== 'http:' && protocol !== 'https:') {
-    return null
+    return false
   }
 
   if (url.username || url.password) {
-    return null
+    return false
   }
 
-  const hostname = url.hostname
+  const {hostname} = url
   if (hostname !== 'keybase.io' && hostname !== 'www.keybase.io') {
-    return null
+    return false
   }
 
-  const port = url.port
+  const {port} = url
   if (port) {
     if (protocol === 'http:' && port !== '80') {
-      return null
+      return false
     }
 
     if (protocol === 'https:' && port !== '443') {
-      return null
+      return false
     }
+  }
+
+  return true
+}
+
+export const urlToUsername = (url: URL) => {
+  if (!isKeybaseIoUrl(url)) {
+    return null
   }
 
   const pathname = url.pathname
@@ -72,8 +80,9 @@ export const urlToUsername = (url: URL) => {
 }
 
 export const urlToTeamDeepLink = (url: URL) => {
-  // TODO: generalize rest of the deeplink URL checks from urlToUsername so they
-  // are also checked for team links here.
+  if (!isKeybaseIoUrl(url)) {
+    return null
+  }
 
   // Similar regexp to username but allow `.` for subteams
   const match = url.pathname.match(/^\/team\/((?:[a-zA-Z0-9][a-zA-Z0-9_.-]?)+)\/?$/)
