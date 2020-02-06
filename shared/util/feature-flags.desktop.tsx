@@ -35,11 +35,11 @@ const inAdmin: {[K in keyof FeatureFlags]?: boolean} = {
   chatIndexProfilingEnabled: true,
   connectThrashCheck: true,
   dbCleanEnabled: true,
-  tabletSupport: true,
   moveOrCopy: true,
   openTeamSearch: true,
   outOfDateBanner: true,
   proofProviders: true,
+  tabletSupport: true,
   userBlocking: false,
   webOfTrust: false,
 }
