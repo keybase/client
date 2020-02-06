@@ -261,6 +261,7 @@ func ServerLookup(env *Env, mode RunMode) (string, error) {
 
 type InstrumentedBody struct {
 	sync.Mutex
+	Contextified
 	record *rpc.NetworkInstrumenter
 	body   io.ReadCloser
 	n      int
@@ -268,10 +269,11 @@ type InstrumentedBody struct {
 
 var _ io.ReadCloser = (*InstrumentedBody)(nil)
 
-func NewInstrumentedBody(record *rpc.NetworkInstrumenter, body io.ReadCloser) *InstrumentedBody {
+func NewInstrumentedBody(g *GlobalContext, record *rpc.NetworkInstrumenter, body io.ReadCloser) *InstrumentedBody {
 	return &InstrumentedBody{
-		record: record,
-		body:   body,
+		Contextified: NewContextified(g),
+		record:       record,
+		body:         body,
 	}
 }
 
@@ -290,7 +292,10 @@ func (b *InstrumentedBody) Close() error {
 	_, _ = io.Copy(ioutil.Discard, b.body)
 	_ = discardAndClose(b.body)
 	b.record.IncrementSize(int64(b.n))
-	_ = b.record.Finish()
+	if err := b.record.Finish(); err != nil {
+		b.G().Log.CDebugf(context.TODO(), "InstrumentedBody: unable to instrument network request: %v", err)
+		return err
+	}
 	return b.body.Close()
 }
 
@@ -313,8 +318,9 @@ func (i *InstrumentedTransport) RoundTrip(req *http.Request) (resp *http.Respons
 	resp, err = i.Transport.RoundTrip(req)
 	record.EndCall()
 	if err != nil {
+		_ = record.Finish()
 		return resp, err
 	}
-	resp.Body = NewInstrumentedBody(record, resp.Body)
+	resp.Body = NewInstrumentedBody(i.G(), record, resp.Body)
 	return resp, err
 }

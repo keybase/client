@@ -14,12 +14,25 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+var internalHosts = map[string]struct{}{
+	DevelServerURI:      struct{}{},
+	StagingServerURI:    struct{}{},
+	ProductionServerURI: struct{}{},
+	ProductionSiteURI:   struct{}{},
+}
+
 func InstrumentationTagFromCollyRequest(req *colly.Request) string {
-	return fmt.Sprintf("%s %s", req.Method, req.URL)
+	return fmt.Sprintf("%s %s%s", req.Method, req.URL.Host, req.URL.Path)
 }
 
 func InstrumentationTagFromRequest(req *http.Request) string {
-	return fmt.Sprintf("%s %s", req.Method, req.URL)
+	host := req.URL.Host
+	if _, ok := internalHosts[fmt.Sprintf("%s://%s", req.URL.Scheme, host)]; ok {
+		host = ""
+	}
+	path := strings.TrimPrefix(req.URL.Path, APIURIPathPrefix)
+	path = strings.TrimPrefix(path, "/")
+	return fmt.Sprintf("%s %s%s", req.Method, host, path)
 }
 
 func AddRPCRecord(tag string, stat keybase1.InstrumentationStat, record rpc.InstrumentationRecord) keybase1.InstrumentationStat {
