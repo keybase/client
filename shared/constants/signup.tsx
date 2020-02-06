@@ -9,7 +9,7 @@ export const noEmail = 'NOEMAIL'
 export const waitingKey = 'signup:waiting'
 
 // Remove parens from the device name. Keybase device names cannot have parens.
-const cleanupDeviceName = (name: string) => name.replace(/[\(\)]/g, '')
+const cleanupDeviceName = (name: string) => name.replace(/[()]/g, '')
 
 export const defaultDevicename =
   cleanupDeviceName(Platforms.realDeviceName) ||
