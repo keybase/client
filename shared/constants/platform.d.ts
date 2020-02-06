@@ -6,6 +6,7 @@ export const isMobile: boolean
 export const isAndroid: boolean
 export const isIOS: boolean
 export const isLargeScreen: boolean
+export const isTablet: boolean
 
 export const isElectron: boolean
 export const isDarwin: boolean

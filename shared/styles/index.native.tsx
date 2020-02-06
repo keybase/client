@@ -68,7 +68,7 @@ export const transition = () => ({})
 export const backgroundURL = () => ({})
 export const styledKeyframes = () => null
 
-export {isMobile, fileUIName, isIPhoneX, isIOS, isAndroid} from '../constants/platform'
+export {isMobile, isTablet, fileUIName, isIPhoneX, isIOS, isAndroid} from '../constants/platform'
 export {
   globalMargins,
   backgroundModeToColor,
