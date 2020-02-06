@@ -777,6 +777,7 @@ def testGo(prefix, packagesToTest) {
                 [$class: 'StringBinding', credentialsId: 'citogo-flake-webhook', variable : 'CITOGO_FLAKE_WEBHOOK'],
                 [$class: 'StringBinding', credentialsId: 'citogo-aws-secret-access-key', variable : 'CITOGO_AWS_SECRET_ACCESS_KEY'],
                 [$class: 'StringBinding', credentialsId: 'citogo-aws-access-key-id', variable : 'CITOGO_AWS_ACCESS_KEY_ID']
+                [$class: 'StringBinding', credentialsId: 'citogo-master-fail-webhook', variable : 'CITOGO_MASTER_FAIL_WEBHOOK']
               ]) {
                 println "Running tests for ${testSpec.dirPath}"
                 def t = getOverallTimeout(testSpec)
