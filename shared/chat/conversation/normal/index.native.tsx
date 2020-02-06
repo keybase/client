@@ -31,7 +31,7 @@ const Offline = () => (
 )
 
 const Conversation = React.memo((props: Props) => {
-  const [maxInputArea, setMaxInputArea] = React.useState(9999)
+  const [maxInputArea, setMaxInputArea] = React.useState<number | undefined>(undefined)
   const onLayout = React.useCallback((e: LayoutEvent) => {
     setMaxInputArea(e.nativeEvent.layout.height)
   }, [])

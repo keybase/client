@@ -19,17 +19,27 @@ import AudioRecorder from '../../../audio/audio-recorder.native'
 
 type menuType = 'exploding' | 'filepickerpopup' | 'moremenu'
 
-type State = {
-  animatedExpanded: boolean
-  animatedMaxHeight: Kb.NativeAnimated.Value
-  expanded: boolean
-  hasText: boolean
+const AnimatedBox2 = Kb.ReAnimated.createAnimatedComponent(Kb.Box2)
+const defaultMaxHeight = 145
+
+enum AnimationState {
+  none,
+  expanding,
+  contracting,
 }
 
 const {call, set, cond, timing, block, debug, Value, Clock} = Kb.ReAnimated
-const {startClock, stopClock, clockRunning, not} = Kb.ReAnimated
-const runTiming = (clock, from, dest, onDone) => {
-  console.log('aaa run timing called', from, dest)
+const {startClock, stopClock, clockRunning, not, eq, and} = Kb.ReAnimated
+const runToggle = (clock, state, value, small, _big, cb) => {
+  const big = 500
+  return block([
+    cond(eq(state, AnimationState.expanding), set(value, runTiming(clock, value, big, cb))),
+    cond(eq(state, AnimationState.contracting), set(value, runTiming(clock, value, small ?? 0, cb))),
+  ])
+}
+
+const runTiming = (clock, value, dest, cb) => {
+  console.log('aaa run timing called', value, dest)
   // const clock = new Clock()
 
   const state = {
@@ -46,62 +56,29 @@ const runTiming = (clock, from, dest, onDone) => {
   }
 
   return block([
-    cond(not(clockRunning(clock)), [
-      debug('aaa clock init1', state.position),
+    cond(clockRunning(clock), 0, [
       set(state.finished, 0),
       set(state.frameTime, 0),
-      set(state.time, 0),
-      set(state.position, from),
+      set(state.time, clock),
+      set(state.position, value),
       set(config.toValue, dest),
+      debug('aaa clock pos', state.position),
+      debug('aaa clock valu', config.toValue),
       startClock(clock),
-      // debug('aaa starting clock again', startClock(clock)),
     ]),
     timing(clock, state, config),
-    cond(
-      state.finished,
-      [stopClock(clock), call([state.finished], onDone)],
-      debug('aaa pos', state.position)
-    ),
+    cond(state.finished, stopClock(clock)),
+    cond(state.finished, call([], cb)),
+    // cond(state.finished, debug('aaa finished', state.position), debug('aaa pos', state.position)),
     state.position,
   ])
 }
-// const runSpring = (clock, value, dest) => {
-// const state = {
-// finished: new Value(0),
-// position: new Value(0),
-// time: new Value(0),
-// velocity: new Value(0),
-// }
-
-// const config = {
-// damping: 10,
-// mass: 5,
-// overshootClamping: false,
-// restDisplacementThreshold: 0.001,
-// restSpeedThreshold: 0.001,
-// stiffness: 101.6,
-// toValue: new Value(0),
-// }
-
-// return block([
-// cond(clockRunning(clock), 0, [
-// debug('clock init1', state.position),
-// set(state.finished, 0),
-// set(state.time, 0),
-// set(state.position, value),
-// set(state.velocity, -2500),
-// set(config.toValue, dest),
-// startClock(clock),
-// ]),
-// spring(clock, state, config),
-// cond(state.finished, debug('aaaa stop clock', stopClock(clock))),
-// state.position,
-// ])
-// }
-
-const AnimatedBox2 = Kb.ReAnimated.createAnimatedComponent(Kb.Box2)
-
-const minInputArea = 145
+type State = {
+  animating: boolean // delayed due to setstate, updates after
+  // animatedMaxHeight: Kb.NativeAnimated.Value
+  expanded: boolean
+  hasText: boolean
+}
 
 class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
   private input: null | Kb.PlainInput = null
@@ -109,17 +86,14 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
   private whichMenu?: menuType
   private clock = new Clock()
   // private anim: Kb.ReAnimated.Node<number> = new Value(minInputArea)
-  private animateState = new Value(0) // 0 nothing, 1, up, -1 down
-
-  private anim = runTiming(
-    this.clock,
-    minInputArea,
-    this.props.maxInputArea ?? Styles.dimensionHeight,
-    () => {} //this.setState({animatedExpanded: expanded})
-  )
+  private animateState = new Value(AnimationState.none)
+  private animateHeight = new Value(defaultMaxHeight)
+  private animating: boolean = false // immediate value
+  private watchSizeChanges = true
+  private lastHeight: undefined | number
 
   state = {
-    animatedExpanded: false, // updates after animations are done
+    animating: false,
     // animatedMaxHeight: new Kb.NativeAnimated.Value(Styles.dimensionHeight),
     expanded: false, // updates immediately, used for the icon etc
     hasText: false,
@@ -180,6 +154,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
     this.setState({hasText: !!text})
     this.lastText = text
     this.props.onChangeText(text)
+    this.watchSizeChanges = true
   }
 
   private onSubmit = () => {
@@ -200,6 +175,10 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
     const {nativeEvent} = p
     const {layout} = nativeEvent
     const {height} = layout
+    if (this.watchSizeChanges) {
+      console.log('aaa set last height', height)
+      this.lastHeight = height
+    }
     this.props.setHeight(height)
   }
 
@@ -254,9 +233,23 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
     )
   }
 
+  private onDone = () => {
+    console.log('aaa ondone called ')
+    this.animating = false
+    console.log('aaa cb called', this.state.expanded)
+    this.setState(s => ({animating: false}))
+  }
+
   private expandInput = () => {
-    const expanded = !this.state.expanded
-    this.setState(s => ({expanded: !s.expanded}))
+    this.animating = true
+    this.watchSizeChanges = false
+    const nextState = !this.state.expanded
+    this.setState(s => ({expanded: nextState}))
+    this.setState(
+      s => ({animating: true}),
+
+      this.animateState.setValue(nextState ? AnimationState.expanding : AnimationState.contracting)
+    )
     // Kb.NativeAnimated.timing(this.state.animatedMaxHeight, {
     // toValue: !expanded ? 145 : this.props.maxInputArea ?? Styles.dimensionHeight,
     // }).start(() => {
@@ -270,10 +263,9 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
     // this.setState({animatedExpanded: expanded})
     // }
     // startClock(this.clock)
-    console.log('aaa expand input ', expanded)
+    console.log('aaa expand input ', nextState)
     // startClock(this.clock)
 
-    this.animateState.setValue(expand ? 1 : -1)
     // if (expanded) {
     // this.anim = runTiming(
     // // this.clock,
@@ -292,7 +284,6 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
   }
 
   render() {
-    console.log('aaa rerendering')
     const commandUpdateStatus = this.props.suggestBotCommandsUpdateStatus !==
       RPCChatTypes.UIBotCommandsUpdateStatusTyp.blank &&
       (this.props.suggestionsVisible ||
@@ -329,13 +320,41 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
       </Kb.Box>
     )
 
+    // style={{height: this.animateHeight}}
+    // style={this.state.animatedExpanded ? {height: this.animateHeight} : {maxHeight: this.animateHeight}}
+    console.log(
+      'aaa render',
+      this.lastHeight,
+      this.state,
+      this.animating ? 'this animating' : 'this done animating',
+      this.state.animating ? 'state animating' : 'state done animating'
+    )
     return (
       <AnimatedBox2
         direction="vertical"
         onLayout={this.onLayout}
         fullWidth={true}
-        style={this.state.animatedExpanded ? {height: this.anim} : {maxHeight: this.anim}}
+        key={'animatingBox' + (this.state.expanded || this.state.animating ? 'expanded' : 'fixed')}
+        style={
+          this.state.expanded || this.state.animating
+            ? {height: this.animateHeight, maxHeight: undefined, minHeight: 0}
+            : {height: undefined, maxHeight: defaultMaxHeight, minHeight: 0}
+        }
       >
+        <Kb.ReAnimated.Code key={this.lastHeight}>
+          {() =>
+            block([
+              runToggle(
+                this.clock,
+                this.animateState,
+                this.animateHeight,
+                this.lastHeight,
+                this.props.maxInputArea ?? Styles.dimensionHeight,
+                this.onDone
+              ),
+            ])
+          }
+        </Kb.ReAnimated.Code>
         {commandUpdateStatus}
         {this.getMenu()}
         {this.props.showTypingStatus && !this.props.suggestionsVisible && (
@@ -343,7 +362,11 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
         )}
         <Kb.Box2
           direction="vertical"
-          style={Styles.collapseStyles([styles.container, this.state.animatedExpanded && {height: '100%'}])}
+          key={'inputBoxContainer' + (this.state.expanded || this.state.animating ? 'expanded' : 'fixed')}
+          style={Styles.collapseStyles([
+            styles.container,
+            (this.state.expanded || this.state.animating) && {height: '100%'},
+          ])}
           fullWidth={true}
         >
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputContainer}>
@@ -429,7 +452,7 @@ const styles = Styles.styleSheetCreate(
       },
       container: {
         alignItems: 'center',
-        backgroundColor: Styles.globalColors.fastBlank,
+        backgroundColor: 'red', //Styles.globalColors.fastBlank,
         borderTopColor: Styles.globalColors.black_10,
         borderTopWidth: 1,
         flexShrink: 1,
