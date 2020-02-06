@@ -113,7 +113,7 @@ const TeamMemberHeader = (props: Props) => {
   )
 }
 
-const _BlockDropdown = (props: Kb.PropsWithOverlay<{username: string}>) => {
+const BlockDropdown = (props: {username: string}) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onBlock = () =>
@@ -122,27 +122,30 @@ const _BlockDropdown = (props: Kb.PropsWithOverlay<{username: string}>) => {
         path: [{props: {username: props.username}, selected: 'chatBlockingModal'}],
       })
     )
+  const popupAnchor = React.useRef(null)
+  const {popup, showingPopup, setShowingPopup} = Kb.usePopup(popupAnchor, () => (
+    <Kb.FloatingMenu
+      attachTo={() => popupAnchor.current}
+      visible={showingPopup}
+      onHidden={() => setShowingPopup(false)}
+      closeOnSelect={true}
+      items={[{danger: true, icon: 'iconfont-remove', onClick: onBlock, title: 'Block'}]}
+    />
+  ))
   return (
     <>
       <Kb.Button
         small={true}
         icon="iconfont-ellipsis"
         tooltip=""
-        onClick={props.toggleShowingMenu}
+        onClick={() => setShowingPopup(true)}
         mode="Secondary"
-        ref={props.setAttachmentRef}
+        ref={popupAnchor}
       />
-      <Kb.FloatingMenu
-        attachTo={props.getAttachmentRef}
-        visible={props.showingMenu}
-        onHidden={props.toggleShowingMenu}
-        closeOnSelect={true}
-        items={[{danger: true, icon: 'iconfont-remove', onClick: onBlock, title: 'Block'}]}
-      />
+      {popup}
     </>
   )
 }
-const BlockDropdown = Kb.OverlayParentHOC(_BlockDropdown)
 
 const styles = Styles.styleSheetCreate(() => ({
   headerContainer: Styles.platformStyles({
