@@ -395,16 +395,23 @@ func NewUserHasNotResetError(format string, args ...interface{}) error {
 func (e UserHasNotResetError) Error() string { return e.Msg }
 
 type AddMembersError struct {
-	Assertion string
+	Assertion libkb.AssertionExpression
 	Err       error
 }
 
-func NewAddMembersError(a string, e error) AddMembersError {
+func NewAddMembersError(a libkb.AssertionExpression, e error) AddMembersError {
 	return AddMembersError{a, e}
 }
 
 func (a AddMembersError) Error() string {
-	return fmt.Sprintf("Error adding user '%v': %v", a.Assertion, a.Err)
+	if a.Assertion == nil {
+		return fmt.Sprintf("Error adding members: %v", a.Err)
+	}
+	urls := a.Assertion.CollectUrls(nil)
+	if len(urls) == 1 && urls[0].IsEmail() {
+		return fmt.Sprintf("Error adding email %q: %v", urls[0].GetValue(), a.Err)
+	}
+	return fmt.Sprintf("Error adding %q: %v", a.Assertion.String(), a.Err)
 }
 
 type BadNameError struct {

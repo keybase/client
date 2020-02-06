@@ -3186,35 +3186,11 @@ func (o TeamEditMembersResult) DeepCopy() TeamEditMembersResult {
 }
 
 type BulkRes struct {
-	Invited        []string `codec:"invited" json:"invited"`
-	AlreadyInvited []string `codec:"alreadyInvited" json:"alreadyInvited"`
-	Malformed      []string `codec:"malformed" json:"malformed"`
+	Malformed []string `codec:"malformed" json:"malformed"`
 }
 
 func (o BulkRes) DeepCopy() BulkRes {
 	return BulkRes{
-		Invited: (func(x []string) []string {
-			if x == nil {
-				return nil
-			}
-			ret := make([]string, len(x))
-			for i, v := range x {
-				vCopy := v
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.Invited),
-		AlreadyInvited: (func(x []string) []string {
-			if x == nil {
-				return nil
-			}
-			ret := make([]string, len(x))
-			for i, v := range x {
-				vCopy := v
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.AlreadyInvited),
 		Malformed: (func(x []string) []string {
 			if x == nil {
 				return nil

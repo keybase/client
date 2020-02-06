@@ -1,6 +1,8 @@
 package teams
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"sort"
 	"testing"
@@ -9,6 +11,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/keybase/client/go/emails"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
@@ -799,11 +802,29 @@ func TestMemberAddEmail(t *testing.T) {
 	}
 }
 
+func randomEmailAddress(t *testing.T) keybase1.EmailAddress {
+	buf := make([]byte, 5)
+	_, err := rand.Read(buf)
+	require.NoError(t, err)
+	email := fmt.Sprintf("%s@example.org", hex.EncodeToString(buf))
+	return keybase1.EmailAddress(email)
+}
+
 func TestMemberAddEmailBulk(t *testing.T) {
 	tc, _, name := memberSetup(t)
 	defer tc.Cleanup()
 
-	blob := "h@j.k,u1@keybase.io, u2@keybase.io\nu3@keybase.io,u4@keybase.io, u5@keybase.io,u6@keybase.io, u7@keybase.io\n\n\nFull Name <fullname@keybase.io>, Someone Else <someone@keybase.io>,u8@keybase.io\n\nXXXXXXXXXXXX"
+	existingUserEmail := randomEmailAddress(t)
+	blob := string(existingUserEmail) + ", h@j.k,u1@keybase.io, u2@keybase.io\nu3@keybase.io,u4@keybase.io, u5@keybase.io,u6@keybase.io, u7@keybase.io\n\n\nFull Name <fullname@keybase.io>, Someone Else <someone@keybase.io>,u8@keybase.io\n\nXXXXXXXXXXXX"
+
+	// create a user with a searchable email to test addEmailsBulk resolves existing users correctly.
+	tc2 := SetupTest(t, "team", 1)
+	u2, err := kbtest.CreateAndSignupFakeUser("team", tc2.G)
+	require.NoError(t, err)
+	err = emails.AddEmail(tc2.MetaContext(), existingUserEmail, keybase1.IdentityVisibility_PUBLIC)
+	require.NoError(t, err)
+	err = kbtest.VerifyEmailAuto(tc2.MetaContext(), existingUserEmail)
+	require.NoError(t, err)
 
 	res, err := AddEmailsBulk(context.TODO(), tc.G, name, blob, keybase1.TeamRole_WRITER)
 	if err != nil {
@@ -811,17 +832,12 @@ func TestMemberAddEmailBulk(t *testing.T) {
 	}
 	emails := []string{"u1@keybase.io", "u2@keybase.io", "u3@keybase.io", "u4@keybase.io", "u5@keybase.io", "u6@keybase.io", "u7@keybase.io", "fullname@keybase.io", "someone@keybase.io", "u8@keybase.io"}
 
-	if len(res.Invited) != len(emails) {
-		t.Logf("invited: %+v", res.Invited)
-		t.Errorf("num invited: %d, expected %d", len(res.Invited), len(emails))
-	}
-	if len(res.AlreadyInvited) != 0 {
-		t.Errorf("num already invited: %d, expected 0", len(res.AlreadyInvited))
-	}
 	require.Len(t, res.Malformed, 2)
 	for _, e := range emails {
 		assertInvite(tc, name, e, "email", keybase1.TeamRole_WRITER)
 	}
+
+	assertRole(tc, name, u2.Username, keybase1.TeamRole_WRITER)
 }
 
 func TestMemberListInviteUsername(t *testing.T) {

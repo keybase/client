@@ -435,11 +435,11 @@ func (tx *AddMemberTx) AddMemberByUsername(ctx context.Context, username string,
 
 // preprocessAssertion takes an input assertion and determines if this is a valid Keybase-style assertion.
 // If it's an email (or phone) assertion, we assert that it only has one part (and isn't a+b compound).
-// If there is only one factor in the assertion, then that's returned. Otherwise, nil.
-func preprocessAssertion(m libkb.MetaContext, s string) (isServerTrustInvite bool, single libkb.AssertionURL, err error) {
+// If there is only one factor in the assertion, then that's returned as single. Otherwise, single is nil.
+func preprocessAssertion(m libkb.MetaContext, s string) (isServerTrustInvite bool, single libkb.AssertionURL, full libkb.AssertionExpression, err error) {
 	a, err := externals.AssertionParseAndOnly(m, s)
 	if err != nil {
-		return false, nil, err
+		return false, nil, nil, err
 	}
 	urls := a.CollectUrls(nil)
 	if len(urls) == 1 {
@@ -451,9 +451,9 @@ func preprocessAssertion(m libkb.MetaContext, s string) (isServerTrustInvite boo
 		}
 	}
 	if isServerTrustInvite && len(urls) > 1 {
-		return false, nil, NewMixedServerTrustAssertionError()
+		return false, nil, nil, NewMixedServerTrustAssertionError()
 	}
-	return isServerTrustInvite, single, nil
+	return isServerTrustInvite, single, a, nil
 }
 
 func resolveServerTrustAssertion(mctx libkb.MetaContext, assertion string) (upak keybase1.UserPlusKeysV2, doInvite bool, err error) {
@@ -481,10 +481,10 @@ func resolveServerTrustAssertion(mctx libkb.MetaContext, assertion string) (upak
 	return upak, false, nil
 }
 
-func (tx *AddMemberTx) ResolveUPKV2FromAssertionOrEmail(m libkb.MetaContext, assertion string) (upak keybase1.UserPlusKeysV2, single libkb.AssertionURL, doInvite bool, err error) {
-	isServerTrustInvite, single, err := preprocessAssertion(m, assertion)
+func (tx *AddMemberTx) ResolveUPKV2FromAssertionOrEmail(m libkb.MetaContext, assertion string) (upak keybase1.UserPlusKeysV2, single libkb.AssertionURL, doInvite bool, full libkb.AssertionExpression, err error) {
+	isServerTrustInvite, single, full, err := preprocessAssertion(m, assertion)
 	if err != nil {
-		return upak, single, false, err
+		return upak, single, false, full, err
 	}
 
 	if isServerTrustInvite {
@@ -492,19 +492,19 @@ func (tx *AddMemberTx) ResolveUPKV2FromAssertionOrEmail(m libkb.MetaContext, ass
 		// to a user.
 		upak, doInvite, err = resolveServerTrustAssertion(m, assertion)
 		if err != nil {
-			return upak, single, false, err
+			return upak, single, false, full, err
 		}
 	} else {
 		// Normal assertion: resolve and verify.
 		upak, err = engine.ResolveAndCheck(m, assertion, true /* useTracking */)
 		if err != nil {
 			if rErr, ok := err.(libkb.ResolutionError); !ok || (rErr.Kind != libkb.ResolutionErrorNotFound) {
-				return upak, single, false, err
+				return upak, single, false, full, err
 			}
 			doInvite = true
 		}
 	}
-	return upak, single, doInvite, nil
+	return upak, single, doInvite, full, nil
 }
 
 func (tx *AddMemberTx) AddOrInviteMemberByUPKV2(ctx context.Context, upak keybase1.UserPlusKeysV2, single libkb.AssertionURL, doInvite bool, assertion string, role keybase1.TeamRole, botSettings *keybase1.TeamBotSettings) (
@@ -572,7 +572,7 @@ func (tx *AddMemberTx) AddOrInviteMemberByAssertionOrEmail(ctx context.Context, 
 
 	defer m.Trace(fmt.Sprintf("AddMemberTx.AddOrInviteMemberByAssertionOrEmail(%s,%v) to team %q", assertion, role, team.Name()), func() error { return err })()
 
-	upak, single, doInvite, err := tx.ResolveUPKV2FromAssertionOrEmail(m, assertion)
+	upak, single, doInvite, _, err := tx.ResolveUPKV2FromAssertionOrEmail(m, assertion)
 	if err != nil {
 		return "", uv, doInvite, err
 	}
