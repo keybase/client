@@ -286,7 +286,7 @@ func (b *InstrumentedBody) Close() error {
 	_, _ = io.Copy(ioutil.Discard, b.body)
 	b.record.IncrementSize(int64(b.n))
 	if err := b.record.Finish(); err != nil {
-		b.G().Log.CDebugf(context.TODO(), "InstrumentedBody: unable to instrument network request: %v", err)
+		b.G().Log.CDebugf(context.TODO(), "InstrumentedBody: unable to instrument network request: %s, %s", b.record, err)
 		return err
 	}
 	return b.body.Close()
@@ -313,7 +313,9 @@ func (i *InstrumentedTransport) RoundTrip(req *http.Request) (resp *http.Respons
 	resp, err = i.Transport.RoundTrip(req)
 	record.EndCall()
 	if err != nil {
-		_ = record.Finish()
+		if rerr := record.Finish(); rerr != nil {
+			i.G().Log.CDebugf(context.TODO(), "InstrumentedTransport: unable to instrument network request %s, %s", record, rerr)
+		}
 		return resp, err
 	}
 	resp.Body = NewInstrumentedBody(i.G(), record, resp.Body)

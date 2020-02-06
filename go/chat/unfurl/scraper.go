@@ -41,7 +41,7 @@ func (s *Scraper) makeCollector() *colly.Collector {
 	})
 	c.OnResponse(func(r *colly.Response) {
 		if err := record.RecordAndFinish(int64(len(r.Body))); err != nil {
-			s.Debug(context.TODO(), "colly OnResponse: unable to instrument network request")
+			s.Debug(context.TODO(), "colly OnResponse: unable to instrument network request %s, %s", record, err)
 		}
 	})
 	if s.G().Env.GetProxyType() != libkb.NoProxy {

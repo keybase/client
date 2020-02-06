@@ -71,7 +71,6 @@ func (p *Packager) assetFromURL(ctx context.Context, url string, uid gregor1.UID
 	if err != nil {
 		return res, err
 	}
-	defer body.Close()
 	return p.assetFromURLWithBody(ctx, body, contentLength, url, uid, convID, usePreview)
 }
 
