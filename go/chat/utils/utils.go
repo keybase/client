@@ -444,8 +444,19 @@ func IsEditableByEditMessageType(messageType chat1.MessageType) bool {
 	return checkMessageTypeQual(messageType, chat1.EditableMessageTypesByEdit())
 }
 
-func IsDeleteableByDeleteMessageType(messageType chat1.MessageType) bool {
-	return checkMessageTypeQual(messageType, chat1.DeletableMessageTypesByDelete())
+func IsDeleteableByDeleteMessageType(valid chat1.MessageUnboxedValid) bool {
+	if !checkMessageTypeQual(valid.ClientHeader.MessageType, chat1.DeletableMessageTypesByDelete()) {
+		return false
+	}
+	if !valid.MessageBody.IsType(chat1.MessageType_SYSTEM) {
+		return true
+	}
+	sysMsg := valid.MessageBody.System()
+	typ, err := sysMsg.SystemType()
+	if err != nil {
+		return true
+	}
+	return chat1.IsSystemMsgDeletableByDelete(typ)
 }
 
 func IsCollapsibleMessageType(messageType chat1.MessageType) bool {
@@ -1877,7 +1888,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			PaymentInfos:          presentPaymentInfo(ctx, g, rawMsg.GetMessageID(), convID, valid),
 			RequestInfo:           presentRequestInfo(ctx, g, rawMsg.GetMessageID(), convID, valid),
 			Unfurls:               PresentUnfurls(ctx, g, uid, convID, valid.Unfurls),
-			IsDeleteable:          IsDeleteableByDeleteMessageType(rawMsg.GetMessageType()),
+			IsDeleteable:          IsDeleteableByDeleteMessageType(valid),
 			IsEditable:            IsEditableByEditMessageType(rawMsg.GetMessageType()),
 			ReplyTo:               replyTo,
 			PinnedMessageID:       pinnedMessageID,

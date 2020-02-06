@@ -154,6 +154,7 @@ type Minimum = {
   id: Types.MessageID
   ordinal: Types.Ordinal
   timestamp: number
+  isDeleteable: boolean
 }
 
 const makeMessageMinimum = {
@@ -161,6 +162,7 @@ const makeMessageMinimum = {
   bodySummary: new HiddenString(''),
   conversationIDKey: noConversationIDKey,
   id: Types.numberToMessageID(0),
+  isDeleteable: false,
   ordinal: Types.numberToOrdinal(0),
   timestamp: 0,
 }
@@ -175,7 +177,6 @@ const makeMessageCommon = {
 
 const makeMessageCommonNoDeleteNoEdit = {
   ...makeMessageCommon,
-  isDeleteable: false,
   isEditable: false,
 }
 
@@ -863,6 +864,7 @@ const validUIMessagetoMessage = (
     botUsername: m.botUsername || undefined,
     conversationIDKey,
     id: Types.numberToMessageID(m.messageID),
+    isDeleteable: m.isDeleteable,
     ordinal: Types.numberToOrdinal(m.messageID),
     timestamp: m.ctime,
   }
@@ -926,7 +928,6 @@ const validUIMessagetoMessage = (
         inlinePaymentSuccessful: m.paymentInfos
           ? m.paymentInfos.some(pi => successfulInlinePaymentStatuses.includes(pi.statusDescription))
           : false,
-        isDeleteable: m.isDeleteable,
         isEditable: m.isEditable,
         mentionsAt: new Set(m.atMentions || []),
         mentionsChannel: channelMentionToMentionsChannel(m.channelMention),
@@ -999,7 +1000,6 @@ const validUIMessagetoMessage = (
         fileURLCached,
         inlineVideoPlayable,
         isCollapsed: m.isCollapsed,
-        isDeleteable: m.isDeleteable,
         isEditable: m.isEditable,
         mentionsAt: new Set(m.atMentions || []),
         mentionsChannel: channelMentionToMentionsChannel(m.channelMention),

@@ -1313,11 +1313,8 @@ const messageDelete = async (
   const {metaMap, messageMap} = state.chat2
   const map = messageMap.get(conversationIDKey)
   const message = map?.get(ordinal)
-  if (
-    !message ||
-    (message.type !== 'text' && message.type !== 'attachment' && message.type !== 'requestPayment')
-  ) {
-    logger.warn('Deleting non-existant or, non-text non-attachment non-requestPayment message')
+  if (!message) {
+    logger.warn('Deleting message')
     logger.debug('Deleting invalid message:', message)
     return false
   }

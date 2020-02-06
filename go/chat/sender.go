@@ -282,6 +282,15 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, uid gregor1.UID
 	if deleteTarget.ClientHeader.MessageType == chat1.MessageType_REACTION {
 		// Don't do anything here for reactions/unfurls, they can't be edited
 		return msg, nil, nil
+	} else if deleteTarget.ClientHeader.MessageType == chat1.MessageType_SYSTEM {
+		msgSys := deleteTarget.MessageBody.System()
+		typ, err := msgSys.SystemType()
+		if err != nil {
+			return msg, nil, err
+		}
+		if !chat1.IsSystemMsgDeletableByDelete(typ) {
+			return msg, nil, fmt.Errorf("%v is not deletable", typ)
+		}
 	}
 
 	// Delete all assets on the deleted message.
