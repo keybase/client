@@ -448,7 +448,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	g.TeamMentionLoader = types.DummyTeamMentionLoader{}
 	g.CoinFlipManager = NewFlipManager(g, func() chat1.RemoteInterface { return ri })
 	g.CoinFlipManager.Start(context.TODO(), uid)
-	g.JourneyCardManager = NewJourneyCardManager(g)
+	g.JourneyCardManager = NewJourneyCardManager(g, func() chat1.RemoteInterface { return ri })
 	g.BotCommandManager = bots.NewCachingBotCommandManager(g, func() chat1.RemoteInterface { return ri },
 		CreateNameInfoSource)
 	g.BotCommandManager.Start(context.TODO(), uid)
@@ -2182,7 +2182,7 @@ func (n *serverChatListener) ChatPromptUnfurl(uid keybase1.UID, convID chat1.Con
 	n.unfurlPrompt <- msgID
 }
 func (n *serverChatListener) ChatWelcomeMessageLoaded(teamID keybase1.TeamID,
-	message string) {
+	_ chat1.WelcomeMessage) {
 	n.welcomeMessage <- teamID
 }
 func (n *serverChatListener) TeamChangedByID(teamID keybase1.TeamID, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet, latestHiddenSeqno keybase1.Seqno) {

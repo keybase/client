@@ -80,7 +80,7 @@ func (c *CmdChatCreateChannel) ParseArgv(ctx *cli.Context) error {
 	c.channelName = ctx.Args().Get(1)
 
 	var err error
-	c.TopicType, err = parseConversationTopicType(ctx)
+	c.topicType, err = parseConversationTopicType(ctx)
 	if err != nil {
 		return err
 	}
