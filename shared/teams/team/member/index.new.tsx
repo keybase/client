@@ -100,7 +100,11 @@ const TeamMemberHeader = (props: Props) => {
               <Kb.Avatar size={64} username={username} />
               <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.headerText}>
                 <Kb.ConnectedUsernames type="Header" usernames={[username]} />
-                {!!member.fullName && <Kb.Text type="BodySemibold">{member.fullName}</Kb.Text>}
+                {!!member.fullName && (
+                  <Kb.Text type="BodySemibold" lineClamp={1}>
+                    {member.fullName}
+                  </Kb.Text>
+                )}
                 <Kb.Text type="BodySmall">Joined 1m ago</Kb.Text>
               </Kb.Box2>
             </Kb.Box2>
@@ -166,6 +170,9 @@ const styles = Styles.styleSheetCreate(() => ({
   headerText: Styles.platformStyles({
     isElectron: {
       width: 127,
+    },
+    isMobile: {
+      flex: 1,
     },
   }),
   headerTextContainer: Styles.platformStyles({
