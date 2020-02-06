@@ -124,6 +124,11 @@ export type TeamVersion = {
   latestOffchainSeqno: number
 }
 
+export type WelcomeMessage = {
+  set: boolean
+  text: string
+}
+
 export type State = {
   readonly addUserToTeamsState: AddUserToTeamsState
   readonly addUserToTeamsResults: string
@@ -154,7 +159,7 @@ export type State = {
   readonly teamIDToMembers: Map<TeamID, Map<string, MemberInfo>> // Used by chat sidebar until team loading gets easier
   readonly teamVersion: Map<TeamID, TeamVersion>
   readonly teamIDToResetUsers: Map<TeamID, Set<string>>
-  readonly teamIDToWelcomeMessage: Map<TeamID, string>
+  readonly teamIDToWelcomeMessage: Map<TeamID, WelcomeMessage>
   readonly teamIDToRetentionPolicy: Map<TeamID, RetentionPolicy>
   readonly teamNameToID: Map<Teamname, string>
   readonly teamNameToLoadingInvites: Map<Teamname, Map<string, boolean>>

@@ -19,7 +19,7 @@ type OwnProps = {
 }
 
 type Props = {
-  welcomeMessage?: string
+  welcomeMessage?: TeamTypes.WelcomeMessage
   canShowcase: boolean
   cannotWrite: boolean
   channelname: string
@@ -59,8 +59,8 @@ const TeamJourneyContainer = (props: Props) => {
       if (props.canShowcase) {
         actions.push({label: 'Publish team on your profile', onClick: props.onPublishTeam})
       }
-      if (props.welcomeMessage && props.welcomeMessage.length > 0) {
-        textComponent = <Kb.Text type="BodySmall">{props.welcomeMessage}</Kb.Text>
+      if (props.welcomeMessage && props.welcomeMessage.set) {
+        textComponent = <Kb.Text type="BodySmall">{props.welcomeMessage.text}</Kb.Text>
       } else if (props.cannotWrite) {
         textComponent = (
           <Kb.Text type="BodySmall">
