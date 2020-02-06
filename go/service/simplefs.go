@@ -36,10 +36,6 @@ func NewSimpleFSHandler(xp rpc.Transporter, g *libkb.GlobalContext) *SimpleFSHan
 
 var _ keybase1.SimpleFSInterface = (*SimpleFSHandler)(nil)
 
-func (s *SimpleFSHandler) transporterGetter() (transporter rpc.Transporter) {
-	return s.G().ConnectionManager.LookupByClientType(keybase1.ClientType_KBFS)
-}
-
 func (s *SimpleFSHandler) wrapContextWithTimeout(ctx context.Context) (newCtx context.Context, cancel func()) {
 	return context.WithTimeout(ctx, simpleFSTimeout)
 }
