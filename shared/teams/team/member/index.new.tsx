@@ -48,6 +48,8 @@ const TeamMemberHeader = (props: Props) => {
   const onChat = () =>
     dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'memberView'}))
   const onViewProfile = () => dispatch(ProfileGen.createShowUserProfile({username}))
+  const onViewTeam = () =>
+    dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'team'}]}))
 
   const member = teamDetails.members.get(username)
   if (!member) {
@@ -81,7 +83,7 @@ const TeamMemberHeader = (props: Props) => {
             <Kb.Avatar size={16} teamname={teamMeta.teamname} />
             <Kb.Text
               type={Styles.isMobile ? 'BodySmallSemibold' : 'BodySmallSemiboldSecondaryLink'}
-              onClick={() => {} /* TODO */}
+              onClick={onViewTeam}
             >
               {teamMeta.teamname}
             </Kb.Text>
