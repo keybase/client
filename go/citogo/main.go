@@ -45,16 +45,20 @@ type runner struct {
 	tests  []string
 }
 
-func convertPrefix(p string) string {
-	s := fmt.Sprintf("%c", os.PathSeparator)
-	return strings.ReplaceAll(p, s, "_")
+func convertBreakingChars(s string) string {
+	// replace either the unix or the DOS directory marker
+	// with an underscore, so as not to break the directory
+	// structure of where we are storing the log
+	s = strings.ReplaceAll(s, "/", "_")
+	s = strings.ReplaceAll(s, "\\", "_")
+	s = strings.ReplaceAll(s, "-", "_")
+	return s
 }
 
 func (r *runner) parseArgs() (err error) {
 	flag.IntVar(&r.opts.Flakes, "flakes", 3, "number of allowed flakes")
 	flag.IntVar(&r.opts.Fails, "fails", -1, "number of fails allowed before quitting")
-	var prfx string
-	flag.StringVar(&prfx, "prefix", "", "test set prefix")
+	flag.StringVar(&r.opts.Prefix, "prefix", "", "test set prefix")
 	flag.StringVar(&r.opts.S3Bucket, "s3bucket", "", "AWS S3 bucket to write failures to")
 	flag.StringVar(&r.opts.BuildID, "build-id", "", "build ID of the current build")
 	flag.StringVar(&r.opts.Branch, "branch", "", "the branch of the current build")
@@ -64,7 +68,6 @@ func (r *runner) parseArgs() (err error) {
 	flag.StringVar(&r.opts.TestBinary, "test-binary", "", "specify the test binary to run")
 	flag.StringVar(&r.opts.Timeout, "timeout", "60s", "timeout (in seconds) for any one individual test")
 	flag.Parse()
-	r.opts.Prefix = convertPrefix(prfx)
 	var d string
 	d, err = os.Getwd()
 	if err != nil {
@@ -115,9 +118,8 @@ func (r *runner) listTests() error {
 }
 
 func (r *runner) flushTestLogs(test string, log bytes.Buffer) (string, error) {
-	buildID := strings.ReplaceAll(r.opts.BuildID, "-", "_")
-	branch := strings.ReplaceAll(r.opts.Branch, "-", "_")
-	logName := fmt.Sprintf("citogo-%s-%s-%s-%s", branch, buildID, r.opts.Prefix, test)
+	logName := fmt.Sprintf("citogo-%s-%s-%s-%s", convertBreakingChars(r.opts.Branch),
+		convertBreakingChars(r.opts.BuildID), convertBreakingChars(r.opts.Prefix), test)
 	if r.opts.S3Bucket != "" {
 		return r.flushLogsToS3(logName, log)
 	}
