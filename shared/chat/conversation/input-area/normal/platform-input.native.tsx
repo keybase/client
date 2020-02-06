@@ -31,10 +31,13 @@ enum AnimationState {
 const {call, set, cond, timing, block, debug, Value, Clock} = Kb.ReAnimated
 const {startClock, stopClock, clockRunning, not, eq, and} = Kb.ReAnimated
 const runToggle = (clock, state, value, small, _big, cb) => {
-  const big = 500
+  const big = new Value(500)
   return block([
     cond(eq(state, AnimationState.expanding), set(value, runTiming(clock, value, big, cb))),
-    cond(eq(state, AnimationState.contracting), set(value, runTiming(clock, value, small ?? 0, cb))),
+    cond(
+      eq(state, AnimationState.contracting),
+      set(value, runTiming(clock, value, small ?? new Value(0), cb))
+    ),
   ])
 }
 
@@ -69,7 +72,7 @@ const runTiming = (clock, value, dest, cb) => {
     timing(clock, state, config),
     cond(state.finished, stopClock(clock)),
     cond(state.finished, call([], cb)),
-    // cond(state.finished, debug('aaa finished', state.position), debug('aaa pos', state.position)),
+    cond(not(state.finished), [debug('aaa pos', state.position), debug('aaa dest', config.toValue)]),
     state.position,
   ])
 }
@@ -87,7 +90,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
   private clock = new Clock()
   // private anim: Kb.ReAnimated.Node<number> = new Value(minInputArea)
   private animateState = new Value(AnimationState.none)
-  private animateHeight = new Value(defaultMaxHeight)
+  private animateHeight = new Value<number>(defaultMaxHeight)
   private animating: boolean = false // immediate value
   private watchSizeChanges = true
   private lastHeight: undefined | number
@@ -178,6 +181,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
     if (this.watchSizeChanges) {
       console.log('aaa set last height', height)
       this.lastHeight = height
+      this.animateHeight.setValue(height)
     }
     this.props.setHeight(height)
   }
@@ -327,14 +331,17 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
       this.lastHeight,
       this.state,
       this.animating ? 'this animating' : 'this done animating',
-      this.state.animating ? 'state animating' : 'state done animating'
+      this.state.animating ? 'state animating' : 'state done animating',
+      this.animateHeight._value
     )
+
+    // key={'inputBoxContainer' + (this.state.animating ? 'expanded' : 'fixed')}
+    // key={'animatingBox' + (this.state.animating ? 'expanded' : 'fixed')}
     return (
       <AnimatedBox2
         direction="vertical"
         onLayout={this.onLayout}
         fullWidth={true}
-        key={'animatingBox' + (this.state.expanded || this.state.animating ? 'expanded' : 'fixed')}
         style={
           this.state.expanded || this.state.animating
             ? {height: this.animateHeight, maxHeight: undefined, minHeight: 0}
@@ -362,7 +369,6 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
         )}
         <Kb.Box2
           direction="vertical"
-          key={'inputBoxContainer' + (this.state.expanded || this.state.animating ? 'expanded' : 'fixed')}
           style={Styles.collapseStyles([
             styles.container,
             (this.state.expanded || this.state.animating) && {height: '100%'},
