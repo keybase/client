@@ -40,8 +40,8 @@ func logError(f string, args ...interface{}) {
 
 type runner struct {
 	opts   opts
-	flakes int
-	fails  int
+	flakes []string
+	fails  []string
 	tests  []string
 }
 
@@ -202,13 +202,13 @@ func (r *runner) reportTestOutcome(outcome outcome, test string, where string) {
 }
 
 func (r *runner) runTest(test string) error {
-	canRerun := r.flakes < r.opts.Flakes
+	canRerun := len(r.flakes) < r.opts.Flakes
 	logs, err := r.runTestOnce(test, canRerun, false)
 	if err == errTestFailed && canRerun {
 		_, err = r.runTestOnce(test, false, true)
 		if err == nil {
 			r.reportFlake(test, logs)
-			r.flakes++
+			r.flakes = append(r.flakes, test)
 		}
 	}
 	return err
@@ -256,13 +256,13 @@ func (r *runner) runTestFixError(t string) error {
 	if err != errTestFailed {
 		return err
 	}
-	r.fails++
+	r.fails = append(r.fails, t)
 	if r.opts.Fails < 0 {
 		// We have an infinite fail budget, so keep plowing through
 		// failed tests. This test run is still going to fail.
 		return nil
 	}
-	if r.opts.Fails >= r.fails {
+	if r.opts.Fails >= len(r.fails) {
 		// We've failed less than our budget, so we can still keep going.
 		// This test run is still going to fail.
 		return nil
@@ -340,8 +340,15 @@ func (r *runner) run() error {
 	if err != nil {
 		return err
 	}
-	if r.fails > 0 {
-		return fmt.Errorf("RED!: %d total tests failed", r.fails)
+	if len(r.fails) > 0 {
+		// If we have more than 15 tests, repeat at the end which tests failed,
+		// so we don't have to scroll all the way up.
+		if len(r.tests) > 15 {
+			for _, t := range r.fails {
+				fmt.Printf("FAIL: %s\n", t)
+			}
+		}
+		return fmt.Errorf("RED!: %d total tests failed", len(r.fails))
 	}
 	return nil
 }
