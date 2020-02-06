@@ -43,12 +43,9 @@ package libkb
 
 import (
 	"bufio"
-	"bytes"
 	"context"
 	"crypto/tls"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
@@ -298,47 +295,10 @@ func ProxyDialWithOpts(ctx context.Context, env *Env, network string, address st
 	}
 }
 
-type InstrumentedTransport struct {
-	Contextified
-	Transport *http.Transport
-}
-
-var _ http.RoundTripper = (*InstrumentedTransport)(nil)
-
-func (i *InstrumentedTransport) RoundTrip(req *http.Request) (resp *http.Response, err error) {
-	record := rpc.NewNetworkInstrumenter(i.G().NetworkInstrumenterStorage, InstrumentationTagFromRequest(req))
-	defer func() {
-		if err := record.Finish(); err != nil {
-			i.G().Log.CDebugf(context.TODO(), "InstrumentedTransport: unable to finish api instrumentation: %v", err)
-		}
-	}()
-	resp, err = i.Transport.RoundTrip(req)
-	record.EndCall()
-	if err != nil {
-		bytesRead, discardErr := DiscardAndCloseBody(resp)
-		record.IncrementSize(bytesRead)
-		if discardErr != nil {
-			i.G().Log.CDebugf(context.TODO(), "InstrumentedTransport: error closing body: %+v", discardErr)
-		}
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	var buf bytes.Buffer
-	bodyTee := io.TeeReader(resp.Body, &buf)
-	body, err := ioutil.ReadAll(bodyTee)
-	record.IncrementSize(int64(len(body)))
-	resp.Body = ioutil.NopCloser(bytes.NewReader(buf.Bytes()))
-	return resp, nil
-}
-
 // The equivalent of http.Get except it uses the proxy configured in Env
 func ProxyHTTPGet(g *GlobalContext, env *Env, u string) (*http.Response, error) {
 	client := &http.Client{
-		Transport: &InstrumentedTransport{
-			Contextified: NewContextified(g),
-			Transport:    &http.Transport{Proxy: MakeProxy(env)},
-		},
+		Transport: NewInstrumentedTransport(g, &http.Transport{Proxy: MakeProxy(env)}),
 	}
 
 	return client.Get(u)

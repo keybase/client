@@ -15,7 +15,6 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/keybase/stellarnet"
 	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/network"
@@ -280,7 +279,10 @@ func (a *anchorInteractor) get(mctx libkb.MetaContext, u *url.URL, okResponse fm
 // httpGet is the live version of httpGetClient that is used
 // by default.
 func httpGet(mctx libkb.MetaContext, url, authToken string) (int, []byte, error) {
-	client := http.Client{Timeout: 10 * time.Second}
+	client := http.Client{
+		Timeout:   10 * time.Second,
+		Transport: libkb.NewInstrumentedTransport(mctx.G(), http.DefaultTransport.(*http.Transport)),
+	}
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return 0, nil, err
@@ -290,21 +292,13 @@ func httpGet(mctx libkb.MetaContext, url, authToken string) (int, []byte, error)
 		req.Header.Add("Authorization", "Bearer "+authToken)
 	}
 
-	record := rpc.NewNetworkInstrumenter(mctx.G().NetworkInstrumenterStorage, libkb.InstrumentationTagFromRequest(req))
-	defer func() {
-		if err := record.Finish(); err != nil {
-			mctx.Debug("httpGet: unable to finish api instrumentation: %v", err)
-		}
-	}()
 	res, err := client.Do(req.WithContext(mctx.Ctx()))
-	record.EndCall()
 	if err != nil {
 		return 0, nil, err
 	}
 	defer res.Body.Close()
 
 	body, err := ioutil.ReadAll(res.Body)
-	record.IncrementSize(int64(len(body)))
 	if err != nil {
 		return 0, nil, err
 	}
@@ -315,28 +309,23 @@ func httpGet(mctx libkb.MetaContext, url, authToken string) (int, []byte, error)
 // httpPost is the live version of httpPostClient that is used
 // by default.
 func httpPost(mctx libkb.MetaContext, url string, data url.Values) (int, []byte, error) {
-	client := http.Client{Timeout: 10 * time.Second}
+	client := http.Client{
+		Timeout:   10 * time.Second,
+		Transport: libkb.NewInstrumentedTransport(mctx.G(), http.DefaultTransport.(*http.Transport)),
+	}
 	req, err := http.NewRequest(http.MethodPost, url, strings.NewReader(data.Encode()))
 	if err != nil {
 		return 0, nil, err
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	record := rpc.NewNetworkInstrumenter(mctx.G().NetworkInstrumenterStorage, libkb.InstrumentationTagFromRequest(req))
-	defer func() {
-		if err := record.Finish(); err != nil {
-			mctx.Debug("httpPost: unable to finish api instrumentation: %v", err)
-		}
-	}()
 	res, err := client.Do(req.WithContext(mctx.Ctx()))
-	record.EndCall()
 	if err != nil {
 		return 0, nil, err
 	}
 	defer res.Body.Close()
 
 	body, err := ioutil.ReadAll(res.Body)
-	record.IncrementSize(int64(len(body)))
 	if err != nil {
 		return 0, nil, err
 	}

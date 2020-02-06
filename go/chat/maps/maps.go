@@ -17,7 +17,6 @@ import (
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/image/draw"
 	"golang.org/x/net/context/ctxhttp"
 )
@@ -83,14 +82,14 @@ func GetExternalMapURL(ctx context.Context, lat, lon float64) string {
 	return fmt.Sprintf("https://www.google.com/maps/place/%f,%f/@%f,%f,15z", lat, lon, lat, lon)
 }
 
-func httpClient(host string) *http.Client {
+func httpClient(g *libkb.GlobalContext, host string) *http.Client {
 	var xprt http.Transport
 	tlsConfig := &tls.Config{
 		ServerName: host,
 	}
 	xprt.TLSClientConfig = tlsConfig
 	return &http.Client{
-		Transport: &xprt,
+		Transport: libkb.NewInstrumentedTransport(g, &xprt),
 		Timeout:   10 * time.Second,
 	}
 }
@@ -101,17 +100,7 @@ func MapReaderFromURL(ctx context.Context, g *globals.Context, url string) (res 
 		return nil, 0, err
 	}
 	req.Host = mapsHost
-	record := rpc.NewNetworkInstrumenter(g.ExternalG().NetworkInstrumenterStorage, libkb.InstrumentationTagFromRequest(req))
-	resp, err := ctxhttp.Do(ctx, httpClient(mapsHost), req)
-	defer func() {
-		var size int64
-		if length > 0 {
-			size = length
-		}
-		if err := record.RecordAndFinish(size); err != nil {
-			g.ExternalG().Log.CDebugf(ctx, "MapReaderFromURL: unable to instrument: %v", err)
-		}
-	}()
+	resp, err := ctxhttp.Do(ctx, httpClient(g.ExternalG(), mapsHost), req)
 	if err != nil {
 		return nil, 0, err
 	}

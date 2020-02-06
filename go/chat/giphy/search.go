@@ -12,8 +12,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -116,7 +114,7 @@ func httpClient(mctx libkb.MetaContext, host string) *http.Client {
 	xprt.Proxy = libkb.MakeProxy(env)
 
 	return &http.Client{
-		Transport: &xprt,
+		Transport: libkb.NewInstrumentedTransport(mctx.G(), &xprt),
 		Timeout:   10 * time.Second,
 	}
 }
@@ -140,20 +138,12 @@ func runAPICall(mctx libkb.MetaContext, endpoint string, srv types.AttachmentURL
 	}
 	req.Host = APIHost
 
-	var bytesRead int64
-	record := rpc.NewNetworkInstrumenter(mctx.G().NetworkInstrumenterStorage, libkb.InstrumentationTagFromRequest(req))
 	resp, err := ctxhttp.Do(mctx.Ctx(), APIClient(mctx), req)
-	defer func() {
-		if err := record.RecordAndFinish(bytesRead); err != nil {
-			mctx.Debug("runAPICall: unable to instrument: %v", err)
-		}
-	}()
 	if err != nil {
 		return res, err
 	}
 	defer resp.Body.Close()
 	dat, err := ioutil.ReadAll(resp.Body)
-	bytesRead = int64(len(dat))
 	if err != nil {
 		return res, err
 	}
@@ -183,17 +173,7 @@ func Asset(mctx libkb.MetaContext, sourceURL string) (res io.ReadCloser, length 
 	}
 	req.Header.Add("Accept", "image/*")
 	req.Host = MediaHost
-	record := rpc.NewNetworkInstrumenter(mctx.G().NetworkInstrumenterStorage, libkb.InstrumentationTagFromRequest(req))
 	resp, err := ctxhttp.Do(mctx.Ctx(), WebClient(mctx), req)
-	defer func() {
-		var size int64
-		if length > 0 {
-			size = length
-		}
-		if err := record.RecordAndFinish(size); err != nil {
-			mctx.Debug("runAPICall: unable to instrument: %v", err)
-		}
-	}()
 	if err != nil {
 		return nil, 0, err
 	}

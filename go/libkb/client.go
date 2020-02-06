@@ -7,6 +7,8 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"net/http/cookiejar"
@@ -14,6 +16,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -233,7 +236,7 @@ func NewClient(g *GlobalContext, config *ClientConfig, needCookie bool) (*Client
 	if jar != nil {
 		ret.cli.Jar = jar
 	}
-	ret.cli.Transport = &xprt
+	ret.cli.Transport = NewInstrumentedTransport(g, &xprt)
 	return ret, nil
 }
 
@@ -254,4 +257,64 @@ func ServerLookup(env *Env, mode RunMode) (string, error) {
 		return ProductionSiteURI, nil
 	}
 	return "", fmt.Errorf("Did not find a server to use with the current RunMode!")
+}
+
+type InstrumentedBody struct {
+	sync.Mutex
+	record *rpc.NetworkInstrumenter
+	body   io.ReadCloser
+	n      int
+}
+
+var _ io.ReadCloser = (*InstrumentedBody)(nil)
+
+func NewInstrumentedBody(record *rpc.NetworkInstrumenter, body io.ReadCloser) *InstrumentedBody {
+	return &InstrumentedBody{
+		record: record,
+		body:   body,
+	}
+}
+
+func (b *InstrumentedBody) Read(p []byte) (n int, err error) {
+	b.Lock()
+	defer b.Unlock()
+	n, err = b.body.Read(p)
+	b.n += n
+	return n, err
+}
+
+func (b *InstrumentedBody) Close() error {
+	b.Lock()
+	defer b.Unlock()
+	// instrument the full body size even if the caller hasn't consumed it.
+	_, _ = io.Copy(ioutil.Discard, b.body)
+	_ = discardAndClose(b.body)
+	b.record.IncrementSize(int64(b.n))
+	_ = b.record.Finish()
+	return b.body.Close()
+}
+
+type InstrumentedTransport struct {
+	Contextified
+	Transport *http.Transport
+}
+
+var _ http.RoundTripper = (*InstrumentedTransport)(nil)
+
+func NewInstrumentedTransport(g *GlobalContext, xprt *http.Transport) *InstrumentedTransport {
+	return &InstrumentedTransport{
+		Contextified: NewContextified(g),
+		Transport:    xprt,
+	}
+}
+
+func (i *InstrumentedTransport) RoundTrip(req *http.Request) (resp *http.Response, err error) {
+	record := rpc.NewNetworkInstrumenter(i.G().NetworkInstrumenterStorage, InstrumentationTagFromRequest(req))
+	resp, err = i.Transport.RoundTrip(req)
+	record.EndCall()
+	if err != nil {
+		return resp, err
+	}
+	resp.Body = NewInstrumentedBody(record, resp.Body)
+	return resp, err
 }
