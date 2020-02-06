@@ -1303,10 +1303,10 @@ protocol local {
     PINNED_MESSAGE_11
   }
 
-  void setWelcomeMessage(keybase1.TeamID teamID, string message);
-  GetWelcomeMessageRes getWelcomeMessage(keybase1.TeamID teamID);
-  record GetWelcomeMessageRes {
-    boolean found;
-    string message;
+  record WelcomeMessage {
+    boolean set;
+    string text;
   }
+  void setWelcomeMessage(keybase1.TeamID teamID, WelcomeMessage message);
+  WelcomeMessage getWelcomeMessage(keybase1.TeamID teamID);
 }

@@ -1120,11 +1120,13 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 	// there is a ton of logic in there to try and present a nice looking menu to help out the
 	// user and such. For the most part, the CLI just uses FindConversationsLocal though, so it
 	// should hopefully just result in a bunch of cache hits on the second invocation.
+	n.Debug(ctx, "ABOUT TO RUN FIND EXISTING")
 	convs, err := n.findExisting(ctx, info.ID, findConvsTopicName, types.InboxSourceDataSourceAll)
 	if err != nil {
 		n.Debug(ctx, "error running findExisting: %s", err)
 		convs = nil
 	}
+	n.Debug(ctx, "RAN FIND EXISTING: %d", len(convs))
 	// If we find one conversation, then just return it as if we created it.
 	if len(convs) == 1 {
 		n.Debug(ctx, "found previous conversation that matches, returning")

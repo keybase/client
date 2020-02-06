@@ -66,7 +66,7 @@ type NotifyListener interface {
 	ChatRequestInfo(uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, info chat1.UIRequestInfo)
 	ChatPromptUnfurl(uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, domain string)
 	ChatConvUpdate(uid keybase1.UID, convID chat1.ConversationID)
-	ChatWelcomeMessageLoaded(teamID keybase1.TeamID, message string)
+	ChatWelcomeMessageLoaded(teamID keybase1.TeamID, message chat1.WelcomeMessage)
 	PGPKeyInSecretStoreFile()
 	BadgeState(badgeState keybase1.BadgeState)
 	ReachabilityChanged(r keybase1.Reachability)
@@ -182,8 +182,8 @@ func (n *NoopNotifyListener) ChatRequestInfo(uid keybase1.UID, convID chat1.Conv
 func (n *NoopNotifyListener) ChatPromptUnfurl(uid keybase1.UID, convID chat1.ConversationID,
 	msgID chat1.MessageID, domain string) {
 }
-func (n *NoopNotifyListener) ChatConvUpdate(uid keybase1.UID, convID chat1.ConversationID) {}
-func (n *NoopNotifyListener) ChatWelcomeMessageLoaded(keybase1.TeamID, string)             {}
+func (n *NoopNotifyListener) ChatConvUpdate(uid keybase1.UID, convID chat1.ConversationID)   {}
+func (n *NoopNotifyListener) ChatWelcomeMessageLoaded(keybase1.TeamID, chat1.WelcomeMessage) {}
 
 func (n *NoopNotifyListener) PGPKeyInSecretStoreFile()                    {}
 func (n *NoopNotifyListener) BadgeState(badgeState keybase1.BadgeState)   {}
@@ -1454,27 +1454,18 @@ func (n *NotifyRouter) HandleChatConvUpdate(ctx context.Context, uid keybase1.UI
 }
 
 func (n *NotifyRouter) HandleChatWelcomeMessageLoaded(ctx context.Context,
-	uid keybase1.UID, teamID keybase1.TeamID, message string) {
-	// n.notifyChatCommon(ctx, "ChatWelcomeMessageLoaded", topicType,
-	// 	func(ctx context.Context, cli *chat1.NotifyChatClient) {
-	// 		_ = cli.ChatWelcomeMessageLoaded(ctx, chat1.ChatWelcomeMessageLoadedArg{
-	// 			TeamID:  teamID,
-	// 			Message: message,
-	// 		})
-	// 	}, func(ctx context.Context, listener NotifyListener) {
-	// 		listener.ChatWelcomeMessageLoaded(teamID, message)
-	// 	})
+	teamID keybase1.TeamID, message chat1.WelcomeMessage) {
 	if n == nil {
 		return
 	}
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		if n.getNotificationChannels(id).Saltpack {
+		if n.getNotificationChannels(id).Chat {
 			go func() {
 				_ = (chat1.NotifyChatClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).ChatWelcomeMessageLoaded(context.Background(), chat1.ChatWelcomeMessageLoadedArg{
+				}).ChatWelcomeMessageLoaded(ctx, chat1.ChatWelcomeMessageLoadedArg{
 					TeamID:  teamID,
-					Message: &message,
+					Message: message,
 				})
 			}()
 		}

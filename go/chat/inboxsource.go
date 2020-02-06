@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
@@ -53,6 +54,7 @@ func filterConvLocals(convLocals []chat1.ConversationLocal, rquery *chat1.GetInb
 			// the same thing without an RPC call.
 		}
 
+		spew.Dump(query, convLocal.Info)
 		// server can't query on topic name, so we have to do it ourselves in the loop
 		if query != nil && query.TopicName != nil && *query.TopicName != convLocal.Info.TopicName {
 			continue
@@ -938,10 +940,12 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID,
 	if err != nil {
 		return inbox, localizeCb, err
 	}
+	spew.Dump("@@@requery", rquery)
 	inbox, err = s.ReadUnverified(ctx, uid, dataSource, rquery)
 	if err != nil {
 		return inbox, localizeCb, err
 	}
+	spew.Dump("@@@inbox", inbox)
 	// we add an additional 1 here for the unverified payload which is also sent
 	// on this channel
 	localizeCb = make(chan types.AsyncInboxResult, len(inbox.ConvsUnverified)+1)
@@ -954,11 +958,14 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID,
 		return inbox, localizeCb, err
 	}
 
+	spew.Dump("@@@", len(inbox.Convs))
+
 	// Run post filters
 	inbox.Convs, err = filterConvLocals(inbox.Convs, rquery, query, tlfInfo)
 	if err != nil {
 		return inbox, localizeCb, err
 	}
+	spew.Dump("@@@", len(inbox.Convs))
 
 	// Write metadata to the inbox cache
 	if err = s.createInbox().MergeLocalMetadata(ctx, uid, inbox.Convs); err != nil {

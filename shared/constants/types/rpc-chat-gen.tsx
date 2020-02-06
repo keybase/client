@@ -124,7 +124,7 @@ export type MessageTypes = {
     outParam: void
   }
   'chat.1.NotifyChat.ChatWelcomeMessageLoaded': {
-    inParam: {readonly teamID: Keybase1.TeamID; readonly message?: String | null}
+    inParam: {readonly teamID: Keybase1.TeamID; readonly message: WelcomeMessage}
     outParam: void
   }
   'chat.1.NotifyChat.NewChatActivity': {
@@ -1155,7 +1155,6 @@ export type GetThreadLocalRes = {readonly thread: ThreadView; readonly offline: 
 export type GetThreadQuery = {readonly markAsRead: Boolean; readonly messageTypes?: Array<MessageType> | null; readonly disableResolveSupersedes: Boolean; readonly enableDeletePlaceholders: Boolean; readonly disablePostProcessThread: Boolean; readonly before?: Gregor1.Time | null; readonly after?: Gregor1.Time | null; readonly messageIDControl?: MessageIDControl | null}
 export type GetThreadRemoteRes = {readonly thread: ThreadViewBoxed; readonly membersType: ConversationMembersType; readonly visibility: Keybase1.TLFVisibility; readonly rateLimit?: RateLimit | null}
 export type GetUnreadlineRemoteRes = {readonly unreadlineID?: MessageID | null; readonly rateLimit?: RateLimit | null}
-export type GetWelcomeMessageRes = {readonly found: Boolean; readonly message: String}
 export type GiphySearchResult = {readonly targetUrl: String; readonly previewUrl: String; readonly previewWidth: Int; readonly previewHeight: Int; readonly previewIsVideo: Boolean}
 export type GiphySearchResults = {readonly results?: Array<GiphySearchResult> | null; readonly galleryUrl: String}
 export type GlobalAppNotificationSettings = {readonly settings: {[key: string]: Bool}}
@@ -1414,6 +1413,7 @@ export type UserBotCommandInput = {readonly name: String; readonly description: 
 export type UserBotCommandOutput = {readonly name: String; readonly description: String; readonly usage: String; readonly extendedDescription?: UserBotExtendedDescription | null; readonly username: String}
 export type UserBotExtendedDescription = {readonly title: String; readonly desktopBody: String; readonly mobileBody: String}
 export type VersionKind = String
+export type WelcomeMessage = {readonly set: Boolean; readonly text: String}
 
 export type IncomingCallMapType = {
   'chat.1.chatUi.chatAttachmentDownloadStart'?: (params: MessageTypes['chat.1.chatUi.chatAttachmentDownloadStart']['inParam'] & {sessionID: number}) => IncomingReturn

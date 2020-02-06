@@ -976,10 +976,7 @@
         },
         {
           "name": "message",
-          "type": [
-            null,
-            "string"
-          ]
+          "type": "WelcomeMessage"
         }
       ],
       "response": null,

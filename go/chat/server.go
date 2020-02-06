@@ -3222,9 +3222,33 @@ func (h *Server) DismissJourneycard(ctx context.Context, arg chat1.DismissJourne
 
 const welcomeMessageName = "__welcome_message"
 
-func (h *Server) welcomeStorage() types.ConversationBackedStorage {
-	return NewDevConversationBackedStorage(h.G(), chat1.ConversationMembersType_TEAM,
-		true /* adminOnly */, h.remoteClient)
+func getWelcomeMessage(ctx context.Context, g *globals.Context, ri func() chat1.RemoteInterface, uid gregor1.UID, teamID keybase1.TeamID) (message chat1.WelcomeMessage, err error) {
+	tlfID, err := chat1.TeamIDToTLFID(teamID)
+	if err != nil {
+		return message, err
+	}
+	s := NewDevConversationBackedStorage(g, chat1.ConversationMembersType_TEAM, true /* adminOnly */, ri)
+	found, err := s.Get(ctx, uid, tlfID, welcomeMessageName, &message)
+	if !found {
+		return chat1.WelcomeMessage{Set: false}, nil
+	}
+	switch err.(type) {
+	case nil:
+		return message, nil
+	case *DevStorageAdminOnlyError:
+		return chat1.WelcomeMessage{Set: false}, nil
+	default:
+		return message, err
+	}
+}
+
+func setWelcomeMessage(ctx context.Context, g *globals.Context, ri func() chat1.RemoteInterface, uid gregor1.UID, teamID keybase1.TeamID, message chat1.WelcomeMessage) (err error) {
+	tlfID, err := chat1.TeamIDToTLFID(teamID)
+	if err != nil {
+		return err
+	}
+	s := NewDevConversationBackedStorage(g, chat1.ConversationMembersType_TEAM, true /* adminOnly */, ri)
+	return s.Put(ctx, uid, tlfID, welcomeMessageName, message)
 }
 
 func (h *Server) SetWelcomeMessage(ctx context.Context, arg chat1.SetWelcomeMessageArg) (err error) {
@@ -3235,15 +3259,10 @@ func (h *Server) SetWelcomeMessage(ctx context.Context, arg chat1.SetWelcomeMess
 	if err != nil {
 		return err
 	}
-
-	tlfID, err := chat1.TeamIDToTLFID(arg.TeamID)
-	if err != nil {
-		return err
-	}
-	return h.welcomeStorage().Put(ctx, uid, tlfID, welcomeMessageName, arg.Message)
+	return setWelcomeMessage(ctx, h.G(), h.remoteClient, uid, arg.TeamID, arg.Message)
 }
 
-func (h *Server) GetWelcomeMessage(ctx context.Context, teamID keybase1.TeamID) (res chat1.GetWelcomeMessageRes, err error) {
+func (h *Server) GetWelcomeMessage(ctx context.Context, teamID keybase1.TeamID) (res chat1.WelcomeMessage, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "GetWelcomeMessage")()
@@ -3251,20 +3270,5 @@ func (h *Server) GetWelcomeMessage(ctx context.Context, teamID keybase1.TeamID) 
 	if err != nil {
 		return res, err
 	}
-
-	tlfID, err := chat1.TeamIDToTLFID(teamID)
-	if err != nil {
-		return res, err
-	}
-	var message string
-	found, err := h.welcomeStorage().Get(ctx, uid, tlfID, welcomeMessageName, &message)
-	switch err.(type) {
-	case nil:
-		return chat1.GetWelcomeMessageRes{Found: found, Message: message}, nil
-	case *DevStorageAdminOnlyError:
-		h.Debug(ctx, "ignoring welcome message set in channel without minWriterRole: %s", err)
-		return chat1.GetWelcomeMessageRes{Found: false}, nil
-	default:
-		return res, err
-	}
+	return getWelcomeMessage(ctx, h.G(), h.remoteClient, uid, teamID)
 }

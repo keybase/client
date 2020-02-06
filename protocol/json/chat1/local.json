@@ -3754,15 +3754,15 @@
     },
     {
       "type": "record",
-      "name": "GetWelcomeMessageRes",
+      "name": "WelcomeMessage",
       "fields": [
         {
           "type": "boolean",
-          "name": "found"
+          "name": "set"
         },
         {
           "type": "string",
-          "name": "message"
+          "name": "text"
         }
       ]
     }
@@ -5507,7 +5507,7 @@
         },
         {
           "name": "message",
-          "type": "string"
+          "type": "WelcomeMessage"
         }
       ],
       "response": null
@@ -5519,7 +5519,7 @@
           "type": "keybase1.TeamID"
         }
       ],
-      "response": "GetWelcomeMessageRes"
+      "response": "WelcomeMessage"
     }
   },
   "namespace": "chat.1"

@@ -516,7 +516,7 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 		ri)
 	g.CommandsSource = commands.NewSource(g)
 	g.CoinFlipManager = chat.NewFlipManager(g, ri)
-	g.JourneyCardManager = chat.NewJourneyCardManager(g)
+	g.JourneyCardManager = chat.NewJourneyCardManager(g, ri)
 	g.AddDbNukeHook(g.JourneyCardManager, "JourneyCardManager")
 	g.TeamMentionLoader = chat.NewTeamMentionLoader(g)
 	g.ExternalAPIKeySource = chat.NewRemoteExternalAPIKeySource(g, ri)

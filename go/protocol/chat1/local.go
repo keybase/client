@@ -5957,15 +5957,15 @@ func (e SnippetDecoration) String() string {
 	return fmt.Sprintf("%v", int(e))
 }
 
-type GetWelcomeMessageRes struct {
-	Found   bool   `codec:"found" json:"found"`
-	Message string `codec:"message" json:"message"`
+type WelcomeMessage struct {
+	Set  bool   `codec:"set" json:"set"`
+	Text string `codec:"text" json:"text"`
 }
 
-func (o GetWelcomeMessageRes) DeepCopy() GetWelcomeMessageRes {
-	return GetWelcomeMessageRes{
-		Found:   o.Found,
-		Message: o.Message,
+func (o WelcomeMessage) DeepCopy() WelcomeMessage {
+	return WelcomeMessage{
+		Set:  o.Set,
+		Text: o.Text,
 	}
 }
 
@@ -6543,7 +6543,7 @@ type DismissJourneycardArg struct {
 
 type SetWelcomeMessageArg struct {
 	TeamID  keybase1.TeamID `codec:"teamID" json:"teamID"`
-	Message string          `codec:"message" json:"message"`
+	Message WelcomeMessage  `codec:"message" json:"message"`
 }
 
 type GetWelcomeMessageArg struct {
@@ -6649,7 +6649,7 @@ type LocalInterface interface {
 	TeamIDFromTLFName(context.Context, TeamIDFromTLFNameArg) (keybase1.TeamID, error)
 	DismissJourneycard(context.Context, DismissJourneycardArg) error
 	SetWelcomeMessage(context.Context, SetWelcomeMessageArg) error
-	GetWelcomeMessage(context.Context, keybase1.TeamID) (GetWelcomeMessageRes, error)
+	GetWelcomeMessage(context.Context, keybase1.TeamID) (WelcomeMessage, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -8611,7 +8611,7 @@ func (c LocalClient) SetWelcomeMessage(ctx context.Context, __arg SetWelcomeMess
 	return
 }
 
-func (c LocalClient) GetWelcomeMessage(ctx context.Context, teamID keybase1.TeamID) (res GetWelcomeMessageRes, err error) {
+func (c LocalClient) GetWelcomeMessage(ctx context.Context, teamID keybase1.TeamID) (res WelcomeMessage, err error) {
 	__arg := GetWelcomeMessageArg{TeamID: teamID}
 	err = c.Cli.Call(ctx, "chat.1.local.getWelcomeMessage", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
