@@ -40,7 +40,7 @@ build_id=$(perl -e '{ print time }')
 
 for i in $DIRS; do
   echo -n "$i......."
-  if ! (cd $i && citogo --flakes 4 --fails 5 --branch $branch --build-id $build_id --prefix $i) ; then
+  if ! (cd $i && citogo --flakes 4 --fails 5 --branch $branch --build-id $build_id --prefix $i --timeout 150s) ; then
     failures+=("$i")
   fi
 done
