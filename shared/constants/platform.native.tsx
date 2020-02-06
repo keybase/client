@@ -25,7 +25,7 @@ export const runMode = 'prod'
 export const isIOS = Platform.OS === 'ios'
 export const isAndroid = !isIOS
 export const isMobile = true
-export const isTablet = Platform.OS == 'ios' && Platform.isPad
+export const isTablet = Platform.OS === 'ios' && Platform.isPad
 export const isDarwin = false
 export const isElectron = false
 export const isLinux = false
