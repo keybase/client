@@ -287,6 +287,7 @@ func (r *runner) cleanup() {
 	}
 	n := r.testerName()
 	err := os.Remove(n)
+	fmt.Printf("RMOV: %s\n", n)
 	if err != nil {
 		logError("could not remove %s: %s", n, err.Error())
 	}
@@ -295,6 +296,22 @@ func (r *runner) cleanup() {
 func (r *runner) debugStartup() {
 	dir, _ := os.Getwd()
 	fmt.Printf("WDIR: %s\n", dir)
+}
+
+func (r *runner) testExists() (bool, error) {
+	f := r.testerName()
+	info, err := os.Stat(f)
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	if info.Mode().IsRegular() {
+		return true, nil
+	}
+	return false, fmt.Errorf("%s: file of wrong type", f)
+
 }
 
 func (r *runner) run() error {
@@ -308,12 +325,15 @@ func (r *runner) run() error {
 	if err != nil {
 		return err
 	}
-	err = r.listTests()
-	if err != nil {
-		return err
+	exists, err := r.testExists()
+	if exists {
+		err = r.listTests()
+		if err != nil {
+			return err
+		}
+		err = r.runTests()
+		r.cleanup()
 	}
-	err = r.runTests()
-	r.cleanup()
 	end := time.Now()
 	diff := end.Sub(start)
 	fmt.Printf("DONE: in %s\n", diff)
