@@ -14,5 +14,6 @@ export const usePopup = (_ref: React.MutableRefObject<any>, makePopup: () => Rea
     popup,
     setShowingPopup,
     showingPopup,
+    toggleShowingPopup: () => setShowingPopup(!showingPopup),
   }
 }
