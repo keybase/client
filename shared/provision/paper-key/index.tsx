@@ -85,7 +85,7 @@ const styles = Styles.styleSheetCreate(
       }),
       contents: {
         flexGrow: 1,
-        maxWidth: Styles.isMobile ? 300 : 460,
+        maxWidth: Styles.isMobile && !Styles.isTablet ? 300 : 460,
         width: '100%',
       },
       input: {
