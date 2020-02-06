@@ -23,6 +23,7 @@ type SubteamRow =
   | {key: string; type: 'subteam-add'}
   | {key: string; teamID: Types.TeamID; type: 'subteam-subteam'}
   | {key: string; type: 'subteam-none'}
+  | {key: string; type: 'subteam-info'}
 type SettingsRow = {key: string; type: 'settings'}
 type LoadingRow = {key: string; type: 'loading'}
 export type Row =
@@ -42,7 +43,8 @@ const makeRows = (
   selectedTab: Types.TabKey,
   yourUsername: string,
   yourOperations: Types.TeamOperations,
-  invitesCollapsed: Set<Types.TeamID>
+  invitesCollapsed: Set<Types.TeamID>,
+  subteamsFiltered?: Set<Types.TeamID>
 ): Array<Row> => {
   const rows: Array<Row> = []
   switch (selectedTab) {
@@ -152,20 +154,35 @@ const makeRows = (
       break
     }
     case 'subteams': {
-      const {subteams} = details
-      // always push subteam intro, it can decide not to render if already seen
-      rows.push({key: 'subteam-intro', type: 'subteam-intro'})
-      if (yourOperations.manageSubteams) {
-        rows.push({key: 'subteam-add', type: 'subteam-add'})
-      }
-      if (subteams && subteams.size) {
-        rows.push(
-          ...[...subteams]
-            .sort()
-            .map(teamID => ({key: `subteam-subteam:${teamID}`, teamID, type: 'subteam-subteam' as const}))
-        )
+      if (flags.teamsRedesign) {
+        const subteams = subteamsFiltered ?? details.subteams
+        if (yourOperations.manageSubteams) {
+          rows.push({key: 'subteam-add', type: 'subteam-add'})
+        }
+        if (subteams?.size) {
+          rows.push(
+            ...[...subteams]
+              .sort()
+              .map(teamID => ({key: `subteam-subteam:${teamID}`, teamID, type: 'subteam-subteam' as const}))
+          )
+        }
+        rows.push({key: 'subteam-info', type: 'subteam-info'})
       } else {
-        rows.push({key: 'subteam-none', type: 'subteam-none'})
+        const {subteams} = details
+        // always push subteam intro, it can decide not to render if already seen
+        rows.push({key: 'subteam-intro', type: 'subteam-intro'})
+        if (yourOperations.manageSubteams) {
+          rows.push({key: 'subteam-add', type: 'subteam-add'})
+        }
+        if (subteams && subteams.size) {
+          rows.push(
+            ...[...subteams]
+              .sort()
+              .map(teamID => ({key: `subteam-subteam:${teamID}`, teamID, type: 'subteam-subteam' as const}))
+          )
+        } else {
+          rows.push({key: 'subteam-none', type: 'subteam-none'})
+        }
       }
       break
     }

@@ -234,6 +234,23 @@ export default Container.makeReducer<
       invitesCollapsed.add(teamID)
     }
   },
+  [TeamsGen.setSubteamFilter]: (draftState, action) => {
+    const {filter, parentTeam} = action.payload
+    draftState.subteamFilter = filter
+    if (parentTeam && filter) {
+      const flc = filter.toLowerCase()
+      draftState.subteamsFiltered = new Set(
+        [...(draftState.teamDetails.get(parentTeam)?.subteams || [])].filter(sID =>
+          draftState.teamMeta
+            .get(sID)
+            ?.teamname.toLowerCase()
+            .includes(flc)
+        )
+      )
+    } else {
+      draftState.subteamsFiltered = new Set()
+    }
+  },
   [TeamBuildingGen.tbResetStore]: handleTeamBuilding,
   [TeamBuildingGen.cancelTeamBuilding]: handleTeamBuilding,
   [TeamBuildingGen.addUsersToTeamSoFar]: handleTeamBuilding,
