@@ -40,14 +40,37 @@ const TeamRow = (props: Props) => {
               </Kb.Text>
             </Kb.Box2>
           </Kb.Box2>
-          <Kb.Box2 direction="horizontal" fullHeight={true} style={styles.bodyRight}></Kb.Box2>
+          <Kb.Box2 direction="horizontal" fullHeight={true} style={styles.bodyRight}>
+            <Activity level="extinct" />
+          </Kb.Box2>
         </Kb.Box2>
       }
     />
   )
 }
 
+type ActivityLevel = 'active' | 'recently' | 'extinct'
+const activityToIcon: {[key in ActivityLevel]: Kb.IconType} = {
+  active: 'iconfont-fire',
+  extinct: 'iconfont-rip',
+  recently: 'iconfont-team-leave',
+}
+const Activity = ({level}: {level: ActivityLevel}) => (
+  <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center">
+    <Kb.Icon
+      type={activityToIcon[level]}
+      color={level === 'active' ? Styles.globalColors.greenDark : Styles.globalColors.black_50}
+    />
+    <Kb.Text type="BodySmall" style={level === 'active' && styles.activityActive}>
+      {level}
+    </Kb.Text>
+  </Kb.Box2>
+)
+
 const styles = Styles.styleSheetCreate(() => ({
+  activityActive: {
+    color: Styles.globalColors.greenDark,
+  },
   bodyContainer: {
     paddingBottom: Styles.globalMargins.tiny,
     paddingTop: Styles.globalMargins.tiny,
