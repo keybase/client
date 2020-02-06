@@ -4,6 +4,9 @@ import * as Styles from '../../../styles'
 import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
 import * as Container from '../../../util/container'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import * as Chat2Gen from '../../../actions/chat2-gen'
+import * as ProfileGen from '../../../actions/profile-gen'
 
 type Props = {
   teamID: Types.TeamID
@@ -39,7 +42,11 @@ const TeamMemberHeader = (props: Props) => {
 
   const teamMeta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
   const teamDetails = Container.useSelector(s => Constants.getTeamDetails(s, teamID))
-  const onBack = () => {} // TODO
+
+  const onBack = () => dispatch(RouteTreeGen.createNavigateUp())
+  const onChat = () =>
+    dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'memberView'}))
+  const onViewProfile = () => dispatch(ProfileGen.createShowUserProfile({username}))
 
   const member = teamDetails.members.get(username)
   if (!member) {
@@ -47,7 +54,12 @@ const TeamMemberHeader = (props: Props) => {
     return null
   }
 
-  const buttons = <Kb.Text type="Header">Buttons go here</Kb.Text>
+  const buttons = (
+    <Kb.Box2 direction="horizontal" gap="tiny" alignSelf={Styles.isMobile ? 'flex-start' : 'flex-end'}>
+      <Kb.Button small={true} label="Chat" onClick={onChat} />
+      <Kb.Button small={true} label="View profile" onClick={onViewProfile} mode="Secondary" />
+    </Kb.Box2>
+  )
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={styles.headerContainer}>
@@ -95,6 +107,9 @@ const styles = Styles.styleSheetCreate(() => ({
   headerContainer: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.white,
+    },
+    isElectron: {
+      ...Styles.desktopStyles.windowDraggingClickable,
     },
     isMobile: {
       paddingTop: Styles.globalMargins.small,
