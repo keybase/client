@@ -21,7 +21,7 @@ export type MemberProps = {
   following: boolean
   loading: boolean
   user: {
-    type: Types.TeamRoleType | null
+    type: Types.TeamRoleType
     username: string
   }
   teamID: Types.TeamID
