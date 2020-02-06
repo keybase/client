@@ -19,6 +19,7 @@ type OwnProps = {
 }
 
 type Props = {
+  welcomeMessage?: string
   canShowcase: boolean
   cannotWrite: boolean
   channelname: string
@@ -58,17 +59,23 @@ const TeamJourneyContainer = (props: Props) => {
       if (props.canShowcase) {
         actions.push({label: 'Publish team on your profile', onClick: props.onPublishTeam})
       }
-      textComponent = props.cannotWrite ? (
-        <Kb.Text type="BodySmall">
-          <Kb.Emoji allowFontScaling={true} size={Styles.globalMargins.small} emojiName=":wave:" /> Welcome to
-          the team!
-        </Kb.Text>
-      ) : (
-        <Kb.Text type="BodySmall">
-          <Kb.Emoji allowFontScaling={true} size={Styles.globalMargins.small} emojiName=":wave:" /> Welcome to
-          the team! Say hi to everyone and introduce yourself.
-        </Kb.Text>
-      )
+      if (props.welcomeMessage && props.welcomeMessage.length > 0) {
+        textComponent = <Kb.Text type="BodySmall">{props.welcomeMessage}</Kb.Text>
+      } else if (props.cannotWrite) {
+        textComponent = (
+          <Kb.Text type="BodySmall">
+            <Kb.Emoji allowFontScaling={true} size={Styles.globalMargins.small} emojiName=":wave:" />
+            Welcome to the team!
+          </Kb.Text>
+        )
+      } else {
+        textComponent = (
+          <Kb.Text type="BodySmall">
+            <Kb.Emoji allowFontScaling={true} size={Styles.globalMargins.small} emojiName=":wave:" />
+            Welcome to the team! Say hi to etc.
+          </Kb.Text>
+        )
+      }
       break
     case RPCChatTypes.JourneycardType.popularChannels:
       actions = props.otherChannelsForPopular.map(chan => ({
@@ -170,6 +177,7 @@ const TeamJourneyConnected = Container.connect(
       _channelInfos: TeamConstants.getTeamChannelInfos(state, teamID),
       _teamID: teamID,
       canShowcase: TeamConstants.canShowcase(state, teamID),
+      welcomeMessage: TeamConstants.getTeamWelcomeMessageByID(state, teamID),
       cannotWrite: cannotWrite,
       channelname,
       conversationIDKey,
@@ -203,7 +211,15 @@ const TeamJourneyConnected = Container.connect(
       dispatch(RouteTreeGen.createNavigateAppend({path: [teamsTab, {props: {teamID}, selected: 'team'}]})),
   }),
   (stateProps, dispatchProps, ownProps) => {
-    const {canShowcase, cannotWrite, channelname, conversationIDKey, teamname, teamType} = stateProps
+    const {
+      welcomeMessage,
+      canShowcase,
+      cannotWrite,
+      channelname,
+      conversationIDKey,
+      teamname,
+      teamType,
+    } = stateProps
     // Take the top three channels with most recent activity.
     const joinableStatuses = new Set([
       // keep in sync with journey_card_manager.go
@@ -224,6 +240,7 @@ const TeamJourneyConnected = Container.connect(
       .map(info => info.channelname)
 
     return {
+      welcomeMessage,
       canShowcase,
       cannotWrite,
       channelname,

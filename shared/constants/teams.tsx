@@ -190,6 +190,7 @@ const emptyState: Types.State = {
   teamIDToMembers: new Map(),
   teamIDToResetUsers: new Map(),
   teamIDToRetentionPolicy: new Map(),
+  teamIDToWelcomeMessage: new Map(),
   teamJoinSuccess: false,
   teamJoinSuccessOpen: false,
   teamJoinSuccessTeamName: '',
@@ -464,6 +465,9 @@ export const getTeamNameFromID = (state: TypedState, teamID: Types.TeamID): Type
 
 export const getTeamRetentionPolicyByID = (state: TypedState, teamID: Types.TeamID): RetentionPolicy | null =>
   state.teams.teamIDToRetentionPolicy.get(teamID) ?? null
+
+export const getTeamWelcomeMessageByID = (state: TypedState, teamID: Types.TeamID): string | null =>
+  state.teams.teamIDToWelcomeMessage.get(teamID) ?? null
 
 export const getSelectedTeams = (): Types.TeamID[] => {
   const path = getFullRoute()

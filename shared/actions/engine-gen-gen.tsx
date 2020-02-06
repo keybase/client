@@ -66,6 +66,7 @@ export const chat1NotifyChatChatTLFFinalize = 'engine-gen:chat1NotifyChatChatTLF
 export const chat1NotifyChatChatTLFResolve = 'engine-gen:chat1NotifyChatChatTLFResolve'
 export const chat1NotifyChatChatThreadsStale = 'engine-gen:chat1NotifyChatChatThreadsStale'
 export const chat1NotifyChatChatTypingUpdate = 'engine-gen:chat1NotifyChatChatTypingUpdate'
+export const chat1NotifyChatChatWelcomeMessageLoaded = 'engine-gen:chat1NotifyChatChatWelcomeMessageLoaded'
 export const chat1NotifyChatNewChatActivity = 'engine-gen:chat1NotifyChatNewChatActivity'
 export const connected = 'engine-gen:connected'
 export const disconnected = 'engine-gen:disconnected'
@@ -639,6 +640,11 @@ type _Chat1NotifyChatChatThreadsStalePayload = {
 }
 type _Chat1NotifyChatChatTypingUpdatePayload = {
   readonly params: chat1Types.MessageTypes['chat.1.NotifyChat.ChatTypingUpdate']['inParam'] & {
+    sessionID: number
+  }
+}
+type _Chat1NotifyChatChatWelcomeMessageLoadedPayload = {
+  readonly params: chat1Types.MessageTypes['chat.1.NotifyChat.ChatWelcomeMessageLoaded']['inParam'] & {
     sessionID: number
   }
 }
@@ -2110,6 +2116,12 @@ export const createChat1NotifyChatChatThreadsStale = (
 export const createChat1NotifyChatChatTypingUpdate = (
   payload: _Chat1NotifyChatChatTypingUpdatePayload
 ): Chat1NotifyChatChatTypingUpdatePayload => ({payload, type: chat1NotifyChatChatTypingUpdate})
+export const createChat1NotifyChatChatWelcomeMessageLoaded = (
+  payload: _Chat1NotifyChatChatWelcomeMessageLoadedPayload
+): Chat1NotifyChatChatWelcomeMessageLoadedPayload => ({
+  payload,
+  type: chat1NotifyChatChatWelcomeMessageLoaded,
+})
 export const createChat1NotifyChatNewChatActivity = (
   payload: _Chat1NotifyChatNewChatActivityPayload
 ): Chat1NotifyChatNewChatActivityPayload => ({payload, type: chat1NotifyChatNewChatActivity})
@@ -2899,6 +2911,10 @@ export type Chat1NotifyChatChatTypingUpdatePayload = {
   readonly payload: _Chat1NotifyChatChatTypingUpdatePayload
   readonly type: typeof chat1NotifyChatChatTypingUpdate
 }
+export type Chat1NotifyChatChatWelcomeMessageLoadedPayload = {
+  readonly payload: _Chat1NotifyChatChatWelcomeMessageLoadedPayload
+  readonly type: typeof chat1NotifyChatChatWelcomeMessageLoaded
+}
 export type Chat1NotifyChatNewChatActivityPayload = {
   readonly payload: _Chat1NotifyChatNewChatActivityPayload
   readonly type: typeof chat1NotifyChatNewChatActivity
@@ -3550,6 +3566,7 @@ export type Actions =
   | Chat1NotifyChatChatTLFResolvePayload
   | Chat1NotifyChatChatThreadsStalePayload
   | Chat1NotifyChatChatTypingUpdatePayload
+  | Chat1NotifyChatChatWelcomeMessageLoadedPayload
   | Chat1NotifyChatNewChatActivityPayload
   | ConnectedPayload
   | DisconnectedPayload

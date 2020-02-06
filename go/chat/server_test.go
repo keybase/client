@@ -2086,6 +2086,7 @@ type serverChatListener struct {
 	resolveConv      chan resolveRes
 	subteamRename    chan []chat1.ConversationID
 	unfurlPrompt     chan chat1.MessageID
+	welcomeMessage   chan keybase1.TeamID
 	setStatus        chan chat1.SetStatusInfo
 	teamChangedByID  chan keybase1.TeamChangedByIDArg
 }
@@ -2179,6 +2180,10 @@ func (n *serverChatListener) ChatSubteamRename(uid keybase1.UID, convIDs []chat1
 func (n *serverChatListener) ChatPromptUnfurl(uid keybase1.UID, convID chat1.ConversationID,
 	msgID chat1.MessageID, domain string) {
 	n.unfurlPrompt <- msgID
+}
+func (n *serverChatListener) ChatWelcomeMessageLoaded(teamID keybase1.TeamID,
+	message string) {
+	n.welcomeMessage <- teamID
 }
 func (n *serverChatListener) TeamChangedByID(teamID keybase1.TeamID, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet, latestHiddenSeqno keybase1.Seqno) {
 	n.teamChangedByID <- keybase1.TeamChangedByIDArg{

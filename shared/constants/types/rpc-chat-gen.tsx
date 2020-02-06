@@ -123,6 +123,10 @@ export type MessageTypes = {
     inParam: {readonly typingUpdates?: Array<ConvTypingUpdate> | null}
     outParam: void
   }
+  'chat.1.NotifyChat.ChatWelcomeMessageLoaded': {
+    inParam: {readonly teamID: Keybase1.TeamID; readonly message?: String | null}
+    outParam: void
+  }
   'chat.1.NotifyChat.NewChatActivity': {
     inParam: {readonly uid: Keybase1.UID; readonly activity: ChatActivity; readonly source: ChatActivitySource}
     outParam: void
@@ -1470,6 +1474,7 @@ export type IncomingCallMapType = {
   'chat.1.NotifyChat.ChatRequestInfo'?: (params: MessageTypes['chat.1.NotifyChat.ChatRequestInfo']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.NotifyChat.ChatPromptUnfurl'?: (params: MessageTypes['chat.1.NotifyChat.ChatPromptUnfurl']['inParam'] & {sessionID: number}) => IncomingReturn
   'chat.1.NotifyChat.ChatConvUpdate'?: (params: MessageTypes['chat.1.NotifyChat.ChatConvUpdate']['inParam'] & {sessionID: number}) => IncomingReturn
+  'chat.1.NotifyChat.ChatWelcomeMessageLoaded'?: (params: MessageTypes['chat.1.NotifyChat.ChatWelcomeMessageLoaded']['inParam'] & {sessionID: number}) => IncomingReturn
 }
 
 export type CustomResponseIncomingCallMap = {
@@ -1669,6 +1674,7 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.NotifyChat.ChatRequestInfo'
 // 'chat.1.NotifyChat.ChatPromptUnfurl'
 // 'chat.1.NotifyChat.ChatConvUpdate'
+// 'chat.1.NotifyChat.ChatWelcomeMessageLoaded'
 // 'chat.1.remote.getInboxRemote'
 // 'chat.1.remote.getThreadRemote'
 // 'chat.1.remote.getUnreadlineRemote'

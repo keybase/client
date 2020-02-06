@@ -349,6 +349,21 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 				cc.Debug(ctx, "isOpenTeam error: %v", err)
 			}
 		}
+		if cardType == chat1.JourneycardType_WELCOME {
+			go func() {
+				// s := NewDevConversationBackedStorage(cc.G(), chat1.ConversationMembersType_TEAM, true /* adminOnly */, cc.G().remoteClient)
+				// tlfID, err := chat1.TeamIDToTLFID(teamID)
+				// if err != nil {
+				// 	return
+				// }
+				// var message string
+				// found, err := s.Get(ctx, cc.uid, tlfID, welcomeMessageName, &message)
+				// if !found || err != nil {
+				// 	return
+				// }
+				cc.G().ExternalG().NotifyRouter.HandleChatWelcomeMessageLoaded(context.TODO(), keybase1.UID(cc.uid.String()), teamID, "secret msg!!!")
+			}()
+		}
 		return &res, nil
 	}
 
