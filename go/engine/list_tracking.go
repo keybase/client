@@ -107,7 +107,8 @@ func (e *ListTrackingEngine) Run(m libkb.MetaContext) (err error) {
 
 	if e.arg.CachedOnly && e.arg.CachedOnlyStalenessWindow != nil {
 		if m.G().Clock().Since(keybase1.FromTime(upak.Uvv.CachedAt)) > *e.arg.CachedOnlyStalenessWindow {
-			return fmt.Errorf("upak was cached but exceeded custom staleness window %v", e.arg.CachedOnlyStalenessWindow)
+			msg := fmt.Sprintf("upak was cached but exceeded custom staleness window %v", e.arg.CachedOnlyStalenessWindow)
+			return libkb.UserNotFoundError{UID: uid, Msg: msg}
 		}
 	}
 

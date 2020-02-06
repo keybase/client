@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
@@ -85,8 +86,14 @@ func (l *TrackerLoader) Queue(ctx context.Context, uid keybase1.UID) (err error)
 	return nil
 }
 
+var cachedOnlyStalenessWindow = time.Hour * 24 * 7
+
 func (l *TrackerLoader) trackingArg(mctx libkb.MetaContext, uid keybase1.UID, withNetwork bool) *engine.ListTrackingEngineArg {
-	return &engine.ListTrackingEngineArg{UID: uid, CachedOnly: !withNetwork}
+	arg := &engine.ListTrackingEngineArg{UID: uid, CachedOnly: !withNetwork}
+	if !withNetwork {
+		arg.CachedOnlyStalenessWindow = &cachedOnlyStalenessWindow
+	}
+	return arg
 }
 
 func (l *TrackerLoader) trackersArg(uid keybase1.UID, withNetwork bool) engine.ListTrackersUnverifiedEngineArg {
