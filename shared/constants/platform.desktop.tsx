@@ -6,6 +6,7 @@ export const isMobile = false
 export const isAndroid = false
 export const isIOS = false
 export const isLargeScreen = true
+export const isTablet = false
 export const isIPhoneX = false
 export const isElectron = true
 export const isDarwin = platform === 'darwin'
