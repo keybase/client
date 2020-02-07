@@ -1295,7 +1295,7 @@ async function showTeamByName(action: TeamsGen.ShowTeamByNamePayload, logger: Sa
   try {
     teamID = await RPCTypes.teamsGetTeamIDRpcPromise({teamName})
   } catch (e) {
-    logger.info(`showTeamByName: team "${teamName} cannot be loaded: ${e.toString()}`)
+    logger.info(`showTeamByName: team "${teamName}" cannot be loaded: ${e.toString()}`)
     return null
   }
   return [
