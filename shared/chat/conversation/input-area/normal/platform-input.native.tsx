@@ -79,6 +79,7 @@ const runTiming = (clock, value, dest, cb) => {
 }
 type State = {
   animating: boolean // delayed due to setstate, updates after
+  afterAnimatingExtraStepWorkaround: boolean // used to twiddle height
   // animatedMaxHeight: Kb.NativeAnimated.Value
   expanded: boolean
   expandedDownCounter: number
@@ -99,6 +100,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
 
   state = {
     animating: false,
+    afterAnimatingExtraStepWorkaround: false,
     // animatedMaxHeight: new Kb.NativeAnimated.Value(Styles.dimensionHeight),
     expanded: false, // updates immediately, used for the icon etc
     expandedDownCounter: 0, // reset keys so auto expand works again
@@ -245,17 +247,24 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
     console.log('aaa ondone called ')
     this.animating = false
     console.log('aaa cb called', this.state.expanded)
-    this.setState(s => ({
-      animating: false,
-      expandedDownCounter: s.expandedDownCounter + (s.expanded ? 0 : 1),
-    }))
+    this.setState(
+      s => ({
+        animating: false,
+        expandedDownCounter: s.expandedDownCounter + (s.expanded ? 0 : 1),
+      }),
+      () => {
+        // setTimeout(() => {
+        this.setState({afterAnimatingExtraStepWorkaround: false})
+        // }, 1)
+      }
+    )
   }
 
   private expandInput = () => {
     this.animating = true
     this.watchSizeChanges = false
     const nextState = !this.state.expanded
-    this.setState(s => ({expanded: nextState}))
+    this.setState(s => ({expanded: nextState, afterAnimatingExtraStepWorkaround: true}))
     this.setState({animating: true}, () =>
       this.animateState.setValue(nextState ? AnimationState.expanding : AnimationState.contracting)
     )
@@ -346,11 +355,21 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
         onLayout={this.onLayout}
         key={'animatingBox' /*+ this.state.expandedDownCounter*/}
         fullWidth={true}
-        style={
+        style={[
+          {
+            flexShrink: 1,
+            minHeight: 0,
+          },
           this.state.expanded || this.state.animating
-            ? {height: this.animateHeight, maxHeight: undefined, minHeight: 0}
-            : {height: undefined, maxHeight: defaultMaxHeight, minHeight: 0}
-        }
+            ? {height: this.animateHeight, maxHeight: 9999}
+            : // workaround auto height not working?
+            this.state.afterAnimatingExtraStepWorkaround
+            ? {
+                height: this.lastHeight,
+                maxHeight: defaultMaxHeight,
+              }
+            : {height: undefined, maxHeight: defaultMaxHeight},
+        ]}
       >
         <Kb.ReAnimated.Code key={this.lastHeight}>
           {() =>
@@ -466,6 +485,7 @@ const styles = Styles.styleSheetCreate(
         backgroundColor: 'red', //Styles.globalColors.fastBlank,
         borderTopColor: Styles.globalColors.black_10,
         borderTopWidth: 1,
+        flexGrow: 1,
         flexShrink: 1,
         maxHeight: '100%',
         minHeight: 1,
@@ -499,7 +519,9 @@ const styles = Styles.styleSheetCreate(
       input: Styles.platformStyles({
         common: {
           flex: 1,
+          flexShrink: 1,
           marginRight: Styles.globalMargins.tiny,
+          minHeight: 0,
         },
         isAndroid: {
           // This is to counteract some intrinsic margins the android view has
