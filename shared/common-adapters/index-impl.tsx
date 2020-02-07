@@ -283,6 +283,9 @@ module.exports = {
   get StandardScreen() {
     return require('./standard-screen').default
   },
+  get Squeeze() {
+    return require('./squeeze').default
+  },
   get Switch() {
     return require('./switch').default
   },

@@ -58,7 +58,7 @@ const EnterUsername = (props: Props) => {
         },
       ]}
       onBack={props.onBack}
-      title={Styles.isMobile ? 'Create account' : 'Create an account'}
+      title={Styles.isMobile && !Styles.isTablet ? 'Create account' : 'Create an account'}
     >
       <Kb.Box2
         alignItems="center"

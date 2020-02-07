@@ -38,24 +38,26 @@ const Intro = (props: Props) => {
         alignItems="center"
         centerChildren={true}
       >
-        <Kb.Box2 direction="vertical" fullWidth={true} gap="small" alignItems="center">
-          <Kb.Icon type="icon-keybase-logo-64" />
-          <Kb.Text type="HeaderBig" style={styles.text}>
-            Join Keybase
-          </Kb.Text>
-        </Kb.Box2>
-        <Kb.ButtonBar direction="column" fullWidth={Styles.isMobile} style={styles.buttonBar}>
-          <Kb.Button label="Create an account" onClick={props.onSignup} fullWidth={true} />
-          <Kb.Button label="Log in" mode="Secondary" onClick={props.onLogin} fullWidth={true} />
-          {props.isOnline === false && (
-            <Kb.Button
-              label="Configure a proxy"
-              mode="Secondary"
-              onClick={props.showProxySettings}
-              fullWidth={true}
-            />
-          )}
-        </Kb.ButtonBar>
+        <Kb.Squeeze enable={Styles.isTablet}>
+          <Kb.Box2 direction="vertical" fullWidth={true} gap="small" alignItems="center">
+            <Kb.Icon type="icon-keybase-logo-64" />
+            <Kb.Text type="HeaderBig" style={styles.text}>
+              Join Keybase
+            </Kb.Text>
+          </Kb.Box2>
+          <Kb.ButtonBar direction="column" fullWidth={Styles.isMobile} style={styles.buttonBar}>
+            <Kb.Button label="Create an account" onClick={props.onSignup} fullWidth={true} />
+            <Kb.Button label="Log in" mode="Secondary" onClick={props.onLogin} fullWidth={true} />
+            {props.isOnline === false && (
+              <Kb.Button
+                label="Configure a proxy"
+                mode="Secondary"
+                onClick={props.showProxySettings}
+                fullWidth={true}
+              />
+            )}
+          </Kb.ButtonBar>
+        </Kb.Squeeze>
       </Kb.Box2>
     </Kb.Box2>
   )

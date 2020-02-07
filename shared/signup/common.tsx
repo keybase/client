@@ -215,35 +215,37 @@ export const SignupScreen = (props: SignupScreenProps) => (
       ])}
       fullWidth={true}
     >
-      <Kb.Box2
-        alignItems="center"
-        direction="vertical"
-        style={Styles.collapseStyles([styles.body, props.contentContainerStyle])}
-        fullWidth={true}
-      >
-        {props.children}
-      </Kb.Box2>
-      {/* Banners after children so they go on top */}
-      {!!props.banners && <Kb.Box2 direction="vertical" style={styles.banners} children={props.banners} />}
-      {!!props.buttons && (
-        <Kb.ButtonBar direction="column" fullWidth={Styles.isMobile} style={styles.buttonBar}>
-          {props.buttons.map(b =>
-            b.waitingKey !== undefined ? (
-              <Kb.WaitingButton
-                key={b.label}
-                style={styles.button}
-                {...b}
-                // TS doesn't narrow the type inside ButtonMeta, so still thinks
-                // waitingKey can be undefined unless we pull it out
-                waitingKey={b.waitingKey}
-                fullWidth={true}
-              />
-            ) : (
-              <Kb.Button key={b.label} style={styles.button} {...b} fullWidth={true} />
-            )
-          )}
-        </Kb.ButtonBar>
-      )}
+      <Kb.Squeeze enable={Styles.isTablet}>
+        <Kb.Box2
+          alignItems="center"
+          direction="vertical"
+          style={Styles.collapseStyles([styles.body, props.contentContainerStyle])}
+          fullWidth={true}
+        >
+          {props.children}
+        </Kb.Box2>
+        {/* Banners after children so they go on top */}
+        {!!props.banners && <Kb.Box2 direction="vertical" style={styles.banners} children={props.banners} />}
+        {!!props.buttons && (
+          <Kb.ButtonBar direction="column" fullWidth={Styles.isMobile} style={styles.buttonBar}>
+            {props.buttons.map(b =>
+              b.waitingKey !== undefined ? (
+                <Kb.WaitingButton
+                  key={b.label}
+                  style={styles.button}
+                  {...b}
+                  // TS doesn't narrow the type inside ButtonMeta, so still thinks
+                  // waitingKey can be undefined unless we pull it out
+                  waitingKey={b.waitingKey}
+                  fullWidth={true}
+                />
+              ) : (
+                <Kb.Button key={b.label} style={styles.button} {...b} fullWidth={true} />
+              )
+            )}
+          </Kb.ButtonBar>
+        )}
+      </Kb.Squeeze>
     </Kb.Box2>
   </Kb.Box2>
 )

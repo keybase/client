@@ -40,69 +40,71 @@ class LoginRender extends React.Component<Props, State> {
           contentContainerStyle={{minHeight: this.state.scrollViewHeight}}
         >
           <Kb.Box style={styles.container}>
-            {isAndroid && !isDeviceSecureAndroid && !isAndroidNewerThanM && (
-              <Kb.Box style={styles.deviceNotSecureContainer}>
-                <Kb.Text center={true} type="Body" negative={true} style={styles.deviceNotSecureText}>
-                  Since you don't have a lock screen, you'll have to type your password everytime.
-                </Kb.Text>
-              </Kb.Box>
-            )}
-            {!!this.props.error && <Kb.Banner color="red">{this.props.error}</Kb.Banner>}
-            <Kb.UserCard username={this.props.selectedUser} outerStyle={styles.card}>
-              <Dropdown
-                type="Username"
-                value={this.props.selectedUser}
-                onClick={this._selectedUserChange}
-                onOther={this.props.onSomeoneElse}
-                options={this.props.users}
-              />
-              {this.props.needPassword && (
-                <Kb.Box2 direction="vertical" gap="tiny" gapEnd={true} gapStart={true} fullWidth={true}>
-                  <Kb.LabeledInput {...inputProps} />
-                  <Kb.Checkbox
-                    checked={this.props.showTyping}
-                    label="Show typing"
-                    onCheck={check => this.props.showTypingChange(check)}
-                    style={styles.formElements}
-                  />
-                </Kb.Box2>
+            <Kb.Squeeze enable={Styles.isTablet}>
+              {isAndroid && !isDeviceSecureAndroid && !isAndroidNewerThanM && (
+                <Kb.Box style={styles.deviceNotSecureContainer}>
+                  <Kb.Text center={true} type="Body" negative={true} style={styles.deviceNotSecureText}>
+                    Since you don't have a lock screen, you'll have to type your password everytime.
+                  </Kb.Text>
+                </Kb.Box>
               )}
-              <Kb.WaitingButton
-                disabled={this.props.needPassword && !this.props.password}
-                waitingKey={Constants.waitingKey}
-                style={{marginTop: this.props.needPassword ? 0 : Styles.globalMargins.small, width: '100%'}}
-                fullWidth={true}
-                label="Log in"
-                onClick={this.props.onSubmit}
-              />
-              <Kb.Text
-                type="BodySmallSecondaryLink"
-                center={true}
-                onClick={this.props.onForgotPassword}
-                style={{marginBottom: Styles.globalMargins.tiny, marginTop: Styles.globalMargins.medium}}
-              >
-                Forgot password?
-              </Kb.Text>
-              <Kb.Text
-                style={{
-                  alignSelf: 'center',
-                }}
-                type="BodySmallSecondaryLink"
-                onClick={this.props.onFeedback}
-              >
-                Problems logging in?
-              </Kb.Text>
-            </Kb.UserCard>
-            <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne} />
-            <Kb.Box2 direction="vertical" fullWidth={true} style={{padding: Styles.globalMargins.medium}}>
-              <Kb.Button
-                fullWidth={true}
-                label="Create an account"
-                mode="Secondary"
-                onClick={this.props.onSignup}
-                style={{flexGrow: 0}}
-              />
-            </Kb.Box2>
+              {!!this.props.error && <Kb.Banner color="red">{this.props.error}</Kb.Banner>}
+              <Kb.UserCard username={this.props.selectedUser} outerStyle={styles.card}>
+                <Dropdown
+                  type="Username"
+                  value={this.props.selectedUser}
+                  onClick={this._selectedUserChange}
+                  onOther={this.props.onSomeoneElse}
+                  options={this.props.users}
+                />
+                {this.props.needPassword && (
+                  <Kb.Box2 direction="vertical" gap="tiny" gapEnd={true} gapStart={true} fullWidth={true}>
+                    <Kb.LabeledInput {...inputProps} />
+                    <Kb.Checkbox
+                      checked={this.props.showTyping}
+                      label="Show typing"
+                      onCheck={check => this.props.showTypingChange(check)}
+                      style={styles.formElements}
+                    />
+                  </Kb.Box2>
+                )}
+                <Kb.WaitingButton
+                  disabled={this.props.needPassword && !this.props.password}
+                  waitingKey={Constants.waitingKey}
+                  style={{marginTop: this.props.needPassword ? 0 : Styles.globalMargins.small, width: '100%'}}
+                  fullWidth={true}
+                  label="Log in"
+                  onClick={this.props.onSubmit}
+                />
+                <Kb.Text
+                  type="BodySmallSecondaryLink"
+                  center={true}
+                  onClick={this.props.onForgotPassword}
+                  style={{marginBottom: Styles.globalMargins.tiny, marginTop: Styles.globalMargins.medium}}
+                >
+                  Forgot password?
+                </Kb.Text>
+                <Kb.Text
+                  style={{
+                    alignSelf: 'center',
+                  }}
+                  type="BodySmallSecondaryLink"
+                  onClick={this.props.onFeedback}
+                >
+                  Problems logging in?
+                </Kb.Text>
+              </Kb.UserCard>
+              <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne} />
+              <Kb.Box2 direction="vertical" fullWidth={true} style={{padding: Styles.globalMargins.medium}}>
+                <Kb.Button
+                  fullWidth={true}
+                  label="Create an account"
+                  mode="Secondary"
+                  onClick={this.props.onSignup}
+                  style={{flexGrow: 0}}
+                />
+              </Kb.Box2>
+            </Kb.Squeeze>
           </Kb.Box>
         </Kb.NativeScrollView>
       </Kb.Box>
