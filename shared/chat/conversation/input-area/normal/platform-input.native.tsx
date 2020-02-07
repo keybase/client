@@ -208,7 +208,7 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
 
     const explodingIcon = !this.props.isEditing && !this.props.cannotWrite && (
       <Kb.NativeTouchableWithoutFeedback onPress={() => this.toggleShowingMenu('exploding')}>
-        <Kb.Box style={explodingIconContainer}>
+        <Kb.Box style={styles.explodingWrapper}>
           {this.props.isExploding ? (
             <Kb.Box2 direction="horizontal" style={styles.exploding} centerChildren={true}>
               <Kb.Text type="BodyTinyBold" negative={true}>
@@ -411,14 +411,12 @@ const styles = Styles.styleSheetCreate(
       exploding: {
         backgroundColor: Styles.globalColors.black,
         borderRadius: Styles.globalMargins.mediumLarge / 2,
-        height: Styles.globalMargins.mediumLarge,
-        marginLeft: Styles.globalMargins.tiny,
-        marginRight: Styles.globalMargins.tiny,
-        width: Styles.globalMargins.mediumLarge,
+        height: 24,
+        width: 24,
       },
-      explodingOuterContainer: {
-        alignSelf: 'flex-end',
-        paddingBottom: isIOS ? 7 : 10,
+      explodingWrapper: {
+        height: 24,
+        width: 24,
       },
       iconBottom: {
         bottom: 0,
@@ -470,9 +468,5 @@ const styles = Styles.styleSheetCreate(
       },
     } as const)
 )
-
-const explodingIconContainer = {
-  ...Styles.globalStyles.flexBoxColumn,
-}
 
 export default Kb.OverlayParentHOC(PlatformInput)
