@@ -19,16 +19,24 @@ const TeamRow = (props: Props) => {
 
   const onViewTeam = () => {} // TODO
 
+  const activity = <Activity level={'extinct' /* TODO plumbing for this */} />
+
   return (
     <Kb.ListItem2
       type="Small"
       firstItem={firstItem}
       onClick={onViewTeam}
       icon={<Kb.Avatar size={32} teamname={teamMeta.teamname} isTeam={true} />}
+      height={Styles.isMobile ? 90 : undefined}
       body={
         <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={styles.bodyContainer}>
           <Kb.Box2 direction="horizontal" fullHeight={true} alignItems="center" style={styles.bodyLeft}>
-            <Kb.Box2 direction="vertical" fullHeight={true} style={styles.bodyLeftText}>
+            <Kb.Box2
+              direction="vertical"
+              fullHeight={true}
+              alignItems="flex-start"
+              style={styles.bodyLeftText}
+            >
               <Kb.Box2 direction="horizontal" gap="xtiny" alignSelf="flex-start" alignItems="center">
                 <Kb.Text type="BodySemibold">{teamMeta.teamname}</Kb.Text>
                 {teamMeta.isOpen && (
@@ -38,13 +46,25 @@ const TeamRow = (props: Props) => {
               <Kb.Text type="BodySmall">
                 {teamMeta.memberCount.toLocaleString()} {pluralize('member', teamMeta.memberCount)}
               </Kb.Text>
+              {Styles.isMobile && activity}
             </Kb.Box2>
           </Kb.Box2>
-          <Kb.Box2 direction="horizontal" fullHeight={true} style={styles.bodyRight}>
-            <Activity level="recently" />
-          </Kb.Box2>
+          {!Styles.isMobile && (
+            <Kb.Box2 direction="horizontal" fullHeight={true} style={styles.bodyRight}>
+              {activity}
+            </Kb.Box2>
+          )}
         </Kb.Box2>
       }
+      action={
+        <Kb.Box2 direction="horizontal" gap={Styles.isMobile ? 'tiny' : 'xtiny'}>
+          {props.showChat && (
+            <Kb.Button type="Dim" mode="Secondary" small={true} icon="iconfont-chat" tooltip="" />
+          )}
+          <Kb.Button type="Dim" mode="Secondary" small={true} icon="iconfont-ellipsis" tooltip="" />
+        </Kb.Box2>
+      }
+      onlyShowActionOnHover="fade"
     />
   )
 }
@@ -61,10 +81,11 @@ const activityToLabel = {
   recently: 'Recently active',
 }
 const Activity = ({level}: {level: ActivityLevel}) => (
-  <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center">
+  <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center" fullWidth={Styles.isMobile}>
     <Kb.Icon
       type={activityToIcon[level]}
       color={level === 'active' ? Styles.globalColors.greenDark : Styles.globalColors.black_50}
+      sizeType="Small"
     />
     <Kb.Text type="BodySmall" style={level === 'active' && styles.activityActive}>
       {activityToLabel[level]}
