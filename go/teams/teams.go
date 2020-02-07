@@ -2709,7 +2709,7 @@ func KeySummary(t Teamer) string {
 }
 
 type TeamInfo struct {
-	Status          libkb.AppStatus `json:"status"`
+	libkb.AppStatusEmbed
 	Name            string
 	InTeam          bool `json:"in_team"`
 	Open            bool
@@ -2725,12 +2725,6 @@ type TeamInfo struct {
 		UID      keybase1.UID
 		Username string
 	} `json:"public_members"`
-}
-
-var _ libkb.APIResponseWrapper = (*TeamInfo)(nil)
-
-func (r *TeamInfo) GetAppStatus() *libkb.AppStatus {
-	return &r.Status
 }
 
 func GetUntrustedTeamInfo(mctx libkb.MetaContext, name keybase1.TeamName) (info keybase1.TeamInfo, err error) {
