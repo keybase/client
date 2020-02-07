@@ -28,7 +28,7 @@ type opts struct {
 	NoCompile   bool
 	TestBinary  string
 	Timeout     string
-	Pause       int
+	Pause       time.Duration
 }
 
 func logError(f string, args ...interface{}) {
@@ -68,7 +68,7 @@ func (r *runner) parseArgs() (err error) {
 	flag.BoolVar(&r.opts.NoCompile, "no-compile", false, "specify flag if you've pre-compiled the test")
 	flag.StringVar(&r.opts.TestBinary, "test-binary", "", "specify the test binary to run")
 	flag.StringVar(&r.opts.Timeout, "timeout", "60s", "timeout (in seconds) for any one individual test")
-	flag.IntVar(&r.opts.Pause, "pause", 0, "pause that many seconds between each test")
+	flag.DurationVar(&r.opts.Pause, "pause", 0, "pause that many seconds between each test")
 	flag.Parse()
 	var d string
 	d, err = os.Getwd()
@@ -280,8 +280,8 @@ func (r *runner) runTests() error {
 			return err
 		}
 		if r.opts.Pause > 0 {
-			fmt.Printf("PAUS: %ds\n", r.opts.Pause)
-			time.Sleep(time.Duration(r.opts.Pause) * time.Second)
+			fmt.Printf("PAUS: %s\n", r.opts.Pause)
+			time.Sleep(r.opts.Pause)
 		}
 	}
 	return nil
