@@ -58,9 +58,7 @@ const TeamRow = (props: Props) => {
       }
       action={
         <Kb.Box2 direction="horizontal" gap={Styles.isMobile ? 'tiny' : 'xtiny'}>
-          {props.showChat && (
-            <Kb.Button type="Dim" mode="Secondary" small={true} icon="iconfont-chat" tooltip="" />
-          )}
+          {showChat && <Kb.Button type="Dim" mode="Secondary" small={true} icon="iconfont-chat" tooltip="" />}
           <Kb.Button type="Dim" mode="Secondary" small={true} icon="iconfont-ellipsis" tooltip="" />
         </Kb.Box2>
       }
