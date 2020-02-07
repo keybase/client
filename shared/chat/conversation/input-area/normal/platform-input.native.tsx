@@ -20,6 +20,7 @@ import AudioRecorder from '../../../audio/audio-recorder.native'
 type menuType = 'exploding' | 'filepickerpopup' | 'moremenu'
 
 const AnimatedBox2 = Kb.ReAnimated.createAnimatedComponent(Kb.Box2)
+const AnimatedIcon = Kb.ReAnimated.createAnimatedComponent(Kb.Icon)
 const defaultMaxHeight = 145
 
 enum AnimationState {
@@ -28,8 +29,8 @@ enum AnimationState {
   contracting,
 }
 
-const {call, set, cond, timing, block, Value, Clock} = Kb.ReAnimated
-const {startClock, stopClock, clockRunning, eq} = Kb.ReAnimated
+const {call, set, cond, timing, block, Value, Clock, not, add} = Kb.ReAnimated
+const {startClock, stopClock, clockRunning, eq, concat, and} = Kb.ReAnimated
 
 const runToggle = (
   clock: Kb.ReAnimated.Clock,
@@ -61,7 +62,7 @@ const runTiming = (
   }
 
   const config = {
-    duration: 1000,
+    duration: 500,
     easing: Kb.ReAnimatedEasing.inOut(Kb.ReAnimatedEasing.ease),
     toValue: new Value(0),
   }
@@ -81,6 +82,44 @@ const runTiming = (
     state.position,
   ])
 }
+
+const runRotateToggle = (
+  clock: Kb.ReAnimated.Clock,
+  animState: Kb.ReAnimated.Value<AnimationState>,
+  from: Kb.ReAnimated.Value<number>
+) => {
+  const state = {
+    finished: new Value(0),
+    frameTime: new Value(0),
+    position: new Value(0),
+    time: new Value(0),
+  }
+
+  const config = {
+    duration: 300,
+    easing: Kb.ReAnimatedEasing.inOut(Kb.ReAnimatedEasing.ease),
+    toValue: new Value(0),
+  }
+
+  const dest = new Kb.ReAnimated.Value<number>(0)
+
+  return block([
+    cond(eq(animState, AnimationState.expanding), [set(dest, 180)], [set(dest, 0)]),
+    cond(not(clockRunning(clock)), [
+      set(state.finished, 0),
+      set(state.time, 0),
+      set(state.position, from),
+      set(state.frameTime, 0),
+      startClock(clock),
+    ]),
+    set(config.toValue, dest),
+    timing(clock, state, config),
+    cond(state.finished, stopClock(clock)),
+    set(from, state.position),
+    state.position,
+  ])
+}
+
 type State = {
   animating: boolean // delayed due to setstate, updates after
   afterAnimatingExtraStepWorkaround: boolean // used to twiddle height
@@ -98,6 +137,8 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
   // if we should update lastHeight when onLayout happens
   private watchSizeChanges = true
   private lastHeight: undefined | number
+  private rotate = new Value<number>(0)
+  private rotateClock = new Clock()
 
   state = {
     afterAnimatingExtraStepWorkaround: false,
@@ -243,12 +284,15 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
     // eslint-disable-next-line react/no-access-state-in-setstate
     const nextState = !this.state.expanded
     this.setState({afterAnimatingExtraStepWorkaround: true, expanded: nextState})
-    this.setState({animating: true}, () =>
+    this.setState({animating: true}, () => {
+      console.log('aaa set animat state', nextState)
       this.animateState.setValue(nextState ? AnimationState.expanding : AnimationState.contracting)
-    )
+    })
   }
 
   render() {
+    console.log('aaa render', this.state)
+
     const commandUpdateStatus = this.props.suggestBotCommandsUpdateStatus !==
       RPCChatTypes.UIBotCommandsUpdateStatusTyp.blank &&
       (this.props.suggestionsVisible ||
@@ -306,6 +350,9 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
             : {height: undefined, maxHeight: defaultMaxHeight},
         ]}
       >
+        <Kb.ReAnimated.Code>
+          {() => block([runRotateToggle(this.rotateClock, this.animateState, this.rotate)])}
+        </Kb.ReAnimated.Code>
         <Kb.ReAnimated.Code key={this.lastHeight}>
           {() =>
             block([
@@ -352,12 +399,56 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
               textType="Body"
               rowsMin={1}
             />
-            <Kb.Icon
-              padding="xtiny"
+            <Kb.ClickableBox
               onClick={this.expandInput}
-              type={this.state.expanded ? 'iconfont-expand' : 'iconfont-collapse'}
-              style={styles.expandIcon}
-            />
+              style={{
+                height: 32,
+                padding: Styles.globalMargins.xtiny,
+                position: 'relative',
+                width: 32,
+              }}
+            >
+              <Kb.Box2
+                direction="vertical"
+                alignSelf="flex-start"
+                style={{
+                  position: 'absolute',
+                  right: 1,
+                  top: 0,
+                }}
+              >
+                <AnimatedIcon
+                  onClick={this.expandInput}
+                  type="iconfont-arrow-full-up"
+                  style={{
+                    transform: [{rotate: concat(add(45, this.rotate), 'deg'), scale: 0.7}],
+                  }}
+                />
+              </Kb.Box2>
+              <Kb.Box2
+                direction="vertical"
+                alignSelf="flex-start"
+                style={{
+                  bottom: 0,
+                  left: 1,
+                  position: 'absolute',
+                }}
+              >
+                <AnimatedIcon
+                  onClick={this.expandInput}
+                  type="iconfont-arrow-full-up"
+                  style={{
+                    transform: [
+                      {
+                        rotate: concat(add(45, this.rotate), 'deg'),
+                        scaleX: -0.7,
+                        scaleY: -0.7,
+                      },
+                    ],
+                  }}
+                />
+              </Kb.Box2>
+            </Kb.ClickableBox>
           </Kb.Box2>
           <Kb.Box2
             direction="horizontal"
@@ -416,7 +507,7 @@ const styles = Styles.styleSheetCreate(
       },
       container: {
         alignItems: 'center',
-        backgroundColor: 'red', //Styles.globalColors.fastBlank,
+        backgroundColor: Styles.globalColors.fastBlank,
         borderTopColor: Styles.globalColors.black_10,
         borderTopWidth: 1,
         flexGrow: 1,
@@ -434,9 +525,6 @@ const styles = Styles.styleSheetCreate(
         height: '100%',
         minWidth: 32,
         padding: Styles.globalMargins.xtiny,
-      },
-      expandIcon: {
-        marginTop: Styles.globalMargins.xtiny,
       },
       exploding: {
         backgroundColor: Styles.globalColors.black,
