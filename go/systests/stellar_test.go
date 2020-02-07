@@ -179,8 +179,8 @@ func testStellarRelayAutoClaims(t *testing.T, startWithPUK, skipPart2 bool) {
 
 	pollTime := 20 * time.Second
 	if libkb.UseCITime(bob.tc.G) {
-		// This test is especially slow.
-		pollTime = 30 * time.Second
+		// This test is especially slow because it's waiting on multiple transactions
+		pollTime = 90 * time.Second
 	}
 
 	pollFor(t, "claims to complete", pollTime, bob.tc.G, func(i int) bool {
@@ -397,21 +397,6 @@ func TestAccountMerge(t *testing.T) {
 	require.NoError(t, err)
 	secondAccountID, err := alice.stellarClient.CreateWalletAccountLocal(ctx, stellar1.CreateWalletAccountLocalArg{Name: "second"})
 	require.NoError(t, err)
-	gift(t, firstAccountID)
-
-	attachIdentifyUI(t, alice.tc.G, newSimpleIdentifyUI())
-	sendCmd := client.CmdWalletSend{
-		Contextified: libkb.NewContextified(alice.tc.G),
-		Recipient:    secondAccountID.String(),
-		Amount:       "50",
-	}
-	for i := 0; i < retryCount; i++ {
-		err = sendCmd.Run()
-		if err == nil {
-			break
-		}
-	}
-	require.NoError(t, err)
 
 	stroopsInAcct := func(acctID stellar1.AccountID) int64 {
 		acctBalances, err := walletState.Balances(ctx, acctID)
@@ -430,7 +415,28 @@ func TestAccountMerge(t *testing.T) {
 		pollTime = 30 * time.Second
 	}
 
-	pollFor(t, "set up two accounts", pollTime, alice.tc.G, func(i int) bool {
+	gift(t, firstAccountID)
+	pollFor(t, "set up first account", pollTime, alice.tc.G, func(i int) bool {
+		err = walletState.Refresh(alice.tc.MetaContext(), firstAccountID, "test")
+		require.NoError(t, err)
+		return stroopsInAcct(firstAccountID) > 0
+	})
+
+	attachIdentifyUI(t, alice.tc.G, newSimpleIdentifyUI())
+	sendCmd := client.CmdWalletSend{
+		Contextified: libkb.NewContextified(alice.tc.G),
+		Recipient:    secondAccountID.String(),
+		Amount:       "50",
+	}
+	for i := 0; i < retryCount; i++ {
+		err = sendCmd.Run()
+		if err == nil {
+			break
+		}
+	}
+	require.NoError(t, err)
+
+	pollFor(t, "set up second account", pollTime, alice.tc.G, func(i int) bool {
 		err = walletState.Refresh(alice.tc.MetaContext(), firstAccountID, "test")
 		require.NoError(t, err)
 		err = walletState.Refresh(alice.tc.MetaContext(), secondAccountID, "test")
