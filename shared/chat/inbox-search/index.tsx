@@ -262,11 +262,10 @@ const OpenTeamRow = (p: OpenTeamProps) => {
   const [hovering, setHovering] = React.useState(false)
   const {name, description, memberCount, publicAdmins, id, inTeam, isSelected} = p
   const dispatch = Container.useDispatch()
-  const popupAnchor = React.useRef(null)
   const showingDueToSelect = React.useRef(false)
-  const {showingPopup, setShowingPopup, popup} = Kb.usePopup(popupAnchor, () => (
+  const {showingPopup, setShowingPopup, popup, popupAnchor} = Kb.usePopup<Kb.Box2>(attachTo => (
     <TeamInfo
-      attachTo={() => popupAnchor.current}
+      attachTo={attachTo}
       description={description ?? ''}
       inTeam={inTeam}
       isOpen={true}

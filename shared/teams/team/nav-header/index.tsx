@@ -8,21 +8,15 @@ import {TeamID} from '../../../constants/types/teams'
 import {pluralize} from '../../../util/string'
 
 const AddPeopleButton = ({teamID}: {teamID: TeamID}) => {
-  const ref = React.useRef<React.Component>(null)
-  const {popup, showingPopup, toggleShowingPopup} = Kb.usePopup(ref, () => (
-    <AddPeopleHow
-      attachTo={() => ref.current}
-      onHidden={toggleShowingPopup}
-      teamID={teamID}
-      visible={showingPopup}
-    />
+  const {popup, showingPopup, toggleShowingPopup, popupAnchor} = Kb.usePopup(attachTo => (
+    <AddPeopleHow attachTo={attachTo} onHidden={toggleShowingPopup} teamID={teamID} visible={showingPopup} />
   ))
   return (
     <>
       <Kb.Button
         label="Add members"
         onClick={toggleShowingPopup}
-        ref={ref}
+        ref={popupAnchor}
         small={true}
         type="Default"
         mode="Secondary"
