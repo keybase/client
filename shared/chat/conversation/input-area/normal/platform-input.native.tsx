@@ -1,5 +1,5 @@
 import * as ImagePicker from 'expo-image-picker'
-import React, {PureComponent} from 'react'
+import * as React from 'react'
 import * as Kb from '../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
@@ -16,109 +16,15 @@ import {BotCommandUpdateStatus} from './shared'
 import {formatDurationShort} from '../../../../util/timestamp'
 import {indefiniteArticle} from '../../../../util/string'
 import AudioRecorder from '../../../audio/audio-recorder.native'
+import {
+  AnimatedBox2,
+  AnimatedIcon,
+  AnimationState,
+  runToggle,
+  runRotateToggle,
+} from './platform-input-animation.native'
 
 type menuType = 'exploding' | 'filepickerpopup' | 'moremenu'
-
-const AnimatedBox2 = Kb.ReAnimated.createAnimatedComponent(Kb.Box2)
-const AnimatedIcon = Kb.ReAnimated.createAnimatedComponent(Kb.Icon)
-const defaultMaxHeight = 145
-
-enum AnimationState {
-  none,
-  expanding,
-  contracting,
-}
-
-const {call, set, cond, timing, block, Value, Clock, not, add} = Kb.ReAnimated
-const {startClock, stopClock, clockRunning, eq, concat, and} = Kb.ReAnimated
-
-const runToggle = (
-  clock: Kb.ReAnimated.Clock,
-  state: Kb.ReAnimated.Value<AnimationState>,
-  value: Kb.ReAnimated.Value<number>,
-  small: number | undefined,
-  big: number,
-  cb: () => void
-) =>
-  block([
-    cond(eq(state, AnimationState.expanding), set(value, runTiming(clock, value, new Value(big), cb))),
-    cond(
-      eq(state, AnimationState.contracting),
-      set(value, runTiming(clock, value, small ? new Value(small) : new Value(0), cb))
-    ),
-  ])
-
-const runTiming = (
-  clock: Kb.ReAnimated.Clock,
-  value: Kb.ReAnimated.Value<number>,
-  dest: Kb.ReAnimated.Value<number>,
-  cb: () => void
-) => {
-  const state = {
-    finished: new Value(0),
-    frameTime: new Value(0),
-    position: new Value(0),
-    time: new Value(0),
-  }
-
-  const config = {
-    duration: 500,
-    easing: Kb.ReAnimatedEasing.inOut(Kb.ReAnimatedEasing.ease),
-    toValue: new Value(0),
-  }
-
-  return block([
-    cond(clockRunning(clock), 0, [
-      set(state.finished, 0),
-      set(state.frameTime, 0),
-      set(state.time, 0),
-      set(state.position, value),
-      set(config.toValue, dest),
-      startClock(clock),
-    ]),
-    timing(clock, state, config),
-    cond(state.finished, stopClock(clock)),
-    cond(state.finished, call([], cb)),
-    state.position,
-  ])
-}
-
-const runRotateToggle = (
-  clock: Kb.ReAnimated.Clock,
-  animState: Kb.ReAnimated.Value<AnimationState>,
-  from: Kb.ReAnimated.Value<number>
-) => {
-  const state = {
-    finished: new Value(0),
-    frameTime: new Value(0),
-    position: new Value(0),
-    time: new Value(0),
-  }
-
-  const config = {
-    duration: 300,
-    easing: Kb.ReAnimatedEasing.inOut(Kb.ReAnimatedEasing.ease),
-    toValue: new Value(0),
-  }
-
-  const dest = new Kb.ReAnimated.Value<number>(0)
-
-  return block([
-    cond(eq(animState, AnimationState.expanding), [set(dest, 180)], [set(dest, 0)]),
-    cond(not(clockRunning(clock)), [
-      set(state.finished, 0),
-      set(state.time, 0),
-      set(state.position, from),
-      set(state.frameTime, 0),
-      startClock(clock),
-    ]),
-    set(config.toValue, dest),
-    timing(clock, state, config),
-    cond(state.finished, stopClock(clock)),
-    set(from, state.position),
-    state.position,
-  ])
-}
 
 type State = {
   animating: boolean // delayed due to setstate, updates after
@@ -127,7 +33,10 @@ type State = {
   hasText: boolean
 }
 
-class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
+const defaultMaxHeight = 145
+const {block, Value, Clock, add, concat} = Kb.ReAnimated
+
+class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, State> {
   private input: null | Kb.PlainInput = null
   private lastText?: string
   private whichMenu?: menuType
@@ -572,9 +481,6 @@ const styles = Styles.styleSheetCreate(
       },
     } as const)
 )
-
-// Use manual gap when Kb.Box2 is inserting too many (for children that deliberately render nothing)
-const smallGap = <Kb.Box style={styles.smallGap} />
 
 const explodingIconContainer = {
   ...Styles.globalStyles.flexBoxColumn,
