@@ -384,25 +384,30 @@ func (h *Server) NewConversationsLocal(ctx context.Context, arg chat1.NewConvers
 	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("NewConversationsLocal(len=%d)", len(arg.NewConversationLocalArguments)))()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 
-	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	_, err = utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return chat1.NewConversationsLocalRes{}, err
 	}
 
 	var errs []error
-	for _, arg := range arg.NewConversationLocalArguments {
-		conv, err := NewConversation(ctx, h.G(), uid, arg.TlfName,
-			arg.TopicName, arg.TopicType, arg.MembersType, arg.TlfVisibility,
-			h.remoteClient, NewConvFindExistingNormal)
+	for _, convArg := range arg.NewConversationLocalArguments {
 		var result chat1.NewConversationsLocalResult
+		newConvRes, err := h.NewConversationLocal(ctx, chat1.NewConversationLocalArg{
+			TlfName:          convArg.TlfName,
+			TopicType:        convArg.TopicType,
+			TlfVisibility:    convArg.TlfVisibility,
+			TopicName:        convArg.TopicName,
+			MembersType:      convArg.MembersType,
+			IdentifyBehavior: arg.IdentifyBehavior,
+		})
 		if err != nil {
 			e := err.Error()
 			result.Err = &e
 			errs = append(errs, err)
 		} else {
 			result.Result = new(chat1.NewConversationLocalRes)
-			result.Result.Conv = conv
-			result.Result.UiConv = utils.PresentConversationLocal(ctx, h.G(), uid, conv, utils.PresentParticipantsModeInclude)
+			result.Result.Conv = newConvRes.Conv
+			result.Result.UiConv = newConvRes.UiConv
 		}
 		res.Results = append(res.Results, result)
 	}
