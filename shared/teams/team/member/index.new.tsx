@@ -6,6 +6,7 @@ import * as Types from '../../../constants/types/teams'
 import * as Container from '../../../util/container'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as ProfileGen from '../../../actions/profile-gen'
+import logger from '../../../logger'
 
 type Props = {
   teamID: Types.TeamID
@@ -55,6 +56,7 @@ export const TeamMemberHeader = (props: Props) => {
   const member = teamDetails.members.get(username)
   if (!member) {
     // loading? should never happen.
+    logger.error('[team member view] no data! this should never happen.')
     return null
   }
 
