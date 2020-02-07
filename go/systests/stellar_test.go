@@ -81,6 +81,7 @@ func TestStellarNoteRoundtripAndResets(t *testing.T) {
 
 // Test took 38s on a dev server 2018-06-07
 func TestStellarRelayAutoClaims(t *testing.T) {
+	t.Skip()
 	kbtest.SkipTestOnNonMasterCI(t, "slow stellar test")
 	if disable {
 		t.Skip(disableMsg)
