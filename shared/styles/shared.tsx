@@ -91,18 +91,20 @@ type AsStylesCrossPlatform<T> = {
 export function platformStyles<
   Ret extends C & I & A & M & E,
   C extends _StylesCrossPlatform = {},
+  M extends _StylesMobile = {},
+  P extends _StylesMobile = {},
+  T extends _StylesMobile = {},
   I extends _StylesMobile = {},
   A extends _StylesMobile = {},
-  M extends _StylesMobile = {},
-  T extends _StylesMobile = {},
   E extends _StylesDesktop = {}
->(options: {common?: C; isIOS?: I; isAndroid?: A; isMobile?: M; isTablet?: T; isElectron?: E}) {
+>(options: {common?: C; isMobile?: M; isPhone?: P; isTablet?: T; isIOS?: I; isAndroid?: A; isElectron?: E}) {
   return ({
     ...(options.common ? unifyStyles(options.common) : {}),
     ...(isMobile && options.isMobile ? options.isMobile : {}),
+    ...(isMobile && !isTablet && options.isPhone ? options.isPhone : {}),
+    ...(isTablet && options.isTablet ? options.isTablet : {}),
     ...(isIOS && options.isIOS ? options.isIOS : {}),
     ...(isAndroid && options.isAndroid ? options.isAndroid : {}),
-    ...(isTablet && options.isTablet ? options.isTablet : {}),
     ...(isElectron && options.isElectron ? unifyStyles(options.isElectron) : {}),
   } as any) as AsStylesCrossPlatform<Ret>
 }
