@@ -4,6 +4,7 @@ import * as Styles from '../../styles'
 import * as Types from '../../constants/types/wallets'
 import {SmallAccountID, SendButton} from '../common'
 import AddAccount from './add-account'
+import {HeaderRightActions as ConnectedHeaderRightActions} from './container'
 
 type HeaderTitleProps = {
   accountID: Types.AccountID
@@ -16,7 +17,7 @@ type HeaderTitleProps = {
 
 export const HeaderTitle = (props: HeaderTitleProps) =>
   props.noDisclaimer ? null : (
-    <Kb.Box2 direction="horizontal">
+    <Kb.Box2 direction="horizontal" gap="small" gapEnd={Styles.isTablet}>
       <Kb.Box2 alignItems="flex-end" direction="horizontal" style={styles.left}>
         <AddAccount />
       </Kb.Box2>
@@ -40,6 +41,7 @@ export const HeaderTitle = (props: HeaderTitleProps) =>
           </>
         )}
       </Kb.Box2>
+      {Styles.isTablet && <ConnectedHeaderRightActions />}
     </Kb.Box2>
   )
 
