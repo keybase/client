@@ -42,7 +42,7 @@ export const runTiming = (
   }
 
   const config = {
-    duration: 500,
+    duration: 250,
     easing: Kb.ReAnimatedEasing.inOut(Kb.ReAnimatedEasing.ease),
     toValue: new Value(0),
   }
@@ -76,7 +76,7 @@ export const runRotateToggle = (
   }
 
   const config = {
-    duration: 300,
+    duration: 200,
     easing: Kb.ReAnimatedEasing.inOut(Kb.ReAnimatedEasing.ease),
     toValue: new Value(0),
   }
