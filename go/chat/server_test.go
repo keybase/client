@@ -4703,7 +4703,7 @@ func TestChatSrvChatMembershipsLocal(t *testing.T) {
 		getChannelsRes, err := ctc.as(t, users[1]).chatLocalHandler().GetChannelMembershipsLocal(ctx1,
 			chat1.GetChannelMembershipsLocalArg{
 				TlfName:     conv.TlfName,
-				Uid:         users[1].GetUID().ToBytes(),
+				Uid:         users[1].GetUID(),
 				TopicType:   chat1.TopicType_CHAT,
 				MembersType: chat1.ConversationMembersType_TEAM,
 			})
@@ -4722,7 +4722,7 @@ func TestChatSrvChatMembershipsLocal(t *testing.T) {
 		for i, user := range users {
 			getChannelsRes, err = ctc.as(t, user).chatLocalHandler().GetChannelMembershipsLocal(ctc.as(t, user).startCtx,
 				chat1.GetChannelMembershipsLocalArg{
-					Uid:         user.GetUID().ToBytes(),
+					Uid:         user.GetUID(),
 					TlfName:     conv.TlfName,
 					TopicType:   chat1.TopicType_CHAT,
 					MembersType: chat1.ConversationMembersType_TEAM,
@@ -4752,7 +4752,7 @@ func TestChatSrvChatMembershipsLocal(t *testing.T) {
 			getChannelsRes, err = ctc.as(t, user).chatLocalHandler().GetChannelMembershipsLocal(ctc.as(t, user).startCtx,
 				chat1.GetChannelMembershipsLocalArg{
 					TlfName:     conv.TlfName,
-					Uid:         user.GetUID().ToBytes(),
+					Uid:         user.GetUID(),
 					TopicType:   chat1.TopicType_CHAT,
 					MembersType: chat1.ConversationMembersType_TEAM,
 				})

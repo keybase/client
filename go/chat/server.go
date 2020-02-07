@@ -1690,10 +1690,6 @@ func (h *Server) GetChannelMembershipsLocal(ctx context.Context, arg chat1.GetCh
 			h.Debug(ctx, "GetTLFConversationsLocal: result obtained offline")
 		}
 	}()
-	uid, err := utils.AssertLoggedInUID(ctx, h.G())
-	if err != nil {
-		return res, err
-	}
 
 	// Fetch the TLF ID from specified name
 	nameInfo, err := CreateNameInfoSource(ctx, h.G(), arg.MembersType).LookupID(ctx, arg.TlfName, false)
@@ -1703,7 +1699,7 @@ func (h *Server) GetChannelMembershipsLocal(ctx context.Context, arg chat1.GetCh
 	}
 
 	var convs []chat1.ConversationLocal
-	convs, err = h.G().TeamChannelSource.GetChannelsFull(ctx, uid, nameInfo.ID, arg.TopicType)
+	convs, err = h.G().TeamChannelSource.GetChannelsFull(ctx, arg.Uid.ToBytes(), nameInfo.ID, arg.TopicType)
 	if err != nil {
 		return res, err
 	}
@@ -1712,7 +1708,7 @@ func (h *Server) GetChannelMembershipsLocal(ctx context.Context, arg chat1.GetCh
 	}
 
 	for _, conv := range convs {
-		isInConv, err := h.G().InboxSource.IsMember(ctx, arg.Uid, chat1.ConversationID(conv.GetConvID()))
+		isInConv, err := h.G().InboxSource.IsMember(ctx, arg.Uid.ToBytes(), chat1.ConversationID(conv.GetConvID()))
 		if err != nil {
 			return res, err
 		}

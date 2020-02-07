@@ -6436,7 +6436,7 @@ type GetTLFConversationsLocalArg struct {
 
 type GetChannelMembershipsLocalArg struct {
 	TlfName     string                  `codec:"tlfName" json:"tlfName"`
-	Uid         gregor1.UID             `codec:"uid" json:"uid"`
+	Uid         keybase1.UID            `codec:"uid" json:"uid"`
 	TopicType   TopicType               `codec:"topicType" json:"topicType"`
 	MembersType ConversationMembersType `codec:"membersType" json:"membersType"`
 }
