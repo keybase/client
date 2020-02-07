@@ -118,6 +118,9 @@ const styles = Styles.styleSheetCreate(
           paddingLeft: 0,
           paddingRight: 0,
         },
+        isTablet: {
+          alignItems: 'center',
+        },
       }),
       contentContainer: Styles.platformStyles({isMobile: {...Styles.padding(0)}}),
       fill: Styles.platformStyles({isMobile: {height: '100%', width: '100%'}}),
@@ -143,6 +146,9 @@ const styles = Styles.styleSheetCreate(
         },
         isMobile: {
           width: '100%',
+        },
+        isTablet: {
+          width: 400,
         },
       }),
     } as const)
