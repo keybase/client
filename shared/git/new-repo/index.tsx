@@ -105,63 +105,65 @@ class NewRepo extends React.Component<Props, State> {
     return (
       <Kb.ScrollView>
         <Kb.Box style={styles.container}>
-          {!!this.props.error && (
-            <Kb.Box style={styles.error}>
-              <Kb.Text type="Body" negative={true}>
-                {this.props.error.message}
-              </Kb.Text>
-            </Kb.Box>
-          )}
-          <Kb.Text type="Header" style={{marginBottom: 27}}>
-            New {this.props.isTeam ? 'team' : 'personal'} git repository
-          </Kb.Text>
-          <Kb.Icon
-            type={this.props.isTeam ? 'icon-repo-team-add-48' : 'icon-repo-personal-add-48'}
-            style={styles.addIcon}
-          />
-          <Kb.Text type="Body" style={{marginBottom: 27}}>
-            {this.props.isTeam
-              ? 'Your repository will be end-to-end encrypted and accessible by all members in the team.'
-              : 'Your repository will be encrypted and only accessible by you.'}
-          </Kb.Text>
-          {this.props.isTeam && (
-            <Kb.Dropdown
-              items={this._makeDropdownItems()}
-              selected={this._makeDropdownItem(this.state.selectedTeam)}
-              onChanged={this._dropdownChanged}
-              style={styles.dropdown}
+          <Kb.Squeeze enable={Styles.isTablet}>
+            {!!this.props.error && (
+              <Kb.Box style={styles.error}>
+                <Kb.Text type="Body" negative={true}>
+                  {this.props.error.message}
+                </Kb.Text>
+              </Kb.Box>
+            )}
+            <Kb.Text type="Header" style={{marginBottom: 27}}>
+              New {this.props.isTeam ? 'team' : 'personal'} git repository
+            </Kb.Text>
+            <Kb.Icon
+              type={this.props.isTeam ? 'icon-repo-team-add-48' : 'icon-repo-personal-add-48'}
+              style={styles.addIcon}
             />
-          )}
-          <Kb.LabeledInput
-            value={this.state.name}
-            autoFocus={true}
-            onChangeText={name => this.setState({name})}
-            placeholder="Name your repository"
-            onEnterKeyDown={this._onSubmit}
-          />
-          {this.props.isTeam && (
-            <Kb.Checkbox
-              label="Notify the team"
-              checked={this.state.notifyTeam}
-              onCheck={notifyTeam => this.setState({notifyTeam})}
-              style={styles.checkbox}
+            <Kb.Text type="Body" style={{marginBottom: 27}}>
+              {this.props.isTeam
+                ? 'Your repository will be end-to-end encrypted and accessible by all members in the team.'
+                : 'Your repository will be encrypted and only accessible by you.'}
+            </Kb.Text>
+            {this.props.isTeam && (
+              <Kb.Dropdown
+                items={this._makeDropdownItems()}
+                selected={this._makeDropdownItem(this.state.selectedTeam)}
+                onChanged={this._dropdownChanged}
+                style={styles.dropdown}
+              />
+            )}
+            <Kb.LabeledInput
+              value={this.state.name}
+              autoFocus={true}
+              onChangeText={name => this.setState({name})}
+              placeholder="Name your repository"
+              onEnterKeyDown={this._onSubmit}
             />
-          )}
-          <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
-            <Kb.WaitingButton
-              type="Dim"
-              onClick={this.props.onClose}
-              label="Cancel"
-              waitingKey={this.props.waitingKey}
-              onlyDisable={true}
-            />
-            <Kb.WaitingButton
-              onClick={this._onSubmit}
-              label="Create"
-              disabled={!this._canSubmit()}
-              waitingKey={this.props.waitingKey}
-            />
-          </Kb.ButtonBar>
+            {this.props.isTeam && (
+              <Kb.Checkbox
+                label="Notify the team"
+                checked={this.state.notifyTeam}
+                onCheck={notifyTeam => this.setState({notifyTeam})}
+                style={styles.checkbox}
+              />
+            )}
+            <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
+              <Kb.WaitingButton
+                type="Dim"
+                onClick={this.props.onClose}
+                label="Cancel"
+                waitingKey={this.props.waitingKey}
+                onlyDisable={true}
+              />
+              <Kb.WaitingButton
+                onClick={this._onSubmit}
+                label="Create"
+                disabled={!this._canSubmit()}
+                waitingKey={this.props.waitingKey}
+              />
+            </Kb.ButtonBar>
+          </Kb.Squeeze>
         </Kb.Box>
       </Kb.ScrollView>
     )
