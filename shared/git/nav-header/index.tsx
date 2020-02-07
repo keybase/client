@@ -39,10 +39,9 @@ export const HeaderRightActions = () => {
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {isTeam: true}, selected: 'gitNewRepo'}]}))
   }
 
-  const popupAnchor = React.useRef(null)
-  const {showingPopup, setShowingPopup, popup} = Kb.usePopup(popupAnchor, () => (
+  const {showingPopup, setShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
     <Kb.FloatingMenu
-      attachTo={() => popupAnchor.current}
+      attachTo={attachTo}
       closeOnSelect={true}
       visible={showingPopup}
       onHidden={() => setShowingPopup(false)}

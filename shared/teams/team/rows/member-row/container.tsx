@@ -18,9 +18,9 @@ const blankInfo = Constants.initialMemberInfo
 
 export default connect(
   (state, {teamID, username}: OwnProps) => {
-    const teamDetails = Constants.getTeamDetails(state, teamID)
-    const {members: map = new Map(), teamname} = teamDetails
-    const info = map.get(username) || blankInfo
+    const {members} = Constants.getTeamDetails(state, teamID)
+    const {teamname} = Constants.getTeamMeta(state, teamID)
+    const info = members.get(username) || blankInfo
 
     return {
       following: state.config.following.has(username),

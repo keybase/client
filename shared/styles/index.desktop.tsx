@@ -202,7 +202,7 @@ export const collapseStyles = (styles: ReadonlyArray<CollapsibleStyle>): Object 
   }
   return Object.keys(s).length ? s : undefined
 }
-export {isMobile, fileUIName, isIPhoneX, isIOS, isAndroid} from '../constants/platform'
+export {isMobile, isPhone, isTablet, fileUIName, isIPhoneX, isIOS, isAndroid} from '../constants/platform'
 export {
   globalMargins,
   backgroundModeToColor,

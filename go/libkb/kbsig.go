@@ -712,7 +712,7 @@ func (u *User) WotAttestProof(m MetaContext, signingKey GenericKey, sigVersion S
 	}
 
 	body := ret.J.AtKey("body")
-	if err := body.SetKey("wot.attest", jsonw.NewString(hex.EncodeToString(mac))); err != nil {
+	if err := body.SetKey("wot_attest", jsonw.NewString(hex.EncodeToString(mac))); err != nil {
 		return nil, err
 	}
 

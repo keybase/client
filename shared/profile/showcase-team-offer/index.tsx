@@ -22,7 +22,7 @@ export type Props = {
   headerStyle?: Object | null
   onCancel: () => void
   onPromote: (teamID: Types.TeamID, promote: boolean) => void
-  teams: ReadonlyArray<Types.TeamDetails>
+  teams: ReadonlyArray<Types.TeamMeta>
   waiting: Map<string, number>
 }
 
@@ -98,17 +98,17 @@ const ShowcaseTeamOffer = (props: Props) => {
       {!Styles.isMobile && <ShowcaseTeamOfferHeader />}
       <Kb.ScrollView>
         {Styles.isMobile && <ShowcaseTeamOfferHeader />}
-        {props.teams.map(teamDetails => (
+        {props.teams.map(teamMeta => (
           <TeamRow
-            key={teamDetails.id}
-            canShowcase={teamDetails.allowPromote}
-            isExplicitMember={teamDetails.isMember}
-            name={teamDetails.teamname}
-            isOpen={teamDetails.isOpen}
-            membercount={teamDetails.memberCount}
-            onPromote={promoted => props.onPromote(teamDetails.id, promoted)}
-            showcased={teamDetails.showcasing}
-            waiting={!!props.waiting[teamWaitingKey(teamDetails.teamname)]}
+            key={teamMeta.id}
+            canShowcase={teamMeta.allowPromote || ['admin', 'owner'].includes(teamMeta.role)}
+            isExplicitMember={teamMeta.isMember}
+            name={teamMeta.teamname}
+            isOpen={teamMeta.isOpen}
+            membercount={teamMeta.memberCount}
+            onPromote={promoted => props.onPromote(teamMeta.id, promoted)}
+            showcased={teamMeta.showcasing}
+            waiting={!!props.waiting[teamWaitingKey(teamMeta.teamname)]}
           />
         ))}
       </Kb.ScrollView>

@@ -32,7 +32,7 @@ import NetInfo from '@react-native-community/netinfo'
 // @ts-ignore
 import * as PushNotifications from 'react-native-push-notification'
 import {isIOS, isAndroid} from '../../constants/platform'
-import pushSaga, {getStartupDetailsFromInitialPush} from './push.native'
+import pushSaga, {getStartupDetailsFromInitialPush, getStartupDetailsFromInitialShare} from './push.native'
 import * as Container from '../../util/container'
 import * as Contacts from 'expo-contacts'
 import {launchImageLibraryAsync} from '../../util/expo-image-picker'
@@ -321,7 +321,7 @@ function* loadStartupDetails() {
   let startupFollowUser = ''
   let startupLink = ''
   let startupTab = undefined
-  const startupSharePath = undefined
+  let startupSharePath = undefined
 
   const routeStateTask = yield Saga._fork(async () => {
     try {
@@ -333,7 +333,13 @@ function* loadStartupDetails() {
   })
   const linkTask = yield Saga._fork(Linking.getInitialURL)
   const initialPush = yield Saga._fork(getStartupDetailsFromInitialPush)
-  const [routeState, link, push] = yield Saga.join([routeStateTask, linkTask, initialPush])
+  const initialShare = yield Saga._fork(getStartupDetailsFromInitialShare)
+  const [routeState, link, push, share] = yield Saga.join([
+    routeStateTask,
+    linkTask,
+    initialPush,
+    initialShare,
+  ])
 
   // Clear last value to be extra safe bad things don't hose us forever
   yield Saga._fork(async () => {
@@ -353,6 +359,8 @@ function* loadStartupDetails() {
   } else if (link) {
     // Second priority, deep link
     startupLink = link
+  } else if (share) {
+    startupSharePath = share
   } else if (routeState) {
     // Last priority, saved from last session
     try {

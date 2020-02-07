@@ -758,6 +758,7 @@ type HiddenTeamChainManager interface {
 	// Untrusted hint of what a team's latest seqno is
 	HintLatestSeqno(m MetaContext, id keybase1.TeamID, seqno keybase1.Seqno) error
 	Shutdown(m MetaContext)
+	TeamSupportsHiddenChain(m MetaContext, id keybase1.TeamID) (state bool, err error)
 }
 
 type TeamRoleMapManager interface {

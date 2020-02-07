@@ -81,7 +81,7 @@ func (g *gregorTestConnection) Connect(ctx context.Context) (err error) {
 		WrapErrorFunc: libkb.MakeWrapError(g.G().ExternalG()),
 	}
 	trans := rpc.NewConnectionTransport(uri, libkb.NewRPCLogFactory(g.G().ExternalG()),
-		rpc.NewNetworkInstrumenter(g.G().ExternalG().NetworkInstrumenterStorage),
+		g.G().ExternalG().NetworkInstrumenterStorage,
 		libkb.MakeWrapError(g.G().ExternalG()), rpc.DefaultMaxFrameLength)
 	conn := rpc.NewConnectionWithTransport(g, trans,
 		libkb.NewContextifiedErrorUnwrapper(g.G().ExternalG()),
@@ -7691,5 +7691,83 @@ func TestTeamBotChannelMembership(t *testing.T) {
 			sort.Strings(parts)
 			require.Equal(t, expectedUsers, parts)
 		}
+	})
+}
+
+func TestChatSrvNewConversationsLocal(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+		default:
+			return
+		}
+
+		ctc := makeChatTestContext(t, "NewConversationsLocal", 3)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		key := teamKey(users)
+		name := createTeamWithWriters(ctc.world.Tcs[users[0].Username].TestContext, users[1:])
+		ctc.teamCache[key] = name
+		tlfName := strings.ToLower(name)
+
+		type L struct {
+			tlfName     string
+			channelName *string
+			ok          bool
+		}
+		sp := func(x string) *string { return &x }
+		argument := func(ll []L) (arg chat1.NewConversationsLocalArg) {
+			arg.IdentifyBehavior = keybase1.TLFIdentifyBehavior_CHAT_CLI
+			for _, l := range ll {
+				arg.NewConversationLocalArguments = append(arg.NewConversationLocalArguments, chat1.NewConversationLocalArgument{
+					TlfName:       name,
+					TopicType:     chat1.TopicType_CHAT,
+					TopicName:     l.channelName,
+					TlfVisibility: keybase1.TLFVisibility_PRIVATE,
+					MembersType:   chat1.ConversationMembersType_TEAM,
+				})
+			}
+			return arg
+		}
+
+		t.Logf("creating many channels, some with bad names")
+		ll := []L{
+			{tlfName: tlfName, channelName: nil, ok: true},
+			{tlfName: tlfName, channelName: sp("now"), ok: true},
+			{tlfName: tlfName, channelName: sp("i"), ok: true},
+			{tlfName: tlfName, channelName: sp("am"), ok: true},
+			{tlfName: tlfName, channelName: sp("#become"), ok: false},
+			{tlfName: tlfName, channelName: sp("death"), ok: true},
+			{tlfName: tlfName, channelName: sp("destroyer.of"), ok: false},
+			{tlfName: tlfName, channelName: sp("worlds/"), ok: false},
+			{tlfName: tlfName, channelName: sp("!"), ok: false},
+		}
+		tc := ctc.as(t, users[0])
+		res, err := tc.chatLocalHandler().NewConversationsLocal(tc.startCtx, argument(ll))
+		require.Error(t, err)
+		require.Equal(t, len(ll), len(res.Results))
+		for idx, l := range ll {
+			result := res.Results[idx]
+			if l.ok {
+				require.NotNil(t, result.Result)
+				require.Equal(t, strings.ToLower(l.tlfName), result.Result.Conv.Info.TlfName)
+				if n := l.channelName; n != nil {
+					require.Equal(t, *n, result.Result.Conv.Info.TopicName)
+				}
+			} else {
+				require.NotNil(t, result.Err)
+				require.Nil(t, result.Result)
+			}
+		}
+
+		t.Logf("testing idempotency")
+		ll[4].channelName = sp("become")
+		ll[6].channelName = sp("destroyerof")
+		ll[7].channelName = sp("worlds")
+		ll[8].channelName = sp("exclam")
+		res, err = tc.chatLocalHandler().NewConversationsLocal(tc.startCtx, argument(ll))
+		require.NoError(t, err)
+		require.Equal(t, len(ll), len(res.Results))
 	})
 }

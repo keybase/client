@@ -12,7 +12,7 @@ type OwnProps = {
 
 export default Container.connect(
   (state, {teamID}: OwnProps) => {
-    const {isMember, isOpen, memberCount, teamname} = Constants.getTeamDetails(state, teamID)
+    const {isMember, isOpen, memberCount, teamname} = Constants.getTeamMeta(state, teamID)
     return {
       _isMember: isMember,
       _newTeamRequests: state.teams.newTeamRequests,

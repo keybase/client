@@ -378,6 +378,39 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		arg.Pgmode, arg.CbMode, arg.Query, arg.Pagination)
 }
 
+func (h *Server) NewConversationsLocal(ctx context.Context, arg chat1.NewConversationsLocalArg) (res chat1.NewConversationsLocalRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = globals.ChatCtx(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("NewConversationsLocal(len=%d)", len(arg.NewConversationLocalArguments)))()
+	defer func() { h.setResultRateLimit(ctx, &res) }()
+
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return chat1.NewConversationsLocalRes{}, err
+	}
+
+	var errs []error
+	for _, arg := range arg.NewConversationLocalArguments {
+		conv, err := NewConversation(ctx, h.G(), uid, arg.TlfName,
+			arg.TopicName, arg.TopicType, arg.MembersType, arg.TlfVisibility,
+			h.remoteClient, NewConvFindExistingNormal)
+		var result chat1.NewConversationsLocalResult
+		if err != nil {
+			e := err.Error()
+			result.Err = &e
+			errs = append(errs, err)
+		} else {
+			result.Result = new(chat1.NewConversationLocalRes)
+			result.Result.Conv = conv
+			result.Result.UiConv = utils.PresentConversationLocal(ctx, h.G(), uid, conv, utils.PresentParticipantsModeInclude)
+		}
+		res.Results = append(res.Results, result)
+	}
+
+	res.IdentifyFailures = identBreaks
+	return res, libkb.CombineErrors(errs...)
+}
+
 // NewConversationLocal implements keybase.chatLocal.newConversationLocal protocol.
 // Create a new conversation. Or in the case of CHAT, create-or-get a conversation.
 func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversationLocalArg) (res chat1.NewConversationLocalRes, err error) {

@@ -733,3 +733,252 @@ func decryptMDPrivateData(ctx context.Context, codec kbfscodec.Codec,
 
 	return pmd, nil
 }
+
+func getOpsSafe(config Config, id tlf.ID) (*folderBranchOps, error) {
+	kbfsOps := config.KBFSOps()
+	kbfsOpsStandard, ok := kbfsOps.(*KBFSOpsStandard)
+	if !ok {
+		return nil, errors.New("Not KBFSOpsStandard")
+	}
+
+	return kbfsOpsStandard.getOpsNoAdd(context.TODO(), data.FolderBranch{
+		Tlf:    id,
+		Branch: data.MasterBranch,
+	}), nil
+}
+
+func getOps(config Config, id tlf.ID) *folderBranchOps {
+	ops, err := getOpsSafe(config, id)
+	if err != nil {
+		panic(err)
+	}
+	return ops
+}
+
+// ChangeType indicates what kind of change is being referenced.
+type ChangeType int
+
+const (
+	// ChangeTypeWrite is a change to a file (could be a create or a
+	// write to an existing file).
+	ChangeTypeWrite ChangeType = iota
+	// ChangeTypeRename is a rename of an existing file or directory.
+	ChangeTypeRename
+	// ChangeTypeDelete is a delete of an existing file or directory.
+	ChangeTypeDelete
+)
+
+func (ct ChangeType) String() string {
+	switch ct {
+	case ChangeTypeWrite:
+		return "write"
+	case ChangeTypeRename:
+		return "rename"
+	case ChangeTypeDelete:
+		return "delete"
+	default:
+		return "unknown"
+	}
+}
+
+// ChangeItem describes a single change to a file or directory between
+// revisions.
+type ChangeItem struct {
+	Type            ChangeType
+	CurrPath        data.Path // Full path to the node created/renamed/deleted
+	UnrefsForDelete []data.BlockPointer
+	IsNew           bool
+	OldPtr          data.BlockPointer
+}
+
+func (ci *ChangeItem) addUnrefs(chains *crChains, op op) error {
+	// Find the original block pointers for each unref.
+	unrefs := op.Unrefs()
+	ci.UnrefsForDelete = make([]data.BlockPointer, len(unrefs))
+	for i, unref := range unrefs {
+		ptr, err := chains.originalFromMostRecentOrSame(unref)
+		if err != nil {
+			return err
+		}
+		ci.UnrefsForDelete[i] = ptr
+	}
+	return nil
+}
+
+func (ci ChangeItem) String() string {
+	return fmt.Sprintf(
+		"{type: %s, currPath: %s}", ci.Type, ci.CurrPath.CanonicalPathString())
+}
+
+// GetChangesBetweenRevisions returns a list of all the changes
+// between the two given revisions (after `oldRev`, up to and
+// including `newRev`).
+func GetChangesBetweenRevisions(
+	ctx context.Context, config Config, id tlf.ID,
+	oldRev, newRev kbfsmd.Revision) (
+	changes []*ChangeItem, err error) {
+	if newRev <= oldRev {
+		return nil, errors.Errorf(
+			"Can't get changes between %d and %d", oldRev, newRev)
+	}
+
+	rmds, err := getMDRange(
+		ctx, config, id, kbfsmd.NullBranchID, oldRev+1, newRev,
+		kbfsmd.Merged, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	fbo, err := getOpsSafe(config, id)
+	if err != nil {
+		return nil, err
+	}
+
+	chains, err := newCRChainsForIRMDs(
+		ctx, config.Codec(), config, rmds, &fbo.blocks, true)
+	if err != nil {
+		return nil, err
+	}
+	err = fbo.blocks.populateChainPaths(
+		ctx, config.MakeLogger(""), chains, true)
+	if err != nil {
+		return nil, err
+	}
+
+	// The crChains creation process splits up a rename op into
+	// a delete and a create.  Turn them back into a rename.
+	opsCount := 0
+	for _, rmd := range rmds {
+		opsCount += len(rmd.data.Changes.Ops)
+	}
+	ops := make([]op, opsCount)
+	soFar := 0
+	for _, rmd := range rmds {
+		copy(ops[soFar:], rmd.data.Changes.Ops)
+		soFar += len(rmd.data.Changes.Ops)
+	}
+	chains.revertRenames(ops)
+
+	// Create the change items for each chain.  Use the following
+	// simplifications:
+	// * Creates become writes, and use the full path to the created file/dir.
+	// * Deletes use the original blockpointer from the start of the chain
+	//   for the deleted file's path.
+	items := make(map[string][]*ChangeItem)
+	numItems := 0
+	for _, chain := range chains.byMostRecent {
+		for _, op := range chain.ops {
+			newItem := true
+			item := &ChangeItem{
+				CurrPath: op.getFinalPath(),
+			}
+			switch realOp := op.(type) {
+			case *createOp:
+				item.Type = ChangeTypeWrite
+				// Don't force there to be a pointer for the new node,
+				// since it could be a symlink.
+				item.CurrPath = item.CurrPath.ChildPathNoPtr(
+					realOp.obfuscatedNewName(), fbo.makeObfuscator())
+
+				// If the write was processed first, re-use that item.
+				itemSlice, ok := items[item.CurrPath.CanonicalPathString()]
+				if ok {
+					for _, existingItem := range itemSlice {
+						if existingItem.Type == ChangeTypeWrite {
+							newItem = false
+							item = existingItem
+						}
+					}
+				}
+				item.IsNew = true
+			case *syncOp:
+				// If the create was processed first, reuse that item.
+				itemSlice, ok := items[item.CurrPath.CanonicalPathString()]
+				if ok {
+					for _, existingItem := range itemSlice {
+						if existingItem.Type == ChangeTypeWrite {
+							newItem = false
+							item = existingItem
+							item.CurrPath.Path[len(item.CurrPath.Path)-1].
+								BlockPointer = chain.mostRecent
+							break
+						}
+					}
+				}
+				item.Type = ChangeTypeWrite
+				item.OldPtr = chain.original
+			case *renameOp:
+				item.Type = ChangeTypeRename
+				err := item.addUnrefs(chains, op)
+				if err != nil {
+					return nil, err
+				}
+				// Don't force there to be a pointer for the node,
+				// since it could be a symlink.
+				item.CurrPath = item.CurrPath.ChildPathNoPtr(
+					realOp.obfuscatedNewName(), fbo.makeObfuscator())
+			case *rmOp:
+				item.Type = ChangeTypeDelete
+				// Find the original block pointers for each unref.
+				err := item.addUnrefs(chains, op)
+				if err != nil {
+					return nil, err
+				}
+				unrefs := op.Unrefs()
+				if len(unrefs) > 0 {
+					unref := unrefs[0]
+					ptr, err := chains.originalFromMostRecentOrSame(unref)
+					if err != nil {
+						return nil, err
+					}
+					item.CurrPath = item.CurrPath.ChildPath(
+						realOp.obfuscatedOldName(), ptr, fbo.makeObfuscator())
+				}
+			}
+
+			if newItem {
+				pString := item.CurrPath.CanonicalPathString()
+				items[pString] = append(items[pString], item)
+				numItems++
+
+				// Add in an update for every directory whose blockpointer
+				// was updated.
+				currPath := item.CurrPath
+				for currPath.HasValidParent() {
+					currPath = *currPath.ParentPath()
+					pString := currPath.CanonicalPathString()
+					itemSlice, ok := items[pString]
+					needsUpdate := true
+					if ok {
+						for _, existingItem := range itemSlice {
+							if existingItem.Type == ChangeTypeWrite {
+								needsUpdate = false
+								break
+							}
+						}
+					}
+					if !needsUpdate {
+						break
+					}
+					oldPtr, err := chains.originalFromMostRecentOrSame(
+						currPath.TailPointer())
+					if err != nil {
+						return nil, err
+					}
+					item := &ChangeItem{
+						Type:     ChangeTypeWrite,
+						CurrPath: currPath,
+						OldPtr:   oldPtr,
+					}
+					items[pString] = append(items[pString], item)
+				}
+			}
+		}
+	}
+
+	changes = make([]*ChangeItem, 0, numItems)
+	for _, itemSlice := range items {
+		changes = append(changes, itemSlice...)
+	}
+	return changes, nil
+}

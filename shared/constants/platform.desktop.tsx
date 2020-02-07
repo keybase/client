@@ -1,18 +1,22 @@
-const {path, process} = KB
+const {path, process, os} = KB
 const {platform, env} = process
 const {join} = path
 export const isTestDevice = false
 export const isMobile = false
+export const isPhone = false
 export const isAndroid = false
 export const isIOS = false
 export const isLargeScreen = true
 export const isIPhoneX = false
+export const isTablet = false
+
 export const isElectron = true
 export const isDarwin = platform === 'darwin'
 export const isWindows = platform === 'win32'
 export const isLinux = platform === 'linux'
-export const isAndroidNewerThanN = false
 export const isMac = isDarwin && !isIOS
+
+export const isAndroidNewerThanN = false
 export const shortcutSymbol = isDarwin ? '⌘' : 'Ctrl-'
 export const realDeviceName = ''
 
@@ -109,6 +113,8 @@ export const {
   serverConfigFileName,
   guiConfigFilename,
 } = paths
+
+export const downloadFolder = __STORYBOOK__ ? '' : env.XDG_DOWNLOAD_DIR || join(os.homedir, 'Downloads')
 
 // Empty string means let the service figure out the right directory.
 export const pprofDir = ''

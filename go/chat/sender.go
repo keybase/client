@@ -1499,6 +1499,12 @@ func (s *Deliverer) doNotRetryFailure(ctx context.Context, obr chat1.OutboxRecor
 		return chat1.OutboxErrorType_OFFLINE, err, !berr.Temporary()
 	case *net.DNSError:
 		return chat1.OutboxErrorType_OFFLINE, err, !berr.Temporary()
+	case *net.OpError:
+		return chat1.OutboxErrorType_OFFLINE, err, !berr.Temporary()
+	case net.InvalidAddrError:
+		return chat1.OutboxErrorType_OFFLINE, err, !berr.Temporary()
+	case net.UnknownNetworkError:
+		return chat1.OutboxErrorType_OFFLINE, err, !berr.Temporary()
 	case net.Error:
 		return chat1.OutboxErrorType_OFFLINE, err, !berr.Temporary()
 	}

@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
+import * as Container from '../util/container'
 import {Provider} from 'react-redux'
 import {createStore, applyMiddleware} from 'redux'
 import {GatewayProvider, GatewayDest} from 'react-gateway'
@@ -102,6 +103,12 @@ export const MockStore = ({store, children}: any): any => (
     </GatewayProvider>
   </Provider>
 )
+
+type updateFn = (draftState: Container.TypedState) => void
+export const updateStoreDecorator = (store: Container.TypedState, update: updateFn) => (story: any) => (
+  <MockStore store={Container.produce(store, update)}>{story()}</MockStore>
+)
+
 export const createNavigator = (params: any) => ({
   navigation: {
     getParam: (key: any) => params[key],

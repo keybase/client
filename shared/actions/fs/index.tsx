@@ -110,10 +110,7 @@ const loadAdditionalTlf = async (state: Container.TypedState, action: FsGen.Load
 
 const loadFavorites = async (state: Container.TypedState, action: FsGen.FavoritesLoadPayload) => {
   try {
-    if (
-      state.fs.kbfsDaemonStatus.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected ||
-      !state.config.loggedIn
-    ) {
+    if (!state.config.loggedIn) {
       return false
     }
     const results = await RPCTypes.SimpleFSSimpleFSListFavoritesRpcPromise()
@@ -931,10 +928,7 @@ const userOut = () =>
 
 let fsBadgeSubscriptionID: string = ''
 
-const subscribeAndLoadFsBadge = (state: Container.TypedState) => {
-  if (state.fs.kbfsDaemonStatus.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected) {
-    return
-  }
+const subscribeAndLoadFsBadge = () => {
   const oldFsBadgeSubscriptionID = fsBadgeSubscriptionID
   fsBadgeSubscriptionID = Constants.makeUUID()
   return [
@@ -950,10 +944,7 @@ const subscribeAndLoadFsBadge = (state: Container.TypedState) => {
 }
 
 let settingsSubscriptionID: string = ''
-const subscribeAndLoadSettings = (state: Container.TypedState) => {
-  if (state.fs.kbfsDaemonStatus.rpcStatus !== Types.KbfsDaemonRpcStatus.Connected) {
-    return
-  }
+const subscribeAndLoadSettings = () => {
   const oldSettingsSubscriptionID = settingsSubscriptionID
   settingsSubscriptionID = Constants.makeUUID()
   return [

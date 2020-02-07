@@ -80,6 +80,10 @@ export type NonUserDetails = {
   siteURL: string // https://twitter.com/bob,
 }
 
+export type WebOfTrustEntry = {
+  attestingUser: string
+}
+
 export type State = {
   readonly usernameToDetails: Map<string, Details>
   readonly usernameToNonUserDetails: Map<string, NonUserDetails>

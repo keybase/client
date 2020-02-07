@@ -4,6 +4,7 @@ import (
 	"os"
 	"path"
 	"strconv"
+	"sync"
 
 	"github.com/keybase/client/go/kbfs/idutil"
 	"github.com/keybase/client/go/kbfs/ldbutils"
@@ -42,9 +43,10 @@ type currentSessionGetter interface {
 type SettingsDB struct {
 	*ldbutils.LevelDb
 	sessionGetter currentSessionGetter
+	logger        logger.Logger
 
-	cache  map[string][]byte
-	logger logger.Logger
+	lock  sync.RWMutex
+	cache map[string][]byte
 }
 
 func openSettingsDBInternal(config Config) (*ldbutils.LevelDb, error) {
@@ -82,8 +84,8 @@ func openSettingsDB(config Config) *SettingsDB {
 	return &SettingsDB{
 		LevelDb:       db,
 		sessionGetter: config,
-		cache:         make(map[string][]byte),
 		logger:        logger,
+		cache:         make(map[string][]byte),
 	}
 }
 
@@ -102,15 +104,32 @@ func getSettingsDbKey(uid keybase1.UID, key string) []byte {
 	return append([]byte(uid), []byte(key)...)
 }
 
+func (db *SettingsDB) getFromCache(key string) (val []byte, isCached bool) {
+	db.lock.RLock()
+	defer db.lock.RUnlock()
+	val, isCached = db.cache[key]
+	return val, isCached
+}
+
+func (db *SettingsDB) updateCache(key string, val []byte) {
+	db.lock.Lock()
+	defer db.lock.Unlock()
+	if val == nil {
+		delete(db.cache, key)
+	} else {
+		db.cache[key] = val
+	}
+}
+
 // Get overrides (*LevelDb).Get to cache values in memory.
 func (db *SettingsDB) Get(key []byte, ro *opt.ReadOptions) ([]byte, error) {
-	val, isCached := db.cache[string(key)]
+	val, isCached := db.getFromCache(string(key))
 	if isCached {
 		return val, nil
 	}
 	val, err := db.LevelDb.Get(key, ro)
 	if err == nil {
-		db.cache[string(key)] = val
+		db.updateCache(string(key), val)
 	}
 	return val, err
 }
@@ -119,9 +138,9 @@ func (db *SettingsDB) Get(key []byte, ro *opt.ReadOptions) ([]byte, error) {
 func (db *SettingsDB) Put(key []byte, val []byte, wo *opt.WriteOptions) error {
 	err := db.LevelDb.Put(key, val, wo)
 	if err != nil {
-		delete(db.cache, string(key))
+		db.updateCache(string(key), nil)
 	} else {
-		db.cache[string(key)] = val
+		db.updateCache(string(key), val)
 	}
 	return err
 }

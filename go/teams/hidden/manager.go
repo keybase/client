@@ -2,6 +2,8 @@ package hidden
 
 import (
 	"fmt"
+	"sync"
+	"time"
 
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -15,9 +17,19 @@ type ChainManager struct {
 	// single-flight lock on TeamID
 	locktab *libkb.LockTable
 
+	hiddenSupportCacheLock sync.Mutex
+	hiddenSupportCache     map[keybase1.TeamID]HiddenChainSupportState
+
 	// Hold onto FastTeamLoad by-products as long as we have room, and store
 	// them persistently to disk.
 	storage *storage.HiddenStorage
+}
+
+// HiddenChainSupportState describes whether a team supports the hidden chain or
+// not. This information is fetched from the server and cached.
+type HiddenChainSupportState struct {
+	state      bool
+	cacheUntil time.Time
 }
 
 var _ libkb.HiddenTeamChainManager = (*ChainManager)(nil)
@@ -25,6 +37,22 @@ var _ libkb.HiddenTeamChainManager = (*ChainManager)(nil)
 type loadArg struct {
 	id     keybase1.TeamID
 	mutate func(libkb.MetaContext, *keybase1.HiddenTeamChain) (bool, error)
+}
+
+func (m *ChainManager) TeamSupportsHiddenChain(mctx libkb.MetaContext, id keybase1.TeamID) (state bool, err error) {
+	m.hiddenSupportCacheLock.Lock()
+	defer m.hiddenSupportCacheLock.Unlock()
+	if supports, found := m.hiddenSupportCache[id]; found {
+		if mctx.G().Clock().Now().Before(supports.cacheUntil) {
+			return supports.state, nil
+		}
+	}
+	state, err = featureGateForTeamFromServer(mctx, id)
+	if err != nil {
+		return false, err
+	}
+	m.hiddenSupportCache[id] = HiddenChainSupportState{state: state, cacheUntil: mctx.G().Clock().Now().Add(1 * time.Hour)}
+	return state, nil
 }
 
 // Tail returns the furthest known tail of the hidden team chain, as known to our local cache.
@@ -261,8 +289,9 @@ func (m *ChainManager) Advance(mctx libkb.MetaContext, dat keybase1.HiddenTeamCh
 
 func NewChainManager(g *libkb.GlobalContext) *ChainManager {
 	return &ChainManager{
-		storage: storage.NewHiddenStorage(g),
-		locktab: libkb.NewLockTable(),
+		storage:            storage.NewHiddenStorage(g),
+		hiddenSupportCache: make(map[keybase1.TeamID]HiddenChainSupportState),
+		locktab:            libkb.NewLockTable(),
 	}
 }
 

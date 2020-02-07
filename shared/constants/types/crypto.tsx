@@ -43,7 +43,8 @@ export type CommonState = {
   inputType: InputTypes
   // to ensure what the user types matches the input
   output: HiddenString
-  outputSender?: HiddenString
+  outputSenderUsername?: HiddenString
+  outputSenderFullname?: HiddenString
   outputSigned?: boolean
   outputStatus?: OutputStatus
   outputType?: OutputType

@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"fmt"
+	"net/http"
 	"strings"
 	"sync"
 	"time"
@@ -12,6 +13,27 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+var internalHosts = map[string]struct{}{
+	DevelServerURI:      {},
+	StagingServerURI:    {},
+	ProductionServerURI: {},
+	ProductionSiteURI:   {},
+}
+
+func InstrumentationTagFromRequest(req *http.Request) string {
+	if req.URL == nil {
+		return ""
+	}
+	host := req.URL.Host
+	path := req.URL.Path
+	if _, ok := internalHosts[fmt.Sprintf("%s://%s", req.URL.Scheme, host)]; ok {
+		host = ""
+		path = strings.TrimPrefix(req.URL.Path, APIURIPathPrefix)
+		path = strings.TrimPrefix(path, "/")
+	}
+	return fmt.Sprintf("%s %s%s", req.Method, host, path)
+}
+
 func AddRPCRecord(tag string, stat keybase1.InstrumentationStat, record rpc.InstrumentationRecord) keybase1.InstrumentationStat {
 	if stat.NumCalls == 0 {
 		stat.Ctime = keybase1.ToTime(time.Now())
@@ -19,7 +41,6 @@ func AddRPCRecord(tag string, stat keybase1.InstrumentationStat, record rpc.Inst
 	if stat.Tag == "" {
 		stat.Tag = tag
 	}
-
 	stat.Mtime = keybase1.ToTime(time.Now())
 	stat.NumCalls++
 	dur := keybase1.ToDurationMsec(record.Dur)
@@ -53,7 +74,7 @@ type DiskInstrumentationStorage struct {
 	stopCh chan struct{}
 }
 
-var _ rpc.InstrumenterStorage = (*DiskInstrumentationStorage)(nil)
+var _ rpc.NetworkInstrumenterStorage = (*DiskInstrumentationStorage)(nil)
 
 func NewDiskInstrumentationStorage(g *GlobalContext) *DiskInstrumentationStorage {
 	return &DiskInstrumentationStorage{
@@ -114,6 +135,14 @@ func (s *DiskInstrumentationStorage) Flush() (err error) {
 func (s *DiskInstrumentationStorage) flush(storage map[string]keybase1.InstrumentationStat) (err error) {
 	defer s.G().CTraceTimed(context.TODO(), "DiskInstrumentationStorage: flush", func() error { return err })()
 	for tag, record := range storage {
+		var existing keybase1.InstrumentationStat
+		found, err := s.G().LocalDb.GetIntoMsgpack(&existing, s.dbKey(tag))
+		if err != nil {
+			return err
+		}
+		if found {
+			record = existing.AppendStat(record)
+		}
 		if err := s.G().LocalDb.PutObjMsgpack(s.dbKey(tag), nil, record); err != nil {
 			return err
 		}

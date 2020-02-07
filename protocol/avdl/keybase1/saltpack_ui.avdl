@@ -17,6 +17,7 @@ protocol saltpackUi {
   record SaltpackSender {
     UID uid;
     string username;
+    string fullname;
     SaltpackSenderType senderType;
   }
 

@@ -15,7 +15,7 @@ func NewSecretStoreAll(mctx MetaContext) SecretStoreAll {
 		return ssecretservice
 	}
 
-	if mctx.G().Env.ForceSecretStoreFile() {
+	if mctx.G().Env.ForceSecretStoreFile() || mctx.G().Env.RunningInCI() {
 		return sfile
 	}
 

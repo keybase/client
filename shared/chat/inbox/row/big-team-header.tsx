@@ -33,10 +33,9 @@ const BigTeamHeader = React.memo((props: Props) => {
       })
     )
 
-  const popupAnchor = React.useRef(null)
-  const {showingPopup, setShowingPopup, popup} = Kb.usePopup(popupAnchor, () => (
+  const {showingPopup, setShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
     <TeamMenu
-      attachTo={() => popupAnchor.current}
+      attachTo={attachTo}
       visible={showingPopup}
       onHidden={() => setShowingPopup(false)}
       conversationIDKey={conversationIDKey}

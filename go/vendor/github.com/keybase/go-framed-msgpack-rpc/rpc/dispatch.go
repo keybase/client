@@ -22,20 +22,20 @@ type dispatch struct {
 	// Closed once all loops are finished
 	closedCh chan struct{}
 
-	instrumenter *NetworkInstrumenter
-	log          LogInterface
+	instrumenterStorage NetworkInstrumenterStorage
+	log                 LogInterface
 }
 
 func newDispatch(enc *framedMsgpackEncoder, calls *callContainer,
-	l LogInterface, instrumenter *NetworkInstrumenter) *dispatch {
+	l LogInterface, instrumenterStorage NetworkInstrumenterStorage) *dispatch {
 	d := &dispatch{
 		writer:   enc,
 		calls:    calls,
 		stopCh:   make(chan struct{}),
 		closedCh: make(chan struct{}),
 
-		log:          l,
-		instrumenter: instrumenter,
+		log:                 l,
+		instrumenterStorage: instrumenterStorage,
 	}
 	return d
 }
@@ -83,8 +83,8 @@ func (d *dispatch) Call(ctx context.Context, name string, arg interface{}, res i
 		v = append(v, rpcTags)
 	}
 	size, errCh := d.writer.EncodeAndWrite(ctx, v, currySendNotifier(sendNotifier, c.seqid))
-	end := d.instrumenter.Instrument(RPCInstrumentTag(method, c.method))
-	defer func() { _ = end(size) }()
+	record := NewNetworkInstrumenter(d.instrumenterStorage, RPCInstrumentTag(method, c.method))
+	defer func() { _ = record.RecordAndFinish(size) }()
 
 	// Wait for result from encode
 	select {
@@ -120,8 +120,8 @@ func (d *dispatch) Notify(ctx context.Context, name string, arg interface{}, sen
 	}
 
 	size, errCh := d.writer.EncodeAndWrite(ctx, v, currySendNotifier(sendNotifier, SeqNumber(-1)))
-	end := d.instrumenter.Instrument(name)
-	defer func() { _ = end(size) }()
+	record := NewNetworkInstrumenter(d.instrumenterStorage, RPCInstrumentTag(MethodNotify, name))
+	defer func() { _ = record.RecordAndFinish(size) }()
 
 	select {
 	case err := <-errCh:
@@ -144,8 +144,8 @@ func (d *dispatch) Close() {
 func (d *dispatch) handleCancel(c *call) error {
 	d.log.ClientCancel(c.seqid, c.method, nil)
 	size, errCh := d.writer.EncodeAndWriteAsync([]interface{}{MethodCancel, c.seqid, c.method})
-	end := d.instrumenter.Instrument(RPCInstrumentTag(MethodCancel, c.method))
-	defer func() { _ = end(size) }()
+	record := NewNetworkInstrumenter(d.instrumenterStorage, RPCInstrumentTag(MethodCancel, c.method))
+	defer func() { _ = record.RecordAndFinish(size) }()
 	select {
 	case err := <-errCh:
 		if err != nil {

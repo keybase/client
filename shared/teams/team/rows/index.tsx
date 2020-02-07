@@ -23,6 +23,7 @@ type SubteamRow =
   | {key: string; type: 'subteam-add'}
   | {key: string; teamID: Types.TeamID; type: 'subteam-subteam'}
   | {key: string; type: 'subteam-none'}
+  | {key: string; type: 'subteam-info'}
 type SettingsRow = {key: string; type: 'settings'}
 type LoadingRow = {key: string; type: 'loading'}
 export type Row =
@@ -37,11 +38,13 @@ export type Row =
   | LoadingRow
 
 const makeRows = (
+  meta: Types.TeamMeta,
   details: Types.TeamDetails,
   selectedTab: Types.TabKey,
   yourUsername: string,
   yourOperations: Types.TeamOperations,
-  invitesCollapsed: Set<Types.TeamID>
+  invitesCollapsed: Set<Types.TeamID>,
+  subteamsFiltered?: Set<Types.TeamID>
 ): Array<Row> => {
   const rows: Array<Row> = []
   switch (selectedTab) {
@@ -75,7 +78,7 @@ const makeRows = (
             key: 'member-divider:invites',
             type: 'divider',
           })
-          if (!invitesCollapsed.has(details.id)) {
+          if (!invitesCollapsed.has(meta.id)) {
             rows.push(
               ...[...details.invites]
                 .sort(sortInvites)
@@ -86,7 +89,7 @@ const makeRows = (
       }
       if (flags.teamsRedesign) {
         rows.push({
-          count: details.memberCount,
+          count: meta.memberCount,
           dividerType: 'members',
           key: 'member-divider:members',
           type: 'divider',
@@ -99,7 +102,7 @@ const makeRows = (
           username: user.username,
         }))
       )
-      if (details.memberCount > 0 && !details.members) {
+      if (meta.memberCount > 0 && !details.members.size) {
         // loading
         rows.push({key: 'loading', type: 'loading'})
       }
@@ -113,7 +116,7 @@ const makeRows = (
           username: bot.username,
         }))
       )
-      if (details.memberCount > 0 && !details.members) {
+      if (meta.memberCount > 0 && !details.members) {
         // loading
         rows.push({key: 'loading', type: 'loading'})
       }
@@ -151,20 +154,35 @@ const makeRows = (
       break
     }
     case 'subteams': {
-      const {subteams} = details
-      // always push subteam intro, it can decide not to render if already seen
-      rows.push({key: 'subteam-intro', type: 'subteam-intro'})
-      if (yourOperations.manageSubteams) {
-        rows.push({key: 'subteam-add', type: 'subteam-add'})
-      }
-      if (subteams && subteams.size) {
-        rows.push(
-          ...[...subteams]
-            .sort()
-            .map(teamID => ({key: `subteam-subteam:${teamID}`, teamID, type: 'subteam-subteam' as const}))
-        )
+      if (flags.teamsRedesign) {
+        const subteams = subteamsFiltered ?? details.subteams
+        if (yourOperations.manageSubteams) {
+          rows.push({key: 'subteam-add', type: 'subteam-add'})
+        }
+        if (subteams?.size) {
+          rows.push(
+            ...[...subteams]
+              .sort()
+              .map(teamID => ({key: `subteam-subteam:${teamID}`, teamID, type: 'subteam-subteam' as const}))
+          )
+        }
+        rows.push({key: 'subteam-info', type: 'subteam-info'})
       } else {
-        rows.push({key: 'subteam-none', type: 'subteam-none'})
+        const {subteams} = details
+        // always push subteam intro, it can decide not to render if already seen
+        rows.push({key: 'subteam-intro', type: 'subteam-intro'})
+        if (yourOperations.manageSubteams) {
+          rows.push({key: 'subteam-add', type: 'subteam-add'})
+        }
+        if (subteams && subteams.size) {
+          rows.push(
+            ...[...subteams]
+              .sort()
+              .map(teamID => ({key: `subteam-subteam:${teamID}`, teamID, type: 'subteam-subteam' as const}))
+          )
+        } else {
+          rows.push({key: 'subteam-none', type: 'subteam-none'})
+        }
       }
       break
     }

@@ -28,7 +28,7 @@ type Provisioner interface {
 	CounterSign(keybase1.HelloRes) ([]byte, error)
 	CounterSign2(keybase1.Hello2Res) (keybase1.DidCounterSign2Arg, error)
 	GetLogFactory() rpc.LogFactory
-	GetNetworkInstrumenter() *rpc.NetworkInstrumenter
+	GetNetworkInstrumenter() rpc.NetworkInstrumenterStorage
 }
 
 // ProvisionerArg provides the details that a provisioner needs in order

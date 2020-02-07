@@ -492,3 +492,12 @@ func GetFeaturedBotsClient(g *libkb.GlobalContext) (cli keybase1.FeaturedBotClie
 	cli = keybase1.FeaturedBotClient{Cli: rcli}
 	return cli, nil
 }
+
+func GetWebOfTrustClient(g *libkb.GlobalContext) (cli keybase1.WotClient, err error) {
+	rcli, _, err := GetRPCClientWithContext(g)
+	if err != nil {
+		return cli, err
+	}
+	cli = keybase1.WotClient{Cli: rcli}
+	return cli, nil
+}

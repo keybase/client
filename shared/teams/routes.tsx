@@ -1,5 +1,6 @@
-import Team from './team/container'
+import {TeamScreenType} from './team/container'
 import TeamMember from './team/member/container'
+import TeamMemberNew from './team/member/index.new'
 import TeamsRoot from './container'
 import ContactRestricted from '../team-building/contact-restricted'
 import RetentionWarning from './team/settings-tab/retention/warning/container'
@@ -14,10 +15,13 @@ import TeamReallyLeaveTeam from './really-leave-team/container'
 import TeamReallyRemoveMember from './team/really-remove-member'
 import TeamRename from './rename-team/container'
 import TeamsTeamBuilder from '../team-building/container'
+import flags from '../util/feature-flags'
 
 export const newRoutes = {
-  team: {getScreen: (): typeof Team => require('./team/container').default},
-  teamMember: {getScreen: (): typeof TeamMember => require('./team/member/container').default},
+  team: {getScreen: (): TeamScreenType => require('./team/container').default},
+  teamMember: flags.teamsRedesign
+    ? {getScreen: (): typeof TeamMemberNew => require('./team/member/index.new').default}
+    : {getScreen: (): typeof TeamMember => require('./team/member/container').default},
   // TODO connect broken
   teamsRoot: {getScreen: (): typeof TeamsRoot => require('./container').default},
 }

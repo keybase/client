@@ -28,12 +28,12 @@ type receiveHandler struct {
 	taskCancelCh chan SeqNumber
 	taskEndCh    chan SeqNumber
 
-	instrumenter *NetworkInstrumenter
-	log          LogInterface
+	instrumenterStorage NetworkInstrumenterStorage
+	log                 LogInterface
 }
 
 func newReceiveHandler(enc *framedMsgpackEncoder, protHandler *protocolHandler,
-	l LogInterface, instrumenter *NetworkInstrumenter) *receiveHandler {
+	l LogInterface, instrumenterStorage NetworkInstrumenterStorage) *receiveHandler {
 	r := &receiveHandler{
 		writer:      enc,
 		protHandler: protHandler,
@@ -45,8 +45,8 @@ func newReceiveHandler(enc *framedMsgpackEncoder, protHandler *protocolHandler,
 		taskCancelCh: make(chan SeqNumber),
 		taskEndCh:    make(chan SeqNumber),
 
-		log:          l,
-		instrumenter: instrumenter,
+		log:                 l,
+		instrumenterStorage: instrumenterStorage,
 	}
 	go r.taskLoop()
 	return r
@@ -101,12 +101,12 @@ func (r *receiveHandler) receiveNotify(rpc *rpcNotifyMessage) error {
 }
 
 func (r *receiveHandler) receiveCall(rpc *rpcCallMessage) error {
-	req := newCallRequest(rpc, r.log, r.instrumenter)
+	req := newCallRequest(rpc, r.log, r.instrumenterStorage)
 	return r.handleReceiveDispatch(req)
 }
 
 func (r *receiveHandler) receiveCallCompressed(rpc *rpcCallCompressedMessage) error {
-	req := newCallCompressedRequest(rpc, r.log, r.instrumenter)
+	req := newCallCompressedRequest(rpc, r.log, r.instrumenterStorage)
 	return r.handleReceiveDispatch(req)
 }
 

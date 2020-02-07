@@ -114,7 +114,7 @@ func httpClient(mctx libkb.MetaContext, host string) *http.Client {
 	xprt.Proxy = libkb.MakeProxy(env)
 
 	return &http.Client{
-		Transport: &xprt,
+		Transport: libkb.NewInstrumentedTransport(mctx.G(), func(*http.Request) string { return host + " Giphy" }, &xprt),
 		Timeout:   10 * time.Second,
 	}
 }
@@ -165,17 +165,17 @@ func ProxyURL(sourceURL string) (res string, err error) {
 func Asset(mctx libkb.MetaContext, sourceURL string) (res io.ReadCloser, length int64, err error) {
 	proxyURL, err := ProxyURL(sourceURL)
 	if err != nil {
-		return res, length, err
+		return nil, 0, err
 	}
 	req, err := http.NewRequest("GET", proxyURL, nil)
 	if err != nil {
-		return res, length, err
+		return nil, 0, err
 	}
 	req.Header.Add("Accept", "image/*")
 	req.Host = MediaHost
 	resp, err := ctxhttp.Do(mctx.Ctx(), WebClient(mctx), req)
 	if err != nil {
-		return res, length, err
+		return nil, 0, err
 	}
 	return resp.Body, resp.ContentLength, nil
 }

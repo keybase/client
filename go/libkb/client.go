@@ -7,6 +7,8 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"net/http/cookiejar"
@@ -233,7 +235,7 @@ func NewClient(g *GlobalContext, config *ClientConfig, needCookie bool) (*Client
 	if jar != nil {
 		ret.cli.Jar = jar
 	}
-	ret.cli.Transport = &xprt
+	ret.cli.Transport = NewInstrumentedTransport(g, InstrumentationTagFromRequest, &xprt)
 	return ret, nil
 }
 
@@ -254,4 +256,68 @@ func ServerLookup(env *Env, mode RunMode) (string, error) {
 		return ProductionSiteURI, nil
 	}
 	return "", fmt.Errorf("Did not find a server to use with the current RunMode!")
+}
+
+type InstrumentedBody struct {
+	Contextified
+	record *rpc.NetworkInstrumenter
+	body   io.ReadCloser
+	n      int
+}
+
+var _ io.ReadCloser = (*InstrumentedBody)(nil)
+
+func NewInstrumentedBody(g *GlobalContext, record *rpc.NetworkInstrumenter, body io.ReadCloser) *InstrumentedBody {
+	return &InstrumentedBody{
+		Contextified: NewContextified(g),
+		record:       record,
+		body:         body,
+	}
+}
+
+func (b *InstrumentedBody) Read(p []byte) (n int, err error) {
+	n, err = b.body.Read(p)
+	b.n += n
+	return n, err
+}
+
+func (b *InstrumentedBody) Close() error {
+	// instrument the full body size even if the caller hasn't consumed it.
+	_, _ = io.Copy(ioutil.Discard, b.body)
+	b.record.IncrementSize(int64(b.n))
+	if err := b.record.Finish(); err != nil {
+		b.G().Log.CDebugf(context.TODO(), "InstrumentedBody: unable to instrument network request: %s, %s", b.record, err)
+		return err
+	}
+	return b.body.Close()
+}
+
+type InstrumentedTransport struct {
+	Contextified
+	Transport *http.Transport
+	tagger    func(*http.Request) string
+}
+
+var _ http.RoundTripper = (*InstrumentedTransport)(nil)
+
+func NewInstrumentedTransport(g *GlobalContext, tagger func(*http.Request) string, xprt *http.Transport) *InstrumentedTransport {
+	return &InstrumentedTransport{
+		Contextified: NewContextified(g),
+		Transport:    xprt,
+		tagger:       tagger,
+	}
+}
+
+func (i *InstrumentedTransport) RoundTrip(req *http.Request) (resp *http.Response, err error) {
+	record := rpc.NewNetworkInstrumenter(i.G().NetworkInstrumenterStorage, i.tagger(req))
+	resp, err = i.Transport.RoundTrip(req)
+	record.EndCall()
+	if err != nil {
+		if rerr := record.Finish(); rerr != nil {
+			i.G().Log.CDebugf(context.TODO(), "InstrumentedTransport: unable to instrument network request %s, %s", record, rerr)
+		}
+		return resp, err
+	}
+	resp.Body = NewInstrumentedBody(i.G(), record, resp.Body)
+	return resp, err
 }

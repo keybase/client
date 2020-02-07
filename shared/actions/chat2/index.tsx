@@ -3077,7 +3077,11 @@ const toggleMessageReaction = async (
 }
 
 const receivedBadgeState = (action: NotificationsGen.ReceivedBadgeStatePayload) =>
-  Chat2Gen.createBadgesUpdated({conversations: action.payload.badgeState.conversations || []})
+  Chat2Gen.createBadgesUpdated({
+    bigTeamBadgeCount: action.payload.badgeState.bigTeamBadgeCount,
+    conversations: action.payload.badgeState.conversations || [],
+    smallTeamBadgeCount: action.payload.badgeState.smallTeamBadgeCount,
+  })
 
 const setMinWriterRole = (action: Chat2Gen.SetMinWriterRolePayload, logger: Saga.SagaLogger) => {
   const {conversationIDKey, role} = action.payload

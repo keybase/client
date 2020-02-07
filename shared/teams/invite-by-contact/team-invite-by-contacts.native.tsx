@@ -48,8 +48,8 @@ type TeamInviteByContactProps = {
 
 const TeamInviteByContact = (props: TeamInviteByContactProps) => {
   const {teamID, contacts, region, errorMessage} = props
-  const teamDetails = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
-  const {teamname, invites} = teamDetails
+  const {teamname} = Container.useSelector(state => Constants.getTeamMeta(state, teamID))
+  const {invites} = Container.useSelector(state => Constants.getTeamDetails(state, teamID))
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()

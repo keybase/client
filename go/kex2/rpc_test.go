@@ -82,8 +82,8 @@ func (mp *mockProvisioner) GetLogFactory() rpc.LogFactory {
 	return makeLogFactory()
 }
 
-func (mp *mockProvisioner) GetNetworkInstrumenter() *rpc.NetworkInstrumenter {
-	return rpc.NewNetworkInstrumenter(&rpc.DummyInstrumentationStorage{})
+func (mp *mockProvisioner) GetNetworkInstrumenter() rpc.NetworkInstrumenterStorage {
+	return &rpc.DummyInstrumentationStorage{}
 }
 
 func (mp *mockProvisioner) CounterSign(input keybase1.HelloRes) (output []byte, err error) {
@@ -109,8 +109,8 @@ func (mp *mockProvisionee) GetLogFactory() rpc.LogFactory {
 	return makeLogFactory()
 }
 
-func (mp *mockProvisionee) GetNetworkInstrumenter() *rpc.NetworkInstrumenter {
-	return rpc.NewNetworkInstrumenter(&rpc.DummyInstrumentationStorage{})
+func (mp *mockProvisionee) GetNetworkInstrumenter() rpc.NetworkInstrumenterStorage {
+	return &rpc.DummyInstrumentationStorage{}
 }
 
 var ErrHandleHello = errors.New("handle hello failure")

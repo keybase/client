@@ -243,7 +243,11 @@ type _AttemptAudioRecordingPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly meteringCb: (amp: number) => void
 }
-type _BadgesUpdatedPayload = {readonly conversations: Array<RPCTypes.BadgeConversationInfo>}
+type _BadgesUpdatedPayload = {
+  readonly bigTeamBadgeCount: number
+  readonly conversations: Array<RPCTypes.BadgeConversationInfo>
+  readonly smallTeamBadgeCount: number
+}
 type _BlockConversationPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly reportUser: boolean
@@ -312,6 +316,7 @@ type _InboxRefreshPayload = {
     | 'teamTypeChanged'
     | 'maybeKickedFromTeam'
     | 'widgetRefresh'
+    | 'shareConfigSearch'
 }
 type _InboxSearchMoveSelectedIndexPayload = {readonly increment: boolean}
 type _InboxSearchNameResultsPayload = {

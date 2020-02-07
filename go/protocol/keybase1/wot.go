@@ -6,6 +6,8 @@ package keybase1
 import (
 	"fmt"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	context "golang.org/x/net/context"
+	"time"
 )
 
 type UsernameVerificationType int
@@ -84,16 +86,73 @@ func (o Confidence) DeepCopy() Confidence {
 	}
 }
 
+type WotVouchArg struct {
+	SessionID    int         `codec:"sessionID" json:"sessionID"`
+	Uv           UserVersion `codec:"uv" json:"uv"`
+	Attestations []string    `codec:"attestations" json:"attestations"`
+	Confidence   Confidence  `codec:"confidence" json:"confidence"`
+}
+
+type WotVouchCLIArg struct {
+	SessionID    int        `codec:"sessionID" json:"sessionID"`
+	Assertion    string     `codec:"assertion" json:"assertion"`
+	Attestations []string   `codec:"attestations" json:"attestations"`
+	Confidence   Confidence `codec:"confidence" json:"confidence"`
+}
+
 type WotInterface interface {
+	WotVouch(context.Context, WotVouchArg) error
+	WotVouchCLI(context.Context, WotVouchCLIArg) error
 }
 
 func WotProtocol(i WotInterface) rpc.Protocol {
 	return rpc.Protocol{
-		Name:    "keybase.1.wot",
-		Methods: map[string]rpc.ServeHandlerDescription{},
+		Name: "keybase.1.wot",
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"wotVouch": {
+				MakeArg: func() interface{} {
+					var ret [1]WotVouchArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]WotVouchArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]WotVouchArg)(nil), args)
+						return
+					}
+					err = i.WotVouch(ctx, typedArgs[0])
+					return
+				},
+			},
+			"wotVouchCLI": {
+				MakeArg: func() interface{} {
+					var ret [1]WotVouchCLIArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]WotVouchCLIArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]WotVouchCLIArg)(nil), args)
+						return
+					}
+					err = i.WotVouchCLI(ctx, typedArgs[0])
+					return
+				},
+			},
+		},
 	}
 }
 
 type WotClient struct {
 	Cli rpc.GenericClient
+}
+
+func (c WotClient) WotVouch(ctx context.Context, __arg WotVouchArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.wot.wotVouch", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c WotClient) WotVouchCLI(ctx context.Context, __arg WotVouchCLIArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.wot.wotVouchCLI", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
 }

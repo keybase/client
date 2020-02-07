@@ -17,9 +17,10 @@ const blankInfo = Constants.initialMemberInfo
 
 export default connect(
   (state, {teamID, username}: OwnProps) => {
+    const {teamname} = Constants.getTeamMeta(state, teamID)
     const teamDetails = Constants.getTeamDetails(state, teamID)
     const canManageBots = Constants.getCanPerformByID(state, teamID).manageBots
-    const {members: map = new Map<string, Types.MemberInfo>(), teamname} = teamDetails
+    const {members: map = new Map<string, Types.MemberInfo>()} = teamDetails
     const info: Types.MemberInfo = map.get(username) || blankInfo
     const bot: RPCTypes.FeaturedBot = state.chat2.featuredBotsMap.get(username) ?? {
       botAlias: info.fullName,

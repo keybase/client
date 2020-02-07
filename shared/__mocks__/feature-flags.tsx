@@ -21,8 +21,11 @@ const ff: FeatureFlags = {
   outOfDateBanner: true,
   proofProviders: true,
   stellarExternalPartners: false,
+  tabletSupport: false,
+  teamInvites: false,
   teamsRedesign: false,
   userBlocking: true,
+  webOfTrust: false,
 }
 
 console.warn('feature flag mock in effect')

@@ -496,10 +496,8 @@ func (h *UIInboxLoader) buildLayout(ctx context.Context, inbox types.Inbox,
 	if !h.G().IsMobileAppType() {
 		badgeState := h.G().Badger.State()
 		sort.Slice(widgetList, func(i, j int) bool {
-			ibadged :=
-				badgeState.ConversationBadgeStr(ctx, widgetList[i].ConvID, keybase1.DeviceType_DESKTOP) > 0
-			jbadged :=
-				badgeState.ConversationBadgeStr(ctx, widgetList[j].ConvID, keybase1.DeviceType_DESKTOP) > 0
+			ibadged := badgeState.ConversationBadgeStr(ctx, widgetList[i].ConvID) > 0
+			jbadged := badgeState.ConversationBadgeStr(ctx, widgetList[j].ConvID) > 0
 			if ibadged && !jbadged {
 				return true
 			} else if !ibadged && jbadged {

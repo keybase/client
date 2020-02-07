@@ -581,19 +581,11 @@ func (h ConfigHandler) UpdateLastLoggedInAndServerConfig(
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
 	mctx := libkb.NewMetaContext(ctx, h.G())
-	resp, finisher, err := h.G().API.GetResp(mctx, arg)
-	defer finisher()
+	resp, err := h.G().API.Get(mctx, arg)
 	if err != nil {
 		return err
 	}
-	userFeatureusBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-	jw, err := jsonw.Unmarshal(userFeatureusBytes)
-	if err != nil {
-		return err
-	}
+	jw := resp.Body
 	isAdmin, err := jw.AtPath("features.admin.value").GetBool()
 	if err != nil {
 		return err

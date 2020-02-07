@@ -304,6 +304,7 @@ export type TypedActionsMap = {
   'config:loadedOnLoginStartup': config.LoadedOnLoginStartupPayload
   'config:loadOnStart': config.LoadOnStartPayload
   'config:showShareActionSheet': config.ShowShareActionSheetPayload
+  'config:androidShare': config.AndroidSharePayload
   'crypto:clearRecipients': crypto.ClearRecipientsPayload
   'crypto:clearInput': crypto.ClearInputPayload
   'crypto:downloadEncryptedText': crypto.DownloadEncryptedTextPayload
@@ -897,13 +898,13 @@ export type TypedActionsMap = {
   'teams:getChannels': teams.GetChannelsPayload
   'teams:getTeams': teams.GetTeamsPayload
   'teams:unsubscribeTeamList': teams.UnsubscribeTeamListPayload
-  'teams:getDetails': teams.GetDetailsPayload
-  'teams:getDetailsByID': teams.GetDetailsByIDPayload
+  'teams:loadTeam': teams.LoadTeamPayload
+  'teams:teamLoaded': teams.TeamLoadedPayload
   'teams:unsubscribeTeamDetails': teams.UnsubscribeTeamDetailsPayload
+  'teams:setTeamVersion': teams.SetTeamVersionPayload
   'teams:getMembers': teams.GetMembersPayload
   'teams:setMembers': teams.SetMembersPayload
   'teams:getTeamProfileAddList': teams.GetTeamProfileAddListPayload
-  'teams:getTeamPublicity': teams.GetTeamPublicityPayload
   'teams:addTeamWithChosenChannels': teams.AddTeamWithChosenChannelsPayload
   'teams:saveChannelMembership': teams.SaveChannelMembershipPayload
   'teams:addParticipant': teams.AddParticipantPayload
@@ -937,7 +938,6 @@ export type TypedActionsMap = {
   'teams:setTeamLoadingInvites': teams.SetTeamLoadingInvitesPayload
   'teams:setTeamDetails': teams.SetTeamDetailsPayload
   'teams:setTeamCanPerform': teams.SetTeamCanPerformPayload
-  'teams:setTeamPublicitySettings': teams.SetTeamPublicitySettingsPayload
   'teams:setTeamChannelInfo': teams.SetTeamChannelInfoPayload
   'teams:setTeamChannels': teams.SetTeamChannelsPayload
   'teams:setTeamInfo': teams.SetTeamInfoPayload
@@ -959,6 +959,7 @@ export type TypedActionsMap = {
   'teams:setTeamRoleMapLatestKnownVersion': teams.SetTeamRoleMapLatestKnownVersionPayload
   'teams:setTeamRoleMap': teams.SetTeamRoleMapPayload
   'teams:toggleInvitesCollapsed': teams.ToggleInvitesCollapsedPayload
+  'teams:setSubteamFilter': teams.SetSubteamFilterPayload
   'tracker2:load': tracker2.LoadPayload
   'tracker2:updatedDetails': tracker2.UpdatedDetailsPayload
   'tracker2:updateResult': tracker2.UpdateResultPayload

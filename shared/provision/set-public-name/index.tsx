@@ -3,6 +3,7 @@ import * as Kb from '../../common-adapters'
 import * as Constants from '../../constants/provision'
 import * as Styles from '../../styles'
 import * as Platform from '../../constants/platform'
+import {defaultDevicename} from '../../constants/signup'
 
 import {SignupScreen, errorBanner} from '../../signup/common'
 
@@ -15,7 +16,7 @@ type Props = {
 }
 
 const SetPublicName = (props: Props) => {
-  const [deviceName, setDeviceName] = React.useState(Platform.realDeviceName ?? '')
+  const [deviceName, setDeviceName] = React.useState(defaultDevicename)
   const cleanDeviceName = Constants.cleanDeviceName(deviceName)
   const _onSubmit = props.onSubmit
   const onSubmit = React.useCallback(() => {
