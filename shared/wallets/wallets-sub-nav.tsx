@@ -12,7 +12,7 @@ import * as Shim from '../router-v2/shim'
 import Wallet from './wallet/container'
 import * as Container from '../util/container'
 
-// walletsSubRoutes should only be used on desktop
+// walletsSubRoutes should only be used on desktop + tablet
 const walletsSubRoutes = {
   ...require('./routes').sharedRoutes,
   wallet: {getScreen: (): typeof Wallet => require('./wallet/container').default},

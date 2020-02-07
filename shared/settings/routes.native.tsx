@@ -1,4 +1,5 @@
 import * as Constants from '../constants/settings'
+import * as Container from '../util/container'
 import AboutTab from './about-container'
 import AdvancedTab from './advanced/container'
 import ChatTab from './chat/container'
@@ -29,14 +30,22 @@ import WhatsNewTab from '../whats-new/container'
 export const newRoutes = {
   [Constants.aboutTab]: {getScreen: (): typeof AboutTab => require('./about-container').default},
   // TODO connect broken
-  [Constants.advancedTab]: {getScreen: (): typeof AdvancedTab => require('./advanced/container').default},
+  [Constants.advancedTab]: {
+    getScreen: (): typeof AdvancedTab => require('./advanced/container').default,
+  },
   [Constants.chatTab]: {getScreen: (): typeof ChatTab => require('./chat/container').default},
   [Constants.displayTab]: {getScreen: (): typeof DisplayTab => require('./display/container').default},
   [Constants.fsTab]: {getScreen: (): typeof FsTab => require('./files/container').default},
-  [Constants.walletsTab]: {
-    getScreen: (): typeof WalletsTab => require('../wallets/wallet/container').default,
+  [Constants.walletsTab]: Container.isTablet
+    ? {
+        get screen() {
+          return require('../wallets/wallets-sub-nav').default
+        },
+      }
+    : {getScreen: (): typeof WalletsTab => require('../wallets/wallet/container').default},
+  [Constants.feedbackTab]: {
+    getScreen: (): typeof FeedbackTab => require('./feedback/container').default,
   },
-  [Constants.feedbackTab]: {getScreen: (): typeof FeedbackTab => require('./feedback/container').default},
   // TODO connect broken
   [Constants.invitationsTab]: {
     getScreen: (): typeof InvitationsTab => require('./invites/container').default,
@@ -53,14 +62,18 @@ export const newRoutes = {
   },
   addEmail: {getScreen: (): typeof Email => require('./account/add-modals').Email},
   addPhone: {getScreen: (): typeof Phone => require('./account/add-modals').Phone},
-  dbNukeConfirm: {getScreen: (): typeof DbNukeConfirm => require('./db-nuke-confirm/container').default},
+  dbNukeConfirm: {
+    getScreen: (): typeof DbNukeConfirm => require('./db-nuke-confirm/container').default,
+  },
   inviteSent: {getScreen: (): typeof InviteSent => require('./invite-generated/container').default},
   [Constants.contactsTab]: {
     getScreen: (): typeof ManageContactsTab => require('./manage-contacts.native').default,
   },
   // TODO connect broken
   privacyPolicy: {getScreen: (): typeof WebLink => require('./web-links.native').default},
-  removeDevice: {getScreen: (): typeof RemoveDevice => require('../devices/device-revoke/container').default},
+  removeDevice: {
+    getScreen: (): typeof RemoveDevice => require('../devices/device-revoke/container').default,
+  },
   settingsRoot: {getScreen: (): typeof SettingsRoot => require('.').default},
   // TODO connect broken
   terms: {getScreen: (): typeof WebLink => require('./web-links.native').default},
