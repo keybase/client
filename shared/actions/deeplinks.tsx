@@ -11,12 +11,12 @@ import * as TeamsGen from './teams-gen'
 import URL from 'url-parse'
 import logger from '../logger'
 
-const handleTeamPageLink = (teamName: string, action: 'add_or_invite' | 'manage_settings' | undefined) => {
+const handleTeamPageLink = (teamname: string, action: 'add_or_invite' | 'manage_settings' | undefined) => {
   const initialTab = action === 'manage_settings' ? 'settings' : undefined
   const addMembers = action === 'add_or_invite' ? true : undefined
   return [
     RouteTreeGen.createSwitchTab({tab: Tabs.teamsTab}),
-    TeamsGen.createShowTeamByName({teamName: teamName, initialTab, addMembers}),
+    TeamsGen.createShowTeamByName({teamname, initialTab, addMembers}),
   ]
 }
 

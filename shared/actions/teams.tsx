@@ -1290,12 +1290,12 @@ function* teamBuildingSaga() {
 }
 
 async function showTeamByName(action: TeamsGen.ShowTeamByNamePayload, logger: Saga.SagaLogger) {
-  const {teamName, initialTab, addMembers} = action.payload
+  const {teamname, initialTab, addMembers} = action.payload
   let teamID: string
   try {
-    teamID = await RPCTypes.teamsGetTeamIDRpcPromise({teamName})
+    teamID = await RPCTypes.teamsGetTeamIDRpcPromise({teamName: teamname})
   } catch (e) {
-    logger.info(`showTeamByName: team "${teamName}" cannot be loaded: ${e.toString()}`)
+    logger.info(`showTeamByName: team "${teamname}" cannot be loaded: ${e.toString()}`)
     return null
   }
   return [

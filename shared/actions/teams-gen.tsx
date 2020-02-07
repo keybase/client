@@ -265,7 +265,7 @@ type _SetUpdatedTopicPayload = {
 }
 type _SettingsErrorPayload = {readonly error: string}
 type _ShowTeamByNamePayload = {
-  readonly teamName: string
+  readonly teamname: string
   readonly initialTab?: Types.TabKey
   readonly addMembers?: boolean
 }
