@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 import Root from './root'
 import {SendBody, RequestBody} from './body/container'
 import SendBodyAdvanced from './body/advanced'
@@ -31,5 +32,10 @@ const SendRequestForm = (props: Props) => (
     )}
   </Root>
 )
+SendRequestForm.navigationOptions = {
+  safeAreaStyle: {
+    backgroundColor: Styles.globalColors.purpleDark,
+  },
+}
 
 export default SendRequestForm
