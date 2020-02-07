@@ -90,8 +90,8 @@ class Feedback extends React.Component<Props, State> {
   render() {
     const {sending, sendError} = this.props
     return (
-      <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center">
-        <Kb.ScrollView alwaysBounceVertical={false}>
+      <Kb.ScrollView alwaysBounceVertical={false}>
+        <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center">
           {this.state.showSuccessBanner && (
             <Kb.Banner color="green">
               <Kb.BannerParagraph bannerColor="green" content="Thanks! Your feedback was sent." />
@@ -157,8 +157,8 @@ class Feedback extends React.Component<Props, State> {
               </Kb.Box2>
             )}
           </Kb.Box2>
-        </Kb.ScrollView>
-      </Kb.Box2>
+        </Kb.Box2>
+      </Kb.ScrollView>
     )
   }
 }
