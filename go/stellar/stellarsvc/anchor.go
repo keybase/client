@@ -279,7 +279,11 @@ func (a *anchorInteractor) get(mctx libkb.MetaContext, u *url.URL, okResponse fm
 // httpGet is the live version of httpGetClient that is used
 // by default.
 func httpGet(mctx libkb.MetaContext, url, authToken string) (int, []byte, error) {
-	client := http.Client{Timeout: 10 * time.Second}
+	client := http.Client{
+		Timeout: 10 * time.Second,
+		Transport: libkb.NewInstrumentedTransport(mctx.G(), func(*http.Request) string { return "GET StellarAnchor" },
+			http.DefaultTransport.(*http.Transport)),
+	}
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return 0, nil, err
@@ -293,9 +297,9 @@ func httpGet(mctx libkb.MetaContext, url, authToken string) (int, []byte, error)
 	if err != nil {
 		return 0, nil, err
 	}
+	defer res.Body.Close()
 
 	body, err := ioutil.ReadAll(res.Body)
-	res.Body.Close()
 	if err != nil {
 		return 0, nil, err
 	}
@@ -306,7 +310,11 @@ func httpGet(mctx libkb.MetaContext, url, authToken string) (int, []byte, error)
 // httpPost is the live version of httpPostClient that is used
 // by default.
 func httpPost(mctx libkb.MetaContext, url string, data url.Values) (int, []byte, error) {
-	client := http.Client{Timeout: 10 * time.Second}
+	client := http.Client{
+		Timeout: 10 * time.Second,
+		Transport: libkb.NewInstrumentedTransport(mctx.G(), func(*http.Request) string { return "POST StellarAnchor" },
+			http.DefaultTransport.(*http.Transport)),
+	}
 	req, err := http.NewRequest(http.MethodPost, url, strings.NewReader(data.Encode()))
 	if err != nil {
 		return 0, nil, err
@@ -317,9 +325,9 @@ func httpPost(mctx libkb.MetaContext, url string, data url.Values) (int, []byte,
 	if err != nil {
 		return 0, nil, err
 	}
+	defer res.Body.Close()
 
 	body, err := ioutil.ReadAll(res.Body)
-	res.Body.Close()
 	if err != nil {
 		return 0, nil, err
 	}

@@ -41,6 +41,7 @@ class Team extends React.Component<Props> {
       case 'subteam-add':
       case 'subteam-none':
       case 'subteam-subteam':
+      case 'subteam-info':
       case 'loading':
         return renderRow(item, this.props.teamID)
       default: {

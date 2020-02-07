@@ -106,7 +106,7 @@ const ConfirmModal = (props: Props) => (
       ) : (
         props.prompt
       )}
-      {props.description && (
+      {!!props.description && (
         <Text center={true} style={styles.text} type="Body">
           {props.description}
         </Text>

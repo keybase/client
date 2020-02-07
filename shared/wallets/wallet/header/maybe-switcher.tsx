@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
-import {isMobile} from '../../../util/container'
+import {isPhone} from '../../../util/container'
 import WalletSwitcher from './wallet-switcher/container'
 
 type Props = React.PropsWithChildren<{}>
@@ -22,6 +22,6 @@ const _Switcher: React.FunctionComponent<Kb.PropsWithOverlay<Props>> = props => 
 const Switcher = Kb.OverlayParentHOC(_Switcher)
 
 // TODO these types don't make sense
-const MaybeSwitcher = isMobile ? Switcher : NoSwitcher
+const MaybeSwitcher = isPhone ? Switcher : NoSwitcher
 
 export default MaybeSwitcher as any

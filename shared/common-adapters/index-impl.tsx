@@ -41,6 +41,9 @@ module.exports = {
   get ButtonBar() {
     return require('./button-bar').default
   },
+  get CheckCircle() {
+    return require('./check-circle').default
+  },
   get Checkbox() {
     return require('./checkbox').default
   },

@@ -97,13 +97,11 @@ func (a *APIServerHandler) doGet(mctx libkb.MetaContext, arg GenericArg, session
 	if getWithSessionArg, ok := arg.(keybase1.GetWithSessionArg); ok && getWithSessionArg.UseText != nil && *getWithSessionArg.UseText {
 		kbarg.UseText = true
 		resp, finisher, err := mctx.G().API.GetResp(mctx, kbarg)
-		var bytesRead int64
-		defer func() { finisher(bytesRead) }()
+		defer finisher()
 		if err != nil {
 			return res, err
 		}
 		body, err := ioutil.ReadAll(resp.Body)
-		bytesRead = int64(len(body))
 		if err != nil {
 			return res, err
 		}

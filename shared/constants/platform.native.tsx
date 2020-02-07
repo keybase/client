@@ -22,14 +22,20 @@ export const isTestDevice = nativeBridge.isTestDevice
 // @ts-ignore
 export const isRemoteDebuggerAttached: boolean = typeof DedicatedWorkerGlobalScope !== 'undefined'
 export const runMode = 'prod'
+
 export const isIOS = Platform.OS === 'ios'
 export const isAndroid = !isIOS
 export const isMobile = true
+export const isIPhoneX = iPhoneXHelper.isIphoneX()
+export const isTablet = Platform.OS === 'ios' && Platform.isPad
+export const isPhone = !isTablet
+
 export const isDarwin = false
 export const isElectron = false
 export const isLinux = false
 export const isWindows = false
 export const isMac = false
+
 export const defaultUseNativeFrame = true
 export const fileUIName = 'File Explorer'
 export const mobileOsVersion = Platform.Version
@@ -38,8 +44,6 @@ export const isAndroidNewerThanM = isAndroid && mobileOsVersionNumber > 22
 export const isAndroidNewerThanN = isAndroid && mobileOsVersionNumber >= 26
 export const shortcutSymbol = ''
 export const realDeviceName = Constants.deviceName ?? ''
-
-export const isIPhoneX = iPhoneXHelper.isIphoneX()
 
 // isLargeScreen means you have at larger screen like iPhone 6,7 or Pixel
 // See https://material.io/devices/

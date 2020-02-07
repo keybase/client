@@ -15,18 +15,9 @@ import {StylesTextCrossPlatform} from '../../common-adapters/text'
 import {NavigationEventPayload, SwitchActions} from '@react-navigation/core'
 
 const isPathItem = (path: Types.Path) => Types.getPathLevel(path) > 2 || Constants.hasSpecialFileElement(path)
-const noop = () => {}
-
-export const useDispatchWhenConnected = () => {
-  const kbfsDaemonConnected =
-    Container.useSelector(state => state.fs.kbfsDaemonStatus.rpcStatus) ===
-    Types.KbfsDaemonRpcStatus.Connected
-  const dispatch = Container.useDispatch()
-  return kbfsDaemonConnected ? dispatch : noop
-}
 
 const useFsPathSubscriptionEffect = (path: Types.Path, topic: RPCTypes.PathSubscriptionTopic) => {
-  const dispatch = useDispatchWhenConnected()
+  const dispatch = Container.useDispatch()
   React.useEffect(() => {
     if (Types.getPathLevel(path) < 3) {
       return () => {}
@@ -39,7 +30,7 @@ const useFsPathSubscriptionEffect = (path: Types.Path, topic: RPCTypes.PathSubsc
 }
 
 const useFsNonPathSubscriptionEffect = (topic: RPCTypes.SubscriptionTopic) => {
-  const dispatch = useDispatchWhenConnected()
+  const dispatch = Container.useDispatch()
   React.useEffect(() => {
     const subscriptionID = Constants.makeUUID()
     dispatch(FsGen.createSubscribeNonPath({subscriptionID, topic}))
@@ -49,7 +40,7 @@ const useFsNonPathSubscriptionEffect = (topic: RPCTypes.SubscriptionTopic) => {
 
 export const useFsPathMetadata = (path: Types.Path) => {
   useFsPathSubscriptionEffect(path, RPCTypes.PathSubscriptionTopic.stat)
-  const dispatch = useDispatchWhenConnected()
+  const dispatch = Container.useDispatch()
   React.useEffect(() => {
     isPathItem(path) && dispatch(FsGen.createLoadPathMetadata({path}))
   }, [dispatch, path])
@@ -57,7 +48,7 @@ export const useFsPathMetadata = (path: Types.Path) => {
 
 export const useFsChildren = (path: Types.Path, initialLoadRecursive?: boolean) => {
   useFsPathSubscriptionEffect(path, RPCTypes.PathSubscriptionTopic.children)
-  const dispatch = useDispatchWhenConnected()
+  const dispatch = Container.useDispatch()
   React.useEffect(() => {
     isPathItem(path) && dispatch(FsGen.createFolderListLoad({path, recursive: initialLoadRecursive || false}))
   }, [dispatch, path, initialLoadRecursive])
@@ -65,7 +56,7 @@ export const useFsChildren = (path: Types.Path, initialLoadRecursive?: boolean) 
 
 export const useFsTlfs = () => {
   useFsNonPathSubscriptionEffect(RPCTypes.SubscriptionTopic.favorites)
-  const dispatch = useDispatchWhenConnected()
+  const dispatch = Container.useDispatch()
   React.useEffect(() => {
     dispatch(FsGen.createFavoritesLoad())
   }, [dispatch])
@@ -74,7 +65,7 @@ export const useFsTlfs = () => {
 export const useFsTlf = (path: Types.Path) => {
   const tlfPath = Constants.getTlfPath(path)
   const tlfs = Container.useSelector(state => state.fs.tlfs)
-  const dispatch = useDispatchWhenConnected()
+  const dispatch = Container.useDispatch()
   const active =
     // If we don't have a TLF path, we are not inside a TLF yet. So no need
     // to load.
@@ -98,7 +89,7 @@ export const useFsTlf = (path: Types.Path) => {
 
 export const useFsJournalStatus = () => {
   useFsNonPathSubscriptionEffect(RPCTypes.SubscriptionTopic.journalStatus)
-  const dispatch = useDispatchWhenConnected()
+  const dispatch = Container.useDispatch()
   React.useEffect(() => {
     dispatch(FsGen.createPollJournalStatus())
   }, [dispatch])
@@ -106,7 +97,7 @@ export const useFsJournalStatus = () => {
 
 export const useFsOnlineStatus = () => {
   useFsNonPathSubscriptionEffect(RPCTypes.SubscriptionTopic.onlineStatus)
-  const dispatch = useDispatchWhenConnected()
+  const dispatch = Container.useDispatch()
   React.useEffect(() => {
     dispatch(FsGen.createGetOnlineStatus())
   }, [dispatch])
@@ -114,7 +105,7 @@ export const useFsOnlineStatus = () => {
 
 export const useFsPathInfo = (path: Types.Path, knownPathInfo: Types.PathInfo): Types.PathInfo => {
   const pathInfo = Container.useSelector(state => state.fs.pathInfos.get(path) || Constants.emptyPathInfo)
-  const dispatch = useDispatchWhenConnected()
+  const dispatch = Container.useDispatch()
   const alreadyKnown = knownPathInfo !== Constants.emptyPathInfo
   React.useEffect(() => {
     if (alreadyKnown) {
@@ -137,7 +128,7 @@ export const useFsDownloadInfo = (downloadID: string): Types.DownloadInfo => {
   const info = Container.useSelector(
     state => state.fs.downloads.info.get(downloadID) || Constants.emptyDownloadInfo
   )
-  const dispatch = useDispatchWhenConnected()
+  const dispatch = Container.useDispatch()
   React.useEffect(() => {
     // This never changes, so simply just load it once.
     downloadID && dispatch(FsGen.createLoadDownloadInfo({downloadID}))
@@ -147,14 +138,14 @@ export const useFsDownloadInfo = (downloadID: string): Types.DownloadInfo => {
 
 export const useFsDownloadStatus = () => {
   useFsNonPathSubscriptionEffect(RPCTypes.SubscriptionTopic.downloadStatus)
-  const dispatch = useDispatchWhenConnected()
+  const dispatch = Container.useDispatch()
   React.useEffect(() => {
     dispatch(FsGen.createLoadDownloadStatus())
   }, [dispatch])
 }
 
 export const useFsFileContext = (path: Types.Path) => {
-  const dispatch = useDispatchWhenConnected()
+  const dispatch = Container.useDispatch()
   const pathItem = Container.useSelector(state => Constants.getPathItem(state.fs.pathItems, path))
   const [urlError, setUrlError] = React.useState<string>('')
   React.useEffect(() => {
@@ -188,7 +179,7 @@ export const useFsWatchDownloadForMobile = isMobile
 
       const [justDoneWithIntent, setJustDoneWithIntent] = React.useState(false)
 
-      const dispatch = useDispatchWhenConnected()
+      const dispatch = Container.useDispatch()
       React.useEffect(() => {
         if (!downloadID || !downloadIntent || !finished || !mimeType) {
           setJustDoneWithIntent(false)
@@ -211,7 +202,7 @@ export const useUserIsLookingAtFs = isMobile
       // On mobile views remain mounted, so we need to watch for navigation
       // events to know if user is looking at the Fs tab.
 
-      const dispatch = useDispatchWhenConnected()
+      const dispatch = Container.useDispatch()
       NavigationHooks.useNavigationEvents((e: NavigationEventPayload) => {
         // On mobile stack actions cause willFocus and willBlur too, but they
         // don't mean navigating into or away from the Fs tab. Could just be

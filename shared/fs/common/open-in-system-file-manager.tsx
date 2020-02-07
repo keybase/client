@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as Types from '../../constants/types/fs'
-import {useDispatchWhenConnected} from './hooks'
 import * as FsGen from '../../actions/fs-gen'
 import {fileUIName} from '../../constants/platform'
 import * as Container from '../../util/container'
@@ -13,7 +12,7 @@ type Props = {
 }
 
 const OpenInSystemFileManager = ({path}: Props) => {
-  const dispatch = useDispatchWhenConnected()
+  const dispatch = Container.useDispatch()
   const openInSystemFileManager = () => dispatch(FsGen.createOpenPathInSystemFileManager({path}))
   return (
     <Kb.WithTooltip tooltip={`Show in ${fileUIName}`}>

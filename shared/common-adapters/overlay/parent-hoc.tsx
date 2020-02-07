@@ -16,6 +16,7 @@ type OverlayParentState = {
   showingMenu: boolean
 }
 
+// This is deprecated. Use `Kb.usePopup instead.`
 const OverlayParentHOC = <Props extends {}>(
   ComposedComponent: React.ComponentType<PropsWithOverlay<Props>>
 ): React.ComponentType<PropsWithoutOverlay<Props>> => {

@@ -1,10 +1,10 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/fs'
 import * as Constants from '../../../constants/fs'
+import * as Container from '../../../util/container'
 import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
 import * as FsGen from '../../../actions/fs-gen'
-import * as Kbfs from '../../common'
 import ChooseView from './choose-view'
 
 type SizeType = any
@@ -55,7 +55,7 @@ const PathItemAction = Kb.OverlayParentHOC((props: Props & Kb.OverlayParentProps
     return null
   }
 
-  const dispatch = Kbfs.useDispatchWhenKbfsIsConnected()
+  const dispatch = Container.useDispatch()
   const {setShowingMenu, initView} = props
   const onClick = React.useCallback(() => {
     dispatch(FsGen.createSetPathItemActionMenuView({view: initView}))

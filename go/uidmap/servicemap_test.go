@@ -1,6 +1,7 @@
 package uidmap
 
 import (
+	"errors"
 	"testing"
 	"time"
 
@@ -11,16 +12,20 @@ import (
 	"golang.org/x/net/context"
 )
 
+type timeoutAPIMock struct {
+	libkb.API
+	callCount int
+}
+
+func (n *timeoutAPIMock) PostDecodeCtx(context.Context, libkb.APIArg, libkb.APIResponseWrapper) error {
+	n.callCount++
+	return libkb.APINetError{Err: errors.New("timeoutAPIMock")}
+}
+
 const tTracy = keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")
 const tAlice = keybase1.UID("295a7eea607af32040647123732bc819")
 
-// Larger than 1 nanosecond which would skip request altogether. Use to
-// "simulate" request that didn't make it back in time.
-const strictNetworkBudget = 2 * time.Nanosecond
-
 func TestServiceMapLookupKnown(t *testing.T) {
-	t.Skip()
-
 	tc := libkb.SetupTest(t, "TestLookup", 1)
 	defer tc.Cleanup()
 
@@ -33,7 +38,7 @@ func TestServiceMapLookupKnown(t *testing.T) {
 	uids := []keybase1.UID{tKB, tAlice, tTracy}
 	const zeroDuration = time.Duration(0)
 	pkgs := serviceMapper.MapUIDsToServiceSummaries(context.TODO(), tc.G, uids,
-		zeroDuration /* freshness */, zeroDuration /* networkBudget */)
+		zeroDuration /* freshness */, DefaultNetworkBudget /* networkBudget */)
 
 	require.Len(t, pkgs, 3)
 	require.Contains(t, pkgs, tKB)
@@ -51,30 +56,39 @@ func TestServiceMapLookupKnown(t *testing.T) {
 	require.Equal(t, "t_tracy", pkgs[tTracy].ServiceMap["rooter"])
 	require.Equal(t, "tacovontaco", pkgs[tTracy].ServiceMap["twitter"])
 
+	timeoutAPI := &timeoutAPIMock{}
+	tc.G.API = timeoutAPI
+
+	// Doesn't matter for the API itself because we are mocking it, but make
+	// sure serviceMapper does not do anything funky when budget is anything
+	// other than default.
+	networkBudget := 1 * time.Second
+
 	{
-		// Query again with very strict network budget hoping to hit cache.
 		pkgs2 := serviceMapper.MapUIDsToServiceSummaries(context.TODO(), tc.G, uids,
-			zeroDuration /* freshness */, strictNetworkBudget /* networkBudget */)
+			zeroDuration /* freshness */, networkBudget)
 		require.Equal(t, pkgs, pkgs2)
+		// Should not have to call API with freshness set to "always fresh".
+		require.Equal(t, 0, timeoutAPI.callCount)
 	}
 
 	{
 		// Same, but advance fake clock and provide `freshness` argument. We
-		// should fail to get data.
+		// should fail to get data with always-timeouting API.
 		fakeClock.Advance(24 * time.Hour)
 
 		pkgs2 := serviceMapper.MapUIDsToServiceSummaries(context.TODO(), tc.G, uids,
-			12*time.Hour, /* freshness */
-			strictNetworkBudget /* networkBudget */)
+			12*time.Hour /* freshness */, networkBudget)
 		require.Len(t, pkgs2, 0)
+		require.Equal(t, 1, timeoutAPI.callCount)
 	}
 
 	{
 		// Similar, but with DisallowNetworkBudget which should skip request completely.
 		pkgs2 := serviceMapper.MapUIDsToServiceSummaries(context.TODO(), tc.G, uids,
-			12*time.Hour, /* freshness */
-			DisallowNetworkBudget /* networkBudget */)
+			12*time.Hour /* freshness */, DisallowNetworkBudget /* networkBudget */)
 		require.Len(t, pkgs2, 0)
+		require.Equal(t, 1, timeoutAPI.callCount) // same count as after previous call
 	}
 }
 
@@ -98,10 +112,15 @@ func TestServiceMapLookupEmpty(t *testing.T) {
 	require.Nil(t, pkgs[tFrank].ServiceMap)
 	require.True(t, pkgs[tFrank].CachedAt >= now)
 
+	timeoutAPI := &timeoutAPIMock{}
+	tc.G.API = timeoutAPI
+
 	{
 		// Query again with very strict network budget hoping to hit cache.
 		pkgs2 := serviceMapper.MapUIDsToServiceSummaries(context.TODO(), tc.G, uids,
-			zeroDuration /* freshness */, strictNetworkBudget /* networkBudget */)
+			zeroDuration /* freshness */, DefaultNetworkBudget /* networkBudget */)
 		require.Equal(t, pkgs, pkgs2)
+		// should not hit the API due to freshness parameter.
+		require.Equal(t, 0, timeoutAPI.callCount)
 	}
 }

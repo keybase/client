@@ -2,7 +2,6 @@ import logger from '../../logger'
 import * as Saga from '../../util/saga'
 import * as FsGen from '../fs-gen'
 import * as Constants from '../../constants/fs'
-import * as Types from '../../constants/types/fs'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import {TypedState} from '../../util/container'
 import {PermissionsAndroid} from 'react-native'
@@ -59,8 +58,7 @@ const finishedRegularDownload = async (state: TypedState, action: FsGen.Finished
   return null
 }
 
-const configureDownload = (state: TypedState) =>
-  state.fs.kbfsDaemonStatus.rpcStatus === Types.KbfsDaemonRpcStatus.Connected &&
+const configureDownload = () =>
   RPCTypes.SimpleFSSimpleFSConfigureDownloadRpcPromise({
     // Android's cache dir is (when I tried) [app]/cache but Go side uses
     // [app]/.cache by default, which can't be used for sharing to other apps.

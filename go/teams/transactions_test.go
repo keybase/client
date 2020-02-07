@@ -143,7 +143,7 @@ func TestPreprocessAssertions(t *testing.T) {
 		{"[bob@gmail.com]@email+bob", false, false, true},
 	}
 	for _, test := range tests {
-		isEmail, single, err := preprocessAssertion(libkb.NewMetaContextForTest(tc), test.s)
+		isEmail, single, _, err := preprocessAssertion(libkb.NewMetaContextForTest(tc), test.s)
 		require.Equal(t, isEmail, test.isEmail)
 		require.Equal(t, (single != nil), test.hasSingle)
 		require.Equal(t, (err != nil), test.isError)

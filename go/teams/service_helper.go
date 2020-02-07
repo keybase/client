@@ -496,9 +496,9 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Tea
 		}
 		var sweep []sweepEntry
 		for _, user := range users {
-			upak, single, doInvite, err := tx.ResolveUPKV2FromAssertionOrEmail(mctx, user.AssertionOrEmail)
+			upak, single, doInvite, assertion, err := tx.ResolveUPKV2FromAssertionOrEmail(mctx, user.AssertionOrEmail)
 			if err != nil {
-				return NewAddMembersError(user.AssertionOrEmail, err)
+				return NewAddMembersError(assertion, err)
 			}
 
 			if _, ok := restrictedUsers[upak.Uid]; ok {
@@ -513,7 +513,7 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Tea
 				if _, ok := err.(AttemptedInviteSocialOwnerError); ok {
 					return err
 				}
-				return NewAddMembersError(user.AssertionOrEmail, err)
+				return NewAddMembersError(assertion, err)
 			}
 			var normalizedUsername libkb.NormalizedUsername
 			if !username.IsNil() {
@@ -690,85 +690,48 @@ func InviteEmailPhoneMember(ctx context.Context, g *libkb.GlobalContext, teamID 
 	})
 }
 
-func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails string, role keybase1.TeamRole) (resOuter keybase1.BulkRes, err error) {
-	emailList := splitBulk(emails)
-	g.Log.CDebugf(ctx, "team %s: bulk email invite count: %d", teamname, len(emailList))
+func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails string, role keybase1.TeamRole) (res keybase1.BulkRes, err error) {
+	mctx := libkb.NewMetaContext(ctx, g)
+	unparsedEmailList := splitBulk(emails)
+	g.Log.CDebugf(ctx, "team %s: bulk email invite count: %d", teamname, len(unparsedEmailList))
 
-	err = RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
-		var res keybase1.BulkRes
+	var toAdd []keybase1.UserRolePair
 
-		t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
-		if err != nil {
-			return err
+	for _, email := range unparsedEmailList {
+		addr, parseErr := mail.ParseAddress(email)
+		if parseErr != nil {
+			g.Log.CDebugf(ctx, "team %s: skipping malformed email %q: %s", teamname, email, parseErr)
+			res.Malformed = append(res.Malformed, email)
+			continue
 		}
 
-		var invites []SCTeamInvite
-		for _, email := range emailList {
-			addr, parseErr := mail.ParseAddress(email)
-			if parseErr != nil {
-				g.Log.CDebugf(ctx, "team %s: skipping malformed email %q: %s", teamname, email, parseErr)
-				res.Malformed = append(res.Malformed, email)
-				continue
-			}
-
-			// api server side of this only accepts x.yy domain name:
-			parts := strings.Split(addr.Address, ".")
-			if len(parts[len(parts)-1]) < 2 {
-				g.Log.CDebugf(ctx, "team %s: skipping malformed email (domain) %q: %s", teamname, email, parseErr)
-				res.Malformed = append(res.Malformed, email)
-				continue
-			}
-
-			name := keybase1.TeamInviteName(addr.Address)
-			existing, err := t.HasActiveInvite(libkb.NewMetaContext(ctx, g), name, "email")
-			if err != nil {
-				return err
-			}
-			if existing {
-				g.Log.CDebugf(ctx, "team %s: invite for %s already exists, omitting from invite list",
-					teamname, name)
-				res.AlreadyInvited = append(res.AlreadyInvited, addr.Address)
-				continue
-			}
-			inv := SCTeamInvite{
-				Type: "email",
-				Name: name,
-				ID:   NewInviteID(),
-			}
-			invites = append(invites, inv)
-			res.Invited = append(res.Invited, addr.Address)
+		// api server side of this only accepts x.yy domain name:
+		parts := strings.Split(addr.Address, ".")
+		if len(parts[len(parts)-1]) < 2 {
+			g.Log.CDebugf(ctx, "team %s: skipping malformed email (domain) %q", teamname, email)
+			res.Malformed = append(res.Malformed, email)
+			continue
 		}
-		if len(invites) == 0 {
-			g.Log.CDebugf(ctx, "team %s: after existing filter, no one to invite", teamname)
-			// return value assign to escape closure
-			resOuter = res
-			return nil
+		a, parseErr := libkb.ParseAssertionURLKeyValue(g.MakeAssertionContext(mctx), "email", addr.Address, false)
+		if parseErr != nil {
+			g.Log.CDebugf(ctx, "team %q: skipping malformed email %q; could not parse into assertion: %s", teamname, email, parseErr)
+			res.Malformed = append(res.Malformed, email)
+			continue
 		}
+		toAdd = append(toAdd, keybase1.UserRolePair{AssertionOrEmail: a.String(), Role: role})
+	}
 
-		var teamInvites SCTeamInvites
-		switch role {
-		case keybase1.TeamRole_ADMIN:
-			teamInvites.Admins = &invites
-		case keybase1.TeamRole_WRITER:
-			teamInvites.Writers = &invites
-		case keybase1.TeamRole_READER:
-			teamInvites.Readers = &invites
-		case keybase1.TeamRole_OWNER:
-			teamInvites.Owners = &invites
-		default:
-			return fmt.Errorf("unknown team role: %s", role)
-		}
+	if len(toAdd) == 0 {
+		return res, err
+	}
 
-		g.Log.CDebugf(ctx, "team %s: after existing filter, inviting %d emails as %s", teamname, len(invites), role)
-		err = t.postTeamInvites(ctx, teamInvites)
-		if err != nil {
-			return err
-		}
-		// return value assign to escape closure
-		resOuter = res
-		return nil
-	})
-	return resOuter, err
+	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
+	if err != nil {
+		return res, err
+	}
+
+	_, _, err = AddMembers(ctx, g, t.ID, toAdd)
+	return res, err
 }
 
 func EditMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string,

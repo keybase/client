@@ -3,6 +3,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {isLargeScreen} from '../../constants/platform'
 import {useSafeCallback} from '../../util/container'
+import flags from '../../util/feature-flags'
 
 type Props = {
   highlight?: Array<'computer' | 'phone' | 'paper key'>
@@ -36,7 +37,7 @@ const AddDevice = (props: Props) => {
         </Kb.Box2>
         <Kb.Box2
           direction={Styles.isMobile ? 'vertical' : 'horizontal'}
-          gap="large"
+          gap="mediumLarge"
           style={styles.deviceOptions}
           gapEnd={true}
         >
@@ -104,7 +105,8 @@ const DeviceOption = ({highlight, iconNumber, onClick, type}: DeviceOptionProps)
     >
       <Kb.Icon type={getIconType(type, iconNumber)} />
       <Kb.Text type="BodySemibold">
-        {type === 'paper key' ? 'Create' : 'Add'} a {type}
+        {type === 'paper key' ? 'Create' : 'Add'} a{' '}
+        {flags.tabletSupport && type === 'phone' ? 'phone or tablet' : type}
       </Kb.Text>
     </Kb.Box2>
   </Kb.ClickableBox>
@@ -119,7 +121,7 @@ const styles = Styles.styleSheetCreate(() => ({
     borderStyle: 'solid',
     borderWidth: 1,
     padding: Styles.globalMargins.tiny,
-    width: Styles.isMobile ? 160 : 140,
+    width: Styles.isMobile ? 192 : 168,
   },
   deviceOptionHighlighted: {backgroundColor: Styles.globalColors.blueLighter2},
   deviceOptions: Styles.platformStyles({

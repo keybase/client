@@ -98,7 +98,7 @@ func (s *Scraper) tryAppleTouchIcon(ctx context.Context, generic *scoredGenericR
 		s.Debug(ctx, "tryAppleTouchIcon: failed to get Apple touch URL: %s", err)
 		return
 	}
-	resp, err := libkb.ProxyHTTPGet(s.G().Env, path)
+	resp, err := libkb.ProxyHTTPGet(s.G().ExternalG(), s.G().Env, path, "UnfurlScraper")
 	if err != nil {
 		s.Debug(ctx, "tryAppleTouchIcon: failed to read Apple touch icon: %s", err)
 		return

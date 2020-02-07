@@ -5,6 +5,7 @@ import * as Kb from '../../common-adapters'
 import * as Kbfs from '../common'
 import * as Styles from '../../styles'
 import * as FsGen from '../../actions/fs-gen'
+import * as Container from '../../util/container'
 import Footer from '../footer/footer'
 import {isMobile} from '../../constants/platform'
 import Rows from './rows/rows-container'
@@ -44,7 +45,7 @@ const DragAndDrop = ({
   path: Types.Path
   rejectReason?: string
 }) => {
-  const dispatch = Kbfs.useDispatchWhenKbfsIsConnected()
+  const dispatch = Container.useDispatch()
   const onAttach = (localPaths: Array<string>) =>
     localPaths.forEach(localPath => dispatch(FsGen.createUpload({localPath, parentPath: path})))
   return (

@@ -9,6 +9,7 @@ export {
   unexpected,
   createNavigator,
   MockStore,
+  updateStoreDecorator,
   Rnd,
   scrollViewDecorator,
   action,

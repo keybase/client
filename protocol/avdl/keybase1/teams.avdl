@@ -1300,8 +1300,6 @@ protocol teams {
   SeitanIKeyV2 teamCreateSeitanTokenV2(int sessionID, string name, TeamRole role, SeitanKeyLabel label);
 
   record BulkRes {
-    array<string> invited;
-    array<string> alreadyInvited;
     array<string> malformed;
   }
 
