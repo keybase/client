@@ -4,6 +4,7 @@ import * as Styles from '../../styles'
 import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
 import * as Container from '../../util/container'
+import * as Chat2Gen from '../../actions/chat2-gen'
 import {pluralize} from '../../util/string'
 
 type Props = {
@@ -23,6 +24,9 @@ const TeamRow = (props: Props) => {
 
   const activity = <Activity level={'extinct' /* TODO plumbing for this */} />
 
+  const onChat = () =>
+    dispatch(Chat2Gen.createPreviewConversation({reason: 'teamRow', teamname: teamMeta.teamname}))
+
   return (
     <Kb.ListItem2
       type="Small"
@@ -40,7 +44,9 @@ const TeamRow = (props: Props) => {
               style={styles.bodyLeftText}
             >
               <Kb.Box2 direction="horizontal" gap="xtiny" alignSelf="flex-start" alignItems="center">
-                <Kb.Text type="BodySemibold">{teamMeta.teamname}</Kb.Text>
+                <Kb.Text type="BodySemibold" lineClamp={1} ellipsizeMode="middle">
+                  {teamMeta.teamname}
+                </Kb.Text>
                 {teamMeta.isOpen && (
                   <Kb.Meta title="open" backgroundColor={Styles.globalColors.green} style={styles.openMeta} />
                 )}
@@ -60,7 +66,17 @@ const TeamRow = (props: Props) => {
       }
       action={
         <Kb.Box2 direction="horizontal" gap={Styles.isMobile ? 'tiny' : 'xtiny'}>
-          {showChat && <Kb.Button type="Dim" mode="Secondary" small={true} icon="iconfont-chat" tooltip="" />}
+          {showChat && (
+            <Kb.Button
+              type="Dim"
+              onClick={onChat}
+              disabled={!teamMeta.isMember}
+              mode="Secondary"
+              small={true}
+              icon="iconfont-chat"
+              tooltip={!teamMeta.isMember ? 'You are not a member of this team.' : ''}
+            />
+          )}
           <Kb.Button type="Dim" mode="Secondary" small={true} icon="iconfont-ellipsis" tooltip="" />
         </Kb.Box2>
       }
@@ -103,6 +119,7 @@ const styles = Styles.styleSheetCreate(() => ({
   },
   bodyLeft: {
     flex: 1,
+    paddingRight: Styles.globalMargins.tiny,
   },
   bodyLeftText: {justifyContent: 'center'},
   bodyRight: {
