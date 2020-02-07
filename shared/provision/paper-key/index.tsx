@@ -86,7 +86,6 @@ const styles = Styles.styleSheetCreate(
       contents: Styles.platformStyles({
         common: {
           flexGrow: 1,
-          maxWidth: Styles.isMobile && !Styles.isTablet ? 300 : 460,
           width: '100%',
         },
         isElectron: {maxWidth: 460},
