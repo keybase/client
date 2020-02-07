@@ -194,14 +194,11 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
     const nextState = !this.state.expanded
     this.setState({afterAnimatingExtraStepWorkaround: true, expanded: nextState})
     this.setState({animating: true}, () => {
-      console.log('aaa set animat state', nextState)
       this.animateState.setValue(nextState ? AnimationState.expanding : AnimationState.contracting)
     })
   }
 
   render() {
-    console.log('aaa render', this.state)
-
     const commandUpdateStatus = this.props.suggestBotCommandsUpdateStatus !==
       RPCChatTypes.UIBotCommandsUpdateStatusTyp.blank &&
       (this.props.suggestionsVisible ||
