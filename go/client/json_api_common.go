@@ -208,7 +208,9 @@ func (c *cmdAPI) decode(ctx context.Context, r io.Reader, w io.Writer, h handler
 		}
 
 		if err := h.handle(ctx, call, w); err != nil {
-			return err
+			if err = encodeErr(call, err, w, false); err != nil {
+				return err
+			}
 		}
 	}
 
