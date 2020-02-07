@@ -606,8 +606,8 @@ def testGo(prefix, packagesToTest) {
         ],
         'github.com/keybase/client/go/kbfs/libfuse': [
           flags: '',
-          timeout: '10m',
-          citogo_extra : '--pause 2s'
+          timeout: '5m',
+          citogo_extra : '--pause 1s'
         ],
         'github.com/keybase/client/go/kbfs/idutil': [
           flags: '-race',

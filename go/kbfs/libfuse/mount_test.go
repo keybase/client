@@ -4136,5 +4136,4 @@ func TestUpdateHistoryFile(t *testing.T) {
 	err = json.Unmarshal(b, &histAll)
 	require.NoError(t, err)
 	require.Len(t, histAll.Updates, 11)
-	t.Logf("hi")
 }

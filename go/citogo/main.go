@@ -280,7 +280,6 @@ func (r *runner) runTests() error {
 			return err
 		}
 		if r.opts.Pause > 0 {
-			fmt.Printf("PAUS: %s\n", r.opts.Pause)
 			time.Sleep(r.opts.Pause)
 		}
 	}
