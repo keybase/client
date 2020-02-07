@@ -148,7 +148,7 @@ const styles = Styles.styleSheetCreate(
           width: '100%',
         },
         isTablet: {
-          width: 400,
+          width: 460,
         },
       }),
     } as const)
