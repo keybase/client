@@ -9,13 +9,13 @@ protocol teamSearch {
         union { null, string } description;
         int memberCount;
         Time lastActive;
-        boolean inTeam;
-        array<string> publicAdmins;
+        boolean isDemoted;
+        boolean inTeam; // not valid when refreshing all open teams
     }
 
     record TeamSearchRes {
         array<TeamSearchItem> results;
     }
 
-    TeamSearchRes teamSearch(union { null, UID } uid, string query, int limit);
+    TeamSearchRes teamSearch(union { null, UID } uid, string query, int limit, boolean useRemote);
 }

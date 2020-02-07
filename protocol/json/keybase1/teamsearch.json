@@ -36,14 +36,11 @@
         },
         {
           "type": "boolean",
-          "name": "inTeam"
+          "name": "isDemoted"
         },
         {
-          "type": {
-            "type": "array",
-            "items": "string"
-          },
-          "name": "publicAdmins"
+          "type": "boolean",
+          "name": "inTeam"
         }
       ]
     },
@@ -78,6 +75,10 @@
         {
           "name": "limit",
           "type": "int"
+        },
+        {
+          "name": "useRemote",
+          "type": "boolean"
         }
       ],
       "response": "TeamSearchRes"
