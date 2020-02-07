@@ -6021,10 +6021,7 @@ func (fbo *folderBranchOps) syncAllLocked(
 	}
 
 	var blocksToRemove []data.BlockPointer
-	// TODO: find a way to avoid so many dynamic closure dispatches.
-	var afterUpdateFns []func() error
-
-	afterUpdateFns = append(afterUpdateFns, func() error {
+	updatePointerFn := func() error {
 		// Any new files or directories need their pointers explicitly
 		// updated, because the sync will be treating them as a new
 		// ref, and not an update.
@@ -6034,9 +6031,12 @@ func (fbo *folderBranchOps) syncAllLocked(
 			}
 		}
 		return nil
-	})
+	}
 
 	fbo.log.LazyTrace(ctx, "Syncing %d file(s)", len(dirtyFiles))
+
+	// TODO: find a way to avoid so many dynamic closure dispatches.
+	var afterUpdateFns []func() error
 
 	fbo.vlog.CLogf(ctx, libkb.VLog1, "Syncing %d file(s)", len(dirtyFiles))
 	fileSyncBlocks := newBlockPutStateMemory(1)
@@ -6199,6 +6199,13 @@ func (fbo *folderBranchOps) syncAllLocked(
 	// write might slip in after the pointers are updated, but before
 	// the deferred writes are re-applied.
 	afterUpdateFn := func() error {
+		// Update pointers of new files first, before replaying any of
+		// their deferred writes in `clearAllDirtyDirsLocked`.
+		err := updatePointerFn()
+		if err != nil {
+			return err
+		}
+
 		// Clear the dirty directories before the afterUpdateFns start
 		// replaying deferred writes, so we don't lose the deferred
 		// write state when we clear.
@@ -7459,19 +7466,8 @@ func (fbo *folderBranchOps) RequestRekey(_ context.Context, tlf tlf.ID) {
 	fbo.rekeyFSM.Event(NewRekeyRequestEvent())
 }
 
-func (fbo *folderBranchOps) SyncFromServer(ctx context.Context,
-	folderBranch data.FolderBranch, lockBeforeGet *keybase1.LockID) (err error) {
-	startTime, timer := fbo.startOp(ctx, "SyncFromServer")
-	defer func() {
-		fbo.endOp(ctx, startTime, timer, "SyncFromServer done: %+v", err)
-	}()
-
-	if folderBranch != fbo.folderBranch {
-		return WrongOpsError{fbo.folderBranch, folderBranch}
-	}
-
-	lState := makeFBOLockState()
-
+func (fbo *folderBranchOps) syncAllForServerSync(
+	ctx context.Context, lState *kbfssync.LockState) error {
 	// Make sure everything outstanding syncs to disk at least.
 	if err := fbo.syncAllUnlocked(ctx, lState); err != nil {
 		return err
@@ -7492,6 +7488,27 @@ func (fbo *folderBranchOps) SyncFromServer(ctx context.Context,
 	}
 
 	if err := fbo.rootWaits.Wait(ctx); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (fbo *folderBranchOps) SyncFromServer(ctx context.Context,
+	folderBranch data.FolderBranch, lockBeforeGet *keybase1.LockID) (err error) {
+	startTime, timer := fbo.startOp(ctx, "SyncFromServer")
+	defer func() {
+		fbo.endOp(ctx, startTime, timer, "SyncFromServer done: %+v", err)
+	}()
+
+	if folderBranch != fbo.folderBranch {
+		return WrongOpsError{fbo.folderBranch, folderBranch}
+	}
+
+	lState := makeFBOLockState()
+
+	err = fbo.syncAllForServerSync(ctx, lState)
+	if err != nil {
 		return err
 	}
 
@@ -7532,7 +7549,12 @@ func (fbo *folderBranchOps) SyncFromServer(ctx context.Context,
 			for _, ref := range dirtyFiles {
 				fbo.vlog.CLogf(ctx, libkb.VLog1, "DeCache entry left: %v", ref)
 			}
-			return errors.New("can't sync from server while dirty")
+			fbo.log.CDebugf(ctx, "Can't sync from server while dirty; retrying")
+			err := fbo.syncAllForServerSync(ctx, lState)
+			if err != nil {
+				return err
+			}
+			continue
 		}
 
 		// A journal flush after CR, if needed.
