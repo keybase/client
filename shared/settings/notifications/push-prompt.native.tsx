@@ -86,8 +86,8 @@ const styles = Styles.styleSheetCreate(
           width: '150%',
         },
         isTablet: {
-          maxWidth: 460,
           alignSelf: 'center',
+          maxWidth: 460,
         },
       }),
     } as const)
