@@ -75,13 +75,13 @@ const handleKeybaseLink = (action: DeeplinksGen.HandleKeybaseLinkPayload) => {
         }
       }
       break
-    case 'team-page': // keybase://team-page/{team_name}/{manage_settings,add_or_invite}
-      if (parts.length == 3) {
+    case 'team-page': // keybase://team-page/{team_name}/{manage_settings,add_or_invite}?
+      if (parts.length >= 2) {
         const teamName = parts[1]
-        const action = parts[2]
-        if (action === 'add_or_invite' || action === 'manage_settings') {
-          return handleTeamPageLink(teamName, action)
-        }
+        const actionPart = parts[2]
+        const action =
+          actionPart === 'add_or_invite' || actionPart === 'manage_settings' ? actionPart : undefined
+        return handleTeamPageLink(teamName, action)
       }
       break
     default:
