@@ -383,6 +383,8 @@ func acceptDisclaimer(u *userPlusDevice) {
 }
 
 func TestAccountMerge(t *testing.T) {
+	t.Skip()
+
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 	useStellarTestNet(t)
