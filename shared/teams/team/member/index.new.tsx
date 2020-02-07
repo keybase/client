@@ -129,8 +129,7 @@ const BlockDropdown = (props: {username: string}) => {
         path: [{props: {username: props.username}, selected: 'chatBlockingModal'}],
       })
     )
-  const popupAnchor = React.useRef(null)
-  const {popup, showingPopup, setShowingPopup} = Kb.usePopup(popupAnchor, () => (
+  const {popup, popupAnchor, showingPopup, setShowingPopup} = Kb.usePopup(() => (
     <Kb.FloatingMenu
       attachTo={() => popupAnchor.current}
       visible={showingPopup}
