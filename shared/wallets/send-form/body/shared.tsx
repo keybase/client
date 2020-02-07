@@ -12,8 +12,8 @@ export const sharedStyles = Styles.styleSheetCreate(() => ({
       width: '100%',
     },
     isTablet: {
-      width: 460,
       alignSelf: 'center',
+      width: 460,
     },
   }),
   spinnerContainer: {...Styles.globalStyles.fillAbsolute},
