@@ -5,6 +5,7 @@ import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
 import * as Container from '../../util/container'
 import * as Chat2Gen from '../../actions/chat2-gen'
+import TeamMenu from '../team/menu-container'
 import {pluralize} from '../../util/string'
 
 type Props = {
@@ -27,61 +28,86 @@ const TeamRow = (props: Props) => {
   const onChat = () =>
     dispatch(Chat2Gen.createPreviewConversation({reason: 'teamRow', teamname: teamMeta.teamname}))
 
+  const popupRoot = React.useRef(null)
+  const {popup, setShowingPopup, showingPopup} = Kb.usePopup(popupRoot, () => (
+    <TeamMenu
+      teamID={teamID}
+      attachTo={() => popupRoot.current}
+      onHidden={() => setShowingPopup(false)}
+      visible={showingPopup}
+    />
+  ))
+
   return (
-    <Kb.ListItem2
-      type="Small"
-      firstItem={firstItem}
-      onClick={onViewTeam}
-      icon={<Kb.Avatar size={32} teamname={teamMeta.teamname} isTeam={true} />}
-      height={Styles.isMobile ? 90 : undefined}
-      body={
-        <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={styles.bodyContainer}>
-          <Kb.Box2 direction="horizontal" fullHeight={true} alignItems="center" style={styles.bodyLeft}>
-            <Kb.Box2
-              direction="vertical"
-              fullHeight={true}
-              alignItems="flex-start"
-              style={styles.bodyLeftText}
-            >
-              <Kb.Box2 direction="horizontal" gap="xtiny" alignSelf="flex-start" alignItems="center">
-                <Kb.Text type="BodySemibold" lineClamp={1} ellipsizeMode="middle">
-                  {teamMeta.teamname}
+    <>
+      <Kb.ListItem2
+        type="Small"
+        firstItem={firstItem}
+        onClick={onViewTeam}
+        icon={<Kb.Avatar size={32} teamname={teamMeta.teamname} isTeam={true} />}
+        height={Styles.isMobile ? 90 : undefined}
+        body={
+          <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={styles.bodyContainer}>
+            <Kb.Box2 direction="horizontal" fullHeight={true} alignItems="center" style={styles.bodyLeft}>
+              <Kb.Box2
+                direction="vertical"
+                fullHeight={true}
+                alignItems="flex-start"
+                style={styles.bodyLeftText}
+              >
+                <Kb.Box2 direction="horizontal" gap="xtiny" alignSelf="flex-start" alignItems="center">
+                  <Kb.Text type="BodySemibold" lineClamp={1} ellipsizeMode="middle">
+                    {teamMeta.teamname}
+                  </Kb.Text>
+                  {teamMeta.isOpen && (
+                    <Kb.Meta
+                      title="open"
+                      backgroundColor={Styles.globalColors.green}
+                      style={styles.openMeta}
+                    />
+                  )}
+                </Kb.Box2>
+                <Kb.Text type="BodySmall">
+                  {teamMeta.memberCount.toLocaleString()} {pluralize('member', teamMeta.memberCount)}
                 </Kb.Text>
-                {teamMeta.isOpen && (
-                  <Kb.Meta title="open" backgroundColor={Styles.globalColors.green} style={styles.openMeta} />
-                )}
+                {Styles.isMobile && activity}
               </Kb.Box2>
-              <Kb.Text type="BodySmall">
-                {teamMeta.memberCount.toLocaleString()} {pluralize('member', teamMeta.memberCount)}
-              </Kb.Text>
-              {Styles.isMobile && activity}
             </Kb.Box2>
+            {!Styles.isMobile && (
+              <Kb.Box2 direction="horizontal" fullHeight={true} style={styles.bodyRight}>
+                {activity}
+              </Kb.Box2>
+            )}
           </Kb.Box2>
-          {!Styles.isMobile && (
-            <Kb.Box2 direction="horizontal" fullHeight={true} style={styles.bodyRight}>
-              {activity}
-            </Kb.Box2>
-          )}
-        </Kb.Box2>
-      }
-      action={
-        <Kb.Box2 direction="horizontal" gap={Styles.isMobile ? 'tiny' : 'xtiny'}>
-          {showChat && (
+        }
+        action={
+          <Kb.Box2 direction="horizontal" gap={Styles.isMobile ? 'tiny' : 'xtiny'}>
+            {showChat && (
+              <Kb.Button
+                type="Dim"
+                onClick={onChat}
+                disabled={!teamMeta.isMember}
+                mode="Secondary"
+                small={true}
+                icon="iconfont-chat"
+                tooltip={!teamMeta.isMember ? 'You are not a member of this team.' : ''}
+              />
+            )}
             <Kb.Button
               type="Dim"
-              onClick={onChat}
-              disabled={!teamMeta.isMember}
+              onClick={() => setShowingPopup(true)}
               mode="Secondary"
               small={true}
-              icon="iconfont-chat"
-              tooltip={!teamMeta.isMember ? 'You are not a member of this team.' : ''}
+              icon="iconfont-ellipsis"
+              tooltip=""
+              ref={popupRoot}
             />
-          )}
-          <Kb.Button type="Dim" mode="Secondary" small={true} icon="iconfont-ellipsis" tooltip="" />
-        </Kb.Box2>
-      }
-      onlyShowActionOnHover="fade"
-    />
+          </Kb.Box2>
+        }
+        onlyShowActionOnHover="fade"
+      />
+      {popup}
+    </>
   )
 }
 
