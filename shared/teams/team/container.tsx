@@ -77,7 +77,7 @@ class TabsState extends React.PureComponent<TabsStateOwnProps, {selectedTab: Typ
     header:
       Container.isMobile && flags.teamsRedesign
         ? () => <HeaderTitle teamID={Container.getRouteProps(ownProps, 'teamID', '')} />
-        : undefined,
+        : null,
     headerExpandable: true,
     headerHideBorder: true,
     headerRightActions:
