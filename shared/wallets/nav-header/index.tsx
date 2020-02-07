@@ -17,7 +17,7 @@ type HeaderTitleProps = {
 
 export const HeaderTitle = (props: HeaderTitleProps) =>
   props.noDisclaimer ? null : (
-    <Kb.Box2 direction="horizontal" gap="small" gapEnd={Styles.isTablet}>
+    <Kb.Box2 direction="horizontal" gap={Styles.isTablet ? 'small' : undefined} gapEnd={Styles.isTablet}>
       <Kb.Box2 alignItems="flex-end" direction="horizontal" style={styles.left}>
         <AddAccount />
       </Kb.Box2>
