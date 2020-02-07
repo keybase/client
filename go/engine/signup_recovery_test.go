@@ -55,9 +55,9 @@ func (n *signupAPIMock) Get(m libkb.MetaContext, args libkb.APIArg) (*libkb.APIR
 	return n.realAPI.Get(m, args)
 }
 
-func (n *signupAPIMock) GetResp(m libkb.MetaContext, args libkb.APIArg) (*http.Response, func(int64), error) {
+func (n *signupAPIMock) GetResp(m libkb.MetaContext, args libkb.APIArg) (*http.Response, func(), error) {
 	if n.failEverything {
-		return nil, func(int64) {}, errors.New("signupAPIMock simulated network error")
+		return nil, func() {}, errors.New("signupAPIMock simulated network error")
 	}
 	return n.realAPI.GetResp(m, args)
 }

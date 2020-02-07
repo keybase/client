@@ -22,7 +22,6 @@ import (
 	"golang.org/x/net/context/ctxhttp"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -223,7 +222,7 @@ func (c *countingReader) numRead() int {
 // Shared code
 //
 
-func noopFinisher(int64) {}
+func noopFinisher() {}
 
 func getNIST(m MetaContext, sessType APISessionType) *NIST {
 	if sessType == APISessionTypeNONE {
@@ -252,7 +251,7 @@ func getNIST(m MetaContext, sessType APISessionType) *NIST {
 // a `finisher func()` that *must always be called* after the response is no longer
 // needed. This finisher is always non-nil (and just a noop in some cases),
 // so therefore it's fine to call it without checking for nil-ness.
-func doRequestShared(m MetaContext, api Requester, arg APIArg, req *http.Request, wantJSONRes bool) (_ *http.Response, finisher func(int64), jw *jsonw.Wrapper, err error) {
+func doRequestShared(m MetaContext, api Requester, arg APIArg, req *http.Request, wantJSONRes bool) (_ *http.Response, finisher func(), jw *jsonw.Wrapper, err error) {
 	m = m.EnsureCtx().WithLogTag("API")
 	defer m.TraceTimed("api.doRequestShared", func() error { return err })()
 	m, tbs := m.WithTimeBuckets()
@@ -299,17 +298,11 @@ func doRequestShared(m MetaContext, api Requester, arg APIArg, req *http.Request
 	}
 
 	timer := m.G().Timers.Start(timerType)
-	record := rpc.NewNetworkInstrumenter(m.G().NetworkInstrumenterStorage, fmt.Sprintf("%s %s", req.Method, arg.Endpoint))
 	internalResp, canc, err := doRetry(m, arg, cli, req)
 
-	finisher = func(bytesRead int64) {
+	finisher = func() {
 		if internalResp != nil {
-			record.IncrementSize(bytesRead)
-			bytesRead, _ = DiscardAndCloseBody(internalResp)
-			record.IncrementSize(bytesRead)
-			if err := record.Finish(); err != nil {
-				m.Debug("unable to instrument API call: %v", err)
-			}
+			_ = DiscardAndCloseBody(internalResp)
 			internalResp = nil
 		}
 		if canc != nil {
@@ -320,15 +313,12 @@ func doRequestShared(m MetaContext, api Requester, arg APIArg, req *http.Request
 
 	defer func() {
 		if err != nil {
-			// Pass in 0 bytesRead here since we will calculate the body size
-			// when we discard it.
-			finisher(0)
+			finisher()
 			finisher = noopFinisher
 		}
 	}()
 
 	timer.Report(req.Method + " " + arg.Endpoint)
-	record.EndCall()
 
 	if err != nil {
 		return nil, finisher, nil, APINetError{Err: err}
@@ -364,7 +354,6 @@ func doRequestShared(m MetaContext, api Requester, arg APIArg, req *http.Request
 		decoder.UseNumber()
 		err = decoder.Decode(&obj)
 		jsonBytes = reader.numRead()
-		record.IncrementSize(int64(jsonBytes))
 		if err != nil {
 			err = fmt.Errorf("Error in parsing JSON reply from server: %s", err)
 			return nil, finisher, nil, err
@@ -743,7 +732,7 @@ func (a *InternalAPIEngine) Get(m MetaContext, arg APIArg) (*APIRes, error) {
 
 // GetResp performs a GET request and returns the http response. The finisher
 // second arg should be called whenever we're done with the response (if it's non-nil).
-func (a *InternalAPIEngine) GetResp(m MetaContext, arg APIArg) (*http.Response, func(int64), error) {
+func (a *InternalAPIEngine) GetResp(m MetaContext, arg APIArg) (*http.Response, func(), error) {
 	m = m.EnsureCtx().WithLogTag("API")
 
 	url1 := a.getURL(arg, arg.UseText)
@@ -778,22 +767,20 @@ func (a *InternalAPIEngine) getDecode(m MetaContext, arg APIArg, v APIResponseWr
 		m.Debug("| API GetDecode, GetResp error: %s", err)
 		return err
 	}
-	var bytesRead int64
-	defer func() { finisher(bytesRead) }()
+	defer finisher()
 
-	reader := newCountingReader(resp.Body)
+	reader := resp.Body.(io.Reader)
 	if a.G().Env.GetAPIDump() {
 		body, err := ioutil.ReadAll(reader)
 		if err != nil {
 			return err
 		}
 		m.Debug("| response body: %s", string(body))
-		reader = newCountingReader(bytes.NewReader(body))
+		reader = bytes.NewReader(body)
 	}
 
 	dec := json.NewDecoder(reader)
 	err = dec.Decode(&v)
-	bytesRead = int64(reader.numRead())
 	if err != nil {
 		m.Debug("| API GetDecode, Decode error: %s", err)
 		return err
@@ -823,7 +810,7 @@ func (a *InternalAPIEngine) PostJSON(m MetaContext, arg APIArg) (*APIRes, error)
 
 // postResp performs a POST request and returns the http response.
 // The finisher() should be called after the response is no longer needed.
-func (a *InternalAPIEngine) postResp(m MetaContext, arg APIArg) (*http.Response, func(int64), error) {
+func (a *InternalAPIEngine) postResp(m MetaContext, arg APIArg) (*http.Response, func(), error) {
 	m = m.EnsureCtx().WithLogTag("API")
 	url1 := a.getURL(arg, false)
 	req, err := a.PrepareMethodWithBody("POST", url1, arg)
@@ -855,13 +842,11 @@ func (a *InternalAPIEngine) postDecode(m MetaContext, arg APIArg, v APIResponseW
 	if err != nil {
 		return err
 	}
-	var bytesRead int64
-	defer func() { finisher(bytesRead) }()
+	defer finisher()
 
-	reader := newCountingReader(resp.Body)
+	reader := resp.Body
 	dec := json.NewDecoder(reader)
 	err = dec.Decode(&v)
-	bytesRead = int64(reader.numRead())
 	if err != nil {
 		return err
 	}
@@ -903,7 +888,7 @@ func (a *InternalAPIEngine) doRequest(m MetaContext, arg APIArg, req *http.Reque
 	}
 	// We have already consumed the response body here, no need to pass the
 	// size to finisher.
-	defer finisher(0)
+	defer finisher()
 
 	status, err := jw.AtKey("status").ToDictionary()
 	if err != nil {
@@ -981,33 +966,28 @@ func (api *ExternalAPIEngine) DoRequest(m MetaContext,
 
 	var resp *http.Response
 	var jw *jsonw.Wrapper
-	var finisher func(int64)
+	var finisher func()
 
 	wantJSONRes := (restype == XAPIResJSON)
 	resp, finisher, jw, err = doRequestShared(m, api, arg, req, wantJSONRes)
 	if err != nil {
 		return
 	}
-	var bytesRead int64
-	defer func() { finisher(bytesRead) }()
+	defer finisher()
 
 	switch restype {
 	case XAPIResJSON:
-		// We have already consumed the response body here, no need to pass the
-		// size to finisher.
-		bytesRead = 0
 		ar = &ExternalAPIRes{resp.StatusCode, jw}
 	case XAPIResHTML:
 		var goq *goquery.Document
 		reader := newCountingReader(resp.Body)
 		goq, err = goquery.NewDocumentFromReader(reader)
-		bytesRead = int64(reader.numRead())
 		if err == nil {
 			hr = &ExternalHTMLRes{resp.StatusCode, goq}
 		}
 	case XAPIResText:
 		var buf bytes.Buffer
-		bytesRead, err = buf.ReadFrom(resp.Body)
+		_, err = buf.ReadFrom(resp.Body)
 		if err == nil {
 			tr = &ExternalTextRes{resp.StatusCode, buf.String()}
 		}

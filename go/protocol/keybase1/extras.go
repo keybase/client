@@ -3723,3 +3723,27 @@ func (s UserSummarySet) Usernames() (ret []string) {
 	}
 	return ret
 }
+
+func (x InstrumentationStat) AppendStat(y InstrumentationStat) InstrumentationStat {
+	x.Mtime = ToTime(time.Now())
+	x.NumCalls += y.NumCalls
+	x.TotalDur += y.TotalDur
+	if y.MaxDur > x.MaxDur {
+		x.MaxDur = y.MaxDur
+	}
+	if y.MinDur < x.MinDur {
+		x.MinDur = y.MinDur
+	}
+
+	x.TotalSize += y.TotalSize
+	if y.MaxSize > x.MaxSize {
+		x.MaxSize = y.MaxSize
+	}
+	if y.MinSize < x.MinSize {
+		x.MinSize = y.MinSize
+	}
+
+	x.AvgDur = x.TotalDur / DurationMsec(x.NumCalls)
+	x.AvgSize = x.TotalSize / int64(x.NumCalls)
+	return x
+}

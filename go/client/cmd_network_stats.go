@@ -18,8 +18,9 @@ import (
 
 func NewCmdNetworkStats(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:  "network-stats",
-		Usage: "Show instrumentation about network usage",
+		Name:     "network-stats",
+		Usage:    "Show instrumentation about network usage",
+		Unlisted: true,
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdNetworkStats{Contextified: libkb.NewContextified(g)}, "network-stats", c)
 		},

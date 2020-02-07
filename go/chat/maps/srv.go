@@ -70,7 +70,7 @@ func (s *Srv) serve(w http.ResponseWriter, req *http.Request) {
 		s.makeError(w, http.StatusInternalServerError, "unable to get map url: %s", err)
 		return
 	}
-	mapReader, _, err := MapReaderFromURL(ctx, mapURL)
+	mapReader, _, err := MapReaderFromURL(ctx, s.G(), mapURL)
 	if err != nil {
 		s.makeError(w, http.StatusInternalServerError, "unable to get map reader: %s", err)
 		return

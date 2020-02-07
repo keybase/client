@@ -10,6 +10,6 @@ import (
 )
 
 func TestDiscardAndCloseBody(t *testing.T) {
-	_, err := DiscardAndCloseBody(nil)
+	err := DiscardAndCloseBody(nil)
 	require.Error(t, err)
 }

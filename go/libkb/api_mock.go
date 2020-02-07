@@ -17,7 +17,7 @@ var _ API = (*NullMockAPI)(nil)
 func (n *NullMockAPI) Get(MetaContext, APIArg) (*APIRes, error)                       { return nil, nil }
 func (n *NullMockAPI) GetDecode(MetaContext, APIArg, APIResponseWrapper) error        { return nil }
 func (n *NullMockAPI) GetDecodeCtx(context.Context, APIArg, APIResponseWrapper) error { return nil }
-func (n *NullMockAPI) GetResp(MetaContext, APIArg) (*http.Response, func(int64), error) {
+func (n *NullMockAPI) GetResp(MetaContext, APIArg) (*http.Response, func(), error) {
 	return nil, noopFinisher, nil
 }
 func (n *NullMockAPI) Post(MetaContext, APIArg) (*APIRes, error)                       { return nil, nil }

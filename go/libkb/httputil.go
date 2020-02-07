@@ -7,9 +7,9 @@ import (
 	"net/http"
 )
 
-func discardAndClose(rc io.ReadCloser) (int64, error) {
-	bytesRead, _ := io.Copy(ioutil.Discard, rc)
-	return bytesRead, rc.Close()
+func discardAndClose(rc io.ReadCloser) error {
+	_, _ = io.Copy(ioutil.Discard, rc)
+	return rc.Close()
 }
 
 // DiscardAndCloseBody reads as much as possible from the body of the
@@ -30,9 +30,9 @@ func discardAndClose(rc io.ReadCloser) (int64, error) {
 //   defer DiscardAndCloseBody(res)
 //
 // instead.
-func DiscardAndCloseBody(resp *http.Response) (int64, error) {
+func DiscardAndCloseBody(resp *http.Response) error {
 	if resp == nil {
-		return 0, fmt.Errorf("Nothing to discard (http.Response was nil)")
+		return fmt.Errorf("Nothing to discard (http.Response was nil)")
 	}
 	return discardAndClose(resp.Body)
 }

@@ -296,8 +296,16 @@ func ProxyDialWithOpts(ctx context.Context, env *Env, network string, address st
 }
 
 // The equivalent of http.Get except it uses the proxy configured in Env
-func ProxyHTTPGet(env *Env, u string) (*http.Response, error) {
-	client := &http.Client{Transport: &http.Transport{Proxy: MakeProxy(env)}}
+// `instrumentationTag` should be a static tag for all requests identifying the
+// type of request we are proxying so we don't leak URL information to the
+// instrumenter.
+func ProxyHTTPGet(g *GlobalContext, env *Env, u, instrumentationTag string) (*http.Response, error) {
+	xprt := NewInstrumentedTransport(g, func(*http.Request) string { return instrumentationTag }, &http.Transport{
+		Proxy: MakeProxy(env),
+	})
+	client := &http.Client{
+		Transport: xprt,
+	}
 
 	return client.Get(u)
 }
