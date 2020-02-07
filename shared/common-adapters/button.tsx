@@ -231,6 +231,9 @@ const common = () =>
       paddingLeft: Styles.globalMargins.small,
       paddingRight: Styles.globalMargins.small,
     },
+    isTablet: {
+      alignSelf: 'center',
+    },
   })
 
 const styles = Styles.styleSheetCreate(() => ({
