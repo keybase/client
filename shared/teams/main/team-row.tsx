@@ -29,7 +29,7 @@ const TeamRow = (props: Props) => {
   const onChat = () =>
     dispatch(Chat2Gen.createPreviewConversation({reason: 'teamRow', teamname: teamMeta.teamname}))
 
-  const {popup, popupRoot, setShowingPopup, showingPopup} = Kb.usePopup(getAttachmentRef => (
+  const {popup, popupAnchor, setShowingPopup, showingPopup} = Kb.usePopup(getAttachmentRef => (
     <TeamMenu
       teamID={teamID}
       attachTo={getAttachmentRef}
@@ -100,7 +100,7 @@ const TeamRow = (props: Props) => {
               small={true}
               icon="iconfont-ellipsis"
               tooltip=""
-              ref={popupRoot}
+              ref={popupAnchor}
             />
           </Kb.Box2>
         }
