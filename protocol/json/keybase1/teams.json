@@ -3429,6 +3429,13 @@
         {
           "name": "sendChatNotification",
           "type": "boolean"
+        },
+        {
+          "name": "emailInviteMessage",
+          "type": [
+            null,
+            "string"
+          ]
         }
       ],
       "response": "TeamAddMembersResult"
@@ -3453,6 +3460,13 @@
         {
           "name": "sendChatNotification",
           "type": "boolean"
+        },
+        {
+          "name": "emailInviteMessage",
+          "type": [
+            null,
+            "string"
+          ]
         }
       ],
       "response": "TeamAddMembersResult"

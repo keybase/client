@@ -1690,7 +1690,7 @@ func TestFollowResetAdd(t *testing.T) {
 	require.True(t, libkb.IsIdentifyProofError(err))
 
 	// AddMembers also fails
-	added, notAdded, err := AddMembers(context.TODO(), tc.G, teamID, []keybase1.UserRolePair{{AssertionOrEmail: bob.Username, Role: keybase1.TeamRole_ADMIN}})
+	added, notAdded, err := AddMembers(context.TODO(), tc.G, teamID, []keybase1.UserRolePair{{AssertionOrEmail: bob.Username, Role: keybase1.TeamRole_ADMIN}}, nil)
 	require.Error(t, err)
 	amerr, ok := err.(AddMembersError)
 	require.True(t, ok)
@@ -1798,7 +1798,7 @@ func TestAddMembersWithRestrictiveContactSettings(t *testing.T) {
 		{AssertionOrEmail: bob.Username, Role: keybase1.TeamRole_WRITER},
 		{AssertionOrEmail: charlie.Username, Role: keybase1.TeamRole_WRITER},
 	}
-	added, notAdded, err := AddMembers(context.TODO(), tc.G, teamID, users)
+	added, notAdded, err := AddMembers(context.TODO(), tc.G, teamID, users, nil)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(added))
 	require.Equal(t, libkb.NewNormalizedUsername(bob.Username), added[0].Username)
@@ -1848,7 +1848,7 @@ func TestAddMembersWithRestrictiveContactSettingsFailIfNoneAdded(t *testing.T) {
 		{AssertionOrEmail: bob.Username, Role: keybase1.TeamRole_WRITER},
 		{AssertionOrEmail: charlie.Username, Role: keybase1.TeamRole_WRITER},
 	}
-	added, notAdded, err := AddMembers(context.TODO(), tc.G, teamID, users)
+	added, notAdded, err := AddMembers(context.TODO(), tc.G, teamID, users, nil)
 	require.Error(t, err)
 	require.IsType(t, err, libkb.TeamContactSettingsBlockError{})
 	usernames := err.(libkb.TeamContactSettingsBlockError).BlockedUsernames()

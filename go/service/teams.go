@@ -310,6 +310,7 @@ func (h *TeamsHandler) TeamAddMembers(ctx context.Context, arg keybase1.TeamAddM
 		TeamID:               arg.TeamID,
 		Users:                users,
 		SendChatNotification: arg.SendChatNotification,
+		EmailInviteMessage:   arg.EmailInviteMessage,
 	}
 	return h.TeamAddMembersMultiRole(ctx, arg2)
 }
@@ -332,7 +333,7 @@ func (h *TeamsHandler) TeamAddMembersMultiRole(ctx context.Context, arg keybase1
 		return res, err
 	}
 
-	added, notAdded, err := teams.AddMembers(ctx, h.G().ExternalG(), arg.TeamID, arg.Users)
+	added, notAdded, err := teams.AddMembers(ctx, h.G().ExternalG(), arg.TeamID, arg.Users, arg.EmailInviteMessage)
 	switch err := err.(type) {
 	case nil:
 	case teams.AddMembersError:

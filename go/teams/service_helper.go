@@ -474,7 +474,9 @@ type AddMembersRes struct {
 // will remove restricted users returned by the error, and retry once.
 // On success, returns a list where len(added) + len(noAdded) = len(assertions) and in
 // corresponding order, with restricted users having an empty AddMembersRes.
-func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, users []keybase1.UserRolePair) (added []AddMembersRes, notAdded []keybase1.User, err error) {
+//
+// @emailInviteMsg *string is an argument used as a welcome message in email invitations sent from the server
+func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, users []keybase1.UserRolePair, emailInviteMsg *string) (added []AddMembersRes, notAdded []keybase1.User, err error) {
 	mctx := libkb.NewMetaContext(ctx, g)
 	tracer := g.CTimeTracer(ctx, "team.AddMembers", true)
 	defer tracer.Finish()
@@ -490,6 +492,8 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Tea
 		}
 
 		tx := CreateAddMemberTx(team)
+		tx.EmailInviteMsg = emailInviteMsg
+
 		type sweepEntry struct {
 			Assertion string
 			UV        keybase1.UserVersion
@@ -730,7 +734,7 @@ func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails
 		return res, err
 	}
 
-	_, _, err = AddMembers(ctx, g, t.ID, toAdd)
+	_, _, err = AddMembers(ctx, g, t.ID, toAdd, nil)
 	return res, err
 }
 
