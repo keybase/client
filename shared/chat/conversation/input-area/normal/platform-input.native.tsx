@@ -305,24 +305,8 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
               textType="Body"
               rowsMin={1}
             />
-            <Kb.ClickableBox
-              onClick={this.expandInput}
-              style={{
-                height: 32,
-                padding: Styles.globalMargins.xtiny,
-                position: 'relative',
-                width: 32,
-              }}
-            >
-              <Kb.Box2
-                direction="vertical"
-                alignSelf="flex-start"
-                style={{
-                  position: 'absolute',
-                  right: 1,
-                  top: 0,
-                }}
-              >
+            <Kb.ClickableBox onClick={this.expandInput} style={styles.iconContainer}>
+              <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.iconTop}>
                 <AnimatedIcon
                   onClick={this.expandInput}
                   type="iconfont-arrow-full-up"
@@ -331,15 +315,7 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
                   }}
                 />
               </Kb.Box2>
-              <Kb.Box2
-                direction="vertical"
-                alignSelf="flex-start"
-                style={{
-                  bottom: 0,
-                  left: 1,
-                  position: 'absolute',
-                }}
-              >
+              <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.iconBottom}>
                 <AnimatedIcon
                   onClick={this.expandInput}
                   type="iconfont-arrow-full-up"
@@ -443,6 +419,22 @@ const styles = Styles.styleSheetCreate(
       explodingOuterContainer: {
         alignSelf: 'flex-end',
         paddingBottom: isIOS ? 7 : 10,
+      },
+      iconBottom: {
+        bottom: 0,
+        left: 1,
+        position: 'absolute',
+      },
+      iconContainer: {
+        height: 32,
+        padding: Styles.globalMargins.xtiny,
+        position: 'relative',
+        width: 32,
+      },
+      iconTop: {
+        position: 'absolute',
+        right: 1,
+        top: 0,
       },
       input: Styles.platformStyles({
         common: {
