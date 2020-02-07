@@ -28,24 +28,31 @@ enum AnimationState {
   contracting,
 }
 
-const {call, set, cond, timing, block, debug, Value, Clock} = Kb.ReAnimated
-const {startClock, stopClock, clockRunning, not, eq, and} = Kb.ReAnimated
-const runToggle = (clock, state, value, small, _big, cb) => {
-  const big = new Value(500)
+const {call, set, cond, timing, block, Value, Clock} = Kb.ReAnimated
+const {startClock, stopClock, clockRunning, eq} = Kb.ReAnimated
 
-  return block([
-    cond(eq(state, AnimationState.expanding), set(value, runTiming(clock, value, big, cb))),
+const runToggle = (
+  clock: Kb.ReAnimated.Clock,
+  state: Kb.ReAnimated.Value<AnimationState>,
+  value: Kb.ReAnimated.Value<number>,
+  small: number | undefined,
+  big: number,
+  cb: () => void
+) =>
+  block([
+    cond(eq(state, AnimationState.expanding), set(value, runTiming(clock, value, new Value(big), cb))),
     cond(
       eq(state, AnimationState.contracting),
-      set(value, runTiming(clock, value, small ?? new Value(0), cb))
+      set(value, runTiming(clock, value, small ? new Value(small) : new Value(0), cb))
     ),
   ])
-}
 
-const runTiming = (clock, value, dest, cb) => {
-  console.log('aaa run timing called', value, dest)
-  // const clock = new Clock()
-
+const runTiming = (
+  clock: Kb.ReAnimated.Clock,
+  value: Kb.ReAnimated.Value<number>,
+  dest: Kb.ReAnimated.Value<number>,
+  cb: () => void
+) => {
   const state = {
     finished: new Value(0),
     frameTime: new Value(0),
@@ -66,23 +73,18 @@ const runTiming = (clock, value, dest, cb) => {
       set(state.time, 0),
       set(state.position, value),
       set(config.toValue, dest),
-      debug('aaa clock pos', state.position),
-      debug('aaa clock valu', config.toValue),
       startClock(clock),
     ]),
     timing(clock, state, config),
     cond(state.finished, stopClock(clock)),
     cond(state.finished, call([], cb)),
-    cond(not(state.finished), [debug('aaa pos', state.position), debug('aaa dest', config.toValue)]),
     state.position,
   ])
 }
 type State = {
   animating: boolean // delayed due to setstate, updates after
   afterAnimatingExtraStepWorkaround: boolean // used to twiddle height
-  // animatedMaxHeight: Kb.NativeAnimated.Value
   expanded: boolean
-  expandedDownCounter: number
   hasText: boolean
 }
 
@@ -91,29 +93,18 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
   private lastText?: string
   private whichMenu?: menuType
   private clock = new Clock()
-  // private anim: Kb.ReAnimated.Node<number> = new Value(minInputArea)
   private animateState = new Value<AnimationState>(AnimationState.none)
   private animateHeight = new Value<number>(defaultMaxHeight)
-  private animating: boolean = false // immediate value
+  // if we should update lastHeight when onLayout happens
   private watchSizeChanges = true
   private lastHeight: undefined | number
 
   state = {
-    animating: false,
     afterAnimatingExtraStepWorkaround: false,
-    // animatedMaxHeight: new Kb.NativeAnimated.Value(Styles.dimensionHeight),
+    animating: false,
     expanded: false, // updates immediately, used for the icon etc
-    expandedDownCounter: 0, // reset keys so auto expand works again
     hasText: false,
   }
-
-  // componentDidUpdate(prevProps: PlatformInputPropsInternal) {
-  // if (this.props.maxInputArea !== prevProps.maxInputArea) {
-  // this.setState({
-  // animatedMaxHeight: new Kb.NativeAnimated.Value(this.props.maxInputArea ?? Styles.dimensionHeight),
-  // })
-  // }
-  // }
 
   private inputSetRef = (ref: null | Kb.PlainInput) => {
     this.input = ref
@@ -183,9 +174,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
     const {nativeEvent} = p
     const {layout} = nativeEvent
     const {height} = layout
-    console.log('aaa onlayout', this.watchSizeChanges, height)
     if (this.watchSizeChanges) {
-      console.log('aaa set last height', height)
       this.lastHeight = height
       this.animateHeight.setValue(height)
     }
@@ -244,61 +233,19 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
   }
 
   private onDone = () => {
-    console.log('aaa ondone called ')
-    this.animating = false
-    console.log('aaa cb called', this.state.expanded)
-    this.setState(
-      s => ({
-        animating: false,
-        expandedDownCounter: s.expandedDownCounter + (s.expanded ? 0 : 1),
-      }),
-      () => {
-        // setTimeout(() => {
-        this.setState({afterAnimatingExtraStepWorkaround: false})
-        // }, 1)
-      }
-    )
+    this.setState({animating: false}, () => {
+      this.setState({afterAnimatingExtraStepWorkaround: false})
+    })
   }
 
   private expandInput = () => {
-    this.animating = true
     this.watchSizeChanges = false
+    // eslint-disable-next-line react/no-access-state-in-setstate
     const nextState = !this.state.expanded
-    this.setState(s => ({expanded: nextState, afterAnimatingExtraStepWorkaround: true}))
+    this.setState({afterAnimatingExtraStepWorkaround: true, expanded: nextState})
     this.setState({animating: true}, () =>
       this.animateState.setValue(nextState ? AnimationState.expanding : AnimationState.contracting)
     )
-    // Kb.NativeAnimated.timing(this.state.animatedMaxHeight, {
-    // toValue: !expanded ? 145 : this.props.maxInputArea ?? Styles.dimensionHeight,
-    // }).start(() => {
-    // this.setState({animatedExpanded: expanded})
-    // })
-    // startClock(this.clock)
-    // this.anim = runSpring(this.clock, 150, 800)
-
-    // const onDone = (...a) => {
-    // console.log('aaa on done called', a)
-    // this.setState({animatedExpanded: expanded})
-    // }
-    // startClock(this.clock)
-    console.log('aaa expand input ', nextState)
-    // startClock(this.clock)
-
-    // if (expanded) {
-    // this.anim = runTiming(
-    // // this.clock,
-    // minInputArea,
-    // this.props.maxInputArea ?? Styles.dimensionHeight,
-    // onDone
-    // )
-    // } else {
-    // this.anim = runTiming(
-    // // this.clock,
-    // this.props.maxInputArea ?? Styles.dimensionHeight,
-    // minInputArea,
-    // onDone
-    // )
-    // }
   }
 
   render() {
@@ -338,22 +285,10 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
       </Kb.Box>
     )
 
-    // style={{height: this.animateHeight}}
-    // style={this.state.animatedExpanded ? {height: this.animateHeight} : {maxHeight: this.animateHeight}}
-    console.log(
-      'aaa render',
-      this.lastHeight,
-      this.state,
-      this.animating ? 'this animating' : 'this done animating',
-      this.state.animating ? 'state animating' : 'state done animating',
-      this.animateHeight._value
-    )
-
     return (
       <AnimatedBox2
         direction="vertical"
         onLayout={this.onLayout}
-        key={'animatingBox' /*+ this.state.expandedDownCounter*/}
         fullWidth={true}
         style={[
           {
@@ -392,7 +327,6 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
         )}
         <Kb.Box2
           direction="vertical"
-          key={'inputBoxContainer' /* + this.state.expandedDownCounter*/}
           style={Styles.collapseStyles([
             styles.container,
             (this.state.expanded || this.state.animating) && {height: '100%', minHeight: 0},
