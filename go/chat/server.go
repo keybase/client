@@ -429,7 +429,7 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 		return chat1.NewConversationLocalRes{}, err
 	}
 
-	conv, err := NewConversation(ctx, h.G(), uid, arg.TlfName, arg.TopicName,
+	conv, created, err := NewConversation(ctx, h.G(), uid, arg.TlfName, arg.TopicName,
 		arg.TopicType, arg.MembersType, arg.TlfVisibility, h.remoteClient, NewConvFindExistingNormal)
 	if err != nil {
 		return res, err
@@ -441,7 +441,7 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 
 	// If we are making a new channel in a team, send a system message to
 	// indicate this.
-	if arg.MembersType == chat1.ConversationMembersType_TEAM &&
+	if created && arg.MembersType == chat1.ConversationMembersType_TEAM &&
 		arg.TopicType == chat1.TopicType_CHAT &&
 		arg.TopicName != nil && *arg.TopicName != globals.DefaultTeamTopic {
 		subBody := chat1.NewMessageSystemWithNewchannel(chat1.MessageSystemNewChannel{
