@@ -25,11 +25,11 @@ const mapStateToProps = (state: Container.TypedState, {teamID}: OwnProps) => {
   const isBigTeam = Constants.isBigTeam(state, teamname)
   return {
     canCreateSubteam: yourOperations.manageSubteams,
-    canLeaveTeam: !Constants.isLastOwner(state, teamID),
     canDeleteTeam: yourOperations.deleteTeam && teamDetails.subteams?.size === 0,
+    canInvite: yourOperations.manageMembers,
+    canLeaveTeam: !Constants.isLastOwner(state, teamID),
     canManageChat: yourOperations.renameChannel,
     canViewFolder: !yourOperations.joinTeam,
-    canInvite: yourOperations.manageMembers,
     isBigTeam,
     memberCount,
     role,
