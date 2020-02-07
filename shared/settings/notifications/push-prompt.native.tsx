@@ -80,10 +80,16 @@ const styles = Styles.styleSheetCreate(
         backgroundColor: Styles.globalColors.blue,
         color: Styles.globalColors.white,
       },
-      image: {
-        flex: 1,
-        width: '150%',
-      },
+      image: Styles.platformStyles({
+        common: {
+          flex: 1,
+          width: '150%',
+        },
+        isTablet: {
+          alignSelf: 'center',
+          maxWidth: 460,
+        },
+      }),
     } as const)
 )
 
