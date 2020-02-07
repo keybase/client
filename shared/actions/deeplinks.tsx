@@ -76,7 +76,6 @@ const handleKeybaseLink = (action: DeeplinksGen.HandleKeybaseLinkPayload) => {
       }
       break
     case 'team-page': // keybase://team-page/{team_name}/{manage_settings,add_or_invite}
-      console.log('team page deeplink', parts)
       if (parts.length == 3) {
         const teamName = parts[1]
         const action = parts[2]
@@ -105,7 +104,6 @@ const handleAppLink = (state: Container.TypedState, action: DeeplinksGen.LinkPay
   } else {
     // Normal deeplink
     const url = new URL(action.payload.link)
-    console.log('zzz Deep Link', action.payload.link, url, url.query, typeof url.query)
     const username = Constants.urlToUsername(url)
     if (username === 'phone-app') {
       const phones = state.settings.phoneNumbers.phones
