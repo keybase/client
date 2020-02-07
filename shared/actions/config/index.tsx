@@ -558,8 +558,7 @@ function* allowLogoutWaiters(_: Container.TypedState, action: ConfigGen.LogoutHa
   )
 }
 
-const updateServerConfig = async (_: Container.TypedState, action: ConfigGen.LoadOnStartPayload) =>
-  action.payload.phase === 'startupOrReloginButNotInARush' &&
+const updateServerConfig = async () =>
   RPCTypes.configUpdateLastLoggedInAndServerConfigRpcPromise({
     serverConfigPath: Platform.serverConfigFileName,
   })
@@ -801,7 +800,7 @@ function* configSaga() {
   // When we're all done lets clean up
   yield* Saga.chainAction2(ConfigGen.loggedOut, resetGlobalStore)
   // Store per user server config info
-  yield* Saga.chainAction2(ConfigGen.loadOnStart, updateServerConfig)
+  yield* Saga.chainAction2(ConfigGen.loggedIn, updateServerConfig)
 
   yield* Saga.chainAction2(ConfigGen.setDeletedSelf, showDeletedSelfRootPage)
 
