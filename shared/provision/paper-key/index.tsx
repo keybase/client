@@ -83,11 +83,16 @@ const styles = Styles.styleSheetCreate(
           marginTop: 0,
         },
       }),
-      contents: {
-        flexGrow: 1,
-        maxWidth: Styles.isMobile && !Styles.isTablet ? 300 : 460,
-        width: '100%',
-      },
+      contents: Styles.platformStyles({
+        common: {
+          flexGrow: 1,
+          maxWidth: Styles.isMobile && !Styles.isTablet ? 300 : 460,
+          width: '100%',
+        },
+        isElectron: {maxWidth: 460},
+        isMobile: {maxWidth: 300},
+        isTablet: {maxWidth: 460},
+      }),
       input: {
         color: Styles.globalColors.black,
         ...Styles.globalStyles.fontTerminal,
