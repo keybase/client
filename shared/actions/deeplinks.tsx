@@ -78,10 +78,12 @@ const handleKeybaseLink = (action: DeeplinksGen.HandleKeybaseLinkPayload) => {
     case 'team-page': // keybase://team-page/{team_name}/{manage_settings,add_or_invite}?
       if (parts.length >= 2) {
         const teamName = parts[1]
-        const actionPart = parts[2]
-        const action =
-          actionPart === 'add_or_invite' || actionPart === 'manage_settings' ? actionPart : undefined
-        return handleTeamPageLink(teamName, action)
+        if (teamName.length) {
+          const actionPart = parts[2]
+          const action =
+            actionPart === 'add_or_invite' || actionPart === 'manage_settings' ? actionPart : undefined
+          return handleTeamPageLink(teamName, action)
+        }
       }
       break
     default:
