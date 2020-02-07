@@ -59,9 +59,14 @@ func TestServiceMapLookupKnown(t *testing.T) {
 	timeoutAPI := &timeoutAPIMock{}
 	tc.G.API = timeoutAPI
 
+	// Doesn't matter for the API itself because we are mocking it, but make
+	// sure serviceMapper does not do anything funky when budget is anything
+	// other than default.
+	networkBudget := 1 * time.Second
+
 	{
 		pkgs2 := serviceMapper.MapUIDsToServiceSummaries(context.TODO(), tc.G, uids,
-			zeroDuration /* freshness */, DefaultNetworkBudget /* networkBudget */)
+			zeroDuration /* freshness */, networkBudget)
 		require.Equal(t, pkgs, pkgs2)
 		// Should not have to call API with freshness set to "always fresh".
 		require.Equal(t, 0, timeoutAPI.callCount)
@@ -73,8 +78,7 @@ func TestServiceMapLookupKnown(t *testing.T) {
 		fakeClock.Advance(24 * time.Hour)
 
 		pkgs2 := serviceMapper.MapUIDsToServiceSummaries(context.TODO(), tc.G, uids,
-			12*time.Hour, /* freshness */
-			DefaultNetworkBudget /* networkBudget */)
+			12*time.Hour /* freshness */, networkBudget)
 		require.Len(t, pkgs2, 0)
 		require.Equal(t, 1, timeoutAPI.callCount)
 	}
@@ -82,8 +86,7 @@ func TestServiceMapLookupKnown(t *testing.T) {
 	{
 		// Similar, but with DisallowNetworkBudget which should skip request completely.
 		pkgs2 := serviceMapper.MapUIDsToServiceSummaries(context.TODO(), tc.G, uids,
-			12*time.Hour, /* freshness */
-			DisallowNetworkBudget /* networkBudget */)
+			12*time.Hour /* freshness */, DisallowNetworkBudget /* networkBudget */)
 		require.Len(t, pkgs2, 0)
 		require.Equal(t, 1, timeoutAPI.callCount) // same count as after previous call
 	}
