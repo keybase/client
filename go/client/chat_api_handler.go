@@ -199,7 +199,7 @@ func (s sendOptionsV1) Check() error {
 		return ErrInvalidOptions{version: 1, method: methodSend, err: errors.New("invalid message, body cannot be empty")}
 	}
 	if !s.EphemeralLifetime.Valid() {
-		return ErrInvalidOptions{version: 1, method: methodSend, err: fmt.Errorf("invalid ephemeral lifetime: %q, must be between %q and %q",
+		return ErrInvalidOptions{version: 1, method: methodSend, err: fmt.Errorf("invalid ephemeral lifetime: %v, must be between %v and %v",
 			s.EphemeralLifetime, libkb.MaxEphemeralContentLifetime, libkb.MinEphemeralContentLifetime)}
 	}
 	return nil
@@ -249,7 +249,7 @@ func (e editOptionsV1) Check() error {
 	}
 
 	if e.MessageID == 0 {
-		return ErrInvalidOptions{version: 1, method: methodEdit, err: fmt.Errorf("invalid message id %q", e.MessageID)}
+		return ErrInvalidOptions{version: 1, method: methodEdit, err: fmt.Errorf("invalid message id '%d'", e.MessageID)}
 	}
 
 	if !e.Message.Valid() {
@@ -272,7 +272,7 @@ func (e reactionOptionsV1) Check() error {
 	}
 
 	if e.MessageID == 0 {
-		return ErrInvalidOptions{version: 1, method: methodReaction, err: fmt.Errorf("invalid message id %q", e.MessageID)}
+		return ErrInvalidOptions{version: 1, method: methodReaction, err: fmt.Errorf("invalid message id '%d'", e.MessageID)}
 	}
 
 	if !e.Message.Valid() {
@@ -294,7 +294,7 @@ func (d deleteOptionsV1) Check() error {
 	}
 
 	if d.MessageID == 0 {
-		return ErrInvalidOptions{version: 1, method: methodDelete, err: fmt.Errorf("invalid message id %q", d.MessageID)}
+		return ErrInvalidOptions{version: 1, method: methodDelete, err: fmt.Errorf("invalid message id '%d'", d.MessageID)}
 	}
 
 	return nil
@@ -337,7 +337,7 @@ func (a downloadOptionsV1) Check() error {
 		return err
 	}
 	if a.MessageID == 0 {
-		return ErrInvalidOptions{version: 1, method: methodDownload, err: fmt.Errorf("invalid message id %q", a.MessageID)}
+		return ErrInvalidOptions{version: 1, method: methodDownload, err: fmt.Errorf("invalid message id '%d'", a.MessageID)}
 	}
 	if len(strings.TrimSpace(a.Output)) == 0 {
 		return ErrInvalidOptions{version: 1, method: methodDownload, err: errors.New("empty output filename")}
