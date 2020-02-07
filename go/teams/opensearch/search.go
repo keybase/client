@@ -66,7 +66,7 @@ func getOpenTeams(mctx libkb.MetaContext) (res []keybase1.TeamSearchItem, err er
 func refreshOpenTeams(mctx libkb.MetaContext) {
 	a := libkb.NewAPIArg("teamsearch/refresh")
 	a.Args = libkb.HTTPArgs{}
-	a.SessionType = libkb.APISessionTypeNONE
+	a.SessionType = libkb.APISessionTypeREQUIRED
 	var apiRes teamRefreshResult
 	if err := mctx.G().API.GetDecode(mctx, a, &apiRes); err != nil {
 		mctx.Debug("refreshOpenTeams: failed to fetch open teams: %s", err)
