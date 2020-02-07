@@ -63,7 +63,11 @@ const TeamTabs = (props: TeamTabsProps) => {
   }
 
   if (props.numSubteams > 0 || props.showSubteams) {
-    tabs.push(<TabText key="subteams" selected={props.selectedTab === 'subteams'} text="Subteams" />)
+    tabs.push(
+      <Kb.Box key="subteams" style={styles.tabTextContainer}>
+        <TabText selected={props.selectedTab === 'subteams'} text="Subteams" />
+      </Kb.Box>
+    )
   }
 
   tabs.push(

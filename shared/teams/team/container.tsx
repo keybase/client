@@ -9,7 +9,6 @@ import * as Types from '../../constants/types/teams'
 import Team, {Sections} from '.'
 import makeRows from './rows'
 import flags from '../../util/feature-flags'
-import TabsStateNew from './container.new'
 
 type TabsStateOwnProps = Container.RouteProps<{teamID: Types.TeamID}>
 type OwnProps = TabsStateOwnProps & {
@@ -54,7 +53,7 @@ const Connected = Container.compose(
       stateProps.invitesCollapsed
     )
     const sections: Sections = [
-      ...(Container.isMobile
+      ...(Container.isMobile && !flags.teamsRedesign
         ? [{data: [{key: 'header-inner', type: 'header' as const}], key: 'header'}]
         : []),
       {data: rows, header: {key: 'tabs', type: 'tabs'}, key: 'body'},
@@ -75,17 +74,23 @@ const Connected = Container.compose(
 
 class TabsState extends React.PureComponent<TabsStateOwnProps, {selectedTab: Types.TabKey}> {
   static navigationOptions = (ownProps: TabsStateOwnProps) => ({
+    header:
+      Container.isMobile && flags.teamsRedesign
+        ? () => <HeaderTitle teamID={Container.getRouteProps(ownProps, 'teamID', '')} />
+        : null,
     headerExpandable: true,
     headerHideBorder: true,
-    headerRightActions: Container.isMobile
-      ? undefined
-      : () => <HeaderRightActions teamID={Container.getRouteProps(ownProps, 'teamID', '')} />,
+    headerRightActions:
+      Container.isMobile || flags.teamsRedesign
+        ? undefined
+        : () => <HeaderRightActions teamID={Container.getRouteProps(ownProps, 'teamID', '')} />,
     headerTitle: Container.isMobile
       ? undefined
       : () => <HeaderTitle teamID={Container.getRouteProps(ownProps, 'teamID', '')} />,
-    subHeader: Container.isMobile
-      ? undefined
-      : () => <SubHeader teamID={Container.getRouteProps(ownProps, 'teamID', '')} />,
+    subHeader:
+      Container.isMobile && !flags.teamsRedesign
+        ? undefined
+        : () => <SubHeader teamID={Container.getRouteProps(ownProps, 'teamID', '')} />,
   })
   state = {selectedTab: lastSelectedTabs[Container.getRouteProps(this.props, 'teamID', '')] || 'members'}
   private setSelectedTab = selectedTab => {
@@ -105,5 +110,5 @@ class TabsState extends React.PureComponent<TabsStateOwnProps, {selectedTab: Typ
   }
 }
 
-export default flags.teamsRedesign ? TabsStateNew : TabsState
+export default TabsState
 export type TeamScreenType = React.ComponentType<TabsStateOwnProps>

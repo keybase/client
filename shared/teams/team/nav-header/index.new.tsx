@@ -321,7 +321,7 @@ const styles = Styles.styleSheetCreate(
       },
       backButton: {
         backgroundColor: Styles.globalColors.white,
-        marginTop: Styles.globalMargins.xtiny,
+        paddingTop: Styles.globalMargins.small,
       },
       banner: {
         ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall, 0),

@@ -370,10 +370,10 @@ export type FloatingProps = {
   open: boolean
 } & Props
 
-export class FloatingRolePicker extends React.Component<FloatingProps, {ref: Kb.Box2 | null}> {
+export class FloatingRolePicker extends React.Component<FloatingProps, {ref: Kb.Box | null}> {
   state = {ref: null}
   _returnRef = () => this.state.ref
-  _setRef = (ref: Kb.Box2 | null) => this.setState({ref})
+  _setRef = (ref: Kb.Box | null) => this.setState({ref})
   render() {
     const {position, children, open, floatingContainerStyle, onCancel, ...props} = this.props
     const picker = <RolePicker {...props} onCancel={Styles.isMobile ? undefined : onCancel} />

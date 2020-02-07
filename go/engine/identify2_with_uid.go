@@ -384,7 +384,6 @@ func (e *Identify2WithUID) notifyChat(m libkb.MetaContext, inErr error) error {
 
 func (e *Identify2WithUID) run(m libkb.MetaContext) {
 	err := e.runReturnError(m)
-	e.unblock(m /* isFinal */, true, err)
 
 	if notifyChatErr := e.notifyChat(m, err); notifyChatErr != nil {
 		m.Warning("failed to notify chat of identify result: %s", notifyChatErr)
@@ -399,6 +398,7 @@ func (e *Identify2WithUID) run(m libkb.MetaContext) {
 			m.Debug("| error during cancel: %+v", err)
 		}
 	}
+	e.unblock(m, true /* isFinal */, err)
 }
 
 func (e *Identify2WithUID) hitFastCache(m libkb.MetaContext) bool {
@@ -1321,6 +1321,7 @@ func (e *Identify2WithUID) maybeNotify(mctx libkb.MetaContext, explanation strin
 		// This check is needed because ActLoggedOut causes the untracked fast path
 		// to succeed even when the true active user is tracking the identifyee.
 		mctx.Debug("Identify2WithUID.maybeNotify(%v, %v) nope missing ME", target, explanation)
+		return
 	}
 	if target.IsNil() {
 		mctx.Debug("Identify2WithUID.maybeNotify(%v, %v) nope missing UID", target, explanation)

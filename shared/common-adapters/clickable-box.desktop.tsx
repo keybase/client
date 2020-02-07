@@ -1,53 +1,59 @@
 import * as React from 'react'
 import {collapseStyles, globalStyles, desktopStyles} from '../styles'
 
-import {Props} from './clickable-box'
+import {Props as _Props} from './clickable-box'
 import {_StylesCrossPlatform} from '../styles/css'
 
-const needMouseEnterLeaveHandlers = (props: Props): boolean => {
-  return !!(props.hoverColor || props.underlayColor || props.onMouseEnter || props.onMouseLeave)
-}
+type Props = _Props & {children: React.ReactNode}
 
-class ClickableBox extends React.Component<
-  Props & {children: React.ReactNode},
-  {mouseDown: boolean; mouseIn: boolean}
-> {
-  state = {
-    mouseDown: false,
-    mouseIn: false,
-  }
-  _onMouseEnter = e => {
-    this.setState({mouseIn: true})
-    this.props.onMouseEnter && this.props.onMouseEnter(e)
-  }
-  _onMouseLeave = e => {
-    this.setState({mouseIn: false})
-    this.props.onMouseLeave && this.props.onMouseLeave(e)
-  }
-  _onMouseDown = e => {
-    this.setState({mouseDown: true})
-    this.props.onMouseDown && this.props.onMouseDown(e)
-  }
-  _onMouseUp = e => {
-    this.setState({mouseDown: false})
-    this.props.onMouseUp && this.props.onMouseUp(e)
-  }
+const ClickableBox = React.forwardRef<HTMLDivElement, Props>(
+  (props: Props, forwardedRef: React.Ref<HTMLDivElement>) => {
+    const [mouseDown, setMouseDown] = React.useState(false)
+    const [mouseIn, setMouseIn] = React.useState(false)
 
-  render() {
-    const {style, children, underlayColor, hoverColor, onClick, onDoubleClick, ...otherProps} = this.props
+    // Set onMouseEnter/Leave only if needed, so that any hover
+    // properties of children elements work.
+    const needMouseEnterLeaveHandlers = !!(
+      props.hoverColor ||
+      props.underlayColor ||
+      props.onMouseEnter ||
+      props.onMouseLeave
+    )
+    const onMouseEnter = needMouseEnterLeaveHandlers
+      ? (e: React.MouseEvent): void => {
+          setMouseIn(true)
+          props.onMouseEnter && props.onMouseEnter(e)
+        }
+      : undefined
+    const onMouseLeave = needMouseEnterLeaveHandlers
+      ? (e: React.MouseEvent) => {
+          setMouseIn(false)
+          props.onMouseLeave && props.onMouseLeave(e)
+        }
+      : undefined
+    const onMouseDown = (e: React.MouseEvent) => {
+      setMouseDown(true)
+      props.onMouseDown && props.onMouseDown(e)
+    }
+    const onMouseUp = (e: React.MouseEvent) => {
+      setMouseDown(false)
+      props.onMouseUp && props.onMouseUp(e)
+    }
+
+    const {style, children, underlayColor, hoverColor, onClick, onDoubleClick, ...otherProps} = props
 
     // filter out native-only calls
     const {onPress, onLongPress, onPressIn, onPressOut, ...passThroughProps} = otherProps
 
-    let underlay
+    let underlay: React.ReactNode
 
-    if (this.state.mouseIn && this.props.onClick) {
+    if (mouseIn && props.onClick) {
       let borderRadius = 0
       if (style && typeof style === 'object') {
         borderRadius = (style as _StylesCrossPlatform).borderRadius || 0
       }
       // Down or hover
-      const backgroundColor = this.state.mouseDown
+      const backgroundColor = mouseDown
         ? underlayColor || 'rgba(255, 255, 255, 0.2)'
         : hoverColor || 'rgba(255, 255, 255, 0.1)'
       underlay = (
@@ -63,15 +69,14 @@ class ClickableBox extends React.Component<
 
     return (
       <div
+        ref={forwardedRef}
         {...passThroughProps}
-        onMouseDown={this._onMouseDown}
-        // Set onMouseEnter/Leave only if needed, so that any hover
-        // properties of children elements work.
-        onMouseEnter={needMouseEnterLeaveHandlers(this.props) ? this._onMouseEnter : undefined}
-        onMouseLeave={needMouseEnterLeaveHandlers(this.props) ? this._onMouseLeave : undefined}
-        onMouseUp={this._onMouseUp}
-        onDoubleClick={onDoubleClick || undefined}
-        onClick={onClick || undefined}
+        onMouseDown={onMouseDown}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+        onMouseUp={onMouseUp}
+        onDoubleClick={onDoubleClick}
+        onClick={onClick}
         style={collapseStyles([_containerStyle, onClick ? desktopStyles.clickable : null, style])}
       >
         {underlay}
@@ -79,7 +84,7 @@ class ClickableBox extends React.Component<
       </div>
     )
   }
-}
+)
 
 const _containerStyle = {
   alignItems: 'stretch',

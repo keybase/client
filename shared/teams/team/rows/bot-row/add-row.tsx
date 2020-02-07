@@ -36,7 +36,7 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       container: {
-        marginTop: Styles.globalMargins.tiny,
+        marginTop: Styles.globalMargins.medium,
       },
     } as const)
 )

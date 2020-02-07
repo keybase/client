@@ -84,6 +84,10 @@ const styles = Styles.styleSheetCreate(
         isMobile: {
           ...Styles.padding(0, Styles.globalMargins.small, Styles.globalMargins.tiny),
         },
+        isTablet: {
+          alignItems: 'center',
+          width: '100%',
+        },
       }),
       container: {
         backgroundColor: Styles.globalColors.white,

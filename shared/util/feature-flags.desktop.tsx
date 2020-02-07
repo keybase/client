@@ -22,6 +22,7 @@ const ff: FeatureFlags = {
   outOfDateBanner: false,
   proofProviders: true,
   stellarExternalPartners: true,
+  tabletSupport: false, // Whether tablet support is public. Changes some UI on non-tablets.
   teamInvites: false,
   teamsRedesign: false,
   userBlocking: true,
@@ -38,6 +39,7 @@ const inAdmin: {[K in keyof FeatureFlags]?: boolean} = {
   openTeamSearch: true,
   outOfDateBanner: true,
   proofProviders: true,
+  tabletSupport: true,
   userBlocking: false,
   webOfTrust: false,
 }
