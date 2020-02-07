@@ -15,9 +15,11 @@ type Props = {
 const TeamRow = (props: Props) => {
   const {firstItem, showChat = true, teamID} = props
   const dispatch = Container.useDispatch()
+  const nav = Container.useSafeNavigation()
   const teamMeta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
 
-  const onViewTeam = () => {} // TODO
+  const onViewTeam = () =>
+    dispatch(nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'team'}]}))
 
   const activity = <Activity level={'extinct' /* TODO plumbing for this */} />
 
@@ -100,12 +102,10 @@ const styles = Styles.styleSheetCreate(() => ({
     paddingTop: Styles.globalMargins.tiny,
   },
   bodyLeft: {
-    // backgroundColor: Styles.globalColors.blue,
     flex: 1,
   },
   bodyLeftText: {justifyContent: 'center'},
   bodyRight: {
-    // backgroundColor: Styles.globalColors.green,
     flex: 0.7,
   },
   openMeta: {
