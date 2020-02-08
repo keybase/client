@@ -52,33 +52,57 @@ func (i rankedSearchItem) String() string {
 		i.item.LastActive.Time(), i.score, i.item.IsDemoted)
 }
 
-func getOpenTeams(mctx libkb.MetaContext) (res []keybase1.TeamSearchItem, err error) {
-	found, err := mctx.G().GetKVStore().GetInto(&res, libkb.DbKey{Typ: libkb.DBOpenTeams})
-	if err != nil {
-		return res, err
+func dbKey() libkb.DbKey {
+	return libkb.DbKey{
+		Typ: libkb.DBOpenTeams,
+		Key: "v2",
 	}
-	if !found {
-		return res, errors.New("no open teams found")
+}
+
+func getOpenTeams(mctx libkb.MetaContext) (res map[keybase1.TeamID]keybase1.TeamSearchItem, err error) {
+	get := func() (res map[keybase1.TeamID]keybase1.TeamSearchItem, err error) {
+		found, err := mctx.G().GetKVStore().GetInto(&res, dbKey())
+		if err != nil {
+			return res, err
+		}
+		if !found {
+			return res, errors.New("no open teams found")
+		}
+		return res, nil
+	}
+	if res, err = get(); err != nil {
+		mctx.Debug("OpenSearch.getOpenTeams: failed to get open teams, refreshing")
+		refreshOpenTeams(mctx)
+		return get()
 	}
 	return res, nil
 }
 
 func refreshOpenTeams(mctx libkb.MetaContext) {
+	tracer := mctx.G().CTimeTracer(mctx.Ctx(), "OpenSearch.refreshOpenTeams", true)
+	defer tracer.Finish()
 	a := libkb.NewAPIArg("teamsearch/refresh")
 	a.Args = libkb.HTTPArgs{}
 	a.SessionType = libkb.APISessionTypeREQUIRED
 	var apiRes teamRefreshResult
 	if err := mctx.G().API.GetDecode(mctx, a, &apiRes); err != nil {
-		mctx.Debug("refreshOpenTeams: failed to fetch open teams: %s", err)
+		mctx.Debug("OpenSearch.refreshOpenTeams: failed to fetch open teams: %s", err)
 		return
 	}
-	if err := mctx.G().GetKVStore().PutObj(libkb.DbKey{Typ: libkb.DBOpenTeams}, nil, apiRes.Results); err != nil {
-		mctx.Debug("refreshOpenTeams: failed to put: %s", err)
+	mctx.Debug("OpenSearch.refreshOpenTeams: received %d teams", len(apiRes.Results))
+	out := make(map[keybase1.TeamID]keybase1.TeamSearchItem, len(apiRes.Results))
+	for _, r := range apiRes.Results {
+		out[r.Id] = r
 	}
+	if err := mctx.G().GetKVStore().PutObj(dbKey(), nil, out); err != nil {
+		mctx.Debug("OpenSearch.refreshOpenTeams: failed to put: %s", err)
+	}
+	lastRefresh = time.Now()
 }
 
 // Local performs a local search for Keybase open teams.
 func Local(mctx libkb.MetaContext, query string, limit int) (res []keybase1.TeamSearchItem, err error) {
+	mctx = mctx.WithLogTag("OTS")
 	tracer := mctx.G().CTimeTracer(mctx.Ctx(), "OpenSearch.Local", true)
 	defer tracer.Finish()
 	defer func() {
@@ -93,15 +117,35 @@ func Local(mctx libkb.MetaContext, query string, limit int) (res []keybase1.Team
 	}
 	query = strings.ToLower(query)
 	var results []*rankedSearchItem
-	for _, item := range teams {
-		score := scoreItemFromQuery(query, item)
-		if filterScore(score) {
-			continue
+	if len(query) == 0 {
+		results = []*rankedSearchItem{
+			{
+				score: 100,
+				// keybasefriends
+				item: teams["67c99659bdc24920b56ccec3a42dd424"],
+			},
+			{
+				score: 80,
+				// stellar.public
+				item: teams["47b10198326e4c58a2b8cf84ad831a25"],
+			},
+			{
+				score: 60,
+				// mkbot
+				item: teams["ff99ab0d863c3c198e75d980bec22d24"],
+			},
 		}
-		results = append(results, &rankedSearchItem{
-			item:  item,
-			score: score,
-		})
+	} else {
+		for _, item := range teams {
+			score := scoreItemFromQuery(query, item)
+			if filterScore(score) {
+				continue
+			}
+			results = append(results, &rankedSearchItem{
+				item:  item,
+				score: score,
+			})
+		}
 	}
 	sort.Slice(results, func(i, j int) bool {
 		return results[i].score > results[j].score

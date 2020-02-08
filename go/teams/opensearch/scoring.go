@@ -60,6 +60,9 @@ func scoreItemFromQuery(query string, item keybase1.TeamSearchItem) (score float
 			}
 		}
 	}
+	if filterScore(score) {
+		return score
+	}
 	return score + normalizeMemberCount(item.MemberCount)*memberCountWeight +
 		normalizeLastActive(item.LastActive)*lastActiveWeight
 }
