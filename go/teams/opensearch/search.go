@@ -16,14 +16,6 @@ import (
 
 type teamMap map[keybase1.TeamID]keybase1.TeamSearchItem
 
-func (m teamMap) ToList() (res keybase1.TeamSearchItemList) {
-	res = make(keybase1.TeamSearchItemList, 0, len(m))
-	for _, t := range m {
-		res = append(res, t)
-	}
-	return res
-}
-
 const refreshThreshold = time.Hour
 
 var lastRefresh time.Time
@@ -38,10 +30,7 @@ func (r *teamSearchResult) GetAppStatus() *libkb.AppStatus {
 }
 
 type teamRefreshResult struct {
-	Results struct {
-		Items     map[keybase1.TeamID]keybase1.TeamSearchItem
-		Suggested []keybase1.TeamID
-	} `json:"results"`
+	keybase1.TeamSearchExport
 	Status libkb.AppStatus
 }
 
@@ -117,16 +106,16 @@ func refreshOpenTeams(mctx libkb.MetaContext, hash string) {
 		saved = false
 		return
 	}
-	if len(apiRes.Results.Items) == 0 {
+	if len(apiRes.Items) == 0 {
 		mctx.Debug("OpenSearch.refreshOpenTeams: hash match, standing pat")
 		return
 	}
-	mctx.Debug("OpenSearch.refreshOpenTeams: received %d teams, suggested: %d", len(apiRes.Results.Items),
-		len(apiRes.Results.Suggested))
+	mctx.Debug("OpenSearch.refreshOpenTeams: received %d teams, suggested: %d", len(apiRes.Items),
+		len(apiRes.Suggested))
 	var out storageItem
-	out.Items = apiRes.Results.Items
-	out.Suggested = apiRes.Results.Suggested
-	out.Hash = out.Items.ToList().Hash()
+	out.Items = apiRes.Items
+	out.Suggested = apiRes.Suggested
+	out.Hash = apiRes.Hash()
 	if err := mctx.G().GetKVStore().PutObj(dbKey(), nil, out); err != nil {
 		mctx.Debug("OpenSearch.refreshOpenTeams: failed to put: %s", err)
 		saved = false

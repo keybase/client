@@ -3748,9 +3748,11 @@ func (x InstrumentationStat) AppendStat(y InstrumentationStat) InstrumentationSt
 	return x
 }
 
-type TeamSearchItemList []TeamSearchItem
-
-func (l TeamSearchItemList) Hash() string {
+func (e TeamSearchExport) Hash() string {
+	l := make([]TeamSearchItem, 0, len(e.Items))
+	for _, item := range e.Items {
+		l = append(l, item)
+	}
 	sort.Slice(l, func(i, j int) bool {
 		return l[i].Id.Less(l[j].Id)
 	})
@@ -3758,6 +3760,9 @@ func (l TeamSearchItemList) Hash() string {
 	for _, team := range l {
 		hasher.Write(team.Id.ToBytes())
 		hasher.Write([]byte(fmt.Sprintf("%d", team.MemberCount/100)))
+	}
+	for _, id := range e.Suggested {
+		hasher.Write(id.ToBytes())
 	}
 	return hex.EncodeToString(hasher.Sum(nil))
 }

@@ -46,6 +46,27 @@
     },
     {
       "type": "record",
+      "name": "TeamSearchExport",
+      "fields": [
+        {
+          "type": {
+            "type": "map",
+            "values": "TeamSearchItem",
+            "keys": "TeamID"
+          },
+          "name": "items"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamID"
+          },
+          "name": "suggested"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "TeamSearchRes",
       "fields": [
         {

@@ -37,6 +37,39 @@ func (o TeamSearchItem) DeepCopy() TeamSearchItem {
 	}
 }
 
+type TeamSearchExport struct {
+	Items     map[TeamID]TeamSearchItem `codec:"items" json:"items"`
+	Suggested []TeamID                  `codec:"suggested" json:"suggested"`
+}
+
+func (o TeamSearchExport) DeepCopy() TeamSearchExport {
+	return TeamSearchExport{
+		Items: (func(x map[TeamID]TeamSearchItem) map[TeamID]TeamSearchItem {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[TeamID]TeamSearchItem, len(x))
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Items),
+		Suggested: (func(x []TeamID) []TeamID {
+			if x == nil {
+				return nil
+			}
+			ret := make([]TeamID, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Suggested),
+	}
+}
+
 type TeamSearchRes struct {
 	Results []TeamSearchItem `codec:"results" json:"results"`
 }
