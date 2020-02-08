@@ -140,6 +140,9 @@ func (e *PGPDecrypt) Run(m libkb.MetaContext) (err error) {
 		if e.signer == nil {
 			// signer isn't a keybase user
 			m.Debug("message signed by key unknown to keybase: %X", e.signStatus.KeyID)
+			if err := OutputSignatureNonKeybase(m, e.signStatus.KeyID, e.signStatus.SignatureTime, e.signStatus.Warnings); err != nil {
+				return err
+			}
 			return libkb.BadSigError{
 				E: fmt.Sprintf("Message signed by an unknown key: %X", e.signStatus.KeyID),
 			}
