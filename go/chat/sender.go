@@ -529,7 +529,7 @@ func (s *BlockingSender) handleReplyTo(ctx context.Context, uid gregor1.UID, con
 			return msg, err
 		}
 		if !reply.IsValid() {
-			s.Debug(ctx, "handleReplyTo: reply message invalid: %s", err)
+			s.Debug(ctx, "handleReplyTo: reply message invalid: %v %v", replyTo, err)
 			return msg, nil
 		}
 		replyToUID := reply.Valid().ClientHeader.Sender
