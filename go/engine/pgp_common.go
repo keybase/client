@@ -16,7 +16,7 @@ func OutputSignatureSuccess(m libkb.MetaContext, fingerprint libkb.PGPFingerprin
 	arg := keybase1.OutputSignatureSuccessArg{
 		Fingerprint: fingerprint.String(),
 		Username:    owner.GetName(),
-		SignedAt:    keybase1.TimeFromSeconds(signatureTime.Unix()),
+		SignedAt:    keybase1.ToTime(signatureTime),
 		Warnings:    warnings.Strings(),
 	}
 	return m.UIs().PgpUI.OutputSignatureSuccess(m.Ctx(), arg)
@@ -27,7 +27,7 @@ func OutputSignatureSuccess(m libkb.MetaContext, fingerprint libkb.PGPFingerprin
 func OutputSignatureNonKeybase(m libkb.MetaContext, keyID uint64, signatureTime time.Time, warnings libkb.HashSecurityWarnings) error {
 	arg := keybase1.OutputSignatureNonKeybaseArg{
 		KeyID:    fmt.Sprintf("%X", keyID),
-		SignedAt: keybase1.TimeFromSeconds(signatureTime.Unix()),
+		SignedAt: keybase1.ToTime(signatureTime),
 		Warnings: warnings.Strings(),
 	}
 	return m.UIs().PgpUI.OutputSignatureNonKeybase(m.Ctx(), arg)
