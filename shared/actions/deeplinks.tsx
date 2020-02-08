@@ -16,7 +16,7 @@ const handleTeamPageLink = (teamname: string, action: 'add_or_invite' | 'manage_
   const addMembers = action === 'add_or_invite' ? true : undefined
   return [
     RouteTreeGen.createSwitchTab({tab: Tabs.teamsTab}),
-    TeamsGen.createShowTeamByName({teamname, initialTab, addMembers}),
+    TeamsGen.createShowTeamByName({addMembers, initialTab, teamname}),
   ]
 }
 
