@@ -84,6 +84,7 @@ export const getRemoteWindowPropsCount = (state: Types.State, component: string,
 }
 
 export const initialState: Types.State = {
+  androidShare: undefined,
   appFocused: true,
   appFocusedCount: 0,
   appOutOfDateMessage: '',
@@ -120,7 +121,6 @@ export const initialState: Types.State = {
   startupDetailsLoaded: false,
   startupFollowUser: '',
   startupLink: '',
-  startupSharePath: '',
   startupWasFromPush: false,
   systemDarkMode: false,
   uid: '',

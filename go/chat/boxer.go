@@ -67,7 +67,7 @@ type Boxer struct {
 	// Slots for replacing with test implementations.
 	// These are normally nil.
 	testingValidSenderKey     func(context.Context, gregor1.UID, []byte, gregor1.Time) (revoked *gregor1.Time, unboxingErr types.UnboxingError)
-	testingGetSenderInfoLocal func(context.Context, gregor1.UID, gregor1.DeviceID) (senderUsername string, senderDeviceName string, senderDeviceType string)
+	testingGetSenderInfoLocal func(context.Context, gregor1.UID, gregor1.DeviceID) (senderUsername string, senderDeviceName string, senderDeviceType keybase1.DeviceTypeV2)
 	// Post-process signatures and signencrypts
 	testingSignatureMangle func([]byte) []byte
 
@@ -1226,10 +1226,10 @@ func (b *Boxer) UnboxThread(ctx context.Context, boxed chat1.ThreadViewBoxed, co
 	return thread, nil
 }
 
-func (b *Boxer) getUsernameAndDevice(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID) (string, string, string, error) {
+func (b *Boxer) getUsernameAndDevice(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID) (string, string, keybase1.DeviceTypeV2, error) {
 	nun, devName, devType, err := globals.CtxUPAKFinder(ctx, b.G()).LookupUsernameAndDevice(ctx, uid, deviceID)
 	if err != nil {
-		return "", "", "", err
+		return "", "", keybase1.DeviceTypeV2_NONE, err
 	}
 	return nun.String(), devName, devType, nil
 }
@@ -1247,7 +1247,7 @@ func (b *Boxer) getUsername(ctx context.Context, uid keybase1.UID) (string, erro
 // The reason for this soft error handling is that a permanent failure would be inappropriate, a transient
 // failure could cause an entire thread not to load, and loading the names of revoked devices may not work this way.
 // This deserves to be reconsidered.
-func (b *Boxer) getSenderInfoLocal(ctx context.Context, uid1 gregor1.UID, deviceID1 gregor1.DeviceID) (senderUsername string, senderDeviceName string, senderDeviceType string) {
+func (b *Boxer) getSenderInfoLocal(ctx context.Context, uid1 gregor1.UID, deviceID1 gregor1.DeviceID) (senderUsername string, senderDeviceName string, senderDeviceType keybase1.DeviceTypeV2) {
 	if b.testingGetSenderInfoLocal != nil {
 		b.assertInTest()
 		return b.testingGetSenderInfoLocal(ctx, uid1, deviceID1)
@@ -1321,7 +1321,8 @@ func (b *Boxer) getAtMentionInfo(ctx context.Context, tlfID chat1.TLFID, topicTy
 			channelNameMentions = utils.ParseChannelNameMentions(ctx, body.Edit().Body, uid, tlfID, tcs)
 		}
 	case chat1.MessageType_SYSTEM:
-		atMentions, chanMention = utils.SystemMessageMentions(ctx, body.System(), b.G().GetUPAKLoader())
+		atMentions, chanMention, channelNameMentions = utils.SystemMessageMentions(ctx, b.G(), uid,
+			body.System())
 	default:
 		return nil, nil, nil, chanMention, nil
 	}

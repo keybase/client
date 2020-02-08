@@ -128,7 +128,7 @@ func processCallerPreview(ctx context.Context, g *globals.Context, callerPreview
 			return p, err
 		}
 	case chat1.PreviewLocationTyp_URL:
-		resp, err := libkb.ProxyHTTPGet(g.Env, callerPreview.Location.Url())
+		resp, err := libkb.ProxyHTTPGet(g.ExternalG(), g.Env, callerPreview.Location.Url(), "PreviewLocation")
 		if err != nil {
 			return p, err
 		}

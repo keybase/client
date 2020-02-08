@@ -1,5 +1,5 @@
 import {WalletRow, Props} from '.'
-import {namedConnect, isMobile} from '../../../util/container'
+import {namedConnect, isPhone} from '../../../util/container'
 import {getAccount, getSelectedAccount} from '../../../constants/wallets'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
@@ -34,7 +34,7 @@ const mapStateToProps = (
 
 const mapDispatchToProps = dispatch => ({
   _onSelectAccount: (accountID: AccountID) => {
-    if (!isMobile) {
+    if (!isPhone) {
       dispatch(RouteTreeGen.createNavUpToScreen({routeName: 'wallet'}))
     }
     dispatch(WalletsGen.createSelectAccount({accountID, reason: 'user-selected', show: true}))
@@ -43,7 +43,7 @@ const mapDispatchToProps = dispatch => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   contents: stateProps.contents,
-  isSelected: !isMobile && stateProps.isSelected,
+  isSelected: !isPhone && stateProps.isSelected,
   keybaseUser: stateProps.keybaseUser,
   name: stateProps.name,
   onSelect: () => {

@@ -2,15 +2,7 @@ import * as RPCTypes from './rpc-gen'
 import {PlatformsExpandedType} from './more'
 import {SiteIconSet} from './tracker2'
 
-export type FriendshipsTab = 'Followers' | 'Following'
-
-export type FriendshipUserInfo = {
-  username: string
-  uid: string
-  fullname: string
-  followsYou: boolean
-  following: boolean
-}
+export type WebOfTrustVerificationType = 'none' | 'audio' | 'video' | 'email' | 'other_chat' | 'in_person'
 
 export type ProveGenericParams = {
   readonly logoBlack: SiteIconSet

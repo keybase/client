@@ -85,6 +85,8 @@ type BadgeState struct {
 	HomeTodoItems             int                     `codec:"homeTodoItems" json:"homeTodoItems"`
 	UnverifiedEmails          int                     `codec:"unverifiedEmails" json:"unverifiedEmails"`
 	UnverifiedPhones          int                     `codec:"unverifiedPhones" json:"unverifiedPhones"`
+	SmallTeamBadgeCount       int                     `codec:"smallTeamBadgeCount" json:"smallTeamBadgeCount"`
+	BigTeamBadgeCount         int                     `codec:"bigTeamBadgeCount" json:"bigTeamBadgeCount"`
 	NewDevices                []DeviceID              `codec:"newDevices" json:"newDevices"`
 	RevokedDevices            []DeviceID              `codec:"revokedDevices" json:"revokedDevices"`
 	Conversations             []BadgeConversationInfo `codec:"conversations" json:"conversations"`
@@ -99,13 +101,15 @@ type BadgeState struct {
 
 func (o BadgeState) DeepCopy() BadgeState {
 	return BadgeState{
-		NewTlfs:          o.NewTlfs,
-		RekeysNeeded:     o.RekeysNeeded,
-		NewFollowers:     o.NewFollowers,
-		InboxVers:        o.InboxVers,
-		HomeTodoItems:    o.HomeTodoItems,
-		UnverifiedEmails: o.UnverifiedEmails,
-		UnverifiedPhones: o.UnverifiedPhones,
+		NewTlfs:             o.NewTlfs,
+		RekeysNeeded:        o.RekeysNeeded,
+		NewFollowers:        o.NewFollowers,
+		InboxVers:           o.InboxVers,
+		HomeTodoItems:       o.HomeTodoItems,
+		UnverifiedEmails:    o.UnverifiedEmails,
+		UnverifiedPhones:    o.UnverifiedPhones,
+		SmallTeamBadgeCount: o.SmallTeamBadgeCount,
+		BigTeamBadgeCount:   o.BigTeamBadgeCount,
 		NewDevices: (func(x []DeviceID) []DeviceID {
 			if x == nil {
 				return nil
@@ -211,25 +215,14 @@ func (o BadgeState) DeepCopy() BadgeState {
 
 type BadgeConversationInfo struct {
 	ConvID         ChatConversationID `codec:"convID" json:"convID"`
-	BadgeCounts    map[DeviceType]int `codec:"badgeCounts" json:"badgeCounts"`
+	BadgeCount     int                `codec:"badgeCount" json:"badgeCount"`
 	UnreadMessages int                `codec:"unreadMessages" json:"unreadMessages"`
 }
 
 func (o BadgeConversationInfo) DeepCopy() BadgeConversationInfo {
 	return BadgeConversationInfo{
-		ConvID: o.ConvID.DeepCopy(),
-		BadgeCounts: (func(x map[DeviceType]int) map[DeviceType]int {
-			if x == nil {
-				return nil
-			}
-			ret := make(map[DeviceType]int, len(x))
-			for k, v := range x {
-				kCopy := k.DeepCopy()
-				vCopy := v
-				ret[kCopy] = vCopy
-			}
-			return ret
-		})(o.BadgeCounts),
+		ConvID:         o.ConvID.DeepCopy(),
+		BadgeCount:     o.BadgeCount,
 		UnreadMessages: o.UnreadMessages,
 	}
 }

@@ -1,6 +1,7 @@
 package avatars
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -58,9 +59,10 @@ type populateArg struct {
 }
 
 type FullCachingSource struct {
-	diskLRU        *lru.DiskLRU
-	staleThreshold time.Duration
-	simpleSource   libkb.AvatarLoaderSource
+	diskLRU              *lru.DiskLRU
+	diskLRUCleanerCancel context.CancelFunc
+	staleThreshold       time.Duration
+	simpleSource         libkb.AvatarLoaderSource
 
 	populateCacheCh chan populateArg
 
@@ -87,11 +89,16 @@ func (c *FullCachingSource) StartBackgroundTasks(m libkb.MetaContext) {
 	for i := 0; i < 10; i++ {
 		go c.populateCacheWorker(m)
 	}
+	m, cancel := m.WithContextCancel()
+	c.diskLRUCleanerCancel = cancel
 	go lru.CleanOutOfSyncWithDelay(m, c.diskLRU, c.getCacheDir(m), 10*time.Second)
 }
 
 func (c *FullCachingSource) StopBackgroundTasks(m libkb.MetaContext) {
 	close(c.populateCacheCh)
+	if c.diskLRUCleanerCancel != nil {
+		c.diskLRUCleanerCancel()
+	}
 	if err := c.diskLRU.Flush(m.Ctx(), m.G()); err != nil {
 		c.debug(m, "StopBackgroundTasks: unable to flush diskLRU %v", err)
 	}
@@ -239,7 +246,7 @@ func (c *FullCachingSource) populateCacheWorker(m libkb.MetaContext) {
 		c.debug(m, "populateCacheWorker: fetching: name: %s format: %s url: %s", arg.name,
 			arg.format, arg.url)
 		// Grab image data first
-		resp, err := libkb.ProxyHTTPGet(m.G().Env, arg.url.String())
+		resp, err := libkb.ProxyHTTPGet(m.G(), m.G().GetEnv(), arg.url.String(), "FullCachingSource: Avatar")
 		if err != nil {
 			c.debug(m, "populateCacheWorker: failed to download avatar: %s", err)
 			continue
@@ -250,7 +257,7 @@ func (c *FullCachingSource) populateCacheWorker(m libkb.MetaContext) {
 		found, ent, err := c.diskLRU.Get(m.Ctx(), m.G(), key)
 		if err != nil {
 			c.debug(m, "populateCacheWorker: failed to read previous entry in LRU: %s", err)
-			err := libkb.DiscardAndCloseBody(resp)
+			err = libkb.DiscardAndCloseBody(resp)
 			if err != nil {
 				c.debug(m, "populateCacheWorker: error closing body: %+v", err)
 			}

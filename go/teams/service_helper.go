@@ -81,7 +81,27 @@ func GetAnnotatedTeam(ctx context.Context, g *libkb.GlobalContext, id keybase1.T
 	}
 
 	name := t.Data.Name.String()
-	joinRequests, err := ListRequests(ctx, g, &name)
+	myRole, err := t.myRole(ctx)
+	var isAdmin bool
+	if err != nil {
+		g.Log.CDebugf(ctx, "Error getting role; skipping getting requests: %v", err)
+	} else {
+		isAdmin = myRole.IsOrAbove(keybase1.TeamRole_ADMIN)
+	}
+	var joinRequests []keybase1.TeamJoinRequest
+	var tarsDisabled bool
+	if isAdmin {
+		joinRequests, err = ListRequests(ctx, g, &name)
+		if err != nil {
+			return res, err
+		}
+		tarsDisabled, err = GetTarsDisabled(ctx, g, id)
+		if err != nil {
+			return res, err
+		}
+	}
+
+	showcase, err := GetTeamShowcase(ctx, g, id)
 	if err != nil {
 		return res, err
 	}
@@ -95,8 +115,9 @@ func GetAnnotatedTeam(ctx context.Context, g *libkb.GlobalContext, id keybase1.T
 		Invites:      invites,
 		JoinRequests: joinRequests,
 
-		Settings: det.Settings,
-		Showcase: det.Showcase,
+		TarsDisabled: tarsDisabled,
+		Settings:     det.Settings,
+		Showcase:     showcase,
 	}
 	return res, nil
 }
@@ -475,9 +496,9 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Tea
 		}
 		var sweep []sweepEntry
 		for _, user := range users {
-			upak, single, doInvite, err := tx.ResolveUPKV2FromAssertionOrEmail(mctx, user.AssertionOrEmail)
+			upak, single, doInvite, assertion, err := tx.ResolveUPKV2FromAssertionOrEmail(mctx, user.AssertionOrEmail)
 			if err != nil {
-				return NewAddMembersError(user.AssertionOrEmail, err)
+				return NewAddMembersError(assertion, err)
 			}
 
 			if _, ok := restrictedUsers[upak.Uid]; ok {
@@ -492,7 +513,7 @@ func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.Tea
 				if _, ok := err.(AttemptedInviteSocialOwnerError); ok {
 					return err
 				}
-				return NewAddMembersError(user.AssertionOrEmail, err)
+				return NewAddMembersError(assertion, err)
 			}
 			var normalizedUsername libkb.NormalizedUsername
 			if !username.IsNil() {
@@ -669,85 +690,48 @@ func InviteEmailPhoneMember(ctx context.Context, g *libkb.GlobalContext, teamID 
 	})
 }
 
-func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails string, role keybase1.TeamRole) (resOuter keybase1.BulkRes, err error) {
-	emailList := splitBulk(emails)
-	g.Log.CDebugf(ctx, "team %s: bulk email invite count: %d", teamname, len(emailList))
+func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails string, role keybase1.TeamRole) (res keybase1.BulkRes, err error) {
+	mctx := libkb.NewMetaContext(ctx, g)
+	unparsedEmailList := splitBulk(emails)
+	g.Log.CDebugf(ctx, "team %s: bulk email invite count: %d", teamname, len(unparsedEmailList))
 
-	err = RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
-		var res keybase1.BulkRes
+	var toAdd []keybase1.UserRolePair
 
-		t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
-		if err != nil {
-			return err
+	for _, email := range unparsedEmailList {
+		addr, parseErr := mail.ParseAddress(email)
+		if parseErr != nil {
+			g.Log.CDebugf(ctx, "team %s: skipping malformed email %q: %s", teamname, email, parseErr)
+			res.Malformed = append(res.Malformed, email)
+			continue
 		}
 
-		var invites []SCTeamInvite
-		for _, email := range emailList {
-			addr, parseErr := mail.ParseAddress(email)
-			if parseErr != nil {
-				g.Log.CDebugf(ctx, "team %s: skipping malformed email %q: %s", teamname, email, parseErr)
-				res.Malformed = append(res.Malformed, email)
-				continue
-			}
-
-			// api server side of this only accepts x.yy domain name:
-			parts := strings.Split(addr.Address, ".")
-			if len(parts[len(parts)-1]) < 2 {
-				g.Log.CDebugf(ctx, "team %s: skipping malformed email (domain) %q: %s", teamname, email, parseErr)
-				res.Malformed = append(res.Malformed, email)
-				continue
-			}
-
-			name := keybase1.TeamInviteName(addr.Address)
-			existing, err := t.HasActiveInvite(libkb.NewMetaContext(ctx, g), name, "email")
-			if err != nil {
-				return err
-			}
-			if existing {
-				g.Log.CDebugf(ctx, "team %s: invite for %s already exists, omitting from invite list",
-					teamname, name)
-				res.AlreadyInvited = append(res.AlreadyInvited, addr.Address)
-				continue
-			}
-			inv := SCTeamInvite{
-				Type: "email",
-				Name: name,
-				ID:   NewInviteID(),
-			}
-			invites = append(invites, inv)
-			res.Invited = append(res.Invited, addr.Address)
+		// api server side of this only accepts x.yy domain name:
+		parts := strings.Split(addr.Address, ".")
+		if len(parts[len(parts)-1]) < 2 {
+			g.Log.CDebugf(ctx, "team %s: skipping malformed email (domain) %q", teamname, email)
+			res.Malformed = append(res.Malformed, email)
+			continue
 		}
-		if len(invites) == 0 {
-			g.Log.CDebugf(ctx, "team %s: after existing filter, no one to invite", teamname)
-			// return value assign to escape closure
-			resOuter = res
-			return nil
+		a, parseErr := libkb.ParseAssertionURLKeyValue(g.MakeAssertionContext(mctx), "email", addr.Address, false)
+		if parseErr != nil {
+			g.Log.CDebugf(ctx, "team %q: skipping malformed email %q; could not parse into assertion: %s", teamname, email, parseErr)
+			res.Malformed = append(res.Malformed, email)
+			continue
 		}
+		toAdd = append(toAdd, keybase1.UserRolePair{AssertionOrEmail: a.String(), Role: role})
+	}
 
-		var teamInvites SCTeamInvites
-		switch role {
-		case keybase1.TeamRole_ADMIN:
-			teamInvites.Admins = &invites
-		case keybase1.TeamRole_WRITER:
-			teamInvites.Writers = &invites
-		case keybase1.TeamRole_READER:
-			teamInvites.Readers = &invites
-		case keybase1.TeamRole_OWNER:
-			teamInvites.Owners = &invites
-		default:
-			return fmt.Errorf("unknown team role: %s", role)
-		}
+	if len(toAdd) == 0 {
+		return res, err
+	}
 
-		g.Log.CDebugf(ctx, "team %s: after existing filter, inviting %d emails as %s", teamname, len(invites), role)
-		err = t.postTeamInvites(ctx, teamInvites)
-		if err != nil {
-			return err
-		}
-		// return value assign to escape closure
-		resOuter = res
-		return nil
-	})
-	return resOuter, err
+	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
+	if err != nil {
+		return res, err
+	}
+
+	_, _, err = AddMembers(ctx, g, t.ID, toAdd)
+	return res, err
 }
 
 func EditMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string,
@@ -760,6 +744,21 @@ func EditMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1
 	username string, role keybase1.TeamRole, botSettings *keybase1.TeamBotSettings) error {
 	teamGetter := func() (*Team, error) { return GetForTeamManagementByTeamID(ctx, g, teamID, true) }
 	return editMember(ctx, g, teamGetter, username, role, botSettings)
+}
+
+func EditMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, users []keybase1.UserRolePair) (res keybase1.TeamEditMembersResult, err error) {
+	var failedToEdit []keybase1.UserRolePair
+
+	for _, userRolePair := range users {
+		err := EditMemberByID(ctx, g, teamID, userRolePair.AssertionOrEmail, userRolePair.Role, userRolePair.BotSettings)
+		if err != nil {
+			failedToEdit = append(failedToEdit, userRolePair)
+			continue
+		}
+	}
+
+	res = keybase1.TeamEditMembersResult{Failures: failedToEdit}
+	return res, nil
 }
 
 func editMember(ctx context.Context, g *libkb.GlobalContext, teamGetter func() (*Team, error),
@@ -970,6 +969,51 @@ func MemberRoleFromID(ctx context.Context, g *libkb.GlobalContext, teamID keybas
 		return err
 	})
 	return role, err
+}
+
+func RemoveMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, users []keybase1.TeamMemberToRemove) (res keybase1.TeamRemoveMembersResult, err error) {
+	teamGetter := func() (*Team, error) {
+		return GetForTeamManagementByTeamID(ctx, g, teamID, false)
+	}
+
+	var failedToRemove []keybase1.TeamMemberToRemove
+
+	for _, user := range users {
+		exclusiveActions := user.Username + user.Email + string(user.InviteID)
+		lenExclActions := len(exclusiveActions)
+
+		if lenExclActions > len(user.Username) && lenExclActions > len(user.Email) && lenExclActions > len(user.InviteID) {
+			g.Log.CDebugf(ctx, "RemoveMembers: can only do 1 of [username: %s, email: %s, inviteID: %s] at a time", user.Username, user.Email, user.InviteID)
+			failedToRemove = append(failedToRemove, user)
+			continue
+		}
+
+		if len(user.Email) > 0 {
+			g.Log.CDebugf(ctx, "RemoveMembers: received email address, using CancelEmailInvite for %q in team %q", user.Email, teamID)
+			err = CancelEmailInvite(ctx, g, teamID, user.Email, user.AllowInaction)
+			if err != nil {
+				failedToRemove = append(failedToRemove, user)
+			}
+			continue
+		} else if len(user.InviteID) > 0 {
+			g.Log.CDebugf(ctx, "RemoveMembers: received inviteID, using CancelInviteByID for %q in team %q", user.InviteID, teamID)
+			err = CancelInviteByID(ctx, g, teamID, user.InviteID, user.AllowInaction)
+			if err != nil {
+				failedToRemove = append(failedToRemove, user)
+			}
+			continue
+		}
+		// Note: AllowInaction is not supported for non-invite removes.
+		g.Log.CDebugf(ctx, "RemoveMembers: using RemoveMember for %q in team %q", user.Username, teamID)
+		err := remove(ctx, g, teamGetter, user.Username)
+		if err != nil {
+			failedToRemove = append(failedToRemove, user)
+		}
+	}
+
+	res = keybase1.TeamRemoveMembersResult{Failures: failedToRemove}
+
+	return res, nil
 }
 
 func RemoveMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, username string) error {

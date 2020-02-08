@@ -1,6 +1,5 @@
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Container from '../../../../util/container'
-import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Styles from '../../../../styles'
 import * as Types from '../../../../constants/types/chat2'
 import {RowItem} from '../..'
@@ -15,20 +14,6 @@ type OwnProps = {
   toggle: () => void
   style?: Styles.StylesCrossPlatform
 }
-
-const getMetaCounts = memoize(
-  (badges: Types.ConversationCountMap, inboxLayout: RPCChatTypes.UIInboxLayout | null) => {
-    let badgeCount = 0
-    inboxLayout?.smallTeams?.forEach((conv: RPCChatTypes.UIInboxSmallTeamRow) => {
-      const id = Types.stringToConversationIDKey(conv.convID)
-      badgeCount += badges.get(id) || 0
-    })
-    return {
-      badgeCount,
-      hiddenCount: inboxLayout?.totalSmallTeams ?? 0,
-    }
-  }
-)
 
 const getRowCounts = memoize((badges: Types.ConversationCountMap, rows: Array<RowItem>) => {
   let badgeCount = 0
@@ -47,23 +32,19 @@ const getRowCounts = memoize((badges: Types.ConversationCountMap, rows: Array<Ro
 export default Container.namedConnect(
   state => ({
     _badges: state.chat2.badgeMap,
-    _inboxLayout: state.chat2.inboxLayout,
+    _smallTeamBadgeCount: state.chat2.smallTeamBadgeCount,
+    _totalSmallTeams: state.chat2.inboxLayout?.totalSmallTeams ?? 0,
   }),
   dispatch => ({
     _loadMore: () => dispatch(Chat2Gen.createLoadMoreSmalls()),
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     const {rows, showButton, style, hiddenCountDelta, toggle} = ownProps
-    const {_badges, _inboxLayout} = stateProps
+    const {_badges, _smallTeamBadgeCount, _totalSmallTeams} = stateProps
     // we remove the badge count of the stuff we're showing
     let {badgeCount, hiddenCount} = getRowCounts(_badges, rows)
-
-    if (showButton) {
-      const fromMeta = getMetaCounts(_badges, _inboxLayout)
-      badgeCount += fromMeta.badgeCount
-      hiddenCount += fromMeta.hiddenCount
-    }
-
+    badgeCount += _smallTeamBadgeCount
+    hiddenCount += _totalSmallTeams
     if (!Styles.isMobile) {
       hiddenCount += hiddenCountDelta ?? 0
     }
@@ -72,8 +53,8 @@ export default Container.namedConnect(
     const reallyShow = showButton && !!hiddenCount
 
     return {
-      badgeCount,
-      hiddenCount,
+      badgeCount: Math.max(0, badgeCount),
+      hiddenCount: Math.max(0, hiddenCount),
       loadMore: ownProps.smallTeamsExpanded ? dispatchProps._loadMore : toggle,
       showButton: reallyShow,
       style,

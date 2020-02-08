@@ -333,6 +333,9 @@ body {
 .hover-underline-container:hover .hover-underline-child {
   text-decoration: underline;
 }
+.underline-never {
+  text-decoration: none !important;
+}
 
 .hover-opacity {
   opacity: 0.8;
@@ -435,4 +438,16 @@ body {
 }
 .darkMode .emoji-mart-bar {
   border-color: rgba(0, 0, 0, 0.85);
+}
+
+.addInviteAndLinkBox {
+  transition: box-shadow 0.35s;
+}
+
+.headerTitle:hover .addInviteAndLinkBox {
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.darkMode .headerTitle:hover .addInviteAndLinkBox {
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.8);
 }

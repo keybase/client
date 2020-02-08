@@ -229,7 +229,7 @@ const saltpackEncrypt = async (
           input: action,
           operation: Constants.Operations.Encrypt,
           output: new HiddenString(fileRes.filename),
-          outputSender: options.sign ? new HiddenString(username) : undefined,
+          outputSenderUsername: options.sign ? new HiddenString(username) : undefined,
           outputSigned: options.sign,
           outputType: type,
         })
@@ -261,7 +261,7 @@ const saltpackEncrypt = async (
           input: action,
           operation: Constants.Operations.Encrypt,
           output: new HiddenString(encryptRes.ciphertext),
-          outputSender: options.sign ? new HiddenString(username) : undefined,
+          outputSenderUsername: options.sign ? new HiddenString(username) : undefined,
           outputSigned: options.sign,
           outputType: type,
           warning: encryptRes.usedUnresolvedSBS,
@@ -297,16 +297,20 @@ const saltpackDecrypt = async (action: CryptoGen.SaltpackDecryptPayload, logger:
         )
         const {decryptedFilename, info, signed} = result
         const {sender} = info
-        const {username} = sender
+        const {username, fullname} = sender
+        const outputSigned = signed
 
-        return CryptoGen.createOnOperationSuccess({
-          input: action,
-          operation: Constants.Operations.Decrypt,
-          output: new HiddenString(decryptedFilename),
-          outputSender: signed ? new HiddenString(username) : undefined,
-          outputSigned: signed,
-          outputType: type,
-        })
+        return [
+          CryptoGen.createOnOperationSuccess({
+            input: action,
+            operation: Constants.Operations.Decrypt,
+            output: new HiddenString(decryptedFilename),
+            outputSenderFullname: outputSigned ? new HiddenString(fullname) : undefined,
+            outputSenderUsername: outputSigned ? new HiddenString(username) : undefined,
+            outputSigned,
+            outputType: type,
+          }),
+        ]
       } catch (err) {
         logger.error(err)
         const message = Constants.getStatusCodeMessage(err.code, Constants.Operations.Decrypt, type)
@@ -324,17 +328,20 @@ const saltpackDecrypt = async (action: CryptoGen.SaltpackDecryptPayload, logger:
         )
         const {plaintext, info, signed} = result
         const {sender} = info
-        const {username} = sender
+        const {username, fullname} = sender
         const outputSigned = signed
 
-        return CryptoGen.createOnOperationSuccess({
-          input: action,
-          operation: Constants.Operations.Decrypt,
-          output: new HiddenString(plaintext),
-          outputSender: outputSigned ? new HiddenString(username) : undefined,
-          outputSigned,
-          outputType: type,
-        })
+        return [
+          CryptoGen.createOnOperationSuccess({
+            input: action,
+            operation: Constants.Operations.Decrypt,
+            output: new HiddenString(plaintext),
+            outputSenderFullname: outputSigned ? new HiddenString(fullname) : undefined,
+            outputSenderUsername: outputSigned ? new HiddenString(username) : undefined,
+            outputSigned,
+            outputType: type,
+          }),
+        ]
       } catch (err) {
         logger.error(err)
         const message = Constants.getStatusCodeMessage(err.code, Constants.Operations.Decrypt, type)
@@ -371,7 +378,7 @@ const saltpackSign = async (
           input: action,
           operation: Constants.Operations.Sign,
           output: new HiddenString(signedFilename),
-          outputSender: new HiddenString(username),
+          outputSenderUsername: new HiddenString(username),
           outputSigned: true,
           outputType: type,
         })
@@ -394,7 +401,7 @@ const saltpackSign = async (
           input: action,
           operation: Constants.Operations.Sign,
           output: new HiddenString(ciphertext),
-          outputSender: new HiddenString(username),
+          outputSenderUsername: new HiddenString(username),
           outputSigned: true,
           outputType: type,
         })
@@ -426,17 +433,20 @@ const saltpackVerify = async (action: CryptoGen.SaltpackVerifyPayload, logger: S
           Constants.verifyFileWaitingKey
         )
         const {verifiedFilename, sender, verified} = result
-        const {username} = sender
+        const {username, fullname} = sender
         const outputSigned = verified
 
-        return CryptoGen.createOnOperationSuccess({
-          input: action,
-          operation: Constants.Operations.Verify,
-          output: new HiddenString(verifiedFilename),
-          outputSender: outputSigned ? new HiddenString(username) : undefined,
-          outputSigned,
-          outputType: type,
-        })
+        return [
+          CryptoGen.createOnOperationSuccess({
+            input: action,
+            operation: Constants.Operations.Verify,
+            output: new HiddenString(verifiedFilename),
+            outputSenderFullname: outputSigned ? new HiddenString(fullname) : undefined,
+            outputSenderUsername: outputSigned ? new HiddenString(username) : undefined,
+            outputSigned,
+            outputType: type,
+          }),
+        ]
       } catch (err) {
         logger.error(err)
         const message = Constants.getStatusCodeMessage(err.code, Constants.Operations.Verify, type)
@@ -453,17 +463,20 @@ const saltpackVerify = async (action: CryptoGen.SaltpackVerifyPayload, logger: S
           Constants.verifyStringWaitingKey
         )
         const {plaintext, sender, verified} = result
-        const {username} = sender
+        const {username, fullname} = sender
         const outputSigned = verified
 
-        return CryptoGen.createOnOperationSuccess({
-          input: action,
-          operation: Constants.Operations.Verify,
-          output: new HiddenString(plaintext),
-          outputSender: outputSigned ? new HiddenString(username) : undefined,
-          outputSigned,
-          outputType: type,
-        })
+        return [
+          CryptoGen.createOnOperationSuccess({
+            input: action,
+            operation: Constants.Operations.Verify,
+            output: new HiddenString(plaintext),
+            outputSenderFullname: outputSigned ? new HiddenString(fullname) : undefined,
+            outputSenderUsername: outputSigned ? new HiddenString(username) : undefined,
+            outputSigned,
+            outputType: type,
+          }),
+        ]
       } catch (err) {
         logger.error(err)
         const message = Constants.getStatusCodeMessage(err.code, Constants.Operations.Verify, type)
@@ -503,7 +516,7 @@ const saltpackDone = (action: EngineGen.Keybase1NotifySaltpackSaltpackOperationD
   })
 
 const downloadEncryptedText = async (state: TypedState) => {
-  const {output, outputSender, outputSigned} = state.crypto.encrypt
+  const {output, outputSenderUsername, outputSenderFullname, outputSigned} = state.crypto.encrypt
   const result = await RPCTypes.saltpackSaltpackSaveCiphertextToFileRpcPromise({
     ciphertext: output.stringValue(),
   })
@@ -511,14 +524,15 @@ const downloadEncryptedText = async (state: TypedState) => {
     input: undefined,
     operation: Constants.Operations.Encrypt,
     output: new HiddenString(result),
-    outputSender,
+    outputSenderFullname,
+    outputSenderUsername,
     outputSigned: !!outputSigned,
     outputType: 'file',
   })
 }
 
 const downloadSignedText = async (state: TypedState) => {
-  const {output, outputSender, outputSigned} = state.crypto.sign
+  const {output, outputSenderUsername, outputSenderFullname, outputSigned} = state.crypto.sign
   const result = await RPCTypes.saltpackSaltpackSaveSignedMsgToFileRpcPromise({
     signedMsg: output.stringValue(),
   })
@@ -526,7 +540,8 @@ const downloadSignedText = async (state: TypedState) => {
     input: undefined,
     operation: Constants.Operations.Sign,
     output: new HiddenString(result),
-    outputSender,
+    outputSenderFullname,
+    outputSenderUsername,
     outputSigned: !!outputSigned,
     outputType: 'file',
   })

@@ -1,11 +1,9 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as Tracker2Constants from '../../constants/tracker2'
 import * as FsConstants from '../../constants/fs'
 import * as FsTypes from '../../constants/types/fs'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as ProfileGen from '../../actions/profile-gen'
 import * as WalletsGen from '../../actions/wallets-gen'
 import * as WalletsType from '../../constants/types/wallets'
 import * as ChatConstants from '../../constants/chat2'
@@ -27,8 +25,7 @@ const PeopleResult = React.memo((props: ResultProps) => {
   // action button specific definitions
   const dispatch = Container.useDispatch()
   const myUsername = Container.useSelector(state => state.config.username)
-  const userDetails = Container.useSelector(state => Tracker2Constants.getDetails(state, props.username))
-  const blocked = userDetails.blocked
+  const blocked = Container.useSelector(state => state.users.blockMap.get(keybaseUsername || '')?.chatBlocked)
   const decoratedUsername = keybaseUsername ? keybaseUsername : `${serviceUsername}@${props.resultForService}`
 
   const onMenuAddToTeam = () =>
@@ -38,14 +35,14 @@ const PeopleResult = React.memo((props: ResultProps) => {
         path: [{props: {username: keybaseUsername}, selected: 'profileAddToTeam'}],
       })
     )
-  const onOpenPrivateFolder = React.useCallback(() => {
+  const onOpenPrivateFolder = () => {
     dispatch(RouteTreeGen.createNavigateUp())
     dispatch(
       FsConstants.makeActionForOpenPathInFilesTab(
         FsTypes.stringToPath(`/keybase/private/${decoratedUsername},${myUsername}`)
       )
     )
-  }, [dispatch, myUsername, decoratedUsername])
+  }
   const onBrowsePublicFolder = () => {
     dispatch(RouteTreeGen.createNavigateUp())
     dispatch(
@@ -55,6 +52,17 @@ const PeopleResult = React.memo((props: ResultProps) => {
     )
   }
 
+  const onManageBlocking = () =>
+    keybaseUsername &&
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {username: keybaseUsername}, selected: 'chatBlockingModal'}],
+      })
+    )
+  const onChat = () => {
+    dispatch(RouteTreeGen.createNavigateUp())
+    dispatch(Chat2Gen.createPreviewConversation({participants: [decoratedUsername], reason: 'search'}))
+  }
   const onSendLumens = () =>
     keybaseUsername &&
     dispatch(
@@ -75,35 +83,17 @@ const PeopleResult = React.memo((props: ResultProps) => {
         to: keybaseUsername,
       })
     )
-  const onBlock = () =>
-    keybaseUsername &&
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {username: keybaseUsername}, selected: 'chatBlockingModal'}],
-      })
-    )
-  const onUnblock = React.useCallback(
-    () =>
-      keybaseUsername &&
-      dispatch(ProfileGen.createSubmitUnblockUser({guiID: userDetails.guiID, username: keybaseUsername})),
-    [dispatch, keybaseUsername, userDetails.guiID]
-  )
-  const onChat = () => {
-    dispatch(RouteTreeGen.createNavigateUp())
-    dispatch(Chat2Gen.createPreviewConversation({participants: [decoratedUsername], reason: 'search'}))
-  }
 
   const resultIsMe = keybaseUsername === myUsername
   const dropdown = keybaseUsername ? (
     <DropdownButton
       key="dropdown"
       onAddToTeam={onMenuAddToTeam}
-      onOpenPrivateFolder={onOpenPrivateFolder}
       onBrowsePublicFolder={onBrowsePublicFolder}
-      onSendLumens={onSendLumens}
+      onManageBlocking={!resultIsMe ? onManageBlocking : undefined}
+      onOpenPrivateFolder={onOpenPrivateFolder}
       onRequestLumens={onRequestLumens}
-      onBlock={!resultIsMe ? onBlock : undefined}
-      onUnblock={!resultIsMe ? onUnblock : undefined}
+      onSendLumens={onSendLumens}
       blocked={blocked}
     />
   ) : (
@@ -139,8 +129,7 @@ type DropdownProps = {
   onBrowsePublicFolder?: () => void
   onSendLumens?: () => void
   onRequestLumens?: () => void
-  onBlock?: () => void
-  onUnblock?: () => void
+  onManageBlocking?: () => void
   blocked?: boolean
   onUnfollow?: () => void
 }
@@ -164,11 +153,12 @@ const DropdownButton = Kb.OverlayParentHOC((p: Kb.PropsWithOverlay<DropdownProps
       onClick: p.onBrowsePublicFolder,
       title: 'Browse public folder',
     },
-    p.onUnblock &&
-      p.onBlock &&
-      (p.blocked
-        ? {danger: true, icon: 'iconfont-add', onClick: p.onUnblock, title: 'Unblock'}
-        : {danger: true, icon: 'iconfont-remove', onClick: p.onBlock, title: 'Block'}),
+    p.onManageBlocking && {
+      danger: true,
+      icon: 'iconfont-add',
+      onClick: p.onManageBlocking,
+      title: p.blocked ? 'Manage blocking' : 'Block',
+    },
   ].reduce<Kb.MenuItems>((arr, i) => {
     i && arr.push(i as Kb.MenuItem)
     return arr

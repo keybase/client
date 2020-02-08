@@ -416,9 +416,9 @@ func TestSaltpackNoEncryptionForDevice(t *testing.T) {
 	desktops := 0
 	for _, d := range me.Devices {
 		switch d.Type {
-		case "backup":
+		case keybase1.DeviceTypeV2_PAPER:
 			backup++
-		case "desktop":
+		case keybase1.DeviceTypeV2_DESKTOP:
 			desktops++
 			if !userX.EncryptionKey.GetKID().Equal(d.EncryptKey) {
 				t.Fatal("got wrong encryption key for good possibilities")

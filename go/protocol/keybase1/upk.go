@@ -166,7 +166,7 @@ type PublicKeyV2NaCl struct {
 	Parent            *KID            `codec:"parent,omitempty" json:"parent,omitempty"`
 	DeviceID          DeviceID        `codec:"deviceID" json:"deviceID"`
 	DeviceDescription string          `codec:"deviceDescription" json:"deviceDescription"`
-	DeviceType        string          `codec:"deviceType" json:"deviceType"`
+	DeviceType        DeviceTypeV2    `codec:"deviceType" json:"deviceType"`
 }
 
 func (o PublicKeyV2NaCl) DeepCopy() PublicKeyV2NaCl {
@@ -181,7 +181,7 @@ func (o PublicKeyV2NaCl) DeepCopy() PublicKeyV2NaCl {
 		})(o.Parent),
 		DeviceID:          o.DeviceID.DeepCopy(),
 		DeviceDescription: o.DeviceDescription,
-		DeviceType:        o.DeviceType,
+		DeviceType:        o.DeviceType.DeepCopy(),
 	}
 }
 

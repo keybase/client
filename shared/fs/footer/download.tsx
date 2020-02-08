@@ -38,7 +38,7 @@ const Download = (props: Props) => {
   const dlState = Container.useSelector(
     state => state.fs.downloads.state.get(props.downloadID) || Constants.emptyDownloadState
   )
-  const dispatch = Kbfs.useDispatchWhenKbfsIsConnected()
+  const dispatch = Container.useDispatch()
   const open = dlState.localPath
     ? () => dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: dlState.localPath}))
     : () => {}

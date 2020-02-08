@@ -9,6 +9,7 @@ export const isMobile = false
 export const isAndroid = false
 export const isIOS = false
 export const isLargeScreen = false
+export const isTablet = false
 export const isElectron = true
 export const isDarwin = true
 export const isWindows = false

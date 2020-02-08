@@ -1888,6 +1888,36 @@ func PublicKeyV1FromDeviceKeyV2(keyV2 PublicKeyV2NaCl) PublicKey {
 	}
 }
 
+const (
+	DeviceTypeV2_NONE    DeviceTypeV2 = "none"
+	DeviceTypeV2_PAPER   DeviceTypeV2 = "backup"
+	DeviceTypeV2_DESKTOP DeviceTypeV2 = "desktop"
+	DeviceTypeV2_MOBILE  DeviceTypeV2 = "mobile"
+)
+
+func (d DeviceTypeV2) String() string {
+	return string(d)
+}
+
+func StringToDeviceTypeV2(s string) (d DeviceTypeV2, err error) {
+	deviceType := DeviceTypeV2(s)
+	switch deviceType {
+	case DeviceTypeV2_NONE, DeviceTypeV2_DESKTOP, DeviceTypeV2_MOBILE, DeviceTypeV2_PAPER:
+		//pass
+	default:
+		return DeviceTypeV2_NONE, fmt.Errorf("Unknown DeviceType: %s", deviceType)
+	}
+	return deviceType, nil
+}
+
+// defaults to Desktop
+func (dt *DeviceTypeV2) ToDeviceType() DeviceType {
+	if *dt == DeviceTypeV2_MOBILE {
+		return DeviceType_MOBILE
+	}
+	return DeviceType_DESKTOP
+}
+
 func RevokedKeyV1FromDeviceKeyV2(keyV2 PublicKeyV2NaCl) RevokedKey {
 	return RevokedKey{
 		Key: PublicKeyV1FromDeviceKeyV2(keyV2),
@@ -3575,9 +3605,7 @@ func NewBotToken(s string) (BotToken, error) {
 }
 
 func (b BadgeConversationInfo) IsEmpty() bool {
-	return (b.UnreadMessages == 0 &&
-		b.BadgeCounts[DeviceType_DESKTOP] == 0 &&
-		b.BadgeCounts[DeviceType_MOBILE] == 0)
+	return b.UnreadMessages == 0 && b.BadgeCount == 0
 }
 
 func (s *TeamBotSettings) Eq(o *TeamBotSettings) bool {
@@ -3687,4 +3715,35 @@ func (d *ClientDetails) Redact() {
 			d.Argv[i+1] = redactedReplacer
 		}
 	}
+}
+
+func (s UserSummarySet) Usernames() (ret []string) {
+	for _, x := range s.Users {
+		ret = append(ret, x.Username)
+	}
+	return ret
+}
+
+func (x InstrumentationStat) AppendStat(y InstrumentationStat) InstrumentationStat {
+	x.Mtime = ToTime(time.Now())
+	x.NumCalls += y.NumCalls
+	x.TotalDur += y.TotalDur
+	if y.MaxDur > x.MaxDur {
+		x.MaxDur = y.MaxDur
+	}
+	if y.MinDur < x.MinDur {
+		x.MinDur = y.MinDur
+	}
+
+	x.TotalSize += y.TotalSize
+	if y.MaxSize > x.MaxSize {
+		x.MaxSize = y.MaxSize
+	}
+	if y.MinSize < x.MinSize {
+		x.MinSize = y.MinSize
+	}
+
+	x.AvgDur = x.TotalDur / DurationMsec(x.NumCalls)
+	x.AvgSize = x.TotalSize / int64(x.NumCalls)
+	return x
 }

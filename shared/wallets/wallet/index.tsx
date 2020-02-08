@@ -143,7 +143,7 @@ class Wallet extends React.Component<Props> {
   render() {
     return (
       <Kb.Box2 direction="vertical" style={{flexGrow: 1}} fullHeight={true}>
-        {Styles.isMobile && <Header onBack={this.props.onBack} />}
+        {Styles.isPhone && <Header onBack={this.props.onBack} />}
         {!!this.props.loadError && <Kb.Banner color="yellow">{this.props.loadError}</Kb.Banner>}
         <Kb.SectionList
           sections={this.props.sections}
@@ -203,7 +203,7 @@ const styles = Styles.styleSheetCreate(
 // with AccountReloader.
 const MaybeReloaderWallet = (props: Props) => {
   const wallet = <Wallet {...props} />
-  return Styles.isMobile ? <AccountReloader onBack={props.onBack}>{wallet}</AccountReloader> : wallet
+  return Styles.isPhone ? <AccountReloader onBack={props.onBack}>{wallet}</AccountReloader> : wallet
 }
 
 export default MaybeReloaderWallet

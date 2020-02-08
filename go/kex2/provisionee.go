@@ -26,7 +26,7 @@ type provisionee struct {
 // management that a provisionee needs to do as part of the protocol.
 type Provisionee interface {
 	GetLogFactory() rpc.LogFactory
-	GetNetworkInstrumenter() *rpc.NetworkInstrumenter
+	GetNetworkInstrumenter() rpc.NetworkInstrumenterStorage
 	HandleHello(ctx context.Context, a keybase1.HelloArg) (keybase1.HelloRes, error)
 	HandleHello2(ctx context.Context, a keybase1.Hello2Arg) (keybase1.Hello2Res, error)
 	HandleDidCounterSign(ctx context.Context, b []byte) error

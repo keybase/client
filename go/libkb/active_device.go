@@ -278,24 +278,24 @@ func (a *ActiveDevice) DeviceID() keybase1.DeviceID {
 	return a.deviceID
 }
 
-func (a *ActiveDevice) DeviceType(mctx MetaContext) (string, error) {
+func (a *ActiveDevice) DeviceType(mctx MetaContext) (keybase1.DeviceTypeV2, error) {
 	if a.secretSyncer.keys == nil {
 		mctx.Debug("keys are not synced with the server for this ActiveDevice. lets do that right now")
 		_, err := a.SyncSecretsForce(mctx)
 		if err != nil {
-			return "", err
+			return keybase1.DeviceTypeV2_NONE, err
 		}
 	}
 	devices, err := a.secretSyncer.Devices()
 	if err != nil {
-		return "", err
+		return keybase1.DeviceTypeV2_NONE, err
 	}
 	for devID, dev := range devices {
 		if devID == a.DeviceID() {
 			return dev.Type, nil
 		}
 	}
-	return "", NotFoundError{
+	return keybase1.DeviceTypeV2_NONE, NotFoundError{
 		Msg: "Not found: device type",
 	}
 }

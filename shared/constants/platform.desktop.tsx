@@ -1,27 +1,32 @@
-import path from 'path'
-
-const platform = process.platform
+const {path, process, os} = KB
+const {platform, env} = process
+const {join} = path
 export const isTestDevice = false
 export const isMobile = false
+export const isPhone = false
 export const isAndroid = false
 export const isIOS = false
 export const isLargeScreen = true
 export const isIPhoneX = false
+export const isTablet = false
+
 export const isElectron = true
 export const isDarwin = platform === 'darwin'
 export const isWindows = platform === 'win32'
 export const isLinux = platform === 'linux'
-export const isAndroidNewerThanN = false
 export const isMac = isDarwin && !isIOS
+
+export const isAndroidNewerThanN = false
 export const shortcutSymbol = isDarwin ? '⌘' : 'Ctrl-'
+export const realDeviceName = ''
 
 export const defaultUseNativeFrame = isDarwin || isLinux
 
 // For storyshots, we only want to test macOS
 export const fileUIName = isDarwin || __STORYBOOK__ ? 'Finder' : isWindows ? 'Explorer' : 'File Explorer'
 
-const runMode = process.env['KEYBASE_RUN_MODE'] || 'prod'
-const homeEnv = process.env['HOME'] || ''
+const runMode = env['KEYBASE_RUN_MODE'] || 'prod'
+const homeEnv = env['HOME'] || ''
 
 if (__DEV__ && !__STORYBOOK__) {
   console.log(`Run mode: ${runMode}`)
@@ -30,12 +35,11 @@ if (__DEV__ && !__STORYBOOK__) {
 const socketName = 'keybased.sock'
 
 const getLinuxPaths = () => {
-  const useXDG =
-    (runMode !== 'devel' || process.env['KEYBASE_DEVEL_USE_XDG']) && !process.env['KEYBASE_XDG_OVERRIDE']
+  const useXDG = (runMode !== 'devel' || env['KEYBASE_DEVEL_USE_XDG']) && !env['KEYBASE_XDG_OVERRIDE']
 
   // If XDG_RUNTIME_DIR is defined use that, else use $HOME/.config.
-  const homeConfigDir = (useXDG && process.env['XDG_CONFIG_HOME']) || path.join(homeEnv, '.config')
-  const runtimeDir = (useXDG && process.env['XDG_RUNTIME_DIR']) || ''
+  const homeConfigDir = (useXDG && env['XDG_CONFIG_HOME']) || join(homeEnv, '.config')
+  const runtimeDir = (useXDG && env['XDG_RUNTIME_DIR']) || ''
   const socketDir = (useXDG && runtimeDir) || homeConfigDir
 
   const appName = `keybase${runMode === 'prod' ? '' : `.${runMode}`}`
@@ -46,36 +50,36 @@ const getLinuxPaths = () => {
     )
   }
 
-  const logDir = `${(useXDG && process.env['XDG_CACHE_HOME']) || `${homeEnv}/.cache`}/${appName}/`
+  const logDir = `${(useXDG && env['XDG_CACHE_HOME']) || `${homeEnv}/.cache`}/${appName}/`
 
   return {
     cacheRoot: logDir,
-    dataRoot: `${(useXDG && process.env['XDG_DATA_HOME']) || `${homeEnv}/.local/share`}/${appName}/`,
+    dataRoot: `${(useXDG && env['XDG_DATA_HOME']) || `${homeEnv}/.local/share`}/${appName}/`,
     guiConfigFilename: `${homeConfigDir}/${appName}/gui_config.json`,
     jsonDebugFileName: `${logDir}keybase.app.debug`,
     logDir,
     serverConfigFileName: `${logDir}keybase.app.serverConfig`,
-    socketPath: path.join(socketDir, appName, socketName),
+    socketPath: join(socketDir, appName, socketName),
   }
 }
 
 const getWindowsPaths = () => {
   const appName = `Keybase${runMode === 'prod' ? '' : runMode[0].toUpperCase() + runMode.slice(1)}`
-  let appdata = process.env['LOCALAPPDATA'] || ''
+  let appdata = env['LOCALAPPDATA'] || ''
   // Remove leading drive letter e.g. C:
   if (/^[a-zA-Z]:/.test(appdata)) {
     appdata = appdata.slice(2)
   }
   const dir = `\\\\.\\pipe\\kbservice${appdata}\\${appName}`
-  const logDir = `${process.env['LOCALAPPDATA'] || ''}\\${appName}\\`
+  const logDir = `${env['LOCALAPPDATA'] || ''}\\${appName}\\`
   return {
-    cacheRoot: `${process.env['APPDATA'] || ''}\\${appName}\\`,
-    dataRoot: `${process.env['LOCALAPPDATA'] || ''}\\${appName}\\`,
-    guiConfigFilename: `${process.env['LOCALAPPDATA'] || ''}\\${appName}\\gui_config.json`,
+    cacheRoot: `${env['APPDATA'] || ''}\\${appName}\\`,
+    dataRoot: `${env['LOCALAPPDATA'] || ''}\\${appName}\\`,
+    guiConfigFilename: `${env['LOCALAPPDATA'] || ''}\\${appName}\\gui_config.json`,
     jsonDebugFileName: `${logDir}keybase.app.debug`,
     logDir,
     serverConfigFileName: `${logDir}keybase.app.serverConfig`,
-    socketPath: path.join(dir, socketName),
+    socketPath: join(dir, socketName),
   }
 }
 
@@ -91,7 +95,7 @@ const getDarwinPaths = () => {
     jsonDebugFileName: `${logDir}${appName}.app.debug`,
     logDir,
     serverConfigFileName: `${logDir}${appName}.app.serverConfig`,
-    socketPath: path.join(`${libraryDir}Group Containers/keybase/Library/Caches/${appName}/`, socketName),
+    socketPath: join(`${libraryDir}Group Containers/keybase/Library/Caches/${appName}/`, socketName),
   }
 }
 
@@ -109,6 +113,8 @@ export const {
   serverConfigFileName,
   guiConfigFilename,
 } = paths
+
+export const downloadFolder = __STORYBOOK__ ? '' : env.XDG_DOWNLOAD_DIR || join(os.homedir, 'Downloads')
 
 // Empty string means let the service figure out the right directory.
 export const pprofDir = ''

@@ -7,26 +7,26 @@ import TeamList from '.'
 import {Box} from '../../common-adapters'
 
 const teams = [
-  Constants.makeTeamDetails({
+  Constants.makeTeamMeta({
     isMember: true,
     isOpen: true,
     memberCount: 5,
     teamname: 'stripe',
   }),
-  Constants.makeTeamDetails({
+  Constants.makeTeamMeta({
     isMember: false,
     isOpen: false,
     memberCount: 1,
     teamname: 'stripe.usa',
   }),
-  Constants.makeTeamDetails({
+  Constants.makeTeamMeta({
     id: 'techtonica_id',
     isMember: true,
     isOpen: true,
     memberCount: 1,
     teamname: 'techtonica',
   }),
-  Constants.makeTeamDetails({
+  Constants.makeTeamMeta({
     id: 'ted_talks_inc_id',
     isMember: true,
     isOpen: false,

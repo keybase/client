@@ -146,8 +146,8 @@
       "lastSeenVersion": "string"
     },
     "toggleRuntimeStats": {},
-    "loadNixOnLoginStartup": {},
-    "loadedNixOnLoginStartup": {
+    "loadOnLoginStartup": {},
+    "loadedOnLoginStartup": {
       "status": "boolean | null"
     },
     "loadOnStart": {
@@ -157,6 +157,10 @@
     "showShareActionSheet": {
       "filePath": "string",
       "mimeType": "string"
+    },
+    "androidShare": {
+        "_description": "Intent fired with a share url",
+        "url": "string"
     }
   }
 }

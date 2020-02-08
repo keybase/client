@@ -11,6 +11,7 @@ export {
   createNavigator,
   createPropProvider,
   MockStore,
+  updateStoreDecorator,
   unexpected,
   Rnd,
   scrollViewDecorator,

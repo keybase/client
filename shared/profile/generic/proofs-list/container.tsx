@@ -3,6 +3,7 @@ import * as ProfileGen from '../../../actions/profile-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import ProofsList from '.'
 import openURL from '../../../util/open-url'
+import * as Styles from '../../../styles'
 
 type OwnProps = RouteProps
 
@@ -18,7 +19,7 @@ export default namedConnect(
     providerClicked: dispatchProps.providerClicked,
     providers: stateProps._proofSuggestions.map(s => ({
       desc: s.pickerSubtext,
-      icon: s.pickerIcon,
+      icon: Styles.isDarkMode() ? s.siteIconFullDarkmode : s.siteIconFull,
       key: s.assertionKey,
       name: s.pickerText,
       new: s.metas.some(({label}) => label === 'new'),

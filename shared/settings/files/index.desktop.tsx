@@ -58,7 +58,7 @@ const isPending = (props: Props) =>
 const FinderIntegration = (props: Props) => {
   const preferredMountDirs = Container.useSelector(state => state.fs.sfmi.preferredMountDirs)
   const displayingMountDir = preferredMountDirs[0] || ''
-  const dispatch = Kbfs.useDispatchWhenKbfsIsConnected()
+  const dispatch = Container.useDispatch()
   const openMount = displayingMountDir
     ? () => dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: displayingMountDir}))
     : undefined

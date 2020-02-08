@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -65,10 +66,13 @@ type levelDbCleaner struct {
 	dbName   string
 	config   DbCleanerConfig
 	cache    *lru.Cache
+	cacheMu  sync.Mutex // protects the pointer to the cache
 	isMobile bool
 	db       *leveldb.DB
 	stopCh   chan struct{}
 	cancelCh chan struct{}
+
+	isShutdown bool
 }
 
 func newLevelDbCleaner(mctx MetaContext, dbName string) *levelDbCleaner {
@@ -101,6 +105,12 @@ func newLevelDbCleanerWithConfig(mctx MetaContext, dbName string, config DbClean
 		go c.monitorAppState()
 	}
 	return c
+}
+
+func (c *levelDbCleaner) getCache() *lru.Cache {
+	c.cacheMu.Lock()
+	defer c.cacheMu.Unlock()
+	return c.cache
 }
 
 func (c *levelDbCleaner) Status() string {
@@ -160,6 +170,13 @@ func (c *levelDbCleaner) clearCache() {
 	c.cache.Purge()
 }
 
+func (c *levelDbCleaner) Shutdown() {
+	c.cacheMu.Lock()
+	defer c.cacheMu.Unlock()
+	c.cache, _ = lru.New(1)
+	c.isShutdown = true
+}
+
 func (c *levelDbCleaner) shouldCleanLocked(force bool) bool {
 	if c.running {
 		return false
@@ -167,7 +184,7 @@ func (c *levelDbCleaner) shouldCleanLocked(force bool) bool {
 	if force {
 		return true
 	}
-	validCache := c.cache.Len() >= c.config.MinCacheSize
+	validCache := c.getCache().Len() >= c.config.MinCacheSize
 	return validCache &&
 		c.G().GetClock().Now().Sub(c.lastRun) >= c.config.CleanInterval
 }
@@ -212,7 +229,7 @@ func (c *levelDbCleaner) clean(force bool) (err error) {
 	}
 
 	c.log("dbSize: %v, cacheSize: %v",
-		humanize.Bytes(dbSize), c.cache.Len())
+		humanize.Bytes(dbSize), c.getCache().Len())
 	// check db size, abort if small enough
 	if !force && dbSize < c.config.MaxSize {
 		return nil
@@ -273,13 +290,22 @@ func (c *levelDbCleaner) cleanBatch(startKey []byte) (int, []byte, error) {
 	batch := new(leveldb.Batch)
 	for batch.Len() < 1000 && iter.Next() {
 		key := iter.Key()
-		if _, found := c.cache.Get(c.cacheKey(key)); !found {
+
+		c.cacheMu.Lock()
+		if c.isShutdown {
+			c.cacheMu.Unlock()
+			return 0, nil, errors.New("cleanBatch: cancelled due to shutdown")
+		}
+		cache := c.cache
+		c.cacheMu.Unlock()
+
+		if _, found := cache.Get(c.cacheKey(key)); !found {
 			cp := make([]byte, len(key))
 			copy(cp, key)
 			batch.Delete(cp)
 		} else {
 			// clear out the value from the lru
-			c.cache.Remove(c.cacheKey(key))
+			cache.Remove(c.cacheKey(key))
 		}
 	}
 	key := make([]byte, len(iter.Key()))
@@ -311,11 +337,11 @@ func (c *levelDbCleaner) attemptClean(ctx context.Context) {
 }
 
 func (c *levelDbCleaner) markRecentlyUsed(ctx context.Context, key []byte) {
-	c.cache.Add(c.cacheKey(key), true)
+	c.getCache().Add(c.cacheKey(key), true)
 	c.attemptClean(ctx)
 }
 
 func (c *levelDbCleaner) removeRecentlyUsed(ctx context.Context, key []byte) {
-	c.cache.Remove(c.cacheKey(key))
+	c.getCache().Remove(c.cacheKey(key))
 	c.attemptClean(ctx)
 }

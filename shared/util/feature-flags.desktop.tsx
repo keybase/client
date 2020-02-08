@@ -1,11 +1,7 @@
 import {featureFlagsOverride} from '../local-debug.desktop'
 import {FeatureFlags} from './feature-flags'
 
-if (process.env['KEYBASE_FEATURES']) {
-  console.error('KEYBASE_FEATURES is no longer supported. Edit the "*.app.debug" json file instead')
-}
-
-let features = (featureFlagsOverride && featureFlagsOverride.split(',')) || []
+const features = (featureFlagsOverride && featureFlagsOverride.split(',')) || []
 
 const featureOn = (key: keyof FeatureFlags) => features.includes(key)
 
@@ -26,7 +22,11 @@ const ff: FeatureFlags = {
   outOfDateBanner: false,
   proofProviders: true,
   stellarExternalPartners: true,
+  tabletSupport: false, // Whether tablet support is public. Changes some UI on non-tablets.
+  teamInvites: false,
+  teamsRedesign: false,
   userBlocking: true,
+  webOfTrust: false,
 }
 
 const inAdmin: {[K in keyof FeatureFlags]?: boolean} = {
@@ -39,7 +39,9 @@ const inAdmin: {[K in keyof FeatureFlags]?: boolean} = {
   openTeamSearch: true,
   outOfDateBanner: true,
   proofProviders: true,
+  tabletSupport: true,
   userBlocking: false,
+  webOfTrust: false,
 }
 
 // load overrides

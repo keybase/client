@@ -669,6 +669,7 @@ type ExternalServicesCollector interface {
 	ListServicesThatAcceptNewProofs(MetaContext) []string
 	ListDisplayConfigs(MetaContext) (res []keybase1.ServiceDisplayConfig)
 	SuggestionFoldPriority(MetaContext) int
+	Shutdown()
 }
 
 // Generic store for data that is hashed into the merkle root. Used by pvl and
@@ -756,6 +757,8 @@ type HiddenTeamChainManager interface {
 	Tombstone(MetaContext, keybase1.TeamID) error
 	// Untrusted hint of what a team's latest seqno is
 	HintLatestSeqno(m MetaContext, id keybase1.TeamID, seqno keybase1.Seqno) error
+	Shutdown(m MetaContext)
+	TeamSupportsHiddenChain(m MetaContext, id keybase1.TeamID) (state bool, err error)
 }
 
 type TeamRoleMapManager interface {
@@ -1077,7 +1080,7 @@ type ChatHelper interface {
 		msgID chat1.MessageID, resolveSupersedes bool, reason *chat1.GetThreadReason) (chat1.MessageUnboxed, error)
 	UpgradeKBFSToImpteam(ctx context.Context, tlfName string, tlfID chat1.TLFID, public bool) error
 	UserReacjis(ctx context.Context, uid gregor1.UID) keybase1.UserReacjis
-	JourneycardTimeTravel(context.Context, gregor1.UID, time.Duration) error
+	JourneycardTimeTravel(context.Context, gregor1.UID, time.Duration) (int, int, error)
 	JourneycardResetAllConvs(context.Context, gregor1.UID) error
 	JourneycardDebugState(context.Context, gregor1.UID, keybase1.TeamID) (string, error)
 }

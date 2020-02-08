@@ -13,7 +13,9 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"golang.org/x/image/draw"
 	"golang.org/x/net/context/ctxhttp"
@@ -80,27 +82,27 @@ func GetExternalMapURL(ctx context.Context, lat, lon float64) string {
 	return fmt.Sprintf("https://www.google.com/maps/place/%f,%f/@%f,%f,15z", lat, lon, lat, lon)
 }
 
-func httpClient(host string) *http.Client {
+func httpClient(g *libkb.GlobalContext, host string) *http.Client {
 	var xprt http.Transport
 	tlsConfig := &tls.Config{
 		ServerName: host,
 	}
 	xprt.TLSClientConfig = tlsConfig
 	return &http.Client{
-		Transport: &xprt,
+		Transport: libkb.NewInstrumentedTransport(g, func(*http.Request) string { return "LocationShare" }, &xprt),
 		Timeout:   10 * time.Second,
 	}
 }
 
-func MapReaderFromURL(ctx context.Context, url string) (res io.ReadCloser, length int64, err error) {
+func MapReaderFromURL(ctx context.Context, g *globals.Context, url string) (res io.ReadCloser, length int64, err error) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return res, length, err
+		return nil, 0, err
 	}
 	req.Host = mapsHost
-	resp, err := ctxhttp.Do(ctx, httpClient(mapsHost), req)
+	resp, err := ctxhttp.Do(ctx, httpClient(g.ExternalG(), mapsHost), req)
 	if err != nil {
-		return res, length, err
+		return nil, 0, err
 	}
 	return resp.Body, resp.ContentLength, nil
 }

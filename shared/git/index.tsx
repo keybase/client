@@ -40,10 +40,9 @@ const Git = (props: Props) => {
     {icon: 'iconfont-people', onClick: onNewTeamRepo, title: 'New team repository'} as const,
   ]
 
-  const popupAnchor = React.useRef(null)
-  const {showingPopup, setShowingPopup, popup} = Kb.usePopup(popupAnchor, () => (
+  const {showingPopup, setShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
     <Kb.FloatingMenu
-      attachTo={() => popupAnchor.current}
+      attachTo={attachTo}
       closeOnSelect={true}
       items={menuItems}
       onHidden={() => setShowingPopup(false)}

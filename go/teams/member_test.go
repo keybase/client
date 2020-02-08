@@ -1,6 +1,8 @@
 package teams
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"sort"
 	"testing"
@@ -9,6 +11,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/keybase/client/go/emails"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
@@ -56,6 +59,28 @@ func memberSetupMultiple(t *testing.T) (tc libkb.TestContext, owner, otherA, oth
 	t.Logf("Created team %q", name)
 
 	return tc, owner, otherA, otherB, name
+}
+
+func memberSetupMultipleWithTeamID(t *testing.T) (tc libkb.TestContext, owner, otherA, otherB *kbtest.FakeUser, name keybase1.TeamName, teamID keybase1.TeamID) {
+	tc = SetupTest(t, "team", 1)
+
+	otherA, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+	err = tc.Logout()
+	require.NoError(t, err)
+
+	otherB, err = kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+	err = tc.Logout()
+	require.NoError(t, err)
+
+	owner, err = kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+
+	name, teamID = createTeam2(tc)
+	t.Logf("Created team %q", name)
+
+	return tc, owner, otherA, otherB, name, teamID
 }
 
 // creates a root team and a subteam.  owner is the owner of root, otherA is an admin, otherB is just a user.
@@ -160,6 +185,47 @@ func TestMemberAddOK(t *testing.T) {
 	}
 
 	assertRole(tc, name, other.Username, keybase1.TeamRole_READER)
+}
+
+func TestMembersEdit(t *testing.T) {
+	tc, _, otherA, otherB, name, teamID := memberSetupMultipleWithTeamID(t)
+	defer tc.Cleanup()
+
+	assertRole(tc, name.String(), otherA.Username, keybase1.TeamRole_NONE)
+
+	_, err := AddMember(context.TODO(), tc.G, name.String(), otherA.Username, keybase1.TeamRole_READER, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assertRole(tc, name.String(), otherA.Username, keybase1.TeamRole_READER)
+
+	assertRole(tc, name.String(), otherB.Username, keybase1.TeamRole_NONE)
+
+	_, err = AddMember(context.TODO(), tc.G, name.String(), otherB.Username, keybase1.TeamRole_READER, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assertRole(tc, name.String(), otherB.Username, keybase1.TeamRole_READER)
+
+	rolePairA := keybase1.UserRolePair{
+		AssertionOrEmail: otherA.Username,
+		Role:             keybase1.TeamRole_READER,
+		BotSettings:      nil,
+	}
+
+	rolePairB := keybase1.UserRolePair{
+		AssertionOrEmail: otherB.Username,
+		Role:             keybase1.TeamRole_ADMIN,
+		BotSettings:      nil,
+	}
+
+	userRolePairs := []keybase1.UserRolePair{rolePairA, rolePairB}
+
+	res, err := EditMembers(context.TODO(), tc.G, teamID, userRolePairs)
+	require.NoError(t, err)
+	require.Empty(t, res.Failures)
 }
 
 func TestMemberAddBot(t *testing.T) {
@@ -384,6 +450,47 @@ func TestMemberRemoveWithoutDemotion(t *testing.T) {
 	require.Nil(t, res.Res)
 	require.Error(t, err)
 	require.IsType(t, libkb.NotFoundError{}, err)
+}
+
+func TestMembersRemove(t *testing.T) {
+	tc, _, otherA, otherB, name, teamID := memberSetupMultipleWithTeamID(t)
+	defer tc.Cleanup()
+
+	assertRole(tc, name.String(), otherA.Username, keybase1.TeamRole_NONE)
+
+	_, err := AddMember(context.TODO(), tc.G, name.String(), otherA.Username, keybase1.TeamRole_READER, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assertRole(tc, name.String(), otherA.Username, keybase1.TeamRole_READER)
+
+	assertRole(tc, name.String(), otherB.Username, keybase1.TeamRole_NONE)
+
+	_, err = AddMember(context.TODO(), tc.G, name.String(), otherB.Username, keybase1.TeamRole_READER, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assertRole(tc, name.String(), otherB.Username, keybase1.TeamRole_READER)
+
+	rolePairA := keybase1.TeamMemberToRemove{
+		Username: otherA.Username,
+	}
+
+	rolePairB := keybase1.TeamMemberToRemove{
+		Username: otherB.Username,
+	}
+
+	users := []keybase1.TeamMemberToRemove{rolePairA, rolePairB}
+
+	res, err := RemoveMembers(context.TODO(), tc.G, teamID, users)
+
+	assertRole(tc, name.String(), otherA.Username, keybase1.TeamRole_NONE)
+	assertRole(tc, name.String(), otherB.Username, keybase1.TeamRole_NONE)
+
+	require.NoError(t, err)
+	require.Empty(t, res.Failures)
 }
 
 // make sure that adding a member creates new recipient boxes
@@ -695,11 +802,29 @@ func TestMemberAddEmail(t *testing.T) {
 	}
 }
 
+func randomEmailAddress(t *testing.T) keybase1.EmailAddress {
+	buf := make([]byte, 5)
+	_, err := rand.Read(buf)
+	require.NoError(t, err)
+	email := fmt.Sprintf("%s@example.org", hex.EncodeToString(buf))
+	return keybase1.EmailAddress(email)
+}
+
 func TestMemberAddEmailBulk(t *testing.T) {
 	tc, _, name := memberSetup(t)
 	defer tc.Cleanup()
 
-	blob := "h@j.k,u1@keybase.io, u2@keybase.io\nu3@keybase.io,u4@keybase.io, u5@keybase.io,u6@keybase.io, u7@keybase.io\n\n\nFull Name <fullname@keybase.io>, Someone Else <someone@keybase.io>,u8@keybase.io\n\nXXXXXXXXXXXX"
+	existingUserEmail := randomEmailAddress(t)
+	blob := string(existingUserEmail) + ", h@j.k,u1@keybase.io, u2@keybase.io\nu3@keybase.io,u4@keybase.io, u5@keybase.io,u6@keybase.io, u7@keybase.io\n\n\nFull Name <fullname@keybase.io>, Someone Else <someone@keybase.io>,u8@keybase.io\n\nXXXXXXXXXXXX"
+
+	// create a user with a searchable email to test addEmailsBulk resolves existing users correctly.
+	tc2 := SetupTest(t, "team", 1)
+	u2, err := kbtest.CreateAndSignupFakeUser("team", tc2.G)
+	require.NoError(t, err)
+	err = emails.AddEmail(tc2.MetaContext(), existingUserEmail, keybase1.IdentityVisibility_PUBLIC)
+	require.NoError(t, err)
+	err = kbtest.VerifyEmailAuto(tc2.MetaContext(), existingUserEmail)
+	require.NoError(t, err)
 
 	res, err := AddEmailsBulk(context.TODO(), tc.G, name, blob, keybase1.TeamRole_WRITER)
 	if err != nil {
@@ -707,17 +832,12 @@ func TestMemberAddEmailBulk(t *testing.T) {
 	}
 	emails := []string{"u1@keybase.io", "u2@keybase.io", "u3@keybase.io", "u4@keybase.io", "u5@keybase.io", "u6@keybase.io", "u7@keybase.io", "fullname@keybase.io", "someone@keybase.io", "u8@keybase.io"}
 
-	if len(res.Invited) != len(emails) {
-		t.Logf("invited: %+v", res.Invited)
-		t.Errorf("num invited: %d, expected %d", len(res.Invited), len(emails))
-	}
-	if len(res.AlreadyInvited) != 0 {
-		t.Errorf("num already invited: %d, expected 0", len(res.AlreadyInvited))
-	}
 	require.Len(t, res.Malformed, 2)
 	for _, e := range emails {
 		assertInvite(tc, name, e, "email", keybase1.TeamRole_WRITER)
 	}
+
+	assertRole(tc, name, u2.Username, keybase1.TeamRole_WRITER)
 }
 
 func TestMemberListInviteUsername(t *testing.T) {
@@ -870,6 +990,54 @@ func TestLeave(t *testing.T) {
 	require.False(t, team.IsMember(context.TODO(), otherB.GetUserVersion()))
 	require.False(t, team.IsMember(context.TODO(), botua.GetUserVersion()))
 	require.False(t, team.IsMember(context.TODO(), restrictedBotua.GetUserVersion()))
+}
+
+func TestImplicitAdminBecomesExplicit(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	t.Logf("u0 creates a team (seqno:1)")
+	teamName, _ := createTeam2(*tcs[0])
+
+	t.Logf("U0 adds U1 to the team (2)")
+	_, err := AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_ADMIN, nil)
+	require.NoError(t, err)
+
+	t.Logf("U0 makes a subteam")
+	subteamNameParsed, subteamID := createSubteam(tcs[0], teamName, "subteam")
+	subteamName := subteamNameParsed.String()
+
+	t.Logf("U0 adds themself as an admin to the subteam")
+	_, err = AddMember(context.TODO(), tcs[0].G, subteamName, fus[0].Username, keybase1.TeamRole_ADMIN, nil)
+	require.NoError(t, err)
+
+	t.Logf("U0 rotates the subteam 3 times")
+	subteam, err := GetForTestByID(context.TODO(), tcs[0].G, subteamID)
+	require.NoError(t, err)
+	for i := 0; i < 3; i++ {
+		err = subteam.Rotate(context.TODO(), keybase1.RotationType_HIDDEN)
+		require.NoError(t, err)
+		subteam, err = GetForTestByID(context.TODO(), tcs[0].G, subteamID)
+		require.NoError(t, err)
+	}
+
+	t.Logf("U1 fails to read the SALTPACK RKM at gen=4")
+	subteamPartial, err := GetForTestByID(context.TODO(), tcs[1].G, subteamID)
+	require.NoError(t, err)
+	mctx := libkb.NewMetaContextForTest(*tcs[1])
+	_, err = ApplicationKeyAtGeneration(mctx, subteamPartial, keybase1.TeamApplication_SALTPACK, keybase1.PerTeamKeyGeneration(4))
+	require.Error(t, err)
+	require.IsType(t, err, libkb.KeyMaskNotFoundError{})
+
+	t.Logf("U0 adds U1 as a writer to the subteam")
+	_, err = AddMember(context.TODO(), tcs[0].G, subteamName, fus[1].Username, keybase1.TeamRole_WRITER, nil)
+	require.NoError(t, err)
+
+	t.Logf("U1 succeeds in reading the SALTPACK RKM at gen=4")
+	subteamFull, err := GetForTestByID(context.TODO(), tcs[1].G, subteamID)
+	require.NoError(t, err)
+	_, err = ApplicationKeyAtGeneration(mctx, subteamFull, keybase1.TeamApplication_SALTPACK, keybase1.PerTeamKeyGeneration(4))
+	require.NoError(t, err)
 }
 
 func TestLeaveSubteamWithImplicitAdminship(t *testing.T) {

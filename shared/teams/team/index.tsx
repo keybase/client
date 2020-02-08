@@ -5,13 +5,13 @@ import * as Styles from '../../styles'
 import TeamTabs from './tabs/container'
 import {Row} from './rows'
 import renderRow from './rows/render'
-import {TeamDetailsSubscriber} from '../subscriber'
+import {TeamDetailsSubscriber, TeamsSubscriber} from '../subscriber'
 
 export type Sections = Array<{data: Array<Row>; header?: Row; key: string}>
 
 export type Props = {
   teamID: Types.TeamID
-  selectedTab: string
+  selectedTab: Types.TabKey
   sections: Sections
   setSelectedTab: (arg0: Types.TabKey) => void
 }
@@ -29,6 +29,7 @@ class Team extends React.Component<Props> {
         )
       case 'settings':
       case 'header':
+      case 'divider':
       case 'member':
       case 'bot':
       case 'bot-add':
@@ -40,6 +41,7 @@ class Team extends React.Component<Props> {
       case 'subteam-add':
       case 'subteam-none':
       case 'subteam-subteam':
+      case 'subteam-info':
       case 'loading':
         return renderRow(item, this.props.teamID)
       default: {
@@ -54,6 +56,7 @@ class Team extends React.Component<Props> {
   render() {
     return (
       <Kb.Box style={styles.container}>
+        <TeamsSubscriber />
         <TeamDetailsSubscriber teamID={this.props.teamID} />
         <Kb.SectionList
           alwaysVounceVertical={false}

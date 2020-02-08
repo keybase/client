@@ -109,7 +109,7 @@ export type Props = {
   json: string
   onClick?: () => void
   allowFontScaling?: boolean | null
-  message?: Types.MessageText
+  message?: Types.MessageText | Types.MessageAttachment
   styleOverride: StyleOverride
   styles: {[K in string]: StylesTextCrossPlatform}
 }
@@ -123,7 +123,11 @@ const ServiceDecoration = (props: Props) => {
   } catch (e) {
     return null
   }
-  if (parsed.typ === RPCChatTypes.UITextDecorationTyp.payment && props.message) {
+  if (
+    parsed.typ === RPCChatTypes.UITextDecorationTyp.payment &&
+    props.message &&
+    props.message.type === 'text'
+  ) {
     let paymentID: WalletTypes.PaymentID | undefined
     let error
     if (
@@ -212,7 +216,7 @@ const ServiceDecoration = (props: Props) => {
         allowFontScaling={props.allowFontScaling || false}
         convID={parsed.channelnamemention.convID}
         name={parsed.channelnamemention.name}
-        style={props.styles.linkStyle}
+        style={Styles.collapseStyles([props.styles.linkStyle, linkStyle, props.styleOverride.link])}
       />
     )
   } else if (parsed.typ === RPCChatTypes.UITextDecorationTyp.kbfspath) {

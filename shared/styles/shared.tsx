@@ -1,5 +1,5 @@
 import {themed as globalColors} from './colors'
-import {isMobile, isIOS, isAndroid, isElectron} from '../constants/platform'
+import {isMobile, isIOS, isAndroid, isTablet, isElectron} from '../constants/platform'
 import {_StylesCrossPlatform, _StylesMobile, _StylesDesktop} from './css'
 import {Background} from '../common-adapters/text'
 
@@ -94,13 +94,15 @@ export function platformStyles<
   I extends _StylesMobile = {},
   A extends _StylesMobile = {},
   M extends _StylesMobile = {},
+  T extends _StylesMobile = {},
   E extends _StylesDesktop = {}
->(options: {common?: C; isIOS?: I; isAndroid?: A; isMobile?: M; isElectron?: E}) {
+>(options: {common?: C; isIOS?: I; isAndroid?: A; isMobile?: M; isTablet?: T; isElectron?: E}) {
   return ({
     ...(options.common ? unifyStyles(options.common) : {}),
     ...(isMobile && options.isMobile ? options.isMobile : {}),
     ...(isIOS && options.isIOS ? options.isIOS : {}),
     ...(isAndroid && options.isAndroid ? options.isAndroid : {}),
+    ...(isTablet && options.isTablet ? options.isTablet : {}),
     ...(isElectron && options.isElectron ? unifyStyles(options.isElectron) : {}),
   } as any) as AsStylesCrossPlatform<Ret>
 }

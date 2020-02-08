@@ -22,7 +22,6 @@ import (
 	"golang.org/x/net/context/ctxhttp"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -299,7 +298,6 @@ func doRequestShared(m MetaContext, api Requester, arg APIArg, req *http.Request
 	}
 
 	timer := m.G().Timers.Start(timerType)
-	endInstrumentation := rpc.NewNetworkInstrumenter(m.G().NetworkInstrumenterStorage).Instrument(fmt.Sprintf("%s %s", req.Method, arg.Endpoint))
 	internalResp, canc, err := doRetry(m, arg, cli, req)
 
 	finisher = func() {
@@ -324,9 +322,6 @@ func doRequestShared(m MetaContext, api Requester, arg APIArg, req *http.Request
 
 	if err != nil {
 		return nil, finisher, nil, APINetError{Err: err}
-	}
-	if err := endInstrumentation(internalResp.ContentLength); err != nil {
-		m.Debug("unable to instrument API call: %v", err)
 	}
 	status = internalResp.Status
 
@@ -776,7 +771,7 @@ func (a *InternalAPIEngine) getDecode(m MetaContext, arg APIArg, v APIResponseWr
 
 	reader := resp.Body.(io.Reader)
 	if a.G().Env.GetAPIDump() {
-		body, err := ioutil.ReadAll(resp.Body)
+		body, err := ioutil.ReadAll(reader)
 		if err != nil {
 			return err
 		}
@@ -785,7 +780,8 @@ func (a *InternalAPIEngine) getDecode(m MetaContext, arg APIArg, v APIResponseWr
 	}
 
 	dec := json.NewDecoder(reader)
-	if err = dec.Decode(&v); err != nil {
+	err = dec.Decode(&v)
+	if err != nil {
 		m.Debug("| API GetDecode, Decode error: %s", err)
 		return err
 	}
@@ -847,8 +843,11 @@ func (a *InternalAPIEngine) postDecode(m MetaContext, arg APIArg, v APIResponseW
 		return err
 	}
 	defer finisher()
-	dec := json.NewDecoder(resp.Body)
-	if err = dec.Decode(&v); err != nil {
+
+	reader := resp.Body
+	dec := json.NewDecoder(reader)
+	err = dec.Decode(&v)
+	if err != nil {
 		return err
 	}
 	return a.checkAppStatus(arg, v.GetAppStatus())
@@ -887,6 +886,8 @@ func (a *InternalAPIEngine) doRequest(m MetaContext, arg APIArg, req *http.Reque
 	if err != nil {
 		return nil, err
 	}
+	// We have already consumed the response body here, no need to pass the
+	// size to finisher.
 	defer finisher()
 
 	status, err := jw.AtKey("status").ToDictionary()
@@ -967,7 +968,8 @@ func (api *ExternalAPIEngine) DoRequest(m MetaContext,
 	var jw *jsonw.Wrapper
 	var finisher func()
 
-	resp, finisher, jw, err = doRequestShared(m, api, arg, req, (restype == XAPIResJSON))
+	wantJSONRes := (restype == XAPIResJSON)
+	resp, finisher, jw, err = doRequestShared(m, api, arg, req, wantJSONRes)
 	if err != nil {
 		return
 	}
@@ -978,7 +980,8 @@ func (api *ExternalAPIEngine) DoRequest(m MetaContext,
 		ar = &ExternalAPIRes{resp.StatusCode, jw}
 	case XAPIResHTML:
 		var goq *goquery.Document
-		goq, err = goquery.NewDocumentFromResponse(resp)
+		reader := newCountingReader(resp.Body)
+		goq, err = goquery.NewDocumentFromReader(reader)
 		if err == nil {
 			hr = &ExternalHTMLRes{resp.StatusCode, goq}
 		}

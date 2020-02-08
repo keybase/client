@@ -8,14 +8,18 @@ export type FeatureFlags = {
   dbCleanEnabled: boolean
   fastAccountSwitch: boolean
   foldersInProfileTab: boolean
+  tabletSupport: boolean
   lagRadar: boolean
   moveOrCopy: boolean
   newTeamBuildingForChatAllowMakeTeam: boolean
+  openTeamSearch: boolean
   outOfDateBanner: boolean
   proofProviders: boolean
   stellarExternalPartners: boolean
+  teamInvites: boolean
+  teamsRedesign: boolean
   userBlocking: boolean
-  openTeamSearch: boolean
+  webOfTrust: boolean
 }
 
 declare const ff: FeatureFlags

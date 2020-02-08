@@ -116,9 +116,7 @@ func (hsc *HighSigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID 
 	if err != nil {
 		return nil, err
 	}
-	if finisher != nil {
-		defer finisher()
-	}
+	defer finisher()
 	recordFin := tbs.Record("HighSigChain.LoadFromServer.ReadAll")
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {

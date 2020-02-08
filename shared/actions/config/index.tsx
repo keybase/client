@@ -8,7 +8,6 @@ import * as ChatGen from '../chat2-gen'
 import * as EngineGen from '../engine-gen-gen'
 import * as DevicesGen from '../devices-gen'
 import * as ProfileGen from '../profile-gen'
-import * as FsGen from '../fs-gen'
 import * as PushGen from '../push-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/config'
@@ -20,11 +19,9 @@ import * as PlatformSpecific from '../platform-specific'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Tabs from '../../constants/tabs'
 import * as Router2 from '../../constants/router2'
-import * as FsTypes from '../../constants/types/fs'
+import * as Platform from '../../constants/platform'
 import URL from 'url-parse'
 import {noVersion} from '../../constants/whats-new'
-import {isAndroid, isMobile, appColorSchemeChanged} from '../../constants/platform'
-import {updateServerConfigLastLoggedIn} from '../../app/server-config'
 import * as Container from '../../util/container'
 
 const onLoggedIn = (state: Container.TypedState, action: EngineGen.Keybase1NotifySessionLoggedInPayload) => {
@@ -70,12 +67,16 @@ const onHTTPSrvInfoUpdated = (action: EngineGen.Keybase1NotifyServiceHTTPSrvInfo
 
 const getFollowerInfo = (state: Container.TypedState, action: ConfigGen.LoadOnStartPayload) => {
   const {uid} = state.config
+  logger.info(`getFollowerInfo: init; uid=${uid}`)
   if (action.type === ConfigGen.loadOnStart && action.payload.phase !== 'startupOrReloginButNotInARush') {
+    logger.info(
+      `getFollowerInfo: bailing out early due to type=${action.type}; phase=${action.payload.phase}`
+    )
     return
   }
   if (uid) {
     // request follower info in the background
-    RPCTypes.configRequestFollowerInfoRpcPromise({uid: state.config.uid})
+    RPCTypes.configRequestFollowingAndUnverifiedFollowersRpcPromise()
   }
 }
 
@@ -326,7 +327,7 @@ const startLogoutHandshakeIfAllowed = async (state: Container.TypedState) => {
     return startLogoutHandshake(state)
   } else {
     const heading = canLogoutRes.reason
-    if (isMobile) {
+    if (Platform.isMobile) {
       return RouteTreeGen.createNavigateAppend({
         path: [Tabs.settingsTab, {props: {heading}, selected: SettingsConstants.passwordTab}],
       })
@@ -380,7 +381,7 @@ const onShowPermissionsPrompt = (
   action: PushGen.ShowPermissionsPromptPayload
 ) => {
   if (
-    !isMobile ||
+    !Platform.isMobile ||
     !action.payload.show ||
     !state.config.loggedIn ||
     state.push.justSignedUp ||
@@ -391,6 +392,14 @@ const onShowPermissionsPrompt = (
 
   logger.info('[ShowMonsterPushPrompt] Entered through the late permissions checker scenario')
   return showMonsterPushPrompt()
+}
+
+const onAndroidShare = (state: Container.TypedState) => {
+  // already loaded, so just go now
+  if (routeToInitialScreenOnce && state.config.startupDetailsLoaded) {
+    return RouteTreeGen.createNavigateAppend({path: ['androidChooseTarget']})
+  }
+  return false
 }
 
 let routeToInitialScreenOnce = false
@@ -414,7 +423,7 @@ const routeToInitialScreen = (state: Container.TypedState) => {
   // logged out to logged in. This code can also be triggered if routeToInitialScreen
   // starts _after_ the push notifications permissions are computed.
   if (
-    isMobile &&
+    Platform.isMobile &&
     state.config.loggedIn &&
     !state.push.justSignedUp &&
     state.push.showPushPrompt &&
@@ -461,20 +470,6 @@ const routeToInitialScreen = (state: Container.TypedState) => {
       ]
     }
 
-    // A share
-    if (state.config.startupSharePath) {
-      // TODO/FIXME: this seems unused. [ShareDataIntent] in
-      // actions/platform-specific/push.native.tsx happens at cold-start too,
-      // so maybe we can just use that. Though that happens before this
-      // (routeToInitialScreen), so in the end it just routes to the saved tab
-      // which gets rid of the destination-picker modal.
-      return [
-        RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
-        FsGen.createSetIncomingShareLocalPath({localPath: state.config.startupSharePath}),
-        FsGen.createShowIncomingShare({initialDestinationParentPath: FsTypes.stringToPath('/keybase')}),
-      ]
-    }
-
     // A follow
     if (state.config.startupFollowUser) {
       return [
@@ -502,6 +497,15 @@ const routeToInitialScreen = (state: Container.TypedState) => {
       } catch {
         logger.info('AppLink: could not parse link', state.config.startupLink)
       }
+    }
+
+    // External android share?
+    if (state.config.androidShare) {
+      return [
+        RouteTreeGen.createSwitchLoggedIn({loggedIn: true}),
+        RouteTreeGen.createSwitchTab({tab: (state.config.startupTab as any) || Tabs.peopleTab}),
+        RouteTreeGen.createNavigateAppend({path: ['androidChooseTarget']}),
+      ]
     }
 
     // Just a saved tab
@@ -554,34 +558,12 @@ function* allowLogoutWaiters(_: Container.TypedState, action: ConfigGen.LogoutHa
   )
 }
 
-const updateServerConfig = async (state: Container.TypedState, action: ConfigGen.LoadOnStartPayload) => {
-  if (action.payload.phase !== 'startupOrReloginButNotInARush') {
-    return false
-  }
-  try {
-    // TODO real rpc so we get real types instead of this untyped bag of key/values
-    const str = await RPCTypes.apiserverGetWithSessionRpcPromise({
-      endpoint: 'user/features',
-    })
-    const obj: {features: any} = JSON.parse(str.body)
-    const features = Object.keys(obj.features).reduce<{[key: string]: boolean}>((map, key) => {
-      map[key] = (obj.features[key as any] as any)?.value ?? false
-      return map
-    }, {})
+const updateServerConfig = async (_: Container.TypedState, action: ConfigGen.LoadOnStartPayload) =>
+  action.payload.phase === 'startupOrReloginButNotInARush' &&
+  RPCTypes.configUpdateLastLoggedInAndServerConfigRpcPromise({
+    serverConfigPath: Platform.serverConfigFileName,
+  })
 
-    const serverConfig = {
-      chatIndexProfilingEnabled: !!features.admin,
-      dbCleanEnabled: !!features.admin,
-      printRPCStats: !!features.admin,
-    }
-
-    logger.info('updateServerConfig', serverConfig)
-    updateServerConfigLastLoggedIn(state.config.username, serverConfig)
-  } catch (e) {
-    logger.info('updateServerConfig fail', e)
-  }
-  return false
-}
 const setNavigator = (action: ConfigGen.SetNavigatorPayload) => {
   const navigator = action.payload.navigator
   Router2._setNavigator(navigator)
@@ -630,7 +612,7 @@ function* criticalOutOfDateCheck() {
       logger.error("Can't call critical check", e)
     }
     // We just need this once on mobile. Long timers don't work there.
-    if (isMobile) {
+    if (Platform.isMobile) {
       return
     }
     yield Saga.delay(3600 * 1000) // 1 hr
@@ -702,11 +684,10 @@ const gregorPushState = (action: GregorGen.PushStatePayload) => {
   return actions
 }
 
-const loadNixOnLoginStartup = async () => {
+const loadOnLoginStartup = async () => {
   try {
-    const status =
-      (await RPCTypes.ctlGetNixOnLoginStartupRpcPromise()) === RPCTypes.OnLoginStartupStatus.enabled
-    return ConfigGen.createLoadedNixOnLoginStartup({status})
+    const status = (await RPCTypes.ctlGetOnLoginStartupRpcPromise()) === RPCTypes.OnLoginStartupStatus.enabled
+    return ConfigGen.createLoadedOnLoginStartup({status})
   } catch (err) {
     logger.warn('Error in loading proxy data', err)
     return null
@@ -838,9 +819,9 @@ function* configSaga() {
   yield* Saga.chainAction2(SettingsGen.loadedSettings, maybeLoadAppLink)
 
   yield* Saga.chainAction2(ConfigGen.setDarkModePreference, saveDarkPrefs)
-  if (isAndroid) {
+  if (Platform.isAndroid) {
     yield* Saga.chainAction2(ConfigGen.setDarkModePreference, (state: Container.TypedState) =>
-      appColorSchemeChanged(state.config.darkModePreference)
+      Platform.appColorSchemeChanged(state.config.darkModePreference)
     )
   }
 
@@ -849,12 +830,13 @@ function* configSaga() {
   yield* Saga.chainAction2(ConfigGen.toggleRuntimeStats, toggleRuntimeStats)
 
   yield* Saga.chainAction2(PushGen.showPermissionsPrompt, onShowPermissionsPrompt)
+  yield* Saga.chainAction2(ConfigGen.androidShare, onAndroidShare)
 
   // Kick off platform specific stuff
   yield Saga.spawn(PlatformSpecific.platformConfigSaga)
   yield Saga.spawn(criticalOutOfDateCheck)
 
-  yield* Saga.chainAction2(ConfigGen.loadNixOnLoginStartup, loadNixOnLoginStartup)
+  yield* Saga.chainAction2(ConfigGen.loadOnLoginStartup, loadOnLoginStartup)
 }
 
 export default configSaga

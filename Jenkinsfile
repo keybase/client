@@ -483,6 +483,8 @@ def testGo(prefix, packagesToTest) {
         sh 'make -s lint'
       }
     }
+    println "Building citogo"
+    sh '(cd citogo && go install)'
 
     println "Installing golangci-lint"
     dir("..") {
@@ -604,7 +606,8 @@ def testGo(prefix, packagesToTest) {
         ],
         'github.com/keybase/client/go/kbfs/libfuse': [
           flags: '',
-          timeout: '3m',
+          timeout: '5m',
+          citogo_extra : '--pause 1s'
         ],
         'github.com/keybase/client/go/kbfs/idutil': [
           flags: '-race',
@@ -771,10 +774,17 @@ def testGo(prefix, packagesToTest) {
         if (fileExists(testBinary)) {
           def test = {
             dir(testSpec.dirPath) {
-              def t = getOverallTimeout(testSpec)
-              timeout(activity: true, time: t.time, unit: t.unit) {
+              withCredentials([
+                [$class: 'StringBinding', credentialsId: 'citogo-flake-webhook', variable : 'CITOGO_FLAKE_WEBHOOK'],
+                [$class: 'StringBinding', credentialsId: 'citogo-aws-secret-access-key', variable : 'CITOGO_AWS_SECRET_ACCESS_KEY'],
+                [$class: 'StringBinding', credentialsId: 'citogo-aws-access-key-id', variable : 'CITOGO_AWS_ACCESS_KEY_ID'],
+                [$class: 'StringBinding', credentialsId: 'citogo-master-fail-webhook', variable : 'CITOGO_MASTER_FAIL_WEBHOOK']
+              ]) {
                 println "Running tests for ${testSpec.dirPath}"
-                sh "./${testBinary} -test.timeout ${testSpec.timeout}"
+                def t = getOverallTimeout(testSpec)
+                timeout(activity: true, time: t.time, unit: t.unit) {
+                  sh "citogo --flakes 3 --fails 3 --build-id ${env.BUILD_ID} --branch ${env.BRANCH_NAME} --prefix ${testSpec.dirPath} --s3bucket ci-fail-logs --build-url ${env.BUILD_URL} --no-compile --test-binary ./${testBinary} --timeout 150s ${testSpec.citogo_extra || ''}"
+                }
               }
             }
           }

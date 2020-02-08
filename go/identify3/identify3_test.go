@@ -192,7 +192,6 @@ func TestFollowUnfollowTracy(t *testing.T) {
 	require.Equal(t, res.resultType, keybase1.Identify3ResultType_OK)
 	require.Equal(t, len(res.rows), 9)
 	require.Equal(t, len(res.cards), 1)
-	require.False(t, res.cards[0].YouFollowThem)
 
 	findRows(t, res.rows, []keybase1.Identify3Row{
 		{
@@ -228,7 +227,6 @@ func TestFollowUnfollowTracy(t *testing.T) {
 	require.Equal(t, res.resultType, keybase1.Identify3ResultType_OK)
 	require.Equal(t, len(res.rows), 9)
 	require.Equal(t, len(res.cards), 1)
-	require.True(t, res.cards[0].YouFollowThem)
 
 	findRows(t, res.rows, []keybase1.Identify3Row{
 		{
@@ -280,8 +278,9 @@ func runID3(t *testing.T, mctx libkb.MetaContext, user string, follow bool) id3r
 	res := fakeUI3.results()
 	for _, row := range res.rows {
 		checkIcon(t, row.Key, row.SiteIcon)
+		checkIcon(t, row.Key, row.SiteIconDarkmode)
 		checkIcon(t, row.Key, row.SiteIconFull)
-		checkIcon(t, row.Key, row.SiteIconWhite)
+		checkIcon(t, row.Key, row.SiteIconFullDarkmode)
 		if row.Priority == 0 || row.Priority == 9999999 {
 			t.Fatalf("unexpected priority %v %v", row.Key, row.Priority)
 		}

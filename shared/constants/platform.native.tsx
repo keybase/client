@@ -1,6 +1,7 @@
 import {Dimensions, Platform, NativeModules} from 'react-native'
 import RNFB from 'rn-fetch-blob'
 import * as iPhoneXHelper from 'react-native-iphone-x-helper'
+import Constants from 'expo-constants'
 
 const nativeBridge = NativeModules.KeybaseEngine || {
   isDeviceSecure: 'fallback',
@@ -21,14 +22,20 @@ export const isTestDevice = nativeBridge.isTestDevice
 // @ts-ignore
 export const isRemoteDebuggerAttached: boolean = typeof DedicatedWorkerGlobalScope !== 'undefined'
 export const runMode = 'prod'
+
 export const isIOS = Platform.OS === 'ios'
 export const isAndroid = !isIOS
 export const isMobile = true
+export const isIPhoneX = iPhoneXHelper.isIphoneX()
+export const isTablet = Platform.OS === 'ios' && Platform.isPad
+export const isPhone = !isTablet
+
 export const isDarwin = false
 export const isElectron = false
 export const isLinux = false
 export const isWindows = false
 export const isMac = false
+
 export const defaultUseNativeFrame = true
 export const fileUIName = 'File Explorer'
 export const mobileOsVersion = Platform.Version
@@ -36,8 +43,7 @@ const mobileOsVersionNumber = typeof mobileOsVersion === 'string' ? parseInt(mob
 export const isAndroidNewerThanM = isAndroid && mobileOsVersionNumber > 22
 export const isAndroidNewerThanN = isAndroid && mobileOsVersionNumber >= 26
 export const shortcutSymbol = ''
-
-export const isIPhoneX = iPhoneXHelper.isIphoneX()
+export const realDeviceName = Constants.deviceName ?? ''
 
 // isLargeScreen means you have at larger screen like iPhone 6,7 or Pixel
 // See https://material.io/devices/
@@ -47,6 +53,8 @@ const _dir = `${RNFB.fs.dirs.CacheDir}/Keybase`
 export const logFileDir = _dir
 export const pprofDir = _dir
 export const serverConfigFileName = `${_dir}/keybase.app.serverConfig`
+
+export const downloadFolder = ''
 
 // Noop on iOS.
 // If we want to implement this on iOS it may be better to have iOS and android

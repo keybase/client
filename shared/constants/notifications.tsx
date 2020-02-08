@@ -4,7 +4,6 @@ import * as Container from '../util/container'
 
 export const badgeStateToBadgeCounts = (state: Container.TypedState, bs: RPCTypes.BadgeState) => {
   const {inboxVers, unverifiedEmails, unverifiedPhones} = bs
-  const conversations = bs.conversations || []
   const deletedTeams = bs.deletedTeams || []
   const newDevices = bs.newDevices || []
   const newGitRepoGlobalUniqueIDs = bs.newGitRepoGlobalUniqueIDs || []
@@ -18,7 +17,6 @@ export const badgeStateToBadgeCounts = (state: Container.TypedState, bs: RPCType
     return undefined
   }
 
-  const deviceType = String(Container.isMobile ? RPCTypes.DeviceType.mobile : RPCTypes.DeviceType.desktop)
   const counts = new Map<Tabs.Tab, number>()
 
   counts.set(Tabs.peopleTab, bs.homeTodoItems)
@@ -29,10 +27,7 @@ export const badgeStateToBadgeCounts = (state: Container.TypedState, bs: RPCType
 
   // don't see badges related to this device
   counts.set(Tabs.devicesTab, allDeviceChanges.size - (allDeviceChanges.has(state.config.deviceID) ? 1 : 0))
-  counts.set(
-    Tabs.chatTab,
-    conversations.reduce<number>((total, c) => (c.badgeCounts ? total + c.badgeCounts[deviceType] : total), 0)
-  )
+  counts.set(Tabs.chatTab, bs.smallTeamBadgeCount + bs.bigTeamBadgeCount)
   counts.set(
     Tabs.walletsTab,
     unreadWalletAccounts.reduce<number>((total, a) => total + a.numUnread, 0)

@@ -57,6 +57,7 @@ func (e SaltpackSenderType) String() string {
 type SaltpackSender struct {
 	Uid        UID                `codec:"uid" json:"uid"`
 	Username   string             `codec:"username" json:"username"`
+	Fullname   string             `codec:"fullname" json:"fullname"`
 	SenderType SaltpackSenderType `codec:"senderType" json:"senderType"`
 }
 
@@ -64,6 +65,7 @@ func (o SaltpackSender) DeepCopy() SaltpackSender {
 	return SaltpackSender{
 		Uid:        o.Uid.DeepCopy(),
 		Username:   o.Username,
+		Fullname:   o.Fullname,
 		SenderType: o.SenderType.DeepCopy(),
 	}
 }

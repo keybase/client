@@ -35,6 +35,7 @@ export const makeState = (): Types.State => ({
   attachmentViewMap: new Map(),
   audioRecording: new Map(),
   badgeMap: new Map(), // id to the badge count
+  bigTeamBadgeCount: 0,
   blockButtonsMap: new Map(),
   botCommandsUpdateStatusMap: new Map(),
   botPublicCommands: new Map(),
@@ -85,6 +86,7 @@ export const makeState = (): Types.State => ({
   replyToMap: new Map(),
   selectedConversation: noConversationIDKey,
   shouldDeleteZzzJourneycard: new Map(),
+  smallTeamBadgeCount: 0,
   smallTeamsExpanded: false,
   staticConfig: undefined,
   teamBuilding: TeamBuildingConstants.makeSubState(),

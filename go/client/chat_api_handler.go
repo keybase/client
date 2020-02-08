@@ -196,10 +196,11 @@ func (s sendOptionsV1) Check() error {
 		return err
 	}
 	if !s.Message.Valid() {
-		return ErrInvalidOptions{version: 1, method: methodSend, err: errors.New("invalid message")}
+		return ErrInvalidOptions{version: 1, method: methodSend, err: errors.New("invalid message, body cannot be empty")}
 	}
 	if !s.EphemeralLifetime.Valid() {
-		return ErrInvalidOptions{version: 1, method: methodSend, err: errors.New("invalid ephemeral lifetime")}
+		return ErrInvalidOptions{version: 1, method: methodSend, err: fmt.Errorf("invalid ephemeral lifetime: %v, must be between %v and %v",
+			s.EphemeralLifetime, libkb.MaxEphemeralContentLifetime, libkb.MinEphemeralContentLifetime)}
 	}
 	return nil
 }
@@ -226,7 +227,13 @@ type getOptionsV1 struct {
 }
 
 func (r getOptionsV1) Check() error {
-	return checkChannelConv(methodGet, r.Channel, r.ConversationID)
+	if err := checkChannelConv(methodGet, r.Channel, r.ConversationID); err != nil {
+		return err
+	}
+	if len(r.MessageIDs) == 0 {
+		return errors.New("message_ids required")
+	}
+	return nil
 }
 
 type editOptionsV1 struct {
@@ -242,11 +249,11 @@ func (e editOptionsV1) Check() error {
 	}
 
 	if e.MessageID == 0 {
-		return ErrInvalidOptions{version: 1, method: methodEdit, err: errors.New("invalid message id")}
+		return ErrInvalidOptions{version: 1, method: methodEdit, err: fmt.Errorf("invalid message id '%d'", e.MessageID)}
 	}
 
 	if !e.Message.Valid() {
-		return ErrInvalidOptions{version: 1, method: methodEdit, err: errors.New("invalid message")}
+		return ErrInvalidOptions{version: 1, method: methodEdit, err: errors.New("invalid message, body cannot be empty")}
 	}
 
 	return nil
@@ -265,11 +272,11 @@ func (e reactionOptionsV1) Check() error {
 	}
 
 	if e.MessageID == 0 {
-		return ErrInvalidOptions{version: 1, method: methodReaction, err: errors.New("invalid message id")}
+		return ErrInvalidOptions{version: 1, method: methodReaction, err: fmt.Errorf("invalid message id '%d'", e.MessageID)}
 	}
 
 	if !e.Message.Valid() {
-		return ErrInvalidOptions{version: 1, method: methodReaction, err: errors.New("invalid message")}
+		return ErrInvalidOptions{version: 1, method: methodReaction, err: errors.New("invalid message, body cannot be empty")}
 	}
 
 	return nil
@@ -287,7 +294,7 @@ func (d deleteOptionsV1) Check() error {
 	}
 
 	if d.MessageID == 0 {
-		return ErrInvalidOptions{version: 1, method: methodDelete, err: errors.New("invalid message id")}
+		return ErrInvalidOptions{version: 1, method: methodDelete, err: fmt.Errorf("invalid message id '%d'", d.MessageID)}
 	}
 
 	return nil
@@ -310,7 +317,8 @@ func (a attachOptionsV1) Check() error {
 		return ErrInvalidOptions{version: 1, method: methodAttach, err: errors.New("empty filename")}
 	}
 	if !a.EphemeralLifetime.Valid() {
-		return ErrInvalidOptions{version: 1, method: methodAttach, err: errors.New("invalid ephemeral lifetime")}
+		return ErrInvalidOptions{version: 1, method: methodAttach, err: fmt.Errorf("invalid ephemeral lifetime: %v, must be between %v and %v",
+			a.EphemeralLifetime, libkb.MaxEphemeralContentLifetime, libkb.MinEphemeralContentLifetime)}
 	}
 	return nil
 }
@@ -329,7 +337,7 @@ func (a downloadOptionsV1) Check() error {
 		return err
 	}
 	if a.MessageID == 0 {
-		return ErrInvalidOptions{version: 1, method: methodDownload, err: errors.New("invalid message id")}
+		return ErrInvalidOptions{version: 1, method: methodDownload, err: fmt.Errorf("invalid message id '%d'", a.MessageID)}
 	}
 	if len(strings.TrimSpace(a.Output)) == 0 {
 		return ErrInvalidOptions{version: 1, method: methodDownload, err: errors.New("empty output filename")}
@@ -543,7 +551,7 @@ func (o setUnfurlSettingsOptionsV1) Check() error {
 		return ErrInvalidOptions{
 			version: 1,
 			method:  methodSetUnfurlSettings,
-			err:     errors.New("invalid unfurl mode"),
+			err:     fmt.Errorf("invalid unfurl mode '%v'", o.Mode),
 		}
 	}
 	return nil

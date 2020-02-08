@@ -27,6 +27,7 @@ const cases = [
       'systemText',
       'systemUsersAddedToConversation',
       'systemChangeAvatar',
+      'systemNewChannel',
     ],
   },
   {in: RPCChatTypes.MessageType.deletehistory, out: []},

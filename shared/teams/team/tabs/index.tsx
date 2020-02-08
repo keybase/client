@@ -42,7 +42,7 @@ const TeamTabs = (props: TeamTabsProps) => {
 
   const requestsBadge = Math.min(props.newRequests, props.numRequests)
 
-  if (props.admin) {
+  if (props.admin && !flags.teamsRedesign) {
     tabs.push(
       <Kb.Box key="invites" style={styles.tabTextContainer}>
         <TabText
@@ -63,7 +63,11 @@ const TeamTabs = (props: TeamTabsProps) => {
   }
 
   if (props.numSubteams > 0 || props.showSubteams) {
-    tabs.push(<TabText key="subteams" selected={props.selectedTab === 'subteams'} text="Subteams" />)
+    tabs.push(
+      <Kb.Box key="subteams" style={styles.tabTextContainer}>
+        <TabText selected={props.selectedTab === 'subteams'} text="Subteams" />
+      </Kb.Box>
+    )
   }
 
   tabs.push(

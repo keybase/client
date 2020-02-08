@@ -1742,7 +1742,7 @@
         {
           "type": "Seqno",
           "name": "latestOffchainSeqno",
-          "jsonkey": "latest_offchain_seqno"
+          "jsonkey": "latest_offchain_version"
         },
         {
           "type": "boolean",
@@ -2709,22 +2709,56 @@
     },
     {
       "type": "record",
-      "name": "BulkRes",
+      "name": "TeamMemberToRemove",
+      "fields": [
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "string",
+          "name": "email"
+        },
+        {
+          "type": "TeamInviteID",
+          "name": "inviteID"
+        },
+        {
+          "type": "boolean",
+          "name": "allowInaction"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamRemoveMembersResult",
       "fields": [
         {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "TeamMemberToRemove"
           },
-          "name": "invited"
-        },
+          "name": "failures"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamEditMembersResult",
+      "fields": [
         {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "UserRolePair"
           },
-          "name": "alreadyInvited"
-        },
+          "name": "failures"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "BulkRes",
+      "fields": [
         {
           "type": {
             "type": "array",
@@ -3120,10 +3154,6 @@
         },
         {
           "type": "boolean",
-          "name": "userIsShowcasing"
-        },
-        {
-          "type": "boolean",
           "name": "tarsDisabled"
         },
         {
@@ -3456,6 +3486,26 @@
       ],
       "response": null
     },
+    "teamRemoveMembers": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "teamID",
+          "type": "TeamID"
+        },
+        {
+          "name": "users",
+          "type": {
+            "type": "array",
+            "items": "TeamMemberToRemove"
+          }
+        }
+      ],
+      "response": "TeamRemoveMembersResult"
+    },
     "teamLeave": {
       "request": [
         {
@@ -3500,6 +3550,26 @@
         }
       ],
       "response": null
+    },
+    "teamEditMembers": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "teamID",
+          "type": "TeamID"
+        },
+        {
+          "name": "users",
+          "type": {
+            "type": "array",
+            "items": "UserRolePair"
+          }
+        }
+      ],
+      "response": "TeamEditMembersResult"
     },
     "teamGetBotSettings": {
       "request": [

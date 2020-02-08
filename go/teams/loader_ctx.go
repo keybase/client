@@ -150,9 +150,7 @@ func (l *LoaderContextG) getLinksFromServerCommon(ctx context.Context,
 	}
 	if lows != nil {
 		arg.Args["low"] = libkb.I{Val: int(lows.Seqno)}
-		// At some point to save bandwidth these could be hooked up.
-		// "per_team_key_low":    libkb.I{Val: int(lows.PerTeamKey)},
-		// "reader_key_mask_low": libkb.I{Val: int(lows.PerTeamKey)},
+		arg.Args["per_team_key_low"] = libkb.I{Val: int(lows.PerTeamKey)}
 		arg.Args["hidden_low"] = libkb.I{Val: int(lows.HiddenChainSeqno)}
 	}
 	if len(requestSeqnos) > 0 {

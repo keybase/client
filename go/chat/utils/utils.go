@@ -787,27 +787,27 @@ func ParseAtMentionedItems(ctx context.Context, g *globals.Context, body string,
 	return atRes, maybeRes, chanRes
 }
 
-type SystemMessageUIDSource interface {
-	LookupUID(ctx context.Context, un libkb.NormalizedUsername) (keybase1.UID, error)
-}
-
-func SystemMessageMentions(ctx context.Context, body chat1.MessageSystem, upak SystemMessageUIDSource) (atMentions []gregor1.UID, chanMention chat1.ChannelMention) {
+func SystemMessageMentions(ctx context.Context, g *globals.Context, uid gregor1.UID,
+	body chat1.MessageSystem) (atMentions []gregor1.UID, chanMention chat1.ChannelMention, channelNameMentions []chat1.ChannelNameMention) {
 	typ, err := body.SystemType()
 	if err != nil {
-		return nil, 0
+		return nil, 0, nil
 	}
 	switch typ {
 	case chat1.MessageSystemType_ADDEDTOTEAM:
-		addeeUID, err := upak.LookupUID(ctx, libkb.NewNormalizedUsername(body.Addedtoteam().Addee))
+		addeeUID, err := g.GetUPAKLoader().LookupUID(ctx,
+			libkb.NewNormalizedUsername(body.Addedtoteam().Addee))
 		if err == nil {
 			atMentions = append(atMentions, addeeUID.ToBytes())
 		}
 	case chat1.MessageSystemType_INVITEADDEDTOTEAM:
-		inviteeUID, err := upak.LookupUID(ctx, libkb.NewNormalizedUsername(body.Inviteaddedtoteam().Invitee))
+		inviteeUID, err := g.GetUPAKLoader().LookupUID(ctx,
+			libkb.NewNormalizedUsername(body.Inviteaddedtoteam().Invitee))
 		if err == nil {
 			atMentions = append(atMentions, inviteeUID.ToBytes())
 		}
-		inviterUID, err := upak.LookupUID(ctx, libkb.NewNormalizedUsername(body.Inviteaddedtoteam().Inviter))
+		inviterUID, err := g.GetUPAKLoader().LookupUID(ctx,
+			libkb.NewNormalizedUsername(body.Inviteaddedtoteam().Inviter))
 		if err == nil {
 			atMentions = append(atMentions, inviterUID.ToBytes())
 		}
@@ -815,14 +815,22 @@ func SystemMessageMentions(ctx context.Context, body chat1.MessageSystem, upak S
 		chanMention = chat1.ChannelMention_ALL
 	case chat1.MessageSystemType_BULKADDTOCONV:
 		for _, username := range body.Bulkaddtoconv().Usernames {
-			uid, err := upak.LookupUID(ctx, libkb.NewNormalizedUsername(username))
+			uid, err := g.GetUPAKLoader().LookupUID(ctx, libkb.NewNormalizedUsername(username))
 			if err == nil {
 				atMentions = append(atMentions, uid.ToBytes())
 			}
 		}
+	case chat1.MessageSystemType_NEWCHANNEL:
+		conv, err := GetVerifiedConv(ctx, g, uid, body.Newchannel().ConvID, types.InboxSourceDataSourceAll)
+		if err == nil {
+			channelNameMentions = append(channelNameMentions, chat1.ChannelNameMention{
+				ConvID:    conv.GetConvID(),
+				TopicName: conv.GetTopicName(),
+			})
+		}
 	}
 	sort.Sort(chat1.ByUID(atMentions))
-	return atMentions, chanMention
+	return atMentions, chanMention, channelNameMentions
 }
 
 func PluckMessageIDs(msgs []chat1.MessageSummary) []chat1.MessageID {
@@ -1161,12 +1169,12 @@ func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, curre
 		return chat1.SnippetDecoration_NONE, ""
 	}
 
-	if msg.IsOutbox() {
+	if msg.IsOutbox() && msg.Outbox().IsBadgable() {
 		decoration = chat1.SnippetDecoration_PENDING_MESSAGE
 		if msg.Outbox().IsError() {
 			decoration = chat1.SnippetDecoration_FAILED_PENDING_MESSAGE
 		}
-	} else if msg.Valid().IsEphemeral() {
+	} else if msg.IsValid() && msg.Valid().IsEphemeral() {
 		decoration = chat1.SnippetDecoration_EXPLODING_MESSAGE
 	} else {
 		decoration = getMsgSnippetDecoration(msg)
@@ -1671,7 +1679,32 @@ func PresentDecoratedUserBio(ctx context.Context, bio string) (res string) {
 	return res
 }
 
-func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, msg chat1.MessageUnboxedValid) *string {
+func systemMsgPresentText(ctx context.Context, uid gregor1.UID, msg chat1.MessageUnboxedValid) string {
+	if !msg.MessageBody.IsType(chat1.MessageType_SYSTEM) {
+		return ""
+	}
+	sysMsg := msg.MessageBody.System()
+	typ, err := sysMsg.SystemType()
+	if err != nil {
+		return ""
+	}
+	switch typ {
+	case chat1.MessageSystemType_NEWCHANNEL:
+		if len(msg.ChannelNameMentions) != 1 {
+			return ""
+		}
+		author := ""
+		if uid.Eq(msg.ClientHeader.Sender) {
+			author = "You "
+		}
+		return fmt.Sprintf("%screated a new channel #%s", author, msg.ChannelNameMentions[0].TopicName)
+	default:
+	}
+	return ""
+}
+
+func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, uid gregor1.UID,
+	msg chat1.MessageUnboxedValid) *string {
 	msgBody := msg.MessageBody
 	typ, err := msgBody.MessageType()
 	if err != nil {
@@ -1687,6 +1720,10 @@ func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, msg chat1
 		body = msgBody.Flip().Text
 	case chat1.MessageType_REQUESTPAYMENT:
 		body = msgBody.Requestpayment().Note
+	case chat1.MessageType_ATTACHMENT:
+		body = msgBody.Attachment().Object.Title
+	case chat1.MessageType_SYSTEM:
+		body = systemMsgPresentText(ctx, uid, msg)
 	default:
 		return nil
 	}
@@ -1817,7 +1854,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			Ctime:                 valid.ServerHeader.Ctime,
 			OutboxID:              strOutboxID,
 			MessageBody:           valid.MessageBody,
-			DecoratedTextBody:     PresentDecoratedTextBody(ctx, g, valid),
+			DecoratedTextBody:     PresentDecoratedTextBody(ctx, g, uid, valid),
 			BodySummary:           GetMsgSnippetBody(rawMsg),
 			SenderUsername:        valid.SenderUsername,
 			SenderDeviceName:      valid.SenderDeviceName,
@@ -2252,13 +2289,13 @@ func GetGregorConn(ctx context.Context, g *globals.Context, log DebugLabeler,
 		conn = rpc.NewTLSConnectionWithDialable(rpc.NewFixedRemote(uri.HostPort),
 			[]byte(rawCA), libkb.NewContextifiedErrorUnwrapper(g.ExternalG()),
 			handler(nist), libkb.NewRPCLogFactory(g.ExternalG()),
-			rpc.NewNetworkInstrumenter(g.ExternalG().NetworkInstrumenterStorage),
+			g.ExternalG().NetworkInstrumenterStorage,
 			logger.LogOutputWithDepthAdder{Logger: g.Log},
 			rpc.DefaultMaxFrameLength, rpc.ConnectionOpts{},
 			libkb.NewProxyDialable(g.Env))
 	} else {
 		t := rpc.NewConnectionTransportWithDialable(uri, nil,
-			rpc.NewNetworkInstrumenter(g.ExternalG().NetworkInstrumenterStorage),
+			g.ExternalG().NetworkInstrumenterStorage,
 			libkb.MakeWrapError(g.ExternalG()),
 			rpc.DefaultMaxFrameLength, libkb.NewProxyDialable(g.GetEnv()))
 		conn = rpc.NewConnectionWithTransport(handler(nist), t,
@@ -2435,6 +2472,10 @@ func DecorateWithLinks(ctx context.Context, body string) string {
 	offset := 0
 	origBody := body
 
+	// early out of here if there is no dot
+	if !strings.Contains(body, ".") {
+		return body
+	}
 	shouldSkipLink := func(body string) bool {
 		if strings.Contains(strings.Split(body, "/")[0], "@") {
 			return true
@@ -2737,4 +2778,128 @@ func ExportToSummary(i chat1.InboxUIItem) (s chat1.ConvSummary) {
 		TopicName:   i.Channel,
 	}
 	return s
+}
+
+func supersedersNotEmpty(ctx context.Context, superseders []chat1.ConversationMetadata, convs []types.RemoteConversation) bool {
+	for _, superseder := range superseders {
+		for _, conv := range convs {
+			if superseder.ConversationID.Eq(conv.GetConvID()) {
+				for _, msg := range conv.Conv.MaxMsgSummaries {
+					if IsVisibleChatMessageType(msg.GetMessageType()) {
+						return true
+					}
+				}
+			}
+		}
+	}
+	return false
+}
+
+var defaultMemberStatusFilter = []chat1.ConversationMemberStatus{
+	chat1.ConversationMemberStatus_ACTIVE,
+	chat1.ConversationMemberStatus_PREVIEW,
+	chat1.ConversationMemberStatus_RESET,
+}
+
+var defaultExistences = []chat1.ConversationExistence{
+	chat1.ConversationExistence_ACTIVE,
+}
+
+func ApplyInboxQuery(ctx context.Context, debugLabeler DebugLabeler, query *chat1.GetInboxQuery, rcs []types.RemoteConversation) (res []types.RemoteConversation) {
+	if query == nil {
+		query = &chat1.GetInboxQuery{}
+	}
+
+	var queryConvIDMap map[chat1.ConvIDStr]bool
+	if query.ConvID != nil {
+		query.ConvIDs = append(query.ConvIDs, *query.ConvID)
+	}
+	if len(query.ConvIDs) > 0 {
+		queryConvIDMap = make(map[chat1.ConvIDStr]bool, len(query.ConvIDs))
+		for _, c := range query.ConvIDs {
+			queryConvIDMap[c.ConvIDStr()] = true
+		}
+	}
+
+	memberStatus := query.MemberStatus
+	if len(memberStatus) == 0 {
+		memberStatus = defaultMemberStatusFilter
+	}
+	queryMemberStatusMap := map[chat1.ConversationMemberStatus]bool{}
+	for _, memberStatus := range memberStatus {
+		queryMemberStatusMap[memberStatus] = true
+	}
+
+	queryStatusMap := map[chat1.ConversationStatus]bool{}
+	for _, status := range query.Status {
+		queryStatusMap[status] = true
+	}
+
+	existences := query.Existences
+	if len(existences) == 0 {
+		existences = defaultExistences
+	}
+	existenceMap := map[chat1.ConversationExistence]bool{}
+	for _, status := range existences {
+		existenceMap[status] = true
+	}
+
+	for _, rc := range rcs {
+		conv := rc.Conv
+		// Existence check
+		if _, ok := existenceMap[conv.Metadata.Existence]; !ok && len(existenceMap) > 0 {
+			continue
+		}
+		// Member status check
+		if _, ok := queryMemberStatusMap[conv.ReaderInfo.Status]; !ok && len(memberStatus) > 0 {
+			continue
+		}
+		// Status check
+		if _, ok := queryStatusMap[conv.Metadata.Status]; !ok && len(query.Status) > 0 {
+			continue
+		}
+		// Basic checks
+		if queryConvIDMap != nil && !queryConvIDMap[rc.ConvIDStr] {
+			continue
+		}
+		if query.After != nil && !conv.ReaderInfo.Mtime.After(*query.After) {
+			continue
+		}
+		if query.Before != nil && !conv.ReaderInfo.Mtime.Before(*query.Before) {
+			continue
+		}
+		if query.TopicType != nil && *query.TopicType != conv.Metadata.IdTriple.TopicType {
+			continue
+		}
+		if query.TlfVisibility != nil && *query.TlfVisibility != keybase1.TLFVisibility_ANY &&
+			*query.TlfVisibility != conv.Metadata.Visibility {
+			continue
+		}
+		if query.UnreadOnly && !conv.IsUnread() {
+			continue
+		}
+		if query.ReadOnly && conv.IsUnread() {
+			continue
+		}
+		if query.TlfID != nil && !query.TlfID.Eq(conv.Metadata.IdTriple.Tlfid) {
+			continue
+		}
+		if query.TopicName != nil && rc.LocalMetadata != nil &&
+			*query.TopicName != rc.LocalMetadata.TopicName {
+			continue
+		}
+		// If we are finalized and are superseded, then don't return this
+		if query.OneChatTypePerTLF == nil ||
+			(query.OneChatTypePerTLF != nil && *query.OneChatTypePerTLF) {
+			if conv.Metadata.FinalizeInfo != nil && len(conv.Metadata.SupersededBy) > 0 && len(query.ConvIDs) == 0 {
+				if supersedersNotEmpty(ctx, conv.Metadata.SupersededBy, rcs) {
+					continue
+				}
+			}
+		}
+		res = append(res, rc)
+	}
+	filtered := len(rcs) - len(res)
+	debugLabeler.Debug(ctx, "applyQuery: query: %+v, res size: %d filtered: %d", query, len(res), filtered)
+	return res
 }

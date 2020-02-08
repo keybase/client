@@ -3,22 +3,22 @@ import * as React from 'react'
 import * as Shim from '../router-v2/shim'
 import * as Constants from '../constants/crypto'
 import {NavigationViewProps, createNavigator, StackRouter, SceneView} from '@react-navigation/core'
-import Encrypt from './operations/encrypt/container'
-import Decrypt from './operations/decrypt/container'
-import Sign from './operations/sign/container'
-import Verify from './operations/verify/container'
+import Encrypt from './operations/encrypt'
+import Decrypt from './operations/decrypt'
+import Sign from './operations/sign'
+import Verify from './operations/verify'
 
 const noScreenProps = {}
 
 const cryptoSubRoutes = {
   [Constants.decryptTab]: {
-    getScreen: (): typeof Decrypt => require('./operations/decrypt/container').default,
+    getScreen: (): typeof Decrypt => require('./operations/decrypt').default,
   },
   [Constants.encryptTab]: {
-    getScreen: (): typeof Encrypt => require('./operations/encrypt/container').default,
+    getScreen: (): typeof Encrypt => require('./operations/encrypt').default,
   },
-  [Constants.signTab]: {getScreen: (): typeof Sign => require('./operations/sign/container').default},
-  [Constants.verifyTab]: {getScreen: (): typeof Verify => require('./operations/verify/container').default},
+  [Constants.signTab]: {getScreen: (): typeof Sign => require('./operations/sign').default},
+  [Constants.verifyTab]: {getScreen: (): typeof Verify => require('./operations/verify').default},
 }
 
 class CryptoSubNav extends React.PureComponent<NavigationViewProps<any>> {

@@ -5,11 +5,13 @@ package client
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"reflect"
 	"strings"
 	"testing"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"golang.org/x/net/context"
 )
@@ -515,7 +517,7 @@ var optTests = []optTest{
 	},
 	{
 		input:  `{"method": "send", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}}}}`,
-		output: `{"error":{"code":0,"message":"invalid send v1 options: invalid message"}}`,
+		output: `{"error":{"code":0,"message":"invalid send v1 options: invalid message, body cannot be empty"}}`,
 	},
 	{
 		input:  `{"method": "send", "params":{"version": 1, "options": {"conversation_id": "222", "channel": {"name": "alice,bob"}, "message": {"body": "hi"}}}}`,
@@ -523,7 +525,7 @@ var optTests = []optTest{
 	},
 	{
 		input:  `{"method": "send", "params":{"version": 1, "options": {"conversation_id": "123", "message": {"body": "hi"}, "exploding_lifetime": "1s"}}}`,
-		output: `{"error":{"code":0,"message":"invalid send v1 options: invalid ephemeral lifetime"}}`,
+		output: fmt.Sprintf(`{"error":{"code":0,"message":"invalid send v1 options: invalid ephemeral lifetime: %v, must be between %v and %v"}}`, "1s", libkb.MaxEphemeralContentLifetime, libkb.MinEphemeralContentLifetime),
 	},
 	{
 		input:  `{"method": "list", "params":{"version": 1}}{"method": "list", "params":{"version": 1}}`,
@@ -571,11 +573,11 @@ var optTests = []optTest{
 	},
 	{
 		input:  `{"id": 30, "method": "edit", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message_id": 123, "message": {"body": ""}}}}`,
-		output: `{"id":30,"error":{"code":0,"message":"invalid edit v1 options: invalid message"}}`,
+		output: `{"id":30,"error":{"code":0,"message":"invalid edit v1 options: invalid message, body cannot be empty"}}`,
 	},
 	{
 		input:  `{"id": 30, "method": "edit", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message": {"body": "edited"}}}}`,
-		output: `{"id":30,"error":{"code":0,"message":"invalid edit v1 options: invalid message id"}}`,
+		output: `{"id":30,"error":{"code":0,"message":"invalid edit v1 options: invalid message id '0'"}}`,
 	},
 	{
 		input:  `{"id": 29, "method": "reaction", "params":{"version": 1}}`,
@@ -595,11 +597,11 @@ var optTests = []optTest{
 	},
 	{
 		input:  `{"id": 30, "method": "reaction", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message_id": 123, "message": {"body": ""}}}}`,
-		output: `{"id":30,"error":{"code":0,"message":"invalid reaction v1 options: invalid message"}}`,
+		output: `{"id":30,"error":{"code":0,"message":"invalid reaction v1 options: invalid message, body cannot be empty"}}`,
 	},
 	{
 		input:  `{"id": 30, "method": "reaction", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message": {"body": ":+1:"}}}}`,
-		output: `{"id":30,"error":{"code":0,"message":"invalid reaction v1 options: invalid message id"}}`,
+		output: `{"id":30,"error":{"code":0,"message":"invalid reaction v1 options: invalid message id '0'"}}`,
 	},
 	{
 		input:  `{"id": 30, "method": "reaction", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message_id": 123, "message": {"body": ":+1:"}}}}`,
@@ -639,7 +641,7 @@ var optTests = []optTest{
 	},
 	{
 		input:  `{"method": "attach", "params":{"options": {"channel": {"name": "alice,bob"}, "filename": "photo.png", "exploding_lifetime": "1s"}}}`,
-		output: `{"error":{"code":0,"message":"invalid attach v1 options: invalid ephemeral lifetime"}}`,
+		output: fmt.Sprintf(`{"error":{"code":0,"message":"invalid attach v1 options: invalid ephemeral lifetime: %v, must be between %v and %v"}}`, "1s", libkb.MaxEphemeralContentLifetime, libkb.MinEphemeralContentLifetime),
 	},
 	{
 		input:  `{"method": "attach", "params":{"options": {"filename": "photo.png"}}}`,

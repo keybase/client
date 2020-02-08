@@ -50,6 +50,7 @@ export default Container.connect(
       errorMsg: message.transferErrMsg || '',
       fileName: message.fileName,
       hasProgress,
+      message,
       onDownload: () => {
         if (Container.isMobile) {
           dispatchProps._onShare(message)
@@ -64,7 +65,7 @@ export default Container.connect(
           ? () => dispatchProps._onShowInFinder(message)
           : undefined,
       progress: message.transferProgress,
-      title: message.title || message.fileName,
+      title: message.decoratedText?.stringValue() || message.title || message.fileName,
       transferState,
     }
   }

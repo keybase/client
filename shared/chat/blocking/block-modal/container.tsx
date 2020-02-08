@@ -57,7 +57,7 @@ const Connect = Container.connect(
         UsersGen.createReportUser({
           comment: report.extraNotes,
           convID: convID || null,
-          includeTranscript: report.includeTranscript,
+          includeTranscript: report.includeTranscript && !!convID,
           reason: report.reason,
           username: username,
         })

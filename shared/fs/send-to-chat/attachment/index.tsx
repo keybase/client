@@ -22,6 +22,7 @@ type Props = {
 
 const useConversationList = () => {
   const sendAttachmentToChat = Container.useSelector(state => state.fs.sendAttachmentToChat)
+  const {filter} = sendAttachmentToChat
   const dispatch = Container.useDispatch()
   const onSelect = (convID: ChatTypes.ConversationIDKey) => {
     dispatch(FsGen.createSetSendAttachmentToChatConvID({convID}))
@@ -29,13 +30,28 @@ const useConversationList = () => {
   const onDone = React.useCallback(() => dispatch(Chat2Gen.createToggleInboxSearch({enabled: false})), [
     dispatch,
   ])
-  const onSetFilter = (filter: string) => {
-    dispatch(FsGen.createSetSendAttachmentToChatFilter({filter}))
-    dispatch(Chat2Gen.createInboxSearch({query: new HiddenString(filter)}))
-  }
+  const onSetFilter = React.useCallback(
+    (filter: string) => {
+      dispatch(FsGen.createSetSendAttachmentToChatFilter({filter}))
+      dispatch(Chat2Gen.createInboxSearch({query: new HiddenString(filter)}))
+    },
+    [dispatch]
+  )
   React.useEffect(() => onDone, [onDone])
+
+  const layout = Container.useSelector(state => state.chat2.inboxLayout)
+
+  const filterEmpty = !filter
+
+  // force reload
+  React.useEffect(() => {
+    if (filterEmpty && layout) {
+      onSetFilter('')
+    }
+  }, [layout, onSetFilter, filterEmpty])
+
   return {
-    filter: sendAttachmentToChat.filter,
+    filter,
     onDone,
     onSelect,
     onSetFilter,

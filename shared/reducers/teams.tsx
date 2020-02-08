@@ -79,25 +79,19 @@ export default Container.makeReducer<
     oldLoadingInvites.set(loadingKey, isLoading)
     draftState.teamNameToLoadingInvites.set(teamname, oldLoadingInvites)
   },
-  [TeamsGen.setTeamDetails]: (draftState, action) => {
-    const {teamname, teamID} = action.payload
-    const members = Constants.rpcDetailsToMemberInfos(action.payload.members)
-    const details = mapGetEnsureValue(
-      draftState.teamDetails,
+  [TeamsGen.teamLoaded]: (draftState, action) => {
+    const {teamID, details} = action.payload
+    draftState.teamDetails.set(teamID, details)
+  },
+  [TeamsGen.setTeamVersion]: (draftState, action) => {
+    const {teamID, version} = action.payload
+    draftState.teamVersion.set(
       teamID,
-      Constants.makeTeamDetails({id: teamID, teamname})
+      Constants.ratchetTeamVersion(version, draftState.teamVersion.get(teamID))
     )
-    details.members = members
-    details.settings = action.payload.settings
-    details.invites = new Set(action.payload.invites)
-    details.subteams = action.payload.subteamIDs
-    details.requests = new Set(action.payload.requests.get(teamname))
   },
   [TeamsGen.setTeamCanPerform]: (draftState, action) => {
     draftState.canPerform.set(action.payload.teamID, action.payload.teamOperation)
-  },
-  [TeamsGen.setTeamPublicitySettings]: (draftState, action) => {
-    draftState.teamIDToPublicitySettings.set(action.payload.teamID, action.payload.publicity)
   },
   [TeamsGen.setTeamChannelInfo]: (draftState, action) => {
     const {conversationIDKey, channelInfo, teamID} = action.payload
@@ -122,10 +116,10 @@ export default Container.makeReducer<
   },
   [TeamsGen.getTeams]: (draftState, action) => {
     if (action.payload._subscribe) {
-      draftState.teamDetailsMetaSubscribeCount++
+      draftState.teamMetaSubscribeCount++
     }
   },
-  [TeamsGen.getDetailsByID]: (draftState, action) => {
+  [TeamsGen.loadTeam]: (draftState, action) => {
     if (action.payload._subscribe) {
       const {teamID} = action.payload
       draftState.teamDetailsSubscriptionCount.set(
@@ -142,18 +136,18 @@ export default Container.makeReducer<
     )
   },
   [TeamsGen.unsubscribeTeamList]: draftState => {
-    if (draftState.teamDetailsMetaSubscribeCount > 0) {
-      draftState.teamDetailsMetaSubscribeCount--
+    if (draftState.teamMetaSubscribeCount > 0) {
+      draftState.teamMetaSubscribeCount--
     }
   },
   [TeamsGen.setTeamInfo]: (draftState, action) => {
     draftState.teamNameToID = action.payload.teamNameToID
     draftState.teamnames = action.payload.teamnames
-    draftState.teamDetails = Constants.mergeTeamDetails(draftState.teamDetails, action.payload.teamDetails)
-    draftState.teamDetailsMetaStale = false
+    draftState.teamMeta = Constants.mergeTeamMeta(draftState.teamMeta, action.payload.teamMeta)
+    draftState.teamMetaStale = false
   },
   [EngineGen.keybase1NotifyTeamTeamMetadataUpdate]: draftState => {
-    draftState.teamDetailsMetaStale = true
+    draftState.teamMetaStale = true
   },
   [TeamsGen.setTeamAccessRequestsPending]: (draftState, action) => {
     draftState.teamAccessRequestsPending = action.payload.accessRequestsPending
@@ -229,6 +223,32 @@ export default Container.makeReducer<
       ),
       loadedVersion: action.payload.map.loadedVersion,
       roles: action.payload.map.roles,
+    }
+  },
+  [TeamsGen.toggleInvitesCollapsed]: (draftState, action) => {
+    const {teamID} = action.payload
+    const {invitesCollapsed} = draftState
+    if (invitesCollapsed.has(teamID)) {
+      invitesCollapsed.delete(teamID)
+    } else {
+      invitesCollapsed.add(teamID)
+    }
+  },
+  [TeamsGen.setSubteamFilter]: (draftState, action) => {
+    const {filter, parentTeam} = action.payload
+    draftState.subteamFilter = filter
+    if (parentTeam && filter) {
+      const flc = filter.toLowerCase()
+      draftState.subteamsFiltered = new Set(
+        [...(draftState.teamDetails.get(parentTeam)?.subteams || [])].filter(sID =>
+          draftState.teamMeta
+            .get(sID)
+            ?.teamname.toLowerCase()
+            .includes(flc)
+        )
+      )
+    } else {
+      draftState.subteamsFiltered = new Set()
     }
   },
   [TeamBuildingGen.tbResetStore]: handleTeamBuilding,

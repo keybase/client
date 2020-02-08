@@ -844,7 +844,7 @@ func TestGregorBadgesOOBM(t *testing.T) {
 			{ConvID: chat1.ConversationID(`c`), UnreadMessages: 3},
 		},
 		InboxSyncStatus: chat1.SyncInboxResType_CLEAR,
-	})
+	}, false)
 	err := h.badger.Send(context.TODO())
 	require.NoError(t, err)
 	bs = listener.getBadgeState(t)

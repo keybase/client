@@ -67,7 +67,7 @@ const DefaultMaxFrameLength = 100 * 1024 * 1024
 // NewTransport creates a new Transporter from the given connection
 // and parameters. Both sides of a connection should use the same
 // number for maxFrameLength.
-func NewTransport(c net.Conn, l LogFactory, instrumenter *NetworkInstrumenter, wef WrapErrorFunc, maxFrameLength int32) Transporter {
+func NewTransport(c net.Conn, l LogFactory, instrumenterStorage NetworkInstrumenterStorage, wef WrapErrorFunc, maxFrameLength int32) Transporter {
 	if maxFrameLength <= 0 {
 		panic(fmt.Sprintf("maxFrameLength must be positive: got %d", maxFrameLength))
 	}
@@ -76,8 +76,8 @@ func NewTransport(c net.Conn, l LogFactory, instrumenter *NetworkInstrumenter, w
 		l = NewSimpleLogFactory(nil, nil)
 	}
 	log := l.NewLog(c.RemoteAddr())
-	if instrumenter == nil {
-		instrumenter = NewNetworkInstrumenter(NewDummyInstrumentationStorage())
+	if instrumenterStorage == nil {
+		instrumenterStorage = NewDummyInstrumentationStorage()
 	}
 
 	ret := &transport{
@@ -89,8 +89,8 @@ func NewTransport(c net.Conn, l LogFactory, instrumenter *NetworkInstrumenter, w
 	}
 	enc := newFramedMsgpackEncoder(maxFrameLength, c)
 	ret.enc = enc
-	ret.dispatcher = newDispatch(enc, ret.calls, log, instrumenter)
-	ret.receiver = newReceiveHandler(enc, ret.protocols, log, instrumenter)
+	ret.dispatcher = newDispatch(enc, ret.calls, log, instrumenterStorage)
+	ret.receiver = newReceiveHandler(enc, ret.protocols, log, instrumenterStorage)
 	ret.packetizer = newPacketizer(maxFrameLength, c, ret.protocols, ret.calls, log)
 	return ret
 }

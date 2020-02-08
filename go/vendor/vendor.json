@@ -842,22 +842,22 @@
 			"revisionTime": "2020-01-23T00:39:47Z"
 		},
 		{
-			"checksumSHA1": "BjPShEovXyvESysJlwnML8Aam2I=",
+			"checksumSHA1": "H8SBEqxUApDJo3Zczaryd7tli/k=",
 			"path": "github.com/keybase/go-framed-msgpack-rpc/rpc",
-			"revision": "fe37fe19aba3d3eda0af7be692a8814d4eb67a45",
-			"revisionTime": "2020-01-30T15:21:22Z"
+			"revision": "1b45a7425e2f890c1efcc02a4e74c153a1eeaed4",
+			"revisionTime": "2020-02-06T22:07:37Z"
 		},
 		{
 			"checksumSHA1": "RLs8GIV4e+D350pyzZh5RC3mgQg=",
 			"path": "github.com/keybase/go-framed-msgpack-rpc/rpc/resinit",
-			"revision": "fe37fe19aba3d3eda0af7be692a8814d4eb67a45",
-			"revisionTime": "2020-01-30T15:21:22Z"
+			"revision": "1b45a7425e2f890c1efcc02a4e74c153a1eeaed4",
+			"revisionTime": "2020-02-06T22:07:37Z"
 		},
 		{
-			"checksumSHA1": "Ji3qqxyGVXi6nsQwM1EdlL0lO8A=",
+			"checksumSHA1": "cVToVAflSUcimfMfrEGACvPChH0=",
 			"path": "github.com/keybase/go-jsonw",
-			"revision": "d7c43c2eb2ddf5545eefe349313ecf1e39834c59",
-			"revisionTime": "2018-09-24T21:12:44Z"
+			"revision": "3e5b58caddd98897cfd6799c561f9e21a401c771",
+			"revisionTime": "2020-01-31T15:36:05Z"
 		},
 		{
 			"checksumSHA1": "fDuhxt6a+8Kj6yAqoZ3AxaMPEB8=",
@@ -922,14 +922,14 @@
 		{
 			"checksumSHA1": "SkzqJzOqrobx0rcaUKGoFgsWcuc=",
 			"path": "github.com/keybase/go-updater/process",
-			"revision": "587c926461284b281f08649725f4de8b8c7a59a5",
-			"revisionTime": "2020-01-27T20:29:22Z"
+			"revision": "89e1a2b4a9760af930c1bb03a97f7569defb5fe2",
+			"revisionTime": "2020-01-31T15:41:47Z"
 		},
 		{
-			"checksumSHA1": "/pCj/k5mmwxiRnYjf7bVeSfsiRA=",
+			"checksumSHA1": "W6Fdh7KKBGqxqY2kCwouJtoKvJU=",
 			"path": "github.com/keybase/go-updater/watchdog",
-			"revision": "587c926461284b281f08649725f4de8b8c7a59a5",
-			"revisionTime": "2020-01-27T20:29:22Z"
+			"revision": "89e1a2b4a9760af930c1bb03a97f7569defb5fe2",
+			"revisionTime": "2020-01-31T15:41:47Z"
 		},
 		{
 			"checksumSHA1": "rRRQUZrxRapCpdmV2BUgmJRE/ww=",

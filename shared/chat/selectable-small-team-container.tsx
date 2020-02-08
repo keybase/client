@@ -9,6 +9,7 @@ type OwnProps = {
   name: string
   numSearchHits?: number
   maxSearchHits?: number
+  participants?: Array<string>
   isSelected: boolean
   onSelectConversation: () => void
 }
@@ -37,7 +38,7 @@ export default namedConnect(
     // order participants by hit, if it's set
     const filter = ownProps.filter ?? ''
     const metaParts = Constants.getRowParticipants(_participantInfo, _username)
-    let participants = metaParts.length > 0 ? metaParts : name.split(',')
+    let participants = ownProps.participants ?? (metaParts.length > 0 ? metaParts : name.split(','))
     participants = participants.sort((a, b) => {
       const ai = a.indexOf(filter)
       const bi = b.indexOf(filter)

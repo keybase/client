@@ -17,17 +17,18 @@ const (
 // It additionally can have new chain links loaded from the server, since it might need to be queried
 // in the process of loading the team as if the new links were already committed to the data store.
 type LoaderPackage struct {
-	id                 keybase1.TeamID
-	encKID             keybase1.KID
-	encKIDGen          keybase1.PerTeamKeyGeneration
-	data               *keybase1.HiddenTeamChain
-	newData            *keybase1.HiddenTeamChain
-	expectedPrev       *keybase1.LinkTriple
-	rbks               *RatchetBlindingKeySet
-	allNewRatchets     map[keybase1.Seqno]keybase1.LinkTripleAndTime
-	newRatchetSet      keybase1.HiddenTeamChainRatchetSet
-	role               keybase1.TeamRole
-	lastCommittedSeqno keybase1.Seqno
+	id                     keybase1.TeamID
+	encKID                 keybase1.KID
+	encKIDGen              keybase1.PerTeamKeyGeneration
+	data                   *keybase1.HiddenTeamChain
+	newData                *keybase1.HiddenTeamChain
+	expectedPrev           *keybase1.LinkTriple
+	rbks                   *RatchetBlindingKeySet
+	allNewRatchets         map[keybase1.Seqno]keybase1.LinkTripleAndTime
+	newRatchetSet          keybase1.HiddenTeamChainRatchetSet
+	role                   keybase1.TeamRole
+	lastCommittedSeqno     keybase1.Seqno
+	disableHiddenChainData bool
 }
 
 // NewLoaderPackage creates a loader package that can work in the FTL of slow team loading settings. As a preliminary,
@@ -136,6 +137,10 @@ func (l *LoaderPackage) checkPrev(mctx libkb.MetaContext, first sig3.Generic) (e
 // merkle/path api call. We look at both the loaded and the received downloaded
 // ratchets for this check.
 func (l *LoaderPackage) checkExpectedHighSeqno(mctx libkb.MetaContext, links []sig3.Generic, maxUncommittedSeqnoPromised keybase1.Seqno) (err error) {
+	if !l.HiddenChainDataEnabled() {
+		mctx.Debug("skipping checkExpectedHighSeqno, since we didn't ask for any data")
+		return nil
+	}
 	last := l.LastSeqno()
 	max := l.MaxRatchet()
 	if max < maxUncommittedSeqnoPromised {
@@ -276,7 +281,7 @@ func (l *LoaderPackage) checkNewLinksAgainstNewRatchets(mctx libkb.MetaContext, 
 	return nil
 }
 
-// This function checks that uncommitted links which we previously got from the
+// VerifyOldChainLinksAreCommitted checks that uncommitted links which we previously got from the
 // server have indeed been included in the blind tree (the server has a short
 // grace period to do this to account for potential downtime)
 func (l *LoaderPackage) VerifyOldChainLinksAreCommitted(mctx libkb.MetaContext, newCommittedSeqno keybase1.Seqno) error {
@@ -740,4 +745,16 @@ func (l *LoaderPackage) CheckParentPointersOnFastLoad(mctx libkb.MetaContext, te
 		}
 	}
 	return nil
+}
+
+// DisableHiddenChainData tells the LoaderPackage to disable reading and consuming
+// of hidden chain data. On if we are a subteam reader, or if we are feature-flagged off
+func (l *LoaderPackage) DisableHiddenChainData() {
+	l.disableHiddenChainData = true
+}
+
+// HiddenChainDataEnabled is true if we are doing a full hidden chain load (and off if we're skipping
+// due to the above).
+func (l *LoaderPackage) HiddenChainDataEnabled() bool {
+	return !l.disableHiddenChainData
 }

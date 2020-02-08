@@ -2576,7 +2576,18 @@ function* mobileMessageAttachmentShare(
   if (isIOS && message.fileName.endsWith('.pdf')) {
     yield Saga.put(
       RouteTreeGen.createNavigateAppend({
-        path: [{props: {title: message.title || message.fileName, url: filePath}, selected: 'chatPDF'}],
+        path: [
+          {
+            props: {
+              title: message.title || message.fileName,
+              // Prepend the 'file://' prefix here. Otherwise when webview
+              // automatically does that, it triggers onNavigationStateChange
+              // with the new address and we'd call stoploading().
+              url: 'file://' + filePath,
+            },
+            selected: 'chatPDF',
+          },
+        ],
       })
     )
     return
@@ -3066,7 +3077,11 @@ const toggleMessageReaction = async (
 }
 
 const receivedBadgeState = (action: NotificationsGen.ReceivedBadgeStatePayload) =>
-  Chat2Gen.createBadgesUpdated({conversations: action.payload.badgeState.conversations || []})
+  Chat2Gen.createBadgesUpdated({
+    bigTeamBadgeCount: action.payload.badgeState.bigTeamBadgeCount,
+    conversations: action.payload.badgeState.conversations || [],
+    smallTeamBadgeCount: action.payload.badgeState.smallTeamBadgeCount,
+  })
 
 const setMinWriterRole = (action: Chat2Gen.SetMinWriterRolePayload, logger: Saga.SagaLogger) => {
   const {conversationIDKey, role} = action.payload

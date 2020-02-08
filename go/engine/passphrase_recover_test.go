@@ -77,7 +77,7 @@ func TestPassphraseRecoverGuideAndReset(t *testing.T) {
 
 	// Make sure that empty username shows the correct devices
 	arg.Username = ""
-	loginUI.chooseDevice = "desktop"
+	loginUI.chooseDevice = keybase1.DeviceTypeV2_DESKTOP
 	require.NoError(t, NewPassphraseRecover(tc.G, arg).Run(m))
 	require.Equal(t, keybase1.DeviceType_DESKTOP, loginUI.lastExplain.Kind)
 	require.Equal(t, defaultDeviceName, loginUI.lastExplain.Name)
@@ -102,7 +102,7 @@ func TestPassphraseRecoverGuideAndReset(t *testing.T) {
 	loginUI.Reset()
 	loginUI.PassphraseRecovery = true
 	loginUI.ResetAccount = keybase1.ResetPromptResponse_CONFIRM_RESET
-	loginUI.chooseDevice = "none"
+	loginUI.chooseDevice = keybase1.DeviceTypeV2_NONE
 	m = NewMetaContextForTest(tc).WithUIs(uis)
 
 	arg.Username = u.Username
@@ -210,7 +210,7 @@ func TestPassphraseRecoverChangeWithPaper(t *testing.T) {
 
 	// should work with no username passed on tc1
 	arg.Username = ""
-	loginUI.chooseDevice = "backup"
+	loginUI.chooseDevice = keybase1.DeviceTypeV2_PAPER
 	loginUI.Username = u2.Username
 	require.NoError(t, NewPassphraseRecover(tc1.G, arg).Run(m))
 	require.NoError(t, AssertLoggedIn(tc1))
@@ -238,7 +238,7 @@ func TestPassphraseRecoverChangeWithPaper(t *testing.T) {
 		Password: "test1234",
 	}
 	loginUI = &TestLoginUIRecover{
-		chooseDevice: "paper",
+		chooseDevice: keybase1.DeviceTypeV2_PAPER,
 	}
 	uis.LoginUI = loginUI
 	m = m.WithUIs(uis)
@@ -247,7 +247,7 @@ func TestPassphraseRecoverChangeWithPaper(t *testing.T) {
 	require.NoError(t, NewPassphraseRecover(tc1.G, arg).Run(m))
 	require.Equal(t, 1, loginUI.calledChooseDevice)
 	for _, device := range loginUI.lastDevices {
-		require.NotEqual(t, libkb.DeviceTypePaper, device.Type)
+		require.NotEqual(t, keybase1.DeviceTypeV2_PAPER, device.Type)
 	}
 	require.Error(t, AssertLoggedIn(tc1))
 	require.Error(t, AssertProvisioned(tc1))
@@ -285,7 +285,7 @@ type TestLoginUIRecover struct {
 	libkb.TestLoginUI
 
 	calledChooseDevice int
-	chooseDevice       string
+	chooseDevice       keybase1.DeviceTypeV2
 	lastDevices        []keybase1.Device
 
 	lastExplain *keybase1.ExplainDeviceRecoveryArg
@@ -304,14 +304,12 @@ func (t *TestLoginUIRecover) ChooseDeviceToRecoverWith(_ context.Context, arg ke
 	t.calledChooseDevice++
 	t.lastDevices = arg.Devices
 
-	if len(arg.Devices) == 0 || t.chooseDevice == "none" {
+	if len(arg.Devices) == 0 || t.chooseDevice == keybase1.DeviceTypeV2_NONE {
 		return "", nil
 	}
-	if len(t.chooseDevice) > 0 {
-		for _, d := range arg.Devices {
-			if d.Type == t.chooseDevice {
-				return d.DeviceID, nil
-			}
+	for _, d := range arg.Devices {
+		if d.Type == t.chooseDevice {
+			return d.DeviceID, nil
 		}
 	}
 	return "", nil

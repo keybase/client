@@ -5,12 +5,10 @@ import * as FSTypes from '../constants/types/fs'
 import * as Container from '../util/container'
 import * as React from 'react'
 import * as Styles from '../styles'
-import * as SafeElectron from '../util/safe-electron.desktop'
+import * as Electron from 'electron'
 import {intersect} from '../util/set'
 import useSerializeProps from '../desktop/remote/use-serialize-props.desktop'
 import {serialize} from './remote-serializer.desktop'
-import {getMainWindow} from '../desktop/remote/util.desktop'
-import {resolveImage} from '../desktop/app/resolve-root.desktop'
 import {isDarwin, isWindows} from '../constants/platform'
 import {isSystemDarkMode} from '../styles/dark-mode'
 import {uploadsToUploadCountdownHOCProps} from '../fs/footer/upload-container'
@@ -49,15 +47,15 @@ function useDarkSubscription() {
   const [count, setCount] = React.useState(-1)
   React.useEffect(() => {
     if (isDarwin) {
-      const subscriptionId = SafeElectron.getSystemPreferences().subscribeNotification(
+      const subscriptionId = Electron.remote.systemPreferences.subscribeNotification(
         'AppleInterfaceThemeChangedNotification',
         () => {
           setCount(c => c + 1)
         }
       )
       return () => {
-        if (subscriptionId && SafeElectron.getSystemPreferences().unsubscribeNotification) {
-          SafeElectron.getSystemPreferences().unsubscribeNotification(subscriptionId || -1)
+        if (subscriptionId && Electron.remote.systemPreferences.unsubscribeNotification) {
+          Electron.systemPreferences.unsubscribeNotification(subscriptionId || -1)
         }
       }
     } else {
@@ -72,18 +70,10 @@ function useUpdateBadges(p: WidgetProps, darkCount: number) {
 
   React.useEffect(() => {
     const [icon, iconSelected] = getIcons(widgetBadge, desktopAppBadgeCount > 0)
-    SafeElectron.getApp().emit('KBmenu', '', {
+    Electron.ipcRenderer.invoke('KBmenu', {
       payload: {desktopAppBadgeCount, icon, iconSelected},
       type: 'showTray',
     })
-    // Windows just lets us set (or unset, with null) a single 16x16 icon
-    // to be used as an overlay in the bottom right of the taskbar icon.
-    if (isWindows) {
-      const mw = getMainWindow()
-      const overlay = desktopAppBadgeCount > 0 ? resolveImage('icons', 'icon-windows-badge.png') : null
-      // @ts-ignore setOverlayIcon docs say null overlay's fine, TS disagrees
-      mw && mw.setOverlayIcon(overlay, 'new activity')
-    }
   }, [widgetBadge, desktopAppBadgeCount, darkCount])
 }
 

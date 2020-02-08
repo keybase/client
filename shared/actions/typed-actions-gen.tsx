@@ -300,10 +300,11 @@ export type TypedActionsMap = {
   'config:setUseNativeFrame': config.SetUseNativeFramePayload
   'config:setWhatsNewLastSeenVersion': config.SetWhatsNewLastSeenVersionPayload
   'config:toggleRuntimeStats': config.ToggleRuntimeStatsPayload
-  'config:loadNixOnLoginStartup': config.LoadNixOnLoginStartupPayload
-  'config:loadedNixOnLoginStartup': config.LoadedNixOnLoginStartupPayload
+  'config:loadOnLoginStartup': config.LoadOnLoginStartupPayload
+  'config:loadedOnLoginStartup': config.LoadedOnLoginStartupPayload
   'config:loadOnStart': config.LoadOnStartPayload
   'config:showShareActionSheet': config.ShowShareActionSheetPayload
+  'config:androidShare': config.AndroidSharePayload
   'crypto:clearRecipients': crypto.ClearRecipientsPayload
   'crypto:clearInput': crypto.ClearInputPayload
   'crypto:downloadEncryptedText': crypto.DownloadEncryptedTextPayload
@@ -897,13 +898,13 @@ export type TypedActionsMap = {
   'teams:getChannels': teams.GetChannelsPayload
   'teams:getTeams': teams.GetTeamsPayload
   'teams:unsubscribeTeamList': teams.UnsubscribeTeamListPayload
-  'teams:getDetails': teams.GetDetailsPayload
-  'teams:getDetailsByID': teams.GetDetailsByIDPayload
+  'teams:loadTeam': teams.LoadTeamPayload
+  'teams:teamLoaded': teams.TeamLoadedPayload
   'teams:unsubscribeTeamDetails': teams.UnsubscribeTeamDetailsPayload
+  'teams:setTeamVersion': teams.SetTeamVersionPayload
   'teams:getMembers': teams.GetMembersPayload
   'teams:setMembers': teams.SetMembersPayload
   'teams:getTeamProfileAddList': teams.GetTeamProfileAddListPayload
-  'teams:getTeamPublicity': teams.GetTeamPublicityPayload
   'teams:addTeamWithChosenChannels': teams.AddTeamWithChosenChannelsPayload
   'teams:saveChannelMembership': teams.SaveChannelMembershipPayload
   'teams:addParticipant': teams.AddParticipantPayload
@@ -937,7 +938,6 @@ export type TypedActionsMap = {
   'teams:setTeamLoadingInvites': teams.SetTeamLoadingInvitesPayload
   'teams:setTeamDetails': teams.SetTeamDetailsPayload
   'teams:setTeamCanPerform': teams.SetTeamCanPerformPayload
-  'teams:setTeamPublicitySettings': teams.SetTeamPublicitySettingsPayload
   'teams:setTeamChannelInfo': teams.SetTeamChannelInfoPayload
   'teams:setTeamChannels': teams.SetTeamChannelsPayload
   'teams:setTeamInfo': teams.SetTeamInfoPayload
@@ -958,6 +958,8 @@ export type TypedActionsMap = {
   'teams:renameTeam': teams.RenameTeamPayload
   'teams:setTeamRoleMapLatestKnownVersion': teams.SetTeamRoleMapLatestKnownVersionPayload
   'teams:setTeamRoleMap': teams.SetTeamRoleMapPayload
+  'teams:toggleInvitesCollapsed': teams.ToggleInvitesCollapsedPayload
+  'teams:setSubteamFilter': teams.SetSubteamFilterPayload
   'tracker2:load': tracker2.LoadPayload
   'tracker2:updatedDetails': tracker2.UpdatedDetailsPayload
   'tracker2:updateResult': tracker2.UpdateResultPayload
@@ -965,7 +967,7 @@ export type TypedActionsMap = {
   'tracker2:updateAssertion': tracker2.UpdateAssertionPayload
   'tracker2:changeFollow': tracker2.ChangeFollowPayload
   'tracker2:ignore': tracker2.IgnorePayload
-  'tracker2:updateFollowers': tracker2.UpdateFollowersPayload
+  'tracker2:updateFollows': tracker2.UpdateFollowsPayload
   'tracker2:getProofSuggestions': tracker2.GetProofSuggestionsPayload
   'tracker2:proofSuggestionsUpdated': tracker2.ProofSuggestionsUpdatedPayload
   'tracker2:showUser': tracker2.ShowUserPayload

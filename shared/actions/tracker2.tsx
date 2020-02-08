@@ -1,6 +1,7 @@
 import * as Tracker2Gen from './tracker2-gen'
 import * as EngineGen from './engine-gen-gen'
 import * as ProfileGen from './profile-gen'
+import * as UsersGen from './users-gen'
 import * as Saga from '../util/saga'
 import * as Container from '../util/container'
 import * as Constants from '../constants/tracker2'
@@ -68,10 +69,6 @@ const updateUserCard = (
   return Tracker2Gen.createUpdatedDetails({
     bio: card.bio,
     blocked: card.blocked,
-    followThem: card.youFollowThem,
-    followersCount: card.followers,
-    followingCount: card.following,
-    followsYou: card.theyFollowYou,
     fullname: card.fullName,
     guiID,
     hidFromFollowers: card.hidFromFollowers,
@@ -84,6 +81,8 @@ const updateUserCard = (
       name: t.fqName,
       publicAdmins: t.publicAdmins || [],
     })),
+    unverifiedFollowersCount: card.unverifiedNumFollowers,
+    unverifiedFollowingCount: card.unverifiedNumFollowing,
     username,
   })
 }
@@ -154,32 +153,60 @@ function* load(state: Container.TypedState, action: Tracker2Gen.LoadPayload) {
   }
 }
 
-const loadFollow = async (action: Tracker2Gen.LoadPayload) => {
+const loadFollowers = async (action: Tracker2Gen.LoadPayload) => {
   const {assertion} = action.payload
-  const convert = (fs: Saga.RPCPromiseType<typeof RPCTypes.userListTrackers2RpcPromise>) =>
-    (fs.users || []).map(f => ({
-      following: f.isFollowee,
-      followsYou: f.isFollower,
+  const convertTrackers = (fs: Saga.RPCPromiseType<typeof RPCTypes.userListTrackersUnverifiedRpcPromise>) => {
+    return (fs.users || []).map(f => ({
       fullname: f.fullName,
       username: f.username,
     }))
+  }
 
   if (action.payload.inTracker) {
     return false
   }
 
   try {
-    const [followers, following] = await Promise.all([
-      RPCTypes.userListTrackers2RpcPromise({assertion, reverse: false}, Constants.profileLoadWaitingKey).then(
-        convert
-      ),
-      RPCTypes.userListTrackers2RpcPromise({assertion, reverse: true}, Constants.profileLoadWaitingKey).then(
-        convert
-      ),
-    ])
-    return Tracker2Gen.createUpdateFollowers({followers, following, username: action.payload.assertion})
+    const followers = await RPCTypes.userListTrackersUnverifiedRpcPromise(
+      {assertion},
+      Constants.profileLoadWaitingKey
+    ).then(convertTrackers)
+    return Tracker2Gen.createUpdateFollows({
+      followers,
+      following: undefined,
+      username: action.payload.assertion,
+    })
   } catch (err) {
-    logger.error(`Error loading follow info: ${err.message}`)
+    logger.error(`Error loading follower info: ${err.message}`)
+    return false
+  }
+}
+
+const loadFollowing = async (action: Tracker2Gen.LoadPayload) => {
+  const {assertion} = action.payload
+  const convertTracking = (fs: Saga.RPCPromiseType<typeof RPCTypes.userListTrackingRpcPromise>) => {
+    return (fs.users || []).map(f => ({
+      fullname: f.fullName,
+      username: f.username,
+    }))
+  }
+
+  if (action.payload.inTracker) {
+    return false
+  }
+
+  try {
+    const following = await RPCTypes.userListTrackingRpcPromise(
+      {assertion, filter: ''},
+      Constants.profileLoadWaitingKey
+    ).then(convertTracking)
+    return Tracker2Gen.createUpdateFollows({
+      followers: undefined,
+      following,
+      username: action.payload.assertion,
+    })
+  } catch (err) {
+    logger.error(`Error loading following info: ${err.message}`)
     return false
   }
 }
@@ -247,8 +274,9 @@ const loadNonUserProfile = async (action: Tracker2Gen.LoadNonUserProfilePayload)
         assertionValue: res.assertionValue,
         description: res.description,
         siteIcon: res.siteIcon || [],
+        siteIconDarkmode: res.siteIconDarkmode || [],
         siteIconFull: res.siteIconFull || [],
-        siteIconWhite: res.siteIconWhite || [],
+        siteIconFullDarkmode: res.siteIconFullDarkmode || [],
       }
       if (res.service) {
         return Tracker2Gen.createLoadedNonUserProfile({
@@ -274,12 +302,18 @@ const loadNonUserProfile = async (action: Tracker2Gen.LoadNonUserProfilePayload)
   }
 }
 
+const refreshTrackerBlock = async (action: Tracker2Gen.UpdatedDetailsPayload) =>
+  UsersGen.createGetBlockState({
+    usernames: [action.payload.username],
+  })
+
 function* tracker2Saga() {
   yield* Saga.chainAction2(EngineGen.keybase1Identify3UiIdentify3UpdateUserCard, updateUserCard)
   yield* Saga.chainAction(Tracker2Gen.changeFollow, changeFollow)
   yield* Saga.chainAction(Tracker2Gen.ignore, ignore)
   yield* Saga.chainGenerator<Tracker2Gen.LoadPayload>(Tracker2Gen.load, load)
-  yield* Saga.chainAction(Tracker2Gen.load, loadFollow)
+  yield* Saga.chainAction(Tracker2Gen.load, loadFollowers)
+  yield* Saga.chainAction(Tracker2Gen.load, loadFollowing)
 
   yield* Saga.chainAction2(Tracker2Gen.getProofSuggestions, getProofSuggestions)
 
@@ -291,6 +325,7 @@ function* tracker2Saga() {
   yield* Saga.chainAction(Tracker2Gen.showUser, showUser)
   yield* Saga.chainAction2(EngineGen.keybase1NotifyUsersUserChanged, refreshSelf)
   yield* Saga.chainAction(Tracker2Gen.loadNonUserProfile, loadNonUserProfile)
+  yield* Saga.chainAction(Tracker2Gen.updatedDetails, refreshTrackerBlock)
 }
 
 export default tracker2Saga
