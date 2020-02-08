@@ -5795,9 +5795,17 @@ func (fbo *folderBranchOps) syncAllLocked(
 	ctx context.Context, lState *kbfssync.LockState, excl Excl) (err error) {
 	fbo.mdWriterLock.AssertLocked(lState)
 
-	dirtyFiles := fbo.blocks.GetDirtyFileBlockRefs(lState)
-	dirtyDirs := fbo.blocks.GetDirtyDirBlockRefs(lState)
+	dirtyDirs, holdNewWritesCh := fbo.blocks.GetDirtyDirBlockRefs(lState)
+	doCloseHoldNewWritesCh := true
+	defer func() {
+		if doCloseHoldNewWritesCh {
+			close(holdNewWritesCh)
+		}
+	}()
 	defer fbo.blocks.GetDirtyDirBlockRefsDone(lState)
+
+	dirtyFiles := fbo.blocks.GetDirtyFileBlockRefs(lState)
+
 	if len(dirtyFiles) == 0 && len(dirtyDirs) == 0 {
 		return nil
 	}
@@ -6120,6 +6128,11 @@ func (fbo *folderBranchOps) syncAllLocked(
 			}
 		}
 	}
+
+	// Now that we've copied all the directory blocks and marked dirty
+	// files for syncing, we can unblock new writes.
+	close(holdNewWritesCh)
+	doCloseHoldNewWritesCh = false
 
 	session, err := fbo.config.KBPKI().GetCurrentSession(ctx)
 	if err != nil {
