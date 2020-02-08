@@ -2324,7 +2324,7 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 	teamUIDone := make(chan struct{})
 	go func() {
 		defer close(teamUIDone)
-		if opts.MaxTeams == 0 || (len(query) > 0 && len(query) < 3) {
+		if opts.MaxTeams == 0 {
 			return
 		}
 		teamHits, err := opensearch.Local(libkb.NewMetaContext(ctx, h.G().ExternalG()), query,
