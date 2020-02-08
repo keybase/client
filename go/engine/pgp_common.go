@@ -22,13 +22,13 @@ func OutputSignatureSuccess(m libkb.MetaContext, fingerprint libkb.PGPFingerprin
 	return m.UIs().PgpUI.OutputSignatureSuccess(m.Ctx(), arg)
 }
 
-// OutputSignatureSuccessNonKeybase prints the details of successful signature verification
+// OutputSignatureNonKeybase prints the details of signature verification
 // when signing key is not known to keybase.
-func OutputSignatureSuccessNonKeybase(m libkb.MetaContext, keyID uint64, signatureTime time.Time, warnings libkb.HashSecurityWarnings) error {
-	arg := keybase1.OutputSignatureSuccessNonKeybaseArg{
+func OutputSignatureNonKeybase(m libkb.MetaContext, keyID uint64, signatureTime time.Time, warnings libkb.HashSecurityWarnings) error {
+	arg := keybase1.OutputSignatureNonKeybaseArg{
 		KeyID:    fmt.Sprintf("%X", keyID),
 		SignedAt: keybase1.TimeFromSeconds(signatureTime.Unix()),
 		Warnings: warnings.Strings(),
 	}
-	return m.UIs().PgpUI.OutputSignatureSuccessNonKeybase(m.Ctx(), arg)
+	return m.UIs().PgpUI.OutputSignatureNonKeybase(m.Ctx(), arg)
 }

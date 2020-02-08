@@ -55,7 +55,7 @@ func (p PgpUI) OutputSignatureSuccess(ctx context.Context, arg keybase1.OutputSi
 	return nil
 }
 
-func (p PgpUI) OutputSignatureSuccessNonKeybase(ctx context.Context, arg keybase1.OutputSignatureSuccessNonKeybaseArg) error {
+func (p PgpUI) OutputSignatureNonKeybase(ctx context.Context, arg keybase1.OutputSignatureNonKeybaseArg) error {
 	signedAt := keybase1.FromTime(arg.SignedAt)
 	output := func(fmtString string, args ...interface{}) {
 		s := fmt.Sprintf(fmtString, args...)
