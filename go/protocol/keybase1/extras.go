@@ -3747,3 +3747,17 @@ func (x InstrumentationStat) AppendStat(y InstrumentationStat) InstrumentationSt
 	x.AvgSize = x.TotalSize / int64(x.NumCalls)
 	return x
 }
+
+type TeamSearchItemList []TeamSearchItem
+
+func (l TeamSearchItemList) Hash() string {
+	sort.Slice(l, func(i, j int) bool {
+		return l[i].Id.Less(l[j].Id)
+	})
+	hasher := sha256.New()
+	for _, team := range l {
+		hasher.Write(team.Id.ToBytes())
+		hasher.Write([]byte(fmt.Sprintf("%d", team.MemberCount/100)))
+	}
+	return hex.EncodeToString(hasher.Sum(nil))
+}
