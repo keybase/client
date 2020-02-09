@@ -64,10 +64,11 @@ const makeRows = (
             })
           }
           rows.push(
-            ...[...details.requests].sort().map(username => ({
-              key: `invites-request:${username}`,
+            ...[...details.requests].sort().map(req => ({
+              ctime: req.ctime,
+              key: `invites-request:${req.username}`,
               type: 'invites-request' as const,
-              username,
+              username: req.username,
             }))
           )
         }
