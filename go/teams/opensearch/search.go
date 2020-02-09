@@ -65,7 +65,7 @@ type storageItem struct {
 func dbKey() libkb.DbKey {
 	return libkb.DbKey{
 		Typ: libkb.DBOpenTeams,
-		Key: "v4",
+		Key: "v0",
 	}
 }
 
