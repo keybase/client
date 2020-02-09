@@ -6,10 +6,11 @@ import * as Container from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import SendAttachmentToChat from '.'
 
-type OwnProps = {}
+// send can override, we do this for android share
+type OwnProps = Container.RouteProps<{url?: string}>
 
 const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
-  _send: (conversationIDKey: ChatTypes.ConversationIDKey, path: Types.Path, title: string) => {
+  _send: (conversationIDKey: ChatTypes.ConversationIDKey, path: Types.Path | string, title: string) => {
     dispatch(
       ChatGen.createAttachmentsUpload({
         conversationIDKey,
@@ -29,18 +30,24 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
 export default Container.namedConnect(
   (state: Container.TypedState) => ({_sendAttachmentToChat: state.fs.sendAttachmentToChat}),
   mapDispatchToProps,
-  (stateProps, dispatchProps, _: OwnProps) => ({
-    onCancel: dispatchProps.onCancel,
-    onSetTitle: dispatchProps.onSetTitle,
-    path: stateProps._sendAttachmentToChat.path,
-    send: () =>
-      dispatchProps._send(
-        stateProps._sendAttachmentToChat.convID,
-        stateProps._sendAttachmentToChat.path,
-        stateProps._sendAttachmentToChat.title
-      ),
-    sendAttachmentToChatState: stateProps._sendAttachmentToChat.state,
-    title: stateProps._sendAttachmentToChat.title,
-  }),
+  (stateProps, dispatchProps, ownProps: OwnProps) => {
+    const {onCancel, onSetTitle} = dispatchProps
+    const {_sendAttachmentToChat} = stateProps
+    const url = Container.getRouteProps(ownProps, 'url', undefined)
+
+    return {
+      onCancel,
+      onSetTitle,
+      path: _sendAttachmentToChat.path,
+      send: () =>
+        dispatchProps._send(
+          stateProps._sendAttachmentToChat.convID,
+          url ?? stateProps._sendAttachmentToChat.path,
+          stateProps._sendAttachmentToChat.title
+        ),
+      sendAttachmentToChatState: stateProps._sendAttachmentToChat.state,
+      title: stateProps._sendAttachmentToChat.title,
+    }
+  },
   'SendAttachmentToChat'
 )(SendAttachmentToChat)

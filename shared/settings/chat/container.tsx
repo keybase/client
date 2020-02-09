@@ -29,7 +29,7 @@ export default Container.namedConnect(
       contactSettingsIndirectFollowees,
       contactSettingsTeams,
       contactSettingsTeamsEnabled,
-      teamDetails: state.teams.teamDetails,
+      teamMeta: state.teams.teamMeta,
       title: 'Chat',
       unfurlError: state.settings.chat.unfurl.unfurlError,
       unfurlMode: state.settings.chat.unfurl.unfurlMode,
@@ -57,12 +57,12 @@ export default Container.namedConnect(
     },
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
-    const teamDetails = TeamConstants.sortTeamsByName(stateProps.teamDetails)
+    const teamMeta = TeamConstants.sortTeamsByName(stateProps.teamMeta)
     const serverSelectedTeams = new Map(
       stateProps.contactSettingsTeams?.map(t => [t.teamID, {enabled: t.enabled}])
     )
     const selectedTeams: {[K in TeamTypes.TeamID]: boolean} = {}
-    teamDetails.forEach(t => {
+    teamMeta.forEach(t => {
       // If there's a server-provided previous choice, use that.
       if (serverSelectedTeams.has(t.id)) {
         selectedTeams[t.id] = !!serverSelectedTeams.get(t.id)?.enabled
@@ -75,7 +75,7 @@ export default Container.namedConnect(
       ...stateProps,
       ...dispatchProps,
       contactSettingsSelectedTeams: selectedTeams,
-      teamDetails,
+      teamMeta,
     }
   },
   'Chat'

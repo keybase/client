@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as Constants from '../../constants/settings'
-import {TeamDetails, TeamID} from '../../constants/types/teams'
+import {TeamMeta, TeamID} from '../../constants/types/teams'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
@@ -22,7 +22,7 @@ export type Props = {
   ) => void
   onUnfurlSave: (mode: RPCChatTypes.UnfurlMode, whitelist: Array<string>) => void
   onRefresh: () => void
-  teamDetails: Array<TeamDetails>
+  teamMeta: Array<TeamMeta>
 }
 
 type State = {
@@ -184,17 +184,17 @@ class Chat extends React.Component<Props, State> {
                       gapStart={false}
                       gapEnd={true}
                     >
-                      {this.props.teamDetails.map(teamDetails => (
+                      {this.props.teamMeta.map(teamMeta => (
                         <TeamRow
-                          checked={this.state.contactSettingsSelectedTeams[teamDetails.id]}
-                          key={teamDetails.id}
-                          isOpen={teamDetails.isOpen}
-                          name={teamDetails.teamname}
+                          checked={this.state.contactSettingsSelectedTeams[teamMeta.id]}
+                          key={teamMeta.id}
+                          isOpen={teamMeta.isOpen}
+                          name={teamMeta.teamname}
                           onCheck={(checked: boolean) =>
                             this.setState(prevState => ({
                               contactSettingsSelectedTeams: {
                                 ...prevState.contactSettingsSelectedTeams,
-                                [teamDetails.id]: checked,
+                                [teamMeta.id]: checked,
                               },
                             }))
                           }

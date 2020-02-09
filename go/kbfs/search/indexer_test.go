@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 	"testing"
 	"time"
 
@@ -237,41 +238,43 @@ func TestIndexFile(t *testing.T) {
 	testSearch(t, i, "tortor", 0)
 }
 
-func makeDirTreeToIndex(
+func makeSingleDirTreeToIndex(
+	ctx context.Context, t *testing.T, kbfsOps libkbfs.KBFSOps,
+	rootNode libkbfs.Node, dirName, text1, text2 string) {
+	dirNamePPS := data.NewPathPartString(dirName, nil)
+	dirNode, _, err := kbfsOps.CreateDir(ctx, rootNode, dirNamePPS)
+	require.NoError(t, err)
+	f1Name := dirName + "_file1"
+	f1NamePPS := data.NewPathPartString(f1Name, nil)
+	f1Node, _, err := kbfsOps.CreateFile(
+		ctx, dirNode, f1NamePPS, false, libkbfs.NoExcl)
+	require.NoError(t, err)
+	err = kbfsOps.Write(ctx, f1Node, []byte(text1), 0)
+	require.NoError(t, err)
+	f2Name := dirName + "_file2"
+	f2NamePPS := data.NewPathPartString(f2Name, nil)
+	f2Node, _, err := kbfsOps.CreateFile(
+		ctx, dirNode, f2NamePPS, false, libkbfs.NoExcl)
+	require.NoError(t, err)
+	err = kbfsOps.Write(ctx, f2Node, []byte(text2), 0)
+	require.NoError(t, err)
+}
+
+func makeDirTreesToIndex(
 	ctx context.Context, t *testing.T, kbfsOps libkbfs.KBFSOps,
 	rootNode libkbfs.Node) (names []string) {
-	mkfiles := func(dirName, text1, text2 string) {
-		dirNamePPS := data.NewPathPartString(dirName, nil)
-		dirNode, _, err := kbfsOps.CreateDir(ctx, rootNode, dirNamePPS)
-		require.NoError(t, err)
-		f1Name := dirName + "_file1"
-		f1NamePPS := data.NewPathPartString(f1Name, nil)
-		f1Node, _, err := kbfsOps.CreateFile(
-			ctx, dirNode, f1NamePPS, false, libkbfs.NoExcl)
-		require.NoError(t, err)
-		err = kbfsOps.Write(ctx, f1Node, []byte(text1), 0)
-		require.NoError(t, err)
-		f2Name := dirName + "_file2"
-		f2NamePPS := data.NewPathPartString(f2Name, nil)
-		f2Node, _, err := kbfsOps.CreateFile(
-			ctx, dirNode, f2NamePPS, false, libkbfs.NoExcl)
-		require.NoError(t, err)
-		err = kbfsOps.Write(ctx, f2Node, []byte(text2), 0)
-		require.NoError(t, err)
-	}
-
 	aName := "alpha"
 	const a1Text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
 	const a2Text = "Mauris et neque sit amet nisi condimentum fringilla " +
 		"vel non augue"
-	mkfiles(aName, a1Text, a2Text)
+	makeSingleDirTreeToIndex(ctx, t, kbfsOps, rootNode, aName, a1Text, a2Text)
 
 	bName := "beta"
 	const b1Text = "Ut feugiat dolor in tortor viverra, ac egestas justo " +
 		"tincidunt."
 	const b2Text = "Cras volutpat mi in purus interdum, sit amet luctus " +
 		"velit accumsan."
-	mkfiles(bName, b1Text, b2Text)
+	makeSingleDirTreeToIndex(ctx, t, kbfsOps, rootNode, bName, b1Text, b2Text)
 	err := kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)
 	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
@@ -315,7 +318,7 @@ func TestFullIndexSyncedTlf(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("Create two dirs with two files each")
-	names := makeDirTreeToIndex(ctx, t, kbfsOps, rootNode)
+	names := makeDirTreesToIndex(ctx, t, kbfsOps, rootNode)
 
 	t.Log("Wait for index to load")
 	err = i.waitForIndex(ctx)
@@ -365,10 +368,12 @@ func TestFullIndexSyncedTlf(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("New write will resume the interrupted indexer -- 2 children left " +
-		"to index on the old view, then 2 on the new view")
-	_, _, err = kbfsOps.CreateDir(
-		ctx, rootNode, data.NewPathPartString("omega", nil))
-	require.NoError(t, err)
+		"to index on the old view, then 3 on the new view")
+
+	oName := "omega"
+	const o1Text = "Sed ullamcorper consectetur velit eget dapibus."
+	const o2Text = "Praesent feugiat feugiat dui, at egestas lacus pretium vel."
+	makeSingleDirTreeToIndex(ctx, t, kbfsOps, rootNode, oName, o1Text, o2Text)
 	err = kbfsOps.SyncAll(ctx, rootNode.GetFolderBranch())
 	require.NoError(t, err)
 	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
@@ -378,14 +383,135 @@ func TestFullIndexSyncedTlf(t *testing.T) {
 	sendToIndexer(nil) // beta (name indexed, but dir not done yet)
 	sendToIndexer(nil) // beta1
 	sendToIndexer(nil) // beta2
-	// TODO(HOTPOT-1495): updates for new revision.
+	// Incremental update.
+	sendToIndexer(nil) // omega
+	sendToIndexer(nil) // omega1
+	sendToIndexer(nil) // omega2
 
 	err = i.waitForSyncs(ctx)
 	require.NoError(t, err)
 
 	t.Log("Check searches")
 	testSearch(t, i, "dolor", 2)
-	testSearch(t, i, "feugiat", 1)
+	testSearch(t, i, "feugiat", 2)
 	testSearch(t, i, names[0], 3) // Child nodes have "alpha" in their name too
-	testSearch(t, i, "file1", 2)
+	testSearch(t, i, "file1", 3)
+	testSearch(t, i, "omega", 3)
+	testSearch(t, i, "ullamcorper", 1)
+
+	t.Log("Test a rename and a delete")
+	newName := "gamma"
+	newNamePPS := data.NewPathPartString(newName, nil)
+	err = kbfsOps.Rename(
+		ctx, rootNode, data.NewPathPartString(names[0], nil), rootNode,
+		newNamePPS)
+	require.NoError(t, err)
+	dirNode, _, err := kbfsOps.Lookup(ctx, rootNode, newNamePPS)
+	require.NoError(t, err)
+	err = kbfsOps.RemoveEntry(
+		ctx, dirNode, data.NewPathPartString(names[0]+"_file1", nil))
+	require.NoError(t, err)
+	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
+	require.NoError(t, err)
+
+	sendToIndexer(nil) // gamma dir update
+
+	err = i.waitForSyncs(ctx)
+	require.NoError(t, err)
+
+	t.Log("Check searches")
+	testSearch(t, i, "dolor", 1)
+	testSearch(t, i, names[0], 1)
+	testSearch(t, i, newName, 1)
+}
+
+func TestFullIndexSearch(t *testing.T) {
+	ctx := libcontext.BackgroundContextWithCancellationDelayer()
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	config := libkbfs.MakeTestConfigOrBust(t, "user1", "user2")
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
+
+	tempdir, err := ioutil.TempDir("", "indexTest")
+	require.NoError(t, err)
+	defer os.RemoveAll(tempdir)
+	config.SetStorageRoot(tempdir)
+
+	err = config.EnableDiskLimiter(tempdir)
+	require.NoError(t, err)
+	config.SetDiskCacheMode(libkbfs.DiskCacheModeLocal)
+	err = config.MakeDiskBlockCacheIfNotExists()
+	require.NoError(t, err)
+	err = config.MakeDiskMDCacheIfNotExists()
+	require.NoError(t, err)
+
+	i, err := newIndexerWithConfigInit(
+		config, testInitConfig, testKVStoreName("TestFullIndexSyncedTlf"))
+	require.NoError(t, err)
+	defer func() {
+		err := i.Shutdown(ctx)
+		require.NoError(t, err)
+	}()
+
+	h, err := tlfhandle.ParseHandle(
+		ctx, config.KBPKI(), config.MDOps(), nil, "user1", tlf.Private)
+	require.NoError(t, err)
+	kbfsOps := config.KBFSOps()
+	rootNode, _, err := kbfsOps.GetOrCreateRootNode(ctx, h, data.MasterBranch)
+	require.NoError(t, err)
+
+	t.Log("Create two dirs with two files each")
+	names := makeDirTreesToIndex(ctx, t, kbfsOps, rootNode)
+
+	t.Log("Wait for index to load")
+	err = i.waitForIndex(ctx)
+	require.NoError(t, err)
+
+	t.Log("Enable syncing")
+	_, err = kbfsOps.SetSyncConfig(
+		ctx, rootNode.GetFolderBranch().Tlf, keybase1.FolderSyncConfig{
+			Mode: keybase1.FolderSyncMode_ENABLED,
+		})
+	require.NoError(t, err)
+	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
+	require.NoError(t, err)
+
+	err = i.waitForSyncs(ctx)
+	require.NoError(t, err)
+
+	t.Log("Search!")
+	checkSearch := func(
+		query string, numResults, start int, expectedResults map[string]bool) {
+		results, err := i.Search(ctx, query, numResults, start)
+		require.NoError(t, err)
+		for _, r := range results {
+			_, ok := expectedResults[r.Path]
+			require.True(t, ok, r.Path)
+			delete(expectedResults, r.Path)
+		}
+		require.Len(t, expectedResults, 0)
+	}
+
+	userPath := func(dir, child string) string {
+		return path.Clean("/keybase/private/user1/" + dir + "/" + child)
+	}
+
+	checkSearch("dolor", 10, 0, map[string]bool{
+		userPath(names[0], names[0]+"_file1"): true,
+		userPath(names[1], names[1]+"_file1"): true,
+	})
+
+	checkSearch(names[0], 10, 0, map[string]bool{
+		userPath(names[0], ""):                true,
+		userPath(names[0], names[0]+"_file1"): true,
+		userPath(names[0], names[0]+"_file2"): true,
+	})
+
+	t.Log("Try partial results")
+	results, err := i.Search(ctx, names[0], 2, 0)
+	require.NoError(t, err)
+	require.Len(t, results, 2)
+	results2, err := i.Search(ctx, names[0], 2, 2)
+	require.NoError(t, err)
+	require.Len(t, results2, 1)
 }

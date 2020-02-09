@@ -274,7 +274,7 @@ func (r *rawSupport) GetAppStatus() *libkb.AppStatus {
 	return &r.Status
 }
 
-func featureGateForTeamFromServer(mctx libkb.MetaContext, teamID keybase1.TeamID, isWrite bool) (ok bool, err error) {
+func featureGateForTeamFromServer(mctx libkb.MetaContext, teamID keybase1.TeamID) (ok bool, err error) {
 	arg := libkb.NewAPIArg("team/supports_hidden_chain")
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	arg.Args = libkb.HTTPArgs{
@@ -289,15 +289,16 @@ func featureGateForTeamFromServer(mctx libkb.MetaContext, teamID keybase1.TeamID
 }
 
 func checkFeatureGateForSupport(mctx libkb.MetaContext, teamID keybase1.TeamID, isWrite bool) (ok bool, err error) {
-	admin := mctx.G().FeatureFlags.Enabled(mctx, libkb.FeatureCheckForHiddenChainSupport)
+	userFlagEnabled := mctx.G().FeatureFlags.Enabled(mctx, libkb.FeatureCheckForHiddenChainSupport)
 	runmode := mctx.G().Env.GetRunMode()
 	if runmode != libkb.ProductionRunMode {
 		return true, nil
 	}
-	if runmode == libkb.ProductionRunMode && !admin {
+	if runmode == libkb.ProductionRunMode && !userFlagEnabled {
 		return false, nil
 	}
-	return featureGateForTeamFromServer(mctx, teamID, isWrite)
+
+	return mctx.G().GetHiddenTeamChainManager().TeamSupportsHiddenChain(mctx, teamID)
 }
 
 func CheckFeatureGateForSupport(mctx libkb.MetaContext, teamID keybase1.TeamID, isWrite bool) (err error) {

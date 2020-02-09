@@ -8,12 +8,12 @@ export const usernameHint =
 export const noEmail = 'NOEMAIL'
 export const waitingKey = 'signup:waiting'
 
-const defaultDevicename =
-  (Platforms.isAndroid && 'My Android Device') ||
-  (Platforms.isIOS && 'My iOS Device') ||
-  (Platforms.isDarwin && 'My Mac Device') ||
-  (Platforms.isWindows && 'My Windows Device') ||
-  (Platforms.isLinux && 'My Linux Device') ||
+export const defaultDevicename =
+  (Platforms.isAndroid && 'Android Device') ||
+  (Platforms.isIOS && 'iOS Device') ||
+  (Platforms.isDarwin && 'Mac Device') ||
+  (Platforms.isWindows && 'Windows Device') ||
+  (Platforms.isLinux && 'Linux Device') ||
   (Platforms.isMobile ? 'Mobile Device' : 'Home Computer')
 
 export const makeState = (): Types.State => ({

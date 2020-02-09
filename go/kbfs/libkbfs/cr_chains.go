@@ -1452,10 +1452,12 @@ func (ccs *crChains) revertRenames(oldOps []op) {
 			if !ok {
 				continue
 			}
+			found := false
 			for i, oldOp := range oldChain.ops {
 				if rmop, ok := oldOp.(*rmOp); ok &&
 					rmop.OldName == rop.OldName {
 					rop.oldFinalPath = rmop.getFinalPath()
+					found = true
 					oldChain.ops = append(
 						oldChain.ops[:i], oldChain.ops[i+1:]...)
 					// The first rm should be the one that matches, as
@@ -1465,7 +1467,7 @@ func (ccs *crChains) revertRenames(oldOps []op) {
 				}
 			}
 
-			if !rop.oldFinalPath.IsValid() {
+			if !found || !rop.oldFinalPath.IsValid() {
 				// We don't need to revert any renames without an
 				// rmOp, because it was probably just created and
 				// renamed within a single journal update.

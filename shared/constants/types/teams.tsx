@@ -85,21 +85,31 @@ export type JoinRequest = {
   ctime: number
 }
 
-export type TeamDetails = {
-  allowPromote: boolean
+export type TeamMeta = {
+  allowPromote: boolean // if members other than admins can showcase
   id: TeamID
   isMember: boolean
   isOpen: boolean
   memberCount: number
   role: MaybeTeamRoleType
-  showcasing: boolean
+  showcasing: boolean // if this team is showcased on your profile
   teamname: string
+}
 
-  members?: Map<string, MemberInfo>
-  settings?: TeamSettings
-  invites?: Set<InviteInfo>
-  subteams?: Set<TeamID>
-  requests?: Set<JoinRequest>
+export type TeamDetails = {
+  members: Map<string, MemberInfo>
+  settings: TeamSettings2
+  invites: Set<InviteInfo>
+  subteams: Set<TeamID>
+  requests: Set<JoinRequest>
+  description: string
+}
+
+export type TeamSettings2 = {
+  open: boolean
+  openJoinAs: TeamRoleType
+  tarsDisabled: boolean
+  teamShowcased: boolean // showcased on "popular teams"
 }
 
 export type TeamRoleAndDetails = {
@@ -111,6 +121,12 @@ export type TeamRoleMap = {
   latestKnownVersion: number
   loadedVersion: number
   roles: Map<TeamID, TeamRoleAndDetails>
+}
+
+export type TeamVersion = {
+  latestSeqno: number
+  latestHiddenSeqno: number
+  latestOffchainSeqno: number
 }
 
 export type State = {
@@ -126,20 +142,24 @@ export type State = {
   readonly errorInTeamCreation: string
   readonly errorInTeamInvite: string
   readonly errorInTeamJoin: string
+  readonly invitesCollapsed: Set<TeamID>
   readonly teamsWithChosenChannels: Set<Teamname>
   readonly sawChatBanner: boolean
   readonly sawSubteamsBanner: boolean
+  readonly subteamFilter: string
+  readonly subteamsFiltered: Set<TeamID>
   readonly teamAccessRequestsPending: Set<Teamname>
   readonly teamJoinSuccess: boolean
   readonly teamJoinSuccessOpen: boolean
   readonly teamJoinSuccessTeamName: string
+  readonly teamMeta: Map<TeamID, TeamMeta>
+  readonly teamMetaStale: boolean // if we've received an update since we last loaded team list
+  readonly teamMetaSubscribeCount: number // if >0 we are eagerly reloading team list
   readonly teamDetails: Map<TeamID, TeamDetails>
   readonly teamDetailsSubscriptionCount: Map<TeamID, number> // >0 if we are eagerly reloading a team
-  readonly teamDetailsMetaStale: boolean // if we've received an update since we last loaded team list
-  readonly teamDetailsMetaSubscribeCount: number // if >0 we are eagerly reloading team list
   readonly teamIDToChannelInfos: Map<TeamID, Map<ConversationIDKey, ChannelInfo>>
   readonly teamIDToMembers: Map<TeamID, Map<string, MemberInfo>> // Used by chat sidebar until team loading gets easier
-  readonly teamIDToPublicitySettings: Map<TeamID, _PublicitySettings>
+  readonly teamVersion: Map<TeamID, TeamVersion>
   readonly teamIDToResetUsers: Map<TeamID, Set<string>>
   readonly teamIDToRetentionPolicy: Map<TeamID, RetentionPolicy>
   readonly teamNameToID: Map<Teamname, string>

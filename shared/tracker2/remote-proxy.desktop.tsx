@@ -16,17 +16,19 @@ const RemoteTracker = (props: {trackerUsername: string}) => {
   const {trackerUsername} = props
   const state = Container.useSelector(s => s)
   const details = Constants.getDetails(state, trackerUsername)
-  const {infoMap} = state.users
+  const {blockMap, infoMap} = state.users
   const {avatarRefreshCounter, following, followers, httpSrvToken, httpSrvAddress, username} = state.config
-  const {assertions, bio, blocked, followersCount, followingCount, fullname, guiID} = details
+  const {assertions, bio, followersCount, followingCount, fullname, guiID} = details
   const {hidFromFollowers, location, reason, teamShowcase} = details
   const {counts, errors} = state.waiting
   const trackerUsernames = new Set([trackerUsername])
   const waitingKeys = new Set([Constants.waitingKey])
+  const blocked = blockMap.get(trackerUsername)?.chatBlocked || false
   const p: ProxyProps = {
     assertions,
     avatarRefreshCounter,
     bio,
+    blockMap: mapFilterByKey(blockMap, trackerUsernames),
     blocked,
     counts: mapFilterByKey(counts, waitingKeys),
     darkMode: Styles.isDarkMode(),

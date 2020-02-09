@@ -10,7 +10,7 @@ type OwnProps = Container.RouteProps<{teamID: string}>
 export default Container.connect(
   (state, ownProps: OwnProps) => {
     const teamID = Container.getRouteProps(ownProps, 'teamID', '')
-    const {teamname} = Constants.getTeamDetails(state, teamID)
+    const {teamname} = Constants.getTeamMeta(state, teamID)
     const inviteError = Constants.getEmailInviteError(state)
     return {
       errorMessage: inviteError.message,

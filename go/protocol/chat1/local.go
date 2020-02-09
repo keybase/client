@@ -402,6 +402,7 @@ const (
 	MessageSystemType_CHANGERETENTION   MessageSystemType = 6
 	MessageSystemType_BULKADDTOCONV     MessageSystemType = 7
 	MessageSystemType_SBSRESOLVE        MessageSystemType = 8
+	MessageSystemType_NEWCHANNEL        MessageSystemType = 9
 )
 
 func (o MessageSystemType) DeepCopy() MessageSystemType { return o }
@@ -416,6 +417,7 @@ var MessageSystemTypeMap = map[string]MessageSystemType{
 	"CHANGERETENTION":   6,
 	"BULKADDTOCONV":     7,
 	"SBSRESOLVE":        8,
+	"NEWCHANNEL":        9,
 }
 
 var MessageSystemTypeRevMap = map[MessageSystemType]string{
@@ -428,6 +430,7 @@ var MessageSystemTypeRevMap = map[MessageSystemType]string{
 	6: "CHANGERETENTION",
 	7: "BULKADDTOCONV",
 	8: "SBSRESOLVE",
+	9: "NEWCHANNEL",
 }
 
 func (e MessageSystemType) String() string {
@@ -438,17 +441,11 @@ func (e MessageSystemType) String() string {
 }
 
 type MessageSystemAddedToTeam struct {
-	Team           string            `codec:"team" json:"team"`
-	Adder          string            `codec:"adder" json:"adder"`
-	Addee          string            `codec:"addee" json:"addee"`
-	Role           keybase1.TeamRole `codec:"role" json:"role"`
-	BulkAdds       []string          `codec:"bulkAdds" json:"bulkAdds"`
-	Owners         []string          `codec:"owners" json:"owners"`
-	Admins         []string          `codec:"admins" json:"admins"`
-	Writers        []string          `codec:"writers" json:"writers"`
-	Readers        []string          `codec:"readers" json:"readers"`
-	Bots           []string          `codec:"bots" json:"bots"`
-	RestrictedBots []string          `codec:"restrictedBots" json:"restrictedBots"`
+	Team     string            `codec:"team" json:"team"`
+	Adder    string            `codec:"adder" json:"adder"`
+	Addee    string            `codec:"addee" json:"addee"`
+	Role     keybase1.TeamRole `codec:"role" json:"role"`
+	BulkAdds []string          `codec:"bulkAdds" json:"bulkAdds"`
 }
 
 func (o MessageSystemAddedToTeam) DeepCopy() MessageSystemAddedToTeam {
@@ -468,72 +465,6 @@ func (o MessageSystemAddedToTeam) DeepCopy() MessageSystemAddedToTeam {
 			}
 			return ret
 		})(o.BulkAdds),
-		Owners: (func(x []string) []string {
-			if x == nil {
-				return nil
-			}
-			ret := make([]string, len(x))
-			for i, v := range x {
-				vCopy := v
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.Owners),
-		Admins: (func(x []string) []string {
-			if x == nil {
-				return nil
-			}
-			ret := make([]string, len(x))
-			for i, v := range x {
-				vCopy := v
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.Admins),
-		Writers: (func(x []string) []string {
-			if x == nil {
-				return nil
-			}
-			ret := make([]string, len(x))
-			for i, v := range x {
-				vCopy := v
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.Writers),
-		Readers: (func(x []string) []string {
-			if x == nil {
-				return nil
-			}
-			ret := make([]string, len(x))
-			for i, v := range x {
-				vCopy := v
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.Readers),
-		Bots: (func(x []string) []string {
-			if x == nil {
-				return nil
-			}
-			ret := make([]string, len(x))
-			for i, v := range x {
-				vCopy := v
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.Bots),
-		RestrictedBots: (func(x []string) []string {
-			if x == nil {
-				return nil
-			}
-			ret := make([]string, len(x))
-			for i, v := range x {
-				vCopy := v
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.RestrictedBots),
 	}
 }
 
@@ -675,6 +606,20 @@ func (o MessageSystemSbsResolve) DeepCopy() MessageSystemSbsResolve {
 	}
 }
 
+type MessageSystemNewChannel struct {
+	Creator        string         `codec:"creator" json:"creator"`
+	NameAtCreation string         `codec:"nameAtCreation" json:"nameAtCreation"`
+	ConvID         ConversationID `codec:"convID" json:"convID"`
+}
+
+func (o MessageSystemNewChannel) DeepCopy() MessageSystemNewChannel {
+	return MessageSystemNewChannel{
+		Creator:        o.Creator,
+		NameAtCreation: o.NameAtCreation,
+		ConvID:         o.ConvID.DeepCopy(),
+	}
+}
+
 type MessageSystem struct {
 	SystemType__        MessageSystemType               `codec:"systemType" json:"systemType"`
 	Addedtoteam__       *MessageSystemAddedToTeam       `codec:"addedtoteam,omitempty" json:"addedtoteam,omitempty"`
@@ -686,6 +631,7 @@ type MessageSystem struct {
 	Changeretention__   *MessageSystemChangeRetention   `codec:"changeretention,omitempty" json:"changeretention,omitempty"`
 	Bulkaddtoconv__     *MessageSystemBulkAddToConv     `codec:"bulkaddtoconv,omitempty" json:"bulkaddtoconv,omitempty"`
 	Sbsresolve__        *MessageSystemSbsResolve        `codec:"sbsresolve,omitempty" json:"sbsresolve,omitempty"`
+	Newchannel__        *MessageSystemNewChannel        `codec:"newchannel,omitempty" json:"newchannel,omitempty"`
 }
 
 func (o *MessageSystem) SystemType() (ret MessageSystemType, err error) {
@@ -733,6 +679,11 @@ func (o *MessageSystem) SystemType() (ret MessageSystemType, err error) {
 	case MessageSystemType_SBSRESOLVE:
 		if o.Sbsresolve__ == nil {
 			err = errors.New("unexpected nil value for Sbsresolve__")
+			return ret, err
+		}
+	case MessageSystemType_NEWCHANNEL:
+		if o.Newchannel__ == nil {
+			err = errors.New("unexpected nil value for Newchannel__")
 			return ret, err
 		}
 	}
@@ -829,6 +780,16 @@ func (o MessageSystem) Sbsresolve() (res MessageSystemSbsResolve) {
 	return *o.Sbsresolve__
 }
 
+func (o MessageSystem) Newchannel() (res MessageSystemNewChannel) {
+	if o.SystemType__ != MessageSystemType_NEWCHANNEL {
+		panic("wrong case accessed")
+	}
+	if o.Newchannel__ == nil {
+		return
+	}
+	return *o.Newchannel__
+}
+
 func NewMessageSystemWithAddedtoteam(v MessageSystemAddedToTeam) MessageSystem {
 	return MessageSystem{
 		SystemType__:  MessageSystemType_ADDEDTOTEAM,
@@ -889,6 +850,13 @@ func NewMessageSystemWithSbsresolve(v MessageSystemSbsResolve) MessageSystem {
 	return MessageSystem{
 		SystemType__: MessageSystemType_SBSRESOLVE,
 		Sbsresolve__: &v,
+	}
+}
+
+func NewMessageSystemWithNewchannel(v MessageSystemNewChannel) MessageSystem {
+	return MessageSystem{
+		SystemType__: MessageSystemType_NEWCHANNEL,
+		Newchannel__: &v,
 	}
 }
 
@@ -958,6 +926,13 @@ func (o MessageSystem) DeepCopy() MessageSystem {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Sbsresolve__),
+		Newchannel__: (func(x *MessageSystemNewChannel) *MessageSystemNewChannel {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Newchannel__),
 	}
 }
 
@@ -4369,6 +4344,98 @@ func (o SetConversationStatusLocalRes) DeepCopy() SetConversationStatusLocalRes 
 	}
 }
 
+type NewConversationsLocalRes struct {
+	Results          []NewConversationsLocalResult `codec:"results" json:"results"`
+	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
+}
+
+func (o NewConversationsLocalRes) DeepCopy() NewConversationsLocalRes {
+	return NewConversationsLocalRes{
+		Results: (func(x []NewConversationsLocalResult) []NewConversationsLocalResult {
+			if x == nil {
+				return nil
+			}
+			ret := make([]NewConversationsLocalResult, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Results),
+		RateLimits: (func(x []RateLimit) []RateLimit {
+			if x == nil {
+				return nil
+			}
+			ret := make([]RateLimit, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.RateLimits),
+		IdentifyFailures: (func(x []keybase1.TLFIdentifyFailure) []keybase1.TLFIdentifyFailure {
+			if x == nil {
+				return nil
+			}
+			ret := make([]keybase1.TLFIdentifyFailure, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.IdentifyFailures),
+	}
+}
+
+type NewConversationsLocalResult struct {
+	Result *NewConversationLocalRes `codec:"result,omitempty" json:"result,omitempty"`
+	Err    *string                  `codec:"err,omitempty" json:"err,omitempty"`
+}
+
+func (o NewConversationsLocalResult) DeepCopy() NewConversationsLocalResult {
+	return NewConversationsLocalResult{
+		Result: (func(x *NewConversationLocalRes) *NewConversationLocalRes {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Result),
+		Err: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Err),
+	}
+}
+
+type NewConversationLocalArgument struct {
+	TlfName       string                  `codec:"tlfName" json:"tlfName"`
+	TopicType     TopicType               `codec:"topicType" json:"topicType"`
+	TlfVisibility keybase1.TLFVisibility  `codec:"tlfVisibility" json:"tlfVisibility"`
+	TopicName     *string                 `codec:"topicName,omitempty" json:"topicName,omitempty"`
+	MembersType   ConversationMembersType `codec:"membersType" json:"membersType"`
+}
+
+func (o NewConversationLocalArgument) DeepCopy() NewConversationLocalArgument {
+	return NewConversationLocalArgument{
+		TlfName:       o.TlfName,
+		TopicType:     o.TopicType.DeepCopy(),
+		TlfVisibility: o.TlfVisibility.DeepCopy(),
+		TopicName: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.TopicName),
+		MembersType: o.MembersType.DeepCopy(),
+	}
+}
+
 type NewConversationLocalRes struct {
 	Conv             ConversationLocal             `codec:"conv" json:"conv"`
 	UiConv           InboxUIItem                   `codec:"uiConv" json:"uiConv"`
@@ -6080,6 +6147,11 @@ type SetConversationStatusLocalArg struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
+type NewConversationsLocalArg struct {
+	NewConversationLocalArguments []NewConversationLocalArgument `codec:"newConversationLocalArguments" json:"newConversationLocalArguments"`
+	IdentifyBehavior              keybase1.TLFIdentifyBehavior   `codec:"identifyBehavior" json:"identifyBehavior"`
+}
+
 type NewConversationLocalArg struct {
 	TlfName          string                       `codec:"tlfName" json:"tlfName"`
 	TopicType        TopicType                    `codec:"topicType" json:"topicType"`
@@ -6483,6 +6555,7 @@ type LocalInterface interface {
 	PostDeleteHistoryThrough(context.Context, PostDeleteHistoryThroughArg) (PostLocalRes, error)
 	PostDeleteHistoryByAge(context.Context, PostDeleteHistoryByAgeArg) (PostLocalRes, error)
 	SetConversationStatusLocal(context.Context, SetConversationStatusLocalArg) (SetConversationStatusLocalRes, error)
+	NewConversationsLocal(context.Context, NewConversationsLocalArg) (NewConversationsLocalRes, error)
 	NewConversationLocal(context.Context, NewConversationLocalArg) (NewConversationLocalRes, error)
 	GetInboxSummaryForCLILocal(context.Context, GetInboxSummaryForCLILocalQuery) (GetInboxSummaryForCLILocalRes, error)
 	GetConversationForCLILocal(context.Context, GetConversationForCLILocalQuery) (GetConversationForCLILocalRes, error)
@@ -6917,6 +6990,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.SetConversationStatusLocal(ctx, typedArgs[0])
+					return
+				},
+			},
+			"newConversationsLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]NewConversationsLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]NewConversationsLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]NewConversationsLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.NewConversationsLocal(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -8082,6 +8170,11 @@ func (c LocalClient) PostDeleteHistoryByAge(ctx context.Context, __arg PostDelet
 
 func (c LocalClient) SetConversationStatusLocal(ctx context.Context, __arg SetConversationStatusLocalArg) (res SetConversationStatusLocalRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.SetConversationStatusLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) NewConversationsLocal(ctx context.Context, __arg NewConversationsLocalArg) (res NewConversationsLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.newConversationsLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 

@@ -23,6 +23,7 @@ import ChatInstallBot from './conversation/bot/install'
 import ChatInstallBotPick from './conversation/bot/team-picker'
 import ChatSearchBot from './conversation/bot/search'
 import ChatConfirmRemoveBot from './conversation/bot/confirm'
+import AndroidChooseTarget from './android-choose-target'
 import ChatPDF from './pdf'
 
 export const newRoutes = {
@@ -39,6 +40,9 @@ export const newRoutes = {
 }
 
 export const newModalRoutes = {
+  androidChooseTarget: {
+    getScreen: (): typeof AndroidChooseTarget => require('./android-choose-target').default,
+  },
   chatAddToChannel: {
     getScreen: (): typeof ChatAddToChannel =>
       require('./conversation/info-panel/add-to-channel/container').default,

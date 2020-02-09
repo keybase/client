@@ -112,7 +112,7 @@ class AddToTeamStateWrapper extends React.Component<ExtraProps & AddToTeamProps,
 export default Container.connect(
   (state, ownProps: OwnProps) => ({
     _roles: state.teams.teamRoleMap.roles,
-    _teams: state.teams.teamDetails,
+    _teams: state.teams.teamMeta,
     _them: Container.getRouteProps(ownProps, 'username', ''),
     addUserToTeamsResults: state.teams.addUserToTeamsResults,
     addUserToTeamsState: state.teams.addUserToTeamsState,

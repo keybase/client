@@ -9,6 +9,7 @@ import {RPCError} from '../util/errors'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of config but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'config:'
+export const androidShare = 'config:androidShare'
 export const bootstrapStatusLoaded = 'config:bootstrapStatusLoaded'
 export const changedActive = 'config:changedActive'
 export const changedFocus = 'config:changedFocus'
@@ -64,6 +65,7 @@ export const updateNow = 'config:updateNow'
 export const updateWindowState = 'config:updateWindowState'
 
 // Payload Types
+type _AndroidSharePayload = {readonly url: string}
 type _BootstrapStatusLoadedPayload = {
   readonly deviceID: string
   readonly deviceName: string
@@ -168,6 +170,13 @@ type _UpdateNowPayload = void
 type _UpdateWindowStatePayload = {readonly windowState: Types.WindowState}
 
 // Action Creators
+/**
+ * Intent fired with a share url
+ */
+export const createAndroidShare = (payload: _AndroidSharePayload): AndroidSharePayload => ({
+  payload,
+  type: androidShare,
+})
 /**
  * Log out the current user, keeping secrets stored. Then prefill the username for provisioned another user to log in.
  */
@@ -406,6 +415,7 @@ export const createUpdateMenubarWindowID = (
 export const createUpdateNow = (payload: _UpdateNowPayload): UpdateNowPayload => ({payload, type: updateNow})
 
 // Action Payloads
+export type AndroidSharePayload = {readonly payload: _AndroidSharePayload; readonly type: typeof androidShare}
 export type BootstrapStatusLoadedPayload = {
   readonly payload: _BootstrapStatusLoadedPayload
   readonly type: typeof bootstrapStatusLoaded
@@ -571,6 +581,7 @@ export type UpdateWindowStatePayload = {
 // All Actions
 // prettier-ignore
 export type Actions =
+  | AndroidSharePayload
   | BootstrapStatusLoadedPayload
   | ChangedActivePayload
   | ChangedFocusPayload

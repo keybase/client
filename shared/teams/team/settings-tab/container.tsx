@@ -13,22 +13,20 @@ export type OwnProps = {
 
 export default Container.connect(
   (state, {teamID}: OwnProps) => {
+    const teamMeta = Constants.getTeamMeta(state, teamID)
     const teamDetails = Constants.getTeamDetails(state, teamID)
-    const {teamname} = teamDetails
-    const publicitySettings = Constants.getTeamPublicitySettings(state, teamID)
-    const publicityAnyMember = publicitySettings.anyMemberShowcase
-    const publicityMember = publicitySettings.member
-    const publicityTeam = publicitySettings.team
+    const publicityAnyMember = teamMeta.allowPromote
+    const publicityMember = teamMeta.showcasing
+    const publicityTeam = teamDetails.settings.teamShowcased
     const settings = teamDetails.settings || Constants.initialTeamSettings
-    const openTeamRole: Types.MaybeTeamRoleType = Constants.teamRoleByEnum[settings.joinAs] || 'none'
     return {
-      canShowcase: teamDetails.allowPromote || teamDetails.role === 'admin' || teamDetails.role === 'owner',
+      canShowcase: teamMeta.allowPromote || teamMeta.role === 'admin' || teamMeta.role === 'owner',
       error: state.teams.errorInSettings,
-      ignoreAccessRequests: publicitySettings.ignoreAccessRequests,
-      isBigTeam: Constants.isBigTeam(state, teamname),
+      ignoreAccessRequests: teamDetails.settings.tarsDisabled,
+      isBigTeam: Constants.isBigTeam(state, teamMeta.teamname),
       openTeam: settings.open,
       // Cast to TeamRoleType
-      openTeamRole: openTeamRole === 'none' ? 'reader' : openTeamRole,
+      openTeamRole: teamDetails.settings.openJoinAs,
       publicityAnyMember,
       publicityMember,
       publicityTeam,

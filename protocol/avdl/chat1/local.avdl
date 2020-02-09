@@ -103,7 +103,8 @@ protocol local {
     CHANGEAVATAR_5,
     CHANGERETENTION_6,
     BULKADDTOCONV_7,
-    SBSRESOLVE_8
+    SBSRESOLVE_8,
+    NEWCHANNEL_9
   }
 
   record MessageSystemAddedToTeam {
@@ -112,12 +113,6 @@ protocol local {
     string addee;
     keybase1.TeamRole role;
     array<string> bulkAdds;
-    array<string> owners;
-    array<string> admins;
-    array<string> writers;
-    array<string> readers;
-    array<string> bots;
-    array<string> restrictedBots;
   }
 
   record MessageSystemInviteAddedToTeam {
@@ -171,6 +166,13 @@ protocol local {
     string prover;
   }
 
+  record MessageSystemNewChannel {
+    string creator;
+    // CLI renders the name at creation
+    string nameAtCreation;
+    ConversationID convID;
+  }
+
   variant MessageSystem switch (MessageSystemType systemType) {
     case ADDEDTOTEAM: MessageSystemAddedToTeam;
     case INVITEADDEDTOTEAM: MessageSystemInviteAddedToTeam;
@@ -181,6 +183,7 @@ protocol local {
     case CHANGERETENTION: MessageSystemChangeRetention;
     case BULKADDTOCONV: MessageSystemBulkAddToConv;
     case SBSRESOLVE: MessageSystemSbsResolve;
+    case NEWCHANNEL: MessageSystemNewChannel;
   }
 
   record MessageDeleteHistory {
@@ -851,6 +854,26 @@ protocol local {
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
+  // newConversationsLocal tries to make many conversations at once. If the conversation triple already exists,
+  // it is not considered an error. Any errors are returned in the results.
+  NewConversationsLocalRes newConversationsLocal(array<NewConversationLocalArgument> newConversationLocalArguments, keybase1.TLFIdentifyBehavior identifyBehavior);
+  record NewConversationsLocalRes {
+    array<NewConversationsLocalResult> results;
+    array<RateLimit> rateLimits;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
+  }
+  record NewConversationsLocalResult {
+    union { null, NewConversationLocalRes } result;
+    union { null, string } err;
+  }
+  record NewConversationLocalArgument {
+    string tlfName;
+    TopicType topicType;
+    keybase1.TLFVisibility tlfVisibility;
+    union { null, string } topicName;
+    ConversationMembersType membersType;
+  }
+
   NewConversationLocalRes newConversationLocal(string tlfName, TopicType topicType, keybase1.TLFVisibility tlfVisibility, union { null, string } topicName, ConversationMembersType membersType, keybase1.TLFIdentifyBehavior identifyBehavior);
   record NewConversationLocalRes {
     ConversationLocal conv;
@@ -858,7 +881,6 @@ protocol local {
     array<RateLimit> rateLimits;
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
-
 
   // if since is given, limit is ignored
   GetInboxSummaryForCLILocalRes getInboxSummaryForCLILocal(GetInboxSummaryForCLILocalQuery query);

@@ -58,7 +58,7 @@ func (p *Packager) assetFilename(url string) string {
 }
 
 func (p *Packager) assetBodyAndLength(ctx context.Context, url string) (body io.ReadCloser, size int64, err error) {
-	resp, err := libkb.ProxyHTTPGet(p.G().Env, url)
+	resp, err := libkb.ProxyHTTPGet(p.G().ExternalG(), p.G().Env, url, "UnfurlPackager")
 	if err != nil {
 		return body, size, err
 	}
@@ -71,7 +71,6 @@ func (p *Packager) assetFromURL(ctx context.Context, url string, uid gregor1.UID
 	if err != nil {
 		return res, err
 	}
-	defer body.Close()
 	return p.assetFromURLWithBody(ctx, body, contentLength, url, uid, convID, usePreview)
 }
 
@@ -289,13 +288,13 @@ func (p *Packager) packageMaps(ctx context.Context, uid gregor1.UID, convID chat
 	var length int64
 	var isDone bool
 	mapsURL := mapsRaw.ImageUrl
-	locReader, _, err := maps.MapReaderFromURL(ctx, mapsURL)
+	locReader, _, err := maps.MapReaderFromURL(ctx, p.G(), mapsURL)
 	if err != nil {
 		return res, err
 	}
 	defer locReader.Close()
 	if mapsRaw.HistoryImageUrl != nil {
-		liveReader, _, err := maps.MapReaderFromURL(ctx, *mapsRaw.HistoryImageUrl)
+		liveReader, _, err := maps.MapReaderFromURL(ctx, p.G(), *mapsRaw.HistoryImageUrl)
 		if err != nil {
 			return res, err
 		}

@@ -327,7 +327,8 @@
         "CHANGEAVATAR_5",
         "CHANGERETENTION_6",
         "BULKADDTOCONV_7",
-        "SBSRESOLVE_8"
+        "SBSRESOLVE_8",
+        "NEWCHANNEL_9"
       ]
     },
     {
@@ -356,48 +357,6 @@
             "items": "string"
           },
           "name": "bulkAdds"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "string"
-          },
-          "name": "owners"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "string"
-          },
-          "name": "admins"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "string"
-          },
-          "name": "writers"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "string"
-          },
-          "name": "readers"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "string"
-          },
-          "name": "bots"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "string"
-          },
-          "name": "restrictedBots"
         }
       ]
     },
@@ -564,6 +523,24 @@
       ]
     },
     {
+      "type": "record",
+      "name": "MessageSystemNewChannel",
+      "fields": [
+        {
+          "type": "string",
+          "name": "creator"
+        },
+        {
+          "type": "string",
+          "name": "nameAtCreation"
+        },
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "MessageSystem",
       "switch": {
@@ -633,6 +610,13 @@
             "def": false
           },
           "body": "MessageSystemSbsResolve"
+        },
+        {
+          "label": {
+            "name": "NEWCHANNEL",
+            "def": false
+          },
+          "body": "MessageSystemNewChannel"
         }
       ]
     },
@@ -2604,6 +2588,82 @@
     },
     {
       "type": "record",
+      "name": "NewConversationsLocalRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "NewConversationsLocalResult"
+          },
+          "name": "results"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFIdentifyFailure"
+          },
+          "name": "identifyFailures"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "NewConversationsLocalResult",
+      "fields": [
+        {
+          "type": [
+            null,
+            "NewConversationLocalRes"
+          ],
+          "name": "result"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "err"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "NewConversationLocalArgument",
+      "fields": [
+        {
+          "type": "string",
+          "name": "tlfName"
+        },
+        {
+          "type": "TopicType",
+          "name": "topicType"
+        },
+        {
+          "type": "keybase1.TLFVisibility",
+          "name": "tlfVisibility"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "topicName"
+        },
+        {
+          "type": "ConversationMembersType",
+          "name": "membersType"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "NewConversationLocalRes",
       "fields": [
         {
@@ -4336,6 +4396,22 @@
       ],
       "response": "SetConversationStatusLocalRes",
       "lint": "ignore"
+    },
+    "newConversationsLocal": {
+      "request": [
+        {
+          "name": "newConversationLocalArguments",
+          "type": {
+            "type": "array",
+            "items": "NewConversationLocalArgument"
+          }
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": "NewConversationsLocalRes"
     },
     "newConversationLocal": {
       "request": [

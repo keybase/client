@@ -72,7 +72,7 @@ const SearchBotPopup = (props: Props) => {
 
   const botData: Array<RPCTypes.FeaturedBot | string> =
     lastQuery.length > 0 ? results?.bots.slice() ?? [] : Constants.getFeaturedSorted(featuredBotsMap)
-  if (!botData.length) {
+  if (!botData.length && !waiting) {
     botData.push(resultEmptyPlaceholder)
   }
   const botSection = {
@@ -94,7 +94,7 @@ const SearchBotPopup = (props: Props) => {
   const userData = !lastQuery.length
     ? [userEmptyPlaceholder]
     : results?.users.filter(u => !featuredBotsMap.get(u)).slice(0, 3) ?? []
-  if (!userData.length) {
+  if (!userData.length && !waiting) {
     userData.push(resultEmptyPlaceholder)
   }
   const usersSection = {

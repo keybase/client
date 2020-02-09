@@ -50,6 +50,9 @@ declare var KB: {
       appPath: string
     }
   }
+  os: {
+    homedir: string
+  }
   path: {
     basename: (p: string, ext?: string) => string
     extname: (p: string) => string

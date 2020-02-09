@@ -5,7 +5,6 @@ package service
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 
 	"github.com/keybase/client/go/chat"
@@ -53,10 +52,7 @@ func (h *UserHandler) ReportUser(ctx context.Context, arg keybase1.ReportUserArg
 	if arg.ConvID != nil {
 		postArgs["conv_id"] = libkb.S{Val: *arg.ConvID}
 	}
-	if arg.IncludeTranscript {
-		if arg.ConvID == nil {
-			return errors.New("invalid arguments: IncludeTranscript is true but ConvID == nil")
-		}
+	if arg.IncludeTranscript && arg.ConvID != nil {
 		convID := *arg.ConvID
 		// Pull transcripts with messages from curent user and the reported user.
 		usernames := []kbun.NormalizedUsername{

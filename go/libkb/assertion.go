@@ -146,6 +146,7 @@ type AssertionURL interface {
 	IsSocial() bool
 	IsRemote() bool
 	IsFingerprint() bool
+	IsEmail() bool
 	MatchProof(p Proof) bool
 	ToUID() keybase1.UID
 	ToTeamID() keybase1.TeamID
@@ -210,6 +211,7 @@ func (b AssertionURLBase) IsSocial() bool                      { return false }
 func (b AssertionURLBase) IsRemote() bool                      { return false }
 func (b AssertionURLBase) IsFingerprint() bool                 { return false }
 func (b AssertionURLBase) IsUID() bool                         { return false }
+func (b AssertionURLBase) IsEmail() bool                       { return b.Key == "email" }
 func (b AssertionURLBase) ToUID() (ret keybase1.UID)           { return ret }
 func (b AssertionURLBase) IsTeamID() bool                      { return false }
 func (b AssertionURLBase) IsTeamName() bool                    { return false }

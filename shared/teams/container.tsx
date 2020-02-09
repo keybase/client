@@ -40,9 +40,9 @@ const useHeaderActions = (): HeaderActionProps => {
 }
 
 const orderTeamsImpl = (
-  teams: Map<string, Types.TeamDetails>,
+  teams: Map<string, Types.TeamMeta>,
   newRequests: Map<Types.TeamID, number>
-): Array<Types.TeamDetails> =>
+): Array<Types.TeamMeta> =>
   [...teams.values()].sort((a, b) => {
     const sizeDiff = (newRequests.get(b.id) || 0) - (newRequests.get(a.id) || 0)
     if (sizeDiff != 0) return sizeDiff
@@ -95,7 +95,7 @@ Reloadable.navigationOptions = {
 const Connected = Container.connect(
   (state: Container.TypedState) => ({
     _teamresetusers: state.teams.teamIDToResetUsers || new Map(),
-    _teams: state.teams.teamDetails,
+    _teams: state.teams.teamMeta,
     deletedTeams: state.teams.deletedTeams,
     loaded: !WaitingConstants.anyWaiting(state, Constants.teamsLoadedWaitingKey),
     newTeamRequests: state.teams.newTeamRequests,

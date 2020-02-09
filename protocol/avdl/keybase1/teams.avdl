@@ -804,7 +804,7 @@ protocol teams {
     Seqno latestSeqno;
     @jsonkey("latest_hidden_seqno")
     Seqno latestHiddenSeqno;
-    @jsonkey("latest_offchain_seqno")
+    @jsonkey("latest_offchain_version")
     Seqno latestOffchainSeqno;
     @jsonkey("implicit_team")
     boolean implicitTeam;
@@ -1234,6 +1234,19 @@ protocol teams {
   // Note: allowInaction only applies to invite removals, just because that was what was needed.
   void teamRemoveMember(int sessionID, TeamID teamID, string username, string email, TeamInviteID inviteID, boolean allowInaction);
 
+  record TeamMemberToRemove {
+    string username;
+    string email;
+    TeamInviteID inviteID;
+    boolean allowInaction;
+  }
+
+  record TeamRemoveMembersResult {
+    array<TeamMemberToRemove> failures;
+  }
+
+  TeamRemoveMembersResult teamRemoveMembers(int sessionID, TeamID teamID, array<TeamMemberToRemove> users);
+
   void teamLeave(int sessionID, string name, boolean permanent);
 
   void teamEditMember(int sessionID, string name, string username, TeamRole role, union { null, TeamBotSettings } botSettings);
@@ -1245,7 +1258,7 @@ protocol teams {
   // Change the roles of members in a team.
   // Users are added individually so it is possible for a network error to result in only some users being added.
   // Assignments that make no change will succeed.
-  TeamEditMembersResult teamEditMembers(int sessionID, string name, array<UserRolePair> users);
+  TeamEditMembersResult teamEditMembers(int sessionID, TeamID teamID, array<UserRolePair> users);
 
   TeamBotSettings teamGetBotSettings(int sessionID, string name, string username);
   void teamSetBotSettings(int sessionID, string name, string username, TeamBotSettings botSettings);
@@ -1288,8 +1301,6 @@ protocol teams {
   SeitanIKeyV2 teamCreateSeitanTokenV2(int sessionID, string name, TeamRole role, SeitanKeyLabel label);
 
   record BulkRes {
-    array<string> invited;
-    array<string> alreadyInvited;
     array<string> malformed;
   }
 
@@ -1501,7 +1512,6 @@ protocol teams {
     array<AnnotatedTeamInvite> invites;
     array<TeamJoinRequest> joinRequests;
 
-    boolean userIsShowcasing;
     boolean tarsDisabled;
     TeamSettings settings;
     TeamShowcase showcase;

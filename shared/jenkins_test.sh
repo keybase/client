@@ -44,9 +44,11 @@ has_js_files() {
 js_tests() {
     echo 'js-tests'
     node --version
+    npm i -g yarn
     has_js_files
 
     echo 'yarn install'
+    yarn install --network-concurrency 1 --prefer-offline --pure-lockfile --ignore-optional --ignore-engines
     yarn modules --ignore-engines
     check_rc $? 'yarn install fail' 1
 

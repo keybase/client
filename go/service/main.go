@@ -187,6 +187,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.UserSearchProtocol(NewUserSearchHandler(xp, g, contactsProv)),
 		keybase1.BotProtocol(NewBotHandler(xp, g)),
 		keybase1.FeaturedBotProtocol(NewFeaturedBotHandler(xp, g)),
+		keybase1.WotProtocol(NewWebOfTrustHandler(xp, g)),
 	}
 	appStateHandler := newAppStateHandler(xp, g)
 	protocols = append(protocols, keybase1.AppStateProtocol(appStateHandler))
@@ -206,7 +207,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 
 func (d *Service) Handle(c net.Conn) {
 	xp := rpc.NewTransport(c, libkb.NewRPCLogFactory(d.G()),
-		rpc.NewNetworkInstrumenter(d.G().NetworkInstrumenterStorage),
+		d.G().NetworkInstrumenterStorage,
 		libkb.MakeWrapError(d.G()), rpc.DefaultMaxFrameLength)
 	server := rpc.NewServer(xp, libkb.MakeWrapError(d.G()))
 

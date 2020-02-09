@@ -529,7 +529,7 @@ func (s *BlockingSender) handleReplyTo(ctx context.Context, uid gregor1.UID, con
 			return msg, err
 		}
 		if !reply.IsValid() {
-			s.Debug(ctx, "handleReplyTo: reply message invalid: %s", err)
+			s.Debug(ctx, "handleReplyTo: reply message invalid: %v %v", replyTo, err)
 			return msg, nil
 		}
 		replyToUID := reply.Valid().ClientHeader.Sender
@@ -690,8 +690,7 @@ func (s *BlockingSender) handleMentions(ctx context.Context, uid gregor1.UID, ms
 			return res, atMentions, chanMention, err
 		}
 		res = msg
-		atMentions, chanMention = utils.SystemMessageMentions(ctx, msg.MessageBody.System(),
-			s.G().GetUPAKLoader())
+		atMentions, chanMention, _ = utils.SystemMessageMentions(ctx, s.G(), uid, msg.MessageBody.System())
 	default:
 		res = msg
 	}
@@ -1499,6 +1498,12 @@ func (s *Deliverer) doNotRetryFailure(ctx context.Context, obr chat1.OutboxRecor
 	case *url.Error:
 		return chat1.OutboxErrorType_OFFLINE, err, !berr.Temporary()
 	case *net.DNSError:
+		return chat1.OutboxErrorType_OFFLINE, err, !berr.Temporary()
+	case *net.OpError:
+		return chat1.OutboxErrorType_OFFLINE, err, !berr.Temporary()
+	case net.InvalidAddrError:
+		return chat1.OutboxErrorType_OFFLINE, err, !berr.Temporary()
+	case net.UnknownNetworkError:
 		return chat1.OutboxErrorType_OFFLINE, err, !berr.Temporary()
 	case net.Error:
 		return chat1.OutboxErrorType_OFFLINE, err, !berr.Temporary()

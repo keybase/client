@@ -11,7 +11,7 @@ type OwnProps = {
 
 export default connect(
   (state, {teamID}: OwnProps) => {
-    const {teamname} = Constants.getTeamDetails(state, teamID)
+    const {teamname} = Constants.getTeamMeta(state, teamID)
     const yourOperations = Constants.getCanPerformByID(state, teamID)
     return {
       canChat: !yourOperations.joinTeam,

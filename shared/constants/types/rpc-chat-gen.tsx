@@ -788,6 +788,7 @@ export enum MessageSystemType {
   changeretention = 6,
   bulkaddtoconv = 7,
   sbsresolve = 8,
+  newchannel = 9,
 }
 
 export enum MessageType {
@@ -1212,8 +1213,8 @@ export type MessageRequestPayment = {readonly requestID: Stellar1.KeybaseRequest
 export type MessageSendPayment = {readonly paymentID: Stellar1.PaymentID}
 export type MessageServerHeader = {readonly messageID: MessageID; readonly supersededBy: MessageID; readonly r /* reactionIDs */?: Array<MessageID> | null; readonly u /* unfurlIDs */?: Array<MessageID> | null; readonly replies?: Array<MessageID> | null; readonly ctime: Gregor1.Time; readonly n: /* now */ Gregor1.Time; readonly rt /* rtime */?: Gregor1.Time | null}
 export type MessageSummary = {readonly msgID: MessageID; readonly messageType: MessageType; readonly tlfName: String; readonly tlfPublic: Boolean; readonly ctime: Gregor1.Time}
-export type MessageSystem = {systemType: MessageSystemType.addedtoteam; addedtoteam: MessageSystemAddedToTeam} | {systemType: MessageSystemType.inviteaddedtoteam; inviteaddedtoteam: MessageSystemInviteAddedToTeam} | {systemType: MessageSystemType.complexteam; complexteam: MessageSystemComplexTeam} | {systemType: MessageSystemType.createteam; createteam: MessageSystemCreateTeam} | {systemType: MessageSystemType.gitpush; gitpush: MessageSystemGitPush} | {systemType: MessageSystemType.changeavatar; changeavatar: MessageSystemChangeAvatar} | {systemType: MessageSystemType.changeretention; changeretention: MessageSystemChangeRetention} | {systemType: MessageSystemType.bulkaddtoconv; bulkaddtoconv: MessageSystemBulkAddToConv} | {systemType: MessageSystemType.sbsresolve; sbsresolve: MessageSystemSbsResolve}
-export type MessageSystemAddedToTeam = {readonly team: String; readonly adder: String; readonly addee: String; readonly role: Keybase1.TeamRole; readonly bulkAdds?: Array<String> | null; readonly owners?: Array<String> | null; readonly admins?: Array<String> | null; readonly writers?: Array<String> | null; readonly readers?: Array<String> | null; readonly bots?: Array<String> | null; readonly restrictedBots?: Array<String> | null}
+export type MessageSystem = {systemType: MessageSystemType.addedtoteam; addedtoteam: MessageSystemAddedToTeam} | {systemType: MessageSystemType.inviteaddedtoteam; inviteaddedtoteam: MessageSystemInviteAddedToTeam} | {systemType: MessageSystemType.complexteam; complexteam: MessageSystemComplexTeam} | {systemType: MessageSystemType.createteam; createteam: MessageSystemCreateTeam} | {systemType: MessageSystemType.gitpush; gitpush: MessageSystemGitPush} | {systemType: MessageSystemType.changeavatar; changeavatar: MessageSystemChangeAvatar} | {systemType: MessageSystemType.changeretention; changeretention: MessageSystemChangeRetention} | {systemType: MessageSystemType.bulkaddtoconv; bulkaddtoconv: MessageSystemBulkAddToConv} | {systemType: MessageSystemType.sbsresolve; sbsresolve: MessageSystemSbsResolve} | {systemType: MessageSystemType.newchannel; newchannel: MessageSystemNewChannel}
+export type MessageSystemAddedToTeam = {readonly team: String; readonly adder: String; readonly addee: String; readonly role: Keybase1.TeamRole; readonly bulkAdds?: Array<String> | null}
 export type MessageSystemBulkAddToConv = {readonly usernames?: Array<String> | null}
 export type MessageSystemChangeAvatar = {readonly team: String; readonly user: String}
 export type MessageSystemChangeRetention = {readonly isTeam: Boolean; readonly isInherit: Boolean; readonly membersType: ConversationMembersType; readonly policy: RetentionPolicy; readonly user: String}
@@ -1221,6 +1222,7 @@ export type MessageSystemComplexTeam = {readonly team: String}
 export type MessageSystemCreateTeam = {readonly team: String; readonly creator: String}
 export type MessageSystemGitPush = {readonly team: String; readonly pusher: String; readonly repoName: String; readonly repoID: Keybase1.RepoID; readonly refs?: Array<Keybase1.GitRefMetadata> | null; readonly pushType: Keybase1.GitPushType; readonly previousRepoName: String}
 export type MessageSystemInviteAddedToTeam = {readonly team: String; readonly inviter: String; readonly invitee: String; readonly adder: String; readonly inviteType: Keybase1.TeamInviteCategory; readonly role: Keybase1.TeamRole}
+export type MessageSystemNewChannel = {readonly creator: String; readonly nameAtCreation: String; readonly convID: ConversationID}
 export type MessageSystemSbsResolve = {readonly assertionService: String; readonly assertionUsername: String; readonly prover: String}
 export type MessageText = {readonly body: String; readonly payments?: Array<TextPayment> | null; readonly replyTo?: MessageID | null; readonly replyToUID?: Gregor1.UID | null; readonly userMentions?: Array<KnownUserMention> | null; readonly teamMentions?: Array<KnownTeamMention> | null; readonly liveLocation?: LiveLocation | null}
 export type MessageUnboxed = {state: MessageUnboxedState.valid; valid: MessageUnboxedValid} | {state: MessageUnboxedState.error; error: MessageUnboxedError} | {state: MessageUnboxedState.outbox; outbox: OutboxRecord} | {state: MessageUnboxedState.placeholder; placeholder: MessageUnboxedPlaceholder} | {state: MessageUnboxedState.journeycard; journeycard: MessageUnboxedJourneycard}
@@ -1240,9 +1242,12 @@ export type MsgSummary = {readonly id: MessageID; readonly convID: ConvIDStr; re
 export type NameQuery = {readonly name: String; readonly tlfID?: TLFID | null; readonly membersType: ConversationMembersType}
 export type NewConvRes = {readonly id: ConvIDStr; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null; readonly rateLimits?: Array<RateLimitRes> | null}
 export type NewConversationInfo = {readonly convID: ConversationID; readonly conv?: InboxUIItem | null}
+export type NewConversationLocalArgument = {readonly tlfName: String; readonly topicType: TopicType; readonly tlfVisibility: Keybase1.TLFVisibility; readonly topicName?: String | null; readonly membersType: ConversationMembersType}
 export type NewConversationLocalRes = {readonly conv: ConversationLocal; readonly uiConv: InboxUIItem; readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
 export type NewConversationPayload = {readonly Action: String; readonly convID: ConversationID; readonly inboxVers: InboxVers; readonly topicType: TopicType; readonly unreadUpdate?: UnreadUpdate | null}
 export type NewConversationRemoteRes = {readonly convID: ConversationID; readonly createdComplexTeam: Boolean; readonly rateLimit?: RateLimit | null}
+export type NewConversationsLocalRes = {readonly results?: Array<NewConversationsLocalResult> | null; readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
+export type NewConversationsLocalResult = {readonly result?: NewConversationLocalRes | null; readonly err?: String | null}
 export type NewMessagePayload = {readonly Action: String; readonly convID: ConversationID; readonly message: MessageBoxed; readonly inboxVers: InboxVers; readonly topicType: TopicType; readonly unreadUpdate?: UnreadUpdate | null; readonly untrustedTeamRole: Keybase1.TeamRole; readonly maxMsgs?: Array<MessageSummary> | null}
 export type NonblockFetchRes = {readonly offline: Boolean; readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
 export type OutboxID = Bytes
@@ -1623,6 +1628,7 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.local.postMetadataNonblock'
 // 'chat.1.local.postDeleteHistoryUpto'
 // 'chat.1.local.postDeleteHistoryThrough'
+// 'chat.1.local.newConversationsLocal'
 // 'chat.1.local.getInboxSummaryForCLILocal'
 // 'chat.1.local.getConversationForCLILocal'
 // 'chat.1.local.GetMessagesLocal'

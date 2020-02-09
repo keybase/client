@@ -8,7 +8,6 @@ import {getAddedUsernames} from '../system-users-added-to-conv'
 import {indefiniteArticle} from '../../../../util/string'
 
 type Props = {
-  isAdmin: boolean
   addee: string
   adder: string
   bulkAdds: Array<string>
@@ -20,6 +19,7 @@ type Props = {
   teamname: string
   timestamp: number
   you: string
+  isAdmin: boolean
 }
 
 const isBot = (role: TeamTypes.MaybeTeamRoleType) => {

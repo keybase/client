@@ -215,7 +215,7 @@ func TestNewTeamEKNeeded(t *testing.T) {
 	assertKeyGenerations(expectedDeviceEKGen, expectedUserEKGen, expectedTeamEKGen, false /*created*/, false /* teamEKCreationInProgress */)
 
 	// Now let's kill our deviceEK as well, and we should generate all new keys
-	err = rawDeviceEKStorage.Delete(mctx, expectedDeviceEKGen)
+	err = rawDeviceEKStorage.Delete(mctx, expectedDeviceEKGen, "")
 	require.NoError(t, err)
 	tc.G.GetDeviceEKStorage().ClearCache()
 	expectedDeviceEKGen++

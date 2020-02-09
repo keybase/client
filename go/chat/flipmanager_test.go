@@ -263,7 +263,10 @@ func TestFlipManagerChannelFlip(t *testing.T) {
 			&topicName, mt, ctc.as(t, users[1]).user(), ctc.as(t, users[2]).user())
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener2, chat1.MessageType_SYSTEM)
 		consumeNewMsgRemote(t, listener2, chat1.MessageType_SYSTEM)
 
 		mustJoinConversationByID(t, ctc, users[1], channel.Id)

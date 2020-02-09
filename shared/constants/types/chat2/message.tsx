@@ -301,7 +301,6 @@ export type MessageSystemAddedToTeam = {
   adder: string
   bulkAdds: Array<string>
   role: TeamTypes.MaybeTeamRoleType
-  isAdmin: boolean
   team: string
   type: 'systemAddedToTeam'
 } & _MessageCommon &
@@ -329,6 +328,14 @@ export type MessageSystemChangeAvatar = {
   user: string
 } & _MessageCommon &
   _MessageWithDeviceInfo &
+  _MessageWithReactions
+
+export type MessageSystemNewChannel = {
+  text: string
+  type: 'systemNewChannel'
+} & _MessageCommon &
+  _MessageWithDeviceInfo &
+  _MessageWithDeletableEditable &
   _MessageWithReactions
 
 export type MessageSystemText = {
@@ -407,6 +414,7 @@ export type Message =
   | MessageSystemUsersAddedToConversation
   | MessageSystemCreateTeam
   | MessageSystemChangeAvatar
+  | MessageSystemNewChannel
   | MessageText
   | MessagePlaceholder
   | MessagePin

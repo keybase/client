@@ -81,7 +81,7 @@ func (g *gregorTestConnection) Connect(ctx context.Context) (err error) {
 		WrapErrorFunc: libkb.MakeWrapError(g.G().ExternalG()),
 	}
 	trans := rpc.NewConnectionTransport(uri, libkb.NewRPCLogFactory(g.G().ExternalG()),
-		rpc.NewNetworkInstrumenter(g.G().ExternalG().NetworkInstrumenterStorage),
+		g.G().ExternalG().NetworkInstrumenterStorage,
 		libkb.MakeWrapError(g.G().ExternalG()), rpc.DefaultMaxFrameLength)
 	conn := rpc.NewConnectionWithTransport(g, trans,
 		libkb.NewContextifiedErrorUnwrapper(g.G().ExternalG()),
@@ -1009,11 +1009,15 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 				t.Logf("metadata snippet: index: %d snippet: %s time: %v", index, conv.LocalMetadata.Snippet,
 					conv.Time)
 			}
-			for index, conv := range ibox.InboxRes.Items {
+			index := 0
+			for _, conv := range ibox.InboxRes.Items {
 				require.NotNil(t, conv.LocalMetadata)
 				switch mt {
 				case chat1.ConversationMembersType_TEAM:
 					if conv.ConvID == firstConv.Id.ConvIDStr() {
+						continue
+					}
+					if strings.Contains(conv.LocalMetadata.Snippet, "created a new channel") {
 						continue
 					}
 					require.Equal(t, fmt.Sprintf("%d", numconvs-index-1), conv.LocalMetadata.ChannelName)
@@ -1025,6 +1029,7 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 					require.Equal(t, fmt.Sprintf("%d", numconvs-index), conv.LocalMetadata.Snippet)
 					require.Equal(t, 2, len(conv.LocalMetadata.WriterNames))
 				}
+				index++
 			}
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no inbox received")
@@ -2298,6 +2303,8 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 				consumeNewMsgLocal(t, listener, chat1.MessageType_JOIN)
 				consumeNewMsgRemote(t, listener, chat1.MessageType_JOIN)
 				consumeNewPendingMsg(t, listener)
+				consumeNewMsgLocal(t, listener, chat1.MessageType_SYSTEM)
+				consumeNewMsgRemote(t, listener, chat1.MessageType_SYSTEM)
 				consumeNewMsgLocal(t, listener, chat1.MessageType_SYSTEM)
 				consumeNewMsgRemote(t, listener, chat1.MessageType_SYSTEM)
 			default:
@@ -4322,7 +4329,10 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		assertNoNewConversation(t, listener2)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener2, chat1.MessageType_SYSTEM)
 		consumeNewMsgRemote(t, listener2, chat1.MessageType_SYSTEM)
 		_, err = postLocalForTest(t, ctc, users[1], ncres.Conv.Info, chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: fmt.Sprintf("JOINME"),
@@ -4384,6 +4394,9 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		assertNoNewConversation(t, listener1)
 		assertNoNewConversation(t, listener2)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener2, chat1.MessageType_SYSTEM)
 		getTLFRes, err := ctc.as(t, users[1]).chatLocalHandler().GetTLFConversationsLocal(ctx1,
 			chat1.GetTLFConversationsLocalArg{
 				TlfName:     conv.TlfName,
@@ -5368,6 +5381,8 @@ func TestChatSrvSetConvMinWriterRole(t *testing.T) {
 		consumeTeamType(t, listener1)
 		consumeTeamType(t, listener2)
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener2, chat1.MessageType_SYSTEM)
 		consumeNewMsgRemote(t, listener2, chat1.MessageType_SYSTEM)
 
 		channelID := channelInfo.Id
@@ -5434,6 +5449,7 @@ func TestChatSrvTopicNameState(t *testing.T) {
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
 		consumeTeamType(t, listener0)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
 
 		// Delete the conv, make sure we can still create a new channel after
 		_, err = ctc.as(t, users[0]).chatLocalHandler().DeleteConversationLocal(ctx,
@@ -5460,6 +5476,7 @@ func TestChatSrvTopicNameState(t *testing.T) {
 		consumeNewConversation(t, listener0, convInfo.Id)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
 
 		// Creating a conversation with same topic name just returns the matching one
 		topicName = "random"
@@ -5475,11 +5492,13 @@ func TestChatSrvTopicNameState(t *testing.T) {
 		randomConvID := ncres.Conv.GetConvID()
 		consumeNewConversation(t, listener0, randomConvID)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
 
 		ncres, err = ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx, ncarg)
 		require.NoError(t, err)
 		require.Equal(t, randomConvID, ncres.Conv.GetConvID())
 		assertNoNewConversation(t, listener0)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
 
 		// Try to change topic name to one that exists
 		plarg := chat1.PostLocalArg{
@@ -5891,6 +5910,8 @@ func TestChatSrvDeleteConversation(t *testing.T) {
 		consumeTeamType(t, listener0)
 		consumeTeamType(t, listener1)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
 
 		uid := users[0].User.GetUID().ToBytes()
@@ -6393,6 +6414,8 @@ func TestChatSrvTeamChannelNameMentions(t *testing.T) {
 				consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
 				consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
 			}
+			consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
+			consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
 
 			_, err = ctc.as(t, users[0]).chatLocalHandler().JoinConversationByIDLocal(ctx1,
 				channel.Conv.GetConvID())
@@ -6837,6 +6860,8 @@ func TestChatBulkAddToConv(t *testing.T) {
 		require.NoError(t, err)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
 
 		usernames := []string{users[1].Username}
@@ -7666,5 +7691,83 @@ func TestTeamBotChannelMembership(t *testing.T) {
 			sort.Strings(parts)
 			require.Equal(t, expectedUsers, parts)
 		}
+	})
+}
+
+func TestChatSrvNewConversationsLocal(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+		default:
+			return
+		}
+
+		ctc := makeChatTestContext(t, "NewConversationsLocal", 3)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		key := teamKey(users)
+		name := createTeamWithWriters(ctc.world.Tcs[users[0].Username].TestContext, users[1:])
+		ctc.teamCache[key] = name
+		tlfName := strings.ToLower(name)
+
+		type L struct {
+			tlfName     string
+			channelName *string
+			ok          bool
+		}
+		sp := func(x string) *string { return &x }
+		argument := func(ll []L) (arg chat1.NewConversationsLocalArg) {
+			arg.IdentifyBehavior = keybase1.TLFIdentifyBehavior_CHAT_CLI
+			for _, l := range ll {
+				arg.NewConversationLocalArguments = append(arg.NewConversationLocalArguments, chat1.NewConversationLocalArgument{
+					TlfName:       name,
+					TopicType:     chat1.TopicType_CHAT,
+					TopicName:     l.channelName,
+					TlfVisibility: keybase1.TLFVisibility_PRIVATE,
+					MembersType:   chat1.ConversationMembersType_TEAM,
+				})
+			}
+			return arg
+		}
+
+		t.Logf("creating many channels, some with bad names")
+		ll := []L{
+			{tlfName: tlfName, channelName: nil, ok: true},
+			{tlfName: tlfName, channelName: sp("now"), ok: true},
+			{tlfName: tlfName, channelName: sp("i"), ok: true},
+			{tlfName: tlfName, channelName: sp("am"), ok: true},
+			{tlfName: tlfName, channelName: sp("#become"), ok: false},
+			{tlfName: tlfName, channelName: sp("death"), ok: true},
+			{tlfName: tlfName, channelName: sp("destroyer.of"), ok: false},
+			{tlfName: tlfName, channelName: sp("worlds/"), ok: false},
+			{tlfName: tlfName, channelName: sp("!"), ok: false},
+		}
+		tc := ctc.as(t, users[0])
+		res, err := tc.chatLocalHandler().NewConversationsLocal(tc.startCtx, argument(ll))
+		require.Error(t, err)
+		require.Equal(t, len(ll), len(res.Results))
+		for idx, l := range ll {
+			result := res.Results[idx]
+			if l.ok {
+				require.NotNil(t, result.Result)
+				require.Equal(t, strings.ToLower(l.tlfName), result.Result.Conv.Info.TlfName)
+				if n := l.channelName; n != nil {
+					require.Equal(t, *n, result.Result.Conv.Info.TopicName)
+				}
+			} else {
+				require.NotNil(t, result.Err)
+				require.Nil(t, result.Result)
+			}
+		}
+
+		t.Logf("testing idempotency")
+		ll[4].channelName = sp("become")
+		ll[6].channelName = sp("destroyerof")
+		ll[7].channelName = sp("worlds")
+		ll[8].channelName = sp("exclam")
+		res, err = tc.chatLocalHandler().NewConversationsLocal(tc.startCtx, argument(ll))
+		require.NoError(t, err)
+		require.Equal(t, len(ll), len(res.Results))
 	})
 }

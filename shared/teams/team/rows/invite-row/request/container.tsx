@@ -14,7 +14,7 @@ type OwnProps = {
 }
 
 const mapStateToProps = (state, {username, teamID}) => {
-  const {teamname} = Constants.getTeamDetails(state, teamID)
+  const {teamname} = Constants.getTeamMeta(state, teamID)
   return {
     _notifLabel:
       Constants.getTeamType(state, teamname) === 'big'

@@ -68,7 +68,7 @@ func awsStringSign4(key string, date string, region string, service string, toSi
 //
 //  https://superuser.com/questions/279986/uploading-files-to-s3-account-from-linux-command-line
 //
-func s3put(src io.Reader, bucket string, name string, getLogCmd string) (string, error) {
+func s3put(src io.Reader, bucket string, name string) (string, error) {
 	buf, err := gzipSource(src)
 	if err != nil {
 		return "", err
@@ -148,13 +148,7 @@ func s3put(src io.Reader, bucket string, name string, getLogCmd string) (string,
 	if err != nil {
 		return "", err
 	}
-	resource := "/" + bucket + "/" + name
-	var where string
-	if getLogCmd != "" {
-		where = fmt.Sprintf("(fetch with: `%s s3:/%s`)", getLogCmd, resource)
-	} else {
-		where = fmt.Sprintf("(`%s`)", resource)
-	}
+	where := fmt.Sprintf("(fetch with: `curl -s -o - https://%s.s3.amazonaws.com/%s | zcat -d`)", bucket, name)
 
 	return where, nil
 }

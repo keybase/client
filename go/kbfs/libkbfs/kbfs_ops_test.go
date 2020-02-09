@@ -381,14 +381,6 @@ func TestKBFSOpsGetFavoritesFail(t *testing.T) {
 	}
 }
 
-func getOps(config Config, id tlf.ID) *folderBranchOps {
-	return config.KBFSOps().(*KBFSOpsStandard).
-		getOpsNoAdd(context.TODO(), data.FolderBranch{
-			Tlf:    id,
-			Branch: data.MasterBranch,
-		})
-}
-
 // createNewRMD creates a new RMD for the given name. Returns its ID
 // and handle also.
 func createNewRMD(t *testing.T, config Config, name string, ty tlf.Type) (
@@ -3539,6 +3531,7 @@ func TestKBFSOpsMaliciousMDServerRange(t *testing.T) {
 
 	// Create mallory's fake TLF using the same TLF ID as alice's.
 	config2 := ConfigAsUser(config1, "mallory")
+	defer func() { _ = config2.Shutdown(ctx) }()
 	config2.SetMode(modeNoHistory{config2.Mode()})
 	crypto2 := cryptoFixedTlf{config2.Crypto(), fb1.Tlf}
 	config2.SetCrypto(crypto2)

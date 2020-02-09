@@ -1,11 +1,8 @@
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import * as Constants from '../../constants/crypto'
+import * as Container from '../../util/container'
 import Output, {OutputBar, SignedSender} from '.'
-
-const onCopyOutput = Sb.action('onCopyOutput')
-const onSaveAsText = Sb.action('onSaveAsText')
-const onShowInFinder = Sb.action('onShowInFinder')
 
 const encryptOutput = `
 BEGIN KEYBASE SALTPACK ENCRYPTED MESSAGE. kjJH07SgogfvQyO W2ceS63l6ZyZLJY QjIHHO1KfgE75hS bnK25qOLLNqWLzt blZcAq80pAiuDz6 RDtndCy8BesZOYg rilXMgRYy1UX15N va5xb0KR5VPRdQB huw6mTEi7X9u2fk zUh7UTKAbos3pNk ewb6y3ZkroVJNch ESlIx1BjI6UpODF vlxCofBeOIU2p6O W3hIPIv8WIrWknZ QOJyV4jViN76Xep atcNK2KvjWagqpz VekV3xU3PaN81Xm U2yidibQ8KAhLxV mx3KsLsXgowF5l6 t1hc1NFVnraZr00 pkWNxLu2CMFfp61 EvhLA06aThBb7q0 3IuIiqFHoDmFBgD txjutGxDXus8LnD QYOTzrvgwX6JZUd ijW1fkOMEENkxD1 WTNEcaAA1KJYJl1 0FCdHwHNtQQAsWG DVOehOioaBE3l2T BfBxxUAvmM81MAD CHEYWRTwmyCnh8V hFqBxUruRyoYFKW G2NkBE7M1vA2beM pjixZcKfN03Cmmw tIHJFRVMz3OJax8 oYw67nW4WR9JC2S PHFDJdhRDABYxmW JHlZjaeEt6LqKtE 7L3xcQ8w6zxkKVl 5q06yU9gDmq5pSv IpCQbob4gVVfCLX ITTtiMA1aaQEL6N KzylNpOsMo7YLBc BbRJk7jb9PY6Mof vTH9HW0jlCOJOqL nMpsxNRbwzO1w9W w7nISYQyI2U5DoA ol9DKthHoZQAEtf UdH4ANGiJGuCFaN 0WC4XhXFYcbyuvX kDP53b5yUHjzxh7 JCbqTobYEPD4wvD s5Ns6SLW7osB1eY CzTbdKuSDuD4eCa 3ojb6yiAKHrCjaZ UFFgKW5KUBv93gm hZgQ2b3CO1Qw0AZ UGOBhA966uOOGCE mqg2y98zq2ypJkl MX4xQtN0XL7Ih1S NPEmBrkbVgbUkkZ 5bxFTXsVKOBSVj3 iCOFpn0jDCCQ77d R1LDfC9vhtiLlOW mczNX7zndL8n6iG X5z1TFnvem6cCWM qQpPoA3MkrAqKSk 9lmRLbqiGwiaPSj zSig9Ap9k7j5Jll USo0Wrsgedwp8c4 qRq98LbVYYKcSKJ f6rdWWSdftKACnm 4heX584El5W5MKf VOJByjl0LuucvrE SDb8E46qFNT66Wp bwVvEfUUKadS74b fKwJClKAmvcIjXl EZ3n52sZzUaFpCd GN3NTfo2XZlDxIr 9gentusb8Xv1uEG Alr6SHVW30zVKA0 JPPgwzg9oPWkssk Iwr2xydGgLDTDrK Skcda2juhWaonwR JkjUBax7sczIGvI S7iNu8mJCjHdDxI ZJ0Nxg8bTOhCpA4 XipvdWbDfsgpfam H21OAOsChvq5gkC 8A2o5LKtdvlyXtw havvDAH00u026QD QuLMWG1ENVVPG6N uLJGDgD5pyiudbA CYxsSIH0LVhmVp2 Dn9ovDVV98ZKUDd nHofeTQP5VgKEqI 8C0d3aBqZQGMySz vpfMvt6d8nTo0uF YOONNMoroxbd0Fr TVWfDejwrYheHon 10fc9xyKAdSj96D QJ4m0rJqsmhgFyT AYwU0zk2Sf7d29c qHSQX57R4KW2Ndj F9rOVbJ2gtLK0zm cMVeIPWl6PImOgL A2bThPxoa5GyIhy L90dzPBXx61pZpv 0NtEcq0mGxXNGCu oAGKUiAjsc7LYQm JolrLw3I3lQopFr RnOCPUojJnfnG6U R2j3pRbGQtMmspb ho9Xf7EnVRpIXmp SUFatddtC7Ygpbi ebeklpz0Qd4KIZn fbpNmI72sxoMx53 rMxcPhujBDzNnxi unmqsB3AYeDrrpS iUlZqMJnLR6bxrU O1ok2MgndIlw9qO tgHYuitD97GfN7G O50h0e659ggBmRQ JbVqrogL0x37Dqu rQDzQ3F9rHSu0Rb phxZbtplQSAu3JZ ozbWylwq0SYVjSL ZqPGCfqfHPkBcPj CkjzN6At0jA8LNT SpdYzg1t3Fa0g5i WKNFOFoYUlQ0VrC MHOm4H2ZMVBhZsa 9yAGuwSYeAW9zjy 9Met8sSimv09UlL ArjdIXKmgN7Yw4R IpXPBHqz3aeuH8i PdCBMluTI7dJtse 1FLoat7521l9Fw2 JUA1eP4q8RHfevQ A19pbIdbhRgoPFi 05LRsVg2YL9rWLd TTuKFmATPDhZZRj 5BAal8v2I31Ka9a J6wxJo0RdfHQ3dh SzdbhegSjUAsE6D Ial9S1OA8tfhUPr g0zP2lnZ0NC3q2H WaI9lNgp0TlzGA0 yrDZg40e9U63Wss fJPvfp97EAuleLg Aq3pIBhYrOtakSj vQZp7R7VMVMcT8t jSP3wnrrhTtYkK4 DM9vjayJmpGP9JT 76AELJXUa3FlKQY u5pG9BIttNj6qjD HGxNYSpcM16uyYY OGO8l5khNwoINHG 6YS64O6AqBLZGWu WsbTkB7QX3eoOeD lvweWtFsT1IEv0S sAt0MjOSpBv18Om gAdxcgBbH4My5iF zDj6iOUbDRkIeCZ g0DUkUj4tEeNMvy Z5s7qFuI80OZ5kq WhDBo98IGjy473G sTWfG2aer9C4JD0 WVjrtumTgCiUWb3 diaB9GUNhMzZoVQ gNj983oBWG2qc9Z tcDMKVpzUYc3xy1 qWS9kpd6FVV49jL Ptv3sYmt66DZFLs hlfsEaljHgIHaQT xgxfxCeLCEgx36M hCSMKUuvyLRG75G nglW3SpXoO9o9Zn XSnLSGq94noRNmM YeDEaCp9Vlt4Zoc KE4L9CT1NZOw9KN H56UGWchR3E13x8 UyWYpmUsyDrpLoK 7odgXKIB6ueTHeq 9cpHs3pQUGcHjaY 1U6MufYNzDuCRE0 fIHJpR2qg4AT6lu 98JxPG8P8pKsxB4 g2gonhTn84kAVU8 EHt0xpltB6MI9Cf Fz6TOPG6OmQQpJK 2jKbmIm17lReP19 IYnlqClAC7QE7Jy MJ4rqRvA1D1dh4n v8polYh7xZaryAS lXR3KZwgFXFWkCn ssr7h4reigzLpSj HCXOUDNtBpi9tU0 NsqNiq4H22B8lmx j9azufVmNSHjjkt
@@ -16,126 +13,149 @@ const decryptOutput = `Plaintext stuff`
 const signOutput = `
 BEGIN KEYBASE SALTPACK SIGNED MESSAGE. kXR7VktZdyH7rvq v5weRa0zkIFigOx DLGV6rkJYEEHtdM 7WlEE9fJbQO5mhN QeBMk9LcbYLPG97 FPlajQEPpehYw2y WeOn26a8LHQQujz Of70f0T3V01ZZdX 6EuTtEce1L1jYtn dRJirXtQGNoi4ne zeQJUehfZHXVLt8 M1QvFi10F6KVlu1 QTvkbaBP1VfrG1u HhNYto. END KEYBASE SALTPACK SIGNED MESSAGE.
 `
-const verifyOutput = 'Letting you know if was me'
+const verifyOutput =
+  'Verifying that this message was sent by Cecileb and far longer than 120 characters to show that the text size is regular and not large.'
+
+const store = Container.produce(Sb.createStoreWithCommon(), draftState => {
+  const {crypto} = draftState
+  const {encrypt, decrypt, sign, verify} = crypto
+
+  encrypt.outputStatus = 'success'
+  decrypt.outputStatus = 'success'
+  sign.outputStatus = 'success'
+  verify.outputStatus = 'success'
+
+  encrypt.outputValid = true
+  decrypt.outputValid = true
+  sign.outputValid = true
+  verify.outputValid = true
+})
 
 const load = () => {
   Sb.storiesOf('Crypto/Output', module)
-    .add('Encrypt', () => (
-      <Output
-        output={encryptOutput}
-        outputMatchesInput={true}
-        textType="cipher"
-        operation={Constants.Operations.Encrypt}
-        onShowInFinder={onShowInFinder}
-      />
+    .addDecorator(
+      Sb.updateStoreDecorator(store, draftState => {
+        const {encrypt, decrypt, sign, verify} = draftState.crypto
+        encrypt.output = new Container.HiddenString(encryptOutput)
+        decrypt.output = new Container.HiddenString(decryptOutput)
+        sign.output = new Container.HiddenString(signOutput)
+        verify.output = new Container.HiddenString(verifyOutput)
+      })
+    )
+    .add('Encrypt', () => <Output operation={Constants.Operations.Encrypt} />)
+    .add('Decrypt', () => <Output operation={Constants.Operations.Verify} />)
+    .add('Sign', () => <Output operation={Constants.Operations.Sign} />)
+    .add('Verify', () => <Output operation={Constants.Operations.Verify} />)
+
+  Sb.storiesOf('Crypto/Output', module)
+    .addDecorator(
+      Sb.updateStoreDecorator(store, draftState => {
+        const {decrypt, verify} = draftState.crypto
+        decrypt.output = new Container.HiddenString('Decrypt: Under 120 characters is big')
+        verify.output = new Container.HiddenString('Verify: Under 120 characters is big')
+      })
+    )
+    .add('Decrypt - Large', () => <Output operation={Constants.Operations.Decrypt} />)
+    .add('Verify - Large', () => <Output operation={Constants.Operations.Verify} />)
+
+  Sb.storiesOf('Crypto/Output Bar', module)
+    .addDecorator(
+      Sb.updateStoreDecorator(store, draftState => {
+        draftState.waiting.counts.set(Constants.encryptStringWaitingKey, 1)
+      })
+    )
+    .add('Disabled', () => <OutputBar operation={Constants.Operations.Encrypt} />)
+
+  Sb.storiesOf('Crypto/Output Bar', module)
+    .addDecorator((story: any) => (
+      <Sb.MockStore
+        store={Container.produce(store, draftState => {
+          draftState.waiting.counts.set(Constants.encryptStringWaitingKey, 0)
+        })}
+      >
+        {story()}
+      </Sb.MockStore>
     ))
-    .add('Decrypt', () => (
-      <Output
-        output={decryptOutput}
-        outputMatchesInput={true}
-        textType="plain"
-        operation={Constants.Operations.Verify}
-        onShowInFinder={onShowInFinder}
-      />
-    ))
-    .add('Decrypt - Large', () => (
-      <Output
-        output="Under 120 characters is big"
-        outputMatchesInput={true}
-        textType="plain"
-        operation={Constants.Operations.Verify}
-        onShowInFinder={onShowInFinder}
-      />
-    ))
-    .add('Sign', () => (
-      <Output
-        output={signOutput}
-        outputMatchesInput={true}
-        textType="cipher"
-        operation={Constants.Operations.Sign}
-        onShowInFinder={onShowInFinder}
-      />
-    ))
-    .add('Verify', () => (
-      <Output
-        output={verifyOutput}
-        outputMatchesInput={true}
-        textType="plain"
-        operation={Constants.Operations.Verify}
-        onShowInFinder={onShowInFinder}
-      />
-    ))
-    .add('Verify - Large', () => (
-      <Output
-        output="Under 120 characters is big"
-        outputMatchesInput={true}
-        textType="plain"
-        operation={Constants.Operations.Verify}
-        onShowInFinder={onShowInFinder}
-      />
+    .add('Enabled', () => <OutputBar operation={Constants.Operations.Encrypt} />)
+
+  Sb.storiesOf('Crypto/Output Signed Sender', module)
+    .addDecorator(
+      Sb.updateStoreDecorator(store, draftState => {
+        draftState.crypto.encrypt.outputSigned = false
+        draftState.crypto.encrypt.outputSenderUsername = undefined
+      })
+    )
+    .add('Unsigned - Encrypt - Anonymous', () => <SignedSender operation={Constants.Operations.Encrypt} />)
+
+  Sb.storiesOf('Crypto/Output Signed Sender', module)
+    .addDecorator(
+      Sb.updateStoreDecorator(store, draftState => {
+        draftState.crypto.encrypt.outputSigned = true
+        draftState.crypto.encrypt.outputSenderUsername = new Container.HiddenString('cecileb')
+      })
+    )
+    .add('Signed - Encrypt - You', () => <SignedSender operation={Constants.Operations.Encrypt} />)
+
+  Sb.storiesOf('Crypto/Output Signed Sender', module)
+    .addDecorator(
+      Sb.updateStoreDecorator(store, draftState => {
+        draftState.crypto.sign.outputSigned = true
+        draftState.crypto.sign.outputSenderUsername = new Container.HiddenString('cecileb')
+      })
+    )
+    .add('Signed - Sign - You', () => <SignedSender operation={Constants.Operations.Sign} />)
+
+  Sb.storiesOf('Crypto/Output Signed Sender', module)
+    .addDecorator(
+      Sb.updateStoreDecorator(store, draftState => {
+        draftState.crypto.decrypt.outputSigned = false
+        draftState.crypto.decrypt.outputSenderUsername = undefined
+        draftState.crypto.decrypt.outputSenderFullname = undefined
+      })
+    )
+    .add('Unsigned - Decrypt - Anonymous', () => <SignedSender operation={Constants.Operations.Decrypt} />)
+
+  Sb.storiesOf('Crypto/Output Signed Sender', module)
+    .addDecorator(
+      Sb.updateStoreDecorator(store, draftState => {
+        draftState.crypto.decrypt.outputSigned = true
+        draftState.crypto.decrypt.outputSenderUsername = new Container.HiddenString('modalduality')
+        draftState.crypto.decrypt.outputSenderFullname = undefined
+      })
+    )
+    .add('Signed - Decrypt - User', () => <SignedSender operation={Constants.Operations.Decrypt} />)
+
+  Sb.storiesOf('Crypto/Output Signed Sender', module)
+    .addDecorator(
+      Sb.updateStoreDecorator(store, draftState => {
+        draftState.crypto.decrypt.outputSigned = true
+        draftState.crypto.decrypt.outputSenderUsername = new Container.HiddenString('chris')
+        draftState.crypto.decrypt.outputSenderFullname = new Container.HiddenString('Chris Coyne')
+      })
+    )
+    .add('Signed - Decrypt - User - Fullname', () => (
+      <SignedSender operation={Constants.Operations.Decrypt} />
     ))
 
-  Sb.storiesOf('Crypto/Output/Bar', module).add('Download - Copy', () => (
-    <OutputBar
-      operation={Constants.Operations.Encrypt}
-      output="secret stuff"
-      outputStatus="success"
-      outputMatchesInput={true}
-      onCopyOutput={onCopyOutput}
-      onSaveAsText={onSaveAsText}
-      onShowInFinder={onShowInFinder}
-    />
-  ))
+  Sb.storiesOf('Crypto/Output Signed Sender', module)
+    .addDecorator(
+      Sb.updateStoreDecorator(store, draftState => {
+        draftState.crypto.verify.outputSigned = true
+        draftState.crypto.verify.outputSenderUsername = new Container.HiddenString('modalduality')
+        draftState.crypto.verify.outputSenderFullname = undefined
+      })
+    )
+    .add('Signed - Verify - User', () => <SignedSender operation={Constants.Operations.Verify} />)
 
-  Sb.storiesOf('Crypto/Output/Signed Sender', module)
-    .add('Signed - You - Encrypt', () => (
-      <SignedSender
-        outputStatus="success"
-        signed={true}
-        signedBy="cecileb"
-        operation={Constants.Operations.Sign}
-      />
-    ))
-    .add('Signed - You - Sign', () => (
-      <SignedSender
-        outputStatus="success"
-        signed={true}
-        signedBy="cecileb"
-        operation={Constants.Operations.Sign}
-      />
-    ))
-    .add('Signed - Someone Else - Decrypt', () => (
-      <SignedSender
-        outputStatus="success"
-        signed={true}
-        signedBy="cecileb"
-        operation={Constants.Operations.Decrypt}
-      />
-    ))
-    .add('Signed - Someone Else - Verify', () => (
-      <SignedSender
-        outputStatus="success"
-        signed={true}
-        signedBy="cecileb"
-        operation={Constants.Operations.Verify}
-      />
-    ))
-    .add('Unsigned - You', () => (
-      <SignedSender
-        outputStatus="success"
-        signed={false}
-        signedBy=""
-        operation={Constants.Operations.Encrypt}
-      />
-    ))
-    .add('Unsigned - Someone Else', () => (
-      <SignedSender
-        outputStatus="success"
-        signed={false}
-        signedBy=""
-        operation={Constants.Operations.Decrypt}
-      />
-    ))
+  Sb.storiesOf('Crypto/Output Signed Sender', module)
+    .addDecorator(
+      Sb.updateStoreDecorator(store, draftState => {
+        draftState.crypto.verify.outputSigned = true
+        draftState.crypto.verify.outputSenderUsername = new Container.HiddenString('cjb')
+        draftState.crypto.verify.outputSenderFullname = new Container.HiddenString('Chris Ball')
+      })
+    )
+    .add('Signed - Verify - User - Fullname', () => <SignedSender operation={Constants.Operations.Verify} />)
 }
 
 export default load

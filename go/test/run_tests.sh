@@ -35,11 +35,12 @@ go get "github.com/stretchr/testify/assert"
 
 failures=()
 
-PID=$$
+branch=$(git rev-parse --abbrev-ref HEAD)
+build_id=$(perl -e '{ print time }')
 
 for i in $DIRS; do
   echo -n "$i......."
-  if ! (cd $i && citogo --flakes 4 --fails 5 --build pid-$PID --prefix $i) ; then
+  if ! (cd $i && citogo --flakes 4 --fails 5 --branch $branch --build-id $build_id --prefix $i --timeout 150s) ; then
     failures+=("$i")
   fi
 done

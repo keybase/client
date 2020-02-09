@@ -56,9 +56,9 @@ class SpecialTopMessage extends React.PureComponent<Props> {
           <ProfileResetNotice conversationIDKey={this.props.conversationIDKey} />
         )}
         {this.props.pendingState === 'waiting' && (
-          <Kb.Text type="BodySmallSemibold" style={styles.loading}>
-            Loading...
-          </Kb.Text>
+          <Kb.Box style={styles.more}>
+            <Kb.Text type="BodySmallSemibold">Loading...</Kb.Text>
+          </Kb.Box>
         )}
         {this.props.pendingState === 'error' && (
           <Kb.Box2
@@ -137,7 +137,7 @@ class SpecialTopMessage extends React.PureComponent<Props> {
             <MakeTeamCard conversationIDKey={this.props.conversationIDKey} />
           </Kb.Box>
         )}
-        {this.props.loadMoreType === 'moreToLoad' && this.props.pendingState !== 'error' && (
+        {this.props.loadMoreType === 'moreToLoad' && this.props.pendingState === 'done' && (
           <Kb.Box style={styles.more}>
             <Kb.Text type="BodyBig">
               <Kb.Emoji size={16} emojiName=":moyai:" />
@@ -158,9 +158,6 @@ const styles = Styles.styleSheetCreate(
       },
       errorText: {
         padding: Styles.globalMargins.small,
-      },
-      loading: {
-        marginLeft: Styles.globalMargins.small,
       },
       more: {
         ...Styles.globalStyles.flexBoxColumn,

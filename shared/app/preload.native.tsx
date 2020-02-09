@@ -17,6 +17,11 @@ global.KB = {
       },
     },
   },
+  os: {
+    get homedir() {
+      return invalidPreload()
+    },
+  },
   path: {
     basename: invalidPreload,
     extname: invalidPreload,

@@ -22,11 +22,13 @@ type opts struct {
 	S3Bucket    string
 	DirBasename string
 	BuildID     string
+	Branch      string
 	Preserve    bool
 	BuildURL    string
-	GetLogCmd   string
 	NoCompile   bool
 	TestBinary  string
+	Timeout     string
+	Pause       time.Duration
 }
 
 func logError(f string, args ...interface{}) {
@@ -37,40 +39,37 @@ func logError(f string, args ...interface{}) {
 	fmt.Fprintf(os.Stderr, "%s", s)
 }
 
-func reportTestOutcome(outcome string, test string, where string) {
-	fmt.Printf("%s: %s", outcome, test)
-	if where != "" {
-		fmt.Printf(" %s", where)
-	}
-	fmt.Printf("\n")
-}
-
 type runner struct {
 	opts   opts
-	flakes int
-	fails  int
+	flakes []string
+	fails  []string
 	tests  []string
 }
 
-func convertPrefix(p string) string {
-	s := fmt.Sprintf("%c", os.PathSeparator)
-	return strings.ReplaceAll(p, s, "_")
+func convertBreakingChars(s string) string {
+	// replace either the unix or the DOS directory marker
+	// with an underscore, so as not to break the directory
+	// structure of where we are storing the log
+	s = strings.ReplaceAll(s, "/", "_")
+	s = strings.ReplaceAll(s, "\\", "_")
+	s = strings.ReplaceAll(s, "-", "_")
+	return s
 }
 
 func (r *runner) parseArgs() (err error) {
 	flag.IntVar(&r.opts.Flakes, "flakes", 3, "number of allowed flakes")
 	flag.IntVar(&r.opts.Fails, "fails", -1, "number of fails allowed before quitting")
-	var prfx string
-	flag.StringVar(&prfx, "prefix", "", "test set prefix")
+	flag.StringVar(&r.opts.Prefix, "prefix", "", "test set prefix")
 	flag.StringVar(&r.opts.S3Bucket, "s3bucket", "", "AWS S3 bucket to write failures to")
-	flag.StringVar(&r.opts.BuildID, "build", "", "build ID of the current build")
+	flag.StringVar(&r.opts.BuildID, "build-id", "", "build ID of the current build")
+	flag.StringVar(&r.opts.Branch, "branch", "", "the branch of the current build")
 	flag.BoolVar(&r.opts.Preserve, "preserve", false, "preserve test binary after done")
 	flag.StringVar(&r.opts.BuildURL, "build-url", "", "URL for this build (in CI mainly)")
-	flag.StringVar(&r.opts.GetLogCmd, "get-log-cmd", "", "Command to get logs from S3")
 	flag.BoolVar(&r.opts.NoCompile, "no-compile", false, "specify flag if you've pre-compiled the test")
 	flag.StringVar(&r.opts.TestBinary, "test-binary", "", "specify the test binary to run")
+	flag.StringVar(&r.opts.Timeout, "timeout", "60s", "timeout (in seconds) for any one individual test")
+	flag.DurationVar(&r.opts.Pause, "pause", 0, "pause duration between each test (default 0)")
 	flag.Parse()
-	r.opts.Prefix = convertPrefix(prfx)
 	var d string
 	d, err = os.Getwd()
 	if err != nil {
@@ -121,8 +120,8 @@ func (r *runner) listTests() error {
 }
 
 func (r *runner) flushTestLogs(test string, log bytes.Buffer) (string, error) {
-	buildID := strings.ReplaceAll(r.opts.BuildID, "-", "_")
-	logName := fmt.Sprintf("citogo-%s-%s-%s", buildID, r.opts.Prefix, test)
+	logName := fmt.Sprintf("citogo-%s-%s-%s-%s", convertBreakingChars(r.opts.Branch),
+		convertBreakingChars(r.opts.BuildID), convertBreakingChars(r.opts.Prefix), test)
 	if r.opts.S3Bucket != "" {
 		return r.flushLogsToS3(logName, log)
 	}
@@ -130,7 +129,7 @@ func (r *runner) flushTestLogs(test string, log bytes.Buffer) (string, error) {
 }
 
 func (r *runner) flushLogsToS3(logName string, log bytes.Buffer) (string, error) {
-	return s3put(&log, r.opts.S3Bucket, logName, r.opts.GetLogCmd)
+	return s3put(&log, r.opts.S3Bucket, logName)
 }
 
 func (r *runner) flushTestLogsToTemp(logName string, log bytes.Buffer) (string, error) {
@@ -154,21 +153,64 @@ func (r *runner) reportFlake(test string, logs string) {
 	if hook == "" {
 		return
 	}
-	hook += url.QueryEscape(fmt.Sprintf("❄️ _client_ %s %s *%s* %s [%s]", r.opts.BuildID, r.opts.Prefix, test, logs, r.opts.BuildURL))
+
+	r.doHook(hook, test, logs, "❄️")
+}
+
+func (r *runner) doHook(hook string, test string, logs string, emoji string) {
+	hook += url.QueryEscape(fmt.Sprintf("%s _client_ %s-%s %s *%s* %s [%s]", emoji, r.opts.Branch, r.opts.BuildID, r.opts.Prefix, test, logs, r.opts.BuildURL))
 	_, err := http.Get(hook)
 	if err != nil {
 		logError("error reporting flake: %s", err.Error())
 	}
 }
 
+type outcome string
+
+const (
+	success outcome = "success"
+	flake   outcome = "flake"
+	fail    outcome = "fail"
+)
+
+func (o outcome) abbrv() string {
+	switch o {
+	case success:
+		return "PASS"
+	case flake:
+		return "FLK?"
+	case fail:
+		return "FAIL"
+	default:
+		return "????"
+	}
+}
+
+func (r *runner) reportTestOutcome(outcome outcome, test string, where string) {
+	fmt.Printf("%s: %s", outcome.abbrv(), test)
+	if where != "" {
+		fmt.Printf(" %s", where)
+	}
+	fmt.Printf("\n")
+
+	if outcome != fail || r.opts.Branch != "master" {
+		return
+	}
+	hook := os.Getenv("CITOGO_MASTER_FAIL_WEBHOOK")
+	if hook == "" {
+		return
+	}
+	r.doHook(hook, test, where, "🥴")
+}
+
 func (r *runner) runTest(test string) error {
-	canRerun := r.flakes < r.opts.Flakes
+	canRerun := len(r.flakes) < r.opts.Flakes
 	logs, err := r.runTestOnce(test, canRerun, false)
 	if err == errTestFailed && canRerun {
 		_, err = r.runTestOnce(test, false, true)
 		if err == nil {
 			r.reportFlake(test, logs)
-			r.flakes++
+			r.flakes = append(r.flakes, test)
 		}
 	}
 	return err
@@ -177,7 +219,7 @@ func (r *runner) runTest(test string) error {
 var errTestFailed = errors.New("test failed")
 
 func (r *runner) runTestOnce(test string, canRerun bool, isRerun bool) (string, error) {
-	cmd := exec.Command(r.testerName(), "-test.run", "^"+test+"$")
+	cmd := exec.Command(r.testerName(), "-test.run", "^"+test+"$", "-test.timeout", r.opts.Timeout)
 	var combined bytes.Buffer
 	if isRerun {
 		cmd.Env = append(os.Environ(), "CITOGO_FLAKE_RERUN=1")
@@ -189,7 +231,7 @@ func (r *runner) runTestOnce(test string, canRerun bool, isRerun bool) (string, 
 		err = errTestFailed
 	}
 	var where string
-	var status string
+	var status outcome
 	if err != nil {
 		var flushErr error
 		where, flushErr = r.flushTestLogs(test, combined)
@@ -197,14 +239,14 @@ func (r *runner) runTestOnce(test string, canRerun bool, isRerun bool) (string, 
 			return "", flushErr
 		}
 		if canRerun {
-			status = "FLK?"
+			status = flake
 		} else {
-			status = "FAIL"
+			status = fail
 		}
 	} else {
-		status = "PASS"
+		status = success
 	}
-	reportTestOutcome(status, test, where)
+	r.reportTestOutcome(status, test, where)
 	return where, err
 }
 
@@ -216,13 +258,13 @@ func (r *runner) runTestFixError(t string) error {
 	if err != errTestFailed {
 		return err
 	}
-	r.fails++
+	r.fails = append(r.fails, t)
 	if r.opts.Fails < 0 {
 		// We have an infinite fail budget, so keep plowing through
 		// failed tests. This test run is still going to fail.
 		return nil
 	}
-	if r.opts.Fails >= r.fails {
+	if r.opts.Fails >= len(r.fails) {
 		// We've failed less than our budget, so we can still keep going.
 		// This test run is still going to fail.
 		return nil
@@ -237,6 +279,9 @@ func (r *runner) runTests() error {
 		if err != nil {
 			return err
 		}
+		if r.opts.Pause > 0 {
+			time.Sleep(r.opts.Pause)
+		}
 	}
 	return nil
 }
@@ -247,6 +292,7 @@ func (r *runner) cleanup() {
 	}
 	n := r.testerName()
 	err := os.Remove(n)
+	fmt.Printf("RMOV: %s\n", n)
 	if err != nil {
 		logError("could not remove %s: %s", n, err.Error())
 	}
@@ -255,6 +301,22 @@ func (r *runner) cleanup() {
 func (r *runner) debugStartup() {
 	dir, _ := os.Getwd()
 	fmt.Printf("WDIR: %s\n", dir)
+}
+
+func (r *runner) testExists() (bool, error) {
+	f := r.testerName()
+	info, err := os.Stat(f)
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	if info.Mode().IsRegular() {
+		return true, nil
+	}
+	return false, fmt.Errorf("%s: file of wrong type", f)
+
 }
 
 func (r *runner) run() error {
@@ -268,20 +330,30 @@ func (r *runner) run() error {
 	if err != nil {
 		return err
 	}
-	err = r.listTests()
-	if err != nil {
-		return err
+	exists, err := r.testExists()
+	if exists {
+		err = r.listTests()
+		if err != nil {
+			return err
+		}
+		err = r.runTests()
+		r.cleanup()
 	}
-	err = r.runTests()
-	r.cleanup()
 	end := time.Now()
 	diff := end.Sub(start)
 	fmt.Printf("DONE: in %s\n", diff)
 	if err != nil {
 		return err
 	}
-	if r.fails > 0 {
-		return fmt.Errorf("RED!: %d total tests failed", r.fails)
+	if len(r.fails) > 0 {
+		// If we have more than 15 tests, repeat at the end which tests failed,
+		// so we don't have to scroll all the way up.
+		if len(r.tests) > 15 {
+			for _, t := range r.fails {
+				fmt.Printf("FAIL: %s\n", t)
+			}
+		}
+		return fmt.Errorf("RED!: %d total tests failed", len(r.fails))
 	}
 	return nil
 }

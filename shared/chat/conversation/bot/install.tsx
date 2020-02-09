@@ -207,7 +207,7 @@ const InstallBotPopup = (props: Props) => {
     dispatch(
       WaitingGen.createClearWaiting({key: [Constants.waitingKeyBotAdd, Constants.waitingKeyBotRemove]})
     )
-    if (!commands?.commands?.length) {
+    if (!commands?.commands) {
       dispatch(Chat2Gen.createRefreshBotPublicCommands({username: botUsername}))
     }
   }, [dispatch, commands, botUsername])
@@ -373,15 +373,14 @@ const InstallBotPopup = (props: Props) => {
             </Kb.Box2>
           )}
           <Kb.Text type="BodySmall">
-            This bot will not be able to read any other messages, channels, files, repositories, or team
-            members.
+            This bot will not be able to read any other messages, channels, files, or repositories.
           </Kb.Text>
         </Kb.Box2>
       ) : (
         <Kb.Box2 direction="vertical" gap="tiny">
           <Kb.Text type="Body">
             <Kb.Text type="BodySemibold">Warning:</Kb.Text> This bot will be able to read all messages,
-            channels, files, repositories, and team members.
+            channels, files, and repositories.
           </Kb.Text>
           <Kb.Text type="Body">
             <Kb.Text type="BodyPrimaryLink" onClick={() => setInstallWithRestrict(true)}>

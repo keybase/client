@@ -213,12 +213,17 @@ const tabStyles = Styles.styleSheetCreate(
       container: {
         justifyContent: 'center',
       },
-      tab: {
-        paddingBottom: 6,
-        paddingLeft: 16,
-        paddingRight: 16,
-        paddingTop: 6,
-      },
+      tab: Styles.platformStyles({
+        common: {
+          paddingBottom: 6,
+          paddingLeft: 16,
+          paddingRight: 16,
+          paddingTop: 6,
+        },
+        isTablet: {
+          width: '100%',
+        },
+      }),
     } as const)
 )
 

@@ -24,8 +24,14 @@ import com.facebook.react.ReactActivityDelegate;
 import com.facebook.react.ReactApplication;
 import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.Dynamic;
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.ReactActivity;
+import com.facebook.react.bridge.ReadableArray;
+import com.facebook.react.bridge.ReadableMap;
+import com.facebook.react.bridge.ReadableMapKeySetIterator;
+import com.facebook.react.bridge.ReadableType;
+import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.facebook.react.modules.core.PermissionListener;
@@ -41,7 +47,13 @@ import java.io.OutputStream;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.UUID;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import io.keybase.ossifrage.modules.AppearanceModule;
 import io.keybase.ossifrage.modules.KeybaseEngine;
@@ -49,6 +61,7 @@ import io.keybase.ossifrage.modules.NativeLogger;
 import io.keybase.ossifrage.util.DNSNSFetcher;
 import io.keybase.ossifrage.util.GuiConfig;
 import io.keybase.ossifrage.util.VideoHelper;
+import javassist.bytecode.ExceptionTable;
 import keybase.Keybase;
 
 import static keybase.Keybase.initOnce;
@@ -146,7 +159,9 @@ public class MainActivity extends ReactActivity {
 
     new android.os.Handler().postDelayed(new Runnable() {
       public void run() {
-        setBackgroundColor(GuiConfig.getInstance(getFilesDir()).getDarkMode());
+        try {
+          setBackgroundColor(GuiConfig.getInstance(getFilesDir()).getDarkMode());
+        } catch (Exception e) {}
       }
     }, 300);
 
@@ -254,21 +269,8 @@ public class MainActivity extends ReactActivity {
       Bundle bundleFromNotification = intent.getBundleExtra("notification");
       intent.removeExtra("notification");
 
-      // TODO this doesn't work and didn't work before
-      String fromShareText = intent.getStringExtra(Intent.EXTRA_TEXT);
-      intent.removeExtra(Intent.EXTRA_TEXT);
-      if (fromShareText == null) {
-        fromShareText = "";
-      }
-      String finalFromShareText = fromShareText;
-
       Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
       intent.removeExtra(Intent.EXTRA_STREAM);
-
-      // If there isn't any data we care about, let's just return
-      if (bundleFromNotification == null && fromShareText.isEmpty() && uri == null) {
-        return;
-      }
 
       // Closure like class so we can keep our emit logic together
       class Emit {
@@ -283,19 +285,18 @@ public class MainActivity extends ReactActivity {
         private void run() {
           KeybaseEngine engine = context.getNativeModule(KeybaseEngine.class);
           if (bundleFromNotification != null) {
-            engine.setInitialIntent(Arguments.fromBundle(bundleFromNotification));
+            engine.setInitialBundleFromNotification(bundleFromNotification);
+          } else if (uri != null) {
+            String filePath = readFileFromUri(getReactContext(), uri);
+            if (filePath != null) {
+              engine.setInitialShareData(filePath);
+            }
           }
 
           assert emitter != null;
           // If there are any other bundle sources we care about, emit them here
           if (bundleFromNotification != null) {
             emitter.emit("initialIntentFromNotification", Arguments.fromBundle(bundleFromNotification));
-          }
-
-          if (!finalFromShareText.isEmpty()) {
-            WritableMap args = Arguments.createMap();
-            args.putString("text", finalFromShareText);
-            emitter.emit("onShareText", args);
           }
 
           if (uri != null) {
@@ -395,7 +396,11 @@ public class MainActivity extends ReactActivity {
       }
     }
 
-    setBackgroundColor(GuiConfig.getInstance(getFilesDir()).getDarkMode());
+    try {
+      setBackgroundColor(GuiConfig.getInstance(getFilesDir()).getDarkMode());
+    } catch (Exception e) {
+
+    }
   }
 
   public void setBackgroundColor(DarkModePreference pref) {

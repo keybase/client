@@ -258,9 +258,7 @@ func (sc *SigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID keyba
 	if err != nil {
 		return
 	}
-	if finisher != nil {
-		defer finisher()
-	}
+	defer finisher()
 
 	recordFin := tbs.Record("SigChain.LoadFromServer.ReadAll")
 	body, err := ioutil.ReadAll(resp.Body)
