@@ -1,0 +1,51 @@
+{
+  "protocol": "incomingShare",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "enum",
+      "name": "IncomingShareType",
+      "symbols": [
+        "FILE_0",
+        "TEXT_1",
+        "IMAGE_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "IncomingShareItem",
+      "fields": [
+        {
+          "type": "IncomingShareType",
+          "name": "type"
+        },
+        {
+          "type": "string",
+          "name": "payloadPath"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "filename"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "getIncomingShareItems": {
+      "request": [],
+      "response": {
+        "type": "array",
+        "items": "IncomingShareItem"
+      }
+    }
+  },
+  "namespace": "keybase.1"
+}

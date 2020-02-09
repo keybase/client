@@ -21,51 +21,23 @@ const BOOL isSimulator = NO;
 
 
 @interface ShareViewController ()
-@property NSDictionary* convTarget; // the conversation we will be sharing into
 @property BOOL hasInited; // whether or not init has succeeded yet
+@property NSMutableArray *  manifest;
 @end
 
 @implementation ShareViewController
 
 - (BOOL)isContentValid {
-    return self.hasInited && self.convTarget != nil;
+  return self.hasInited;
 }
 
 // presentationAnimationDidFinish is called after the screen has rendered, and is the recommended place for loading data.
 - (void)presentationAnimationDidFinish {
   dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-    BOOL skipLogFile = NO;
-    NSError* error = nil;
-    NSDictionary* fsPaths = [[FsHelper alloc] setupFs:skipLogFile setupSharedHome:NO];
-    PushNotifier* pusher = [[PushNotifier alloc] init];
-    NSString* systemVer = [[UIDevice currentDevice] systemVersion];
-    KeybaseExtensionInit(fsPaths[@"home"], fsPaths[@"sharedHome"], fsPaths[@"logFile"], @"prod", isSimulator, pusher, systemVer, &error);
-    if (error != nil) {
-      dispatch_async(dispatch_get_main_queue(), ^{
-        // If Init failed, then let's throw up our error screen.
-        NSLog(@"Failed to init: %@", error);
-        InitFailedViewController* initFailed = [InitFailedViewController alloc];
-        [initFailed setDelegate:self];
-        [self pushConfigurationViewController:initFailed];
-      });
-      return;
-    }
     [self setHasInited:YES]; // Init is complete, we can use this to take down spinner on convo choice row
    
-    NSString* jsonSavedConv = KeybaseExtensionGetSavedConv(); // result is in JSON format
-    if ([jsonSavedConv length] > 0) {
-      NSData* data = [jsonSavedConv dataUsingEncoding:NSUTF8StringEncoding];
-      NSDictionary* conv = [NSJSONSerialization JSONObjectWithData:data options: NSJSONReadingMutableContainers error: &error];
-      if (!conv) {
-        NSLog(@"failed to parse saved conv: %@", error);
-      } else {
-        // Success reading a saved convo, set it and reload the items to it.
-        [self setConvTarget:conv];
-      }
-    }
     dispatch_async(dispatch_get_main_queue(), ^{
       [self validateContent];
-      [self reloadConfigurationItems];
     });
   });
 }
@@ -158,142 +130,110 @@ const BOOL isSimulator = NO;
     [super didReceiveMemoryWarning];
 }
 
-- (void)createVideoPreview:(NSURL*)url resultCb:(void (^)(int,int,int,int,int,NSString*,NSData*))resultCb  {
-  NSError *error = NULL;
-  NSString* path = [url relativePath];
-  NSString* mimeType = KeybaseExtensionDetectMIMEType(path, &error);
-  if (error != nil) {
-    NSLog(@"MIME type error, setting to Quicktime: %@", error);
-    mimeType = @"video/quicktime";
+- (void) openApp {
+  NSURL * url = [NSURL URLWithString:@"keybase://share"];
+  UIResponder *responder = self;
+  while (responder){
+    if ([responder respondsToSelector: @selector(openURL:)]){
+      [responder performSelector: @selector(openURL:) withObject: url];
+      return;
+    }
+    responder =  [responder nextResponder];
   }
-  CMTime time = CMTimeMake(1, 1);
-  AVURLAsset *asset = [[AVURLAsset alloc] initWithURL:url options:nil];
-  AVAssetImageGenerator *generateImg = [[AVAssetImageGenerator alloc] initWithAsset:asset];
-  [generateImg setAppliesPreferredTrackTransform:YES];
-  CGImageRef cgOriginal = [generateImg copyCGImageAtTime:time actualTime:NULL error:&error];
-  [generateImg setMaximumSize:CGSizeMake(640, 640)];
-  CGImageRef cgThumb = [generateImg copyCGImageAtTime:time actualTime:NULL error:&error];
-  int duration = CMTimeGetSeconds([asset duration]);
-  UIImage* original = [UIImage imageWithCGImage:cgOriginal];
-  UIImage* scaled = [UIImage imageWithCGImage:cgThumb];
-  NSData* preview = UIImageJPEGRepresentation(scaled, 0.7);
-  resultCb(duration, original.size.width, original.size.height, scaled.size.width, scaled.size.height, mimeType, preview);
-  CGImageRelease(cgOriginal);
-  CGImageRelease(cgThumb);
-}
-
-- (void)createImagePreview:(NSURL*)url resultCb:(void (^)(int,int,int,int,NSString*,NSData*))resultCb  {
-  NSError* error = nil;
-  NSString* path = [url relativePath];
-  NSData* imageDat = [NSData dataWithContentsOfURL:url];
-  NSString* mimeType = KeybaseExtensionDetectMIMEType(path, &error);
-  if (error != nil) {
-    NSLog(@"createImagePreview: MIME type error, setting to JPEG: %@", error);
-    mimeType = @"image/jpeg";
-  }
-  // If this GIF is small enough, then we can probably create the real preview in
-  // Go, so let's give it a shot.
-  if ([mimeType isEqualToString:@"image/gif"] && imageDat.length < 10*1024*1024) {
-    NSLog(@"createImagePreview: not generating preview for small GIF");
-    resultCb(0, 0, 0, 0, mimeType, nil);
-    return;
-  }
-  
-  UIImage* original = [UIImage imageWithData:imageDat];
-  CFURLRef cfurl = CFBridgingRetain(url);
-  CGImageSourceRef is = CGImageSourceCreateWithURL(cfurl, nil);
-  NSDictionary* opts = [[NSDictionary alloc] initWithObjectsAndKeys:
-                        (id)kCFBooleanTrue, (id)kCGImageSourceCreateThumbnailWithTransform,
-                        (id)kCFBooleanTrue, (id)kCGImageSourceCreateThumbnailFromImageAlways,
-                        [NSNumber numberWithInt:640], (id)kCGImageSourceThumbnailMaxPixelSize,
-                        nil];
-  CGImageRef image = CGImageSourceCreateThumbnailAtIndex(is, 0, (CFDictionaryRef)opts);
-  UIImage* scaled = [UIImage imageWithCGImage:image];
-  NSData* preview = nil;
-  if ([mimeType isEqualToString:@"image/png"]) {
-    preview = UIImagePNGRepresentation(scaled);
-  } else if ([mimeType isEqualToString:@"image/gif"]) {
-    // We aren't going to be playing this in the thread, so let's just
-    // use a JPEG
-    preview = UIImageJPEGRepresentation(scaled, 0.7);
-  } else {
-    preview = UIImageJPEGRepresentation(scaled, 0.7);
-  }
-  resultCb(original.size.width, original.size.height, scaled.size.width, scaled.size.height, mimeType, preview);
-  CGImageRelease(image);
-  CFRelease(cfurl);
-  CFRelease(is);
 }
 
 - (void) maybeCompleteRequest:(BOOL)lastItem {
   if (!lastItem) { return; }
+  [self writeManifest];
   dispatch_async(dispatch_get_main_queue(), ^{
     [self.extensionContext completeRequestReturningItems:nil completionHandler:nil];
+    [self openApp];
   });
 }
 
-// handleFileURL will take a given file URL and run it through the proper backend
-// function to send the contents at that URL. 
-- (void)handleFileURL:(NSURL*)url item:(NSItemProvider*)item lastItem:(BOOL)lastItem {
-  NSError* error;
-  NSString* convID = self.convTarget[@"ConvID"];
-  NSString* name = self.convTarget[@"Name"];
-  NSNumber* membersType = self.convTarget[@"MembersType"];
-  NSString* filePath = [url relativePath];
-  
-  if ([item hasItemConformingToTypeIdentifier:@"public.movie"]) {
-    // Generate image preview here, since it runs out of memory easy in Go
-    [self createVideoPreview:url resultCb:^(int duration, int baseWidth, int baseHeight, int previewWidth, int previewHeight,
-                                            NSString* mimeType, NSData* preview) {
-      NSError* error = NULL;
-      KeybaseExtensionPostVideo(convID, name, NO, [membersType longValue], self.contentText, filePath, mimeType,
-                                duration, baseWidth, baseHeight, previewWidth, previewHeight, preview, &error);
-    }];
-  } else if ([item hasItemConformingToTypeIdentifier:@"public.image"]) {
-    // Generate image preview here, since it runs out of memory easy in Go
-    [self createImagePreview:url resultCb:^(int baseWidth, int baseHeight, int previewWidth, int previewHeight,
-                                            NSString* mimeType, NSData* preview) {
-      NSError* error = NULL;
-      KeybaseExtensionPostImage(convID, name, NO, [membersType longValue], self.contentText, filePath, mimeType,
-                                baseWidth, baseHeight, previewWidth, previewHeight, preview, &error);
-    }];
-  } else {
-    NSError* error = NULL;
-    KeybaseExtensionPostFile(convID, name, NO, [membersType longValue], self.contentText, filePath, &error);
+- (NSURL *)getIncomingShareFolder {
+  NSURL* containerURL = [[NSFileManager defaultManager] containerURLForSecurityApplicationGroupIdentifier: @"group.keybase"];
+  // Use the cache URL so if we fail to clean up payloads they can be deleted by the OS.
+  NSURL* cacheURL = [[containerURL URLByAppendingPathComponent:@"Library" isDirectory:true] URLByAppendingPathComponent:@"Caches" isDirectory:true];
+  NSURL* incomingShareFolderURL = [cacheURL URLByAppendingPathComponent:@"incoming-shares" isDirectory:true];
+  return incomingShareFolderURL;
+}
+
+- (NSURL*)generatePayloadFileURLWithExtension:(NSString *)ext {
+  NSURL* incomingShareFolderURL = [self getIncomingShareFolder];
+  [[NSFileManager defaultManager] createDirectoryAtURL:incomingShareFolderURL withIntermediateDirectories:YES attributes:nil error:nil];
+  NSString* guid = [[NSProcessInfo processInfo] globallyUniqueString];
+  return ext ? [[incomingShareFolderURL URLByAppendingPathComponent:guid] URLByAppendingPathExtension:ext] : [incomingShareFolderURL URLByAppendingPathComponent:guid];
+}
+
+- (NSURL*)getManifestFileURL {
+  NSURL* incomingShareFolderURL = [self getIncomingShareFolder];
+  [[NSFileManager defaultManager] createDirectoryAtURL:incomingShareFolderURL withIntermediateDirectories:YES attributes:nil error:nil];
+  return [incomingShareFolderURL URLByAppendingPathComponent:@"manifest.json"];
+}
+
+- (void)appendManifestType:(NSString*)type payloadFileURL:(NSURL*) payloadFileURL filename:(NSString*)filename {
+  [self.manifest addObject: @{
+    @"type": type,
+    @"payloadPath":[payloadFileURL absoluteURL].path,
+    @"filename": filename,
+  }];
+}
+
+- (NSError *)writeManifest {
+  NSURL* fileURL = [self getManifestFileURL];
+  NSOutputStream * output = [NSOutputStream outputStreamWithURL:fileURL append:false];
+  [output open];
+  NSError * error;
+  [NSJSONSerialization writeJSONObject:self.manifest toStream:output options:0 error:&error];
+  return error;
+}
+
+- (void) handleText:(NSString *)text loadError:(NSError *)error {
+  if (error != nil) {
+    NSLog(@"handleText: load error: %@", error);
+    return;
   }
-  [self maybeCompleteRequest:lastItem];
-};
+  NSURL * payloadFileURL = [self generatePayloadFileURLWithExtension:@"txt"];
+  [text writeToURL:payloadFileURL atomically:true encoding:NSUTF8StringEncoding error:&error];
+  if (error != nil){
+    NSLog(@"handleText: unable to write payload file: %@", error);
+    return;
+  }
+  [self appendManifestType:@"text" payloadFileURL:payloadFileURL filename:@""];
+}
+
+- (void) handleData:(NSData *)data type:(NSString *)type ext:(NSString *)ext {
+  NSURL * payloadFileURL = [self generatePayloadFileURLWithExtension:ext];
+  BOOL OK = [data writeToURL:payloadFileURL atomically:true];
+  if (!OK){
+    NSLog(@"handleData: unable to write payload file");
+    return;
+  }
+  [self appendManifestType:type payloadFileURL:payloadFileURL filename:@""];
+}
 
 // processItem will invokve the correct function on the Go side for the given attachment type.
 - (void)processItem:(NSItemProvider*)item lastItem:(BOOL)lastItem {
-  NSString* convID = self.convTarget[@"ConvID"];
-  NSString* name = self.convTarget[@"Name"];
-  NSNumber* membersType = self.convTarget[@"MembersType"];
   NSItemProviderCompletionHandler urlHandler = ^(NSURL* url, NSError* error) {
-    KeybaseExtensionPostText(convID, name, NO, [membersType longValue], self.contentText, &error);
+    [self handleText:self.contentText loadError:error];
     [self maybeCompleteRequest:lastItem];
   };
   
   NSItemProviderCompletionHandler textHandler = ^(NSString* text, NSError* error) {
-    KeybaseExtensionPostText(convID, name, NO, [membersType longValue], text, &error);
+    [self handleText:text loadError:error];
     [self maybeCompleteRequest:lastItem];
   };
   
-  // If we get an image in the form of a UIImage, we first write it to a temp file
-  // and run it through the normal file sharing code path.
   NSItemProviderCompletionHandler imageHandler = ^(UIImage* image, NSError* error) {
-    NSString* guid = [[NSProcessInfo processInfo] globallyUniqueString];
-    NSString* filename = [NSString stringWithFormat:@"%@%@.jpg", NSTemporaryDirectory(), guid];
-    NSURL* url = [NSURL fileURLWithPath:filename];
-    
-    NSData* imageData = UIImageJPEGRepresentation(image, 0.7);
-    [imageData writeToFile:filename atomically:YES];
-    [self handleFileURL:url item:item lastItem:lastItem];
-    
-    [[NSFileManager defaultManager] removeItemAtPath:filename error:&error];
     if (error != nil) {
-      NSLog(@"unable to remove temp file: %@", error);
+      NSLog(@"imageHandler: load error: %@", error);
+      [self maybeCompleteRequest:lastItem];
+      return;
     }
+    NSData * imageData = UIImagePNGRepresentation(image);
+    [self handleData:imageData type:@"image" ext:@"png"];
+    [self maybeCompleteRequest:lastItem];
   };
   
   // The NSItemProviderCompletionHandler interface is a little tricky. The caller of our handler
@@ -310,18 +250,25 @@ const BOOL isSimulator = NO;
       }
       return;
     }
-    [self handleFileURL:url item:item lastItem:lastItem];
+    NSURL * filePayloadURL = [self generatePayloadFileURLWithExtension:nil];
+    [[NSFileManager defaultManager] copyItemAtURL:url toURL:filePayloadURL error:&error];
+    if (error != nil) {
+      NSLog(@"fileHandler: copy error: %@", error);
+      [self maybeCompleteRequest:lastItem];
+      return;
+    }
+    [self appendManifestType:@"file" payloadFileURL:filePayloadURL filename:[url lastPathComponent]];
+    [self maybeCompleteRequest:lastItem];
   };
   
   if ([item hasItemConformingToTypeIdentifier:@"public.movie"]) {
     [item loadItemForTypeIdentifier:@"public.movie" options:nil completionHandler:fileHandler];
   } else if ([item hasItemConformingToTypeIdentifier:@"public.image"]) {
-    [item loadItemForTypeIdentifier:@"public.image" options:nil completionHandler:fileHandler];
+    [item loadItemForTypeIdentifier:@"public.image" options:nil completionHandler:imageHandler];
   } else if ([item hasItemConformingToTypeIdentifier:@"public.file-url"]) {
     [item loadItemForTypeIdentifier:@"public.file-url" options:nil completionHandler:fileHandler];
   } else if ([item hasItemConformingToTypeIdentifier:@"public.plain-text"]) {
-    NSError* error = NULL;
-    KeybaseExtensionPostText(convID, name, NO, [membersType longValue], self.contentText, &error);
+    [self handleText:self.contentText loadError:nil];
     [self maybeCompleteRequest:lastItem];
   } else if ([item hasItemConformingToTypeIdentifier:@"public.text"]) {
     [item loadItemForTypeIdentifier:@"public.text" options:nil completionHandler:textHandler];
@@ -336,8 +283,8 @@ const BOOL isSimulator = NO;
 
 - (void)showProgressView {
   UIAlertController* alert = [UIAlertController
-                              alertControllerWithTitle:@"Sending"
-                              message:@"Encrypting and transmitting your message."
+                              alertControllerWithTitle:@"Working on it"
+                              message:@"Preparing content for sharing into Keybase."
                               preferredStyle:UIAlertControllerStyleAlert];
   UIActivityIndicatorView* spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
   [spinner setTranslatesAutoresizingMaskIntoConstraints:NO];
@@ -368,47 +315,25 @@ const BOOL isSimulator = NO;
   [self presentViewController:alert animated:YES completion:nil];
 }
 
-- (void)didSelectPost {
-  if (!self.convTarget) {
-    // Just bail out of here if nothing was selected
-    [self maybeCompleteRequest:YES];
-    return;
+- (void)ensureManifest {
+  if (self.manifest == nil ) {
+    self.manifest = [[NSMutableArray alloc] init];
   }
+  [self.manifest removeAllObjects];
+}
+
+- (void)didSelectPost {
   NSArray* items = [self getSendableAttachments];
   if ([items count] == 0) {
     [self maybeCompleteRequest:YES];
     return;
   }
   [self showProgressView];
+  [self ensureManifest];
   for (int i = 0; i < [items count]; i++) {
     BOOL lastItem = (BOOL)(i == [items count]-1);
     [self processItem:items[i] lastItem:lastItem];
   }
-}
-
-- (NSArray *)configurationItems {
-  SLComposeSheetConfigurationItem *item = [[SLComposeSheetConfigurationItem alloc] init];
-  item.title = @"Share to...";
-  item.valuePending = !self.hasInited; // show a spinner if we haven't inited
-  if (self.convTarget) {
-    item.value = self.convTarget[@"Name"];
-  } else if (self.hasInited) {
-    item.value = @"Please choose";
-  }
-  item.tapHandler = ^{
-    ConversationViewController *viewController = [[ConversationViewController alloc] initWithStyle:UITableViewStylePlain];
-    viewController.delegate = self;
-    [self pushConfigurationViewController:viewController];
-  };
-  return @[item];
-}
-
-- (void)convSelected:(NSDictionary *)conv {
-  // This is a delegate method from the inbox view, it gets run when the user taps an item.
-  [self setConvTarget:conv];
-  [self validateContent];
-  [self reloadConfigurationItems];
-  [self popConfigurationViewController];
 }
 
 @end

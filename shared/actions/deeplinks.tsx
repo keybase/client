@@ -8,6 +8,7 @@ import * as Saga from '../util/saga'
 import * as Tabs from '../constants/tabs'
 import * as WalletsGen from './wallets-gen'
 import * as TeamsGen from './teams-gen'
+import * as RPCTypes from '../constants/types/rpc-gen'
 import URL from 'url-parse'
 import logger from '../logger'
 
@@ -85,6 +86,11 @@ const handleKeybaseLink = (action: DeeplinksGen.HandleKeybaseLinkPayload) => {
           return handleTeamPageLink(teamName, action)
         }
       }
+      break
+    case 'share':
+      RPCTypes.incomingShareGetIncomingShareItemsRpcPromise().then(res =>
+        console.log({songgao: 'getincomignshared', res})
+      )
       break
     default:
     // Fall through to the error return below.
