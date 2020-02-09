@@ -1704,7 +1704,7 @@ function* inboxSearch(_: Container.TypedState, action: Chat2Gen.InboxSearchPaylo
             query.stringValue().length > 0
               ? Constants.inboxSearchMaxNameResults
               : Constants.inboxSearchMaxUnreadNameResults,
-          maxTeams: 3,
+          maxTeams: 10,
           reindexMode: RPCChatTypes.ReIndexingMode.postsearchSync,
           sentAfter: 0,
           sentBefore: 0,

@@ -1480,6 +1480,10 @@ func (m *MockChatHelper) LeaveConversation(ctx context.Context, uid gregor1.UID,
 	return nil
 }
 
+func (m *MockChatHelper) InTeam(context.Context, gregor1.UID, keybase1.TeamID) (bool, error) {
+	return false, nil
+}
+
 func (m *MockChatHelper) convKey(name string, topicName *string) string {
 	if topicName == nil {
 		return name + ":general"

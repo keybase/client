@@ -13,7 +13,7 @@ const (
 	minScoringActivityHours = 7 * 24      // one week
 	maxScoringActivityHours = 4 * 30 * 24 // one month
 	memberCountWeight       = 400
-	lastActiveWeight        = 100
+	lastActiveWeight        = 20
 )
 
 func filterScore(score float64) bool {

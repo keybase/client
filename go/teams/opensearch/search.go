@@ -8,9 +8,11 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -67,6 +69,19 @@ func dbKey() libkb.DbKey {
 	}
 }
 
+func getCurrentHash(mctx libkb.MetaContext) (hash string) {
+	var si storageItem
+	found, err := mctx.G().GetKVStore().GetInto(&si, dbKey())
+	if err != nil {
+		mctx.Debug("OpenSearch.getCurrentHash: failed to read: %s", err)
+		return ""
+	}
+	if !found {
+		return ""
+	}
+	return si.Hash
+}
+
 func getOpenTeams(mctx libkb.MetaContext) (res storageItem, err error) {
 	get := func() (res storageItem, err error) {
 		found, err := mctx.G().GetKVStore().GetInto(&res, dbKey())
@@ -80,21 +95,29 @@ func getOpenTeams(mctx libkb.MetaContext) (res storageItem, err error) {
 	}
 	if res, err = get(); err != nil {
 		mctx.Debug("OpenSearch.getOpenTeams: failed to get open teams, refreshing")
-		refreshOpenTeams(mctx, "")
+		refreshOpenTeams(mctx, true)
 		return get()
 	}
 	return res, nil
 }
 
-func refreshOpenTeams(mctx libkb.MetaContext, hash string) {
-	saved := true
+var refreshMu sync.Mutex
+
+func refreshOpenTeams(mctx libkb.MetaContext, force bool) {
 	tracer := mctx.G().CTimeTracer(mctx.Ctx(), "OpenSearch.refreshOpenTeams", true)
 	defer tracer.Finish()
+	refreshMu.Lock()
+	defer refreshMu.Unlock()
+	if !force && time.Since(lastRefresh) < refreshThreshold {
+		return
+	}
+	saved := true
 	defer func() {
 		if saved {
 			lastRefresh = time.Now()
 		}
 	}()
+	hash := getCurrentHash(mctx)
 	mctx.Debug("OpenSearch.refreshOpenTeams: using hash: %s", hash)
 	a := libkb.NewAPIArg("teamsearch/refresh")
 	a.Args = libkb.HTTPArgs{}
@@ -130,10 +153,7 @@ func Local(mctx libkb.MetaContext, query string, limit int) (res []keybase1.Team
 	tracer := mctx.G().CTimeTracer(mctx.Ctx(), "OpenSearch.Local", true)
 	defer tracer.Finish()
 	defer func() {
-		// spawn a refresh if enough time has passed since our last search
-		if time.Since(lastRefresh) > refreshThreshold {
-			go refreshOpenTeams(mctx, si.Hash)
-		}
+		go refreshOpenTeams(mctx, false)
 	}()
 	if si, err = getOpenTeams(mctx); err != nil {
 		return res, err
@@ -165,6 +185,10 @@ func Local(mctx libkb.MetaContext, query string, limit int) (res []keybase1.Team
 	for index, r := range results {
 		if index >= limit {
 			break
+		}
+		if r.item.InTeam, err = mctx.G().ChatHelper.InTeam(mctx.Ctx(),
+			gregor1.UID(mctx.G().GetMyUID().ToBytes()), r.item.Id); err != nil {
+			mctx.Debug("OpenSearch.Local: failed to get inTeam for: %s err: %s", r.item.Id, err)
 		}
 		res = append(res, r.item)
 	}

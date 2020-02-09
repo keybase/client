@@ -1083,6 +1083,8 @@ type ChatHelper interface {
 	JourneycardTimeTravel(context.Context, gregor1.UID, time.Duration) (int, int, error)
 	JourneycardResetAllConvs(context.Context, gregor1.UID) error
 	JourneycardDebugState(context.Context, gregor1.UID, keybase1.TeamID) (string, error)
+	// InTeam gives a best effort to answer team membership based on the current state of the inbox cache
+	InTeam(context.Context, gregor1.UID, keybase1.TeamID) (bool, error)
 }
 
 // Resolver resolves human-readable usernames (joe) and user asssertions (joe+joe@github)

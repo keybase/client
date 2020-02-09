@@ -48,13 +48,14 @@ export type Props = {
 type State = {
   nameCollapsed: boolean
   textCollapsed: boolean
+  openTeamsAll: boolean
   openTeamsCollapsed: boolean
 }
 
 const emptyUnreadPlaceholder = '---EMPTYRESULT---'
 
 class InboxSearch extends React.Component<Props, State> {
-  state = {nameCollapsed: false, openTeamsCollapsed: false, textCollapsed: false}
+  state = {nameCollapsed: false, openTeamsAll: false, openTeamsCollapsed: false, textCollapsed: false}
 
   private renderOpenTeams = (h: {
     item: Types.InboxSearchOpenTeamHit
@@ -124,6 +125,9 @@ class InboxSearch extends React.Component<Props, State> {
   private toggleCollapseOpenTeams = () => {
     this.setState(s => ({openTeamsCollapsed: !s.openTeamsCollapsed}))
   }
+  private toggleOpenTeamsAll = () => {
+    this.setState(s => ({openTeamsAll: !s.openTeamsAll}))
+  }
   private selectName = (item: NameResult, index: number) => {
     this.props.onSelectConversation(item.conversationIDKey, index, '')
     this.props.onCancel()
@@ -141,6 +145,38 @@ class InboxSearch extends React.Component<Props, State> {
       />
     )
   }
+
+  private getOpenTeamsResults = () => {
+    return this.state.openTeamsAll ? this.props.openTeamsResults : this.props.openTeamsResults.slice(0, 3)
+  }
+  private renderTeamHeader = (section: any) => {
+    const showMore = this.props.openTeamsResults.length > 3 && !this.state.openTeamsCollapsed
+    const label = (
+      <Kb.Box2 direction="horizontal" gap="xtiny">
+        <Kb.Text type="BodySmallSemibold">{section.title}</Kb.Text>
+        {showMore && (
+          <Kb.Text
+            onClick={(e: React.BaseSyntheticEvent) => {
+              e.stopPropagation()
+              this.toggleOpenTeamsAll()
+            }}
+            type="BodySmallSecondaryLink"
+          >
+            {!this.state.openTeamsAll ? '(more)' : '(less)'}
+          </Kb.Text>
+        )}
+      </Kb.Box2>
+    )
+    return (
+      <Kb.SectionDivider
+        collapsed={section.isCollapsed}
+        label={label}
+        onToggleCollapsed={section.onCollapse}
+        showSpinner={section.status === 'inprogress'}
+      />
+    )
+  }
+
   private renderTextHeader = (section: any) => {
     const ratio = this.props.indexPercent / 100.0
     return (
@@ -184,7 +220,7 @@ class InboxSearch extends React.Component<Props, State> {
   render() {
     const nameResults: Array<NameResult | string> = this.state.nameCollapsed ? [] : this.props.nameResults
     const textResults = this.state.textCollapsed ? [] : this.props.textResults
-    const openTeamsResults = this.state.openTeamsCollapsed ? [] : this.props.openTeamsResults
+    const openTeamsResults = this.state.openTeamsCollapsed ? [] : this.getOpenTeamsResults()
 
     const indexOffset = flags.openTeamSearch
       ? openTeamsResults.length + nameResults.length
@@ -214,7 +250,7 @@ class InboxSearch extends React.Component<Props, State> {
               isCollapsed: this.state.openTeamsCollapsed,
               onCollapse: this.toggleCollapseOpenTeams,
               onSelect: this.selectText,
-              renderHeader: this.renderNameHeader,
+              renderHeader: this.renderTeamHeader,
               renderItem: this.renderOpenTeams,
               status: this.props.openTeamsStatus,
               title: this.props.openTeamsResultsSuggested ? 'Suggested Teams' : 'Open Teams',
