@@ -393,7 +393,7 @@ protocol remote {
   GetBotInfoRes getBotInfo(ConversationID convID, BotInfoHash infoHash, BotInfoHashVers clientHashVers);
 
   record GetDefaultTeamChannelsRes {
-    map<ConvIDStr, boolean> convs;
+    array<ConversationID> convs;
     union { null, RateLimit } rateLimit;
   }
   GetDefaultTeamChannelsRes getDefaultTeamChannels(keybase1.TeamID teamID);
@@ -401,5 +401,5 @@ protocol remote {
   record SetDefaultTeamChannelsRes {
     union { null, RateLimit } rateLimit;
   }
-  SetDefaultTeamChannelsRes setDefaultTeamChannels(keybase1.TeamID teamID, map<ConvIDStr, boolean> convs);
+  SetDefaultTeamChannelsRes setDefaultTeamChannels(keybase1.TeamID teamID, array<ConversationID> convs);
 }

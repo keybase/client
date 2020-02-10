@@ -862,9 +862,8 @@
       "fields": [
         {
           "type": {
-            "type": "map",
-            "values": "boolean",
-            "keys": "ConvIDStr"
+            "type": "array",
+            "items": "ConversationID"
           },
           "name": "convs"
         },
@@ -1594,9 +1593,8 @@
         {
           "name": "convs",
           "type": {
-            "type": "map",
-            "values": "boolean",
-            "keys": "ConvIDStr"
+            "type": "array",
+            "items": "ConversationID"
           }
         }
       ],

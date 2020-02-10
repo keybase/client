@@ -1252,21 +1252,20 @@ func (o BotInfoHash) DeepCopy() BotInfoHash {
 }
 
 type GetDefaultTeamChannelsRes struct {
-	Convs     map[ConvIDStr]bool `codec:"convs" json:"convs"`
-	RateLimit *RateLimit         `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+	Convs     []ConversationID `codec:"convs" json:"convs"`
+	RateLimit *RateLimit       `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
 }
 
 func (o GetDefaultTeamChannelsRes) DeepCopy() GetDefaultTeamChannelsRes {
 	return GetDefaultTeamChannelsRes{
-		Convs: (func(x map[ConvIDStr]bool) map[ConvIDStr]bool {
+		Convs: (func(x []ConversationID) []ConversationID {
 			if x == nil {
 				return nil
 			}
-			ret := make(map[ConvIDStr]bool, len(x))
-			for k, v := range x {
-				kCopy := k.DeepCopy()
-				vCopy := v
-				ret[kCopy] = vCopy
+			ret := make([]ConversationID, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
 			}
 			return ret
 		})(o.Convs),
@@ -1534,8 +1533,8 @@ type GetDefaultTeamChannelsArg struct {
 }
 
 type SetDefaultTeamChannelsArg struct {
-	TeamID keybase1.TeamID    `codec:"teamID" json:"teamID"`
-	Convs  map[ConvIDStr]bool `codec:"convs" json:"convs"`
+	TeamID keybase1.TeamID  `codec:"teamID" json:"teamID"`
+	Convs  []ConversationID `codec:"convs" json:"convs"`
 }
 
 type RemoteInterface interface {
