@@ -184,9 +184,8 @@ export const keybase1NotifyUsersUserChanged = 'engine-gen:keybase1NotifyUsersUse
 export const keybase1PgpUiFinished = 'engine-gen:keybase1PgpUiFinished'
 export const keybase1PgpUiKeyGenerated = 'engine-gen:keybase1PgpUiKeyGenerated'
 export const keybase1PgpUiOutputPGPWarning = 'engine-gen:keybase1PgpUiOutputPGPWarning'
+export const keybase1PgpUiOutputSignatureNonKeybase = 'engine-gen:keybase1PgpUiOutputSignatureNonKeybase'
 export const keybase1PgpUiOutputSignatureSuccess = 'engine-gen:keybase1PgpUiOutputSignatureSuccess'
-export const keybase1PgpUiOutputSignatureSuccessNonKeybase =
-  'engine-gen:keybase1PgpUiOutputSignatureSuccessNonKeybase'
 export const keybase1PgpUiShouldPushPrivate = 'engine-gen:keybase1PgpUiShouldPushPrivate'
 export const keybase1ProveUiChecking = 'engine-gen:keybase1ProveUiChecking'
 export const keybase1ProveUiContinueChecking = 'engine-gen:keybase1ProveUiContinueChecking'
@@ -1550,14 +1549,14 @@ type _Keybase1PgpUiOutputPGPWarningPayload = {
     result: (param: keybase1Types.MessageTypes['keybase.1.pgpUi.outputPGPWarning']['outParam']) => void
   }
 }
-type _Keybase1PgpUiOutputSignatureSuccessNonKeybasePayload = {
-  readonly params: keybase1Types.MessageTypes['keybase.1.pgpUi.outputSignatureSuccessNonKeybase']['inParam'] & {
+type _Keybase1PgpUiOutputSignatureNonKeybasePayload = {
+  readonly params: keybase1Types.MessageTypes['keybase.1.pgpUi.outputSignatureNonKeybase']['inParam'] & {
     sessionID: number
   }
   response: {
     error: keybase1Types.IncomingErrorCallback
     result: (
-      param: keybase1Types.MessageTypes['keybase.1.pgpUi.outputSignatureSuccessNonKeybase']['outParam']
+      param: keybase1Types.MessageTypes['keybase.1.pgpUi.outputSignatureNonKeybase']['outParam']
     ) => void
   }
 }
@@ -2504,15 +2503,12 @@ export const createKeybase1PgpUiKeyGenerated = (
 export const createKeybase1PgpUiOutputPGPWarning = (
   payload: _Keybase1PgpUiOutputPGPWarningPayload
 ): Keybase1PgpUiOutputPGPWarningPayload => ({payload, type: keybase1PgpUiOutputPGPWarning})
+export const createKeybase1PgpUiOutputSignatureNonKeybase = (
+  payload: _Keybase1PgpUiOutputSignatureNonKeybasePayload
+): Keybase1PgpUiOutputSignatureNonKeybasePayload => ({payload, type: keybase1PgpUiOutputSignatureNonKeybase})
 export const createKeybase1PgpUiOutputSignatureSuccess = (
   payload: _Keybase1PgpUiOutputSignatureSuccessPayload
 ): Keybase1PgpUiOutputSignatureSuccessPayload => ({payload, type: keybase1PgpUiOutputSignatureSuccess})
-export const createKeybase1PgpUiOutputSignatureSuccessNonKeybase = (
-  payload: _Keybase1PgpUiOutputSignatureSuccessNonKeybasePayload
-): Keybase1PgpUiOutputSignatureSuccessNonKeybasePayload => ({
-  payload,
-  type: keybase1PgpUiOutputSignatureSuccessNonKeybase,
-})
 export const createKeybase1PgpUiShouldPushPrivate = (
   payload: _Keybase1PgpUiShouldPushPrivatePayload
 ): Keybase1PgpUiShouldPushPrivatePayload => ({payload, type: keybase1PgpUiShouldPushPrivate})
@@ -3309,9 +3305,9 @@ export type Keybase1PgpUiOutputPGPWarningPayload = {
   readonly payload: _Keybase1PgpUiOutputPGPWarningPayload
   readonly type: typeof keybase1PgpUiOutputPGPWarning
 }
-export type Keybase1PgpUiOutputSignatureSuccessNonKeybasePayload = {
-  readonly payload: _Keybase1PgpUiOutputSignatureSuccessNonKeybasePayload
-  readonly type: typeof keybase1PgpUiOutputSignatureSuccessNonKeybase
+export type Keybase1PgpUiOutputSignatureNonKeybasePayload = {
+  readonly payload: _Keybase1PgpUiOutputSignatureNonKeybasePayload
+  readonly type: typeof keybase1PgpUiOutputSignatureNonKeybase
 }
 export type Keybase1PgpUiOutputSignatureSuccessPayload = {
   readonly payload: _Keybase1PgpUiOutputSignatureSuccessPayload
@@ -3654,7 +3650,7 @@ export type Actions =
   | Keybase1PgpUiFinishedPayload
   | Keybase1PgpUiKeyGeneratedPayload
   | Keybase1PgpUiOutputPGPWarningPayload
-  | Keybase1PgpUiOutputSignatureSuccessNonKeybasePayload
+  | Keybase1PgpUiOutputSignatureNonKeybasePayload
   | Keybase1PgpUiOutputSignatureSuccessPayload
   | Keybase1PgpUiShouldPushPrivatePayload
   | Keybase1ProveUiCheckingPayload

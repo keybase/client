@@ -9,11 +9,10 @@ export const sharedStyles = Styles.styleSheetCreate(() => ({
     common: {
       flexGrow: 1,
       flexShrink: 1,
-      width: '100%',
+      width: Styles.globalStyles.mediumWidth,
     },
     isTablet: {
       alignSelf: 'center',
-      width: 460,
     },
   }),
   spinnerContainer: {...Styles.globalStyles.fillAbsolute},
