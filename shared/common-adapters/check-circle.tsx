@@ -10,6 +10,7 @@ type Props = {
   className?: string
   disabled?: boolean
   fontSize?: number
+  style?: Styles.StylesCrossPlatform
 }
 
 const CheckCircle = (props: Props) => (
@@ -23,6 +24,7 @@ const CheckCircle = (props: Props) => (
     onClick={props.disabled ? null : () => props.onCheck && props.onCheck(!props.checked)}
     fontSize={props.fontSize}
     className={Styles.classNames(!props.disabled && 'checkCircle', props.className)}
+    style={props.style}
   />
 )
 export default CheckCircle

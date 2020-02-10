@@ -140,6 +140,7 @@ const AddToChannel = (props: Props) => {
                     onCheck={onCheck}
                     checked={alreadyIn || toAdd.has(item.username)}
                     disabled={alreadyIn}
+                    style={styles.checkCircle}
                   />
                 }
               />
@@ -177,6 +178,7 @@ const styles = Styles.styleSheetCreate(() => ({
       top: -16,
     },
   }),
+  checkCircle: {paddingRight: Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.tiny},
   filterInput: Styles.platformStyles({
     isElectron: {
       marginBottom: Styles.globalMargins.tiny,
