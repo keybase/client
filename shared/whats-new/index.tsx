@@ -26,15 +26,12 @@ type Props = {
 const Wrapper = ({children}: {children: React.ReactNode}) => (
   <Kb.Box2
     direction="vertical"
-    alignItems="flex-start"
-    alignSelf="flex-start"
     fullHeight={true}
     style={!Styles.isMobile && styles.popupContainer}
+    centerChildren={true}
   >
     <Kb.Box2
       direction="vertical"
-      alignItems="flex-start"
-      alignSelf="flex-start"
       fullHeight={true}
       fullWidth={!Styles.isMobile}
       style={styles.contentBackground}
@@ -131,6 +128,9 @@ const styles = Styles.styleSheetCreate(() => ({
     },
     isElectron: {
       ...Styles.padding(Styles.globalMargins.tiny),
+    },
+    isTablet: {
+      maxWidth: Styles.globalStyles.mediumWidth,
     },
   }),
   scrollViewInner: Styles.platformStyles({
