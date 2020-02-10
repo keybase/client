@@ -165,7 +165,6 @@ const TeamRequestRowNew = (props: Props) => {
           {popup}
         </Kb.Box2>
       }
-      onlyShowActionOnHover="fade"
       onClick={() => onOpenProfile(username)}
       firstItem={true /* TODO */}
     />
