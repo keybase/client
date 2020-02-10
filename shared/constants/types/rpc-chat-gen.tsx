@@ -1310,6 +1310,7 @@ export type SetStatusPayload = {readonly Action: String; readonly convID: Conver
 export type SetTeamRetentionUpdate = {readonly inboxVers: InboxVers; readonly teamID: Keybase1.TeamID; readonly policy: RetentionPolicy}
 export type SignEncryptedData = {readonly v: Int; readonly e: Bytes; readonly n: Bytes}
 export type SignatureInfo = {readonly v: Int; readonly s: Bytes; readonly k: Bytes}
+export type SimpleSearchInboxConvNamesHit = {readonly name: String; readonly convID: ConversationID; readonly isTeam: Boolean; readonly parts?: Array<String> | null}
 export type StaticConfig = {readonly deletableByDeleteHistory?: Array<MessageType> | null; readonly builtinCommands?: Array<BuiltinCommandGroup> | null}
 export type SubteamRenameUpdate = {readonly convIDs?: Array<ConversationID> | null; readonly inboxVers: InboxVers}
 export type SweepRes = {readonly foundTask: Boolean; readonly deletedMessages: Boolean; readonly expunge: Expunge}
@@ -1637,6 +1638,7 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.local.joinConversationLocal'
 // 'chat.1.local.getAllResetConvMembers'
 // 'chat.1.local.upgradeKBFSConversationToImpteam'
+// 'chat.1.local.simpleSearchInboxConvNames'
 // 'chat.1.local.putReacjiSkinTone'
 // 'chat.1.local.loadFlip'
 // 'chat.1.local.advertiseBotCommandsLocal'

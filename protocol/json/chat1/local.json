@@ -3335,6 +3335,31 @@
     },
     {
       "type": "record",
+      "name": "SimpleSearchInboxConvNamesHit",
+      "fields": [
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "boolean",
+          "name": "isTeam"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "parts"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "ProfileSearchConvStats",
       "fields": [
         {
@@ -5095,6 +5120,18 @@
         }
       ],
       "response": "SearchInboxRes"
+    },
+    "simpleSearchInboxConvNames": {
+      "request": [
+        {
+          "name": "query",
+          "type": "string"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "SimpleSearchInboxConvNamesHit"
+      }
     },
     "cancelActiveSearch": {
       "request": [],
