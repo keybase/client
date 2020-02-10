@@ -51,7 +51,11 @@ const shimNewRoute = (Original: any) => {
       }
 
       const safeKeyboardBody = (
-        <Kb.NativeSafeAreaView style={styles.keyboard}>{keyboardBody}</Kb.NativeSafeAreaView>
+        <Kb.NativeSafeAreaView
+          style={Styles.collapseStyles([styles.keyboard, navigationOptions?.safeAreaStyle])}
+        >
+          {keyboardBody}
+        </Kb.NativeSafeAreaView>
       )
 
       return safeKeyboardBody
