@@ -22,7 +22,8 @@ const BOOL isSimulator = NO;
 
 @interface ShareViewController ()
 @property BOOL hasInited; // whether or not init has succeeded yet
-@property NSMutableArray *  manifest;
+@property NSMutableArray * manifest;
+@property NSURL * payloadFolderURL;
 @end
 
 @implementation ShareViewController
@@ -105,33 +106,13 @@ const BOOL isSimulator = NO;
   return res;
 }
 
-// loadPreviewView solves the problem of running out of memory when rendering the image previews on URLs. In some
-// apps, loading URLs from them will crash our extension because of memory constraints. Instead of showing the image
-// preview, just paste the text into the compose box. Otherwise, just do the normal thing.
-- (UIView*)loadPreviewView {
-  NSArray* items = [self getSendableAttachments];
-  if ([items count] == 0) {
-    return [super loadPreviewView];
-  }
-  NSItemProvider* item = items[0];
-  if ([self isWebURL:item]) {
-    [item loadItemForTypeIdentifier:@"public.url" options:nil completionHandler:^(NSURL *url, NSError *error) {
-      dispatch_async(dispatch_get_main_queue(), ^{
-        [self.textView setText:[NSString stringWithFormat:@"%@\n%@", self.contentText, [url absoluteString]]];
-      });
-    }];
-    return nil;
-  }
-  return [super loadPreviewView];
-}
-
 - (void)didReceiveMemoryWarning {
     KeybaseExtensionForceGC(); // run Go GC and hope for the best
     [super didReceiveMemoryWarning];
 }
 
 - (void) openApp {
-  NSURL * url = [NSURL URLWithString:@"keybase://share"];
+  NSURL * url = [NSURL URLWithString:@"keybase://incoming-share"];
   UIResponder *responder = self;
   while (responder){
     if ([responder respondsToSelector: @selector(openURL:)]){
@@ -159,11 +140,22 @@ const BOOL isSimulator = NO;
   return incomingShareFolderURL;
 }
 
-- (NSURL*)generatePayloadFileURLWithExtension:(NSString *)ext {
+- (NSURL*)makePayloadFolder {
   NSURL* incomingShareFolderURL = [self getIncomingShareFolder];
-  [[NSFileManager defaultManager] createDirectoryAtURL:incomingShareFolderURL withIntermediateDirectories:YES attributes:nil error:nil];
   NSString* guid = [[NSProcessInfo processInfo] globallyUniqueString];
-  return ext ? [[incomingShareFolderURL URLByAppendingPathComponent:guid] URLByAppendingPathExtension:ext] : [incomingShareFolderURL URLByAppendingPathComponent:guid];
+  NSURL* payloadFolderURL = [incomingShareFolderURL URLByAppendingPathComponent:guid isDirectory:true];
+  [[NSFileManager defaultManager] createDirectoryAtURL:payloadFolderURL withIntermediateDirectories:YES attributes:nil error:nil];
+  return payloadFolderURL;
+}
+
+- (NSURL*)getPayloadURLFromURL:(NSURL *)fileUrl {
+  NSString* guid = [[NSProcessInfo processInfo] globallyUniqueString];
+  return fileUrl ? [self.payloadFolderURL URLByAppendingPathComponent:[fileUrl lastPathComponent]] : [self.payloadFolderURL URLByAppendingPathComponent:guid];
+}
+
+- (NSURL*)getPayloadURLFromExt:(NSString *)ext {
+  NSString* guid = [[NSProcessInfo processInfo] globallyUniqueString];
+  return ext ? [[self.payloadFolderURL URLByAppendingPathComponent:guid] URLByAppendingPathExtension:ext] : [self.payloadFolderURL URLByAppendingPathComponent:guid];
 }
 
 - (NSURL*)getManifestFileURL {
@@ -194,7 +186,7 @@ const BOOL isSimulator = NO;
     NSLog(@"handleText: load error: %@", error);
     return;
   }
-  NSURL * payloadFileURL = [self generatePayloadFileURLWithExtension:@"txt"];
+  NSURL * payloadFileURL = [self getPayloadURLFromExt:@"txt"];
   [text writeToURL:payloadFileURL atomically:true encoding:NSUTF8StringEncoding error:&error];
   if (error != nil){
     NSLog(@"handleText: unable to write payload file: %@", error);
@@ -204,7 +196,7 @@ const BOOL isSimulator = NO;
 }
 
 - (void) handleData:(NSData *)data type:(NSString *)type ext:(NSString *)ext {
-  NSURL * payloadFileURL = [self generatePayloadFileURLWithExtension:ext];
+  NSURL * payloadFileURL = [self getPayloadURLFromExt:ext];
   BOOL OK = [data writeToURL:payloadFileURL atomically:true];
   if (!OK){
     NSLog(@"handleData: unable to write payload file");
@@ -250,7 +242,7 @@ const BOOL isSimulator = NO;
       }
       return;
     }
-    NSURL * filePayloadURL = [self generatePayloadFileURLWithExtension:nil];
+    NSURL * filePayloadURL = [self getPayloadURLFromURL:url];
     [[NSFileManager defaultManager] copyItemAtURL:url toURL:filePayloadURL error:&error];
     if (error != nil) {
       NSLog(@"fileHandler: copy error: %@", error);
@@ -315,11 +307,12 @@ const BOOL isSimulator = NO;
   [self presentViewController:alert animated:YES completion:nil];
 }
 
-- (void)ensureManifest {
+- (void)ensureManifestAndPayloadFolder {
   if (self.manifest == nil ) {
     self.manifest = [[NSMutableArray alloc] init];
   }
   [self.manifest removeAllObjects];
+  self.payloadFolderURL = [self makePayloadFolder];
 }
 
 - (void)didSelectPost {
@@ -329,7 +322,7 @@ const BOOL isSimulator = NO;
     return;
   }
   [self showProgressView];
-  [self ensureManifest];
+  [self ensureManifestAndPayloadFolder];
   for (int i = 0; i < [items count]; i++) {
     BOOL lastItem = (BOOL)(i == [items count]-1);
     [self processItem:items[i] lastItem:lastItem];

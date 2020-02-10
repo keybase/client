@@ -2,13 +2,13 @@ import * as ChatGen from './chat2-gen'
 import * as Constants from '../constants/config'
 import * as Container from '../util/container'
 import * as DeeplinksGen from './deeplinks-gen'
+import * as Platform from '../constants/platform'
 import * as ProfileGen from './profile-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as Saga from '../util/saga'
 import * as Tabs from '../constants/tabs'
 import * as WalletsGen from './wallets-gen'
 import * as TeamsGen from './teams-gen'
-import * as RPCTypes from '../constants/types/rpc-gen'
 import URL from 'url-parse'
 import logger from '../logger'
 
@@ -87,11 +87,8 @@ const handleKeybaseLink = (action: DeeplinksGen.HandleKeybaseLinkPayload) => {
         }
       }
       break
-    case 'share':
-      RPCTypes.incomingShareGetIncomingShareItemsRpcPromise().then(res =>
-        console.log({songgao: 'getincomignshared', res})
-      )
-      break
+    case 'incoming-share':
+      return Platform.isIOS && RouteTreeGen.createNavigateAppend({path: ['iosChooseTarget']})
     default:
     // Fall through to the error return below.
   }

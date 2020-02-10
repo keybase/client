@@ -586,33 +586,60 @@ const moveOrCopy = async (state: Container.TypedState, action: FsGen.MovePayload
   if (state.fs.destinationPicker.source.type === Types.DestinationPickerSource.None) {
     return
   }
-  const params = {
-    dest: Constants.pathToRPCPath(
-      Types.pathConcat(
-        action.payload.destinationParentPath,
-        state.fs.destinationPicker.source.type === Types.DestinationPickerSource.MoveOrCopy
-          ? Types.getPathName(state.fs.destinationPicker.source.path)
-          : Types.getLocalPathName(state.fs.destinationPicker.source.localPath)
-        // We use the local path name here since we only care about file name.
-      )
-    ),
-    opID: Constants.makeUUID() as string,
-    src:
-      state.fs.destinationPicker.source.type === Types.DestinationPickerSource.MoveOrCopy
-        ? Constants.pathToRPCPath(state.fs.destinationPicker.source.path)
-        : ({
+
+  const params =
+    state.fs.destinationPicker.source.type === Types.DestinationPickerSource.MoveOrCopy
+      ? [
+          {
+            dest: Constants.pathToRPCPath(
+              Types.pathConcat(
+                action.payload.destinationParentPath,
+                Types.getPathName(state.fs.destinationPicker.source.path)
+              )
+            ),
+            opID: Constants.makeUUID() as string,
+            src: Constants.pathToRPCPath(state.fs.destinationPicker.source.path),
+          },
+        ]
+      : !Array.isArray(state.fs.destinationPicker.source.source)
+      ? [
+          {
+            dest: Constants.pathToRPCPath(
+              Types.pathConcat(
+                action.payload.destinationParentPath,
+                Types.getLocalPathName(state.fs.destinationPicker.source.source)
+                // We use the local path name here since we only care about file name.
+              )
+            ),
+            opID: Constants.makeUUID() as string,
+            src: {
+              PathType: RPCTypes.PathType.local,
+              local: Types.localPathToString(state.fs.destinationPicker.source.source),
+            } as RPCTypes.Path,
+          },
+        ]
+      : state.fs.destinationPicker.source.source.map(item => ({
+          dest: Constants.pathToRPCPath(
+            Types.pathConcat(
+              action.payload.destinationParentPath,
+              Types.getLocalPathName(item.payloadPath)
+              // We use the local path name here since we only care about file name.
+            )
+          ),
+          opID: Constants.makeUUID() as string,
+          src: {
             PathType: RPCTypes.PathType.local,
-            local: Types.localPathToString(state.fs.destinationPicker.source.localPath),
-          } as RPCTypes.Path),
-  }
+            local: item.payloadPath,
+          } as RPCTypes.Path,
+        }))
 
   try {
-    if (action.type === FsGen.move) {
-      await RPCTypes.SimpleFSSimpleFSMoveRpcPromise(params)
-    } else {
-      await RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise(params)
-    }
-    return RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID: params.opID})
+    const rpc =
+      action.type === FsGen.move
+        ? RPCTypes.SimpleFSSimpleFSMoveRpcPromise
+        : RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise
+    await Promise.all(params.map(p => rpc(p)))
+    return Promise.all(params.map(({opID}) => RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID})))
     // We get source/dest paths from state rather than action, so we can't
     // just retry it. If we do want retry in the future we can include those
     // paths in the action.

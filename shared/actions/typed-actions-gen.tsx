@@ -601,7 +601,7 @@ export type TypedActionsMap = {
   'fs:setMoveOrCopySource': fs.SetMoveOrCopySourcePayload
   'fs:setDestinationPickerParentPath': fs.SetDestinationPickerParentPathPayload
   'fs:showMoveOrCopy': fs.ShowMoveOrCopyPayload
-  'fs:setIncomingShareLocalPath': fs.SetIncomingShareLocalPathPayload
+  'fs:setIncomingShareSource': fs.SetIncomingShareSourcePayload
   'fs:showIncomingShare': fs.ShowIncomingSharePayload
   'fs:move': fs.MovePayload
   'fs:copy': fs.CopyPayload

@@ -12,19 +12,27 @@ import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import ConversationList from './conversation-list/conversation-list'
 import ChooseConversation from './conversation-list/choose-conversation'
 
-type Props = Container.RouteProps<{path?: Types.Path; url?: string}>
+type Props = Container.RouteProps<{
+  path?: Types.Path
+  paths?: Array<Types.LocalPath>
+  url?: string
+}>
 
 const MobileSendAttachmentToChat = (props: Props) => {
-  const path = Container.getRouteProps(props, 'path', undefined) ?? Constants.defaultPath
+  const paths = Container.getRouteProps(props, 'paths', undefined)
   const url = Container.getRouteProps(props, 'url', undefined)
+  const path = Container.getRouteProps(props, 'path', undefined) ?? Constants.defaultPath
   const dispatch = Container.useDispatch()
   const username = Container.useSelector(state => state.config.username)
-  const sendPath = url ?? path
+  const sendPaths = paths || [url || Types.pathToString(path)]
   const onSelect = (conversationIDKey: ChatTypes.ConversationIDKey, convName: string) => {
     dispatch(
       Chat2Gen.createAttachmentsUpload({
         conversationIDKey,
-        paths: [{outboxID: null, path: Types.pathToString(sendPath)}],
+        paths: sendPaths.map(p => ({
+          outboxID: null,
+          path: p,
+        })),
         titles: [''],
         tlfName: `${username},${convName.split('#')[0]}`,
       })
@@ -44,7 +52,7 @@ const MobileSendAttachmentToChat = (props: Props) => {
             Cancel
           </Kb.Text>
         ),
-        title: Types.getPathName(path),
+        title: Constants.getSharePathArrayDescription(sendPaths),
       }}
     >
       <ConversationList {...props} onSelect={onSelect} />
@@ -62,9 +70,9 @@ const DesktopSendAttachmentToChat = (props: Props) => {
   const onCancel = () => {
     dispatch(RouteTreeGen.createClearModals())
   }
-  const onSelect = (convID: ChatTypes.ConversationIDKey, convName: string) => {
+  const onSelect = (convID: ChatTypes.ConversationIDKey, convname: string) => {
     setConversationIDKey(convID)
-    setConvName(convName)
+    setConvName(convname)
   }
   const onSend = () => {
     dispatch(
