@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
 
@@ -20,7 +21,7 @@ func TestDevConversationBackedStorageTeamAdminOnly(t *testing.T) {
 	ri := ctc.as(t, alice).ri
 	ctx := ctc.as(t, alice).startCtx
 	uid := alice.User.GetUID().ToBytes()
-	storage := NewDevConversationBackedStorage(tc.Context(), chat1.ConversationMembersType_TEAM,
+	storage := NewTeamDevConversationBackedStorage(tc.Context(),
 		true /* adminOnly */, func() chat1.RemoteInterface { return ri })
 	var msg string
 
@@ -29,34 +30,36 @@ func TestDevConversationBackedStorageTeamAdminOnly(t *testing.T) {
 	readertc := ctc.world.Tcs[bob.Username]
 	readerri := ctc.as(t, bob).ri
 	readerctx := ctc.as(t, bob).startCtx
-	readerstorage := NewDevConversationBackedStorage(readertc.Context(), chat1.ConversationMembersType_TEAM,
+	readerstorage := NewTeamDevConversationBackedStorage(readertc.Context(),
 		true /* adminOnly */, func() chat1.RemoteInterface { return readerri })
 	var readermsg string
 
-	conv := mustCreateChannelForTest(t, ctc, alice, chat1.TopicType_CHAT, nil, chat1.ConversationMembersType_TEAM, bob)
-	tlfid := conv.Triple.Tlfid
+	conv := mustCreateChannelForTest(t, ctc, alice, chat1.TopicType_CHAT, nil,
+		chat1.ConversationMembersType_TEAM, bob)
+	teamID, err := keybase1.TeamIDFromString(conv.Triple.Tlfid.String())
+	require.NoError(t, err)
 
 	key0 := "mykey"
 
-	found, err := storage.Get(ctx, uid, tlfid, key0, &msg)
+	found, err := storage.Get(ctx, uid, teamID, key0, &msg)
 	require.NoError(t, err)
 	require.False(t, found)
-	found, err = readerstorage.Get(readerctx, readeruid, tlfid, key0, &readermsg)
+	found, err = readerstorage.Get(readerctx, readeruid, teamID, key0, &readermsg)
 	require.NoError(t, err)
 	require.False(t, found)
 
-	err = storage.Put(ctx, uid, tlfid, key0, "hello")
+	err = storage.Put(ctx, uid, teamID, key0, "hello")
 	require.NoError(t, err)
 
-	err = readerstorage.Put(readerctx, readeruid, tlfid, key0, "hello")
+	err = readerstorage.Put(readerctx, readeruid, teamID, key0, "hello")
 	require.Error(t, err)
 	require.IsType(t, &DevStoragePermissionDeniedError{}, err, "got right error")
 
-	found, err = storage.Get(ctx, uid, tlfid, key0, &msg)
+	found, err = storage.Get(ctx, uid, teamID, key0, &msg)
 	require.NoError(t, err)
 	require.True(t, found)
 	require.Equal(t, msg, "hello")
-	found, err = readerstorage.Get(readerctx, readeruid, tlfid, key0, &readermsg)
+	found, err = readerstorage.Get(readerctx, readeruid, teamID, key0, &readermsg)
 	require.NoError(t, err)
 	require.True(t, found)
 	require.Equal(t, msg, "hello")
@@ -75,7 +78,7 @@ func TestDevConversationBackedStorageTeamAdminOnlyReaderMisbehavior(t *testing.T
 	ri := ctc.as(t, alice).ri
 	ctx := ctc.as(t, alice).startCtx
 	uid := alice.User.GetUID().ToBytes()
-	storage := NewDevConversationBackedStorage(tc.Context(),
+	storage := NewTeamDevConversationBackedStorage(tc.Context(),
 		true /* adminOnly */, func() chat1.RemoteInterface { return ri })
 	var msg string
 
@@ -84,23 +87,24 @@ func TestDevConversationBackedStorageTeamAdminOnlyReaderMisbehavior(t *testing.T
 	readerri := ctc.as(t, bob).ri
 	readerctx := ctc.as(t, bob).startCtx
 	readeruid := bob.User.GetUID().ToBytes()
-	readerstorage := NewDevConversationBackedStorage(readertc.Context(),
+	readerstorage := NewTeamDevConversationBackedStorage(readertc.Context(),
 		true /* adminOnly */, func() chat1.RemoteInterface { return readerri })
 	var readermsg string
 
 	conv := mustCreateChannelForTest(t, ctc, alice, chat1.TopicType_CHAT, nil,
 		chat1.ConversationMembersType_TEAM, bob)
-	tlfid := conv.Triple.Tlfid
+	teamID, err := keybase1.TeamIDFromString(conv.Triple.Tlfid.String())
+	require.NoError(t, err)
 	key0 := "mykey"
 
-	found, err := storage.Get(ctx, uid, tlfid, key0, &msg)
+	found, err := storage.Get(ctx, uid, teamID, key0, &msg)
 	require.NoError(t, err)
 	require.False(t, found)
-	found, err = readerstorage.Get(readerctx, readeruid, tlfid, key0, &readermsg)
+	found, err = readerstorage.Get(readerctx, readeruid, teamID, key0, &readermsg)
 	require.NoError(t, err)
 	require.False(t, found)
 
-	err = readerstorage.Put(readerctx, readeruid, tlfid, key0, "evil")
+	err = readerstorage.Put(readerctx, readeruid, teamID, key0, "evil")
 	require.Error(t, err)
 	require.IsType(t, &DevStoragePermissionDeniedError{}, err, "got right error")
 
@@ -121,11 +125,11 @@ func TestDevConversationBackedStorageTeamAdminOnlyReaderMisbehavior(t *testing.T
 	_, err = ctc.as(t, bob).chatLocalHandler().PostLocal(ctc.as(t, bob).startCtx, larg)
 	require.NoError(t, err)
 
-	found, err = storage.Get(ctx, uid, tlfid, key0, &msg)
+	found, err = storage.Get(ctx, uid, teamID, key0, &msg)
 	require.Error(t, err, "got an error after misbehavior")
 	require.IsType(t, &DevStorageAdminOnlyError{}, err, "got a permission error")
 
-	found, err = readerstorage.Get(readerctx, readeruid, tlfid, key0, &readermsg)
+	found, err = readerstorage.Get(readerctx, readeruid, teamID, key0, &readermsg)
 	require.Error(t, err, "got an error after misbehavior")
 	require.IsType(t, &DevStorageAdminOnlyError{}, err, "got a permission error")
 }

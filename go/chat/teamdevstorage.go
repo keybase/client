@@ -62,6 +62,11 @@ func (s *TeamDevConversationBackedStorage) Put(ctx context.Context, uid gregor1.
 
 	var conv chat1.ConversationLocal
 
+	// TODO(TRIAGE-1972): NewConversation should return the existing
+	// conversation without an error if one already exists, but currently a bug
+	// makes it so this doesn't work properly for team conversations one is not
+	// in yet. After that bug is fixed, this block can be replaced by just
+	// a call to NewConversation.
 	convs, err := FindConversations(ctx, s.G(), s.DebugLabeler, types.InboxSourceDataSourceAll, s.ri, uid,
 		tlfname, chat1.TopicType_DEV, chat1.ConversationMembersType_TEAM, keybase1.TLFVisibility_PRIVATE, name, nil)
 	if err != nil {
