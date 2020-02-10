@@ -4,13 +4,19 @@ import * as Styles from '../../../../styles'
 import * as ChatConstants from '../../../../constants/chat2'
 import * as ChatTypes from '../../../../constants/types/chat2'
 import * as TeamConstants from '../../../../constants/teams'
+import * as TeamTypes from '../../../../constants/types/teams'
 import * as Container from '../../../../util/container'
 import {useTeamDetailsSubscribe} from '../../../../teams/subscriber'
 import {pluralize} from '../../../../util/string'
+import {memoize} from '../../../../util/memoize'
 
 type Props = Container.RouteProps<{
   conversationIDKey: ChatTypes.ConversationIDKey
 }>
+
+const sortMembers = memoize((members: TeamTypes.TeamDetails['members']) =>
+  [...members.values()].sort((a, b) => a.username.localeCompare(b.username))
+)
 
 const AddToChannel = (props: Props) => {
   const conversationIDKey = Container.getRouteProps(
@@ -27,9 +33,8 @@ const AddToChannel = (props: Props) => {
     ChatConstants.getMeta(s, conversationIDKey)
   )
   const participants = Container.useSelector(s => ChatConstants.getParticipantInfo(s, conversationIDKey)).name
-  const userInfoMap = Container.useSelector(s => s.users.infoMap)
   const teamDetails = Container.useSelector(s => TeamConstants.getTeamDetails(s, teamID))
-  const allMembers = teamDetails.members
+  const allMembers = sortMembers(teamDetails.members)
 
   useTeamDetailsSubscribe(teamID)
 
@@ -53,9 +58,29 @@ const AddToChannel = (props: Props) => {
       <Kb.SearchFilter
         onChange={text => setFilter(text)}
         size="full-width"
-        placeholderText={`Search ${allMembers.size} ${pluralize('member', allMembers.size)}`}
+        placeholderText={`Search ${allMembers.length} ${pluralize('member', allMembers.length)}`}
         style={styles.filterInput}
       />
+      <Kb.BoxGrow>
+        <Kb.List2
+          items={allMembers}
+          renderItem={(idx, item) => (
+            <Kb.ListItem2
+              firstItem={idx === 0}
+              icon={<Kb.Avatar size={32} username={item.username} />}
+              type="Small"
+              body={
+                <Kb.ConnectedUsernames
+                  type="BodySemibold"
+                  colorFollowing={true}
+                  usernames={[item.username]}
+                />
+              }
+            />
+          )}
+          itemHeight={{sizeType: 'Small', type: 'fixedListItem2Auto'}}
+        />
+      </Kb.BoxGrow>
     </Kb.Modal>
   )
 }
