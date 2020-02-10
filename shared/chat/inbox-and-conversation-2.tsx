@@ -29,7 +29,7 @@ const InboxAndConversation = (props: Props) => {
 
 InboxAndConversation.navigationOptions = {
   header: undefined,
-  headerTitle: Container.isTablet ? HeaderArea : Header,
+  headerTitle: Header,
 }
 
 const Memoed = React.memo(InboxAndConversation)
