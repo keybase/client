@@ -93,6 +93,7 @@ const AddToChannel = (props: Props) => {
             }
       }
       onClose={onClose}
+      allowOverflow={true}
     >
       <Kb.SearchFilter
         onChange={text => setFilter(text)}
@@ -158,7 +159,7 @@ const title = ({channelname, teamname}: {channelname: string; teamname: string})
   ) : (
     <Kb.Box2 direction="vertical" gap="xtiny" alignItems="center" style={styles.title}>
       {/* TODO move up 16 */}
-      <Kb.Avatar size={32} teamname={teamname} />
+      <Kb.Avatar size={32} teamname={teamname} style={styles.avatar} />
       <Kb.Box2 direction="vertical" alignItems="center">
         <Kb.Text type="BodySmall" lineClamp={1}>
           {teamname}
@@ -169,6 +170,13 @@ const title = ({channelname, teamname}: {channelname: string; teamname: string})
   )
 
 const styles = Styles.styleSheetCreate(() => ({
+  avatar: Styles.platformStyles({
+    isElectron: {
+      height: 16,
+      position: 'relative',
+      top: -16,
+    },
+  }),
   filterInput: Styles.platformStyles({
     isElectron: {
       marginBottom: Styles.globalMargins.tiny,
