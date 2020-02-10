@@ -5,7 +5,6 @@ import Inbox from './inbox/container'
 import InboxSearch from './inbox-search/container'
 import Conversation from './conversation/container'
 import Header from './header.desktop'
-import HeaderArea from './conversation/header-area/container.native'
 import InfoPanel from './conversation/info-panel/container'
 import * as Container from '../util/container'
 
@@ -27,10 +26,12 @@ const InboxAndConversation = (props: Props) => {
   )
 }
 
-InboxAndConversation.navigationOptions = {
-  header: undefined,
-  headerTitle: Header,
-}
+InboxAndConversation.navigationOptions = Container.isTablet
+  ? {}
+  : {
+      header: undefined,
+      headerTitle: Header,
+    }
 
 const Memoed = React.memo(InboxAndConversation)
 Container.hoistNonReactStatic(Memoed, InboxAndConversation)
