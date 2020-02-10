@@ -27,14 +27,19 @@ const AddToChannel = (props: Props) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
 
+  const [toAdd, setToAdd] = React.useState<Set<string>>(new Set())
   const [filter, setFilter] = React.useState('')
+  const fLower = filter.toLowerCase()
 
   const {channelname, teamname, teamID} = Container.useSelector(s =>
     ChatConstants.getMeta(s, conversationIDKey)
   )
-  const participants = Container.useSelector(s => ChatConstants.getParticipantInfo(s, conversationIDKey)).name
+  const participants = Container.useSelector(s => ChatConstants.getParticipantInfo(s, conversationIDKey)).all
   const teamDetails = Container.useSelector(s => TeamConstants.getTeamDetails(s, teamID))
   const allMembers = sortMembers(teamDetails.members)
+  const membersFiltered = allMembers.filter(
+    m => m.username.toLowerCase().includes(fLower) || m.fullName.toLowerCase().includes(fLower)
+  )
 
   useTeamDetailsSubscribe(teamID)
 
@@ -53,6 +58,7 @@ const AddToChannel = (props: Props) => {
         ),
         title: title({channelname, teamname}),
       }}
+      footer={{content: <Kb.Button label="Wha" />}}
       onClose={onClose}
     >
       <Kb.SearchFilter
@@ -61,26 +67,56 @@ const AddToChannel = (props: Props) => {
         placeholderText={`Search ${allMembers.length} ${pluralize('member', allMembers.length)}`}
         style={styles.filterInput}
       />
-      <Kb.BoxGrow>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
         <Kb.List2
-          items={allMembers}
-          renderItem={(idx, item) => (
-            <Kb.ListItem2
-              firstItem={idx === 0}
-              icon={<Kb.Avatar size={32} username={item.username} />}
-              type="Small"
-              body={
-                <Kb.ConnectedUsernames
-                  type="BodySemibold"
-                  colorFollowing={true}
-                  usernames={[item.username]}
-                />
+          items={membersFiltered}
+          renderItem={(idx, item) => {
+            const alreadyIn = participants.includes(item.username)
+            const onCheck = () => {
+              if (toAdd.has(item.username)) {
+                toAdd.delete(item.username)
+                setToAdd(new Set(toAdd))
+              } else {
+                toAdd.add(item.username)
+                setToAdd(new Set(toAdd))
               }
-            />
-          )}
+            }
+            return (
+              <Kb.ListItem2
+                firstItem={!Styles.isMobile || idx === 0}
+                icon={<Kb.Avatar size={32} username={item.username} />}
+                type="Small"
+                onClick={onCheck}
+                body={
+                  <Kb.Box2 direction="vertical" alignItems="flex-start">
+                    <Kb.ConnectedUsernames
+                      type="BodySemibold"
+                      colorFollowing={true}
+                      usernames={[item.username]}
+                    />
+                    <Kb.Box2 direction="horizontal" alignSelf="flex-start">
+                      <Kb.Text type="BodySmall" lineClamp={1}>
+                        {item.fullName}
+                      </Kb.Text>
+                      {alreadyIn && <Kb.Text type="BodySmall">{!!item.fullName && ' • '}Already in</Kb.Text>}
+                    </Kb.Box2>
+                  </Kb.Box2>
+                }
+                action={
+                  <Kb.CheckCircle
+                    key={idx}
+                    onCheck={onCheck}
+                    checked={alreadyIn || toAdd.has(item.username)}
+                    disabled={alreadyIn}
+                  />
+                }
+              />
+            )
+          }}
           itemHeight={{sizeType: 'Small', type: 'fixedListItem2Auto'}}
+          style={styles.list}
         />
-      </Kb.BoxGrow>
+      </Kb.Box2>
     </Kb.Modal>
   )
 }
@@ -110,6 +146,8 @@ const styles = Styles.styleSheetCreate(() => ({
       marginTop: Styles.globalMargins.tiny,
     },
   }),
+  list: Styles.platformStyles({isMobile: {height: '100%'}}),
+  listContainer: Styles.platformStyles({isElectron: {height: 370}}), // Maybe see if we could stop doing this
   title: {
     paddingBottom: Styles.globalMargins.tiny,
   },
