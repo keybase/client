@@ -15,6 +15,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"reflect"
 	"regexp"
 	"sort"
@@ -3758,8 +3759,11 @@ func (e TeamSearchExport) Hash() string {
 	})
 	hasher := sha256.New()
 	for _, team := range l {
+		log := int(math.Floor(math.Log10(float64(team.MemberCount))))
+		rounder := int(math.Pow(10, float64(log)))
+		value := (team.MemberCount / rounder) * rounder
 		hasher.Write(team.Id.ToBytes())
-		hasher.Write([]byte(fmt.Sprintf("%d", team.MemberCount/100)))
+		hasher.Write([]byte(fmt.Sprintf("%d", value)))
 	}
 	for _, id := range e.Suggested {
 		hasher.Write(id.ToBytes())
