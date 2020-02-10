@@ -186,20 +186,20 @@ protocol teams {
   }
 
   record TeamMemberRole {
-    UID userID;
+    UID uid;
     string username;
     FullName fullName;
     TeamRole role;
   }
 
-  record TeamInfo {
+  record UntrustedTeamInfo {
     TeamName name;
     boolean inTeam; 
     boolean open;
     string description;
     array<string> publicAdmins;
     int numMembers;
-    map<UID,TeamMemberRole> publicMembers;
+    array<TeamMemberRole> publicMembers;
   }
 
   TeamInfo getUntrustedTeamInfo(TeamName teamName);

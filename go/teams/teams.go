@@ -2710,24 +2710,21 @@ func KeySummary(t Teamer) string {
 
 type TeamInfo struct {
 	libkb.AppStatusEmbed
-	Name            string
-	InTeam          bool `json:"in_team"`
-	Open            bool
-	Description     string
-	PublicAdmins    []string `json:"public_admins"`
-	NumMembers      int      `json:"num_members"`
-	PublicUserCards []struct {
-		FullName string `json:"full_name"`
-		UID      keybase1.UID
-	} `json:"public_cards"`
+	Name          string
+	InTeam        bool `json:"in_team"`
+	Open          bool
+	Description   string
+	PublicAdmins  []string `json:"public_admins"`
+	NumMembers    int      `json:"num_members"`
 	PublicMembers []struct {
 		Role     keybase1.TeamRole
 		UID      keybase1.UID
 		Username string
+		FullName string `json:"full_name"`
 	} `json:"public_members"`
 }
 
-func GetUntrustedTeamInfo(mctx libkb.MetaContext, name keybase1.TeamName) (info keybase1.TeamInfo, err error) {
+func GetUntrustedTeamInfo(mctx libkb.MetaContext, name keybase1.TeamName) (info keybase1.UntrustedTeamInfo, err error) {
 	arg := libkb.APIArg{
 		Endpoint:    "team/mentiondesc",
 		SessionType: libkb.APISessionTypeREQUIRED,
@@ -2750,25 +2747,22 @@ func GetUntrustedTeamInfo(mctx libkb.MetaContext, name keybase1.TeamName) (info 
 		return info, err
 	}
 
-	teamInfo := keybase1.TeamInfo{
-		Name:          teamName,
-		Description:   resp.Description,
-		InTeam:        resp.InTeam,
-		NumMembers:    resp.NumMembers,
-		Open:          resp.Open,
-		PublicAdmins:  resp.PublicAdmins,
-		PublicMembers: make(map[keybase1.UID]keybase1.TeamMemberRole),
-	}
-
-	for _, uc := range resp.PublicUserCards {
-		teamInfo.PublicMembers[uc.UID] = keybase1.TeamMemberRole{UserID: uc.UID, FullName: keybase1.FullName(uc.FullName)}
+	teamInfo := keybase1.UntrustedTeamInfo{
+		Name:         teamName,
+		Description:  resp.Description,
+		InTeam:       resp.InTeam,
+		NumMembers:   resp.NumMembers,
+		Open:         resp.Open,
+		PublicAdmins: resp.PublicAdmins,
 	}
 
 	for _, mem := range resp.PublicMembers {
-		tmr := teamInfo.PublicMembers[mem.UID]
-		tmr.Role = mem.Role
-		tmr.Username = mem.Username
-		teamInfo.PublicMembers[mem.UID] = tmr
+		teamInfo.PublicMembers = append(teamInfo.PublicMembers, keybase1.TeamMemberRole{
+			Uid:      mem.UID,
+			FullName: keybase1.FullName(mem.FullName),
+			Role:     mem.Role,
+			Username: mem.Username,
+		})
 	}
 
 	return teamInfo, nil

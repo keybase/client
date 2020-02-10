@@ -18,6 +18,7 @@ import (
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -1877,10 +1878,17 @@ func TestGetUntrustedTeamInfo(t *testing.T) {
 	restrictedBot := 5
 	nonMember := 6
 
-	pAdmFullName := "TheMostAmazing Admin"
-	eng := engine.NewProfileEdit(tcs[publicAdmin].G, keybase1.ProfileEditArg{Location: "", FullName: pAdmFullName, Bio: ""})
-	err := eng.Run(tcs[publicAdmin].MetaContext())
-	require.NoError(t, err)
+	fullNames := make(map[int]string)
+	fullNames[publicAdmin] = "TheMostAmazing Admin"
+	fullNames[publicReader] = "TheEvenBetter Reader"
+
+	setFullName := func(target int) {
+		eng := engine.NewProfileEdit(tcs[target].G, keybase1.ProfileEditArg{Location: "", FullName: fullNames[target], Bio: ""})
+		err := eng.Run(tcs[target].MetaContext())
+		require.NoError(t, err)
+	}
+	setFullName(publicAdmin)
+	setFullName(publicReader)
 
 	teamName, teamID := createTeam2(*tcs[owner])
 	team := teamName.String()
@@ -1924,15 +1932,21 @@ func TestGetUntrustedTeamInfo(t *testing.T) {
 	require.Len(t, ret.PublicAdmins, 1)
 	require.Equal(t, fus[publicAdmin].Username, ret.PublicAdmins[0])
 	require.Len(t, ret.PublicMembers, 2)
-	require.Contains(t, ret.PublicMembers, fus[publicAdmin].User.GetUID())
-	pAdm := ret.PublicMembers[fus[publicAdmin].User.GetUID()]
-	require.Equal(t, fus[publicAdmin].User.GetUID(), pAdm.UserID)
-	require.Equal(t, fus[publicAdmin].Username, pAdm.Username)
-	require.Equal(t, keybase1.FullName(pAdmFullName), pAdm.FullName)
-	require.Equal(t, keybase1.TeamRole_ADMIN, pAdm.Role)
-	require.Contains(t, ret.PublicMembers, fus[publicReader].User.GetUID())
-	pRead := ret.PublicMembers[fus[publicReader].User.GetUID()]
-	require.Equal(t, fus[publicReader].User.GetUID(), pRead.UserID)
-	require.Equal(t, fus[publicReader].Username, pRead.Username)
-	require.Equal(t, keybase1.TeamRole_READER, pRead.Role)
+
+	checkPublicMember := func(target int, role keybase1.TeamRole) {
+		found := false
+		for _, pm := range ret.PublicMembers {
+			if pm.Uid != fus[target].GetUID() {
+				continue
+			}
+			found = true
+			require.Equal(t, fus[target].User.GetUID(), pm.Uid)
+			require.Equal(t, fus[target].Username, pm.Username)
+			require.Equal(t, keybase1.FullName(fullNames[target]), pm.FullName)
+			require.Equal(t, role, pm.Role)
+		}
+		assert.True(t, found, "target %v not found: %v", target, fus[target].Username)
+	}
+	checkPublicMember(publicAdmin, keybase1.TeamRole_ADMIN)
+	checkPublicMember(publicReader, keybase1.TeamRole_READER)
 }

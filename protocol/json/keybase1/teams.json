@@ -429,7 +429,7 @@
       "fields": [
         {
           "type": "UID",
-          "name": "userID"
+          "name": "uid"
         },
         {
           "type": "string",
@@ -447,7 +447,7 @@
     },
     {
       "type": "record",
-      "name": "TeamInfo",
+      "name": "UntrustedTeamInfo",
       "fields": [
         {
           "type": "TeamName",
@@ -478,9 +478,8 @@
         },
         {
           "type": {
-            "type": "map",
-            "values": "TeamMemberRole",
-            "keys": "UID"
+            "type": "array",
+            "items": "TeamMemberRole"
           },
           "name": "publicMembers"
         }

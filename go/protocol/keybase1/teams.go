@@ -6,9 +6,10 @@ package keybase1
 import (
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
-	"time"
 )
 
 type TeamRole int
@@ -621,7 +622,7 @@ func (o TeamDetails) DeepCopy() TeamDetails {
 }
 
 type TeamMemberRole struct {
-	UserID   UID      `codec:"userID" json:"userID"`
+	Uid      UID      `codec:"uid" json:"uid"`
 	Username string   `codec:"username" json:"username"`
 	FullName FullName `codec:"fullName" json:"fullName"`
 	Role     TeamRole `codec:"role" json:"role"`
@@ -629,25 +630,25 @@ type TeamMemberRole struct {
 
 func (o TeamMemberRole) DeepCopy() TeamMemberRole {
 	return TeamMemberRole{
-		UserID:   o.UserID.DeepCopy(),
+		Uid:      o.Uid.DeepCopy(),
 		Username: o.Username,
 		FullName: o.FullName.DeepCopy(),
 		Role:     o.Role.DeepCopy(),
 	}
 }
 
-type TeamInfo struct {
-	Name          TeamName               `codec:"name" json:"name"`
-	InTeam        bool                   `codec:"inTeam" json:"inTeam"`
-	Open          bool                   `codec:"open" json:"open"`
-	Description   string                 `codec:"description" json:"description"`
-	PublicAdmins  []string               `codec:"publicAdmins" json:"publicAdmins"`
-	NumMembers    int                    `codec:"numMembers" json:"numMembers"`
-	PublicMembers map[UID]TeamMemberRole `codec:"publicMembers" json:"publicMembers"`
+type UntrustedTeamInfo struct {
+	Name          TeamName         `codec:"name" json:"name"`
+	InTeam        bool             `codec:"inTeam" json:"inTeam"`
+	Open          bool             `codec:"open" json:"open"`
+	Description   string           `codec:"description" json:"description"`
+	PublicAdmins  []string         `codec:"publicAdmins" json:"publicAdmins"`
+	NumMembers    int              `codec:"numMembers" json:"numMembers"`
+	PublicMembers []TeamMemberRole `codec:"publicMembers" json:"publicMembers"`
 }
 
-func (o TeamInfo) DeepCopy() TeamInfo {
-	return TeamInfo{
+func (o UntrustedTeamInfo) DeepCopy() UntrustedTeamInfo {
+	return UntrustedTeamInfo{
 		Name:        o.Name.DeepCopy(),
 		InTeam:      o.InTeam,
 		Open:        o.Open,
@@ -664,15 +665,14 @@ func (o TeamInfo) DeepCopy() TeamInfo {
 			return ret
 		})(o.PublicAdmins),
 		NumMembers: o.NumMembers,
-		PublicMembers: (func(x map[UID]TeamMemberRole) map[UID]TeamMemberRole {
+		PublicMembers: (func(x []TeamMemberRole) []TeamMemberRole {
 			if x == nil {
 				return nil
 			}
-			ret := make(map[UID]TeamMemberRole, len(x))
-			for k, v := range x {
-				kCopy := k.DeepCopy()
+			ret := make([]TeamMemberRole, len(x))
+			for i, v := range x {
 				vCopy := v.DeepCopy()
-				ret[kCopy] = vCopy
+				ret[i] = vCopy
 			}
 			return ret
 		})(o.PublicMembers),
@@ -3988,7 +3988,7 @@ type GetAnnotatedTeamArg struct {
 }
 
 type TeamsInterface interface {
-	GetUntrustedTeamInfo(context.Context, TeamName) (TeamInfo, error)
+	GetUntrustedTeamInfo(context.Context, TeamName) (UntrustedTeamInfo, error)
 	TeamCreate(context.Context, TeamCreateArg) (TeamCreateResult, error)
 	TeamCreateWithSettings(context.Context, TeamCreateWithSettingsArg) (TeamCreateResult, error)
 	TeamGetByID(context.Context, TeamGetByIDArg) (TeamDetails, error)
@@ -5007,7 +5007,7 @@ type TeamsClient struct {
 	Cli rpc.GenericClient
 }
 
-func (c TeamsClient) GetUntrustedTeamInfo(ctx context.Context, teamName TeamName) (res TeamInfo, err error) {
+func (c TeamsClient) GetUntrustedTeamInfo(ctx context.Context, teamName TeamName) (res UntrustedTeamInfo, err error) {
 	__arg := GetUntrustedTeamInfoArg{TeamName: teamName}
 	err = c.Cli.Call(ctx, "keybase.1.teams.getUntrustedTeamInfo", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
