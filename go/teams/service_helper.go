@@ -1575,8 +1575,6 @@ func ListRequests(ctx context.Context, g *libkb.GlobalContext, teamName *string)
 		}
 		if packages[i].FullName != nil {
 			joinRequests[i].FullName = packages[i].FullName.FullName
-		} else {
-			joinRequests[i].FullName = "nully"
 		}
 	}
 

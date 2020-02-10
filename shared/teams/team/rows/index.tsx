@@ -65,7 +65,6 @@ const makeRows = (
           }
           rows.push(
             ...[...details.requests].sort().map(req => {
-              console.log('duh', req)
               return {
                 ctime: req.ctime,
                 fullName: req.fullName,

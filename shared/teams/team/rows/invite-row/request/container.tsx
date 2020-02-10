@@ -9,6 +9,7 @@ import {createShowUserProfile} from '../../../../../actions/profile-gen'
 import {connect} from '../../../../../util/container'
 
 type OwnProps = {
+  ctime: number
   fullName: string
   username: string
   teamID: Types.TeamID
@@ -90,6 +91,7 @@ export default connect(
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     return {
       _notifLabel: stateProps._notifLabel,
+      ctime: ownProps.ctime,
       disabledReasonsForRolePicker: stateProps.disabledReasonsForRolePicker,
       fullName: stateProps.fullName,
       letIn: dispatchProps.letIn,

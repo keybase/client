@@ -4,8 +4,10 @@ import * as Kb from '../../../../../common-adapters'
 import {FloatingRolePicker} from '../../../../role-picker'
 import * as Styles from '../../../../../styles'
 import flags from '../../../../../util/feature-flags'
+import moment from 'moment'
 
 export type RowProps = {
+  ctime: number
   disabledReasonsForRolePicker: Types.DisabledReasonsForRolePicker
   fullName: string
   onChat: () => void
@@ -69,7 +71,22 @@ const TeamRequestRowOld = (props: Props) => {
 }
 
 const TeamRequestRowNew = (props: Props) => {
-  const {fullName, username, onAccept, onOpenProfile} = props
+  const {ctime, fullName, username, onAccept, onChat, onOpenProfile} = props
+
+  const {showingPopup, setShowingPopup, toggleShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
+    <Kb.FloatingMenu
+      items={[
+        {onClick: props.onChat, title: 'Chat'},
+        {danger: true, onClick: props.onIgnoreRequest, title: 'Deny'},
+      ]}
+      visible={showingPopup}
+      onHidden={() => setShowingPopup(false)}
+      closeOnSelect={true}
+      attachTo={attachTo}
+      position="bottom left"
+    />
+  ))
+
   return (
     <Kb.Box style={styles.container}>
       <Kb.ClickableBox style={styles.clickContainer} onClick={() => onOpenProfile(username)}>
@@ -80,7 +97,8 @@ const TeamRequestRowNew = (props: Props) => {
             <Kb.Meta title="please decide" style={styleCharm} backgroundColor={Styles.globalColors.orange} />
             {!Styles.isMobile && (
               <Kb.Text type="BodySmall" lineClamp={1}>
-                `{fullName}`
+                {fullName !== '' && `${fullName}  • `}
+                {moment(ctime * 1000).fromNow()}
               </Kb.Text>
             )}
           </Kb.Box>
@@ -98,8 +116,19 @@ const TeamRequestRowNew = (props: Props) => {
           open={props.isRolePickerOpen}
           disabledRoles={props.disabledReasonsForRolePicker}
         >
-          <Kb.Button label="Let in as..." onClick={onAccept} small={true} style={styles.letInButton} />
+          <Kb.Button label="Approve" onClick={onAccept} small={true} style={styles.letInButton} />
         </FloatingRolePicker>
+        <Kb.Button
+          mode="Secondary"
+          type="Dim"
+          small={true}
+          icon="iconfont-ellipsis"
+          tooltip=""
+          style={styles.ignoreButton}
+          onClick={toggleShowingPopup}
+          ref={popupAnchor}
+        />
+        {popup}
       </Kb.Box>
     </Kb.Box>
   )
