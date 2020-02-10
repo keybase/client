@@ -4,22 +4,22 @@ import HeaderArea from '../header-area/container.native'
 import InputArea from '../input-area/container'
 import ListArea from '../list-area/container'
 import {Box, Box2, LoadingLine, Text} from '../../../common-adapters'
-import {globalStyles, globalColors, globalMargins, styleSheetCreate} from '../../../styles'
 import {Props} from '.'
 import ThreadLoadStatus from '../load-status/container'
 import PinnedMessage from '../pinned-message/container'
 import {GatewayDest} from 'react-gateway'
 import InvitationToBlock from '../../blocking/invitation-to-block'
+import * as Styles from '../../../styles'
 
 const Offline = () => (
   <Box
     style={{
-      ...globalStyles.flexBoxCenter,
-      backgroundColor: globalColors.greyDark,
-      paddingBottom: globalMargins.tiny,
-      paddingLeft: globalMargins.medium,
-      paddingRight: globalMargins.medium,
-      paddingTop: globalMargins.tiny,
+      ...Styles.globalStyles.flexBoxCenter,
+      backgroundColor: Styles.globalColors.greyDark,
+      paddingBottom: Styles.globalMargins.tiny,
+      paddingLeft: Styles.globalMargins.medium,
+      paddingRight: Styles.globalMargins.medium,
+      paddingTop: Styles.globalMargins.tiny,
       width: '100%',
     }}
   >
@@ -30,10 +30,10 @@ const Offline = () => (
 )
 
 const Conversation = React.memo((props: Props) => (
-  <>
+  <Box2 direction="vertical" style={styles.innerContainer}>
     <Box2 direction="vertical" fullWidth={true} fullHeight={true}>
       {props.threadLoadedOffline && <Offline />}
-      <HeaderArea conversationIDKey={props.conversationIDKey} />
+      {!Styles.isTablet && <HeaderArea conversationIDKey={props.conversationIDKey} />}
       <Box2 direction="vertical" fullWidth={true} style={styles.innerContainer}>
         <ThreadLoadStatus conversationIDKey={props.conversationIDKey} />
         <PinnedMessage conversationIDKey={props.conversationIDKey} />
@@ -58,12 +58,18 @@ const Conversation = React.memo((props: Props) => (
       />
     </Box2>
     <GatewayDest name="convOverlay" component={Box} />
-  </>
+  </Box2>
 ))
 
-const styles = styleSheetCreate(
+const styles = Styles.styleSheetCreate(
   () =>
     ({
+      container: Styles.platformStyles({
+        isTablet: {
+          flex: 1,
+          position: 'relative',
+        },
+      }),
       innerContainer: {
         flex: 1,
         position: 'relative',

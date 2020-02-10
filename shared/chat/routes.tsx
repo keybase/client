@@ -1,5 +1,4 @@
-import {isMobile} from '../constants/platform'
-
+import {isPhone} from '../constants/platform'
 import ChatConversation from './conversation/container'
 import ChatEnterPaperkey from './conversation/rekey/enter-paper-key'
 import ChatRoot from './inbox/container'
@@ -33,9 +32,7 @@ export const newRoutes = {
   },
   chatRoot: {
     getScreen: (): typeof ChatRoot =>
-      isMobile
-        ? require('./inbox/defer-loading').default
-        : require('./inbox-and-conversation-2.desktop').default,
+      isPhone ? require('./inbox/defer-loading').default : require('./inbox-and-conversation-2').default,
   },
 }
 

@@ -29,7 +29,17 @@ type Props = {
   fullName?: string
 }
 
-const descStyle = {fontSize: 13, lineHeight: '16px', wordBreak: 'break-all'} as const // approximates BodySmall since markdown does not support text type
+const descStyleTablet = {
+  fontSize: 13,
+  lineHeight: 16,
+}
+const descStyleDesktop = {
+  fontSize: 13,
+  lineHeight: '16px',
+  wordBreak: 'break-all',
+} as const // approximates BodySmall since markdown does not support text type
+const descStyle = Container.isTablet ? descStyleTablet : descStyleDesktop
+
 const descStyleOverride = {
   del: descStyle,
   em: descStyle,
