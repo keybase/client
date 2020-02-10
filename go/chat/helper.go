@@ -317,6 +317,21 @@ func (h *Helper) JourneycardDebugState(ctx context.Context, uid gregor1.UID, tea
 	return j.DebugState(ctx, uid, teamID)
 }
 
+// InTeam gives a best effort to answer team membership based on the current state of the inbox cache
+func (h *Helper) InTeam(ctx context.Context, uid gregor1.UID, teamID keybase1.TeamID) (bool, error) {
+	tlfID := chat1.TLFID(teamID.ToBytes())
+	ibox, err := h.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceLocalOnly,
+		&chat1.GetInboxQuery{
+			TlfID:            &tlfID,
+			MemberStatus:     []chat1.ConversationMemberStatus{chat1.ConversationMemberStatus_ACTIVE},
+			AllowUnseenQuery: true,
+		})
+	if err != nil {
+		return false, err
+	}
+	return len(ibox.ConvsUnverified) > 0, nil
+}
+
 func GetMessage(ctx context.Context, g *globals.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msgID chat1.MessageID, resolveSupersedes bool, reason *chat1.GetThreadReason) (chat1.MessageUnboxed, error) {
 	msgs, err := GetMessages(ctx, g, uid, convID, []chat1.MessageID{msgID}, resolveSupersedes, reason)

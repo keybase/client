@@ -26,6 +26,7 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
+	"github.com/keybase/client/go/teams/opensearch"
 	"golang.org/x/net/context"
 )
 
@@ -2323,11 +2324,11 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 	teamUIDone := make(chan struct{})
 	go func() {
 		defer close(teamUIDone)
-		if opts.MaxTeams == 0 || (len(query) > 0 && len(query) < 3) {
+		if opts.MaxTeams == 0 {
 			return
 		}
-		teamHits, err := teams.Search(
-			ctx, h.G().ExternalG(), query, opts.MaxTeams)
+		teamHits, err := opensearch.Local(libkb.NewMetaContext(ctx, h.G().ExternalG()), query,
+			opts.MaxTeams)
 		if err != nil {
 			h.Debug(ctx, "SearchInbox: failed to get team hits: %s", err)
 		} else {

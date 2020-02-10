@@ -36,14 +36,32 @@
         },
         {
           "type": "boolean",
+          "name": "isDemoted"
+        },
+        {
+          "type": "boolean",
           "name": "inTeam"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamSearchExport",
+      "fields": [
+        {
+          "type": {
+            "type": "map",
+            "values": "TeamSearchItem",
+            "keys": "TeamID"
+          },
+          "name": "items"
         },
         {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "TeamID"
           },
-          "name": "publicAdmins"
+          "name": "suggested"
         }
       ]
     },
@@ -78,6 +96,10 @@
         {
           "name": "limit",
           "type": "int"
+        },
+        {
+          "name": "useRemote",
+          "type": "boolean"
         }
       ],
       "response": "TeamSearchRes"
