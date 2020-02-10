@@ -1,99 +1,99 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Types from '../../../../constants/types/chat2'
+import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Container from '../../../../util/container'
 import * as Styles from '../../../../styles'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import SelectableSmallTeam from '../../../../chat/selectable-small-team-container'
-import SelectableBigTeamChannel from '../../../../chat/selectable-big-team-channel-container'
 import {rowHeight} from '../../../../chat/selectable-big-team-channel'
 import {rowHeight as shouldEqualToRowHeight} from '../../../../chat/selectable-small-team'
+import logger from '../../../../logger'
+import debounce from 'lodash/debounce'
+import {Avatars, TeamAvatar} from '../../../../chat/avatars'
 
 /* This is used in Fs tab for sending attachments to chat. Please check to make
  * sure it doesn't break there if you make changes to this file. */
 
-export type SmallTeamRowItem = {
-  conversationIDKey: Types.ConversationIDKey
-  isSelected: boolean
-  name: string
-  participants: Array<string>
-  onSelectConversation: () => void
-  type: 'small'
-}
-
-export type BigTeamChannelRowItem = {
-  conversationIDKey: Types.ConversationIDKey
-  isSelected: boolean
-  name: string
-  onSelectConversation: () => void
-  type: 'big'
-}
-
-type ToggleMoreRowItem = {
-  conversationIDKey: undefined
-  type: 'more-less'
-  onClick: () => void
-  hiddenCount: number
-}
-
-export type RowItem = SmallTeamRowItem | BigTeamChannelRowItem | ToggleMoreRowItem
-
 type Props = {
-  rows: Array<RowItem>
-  filter?: {
-    isLoading: boolean
-    filter: string
-    onSetFilter: (filter: string) => void
-  }
-  focusFilterOnMount?: boolean | null
-  onBack: () => void
-  onEnsureSelection: () => void
-  onSelectDown: () => void
-  onSelectUp: () => void
+  onDone?: () => void
+  onSelect: (conversationIDKey: Types.ConversationIDKey) => void
 }
 
-const _itemRenderer = (_: number, row: RowItem) => {
-  switch (row.type) {
-    case 'small':
-      return (
-        <SelectableSmallTeam
-          conversationIDKey={row.conversationIDKey}
-          isSelected={row.isSelected}
-          name={row.name}
-          participants={row.participants}
-          onSelectConversation={row.onSelectConversation}
-        />
-      )
-    case 'big':
-      return (
-        <SelectableBigTeamChannel
-          conversationIDKey={row.conversationIDKey}
-          isSelected={row.isSelected}
-          name={row.name}
-          onSelectConversation={row.onSelectConversation}
-        />
-      )
-    case 'more-less':
-      return (
-        <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={styles.moreLessContainer}>
-          <Kb.Button
-            type="Dim"
-            label={row.hiddenCount ? `+${row.hiddenCount} more` : 'Show less ...'}
-            small={true}
-            onClick={row.onClick}
+type Row = {
+  isSelected: boolean
+  item: RPCChatTypes.SimpleSearchInboxConvNamesHit
+  onSelect: () => void
+}
+
+const _itemRenderer = (index: number, row: Row) => {
+  const item = row.item
+  return (
+    <Kb.ClickableBox key={index} onClick={row.onSelect}>
+      <Kb.Box2
+        direction="horizontal"
+        fullWidth={true}
+        gap="tiny"
+        style={Styles.collapseStyles([
+          styles.results,
+          {backgroundColor: row.isSelected ? Styles.globalColors.blue : Styles.globalColors.white},
+        ])}
+      >
+        {item.isTeam ? (
+          <TeamAvatar
+            isHovered={false}
+            isMuted={false}
+            isSelected={row.isSelected}
+            teamname={item.teamName}
           />
-        </Kb.Box2>
-      )
-    default:
-      return null
-  }
+        ) : (
+          <Avatars
+            isHovered={false}
+            isLocked={false}
+            isMuted={false}
+            isSelected={row.isSelected}
+            participants={item.parts ?? []}
+          />
+        )}
+        <Kb.Text type="Body" style={{alignSelf: 'center'}} lineClamp={1}>
+          {item.name}
+        </Kb.Text>
+      </Kb.Box2>
+    </Kb.ClickableBox>
+  )
 }
 
 const ConversationList = (props: Props) => {
+  const [query, setQuery] = React.useState('')
+  const [waiting, setWaiting] = React.useState(false)
+  const [selected, setSelected] = React.useState(0)
+  const [results, setResults] = React.useState<Array<RPCChatTypes.SimpleSearchInboxConvNamesHit>>([])
+  const submit = Container.useRPC(RPCChatTypes.localSimpleSearchInboxConvNamesRpcPromise)
   const dispatch = Container.useDispatch()
   React.useEffect(() => {
     dispatch(Chat2Gen.createInboxRefresh({reason: 'shareConfigSearch'}))
   }, [dispatch])
+  const doSearch = React.useCallback(() => {
+    setWaiting(true)
+    submit(
+      [{query}],
+      result => {
+        setWaiting(false)
+        setResults(result ?? [])
+      },
+      error => {
+        setWaiting(false)
+        logger.info('ConversationList: error loading search results: ' + error.message)
+      }
+    )
+  }, [query])
+  React.useEffect(() => {
+    doSearch()
+  }, [doSearch])
+  const onSelect = (convID: Types.ConversationIDKey) => {
+    props.onSelect(convID)
+    props.onDone?.()
+  }
+
   if (rowHeight !== shouldEqualToRowHeight) {
     // Sanity check, in case this changes in the future
     return <Kb.Text type="BodyBigExtrabold">item size changes, should use use variable size list</Kb.Text>
@@ -101,19 +101,40 @@ const ConversationList = (props: Props) => {
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-      {!!props.filter && (
-        <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.filterContainer}>
-          <Kb.SearchFilter
-            placeholderText="Search"
-            onChange={props.filter.onSetFilter}
-            size="small"
-            icon="iconfont-search"
-          />
-        </Kb.Box2>
-      )}
+      <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.filterContainer}>
+        <Kb.SearchFilter
+          placeholderText="Search"
+          onChange={debounce(setQuery, 200)}
+          size="small"
+          icon="iconfont-search"
+          waiting={waiting}
+          focusOnMount={true}
+          onKeyDown={(e: React.KeyboardEvent) => {
+            switch (e.key) {
+              case 'ArrowDown':
+                if (selected < results.length - 1) {
+                  setSelected(selected + 1)
+                }
+                break
+              case 'ArrowUp':
+                if (selected > 0) {
+                  setSelected(selected - 1)
+                }
+                break
+              case 'Enter':
+                onSelect(Types.conversationIDToKey(results[selected].convID))
+                break
+            }
+          }}
+        />
+      </Kb.Box2>
       <Kb.List2
         itemHeight={{height: rowHeight, type: 'fixed'}}
-        items={props.rows}
+        items={results.map((r, index) => ({
+          isSelected: index === selected,
+          item: r,
+          onSelect: () => onSelect(Types.conversationIDToKey(r.convID)),
+        }))}
         renderItem={_itemRenderer}
         indexAsKey={true}
       />
@@ -135,6 +156,14 @@ const styles = Styles.styleSheetCreate(
       moreLessContainer: {
         height: rowHeight,
       },
+      results: Styles.platformStyles({
+        common: {
+          padding: Styles.globalMargins.tiny,
+        },
+        isMobile: {
+          paddingBottom: Styles.globalMargins.tiny,
+        },
+      }),
     } as const)
 )
 

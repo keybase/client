@@ -1126,6 +1126,7 @@ protocol local {
     ConversationID convID;
     boolean isTeam;
     array<string> parts;
+    string teamName;
   }
   array<SimpleSearchInboxConvNamesHit> simpleSearchInboxConvNames(string query);
 

@@ -5362,10 +5362,11 @@ func (o SearchInboxRes) DeepCopy() SearchInboxRes {
 }
 
 type SimpleSearchInboxConvNamesHit struct {
-	Name   string         `codec:"name" json:"name"`
-	ConvID ConversationID `codec:"convID" json:"convID"`
-	IsTeam bool           `codec:"isTeam" json:"isTeam"`
-	Parts  []string       `codec:"parts" json:"parts"`
+	Name     string         `codec:"name" json:"name"`
+	ConvID   ConversationID `codec:"convID" json:"convID"`
+	IsTeam   bool           `codec:"isTeam" json:"isTeam"`
+	Parts    []string       `codec:"parts" json:"parts"`
+	TeamName string         `codec:"teamName" json:"teamName"`
 }
 
 func (o SimpleSearchInboxConvNamesHit) DeepCopy() SimpleSearchInboxConvNamesHit {
@@ -5384,6 +5385,7 @@ func (o SimpleSearchInboxConvNamesHit) DeepCopy() SimpleSearchInboxConvNamesHit 
 			}
 			return ret
 		})(o.Parts),
+		TeamName: o.TeamName,
 	}
 }
 

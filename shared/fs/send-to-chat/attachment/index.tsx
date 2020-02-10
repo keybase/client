@@ -4,11 +4,9 @@ import * as Kb from '../../../common-adapters'
 import * as Kbfs from '../../common'
 import * as Styles from '../../../styles'
 import * as FsGen from '../../../actions/fs-gen'
-import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as ChatTypes from '../../../constants/types/chat2'
 import * as Container from '../../../util/container'
-import HiddenString from '../../../util/hidden-string'
-import ConversationList from './conversation-list/conversation-list-container'
+import ConversationList from './conversation-list/conversation-list'
 import ChooseConversation from './conversation-list/choose-conversation-container'
 
 type Props = {
@@ -21,40 +19,13 @@ type Props = {
 }
 
 const useConversationList = () => {
-  const sendAttachmentToChat = Container.useSelector(state => state.fs.sendAttachmentToChat)
-  const {filter} = sendAttachmentToChat
   const dispatch = Container.useDispatch()
+  const sendAttachmentToChat = Container.useSelector(state => state.fs.sendAttachmentToChat)
   const onSelect = (convID: ChatTypes.ConversationIDKey) => {
     dispatch(FsGen.createSetSendAttachmentToChatConvID({convID}))
   }
-  const onDone = React.useCallback(() => dispatch(Chat2Gen.createToggleInboxSearch({enabled: false})), [
-    dispatch,
-  ])
-  const onSetFilter = React.useCallback(
-    (filter: string) => {
-      dispatch(FsGen.createSetSendAttachmentToChatFilter({filter}))
-      dispatch(Chat2Gen.createInboxSearch({query: new HiddenString(filter)}))
-    },
-    [dispatch]
-  )
-  React.useEffect(() => onDone, [onDone])
-
-  const layout = Container.useSelector(state => state.chat2.inboxLayout)
-
-  const filterEmpty = !filter
-
-  // force reload
-  React.useEffect(() => {
-    if (filterEmpty && layout) {
-      onSetFilter('')
-    }
-  }, [layout, onSetFilter, filterEmpty])
-
   return {
-    filter,
-    onDone,
     onSelect,
-    onSetFilter,
     selected: sendAttachmentToChat.convID,
   }
 }

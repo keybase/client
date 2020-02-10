@@ -3355,6 +3355,10 @@
             "items": "string"
           },
           "name": "parts"
+        },
+        {
+          "type": "string",
+          "name": "teamName"
         }
       ]
     },

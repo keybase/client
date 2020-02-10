@@ -547,6 +547,10 @@ export type MessageTypes = {
     inParam: {readonly teamID: Keybase1.TeamID; readonly policy: RetentionPolicy}
     outParam: void
   }
+  'chat.1.local.simpleSearchInboxConvNames': {
+    inParam: {readonly query: String}
+    outParam: Array<SimpleSearchInboxConvNamesHit> | null
+  }
   'chat.1.local.toggleMessageCollapse': {
     inParam: {readonly convID: ConversationID; readonly msgID: MessageID; readonly collapse: Boolean}
     outParam: void
@@ -1310,7 +1314,7 @@ export type SetStatusPayload = {readonly Action: String; readonly convID: Conver
 export type SetTeamRetentionUpdate = {readonly inboxVers: InboxVers; readonly teamID: Keybase1.TeamID; readonly policy: RetentionPolicy}
 export type SignEncryptedData = {readonly v: Int; readonly e: Bytes; readonly n: Bytes}
 export type SignatureInfo = {readonly v: Int; readonly s: Bytes; readonly k: Bytes}
-export type SimpleSearchInboxConvNamesHit = {readonly name: String; readonly convID: ConversationID; readonly isTeam: Boolean; readonly parts?: Array<String> | null}
+export type SimpleSearchInboxConvNamesHit = {readonly name: String; readonly convID: ConversationID; readonly isTeam: Boolean; readonly parts?: Array<String> | null; readonly teamName: String}
 export type StaticConfig = {readonly deletableByDeleteHistory?: Array<MessageType> | null; readonly builtinCommands?: Array<BuiltinCommandGroup> | null}
 export type SubteamRenameUpdate = {readonly convIDs?: Array<ConversationID> | null; readonly inboxVers: InboxVers}
 export type SweepRes = {readonly foundTask: Boolean; readonly deletedMessages: Boolean; readonly expunge: Expunge}
@@ -1580,6 +1584,7 @@ export const localSetConvRetentionLocalRpcPromise = (params: MessageTypes['chat.
 export const localSetConversationStatusLocalRpcPromise = (params: MessageTypes['chat.1.local.SetConversationStatusLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.SetConversationStatusLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.SetConversationStatusLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localSetGlobalAppNotificationSettingsLocalRpcPromise = (params: MessageTypes['chat.1.local.setGlobalAppNotificationSettingsLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.setGlobalAppNotificationSettingsLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.setGlobalAppNotificationSettingsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localSetTeamRetentionLocalRpcPromise = (params: MessageTypes['chat.1.local.setTeamRetentionLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.setTeamRetentionLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.setTeamRetentionLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localSimpleSearchInboxConvNamesRpcPromise = (params: MessageTypes['chat.1.local.simpleSearchInboxConvNames']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.simpleSearchInboxConvNames']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.simpleSearchInboxConvNames', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localToggleMessageCollapseRpcPromise = (params: MessageTypes['chat.1.local.toggleMessageCollapse']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.toggleMessageCollapse']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.toggleMessageCollapse', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localUnboxMobilePushNotificationRpcPromise = (params: MessageTypes['chat.1.local.unboxMobilePushNotification']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.unboxMobilePushNotification']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.unboxMobilePushNotification', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localUnpinMessageRpcPromise = (params: MessageTypes['chat.1.local.unpinMessage']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.unpinMessage']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.unpinMessage', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -1638,7 +1643,6 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.local.joinConversationLocal'
 // 'chat.1.local.getAllResetConvMembers'
 // 'chat.1.local.upgradeKBFSConversationToImpteam'
-// 'chat.1.local.simpleSearchInboxConvNames'
 // 'chat.1.local.putReacjiSkinTone'
 // 'chat.1.local.loadFlip'
 // 'chat.1.local.advertiseBotCommandsLocal'
