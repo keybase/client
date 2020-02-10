@@ -64,7 +64,6 @@ const MenuRow = (props: MenuRowProps) => (
         <Box2 direction="horizontal">
           <Box2 direction="vertical" fullHeight={true}>
             <Box2 direction="horizontal" fullWidth={true}>
-              {props.decoration && <Box style={styles.flexOne} />}
               <Text type="BodyBig" style={styleRowText(props)}>
                 {props.title}
               </Text>
@@ -76,7 +75,7 @@ const MenuRow = (props: MenuRowProps) => (
                   style={styles.badge}
                 />
               )}
-              {props.decoration && <Box style={styles.flexOne}>{props.decoration}</Box>}
+              {props.decoration && <Box style={styles.flexStart}>{props.decoration}</Box>}
             </Box2>
             {!!props.subTitle && (
               <Box2 direction="horizontal" fullWidth={true}>
@@ -179,8 +178,8 @@ const styles = Styles.styleSheetCreate(
       divider: {
         marginBottom: Styles.globalMargins.tiny,
       },
-      flexOne: {
-        flex: 1,
+      flexStart: {
+        justifyContent: 'flex-start',
       },
       iconBadge: {
         backgroundColor: Styles.globalColors.blue,
