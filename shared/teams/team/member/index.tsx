@@ -63,7 +63,6 @@ export const TeamMember = (props: Props) => {
             onClick={props.onOpenProfile}
             style={{alignSelf: 'center', marginRight: Styles.globalMargins.tiny}}
             username={user.username}
-            showFollowingStatus={true}
             size={64}
           />
           {iconType ? (

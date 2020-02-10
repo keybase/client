@@ -34,6 +34,7 @@ export type NameWithIconProps = {
   clickType?: 'profile' | 'onClick'
   onEditIcon?: (e?: React.BaseSyntheticEvent) => void
   selectable?: boolean
+  showFollowingStatus?: boolean
   size?: Size
   teamname?: string
   channelname?: string
@@ -73,7 +74,7 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
           size={
             this.props.avatarSize || (this.props.horizontal ? commonHeight : (adapterProps.iconSize as any))
           }
-          showFollowingStatus={this.props.horizontal ? undefined : !this.props.hideFollowingOverlay}
+          showFollowingStatus={this.props.showFollowingStatus}
           username={this.props.username}
           teamname={this.props.teamname}
           style={Styles.collapseStyles([

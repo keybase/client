@@ -72,7 +72,7 @@ const Avatar = (props: Props) => {
           style={props.isTeam ? (flags.teamsRedesign ? styles.editTeam : styles.editTeamOld) : styles.edit}
         />
       )}
-      {props.showFollowingStatus && <Circle username={props.username} />}
+      {props.showFollowingStatus && <Circle size={props.size} username={props.username} />}
       {props.children}
     </div>
   )

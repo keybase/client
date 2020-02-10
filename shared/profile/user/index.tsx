@@ -94,6 +94,7 @@ const BioLayout = (p: BioTeamProofsProps) => (
       onEditIcon={p.onEditAvatar || undefined}
       avatarSize={avatarSize}
       size="huge"
+      showFollowingStatus={true}
       avatarImageOverride={p.sbsAvatarUrl}
       withProfileCardPopup={false}
     />

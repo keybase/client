@@ -19,7 +19,7 @@ class Friend extends React.PureComponent<Props> {
           style={Styles.collapseStyles([styles.container, {width: p.width}])}
           centerChildren={true}
         >
-          <Kb.Avatar size={64} username={p.username} style={styles.avatar} showFollowingStatus={true} />
+          <Kb.Avatar size={64} username={p.username} style={styles.avatar} />
           <Kb.ConnectedUsernames
             type={Styles.isMobile ? 'BodySmallSemibold' : 'BodySemibold'}
             usernames={[p.username]}

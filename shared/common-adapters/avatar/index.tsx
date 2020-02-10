@@ -110,7 +110,7 @@ const ConnectedAvatar = Container.connect(
       skipBackground,
       style,
       url,
-      username,
+      username: username ?? '',
     }
   }
 )(Avatar)

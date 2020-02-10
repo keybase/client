@@ -18,12 +18,7 @@ const WebOfTrust = (props: Props) => (
   <>
     <Kb.Box2 direction="horizontal" fullWidth={true}>
       <Kb.Box2 direction="vertical" style={styles.avatarContainer} centerChildren={true}>
-        <Kb.Avatar
-          size={96}
-          username={props.attestingUser}
-          style={styles.avatar}
-          showFollowingStatus={false}
-        />
+        <Kb.Avatar size={96} username={props.attestingUser} style={styles.avatar} />
       </Kb.Box2>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.textContainer} centerChildren={false}>
         <Kb.Text style={styles.attestationText} type="Body">
