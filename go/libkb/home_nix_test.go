@@ -6,6 +6,8 @@
 package libkb
 
 import (
+	"os"
+	"path"
 	"strings"
 	"testing"
 
@@ -67,18 +69,34 @@ func TestDarwinHomeFinderInDev(t *testing.T) {
 }
 
 func TestPosixRuntimeDir(t *testing.T) {
-	var home string
+	var cmdHome string
 	env := make(map[string]string)
 	ge := func(s string) string { return env[s] }
-	hf := NewHomeFinder("tester", func() string { return home }, nil, nil, "posix", func() RunMode { return ProductionRunMode }, makeLogGetter(t), ge)
+	hf := NewHomeFinder("tester", func() string { return cmdHome }, nil, nil, "posix", func() RunMode { return ProductionRunMode }, makeLogGetter(t), ge)
 
-	// Test the case that the --home flag overrides XDG_RUNTIME_DIR
-	home = "/footown"
+	origHomeEnv := os.Getenv("HOME")
+
+	// Custom env, custom cmd, XDG set
+	cmdHome = "/footown"
 	env["HOME"] = "/yoyo"
 	env["XDG_RUNTIME_DIR"] = "/barland"
-	require.Equal(t, "/footown/.config/tester", hf.RuntimeDir())
-	home = ""
-	require.Equal(t, "/barland/tester", hf.RuntimeDir())
+	require.Equal(t, "/footown/.config/tester", hf.RuntimeDir(), "expect custom cmd to win")
+
+	// Custom env, no cmd, XDG set
+	cmdHome = ""
+	env["HOME"] = "/yoyo"
+	env["XDG_RUNTIME_DIR"] = "/barland"
+	require.Equal(t, "/yoyo/.config/tester", hf.RuntimeDir(), "expect custom env to win")
+
+	// Standard env, no cmd, XDG set
+	cmdHome = ""
+	env["HOME"] = origHomeEnv
+	env["XDG_RUNTIME_DIR"] = "/barland"
+	require.Equal(t, "/barland/tester", hf.RuntimeDir(), "expect xdg to win")
+
+	// Standard env, no cmd, XDG unset
+	cmdHome = ""
+	env["HOME"] = origHomeEnv
 	delete(env, "XDG_RUNTIME_DIR")
-	require.Equal(t, "/yoyo/.config/tester", hf.RuntimeDir())
+	require.Equal(t, path.Join(origHomeEnv, ".config", "tester"), hf.RuntimeDir(), "expect home to win")
 }
