@@ -72,7 +72,7 @@ const TeamJourneyContainer = (props: Props) => {
         textComponent = (
           <Kb.Text type="BodySmall">
             <Kb.Emoji allowFontScaling={true} size={Styles.globalMargins.small} emojiName=":wave:" />
-            Welcome to the team! Say hi to etc.
+            Welcome to the team! Say hi to everyone and introduce yourself.
           </Kb.Text>
         )
       }
