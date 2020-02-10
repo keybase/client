@@ -171,9 +171,9 @@ export type CreateConversationError = {
 }
 
 export type ParticipantInfo = {
-  all: Array<string>
-  name: Array<string>
-  contactName: Map<string, string>
+  all: Array<string> // all member usernames, including bots
+  name: Array<string> // member usernames not including bots
+  contactName: Map<string, string> // member username -> contact name
 }
 
 export type State = {
