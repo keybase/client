@@ -4,6 +4,7 @@ import * as Kb from '../../../../../common-adapters'
 import {FloatingRolePicker} from '../../../../role-picker'
 import * as Styles from '../../../../../styles'
 import flags from '../../../../../util/feature-flags'
+import {isLargeScreen} from '../../../../../constants/platform'
 import moment from 'moment'
 
 export type RowProps = {
@@ -89,14 +90,25 @@ const TeamRequestRowNew = (props: Props) => {
   ))
 
   return (
-    <Kb.Box style={styles.container}>
+    <Kb.Box style={styles.newContainer}>
       <Kb.ClickableBox style={styles.clickContainer} onClick={() => onOpenProfile(username)}>
         <Kb.Avatar username={username} size={Styles.isMobile ? 48 : 32} />
         <Kb.Box style={styles.userDetails}>
           <Kb.ConnectedUsernames type="BodySemibold" colorFollowing={true} usernames={[username]} />
-          <Kb.Box style={Styles.globalStyles.flexBoxRow}>
+          <Kb.Box style={styles.newSubtext}>
             <Kb.Meta title="please decide" style={styleCharm} backgroundColor={Styles.globalColors.orange} />
-            {!Styles.isMobile && (
+            {Styles.isMobile ? (
+              isLargeScreen && (
+                <Kb.Text
+                  type="BodySmall"
+                  ellipsizeMode="tail"
+                  lineClamp={1}
+                  style={styles.newFullNameMobileText}
+                >
+                  {fullName !== '' && `${fullName}`}
+                </Kb.Text>
+              )
+            ) : (
               <Kb.Text type="BodySmall" lineClamp={1}>
                 {fullName !== '' && `${fullName}  • `}
                 {moment(ctime * 1000).fromNow()}
@@ -105,7 +117,7 @@ const TeamRequestRowNew = (props: Props) => {
           </Kb.Box>
         </Kb.Box>
       </Kb.ClickableBox>
-      <Kb.Box style={styles.floatingRolePickerContainer}>
+      <Kb.Box style={styles.newButtonBarContainer}>
         <FloatingRolePicker
           selectedRole={props.selectedRole}
           onSelectRole={props.onSelectRole}
@@ -149,10 +161,9 @@ const styles = Styles.styleSheetCreate(() => ({
       alignItems: 'center',
       flexGrow: 1,
       flexShrink: 0,
-      width: 'initial',
     },
-    isMobile: {
-      width: '100%',
+    isElectron: {
+      width: 'initial',
     },
   }),
   container: Styles.platformStyles({
@@ -197,8 +208,41 @@ const styles = Styles.styleSheetCreate(() => ({
     backgroundColor: Styles.globalColors.green,
     marginLeft: Styles.globalMargins.xtiny,
   },
+  newButtonBarContainer: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxRow,
+      alignItems: 'center',
+      flexGrow: 0,
+      flexShrink: 1,
+      marginTop: 0,
+    },
+  }),
+  newContainer: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxRow,
+      ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
+      alignItems: 'center',
+      backgroundColor: '#ff0000',
+      display: 'flex',
+      flexDirection: 'row',
+      flexShrink: 0,
+      height: 48,
+      width: '100%',
+    },
+    isMobile: {
+      height: 56,
+    },
+  }),
+  newFullNameMobileText: {
+    flexGrow: 1,
+    flexShrink: 0,
+  },
+  newSubtext: {
+    ...Styles.globalStyles.flexBoxRow,
+  },
   userDetails: {
     ...Styles.globalStyles.flexBoxColumn,
+    flexGrow: 1,
     marginLeft: Styles.globalMargins.small,
   },
 }))

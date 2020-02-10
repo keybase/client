@@ -227,15 +227,15 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
       </Kb.Box2>
       <Kb.Box2 direction="vertical" fullWidth={true} gap="small" style={styles.outerBoxMobile}>
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
-          {avatar}
+          {/* avatar */}
           {topDescriptors}
         </Kb.Box2>
         {bottomDescriptorsAndButtons}
-        {props.canAddPeople && (
+        {/* props.canAddPeople && (
           <Kb.Box2 direction="horizontal" fullWidth={true}>
             {addInviteAndLinkBox}
           </Kb.Box2>
-        )}
+        ) */}
       </Kb.Box2>
     </Kb.Box2>
   ) : (
