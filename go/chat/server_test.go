@@ -5498,7 +5498,6 @@ func TestChatSrvTopicNameState(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, randomConvID, ncres.Conv.GetConvID())
 		assertNoNewConversation(t, listener0)
-		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
 
 		// Try to change topic name to one that exists
 		plarg := chat1.PostLocalArg{
