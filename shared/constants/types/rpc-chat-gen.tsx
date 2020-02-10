@@ -1710,3 +1710,5 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.remote.advertiseBotCommands'
 // 'chat.1.remote.clearBotCommands'
 // 'chat.1.remote.getBotInfo'
+// 'chat.1.remote.setDefaultTeamChannels'
+// 'chat.1.remote.getDefaultTeamChannels'

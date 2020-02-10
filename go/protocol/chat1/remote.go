@@ -1484,6 +1484,15 @@ type GetBotInfoArg struct {
 	ClientHashVers BotInfoHashVers `codec:"clientHashVers" json:"clientHashVers"`
 }
 
+type SetDefaultTeamChannelsArg struct {
+	TeamID keybase1.TeamID    `codec:"teamID" json:"teamID"`
+	Convs  map[ConvIDStr]bool `codec:"convs" json:"convs"`
+}
+
+type GetDefaultTeamChannelsArg struct {
+	TeamID keybase1.TeamID `codec:"teamID" json:"teamID"`
+}
+
 type RemoteInterface interface {
 	GetInboxRemote(context.Context, GetInboxRemoteArg) (GetInboxRemoteRes, error)
 	GetThreadRemote(context.Context, GetThreadRemoteArg) (GetThreadRemoteRes, error)
@@ -1529,6 +1538,8 @@ type RemoteInterface interface {
 	AdvertiseBotCommands(context.Context, []RemoteBotCommandsAdvertisement) (AdvertiseBotCommandsRes, error)
 	ClearBotCommands(context.Context) (ClearBotCommandsRes, error)
 	GetBotInfo(context.Context, GetBotInfoArg) (GetBotInfoRes, error)
+	SetDefaultTeamChannels(context.Context, SetDefaultTeamChannelsArg) error
+	GetDefaultTeamChannels(context.Context, keybase1.TeamID) (map[ConvIDStr]bool, error)
 }
 
 func RemoteProtocol(i RemoteInterface) rpc.Protocol {
@@ -2180,6 +2191,36 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 					return
 				},
 			},
+			"setDefaultTeamChannels": {
+				MakeArg: func() interface{} {
+					var ret [1]SetDefaultTeamChannelsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SetDefaultTeamChannelsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SetDefaultTeamChannelsArg)(nil), args)
+						return
+					}
+					err = i.SetDefaultTeamChannels(ctx, typedArgs[0])
+					return
+				},
+			},
+			"getDefaultTeamChannels": {
+				MakeArg: func() interface{} {
+					var ret [1]GetDefaultTeamChannelsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetDefaultTeamChannelsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetDefaultTeamChannelsArg)(nil), args)
+						return
+					}
+					ret, err = i.GetDefaultTeamChannels(ctx, typedArgs[0].TeamID)
+					return
+				},
+			},
 		},
 	}
 }
@@ -2419,5 +2460,16 @@ func (c RemoteClient) ClearBotCommands(ctx context.Context) (res ClearBotCommand
 
 func (c RemoteClient) GetBotInfo(ctx context.Context, __arg GetBotInfoArg) (res GetBotInfoRes, err error) {
 	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getBotInfo", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	return
+}
+
+func (c RemoteClient) SetDefaultTeamChannels(ctx context.Context, __arg SetDefaultTeamChannelsArg) (err error) {
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.setDefaultTeamChannels", []interface{}{__arg}, nil, rpc.CompressionGzip, 0*time.Millisecond)
+	return
+}
+
+func (c RemoteClient) GetDefaultTeamChannels(ctx context.Context, teamID keybase1.TeamID) (res map[ConvIDStr]bool, err error) {
+	__arg := GetDefaultTeamChannelsArg{TeamID: teamID}
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getDefaultTeamChannels", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }

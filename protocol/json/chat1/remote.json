@@ -1541,6 +1541,36 @@
         }
       ],
       "response": "GetBotInfoRes"
+    },
+    "setDefaultTeamChannels": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "keybase1.TeamID"
+        },
+        {
+          "name": "convs",
+          "type": {
+            "type": "map",
+            "values": "boolean",
+            "keys": "ConvIDStr"
+          }
+        }
+      ],
+      "response": null
+    },
+    "getDefaultTeamChannels": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "keybase1.TeamID"
+        }
+      ],
+      "response": {
+        "type": "map",
+        "values": "boolean",
+        "keys": "ConvIDStr"
+      }
     }
   },
   "namespace": "chat.1",
