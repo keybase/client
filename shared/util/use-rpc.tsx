@@ -1,5 +1,6 @@
 import * as React from 'react'
 import {RPCError} from './errors'
+import {useMemo} from './memoize'
 
 type RPCPromiseType<F extends (...rest: any[]) => any, RF = ReturnType<F>> = RF extends Promise<infer U>
   ? U
@@ -23,7 +24,7 @@ function useRPC<
     }
   }, [])
 
-  const submit = React.useMemo(
+  const submit = useMemo(
     () => async (args: ARGS, setResult: (r: RET) => void, setError: (e: RPCError) => void) => {
       try {
         const result = await call(...args)
