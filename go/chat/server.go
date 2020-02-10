@@ -3042,7 +3042,7 @@ func (h *Server) AddBotMember(ctx context.Context, arg chat1.AddBotMemberArg) (e
 		return err
 	}
 	defer func() { err = h.fixupTeamErrorWithTLFName(ctx, arg.Username, conv.Info.TlfName, err) }()
-	_, err = teams.AddMemberByID(ctx, h.G().ExternalG(), teamID, arg.Username, arg.Role, arg.BotSettings)
+	_, err = teams.AddMemberByID(ctx, h.G().ExternalG(), teamID, arg.Username, arg.Role, arg.BotSettings, nil /* emailInviteMsg */)
 	if err != nil {
 		return err
 	}

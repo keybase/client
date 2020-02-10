@@ -146,7 +146,7 @@ func TestTeamSigChainHighLinks(t *testing.T) {
 	// the same way on subteams (since there are places that default to a
 	// value of 1 for sequence number). It's overkill to test any more than
 	// just this on the subteam since it should work the same way.
-	_, err = AddMemberByID(ctx, tc.G, *subteamID, u3.Username, keybase1.TeamRole_ADMIN, nil)
+	_, err = AddMemberByID(ctx, tc.G, *subteamID, u3.Username, keybase1.TeamRole_ADMIN, nil, nil /* emailInviteMsg */)
 	require.NoError(t, err)
 	assertHighSeqForTeam(t, tc, subteamID, 2)
 	assertHighSeqForTeam(t, tc, teamID, 8)

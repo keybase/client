@@ -3394,6 +3394,13 @@
         {
           "name": "sendChatNotification",
           "type": "boolean"
+        },
+        {
+          "name": "emailInviteMessage",
+          "type": [
+            null,
+            "string"
+          ]
         }
       ],
       "response": "TeamAddMemberResult"

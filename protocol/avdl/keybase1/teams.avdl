@@ -1217,7 +1217,7 @@ protocol teams {
   void teamChangeMembership(int sessionID, string name, TeamChangeReq req);
 
   TeamAddMemberResult teamAddMember(int sessionID, TeamID teamID, string email, string phone, string username,
-    TeamRole role, union { null, TeamBotSettings } botSettings, boolean sendChatNotification);
+    TeamRole role, union { null, TeamBotSettings } botSettings, boolean sendChatNotification, union { null, string } emailInviteMessage);
 
   // @emailInviteMessage is an argument used as a welcome message in email invitations sent from the server
   TeamAddMembersResult teamAddMembers(int sessionID, TeamID teamID, array<string> assertions, TeamRole role, union { null, TeamBotSettings } botSettings, boolean sendChatNotification, union { null, string } emailInviteMessage);

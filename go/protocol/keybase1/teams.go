@@ -3646,6 +3646,7 @@ type TeamAddMemberArg struct {
 	Role                 TeamRole         `codec:"role" json:"role"`
 	BotSettings          *TeamBotSettings `codec:"botSettings,omitempty" json:"botSettings,omitempty"`
 	SendChatNotification bool             `codec:"sendChatNotification" json:"sendChatNotification"`
+	EmailInviteMessage   *string          `codec:"emailInviteMessage,omitempty" json:"emailInviteMessage,omitempty"`
 }
 
 type TeamAddMembersArg struct {

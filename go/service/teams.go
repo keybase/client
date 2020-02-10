@@ -265,7 +265,7 @@ func (h *TeamsHandler) TeamAddMember(ctx context.Context, arg keybase1.TeamAddMe
 		assertion = assertionURL.String()
 	}
 
-	result, err := teams.AddMemberByID(ctx, h.G().ExternalG(), arg.TeamID, assertion, arg.Role, arg.BotSettings)
+	result, err := teams.AddMemberByID(ctx, h.G().ExternalG(), arg.TeamID, assertion, arg.Role, arg.BotSettings, arg.EmailInviteMessage)
 	if err != nil {
 		return res, err
 	}

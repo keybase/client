@@ -403,7 +403,7 @@ func getUserProofsNoTracking(ctx context.Context, g *libkb.GlobalContext, userna
 }
 
 func AddMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, username string,
-	role keybase1.TeamRole, botSettings *keybase1.TeamBotSettings) (res keybase1.TeamAddMemberResult, err error) {
+	role keybase1.TeamRole, botSettings *keybase1.TeamBotSettings, emailInviteMsg *string) (res keybase1.TeamAddMemberResult, err error) {
 
 	err = RetryIfPossible(ctx, g, func(ctx context.Context, _ int) error {
 		t, err := GetForTeamManagementByTeamID(ctx, g, teamID, true /*needAdmin*/)
@@ -420,6 +420,7 @@ func AddMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 		}
 
 		tx := CreateAddMemberTx(t)
+		tx.EmailInviteMsg = emailInviteMsg
 		resolvedUsername, uv, invite, err := tx.AddOrInviteMemberByAssertionOrEmail(ctx, username, role, botSettings)
 		if err != nil {
 			return err
@@ -460,7 +461,7 @@ func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username s
 	if err != nil {
 		return res, err
 	}
-	return AddMemberByID(ctx, g, team.ID, username, role, botSettings)
+	return AddMemberByID(ctx, g, team.ID, username, role, botSettings, nil /* emailInviteMsg */)
 }
 
 type AddMembersRes struct {
@@ -476,7 +477,8 @@ type AddMembersRes struct {
 // corresponding order, with restricted users having an empty AddMembersRes.
 //
 // @emailInviteMsg *string is an argument used as a welcome message in email invitations sent from the server
-func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, users []keybase1.UserRolePair, emailInviteMsg *string) (added []AddMembersRes, notAdded []keybase1.User, err error) {
+func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, users []keybase1.UserRolePair,
+	emailInviteMsg *string) (added []AddMembersRes, notAdded []keybase1.User, err error) {
 	mctx := libkb.NewMetaContext(ctx, g)
 	tracer := g.CTimeTracer(ctx, "team.AddMembers", true)
 	defer tracer.Finish()
@@ -670,7 +672,7 @@ func reAddMemberAfterResetInner(ctx context.Context, g *libkb.GlobalContext, tea
 		}
 
 		if !t.IsImplicit() {
-			_, err = AddMemberByID(ctx, g, t.ID, username, targetRole, existingBotSettings)
+			_, err = AddMemberByID(ctx, g, t.ID, username, targetRole, existingBotSettings, nil /* emailInviteMsg */)
 			return err
 		}
 
@@ -832,7 +834,7 @@ func editMemberInvite(ctx context.Context, g *libkb.GlobalContext, teamGetter fu
 		return err
 	}
 	// use AddMember in case it's possible to add them directly now
-	if _, err := AddMemberByID(ctx, g, t.ID, username, role, nil); err != nil {
+	if _, err := AddMemberByID(ctx, g, t.ID, username, role, nil, nil /* emailInviteMsg */); err != nil {
 		g.Log.CDebugf(ctx, "editMemberInvite error in AddMember: %s", err)
 		return err
 	}
