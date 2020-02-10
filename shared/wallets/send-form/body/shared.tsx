@@ -13,7 +13,7 @@ export const sharedStyles = Styles.styleSheetCreate(() => ({
     },
     isTablet: {
       alignSelf: 'center',
-      width: 460,
+      width: Styles.globalStyles.mediumWidth,
     },
   }),
   spinnerContainer: {...Styles.globalStyles.fillAbsolute},
