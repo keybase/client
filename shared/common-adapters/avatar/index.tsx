@@ -1,10 +1,10 @@
 // High level avatar class. Handdles converting from usernames to urls. Deals with testing mode.
 import * as React from 'react'
-import Avatar from './avatar.render'
-import {iconTypeToImgSet, urlsToImgSet, IconType} from './icon'
-import * as Container from '../util/container'
-import * as Styles from '../styles'
-import * as ProfileGen from '../actions/profile-gen'
+import Avatar from './render'
+import {iconTypeToImgSet, urlsToImgSet, IconType} from '../icon'
+import * as Container from '../../util/container'
+import * as Styles from '../../styles'
+import * as ProfileGen from '../../actions/profile-gen'
 import './avatar.css'
 
 export const avatarSizes = [128, 96, 64, 48, 32, 24, 16] as const
@@ -110,6 +110,7 @@ const ConnectedAvatar = Container.connect(
       skipBackground,
       style,
       url,
+      username,
     }
   }
 )(Avatar)

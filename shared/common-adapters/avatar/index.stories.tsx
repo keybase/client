@@ -1,9 +1,9 @@
-import Avatar, {AvatarSize} from './avatar'
+import Avatar, {AvatarSize} from '.'
 import * as React from 'react'
-import * as Sb from '../stories/storybook'
-import Text from './text'
-import Box from './box'
-import {globalStyles} from '../styles'
+import * as Sb from '../../stories/storybook'
+import Text from '../text'
+import Box from '../box'
+import {globalStyles} from '../../styles'
 
 const sizes: Array<AvatarSize> = [128, 96, 64, 48, 32, 16]
 const provider = Sb.createPropProviderWithCommon(

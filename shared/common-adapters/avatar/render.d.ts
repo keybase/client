@@ -1,6 +1,6 @@
 import * as React from 'react'
-import {StylesCrossPlatform} from '../styles'
-import {IconType, IconStyle} from './icon'
+import {StylesCrossPlatform} from '../../styles'
+import {IconType, IconStyle} from '../icon'
 
 export type AvatarSize = 128 | 96 | 64 | 48 | 32 | 24 | 16
 
@@ -23,6 +23,7 @@ export type Props = {
   skipBackgroundAfterLoaded?: boolean
   style?: StylesCrossPlatform
   url: any
+  username: string
 }
 
 export default class Avatar extends React.Component<Props> {}

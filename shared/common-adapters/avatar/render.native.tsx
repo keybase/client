@@ -1,11 +1,11 @@
-import Icon from './icon'
+import Icon from '../icon'
 import * as React from 'react'
-import * as Styles from '../styles'
-import ClickableBox from './clickable-box'
-import Box from './box'
-import {NativeImage} from './native-image.native'
-import flags from '../util/feature-flags'
-import {Props, AvatarSize} from './avatar.render'
+import * as Styles from '../../styles'
+import ClickableBox from '../clickable-box'
+import Box from '../box'
+import {NativeImage} from '../native-image.native'
+import flags from '../../util/feature-flags'
+import {Props, AvatarSize} from './render'
 
 const Kb = {
   Box,

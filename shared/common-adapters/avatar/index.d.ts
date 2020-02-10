@@ -1,7 +1,7 @@
 // This facade is needed because flow is getting confused about the connector. TODO clean up the connector typing
 import * as React from 'react'
-import {StylesCrossPlatform, CustomStyles} from '../styles'
-import {_StylesCrossPlatform} from '../styles/css'
+import {StylesCrossPlatform, CustomStyles} from '../../styles'
+import {_StylesCrossPlatform} from '../../styles/css'
 
 export type AvatarSize = 128 | 96 | 64 | 48 | 32 | 24 | 16 | 12
 
