@@ -184,10 +184,8 @@
       "path": "Types.Path"
     },
     "setSendAttachmentToChatConvID": {
-      "convID": "ChatTypes.ConversationIDKey"
-    },
-    "setSendAttachmentToChatFilter": {
-      "filter": "string"
+      "convID": "ChatTypes.ConversationIDKey",
+      "convName": "string"
     },
     "setSendAttachmentToChatTitle": {
       "title": "string"

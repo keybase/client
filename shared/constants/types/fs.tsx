@@ -438,7 +438,7 @@ export enum SendAttachmentToChatState {
 
 export type SendAttachmentToChat = {
   readonly convID: ChatTypes.ConversationIDKey
-  readonly filter: string
+  readonly convName: string
   readonly path: Path
   readonly state: SendAttachmentToChatState
   readonly title: string

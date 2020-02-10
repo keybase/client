@@ -383,12 +383,10 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
   },
   [FsGen.setSendAttachmentToChatConvID]: (draftState, action) => {
     draftState.sendAttachmentToChat.convID = action.payload.convID
+    draftState.sendAttachmentToChat.convName = action.payload.convName
     draftState.sendAttachmentToChat.state = ChatConstants.isValidConversationIDKey(action.payload.convID)
       ? Types.SendAttachmentToChatState.ReadyToSend
       : Types.SendAttachmentToChatState.PendingSelectConversation
-  },
-  [FsGen.setSendAttachmentToChatFilter]: (draftState, action) => {
-    draftState.sendAttachmentToChat.filter = action.payload.filter
   },
   [FsGen.setSendAttachmentToChatTitle]: (draftState, action) => {
     draftState.sendAttachmentToChat.title = action.payload.title

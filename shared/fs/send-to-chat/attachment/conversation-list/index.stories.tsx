@@ -123,24 +123,9 @@ const actions = {
   onSelectUp: Sb.action('onSelectUp'),
 }
 
-const filter = {
-  filter: '',
-  filterFocusCount: 0,
-  isLoading: false,
-  onBack: Sb.action('onBack'),
-  onBlur: Sb.action('onBlur'),
-  onEnsureSelection: Sb.action('onEnsureSelection'),
-  onFocus: Sb.action('onFocus'),
-  onSelectDown: Sb.action('onSelectDown'),
-  onSelectUp: Sb.action('onSelectUp'),
-  onSetFilter: Sb.action('onSetFilter'),
-  ...actions,
-}
-
 export const provider = {
   ChooseConversation: (props: {}) => ({...props, selectedText: 'Choose a conversation'}),
   ConversationList: ({onSelect}: {onSelect?: () => void}) => ({
-    filter,
     rows: getRows(undefined, onSelect),
   }),
   SelectableBigTeamChannel: bigProvider,
@@ -151,16 +136,10 @@ export default () =>
   Sb.storiesOf('Files/SendToChat/Attachment/ConversationList', module)
     .addDecorator(Sb.createPropProviderWithCommon(provider))
     .add('Collapsed - no filter', () => <ConversationList rows={getRows(8)} {...actions} />)
-    .add('Collapsed', () => <ConversationList rows={getRows(8)} filter={filter} {...actions} />)
-    .add('Expanded', () => <ConversationList rows={getRows()} filter={filter} {...actions} />)
+    .add('Collapsed', () => <ConversationList rows={getRows(8)} {...actions} />)
+    .add('Expanded', () => <ConversationList rows={getRows()} {...actions} />)
     .add('ChooseConversation (Desktop)', () => (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
-        <ChooseConversation
-          selected={Constants.noConversationIDKey}
-          selectedText="Choose a conversation ..."
-          filter=""
-          onSelect={Sb.action('onSelect')}
-          onSetFilter={Sb.action('onSetFilter')}
-        />
+        <ChooseConversation onSelect={Sb.action('onSelect')} />
       </Kb.Box2>
     ))

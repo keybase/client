@@ -7,7 +7,7 @@ import * as FsGen from '../../../actions/fs-gen'
 import * as ChatTypes from '../../../constants/types/chat2'
 import * as Container from '../../../util/container'
 import ConversationList from './conversation-list/conversation-list'
-import ChooseConversation from './conversation-list/choose-conversation-container'
+import ChooseConversation from './conversation-list/choose-conversation'
 
 type Props = {
   onCancel: () => void
@@ -21,8 +21,8 @@ type Props = {
 const useConversationList = () => {
   const dispatch = Container.useDispatch()
   const sendAttachmentToChat = Container.useSelector(state => state.fs.sendAttachmentToChat)
-  const onSelect = (convID: ChatTypes.ConversationIDKey) => {
-    dispatch(FsGen.createSetSendAttachmentToChatConvID({convID}))
+  const onSelect = (convID: ChatTypes.ConversationIDKey, convName: string) => {
+    dispatch(FsGen.createSetSendAttachmentToChatConvID({convID, convName}))
   }
   return {
     onSelect,

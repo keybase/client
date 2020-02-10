@@ -81,7 +81,6 @@ export const setPathItemActionMenuView = 'fs:setPathItemActionMenuView'
 export const setPathSoftError = 'fs:setPathSoftError'
 export const setPreferredMountDirs = 'fs:setPreferredMountDirs'
 export const setSendAttachmentToChatConvID = 'fs:setSendAttachmentToChatConvID'
-export const setSendAttachmentToChatFilter = 'fs:setSendAttachmentToChatFilter'
 export const setSendAttachmentToChatTitle = 'fs:setSendAttachmentToChatTitle'
 export const setSfmiBannerDismissed = 'fs:setSfmiBannerDismissed'
 export const setSpaceAvailableNotificationThreshold = 'fs:setSpaceAvailableNotificationThreshold'
@@ -208,8 +207,10 @@ type _SetPathItemActionMenuDownloadPayload = {
 type _SetPathItemActionMenuViewPayload = {readonly view: Types.PathItemActionMenuView}
 type _SetPathSoftErrorPayload = {readonly path: Types.Path; readonly softError: Types.SoftError | null}
 type _SetPreferredMountDirsPayload = {readonly preferredMountDirs: Array<string>}
-type _SetSendAttachmentToChatConvIDPayload = {readonly convID: ChatTypes.ConversationIDKey}
-type _SetSendAttachmentToChatFilterPayload = {readonly filter: string}
+type _SetSendAttachmentToChatConvIDPayload = {
+  readonly convID: ChatTypes.ConversationIDKey
+  readonly convName: string
+}
 type _SetSendAttachmentToChatTitlePayload = {readonly title: string}
 type _SetSfmiBannerDismissedPayload = {readonly dismissed: boolean}
 type _SetSpaceAvailableNotificationThresholdPayload = {readonly spaceAvailableNotificationThreshold: number}
@@ -502,9 +503,6 @@ export const createSetPreferredMountDirs = (
 export const createSetSendAttachmentToChatConvID = (
   payload: _SetSendAttachmentToChatConvIDPayload
 ): SetSendAttachmentToChatConvIDPayload => ({payload, type: setSendAttachmentToChatConvID})
-export const createSetSendAttachmentToChatFilter = (
-  payload: _SetSendAttachmentToChatFilterPayload
-): SetSendAttachmentToChatFilterPayload => ({payload, type: setSendAttachmentToChatFilter})
 export const createSetSendAttachmentToChatTitle = (
   payload: _SetSendAttachmentToChatTitlePayload
 ): SetSendAttachmentToChatTitlePayload => ({payload, type: setSendAttachmentToChatTitle})
@@ -853,10 +851,6 @@ export type SetSendAttachmentToChatConvIDPayload = {
   readonly payload: _SetSendAttachmentToChatConvIDPayload
   readonly type: typeof setSendAttachmentToChatConvID
 }
-export type SetSendAttachmentToChatFilterPayload = {
-  readonly payload: _SetSendAttachmentToChatFilterPayload
-  readonly type: typeof setSendAttachmentToChatFilter
-}
 export type SetSendAttachmentToChatTitlePayload = {
   readonly payload: _SetSendAttachmentToChatTitlePayload
   readonly type: typeof setSendAttachmentToChatTitle
@@ -1022,7 +1016,6 @@ export type Actions =
   | SetPathSoftErrorPayload
   | SetPreferredMountDirsPayload
   | SetSendAttachmentToChatConvIDPayload
-  | SetSendAttachmentToChatFilterPayload
   | SetSendAttachmentToChatTitlePayload
   | SetSfmiBannerDismissedPayload
   | SetSpaceAvailableNotificationThresholdPayload

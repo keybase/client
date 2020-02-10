@@ -207,7 +207,7 @@ export const emptyError = makeError()
 
 export const emptySendAttachmentToChat: Types.SendAttachmentToChat = {
   convID: ChatConstants.noConversationIDKey,
-  filter: '',
+  convName: '',
   path: Types.stringToPath('/keybase'),
   state: Types.SendAttachmentToChatState.None,
   title: '',

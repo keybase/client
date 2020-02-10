@@ -4,7 +4,6 @@ import * as Types from '../../../../constants/types/chat2'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Container from '../../../../util/container'
 import * as Styles from '../../../../styles'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
 import {rowHeight} from '../../../../chat/selectable-big-team-channel'
 import {rowHeight as shouldEqualToRowHeight} from '../../../../chat/selectable-small-team'
 import logger from '../../../../logger'
@@ -16,7 +15,7 @@ import {Avatars, TeamAvatar} from '../../../../chat/avatars'
 
 type Props = {
   onDone?: () => void
-  onSelect: (conversationIDKey: Types.ConversationIDKey) => void
+  onSelect: (conversationIDKey: Types.ConversationIDKey, convName: string) => void
 }
 
 type Row = {
@@ -68,12 +67,9 @@ const ConversationList = (props: Props) => {
   const [selected, setSelected] = React.useState(0)
   const [results, setResults] = React.useState<Array<RPCChatTypes.SimpleSearchInboxConvNamesHit>>([])
   const submit = Container.useRPC(RPCChatTypes.localSimpleSearchInboxConvNamesRpcPromise)
-  const dispatch = Container.useDispatch()
-  React.useEffect(() => {
-    dispatch(Chat2Gen.createInboxRefresh({reason: 'shareConfigSearch'}))
-  }, [dispatch])
   const doSearch = React.useCallback(() => {
     setWaiting(true)
+    setSelected(0)
     submit(
       [{query}],
       result => {
@@ -85,12 +81,12 @@ const ConversationList = (props: Props) => {
         logger.info('ConversationList: error loading search results: ' + error.message)
       }
     )
-  }, [query])
+  }, [query, submit])
   React.useEffect(() => {
     doSearch()
   }, [doSearch])
-  const onSelect = (convID: Types.ConversationIDKey) => {
-    props.onSelect(convID)
+  const onSelect = (convID: Types.ConversationIDKey, convName: string) => {
+    props.onSelect(convID, convName)
     props.onDone?.()
   }
 
@@ -122,7 +118,10 @@ const ConversationList = (props: Props) => {
                 }
                 break
               case 'Enter':
-                onSelect(Types.conversationIDToKey(results[selected].convID))
+                if (results.length > 0) {
+                  const result = results[selected]
+                  onSelect(Types.conversationIDToKey(result.convID), result.name)
+                }
                 break
             }
           }}
@@ -133,7 +132,7 @@ const ConversationList = (props: Props) => {
         items={results.map((r, index) => ({
           isSelected: index === selected,
           item: r,
-          onSelect: () => onSelect(Types.conversationIDToKey(r.convID)),
+          onSelect: () => onSelect(Types.conversationIDToKey(r.convID), r.name),
         }))}
         renderItem={_itemRenderer}
         indexAsKey={true}

@@ -606,7 +606,6 @@ export type TypedActionsMap = {
   'fs:copy': fs.CopyPayload
   'fs:initSendAttachmentToChat': fs.InitSendAttachmentToChatPayload
   'fs:setSendAttachmentToChatConvID': fs.SetSendAttachmentToChatConvIDPayload
-  'fs:setSendAttachmentToChatFilter': fs.SetSendAttachmentToChatFilterPayload
   'fs:setSendAttachmentToChatTitle': fs.SetSendAttachmentToChatTitlePayload
   'fs:sentAttachmentToChat': fs.SentAttachmentToChatPayload
   'fs:setPathItemActionMenuView': fs.SetPathItemActionMenuViewPayload
