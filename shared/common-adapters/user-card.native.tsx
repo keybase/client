@@ -61,11 +61,16 @@ const styles = Styles.styleSheetCreate(() => ({
     position: 'absolute',
     right: 0,
   },
-  container: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'stretch',
-    width: '100%',
-  },
+  container: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxColumn,
+      alignItems: 'stretch',
+      width: '100%',
+    },
+    isTablet: {
+      maxWidth: 410,
+    },
+  }),
   inside: {
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'stretch',
