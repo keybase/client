@@ -84,6 +84,7 @@ const TeamRequestRowNew = (props: Props) => {
       closeOnSelect={true}
       attachTo={attachTo}
       position="bottom left"
+      positionFallbacks={['top left']}
     />
   ))
 
