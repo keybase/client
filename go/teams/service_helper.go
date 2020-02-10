@@ -734,7 +734,7 @@ func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails
 		return res, err
 	}
 
-	_, _, err = AddMembers(ctx, g, t.ID, toAdd, nil)
+	_, _, err = AddMembers(ctx, g, t.ID, toAdd, nil /* emailInviteMsg */)
 	return res, err
 }
 

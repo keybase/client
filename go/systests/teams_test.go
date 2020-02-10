@@ -1661,7 +1661,7 @@ func TestBatchAddMembersCLI(t *testing.T) {
 		{AssertionOrEmail: botua.username, Role: keybase1.TeamRole_BOT},
 		{AssertionOrEmail: restrictedBotua.username, Role: keybase1.TeamRole_RESTRICTEDBOT, BotSettings: &keybase1.TeamBotSettings{}},
 	}
-	added, notAdded, err := teams.AddMembers(context.Background(), alice.tc.G, teamID, users, nil)
+	added, notAdded, err := teams.AddMembers(context.Background(), alice.tc.G, teamID, users, nil /* emailInviteMsg */)
 	require.NoError(t, err)
 	require.Equal(t, 6, len(added))
 	require.Equal(t, 1, len(notAdded))
@@ -1695,7 +1695,7 @@ func TestBatchAddMembersCLI(t *testing.T) {
 	users = []keybase1.UserRolePair{
 		{AssertionOrEmail: "[job@gmail.com]@email+job33", Role: keybase1.TeamRole_READER},
 	}
-	_, _, err = teams.AddMembers(context.Background(), alice.tc.G, teamID, users, nil)
+	_, _, err = teams.AddMembers(context.Background(), alice.tc.G, teamID, users, nil /* emailInviteMsg */)
 	require.Error(t, err)
 	require.IsType(t, err, teams.AddMembersError{})
 	require.IsType(t, err.(teams.AddMembersError).Err, teams.MixedServerTrustAssertionError{})
@@ -1703,7 +1703,7 @@ func TestBatchAddMembersCLI(t *testing.T) {
 	users = []keybase1.UserRolePair{
 		{AssertionOrEmail: "xxffee22ee@twitter+jjjejiei3i@rooter", Role: keybase1.TeamRole_READER},
 	}
-	_, _, err = teams.AddMembers(context.Background(), alice.tc.G, teamID, users, nil)
+	_, _, err = teams.AddMembers(context.Background(), alice.tc.G, teamID, users, nil /* emailInviteMsg */)
 	require.Error(t, err)
 	require.IsType(t, err, teams.AddMembersError{})
 	require.IsType(t, err.(teams.AddMembersError).Err, teams.CompoundInviteError{})
@@ -1740,7 +1740,7 @@ func TestBatchAddMembers(t *testing.T) {
 		return ret
 	}
 
-	added, notAdded, err := teams.AddMembers(context.Background(), alice.tc.G, teamID, makeUserRolePairs(assertions, role), nil)
+	added, notAdded, err := teams.AddMembers(context.Background(), alice.tc.G, teamID, makeUserRolePairs(assertions, role), nil /* emailInviteMsg */)
 	require.Error(t, err, "can't invite assertions as owners")
 	require.IsType(t, teams.AttemptedInviteSocialOwnerError{}, err)
 	require.Nil(t, added)
@@ -1755,7 +1755,7 @@ func TestBatchAddMembers(t *testing.T) {
 	require.Len(t, members.RestrictedBots, 0)
 
 	role = keybase1.TeamRole_ADMIN
-	added, notAdded, err = teams.AddMembers(context.Background(), alice.tc.G, teamID, makeUserRolePairs(assertions, role), nil)
+	added, notAdded, err = teams.AddMembers(context.Background(), alice.tc.G, teamID, makeUserRolePairs(assertions, role), nil /* emailInviteMsg */)
 	require.NoError(t, err)
 	require.Len(t, added, len(assertions))
 	require.Len(t, notAdded, 0)
