@@ -283,6 +283,9 @@ module.exports = {
   get StandardScreen() {
     return require('./standard-screen').default
   },
+  get Svg() {
+    return require('./svg').default
+  },
   get Switch() {
     return require('./switch').default
   },

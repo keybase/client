@@ -6,6 +6,7 @@ import Box from '../box'
 import {NativeImage} from '../native-image.native'
 import flags from '../../util/feature-flags'
 import {Props, AvatarSize} from './render'
+import Circle from './circle.native'
 
 const Kb = {
   Box,
@@ -72,6 +73,7 @@ const Avatar = (props: Props) => {
             style={props.isTeam ? styles.editTeam : styles.edit}
           />
         )}
+        {props.showFollowingStatus && <Circle username={props.username} />}
         {props.children}
       </Kb.Box>
     </Kb.ClickableBox>
