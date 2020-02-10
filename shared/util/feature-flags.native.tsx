@@ -24,7 +24,7 @@ const ff: FeatureFlags = {
   stellarExternalPartners: true,
   tabletSupport: true,
   teamInvites: false,
-  teamsRedesign: true,
+  teamsRedesign: false,
   userBlocking: true,
   webOfTrust: false,
 }
