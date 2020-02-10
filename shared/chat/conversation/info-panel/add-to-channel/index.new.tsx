@@ -52,6 +52,8 @@ const AddToChannel = (props: Props) => {
     onClose()
   }
 
+  const loading = !allMembers.length
+
   return (
     <Kb.Modal
       header={{
@@ -98,7 +100,9 @@ const AddToChannel = (props: Props) => {
       <Kb.SearchFilter
         onChange={text => setFilter(text)}
         size="full-width"
-        placeholderText={`Search ${allMembers.length} ${pluralize('member', allMembers.length)}`}
+        placeholderText={
+          loading ? 'Loading...' : `Search ${allMembers.length} ${pluralize('member', allMembers.length)}`
+        }
         style={styles.filterInput}
       />
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
