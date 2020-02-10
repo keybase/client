@@ -71,7 +71,7 @@ const TeamRequestRowOld = (props: Props) => {
 }
 
 const TeamRequestRowNew = (props: Props) => {
-  const {ctime, fullName, username, onAccept, onChat, onOpenProfile} = props
+  const {ctime, fullName, username, onAccept, onOpenProfile} = props
 
   const {showingPopup, setShowingPopup, toggleShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
     <Kb.FloatingMenu
