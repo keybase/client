@@ -5,19 +5,19 @@ import {IconType, IconStyle} from './icon'
 export type AvatarSize = 128 | 96 | 64 | 48 | 32 | 24 | 16
 
 export type Props = {
-  borderColor?: string
   blocked?: boolean
+  borderColor?: string
   children?: React.ReactNode
   editable?: boolean
-  followIconSize: number
-  followIconType?: IconType
-  followIconStyle: IconStyle
+  following: boolean
+  followsYou: boolean
   isTeam: boolean
-  name: string
   loadingColor?: string
+  name: string
   onClick?: () => void
   onEditAvatarClick?: (e: React.BaseSyntheticEvent) => void
   opacity?: number
+  showFollowingStatus?: boolean
   size: AvatarSize
   skipBackground?: boolean
   skipBackgroundAfterLoaded?: boolean

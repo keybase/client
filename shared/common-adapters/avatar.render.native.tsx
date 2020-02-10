@@ -64,12 +64,6 @@ const Avatar = (props: Props) => {
             ]}
           />
         )}
-        {props.followIconType && (
-          <Kb.Icon
-            type={props.followIconType}
-            style={Styles.collapseStyles([iconStyles[props.followIconSize], props.followIconStyle])}
-          />
-        )}
         {props.editable && (
           <Kb.Icon
             color={props.isTeam ? Styles.globalColors.white : undefined}
@@ -83,16 +77,6 @@ const Avatar = (props: Props) => {
     </Kb.ClickableBox>
   )
 }
-
-const makeIconStyle = (size: AvatarSize) => ({height: size, width: size})
-const iconStyles = Styles.styleSheetCreate(() => ({
-  [128]: makeIconStyle(128),
-  [16]: makeIconStyle(16),
-  [32]: makeIconStyle(32),
-  [48]: makeIconStyle(48),
-  [64]: makeIconStyle(64),
-  [96]: makeIconStyle(96),
-}))
 
 const makeBoxStyle = (size: AvatarSize) => ({height: size, position: 'relative' as const, width: size})
 const boxStyles = Styles.styleSheetCreate(() => ({

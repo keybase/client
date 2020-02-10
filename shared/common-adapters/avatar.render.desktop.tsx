@@ -65,7 +65,6 @@ const Avatar = (props: Props) => {
           )}
         />
       )}
-      {props.followIconType && <Icon type={props.followIconType} style={props.followIconStyle} />}
       {props.editable && (
         <Icon
           type="iconfont-edit"
