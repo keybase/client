@@ -64,7 +64,7 @@ const makeRows = (
             })
           }
           rows.push(
-            ...[...details.requests].sort().map(req => {
+            ...[...details.requests].map(req => {
               return {
                 ctime: req.ctime,
                 fullName: req.fullName,
@@ -136,7 +136,7 @@ const makeRows = (
         empty = false
         rows.push({key: 'invites-divider:requests', label: 'Requests', type: 'invites-divider'})
         rows.push(
-          ...[...requests].sort().map(req => ({
+          ...[...requests].map(req => ({
             ctime: req.ctime,
             fullName: req.fullName,
             key: `invites-request:${req.username}`,

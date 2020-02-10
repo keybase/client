@@ -5,7 +5,7 @@ import {FloatingRolePicker} from '../../../../role-picker'
 import * as Styles from '../../../../../styles'
 import flags from '../../../../../util/feature-flags'
 import {isLargeScreen} from '../../../../../constants/platform'
-import moment from 'moment'
+import {formatTimeRelativeToNow} from '../../../../../util/timestamp'
 
 export type RowProps = {
   ctime: number
@@ -76,9 +76,27 @@ const TeamRequestRowNew = (props: Props) => {
 
   const {showingPopup, setShowingPopup, toggleShowingPopup, popup, popupAnchor} = Kb.usePopup(attachTo => (
     <Kb.FloatingMenu
+      header={{
+        title: 'header',
+        view: (
+          <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center" style={styles.newMenuHeader}>
+            <Kb.Avatar username={username} size={64} style={styles.newMenuAvatar} />
+            <Kb.ConnectedUsernames type="BodySemibold" colorFollowing={true} usernames={[username]} />
+            {fullName !== '' && <Kb.Text type="BodySmall">{fullName}</Kb.Text>}
+            <Kb.Text type="BodySmall">Requested to join {formatTimeRelativeToNow(ctime * 1000)}</Kb.Text>
+          </Kb.Box2>
+        ),
+      }}
       items={[
-        {onClick: props.onChat, title: 'Chat'},
-        {danger: true, onClick: props.onIgnoreRequest, title: 'Deny'},
+        {icon: 'iconfont-chat', onClick: props.onChat, title: 'Chat'},
+        {icon: 'iconfont-check', onClick: props.onAccept, title: 'Approve'},
+        {
+          danger: true,
+          icon: 'iconfont-block',
+          onClick: props.onIgnoreRequest,
+          subTitle: `They won't be notified`,
+          title: 'Deny',
+        },
       ]}
       visible={showingPopup}
       onHidden={() => setShowingPopup(false)}
@@ -90,60 +108,67 @@ const TeamRequestRowNew = (props: Props) => {
   ))
 
   return (
-    <Kb.Box style={styles.newContainer}>
-      <Kb.ClickableBox style={styles.clickContainer} onClick={() => onOpenProfile(username)}>
-        <Kb.Avatar username={username} size={Styles.isMobile ? 48 : 32} />
-        <Kb.Box style={styles.userDetails}>
-          <Kb.ConnectedUsernames type="BodySemibold" colorFollowing={true} usernames={[username]} />
-          <Kb.Box style={styles.newSubtext}>
-            <Kb.Meta title="please decide" style={styleCharm} backgroundColor={Styles.globalColors.orange} />
-            {Styles.isMobile ? (
-              isLargeScreen && (
-                <Kb.Text
-                  type="BodySmall"
-                  ellipsizeMode="tail"
-                  lineClamp={1}
-                  style={styles.newFullNameMobileText}
-                >
-                  {fullName !== '' && `${fullName}`}
+    <Kb.ListItem2
+      type="Small"
+      icon={<Kb.Avatar username={username} size={32} />}
+      body={
+        <Kb.Box2 direction="horizontal" fullHeight={true} alignItems="center">
+          <Kb.Box2 direction="vertical" fullWidth={true}>
+            <Kb.ConnectedUsernames type="BodySemibold" colorFollowing={true} usernames={[username]} />
+            <Kb.Box2 direction="horizontal">
+              <Kb.Meta
+                title="please decide"
+                style={styleCharm}
+                backgroundColor={Styles.globalColors.orange}
+              />
+              {Styles.isMobile ? (
+                isLargeScreen && (
+                  <Kb.Text type="BodySmall" ellipsizeMode="tail" lineClamp={1} style={styles.newFullName}>
+                    {fullName !== '' && `${fullName}`}
+                  </Kb.Text>
+                )
+              ) : (
+                <Kb.Text type="BodySmall" lineClamp={1}>
+                  {fullName !== '' && `${fullName}  • `}
+                  {formatTimeRelativeToNow(ctime * 1000)}
                 </Kb.Text>
-              )
-            ) : (
-              <Kb.Text type="BodySmall" lineClamp={1}>
-                {fullName !== '' && `${fullName}  • `}
-                {moment(ctime * 1000).fromNow()}
-              </Kb.Text>
-            )}
-          </Kb.Box>
-        </Kb.Box>
-      </Kb.ClickableBox>
-      <Kb.Box style={styles.newButtonBarContainer}>
-        <FloatingRolePicker
-          selectedRole={props.selectedRole}
-          onSelectRole={props.onSelectRole}
-          floatingContainerStyle={styles.floatingRolePicker}
-          footerComponent={props.footerComponent}
-          onConfirm={props.onConfirmRolePicker}
-          onCancel={props.onCancelRolePicker}
-          position="bottom left"
-          open={props.isRolePickerOpen}
-          disabledRoles={props.disabledReasonsForRolePicker}
-        >
-          <Kb.Button label="Approve" onClick={onAccept} small={true} style={styles.letInButton} />
-        </FloatingRolePicker>
-        <Kb.Button
-          mode="Secondary"
-          type="Dim"
-          small={true}
-          icon="iconfont-ellipsis"
-          tooltip=""
-          style={styles.ignoreButton}
-          onClick={toggleShowingPopup}
-          ref={popupAnchor}
-        />
-        {popup}
-      </Kb.Box>
-    </Kb.Box>
+              )}
+            </Kb.Box2>
+          </Kb.Box2>
+        </Kb.Box2>
+      }
+      action={
+        <Kb.Box2 direction="horizontal">
+          <FloatingRolePicker
+            selectedRole={props.selectedRole}
+            onSelectRole={props.onSelectRole}
+            floatingContainerStyle={styles.floatingRolePicker}
+            footerComponent={props.footerComponent}
+            onConfirm={props.onConfirmRolePicker}
+            onCancel={props.onCancelRolePicker}
+            position="bottom left"
+            open={props.isRolePickerOpen}
+            disabledRoles={props.disabledReasonsForRolePicker}
+          >
+            <Kb.Button label="Approve" onClick={onAccept} small={true} style={styles.letInButton} />
+          </FloatingRolePicker>
+          <Kb.Button
+            mode="Secondary"
+            type="Dim"
+            small={true}
+            icon="iconfont-ellipsis"
+            tooltip=""
+            style={styles.ignoreButton}
+            onClick={toggleShowingPopup}
+            ref={popupAnchor}
+          />
+          {popup}
+        </Kb.Box2>
+      }
+      onlyShowActionOnHover="fade"
+      onClick={() => onOpenProfile(username)}
+      firstItem={true /* TODO */}
+    />
   )
 }
 
@@ -208,37 +233,17 @@ const styles = Styles.styleSheetCreate(() => ({
     backgroundColor: Styles.globalColors.green,
     marginLeft: Styles.globalMargins.xtiny,
   },
-  newButtonBarContainer: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexBoxRow,
-      alignItems: 'center',
-      flexGrow: 0,
-      flexShrink: 1,
-      marginTop: 0,
-    },
-  }),
-  newContainer: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexBoxRow,
-      ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
-      alignItems: 'center',
-      backgroundColor: '#ff0000',
-      display: 'flex',
-      flexDirection: 'row',
-      flexShrink: 0,
-      height: 48,
-      width: '100%',
-    },
-    isMobile: {
-      height: 56,
-    },
-  }),
-  newFullNameMobileText: {
-    flexGrow: 1,
-    flexShrink: 0,
+  newFullName: {
+    ...Styles.globalStyles.flexOne,
+    paddingRight: Styles.globalMargins.xtiny,
   },
-  newSubtext: {
-    ...Styles.globalStyles.flexBoxRow,
+  newMenuAvatar: {
+    marginBottom: Styles.globalMargins.tiny,
+  },
+  newMenuHeader: {
+    borderBottomColor: Styles.globalColors.black_10,
+    borderBottomWidth: 1,
+    paddingBottom: Styles.globalMargins.xsmall,
   },
   userDetails: {
     ...Styles.globalStyles.flexBoxColumn,
