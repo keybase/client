@@ -193,9 +193,15 @@ const styles = Styles.styleSheetCreate(
         isMobile: {...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small)},
       }),
       mainBox: Styles.platformStyles({
-        common: {padding: Styles.globalMargins.small},
-        isElectron: {width: 550},
-        isTablet: {width: 460},
+        isElectron: {
+          padding: Styles.globalMargins.small,
+          width: '100%',
+          maxWidth: 550,
+        },
+        isTablet: {
+          width: '100%',
+          maxWidth: Styles.globalStyles.mediumWidth,
+        },
       }),
       outerStyle: {backgroundColor: Styles.globalColors.white},
       smallLabel: {color: Styles.globalColors.black},
