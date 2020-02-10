@@ -44,6 +44,7 @@ const AddToChannel = (props: Props) => {
   useTeamDetailsSubscribe(teamID)
 
   const onClose = () => dispatch(nav.safeNavigateUpPayload())
+  const onAdd = () => {} // TODO
 
   return (
     <Kb.Modal
@@ -56,9 +57,35 @@ const AddToChannel = (props: Props) => {
         ) : (
           undefined
         ),
+        rightButton: Styles.isMobile && toAdd.size && (
+          <Kb.Text type="BodyBigLink" onClick={onAdd}>
+            Add
+          </Kb.Text>
+        ),
         title: title({channelname, teamname}),
       }}
-      footer={{content: <Kb.Button label="Wha" />}}
+      footer={
+        Styles.isMobile
+          ? undefined
+          : {
+              content: (
+                <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
+                  <Kb.Button
+                    type="Dim"
+                    label="Cancel"
+                    onClick={onClose}
+                    style={Styles.globalStyles.flexOne}
+                  />
+                  <Kb.Button
+                    label={toAdd.size ? `Add ${toAdd.size} ${pluralize('member', toAdd.size)}` : 'Add...'}
+                    onClick={onAdd}
+                    disabled={!toAdd.size}
+                    style={Styles.globalStyles.flexOne}
+                  />
+                </Kb.Box2>
+              ),
+            }
+      }
       onClose={onClose}
     >
       <Kb.SearchFilter
@@ -86,7 +113,7 @@ const AddToChannel = (props: Props) => {
                 firstItem={!Styles.isMobile || idx === 0}
                 icon={<Kb.Avatar size={32} username={item.username} />}
                 type="Small"
-                onClick={onCheck}
+                onClick={alreadyIn ? undefined : onCheck}
                 body={
                   <Kb.Box2 direction="vertical" alignItems="flex-start">
                     <Kb.ConnectedUsernames
@@ -94,12 +121,10 @@ const AddToChannel = (props: Props) => {
                       colorFollowing={true}
                       usernames={[item.username]}
                     />
-                    <Kb.Box2 direction="horizontal" alignSelf="flex-start">
-                      <Kb.Text type="BodySmall" lineClamp={1}>
-                        {item.fullName}
-                      </Kb.Text>
-                      {alreadyIn && <Kb.Text type="BodySmall">{!!item.fullName && ' • '}Already in</Kb.Text>}
-                    </Kb.Box2>
+                    <Kb.Text type="BodySmall" lineClamp={1}>
+                      {alreadyIn && <Kb.Text type="BodySmall">Already in{!!item.fullName && ' • '}</Kb.Text>}
+                      {item.fullName}
+                    </Kb.Text>
                   </Kb.Box2>
                 }
                 action={
