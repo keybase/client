@@ -81,6 +81,9 @@
   font-style: italic;
   letter-spacing: 0.1em;
 }
+.tab-selected .tab-encrypted {
+  color: #ffffff;
+}
 
 @media all and (max-width: 800px) and (min-width: 0px) {
   .tab-container {
