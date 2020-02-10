@@ -249,7 +249,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
             </Kb.Box2>
           ) : (
             <Kb.NativeFlatList
-              ListHeaderComponent={Styles.isTablet ? <></> : HeadComponent}
+              ListHeaderComponent={HeadComponent}
               data={this.props.rows}
               keyExtractor={this._keyExtractor}
               renderItem={this._renderItem}
