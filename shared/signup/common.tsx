@@ -226,7 +226,11 @@ export const SignupScreen = (props: SignupScreenProps) => (
       {/* Banners after children so they go on top */}
       {!!props.banners && <Kb.Box2 direction="vertical" style={styles.banners} children={props.banners} />}
       {!!props.buttons && (
-        <Kb.ButtonBar direction="column" fullWidth={Styles.isMobile} style={styles.buttonBar}>
+        <Kb.ButtonBar
+          direction="column"
+          fullWidth={Styles.isMobile && !Styles.isTablet}
+          style={styles.buttonBar}
+        >
           {props.buttons.map(b =>
             b.waitingKey !== undefined ? (
               <Kb.WaitingButton
@@ -300,6 +304,9 @@ const styles = Styles.styleSheetCreate(
         isMobile: {
           height: 40,
           width: '100%',
+        },
+        isTablet: {
+          maxWidth: 368,
         },
       }),
       buttonBar: Styles.platformStyles({
