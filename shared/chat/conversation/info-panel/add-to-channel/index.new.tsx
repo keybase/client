@@ -3,6 +3,7 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as ChatConstants from '../../../../constants/chat2'
 import * as ChatTypes from '../../../../constants/types/chat2'
+import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as TeamConstants from '../../../../constants/teams'
 import * as TeamTypes from '../../../../constants/types/teams'
 import * as Container from '../../../../util/container'
@@ -46,7 +47,10 @@ const AddToChannel = (props: Props) => {
   useTeamDetailsSubscribe(teamID)
 
   const onClose = () => dispatch(nav.safeNavigateUpPayload())
-  const onAdd = () => {} // TODO
+  const onAdd = () => {
+    dispatch(Chat2Gen.createAddUsersToChannel({conversationIDKey, usernames: [...toAdd]}))
+    onClose()
+  }
 
   return (
     <Kb.Modal
