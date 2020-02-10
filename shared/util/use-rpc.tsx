@@ -23,7 +23,7 @@ function useRPC<
     }
   }, [])
 
-  const submit = React.useCallback(
+  const submit = React.useMemo(
     () => async (args: ARGS, setResult: (r: RET) => void, setError: (e: RPCError) => void) => {
       try {
         const result = await call(...args)
@@ -38,7 +38,7 @@ function useRPC<
     },
     [call]
   )
-  return submit()
+  return submit
 }
 
 export default useRPC
