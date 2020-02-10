@@ -15,7 +15,9 @@ type Props = Container.RouteProps<{
 }>
 
 const sortMembers = memoize((members: TeamTypes.TeamDetails['members']) =>
-  [...members.values()].sort((a, b) => a.username.localeCompare(b.username))
+  [...members.values()]
+    .filter(m => m.type !== 'restrictedbot' && m.type !== 'bot')
+    .sort((a, b) => a.username.localeCompare(b.username))
 )
 
 const AddToChannel = (props: Props) => {

@@ -20,9 +20,9 @@ const CheckCircle = (props: Props) => (
         ? Styles.globalColors.blue
         : Styles.globalColors.black_20
     }
-    onClick={props.disabled ? null : () => props.onCheck(!props.checked)}
+    onClick={props.disabled ? null : () => props.onCheck && props.onCheck(!props.checked)}
     fontSize={props.fontSize}
-    className={props.className}
+    className={Styles.classNames(!props.disabled && 'checkCircle', props.className)}
   />
 )
 export default CheckCircle
