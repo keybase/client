@@ -240,7 +240,7 @@ class InboxSearch extends React.Component<Props, State> {
 
     return (
       <Kb.Box2 style={styles.container} direction="vertical" fullWidth={true}>
-        <Rover />
+        {!Styles.isTablet && <Rover />}
         <Kb.SectionList
           ListHeaderComponent={this.props.header}
           stickySectionHeadersEnabled={true}
@@ -359,6 +359,9 @@ const styles = Styles.styleSheetCreate(
         isMobile: {
           height: '100%',
           width: '100%',
+        },
+        isTablet: {
+          maxWidth: 240,
         },
       }),
       errorText: {
