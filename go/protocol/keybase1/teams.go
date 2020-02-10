@@ -497,6 +497,7 @@ type TeamMemberDetails struct {
 	FullName FullName         `codec:"fullName" json:"fullName"`
 	NeedsPUK bool             `codec:"needsPUK" json:"needsPUK"`
 	Status   TeamMemberStatus `codec:"status" json:"status"`
+	JoinTime Time             `codec:"joinTime" json:"joinTime"`
 }
 
 func (o TeamMemberDetails) DeepCopy() TeamMemberDetails {
@@ -506,6 +507,7 @@ func (o TeamMemberDetails) DeepCopy() TeamMemberDetails {
 		FullName: o.FullName.DeepCopy(),
 		NeedsPUK: o.NeedsPUK,
 		Status:   o.Status.DeepCopy(),
+		JoinTime: o.JoinTime.DeepCopy(),
 	}
 }
 

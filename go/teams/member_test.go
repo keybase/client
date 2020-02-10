@@ -9,7 +9,8 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/engine"
-
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 
 	"github.com/davecgh/go-spew/spew"
@@ -18,8 +19,7 @@ import (
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/keybase/clockwork"
 )
 
 func memberSetupWithID(t *testing.T) (libkb.TestContext, *kbtest.FakeUser, string, keybase1.TeamID) {
@@ -1949,4 +1949,147 @@ func TestGetUntrustedTeamInfo(t *testing.T) {
 	}
 	checkPublicMember(publicAdmin, keybase1.TeamRole_ADMIN)
 	checkPublicMember(publicReader, keybase1.TeamRole_READER)
+}
+
+func TestMembersDetailsHasCorrectJoinTimes(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 3)
+	defer cleanup()
+
+	const (
+		alice   = 0
+		bob     = 1
+		charlie = 2
+	)
+
+	var team string
+
+	// setup some auxiliary functions
+	type expectedMemberDetails struct {
+		Username       string
+		Role           keybase1.TeamRole
+		JoinLowerBound keybase1.Time
+		JoinUpperBound keybase1.Time
+	}
+
+	findUserDetails := func(res keybase1.TeamMembersDetails, username string, role keybase1.TeamRole) keybase1.TeamMemberDetails {
+		var pool []keybase1.TeamMemberDetails
+		switch role {
+		case keybase1.TeamRole_OWNER:
+			pool = res.Owners
+		case keybase1.TeamRole_ADMIN:
+			pool = res.Admins
+		case keybase1.TeamRole_WRITER:
+			pool = res.Writers
+		case keybase1.TeamRole_READER:
+			pool = res.Readers
+		case keybase1.TeamRole_BOT:
+			pool = res.Bots
+		case keybase1.TeamRole_RESTRICTEDBOT:
+			pool = res.RestrictedBots
+		default:
+			t.Error("Unrecognized team role")
+		}
+		for _, detail := range pool {
+			if detail.Username == username {
+				return detail
+			}
+		}
+		t.Fatalf("User %v with role %v not found", username, role)
+		return keybase1.TeamMemberDetails{}
+	}
+
+	checkDetails := func(tc *libkb.TestContext, details []expectedMemberDetails, expNumMembers int) {
+		loadedTeam, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
+			Name:        team,
+			ForceRepoll: true,
+		})
+		require.NoError(t, err)
+		res, err := MembersDetails(context.TODO(), tc.G, loadedTeam)
+		require.NoError(t, err)
+
+		numMembers := len(res.Owners) + len(res.Admins) + len(res.Writers) + len(res.Readers) + len(res.Bots) + len(res.RestrictedBots)
+		require.Equal(t, expNumMembers, numMembers)
+
+		for _, expUserDetails := range details {
+			userDetails := findUserDetails(res, expUserDetails.Username, expUserDetails.Role)
+			assert.True(t, userDetails.JoinTime.After(expUserDetails.JoinLowerBound), "user %v joined at time %v but lower bound was %v", expUserDetails.Username, userDetails.JoinTime, expUserDetails.JoinLowerBound)
+			assert.True(t, userDetails.JoinTime.Before(expUserDetails.JoinUpperBound), "user %v joined at time %v but upper bound was %v", expUserDetails.Username, userDetails.JoinTime, expUserDetails.JoinUpperBound)
+		}
+	}
+
+	fakeClock := clockwork.NewFakeClockAt(time.Now())
+	tcs[alice].G.SetClock(fakeClock)
+
+	// start the test
+	startTime := keybase1.ToTime(fakeClock.Now())
+	// do small advances not to trigger the server into rejecting our updates (there is a 1 hour tolerance).
+	fakeClock.Advance(1 * time.Minute)
+
+	// alice makes a team
+	teamName, _ := createTeam2(*tcs[alice])
+	team = teamName.String()
+	t.Logf("Created team %q", team)
+
+	fakeClock.Advance(1 * time.Minute)
+	teamCreateTime := keybase1.ToTime(fakeClock.Now())
+	fakeClock.Advance(1 * time.Minute)
+
+	checkDetails(tcs[alice], []expectedMemberDetails{
+		{Username: fus[alice].Username, Role: keybase1.TeamRole_OWNER, JoinLowerBound: startTime, JoinUpperBound: teamCreateTime},
+	}, 1)
+
+	_, err := AddMember(context.TODO(), tcs[alice].G, team, fus[bob].Username, keybase1.TeamRole_READER, nil)
+	require.NoError(t, err)
+
+	fakeClock.Advance(1 * time.Minute)
+	firstAddBoBTime := keybase1.ToTime(fakeClock.Now())
+	fakeClock.Advance(1 * time.Minute)
+
+	checkDetails(tcs[alice], []expectedMemberDetails{
+		{Username: fus[alice].Username, Role: keybase1.TeamRole_OWNER, JoinLowerBound: startTime, JoinUpperBound: teamCreateTime},
+		{Username: fus[bob].Username, Role: keybase1.TeamRole_READER, JoinLowerBound: teamCreateTime, JoinUpperBound: firstAddBoBTime},
+	}, 2)
+
+	checkDetails(tcs[bob], []expectedMemberDetails{
+		{Username: fus[alice].Username, Role: keybase1.TeamRole_OWNER, JoinLowerBound: startTime, JoinUpperBound: teamCreateTime},
+		{Username: fus[bob].Username, Role: keybase1.TeamRole_READER, JoinLowerBound: teamCreateTime, JoinUpperBound: firstAddBoBTime},
+	}, 2)
+
+	err = RemoveMember(context.TODO(), tcs[alice].G, team, fus[bob].Username)
+	require.NoError(t, err)
+
+	fakeClock.Advance(1 * time.Minute)
+	removeBoBTime := keybase1.ToTime(fakeClock.Now())
+	fakeClock.Advance(1 * time.Minute)
+
+	checkDetails(tcs[alice], []expectedMemberDetails{
+		{Username: fus[alice].Username, Role: keybase1.TeamRole_OWNER, JoinLowerBound: startTime, JoinUpperBound: teamCreateTime},
+	}, 1)
+
+	_, err = AddMember(context.TODO(), tcs[alice].G, team, fus[charlie].Username, keybase1.TeamRole_READER, nil)
+	require.NoError(t, err)
+
+	fakeClock.Advance(1 * time.Minute)
+	addCharlieTime := keybase1.ToTime(fakeClock.Now())
+	fakeClock.Advance(1 * time.Minute)
+
+	checkDetails(tcs[alice], []expectedMemberDetails{
+		{Username: fus[alice].Username, Role: keybase1.TeamRole_OWNER, JoinLowerBound: startTime, JoinUpperBound: teamCreateTime},
+		{Username: fus[charlie].Username, Role: keybase1.TeamRole_READER, JoinLowerBound: removeBoBTime, JoinUpperBound: addCharlieTime},
+	}, 2)
+
+	_, err = AddMember(context.TODO(), tcs[alice].G, team, fus[bob].Username, keybase1.TeamRole_READER, nil)
+	require.NoError(t, err)
+
+	fakeClock.Advance(1 * time.Minute)
+	secondAddBoBTime := keybase1.ToTime(fakeClock.Now())
+	fakeClock.Advance(1 * time.Minute)
+
+	checkDetails(tcs[alice], []expectedMemberDetails{
+		{Username: fus[alice].Username, Role: keybase1.TeamRole_OWNER, JoinLowerBound: startTime, JoinUpperBound: teamCreateTime},
+		{Username: fus[charlie].Username, Role: keybase1.TeamRole_READER, JoinLowerBound: removeBoBTime, JoinUpperBound: addCharlieTime},
+		// ensure the bob's join time is from the second time he joined the team, not the first!
+		{Username: fus[bob].Username, Role: keybase1.TeamRole_READER, JoinLowerBound: addCharlieTime, JoinUpperBound: secondAddBoBTime},
+	}, 3)
+
 }

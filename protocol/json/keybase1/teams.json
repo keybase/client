@@ -338,6 +338,10 @@
         {
           "type": "TeamMemberStatus",
           "name": "status"
+        },
+        {
+          "type": "Time",
+          "name": "joinTime"
         }
       ]
     },

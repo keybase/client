@@ -290,6 +290,10 @@ func (t *Team) UsersWithRoleOrAbove(role keybase1.TeamRole) ([]keybase1.UserVers
 	return t.chain().GetUsersWithRoleOrAbove(role)
 }
 
+func (t *Team) UserLastJoinTime(u keybase1.UserVersion) (time keybase1.Time, err error) {
+	return t.chain().GetUserLastJoinTime(u)
+}
+
 func (t *Team) Members() (keybase1.TeamMembers, error) {
 	var members keybase1.TeamMembers
 

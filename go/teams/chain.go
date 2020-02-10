@@ -203,6 +203,10 @@ func (t TeamSigChainState) getUserRole(user keybase1.UserVersion) keybase1.TeamR
 	return t.inner.UserRole(user)
 }
 
+func (t TeamSigChainState) GetUserLastJoinTime(user keybase1.UserVersion) (time keybase1.Time, err error) {
+	return t.inner.GetUserLastJoinTime(user)
+}
+
 // assertBecameAdminAt asserts that the user (uv) became admin at the SigChainLocation given.
 // Figure out when this admin permission was revoked, if at all. If the promotion event
 // wasn't found as specified, then return an AdminPermissionError. In addition, we return

@@ -3439,6 +3439,27 @@ func (s TeamSigChainState) UserRole(user UserVersion) TeamRole {
 	return role
 }
 
+func (s TeamSigChainState) GetUserLastJoinTime(user UserVersion) (time Time, err error) {
+	if s.UserRole(user) == TeamRole_NONE {
+		return 0, fmt.Errorf("In GetUserLastJoinTime: User %v is not a member of team %v", user.Uid, s.Id)
+	}
+	// Look for the latest join event, i.e. the latest transition from a role NONE to a different valid one.
+	points := s.UserLog[user]
+	for i := len(points) - 1; i > -1; i-- {
+		if points[i].Role == TeamRole_NONE {
+			// this is the last time in the sigchain this user has role none
+			// (note that it cannot be the last link in the chain, otherwise the
+			// user would have role NONE), so the link after this one is the one
+			// where they joined the team last.
+			return points[i+1].SigMeta.Time, nil
+		}
+	}
+	// If the user never had role none, they joined at the time of their first
+	// UserLog entry (they need to have at least one, else again their role would be
+	// NONE).
+	return points[0].SigMeta.Time, nil
+}
+
 func (s TeamSigChainState) KeySummary() string {
 	var v []PerTeamKeyGeneration
 	for k := range s.PerTeamKeys {

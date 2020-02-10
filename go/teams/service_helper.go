@@ -194,15 +194,7 @@ func ImplicitAdmins(ctx context.Context, g *libkb.GlobalContext, teamID keybase1
 		return nil, err
 	}
 
-	return userVersionsToDetails(ctx, g, uvs)
-}
-
-func MembersDetails(ctx context.Context, g *libkb.GlobalContext, t *Team) (keybase1.TeamMembersDetails, error) {
-	members, err := t.Members()
-	if err != nil {
-		return keybase1.TeamMembersDetails{}, err
-	}
-	return membersUIDsToUsernames(ctx, g, members)
+	return userVersionsToDetails(ctx, g, uvs, nil)
 }
 
 func membersHideDeletedUsers(ctx context.Context, g *libkb.GlobalContext, members *keybase1.TeamMembersDetails) {
@@ -264,37 +256,43 @@ func membersHideInactiveDuplicates(ctx context.Context, g *libkb.GlobalContext, 
 	}
 }
 
-func membersUIDsToUsernames(ctx context.Context, g *libkb.GlobalContext, m keybase1.TeamMembers) (keybase1.TeamMembersDetails, error) {
-	var ret keybase1.TeamMembersDetails
-	var err error
-	ret.Owners, err = userVersionsToDetails(ctx, g, m.Owners)
+func MembersDetails(ctx context.Context, g *libkb.GlobalContext, t *Team) (ret keybase1.TeamMembersDetails, err error) {
+	m, err := t.Members()
 	if err != nil {
 		return ret, err
 	}
-	ret.Admins, err = userVersionsToDetails(ctx, g, m.Admins)
+
+	ret.Owners, err = userVersionsToDetails(ctx, g, m.Owners, t)
 	if err != nil {
 		return ret, err
 	}
-	ret.Writers, err = userVersionsToDetails(ctx, g, m.Writers)
+	ret.Admins, err = userVersionsToDetails(ctx, g, m.Admins, t)
 	if err != nil {
 		return ret, err
 	}
-	ret.Readers, err = userVersionsToDetails(ctx, g, m.Readers)
+	ret.Writers, err = userVersionsToDetails(ctx, g, m.Writers, t)
 	if err != nil {
 		return ret, err
 	}
-	ret.Bots, err = userVersionsToDetails(ctx, g, m.Bots)
+	ret.Readers, err = userVersionsToDetails(ctx, g, m.Readers, t)
 	if err != nil {
 		return ret, err
 	}
-	ret.RestrictedBots, err = userVersionsToDetails(ctx, g, m.RestrictedBots)
+	ret.Bots, err = userVersionsToDetails(ctx, g, m.Bots, t)
+	if err != nil {
+		return ret, err
+	}
+	ret.RestrictedBots, err = userVersionsToDetails(ctx, g, m.RestrictedBots, t)
 	if err != nil {
 		return ret, err
 	}
 	return ret, nil
 }
 
-func userVersionsToDetails(ctx context.Context, g *libkb.GlobalContext, uvs []keybase1.UserVersion) (ret []keybase1.TeamMemberDetails, err error) {
+// userVersionsToDetails returns a slice of TeamMemberDetails objects, to be
+// used in relation to a specific team. The *Team parameter is optional, and
+// used to compute the joinTime in which the user joined the team.
+func userVersionsToDetails(ctx context.Context, g *libkb.GlobalContext, uvs []keybase1.UserVersion, t *Team) (ret []keybase1.TeamMemberDetails, err error) {
 	uids := make([]keybase1.UID, len(uvs))
 	for i, uv := range uvs {
 		uids[i] = uv.Uid
@@ -325,6 +323,12 @@ func userVersionsToDetails(ctx context.Context, g *libkb.GlobalContext, uvs []ke
 			Username: pkg.NormalizedUsername.String(),
 			FullName: fullName,
 			Status:   status,
+		}
+		if status == keybase1.TeamMemberStatus_ACTIVE && t != nil {
+			ret[i].JoinTime, err = t.UserLastJoinTime(uv)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 	return ret, nil
