@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Kb from '../../../../common-adapters/mobile.native'
 import * as Styles from '../../../../styles'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
-import {isIOS, isLargeScreen} from '../../../../constants/platform'
+import {isLargeScreen} from '../../../../constants/platform'
 import {LayoutEvent} from '../../../../common-adapters/box'
 import SetExplodingMessagePicker from '../../messages/set-explode-popup/container'
 import Typing from './typing/container'
@@ -192,7 +192,9 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
     this.watchSizeChanges = false
     // eslint-disable-next-line react/no-access-state-in-setstate
     const nextState = !this.state.expanded
-    this.setState({afterAnimatingExtraStepWorkaround: true, expanded: nextState})
+    this.setState({afterAnimatingExtraStepWorkaround: true, expanded: nextState}, () =>
+      this.props.onExpanded(nextState)
+    )
     this.setState({animating: true}, () => {
       this.animateState.setValue(nextState ? AnimationState.expanding : AnimationState.contracting)
     })
