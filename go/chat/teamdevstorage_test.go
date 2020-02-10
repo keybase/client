@@ -125,11 +125,11 @@ func TestDevConversationBackedStorageTeamAdminOnlyReaderMisbehavior(t *testing.T
 	_, err = ctc.as(t, bob).chatLocalHandler().PostLocal(ctc.as(t, bob).startCtx, larg)
 	require.NoError(t, err)
 
-	found, err = storage.Get(ctx, uid, teamID, key0, &msg)
+	_, err = storage.Get(ctx, uid, teamID, key0, &msg)
 	require.Error(t, err, "got an error after misbehavior")
 	require.IsType(t, &DevStorageAdminOnlyError{}, err, "got a permission error")
 
-	found, err = readerstorage.Get(readerctx, readeruid, teamID, key0, &readermsg)
+	_, err = readerstorage.Get(readerctx, readeruid, teamID, key0, &readermsg)
 	require.Error(t, err, "got an error after misbehavior")
 	require.IsType(t, &DevStorageAdminOnlyError{}, err, "got a permission error")
 }

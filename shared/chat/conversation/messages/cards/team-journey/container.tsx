@@ -19,7 +19,7 @@ type OwnProps = {
 }
 
 type Props = {
-  welcomeMessage?: TeamTypes.WelcomeMessage
+  welcomeMessage: TeamTypes.WelcomeMessage | null
   canShowcase: boolean
   cannotWrite: boolean
   channelname: string
