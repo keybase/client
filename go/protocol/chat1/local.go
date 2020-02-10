@@ -6423,6 +6423,11 @@ type BulkAddToConvArg struct {
 	Usernames []string       `codec:"usernames" json:"usernames"`
 }
 
+type BulkAddToManyConvsArg struct {
+	Conversations []ConversationID `codec:"conversations" json:"conversations"`
+	Usernames     []string         `codec:"usernames" json:"usernames"`
+}
+
 type PutReacjiSkinToneArg struct {
 	SkinTone keybase1.ReacjiSkinTone `codec:"skinTone" json:"skinTone"`
 }
@@ -6606,6 +6611,7 @@ type LocalInterface interface {
 	SaveUnfurlSettings(context.Context, SaveUnfurlSettingsArg) error
 	ToggleMessageCollapse(context.Context, ToggleMessageCollapseArg) error
 	BulkAddToConv(context.Context, BulkAddToConvArg) error
+	BulkAddToManyConvs(context.Context, BulkAddToManyConvsArg) error
 	PutReacjiSkinTone(context.Context, keybase1.ReacjiSkinTone) (keybase1.UserReacjis, error)
 	ResolveMaybeMention(context.Context, MaybeMention) error
 	LoadGallery(context.Context, LoadGalleryArg) (LoadGalleryRes, error)
@@ -7728,6 +7734,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"bulkAddToManyConvs": {
+				MakeArg: func() interface{} {
+					var ret [1]BulkAddToManyConvsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]BulkAddToManyConvsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]BulkAddToManyConvsArg)(nil), args)
+						return
+					}
+					err = i.BulkAddToManyConvs(ctx, typedArgs[0])
+					return
+				},
+			},
 			"putReacjiSkinTone": {
 				MakeArg: func() interface{} {
 					var ret [1]PutReacjiSkinToneArg
@@ -8437,6 +8458,11 @@ func (c LocalClient) ToggleMessageCollapse(ctx context.Context, __arg ToggleMess
 
 func (c LocalClient) BulkAddToConv(ctx context.Context, __arg BulkAddToConvArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.bulkAddToConv", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) BulkAddToManyConvs(ctx context.Context, __arg BulkAddToManyConvsArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.bulkAddToManyConvs", []interface{}{__arg}, nil, 0*time.Millisecond)
 	return
 }
 

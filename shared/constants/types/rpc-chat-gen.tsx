@@ -303,6 +303,10 @@ export type MessageTypes = {
     inParam: {readonly convID: ConversationID; readonly usernames?: Array<String> | null}
     outParam: void
   }
+  'chat.1.local.bulkAddToManyConvs': {
+    inParam: {readonly conversations?: Array<ConversationID> | null; readonly usernames?: Array<String> | null}
+    outParam: void
+  }
   'chat.1.local.cancelActiveInboxSearch': {
     inParam: void
     outParam: void
@@ -1512,6 +1516,7 @@ export const localAddBotConvSearchRpcPromise = (params: MessageTypes['chat.1.loc
 export const localAddBotMemberRpcPromise = (params: MessageTypes['chat.1.local.addBotMember']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.addBotMember']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.addBotMember', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localAddTeamMemberAfterResetRpcPromise = (params: MessageTypes['chat.1.local.addTeamMemberAfterReset']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.addTeamMemberAfterReset']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.addTeamMemberAfterReset', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localBulkAddToConvRpcPromise = (params: MessageTypes['chat.1.local.bulkAddToConv']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.bulkAddToConv']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.bulkAddToConv', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localBulkAddToManyConvsRpcPromise = (params: MessageTypes['chat.1.local.bulkAddToManyConvs']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.bulkAddToManyConvs']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.bulkAddToManyConvs', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localCancelActiveInboxSearchRpcPromise = (params: MessageTypes['chat.1.local.cancelActiveInboxSearch']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.cancelActiveInboxSearch']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.cancelActiveInboxSearch', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localCancelActiveSearchRpcPromise = (params: MessageTypes['chat.1.local.cancelActiveSearch']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.cancelActiveSearch']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.cancelActiveSearch', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localCancelPostRpcPromise = (params: MessageTypes['chat.1.local.CancelPost']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.CancelPost']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.CancelPost', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
