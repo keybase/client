@@ -73,9 +73,9 @@ func (p PgpUI) OutputSignatureNonKeybase(ctx context.Context, arg keybase1.Outpu
 	}
 
 	if signedAt.IsZero() {
-		output("Message signed by key %s (unknown to keybase).\n", arg.KeyID)
+		output("Message signed by key %s (unknown to Keybase).\n", arg.KeyID)
 	} else {
-		output("Message signed by key %s (unknown to keybase) %s (%s).\n", arg.KeyID, humanize.Time(signedAt), signedAt)
+		output("Message signed by key %s (unknown to Keybase) %s (%s).\n", arg.KeyID, humanize.Time(signedAt), signedAt)
 	}
 
 	return nil
