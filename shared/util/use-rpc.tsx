@@ -16,6 +16,9 @@ function useRPC<
   ARGS extends Array<any> = Parameters<C>
 >(call: C) {
   const isMounted = React.useRef<Boolean>(true)
+  const submitRef = React.useRef<
+    null | ((args: ARGS, setResult: (r: RET) => void, setError: (e: RPCError) => void) => Promise<void>)
+  >(null)
 
   React.useEffect(() => {
     return () => {
@@ -23,22 +26,23 @@ function useRPC<
     }
   }, [])
 
-  const submit = React.useCallback(
-    () => async (args: ARGS, setResult: (r: RET) => void, setError: (e: RPCError) => void) => {
-      try {
-        const result = await call(...args)
-        if (isMounted.current) {
-          setResult(result)
-        }
-      } catch (e) {
-        if (isMounted.current) {
-          setError(e)
-        }
+  if (submitRef.current) {
+    return submitRef.current
+  }
+
+  submitRef.current = async (args: ARGS, setResult: (r: RET) => void, setError: (e: RPCError) => void) => {
+    try {
+      const result = await call(...args)
+      if (isMounted.current) {
+        setResult(result)
       }
-    },
-    [call]
-  )
-  return submit()
+    } catch (e) {
+      if (isMounted.current) {
+        setError(e)
+      }
+    }
+  }
+  return submitRef.current
 }
 
 export default useRPC
