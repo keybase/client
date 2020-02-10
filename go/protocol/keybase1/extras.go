@@ -3759,8 +3759,8 @@ func (e TeamSearchExport) Hash() string {
 	})
 	hasher := sha256.New()
 	for _, team := range l {
-		log := int(math.Floor(math.Log10(float64(team.MemberCount))))
-		rounder := int(math.Pow(10, float64(log)))
+		log := math.Floor(math.Log10(float64(team.MemberCount)))
+		rounder := int(math.Pow(10, log))
 		value := (team.MemberCount / rounder) * rounder
 		hasher.Write(team.Id.ToBytes())
 		hasher.Write([]byte(fmt.Sprintf("%d", value)))
