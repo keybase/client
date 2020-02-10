@@ -116,9 +116,7 @@ func (c *CmdTeamAddMembersBulk) ParseArgv(ctx *cli.Context) (err error) {
 	c.arg.SendChatNotification = !ctx.Bool("skip-chat-message")
 
 	emailInviteMsg := ctx.String("email-invite-message")
-	if len(emailInviteMsg) == 0 {
-		c.arg.EmailInviteMessage = nil
-	} else {
+	if len(emailInviteMsg) > 0 {
 		c.arg.EmailInviteMessage = &emailInviteMsg
 	}
 
