@@ -64,12 +64,6 @@ const Conversation = React.memo((props: Props) => (
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      container: Styles.platformStyles({
-        isTablet: {
-          flex: 1,
-          position: 'relative',
-        },
-      }),
       innerContainer: {
         flex: 1,
         position: 'relative',
