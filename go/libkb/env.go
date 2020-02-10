@@ -2017,7 +2017,8 @@ func (e *Env) RunningInCI() bool {
 }
 
 func (e *Env) WantsSystemd() bool {
-	return (e.GetRunMode() == ProductionRunMode && e.ModelessWantsSystemd())
+	isNonstandard, isNonstandardErr := e.HomeFinder.IsNonstandardHome()
+	return (e.GetRunMode() == ProductionRunMode && e.ModelessWantsSystemd() && (isNonstandardErr != nil || !isNonstandard))
 }
 
 func (e *Env) ModelessWantsSystemd() bool {
