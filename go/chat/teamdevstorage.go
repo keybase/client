@@ -68,7 +68,7 @@ func (s *TeamDevConversationBackedStorage) Put(ctx context.Context, uid gregor1.
 		return err
 	}
 	if len(convs) == 0 {
-		conv, err = NewConversation(ctx, s.G(), uid, tlfname, &name, chat1.TopicType_DEV,
+		conv, _, err = NewConversation(ctx, s.G(), uid, tlfname, &name, chat1.TopicType_DEV,
 			chat1.ConversationMembersType_TEAM, keybase1.TLFVisibility_PRIVATE, s.ri, NewConvFindExistingNormal)
 		if err != nil {
 			return err
