@@ -32,8 +32,8 @@ func (u *RemotePgpUI) OutputSignatureSuccess(ctx context.Context, arg keybase1.O
 	return u.cli.OutputSignatureSuccess(ctx, arg)
 }
 
-func (u *RemotePgpUI) OutputSignatureSuccessNonKeybase(ctx context.Context, arg keybase1.OutputSignatureSuccessNonKeybaseArg) error {
-	return u.cli.OutputSignatureSuccessNonKeybase(ctx, arg)
+func (u *RemotePgpUI) OutputSignatureNonKeybase(ctx context.Context, arg keybase1.OutputSignatureNonKeybaseArg) error {
+	return u.cli.OutputSignatureNonKeybase(ctx, arg)
 }
 
 func (u *RemotePgpUI) KeyGenerated(ctx context.Context, arg keybase1.KeyGeneratedArg) error {
