@@ -140,9 +140,9 @@ const styles = Styles.styleSheetCreate(
         },
         isMobile: {...Styles.padding(Styles.globalMargins.small)},
       }),
-      wrapper: Styles.platformStyles({
+      wrapper: {
         width: Styles.globalStyles.mediumWidth,
-      }),
+      },
     } as const)
 )
 
