@@ -659,7 +659,7 @@ const unfurlSettingsSaved = async (state: TypedState, action: SettingsGen.Unfurl
 // false (never the opposite way), and there are notifications set up when
 // this happens.
 const loadHasRandomPW = async (state: TypedState) => {
-  if (state.settings.password.randomPW !== null) {
+  if ((state.settings.password.randomPW ?? null) !== null) {
     return false
   }
   try {
