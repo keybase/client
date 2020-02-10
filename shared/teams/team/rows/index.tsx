@@ -15,7 +15,7 @@ type MemberRow = {key: string; username: string; type: 'member'}
 type BotRow = {key: string; username: string; type: 'bot'} | {key: string; type: 'bot-add'}
 type InviteRow =
   | {key: string; label: string; type: 'invites-divider'}
-  | {key: string; username: string; type: 'invites-request'}
+  | {key: string; ctime: number; username: string; fullName: string; type: 'invites-request'}
   | {key: string; id: string; type: 'invites-invite'}
   | {key: string; type: 'invites-none'}
 type SubteamRow =
@@ -64,12 +64,16 @@ const makeRows = (
             })
           }
           rows.push(
-            ...[...details.requests].sort().map(req => ({
-              ctime: req.ctime,
-              key: `invites-request:${req.username}`,
-              type: 'invites-request' as const,
-              username: req.username,
-            }))
+            ...[...details.requests].sort().map(req => {
+              console.log('duh', req)
+              return {
+                ctime: req.ctime,
+                fullName: req.fullName,
+                key: `invites-request:${req.username}`,
+                type: 'invites-request' as const,
+                username: req.username,
+              }
+            })
           )
         }
         if (details.invites?.size) {
@@ -134,6 +138,8 @@ const makeRows = (
         rows.push({key: 'invites-divider:requests', label: 'Requests', type: 'invites-divider'})
         rows.push(
           ...[...requests].sort().map(req => ({
+            ctime: req.ctime,
+            fullName: req.fullName,
             key: `invites-request:${req.username}`,
             type: 'invites-request' as const,
             username: req.username,

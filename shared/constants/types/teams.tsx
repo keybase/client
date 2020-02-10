@@ -81,8 +81,9 @@ export type EmailInviteError = {
 export type AddUserToTeamsState = 'notStarted' | 'pending' | 'succeeded' | 'failed'
 
 export type JoinRequest = {
-  username: string
   ctime: number
+  fullName: string
+  username: string
 }
 
 export type TeamMeta = {

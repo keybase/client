@@ -25,7 +25,7 @@ const renderRow = (row: Row, teamID: Types.TeamID) => {
     case 'invites-invite':
       return <InviteRow teamID={teamID} id={row.id} />
     case 'invites-request':
-      return <RequestRow teamID={teamID} username={row.username} />
+      return <RequestRow teamID={teamID} username={row.username} fullName={row.fullName} />
     case 'divider':
       return <TeamPageDivider teamID={teamID} count={row.count} type={row.dividerType} />
     case 'invites-none':

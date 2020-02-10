@@ -1547,12 +1547,36 @@ func ListRequests(ctx context.Context, g *libkb.GlobalContext, teamName *string)
 		return nil, err
 	}
 
-	joinRequests := make([]keybase1.TeamJoinRequest, len(arList.Requests))
+	var (
+		joinRequests  = make([]keybase1.TeamJoinRequest, len(arList.Requests))
+		requesterUIDs = make([]keybase1.UID, len(arList.Requests))
+	)
 	for i, ar := range arList.Requests {
+		username := libkb.NewNormalizedUsername(ar.Username)
+		uid := libkb.GetUIDByNormalizedUsername(g, username)
+
+		requesterUIDs[i] = uid
 		joinRequests[i] = keybase1.TeamJoinRequest{
 			Name:     ar.FQName,
-			Username: libkb.NewNormalizedUsername(ar.Username).String(),
+			Username: username.String(),
 			Ctime:    keybase1.ToUnixTime(ar.Ctime),
+		}
+	}
+
+	packages, err := g.UIDMapper.MapUIDsToUsernamePackages(ctx, g, requesterUIDs,
+		defaultFullnameFreshness, 10*time.Second, true)
+	if err != nil {
+		return nil, err
+	}
+	for i, uid := range requesterUIDs {
+		if packages[i].NormalizedUsername.IsNil() {
+			g.Log.Debug("TeamsListRequests: failed to get username for: %s", uid)
+			continue
+		}
+		if packages[i].FullName != nil {
+			joinRequests[i].FullName = packages[i].FullName.FullName
+		} else {
+			joinRequests[i].FullName = "nully"
 		}
 	}
 
