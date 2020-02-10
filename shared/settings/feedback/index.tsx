@@ -137,20 +137,11 @@ class Feedback extends React.Component<Props, State> {
                 />
               </Kb.Box2>
             )}
-            {!this.props.loggedOut && (
-            <Kb.Box2 style={styles.btnContainer} direction="horizontal" gap="tiny">
+            <Kb.Box2 alignSelf={this.props.loggedOut ? 'center' : 'flex-start'} direction="horizontal" gap="tiny">
               <Kb.ButtonBar >
                 <Kb.Button label="Send" onClick={this._onSendFeedback} waiting={sending} fullWidth={true}/>
               </Kb.ButtonBar>
             </Kb.Box2>
-            )}
-            {this.props.loggedOut && (
-            <Kb.Box2 direction="horizontal" gap="tiny">
-              <Kb.ButtonBar >
-                <Kb.Button label="Send" onClick={this._onSendFeedback} waiting={sending} fullWidth={true}/>
-              </Kb.ButtonBar>
-            </Kb.Box2>
-            )}
             {sendError && (
               <Kb.Box2 direction="vertical" gap="small">
                 <Kb.Text type="BodySmallError">Could not send log</Kb.Text>
@@ -182,9 +173,6 @@ const styles = Styles.styleSheetCreate(
       container: Styles.platformStyles({
         common: {flex: 1},
       }),
-      btnContainer: {
-        alignSelf: 'flex-start',
-      },
       includeLogs: {
         ...Styles.globalStyles.fullWidth,
       },
