@@ -855,6 +855,40 @@
       "name": "BotInfoHash",
       "fields": [],
       "typedef": "bytes"
+    },
+    {
+      "type": "record",
+      "name": "GetDefaultTeamChannelsRes",
+      "fields": [
+        {
+          "type": {
+            "type": "map",
+            "values": "boolean",
+            "keys": "ConvIDStr"
+          },
+          "name": "convs"
+        },
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SetDefaultTeamChannelsRes",
+      "fields": [
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
     }
   ],
   "messages": {
@@ -1542,6 +1576,15 @@
       ],
       "response": "GetBotInfoRes"
     },
+    "getDefaultTeamChannels": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "keybase1.TeamID"
+        }
+      ],
+      "response": "GetDefaultTeamChannelsRes"
+    },
     "setDefaultTeamChannels": {
       "request": [
         {
@@ -1557,20 +1600,7 @@
           }
         }
       ],
-      "response": null
-    },
-    "getDefaultTeamChannels": {
-      "request": [
-        {
-          "name": "teamID",
-          "type": "keybase1.TeamID"
-        }
-      ],
-      "response": {
-        "type": "map",
-        "values": "boolean",
-        "keys": "ConvIDStr"
-      }
+      "response": "SetDefaultTeamChannelsRes"
     }
   },
   "namespace": "chat.1",

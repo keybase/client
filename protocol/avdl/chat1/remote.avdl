@@ -392,6 +392,14 @@ protocol remote {
   @typedef("bytes") record BotInfoHash {}
   GetBotInfoRes getBotInfo(ConversationID convID, BotInfoHash infoHash, BotInfoHashVers clientHashVers);
 
-  void setDefaultTeamChannels(keybase1.TeamID teamID, map<ConvIDStr, boolean> convs);
-  map<ConvIDStr, boolean> getDefaultTeamChannels(keybase1.TeamID teamID);
+  record GetDefaultTeamChannelsRes {
+    map<ConvIDStr, boolean> convs;
+    union { null, RateLimit } rateLimit;
+  }
+  GetDefaultTeamChannelsRes getDefaultTeamChannels(keybase1.TeamID teamID);
+
+  record SetDefaultTeamChannelsRes {
+    union { null, RateLimit } rateLimit;
+  }
+  SetDefaultTeamChannelsRes setDefaultTeamChannels(keybase1.TeamID teamID, map<ConvIDStr, boolean> convs);
 }
