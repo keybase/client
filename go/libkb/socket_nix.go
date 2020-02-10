@@ -144,7 +144,6 @@ func NewSocket(g *GlobalContext) (ret Socket, err error) {
 	if err != nil {
 		return
 	}
-	g.Log.Debug("Connecting to socket with dialFiles=%s, bindFiles=%s", dialFiles, bindFile)
 	log := g.Log
 	if log == nil {
 		log = logger.NewNull()
