@@ -182,13 +182,13 @@ const styles = Styles.styleSheetCreate(
       }),
       mainBox: Styles.platformStyles({
         isElectron: {
-          padding: Styles.globalMargins.small,
-          width: '100%',
           maxWidth: 550,
+          width: '100%',
+          padding: Styles.globalMargins.small,
         },
         isTablet: {
-          width: '100%',
           maxWidth: Styles.globalStyles.mediumWidth,
+          width: '100%',
         },
       }),
       outerStyle: {backgroundColor: Styles.globalColors.white},
