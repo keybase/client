@@ -48,6 +48,7 @@ const PushPrompt = () => {
         hideBorder: true,
         style: styles.footer,
       }}
+      mobileStyle={{backgroundColor: Styles.globalColors.blue}}
     >
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} gap="small" style={styles.container}>
         <Kb.Icon type="illustration-turn-on-notifications" style={styles.image} />
