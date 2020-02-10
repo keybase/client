@@ -16,9 +16,10 @@ function useRPC<
   ARGS extends Array<any> = Parameters<C>
 >(call: C) {
   const isMounted = React.useRef<Boolean>(true)
-  const submitRef = React.useRef<
-    null | ((args: ARGS, setResult: (r: RET) => void, setError: (e: RPCError) => void) => Promise<void>)
-  >(null)
+  const submitRef = React.useRef<null | {
+    call: C
+    f: (args: ARGS, setResult: (r: RET) => void, setError: (e: RPCError) => void) => Promise<void>
+  }>(null)
 
   React.useEffect(() => {
     return () => {
@@ -26,23 +27,26 @@ function useRPC<
     }
   }, [])
 
-  if (submitRef.current) {
-    return submitRef.current
+  if (submitRef.current && submitRef.current.call === call) {
+    return submitRef.current.f
   }
 
-  submitRef.current = async (args: ARGS, setResult: (r: RET) => void, setError: (e: RPCError) => void) => {
-    try {
-      const result = await call(...args)
-      if (isMounted.current) {
-        setResult(result)
+  submitRef.current = {
+    call,
+    f: async (args: ARGS, setResult: (r: RET) => void, setError: (e: RPCError) => void) => {
+      try {
+        const result = await call(...args)
+        if (isMounted.current) {
+          setResult(result)
+        }
+      } catch (e) {
+        if (isMounted.current) {
+          setError(e)
+        }
       }
-    } catch (e) {
-      if (isMounted.current) {
-        setError(e)
-      }
-    }
+    },
   }
-  return submitRef.current
+  return submitRef.current.f
 }
 
 export default useRPC
