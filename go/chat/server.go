@@ -1708,7 +1708,7 @@ func (h *Server) GetChannelMembershipsLocal(ctx context.Context, arg chat1.GetCh
 	}
 
 	for _, conv := range convs {
-		isInConv, err := h.G().InboxSource.IsMember(ctx, arg.Uid.ToBytes(), chat1.ConversationID(conv.GetConvID()))
+		isInConv, err := h.G().InboxSource.IsMember(ctx, arg.Uid.ToBytes(), conv.GetConvID())
 		if err != nil {
 			return res, err
 		}
