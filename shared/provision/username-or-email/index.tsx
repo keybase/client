@@ -141,15 +141,7 @@ const styles = Styles.styleSheetCreate(
         isMobile: {...Styles.padding(Styles.globalMargins.small)},
       }),
       wrapper: Styles.platformStyles({
-        isElectron: {
-          width: 400,
-        },
-        isMobile: {
-          width: '100%',
-        },
-        isTablet: {
-          width: 460,
-        },
+        width: Styles.globalStyles.mediumWidth,
       }),
     } as const)
 )
