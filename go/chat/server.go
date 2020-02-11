@@ -3308,21 +3308,17 @@ func (h *Server) GetDefaultTeamChannelsLocal(ctx context.Context, teamName strin
 	if len(resp.Convs) == 0 {
 		return res, nil
 	}
+	topicType := chat1.TopicType_CHAT
 	query := &chat1.GetInboxLocalQuery{
-		ConvIDs: resp.Convs,
+		ConvIDs:   resp.Convs,
+		TopicType: &topicType,
 	}
 	ib, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
 		types.InboxSourceDataSourceAll, nil, query)
 	if err != nil {
 		return res, err
 	}
-	convs := []chat1.ConversationLocal{}
-	for _, conv := range ib.Convs {
-		if conv.GetTopicType() == chat1.TopicType_CHAT {
-			convs = append(convs, conv)
-		}
-	}
-	res.Convs = utils.PresentConversationLocals(ctx, h.G(), uid, convs,
+	res.Convs = utils.PresentConversationLocals(ctx, h.G(), uid, ib.Convs,
 		utils.PresentParticipantsModeSkip)
 	return res, nil
 }
