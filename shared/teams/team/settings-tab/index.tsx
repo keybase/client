@@ -28,7 +28,7 @@ type Props = {
   yourOperations: Types.TeamOperations
   waitingForSavePublicity: boolean
   welcomeMessage: RPCChatTypes.WelcomeMessage | null
-  loadWelcomeMessage: any
+  loadWelcomeMessage: () => void
   teamname: string
 }
 
@@ -307,7 +307,7 @@ export class Settings extends React.Component<Props, State> {
       ...this.state,
       setBoolSettings: this.setBoolSettings,
     }
-    // TODO should be admin only, this is allowed to write
+    // TODO editor should be admin only, this is allowed to write
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} alignItems="flex-start" style={styles.main}>
         {!!this.props.error && <Kb.Banner color="red">{this.props.error}</Kb.Banner>}
@@ -337,10 +337,9 @@ export class Settings extends React.Component<Props, State> {
         )}
         {this.props.yourOperations.chat && (
           <Kb.Box2 direction="vertical" style={styles.welcomeMessage} fullWidth={true}>
-            <Kb.Box style={styles.heading}>
+            <Kb.Box>
               <Kb.Text type="BodySmallSemibold">Welcome message</Kb.Text>
             </Kb.Box>
-
             <Kb.Box2 direction="horizontal" fullWidth={true}>
               <Kb.Box2 direction="horizontal" style={styles.welcomeMessageContainer} />
               <Kb.Box2 direction="vertical" style={{position: 'relative'}} fullWidth={true}>
@@ -421,9 +420,4 @@ const styles = styleSheetCreate(() => ({
   },
   shrink: {flex: 1},
   teamPadding: {paddingTop: globalMargins.small},
-  heading: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    marginBottom: Styles.globalMargins.tiny,
-  },
 }))

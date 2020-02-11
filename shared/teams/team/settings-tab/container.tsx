@@ -39,7 +39,7 @@ export default Container.connect(
         Constants.retentionWaitingKey(teamID),
         Constants.settingsWaitingKey(teamID)
       ),
-      welcomeMessage: welcomeMessage,
+      welcomeMessage,
       yourOperations: Constants.getCanPerformByID(state, teamID),
     }
   },

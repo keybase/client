@@ -204,7 +204,7 @@ const styles = Styles.styleSheetCreate(
       pendingFailEditing,
       quoteContainer: {
         alignSelf: 'stretch',
-        backgroundColor: Styles.globalColors.blue,
+        backgroundColor: Styles.globalColors.grey,
         paddingLeft: Styles.globalMargins.xtiny,
       },
       replyContainer: {
