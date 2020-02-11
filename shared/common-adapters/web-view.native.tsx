@@ -53,7 +53,7 @@ const KBWebView = (props: WebViewProps) => {
                 return true
               }
               // With links from the Files tab, URL can change because of the
-              // token. So only open the URL when navigateionType is 'click'.
+              // token. So only open the URL when navigationType is 'click'.
               request.navigationType === 'click' && openURL(request.url)
               return false
             }
