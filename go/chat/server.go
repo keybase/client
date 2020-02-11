@@ -3316,7 +3316,13 @@ func (h *Server) GetDefaultTeamChannelsLocal(ctx context.Context, teamName strin
 	if err != nil {
 		return res, err
 	}
-	res.Convs = utils.PresentConversationLocals(ctx, h.G(), uid, ib.Convs,
+	convs := []chat1.ConversationLocal{}
+	for _, conv := range ib.Convs {
+		if conv.GetTopicType() == chat1.TopicType_CHAT {
+			convs = append(convs, conv)
+		}
+	}
+	res.Convs = utils.PresentConversationLocals(ctx, h.G(), uid, convs,
 		utils.PresentParticipantsModeSkip)
 	return res, nil
 }
