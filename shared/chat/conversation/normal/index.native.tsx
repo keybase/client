@@ -10,6 +10,7 @@ import PinnedMessage from '../pinned-message/container'
 import {GatewayDest} from 'react-gateway'
 import InvitationToBlock from '../../blocking/invitation-to-block'
 import * as Styles from '../../../styles'
+import * as Kb from '../../../common-adapters'
 
 const Offline = () => (
   <Box
@@ -34,28 +35,35 @@ const Conversation = React.memo((props: Props) => (
     <Box2 direction="vertical" fullWidth={true} fullHeight={true}>
       {props.threadLoadedOffline && <Offline />}
       {!Styles.isTablet && <HeaderArea conversationIDKey={props.conversationIDKey} />}
-      <Box2 direction="vertical" fullWidth={true} style={styles.innerContainer}>
-        <ThreadLoadStatus conversationIDKey={props.conversationIDKey} />
-        <PinnedMessage conversationIDKey={props.conversationIDKey} />
-        <ListArea
-          scrollListDownCounter={props.scrollListDownCounter}
-          scrollListToBottomCounter={props.scrollListToBottomCounter}
-          scrollListUpCounter={props.scrollListUpCounter}
-          onFocusInput={props.onFocusInput}
+      <Kb.KeyboardAvoidingView
+        style={Styles.globalStyles.fillAbsolute}
+        pointerEvents="box-none"
+        behavior="height"
+        keyboardVerticalOffset={80}
+      >
+        <Box2 direction="vertical" fullWidth={true} style={styles.innerContainer}>
+          <ThreadLoadStatus conversationIDKey={props.conversationIDKey} />
+          <PinnedMessage conversationIDKey={props.conversationIDKey} />
+          <ListArea
+            scrollListDownCounter={props.scrollListDownCounter}
+            scrollListToBottomCounter={props.scrollListToBottomCounter}
+            scrollListUpCounter={props.scrollListUpCounter}
+            onFocusInput={props.onFocusInput}
+            conversationIDKey={props.conversationIDKey}
+          />
+          {props.showLoader && <LoadingLine />}
+        </Box2>
+        <InvitationToBlock conversationID={props.conversationIDKey} />
+        <Banner conversationIDKey={props.conversationIDKey} />
+        <InputArea
+          focusInputCounter={props.focusInputCounter}
+          jumpToRecent={props.jumpToRecent}
+          onRequestScrollDown={props.onRequestScrollDown}
+          onRequestScrollToBottom={props.onRequestScrollToBottom}
+          onRequestScrollUp={props.onRequestScrollUp}
           conversationIDKey={props.conversationIDKey}
         />
-        {props.showLoader && <LoadingLine />}
-      </Box2>
-      <InvitationToBlock conversationID={props.conversationIDKey} />
-      <Banner conversationIDKey={props.conversationIDKey} />
-      <InputArea
-        focusInputCounter={props.focusInputCounter}
-        jumpToRecent={props.jumpToRecent}
-        onRequestScrollDown={props.onRequestScrollDown}
-        onRequestScrollToBottom={props.onRequestScrollToBottom}
-        onRequestScrollUp={props.onRequestScrollUp}
-        conversationIDKey={props.conversationIDKey}
-      />
+      </Kb.KeyboardAvoidingView>
     </Box2>
     <GatewayDest name="convOverlay" component={Box} />
   </Box2>

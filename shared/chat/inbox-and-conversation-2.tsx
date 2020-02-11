@@ -26,12 +26,10 @@ const InboxAndConversation = (props: Props) => {
   )
 }
 
-InboxAndConversation.navigationOptions = Container.isTablet
-  ? {}
-  : {
-      header: undefined,
-      headerTitle: Header,
-    }
+InboxAndConversation.navigationOptions = {
+  header: undefined,
+  headerTitle: Header,
+}
 
 const Memoed = React.memo(InboxAndConversation)
 Container.hoistNonReactStatic(Memoed, InboxAndConversation)
