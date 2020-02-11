@@ -248,7 +248,7 @@ export default Container.makeReducer<
         )
       )
     } else {
-      draftState.subteamsFiltered = new Set()
+      draftState.subteamsFiltered = undefined
     }
   },
   [TeamBuildingGen.tbResetStore]: handleTeamBuilding,

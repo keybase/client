@@ -32,6 +32,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   return {
     invitesCollapsed: state.teams.invitesCollapsed,
     selectedTab,
+    subteamsFiltered: state.teams.subteamsFiltered,
     teamDetails: Constants.getTeamDetails(state, teamID),
     teamID,
     teamMeta: Constants.getTeamMeta(state, teamID),
@@ -52,7 +53,8 @@ const Connected = Container.compose(
       stateProps.selectedTab,
       stateProps.yourUsername,
       stateProps.yourOperations,
-      stateProps.invitesCollapsed
+      stateProps.invitesCollapsed,
+      stateProps.subteamsFiltered
     )
     const sections: Sections = [
       ...(Container.isMobile && !flags.teamsRedesign
