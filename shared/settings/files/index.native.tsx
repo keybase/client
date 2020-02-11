@@ -52,10 +52,8 @@ class ThresholdDropdown extends React.PureComponent<
 
 const Files = (props: Props) => (
   <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center">
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.syncContent}>
-      <Kb.Box2 direction="horizontal" gap="tiny" style={styles.contentHeader}>
-        <Kb.Text type="BodySmallSemibold">Sync</Kb.Text>
-      </Kb.Box2>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.syncContent} gap="tiny">
+      <Kb.Text type="Header">Sync</Kb.Text>
       <Kb.Checkbox
         onCheck={
           props.spaceAvailableNotificationThreshold === 0
@@ -67,11 +65,7 @@ const Files = (props: Props) => (
         disabled={props.areSettingsLoading}
         style={styles.syncNotificationCheckbox}
       />
-      {!!props.spaceAvailableNotificationThreshold && (
-        <Kb.Text type="BodySmall" style={{marginTop: Styles.globalMargins.tiny}}>
-          Threshold:
-        </Kb.Text>
-      )}
+      {!!props.spaceAvailableNotificationThreshold && <Kb.Text type="BodySmallSemibold">Threshold:</Kb.Text>}
       {!!props.spaceAvailableNotificationThreshold && <ThresholdDropdown {...props} />}
     </Kb.Box2>
   </Kb.Box2>
@@ -80,9 +74,6 @@ const Files = (props: Props) => (
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      contentHeader: {
-        paddingBottom: Styles.globalMargins.tiny,
-      },
       syncContent: Styles.platformStyles({
         common: {
           paddingLeft: Styles.globalMargins.xsmall,
