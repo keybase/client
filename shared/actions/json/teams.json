@@ -1,5 +1,6 @@
 {
   "prelude": [
+    "import * as RPCChatTypes from '../constants/types/rpc-chat-gen'",
     "import * as ChatTypes from '../constants/types/chat2'",
     "import * as Types from '../constants/types/teams'",
     "import {RetentionPolicy} from '../constants/types/retention-policy'"
@@ -312,6 +313,20 @@
     "toggleInvitesCollapsed": {
       "_description": "Toggle whether invites are collapsed in the member list for this team",
       "teamID": "Types.TeamID"
+    },
+    "loadWelcomeMessage": {
+      "_description": "Load welcome message for new team members",
+      "teamID": "Types.TeamID"
+    },
+    "loadedWelcomeMessage": {
+      "_description": "Loaded welcome message for new team members",
+      "teamID": "Types.TeamID",
+	  "message": "RPCChatTypes.WelcomeMessage"
+    },
+    "setWelcomeMessage": {
+      "_description": "Load welcome message for new team members",
+      "teamID": "Types.TeamID",
+	  "message": "RPCChatTypes.WelcomeMessage"
     },
     "setSubteamFilter": {
       "_description": "Set filtering for the subteams tab.",

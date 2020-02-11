@@ -960,6 +960,9 @@ export type TypedActionsMap = {
   'teams:setTeamRoleMapLatestKnownVersion': teams.SetTeamRoleMapLatestKnownVersionPayload
   'teams:setTeamRoleMap': teams.SetTeamRoleMapPayload
   'teams:toggleInvitesCollapsed': teams.ToggleInvitesCollapsedPayload
+  'teams:loadWelcomeMessage': teams.LoadWelcomeMessagePayload
+  'teams:loadedWelcomeMessage': teams.LoadedWelcomeMessagePayload
+  'teams:setWelcomeMessage': teams.SetWelcomeMessagePayload
   'teams:setSubteamFilter': teams.SetSubteamFilterPayload
   'tracker2:load': tracker2.LoadPayload
   'tracker2:updatedDetails': tracker2.UpdatedDetailsPayload

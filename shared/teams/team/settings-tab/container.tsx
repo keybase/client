@@ -19,11 +19,13 @@ export default Container.connect(
     const publicityMember = teamMeta.showcasing
     const publicityTeam = teamDetails.settings.teamShowcased
     const settings = teamDetails.settings || Constants.initialTeamSettings
+    const welcomeMessage = Constants.getTeamWelcomeMessageByID(state, teamID)
     return {
       canShowcase: teamMeta.allowPromote || teamMeta.role === 'admin' || teamMeta.role === 'owner',
       error: state.teams.errorInSettings,
       ignoreAccessRequests: teamDetails.settings.tarsDisabled,
       isBigTeam: Constants.isBigTeam(state, teamMeta.teamname),
+      teamname: teamMeta.teamname,
       openTeam: settings.open,
       // Cast to TeamRoleType
       openTeamRole: teamDetails.settings.openJoinAs,
@@ -37,10 +39,12 @@ export default Container.connect(
         Constants.retentionWaitingKey(teamID),
         Constants.settingsWaitingKey(teamID)
       ),
+      welcomeMessage: welcomeMessage,
       yourOperations: Constants.getCanPerformByID(state, teamID),
     }
   },
   (dispatch, {teamID}: OwnProps) => ({
+    _loadWelcomeMessage: () => dispatch(TeamsGen.createLoadWelcomeMessage({teamID})),
     _showRetentionWarning: (
       policy: RetentionPolicy,
       onConfirm: () => void,
@@ -60,6 +64,7 @@ export default Container.connect(
   (stateProps, dispatchProps) => {
     return {
       ...stateProps,
+      loadWelcomeMessage: dispatchProps._loadWelcomeMessage,
       savePublicity: (
         settings: Types.PublicitySettings,
         showRetentionWarning: boolean,

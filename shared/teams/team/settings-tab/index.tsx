@@ -7,9 +7,11 @@ import {globalColors, globalMargins, styleSheetCreate, platformStyles} from '../
 import {isMobile} from '../../../constants/platform'
 import {FloatingRolePicker} from '../../role-picker'
 import {pluralize} from '../../../util/string'
+import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import TeamJourney from '../../../chat/conversation/messages/cards/team-journey/index'
 import RetentionPicker from './retention/container'
 import * as Styles from '../../../styles'
+import {renderWelcomeMessage} from '../../../util/journey-card'
 
 type Props = {
   canShowcase: boolean
@@ -25,6 +27,9 @@ type Props = {
   teamID: Types.TeamID
   yourOperations: Types.TeamOperations
   waitingForSavePublicity: boolean
+  welcomeMessage: RPCChatTypes.WelcomeMessage | null
+  loadWelcomeMessage: any
+  teamname: string
 }
 
 type RolePickerProps = {
@@ -233,6 +238,10 @@ export class Settings extends React.Component<Props, State> {
     }
   }
 
+  componentDidMount() {
+    this.props.loadWelcomeMessage()
+  }
+
   componentDidUpdate(prevProps: Props) {
     if (
       this.props.ignoreAccessRequests !== prevProps.ignoreAccessRequests ||
@@ -327,16 +336,28 @@ export class Settings extends React.Component<Props, State> {
           />
         )}
         {this.props.yourOperations.chat && (
-          <Kb.Box2 direction="vertical" style={styles.welcomeMessage} alignSelf="flex-start">
+          <Kb.Box2 direction="vertical" style={styles.welcomeMessage} fullWidth={true}>
             <Kb.Box style={styles.heading}>
               <Kb.Text type="BodySmallSemibold">Welcome message</Kb.Text>
             </Kb.Box>
 
-            <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
+            <Kb.Box2 direction="horizontal" fullWidth={true}>
               <Kb.Box2 direction="horizontal" style={styles.welcomeMessageContainer} />
-              <Kb.Box2 direction="vertical" gap="xtiny">
-                <Kb.Text type="BodySemibold"> Oz</Kb.Text>
-                <TeamJourney actions={[]} teamname="tlima4" />
+              <Kb.Box2 direction="vertical" style={{position: 'relative'}} fullWidth={true}>
+                {this.props.welcomeMessage ? (
+                  <TeamJourney
+                    actions={[]}
+                    teamname={this.props.teamname}
+                    conversationIDKey=""
+                    image="icon-illustration-welcome-96"
+                    onAuthorClick={() => {}}
+                    onDismiss={() => {}}
+                    textComponent={renderWelcomeMessage(this.props.welcomeMessage, false /* cannotWrite */)}
+                    noDismiss={true}
+                  />
+                ) : (
+                  <Kb.ProgressIndicator />
+                )}
               </Kb.Box2>
             </Kb.Box2>
           </Kb.Box2>

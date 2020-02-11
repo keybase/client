@@ -22,6 +22,7 @@ type Props = {
   onDismiss: () => void
   teamname: string
   textComponent: React.ReactNode
+  noDismiss: boolean
 }
 
 export const TeamJourney = (props: Props) => {
@@ -39,6 +40,7 @@ export const TeamJourney = (props: Props) => {
         teamname={teamname}
         onAuthorClick={props.onAuthorClick}
         onDismiss={props.onDismiss}
+        noDismiss={props.noDismiss}
       />
       <Kb.Box2
         key="content"
@@ -90,6 +92,7 @@ type HeaderProps = {
   teamname: string
   onAuthorClick: () => void
   onDismiss: () => void
+  noDismiss: boolean
 }
 const TeamJourneyHeader = (props: HeaderProps) => (
   <Kb.Box2 key="author" direction="horizontal" fullWidth={true} style={styles.authorContainer} gap="tiny">
@@ -118,7 +121,9 @@ const TeamJourneyHeader = (props: HeaderProps) => (
       </Kb.Text>
       <Kb.Text type="BodyTiny">• System message</Kb.Text>
     </Kb.Box2>
-    {!Styles.isMobile && <Kb.Icon type="iconfont-close" onClick={props.onDismiss} fontSize={12} />}
+    {!Styles.isMobile && !props.noDismiss && (
+      <Kb.Icon type="iconfont-close" onClick={props.onDismiss} fontSize={12} />
+    )}
   </Kb.Box2>
 )
 
