@@ -1344,11 +1344,11 @@ export type MessageTypes = {
     outParam: BulkRes
   }
   'keybase.1.teams.teamAddMember': {
-    inParam: {readonly teamID: TeamID; readonly email: String; readonly phone: String; readonly username: String; readonly role: TeamRole; readonly botSettings?: TeamBotSettings | null; readonly sendChatNotification: Boolean}
+    inParam: {readonly teamID: TeamID; readonly email: String; readonly phone: String; readonly username: String; readonly role: TeamRole; readonly botSettings?: TeamBotSettings | null; readonly sendChatNotification: Boolean; readonly emailInviteMessage?: String | null}
     outParam: TeamAddMemberResult
   }
   'keybase.1.teams.teamAddMembersMultiRole': {
-    inParam: {readonly teamID: TeamID; readonly users?: Array<UserRolePair> | null; readonly sendChatNotification: Boolean}
+    inParam: {readonly teamID: TeamID; readonly users?: Array<UserRolePair> | null; readonly sendChatNotification: Boolean; readonly emailInviteMessage?: String | null}
     outParam: TeamAddMembersResult
   }
   'keybase.1.teams.teamCreate': {

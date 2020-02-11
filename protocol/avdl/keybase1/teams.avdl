@@ -1217,9 +1217,10 @@ protocol teams {
   void teamChangeMembership(int sessionID, string name, TeamChangeReq req);
 
   TeamAddMemberResult teamAddMember(int sessionID, TeamID teamID, string email, string phone, string username,
-    TeamRole role, union { null, TeamBotSettings } botSettings, boolean sendChatNotification);
+    TeamRole role, union { null, TeamBotSettings } botSettings, boolean sendChatNotification, union { null, string } emailInviteMessage);
 
-  TeamAddMembersResult teamAddMembers(int sessionID, TeamID teamID, array<string> assertions, TeamRole role, union { null, TeamBotSettings } botSettings, boolean sendChatNotification);
+  // @emailInviteMessage is an argument used as a welcome message in email invitations sent from the server
+  TeamAddMembersResult teamAddMembers(int sessionID, TeamID teamID, array<string> assertions, TeamRole role, union { null, TeamBotSettings } botSettings, boolean sendChatNotification, union { null, string } emailInviteMessage);
 
   record UserRolePair {
     string assertionOrEmail;
@@ -1227,7 +1228,8 @@ protocol teams {
     union { null, TeamBotSettings } botSettings;
   }
 
-  TeamAddMembersResult teamAddMembersMultiRole(int sessionID, TeamID teamID, array<UserRolePair> users, boolean sendChatNotification);
+  // @emailInviteMessage is an argument used as a welcome message in email invitations sent from the server
+  TeamAddMembersResult teamAddMembersMultiRole(int sessionID, TeamID teamID, array<UserRolePair> users, boolean sendChatNotification, union { null, string } emailInviteMessage);
 
   // allowInaction suppresses errors that come from removing an invite that doesn't exist. Relevant for suppressing errors when calling remove while a remove is already in progress.
   // Note: allowInaction only applies to invite removals, just because that was what was needed.

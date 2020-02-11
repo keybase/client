@@ -54,6 +54,10 @@ func newCmdTeamAddMembersBulk(cl *libcmdline.CommandLine, g *libkb.GlobalContext
 				Name:  "s, skip-chat-message",
 				Usage: "skip chat welcome message",
 			},
+			cli.StringFlag{
+				Name:  "m, email-invite-message",
+				Usage: "send a welcome message along with your email invitation",
+			},
 		},
 		Description: teamAddMembersBulkDoc,
 	}
@@ -110,6 +114,12 @@ func (c *CmdTeamAddMembersBulk) ParseArgv(ctx *cli.Context) (err error) {
 		return errors.New("Need at least one of --bots, --readers, --writers, --admins or --owners")
 	}
 	c.arg.SendChatNotification = !ctx.Bool("skip-chat-message")
+
+	emailInviteMsg := ctx.String("email-invite-message")
+	if len(emailInviteMsg) > 0 {
+		c.arg.EmailInviteMessage = &emailInviteMsg
+	}
+
 	return nil
 }
 

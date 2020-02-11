@@ -85,7 +85,7 @@ func TestJourneycardDismiss(t *testing.T) {
 	require.NoError(t, err)
 	convID := teamConv.Id
 
-	_, err = teams.AddMemberByID(ctx0, tc0.G, teamID, users[1].Username, keybase1.TeamRole_OWNER, nil)
+	_, err = teams.AddMemberByID(ctx0, tc0.G, teamID, users[1].Username, keybase1.TeamRole_OWNER, nil, nil /* emailInviteMsg */)
 	require.NoError(t, err)
 
 	// In real app usage a SYSTEM message is sent to a team on creation. That doesn't seem to happen in this test jig.
