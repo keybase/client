@@ -1,6 +1,6 @@
 import * as React from 'react'
 import Box from './box'
-import {globalStyles, isMobile, collapseStyles} from '../styles'
+import {globalStyles, isMobile, collapseStyles, isTablet} from '../styles'
 
 type Props = {
   direction: 'row' | 'column'
@@ -51,9 +51,11 @@ class ButtonBar extends React.PureComponent<Props> {
     }
 
     const style = collapseStyles([
+      // This {width: 100%} should probably be removed.
+      // But for the sake of not making a big splash, it is only removed for tablet.
+      isTablet ? null : {width: '100%'},
       {
         alignItems: this.props.fullWidth ? 'stretch' : 'center',
-        width: '100%',
         ...(this.props.direction === 'column'
           ? {...globalStyles.flexBoxColumn}
           : {

@@ -169,11 +169,14 @@ const styles = Styles.styleSheetCreate(
         },
         isMobile: {width: '100%'},
       }),
-      settingsContainer: {
-        flex: 1,
-        height: '100%',
-        paddingTop: Styles.globalMargins.small,
-      },
+      settingsContainer: Styles.platformStyles({
+        common: {
+          flex: 1,
+          height: '100%',
+          paddingTop: Styles.globalMargins.small,
+        },
+        isTablet: {alignSelf: 'center', maxWidth: 600},
+      }),
     } as const)
 )
 
