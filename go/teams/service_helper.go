@@ -1566,7 +1566,7 @@ func ListRequests(ctx context.Context, g *libkb.GlobalContext, teamName *string)
 	packages, err := g.UIDMapper.MapUIDsToUsernamePackages(ctx, g, requesterUIDs,
 		defaultFullnameFreshness, 10*time.Second, true)
 	if err != nil {
-		return nil, err
+		g.Log.Debug("TeamsListRequests: failed to run uid mapper: %s", err)
 	}
 	for i, uid := range requesterUIDs {
 		if packages[i].NormalizedUsername.IsNil() {
