@@ -12,7 +12,7 @@ const Rover = () => (
 
 const common = {
   bottom: 0,
-  left: 0,
+  right: 0,
   position: 'absolute',
 } as const
 
@@ -25,7 +25,7 @@ const styles = Styles.styleSheetCreate(
       rover: {
         ...common,
         bottom: 80,
-        left: Styles.dimensionWidth - 50,
+        right: 50,
       },
     } as const)
 )
