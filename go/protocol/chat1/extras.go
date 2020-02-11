@@ -191,6 +191,8 @@ var deletableMessageTypesByDelete = []MessageType{
 	MessageType_REQUESTPAYMENT,
 	MessageType_UNFURL,
 	MessageType_PIN,
+	MessageType_HEADLINE,
+	MessageType_SYSTEM,
 }
 
 // Messages types NOT deletable by a DELETEHISTORY message.
@@ -205,6 +207,25 @@ var nonDeletableMessageTypesByDeleteHistory = []MessageType{
 
 func DeletableMessageTypesByDelete() []MessageType {
 	return deletableMessageTypesByDelete
+}
+
+func IsSystemMsgDeletableByDelete(typ MessageSystemType) bool {
+	switch typ {
+	case MessageSystemType_ADDEDTOTEAM,
+		MessageSystemType_INVITEADDEDTOTEAM,
+		MessageSystemType_GITPUSH,
+		MessageSystemType_CHANGEAVATAR,
+		MessageSystemType_CHANGERETENTION,
+		MessageSystemType_BULKADDTOCONV,
+		MessageSystemType_SBSRESOLVE,
+		MessageSystemType_NEWCHANNEL:
+		return true
+	case MessageSystemType_COMPLEXTEAM,
+		MessageSystemType_CREATETEAM:
+		return false
+	default:
+		return false
+	}
 }
 
 var visibleMessageTypes = []MessageType{

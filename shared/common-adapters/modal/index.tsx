@@ -33,6 +33,7 @@ type FooterProps = {
 }
 
 type Props = {
+  allowOverflow?: boolean // desktop only
   banners?: React.ReactNode[]
   children: React.ReactNode
   header?: HeaderProps
@@ -67,7 +68,10 @@ const Modal = (props: Props) =>
   ) : (
     <PopupDialog
       onClose={props.onClose}
-      styleClipContainer={props.mode === 'Default' ? styles.modeDefault : styles.modeWide}
+      styleClipContainer={Styles.collapseStyles([
+        props.mode === 'Default' ? styles.modeDefault : styles.modeWide,
+        props.allowOverflow && styles.overflowVisible,
+      ])}
     >
       <ModalInner {...props} />
     </PopupDialog>
@@ -272,10 +276,21 @@ const styles = Styles.styleSheetCreate(() => {
         width: 560,
       },
     }),
+    overflowVisible: {overflow: 'visible'},
     scroll: Styles.platformStyles({
       isElectron: {...Styles.globalStyles.flexBoxColumn, flex: 1, position: 'relative'},
     }),
-    scrollContentContainer: {...Styles.globalStyles.flexBoxColumn, flexGrow: 1, width: '100%'},
+    scrollContentContainer: Styles.platformStyles({
+      common: {
+        ...Styles.globalStyles.flexBoxColumn,
+        flexGrow: 1,
+        width: '100%',
+      },
+      isTablet: {
+        alignSelf: 'center',
+        maxWidth: 600,
+      },
+    }),
   }
 })
 

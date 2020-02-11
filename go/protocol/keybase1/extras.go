@@ -15,6 +15,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"reflect"
 	"regexp"
 	"sort"
@@ -3746,4 +3747,26 @@ func (x InstrumentationStat) AppendStat(y InstrumentationStat) InstrumentationSt
 	x.AvgDur = x.TotalDur / DurationMsec(x.NumCalls)
 	x.AvgSize = x.TotalSize / int64(x.NumCalls)
 	return x
+}
+
+func (e TeamSearchExport) Hash() string {
+	l := make([]TeamSearchItem, 0, len(e.Items))
+	for _, item := range e.Items {
+		l = append(l, item)
+	}
+	sort.Slice(l, func(i, j int) bool {
+		return l[i].Id.Less(l[j].Id)
+	})
+	hasher := sha256.New()
+	for _, team := range l {
+		log := math.Floor(math.Log10(float64(team.MemberCount)))
+		rounder := int(math.Pow(10, log))
+		value := (team.MemberCount / rounder) * rounder
+		hasher.Write(team.Id.ToBytes())
+		hasher.Write([]byte(fmt.Sprintf("%d", value)))
+	}
+	for _, id := range e.Suggested {
+		hasher.Write(id.ToBytes())
+	}
+	return hex.EncodeToString(hasher.Sum(nil))
 }

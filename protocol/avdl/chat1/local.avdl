@@ -1179,6 +1179,7 @@ protocol local {
   void toggleMessageCollapse(ConversationID convID, MessageID msgID, boolean collapse);
 
   void bulkAddToConv(ConversationID convID, array<string> usernames);
+  void bulkAddToManyConvs(array<ConversationID> conversations, array<string> usernames);
 
   keybase1.UserReacjis putReacjiSkinTone(keybase1.ReacjiSkinTone skinTone);
 

@@ -36,6 +36,8 @@ go/revision
 ./build
 # vscode
 .vscode
+# intellij
+.idea
 
 npm-debug.log
 yarn-error.log

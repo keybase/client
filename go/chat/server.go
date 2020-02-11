@@ -26,6 +26,7 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
+	"github.com/keybase/client/go/teams/opensearch"
 	"golang.org/x/net/context"
 )
 
@@ -384,25 +385,30 @@ func (h *Server) NewConversationsLocal(ctx context.Context, arg chat1.NewConvers
 	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("NewConversationsLocal(len=%d)", len(arg.NewConversationLocalArguments)))()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 
-	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	_, err = utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return chat1.NewConversationsLocalRes{}, err
 	}
 
 	var errs []error
-	for _, arg := range arg.NewConversationLocalArguments {
-		conv, err := NewConversation(ctx, h.G(), uid, arg.TlfName,
-			arg.TopicName, arg.TopicType, arg.MembersType, arg.TlfVisibility,
-			h.remoteClient, NewConvFindExistingNormal)
+	for _, convArg := range arg.NewConversationLocalArguments {
 		var result chat1.NewConversationsLocalResult
+		newConvRes, err := h.NewConversationLocal(ctx, chat1.NewConversationLocalArg{
+			TlfName:          convArg.TlfName,
+			TopicType:        convArg.TopicType,
+			TlfVisibility:    convArg.TlfVisibility,
+			TopicName:        convArg.TopicName,
+			MembersType:      convArg.MembersType,
+			IdentifyBehavior: arg.IdentifyBehavior,
+		})
 		if err != nil {
 			e := err.Error()
 			result.Err = &e
 			errs = append(errs, err)
 		} else {
 			result.Result = new(chat1.NewConversationLocalRes)
-			result.Result.Conv = conv
-			result.Result.UiConv = utils.PresentConversationLocal(ctx, h.G(), uid, conv, utils.PresentParticipantsModeInclude)
+			result.Result.Conv = newConvRes.Conv
+			result.Result.UiConv = newConvRes.UiConv
 		}
 		res.Results = append(res.Results, result)
 	}
@@ -424,7 +430,7 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 		return chat1.NewConversationLocalRes{}, err
 	}
 
-	conv, err := NewConversation(ctx, h.G(), uid, arg.TlfName, arg.TopicName,
+	conv, created, err := NewConversation(ctx, h.G(), uid, arg.TlfName, arg.TopicName,
 		arg.TopicType, arg.MembersType, arg.TlfVisibility, h.remoteClient, NewConvFindExistingNormal)
 	if err != nil {
 		return res, err
@@ -436,7 +442,7 @@ func (h *Server) NewConversationLocal(ctx context.Context, arg chat1.NewConversa
 
 	// If we are making a new channel in a team, send a system message to
 	// indicate this.
-	if arg.MembersType == chat1.ConversationMembersType_TEAM &&
+	if created && arg.MembersType == chat1.ConversationMembersType_TEAM &&
 		arg.TopicType == chat1.TopicType_CHAT &&
 		arg.TopicName != nil && *arg.TopicName != globals.DefaultTeamTopic {
 		subBody := chat1.NewMessageSystemWithNewchannel(chat1.MessageSystemNewChannel{
@@ -2323,11 +2329,11 @@ func (h *Server) SearchInbox(ctx context.Context, arg chat1.SearchInboxArg) (res
 	teamUIDone := make(chan struct{})
 	go func() {
 		defer close(teamUIDone)
-		if opts.MaxTeams == 0 || (len(query) > 0 && len(query) < 3) {
+		if opts.MaxTeams == 0 {
 			return
 		}
-		teamHits, err := teams.Search(
-			ctx, h.G().ExternalG(), query, opts.MaxTeams)
+		teamHits, err := opensearch.Local(libkb.NewMetaContext(ctx, h.G().ExternalG()), query,
+			opts.MaxTeams)
 		if err != nil {
 			h.Debug(ctx, "SearchInbox: failed to get team hits: %s", err)
 		} else {
@@ -2640,6 +2646,20 @@ func sendBulkAddToConv(ctx context.Context, sender *BlockingSender, usernames []
 		JoinMentionsAs: &status,
 	}, nil)
 	return err
+}
+
+func (h *Server) BulkAddToManyConvs(ctx context.Context, arg chat1.BulkAddToManyConvsArg) (err error) {
+	for _, conv := range arg.Conversations {
+		err = h.BulkAddToConv(ctx, chat1.BulkAddToConvArg{
+			ConvID:    conv,
+			Usernames: arg.Usernames,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (h *Server) PutReacjiSkinTone(ctx context.Context, skinTone keybase1.ReacjiSkinTone) (res keybase1.UserReacjis, err error) {
@@ -3042,7 +3062,7 @@ func (h *Server) AddBotMember(ctx context.Context, arg chat1.AddBotMemberArg) (e
 		return err
 	}
 	defer func() { err = h.fixupTeamErrorWithTLFName(ctx, arg.Username, conv.Info.TlfName, err) }()
-	_, err = teams.AddMemberByID(ctx, h.G().ExternalG(), teamID, arg.Username, arg.Role, arg.BotSettings)
+	_, err = teams.AddMemberByID(ctx, h.G().ExternalG(), teamID, arg.Username, arg.Role, arg.BotSettings, nil /* emailInviteMsg */)
 	if err != nil {
 		return err
 	}

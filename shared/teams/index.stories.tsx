@@ -10,6 +10,7 @@ import tabs from './team/tabs/index.stories'
 import rename from './rename-team/index.stories'
 import create from './new-team/index.stories'
 import member from './team/member/index.stories'
+import teamRow from './main/team-row.stories'
 
 const load = () => {
   main()
@@ -24,6 +25,7 @@ const load = () => {
   rename()
   create()
   member()
+  teamRow()
 }
 
 export default load

@@ -1,3 +1,4 @@
+// TODO hookify, this hierarchy is very confusing
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
@@ -66,6 +67,7 @@ type AddSuggestorsProps = {
 
 type AddSuggestorsState = {
   active?: string
+  expanded: boolean
   filter: string
   selected: number
 }
@@ -78,6 +80,7 @@ type SuggestorHooks = {
   onBlur: () => void
   onFocus: () => void
   onSelectionChange: (arg0: {start: number | null; end: number | null}) => void
+  onExpanded: (e: boolean) => void
 }
 
 export type PropsWithSuggestorOuter<P> = P & AddSuggestorsProps
@@ -93,7 +96,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
     SuggestorHooks
 
   class SuggestorsComponent extends React.Component<SuggestorsComponentProps, AddSuggestorsState> {
-    state: AddSuggestorsState = {active: undefined, filter: '', selected: 0}
+    state: AddSuggestorsState = {active: undefined, expanded: false, filter: '', selected: 0}
     _inputRef = React.createRef<Kb.PlainInput>()
     _attachmentRef = React.createRef()
     _lastText?: string
@@ -337,6 +340,10 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
 
     _getSelected = () => (this.state.active ? this._getResults().data[this.state.selected] : null)
 
+    _onExpanded = (expanded: boolean) => {
+      this.setState({expanded})
+    }
+
     render() {
       let overlay: React.ReactNode = null
       if (this.state.active) {
@@ -349,7 +356,11 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
         const active = this.state.active
         const content = (
           <SuggestionList
-            style={this.props.suggestionListStyle}
+            style={
+              this.state.expanded
+                ? {bottom: 95, position: 'absolute', top: 95}
+                : this.props.suggestionListStyle
+            }
             items={results}
             keyExtractor={
               (this.props.keyExtractors && !!active && this.props.keyExtractors[active]) || undefined
@@ -407,6 +418,7 @@ const AddSuggestors = <WrappedOwnProps extends {}>(
             onChangeText={this._onChangeText}
             onKeyDown={this._onKeyDown}
             onSelectionChange={this._onSelectionChange}
+            onExpanded={this._onExpanded}
           />
         </>
       )

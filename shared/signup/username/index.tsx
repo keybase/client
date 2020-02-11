@@ -118,6 +118,9 @@ const styles = Styles.styleSheetCreate(() => ({
     isMobile: {
       width: '100%',
     },
+    isTablet: {
+      maxWidth: 368,
+    },
   }),
   inputSub: {
     marginLeft: 2,

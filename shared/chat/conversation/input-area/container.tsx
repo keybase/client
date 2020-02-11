@@ -14,6 +14,7 @@ type OwnProps = {
   onRequestScrollDown: () => void
   onRequestScrollToBottom: () => void
   onRequestScrollUp: () => void
+  maxInputArea?: number
 }
 
 type Props = {
@@ -45,13 +46,14 @@ class InputArea extends React.PureComponent<Props> {
         onRequestScrollToBottom={this.props.onRequestScrollToBottom}
         onRequestScrollUp={this.props.onRequestScrollUp}
         conversationIDKey={this.props.conversationIDKey}
+        maxInputArea={this.props.maxInputArea}
       />
     )
   }
 }
 
 export default Container.connect(
-  (state, {conversationIDKey}: OwnProps) => {
+  (state, {conversationIDKey, maxInputArea}: OwnProps) => {
     const meta = Constants.getMeta(state, conversationIDKey)
     let noInput = meta.resetParticipants.size > 0 || !!meta.wasFinalizedBy
     const showThreadSearch = Constants.getThreadSearchInfo(state, conversationIDKey).visible
@@ -68,6 +70,7 @@ export default Container.connect(
     return {
       conversationIDKey,
       isPreview: meta.membershipType === 'youArePreviewing',
+      maxInputArea,
       noInput,
       showAudioSend,
       showThreadSearch,

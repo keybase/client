@@ -16,6 +16,7 @@ type CommonProps = {
   isEditing: boolean
   isExploding: boolean
   isSearching: boolean
+  maxInputArea?: number
   minWriterRole: TeamTypes.TeamRoleType
   onAttach: (paths: Array<string>) => void
   onCancelEditing: () => void

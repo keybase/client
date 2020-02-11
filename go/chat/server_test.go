@@ -5498,7 +5498,6 @@ func TestChatSrvTopicNameState(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, randomConvID, ncres.Conv.GetConvID())
 		assertNoNewConversation(t, listener0)
-		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
 
 		// Try to change topic name to one that exists
 		plarg := chat1.PostLocalArg{
@@ -6109,10 +6108,11 @@ func TestChatSrvNewConvAfterReset(t *testing.T) {
 	require.NoError(t, libkb.ResetAccount(ctc.as(t, users[0]).m, users[0].NormalizedUsername(),
 		users[0].Passphrase))
 	require.NoError(t, users[0].Login(tc.G))
-	conv2, err := NewConversation(ctx, tc.Context(), uid, users[0].Username+","+users[1].Username, nil,
+	conv2, created, err := NewConversation(ctx, tc.Context(), uid, users[0].Username+","+users[1].Username, nil,
 		chat1.TopicType_CHAT, chat1.ConversationMembersType_IMPTEAMNATIVE, keybase1.TLFVisibility_PRIVATE,
 		func() chat1.RemoteInterface { return ctc.as(t, users[0]).ri }, NewConvFindExistingNormal)
 	require.NoError(t, err)
+	require.False(t, created)
 	require.Equal(t, conv.Id, conv2.Info.Id)
 }
 
@@ -6916,6 +6916,122 @@ func TestChatBulkAddToConv(t *testing.T) {
 		require.NoError(t, err)
 		assertSysMsg(nil, usernames, listener0)
 		assertSysMsg(nil, usernames, listener1)
+	})
+}
+
+func TestChatBulkAddToManyConvs(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+		default:
+			return
+		}
+
+		ctc := makeChatTestContext(t, "BulkAddToManyConvs", 2)
+		defer ctc.cleanup()
+		users := ctc.users()
+		t.Logf("uid1: %v, uid2: %v", users[0].User.GetUID(), users[1].User.GetUID())
+
+		tc1 := ctc.world.Tcs[users[0].Username]
+		tc2 := ctc.world.Tcs[users[0].Username]
+		ctx := ctc.as(t, users[0]).startCtx
+
+		listener0 := newServerChatListener()
+		ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener0)
+		tc1.ChatG.Syncer.(*Syncer).isConnected = true
+
+		listener1 := newServerChatListener()
+		ctc.as(t, users[1]).h.G().NotifyRouter.AddListener(listener1)
+		tc2.ChatG.Syncer.(*Syncer).isConnected = true
+
+		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+			mt, ctc.as(t, users[1]).user())
+
+		// create channels and bulk add user1 to them
+		topicName0 := "bulk0"
+		channel0, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
+			chat1.NewConversationLocalArg{
+				TlfName:       conv.TlfName,
+				TopicName:     &topicName0,
+				TopicType:     chat1.TopicType_CHAT,
+				TlfVisibility: keybase1.TLFVisibility_PRIVATE,
+				MembersType:   mt,
+			})
+		t.Logf("conv: %s chan: %s, err: %v", conv.Id, channel0.Conv.GetConvID(), err)
+		require.NoError(t, err)
+
+		topicName1 := "bulk1"
+		channel1, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
+			chat1.NewConversationLocalArg{
+				TlfName:       conv.TlfName,
+				TopicName:     &topicName1,
+				TopicType:     chat1.TopicType_CHAT,
+				TlfVisibility: keybase1.TLFVisibility_PRIVATE,
+				MembersType:   mt,
+			})
+		t.Logf("conv: %s chan: %s, err: %v", conv.Id, channel1.Conv.GetConvID(), err)
+		require.NoError(t, err)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
+
+		usernames := []string{users[1].Username}
+		err = ctc.as(t, users[0]).chatLocalHandler().BulkAddToManyConvs(ctx,
+			chat1.BulkAddToManyConvsArg{
+				Usernames:     usernames,
+				Conversations: []chat1.ConversationID{channel0.Conv.GetConvID(), channel1.Conv.GetConvID()},
+			})
+		require.NoError(t, err)
+
+		assertSysMsg := func(expectedMentions, expectedBody []string, listener *serverChatListener) {
+			msg := consumeNewMsgRemote(t, listener, chat1.MessageType_SYSTEM)
+			body := msg.Valid().MessageBody
+			typ, err := body.MessageType()
+			require.NoError(t, err)
+			require.Equal(t, chat1.MessageType_SYSTEM, typ)
+			sysMsg := body.System()
+			sysTyp, err := sysMsg.SystemType()
+			require.NoError(t, err)
+			require.Equal(t, chat1.MessageSystemType_BULKADDTOCONV, sysTyp)
+			retMsg := sysMsg.Bulkaddtoconv()
+			require.Equal(t, expectedBody, retMsg.Usernames)
+			require.True(t, msg.IsValid())
+			require.Equal(t, expectedMentions, msg.Valid().AtMentions)
+		}
+		//TODO: not sure how to deal with multiple system messages coming in for this?
+		assertSysMsg(usernames, usernames, listener0)
+		assertSysMsg(usernames, usernames, listener1)
+		assertSysMsg(usernames, usernames, listener0)
+		assertSysMsg(usernames, usernames, listener1)
+		consumeMembersUpdate(t, listener0)
+		consumeJoinConv(t, listener1)
+
+		// u1 can now send to both channels
+		mustPostLocalForTest(t, ctc, users[1], channel0.Conv.Info,
+			chat1.NewMessageBodyWithText(chat1.MessageText{
+				Body: "hi",
+			}))
+		// consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
+		// consumeNewMsgRemote(t, listener1, chat1.MessageType_TEXT)
+		mustPostLocalForTest(t, ctc, users[1], channel1.Conv.Info,
+			chat1.NewMessageBodyWithText(chat1.MessageText{
+				Body: "hi",
+			}))
+		// consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
+		// consumeNewMsgRemote(t, listener1, chat1.MessageType_TEXT)
+
+		// some users required
+		err = ctc.as(t, users[0]).chatLocalHandler().BulkAddToManyConvs(ctx,
+			chat1.BulkAddToManyConvsArg{
+				Usernames:     nil,
+				Conversations: []chat1.ConversationID{channel1.Conv.GetConvID(), channel0.Conv.GetConvID()},
+			})
+		require.Error(t, err)
 	})
 }
 

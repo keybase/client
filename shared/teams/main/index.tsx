@@ -5,8 +5,10 @@ import * as Types from '../../constants/types/teams'
 import Header from './header'
 import Banner from './banner'
 import NoTeamsPlaceholder from './no-teams-placeholder'
+import TeamRowNew from './team-row'
 import {memoize} from '../../util/memoize'
 import {pluralize} from '../../util/string'
+import flags from '../../util/feature-flags'
 
 type DeletedTeam = {
   teamName: string
@@ -167,6 +169,15 @@ class Teams extends React.PureComponent<Props, State> {
         const team = item.team
         const reset = this.props.teamresetusers.get(team.id)
         const resetUserCount = (reset && reset.size) || 0
+        if (flags.teamsRedesign) {
+          return (
+            <TeamRowNew
+              firstItem={index === (this.state.sawChatBanner ? 0 : 1)}
+              showChat={!Styles.isMobile}
+              teamID={team.id}
+            />
+          )
+        }
         return (
           <TeamRow
             firstItem={index === (this.state.sawChatBanner ? 0 : 1)}

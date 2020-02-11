@@ -142,7 +142,7 @@ export type State = {
   readonly sawChatBanner: boolean
   readonly sawSubteamsBanner: boolean
   readonly subteamFilter: string
-  readonly subteamsFiltered: Set<TeamID>
+  readonly subteamsFiltered: Set<TeamID> | undefined
   readonly teamAccessRequestsPending: Set<Teamname>
   readonly teamJoinSuccess: boolean
   readonly teamJoinSuccessOpen: boolean

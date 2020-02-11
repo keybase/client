@@ -303,6 +303,10 @@ export type MessageTypes = {
     inParam: {readonly convID: ConversationID; readonly usernames?: Array<String> | null}
     outParam: void
   }
+  'chat.1.local.bulkAddToManyConvs': {
+    inParam: {readonly conversations?: Array<ConversationID> | null; readonly usernames?: Array<String> | null}
+    outParam: void
+  }
   'chat.1.local.cancelActiveInboxSearch': {
     inParam: void
     outParam: void
@@ -1130,6 +1134,7 @@ export type GetBotInfoRes = {readonly response: BotInfoResponse; readonly rateLi
 export type GetConversationForCLILocalQuery = {readonly markAsRead: Boolean; readonly MessageTypes?: Array<MessageType> | null; readonly Since?: String | null; readonly limit: UnreadFirstNumLimit; readonly conv: ConversationLocal}
 export type GetConversationForCLILocalRes = {readonly conversation: ConversationLocal; readonly messages?: Array<MessageUnboxed> | null; readonly offline: Boolean; readonly rateLimits?: Array<RateLimit> | null}
 export type GetConversationMetadataRemoteRes = {readonly conv: Conversation; readonly rateLimit?: RateLimit | null}
+export type GetDefaultTeamChannelsRes = {readonly convs?: Array<ConversationID> | null; readonly rateLimit?: RateLimit | null}
 export type GetDeviceInfoRes = {readonly devices?: Array<DeviceInfo> | null}
 export type GetInboxAndUnboxLocalRes = {readonly conversations?: Array<ConversationLocal> | null; readonly offline: Boolean; readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
 export type GetInboxAndUnboxUILocalRes = {readonly conversations?: Array<InboxUIItem> | null; readonly offline: Boolean; readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
@@ -1304,6 +1309,7 @@ export type SetConvRetentionUpdate = {readonly inboxVers: InboxVers; readonly co
 export type SetConvSettingsUpdate = {readonly inboxVers: InboxVers; readonly convID: ConversationID; readonly convSettings?: ConversationSettings | null}
 export type SetConversationStatusLocalRes = {readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
 export type SetConversationStatusRes = {readonly rateLimit?: RateLimit | null}
+export type SetDefaultTeamChannelsRes = {readonly rateLimit?: RateLimit | null}
 export type SetRetentionRes = {readonly rateLimit?: RateLimit | null}
 export type SetStatusInfo = {readonly convID: ConversationID; readonly status: ConversationStatus; readonly conv?: InboxUIItem | null}
 export type SetStatusPayload = {readonly Action: String; readonly convID: ConversationID; readonly status: ConversationStatus; readonly inboxVers: InboxVers; readonly topicType: TopicType; readonly unreadUpdate?: UnreadUpdate | null}
@@ -1512,6 +1518,7 @@ export const localAddBotConvSearchRpcPromise = (params: MessageTypes['chat.1.loc
 export const localAddBotMemberRpcPromise = (params: MessageTypes['chat.1.local.addBotMember']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.addBotMember']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.addBotMember', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localAddTeamMemberAfterResetRpcPromise = (params: MessageTypes['chat.1.local.addTeamMemberAfterReset']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.addTeamMemberAfterReset']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.addTeamMemberAfterReset', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localBulkAddToConvRpcPromise = (params: MessageTypes['chat.1.local.bulkAddToConv']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.bulkAddToConv']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.bulkAddToConv', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localBulkAddToManyConvsRpcPromise = (params: MessageTypes['chat.1.local.bulkAddToManyConvs']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.bulkAddToManyConvs']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.bulkAddToManyConvs', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localCancelActiveInboxSearchRpcPromise = (params: MessageTypes['chat.1.local.cancelActiveInboxSearch']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.cancelActiveInboxSearch']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.cancelActiveInboxSearch', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localCancelActiveSearchRpcPromise = (params: MessageTypes['chat.1.local.cancelActiveSearch']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.cancelActiveSearch']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.cancelActiveSearch', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localCancelPostRpcPromise = (params: MessageTypes['chat.1.local.CancelPost']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.CancelPost']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.CancelPost', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -1710,3 +1717,5 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.remote.advertiseBotCommands'
 // 'chat.1.remote.clearBotCommands'
 // 'chat.1.remote.getBotInfo'
+// 'chat.1.remote.getDefaultTeamChannels'
+// 'chat.1.remote.setDefaultTeamChannels'

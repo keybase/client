@@ -10,17 +10,17 @@
 }
 
 .listItem2:hover {
-  background-color: #EBF2FC;
+  background-color: #ebf2fc;
 }
 .darkMode .listItem2:hover {
-  background-color: rgba(24, 45, 110, .5);
+  background-color: rgba(24, 45, 110, 0.5);
 }
 
 .listItem2:hover .avatar-border {
-  box-shadow: 0px 0px 0px 2px #EBF2FC !important;
+  box-shadow: 0px 0px 0px 2px #ebf2fc !important;
 }
 .darkMode .listItem2:hover .avatar-border {
-  box-shadow: 0px 0px 0px 2px rgba(24, 45, 110, .5) !important;
+  box-shadow: 0px 0px 0px 2px rgba(24, 45, 110, 0.5) !important;
 }
 
 .listItem2:hover .fade {
@@ -29,4 +29,8 @@
 
 .listItem2:hover .grow {
   max-width: 64px;
+}
+
+.listItem2:hover .checkCircle {
+  color: #4c8eff;
 }

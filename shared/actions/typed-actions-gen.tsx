@@ -499,7 +499,7 @@ export type TypedActionsMap = {
   'engine-gen:keybase1NotifyUsersIdentifyUpdate': enginegen.Keybase1NotifyUsersIdentifyUpdatePayload
   'engine-gen:keybase1PgpUiOutputPGPWarning': enginegen.Keybase1PgpUiOutputPGPWarningPayload
   'engine-gen:keybase1PgpUiOutputSignatureSuccess': enginegen.Keybase1PgpUiOutputSignatureSuccessPayload
-  'engine-gen:keybase1PgpUiOutputSignatureSuccessNonKeybase': enginegen.Keybase1PgpUiOutputSignatureSuccessNonKeybasePayload
+  'engine-gen:keybase1PgpUiOutputSignatureNonKeybase': enginegen.Keybase1PgpUiOutputSignatureNonKeybasePayload
   'engine-gen:keybase1PgpUiKeyGenerated': enginegen.Keybase1PgpUiKeyGeneratedPayload
   'engine-gen:keybase1PgpUiShouldPushPrivate': enginegen.Keybase1PgpUiShouldPushPrivatePayload
   'engine-gen:keybase1PgpUiFinished': enginegen.Keybase1PgpUiFinishedPayload
@@ -960,6 +960,7 @@ export type TypedActionsMap = {
   'teams:setTeamRoleMap': teams.SetTeamRoleMapPayload
   'teams:toggleInvitesCollapsed': teams.ToggleInvitesCollapsedPayload
   'teams:setSubteamFilter': teams.SetSubteamFilterPayload
+  'teams:showTeamByName': teams.ShowTeamByNamePayload
   'tracker2:load': tracker2.LoadPayload
   'tracker2:updatedDetails': tracker2.UpdatedDetailsPayload
   'tracker2:updateResult': tracker2.UpdateResultPayload

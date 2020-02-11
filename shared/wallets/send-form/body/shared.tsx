@@ -5,10 +5,15 @@ export const sharedStyles = Styles.styleSheetCreate(() => ({
     flexGrow: 1,
     flexShrink: 1,
   },
-  scrollView: {
-    flexGrow: 1,
-    flexShrink: 1,
-    width: '100%',
-  },
+  scrollView: Styles.platformStyles({
+    common: {
+      flexGrow: 1,
+      flexShrink: 1,
+      width: Styles.globalStyles.mediumWidth,
+    },
+    isTablet: {
+      alignSelf: 'center',
+    },
+  }),
   spinnerContainer: {...Styles.globalStyles.fillAbsolute},
 }))
