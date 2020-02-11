@@ -3,6 +3,7 @@ import {WebView as NativeWebView} from 'react-native-webview'
 import {WebViewInjections, WebViewProps} from './web-view'
 import memoize from 'lodash/memoize'
 import * as Container from '../util/container'
+import openURL from '../util/open-url'
 
 const escape = (str?: string): string => (str ? str.replace(/\\/g, '\\\\').replace(/`/g, '\\`') : '')
 
@@ -33,8 +34,10 @@ const KBWebView = (props: WebViewProps) => {
   } = props
   const ref = React.useRef<NativeWebView>(null)
   const previousUrl = Container.usePrevious(url)
+  const [key, setKey] = React.useState(0)
   return (
     <NativeWebView
+      key={`nativewebview-${key}`}
       ref={ref}
       allowUniversalAccessFromFileURLs={allowUniversalAccessFromFileURLs}
       originWhitelist={originWhitelist}
@@ -50,6 +53,7 @@ const KBWebView = (props: WebViewProps) => {
       startInLoadingState={!!renderLoading}
       renderLoading={renderLoading}
       onNavigationStateChange={navState => {
+        console.log({songgao: 'onNavigationStateChange', navState, url: navState.url})
         // This prevents navigating away from a link on a PDF, which protects
         // us from an attack where someone could make a webpage that looks like
         // the app and trick user into entering sensitive information on a
@@ -63,7 +67,18 @@ const KBWebView = (props: WebViewProps) => {
         // If url change comes from the props, this event can trigger too, with
         // the `url` field being different from what's in the props. So compare
         // with both old and new props.url.
-        navState.url !== url && navState.url !== previousUrl && ref?.current?.stopLoading()
+        //
+        // This didn't work in a real build:
+        //   navState.url !== url && navState.url !== previousUrl && ref?.current?.stopLoading()
+        //
+        // Assuming it was `stopLoading()`'s problem, let's try something
+        // different: if url every changes, force re-mounting NativeWebView by
+        // giving it a different key, so it loads the original URL again.
+        if (navState.url !== url && navState.url !== previousUrl) {
+          setKey(key => key + 1)
+          // At the same time, open the link in browser.
+          openURL(navState.url)
+        }
       }}
     />
   )
