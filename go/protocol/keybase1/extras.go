@@ -3441,7 +3441,7 @@ func (s TeamSigChainState) UserRole(user UserVersion) TeamRole {
 
 func (s TeamSigChainState) GetUserLastJoinTime(user UserVersion) (time Time, err error) {
 	if s.UserRole(user) == TeamRole_NONE {
-		return 0, fmt.Errorf("In GetUserLastJoinTime: User %v is not a member of team %v", user.Uid, s.Id)
+		return 0, fmt.Errorf("In GetUserLastJoinTime: User %s is not a member of team %v", user.Uid, s.Id)
 	}
 	// Look for the latest join event, i.e. the latest transition from a role NONE to a different valid one.
 	points := s.UserLog[user]

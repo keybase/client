@@ -325,10 +325,11 @@ func userVersionsToDetails(ctx context.Context, g *libkb.GlobalContext, uvs []ke
 			Status:   status,
 		}
 		if status == keybase1.TeamMemberStatus_ACTIVE && t != nil {
-			ret[i].JoinTime, err = t.UserLastJoinTime(uv)
+			joinTime, err := t.UserLastJoinTime(uv)
 			if err != nil {
 				return nil, err
 			}
+			ret[i].JoinTime = &joinTime
 		}
 	}
 	return ret, nil

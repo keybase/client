@@ -2092,4 +2092,14 @@ func TestMembersDetailsHasCorrectJoinTimes(t *testing.T) {
 		{Username: fus[bob].Username, Role: keybase1.TeamRole_READER, JoinLowerBound: addCharlieTime, JoinUpperBound: secondAddBoBTime},
 	}, 3)
 
+	err = EditMember(context.TODO(), tcs[alice].G, team, fus[charlie].Username, keybase1.TeamRole_ADMIN, nil)
+	require.NoError(t, err)
+
+	checkDetails(tcs[alice], []expectedMemberDetails{
+		{Username: fus[alice].Username, Role: keybase1.TeamRole_OWNER, JoinLowerBound: startTime, JoinUpperBound: teamCreateTime},
+		// ensure the charlie's join time is not affected by his role change
+		{Username: fus[charlie].Username, Role: keybase1.TeamRole_ADMIN, JoinLowerBound: removeBoBTime, JoinUpperBound: addCharlieTime},
+		{Username: fus[bob].Username, Role: keybase1.TeamRole_READER, JoinLowerBound: addCharlieTime, JoinUpperBound: secondAddBoBTime},
+	}, 3)
+
 }

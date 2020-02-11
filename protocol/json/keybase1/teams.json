@@ -340,7 +340,10 @@
           "name": "status"
         },
         {
-          "type": "Time",
+          "type": [
+            null,
+            "Time"
+          ],
           "name": "joinTime"
         }
       ]
