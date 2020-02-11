@@ -125,6 +125,7 @@ const AddToChannel = (props: Props) => {
                 icon={<Kb.Avatar size={32} username={item.username} />}
                 type="Small"
                 onClick={alreadyIn ? undefined : onCheck}
+                hideHover={alreadyIn}
                 body={
                   <Kb.Box2 direction="vertical" alignItems="flex-start">
                     <Kb.ConnectedUsernames
