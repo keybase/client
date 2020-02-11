@@ -990,6 +990,14 @@ func (m *ChatRemoteMock) GetBotInfo(ctx context.Context, arg chat1.GetBotInfoArg
 	return res, errors.New("GetBotInfo not mocked")
 }
 
+func (m *ChatRemoteMock) GetDefaultTeamChannels(ctx context.Context, teamID keybase1.TeamID) (res chat1.GetDefaultTeamChannelsRes, err error) {
+	return res, errors.New("GetDefaultTeamChannels not mocked")
+}
+
+func (m *ChatRemoteMock) SetDefaultTeamChannels(ctx context.Context, arg chat1.SetDefaultTeamChannelsArg) (res chat1.SetDefaultTeamChannelsRes, err error) {
+	return res, errors.New("SetDefaultTeamChannels not mocked")
+}
+
 func (m *ChatRemoteMock) TeamIDOfConv(ctx context.Context, convID chat1.ConversationID) (res *keybase1.TeamID, err error) {
 	return res, errors.New("TeamIDOfConv not mocked")
 }

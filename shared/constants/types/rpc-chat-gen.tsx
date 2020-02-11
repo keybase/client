@@ -1130,6 +1130,7 @@ export type GetBotInfoRes = {readonly response: BotInfoResponse; readonly rateLi
 export type GetConversationForCLILocalQuery = {readonly markAsRead: Boolean; readonly MessageTypes?: Array<MessageType> | null; readonly Since?: String | null; readonly limit: UnreadFirstNumLimit; readonly conv: ConversationLocal}
 export type GetConversationForCLILocalRes = {readonly conversation: ConversationLocal; readonly messages?: Array<MessageUnboxed> | null; readonly offline: Boolean; readonly rateLimits?: Array<RateLimit> | null}
 export type GetConversationMetadataRemoteRes = {readonly conv: Conversation; readonly rateLimit?: RateLimit | null}
+export type GetDefaultTeamChannelsRes = {readonly convs?: Array<ConversationID> | null; readonly rateLimit?: RateLimit | null}
 export type GetDeviceInfoRes = {readonly devices?: Array<DeviceInfo> | null}
 export type GetInboxAndUnboxLocalRes = {readonly conversations?: Array<ConversationLocal> | null; readonly offline: Boolean; readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
 export type GetInboxAndUnboxUILocalRes = {readonly conversations?: Array<InboxUIItem> | null; readonly offline: Boolean; readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
@@ -1304,6 +1305,7 @@ export type SetConvRetentionUpdate = {readonly inboxVers: InboxVers; readonly co
 export type SetConvSettingsUpdate = {readonly inboxVers: InboxVers; readonly convID: ConversationID; readonly convSettings?: ConversationSettings | null}
 export type SetConversationStatusLocalRes = {readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
 export type SetConversationStatusRes = {readonly rateLimit?: RateLimit | null}
+export type SetDefaultTeamChannelsRes = {readonly rateLimit?: RateLimit | null}
 export type SetRetentionRes = {readonly rateLimit?: RateLimit | null}
 export type SetStatusInfo = {readonly convID: ConversationID; readonly status: ConversationStatus; readonly conv?: InboxUIItem | null}
 export type SetStatusPayload = {readonly Action: String; readonly convID: ConversationID; readonly status: ConversationStatus; readonly inboxVers: InboxVers; readonly topicType: TopicType; readonly unreadUpdate?: UnreadUpdate | null}
@@ -1710,3 +1712,5 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.remote.advertiseBotCommands'
 // 'chat.1.remote.clearBotCommands'
 // 'chat.1.remote.getBotInfo'
+// 'chat.1.remote.getDefaultTeamChannels'
+// 'chat.1.remote.setDefaultTeamChannels'
