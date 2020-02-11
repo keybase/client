@@ -22,7 +22,7 @@ type Props = {
   onDismiss: () => void
   teamname: string
   textComponent: React.ReactNode
-  noDismiss: boolean
+  deactivateButtons?: boolean
 }
 
 export const TeamJourney = (props: Props) => {
@@ -40,7 +40,7 @@ export const TeamJourney = (props: Props) => {
         teamname={teamname}
         onAuthorClick={props.onAuthorClick}
         onDismiss={props.onDismiss}
-        noDismiss={props.noDismiss}
+        deactivateButtons={props.deactivateButtons}
       />
       <Kb.Box2
         key="content"
@@ -68,6 +68,7 @@ export const TeamJourney = (props: Props) => {
                   conversationIDKey={conversationIDKey}
                   small={true}
                   style={styles.buttonSpace}
+                  disabled={!!props.deactivateButtons}
                 />
               ) : (
                 <Kb.Button
@@ -77,6 +78,7 @@ export const TeamJourney = (props: Props) => {
                   mode="Secondary"
                   label={action.label}
                   onClick={action.onClick}
+                  disabled={!!props.deactivateButtons}
                   style={styles.buttonSpace}
                 />
               )
@@ -92,7 +94,7 @@ type HeaderProps = {
   teamname: string
   onAuthorClick: () => void
   onDismiss: () => void
-  noDismiss: boolean
+  deactivateButtons?: boolean
 }
 const TeamJourneyHeader = (props: HeaderProps) => (
   <Kb.Box2 key="author" direction="horizontal" fullWidth={true} style={styles.authorContainer} gap="tiny">
@@ -121,7 +123,7 @@ const TeamJourneyHeader = (props: HeaderProps) => (
       </Kb.Text>
       <Kb.Text type="BodyTiny">• System message</Kb.Text>
     </Kb.Box2>
-    {!Styles.isMobile && !props.noDismiss && (
+    {!Styles.isMobile && !props.deactivateButtons && (
       <Kb.Icon type="iconfont-close" onClick={props.onDismiss} fontSize={12} />
     )}
   </Kb.Box2>

@@ -150,7 +150,7 @@ const leftTeam = () => RouteTreeGen.createNavUpToScreen({routeName: 'teamsRoot'}
 const loadWelcomeMessage = async (action: TeamsGen.LoadWelcomeMessagePayload, _: Saga.SagaLogger) => {
   const {teamID} = action.payload
   const message = await RPCChatTypes.localGetWelcomeMessageRpcPromise({teamID})
-  return TeamsGen.createLoadedWelcomeMessage({teamID, message})
+  return TeamsGen.createLoadedWelcomeMessage({message, teamID})
 }
 
 const getTeamRetentionPolicy = async (

@@ -25,7 +25,6 @@ export default Container.connect(
       error: state.teams.errorInSettings,
       ignoreAccessRequests: teamDetails.settings.tarsDisabled,
       isBigTeam: Constants.isBigTeam(state, teamMeta.teamname),
-      teamname: teamMeta.teamname,
       openTeam: settings.open,
       // Cast to TeamRoleType
       openTeamRole: teamDetails.settings.openJoinAs,
@@ -33,6 +32,7 @@ export default Container.connect(
       publicityMember,
       publicityTeam,
       teamID,
+      teamname: teamMeta.teamname,
       waitingForSavePublicity: anyWaiting(
         state,
         Constants.teamWaitingKeyByID(teamID, state),

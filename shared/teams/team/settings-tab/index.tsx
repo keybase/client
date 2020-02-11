@@ -344,14 +344,14 @@ export class Settings extends React.Component<Props, State> {
               <Kb.Box2 direction="vertical" style={{position: 'relative'}} fullWidth={true}>
                 {this.props.welcomeMessage ? (
                   <TeamJourney
-                    actions={[]}
+                    actions={['wave', {label: 'Publish team on your profile', onClick: () => {}}]}
                     teamname={this.props.teamname}
                     conversationIDKey=""
                     image="icon-illustration-welcome-96"
                     onAuthorClick={() => {}}
                     onDismiss={() => {}}
                     textComponent={renderWelcomeMessage(this.props.welcomeMessage, false /* cannotWrite */)}
-                    noDismiss={true}
+                    deactivateButtons={true}
                   />
                 ) : (
                   <Kb.ProgressIndicator />
@@ -385,11 +385,6 @@ const styles = styleSheetCreate(() => ({
       top: -20,
     },
   }),
-  welcomeMessageContainer: {
-    alignSelf: 'stretch',
-    backgroundColor: Styles.globalColors.grey,
-    paddingLeft: Styles.globalMargins.xtiny,
-  },
   grey: {color: globalColors.black_50},
   joinAs: platformStyles({
     isElectron: {
@@ -413,10 +408,15 @@ const styles = styleSheetCreate(() => ({
     paddingRight: globalMargins.small,
     paddingTop: globalMargins.small,
   },
+  shrink: {flex: 1},
+  teamPadding: {paddingTop: globalMargins.small},
   welcomeMessage: {
     paddingRight: globalMargins.small,
     paddingTop: globalMargins.small,
   },
-  shrink: {flex: 1},
-  teamPadding: {paddingTop: globalMargins.small},
+  welcomeMessageContainer: {
+    alignSelf: 'stretch',
+    backgroundColor: Styles.globalColors.grey,
+    paddingLeft: Styles.globalMargins.xtiny,
+  },
 }))

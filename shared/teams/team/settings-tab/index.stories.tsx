@@ -9,6 +9,7 @@ const commonProps = {
   canShowcase: true,
   ignoreAccessRequests: true,
   isBigTeam: true,
+  loadWelcomeMessage: Sb.action('loadWelcomeMessage'),
   openTeam: true,
   openTeamRole: 'admin' as 'admin',
   publicityAnyMember: true,
@@ -19,7 +20,6 @@ const commonProps = {
   teamname: 'myteam',
   waitingForSavePublicity: false,
   welcomeMessage: null,
-  loadWelcomeMessage: Sb.action('loadWelcomeMessage'),
   yourOperations: {
     changeOpenTeam: true,
     changeTarsDisabled: true,
