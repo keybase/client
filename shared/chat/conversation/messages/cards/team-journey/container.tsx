@@ -59,22 +59,26 @@ const TeamJourneyContainer = (props: Props) => {
       if (props.canShowcase) {
         actions.push({label: 'Publish team on your profile', onClick: props.onPublishTeam})
       }
-      if (props.welcomeMessage && props.welcomeMessage.set) {
-        textComponent = <Kb.Text type="BodySmall">{props.welcomeMessage.text}</Kb.Text>
-      } else if (props.cannotWrite) {
-        textComponent = (
-          <Kb.Text type="BodySmall">
-            <Kb.Emoji allowFontScaling={true} size={Styles.globalMargins.small} emojiName=":wave:" />
-            Welcome to the team!
-          </Kb.Text>
-        )
+      if (props.welcomeMessage) {
+        if (props.welcomeMessage.set) {
+          textComponent = <Kb.Text type="BodySmall">{props.welcomeMessage.text}</Kb.Text>
+        } else if (props.cannotWrite) {
+          textComponent = (
+            <Kb.Text type="BodySmall">
+              <Kb.Emoji allowFontScaling={true} size={Styles.globalMargins.small} emojiName=":wave:" />{' '}
+              Welcome to the team!
+            </Kb.Text>
+          )
+        } else {
+          textComponent = (
+            <Kb.Text type="BodySmall">
+              <Kb.Emoji allowFontScaling={true} size={Styles.globalMargins.small} emojiName=":wave:" />{' '}
+              Welcome to the team! Say hi to everyone and introduce yourself.
+            </Kb.Text>
+          )
+        }
       } else {
-        textComponent = (
-          <Kb.Text type="BodySmall">
-            <Kb.Emoji allowFontScaling={true} size={Styles.globalMargins.small} emojiName=":wave:" />
-            Welcome to the team! Say hi to everyone and introduce yourself.
-          </Kb.Text>
-        )
+        textComponent = <Kb.ProgressIndicator />
       }
       break
     case RPCChatTypes.JourneycardType.popularChannels:
