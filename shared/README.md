@@ -15,8 +15,9 @@ If you really want to install Keybase, please return to the [top level Readme.md
 ### Install
 
 ```sh
-yarn install
+yarn modules
 ```
+Which is just an alias to run `yarn install --pure-lockfile --ignore-optional`. 
 
 ### Desktop
 
