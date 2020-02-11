@@ -33,10 +33,25 @@ const CreateChannel = (props: Props) => {
         gap={Styles.isMobile ? 'xsmall' : 'tiny'}
       >
         <Kb.Text type="BodySmall">Channels can be joined by anyone in the team, unlike subteams.</Kb.Text>
-        <Kb.NewInput value="#general" disabled={true} />
+        <ChannelInput isGeneral={true} />
       </Kb.Box2>
     </Kb.Modal>
   )
+}
+
+type ChannelInputProps =
+  | {isGeneral: true}
+  | {
+      isGeneral: false
+      onChange: (value: string) => void
+      value: string
+    }
+
+const ChannelInput = (props: ChannelInputProps) => {
+  if (props.isGeneral) {
+    return <Kb.NewInput value="#general" disabled={true} containerStyle={styles.inputGeneral} />
+  }
+  return <Kb.NewInput value={props.value} onChangeText={props.onChange} containerStyle={styles.input} />
 }
 
 const styles = Styles.styleSheetCreate(() => ({
@@ -59,6 +74,8 @@ const styles = Styles.styleSheetCreate(() => ({
     isElectron: {height: 326},
     isMobile: {...Styles.globalStyles.flexOne},
   }),
+  input: {...Styles.padding(Styles.globalMargins.xsmall)},
+  inputGeneral: {...Styles.padding(Styles.globalMargins.xsmall), opacity: 0.4},
 }))
 
 export default CreateChannel
