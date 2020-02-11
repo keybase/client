@@ -15,6 +15,7 @@ type OwnProps = {
   conversationIDKey: Types.ConversationIDKey
   focusInputCounter: number
   jumpToRecent: () => void
+  maxInputArea?: number
   onRequestScrollDown: () => void
   onRequestScrollToBottom: () => void
   onRequestScrollUp: () => void
@@ -248,6 +249,7 @@ export default Container.namedConnect(
       isEditing: !!stateProps._editOrdinal,
       isExploding: stateProps.isExploding,
       isSearching: stateProps.isSearching,
+      maxInputArea: ownProps.maxInputArea,
       minWriterRole: stateProps.minWriterRole,
       onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
       onCancelEditing: () => dispatchProps._onCancelEditing(stateProps.conversationIDKey),
