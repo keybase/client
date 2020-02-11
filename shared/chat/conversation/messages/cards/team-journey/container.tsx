@@ -181,12 +181,12 @@ const TeamJourneyConnected = Container.connect(
       _channelInfos: TeamConstants.getTeamChannelInfos(state, teamID),
       _teamID: teamID,
       canShowcase: TeamConstants.canShowcase(state, teamID),
-      welcomeMessage: TeamConstants.getTeamWelcomeMessageByID(state, teamID),
       cannotWrite: cannotWrite,
       channelname,
       conversationIDKey,
       teamType: TeamConstants.getTeamType(state, teamname),
       teamname,
+      welcomeMessage: TeamConstants.getTeamWelcomeMessageByID(state, teamID),
     }
   },
   dispatch => ({
@@ -244,7 +244,6 @@ const TeamJourneyConnected = Container.connect(
       .map(info => info.channelname)
 
     return {
-      welcomeMessage,
       canShowcase,
       cannotWrite,
       channelname,
@@ -269,6 +268,7 @@ const TeamJourneyConnected = Container.connect(
       otherChannelsForPopular,
       teamType,
       teamname,
+      welcomeMessage,
     }
   }
 )(TeamJourneyContainer)
