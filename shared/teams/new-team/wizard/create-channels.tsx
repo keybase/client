@@ -17,6 +17,14 @@ const CreateChannel = (props: Props) => {
     channels[i] = value
     setChannels([...channels])
   }
+  const onClear = (i: number) => {
+    channels.splice(i, 1)
+    setChannels([...channels])
+  }
+  const onAdd = () => {
+    channels.push('')
+    setChannels([...channels])
+  }
 
   const onBack = () => {} // dispatch(nav.safeNavigateUpPayload()) TODO mock nav for storybook
 
@@ -41,8 +49,9 @@ const CreateChannel = (props: Props) => {
         <Kb.Text type="BodySmall">Channels can be joined by anyone in the team, unlike subteams.</Kb.Text>
         <ChannelInput isGeneral={true} />
         {channels.map((value, idx) => (
-          <ChannelInput key={idx} onChange={setChannel(idx)} value={value} />
+          <ChannelInput key={idx} onChange={setChannel(idx)} value={value} onClear={() => onClear(idx)} />
         ))}
+        <Kb.Button mode="Secondary" icon="iconfont-new" tooltip="" onClick={onAdd} />
       </Kb.Box2>
     </Kb.Modal>
   )
@@ -53,6 +62,7 @@ type ChannelInputProps =
   | {
       isGeneral?: false
       onChange: (value: string) => void
+      onClear: () => void
       value: string
     }
 
@@ -60,7 +70,14 @@ const ChannelInput = (props: ChannelInputProps) => {
   if (props.isGeneral) {
     return <Kb.NewInput value="#general" disabled={true} containerStyle={styles.inputGeneral} />
   }
-  return <Kb.NewInput value={props.value} onChangeText={props.onChange} containerStyle={styles.input} />
+  return (
+    <Kb.NewInput
+      value={props.value}
+      onChangeText={props.onChange}
+      decoration={<Kb.Icon type="iconfont-remove" onClick={props.onClear} />}
+      containerStyle={styles.input}
+    />
+  )
 }
 
 const styles = Styles.styleSheetCreate(() => ({
@@ -80,7 +97,7 @@ const styles = Styles.styleSheetCreate(() => ({
       ...Styles.padding(Styles.globalMargins.small),
       backgroundColor: Styles.globalColors.blueGrey,
     },
-    isElectron: {height: 326},
+    isElectron: {minHeight: 326},
     isMobile: {...Styles.globalStyles.flexOne},
   }),
   input: {...Styles.padding(Styles.globalMargins.xsmall)},
