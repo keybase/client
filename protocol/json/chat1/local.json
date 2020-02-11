@@ -3765,6 +3765,39 @@
           "name": "text"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "GetDefaultTeamChannelsLocalRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "InboxUIItem"
+          },
+          "name": "convs"
+        },
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SetDefaultTeamChannelsLocalRes",
+      "fields": [
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
     }
   ],
   "messages": {
@@ -5539,6 +5572,31 @@
         }
       ],
       "response": "WelcomeMessage"
+    },
+    "getDefaultTeamChannelsLocal": {
+      "request": [
+        {
+          "name": "teamName",
+          "type": "string"
+        }
+      ],
+      "response": "GetDefaultTeamChannelsLocalRes"
+    },
+    "setDefaultTeamChannelsLocal": {
+      "request": [
+        {
+          "name": "teamName",
+          "type": "string"
+        },
+        {
+          "name": "convs",
+          "type": {
+            "type": "array",
+            "items": "ConvIDStr"
+          }
+        }
+      ],
+      "response": "SetDefaultTeamChannelsLocalRes"
     }
   },
   "namespace": "chat.1"

@@ -150,7 +150,11 @@ func renderBotSettings(g *libkb.GlobalContext, username string, convID *chat1.Co
 		dui.Printf("%s can send/receive into all conversations", username)
 	} else {
 		dui.Printf("%s can send/receive into the following conversations:\n\t", username)
-		convNames, err := getConvNames(g, botSettings)
+		convIDs := []chat1.ConvIDStr{}
+		for _, conv := range botSettings.Convs {
+			convIDs = append(convIDs, chat1.ConvIDStr(conv))
+		}
+		convNames, err := getConvNames(g, convIDs)
 		if err != nil {
 			return err
 		}
@@ -160,10 +164,10 @@ func renderBotSettings(g *libkb.GlobalContext, username string, convID *chat1.Co
 	return nil
 }
 
-func getConvNames(g *libkb.GlobalContext, botSettings keybase1.TeamBotSettings) (convNames []string, err error) {
+func getConvNames(g *libkb.GlobalContext, convs []chat1.ConvIDStr) (convNames []string, err error) {
 	fetcher := chatCLIInboxFetcher{}
-	for _, convIDStr := range botSettings.Convs {
-		convID, err := chat1.MakeConvID(convIDStr)
+	for _, convIDStr := range convs {
+		convID, err := chat1.MakeConvID(convIDStr.String())
 		if err != nil {
 			return nil, err
 		}

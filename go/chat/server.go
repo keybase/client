@@ -1387,7 +1387,10 @@ func (h *Server) FindGeneralConvFromTeamID(ctx context.Context, teamID keybase1.
 	if err != nil {
 		return res, err
 	}
-	tlfID := chat1.TLFID(teamID.ToBytes())
+	tlfID, err := chat1.TeamIDToTLFID(teamID)
+	if err != nil {
+		return res, err
+	}
 	vis := keybase1.TLFVisibility_PRIVATE
 	topicName := globals.DefaultTeamTopic
 	topicType := chat1.TopicType_CHAT
@@ -3283,4 +3286,65 @@ func (h *Server) GetWelcomeMessage(ctx context.Context, teamID keybase1.TeamID) 
 		return res, err
 	}
 	return getWelcomeMessage(ctx, h.G(), h.remoteClient, uid, teamID)
+}
+
+func (h *Server) GetDefaultTeamChannelsLocal(ctx context.Context, teamName string) (res chat1.GetDefaultTeamChannelsLocalRes, err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "GetDefaultTeamChannelsLocal")()
+	defer func() { h.setResultRateLimit(ctx, &res) }()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
+	nameInfo, err := CreateNameInfoSource(ctx, h.G(), chat1.ConversationMembersType_TEAM).LookupID(ctx, teamName, false)
+	if err != nil {
+		return res, err
+	}
+
+	resp, err := h.remoteClient().GetDefaultTeamChannels(ctx, keybase1.TeamID(nameInfo.ID.String()))
+	if err != nil {
+		return res, err
+	}
+	if len(resp.Convs) == 0 {
+		return res, nil
+	}
+	query := &chat1.GetInboxLocalQuery{
+		ConvIDs: resp.Convs,
+	}
+	ib, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
+		types.InboxSourceDataSourceAll, nil, query)
+	if err != nil {
+		return res, err
+	}
+	res.Convs = utils.PresentConversationLocals(ctx, h.G(), uid, ib.Convs,
+		utils.PresentParticipantsModeSkip)
+	return res, nil
+}
+
+func (h *Server) SetDefaultTeamChannelsLocal(ctx context.Context, arg chat1.SetDefaultTeamChannelsLocalArg) (res chat1.SetDefaultTeamChannelsLocalRes, err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "SetDefaultTeamChannelsLocal")()
+	defer func() { h.setResultRateLimit(ctx, &res) }()
+	_, err = utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
+	nameInfo, err := CreateNameInfoSource(ctx, h.G(), chat1.ConversationMembersType_TEAM).LookupID(ctx, arg.TeamName, false)
+	if err != nil {
+		return res, err
+	}
+
+	convs := make([]chat1.ConversationID, 0, len(arg.Convs))
+	for _, conv := range arg.Convs {
+		convID, err := chat1.MakeConvID(conv.String())
+		if err != nil {
+			return res, err
+		}
+		convs = append(convs, convID)
+	}
+	_, err = h.remoteClient().SetDefaultTeamChannels(ctx, chat1.SetDefaultTeamChannelsArg{
+		TeamID: keybase1.TeamID(nameInfo.ID.String()),
+		Convs:  convs,
+	})
+	return res, err
 }

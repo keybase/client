@@ -5969,6 +5969,50 @@ func (o WelcomeMessage) DeepCopy() WelcomeMessage {
 	}
 }
 
+type GetDefaultTeamChannelsLocalRes struct {
+	Convs     []InboxUIItem `codec:"convs" json:"convs"`
+	RateLimit *RateLimit    `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+}
+
+func (o GetDefaultTeamChannelsLocalRes) DeepCopy() GetDefaultTeamChannelsLocalRes {
+	return GetDefaultTeamChannelsLocalRes{
+		Convs: (func(x []InboxUIItem) []InboxUIItem {
+			if x == nil {
+				return nil
+			}
+			ret := make([]InboxUIItem, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Convs),
+		RateLimit: (func(x *RateLimit) *RateLimit {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.RateLimit),
+	}
+}
+
+type SetDefaultTeamChannelsLocalRes struct {
+	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+}
+
+func (o SetDefaultTeamChannelsLocalRes) DeepCopy() SetDefaultTeamChannelsLocalRes {
+	return SetDefaultTeamChannelsLocalRes{
+		RateLimit: (func(x *RateLimit) *RateLimit {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.RateLimit),
+	}
+}
+
 type GetThreadLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Reason           GetThreadReason              `codec:"reason" json:"reason"`
@@ -6555,6 +6599,15 @@ type GetWelcomeMessageArg struct {
 	TeamID keybase1.TeamID `codec:"teamID" json:"teamID"`
 }
 
+type GetDefaultTeamChannelsLocalArg struct {
+	TeamName string `codec:"teamName" json:"teamName"`
+}
+
+type SetDefaultTeamChannelsLocalArg struct {
+	TeamName string      `codec:"teamName" json:"teamName"`
+	Convs    []ConvIDStr `codec:"convs" json:"convs"`
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetThreadNonblock(context.Context, GetThreadNonblockArg) (NonblockFetchRes, error)
@@ -6656,6 +6709,8 @@ type LocalInterface interface {
 	DismissJourneycard(context.Context, DismissJourneycardArg) error
 	SetWelcomeMessage(context.Context, SetWelcomeMessageArg) error
 	GetWelcomeMessage(context.Context, keybase1.TeamID) (WelcomeMessage, error)
+	GetDefaultTeamChannelsLocal(context.Context, string) (GetDefaultTeamChannelsLocalRes, error)
+	SetDefaultTeamChannelsLocal(context.Context, SetDefaultTeamChannelsLocalArg) (SetDefaultTeamChannelsLocalRes, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -8112,6 +8167,36 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"getDefaultTeamChannelsLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]GetDefaultTeamChannelsLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetDefaultTeamChannelsLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetDefaultTeamChannelsLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetDefaultTeamChannelsLocal(ctx, typedArgs[0].TeamName)
+					return
+				},
+			},
+			"setDefaultTeamChannelsLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]SetDefaultTeamChannelsLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SetDefaultTeamChannelsLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SetDefaultTeamChannelsLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.SetDefaultTeamChannelsLocal(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -8640,5 +8725,16 @@ func (c LocalClient) SetWelcomeMessage(ctx context.Context, __arg SetWelcomeMess
 func (c LocalClient) GetWelcomeMessage(ctx context.Context, teamID keybase1.TeamID) (res WelcomeMessage, err error) {
 	__arg := GetWelcomeMessageArg{TeamID: teamID}
 	err = c.Cli.Call(ctx, "chat.1.local.getWelcomeMessage", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) GetDefaultTeamChannelsLocal(ctx context.Context, teamName string) (res GetDefaultTeamChannelsLocalRes, err error) {
+	__arg := GetDefaultTeamChannelsLocalArg{TeamName: teamName}
+	err = c.Cli.Call(ctx, "chat.1.local.getDefaultTeamChannelsLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) SetDefaultTeamChannelsLocal(ctx context.Context, __arg SetDefaultTeamChannelsLocalArg) (res SetDefaultTeamChannelsLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.setDefaultTeamChannelsLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

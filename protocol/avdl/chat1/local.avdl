@@ -1310,4 +1310,15 @@ protocol local {
   }
   void setWelcomeMessage(keybase1.TeamID teamID, WelcomeMessage message);
   WelcomeMessage getWelcomeMessage(keybase1.TeamID teamID);
+
+  record GetDefaultTeamChannelsLocalRes {
+    array<InboxUIItem> convs;
+    union { null, RateLimit } rateLimit;
+  }
+  GetDefaultTeamChannelsLocalRes getDefaultTeamChannelsLocal(string teamName);
+
+  record SetDefaultTeamChannelsLocalRes {
+    union { null, RateLimit } rateLimit;
+  }
+  SetDefaultTeamChannelsLocalRes setDefaultTeamChannelsLocal(string teamName, array<ConvIDStr> convs);
 }
