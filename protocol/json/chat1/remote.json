@@ -888,6 +888,23 @@
           "name": "rateLimit"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "GetRecentJoinsRes",
+      "fields": [
+        {
+          "type": "int",
+          "name": "num"
+        },
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
     }
   ],
   "messages": {
@@ -1599,6 +1616,15 @@
         }
       ],
       "response": "SetDefaultTeamChannelsRes"
+    },
+    "getRecentJoins": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": "GetRecentJoinsRes"
     }
   },
   "namespace": "chat.1",
