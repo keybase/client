@@ -275,7 +275,17 @@ const styles = Styles.styleSheetCreate(() => {
     scroll: Styles.platformStyles({
       isElectron: {...Styles.globalStyles.flexBoxColumn, flex: 1, position: 'relative'},
     }),
-    scrollContentContainer: {...Styles.globalStyles.flexBoxColumn, flexGrow: 1, width: '100%'},
+    scrollContentContainer: Styles.platformStyles({
+      common: {
+        ...Styles.globalStyles.flexBoxColumn,
+        flexGrow: 1,
+        width: '100%',
+      },
+      isTablet: {
+        alignSelf: 'center',
+        maxWidth: 600,
+      },
+    }),
   }
 })
 
