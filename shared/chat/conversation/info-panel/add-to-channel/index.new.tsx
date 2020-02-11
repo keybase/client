@@ -32,7 +32,7 @@ const AddToChannel = (props: Props) => {
 
   const [toAdd, setToAdd] = React.useState<Set<string>>(new Set())
   const [filter, setFilter] = React.useState('')
-  const fLower = filter.toLowerCase()
+  const filterLCase = filter.toLowerCase()
 
   const {channelname, teamname, teamID} = Container.useSelector(s =>
     ChatConstants.getMeta(s, conversationIDKey)
@@ -41,7 +41,7 @@ const AddToChannel = (props: Props) => {
   const teamDetails = Container.useSelector(s => TeamConstants.getTeamDetails(s, teamID))
   const allMembers = sortMembers(teamDetails.members)
   const membersFiltered = allMembers.filter(
-    m => m.username.toLowerCase().includes(fLower) || m.fullName.toLowerCase().includes(fLower)
+    m => m.username.toLowerCase().includes(filterLCase) || m.fullName.toLowerCase().includes(filterLCase)
   )
 
   useTeamDetailsSubscribe(teamID)
@@ -163,7 +163,6 @@ const title = ({channelname, teamname}: {channelname: string; teamname: string})
     `Add to #${channelname}`
   ) : (
     <Kb.Box2 direction="vertical" gap="xtiny" alignItems="center" style={styles.title}>
-      {/* TODO move up 16 */}
       <Kb.Avatar size={32} teamname={teamname} style={styles.avatar} />
       <Kb.Box2 direction="vertical" alignItems="center">
         <Kb.Text type="BodySmall" lineClamp={1}>
@@ -192,7 +191,7 @@ const styles = Styles.styleSheetCreate(() => ({
     },
   }),
   list: Styles.platformStyles({isMobile: {height: '100%'}}),
-  listContainer: Styles.platformStyles({isElectron: {height: 370}}), // Maybe see if we could stop doing this
+  listContainer: Styles.platformStyles({isElectron: {height: 370}}), // shortcut to get the list to expand the modal.
   title: {
     paddingBottom: Styles.globalMargins.tiny,
   },
