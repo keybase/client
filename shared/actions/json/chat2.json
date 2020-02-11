@@ -366,7 +366,8 @@
     "attachmentsUpload": {
       "conversationIDKey": "Types.ConversationIDKey",
       "paths": "Array<Types.PathAndOutboxID>",
-      "titles": "Array<string>"
+      "titles": "Array<string>",
+      "tlfName?": "string"
     },
     // Update progress on an upload
     "attachmentUploading": {

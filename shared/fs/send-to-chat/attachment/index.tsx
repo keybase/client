@@ -4,8 +4,10 @@ import * as Kb from '../../../common-adapters'
 import * as Kbfs from '../../common'
 import * as Styles from '../../../styles'
 import * as FsGen from '../../../actions/fs-gen'
+import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as ChatTypes from '../../../constants/types/chat2'
 import * as Container from '../../../util/container'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import ConversationList from './conversation-list/conversation-list'
 import ChooseConversation from './conversation-list/choose-conversation'
 
@@ -18,24 +20,31 @@ type Props = {
   title: string
 }
 
-const useConversationList = () => {
+const MobileConnectedConversationList = (props: {customComponent?: React.ReactNode | null}) => {
   const dispatch = Container.useDispatch()
   const sendAttachmentToChat = Container.useSelector(state => state.fs.sendAttachmentToChat)
-  const onSelect = (convID: ChatTypes.ConversationIDKey, convName: string) => {
-    dispatch(FsGen.createSetSendAttachmentToChatConvID({convID, convName}))
+  const username = Container.useSelector(state => state.config.username)
+  const onSelect = (conversationIDKey: ChatTypes.ConversationIDKey, convName: string) => {
+    dispatch(
+      Chat2Gen.createAttachmentsUpload({
+        conversationIDKey,
+        paths: [{outboxID: null, path: Types.pathToString(sendAttachmentToChat.path)}],
+        titles: [sendAttachmentToChat.title],
+        tlfName: `${username},${convName.split('#')[0]}`,
+      })
+    )
+    dispatch(RouteTreeGen.createClearModals())
+    dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'files'}))
+    dispatch(Chat2Gen.createNavigateToThread())
+    dispatch(FsGen.createSentAttachmentToChat())
   }
-  return {
+  const additionalProps = {
     onSelect,
-    selected: sendAttachmentToChat.convID,
   }
-}
-
-const ConnectedConversationList = (props: {customComponent?: React.ReactNode | null}) => {
-  const additionalProps = useConversationList()
   return <ConversationList {...props} {...additionalProps} />
 }
 
-const MobileWithHeader = Kb.HeaderHoc(ConnectedConversationList)
+const MobileWithHeader = Kb.HeaderHoc(MobileConnectedConversationList)
 
 const MobileHeader = (props: Props) => (
   <Kb.Box2 direction="horizontal" centerChildren={true} fullWidth={true} style={mobileStyles.headerContainer}>
@@ -47,14 +56,19 @@ const MobileHeader = (props: Props) => (
         {Types.getPathName(props.path)}
       </Kb.Text>
     </Kb.Box2>
-    <Kb.Text type="BodyBigLink" style={mobileStyles.button} onClick={props.send}>
-      Send
-    </Kb.Text>
   </Kb.Box2>
 )
 
 const DesktopConversationDropdown = (props: {dropdownButtonStyle?: Styles.StylesCrossPlatform | null}) => {
-  const additionalProps = useConversationList()
+  const dispatch = Container.useDispatch()
+  const sendAttachmentToChat = Container.useSelector(state => state.fs.sendAttachmentToChat)
+  const onSelect = (convID: ChatTypes.ConversationIDKey, convName: string) => {
+    dispatch(FsGen.createSetSendAttachmentToChatConvID({convID, convName}))
+  }
+  const additionalProps = {
+    onSelect,
+    selected: sendAttachmentToChat.convID,
+  }
   return <ChooseConversation {...props} {...additionalProps} />
 }
 

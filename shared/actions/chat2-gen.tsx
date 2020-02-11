@@ -238,6 +238,7 @@ type _AttachmentsUploadPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly paths: Array<Types.PathAndOutboxID>
   readonly titles: Array<string>
+  readonly tlfName?: string
 }
 type _AttemptAudioRecordingPayload = {
   readonly conversationIDKey: Types.ConversationIDKey

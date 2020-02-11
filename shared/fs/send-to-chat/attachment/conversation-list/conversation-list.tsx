@@ -34,7 +34,10 @@ const _itemRenderer = (index: number, row: Row) => {
         gap="tiny"
         style={Styles.collapseStyles([
           styles.results,
-          {backgroundColor: row.isSelected ? Styles.globalColors.blue : Styles.globalColors.white},
+          {
+            backgroundColor:
+              !Styles.isMobile && row.isSelected ? Styles.globalColors.blue : Styles.globalColors.white,
+          },
         ])}
       >
         {item.isTeam ? (

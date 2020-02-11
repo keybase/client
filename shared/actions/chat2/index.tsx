@@ -2179,10 +2179,15 @@ function* attachmentsUpload(
   logger: Saga.SagaLogger
 ) {
   const {conversationIDKey, paths, titles} = action.payload
+  let tlfName = action.payload.tlfName
   const meta = state.chat2.metaMap.get(conversationIDKey)
   if (!meta) {
-    logger.warn('Missing meta for attachment upload', conversationIDKey)
-    return
+    if (!tlfName) {
+      logger.warn('attachmentsUpload: missing meta for attachment upload', conversationIDKey)
+      return
+    }
+  } else {
+    tlfName = meta.tlfname
   }
   const clientPrev = Constants.getClientPrev(state, conversationIDKey)
   // disable sending exploding messages if flag is false
@@ -2203,7 +2208,7 @@ function* attachmentsUpload(
           metadata: Buffer.from([]),
           outboxID: outboxIDs[i],
           title: titles[i],
-          tlfName: meta.tlfname,
+          tlfName: tlfName ?? '',
           visibility: RPCTypes.TLFVisibility.private,
         },
         clientPrev,
