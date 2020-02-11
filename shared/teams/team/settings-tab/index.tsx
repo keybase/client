@@ -7,7 +7,9 @@ import {globalColors, globalMargins, styleSheetCreate, platformStyles} from '../
 import {isMobile} from '../../../constants/platform'
 import {FloatingRolePicker} from '../../role-picker'
 import {pluralize} from '../../../util/string'
+import TeamJourney from '../../../chat/conversation/messages/cards/team-journey/index'
 import RetentionPicker from './retention/container'
+import * as Styles from '../../../styles'
 
 type Props = {
   canShowcase: boolean
@@ -296,6 +298,7 @@ export class Settings extends React.Component<Props, State> {
       ...this.state,
       setBoolSettings: this.setBoolSettings,
     }
+    // TODO should be admin only, this is allowed to write
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} alignItems="flex-start" style={styles.main}>
         {!!this.props.error && <Kb.Banner color="red">{this.props.error}</Kb.Banner>}
@@ -323,6 +326,21 @@ export class Settings extends React.Component<Props, State> {
             entityType={this.props.isBigTeam ? 'big team' : 'small team'}
           />
         )}
+        {this.props.yourOperations.chat && (
+          <Kb.Box2 direction="vertical" style={styles.welcomeMessage} alignSelf="flex-start">
+            <Kb.Box style={styles.heading}>
+              <Kb.Text type="BodySmallSemibold">Welcome message</Kb.Text>
+            </Kb.Box>
+
+            <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
+              <Kb.Box2 direction="horizontal" style={styles.welcomeMessageContainer} />
+              <Kb.Box2 direction="vertical" gap="xtiny">
+                <Kb.Text type="BodySemibold"> Oz</Kb.Text>
+                <TeamJourney actions={[]} teamname="tlima4" />
+              </Kb.Box2>
+            </Kb.Box2>
+          </Kb.Box2>
+        )}
         <Kb.Box2 direction="horizontal" style={styles.button}>
           <Kb.Button
             label="Save"
@@ -348,6 +366,11 @@ const styles = styleSheetCreate(() => ({
       top: -20,
     },
   }),
+  welcomeMessageContainer: {
+    alignSelf: 'stretch',
+    backgroundColor: Styles.globalColors.grey,
+    paddingLeft: Styles.globalMargins.xtiny,
+  },
   grey: {color: globalColors.black_50},
   joinAs: platformStyles({
     isElectron: {
@@ -371,6 +394,15 @@ const styles = styleSheetCreate(() => ({
     paddingRight: globalMargins.small,
     paddingTop: globalMargins.small,
   },
+  welcomeMessage: {
+    paddingRight: globalMargins.small,
+    paddingTop: globalMargins.small,
+  },
   shrink: {flex: 1},
   teamPadding: {paddingTop: globalMargins.small},
+  heading: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+    marginBottom: Styles.globalMargins.tiny,
+  },
 }))
