@@ -81,12 +81,12 @@ func (g *GPGKey) SignToStringMctx(mctx MetaContext, msg []byte) (sig string, id 
 	return sig, id, nil
 }
 
-func (g *GPGKey) VerifyStringAndExtract(ctx VerifyContext, sig string) (msg []byte, id keybase1.SigID, err error) {
-	return msg, id, errors.New("VerifyStringAndExtract not implemented")
+func (g *GPGKey) VerifyStringAndExtract(ctx VerifyContext, sig string) (msg []byte, res SigVerifyResult, err error) {
+	return msg, res, errors.New("VerifyStringAndExtract not implemented")
 }
 
-func (g *GPGKey) VerifyString(ctx VerifyContext, sig string, msg []byte) (id keybase1.SigID, err error) {
-	return id, errors.New("VerifyString not implemented")
+func (g *GPGKey) VerifyString(ctx VerifyContext, sig string, msg []byte) (res SigVerifyResult, err error) {
+	return res, errors.New("VerifyString not implemented")
 }
 
 func (g *GPGKey) EncryptToString(plaintext []byte, sender GenericKey) (ciphertext string, err error) {
