@@ -2,6 +2,7 @@
   "chat.1.local.addBotConvSearch": {"promise": true},
   "chat.1.local.addBotMember": {"promise": true},
   "chat.1.local.bulkAddToConv": {"promise": true},
+  "chat.1.local.bulkAddToManyConvs": {"promise": true},
   "chat.1.local.CancelPost": {"promise": true},
   "chat.1.local.ConfigureFileAttachmentDownloadLocal": {"promise": true},
   "chat.1.local.DownloadFileAttachmentLocal": {"engineSaga": true},

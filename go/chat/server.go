@@ -2648,6 +2648,20 @@ func sendBulkAddToConv(ctx context.Context, sender *BlockingSender, usernames []
 	return err
 }
 
+func (h *Server) BulkAddToManyConvs(ctx context.Context, arg chat1.BulkAddToManyConvsArg) (err error) {
+	for _, conv := range arg.Conversations {
+		err = h.BulkAddToConv(ctx, chat1.BulkAddToConvArg{
+			ConvID:    conv,
+			Usernames: arg.Usernames,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (h *Server) PutReacjiSkinTone(ctx context.Context, skinTone keybase1.ReacjiSkinTone) (res keybase1.UserReacjis, err error) {
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "PutReacjiSkinTone")()
