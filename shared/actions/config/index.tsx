@@ -561,7 +561,7 @@ function* allowLogoutWaiters(_: Container.TypedState, action: ConfigGen.LogoutHa
 const updateServerConfig = async () =>
   RPCTypes.configUpdateLastLoggedInAndServerConfigRpcPromise({
     serverConfigPath: Platform.serverConfigFileName,
-  })
+  }).catch(() => {})
 
 const setNavigator = (action: ConfigGen.SetNavigatorPayload) => {
   const navigator = action.payload.navigator
