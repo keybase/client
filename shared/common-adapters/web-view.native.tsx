@@ -53,7 +53,6 @@ const KBWebView = (props: WebViewProps) => {
       startInLoadingState={!!renderLoading}
       renderLoading={renderLoading}
       onNavigationStateChange={navState => {
-        console.log({songgao: 'onNavigationStateChange', navState, url: navState.url})
         // This prevents navigating away from a link on a PDF, which protects
         // us from an attack where someone could make a webpage that looks like
         // the app and trick user into entering sensitive information on a
