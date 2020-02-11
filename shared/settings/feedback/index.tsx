@@ -137,9 +137,13 @@ class Feedback extends React.Component<Props, State> {
                 />
               </Kb.Box2>
             )}
-            <Kb.Box2 alignSelf={this.props.loggedOut ? 'center' : 'flex-start'} direction="horizontal" gap="tiny">
-              <Kb.ButtonBar >
-                <Kb.Button label="Send" onClick={this._onSendFeedback} waiting={sending} fullWidth={true}/>
+            <Kb.Box2
+              alignSelf={this.props.loggedOut ? 'center' : 'flex-start'}
+              direction="horizontal"
+              gap="tiny"
+            >
+              <Kb.ButtonBar>
+                <Kb.Button label="Send" onClick={this._onSendFeedback} waiting={sending} fullWidth={true} />
               </Kb.ButtonBar>
             </Kb.Box2>
             {sendError && (
