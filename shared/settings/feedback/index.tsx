@@ -183,8 +183,8 @@ const styles = Styles.styleSheetCreate(
       mainBox: Styles.platformStyles({
         isElectron: {
           maxWidth: 550,
-          width: '100%',
           padding: Styles.globalMargins.small,
+          width: '100%',
         },
         isTablet: {
           maxWidth: Styles.globalStyles.mediumWidth,
