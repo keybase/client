@@ -198,3 +198,45 @@ func TestDownloadGetFilenames(t *testing.T) {
 		require.Equal(t, expected, safeFilename)
 	}
 }
+
+func TestSecureRandomRndRange(t *testing.T) {
+	s := SecureRandom{}
+
+	var tests = []struct {
+		lo        int64
+		hi        int64
+		shouldErr bool
+	}{
+		{0, 0, false},
+		{1, 1, false},
+		{-1, -1, false},
+		{1, 0, true},
+		{-1, -2, true},
+		{2, 5, false},
+		{-1, 10, false},
+		{1, 50, false},
+		{-40, -1, false},
+	}
+
+	for _, test := range tests {
+		for i := 0; i < 10; i++ {
+			r, err := s.RndRange(test.lo, test.hi)
+			if test.shouldErr {
+				require.Error(t, err)
+				continue
+			}
+			require.True(t, r >= test.lo)
+			require.True(t, r <= test.hi)
+		}
+	}
+
+	// basic consistency check that sampled random numbers are different (the
+	// random function is not a constant). Duplicate outputs should happen very
+	// infrequently on a large range. In this case, the test will flake with
+	// probability exactly 1/10^12.
+	r1, err := s.RndRange(0, 1000000000000)
+	require.NoError(t, err)
+	r2, err := s.RndRange(0, 1000000000000)
+	require.NoError(t, err)
+	require.NotEqual(t, r1, r2)
+}

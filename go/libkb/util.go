@@ -333,6 +333,29 @@ func IsPossiblePhoneNumber(phone keybase1.PhoneNumber) error {
 	return nil
 }
 
+type Random interface {
+	// RndRange returns a uniformly random integer between low and high inclusive
+	RndRange(low, high int64) (res int64, err error)
+}
+
+// SecureRandom internally uses the cryptographically secure crypto/rand as a
+// source of randomness.
+type SecureRandom struct{}
+
+func (r *SecureRandom) RndRange(low, high int64) (res int64, err error) {
+	if low > high {
+		return 0, fmt.Errorf("SecureRandom error: [%v,%v] is not a valid range", low, high)
+	}
+	rangeBig := big.NewInt(high - low + 1)
+	big, err := rand.Int(rand.Reader, rangeBig)
+	if err != nil {
+		return 0, err
+	}
+	return low + big.Int64(), nil
+}
+
+var _ Random = (*SecureRandom)(nil)
+
 func RandBytes(length int) ([]byte, error) {
 	var n int
 	var err error
