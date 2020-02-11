@@ -2,21 +2,52 @@ import * as React from 'react'
 import * as Container from '../../util/container'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
+import {useGetIDInfo} from './hooks'
 
 type Props = {
   username: string
   size: number
 }
 
+const HalfCircle = ({size, style}) => (
+  <div
+    style={Styles.collapseStyles([
+      style,
+      {width: size, height: size / 2, borderTopLeftRadius: size / 2, borderTopRightRadius: size / 2},
+    ])}
+  />
+)
+
 const Circle = (p: Props) => {
   const {username, size} = p
+
+  const {running, load, percentDone, color} = useGetIDInfo(username)
+
   if (!username) {
     return null
   }
 
-  const half = size / 2
-  const stroke = 4
-  const halfStroke = stroke / 2
+  return (
+    <>
+      <Kb.Text type="Body" style={{position: 'absolute'}}>
+        {JSON.stringify(
+          {
+            color,
+            load,
+            percentDone,
+            running,
+          },
+          null,
+          4
+        )}
+      </Kb.Text>
+      <HalfCircle size={size} style={{position: 'absolute', backgroundColor: color}} />
+    </>
+  )
+
+  // const half = size / 2
+  // const stroke = 4
+  // const halfStroke = stroke / 2
 
   // <Kb.Svg.Circle
   // cx={half}

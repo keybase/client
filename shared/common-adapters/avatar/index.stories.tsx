@@ -1,14 +1,82 @@
 import Avatar, {AvatarSize} from '.'
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
+import * as Container from '../../util/container'
+import * as Constants from '../../constants/tracker2'
 import Text from '../text'
-import Box from '../box'
-import {globalStyles} from '../../styles'
+import Box, {Box2} from '../box'
+
+const Kb = {
+  Avatar,
+  Box,
+  Box2,
+  Text,
+}
 
 const sizes: Array<AvatarSize> = [128, 96, 64, 48, 32, 16]
 const provider = Sb.createPropProviderWithCommon(
   Sb.PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
 )
+
+const store = Container.produce(Sb.createStoreWithCommon(), draftState => {
+  draftState.tracker2.usernameToDetails.set('t_bob', {
+    assertions: new Map([
+      [
+        'one',
+        {
+          ...Constants.noAssertion,
+          type: 'twitter',
+          value: 'alice',
+          state: 'checking',
+        },
+      ],
+    ]),
+  })
+  draftState.tracker2.usernameToDetails.set('t_carol', {
+    assertions: new Map([
+      [
+        'one',
+        {
+          ...Constants.noAssertion,
+          type: 'twitter',
+          value: 'alice',
+          state: 'checking',
+        },
+      ],
+      [
+        'two',
+        {
+          ...Constants.noAssertion,
+          type: 'facebook',
+          value: 'alice',
+          state: 'valid',
+        },
+      ],
+    ]),
+  })
+  draftState.tracker2.usernameToDetails.set('t_bad', {
+    assertions: new Map([
+      [
+        'one',
+        {
+          ...Constants.noAssertion,
+          type: 'twitter',
+          value: 'alice',
+          state: 'checking',
+        },
+      ],
+      [
+        'two',
+        {
+          ...Constants.noAssertion,
+          type: 'facebook',
+          value: 'alice',
+          state: 'error',
+        },
+      ],
+    ]),
+  })
+})
 
 const load = () => {
   Sb.storiesOf('Common', module)
@@ -18,31 +86,43 @@ const load = () => {
       sizes.map(size => {
         const commonProps = {
           onClick: Sb.action('Avatar clicked'),
-          showFollowingStatus: true,
+          showFollowingStatus: false,
           size: size,
-          style: avatarStyle,
           username: 'nofollow-following',
         }
         return (
-          <Box key={size}>
-            <Text type="Body">{size}</Text>
-            <Box style={{...globalStyles.flexBoxRow, flexWrap: 'wrap'}}>
-              <Avatar {...commonProps} />
-              <Avatar {...commonProps} borderColor="blue" />
-              <Avatar {...commonProps} username="following" />
-              <Avatar {...commonProps} username="following" showFollowingStatus={false} />
-              <Avatar {...commonProps} username="followers" />
-              <Avatar {...commonProps} username="both" />
-              <Avatar {...commonProps} username={undefined} teamname="keybase" />
-            </Box>
-          </Box>
+          <Kb.Box key={size}>
+            <Kb.Text type="Body">{size}</Kb.Text>
+            <Kb.Box2 direction="horizontal" gap="small" style={{flexWrap: 'wrap'}}>
+              <Kb.Avatar {...commonProps} />
+              <Kb.Avatar {...commonProps} borderColor="blue" />
+              <Kb.Avatar {...commonProps} username="following" />
+              <Kb.Avatar {...commonProps} username="followers" />
+              <Kb.Avatar {...commonProps} username="both" />
+              <Kb.Avatar {...commonProps} username={undefined} teamname="keybase" />
+            </Kb.Box2>
+          </Kb.Box>
         )
       })
     )
-}
 
-const avatarStyle = {
-  marginLeft: 10,
+  Sb.storiesOf('Common', module)
+    .addDecorator((story: any) => <Sb.MockStore store={store}>{story()}</Sb.MockStore>)
+    .add('AvatarFollow', () => {
+      const props = {
+        onClick: Sb.action('Avatar clicked'),
+        showFollowingStatus: true,
+        size: 128,
+      } as const
+      return (
+        <Kb.Box2 direction="vertical" fullWidth={true}>
+          <Kb.Avatar {...props} username="t_alice" />
+          <Kb.Avatar {...props} username="t_bob" />
+          <Kb.Avatar {...props} username="t_carol" />
+          <Kb.Avatar {...props} username="t_bad" />
+        </Kb.Box2>
+      )
+    })
 }
 
 export default load
