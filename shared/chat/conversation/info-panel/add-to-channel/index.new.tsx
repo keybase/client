@@ -10,6 +10,7 @@ import * as Container from '../../../../util/container'
 import {useTeamDetailsSubscribe} from '../../../../teams/subscriber'
 import {pluralize} from '../../../../util/string'
 import {memoize} from '../../../../util/memoize'
+import {ModalTitle} from '../../../../teams/common'
 
 type Props = Container.RouteProps<{
   conversationIDKey: ChatTypes.ConversationIDKey
@@ -163,25 +164,10 @@ const title = ({channelname, teamname}: {channelname: string; teamname: string})
   Styles.isMobile ? (
     `Add to #${channelname}`
   ) : (
-    <Kb.Box2 direction="vertical" gap="xtiny" alignItems="center" style={styles.title}>
-      <Kb.Avatar size={32} teamname={teamname} style={styles.avatar} />
-      <Kb.Box2 direction="vertical" alignItems="center">
-        <Kb.Text type="BodySmall" lineClamp={1}>
-          {teamname}
-        </Kb.Text>
-        <Kb.Text type="Header">Add to #{channelname}</Kb.Text>
-      </Kb.Box2>
-    </Kb.Box2>
+    <ModalTitle teamname={teamname}>Add to #{channelname}</ModalTitle>
   )
 
 const styles = Styles.styleSheetCreate(() => ({
-  avatar: Styles.platformStyles({
-    isElectron: {
-      height: 16,
-      position: 'relative',
-      top: -16,
-    },
-  }),
   checkCircle: {paddingRight: Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.tiny},
   filterInput: Styles.platformStyles({
     isElectron: {
@@ -193,9 +179,6 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
   list: Styles.platformStyles({isMobile: {height: '100%'}}),
   listContainer: Styles.platformStyles({isElectron: {height: 370}}), // shortcut to get the list to expand the modal.
-  title: {
-    paddingBottom: Styles.globalMargins.tiny,
-  },
 }))
 
 export default AddToChannel
