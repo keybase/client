@@ -1,6 +1,5 @@
 import * as Types from './types/fs'
 import * as RPCTypes from './types/rpc-gen'
-import * as ChatConstants from './chat2'
 import * as FsGen from '../actions/fs-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
 import * as Flow from '../util/flow'
@@ -204,14 +203,6 @@ export const makeError = (args?: _MakeErrorArgs): Types.FsError => {
   }
 }
 export const emptyError = makeError()
-
-export const emptySendAttachmentToChat: Types.SendAttachmentToChat = {
-  convID: ChatConstants.noConversationIDKey,
-  convName: '',
-  path: Types.stringToPath('/keybase'),
-  state: Types.SendAttachmentToChatState.None,
-  title: '',
-}
 
 export const emptyPathItemActionMenu: Types.PathItemActionMenu = {
   downloadID: null,
@@ -906,15 +897,6 @@ export const makeActionForOpenPathInFilesTab = (
 ): TypedActions => RouteTreeGen.createNavigateAppend({path: [{props: {path}, selected: 'fsRoot'}]})
 
 export const putActionIfOnPathForNav1 = (action: TypedActions) => action
-
-export const makeActionsForShowSendAttachmentToChat = (path: Types.Path): Array<TypedActions> => [
-  FsGen.createInitSendAttachmentToChat({path}) as any,
-  putActionIfOnPathForNav1(
-    RouteTreeGen.createNavigateAppend({
-      path: [{props: {path}, selected: 'sendAttachmentToChat'}],
-    })
-  ),
-]
 
 export const getMainBannerType = (
   kbfsDaemonStatus: Types.KbfsDaemonStatus,

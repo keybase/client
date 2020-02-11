@@ -1,7 +1,6 @@
 import logger from '../logger'
 import * as FsGen from '../actions/fs-gen'
 import * as Constants from '../constants/fs'
-import * as ChatConstants from '../constants/chat2'
 import * as Types from '../constants/types/fs'
 import * as Container from '../util/container'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -32,7 +31,6 @@ const initialState: Types.State = {
   pathItemActionMenu: Constants.emptyPathItemActionMenu,
   pathItems: new Map(),
   pathUserSettings: new Map(),
-  sendAttachmentToChat: Constants.emptySendAttachmentToChat,
   settings: Constants.emptySettings,
   sfmi: {
     directMountDir: '',

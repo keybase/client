@@ -1,8 +1,5 @@
 {
-  "prelude": [
-    "import * as Types from '../constants/types/fs'",
-    "import * as ChatTypes from '../constants/types/chat2'"
-  ],
+  "prelude": ["import * as Types from '../constants/types/fs'"],
   "actions": {
     "subscribePath": {
       "subscriptionID": "string",

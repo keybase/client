@@ -4,8 +4,6 @@ import * as Types from '../../../../constants/types/chat2'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Container from '../../../../util/container'
 import * as Styles from '../../../../styles'
-import {rowHeight} from '../../../../chat/selectable-big-team-channel'
-import {rowHeight as shouldEqualToRowHeight} from '../../../../chat/selectable-small-team'
 import logger from '../../../../logger'
 import debounce from 'lodash/debounce'
 import {Avatars, TeamAvatar} from '../../../../chat/avatars'
@@ -92,38 +90,54 @@ const ConversationList = (props: Props) => {
     props.onSelect(convID, convName)
     props.onDone?.()
   }
+  return (
+    <ConversationListRender
+      selected={selected}
+      setSelected={setSelected}
+      waiting={waiting}
+      results={results}
+      setQuery={setQuery}
+      onSelect={onSelect}
+    />
+  )
+}
 
-  if (rowHeight !== shouldEqualToRowHeight) {
-    // Sanity check, in case this changes in the future
-    return <Kb.Text type="BodyBigExtrabold">item size changes, should use use variable size list</Kb.Text>
-  }
+type ConversationListRenderProps = {
+  selected: number
+  setSelected: (selected: number) => void
+  waiting: boolean
+  results: Array<RPCChatTypes.SimpleSearchInboxConvNamesHit>
+  setQuery: (query: string) => void
+  onSelect: (conversationIDKey: Types.ConversationIDKey, convName: string) => void
+}
 
+export const ConversationListRender = (props: ConversationListRenderProps) => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
       <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.filterContainer}>
         <Kb.SearchFilter
-          placeholderText="Search"
-          onChange={debounce(setQuery, 200)}
+          placeholderText="Search chats..."
+          onChange={debounce(props.setQuery, 200)}
           size="small"
           icon="iconfont-search"
-          waiting={waiting}
+          waiting={props.waiting}
           focusOnMount={true}
           onKeyDown={(e: React.KeyboardEvent) => {
             switch (e.key) {
               case 'ArrowDown':
-                if (selected < results.length - 1) {
-                  setSelected(selected + 1)
+                if (props.selected < props.results.length - 1) {
+                  props.setSelected(props.selected + 1)
                 }
                 break
               case 'ArrowUp':
-                if (selected > 0) {
-                  setSelected(selected - 1)
+                if (props.selected > 0) {
+                  props.setSelected(props.selected - 1)
                 }
                 break
               case 'Enter':
-                if (results.length > 0) {
-                  const result = results[selected]
-                  onSelect(Types.conversationIDToKey(result.convID), result.name)
+                if (props.results.length > 0) {
+                  const result = props.results[props.selected]
+                  props.onSelect(Types.conversationIDToKey(result.convID), result.name)
                 }
                 break
             }
@@ -131,11 +145,11 @@ const ConversationList = (props: Props) => {
         />
       </Kb.Box2>
       <Kb.List2
-        itemHeight={{height: rowHeight, type: 'fixed'}}
-        items={results.map((r, index) => ({
-          isSelected: index === selected,
+        itemHeight={{sizeType: 'Large', type: 'fixedListItem2Auto'}}
+        items={props.results.map((r, index) => ({
+          isSelected: index === props.selected,
           item: r,
-          onSelect: () => onSelect(Types.conversationIDToKey(r.convID), r.name),
+          onSelect: () => props.onSelect(Types.conversationIDToKey(r.convID), r.name),
         }))}
         renderItem={_itemRenderer}
         indexAsKey={true}
@@ -155,9 +169,6 @@ const styles = Styles.styleSheetCreate(
           paddingBottom: Styles.globalMargins.tiny,
         },
       }),
-      moreLessContainer: {
-        height: rowHeight,
-      },
       results: Styles.platformStyles({
         common: {
           padding: Styles.globalMargins.tiny,

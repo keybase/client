@@ -1,5 +1,4 @@
 import * as RPCTypes from './rpc-gen'
-import * as ChatTypes from './chat2'
 import * as Devices from './devices'
 import {isWindows} from '../platform'
 import {memoize} from '../../util/memoize'
@@ -429,13 +428,6 @@ export type DestinationPicker = {
   readonly source: MoveOrCopySource | IncomingShareSource | NoSource
 }
 
-export enum SendAttachmentToChatState {
-  None = 'none',
-  PendingSelectConversation = 'pending-select-conversation',
-  ReadyToSend = 'ready-to-send', // a conversation is selected
-  Sent = 'sent',
-}
-
 export enum PathItemActionMenuView {
   Root = 'root',
   Share = 'share',
@@ -563,7 +555,6 @@ export type State = {
   readonly pathItems: PathItems
   readonly pathInfos: Map<Path, PathInfo>
   readonly pathUserSettings: Map<Path, PathUserSetting>
-  readonly sendAttachmentToChat: SendAttachmentToChat
   readonly settings: Settings
   readonly sfmi: SystemFileManagerIntegration
   readonly softErrors: SoftErrors

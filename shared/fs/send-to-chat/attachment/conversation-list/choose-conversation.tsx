@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
 import * as Kb from '../../../../common-adapters'
-import * as Container from '../../../../util/container'
 import * as Styles from '../../../../styles'
 import ConversationList from './conversation-list'
 

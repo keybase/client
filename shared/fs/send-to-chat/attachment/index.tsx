@@ -32,7 +32,6 @@ const MobileSendAttachmentToChat = (props: Props) => {
     )
     dispatch(RouteTreeGen.createClearModals())
     dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'files'}))
-    dispatch(Chat2Gen.createNavigateToThread())
   }
   const onCancel = () => {
     dispatch(RouteTreeGen.createClearModals())
@@ -42,7 +41,7 @@ const MobileSendAttachmentToChat = (props: Props) => {
       onClose={onCancel}
       header={{
         leftButton: (
-          <Kb.Text type="BodyBigLink" style={mobileStyles.button} onClick={onCancel}>
+          <Kb.Text type="BodyBigLink" onClick={onCancel}>
             Cancel
           </Kb.Text>
         ),
@@ -82,6 +81,32 @@ const DesktopSendAttachmentToChat = (props: Props) => {
     dispatch(Chat2Gen.createNavigateToThread())
   }
   return (
+    <DesktopSendAttachmentToChatRender
+      enabled={conversationIDKey === ChatConstants.noConversationIDKey}
+      convName={convName}
+      path={path}
+      title={title}
+      setTitle={setTitle}
+      onSend={onSend}
+      onSelect={onSelect}
+      onCancel={onCancel}
+    />
+  )
+}
+
+type DesktopSendAttachmentToChatRenderProps = {
+  enabled: boolean
+  convName: string
+  path: Types.Path
+  title: string
+  setTitle: (title: string) => void
+  onSend: () => void
+  onCancel: () => void
+  onSelect: (convID: ChatTypes.ConversationIDKey, convName: string) => void
+}
+
+export const DesktopSendAttachmentToChatRender = (props: DesktopSendAttachmentToChatRenderProps) => {
+  return (
     <>
       <Kb.Box2 direction="vertical" style={desktopStyles.container} centerChildren={true}>
         <Kb.Box2 direction="horizontal" centerChildren={true} style={desktopStyles.header} fullWidth={true}>
@@ -95,28 +120,24 @@ const DesktopSendAttachmentToChat = (props: Props) => {
             style={desktopStyles.pathItem}
             gap="tiny"
           >
-            <Kbfs.ItemIcon size={48} path={path} badgeOverride="iconfont-attachment" />
-            <Kb.Text type="BodySmall">{Types.getPathName(path)}</Kb.Text>
+            <Kbfs.ItemIcon size={48} path={props.path} badgeOverride="iconfont-attachment" />
+            <Kb.Text type="BodySmall">{Types.getPathName(props.path)}</Kb.Text>
           </Kb.Box2>
           <ChooseConversation
-            convName={convName}
+            convName={props.convName}
             dropdownButtonStyle={desktopStyles.dropdown}
-            onSelect={onSelect}
+            onSelect={props.onSelect}
           />
           <Kb.LabeledInput
             placeholder="Title"
-            value={title}
+            value={props.title}
             style={desktopStyles.input}
-            onChangeText={debounce(setTitle, 200)}
+            onChangeText={debounce(props.setTitle, 200)}
           />
         </Kb.Box2>
         <Kb.ButtonBar fullWidth={true} style={desktopStyles.buttonBar}>
-          <Kb.Button type="Dim" label="Cancel" onClick={onCancel} />
-          <Kb.Button
-            label="Send in conversation"
-            onClick={onSend}
-            disabled={conversationIDKey === ChatConstants.noConversationIDKey}
-          />
+          <Kb.Button type="Dim" label="Cancel" onClick={props.onCancel} />
+          <Kb.Button label="Send in conversation" onClick={props.onSend} disabled={!props.enabled} />
         </Kb.ButtonBar>
       </Kb.Box2>
     </>
@@ -128,29 +149,6 @@ const SendAttachmentToChat = Styles.isMobile
   : Kb.HeaderOrPopup(DesktopSendAttachmentToChat)
 
 export default SendAttachmentToChat
-
-const mobileStyles = Styles.styleSheetCreate(
-  () =>
-    ({
-      button: {
-        paddingBottom: Styles.globalMargins.tiny,
-        paddingLeft: Styles.globalMargins.small,
-        paddingRight: Styles.globalMargins.small,
-        paddingTop: Styles.globalMargins.tiny,
-      },
-      filename: {
-        textAlign: 'center',
-      },
-      headerContainer: {
-        minHeight: 44,
-      },
-      headerContent: {
-        flex: 1,
-        flexShrink: 1,
-        padding: Styles.globalMargins.xtiny,
-      },
-    } as const)
-)
 
 const desktopStyles = Styles.styleSheetCreate(
   () =>
