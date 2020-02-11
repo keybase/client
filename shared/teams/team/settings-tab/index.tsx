@@ -307,7 +307,6 @@ export class Settings extends React.Component<Props, State> {
       ...this.state,
       setBoolSettings: this.setBoolSettings,
     }
-    // TODO editor should be admin only, this is allowed to write
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} alignItems="flex-start" style={styles.main}>
         {!!this.props.error && <Kb.Banner color="red">{this.props.error}</Kb.Banner>}
@@ -335,7 +334,7 @@ export class Settings extends React.Component<Props, State> {
             entityType={this.props.isBigTeam ? 'big team' : 'small team'}
           />
         )}
-        {this.props.yourOperations.chat && (
+        {
           <Kb.Box2 direction="vertical" style={styles.welcomeMessage} fullWidth={true}>
             <Kb.Box>
               <Kb.Text type="BodySmallSemibold">Welcome message</Kb.Text>
@@ -360,7 +359,7 @@ export class Settings extends React.Component<Props, State> {
               </Kb.Box2>
             </Kb.Box2>
           </Kb.Box2>
-        )}
+        }
         <Kb.Box2 direction="horizontal" style={styles.button}>
           <Kb.Button
             label="Save"

@@ -10,6 +10,7 @@ const commonProps = {
   onAuthorClick: Sb.action('onAuthorClick'),
   onDismiss: Sb.action('onDismiss'),
   teamname: 'foo',
+  noDismiss: false,
 }
 
 const load = () => {
