@@ -785,6 +785,7 @@ func (k PGPKeyBundle) VerifyStringAndExtract(ctx VerifyContext, sig string) (msg
 	}
 	msg = ps.LiteralData
 	res.SigID = ps.ID()
+	// TODO: Check for weak digests properly
 	if ps.MD.Signature.Hash == crypto.SHA1 {
 		res.WeakDigest = &ps.MD.Signature.Hash
 	}
