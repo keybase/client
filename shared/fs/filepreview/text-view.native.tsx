@@ -7,6 +7,7 @@ const TextView = (props: Props) => (
   <Kb.Box2 fullHeight={true} fullWidth={true} direction="vertical">
     <Kb.WebView
       url={props.url}
+      pinnedURLMode={true}
       style={styles.webview}
       injections={injections}
       onError={props.onUrlError}
