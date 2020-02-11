@@ -201,37 +201,21 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
   }
 
   render() {
-    const commandUpdateStatus = this.props.suggestBotCommandsUpdateStatus !==
+    const {suggestionsVisible, suggestBotCommandsUpdateStatus, onCancelEditing, isEditing} = this.props
+    const {conversationIDKey, cannotWrite, onBlur, onFocus, onSelectionChange, maxInputArea} = this.props
+    const {isExploding, explodingModeSeconds, showTypingStatus} = this.props
+
+    const commandUpdateStatus = suggestBotCommandsUpdateStatus !==
       RPCChatTypes.UIBotCommandsUpdateStatusTyp.blank &&
-      (this.props.suggestionsVisible ||
-        this.props.suggestBotCommandsUpdateStatus === RPCChatTypes.UIBotCommandsUpdateStatusTyp.updating) && (
-        <BotCommandUpdateStatus status={this.props.suggestBotCommandsUpdateStatus} />
+      (suggestionsVisible ||
+        suggestBotCommandsUpdateStatus === RPCChatTypes.UIBotCommandsUpdateStatusTyp.updating) && (
+        <BotCommandUpdateStatus status={suggestBotCommandsUpdateStatus} />
       )
 
-    const explodingIcon = !this.props.isEditing && !this.props.cannotWrite && (
-      <Kb.NativeTouchableWithoutFeedback onPress={() => this.toggleShowingMenu('exploding')}>
-        <Kb.Box style={styles.explodingWrapper}>
-          {this.props.isExploding ? (
-            <Kb.Box2 direction="horizontal" style={styles.exploding} centerChildren={true}>
-              <Kb.Text type="BodyTinyBold" negative={true}>
-                {formatDurationShort(this.props.explodingModeSeconds * 1000)}
-              </Kb.Text>
-            </Kb.Box2>
-          ) : (
-            <Kb.Icon
-              color={this.props.isExploding ? Styles.globalColors.black : null}
-              type="iconfont-timer"
-              fontSize={22}
-            />
-          )}
-        </Kb.Box>
-      </Kb.NativeTouchableWithoutFeedback>
-    )
-
-    const editing = this.props.isEditing && (
+    const editing = isEditing && (
       <Kb.Box style={styles.editingTabStyle}>
         <Kb.Text type="BodySmall">Edit:</Kb.Text>
-        <Kb.Text type="BodySmallPrimaryLink" onClick={this.props.onCancelEditing}>
+        <Kb.Text type="BodySmallPrimaryLink" onClick={onCancelEditing}>
           Cancel
         </Kb.Text>
       </Kb.Box>
@@ -269,7 +253,7 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
                 this.animateState,
                 this.animateHeight,
                 this.lastHeight,
-                this.props.maxInputArea ?? Styles.dimensionHeight,
+                maxInputArea ?? Styles.dimensionHeight,
                 this.onDone
               ),
             ])
@@ -277,9 +261,7 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
         </Kb.ReAnimated.Code>
         {commandUpdateStatus}
         {this.getMenu()}
-        {this.props.showTypingStatus && !this.props.suggestionsVisible && (
-          <Typing conversationIDKey={this.props.conversationIDKey} />
-        )}
+        {showTypingStatus && !suggestionsVisible && <Typing conversationIDKey={conversationIDKey} />}
         <Kb.Box2
           direction="vertical"
           style={Styles.collapseStyles([
@@ -293,73 +275,136 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
             <Kb.PlainInput
               autoCorrect={true}
               autoCapitalize="sentences"
-              disabled={this.props.cannotWrite ?? false}
+              disabled={cannotWrite ?? false}
               placeholder={this.getHintText()}
               multiline={true}
-              onBlur={this.props.onBlur}
-              onFocus={this.props.onFocus}
+              onBlur={onBlur}
+              onFocus={onFocus}
               // TODO: Call onCancelQuoting on text change or selection
               // change to match desktop.
               onChangeText={this.onChangeText}
-              onSelectionChange={this.props.onSelectionChange}
+              onSelectionChange={onSelectionChange}
               ref={this.inputSetRef}
               style={styles.input}
               textType="Body"
               rowsMin={1}
             />
-            <Kb.ClickableBox onClick={this.expandInput} style={styles.iconContainer}>
-              <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.iconTop}>
-                <AnimatedIcon
-                  onClick={this.expandInput}
-                  type="iconfont-arrow-full-up"
-                  style={{
-                    transform: [{rotate: concat(add(45, this.rotate), 'deg'), scale: 0.7}],
-                  }}
-                />
-              </Kb.Box2>
-              <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.iconBottom}>
-                <AnimatedIcon
-                  onClick={this.expandInput}
-                  type="iconfont-arrow-full-up"
-                  style={{
-                    transform: [
-                      {
-                        rotate: concat(add(45, this.rotate), 'deg'),
-                        scaleX: -0.7,
-                        scaleY: -0.7,
-                      },
-                    ],
-                  }}
-                />
-              </Kb.Box2>
-            </Kb.ClickableBox>
+            <AnimatedExpand expandInput={this.expandInput} rotate={this.rotate} />
           </Kb.Box2>
-          <Kb.Box2
-            direction="horizontal"
-            fullWidth={true}
-            gap="small"
-            alignItems="flex-end"
-            style={styles.actionContainer}
-          >
-            {explodingIcon}
-            <Kb.Icon onClick={this.insertMentionMarker} type="iconfont-mention" />
-            <Kb.Icon onClick={this.openFilePicker} type="iconfont-camera" />
-            <AudioRecorder conversationIDKey={this.props.conversationIDKey} />
-            <Kb.Icon onClick={this.openMoreMenu} type="iconfont-add" />
-            <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexGrow} />
-            <Kb.Button
-              type="Default"
-              small={true}
-              onClick={this.onSubmit}
-              disabled={!this.state.hasText}
-              label={this.props.isEditing ? 'Save' : 'Send'}
-            />
-          </Kb.Box2>
+          <Buttons
+            conversationIDKey={conversationIDKey}
+            insertMentionMarker={this.insertMentionMarker}
+            openFilePicker={this.openFilePicker}
+            openMoreMenu={this.openMoreMenu}
+            onSelectionChange={onSelectionChange}
+            onSubmit={this.onSubmit}
+            hasText={this.state.hasText}
+            isEditing={isEditing}
+            isExploding={isExploding}
+            explodingModeSeconds={explodingModeSeconds}
+            cannotWrite={cannotWrite}
+            toggleShowingMenu={() => this.toggleShowingMenu('exploding')}
+          />
         </Kb.Box2>
       </AnimatedBox2>
     )
   }
 }
+
+type ButtonsProps = Pick<
+  PlatformInputPropsInternal,
+  'conversationIDKey' | 'onSelectionChange' | 'explodingModeSeconds' | 'isExploding' | 'cannotWrite'
+> & {
+  hasText: boolean
+  isEditing: boolean
+  openMoreMenu: () => void
+  toggleShowingMenu: () => void
+  insertMentionMarker: () => void
+  openFilePicker: () => void
+  onSubmit: () => void
+}
+
+const Buttons = (p: ButtonsProps) => {
+  const {conversationIDKey, insertMentionMarker, openFilePicker, openMoreMenu, onSubmit} = p
+  const {hasText, isEditing, isExploding, explodingModeSeconds, cannotWrite, toggleShowingMenu} = p
+
+  const explodingIcon = !isEditing && !cannotWrite && (
+    <Kb.NativeTouchableWithoutFeedback onPress={toggleShowingMenu}>
+      <Kb.Box style={styles.explodingWrapper}>
+        {isExploding ? (
+          <Kb.Box2 direction="horizontal" style={styles.exploding} centerChildren={true}>
+            <Kb.Text type="BodyTinyBold" negative={true}>
+              {formatDurationShort(explodingModeSeconds * 1000)}
+            </Kb.Text>
+          </Kb.Box2>
+        ) : (
+          <Kb.Icon
+            color={isExploding ? Styles.globalColors.black : null}
+            type="iconfont-timer"
+            fontSize={22}
+          />
+        )}
+      </Kb.Box>
+    </Kb.NativeTouchableWithoutFeedback>
+  )
+
+  return (
+    <Kb.Box2
+      direction="horizontal"
+      fullWidth={true}
+      gap="small"
+      alignItems="flex-end"
+      style={styles.actionContainer}
+    >
+      {explodingIcon}
+      <Kb.Icon onClick={insertMentionMarker} type="iconfont-mention" />
+      <Kb.Icon onClick={openFilePicker} type="iconfont-camera" />
+      <AudioRecorder conversationIDKey={conversationIDKey} />
+      <Kb.Icon onClick={openMoreMenu} type="iconfont-add" />
+      <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexGrow} />
+      <Kb.Button
+        type="Default"
+        small={true}
+        onClick={onSubmit}
+        disabled={!hasText}
+        label={isEditing ? 'Save' : 'Send'}
+      />
+    </Kb.Box2>
+  )
+}
+
+const AnimatedExpand = (p: {expandInput: () => void; rotate: Kb.ReAnimated.Value<number>}) => {
+  const {expandInput, rotate} = p
+  return (
+    <Kb.ClickableBox onClick={expandInput} style={styles.iconContainer}>
+      <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.iconTop}>
+        <AnimatedIcon
+          onClick={expandInput}
+          type="iconfont-arrow-full-up"
+          style={{
+            transform: [{rotate: concat(add(45, rotate), 'deg'), scale: 0.7}],
+          }}
+        />
+      </Kb.Box2>
+      <Kb.Box2 direction="vertical" alignSelf="flex-start" style={styles.iconBottom}>
+        <AnimatedIcon
+          onClick={expandInput}
+          type="iconfont-arrow-full-up"
+          style={{
+            transform: [
+              {
+                rotate: concat(add(45, rotate), 'deg'),
+                scaleX: -0.7,
+                scaleY: -0.7,
+              },
+            ],
+          }}
+        />
+      </Kb.Box2>
+    </Kb.ClickableBox>
+  )
+}
+
 const PlatformInput = AddSuggestors(_PlatformInput)
 
 const styles = Styles.styleSheetCreate(
