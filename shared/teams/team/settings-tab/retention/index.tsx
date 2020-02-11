@@ -187,23 +187,11 @@ class _RetentionPicker extends React.Component<PropsWithOverlay<Props>, State> {
         <Kb.Box style={styles.heading}>
           <Kb.Text type="BodySmallSemibold">Message deletion</Kb.Text>
         </Kb.Box>
-        <Kb.ClickableBox
-          onClick={this.props.toggleShowingMenu}
-          ref={this.props.setAttachmentRef}
-          style={Styles.collapseStyles([styles.retentionDropdown, this.props.dropdownStyle])}
-          underlayColor={Styles.globalColors.white_40}
-        >
-          <Kb.Box2
-            direction="horizontal"
-            alignItems="center"
-            gap="tiny"
-            fullWidth={true}
-            style={styles.label}
-          >
-            {this._label()}
-          </Kb.Box2>
-          <Kb.Icon type="iconfont-caret-down" inheritColor={true} fontSize={7} sizeType="Tiny" />
-        </Kb.ClickableBox>
+        <Kb.DropdownButton
+          toggleOpen={this.props.toggleShowingMenu}
+          setAttachmentRef={this.props.setAttachmentRef}
+          selected={this._label()}
+        />
         {this.props.policyIsExploding && (
           <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} gap="xtiny">
             <Kb.Text type="BodySmall">Participants will see their message explode.</Kb.Text>
@@ -266,16 +254,17 @@ const styles = Styles.styleSheetCreate(() => ({
     alignItems: 'center',
     marginBottom: Styles.globalMargins.tiny,
   },
-  label: {
-    justifyContent: 'center',
-    minHeight: Styles.isMobile ? 40 : 32,
-  },
+  // label: {
+  //   justifyContent: 'center',
+  //   minHeight: Styles.isMobile ? 40 : 32,
+  // },
   progressIndicator: {
     height: 30,
     marginTop: Styles.globalMargins.small,
     width: 30,
   },
   retentionDropdown: Styles.platformStyles({
+    // xxx
     common: {
       ...Styles.globalStyles.flexBoxRow,
       alignItems: 'center',
@@ -337,7 +326,14 @@ const policyToLabel = (p: RetentionPolicy, parent: RetentionPolicy | null) => {
       }
   }
   return [
-    timer ? <Kb.Icon color={Styles.globalColors.black} type="iconfont-timer" key="timer" /> : null,
+    timer ? (
+      <Kb.Icon
+        color={Styles.globalColors.black}
+        type="iconfont-timer"
+        key="timer"
+        style={{marginRight: Styles.globalMargins.xtiny}}
+      />
+    ) : null,
     <Kb.Text type="BodySemibold" key="label">
       {text}
     </Kb.Text>,

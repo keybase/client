@@ -32,6 +32,30 @@ export const DropdownButton = (props: DropdownButtonProps) => (
   </ClickableBox>
 )
 
+// @ts-ignore styled can have more than one argument
+const ButtonBox = Styles.styled(Box, {shouldForwardProp: prop => prop !== 'inline'})(props => ({
+  ...Styles.globalStyles.flexBoxRow,
+  ...(!props.disabled && !Styles.isMobile
+    ? {
+        ':hover': {border: `solid 1px ${Styles.globalColors.blue}`, color: Styles.globalColors.blueDark},
+        cursor: 'pointer',
+      }
+    : {}),
+  ...(props.disabled ? {opacity: 0.3} : {}),
+  alignItems: 'center',
+  borderColor: Styles.globalColors.black_10,
+  borderRadius: Styles.borderRadius,
+  borderStyle: 'solid',
+  borderWidth: 1,
+  color: Styles.globalColors.black_50,
+  paddingRight: props.inline
+    ? Styles.globalMargins.tiny
+    : Styles.isMobile
+    ? Styles.globalMargins.large
+    : Styles.globalMargins.small,
+  maxWidth: 500,
+}))
+
 type Props<N> = {
   disabled?: boolean
   itemBoxStyle?: Styles.StylesCrossPlatform
@@ -187,7 +211,8 @@ const styles = Styles.styleSheetCreate(() => ({
   selectedBox: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxCenter,
-      width: '100%',
+      flexDirection: 'row',
+      justifyContent: 'center',
     },
     isElectron: {minHeight: 32},
     isMobile: {minHeight: 48},
@@ -208,30 +233,6 @@ const ItemBox = Styles.styled(Box)(() => ({
   borderStyle: 'solid',
   minHeight: Styles.isMobile ? 40 : 32,
   width: '100%',
-}))
-
-// @ts-ignore styled can have more than one argument
-const ButtonBox = Styles.styled(Box, {shouldForwardProp: prop => prop !== 'inline'})(props => ({
-  ...Styles.globalStyles.flexBoxRow,
-  ...(!props.disabled && !Styles.isMobile
-    ? {
-        ':hover': {border: `solid 1px ${Styles.globalColors.blue}`, color: Styles.globalColors.blueDark},
-        cursor: 'pointer',
-      }
-    : {}),
-  ...(props.disabled ? {opacity: 0.3} : {}),
-  alignItems: 'center',
-  borderColor: Styles.globalColors.black_10,
-  borderRadius: Styles.borderRadius,
-  borderStyle: 'solid',
-  borderWidth: 1,
-  color: Styles.globalColors.black_50,
-  paddingRight: props.inline
-    ? Styles.globalMargins.tiny
-    : Styles.isMobile
-    ? Styles.globalMargins.large
-    : Styles.globalMargins.small,
-  width: props.inline ? undefined : '100%',
 }))
 
 // This whole wrapper exists so as to get proper typing on the export, so

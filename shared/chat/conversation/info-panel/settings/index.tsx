@@ -84,14 +84,14 @@ const SettingsPanel = (props: SettingsPanelProps) => {
   const onLeaveConversation = () => dispatch(Chat2Gen.createLeaveConversation({conversationIDKey}))
 
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.settingsContainer}>
+    <Kb.Box2 direction="vertical" fullHeight={true} style={styles.settingsContainer}>
       <Kb.ScrollView>
         <Notifications conversationIDKey={conversationIDKey} />
         <Kb.Divider style={styles.divider} />
         <RetentionPicker
           containerStyle={styles.retentionContainerStyle}
           conversationIDKey={['adhoc', 'channel'].includes(entityType) ? conversationIDKey : undefined}
-          dropdownStyle={styles.retentionDropdownStyle}
+          // dropdownStyle={styles.retentionDropdownStyle}
           entityType={entityType}
           showSaveIndicator={true}
           teamID={teamID}
@@ -160,22 +160,15 @@ const styles = Styles.styleSheetCreate(
           paddingLeft: 16,
           paddingRight: 16,
         },
-        isMobile: {marginRight: 16},
       }),
-      retentionDropdownStyle: Styles.platformStyles({
-        isElectron: {
-          marginRight: 45 - 16,
-          width: 'auto',
-        },
-        isMobile: {width: '100%'},
-      }),
+      retentionDropdownStyle: Styles.platformStyles({}),
       settingsContainer: Styles.platformStyles({
         common: {
           flex: 1,
           height: '100%',
           paddingTop: Styles.globalMargins.small,
         },
-        isTablet: {alignSelf: 'center', maxWidth: 600},
+        isTablet: {alignSelf: 'center'},
       }),
     } as const)
 )
