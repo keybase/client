@@ -10,9 +10,9 @@ type Props = {
 
 const CreateChannel = (props: Props) => {
   const dispatch = Container.useDispatch()
-  const nav = Container.useSafeNavigation()
+  // const nav = Container.useSafeNavigation()
 
-  const onBack = () => dispatch(nav.safeNavigateUpPayload())
+  const onBack = () => {} // dispatch(nav.safeNavigateUpPayload()) TODO mock nav for storybook
 
   return (
     <Kb.Modal
@@ -57,6 +57,7 @@ const styles = Styles.styleSheetCreate(() => ({
       backgroundColor: Styles.globalColors.blueGrey,
     },
     isElectron: {height: 326},
+    isMobile: {...Styles.globalStyles.flexOne},
   }),
 }))
 
