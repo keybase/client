@@ -1681,8 +1681,6 @@ func (h *Server) GetChannelMembershipsLocal(ctx context.Context, arg chat1.GetCh
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI,
 		&identBreaks, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("GetTLFConversationsLocal(%s)",
-		arg.TlfName))()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	defer func() {
@@ -1691,23 +1689,28 @@ func (h *Server) GetChannelMembershipsLocal(ctx context.Context, arg chat1.GetCh
 		}
 	}()
 
-	// Fetch the TLF ID from specified name
-	nameInfo, err := CreateNameInfoSource(ctx, h.G(), arg.MembersType).LookupID(ctx, arg.TlfName, false)
-	if err != nil {
-		h.Debug(ctx, "GetTLFConversationsLocal: failed to get TLFID from name: %s", err.Error())
-		return res, err
-	}
+	chatTopicType := chat1.TopicType_CHAT
+	tlfID := chat1.TLFID(arg.TeamID.ToBytes())
 
-	var convs []chat1.ConversationLocal
-	convs, err = h.G().TeamChannelSource.GetChannelsFull(ctx, arg.Uid.ToBytes(), nameInfo.ID, arg.TopicType)
-	if err != nil {
-		return res, err
-	}
+	inbox, err := h.G().InboxSource.ReadUnverified(ctx, arg.Uid.ToBytes(), types.InboxSourceDataSourceAll, &chat1.GetInboxQuery{
+		TlfID:        &tlfID,
+		MembersTypes: []chat1.ConversationMembersType{chat1.ConversationMembersType_TEAM},
+		TopicType:    &chatTopicType,
+	})
 	if err != nil {
 		return res, err
 	}
 
-	for _, conv := range convs {
+	var convsLocal []chat1.ConversationLocal
+	if len(inbox.ConvsUnverified) > 0 {
+		convsLocal, _, err = h.G().InboxSource.Localize(ctx, arg.Uid.ToBytes(),
+			inbox.ConvsUnverified, types.ConversationLocalizerBlocking)
+		if err != nil {
+			return res, err
+		}
+	}
+
+	for _, conv := range convsLocal {
 		isInConv, err := h.G().InboxSource.IsMember(ctx, arg.Uid.ToBytes(), conv.GetConvID())
 		if err != nil {
 			return res, err

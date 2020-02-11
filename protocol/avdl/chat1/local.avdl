@@ -1068,7 +1068,7 @@ protocol local {
     boolean offline;
     array<RateLimit> rateLimits;
   }
-  GetChannelMembershipsLocalRes getChannelMembershipsLocal(string tlfName, keybase1.UID uid, TopicType topicType, ConversationMembersType membersType);
+  GetChannelMembershipsLocalRes getChannelMembershipsLocal(keybase1.TeamID teamID, keybase1.UID uid);
 
   // Chat notification configuration endpoint. Does not need to be complete, just a delta on the
   // currently configured settings.

@@ -348,7 +348,7 @@ export type MessageTypes = {
     outParam: Keybase1.TeamBotSettings
   }
   'chat.1.local.getChannelMembershipsLocal': {
-    inParam: {readonly tlfName: String; readonly uid: Keybase1.UID; readonly topicType: TopicType; readonly membersType: ConversationMembersType}
+    inParam: {readonly teamID: Keybase1.TeamID; readonly uid: Keybase1.UID}
     outParam: GetChannelMembershipsLocalRes
   }
   'chat.1.local.getGlobalAppNotificationSettingsLocal': {

@@ -5003,20 +5003,12 @@
     "getChannelMembershipsLocal": {
       "request": [
         {
-          "name": "tlfName",
-          "type": "string"
+          "name": "teamID",
+          "type": "keybase1.TeamID"
         },
         {
           "name": "uid",
           "type": "keybase1.UID"
-        },
-        {
-          "name": "topicType",
-          "type": "TopicType"
-        },
-        {
-          "name": "membersType",
-          "type": "ConversationMembersType"
         }
       ],
       "response": "GetChannelMembershipsLocalRes"
