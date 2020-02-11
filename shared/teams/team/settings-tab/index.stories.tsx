@@ -18,6 +18,8 @@ const commonProps = {
   teamID: '1234',
   teamname: 'myteam',
   waitingForSavePublicity: false,
+  welcomeMessage: null,
+  loadWelcomeMessage: Sb.action('loadWelcomeMessage'),
   yourOperations: {
     changeOpenTeam: true,
     changeTarsDisabled: true,

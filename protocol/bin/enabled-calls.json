@@ -34,6 +34,8 @@
   "chat.1.local.giphySearch": {"promise": true},
   "chat.1.local.ignorePinnedMessage": {"promise": true},
   "chat.1.local.joinConversationByIDLocal": {"promise": true},
+  "chat.1.local.getWelcomeMessage": {"promise": true},
+  "chat.1.local.setWelcomeMessage": {"promise": true},
   "chat.1.local.leaveConversationLocal": {"promise": true},
   "chat.1.local.listPublicBotCommandsLocal": {"promise": true},
   "chat.1.local.loadGallery": {"engineSaga": true},

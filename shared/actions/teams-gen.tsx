@@ -1,5 +1,6 @@
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
 import * as RPCTypes from '../constants/types/rpc-gen'
+import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as ChatTypes from '../constants/types/chat2'
 import * as Types from '../constants/types/teams'
 import {RetentionPolicy} from '../constants/types/retention-policy'
@@ -36,6 +37,8 @@ export const joinTeam = 'teams:joinTeam'
 export const leaveTeam = 'teams:leaveTeam'
 export const leftTeam = 'teams:leftTeam'
 export const loadTeam = 'teams:loadTeam'
+export const loadWelcomeMessage = 'teams:loadWelcomeMessage'
+export const loadedWelcomeMessage = 'teams:loadedWelcomeMessage'
 export const reAddToTeam = 'teams:reAddToTeam'
 export const removeMember = 'teams:removeMember'
 export const removeParticipant = 'teams:removeParticipant'
@@ -73,6 +76,7 @@ export const setTeamVersion = 'teams:setTeamVersion'
 export const setTeamsWithChosenChannels = 'teams:setTeamsWithChosenChannels'
 export const setUpdatedChannelName = 'teams:setUpdatedChannelName'
 export const setUpdatedTopic = 'teams:setUpdatedTopic'
+export const setWelcomeMessage = 'teams:setWelcomeMessage'
 export const settingsError = 'teams:settingsError'
 export const showTeamByName = 'teams:showTeamByName'
 export const teamCreated = 'teams:teamCreated'
@@ -166,6 +170,11 @@ type _LeaveTeamPayload = {
 }
 type _LeftTeamPayload = {readonly teamname: string; readonly context: 'teams' | 'chat'}
 type _LoadTeamPayload = {readonly _subscribe?: boolean; readonly teamID: Types.TeamID}
+type _LoadWelcomeMessagePayload = {readonly teamID: Types.TeamID}
+type _LoadedWelcomeMessagePayload = {
+  readonly teamID: Types.TeamID
+  readonly message: RPCChatTypes.WelcomeMessage
+}
 type _ReAddToTeamPayload = {readonly teamID: Types.TeamID; readonly username: string}
 type _RemoveMemberPayload = {readonly teamID: Types.TeamID; readonly username: string}
 type _RemoveParticipantPayload = {
@@ -263,6 +272,10 @@ type _SetUpdatedTopicPayload = {
   readonly conversationIDKey: ChatTypes.ConversationIDKey
   readonly newTopic: string
 }
+type _SetWelcomeMessagePayload = {
+  readonly teamID: Types.TeamID
+  readonly message: RPCChatTypes.WelcomeMessage
+}
 type _SettingsErrorPayload = {readonly error: string}
 type _ShowTeamByNamePayload = {
   readonly teamname: string
@@ -333,6 +346,26 @@ export const createGetTeams = (payload: _GetTeamsPayload = Object.freeze({})): G
   payload,
   type: getTeams,
 })
+/**
+ * Load welcome message for new team members
+ */
+export const createLoadWelcomeMessage = (payload: _LoadWelcomeMessagePayload): LoadWelcomeMessagePayload => ({
+  payload,
+  type: loadWelcomeMessage,
+})
+/**
+ * Load welcome message for new team members
+ */
+export const createSetWelcomeMessage = (payload: _SetWelcomeMessagePayload): SetWelcomeMessagePayload => ({
+  payload,
+  type: setWelcomeMessage,
+})
+/**
+ * Loaded welcome message for new team members
+ */
+export const createLoadedWelcomeMessage = (
+  payload: _LoadedWelcomeMessagePayload
+): LoadedWelcomeMessagePayload => ({payload, type: loadedWelcomeMessage})
 /**
  * Rename a subteam
  */
@@ -679,6 +712,14 @@ export type JoinTeamPayload = {readonly payload: _JoinTeamPayload; readonly type
 export type LeaveTeamPayload = {readonly payload: _LeaveTeamPayload; readonly type: typeof leaveTeam}
 export type LeftTeamPayload = {readonly payload: _LeftTeamPayload; readonly type: typeof leftTeam}
 export type LoadTeamPayload = {readonly payload: _LoadTeamPayload; readonly type: typeof loadTeam}
+export type LoadWelcomeMessagePayload = {
+  readonly payload: _LoadWelcomeMessagePayload
+  readonly type: typeof loadWelcomeMessage
+}
+export type LoadedWelcomeMessagePayload = {
+  readonly payload: _LoadedWelcomeMessagePayload
+  readonly type: typeof loadedWelcomeMessage
+}
 export type ReAddToTeamPayload = {readonly payload: _ReAddToTeamPayload; readonly type: typeof reAddToTeam}
 export type RemoveMemberPayload = {readonly payload: _RemoveMemberPayload; readonly type: typeof removeMember}
 export type RemoveParticipantPayload = {
@@ -809,6 +850,10 @@ export type SetUpdatedTopicPayload = {
   readonly payload: _SetUpdatedTopicPayload
   readonly type: typeof setUpdatedTopic
 }
+export type SetWelcomeMessagePayload = {
+  readonly payload: _SetWelcomeMessagePayload
+  readonly type: typeof setWelcomeMessage
+}
 export type SettingsErrorPayload = {
   readonly payload: _SettingsErrorPayload
   readonly type: typeof settingsError
@@ -873,6 +918,8 @@ export type Actions =
   | LeaveTeamPayload
   | LeftTeamPayload
   | LoadTeamPayload
+  | LoadWelcomeMessagePayload
+  | LoadedWelcomeMessagePayload
   | ReAddToTeamPayload
   | RemoveMemberPayload
   | RemoveParticipantPayload
@@ -910,6 +957,7 @@ export type Actions =
   | SetTeamsWithChosenChannelsPayload
   | SetUpdatedChannelNamePayload
   | SetUpdatedTopicPayload
+  | SetWelcomeMessagePayload
   | SettingsErrorPayload
   | ShowTeamByNamePayload
   | TeamCreatedPayload

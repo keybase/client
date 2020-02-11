@@ -21,6 +21,7 @@ type CmdTeamSettings struct {
 	// These fields are non-zero valued when their action is requested
 	Description           *string
 	WelcomeMessage        *string
+	ResetWelcomeMessage   *bool
 	JoinAsRole            *keybase1.TeamRole
 	ProfilePromote        *bool
 	AllowProfilePromote   *bool
@@ -51,6 +52,9 @@ Clear the team description:
 			cmd := NewCmdTeamSettingsRunner(g)
 			cl.ChooseCommand(cmd, "settings", c)
 			if c.IsSet("welcome-message") {
+				cl.SetNoStandalone()
+			}
+			if c.IsSet("reset-welcome-message") {
 				cl.SetNoStandalone()
 			}
 		},
@@ -88,7 +92,11 @@ Clear the team description:
 			},
 			cli.StringFlag{
 				Name:  "welcome-message",
-				Usage: "Set a in-chat welcome message for new members of the team.",
+				Usage: "Set a welcome message for new team members. Empty string for no welcome message.",
+			},
+			cli.BoolFlag{
+				Name:  "reset-welcome-message",
+				Usage: "Reset the welcome message to the default.",
 			},
 		},
 	}
@@ -173,6 +181,15 @@ func (c *CmdTeamSettings) ParseArgv(ctx *cli.Context) (err error) {
 		c.WelcomeMessage = &welcomeMessage
 	}
 
+	if ctx.IsSet("reset-welcome-message") {
+		exclusiveActions = append(exclusiveActions, "reset-welcome-message")
+		resetWelcomeMessage := ctx.Bool("reset-welcome-message")
+		if !resetWelcomeMessage {
+			return fmt.Errorf("cannot pass a false value to --reset-welcome-message")
+		}
+		c.ResetWelcomeMessage = &resetWelcomeMessage
+	}
+
 	if len(exclusiveActions) > 1 {
 		return fmt.Errorf("only one of these actions a time: %v", strings.Join(exclusiveActions, ", "))
 	}
@@ -240,6 +257,13 @@ func (c *CmdTeamSettings) Run() error {
 
 	if c.WelcomeMessage != nil {
 		err = c.setWelcomeMessage(ctx, *c.WelcomeMessage)
+		if err != nil {
+			return err
+		}
+	}
+
+	if c.ResetWelcomeMessage != nil {
+		err = c.resetWelcomeMessage(ctx)
 		if err != nil {
 			return err
 		}
@@ -339,13 +363,7 @@ func (c *CmdTeamSettings) setDisableAccessRequests(ctx context.Context, cli keyb
 }
 
 func (c *CmdTeamSettings) setWelcomeMessage(ctx context.Context, welcomeMessage string) error {
-	var msg chat1.WelcomeMessage
-	if welcomeMessage == "" {
-		msg = chat1.WelcomeMessage{Set: false}
-	} else {
-		msg = chat1.WelcomeMessage{Set: true, Text: welcomeMessage}
-	}
-
+	msg := chat1.WelcomeMessage{Set: true, Text: welcomeMessage}
 	cli, err := GetChatLocalClient(c.G())
 	if err != nil {
 		return err
@@ -353,6 +371,17 @@ func (c *CmdTeamSettings) setWelcomeMessage(ctx context.Context, welcomeMessage 
 	return cli.SetWelcomeMessage(ctx, chat1.SetWelcomeMessageArg{
 		TeamID:  c.teamID,
 		Message: msg,
+	})
+}
+
+func (c *CmdTeamSettings) resetWelcomeMessage(ctx context.Context) error {
+	cli, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return err
+	}
+	return cli.SetWelcomeMessage(ctx, chat1.SetWelcomeMessageArg{
+		TeamID:  c.teamID,
+		Message: chat1.WelcomeMessage{Set: false},
 	})
 }
 
@@ -412,9 +441,13 @@ func (c *CmdTeamSettings) printCurrentSettings(ctx context.Context, cli keybase1
 			c.G().Log.CWarningf(ctx, "failed to call get welcome message: %v", err)
 		} else {
 			if msg.Set {
-				dui.Printf("  Welcome message: %q\n", msg.Text)
+				if len(msg.Text) > 0 {
+					dui.Printf("  Welcome message: %q\n", msg.Text)
+				} else {
+					dui.Printf("  Welcome message: none\n")
+				}
 			} else {
-				dui.Printf("  Welcome message: unset\n")
+				dui.Printf("  Welcome message: unset (default)\n")
 			}
 		}
 	}

@@ -6,20 +6,19 @@ import * as Container from '../../../../../util/container'
 import * as MessageTypes from '../../../../../constants/types/chat2/message'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import * as RPCChatTypes from '../../../../../constants/types/rpc-chat-gen'
-import * as Styles from '../../../../../styles'
 import * as TeamConstants from '../../../../../constants/teams'
 import * as TeamTypes from '../../../../../constants/types/teams'
 import {teamsTab} from '../../../../../constants/tabs'
 import {appendNewTeamBuilder} from '../../../../../actions/typed-routes'
 import * as ChatTypes from '../../../../../constants/types/chat2'
 import {TeamJourney, Action} from '.'
+import {renderWelcomeMessage} from '../../../../../util/journey-card'
 
 type OwnProps = {
   message: MessageTypes.MessageJourneycard
 }
 
 type Props = {
-  welcomeMessage: TeamTypes.WelcomeMessage | null
   canShowcase: boolean
   cannotWrite: boolean
   channelname: string
@@ -39,6 +38,7 @@ type Props = {
   onAuthorClick: () => void
   teamname: string
   teamType: 'big' | 'small' | null
+  welcomeMessage: TeamTypes.WelcomeMessage | null
 }
 
 const TeamJourneyContainer = (props: Props) => {
@@ -60,23 +60,7 @@ const TeamJourneyContainer = (props: Props) => {
         actions.push({label: 'Publish team on your profile', onClick: props.onPublishTeam})
       }
       if (props.welcomeMessage) {
-        if (props.welcomeMessage.set) {
-          textComponent = <Kb.Text type="BodySmall">{props.welcomeMessage.text}</Kb.Text>
-        } else if (props.cannotWrite) {
-          textComponent = (
-            <Kb.Text type="BodySmall">
-              <Kb.Emoji allowFontScaling={true} size={Styles.globalMargins.small} emojiName=":wave:" />{' '}
-              Welcome to the team!
-            </Kb.Text>
-          )
-        } else {
-          textComponent = (
-            <Kb.Text type="BodySmall">
-              <Kb.Emoji allowFontScaling={true} size={Styles.globalMargins.small} emojiName=":wave:" />{' '}
-              Welcome to the team! Say hi to everyone and introduce yourself.
-            </Kb.Text>
-          )
-        }
+        textComponent = renderWelcomeMessage(props.welcomeMessage, props.cannotWrite)
       } else {
         textComponent = <Kb.ProgressIndicator />
       }
@@ -216,13 +200,13 @@ const TeamJourneyConnected = Container.connect(
   }),
   (stateProps, dispatchProps, ownProps) => {
     const {
-      welcomeMessage,
       canShowcase,
       cannotWrite,
       channelname,
       conversationIDKey,
       teamname,
       teamType,
+      welcomeMessage,
     } = stateProps
     // Take the top three channels with most recent activity.
     const joinableStatuses = new Set([
