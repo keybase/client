@@ -1289,6 +1289,29 @@ function* teamBuildingSaga() {
   yield* Saga.chainAction(TeamsGen.addedToTeam, closeTeamBuilderOrSetError)
 }
 
+async function showTeamByName(action: TeamsGen.ShowTeamByNamePayload, logger: Saga.SagaLogger) {
+  const {teamname, initialTab, addMembers} = action.payload
+  let teamID: string
+  try {
+    teamID = await RPCTypes.teamsGetTeamIDRpcPromise({teamName: teamname})
+  } catch (e) {
+    logger.info(`showTeamByName: team "${teamname}" cannot be loaded: ${e.toString()}`)
+    return null
+  }
+  return [
+    RouteTreeGen.createNavigateAppend({
+      path: [{props: {initialTab, teamID}, selected: 'team'}],
+    }),
+    ...(addMembers
+      ? [
+          RouteTreeGen.createNavigateAppend({
+            path: [{props: {namespace: 'teams', teamID, title: ''}, selected: 'teamsTeamBuilder'}],
+          }),
+        ]
+      : []),
+  ]
+}
+
 const teamsSaga = function*() {
   yield* Saga.chainAction(TeamsGen.leaveTeam, leaveTeam)
   yield* Saga.chainGenerator<TeamsGen.DeleteTeamPayload>(TeamsGen.deleteTeam, deleteTeam)
@@ -1365,6 +1388,8 @@ const teamsSaga = function*() {
   )
 
   yield* Saga.chainAction2(TeamsGen.clearNavBadges, clearNavBadges)
+
+  yield* Saga.chainAction(TeamsGen.showTeamByName, showTeamByName)
 
   // Hook up the team building sub saga
   yield* teamBuildingSaga()
