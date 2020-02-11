@@ -202,7 +202,7 @@ protocol teams {
     array<TeamMemberRole> publicMembers;
   }
 
-  TeamInfo getUntrustedTeamInfo(TeamName teamName);
+  UntrustedTeamInfo getUntrustedTeamInfo(TeamName teamName);
 
   @typedef("string")
   record UserVersionPercentForm {}

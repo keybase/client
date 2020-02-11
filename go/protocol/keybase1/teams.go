@@ -6,10 +6,9 @@ package keybase1
 import (
 	"errors"
 	"fmt"
-	"time"
-
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
+	"time"
 )
 
 type TeamRole int
