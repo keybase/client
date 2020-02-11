@@ -353,22 +353,28 @@ const Buttons = (p: ButtonsProps) => {
       direction="horizontal"
       fullWidth={true}
       gap="small"
-      alignItems="flex-end"
+      alignItems="center"
       style={styles.actionContainer}
     >
       {explodingIcon}
-      <Kb.Icon onClick={insertMentionMarker} type="iconfont-mention" />
-      <Kb.Icon onClick={openFilePicker} type="iconfont-camera" />
-      <AudioRecorder conversationIDKey={conversationIDKey} />
-      <Kb.Icon onClick={openMoreMenu} type="iconfont-add" />
       <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexGrow} />
-      <Kb.Button
-        type="Default"
-        small={true}
-        onClick={onSubmit}
-        disabled={!hasText}
-        label={isEditing ? 'Save' : 'Send'}
-      />
+      {!hasText && (
+        <Kb.Box2 direction="horizontal" gap="small" alignItems="flex-end">
+          <Kb.Icon onClick={insertMentionMarker} type="iconfont-mention" />
+          <Kb.Icon onClick={openFilePicker} type="iconfont-camera" />
+          <AudioRecorder conversationIDKey={conversationIDKey} />
+          <Kb.Icon onClick={openMoreMenu} type="iconfont-add" />
+        </Kb.Box2>
+      )}
+      {hasText && (
+        <Kb.Button
+          type="Default"
+          small={true}
+          onClick={onSubmit}
+          disabled={!hasText}
+          label={isEditing ? 'Save' : 'Send'}
+        />
+      )}
     </Kb.Box2>
   )
 }
@@ -423,6 +429,8 @@ const styles = Styles.styleSheetCreate(
       },
       actionContainer: {
         flexShrink: 0,
+        marginRight: 8,
+        minHeight: 32,
       },
       actionText: {
         alignSelf: 'flex-end',
