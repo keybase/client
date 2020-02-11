@@ -108,7 +108,13 @@ const Button = React.forwardRef<ClickableBox, Props>((props: Props, ref: React.R
 
   containerStyle = Styles.collapseStyles([containerStyle, props.style])
 
-  const onClick = (!unclickable && props.onClick) || undefined
+  const onClick =
+    !unclickable && props.onClick
+      ? (e: React.BaseSyntheticEvent) => {
+          e.stopPropagation()
+          props.onClick && props.onClick(e)
+        }
+      : undefined
   const whiteSpinner =
     (mode === 'Primary' && !(props.backgroundColor || type === 'Dim')) ||
     (mode === 'Secondary' && !!props.backgroundColor)
@@ -230,6 +236,9 @@ const common = () =>
       minWidth: 120,
       paddingLeft: Styles.globalMargins.small,
       paddingRight: Styles.globalMargins.small,
+    },
+    isTablet: {
+      alignSelf: 'center',
     },
   })
 

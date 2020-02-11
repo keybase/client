@@ -59,6 +59,7 @@ func postNewTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID, sig, box s
 			"sig":          libkb.S{Val: sig},
 			"box":          libkb.S{Val: box},
 			"is_ephemeral": libkb.B{Val: true},
+			"application":  libkb.I{Val: int(keybase1.TeamApplication_CHAT)},
 		},
 		AppStatusCodes: []int{libkb.SCOk, libkb.SCTeambotKeyGenerationExists},
 	}
@@ -129,6 +130,7 @@ func fetchLatestTeambotEK(mctx libkb.MetaContext, teamID keybase1.TeamID) (metad
 			Args: libkb.HTTPArgs{
 				"team_id":      libkb.S{Val: string(teamID)},
 				"is_ephemeral": libkb.B{Val: true},
+				"application":  libkb.I{Val: int(keybase1.TeamApplication_CHAT)},
 			},
 		}
 		res, err := mctx.G().GetAPI().Get(mctx, apiArg)
@@ -277,6 +279,7 @@ func (k *TeambotEphemeralKeyer) Fetch(mctx libkb.MetaContext, teamID keybase1.Te
 			"team_id":      libkb.S{Val: string(teamID)},
 			"generation":   libkb.U{Val: uint64(generation)},
 			"is_ephemeral": libkb.B{Val: true},
+			"application":  libkb.I{Val: int(keybase1.TeamApplication_CHAT)},
 		},
 	}
 

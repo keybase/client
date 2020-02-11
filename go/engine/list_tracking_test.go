@@ -8,9 +8,11 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/clockwork"
 	jsonw "github.com/keybase/go-jsonw"
 	"github.com/stretchr/testify/require"
 )
@@ -256,11 +258,29 @@ func TestListTrackingOfflineBehavior(t *testing.T) {
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "timeout or something")
 
+	c := clockwork.NewFakeClockAt(atc.G.Clock().Now())
+	atc.G.SetClock(c)
+
+	t.Logf("Test CachedOnly")
 	// But ListTracking with CachedOnly=true should still work.
 	eng = NewListTrackingEngine(atc.G, &ListTrackingEngineArg{CachedOnly: true})
 	err = RunEngine2(NewMetaContextForTest(atc), eng)
 	require.NoError(t, err)
 	res2 := eng.TableResult()
-
 	require.Equal(t, res1, res2, "got same results even when offline")
+
+	staleness := time.Hour * 24 * 7
+	t.Logf("Test offline 1 day later")
+	// Should work even if we're still offline 1 day later (longer than the 10
+	// minute UPAK staleness window), if CachedOnlyStalenessWindow passed.
+	stalenesseng := NewListTrackingEngine(atc.G, &ListTrackingEngineArg{CachedOnly: true, CachedOnlyStalenessWindow: &staleness})
+	c.Advance(time.Hour * 24)
+	err = RunEngine2(NewMetaContextForTest(atc), stalenesseng)
+	require.NoError(t, err)
+
+	t.Logf("Should return an error past the staleness window")
+	c.Advance(time.Hour * 24 * 8)
+	err = RunEngine2(NewMetaContextForTest(atc), stalenesseng)
+	require.Error(t, err)
+	require.IsType(t, err, libkb.UserNotFoundError{})
 }

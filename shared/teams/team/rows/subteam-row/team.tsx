@@ -1,16 +1,19 @@
+import * as React from 'react'
 import * as Types from '../../../../constants/types/teams'
 import * as FsTypes from '../../../../constants/types/fs'
 import * as Constants from '../../../../constants/teams'
 import * as Container from '../../../../util/container'
 import {TeamRow} from '../../../main'
+import TeamRowNew from '../../../main/team-row'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as FsConstants from '../../../../constants/fs'
+import flags from '../../../../util/feature-flags'
 
 type OwnProps = {
   teamID: Types.TeamID
 }
 
-export default Container.connect(
+const TeamRowOld = Container.connect(
   (state, {teamID}: OwnProps) => {
     const {isMember, isOpen, memberCount, teamname} = Constants.getTeamMeta(state, teamID)
     return {
@@ -46,3 +49,7 @@ export default Container.connect(
     resetUserCount: 0,
   })
 )(TeamRow)
+
+export default flags.teamsRedesign
+  ? ({teamID}: OwnProps) => <TeamRowNew teamID={teamID} firstItem={false} />
+  : TeamRowOld

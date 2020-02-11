@@ -1043,12 +1043,12 @@ export type MessageTypes = {
     inParam: {readonly warning: String}
     outParam: void
   }
-  'keybase.1.pgpUi.outputSignatureSuccess': {
-    inParam: {readonly fingerprint: String; readonly username: String; readonly signedAt: Time; readonly warnings?: Array<String> | null}
+  'keybase.1.pgpUi.outputSignatureNonKeybase': {
+    inParam: {readonly keyID: String; readonly signedAt: Time; readonly warnings?: Array<String> | null}
     outParam: void
   }
-  'keybase.1.pgpUi.outputSignatureSuccessNonKeybase': {
-    inParam: {readonly keyID: String; readonly signedAt: Time; readonly warnings?: Array<String> | null}
+  'keybase.1.pgpUi.outputSignatureSuccess': {
+    inParam: {readonly fingerprint: String; readonly username: String; readonly signedAt: Time; readonly warnings?: Array<String> | null}
     outParam: void
   }
   'keybase.1.pgpUi.shouldPushPrivate': {
@@ -3121,7 +3121,8 @@ export type TeamRoleMapAndVersion = {readonly teams: {[key: string]: TeamRolePai
 export type TeamRoleMapStored = {readonly data: TeamRoleMapAndVersion; readonly cachedAt: Time}
 export type TeamRolePair = {readonly role: TeamRole; readonly implicitRole: TeamRole}
 export type TeamSBSMsg = {readonly teamID: TeamID; readonly score: Int; readonly invitees?: Array<TeamInvitee> | null}
-export type TeamSearchItem = {readonly id: TeamID; readonly name: String; readonly description?: String | null; readonly memberCount: Int; readonly lastActive: Time; readonly inTeam: Boolean; readonly publicAdmins?: Array<String> | null}
+export type TeamSearchExport = {readonly items: {[key: string]: TeamSearchItem}; readonly suggested?: Array<TeamID> | null}
+export type TeamSearchItem = {readonly id: TeamID; readonly name: String; readonly description?: String | null; readonly memberCount: Int; readonly lastActive: Time; readonly isDemoted: Boolean; readonly inTeam: Boolean}
 export type TeamSearchRes = {readonly results?: Array<TeamSearchItem> | null}
 export type TeamSeitanMsg = {readonly teamID: TeamID; readonly seitans?: Array<TeamSeitanRequest> | null}
 export type TeamSeitanRequest = {readonly inviteID: TeamInviteID; readonly uid: UID; readonly eldestSeqno: Seqno; readonly akey: SeitanAKey; readonly role: TeamRole; readonly unixCTime: Int64}
@@ -3299,7 +3300,7 @@ export type IncomingCallMapType = {
   'keybase.1.NotifyUsers.identifyUpdate'?: (params: MessageTypes['keybase.1.NotifyUsers.identifyUpdate']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.pgpUi.outputPGPWarning'?: (params: MessageTypes['keybase.1.pgpUi.outputPGPWarning']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.pgpUi.outputSignatureSuccess'?: (params: MessageTypes['keybase.1.pgpUi.outputSignatureSuccess']['inParam'] & {sessionID: number}) => IncomingReturn
-  'keybase.1.pgpUi.outputSignatureSuccessNonKeybase'?: (params: MessageTypes['keybase.1.pgpUi.outputSignatureSuccessNonKeybase']['inParam'] & {sessionID: number}) => IncomingReturn
+  'keybase.1.pgpUi.outputSignatureNonKeybase'?: (params: MessageTypes['keybase.1.pgpUi.outputSignatureNonKeybase']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.pgpUi.keyGenerated'?: (params: MessageTypes['keybase.1.pgpUi.keyGenerated']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.pgpUi.shouldPushPrivate'?: (params: MessageTypes['keybase.1.pgpUi.shouldPushPrivate']['inParam'] & {sessionID: number}) => IncomingReturn
   'keybase.1.pgpUi.finished'?: (params: MessageTypes['keybase.1.pgpUi.finished']['inParam'] & {sessionID: number}) => IncomingReturn
@@ -3427,7 +3428,7 @@ export type CustomResponseIncomingCallMap = {
   'keybase.1.NotifyUsers.identifyUpdate'?: (params: MessageTypes['keybase.1.NotifyUsers.identifyUpdate']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.NotifyUsers.identifyUpdate']['outParam']) => void}) => IncomingReturn
   'keybase.1.pgpUi.outputPGPWarning'?: (params: MessageTypes['keybase.1.pgpUi.outputPGPWarning']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.pgpUi.outputPGPWarning']['outParam']) => void}) => IncomingReturn
   'keybase.1.pgpUi.outputSignatureSuccess'?: (params: MessageTypes['keybase.1.pgpUi.outputSignatureSuccess']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.pgpUi.outputSignatureSuccess']['outParam']) => void}) => IncomingReturn
-  'keybase.1.pgpUi.outputSignatureSuccessNonKeybase'?: (params: MessageTypes['keybase.1.pgpUi.outputSignatureSuccessNonKeybase']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.pgpUi.outputSignatureSuccessNonKeybase']['outParam']) => void}) => IncomingReturn
+  'keybase.1.pgpUi.outputSignatureNonKeybase'?: (params: MessageTypes['keybase.1.pgpUi.outputSignatureNonKeybase']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.pgpUi.outputSignatureNonKeybase']['outParam']) => void}) => IncomingReturn
   'keybase.1.pgpUi.keyGenerated'?: (params: MessageTypes['keybase.1.pgpUi.keyGenerated']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.pgpUi.keyGenerated']['outParam']) => void}) => IncomingReturn
   'keybase.1.pgpUi.shouldPushPrivate'?: (params: MessageTypes['keybase.1.pgpUi.shouldPushPrivate']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.pgpUi.shouldPushPrivate']['outParam']) => void}) => IncomingReturn
   'keybase.1.pgpUi.finished'?: (params: MessageTypes['keybase.1.pgpUi.finished']['inParam'] & {sessionID: number}, response: {error: IncomingErrorCallback; result: (res: MessageTypes['keybase.1.pgpUi.finished']['outParam']) => void}) => IncomingReturn
@@ -3975,7 +3976,7 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.pgp.pgpPullPrivate'
 // 'keybase.1.pgpUi.outputPGPWarning'
 // 'keybase.1.pgpUi.outputSignatureSuccess'
-// 'keybase.1.pgpUi.outputSignatureSuccessNonKeybase'
+// 'keybase.1.pgpUi.outputSignatureNonKeybase'
 // 'keybase.1.pgpUi.keyGenerated'
 // 'keybase.1.pgpUi.shouldPushPrivate'
 // 'keybase.1.pgpUi.finished'

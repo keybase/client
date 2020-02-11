@@ -73,6 +73,7 @@
         "'profile'",
         "'teamMember'",
         "'teamHeader'",
+        "'teamRow'",
         "'convertAdHoc'",
         "'memberView'",
         "'newChannel'",

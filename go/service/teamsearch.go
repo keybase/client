@@ -10,7 +10,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/teams"
+	"github.com/keybase/client/go/teams/opensearch"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -34,11 +34,16 @@ func (h *TeamSearchHandler) TeamSearch(ctx context.Context, arg keybase1.TeamSea
 		return res, err
 	}
 
-	hits, err := teams.Search(ctx, h.G(), arg.Query, arg.Limit)
+	var hits []keybase1.TeamSearchItem
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	if arg.UseRemote {
+		hits, err = opensearch.Remote(mctx, arg.Query, arg.Limit)
+	} else {
+		hits, err = opensearch.Local(mctx, arg.Query, arg.Limit)
+	}
 	if err != nil {
 		return res, err
 	}
-
 	res.Results = hits
 	return res, nil
 }

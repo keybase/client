@@ -532,6 +532,7 @@ type _PreviewConversationPayload = {
     | 'profile'
     | 'teamMember'
     | 'teamHeader'
+    | 'teamRow'
     | 'convertAdHoc'
     | 'memberView'
     | 'newChannel'

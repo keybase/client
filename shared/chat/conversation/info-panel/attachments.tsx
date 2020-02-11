@@ -386,7 +386,15 @@ export default (p: Props) => {
   const onMediaClick = (message: Types.MessageAttachment) =>
     dispatch(Chat2Gen.createAttachmentPreviewSelect({message}))
 
-  const onDocDownload = (message: Types.Message) => dispatch(Chat2Gen.createAttachmentDownload({message}))
+  const onDocDownload = (message: Types.MessageAttachment) => {
+    if (Styles.isMobile) {
+      dispatch(Chat2Gen.createMessageAttachmentNativeShare({message}))
+    } else {
+      if (!message.downloadPath) {
+        dispatch(Chat2Gen.createAttachmentDownload({message}))
+      }
+    }
+  }
 
   const onShowInFinder = (message: Types.MessageAttachment) =>
     message.downloadPath &&
@@ -494,7 +502,7 @@ export default (p: Props) => {
             fileName: m.fileName,
             message: m,
             name: m.title || m.fileName,
-            onDownload: !Container.isMobile && !m.downloadPath ? () => onDocDownload(m) : () => null,
+            onDownload: () => onDocDownload(m),
             onShowInFinder: !Container.isMobile && m.downloadPath ? () => onShowInFinder(m) : undefined,
             progress: m.transferProgress,
           }))

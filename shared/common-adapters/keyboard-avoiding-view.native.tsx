@@ -6,7 +6,7 @@ import {
   NativeModules,
   KeyboardAvoidingViewProps,
 } from 'react-native'
-import {isIPhoneX, isIOS} from '../constants/platform'
+import {isIPhoneX, isIOS, isTablet} from '../constants/platform'
 
 const {StatusBarManager} = NativeModules
 
@@ -16,7 +16,7 @@ class KeyboardAvoidingView extends React.Component<KeyboardAvoidingViewProps, {v
   state = {verticalOffset: 0}
 
   componentWillMount() {
-    if (isIOS) {
+    if (isIOS && !isTablet) {
       StatusBarManager.getHeight(this.statusBarListener)
       this._listener = StatusBarIOS.addListener('statusBarFrameWillChange', (d: {frame: {height: number}}) =>
         this.statusBarListener(d.frame)

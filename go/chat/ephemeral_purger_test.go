@@ -229,7 +229,10 @@ func TestBackgroundPurge(t *testing.T) {
 		NextPurgeTime:   msgs[3].Valid().Etime(),
 		IsActive:        true,
 	})
-	require.Equal(t, 2, purger.Len())
+	for _, item := range purger.pq.queue {
+		t.Logf("queue item: %+v", item)
+	}
+	require.Equal(t, 2, purger.Len(), "expected conv %v and %v", conv1.ConvID, conv2.ConvID)
 
 	g.EphemeralPurger.Start(ctx, uid)
 	world.Fc.Advance(lifetimeDuration * 3)
