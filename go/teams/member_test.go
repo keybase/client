@@ -1898,7 +1898,7 @@ func TestGetUntrustedTeamInfo(t *testing.T) {
 		{AssertionOrEmail: fus[publicReader].Username, Role: keybase1.TeamRole_READER},
 		{AssertionOrEmail: fus[privateReader].Username, Role: keybase1.TeamRole_READER},
 		{AssertionOrEmail: fus[restrictedBot].Username, Role: keybase1.TeamRole_RESTRICTEDBOT, BotSettings: &keybase1.TeamBotSettings{Cmds: false, Mentions: true}},
-	})
+	}, nil)
 	require.NoError(t, err)
 	require.Len(t, notAdded, 0)
 	require.Len(t, added, 5)
