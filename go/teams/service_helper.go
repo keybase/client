@@ -1532,6 +1532,13 @@ func (r *accessRequestList) GetAppStatus() *libkb.AppStatus {
 	return &r.Status
 }
 
+// Lists all requests in all of user-owned teams or a single team and tries to
+// resolve their full names.
+//
+// Full names are not guaranteed to be present in the response. Given a large
+// enough volume of access requests by unknown (to us) users, it's possible to
+// run into a scenario where resolving thousands of username bundles would take
+// longer than the 10s.
 func ListRequests(ctx context.Context, g *libkb.GlobalContext, teamName *string) ([]keybase1.TeamJoinRequest, error) {
 	var arg libkb.APIArg
 	mctx := libkb.NewMetaContext(ctx, g)
