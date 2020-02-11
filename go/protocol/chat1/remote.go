@@ -1296,13 +1296,13 @@ func (o SetDefaultTeamChannelsRes) DeepCopy() SetDefaultTeamChannelsRes {
 }
 
 type GetRecentJoinsRes struct {
-	Num       int        `codec:"num" json:"num"`
+	NumJoins  int        `codec:"numJoins" json:"numJoins"`
 	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
 }
 
 func (o GetRecentJoinsRes) DeepCopy() GetRecentJoinsRes {
 	return GetRecentJoinsRes{
-		Num: o.Num,
+		NumJoins: o.NumJoins,
 		RateLimit: (func(x *RateLimit) *RateLimit {
 			if x == nil {
 				return nil

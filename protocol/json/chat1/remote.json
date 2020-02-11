@@ -895,7 +895,7 @@
       "fields": [
         {
           "type": "int",
-          "name": "num"
+          "name": "numJoins"
         },
         {
           "type": [
