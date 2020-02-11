@@ -123,7 +123,10 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       contentContainer: Styles.platformStyles({isMobile: {...Styles.padding(0)}}),
-      fill: Styles.platformStyles({isMobile: {height: '100%', width: '100%'}}),
+      fill: Styles.platformStyles({
+        isMobile: {height: '100%', width: '100%'},
+        isTablet: {width: 410},
+      }),
       forgotUsername: {
         alignSelf: 'flex-end',
       },

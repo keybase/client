@@ -4,6 +4,7 @@ import * as Constants from '../../constants/provision'
 import * as Styles from '../../styles'
 import * as Platform from '../../constants/platform'
 import {defaultDevicename} from '../../constants/signup'
+import flags from '../../util/feature-flags'
 
 import {SignupScreen, errorBanner} from '../../signup/common'
 
@@ -48,7 +49,13 @@ const SetPublicName = (props: Props) => {
         },
       ]}
       onBack={props.onBack}
-      title={`Name this ${Styles.isMobile ? 'phone' : 'computer'}`}
+      title={
+        Styles.isMobile
+          ? flags.tabletSupport
+            ? 'Name this device'
+            : 'Name this phone'
+          : 'Name this computer'
+      }
     >
       <Kb.Box2 direction="vertical" style={styles.contents} centerChildren={true} gap="medium">
         <Kb.Icon type={Kb.isValidIconType(maybeIcon) ? maybeIcon : defaultIcon} />
@@ -79,15 +86,19 @@ const styles = Styles.styleSheetCreate(() => ({
       marginTop: 0,
     },
   }),
-  contents: {
-    width: '100%',
-  },
+  contents: Styles.platformStyles({
+    common: {width: '100%'},
+    isTablet: {width: undefined},
+  }),
   nameInput: Styles.platformStyles({
     common: {
       padding: Styles.globalMargins.tiny,
     },
     isMobile: {
       minHeight: 48,
+    },
+    isTablet: {
+      maxWidth: 368,
     },
   }),
   wrapper: Styles.platformStyles({
