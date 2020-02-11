@@ -2488,6 +2488,14 @@
         {
           "type": "string",
           "name": "username"
+        },
+        {
+          "type": "FullName",
+          "name": "fullName"
+        },
+        {
+          "type": "UnixTime",
+          "name": "ctime"
         }
       ]
     },

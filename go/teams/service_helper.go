@@ -1525,6 +1525,7 @@ type accessRequest struct {
 	FQName   string          `json:"fq_name"`
 	TeamID   keybase1.TeamID `json:"team_id"`
 	UID      keybase1.UID    `json:"uid"`
+	Ctime    time.Time       `json:"ctime"`
 	Username string          `json:"username"`
 }
 
@@ -1537,6 +1538,13 @@ func (r *accessRequestList) GetAppStatus() *libkb.AppStatus {
 	return &r.Status
 }
 
+// Lists all requests in all of user-owned teams or a single team and tries to
+// resolve their full names.
+//
+// Full names are not guaranteed to be present in the response. Given a large
+// enough volume of access requests by unknown (to us) users, it's possible to
+// run into a scenario where resolving thousands of username bundles would take
+// longer than the 10s.
 func ListRequests(ctx context.Context, g *libkb.GlobalContext, teamName *string) ([]keybase1.TeamJoinRequest, error) {
 	var arg libkb.APIArg
 	mctx := libkb.NewMetaContext(ctx, g)
@@ -1552,11 +1560,34 @@ func ListRequests(ctx context.Context, g *libkb.GlobalContext, teamName *string)
 		return nil, err
 	}
 
-	joinRequests := make([]keybase1.TeamJoinRequest, len(arList.Requests))
+	var (
+		joinRequests  = make([]keybase1.TeamJoinRequest, len(arList.Requests))
+		requesterUIDs = make([]keybase1.UID, len(arList.Requests))
+	)
 	for i, ar := range arList.Requests {
+		username := libkb.NewNormalizedUsername(ar.Username)
+		uid := libkb.GetUIDByNormalizedUsername(g, username)
+
+		requesterUIDs[i] = uid
 		joinRequests[i] = keybase1.TeamJoinRequest{
 			Name:     ar.FQName,
-			Username: libkb.NewNormalizedUsername(ar.Username).String(),
+			Username: username.String(),
+			Ctime:    keybase1.ToUnixTime(ar.Ctime),
+		}
+	}
+
+	packages, err := g.UIDMapper.MapUIDsToUsernamePackages(ctx, g, requesterUIDs,
+		defaultFullnameFreshness, 10*time.Second, true)
+	if err != nil {
+		g.Log.Debug("TeamsListRequests: failed to run uid mapper: %s", err)
+	}
+	for i, uid := range requesterUIDs {
+		if packages[i].NormalizedUsername.IsNil() {
+			g.Log.Debug("TeamsListRequests: failed to get username for: %s", uid)
+			continue
+		}
+		if packages[i].FullName != nil {
+			joinRequests[i].FullName = packages[i].FullName.FullName
 		}
 	}
 

@@ -1108,6 +1108,8 @@ protocol teams {
   record TeamJoinRequest {
     string name;
     string username;
+    FullName fullName;
+    UnixTime ctime;
   }
 
   record TeamTreeResult {

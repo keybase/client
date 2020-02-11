@@ -80,6 +80,12 @@ export type EmailInviteError = {
 
 export type AddUserToTeamsState = 'notStarted' | 'pending' | 'succeeded' | 'failed'
 
+export type JoinRequest = {
+  ctime: number
+  fullName: string
+  username: string
+}
+
 export type TeamMeta = {
   allowPromote: boolean // if members other than admins can showcase
   id: TeamID
@@ -96,7 +102,7 @@ export type TeamDetails = {
   settings: TeamSettings2
   invites: Set<InviteInfo>
   subteams: Set<TeamID>
-  requests: Set<string>
+  requests: Set<JoinRequest>
   description: string
 }
 
