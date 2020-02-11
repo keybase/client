@@ -11,7 +11,6 @@ import * as Container from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import ConversationList from './conversation-list/conversation-list'
 import ChooseConversation from './conversation-list/choose-conversation'
-import debounce from 'lodash/debounce'
 
 type Props = Container.RouteProps<{path?: Types.Path; url?: string}>
 
