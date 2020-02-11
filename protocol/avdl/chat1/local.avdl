@@ -1303,4 +1303,11 @@ protocol local {
     STELLAR_SENT_10,
     PINNED_MESSAGE_11
   }
+
+  record WelcomeMessage {
+    boolean set;
+    string text;
+  }
+  void setWelcomeMessage(keybase1.TeamID teamID, WelcomeMessage message);
+  WelcomeMessage getWelcomeMessage(keybase1.TeamID teamID);
 }

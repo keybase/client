@@ -967,6 +967,21 @@
       "response": null,
       "notify": "",
       "lint": "ignore"
+    },
+    "ChatWelcomeMessageLoaded": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "keybase1.TeamID"
+        },
+        {
+          "name": "message",
+          "type": "WelcomeMessage"
+        }
+      ],
+      "response": null,
+      "notify": "",
+      "lint": "ignore"
     }
   },
   "namespace": "chat.1"

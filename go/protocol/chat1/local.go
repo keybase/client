@@ -5957,6 +5957,18 @@ func (e SnippetDecoration) String() string {
 	return fmt.Sprintf("%v", int(e))
 }
 
+type WelcomeMessage struct {
+	Set  bool   `codec:"set" json:"set"`
+	Text string `codec:"text" json:"text"`
+}
+
+func (o WelcomeMessage) DeepCopy() WelcomeMessage {
+	return WelcomeMessage{
+		Set:  o.Set,
+		Text: o.Text,
+	}
+}
+
 type GetThreadLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Reason           GetThreadReason              `codec:"reason" json:"reason"`
@@ -6534,6 +6546,15 @@ type DismissJourneycardArg struct {
 	CardType JourneycardType `codec:"cardType" json:"cardType"`
 }
 
+type SetWelcomeMessageArg struct {
+	TeamID  keybase1.TeamID `codec:"teamID" json:"teamID"`
+	Message WelcomeMessage  `codec:"message" json:"message"`
+}
+
+type GetWelcomeMessageArg struct {
+	TeamID keybase1.TeamID `codec:"teamID" json:"teamID"`
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetThreadNonblock(context.Context, GetThreadNonblockArg) (NonblockFetchRes, error)
@@ -6633,6 +6654,8 @@ type LocalInterface interface {
 	AddBotConvSearch(context.Context, string) ([]AddBotConvSearchHit, error)
 	TeamIDFromTLFName(context.Context, TeamIDFromTLFNameArg) (keybase1.TeamID, error)
 	DismissJourneycard(context.Context, DismissJourneycardArg) error
+	SetWelcomeMessage(context.Context, SetWelcomeMessageArg) error
+	GetWelcomeMessage(context.Context, keybase1.TeamID) (WelcomeMessage, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -8059,6 +8082,36 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"setWelcomeMessage": {
+				MakeArg: func() interface{} {
+					var ret [1]SetWelcomeMessageArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SetWelcomeMessageArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SetWelcomeMessageArg)(nil), args)
+						return
+					}
+					err = i.SetWelcomeMessage(ctx, typedArgs[0])
+					return
+				},
+			},
+			"getWelcomeMessage": {
+				MakeArg: func() interface{} {
+					var ret [1]GetWelcomeMessageArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetWelcomeMessageArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetWelcomeMessageArg)(nil), args)
+						return
+					}
+					ret, err = i.GetWelcomeMessage(ctx, typedArgs[0].TeamID)
+					return
+				},
+			},
 		},
 	}
 }
@@ -8576,5 +8629,16 @@ func (c LocalClient) TeamIDFromTLFName(ctx context.Context, __arg TeamIDFromTLFN
 
 func (c LocalClient) DismissJourneycard(ctx context.Context, __arg DismissJourneycardArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.dismissJourneycard", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) SetWelcomeMessage(ctx context.Context, __arg SetWelcomeMessageArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.setWelcomeMessage", []interface{}{__arg}, nil, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) GetWelcomeMessage(ctx context.Context, teamID keybase1.TeamID) (res WelcomeMessage, err error) {
+	__arg := GetWelcomeMessageArg{TeamID: teamID}
+	err = c.Cli.Call(ctx, "chat.1.local.getWelcomeMessage", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

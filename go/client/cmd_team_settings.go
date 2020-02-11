@@ -7,6 +7,7 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/chat1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
@@ -19,6 +20,7 @@ type CmdTeamSettings struct {
 
 	// These fields are non-zero valued when their action is requested
 	Description           *string
+	WelcomeMessage        *string
 	JoinAsRole            *keybase1.TeamRole
 	ProfilePromote        *bool
 	AllowProfilePromote   *bool
@@ -48,6 +50,9 @@ Clear the team description:
 		Action: func(c *cli.Context) {
 			cmd := NewCmdTeamSettingsRunner(g)
 			cl.ChooseCommand(cmd, "settings", c)
+			if c.IsSet("welcome-message") {
+				cl.SetNoStandalone()
+			}
 		},
 		Flags: []cli.Flag{
 			// Many of these are StringFlag instead of BoolFlag because BoolFlag is displeasing.
@@ -80,6 +85,10 @@ Clear the team description:
 			cli.StringFlag{
 				Name:  "disable-access-requests",
 				Usage: "[yes|no] Set whether it should be possible to access request to this team",
+			},
+			cli.StringFlag{
+				Name:  "welcome-message",
+				Usage: "Set a in-chat welcome message for new members of the team.",
 			},
 		},
 	}
@@ -158,6 +167,12 @@ func (c *CmdTeamSettings) ParseArgv(ctx *cli.Context) (err error) {
 		c.DisableAccessRequests = &val
 	}
 
+	if ctx.IsSet("welcome-message") {
+		exclusiveActions = append(exclusiveActions, "welcome-message")
+		welcomeMessage := ctx.String("welcome-message")
+		c.WelcomeMessage = &welcomeMessage
+	}
+
 	if len(exclusiveActions) > 1 {
 		return fmt.Errorf("only one of these actions a time: %v", strings.Join(exclusiveActions, ", "))
 	}
@@ -218,6 +233,13 @@ func (c *CmdTeamSettings) Run() error {
 
 	if c.DisableAccessRequests != nil {
 		err = c.setDisableAccessRequests(ctx, cli, *c.DisableAccessRequests)
+		if err != nil {
+			return err
+		}
+	}
+
+	if c.WelcomeMessage != nil {
+		err = c.setWelcomeMessage(ctx, *c.WelcomeMessage)
 		if err != nil {
 			return err
 		}
@@ -316,6 +338,24 @@ func (c *CmdTeamSettings) setDisableAccessRequests(ctx context.Context, cli keyb
 	})
 }
 
+func (c *CmdTeamSettings) setWelcomeMessage(ctx context.Context, welcomeMessage string) error {
+	var msg chat1.WelcomeMessage
+	if welcomeMessage == "" {
+		msg = chat1.WelcomeMessage{Set: false}
+	} else {
+		msg = chat1.WelcomeMessage{Set: true, Text: welcomeMessage}
+	}
+
+	cli, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return err
+	}
+	return cli.SetWelcomeMessage(ctx, chat1.SetWelcomeMessageArg{
+		TeamID:  c.teamID,
+		Message: msg,
+	})
+}
+
 func (c *CmdTeamSettings) printCurrentSettings(ctx context.Context, cli keybase1.TeamsClient) error {
 	details, err := cli.TeamGet(ctx, keybase1.TeamGetArg{Name: c.Team.String()})
 	if err != nil {
@@ -356,6 +396,25 @@ func (c *CmdTeamSettings) printCurrentSettings(ctx context.Context, cli keybase1
 				c.G().Log.CDebugf(ctx, "failed to call GetTarsEnabled: %v", err)
 			} else {
 				dui.Printf("  Access requests disabled: %v\n", c.tfToYn(ok, ""))
+			}
+		}
+	}
+
+	if c.G().Standalone {
+		dui.Printf("  Welcome message: [not available in standalone mode]\n")
+	} else {
+		chatCli, err := GetChatLocalClient(c.G())
+		if err != nil {
+			return err
+		}
+		msg, err := chatCli.GetWelcomeMessage(ctx, c.teamID)
+		if err != nil {
+			c.G().Log.CWarningf(ctx, "failed to call get welcome message: %v", err)
+		} else {
+			if msg.Set {
+				dui.Printf("  Welcome message: %q\n", msg.Text)
+			} else {
+				dui.Printf("  Welcome message: unset\n")
 			}
 		}
 	}
