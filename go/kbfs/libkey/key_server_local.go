@@ -226,12 +226,12 @@ func (ks *KeyServerLocal) Shutdown() {
 	}
 	*ks.shutdown = true
 
-	if ks.storCloser != nil {
-		_ = ks.storCloser()
-	}
-
 	if ks.db != nil {
 		_ = ks.db.Close()
+	}
+
+	if ks.storCloser != nil {
+		_ = ks.storCloser()
 	}
 
 	if ks.shutdownFunc != nil {
