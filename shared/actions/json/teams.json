@@ -323,11 +323,6 @@
       "teamID": "Types.TeamID",
       "message": "RPCChatTypes.WelcomeMessage"
     },
-    "setWelcomeMessage": {
-      "_description": "Load welcome message for new team members",
-      "teamID": "Types.TeamID",
-      "message": "RPCChatTypes.WelcomeMessage"
-    },
     "setSubteamFilter": {
       "_description": "Set filtering for the subteams tab.",
       "filter": "string",

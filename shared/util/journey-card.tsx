@@ -8,7 +8,7 @@ function renderWelcomeMessage(message: RPCChatTypes.WelcomeMessage, cannotWrite:
     return <Kb.Text type="BodySmall">{message.text}</Kb.Text>
   } else if (cannotWrite) {
     return (
-      <Kb.Text type="BodySmall" style={{overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>
+      <Kb.Text type="BodySmall">
         <Kb.Emoji allowFontScaling={true} size={Styles.globalMargins.small} emojiName=":wave:" /> Welcome to
         the team!
       </Kb.Text>

@@ -76,7 +76,6 @@ export const setTeamVersion = 'teams:setTeamVersion'
 export const setTeamsWithChosenChannels = 'teams:setTeamsWithChosenChannels'
 export const setUpdatedChannelName = 'teams:setUpdatedChannelName'
 export const setUpdatedTopic = 'teams:setUpdatedTopic'
-export const setWelcomeMessage = 'teams:setWelcomeMessage'
 export const settingsError = 'teams:settingsError'
 export const showTeamByName = 'teams:showTeamByName'
 export const teamCreated = 'teams:teamCreated'
@@ -272,10 +271,6 @@ type _SetUpdatedTopicPayload = {
   readonly conversationIDKey: ChatTypes.ConversationIDKey
   readonly newTopic: string
 }
-type _SetWelcomeMessagePayload = {
-  readonly teamID: Types.TeamID
-  readonly message: RPCChatTypes.WelcomeMessage
-}
 type _SettingsErrorPayload = {readonly error: string}
 type _ShowTeamByNamePayload = {
   readonly teamname: string
@@ -352,13 +347,6 @@ export const createGetTeams = (payload: _GetTeamsPayload = Object.freeze({})): G
 export const createLoadWelcomeMessage = (payload: _LoadWelcomeMessagePayload): LoadWelcomeMessagePayload => ({
   payload,
   type: loadWelcomeMessage,
-})
-/**
- * Load welcome message for new team members
- */
-export const createSetWelcomeMessage = (payload: _SetWelcomeMessagePayload): SetWelcomeMessagePayload => ({
-  payload,
-  type: setWelcomeMessage,
 })
 /**
  * Loaded welcome message for new team members
@@ -850,10 +838,6 @@ export type SetUpdatedTopicPayload = {
   readonly payload: _SetUpdatedTopicPayload
   readonly type: typeof setUpdatedTopic
 }
-export type SetWelcomeMessagePayload = {
-  readonly payload: _SetWelcomeMessagePayload
-  readonly type: typeof setWelcomeMessage
-}
 export type SettingsErrorPayload = {
   readonly payload: _SettingsErrorPayload
   readonly type: typeof settingsError
@@ -957,7 +941,6 @@ export type Actions =
   | SetTeamsWithChosenChannelsPayload
   | SetUpdatedChannelNamePayload
   | SetUpdatedTopicPayload
-  | SetWelcomeMessagePayload
   | SettingsErrorPayload
   | ShowTeamByNamePayload
   | TeamCreatedPayload
