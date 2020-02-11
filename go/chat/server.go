@@ -1688,11 +1688,16 @@ func (h *Server) GetChannelMembershipsLocal(ctx context.Context, arg chat1.GetCh
 			h.Debug(ctx, "GetTLFConversationsLocal: result obtained offline")
 		}
 	}()
+	myUID, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return chat1.GetChannelMembershipsLocalRes{}, err
+	}
 
 	chatTopicType := chat1.TopicType_CHAT
 	tlfID := chat1.TLFID(arg.TeamID.ToBytes())
 
-	inbox, err := h.G().InboxSource.ReadUnverified(ctx, arg.Uid.ToBytes(), types.InboxSourceDataSourceAll, &chat1.GetInboxQuery{
+	// fetch all conversations in the supplied team
+	inbox, err := h.G().InboxSource.ReadUnverified(ctx, myUID, types.InboxSourceDataSourceAll, &chat1.GetInboxQuery{
 		TlfID:        &tlfID,
 		MembersTypes: []chat1.ConversationMembersType{chat1.ConversationMembersType_TEAM},
 		TopicType:    &chatTopicType,
@@ -1701,27 +1706,24 @@ func (h *Server) GetChannelMembershipsLocal(ctx context.Context, arg chat1.GetCh
 		return res, err
 	}
 
-	var convsLocal []chat1.ConversationLocal
-	if len(inbox.ConvsUnverified) > 0 {
-		convsLocal, _, err = h.G().InboxSource.Localize(ctx, arg.Uid.ToBytes(),
-			inbox.ConvsUnverified, types.ConversationLocalizerBlocking)
-		if err != nil {
-			return res, err
+	// find a list of conversations that the provided uid is a member of
+	var memberConvs []types.RemoteConversation
+	for _, conv := range inbox.ConvsUnverified {
+		for _, uid := range conv.Conv.Metadata.AllList {
+			if keybase1.UID(uid.String()) == arg.Uid {
+				memberConvs = append(memberConvs, conv)
+				break
+			}
 		}
 	}
 
+	// localize those conversations so we can get the topic name
+	convsLocal, _, err := h.G().InboxSource.Localize(ctx, myUID, memberConvs, types.ConversationLocalizerBlocking)
 	for _, conv := range convsLocal {
-		isInConv, err := h.G().InboxSource.IsMember(ctx, arg.Uid.ToBytes(), conv.GetConvID())
-		if err != nil {
-			return res, err
-		}
-
-		if isInConv {
-			res.Channels = append(res.Channels, chat1.ChannelNameMention{
-				ConvID:    conv.GetConvID(),
-				TopicName: conv.GetTopicName(),
-			})
-		}
+		res.Channels = append(res.Channels, chat1.ChannelNameMention{
+			ConvID:    conv.GetConvID(),
+			TopicName: conv.GetTopicName(),
+		})
 	}
 	return res, nil
 }
