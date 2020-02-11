@@ -12,6 +12,12 @@ const CreateChannel = (props: Props) => {
   const dispatch = Container.useDispatch()
   // const nav = Container.useSafeNavigation()
 
+  const [channels, setChannels] = React.useState<Array<string>>(['hellos', 'random'])
+  const setChannel = (i: number) => (value: string) => {
+    channels[i] = value
+    setChannels([...channels])
+  }
+
   const onBack = () => {} // dispatch(nav.safeNavigateUpPayload()) TODO mock nav for storybook
 
   return (
@@ -34,6 +40,9 @@ const CreateChannel = (props: Props) => {
       >
         <Kb.Text type="BodySmall">Channels can be joined by anyone in the team, unlike subteams.</Kb.Text>
         <ChannelInput isGeneral={true} />
+        {channels.map((value, idx) => (
+          <ChannelInput key={idx} onChange={setChannel(idx)} value={value} />
+        ))}
       </Kb.Box2>
     </Kb.Modal>
   )
@@ -42,7 +51,7 @@ const CreateChannel = (props: Props) => {
 type ChannelInputProps =
   | {isGeneral: true}
   | {
-      isGeneral: false
+      isGeneral?: false
       onChange: (value: string) => void
       value: string
     }
