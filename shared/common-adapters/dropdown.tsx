@@ -20,41 +20,43 @@ type DropdownButtonProps = {
 }
 export const DropdownButton = (props: DropdownButtonProps) => (
   <ClickableBox onClick={!props.disabled ? props.toggleOpen : undefined} style={props.style}>
-    <ButtonBox inline={props.inline} disabled={props.disabled} ref={props.setAttachmentRef}>
-      <Box style={Styles.collapseStyles([styles.selectedBox, props.selectedBoxStyle])}>{props.selected}</Box>
+    <Box2
+      direction="horizontal"
+      alignItems="center"
+      style={Styles.collapseStyles([
+        styles.dbContainer,
+        props.disabled ? styles.dbContainerDisabled : null,
+        props.inline ? styles.dbContainerInline : null,
+      ])}
+      ref={props.setAttachmentRef}
+    >
+      <Box2
+        direction="horizontal"
+        centerChildren={true}
+        style={Styles.collapseStyles([styles.selectedBox, props.selectedBoxStyle])}
+      >
+        {props.selected}
+      </Box2>
       <Icon
         type="iconfont-caret-down"
         inheritColor={true}
         sizeType="Tiny"
         style={{marginTop: Styles.isMobile ? 2 : -8}}
       />
-    </ButtonBox>
+    </Box2>
   </ClickableBox>
 )
 
-// @ts-ignore styled can have more than one argument
-const ButtonBox = Styles.styled(Box, {shouldForwardProp: prop => prop !== 'inline'})(props => ({
-  ...Styles.globalStyles.flexBoxRow,
-  ...(!props.disabled && !Styles.isMobile
-    ? {
-        ':hover': {border: `solid 1px ${Styles.globalColors.blue}`, color: Styles.globalColors.blueDark},
-        cursor: 'pointer',
-      }
-    : {}),
-  ...(props.disabled ? {opacity: 0.3} : {}),
-  alignItems: 'center',
-  borderColor: Styles.globalColors.black_10,
-  borderRadius: Styles.borderRadius,
-  borderStyle: 'solid',
-  borderWidth: 1,
-  color: Styles.globalColors.black_50,
-  paddingRight: props.inline
-    ? Styles.globalMargins.tiny
-    : Styles.isMobile
-    ? Styles.globalMargins.large
-    : Styles.globalMargins.small,
-  maxWidth: 500,
-}))
+// xxx todo hover styling
+// // @ts-ignore styled can have more than one argument
+// const ButtonBox = Styles.styled(Box, {shouldForwardProp: prop => prop !== 'inline'})(props => ({
+//   ...(!props.disabled && !Styles.isMobile
+//     ? {
+//         ':hover': {border: `solid 1px ${Styles.globalColors.blue}`, color: Styles.globalColors.blueDark},
+//         cursor: 'pointer',
+//       }
+//     : {}),
+// }))
 
 type Props<N> = {
   disabled?: boolean
@@ -161,6 +163,25 @@ export const InlineDropdown = (props: InlineDropdownProps) => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
+  dbContainer: Styles.platformStyles({
+    common: {
+      borderColor: Styles.globalColors.black_10,
+      borderRadius: Styles.borderRadius,
+      borderStyle: 'solid',
+      borderWidth: 1,
+      color: Styles.globalColors.black_50,
+      paddingRight: Styles.globalMargins.tiny,
+    },
+    isMobile: {
+      paddingRight: Styles.globalMargins.large,
+    },
+  }),
+  dbContainerDisabled: {
+    opacity: 0.3,
+  },
+  dbContainerInline: {
+    paddingRight: Styles.globalMargins.tiny,
+  },
   inlineDropdown: {
     paddingRight: Styles.globalMargins.tiny,
   },
@@ -210,9 +231,8 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
   selectedBox: Styles.platformStyles({
     common: {
-      ...Styles.globalStyles.flexBoxCenter,
-      flexDirection: 'row',
-      justifyContent: 'center',
+      paddingLeft: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.tiny,
     },
     isElectron: {minHeight: 32},
     isMobile: {minHeight: 48},
