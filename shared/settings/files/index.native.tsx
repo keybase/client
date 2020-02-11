@@ -50,42 +50,31 @@ class ThresholdDropdown extends React.PureComponent<
   }
 }
 
-const SyncNotificationSetting = (props: Props) => (
-  <Kb.Box2
-    direction="horizontal"
-    alignItems="flex-start"
-    fullWidth={true}
-    style={{flex: 1, flexWrap: 'wrap'}}
-  >
-    <Kb.Text type="Body">Warn me if I have less than </Kb.Text>
-    <ThresholdDropdown {...props} />
-    <Kb.Text type="Body">of storage space remaining</Kb.Text>
-  </Kb.Box2>
-)
-
 const Files = (props: Props) => (
-  <>
-    <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.syncContent}>
-        <Kb.Box>
-          <Kb.Box2 direction="horizontal" gap="tiny" style={styles.contentHeader}>
-            <Kb.Text type="BodySmallSemibold">Sync</Kb.Text>
-          </Kb.Box2>
-          <Kb.Checkbox
-            onCheck={
-              props.spaceAvailableNotificationThreshold === 0
-                ? props.onEnableSyncNotifications
-                : props.onDisableSyncNotifications
-            }
-            labelComponent={<SyncNotificationSetting {...props} />}
-            checked={props.spaceAvailableNotificationThreshold !== 0}
-            disabled={props.areSettingsLoading}
-            style={styles.syncNotificationCheckbox}
-          />
-        </Kb.Box>
+  <Kb.Box2 direction="vertical" fullWidth={true} alignItems="center">
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.syncContent}>
+      <Kb.Box2 direction="horizontal" gap="tiny" style={styles.contentHeader}>
+        <Kb.Text type="BodySmallSemibold">Sync</Kb.Text>
       </Kb.Box2>
+      <Kb.Checkbox
+        onCheck={
+          props.spaceAvailableNotificationThreshold === 0
+            ? props.onEnableSyncNotifications
+            : props.onDisableSyncNotifications
+        }
+        label="Warn when low on storage space"
+        checked={props.spaceAvailableNotificationThreshold !== 0}
+        disabled={props.areSettingsLoading}
+        style={styles.syncNotificationCheckbox}
+      />
+      {!!props.spaceAvailableNotificationThreshold && (
+        <Kb.Text type="BodySmall" style={{marginTop: Styles.globalMargins.tiny}}>
+          Threshold:
+        </Kb.Text>
+      )}
+      {!!props.spaceAvailableNotificationThreshold && <ThresholdDropdown {...props} />}
     </Kb.Box2>
-  </>
+  </Kb.Box2>
 )
 
 const styles = Styles.styleSheetCreate(
@@ -94,10 +83,16 @@ const styles = Styles.styleSheetCreate(
       contentHeader: {
         paddingBottom: Styles.globalMargins.tiny,
       },
-      syncContent: {
-        paddingLeft: Styles.globalMargins.xsmall,
-        paddingTop: Styles.globalMargins.medium,
-      },
+      syncContent: Styles.platformStyles({
+        common: {
+          paddingLeft: Styles.globalMargins.xsmall,
+          paddingRight: Styles.globalMargins.xsmall,
+          paddingTop: Styles.globalMargins.medium,
+        },
+        isTablet: {
+          maxWidth: 410,
+        },
+      }),
       syncNotificationCheckbox: {
         alignItems: 'center',
       },
