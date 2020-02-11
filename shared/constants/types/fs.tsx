@@ -436,14 +436,6 @@ export enum SendAttachmentToChatState {
   Sent = 'sent',
 }
 
-export type SendAttachmentToChat = {
-  readonly convID: ChatTypes.ConversationIDKey
-  readonly convName: string
-  readonly path: Path
-  readonly state: SendAttachmentToChatState
-  readonly title: string
-}
-
 export enum PathItemActionMenuView {
   Root = 'root',
   Share = 'share',

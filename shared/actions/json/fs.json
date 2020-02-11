@@ -179,19 +179,6 @@
     "showIncomingShare": {"initialDestinationParentPath": "Types.Path"},
     "move": {"destinationParentPath": "Types.Path"},
     "copy": {"destinationParentPath": "Types.Path"},
-
-    "initSendAttachmentToChat": {
-      "path": "Types.Path"
-    },
-    "setSendAttachmentToChatConvID": {
-      "convID": "ChatTypes.ConversationIDKey",
-      "convName": "string"
-    },
-    "setSendAttachmentToChatTitle": {
-      "title": "string"
-    },
-    "sentAttachmentToChat": {},
-
     "setPathItemActionMenuView": {
       "view": "Types.PathItemActionMenuView"
     },

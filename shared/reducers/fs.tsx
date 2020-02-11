@@ -373,27 +373,6 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
       type: Types.DestinationPickerSource.IncomingShare,
     } as const
   },
-  [FsGen.initSendAttachmentToChat]: (draftState, action) => {
-    draftState.sendAttachmentToChat = {
-      ...Constants.emptySendAttachmentToChat,
-      path: action.payload.path,
-      state: Types.SendAttachmentToChatState.PendingSelectConversation,
-      title: Types.getPathName(action.payload.path),
-    }
-  },
-  [FsGen.setSendAttachmentToChatConvID]: (draftState, action) => {
-    draftState.sendAttachmentToChat.convID = action.payload.convID
-    draftState.sendAttachmentToChat.convName = action.payload.convName
-    draftState.sendAttachmentToChat.state = ChatConstants.isValidConversationIDKey(action.payload.convID)
-      ? Types.SendAttachmentToChatState.ReadyToSend
-      : Types.SendAttachmentToChatState.PendingSelectConversation
-  },
-  [FsGen.setSendAttachmentToChatTitle]: (draftState, action) => {
-    draftState.sendAttachmentToChat.title = action.payload.title
-  },
-  [FsGen.sentAttachmentToChat]: draftState => {
-    draftState.sendAttachmentToChat.state = Types.SendAttachmentToChatState.Sent
-  },
   [FsGen.setPathItemActionMenuView]: (draftState, action) => {
     draftState.pathItemActionMenu.previousView = draftState.pathItemActionMenu.view
     draftState.pathItemActionMenu.view = action.payload.view

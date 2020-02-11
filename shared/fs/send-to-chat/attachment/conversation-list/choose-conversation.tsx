@@ -6,12 +6,12 @@ import * as Styles from '../../../../styles'
 import ConversationList from './conversation-list'
 
 type Props = {
+  convName: string
   dropdownButtonStyle?: Styles.StylesCrossPlatform
   onSelect: (conversationIDKey: Types.ConversationIDKey, convName: string) => void
 } & Kb.OverlayParentProps
 
 const ChooseConversation = (props: Props) => {
-  const sendAttachmentToChat = Container.useSelector(state => state.fs.sendAttachmentToChat)
   const [expanded, setExpanded] = React.useState(false)
   const toggleOpen = () => {
     setExpanded(!expanded)
@@ -19,7 +19,7 @@ const ChooseConversation = (props: Props) => {
   const onDone = () => {
     setExpanded(false)
   }
-  const text = !sendAttachmentToChat.convName.length ? 'Choose a conversation' : sendAttachmentToChat.convName
+  const text = !props.convName.length ? 'Choose a conversation' : props.convName
   return (
     <>
       <Kb.DropdownButton

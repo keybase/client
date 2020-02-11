@@ -23,6 +23,6 @@ export const newModalRoutes = {
       require('./banner/system-file-manager-integration-banner/kext-permission-popup-container').default,
   },
   sendAttachmentToChat: {
-    getScreen: (): typeof SendAttachmentToChat => require('./send-to-chat/attachment/container').default,
+    getScreen: (): typeof SendAttachmentToChat => require('./send-to-chat/attachment').default,
   },
 }

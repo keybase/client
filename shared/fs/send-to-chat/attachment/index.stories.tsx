@@ -3,6 +3,10 @@ import * as Sb from '../../../stories/storybook'
 import * as Types from '../../../constants/types/fs'
 import * as ChatConstants from '../../../constants/chat2'
 import {commonProvider} from '../../common/index.stories'
+import {
+  provider as conversationListProvider,
+  default as conversationList,
+} from './conversation-list/index.stories'
 import SendAttachmentToChat from '.'
 
 export const provider = Sb.createPropProviderWithCommon({
