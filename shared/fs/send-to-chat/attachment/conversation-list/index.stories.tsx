@@ -33,7 +33,7 @@ const props = {
       teamName: 'puzzles',
     },
   ],
-  selected: 0,
+  selected: 1,
   setQuery: Sb.action('setQuery'),
   setSelected: Sb.action('setSelected'),
   waiting: false,

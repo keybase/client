@@ -145,7 +145,7 @@ export const ConversationListRender = (props: ConversationListRenderProps) => {
         />
       </Kb.Box2>
       <Kb.List2
-        itemHeight={{sizeType: 'Large', type: 'fixedListItem2Auto'}}
+        itemHeight={{height: 65, type: 'fixed'}}
         items={props.results.map((r, index) => ({
           isSelected: index === props.selected,
           item: r,

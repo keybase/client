@@ -82,7 +82,7 @@ const DesktopSendAttachmentToChat = (props: Props) => {
   }
   return (
     <DesktopSendAttachmentToChatRender
-      enabled={conversationIDKey === ChatConstants.noConversationIDKey}
+      enabled={conversationIDKey !== ChatConstants.noConversationIDKey}
       convName={convName}
       path={path}
       title={title}
@@ -132,7 +132,7 @@ export const DesktopSendAttachmentToChatRender = (props: DesktopSendAttachmentTo
             placeholder="Title"
             value={props.title}
             style={desktopStyles.input}
-            onChangeText={debounce(props.setTitle, 200)}
+            onChangeText={props.setTitle}
           />
         </Kb.Box2>
         <Kb.ButtonBar fullWidth={true} style={desktopStyles.buttonBar}>
