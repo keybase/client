@@ -67,10 +67,8 @@ const PushPrompt = () => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      background: {backgroundColor: Styles.globalColors.blue},
       button: {maxHeight: 40},
-      background: {
-        backgroundColor: Styles.globalColors.blue,
-      },
       container: {
         ...Styles.globalStyles.fillAbsolute,
         backgroundColor: Styles.globalColors.blue,
