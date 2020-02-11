@@ -495,6 +495,11 @@ func VerifyEmailAuto(mctx libkb.MetaContext, email keybase1.EmailAddress) error 
 	return err
 }
 
+func EditProfile(mctx libkb.MetaContext, arg keybase1.ProfileEditArg) error {
+	eng := engine.NewProfileEdit(mctx.G(), arg)
+	return engine.RunEngine2(mctx, eng)
+}
+
 func RunningInCI() bool {
 	x := os.Getenv("KEYBASE_RUN_CI")
 	return len(x) > 0 && x != "0" && x[0] != byte('n')
