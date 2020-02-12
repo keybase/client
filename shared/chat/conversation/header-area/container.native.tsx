@@ -28,9 +28,7 @@ const HeaderBranch = (props: Props) => {
 
 export default Container.connect(
   (state, ownProps: OwnProps) => {
-    const conversationIDKey = Container.isPhone
-      ? ownProps.conversationIDKey
-      : Constants.getSelectedConversation(state)
+    const conversationIDKey = ownProps.conversationIDKey
     const meta = Constants.getMeta(state, conversationIDKey)
     const participantInfo = Constants.getParticipantInfo(state, conversationIDKey)
     const participants = meta.teamname ? null : participantInfo.name
