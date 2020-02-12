@@ -66,6 +66,7 @@ const util = {
     marginBottom: Shared.globalMargins.tiny,
     marginTop: Shared.globalMargins.tiny,
   },
+  shortWidth: 240,
   mediumWidth: 400,
 }
 

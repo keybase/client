@@ -68,6 +68,7 @@ export declare const globalStyles: {
   rounded: {
     borderRadius: 3
   }
+  shortWidth: number | string
 }
 
 export declare const desktopStyles: {

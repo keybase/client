@@ -153,10 +153,15 @@ const styles = Styles.styleSheetCreate(
           whiteSpace: 'nowrap',
         },
       }),
-      timestamp: {
-        backgroundColor: Styles.isTablet ? undefined : Styles.globalColors.fastBlank,
-        color: Styles.globalColors.blueDark,
-      },
+      timestamp: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.fastBlank,
+          color: Styles.globalColors.blueDark,
+        },
+        isTablet: {
+          backgroundColor: undefined,
+        },
+      }),
       unreadDotStyle: {
         backgroundColor: Styles.globalColors.orange,
         borderRadius: 6,

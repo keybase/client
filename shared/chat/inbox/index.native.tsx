@@ -278,13 +278,17 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       button: {width: '100%'},
-      container: {
-        ...Styles.globalStyles.flexBoxColumn,
-        backgroundColor: Styles.globalColors.fastBlank,
-        flex: 1,
-        maxWidth: Styles.isTablet ? 240 : undefined,
-        position: 'relative',
-      },
+      container: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.flexBoxColumn,
+          backgroundColor: Styles.globalColors.fastBlank,
+          flex: 1,
+          position: 'relative',
+        },
+        isTablet: {
+          maxWidth: Styles.globalStyles.shortWidth,
+        },
+      }),
       loadingContainer: {
         left: 0,
         position: 'absolute',

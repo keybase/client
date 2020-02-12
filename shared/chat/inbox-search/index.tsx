@@ -397,7 +397,7 @@ const styles = Styles.styleSheetCreate(
           width: '100%',
         },
         isTablet: {
-          maxWidth: 240,
+          maxWidth: Styles.globalStyles.shortWidth,
         },
       }),
       errorText: {

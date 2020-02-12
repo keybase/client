@@ -40,6 +40,7 @@ const util = {
     height: 16,
   },
   mediumWidth: isTablet ? 460 : '100%',
+  shortWidth: isTablet ? 240 : '100%',
 }
 
 export const desktopStyles = {
