@@ -164,7 +164,7 @@ const title = ({channelname, teamname}: {channelname: string; teamname: string})
   Styles.isMobile ? (
     `Add to #${channelname}`
   ) : (
-    <ModalTitle teamname={teamname}>Add to #{channelname}</ModalTitle>
+    <ModalTitle teamname={teamname} title={`Add to #${channelname}`} />
   )
 
 const styles = Styles.styleSheetCreate(() => ({

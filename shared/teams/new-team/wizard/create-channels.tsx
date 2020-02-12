@@ -39,7 +39,7 @@ const CreateChannel = (props: Props) => {
       onClose={onBack}
       header={{
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
-        title: <ModalTitle teamname={props.teamname}>Create channels</ModalTitle>,
+        title: <ModalTitle teamname={props.teamname} title="Create channels" />,
       }}
       footer={{content: <Kb.Button fullWidth={true} label={continueLabel} />}}
       allowOverflow={true}

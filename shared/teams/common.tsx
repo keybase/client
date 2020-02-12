@@ -26,13 +26,13 @@ export const Activity = ({level}: {level: ActivityLevel}) => (
   </Kb.Box2>
 )
 
-export const ModalTitle = ({children, teamname}: {children: string; teamname: string}) =>
+export const ModalTitle = ({title, teamname}: {title: string; teamname: string}) =>
   Styles.isMobile ? (
     <Kb.Box2 direction="vertical" alignItems="center">
       <Kb.Text type="BodyTiny" lineClamp={1} ellipsizeMode="middle">
         {teamname}
       </Kb.Text>
-      <Kb.Text type="BodyBig">{children}</Kb.Text>
+      <Kb.Text type="BodyBig">{title}</Kb.Text>
     </Kb.Box2>
   ) : (
     <Kb.Box2 direction="vertical" gap="xtiny" alignItems="center" style={styles.title}>
@@ -41,7 +41,7 @@ export const ModalTitle = ({children, teamname}: {children: string; teamname: st
         <Kb.Text type="BodySmall" lineClamp={1}>
           {teamname}
         </Kb.Text>
-        <Kb.Text type="Header">{children}</Kb.Text>
+        <Kb.Text type="Header">{title}</Kb.Text>
       </Kb.Box2>
     </Kb.Box2>
   )
