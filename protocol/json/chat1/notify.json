@@ -419,14 +419,6 @@
         {
           "type": "keybase1.DeviceID",
           "name": "deviceID"
-        },
-        {
-          "type": "string",
-          "name": "deviceName"
-        },
-        {
-          "type": "keybase1.DeviceTypeV2",
-          "name": "deviceType"
         }
       ]
     },
