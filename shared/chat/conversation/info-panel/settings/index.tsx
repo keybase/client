@@ -15,10 +15,10 @@ import Notifications from './notifications'
 import {CaptionedDangerIcon} from './channel-utils'
 
 type EntityType = 'adhoc' | 'small team' | 'channel'
-type SettingsPanelProps = {conversationIDKey: Types.ConversationIDKey}
+type SettingsPanelProps = {conversationIDKey: Types.ConversationIDKey; isPreview: boolean}
 
 const SettingsPanel = (props: SettingsPanelProps) => {
-  const {conversationIDKey} = props
+  const {conversationIDKey, isPreview} = props
   const dispatch = Container.useDispatch()
   const username = Container.useSelector(state => state.config.username)
   const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
@@ -28,9 +28,6 @@ const SettingsPanel = (props: SettingsPanelProps) => {
   )
   const ignored = status === RPCChatTypes.ConversationStatus.ignored
   const smallTeam = teamType !== 'big'
-
-  //TODO: This is mocked for now
-  const isUserInChannel = true
 
   const spinnerForHide = Container.useSelector(state =>
     Container.anyWaiting(state, Constants.waitingKeyConvStatusChange(conversationIDKey))
@@ -91,16 +88,16 @@ const SettingsPanel = (props: SettingsPanelProps) => {
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.settingsContainer}>
         <Kb.ScrollView>
-          {isUserInChannel ? (
-            <Notifications conversationIDKey={conversationIDKey} />
-          ) : (
+          {isPreview ? (
             <Kb.Box2 direction="vertical" fullWidth={true} style={styles.settingsHeader}>
               <Kb.Text type="BodySmallSemibold">You are not in this channel.</Kb.Text>
               <Kb.Button mode="Secondary" label="Join channel" style={styles.buttonStyle} />
             </Kb.Box2>
+          ) : (
+            <Notifications conversationIDKey={conversationIDKey} />
           )}
 
-          {entityType === 'channel' && channelname !== 'general' && (
+          {entityType === 'channel' && channelname !== 'general' && !isPreview && (
             <Kb.Button
               type="Danger"
               mode="Secondary"
@@ -234,26 +231,13 @@ const SettingsPanel = (props: SettingsPanelProps) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      buttonStyle: {
+        marginBottom: Styles.globalMargins.small,
+        marginTop: Styles.globalMargins.small,
+      },
       divider: {
         marginBottom: Styles.globalMargins.tiny,
         marginTop: Styles.globalMargins.tiny,
-      },
-      smallButton: {
-        marginLeft: Styles.globalMargins.small,
-        marginBottom: Styles.globalMargins.medium,
-      },
-      settingsHeader: {
-        paddingLeft: Styles.globalMargins.small,
-        paddingRight: Styles.globalMargins.small,
-        marginBottom: Styles.globalMargins.small,
-      },
-      section: {
-        paddingLeft: Styles.globalMargins.small,
-        paddingRight: Styles.globalMargins.small,
-      },
-      buttonStyle: {
-        marginTop: Styles.globalMargins.small,
-        marginBottom: Styles.globalMargins.small,
       },
       membersContainer: {
         flex: 1,
@@ -273,16 +257,30 @@ const styles = Styles.styleSheetCreate(
         },
         isMobile: {width: '100%'},
       }),
+      section: {
+        paddingLeft: Styles.globalMargins.small,
+        paddingRight: Styles.globalMargins.small,
+      },
       settingsContainer: {
         flex: 1,
         height: '100%',
         paddingTop: Styles.globalMargins.small,
+      },
+      settingsHeader: {
+        marginBottom: Styles.globalMargins.small,
+        paddingLeft: Styles.globalMargins.small,
+        paddingRight: Styles.globalMargins.small,
+      },
+      smallButton: {
+        marginBottom: Styles.globalMargins.medium,
+        marginLeft: Styles.globalMargins.small,
       },
     } as const)
 )
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey
+  isPreview: boolean
   renderTabs: () => React.ReactNode
   commonSections: Array<unknown>
 }
@@ -297,7 +295,9 @@ export default (p: Props) => {
         ...p.commonSections,
         {
           data: ['tab'],
-          renderItem: () => <SettingsPanel conversationIDKey={p.conversationIDKey} key="settings" />,
+          renderItem: () => (
+            <SettingsPanel conversationIDKey={p.conversationIDKey} isPreview={p.isPreview} key="settings" />
+          ),
           renderSectionHeader: p.renderTabs,
         },
       ]}
