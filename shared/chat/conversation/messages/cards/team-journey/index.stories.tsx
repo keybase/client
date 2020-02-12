@@ -10,7 +10,7 @@ const commonProps = {
   conversationIDKey: 'dummyConversationIDKey',
   onAuthorClick: Sb.action('onAuthorClick'),
   onDismiss: Sb.action('onDismiss'),
-  styles: {teamJourneyStyles},
+  styles: teamJourneyStyles,
   teamname: 'foo',
 }
 
