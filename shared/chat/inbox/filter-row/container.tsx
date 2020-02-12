@@ -11,6 +11,8 @@ type OwnProps = {
   onSelectUp: () => void
   onQueryChanged: (arg0: string) => void
   query: string
+  showNewChat: boolean
+  showSearch: boolean
 }
 
 export default Container.namedConnect(
@@ -30,12 +32,14 @@ export default Container.namedConnect(
     isSearching: stateProps.isSearching,
     onBack: dispatchProps.onBack,
     onEnsureSelection: ownProps.onEnsureSelection,
-    onNewChat: ownProps.onNewChat,
+    onNewChat: ownProps.showNewChat ? ownProps.onNewChat : null,
     onSelectDown: ownProps.onSelectDown,
     onSelectUp: ownProps.onSelectUp,
     onSetFilter: ownProps.onQueryChanged,
     onStartSearch: dispatchProps.onStartSearch,
     onStopSearch: dispatchProps.onStopSearch,
+    showNewChat: ownProps.showNewChat,
+    showSearch: ownProps.showSearch,
   }),
   'ChatFilterRow'
 )(ConversationFilterInput)
