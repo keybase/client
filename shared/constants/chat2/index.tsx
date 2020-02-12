@@ -5,7 +5,7 @@ import * as TeamBuildingConstants from '../team-building'
 import clamp from 'lodash/clamp'
 import {chatTab} from '../tabs'
 import {TypedState} from '../reducer'
-import {isMobile} from '../platform'
+import {isMobile, chatSplit} from '../platform'
 import {
   noConversationIDKey,
   pendingWaitingConversationIDKey,
@@ -282,7 +282,7 @@ export const isUserActivelyLookingAtThisThread = (
   const selectedConversationIDKey = getSelectedConversation(state)
 
   let chatThreadSelected = false
-  if (isMobile) {
+  if (!chatSplit) {
     chatThreadSelected = true // conversationIDKey === selectedConversationIDKey is the only thing that matters in the new router
   } else {
     const maybeVisibleScreen = Router2.getVisibleScreen()
