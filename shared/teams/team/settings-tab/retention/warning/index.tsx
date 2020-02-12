@@ -18,6 +18,7 @@ const Wrapper = ({children, onBack}: {children: React.ReactNode; onBack: () => v
   Styles.isMobile ? (
     <Kb.ScrollView
       style={{...Styles.globalStyles.fillAbsolute, ...Styles.globalStyles.flexBoxColumn}}
+      contentContainerStyle={styles.scrollContainer}
       children={children}
     />
   ) : (
@@ -52,7 +53,7 @@ const RetentionWarning = (props: Props) => {
           style={styles.checkboxStyle}
           label=""
           labelComponent={
-            <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.flexOne}>
+            <Kb.Box2 direction="vertical" alignItems="flex-start">
               <Kb.Text type="Body">
                 I understand that messages older than {props.timePeriod} will be deleted for everyone.
               </Kb.Text>
@@ -106,14 +107,12 @@ const styles = Styles.styleSheetCreate(() => ({
     },
     isMobile: {
       marginBottom: Styles.globalMargins.small,
-      width: '100%',
     },
   }),
   container: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxColumn,
       alignItems: 'center',
-      maxWidth: 560,
       paddingBottom: Styles.globalMargins.large,
     },
     isElectron: {
@@ -127,9 +126,12 @@ const styles = Styles.styleSheetCreate(() => ({
       paddingTop: Styles.globalMargins.small,
     },
   }),
-  flexOne: {flex: 1},
   headerStyle: {marginBottom: Styles.globalMargins.small},
   iconStyle: {marginBottom: 20},
+  scrollContainer: {
+    ...Styles.globalStyles.flexBoxCenter,
+    flex: 1,
+  },
 }))
 
 export default Kb.HeaderOnMobile(RetentionWarning)
