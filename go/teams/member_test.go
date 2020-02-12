@@ -8,6 +8,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/engine"
+
 	"golang.org/x/net/context"
 
 	"github.com/davecgh/go-spew/spew"
@@ -16,6 +18,7 @@ import (
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -1860,4 +1863,90 @@ func TestAddMembersWithRestrictiveContactSettingsFailIfNoneAdded(t *testing.T) {
 	require.IsType(t, err, libkb.TeamContactSettingsBlockError{})
 	require.Nil(t, added)
 	require.Nil(t, notAdded)
+}
+
+func TestGetUntrustedTeamInfo(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 7)
+	defer cleanup()
+
+	// prepare a mock team
+	owner := 0
+	publicAdmin := 1
+	privateAdmin := 2
+	publicReader := 3
+	privateReader := 4
+	restrictedBot := 5
+	nonMember := 6
+
+	fullNames := make(map[int]string)
+	fullNames[publicAdmin] = "TheMostAmazing Admin"
+	fullNames[publicReader] = "TheEvenBetter Reader"
+
+	setFullName := func(target int) {
+		eng := engine.NewProfileEdit(tcs[target].G, keybase1.ProfileEditArg{Location: "", FullName: fullNames[target], Bio: ""})
+		err := eng.Run(tcs[target].MetaContext())
+		require.NoError(t, err)
+	}
+	setFullName(publicAdmin)
+	setFullName(publicReader)
+
+	teamName, teamID := createTeam2(*tcs[owner])
+	team := teamName.String()
+	added, notAdded, err := AddMembers(context.TODO(), tcs[owner].G, teamID, []keybase1.UserRolePair{
+		{AssertionOrEmail: fus[publicAdmin].Username, Role: keybase1.TeamRole_ADMIN},
+		{AssertionOrEmail: fus[privateAdmin].Username, Role: keybase1.TeamRole_ADMIN},
+		{AssertionOrEmail: fus[publicReader].Username, Role: keybase1.TeamRole_READER},
+		{AssertionOrEmail: fus[privateReader].Username, Role: keybase1.TeamRole_READER},
+		{AssertionOrEmail: fus[restrictedBot].Username, Role: keybase1.TeamRole_RESTRICTEDBOT, BotSettings: &keybase1.TeamBotSettings{Cmds: false, Mentions: true}},
+	}, nil)
+	require.NoError(t, err)
+	require.Len(t, notAdded, 0)
+	require.Len(t, added, 5)
+	t.Logf("Created team %q", team)
+
+	// showcase the team, make it open and set some public members
+	isShowcased := true
+	description := "best team ever"
+
+	err = ChangeTeamSettingsByID(context.TODO(), tcs[owner].G, teamID, keybase1.TeamSettings{Open: true, JoinAs: keybase1.TeamRole_WRITER})
+	require.NoError(t, err)
+
+	err = SetTeamShowcase(context.TODO(), tcs[owner].G, teamID, &isShowcased, &description, nil)
+	require.NoError(t, err)
+
+	err = SetTeamMemberShowcase(context.TODO(), tcs[publicAdmin].G, teamID, true)
+	require.NoError(t, err)
+
+	err = SetTeamMemberShowcase(context.TODO(), tcs[publicReader].G, teamID, true)
+	require.NoError(t, err)
+
+	// load the team as a non member
+	ret, err := GetUntrustedTeamInfo(tcs[nonMember].MetaContext(), teamName)
+	require.NoError(t, err)
+	// check the information matches what we expect
+	require.Equal(t, teamName, ret.Name)
+	require.Equal(t, description, ret.Description)
+	require.Equal(t, false, ret.InTeam)
+	require.Equal(t, true, ret.Open)
+	require.Equal(t, 6, ret.NumMembers) // TRIAGE-1922 restricted bots are counted for now
+	require.Len(t, ret.PublicAdmins, 1)
+	require.Equal(t, fus[publicAdmin].Username, ret.PublicAdmins[0])
+	require.Len(t, ret.PublicMembers, 2)
+
+	checkPublicMember := func(target int, role keybase1.TeamRole) {
+		found := false
+		for _, pm := range ret.PublicMembers {
+			if pm.Uid != fus[target].GetUID() {
+				continue
+			}
+			found = true
+			require.Equal(t, fus[target].User.GetUID(), pm.Uid)
+			require.Equal(t, fus[target].Username, pm.Username)
+			require.Equal(t, keybase1.FullName(fullNames[target]), pm.FullName)
+			require.Equal(t, role, pm.Role)
+		}
+		assert.True(t, found, "target %v not found: %v", target, fus[target].Username)
+	}
+	checkPublicMember(publicAdmin, keybase1.TeamRole_ADMIN)
+	checkPublicMember(publicReader, keybase1.TeamRole_READER)
 }

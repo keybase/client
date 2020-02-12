@@ -425,6 +425,68 @@
     },
     {
       "type": "record",
+      "name": "TeamMemberRole",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "FullName",
+          "name": "fullName"
+        },
+        {
+          "type": "TeamRole",
+          "name": "role"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UntrustedTeamInfo",
+      "fields": [
+        {
+          "type": "TeamName",
+          "name": "name"
+        },
+        {
+          "type": "boolean",
+          "name": "inTeam"
+        },
+        {
+          "type": "boolean",
+          "name": "open"
+        },
+        {
+          "type": "string",
+          "name": "description"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "publicAdmins"
+        },
+        {
+          "type": "int",
+          "name": "numMembers"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamMemberRole"
+          },
+          "name": "publicMembers"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UserVersionPercentForm",
       "fields": [],
       "typedef": "string"
@@ -3176,6 +3238,15 @@
     }
   ],
   "messages": {
+    "getUntrustedTeamInfo": {
+      "request": [
+        {
+          "name": "teamName",
+          "type": "TeamName"
+        }
+      ],
+      "response": "UntrustedTeamInfo"
+    },
     "teamCreate": {
       "request": [
         {

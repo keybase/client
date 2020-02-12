@@ -185,6 +185,25 @@ protocol teams {
     TeamShowcase showcase;
   }
 
+  record TeamMemberRole {
+    UID uid;
+    string username;
+    FullName fullName;
+    TeamRole role;
+  }
+
+  record UntrustedTeamInfo {
+    TeamName name;
+    boolean inTeam; 
+    boolean open;
+    string description;
+    array<string> publicAdmins;
+    int numMembers;
+    array<TeamMemberRole> publicMembers;
+  }
+
+  UntrustedTeamInfo getUntrustedTeamInfo(TeamName teamName);
+
   @typedef("string")
   record UserVersionPercentForm {}
 
