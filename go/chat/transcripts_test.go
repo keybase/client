@@ -13,6 +13,7 @@ import (
 )
 
 func TestTranscript(t *testing.T) {
+	t.Skip("Y2K-1384")
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		// Only run this test for imp teams
 		switch mt {
@@ -85,6 +86,7 @@ func TestTranscript(t *testing.T) {
 }
 
 func TestTranscriptLimit(t *testing.T) {
+	t.Skip("Y2K-1384")
 	// Make sure the pagination is limited, so we don't end up digging for
 	// messages in a busy channel for e.g. someone who hasn't even spoken
 	// there.
