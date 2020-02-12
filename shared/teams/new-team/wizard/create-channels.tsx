@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Container from '../../../util/container'
 import * as Styles from '../../../styles'
+import {pluralize} from '../../../util/string'
 import {ModalTitle} from '../../common'
 
 type Props = {
@@ -12,7 +13,7 @@ const CreateChannel = (props: Props) => {
   const dispatch = Container.useDispatch()
   // const nav = Container.useSafeNavigation()
 
-  const [channels, setChannels] = React.useState<Array<string>>(['hellos', 'random'])
+  const [channels, setChannels] = React.useState<Array<string>>(['hellos', 'random', ''])
   const setChannel = (i: number) => (value: string) => {
     channels[i] = value
     setChannels([...channels])
@@ -28,6 +29,11 @@ const CreateChannel = (props: Props) => {
 
   const onBack = () => {} // dispatch(nav.safeNavigateUpPayload()) TODO mock nav for storybook
 
+  const numChannels = channels.filter(c => !!c.trim()).length
+  const continueLabel = numChannels
+    ? `Continue with ${numChannels} ${pluralize('channel', numChannels)}`
+    : 'Continue without channels'
+
   return (
     <Kb.Modal
       onClose={onBack}
@@ -35,6 +41,7 @@ const CreateChannel = (props: Props) => {
         leftButton: <Kb.Icon type="iconfont-arrow-left" onClick={onBack} />,
         title: <ModalTitle teamname={props.teamname}>Create channels</ModalTitle>,
       }}
+      footer={{content: <Kb.Button fullWidth={true} label={continueLabel} />}}
       allowOverflow={true}
     >
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.banner} centerChildren={true}>
@@ -52,6 +59,12 @@ const CreateChannel = (props: Props) => {
           <ChannelInput key={idx} onChange={setChannel(idx)} value={value} onClear={() => onClear(idx)} />
         ))}
         <Kb.Button mode="Secondary" icon="iconfont-new" tooltip="" onClick={onAdd} />
+        {numChannels === 0 && (
+          <Kb.Text type="BodySmall" style={styles.noChannelsText}>
+            Your team will be a simple conversation. You can always make it a big team later by adding
+            channels.
+          </Kb.Text>
+        )}
       </Kb.Box2>
     </Kb.Modal>
   )
@@ -75,6 +88,7 @@ const ChannelInput = (props: ChannelInputProps) => {
       value={props.value}
       onChangeText={props.onChange}
       decoration={<Kb.Icon type="iconfont-remove" onClick={props.onClear} />}
+      placeholder="channel"
       containerStyle={styles.input}
     />
   )
@@ -102,6 +116,7 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
   input: {...Styles.padding(Styles.globalMargins.xsmall)},
   inputGeneral: {...Styles.padding(Styles.globalMargins.xsmall), opacity: 0.4},
+  noChannelsText: {paddingTop: Styles.globalMargins.tiny, width: '100%'},
 }))
 
 export default CreateChannel
