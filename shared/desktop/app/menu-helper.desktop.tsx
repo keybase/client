@@ -133,8 +133,24 @@ function setupContextMenu(window: Electron.BrowserWindow) {
                 s =>
                   new Electron.MenuItem({
                     label: s,
-                    click() {
-                      console.log('aaa tODO inject', s)
+                    click(_, w) {
+                      // TODO
+                      // w.webContents.executeJavaScript(`
+                      // if (window.getSelection) {
+                      // const sel = window.getSelection()
+                      // if (sel.rangeCount) {
+                      // let range = sel.getRangeAt(0)
+                      // range.deleteContents()
+                      // range.insertNode(document.createTextNode("${s}"))
+                      // }
+                      // } else if (document.selection && document.selection.createRange) {
+                      // let range = document.selection.createRange()
+                      // range.text = "${s}"
+                      // }`)
+                      // const old = Electron.clipboard.readText('clipboard')
+                      // Electron.clipboard.writeText(s, 'clipboard')
+                      // console.log('aaa tODO inject', s)
+                      // Electron.clipboard.writeText(old, 'clipboard')
                     },
                   })
               ),
