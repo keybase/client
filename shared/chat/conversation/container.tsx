@@ -27,7 +27,9 @@ export class Conversation extends React.PureComponent<SwitchProps> {
     this.props.selectConversation()
   }
   _onWillBlur = () => {
-    this.props.deselectConversation()
+    if (Container.isPhone) {
+      this.props.deselectConversation()
+    }
   }
   componentWillUnmount() {
     // Workaround
