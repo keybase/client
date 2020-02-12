@@ -127,15 +127,6 @@ const styles = Styles.styleSheetCreate(
         marginTop: 8,
       },
       horizBox: {...Styles.globalStyles.flexBoxRow},
-      itemBodyText: {color: undefined},
-      itemContainer: {
-        ...Styles.globalStyles.flexBoxColumn,
-        paddingBottom: Styles.globalMargins.xtiny,
-        paddingLeft: Styles.globalMargins.small,
-        paddingRight: Styles.globalMargins.small,
-        paddingTop: Styles.globalMargins.xtiny,
-        position: 'relative',
-      },
       iconBadge: {
         backgroundColor: Styles.globalColors.blue,
         height: Styles.globalMargins.tiny,
@@ -145,6 +136,15 @@ const styles = Styles.styleSheetCreate(
         position: 'relative',
         right: Styles.globalMargins.xtiny,
         width: Styles.globalMargins.tiny,
+      },
+      itemBodyText: {color: undefined},
+      itemContainer: {
+        ...Styles.globalStyles.flexBoxColumn,
+        paddingBottom: Styles.globalMargins.xtiny,
+        paddingLeft: Styles.globalMargins.small,
+        paddingRight: Styles.globalMargins.small,
+        paddingTop: Styles.globalMargins.xtiny,
+        position: 'relative',
       },
       menuContainer: Styles.platformStyles({
         isElectron: {
