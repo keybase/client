@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Styles from '../styles'
 import Icon from './icon'
+import {Color} from '../styles'
 
 const Kb = {Icon}
 
@@ -10,6 +11,7 @@ type Props = {
   className?: string
   disabled?: boolean
   fontSize?: number
+  selectedColor?: Color
 }
 
 const CheckCircle = (props: Props) => {
@@ -21,12 +23,15 @@ const CheckCircle = (props: Props) => {
     }
     setChecked(newChecked)
   }
+  // If the parent wants us to change our checkedness
+  React.useEffect(() => setChecked(props.checked), [props.checked, setChecked])
+
   return (
     <Kb.Icon
       type={checked ? 'iconfont-success' : 'iconfont-circle'}
       color={
         !props.disabled && (checked || Styles.isMobile)
-          ? Styles.globalColors.blue
+          ? props.selectedColor ?? Styles.globalColors.blue
           : Styles.globalColors.black_20
       }
       onClick={props.disabled ? null : onClick}

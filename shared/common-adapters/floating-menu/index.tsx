@@ -13,21 +13,21 @@ import {Color, StylesCrossPlatform} from '../../styles'
 export type MenuItems = _MenuItems
 
 export type Props = {
+  attachTo?: () => React.Component<any> | null
+  backgroundColor?: Color
   closeOnSelect: boolean
   closeText?: string // mobile only; default to "Close",
   containerStyle?: StylesCrossPlatform
-  items: _MenuItems
   header?: MenuItem
-  backgroundColor?: Color
+  items: _MenuItems
   listStyle?: Object
   onHidden: () => void
-  visible: boolean
-  attachTo?: () => React.Component<any> | null
   position?: Position
   positionFallbacks?: Position[]
   propagateOutsideClicks?: boolean
   remeasureHint?: number
   textColor?: Color
+  visible: boolean
 }
 
 export default (props: Props) => {

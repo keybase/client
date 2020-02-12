@@ -14,13 +14,14 @@ import {
 type TeamTabsProps = {
   admin: boolean
   error?: string
+  isBig: boolean
+  loadBots: () => void
+  loading: boolean
   newRequests: number
   numInvites: number
   numRequests: number
   numSubteams: number
   resetUserCount: number
-  loadBots: () => void
-  loading: boolean
   selectedTab?: string
   setSelectedTab: (arg0: Types.TabKey) => void
   showSubteams: boolean
@@ -39,6 +40,14 @@ const TeamTabs = (props: TeamTabsProps) => {
       {!!props.resetUserCount && <Kb.Badge badgeNumber={props.resetUserCount} badgeStyle={styles.badge} />}
     </Kb.Box>,
   ]
+
+  if (flags.teamsRedesign && props.isBig) {
+    tabs.push(
+      <Kb.Box key="channels" style={styles.tabTextContainer}>
+        <TabText selected={props.selectedTab === 'channels'} text="Channels" />
+      </Kb.Box>
+    )
+  }
 
   const requestsBadge = Math.min(props.newRequests, props.numRequests)
 
@@ -148,6 +157,9 @@ const styles = styleSheetCreate(() => ({
     width: 17,
   },
   tab: platformStyles({
+    isElectron: {
+      flexGrow: 1,
+    },
     isMobile: {
       paddingLeft: globalMargins.tiny,
       paddingRight: globalMargins.tiny,

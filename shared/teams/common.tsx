@@ -1,9 +1,9 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
+import * as Types from '../constants/types/teams'
 
-type ActivityLevel = 'active' | 'recently' | 'extinct'
-const activityToIcon: {[key in ActivityLevel]: Kb.IconType} = {
+const activityToIcon: {[key in Types.ActivityLevel]: Kb.IconType} = {
   active: 'iconfont-fire',
   extinct: 'iconfont-rip',
   recently: 'iconfont-team-leave',
@@ -13,7 +13,7 @@ const activityToLabel = {
   extinct: 'Extinct',
   recently: 'Recently active',
 }
-export const Activity = ({level}: {level: ActivityLevel}) => (
+export const Activity = ({level}: {level: Types.ActivityLevel}) => (
   <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center" fullWidth={Styles.isMobile}>
     <Kb.Icon
       type={activityToIcon[level]}

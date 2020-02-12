@@ -5,6 +5,7 @@ import MemberRow from './member-row/container'
 import {BotRow, AddBotRow} from './bot-row'
 import {RequestRow, InviteRow, InvitesEmptyRow, DividerRow} from './invite-row'
 import {SubteamAddRow, SubteamIntroRow, SubteamNoneRow, SubteamTeamRow, SubteamInfoRow} from './subteam-row'
+import {ChannelRow, ChannelHeaderRow, ChannelFooterRow} from './channel-row'
 import TeamPageDivider from './divider'
 import LoadingRow from './loading'
 import TeamHeaderRow from '../header/container'
@@ -20,6 +21,12 @@ const renderRow = (row: Row, teamID: Types.TeamID) => {
       return <BotRow teamID={teamID} username={row.username} />
     case 'bot-add':
       return <AddBotRow teamID={teamID} />
+    case 'channel-header':
+      return <ChannelHeaderRow teamID={teamID} />
+    case 'channel-footer':
+      return <ChannelFooterRow />
+    case 'channel':
+      return <ChannelRow teamID={teamID} channel={row.channel} conversationIDKey={row.conversationIDKey} />
     case 'invites-divider':
       return <DividerRow label={row.label} />
     case 'invites-invite':

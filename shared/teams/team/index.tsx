@@ -33,6 +33,9 @@ class Team extends React.Component<Props> {
       case 'member':
       case 'bot':
       case 'bot-add':
+      case 'channel':
+      case 'channel-header':
+      case 'channel-footer':
       case 'invites-invite':
       case 'invites-request':
       case 'invites-divider':

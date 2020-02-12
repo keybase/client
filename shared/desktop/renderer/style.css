@@ -451,3 +451,11 @@ body {
 .darkMode .headerTitle:hover .addInviteAndLinkBox {
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.8);
 }
+
+.checkboxRow:hover .check-circle-selectable {
+  color: #a8ccff;
+}
+
+.darkMode .checkboxRow:hover .check-circle-selectable {
+  color: #4c8eff;
+}

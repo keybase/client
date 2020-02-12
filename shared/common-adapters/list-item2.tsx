@@ -29,12 +29,20 @@ type Props = {
   onlyShowActionOnHover?: 'fade' | 'grow' | null
   onClick?: () => void
   height?: number // optional, for non-standard heights
+  style?: Styles.StylesCrossPlatform
+  className?: string
+  iconStyleOverride?: Styles.StylesCrossPlatform
+  containerStyleOverride?: Styles.StylesCrossPlatform
 }
 
 const ListItem = (props: Props) => (
   <Kb.ClickableBox
     onClick={props.onClick}
-    style={props.type === 'Small' ? styles.clickableBoxSmall : styles.clickableBoxLarge}
+    style={Styles.collapseStyles([
+      props.style,
+      props.type === 'Small' ? styles.clickableBoxSmall : styles.clickableBoxLarge,
+    ])}
+    className={props.className}
   >
     <Kb.Box2
       className={Styles.classNames({
@@ -288,30 +296,34 @@ const getStatusIconStyle = (props: Props) =>
   props.type === 'Small' ? styles.statusIconSmall : styles.statusIconLarge
 
 const getIconStyle = (props: Props) =>
-  props.type === 'Small'
+  props.iconStyleOverride ??
+  (props.type === 'Small'
     ? props.statusIcon
       ? styles.iconSmallWithStatusIcon
       : styles.iconSmallWithNoStatusIcon
     : props.statusIcon
     ? styles.iconLargeWithStatusIcon
-    : styles.iconLargeWithNoStatusIcon
+    : styles.iconLargeWithNoStatusIcon)
 
 const getContainerStyles = (props: Props) =>
-  props.type === 'Small'
-    ? props.statusIcon
+  Styles.collapseStyles([
+    props.type === 'Small'
+      ? props.statusIcon
+        ? props.icon
+          ? styles.containerSmallWithStatusIconWithIcon
+          : styles.containerSmallWithStatusIconNoIcon
+        : props.icon
+        ? styles.containerSmallNoStatusIconWithIcon
+        : styles.containerSmallNoStatusIconNoIcon
+      : props.statusIcon
       ? props.icon
-        ? styles.containerSmallWithStatusIconWithIcon
-        : styles.containerSmallWithStatusIconNoIcon
+        ? styles.containerLargeWithStatusIconWithIcon
+        : styles.containerLargeWithStatusIconNoIcon
       : props.icon
-      ? styles.containerSmallNoStatusIconWithIcon
-      : styles.containerSmallNoStatusIconNoIcon
-    : props.statusIcon
-    ? props.icon
-      ? styles.containerLargeWithStatusIconWithIcon
-      : styles.containerLargeWithStatusIconNoIcon
-    : props.icon
-    ? styles.containerLargeNoStatusIconWithIcon
-    : styles.containerLargeNoStatusIconNoIcon
+      ? styles.containerLargeNoStatusIconWithIcon
+      : styles.containerLargeNoStatusIconNoIcon,
+    props.containerStyleOverride,
+  ])
 
 const getActionStyle = (props: Props) =>
   props.type === 'Small'
