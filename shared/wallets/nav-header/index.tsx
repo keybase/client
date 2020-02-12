@@ -109,6 +109,9 @@ const styles = Styles.styleSheetCreate(
           paddingRight: Styles.globalMargins.xsmall,
         },
         isElectron: {...Styles.desktopStyles.windowDraggingClickable},
+        isTablet: {
+          maxWidth: 240,
+        },
       }),
       loading: {
         height: 16,
