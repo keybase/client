@@ -8,6 +8,7 @@ import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
+import flags from '../../../../util/feature-flags'
 import RetentionPicker from '../../../../teams/team/settings-tab/retention/container'
 import MinWriterRole from './min-writer-role'
 import Notifications from './notifications'
@@ -27,6 +28,9 @@ const SettingsPanel = (props: SettingsPanelProps) => {
   )
   const ignored = status === RPCChatTypes.ConversationStatus.ignored
   const smallTeam = teamType !== 'big'
+
+  //TODO: This is mocked for now
+  const isUserInChannel = true
 
   const spinnerForHide = Container.useSelector(state =>
     Container.anyWaiting(state, Constants.waitingKeyConvStatusChange(conversationIDKey))
@@ -82,6 +86,89 @@ const SettingsPanel = (props: SettingsPanelProps) => {
     : onHideConv
 
   const onLeaveConversation = () => dispatch(Chat2Gen.createLeaveConversation({conversationIDKey}))
+
+  if (flags.teamsRedesign) {
+    return (
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.settingsContainer}>
+        <Kb.ScrollView>
+          {isUserInChannel ? (
+            <Notifications conversationIDKey={conversationIDKey} />
+          ) : (
+            <Kb.Box2 direction="vertical" fullWidth={true} style={styles.settingsHeader}>
+              <Kb.Text type="BodySmallSemibold">You are not in this channel.</Kb.Text>
+              <Kb.Button mode="Secondary" label="Join channel" style={styles.buttonStyle} />
+            </Kb.Box2>
+          )}
+
+          {entityType === 'channel' && channelname !== 'general' && (
+            <Kb.Button
+              type="Danger"
+              mode="Secondary"
+              label="Leave channel"
+              onClick={onLeaveConversation}
+              style={styles.smallButton}
+            />
+          )}
+
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.settingsHeader}>
+            <Kb.Text type="Header">Channel</Kb.Text>
+          </Kb.Box2>
+
+          <RetentionPicker
+            containerStyle={styles.retentionContainerStyle}
+            conversationIDKey={['adhoc', 'channel'].includes(entityType) ? conversationIDKey : undefined}
+            dropdownStyle={styles.retentionDropdownStyle}
+            entityType={entityType}
+            showSaveIndicator={true}
+            teamID={teamID}
+            type="auto"
+          />
+          {(entityType === 'channel' || entityType === 'small team') && (
+            <MinWriterRole conversationIDKey={conversationIDKey} />
+          )}
+
+          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.section}>
+            <Kb.Text type="BodySmallSemibold">Danger zone</Kb.Text>
+
+            {canDeleteHistory && (
+              <Kb.Button
+                type="Danger"
+                fullWidth={true}
+                label="Clear entire conversation"
+                onClick={onShowClearConversationDialog}
+                style={styles.buttonStyle}
+              />
+            )}
+            {entityType === 'adhoc' && (
+              <CaptionedDangerIcon
+                caption="Block"
+                onClick={onShowBlockConversationDialog}
+                icon="iconfont-remove"
+              />
+            )}
+            {entityType !== 'channel' &&
+              (ignored ? (
+                <CaptionedDangerIcon
+                  caption="Unhide this conversation"
+                  icon="iconfont-unhide"
+                  onClick={onUnhideConv}
+                  noDanger={true}
+                  spinner={spinnerForHide}
+                />
+              ) : (
+                <CaptionedDangerIcon
+                  caption="Hide this conversation"
+                  onClick={onHideConv}
+                  noDanger={true}
+                  icon="iconfont-hide"
+                  spinner={spinnerForHide}
+                />
+              ))}
+          </Kb.Box2>
+        </Kb.ScrollView>
+      </Kb.Box2>
+    )
+  }
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.settingsContainer}>
@@ -150,6 +237,23 @@ const styles = Styles.styleSheetCreate(
       divider: {
         marginBottom: Styles.globalMargins.tiny,
         marginTop: Styles.globalMargins.tiny,
+      },
+      smallButton: {
+        marginLeft: Styles.globalMargins.small,
+        marginBottom: Styles.globalMargins.medium,
+      },
+      settingsHeader: {
+        paddingLeft: Styles.globalMargins.small,
+        paddingRight: Styles.globalMargins.small,
+        marginBottom: Styles.globalMargins.small,
+      },
+      section: {
+        paddingLeft: Styles.globalMargins.small,
+        paddingRight: Styles.globalMargins.small,
+      },
+      buttonStyle: {
+        marginTop: Styles.globalMargins.small,
+        marginBottom: Styles.globalMargins.small,
       },
       membersContainer: {
         flex: 1,
