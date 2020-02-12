@@ -20,8 +20,6 @@ yarn modules
 ```
 Which is just an alias to run `yarn install --pure-lockfile --ignore-optional`. 
 
-> If you ever screw up your packaging situation: `yarn rn-packager-wipe-cache`.
-
 ### Desktop
 
 The following `yarn run` commands, to build, run or package the app:
