@@ -13,10 +13,11 @@ import * as Constants from '../../../constants/chat2'
 type BotProps = RPCTypes.FeaturedBot & {
   description?: string
   onClick: (username: string) => void
+  showInChannel: boolean
 }
 
 export const Bot = (props: BotProps) => {
-  const {botAlias, description, botUsername, onClick} = props
+  const {botAlias, description, botUsername, onClick, showInChannel} = props
   const {ownerTeam, ownerUser} = props
   const lower = (
     <Kb.Box2
@@ -65,6 +66,11 @@ export const Bot = (props: BotProps) => {
               {usernameDisplay}
               {lower}
             </Kb.Box2>
+            {showInChannel && (
+              <Kb.WithTooltip tooltip={`${botAlias || botUsername} can respond to messages in this channel.`}>
+                <Kb.Icon type="iconfont-bot" color={Styles.globalColors.black_35} onClick={() => null} />
+              </Kb.WithTooltip>
+            )}
           </Kb.Box2>
         </Kb.Box2>
         <Kb.Divider style={styles.divider} />
@@ -278,7 +284,13 @@ export default (props: Props) => {
         if (!item.botUsername) {
           return null
         } else {
-          return <Bot {...item} onClick={onBotSelect} />
+          return (
+            <Bot
+              {...item}
+              onClick={onBotSelect}
+              showInChannel={teamType === 'big' && participantsAll.includes(item.botUsername)}
+            />
+          )
         }
       },
       renderSectionHeader: renderTabs,

@@ -29,9 +29,7 @@ export default (props: Props) => {
     Constants.getParticipantInfo(state, conversationIDKey)
   )
   let participants = participantInfo.all
-  const smallTeam = meta.teamType !== 'big'
   const adhocTeam = meta.teamType === 'adhoc'
-  const shouldFilterBots = smallTeam
 
   let botUsernames: Array<string> = []
   if (adhocTeam) {
@@ -53,12 +51,11 @@ export default (props: Props) => {
       return l
     }, [])
 
-    if (flags.botUI && shouldFilterBots) {
+    if (flags.botUI) {
       participants = participants.filter(p => !botUsernames.includes(p))
     }
   } else {
-    participants =
-      flags.botUI && shouldFilterBots ? participants.filter(p => !botUsernames.includes(p)) : participants
+    participants = flags.botUI ? participants.filter(p => !botUsernames.includes(p)) : participants
   }
 
   const participantsItems = participants
