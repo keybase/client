@@ -277,6 +277,7 @@ const styles = Styles.styleSheetCreate(
       smallButton: {
         marginBottom: Styles.globalMargins.medium,
         marginLeft: Styles.globalMargins.small,
+        marginRight: Styles.globalMargins.small,
       },
     } as const)
 )
