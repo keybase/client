@@ -998,6 +998,10 @@ func (m *ChatRemoteMock) SetDefaultTeamChannels(ctx context.Context, arg chat1.S
 	return res, errors.New("SetDefaultTeamChannels not mocked")
 }
 
+func (m *ChatRemoteMock) GetRecentJoins(ctx context.Context, convID chat1.ConversationID) (res chat1.GetRecentJoinsRes, err error) {
+	return res, errors.New("GetRecentJoins not mocked")
+}
+
 func (m *ChatRemoteMock) TeamIDOfConv(ctx context.Context, convID chat1.ConversationID) (res *keybase1.TeamID, err error) {
 	return res, errors.New("TeamIDOfConv not mocked")
 }

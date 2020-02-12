@@ -1153,6 +1153,7 @@ export type GetMessagesLocalRes = {readonly messages?: Array<MessageUnboxed> | n
 export type GetMessagesRemoteRes = {readonly msgs?: Array<MessageBoxed> | null; readonly rateLimit?: RateLimit | null}
 export type GetNextAttachmentMessageLocalRes = {readonly message?: UIMessage | null; readonly offline: Boolean; readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
 export type GetPublicConversationsRes = {readonly conversations?: Array<Conversation> | null; readonly rateLimit?: RateLimit | null}
+export type GetRecentJoinsRes = {readonly numJoins: Int; readonly rateLimit?: RateLimit | null}
 export type GetResetConvMembersRes = {readonly members?: Array<ResetConvMemberAPI> | null; readonly rateLimits?: Array<RateLimitRes> | null}
 export type GetTLFConversationsLocalRes = {readonly convs?: Array<InboxUIItem> | null; readonly offline: Boolean; readonly rateLimits?: Array<RateLimit> | null}
 export type GetTLFConversationsRes = {readonly conversations?: Array<Conversation> | null; readonly rateLimit?: RateLimit | null}
@@ -1728,3 +1729,4 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.remote.getBotInfo'
 // 'chat.1.remote.getDefaultTeamChannels'
 // 'chat.1.remote.setDefaultTeamChannels'
+// 'chat.1.remote.getRecentJoins'

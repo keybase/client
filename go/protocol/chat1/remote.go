@@ -1295,6 +1295,24 @@ func (o SetDefaultTeamChannelsRes) DeepCopy() SetDefaultTeamChannelsRes {
 	}
 }
 
+type GetRecentJoinsRes struct {
+	NumJoins  int        `codec:"numJoins" json:"numJoins"`
+	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+}
+
+func (o GetRecentJoinsRes) DeepCopy() GetRecentJoinsRes {
+	return GetRecentJoinsRes{
+		NumJoins: o.NumJoins,
+		RateLimit: (func(x *RateLimit) *RateLimit {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.RateLimit),
+	}
+}
+
 type GetInboxRemoteArg struct {
 	Vers       InboxVers      `codec:"vers" json:"vers"`
 	Query      *GetInboxQuery `codec:"query,omitempty" json:"query,omitempty"`
@@ -1537,6 +1555,10 @@ type SetDefaultTeamChannelsArg struct {
 	Convs  []ConversationID `codec:"convs" json:"convs"`
 }
 
+type GetRecentJoinsArg struct {
+	ConvID ConversationID `codec:"convID" json:"convID"`
+}
+
 type RemoteInterface interface {
 	GetInboxRemote(context.Context, GetInboxRemoteArg) (GetInboxRemoteRes, error)
 	GetThreadRemote(context.Context, GetThreadRemoteArg) (GetThreadRemoteRes, error)
@@ -1584,6 +1606,7 @@ type RemoteInterface interface {
 	GetBotInfo(context.Context, GetBotInfoArg) (GetBotInfoRes, error)
 	GetDefaultTeamChannels(context.Context, keybase1.TeamID) (GetDefaultTeamChannelsRes, error)
 	SetDefaultTeamChannels(context.Context, SetDefaultTeamChannelsArg) (SetDefaultTeamChannelsRes, error)
+	GetRecentJoins(context.Context, ConversationID) (GetRecentJoinsRes, error)
 }
 
 func RemoteProtocol(i RemoteInterface) rpc.Protocol {
@@ -2265,6 +2288,21 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 					return
 				},
 			},
+			"getRecentJoins": {
+				MakeArg: func() interface{} {
+					var ret [1]GetRecentJoinsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetRecentJoinsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetRecentJoinsArg)(nil), args)
+						return
+					}
+					ret, err = i.GetRecentJoins(ctx, typedArgs[0].ConvID)
+					return
+				},
+			},
 		},
 	}
 }
@@ -2515,5 +2553,11 @@ func (c RemoteClient) GetDefaultTeamChannels(ctx context.Context, teamID keybase
 
 func (c RemoteClient) SetDefaultTeamChannels(ctx context.Context, __arg SetDefaultTeamChannelsArg) (res SetDefaultTeamChannelsRes, err error) {
 	err = c.Cli.CallCompressed(ctx, "chat.1.remote.setDefaultTeamChannels", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
+	return
+}
+
+func (c RemoteClient) GetRecentJoins(ctx context.Context, convID ConversationID) (res GetRecentJoinsRes, err error) {
+	__arg := GetRecentJoinsArg{ConvID: convID}
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getRecentJoins", []interface{}{__arg}, &res, rpc.CompressionGzip, 0*time.Millisecond)
 	return
 }

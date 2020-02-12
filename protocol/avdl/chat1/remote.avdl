@@ -402,4 +402,10 @@ protocol remote {
     union { null, RateLimit } rateLimit;
   }
   SetDefaultTeamChannelsRes setDefaultTeamChannels(keybase1.TeamID teamID, array<ConversationID> convs);
+
+  record GetRecentJoinsRes {
+    int numJoins;
+    union { null, RateLimit } rateLimit;
+  }
+  GetRecentJoinsRes getRecentJoins(ConversationID convID);
 }
