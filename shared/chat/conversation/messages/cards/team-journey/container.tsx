@@ -153,7 +153,7 @@ const TeamJourneyContainer = (props: Props) => {
       conversationIDKey={props.conversationIDKey}
       textComponent={textComponent}
       onDismiss={props.onDismiss}
-      mode={'chat'}
+      mode="chat"
     />
   ) : null
 }

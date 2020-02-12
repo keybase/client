@@ -28,7 +28,7 @@ type Props = {
   teamID: Types.TeamID
   yourOperations: Types.TeamOperations
   waitingForSavePublicity: boolean
-  welcomeMessage: RPCChatTypes.WelcomeMessage | null
+  welcomeMessage?: RPCChatTypes.WelcomeMessage
   loadWelcomeMessage: () => void
   teamname: string
 }

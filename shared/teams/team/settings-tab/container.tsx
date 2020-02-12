@@ -44,7 +44,6 @@ export default Container.connect(
     }
   },
   (dispatch, {teamID}: OwnProps) => ({
-    _loadWelcomeMessage: () => dispatch(TeamsGen.createLoadWelcomeMessage({teamID})),
     _showRetentionWarning: (
       policy: RetentionPolicy,
       onConfirm: () => void,
@@ -56,6 +55,7 @@ export default Container.connect(
         })
       ),
     clearError: () => dispatch(TeamsGen.createSettingsError({error: ''})),
+    loadWelcomeMessage: () => dispatch(TeamsGen.createLoadWelcomeMessage({teamID})),
     savePublicity: (settings: Types.PublicitySettings) =>
       dispatch(TeamsGen.createSetPublicity({settings, teamID})),
     saveRetentionPolicy: (policy: RetentionPolicy) =>
@@ -64,7 +64,7 @@ export default Container.connect(
   (stateProps, dispatchProps) => {
     return {
       ...stateProps,
-      loadWelcomeMessage: dispatchProps._loadWelcomeMessage,
+      loadWelcomeMessage: dispatchProps.loadWelcomeMessage,
       savePublicity: (
         settings: Types.PublicitySettings,
         showRetentionWarning: boolean,
