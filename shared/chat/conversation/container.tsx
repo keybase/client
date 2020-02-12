@@ -27,9 +27,7 @@ export class Conversation extends React.PureComponent<SwitchProps> {
     this.props.selectConversation()
   }
   _onWillBlur = () => {
-    if (Container.isPhone) {
-      this.props.deselectConversation()
-    }
+    this.props.deselectConversation()
   }
   componentWillUnmount() {
     // Workaround
@@ -59,7 +57,7 @@ export class Conversation extends React.PureComponent<SwitchProps> {
       case 'normal':
         return (
           <>
-            {Container.isMobile && (
+            {Container.isPhone && (
               <Kb.NavigationEvents onDidFocus={this._onDidFocus} onWillBlur={this._onWillBlur} />
             )}
             <Normal conversationIDKey={this.props.conversationIDKey} />
