@@ -1063,6 +1063,13 @@ protocol local {
   }
   GetTLFConversationsLocalRes getTLFConversationsLocal(string tlfName, TopicType topicType, ConversationMembersType membersType);
 
+  record GetChannelMembershipsLocalRes {
+    array<ChannelNameMention> channels;
+    boolean offline;
+    array<RateLimit> rateLimits;
+  }
+  GetChannelMembershipsLocalRes getChannelMembershipsLocal(keybase1.TeamID teamID, gregor1.UID uid);
+
   // Chat notification configuration endpoint. Does not need to be complete, just a delta on the
   // currently configured settings.
   record SetAppNotificationSettingsLocalRes {
