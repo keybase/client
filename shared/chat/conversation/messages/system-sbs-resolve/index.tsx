@@ -29,7 +29,7 @@ const SBSProvedNotice = (props: Props) => {
   return (
     <UserNotice>
       <Kb.Text type="BodySmall">
-        {isYou && 'You'} can read this chat now because {isYou ? 'you' : 'they'}{' '}
+        {isYou && 'You '}can read this chat now because {isYou ? 'you' : 'they'}{' '}
         {assertionService && formatAssertion(assertionUsername, assertionService, isYou)}.
       </Kb.Text>
     </UserNotice>
