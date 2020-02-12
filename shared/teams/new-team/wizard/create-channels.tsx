@@ -11,7 +11,7 @@ type Props = {
 
 const CreateChannel = (props: Props) => {
   const dispatch = Container.useDispatch()
-  // const nav = Container.useSafeNavigation()
+  const nav = Container.useSafeNavigation()
 
   const [channels, setChannels] = React.useState<Array<string>>(['hellos', 'random', ''])
   const setChannel = (i: number) => (value: string) => {
@@ -27,7 +27,7 @@ const CreateChannel = (props: Props) => {
     setChannels([...channels])
   }
 
-  const onBack = () => {} // dispatch(nav.safeNavigateUpPayload()) TODO mock nav for storybook
+  const onBack = () => dispatch(nav.safeNavigateUpPayload())
 
   const numChannels = channels.filter(c => !!c.trim()).length
   const continueLabel = numChannels
