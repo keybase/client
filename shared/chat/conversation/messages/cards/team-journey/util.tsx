@@ -3,28 +3,25 @@ import * as RPCChatTypes from '../../../../../constants/types/rpc-chat-gen'
 import * as Styles from '../../../../../styles'
 import * as Kb from '../../../../../common-adapters'
 
-function renderWelcomeMessage(message: RPCChatTypes.WelcomeMessage, cannotWrite: boolean): React.ReactNode {
+// We template these into the input box for the default welcome box, so we can't use Kb.Emoji.
+const defaultWelcomeMessageWriter = '👋 Welcome to the team! Say hi to everyone and introduce yourself.'
+const defaultWelcomeMessageNonwriter = '👋 Welcome to the team!'
+
+function computeWelcomeMessageText(message: RPCChatTypes.WelcomeMessage, cannotWrite: boolean): string {
   if (message.set) {
-    return (
-      <Kb.Text style={styles.text} type="BodySmall">
-        {message.text}
-      </Kb.Text>
-    )
+    return message.text
   } else if (cannotWrite) {
-    return (
-      <Kb.Text style={styles.text} type="BodySmall">
-        <Kb.Emoji allowFontScaling={true} size={Styles.globalMargins.small} emojiName=":wave:" /> Welcome to
-        the team!
-      </Kb.Text>
-    )
-  } else {
-    return (
-      <Kb.Text style={styles.text} type="BodySmall">
-        <Kb.Emoji allowFontScaling={true} size={Styles.globalMargins.small} emojiName=":wave:" /> Welcome to
-        the team! Say hi to everyone and introduce yourself.
-      </Kb.Text>
-    )
+    return defaultWelcomeMessageNonwriter
   }
+  return defaultWelcomeMessageWriter
+}
+
+function renderWelcomeMessage(message: RPCChatTypes.WelcomeMessage, cannotWrite: boolean): React.ReactNode {
+  return (
+    <Kb.Text style={styles.text} type="BodySmall">
+      {computeWelcomeMessageText(message, cannotWrite)}
+    </Kb.Text>
+  )
 }
 
 const styles = Styles.styleSheetCreate(() => ({
@@ -35,4 +32,4 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
 }))
 
-export {renderWelcomeMessage}
+export {computeWelcomeMessageText, renderWelcomeMessage}

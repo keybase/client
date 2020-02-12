@@ -3277,6 +3277,10 @@ func (h *Server) DismissJourneycard(ctx context.Context, arg chat1.DismissJourne
 }
 
 const welcomeMessageName = "__welcome_message"
+
+// welcomeMessageMaxLen is duplicated at
+// shared/teams/edit-welcome-message/index.tsx:welcomeMessageMaxLen; keep the
+// values in sync!
 const welcomeMessageMaxLen = 400
 
 func getWelcomeMessage(ctx context.Context, g *globals.Context, ri func() chat1.RemoteInterface, uid gregor1.UID, teamID keybase1.TeamID) (message chat1.WelcomeMessage, err error) {
