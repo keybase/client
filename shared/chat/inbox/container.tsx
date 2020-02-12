@@ -6,7 +6,7 @@ import * as Chat2Gen from '../../actions/chat2-gen'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import {appendNewChatBuilder} from '../../actions/typed-routes'
 import Inbox from '.'
-import {isMobile} from '../../constants/platform'
+import {isPhone} from '../../constants/platform'
 import {
   Props as _Props,
   RowItemSmall,
@@ -88,7 +88,7 @@ export class InboxWrapper extends React.PureComponent<Props> {
   }
 
   componentDidMount() {
-    if (!isMobile) {
+    if (!isPhone) {
       this.props._onMountedDesktop()
     }
     if (this.props._canRefreshOnMount) {
@@ -139,7 +139,7 @@ const Connected = Container.namedConnect(
       _selectedConversationIDKey: state.chat2.selectedConversation,
       allowShowFloatingButton,
       inboxNumSmallRows,
-      isLoading: isMobile ? Constants.anyChatWaitingKeys(state) : false, // desktop doesn't use isLoading so ignore it
+      isLoading: isPhone ? Constants.anyChatWaitingKeys(state) : false, // desktop doesn't use isLoading so ignore it
       isSearching: !!state.chat2.inboxSearch,
       neverLoaded,
       smallTeamsExpanded: state.chat2.smallTeamsExpanded,

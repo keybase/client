@@ -91,7 +91,7 @@ const inboxRefresh = (
     actions.push(Chat2Gen.createClearMessages())
   }
   const reselectMode =
-    state.chat2.inboxHasLoaded || Container.isMobile
+    state.chat2.inboxHasLoaded || Container.isPhone
       ? RPCChatTypes.InboxLayoutReselectMode.default
       : RPCChatTypes.InboxLayoutReselectMode.force
   RPCChatTypes.localRequestInboxLayoutRpcPromise({reselectMode})
@@ -274,7 +274,7 @@ const maybeChangeSelectedConv = (
     !Constants.isValidConversationIDKey(selectedConversation) ||
     state.chat2.selectedConversation === reselectInfo.oldConvID
   ) {
-    if (Container.isMobile) {
+    if (Container.isPhone) {
       // on mobile just head back to the inbox if we have something selected
       if (Constants.isValidConversationIDKey(selectedConversation)) {
         logger.info(`maybeChangeSelectedConv: mobile: navigating up on conv change`)
@@ -2402,7 +2402,7 @@ const navigateToThreadRoute = (conversationIDKey: Types.ConversationIDKey, fromK
   let replace = false
   const visible = Router2Constants.getVisibleScreen()
 
-  if (!Container.isMobile && visible && visible.routeName === 'chatRoot') {
+  if (!Container.isPhone && visible && visible.routeName === 'chatRoot') {
     // Don't append; we don't want to increase the size of the stack on desktop
     return
   }
@@ -2418,7 +2418,7 @@ const navigateToThreadRoute = (conversationIDKey: Types.ConversationIDKey, fromK
 
   return RouteTreeGen.createNavigateAppend({
     fromKey,
-    path: [{props: {conversationIDKey}, selected: Container.isMobile ? 'chatConversation' : 'chatRoot'}],
+    path: [{props: {conversationIDKey}, selected: Container.isPhone ? 'chatConversation' : 'chatRoot'}],
     replace,
   })
 }
@@ -3624,9 +3624,10 @@ const onShowInfoPanel = (action: Chat2Gen.ShowInfoPanelPayload) => {
 
 function* chat2Saga() {
   // Platform specific actions
-  if (Container.isMobile) {
+  if (Container.isPhone) {
     // Push us into the conversation
     yield* Saga.chainAction2(Chat2Gen.selectConversation, mobileNavigateOnSelect)
+  } else if (Container.isMobile) {
     yield* Saga.chainGenerator<Chat2Gen.MessageAttachmentNativeSharePayload>(
       Chat2Gen.messageAttachmentNativeShare,
       mobileMessageAttachmentShare

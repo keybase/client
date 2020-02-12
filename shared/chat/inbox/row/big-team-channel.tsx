@@ -23,7 +23,7 @@ const BigTeamChannel = (props: Props) => {
   const hasUnread = Container.useSelector(state => Constants.getHasUnread(state, conversationIDKey))
   const isMuted = Container.useSelector(state => Constants.isMuted(state, conversationIDKey))
   const isSelected = Container.useSelector(
-    state => !Container.isMobile && Constants.getSelectedConversation(state) === conversationIDKey
+    state => !Container.isPhone && Constants.getSelectedConversation(state) === conversationIDKey
   )
 
   const onSelectConversation = () =>

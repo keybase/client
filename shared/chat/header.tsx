@@ -29,7 +29,17 @@ type Props = {
   fullName?: string
 }
 
-const descStyle = {fontSize: 13, lineHeight: '16px', wordBreak: 'break-all'} as const // approximates BodySmall since markdown does not support text type
+const descStyleTablet = {
+  fontSize: 13,
+  lineHeight: 16,
+}
+const descStyleDesktop = {
+  fontSize: 13,
+  lineHeight: '16px',
+  wordBreak: 'break-all',
+} as const // approximates BodySmall since markdown does not support text type
+const descStyle = Container.isTablet ? descStyleTablet : descStyleDesktop
+
 const descStyleOverride = {
   del: descStyle,
   em: descStyle,
@@ -106,10 +116,7 @@ const Header = (p: Props) => {
         alignItems="flex-end"
         alignSelf="flex-end"
       >
-        <Kb.Box2
-          direction="vertical"
-          style={renderDescription ? styles.headerTitle : styles.headerTitleNoDesc}
-        >
+        <Kb.Box2 direction="vertical" style={styles.headerTitle}>
           <Kb.Box2 direction="horizontal" fullWidth={true}>
             {channel ? (
               <Kb.Text selectable={true} type="Header" lineClamp={1}>
@@ -231,11 +238,7 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       headerTitle: Styles.platformStyles({
-        common: {flexGrow: 1, paddingBottom: Styles.globalMargins.xtiny},
-        isElectron: Styles.desktopStyles.windowDraggingClickable,
-      }),
-      headerTitleNoDesc: Styles.platformStyles({
-        common: {flexGrow: 1, paddingBottom: Styles.globalMargins.tiny},
+        common: {flexGrow: Styles.isTablet ? 0 : 1, paddingBottom: Styles.globalMargins.xtiny},
         isElectron: Styles.desktopStyles.windowDraggingClickable,
       }),
       left: {minWidth: 260},

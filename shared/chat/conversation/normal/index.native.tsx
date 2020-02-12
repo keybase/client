@@ -35,39 +35,55 @@ const Conversation = React.memo((props: Props) => {
   const onLayout = React.useCallback((e: LayoutEvent) => {
     setMaxInputArea(e.nativeEvent.layout.height)
   }, [])
+  const innerComponent = (
+    <Kb.BoxGrow onLayout={onLayout}>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.innerContainer}>
+        <ThreadLoadStatus conversationIDKey={props.conversationIDKey} />
+        <PinnedMessage conversationIDKey={props.conversationIDKey} />
+        <ListArea
+          scrollListDownCounter={props.scrollListDownCounter}
+          scrollListToBottomCounter={props.scrollListToBottomCounter}
+          scrollListUpCounter={props.scrollListUpCounter}
+          onFocusInput={props.onFocusInput}
+          conversationIDKey={props.conversationIDKey}
+        />
+        {props.showLoader && <Kb.LoadingLine />}
+      </Kb.Box2>
+      <InvitationToBlock conversationID={props.conversationIDKey} />
+      <Banner conversationIDKey={props.conversationIDKey} />
+      <InputArea
+        focusInputCounter={props.focusInputCounter}
+        jumpToRecent={props.jumpToRecent}
+        onRequestScrollDown={props.onRequestScrollDown}
+        onRequestScrollToBottom={props.onRequestScrollToBottom}
+        onRequestScrollUp={props.onRequestScrollUp}
+        conversationIDKey={props.conversationIDKey}
+        maxInputArea={maxInputArea}
+      />
+    </Kb.BoxGrow>
+  )
   return (
-    <>
+    <Kb.Box style={styles.innerContainer}>
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
         {props.threadLoadedOffline && <Offline />}
-        <HeaderArea conversationIDKey={props.conversationIDKey} />
-        <Kb.BoxGrow onLayout={onLayout}>
-          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.innerContainer}>
-            <ThreadLoadStatus conversationIDKey={props.conversationIDKey} />
-            <PinnedMessage conversationIDKey={props.conversationIDKey} />
-            <ListArea
-              scrollListDownCounter={props.scrollListDownCounter}
-              scrollListToBottomCounter={props.scrollListToBottomCounter}
-              scrollListUpCounter={props.scrollListUpCounter}
-              onFocusInput={props.onFocusInput}
-              conversationIDKey={props.conversationIDKey}
-            />
-            {props.showLoader && <Kb.LoadingLine />}
-          </Kb.Box2>
-          <InvitationToBlock conversationID={props.conversationIDKey} />
-          <Banner conversationIDKey={props.conversationIDKey} />
-          <InputArea
-            focusInputCounter={props.focusInputCounter}
-            jumpToRecent={props.jumpToRecent}
-            onRequestScrollDown={props.onRequestScrollDown}
-            onRequestScrollToBottom={props.onRequestScrollToBottom}
-            onRequestScrollUp={props.onRequestScrollUp}
-            conversationIDKey={props.conversationIDKey}
-            maxInputArea={maxInputArea}
-          />
-        </Kb.BoxGrow>
+        {Styles.isTablet ? (
+          <Kb.KeyboardAvoidingView
+            style={Styles.globalStyles.fillAbsolute}
+            pointerEvents="box-none"
+            behavior="height"
+            keyboardVerticalOffset={80}
+          >
+            {innerComponent}
+          </Kb.KeyboardAvoidingView>
+        ) : (
+          <>
+            <HeaderArea conversationIDKey={props.conversationIDKey} />
+            {innerComponent}
+          </>
+        )}
       </Kb.Box2>
       <GatewayDest name="convOverlay" component={Kb.Box} />
-    </>
+    </Kb.Box>
   )
 })
 
@@ -78,6 +94,12 @@ const styles = Styles.styleSheetCreate(
         flex: 1,
         position: 'relative',
       },
+      outerContainer: Styles.platformStyles({
+        isTablet: {
+          flex: 1,
+          position: 'relative',
+        },
+      }),
     } as const)
 )
 
