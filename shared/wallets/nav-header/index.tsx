@@ -17,7 +17,7 @@ type HeaderTitleProps = {
 
 export const HeaderTitle = (props: HeaderTitleProps) =>
   props.noDisclaimer ? null : (
-    <Kb.Box2 direction="horizontal" gap={Styles.isTablet ? 'small' : undefined} gapEnd={Styles.isTablet}>
+    <Kb.Box2 direction="horizontal" gap={Styles.isTablet ? 'small' : undefined} style={styles.accountArea}>
       <Kb.Box2 alignItems="flex-end" direction="horizontal" style={styles.left}>
         <AddAccount />
       </Kb.Box2>
@@ -81,14 +81,26 @@ export const HeaderRightActions = (props: HeaderRightActionsProps) =>
 const styles = Styles.styleSheetCreate(
   () =>
     ({
+      accountArea: Styles.platformStyles({
+        isTablet: {
+          flexGrow: 1,
+        },
+      }),
       accountID: Styles.platformStyles({
         isElectron: {...Styles.desktopStyles.windowDraggingClickable},
       }),
-      accountInfo: {
-        maxHeight: 39,
-        paddingBottom: Styles.globalMargins.xtiny,
-        paddingLeft: Styles.globalMargins.xsmall,
-      },
+      accountInfo: Styles.platformStyles({
+        common: {
+          maxHeight: 39,
+          paddingBottom: Styles.globalMargins.xtiny,
+          paddingLeft: Styles.globalMargins.xsmall,
+        },
+        isTablet: {
+          flex: 1,
+          flexGrow: 1,
+          flexShrink: 0,
+        },
+      }),
       accountNameContainer: Styles.platformStyles({
         common: {
           alignSelf: 'flex-start',
@@ -110,7 +122,8 @@ const styles = Styles.styleSheetCreate(
         },
         isElectron: {...Styles.desktopStyles.windowDraggingClickable},
         isTablet: {
-          maxWidth: 240,
+          maxWidth: 180,
+          minWidth: 180,
         },
       }),
       loading: {
@@ -124,6 +137,10 @@ const styles = Styles.styleSheetCreate(
           paddingRight: Styles.globalMargins.xsmall,
         },
         isElectron: {...Styles.desktopStyles.windowDraggingClickable},
+        isTablet: {
+          alignSelf: 'flex-end',
+          paddingRight: 0,
+        },
       }),
     } as const)
 )
