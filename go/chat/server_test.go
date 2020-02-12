@@ -7892,3 +7892,90 @@ func TestChatSrvNewConversationsLocal(t *testing.T) {
 		require.Equal(t, len(ll), len(res.Results))
 	})
 }
+
+func TestChatSrvDefaultTeamChannels(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+		default:
+			return
+		}
+
+		ctc := makeChatTestContext(t, "DefaultTeamChannels", 2)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
+		listener := newServerChatListener()
+		ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener)
+		ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
+		teamID, err := keybase1.TeamIDFromString(created.Triple.Tlfid.String())
+		require.NoError(t, err)
+
+		tc := ctc.as(t, users[0])
+		topicName := "zjoinonsend"
+		convres, err := tc.chatLocalHandler().NewConversationLocal(context.TODO(),
+			chat1.NewConversationLocalArg{
+				TlfName:       created.TlfName,
+				TopicName:     &topicName,
+				TopicType:     chat1.TopicType_CHAT,
+				TlfVisibility: keybase1.TLFVisibility_PRIVATE,
+				MembersType:   mt,
+			})
+		require.NoError(t, err)
+
+		res, err := tc.chatLocalHandler().GetDefaultTeamChannelsLocal(context.TODO(), created.TlfName)
+		require.NoError(t, err)
+		require.Zero(t, len(res.Convs))
+
+		_, err = tc.chatLocalHandler().SetDefaultTeamChannelsLocal(context.TODO(), chat1.SetDefaultTeamChannelsLocalArg{
+			TeamName: created.TlfName,
+			Convs:    []chat1.ConvIDStr{convres.Conv.GetConvID().ConvIDStr()},
+		})
+		require.NoError(t, err)
+
+		res, err = tc.chatLocalHandler().GetDefaultTeamChannelsLocal(context.TODO(), created.TlfName)
+		require.NoError(t, err)
+		require.Len(t, res.Convs, 1)
+		require.Equal(t, topicName, res.Convs[0].Channel)
+
+		pollForSeqno := func(expectedSeqno keybase1.Seqno) {
+			found := false
+			for !found {
+				select {
+				case teamChange := <-listener.teamChangedByID:
+					found = teamChange.TeamID == teamID &&
+						teamChange.LatestSeqno == expectedSeqno
+				case <-time.After(20 * time.Second):
+					require.Fail(t, "no event received")
+				}
+			}
+		}
+		err = ctc.as(t, users[0]).chatLocalHandler().AddBotMember(tc.startCtx, chat1.AddBotMemberArg{
+			ConvID:   created.Id,
+			Username: users[1].Username,
+			Role:     keybase1.TeamRole_BOT,
+		})
+		require.NoError(t, err)
+		pollForSeqno(2)
+
+		expectedUsers := []string{users[0].Username, users[1].Username}
+		sort.Strings(expectedUsers)
+		for _, user := range users {
+			gilres, err := ctc.as(t, user).chatLocalHandler().GetInboxAndUnboxLocal(context.TODO(), chat1.GetInboxAndUnboxLocalArg{
+				Query: &chat1.GetInboxLocalQuery{
+					ConvIDs: []chat1.ConversationID{convres.Conv.GetConvID()},
+				},
+				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+			})
+			require.NoError(t, err)
+			require.Len(t, gilres.Conversations, 1)
+			var parts []string
+			for _, part := range gilres.Conversations[0].Info.Participants {
+				parts = append(parts, part.Username)
+			}
+			sort.Strings(parts)
+			require.Equal(t, expectedUsers, parts)
+		}
+	})
+}

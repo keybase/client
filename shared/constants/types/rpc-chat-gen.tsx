@@ -1138,6 +1138,7 @@ export type GetBotInfoRes = {readonly response: BotInfoResponse; readonly rateLi
 export type GetConversationForCLILocalQuery = {readonly markAsRead: Boolean; readonly MessageTypes?: Array<MessageType> | null; readonly Since?: String | null; readonly limit: UnreadFirstNumLimit; readonly conv: ConversationLocal}
 export type GetConversationForCLILocalRes = {readonly conversation: ConversationLocal; readonly messages?: Array<MessageUnboxed> | null; readonly offline: Boolean; readonly rateLimits?: Array<RateLimit> | null}
 export type GetConversationMetadataRemoteRes = {readonly conv: Conversation; readonly rateLimit?: RateLimit | null}
+export type GetDefaultTeamChannelsLocalRes = {readonly convs?: Array<InboxUIItem> | null; readonly rateLimit?: RateLimit | null}
 export type GetDefaultTeamChannelsRes = {readonly convs?: Array<ConversationID> | null; readonly rateLimit?: RateLimit | null}
 export type GetDeviceInfoRes = {readonly devices?: Array<DeviceInfo> | null}
 export type GetInboxAndUnboxLocalRes = {readonly conversations?: Array<ConversationLocal> | null; readonly offline: Boolean; readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
@@ -1314,6 +1315,7 @@ export type SetConvRetentionUpdate = {readonly inboxVers: InboxVers; readonly co
 export type SetConvSettingsUpdate = {readonly inboxVers: InboxVers; readonly convID: ConversationID; readonly convSettings?: ConversationSettings | null}
 export type SetConversationStatusLocalRes = {readonly rateLimits?: Array<RateLimit> | null; readonly identifyFailures?: Array<Keybase1.TLFIdentifyFailure> | null}
 export type SetConversationStatusRes = {readonly rateLimit?: RateLimit | null}
+export type SetDefaultTeamChannelsLocalRes = {readonly rateLimit?: RateLimit | null}
 export type SetDefaultTeamChannelsRes = {readonly rateLimit?: RateLimit | null}
 export type SetRetentionRes = {readonly rateLimit?: RateLimit | null}
 export type SetStatusInfo = {readonly convID: ConversationID; readonly status: ConversationStatus; readonly conv?: InboxUIItem | null}
@@ -1659,6 +1661,8 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.local.teamIDFromTLFName'
 // 'chat.1.local.setWelcomeMessage'
 // 'chat.1.local.getWelcomeMessage'
+// 'chat.1.local.getDefaultTeamChannelsLocal'
+// 'chat.1.local.setDefaultTeamChannelsLocal'
 // 'chat.1.NotifyChat.NewChatActivity'
 // 'chat.1.NotifyChat.ChatIdentifyUpdate'
 // 'chat.1.NotifyChat.ChatTLFFinalize'
