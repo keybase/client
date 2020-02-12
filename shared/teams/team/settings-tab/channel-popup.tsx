@@ -62,19 +62,29 @@ const ChannelPopup = (props: Props) => {
           </Kb.Box2>
           <Kb.BoxGrow>
             <Kb.ScrollView>
-              {channelsFiltered.map(channelname => (
-                <Kb.ClickableBox key={channelname} onClick={() => onSelect(channelname)}>
-                  <Kb.Box2 direction="horizontal" style={styles.channelContainer} gap="tiny" fullWidth={true}>
-                    <Kb.Text type="Body" lineClamp={1} style={Styles.globalStyles.flexOne}>
-                      #{channelname}
-                    </Kb.Text>
-                    <Kb.CheckCircle
-                      onCheck={() => onSelect(channelname)}
-                      checked={selected.has(channelname)}
-                    />
-                  </Kb.Box2>
-                </Kb.ClickableBox>
-              ))}
+              {channelsFiltered.map(channelname => {
+                const disabled = disabledChannels?.includes(channelname)
+                const onClick = disabled ? undefined : () => onSelect(channelname)
+                return (
+                  <Kb.ClickableBox key={channelname} onClick={onClick}>
+                    <Kb.Box2
+                      direction="horizontal"
+                      style={styles.channelContainer}
+                      gap="tiny"
+                      fullWidth={true}
+                    >
+                      <Kb.Text type="Body" lineClamp={1} style={Styles.globalStyles.flexOne}>
+                        #{channelname}
+                      </Kb.Text>
+                      <Kb.CheckCircle
+                        onCheck={onClick}
+                        checked={disabled || selected.has(channelname)}
+                        disabled={disabledChannels?.includes(channelname)}
+                      />
+                    </Kb.Box2>
+                  </Kb.ClickableBox>
+                )
+              })}
             </Kb.ScrollView>
           </Kb.BoxGrow>
         </Kb.Box2>

@@ -118,6 +118,9 @@ const load = () => {
   Sb.storiesOf('Teams/Settings', module)
     .addDecorator(story => <Sb.MockStore store={store}>{story()}</Sb.MockStore>)
     .add('Channel popup', () => <ChannelPopup {...channelPopupProps} />)
+    .add('Channel popup w/disabled', () => (
+      <ChannelPopup {...channelPopupProps} disabledChannels={['NSFW', 'android', 'team-sqawk']} />
+    ))
 }
 
 export default load

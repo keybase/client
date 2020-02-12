@@ -5,7 +5,7 @@ import Icon from './icon'
 const Kb = {Icon}
 
 type Props = {
-  onCheck: ((newCheckedValue: boolean) => void) | null
+  onCheck?: (newCheckedValue: boolean) => void
   checked: boolean
   className?: string
   disabled?: boolean
