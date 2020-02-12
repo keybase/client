@@ -4,6 +4,7 @@ import * as Sb from '../../../stories/storybook'
 import {makeRetentionPolicy} from '../../../constants/teams'
 import {globalStyles} from '../../../styles'
 import {Settings} from '.'
+import ChannelPopup from './channel-popup'
 
 const commonProps = {
   canShowcase: true,
@@ -67,6 +68,12 @@ const provider = Sb.createPropProviderWithCommon({
   }),
 })
 
+const fakeTeamID = 'fakeTeamID'
+const channelPopupProps = {
+  onComplete: Sb.action('onComplete'),
+  teamID: fakeTeamID,
+}
+
 const load = () => {
   Sb.storiesOf('Teams/Settings', module)
     .addDecorator(provider)
@@ -75,6 +82,8 @@ const load = () => {
       <Box style={{...globalStyles.flexBoxCenter, ...globalStyles.fillAbsolute}}>{story()}</Box>
     ))
     .add('Everything', () => <Settings {...commonProps} />)
+
+  Sb.storiesOf('Teams/Settings', module).add('Channel popup', () => <ChannelPopup {...channelPopupProps} />)
 }
 
 export default load
