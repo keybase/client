@@ -1336,4 +1336,7 @@ protocol local {
     union { null, RateLimit } rateLimit;
   }
   SetDefaultTeamChannelsLocalRes setDefaultTeamChannelsLocal(string teamName, array<ConvIDStr> convs);
+
+  LastActiveStatus getLastActiveForTLF(TLFIDStr tlfID);
+  map<TLFIDStr, LastActiveStatus> getLastActiveForTeams();
 }

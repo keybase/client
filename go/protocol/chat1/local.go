@@ -6679,6 +6679,13 @@ type SetDefaultTeamChannelsLocalArg struct {
 	Convs    []ConvIDStr `codec:"convs" json:"convs"`
 }
 
+type GetLastActiveForTLFArg struct {
+	TlfID TLFIDStr `codec:"tlfID" json:"tlfID"`
+}
+
+type GetLastActiveForTeamsArg struct {
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetThreadNonblock(context.Context, GetThreadNonblockArg) (NonblockFetchRes, error)
@@ -6784,6 +6791,8 @@ type LocalInterface interface {
 	GetWelcomeMessage(context.Context, keybase1.TeamID) (WelcomeMessage, error)
 	GetDefaultTeamChannelsLocal(context.Context, string) (GetDefaultTeamChannelsLocalRes, error)
 	SetDefaultTeamChannelsLocal(context.Context, SetDefaultTeamChannelsLocalArg) (SetDefaultTeamChannelsLocalRes, error)
+	GetLastActiveForTLF(context.Context, TLFIDStr) (LastActiveStatus, error)
+	GetLastActiveForTeams(context.Context) (map[TLFIDStr]LastActiveStatus, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -8300,6 +8309,31 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"getLastActiveForTLF": {
+				MakeArg: func() interface{} {
+					var ret [1]GetLastActiveForTLFArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetLastActiveForTLFArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetLastActiveForTLFArg)(nil), args)
+						return
+					}
+					ret, err = i.GetLastActiveForTLF(ctx, typedArgs[0].TlfID)
+					return
+				},
+			},
+			"getLastActiveForTeams": {
+				MakeArg: func() interface{} {
+					var ret [1]GetLastActiveForTeamsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.GetLastActiveForTeams(ctx)
+					return
+				},
+			},
 		},
 	}
 }
@@ -8850,5 +8884,16 @@ func (c LocalClient) GetDefaultTeamChannelsLocal(ctx context.Context, teamName s
 
 func (c LocalClient) SetDefaultTeamChannelsLocal(ctx context.Context, __arg SetDefaultTeamChannelsLocalArg) (res SetDefaultTeamChannelsLocalRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.setDefaultTeamChannelsLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) GetLastActiveForTLF(ctx context.Context, tlfID TLFIDStr) (res LastActiveStatus, err error) {
+	__arg := GetLastActiveForTLFArg{TlfID: tlfID}
+	err = c.Cli.Call(ctx, "chat.1.local.getLastActiveForTLF", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) GetLastActiveForTeams(ctx context.Context) (res map[TLFIDStr]LastActiveStatus, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.getLastActiveForTeams", []interface{}{GetLastActiveForTeamsArg{}}, &res, 0*time.Millisecond)
 	return
 }

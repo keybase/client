@@ -5675,6 +5675,23 @@
         }
       ],
       "response": "SetDefaultTeamChannelsLocalRes"
+    },
+    "getLastActiveForTLF": {
+      "request": [
+        {
+          "name": "tlfID",
+          "type": "TLFIDStr"
+        }
+      ],
+      "response": "LastActiveStatus"
+    },
+    "getLastActiveForTeams": {
+      "request": [],
+      "response": {
+        "type": "map",
+        "values": "LastActiveStatus",
+        "keys": "TLFIDStr"
+      }
     }
   },
   "namespace": "chat.1"
