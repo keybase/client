@@ -1,7 +1,8 @@
 import * as React from 'react'
 import {Box} from '../../../common-adapters'
 import * as Sb from '../../../stories/storybook'
-import {makeRetentionPolicy} from '../../../constants/teams'
+import * as Container from '../../../util/container'
+import * as Constants from '../../../constants/teams'
 import {globalStyles} from '../../../styles'
 import {Settings} from '.'
 import ChannelPopup from './channel-popup'
@@ -59,7 +60,7 @@ const provider = Sb.createPropProviderWithCommon({
     loading: false,
     onSelect: Sb.action('onSelect'),
     onShowWarning: Sb.action('onShowWarning'),
-    policy: makeRetentionPolicy({type: 'retain'}),
+    policy: Constants.makeRetentionPolicy({type: 'retain'}),
     saveRetentionPolicy: Sb.action('saveRetentionPolicy'),
     showInheritOption: false,
     showOverrideNotice: true,
@@ -69,7 +70,38 @@ const provider = Sb.createPropProviderWithCommon({
 })
 
 const fakeTeamID = 'fakeTeamID'
+const store = Container.produce(Sb.createStoreWithCommon(), draftState => {
+  draftState.teams = {
+    ...draftState.teams,
+    teamIDToChannelInfos: new Map([
+      [
+        fakeTeamID,
+        new Map([
+          ['1', {...Constants.initialChannelInfo, channelname: 'Aab'}],
+          ['2', {...Constants.initialChannelInfo, channelname: 'NSFW'}],
+          ['3', {...Constants.initialChannelInfo, channelname: 'NY_MemorialDay'}],
+          ['4', {...Constants.initialChannelInfo, channelname: 'airdrop'}],
+          ['5', {...Constants.initialChannelInfo, channelname: 'android'}],
+          ['6', {...Constants.initialChannelInfo, channelname: 'android-notifications'}],
+          ['7', {...Constants.initialChannelInfo, channelname: 'autoresets'}],
+          ['8', {...Constants.initialChannelInfo, channelname: 'frontend'}],
+          ['9', {...Constants.initialChannelInfo, channelname: 'core'}],
+          ['10', {...Constants.initialChannelInfo, channelname: 'design'}],
+          ['11', {...Constants.initialChannelInfo, channelname: 'squad-sqawk'}],
+          ['12', {...Constants.initialChannelInfo, channelname: 'squad-birbs'}],
+          ['13', {...Constants.initialChannelInfo, channelname: 'squad-beasts'}],
+          ['14', {...Constants.initialChannelInfo, channelname: 'squad-dogs-of-the-sea-and-other-creatures'}],
+        ]),
+      ],
+    ]),
+  }
+  draftState.config = {
+    ...draftState.config,
+    username: 'andonuts',
+  }
+})
 const channelPopupProps = {
+  onCancel: Sb.action('onCancel'),
   onComplete: Sb.action('onComplete'),
   teamID: fakeTeamID,
 }
@@ -83,7 +115,9 @@ const load = () => {
     ))
     .add('Everything', () => <Settings {...commonProps} />)
 
-  Sb.storiesOf('Teams/Settings', module).add('Channel popup', () => <ChannelPopup {...channelPopupProps} />)
+  Sb.storiesOf('Teams/Settings', module)
+    .addDecorator(story => <Sb.MockStore store={store}>{story()}</Sb.MockStore>)
+    .add('Channel popup', () => <ChannelPopup {...channelPopupProps} />)
 }
 
 export default load
