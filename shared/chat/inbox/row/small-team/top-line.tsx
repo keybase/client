@@ -4,6 +4,7 @@ import * as Styles from '../../../../styles'
 import shallowEqual from 'shallowequal'
 import TeamMenu from '../../../conversation/info-panel/menu/container'
 import * as ChatTypes from '../../../../constants/types/chat2'
+import {AllowedColors} from '../../../../common-adapters/text'
 
 type Props = {
   channelname?: string
@@ -20,7 +21,7 @@ type Props = {
   backgroundColor?: string
   subColor: string
   timestamp?: string
-  usernameColor?: string
+  usernameColor?: AllowedColors
   hasBadge: boolean
 } & Kb.OverlayParentProps
 

@@ -4,7 +4,7 @@ import Avatar, {AvatarSize} from '../avatar'
 import {Box} from '../box'
 import ClickableBox from '../clickable-box'
 import Icon, {IconType} from '../icon'
-import Text, {TextType, StylesTextCrossPlatform} from '../text'
+import Text, {TextType, StylesTextCrossPlatform, AllowedColors} from '../text'
 import ConnectedUsernames from '../usernames/container'
 
 type Size = 'smaller' | 'small' | 'default' | 'big' | 'huge'
@@ -17,7 +17,7 @@ export type NameWithIconProps = {
   botAlias?: string | React.ReactNode
   colorBroken?: boolean
   colorFollowing?: boolean
-  notFollowingColorOverride?: string
+  notFollowingColorOverride?: AllowedColors
   containerStyle?: Styles.StylesCrossPlatform
   editableIcon?: boolean
   hideFollowingOverlay?: boolean

@@ -18,9 +18,10 @@ type DropdownButtonProps = {
   toggleOpen: (e: React.BaseSyntheticEvent) => void
   inline?: boolean
 }
+const noTheme = {}
 export const DropdownButton = (props: DropdownButtonProps) => (
   <ClickableBox onClick={!props.disabled ? props.toggleOpen : undefined} style={props.style}>
-    <ButtonBox inline={props.inline} disabled={props.disabled} ref={props.setAttachmentRef}>
+    <ButtonBox inline={props.inline} disabled={props.disabled} ref={props.setAttachmentRef} theme={noTheme}>
       <Box style={Styles.collapseStyles([styles.selectedBox, props.selectedBoxStyle])}>{props.selected}</Box>
       <Icon
         type="iconfont-caret-down"
