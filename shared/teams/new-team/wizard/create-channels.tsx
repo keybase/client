@@ -89,6 +89,7 @@ const ChannelInput = (props: ChannelInputProps) => {
       onChangeText={props.onChange}
       decoration={<Kb.Icon type="iconfont-remove" onClick={props.onClear} />}
       placeholder="channel"
+      prefix="#"
       containerStyle={styles.input}
     />
   )
