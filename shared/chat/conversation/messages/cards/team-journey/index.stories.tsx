@@ -2,15 +2,14 @@ import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Sb from '../../../../../stories/storybook'
 import * as Styles from '../../../../../styles'
-import {TeamJourney} from './index'
-import {teamJourneyStyles} from './util'
+import {TeamJourney, Mode} from './index'
 
 const commonProps = {
   cannotWrite: false,
   conversationIDKey: 'dummyConversationIDKey',
+  mode: 'chat' as Mode,
   onAuthorClick: Sb.action('onAuthorClick'),
   onDismiss: Sb.action('onDismiss'),
-  styles: teamJourneyStyles,
   teamname: 'foo',
 }
 

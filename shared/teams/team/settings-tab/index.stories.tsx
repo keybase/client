@@ -19,7 +19,7 @@ const commonProps = {
   teamID: '1234',
   teamname: 'myteam',
   waitingForSavePublicity: false,
-  welcomeMessage: null,
+  welcomeMessage: {set: false, text: ''},
   yourOperations: {
     changeOpenTeam: true,
     changeTarsDisabled: true,

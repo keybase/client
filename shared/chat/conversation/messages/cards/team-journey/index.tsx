@@ -13,6 +13,8 @@ export type Action =
     }
   | 'wave'
 
+export type Mode = 'chat' | 'team-settings'
+
 type Props = {
   actions: Array<Action>
   conversationIDKey: ChatTypes.ConversationIDKey
@@ -23,17 +25,20 @@ type Props = {
   teamname: string
   textComponent: React.ReactNode
   deactivateButtons?: boolean
-  styles: any
+  mode: Mode
 }
 
 export const TeamJourney = (props: Props) => {
   // Load the team once on mount for its channel list if required.
-  const {conversationIDKey, loadTeamID, teamname, styles} = props
+  const {conversationIDKey, loadTeamID, teamname, mode} = props
 
   const dispatch = Container.useDispatch()
   React.useEffect(() => {
     loadTeamID && dispatch(TeamsGen.createGetChannels({teamID: loadTeamID}))
   }, [loadTeamID, dispatch])
+
+  const contentHorizontalPadStyle =
+    mode === 'chat' ? styles.contentHorizontalPadChat : styles.contentHorizontalPadTeamSettings
 
   return (
     <>
@@ -42,7 +47,7 @@ export const TeamJourney = (props: Props) => {
         onAuthorClick={props.onAuthorClick}
         onDismiss={props.onDismiss}
         deactivateButtons={props.deactivateButtons}
-        styles={styles}
+        mode={mode}
       />
       <Kb.Box2
         key="content"
@@ -50,7 +55,7 @@ export const TeamJourney = (props: Props) => {
         fullWidth={true}
         style={Styles.collapseStyles([styles.content, props.image ? styles.contentWithImage : null])}
       >
-        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.contentHorizontalPad}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={contentHorizontalPadStyle}>
           <Kb.Box2 direction="horizontal" style={props.image ? styles.text : undefined}>
             {props.textComponent}
           </Kb.Box2>
@@ -62,7 +67,7 @@ export const TeamJourney = (props: Props) => {
             fullWidth={true}
             alignItems={'flex-start'}
             gap="tiny"
-            style={Styles.collapseStyles([styles.actionsBox, styles.contentHorizontalPad])}
+            style={Styles.collapseStyles([styles.actionsBox, contentHorizontalPadStyle])}
           >
             {props.actions.map(action =>
               action == 'wave' ? (
@@ -97,45 +102,154 @@ type HeaderProps = {
   onAuthorClick: () => void
   onDismiss: () => void
   deactivateButtons?: boolean
-  styles: any
+  mode: 'chat' | 'team-settings'
 }
-const TeamJourneyHeader = (props: HeaderProps) => (
-  <Kb.Box2
-    key="author"
-    direction="horizontal"
-    fullWidth={true}
-    style={props.styles.authorContainer}
-    gap="tiny"
-  >
-    <Kb.Avatar
-      size={32}
-      isTeam={true}
-      teamname={props.teamname}
-      skipBackground={true}
-      style={props.styles.avatar}
-      onClick={props.onAuthorClick}
-    />
-    <Kb.Box2
-      direction="horizontal"
-      gap="xtiny"
-      fullWidth={false}
-      alignSelf="flex-start"
-      style={props.styles.bottomLine}
-    >
-      <Kb.Text
-        style={props.styles.teamnameText}
-        type="BodySmallBold"
+const TeamJourneyHeader = (props: HeaderProps) => {
+  const avatarStyle = props.mode === 'chat' ? styles.avatarChat : styles.avatarTeamSettings
+  return (
+    <Kb.Box2 key="author" direction="horizontal" fullWidth={true} style={styles.authorContainer} gap="tiny">
+      <Kb.Avatar
+        size={32}
+        isTeam={true}
+        teamname={props.teamname}
+        skipBackground={true}
+        style={avatarStyle}
         onClick={props.onAuthorClick}
-        className="hover-underline"
+      />
+      <Kb.Box2
+        direction="horizontal"
+        gap="xtiny"
+        fullWidth={false}
+        alignSelf="flex-start"
+        style={styles.bottomLine}
       >
-        {props.teamname}
-      </Kb.Text>
-      <Kb.Text type="BodyTiny">• System message</Kb.Text>
+        <Kb.Text
+          style={styles.teamnameText}
+          type="BodySmallBold"
+          onClick={props.onAuthorClick}
+          className="hover-underline"
+        >
+          {props.teamname}
+        </Kb.Text>
+        <Kb.Text type="BodyTiny">• System message</Kb.Text>
+      </Kb.Box2>
+      {!Styles.isMobile && !props.deactivateButtons && (
+        <Kb.Icon type="iconfont-close" onClick={props.onDismiss} fontSize={12} />
+      )}
     </Kb.Box2>
-    {!Styles.isMobile && !props.deactivateButtons && (
-      <Kb.Icon type="iconfont-close" onClick={props.onDismiss} fontSize={12} />
-    )}
-  </Kb.Box2>
+  )
+}
+
+const buttonSpace = 6
+
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      actionsBox: Styles.platformStyles({
+        common: {
+          marginTop: Styles.globalMargins.tiny - buttonSpace,
+        },
+        isElectron: {
+          flexWrap: 'wrap',
+        },
+      }),
+      authorContainer: Styles.platformStyles({
+        common: {
+          alignItems: 'flex-start',
+          alignSelf: 'flex-start',
+          height: Styles.globalMargins.mediumLarge,
+        },
+        isMobile: {marginTop: 8},
+      }),
+      avatarChat: Styles.platformStyles({
+        isElectron: {
+          marginLeft: Styles.globalMargins.small,
+          marginTop: Styles.globalMargins.xtiny,
+        },
+        isMobile: {marginLeft: Styles.globalMargins.tiny},
+      }),
+      avatarTeamSettings: Styles.platformStyles({
+        isElectron: {
+          marginLeft: Styles.globalMargins.tiny,
+          marginTop: 0,
+        },
+        isMobile: {marginLeft: Styles.globalMargins.tiny},
+      }),
+      bottomLine: {
+        ...Styles.globalStyles.flexGrow,
+        alignItems: 'baseline',
+      },
+      buttonSpace: {
+        marginTop: buttonSpace,
+      },
+      content: Styles.platformStyles({
+        isElectron: {
+          marginTop: -16,
+        },
+        isMobile: {
+          marginTop: -12,
+          paddingBottom: 3,
+        },
+      }),
+      contentHorizontalPadChat: Styles.platformStyles({
+        isElectron: {
+          paddingLeft:
+            // Space for below the avatar
+            Styles.globalMargins.tiny + // right margin
+            Styles.globalMargins.small + // left margin
+            Styles.globalMargins.mediumLarge, // avatar
+          paddingRight: Styles.globalMargins.tiny,
+        },
+        isMobile: {
+          paddingLeft:
+            // Space for below the avatar
+            Styles.globalMargins.tiny + // right margin
+            Styles.globalMargins.tiny + // left margin
+            Styles.globalMargins.mediumLarge, // avatar
+        },
+      }),
+      contentHorizontalPadTeamSettings: Styles.platformStyles({
+        isElectron: {
+          paddingLeft:
+            // Space for below the avatar
+            Styles.globalMargins.tiny + // right margin
+            Styles.globalMargins.tiny + // left margin
+            Styles.globalMargins.mediumLarge, // avatar
+          paddingRight: Styles.globalMargins.tiny,
+        },
+        isMobile: {
+          paddingLeft:
+            // Space for below the avatar
+            Styles.globalMargins.tiny + // right margin
+            Styles.globalMargins.tiny + // left margin
+            Styles.globalMargins.mediumLarge, // avatar
+        },
+      }),
+      contentWithImage: {
+        minHeight: 70,
+      },
+      image: Styles.platformStyles({
+        common: {
+          position: 'absolute',
+          top: 0,
+        },
+        isElectron: {
+          left: '50%',
+          marginLeft: 15,
+        },
+        isMobile: {
+          right: 40,
+        },
+      }),
+      teamnameText: Styles.platformStyles({
+        common: {
+          color: Styles.globalColors.black,
+        },
+      }),
+      text: {
+        maxWidth: '45%',
+      },
+    } as const)
 )
 
 export default TeamJourney

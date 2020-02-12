@@ -9,7 +9,8 @@ import {FloatingRolePicker} from '../../role-picker'
 import {pluralize} from '../../../util/string'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import TeamJourney from '../../../chat/conversation/messages/cards/team-journey/index'
-import {renderWelcomeMessage, stylesMaker} from '../../../chat/conversation/messages/cards/team-journey/util'
+import {renderWelcomeMessage} from '../../../chat/conversation/messages/cards/team-journey/util'
+import {Mode} from '../../../chat/conversation/messages/cards/team-journey/index'
 import RetentionPicker from './retention/container'
 import * as Styles from '../../../styles'
 
@@ -354,7 +355,7 @@ export class Settings extends React.Component<Props, State> {
                     onDismiss={() => {}}
                     textComponent={renderWelcomeMessage(this.props.welcomeMessage, false /* cannotWrite */)}
                     deactivateButtons={true}
-                    styles={stylesMaker(Styles.globalMargins.tiny, Styles.globalMargins.xtiny, 0)}
+                    mode={'settings-tab' as Mode}
                   />
                 ) : (
                   <Kb.ProgressIndicator />
