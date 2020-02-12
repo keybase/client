@@ -39,7 +39,8 @@ export default Container.connect(
         Constants.retentionWaitingKey(teamID),
         Constants.settingsWaitingKey(teamID)
       ),
-      welcomeMessage,
+      waitingForWelcomeMessage: anyWaiting(state, Constants.loadWelcomeMessageWaitingKey(teamID)),
+      welcomeMessage: welcomeMessage || undefined,
       yourOperations: Constants.getCanPerformByID(state, teamID),
     }
   },

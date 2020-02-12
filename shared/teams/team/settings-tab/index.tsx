@@ -28,6 +28,7 @@ type Props = {
   teamID: Types.TeamID
   yourOperations: Types.TeamOperations
   waitingForSavePublicity: boolean
+  waitingForWelcomeMessage: boolean
   welcomeMessage?: RPCChatTypes.WelcomeMessage
   loadWelcomeMessage: () => void
   teamname: string
@@ -335,7 +336,7 @@ export class Settings extends React.Component<Props, State> {
             entityType={this.props.isBigTeam ? 'big team' : 'small team'}
           />
         )}
-        {
+        {(this.props.waitingForWelcomeMessage || this.props.welcomeMessage) && (
           <Kb.Box2 direction="vertical" style={styles.welcomeMessage} fullWidth={true}>
             <Kb.Box>
               <Kb.Text style={styles.header} type="BodySmallSemibold">
@@ -345,25 +346,30 @@ export class Settings extends React.Component<Props, State> {
             <Kb.Box2 direction="horizontal" fullWidth={true}>
               <Kb.Box2 direction="horizontal" style={styles.welcomeMessageBorder} />
               <Kb.Box2 direction="vertical" style={styles.welcomeMessageContainer} fullWidth={true}>
-                {this.props.welcomeMessage ? (
-                  <TeamJourney
-                    actions={[]}
-                    teamname={this.props.teamname}
-                    conversationIDKey=""
-                    image="icon-illustration-welcome-96"
-                    onAuthorClick={() => {}}
-                    onDismiss={() => {}}
-                    textComponent={renderWelcomeMessage(this.props.welcomeMessage, false /* cannotWrite */)}
-                    deactivateButtons={true}
-                    mode={'settings-tab' as Mode}
-                  />
-                ) : (
+                {this.props.waitingForWelcomeMessage ? (
                   <Kb.ProgressIndicator />
+                ) : (
+                  this.props.welcomeMessage && (
+                    <TeamJourney
+                      actions={[]}
+                      teamname={this.props.teamname}
+                      conversationIDKey=""
+                      image="icon-illustration-welcome-96"
+                      onAuthorClick={() => {}}
+                      onDismiss={() => {}}
+                      textComponent={renderWelcomeMessage(
+                        this.props.welcomeMessage!,
+                        false /* cannotWrite */
+                      )}
+                      deactivateButtons={true}
+                      mode={'settings-tab' as Mode}
+                    />
+                  )
                 )}
               </Kb.Box2>
             </Kb.Box2>
           </Kb.Box2>
-        }
+        )}
         <Kb.Box2 direction="horizontal" style={styles.button}>
           <Kb.Button
             label="Save"

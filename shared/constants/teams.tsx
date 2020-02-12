@@ -48,6 +48,7 @@ export const teamProfileAddListWaitingKey = 'teamProfileAddList'
 export const deleteTeamWaitingKey = (teamID: Types.TeamID) => `teamDelete:${teamID}`
 export const leaveTeamWaitingKey = (teamname: Types.Teamname) => `teamLeave:${teamname}`
 export const teamRenameWaitingKey = 'teams:rename'
+export const loadWelcomeMessageWaitingKey = (teamID: Types.TeamID) => `loadWelcomeMessage:${teamID}`
 
 export const initialChannelInfo = Object.freeze<Types.ChannelInfo>({
   channelname: '',
