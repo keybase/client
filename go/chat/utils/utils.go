@@ -2916,7 +2916,7 @@ func ApplyInboxQuery(ctx context.Context, debugLabeler DebugLabeler, query *chat
 }
 
 func ToLastActiveStatus(mtime gregor1.Time) chat1.LastActiveStatus {
-	lastActive := int(time.Now().Sub(mtime.Time()).Round(time.Hour).Hours())
+	lastActive := int(time.Since(mtime.Time()).Round(time.Hour).Hours())
 	switch {
 	case lastActive <= 24: // 1 day
 		return chat1.LastActiveStatus_ACTIVE
