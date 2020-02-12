@@ -9,9 +9,9 @@ import {FloatingRolePicker} from '../../role-picker'
 import {pluralize} from '../../../util/string'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import TeamJourney from '../../../chat/conversation/messages/cards/team-journey/index'
+import {renderWelcomeMessage, stylesMaker} from '../../../chat/conversation/messages/cards/team-journey/util'
 import RetentionPicker from './retention/container'
 import * as Styles from '../../../styles'
-import {renderWelcomeMessage} from '../../../util/journey-card'
 
 type Props = {
   canShowcase: boolean
@@ -337,14 +337,16 @@ export class Settings extends React.Component<Props, State> {
         {
           <Kb.Box2 direction="vertical" style={styles.welcomeMessage} fullWidth={true}>
             <Kb.Box>
-              <Kb.Text type="BodySmallSemibold">Welcome message</Kb.Text>
+              <Kb.Text style={styles.header} type="BodySmallSemibold">
+                Welcome message
+              </Kb.Text>
             </Kb.Box>
             <Kb.Box2 direction="horizontal" fullWidth={true}>
-              <Kb.Box2 direction="horizontal" style={styles.welcomeMessageContainer} />
-              <Kb.Box2 direction="vertical" style={{position: 'relative'}} fullWidth={true}>
+              <Kb.Box2 direction="horizontal" style={styles.welcomeMessageBorder} />
+              <Kb.Box2 direction="vertical" style={styles.welcomeMessageContainer} fullWidth={true}>
                 {this.props.welcomeMessage ? (
                   <TeamJourney
-                    actions={['wave', {label: 'Publish team on your profile', onClick: () => {}}]}
+                    actions={[]}
                     teamname={this.props.teamname}
                     conversationIDKey=""
                     image="icon-illustration-welcome-96"
@@ -352,6 +354,7 @@ export class Settings extends React.Component<Props, State> {
                     onDismiss={() => {}}
                     textComponent={renderWelcomeMessage(this.props.welcomeMessage, false /* cannotWrite */)}
                     deactivateButtons={true}
+                    styles={stylesMaker(Styles.globalMargins.tiny, Styles.globalMargins.xtiny, 0)}
                   />
                 ) : (
                   <Kb.ProgressIndicator />
@@ -386,6 +389,10 @@ const styles = styleSheetCreate(() => ({
     },
   }),
   grey: {color: globalColors.black_50},
+  header: {
+    ...Styles.globalStyles.flexBoxRow,
+    marginBottom: Styles.globalMargins.tiny,
+  },
   joinAs: platformStyles({
     isElectron: {
       paddingRight: globalMargins.xtiny,
@@ -414,9 +421,12 @@ const styles = styleSheetCreate(() => ({
     paddingRight: globalMargins.small,
     paddingTop: globalMargins.small,
   },
-  welcomeMessageContainer: {
+  welcomeMessageBorder: {
     alignSelf: 'stretch',
     backgroundColor: Styles.globalColors.grey,
     paddingLeft: Styles.globalMargins.xtiny,
+  },
+  welcomeMessageContainer: {
+    position: 'relative',
   },
 }))

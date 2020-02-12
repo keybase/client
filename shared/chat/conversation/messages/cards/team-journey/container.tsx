@@ -12,7 +12,7 @@ import {teamsTab} from '../../../../../constants/tabs'
 import {appendNewTeamBuilder} from '../../../../../actions/typed-routes'
 import * as ChatTypes from '../../../../../constants/types/chat2'
 import {TeamJourney, Action} from '.'
-import {renderWelcomeMessage} from '../../../../../util/journey-card'
+import {renderWelcomeMessage, teamJourneyStyles} from './util'
 
 type OwnProps = {
   message: MessageTypes.MessageJourneycard
@@ -153,6 +153,7 @@ const TeamJourneyContainer = (props: Props) => {
       conversationIDKey={props.conversationIDKey}
       textComponent={textComponent}
       onDismiss={props.onDismiss}
+      styles={teamJourneyStyles}
     />
   ) : null
 }

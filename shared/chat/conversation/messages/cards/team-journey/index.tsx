@@ -23,11 +23,12 @@ type Props = {
   teamname: string
   textComponent: React.ReactNode
   deactivateButtons?: boolean
+  styles: any
 }
 
 export const TeamJourney = (props: Props) => {
   // Load the team once on mount for its channel list if required.
-  const {conversationIDKey, loadTeamID, teamname} = props
+  const {conversationIDKey, loadTeamID, teamname, styles} = props
 
   const dispatch = Container.useDispatch()
   React.useEffect(() => {
@@ -41,6 +42,7 @@ export const TeamJourney = (props: Props) => {
         onAuthorClick={props.onAuthorClick}
         onDismiss={props.onDismiss}
         deactivateButtons={props.deactivateButtons}
+        styles={styles}
       />
       <Kb.Box2
         key="content"
@@ -95,15 +97,22 @@ type HeaderProps = {
   onAuthorClick: () => void
   onDismiss: () => void
   deactivateButtons?: boolean
+  styles: any
 }
 const TeamJourneyHeader = (props: HeaderProps) => (
-  <Kb.Box2 key="author" direction="horizontal" fullWidth={true} style={styles.authorContainer} gap="tiny">
+  <Kb.Box2
+    key="author"
+    direction="horizontal"
+    fullWidth={true}
+    style={props.styles.authorContainer}
+    gap="tiny"
+  >
     <Kb.Avatar
       size={32}
       isTeam={true}
       teamname={props.teamname}
       skipBackground={true}
-      style={styles.avatar}
+      style={props.styles.avatar}
       onClick={props.onAuthorClick}
     />
     <Kb.Box2
@@ -111,10 +120,10 @@ const TeamJourneyHeader = (props: HeaderProps) => (
       gap="xtiny"
       fullWidth={false}
       alignSelf="flex-start"
-      style={styles.bottomLine}
+      style={props.styles.bottomLine}
     >
       <Kb.Text
-        style={styles.teamnameText}
+        style={props.styles.teamnameText}
         type="BodySmallBold"
         onClick={props.onAuthorClick}
         className="hover-underline"
@@ -127,94 +136,6 @@ const TeamJourneyHeader = (props: HeaderProps) => (
       <Kb.Icon type="iconfont-close" onClick={props.onDismiss} fontSize={12} />
     )}
   </Kb.Box2>
-)
-
-const buttonSpace = 6
-
-const styles = Styles.styleSheetCreate(
-  () =>
-    ({
-      actionsBox: Styles.platformStyles({
-        common: {
-          marginTop: Styles.globalMargins.tiny - buttonSpace,
-        },
-        isElectron: {
-          flexWrap: 'wrap',
-        },
-      }),
-      authorContainer: Styles.platformStyles({
-        common: {
-          alignItems: 'flex-start',
-          alignSelf: 'flex-start',
-          height: Styles.globalMargins.mediumLarge,
-        },
-        isMobile: {marginTop: 8},
-      }),
-      avatar: Styles.platformStyles({
-        isElectron: {
-          marginLeft: Styles.globalMargins.small,
-          marginTop: Styles.globalMargins.xtiny,
-        },
-        isMobile: {marginLeft: Styles.globalMargins.tiny},
-      }),
-      bottomLine: {
-        ...Styles.globalStyles.flexGrow,
-        alignItems: 'baseline',
-      },
-      buttonSpace: {
-        marginTop: buttonSpace,
-      },
-      content: Styles.platformStyles({
-        isElectron: {
-          marginTop: -16,
-        },
-        isMobile: {
-          marginTop: -12,
-          paddingBottom: 3,
-        },
-      }),
-      contentHorizontalPad: Styles.platformStyles({
-        isElectron: {
-          paddingLeft:
-            // Space for below the avatar
-            Styles.globalMargins.tiny + // right margin
-            Styles.globalMargins.small + // left margin
-            Styles.globalMargins.mediumLarge, // avatar
-          paddingRight: Styles.globalMargins.tiny,
-        },
-        isMobile: {
-          paddingLeft:
-            // Space for below the avatar
-            Styles.globalMargins.tiny + // right margin
-            Styles.globalMargins.tiny + // left margin
-            Styles.globalMargins.mediumLarge, // avatar
-        },
-      }),
-      contentWithImage: {
-        minHeight: 70,
-      },
-      image: Styles.platformStyles({
-        common: {
-          position: 'absolute',
-          top: 0,
-        },
-        isElectron: {
-          left: '50%',
-          marginLeft: 15,
-        },
-        isMobile: {
-          right: 40,
-        },
-      }),
-      teamnameText: Styles.platformStyles({
-        common: {
-          color: Styles.globalColors.black,
-        },
-      }),
-      text: {
-        maxWidth: '45%',
-      },
-    } as const)
 )
 
 export default TeamJourney
