@@ -232,6 +232,7 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       buttonStyle: {
+        alignSelf: 'flex-start',
         marginBottom: Styles.globalMargins.small,
         marginTop: Styles.globalMargins.small,
       },
