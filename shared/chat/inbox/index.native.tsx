@@ -234,7 +234,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
     const floatingDivider = this.state.showFloating &&
       !this.props.isSearching &&
       this.props.allowShowFloatingButton && <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
-    const HeadComponent = <ChatInboxHeader />
+    const HeadComponent = <ChatInboxHeader showNewChat={false} showSearch={Styles.isMobile} />
     return (
       <Kb.ErrorBoundary>
         <Kb.Box style={styles.container}>
@@ -249,7 +249,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
             </Kb.Box2>
           ) : (
             <Kb.NativeFlatList
-              ListHeaderComponent={Styles.isTablet ? null : HeadComponent}
+              ListHeaderComponent={HeadComponent}
               data={this.props.rows}
               keyExtractor={this._keyExtractor}
               renderItem={this._renderItem}

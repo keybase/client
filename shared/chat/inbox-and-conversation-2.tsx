@@ -19,7 +19,7 @@ const InboxAndConversation = (props: Props) => {
 
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
-      {inboxSearch ? <InboxSearch /> : <Inbox navKey={navKey} />}
+      {!Container.isTablet && inboxSearch ? <InboxSearch /> : <Inbox navKey={navKey} />}
       <Conversation navigation={props.navigation} />
       {infoPanelShowing && <InfoPanel />}
     </Kb.Box2>
