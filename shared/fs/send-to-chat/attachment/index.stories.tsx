@@ -1,42 +1,34 @@
 import React from 'react'
 import * as Sb from '../../../stories/storybook'
 import * as Types from '../../../constants/types/fs'
-import * as ChatConstants from '../../../constants/chat2'
-import {commonProvider} from '../../common/index.stories'
-import {
-  provider as conversationListProvider,
-  default as conversationList,
-} from './conversation-list/index.stories'
-import SendAttachmentToChat from '.'
+import {DesktopSendAttachmentToChatRender} from '.'
 
-export const provider = Sb.createPropProviderWithCommon({
-  ...conversationListProvider,
-  ...commonProvider,
-  ChooseConversationHOC: props => ({
-    ...props,
-    filter: '',
-    onSelect: Sb.action('onSelect'),
-    onSetFilter: Sb.action('onSetFilter'),
-    selected: ChatConstants.noConversationIDKey,
-    selectedText: 'Choose a conversation',
-  }),
-})
-
-const common = {
-  onCancel: Sb.action('onCancel'),
-  onSetTitle: Sb.action('onSetTitle'),
-  send: Sb.action('send'),
-  sendAttachmentToChatState: Types.SendAttachmentToChatState.ReadyToSend,
-}
+import {default as conversationList} from './conversation-list/index.stories'
 
 const load = () =>
   Sb.storiesOf('Files/SendToChat/Attachment', module)
-    .addDecorator(provider)
     .add('no conversation', () => (
-      <SendAttachmentToChat
-        {...common}
+      <DesktopSendAttachmentToChatRender
+        enabled={false}
+        convName=""
         path={Types.stringToPath('/keybase/team/kbkbfstest/banana-bread-has-a-super-long-name.txt')}
         title="banana-bread-has-a-super-long-name.txt"
+        setTitle={Sb.action('setTitle')}
+        onSend={Sb.action('onSend')}
+        onSelect={Sb.action('onSelect')}
+        onCancel={Sb.action('onCancel')}
+      />
+    ))
+    .add('selected', () => (
+      <DesktopSendAttachmentToChatRender
+        enabled={true}
+        convName="mikem"
+        path={Types.stringToPath('/keybase/team/kbkbfstest/banana-bread-has-a-super-long-name.txt')}
+        title="banana-bread-has-a-super-long-name.txt"
+        setTitle={Sb.action('setTitle')}
+        onSend={Sb.action('onSend')}
+        onSelect={Sb.action('onSelect')}
+        onCancel={Sb.action('onCancel')}
       />
     ))
 

@@ -74,8 +74,13 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch, {mode, path}: Own
   _saveMedia: () => {
     dispatch(FsGen.createSaveMedia({path}))
   },
-  _sendAttachmentToChat: () =>
-    Constants.makeActionsForShowSendAttachmentToChat(path).forEach(action => dispatch(action)),
+  _sendAttachmentToChat: () => {
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {path}, selected: 'sendAttachmentToChat'}],
+      })
+    )
+  },
   _sendToOtherApp: () => {
     dispatch(FsGen.createShareNative({path}))
   },

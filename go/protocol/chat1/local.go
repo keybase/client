@@ -5361,6 +5361,34 @@ func (o SearchInboxRes) DeepCopy() SearchInboxRes {
 	}
 }
 
+type SimpleSearchInboxConvNamesHit struct {
+	Name     string         `codec:"name" json:"name"`
+	ConvID   ConversationID `codec:"convID" json:"convID"`
+	IsTeam   bool           `codec:"isTeam" json:"isTeam"`
+	Parts    []string       `codec:"parts" json:"parts"`
+	TeamName string         `codec:"teamName" json:"teamName"`
+}
+
+func (o SimpleSearchInboxConvNamesHit) DeepCopy() SimpleSearchInboxConvNamesHit {
+	return SimpleSearchInboxConvNamesHit{
+		Name:   o.Name,
+		ConvID: o.ConvID.DeepCopy(),
+		IsTeam: o.IsTeam,
+		Parts: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Parts),
+		TeamName: o.TeamName,
+	}
+}
+
 type ProfileSearchConvStats struct {
 	Err            string               `codec:"err" json:"err"`
 	ConvName       string               `codec:"convName" json:"convName"`
@@ -6443,6 +6471,10 @@ type SearchInboxArg struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
+type SimpleSearchInboxConvNamesArg struct {
+	Query string `codec:"query" json:"query"`
+}
+
 type CancelActiveSearchArg struct {
 }
 
@@ -6677,6 +6709,7 @@ type LocalInterface interface {
 	SearchRegexp(context.Context, SearchRegexpArg) (SearchRegexpRes, error)
 	CancelActiveInboxSearch(context.Context) error
 	SearchInbox(context.Context, SearchInboxArg) (SearchInboxRes, error)
+	SimpleSearchInboxConvNames(context.Context, string) ([]SimpleSearchInboxConvNamesHit, error)
 	CancelActiveSearch(context.Context) error
 	ProfileChatSearch(context.Context, keybase1.TLFIdentifyBehavior) (map[ConvIDStr]ProfileSearchConvStats, error)
 	GetStaticConfig(context.Context) (StaticConfig, error)
@@ -7707,6 +7740,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"simpleSearchInboxConvNames": {
+				MakeArg: func() interface{} {
+					var ret [1]SimpleSearchInboxConvNamesArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]SimpleSearchInboxConvNamesArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]SimpleSearchInboxConvNamesArg)(nil), args)
+						return
+					}
+					ret, err = i.SimpleSearchInboxConvNames(ctx, typedArgs[0].Query)
+					return
+				},
+			},
 			"cancelActiveSearch": {
 				MakeArg: func() interface{} {
 					var ret [1]CancelActiveSearchArg
@@ -8555,6 +8603,12 @@ func (c LocalClient) CancelActiveInboxSearch(ctx context.Context) (err error) {
 
 func (c LocalClient) SearchInbox(ctx context.Context, __arg SearchInboxArg) (res SearchInboxRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.searchInbox", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) SimpleSearchInboxConvNames(ctx context.Context, query string) (res []SimpleSearchInboxConvNamesHit, err error) {
+	__arg := SimpleSearchInboxConvNamesArg{Query: query}
+	err = c.Cli.Call(ctx, "chat.1.local.simpleSearchInboxConvNames", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }
 

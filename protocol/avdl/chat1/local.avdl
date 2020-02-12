@@ -1121,6 +1121,14 @@ protocol local {
 
   SearchInboxRes searchInbox(int sessionID, string query,
     SearchOpts opts, boolean namesOnly, keybase1.TLFIdentifyBehavior identifyBehavior);
+  record SimpleSearchInboxConvNamesHit {
+    string name;
+    ConversationID convID;
+    boolean isTeam;
+    array<string> parts;
+    string teamName;
+  }
+  array<SimpleSearchInboxConvNamesHit> simpleSearchInboxConvNames(string query);
 
   void cancelActiveSearch();
 

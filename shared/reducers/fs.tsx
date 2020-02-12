@@ -1,7 +1,6 @@
 import logger from '../logger'
 import * as FsGen from '../actions/fs-gen'
 import * as Constants from '../constants/fs'
-import * as ChatConstants from '../constants/chat2'
 import * as Types from '../constants/types/fs'
 import * as Container from '../util/container'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -32,7 +31,6 @@ const initialState: Types.State = {
   pathItemActionMenu: Constants.emptyPathItemActionMenu,
   pathItems: new Map(),
   pathUserSettings: new Map(),
-  sendAttachmentToChat: Constants.emptySendAttachmentToChat,
   settings: Constants.emptySettings,
   sfmi: {
     directMountDir: '',
@@ -372,29 +370,6 @@ export default Container.makeReducer<FsGen.Actions, Types.State>(initialState, {
       localPath: action.payload.localPath,
       type: Types.DestinationPickerSource.IncomingShare,
     } as const
-  },
-  [FsGen.initSendAttachmentToChat]: (draftState, action) => {
-    draftState.sendAttachmentToChat = {
-      ...Constants.emptySendAttachmentToChat,
-      path: action.payload.path,
-      state: Types.SendAttachmentToChatState.PendingSelectConversation,
-      title: Types.getPathName(action.payload.path),
-    }
-  },
-  [FsGen.setSendAttachmentToChatConvID]: (draftState, action) => {
-    draftState.sendAttachmentToChat.convID = action.payload.convID
-    draftState.sendAttachmentToChat.state = ChatConstants.isValidConversationIDKey(action.payload.convID)
-      ? Types.SendAttachmentToChatState.ReadyToSend
-      : Types.SendAttachmentToChatState.PendingSelectConversation
-  },
-  [FsGen.setSendAttachmentToChatFilter]: (draftState, action) => {
-    draftState.sendAttachmentToChat.filter = action.payload.filter
-  },
-  [FsGen.setSendAttachmentToChatTitle]: (draftState, action) => {
-    draftState.sendAttachmentToChat.title = action.payload.title
-  },
-  [FsGen.sentAttachmentToChat]: draftState => {
-    draftState.sendAttachmentToChat.state = Types.SendAttachmentToChatState.Sent
   },
   [FsGen.setPathItemActionMenuView]: (draftState, action) => {
     draftState.pathItemActionMenu.previousView = draftState.pathItemActionMenu.view

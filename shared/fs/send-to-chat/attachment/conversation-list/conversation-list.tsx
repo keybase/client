@@ -1,119 +1,156 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Types from '../../../../constants/types/chat2'
+import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Container from '../../../../util/container'
 import * as Styles from '../../../../styles'
-import * as Chat2Gen from '../../../../actions/chat2-gen'
-import SelectableSmallTeam from '../../../../chat/selectable-small-team-container'
-import SelectableBigTeamChannel from '../../../../chat/selectable-big-team-channel-container'
-import {rowHeight} from '../../../../chat/selectable-big-team-channel'
-import {rowHeight as shouldEqualToRowHeight} from '../../../../chat/selectable-small-team'
+import logger from '../../../../logger'
+import debounce from 'lodash/debounce'
+import {Avatars, TeamAvatar} from '../../../../chat/avatars'
 
 /* This is used in Fs tab for sending attachments to chat. Please check to make
  * sure it doesn't break there if you make changes to this file. */
 
-export type SmallTeamRowItem = {
-  conversationIDKey: Types.ConversationIDKey
-  isSelected: boolean
-  name: string
-  participants: Array<string>
-  onSelectConversation: () => void
-  type: 'small'
-}
-
-export type BigTeamChannelRowItem = {
-  conversationIDKey: Types.ConversationIDKey
-  isSelected: boolean
-  name: string
-  onSelectConversation: () => void
-  type: 'big'
-}
-
-type ToggleMoreRowItem = {
-  conversationIDKey: undefined
-  type: 'more-less'
-  onClick: () => void
-  hiddenCount: number
-}
-
-export type RowItem = SmallTeamRowItem | BigTeamChannelRowItem | ToggleMoreRowItem
-
 type Props = {
-  rows: Array<RowItem>
-  filter?: {
-    isLoading: boolean
-    filter: string
-    onSetFilter: (filter: string) => void
-  }
-  focusFilterOnMount?: boolean | null
-  onBack: () => void
-  onEnsureSelection: () => void
-  onSelectDown: () => void
-  onSelectUp: () => void
+  onDone?: () => void
+  onSelect: (conversationIDKey: Types.ConversationIDKey, convName: string) => void
 }
 
-const _itemRenderer = (_: number, row: RowItem) => {
-  switch (row.type) {
-    case 'small':
-      return (
-        <SelectableSmallTeam
-          conversationIDKey={row.conversationIDKey}
-          isSelected={row.isSelected}
-          name={row.name}
-          participants={row.participants}
-          onSelectConversation={row.onSelectConversation}
-        />
-      )
-    case 'big':
-      return (
-        <SelectableBigTeamChannel
-          conversationIDKey={row.conversationIDKey}
-          isSelected={row.isSelected}
-          name={row.name}
-          onSelectConversation={row.onSelectConversation}
-        />
-      )
-    case 'more-less':
-      return (
-        <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={styles.moreLessContainer}>
-          <Kb.Button
-            type="Dim"
-            label={row.hiddenCount ? `+${row.hiddenCount} more` : 'Show less ...'}
-            small={true}
-            onClick={row.onClick}
+type Row = {
+  isSelected: boolean
+  item: RPCChatTypes.SimpleSearchInboxConvNamesHit
+  onSelect: () => void
+}
+
+const _itemRenderer = (index: number, row: Row) => {
+  const item = row.item
+  return (
+    <Kb.ClickableBox key={index} onClick={row.onSelect}>
+      <Kb.Box2
+        direction="horizontal"
+        fullWidth={true}
+        gap="tiny"
+        style={Styles.collapseStyles([
+          styles.results,
+          {
+            backgroundColor:
+              !Styles.isMobile && row.isSelected ? Styles.globalColors.blue : Styles.globalColors.white,
+          },
+        ])}
+      >
+        {item.isTeam ? (
+          <TeamAvatar
+            isHovered={false}
+            isMuted={false}
+            isSelected={row.isSelected}
+            teamname={item.teamName}
           />
-        </Kb.Box2>
-      )
-    default:
-      return null
-  }
+        ) : (
+          <Avatars
+            isHovered={false}
+            isLocked={false}
+            isMuted={false}
+            isSelected={row.isSelected}
+            participants={item.parts ?? []}
+          />
+        )}
+        <Kb.Text type="Body" style={{alignSelf: 'center'}} lineClamp={1}>
+          {item.name}
+        </Kb.Text>
+      </Kb.Box2>
+    </Kb.ClickableBox>
+  )
 }
 
 const ConversationList = (props: Props) => {
-  const dispatch = Container.useDispatch()
+  const [query, setQuery] = React.useState('')
+  const [waiting, setWaiting] = React.useState(false)
+  const [selected, setSelected] = React.useState(0)
+  const [results, setResults] = React.useState<Array<RPCChatTypes.SimpleSearchInboxConvNamesHit>>([])
+  const submit = Container.useRPC(RPCChatTypes.localSimpleSearchInboxConvNamesRpcPromise)
+  const doSearch = React.useCallback(() => {
+    setWaiting(true)
+    setSelected(0)
+    submit(
+      [{query}],
+      result => {
+        setWaiting(false)
+        setResults(result ?? [])
+      },
+      error => {
+        setWaiting(false)
+        logger.info('ConversationList: error loading search results: ' + error.message)
+      }
+    )
+  }, [query, submit])
   React.useEffect(() => {
-    dispatch(Chat2Gen.createInboxRefresh({reason: 'shareConfigSearch'}))
-  }, [dispatch])
-  if (rowHeight !== shouldEqualToRowHeight) {
-    // Sanity check, in case this changes in the future
-    return <Kb.Text type="BodyBigExtrabold">item size changes, should use use variable size list</Kb.Text>
+    doSearch()
+  }, [doSearch])
+  const onSelect = (convID: Types.ConversationIDKey, convName: string) => {
+    props.onSelect(convID, convName)
+    props.onDone?.()
   }
+  return (
+    <ConversationListRender
+      selected={selected}
+      setSelected={setSelected}
+      waiting={waiting}
+      results={results}
+      setQuery={setQuery}
+      onSelect={onSelect}
+    />
+  )
+}
 
+type ConversationListRenderProps = {
+  selected: number
+  setSelected: (selected: number) => void
+  waiting: boolean
+  results: Array<RPCChatTypes.SimpleSearchInboxConvNamesHit>
+  setQuery: (query: string) => void
+  onSelect: (conversationIDKey: Types.ConversationIDKey, convName: string) => void
+}
+
+export const ConversationListRender = (props: ConversationListRenderProps) => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-      {!!props.filter && (
-        <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.filterContainer}>
-          <Kb.SearchFilter
-            placeholderText="Search"
-            onChange={props.filter.onSetFilter}
-            size="small"
-            icon="iconfont-search"
-          />
-        </Kb.Box2>
-      )}
+      <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.filterContainer}>
+        <Kb.SearchFilter
+          placeholderText="Search chats..."
+          onChange={debounce(props.setQuery, 200)}
+          size="small"
+          icon="iconfont-search"
+          waiting={props.waiting}
+          focusOnMount={true}
+          onKeyDown={(e: React.KeyboardEvent) => {
+            switch (e.key) {
+              case 'ArrowDown':
+                if (props.selected < props.results.length - 1) {
+                  props.setSelected(props.selected + 1)
+                }
+                break
+              case 'ArrowUp':
+                if (props.selected > 0) {
+                  props.setSelected(props.selected - 1)
+                }
+                break
+              case 'Enter':
+                if (props.results.length > 0) {
+                  const result = props.results[props.selected]
+                  props.onSelect(Types.conversationIDToKey(result.convID), result.name)
+                }
+                break
+            }
+          }}
+        />
+      </Kb.Box2>
       <Kb.List2
-        itemHeight={{height: rowHeight, type: 'fixed'}}
-        items={props.rows}
+        itemHeight={{height: 65, type: 'fixed'}}
+        items={props.results.map((r, index) => ({
+          isSelected: index === props.selected,
+          item: r,
+          onSelect: () => props.onSelect(Types.conversationIDToKey(r.convID), r.name),
+        }))}
         renderItem={_itemRenderer}
         indexAsKey={true}
       />
@@ -132,9 +169,14 @@ const styles = Styles.styleSheetCreate(
           paddingBottom: Styles.globalMargins.tiny,
         },
       }),
-      moreLessContainer: {
-        height: rowHeight,
-      },
+      results: Styles.platformStyles({
+        common: {
+          padding: Styles.globalMargins.tiny,
+        },
+        isMobile: {
+          paddingBottom: Styles.globalMargins.tiny,
+        },
+      }),
     } as const)
 )
 

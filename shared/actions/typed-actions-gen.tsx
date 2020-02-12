@@ -605,11 +605,6 @@ export type TypedActionsMap = {
   'fs:showIncomingShare': fs.ShowIncomingSharePayload
   'fs:move': fs.MovePayload
   'fs:copy': fs.CopyPayload
-  'fs:initSendAttachmentToChat': fs.InitSendAttachmentToChatPayload
-  'fs:setSendAttachmentToChatConvID': fs.SetSendAttachmentToChatConvIDPayload
-  'fs:setSendAttachmentToChatFilter': fs.SetSendAttachmentToChatFilterPayload
-  'fs:setSendAttachmentToChatTitle': fs.SetSendAttachmentToChatTitlePayload
-  'fs:sentAttachmentToChat': fs.SentAttachmentToChatPayload
   'fs:setPathItemActionMenuView': fs.SetPathItemActionMenuViewPayload
   'fs:waitForKbfsDaemon': fs.WaitForKbfsDaemonPayload
   'fs:kbfsDaemonRpcStatusChanged': fs.KbfsDaemonRpcStatusChangedPayload
