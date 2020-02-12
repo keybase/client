@@ -158,6 +158,7 @@ const RequestPaymentPopup = Container.namedConnect(
   (dispatch, ownProps: RequestOwnProps) => ({
     onCancel: () => {
       if (ownProps.message.type !== 'requestPayment') {
+        // @ts-ignore TS also says this is impossible!
         throw new Error(`RequestPaymentPopup: impossible case encountered: ${ownProps.message.type}`)
       }
       dispatch(
@@ -173,6 +174,7 @@ const RequestPaymentPopup = Container.namedConnect(
     const {_you: you} = stateProps
     const {message} = ownProps
     if (message.type !== 'requestPayment') {
+      // @ts-ignore TS also says this is impossible!
       throw new Error(`RequestPaymentPopup: impossible case encountered: ${message.type}`)
     }
     const {requestInfo} = stateProps

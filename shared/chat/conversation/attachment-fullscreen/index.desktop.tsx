@@ -10,7 +10,7 @@ type State = {
   isZoomed: boolean
 }
 
-type arrowProps = {
+type ArrowProps = {
   iconType: IconType
   onClick: () => void
 }
@@ -23,7 +23,7 @@ const HoverBox = Styles.styled(Kb.Box)(() => ({
   transition: 'background-color 0.35s ease-in-out',
 }))
 
-const Arrow = ({iconType, onClick}: arrowProps) => {
+const Arrow = ({iconType, onClick}: ArrowProps) => {
   return (
     <HoverBox className="hover_background_color_black" onClick={onClick} style={styles.circle}>
       <Kb.Icon
