@@ -2,9 +2,7 @@ package teams
 
 import (
 	"context"
-	"crypto/rand"
 	"fmt"
-	"math/big"
 	"sort"
 	"sync"
 	"time"
@@ -436,13 +434,9 @@ func (a *Auditor) doPreProbes(m libkb.MetaContext, history *keybase1.AuditHistor
 }
 
 // randSeqno picks a random number in [lo,hi] inclusively.
-func randSeqno(lo keybase1.Seqno, hi keybase1.Seqno) (keybase1.Seqno, error) {
-	rangeBig := big.NewInt(int64(hi - lo + 1))
-	n, err := rand.Int(rand.Reader, rangeBig)
-	if err != nil {
-		return keybase1.Seqno(0), err
-	}
-	return keybase1.Seqno(n.Int64()) + lo, nil
+func randSeqno(m libkb.MetaContext, lo keybase1.Seqno, hi keybase1.Seqno) (keybase1.Seqno, error) {
+	s, err := m.G().GetRandom().RndRange(int64(lo), int64(hi))
+	return keybase1.Seqno(s), err
 }
 
 type probeTuple struct {
@@ -484,7 +478,7 @@ func (a *Auditor) scheduleProbes(m libkb.MetaContext, previousProbes map[keybase
 	}
 	currentProbesWanted := n - len(probesToRetry)
 	for i := 0; i < currentProbesWanted; i++ {
-		x, err := randSeqno(left, right)
+		x, err := randSeqno(m, left, right)
 		if err != nil {
 			return nil, err
 		}
