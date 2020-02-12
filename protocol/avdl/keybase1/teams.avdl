@@ -165,6 +165,7 @@ protocol teams {
     @lint("ignore")
     boolean needsPUK;
     TeamMemberStatus status;
+    union { null, Time } joinTime; // last time the user joined the team
   }
 
   record TeamMembersDetails {
