@@ -154,7 +154,7 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       timestamp: {
-        backgroundColor: Styles.globalColors.fastBlank,
+        backgroundColor: Styles.isTablet ? undefined : Styles.globalColors.fastBlank,
         color: Styles.globalColors.blueDark,
       },
       unreadDotStyle: {
