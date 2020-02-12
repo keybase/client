@@ -3604,7 +3604,7 @@ const refreshBotSettings = async (action: Chat2Gen.RefreshBotSettingsPayload, lo
 
 const onShowInfoPanel = (action: Chat2Gen.ShowInfoPanelPayload) => {
   const {conversationIDKey, show, tab} = action.payload
-  if (Container.isMobile) {
+  if (Container.isPhone) {
     const visibleScreen = Router2Constants.getVisibleScreen()
     if ((visibleScreen?.routeName === 'chatInfoPanel') !== show) {
       return show
