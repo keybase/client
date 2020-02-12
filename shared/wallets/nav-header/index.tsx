@@ -122,8 +122,8 @@ const styles = Styles.styleSheetCreate(
         },
         isElectron: {...Styles.desktopStyles.windowDraggingClickable},
         isTablet: {
-          minWidth: 180,
           maxWidth: 180,
+          minWidth: 180,
         },
       }),
       loading: {
