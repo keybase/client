@@ -77,16 +77,16 @@ const store = Container.produce(Sb.createStoreWithCommon(), draftState => {
       [
         fakeTeamID,
         new Map([
-          ['1', {...Constants.initialChannelInfo, channelname: 'Aab'}],
-          ['2', {...Constants.initialChannelInfo, channelname: 'NSFW'}],
+          ['1', {...Constants.initialChannelInfo, channelname: 'random'}],
+          ['2', {...Constants.initialChannelInfo, channelname: 'hellos'}],
           ['3', {...Constants.initialChannelInfo, channelname: 'NY_MemorialDay'}],
-          ['4', {...Constants.initialChannelInfo, channelname: 'airdrop'}],
-          ['5', {...Constants.initialChannelInfo, channelname: 'android'}],
-          ['6', {...Constants.initialChannelInfo, channelname: 'android-notifications'}],
-          ['7', {...Constants.initialChannelInfo, channelname: 'autoresets'}],
-          ['8', {...Constants.initialChannelInfo, channelname: 'frontend'}],
-          ['9', {...Constants.initialChannelInfo, channelname: 'core'}],
-          ['10', {...Constants.initialChannelInfo, channelname: 'design'}],
+          ['4', {...Constants.initialChannelInfo, channelname: 'sandwiches'}],
+          ['5', {...Constants.initialChannelInfo, channelname: 'soups'}],
+          ['6', {...Constants.initialChannelInfo, channelname: 'stir-fry'}],
+          ['7', {...Constants.initialChannelInfo, channelname: 'ice-cream'}],
+          ['8', {...Constants.initialChannelInfo, channelname: 'salad'}],
+          ['9', {...Constants.initialChannelInfo, channelname: 'veg'}],
+          ['10', {...Constants.initialChannelInfo, channelname: 'plate-presentation'}],
           ['11', {...Constants.initialChannelInfo, channelname: 'team-sqawk'}],
           ['12', {...Constants.initialChannelInfo, channelname: 'team-birbs'}],
           ['13', {...Constants.initialChannelInfo, channelname: 'team-beasts'}],
@@ -119,7 +119,7 @@ const load = () => {
     .addDecorator(story => <Sb.MockStore store={store}>{story()}</Sb.MockStore>)
     .add('Channel popup', () => <ChannelPopup {...channelPopupProps} />)
     .add('Channel popup w/disabled', () => (
-      <ChannelPopup {...channelPopupProps} disabledChannels={['NSFW', 'android', 'team-sqawk']} />
+      <ChannelPopup {...channelPopupProps} disabledChannels={['hellos', 'soups', 'team-sqawk']} />
     ))
 }
 
