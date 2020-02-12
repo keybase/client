@@ -276,7 +276,7 @@ class InboxSearch extends React.Component<Props, State> {
 
     return (
       <Kb.Box2 style={styles.container} direction="vertical" fullWidth={true}>
-        {!Styles.isTablet && <Rover />}
+        <Rover />
         <Kb.SectionList
           ListHeaderComponent={this.props.header}
           stickySectionHeadersEnabled={true}
