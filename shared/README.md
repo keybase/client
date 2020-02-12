@@ -13,11 +13,14 @@ If you really want to install Keybase, please return to the [top level Readme.md
 ## Keybase
 
 ### Install
+Run within the `shared/` directory.
 
 ```sh
 yarn modules
 ```
 Which is just an alias to run `yarn install --pure-lockfile --ignore-optional`. 
+
+> If you ever screw up your packaging situation: `yarn rn-packager-wipe-cache`.
 
 ### Desktop
 
