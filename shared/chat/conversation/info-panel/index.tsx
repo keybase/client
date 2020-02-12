@@ -35,10 +35,13 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
   private isSelected = (s: Panel) => s === this.props.selectedTab
 
   private getTabPanels = (): Array<Panel> => {
-    var showSettings =
-      !this.props.isPreview ||
-      TeamConstants.isAdmin(this.props.yourRole) ||
-      TeamConstants.isOwner(this.props.yourRole)
+    var showSettings = !this.props.isPreview
+    if (flags.teamsRedesign) {
+      showSettings =
+        !this.props.isPreview ||
+        TeamConstants.isAdmin(this.props.yourRole) ||
+        TeamConstants.isOwner(this.props.yourRole)
+    }
 
     return [
       'members' as const,
@@ -136,6 +139,7 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
         sectionList = (
           <SettingsList
             conversationIDKey={this.props.selectedConversationIDKey}
+            isPreview={this.props.isPreview}
             renderTabs={this.renderTabs}
             commonSections={this.commonSections}
           />

@@ -52,7 +52,6 @@ const ConnectedInfoPanel = Container.connect(
       channelname,
       customCancelText: 'Done',
       isPreview,
-      yourRole,
       onBack,
       onCancel,
       onSelectTab,
@@ -60,6 +59,7 @@ const ConnectedInfoPanel = Container.connect(
       selectedTab: selectedTab ?? 'members',
       smallTeam,
       teamname,
+      yourRole,
     }
   }
 )(InfoPanel)
