@@ -266,6 +266,7 @@ export default () => {
       nodeIntegration: true,
       nodeIntegrationInWorker: false,
       preload: resolveRoot('dist', `preload-main${__DEV__ ? '.dev' : ''}.bundle.js`),
+      spellcheck: true,
     },
     width: windowState.width,
     x: windowState.x,
@@ -273,6 +274,9 @@ export default () => {
     ...(isDarwin ? {titleBarStyle: 'hiddenInset'} : {}),
   })
   win.loadURL(htmlFile)
+  win.webContents.session.setSpellCheckerDictionaryDownloadURL(
+    'https://kbelectron.keybase.pub/electron-download/v8.0.0/hunspell_dictionaries.zip?dl=1'
+  )
 
   if (windowState.isFullScreen) {
     win.setFullScreen(true)

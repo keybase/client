@@ -121,24 +121,46 @@ export default function makeMenu(window: Electron.BrowserWindow) {
 }
 
 function setupContextMenu(window: Electron.BrowserWindow) {
-  const selectionMenu = Electron.Menu.buildFromTemplate([{role: 'copy'}])
-
-  const inputMenu = Electron.Menu.buildFromTemplate([
-    new Electron.MenuItem({role: 'undo'}),
-    new Electron.MenuItem({role: 'redo'}),
-    new Electron.MenuItem({type: 'separator'}),
-    new Electron.MenuItem({role: 'cut'}),
-    new Electron.MenuItem({role: 'copy'}),
-    new Electron.MenuItem({role: 'paste'}),
-    new Electron.MenuItem({type: 'separator'}),
-    new Electron.MenuItem({role: 'selectAll'}),
-  ])
-
   window.webContents.on('context-menu', (_: Electron.Event, props: Electron.ContextMenuParams) => {
     const {selectionText, isEditable} = props
+    console.log('aaaa context menu', props)
     if (isEditable) {
+      const {dictionarySuggestions} = props
+      const inputMenu = Electron.Menu.buildFromTemplate([
+        ...(props.misspelledWord
+          ? [
+              ...dictionarySuggestions.map(
+                s =>
+                  new Electron.MenuItem({
+                    label: s,
+                    click() {
+                      console.log('aaa tODO inject', s)
+                    },
+                  })
+              ),
+              ...(dictionarySuggestions.length ? [new Electron.MenuItem({type: 'separator'})] : []),
+              new Electron.MenuItem({
+                label: 'Add to dictionary',
+                click(_, w) {
+                  w.webContents.session.addWordToSpellCheckerDictionary(props.misspelledWord)
+                },
+              }),
+              new Electron.MenuItem({type: 'separator'}),
+            ]
+          : []),
+        new Electron.MenuItem({role: 'undo'}),
+        new Electron.MenuItem({role: 'redo'}),
+        new Electron.MenuItem({type: 'separator'}),
+        new Electron.MenuItem({role: 'cut'}),
+        new Electron.MenuItem({role: 'copy'}),
+        new Electron.MenuItem({role: 'paste'}),
+        new Electron.MenuItem({type: 'separator'}),
+        new Electron.MenuItem({role: 'selectAll'}),
+      ])
+
       inputMenu.popup({window})
     } else if (selectionText && selectionText.trim() !== '') {
+      const selectionMenu = Electron.Menu.buildFromTemplate([{role: 'copy'}])
       selectionMenu.popup({window})
     }
   })
