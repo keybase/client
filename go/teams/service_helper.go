@@ -2283,3 +2283,86 @@ func GetTeamIDByNameRPC(mctx libkb.MetaContext, teamName string) (res keybase1.T
 	}
 	return id, nil
 }
+
+func GetUserSubteamMemberships(m libkb.MetaContext, id keybase1.TeamID, username string) (res []keybase1.AnnotatedSubteamMemberDetails, err error) {
+	tracer := m.G().CTimeTracer(m.Ctx(), "GetUserSubteamMemberships", true)
+	defer tracer.Finish()
+
+	tracer.Stage("resolving user")
+	upak, _, err := m.G().GetUPAKLoader().LoadV2(
+		libkb.NewLoadUserArgWithMetaContext(m).WithName(username),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	tracer.Stage("resolving team and subteams")
+	name, err := ResolveIDToName(m.Ctx(), m.G(), id)
+	if err != nil {
+		return nil, err
+	}
+	tree, err := ListSubteamsUnverified(m, name)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, entry := range tree.Entries {
+		tracer.Stage(fmt.Sprintf("resolving membership in %s", entry.Name))
+
+		team, err := GetMaybeAdminByID(m.Ctx(), m.G(), entry.TeamID, entry.TeamID.IsPublic())
+		if err != nil {
+			return nil, err
+		}
+		det, err := details(m.Ctx(), m.G(), team, tracer)
+		if err != nil {
+			return nil, err
+		}
+		role, err := team.MemberRole(m.Ctx(), upak.ToUserVersion())
+		if err != nil {
+			return nil, err
+		}
+
+		var (
+			details keybase1.TeamMemberDetails
+			ok      bool
+		)
+		switch role {
+		case keybase1.TeamRole_NONE:
+			continue
+		case keybase1.TeamRole_READER:
+			details, ok = findMemberDetails(det.Members.Readers, upak.GetUID())
+		case keybase1.TeamRole_WRITER:
+			details, ok = findMemberDetails(det.Members.Writers, upak.GetUID())
+		case keybase1.TeamRole_ADMIN:
+			details, ok = findMemberDetails(det.Members.Admins, upak.GetUID())
+		case keybase1.TeamRole_OWNER:
+			details, ok = findMemberDetails(det.Members.Owners, upak.GetUID())
+		case keybase1.TeamRole_BOT:
+			details, ok = findMemberDetails(det.Members.Bots, upak.GetUID())
+		case keybase1.TeamRole_RESTRICTEDBOT:
+			details, ok = findMemberDetails(det.Members.RestrictedBots, upak.GetUID())
+		}
+		if !ok {
+			// We're not a member, possibly a race condition?
+			continue
+		}
+
+		res = append(res, keybase1.AnnotatedSubteamMemberDetails{
+			TeamName: team.Name(),
+			TeamID:   team.ID,
+			Details:  details,
+			Role:     role,
+		})
+
+	}
+	return res, nil
+}
+
+func findMemberDetails(input []keybase1.TeamMemberDetails, uid keybase1.UID) (keybase1.TeamMemberDetails, bool) {
+	for _, details := range input {
+		if details.Uv.Uid.Equal(uid) {
+			return details, true
+		}
+	}
+	return keybase1.TeamMemberDetails{}, false
+}
