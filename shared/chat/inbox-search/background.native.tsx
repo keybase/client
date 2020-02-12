@@ -13,8 +13,8 @@ const Rover = () => (
 const shared = Styles.isTablet
   ? ({
       bottom: 0,
-      right: 0,
       position: 'absolute',
+      right: 0,
     } as const)
   : ({
       bottom: 0,
@@ -31,11 +31,11 @@ const styles = Styles.styleSheetCreate(() => ({
       ...shared,
       bottom: 80,
     },
-    isTablet: {
-      right: 50,
-    },
     isPhone: {
       left: Styles.dimensionWidth - 50,
+    },
+    isTablet: {
+      right: 50,
     },
   }),
 }))
