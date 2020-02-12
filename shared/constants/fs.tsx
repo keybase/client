@@ -1,7 +1,6 @@
 import * as Types from './types/fs'
 import * as RPCTypes from './types/rpc-gen'
 import * as FsGen from '../actions/fs-gen'
-import * as EngineGen from '../actions/engine-gen-gen'
 import * as Flow from '../util/flow'
 import * as Tabs from './tabs'
 import * as SettingsConstants from './settings'
@@ -989,7 +988,10 @@ export const hasSpecialFileElement = (path: Types.Path): boolean =>
 export const sfmiInfoLoaded = (settings: Types.Settings, driverStatus: Types.DriverStatus): boolean =>
   settings.loaded && driverStatus !== driverStatusUnknown
 
-export const erroredActionToMessage = (action: FsGen.Actions | EngineGen.Actions, error: string): string => {
+export const erroredActionToMessage = (
+  action: any /*FsGen.Actions | EngineGen.Actions too complex*/,
+  error: string
+): string => {
   // We have FsError.expectedIfOffline now to take care of real offline
   // scenarios, but we still need to keep this timeout check here in case we
   // get a timeout error when we think we think we're online. In this case it's
