@@ -100,6 +100,7 @@ type TestContext struct {
 	T         TestingTB
 	eg        *errgroup.Group
 	cleanupCh chan struct{}
+	origLog   logger.Logger
 }
 
 func (tc *TestContext) Cleanup() {
@@ -122,6 +123,9 @@ func (tc *TestContext) Cleanup() {
 		require.NoError(tc.T, err)
 	}
 	tc.G.Log.Debug("cleanup complete")
+
+	// Don't use the test logger anymore, since it's now out of scope
+	tc.G.Log = tc.origLog
 }
 
 func (tc *TestContext) Logout() error {
@@ -228,6 +232,7 @@ func setupTestContext(tb TestingTB, name string, tcPrev *TestContext) (tc TestCo
 
 	// In debugging mode, dump all log, don't use the test logger.
 	// We only use the environment variable to discover debug mode
+	tc.origLog = g.Log
 	if val, _ := getEnvBool("KEYBASE_DEBUG"); !val {
 		g.Log = logger.NewTestLogger(tb)
 	}
