@@ -306,6 +306,7 @@ export type MessageSystemSBSResolved = _Message.MessageSystemSBSResolved
 export type MessageSystemSimpleToComplex = _Message.MessageSystemSimpleToComplex
 export type MessageSystemText = _Message.MessageSystemText
 export type MessageSystemUsersAddedToConversation = _Message.MessageSystemUsersAddedToConversation
+export type MessageSystemNewChannel = _Message.MessageSystemNewChannel
 export type MessageSystemChangeAvatar = _Message.MessageSystemChangeAvatar
 export type MessageJourneycard = _Message.MessageJourneycard
 export type MessageText = _Message.MessageText
