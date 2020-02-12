@@ -558,11 +558,12 @@ function* allowLogoutWaiters(_: Container.TypedState, action: ConfigGen.LogoutHa
   )
 }
 
-const updateServerConfig = async (_: Container.TypedState, action: ConfigGen.LoadOnStartPayload) =>
+const updateServerConfig = async (state: Container.TypedState, action: ConfigGen.LoadOnStartPayload) =>
   action.payload.phase === 'startupOrReloginButNotInARush' &&
+  state.config.loggedIn &&
   RPCTypes.configUpdateLastLoggedInAndServerConfigRpcPromise({
     serverConfigPath: Platform.serverConfigFileName,
-  })
+  }).catch(() => {})
 
 const setNavigator = (action: ConfigGen.SetNavigatorPayload) => {
   const navigator = action.payload.navigator
