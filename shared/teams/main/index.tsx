@@ -9,6 +9,7 @@ import TeamRowNew from './team-row'
 import {memoize} from '../../util/memoize'
 import {pluralize} from '../../util/string'
 import flags from '../../util/feature-flags'
+import ChannelPopup from '../team/settings-tab/channel-popup'
 
 type DeletedTeam = {
   teamName: string
@@ -221,6 +222,7 @@ class Teams extends React.PureComponent<Props, State> {
           items={this.teamsAndExtras(this.props.deletedTeams, this.props.teams)}
           renderItem={this.renderItem}
         />
+        <ChannelPopup />
       </Kb.Box2>
     )
   }
