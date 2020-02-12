@@ -63,7 +63,7 @@ const Conversation = React.memo((props: Props) => {
     </Kb.BoxGrow>
   )
   return (
-    <Kb.Box2 direction="vertical" style={styles.innerContainer}>
+    <Kb.Box style={styles.innerContainer}>
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
         {props.threadLoadedOffline && <Offline />}
         {Styles.isTablet ? (
@@ -83,7 +83,7 @@ const Conversation = React.memo((props: Props) => {
         )}
       </Kb.Box2>
       <GatewayDest name="convOverlay" component={Kb.Box} />
-    </Kb.Box2>
+    </Kb.Box>
   )
 })
 
@@ -94,6 +94,12 @@ const styles = Styles.styleSheetCreate(
         flex: 1,
         position: 'relative',
       },
+      outerContainer: Styles.platformStyles({
+        isTablet: {
+          flex: 1,
+          position: 'relative',
+        },
+      }),
     } as const)
 )
 
