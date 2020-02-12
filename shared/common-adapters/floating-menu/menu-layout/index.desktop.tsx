@@ -4,6 +4,7 @@ import Box from '../../box'
 import Divider from '../../divider'
 import Text from '../../text'
 import Meta from '../../meta'
+import Badge from '../../badge'
 import ProgressIndicator from '../../progress-indicator'
 import * as Styles from '../../../styles'
 
@@ -52,6 +53,7 @@ class MenuLayout extends Component<MenuLayoutProps> {
               />
             )}
             {item.decoration}
+            {item.isBadged && <Badge badgeStyle={Styles.collapseStyles([styles.badge, styles.iconBadge])} />}
           </Box>
         )}
         {!item.view && item.subTitle && (
@@ -133,6 +135,16 @@ const styles = Styles.styleSheetCreate(
         paddingRight: Styles.globalMargins.small,
         paddingTop: Styles.globalMargins.xtiny,
         position: 'relative',
+      },
+      iconBadge: {
+        backgroundColor: Styles.globalColors.blue,
+        height: Styles.globalMargins.tiny,
+        minWidth: 0,
+        paddingLeft: 0,
+        paddingRight: 0,
+        position: 'relative',
+        right: Styles.globalMargins.xtiny,
+        width: Styles.globalMargins.tiny,
       },
       menuContainer: Styles.platformStyles({
         isElectron: {
