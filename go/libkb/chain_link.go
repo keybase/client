@@ -817,13 +817,14 @@ func (c *ChainLink) Unpack(m MetaContext, trusted bool, selfUID keybase1.UID, pa
 	}
 
 	var payload []byte
-	if trusted && tmp.sigVersion == KeybaseSignatureV1 {
-		// use payload from sig
+	switch tmp.sigVersion {
+	case KeybaseSignatureV1:
+		// use the payload from the signature here, since it's sent down.
 		payload, err = tmp.Payload()
 		if err != nil {
 			return err
 		}
-	} else {
+	case KeybaseSignatureV2:
 		// use the payload in payload_json
 		data, _, _, err := jsonparserw.Get(packed, "payload_json")
 		if err != nil {
@@ -836,20 +837,9 @@ func (c *ChainLink) Unpack(m MetaContext, trusted bool, selfUID keybase1.UID, pa
 			return err
 		}
 		payload = []byte(sdata)
-
-		if tmp.sigVersion == KeybaseSignatureV1 {
-			// check that payload_json matches payload in sig
-			sigPayload, err := tmp.Payload()
-			if err != nil {
-				return err
-			}
-
-			payloadFixed := c.fixPayload(payload, c.id)
-
-			if !FastByteArrayEq(payloadFixed, sigPayload) {
-				return ChainLinkError{"sig payload does not match payload_json"}
-			}
-		}
+	default:
+		err = ChainLinkError{fmt.Sprintf("unhandled signature version %d", tmp.sigVersion)}
+		return err
 	}
 
 	// unpack the payload
