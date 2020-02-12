@@ -71,7 +71,7 @@ type Props = {
   _onInitialLoad: (array: Array<Types.ConversationIDKey>) => void
   _refreshInbox: () => void
   _canRefreshOnMount: boolean
-  _onMountedDesktop: () => void
+  _onMountedDesktopOrTablet: () => void
 } & _Props
 
 export class InboxWrapper extends React.PureComponent<Props> {
@@ -89,7 +89,7 @@ export class InboxWrapper extends React.PureComponent<Props> {
 
   componentDidMount() {
     if (!isPhone) {
-      this.props._onMountedDesktop()
+      this.props._onMountedDesktopOrTablet()
     }
     if (this.props._canRefreshOnMount) {
       this.props._refreshInbox()
@@ -113,7 +113,7 @@ export class InboxWrapper extends React.PureComponent<Props> {
       _refreshInbox,
       _onInitialLoad,
       _canRefreshOnMount,
-      _onMountedDesktop,
+      _onMountedDesktopOrTablet,
       ...rest
     } = this.props
     return <Inbox {...rest} />
@@ -149,7 +149,7 @@ const Connected = Container.namedConnect(
     // a hack to have it check for marked as read when we mount as the focus events don't fire always
     _onInitialLoad: (conversationIDKeys: Array<Types.ConversationIDKey>) =>
       dispatch(Chat2Gen.createMetaNeedsUpdating({conversationIDKeys, reason: 'initialTrustedLoad'})),
-    _onMountedDesktop: () => {
+    _onMountedDesktopOrTablet: () => {
       dispatch(Chat2Gen.createTabSelected())
     },
     _refreshInbox: () => dispatch(Chat2Gen.createInboxRefresh({reason: 'componentNeverLoaded'})),
@@ -218,7 +218,7 @@ const Connected = Container.namedConnect(
       _canRefreshOnMount: stateProps._canRefreshOnMount,
       _hasLoadedTrusted: stateProps._hasLoadedTrusted,
       _onInitialLoad: dispatchProps._onInitialLoad,
-      _onMountedDesktop: dispatchProps._onMountedDesktop,
+      _onMountedDesktopOrTablet: dispatchProps._onMountedDesktopOrTablet,
       _refreshInbox: dispatchProps._refreshInbox,
       allowShowFloatingButton: stateProps.allowShowFloatingButton,
       hasBigTeams,
