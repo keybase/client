@@ -40,7 +40,6 @@ const inAdmin: {[K in keyof FeatureFlags]?: boolean} = {
   outOfDateBanner: true,
   proofProviders: true,
   tabletSupport: true,
-  teamsRedesign: true,
   userBlocking: false,
   webOfTrust: false,
 }
