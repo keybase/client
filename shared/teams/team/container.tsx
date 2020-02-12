@@ -106,7 +106,7 @@ const TabsState = (props: TabsStateOwnProps) => {
 
 TabsState.navigationOptions = (ownProps: TabsStateOwnProps) => ({
   header:
-    Container.isMobile && flags.teamsRedesign
+    Container.isMobile && flags.teamsRedesign && false
       ? () => <HeaderTitle teamID={Container.getRouteProps(ownProps, 'teamID', '')} />
       : null,
   headerExpandable: true,

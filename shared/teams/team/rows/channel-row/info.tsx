@@ -2,15 +2,19 @@ import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 
+const sentence1 = 'Channels can be joined by anyone, unlike subteams.'
+const sentence2 = 'Anyone except readers can create channels.'
 export default () => (
   <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={styles.container}>
     <Kb.InfoNote>
       <Kb.Text type="BodySmall" center={true} style={styles.text}>
-        Channels can be joined by anyone, unlike subteams.{' '}
+        {sentence1} {Styles.isMobile && sentence2}
       </Kb.Text>
-      <Kb.Text type="BodySmall" center={true} style={styles.text}>
-        Anyone except readers can create channels.{' '}
-      </Kb.Text>
+      {!Styles.isMobile && (
+        <Kb.Text type="BodySmall" center={true} style={styles.text}>
+          {sentence2}
+        </Kb.Text>
+      )}
     </Kb.InfoNote>
   </Kb.Box2>
 )

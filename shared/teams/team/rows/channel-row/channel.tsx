@@ -22,7 +22,13 @@ const ChannelRow = (props: ChannelRowProps) => {
     state => !!state.teams.selectedChannels.get(teamID)?.has(channel.channelname)
   )
   const [selected, setSelected] = React.useState(_selected)
-
+  const prevSelected = Container.usePrevious(_selected)
+  // TODO: suddenly can't select more than one at a time ???
+  React.useEffect(() => {
+    if (prevSelected !== _selected) {
+      setSelected(_selected)
+    }
+  }, [setSelected, _selected, prevSelected])
   const yourRole = Container.useSelector(state => Constants.getRole(state, teamID))
   const canDelete = Constants.isAdmin(yourRole) || Constants.isOwner(yourRole)
 
@@ -43,7 +49,7 @@ const ChannelRow = (props: ChannelRowProps) => {
       onCheck={onSelect}
       key={`check-${channel.channelname}`}
       className={isGeneral ? undefined : 'check-circle-selectable'}
-      selectedColor={Styles.isDarkMode ? Styles.globalColors.black : undefined}
+      selectedColor={Styles.isDarkMode() ? Styles.globalColors.black : undefined}
     />
   )
   const membersText = channel.hasAllMembers
@@ -51,7 +57,7 @@ const ChannelRow = (props: ChannelRowProps) => {
     : `${channel.numParticipants.toLocaleString()} ${pluralize('member', channel.numParticipants)}`
   const body = (
     <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.Text type="BodySemibold">#{channel.channelname}</Kb.Text>{' '}
+      <Kb.Text type="BodySemibold">#{channel.channelname}</Kb.Text>
       <Kb.Box2 direction="vertical" fullWidth={true}>
         <Kb.Text type="BodySmall" lineClamp={1}>
           {channel.description}{' '}
@@ -81,10 +87,11 @@ const ChannelRow = (props: ChannelRowProps) => {
   ))
 
   const actions = (
-    <Kb.Box2 direction="horizontal" gap="tiny">
+    <Kb.Box2 direction="horizontal" gap="tiny" style={styles.mobileMarginsHack}>
       {popup}
       <Kb.Button
         icon="iconfont-edit"
+        iconColor={Styles.globalColors.black_50}
         mode="Secondary"
         onClick={onEditChannel}
         small={true}
@@ -92,6 +99,7 @@ const ChannelRow = (props: ChannelRowProps) => {
       />
       <Kb.Button
         icon="iconfont-ellipsis"
+        iconColor={Styles.globalColors.black_50}
         mode="Secondary"
         onClick={toggleShowingPopup}
         ref={popupAnchor}
@@ -123,6 +131,7 @@ const styles = Styles.styleSheetCreate(
     ({
       checkCircle: Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
       listItemMargin: {marginLeft: 0},
+      mobileMarginsHack: {marginRight: 48}, // ListItem2 is malfunctioning because the checkbox width is unusual
       selected: {backgroundColor: Styles.globalColors.blueLighterOrBlueDarker},
     } as const)
 )

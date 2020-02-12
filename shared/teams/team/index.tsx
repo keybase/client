@@ -6,7 +6,7 @@ import TeamTabs from './tabs/container'
 import {Row} from './rows'
 import renderRow from './rows/render'
 import {TeamDetailsSubscriber, TeamsSubscriber} from '../subscriber'
-
+import SelectionPopup from './selection-popup'
 export type Sections = Array<{data: Array<Row>; header?: Row; key: string}>
 
 export type Props = {
@@ -16,15 +16,15 @@ export type Props = {
   setSelectedTab: (arg0: Types.TabKey) => void
 }
 
-class Team extends React.Component<Props> {
-  private renderItem = ({item}: {item: Row}) => {
+const Team = props => {
+  const renderItem = ({item}: {item: Row}) => {
     switch (item.type) {
       case 'tabs':
         return (
           <TeamTabs
-            teamID={this.props.teamID}
-            selectedTab={this.props.selectedTab}
-            setSelectedTab={this.props.setSelectedTab}
+            teamID={props.teamID}
+            selectedTab={props.selectedTab}
+            setSelectedTab={props.setSelectedTab}
           />
         )
       case 'settings':
@@ -46,33 +46,38 @@ class Team extends React.Component<Props> {
       case 'subteam-subteam':
       case 'subteam-info':
       case 'loading':
-        return renderRow(item, this.props.teamID)
+        return renderRow(item, props.teamID)
       default: {
         throw new Error(`Impossible case encountered in team page list: ${item}`)
       }
     }
   }
 
-  private renderSectionHeader = ({section}) =>
-    section.header ? this.renderItem({item: section.header}) : null
+  const renderSectionHeader = ({section}) => (section.header ? renderItem({item: section.header}) : null)
 
-  render() {
-    return (
-      <Kb.Box style={styles.container}>
-        <TeamsSubscriber />
-        <TeamDetailsSubscriber teamID={this.props.teamID} />
-        <Kb.SectionList
-          alwaysVounceVertical={false}
-          renderItem={this.renderItem}
-          renderSectionHeader={this.renderSectionHeader}
-          stickySectionHeadersEnabled={Styles.isMobile}
-          sections={this.props.sections}
-          style={styles.list}
-          contentContainerStyle={styles.listContentContainer}
-        />
-      </Kb.Box>
-    )
-  }
+  const popupAnchor = React.useRef<React.Component<any>>(null)
+
+  return (
+    <Kb.Box style={styles.container}>
+      <TeamsSubscriber />
+      <TeamDetailsSubscriber teamID={props.teamID} />
+      <Kb.SectionList
+        alwaysVounceVertical={false}
+        renderItem={renderItem}
+        renderSectionHeader={renderSectionHeader}
+        stickySectionHeadersEnabled={Styles.isMobile}
+        sections={props.sections}
+        style={styles.list}
+        contentContainerStyle={styles.listContentContainer}
+      />
+      <Kb.Box fullWidth={true} style={styles.endAnchor} ref={popupAnchor} />
+      <SelectionPopup
+        attachTo={() => popupAnchor.current}
+        selectedTab={props.selectedTab}
+        teamID={props.teamID}
+      />
+    </Kb.Box>
+  )
 }
 
 const styles = Styles.styleSheetCreate(() => ({
@@ -83,6 +88,10 @@ const styles = Styles.styleSheetCreate(() => ({
     height: '100%',
     position: 'relative',
     width: '100%',
+  },
+  endAnchor: {
+    flex: 1,
+    height: 0,
   },
   list: Styles.platformStyles({
     isElectron: {

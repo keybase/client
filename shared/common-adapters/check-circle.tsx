@@ -30,7 +30,9 @@ const CheckCircle = (props: Props) => {
     <Kb.Icon
       type={checked ? 'iconfont-success' : 'iconfont-circle'}
       color={
-        !props.disabled && (checked || Styles.isMobile)
+        props.disabled
+          ? Styles.globalColors.black_10
+          : checked
           ? props.selectedColor ?? Styles.globalColors.blue
           : Styles.globalColors.black_20
       }
