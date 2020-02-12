@@ -20,7 +20,6 @@ export const isAndroidNewerThanN: boolean
 export const defaultUseNativeFrame: boolean
 export const isTestDevice: boolean
 export const isRemoteDebuggerAttached: boolean
-export const chatSplit: boolean // Whether the inbox and conversation panels are visible together.
 
 export declare const downloadFolder: string
 export declare const fileUIName: string

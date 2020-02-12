@@ -19,7 +19,6 @@ export const isMac = isDarwin && !isIOS
 export const isAndroidNewerThanN = false
 export const shortcutSymbol = isDarwin ? '⌘' : 'Ctrl-'
 export const realDeviceName = ''
-export const chatSplit = true
 
 export const defaultUseNativeFrame = isDarwin || isLinux
 

@@ -82,7 +82,7 @@ export const timeoutPromise = (timeMs: number) =>
   })
 
 export {default as connect, namedConnect} from './typed-connect'
-export {isMobile, isIOS, isAndroid, isPhone, isTablet, chatSplit} from '../constants/platform'
+export {isMobile, isIOS, isAndroid, isPhone, isTablet} from '../constants/platform'
 export {anyWaiting, anyErrors} from '../constants/waiting'
 export {safeSubmit, safeSubmitPerMount} from './safe-submit'
 export {useSafeNavigation} from './safe-navigation'

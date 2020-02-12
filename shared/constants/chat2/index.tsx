@@ -5,7 +5,7 @@ import * as TeamBuildingConstants from '../team-building'
 import clamp from 'lodash/clamp'
 import {chatTab} from '../tabs'
 import {TypedState} from '../reducer'
-import {isMobile, chatSplit} from '../platform'
+import {isMobile, isTablet} from '../platform'
 import {
   noConversationIDKey,
   pendingWaitingConversationIDKey,
@@ -27,6 +27,7 @@ const defaultSkinTone = 1
 export const defaultUserReacjis = {skinTone: defaultSkinTone, topReacjis: defaultTopReacjis}
 const emptyArray: Array<unknown> = []
 const emptySet = new Set()
+export const isSplit = !isMobile || isTablet // Whether the inbox and conversation panels are visible side-by-side.
 
 export const blockButtonsGregorPrefix = 'blockButtons.'
 
@@ -282,7 +283,7 @@ export const isUserActivelyLookingAtThisThread = (
   const selectedConversationIDKey = getSelectedConversation(state)
 
   let chatThreadSelected = false
-  if (!chatSplit) {
+  if (!isSplit) {
     chatThreadSelected = true // conversationIDKey === selectedConversationIDKey is the only thing that matters in the new router
   } else {
     const maybeVisibleScreen = Router2.getVisibleScreen()

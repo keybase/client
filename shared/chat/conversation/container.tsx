@@ -115,7 +115,7 @@ export default Container.connect(
     return {
       conversationIDKey: stateProps.conversationIDKey, // we pass down conversationIDKey so this can be calculated once and also this lets us have chat things in other contexts so we can theoretically show multiple chats at the same time (like in a modal)
       onBack: dispatchProps.onBack,
-      onBecomeInvisible: Container.chatSplit
+      onBecomeInvisible: Constants.isSplit
         ? () => {}
         : stateProps._storeConvoIDKey !== stateProps.conversationIDKey
         ? () => {}

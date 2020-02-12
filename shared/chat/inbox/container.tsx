@@ -157,7 +157,7 @@ const Connected = Container.namedConnect(
   },
   dispatch => ({
     _onBecomeVisible: () => {
-      if (Container.chatSplit) {
+      if (Constants.isSplit) {
         dispatch(Chat2Gen.createTabSelected())
       }
     },
