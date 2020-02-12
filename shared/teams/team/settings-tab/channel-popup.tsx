@@ -61,7 +61,7 @@ const ChannelPopup = (props: Props) => {
             />
           </Kb.Box2>
           <Kb.BoxGrow>
-            <Kb.ScrollView>
+            <Kb.ScrollView style={Styles.globalStyles.fillAbsolute}>
               {channelsFiltered.map(channelname => {
                 const disabled = disabledChannels?.includes(channelname)
                 const onClick = disabled ? undefined : () => onSelect(channelname)
