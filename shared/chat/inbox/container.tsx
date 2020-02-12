@@ -71,7 +71,7 @@ type Props = {
   _onInitialLoad: (array: Array<Types.ConversationIDKey>) => void
   _refreshInbox: () => void
   _canRefreshOnMount: boolean
-  _onMountedDesktopOrTablet: () => void
+  _onBecomeVisible: () => void
 } & _Props
 
 export class InboxWrapper extends React.PureComponent<Props> {
@@ -87,9 +87,14 @@ export class InboxWrapper extends React.PureComponent<Props> {
     title: 'Chats',
   }
 
+  _onDidFocus = () => {
+    this.props._onBecomeVisible()
+  }
+
   componentDidMount() {
-    if (!isPhone) {
-      this.props._onMountedDesktopOrTablet()
+    if (!Container.isMobile) {
+      // On mobile this is taken care of by NavigationEvents.
+      this.props._onBecomeVisible()
     }
     if (this.props._canRefreshOnMount) {
       this.props._refreshInbox()
@@ -113,10 +118,15 @@ export class InboxWrapper extends React.PureComponent<Props> {
       _refreshInbox,
       _onInitialLoad,
       _canRefreshOnMount,
-      _onMountedDesktopOrTablet,
+      _onBecomeVisible,
       ...rest
     } = this.props
-    return <Inbox {...rest} />
+    return (
+      <>
+        {Container.isMobile && <Kb.NavigationEvents onDidFocus={this._onDidFocus} />}
+        <Inbox {...rest} />
+      </>
+    )
   }
 }
 
@@ -146,12 +156,14 @@ const Connected = Container.namedConnect(
     }
   },
   dispatch => ({
+    _onBecomeVisible: () => {
+      if (Container.chatSplit) {
+        dispatch(Chat2Gen.createTabSelected())
+      }
+    },
     // a hack to have it check for marked as read when we mount as the focus events don't fire always
     _onInitialLoad: (conversationIDKeys: Array<Types.ConversationIDKey>) =>
       dispatch(Chat2Gen.createMetaNeedsUpdating({conversationIDKeys, reason: 'initialTrustedLoad'})),
-    _onMountedDesktopOrTablet: () => {
-      dispatch(Chat2Gen.createTabSelected())
-    },
     _refreshInbox: () => dispatch(Chat2Gen.createInboxRefresh({reason: 'componentNeverLoaded'})),
     onNewChat: () => dispatch(appendNewChatBuilder()),
     onUntrustedInboxVisible: (conversationIDKeys: Array<Types.ConversationIDKey>) =>
@@ -217,8 +229,8 @@ const Connected = Container.namedConnect(
     return {
       _canRefreshOnMount: stateProps._canRefreshOnMount,
       _hasLoadedTrusted: stateProps._hasLoadedTrusted,
+      _onBecomeVisible: dispatchProps._onBecomeVisible,
       _onInitialLoad: dispatchProps._onInitialLoad,
-      _onMountedDesktopOrTablet: dispatchProps._onMountedDesktopOrTablet,
       _refreshInbox: dispatchProps._refreshInbox,
       allowShowFloatingButton: stateProps.allowShowFloatingButton,
       hasBigTeams,

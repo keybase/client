@@ -16,9 +16,9 @@ type OwnProps = Container.RouteProps<{conversationIDKey: Types.ConversationIDKey
 type SwitchProps = {
   conversationIDKey: Types.ConversationIDKey
   isFocused?: boolean
-  selectConversation: () => void
-  deselectConversation: () => void
   onBack: () => void
+  onBecomeInvisible: () => void
+  selectConversation: () => void
   type: 'error' | 'noConvo' | 'rekey' | 'youAreReset' | 'normal' | 'rekey'
 }
 
@@ -27,16 +27,14 @@ export class Conversation extends React.PureComponent<SwitchProps> {
     this.props.selectConversation()
   }
   _onWillBlur = () => {
-    if (Container.isPhone) {
-      this.props.deselectConversation()
-    }
+    this.props.onBecomeInvisible()
   }
   componentWillUnmount() {
     // Workaround
     // https://github.com/react-navigation/react-navigation/issues/5669
     // Covers the case of swiping back on iOS
-    if (Container.isIOS && Container.isPhone) {
-      this.props.deselectConversation()
+    if (Container.isIOS) {
+      this.props.onBecomeInvisible()
     }
   }
 
@@ -116,10 +114,11 @@ export default Container.connect(
 
     return {
       conversationIDKey: stateProps.conversationIDKey, // we pass down conversationIDKey so this can be calculated once and also this lets us have chat things in other contexts so we can theoretically show multiple chats at the same time (like in a modal)
-      deselectConversation:
-        stateProps._storeConvoIDKey !== stateProps.conversationIDKey
-          ? () => {}
-          : () => dispatchProps._deselectConversation(stateProps.conversationIDKey),
+      onBecomeInvisible: Container.chatSplit
+        ? () => {}
+        : stateProps._storeConvoIDKey !== stateProps.conversationIDKey
+        ? () => {}
+        : () => dispatchProps._deselectConversation(stateProps.conversationIDKey),
       onBack: dispatchProps.onBack,
       selectConversation:
         stateProps._storeConvoIDKey === stateProps.conversationIDKey
