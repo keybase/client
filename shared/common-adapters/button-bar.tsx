@@ -51,8 +51,6 @@ class ButtonBar extends React.PureComponent<Props> {
     }
 
     const style = collapseStyles([
-      // This {width: 100%} should probably be removed.
-      // But for the sake of not making a big splash, it is only removed for tablet.
       isTablet ? null : {width: '100%'},
       {
         alignItems: this.props.fullWidth ? 'stretch' : 'center',
