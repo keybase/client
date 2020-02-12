@@ -13,7 +13,7 @@ import * as Constants from '../../../constants/chat2'
 type BotProps = RPCTypes.FeaturedBot & {
   description?: string
   onClick: (username: string) => void
-  showInChannel: boolean
+  showInChannel?: boolean
 }
 
 export const Bot = (props: BotProps) => {
