@@ -194,7 +194,7 @@ const styles = Styles.styleSheetCreate(() => ({
     paddingRight: 8,
   },
   fastBlank: Styles.platformStyles({
-    isMobile: {
+    isPhone: {
       backgroundColor: Styles.globalColors.fastBlank,
     },
   }),

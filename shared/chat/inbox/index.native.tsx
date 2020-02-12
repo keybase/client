@@ -249,7 +249,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
             </Kb.Box2>
           ) : (
             <Kb.NativeFlatList
-              ListHeaderComponent={HeadComponent}
+              ListHeaderComponent={Styles.isTablet ? null : HeadComponent}
               data={this.props.rows}
               keyExtractor={this._keyExtractor}
               renderItem={this._renderItem}
@@ -278,12 +278,17 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       button: {width: '100%'},
-      container: {
-        ...Styles.globalStyles.flexBoxColumn,
-        backgroundColor: Styles.globalColors.fastBlank,
-        flex: 1,
-        position: 'relative',
-      },
+      container: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.flexBoxColumn,
+          backgroundColor: Styles.globalColors.fastBlank,
+          flex: 1,
+          position: 'relative',
+        },
+        isTablet: {
+          maxWidth: Styles.globalStyles.shortWidth,
+        },
+      }),
       loadingContainer: {
         left: 0,
         position: 'absolute',

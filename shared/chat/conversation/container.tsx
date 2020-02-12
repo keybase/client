@@ -76,7 +76,7 @@ export class Conversation extends React.PureComponent<SwitchProps> {
 export default Container.connect(
   (state, ownProps: OwnProps) => {
     let _storeConvoIDKey = Constants.getSelectedConversation(state)
-    const conversationIDKey = Container.isMobile
+    const conversationIDKey = Container.isPhone
       ? Container.getRouteProps(ownProps, 'conversationIDKey', Constants.noConversationIDKey)
       : _storeConvoIDKey
     let _meta = Constants.getMeta(state, conversationIDKey)

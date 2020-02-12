@@ -6,7 +6,7 @@ import * as Chat2Gen from '../../actions/chat2-gen'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import {appendNewChatBuilder} from '../../actions/typed-routes'
 import Inbox from '.'
-import {isMobile} from '../../constants/platform'
+import {isPhone} from '../../constants/platform'
 import {
   Props as _Props,
   RowItemSmall,
@@ -71,7 +71,7 @@ type Props = {
   _onInitialLoad: (array: Array<Types.ConversationIDKey>) => void
   _refreshInbox: () => void
   _canRefreshOnMount: boolean
-  _onMountedDesktop: () => void
+  _onMountedDesktopOrTablet: () => void
 } & _Props
 
 export class InboxWrapper extends React.PureComponent<Props> {
@@ -88,8 +88,8 @@ export class InboxWrapper extends React.PureComponent<Props> {
   }
 
   componentDidMount() {
-    if (!isMobile) {
-      this.props._onMountedDesktop()
+    if (!isPhone) {
+      this.props._onMountedDesktopOrTablet()
     }
     if (this.props._canRefreshOnMount) {
       this.props._refreshInbox()
@@ -113,7 +113,7 @@ export class InboxWrapper extends React.PureComponent<Props> {
       _refreshInbox,
       _onInitialLoad,
       _canRefreshOnMount,
-      _onMountedDesktop,
+      _onMountedDesktopOrTablet,
       ...rest
     } = this.props
     return <Inbox {...rest} />
@@ -139,7 +139,7 @@ const Connected = Container.namedConnect(
       _selectedConversationIDKey: state.chat2.selectedConversation,
       allowShowFloatingButton,
       inboxNumSmallRows,
-      isLoading: isMobile ? Constants.anyChatWaitingKeys(state) : false, // desktop doesn't use isLoading so ignore it
+      isLoading: isPhone ? Constants.anyChatWaitingKeys(state) : false, // desktop doesn't use isLoading so ignore it
       isSearching: !!state.chat2.inboxSearch,
       neverLoaded,
       smallTeamsExpanded: state.chat2.smallTeamsExpanded,
@@ -149,7 +149,7 @@ const Connected = Container.namedConnect(
     // a hack to have it check for marked as read when we mount as the focus events don't fire always
     _onInitialLoad: (conversationIDKeys: Array<Types.ConversationIDKey>) =>
       dispatch(Chat2Gen.createMetaNeedsUpdating({conversationIDKeys, reason: 'initialTrustedLoad'})),
-    _onMountedDesktop: () => {
+    _onMountedDesktopOrTablet: () => {
       dispatch(Chat2Gen.createTabSelected())
     },
     _refreshInbox: () => dispatch(Chat2Gen.createInboxRefresh({reason: 'componentNeverLoaded'})),
@@ -218,7 +218,7 @@ const Connected = Container.namedConnect(
       _canRefreshOnMount: stateProps._canRefreshOnMount,
       _hasLoadedTrusted: stateProps._hasLoadedTrusted,
       _onInitialLoad: dispatchProps._onInitialLoad,
-      _onMountedDesktop: dispatchProps._onMountedDesktop,
+      _onMountedDesktopOrTablet: dispatchProps._onMountedDesktopOrTablet,
       _refreshInbox: dispatchProps._refreshInbox,
       allowShowFloatingButton: stateProps.allowShowFloatingButton,
       hasBigTeams,

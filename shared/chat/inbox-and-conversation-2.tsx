@@ -1,10 +1,10 @@
-// Just for desktop, we show inbox and conversation side by side
+// Just for desktop and tablet, we show inbox and conversation side by side
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import Inbox from './inbox/container'
 import InboxSearch from './inbox-search/container'
 import Conversation from './conversation/container'
-import Header from './header.desktop'
+import Header from './header'
 import InfoPanel from './conversation/info-panel/container'
 import * as Container from '../util/container'
 

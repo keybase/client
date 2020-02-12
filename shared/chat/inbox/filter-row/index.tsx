@@ -107,7 +107,7 @@ class ConversationFilterInput extends React.PureComponent<Props> {
       >
         {!Styles.isMobile && <Kb.HotKey hotKeys={this.hotKeys} onHotKey={this.onHotKeys} />}
         {searchInput}
-        {!this.props.isSearching && !!this.props.onNewChat && !Styles.isMobile && (
+        {!this.props.isSearching && !!this.props.onNewChat && !Styles.isPhone && (
           <Kb.Box style={styles.rainbowBorder}>
             <Kb.WithTooltip position="top center" tooltip={`(${Platforms.shortcutSymbol}N)`}>
               <Kb.Button
