@@ -5008,7 +5008,7 @@
         },
         {
           "name": "uid",
-          "type": "keybase1.UID"
+          "type": "gregor1.UID"
         }
       ],
       "response": "GetChannelMembershipsLocalRes"

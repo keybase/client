@@ -6436,7 +6436,7 @@ type GetTLFConversationsLocalArg struct {
 
 type GetChannelMembershipsLocalArg struct {
 	TeamID keybase1.TeamID `codec:"teamID" json:"teamID"`
-	Uid    keybase1.UID    `codec:"uid" json:"uid"`
+	Uid    gregor1.UID     `codec:"uid" json:"uid"`
 }
 
 type SetAppNotificationSettingsLocalArg struct {

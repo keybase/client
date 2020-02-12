@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"bytes"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -1710,7 +1711,7 @@ func (h *Server) GetChannelMembershipsLocal(ctx context.Context, arg chat1.GetCh
 	var memberConvs []types.RemoteConversation
 	for _, conv := range inbox.ConvsUnverified {
 		for _, uid := range conv.Conv.Metadata.AllList {
-			if keybase1.UID(uid.String()) == arg.Uid {
+			if bytes.Equal(uid, arg.Uid) {
 				memberConvs = append(memberConvs, conv)
 				break
 			}

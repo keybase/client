@@ -4709,7 +4709,7 @@ func TestChatSrvChatMembershipsLocal(t *testing.T) {
 		getChannelsRes, err := ctc.as(t, users[1]).chatLocalHandler().GetChannelMembershipsLocal(ctx1,
 			chat1.GetChannelMembershipsLocalArg{
 				TeamID: teamID,
-				Uid:    users[1].GetUID(),
+				Uid:    users[1].GetUID().ToBytes(),
 			})
 		require.NoError(t, err)
 		require.Equal(t, 2, len(getChannelsRes.Channels))
@@ -4730,7 +4730,7 @@ func TestChatSrvChatMembershipsLocal(t *testing.T) {
 			getChannelsRes, err = ctc.as(t, user).chatLocalHandler().GetChannelMembershipsLocal(ctc.as(t, user).startCtx,
 				chat1.GetChannelMembershipsLocalArg{
 					TeamID: teamID,
-					Uid:    user.GetUID(),
+					Uid:    user.GetUID().ToBytes(),
 				})
 			require.NoError(t, err)
 			if i == 1 {
@@ -4757,7 +4757,7 @@ func TestChatSrvChatMembershipsLocal(t *testing.T) {
 			getChannelsRes, err = ctc.as(t, user).chatLocalHandler().GetChannelMembershipsLocal(ctc.as(t, user).startCtx,
 				chat1.GetChannelMembershipsLocalArg{
 					TeamID: teamID,
-					Uid:    user.GetUID(),
+					Uid:    user.GetUID().ToBytes(),
 				})
 			require.NoError(t, err)
 			require.Equal(t, 1, len(getChannelsRes.Channels))
