@@ -8,6 +8,8 @@ type Props = {
   onNewChat: () => void
   showFilter: boolean
   showNewChat: boolean
+  showSearch: boolean
+  showStartNewChat: boolean
   onSelectUp: () => void
   onSelectDown: () => void
   onEnsureSelection: () => void
@@ -34,7 +36,7 @@ class ChatInboxHeader extends React.Component<Props, State> {
   render() {
     return (
       <>
-        {!!this.props.showNewChat && (
+        {!!this.props.showStartNewChat && (
           <StartNewChat onBack={this.props.onBack} onNewChat={this.props.onNewChat} />
         )}
         {!!this.props.showFilter && (
@@ -45,6 +47,8 @@ class ChatInboxHeader extends React.Component<Props, State> {
             onEnsureSelection={this.props.onEnsureSelection}
             onQueryChanged={this._setQuery}
             query={this.state.query}
+            showNewChat={this.props.showNewChat}
+            showSearch={this.props.showSearch}
           />
         )}
       </>
