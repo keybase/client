@@ -1743,7 +1743,7 @@ func (r *SearchInboxRes) SetOffline() {
 }
 
 func (t TyperInfo) String() string {
-	return fmt.Sprintf("typer(u:%s d:%s)", t.Username, t.DeviceName)
+	return fmt.Sprintf("typer(u:%s d:%s)", t.Username, t.DeviceID)
 }
 
 func (o TLFConvOrdinal) Int() int {
