@@ -81,9 +81,9 @@ const Connected = Container.compose(
 
 const TabsState = (props: TabsStateOwnProps) => {
   const teamID = Container.getRouteProps(props, 'teamID', '')
-  const initialTab = Container.getRouteProps(props, 'initialTab', '')
+  const initialTab = Container.getRouteProps(props, 'initialTab', undefined)
 
-  const defaultSelectedTab = initialTab || lastSelectedTabs[teamID] || 'members'
+  const defaultSelectedTab = initialTab ?? lastSelectedTabs[teamID] ?? 'members'
   const [selectedTab, _setSelectedTab] = React.useState<Types.TabKey>(defaultSelectedTab)
   const setSelectedTab = React.useCallback(
     selectedTab => {
