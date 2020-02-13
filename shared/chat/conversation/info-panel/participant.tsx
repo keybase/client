@@ -34,7 +34,7 @@ const Participant = ({firstItem, fullname, isAdmin, isOwner, username, onShowPro
       onClick={() => onShowProfile(username)}
       firstItem={firstItem}
       type="Large"
-      icon={<Kb.Avatar size={32} username={username} />}
+      icon={<Kb.Avatar size={Styles.isMobile ? 48 : 32} username={username} />}
       body={
         <Kb.Box2 direction="vertical">
           <Kb.ConnectedUsernames usernames={[username]} colorFollowing={true} type="BodySemibold" />

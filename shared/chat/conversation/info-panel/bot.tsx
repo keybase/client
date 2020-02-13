@@ -64,9 +64,9 @@ export const Bot = (props: BotProps) => {
       firstItem={!!firstItem}
       icon={<Kb.Avatar size={Styles.isMobile ? 48 : 32} style={styles.avatarStyle} username={botUsername} />}
       body={
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+        <Kb.Box2 direction="vertical" style={styles.container}>
           {usernameDisplay}
-          {lower}
+          {description ? lower : null}
         </Kb.Box2>
       }
     />
