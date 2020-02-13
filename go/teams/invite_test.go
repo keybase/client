@@ -165,7 +165,7 @@ func TestMultiUseInviteLink(t *testing.T) {
 	teamname := createTeam(*tcs[0])
 	t.Logf("Created team %s", teamname)
 
-	res, err := AddMember(context.Background(), tcs[0].G, teamname, "tuser3c6691", keybase1.TeamRole_ADMIN, nil)
+	res, err := AddMember(context.Background(), tcs[0].G, teamname, "tuser5735dc", keybase1.TeamRole_ADMIN, nil)
 	require.NoError(t, err)
 	spew.Dump(res)
 
