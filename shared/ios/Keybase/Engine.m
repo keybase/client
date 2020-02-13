@@ -70,8 +70,11 @@ static NSString *const metaEventEngineReset = @"engine-reset";
   dispatch_async(self.readQueue, ^{
     while (true) {
       NSError *error = nil;
+      
+      NSLog(@"aaax reading data");
       NSString * data = KeybaseReadB64(&error);
-
+      NSLog(@"aaax read data");
+      
       if (error) {
         NSLog(@"Error reading data: %@", error);
       }
@@ -80,7 +83,9 @@ static NSString *const metaEventEngineReset = @"engine-reset";
           NSLog(@"NO ENGINE");
         }
         if (self.keybaseEngine.bridge) {
+          NSLog(@"aaax sending data %@", data);
           [self.keybaseEngine sendEventWithName:eventName body:data];
+          NSLog(@"aaax sent data");
         } else {
           // dead
           break;
@@ -98,7 +103,9 @@ static NSString *const metaEventEngineReset = @"engine-reset";
 - (void)runWithData:(NSString *)data {
   dispatch_async(self.writeQueue, ^{
     NSError *error = nil;
+NSLog(@"aaax run with data %@", data);
     KeybaseWriteB64(data, &error);
+NSLog(@"aax reading data DONE");
     if (error) {
       NSLog(@"Error writing data: %@", error);
     }

@@ -53,9 +53,9 @@ class NativeTransport extends TransportShared {
     buf.set(len, 0)
     buf.set(packed, len.length)
     const b64 = fromByteArray(buf)
-    if (printRPCBytes) {
-      logger.debug('[RPC] Writing', b64.length, 'chars:', b64)
-    }
+    // if (printRPCBytes) {
+    console._log('aaa [RPC] Writing', b64)
+    // }
     // Pass data over to the native side to be handled
     nativeBridge.runWithData(b64)
     return true
@@ -76,9 +76,9 @@ function createClient(
   let packetizeCount = 0
   // This is how the RN side writes back to us
   RNEmitter.addListener(nativeBridge.eventName, (payload: string) => {
-    if (printRPCBytes) {
-      logger.debug('[RPC] Read', payload.length, 'chars:', payload)
-    }
+    // if (printRPCBytes) {
+    console._log('aaa [RPC] Read', payload)
+    // }
 
     const buffer = toBuffer(toByteArray(payload))
     const measureName = `packetize${packetizeCount++}:${buffer.length}`

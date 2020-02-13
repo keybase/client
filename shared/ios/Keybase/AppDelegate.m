@@ -37,7 +37,7 @@
   BOOL securityAccessGroupOverride = NO;
 #endif
   // set to true to see logs in xcode
-  BOOL skipLogFile = false;
+  BOOL skipLogFile = true;
 
   NSDictionary* fsPaths = [[FsHelper alloc] setupFs:skipLogFile setupSharedHome:YES];
   NSError* err;
@@ -102,7 +102,8 @@
 #if DEBUG
   // uncomment to get a prod bundle. If you set this it remembers so set it back and re-run to reset it!
 //  [[RCTBundleURLProvider sharedSettings] setEnableDev: false];
-  return [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index" fallbackResource:nil];
+  return [NSURL URLWithString:[[[[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index" fallbackResource:nil] absoluteString] stringByAppendingString:@"&inlineSourceMap=true" ]];
+//  return [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index" fallbackResource:nil];
 #else
   return [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
 #endif

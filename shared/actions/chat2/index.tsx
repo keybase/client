@@ -94,7 +94,11 @@ const inboxRefresh = (
     state.chat2.inboxHasLoaded || Container.isPhone
       ? RPCChatTypes.InboxLayoutReselectMode.default
       : RPCChatTypes.InboxLayoutReselectMode.force
-  RPCChatTypes.localRequestInboxLayoutRpcPromise({reselectMode})
+  const _start = Date.now()
+  console._log('aaa request start')
+  RPCChatTypes.localRequestInboxLayoutRpcPromise({reselectMode}).then(() => {
+    console._log('aaa request end', Date.now() - _start)
+  })
   return actions
 }
 
