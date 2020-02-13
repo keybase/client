@@ -124,26 +124,26 @@ public class MainApplication extends Application implements ReactApplication {
      *
      * @param context
      */
-    private static void initializeFlipper(Context context) {
-        if (BuildConfig.DEBUG) {
-            try {
-          /*
-           We use reflection here to pick up the class that initializes Flipper,
-          since Flipper library is not available in release mode
-          */
-                Class<?> aClass = Class.forName("com.facebook.flipper.ReactNativeFlipper");
-                aClass.getMethod("initializeFlipper", Context.class).invoke(null, context);
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            } catch (NoSuchMethodException e) {
-                e.printStackTrace();
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            } catch (InvocationTargetException e) {
-                e.printStackTrace();
-            }
-        }
-    }
+    // private static void initializeFlipper(Context context) {
+        // if (BuildConfig.DEBUG) {
+            // try {
+          // [>
+           // We use reflection here to pick up the class that initializes Flipper,
+          // since Flipper library is not available in release mode
+          // */
+                // Class<?> aClass = Class.forName("com.facebook.flipper.ReactNativeFlipper");
+                // aClass.getMethod("initializeFlipper", Context.class).invoke(null, context);
+            // } catch (ClassNotFoundException e) {
+                // e.printStackTrace();
+            // } catch (NoSuchMethodException e) {
+                // e.printStackTrace();
+            // } catch (IllegalAccessException e) {
+                // e.printStackTrace();
+            // } catch (InvocationTargetException e) {
+                // e.printStackTrace();
+            // }
+        // }
+    // }
    /**
    * Waits for Loading to complete, also called a Time-To-Interaction (TTI) event. To indicate TTI
    * completion, add a prop nativeID="tti_complete" to the component whose appearance indicates that
