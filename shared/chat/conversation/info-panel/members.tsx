@@ -87,7 +87,7 @@ export default (props: Props) => {
         ...props.commonSections,
         {
           data: [...(showAuditingBanner ? [auditingBannerItem] : []), ...participantsItems],
-          renderItem: ({item}: {item: any}) => {
+          renderItem: ({index, item}: {index: number; item: any}) => {
             if (item === auditingBannerItem) {
               return (
                 <Kb.Banner color="grey" small={true}>
@@ -100,12 +100,12 @@ export default (props: Props) => {
             }
             return (
               <Participant
-                botAlias={item.botAlias}
                 fullname={item.fullname}
                 isAdmin={item.isAdmin}
                 isOwner={item.isOwner}
                 username={item.username}
                 onShowProfile={onShowProfile}
+                firstItem={index === 0}
               />
             )
           },
