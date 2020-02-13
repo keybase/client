@@ -39,18 +39,25 @@ const toggleChannel = (convID: string, installInConvs: string[]) => {
 }
 
 type RowProps = {
+  disabled: boolean
   onToggle: () => void
   selected: boolean
   channelInfo: TeamTypes.ChannelInfo
 }
-const Row = ({onToggle, selected, channelInfo}: RowProps) => (
+const Row = ({disabled, onToggle, selected, channelInfo}: RowProps) => (
   <Kb.Box2
     direction="horizontal"
     alignSelf="flex-start"
-    style={{marginBottom: Styles.globalMargins.tiny}}
+    style={Styles.collapseStyles([{marginBottom: Styles.globalMargins.tiny}, disabled && {opacity: 0.4}])}
     fullWidth={true}
   >
-    <Kb.Checkbox checked={selected} label="" onCheck={onToggle} style={styles.channelCheckbox} />
+    <Kb.Checkbox
+      checked={selected}
+      label=""
+      onCheck={onToggle}
+      disabled={disabled}
+      style={styles.channelCheckbox}
+    />
 
     <Kb.Box2 direction="vertical" style={{flex: 1}}>
       <Kb.Box2 direction="horizontal" alignSelf="flex-start">
@@ -71,13 +78,20 @@ const Row = ({onToggle, selected, channelInfo}: RowProps) => (
 )
 const ChannelPicker = (props: Props) => {
   const {channelInfos, installInConvs, setInstallInConvs} = props
+  const [allSelected, setAllSelected] = React.useState(installInConvs.length === 0)
   const [searchText, setSearchText] = React.useState('')
+  React.useEffect(() => {
+    if (allSelected) {
+      setInstallInConvs([])
+    }
+  }, [allSelected])
 
   const rows = getChannels(channelInfos, searchText).map(([convID, channelInfo]) => (
     <Row
+      disabled={allSelected}
       key={convID}
       onToggle={() => setInstallInConvs(toggleChannel(convID, installInConvs))}
-      selected={installInConvs.includes(convID)}
+      selected={installInConvs.includes(convID) || allSelected}
       channelInfo={channelInfo}
     />
   ))
@@ -95,7 +109,22 @@ const ChannelPicker = (props: Props) => {
           focusOnMount={true}
         />
       </Kb.Box2>
-      <Kb.ScrollView style={styles.rowsContainer}>{rows}</Kb.ScrollView>
+      <Kb.ScrollView style={styles.rowsContainer}>
+        <Kb.Box2
+          direction="horizontal"
+          alignSelf="flex-start"
+          style={{marginBottom: Styles.globalMargins.tiny, backgroundColor: Styles.globalColors.blueGrey}}
+          fullWidth={true}
+        >
+          <Kb.Checkbox
+            checked={allSelected}
+            label="All channels"
+            onCheck={() => setAllSelected(!allSelected)}
+            style={styles.channelCheckbox}
+          />
+        </Kb.Box2>
+        {rows}
+      </Kb.ScrollView>
     </Kb.Box2>
   )
 }
