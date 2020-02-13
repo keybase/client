@@ -27,6 +27,7 @@ const Kb = {
 type Props = {
   icon?: IconType | null
   focusOnMount?: boolean
+  forwardedRef: React.Ref<any>
   size: 'small' | 'full-width' // only affects desktop (https://zpl.io/aMW5AG3)
   negative?: boolean
   onChange: (text: string) => void
@@ -99,6 +100,16 @@ class SearchFilter extends React.PureComponent<Props, State> {
   }
   blur = () => {
     this.inputRef.current && this.inputRef.current.blur()
+  }
+  private setRef = ref => {
+    // @ts-ignore this is probably wrong: https://github.com/DefinitelyTyped/DefinitelyTyped/issues/31065
+    this.inputRef.current = ref
+    if (typeof this.props.forwardedRef === 'function') {
+      this.props.forwardedRef(ref)
+    } else if (this.props.forwardedRef) {
+      // @ts-ignore this is probably wrong: https://github.com/DefinitelyTyped/DefinitelyTyped/issues/31065
+      this.props.forwardedRef.current = ref
+    }
   }
   private clear = () => {
     if (!this.props.valueControlled) {
@@ -194,7 +205,7 @@ class SearchFilter extends React.PureComponent<Props, State> {
         onKeyUp={this.props.onKeyUp}
         onKeyPress={this.props.onKeyPress}
         onEnterKeyDown={this.props.onEnterKeyDown}
-        ref={this.inputRef}
+        ref={this.setRef}
         hideBorder={true}
         containerStyle={styles.inputContainer}
         style={Styles.collapseStyles([styles.input, !!this.props.negative && styles.textNegative])}
@@ -316,7 +327,9 @@ class SearchFilter extends React.PureComponent<Props, State> {
   }
 }
 
-export default SearchFilter
+export default React.forwardRef<PlainInput, Omit<Props, 'forwardedRef'>>((props, forwardedRef) => (
+  <SearchFilter {...props} forwardedRef={forwardedRef} />
+))
 
 const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({

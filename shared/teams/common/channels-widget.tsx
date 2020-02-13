@@ -3,6 +3,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Types from '../../constants/types/teams'
+import AddSuggestors, {PropsWithSuggestor} from '../../chat/conversation/input-area/suggestors'
 
 type Props = {
   channels: Array<string>
@@ -15,11 +16,11 @@ type Props = {
 const ChannelsWidget = (props: Props) => {
   return (
     <Kb.Box2 direction="vertical" gap="tiny" style={styles.container}>
-      <Kb.SearchFilter
-        placeholderText="Add channels"
-        icon="iconfont-search"
-        onChange={() => {}}
-        size={Styles.isMobile ? 'full-width' : 'small'}
+      <ChannelsSearch
+        dataSources={{channels: () => ({data: ['hi'], useSpaces: false})}}
+        renderers={{channels: item => <Kb.Text type="Body">{item}</Kb.Text>}}
+        suggestorToMarker={{channels: ''}}
+        transformers={{channels: () => ({})}}
       />
       <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.pillContainer}>
         <ChannelPill channelname="general" />
@@ -35,6 +36,22 @@ const ChannelsWidget = (props: Props) => {
   )
 }
 
+const _ChannelsSearch = (props: PropsWithSuggestor<{}>) => {
+  return (
+    <Kb.SearchFilter
+      placeholderText="Add channels"
+      icon="iconfont-search"
+      onChange={props.onChangeText}
+      onKeyDown={props.onKeyDown}
+      onBlur={props.onBlur}
+      onFocus={props.onFocus}
+      size={Styles.isMobile ? 'full-width' : 'small'}
+      ref={props.inputRef}
+    />
+  )
+}
+const ChannelsSearch = AddSuggestors(_ChannelsSearch)
+
 const ChannelPill = ({channelname, onRemove}: {channelname: string; onRemove?: () => void}) => (
   <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.pill}>
     <Kb.Text type={Styles.isMobile ? 'Body' : 'BodySemibold'}>#{channelname}</Kb.Text>
@@ -46,6 +63,7 @@ const styles = Styles.styleSheetCreate(() => ({
   container: {
     ...Styles.padding(Styles.globalMargins.tiny),
     backgroundColor: Styles.globalColors.blueGrey,
+    borderRadius: Styles.borderRadius,
   },
   pill: Styles.platformStyles({
     common: {
