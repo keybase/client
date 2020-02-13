@@ -1327,6 +1327,10 @@ func (c *ChainLink) VerifySigWithKeyFamily(ckf ComputedKeyFamily) (err error) {
 }
 
 func ImportLinkFromServer(m MetaContext, parent *SigChain, data []byte, selfUID keybase1.UID) (ret *ChainLink, err error) {
+	return importLinkFromServer2(m, parent, data, selfUID)
+}
+
+func importLinkFromServer1(m MetaContext, parent *SigChain, data []byte, selfUID keybase1.UID) (ret *ChainLink, err error) {
 	var id LinkID
 
 	if ph, err := jsonparserw.GetString(data, "payload_hash"); err == nil {
