@@ -1683,7 +1683,7 @@ function* walletsSaga() {
     [ConfigGen.loadOnStart, WalletsGen.loadAccounts, WalletsGen.loadWalletDisclaimer],
     loadWalletDisclaimer
   )
-  yield* Saga.chainAction2(WalletsGen.acceptDisclaimer, acceptDisclaimer)
+  yield* Saga.chainAction(WalletsGen.acceptDisclaimer, acceptDisclaimer)
   yield* Saga.chainAction(WalletsGen.checkDisclaimer, checkDisclaimer)
   yield* Saga.chainAction(WalletsGen.rejectDisclaimer, rejectDisclaimer)
 
