@@ -5,6 +5,7 @@ import MessagePopup from '../messages/message-popup'
 import {Props} from '.'
 import RNVideo from 'react-native-video'
 import logger from '../../../logger'
+import {ShowToastAfterSaving} from '../messages/attachment/shared'
 
 const {width: screenWidth, height: screenHeight} = Kb.NativeDimensions.get('window')
 
@@ -76,6 +77,7 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, {loaded
         fullHeight={true}
       >
         <Kb.NativeStatusBar hidden={true} />
+        <ShowToastAfterSaving transferState={this.props.message.transferState} />
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerWrapper}>
           <Kb.Text type="Body" onClick={this.props.onClose} style={styles.close}>
             Close
