@@ -4,7 +4,7 @@ import * as React from 'react'
 import {NavigationViewProps, createNavigator, StackRouter, SceneView} from '@react-navigation/core'
 import * as Shim from '../router-v2/shim'
 import FsTab from './files/container'
-import AdvancedTab from './advanced/container'
+import AdvancedTab from './advanced'
 import ChatTab from './chat/container'
 import DisplayTab from './display/container'
 import InvitationsTab from './invites/container'
@@ -23,7 +23,7 @@ import {Email, Phone, VerifyPhone} from './account/add-modals'
 
 const settingsSubRoutes = {
   [Constants.fsTab]: {getScreen: (): typeof FsTab => require('./files/container').default},
-  [Constants.advancedTab]: {getScreen: (): typeof AdvancedTab => require('./advanced/container').default},
+  [Constants.advancedTab]: {getScreen: (): typeof AdvancedTab => require('./advanced').default},
   [Constants.chatTab]: {getScreen: (): typeof ChatTab => require('./chat/container').default},
   // TODO connect broken
   [Constants.invitationsTab]: {
