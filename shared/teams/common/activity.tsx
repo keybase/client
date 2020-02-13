@@ -1,6 +1,6 @@
 import * as React from 'react'
-import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 
 type ActivityLevel = 'active' | 'recently' | 'extinct'
 const activityToIcon: {[key in ActivityLevel]: Kb.IconType} = {
@@ -13,7 +13,7 @@ const activityToLabel = {
   extinct: 'Extinct',
   recently: 'Recently active',
 }
-export const Activity = ({level}: {level: ActivityLevel}) => (
+const Activity = ({level}: {level: ActivityLevel}) => (
   <Kb.Box2 direction="horizontal" gap="xtiny" alignItems="center" fullWidth={Styles.isMobile}>
     <Kb.Icon
       type={activityToIcon[level]}
@@ -31,3 +31,5 @@ const styles = Styles.styleSheetCreate(() => ({
     color: Styles.globalColors.greenDark,
   },
 }))
+
+export default Activity

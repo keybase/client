@@ -1,4 +1,5 @@
 import main from './main/index.stories'
+import common from './common/index.stories'
 import deleteTeam from './delete-team/index.stories'
 import editTeamDescription from './edit-team-description/index.stories'
 import settings from './team/settings-tab/index.stories'
@@ -14,6 +15,7 @@ import teamRow from './main/team-row.stories'
 
 const load = () => {
   main()
+  common()
   deleteTeam()
   editTeamDescription()
   settings()
