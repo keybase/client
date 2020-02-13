@@ -246,7 +246,7 @@ type ChainLink struct {
 func (c ChainLink) checkSpecialLinksTable(tab map[keybase1.LinkID]SpecialChainLink, uid keybase1.UID, why string) (found bool, reason string, err error) {
 	var scl SpecialChainLink
 
-	// The combination of hashVerified and chainVerified should ensure that this link
+	// The truthiness of hashVerified should ensure that this link
 	// is only considered here after all prevs have been successfully checked.
 	if !c.canTrustID() {
 		return false, "", ChainLinkError{fmt.Sprintf("cannot check if a link is %q without a verified link ID (linkID=%s, uid=%s, hash=%v, chain=%v, diskVersion=%d)", why, c.id, uid, c.hashVerified, c.chainVerified, c.diskVersion)}
@@ -424,6 +424,10 @@ func (c *ChainLink) Pack() (*jsonw.Wrapper, error) {
 			return nil, err
 		}
 		err = p.SetKey("hash_verified", jsonw.NewBool(c.hashVerified))
+		if err != nil {
+			return nil, err
+		}
+		err = p.SetKey("payload_verified", jsonw.NewBool(c.payloadVerified))
 		if err != nil {
 			return nil, err
 		}
@@ -817,13 +821,16 @@ func (c *ChainLink) Unpack(m MetaContext, trusted bool, selfUID keybase1.UID, pa
 	}
 
 	var payload []byte
-	if trusted && tmp.sigVersion == KeybaseSignatureV1 {
-		// use payload from sig
+	switch tmp.sigVersion {
+	case KeybaseSignatureV1:
+		// Use the payload from the signature here, since we always get the full signature with
+		// the attached payload for V1 signatures. Note that we redundantly check that the payload
+		// matches the sig in verifyPayloadV1() on the way out of this Unpack function.
 		payload, err = tmp.Payload()
 		if err != nil {
 			return err
 		}
-	} else {
+	case KeybaseSignatureV2:
 		// use the payload in payload_json
 		data, _, _, err := jsonparserw.Get(packed, "payload_json")
 		if err != nil {
@@ -836,20 +843,9 @@ func (c *ChainLink) Unpack(m MetaContext, trusted bool, selfUID keybase1.UID, pa
 			return err
 		}
 		payload = []byte(sdata)
-
-		if tmp.sigVersion == KeybaseSignatureV1 {
-			// check that payload_json matches payload in sig
-			sigPayload, err := tmp.Payload()
-			if err != nil {
-				return err
-			}
-
-			payloadFixed := c.fixPayload(payload, c.id)
-
-			if !FastByteArrayEq(payloadFixed, sigPayload) {
-				return ChainLinkError{"sig payload does not match payload_json"}
-			}
-		}
+	default:
+		err = ChainLinkError{fmt.Sprintf("unhandled signature version %d", tmp.sigVersion)}
+		return err
 	}
 
 	// unpack the payload
@@ -944,6 +940,9 @@ func (c *ChainLink) Unpack(m MetaContext, trusted bool, selfUID keybase1.UID, pa
 		}
 		if b, err := jsonparserw.GetBoolean(packed, "chain_verified"); err == nil && b {
 			c.chainVerified = true
+		}
+		if b, err := jsonparserw.GetBoolean(packed, "payload_verified"); err == nil && b {
+			c.payloadVerified = true
 		}
 		if i, err := jsonparserw.GetInt(packed, "disk_version"); err == nil {
 			c.diskVersion = int(i)
