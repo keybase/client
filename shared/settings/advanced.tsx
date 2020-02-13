@@ -26,13 +26,11 @@ const UseNativeFrame = () => {
   }
   return isMobile ? null : (
     <>
-      <Kb.Box style={styles.checkboxContainer}>
-        <Kb.Checkbox
-          checked={!useNativeFrame}
-          label="Hide system window frame"
-          onCheck={x => onChangeUseNativeFrame(!x)}
-        />
-      </Kb.Box>
+      <Kb.Checkbox
+        checked={!useNativeFrame}
+        label="Hide system window frame"
+        onCheck={x => onChangeUseNativeFrame(!x)}
+      />
       {initialUseNativeFrame !== useNativeFrame && (
         <Kb.Text type="BodySmall" style={styles.error}>
           Keybase needs to restart for this change to take effect.
@@ -103,52 +101,45 @@ const Advanced = () => {
 
   return (
     <Kb.ScrollView style={styles.scrollview}>
-      <Kb.Box style={styles.advancedContainer}>
-        {settingLockdownMode && (
-          <Kb.Box style={styles.progressContainer}>
-            <Kb.ProgressIndicator />
-          </Kb.Box>
-        )}
-        <Kb.Box style={styles.checkboxContainer}>
-          <LockdownCheckbox hasRandomPW={hasRandomPW} settingLockdownMode={settingLockdownMode} />
-        </Kb.Box>
+      <Kb.Box2 direction="vertical" gap="tiny" gapStart={true} fullWidth={true}>
+        {settingLockdownMode && <Kb.ProgressIndicator />}
+        <LockdownCheckbox hasRandomPW={hasRandomPW} settingLockdownMode={settingLockdownMode} />
         {!!setLockdownModeError && (
           <Kb.Text type="BodySmall" style={styles.error}>
             {setLockdownModeError}
           </Kb.Text>
         )}
         {!hasRandomPW && (
-          <Kb.Box style={styles.checkboxContainer}>
-            <Kb.Checkbox
-              checked={rememberPassword}
-              labelComponent={
-                <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne}>
-                  <Kb.Text type="Body">Always stay logged in</Kb.Text>
-                  <Kb.Text type="BodySmall">
-                    You won't be asked for your password when restarting the app or your device.
-                  </Kb.Text>
-                </Kb.Box2>
-              }
-              onCheck={onChangeRememberPassword}
-            />
-          </Kb.Box>
+          <Kb.Checkbox
+            checked={rememberPassword}
+            labelComponent={
+              <Kb.Box2 direction="vertical" style={Styles.globalStyles.flexOne}>
+                <Kb.Text type="Body">Always stay logged in</Kb.Text>
+                <Kb.Text type="BodySmall">
+                  You won't be asked for your password when restarting the app or your device.
+                </Kb.Text>
+              </Kb.Box2>
+            }
+            onCheck={onChangeRememberPassword}
+          />
         )}
         {isLinux ? <UseNativeFrame /> : null}
         {!Styles.isMobile && (
-          <Kb.Box style={styles.checkboxContainer}>
-            <Kb.Checkbox label="Open Keybase on startup" checked={openAtLogin} onCheck={onSetOpenAtLogin} />
-          </Kb.Box>
+          <Kb.Checkbox label="Open Keybase on startup" checked={openAtLogin} onCheck={onSetOpenAtLogin} />
         )}
         <Kb.Divider style={styles.proxyDivider} />
         <ProxySettings />
         <Developer />
-      </Kb.Box>
+      </Kb.Box2>
     </Kb.ScrollView>
   )
 }
 
 if (isMobile) {
-  Advanced.navigationOptions = {}
+  Advanced.navigationOptions = {
+    header: undefined,
+    title: 'Advanced',
+  }
 }
 
 const clickThreshold = 7
@@ -260,11 +251,6 @@ const Developer = () => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  advancedContainer: {
-    ...Styles.globalStyles.flexBoxColumn,
-    flex: 1,
-    width: '100%',
-  },
   checkboxContainer: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
@@ -280,7 +266,6 @@ const styles = Styles.styleSheetCreate(() => ({
     alignItems: 'center',
     flex: 1,
     paddingBottom: Styles.globalMargins.medium,
-    paddingTop: Styles.globalMargins.xlarge,
   },
   displayInline: Styles.platformStyles({isElectron: {display: 'inline'}}),
   divider: {
