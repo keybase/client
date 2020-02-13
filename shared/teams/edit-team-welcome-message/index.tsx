@@ -20,16 +20,12 @@ const EditTeamWelcomeMessage = (props: Props) => {
     throw new Error(`There was a problem loading the welcome message page, please report this error.`)
   }
 
-  const waitingKey = Container.useSelector(_ => Constants.setWelcomeMessageWaitingKey(teamID))
+  const waitingKey = Constants.setWelcomeMessageWaitingKey(teamID)
   const waiting = Container.useAnyWaiting(waitingKey)
   const error = Container.useSelector(state => state.teams.errorInEditWelcomeMessage)
-  const origWelcomeMessage = Container.useSelector(state => {
-    const message = Constants.getTeamWelcomeMessageByID(state, teamID)
-    if (message) {
-      return message
-    }
-    throw new Error(`There was a problem loading the welcome message, please report this error.`)
-  })
+  const origWelcomeMessage = Container.useSelector(
+    state => Constants.getTeamWelcomeMessageByID(state, teamID)!
+  )
 
   const [welcomeMessage, setWelcomeMessage] = React.useState({
     raw: origWelcomeMessage.raw,
@@ -89,12 +85,14 @@ const EditTeamWelcomeMessage = (props: Props) => {
           maxLength={welcomeMessageMaxLen}
           autoFocus={true}
         />
-        <Kb.Text type="BodySmall" style={styles.info}>
-          {welcomeMessage.set && welcomeMessage.raw.length === 0 ? (
-            'No welcome note will be shown to new members.'
-          ) : (
-            <>&nbsp;</>
-          )}
+        <Kb.Text
+          type="BodySmall"
+          style={Styles.collapseStyles([
+            styles.info,
+            !(welcomeMessage.set && welcomeMessage.raw.length === 0) && {visibility: 'hidden'},
+          ])}
+        >
+          No welcome note will be shown to new members.
         </Kb.Text>
       </Kb.Box2>
     </Kb.Modal>

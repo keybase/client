@@ -10,7 +10,7 @@ const commonProps = {
   ignoreAccessRequests: true,
   isBigTeam: true,
   loadWelcomeMessage: Sb.action('loadWelcomeMessage'),
-  onEditWelcomeMessage: () => {},
+  onEditWelcomeMessage: Sb.action('onEditWelcomeMessage'),
   openTeam: true,
   openTeamRole: 'admin' as 'admin',
   publicityAnyMember: true,
