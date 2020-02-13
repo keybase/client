@@ -1387,6 +1387,46 @@ func (t *Team) InviteSeitanV2(ctx context.Context, role keybase1.TeamRole, label
 	return ikey, err
 }
 
+func (t *Team) InviteSeitanInviteLink(ctx context.Context, role keybase1.TeamRole, label keybase1.SeitanKeyLabel) (ikey SeitanIKeyV2, err error) {
+	defer t.G().CTraceTimed(ctx, fmt.Sprintf("InviteSeitanV2: team: %v, role: %v", t.Name(), role), func() error { return err })()
+
+	ikey, err = GenerateIKeyV2()
+	if err != nil {
+		return ikey, err
+	}
+
+	sikey, err := ikey.GenerateSIKey()
+	if err != nil {
+		return ikey, err
+	}
+
+	inviteID, err := sikey.GenerateTeamInviteID()
+	if err != nil {
+		return ikey, err
+	}
+
+	_, encoded, err := sikey.GeneratePackedEncryptedKey(ctx, t, label)
+	if err != nil {
+		return ikey, err
+	}
+
+	expireUseCount := 10
+	multipleUse := true
+	invite := SCTeamInvite{
+		Type:            "seitan_invite_token",
+		Name:            keybase1.TeamInviteName(encoded),
+		ID:              inviteID,
+		ExpireAfterUses: &expireUseCount,
+		MultipleUse:     &multipleUse,
+	}
+
+	if err := t.postInvite(ctx, invite, role); err != nil {
+		return ikey, err
+	}
+
+	return ikey, err
+}
+
 func (t *Team) postInvite(ctx context.Context, invite SCTeamInvite, role keybase1.TeamRole) error {
 	existing, err := t.HasActiveInvite(t.MetaContext(ctx), invite.Name, invite.Type)
 	if err != nil {

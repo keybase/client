@@ -208,6 +208,11 @@ protocol teams {
   @typedef("string")
   record UserVersionPercentForm {}
 
+  record TeamUsedInvite {
+    TeamInviteID inviteID;
+    UserVersionPercentForm uv;
+  }
+
   record TeamChangeReq {
     array<UserVersion> owners;
     array<UserVersion> admins;
@@ -217,6 +222,7 @@ protocol teams {
     map<UserVersion, TeamBotSettings> restrictedBots;
     array<UserVersion> none;
     map<TeamInviteID,UserVersionPercentForm> completedInvites;
+    array<TeamUsedInvite> usedInvites;
   }
 
   record TeamPlusApplicationKeys {

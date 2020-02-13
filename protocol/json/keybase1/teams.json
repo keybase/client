@@ -500,6 +500,20 @@
     },
     {
       "type": "record",
+      "name": "TeamUsedInvite",
+      "fields": [
+        {
+          "type": "TeamInviteID",
+          "name": "inviteID"
+        },
+        {
+          "type": "UserVersionPercentForm",
+          "name": "uv"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "TeamChangeReq",
       "fields": [
         {
@@ -559,6 +573,13 @@
             "keys": "TeamInviteID"
           },
           "name": "completedInvites"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamUsedInvite"
+          },
+          "name": "usedInvites"
         }
       ]
     },

@@ -692,6 +692,18 @@ func (o UserVersionPercentForm) DeepCopy() UserVersionPercentForm {
 	return o
 }
 
+type TeamUsedInvite struct {
+	InviteID TeamInviteID           `codec:"inviteID" json:"inviteID"`
+	Uv       UserVersionPercentForm `codec:"uv" json:"uv"`
+}
+
+func (o TeamUsedInvite) DeepCopy() TeamUsedInvite {
+	return TeamUsedInvite{
+		InviteID: o.InviteID.DeepCopy(),
+		Uv:       o.Uv.DeepCopy(),
+	}
+}
+
 type TeamChangeReq struct {
 	Owners           []UserVersion                           `codec:"owners" json:"owners"`
 	Admins           []UserVersion                           `codec:"admins" json:"admins"`
@@ -701,6 +713,7 @@ type TeamChangeReq struct {
 	RestrictedBots   map[UserVersion]TeamBotSettings         `codec:"restrictedBots" json:"restrictedBots"`
 	None             []UserVersion                           `codec:"none" json:"none"`
 	CompletedInvites map[TeamInviteID]UserVersionPercentForm `codec:"completedInvites" json:"completedInvites"`
+	UsedInvites      []TeamUsedInvite                        `codec:"usedInvites" json:"usedInvites"`
 }
 
 func (o TeamChangeReq) DeepCopy() TeamChangeReq {
@@ -795,6 +808,17 @@ func (o TeamChangeReq) DeepCopy() TeamChangeReq {
 			}
 			return ret
 		})(o.CompletedInvites),
+		UsedInvites: (func(x []TeamUsedInvite) []TeamUsedInvite {
+			if x == nil {
+				return nil
+			}
+			ret := make([]TeamUsedInvite, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.UsedInvites),
 	}
 }
 

@@ -29,6 +29,10 @@ func (s SCTeamID) ToTeamID() (keybase1.TeamID, error) { return keybase1.TeamIDFr
 type SCTeamMember keybase1.UserVersion
 
 type SCMapInviteIDToUV map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm
+type SCMapInviteIDUVPair struct {
+	InviteID SCTeamInviteID                  `json:"id"`
+	UV       keybase1.UserVersionPercentForm `json:"uv"`
+}
 
 type SCTeamSection struct {
 	ID               SCTeamID               `json:"id"`
@@ -40,7 +44,7 @@ type SCTeamSection struct {
 	Admin            *SCTeamAdmin           `json:"admin,omitempty"`
 	Invites          *SCTeamInvites         `json:"invites,omitempty"`
 	CompletedInvites SCMapInviteIDToUV      `json:"completed_invites,omitempty"`
-	UsedInvites      []SCMapInviteIDToUV    `json:"used_invites,omitempty"`
+	UsedInvites      []SCMapInviteIDUVPair  `json:"used_invites,omitempty"`
 	Implicit         bool                   `json:"is_implicit,omitempty"`
 	Public           bool                   `json:"is_public,omitempty"`
 	Entropy          SCTeamEntropy          `json:"entropy,omitempty"`
