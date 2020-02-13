@@ -107,9 +107,9 @@ const SettingsPanel = (props: SettingsPanelProps) => {
             />
           )}
 
-          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.settingsHeader}>
-            <Kb.Text type="Header">Channel</Kb.Text>
-          </Kb.Box2>
+          <Kb.Text type="Header" style={styles.settingsHeader}>
+            Channel
+          </Kb.Text>
 
           <RetentionPicker
             containerStyle={styles.retentionContainerStyle}
@@ -248,6 +248,7 @@ const styles = Styles.styleSheetCreate(
         common: {
           paddingLeft: 16,
           paddingRight: 16,
+          paddingTop: 8,
         },
         isMobile: {marginRight: 16},
       }),
