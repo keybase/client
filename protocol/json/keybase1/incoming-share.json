@@ -33,7 +33,7 @@
             null,
             "string"
           ],
-          "name": "filename"
+          "name": "content"
         }
       ]
     }

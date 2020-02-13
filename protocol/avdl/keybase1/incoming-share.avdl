@@ -11,7 +11,7 @@ protocol incomingShare {
   record IncomingShareItem {
     IncomingShareType type;
     string payloadPath;
-    union {null, string} filename;
+    union {null, string} content;
   }
 
   array<IncomingShareItem> getIncomingShareItems();

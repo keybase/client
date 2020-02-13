@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Container from '../util/container'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as FsGen from '../actions/fs-gen'
+import * as FsTypes from '../constants/types/fs'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import ChooseTarget from './choose-target'
 
@@ -28,7 +29,7 @@ const IOSChooseTarget = () => {
           RouteTreeGen.createNavigateAppend({
             path: [
               {
-                props: {paths: incomingShareItems.map(item => item.payloadPath)},
+                props: {incomingShareItems},
                 selected: 'sendAttachmentToChat',
               },
             ],
@@ -39,8 +40,8 @@ const IOSChooseTarget = () => {
 
   return (
     <ChooseTarget
-      items={incomingShareItems.map(({filename, type}) => ({
-        filename: filename || undefined,
+      items={incomingShareItems.map(({payloadPath, type}) => ({
+        filename: FsTypes.getLocalPathName(payloadPath),
         shareType: type,
       }))}
       onBack={onBack}

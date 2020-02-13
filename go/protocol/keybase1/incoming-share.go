@@ -42,20 +42,20 @@ func (e IncomingShareType) String() string {
 type IncomingShareItem struct {
 	Type        IncomingShareType `codec:"type" json:"type"`
 	PayloadPath string            `codec:"payloadPath" json:"payloadPath"`
-	Filename    *string           `codec:"filename,omitempty" json:"filename,omitempty"`
+	Content     *string           `codec:"content,omitempty" json:"content,omitempty"`
 }
 
 func (o IncomingShareItem) DeepCopy() IncomingShareItem {
 	return IncomingShareItem{
 		Type:        o.Type.DeepCopy(),
 		PayloadPath: o.PayloadPath,
-		Filename: (func(x *string) *string {
+		Content: (func(x *string) *string {
 			if x == nil {
 				return nil
 			}
 			tmp := (*x)
 			return &tmp
-		})(o.Filename),
+		})(o.Content),
 	}
 }
 

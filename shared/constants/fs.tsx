@@ -765,7 +765,7 @@ export const getDestinationPickerPathName = (picker: Types.DestinationPicker): s
     : picker.source.type === Types.DestinationPickerSource.IncomingShare
     ? Array.isArray(picker.source.source)
       ? getSharePathArrayDescription(
-          picker.source.source.map(({filename, payloadPath}) => filename || Types.getPathName(payloadPath))
+          picker.source.source.map(({payloadPath}) => Types.getLocalPathName(payloadPath))
         )
       : picker.source.source
     : ''

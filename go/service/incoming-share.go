@@ -26,11 +26,11 @@ func NewIncomingShareHandler(xp rpc.Transporter, g *libkb.GlobalContext) *Incomi
 	}
 }
 
-// shareItemJson is for json parsing only.
-type shareItemJson struct {
+// shareItemJSON is for json parsing only.
+type shareItemJSON struct {
 	Type        string `json:"type"`
 	PayloadPath string `json:"payloadPath"`
-	Filename    string `json:"filename"`
+	Content     string `json:"content"`
 }
 
 func (h *IncomingShareHandler) GetIncomingShareItems(_ context.Context) (items []keybase1.IncomingShareItem, err error) {
@@ -40,15 +40,18 @@ func (h *IncomingShareHandler) GetIncomingShareItems(_ context.Context) (items [
 		return nil, err
 	}
 	defer f.Close()
-	var jsonItems []shareItemJson
+	var jsonItems []shareItemJSON
 	if err = json.NewDecoder(f).Decode(&jsonItems); err != nil {
 		return nil, err
 	}
 loop:
 	for _, jsonItem := range jsonItems {
-		filename := (*string)(nil)
-		if len(jsonItem.Filename) > 0 {
-			filename = &jsonItem.Filename
+		content := (*string)(nil)
+		if len(jsonItem.Content) > 0 {
+			// Need to copy it because it gets reassigned in the next
+			// iteration.
+			contentCopy := jsonItem.Content
+			content = &contentCopy
 		}
 		var t keybase1.IncomingShareType
 		switch jsonItem.Type {
@@ -64,7 +67,7 @@ loop:
 		items = append(items, keybase1.IncomingShareItem{
 			Type:        t,
 			PayloadPath: jsonItem.PayloadPath,
-			Filename:    filename,
+			Content:     content,
 		})
 	}
 	return items, nil

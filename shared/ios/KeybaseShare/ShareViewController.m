@@ -164,11 +164,18 @@ const BOOL isSimulator = NO;
   return [incomingShareFolderURL URLByAppendingPathComponent:@"manifest.json"];
 }
 
-- (void)appendManifestType:(NSString*)type payloadFileURL:(NSURL*) payloadFileURL filename:(NSString*)filename {
+- (void)appendManifestType:(NSString*)type payloadFileURL:(NSURL*) payloadFileURL {
   [self.manifest addObject: @{
     @"type": type,
     @"payloadPath":[payloadFileURL absoluteURL].path,
-    @"filename": filename,
+  }];
+}
+
+- (void)appendManifestType:(NSString*)type payloadFileURL:(NSURL*) payloadFileURL content:(NSString*)content {
+  [self.manifest addObject: @{
+    @"type": type,
+    @"payloadPath":[payloadFileURL absoluteURL].path,
+    @"content": content,
   }];
 }
 
@@ -181,7 +188,12 @@ const BOOL isSimulator = NO;
   return error;
 }
 
+NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit in chat
+
 - (void) handleText:(NSString *)text loadError:(NSError *)error {
+  // We write the text into a file regardless because this could go to KBFS.
+  // But if the text is short enough, we also include it in the manifest so
+  // GUI can easily pre-fill it into the chat compose box.
   if (error != nil) {
     NSLog(@"handleText: load error: %@", error);
     return;
@@ -192,7 +204,11 @@ const BOOL isSimulator = NO;
     NSLog(@"handleText: unable to write payload file: %@", error);
     return;
   }
-  [self appendManifestType:@"text" payloadFileURL:payloadFileURL filename:@""];
+  if (text.length < TEXT_LENGTH_THRESHOLD) {
+    [self appendManifestType:@"text" payloadFileURL:payloadFileURL content:text];
+  } else {
+    [self appendManifestType:@"text" payloadFileURL:payloadFileURL];
+  }
 }
 
 - (void) handleData:(NSData *)data type:(NSString *)type ext:(NSString *)ext {
@@ -202,13 +218,14 @@ const BOOL isSimulator = NO;
     NSLog(@"handleData: unable to write payload file");
     return;
   }
-  [self appendManifestType:type payloadFileURL:payloadFileURL filename:@""];
+  [self appendManifestType:type payloadFileURL:payloadFileURL];
 }
 
 // processItem will invokve the correct function on the Go side for the given attachment type.
 - (void)processItem:(NSItemProvider*)item lastItem:(BOOL)lastItem {
+  
   NSItemProviderCompletionHandler urlHandler = ^(NSURL* url, NSError* error) {
-    [self handleText:self.contentText loadError:error];
+    [self handleText:[NSString stringWithFormat:@"%@ %@", self.contentText, url.absoluteURL] loadError:error];
     [self maybeCompleteRequest:lastItem];
   };
   
@@ -222,6 +239,10 @@ const BOOL isSimulator = NO;
       NSLog(@"imageHandler: load error: %@", error);
       [self maybeCompleteRequest:lastItem];
       return;
+    }
+    if (self.contentText.length > 0) {
+      // If there's any user input, add that as a text payload first.
+      [self handleText:self.contentText loadError:nil];
     }
     NSData * imageData = UIImagePNGRepresentation(image);
     [self handleData:imageData type:@"image" ext:@"png"];
@@ -242,6 +263,11 @@ const BOOL isSimulator = NO;
       }
       return;
     }
+    if (error != nil) {
+      NSLog(@"fileHandler: load error: %@", error);
+      [self maybeCompleteRequest:lastItem];
+      return;
+    }
     NSURL * filePayloadURL = [self getPayloadURLFromURL:url];
     [[NSFileManager defaultManager] copyItemAtURL:url toURL:filePayloadURL error:&error];
     if (error != nil) {
@@ -249,7 +275,11 @@ const BOOL isSimulator = NO;
       [self maybeCompleteRequest:lastItem];
       return;
     }
-    [self appendManifestType:@"file" payloadFileURL:filePayloadURL filename:[url lastPathComponent]];
+    if (self.contentText.length > 0) {
+      // If there's any user input, add that as a text payload first.
+      [self handleText:self.contentText loadError: nil];
+    }
+    [self appendManifestType:@"file" payloadFileURL:filePayloadURL];
     [self maybeCompleteRequest:lastItem];
   };
   
