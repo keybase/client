@@ -242,6 +242,8 @@ var visibleMessageTypes = []MessageType{
 	MessageType_PIN,
 }
 
+// Visible chat messages appear visually as a message in the conv.
+// For counterexample REACTION and DELETE_HISTORY have visual effects but do not appear as a message.
 func VisibleChatMessageTypes() []MessageType {
 	return visibleMessageTypes
 }
@@ -258,7 +260,7 @@ var nonEmptyConvMessageTypes = []MessageType{
 }
 
 // A conversation is considered 'empty' unless it has one of these message types.
-// Used for example for filtering empty convs out of the the inbox.
+// Used for filtering empty convs out of the the inbox. And badging.
 func NonEmptyConvMessageTypes() []MessageType {
 	return nonEmptyConvMessageTypes
 }
