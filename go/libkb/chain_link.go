@@ -427,6 +427,10 @@ func (c *ChainLink) Pack() (*jsonw.Wrapper, error) {
 		if err != nil {
 			return nil, err
 		}
+		err = p.SetKey("payload_verified", jsonw.NewBool(c.payloadVerified))
+		if err != nil {
+			return nil, err
+		}
 		err = p.SetKey("proof_text_full", jsonw.NewString(c.unpacked.proofText))
 		if err != nil {
 			return nil, err
@@ -934,6 +938,9 @@ func (c *ChainLink) Unpack(m MetaContext, trusted bool, selfUID keybase1.UID, pa
 		}
 		if b, err := jsonparserw.GetBoolean(packed, "chain_verified"); err == nil && b {
 			c.chainVerified = true
+		}
+		if b, err := jsonparserw.GetBoolean(packed, "payload_verified"); err == nil && b {
+			c.payloadVerified = true
 		}
 		if i, err := jsonparserw.GetInt(packed, "disk_version"); err == nil {
 			c.diskVersion = int(i)
