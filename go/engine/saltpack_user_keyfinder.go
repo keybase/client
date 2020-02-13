@@ -124,6 +124,8 @@ func (e *SaltpackUserKeyfinder) identifyAndAddRecipients(m libkb.MetaContext) er
 			return fmt.Errorf("Cannot encrypt for %v as their account has changed since you last followed them (it might have been compromised!): please review their identity (with `keybase follow %v`) and then try again (err = %v)", u, u, err)
 		case libkb.IsNotFoundError(err) || libkb.IsResolutionError(err):
 			return fmt.Errorf("Cannot find keys for %v: it is not an assertion for a registered user (err = %v)", u, err)
+		case libkb.IsAssertionParseErrorWithReason(err, libkb.AssertionParseErrorReasonUnexpectedOR):
+			return fmt.Errorf("Could not parse %v as a single user: %v (hint: multiple recipients should be separated by spaces, not commas)", u, err)
 		default:
 			return fmt.Errorf("Error while adding keys for %v: %v", u, err)
 		}
