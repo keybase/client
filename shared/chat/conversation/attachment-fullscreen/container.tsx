@@ -1,4 +1,5 @@
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
+import * as Styles from '../../../styles'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
@@ -86,5 +87,11 @@ const Connected = (props: OwnProps) => {
       title={message.decoratedText ? message.decoratedText.stringValue() : title}
     />
   )
+}
+
+Connected.navigationOptions = {
+  safeAreaStyle: {
+    backgroundColor: 'black', // true black
+  },
 }
 export default Connected
