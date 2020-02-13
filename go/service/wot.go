@@ -24,13 +24,13 @@ func (h *WebOfTrustHandler) WotVouch(ctx context.Context, arg keybase1.WotVouchA
 	ctx = libkb.WithLogTag(ctx, "WOT")
 	mctx := libkb.NewMetaContext(ctx, h.G())
 
-	earg := &engine.WotAttestArg{
-		Attestee:     arg.Uv,
-		Attestations: arg.Attestations,
-		Confidence:   arg.Confidence,
+	earg := &engine.WotVouchArg{
+		Vouchee:    arg.Uv,
+		VouchTexts: arg.VouchTexts,
+		Confidence: arg.Confidence,
 	}
 
-	eng := engine.NewWotAttest(h.G(), earg)
+	eng := engine.NewWotVouch(h.G(), earg)
 	return engine.RunEngine2(mctx, eng)
 }
 
@@ -43,12 +43,12 @@ func (h *WebOfTrustHandler) WotVouchCLI(ctx context.Context, arg keybase1.WotVou
 		return err
 	}
 
-	earg := &engine.WotAttestArg{
-		Attestee:     upak.Base.ToUserVersion(),
-		Attestations: arg.Attestations,
-		Confidence:   arg.Confidence,
+	earg := &engine.WotVouchArg{
+		Vouchee:    upak.Base.ToUserVersion(),
+		VouchTexts: arg.VouchTexts,
+		Confidence: arg.Confidence,
 	}
 
-	eng := engine.NewWotAttest(h.G(), earg)
+	eng := engine.NewWotVouch(h.G(), earg)
 	return engine.RunEngine2(mctx, eng)
 }
