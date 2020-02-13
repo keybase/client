@@ -87,17 +87,17 @@ func (o Confidence) DeepCopy() Confidence {
 }
 
 type WotVouchArg struct {
-	SessionID    int         `codec:"sessionID" json:"sessionID"`
-	Uv           UserVersion `codec:"uv" json:"uv"`
-	Attestations []string    `codec:"attestations" json:"attestations"`
-	Confidence   Confidence  `codec:"confidence" json:"confidence"`
+	SessionID  int         `codec:"sessionID" json:"sessionID"`
+	Uv         UserVersion `codec:"uv" json:"uv"`
+	VouchTexts []string    `codec:"vouchTexts" json:"vouchTexts"`
+	Confidence Confidence  `codec:"confidence" json:"confidence"`
 }
 
 type WotVouchCLIArg struct {
-	SessionID    int        `codec:"sessionID" json:"sessionID"`
-	Assertion    string     `codec:"assertion" json:"assertion"`
-	Attestations []string   `codec:"attestations" json:"attestations"`
-	Confidence   Confidence `codec:"confidence" json:"confidence"`
+	SessionID  int        `codec:"sessionID" json:"sessionID"`
+	Assertion  string     `codec:"assertion" json:"assertion"`
+	VouchTexts []string   `codec:"vouchTexts" json:"vouchTexts"`
+	Confidence Confidence `codec:"confidence" json:"confidence"`
 }
 
 type WotInterface interface {
