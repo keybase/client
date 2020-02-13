@@ -309,7 +309,7 @@ func NewInstrumentedTransport(g *GlobalContext, tagger func(*http.Request) strin
 }
 
 func (i *InstrumentedTransport) RoundTrip(req *http.Request) (resp *http.Response, err error) {
-	record := rpc.NewNetworkInstrumenter(i.G().NetworkInstrumenterStorage, i.tagger(req))
+	record := rpc.NewNetworkInstrumenter(i.G().RemoteNetworkInstrumenterStorage, i.tagger(req))
 	resp, err = i.Transport.RoundTrip(req)
 	record.EndCall()
 	if err != nil {

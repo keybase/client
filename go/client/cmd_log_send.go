@@ -94,12 +94,23 @@ func (c *CmdLogSend) Run() error {
 	}
 
 	var networkStatsJSON string
-	networkStatsCmd := &CmdNetworkStats{Contextified: libkb.NewContextified(c.G())}
-	networkStats, err := networkStatsCmd.load()
+	localNetworkStatsCmd := &CmdNetworkStats{Contextified: libkb.NewContextified(c.G()), networkSrc: keybase1.NetworkSource_LOCAL}
+	localNetworkStats, err := localNetworkStatsCmd.load()
 	if err != nil {
-		c.G().Log.Info("ignoring error getting keybase network stats: %s", err)
-	} else {
-		b, err := json.Marshal(networkStats)
+		c.G().Log.Info("ignoring error getting keybase local network stats: %s", err)
+		localNetworkStats = nil
+	}
+	remoteNetworkStatsCmd := &CmdNetworkStats{Contextified: libkb.NewContextified(c.G()), networkSrc: keybase1.NetworkSource_REMOTE}
+	remoteNetworkStats, err := remoteNetworkStatsCmd.load()
+	if err != nil {
+		c.G().Log.Info("ignoring error getting keybase remote network stats: %s", err)
+		remoteNetworkStats = nil
+	}
+	if localNetworkStats != nil || remoteNetworkStats != nil {
+		b, err := json.Marshal(libkb.NetworkStatsJSON{
+			Local:  localNetworkStats,
+			Remote: remoteNetworkStats,
+		})
 		if err != nil {
 			c.G().Log.Info("ignoring network stats json marshal error: %s", err)
 			networkStatsJSON = c.errJSON(err)

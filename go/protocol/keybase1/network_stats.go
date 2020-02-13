@@ -4,8 +4,35 @@
 package keybase1
 
 import (
+	"fmt"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
+
+type NetworkSource int
+
+const (
+	NetworkSource_LOCAL  NetworkSource = 0
+	NetworkSource_REMOTE NetworkSource = 1
+)
+
+func (o NetworkSource) DeepCopy() NetworkSource { return o }
+
+var NetworkSourceMap = map[string]NetworkSource{
+	"LOCAL":  0,
+	"REMOTE": 1,
+}
+
+var NetworkSourceRevMap = map[NetworkSource]string{
+	0: "LOCAL",
+	1: "REMOTE",
+}
+
+func (e NetworkSource) String() string {
+	if v, ok := NetworkSourceRevMap[e]; ok {
+		return v
+	}
+	return fmt.Sprintf("%v", int(e))
+}
 
 type InstrumentationStat struct {
 	Tag       string       `codec:"t" json:"tag"`
