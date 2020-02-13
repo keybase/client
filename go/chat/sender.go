@@ -424,11 +424,13 @@ func (s *BlockingSender) processReactionMessage(ctx context.Context, uid gregor1
 	}
 
 	// We could either be posting a reaction or removing one that we already posted.
-	supersededMsg, err := s.getMessage(ctx, uid, convID, msg.ClientHeader.Supersedes, true /* resolveSupersedes */)
+	supersededMsg, err := s.getMessage(ctx, uid, convID, msg.ClientHeader.Supersedes,
+		true /* resolveSupersedes */)
 	if err != nil {
 		return clientHeader, body, err
 	}
-	found, reactionMsgID := supersededMsg.Reactions.HasReactionFromUser(msg.MessageBody.Reaction().Body, s.G().Env.GetUsername().String())
+	found, reactionMsgID := supersededMsg.Reactions.HasReactionFromUser(msg.MessageBody.Reaction().Body,
+		s.G().Env.GetUsername().String())
 	if found {
 		msg.ClientHeader.Supersedes = reactionMsgID
 		msg.ClientHeader.MessageType = chat1.MessageType_DELETE
@@ -442,6 +444,11 @@ func (s *BlockingSender) processReactionMessage(ctx context.Context, uid gregor1
 		if err := storage.NewReacjiStore(s.G()).PutReacji(ctx, uid, msg.MessageBody.Reaction().Body); err != nil {
 			s.Debug(ctx, "unable to put in ReacjiStore: %v", err)
 		}
+		// set an @ mention on the message body for the author of the message we are reacting to
+		s.Debug(ctx, "processReactionMessage: adding target: %s", supersededMsg.ClientHeader.Sender)
+		body := msg.MessageBody.Reaction().DeepCopy()
+		body.TargetUID = &supersededMsg.ClientHeader.Sender
+		msg.MessageBody = chat1.NewMessageBodyWithReaction(body)
 	}
 
 	return msg.ClientHeader, msg.MessageBody, nil
@@ -694,6 +701,12 @@ func (s *BlockingSender) handleMentions(ctx context.Context, uid gregor1.UID, ms
 			MessageBody:        chat1.NewMessageBodyWithEdit(newBody),
 			SupersedesOutboxID: msg.SupersedesOutboxID,
 		}
+	case chat1.MessageType_REACTION:
+		targetUID := msg.MessageBody.Reaction().TargetUID
+		if targetUID != nil {
+			atMentions = []gregor1.UID{*targetUID}
+		}
+		res = msg
 	case chat1.MessageType_SYSTEM:
 		if err = checkHeaderBodyTypeMatch(); err != nil {
 			return res, atMentions, chanMention, err
@@ -761,6 +774,7 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 
 		// Handle reply to
 		if msg, err = s.handleReplyTo(ctx, uid, convID, msg, opts.ReplyTo); err != nil {
+			s.Debug(ctx, "Prepare: error processing reply: %s", err)
 			return res, err
 		}
 
@@ -798,6 +812,7 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 
 	// Make sure it is a proper length
 	if err := msgchecker.CheckMessagePlaintext(msg); err != nil {
+		s.Debug(ctx, "Prepare: error checking message plaintext: %s", err)
 		return res, err
 	}
 
@@ -815,6 +830,7 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 	var atMentions []gregor1.UID
 	var chanMention chat1.ChannelMention
 	if msg, atMentions, chanMention, err = s.handleMentions(ctx, uid, msg, conv); err != nil {
+		s.Debug(ctx, "Prepare: error handling mentions: %s", err)
 		return res, err
 	}
 
@@ -842,6 +858,7 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 	}
 	botUIDs, err := s.applyTeamBotSettings(ctx, uid, &msg, convID, membersType, atMentions, opts)
 	if err != nil {
+		s.Debug(ctx, "Prepare: failed to apply team bot settings: %s", err)
 		return res, err
 	}
 	if len(botUIDs) > 0 {
@@ -852,10 +869,12 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 
 	encInfo, err := s.boxer.GetEncryptionInfo(ctx, &msg, membersType, skp)
 	if err != nil {
+		s.Debug(ctx, "Prepare: error getting encryption info: %s", err)
 		return res, err
 	}
 	boxed, err := s.boxer.BoxMessage(ctx, msg, membersType, skp, &encInfo)
 	if err != nil {
+		s.Debug(ctx, "Prepare: error boxing message: %s", err)
 		return res, err
 	}
 	return types.SenderPrepareResult{

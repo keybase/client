@@ -741,6 +741,15 @@
           "name": "body",
           "mpackkey": "b",
           "jsonkey": "b"
+        },
+        {
+          "type": [
+            null,
+            "gregor1.UID"
+          ],
+          "name": "targetUID",
+          "mpackkey": "t",
+          "jsonkey": "t"
         }
       ]
     },
