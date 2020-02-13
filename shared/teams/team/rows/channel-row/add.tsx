@@ -9,7 +9,7 @@ const ButtonRow = (props: {teamID: Types.TeamID}) => {
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onCreateChannel = () =>
-    dispatch(nav.safeNavigateAppendPayload({path: [{props, selected: 'teamsTeamCreateChannel'}]}))
+    dispatch(nav.safeNavigateAppendPayload({path: [{props, selected: 'chatCreateChannel'}]}))
 
   const waitingKey = Constants.getChannelsWaitingKey(props.teamID)
   const waitingForGet = Container.useAnyWaiting(waitingKey)

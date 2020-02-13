@@ -452,10 +452,6 @@ body {
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.8);
 }
 
-.checkboxRow:hover .checkCircle {
-  color: #a8ccff;
-}
-
-.darkMode .checkboxRow:hover .checkCircle {
-  color: #4c8eff;
+.selectionPopup {
+  transition: bottom 0.5s;
 }

@@ -4,9 +4,9 @@ import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Kb from '../../common-adapters'
 import * as TeamsGen from '../../actions/teams-gen'
+import {pluralize} from '../../util/string'
 
 type Props = {
-  attachTo: () => React.Component<any> | null
   selectedTab: Types.TabKey
   teamID: Types.TeamID
 }
@@ -20,7 +20,11 @@ const getSelectedCount = (state: Container.TypedState, props: Props) => {
   }
 }
 
-export default (props: Props) => {
+const tabThings = {
+  channels: 'channel',
+}
+
+const SelectionPopup = (props: Props) => {
   const selectedCount = Container.useSelector(state => getSelectedCount(state, props))
   const dispatch = Container.useDispatch()
 
@@ -30,33 +34,69 @@ export default (props: Props) => {
     )
   const onDelete = () => {}
 
-  return selectedCount === 0 ? null : (
-    <Kb.Overlay
-      attachTo={props.attachTo}
-      position="bottom center"
-      onHidden={() => {}}
-      style={styles.overlayMargin}
+  const tabThing = tabThings[props.selectedTab]
+  const onSelectableTab = !!tabThing
+
+  return onSelectableTab && (!Styles.isMobile || !!selectedCount) ? (
+    <Kb.Box2
+      fullWidth={Styles.isMobile}
+      direction={Styles.isMobile ? 'vertical' : 'horizontal'}
+      alignItems="center"
+      style={Styles.collapseStyles([
+        styles.container,
+        selectedCount && !Styles.isMobile ? styles.containerShowing : null,
+      ])}
+      gap={Styles.isMobile ? 'tiny' : undefined}
+      className="selectionPopup"
     >
-      <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center" style={styles.container}>
-        <Kb.Text type="BodySmall">
-          {selectedCount} {props.selectedTab} selected.{' '}
+      {Styles.isMobile && (
+        <Kb.Text style={styles.topLink} type="BodyPrimaryLink" onClick={onUnselect}>
+          Cancel
         </Kb.Text>
-        <Kb.Text type="BodySmallPrimaryLink" onClick={onUnselect}>
-          Unselect
-        </Kb.Text>
-        <Kb.BoxGrow />
-        <Kb.Button label="Delete" type="Danger" onClick={onDelete} />
-      </Kb.Box2>
-    </Kb.Overlay>
-  )
+      )}
+      <Kb.Text type="BodySmall">
+        {selectedCount} {pluralize(tabThing, selectedCount)} selected.{' '}
+        {!Styles.isMobile && (
+          <Kb.Text type="BodySmallPrimaryLink" onClick={onUnselect}>
+            Unselect
+          </Kb.Text>
+        )}
+      </Kb.Text>
+      {!Styles.isMobile && <Kb.BoxGrow />}
+      <Kb.Button label="Delete" type="Danger" onClick={onDelete} fullWidth={Styles.isMobile} />
+    </Kb.Box2>
+  ) : null
 }
 
+export default SelectionPopup
+
 const styles = Styles.styleSheetCreate(() => ({
-  container: {
-    backgroundColor: Styles.globalColors.white,
-    padding: Styles.globalMargins.tiny,
+  container: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.white,
+      position: 'absolute',
+    },
+    isElectron: {
+      ...Styles.desktopStyles.boxShadow,
+      ...Styles.padding(6, Styles.globalMargins.xsmall),
+      borderRadius: 4,
+      bottom: -48,
+      left: Styles.globalMargins.tiny,
+      right: Styles.globalMargins.tiny,
+    },
+    isMobile: {
+      ...Styles.padding(Styles.globalMargins.small),
+      bottom: 0,
+      shadowOffset: {width: 0, height: 2},
+      shadowOpacity: 0.8,
+      shadowRadius: 5,
+    },
+  }),
+  containerShowing: {
+    bottom: Styles.globalMargins.small,
   },
-  overlayMargin: {
-    marginBottom: Styles.globalMargins.small,
+  topLink: {
+    alignSelf: 'flex-start',
+    paddingBottom: Styles.globalMargins.tiny,
   },
 }))

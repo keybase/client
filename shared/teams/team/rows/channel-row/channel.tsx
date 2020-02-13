@@ -18,24 +18,15 @@ const ChannelRow = (props: ChannelRowProps) => {
   const {channel, teamID, conversationIDKey} = props
   const isGeneral = channel.channelname === 'general'
 
-  const _selected = Container.useSelector(
+  const selected = Container.useSelector(
     state => !!state.teams.selectedChannels.get(teamID)?.has(channel.channelname)
   )
-  const [selected, setSelected] = React.useState(_selected)
-  const prevSelected = Container.usePrevious(_selected)
-  // TODO: suddenly can't select more than one at a time ???
-  React.useEffect(() => {
-    if (prevSelected !== _selected) {
-      setSelected(_selected)
-    }
-  }, [setSelected, _selected, prevSelected])
-  const yourRole = Container.useSelector(state => Constants.getRole(state, teamID))
-  const canDelete = Constants.isAdmin(yourRole) || Constants.isOwner(yourRole)
+  const canPerform = Container.useSelector(state => Constants.getCanPerformByID(state, teamID))
+  const canDelete = canPerform.deleteChannel
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
   const onSelect = (selected: boolean) => {
-    setSelected(selected)
     dispatch(TeamsGen.createSetChannelSelected({channel: channel.channelname, selected, teamID}))
   }
   const onEditChannel = () =>

@@ -7,14 +7,16 @@ const sentence2 = 'Anyone except readers can create channels.'
 export default () => (
   <Kb.Box2 direction="vertical" alignItems="center" fullWidth={true} style={styles.container}>
     <Kb.InfoNote>
-      <Kb.Text type="BodySmall" center={true} style={styles.text}>
-        {sentence1} {Styles.isMobile && sentence2}
-      </Kb.Text>
-      {!Styles.isMobile && (
+      <Kb.Box2 direction="vertical" fullWidth={true}>
         <Kb.Text type="BodySmall" center={true} style={styles.text}>
-          {sentence2}
+          {sentence1} {Styles.isMobile && sentence2}
         </Kb.Text>
-      )}
+        {!Styles.isMobile && (
+          <Kb.Text type="BodySmall" center={true} style={styles.text}>
+            {sentence2}
+          </Kb.Text>
+        )}
+      </Kb.Box2>
     </Kb.InfoNote>
   </Kb.Box2>
 )

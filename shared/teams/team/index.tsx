@@ -55,8 +55,6 @@ const Team = props => {
 
   const renderSectionHeader = ({section}) => (section.header ? renderItem({item: section.header}) : null)
 
-  const popupAnchor = React.useRef<React.Component<any>>(null)
-
   return (
     <Kb.Box style={styles.container}>
       <TeamsSubscriber />
@@ -70,12 +68,7 @@ const Team = props => {
         style={styles.list}
         contentContainerStyle={styles.listContentContainer}
       />
-      <Kb.Box fullWidth={true} style={styles.endAnchor} ref={popupAnchor} />
-      <SelectionPopup
-        attachTo={() => popupAnchor.current}
-        selectedTab={props.selectedTab}
-        teamID={props.teamID}
-      />
+      <SelectionPopup selectedTab={props.selectedTab} teamID={props.teamID} />
     </Kb.Box>
   )
 }
