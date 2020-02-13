@@ -308,11 +308,18 @@ func (l *LogSendContext) LogSend(sendLogs bool, numBytes int, mergeExtendedStatu
 			l.StatusJSON = l.mergeExtendedStatus(l.StatusJSON)
 		}
 		if addNetworkStats {
-			stats, err := mctx.G().NetworkInstrumenterStorage.Stats()
+			localStats, err := mctx.G().LocalNetworkInstrumenterStorage.Stats()
 			if err != nil {
 				return "", err
 			}
-			networkStatsJSON, err := json.Marshal(stats)
+			remoteStats, err := mctx.G().RemoteNetworkInstrumenterStorage.Stats()
+			if err != nil {
+				return "", err
+			}
+			networkStatsJSON, err := json.Marshal(libkb.NetworkStatsJSON{
+				Local:  localStats,
+				Remote: remoteStats,
+			})
 			if err != nil {
 				return "", err
 			}

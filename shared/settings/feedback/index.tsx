@@ -185,14 +185,15 @@ const styles = Styles.styleSheetCreate(
         isMobile: {...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small)},
       }),
       mainBox: Styles.platformStyles({
+        common: {
+          padding: Styles.globalMargins.small,
+        },
         isElectron: {
           maxWidth: 550,
-          padding: Styles.globalMargins.small,
           width: '100%',
         },
         isTablet: {
           maxWidth: Styles.globalStyles.mediumWidth,
-          padding: Styles.globalMargins.small,
           width: '100%',
         },
       }),

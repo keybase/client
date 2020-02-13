@@ -157,7 +157,7 @@ protocol config {
 
   boolean isKBFSRunning(int sessionID);
 
-  array<InstrumentationStat> getNetworkStats(int sessionID);
+  array<InstrumentationStat> getNetworkStats(int sessionID, NetworkSource networkSrc);
 
   @typedef("string")  record LogSendID {}
   LogSendID logSend(int sessionID, string statusJSON, string feedback,
