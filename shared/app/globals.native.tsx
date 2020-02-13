@@ -11,7 +11,7 @@ const {NativeModules} = require('react-native')
 // __STORYBOOK__
 // if we're in storybook mode
 if (typeof __STORYBOOK__ === 'undefined') {
-  __STORYBOOK__ = (NativeModules.Storybook && NativeModules.Storybook.isStorybook) || false
+  __STORYBOOK__ = __DEV__ && (NativeModules.Storybook && NativeModules.Storybook.isStorybook) || false
 }
 
 // We don't storyshot RN

@@ -7,7 +7,7 @@ import noop from 'lodash/noop'
 const nativeBridge = NativeModules.KeybaseEngine || {test: 'fallback'}
 
 // Toggle this to disable yellowboxes
-console.disableYellowBox = false
+console.disableYellowBox = treu
 //
 // Ignore some yellowboxes on 3rd party libs we can't control
 YellowBox.ignoreWarnings([
@@ -58,13 +58,13 @@ let config = {
 
 // Developer settings
 if (__DEV__) {
-  config.enableActionLogging = true
+  config.enableActionLogging = false
   config.enableStoreLogging = false
   config.immediateStateLogging = false
   // Move this outside the if statement to get notifications working
   // with a "Profile" build on a phone.
   config.isDevApplePushToken = true
-  config.printOutstandingRPCs = true
+  config.printOutstandingRPCs = false
   config.printOutstandingTimerListeners = true
   config.printRPCWaitingSession = false
   config.printRPC = true
