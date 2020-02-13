@@ -16,28 +16,17 @@ type Props = {
 }
 
 const CheckCircle = (props: Props) => {
-  const [checked, setChecked] = React.useState(props.checked)
-  const onClick = () => {
-    const newChecked = !checked
-    if (props.onCheck) {
-      props.onCheck(newChecked)
-    }
-    setChecked(newChecked)
-  }
-  // If the parent wants us to change our checkedness
-  React.useEffect(() => setChecked(props.checked), [props.checked, setChecked])
-
   return (
     <Kb.Icon
-      type={checked ? 'iconfont-success' : 'iconfont-circle'}
+      type={props.checked ? 'iconfont-success' : 'iconfont-circle'}
       color={
         props.disabled
           ? Styles.globalColors.black_10
-          : checked
+          : props.checked
           ? props.selectedColor ?? Styles.globalColors.blue
           : Styles.globalColors.black_20
       }
-      onClick={props.disabled ? null : onClick}
+      onClick={props.disabled || !props.onCheck ? null : () => props.onCheck!(!props.checked)}
       fontSize={props.fontSize}
       className={Styles.classNames(!props.disabled && 'checkCircle', props.className)}
       style={props.style}
