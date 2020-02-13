@@ -33,6 +33,13 @@ type shareItemJSON struct {
 	Content     string `json:"content"`
 }
 
+func strPtr(str string) *string {
+	if len(str) > 0 {
+		return &str
+	}
+	return nil
+}
+
 func (h *IncomingShareHandler) GetIncomingShareItems(_ context.Context) (items []keybase1.IncomingShareItem, err error) {
 	manifestPath := filepath.Join(h.G().Env.GetMobileSharedHome(), "Library", "Caches", "incoming-shares", "manifest.json")
 	f, err := os.Open(manifestPath)
@@ -46,13 +53,6 @@ func (h *IncomingShareHandler) GetIncomingShareItems(_ context.Context) (items [
 	}
 loop:
 	for _, jsonItem := range jsonItems {
-		content := (*string)(nil)
-		if len(jsonItem.Content) > 0 {
-			// Need to copy it because it gets reassigned in the next
-			// iteration.
-			contentCopy := jsonItem.Content
-			content = &contentCopy
-		}
 		var t keybase1.IncomingShareType
 		switch jsonItem.Type {
 		case "file":
@@ -67,7 +67,7 @@ loop:
 		items = append(items, keybase1.IncomingShareItem{
 			Type:        t,
 			PayloadPath: jsonItem.PayloadPath,
-			Content:     content,
+			Content:     strPtr(jsonItem.Content),
 		})
 	}
 	return items, nil
