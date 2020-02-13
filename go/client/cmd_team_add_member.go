@@ -6,7 +6,6 @@ package client
 import (
 	"context"
 	"errors"
-
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -23,6 +22,7 @@ type CmdTeamAddMember struct {
 	Role                 keybase1.TeamRole
 	BotSettings          *keybase1.TeamBotSettings
 	SkipChatNotification bool
+	EmailInviteMessage   *string
 }
 
 func newCmdTeamAddMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -54,6 +54,10 @@ func newCmdTeamAddMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 				Name:  "s, skip-chat-message",
 				Usage: "skip chat welcome message",
 			},
+			cli.StringFlag{
+				Name:  "m, email-invite-message",
+				Usage: "send a welcome message along with your email invitation",
+			},
 		},
 		Description: teamAddMemberDoc,
 	}
@@ -76,6 +80,11 @@ func (c *CmdTeamAddMember) ParseArgv(ctx *cli.Context) error {
 	c.Role, err = ParseRole(ctx)
 	if err != nil {
 		return err
+	}
+
+	emailInviteMsg := ctx.String("email-invite-message")
+	if len(emailInviteMsg) > 0 {
+		c.EmailInviteMessage = &emailInviteMsg
 	}
 
 	c.Email = ctx.String("email")
@@ -129,6 +138,7 @@ func (c *CmdTeamAddMember) Run() error {
 		Role:                 c.Role,
 		BotSettings:          c.BotSettings,
 		SendChatNotification: !c.SkipChatNotification,
+		EmailInviteMessage:   c.EmailInviteMessage,
 	}
 
 	res, err := cli.TeamAddMember(context.Background(), arg)

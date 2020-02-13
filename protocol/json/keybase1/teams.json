@@ -338,6 +338,13 @@
         {
           "type": "TeamMemberStatus",
           "name": "status"
+        },
+        {
+          "type": [
+            null,
+            "Time"
+          ],
+          "name": "joinTime"
         }
       ]
     },
@@ -420,6 +427,68 @@
         {
           "type": "TeamShowcase",
           "name": "showcase"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamMemberRole",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "FullName",
+          "name": "fullName"
+        },
+        {
+          "type": "TeamRole",
+          "name": "role"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UntrustedTeamInfo",
+      "fields": [
+        {
+          "type": "TeamName",
+          "name": "name"
+        },
+        {
+          "type": "boolean",
+          "name": "inTeam"
+        },
+        {
+          "type": "boolean",
+          "name": "open"
+        },
+        {
+          "type": "string",
+          "name": "description"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "publicAdmins"
+        },
+        {
+          "type": "int",
+          "name": "numMembers"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamMemberRole"
+          },
+          "name": "publicMembers"
         }
       ]
     },
@@ -2488,6 +2557,14 @@
         {
           "type": "string",
           "name": "username"
+        },
+        {
+          "type": "FullName",
+          "name": "fullName"
+        },
+        {
+          "type": "UnixTime",
+          "name": "ctime"
         }
       ]
     },
@@ -3168,6 +3245,15 @@
     }
   ],
   "messages": {
+    "getUntrustedTeamInfo": {
+      "request": [
+        {
+          "name": "teamName",
+          "type": "TeamName"
+        }
+      ],
+      "response": "UntrustedTeamInfo"
+    },
     "teamCreate": {
       "request": [
         {
@@ -3394,6 +3480,13 @@
         {
           "name": "sendChatNotification",
           "type": "boolean"
+        },
+        {
+          "name": "emailInviteMessage",
+          "type": [
+            null,
+            "string"
+          ]
         }
       ],
       "response": "TeamAddMemberResult"
@@ -3429,6 +3522,13 @@
         {
           "name": "sendChatNotification",
           "type": "boolean"
+        },
+        {
+          "name": "emailInviteMessage",
+          "type": [
+            null,
+            "string"
+          ]
         }
       ],
       "response": "TeamAddMembersResult"
@@ -3453,6 +3553,13 @@
         {
           "name": "sendChatNotification",
           "type": "boolean"
+        },
+        {
+          "name": "emailInviteMessage",
+          "type": [
+            null,
+            "string"
+          ]
         }
       ],
       "response": "TeamAddMembersResult"

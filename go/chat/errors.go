@@ -612,3 +612,31 @@ func NewFTLError(s string) error {
 func (f FTLError) Error() string {
 	return fmt.Sprintf("FTL Error: %s", f.msg)
 }
+
+//=============================================================================
+
+type DevStoragePermissionDeniedError struct {
+	role keybase1.TeamRole
+}
+
+func NewDevStoragePermissionDeniedError(role keybase1.TeamRole) error {
+	return &DevStoragePermissionDeniedError{role: role}
+}
+
+func (e *DevStoragePermissionDeniedError) Error() string {
+	return fmt.Sprintf("role %q is not high enough", e.role)
+}
+
+//=============================================================================
+
+type DevStorageAdminOnlyError struct {
+	msg string
+}
+
+func NewDevStorageAdminOnlyError(msg string) error {
+	return &DevStorageAdminOnlyError{msg: msg}
+}
+
+func (e *DevStorageAdminOnlyError) Error() string {
+	return fmt.Sprintf("found a conversation and a message, but role checking failed: %s", e.msg)
+}

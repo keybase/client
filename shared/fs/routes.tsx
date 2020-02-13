@@ -3,7 +3,7 @@ import {BarePreview} from './filepreview'
 import ConfirmDelete from './common/path-item-action/confirm-delete/container'
 import KextPermission from './banner/system-file-manager-integration-banner/kext-permission-popup-container'
 import DestinationPicker from './browser/destination-picker/container'
-import SendAttachmentToChat from './send-to-chat/attachment/container'
+import SendAttachmentToChat from './send-to-chat/attachment'
 
 const fsRoot = {getScreen: (): typeof FsRoot => require('./container').default}
 
@@ -23,6 +23,6 @@ export const newModalRoutes = {
       require('./banner/system-file-manager-integration-banner/kext-permission-popup-container').default,
   },
   sendAttachmentToChat: {
-    getScreen: (): typeof SendAttachmentToChat => require('./send-to-chat/attachment/container').default,
+    getScreen: (): typeof SendAttachmentToChat => require('./send-to-chat/attachment').default,
   },
 }

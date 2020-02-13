@@ -321,7 +321,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	g.StellarLoader = types.DummyStellarLoader{}
 	g.StellarSender = types.DummyStellarSender{}
 	g.TeamMentionLoader = types.DummyTeamMentionLoader{}
-	g.JourneyCardManager = NewJourneyCardManager(g)
+	g.JourneyCardManager = NewJourneyCardManager(g, getRI)
 	g.BotCommandManager = types.DummyBotCommandManager{}
 	g.CommandsSource = commands.NewSource(g)
 	g.CoinFlipManager = NewFlipManager(g, getRI)
@@ -1035,10 +1035,11 @@ func TestKBFSFileEditSize(t *testing.T) {
 		uid := u.User.GetUID().ToBytes()
 		tlfName := u.Username
 		tc := userTc(t, world, u)
-		conv, err := NewConversation(ctx, tc.Context(), uid, tlfName, nil, chat1.TopicType_KBFSFILEEDIT,
+		conv, created, err := NewConversation(ctx, tc.Context(), uid, tlfName, nil, chat1.TopicType_KBFSFILEEDIT,
 			chat1.ConversationMembersType_IMPTEAMNATIVE, keybase1.TLFVisibility_PRIVATE,
 			func() chat1.RemoteInterface { return ri }, NewConvFindExistingNormal)
 		require.NoError(t, err)
+		require.True(t, created)
 
 		body := strings.Repeat("M", 100000)
 		_, _, err = blockingSender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{

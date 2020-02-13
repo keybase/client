@@ -165,6 +165,7 @@ protocol teams {
     @lint("ignore")
     boolean needsPUK;
     TeamMemberStatus status;
+    union { null, Time } joinTime; // last time the user joined the team
   }
 
   record TeamMembersDetails {
@@ -184,6 +185,25 @@ protocol teams {
     TeamSettings settings;
     TeamShowcase showcase;
   }
+
+  record TeamMemberRole {
+    UID uid;
+    string username;
+    FullName fullName;
+    TeamRole role;
+  }
+
+  record UntrustedTeamInfo {
+    TeamName name;
+    boolean inTeam; 
+    boolean open;
+    string description;
+    array<string> publicAdmins;
+    int numMembers;
+    array<TeamMemberRole> publicMembers;
+  }
+
+  UntrustedTeamInfo getUntrustedTeamInfo(TeamName teamName);
 
   @typedef("string")
   record UserVersionPercentForm {}
@@ -1108,6 +1128,8 @@ protocol teams {
   record TeamJoinRequest {
     string name;
     string username;
+    FullName fullName;
+    UnixTime ctime;
   }
 
   record TeamTreeResult {
@@ -1217,9 +1239,10 @@ protocol teams {
   void teamChangeMembership(int sessionID, string name, TeamChangeReq req);
 
   TeamAddMemberResult teamAddMember(int sessionID, TeamID teamID, string email, string phone, string username,
-    TeamRole role, union { null, TeamBotSettings } botSettings, boolean sendChatNotification);
+    TeamRole role, union { null, TeamBotSettings } botSettings, boolean sendChatNotification, union { null, string } emailInviteMessage);
 
-  TeamAddMembersResult teamAddMembers(int sessionID, TeamID teamID, array<string> assertions, TeamRole role, union { null, TeamBotSettings } botSettings, boolean sendChatNotification);
+  // @emailInviteMessage is an argument used as a welcome message in email invitations sent from the server
+  TeamAddMembersResult teamAddMembers(int sessionID, TeamID teamID, array<string> assertions, TeamRole role, union { null, TeamBotSettings } botSettings, boolean sendChatNotification, union { null, string } emailInviteMessage);
 
   record UserRolePair {
     string assertionOrEmail;
@@ -1227,7 +1250,8 @@ protocol teams {
     union { null, TeamBotSettings } botSettings;
   }
 
-  TeamAddMembersResult teamAddMembersMultiRole(int sessionID, TeamID teamID, array<UserRolePair> users, boolean sendChatNotification);
+  // @emailInviteMessage is an argument used as a welcome message in email invitations sent from the server
+  TeamAddMembersResult teamAddMembersMultiRole(int sessionID, TeamID teamID, array<UserRolePair> users, boolean sendChatNotification, union { null, string } emailInviteMessage);
 
   // allowInaction suppresses errors that come from removing an invite that doesn't exist. Relevant for suppressing errors when calling remove while a remove is already in progress.
   // Note: allowInaction only applies to invite removals, just because that was what was needed.

@@ -40,6 +40,50 @@ func (c *TeamChannelSource) getTLFConversations(ctx context.Context, uid gregor1
 	return inbox.ConvsUnverified, err
 }
 
+func (c *TeamChannelSource) GetLastActiveForTLF(ctx context.Context, uid gregor1.UID,
+	tlfID chat1.TLFID, topicType chat1.TopicType) (res gregor1.Time, err error) {
+	defer c.Trace(ctx, func() error { return err },
+		fmt.Sprintf("GetLastActiveForTLF: tlfID: %v, topicType: %v", tlfID, topicType))()
+
+	rcs, err := c.getTLFConversations(ctx, uid, tlfID, topicType)
+	if err != nil {
+		return 0, err
+	}
+	sort.Sort(utils.RemoteConvByMtime(rcs))
+	if len(rcs) > 0 {
+		return utils.GetConvMtime(rcs[0]), nil
+	}
+	return 0, nil
+}
+
+func (c *TeamChannelSource) GetLastActiveForTeams(ctx context.Context, uid gregor1.UID, topicType chat1.TopicType) (
+	res map[chat1.TLFIDStr]gregor1.Time, err error) {
+	defer c.Trace(ctx, func() error { return err },
+		fmt.Sprintf("GetLastActiveForTeams: topicType: %v", topicType))()
+
+	inbox, err := c.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll,
+		&chat1.GetInboxQuery{
+			TopicType:        &topicType,
+			SummarizeMaxMsgs: false,
+			MemberStatus:     chat1.AllConversationMemberStatuses(),
+			Existences:       []chat1.ConversationExistence{chat1.ConversationExistence_ACTIVE},
+			MembersTypes:     []chat1.ConversationMembersType{chat1.ConversationMembersType_TEAM},
+			SkipBgLoads:      true,
+		})
+	byTLFID := make(map[chat1.TLFIDStr][]types.RemoteConversation)
+	for _, conv := range inbox.ConvsUnverified {
+		rc := conv
+		tlfID := rc.Conv.Metadata.IdTriple.Tlfid.TLFIDStr()
+		byTLFID[tlfID] = append(byTLFID[tlfID], rc)
+	}
+	res = make(map[chat1.TLFIDStr]gregor1.Time)
+	for tlfID, rcs := range byTLFID {
+		sort.Sort(utils.RemoteConvByMtime(rcs))
+		res[tlfID] = utils.GetConvMtime(rcs[0])
+	}
+	return res, nil
+}
+
 func (c *TeamChannelSource) GetChannelsFull(ctx context.Context, uid gregor1.UID,
 	tlfID chat1.TLFID, topicType chat1.TopicType) (res []chat1.ConversationLocal, err error) {
 	defer c.Trace(ctx, func() error { return err },

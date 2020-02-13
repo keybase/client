@@ -55,11 +55,11 @@ func (p PgpUI) OutputSignatureSuccess(ctx context.Context, arg keybase1.OutputSi
 	return nil
 }
 
-func (p PgpUI) OutputSignatureSuccessNonKeybase(ctx context.Context, arg keybase1.OutputSignatureSuccessNonKeybaseArg) error {
+func (p PgpUI) OutputSignatureNonKeybase(ctx context.Context, arg keybase1.OutputSignatureNonKeybaseArg) error {
 	signedAt := keybase1.FromTime(arg.SignedAt)
 	output := func(fmtString string, args ...interface{}) {
 		s := fmt.Sprintf(fmtString, args...)
-		s = ColorString(p.G(), "green", s)
+		s = ColorString(p.G(), "red", s)
 		_, _ = p.w.Write([]byte(s))
 	}
 
@@ -73,9 +73,9 @@ func (p PgpUI) OutputSignatureSuccessNonKeybase(ctx context.Context, arg keybase
 	}
 
 	if signedAt.IsZero() {
-		output("Signature verified. Signed by key %s (unknown to keybase).\n", arg.KeyID)
+		output("Message signed by key %s (unknown to Keybase).\n", arg.KeyID)
 	} else {
-		output("Signature verified. Signed by key %s (unknown to keybase) %s (%s).\n", arg.KeyID, humanize.Time(signedAt), signedAt)
+		output("Message signed by key %s (unknown to Keybase) %s (%s).\n", arg.KeyID, humanize.Time(signedAt), signedAt)
 	}
 
 	return nil

@@ -211,6 +211,10 @@ const styles = Styles.styleSheetCreate(
           width: '100%',
         },
         isElectron: {maxHeight: 100},
+        isTablet: {
+          alignSelf: 'center',
+          maxWidth: 460,
+        },
       }),
       inputContainer: Styles.platformStyles({
         isElectron: {

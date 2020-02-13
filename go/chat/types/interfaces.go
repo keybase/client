@@ -294,6 +294,8 @@ type MobileAppState interface {
 }
 
 type TeamChannelSource interface {
+	GetLastActiveForTLF(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType) (gregor1.Time, error)
+	GetLastActiveForTeams(context.Context, gregor1.UID, chat1.TopicType) (map[chat1.TLFIDStr]gregor1.Time, error)
 	GetChannelsFull(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType) ([]chat1.ConversationLocal, error)
 	GetChannelsTopicName(ctx context.Context, uid gregor1.UID,
 		teamID chat1.TLFID, topicType chat1.TopicType) ([]chat1.ChannelNameMention, error)
@@ -446,6 +448,11 @@ type StellarSender interface {
 		payments []ParsedStellarPayment) (chat1.UIChatPaymentSummary, []ParsedStellarPayment, error)
 	DecorateWithPayments(ctx context.Context, body string, payments []chat1.TextPayment) string
 	SendPayments(ctx context.Context, convID chat1.ConversationID, payments []ParsedStellarPayment) ([]chat1.TextPayment, error)
+}
+
+type TeamConversationBackedStorage interface {
+	Put(ctx context.Context, uid gregor1.UID, teamID keybase1.TeamID, name string, data interface{}) error
+	Get(ctx context.Context, uid gregor1.UID, teamID keybase1.TeamID, name string, res interface{}) (bool, error)
 }
 
 type ConversationBackedStorage interface {

@@ -181,6 +181,9 @@
         "chat1NotifyChatChatConvUpdate": {
             "params": "chat1Types.MessageTypes['chat.1.NotifyChat.ChatConvUpdate']['inParam'] & {sessionID: number}"
         },
+        "chat1NotifyChatChatWelcomeMessageLoaded": {
+            "params": "chat1Types.MessageTypes['chat.1.NotifyChat.ChatWelcomeMessageLoaded']['inParam'] & {sessionID: number}"
+        },
         "keybase1GpgUiWantToAddGPGKey": {
             "params": "keybase1Types.MessageTypes['keybase.1.gpgUi.wantToAddGPGKey']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.gpgUi.wantToAddGPGKey']['outParam']) => void}"
         },
@@ -481,8 +484,8 @@
         "keybase1PgpUiOutputSignatureSuccess": {
             "params": "keybase1Types.MessageTypes['keybase.1.pgpUi.outputSignatureSuccess']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.pgpUi.outputSignatureSuccess']['outParam']) => void}"
         },
-        "keybase1PgpUiOutputSignatureSuccessNonKeybase": {
-            "params": "keybase1Types.MessageTypes['keybase.1.pgpUi.outputSignatureSuccessNonKeybase']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.pgpUi.outputSignatureSuccessNonKeybase']['outParam']) => void}"
+        "keybase1PgpUiOutputSignatureNonKeybase": {
+            "params": "keybase1Types.MessageTypes['keybase.1.pgpUi.outputSignatureNonKeybase']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.pgpUi.outputSignatureNonKeybase']['outParam']) => void}"
         },
         "keybase1PgpUiKeyGenerated": {
             "params": "keybase1Types.MessageTypes['keybase.1.pgpUi.keyGenerated']['inParam'] & {sessionID: number}, response: {error: keybase1Types.IncomingErrorCallback, result: (param: keybase1Types.MessageTypes['keybase.1.pgpUi.keyGenerated']['outParam']) => void}"

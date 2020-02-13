@@ -80,7 +80,7 @@ export const EnterPhoneNumberBody = (props: BodyProps) => {
       direction="vertical"
       gap={Styles.isMobile ? 'small' : 'medium'}
       fullWidth={true}
-      style={Styles.globalStyles.flexOne}
+      style={styles.container}
     >
       <Kb.Icon type={props.iconType} />
       <Kb.Box2 direction="vertical" gap="tiny" style={styles.inputBox}>
@@ -111,6 +111,10 @@ EnterPhoneNumberBody.defaultProps = {
 
 const styles = Styles.styleSheetCreate(() => ({
   checkbox: {width: '100%'},
+  container: Styles.platformStyles({
+    common: Styles.globalStyles.flexOne,
+    isTablet: {maxWidth: 386},
+  }),
   input: Styles.platformStyles({
     isElectron: {
       height: 38,

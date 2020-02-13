@@ -12,6 +12,7 @@ export type WebViewProps = {
   originWhitelist?: Array<string>
   renderLoading?: () => React.ReactElement<any>
   url: string
+  pinnedURLMode: boolean // only tested on iOS
   injections?: WebViewInjections
   style?: Object
   onLoadingStateChange?: (isLoading: boolean) => void

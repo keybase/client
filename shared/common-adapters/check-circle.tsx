@@ -12,6 +12,7 @@ type Props = {
   disabled?: boolean
   fontSize?: number
   selectedColor?: Color
+  style?: Styles.StylesCrossPlatform
 }
 
 const CheckCircle = (props: Props) => {
@@ -38,7 +39,8 @@ const CheckCircle = (props: Props) => {
       }
       onClick={props.disabled ? null : onClick}
       fontSize={props.fontSize}
-      className={props.className}
+      className={Styles.classNames(!props.disabled && 'checkCircle', props.className)}
+      style={props.style}
     />
   )
 }

@@ -91,7 +91,7 @@ const inboxRefresh = (
     actions.push(Chat2Gen.createClearMessages())
   }
   const reselectMode =
-    state.chat2.inboxHasLoaded || Container.isMobile
+    state.chat2.inboxHasLoaded || Container.isPhone
       ? RPCChatTypes.InboxLayoutReselectMode.default
       : RPCChatTypes.InboxLayoutReselectMode.force
   RPCChatTypes.localRequestInboxLayoutRpcPromise({reselectMode})
@@ -274,7 +274,7 @@ const maybeChangeSelectedConv = (
     !Constants.isValidConversationIDKey(selectedConversation) ||
     state.chat2.selectedConversation === reselectInfo.oldConvID
   ) {
-    if (Container.isMobile) {
+    if (Container.isPhone) {
       // on mobile just head back to the inbox if we have something selected
       if (Constants.isValidConversationIDKey(selectedConversation)) {
         logger.info(`maybeChangeSelectedConv: mobile: navigating up on conv change`)
@@ -2179,10 +2179,15 @@ function* attachmentsUpload(
   logger: Saga.SagaLogger
 ) {
   const {conversationIDKey, paths, titles} = action.payload
+  let tlfName = action.payload.tlfName
   const meta = state.chat2.metaMap.get(conversationIDKey)
   if (!meta) {
-    logger.warn('Missing meta for attachment upload', conversationIDKey)
-    return
+    if (!tlfName) {
+      logger.warn('attachmentsUpload: missing meta for attachment upload', conversationIDKey)
+      return
+    }
+  } else {
+    tlfName = meta.tlfname
   }
   const clientPrev = Constants.getClientPrev(state, conversationIDKey)
   // disable sending exploding messages if flag is false
@@ -2203,7 +2208,7 @@ function* attachmentsUpload(
           metadata: Buffer.from([]),
           outboxID: outboxIDs[i],
           title: titles[i],
-          tlfName: meta.tlfname,
+          tlfName: tlfName ?? '',
           visibility: RPCTypes.TLFVisibility.private,
         },
         clientPrev,
@@ -2402,7 +2407,7 @@ const navigateToThreadRoute = (conversationIDKey: Types.ConversationIDKey, fromK
   let replace = false
   const visible = Router2Constants.getVisibleScreen()
 
-  if (!Container.isMobile && visible && visible.routeName === 'chatRoot') {
+  if (!Container.isPhone && visible && visible.routeName === 'chatRoot') {
     // Don't append; we don't want to increase the size of the stack on desktop
     return
   }
@@ -2418,7 +2423,7 @@ const navigateToThreadRoute = (conversationIDKey: Types.ConversationIDKey, fromK
 
   return RouteTreeGen.createNavigateAppend({
     fromKey,
-    path: [{props: {conversationIDKey}, selected: Container.isMobile ? 'chatConversation' : 'chatRoot'}],
+    path: [{props: {conversationIDKey}, selected: Container.isPhone ? 'chatConversation' : 'chatRoot'}],
     replace,
   })
 }
@@ -3604,7 +3609,7 @@ const refreshBotSettings = async (action: Chat2Gen.RefreshBotSettingsPayload, lo
 
 const onShowInfoPanel = (action: Chat2Gen.ShowInfoPanelPayload) => {
   const {conversationIDKey, show, tab} = action.payload
-  if (Container.isMobile) {
+  if (Container.isPhone) {
     const visibleScreen = Router2Constants.getVisibleScreen()
     if ((visibleScreen?.routeName === 'chatInfoPanel') !== show) {
       return show
@@ -3624,9 +3629,10 @@ const onShowInfoPanel = (action: Chat2Gen.ShowInfoPanelPayload) => {
 
 function* chat2Saga() {
   // Platform specific actions
-  if (Container.isMobile) {
+  if (Container.isPhone) {
     // Push us into the conversation
     yield* Saga.chainAction2(Chat2Gen.selectConversation, mobileNavigateOnSelect)
+  } else if (Container.isMobile) {
     yield* Saga.chainGenerator<Chat2Gen.MessageAttachmentNativeSharePayload>(
       Chat2Gen.messageAttachmentNativeShare,
       mobileMessageAttachmentShare

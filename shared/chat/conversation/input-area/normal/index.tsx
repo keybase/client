@@ -598,6 +598,7 @@ class Input extends React.Component<InputProps, InputState> {
         <PlatformInput
           {...platformInputProps}
           dataSources={this._suggestorDatasource}
+          maxInputArea={this.props.maxInputArea}
           renderers={this._suggestorRenderer}
           suggestorToMarker={suggestorToMarker}
           suggestionListStyle={Styles.collapseStyles([
@@ -623,14 +624,9 @@ class Input extends React.Component<InputProps, InputState> {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      boldStyle: {
-        fontWeight: '700',
-      },
+      boldStyle: {fontWeight: '700'},
       container: Styles.platformStyles({
-        isMobile: {
-          justifyContent: 'flex-end',
-          maxHeight: '70%',
-        },
+        isMobile: {justifyContent: 'flex-end'},
       }),
       fixSuggestionHeight: Styles.platformStyles({
         isMobile: {height: 48},

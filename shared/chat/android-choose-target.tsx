@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
-import * as FSConstants from '../constants/fs'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as FsGen from '../actions/fs-gen'
 import * as FsTypes from '../constants/types/fs'
@@ -15,7 +14,12 @@ const AndroidChooseTarget = () => {
     dispatch(FsGen.createSetIncomingShareLocalPath({localPath: FsTypes.stringToLocalPath(url)}))
     dispatch(FsGen.createShowIncomingShare({initialDestinationParentPath: FsTypes.stringToPath('/keybase')}))
   }
-  const onChat = () => FSConstants.makeActionsForShowSendAttachmentToChat(url).forEach(a => dispatch(a))
+  const onChat = () =>
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {url}, selected: 'sendAttachmentToChat'}],
+      })
+    )
   const parts = url.split('/')
   const name = parts[parts.length - 1]
 

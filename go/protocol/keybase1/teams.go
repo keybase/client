@@ -497,6 +497,7 @@ type TeamMemberDetails struct {
 	FullName FullName         `codec:"fullName" json:"fullName"`
 	NeedsPUK bool             `codec:"needsPUK" json:"needsPUK"`
 	Status   TeamMemberStatus `codec:"status" json:"status"`
+	JoinTime *Time            `codec:"joinTime,omitempty" json:"joinTime,omitempty"`
 }
 
 func (o TeamMemberDetails) DeepCopy() TeamMemberDetails {
@@ -506,6 +507,13 @@ func (o TeamMemberDetails) DeepCopy() TeamMemberDetails {
 		FullName: o.FullName.DeepCopy(),
 		NeedsPUK: o.NeedsPUK,
 		Status:   o.Status.DeepCopy(),
+		JoinTime: (func(x *Time) *Time {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.JoinTime),
 	}
 }
 
@@ -617,6 +625,64 @@ func (o TeamDetails) DeepCopy() TeamDetails {
 		})(o.AnnotatedActiveInvites),
 		Settings: o.Settings.DeepCopy(),
 		Showcase: o.Showcase.DeepCopy(),
+	}
+}
+
+type TeamMemberRole struct {
+	Uid      UID      `codec:"uid" json:"uid"`
+	Username string   `codec:"username" json:"username"`
+	FullName FullName `codec:"fullName" json:"fullName"`
+	Role     TeamRole `codec:"role" json:"role"`
+}
+
+func (o TeamMemberRole) DeepCopy() TeamMemberRole {
+	return TeamMemberRole{
+		Uid:      o.Uid.DeepCopy(),
+		Username: o.Username,
+		FullName: o.FullName.DeepCopy(),
+		Role:     o.Role.DeepCopy(),
+	}
+}
+
+type UntrustedTeamInfo struct {
+	Name          TeamName         `codec:"name" json:"name"`
+	InTeam        bool             `codec:"inTeam" json:"inTeam"`
+	Open          bool             `codec:"open" json:"open"`
+	Description   string           `codec:"description" json:"description"`
+	PublicAdmins  []string         `codec:"publicAdmins" json:"publicAdmins"`
+	NumMembers    int              `codec:"numMembers" json:"numMembers"`
+	PublicMembers []TeamMemberRole `codec:"publicMembers" json:"publicMembers"`
+}
+
+func (o UntrustedTeamInfo) DeepCopy() UntrustedTeamInfo {
+	return UntrustedTeamInfo{
+		Name:        o.Name.DeepCopy(),
+		InTeam:      o.InTeam,
+		Open:        o.Open,
+		Description: o.Description,
+		PublicAdmins: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.PublicAdmins),
+		NumMembers: o.NumMembers,
+		PublicMembers: (func(x []TeamMemberRole) []TeamMemberRole {
+			if x == nil {
+				return nil
+			}
+			ret := make([]TeamMemberRole, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.PublicMembers),
 	}
 }
 
@@ -2904,14 +2970,18 @@ func (o TeamAddMembersResult) DeepCopy() TeamAddMembersResult {
 }
 
 type TeamJoinRequest struct {
-	Name     string `codec:"name" json:"name"`
-	Username string `codec:"username" json:"username"`
+	Name     string   `codec:"name" json:"name"`
+	Username string   `codec:"username" json:"username"`
+	FullName FullName `codec:"fullName" json:"fullName"`
+	Ctime    UnixTime `codec:"ctime" json:"ctime"`
 }
 
 func (o TeamJoinRequest) DeepCopy() TeamJoinRequest {
 	return TeamJoinRequest{
 		Name:     o.Name,
 		Username: o.Username,
+		FullName: o.FullName.DeepCopy(),
+		Ctime:    o.Ctime.DeepCopy(),
 	}
 }
 
@@ -3570,6 +3640,10 @@ func (o AnnotatedTeam) DeepCopy() AnnotatedTeam {
 	}
 }
 
+type GetUntrustedTeamInfoArg struct {
+	TeamName TeamName `codec:"teamName" json:"teamName"`
+}
+
 type TeamCreateArg struct {
 	SessionID   int    `codec:"sessionID" json:"sessionID"`
 	Name        string `codec:"name" json:"name"`
@@ -3646,6 +3720,7 @@ type TeamAddMemberArg struct {
 	Role                 TeamRole         `codec:"role" json:"role"`
 	BotSettings          *TeamBotSettings `codec:"botSettings,omitempty" json:"botSettings,omitempty"`
 	SendChatNotification bool             `codec:"sendChatNotification" json:"sendChatNotification"`
+	EmailInviteMessage   *string          `codec:"emailInviteMessage,omitempty" json:"emailInviteMessage,omitempty"`
 }
 
 type TeamAddMembersArg struct {
@@ -3655,6 +3730,7 @@ type TeamAddMembersArg struct {
 	Role                 TeamRole         `codec:"role" json:"role"`
 	BotSettings          *TeamBotSettings `codec:"botSettings,omitempty" json:"botSettings,omitempty"`
 	SendChatNotification bool             `codec:"sendChatNotification" json:"sendChatNotification"`
+	EmailInviteMessage   *string          `codec:"emailInviteMessage,omitempty" json:"emailInviteMessage,omitempty"`
 }
 
 type TeamAddMembersMultiRoleArg struct {
@@ -3662,6 +3738,7 @@ type TeamAddMembersMultiRoleArg struct {
 	TeamID               TeamID         `codec:"teamID" json:"teamID"`
 	Users                []UserRolePair `codec:"users" json:"users"`
 	SendChatNotification bool           `codec:"sendChatNotification" json:"sendChatNotification"`
+	EmailInviteMessage   *string        `codec:"emailInviteMessage,omitempty" json:"emailInviteMessage,omitempty"`
 }
 
 type TeamRemoveMemberArg struct {
@@ -3922,6 +3999,7 @@ type GetAnnotatedTeamArg struct {
 }
 
 type TeamsInterface interface {
+	GetUntrustedTeamInfo(context.Context, TeamName) (UntrustedTeamInfo, error)
 	TeamCreate(context.Context, TeamCreateArg) (TeamCreateResult, error)
 	TeamCreateWithSettings(context.Context, TeamCreateWithSettingsArg) (TeamCreateResult, error)
 	TeamGetByID(context.Context, TeamGetByIDArg) (TeamDetails, error)
@@ -4007,6 +4085,21 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.teams",
 		Methods: map[string]rpc.ServeHandlerDescription{
+			"getUntrustedTeamInfo": {
+				MakeArg: func() interface{} {
+					var ret [1]GetUntrustedTeamInfoArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetUntrustedTeamInfoArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetUntrustedTeamInfoArg)(nil), args)
+						return
+					}
+					ret, err = i.GetUntrustedTeamInfo(ctx, typedArgs[0].TeamName)
+					return
+				},
+			},
 			"teamCreate": {
 				MakeArg: func() interface{} {
 					var ret [1]TeamCreateArg
@@ -4923,6 +5016,12 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 
 type TeamsClient struct {
 	Cli rpc.GenericClient
+}
+
+func (c TeamsClient) GetUntrustedTeamInfo(ctx context.Context, teamName TeamName) (res UntrustedTeamInfo, err error) {
+	__arg := GetUntrustedTeamInfoArg{TeamName: teamName}
+	err = c.Cli.Call(ctx, "keybase.1.teams.getUntrustedTeamInfo", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
 }
 
 func (c TeamsClient) TeamCreate(ctx context.Context, __arg TeamCreateArg) (res TeamCreateResult, err error) {

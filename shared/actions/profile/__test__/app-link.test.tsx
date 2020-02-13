@@ -1,6 +1,6 @@
 /* eslint-env jest */
 import URL from 'url-parse'
-import {urlToUsername} from '../../../constants/config'
+import {urlToUsername, urlToTeamDeepLink} from '../../../constants/config'
 
 describe('urlToUsername', () => {
   function check(link: string, expectedUsername: string | null) {
@@ -60,5 +60,51 @@ describe('urlToUsername', () => {
 
     check('https://keybase.io:443/A', null)
     check('https://keybase.io:443/A__B', null)
+  })
+})
+
+describe('urlToTeamLink', () => {
+  function check(link: string, expectedTeamName: string | undefined, expectedAction: string | undefined) {
+    const url = new URL(link)
+    const ret = urlToTeamDeepLink(url)
+    if (ret) {
+      expect(ret.teamName).toBe(expectedTeamName)
+      expect(ret.action).toBe(expectedAction)
+    } else {
+      expect(expectedTeamName).toBe(undefined)
+      expect(expectedAction).toBe(undefined)
+    }
+  }
+
+  it('basic', () => {
+    check('https://keybase.io/team/foo', 'foo', undefined)
+    check('https://keybase.io/team/foo.bar', 'foo.bar', undefined)
+    check('https://keybase.io/team/foo-bar', 'foo-bar', undefined)
+  })
+
+  it('actions', () => {
+    check('https://keybase.io/team/cats?applink=manage_settings', 'cats', 'manage_settings')
+    check('https://keybase.io/team/dogs?applink=add_or_invite', 'dogs', 'add_or_invite')
+
+    check('https://keybase.io/team/foo.bar?applink=manage_settings', 'foo.bar', 'manage_settings')
+    check('https://keybase.io/team/foo.foo?applink=add_or_invite', 'foo.foo', 'add_or_invite')
+
+    check('https://keybase.io/team/foo.foo?applink=bad_action', 'foo.foo', undefined)
+  })
+
+  it('bad', () => {
+    // bad name
+    check('https://keybase.io/team/f______b', undefined, undefined)
+
+    // too short
+    check('https://keybase.io/team/f', undefined, undefined)
+    check('https://keybase.io/team/f?applink=manage_settings', undefined, undefined)
+
+    // too long
+    const longTeam = Buffer.alloc(300)
+      .fill('a')
+      .toString()
+    check(`https://keybase.io/team/${longTeam}`, undefined, undefined)
+    check(`https://keybase.io/team/${longTeam}?applink=add_or_invite`, undefined, undefined)
   })
 })

@@ -419,14 +419,6 @@
         {
           "type": "keybase1.DeviceID",
           "name": "deviceID"
-        },
-        {
-          "type": "string",
-          "name": "deviceName"
-        },
-        {
-          "type": "keybase1.DeviceTypeV2",
-          "name": "deviceType"
         }
       ]
     },
@@ -962,6 +954,21 @@
             null,
             "InboxUIItem"
           ]
+        }
+      ],
+      "response": null,
+      "notify": "",
+      "lint": "ignore"
+    },
+    "ChatWelcomeMessageLoaded": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "keybase1.TeamID"
+        },
+        {
+          "name": "message",
+          "type": "WelcomeMessage"
         }
       ],
       "response": null,

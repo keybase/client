@@ -11,11 +11,13 @@ import Team, {Sections} from '.'
 import makeRows from './rows'
 import flags from '../../util/feature-flags'
 
-type TabsStateOwnProps = Container.RouteProps<{teamID: Types.TeamID}>
+type TabsStateOwnProps = Container.RouteProps<{teamID: Types.TeamID; initialTab?: Types.TabKey}>
 type OwnProps = TabsStateOwnProps & {
   selectedTab: Types.TabKey
   setSelectedTab: (tab: Types.TabKey) => void
 }
+
+const defaultTab: Types.TabKey = 'members'
 
 // keep track during session
 const lastSelectedTabs = {}
@@ -26,12 +28,13 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
     throw new Error('There was a problem loading the team page, please report this error.')
   }
 
-  const selectedTab = ownProps.selectedTab || 'members'
+  const selectedTab = ownProps.selectedTab || defaultTab
 
   return {
     channelInfos: state.teams.teamIDToChannelInfos.get(teamID),
     invitesCollapsed: state.teams.invitesCollapsed,
     selectedTab,
+    subteamsFiltered: state.teams.subteamsFiltered,
     teamDetails: Constants.getTeamDetails(state, teamID),
     teamID,
     teamMeta: Constants.getTeamMeta(state, teamID),
@@ -53,7 +56,8 @@ const Connected = Container.compose(
       stateProps.yourUsername,
       stateProps.yourOperations,
       stateProps.invitesCollapsed,
-      stateProps.channelInfos
+      stateProps.channelInfos,
+      stateProps.subteamsFiltered
     )
     const sections: Sections = [
       ...(Container.isMobile && !flags.teamsRedesign
@@ -77,8 +81,9 @@ const Connected = Container.compose(
 
 const TabsState = (props: TabsStateOwnProps) => {
   const teamID = Container.getRouteProps(props, 'teamID', '')
+  const initialTab = Container.getRouteProps(props, 'initialTab', '')
 
-  const defaultSelectedTab = lastSelectedTabs[teamID] || 'members'
+  const defaultSelectedTab = initialTab || lastSelectedTabs[teamID] || 'members'
   const [selectedTab, _setSelectedTab] = React.useState<Types.TabKey>(defaultSelectedTab)
   const setSelectedTab = React.useCallback(
     selectedTab => {
@@ -94,19 +99,21 @@ const TabsState = (props: TabsStateOwnProps) => {
   const dispatch = Container.useDispatch()
   React.useEffect(() => {
     if (teamID !== prevTeamID) {
-      setSelectedTab(lastSelectedTabs[teamID] || 'members')
+      setSelectedTab(defaultSelectedTab)
     }
+  }, [teamID, prevTeamID, setSelectedTab, defaultSelectedTab])
+  React.useEffect(() => {
     if (selectedTab !== prevSelectedTab && selectedTab === 'channels') {
       dispatch(TeamsGen.createGetChannels({teamID}))
     }
-  }, [selectedTab, dispatch, teamID, prevTeamID, prevSelectedTab, setSelectedTab])
+  }, [selectedTab, dispatch, teamID, prevSelectedTab])
 
   return <Connected {...props} setSelectedTab={setSelectedTab} selectedTab={selectedTab} />
 }
 
 TabsState.navigationOptions = (ownProps: TabsStateOwnProps) => ({
   header:
-    Container.isMobile && flags.teamsRedesign && false
+    Container.isMobile && flags.teamsRedesign
       ? () => <HeaderTitle teamID={Container.getRouteProps(ownProps, 'teamID', '')} />
       : null,
   headerExpandable: true,

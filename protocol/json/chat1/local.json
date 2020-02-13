@@ -3200,6 +3200,30 @@
     },
     {
       "type": "record",
+      "name": "GetChannelMembershipsLocalRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "ChannelNameMention"
+          },
+          "name": "channels"
+        },
+        {
+          "type": "boolean",
+          "name": "offline"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "SetAppNotificationSettingsLocalRes",
       "fields": [
         {
@@ -3330,6 +3354,35 @@
             "items": "keybase1.TLFIdentifyFailure"
           },
           "name": "identifyFailures"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SimpleSearchInboxConvNamesHit",
+      "fields": [
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "boolean",
+          "name": "isTeam"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "parts"
+        },
+        {
+          "type": "string",
+          "name": "teamName"
         }
       ]
     },
@@ -3750,6 +3803,53 @@
         "STELLAR_RECEIVED_9",
         "STELLAR_SENT_10",
         "PINNED_MESSAGE_11"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "WelcomeMessage",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "set"
+        },
+        {
+          "type": "string",
+          "name": "text"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GetDefaultTeamChannelsLocalRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "InboxUIItem"
+          },
+          "name": "convs"
+        },
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SetDefaultTeamChannelsLocalRes",
+      "fields": [
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
       ]
     }
   ],
@@ -4900,6 +5000,19 @@
       ],
       "response": "GetTLFConversationsLocalRes"
     },
+    "getChannelMembershipsLocal": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "keybase1.TeamID"
+        },
+        {
+          "name": "uid",
+          "type": "gregor1.UID"
+        }
+      ],
+      "response": "GetChannelMembershipsLocalRes"
+    },
     "setAppNotificationSettingsLocal": {
       "request": [
         {
@@ -5096,6 +5209,18 @@
       ],
       "response": "SearchInboxRes"
     },
+    "simpleSearchInboxConvNames": {
+      "request": [
+        {
+          "name": "query",
+          "type": "string"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "SimpleSearchInboxConvNamesHit"
+      }
+    },
     "cancelActiveSearch": {
       "request": [],
       "response": null
@@ -5180,6 +5305,25 @@
         {
           "name": "convID",
           "type": "ConversationID"
+        },
+        {
+          "name": "usernames",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
+        }
+      ],
+      "response": null
+    },
+    "bulkAddToManyConvs": {
+      "request": [
+        {
+          "name": "conversations",
+          "type": {
+            "type": "array",
+            "items": "ConversationID"
+          }
         },
         {
           "name": "usernames",
@@ -5484,6 +5628,70 @@
         }
       ],
       "response": null
+    },
+    "setWelcomeMessage": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "keybase1.TeamID"
+        },
+        {
+          "name": "message",
+          "type": "WelcomeMessage"
+        }
+      ],
+      "response": null
+    },
+    "getWelcomeMessage": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "keybase1.TeamID"
+        }
+      ],
+      "response": "WelcomeMessage"
+    },
+    "getDefaultTeamChannelsLocal": {
+      "request": [
+        {
+          "name": "teamName",
+          "type": "string"
+        }
+      ],
+      "response": "GetDefaultTeamChannelsLocalRes"
+    },
+    "setDefaultTeamChannelsLocal": {
+      "request": [
+        {
+          "name": "teamName",
+          "type": "string"
+        },
+        {
+          "name": "convs",
+          "type": {
+            "type": "array",
+            "items": "ConvIDStr"
+          }
+        }
+      ],
+      "response": "SetDefaultTeamChannelsLocalRes"
+    },
+    "getLastActiveForTLF": {
+      "request": [
+        {
+          "name": "tlfID",
+          "type": "TLFIDStr"
+        }
+      ],
+      "response": "LastActiveStatus"
+    },
+    "getLastActiveForTeams": {
+      "request": [],
+      "response": {
+        "type": "map",
+        "values": "LastActiveStatus",
+        "keys": "TLFIDStr"
+      }
     }
   },
   "namespace": "chat.1"

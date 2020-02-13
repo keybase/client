@@ -37,7 +37,7 @@ if (!Styles.isMobile) {
 
 const ButtonBox = Styles.styled(ClickableBox, {shouldForwardProp: prop => prop !== 'noEffect'})(
   // @ts-ignore
-  (props: ClickableBoxProps & {border: 1 | 0; noEffect: boolean}) =>
+  (props: ClickableBoxProps & {border: boolean; noEffect: boolean}) =>
     Styles.isMobile || props.noEffect
       ? {borderColor: Styles.globalColors.black_10}
       : {
@@ -57,7 +57,8 @@ const ButtonBox = Styles.styled(ClickableBox, {shouldForwardProp: prop => prop !
 
 const ReactButton = (props: Props) => (
   <ButtonBox
-    border={0}
+    noEffect={false}
+    border={false}
     className={Styles.classNames(props.className, {noShadow: props.active})}
     onLongPress={props.onLongPress}
     onMouseLeave={props.onMouseLeave}
@@ -124,7 +125,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
     this._stopCycle()
   }
 
-  _onShowPicker = (evt: React.SyntheticEvent) => {
+  _onShowPicker = (evt: React.BaseSyntheticEvent) => {
     if (Styles.isMobile) {
       this.props.onOpenEmojiPicker()
       return
@@ -166,6 +167,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
   render() {
     return (
       <ButtonBox
+        noEffect={false}
         onLongPress={this.props.onLongPress}
         border={this.props.showBorder}
         onClick={this._onShowPicker}

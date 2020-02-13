@@ -399,6 +399,7 @@ export type TypedActionsMap = {
   'engine-gen:chat1NotifyChatChatRequestInfo': enginegen.Chat1NotifyChatChatRequestInfoPayload
   'engine-gen:chat1NotifyChatChatPromptUnfurl': enginegen.Chat1NotifyChatChatPromptUnfurlPayload
   'engine-gen:chat1NotifyChatChatConvUpdate': enginegen.Chat1NotifyChatChatConvUpdatePayload
+  'engine-gen:chat1NotifyChatChatWelcomeMessageLoaded': enginegen.Chat1NotifyChatChatWelcomeMessageLoadedPayload
   'engine-gen:keybase1GpgUiWantToAddGPGKey': enginegen.Keybase1GpgUiWantToAddGPGKeyPayload
   'engine-gen:keybase1GpgUiConfirmDuplicateKeyChosen': enginegen.Keybase1GpgUiConfirmDuplicateKeyChosenPayload
   'engine-gen:keybase1GpgUiConfirmImportSecretToExistingKey': enginegen.Keybase1GpgUiConfirmImportSecretToExistingKeyPayload
@@ -499,7 +500,7 @@ export type TypedActionsMap = {
   'engine-gen:keybase1NotifyUsersIdentifyUpdate': enginegen.Keybase1NotifyUsersIdentifyUpdatePayload
   'engine-gen:keybase1PgpUiOutputPGPWarning': enginegen.Keybase1PgpUiOutputPGPWarningPayload
   'engine-gen:keybase1PgpUiOutputSignatureSuccess': enginegen.Keybase1PgpUiOutputSignatureSuccessPayload
-  'engine-gen:keybase1PgpUiOutputSignatureSuccessNonKeybase': enginegen.Keybase1PgpUiOutputSignatureSuccessNonKeybasePayload
+  'engine-gen:keybase1PgpUiOutputSignatureNonKeybase': enginegen.Keybase1PgpUiOutputSignatureNonKeybasePayload
   'engine-gen:keybase1PgpUiKeyGenerated': enginegen.Keybase1PgpUiKeyGeneratedPayload
   'engine-gen:keybase1PgpUiShouldPushPrivate': enginegen.Keybase1PgpUiShouldPushPrivatePayload
   'engine-gen:keybase1PgpUiFinished': enginegen.Keybase1PgpUiFinishedPayload
@@ -604,11 +605,6 @@ export type TypedActionsMap = {
   'fs:showIncomingShare': fs.ShowIncomingSharePayload
   'fs:move': fs.MovePayload
   'fs:copy': fs.CopyPayload
-  'fs:initSendAttachmentToChat': fs.InitSendAttachmentToChatPayload
-  'fs:setSendAttachmentToChatConvID': fs.SetSendAttachmentToChatConvIDPayload
-  'fs:setSendAttachmentToChatFilter': fs.SetSendAttachmentToChatFilterPayload
-  'fs:setSendAttachmentToChatTitle': fs.SetSendAttachmentToChatTitlePayload
-  'fs:sentAttachmentToChat': fs.SentAttachmentToChatPayload
   'fs:setPathItemActionMenuView': fs.SetPathItemActionMenuViewPayload
   'fs:waitForKbfsDaemon': fs.WaitForKbfsDaemonPayload
   'fs:kbfsDaemonRpcStatusChanged': fs.KbfsDaemonRpcStatusChangedPayload
@@ -961,6 +957,7 @@ export type TypedActionsMap = {
   'teams:setTeamRoleMap': teams.SetTeamRoleMapPayload
   'teams:toggleInvitesCollapsed': teams.ToggleInvitesCollapsedPayload
   'teams:setSubteamFilter': teams.SetSubteamFilterPayload
+  'teams:showTeamByName': teams.ShowTeamByNamePayload
   'tracker2:load': tracker2.LoadPayload
   'tracker2:updatedDetails': tracker2.UpdatedDetailsPayload
   'tracker2:updateResult': tracker2.UpdateResultPayload

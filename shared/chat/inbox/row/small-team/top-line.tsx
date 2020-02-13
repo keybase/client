@@ -4,6 +4,7 @@ import * as Styles from '../../../../styles'
 import shallowEqual from 'shallowequal'
 import TeamMenu from '../../../conversation/info-panel/menu/container'
 import * as ChatTypes from '../../../../constants/types/chat2'
+import {AllowedColors} from '../../../../common-adapters/text'
 
 type Props = {
   channelname?: string
@@ -20,7 +21,7 @@ type Props = {
   backgroundColor?: string
   subColor: string
   timestamp?: string
-  usernameColor?: string
+  usernameColor?: AllowedColors
   hasBadge: boolean
 } & Kb.OverlayParentProps
 
@@ -153,10 +154,15 @@ const styles = Styles.styleSheetCreate(
           whiteSpace: 'nowrap',
         },
       }),
-      timestamp: {
-        backgroundColor: Styles.globalColors.fastBlank,
-        color: Styles.globalColors.blueDark,
-      },
+      timestamp: Styles.platformStyles({
+        common: {
+          backgroundColor: Styles.globalColors.fastBlank,
+          color: Styles.globalColors.blueDark,
+        },
+        isTablet: {
+          backgroundColor: undefined,
+        },
+      }),
       unreadDotStyle: {
         backgroundColor: Styles.globalColors.orange,
         borderRadius: 6,

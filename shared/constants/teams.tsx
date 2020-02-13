@@ -184,7 +184,7 @@ const emptyState: Types.State = {
   sawSubteamsBanner: false,
   selectedChannels: new Map(),
   subteamFilter: '',
-  subteamsFiltered: new Set(),
+  subteamsFiltered: undefined,
   teamAccessRequestsPending: new Set(),
   teamBuilding: TeamBuildingConstants.makeSubState(),
   teamDetails: new Map(),
@@ -193,6 +193,7 @@ const emptyState: Types.State = {
   teamIDToMembers: new Map(),
   teamIDToResetUsers: new Map(),
   teamIDToRetentionPolicy: new Map(),
+  teamIDToWelcomeMessage: new Map(),
   teamJoinSuccess: false,
   teamJoinSuccessOpen: false,
   teamJoinSuccessTeamName: '',
@@ -467,6 +468,11 @@ export const getTeamNameFromID = (state: TypedState, teamID: Types.TeamID): Type
 
 export const getTeamRetentionPolicyByID = (state: TypedState, teamID: Types.TeamID): RetentionPolicy | null =>
   state.teams.teamIDToRetentionPolicy.get(teamID) ?? null
+
+export const getTeamWelcomeMessageByID = (
+  state: TypedState,
+  teamID: Types.TeamID
+): Types.WelcomeMessage | null => state.teams.teamIDToWelcomeMessage.get(teamID) ?? null
 
 export const getSelectedTeams = (): Types.TeamID[] => {
   const path = getFullRoute()
@@ -745,7 +751,7 @@ export const annotatedTeamToDetails = (t: RPCTypes.AnnotatedTeam): Types.TeamDet
     description: t.showcase.description ?? '',
     invites: t.invites ? new Set(annotatedInvitesToInviteInfo(t.invites)) : new Set(),
     members,
-    requests: new Set(t.joinRequests?.map(r => r.username) ?? []),
+    requests: t.joinRequests ? new Set(t.joinRequests) : new Set(),
     settings: {
       open: !!t.settings.open,
       openJoinAs: maybeOpenJoinAs === 'none' ? 'reader' : maybeOpenJoinAs,

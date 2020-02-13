@@ -35,6 +35,9 @@ type AddMemberTx struct {
 
 	// Override whether the team key is rotated.
 	SkipKeyRotation *bool
+
+	// EmailInviteMsg is used for sending a welcome message in email invites
+	EmailInviteMsg *string
 }
 
 type txPayloadTag string
@@ -996,6 +999,9 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 		ratchetBlindingKeys: ratchet.ToSigPayload(),
 	}
 	payload := team.sigPayload(readySigs, payloadArgs)
+	if tx.EmailInviteMsg != nil {
+		payload["email_invite_msg"] = *tx.EmailInviteMsg
+	}
 
 	if err := team.postMulti(mctx, payload); err != nil {
 		return err

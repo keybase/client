@@ -9,12 +9,14 @@ export type Props = {
   isSearching: boolean
   onBack: () => void
   onEnsureSelection: () => void
-  onNewChat?: () => void
+  onNewChat?: (() => void) | null
   onSelectDown: () => void
   onSelectUp: () => void
   onSetFilter: (filter: string) => void
   onStartSearch: () => void
   onStopSearch: () => void
+  showNewChat: boolean
+  showSearch: boolean
   style?: Styles.StylesCrossPlatform
 }
 
@@ -94,20 +96,20 @@ class ConversationFilterInput extends React.PureComponent<Props> {
     return (
       <Kb.Box2
         direction="horizontal"
-        centerChildren={true}
+        centerChildren={!Styles.isTablet}
         gap={Styles.isMobile ? 'small' : 'tiny'}
         style={Styles.collapseStyles([
           styles.containerNotFiltering,
           !Styles.isMobile && styles.whiteBg,
           this.props.style,
         ])}
-        gapStart={true}
+        gapStart={this.props.showSearch}
         gapEnd={true}
         fullWidth={true}
       >
         {!Styles.isMobile && <Kb.HotKey hotKeys={this.hotKeys} onHotKey={this.onHotKeys} />}
-        {searchInput}
-        {!this.props.isSearching && !!this.props.onNewChat && !Styles.isMobile && (
+        {this.props.showSearch && searchInput}
+        {!!this.props.onNewChat && !Styles.isPhone && (Styles.isTablet || !this.props.isSearching) && (
           <Kb.Box style={styles.rainbowBorder}>
             <Kb.WithTooltip position="top center" tooltip={`(${Platforms.shortcutSymbol}N)`}>
               <Kb.Button

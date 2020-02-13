@@ -38,7 +38,7 @@ export type Props = {
   teamname: string
   conversationIDKey: ChatTypes.ConversationIDKey
   timestamp: string
-  usernameColor: string
+  usernameColor: AllowedColors
   youAreReset: boolean
   youNeedToRekey: boolean
   isInWidget?: boolean
@@ -194,7 +194,7 @@ const styles = Styles.styleSheetCreate(() => ({
     paddingRight: 8,
   },
   fastBlank: Styles.platformStyles({
-    isMobile: {
+    isPhone: {
       backgroundColor: Styles.globalColors.fastBlank,
     },
   }),

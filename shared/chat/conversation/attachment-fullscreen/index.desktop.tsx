@@ -3,15 +3,14 @@ import * as Kb from '../../../common-adapters'
 import MessagePopup from '../messages/message-popup'
 import * as Styles from '../../../styles'
 import {Props} from '.'
-import {IconType} from '../../../common-adapters/icon.constants-gen'
 
 type State = {
   loaded: string
   isZoomed: boolean
 }
 
-type arrowProps = {
-  iconType: IconType
+type ArrowProps = {
+  left: boolean
   onClick: () => void
 }
 
@@ -23,17 +22,14 @@ const HoverBox = Styles.styled(Kb.Box)(() => ({
   transition: 'background-color 0.35s ease-in-out',
 }))
 
-const Arrow = ({iconType, onClick}: arrowProps) => {
+const Arrow = (props: ArrowProps) => {
+  const {left, onClick} = props
   return (
     <HoverBox className="hover_background_color_black" onClick={onClick} style={styles.circle}>
       <Kb.Icon
-        type={iconType}
+        type={left ? 'iconfont-arrow-left' : 'iconfont-arrow-right'}
         color={Styles.globalColors.white}
-        style={Styles.collapseStyles([
-          styles.arrow,
-          iconType === 'iconfont-arrow-left' && styles.arrowLeft,
-          iconType === 'iconfont-arrow-right' && styles.arrowRight,
-        ])}
+        style={Styles.collapseStyles([styles.arrow, left && styles.arrowLeft, !left && styles.arrowRight])}
       />
     </HoverBox>
   )
@@ -102,8 +98,10 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, State> 
               ])}
               key={this.props.path}
             >
-              {!this.state.isZoomed && (
-                <Arrow iconType="iconfont-arrow-left" onClick={this.props.onPreviousAttachment} />
+              {!this.state.isZoomed ? (
+                <Arrow left={true} onClick={this.props.onPreviousAttachment} />
+              ) : (
+                undefined
               )}
               <Kb.Box
                 style={Styles.collapseStyles([
@@ -139,9 +137,7 @@ class _Fullscreen extends React.Component<Props & Kb.OverlayParentProps, State> 
                   </video>
                 )}
               </Kb.Box>
-              {!this.state.isZoomed && (
-                <Arrow iconType="iconfont-arrow-right" onClick={this.props.onNextAttachment} />
-              )}
+              {!this.state.isZoomed && <Arrow left={false} onClick={this.props.onNextAttachment} />}
             </Kb.Box>
           )}
           {!this.isLoaded() && (

@@ -156,6 +156,10 @@ type GlobalContext struct {
 	// Options specified for testing only
 	TestOptions GlobalTestOptions
 
+	// Interface to get (cryptographically secure) randomness. Makes it easier
+	// to test randomized behaviors.
+	random Random
+
 	// It is threadsafe to call methods on ActiveDevice which will always be non-nil.
 	// But don't access its members directly. If you're going to be changing out the
 	// user (and resetting the ActiveDevice), then you should hold the switchUserMu
@@ -195,6 +199,14 @@ func (g *GlobalContext) GetTeambotMemberKeyer() TeambotMemberKeyer     { return 
 func (g *GlobalContext) GetProofServices() ExternalServicesCollector   { return g.proofServices }
 func (g *GlobalContext) GetAvatarLoader() AvatarLoaderSource           { return g.avatarLoader }
 
+func (g *GlobalContext) GetRandom() Random { return g.random }
+func (g *GlobalContext) SetRandom(r Random) {
+	if g.GetRunMode() != DevelRunMode {
+		panic("Random can only be altered in devel")
+	}
+	g.random = r
+}
+
 type LogGetter func() logger.Logger
 
 // Note: all these sync.Mutex fields are pointers so that the Clone funcs work.
@@ -223,6 +235,7 @@ func NewGlobalContext() *GlobalContext {
 		FeatureFlags:       NewFeatureFlagSet(),
 		switchedUsers:      make(map[NormalizedUsername]bool),
 		Pegboard:           NewPegboard(),
+		random:             &SecureRandom{},
 	}
 	return ret
 }

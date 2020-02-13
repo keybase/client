@@ -229,7 +229,7 @@ const Tab = React.memo(({tab, index, selectedTab, onTabClick, badge}: TabProps) 
     const decrypted = parts.slice(divider + 1)
     animatedLabel = (
       <Kb.Text type="BodySmallSemibold">
-        <Kb.Text type="BodySmallSemibold" className="tab-encrypted">
+        <Kb.Text type="BodySmallSemibold" className="tab-label tab-encrypted">
           {encrypted}
         </Kb.Text>
         <Kb.Text type="BodySmallSemibold" className="tab-label">

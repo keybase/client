@@ -48,7 +48,6 @@ const ChannelRow = (props: ChannelRowProps) => {
       disabled={isGeneral}
       onCheck={onSelect}
       key={`check-${channel.channelname}`}
-      className={isGeneral ? undefined : 'check-circle-selectable'}
       selectedColor={Styles.isDarkMode() ? Styles.globalColors.black : undefined}
     />
   )

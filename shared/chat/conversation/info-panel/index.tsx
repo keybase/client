@@ -94,7 +94,7 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
     {
       data: ['header'],
       renderItem: () => (
-        <Kb.Box2 direction="vertical" gap="tiny" gapStart={true} fullWidth={true}>
+        <Kb.Box2 direction="vertical" gap="tiny" gapStart={true} fullWidth={true} style={styles.header}>
           {this.props.teamname && this.props.channelname ? (
             <TeamHeader conversationIDKey={this.props.selectedConversationIDKey} />
           ) : (
@@ -179,7 +179,9 @@ const styles = Styles.styleSheetCreate(
           borderLeft: `1px solid ${Styles.globalColors.black_10}`,
           width: 320,
         },
+        isTablet: {marginTop: Styles.globalMargins.small},
       }),
+      header: Styles.platformStyles({isTablet: {marginBottom: Styles.globalMargins.small}}),
       tabContainerStyle: Styles.platformStyles({
         common: {
           backgroundColor: Styles.globalColors.white,
@@ -188,6 +190,9 @@ const styles = Styles.styleSheetCreate(
         isElectron: {
           overflowX: 'hidden',
           overflowY: 'hidden',
+        },
+        isTablet: {
+          justifyContent: 'center',
         },
       }),
       tabStyle: {

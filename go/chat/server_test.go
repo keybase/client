@@ -448,7 +448,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	g.TeamMentionLoader = types.DummyTeamMentionLoader{}
 	g.CoinFlipManager = NewFlipManager(g, func() chat1.RemoteInterface { return ri })
 	g.CoinFlipManager.Start(context.TODO(), uid)
-	g.JourneyCardManager = NewJourneyCardManager(g)
+	g.JourneyCardManager = NewJourneyCardManager(g, func() chat1.RemoteInterface { return ri })
 	g.BotCommandManager = bots.NewCachingBotCommandManager(g, func() chat1.RemoteInterface { return ri },
 		CreateNameInfoSource)
 	g.BotCommandManager.Start(context.TODO(), uid)
@@ -2086,6 +2086,7 @@ type serverChatListener struct {
 	resolveConv      chan resolveRes
 	subteamRename    chan []chat1.ConversationID
 	unfurlPrompt     chan chat1.MessageID
+	welcomeMessage   chan keybase1.TeamID
 	setStatus        chan chat1.SetStatusInfo
 	teamChangedByID  chan keybase1.TeamChangedByIDArg
 }
@@ -2179,6 +2180,10 @@ func (n *serverChatListener) ChatSubteamRename(uid keybase1.UID, convIDs []chat1
 func (n *serverChatListener) ChatPromptUnfurl(uid keybase1.UID, convID chat1.ConversationID,
 	msgID chat1.MessageID, domain string) {
 	n.unfurlPrompt <- msgID
+}
+func (n *serverChatListener) ChatWelcomeMessageLoaded(teamID keybase1.TeamID,
+	_ chat1.WelcomeMessage) {
+	n.welcomeMessage <- teamID
 }
 func (n *serverChatListener) TeamChangedByID(teamID keybase1.TeamID, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet, latestHiddenSeqno keybase1.Seqno) {
 	n.teamChangedByID <- keybase1.TeamChangedByIDArg{
@@ -4651,6 +4656,116 @@ func TestChatSrvTLFConversationsLocal(t *testing.T) {
 	})
 }
 
+func TestChatSrvChatMembershipsLocal(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		ctc := makeChatTestContext(t, "TestChatSrvChatMembershipsLocal", 2)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		// Only run this test for teams
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+		default:
+			return
+		}
+
+		ctx := ctc.as(t, users[0]).startCtx
+		ctx1 := ctc.as(t, users[1]).startCtx
+
+		listener0 := newServerChatListener()
+		ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener0)
+		ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
+
+		listener1 := newServerChatListener()
+		ctc.as(t, users[1]).h.G().NotifyRouter.AddListener(listener1)
+		ctc.world.Tcs[users[1].Username].ChatG.Syncer.(*Syncer).isConnected = true
+
+		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+			mt, ctc.as(t, users[1]).user())
+
+		teamID, err := ctc.as(t, users[0]).chatLocalHandler().TeamIDFromTLFName(ctx, chat1.TeamIDFromTLFNameArg{
+			TlfName:     conv.TlfName,
+			MembersType: chat1.ConversationMembersType_TEAM,
+		})
+		require.NoError(t, err)
+		t.Logf("first conv: %s", conv.Id)
+		t.Logf("create a conversation, and join user 1 into by sending a message")
+		topicName := "zjoinonsend"
+		ncres, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
+			chat1.NewConversationLocalArg{
+				TlfName:       conv.TlfName,
+				TopicName:     &topicName,
+				TopicType:     chat1.TopicType_CHAT,
+				TlfVisibility: keybase1.TLFVisibility_PRIVATE,
+				MembersType:   chat1.ConversationMembersType_TEAM,
+			})
+		require.NoError(t, err)
+
+		_, err = postLocalForTest(t, ctc, users[1], ncres.Conv.Info, chat1.NewMessageBodyWithText(chat1.MessageText{
+			Body: fmt.Sprintf("JOINME"),
+		}))
+		require.NoError(t, err)
+
+		getChannelsRes, err := ctc.as(t, users[1]).chatLocalHandler().GetChannelMembershipsLocal(ctx1,
+			chat1.GetChannelMembershipsLocalArg{
+				TeamID: teamID,
+				Uid:    users[1].GetUID().ToBytes(),
+			})
+		require.NoError(t, err)
+		require.Equal(t, 2, len(getChannelsRes.Channels))
+		require.Contains(t, getChannelsRes.Channels, chat1.ChannelNameMention{
+			ConvID:    ncres.Conv.GetConvID(),
+			TopicName: topicName,
+		})
+
+		// users[1] leaves the new convo
+		_, err = ctc.as(t, users[1]).chatLocalHandler().LeaveConversationLocal(ctx1,
+			ncres.Conv.GetConvID())
+		require.NoError(t, err)
+		ignoreTypes := []chat1.MessageType{chat1.MessageType_SYSTEM, chat1.MessageType_JOIN, chat1.MessageType_TEXT}
+		consumeNewMsgWhileIgnoring(t, listener0, chat1.MessageType_LEAVE, ignoreTypes, chat1.ChatActivitySource_REMOTE)
+
+		// make sure users processed leave correctly
+		for i, user := range users {
+			getChannelsRes, err = ctc.as(t, user).chatLocalHandler().GetChannelMembershipsLocal(ctc.as(t, user).startCtx,
+				chat1.GetChannelMembershipsLocalArg{
+					TeamID: teamID,
+					Uid:    user.GetUID().ToBytes(),
+				})
+			require.NoError(t, err)
+			if i == 1 {
+				require.Equal(t, 1, len(getChannelsRes.Channels))
+				require.Equal(t, globals.DefaultTeamTopic, getChannelsRes.Channels[0].TopicName)
+			} else {
+				require.Equal(t, 2, len(getChannelsRes.Channels))
+			}
+		}
+
+		// delete the channel make sure it's gone from both inboxes
+		_, err = ctc.as(t, users[0]).chatLocalHandler().DeleteConversationLocal(ctx,
+			chat1.DeleteConversationLocalArg{
+				ConvID:    ncres.Conv.GetConvID(),
+				Confirmed: true,
+			})
+		require.NoError(t, err)
+		consumeLeaveConv(t, listener0)
+		consumeTeamType(t, listener0)
+		consumeLeaveConv(t, listener1)
+		consumeTeamType(t, listener1)
+
+		for _, user := range users {
+			getChannelsRes, err = ctc.as(t, user).chatLocalHandler().GetChannelMembershipsLocal(ctc.as(t, user).startCtx,
+				chat1.GetChannelMembershipsLocalArg{
+					TeamID: teamID,
+					Uid:    user.GetUID().ToBytes(),
+				})
+			require.NoError(t, err)
+			require.Equal(t, 1, len(getChannelsRes.Channels))
+			require.Equal(t, globals.DefaultTeamTopic, getChannelsRes.Channels[0].TopicName)
+		}
+	})
+}
+
 func TestChatSrvSetAppNotificationSettings(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		ctc := makeChatTestContext(t, "TestChatSrvSetAppNotificationSettings", 2)
@@ -5498,7 +5613,6 @@ func TestChatSrvTopicNameState(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, randomConvID, ncres.Conv.GetConvID())
 		assertNoNewConversation(t, listener0)
-		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
 
 		// Try to change topic name to one that exists
 		plarg := chat1.PostLocalArg{
@@ -6109,10 +6223,11 @@ func TestChatSrvNewConvAfterReset(t *testing.T) {
 	require.NoError(t, libkb.ResetAccount(ctc.as(t, users[0]).m, users[0].NormalizedUsername(),
 		users[0].Passphrase))
 	require.NoError(t, users[0].Login(tc.G))
-	conv2, err := NewConversation(ctx, tc.Context(), uid, users[0].Username+","+users[1].Username, nil,
+	conv2, created, err := NewConversation(ctx, tc.Context(), uid, users[0].Username+","+users[1].Username, nil,
 		chat1.TopicType_CHAT, chat1.ConversationMembersType_IMPTEAMNATIVE, keybase1.TLFVisibility_PRIVATE,
 		func() chat1.RemoteInterface { return ctc.as(t, users[0]).ri }, NewConvFindExistingNormal)
 	require.NoError(t, err)
+	require.False(t, created)
 	require.Equal(t, conv.Id, conv2.Info.Id)
 }
 
@@ -6916,6 +7031,122 @@ func TestChatBulkAddToConv(t *testing.T) {
 		require.NoError(t, err)
 		assertSysMsg(nil, usernames, listener0)
 		assertSysMsg(nil, usernames, listener1)
+	})
+}
+
+func TestChatBulkAddToManyConvs(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+		default:
+			return
+		}
+
+		ctc := makeChatTestContext(t, "BulkAddToManyConvs", 2)
+		defer ctc.cleanup()
+		users := ctc.users()
+		t.Logf("uid1: %v, uid2: %v", users[0].User.GetUID(), users[1].User.GetUID())
+
+		tc1 := ctc.world.Tcs[users[0].Username]
+		tc2 := ctc.world.Tcs[users[0].Username]
+		ctx := ctc.as(t, users[0]).startCtx
+
+		listener0 := newServerChatListener()
+		ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener0)
+		tc1.ChatG.Syncer.(*Syncer).isConnected = true
+
+		listener1 := newServerChatListener()
+		ctc.as(t, users[1]).h.G().NotifyRouter.AddListener(listener1)
+		tc2.ChatG.Syncer.(*Syncer).isConnected = true
+
+		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+			mt, ctc.as(t, users[1]).user())
+
+		// create channels and bulk add user1 to them
+		topicName0 := "bulk0"
+		channel0, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
+			chat1.NewConversationLocalArg{
+				TlfName:       conv.TlfName,
+				TopicName:     &topicName0,
+				TopicType:     chat1.TopicType_CHAT,
+				TlfVisibility: keybase1.TLFVisibility_PRIVATE,
+				MembersType:   mt,
+			})
+		t.Logf("conv: %s chan: %s, err: %v", conv.Id, channel0.Conv.GetConvID(), err)
+		require.NoError(t, err)
+
+		topicName1 := "bulk1"
+		channel1, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
+			chat1.NewConversationLocalArg{
+				TlfName:       conv.TlfName,
+				TopicName:     &topicName1,
+				TopicType:     chat1.TopicType_CHAT,
+				TlfVisibility: keybase1.TLFVisibility_PRIVATE,
+				MembersType:   mt,
+			})
+		t.Logf("conv: %s chan: %s, err: %v", conv.Id, channel1.Conv.GetConvID(), err)
+		require.NoError(t, err)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
+
+		usernames := []string{users[1].Username}
+		err = ctc.as(t, users[0]).chatLocalHandler().BulkAddToManyConvs(ctx,
+			chat1.BulkAddToManyConvsArg{
+				Usernames:     usernames,
+				Conversations: []chat1.ConversationID{channel0.Conv.GetConvID(), channel1.Conv.GetConvID()},
+			})
+		require.NoError(t, err)
+
+		assertSysMsg := func(expectedMentions, expectedBody []string, listener *serverChatListener) {
+			msg := consumeNewMsgRemote(t, listener, chat1.MessageType_SYSTEM)
+			body := msg.Valid().MessageBody
+			typ, err := body.MessageType()
+			require.NoError(t, err)
+			require.Equal(t, chat1.MessageType_SYSTEM, typ)
+			sysMsg := body.System()
+			sysTyp, err := sysMsg.SystemType()
+			require.NoError(t, err)
+			require.Equal(t, chat1.MessageSystemType_BULKADDTOCONV, sysTyp)
+			retMsg := sysMsg.Bulkaddtoconv()
+			require.Equal(t, expectedBody, retMsg.Usernames)
+			require.True(t, msg.IsValid())
+			require.Equal(t, expectedMentions, msg.Valid().AtMentions)
+		}
+		//TODO: not sure how to deal with multiple system messages coming in for this?
+		assertSysMsg(usernames, usernames, listener0)
+		assertSysMsg(usernames, usernames, listener1)
+		assertSysMsg(usernames, usernames, listener0)
+		assertSysMsg(usernames, usernames, listener1)
+		consumeMembersUpdate(t, listener0)
+		consumeJoinConv(t, listener1)
+
+		// u1 can now send to both channels
+		mustPostLocalForTest(t, ctc, users[1], channel0.Conv.Info,
+			chat1.NewMessageBodyWithText(chat1.MessageText{
+				Body: "hi",
+			}))
+		// consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
+		// consumeNewMsgRemote(t, listener1, chat1.MessageType_TEXT)
+		mustPostLocalForTest(t, ctc, users[1], channel1.Conv.Info,
+			chat1.NewMessageBodyWithText(chat1.MessageText{
+				Body: "hi",
+			}))
+		// consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
+		// consumeNewMsgRemote(t, listener1, chat1.MessageType_TEXT)
+
+		// some users required
+		err = ctc.as(t, users[0]).chatLocalHandler().BulkAddToManyConvs(ctx,
+			chat1.BulkAddToManyConvsArg{
+				Usernames:     nil,
+				Conversations: []chat1.ConversationID{channel1.Conv.GetConvID(), channel0.Conv.GetConvID()},
+			})
+		require.Error(t, err)
 	})
 }
 
@@ -7769,5 +8000,142 @@ func TestChatSrvNewConversationsLocal(t *testing.T) {
 		res, err = tc.chatLocalHandler().NewConversationsLocal(tc.startCtx, argument(ll))
 		require.NoError(t, err)
 		require.Equal(t, len(ll), len(res.Results))
+	})
+}
+
+func TestChatSrvDefaultTeamChannels(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+		default:
+			return
+		}
+
+		ctc := makeChatTestContext(t, "DefaultTeamChannels", 2)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
+		listener := newServerChatListener()
+		ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener)
+		ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
+		teamID, err := keybase1.TeamIDFromString(created.Triple.Tlfid.String())
+		require.NoError(t, err)
+
+		tc := ctc.as(t, users[0])
+		topicName := "zjoinonsend"
+		convres, err := tc.chatLocalHandler().NewConversationLocal(context.TODO(),
+			chat1.NewConversationLocalArg{
+				TlfName:       created.TlfName,
+				TopicName:     &topicName,
+				TopicType:     chat1.TopicType_CHAT,
+				TlfVisibility: keybase1.TLFVisibility_PRIVATE,
+				MembersType:   mt,
+			})
+		require.NoError(t, err)
+
+		res, err := tc.chatLocalHandler().GetDefaultTeamChannelsLocal(context.TODO(), created.TlfName)
+		require.NoError(t, err)
+		require.Zero(t, len(res.Convs))
+
+		_, err = tc.chatLocalHandler().SetDefaultTeamChannelsLocal(context.TODO(), chat1.SetDefaultTeamChannelsLocalArg{
+			TeamName: created.TlfName,
+			Convs:    []chat1.ConvIDStr{convres.Conv.GetConvID().ConvIDStr()},
+		})
+		require.NoError(t, err)
+
+		res, err = tc.chatLocalHandler().GetDefaultTeamChannelsLocal(context.TODO(), created.TlfName)
+		require.NoError(t, err)
+		require.Len(t, res.Convs, 1)
+		require.Equal(t, topicName, res.Convs[0].Channel)
+
+		pollForSeqno := func(expectedSeqno keybase1.Seqno) {
+			found := false
+			for !found {
+				select {
+				case teamChange := <-listener.teamChangedByID:
+					found = teamChange.TeamID == teamID &&
+						teamChange.LatestSeqno == expectedSeqno
+				case <-time.After(20 * time.Second):
+					require.Fail(t, "no event received")
+				}
+			}
+		}
+		err = ctc.as(t, users[0]).chatLocalHandler().AddBotMember(tc.startCtx, chat1.AddBotMemberArg{
+			ConvID:   created.Id,
+			Username: users[1].Username,
+			Role:     keybase1.TeamRole_BOT,
+		})
+		require.NoError(t, err)
+		pollForSeqno(2)
+
+		expectedUsers := []string{users[0].Username, users[1].Username}
+		sort.Strings(expectedUsers)
+		for _, user := range users {
+			gilres, err := ctc.as(t, user).chatLocalHandler().GetInboxAndUnboxLocal(context.TODO(), chat1.GetInboxAndUnboxLocalArg{
+				Query: &chat1.GetInboxLocalQuery{
+					ConvIDs: []chat1.ConversationID{convres.Conv.GetConvID()},
+				},
+				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+			})
+			require.NoError(t, err)
+			require.Len(t, gilres.Conversations, 1)
+			var parts []string
+			for _, part := range gilres.Conversations[0].Info.Participants {
+				parts = append(parts, part.Username)
+			}
+			sort.Strings(parts)
+			require.Equal(t, expectedUsers, parts)
+		}
+	})
+}
+
+func TestChatSrvTeamActivity(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+		default:
+			return
+		}
+
+		ctc := makeChatTestContext(t, "TeamActivity", 2)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
+		tlfID1 := created.Triple.Tlfid.TLFIDStr()
+		created2 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt, users[1])
+		tlfID2 := created2.Triple.Tlfid.TLFIDStr()
+
+		tc := ctc.as(t, users[0])
+		topicName := "zjoinonsend"
+		_, err := tc.chatLocalHandler().NewConversationLocal(context.TODO(),
+			chat1.NewConversationLocalArg{
+				TlfName:       created.TlfName,
+				TopicName:     &topicName,
+				TopicType:     chat1.TopicType_CHAT,
+				TlfVisibility: keybase1.TLFVisibility_PRIVATE,
+				MembersType:   mt,
+			})
+		require.NoError(t, err)
+		_, err = tc.chatLocalHandler().NewConversationLocal(context.TODO(),
+			chat1.NewConversationLocalArg{
+				TlfName:       created2.TlfName,
+				TopicName:     &topicName,
+				TopicType:     chat1.TopicType_CHAT,
+				TlfVisibility: keybase1.TLFVisibility_PRIVATE,
+				MembersType:   mt,
+			})
+		require.NoError(t, err)
+
+		lastActive, err := tc.chatLocalHandler().GetLastActiveForTLF(context.TODO(), tlfID1)
+		require.NoError(t, err)
+		require.Equal(t, chat1.LastActiveStatus_ACTIVE, lastActive)
+
+		res, err := tc.chatLocalHandler().GetLastActiveForTeams(context.TODO())
+		require.NoError(t, err)
+		require.Equal(t, 2, len(res))
+		require.Equal(t, chat1.LastActiveStatus_ACTIVE, res[tlfID1])
+		require.Equal(t, chat1.LastActiveStatus_ACTIVE, res[tlfID2])
 	})
 }

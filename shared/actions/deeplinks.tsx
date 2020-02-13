@@ -7,8 +7,18 @@ import * as RouteTreeGen from './route-tree-gen'
 import * as Saga from '../util/saga'
 import * as Tabs from '../constants/tabs'
 import * as WalletsGen from './wallets-gen'
+import * as TeamsGen from './teams-gen'
 import URL from 'url-parse'
 import logger from '../logger'
+
+const handleTeamPageLink = (teamname: string, action: 'add_or_invite' | 'manage_settings' | undefined) => {
+  const initialTab = action === 'manage_settings' ? 'settings' : undefined
+  const addMembers = action === 'add_or_invite' ? true : undefined
+  return [
+    RouteTreeGen.createSwitchTab({tab: Tabs.teamsTab}),
+    TeamsGen.createShowTeamByName({addMembers, initialTab, teamname}),
+  ]
+}
 
 const handleKeybaseLink = (action: DeeplinksGen.HandleKeybaseLinkPayload) => {
   const error =
@@ -65,6 +75,17 @@ const handleKeybaseLink = (action: DeeplinksGen.HandleKeybaseLinkPayload) => {
         }
       }
       break
+    case 'team-page': // keybase://team-page/{team_name}/{manage_settings,add_or_invite}?
+      if (parts.length >= 2) {
+        const teamName = parts[1]
+        if (teamName.length) {
+          const actionPart = parts[2]
+          const action =
+            actionPart === 'add_or_invite' || actionPart === 'manage_settings' ? actionPart : undefined
+          return handleTeamPageLink(teamName, action)
+        }
+      }
+      break
     default:
     // Fall through to the error return below.
   }
@@ -100,6 +121,11 @@ const handleAppLink = (state: Container.TypedState, action: DeeplinksGen.LinkPay
         RouteTreeGen.createNavigateAppend({path: [Tabs.peopleTab]}),
         ProfileGen.createShowUserProfile({username}),
       ]
+    }
+
+    const teamLink = Constants.urlToTeamDeepLink(url)
+    if (teamLink) {
+      return handleTeamPageLink(teamLink.teamName, teamLink.action)
     }
   }
   return false

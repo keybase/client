@@ -82,6 +82,12 @@ export type EmailInviteError = {
 
 export type AddUserToTeamsState = 'notStarted' | 'pending' | 'succeeded' | 'failed'
 
+export type JoinRequest = {
+  ctime: number
+  fullName: string
+  username: string
+}
+
 export type TeamMeta = {
   allowPromote: boolean // if members other than admins can showcase
   id: TeamID
@@ -98,7 +104,7 @@ export type TeamDetails = {
   settings: TeamSettings2
   invites: Set<InviteInfo>
   subteams: Set<TeamID>
-  requests: Set<string>
+  requests: Set<JoinRequest>
   description: string
 }
 
@@ -126,6 +132,11 @@ export type TeamVersion = {
   latestOffchainSeqno: number
 }
 
+export type WelcomeMessage = {
+  set: boolean
+  text: string
+}
+
 export type State = {
   readonly addUserToTeamsState: AddUserToTeamsState
   readonly addUserToTeamsResults: string
@@ -145,7 +156,7 @@ export type State = {
   readonly sawSubteamsBanner: boolean
   readonly selectedChannels: Map<TeamID, Set<string>>
   readonly subteamFilter: string
-  readonly subteamsFiltered: Set<TeamID>
+  readonly subteamsFiltered: Set<TeamID> | undefined
   readonly teamAccessRequestsPending: Set<Teamname>
   readonly teamJoinSuccess: boolean
   readonly teamJoinSuccessOpen: boolean
@@ -159,6 +170,7 @@ export type State = {
   readonly teamIDToMembers: Map<TeamID, Map<string, MemberInfo>> // Used by chat sidebar until team loading gets easier
   readonly teamVersion: Map<TeamID, TeamVersion>
   readonly teamIDToResetUsers: Map<TeamID, Set<string>>
+  readonly teamIDToWelcomeMessage: Map<TeamID, WelcomeMessage>
   readonly teamIDToRetentionPolicy: Map<TeamID, RetentionPolicy>
   readonly teamNameToID: Map<Teamname, string>
   readonly teamNameToLoadingInvites: Map<Teamname, Map<string, boolean>>

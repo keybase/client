@@ -1,8 +1,5 @@
 {
-  "prelude": [
-    "import * as Types from '../constants/types/fs'",
-    "import * as ChatTypes from '../constants/types/chat2'"
-  ],
+  "prelude": ["import * as Types from '../constants/types/fs'"],
   "actions": {
     "subscribePath": {
       "subscriptionID": "string",
@@ -179,21 +176,6 @@
     "showIncomingShare": {"initialDestinationParentPath": "Types.Path"},
     "move": {"destinationParentPath": "Types.Path"},
     "copy": {"destinationParentPath": "Types.Path"},
-
-    "initSendAttachmentToChat": {
-      "path": "Types.Path"
-    },
-    "setSendAttachmentToChatConvID": {
-      "convID": "ChatTypes.ConversationIDKey"
-    },
-    "setSendAttachmentToChatFilter": {
-      "filter": "string"
-    },
-    "setSendAttachmentToChatTitle": {
-      "title": "string"
-    },
-    "sentAttachmentToChat": {},
-
     "setPathItemActionMenuView": {
       "view": "Types.PathItemActionMenuView"
     },

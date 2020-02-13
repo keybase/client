@@ -86,13 +86,13 @@ var botSettingsFlags = []cli.Flag{
 	},
 	cli.StringSliceFlag{
 		Name: "allow-trigger",
-		Usage: `Restricted bots will receive messages that match the given text. Can be a regular expression.
-			Can be specified multiple times.`,
+		Usage: `Restricted bots will receive messages that match the given text.
+	Can be a regular expression. Can be specified multiple times.`,
 	},
 	cli.StringSliceFlag{
 		Name: "allow-conversation",
-		Usage: `Restricted bots will only be able to send/receive messages in the given conversations. If not specified all conversations are allowed.
-			Can be specified multiple times.`,
+		Usage: `Restricted bots will only be able to send/receive messages in the given conversations.
+	If not specified all conversations are allowed. Can be specified multiple times.`,
 	},
 }
 
@@ -116,13 +116,26 @@ func ValidateBotSettingsConvs(g *libkb.GlobalContext, tlfName string,
 	if botSettings == nil {
 		return nil
 	}
-
-	var convIDs []string
-	resolver, err := newChatConversationResolver(g)
+	convIDs, err := lookupConvIDsByTopicName(g, tlfName, mt, botSettings.Convs)
 	if err != nil {
 		return err
 	}
-	for _, topicName := range botSettings.Convs {
+	var convs []string
+	for _, convID := range convIDs {
+		convs = append(convs, convID.String())
+	}
+
+	botSettings.Convs = convs
+	return nil
+}
+
+func lookupConvIDsByTopicName(g *libkb.GlobalContext, tlfName string,
+	mt chat1.ConversationMembersType, convs []string) (convIDs []chat1.ConvIDStr, err error) {
+	resolver, err := newChatConversationResolver(g)
+	if err != nil {
+		return nil, err
+	}
+	for _, topicName := range convs {
 		topicName = utils.SanitizeTopicName(topicName)
 		conv, _, err := resolver.Resolve(context.TODO(), chatConversationResolvingRequest{
 			TlfName:     tlfName,
@@ -133,14 +146,12 @@ func ValidateBotSettingsConvs(g *libkb.GlobalContext, tlfName string,
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		})
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if conv == nil {
-			return fmt.Errorf("conversation %s not found", topicName)
+			return nil, fmt.Errorf("conversation %s not found", topicName)
 		}
-		convIDs = append(convIDs, conv.GetConvID().String())
+		convIDs = append(convIDs, conv.GetConvID().ConvIDStr())
 	}
-
-	botSettings.Convs = convIDs
-	return nil
+	return convIDs, nil
 }

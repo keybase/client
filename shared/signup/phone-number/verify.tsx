@@ -182,6 +182,7 @@ const styles = Styles.styleSheetCreate(
           minHeight: 48,
           width: '100%',
         },
+        isTablet: {maxWidth: 368},
       }),
       inputText: Styles.platformStyles({
         isMobile: {

@@ -30,13 +30,15 @@ type JourneyCardManager struct {
 	utils.DebugLabeler
 	switchLock sync.Mutex
 	m          *JourneyCardManagerSingleUser
+	ri         func() chat1.RemoteInterface
 }
 
 var _ (types.JourneyCardManager) = (*JourneyCardManager)(nil)
 
-func NewJourneyCardManager(g *globals.Context) *JourneyCardManager {
+func NewJourneyCardManager(g *globals.Context, ri func() chat1.RemoteInterface) *JourneyCardManager {
 	return &JourneyCardManager{
 		Contextified: globals.NewContextified(g),
+		ri:           ri,
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "JourneyCardManager", false),
 	}
 }
@@ -54,7 +56,7 @@ func (j *JourneyCardManager) get(ctx context.Context, uid gregor1.UID) (*Journey
 		j.m = nil
 	}
 	if j.m == nil {
-		j.m = NewJourneyCardManagerSingleUser(j.G(), uid)
+		j.m = NewJourneyCardManagerSingleUser(j.G(), j.ri, uid)
 		j.Debug(ctx, "switched to uid:%v", uid)
 	}
 	return j.m, nil
@@ -154,6 +156,7 @@ func (j *JourneyCardManager) clear(ctx context.Context) error {
 
 type JourneyCardManagerSingleUser struct {
 	globals.Contextified
+	ri func() chat1.RemoteInterface
 	utils.DebugLabeler
 	uid         gregor1.UID // Each instance of JourneyCardManagerSingleUser works only for a single fixed uid.
 	storageLock sync.Mutex
@@ -163,7 +166,7 @@ type JourneyCardManagerSingleUser struct {
 
 type logFn func(ctx context.Context, format string, args ...interface{})
 
-func NewJourneyCardManagerSingleUser(g *globals.Context, uid gregor1.UID) *JourneyCardManagerSingleUser {
+func NewJourneyCardManagerSingleUser(g *globals.Context, ri func() chat1.RemoteInterface, uid gregor1.UID) *JourneyCardManagerSingleUser {
 	lru, err := lru.New(200)
 	if err != nil {
 		// lru.New only panics if size <= 0
@@ -177,6 +180,7 @@ func NewJourneyCardManagerSingleUser(g *globals.Context, uid gregor1.UID) *Journ
 	}
 	return &JourneyCardManagerSingleUser{
 		Contextified: globals.NewContextified(g),
+		ri:           ri,
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "JourneyCardManager", false),
 		uid:          uid,
 		lru:          lru,
@@ -348,6 +352,16 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 			if err != nil {
 				cc.Debug(ctx, "isOpenTeam error: %v", err)
 			}
+		}
+		if cardType == chat1.JourneycardType_WELCOME {
+			go func(ctx context.Context) {
+				message, messageErr := getWelcomeMessage(ctx, cc.G(), cc.ri, cc.uid, teamID)
+				if messageErr != nil {
+					cc.Debug(ctx, "failed to get welcome message: %s", messageErr)
+					message = chat1.WelcomeMessage{Set: false}
+				}
+				cc.G().ExternalG().NotifyRouter.HandleChatWelcomeMessageLoaded(ctx, teamID, message)
+			}(globals.BackgroundChatCtx(ctx, cc.G()))
 		}
 		return &res, nil
 	}

@@ -29,7 +29,17 @@ type Props = {
   fullName?: string
 }
 
-const descStyle = {fontSize: 13, lineHeight: '16px', wordBreak: 'break-all'} as const // approximates BodySmall since markdown does not support text type
+const descStyleTablet = {
+  fontSize: 13,
+  lineHeight: 16,
+}
+const descStyleDesktop = {
+  fontSize: 13,
+  lineHeight: '16px',
+  wordBreak: 'break-all',
+} as const // approximates BodySmall since markdown does not support text type
+const descStyle = Container.isTablet ? descStyleTablet : descStyleDesktop
+
 const descStyleOverride = {
   del: descStyle,
   em: descStyle,
@@ -97,7 +107,7 @@ const Header = (p: Props) => {
   return (
     <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true}>
       <Kb.Box2 direction="vertical" style={styles.left}>
-        <ChatInboxHeader />
+        <ChatInboxHeader showNewChat={true} showSearch={!Styles.isTablet} />
       </Kb.Box2>
       <Kb.Box2
         direction="horizontal"
@@ -106,10 +116,7 @@ const Header = (p: Props) => {
         alignItems="flex-end"
         alignSelf="flex-end"
       >
-        <Kb.Box2
-          direction="vertical"
-          style={renderDescription ? styles.headerTitle : styles.headerTitleNoDesc}
-        >
+        <Kb.Box2 direction="vertical" style={styles.headerTitle}>
           <Kb.Box2 direction="horizontal" fullWidth={true}>
             {channel ? (
               <Kb.Text selectable={true} type="Header" lineClamp={1}>
@@ -209,9 +216,16 @@ const Header = (p: Props) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      actionIcons: {
-        paddingBottom: Styles.globalMargins.tiny,
-      },
+      actionIcons: Styles.platformStyles({
+        common: {
+          paddingBottom: Styles.globalMargins.tiny,
+        },
+        isTablet: {
+          flexGrow: 0,
+          flexShrink: 0,
+          minWidth: 200,
+        },
+      }),
       clickable: Styles.platformStyles({isElectron: Styles.desktopStyles.windowDraggingClickable}),
       container: {
         flexGrow: 1,
@@ -231,14 +245,19 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       headerTitle: Styles.platformStyles({
-        common: {flexGrow: 1, paddingBottom: Styles.globalMargins.xtiny},
+        common: {
+          flexGrow: 1,
+          paddingBottom: Styles.globalMargins.xtiny,
+        },
         isElectron: Styles.desktopStyles.windowDraggingClickable,
+        isTablet: {
+          flex: 1,
+        },
       }),
-      headerTitleNoDesc: Styles.platformStyles({
-        common: {flexGrow: 1, paddingBottom: Styles.globalMargins.tiny},
-        isElectron: Styles.desktopStyles.windowDraggingClickable,
+      left: Styles.platformStyles({
+        isElectron: {minWidth: 260},
+        isTablet: {minWidth: 180},
       }),
-      left: {minWidth: 260},
       right: {
         flexGrow: 1,
         paddingLeft: Styles.globalMargins.xsmall,

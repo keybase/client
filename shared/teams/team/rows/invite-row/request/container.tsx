@@ -9,50 +9,10 @@ import {createShowUserProfile} from '../../../../../actions/profile-gen'
 import {connect} from '../../../../../util/container'
 
 type OwnProps = {
+  ctime: number
+  fullName: string
   username: string
   teamID: Types.TeamID
-}
-
-const mapStateToProps = (state, {username, teamID}) => {
-  const {teamname} = Constants.getTeamMeta(state, teamID)
-  return {
-    _notifLabel:
-      Constants.getTeamType(state, teamname) === 'big'
-        ? `Announce them in #general`
-        : `Announce them in team chat`,
-    disabledReasonsForRolePicker: Constants.getDisabledReasonsForRolePicker(state, teamID, username),
-    teamname,
-  }
-}
-
-const mapDispatchToProps = (dispatch, {username, teamID}) => ({
-  _onIgnoreRequest: (teamname: string) => dispatch(TeamsGen.createIgnoreRequest({teamname, username})),
-  letIn: (sendNotification: boolean, role: Types.TeamRoleType) => {
-    dispatch(
-      TeamsGen.createAddToTeam({
-        sendChatNotification: sendNotification,
-        teamID,
-        users: [{assertion: username, role}],
-      })
-    )
-  },
-  onChat: () => {
-    username && dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'teamInvite'}))
-  },
-  onOpenProfile: () => dispatch(createShowUserProfile({username})),
-})
-
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
-  return {
-    _notifLabel: stateProps._notifLabel,
-    disabledReasonsForRolePicker: stateProps.disabledReasonsForRolePicker,
-    letIn: dispatchProps.letIn,
-    onChat: dispatchProps.onChat,
-    onIgnoreRequest: () => dispatchProps._onIgnoreRequest(stateProps.teamname),
-    onOpenProfile: dispatchProps.onOpenProfile,
-    teamname: stateProps.teamname,
-    username: ownProps.username,
-  }
 }
 
 type State = {
@@ -97,4 +57,49 @@ class RequestRowStateWrapper extends React.Component<RowProps & ExtraProps, Stat
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(RequestRowStateWrapper)
+export default connect(
+  (state, {fullName, username, teamID}: OwnProps) => {
+    const {teamname} = Constants.getTeamMeta(state, teamID)
+
+    return {
+      _notifLabel:
+        Constants.getTeamType(state, teamname) === 'big'
+          ? `Announce them in #general`
+          : `Announce them in team chat`,
+      disabledReasonsForRolePicker: Constants.getDisabledReasonsForRolePicker(state, teamID, username),
+      fullName, // MemberRow has a special case for "You" but it's impossible to see your join req
+      teamname,
+    }
+  },
+  (dispatch, {username, teamID}) => ({
+    _onIgnoreRequest: (teamname: string) => dispatch(TeamsGen.createIgnoreRequest({teamname, username})),
+    letIn: (sendNotification: boolean, role: Types.TeamRoleType) => {
+      dispatch(
+        TeamsGen.createAddToTeam({
+          sendChatNotification: sendNotification,
+          teamID,
+          users: [{assertion: username, role}],
+        })
+      )
+    },
+    onChat: () => {
+      username &&
+        dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'teamInvite'}))
+    },
+    onOpenProfile: () => dispatch(createShowUserProfile({username})),
+  }),
+  (stateProps, dispatchProps, ownProps: OwnProps) => {
+    return {
+      _notifLabel: stateProps._notifLabel,
+      ctime: ownProps.ctime,
+      disabledReasonsForRolePicker: stateProps.disabledReasonsForRolePicker,
+      fullName: stateProps.fullName,
+      letIn: dispatchProps.letIn,
+      onChat: dispatchProps.onChat,
+      onIgnoreRequest: () => dispatchProps._onIgnoreRequest(stateProps.teamname),
+      onOpenProfile: dispatchProps.onOpenProfile,
+      teamname: stateProps.teamname,
+      username: ownProps.username,
+    }
+  }
+)(RequestRowStateWrapper)

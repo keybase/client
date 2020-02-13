@@ -62,11 +62,13 @@ export declare const globalStyles: {
   }
   italic: _fakeFontDefSeeCommentsOnThisStyle
   loadingTextStyle: CSS._StylesCrossPlatform
+  mediumWidth: number | string
   opacity0: {opacity: 0}
   positionRelative: {position: 'relative'}
   rounded: {
     borderRadius: 3
   }
+  shortWidth: number | string
 }
 
 export declare const desktopStyles: {

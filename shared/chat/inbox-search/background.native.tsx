@@ -10,24 +10,34 @@ const Rover = () => (
   </Kb.Box2>
 )
 
-const common = {
-  bottom: 0,
-  left: 0,
-  position: 'absolute',
-} as const
-
-const styles = Styles.styleSheetCreate(
-  () =>
-    ({
-      background: {...common, bottom: 10},
-      container: common,
-      foreground: common,
-      rover: {
-        ...common,
-        bottom: 80,
-        left: Styles.dimensionWidth - 50,
-      },
+const shared = Styles.isTablet
+  ? ({
+      bottom: 0,
+      position: 'absolute',
+      right: 0,
     } as const)
-)
+  : ({
+      bottom: 0,
+      left: 0,
+      position: 'absolute',
+    } as const)
+
+const styles = Styles.styleSheetCreate(() => ({
+  background: {...shared, bottom: 10},
+  container: shared,
+  foreground: shared,
+  rover: Styles.platformStyles({
+    common: {
+      ...shared,
+      bottom: 80,
+    },
+    isPhone: {
+      left: Styles.dimensionWidth - 50,
+    },
+    isTablet: {
+      right: 50,
+    },
+  }),
+}))
 
 export default Rover

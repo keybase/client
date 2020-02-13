@@ -193,6 +193,11 @@ const styles = Styles.styleSheetCreate(() => ({
       padding: Styles.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.large,
     },
     isElectron: {maxWidth: 400},
+    isTablet: {
+      alignSelf: 'center',
+      marginTop: Styles.globalMargins.xsmall,
+      width: 500,
+    },
   }),
   dropdown: {
     marginBottom: Styles.globalMargins.small,

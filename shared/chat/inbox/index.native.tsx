@@ -234,7 +234,7 @@ class Inbox extends React.PureComponent<T.Props, State> {
     const floatingDivider = this.state.showFloating &&
       !this.props.isSearching &&
       this.props.allowShowFloatingButton && <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
-    const HeadComponent = <ChatInboxHeader />
+    const HeadComponent = <ChatInboxHeader showNewChat={false} showSearch={Styles.isMobile} />
     return (
       <Kb.ErrorBoundary>
         <Kb.Box style={styles.container}>
@@ -278,12 +278,17 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       button: {width: '100%'},
-      container: {
-        ...Styles.globalStyles.flexBoxColumn,
-        backgroundColor: Styles.globalColors.fastBlank,
-        flex: 1,
-        position: 'relative',
-      },
+      container: Styles.platformStyles({
+        common: {
+          ...Styles.globalStyles.flexBoxColumn,
+          backgroundColor: Styles.globalColors.fastBlank,
+          flex: 1,
+          position: 'relative',
+        },
+        isTablet: {
+          maxWidth: Styles.globalStyles.shortWidth,
+        },
+      }),
       loadingContainer: {
         left: 0,
         position: 'absolute',

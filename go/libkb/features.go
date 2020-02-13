@@ -70,7 +70,7 @@ type FeatureFlagSet struct {
 
 const (
 	FeatureFTL                        = Feature("ftl")
-	FeatureBoxAuditor                 = Feature("box_auditor2")
+	FeatureBoxAuditor                 = Feature("box_auditor3")
 	ExperimentalGenericProofs         = Feature("experimental_generic_proofs")
 	FeatureCheckForHiddenChainSupport = Feature("check_for_hidden_chain_support")
 

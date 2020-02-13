@@ -9,6 +9,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
@@ -452,9 +454,9 @@ func TestPGPDecryptNonKeybase(t *testing.T) {
 	}
 	dec := NewPGPDecrypt(tcRecipient.G, decarg)
 	m := NewMetaContextForTest(tcRecipient).WithUIs(uis)
-	if err := RunEngine2(m, dec); err != nil {
-		t.Fatal(err)
-	}
+	err = RunEngine2(m, dec)
+	assert.IsType(t, libkb.BadSigError{}, err, "expected a bad sig error")
+	assert.Contains(t, err.Error(), "Message signed by an unknown key", "bad sig error text")
 
 	if idUI.User != nil {
 		if idUI.User.Username == recipient.Username {
@@ -467,7 +469,7 @@ func TestPGPDecryptNonKeybase(t *testing.T) {
 		t.Errorf("PgpUI OutputSignatureSuccess called %d times, expected 0", pgpUI.OutputCount)
 	}
 	if pgpUI.OutputNonKeybaseCount != 1 {
-		t.Errorf("PgpUI OutputSignatureSuccessNonKeybase called %d times, expected 0", pgpUI.OutputNonKeybaseCount)
+		t.Errorf("PgpUI OutputSignatureNonKeybase called %d times, expected 0", pgpUI.OutputNonKeybaseCount)
 	}
 }
 
@@ -489,7 +491,7 @@ func (t *TestPgpUI) OutputSignatureSuccess(context.Context, keybase1.OutputSigna
 	return nil
 }
 
-func (t *TestPgpUI) OutputSignatureSuccessNonKeybase(context.Context, keybase1.OutputSignatureSuccessNonKeybaseArg) error {
+func (t *TestPgpUI) OutputSignatureNonKeybase(context.Context, keybase1.OutputSignatureNonKeybaseArg) error {
 	t.OutputNonKeybaseCount++
 	return nil
 }

@@ -8,10 +8,11 @@ type Props = {
   onUrlError?: (err: string) => void
 }
 
-const TextView = (props: Props) => (
+const PdfView = (props: Props) => (
   <Kb.Box2 fullHeight={true} fullWidth={true} direction="vertical">
     <Kb.WebView
       url={props.url}
+      pinnedURLMode={true}
       style={styles.webview}
       onError={props.onUrlError}
       renderLoading={() => (
@@ -37,5 +38,5 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-// Only supported on iOS for now. Should try to prevent link navigation when adding support for other platforms.
-export default Platform.isIOS ? TextView : () => null
+// Only supported on iOS for now.
+export default Platform.isIOS ? PdfView : () => null

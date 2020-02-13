@@ -396,6 +396,9 @@ const styles = Styles.styleSheetCreate(
           height: '100%',
           width: '100%',
         },
+        isTablet: {
+          maxWidth: Styles.globalStyles.shortWidth,
+        },
       }),
       errorText: {
         color: Styles.globalColors.redDark,

@@ -40,7 +40,7 @@ export default Container.namedConnect(
       hasBadge: Constants.getHasBadge(state, _conversationIDKey),
       hasUnread: Constants.getHasUnread(state, _conversationIDKey),
       isMuted: Constants.isMuted(state, _conversationIDKey),
-      isSelected: !Container.isMobile && Constants.getSelectedConversation(state) === _conversationIDKey,
+      isSelected: !Container.isPhone && Constants.getSelectedConversation(state) === _conversationIDKey,
       isTypingSnippet,
       snippet,
       snippetDecoration,

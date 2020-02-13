@@ -18,7 +18,10 @@ const handleTeamBuilding = (draftState: Container.Draft<Types.State>, action: Te
 }
 
 export default Container.makeReducer<
-  TeamsGen.Actions | TeamBuildingGen.Actions | EngineGen.Keybase1NotifyTeamTeamMetadataUpdatePayload,
+  | TeamsGen.Actions
+  | TeamBuildingGen.Actions
+  | EngineGen.Keybase1NotifyTeamTeamMetadataUpdatePayload
+  | EngineGen.Chat1NotifyChatChatWelcomeMessageLoadedPayload,
   Types.State
 >(initialState, {
   [TeamsGen.resetStore]: () => {
@@ -261,8 +264,12 @@ export default Container.makeReducer<
         )
       )
     } else {
-      draftState.subteamsFiltered = new Set()
+      draftState.subteamsFiltered = undefined
     }
+  },
+  [EngineGen.chat1NotifyChatChatWelcomeMessageLoaded]: (draftState, action) => {
+    const {teamID, message} = action.payload.params
+    draftState.teamIDToWelcomeMessage.set(teamID, {set: message.set, text: message.text})
   },
   [TeamBuildingGen.tbResetStore]: handleTeamBuilding,
   [TeamBuildingGen.cancelTeamBuilding]: handleTeamBuilding,

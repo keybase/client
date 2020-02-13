@@ -40,21 +40,21 @@ func NewHelper(g *globals.Context, ri func() chat1.RemoteInterface) *Helper {
 
 func (h *Helper) NewConversation(ctx context.Context, uid gregor1.UID, tlfName string,
 	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
-	vis keybase1.TLFVisibility) (chat1.ConversationLocal, error) {
+	vis keybase1.TLFVisibility) (chat1.ConversationLocal, bool, error) {
 	return NewConversation(ctx, h.G(), uid, tlfName, topicName,
 		topicType, membersType, vis, h.ri, NewConvFindExistingNormal)
 }
 
 func (h *Helper) NewConversationSkipFindExisting(ctx context.Context, uid gregor1.UID, tlfName string,
 	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
-	vis keybase1.TLFVisibility) (chat1.ConversationLocal, error) {
+	vis keybase1.TLFVisibility) (chat1.ConversationLocal, bool, error) {
 	return NewConversation(ctx, h.G(), uid, tlfName, topicName,
 		topicType, membersType, vis, h.ri, NewConvFindExistingSkip)
 }
 
 func (h *Helper) NewConversationWithMemberSourceConv(ctx context.Context, uid gregor1.UID, tlfName string,
 	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
-	vis keybase1.TLFVisibility, memberSourceConv *chat1.ConversationID) (chat1.ConversationLocal, error) {
+	vis keybase1.TLFVisibility, memberSourceConv *chat1.ConversationID) (chat1.ConversationLocal, bool, error) {
 	return NewConversationWithMemberSourceConv(ctx, h.G(), uid, tlfName, topicName,
 		topicType, membersType, vis, h.ri, NewConvFindExistingNormal, memberSourceConv)
 }
@@ -418,7 +418,7 @@ func (s *sendHelper) conversation(ctx context.Context) error {
 		return err
 	}
 	uid := gregor1.UID(kuid.ToBytes())
-	conv, err := NewConversation(ctx, s.G(), uid, s.name, s.topicName,
+	conv, _, err := NewConversation(ctx, s.G(), uid, s.name, s.topicName,
 		chat1.TopicType_CHAT, s.membersType, keybase1.TLFVisibility_PRIVATE, s.remoteInterface,
 		NewConvFindExistingNormal)
 	if err != nil {
@@ -965,14 +965,14 @@ const (
 
 func NewConversation(ctx context.Context, g *globals.Context, uid gregor1.UID, tlfName string,
 	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
-	vis keybase1.TLFVisibility, ri func() chat1.RemoteInterface, findExistingMode NewConvFindExistingMode) (chat1.ConversationLocal, error) {
+	vis keybase1.TLFVisibility, ri func() chat1.RemoteInterface, findExistingMode NewConvFindExistingMode) (chat1.ConversationLocal, bool, error) {
 	return NewConversationWithMemberSourceConv(ctx, g, uid, tlfName, topicName, topicType, membersType, vis, ri, findExistingMode, nil)
 }
 
 func NewConversationWithMemberSourceConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	tlfName string, topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
 	vis keybase1.TLFVisibility, ri func() chat1.RemoteInterface,
-	findExistingMode NewConvFindExistingMode, memberSourceConv *chat1.ConversationID) (chat1.ConversationLocal, error) {
+	findExistingMode NewConvFindExistingMode, memberSourceConv *chat1.ConversationID) (chat1.ConversationLocal, bool, error) {
 	defer utils.SuspendComponent(ctx, g, g.ConvLoader)()
 	helper := newNewConversationHelper(g, uid, tlfName, topicName, topicType, membersType, vis, ri,
 		findExistingMode, memberSourceConv)
@@ -1099,7 +1099,7 @@ func (n *newConversationHelper) findExistingViaInboxSearch(ctx context.Context) 
 	return nil
 }
 
-func (n *newConversationHelper) create(ctx context.Context) (res chat1.ConversationLocal, reserr error) {
+func (n *newConversationHelper) create(ctx context.Context) (res chat1.ConversationLocal, created bool, reserr error) {
 	defer n.Trace(ctx, func() error { return reserr }, "newConversationHelper")()
 	// Handle a nil topic name with default values for the members type specified
 	if n.topicName == nil {
@@ -1122,9 +1122,9 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 		// This can happen if a user tries to create a conversation with the same person as a conversation
 		// in which they are currently locked out due to reset.
 		if conv := n.findExistingViaInboxSearch(ctx); conv != nil {
-			return *conv, nil
+			return *conv, false, nil
 		}
-		return res, err
+		return res, false, err
 	}
 	n.tlfName = info.CanonicalName
 
@@ -1143,7 +1143,7 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 	// If we find one conversation, then just return it as if we created it.
 	if len(convs) == 1 {
 		n.Debug(ctx, "found previous conversation that matches, returning")
-		return convs[0], err
+		return convs[0], false, nil
 	}
 
 	if n.G().ExternalG().Env.GetChatMemberType() == "impteam" {
@@ -1171,7 +1171,7 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 	for i := 0; i < 5; i++ {
 		triple.TopicID, err = utils.NewChatTopicID()
 		if err != nil {
-			return res, fmt.Errorf("error creating topic ID: %s", err)
+			return res, false, fmt.Errorf("error creating topic ID: %s", err)
 		}
 		n.Debug(ctx, "attempt: %v [tlfID: %s topicType: %d topicID: %s name: %s public: %v mt: %v]",
 			i, triple.Tlfid, triple.TopicType, triple.TopicID, info.CanonicalName, isPublic,
@@ -1188,14 +1188,14 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 					types.InboxSourceDataSourceRemoteOnly)
 				if len(convs) == 1 {
 					n.Debug(ctx, "found previous conversation that matches, returning")
-					return convs[0], findErr
+					return convs[0], false, findErr
 				}
 				n.Debug(ctx, "failed to find previous conversation on second attempt: len(convs): %d err: %s",
 					len(convs), findErr)
 			default:
 				// Nothing to do for other error types.
 			}
-			return res, err
+			return res, false, err
 		}
 
 		var ncrres chat1.NewConversationRemoteRes
@@ -1247,23 +1247,23 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 					n.ri, n.uid, n.tlfName, n.topicType, n.membersType, n.vis, topicName, nil)
 				if err != nil {
 					n.Debug(ctx, "failed trying FindConversations after client error: %s", err)
-					return res, reserr
+					return res, false, reserr
 				} else if len(fcRes) > 0 {
 					convID = fcRes[0].GetConvID()
 				} else {
-					return res, reserr
+					return res, false, reserr
 				}
 			case libkb.ChatNotInTeamError:
 				if n.membersType == chat1.ConversationMembersType_TEAM {
 					teamID, tmpErr := TLFIDToTeamID(triple.Tlfid)
 					if tmpErr == nil && teamID.IsSubTeam() {
 						n.Debug(ctx, "For tlf ID %s, inferring NotExplicitMemberOfSubteamError, from error: %s", triple.Tlfid, reserr.Error())
-						return res, teams.NewNotExplicitMemberOfSubteamError()
+						return res, false, teams.NewNotExplicitMemberOfSubteamError()
 					}
 				}
-				return res, fmt.Errorf("error creating conversation: %s", reserr)
+				return res, false, fmt.Errorf("error creating conversation: %s", reserr)
 			default:
-				return res, fmt.Errorf("error creating conversation: %s", reserr)
+				return res, false, fmt.Errorf("error creating conversation: %s", reserr)
 			}
 		}
 
@@ -1276,11 +1276,11 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 				ConvIDs: []chat1.ConversationID{convID},
 			})
 		if err != nil {
-			return res, err
+			return res, false, err
 		}
 
 		if len(ib.Convs) != 1 {
-			return res,
+			return res, false,
 				fmt.Errorf("newly created conversation fetch error: found %d conversations", len(ib.Convs))
 		}
 		res = ib.Convs[0]
@@ -1290,11 +1290,11 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 		// Update inbox cache
 		updateConv := ib.ConvsUnverified[0]
 		if err = n.G().InboxSource.NewConversation(ctx, n.uid, 0, updateConv.Conv); err != nil {
-			return res, err
+			return res, false, err
 		}
 
 		if res.Error != nil {
-			return res, errors.New(res.Error.Message)
+			return res, false, errors.New(res.Error.Message)
 		}
 
 		// Send a message to the channel after joining.
@@ -1325,9 +1325,9 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 				n.Debug(ctx, "failed to send complex team intro message: %s", err)
 			}
 		}
-		return res, nil
+		return res, true, nil
 	}
-	return res, reserr
+	return res, false, reserr
 }
 
 func (n *newConversationHelper) makeFirstMessage(ctx context.Context, triple chat1.ConversationIDTriple,
