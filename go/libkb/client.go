@@ -302,24 +302,29 @@ func (b *InstrumentedBody) Read(p []byte) (n int, err error) {
 func (b *InstrumentedBody) Close() (err error) {
 	// instrument the full body size even if the caller hasn't consumed it.
 	_, _ = io.Copy(ioutil.Discard, b.body)
-	if b.uncompressed {
-		// gzip the body we stored and instrument the compressed size
-		var buf bytes.Buffer
-		writer, reclaim := b.gzipGetter(&buf)
-		defer reclaim()
-		if _, err = writer.Write(b.gzipBuf.Bytes()); err != nil {
-			return err
+	// Do actual instrumentation in the background
+	go func() {
+		if b.uncompressed {
+			// gzip the body we stored and instrument the compressed size
+			var buf bytes.Buffer
+			writer, reclaim := b.gzipGetter(&buf)
+			defer reclaim()
+			if _, err = writer.Write(b.gzipBuf.Bytes()); err != nil {
+				b.G().Log.CDebugf(context.TODO(), "InstrumentedBody:unable to write gzip %v", err)
+				return
+			}
+			if err = writer.Close(); err != nil {
+				b.G().Log.CDebugf(context.TODO(), "InstrumentedBody:unable to close gzip %v", err)
+				return
+			}
+			b.record.IncrementSize(int64(buf.Len()))
+		} else {
+			b.record.IncrementSize(int64(b.n))
 		}
-		if err = writer.Close(); err != nil {
-			return err
+		if err := b.record.Finish(); err != nil {
+			b.G().Log.CDebugf(context.TODO(), "InstrumentedBody: unable to instrument network request: %s, %s", b.record, err)
 		}
-		b.n = b.gzipBuf.Len()
-	}
-	b.record.IncrementSize(int64(b.n))
-	if err := b.record.Finish(); err != nil {
-		b.G().Log.CDebugf(context.TODO(), "InstrumentedBody: unable to instrument network request: %s, %s", b.record, err)
-		return err
-	}
+	}()
 	return b.body.Close()
 }
 
