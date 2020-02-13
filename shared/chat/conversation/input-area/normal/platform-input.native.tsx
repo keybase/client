@@ -110,6 +110,9 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
     const text = this.getText()
     if (text) {
       this.props.onSubmit(text)
+      if (this.state.expanded) {
+        this.expandInput()
+      }
     }
   }
 
