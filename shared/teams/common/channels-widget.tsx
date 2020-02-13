@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
+import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
 
 type Props = {
@@ -15,12 +16,7 @@ type Props = {
 const ChannelsWidget = (props: Props) => {
   return (
     <Kb.Box2 direction="vertical" gap="tiny" style={styles.container}>
-      <Kb.SearchFilter
-        placeholderText="Add channels"
-        icon="iconfont-search"
-        onChange={() => {}}
-        size={Styles.isMobile ? 'full-width' : 'small'}
-      />
+      <ChannelInputDesktop teamID={props.teamID} />
       <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.pillContainer}>
         <ChannelPill channelname="general" />
         {props.channels.map(channelname => (
@@ -35,6 +31,39 @@ const ChannelsWidget = (props: Props) => {
   )
 }
 
+const ChannelInputDesktop = ({teamID}: {teamID: Types.TeamID}) => {
+  const [filter, setFilter] = React.useState('')
+  const channels = Container.useSelector(s => Constants.getTeamChannelInfos(s, teamID))
+
+  const {popup, popupAnchor, setShowingPopup, showingPopup} = Kb.usePopup(getAttachmentRef => (
+    <Kb.Overlay
+      attachTo={getAttachmentRef}
+      visible={showingPopup}
+      onHidden={() => setShowingPopup(false)}
+      matchDimension={true}
+      position="top center"
+      positionFallbacks={['bottom center']}
+    >
+      <Kb.Text type="Body">Hi!</Kb.Text>
+    </Kb.Overlay>
+  ))
+
+  return (
+    <>
+      <Kb.SearchFilter
+        ref={popupAnchor}
+        onFocus={() => setShowingPopup(true)}
+        onBlur={() => setShowingPopup(false)}
+        placeholderText="Add channels"
+        icon="iconfont-search"
+        onChange={() => {}}
+        size={Styles.isMobile ? 'full-width' : 'small'}
+      />
+      {popup}
+    </>
+  )
+}
+
 const ChannelPill = ({channelname, onRemove}: {channelname: string; onRemove?: () => void}) => (
   <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.pill}>
     <Kb.Text type={Styles.isMobile ? 'Body' : 'BodySemibold'}>#{channelname}</Kb.Text>
@@ -46,6 +75,7 @@ const styles = Styles.styleSheetCreate(() => ({
   container: {
     ...Styles.padding(Styles.globalMargins.tiny),
     backgroundColor: Styles.globalColors.blueGrey,
+    borderRadius: Styles.borderRadius,
   },
   pill: Styles.platformStyles({
     common: {
