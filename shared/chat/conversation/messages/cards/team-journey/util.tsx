@@ -5,13 +5,24 @@ import * as Kb from '../../../../../common-adapters'
 const defaultWelcomeMessageWriter = ':wave: Welcome to the team! Say hi to everyone and introduce yourself.'
 const defaultWelcomeMessageNonwriter = ':wave: Welcome to the team!'
 
-function computeWelcomeMessageText(message: RPCChatTypes.WelcomeMessage, cannotWrite: boolean): string {
-  if (message.set) {
-    return message.text
+function computeWelcomeMessageTextHelper(set: boolean, text: string, cannotWrite: boolean): string {
+  if (set) {
+    return text
   } else if (cannotWrite) {
     return defaultWelcomeMessageNonwriter
   }
   return defaultWelcomeMessageWriter
+}
+
+function computeWelcomeMessageTextRaw(message: RPCChatTypes.WelcomeMessage, cannotWrite: boolean): string {
+  return computeWelcomeMessageTextHelper(message.set, message.raw, cannotWrite)
+}
+
+function computeWelcomeMessageText(
+  message: RPCChatTypes.WelcomeMessageDisplay,
+  cannotWrite: boolean
+): string {
+  return computeWelcomeMessageTextHelper(message.set, message.display, cannotWrite)
 }
 
 // removeWhitespaceOnlyLines removes lines with only whitespace so the
@@ -21,7 +32,10 @@ function removeWhitespaceOnlyLines(x: string): string {
   return x.replace(/(^[[\s]*\n)/gm, '')
 }
 
-function renderWelcomeMessage(message: RPCChatTypes.WelcomeMessage, cannotWrite: boolean): React.ReactNode {
+function renderWelcomeMessage(
+  message: RPCChatTypes.WelcomeMessageDisplay,
+  cannotWrite: boolean
+): React.ReactNode {
   return (
     <Kb.Markdown smallStandaloneEmoji={false} lineClamp={3} selectable={false}>
       {removeWhitespaceOnlyLines(computeWelcomeMessageText(message, cannotWrite))}
@@ -29,4 +43,4 @@ function renderWelcomeMessage(message: RPCChatTypes.WelcomeMessage, cannotWrite:
   )
 }
 
-export {computeWelcomeMessageText, renderWelcomeMessage}
+export {computeWelcomeMessageText, computeWelcomeMessageTextRaw, renderWelcomeMessage}

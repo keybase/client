@@ -174,7 +174,7 @@ type _LoadTeamPayload = {readonly _subscribe?: boolean; readonly teamID: Types.T
 type _LoadWelcomeMessagePayload = {readonly teamID: Types.TeamID}
 type _LoadedWelcomeMessagePayload = {
   readonly teamID: Types.TeamID
-  readonly message: RPCChatTypes.WelcomeMessage
+  readonly message: RPCChatTypes.WelcomeMessageDisplay
 }
 type _ReAddToTeamPayload = {readonly teamID: Types.TeamID; readonly username: string}
 type _RemoveMemberPayload = {readonly teamID: Types.TeamID; readonly username: string}

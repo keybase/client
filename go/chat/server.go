@@ -3283,28 +3283,30 @@ const welcomeMessageName = "__welcome_message"
 // values in sync!
 const welcomeMessageMaxLen = 400
 
-func getWelcomeMessage(ctx context.Context, g *globals.Context, ri func() chat1.RemoteInterface, uid gregor1.UID, teamID keybase1.TeamID) (message chat1.WelcomeMessage, err error) {
+func getWelcomeMessage(ctx context.Context, g *globals.Context, ri func() chat1.RemoteInterface, uid gregor1.UID, teamID keybase1.TeamID) (message chat1.WelcomeMessageDisplay, err error) {
+	message = chat1.WelcomeMessageDisplay{Set: false}
 	s := NewTeamDevConversationBackedStorage(g, true /* adminOnly */, ri)
 	found, err := s.Get(ctx, uid, teamID, welcomeMessageName, &message)
 	if !found {
-		return chat1.WelcomeMessage{Set: false}, nil
+		return message, nil
 	}
 	switch err.(type) {
 	case nil:
 	case *DevStorageAdminOnlyError:
-		return chat1.WelcomeMessage{Set: false}, nil
+		return message, nil
 	default:
 		return message, err
 	}
-	if len(message.Text) > welcomeMessageMaxLen {
-		return chat1.WelcomeMessage{Set: false}, nil
+	if len(message.Raw) > welcomeMessageMaxLen {
+		return message, nil
 	}
+	message.Display = utils.PresentDecoratedTextNoMentions(ctx, message.Raw)
 	return message, nil
 }
 
 func setWelcomeMessage(ctx context.Context, g *globals.Context, ri func() chat1.RemoteInterface, uid gregor1.UID, teamID keybase1.TeamID, message chat1.WelcomeMessage) (err error) {
-	if len(message.Text) > welcomeMessageMaxLen {
-		return fmt.Errorf("welcome message must be at most %d characters; was %d", welcomeMessageMaxLen, len(message.Text))
+	if len(message.Raw) > welcomeMessageMaxLen {
+		return fmt.Errorf("welcome message must be at most %d characters; was %d", welcomeMessageMaxLen, len(message.Raw))
 	}
 	s := NewTeamDevConversationBackedStorage(g, true /* adminOnly */, ri)
 	return s.Put(ctx, uid, teamID, welcomeMessageName, message)
@@ -3321,7 +3323,7 @@ func (h *Server) SetWelcomeMessage(ctx context.Context, arg chat1.SetWelcomeMess
 	return setWelcomeMessage(ctx, h.G(), h.remoteClient, uid, arg.TeamID, arg.Message)
 }
 
-func (h *Server) GetWelcomeMessage(ctx context.Context, teamID keybase1.TeamID) (res chat1.WelcomeMessage, err error) {
+func (h *Server) GetWelcomeMessage(ctx context.Context, teamID keybase1.TeamID) (res chat1.WelcomeMessageDisplay, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "GetWelcomeMessage")()

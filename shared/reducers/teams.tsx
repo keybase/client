@@ -266,7 +266,7 @@ export default Container.makeReducer<
   },
   [EngineGen.chat1NotifyChatChatWelcomeMessageLoaded]: (draftState, action) => {
     const {teamID, message} = action.payload.params
-    draftState.teamIDToWelcomeMessage.set(teamID, {set: message.set, text: message.text})
+    draftState.teamIDToWelcomeMessage.set(teamID, message)
   },
   [TeamBuildingGen.tbResetStore]: handleTeamBuilding,
   [TeamBuildingGen.cancelTeamBuilding]: handleTeamBuilding,

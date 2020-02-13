@@ -474,7 +474,7 @@ export const getTeamRetentionPolicyByID = (state: TypedState, teamID: Types.Team
 export const getTeamWelcomeMessageByID = (
   state: TypedState,
   teamID: Types.TeamID
-): Types.WelcomeMessage | null => state.teams.teamIDToWelcomeMessage.get(teamID) ?? null
+): RPCChatTypes.WelcomeMessageDisplay | null => state.teams.teamIDToWelcomeMessage.get(teamID) ?? null
 
 export const getSelectedTeams = (): Types.TeamID[] => {
   const path = getFullRoute()

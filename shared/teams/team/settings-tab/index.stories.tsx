@@ -21,7 +21,7 @@ const commonProps = {
   teamname: 'myteam',
   waitingForSavePublicity: false,
   waitingForWelcomeMessage: false,
-  welcomeMessage: {set: false, text: ''},
+  welcomeMessage: {display: '', raw: '', set: false},
   yourOperations: {
     changeOpenTeam: true,
     changeTarsDisabled: true,

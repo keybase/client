@@ -124,7 +124,7 @@ export type MessageTypes = {
     outParam: void
   }
   'chat.1.NotifyChat.ChatWelcomeMessageLoaded': {
-    inParam: {readonly teamID: Keybase1.TeamID; readonly message: WelcomeMessage}
+    inParam: {readonly teamID: Keybase1.TeamID; readonly message: WelcomeMessageDisplay}
     outParam: void
   }
   'chat.1.NotifyChat.NewChatActivity': {
@@ -401,7 +401,7 @@ export type MessageTypes = {
   }
   'chat.1.local.getWelcomeMessage': {
     inParam: {readonly teamID: Keybase1.TeamID}
-    outParam: WelcomeMessage
+    outParam: WelcomeMessageDisplay
   }
   'chat.1.local.ignorePinnedMessage': {
     inParam: {readonly convID: ConversationID}
@@ -1435,7 +1435,8 @@ export type UserBotCommandInput = {readonly name: String; readonly description: 
 export type UserBotCommandOutput = {readonly name: String; readonly description: String; readonly usage: String; readonly extendedDescription?: UserBotExtendedDescription | null; readonly username: String}
 export type UserBotExtendedDescription = {readonly title: String; readonly desktopBody: String; readonly mobileBody: String}
 export type VersionKind = String
-export type WelcomeMessage = {readonly set: Boolean; readonly text: String}
+export type WelcomeMessage = {readonly set: Boolean; readonly raw: String}
+export type WelcomeMessageDisplay = {readonly set: Boolean; readonly display: String; readonly raw: String}
 
 export type IncomingCallMapType = {
   'chat.1.chatUi.chatAttachmentDownloadStart'?: (params: MessageTypes['chat.1.chatUi.chatAttachmentDownloadStart']['inParam'] & {sessionID: number}) => IncomingReturn

@@ -5,7 +5,7 @@ import * as TeamsGen from '../../actions/teams-gen'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
-import {computeWelcomeMessageText} from '../../chat/conversation/messages/cards/team-journey/util'
+import {computeWelcomeMessageTextRaw} from '../../chat/conversation/messages/cards/team-journey/util'
 
 type Props = Container.RouteProps<{teamID: Types.TeamID}>
 
@@ -31,7 +31,10 @@ const EditTeamWelcomeMessage = (props: Props) => {
     throw new Error(`There was a problem loading the welcome message, please report this error.`)
   })
 
-  const [welcomeMessage, setWelcomeMessage] = React.useState(origWelcomeMessage)
+  const [welcomeMessage, setWelcomeMessage] = React.useState({
+    raw: origWelcomeMessage.raw,
+    set: origWelcomeMessage.set,
+  })
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
@@ -62,8 +65,7 @@ const EditTeamWelcomeMessage = (props: Props) => {
             <Kb.Button
               style={styles.button}
               disabled={
-                welcomeMessage.text === origWelcomeMessage.text &&
-                welcomeMessage.set === origWelcomeMessage.set
+                welcomeMessage.raw === origWelcomeMessage.raw && welcomeMessage.set === origWelcomeMessage.set
               }
               label="Save"
               onClick={onSave}
@@ -79,8 +81,8 @@ const EditTeamWelcomeMessage = (props: Props) => {
       <Kb.Box2 alignItems="flex-start" direction="vertical" style={styles.container}>
         <Kb.LabeledInput
           placeholder="Welcome note"
-          onChangeText={x => setWelcomeMessage({set: true, text: x})}
-          value={computeWelcomeMessageText(welcomeMessage, false /* cannotWrite */)}
+          onChangeText={x => setWelcomeMessage({raw: x, set: true})}
+          value={computeWelcomeMessageTextRaw(welcomeMessage, false /* cannotWrite */)}
           multiline={true}
           rowsMin={3}
           rowsMax={3}
@@ -88,7 +90,7 @@ const EditTeamWelcomeMessage = (props: Props) => {
           autoFocus={true}
         />
         <Kb.Text type="BodySmall" style={styles.info}>
-          {welcomeMessage.set && welcomeMessage.text.length === 0 ? (
+          {welcomeMessage.set && welcomeMessage.raw.length === 0 ? (
             'No welcome note will be shown to new members.'
           ) : (
             <>&nbsp;</>
