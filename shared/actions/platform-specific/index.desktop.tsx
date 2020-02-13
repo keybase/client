@@ -278,7 +278,7 @@ const updateNow = async () => {
 }
 
 // don't leak these handlers on hot load
-module.hot.dispose(() => {
+module?.hot?.dispose(() => {
   const pm = Electron.remote.powerMonitor
   pm.removeAllListeners()
 })
