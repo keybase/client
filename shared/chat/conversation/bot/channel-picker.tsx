@@ -45,36 +45,28 @@ type RowProps = {
   channelInfo: TeamTypes.ChannelInfo
 }
 const Row = ({disabled, onToggle, selected, channelInfo}: RowProps) => (
-  <Kb.Box2
-    direction="horizontal"
-    alignSelf="flex-start"
-    style={Styles.collapseStyles([{marginBottom: Styles.globalMargins.tiny}, disabled && {opacity: 0.4}])}
-    fullWidth={true}
-  >
-    <Kb.Checkbox
-      checked={selected}
-      label=""
-      onCheck={onToggle}
-      disabled={disabled}
-      style={styles.channelCheckbox}
-    />
-
-    <Kb.Box2 direction="vertical" style={{flex: 1}}>
-      <Kb.Box2 direction="horizontal" alignSelf="flex-start">
-        <Kb.Text lineClamp={1} type="Body" style={styles.channelHash}>
-          #
-        </Kb.Text>
-        <Kb.Text type="Body" style={styles.channelText}>
-          {channelInfo.channelname}
-        </Kb.Text>
+  <Kb.ListItem2
+    type="Small"
+    firstItem={false}
+    body={
+      <Kb.Box2 direction="vertical" style={Styles.collapseStyles([{flex: 1}, disabled && {opacity: 0.4}])}>
+        <Kb.Box2 direction="horizontal" alignSelf="flex-start">
+          <Kb.Text lineClamp={1} type="Body" style={styles.channelHash}>
+            #
+          </Kb.Text>
+          <Kb.Text type="Body" style={styles.channelText}>
+            {channelInfo.channelname}
+          </Kb.Text>
+        </Kb.Box2>
+        {!!channelInfo.description && (
+          <Kb.Text type="Body" lineClamp={1} style={{color: Styles.globalColors.black_50}}>
+            {channelInfo.description}
+          </Kb.Text>
+        )}
       </Kb.Box2>
-      {!!channelInfo.description && (
-        <Kb.Text type="Body" lineClamp={1} style={{color: Styles.globalColors.black_50}}>
-          {channelInfo.description}
-        </Kb.Text>
-      )}
-    </Kb.Box2>
-  </Kb.Box2>
+    }
+    action={<Kb.CheckCircle checked={selected} onCheck={onToggle} disabled={disabled} />}
+  />
 )
 const ChannelPicker = (props: Props) => {
   const {channelInfos, installInConvs, setInstallInConvs} = props
@@ -110,19 +102,12 @@ const ChannelPicker = (props: Props) => {
         />
       </Kb.Box2>
       <Kb.ScrollView style={styles.rowsContainer}>
-        <Kb.Box2
-          direction="horizontal"
-          alignSelf="flex-start"
-          style={{marginBottom: Styles.globalMargins.tiny, backgroundColor: Styles.globalColors.blueGrey}}
-          fullWidth={true}
-        >
-          <Kb.Checkbox
-            checked={allSelected}
-            label="All channels"
-            onCheck={() => setAllSelected(!allSelected)}
-            style={styles.channelCheckbox}
-          />
-        </Kb.Box2>
+        <Kb.ListItem2
+          type="Small"
+          firstItem={true}
+          body={<Kb.Text type="BodyBold">All channels</Kb.Text>}
+          action={<Kb.CheckCircle checked={allSelected} onCheck={() => setAllSelected(!allSelected)} />}
+        />
         {rows}
       </Kb.ScrollView>
     </Kb.Box2>
