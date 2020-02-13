@@ -94,6 +94,7 @@ const Advanced = () => {
 
   const [disableSpellCheck, setDisableSpellcheck] = React.useState<boolean | undefined>(undefined)
 
+  const initialDisableSpellCheck = React.useRef<boolean>(undefined)
   const loadDisableSpellcheck = Container.useRPC(RPCTypes.configGuiGetValueRpcPromise)
 
   // load it
@@ -101,7 +102,9 @@ const Advanced = () => {
     loadDisableSpellcheck(
       [{path: 'ui.disableSpellCheck'}],
       result => {
-        setDisableSpellcheck(result.b ?? false)
+        const res = result.b ?? false
+        initialDisableSpellCheck.current = res
+        setDisableSpellcheck(res)
       },
       () => {
         setDisableSpellcheck(false)
@@ -117,7 +120,7 @@ const Advanced = () => {
       [
         {
           path: 'ui.disableSpellCheck',
-          value: {isNull: false, b: next},
+          value: {b: next, isNull: false},
         },
       ],
       () => {},
@@ -165,7 +168,10 @@ const Advanced = () => {
         )}
         {!Styles.isMobile && (
           <Kb.Checkbox
-            label="Disable spellchecking"
+            label={
+              'Disable spellchecking' +
+              (initialDisableSpellCheck.current === disableSpellCheck ? '' : ' (restart required)')
+            }
             disabled={disableSpellCheck === undefined}
             checked={!!disableSpellCheck}
             onCheck={onToggleDisableSpellcheck}
