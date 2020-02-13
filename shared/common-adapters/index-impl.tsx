@@ -181,6 +181,9 @@ module.exports = {
   get Meta() {
     return require('./meta').default
   },
+  get MobilePopup() {
+    return require('./mobile-popup').default
+  },
   get Modal() {
     return require('./modal').default
   },

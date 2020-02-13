@@ -35,61 +35,52 @@ const ChannelPopup = (props: Props) => {
 
   const onAdd = () => onComplete([...selected])
   return (
-    <Kb.FloatingBox dest="keyboard-avoiding-root">
-      <Kb.Box2 direction="vertical" centerChildren={true} style={styles.underlay}>
-        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.overlay}>
-          <Kb.Box2 direction="vertical" fullWidth={true} style={styles.header} gap="tiny">
-            <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerTop}>
-              <Kb.Text type="BodyBigLink" onClick={onCancel}>
-                Cancel
-              </Kb.Text>
-              <Kb.Text
-                type="BodyBigLink"
-                onClick={selected.size ? onAdd : undefined}
-                style={!selected.size && styles.addDisabled}
-              >
-                Add{!!selected.size && ` (${selected.size})`}
-              </Kb.Text>
-            </Kb.Box2>
-            <Kb.SearchFilter
-              placeholderText={`Search ${channels.length} ${pluralize('channel', channels.length)}`}
-              size="full-width"
-              onChange={onChangeFilter}
-              style={styles.searchFilter}
-              placeholderCentered={true}
-              icon="iconfont-search"
-            />
-          </Kb.Box2>
-          <Kb.BoxGrow>
-            <Kb.ScrollView style={Styles.globalStyles.fillAbsolute}>
-              {channelsFiltered.map(channelname => {
-                const disabled = disabledChannels?.includes(channelname)
-                const onClick = disabled ? undefined : () => onSelect(channelname)
-                return (
-                  <Kb.ClickableBox key={channelname} onClick={onClick}>
-                    <Kb.Box2
-                      direction="horizontal"
-                      style={styles.channelContainer}
-                      gap="tiny"
-                      fullWidth={true}
-                    >
-                      <Kb.Text type="Body" lineClamp={1} style={Styles.globalStyles.flexOne}>
-                        #{channelname}
-                      </Kb.Text>
-                      <Kb.CheckCircle
-                        onCheck={onClick}
-                        checked={disabled || selected.has(channelname)}
-                        disabled={disabledChannels?.includes(channelname)}
-                      />
-                    </Kb.Box2>
-                  </Kb.ClickableBox>
-                )
-              })}
-            </Kb.ScrollView>
-          </Kb.BoxGrow>
+    <Kb.MobilePopup overlayStyle={Styles.globalStyles.fullHeight}>
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.header} gap="tiny">
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerTop}>
+          <Kb.Text type="BodyBigLink" onClick={onCancel}>
+            Cancel
+          </Kb.Text>
+          <Kb.Text
+            type="BodyBigLink"
+            onClick={selected.size ? onAdd : undefined}
+            style={!selected.size && styles.addDisabled}
+          >
+            Add{!!selected.size && ` (${selected.size})`}
+          </Kb.Text>
         </Kb.Box2>
+        <Kb.SearchFilter
+          placeholderText={`Search ${channels.length} ${pluralize('channel', channels.length)}`}
+          size="full-width"
+          onChange={onChangeFilter}
+          style={styles.searchFilter}
+          placeholderCentered={true}
+          icon="iconfont-search"
+        />
       </Kb.Box2>
-    </Kb.FloatingBox>
+      <Kb.BoxGrow>
+        <Kb.ScrollView style={Styles.globalStyles.fillAbsolute}>
+          {channelsFiltered.map(channelname => {
+            const disabled = disabledChannels?.includes(channelname)
+            const onClick = disabled ? undefined : () => onSelect(channelname)
+            return (
+              <Kb.ClickableBox key={channelname} onClick={onClick}>
+                <Kb.Box2 direction="horizontal" style={styles.channelContainer} gap="tiny" fullWidth={true}>
+                  <Kb.Text type="Body" lineClamp={1} style={Styles.globalStyles.flexOne}>
+                    #{channelname}
+                  </Kb.Text>
+                  <Kb.CheckCircle
+                    onCheck={onClick}
+                    checked={disabled || selected.has(channelname)}
+                    disabled={disabledChannels?.includes(channelname)}
+                  />
+                </Kb.Box2>
+              </Kb.ClickableBox>
+            )
+          })}
+        </Kb.ScrollView>
+      </Kb.BoxGrow>
+    </Kb.MobilePopup>
   )
 }
 
@@ -103,17 +94,7 @@ const styles = Styles.styleSheetCreate(() => ({
     ...Styles.padding(19, Styles.globalMargins.small, 0),
   },
   headerTop: {justifyContent: 'space-between'},
-  overlay: {
-    backgroundColor: Styles.globalColors.white,
-    borderRadius: Styles.borderRadius,
-    maxHeight: 450,
-  },
   searchFilter: {paddingLeft: 0, paddingRight: 0},
-  underlay: {
-    ...Styles.globalStyles.fillAbsolute,
-    ...Styles.padding(27, Styles.globalMargins.small, Styles.globalMargins.small),
-    backgroundColor: Styles.globalColors.black_50,
-  },
 }))
 
 export default ChannelPopup

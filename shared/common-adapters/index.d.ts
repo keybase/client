@@ -68,6 +68,7 @@ export {MaybePopup} from './maybe-popup'
 
 export {default as MultiAvatar} from './multi-avatar'
 export {default as Meta} from './meta'
+export {default as MobilePopup} from './mobile-popup'
 export {default as Modal, Header as ModalHeader, useModalHeaderTitleAndCancel} from './modal'
 export {default as NameWithIcon} from './name-with-icon'
 export {default as ConnectedNameWithIcon} from './name-with-icon/container'
