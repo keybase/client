@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -153,4 +154,41 @@ func TestKeybaseInviteMalformed(t *testing.T) {
 	team, err = Load(context.Background(), tc.G, keybase1.LoadTeamArg{Name: teamname})
 	require.NoError(t, err)
 	require.Len(t, team.GetActiveAndObsoleteInvites(), 0)
+}
+
+func TestMultiUseInviteLink(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	_ = fus
+
+	teamname := createTeam(*tcs[0])
+	t.Logf("Created team %s", teamname)
+
+	res, err := AddMember(context.Background(), tcs[0].G, teamname, "tuser3c6691", keybase1.TeamRole_ADMIN, nil)
+	require.NoError(t, err)
+	spew.Dump(res)
+
+	useCount := 10
+	multipleUse := true
+	invite := SCTeamInvite{
+		Type:            "seitan_invite_token",
+		Name:            "lAIBxBjDicXR63BZhjgoamoqc2EaPMGdxowaqJTEc4Y8MmO3Bj2MAM7msKaZ1Mbsysw0vwKN7ttFF/+Cw7KNtfLOlZQTn9imsnvQZqOCxM5/Sq690VRJPsKFv/3QWKBsFPaxeM3nntRfzzsVUfRzihcZNHzurYW/xoC9ptA88hpiXhdweU9MLJhFs0zeBvp4qio=",
+		ID:              NewInviteID(),
+		MultipleUse:     &multipleUse,
+		ExpireAfterUses: &useCount,
+	}
+	invites := []SCTeamInvite{invite}
+	payload := SCTeamInvites{
+		Readers: &invites,
+	}
+
+	team, err := Load(context.Background(), tcs[0].G, keybase1.LoadTeamArg{Name: teamname})
+	require.NoError(t, err)
+	err = team.postTeamInvites(context.Background(), payload)
+	require.NoError(t, err)
+
+	team2, err := Load(context.Background(), tcs[1].G, keybase1.LoadTeamArg{Name: teamname, NeedAdmin: true})
+	require.NoError(t, err)
+	spew.Dump(team2.chain().inner.ActiveInvites)
 }

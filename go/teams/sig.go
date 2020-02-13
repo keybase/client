@@ -385,6 +385,7 @@ func precheckLinksToPost(ctx context.Context, g *libkb.GlobalContext,
 
 		newState, err := AppendChainLink(ctx, g, me, state, link2, &signer)
 		if err != nil {
+			fmt.Printf("%s\n", sigMultiItems[0].SigInner)
 			if link2.inner != nil && link2.inner.Body.Team != nil && link2.inner.Body.Team.Members != nil {
 				g.Log.CDebugf(ctx, "precheckLinksToPost: link %v/%v rejected: %v", i+1, len(sigMultiItems), spew.Sprintf("%v", *link2.inner.Body.Team.Members))
 			} else {

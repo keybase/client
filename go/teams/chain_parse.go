@@ -40,6 +40,7 @@ type SCTeamSection struct {
 	Admin            *SCTeamAdmin           `json:"admin,omitempty"`
 	Invites          *SCTeamInvites         `json:"invites,omitempty"`
 	CompletedInvites SCMapInviteIDToUV      `json:"completed_invites,omitempty"`
+	UsedInvites      []SCMapInviteIDToUV    `json:"used_invites,omitempty"`
 	Implicit         bool                   `json:"is_implicit,omitempty"`
 	Public           bool                   `json:"is_public,omitempty"`
 	Entropy          SCTeamEntropy          `json:"entropy,omitempty"`
@@ -69,9 +70,12 @@ type SCTeamInvites struct {
 }
 
 type SCTeamInvite struct {
-	Type string                  `json:"type"`
-	Name keybase1.TeamInviteName `json:"name"`
-	ID   SCTeamInviteID          `json:"id"`
+	Type            string                  `json:"type"`
+	Name            keybase1.TeamInviteName `json:"name"`
+	ID              SCTeamInviteID          `json:"id"`
+	MultipleUse     *bool                   `json:"multiple_use,omitempty"`
+	ExpireAfterTime *int                    `json:"expire_after_time,omitempty"`
+	ExpireAfterUses *int                    `json:"expire_after_uses,omitempty"`
 }
 
 type SCTeamParent struct {
