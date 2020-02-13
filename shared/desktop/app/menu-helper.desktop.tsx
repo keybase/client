@@ -123,7 +123,6 @@ export default function makeMenu(window: Electron.BrowserWindow) {
 function setupContextMenu(window: Electron.BrowserWindow) {
   window.webContents.on('context-menu', (_: Electron.Event, props: Electron.ContextMenuParams) => {
     const {selectionText, isEditable} = props
-    console.log('aaaa context menu', props)
     if (isEditable) {
       const {dictionarySuggestions} = props
       const inputMenu = Electron.Menu.buildFromTemplate([
@@ -132,34 +131,18 @@ function setupContextMenu(window: Electron.BrowserWindow) {
               ...dictionarySuggestions.map(
                 s =>
                   new Electron.MenuItem({
-                    label: s,
                     click(_, w) {
-                      // TODO
-                      // w.webContents.executeJavaScript(`
-                      // if (window.getSelection) {
-                      // const sel = window.getSelection()
-                      // if (sel.rangeCount) {
-                      // let range = sel.getRangeAt(0)
-                      // range.deleteContents()
-                      // range.insertNode(document.createTextNode("${s}"))
-                      // }
-                      // } else if (document.selection && document.selection.createRange) {
-                      // let range = document.selection.createRange()
-                      // range.text = "${s}"
-                      // }`)
-                      // const old = Electron.clipboard.readText('clipboard')
-                      // Electron.clipboard.writeText(s, 'clipboard')
-                      // console.log('aaa tODO inject', s)
-                      // Electron.clipboard.writeText(old, 'clipboard')
+                      w.webContents.replaceMisspelling(s)
                     },
+                    label: s,
                   })
               ),
               ...(dictionarySuggestions.length ? [new Electron.MenuItem({type: 'separator'})] : []),
               new Electron.MenuItem({
-                label: 'Add to dictionary',
                 click(_, w) {
                   w.webContents.session.addWordToSpellCheckerDictionary(props.misspelledWord)
                 },
+                label: 'Add to dictionary',
               }),
               new Electron.MenuItem({type: 'separator'}),
             ]
