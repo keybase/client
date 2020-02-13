@@ -468,13 +468,13 @@ func computeSetBitsBigEndian(x uint) []uint {
 	return ret
 }
 
-func computeLogPatternMerkleSkips(startSeqno keybase1.Seqno, endSeqno keybase1.Seqno) []uint {
-	end := uint(endSeqno)
-	var ret []uint
-	diff := end - uint(startSeqno)
-	if diff <= 0 {
+func computeLogPatternMerkleSkips(startSeqno keybase1.Seqno, endSeqno keybase1.Seqno) (ret []uint) {
+	if endSeqno <= startSeqno {
 		return ret
 	}
+	end := uint(endSeqno)
+	start := uint(startSeqno)
+	diff := end - start
 	skips := computeSetBitsBigEndian(diff)
 	curr := end
 	// Ignore first set bit
