@@ -76,12 +76,12 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
       (result === 'broken' && `Some of ${username}'s proofs have changed since you last followed them.`)
 
     const d = getDetails(draftState, username)
-    if (result === 'valid') {
-      d.resetBrokeTrack = false
-    }
     // Don't overwrite the old reason if the user reset.
     if (!d.resetBrokeTrack || d.reason.length === 0) {
       d.reason = newReason || d.reason
+    }
+    if (result === 'valid') {
+      d.resetBrokeTrack = false
     }
     d.state = result
   },
