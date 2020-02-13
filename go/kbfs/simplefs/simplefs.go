@@ -380,6 +380,24 @@ func (k *SimpleFS) branchNameFromPath(
 	}
 }
 
+func (k *SimpleFS) getKBPKI(ctx context.Context) (libkbfs.KBPKI, error) {
+	// Just make sure KBPKI exists before we try to use it.  It
+	// actually gets created after SimpleFS registers as an RPC
+	// service..
+	kbpki := k.config.KBPKI()
+	for kbpki == nil {
+		t := time.NewTimer(250 * time.Millisecond)
+		select {
+		case <-t.C:
+			kbpki = k.config.KBPKI()
+		case <-ctx.Done():
+			_ = t.Stop()
+			return nil, ctx.Err()
+		}
+	}
+	return kbpki, nil
+}
+
 func (k *SimpleFS) getFSWithMaybeCreate(
 	ctx context.Context, path keybase1.Path, create bool) (
 	fs billy.Filesystem, finalElem string, err error) {
@@ -406,8 +424,12 @@ func (k *SimpleFS) getFSWithMaybeCreate(
 		if err != nil {
 			return nil, "", err
 		}
+		kbpki, err := k.getKBPKI(ctx)
+		if err != nil {
+			return nil, "", err
+		}
 		tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
-			ctx, k.config.KBPKI(), k.config.MDOps(), k.config, tlfName, t)
+			ctx, kbpki, k.config.MDOps(), k.config, tlfName, t)
 		if err != nil {
 			return nil, "", err
 		}
@@ -466,8 +488,11 @@ func deTy2Ty(et data.EntryType) keybase1.DirentType {
 }
 
 func (k *SimpleFS) favoriteList(ctx context.Context, path keybase1.Path, t tlf.Type) ([]keybase1.Dirent, error) {
-	session, err := idutil.GetCurrentSessionIfPossible(
-		ctx, k.config.KBPKI(), true)
+	kbpki, err := k.getKBPKI(ctx)
+	if err != nil {
+		return nil, err
+	}
+	session, err := idutil.GetCurrentSessionIfPossible(ctx, kbpki, true)
 	if err != nil {
 		return nil, err
 	}
@@ -497,13 +522,13 @@ func (k *SimpleFS) favoriteList(ctx context.Context, path keybase1.Path, t tlf.T
 		res[len(res)-1].DirentType = deTy2Ty(data.Dir)
 
 		handle, err := tlfhandle.ParseHandlePreferredQuick(
-			ctx, k.config.KBPKI(), k.config, string(pname), t)
+			ctx, kbpki, k.config, string(pname), t)
 		if err != nil {
 			k.log.Errorf("ParseTlfHandlePreferredQuick: %s %q %v", t, pname, err)
 			continue
 		}
 		res[len(res)-1].Writable, err = libfs.IsWriter(
-			ctx, k.config.KBPKI(), k.config, handle)
+			ctx, kbpki, k.config, handle)
 		if err != nil {
 			k.log.Errorf("libfs.IsWriter: %q %+v", pname, err)
 			continue
@@ -718,8 +743,12 @@ func (k *SimpleFS) getFolderBranchFromPath(
 	if err != nil {
 		return data.FolderBranch{}, "", err
 	}
+	kbpki, err := k.getKBPKI(ctx)
+	if err != nil {
+		return data.FolderBranch{}, "", err
+	}
 	tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
-		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, tlfName, t)
+		ctx, kbpki, k.config.MDOps(), k.config, tlfName, t)
 	if err != nil {
 		return data.FolderBranch{}, "", err
 	}
@@ -1096,8 +1125,11 @@ func (k *SimpleFS) SimpleFSReadList(_ context.Context, opid keybase1.OpID) (keyb
 // this will trigger a network request.
 func (k *SimpleFS) SimpleFSListFavorites(ctx context.Context) (
 	keybase1.FavoritesResult, error) {
-	session, err := idutil.GetCurrentSessionIfPossible(
-		ctx, k.config.KBPKI(), true)
+	kbpki, err := k.getKBPKI(ctx)
+	if err != nil {
+		return keybase1.FavoritesResult{}, err
+	}
+	session, err := idutil.GetCurrentSessionIfPossible(ctx, kbpki, true)
 	if err != nil {
 		return keybase1.FavoritesResult{}, err
 	}
@@ -1480,8 +1512,12 @@ func (k *SimpleFS) pathsForSameTlfMove(
 		return false, "", "", nil, nil
 	}
 
+	kbpki, err := k.getKBPKI(ctx)
+	if err != nil {
+		return false, "", "", nil, err
+	}
 	tlfHandle, err = libkbfs.GetHandleFromFolderNameAndType(
-		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, srcTlfName,
+		ctx, kbpki, k.config.MDOps(), k.config, srcTlfName,
 		srcTlfType)
 	if err != nil {
 		return false, "", "", nil, err
@@ -1570,8 +1606,12 @@ func (k *SimpleFS) SimpleFSRename(
 	if err != nil {
 		return err
 	}
+	kbpki, err := k.getKBPKI(ctx)
+	if err != nil {
+		return err
+	}
 	tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
-		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, tlfName, t)
+		ctx, kbpki, k.config.MDOps(), k.config, tlfName, t)
 	if err != nil {
 		return err
 	}
@@ -2317,8 +2357,11 @@ func (k *SimpleFS) SimpleFSSyncStatus(ctx context.Context, filter keybase1.ListF
 // SimpleFSUserEditHistory returns the edit history for the logged-in user.
 func (k *SimpleFS) SimpleFSUserEditHistory(ctx context.Context) (
 	res []keybase1.FSFolderEditHistory, err error) {
-	session, err := idutil.GetCurrentSessionIfPossible(
-		ctx, k.config.KBPKI(), true)
+	kbpki, err := k.getKBPKI(ctx)
+	if err != nil {
+		return nil, err
+	}
+	session, err := idutil.GetCurrentSessionIfPossible(ctx, kbpki, true)
 	// Return empty history if we are not logged in.
 	if err != nil {
 		return nil, nil
@@ -2350,8 +2393,12 @@ func (k *SimpleFS) SimpleFSReset(
 	if err != nil {
 		return err
 	}
+	kbpki, err := k.getKBPKI(ctx)
+	if err != nil {
+		return err
+	}
 	tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
-		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, tlfName, t)
+		ctx, kbpki, k.config.MDOps(), k.config, tlfName, t)
 	if err != nil {
 		return err
 	}
@@ -2459,8 +2506,12 @@ func (k *SimpleFS) getSyncConfig(ctx context.Context, path keybase1.Path) (
 	if err != nil {
 		return tlf.NullID, keybase1.FolderSyncConfig{}, err
 	}
+	kbpki, err := k.getKBPKI(ctx)
+	if err != nil {
+		return tlf.NullID, keybase1.FolderSyncConfig{}, err
+	}
 	tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
-		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, tlfName, t)
+		ctx, kbpki, k.config.MDOps(), k.config, tlfName, t)
 	if err != nil {
 		return tlf.NullID, keybase1.FolderSyncConfig{}, err
 	}
@@ -2578,8 +2629,12 @@ func (k *SimpleFS) SimpleFSGetFolder(
 	if err != nil {
 		return keybase1.FolderWithFavFlags{}, err
 	}
+	kbpki, err := k.getKBPKI(ctx)
+	if err != nil {
+		return keybase1.FolderWithFavFlags{}, err
+	}
 	tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
-		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, tlfName, t)
+		ctx, kbpki, k.config.MDOps(), k.config, tlfName, t)
 	if err != nil {
 		return keybase1.FolderWithFavFlags{}, err
 	}
@@ -2606,9 +2661,11 @@ func (k *SimpleFS) SimpleFSSyncConfigAndStatus(ctx context.Context,
 	}
 
 	tlfMDs := k.config.KBFSOps().GetAllSyncedTlfMDs(ctx)
-
-	session, err := idutil.GetCurrentSessionIfPossible(
-		ctx, k.config.KBPKI(), true)
+	kbpki, err := k.getKBPKI(ctx)
+	if err != nil {
+		return keybase1.SyncConfigAndStatusRes{}, err
+	}
+	session, err := idutil.GetCurrentSessionIfPossible(ctx, kbpki, true)
 	if err != nil {
 		return keybase1.SyncConfigAndStatusRes{}, err
 	}
@@ -2720,8 +2777,12 @@ func (k *SimpleFS) SimpleFSClearConflictState(ctx context.Context,
 	if err != nil {
 		return err
 	}
+	kbpki, err := k.getKBPKI(ctx)
+	if err != nil {
+		return err
+	}
 	tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
-		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, tlfName, t)
+		ctx, kbpki, k.config.MDOps(), k.config, tlfName, t)
 	if err != nil {
 		return err
 	}
@@ -2750,8 +2811,12 @@ func (k *SimpleFS) SimpleFSFinishResolvingConflict(ctx context.Context,
 	if err != nil {
 		return err
 	}
+	kbpki, err := k.getKBPKI(ctx)
+	if err != nil {
+		return err
+	}
 	tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
-		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, tlfName, t)
+		ctx, kbpki, k.config.MDOps(), k.config, tlfName, t)
 	if err != nil {
 		return err
 	}
@@ -2787,8 +2852,12 @@ func (k *SimpleFS) SimpleFSForceStuckConflict(
 	if err != nil {
 		return err
 	}
+	kbpki, err := k.getKBPKI(ctx)
+	if err != nil {
+		return err
+	}
 	tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
-		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, tlfName, t)
+		ctx, kbpki, k.config.MDOps(), k.config, tlfName, t)
 	if err != nil {
 		return err
 	}
@@ -2877,8 +2946,12 @@ func (k *SimpleFS) SimpleFSObfuscatePath(
 	if err != nil {
 		return "", err
 	}
+	kbpki, err := k.getKBPKI(ctx)
+	if err != nil {
+		return "", err
+	}
 	tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
-		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, tlfName, t)
+		ctx, kbpki, k.config.MDOps(), k.config, tlfName, t)
 	if err != nil {
 		return "", err
 	}
@@ -2917,8 +2990,12 @@ func (k *SimpleFS) SimpleFSDeobfuscatePath(
 	if err != nil {
 		return nil, err
 	}
+	kbpki, err := k.getKBPKI(ctx)
+	if err != nil {
+		return nil, err
+	}
 	tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
-		ctx, k.config.KBPKI(), k.config.MDOps(), k.config, tlfName, t)
+		ctx, kbpki, k.config.MDOps(), k.config, tlfName, t)
 	if err != nil {
 		return nil, err
 	}
