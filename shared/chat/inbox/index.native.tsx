@@ -307,6 +307,12 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export default Inbox
+// export default Inbox
+import {PerfWrapper} from '../../util/use-perf'
+export default (p: any) => (
+  <PerfWrapper style={{height: '100%', width: '100%'}}>
+    <Inbox {...p} />
+  </PerfWrapper>
+)
 export type RowItem = T.RowItem
 export type RowItemSmall = T.RowItemSmall
