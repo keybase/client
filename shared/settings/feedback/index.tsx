@@ -194,7 +194,6 @@ const styles = Styles.styleSheetCreate(
         },
         isTablet: {
           maxWidth: Styles.globalStyles.mediumWidth,
-          padding: Styles.globalMargins.small,
           width: '100%',
         },
       }),
