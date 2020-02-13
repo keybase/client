@@ -714,4 +714,10 @@
     keybase1.TeamRole role;
     keybase1.TeamMemberStatus status;
   }
+
+  enum LastActiveStatus {
+    NONE_0,
+    ACTIVE_1,
+    RECENTLY_ACTIVE_2
+  }
 }

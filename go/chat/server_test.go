@@ -8089,3 +8089,53 @@ func TestChatSrvDefaultTeamChannels(t *testing.T) {
 		}
 	})
 }
+
+func TestChatSrvTeamActivity(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+		default:
+			return
+		}
+
+		ctc := makeChatTestContext(t, "TeamActivity", 2)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
+		tlfID1 := created.Triple.Tlfid.TLFIDStr()
+		created2 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt, users[1])
+		tlfID2 := created2.Triple.Tlfid.TLFIDStr()
+
+		tc := ctc.as(t, users[0])
+		topicName := "zjoinonsend"
+		_, err := tc.chatLocalHandler().NewConversationLocal(context.TODO(),
+			chat1.NewConversationLocalArg{
+				TlfName:       created.TlfName,
+				TopicName:     &topicName,
+				TopicType:     chat1.TopicType_CHAT,
+				TlfVisibility: keybase1.TLFVisibility_PRIVATE,
+				MembersType:   mt,
+			})
+		require.NoError(t, err)
+		_, err = tc.chatLocalHandler().NewConversationLocal(context.TODO(),
+			chat1.NewConversationLocalArg{
+				TlfName:       created2.TlfName,
+				TopicName:     &topicName,
+				TopicType:     chat1.TopicType_CHAT,
+				TlfVisibility: keybase1.TLFVisibility_PRIVATE,
+				MembersType:   mt,
+			})
+		require.NoError(t, err)
+
+		lastActive, err := tc.chatLocalHandler().GetLastActiveForTLF(context.TODO(), tlfID1)
+		require.NoError(t, err)
+		require.Equal(t, chat1.LastActiveStatus_ACTIVE, lastActive)
+
+		res, err := tc.chatLocalHandler().GetLastActiveForTeams(context.TODO())
+		require.NoError(t, err)
+		require.Equal(t, 2, len(res))
+		require.Equal(t, chat1.LastActiveStatus_ACTIVE, res[tlfID1])
+		require.Equal(t, chat1.LastActiveStatus_ACTIVE, res[tlfID2])
+	})
+}

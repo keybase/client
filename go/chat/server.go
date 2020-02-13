@@ -1664,7 +1664,7 @@ func (h *Server) GetTLFConversationsLocal(ctx context.Context, arg chat1.GetTLFC
 	// Fetch the TLF ID from specified name
 	nameInfo, err := CreateNameInfoSource(ctx, h.G(), arg.MembersType).LookupID(ctx, arg.TlfName, false)
 	if err != nil {
-		h.Debug(ctx, "GetTLFConversationsLocal: failed to get TLFID from name: %s", err.Error())
+		h.Debug(ctx, "GetTLFConversationsLocal: failed to get TLFID from name: %v", err)
 		return res, err
 	}
 
@@ -3434,4 +3434,40 @@ func (h *Server) SetDefaultTeamChannelsLocal(ctx context.Context, arg chat1.SetD
 		Convs:  convs,
 	})
 	return res, err
+}
+
+func (h *Server) GetLastActiveForTLF(ctx context.Context, tlfIDStr chat1.TLFIDStr) (res chat1.LastActiveStatus, err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "GetLastActiveForTLF")()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
+	tlfID, err := chat1.MakeTLFID(tlfIDStr.String())
+	if err != nil {
+		return res, err
+	}
+	mtime, err := h.G().TeamChannelSource.GetLastActiveForTLF(ctx, uid, tlfID, chat1.TopicType_CHAT)
+	if err != nil {
+		return res, err
+	}
+	return utils.ToLastActiveStatus(mtime), nil
+}
+
+func (h *Server) GetLastActiveForTeams(ctx context.Context) (res map[chat1.TLFIDStr]chat1.LastActiveStatus, err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "GetLastActiveForTeams")()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return nil, err
+	}
+	teamActivity, err := h.G().TeamChannelSource.GetLastActiveForTeams(ctx, uid, chat1.TopicType_CHAT)
+	if err != nil {
+		return nil, err
+	}
+	res = make(map[chat1.TLFIDStr]chat1.LastActiveStatus)
+	for tlfID, mtime := range teamActivity {
+		res[tlfID] = utils.ToLastActiveStatus(mtime)
+	}
+	return res, nil
 }

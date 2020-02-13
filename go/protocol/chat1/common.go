@@ -2474,6 +2474,35 @@ func (o TeamMember) DeepCopy() TeamMember {
 	}
 }
 
+type LastActiveStatus int
+
+const (
+	LastActiveStatus_NONE            LastActiveStatus = 0
+	LastActiveStatus_ACTIVE          LastActiveStatus = 1
+	LastActiveStatus_RECENTLY_ACTIVE LastActiveStatus = 2
+)
+
+func (o LastActiveStatus) DeepCopy() LastActiveStatus { return o }
+
+var LastActiveStatusMap = map[string]LastActiveStatus{
+	"NONE":            0,
+	"ACTIVE":          1,
+	"RECENTLY_ACTIVE": 2,
+}
+
+var LastActiveStatusRevMap = map[LastActiveStatus]string{
+	0: "NONE",
+	1: "ACTIVE",
+	2: "RECENTLY_ACTIVE",
+}
+
+func (e LastActiveStatus) String() string {
+	if v, ok := LastActiveStatusRevMap[e]; ok {
+		return v
+	}
+	return fmt.Sprintf("%v", int(e))
+}
+
 type CommonInterface interface {
 }
 
