@@ -14,7 +14,7 @@ gpg_tempfile="$client_dir/.docker/code_signing_key"
 gpg --export-secret-key --armor "$code_signing_fingerprint" > "$gpg_tempfile"
 
 # Clear all existing base images
-docker rmi golang:1.13.3-stretch || true
+docker rmi golang:1.13.7-stretch || true
 docker rmi debian:stretch || true
 
 # Build all three variants
