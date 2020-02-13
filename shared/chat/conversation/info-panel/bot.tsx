@@ -13,11 +13,11 @@ import * as Constants from '../../../constants/chat2'
 type BotProps = RPCTypes.FeaturedBot & {
   description?: string
   onClick: (username: string) => void
-  showInChannel?: boolean
+  showNotInChannel?: boolean
 }
 
 export const Bot = (props: BotProps) => {
-  const {botAlias, description, botUsername, onClick, showInChannel} = props
+  const {botAlias, description, botUsername, onClick, showNotInChannel} = props
   const {ownerTeam, ownerUser} = props
   const lower = (
     <Kb.Box2
@@ -66,9 +66,15 @@ export const Bot = (props: BotProps) => {
               {usernameDisplay}
               {lower}
             </Kb.Box2>
-            {showInChannel && (
-              <Kb.WithTooltip tooltip={`${botAlias || botUsername} can respond to messages in this channel.`}>
-                <Kb.Icon type="iconfont-bot" color={Styles.globalColors.black_35} onClick={() => null} />
+            {showNotInChannel && (
+              <Kb.WithTooltip
+                tooltip={`${botAlias || botUsername} can't respond to messages in this channel.`}
+              >
+                <Kb.Icon
+                  type="iconfont-exclamation"
+                  color={Styles.globalColors.black_35}
+                  onClick={() => null}
+                />
               </Kb.WithTooltip>
             )}
           </Kb.Box2>
@@ -288,7 +294,11 @@ export default (props: Props) => {
             <Bot
               {...item}
               onClick={onBotSelect}
-              showInChannel={teamType === 'big' && participantsAll.includes(item.botUsername)}
+              showNotInChannel={
+                teamType === 'big' &&
+                botUsernames.includes(item.botUsername) &&
+                !participantsAll.includes(item.botUsername)
+              }
             />
           )
         }
