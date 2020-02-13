@@ -3471,3 +3471,13 @@ func (h *Server) GetLastActiveForTeams(ctx context.Context) (res map[chat1.TLFID
 	}
 	return res, nil
 }
+
+func (h *Server) GetRecentJoinsLocal(ctx context.Context, convID chat1.ConversationID) (numJoins int, err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "GetRecentJoinsLocal")()
+	_, err = utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return 0, err
+	}
+	return h.G().TeamChannelSource.GetRecentJoins(ctx, convID, h.remoteClient())
+}

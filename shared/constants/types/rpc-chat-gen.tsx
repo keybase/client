@@ -1683,6 +1683,7 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.local.setDefaultTeamChannelsLocal'
 // 'chat.1.local.getLastActiveForTLF'
 // 'chat.1.local.getLastActiveForTeams'
+// 'chat.1.local.getRecentJoinsLocal'
 // 'chat.1.NotifyChat.NewChatActivity'
 // 'chat.1.NotifyChat.ChatIdentifyUpdate'
 // 'chat.1.NotifyChat.ChatTLFFinalize'

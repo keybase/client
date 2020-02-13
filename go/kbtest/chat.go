@@ -647,6 +647,18 @@ func (d dummyChannelSource) GetChannelTopicName(ctx context.Context, uid gregor1
 	return "", nil
 }
 
+func (d dummyChannelSource) GetRecentJoins(ctx context.Context, convID chat1.ConversationID, remoteClient chat1.RemoteInterface) (int, error) {
+	return 0, nil
+}
+
+func (d dummyChannelSource) OnDbNuke(mctx libkb.MetaContext) error {
+	return nil
+}
+
+func (d dummyChannelSource) OnLogout(mctx libkb.MetaContext) error {
+	return nil
+}
+
 func (m *ChatRemoteMock) PostRemote(ctx context.Context, arg chat1.PostRemoteArg) (res chat1.PostRemoteRes, err error) {
 	uid := arg.MessageBoxed.ClientHeader.Sender
 	conv := m.world.GetConversationByID(arg.ConversationID)
