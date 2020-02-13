@@ -440,6 +440,14 @@ func IsVisibleChatMessageType(messageType chat1.MessageType) bool {
 	return checkMessageTypeQual(messageType, chat1.VisibleChatMessageTypes())
 }
 
+func IsBadgeableMessageType(messageType chat1.MessageType) bool {
+	return checkMessageTypeQual(messageType, chat1.BadgeableMessageTypes())
+}
+
+func IsNonEmptyConvMessageType(messageType chat1.MessageType) bool {
+	return checkMessageTypeQual(messageType, chat1.NonEmptyConvMessageTypes())
+}
+
 func IsEditableByEditMessageType(messageType chat1.MessageType) bool {
 	return checkMessageTypeQual(messageType, chat1.EditableMessageTypesByEdit())
 }
@@ -457,10 +465,6 @@ func IsDeleteableByDeleteMessageType(valid chat1.MessageUnboxedValid) bool {
 		return true
 	}
 	return chat1.IsSystemMsgDeletableByDelete(typ)
-}
-
-func IsNonEmptyConvMessageType(messageType chat1.MessageType) bool {
-	return checkMessageTypeQual(messageType, chat1.NonEmptyConvMessageTypes())
 }
 
 func IsCollapsibleMessageType(messageType chat1.MessageType) bool {

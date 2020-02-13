@@ -248,7 +248,7 @@ func VisibleChatMessageTypes() []MessageType {
 	return visibleMessageTypes
 }
 
-var nonEmptyConvMessageTypes = []MessageType{
+var badgeableMessageTypes = []MessageType{
 	MessageType_TEXT,
 	MessageType_ATTACHMENT,
 	MessageType_SYSTEM,
@@ -259,10 +259,16 @@ var nonEmptyConvMessageTypes = []MessageType{
 	MessageType_PIN,
 }
 
+// Message types that cause badges.
+// JOIN and LEAVE are Visible but are too minute to badge.
+func BadgeableMessageTypes() []MessageType {
+	return badgeableMessageTypes
+}
+
 // A conversation is considered 'empty' unless it has one of these message types.
-// Used for filtering empty convs out of the the inbox. And badging.
+// Used for filtering empty convs out of the the inbox.
 func NonEmptyConvMessageTypes() []MessageType {
-	return nonEmptyConvMessageTypes
+	return badgeableMessageTypes
 }
 
 var editableMessageTypesByEdit = []MessageType{
