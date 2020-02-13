@@ -53,6 +53,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
     private Bundle initialBundleFromNotification;
     private HashMap<String, String> initialIntent;
     private String shareData;
+    private boolean isUrl;
     private boolean misTestDevice;
 
     private static void relayReset(ReactApplicationContext reactContext) {
@@ -238,6 +239,11 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
         this.shareData = null;
     }
 
+    @ReactMethod
+    public void getInitialShareDataIsUrl(Promise promise) {
+        promise.resolve(this.isUrl);
+    }
+
     // Same type as DarkModePreference: 'system' | 'alwaysDark' | 'alwaysLight'
     @ReactMethod
     public void appColorSchemeChanged(String prefString) {
@@ -255,4 +261,8 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
     public void setInitialShareData(String s) {
         this.shareData = s;
     }
+    public void setInitialShareDataIsUrl(boolean isUrl) {
+        this.isUrl = isUrl;
+    }
+
 }

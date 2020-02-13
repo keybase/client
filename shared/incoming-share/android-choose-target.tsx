@@ -9,28 +9,58 @@ import ChooseTarget from './choose-target'
 const AndroidChooseTarget = () => {
   const dispatch = Container.useDispatch()
   const onBack = () => dispatch(RouteTreeGen.createNavigateUp())
-  const url = Container.useSelector(state => state.config.androidShare?.url ?? '')
-  const onKBFS = () => {
-    dispatch(FsGen.createSetIncomingShareSource({source: FsTypes.stringToLocalPath(url)}))
-    dispatch(FsGen.createShowIncomingShare({initialDestinationParentPath: FsTypes.stringToPath('/keybase')}))
-  }
-  const onChat = () =>
-    dispatch(
-      RouteTreeGen.createNavigateAppend({
-        path: [{props: {url}, selected: 'sendAttachmentToChat'}],
-      })
-    )
-  const parts = url.split('/')
-  const name = parts[parts.length - 1]
+  const share = Container.useSelector(state => state.config.androidShare)
+  const onKBFS =
+    share?.type === RPCTypes.IncomingShareType.file
+      ? () => {
+          dispatch(FsGen.createSetIncomingShareSource({source: FsTypes.stringToLocalPath(share.url)}))
+          dispatch(
+            FsGen.createShowIncomingShare({initialDestinationParentPath: FsTypes.stringToPath('/keybase')})
+          )
+        }
+      : // Disable sharing text into KBFS on Android for now.
+        undefined
 
-  return (
+  const item = share
+    ? share.type === RPCTypes.IncomingShareType.file
+      ? {
+          payloadPath: share.url,
+          type: RPCTypes.IncomingShareType.file,
+        }
+      : {
+          content: share.text,
+          type: RPCTypes.IncomingShareType.text,
+        }
+    : undefined
+  const onChat = item
+    ? () =>
+        dispatch(
+          RouteTreeGen.createNavigateAppend({
+            path: [
+              {
+                props: {
+                  incomingShareItems: [item],
+                },
+                selected: 'sendAttachmentToChat',
+              },
+            ],
+          })
+        )
+    : undefined
+
+  return item ? (
     <ChooseTarget
-      items={[{filename: name, shareType: RPCTypes.IncomingShareType.file}]}
+      items={[
+        {
+          filename: item.payloadPath ? FsTypes.getLocalPathName(item.payloadPath) : '',
+          shareType: item.type,
+        },
+      ]}
       onBack={onBack}
       onChat={onChat}
       onKBFS={onKBFS}
     />
-  )
+  ) : null
 }
 
 export default AndroidChooseTarget
