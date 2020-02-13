@@ -45,7 +45,7 @@ const CreateChannel = (props: Props) => {
       allowOverflow={true}
     >
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.banner} centerChildren={true}>
-        <Kb.Text type="BodySmall">Banner</Kb.Text>
+        <Kb.Icon type="icon-illustration-teams-channels-460-96" />
       </Kb.Box2>
       <Kb.Box2
         direction="vertical"
@@ -104,7 +104,7 @@ const styles = Styles.styleSheetCreate(() => ({
       height: 96,
     },
     isMobile: {
-      height: 61,
+      height: 64,
     },
   }),
   body: Styles.platformStyles({
