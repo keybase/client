@@ -147,6 +147,34 @@ const leaveTeam = async (action: TeamsGen.LeaveTeamPayload, logger: Saga.SagaLog
 
 const leftTeam = () => RouteTreeGen.createNavUpToScreen({routeName: 'teamsRoot'})
 
+const loadWelcomeMessage = async (action: TeamsGen.LoadWelcomeMessagePayload, logger: Saga.SagaLogger) => {
+  const {teamID} = action.payload
+  try {
+    const message = await RPCChatTypes.localGetWelcomeMessageRpcPromise(
+      {teamID},
+      Constants.loadWelcomeMessageWaitingKey(teamID)
+    )
+    return TeamsGen.createLoadedWelcomeMessage({message, teamID})
+  } catch (error) {
+    logger.error(error)
+    return TeamsGen.createSettingsError({error: error.desc})
+  }
+}
+
+const setWelcomeMessage = async (action: TeamsGen.SetWelcomeMessagePayload, logger: Saga.SagaLogger) => {
+  const {message, teamID} = action.payload
+  try {
+    await RPCChatTypes.localSetWelcomeMessageRpcPromise(
+      {message, teamID},
+      Constants.setWelcomeMessageWaitingKey(teamID)
+    )
+    return TeamsGen.createLoadWelcomeMessage({teamID})
+  } catch (error) {
+    logger.error(error)
+    return TeamsGen.createSetWelcomeMessageError({error: error.desc})
+  }
+}
+
 const getTeamRetentionPolicy = async (
   state: TypedState,
   action: TeamsGen.GetTeamRetentionPolicyPayload,
@@ -1390,6 +1418,9 @@ const teamsSaga = function*() {
   yield* Saga.chainAction2(TeamsGen.clearNavBadges, clearNavBadges)
 
   yield* Saga.chainAction(TeamsGen.showTeamByName, showTeamByName)
+
+  yield* Saga.chainAction(TeamsGen.loadWelcomeMessage, loadWelcomeMessage)
+  yield* Saga.chainAction(TeamsGen.setWelcomeMessage, setWelcomeMessage)
 
   // Hook up the team building sub saga
   yield* teamBuildingSaga()

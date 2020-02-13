@@ -19,6 +19,7 @@ export default Container.connect(
     const publicityMember = teamMeta.showcasing
     const publicityTeam = teamDetails.settings.teamShowcased
     const settings = teamDetails.settings || Constants.initialTeamSettings
+    const welcomeMessage = Constants.getTeamWelcomeMessageByID(state, teamID)
     return {
       canShowcase: teamMeta.allowPromote || teamMeta.role === 'admin' || teamMeta.role === 'owner',
       error: state.teams.errorInSettings,
@@ -31,12 +32,15 @@ export default Container.connect(
       publicityMember,
       publicityTeam,
       teamID,
+      teamname: teamMeta.teamname,
       waitingForSavePublicity: anyWaiting(
         state,
         Constants.teamWaitingKeyByID(teamID, state),
         Constants.retentionWaitingKey(teamID),
         Constants.settingsWaitingKey(teamID)
       ),
+      waitingForWelcomeMessage: anyWaiting(state, Constants.loadWelcomeMessageWaitingKey(teamID)),
+      welcomeMessage: welcomeMessage || undefined,
       yourOperations: Constants.getCanPerformByID(state, teamID),
     }
   },
@@ -52,14 +56,22 @@ export default Container.connect(
         })
       ),
     clearError: () => dispatch(TeamsGen.createSettingsError({error: ''})),
+    loadWelcomeMessage: () => dispatch(TeamsGen.createLoadWelcomeMessage({teamID})),
     savePublicity: (settings: Types.PublicitySettings) =>
       dispatch(TeamsGen.createSetPublicity({settings, teamID})),
     saveRetentionPolicy: (policy: RetentionPolicy) =>
       dispatch(TeamsGen.createSaveTeamRetentionPolicy({policy, teamID})),
+    onEditWelcomeMessage: () => {
+      dispatch(
+        RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'teamEditWelcomeMessage'}]})
+      )
+    },
   }),
   (stateProps, dispatchProps) => {
     return {
       ...stateProps,
+      loadWelcomeMessage: dispatchProps.loadWelcomeMessage,
+      onEditWelcomeMessage: dispatchProps.onEditWelcomeMessage,
       savePublicity: (
         settings: Types.PublicitySettings,
         showRetentionWarning: boolean,

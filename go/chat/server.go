@@ -3330,6 +3330,11 @@ func (h *Server) DismissJourneycard(ctx context.Context, arg chat1.DismissJourne
 
 const welcomeMessageName = "__welcome_message"
 
+// welcomeMessageMaxLen is duplicated at
+// shared/teams/edit-welcome-message/index.tsx:welcomeMessageMaxLen; keep the
+// values in sync!
+const welcomeMessageMaxLen = 400
+
 func getWelcomeMessage(ctx context.Context, g *globals.Context, ri func() chat1.RemoteInterface, uid gregor1.UID, teamID keybase1.TeamID) (message chat1.WelcomeMessage, err error) {
 	s := NewTeamDevConversationBackedStorage(g, true /* adminOnly */, ri)
 	found, err := s.Get(ctx, uid, teamID, welcomeMessageName, &message)
@@ -3338,15 +3343,21 @@ func getWelcomeMessage(ctx context.Context, g *globals.Context, ri func() chat1.
 	}
 	switch err.(type) {
 	case nil:
-		return message, nil
 	case *DevStorageAdminOnlyError:
 		return chat1.WelcomeMessage{Set: false}, nil
 	default:
 		return message, err
 	}
+	if len(message.Text) > welcomeMessageMaxLen {
+		return chat1.WelcomeMessage{Set: false}, nil
+	}
+	return message, nil
 }
 
 func setWelcomeMessage(ctx context.Context, g *globals.Context, ri func() chat1.RemoteInterface, uid gregor1.UID, teamID keybase1.TeamID, message chat1.WelcomeMessage) (err error) {
+	if len(message.Text) > welcomeMessageMaxLen {
+		return fmt.Errorf("welcome message must be less than %d characters; was %d", welcomeMessageMaxLen, len(message.Text))
+	}
 	s := NewTeamDevConversationBackedStorage(g, true /* adminOnly */, ri)
 	return s.Put(ctx, uid, teamID, welcomeMessageName, message)
 }

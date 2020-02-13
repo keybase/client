@@ -923,6 +923,7 @@ export type TypedActionsMap = {
   'teams:setMemberPublicity': teams.SetMemberPublicityPayload
   'teams:setPublicity': teams.SetPublicityPayload
   'teams:setChannelCreationError': teams.SetChannelCreationErrorPayload
+  'teams:setWelcomeMessageError': teams.SetWelcomeMessageErrorPayload
   'teams:setEditDescriptionError': teams.SetEditDescriptionErrorPayload
   'teams:settingsError': teams.SettingsErrorPayload
   'teams:setTeamsWithChosenChannels': teams.SetTeamsWithChosenChannelsPayload
@@ -955,6 +956,9 @@ export type TypedActionsMap = {
   'teams:setTeamRoleMapLatestKnownVersion': teams.SetTeamRoleMapLatestKnownVersionPayload
   'teams:setTeamRoleMap': teams.SetTeamRoleMapPayload
   'teams:toggleInvitesCollapsed': teams.ToggleInvitesCollapsedPayload
+  'teams:setWelcomeMessage': teams.SetWelcomeMessagePayload
+  'teams:loadWelcomeMessage': teams.LoadWelcomeMessagePayload
+  'teams:loadedWelcomeMessage': teams.LoadedWelcomeMessagePayload
   'teams:setSubteamFilter': teams.SetSubteamFilterPayload
   'teams:showTeamByName': teams.ShowTeamByNamePayload
   'tracker2:load': tracker2.LoadPayload
