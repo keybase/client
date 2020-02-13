@@ -94,7 +94,7 @@ const Advanced = () => {
 
   const [disableSpellCheck, setDisableSpellcheck] = React.useState<boolean | undefined>(undefined)
 
-  const initialDisableSpellCheck = React.useRef<boolean>(undefined)
+  const initialDisableSpellCheck = React.useRef<boolean | undefined>(undefined)
   const loadDisableSpellcheck = Container.useRPC(RPCTypes.configGuiGetValueRpcPromise)
 
   // load it
