@@ -3632,7 +3632,8 @@ function* chat2Saga() {
   if (Container.isPhone) {
     // Push us into the conversation
     yield* Saga.chainAction2(Chat2Gen.selectConversation, mobileNavigateOnSelect)
-  } else if (Container.isMobile) {
+  }
+  if (Container.isMobile) {
     yield* Saga.chainGenerator<Chat2Gen.MessageAttachmentNativeSharePayload>(
       Chat2Gen.messageAttachmentNativeShare,
       mobileMessageAttachmentShare
