@@ -2,11 +2,7 @@ import * as React from 'react'
 import * as Styles from '../styles'
 import FloatingBox from './floating-box'
 import {Box2} from './box'
-
-let windowHeight = 400
-if (Styles.isMobile) {
-  windowHeight = require('./native-wrappers.native').NativeDimensions.get('window').height
-}
+import {windowHeight} from '../constants/platform'
 
 const Kb = {
   Box2,
