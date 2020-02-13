@@ -246,7 +246,7 @@ type ChainLink struct {
 func (c ChainLink) checkSpecialLinksTable(tab map[keybase1.LinkID]SpecialChainLink, uid keybase1.UID, why string) (found bool, reason string, err error) {
 	var scl SpecialChainLink
 
-	// The combination of hashVerified and chainVerified should ensure that this link
+	// The truthiness of hashVerified should ensure that this link
 	// is only considered here after all prevs have been successfully checked.
 	if !c.canTrustID() {
 		return false, "", ChainLinkError{fmt.Sprintf("cannot check if a link is %q without a verified link ID (linkID=%s, uid=%s, hash=%v, chain=%v, diskVersion=%d)", why, c.id, uid, c.hashVerified, c.chainVerified, c.diskVersion)}
@@ -823,7 +823,9 @@ func (c *ChainLink) Unpack(m MetaContext, trusted bool, selfUID keybase1.UID, pa
 	var payload []byte
 	switch tmp.sigVersion {
 	case KeybaseSignatureV1:
-		// use the payload from the signature here, since it's sent down.
+		// Use the payload from the signature here, since we always get the full signature with
+		// the attached payload for V1 signatures. Note that we redundantly check that the payload
+		// matches the sig in verifyPayloadV1() on the way out of this Unpack function.
 		payload, err = tmp.Payload()
 		if err != nil {
 			return err
