@@ -92,6 +92,42 @@ const Advanced = () => {
     dispatch(SettingsGen.createOnChangeRememberPassword({remember}))
   const onSetOpenAtLogin = (openAtLogin: boolean) => dispatch(ConfigGen.createSetOpenAtLogin({openAtLogin}))
 
+  const [disableSpellCheck, setDisableSpellcheck] = React.useState<boolean | undefined>(undefined)
+
+  const loadDisableSpellcheck = Container.useRPC(RPCTypes.configGuiGetValueRpcPromise)
+
+  // load it
+  if (disableSpellCheck === undefined) {
+    loadDisableSpellcheck(
+      [{path: 'ui.disableSpellCheck'}],
+      result => {
+        setDisableSpellcheck(result.b ?? false)
+      },
+      () => {
+        setDisableSpellcheck(false)
+      }
+    )
+  }
+  const submitDisableSpellcheck = Container.useRPC(RPCTypes.configGuiSetValueRpcPromise)
+
+  const onToggleDisableSpellcheck = () => {
+    const next = !disableSpellCheck
+    setDisableSpellcheck(next)
+    submitDisableSpellcheck(
+      [
+        {
+          path: 'ui.disableSpellCheck',
+          value: {isNull: false, b: next},
+        },
+      ],
+      () => {},
+      () => {
+        console.log('cant save spell check?')
+        setDisableSpellcheck(!next)
+      }
+    )
+  }
+
   React.useEffect(() => {
     dispatch(SettingsGen.createLoadHasRandomPw())
     dispatch(SettingsGen.createLoadLockdownMode())
@@ -126,6 +162,14 @@ const Advanced = () => {
         {isLinux ? <UseNativeFrame /> : null}
         {!Styles.isMobile && (
           <Kb.Checkbox label="Open Keybase on startup" checked={openAtLogin} onCheck={onSetOpenAtLogin} />
+        )}
+        {!Styles.isMobile && (
+          <Kb.Checkbox
+            label="Disable spellchecking"
+            disabled={disableSpellCheck === undefined}
+            checked={!!disableSpellCheck}
+            onCheck={onToggleDisableSpellcheck}
+          />
         )}
         <Kb.Divider style={styles.proxyDivider} />
         <ProxySettings />
