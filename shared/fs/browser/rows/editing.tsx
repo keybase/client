@@ -94,7 +94,6 @@ const styles = Styles.styleSheetCreate(
           ...Styles.globalStyles.fontSemibold,
           maxWidth: '100%',
         },
-        isMobile: {marginTop: 22},
       }),
     } as const)
 )
