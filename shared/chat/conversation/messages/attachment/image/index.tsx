@@ -69,20 +69,25 @@ class ImageAttachment extends React.PureComponent<Props, State> {
 
   render() {
     const progressLabel = Constants.messageAttachmentTransferStateToProgressLabel(this.props.transferState)
+    const mobileImageFilename = this.props.message.deviceType === 'mobile'
     return (
       <>
         <ShowToastAfterSaving transferState={this.props.transferState} />
         <Kb.Box2 direction="vertical" fullWidth={true}>
-          <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
-            <Kb.Text type="BodyTiny">{this.props.fileName}</Kb.Text>
-            <Kb.Icon
-              boxStyle={styles.collapseBox}
-              style={styles.collapse}
-              onClick={this.props.onCollapse}
-              sizeType="Tiny"
-              type={this.props.isCollapsed ? 'iconfont-caret-right' : 'iconfont-caret-down'}
-            />
-          </Kb.Box2>
+          {(!mobileImageFilename || !Styles.isMobile) && (
+            <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
+              <Kb.Text type="BodyTiny">
+                {mobileImageFilename ? 'Image from mobile' : this.props.fileName}
+              </Kb.Text>
+              <Kb.Icon
+                boxStyle={styles.collapseBox}
+                style={styles.collapse}
+                onClick={this.props.onCollapse}
+                sizeType="Tiny"
+                type={this.props.isCollapsed ? 'iconfont-caret-right' : 'iconfont-caret-down'}
+              />
+            </Kb.Box2>
+          )}
           {!this.props.isCollapsed && (
             <Kb.Box2 direction="vertical" fullWidth={true} style={styles.imageContainer}>
               <Kb.Box
