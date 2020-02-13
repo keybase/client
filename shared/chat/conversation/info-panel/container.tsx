@@ -4,6 +4,7 @@ import * as Container from '../../../util/container'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
+import * as TeamConstants from '../../../constants/teams'
 import {InfoPanel, Panel} from '.'
 
 type OwnProps = {
@@ -26,6 +27,7 @@ const ConnectedInfoPanel = Container.connect(
       selectedConversationIDKey: conversationIDKey,
       smallTeam: meta.teamType !== 'big',
       teamname: meta.teamname,
+      yourRole: TeamConstants.getRole(state, meta.teamID),
     }
   },
   (dispatch: Container.TypedDispatch, {conversationIDKey, onBack, onCancel}: OwnProps) => ({
@@ -43,7 +45,7 @@ const ConnectedInfoPanel = Container.connect(
       : undefined,
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
-    const {channelname, isPreview, selectedConversationIDKey, smallTeam, teamname} = stateProps
+    const {channelname, isPreview, selectedConversationIDKey, smallTeam, teamname, yourRole} = stateProps
     const {onSelectTab, selectedTab} = ownProps
     const {onBack, onCancel} = dispatchProps
     return {
@@ -57,6 +59,7 @@ const ConnectedInfoPanel = Container.connect(
       selectedTab: selectedTab ?? 'members',
       smallTeam,
       teamname,
+      yourRole,
     }
   }
 )(InfoPanel)
