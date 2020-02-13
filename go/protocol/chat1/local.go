@@ -1082,7 +1082,7 @@ func (o MessageLeave) DeepCopy() MessageLeave {
 type MessageReaction struct {
 	MessageID MessageID    `codec:"m" json:"m"`
 	Body      string       `codec:"b" json:"b"`
-	TargetUID *gregor1.UID `codec:"targetUID,omitempty" json:"targetUID,omitempty"`
+	TargetUID *gregor1.UID `codec:"t,omitempty" json:"t,omitempty"`
 }
 
 func (o MessageReaction) DeepCopy() MessageReaction {

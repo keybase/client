@@ -747,7 +747,9 @@
             null,
             "gregor1.UID"
           ],
-          "name": "targetUID"
+          "name": "targetUID",
+          "mpackkey": "t",
+          "jsonkey": "t"
         }
       ]
     },

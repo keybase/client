@@ -706,6 +706,7 @@ func (s *BlockingSender) handleMentions(ctx context.Context, uid gregor1.UID, ms
 		if targetUID != nil {
 			atMentions = []gregor1.UID{*targetUID}
 		}
+		res = msg
 	case chat1.MessageType_SYSTEM:
 		if err = checkHeaderBodyTypeMatch(); err != nil {
 			return res, atMentions, chanMention, err
