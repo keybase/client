@@ -439,6 +439,9 @@ const styles = styleSheetCreate(() => ({
     paddingTop: globalMargins.small,
   },
   shrink: {flex: 1},
+  spinner: {
+    paddingLeft: Styles.globalMargins.xtiny,
+  },
   teamPadding: {paddingTop: globalMargins.small},
   welcomeMessage: {
     paddingRight: globalMargins.small,
@@ -449,16 +452,10 @@ const styles = styleSheetCreate(() => ({
     backgroundColor: Styles.globalColors.grey,
     paddingLeft: Styles.globalMargins.xtiny,
   },
-  welcomeMessageContainer: {
-    position: 'relative',
-  },
   welcomeMessageCard: {
     paddingBottom: Styles.globalMargins.tiny,
   },
-  spinner: {
-    paddingLeft: Styles.globalMargins.xtiny,
-  },
-  xxx: {
-    alignSelf: 'flex-start',
+  welcomeMessageContainer: {
+    position: 'relative',
   },
 }))

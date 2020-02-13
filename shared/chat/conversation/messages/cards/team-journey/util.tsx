@@ -18,16 +18,12 @@ function computeWelcomeMessageText(message: RPCChatTypes.WelcomeMessage, cannotW
 // lineClamp works properly (otherwise, the lineClamp only applies within
 // each "paragraph."
 function removeWhitespaceOnlyLines(x: string): string {
-  return x.replace(/(^[[\s]*\n)/gm, "")
+  return x.replace(/(^[[\s]*\n)/gm, '')
 }
 
 function renderWelcomeMessage(message: RPCChatTypes.WelcomeMessage, cannotWrite: boolean): React.ReactNode {
   return (
-    <Kb.Markdown
-      smallStandaloneEmoji={false}
-      lineClamp={3}
-      selectable={false}
-    >
+    <Kb.Markdown smallStandaloneEmoji={false} lineClamp={3} selectable={false}>
       {removeWhitespaceOnlyLines(computeWelcomeMessageText(message, cannotWrite))}
     </Kb.Markdown>
   )

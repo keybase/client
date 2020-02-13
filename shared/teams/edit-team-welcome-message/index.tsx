@@ -16,25 +16,26 @@ const welcomeMessageMaxLen = 400
 const EditTeamWelcomeMessage = (props: Props) => {
   const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
 
-  const waitingKey = Container.useSelector(_ => Constants.loadWelcomeMessageWaitingKey(teamID))
-  const waiting = Container.useAnyWaiting(waitingKey)
-  const error = Container.useSelector(state => state.teams.errorInEditWelcomeMessage)
-  const origWelcomeMessage = Container.useSelector(
-    state => Constants.getTeamWelcomeMessageByID(state, teamID)!
-  )
-
   if (teamID === Types.noTeamID) {
     throw new Error(`There was a problem loading the welcome message page, please report this error.`)
   }
+
+  const waitingKey = Container.useSelector(_ => Constants.setWelcomeMessageWaitingKey(teamID))
+  const waiting = Container.useAnyWaiting(waitingKey)
+  const error = Container.useSelector(state => state.teams.errorInEditWelcomeMessage)
+  const origWelcomeMessage = Container.useSelector(state => {
+    const message = Constants.getTeamWelcomeMessageByID(state, teamID)
+    if (message) {
+      return message
+    }
+    throw new Error(`There was a problem loading the welcome message, please report this error.`)
+  })
 
   const [welcomeMessage, setWelcomeMessage] = React.useState(origWelcomeMessage)
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
-  const onSave = () => {
-    dispatch(TeamsGen.createSetWelcomeMessage({message: welcomeMessage, teamID}))
-    dispatch(nav.safeNavigateUpPayload())
-  }
+  const onSave = () => dispatch(TeamsGen.createSetWelcomeMessage({message: welcomeMessage, teamID}))
   const onClose = () => dispatch(nav.safeNavigateUpPayload())
 
   const wasWaiting = Container.usePrevious(waiting)
@@ -57,9 +58,9 @@ const EditTeamWelcomeMessage = (props: Props) => {
       footer={{
         content: (
           <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
-            <Kb.Button style={{width: '50%'}} label="Cancel" onClick={onClose} type="Dim" />
+            <Kb.Button style={styles.button} label="Cancel" onClick={onClose} type="Dim" />
             <Kb.Button
-              style={{width: '50%'}}
+              style={styles.button}
               disabled={
                 welcomeMessage.text === origWelcomeMessage.text &&
                 welcomeMessage.set === origWelcomeMessage.set
@@ -99,6 +100,9 @@ const EditTeamWelcomeMessage = (props: Props) => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
+  button: {
+    width: '50%',
+  },
   buttonBar: {
     alignItems: 'center',
     minHeight: undefined,

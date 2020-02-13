@@ -127,7 +127,7 @@ const TeamJourneyHeader = (props: HeaderProps) => {
           style={styles.teamnameText}
           type="BodySmallBold"
           onClick={props.deactivateButtons ? undefined : props.onAuthorClick}
-          className={props.deactivateButtons ? "" : "hover-underline"}
+          className={props.deactivateButtons ? '' : 'hover-underline'}
         >
           {props.teamname}
         </Kb.Text>

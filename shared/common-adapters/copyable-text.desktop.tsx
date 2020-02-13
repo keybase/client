@@ -38,6 +38,7 @@ const styles = Styles.styleSheetCreate(
           overflowX: 'hidden',
           overflowY: 'auto',
           resize: 'none',
+          whiteSpace: 'pre-wrap',
           wordWrap: 'break-word',
         },
       }),
