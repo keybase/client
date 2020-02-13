@@ -159,7 +159,7 @@ func (md *MDServerRemote) initNewConnection() {
 	md.conn = rpc.NewTLSConnectionWithDialable(md.mdSrvRemote, kbfscrypto.GetRootCerts(
 		md.mdSrvRemote.Peek(), libkb.GetBundledCAsFromHost),
 		kbfsmd.ServerErrorUnwrapper{}, md, md.rpcLogFactory,
-		md.kbCtx.NewNetworkInstrumenter(),
+		md.kbCtx.NewNetworkInstrumenter(keybase1.NetworkSource_REMOTE),
 		logger.LogOutputWithDepthAdder{Logger: md.config.MakeLogger("")},
 		rpc.DefaultMaxFrameLength, md.connOpts,
 		libkb.NewProxyDialable(md.kbCtx.GetEnv()))

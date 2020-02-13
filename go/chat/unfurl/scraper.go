@@ -37,7 +37,7 @@ func (s *Scraper) makeCollector() *colly.Collector {
 	c.OnRequest(func(r *colly.Request) {
 		r.Headers.Set("connection", "keep-alive")
 		r.Headers.Set("upgrade-insecure-requests", "1")
-		record = rpc.NewNetworkInstrumenter(s.G().ExternalG().NetworkInstrumenterStorage, "UnfurlScraper")
+		record = rpc.NewNetworkInstrumenter(s.G().ExternalG().RemoteNetworkInstrumenterStorage, "UnfurlScraper")
 	})
 	c.OnResponse(func(r *colly.Response) {
 		if err := record.RecordAndFinish(int64(len(r.Body))); err != nil {

@@ -99,7 +99,7 @@ func (b *blockServerRemoteClientHandler) initNewConnection() {
 		b.srvRemote, kbfscrypto.GetRootCerts(
 			b.srvRemote.Peek(), libkb.GetBundledCAsFromHost),
 		kbfsblock.ServerErrorUnwrapper{}, b, b.rpcLogFactory,
-		b.kbCtx.NewNetworkInstrumenter(),
+		b.kbCtx.NewNetworkInstrumenter(keybase1.NetworkSource_REMOTE),
 		logger.LogOutputWithDepthAdder{Logger: b.log},
 		rpc.DefaultMaxFrameLength, b.connOpts,
 		libkb.NewProxyDialable(b.kbCtx.GetEnv()))

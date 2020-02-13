@@ -81,7 +81,7 @@ func (g *gregorTestConnection) Connect(ctx context.Context) (err error) {
 		WrapErrorFunc: libkb.MakeWrapError(g.G().ExternalG()),
 	}
 	trans := rpc.NewConnectionTransport(uri, libkb.NewRPCLogFactory(g.G().ExternalG()),
-		g.G().ExternalG().NetworkInstrumenterStorage,
+		g.G().ExternalG().RemoteNetworkInstrumenterStorage,
 		libkb.MakeWrapError(g.G().ExternalG()), rpc.DefaultMaxFrameLength)
 	conn := rpc.NewConnectionWithTransport(g, trans,
 		libkb.NewContextifiedErrorUnwrapper(g.G().ExternalG()),
