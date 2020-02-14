@@ -59,8 +59,10 @@ const ChannelPopup = (props: Props) => {
         />
       </Kb.Box2>
       <Kb.BoxGrow>
-        <Kb.ScrollView style={Styles.globalStyles.fillAbsolute}>
-          {channelsFiltered.map(channelname => {
+        <Kb.List2
+          itemHeight={{height: 48, type: 'fixed'}}
+          items={channelsFiltered}
+          renderItem={(_, channelname) => {
             const disabled = disabledChannels?.includes(channelname)
             const onClick = disabled ? undefined : () => onSelect(channelname)
             return (
@@ -77,8 +79,8 @@ const ChannelPopup = (props: Props) => {
                 </Kb.Box2>
               </Kb.ClickableBox>
             )
-          })}
-        </Kb.ScrollView>
+          }}
+        />
       </Kb.BoxGrow>
     </Kb.MobilePopup>
   )
@@ -88,6 +90,7 @@ const styles = Styles.styleSheetCreate(() => ({
   addDisabled: {opacity: 0.4},
   channelContainer: {
     ...Styles.padding(14, Styles.globalMargins.medium, 14, Styles.globalMargins.small),
+    height: 48,
     justifyContent: 'space-between',
   },
   header: {
