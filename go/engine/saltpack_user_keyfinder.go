@@ -9,6 +9,8 @@ import (
 	"github.com/keybase/client/go/libkb"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+
+	pkgerrors "github.com/pkg/errors"
 )
 
 // SaltpackUserKeyfinder is an engine to find Per User Keys (PUK). Users can also be loaded by assertions, possibly tracking them if necessary.
