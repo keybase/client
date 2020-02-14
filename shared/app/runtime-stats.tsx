@@ -74,11 +74,13 @@ const makeRadar = (show: boolean) => {
   })
 }
 
+// simple bucketing of incoming log lines, we have a queue of incoming items, we bucket them
+// and choose a max to show
+// TODO mobile
 const LogStats = () => {
   const maxBuckets = 3
-  const types = ['id', 'sig']
 
-  const [incoming, setIncoming] = React.useState([])
+  const [incoming, setIncoming] = React.useState<Array<string>>([])
   const [buckets, setBuckets] = React.useState([
     {count: 0, label: '', updated: false},
     {count: 0, label: '', updated: false},
@@ -87,54 +89,58 @@ const LogStats = () => {
 
   // bucketize
   React.useEffect(() => {
-    // copy
-    let newBuckets = buckets.map(b => ({...b, updated: false}))
+    setBuckets(buckets => {
+      // copy existing buckets
+      let newBuckets = buckets.map(b => ({...b, updated: false}))
 
-    incoming.forEach(i => {
-      const existing = newBuckets.find(b => b.label === i)
-      // increment existing or add it
-      if (existing) {
-        existing.updated = true
-        existing.count++
-      } else {
-        newBuckets.push({label: i, count: 1, updated: true})
-      }
-    })
-
-    // sort to elminate
-    newBuckets = newBuckets.sort((a, b) => {
-      if (a.updated !== b.updated) {
-        return a.updated ? -1 : 1
-      }
-
-      return b.count - a.count
-    })
-
-    newBuckets = newBuckets.slice(0, maxBuckets)
-
-    // age out the last things
-    if (!incoming.length) {
-      newBuckets = newBuckets.reverse()
-      newBuckets.some(b => {
-        if (b.label) {
-          b.label = ''
-          return true
+      // find existing or add new ones
+      incoming.forEach(i => {
+        const existing = newBuckets.find(b => b.label === i)
+        if (existing) {
+          existing.updated = true
+          existing.count++
+        } else {
+          newBuckets.push({count: 1, label: i, updated: true})
         }
-        return false
       })
-      newBuckets = newBuckets.reverse()
-    }
 
-    // sort alpha to stablize
-    newBuckets = newBuckets.sort((a, b) => a.label.localeCompare(b.label))
+      // sort to remove unupdated or small ones
+      newBuckets = newBuckets.sort((a, b) => {
+        if (a.updated !== b.updated) {
+          return a.updated ? -1 : 1
+        }
 
-    setBuckets(newBuckets)
+        return b.count - a.count
+      })
+
+      // clamp buckets
+      newBuckets = newBuckets.slice(0, maxBuckets)
+
+      // if no new ones, lets eliminate the last item
+      if (!incoming.length) {
+        newBuckets = newBuckets.reverse()
+        newBuckets.some(b => {
+          if (b.label) {
+            b.label = ''
+            return true
+          }
+          return false
+        })
+        newBuckets = newBuckets.reverse()
+      }
+
+      // sort remainder by alpha so things don't move around a lot
+      newBuckets = newBuckets.sort((a, b) => a.label.localeCompare(b.label))
+      return newBuckets
+    })
   }, [incoming])
 
   // TEMP to inject
   Kb.useInterval(() => {
+    // @ts-ignore
     if (window.NOJIMA) {
-      const newIncoming = []
+      const types = ['id', 'sig']
+      const newIncoming: Array<string> = []
       const numToConsume = 1 + Math.floor(Math.random() * 5)
       for (let i = 0; i < numToConsume; ++i) {
         let type = types[Math.floor(Math.random() * 3)]
