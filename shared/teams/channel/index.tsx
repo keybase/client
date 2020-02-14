@@ -5,7 +5,6 @@ import * as Styles from '../../styles'
 import ChannelTabs from './tabs/container'
 import {Row} from './rows'
 import renderRow from './rows/render'
-import {TeamDetailsSubscriber, TeamsSubscriber} from '../subscriber'
 import SelectionPopup from './selection-popup'
 export type Sections = Array<{data: Array<Row>; header?: Row; key: string}>
 
@@ -16,7 +15,7 @@ export type Props = {
   setSelectedTab: (arg0: Types.TabKey) => void
 }
 
-const Team = props => {
+const Channel = props => {
   const renderItem = ({item}: {item: Row}) => {
     switch (item.type) {
       case 'tabs':
@@ -33,22 +32,10 @@ const Team = props => {
       case 'member':
       case 'bot':
       case 'bot-add':
-      case 'channel':
-      case 'channel-header':
-      case 'channel-footer':
-      case 'invites-invite':
-      case 'invites-request':
-      case 'invites-divider':
-      case 'invites-none':
-      case 'subteam-intro':
-      case 'subteam-add':
-      case 'subteam-none':
-      case 'subteam-subteam':
-      case 'subteam-info':
       case 'loading':
         return renderRow(item, props.teamID)
       default: {
-        throw new Error(`Impossible case encountered in team page list: ${item}`)
+        throw new Error(`Impossible case encountered in channel page list: ${item}`)
       }
     }
   }
@@ -59,8 +46,6 @@ const Team = props => {
 
   return (
     <Kb.Box style={styles.container}>
-      <TeamsSubscriber />
-      <TeamDetailsSubscriber teamID={props.teamID} />
       <Kb.SectionList
         alwaysVounceVertical={false}
         renderItem={renderItem}
@@ -111,4 +96,4 @@ const styles = Styles.styleSheetCreate(() => ({
   }),
 }))
 
-export default Team
+export default Channel

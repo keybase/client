@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/teams'
 import * as Kb from '../../../common-adapters'
+import * as Container from '../../../util/container'
 import flags from '../../../util/feature-flags'
 import {
   globalColors,
@@ -41,6 +42,22 @@ const ChannelTabs = (props: ChannelTabsProps) => {
     },
     [teamID, _setSelectedTab]
   )
+  const prevTeamID = Container.usePrevious(teamID)
+  const prevSelectedTab = Container.usePrevious(selectedTab)
+  const dispatch = Container.useDispatch()
+
+  React.useEffect(() => {
+    if (teamID !== prevTeamID) {
+      setSelectedTab(defaultSelectedTab)
+    }
+  }, [teamID, prevTeamID, setSelectedTab, defaultSelectedTab])
+
+  React.useEffect(() => {
+    if (selectedTab !== prevSelectedTab && selectedTab === 'bots') {
+      // TODO: load bots here
+    }
+  }, [selectedTab, dispatch, teamID, prevSelectedTab])
+
   const wrapTab = (key: string, child: React.ReactNode) => (
     <Kb.Box key={key} style={styles.tabTextContainer}>
       {child}
