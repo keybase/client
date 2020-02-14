@@ -9,6 +9,7 @@ export const isIOS = false
 export const isLargeScreen = true
 export const isIPhoneX = false
 export const isTablet = false
+export const windowHeight = 0 // not implemented on desktop
 
 export const isElectron = true
 export const isDarwin = platform === 'darwin'
