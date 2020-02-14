@@ -77,6 +77,17 @@ func (uhfn *updateHistoryFileNode) FillCacheDuration(d *time.Duration) {
 	*d = 0
 }
 
+type dirBlockNode struct {
+	libkbfs.Node
+
+	config libkbfs.Config
+	ptr    data.BlockPointer
+}
+
+func (dbn *dirBlockNode) GetFS(ctx context.Context) billy.Filesystem {
+	return nil
+}
+
 // specialFileNode is a Node wrapper around a TLF node, that causes
 // special files to be fake-created when they are accessed.
 type specialFileNode struct {
@@ -91,6 +102,7 @@ var _ libkbfs.Node = (*specialFileNode)(nil)
 var perTlfWrappedNodeNames = map[string]bool{
 	StatusFileName:        true,
 	UpdateHistoryFileName: true,
+	DirBlockPrefix:        true,
 }
 
 var perTlfWrappedNodePrefixes = []string{
@@ -151,7 +163,8 @@ func (sfn *specialFileNode) newUpdateHistoryFileNode(
 // specialFileNode.
 func (sfn *specialFileNode) ShouldCreateMissedLookup(
 	ctx context.Context, name data.PathPartString) (
-	bool, context.Context, data.EntryType, os.FileInfo, data.PathPartString) {
+	bool, context.Context, data.EntryType, os.FileInfo, data.PathPartString,
+	data.BlockPointer) {
 	plain := name.Plaintext()
 	if !shouldBeTlfWrappedNode(plain) {
 		return sfn.Node.ShouldCreateMissedLookup(ctx, name)
@@ -167,7 +180,7 @@ func (sfn *specialFileNode) ShouldCreateMissedLookup(
 		}
 		f := sfn.GetFile(ctx)
 		return true, ctx, data.FakeFile, f.(*wrappedReadFile).GetInfo(),
-			data.PathPartString{}
+			data.PathPartString{}, data.ZeroPtr
 	case strings.HasPrefix(plain, UpdateHistoryFileName):
 		uhfn := sfn.newUpdateHistoryFileNode(nil, plain)
 		if uhfn == nil {
@@ -175,7 +188,7 @@ func (sfn *specialFileNode) ShouldCreateMissedLookup(
 		}
 		f := uhfn.GetFile(ctx)
 		return true, ctx, data.FakeFile, f.(*wrappedReadFile).GetInfo(),
-			data.PathPartString{}
+			data.PathPartString{}, data.ZeroPtr
 	default:
 		panic(fmt.Sprintf("Name %s was in map, but not in switch", name))
 	}

@@ -3354,7 +3354,8 @@ func (fbo *folderBranchOps) processMissedLookup(
 	name data.PathPartString, missErr error) (
 	node Node, ei data.EntryInfo, err error) {
 	// Check if the directory node wants to autocreate this.
-	autocreate, ctx, et, fi, sympath := dir.ShouldCreateMissedLookup(ctx, name)
+	autocreate, ctx, et, fi, sympath, _ := dir.ShouldCreateMissedLookup(
+		ctx, name)
 	if !autocreate {
 		return nil, data.EntryInfo{}, missErr
 	}
@@ -3413,7 +3414,8 @@ func (fbo *folderBranchOps) statUsingFS(
 	}
 
 	// First check if this is needs to be a faked-out node.
-	autocreate, _, et, fi, sympath := node.ShouldCreateMissedLookup(ctx, name)
+	autocreate, _, et, fi, sympath, _ := node.ShouldCreateMissedLookup(
+		ctx, name)
 	if autocreate {
 		if et == data.FakeDir {
 			de, err := fbo.makeFakeDirEntry(ctx, node, name)
