@@ -77,7 +77,7 @@ const ChannelPicker = (props: Props) => {
     if (allSelected) {
       setInstallInConvs([])
     }
-  }, [allSelected])
+  }, [allSelected, setInstallInConvs])
 
   React.useEffect(() => {
     if (!allSelected && installInConvs.length === 0) {
@@ -85,7 +85,7 @@ const ChannelPicker = (props: Props) => {
       return
     }
     setDisableDone(false)
-  }, [allSelected, installInConvs])
+  }, [allSelected, installInConvs, setDisableDone])
 
   const rows = getChannels(channelInfos, searchText).map(([convID, channelInfo]) => (
     <Row
