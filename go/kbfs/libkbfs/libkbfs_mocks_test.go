@@ -3714,7 +3714,7 @@ func (mr *MockNodeMockRecorder) RemoveDir(arg0, arg1 interface{}) *gomock.Call {
 }
 
 // ShouldCreateMissedLookup mocks base method
-func (m *MockNode) ShouldCreateMissedLookup(arg0 context.Context, arg1 data.PathPartString) (bool, context.Context, data.EntryType, os.FileInfo, data.PathPartString) {
+func (m *MockNode) ShouldCreateMissedLookup(arg0 context.Context, arg1 data.PathPartString) (bool, context.Context, data.EntryType, os.FileInfo, data.PathPartString, data.BlockPointer) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ShouldCreateMissedLookup", arg0, arg1)
 	ret0, _ := ret[0].(bool)
@@ -3722,7 +3722,8 @@ func (m *MockNode) ShouldCreateMissedLookup(arg0 context.Context, arg1 data.Path
 	ret2, _ := ret[2].(data.EntryType)
 	ret3, _ := ret[3].(os.FileInfo)
 	ret4, _ := ret[4].(data.PathPartString)
-	return ret0, ret1, ret2, ret3, ret4
+	ret5, _ := ret[5].(data.BlockPointer)
+	return ret0, ret1, ret2, ret3, ret4, ret5
 }
 
 // ShouldCreateMissedLookup indicates an expected call of ShouldCreateMissedLookup

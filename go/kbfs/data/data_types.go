@@ -335,6 +335,9 @@ const (
 	// Sym is a symbolic link.
 	Sym
 
+	// RealDir can be used to indicate a real directory entry should
+	// be used, usually with a provided BlockPointer.
+	RealDir EntryType = 0xfffd
 	// FakeFile can be used to indicate a faked-out entry for a file,
 	// that will be specially processed by folderBranchOps.
 	FakeFile EntryType = 0xfffe
