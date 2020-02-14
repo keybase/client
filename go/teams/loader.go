@@ -466,6 +466,7 @@ func (l *TeamLoader) load2(ctx context.Context, arg load2ArgT) (ret *load2ResT, 
 	}
 
 	defer l.G().CTraceTimed(ctx, traceLabel, func() error { return err })()
+	defer l.G().CPerfTrace(ctx, traceLabel, func() error { return err })()
 	ret, err = l.load2Inner(ctx, arg)
 	return ret, err
 }

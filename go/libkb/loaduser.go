@@ -318,6 +318,7 @@ func LoadMeByMetaContextAndUID(m MetaContext, uid keybase1.UID) (*User, error) {
 func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	m := arg.MetaContext().WithLogTag("LU")
 	defer m.TraceTimed(fmt.Sprintf("LoadUser(%s)", arg), func() error { return err })()
+	defer m.PerfTrace(fmt.Sprintf("LoadUser(%s)", arg), func() error { return err })()
 
 	var refresh bool
 

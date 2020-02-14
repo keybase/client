@@ -989,6 +989,7 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID,
 func (s *HybridInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 	dataSource types.InboxSourceDataSourceTyp, query *chat1.GetInboxQuery) (res types.Inbox, err error) {
 	defer s.Trace(ctx, func() error { return err }, "ReadUnverified")()
+	defer s.PerfTrace(ctx, func() error { return err }, "ReadUnverified")()
 
 	var cerr storage.Error
 	inboxStore := s.createInbox()
