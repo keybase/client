@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
 )
 
 func TestMerkleRootPayloadUnmarshalWithSkips(t *testing.T) {
@@ -99,11 +100,16 @@ func TestComputeLogPatternMerkleSkips(t *testing.T) {
 		{100, 103, []uint{101}},
 	}
 	for _, test := range tests {
-		got := computeLogPatternMerkleSkips(keybase1.Seqno(test.start), keybase1.Seqno(test.end))
+		got, err := computeLogPatternMerkleSkips(keybase1.Seqno(test.start), keybase1.Seqno(test.end))
+		require.NoError(t, err)
 		if !reflect.DeepEqual(got, test.expected) {
 			t.Fatalf("Failed on input (%d, %d), expected %v, got %v.", test.start, test.end, test.expected, got)
 		}
 	}
+
+	_, err := computeLogPatternMerkleSkips(keybase1.Seqno(1000), keybase1.Seqno(999))
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "startSeqno > endSeqno")
 }
 
 func TestComputeExpectedRootSkips(t *testing.T) {
