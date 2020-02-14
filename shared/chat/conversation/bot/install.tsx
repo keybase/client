@@ -498,25 +498,16 @@ const InstallBotPopup = (props: Props) => {
       waitingKey={Constants.waitingKeyBotAdd}
     />
   )
-  const doneButton =
-    showDoneButton &&
-    (disableDone ? (
-      <Kb.Button
-        fullWidth={true}
-        label="Select at least one channel"
-        mode="Primary"
-        disabled={true}
-        type="Default"
-      />
-    ) : (
-      <Kb.Button
-        fullWidth={true}
-        label="Done"
-        onClick={() => setChannelPickerScreen(false)}
-        mode="Primary"
-        type="Default"
-      />
-    ))
+  const doneButton = showDoneButton && (
+    <Kb.Button
+      fullWidth={true}
+      label={disableDone ? 'Select at least one channel' : 'Done'}
+      onClick={() => setChannelPickerScreen(false)}
+      disabled={disableDone}
+      mode="Primary"
+      type="Default"
+    />
+  )
   const backButton = Styles.isMobile ? 'Back' : <Kb.Icon type="iconfont-arrow-left" />
   const enabled = !!conversationIDKey && inTeam !== undefined
   return (
