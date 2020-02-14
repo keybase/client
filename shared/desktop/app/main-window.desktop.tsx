@@ -278,9 +278,19 @@ export default () => {
   })
   win.loadURL(htmlFile)
   if (!disableSpellCheck) {
-    win.webContents.session.setSpellCheckerDictionaryDownloadURL(
-      'https://keybase.io/dictionaries/hunspell_dictionaries.zip'
-    )
+    try {
+      win.webContents.session.setSpellCheckerLanguages(['en-US'])
+    } catch (e) {
+      console.log('spellcheck error set lang', e)
+    }
+
+    try {
+      win.webContents.session.setSpellCheckerDictionaryDownloadURL(
+        'https://keybase.io/dictionaries/hunspell_dictionaries.zip'
+      )
+    } catch (e) {
+      console.log('spellcheck download error', e)
+    }
   }
 
   if (windowState.isFullScreen) {
