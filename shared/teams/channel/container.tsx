@@ -6,14 +6,16 @@ import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
+import * as ChatTypes from '../../constants/types/chat2'
 import Channel, {Sections} from '.'
 import makeRows from './rows'
 import flags from '../../util/feature-flags'
 
-type OwnProps = Container.RouteProps<{teamID: Types.TeamID; initialTab?: Types.TabKey}>
+type OwnProps = Container.RouteProps<{teamID: Types.TeamID; conversationIDKey: ChatTypes.ConversationIDKey}>
 
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const teamID = Container.getRouteProps(ownProps, 'teamID', '')
+  const conversationIDKey = Container.getRouteProps(ownProps, 'conversationIDKey', '')
   if (!teamID) {
     throw new Error('There was a problem loading the team page, please report this error.')
   }
