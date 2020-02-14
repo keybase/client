@@ -33,30 +33,42 @@ const ChannelsWidget = (props: Props) => {
 
 const ChannelInputDesktop = ({teamID}: {teamID: Types.TeamID}) => {
   const [filter, setFilter] = React.useState('')
+  const filterLCase = filter.trim().toLowerCase()
   const channels = Container.useSelector(s => Constants.getTeamChannelInfos(s, teamID))
+  const channelsFiltered = filterLCase
+    ? [...channels.values()].filter(c => c.channelname.toLowerCase().includes(filterLCase))
+    : [...channels.values()]
 
-  const {popup, popupAnchor, setShowingPopup, showingPopup} = Kb.usePopup(getAttachmentRef => (
-    <Kb.Overlay
-      attachTo={getAttachmentRef}
-      visible={showingPopup}
-      onHidden={() => setShowingPopup(false)}
-      matchDimension={true}
-      position="top center"
-      positionFallbacks={['bottom center']}
-    >
-      <Kb.Text type="Body">Hi!</Kb.Text>
-    </Kb.Overlay>
-  ))
+  const {popup, popupAnchor, setShowingPopup, showingPopup} = Kb.usePopup(
+    getAttachmentRef => (
+      <Kb.Overlay
+        attachTo={getAttachmentRef}
+        visible={showingPopup}
+        onHidden={() => setShowingPopup(false)}
+        matchDimension={true}
+        position="top center"
+        positionFallbacks={['bottom center']}
+      >
+        {channelsFiltered.map(({channelname}) => (
+          <Kb.Box2 key={channelname} direction="horizontal" fullWidth={true} style={styles.channelOption}>
+            <Kb.Text type="Body">{channelname}</Kb.Text>
+          </Kb.Box2>
+        ))}
+      </Kb.Overlay>
+    ),
+    filterLCase
+  )
 
   return (
     <>
       <Kb.SearchFilter
+        // @ts-ignore TODO
         ref={popupAnchor}
         onFocus={() => setShowingPopup(true)}
         onBlur={() => setShowingPopup(false)}
         placeholderText="Add channels"
         icon="iconfont-search"
-        onChange={() => {}}
+        onChange={setFilter}
         size={Styles.isMobile ? 'full-width' : 'small'}
       />
       {popup}
@@ -72,6 +84,7 @@ const ChannelPill = ({channelname, onRemove}: {channelname: string; onRemove?: (
 )
 
 const styles = Styles.styleSheetCreate(() => ({
+  channelOption: {backgroundColor: Styles.globalColors.white},
   container: {
     ...Styles.padding(Styles.globalMargins.tiny),
     backgroundColor: Styles.globalColors.blueGrey,
