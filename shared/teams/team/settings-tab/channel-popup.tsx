@@ -62,6 +62,7 @@ const ChannelPopup = (props: Props) => {
         <Kb.List2
           itemHeight={{height: 48, type: 'fixed'}}
           items={channelsFiltered}
+          itemAsKey={true}
           renderItem={(_, channelname) => {
             const disabled = disabledChannels?.includes(channelname)
             const onClick = disabled ? undefined : () => onSelect(channelname)
