@@ -30,9 +30,14 @@ func NewCmdNetworkStats(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 				Usage: "Output status as JSON",
 			},
 			cli.StringFlag{
+				Name:  "src",
+				Usage: "Choose the source of records one of 'local', 'remote'",
+				Value: "remote",
+			},
+			cli.StringFlag{
 				Name:  "o, order-by",
 				Usage: "Order by a column, one of 'calls', 'duration', 'size'",
-				Value: "calls",
+				Value: "size",
 			},
 			cli.BoolFlag{
 				Name:  "descending",
@@ -48,6 +53,7 @@ func NewCmdNetworkStats(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 
 type CmdNetworkStats struct {
 	libkb.Contextified
+	networkSrc keybase1.NetworkSource
 	json       bool
 	descending bool
 	orderBy    string
@@ -67,6 +73,18 @@ func (c *CmdNetworkStats) ParseArgv(ctx *cli.Context) error {
 	default:
 		return fmt.Errorf("Unexpected order by %q", c.orderBy)
 	}
+	networkSrc := ctx.String("src")
+	switch networkSrc {
+	case "local":
+		c.networkSrc = keybase1.NetworkSource_LOCAL
+	case "remote":
+		c.networkSrc = keybase1.NetworkSource_REMOTE
+	default:
+		if len(networkSrc) > 0 {
+			return fmt.Errorf("Unknown source %q, must be 'local' or 'remote'", networkSrc)
+		}
+		c.networkSrc = keybase1.NetworkSource_REMOTE
+	}
 	return nil
 }
 
@@ -76,7 +94,7 @@ func (c *CmdNetworkStats) load() ([]keybase1.InstrumentationStat, error) {
 		return nil, err
 	}
 
-	return cli.GetNetworkStats(context.TODO(), 0)
+	return cli.GetNetworkStats(context.TODO(), keybase1.GetNetworkStatsArg{NetworkSrc: c.networkSrc})
 }
 
 func (c *CmdNetworkStats) Run() (err error) {
@@ -86,8 +104,15 @@ func (c *CmdNetworkStats) Run() (err error) {
 		if err != nil {
 			return err
 		}
-		if err = json.Unmarshal(b, &stats); err != nil {
+		var statsJSON libkb.NetworkStatsJSON
+		if err = json.Unmarshal(b, &statsJSON); err != nil {
 			return err
+		}
+		switch c.networkSrc {
+		case keybase1.NetworkSource_LOCAL:
+			stats = statsJSON.Local
+		case keybase1.NetworkSource_REMOTE:
+			stats = statsJSON.Remote
 		}
 	} else {
 		stats, err = c.load()

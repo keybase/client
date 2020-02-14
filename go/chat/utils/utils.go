@@ -2300,13 +2300,13 @@ func GetGregorConn(ctx context.Context, g *globals.Context, log DebugLabeler,
 		conn = rpc.NewTLSConnectionWithDialable(rpc.NewFixedRemote(uri.HostPort),
 			[]byte(rawCA), libkb.NewContextifiedErrorUnwrapper(g.ExternalG()),
 			handler(nist), libkb.NewRPCLogFactory(g.ExternalG()),
-			g.ExternalG().NetworkInstrumenterStorage,
+			g.ExternalG().RemoteNetworkInstrumenterStorage,
 			logger.LogOutputWithDepthAdder{Logger: g.Log},
 			rpc.DefaultMaxFrameLength, rpc.ConnectionOpts{},
 			libkb.NewProxyDialable(g.Env))
 	} else {
 		t := rpc.NewConnectionTransportWithDialable(uri, nil,
-			g.ExternalG().NetworkInstrumenterStorage,
+			g.ExternalG().RemoteNetworkInstrumenterStorage,
 			libkb.MakeWrapError(g.ExternalG()),
 			rpc.DefaultMaxFrameLength, libkb.NewProxyDialable(g.GetEnv()))
 		conn = rpc.NewConnectionWithTransport(handler(nist), t,
@@ -2913,4 +2913,16 @@ func ApplyInboxQuery(ctx context.Context, debugLabeler DebugLabeler, query *chat
 	filtered := len(rcs) - len(res)
 	debugLabeler.Debug(ctx, "applyQuery: query: %+v, res size: %d filtered: %d", query, len(res), filtered)
 	return res
+}
+
+func ToLastActiveStatus(mtime gregor1.Time) chat1.LastActiveStatus {
+	lastActive := int(time.Since(mtime.Time()).Round(time.Hour).Hours())
+	switch {
+	case lastActive <= 24: // 1 day
+		return chat1.LastActiveStatus_ACTIVE
+	case lastActive <= 24*7: // 7 days
+		return chat1.LastActiveStatus_RECENTLY_ACTIVE
+	default:
+		return chat1.LastActiveStatus_NONE
+	}
 }

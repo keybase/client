@@ -110,6 +110,9 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
     const text = this.getText()
     if (text) {
       this.props.onSubmit(text)
+      if (this.state.expanded) {
+        this.toggleExpandInput()
+      }
     }
   }
 
@@ -188,7 +191,7 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
     })
   }
 
-  private expandInput = () => {
+  private toggleExpandInput = () => {
     this.watchSizeChanges = false
     // eslint-disable-next-line react/no-access-state-in-setstate
     const nextState = !this.state.expanded
@@ -289,7 +292,7 @@ class _PlatformInput extends React.PureComponent<PlatformInputPropsInternal, Sta
               textType="Body"
               rowsMin={1}
             />
-            <AnimatedExpand expandInput={this.expandInput} rotate={this.rotate} />
+            <AnimatedExpand expandInput={this.toggleExpandInput} rotate={this.rotate} />
           </Kb.Box2>
           <Buttons
             conversationIDKey={conversationIDKey}

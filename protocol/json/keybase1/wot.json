@@ -67,7 +67,7 @@
           "type": "UserVersion"
         },
         {
-          "name": "attestations",
+          "name": "vouchTexts",
           "type": {
             "type": "array",
             "items": "string"
@@ -91,7 +91,7 @@
           "type": "string"
         },
         {
-          "name": "attestations",
+          "name": "vouchTexts",
           "type": {
             "type": "array",
             "items": "string"

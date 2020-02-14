@@ -172,7 +172,7 @@ func (e *Kex2Provisioner) GetLogFactory() rpc.LogFactory {
 
 // GetNetworkInstrumenter implements GetNetworkInstrumenter in kex2.Provisioner.
 func (e *Kex2Provisioner) GetNetworkInstrumenter() rpc.NetworkInstrumenterStorage {
-	return e.G().NetworkInstrumenterStorage
+	return e.G().RemoteNetworkInstrumenterStorage
 }
 
 // GetHelloArg implements GetHelloArg in kex2.Provisioner.

@@ -2,6 +2,7 @@
   "compilerOptions": {
     "allowJs": false,
     "allowSyntheticDefaultImports": true,
+    "assumeChangesOnlyAffectDirectDependencies": true,
     "baseUrl": ".",
     "checkJs": false,
     "declaration": true,

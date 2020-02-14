@@ -2659,9 +2659,12 @@ const fetchConversationBio = async (
 }
 
 const leaveConversation = async (action: Chat2Gen.LeaveConversationPayload) => {
-  await RPCChatTypes.localLeaveConversationLocalRpcPromise({
-    convID: Types.keyToConversationID(action.payload.conversationIDKey),
-  })
+  await RPCChatTypes.localLeaveConversationLocalRpcPromise(
+    {
+      convID: Types.keyToConversationID(action.payload.conversationIDKey),
+    },
+    Constants.waitingKeyLeaveConversation
+  )
 }
 
 const muteConversation = async (action: Chat2Gen.MuteConversationPayload) => {
@@ -3632,7 +3635,8 @@ function* chat2Saga() {
   if (Container.isPhone) {
     // Push us into the conversation
     yield* Saga.chainAction2(Chat2Gen.selectConversation, mobileNavigateOnSelect)
-  } else if (Container.isMobile) {
+  }
+  if (Container.isMobile) {
     yield* Saga.chainGenerator<Chat2Gen.MessageAttachmentNativeSharePayload>(
       Chat2Gen.messageAttachmentNativeShare,
       mobileMessageAttachmentShare

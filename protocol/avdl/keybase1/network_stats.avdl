@@ -1,5 +1,10 @@
 @namespace("keybase.1")
 protocol NetworkStats {
+  enum NetworkSource {
+    LOCAL_0,
+    REMOTE_1
+  }
+
   record InstrumentationStat {
     @mpackkey("t")
     string tag;

@@ -78,6 +78,7 @@ const StrokedIcon = Styles.styled<typeof Kb.Icon, StrokedIconProps>(Kb.Icon)(pro
   right: 1,
 }))
 
+const noTheme = {}
 const DesktopMutedIcon = (p: {
   isHovered: boolean
   isMuted: boolean
@@ -94,8 +95,9 @@ const DesktopMutedIcon = (p: {
         className="stroke"
         type={type}
         fontSize={18}
+        theme={noTheme}
       />
-      <StrokedIcon isSelected={isSelected} isHovered={isHovered} type={type} fontSize={16} />
+      <StrokedIcon isSelected={isSelected} isHovered={isHovered} type={type} fontSize={16} theme={noTheme} />
     </Kb.Box>
   ) : null
 }

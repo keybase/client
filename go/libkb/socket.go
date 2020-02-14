@@ -8,6 +8,7 @@ import (
 	"net"
 
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -50,8 +51,8 @@ func (g *GlobalContext) BindToSocket() (net.Listener, error) {
 	return g.SocketInfo.BindToSocket()
 }
 
-func NewTransportFromSocket(g *GlobalContext, s net.Conn) rpc.Transporter {
-	return rpc.NewTransport(s, NewRPCLogFactory(g), g.NetworkInstrumenterStorage, MakeWrapError(g), rpc.DefaultMaxFrameLength)
+func NewTransportFromSocket(g *GlobalContext, s net.Conn, src keybase1.NetworkSource) rpc.Transporter {
+	return rpc.NewTransport(s, NewRPCLogFactory(g), NetworkInstrumenterStorageFromSrc(g, src), MakeWrapError(g), rpc.DefaultMaxFrameLength)
 }
 
 // ResetSocket clears and returns a new socket
@@ -93,7 +94,7 @@ func (g *GlobalContext) getSocketLocked(clearError bool) (conn net.Conn, xp rpc.
 			isNew = true
 		}
 		if sw.Err == nil {
-			sw.Transporter = NewTransportFromSocket(g, sw.Conn)
+			sw.Transporter = NewTransportFromSocket(g, sw.Conn, keybase1.NetworkSource_LOCAL)
 		}
 		g.SocketWrapper = &sw
 	}

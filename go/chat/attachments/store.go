@@ -201,7 +201,7 @@ func (a *S3Store) uploadAsset(ctx context.Context, task *UploadTask, enc *SignEn
 
 	// post to s3
 	length := enc.EncryptedLen(task.FileSize)
-	record := rpc.NewNetworkInstrumenter(a.G().NetworkInstrumenterStorage, "ChatAttachmentUpload")
+	record := rpc.NewNetworkInstrumenter(a.G().RemoteNetworkInstrumenterStorage, "ChatAttachmentUpload")
 	defer func() { _ = record.RecordAndFinish(length) }()
 	upRes, err := a.PutS3(ctx, tee, length, task, previous)
 	if err != nil {

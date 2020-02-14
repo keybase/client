@@ -57,10 +57,10 @@ const icons = {
   },
 } as const
 
-type TlfTypeIconProps = {
-  badgeOverride?: IconType
+export type TlfTypeIconProps = {
+  badgeOverride?: any // TS freaking out IconType
   size: Size
-  style?: Styles.StylesCrossPlatform
+  style: Styles.StylesCrossPlatform
   tlfType: Types.TlfType
 }
 
@@ -75,7 +75,7 @@ const getTlfTypeIcon = (size: Size, tlfType: Types.TlfType) => {
   }
 }
 
-const TlfTypeIcon = (props: TlfTypeIconProps) => {
+export const TlfTypeIcon = (props: TlfTypeIconProps) => {
   const tlfList = Container.useSelector(state => Constants.getTlfListFromType(state.fs.tlfs, props.tlfType))
   const badgeCount = Constants.computeBadgeNumberForTlfList(tlfList)
   const badgeStyle = badgeStyles[getIconSizeString(props.size)]
@@ -99,7 +99,7 @@ const TlfTypeIcon = (props: TlfTypeIconProps) => {
 }
 
 type TlfIconProps = {
-  badgeOverride?: IconType
+  badgeOverride?: any // TS freaking out IconType
   size: Size
   style?: Styles.StylesCrossPlatform
   tlfTypeForFolderIconOverride?: Types.TlfType
@@ -125,7 +125,7 @@ const TlfIcon = (props: TlfIconProps) => (
 )
 
 type InTlfItemIconProps = {
-  badgeOverride?: IconType
+  badgeOverride?: any // TS freaking out IconType
   path: Types.Path
   size: Size
   style?: Styles.StylesCrossPlatform

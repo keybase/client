@@ -698,10 +698,10 @@ func (u *User) ServiceProof(m MetaContext, signingKey GenericKey, typ ServiceTyp
 	return ret, nil
 }
 
-func (u *User) WotAttestProof(m MetaContext, signingKey GenericKey, sigVersion SigVersion, mac []byte) (*ProofMetadataRes, error) {
+func (u *User) WotVouchProof(m MetaContext, signingKey GenericKey, sigVersion SigVersion, mac []byte) (*ProofMetadataRes, error) {
 	md := ProofMetadata{
 		Me:                  u,
-		LinkType:            LinkTypeWotAttest,
+		LinkType:            LinkTypeWotVouch,
 		SigningKey:          signingKey,
 		SigVersion:          sigVersion,
 		IgnoreIfUnsupported: true,
@@ -712,7 +712,7 @@ func (u *User) WotAttestProof(m MetaContext, signingKey GenericKey, sigVersion S
 	}
 
 	body := ret.J.AtKey("body")
-	if err := body.SetKey("wot_attest", jsonw.NewString(hex.EncodeToString(mac))); err != nil {
+	if err := body.SetKey("wot_vouch", jsonw.NewString(hex.EncodeToString(mac))); err != nil {
 		return nil, err
 	}
 

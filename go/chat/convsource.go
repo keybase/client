@@ -384,11 +384,6 @@ func (s *RemoteConversationSource) Expunge(ctx context.Context,
 	return nil
 }
 
-func (s *RemoteConversationSource) ClearFromDelete(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, msgID chat1.MessageID) bool {
-	return false
-}
-
 func (s *RemoteConversationSource) EphemeralPurge(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo) (*chat1.EphemeralPurgeInfo, []chat1.MessageUnboxed, error) {
 	return nil, nil, nil
@@ -1108,40 +1103,6 @@ func (s *HybridConversationSource) fetchMaybeNotify(ctx context.Context, convID 
 	}
 	s.notifyEphemeralPurge(ctx, uid, convID, fetchRes.Exploded)
 	return fetchRes.Thread, nil
-}
-
-// ClearFromDelete clears the current cache if there is a delete that we don't know about
-// and returns true to the caller if it schedules a background loader job
-func (s *HybridConversationSource) ClearFromDelete(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, deleteID chat1.MessageID) bool {
-	defer s.Trace(ctx, func() error { return nil }, "ClearFromDelete")()
-
-	// Check to see if we have the message stored
-	stored, err := s.storage.FetchMessages(ctx, convID, uid, []chat1.MessageID{deleteID})
-	if err == nil && stored[0] != nil {
-		// Any error is grounds to load this guy into the conv loader aggressively
-		s.Debug(ctx, "ClearFromDelete: delete message stored, doing nothing")
-		return false
-	}
-
-	// Fire off a background load of the thread with a post hook to delete the bodies cache
-	s.Debug(ctx, "ClearFromDelete: delete not found, clearing")
-	p := &chat1.Pagination{Num: s.numExpungeReload}
-	qErr := s.G().ConvLoader.Queue(ctx,
-		types.NewConvLoaderJob(convID, p, types.ConvLoaderPriorityHighest, types.ConvLoaderUnique,
-			func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
-				if len(tv.Messages) == 0 {
-					return
-				}
-				bound := tv.Messages[0].GetMessageID().Min(tv.Messages[len(tv.Messages)-1].GetMessageID())
-				if err := s.storage.ClearBefore(ctx, convID, uid, bound); err != nil {
-					s.Debug(ctx, "ClearFromDelete: failed to clear messages: %s", err)
-				}
-			}))
-	if qErr != nil {
-		s.Debug(ctx, "ClearFromDelete: failed error queuing conv job: %+v", err)
-	}
-	return true
 }
 
 func (s *HybridConversationSource) EphemeralPurge(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, purgeInfo *chat1.EphemeralPurgeInfo) (newPurgeInfo *chat1.EphemeralPurgeInfo, explodedMsgs []chat1.MessageUnboxed, err error) {

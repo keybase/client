@@ -3,6 +3,14 @@
   "imports": [],
   "types": [
     {
+      "type": "enum",
+      "name": "NetworkSource",
+      "symbols": [
+        "LOCAL_0",
+        "REMOTE_1"
+      ]
+    },
+    {
       "type": "record",
       "name": "InstrumentationStat",
       "fields": [

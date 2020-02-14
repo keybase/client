@@ -779,6 +779,12 @@ export enum JourneycardType {
   msgNoAnswer = 7,
 }
 
+export enum LastActiveStatus {
+  none = 0,
+  active = 1,
+  recentlyActive = 2,
+}
+
 export enum MessageBoxedVersion {
   vnone = 0,
   v1 = 1,
@@ -1228,7 +1234,7 @@ export type MessageLeave = {}
 export type MessagePin = {readonly msgID: MessageID}
 export type MessagePlaintext = {readonly clientHeader: MessageClientHeader; readonly messageBody: MessageBody; readonly supersedesOutboxID?: OutboxID | null}
 export type MessagePreviousPointer = {readonly id: MessageID; readonly hash: Hash}
-export type MessageReaction = {readonly m: /* messageID */ MessageID; readonly b: /* body */ String}
+export type MessageReaction = {readonly m: /* messageID */ MessageID; readonly b: /* body */ String; readonly t /* targetUID */?: Gregor1.UID | null}
 export type MessageRequestPayment = {readonly requestID: Stellar1.KeybaseRequestID; readonly note: String}
 export type MessageSendPayment = {readonly paymentID: Stellar1.PaymentID}
 export type MessageServerHeader = {readonly messageID: MessageID; readonly supersededBy: MessageID; readonly r /* reactionIDs */?: Array<MessageID> | null; readonly u /* unfurlIDs */?: Array<MessageID> | null; readonly replies?: Array<MessageID> | null; readonly ctime: Gregor1.Time; readonly n: /* now */ Gregor1.Time; readonly rt /* rtime */?: Gregor1.Time | null}
@@ -1359,7 +1365,7 @@ export type ThreadView = {readonly messages?: Array<MessageUnboxed> | null; read
 export type ThreadViewBoxed = {readonly messages?: Array<MessageBoxed> | null; readonly pagination?: Pagination | null}
 export type TopicID = Bytes
 export type TopicNameState = Bytes
-export type TyperInfo = {readonly uid: Keybase1.UID; readonly username: String; readonly deviceID: Keybase1.DeviceID; readonly deviceName: String; readonly deviceType: Keybase1.DeviceTypeV2}
+export type TyperInfo = {readonly uid: Keybase1.UID; readonly username: String; readonly deviceID: Keybase1.DeviceID}
 export type UIAssetUrlInfo = {readonly previewUrl: String; readonly fullUrl: String; readonly fullUrlCached: Boolean; readonly mimeType: String; readonly videoDuration?: String | null; readonly inlineVideoPlayable: Boolean}
 export type UIBotCommandsUpdateSettings = {readonly settings: {[key: string]: Keybase1.TeamBotSettings}}
 export type UIBotCommandsUpdateStatus = {typ: UIBotCommandsUpdateStatusTyp.uptodate; uptodate: UIBotCommandsUpdateSettings} | {typ: UIBotCommandsUpdateStatusTyp.updating} | {typ: UIBotCommandsUpdateStatusTyp.failed} | {typ: UIBotCommandsUpdateStatusTyp.blank}
@@ -1675,6 +1681,8 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.local.getWelcomeMessage'
 // 'chat.1.local.getDefaultTeamChannelsLocal'
 // 'chat.1.local.setDefaultTeamChannelsLocal'
+// 'chat.1.local.getLastActiveForTLF'
+// 'chat.1.local.getLastActiveForTeams'
 // 'chat.1.NotifyChat.NewChatActivity'
 // 'chat.1.NotifyChat.ChatIdentifyUpdate'
 // 'chat.1.NotifyChat.ChatTLFFinalize'

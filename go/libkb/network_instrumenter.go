@@ -13,6 +13,11 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+type NetworkStatsJSON struct {
+	Local  []keybase1.InstrumentationStat `json:"remote"`
+	Remote []keybase1.InstrumentationStat `json:"local"`
+}
+
 var internalHosts = map[string]struct{}{
 	DevelServerURI:      {},
 	StagingServerURI:    {},
@@ -68,6 +73,7 @@ func AddRPCRecord(tag string, stat keybase1.InstrumentationStat, record rpc.Inst
 type DiskInstrumentationStorage struct {
 	Contextified
 	sync.Mutex
+	src     keybase1.NetworkSource
 	storage map[string]keybase1.InstrumentationStat
 
 	eg     errgroup.Group
@@ -76,9 +82,10 @@ type DiskInstrumentationStorage struct {
 
 var _ rpc.NetworkInstrumenterStorage = (*DiskInstrumentationStorage)(nil)
 
-func NewDiskInstrumentationStorage(g *GlobalContext) *DiskInstrumentationStorage {
+func NewDiskInstrumentationStorage(g *GlobalContext, src keybase1.NetworkSource) *DiskInstrumentationStorage {
 	return &DiskInstrumentationStorage{
 		Contextified: NewContextified(g),
+		src:          src,
 		storage:      make(map[string]keybase1.InstrumentationStat),
 	}
 }
@@ -150,10 +157,14 @@ func (s *DiskInstrumentationStorage) flush(storage map[string]keybase1.Instrumen
 	return nil
 }
 
+func (s *DiskInstrumentationStorage) keyPrefix() string {
+	return fmt.Sprintf("src:%d", s.src)
+}
+
 func (s *DiskInstrumentationStorage) dbKey(tag string) DbKey {
 	return DbKey{
 		Typ: DBNetworkInstrumentation,
-		Key: tag,
+		Key: fmt.Sprintf("%s|%s", s.keyPrefix(), tag),
 	}
 }
 
@@ -174,7 +185,7 @@ func (s *DiskInstrumentationStorage) getAllKeysLocked() (keys []DbKey, err error
 	return keys, nil
 }
 
-func (s *DiskInstrumentationStorage) GetAll() (res map[string]keybase1.InstrumentationStat, err error) {
+func (s *DiskInstrumentationStorage) GetAll() (res []keybase1.InstrumentationStat, err error) {
 	defer s.G().CTraceTimed(context.TODO(), "DiskInstrumentationStorage: GetAll", func() error { return err })()
 	s.Lock()
 	defer s.Unlock()
@@ -187,15 +198,18 @@ func (s *DiskInstrumentationStorage) GetAll() (res map[string]keybase1.Instrumen
 	if err != nil {
 		return nil, err
 	}
-	res = make(map[string]keybase1.InstrumentationStat)
+	keyPrefix := s.keyPrefix()
 	for _, dbKey := range dbKeys {
-		tag := strings.Split(dbKey.Key, ":")[0]
+		// ensure key matches expected format
+		keyParts := strings.Split(dbKey.Key, "|")
+		if len(keyParts) < 2 || keyParts[0] != keyPrefix {
+			continue
+		}
 		var record keybase1.InstrumentationStat
 		ok, err := s.G().LocalDb.GetIntoMsgpack(&record, dbKey)
 		if err != nil {
 			return nil, err
-		}
-		if !ok {
+		} else if !ok {
 			continue
 		}
 		// Keep only window of the past month
@@ -206,23 +220,14 @@ func (s *DiskInstrumentationStorage) GetAll() (res map[string]keybase1.Instrumen
 			}
 			continue
 		}
-		res[tag] = record
+		res = append(res, record)
 	}
 	return res, nil
 }
 
 func (s *DiskInstrumentationStorage) Stats() (res []keybase1.InstrumentationStat, err error) {
 	defer s.G().CTraceTimed(context.TODO(), "DiskInstrumentationStorage: Stats", func() error { return err })()
-	all, err := s.GetAll()
-	if err != nil {
-		return nil, err
-	}
-	res = make([]keybase1.InstrumentationStat, 0, len(all))
-	for _, stat := range all {
-		res = append(res, stat)
-	}
-
-	return res, nil
+	return s.GetAll()
 }
 
 func (s *DiskInstrumentationStorage) Put(tag string, record rpc.InstrumentationRecord) error {
@@ -230,4 +235,15 @@ func (s *DiskInstrumentationStorage) Put(tag string, record rpc.InstrumentationR
 	defer s.Unlock()
 	s.storage[tag] = AddRPCRecord(tag, s.storage[tag], record)
 	return nil
+}
+
+func NetworkInstrumenterStorageFromSrc(g *GlobalContext, src keybase1.NetworkSource) rpc.NetworkInstrumenterStorage {
+	switch src {
+	case keybase1.NetworkSource_LOCAL:
+		return g.LocalNetworkInstrumenterStorage
+	case keybase1.NetworkSource_REMOTE:
+		return g.RemoteNetworkInstrumenterStorage
+	default:
+		return rpc.NewDummyInstrumentationStorage()
+	}
 }

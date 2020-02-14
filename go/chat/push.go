@@ -918,7 +918,7 @@ func (g *PushHandler) Typing(ctx context.Context, m gregor.OutOfBandMessage) (er
 	// Lookup username and device name
 	kuid := keybase1.UID(update.Uid.String())
 	kdid := keybase1.DeviceID(update.DeviceID.String())
-	user, device, dtype, err := g.G().GetUPAKLoader().LookupUsernameAndDevice(ctx, kuid, kdid)
+	user, err := g.G().GetUPAKLoader().LookupUsername(ctx, kuid)
 	if err != nil {
 		g.Debug(ctx, "Typing: failed to lookup username/device: msg: %v", err)
 		return err
@@ -926,11 +926,9 @@ func (g *PushHandler) Typing(ctx context.Context, m gregor.OutOfBandMessage) (er
 
 	// Fire off update with all relevant info
 	g.typingMonitor.Update(ctx, chat1.TyperInfo{
-		Uid:        kuid,
-		DeviceID:   kdid,
-		Username:   user.String(),
-		DeviceName: device,
-		DeviceType: dtype,
+		Uid:      kuid,
+		DeviceID: kdid,
+		Username: user.String(),
 	}, update.ConvID, update.TeamType, update.Typing)
 	return nil
 }
