@@ -43,7 +43,7 @@ const BlockButtons = (props: Props) => {
         small={true}
         conversationIDKey={props.conversationID}
         toMany={others.length > 0 || !!team}
-        style={styles.button}
+        style={Styles.collapseStyles([!Styles.isMobile && styles.button])}
       />
       {!team && others.length === 0 && (
         <Kb.Button
