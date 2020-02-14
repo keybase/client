@@ -1343,6 +1343,24 @@
         {
           "type": "UserVersion",
           "name": "inviter"
+        },
+        {
+          "type": "boolean",
+          "name": "multiUse"
+        },
+        {
+          "type": [
+            null,
+            "int"
+          ],
+          "name": "expireAfterUses"
+        },
+        {
+          "type": [
+            null,
+            "UnixTime"
+          ],
+          "name": "expireAfterTime"
         }
       ]
     },
@@ -1589,6 +1607,17 @@
           "name": "obsoleteInvites"
         },
         {
+          "type": {
+            "type": "map",
+            "values": {
+              "type": "array",
+              "items": "TeamUsedInviteLog"
+            },
+            "keys": "TeamInviteID"
+          },
+          "name": "usedInvites"
+        },
+        {
           "type": "boolean",
           "name": "open"
         },
@@ -1667,6 +1696,20 @@
         {
           "type": "SignatureMetadata",
           "name": "sigMeta"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamUsedInviteLog",
+      "fields": [
+        {
+          "type": "UserVersion",
+          "name": "uv"
+        },
+        {
+          "type": "int",
+          "name": "logPoint"
         }
       ]
     },

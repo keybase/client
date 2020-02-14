@@ -1718,20 +1718,38 @@ func (o TeamInviteName) DeepCopy() TeamInviteName {
 }
 
 type TeamInvite struct {
-	Role    TeamRole       `codec:"role" json:"role"`
-	Id      TeamInviteID   `codec:"id" json:"id"`
-	Type    TeamInviteType `codec:"type" json:"type"`
-	Name    TeamInviteName `codec:"name" json:"name"`
-	Inviter UserVersion    `codec:"inviter" json:"inviter"`
+	Role            TeamRole       `codec:"role" json:"role"`
+	Id              TeamInviteID   `codec:"id" json:"id"`
+	Type            TeamInviteType `codec:"type" json:"type"`
+	Name            TeamInviteName `codec:"name" json:"name"`
+	Inviter         UserVersion    `codec:"inviter" json:"inviter"`
+	MultiUse        bool           `codec:"multiUse" json:"multiUse"`
+	ExpireAfterUses *int           `codec:"expireAfterUses,omitempty" json:"expireAfterUses,omitempty"`
+	ExpireAfterTime *UnixTime      `codec:"expireAfterTime,omitempty" json:"expireAfterTime,omitempty"`
 }
 
 func (o TeamInvite) DeepCopy() TeamInvite {
 	return TeamInvite{
-		Role:    o.Role.DeepCopy(),
-		Id:      o.Id.DeepCopy(),
-		Type:    o.Type.DeepCopy(),
-		Name:    o.Name.DeepCopy(),
-		Inviter: o.Inviter.DeepCopy(),
+		Role:     o.Role.DeepCopy(),
+		Id:       o.Id.DeepCopy(),
+		Type:     o.Type.DeepCopy(),
+		Name:     o.Name.DeepCopy(),
+		Inviter:  o.Inviter.DeepCopy(),
+		MultiUse: o.MultiUse,
+		ExpireAfterUses: (func(x *int) *int {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.ExpireAfterUses),
+		ExpireAfterTime: (func(x *UnixTime) *UnixTime {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ExpireAfterTime),
 	}
 }
 
@@ -1845,6 +1863,7 @@ type TeamSigChainState struct {
 	StubbedLinks            map[Seqno]bool                                    `codec:"stubbedLinks" json:"stubbedLinks"`
 	ActiveInvites           map[TeamInviteID]TeamInvite                       `codec:"activeInvites" json:"activeInvites"`
 	ObsoleteInvites         map[TeamInviteID]TeamInvite                       `codec:"obsoleteInvites" json:"obsoleteInvites"`
+	UsedInvites             map[TeamInviteID][]TeamUsedInviteLog              `codec:"usedInvites" json:"usedInvites"`
 	Open                    bool                                              `codec:"open" json:"open"`
 	OpenTeamJoinAs          TeamRole                                          `codec:"openTeamJoinAs" json:"openTeamJoinAs"`
 	Bots                    map[UserVersion]TeamBotSettings                   `codec:"bots" json:"bots"`
@@ -1990,6 +2009,28 @@ func (o TeamSigChainState) DeepCopy() TeamSigChainState {
 			}
 			return ret
 		})(o.ObsoleteInvites),
+		UsedInvites: (func(x map[TeamInviteID][]TeamUsedInviteLog) map[TeamInviteID][]TeamUsedInviteLog {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[TeamInviteID][]TeamUsedInviteLog, len(x))
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := (func(x []TeamUsedInviteLog) []TeamUsedInviteLog {
+					if x == nil {
+						return nil
+					}
+					ret := make([]TeamUsedInviteLog, len(x))
+					for i, v := range x {
+						vCopy := v.DeepCopy()
+						ret[i] = vCopy
+					}
+					return ret
+				})(v)
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.UsedInvites),
 		Open:           o.Open,
 		OpenTeamJoinAs: o.OpenTeamJoinAs.DeepCopy(),
 		Bots: (func(x map[UserVersion]TeamBotSettings) map[UserVersion]TeamBotSettings {
@@ -2076,6 +2117,18 @@ func (o UserLogPoint) DeepCopy() UserLogPoint {
 	return UserLogPoint{
 		Role:    o.Role.DeepCopy(),
 		SigMeta: o.SigMeta.DeepCopy(),
+	}
+}
+
+type TeamUsedInviteLog struct {
+	Uv       UserVersion `codec:"uv" json:"uv"`
+	LogPoint int         `codec:"logPoint" json:"logPoint"`
+}
+
+func (o TeamUsedInviteLog) DeepCopy() TeamUsedInviteLog {
+	return TeamUsedInviteLog{
+		Uv:       o.Uv.DeepCopy(),
+		LogPoint: o.LogPoint,
 	}
 }
 

@@ -328,12 +328,20 @@ func (i SCTeamInvite) TeamInvite(mctx libkb.MetaContext, r keybase1.TeamRole, in
 	if err != nil {
 		return keybase1.TeamInvite{}, err
 	}
+	var expireAfterTime *keybase1.UnixTime
+	if i.ExpireAfterTime != nil {
+		expireUnix := keybase1.UnixTime(*i.ExpireAfterTime)
+		expireAfterTime = &expireUnix
+	}
 	return keybase1.TeamInvite{
-		Id:      id,
-		Role:    r,
-		Type:    typ,
-		Name:    i.Name,
-		Inviter: inviter,
+		Id:              id,
+		Role:            r,
+		Type:            typ,
+		Name:            i.Name,
+		Inviter:         inviter,
+		MultiUse:        i.MultipleUse != nil && *i.MultipleUse,
+		ExpireAfterUses: i.ExpireAfterUses,
+		ExpireAfterTime: expireAfterTime,
 	}, nil
 }
 

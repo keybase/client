@@ -9,6 +9,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/avatars"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/kbun"
@@ -164,6 +165,8 @@ func details(ctx context.Context, g *libkb.GlobalContext, t *Team, tracer profil
 	if err != nil {
 		return res, err
 	}
+
+	spew.Dump(t.chain().inner.ActiveInvites)
 
 	tracer.Stage("invites")
 	annotatedInvites, err := AnnotateInvitesUIDMapper(ctx, g, t, &res.Members)

@@ -1279,6 +1279,7 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
 		t.completeInvites(&res.newState, team.CompletedInvites)
 		t.obsoleteInvites(&res.newState, roleUpdates, payload.SignatureMetadata())
+		t.useInvites(&res.newState, roleUpdates, team.UsedInvites)
 
 		// Note: If someone was removed, the per-team-key should be rotated. This is not checked though.
 
@@ -2211,6 +2212,19 @@ func (t *teamSigchainPlayer) obsoleteInvites(stateToUpdate *TeamSigChainState, r
 		for _, uv := range uvs {
 			stateToUpdate.findAndObsoleteInviteForUser(uv.Uid)
 		}
+	}
+}
+
+func (t *teamSigchainPlayer) useInvites(stateToUpdate *TeamSigChainState, roleUpdates chainRoleUpdates, used []SCMapInviteIDUVPair) {
+	for _, pair := range used {
+		uv := pair.UV.
+		logPoint := len(stateToUpdate.inner.UserLog[uv])
+		inviteID := keybase1.TeamInviteID(pair.InviteID)
+		stateToUpdate.inner.UsedInvites[inviteID] = append(stateToUpdate.inner.UsedInvites[inviteID],
+			keybase1.TeamUsedInviteLog{
+				Uv:       pair.UV,
+				LogPoint: logPoint,
+			})
 	}
 }
 
