@@ -6,6 +6,7 @@ package libkb
 import (
 	"crypto/sha256"
 	"fmt"
+	"strconv"
 
 	"github.com/keybase/client/go/jsonparserw"
 
@@ -126,14 +127,15 @@ func ImportLinkFromServer2(m MetaContext, parent *SigChain, data []byte, selfUID
 	var payload []byte
 	var sigID keybase1.SigID
 	var linkID LinkID
+	var ol2 *OuterLinkV2WithMetadata
 	sigVersion := SigVersion(versionRaw)
 	switch {
 	case sigVersion == KeybaseSignatureV1 && isPGP:
-		linkID, sigID, payload, err = importLinkFromServerPGP(m, parent, sig, data, selfUID)
+		linkID, sigID, payload, err = importLinkFromServerPGP(m, parent, sig, data)
 	case sigVersion == KeybaseSignatureV1 && !isPGP:
-		linkID, sigID, payload, err = importLinkFromServerV1NaCl(m, parent, sig, data, selfUID)
+		linkID, sigID, payload, err = importLinkFromServerV1NaCl(m, parent, sig, data)
 	case sigVersion == KeybaseSignatureV2 && !isPGP:
-		linkID, sigID, payload, err = importLinkFromServerV2Unstubbed(m, parent, sig, data, selfUID)
+		linkID, sigID, payload, ol2, err = importLinkFromServerV2Unstubbed(m, parent, sig, data)
 	default:
 		err = ChainLinkError{fmt.Sprintf("bad link back from server; version=%d; pgp=%v", sigVersion, isPGP)}
 	}
@@ -143,6 +145,7 @@ func ImportLinkFromServer2(m MetaContext, parent *SigChain, data []byte, selfUID
 
 	ret = NewChainLink(m.G(), parent, linkID)
 	tmp := ChainLinkUnpacked{sigVersion: sigVersion}
+	tmp.outerLinkV2 = ol2
 
 	err = tmp.unpackPayloadJSON(m.G(), payload, ret.id)
 	if err != nil {
@@ -184,13 +187,69 @@ func computeLinkIDFromHashWithWhitespaceFixes(m MetaContext, payload []byte) (Li
 	return fixedLinkID, nil
 }
 
-func importLinkFromServerV1NaCl(m MetaContext, parent *SigChain, sig string, packed []byte, selfUID keybase1.UID) (linkID LinkID, sigID keybase1.SigID, payload []byte, err error) {
-	return linkID, sigID, payload, err
+func getKIDFromPayload(payload []byte) (ret keybase1.KID, err error) {
+	s, err := jsonparserw.GetString(payload, "body", "key", "kid")
+	if err != nil {
+		return ret, err
+	}
+	ret = keybase1.KIDFromString(s)
+	return ret, nil
 }
-func importLinkFromServerV2Unstubbed(m MetaContext, parent *SigChain, sig string, packed []byte, selfUID keybase1.UID) (linkID LinkID, sigID keybase1.SigID, payload []byte, err error) {
-	return linkID, sigID, payload, err
+
+func importLinkFromServerV1NaCl(m MetaContext, parent *SigChain, sig string, packed []byte) (linkID LinkID, sigID keybase1.SigID, payload []byte, err error) {
+	var kid, payloadKID keybase1.KID
+	payload, kid, sigID, err = SigExtractKbPayloadAndKID(sig)
+	if err != nil {
+		return nil, sigID, nil, err
+	}
+	payloadKID, err = getKIDFromPayload(payload)
+	if err != nil {
+		return nil, sigID, nil, err
+	}
+	if !payloadKID.Equal(kid) {
+		err = ChainLinkError{"kid mismatch bewteen signature and payload"}
+		return nil, sigID, nil, err
+	}
+	return linkID, sigID, payload, nil
 }
-func importLinkFromServerPGP(m MetaContext, parent *SigChain, sig string, packed []byte, selfUID keybase1.UID) (linkID LinkID, sigID keybase1.SigID, payload []byte, err error) {
+
+func importLinkFromServerV2Unstubbed(m MetaContext, parent *SigChain, sig string, packed []byte) (linkID LinkID, sigID keybase1.SigID, payload []byte, ol2 *OuterLinkV2WithMetadata, err error) {
+	data, _, _, err := jsonparserw.Get(packed, "payload_json")
+	if err != nil {
+		return nil, sigID, nil, nil, err
+	}
+	sdata, err := strconv.Unquote(`"` + string(data) + `"`)
+	if err != nil {
+		return nil, sigID, nil, nil, err
+	}
+	payload = []byte(sdata)
+	ol2, err = DecodeOuterLinkV2(sig)
+	if err != nil {
+		return nil, sigID, nil, nil, err
+	}
+	linkID = ol2.Curr
+	if !isJSONObject(payload, linkID) {
+		err = ChainLinkError{"expected a JSON object as payload_json"}
+		return nil, sigID, nil, nil, err
+	}
+	if ol2.SeqType == 0 {
+		// Assume public if unset
+		ol2.SeqType = keybase1.SeqType_PUBLIC
+	}
+	var payloadKID keybase1.KID
+	payloadKID, err = getKIDFromPayload(payload)
+	if err != nil {
+		return nil, sigID, nil, nil, err
+	}
+	if !payloadKID.Equal(ol2.kid) {
+		err = ChainLinkError{"KID mismatch on V2 unstubbed link"}
+		return nil, sigID, nil, nil, err
+	}
+
+	return linkID, sigID, payload, ol2, err
+}
+
+func importLinkFromServerPGP(m MetaContext, parent *SigChain, sig string, packed []byte) (linkID LinkID, sigID keybase1.SigID, payload []byte, err error) {
 
 	payload, sigID, err = SigExtractPGPPayload(sig)
 	if err != nil {
