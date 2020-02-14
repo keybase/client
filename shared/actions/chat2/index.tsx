@@ -23,6 +23,7 @@ import * as Tabs from '../../constants/tabs'
 import * as UsersGen from '../users-gen'
 import * as WaitingGen from '../waiting-gen'
 import * as Router2Constants from '../../constants/router2'
+import * as Platform from '../../constants/platform'
 import commonTeamBuildingSaga, {filterForNs} from '../team-building'
 import * as TeamsConstants from '../../constants/teams'
 import {NotifyPopup} from '../../native/notifications'
@@ -2222,10 +2223,17 @@ const attachFromDragAndDrop = async (
   _: Container.TypedState,
   action: Chat2Gen.AttachFromDragAndDropPayload
 ) => {
-  const paths = await Promise.all(action.payload.paths.map(p => Copy.copyToChatTempUploadFile(p.path)))
+  if (Platform.isDarwin) {
+    const paths = await Promise.all(action.payload.paths.map(p => Copy.copyToChatTempUploadFile(p.path)))
+    return Chat2Gen.createAttachmentsUpload({
+      conversationIDKey: action.payload.conversationIDKey,
+      paths,
+      titles: action.payload.titles,
+    })
+  }
   return Chat2Gen.createAttachmentsUpload({
     conversationIDKey: action.payload.conversationIDKey,
-    paths,
+    paths: action.payload.paths,
     titles: action.payload.titles,
   })
 }

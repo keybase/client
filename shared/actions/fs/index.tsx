@@ -12,6 +12,7 @@ import * as Container from '../../util/container'
 import logger from '../../logger'
 import platformSpecificSaga, {ensureDownloadPermissionPromise} from './platform-specific'
 import * as RouteTreeGen from '../route-tree-gen'
+import * as Platform from '../../constants/platform'
 import {tlfToPreferredOrder} from '../../util/kbfs'
 import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
 import {NotifyPopup} from '../../native/notifications'
@@ -447,10 +448,21 @@ function* upload(_: Container.TypedState, action: FsGen.UploadPayload) {
 }
 
 const uploadFromDragAndDrop = async (_: Container.TypedState, action: FsGen.UploadFromDragAndDropPayload) => {
-  const localPaths = await Promise.all(action.payload.localPaths.map(localPath => Copy.copyToTmp(localPath)))
-  return localPaths.map(localPath =>
+  if (Platform.isDarwin) {
+    const localPaths = await Promise.all(
+      action.payload.localPaths.map(localPath => Copy.copyToTmp(localPath))
+    )
+    return localPaths.map(localPath =>
+      FsGen.createUpload({
+        deleteSourceFile: true,
+        localPath,
+        parentPath: action.payload.parentPath,
+      })
+    )
+  }
+  return action.payload.localPaths.map(localPath =>
     FsGen.createUpload({
-      deleteSourceFile: true,
+      deleteSourceFile: false,
       localPath,
       parentPath: action.payload.parentPath,
     })
