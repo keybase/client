@@ -66,6 +66,7 @@ export default Container.connect(
       selectedTab: stateProps.selectedTab,
       setSelectedTab: stateProps.setSelectedTab,
       showSubteams: stateProps.showSubteams,
+      teamID: ownProps.teamID,
     }
   }
 )(Tabs)
