@@ -82,10 +82,6 @@ const styles = Styles.styleSheetCreate(() => ({
     position: 'relative',
     width: '100%',
   },
-  endAnchor: {
-    flex: 1,
-    height: 0,
-  },
   list: Styles.platformStyles({
     isElectron: {
       ...Styles.globalStyles.fillAbsolute,

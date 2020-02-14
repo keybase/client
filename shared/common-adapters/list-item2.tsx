@@ -38,8 +38,8 @@ const ListItem = (props: Props) => (
   <Kb.ClickableBox
     onClick={props.onClick}
     style={Styles.collapseStyles([
-      props.style,
       props.type === 'Small' ? styles.clickableBoxSmall : styles.clickableBoxLarge,
+      props.style,
     ])}
   >
     <Kb.Box2

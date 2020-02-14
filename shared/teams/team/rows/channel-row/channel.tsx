@@ -47,7 +47,9 @@ const ChannelRow = (props: ChannelRowProps) => {
     : `${channel.numParticipants.toLocaleString()} ${pluralize('member', channel.numParticipants)}`
   const body = (
     <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Kb.Text type="BodySemibold">#{channel.channelname}</Kb.Text>
+      <Kb.Text type="BodySemibold" lineClamp={1}>
+        #{channel.channelname}
+      </Kb.Text>
       <Kb.Box2 direction="vertical" fullWidth={true}>
         <Kb.Text type="BodySmall" lineClamp={1}>
           {channel.description}{' '}
@@ -120,7 +122,7 @@ const styles = Styles.styleSheetCreate(
     ({
       checkCircle: Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
       listItemMargin: {marginLeft: 0},
-      mobileMarginsHack: {marginRight: 48}, // ListItem2 is malfunctioning because the checkbox width is unusual
+      mobileMarginsHack: Styles.platformStyles({isMobile: {marginRight: 48}}), // ListItem2 is malfunctioning because the checkbox width is unusual
       selected: {backgroundColor: Styles.globalColors.blueLighterOrBlueDarker},
     } as const)
 )

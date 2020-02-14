@@ -202,7 +202,7 @@ const makeRows = (
     case 'settings':
       rows.push({key: 'settings', type: 'settings'})
       break
-    case 'channels':
+    case 'channels': {
       rows.push({key: 'channel-header', type: 'channel-header'})
       let channels: Array<{channel: Types.ChannelInfo; conversationIDKey: ChatTypes.ConversationIDKey}> = []
       channelInfos?.forEach((channel, conversationIDKey) => channels.push({channel, conversationIDKey}))
@@ -215,9 +215,15 @@ const makeRows = (
             : a.channel.channelname.localeCompare(b.channel.channelname)
         )
         .forEach(({channel, conversationIDKey}) =>
-          rows.push({key: `channel-${channel.channelname}`, type: 'channel', channel, conversationIDKey})
+          rows.push({
+            channel,
+            conversationIDKey,
+            key: `channel-${channel.channelname}`,
+            type: 'channel',
+          })
         )
       rows.push({key: 'channel-footer', type: 'channel-footer'})
+    }
   }
   return rows
 }

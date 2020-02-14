@@ -87,7 +87,7 @@ const styles = Styles.styleSheetCreate(() => ({
     isMobile: {
       ...Styles.padding(Styles.globalMargins.small),
       bottom: 0,
-      shadowOffset: {width: 0, height: 2},
+      shadowOffset: {height: 2, width: 0},
       shadowOpacity: 0.8,
       shadowRadius: 5,
     },
