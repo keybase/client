@@ -291,6 +291,12 @@ export default () => {
     } catch (e) {
       console.log('spellcheck download error', e)
     }
+
+    try {
+      console.log('spellcheck avail: ', win.webContents.session.availableSpellCheckerLanguages)
+    } catch (e) {
+      console.log('spellcheck list error', e)
+    }
   }
 
   if (windowState.isFullScreen) {
