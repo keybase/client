@@ -58,6 +58,8 @@ const Box2 = React.forwardRef((props: Box2Props, ref: React.Ref<View>) => {
     case 'flex-end':
       alignSelfStyle = styles.alignSelfEnd
       break
+    case 'stretch':
+      alignSelfStyle = styles.alignSelfStretch
   }
   let alignItemsStyle: Styles.StylesCrossPlatform = null
   switch (alignItems) {
@@ -69,6 +71,9 @@ const Box2 = React.forwardRef((props: Box2Props, ref: React.Ref<View>) => {
       break
     case 'flex-end':
       alignItemsStyle = styles.alignItemsEnd
+      break
+    case 'stretch':
+      alignItemsStyle = styles.alignItemsStretch
       break
   }
 
@@ -119,9 +124,11 @@ const styles = {
   alignItemsCenter: {alignItems: 'center'},
   alignItemsEnd: {alignItems: 'flex-end'},
   alignItemsStart: {alignItems: 'flex-start'},
+  alignItemsStretch: {alignItems: 'stretch'},
   alignSelfCenter: {alignSelf: 'center'},
   alignSelfEnd: {alignSelf: 'flex-end'},
   alignSelfStart: {alignSelf: 'flex-start'},
+  alignSelfStretch: {alignSelf: 'stretch'},
   centered: {alignSelf: 'center'},
   centeredChildren: {
     alignItems: 'center',

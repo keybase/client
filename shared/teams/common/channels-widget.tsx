@@ -16,7 +16,7 @@ type Props = {
 const ChannelsWidget = (props: Props) => {
   return (
     <Kb.Box2 direction="vertical" gap="tiny" style={styles.container}>
-      <ChannelInputDesktop teamID={props.teamID} />
+      <ChannelInput teamID={props.teamID} />
       <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.pillContainer}>
         <ChannelPill channelname="general" />
         {props.channels.map(channelname => (
@@ -31,7 +31,9 @@ const ChannelsWidget = (props: Props) => {
   )
 }
 
-const ChannelInputDesktop = ({teamID}: {teamID: Types.TeamID}) => {
+type ChannelInputProps = {teamID: Types.TeamID}
+
+const ChannelInputDesktop = ({teamID}: ChannelInputProps) => {
   const [filter, setFilter] = React.useState('')
   const filterLCase = filter.trim().toLowerCase()
   const channels = Container.useSelector(s => Constants.getTeamChannelInfos(s, teamID))
@@ -76,6 +78,25 @@ const ChannelInputDesktop = ({teamID}: {teamID: Types.TeamID}) => {
   )
 }
 
+const ChannelInputMobile = ({teamID}: ChannelInputProps) => {
+  return (
+    <Kb.Box2
+      direction="horizontal"
+      gap="tiny"
+      alignSelf="stretch"
+      centerChildren={true}
+      style={styles.channelDummyInput}
+    >
+      <Kb.Icon type="iconfont-search" color={Styles.globalColors.black_50} sizeType="Small" />
+      <Kb.Text type="BodySemibold" style={styles.channelDummyInputText}>
+        Add channels
+      </Kb.Text>
+    </Kb.Box2>
+  )
+}
+
+const ChannelInput = Styles.isMobile ? ChannelInputMobile : ChannelInputDesktop
+
 const ChannelPill = ({channelname, onRemove}: {channelname: string; onRemove?: () => void}) => (
   <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.pill}>
     <Kb.Text type={Styles.isMobile ? 'Body' : 'BodySemibold'}>#{channelname}</Kb.Text>
@@ -84,6 +105,13 @@ const ChannelPill = ({channelname, onRemove}: {channelname: string; onRemove?: (
 )
 
 const styles = Styles.styleSheetCreate(() => ({
+  channelDummyInput: {
+    backgroundColor: Styles.globalColors.black_10,
+    borderRadius: Styles.borderRadius,
+    paddingBottom: Styles.globalMargins.xtiny,
+    paddingTop: Styles.globalMargins.xtiny,
+  },
+  channelDummyInputText: {color: Styles.globalColors.black_50},
   channelOption: {backgroundColor: Styles.globalColors.white},
   container: {
     ...Styles.padding(Styles.globalMargins.tiny),
