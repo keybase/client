@@ -102,7 +102,6 @@ const ChannelRow = (props: ChannelRowProps) => {
     <Kb.ListItem2
       action={actions}
       onlyShowActionOnHover="fade"
-      className="checkboxRow"
       height={Styles.isMobile ? 90 : 64}
       icon={checkCircle}
       iconStyleOverride={styles.checkCircle}

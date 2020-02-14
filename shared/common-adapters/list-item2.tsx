@@ -30,7 +30,6 @@ type Props = {
   onClick?: () => void
   height?: number // optional, for non-standard heights
   style?: Styles.StylesCrossPlatform
-  className?: string
   iconStyleOverride?: Styles.StylesCrossPlatform
   containerStyleOverride?: Styles.StylesCrossPlatform
 }
@@ -42,7 +41,6 @@ const ListItem = (props: Props) => (
       props.style,
       props.type === 'Small' ? styles.clickableBoxSmall : styles.clickableBoxLarge,
     ])}
-    className={props.className}
   >
     <Kb.Box2
       className={Styles.classNames({
