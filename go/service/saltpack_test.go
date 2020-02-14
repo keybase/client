@@ -42,6 +42,8 @@ func TestSaltpackFrontend(t *testing.T) {
 	testSignToTextFile(tc, h, u1, u2)
 	testEncryptToTextFile(tc, h, u1, u2)
 	testDecryptBogusFile(tc, h, u1, u2)
+	testEncryptDecryptDirectory(tc, h, u1, u2)
+	testSignVerifyDirectory(tc, h, u1, u2)
 }
 
 func testEncryptDecryptString(tc libkb.TestContext, h *SaltpackHandler, u1, u2 *kbtest.FakeUser) {
@@ -202,6 +204,53 @@ func testDecryptBogusFile(tc libkb.TestContext, h *SaltpackHandler, u1, u2 *kbte
 		os.Remove(filepath.FromSlash(decFilename))
 		tc.T.Errorf("%s exists, it should be deleted if there is an error", decFilename)
 	}
+}
+
+func testEncryptDecryptDirectory(tc libkb.TestContext, h *SaltpackHandler, u1, u2 *kbtest.FakeUser) {
+	ctx := context.Background()
+	encArg := keybase1.SaltpackEncryptFileArg{
+		Filename: filepath.FromSlash("testdata/archive"),
+		Opts: keybase1.SaltpackFrontendEncryptOptions{
+			Recipients:  []string{u1.Username, u2.Username},
+			Signed:      true,
+			IncludeSelf: true,
+		},
+	}
+	encRes, err := h.SaltpackEncryptFile(ctx, encArg)
+	require.NoError(tc.T, err)
+	defer os.Remove(encRes.Filename)
+	require.NotEqual(tc.T, encRes.Filename, encArg.Filename)
+	require.True(tc.T, strings.HasSuffix(encRes.Filename, ".encrypted.saltpack"))
+	require.False(tc.T, encRes.UsedUnresolvedSBS)
+	require.Empty(tc.T, encRes.UnresolvedSBSAssertion)
+
+	decArg := keybase1.SaltpackDecryptFileArg{EncryptedFilename: encRes.Filename}
+	decRes, err := h.SaltpackDecryptFile(ctx, decArg)
+	require.NoError(tc.T, err)
+	defer os.Remove(decRes.DecryptedFilename)
+	require.Equal(tc.T, encArg.Filename+" (1)", decRes.DecryptedFilename)
+	require.True(tc.T, decRes.Signed)
+
+	filesEqual(tc, encArg.Filename, decRes.DecryptedFilename)
+}
+
+func testSignVerifyDirectory(tc libkb.TestContext, h *SaltpackHandler, u1, u2 *kbtest.FakeUser) {
+	ctx := context.Background()
+	signArg := keybase1.SaltpackSignFileArg{Filename: filepath.FromSlash("testdata/archive")}
+	signedFile, err := h.SaltpackSignFile(ctx, signArg)
+	require.NoError(tc.T, err)
+	defer os.Remove(signedFile)
+	require.NotEqual(tc.T, signedFile, signArg.Filename)
+	require.True(tc.T, strings.HasSuffix(signedFile, ".signed.saltpack"))
+
+	verifyArg := keybase1.SaltpackVerifyFileArg{SignedFilename: signedFile}
+	verifyRes, err := h.SaltpackVerifyFile(ctx, verifyArg)
+	require.NoError(tc.T, err)
+	defer os.Remove(verifyRes.VerifiedFilename)
+	require.Equal(tc.T, signArg.Filename+" (1)", verifyRes.VerifiedFilename)
+	require.True(tc.T, verifyRes.Verified)
+
+	filesEqual(tc, signArg.Filename, verifyRes.VerifiedFilename)
 }
 
 func filesEqual(tc libkb.TestContext, a, b string) {
