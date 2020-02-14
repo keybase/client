@@ -14,6 +14,7 @@ export const addAttachmentViewMessage = 'chat2:addAttachmentViewMessage'
 export const addBotMember = 'chat2:addBotMember'
 export const addUserToChannel = 'chat2:addUserToChannel'
 export const addUsersToChannel = 'chat2:addUsersToChannel'
+export const attachFromDragAndDrop = 'chat2:attachFromDragAndDrop'
 export const attachmentDownload = 'chat2:attachmentDownload'
 export const attachmentDownloaded = 'chat2:attachmentDownloaded'
 export const attachmentLoading = 'chat2:attachmentLoading'
@@ -203,6 +204,11 @@ type _AddUsersToChannelPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
   readonly usernames: Array<string>
 }
+type _AttachFromDragAndDropPayload = {
+  readonly conversationIDKey: Types.ConversationIDKey
+  readonly paths: Array<Types.PathAndOutboxID>
+  readonly titles: Array<string>
+}
 type _AttachmentDownloadPayload = {readonly message: Types.Message}
 type _AttachmentDownloadedPayload = {
   readonly message: Types.Message
@@ -236,6 +242,7 @@ type _AttachmentUploadingPayload = {
 }
 type _AttachmentsUploadPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
+  readonly deleteSourceFile?: boolean
   readonly paths: Array<Types.PathAndOutboxID>
   readonly titles: Array<string>
   readonly tlfName?: string
@@ -1414,6 +1421,9 @@ export const createSetLoadedBotPage = (payload: _SetLoadedBotPagePayload): SetLo
   payload,
   type: setLoadedBotPage,
 })
+export const createAttachFromDragAndDrop = (
+  payload: _AttachFromDragAndDropPayload
+): AttachFromDragAndDropPayload => ({payload, type: attachFromDragAndDrop})
 export const createAttachmentDownload = (payload: _AttachmentDownloadPayload): AttachmentDownloadPayload => ({
   payload,
   type: attachmentDownload,
@@ -1698,6 +1708,10 @@ export type AddUserToChannelPayload = {
 export type AddUsersToChannelPayload = {
   readonly payload: _AddUsersToChannelPayload
   readonly type: typeof addUsersToChannel
+}
+export type AttachFromDragAndDropPayload = {
+  readonly payload: _AttachFromDragAndDropPayload
+  readonly type: typeof attachFromDragAndDrop
 }
 export type AttachmentDownloadPayload = {
   readonly payload: _AttachmentDownloadPayload
@@ -2311,6 +2325,7 @@ export type Actions =
   | AddBotMemberPayload
   | AddUserToChannelPayload
   | AddUsersToChannelPayload
+  | AttachFromDragAndDropPayload
   | AttachmentDownloadPayload
   | AttachmentDownloadedPayload
   | AttachmentLoadingPayload

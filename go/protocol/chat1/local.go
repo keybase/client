@@ -4687,6 +4687,7 @@ type PostFileAttachmentArg struct {
 	CallerPreview     *MakePreviewRes              `codec:"callerPreview,omitempty" json:"callerPreview,omitempty"`
 	OutboxID          *OutboxID                    `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
 	EphemeralLifetime *gregor1.DurationSec         `codec:"ephemeralLifetime,omitempty" json:"ephemeralLifetime,omitempty"`
+	DeleteSourceFile  *bool                        `codec:"deleteSourceFile,omitempty" json:"deleteSourceFile,omitempty"`
 }
 
 func (o PostFileAttachmentArg) DeepCopy() PostFileAttachmentArg {
@@ -4724,6 +4725,13 @@ func (o PostFileAttachmentArg) DeepCopy() PostFileAttachmentArg {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.EphemeralLifetime),
+		DeleteSourceFile: (func(x *bool) *bool {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.DeleteSourceFile),
 	}
 }
 

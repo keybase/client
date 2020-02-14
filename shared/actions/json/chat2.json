@@ -365,9 +365,15 @@
     // We want to upload some attachments
     "attachmentsUpload": {
       "conversationIDKey": "Types.ConversationIDKey",
+      "deleteSourceFile?": "boolean",
       "paths": "Array<Types.PathAndOutboxID>",
       "titles": "Array<string>",
       "tlfName?": "string"
+    },
+    "attachFromDragAndDrop": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "paths": "Array<Types.PathAndOutboxID>",
+      "titles": "Array<string>"
     },
     // Update progress on an upload
     "attachmentUploading": {

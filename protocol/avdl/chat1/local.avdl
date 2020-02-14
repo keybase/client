@@ -950,6 +950,7 @@ protocol local {
     union {null, MakePreviewRes } callerPreview;
     union {null, OutboxID } outboxID;
     union {null, gregor1.DurationSec} ephemeralLifetime;
+    union {null, boolean} deleteSourceFile;
   }
 
   // Post an attachment from file source to conversationID.

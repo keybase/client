@@ -31,6 +31,7 @@ import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {RPCError} from '../../util/errors'
 import * as Container from '../../util/container'
 import {isIOS} from '../../constants/platform'
+import copyToTmp from '../../util/copy-to-tmp'
 
 const onConnect = async () => {
   try {
@@ -2203,6 +2204,7 @@ function* attachmentsUpload(
         arg: {
           ...ephemeralData,
           conversationID: Types.keyToConversationID(conversationIDKey),
+          deleteSourceFile: action.payload.deleteSourceFile,
           filename: p.path,
           identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
           metadata: Buffer.from([]),
@@ -2215,6 +2217,26 @@ function* attachmentsUpload(
       })
     )
   )
+}
+
+const attachFromDragAndDrop = async (
+  _: Container.TypedState,
+  action: Chat2Gen.AttachFromDragAndDropPayload
+) => {
+  const paths = await Promise.all(
+    action.payload.paths.map(p =>
+      copyToTmp(p.path).then(path => ({
+        outboxID: p.outboxID,
+        path,
+      }))
+    )
+  )
+  return Chat2Gen.createAttachmentsUpload({
+    conversationIDKey: action.payload.conversationIDKey,
+    deleteSourceFile: true,
+    paths,
+    titles: action.payload.titles,
+  })
 }
 
 // Tell service we're typing
@@ -3743,6 +3765,7 @@ function* chat2Saga() {
     attachmentDownload
   )
   yield* Saga.chainGenerator<Chat2Gen.AttachmentsUploadPayload>(Chat2Gen.attachmentsUpload, attachmentsUpload)
+  yield* Saga.chainAction2(Chat2Gen.attachFromDragAndDrop, attachFromDragAndDrop)
   yield* Saga.chainAction(Chat2Gen.attachmentPasted, attachmentPasted)
 
   yield* Saga.chainAction(Chat2Gen.sendTyping, sendTyping)

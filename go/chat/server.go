@@ -1124,9 +1124,24 @@ func (h *Server) PostFileAttachmentLocalNonblock(ctx context.Context,
 	if err != nil {
 		return res, err
 	}
-	if _, err := h.G().AttachmentUploader.Register(ctx, uid, arg.Arg.ConversationID, outboxID, arg.Arg.Title,
-		arg.Arg.Filename, nil, arg.Arg.CallerPreview); err != nil {
+	registerRes, err := h.G().AttachmentUploader.Register(ctx, uid, arg.Arg.ConversationID, outboxID, arg.Arg.Title,
+		arg.Arg.Filename, nil, arg.Arg.CallerPreview)
+	if err != nil {
 		return res, err
+	}
+	if arg.Arg.DeleteSourceFile != nil && *arg.Arg.DeleteSourceFile {
+		go func() {
+			// Clean up no matter upload succeeds or not, so we don't leave a
+			// com.apple.macl protected file in a temp folder unprotected.
+			//
+			// If the upload fails, this might cause retry to fail as well (my
+			// guess, not tested).  This is only used for drag and drop so it's
+			// probably fine. If that ends up happen a lot and we  decide to
+			// fix this, we should plumb this flag into the retry routine as
+			// well.
+			_ = <-registerRes.Wait()
+			_ = os.Remove(arg.Arg.Filename)
+		}()
 	}
 	return chat1.PostLocalNonblockRes{
 		OutboxID:         outboxID,
