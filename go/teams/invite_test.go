@@ -164,7 +164,7 @@ func TestMultiUseInviteLink(t *testing.T) {
 	teamname := createTeam(*tcs[0])
 	t.Logf("Created team %s", teamname)
 
-	realUser := "tuser3b3839"
+	realUser := "tusercd881a"
 
 	if len(realUser) > 0 {
 		_, err := AddMember(context.Background(), tcs[0].G, teamname, realUser, keybase1.TeamRole_ADMIN, nil)
@@ -177,8 +177,7 @@ func TestMultiUseInviteLink(t *testing.T) {
 	team, err := Load(context.Background(), tcs[0].G, keybase1.LoadTeamArg{Name: teamname})
 	require.NoError(t, err)
 
-	var labelSms keybase1.SeitanKeyLabelSms
-	label := keybase1.NewSeitanKeyLabelWithSms(labelSms)
+	label := keybase1.NewSeitanKeyLabelDefault(keybase1.SeitanKeyLabelType_INVITE_LINK)
 
 	ikey, err := team.InviteSeitanInviteLink(context.Background(), keybase1.TeamRole_READER, label)
 	require.NoError(t, err)
@@ -207,4 +206,27 @@ func TestMultiUseInviteLink(t *testing.T) {
 	// require.NoError(t, err)
 
 	// spew.Dump(team2.chain().inner.ActiveInvites)
+}
+
+func TestSubteamForInviteLinkStore(t *testing.T) {
+	// Superdraft - figuring out how to create hidden subteam
+	// to store parent team invite link secrets for admins.
+
+	fus, tcs, cleanup := setupNTests(t, 3)
+	defer cleanup()
+
+	teamName, teamID := createTeam2(*tcs[0])
+	_ = teamID
+
+	t.Logf("Created team %s", teamName.String())
+
+	_, err := AddMember(context.Background(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_ADMIN, nil)
+	require.NoError(t, err)
+
+	_, err = AddMember(context.Background(), tcs[0].G, teamName.String(), fus[2].Username, keybase1.TeamRole_WRITER, nil)
+	require.NoError(t, err)
+
+	subTeamName, subTeamID := createSubteam(tcs[0], teamName, "__no_noobs_admins_only")
+	_ = subTeamName
+	_ = subTeamID
 }

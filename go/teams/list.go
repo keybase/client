@@ -478,6 +478,8 @@ func AnnotateSeitanInvite(ctx context.Context, team *Team, invite keybase1.TeamI
 			smsName = sms.N
 		}
 		return keybase1.TeamInviteName(smsName), nil
+	case keybase1.SeitanKeyLabelType_INVITE_LINK:
+		return "(invite link)", nil
 	default:
 		return "", nil
 	}
