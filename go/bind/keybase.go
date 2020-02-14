@@ -4,6 +4,7 @@
 package keybase
 
 import (
+    "C"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -310,6 +311,17 @@ func LogSend(statusJSON string, feedback string, sendLogs, sendMaxBytes bool, tr
 	return string(logSendID), err
 }
 
+// WriteB64FromC is a wrapper for WriteB64
+//export WriteB64FromC
+func WriteB64FromC(str *C.char) *C.char {
+	var goStr = C.GoString(str)
+	var err = WriteB64(goStr)
+	if err != nil {
+		return C.CString(fmt.Sprintf("Read error: %s", err))
+	}
+	return C.CString("")
+}
+
 // WriteB64 sends a base64 encoded msgpack rpc payload
 func WriteB64(str string) (err error) {
 	defer func() { err = flattenError(err) }()
@@ -360,6 +372,16 @@ func ReadB64() (res string, err error) {
 	}
 
 	return "", nil
+}
+
+// ReadB64ForC is a wrapper. Returns a c_string
+//export ReadB64ForC
+func ReadB64ForC() (res *C.char, err *C.char) {
+	var goRes, goErr = ReadB64()
+	if err != nil {
+		return C.CString(""), C.CString(fmt.Sprintf("Read error: %s", goErr))
+	}
+	return C.CString(goRes), C.CString("")
 }
 
 // Reset resets the socket connection
