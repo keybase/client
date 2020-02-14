@@ -361,11 +361,8 @@ function* loadStartupDetails() {
     // Second priority, deep link
     startupLink = link
   } else if (share) {
-    if (share.isUrl) {
-      startupSharePath = share.data
-    } else {
-      startupShareText = share.data
-    }
+    startupSharePath = share.fileUrl || undefined
+    startupShareText = share.text || undefined
   } else if (routeState) {
     // Last priority, saved from last session
     try {

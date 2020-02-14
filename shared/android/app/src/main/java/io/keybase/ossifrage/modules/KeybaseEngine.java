@@ -52,8 +52,8 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
     private ReactApplicationContext reactContext;
     private Bundle initialBundleFromNotification;
     private HashMap<String, String> initialIntent;
-    private String shareData;
-    private boolean isUrl;
+    private String shareFileUrl;
+    private String shareText;
     private boolean misTestDevice;
 
     private static void relayReset(ReactApplicationContext reactContext) {
@@ -234,14 +234,15 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
     }
 
     @ReactMethod
-    public void getInitialShareData(Promise promise) {
-        promise.resolve(this.shareData);
-        this.shareData = null;
+    public void getInitialShareFileUrl(Promise promise) {
+        promise.resolve(this.shareFileUrl);
+        this.shareFileUrl = null;
     }
 
     @ReactMethod
-    public void getInitialShareDataIsUrl(Promise promise) {
-        promise.resolve(this.isUrl);
+    public void getInitialShareText(Promise promise) {
+        promise.resolve(this.shareText);
+        this.shareText = null;
     }
 
     // Same type as DarkModePreference: 'system' | 'alwaysDark' | 'alwaysLight'
@@ -258,11 +259,11 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
         this.initialBundleFromNotification = bundle;
     }
 
-    public void setInitialShareData(String s) {
-        this.shareData = s;
+    public void setInitialShareFileUrl(String s) {
+        this.shareFileUrl = s;
     }
-    public void setInitialShareDataIsUrl(boolean isUrl) {
-        this.isUrl = isUrl;
+    public void setInitialShareText(String text) {
+        this.shareText = text;
     }
 
 }

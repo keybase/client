@@ -381,9 +381,9 @@ function* _checkPermissions(action: ConfigGen.MobileAppStatePayload | null) {
 
 function* getStartupDetailsFromInitialShare() {
   if (isAndroid) {
-    const data = yield NativeModules.KeybaseEngine.getInitialShareData()
-    const isUrl = yield NativeModules.KeybaseEngine.getInitialShareDataIsUrl()
-    return data && {data, isUrl}
+    const fileUrl = yield NativeModules.KeybaseEngine.getInitialShareFileUrl()
+    const text = yield NativeModules.KeybaseEngine.getInitialShareText()
+    return {fileUrl, text}
   } else {
     return null
   }

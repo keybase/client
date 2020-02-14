@@ -307,12 +307,10 @@ public class MainActivity extends ReactActivity {
           } else if (uri != null) {
             String filePath = readFileFromUri(getReactContext(), uri);
             if (filePath != null) {
-              engine.setInitialShareData(filePath);
-              engine.setInitialShareDataIsUrl(true);
+              engine.setInitialShareFileUrl(filePath);
             }
           } else if (textPayload.length() > 0){
-            engine.setInitialShareData(textPayload);
-            engine.setInitialShareDataIsUrl(false);
+            engine.setInitialShareText(textPayload);
           }
 
           assert emitter != null;
