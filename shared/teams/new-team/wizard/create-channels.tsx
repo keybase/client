@@ -58,7 +58,7 @@ const CreateChannel = (props: Props) => {
         {channels.map((value, idx) => (
           <ChannelInput key={idx} onChange={setChannel(idx)} value={value} onClear={() => onClear(idx)} />
         ))}
-        <Kb.Button mode="Secondary" icon="iconfont-new" tooltip="" onClick={onAdd} />
+        <Kb.Button mode="Secondary" icon="iconfont-new" tooltip="" onClick={onAdd} style={styles.addButton} />
         {numChannels === 0 && (
           <Kb.Text type="BodySmall" style={styles.noChannelsText}>
             Your team will be a simple conversation. You can always make it a big team later by adding
@@ -91,11 +91,16 @@ const ChannelInput = (props: ChannelInputProps) => {
       placeholder="channel"
       prefix="#"
       containerStyle={styles.input}
+      maxLength={20}
     />
   )
 }
 
 const styles = Styles.styleSheetCreate(() => ({
+  addButton: Styles.platformStyles({
+    isElectron: {width: 42},
+    isMobile: {width: 47},
+  }),
   banner: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.blue,
