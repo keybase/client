@@ -195,3 +195,12 @@ func NaclVerifyWithPayload(sig string, payloadIn []byte) (nk *NaclSigningKeyPubl
 
 	return nk, fullBody, nil
 }
+
+func (s NaclSigInfo) SigID() (ret keybase1.SigID, err error) {
+	var body []byte
+	body, err = EncodePacketToBytes(&s)
+	if err != nil {
+		return ret, nil
+	}
+	return ComputeSigIDFromSigBody(body), nil
+}
