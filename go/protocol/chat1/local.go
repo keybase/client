@@ -1080,14 +1080,22 @@ func (o MessageLeave) DeepCopy() MessageLeave {
 }
 
 type MessageReaction struct {
-	MessageID MessageID `codec:"m" json:"m"`
-	Body      string    `codec:"b" json:"b"`
+	MessageID MessageID    `codec:"m" json:"m"`
+	Body      string       `codec:"b" json:"b"`
+	TargetUID *gregor1.UID `codec:"t,omitempty" json:"t,omitempty"`
 }
 
 func (o MessageReaction) DeepCopy() MessageReaction {
 	return MessageReaction{
 		MessageID: o.MessageID.DeepCopy(),
 		Body:      o.Body,
+		TargetUID: (func(x *gregor1.UID) *gregor1.UID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.TargetUID),
 	}
 }
 

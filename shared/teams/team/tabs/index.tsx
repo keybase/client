@@ -87,11 +87,13 @@ const TeamTabs = (props: TeamTabsProps) => {
         style={props.selectedTab === 'settings' ? styles.iconSelected : styles.icon}
       />
     ) : (
-      <TabText key="settings" selected={props.selectedTab === 'settings'} text="Settings" />
+      <Kb.Box key="settings" style={styles.tabTextContainer}>
+        <TabText key="settings" selected={props.selectedTab === 'settings'} text="Settings" />
+      </Kb.Box>
     )
   )
 
-  if (!isMobile && props.loading) {
+  if (!isMobile && props.loading && !flags.teamsRedesign) {
     tabs.push(<Kb.ProgressIndicator style={styles.progressIndicator} />)
   }
 
@@ -121,6 +123,9 @@ const TeamTabs = (props: TeamTabsProps) => {
           style={styles.tabContainer}
           tabStyle={styles.tab}
         />
+        {!isMobile && props.loading && flags.teamsRedesign && (
+          <Kb.ProgressIndicator style={styles.inlineProgressIndicator} />
+        )}
       </Kb.Box>
       {!!props.error && <Kb.Banner color="red">{props.error}</Kb.Banner>}
     </Kb.Box2>
@@ -138,6 +143,7 @@ const styles = styleSheetCreate(() => ({
     },
   }),
   clickableBox: platformStyles({
+    isElectron: flags.teamsRedesign ? {flex: 1} : {},
     isMobile: {
       flexGrow: 1,
     },
@@ -151,6 +157,13 @@ const styles = styleSheetCreate(() => ({
   iconSelected: {
     alignSelf: 'center',
     color: globalColors.black,
+  },
+  inlineProgressIndicator: {
+    height: 17,
+    position: 'absolute',
+    right: globalMargins.small,
+    top: globalMargins.small,
+    width: 17,
   },
   progressIndicator: {
     height: 17,

@@ -2,13 +2,14 @@ package stellar
 
 import (
 	"context"
+	"net"
+	"testing"
+
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/stretchr/testify/require"
-	"net"
-	"testing"
 )
 
 // ConnPair is like Unix's SocketPair, but uses TCP so it should work on all platforms.
@@ -85,7 +86,7 @@ func TestReg(t *testing.T) {
 	require.NoError(t, err)
 	tp := newTestProcessor()
 	mctx := tc.MetaContext()
-	xp := libkb.NewTransportFromSocket(mctx.G(), serverConn)
+	xp := libkb.NewTransportFromSocket(mctx.G(), serverConn, keybase1.NetworkSource_REMOTE)
 	srv := rpc.NewServer(xp, libkb.MakeWrapError(mctx.G()))
 	err = HandleRequest(mctx.Ctx(), xp, srv, tp)
 	require.NoError(t, err)

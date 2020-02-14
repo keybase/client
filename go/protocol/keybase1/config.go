@@ -865,7 +865,8 @@ type IsKBFSRunningArg struct {
 }
 
 type GetNetworkStatsArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
+	SessionID  int           `codec:"sessionID" json:"sessionID"`
+	NetworkSrc NetworkSource `codec:"networkSrc" json:"networkSrc"`
 }
 
 type LogSendArg struct {
@@ -989,7 +990,7 @@ type ConfigInterface interface {
 	GetFullStatus(context.Context, int) (*FullStatus, error)
 	IsServiceRunning(context.Context, int) (bool, error)
 	IsKBFSRunning(context.Context, int) (bool, error)
-	GetNetworkStats(context.Context, int) ([]InstrumentationStat, error)
+	GetNetworkStats(context.Context, GetNetworkStatsArg) ([]InstrumentationStat, error)
 	LogSend(context.Context, LogSendArg) (LogSendID, error)
 	GetAllProvisionedUsernames(context.Context, int) (AllProvisionedUsernames, error)
 	GetConfig(context.Context, int) (Config, error)
@@ -1116,7 +1117,7 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]GetNetworkStatsArg)(nil), args)
 						return
 					}
-					ret, err = i.GetNetworkStats(ctx, typedArgs[0].SessionID)
+					ret, err = i.GetNetworkStats(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -1533,8 +1534,7 @@ func (c ConfigClient) IsKBFSRunning(ctx context.Context, sessionID int) (res boo
 	return
 }
 
-func (c ConfigClient) GetNetworkStats(ctx context.Context, sessionID int) (res []InstrumentationStat, err error) {
-	__arg := GetNetworkStatsArg{SessionID: sessionID}
+func (c ConfigClient) GetNetworkStats(ctx context.Context, __arg GetNetworkStatsArg) (res []InstrumentationStat, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.config.getNetworkStats", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

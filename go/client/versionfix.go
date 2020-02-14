@@ -75,7 +75,7 @@ func FixVersionClash(g *libkb.GlobalContext, cl libkb.CommandLine) (err error) {
 		g.Log.Debug("| Failed to DialSocket, but ignoring error: %s\n", err)
 		return nil
 	}
-	xp := libkb.NewTransportFromSocket(g, socket)
+	xp := libkb.NewTransportFromSocket(g, socket, keybase1.NetworkSource_LOCAL)
 	srv := rpc.NewServer(xp, libkb.MakeWrapError(g))
 	gcli := rpc.NewClient(xp, libkb.NewContextifiedErrorUnwrapper(g), nil)
 	cli = keybase1.ConfigClient{Cli: gcli}

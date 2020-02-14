@@ -474,7 +474,7 @@ func (fup *folderUpdatePrepper) prepTree(
 
 			var err error
 			fblock, err = newFileBlocks.GetTopBlock(
-				ctx, node.parent.ptr, node.mergedPath.TailName().Plaintext())
+				ctx, node.parent.ptr, node.mergedPath.TailName())
 			if err != nil {
 				return err
 			}
@@ -955,13 +955,14 @@ func (fup *folderUpdatePrepper) updateResolutionUsageAndPointersLockedCache(
 func (fup *folderUpdatePrepper) setChildrenNodes(
 	ctx context.Context, lState *kbfssync.LockState, kmd libkey.KeyMetadata,
 	p data.Path, indexInPath int, dbm dirBlockMap, nextNode *pathTreeNode,
-	currPath data.Path, names []string) {
+	currPath data.Path, names []data.PathPartString) {
 	dd, cleanupFn := fup.blocks.newDirDataWithDBM(
 		lState, currPath, keybase1.UserOrTeamID(""), kmd, dbm)
 	defer cleanupFn()
 
 	pnode := p.Path[indexInPath]
-	for _, namePlain := range names {
+	for _, name := range names {
+		namePlain := name.Plaintext()
 		if _, ok := nextNode.children[namePlain]; ok {
 			continue
 		}

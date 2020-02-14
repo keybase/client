@@ -45,6 +45,7 @@ const RemoteTracker = (props: {trackerUsername: string}) => {
     infoMap: mapFilterByKey(infoMap, trackerUsernames),
     location,
     reason,
+    resetBrokeTrack: false,
     showTracker: true,
     state: details.state,
     teamShowcase,

@@ -1937,6 +1937,11 @@ export enum MobileNetworkState {
   notavailable = 4,
 }
 
+export enum NetworkSource {
+  local = 0,
+  remote = 1,
+}
+
 export enum OfflineAvailability {
   none = 0,
   bestEffort = 1,
