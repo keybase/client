@@ -5,6 +5,8 @@ import * as Styles from '../../../styles'
 import {pluralize} from '../../../util/string'
 import {ModalTitle} from '../../common'
 
+const cleanChannelname = (name: string) => name.replace(/[^0-9a-zA-Z_-]/, '')
+
 type Props = {
   teamname: string
 }
@@ -86,7 +88,7 @@ const ChannelInput = (props: ChannelInputProps) => {
   return (
     <Kb.NewInput
       value={props.value}
-      onChangeText={props.onChange}
+      onChangeText={text => props.onChange(cleanChannelname(text))}
       decoration={<Kb.Icon type="iconfont-remove" onClick={props.onClear} />}
       placeholder="channel"
       prefix="#"
