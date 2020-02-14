@@ -42,19 +42,24 @@ type Props = {
   fullscreen?: boolean // desktop only. disable the popupdialog / underlay and expand to fit the screen
   mode: 'Default' | 'Wide'
   mobileStyle?: Styles.StylesCrossPlatform
+  noScrollView?: boolean
 }
 
 const ModalInner = (props: Props) => (
   <>
     {!!props.header && <Header {...props.header} />}
     {!!props.banners && props.banners}
-    <Kb.ScrollView
-      alwaysBounceVertical={false}
-      style={styles.scroll}
-      contentContainerStyle={styles.scrollContentContainer}
-    >
-      {props.children}
-    </Kb.ScrollView>
+    {props.noScrollView ? (
+      props.children
+    ) : (
+      <Kb.ScrollView
+        alwaysBounceVertical={false}
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContentContainer}
+      >
+        {props.children}
+      </Kb.ScrollView>
+    )}
     {!!props.footer && (
       <Footer {...props.footer} wide={props.mode === 'Wide'} fullscreen={!!props.fullscreen} />
     )}
