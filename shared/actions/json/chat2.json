@@ -365,7 +365,6 @@
     // We want to upload some attachments
     "attachmentsUpload": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "deleteSourceFile?": "boolean",
       "paths": "Array<Types.PathAndOutboxID>",
       "titles": "Array<string>",
       "tlfName?": "string"

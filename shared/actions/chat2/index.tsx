@@ -31,7 +31,7 @@ import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {RPCError} from '../../util/errors'
 import * as Container from '../../util/container'
 import {isIOS} from '../../constants/platform'
-import copyToTmp from '../../util/copy-to-tmp'
+import * as Copy from '../../util/copy'
 
 const onConnect = async () => {
   try {
@@ -2204,7 +2204,6 @@ function* attachmentsUpload(
         arg: {
           ...ephemeralData,
           conversationID: Types.keyToConversationID(conversationIDKey),
-          deleteSourceFile: action.payload.deleteSourceFile,
           filename: p.path,
           identifyBehavior: RPCTypes.TLFIdentifyBehavior.chatGui,
           metadata: Buffer.from([]),
@@ -2223,17 +2222,9 @@ const attachFromDragAndDrop = async (
   _: Container.TypedState,
   action: Chat2Gen.AttachFromDragAndDropPayload
 ) => {
-  const paths = await Promise.all(
-    action.payload.paths.map(p =>
-      copyToTmp(p.path).then(path => ({
-        outboxID: p.outboxID,
-        path,
-      }))
-    )
-  )
+  const paths = await Promise.all(action.payload.paths.map(p => Copy.copyToChatTempUploadFile(p.path)))
   return Chat2Gen.createAttachmentsUpload({
     conversationIDKey: action.payload.conversationIDKey,
-    deleteSourceFile: true,
     paths,
     titles: action.payload.titles,
   })

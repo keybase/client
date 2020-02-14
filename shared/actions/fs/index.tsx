@@ -16,7 +16,7 @@ import {tlfToPreferredOrder} from '../../util/kbfs'
 import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
 import {NotifyPopup} from '../../native/notifications'
 import {RPCError} from '../../util/errors'
-import copyToTmp from '../../util/copy-to-tmp'
+import * as Copy from '../../util/copy'
 
 const rpcFolderTypeToTlfType = (rpcFolderType: RPCTypes.FolderType) => {
   switch (rpcFolderType) {
@@ -431,6 +431,7 @@ function* upload(_: Container.TypedState, action: FsGen.UploadPayload) {
     yield RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID})
     yield Saga.put(FsGen.createUploadWritingSuccess({path}))
 
+    // TODO move this in go. Perhaps an upload manager in simplefs.
     if (action.payload.deleteSourceFile) {
       const opIDRemove = Constants.makeUUID()
       yield RPCTypes.SimpleFSSimpleFSRemoveRpcPromise({
@@ -446,7 +447,7 @@ function* upload(_: Container.TypedState, action: FsGen.UploadPayload) {
 }
 
 const uploadFromDragAndDrop = async (_: Container.TypedState, action: FsGen.UploadFromDragAndDropPayload) => {
-  const localPaths = await Promise.all(action.payload.localPaths.map(localPath => copyToTmp(localPath)))
+  const localPaths = await Promise.all(action.payload.localPaths.map(localPath => Copy.copyToTmp(localPath)))
   return localPaths.map(localPath =>
     FsGen.createUpload({
       deleteSourceFile: true,

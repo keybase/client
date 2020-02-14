@@ -2917,13 +2917,6 @@
             "gregor1.DurationSec"
           ],
           "name": "ephemeralLifetime"
-        },
-        {
-          "type": [
-            null,
-            "boolean"
-          ],
-          "name": "deleteSourceFile"
         }
       ]
     },

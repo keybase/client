@@ -242,7 +242,6 @@ type _AttachmentUploadingPayload = {
 }
 type _AttachmentsUploadPayload = {
   readonly conversationIDKey: Types.ConversationIDKey
-  readonly deleteSourceFile?: boolean
   readonly paths: Array<Types.PathAndOutboxID>
   readonly titles: Array<string>
   readonly tlfName?: string
