@@ -892,6 +892,7 @@ export type TypedActionsMap = {
   'teams:setEmailInviteError': teams.SetEmailInviteErrorPayload
   'teams:getChannelInfo': teams.GetChannelInfoPayload
   'teams:getChannels': teams.GetChannelsPayload
+  'teams:setChannelSelected': teams.SetChannelSelectedPayload
   'teams:getTeams': teams.GetTeamsPayload
   'teams:unsubscribeTeamList': teams.UnsubscribeTeamListPayload
   'teams:loadTeam': teams.LoadTeamPayload

@@ -106,7 +106,6 @@ export declare const windowStyle: {
   height: number
 }
 
-// TODO: this typing is incomplete
 export declare function padding(
   top: number,
   right?: number,

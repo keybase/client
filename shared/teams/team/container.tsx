@@ -4,6 +4,7 @@ import CustomTitle from './custom-title/container'
 import {HeaderRightActions, HeaderTitle, SubHeader} from './nav-header/container'
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
+import * as TeamsGen from '../../actions/teams-gen'
 import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
 import Team, {Sections} from '.'
@@ -30,6 +31,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const selectedTab = ownProps.selectedTab || defaultTab
 
   return {
+    channelInfos: state.teams.teamIDToChannelInfos.get(teamID),
     invitesCollapsed: state.teams.invitesCollapsed,
     selectedTab,
     subteamsFiltered: state.teams.subteamsFiltered,
@@ -54,6 +56,7 @@ const Connected = Container.compose(
       stateProps.yourUsername,
       stateProps.yourOperations,
       stateProps.invitesCollapsed,
+      stateProps.channelInfos,
       stateProps.subteamsFiltered
     )
     const sections: Sections = [
@@ -76,49 +79,57 @@ const Connected = Container.compose(
   Kb.HeaderHoc
 )(Team) as any
 
-class TabsState extends React.PureComponent<TabsStateOwnProps, {selectedTab: Types.TabKey}> {
-  static navigationOptions = (ownProps: TabsStateOwnProps) => ({
-    header:
-      Container.isMobile && flags.teamsRedesign
-        ? () => <HeaderTitle teamID={Container.getRouteProps(ownProps, 'teamID', '')} />
-        : null,
-    headerExpandable: true,
-    headerHideBorder: true,
-    headerRightActions:
-      Container.isMobile || flags.teamsRedesign
-        ? undefined
-        : () => <HeaderRightActions teamID={Container.getRouteProps(ownProps, 'teamID', '')} />,
-    headerTitle: Container.isMobile
-      ? undefined
-      : () => <HeaderTitle teamID={Container.getRouteProps(ownProps, 'teamID', '')} />,
-    subHeader:
-      Container.isMobile && !flags.teamsRedesign
-        ? undefined
-        : () => <SubHeader teamID={Container.getRouteProps(ownProps, 'teamID', '')} />,
-  })
-  state = {
-    selectedTab:
-      Container.getRouteProps(this.props, 'initialTab', '') ||
-      lastSelectedTabs[Container.getRouteProps(this.props, 'teamID', '')] ||
-      defaultTab,
-  }
-  private setSelectedTab = selectedTab => {
-    lastSelectedTabs[Container.getRouteProps(this.props, 'teamID', '')] = selectedTab
-    this.setState({selectedTab})
-  }
-  componentDidUpdate(prevProps: TabsStateOwnProps) {
-    const teamID = Container.getRouteProps(this.props, 'teamID', '')
-    if (teamID !== Container.getRouteProps(prevProps, 'teamID', '')) {
-      const routeTab = Container.getRouteProps(this.props, 'initialTab', '')
-      this.setSelectedTab(routeTab || lastSelectedTabs[teamID] || defaultTab)
+const TabsState = (props: TabsStateOwnProps) => {
+  const teamID = Container.getRouteProps(props, 'teamID', '')
+  const initialTab = Container.getRouteProps(props, 'initialTab', undefined)
+
+  const defaultSelectedTab = initialTab ?? lastSelectedTabs[teamID] ?? 'members'
+  const [selectedTab, _setSelectedTab] = React.useState<Types.TabKey>(defaultSelectedTab)
+  const setSelectedTab = React.useCallback(
+    selectedTab => {
+      lastSelectedTabs[teamID] = selectedTab
+      _setSelectedTab(selectedTab)
+    },
+    [teamID, _setSelectedTab]
+  )
+
+  const prevTeamID = Container.usePrevious(teamID)
+  const prevSelectedTab = Container.usePrevious(selectedTab)
+
+  const dispatch = Container.useDispatch()
+  React.useEffect(() => {
+    if (teamID !== prevTeamID) {
+      setSelectedTab(defaultSelectedTab)
     }
-  }
-  render() {
-    return (
-      <Connected {...this.props} setSelectedTab={this.setSelectedTab} selectedTab={this.state.selectedTab} />
-    )
-  }
+  }, [teamID, prevTeamID, setSelectedTab, defaultSelectedTab])
+  React.useEffect(() => {
+    if (selectedTab !== prevSelectedTab && selectedTab === 'channels') {
+      dispatch(TeamsGen.createGetChannels({teamID}))
+    }
+  }, [selectedTab, dispatch, teamID, prevSelectedTab])
+
+  return <Connected {...props} setSelectedTab={setSelectedTab} selectedTab={selectedTab} />
 }
+
+TabsState.navigationOptions = (ownProps: TabsStateOwnProps) => ({
+  header:
+    Container.isMobile && flags.teamsRedesign
+      ? () => <HeaderTitle teamID={Container.getRouteProps(ownProps, 'teamID', '')} />
+      : null,
+  headerExpandable: true,
+  headerHideBorder: true,
+  headerRightActions:
+    Container.isMobile || flags.teamsRedesign
+      ? undefined
+      : () => <HeaderRightActions teamID={Container.getRouteProps(ownProps, 'teamID', '')} />,
+  headerTitle: Container.isMobile
+    ? undefined
+    : () => <HeaderTitle teamID={Container.getRouteProps(ownProps, 'teamID', '')} />,
+  subHeader:
+    Container.isMobile && !flags.teamsRedesign
+      ? undefined
+      : () => <SubHeader teamID={Container.getRouteProps(ownProps, 'teamID', '')} />,
+})
 
 export default TabsState
 export type TeamScreenType = React.ComponentType<TabsStateOwnProps>
