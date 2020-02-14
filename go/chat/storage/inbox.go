@@ -123,7 +123,7 @@ func FlushMode(mode InboxFlushMode) func(*Inbox) {
 func NewInbox(g *globals.Context, config ...func(*Inbox)) *Inbox {
 	i := &Inbox{
 		Contextified:   globals.NewContextified(g),
-		DebugLabeler:   utils.NewDebugLabeler(g.GetLog(), "Inbox", false),
+		DebugLabeler:   utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "Inbox", false),
 		baseBox:        newBaseBox(g),
 		flushMode:      InboxFlushModeActive,
 		layoutNotifier: dummyInboxLayoutChangedNotifier{},

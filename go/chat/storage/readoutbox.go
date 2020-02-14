@@ -35,7 +35,7 @@ type ReadOutbox struct {
 func NewReadOutbox(g *globals.Context, uid gregor1.UID) *ReadOutbox {
 	return &ReadOutbox{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "ReadOutbox", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "ReadOutbox", false),
 		baseBox:      newBaseBox(g),
 		uid:          uid,
 	}

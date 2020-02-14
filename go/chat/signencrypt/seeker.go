@@ -27,7 +27,7 @@ type decodingReadSeeker struct {
 
 var _ io.ReadSeeker = (*decodingReadSeeker)(nil)
 
-func NewDecodingReadSeeker(ctx context.Context, log logger.Logger, source io.ReadSeeker, size int64,
+func NewDecodingReadSeeker(ctx context.Context, log, perfLog logger.Logger, source io.ReadSeeker, size int64,
 	encKey SecretboxKey, verifyKey VerifyKey, signaturePrefix kbcrypto.SignaturePrefix, nonce Nonce,
 	c *lru.Cache) io.ReadSeeker {
 	if c == nil {
@@ -35,7 +35,7 @@ func NewDecodingReadSeeker(ctx context.Context, log logger.Logger, source io.Rea
 		c, _ = lru.New(20)
 	}
 	return &decodingReadSeeker{
-		DebugLabeler: utils.NewDebugLabeler(log, "DecodingReadSeeker", true),
+		DebugLabeler: utils.NewDebugLabeler(log, perfLog, "DecodingReadSeeker", true),
 		source:       source,
 		size:         size,
 		chunks:       c,

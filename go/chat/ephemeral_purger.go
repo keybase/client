@@ -130,7 +130,7 @@ var _ types.EphemeralPurger = (*BackgroundEphemeralPurger)(nil)
 func NewBackgroundEphemeralPurger(g *globals.Context, storage *storage.Storage) *BackgroundEphemeralPurger {
 	return &BackgroundEphemeralPurger{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "BackgroundEphemeralPurger", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "BackgroundEphemeralPurger", false),
 		storage:      storage,
 		delay:        500 * time.Millisecond,
 		clock:        clockwork.NewRealClock(),

@@ -28,7 +28,7 @@ func NewTeamDevConversationBackedStorage(g *globals.Context, adminOnly bool,
 	return &TeamDevConversationBackedStorage{
 		Contextified: globals.NewContextified(g),
 		adminOnly:    adminOnly,
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "DevConversationBackedStorage", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "DevConversationBackedStorage", false),
 		ri:           ri,
 	}
 }

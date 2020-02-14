@@ -38,21 +38,9 @@ type DeviceEKStorage struct {
 
 func getLogger(mctx libkb.MetaContext) *log.Logger {
 	filename := mctx.G().Env.GetEKLogFile()
-
-	lfc := &logger.LogFileConfig{
-		Path:               filename,
-		MaxAge:             30 * 24 * time.Hour, // 30 days
-		MaxKeepFiles:       3,
-		SkipRedirectStdErr: true,
-	}
-	switch mctx.G().GetAppType() {
-	case libkb.MobileAppType:
-		lfc.MaxSize = 1 * 1024 * 1024 // 1mb
-	default:
-		lfc.MaxSize = 128 * 1024 * 1024 // 128mb
-	}
+	lfc := mctx.G().Env.GetLogFileConfig(filename)
 	lfw := logger.NewLogFileWriter(*lfc)
-	if err := lfw.Open(time.Now()); err != nil {
+	if err := lfw.Open(mctx.G().GetClock().Now()); err != nil {
 		mctx.Debug("Unable to getLogger %v", err)
 		return nil
 	}

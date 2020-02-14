@@ -24,7 +24,7 @@ type outboxFilesStorage struct {
 func newOutboxFilesStorage(g *globals.Context, uid gregor1.UID) *outboxFilesStorage {
 	return &outboxFilesStorage{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "outboxFilesStorage", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "outboxFilesStorage", false),
 		uid:          uid,
 	}
 }

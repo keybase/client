@@ -23,7 +23,7 @@ type Sender struct {
 func NewSender(g *globals.Context) *Sender {
 	return &Sender{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Wallet.Sender", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "Wallet.Sender", false),
 	}
 }
 

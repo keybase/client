@@ -112,7 +112,7 @@ func NewOutbox(g *globals.Context, uid gregor1.UID, config ...func(*Outbox)) *Ou
 	st := createOutboxStorage(g, uid)
 	o := &Outbox{
 		Contextified:  globals.NewContextified(g),
-		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), "Outbox", false),
+		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "Outbox", false),
 		outboxStorage: st,
 		uid:           uid,
 		clock:         clockwork.NewRealClock(),

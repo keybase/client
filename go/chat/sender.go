@@ -42,7 +42,7 @@ var _ types.Sender = (*BlockingSender)(nil)
 func NewBlockingSender(g *globals.Context, boxer *Boxer, getRi func() chat1.RemoteInterface) *BlockingSender {
 	return &BlockingSender{
 		Contextified:      globals.NewContextified(g),
-		DebugLabeler:      utils.NewDebugLabeler(g.GetLog(), "BlockingSender", false),
+		DebugLabeler:      utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "BlockingSender", false),
 		getRi:             getRi,
 		boxer:             boxer,
 		store:             attachments.NewS3Store(g.GlobalContext, g.GetRuntimeDir()),
@@ -1285,7 +1285,7 @@ var _ types.MessageDeliverer = (*Deliverer)(nil)
 func NewDeliverer(g *globals.Context, sender types.Sender) *Deliverer {
 	d := &Deliverer{
 		Contextified:     globals.NewContextified(g),
-		DebugLabeler:     utils.NewDebugLabeler(g.GetLog(), "Deliverer", false),
+		DebugLabeler:     utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "Deliverer", false),
 		shutdownCh:       make(chan chan struct{}, 1),
 		msgSentCh:        make(chan struct{}, 100),
 		reconnectCh:      make(chan struct{}, 100),
@@ -1961,7 +1961,7 @@ var _ types.Sender = (*NonblockingSender)(nil)
 func NewNonblockingSender(g *globals.Context, sender types.Sender) *NonblockingSender {
 	s := &NonblockingSender{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "NonblockingSender", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "NonblockingSender", false),
 		sender:       sender,
 	}
 	return s

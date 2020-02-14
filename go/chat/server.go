@@ -71,7 +71,7 @@ var _ chat1.LocalInterface = (*Server)(nil)
 func NewServer(g *globals.Context, serverConn ServerConnection, uiSource UISource) *Server {
 	return &Server{
 		Contextified:                      globals.NewContextified(g),
-		DebugLabeler:                      utils.NewDebugLabeler(g.GetLog(), "Server", false),
+		DebugLabeler:                      utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "Server", false),
 		serverConn:                        serverConn,
 		uiSource:                          uiSource,
 		boxer:                             NewBoxer(g),

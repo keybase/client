@@ -18,10 +18,10 @@ type Sender struct {
 	utils.DebugLabeler
 }
 
-func NewSender(gc *globals.Context) *Sender {
+func NewSender(g *globals.Context) *Sender {
 	return &Sender{
-		Contextified: globals.NewContextified(gc),
-		DebugLabeler: utils.NewDebugLabeler(gc.GetLog(), "Attachments.Sender", false),
+		Contextified: globals.NewContextified(g),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "Attachments.Sender", false),
 	}
 }
 

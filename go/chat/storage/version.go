@@ -20,7 +20,7 @@ type ServerVersions struct {
 func NewServerVersions(g *globals.Context) *ServerVersions {
 	return &ServerVersions{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "ServerVersions", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "ServerVersions", false),
 	}
 }
 

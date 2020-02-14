@@ -129,6 +129,7 @@ func (a *Auditor) AuditTeam(m libkb.MetaContext, id keybase1.TeamID, isPublic bo
 
 	m = m.WithLogTag("AUDIT")
 	defer m.TraceTimed(fmt.Sprintf("Auditor#AuditTeam(%+v)", id), func() error { return err })()
+	defer m.PerfTrace(fmt.Sprintf("Auditor#AuditTeam(%+v)", id), func() error { return err })()
 
 	if id.IsPublic() != isPublic {
 		return NewBadPublicError(id, isPublic)

@@ -40,7 +40,7 @@ type LiveLocationTracker struct {
 func NewLiveLocationTracker(g *globals.Context) *LiveLocationTracker {
 	return &LiveLocationTracker{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "LiveLocationTracker", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "LiveLocationTracker", false),
 
 		storage:        newTrackStorage(g),
 		trackers:       make(map[types.LiveLocationKey]*locationTrack),
@@ -133,7 +133,7 @@ type unfurlNotifyListener struct {
 func newUnfurlNotifyListener(g *globals.Context, outboxID chat1.OutboxID, doneCh chan struct{}) *unfurlNotifyListener {
 	return &unfurlNotifyListener{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "maps.unfurlNotifyListener", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "maps.unfurlNotifyListener", false),
 		outboxID:     outboxID,
 		doneCh:       doneCh,
 	}

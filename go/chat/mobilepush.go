@@ -45,7 +45,7 @@ type MobilePush struct {
 func NewMobilePush(g *globals.Context) *MobilePush {
 	return &MobilePush{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "MobilePush", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "MobilePush", false),
 	}
 }
 

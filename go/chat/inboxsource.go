@@ -76,7 +76,7 @@ type baseInboxSource struct {
 
 func newBaseInboxSource(g *globals.Context, ibs types.InboxSource,
 	getChatInterface func() chat1.RemoteInterface) *baseInboxSource {
-	labeler := utils.NewDebugLabeler(g.GetLog(), "baseInboxSource", false)
+	labeler := utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "baseInboxSource", false)
 	return &baseInboxSource{
 		Contextified:     globals.NewContextified(g),
 		sub:              ibs,
@@ -258,7 +258,7 @@ type RemoteInboxSource struct {
 var _ types.InboxSource = (*RemoteInboxSource)(nil)
 
 func NewRemoteInboxSource(g *globals.Context, ri func() chat1.RemoteInterface) *RemoteInboxSource {
-	labeler := utils.NewDebugLabeler(g.GetLog(), "RemoteInboxSource", false)
+	labeler := utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "RemoteInboxSource", false)
 	s := &RemoteInboxSource{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: labeler,
@@ -490,7 +490,7 @@ var _ types.InboxSource = (*HybridInboxSource)(nil)
 
 func NewHybridInboxSource(g *globals.Context,
 	getChatInterface func() chat1.RemoteInterface) *HybridInboxSource {
-	labeler := utils.NewDebugLabeler(g.GetLog(), "HybridInboxSource", false)
+	labeler := utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "HybridInboxSource", false)
 	s := &HybridInboxSource{
 		Contextified:   globals.NewContextified(g),
 		DebugLabeler:   labeler,
@@ -948,7 +948,6 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UI
 func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID,
 	localizerTyp types.ConversationLocalizerTyp, dataSource types.InboxSourceDataSourceTyp, maxLocalize *int,
 	query *chat1.GetInboxLocalQuery) (inbox types.Inbox, localizeCb chan types.AsyncInboxResult, err error) {
-
 	defer s.Trace(ctx, func() error { return err }, "Read")()
 
 	// Read unverified inbox
@@ -990,6 +989,7 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID,
 func (s *HybridInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 	dataSource types.InboxSourceDataSourceTyp, query *chat1.GetInboxQuery) (res types.Inbox, err error) {
 	defer s.Trace(ctx, func() error { return err }, "ReadUnverified")()
+	defer s.PerfTrace(ctx, func() error { return err }, "ReadUnverified")()
 
 	var cerr storage.Error
 	inboxStore := s.createInbox()

@@ -40,7 +40,7 @@ func NewPackager(g *globals.Context, store attachments.Store, s3signer s3.Signer
 	ri func() chat1.RemoteInterface) *Packager {
 	return &Packager{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Packager", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "Packager", false),
 		cache:        newUnfurlCache(),
 		store:        store,
 		ri:           ri,

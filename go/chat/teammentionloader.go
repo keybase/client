@@ -34,7 +34,7 @@ type TeamMentionLoader struct {
 func NewTeamMentionLoader(g *globals.Context) *TeamMentionLoader {
 	return &TeamMentionLoader{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "TeamMentionLoader", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "TeamMentionLoader", false),
 		jobCh:        make(chan teamMentionJob, 100),
 		shutdownCh:   make(chan chan struct{}, 5),
 	}

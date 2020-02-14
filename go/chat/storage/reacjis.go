@@ -114,7 +114,7 @@ func NewReacjiStore(g *globals.Context) *ReacjiStore {
 		return g.LocalChatDb
 	}
 	return &ReacjiStore{
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "ReacjiStore", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "ReacjiStore", false),
 		encryptedDB:  encrypteddb.New(g.ExternalG(), dbFn, keyFn),
 	}
 }

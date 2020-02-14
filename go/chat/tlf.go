@@ -29,7 +29,7 @@ type KBFSNameInfoSource struct {
 
 func NewKBFSNameInfoSource(g *globals.Context) *KBFSNameInfoSource {
 	return &KBFSNameInfoSource{
-		DebugLabeler:   utils.NewDebugLabeler(g.GetLog(), "KBFSNameInfoSource", false),
+		DebugLabeler:   utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "KBFSNameInfoSource", false),
 		Contextified:   globals.NewContextified(g),
 		NameIdentifier: NewNameIdentifier(g),
 	}

@@ -107,7 +107,7 @@ type S3Store struct {
 // S3 connection.
 func NewS3Store(g *libkb.GlobalContext, runtimeDir string) *S3Store {
 	return &S3Store{
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Attachments.Store", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "Attachments.Store", false),
 		s3c:          &s3.AWS{},
 		stash:        NewFileStash(runtimeDir),
 		Contextified: libkb.NewContextified(g),
@@ -120,7 +120,7 @@ func NewS3Store(g *libkb.GlobalContext, runtimeDir string) *S3Store {
 // the number of blocks uploaded.
 func NewStoreTesting(log logger.Logger, kt func(enc, sig []byte), g *libkb.GlobalContext) *S3Store {
 	return &S3Store{
-		DebugLabeler: utils.NewDebugLabeler(log, "Attachments.Store", false),
+		DebugLabeler: utils.NewDebugLabeler(log, log, "Attachments.Store", false),
 		s3c:          &s3.Mem{},
 		stash:        NewFileStash(os.TempDir()),
 		keyTester:    kt,
@@ -312,9 +312,9 @@ type s3Seeker struct {
 	offset int64
 }
 
-func newS3Seeker(ctx context.Context, log logger.Logger, asset chat1.Asset, bucket s3.BucketInt) *s3Seeker {
+func newS3Seeker(ctx context.Context, log, perfLog logger.Logger, asset chat1.Asset, bucket s3.BucketInt) *s3Seeker {
 	return &s3Seeker{
-		DebugLabeler: utils.NewDebugLabeler(log, "s3Seeker", false),
+		DebugLabeler: utils.NewDebugLabeler(log, perfLog, "s3Seeker", false),
 		ctx:          ctx,
 		asset:        asset,
 		bucket:       bucket,
@@ -383,8 +383,8 @@ func (a *S3Store) StreamAsset(ctx context.Context, params chat1.S3Params, asset 
 	}
 	// Make a ReadSeeker, and pass along the cache if we hit for the given path. We may get
 	// a bunch of these calls for a given playback session.
-	source := newS3Seeker(ctx, a.GetLog(), asset, b)
-	return signencrypt.NewDecodingReadSeeker(ctx, a.GetLog(), source, ptsize, &xencKey, &xverifyKey,
+	source := newS3Seeker(ctx, a.GetLog(), a.GetPerfLog(), asset, b)
+	return signencrypt.NewDecodingReadSeeker(ctx, a.GetLog(), a.GetPerfLog(), source, ptsize, &xencKey, &xverifyKey,
 		kbcrypto.SignaturePrefixChatAttachment, &nonce, a.getStreamerCache(asset)), nil
 }
 

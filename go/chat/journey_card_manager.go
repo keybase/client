@@ -39,7 +39,7 @@ func NewJourneyCardManager(g *globals.Context, ri func() chat1.RemoteInterface) 
 	return &JourneyCardManager{
 		Contextified: globals.NewContextified(g),
 		ri:           ri,
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "JourneyCardManager", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "JourneyCardManager", false),
 	}
 }
 
@@ -181,7 +181,7 @@ func NewJourneyCardManagerSingleUser(g *globals.Context, ri func() chat1.RemoteI
 	return &JourneyCardManagerSingleUser{
 		Contextified: globals.NewContextified(g),
 		ri:           ri,
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "JourneyCardManager", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "JourneyCardManager", false),
 		uid:          uid,
 		lru:          lru,
 		encryptedDB:  encrypteddb.New(g.ExternalG(), dbFn, keyFn),

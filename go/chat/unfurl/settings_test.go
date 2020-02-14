@@ -47,7 +47,8 @@ func (s *memConversationBackedStorage) Put(ctx context.Context, uid gregor1.UID,
 
 func TestUnfurlSetting(t *testing.T) {
 	uid := gregor1.UID([]byte{0, 1})
-	settings := NewSettings(logger.NewTestLogger(t), newMemConversationBackedStorage())
+	l := logger.NewTestLogger(t)
+	settings := NewSettings(l, l, newMemConversationBackedStorage())
 	res, err := settings.Get(context.TODO(), uid)
 	require.NoError(t, err)
 	require.Equal(t, chat1.UnfurlMode_WHITELISTED, res.Mode)

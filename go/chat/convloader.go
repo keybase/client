@@ -143,7 +143,7 @@ var _ types.ConvLoader = (*BackgroundConvLoader)(nil)
 func NewBackgroundConvLoader(g *globals.Context) *BackgroundConvLoader {
 	b := &BackgroundConvLoader{
 		Contextified:  globals.NewContextified(g),
-		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), "BackgroundConvLoader", false),
+		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "BackgroundConvLoader", false),
 		stopCh:        make(chan struct{}),
 		suspendCh:     make(chan chan struct{}, 10),
 		loadCh:        make(chan *clTask, 100),

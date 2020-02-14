@@ -24,7 +24,7 @@ type NotifyRouterActivityRouter struct {
 func NewNotifyRouterActivityRouter(g *globals.Context) *NotifyRouterActivityRouter {
 	n := &NotifyRouterActivityRouter{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "NotifyRouterActivityRouter", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "NotifyRouterActivityRouter", false),
 		notifyCh:     make(chan func(), 5000),
 		shutdownCh:   make(chan struct{}),
 	}

@@ -119,6 +119,7 @@ func (f ftlCombinedData) perTeamKey(g keybase1.PerTeamKeyGeneration) *keybase1.P
 func (f *FastTeamChainLoader) Load(m libkb.MetaContext, arg keybase1.FastTeamLoadArg) (res keybase1.FastTeamLoadRes, err error) {
 	m = ftlLogTag(m)
 	defer m.TraceTimed(fmt.Sprintf("FastTeamChainLoader#Load(%+v)", arg), func() error { return err })()
+	defer m.PerfTrace(fmt.Sprintf("FastTeamChainLoader#Load(%+v)", arg), func() error { return err })()
 	originalArg := arg.DeepCopy()
 
 	err = f.featureFlagGate.ErrorIfFlagged(m)

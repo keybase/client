@@ -21,7 +21,7 @@ type RegexpSearcher struct {
 var _ types.RegexpSearcher = (*RegexpSearcher)(nil)
 
 func NewRegexpSearcher(g *globals.Context) *RegexpSearcher {
-	labeler := utils.NewDebugLabeler(g.GetLog(), "RegexpSearcher", false)
+	labeler := utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "RegexpSearcher", false)
 	return &RegexpSearcher{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: labeler,

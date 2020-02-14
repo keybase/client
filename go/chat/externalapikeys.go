@@ -19,7 +19,7 @@ type RemoteExternalAPIKeySource struct {
 func NewRemoteExternalAPIKeySource(g *globals.Context, ri func() chat1.RemoteInterface) *RemoteExternalAPIKeySource {
 	return &RemoteExternalAPIKeySource{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "RemoteExternalAPIKeySource", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "RemoteExternalAPIKeySource", false),
 		ri:           ri,
 	}
 }

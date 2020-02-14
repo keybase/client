@@ -402,7 +402,7 @@ func (g *extensionGregorHandler) ShouldRetryOnConnect(err error) bool {
 }
 
 func getGregorClient(ctx context.Context, gc *globals.Context) (res chat1.RemoteClient, err error) {
-	conn, _, err := utils.GetGregorConn(ctx, gc, utils.NewDebugLabeler(gc.GetLog(), "Extension", false),
+	conn, _, err := utils.GetGregorConn(ctx, gc, utils.NewDebugLabeler(gc.GetLog(), gc.GetPerfLog(), "Extension", false),
 		func(nist *libkb.NIST) rpc.ConnectionHandler {
 			return newExtensionGregorHandler(gc, nist)
 		})

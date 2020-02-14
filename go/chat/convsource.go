@@ -29,7 +29,7 @@ type baseConversationSource struct {
 }
 
 func newBaseConversationSource(g *globals.Context, ri func() chat1.RemoteInterface, boxer *Boxer) *baseConversationSource {
-	labeler := utils.NewDebugLabeler(g.GetLog(), "baseConversationSource", false)
+	labeler := utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "baseConversationSource", false)
 	return &baseConversationSource{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: labeler,
@@ -405,7 +405,7 @@ func NewHybridConversationSource(g *globals.Context, b *Boxer, storage *storage.
 	ri func() chat1.RemoteInterface) *HybridConversationSource {
 	return &HybridConversationSource{
 		Contextified:           globals.NewContextified(g),
-		DebugLabeler:           utils.NewDebugLabeler(g.GetLog(), "HybridConversationSource", false),
+		DebugLabeler:           utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "HybridConversationSource", false),
 		baseConversationSource: newBaseConversationSource(g, ri, b),
 		storage:                storage,
 		lockTab:                utils.NewConversationLockTab(g),
@@ -588,6 +588,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	uid gregor1.UID, reason chat1.GetThreadReason, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (thread chat1.ThreadView, err error) {
 	ctx = libkb.WithLogTag(ctx, "PUL")
 	defer s.Trace(ctx, func() error { return err }, "Pull(%s)", convID)()
+	defer s.PerfTrace(ctx, func() error { return err }, "Pull(%s)", convID)()
 	if convID.IsNil() {
 		return chat1.ThreadView{}, errors.New("HybridConversationSource.Pull called with empty convID")
 	}
@@ -799,6 +800,8 @@ func (s *HybridConversationSource) Clear(ctx context.Context, convID chat1.Conve
 func (s *HybridConversationSource) GetMessages(ctx context.Context, conv types.UnboxConversationInfo,
 	uid gregor1.UID, msgIDs []chat1.MessageID, threadReason *chat1.GetThreadReason) (res []chat1.MessageUnboxed, err error) {
 	defer s.Trace(ctx, func() error { return err }, "GetMessages: convID: %s msgIDs: %d",
+		conv.GetConvID(), len(msgIDs))()
+	defer s.PerfTrace(ctx, func() error { return err }, "GetMessages: convID: %s msgIDs: %d",
 		conv.GetConvID(), len(msgIDs))()
 	convID := conv.GetConvID()
 	if _, err := s.lockTab.Acquire(ctx, uid, convID); err != nil {

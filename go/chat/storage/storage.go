@@ -76,7 +76,7 @@ func New(g *globals.Context, assetDeleter AssetDeleter) *Storage {
 		ephemeralTracker: newEphemeralTracker(g),
 		assetDeleter:     assetDeleter,
 		clock:            clockwork.NewRealClock(),
-		DebugLabeler:     utils.NewDebugLabeler(g.GetLog(), "Storage", false),
+		DebugLabeler:     utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "Storage", false),
 	}
 }
 

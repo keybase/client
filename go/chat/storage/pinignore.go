@@ -21,7 +21,7 @@ type PinIgnore struct {
 func NewPinIgnore(g *globals.Context, uid gregor1.UID) *PinIgnore {
 	return &PinIgnore{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "PinIgnore", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "PinIgnore", false),
 		uid:          uid,
 	}
 }
