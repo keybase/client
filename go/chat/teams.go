@@ -209,7 +209,7 @@ type TeamLoader struct {
 func NewTeamLoader(g *libkb.GlobalContext) *TeamLoader {
 	return &TeamLoader{
 		Contextified: libkb.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "TeamLoader", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "TeamLoader", false),
 	}
 }
 
@@ -326,7 +326,7 @@ type TeamsNameInfoSource struct {
 func NewTeamsNameInfoSource(g *globals.Context) *TeamsNameInfoSource {
 	return &TeamsNameInfoSource{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "TeamsNameInfoSource", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "TeamsNameInfoSource", false),
 		loader:       NewTeamLoader(g.ExternalG()),
 	}
 }
@@ -577,7 +577,7 @@ type ImplicitTeamsNameInfoSource struct {
 func NewImplicitTeamsNameInfoSource(g *globals.Context, membersType chat1.ConversationMembersType) *ImplicitTeamsNameInfoSource {
 	return &ImplicitTeamsNameInfoSource{
 		Contextified:   globals.NewContextified(g),
-		DebugLabeler:   utils.NewDebugLabeler(g.GetLog(), "ImplicitTeamsNameInfoSource", false),
+		DebugLabeler:   utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "ImplicitTeamsNameInfoSource", false),
 		NameIdentifier: NewNameIdentifier(g),
 		loader:         NewTeamLoader(g.ExternalG()),
 		membersType:    membersType,

@@ -20,7 +20,7 @@ type PendingPreviews struct {
 func NewPendingPreviews(g *globals.Context) *PendingPreviews {
 	return &PendingPreviews{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "PendingPreviews", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "PendingPreviews", false),
 	}
 }
 

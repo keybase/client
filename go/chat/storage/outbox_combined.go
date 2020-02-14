@@ -19,7 +19,7 @@ type outboxCombinedStorage struct {
 func newOutboxCombinedStorage(g *globals.Context, uid gregor1.UID) *outboxCombinedStorage {
 	return &outboxCombinedStorage{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "outboxCombinedStorage", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "outboxCombinedStorage", false),
 		baseStorage:  newOutboxBaseboxStorage(g, uid),
 		filesStorage: newOutboxFilesStorage(g, uid),
 	}

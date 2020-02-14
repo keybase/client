@@ -138,6 +138,9 @@ func (p CommandLine) GetLogFile() string {
 func (p CommandLine) GetEKLogFile() string {
 	return p.GetGString("ek-log-file")
 }
+func (p CommandLine) GetPerfLogFile() string {
+	return p.GetGString("perf-log-file")
+}
 func (p CommandLine) GetGUILogFile() string {
 	return p.GetGString("gui-log-file")
 }

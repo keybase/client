@@ -73,7 +73,7 @@ var _ types.Indexer = (*Indexer)(nil)
 func NewIndexer(g *globals.Context) *Indexer {
 	idx := &Indexer{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Search.Indexer", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "Search.Indexer", false),
 		pageSize:     defaultPageSize,
 		suspendCh:    make(chan chan struct{}, 10),
 		resumeWait:   time.Second,

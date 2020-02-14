@@ -86,7 +86,7 @@ func NewCachingBotCommandManager(g *globals.Context, ri func() chat1.RemoteInter
 	}
 	return &CachingBotCommandManager{
 		Contextified:    globals.NewContextified(g),
-		DebugLabeler:    utils.NewDebugLabeler(g.GetLog(), "CachingBotCommandManager", false),
+		DebugLabeler:    utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "CachingBotCommandManager", false),
 		ri:              ri,
 		edb:             encrypteddb.New(g.ExternalG(), dbFn, keyFn),
 		commandUpdateCh: make(chan *commandUpdaterJob, 100),

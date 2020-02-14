@@ -36,7 +36,7 @@ type CachingUPAKFinder struct {
 func NewCachingUPAKFinder(g *globals.Context) *CachingUPAKFinder {
 	return &CachingUPAKFinder{
 		Contextified:  globals.NewContextified(g),
-		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), "CachingUPAKFinder", false),
+		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "CachingUPAKFinder", false),
 		udCache:       make(map[string]udStoredRes),
 		checkKidCache: make(map[string]checkKidStoredRes),
 	}

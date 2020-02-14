@@ -36,9 +36,9 @@ type Extractor struct {
 	exemptions     map[string]*WhitelistExemptionList
 }
 
-func NewExtractor(log logger.Logger) *Extractor {
+func NewExtractor(log, perfLog logger.Logger) *Extractor {
 	return &Extractor{
-		DebugLabeler: utils.NewDebugLabeler(log, "Extractor", false),
+		DebugLabeler: utils.NewDebugLabeler(log, perfLog, "Extractor", false),
 		urlRegexp:    xurls.Strict(),
 		quoteRegexp:  regexp.MustCompile("`[^`]*`"),
 		exemptions:   make(map[string]*WhitelistExemptionList),

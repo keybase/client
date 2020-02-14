@@ -20,6 +20,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"runtime"
 	"sync"
@@ -47,6 +48,7 @@ type DbNukeHook interface {
 
 type GlobalContext struct {
 	Log                              logger.Logger         // Handles all logging
+	PerfLog                          logger.Logger         // Handles all performance event logging
 	VDL                              *VDebugLog            // verbose debug log
 	GUILogFile                       *logger.LogFileWriter // GUI logs
 	Env                              *Env                  // Env variables, cmdline args & config
@@ -185,6 +187,7 @@ type GlobalTestOptions struct {
 }
 
 func (g *GlobalContext) GetLog() logger.Logger                         { return g.Log }
+func (g *GlobalContext) GetPerfLog() logger.Logger                     { return g.PerfLog }
 func (g *GlobalContext) GetGUILogWriter() io.Writer                    { return g.GUILogFile }
 func (g *GlobalContext) GetVDebugLog() *VDebugLog                      { return g.VDL }
 func (g *GlobalContext) GetAPI() API                                   { return g.API }
@@ -254,6 +257,16 @@ func (g *GlobalContext) SetTeambotBotKeyer(keyer TeambotBotKeyer) { g.teambotBot
 
 func (g *GlobalContext) SetTeambotMemberKeyer(keyer TeambotMemberKeyer) { g.teambotMemberKeyer = keyer }
 
+func (g *GlobalContext) initPerfLogFile() {
+	lfc := g.Env.GetLogFileConfig(g.Env.GetPerfLogFile())
+	lfw := logger.NewLogFileWriter(*lfc)
+	if err := lfw.Open(g.GetClock().Now()); err != nil {
+		g.Log.Debug("Unable to getLogger %v", err)
+		return
+	}
+	g.PerfLog = logger.NewInternalLogger(log.New(lfw, "", log.LstdFlags|log.Lshortfile))
+}
+
 func (g *GlobalContext) initGUILogFile() {
 	config := g.Env.GetLogFileConfig(g.Env.GetGUILogFile())
 	config.SkipRedirectStdErr = true
@@ -267,6 +280,7 @@ func (g *GlobalContext) initGUILogFile() {
 
 func (g *GlobalContext) Init() *GlobalContext {
 	g.Env = NewEnv(nil, nil, g.GetLog)
+	g.initPerfLogFile()
 	g.Service = false
 	g.Resolver = NewResolverImpl()
 	g.RateLimits = NewRateLimits(g)
@@ -793,6 +807,9 @@ func (g *GlobalContext) Shutdown(mctx MetaContext) error {
 	// run this code twice.
 	g.shutdownOnce.Do(func() {
 		g.Log.Debug("GlobalContext#Shutdown(%p)\n", g)
+		if g.PerfLog != nil {
+			g.PerfLog.Debug("GlobalContext#Shutdown(%p)\n", g)
+		}
 		didShutdown = true
 
 		epick := FirstErrorPicker{}
@@ -944,7 +961,6 @@ func (g *GlobalContext) ConfigureUsage(usage Usage) error {
 			return err
 		}
 	}
-
 	if err = g.ConfigureExportedStreams(); err != nil {
 		return err
 	}
@@ -958,6 +974,7 @@ func (g *GlobalContext) ConfigureUsage(usage Usage) error {
 	if err = g.ConfigureMerkleClient(); err != nil {
 		return err
 	}
+
 	if g.UI != nil {
 		if err = g.UI.Configure(); err != nil {
 			return err

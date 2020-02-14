@@ -35,7 +35,7 @@ type baseLocalizer struct {
 func newBaseLocalizer(g *globals.Context, pipeline *localizerPipeline) *baseLocalizer {
 	return &baseLocalizer{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "baseLocalizer", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "baseLocalizer", false),
 		pipeline:     pipeline,
 	}
 }
@@ -74,7 +74,7 @@ func newBlockingLocalizer(g *globals.Context, pipeline *localizerPipeline,
 	localizeCb chan types.AsyncInboxResult) *blockingLocalizer {
 	return &blockingLocalizer{
 		Contextified:  globals.NewContextified(g),
-		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), "blockingLocalizer", false),
+		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "blockingLocalizer", false),
 		baseLocalizer: newBaseLocalizer(g, pipeline),
 		localizeCb:    localizeCb,
 	}
@@ -117,7 +117,7 @@ func newNonblockingLocalizer(g *globals.Context, pipeline *localizerPipeline,
 	localizeCb chan types.AsyncInboxResult) *nonBlockingLocalizer {
 	return &nonBlockingLocalizer{
 		Contextified:  globals.NewContextified(g),
-		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), "nonBlockingLocalizer", false),
+		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "nonBlockingLocalizer", false),
 		baseLocalizer: newBaseLocalizer(g, pipeline),
 		localizeCb:    localizeCb,
 	}
@@ -281,7 +281,7 @@ type localizerPipeline struct {
 func newLocalizerPipeline(g *globals.Context) *localizerPipeline {
 	return &localizerPipeline{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "localizerPipeline", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "localizerPipeline", false),
 		stopCh:       make(chan struct{}),
 		cancelChs:    make(map[string]chan struct{}),
 	}

@@ -17,8 +17,8 @@ func TestExtractor(t *testing.T) {
 	uid := gregor1.UID([]byte{0, 1})
 	convID := chat1.ConversationID([]byte{0, 1})
 	log := logger.NewTestLogger(t)
-	settingsMod := NewSettings(log, newMemConversationBackedStorage())
-	extractor := NewExtractor(log)
+	settingsMod := NewSettings(log, log, newMemConversationBackedStorage())
+	extractor := NewExtractor(log, log)
 	type testCase struct {
 		message   string
 		mode      chat1.UnfurlMode
@@ -153,11 +153,11 @@ func TestExtractorExemptions(t *testing.T) {
 	convID := chat1.ConversationID([]byte{0, 1})
 	msgID := chat1.MessageID(1)
 	log := logger.NewTestLogger(t)
-	extractor := NewExtractor(log)
+	extractor := NewExtractor(log, log)
 	settings := chat1.NewUnfurlSettings()
 	settings.Mode = chat1.UnfurlMode_WHITELISTED
 	settings.Whitelist["amazon.com"] = true
-	settingsMod := NewSettings(log, newMemConversationBackedStorage())
+	settingsMod := NewSettings(log, log, newMemConversationBackedStorage())
 
 	extractor.AddWhitelistExemption(context.TODO(), uid,
 		NewOneTimeWhitelistExemption(convID, msgID, "amazon.com"))

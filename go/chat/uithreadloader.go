@@ -46,7 +46,7 @@ func NewUIThreadLoader(g *globals.Context) *UIThreadLoader {
 	return &UIThreadLoader{
 		offline:           false,
 		Contextified:      globals.NewContextified(g),
-		DebugLabeler:      utils.NewDebugLabeler(g.GetLog(), "UIThreadLoader", false),
+		DebugLabeler:      utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "UIThreadLoader", false),
 		convPageStatus:    make(map[chat1.ConvIDStr]chat1.Pagination),
 		clock:             clockwork.NewRealClock(),
 		validatedDelay:    100 * time.Millisecond,

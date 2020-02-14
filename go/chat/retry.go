@@ -44,7 +44,7 @@ func NewConversationRetry(g *globals.Context, convID chat1.ConversationID, tlfID
 	dstr := fmt.Sprintf("ConversationRetry(%s,%v)", convID, kind)
 	return &ConversationRetry{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), dstr, false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), dstr, false),
 		convID:       convID,
 		tlfID:        tlfID,
 		kind:         kind,
@@ -132,7 +132,7 @@ var _ types.RetryDescription = (*FullInboxRetry)(nil)
 func NewFullInboxRetry(g *globals.Context, query *chat1.GetInboxLocalQuery) FullInboxRetry {
 	return FullInboxRetry{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "FullInboxRetry", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "FullInboxRetry", false),
 		query:        query,
 	}
 }
@@ -219,7 +219,7 @@ var _ types.FetchRetrier = (*FetchRetrier)(nil)
 func NewFetchRetrier(g *globals.Context) *FetchRetrier {
 	f := &FetchRetrier{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "FetchRetrier", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "FetchRetrier", false),
 		clock:        clockwork.NewRealClock(),
 		retriers:     make(map[string]*retrierControl),
 	}

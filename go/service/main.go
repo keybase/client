@@ -257,6 +257,7 @@ func (d *Service) Run() (err error) {
 	}()
 
 	mctx.Debug("+ service starting up; forkType=%v", d.ForkType)
+	mctx.PerfDebug("+ service starting up; forkType=%v", d.ForkType)
 
 	d.startProfile()
 
@@ -918,6 +919,7 @@ func (d *Service) OnLogin(mctx libkb.MetaContext) error {
 
 func (d *Service) OnLogout(m libkb.MetaContext) (err error) {
 	defer m.Trace("Service#OnLogout", func() error { return err })()
+	defer m.PerfTrace("Service#OnLogout", func() error { return err })()
 	log := func(s string) {
 		m.Debug("Service#OnLogout: %s", s)
 	}

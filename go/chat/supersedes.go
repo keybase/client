@@ -33,7 +33,7 @@ var _ types.SupersedesTransform = (*basicSupersedesTransform)(nil)
 func newBasicSupersedesTransform(g *globals.Context, opts basicSupersedesTransformOpts) *basicSupersedesTransform {
 	return &basicSupersedesTransform{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "supersedesTransform", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "supersedesTransform", false),
 		messagesFunc: g.ConvSource.GetMessages,
 		opts:         opts,
 	}

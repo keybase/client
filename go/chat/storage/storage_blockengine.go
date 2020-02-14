@@ -23,7 +23,7 @@ type blockEngine struct {
 func newBlockEngine(g *globals.Context) *blockEngine {
 	return &blockEngine{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "BlockEngine", true),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "BlockEngine", true),
 	}
 }
 

@@ -488,13 +488,15 @@ func IsNotifiableChatMessageType(messageType chat1.MessageType, atMentions []gre
 
 type DebugLabeler struct {
 	log     logger.Logger
+	perfLog logger.Logger
 	label   string
 	verbose bool
 }
 
-func NewDebugLabeler(log logger.Logger, label string, verbose bool) DebugLabeler {
+func NewDebugLabeler(log, perfLog logger.Logger, label string, verbose bool) DebugLabeler {
 	return DebugLabeler{
 		log:     log.CloneWithAddedDepth(1),
+		perfLog: perfLog.CloneWithAddedDepth(1),
 		label:   label,
 		verbose: verbose,
 	}
@@ -502,6 +504,10 @@ func NewDebugLabeler(log logger.Logger, label string, verbose bool) DebugLabeler
 
 func (d DebugLabeler) GetLog() logger.Logger {
 	return d.log
+}
+
+func (d DebugLabeler) GetPerfLog() logger.Logger {
+	return d.perfLog
 }
 
 func (d DebugLabeler) showVerbose() bool {
@@ -522,12 +528,20 @@ func (d DebugLabeler) Debug(ctx context.Context, msg string, args ...interface{}
 }
 
 func (d DebugLabeler) Trace(ctx context.Context, f func() error, format string, args ...interface{}) func() {
+	return d.trace(ctx, d.log, f, format, args...)
+}
+
+func (d DebugLabeler) PerfTrace(ctx context.Context, f func() error, format string, args ...interface{}) func() {
+	return d.trace(ctx, d.perfLog, f, format, args...)
+}
+
+func (d DebugLabeler) trace(ctx context.Context, log logger.Logger, f func() error, format string, args ...interface{}) func() {
 	if d.showLog() {
 		msg := fmt.Sprintf(format, args...)
 		start := time.Now()
-		d.log.CDebugf(ctx, "++Chat: + %s: %s", d.label, msg)
+		log.CDebugf(ctx, "++Chat: + %s: %s", d.label, msg)
 		return func() {
-			d.log.CDebugf(ctx, "++Chat: - %s: %s -> %s [time=%v]", d.label, msg,
+			log.CDebugf(ctx, "++Chat: - %s: %s -> %s [time=%v]", d.label, msg,
 				libkb.ErrToOk(f()), time.Since(start))
 		}
 	}

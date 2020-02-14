@@ -29,7 +29,7 @@ type Gallery struct {
 func NewGallery(g *globals.Context) *Gallery {
 	return &Gallery{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Attachments.Gallery", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "Attachments.Gallery", false),
 		NextStride:   5,
 		PrevStride:   50,
 	}

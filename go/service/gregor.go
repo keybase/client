@@ -235,7 +235,7 @@ var _ libkb.GregorListener = (*gregorHandler)(nil)
 func newGregorHandler(g *globals.Context) *gregorHandler {
 	gh := &gregorHandler{
 		Contextified:      globals.NewContextified(g),
-		chatLog:           utils.NewDebugLabeler(g.GetLog(), "PushHandler", false),
+		chatLog:           utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "PushHandler", false),
 		firstConnect:      true,
 		pushStateFilter:   func(m gregor.Message) bool { return true },
 		badger:            nil,

@@ -32,7 +32,7 @@ type SimpleIdentifyNotifier struct {
 func NewSimpleIdentifyNotifier(g *globals.Context) *SimpleIdentifyNotifier {
 	return &SimpleIdentifyNotifier{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "SimpleIdentifyNotifier", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "SimpleIdentifyNotifier", false),
 		storage:      storage.New(g, g.ConvSource),
 	}
 }
@@ -60,7 +60,7 @@ type CachingIdentifyNotifier struct {
 func NewCachingIdentifyNotifier(g *globals.Context) *CachingIdentifyNotifier {
 	return &CachingIdentifyNotifier{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "CachingIdentifyNotifier", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "CachingIdentifyNotifier", false),
 		identCache:   make(map[string]keybase1.CanonicalTLFNameAndIDWithBreaks),
 		storage:      storage.New(g, g.ConvSource),
 	}
@@ -114,7 +114,7 @@ type IdentifyChangedHandler struct {
 func NewIdentifyChangedHandler(g *globals.Context) *IdentifyChangedHandler {
 	return &IdentifyChangedHandler{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "IdentifyChangedHandler", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "IdentifyChangedHandler", false),
 	}
 }
 
@@ -158,7 +158,7 @@ type NameIdentifier struct {
 func NewNameIdentifier(g *globals.Context) *NameIdentifier {
 	return &NameIdentifier{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "NameIdentifier", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "NameIdentifier", false),
 	}
 }
 

@@ -34,7 +34,7 @@ type ConversationLockTab struct {
 func NewConversationLockTab(g *globals.Context) *ConversationLockTab {
 	return &ConversationLockTab{
 		Contextified:      globals.NewContextified(g),
-		DebugLabeler:      NewDebugLabeler(g.GetLog(), "ConversationLockTab", false),
+		DebugLabeler:      NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "ConversationLockTab", false),
 		convLocks:         make(map[string]*conversationLock),
 		waits:             make(map[string]string),
 		maxAcquireRetries: 25,

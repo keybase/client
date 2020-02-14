@@ -29,7 +29,7 @@ const delhTrackerDiskVersion = 2
 func newDelhTracker(g *globals.Context) *delhTracker {
 	return &delhTracker{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "DelhTracker", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "DelhTracker", false),
 	}
 }
 

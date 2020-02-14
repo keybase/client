@@ -38,7 +38,7 @@ func TestApplyTeamBotSettings(t *testing.T) {
 
 	g := globals.NewContext(tc.G, &globals.ChatContext{})
 	tc.G.OverrideUPAKLoader(mockUPAKLoader{})
-	debugLabeler := utils.NewDebugLabeler(g.GetLog(), "ApplyTeamBotSettings", false)
+	debugLabeler := utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "ApplyTeamBotSettings", false)
 	ctx := context.TODO()
 	convID := chat1.ConversationID([]byte("conv"))
 	botUID := gregor1.UID([]byte("botua"))

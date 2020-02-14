@@ -49,7 +49,7 @@ type TypingMonitor struct {
 func NewTypingMonitor(g *globals.Context) *TypingMonitor {
 	return &TypingMonitor{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "TypingMonitor", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "TypingMonitor", false),
 		typers:       make(map[string]*typingControlChans),
 		clock:        clockwork.NewRealClock(),
 		timeout:      typingTimeout,

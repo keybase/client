@@ -83,6 +83,7 @@ func (n NullConfiguration) GetRunMode() (RunMode, error)                        
 func (n NullConfiguration) GetNoAutoFork() (bool, bool)                           { return false, false }
 func (n NullConfiguration) GetLogFile() string                                    { return "" }
 func (n NullConfiguration) GetEKLogFile() string                                  { return "" }
+func (n NullConfiguration) GetPerfLogFile() string                                { return "" }
 func (n NullConfiguration) GetGUILogFile() string                                 { return "" }
 func (n NullConfiguration) GetUseDefaultLogFile() (bool, bool)                    { return false, false }
 func (n NullConfiguration) GetUseRootConfigFile() (bool, bool)                    { return false, false }
@@ -1662,6 +1663,14 @@ func (e *Env) GetEKLogFile() string {
 	)
 }
 
+func (e *Env) GetPerfLogFile() string {
+	return e.GetString(
+		func() string { return e.cmd.GetPerfLogFile() },
+		func() string { return os.Getenv("KEYBASE_PERF_LOG_FILE") },
+		func() string { return filepath.Join(e.GetLogDir(), PerfLogFileName) },
+	)
+}
+
 func (e *Env) GetGUILogFile() string {
 	return e.GetString(
 		func() string { return e.cmd.GetGUILogFile() },
@@ -1768,6 +1777,7 @@ type AppConfig struct {
 	MobileSharedHomeDir            string
 	LogFile                        string
 	EKLogFile                      string
+	PerfLogFile                    string
 	GUILogFile                     string
 	UseDefaultLogFile              bool
 	RunMode                        RunMode
@@ -1801,6 +1811,10 @@ func (c AppConfig) GetLogFile() string {
 
 func (c AppConfig) GetEKLogFile() string {
 	return c.EKLogFile
+}
+
+func (c AppConfig) GetPerfLogFile() string {
+	return c.PerfLogFile
 }
 
 func (c AppConfig) GetGUILogFile() string {

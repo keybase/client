@@ -18,7 +18,7 @@ type RemoteClient struct {
 
 func NewRemoteClient(g *globals.Context, cli rpc.GenericClient) *RemoteClient {
 	return &RemoteClient{
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "RemoteClient", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "RemoteClient", false),
 		cli:          cli,
 	}
 }

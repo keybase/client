@@ -73,7 +73,7 @@ func NewAttachmentHTTPSrv(g *globals.Context, httpSrv *manager.Srv, fetcher type
 	}
 	r := &AttachmentHTTPSrv{
 		Contextified:       globals.NewContextified(g),
-		DebugLabeler:       utils.NewDebugLabeler(g.GetLog(), "AttachmentHTTPSrv", false),
+		DebugLabeler:       utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "AttachmentHTTPSrv", false),
 		endpoint:           "at",
 		attachmentPrefix:   "at",
 		pendingPrefix:      "pe",
@@ -590,7 +590,7 @@ var _ types.AttachmentFetcher = (*RemoteAttachmentFetcher)(nil)
 func NewRemoteAttachmentFetcher(g *globals.Context, store attachments.Store) *RemoteAttachmentFetcher {
 	return &RemoteAttachmentFetcher{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "RemoteAttachmentFetcher", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "RemoteAttachmentFetcher", false),
 		store:        store,
 	}
 }
@@ -671,7 +671,7 @@ var _ types.AttachmentFetcher = (*CachingAttachmentFetcher)(nil)
 func NewCachingAttachmentFetcher(g *globals.Context, store attachments.Store, size int) *CachingAttachmentFetcher {
 	return &CachingAttachmentFetcher{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "CachingAttachmentFetcher", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "CachingAttachmentFetcher", false),
 		store:        store,
 		diskLRU:      disklru.NewDiskLRU("attachments", 1, size),
 	}

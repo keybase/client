@@ -43,7 +43,7 @@ type Syncer struct {
 func NewSyncer(g *globals.Context) *Syncer {
 	s := &Syncer{
 		Contextified:        globals.NewContextified(g),
-		DebugLabeler:        utils.NewDebugLabeler(g.GetLog(), "Syncer", false),
+		DebugLabeler:        utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "Syncer", false),
 		isConnected:         false,
 		clock:               clockwork.NewRealClock(),
 		shutdownCh:          make(chan struct{}),

@@ -85,7 +85,7 @@ type uploaderTaskStorage struct {
 func newUploaderTaskStorage(g *globals.Context) *uploaderTaskStorage {
 	return &uploaderTaskStorage{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "uploaderTaskStorage", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "uploaderTaskStorage", false),
 	}
 }
 
@@ -187,7 +187,7 @@ func NewUploader(g *globals.Context, store Store, s3signer s3.Signer,
 	ri func() chat1.RemoteInterface, size int) *Uploader {
 	return &Uploader{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Attachments.Uploader", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "Attachments.Uploader", false),
 		store:        store,
 		ri:           ri,
 		s3signer:     s3signer,

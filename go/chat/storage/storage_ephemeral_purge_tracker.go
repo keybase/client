@@ -38,7 +38,7 @@ func newEphemeralTracker(g *globals.Context) *ephemeralTracker {
 		log.Panicf("Could not create lru cache: %v", err)
 	}
 	return &ephemeralTracker{Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "ephemeralTracker", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "ephemeralTracker", false),
 		lru:          nlru,
 	}
 }

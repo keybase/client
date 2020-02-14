@@ -140,11 +140,11 @@ type batchingStore struct {
 	mdBatch    map[chat1.ConvIDStr]*mdBatch
 }
 
-func newBatchingStore(log logger.Logger, uid gregor1.UID,
+func newBatchingStore(log, perfLog logger.Logger, uid gregor1.UID,
 	keyFn func(ctx context.Context) ([32]byte, error), edb *encrypteddb.EncryptedDB,
 	mdb *libkb.JSONLocalDb) *batchingStore {
 	b := &batchingStore{
-		DebugLabeler: utils.NewDebugLabeler(log, "Search.batchingStore", false),
+		DebugLabeler: utils.NewDebugLabeler(log, perfLog, "Search.batchingStore", false),
 		uid:          uid,
 		keyFn:        keyFn,
 		edb:          edb,
@@ -361,12 +361,12 @@ func newStore(g *globals.Context, uid gregor1.UID) *store {
 	}
 	return &store{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Search.store", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "Search.store", false),
 		uid:          uid,
 		keyFn:        keyFn,
 		aliasCache:   ac,
 		tokenCache:   tc,
-		diskStorage: newBatchingStore(g.GetLog(), uid, keyFn, encrypteddb.New(g.ExternalG(), dbFn, keyFn),
+		diskStorage: newBatchingStore(g.GetLog(), g.GetPerfLog(), uid, keyFn, encrypteddb.New(g.ExternalG(), dbFn, keyFn),
 			g.LocalChatDb),
 	}
 }

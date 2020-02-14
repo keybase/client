@@ -83,7 +83,7 @@ func TestUnfurler(t *testing.T) {
 	ri := func() chat1.RemoteInterface { return paramsRemote{} }
 	storage := newMemConversationBackedStorage()
 	unfurler := NewUnfurler(g, store, s3signer, storage, sender, ri)
-	settings := NewSettings(log, storage)
+	settings := NewSettings(log, log, storage)
 	srv := createTestCaseHTTPSrv(t)
 	addr := srv.Start()
 	defer srv.Stop()

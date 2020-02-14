@@ -54,7 +54,7 @@ type startFlipSendStatus struct {
 func newSentMessageListener(g *globals.Context, outboxID chat1.OutboxID) *sentMessageListener {
 	return &sentMessageListener{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "sentMessageListener", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "sentMessageListener", false),
 		outboxID:     outboxID,
 		listenCh:     make(chan sentMessageResult, 10),
 	}
@@ -168,7 +168,7 @@ func NewFlipManager(g *globals.Context, ri func() chat1.RemoteInterface) *FlipMa
 	gameOutboxIDs, _ := lru.New(200)
 	m := &FlipManager{
 		Contextified:               globals.NewContextified(g),
-		DebugLabeler:               utils.NewDebugLabeler(g.GetLog(), "FlipManager", false),
+		DebugLabeler:               utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "FlipManager", false),
 		ri:                         ri,
 		clock:                      clockwork.NewRealClock(),
 		games:                      games,

@@ -25,7 +25,7 @@ type baseCommand struct {
 func newBaseCommand(g *globals.Context, name, usage, desc string, hasHelpText bool, aliases ...string) *baseCommand {
 	return &baseCommand{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), fmt.Sprintf("Commands.%s", name), false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), fmt.Sprintf("Commands.%s", name), false),
 		name:         name,
 		usage:        usage,
 		aliases:      aliases,

@@ -57,7 +57,7 @@ func NewUIInboxLoader(g *globals.Context) *UIInboxLoader {
 	}
 	return &UIInboxLoader{
 		Contextified:          globals.NewContextified(g),
-		DebugLabeler:          utils.NewDebugLabeler(g.GetLog(), "UIInboxLoader", false),
+		DebugLabeler:          utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "UIInboxLoader", false),
 		convTransmitBatch:     make(map[chat1.ConvIDStr]chat1.ConversationLocal),
 		clock:                 clockwork.NewRealClock(),
 		batchDelay:            200 * time.Millisecond,

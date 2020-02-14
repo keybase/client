@@ -34,7 +34,7 @@ type KeyFinderImpl struct {
 func NewKeyFinder(g *globals.Context) types.KeyFinder {
 	return &KeyFinderImpl{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "KeyFinder", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "KeyFinder", false),
 		keys:         make(map[string]*types.NameInfo),
 		decKeys:      make(map[string]types.CryptKey),
 		encKeys:      make(map[string]encItem),

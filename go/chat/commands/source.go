@@ -31,7 +31,7 @@ type Source struct {
 func NewSource(g *globals.Context) *Source {
 	s := &Source{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Commands.Source", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "Commands.Source", false),
 		clock:        clockwork.NewRealClock(),
 		botCmd:       NewBot(g),
 	}

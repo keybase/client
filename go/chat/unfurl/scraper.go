@@ -23,7 +23,7 @@ type Scraper struct {
 func NewScraper(g *globals.Context) *Scraper {
 	return &Scraper{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Scraper", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "Scraper", false),
 		cache:        newUnfurlCache(),
 		giphyProxy:   true,
 	}

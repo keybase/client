@@ -27,9 +27,9 @@ type Settings struct {
 	storage types.ConversationBackedStorage
 }
 
-func NewSettings(log logger.Logger, storage types.ConversationBackedStorage) *Settings {
+func NewSettings(log, perfLog logger.Logger, storage types.ConversationBackedStorage) *Settings {
 	return &Settings{
-		DebugLabeler: utils.NewDebugLabeler(log, "Settings", false),
+		DebugLabeler: utils.NewDebugLabeler(log, perfLog, "Settings", false),
 		storage:      storage,
 	}
 }

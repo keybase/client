@@ -54,7 +54,7 @@ type ReplyFiller struct {
 func NewReplyFiller(g *globals.Context, config ...func(*ReplyFiller)) *ReplyFiller {
 	f := &ReplyFiller{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "ReplyFiller", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "ReplyFiller", false),
 	}
 	for _, c := range config {
 		c(f)

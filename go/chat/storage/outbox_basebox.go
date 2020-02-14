@@ -22,7 +22,7 @@ type outboxBaseboxStorage struct {
 func newOutboxBaseboxStorage(g *globals.Context, uid gregor1.UID) *outboxBaseboxStorage {
 	return &outboxBaseboxStorage{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "outboxBaseboxStorage", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "outboxBaseboxStorage", false),
 		baseBox:      newBaseBox(g),
 		uid:          uid,
 	}
