@@ -14,9 +14,12 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/kbfs/data"
+	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/libkbfs"
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/pkg/errors"
 	billy "gopkg.in/src-d/go-billy.v4"
 )
 
@@ -77,17 +80,6 @@ func (uhfn *updateHistoryFileNode) FillCacheDuration(d *time.Duration) {
 	*d = 0
 }
 
-type dirBlockNode struct {
-	libkbfs.Node
-
-	config libkbfs.Config
-	ptr    data.BlockPointer
-}
-
-func (dbn *dirBlockNode) GetFS(ctx context.Context) billy.Filesystem {
-	return nil
-}
-
 // specialFileNode is a Node wrapper around a TLF node, that causes
 // special files to be fake-created when they are accessed.
 type specialFileNode struct {
@@ -102,11 +94,11 @@ var _ libkbfs.Node = (*specialFileNode)(nil)
 var perTlfWrappedNodeNames = map[string]bool{
 	StatusFileName:        true,
 	UpdateHistoryFileName: true,
-	DirBlockPrefix:        true,
 }
 
 var perTlfWrappedNodePrefixes = []string{
 	UpdateHistoryFileName,
+	DirBlockPrefix,
 }
 
 func shouldBeTlfWrappedNode(name string) bool {
@@ -159,6 +151,47 @@ func (sfn *specialFileNode) newUpdateHistoryFileNode(
 	}
 }
 
+// parseBlockPointer returns a real BlockPointer given a string.  The
+// format for the string is: id.keyGen.dataVer.creatorUID.directType
+func parseBlockPointer(plain string) (data.BlockPointer, error) {
+	s := strings.Split(plain, ".")
+	if len(s) != 5 {
+		return data.ZeroPtr, errors.Errorf(
+			"%s is not in the right format for a block pointer", plain)
+	}
+
+	id, err := kbfsblock.IDFromString(s[0])
+	if err != nil {
+		return data.ZeroPtr, err
+	}
+
+	keyGen, err := strconv.Atoi(s[1])
+	if err != nil {
+		return data.ZeroPtr, err
+	}
+
+	dataVer, err := strconv.Atoi(s[2])
+	if err != nil {
+		return data.ZeroPtr, err
+	}
+
+	creator, err := keybase1.UserOrTeamIDFromString(s[3])
+	if err != nil {
+		return data.ZeroPtr, err
+	}
+
+	directType := data.BlockDirectTypeFromString(s[4])
+
+	return data.BlockPointer{
+		ID:         id,
+		KeyGen:     kbfsmd.KeyGen(keyGen),
+		DataVer:    data.Ver(dataVer),
+		DirectType: directType,
+		Context: kbfsblock.MakeFirstContext(
+			creator, keybase1.BlockType_DATA),
+	}, nil
+}
+
 // ShouldCreateMissedLookup implements the Node interface for
 // specialFileNode.
 func (sfn *specialFileNode) ShouldCreateMissedLookup(
@@ -189,6 +222,22 @@ func (sfn *specialFileNode) ShouldCreateMissedLookup(
 		f := uhfn.GetFile(ctx)
 		return true, ctx, data.FakeFile, f.(*wrappedReadFile).GetInfo(),
 			data.PathPartString{}, data.ZeroPtr
+	case strings.HasPrefix(plain, DirBlockPrefix):
+		ptr, err := parseBlockPointer(strings.TrimPrefix(plain, DirBlockPrefix))
+		if err != nil {
+			sfn.log.CDebugf(
+				ctx, "Couldn't parse block pointer for %s: %+v", name, err)
+			return sfn.Node.ShouldCreateMissedLookup(ctx, name)
+		}
+
+		info := &wrappedReadFileInfo{
+			name:  plain,
+			size:  0,
+			mtime: time.Now(),
+			dir:   true,
+		}
+
+		return true, ctx, data.RealDir, info, data.PathPartString{}, ptr
 	default:
 		panic(fmt.Sprintf("Name %s was in map, but not in switch", name))
 	}
@@ -226,6 +275,8 @@ func (sfn *specialFileNode) WrapChild(child libkbfs.Node) libkbfs.Node {
 			return child
 		}
 		return uhfn
+	case strings.HasPrefix(name, DirBlockPrefix):
+		return &libkbfs.ReadonlyNode{Node: child}
 	default:
 		panic(fmt.Sprintf("Name %s was in map, but not in switch", name))
 	}
