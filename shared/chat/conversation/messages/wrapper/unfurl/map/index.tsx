@@ -26,28 +26,26 @@ type Props = {
 const UnfurlMap = (props: Props) => {
   // dispatch
   const dispatch = Container.useDispatch()
-  const onViewMap = !Styles.isMobile
-    ? props.toggleMessagePopup
-    : () => {
-        dispatch(
-          RouteTreeGen.createNavigateAppend({
-            path: [
-              {
-                props: {
-                  author: props.author,
-                  conversationIDKey: props.conversationIDKey,
-                  coord: props.coord,
-                  isAuthor: props.isAuthor,
-                  isLiveLocation: !!props.liveLocationEndTime && !props.isLiveLocationDone,
-                  namespace: 'chat2',
-                  url: props.url,
-                },
-                selected: 'chatUnfurlMapPopup',
-              },
-            ],
-          })
-        )
-      }
+  const onViewMap = () => {
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {
+              author: props.author,
+              conversationIDKey: props.conversationIDKey,
+              coord: props.coord,
+              isAuthor: props.isAuthor,
+              isLiveLocation: !!props.liveLocationEndTime && !props.isLiveLocationDone,
+              namespace: 'chat2',
+              url: props.url,
+            },
+            selected: 'chatUnfurlMapPopup',
+          },
+        ],
+      })
+    )
+  }
 
   // render
   return (

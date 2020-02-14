@@ -44,6 +44,7 @@ func (s *Srv) serve(w http.ResponseWriter, req *http.Request) {
 	strwidth := req.URL.Query().Get("width")
 	strheight := req.URL.Query().Get("height")
 	username := req.URL.Query().Get("username")
+	trip := req.URL.Query().Get("trip")
 	lat, err := strconv.ParseFloat(strlat, 64)
 	if err != nil {
 		s.makeError(w, http.StatusBadRequest, "invalid lat: %s", err)
@@ -64,8 +65,14 @@ func (s *Srv) serve(w http.ResponseWriter, req *http.Request) {
 		s.makeError(w, http.StatusBadRequest, "invalid height: %s", err)
 		return
 	}
-	mapURL, err := GetCustomMapURL(ctx, s.G().ExternalAPIKeySource, lat, lon, int(width)*scale,
-		int(height)*scale)
+	var mapURL string
+	if trip {
+		mapURL, err = GetTripMapURL(ctx, s.G().ExternalAPIKeySource, lat, lon, int(width)*scale,
+			int(height)*scale)
+	} else {
+		mapURL, err = GetCustomMapURL(ctx, s.G().ExternalAPIKeySource, lat, lon, int(width)*scale,
+			int(height)*scale)
+	}
 	if err != nil {
 		s.makeError(w, http.StatusInternalServerError, "unable to get map url: %s", err)
 		return

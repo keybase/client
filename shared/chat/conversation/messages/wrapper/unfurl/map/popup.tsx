@@ -51,15 +51,16 @@ const UnfurlMapPopup = (props: Props) => {
   }
 
   // render
-  const width = Math.ceil(Styles.dimensionWidth)
-  const height = Math.ceil(Styles.dimensionHeight)
+  const width = Styles.isMobile ? Math.ceil(Styles.dimensionWidth) : 600
+  const height = Styles.isMobile ? Math.ceil(Styles.dimensionHeight) : 400
   const mapSrc = `http://${httpSrvAddress}/map?lat=${coord.lat}&lon=${coord.lon}&width=${width}&height=${height}&token=${httpSrvToken}&username=${author}`
   return (
     <Kb.Modal
+      mode="Wide"
       header={{
         leftButton: (
           <Kb.Text type="BodyBigLink" onClick={onClose}>
-            Cancel
+            Close
           </Kb.Text>
         ),
         title: 'Location',

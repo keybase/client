@@ -53,6 +53,34 @@ func GetCustomMapURL(ctx context.Context, apiKeySource types.ExternalAPIKeySourc
 
 }
 
+func GetTripMapURL(ctx context.Context, apiKeySource types.ExternalAPIKeySource, coords []chat1.Coordinate,
+	width, height int) (string, error) {
+	if len(coords) == 0 {
+		return "", errors.New("empty coords")
+	}
+	key, err := apiKeySource.GetKey(ctx, chat1.ExternalAPIKeyTyp_GOOGLEMAPS)
+	if err != nil {
+		return "", err
+	}
+	var pathStr, centerStr string
+	last := coords[len(coords)-1]
+	if len(coords) > 1 {
+		pathStr = "path=color:0xff0000ff|weight:3"
+		for _, c := range coords {
+			pathStr += fmt.Sprintf("|%f,%f", c.Lat, c.Lon)
+		}
+		pathStr += "&"
+	} else {
+		centerStr = fmt.Sprintf("center=%f,%f&", last.Lat, last.Lon)
+	}
+	widthScaled := width / scale
+	heightScaled := height / scale
+	url := fmt.Sprintf(
+		"https://%s/maps/api/staticmap?%s%smarkers=color:red%%7Csize:tiny%%7C%f,%f&size=%dx%d&scale=%d&key=%s",
+		MapsProxy, centerStr, pathStr, last.Lat, last.Lon, widthScaled, heightScaled, scale, key.Googlemaps())
+	return url, nil
+}
+
 func GetLiveMapURL(ctx context.Context, apiKeySource types.ExternalAPIKeySource, coords []chat1.Coordinate) (string, error) {
 	if len(coords) == 0 {
 		return "", errors.New("empty coords")
