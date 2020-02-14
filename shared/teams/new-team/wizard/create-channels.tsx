@@ -103,17 +103,10 @@ const styles = Styles.styleSheetCreate(() => ({
     isElectron: {width: 42},
     isMobile: {width: 47},
   }),
-  banner: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.blue,
-    },
-    isElectron: {
-      height: 96,
-    },
-    isMobile: {
-      height: 64,
-    },
-  }),
+  banner: {
+    backgroundColor: Styles.globalColors.blue,
+    height: 96,
+  },
   body: Styles.platformStyles({
     common: {
       ...Styles.padding(Styles.globalMargins.small),
