@@ -74,6 +74,98 @@ const makeRadar = (show: boolean) => {
   })
 }
 
+const LogStats = () => {
+  const maxBuckets = 3
+  const types = ['id', 'sig']
+
+  const [incoming, setIncoming] = React.useState([])
+  const [buckets, setBuckets] = React.useState([
+    {count: 0, label: '', updated: false},
+    {count: 0, label: '', updated: false},
+    {count: 0, label: '', updated: false},
+  ])
+
+  // bucketize
+  React.useEffect(() => {
+    // copy
+    let newBuckets = buckets.map(b => ({...b, updated: false}))
+
+    incoming.forEach(i => {
+      const existing = newBuckets.find(b => b.label === i)
+      // increment existing or add it
+      if (existing) {
+        existing.updated = true
+        existing.count++
+      } else {
+        newBuckets.push({label: i, count: 1, updated: true})
+      }
+    })
+
+    // sort to elminate
+    newBuckets = newBuckets.sort((a, b) => {
+      if (a.updated !== b.updated) {
+        return a.updated ? -1 : 1
+      }
+
+      return b.count - a.count
+    })
+
+    newBuckets = newBuckets.slice(0, maxBuckets)
+
+    // age out the last things
+    if (!incoming.length) {
+      newBuckets = newBuckets.reverse()
+      newBuckets.some(b => {
+        if (b.label) {
+          b.label = ''
+          return true
+        }
+        return false
+      })
+      newBuckets = newBuckets.reverse()
+    }
+
+    // sort alpha to stablize
+    newBuckets = newBuckets.sort((a, b) => a.label.localeCompare(b.label))
+
+    setBuckets(newBuckets)
+  }, [incoming])
+
+  // TEMP to inject
+  Kb.useInterval(() => {
+    if (window.NOJIMA) {
+      const newIncoming = []
+      const numToConsume = 1 + Math.floor(Math.random() * 5)
+      for (let i = 0; i < numToConsume; ++i) {
+        let type = types[Math.floor(Math.random() * 3)]
+        if (!type) {
+          type = Math.floor(Math.random() * 100) + '.random'
+        }
+        newIncoming.push(type)
+      }
+      setIncoming(newIncoming)
+    }
+  }, 1000)
+
+  // age out old logs
+  Kb.useInterval(() => {
+    setIncoming([])
+  }, 2000)
+
+  return (
+    <Kb.Box2 direction="vertical" style={{minHeight: 22 * maxBuckets}} fullWidth={true}>
+      <Kb.Text type="BodyTinyBold" style={styles.stat}>
+        Logs
+      </Kb.Text>
+      {buckets.map((b, i) => (
+        <Kb.Text key={i} type={b.updated ? 'BodyTinyBold' : 'BodyTiny'} style={styles.stat}>
+          {b.label} {b.label && b.count > 1 ? b.count : ''}
+        </Kb.Text>
+      ))}
+    </Kb.Box2>
+  )
+}
+
 const RuntimeStatsDesktop = ({stats}: Props) => {
   const [showRadar, setShowRadar] = React.useState(flags.lagRadar)
   const refContainer = React.useCallback(
@@ -155,6 +247,7 @@ const RuntimeStatsDesktop = ({stats}: Props) => {
           )
         })}
         <Kb.Box style={styles.radarContainer} forwardedRef={refContainer} onClick={toggleRadar} />
+        <LogStats />
       </Kb.Box2>
     </>
   )
