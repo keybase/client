@@ -49,6 +49,7 @@ export const deleteTeamWaitingKey = (teamID: Types.TeamID) => `teamDelete:${team
 export const leaveTeamWaitingKey = (teamname: Types.Teamname) => `teamLeave:${teamname}`
 export const teamRenameWaitingKey = 'teams:rename'
 export const loadWelcomeMessageWaitingKey = (teamID: Types.TeamID) => `loadWelcomeMessage:${teamID}`
+export const setWelcomeMessageWaitingKey = (teamID: Types.TeamID) => `setWelcomeMessage:${teamID}`
 
 export const initialChannelInfo = Object.freeze<Types.ChannelInfo>({
   channelname: '',
@@ -173,6 +174,7 @@ const emptyState: Types.State = {
   errorInAddToTeam: '',
   errorInChannelCreation: '',
   errorInEditDescription: '',
+  errorInEditWelcomeMessage: '',
   errorInEmailInvite: emptyEmailInviteError,
   errorInSettings: '',
   errorInTeamCreation: '',
@@ -473,7 +475,7 @@ export const getTeamRetentionPolicyByID = (state: TypedState, teamID: Types.Team
 export const getTeamWelcomeMessageByID = (
   state: TypedState,
   teamID: Types.TeamID
-): Types.WelcomeMessage | null => state.teams.teamIDToWelcomeMessage.get(teamID) ?? null
+): RPCChatTypes.WelcomeMessageDisplay | null => state.teams.teamIDToWelcomeMessage.get(teamID) ?? null
 
 export const getSelectedTeams = (): Types.TeamID[] => {
   const path = getFullRoute()

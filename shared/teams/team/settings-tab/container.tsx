@@ -57,6 +57,11 @@ export default Container.connect(
       ),
     clearError: () => dispatch(TeamsGen.createSettingsError({error: ''})),
     loadWelcomeMessage: () => dispatch(TeamsGen.createLoadWelcomeMessage({teamID})),
+    onEditWelcomeMessage: () => {
+      dispatch(
+        RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'teamEditWelcomeMessage'}]})
+      )
+    },
     savePublicity: (settings: Types.PublicitySettings) =>
       dispatch(TeamsGen.createSetPublicity({settings, teamID})),
     saveRetentionPolicy: (policy: RetentionPolicy) =>
@@ -66,6 +71,7 @@ export default Container.connect(
     return {
       ...stateProps,
       loadWelcomeMessage: dispatchProps.loadWelcomeMessage,
+      onEditWelcomeMessage: dispatchProps.onEditWelcomeMessage,
       savePublicity: (
         settings: Types.PublicitySettings,
         showRetentionWarning: boolean,

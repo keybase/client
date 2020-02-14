@@ -161,6 +161,20 @@ const loadWelcomeMessage = async (action: TeamsGen.LoadWelcomeMessagePayload, lo
   }
 }
 
+const setWelcomeMessage = async (action: TeamsGen.SetWelcomeMessagePayload, logger: Saga.SagaLogger) => {
+  const {message, teamID} = action.payload
+  try {
+    await RPCChatTypes.localSetWelcomeMessageRpcPromise(
+      {message, teamID},
+      Constants.setWelcomeMessageWaitingKey(teamID)
+    )
+    return TeamsGen.createLoadWelcomeMessage({teamID})
+  } catch (error) {
+    logger.error(error)
+    return TeamsGen.createSetWelcomeMessageError({error: error.desc})
+  }
+}
+
 const getTeamRetentionPolicy = async (
   state: TypedState,
   action: TeamsGen.GetTeamRetentionPolicyPayload,
@@ -1406,6 +1420,7 @@ const teamsSaga = function*() {
   yield* Saga.chainAction(TeamsGen.showTeamByName, showTeamByName)
 
   yield* Saga.chainAction(TeamsGen.loadWelcomeMessage, loadWelcomeMessage)
+  yield* Saga.chainAction(TeamsGen.setWelcomeMessage, setWelcomeMessage)
 
   // Hook up the team building sub saga
   yield* teamBuildingSaga()

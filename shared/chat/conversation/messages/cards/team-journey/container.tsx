@@ -38,7 +38,7 @@ type Props = {
   onAuthorClick: () => void
   teamname: string
   teamType: 'big' | 'small' | null
-  welcomeMessage: TeamTypes.WelcomeMessage | null
+  welcomeMessage: RPCChatTypes.WelcomeMessageDisplay | null
 }
 
 const TeamJourneyContainer = (props: Props) => {
