@@ -2659,9 +2659,12 @@ const fetchConversationBio = async (
 }
 
 const leaveConversation = async (action: Chat2Gen.LeaveConversationPayload) => {
-  await RPCChatTypes.localLeaveConversationLocalRpcPromise({
-    convID: Types.keyToConversationID(action.payload.conversationIDKey),
-  })
+  await RPCChatTypes.localLeaveConversationLocalRpcPromise(
+    {
+      convID: Types.keyToConversationID(action.payload.conversationIDKey),
+    },
+    Constants.waitingKeyLeaveConversation
+  )
 }
 
 const muteConversation = async (action: Chat2Gen.MuteConversationPayload) => {

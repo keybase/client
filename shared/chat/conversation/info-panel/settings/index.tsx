@@ -32,6 +32,9 @@ const SettingsPanel = (props: SettingsPanelProps) => {
   const spinnerForHide = Container.useSelector(state =>
     Container.anyWaiting(state, Constants.waitingKeyConvStatusChange(conversationIDKey))
   )
+  const spinnerForLeave = Container.useSelector(state =>
+    Container.anyWaiting(state, Constants.waitingKeyLeaveConversation)
+  )
 
   const canDeleteHistory =
     teamname && yourOperations ? yourOperations.deleteChatHistory && !meta.cannotWrite : true
@@ -104,6 +107,7 @@ const SettingsPanel = (props: SettingsPanelProps) => {
               label="Leave channel"
               onClick={onLeaveConversation}
               style={styles.smallButton}
+              waiting={spinnerForLeave}
             />
           )}
 
@@ -221,7 +225,12 @@ const SettingsPanel = (props: SettingsPanelProps) => {
             />
           ))}
         {entityType === 'channel' && channelname !== 'general' && (
-          <CaptionedDangerIcon onClick={onLeaveConversation} caption="Leave channel" icon="iconfont-leave" />
+          <CaptionedDangerIcon
+            onClick={onLeaveConversation}
+            caption="Leave channel"
+            icon="iconfont-leave"
+            spinner={spinnerForLeave}
+          />
         )}
       </Kb.ScrollView>
     </Kb.Box2>
