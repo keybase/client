@@ -30,7 +30,7 @@ const ChannelRow = (props: ChannelRowProps) => {
     dispatch(TeamsGen.createSetChannelSelected({channel: channel.channelname, selected, teamID}))
   }
   const onEditChannel = () =>
-    dispatch(nav.safeNavigateAppendPayload({path: [{props, selected: 'chatEditChannel'}]}))
+    dispatch(nav.safeNavigateAppendPayload({path: [{props, selected: 'teamEditChannel'}]}))
   const onDeleteChannel = () => dispatch(TeamsGen.createDeleteChannelConfirmed({conversationIDKey, teamID}))
 
   const checkCircle = (
