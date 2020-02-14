@@ -3858,6 +3858,7 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.kvstore.listKVEntries'
 // 'keybase.1.kvstore.delKVEntry'
 // 'keybase.1.log.registerLogger'
+// 'keybase.1.log.perfLogPoint'
 // 'keybase.1.logUi.log'
 // 'keybase.1.login.loginProvisionedDevice'
 // 'keybase.1.login.loginWithPaperKey'
