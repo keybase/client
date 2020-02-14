@@ -1,42 +1,18 @@
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import {isIPhoneX} from '../../constants/platform'
-import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as Container from '../util/container'
+import * as Kb from '../common-adapters'
+import * as Styles from '../styles'
+import {isIPhoneX} from '../constants/platform'
+import * as RPCTypes from '../constants/types/rpc-gen'
 // @ts-ignore
 import lagRadar from 'lag-radar'
-import flags from '../../util/feature-flags'
-
-type ProcessProps = {
-  cpu: string
-  cpuSeverity: RPCTypes.StatsSeverityLevel
-  resident: string
-  residentSeverity: RPCTypes.StatsSeverityLevel
-  free: string
-  goheap: string
-  goheapsys: string
-  goreleased: string
-  type: RPCTypes.ProcessType
-  virt: string
-}
-
-type DbProps = {
-  memCompaction: boolean
-  tableCompaction: boolean
-  type: RPCTypes.DbType
-}
+import flags from '../util/feature-flags'
 
 type Props = {
-  convLoaderActive: boolean
-  dbStats: Array<DbProps>
-  hasData: boolean
-  processStats: Array<ProcessProps>
-  selectiveSyncActive: boolean
+  stats: RPCTypes.RuntimeStats
 }
 
-const yesNo = (v: boolean) => {
-  return v ? 'YES' : 'NO'
-}
+const yesNo = (v?: boolean) => (v ? 'YES' : 'NO')
 
 const severityStyle = (s: RPCTypes.StatsSeverityLevel) => {
   switch (s) {
@@ -98,7 +74,7 @@ const makeRadar = (show: boolean) => {
   })
 }
 
-const RuntimeStatsDesktop = (props: Props) => {
+const RuntimeStatsDesktop = ({stats}: Props) => {
   const [showRadar, setShowRadar] = React.useState(flags.lagRadar)
   const refContainer = React.useCallback(
     node => {
@@ -113,29 +89,29 @@ const RuntimeStatsDesktop = (props: Props) => {
     makeRadar(show)
   }
 
-  return !props.hasData ? null : (
+  return (
     <>
       <Kb.Box style={Styles.globalStyles.flexGrow} />
       <Kb.Box2 direction="vertical" style={styles.container} gap="xxtiny" fullWidth={true}>
-        {props.processStats.map((stats, i) => {
+        {stats.processStats?.map((stat, i) => {
           return (
             <Kb.Box2 direction="vertical" key={`process${i}`} fullWidth={true} noShrink={true}>
               <Kb.Text type="BodyTinyBold" style={styles.stat}>
-                {processTypeString(stats.type)}
+                {processTypeString(stat.type)}
               </Kb.Text>
               <Kb.Text
-                style={Styles.collapseStyles([styles.stat, severityStyle(stats.cpuSeverity)])}
+                style={Styles.collapseStyles([styles.stat, severityStyle(stat.cpuSeverity)])}
                 type="BodyTiny"
-              >{`CPU: ${stats.cpu}`}</Kb.Text>
+              >{`CPU: ${stat.cpu}`}</Kb.Text>
               <Kb.Text
-                style={Styles.collapseStyles([styles.stat, severityStyle(stats.residentSeverity)])}
+                style={Styles.collapseStyles([styles.stat, severityStyle(stat.residentSeverity)])}
                 type="BodyTiny"
-              >{`Res: ${stats.resident}`}</Kb.Text>
-              <Kb.Text style={styles.stat} type="BodyTiny">{`Virt: ${stats.virt}`}</Kb.Text>
-              <Kb.Text style={styles.stat} type="BodyTiny">{`Free: ${stats.free}`}</Kb.Text>
-              <Kb.Text style={styles.stat} type="BodyTiny">{`GoHeap: ${stats.goheap}`}</Kb.Text>
-              <Kb.Text style={styles.stat} type="BodyTiny">{`GoHeapSys: ${stats.goheapsys}`}</Kb.Text>
-              <Kb.Text style={styles.stat} type="BodyTiny">{`GoReleased: ${stats.goreleased}`}</Kb.Text>
+              >{`Res: ${stat.resident}`}</Kb.Text>
+              <Kb.Text style={styles.stat} type="BodyTiny">{`Virt: ${stat.virt}`}</Kb.Text>
+              <Kb.Text style={styles.stat} type="BodyTiny">{`Free: ${stat.free}`}</Kb.Text>
+              <Kb.Text style={styles.stat} type="BodyTiny">{`GoHeap: ${stat.goheap}`}</Kb.Text>
+              <Kb.Text style={styles.stat} type="BodyTiny">{`GoHeapSys: ${stat.goheapsys}`}</Kb.Text>
+              <Kb.Text style={styles.stat} type="BodyTiny">{`GoReleased: ${stat.goreleased}`}</Kb.Text>
               <Kb.Divider />
               <Kb.Divider />
             </Kb.Box2>
@@ -148,32 +124,32 @@ const RuntimeStatsDesktop = (props: Props) => {
         <Kb.Text
           style={Styles.collapseStyles([
             styles.stat,
-            props.convLoaderActive ? styles.statWarning : styles.statNormal,
+            stats.convLoaderActive ? styles.statWarning : styles.statNormal,
           ])}
           type="BodyTiny"
-        >{`BkgLoaderActive: ${yesNo(props.convLoaderActive)}`}</Kb.Text>
+        >{`BkgLoaderActive: ${yesNo(stats.convLoaderActive)}`}</Kb.Text>
         <Kb.Text
           style={Styles.collapseStyles([
             styles.stat,
-            props.selectiveSyncActive ? styles.statWarning : styles.statNormal,
+            stats.selectiveSyncActive ? styles.statWarning : styles.statNormal,
           ])}
           type="BodyTiny"
-        >{`IndexerSyncActive: ${yesNo(props.selectiveSyncActive)}`}</Kb.Text>
+        >{`IndexerSyncActive: ${yesNo(stats.selectiveSyncActive)}`}</Kb.Text>
         <Kb.Divider />
         <Kb.Text type="BodyTinyBold" style={styles.stat}>
           LevelDB Compaction
         </Kb.Text>
-        {props.dbStats.map((stats, i) => {
+        {stats.dbStats?.map((stat, i) => {
           return (
             <Kb.Box2 direction="vertical" key={`db${i}`} fullWidth={true}>
               <Kb.Text
                 type="BodyTiny"
                 style={Styles.collapseStyles([
                   styles.stat,
-                  stats.memCompaction || stats.tableCompaction ? styles.statWarning : styles.statNormal,
+                  stat.memCompActive || stat.tableCompActive ? styles.statWarning : styles.statNormal,
                 ])}
               >
-                {`${dbTypeString(stats.type)}: ${yesNo(stats.memCompaction || stats.tableCompaction)}`}
+                {`${dbTypeString(stat.type)}: ${yesNo(stat.memCompActive || stat.tableCompActive)}`}
               </Kb.Text>
             </Kb.Box2>
           )
@@ -184,15 +160,8 @@ const RuntimeStatsDesktop = (props: Props) => {
   )
 }
 
-const compactionActive = (props: Props, typs: Array<RPCTypes.DbType>) => {
-  for (let i = 0; i < props.dbStats.length; i++) {
-    const stats = props.dbStats[i]
-    if (typs.indexOf(stats.type) >= 0 && (stats.memCompaction || stats.tableCompaction)) {
-      return true
-    }
-  }
-  return false
-}
+const compactionActive = (dbStats: Props['stats']['dbStats'], typs: Array<RPCTypes.DbType>) =>
+  dbStats?.some(stat => typs.indexOf(stat.type) >= 0 && (stat.memCompActive || stat.tableCompActive))
 
 const chatDbs = [RPCTypes.DbType.chat, RPCTypes.DbType.main]
 const kbfsDbs = [
@@ -202,57 +171,48 @@ const kbfsDbs = [
   RPCTypes.DbType.fsSyncBlockCacheMeta,
 ]
 
-const coreCompactionActive = (props: Props) => {
-  return compactionActive(props, chatDbs)
-}
-
-const kbfsCompactionActive = (props: Props) => {
-  return compactionActive(props, kbfsDbs)
-}
-
-const RuntimeStatsMobile = (props: Props) => {
-  if (!props.hasData) {
-    return null
-  }
-  const stats = props.processStats[0]
-  const coreCompaction = coreCompactionActive(props)
-  const kbfsCompaction = kbfsCompactionActive(props)
+const RuntimeStatsMobile = ({stats}: Props) => {
+  const processStat = stats.processStats?.[0]
+  const coreCompaction = compactionActive(stats.dbStats, chatDbs)
+  const kbfsCompaction = compactionActive(stats.dbStats, kbfsDbs)
   return (
     <Kb.Box2 direction="horizontal" style={styles.container} gap="xtiny" pointerEvents="none">
-      <Kb.Box2 direction="vertical">
-        <Kb.Box2 direction="horizontal" gap="xxtiny" alignSelf="flex-end">
-          <Kb.Text
-            style={Styles.collapseStyles([styles.stat, severityStyle(stats.cpuSeverity)])}
-            type="BodyTiny"
-          >{`C:${stats.cpu}`}</Kb.Text>
-          <Kb.Text
-            style={Styles.collapseStyles([styles.stat, severityStyle(stats.residentSeverity)])}
-            type="BodyTiny"
-          >{`R:${stats.resident}`}</Kb.Text>
-          <Kb.Text style={styles.stat} type="BodyTiny">{`V:${stats.virt}`}</Kb.Text>
-          <Kb.Text style={styles.stat} type="BodyTiny">{`F:${stats.free}`}</Kb.Text>
+      {processStat && (
+        <Kb.Box2 direction="vertical">
+          <Kb.Box2 direction="horizontal" gap="xxtiny" alignSelf="flex-end">
+            <Kb.Text
+              style={Styles.collapseStyles([styles.stat, severityStyle(processStat.cpuSeverity)])}
+              type="BodyTiny"
+            >{`C:${processStat.cpu}`}</Kb.Text>
+            <Kb.Text
+              style={Styles.collapseStyles([styles.stat, severityStyle(processStat.residentSeverity)])}
+              type="BodyTiny"
+            >{`R:${processStat.resident}`}</Kb.Text>
+            <Kb.Text style={styles.stat} type="BodyTiny">{`V:${processStat.virt}`}</Kb.Text>
+            <Kb.Text style={styles.stat} type="BodyTiny">{`F:${processStat.free}`}</Kb.Text>
+          </Kb.Box2>
+          <Kb.Box2 direction="horizontal" gap="xxtiny" alignSelf="flex-end">
+            <Kb.Text style={styles.stat} type="BodyTiny">{`GH:${processStat.goheap}`}</Kb.Text>
+            <Kb.Text style={styles.stat} type="BodyTiny">{`GS:${processStat.goheapsys}`}</Kb.Text>
+            <Kb.Text style={styles.stat} type="BodyTiny">{`GR:${processStat.goreleased}`}</Kb.Text>
+          </Kb.Box2>
         </Kb.Box2>
-        <Kb.Box2 direction="horizontal" gap="xxtiny" alignSelf="flex-end">
-          <Kb.Text style={styles.stat} type="BodyTiny">{`GH:${stats.goheap}`}</Kb.Text>
-          <Kb.Text style={styles.stat} type="BodyTiny">{`GS:${stats.goheapsys}`}</Kb.Text>
-          <Kb.Text style={styles.stat} type="BodyTiny">{`GR:${stats.goreleased}`}</Kb.Text>
-        </Kb.Box2>
-      </Kb.Box2>
+      )}
       <Kb.Box2 direction="vertical">
         <Kb.Text
           style={Styles.collapseStyles([
             styles.stat,
-            props.convLoaderActive ? styles.statWarning : styles.statNormal,
+            stats.convLoaderActive ? styles.statWarning : styles.statNormal,
           ])}
           type="BodyTiny"
-        >{`CLA: ${yesNo(props.convLoaderActive)}`}</Kb.Text>
+        >{`CLA: ${yesNo(stats.convLoaderActive)}`}</Kb.Text>
         <Kb.Text
           style={Styles.collapseStyles([
             styles.stat,
-            props.selectiveSyncActive ? styles.statWarning : styles.statNormal,
+            stats.selectiveSyncActive ? styles.statWarning : styles.statNormal,
           ])}
           type="BodyTiny"
-        >{`SSA: ${yesNo(props.selectiveSyncActive)}`}</Kb.Text>
+        >{`SSA: ${yesNo(stats.selectiveSyncActive)}`}</Kb.Text>
       </Kb.Box2>
       <Kb.Box2 direction="vertical">
         <Kb.Text
@@ -274,7 +234,16 @@ const RuntimeStatsMobile = (props: Props) => {
   )
 }
 
-const RuntimeStats = Styles.isMobile ? RuntimeStatsMobile : RuntimeStatsDesktop
+const RuntimeStats = () => {
+  const stats = Container.useSelector(state => state.config.runtimeStats)
+  return stats ? (
+    Styles.isMobile ? (
+      <RuntimeStatsMobile stats={stats} />
+    ) : (
+      <RuntimeStatsDesktop stats={stats} />
+    )
+  ) : null
+}
 
 const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({
