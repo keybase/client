@@ -10,6 +10,7 @@ type Props = {
   installInConvs: string[]
   setChannelPickerScreen: (show: boolean) => void
   setInstallInConvs: (convs: string[]) => void
+  setDisableDone: (disable: boolean) => void
   teamID: TeamTypes.TeamID
   teamName: string
 }
@@ -69,7 +70,7 @@ const Row = ({disabled, onToggle, selected, channelInfo}: RowProps) => (
   />
 )
 const ChannelPicker = (props: Props) => {
-  const {channelInfos, installInConvs, setInstallInConvs} = props
+  const {channelInfos, installInConvs, setInstallInConvs, setDisableDone} = props
   const [allSelected, setAllSelected] = React.useState(installInConvs.length === 0)
   const [searchText, setSearchText] = React.useState('')
   React.useEffect(() => {
@@ -77,6 +78,14 @@ const ChannelPicker = (props: Props) => {
       setInstallInConvs([])
     }
   }, [allSelected])
+
+  React.useEffect(() => {
+    if (!allSelected && installInConvs.length === 0) {
+      setDisableDone(true)
+      return
+    }
+    setDisableDone(false)
+  }, [allSelected, installInConvs])
 
   const rows = getChannels(channelInfos, searchText).map(([convID, channelInfo]) => (
     <Row
@@ -102,12 +111,14 @@ const ChannelPicker = (props: Props) => {
         />
       </Kb.Box2>
       <Kb.ScrollView style={styles.rowsContainer}>
-        <Kb.ListItem2
-          type="Small"
-          firstItem={true}
-          body={<Kb.Text type="BodyBold">All channels</Kb.Text>}
-          action={<Kb.CheckCircle checked={allSelected} onCheck={() => setAllSelected(!allSelected)} />}
-        />
+        <Kb.Box2 direction="horizontal" style={{backgroundColor: Styles.globalColors.blueGrey}}>
+          <Kb.ListItem2
+            type="Small"
+            firstItem={true}
+            body={<Kb.Text type="BodyBold">All channels</Kb.Text>}
+            action={<Kb.CheckCircle checked={allSelected} onCheck={() => setAllSelected(!allSelected)} />}
+          />
+        </Kb.Box2>
         {rows}
       </Kb.ScrollView>
     </Kb.Box2>
