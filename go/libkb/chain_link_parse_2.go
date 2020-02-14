@@ -5,10 +5,14 @@ package libkb
 
 import (
 	"crypto/sha256"
+	"encoding/base64"
 	"fmt"
 	"strconv"
 
+	"github.com/buger/jsonparser"
 	"github.com/keybase/client/go/jsonparserw"
+	"github.com/keybase/client/go/kbcrypto"
+	"github.com/keybase/client/go/msgpack"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
@@ -107,14 +111,11 @@ func importLinkFromServerV2Stubbed(m MetaContext, parent *SigChain, raw string) 
 
 func ImportLinkFromServer2(m MetaContext, parent *SigChain, data []byte, selfUID keybase1.UID) (ret *ChainLink, err error) {
 
-	s2, err := jsonparserw.GetString(data, "s2")
-	if err == nil && s2 != "" {
-		return importLinkFromServerV2Stubbed(m, parent, s2)
-	}
+	sig2Stubbed, _ := jsonparserw.GetString(data, "s2")
+	sig, _ := jsonparserw.GetString(data, "sig")
 
-	sig, err := jsonparserw.GetString(data, "sig")
-	if err != nil || sig == "" {
-		return nil, ChainLinkError{"cannot import link from server -- no sig field"}
+	if sig2Stubbed != "" {
+		return importLinkFromServerV2Stubbed(m, parent, sig2Stubbed)
 	}
 
 	versionRaw, err := jsonparserw.GetInt(data, "sig_version")
@@ -135,7 +136,7 @@ func ImportLinkFromServer2(m MetaContext, parent *SigChain, data []byte, selfUID
 	case sigVersion == KeybaseSignatureV1 && !isPGP:
 		linkID, sigID, payload, err = importLinkFromServerV1NaCl(m, parent, sig, data)
 	case sigVersion == KeybaseSignatureV2 && !isPGP:
-		linkID, sigID, payload, ol2, err = importLinkFromServerV2Unstubbed(m, parent, sig, data)
+		linkID, sigID, payload, ol2, err = importLinkFromServerV2Unstubbed(m, parent, data)
 	default:
 		err = ChainLinkError{fmt.Sprintf("bad link back from server; version=%d; pgp=%v", sigVersion, isPGP)}
 	}
@@ -187,13 +188,28 @@ func computeLinkIDFromHashWithWhitespaceFixes(m MetaContext, payload []byte) (Li
 	return fixedLinkID, nil
 }
 
-func getKIDFromPayload(payload []byte) (ret keybase1.KID, err error) {
-	s, err := jsonparserw.GetString(payload, "body", "key", "kid")
+func (s *sigChainPayloadJSON) KID() (ret keybase1.KID, err error) {
+	tmp, err := jsonparserw.GetString(s.b, "body", "key", "kid")
 	if err != nil {
 		return ret, err
 	}
-	ret = keybase1.KIDFromString(s)
+	ret = keybase1.KIDFromString(tmp)
 	return ret, nil
+}
+
+func (s *sigChainPayloadJSON) Prev() (LinkID, error) {
+	data, typ, _, err := jsonparserw.Get(s.b, "prev")
+	if err != nil {
+		return nil, err
+	}
+	if typ == jsonparser.Null {
+		return nil, nil
+	}
+	if typ != jsonparser.String {
+		return nil, ChainLinkError{"bad JSON type for prev"}
+	}
+	tmp := string(data)
+	return LinkIDFromHex(tmp)
 }
 
 func importLinkFromServerV1NaCl(m MetaContext, parent *SigChain, sig string, packed []byte) (linkID LinkID, sigID keybase1.SigID, payload []byte, err error) {
@@ -202,7 +218,8 @@ func importLinkFromServerV1NaCl(m MetaContext, parent *SigChain, sig string, pac
 	if err != nil {
 		return nil, sigID, nil, err
 	}
-	payloadKID, err = getKIDFromPayload(payload)
+	payloadJSON := newSigChainPayloadJSON(string(payload))
+	payloadKID, err = payloadJSON.KID()
 	if err != nil {
 		return nil, sigID, nil, err
 	}
@@ -213,37 +230,104 @@ func importLinkFromServerV1NaCl(m MetaContext, parent *SigChain, sig string, pac
 	return linkID, sigID, payload, nil
 }
 
-func importLinkFromServerV2Unstubbed(m MetaContext, parent *SigChain, sig string, packed []byte) (linkID LinkID, sigID keybase1.SigID, payload []byte, ol2 *OuterLinkV2WithMetadata, err error) {
+type Sig2Imploded struct {
+	_struct   bool `codec:",toarray"` //nolint
+	Sig       kbcrypto.NaclSignature
+	OuterLink OuterLinkV2
+}
+
+type sigChainPayloadJSON struct {
+	s    string
+	b    []byte
+	hash LinkID
+}
+
+func newSigChainPayloadJSON(s string) *sigChainPayloadJSON {
+	return &sigChainPayloadJSON{s: s, b: []byte(s)}
+}
+
+func (s *sigChainPayloadJSON) String() string {
+	return s.s
+}
+
+func (s *sigChainPayloadJSON) Bytes() []byte {
+	return s.b
+}
+
+func (s *sigChainPayloadJSON) Hash() LinkID {
+	return ComputeLinkID(s.b)
+}
+
+func getPayloadJSONFromServerLink(packed []byte) (*sigChainPayloadJSON, error) {
 	data, _, _, err := jsonparserw.Get(packed, "payload_json")
 	if err != nil {
-		return nil, sigID, nil, nil, err
+		return nil, err
 	}
 	sdata, err := strconv.Unquote(`"` + string(data) + `"`)
 	if err != nil {
-		return nil, sigID, nil, nil, err
+		return nil, err
 	}
-	payload = []byte(sdata)
-	ol2, err = DecodeOuterLinkV2(sig)
+	return newSigChainPayloadJSON(sdata), nil
+}
+
+func decodeSig2Imploded(s string) (*Sig2Imploded, error) {
+	raw, err := base64.StdEncoding.DecodeString(s)
+	if err != nil {
+		return nil, err
+	}
+	var ret Sig2Imploded
+	if !msgpack.IsEncodedMsgpackArray(raw) {
+		return nil, ChainLinkError{"expected a msgpack array but got leading junk"}
+	}
+	err = msgpack.Decode(&ret, raw)
+	if err != nil {
+		return nil, err
+	}
+	return &ret, nil
+}
+
+func importLinkFromServerV2Unstubbed(m MetaContext, parent *SigChain, packed []byte) (linkID LinkID, sigID keybase1.SigID, payload []byte, ol2 *OuterLinkV2WithMetadata, err error) {
+	var sig2ImplodedRaw string
+	var sig2Imploded *Sig2Imploded
+	var payloadJSON *sigChainPayloadJSON
+
+	sig2ImplodedRaw, err = jsonparserw.GetString(packed, "si2")
+	if err != nil || sig2ImplodedRaw == "" {
+		return nil, sigID, nil, nil, ChainLinkError{"no si2 field as expected"}
+	}
+
+	payloadJSON, err = getPayloadJSONFromServerLink(packed)
 	if err != nil {
 		return nil, sigID, nil, nil, err
 	}
-	linkID = ol2.Curr
-	if !isJSONObject(payload, linkID) {
+
+	innerLinkID := payloadJSON.Hash()
+
+	sig2Imploded, err = decodeSig2Imploded(sig2ImplodedRaw)
+	if err != nil {
+		return nil, sigID, nil, nil, err
+	}
+
+	sig2Imploded.OuterLink.Curr = innerLinkID
+	var prev LinkID
+	prev, err = payloadJSON.Prev()
+	if err != nil {
+		return nil, sigID, nil, nil, err
+	}
+	sig2Imploded.OuterLink.Prev = prev
+
+	linkID, err = sig2Imploded.OuterLink.LinkID(m)
+	if err != nil {
+		return nil, sigID, nil, nil, err
+	}
+
+	if !isJSONObject(payloadJSON.Bytes(), linkID) {
 		err = ChainLinkError{"expected a JSON object as payload_json"}
 		return nil, sigID, nil, nil, err
 	}
-	if ol2.SeqType == 0 {
+	if sig2Imploded.OuterLink.SeqType == 0 {
 		// Assume public if unset
-		ol2.SeqType = keybase1.SeqType_PUBLIC
-	}
-	var payloadKID keybase1.KID
-	payloadKID, err = getKIDFromPayload(payload)
-	if err != nil {
-		return nil, sigID, nil, nil, err
-	}
-	if !payloadKID.Equal(ol2.kid) {
-		err = ChainLinkError{"KID mismatch on V2 unstubbed link"}
-		return nil, sigID, nil, nil, err
+		sig2Imploded.OuterLink.SeqType = keybase1.SeqType_PUBLIC
 	}
 
 	return linkID, sigID, payload, ol2, err
@@ -259,5 +343,10 @@ func importLinkFromServerPGP(m MetaContext, parent *SigChain, sig string, packed
 	if err != nil {
 		return nil, sigID, nil, err
 	}
+
+	if !isJSONObject(payload, linkID) {
+		return nil, sigID, nil, ChainLinkError{"Expected a JSON payload, but got leading junk"}
+	}
+
 	return linkID, sigID, payload, nil
 }

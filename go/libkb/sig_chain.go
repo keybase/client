@@ -255,6 +255,7 @@ func (sc *SigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID keyba
 			"nopj":          B{true},
 			"noph":          B{true},
 			"nokid":         B{true},
+			"implode":       B{true},
 			"read_deleted":  B{readDeleted},
 		},
 	})

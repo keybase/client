@@ -258,13 +258,36 @@ func encodeOuterLink(
 		return encodedOuterLink, err
 	}
 
+	var highSkipSeqno *keybase1.Seqno
+	var highSkipHash *LinkID
+	if highSkip != nil {
+		highSkipSeqno = &highSkip.Seqno
+		highSkipHash = &highSkip.Hash
+	}
+
+	return encodeOuterLinkWithLinkID(m, v2LinkType, seqno, currLinkID, prevLinkID, seqType, ignoreIfUnsupported, highSkipSeqno, highSkipHash)
+}
+
+func encodeOuterLinkWithLinkID(
+	m MetaContext,
+	v2LinkType SigchainV2Type,
+	seqno keybase1.Seqno,
+	currLinkID LinkID,
+	prevLinkID LinkID,
+	seqType keybase1.SeqType,
+	ignoreIfUnsupported SigIgnoreIfUnsupported,
+	highSkipSeqno *keybase1.Seqno,
+	highSkipHash *LinkID,
+) ([]byte, error) {
+
+	var encodedOuterLink []byte
+	var err error
+
 	// When 2.3 links are mandatory, it will be invalid for highSkip == nil,
 	// so the featureflag check will be removed and the nil check will result
 	// in an error.
 	allowHighSkips := m.G().Env.GetFeatureFlags().HasFeature(EnvironmentFeatureAllowHighSkips)
-	if allowHighSkips && highSkip != nil {
-		highSkipSeqno := &highSkip.Seqno
-		highSkipHash := &highSkip.Hash
+	if allowHighSkips && highSkipSeqno != nil {
 		outerLink := OuterLinkV2{
 			Version:             2,
 			Seqno:               seqno,
@@ -338,6 +361,14 @@ func MakeSigchainV2OuterSig(
 
 	linkID = ComputeLinkID(encodedOuterLink)
 	return sig, sigid, linkID, nil
+}
+
+func (o *OuterLinkV2) LinkID(m MetaContext) (LinkID, error) {
+	raw, err := encodeOuterLinkWithLinkID(m, o.LinkType, o.Seqno, o.Curr, o.Prev, o.SeqType, o.IgnoreIfUnsupported, o.HighSkipSeqno, o.HighSkipHash)
+	if err != nil {
+		return nil, err
+	}
+	return ComputeLinkID(raw), nil
 }
 
 func DecodeStubbedOuterLinkV2(b64encoded string) (*OuterLinkV2WithMetadata, error) {
