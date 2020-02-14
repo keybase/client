@@ -639,7 +639,7 @@ const moveOrCopy = async (state: Container.TypedState, action: FsGen.MovePayload
         ? RPCTypes.SimpleFSSimpleFSMoveRpcPromise
         : RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise
     await Promise.all(params.map(p => rpc(p)))
-    return Promise.all(params.map(({opID}) => RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID})))
+    return await Promise.allSettled(params.map(({opID}) => RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID})))
     // We get source/dest paths from state rather than action, so we can't
     // just retry it. If we do want retry in the future we can include those
     // paths in the action.
