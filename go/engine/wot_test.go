@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestWebOfTrust(t *testing.T) {
+func TestWebOfTrustVouch(t *testing.T) {
 	tc1 := SetupEngineTest(t, "wot")
 	tc2 := SetupEngineTest(t, "wot")
 	tc3 := SetupEngineTest(t, "wot")
@@ -93,4 +93,88 @@ func TestWebOfTrust(t *testing.T) {
 	require.NoError(tc1.T, err)
 	idt = fu1.User.IDTable()
 	require.Equal(tc1.T, lenBefore+2, idt.Len())
+}
+
+func TestWebOfTrustPending(t *testing.T) {
+	tcAlice := SetupEngineTest(t, "wot")
+	tcBob := SetupEngineTest(t, "wot")
+	defer tcAlice.Cleanup()
+	defer tcBob.Cleanup()
+	alice := CreateAndSignupFakeUser(tcAlice, "wot")
+	bob := CreateAndSignupFakeUser(tcBob, "wot")
+	mctxA := NewMetaContextForTest(tcAlice)
+	mctxB := NewMetaContextForTest(tcBob)
+	t.Log("alice and bob exist")
+
+	sigVersion := libkb.GetDefaultSigVersion(tcAlice.G)
+	trackUser(tcBob, bob, alice.NormalizedUsername(), sigVersion)
+	trackUser(tcAlice, alice, bob.NormalizedUsername(), sigVersion)
+	err := bob.LoadUser(tcBob)
+	require.NoError(tcBob.T, err)
+	err = alice.LoadUser(tcAlice)
+	require.NoError(tcAlice.T, err)
+	t.Log("alice and bob follow each other")
+
+	pending, err := libkb.FetchPendingWotVouches(mctxA)
+	require.NoError(t, err)
+	require.Empty(t, pending)
+	t.Log("alice has no pending vouches")
+
+	firstVouch := "alice is wondibar but i don't have much confidence"
+	vouchTexts := []string{firstVouch}
+	arg := &WotVouchArg{
+		Vouchee:    alice.User.ToUserVersion(),
+		VouchTexts: vouchTexts,
+	}
+	eng := NewWotVouch(tcBob.G, arg)
+	err = RunEngine2(mctxB, eng)
+	require.NoError(t, err)
+	t.Log("bob vouches for alice without confidence")
+
+	pending, err = libkb.FetchPendingWotVouches(mctxA)
+	require.NoError(t, err)
+	require.Len(t, pending, 1)
+	bobVouch := pending[0]
+	require.Equal(t, bob.User.GetUID(), bobVouch.Voucher.Uid)
+	require.Equal(t, vouchTexts, bobVouch.VouchTexts)
+	require.Empty(t, bobVouch.Confidence)
+	t.Log("alice sees one pending vouch")
+
+	tcCharlie := SetupEngineTest(t, "wot")
+	defer tcCharlie.Cleanup()
+	charlie := CreateAndSignupFakeUser(tcCharlie, "wot")
+	mctxC := NewMetaContextForTest(tcCharlie)
+	t.Log("charlie exists")
+
+	trackUser(tcCharlie, charlie, alice.NormalizedUsername(), sigVersion)
+	trackUser(tcAlice, alice, charlie.NormalizedUsername(), sigVersion)
+	err = charlie.LoadUser(tcCharlie)
+	require.NoError(tcCharlie.T, err)
+	t.Log("alice and charlie follow each other")
+
+	vouchTexts = []string{"alice is wondibar and doug agrees"}
+	confidence := keybase1.Confidence{
+		UsernameVerifiedVia: keybase1.UsernameVerificationType_VIDEO,
+		VouchedBy:           []string{"t_doug"},
+		KnownOnKeybaseDays:  78,
+	}
+	arg = &WotVouchArg{
+		Vouchee:    alice.User.ToUserVersion(),
+		VouchTexts: vouchTexts,
+		Confidence: confidence,
+	}
+	eng = NewWotVouch(tcCharlie.G, arg)
+	err = RunEngine2(mctxC, eng)
+	require.NoError(t, err)
+	t.Log("charlie vouches for alice with confidence")
+
+	pending, err = libkb.FetchPendingWotVouches(mctxA)
+	require.NoError(t, err)
+	require.Len(t, pending, 2)
+	require.EqualValues(t, bobVouch, pending[0])
+	charlieVouch := pending[1]
+	require.Equal(t, charlie.User.GetUID(), charlieVouch.Voucher.Uid)
+	require.Equal(t, vouchTexts, charlieVouch.VouchTexts)
+	require.Equal(t, confidence, charlieVouch.Confidence)
+	t.Log("alice sees two pending vouches that look right")
 }

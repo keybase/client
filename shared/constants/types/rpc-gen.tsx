@@ -2929,6 +2929,7 @@ export type ParamProofServiceConfig = {readonly version: Int; readonly domain: S
 export type ParamProofUsernameConfig = {readonly re: String; readonly min: Int; readonly max: Int}
 export type PassphraseStream = {readonly passphraseStream: Bytes; readonly generation: Int}
 export type Path = {PathType: PathType.local; local: String} | {PathType: PathType.kbfs; kbfs: KBFSPath} | {PathType: PathType.kbfsArchived; kbfsArchived: KBFSArchivedPath}
+export type PendingVouch = {readonly voucher: UserVersion; readonly proof: SigID; readonly vouchTexts?: Array<String> | null; readonly confidence: Confidence}
 export type PerTeamKey = {readonly gen: PerTeamKeyGeneration; readonly seqno: Seqno; readonly sigKID: KID; readonly encKID: KID}
 export type PerTeamKeyAndCheck = {readonly ptk: PerTeamKey; readonly check: PerTeamSeedCheckPostImage}
 export type PerTeamKeyGeneration = Int
@@ -4128,5 +4129,6 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.user.findNextMerkleRootAfterRevoke'
 // 'keybase.1.user.findNextMerkleRootAfterReset'
 // 'keybase.1.user.getTeamBlocks'
+// 'keybase.1.wot.wotPending'
 // 'keybase.1.wot.wotVouch'
 // 'keybase.1.wot.wotVouchCLI'

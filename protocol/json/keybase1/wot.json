@@ -53,9 +53,46 @@
           "jsonkey": "known_on_keybase_days,omitempty"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "PendingVouch",
+      "fields": [
+        {
+          "type": "UserVersion",
+          "name": "voucher"
+        },
+        {
+          "type": "SigID",
+          "name": "proof"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "vouchTexts"
+        },
+        {
+          "type": "Confidence",
+          "name": "confidence"
+        }
+      ]
     }
   ],
   "messages": {
+    "wotPending": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "PendingVouch"
+      }
+    },
     "wotVouch": {
       "request": [
         {

@@ -23,6 +23,15 @@ protocol wot {
     int knownOnKeybaseDays;
   }
 
+  record PendingVouch {
+    UserVersion voucher;
+    SigID proof;
+    array<string> vouchTexts;
+    Confidence confidence;
+  }
+
+  array<PendingVouch> wotPending(int sessionID);
+
   void wotVouch(int sessionID, UserVersion uv, array<string> vouchTexts, Confidence confidence);
 
   void wotVouchCLI(int sessionID, string assertion, array<string> vouchTexts, Confidence confidence);
