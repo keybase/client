@@ -64,6 +64,7 @@ const InstallBotPopup = (props: Props) => {
   const [installWithMentions, setInstallWithMentions] = React.useState(true)
   const [installWithRestrict, setInstallWithRestrict] = React.useState(true)
   const [installInConvs, setInstallInConvs] = React.useState<string[]>([])
+  const [disableDone, setDisableDone] = React.useState(false)
   const {
     commands,
     channelInfos,
@@ -399,6 +400,7 @@ const InstallBotPopup = (props: Props) => {
         channelInfos={channelInfos}
         installInConvs={installInConvs}
         setChannelPickerScreen={setChannelPickerScreen}
+        setDisableDone={setDisableDone}
         setInstallInConvs={setInstallInConvs}
         teamID={teamID}
         teamName={teamName}
@@ -499,8 +501,9 @@ const InstallBotPopup = (props: Props) => {
   const doneButton = showDoneButton && (
     <Kb.Button
       fullWidth={true}
-      label="Done"
+      label={disableDone ? 'Select at least one channel' : 'Done'}
       onClick={() => setChannelPickerScreen(false)}
+      disabled={disableDone}
       mode="Primary"
       type="Default"
     />
