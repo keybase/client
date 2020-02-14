@@ -297,6 +297,12 @@ export default () => {
     } catch (e) {
       console.log('spellcheck list error', e)
     }
+
+    try {
+      console.log('spellcheck avail2: ', win.webContents.session.getSpellCheckerLanguages())
+    } catch (e) {
+      console.log('spellcheck list2 error', e)
+    }
   }
 
   if (windowState.isFullScreen) {
