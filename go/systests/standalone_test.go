@@ -18,7 +18,7 @@ type standaloneUserArgs struct {
 	suppressTeamChatAnnounce bool
 }
 
-func makeUserStandalone(t *testing.T, pre string, opts standaloneUserArgs) *userPlusDevice {
+func makeUserStandalone(t *testing.T, tt *teamTester, pre string, opts standaloneUserArgs) *userPlusDevice {
 	tctx := setupTest(t, pre)
 	var u userPlusDevice
 
@@ -80,6 +80,8 @@ func makeUserStandalone(t *testing.T, pre string, opts standaloneUserArgs) *user
 	u.device.userClient = keybase1.UserClient{Cli: cli}
 	u.device.accountClient = keybase1.AccountClient{Cli: cli}
 
+	tt.users = append(tt.users, &u)
+
 	return &u
 }
 
@@ -87,7 +89,7 @@ func TestStandaloneTeamMemberOps(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
-	tt.users = append(tt.users, makeUserStandalone(t, "user1", standaloneUserArgs{}))
+	makeUserStandalone(t, tt, "user1", standaloneUserArgs{})
 	tt.addUser("user2")
 
 	team := tt.users[0].createTeam()
