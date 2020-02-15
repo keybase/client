@@ -5,11 +5,11 @@ import (
 
 	"fmt"
 
+	"github.com/keybase/client/go/teams"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/teams"
-	"github.com/stretchr/testify/require"
 )
 
 func TestSubteamAdminships(t *testing.T) {
@@ -129,8 +129,6 @@ func (s *subteamTest) Verify(
 	ctx *subteamTestCtx,
 	details []keybase1.AnnotatedSubteamMemberDetails,
 ) {
-	ctx.T.Logf("test %s %d", s.teamName, ctx.verifyCounter)
-
 	if s.Role != keybase1.TeamRole_NONE {
 		row := details[ctx.verifyCounter]
 		require.Equal(ctx.T, ctx.Bob.username, row.Details.Username, "username should match")
@@ -211,8 +209,6 @@ func TestSubteamMembership(t *testing.T) {
 		ctx.Bob.username,
 	)
 	require.NoError(t, err)
-
-	t.Logf("%#v", details)
 
 	// run the verification
 	rootTeam.Verify(ctx, details)
