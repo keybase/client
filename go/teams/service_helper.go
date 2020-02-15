@@ -2306,7 +2306,10 @@ func GetUserSubteamMemberships(m libkb.MetaContext, id keybase1.TeamID, username
 		return nil, err
 	}
 
-	for _, entry := range tree.Entries {
+	// Inject the root team into the result
+	for _, entry := range append([]keybase1.SubteamListEntry{
+		{TeamID: id},
+	}, tree.Entries...) {
 		tracer.Stage(fmt.Sprintf("resolving membership in %s", entry.Name))
 
 		team, err := GetMaybeAdminByID(m.Ctx(), m.G(), entry.TeamID, entry.TeamID.IsPublic())
