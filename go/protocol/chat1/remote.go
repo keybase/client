@@ -1356,6 +1356,7 @@ type NewConversationRemote2Arg struct {
 	MembersType      ConversationMembersType `codec:"membersType" json:"membersType"`
 	TopicNameState   *TopicNameState         `codec:"topicNameState,omitempty" json:"topicNameState,omitempty"`
 	MemberSourceConv *ConversationID         `codec:"memberSourceConv,omitempty" json:"memberSourceConv,omitempty"`
+	RetentionPolicy  *RetentionPolicy        `codec:"retentionPolicy,omitempty" json:"retentionPolicy,omitempty"`
 }
 
 type GetMessagesRemoteArg struct {
