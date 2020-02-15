@@ -12,12 +12,14 @@ import * as Constants from '../../../constants/chat2'
 
 type BotProps = RPCTypes.FeaturedBot & {
   description?: string
+  firstItem?: boolean
   onClick: (username: string) => void
 }
 
 export const Bot = (props: BotProps) => {
-  const {botAlias, description, botUsername, onClick} = props
+  const {botAlias, description, botUsername} = props
   const {ownerTeam, ownerUser} = props
+  const {onClick, firstItem} = props
   const lower = (
     <Kb.Box2
       direction="horizontal"
@@ -56,20 +58,18 @@ export const Bot = (props: BotProps) => {
     </Kb.Box2>
   )
   return (
-    <Kb.ClickableBox onClick={() => onClick(botUsername)}>
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
-        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.rowContainer}>
-          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.row}>
-            <Kb.Avatar size={Styles.isMobile ? 48 : 32} style={styles.avatarStyle} username={botUsername} />
-            <Kb.Box2 direction="vertical" fullWidth={true} style={{flex: 1}}>
-              {usernameDisplay}
-              {lower}
-            </Kb.Box2>
-          </Kb.Box2>
+    <Kb.ListItem2
+      onClick={() => onClick(botUsername)}
+      type="Large"
+      firstItem={!!firstItem}
+      icon={<Kb.Avatar size={Styles.isMobile ? 48 : 32} style={styles.avatarStyle} username={botUsername} />}
+      body={
+        <Kb.Box2 direction="vertical" style={styles.container}>
+          {usernameDisplay}
+          {description ? lower : null}
         </Kb.Box2>
-        <Kb.Divider style={styles.divider} />
-      </Kb.Box2>
-    </Kb.ClickableBox>
+      }
+    />
   )
 }
 
@@ -133,6 +133,7 @@ type Props = {
 }
 
 const inThisChannelHeader = 'bots: in this channel'
+const inThisTeamHeader = 'bots: in this team'
 const featuredBotsHeader = 'bots: featured bots'
 const loadMoreBotsButton = 'bots: load more'
 const addBotButton = 'bots: add bot'
@@ -174,17 +175,19 @@ export default (props: Props) => {
   }
 
   const featuredBotsMap = Container.useSelector(state => state.chat2.featuredBotsMap)
-  const featuredBots = BotConstants.getFeaturedSorted(featuredBotsMap).filter(
-    k =>
-      !botUsernames.includes(k.botUsername) &&
-      !(!adhocTeam && TeamConstants.userInTeamNotBotWithInfo(teamMembers, k.botUsername))
-  )
+  const featuredBots = BotConstants.getFeaturedSorted(featuredBotsMap)
+    .filter(
+      k =>
+        !botUsernames.includes(k.botUsername) &&
+        !(!adhocTeam && TeamConstants.userInTeamNotBotWithInfo(teamMembers, k.botUsername))
+    )
+    .map((bot, index) => ({...bot, index}))
   const infoMap = Container.useSelector(state => state.users.infoMap)
   const loadedAllBots = Container.useSelector(state => state.chat2.featuredBotsLoaded)
 
-  const installedBots: Array<RPCTypes.FeaturedBot> = botUsernames.map(
-    b =>
-      featuredBotsMap.get(b) ?? {
+  const usernamesToFeaturedBots = (usernames: string[]) =>
+    usernames.map((b, index) => ({
+      ...(featuredBotsMap.get(b) ?? {
         botAlias: botAliases[b] ?? (infoMap.get(b) || {fullname: ''}).fullname,
         botUsername: b,
         description: infoMap.get(b)?.bio ?? '',
@@ -192,8 +195,14 @@ export default (props: Props) => {
         extendedDescriptionRaw: '',
         isPromoted: false,
         rank: 0,
-      }
-  )
+      }),
+      index,
+    }))
+
+  // bots in conv
+  const botsInConv = teamType === 'big' ? botUsernames.filter(b => participantsAll.includes(b)) : botUsernames
+
+  const botsInTeam = botUsernames.filter(b => !botsInConv.includes(b))
 
   const onBotAdd = () => {
     dispatch(
@@ -228,8 +237,10 @@ export default (props: Props) => {
     {
       data: [
         ...(canManageBots ? [addBotButton] : []),
-        ...(installedBots.length > 0 ? [inThisChannelHeader] : []),
-        ...installedBots,
+        ...(botsInConv.length > 0 ? [inThisChannelHeader] : []),
+        ...usernamesToFeaturedBots(botsInConv),
+        ...(botsInTeam.length > 0 ? [inThisTeamHeader] : []),
+        ...usernamesToFeaturedBots(botsInTeam),
         featuredBotsHeader,
         ...(featuredBots.length > 0 ? featuredBots : []),
         ...(!loadedAllBots && featuredBots.length > 0 ? [loadMoreBotsButton] : []),
@@ -250,7 +261,14 @@ export default (props: Props) => {
         if (item === inThisChannelHeader) {
           return (
             <Kb.Text type="Header" style={styles.botHeaders}>
-              {teamname ? 'Installed in this team' : 'In this conversation'}
+              In this conversation
+            </Kb.Text>
+          )
+        }
+        if (item === inThisTeamHeader) {
+          return (
+            <Kb.Text type="Header" style={styles.botHeaders}>
+              Installed in this team
             </Kb.Text>
           )
         }
@@ -278,7 +296,7 @@ export default (props: Props) => {
         if (!item.botUsername) {
           return null
         } else {
-          return <Bot {...item} onClick={onBotSelect} />
+          return <Bot {...item} firstItem={item.index === 0} onClick={onBotSelect} />
         }
       },
       renderSectionHeader: renderTabs,
