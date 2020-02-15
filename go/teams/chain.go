@@ -1275,6 +1275,10 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 			return res, fmt.Errorf("could not determine if high user set changed")
 		}
 
+		if err := t.checkCompletedInvites(prevState, team.CompletedInvites); err != nil {
+			return res, fmt.Errorf("illegal completed_invites: %s", err)
+		}
+
 		moveState()
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
 		t.completeInvites(&res.newState, team.CompletedInvites)
@@ -2173,6 +2177,19 @@ func (t *teamSigchainPlayer) checkPerTeamKey(link SCChainLink, perTeamKey SCPerT
 		SigKID: perTeamKey.SigKID,
 		EncKID: perTeamKey.EncKID,
 	}, nil
+}
+
+func (t *teamSigchainPlayer) checkCompletedInvites(prevState *TeamSigChainState, completed map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm) error {
+	for inviteId := range completed {
+		invite, ok := prevState.inner.ActiveInvites[inviteId]
+		if !ok {
+			return fmt.Errorf("cannot find inviteId %s", inviteId)
+		}
+		if invite.MultiUse {
+			return fmt.Errorf("invite %s is multi_use", inviteId)
+		}
+	}
+	return nil
 }
 
 // Update `userLog` with the membership in roleUpdates.
