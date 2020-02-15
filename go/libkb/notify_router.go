@@ -453,7 +453,7 @@ func (n *NotifyRouter) HandleClientOutOfDate(upgradeTo, upgradeURI, upgradeMsg s
 // changed (and must be cache-busted). It will broadcast the messages
 // to all curious listeners. NOTE: we now only do this for the current logged in user
 func (n *NotifyRouter) HandleUserChanged(mctx MetaContext, uid keybase1.UID, reason string) {
-	if !n.G().GetMyUID().Equal(uid) {
+	if !mctx.G().GetMyUID().Equal(uid) {
 		// don't send these for anyone but the current logged in user, no one cares about anything
 		// about other users
 		return
