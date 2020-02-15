@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Types from '../../constants/types/teams'
+import * as ChatTypes from '../../constants/types/chat2'
 import * as Styles from '../../styles'
 import ChannelTabs from './tabs/container'
 import {Row} from './rows'
@@ -10,22 +11,15 @@ export type Sections = Array<{data: Array<Row>; header?: Row; key: string}>
 
 export type Props = {
   teamID: Types.TeamID
-  selectedTab: Types.TabKey
+  conversationIDKey: ChatTypes.ConversationIDKey
   sections: Sections
-  setSelectedTab: (arg0: Types.TabKey) => void
 }
 
 const Channel = props => {
   const renderItem = ({item}: {item: Row}) => {
     switch (item.type) {
       case 'tabs':
-        return (
-          <ChannelTabs
-            teamID={props.teamID}
-            selectedTab={props.selectedTab}
-            setSelectedTab={props.setSelectedTab}
-          />
-        )
+        return <ChannelTabs teamID={props.teamID} conversationIDKey={props.conversationIDKey} />
       case 'settings':
       case 'header':
       case 'divider':

@@ -21,12 +21,9 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   }
 
   return {
-    channelInfos: state.teams.teamIDToChannelInfos.get(teamID),
-    invitesCollapsed: state.teams.invitesCollapsed,
-    subteamsFiltered: state.teams.subteamsFiltered,
-    teamDetails: Constants.getTeamDetails(state, teamID),
+    channelInfo: state.teams.teamIDToChannelInfos.get(teamID)?.get(conversationIDKey),
+    conversationIDKey,
     teamID,
-    teamMeta: Constants.getTeamMeta(state, teamID),
     yourOperations: Constants.getCanPerformByID(state, teamID),
     yourUsername: state.config.username,
   }

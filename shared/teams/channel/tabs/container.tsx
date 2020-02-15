@@ -1,13 +1,8 @@
 import * as BotsGen from '../../../actions/bots-gen'
 import * as Constants from '../../../constants/teams'
-import * as Types from '../../../constants/types/teams'
-import Tabs from '.'
+import Tabs, {OwnProps, Props} from '.'
 import * as Container from '../../../util/container'
 import {anyWaiting} from '../../../constants/waiting'
-
-type OwnProps = {
-  teamID: Types.TeamID
-}
 
 export default Container.connect(
   (state, {teamID}: OwnProps) => {
@@ -36,12 +31,13 @@ export default Container.connect(
   dispatch => ({
     _searchFeaturedBot: (query: string) => dispatch(BotsGen.createSearchFeaturedBots({query})),
   }),
-  stateProps => {
+  (stateProps, _, ownProps: OwnProps): Props => {
     // TODO: uncomment when building the bots tab.
     // const _bots = [...(stateProps._members?.values() ?? [])].filter(
     //   m => m.type === 'restrictedbot' || m.type === 'bot'
     // )
     return {
+      ...ownProps,
       admin: stateProps.admin,
       error: stateProps.error,
       loadBots: () => undefined,

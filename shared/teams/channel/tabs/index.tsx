@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/teams'
+import * as ChatTypes from '../../../constants/types/chat2'
 import * as Kb from '../../../common-adapters'
 import * as Container from '../../../util/container'
 import flags from '../../../util/feature-flags'
@@ -14,8 +15,12 @@ import {
 
 type TabKey = 'members' | 'attachments' | 'bots' | 'settings' | 'loading'
 
-type ChannelTabsProps = {
+export type OwnProps = {
   teamID: Types.TeamID
+  conversationIDKey: ChatTypes.ConversationIDKey
+}
+
+export type Props = OwnProps & {
   admin: boolean
   error?: string
   loadBots: () => void
@@ -31,7 +36,7 @@ const TabText = ({selected, text}: {selected: boolean; text: string}) => (
   </Kb.Text>
 )
 
-const ChannelTabs = (props: ChannelTabsProps) => {
+const ChannelTabs = (props: Props) => {
   const {teamID} = props
   const defaultSelectedTab = lastSelectedTabs[teamID] ?? 'members'
   const [selectedTab, _setSelectedTab] = React.useState<TabKey>(defaultSelectedTab)

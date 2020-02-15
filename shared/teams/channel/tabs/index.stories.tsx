@@ -4,11 +4,10 @@ import ChannelTabs from '.'
 
 const commonProps = {
   admin: false,
+  conversationIDKey: 'Cool Conversation',
   loadBots: action('loadBots'),
   loading: false,
   memberCount: 12,
-  selectedTab: 'members',
-  setSelectedTab: action('setSelectedTab'),
   teamID: 'Cool Team 😎 ID',
 }
 
