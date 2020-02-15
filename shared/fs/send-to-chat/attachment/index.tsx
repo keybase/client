@@ -37,6 +37,7 @@ const MobileSendAttachmentToChat = (props: Props) => {
   }
   return (
     <Kb.Modal
+      noScrollView={true}
       onClose={onCancel}
       header={{
         leftButton: (
