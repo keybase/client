@@ -330,17 +330,17 @@ func (b *InstrumentedBody) Close() (err error) {
 
 type InstrumentedTransport struct {
 	Contextified
-	Transport *http.Transport
-	tagger    func(*http.Request) string
-	gzipPool  sync.Pool
+	RoundTripper http.RoundTripper
+	tagger       func(*http.Request) string
+	gzipPool     sync.Pool
 }
 
 var _ http.RoundTripper = (*InstrumentedTransport)(nil)
 
-func NewInstrumentedTransport(g *GlobalContext, tagger func(*http.Request) string, xprt *http.Transport) *InstrumentedTransport {
+func NewInstrumentedTransport(g *GlobalContext, tagger func(*http.Request) string, xprt http.RoundTripper) *InstrumentedTransport {
 	return &InstrumentedTransport{
 		Contextified: NewContextified(g),
-		Transport:    xprt,
+		RoundTripper: xprt,
 		tagger:       tagger,
 		gzipPool: sync.Pool{
 			New: func() interface{} {
@@ -359,8 +359,9 @@ func (i *InstrumentedTransport) getGzipWriter(writer io.Writer) (*gzip.Writer, f
 }
 
 func (i *InstrumentedTransport) RoundTrip(req *http.Request) (resp *http.Response, err error) {
+	req.Close = true
 	record := rpc.NewNetworkInstrumenter(i.G().RemoteNetworkInstrumenterStorage, i.tagger(req))
-	resp, err = i.Transport.RoundTrip(req)
+	resp, err = i.RoundTripper.RoundTrip(req)
 	record.EndCall()
 	if err != nil {
 		if rerr := record.Finish(); rerr != nil {

@@ -2,6 +2,7 @@ package avatars
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -16,6 +17,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 
 	"github.com/keybase/client/go/libkb"
+	"golang.org/x/sync/semaphore"
 )
 
 type Srv struct {
@@ -23,6 +25,7 @@ type Srv struct {
 
 	httpSrv *manager.Srv
 	source  libkb.AvatarLoaderSource
+	sem     *semaphore.Weighted
 }
 
 func NewSrv(g *libkb.GlobalContext, httpSrv *manager.Srv, source libkb.AvatarLoaderSource) *Srv {
@@ -30,6 +33,7 @@ func NewSrv(g *libkb.GlobalContext, httpSrv *manager.Srv, source libkb.AvatarLoa
 		Contextified: libkb.NewContextified(g),
 		httpSrv:      httpSrv,
 		source:       source,
+		sem:          semaphore.NewWeighted(20),
 	}
 	s.httpSrv.HandleFunc("av", manager.SrvTokenModeDefault, s.serve)
 	return s
@@ -67,7 +71,12 @@ func (s *Srv) loadFromURL(raw string) (io.ReadCloser, error) {
 	}
 	switch parsed.Scheme {
 	case "http", "https":
-		resp, err := libkb.ProxyHTTPGet(s.G(), s.G().GetEnv(), raw, "AvatarSrv")
+		req, err := http.NewRequest("GET", raw, nil)
+		if err != nil {
+			return nil, err
+		}
+		req.Close = true
+		resp, err := libkb.ProxyHTTPDo(s.G(), s.G().GetEnv(), req, "AvatarSrv")
 		if err != nil {
 			return nil, err
 		}
@@ -92,6 +101,8 @@ func (s *Srv) loadPlaceholder(format keybase1.AvatarFormat, placeholderMap map[k
 }
 
 func (s *Srv) serve(w http.ResponseWriter, req *http.Request) {
+	s.sem.Acquire(context.Background(), 1)
+	defer s.sem.Release(1)
 	typ := req.URL.Query().Get("typ")
 	name := req.URL.Query().Get("name")
 	format := keybase1.AvatarFormat(req.URL.Query().Get("format"))
