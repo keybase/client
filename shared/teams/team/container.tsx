@@ -111,7 +111,7 @@ const TabsState = (props: TabsStateOwnProps) => {
   return <Connected {...props} setSelectedTab={setSelectedTab} selectedTab={selectedTab} />
 }
 
-const newNavigationOptions = (ownProps: TabsStateOwnProps) => ({
+const newNavigationOptions = () => ({
   headerHideBorder: true,
 })
 

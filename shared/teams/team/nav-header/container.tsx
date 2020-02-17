@@ -12,7 +12,6 @@ import {
 import * as Container from '../../../util/container'
 import {anyWaiting} from '../../../constants/waiting'
 import {selfToUser} from '../../../constants/team-building'
-import flags from '../../../util/feature-flags'
 
 type OwnProps = {
   teamID: Types.TeamID
