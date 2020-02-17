@@ -232,7 +232,7 @@ func TestSubteamForInviteLinkStore(t *testing.T) {
 	_ = subTeamID
 }
 
-func TestMultiUseInviteChain(t *testing.T) {
+func TestMultiUseInviteChains(t *testing.T) {
 	team, _ := runUnitFromFilename(t, "multi_use_invite.json")
 	spew.Dump(team.chain().inner.ActiveInvites)
 	spew.Dump(team.chain().inner.UsedInvites)
