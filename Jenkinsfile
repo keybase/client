@@ -505,7 +505,7 @@ def testGo(prefix, packagesToTest) {
     def hasKBFSChanges = packagesToTest.keySet().findIndexOf { key -> key =~ /^github.com\/keybase\/client\/go\/kbfs/ } >= 0
     if (hasKBFSChanges) {
       println "Running golangci-lint on KBFS"
-      dir('kbfs') {
+      dir('go') {
         retry(5) {
           timeout(activity: true, time: 180, unit: 'SECONDS') {
             sh 'make golangci-lint-kbfs'
@@ -519,7 +519,9 @@ def testGo(prefix, packagesToTest) {
       fetchChangeTarget()
       def BASE_COMMIT_HASH = getBaseCommitHash()
       timeout(activity: true, time: 360, unit: 'SECONDS') {
-        sh 'make golangci-lint-nonkbfs -e GOLANGCI_RUN_OPT="--new-from-rev ${BASE_COMMIT_HASH}"'
+        dir('go') {
+          sh 'make golangci-lint-nonkbfs -e GOLANGCI_RUN_OPT="--new-from-rev ${BASE_COMMIT_HASH}"'
+        }
       }
 
       println("Running golangci-lint for dead code")
