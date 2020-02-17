@@ -517,7 +517,7 @@ def testGo(prefix, packagesToTest) {
       fetchChangeTarget()
       def BASE_COMMIT_HASH = getBaseCommitHash()
       timeout(activity: true, time: 360, unit: 'SECONDS') {
-        sh 'make golangci-lint-nonkbfs -e GOLANGCI_RUN_OPT="--new-from-rev ${BASE_COMMIT_HASH}"'
+        sh "make golangci-lint-nonkbfs -e GOLANGCI_RUN_OPT='--new-from-rev ${BASE_COMMIT_HASH}'"
       }
 
       println("Running golangci-lint for dead code")
