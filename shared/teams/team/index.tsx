@@ -10,6 +10,7 @@ import renderRow from './rows/render'
 import {TeamDetailsSubscriber, TeamsSubscriber} from '../subscriber'
 import SelectionPopup from './selection-popup'
 import flags from '../../util/feature-flags'
+import {pluralize} from '../../util/string'
 export type Sections = Array<{data: Array<Row>; header?: Row; key: string}>
 
 export type Props = {
@@ -69,6 +70,7 @@ const Team = props => {
       <TeamsSubscriber />
       <TeamDetailsSubscriber teamID={props.teamID} />
       {Styles.isMobile && flags.teamsRedesign && <MobileHeader teamID={props.teamID} offset={offset} />}
+      {!Styles.isMobile && flags.teamsRedesign && <DesktopHeader teamID={props.teamID} />}
       <SectionList
         alwaysVounceVertical={false}
         renderItem={renderItem}
@@ -119,6 +121,22 @@ const MobileHeader = ({teamID, offset}: {teamID: Types.TeamID; offset: any}) => 
   )
 }
 
+const DesktopHeader = ({teamID, offset}: {teamID: Types.TeamID; offset: number}) => {
+  const meta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
+  return (
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
+      <Kb.NameWithIcon
+        horizontal={true}
+        teamname={meta.teamname}
+        size="smaller"
+        avatarSize={32}
+        title={meta.teamname}
+        metaOne={`${meta.memberCount} ${pluralize('member', meta.memberCount)}`}
+      />
+    </Kb.Box2>
+  )
+}
+
 const styles = Styles.styleSheetCreate(() => ({
   backButton: {
     bottom: 0,
@@ -134,7 +152,10 @@ const styles = Styles.styleSheetCreate(() => ({
     position: 'relative',
     width: '100%',
   },
-  header: {height: 40, left: 0, position: 'absolute', right: 0, top: 0},
+  header: Styles.platformStyles({
+    isElectron: {...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.small)},
+    isMobile: {height: 40, left: 0, position: 'absolute', right: 0, top: 0},
+  }),
   list: Styles.platformStyles({
     isElectron: {
       ...Styles.globalStyles.fillAbsolute,

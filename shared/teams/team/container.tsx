@@ -112,6 +112,7 @@ const TabsState = (props: TabsStateOwnProps) => {
 }
 
 const newNavigationOptions = () => ({
+  headerBottomStyle: {height: 0},
   headerHideBorder: true,
 })
 
