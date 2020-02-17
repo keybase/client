@@ -2,6 +2,7 @@ package terminalescaper
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"reflect"
 	"testing"
@@ -239,5 +240,33 @@ func Test_replace(t *testing.T) {
 	expect = "^[b^[^[b^["
 	if m != expect {
 		t.Errorf("Escaping: expected %q got %q", expect, m)
+	}
+
+}
+
+type NameError struct {
+	Why string
+}
+
+func (n *NameError) Error() string {
+	return n.Why
+}
+
+func newNameError(why string) error {
+	return &NameError{Why: why}
+}
+
+func getName() (string, error) {
+	return "", fmt.Errorf("failed to get name: %w", newNameError("dns"))
+}
+
+func Test1137(t *testing.T) {
+	_, err := getName()
+	var nameError *NameError
+	if !(errors.As(err, &nameError)) {
+		t.Fatalf("errors.As: Expected error to be a wrapped NameError")
+	}
+	if nameError.Why != "dns" {
+		t.Fatalf("errors.As: Expected `why` to be preserved")
 	}
 }
