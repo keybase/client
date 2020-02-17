@@ -3,7 +3,7 @@ package libkb
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
+	"reflect"
 
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -64,57 +64,10 @@ type wotExpansionUser struct {
 	Username string
 }
 
-// standardizeConfidence converts the confidence blob that's in the sig expansion into
-// the keybase1.Confidence type
-func standardizeConfidence(mctx MetaContext, expansionConfidence map[string]interface{}) (*keybase1.Confidence, error) {
-	var confidence keybase1.Confidence
-	// reach into expansionConfidence and change username_verified_via if present
-	if verificationRaw, ok := expansionConfidence["username_verified_via"]; ok {
-		// replace "video" -> "VIDEO" -> 2
-		verification, ok := verificationRaw.(string)
-		if !ok {
-			return nil, fmt.Errorf("cannot convert %v into UsernameVerifiedVia", verificationRaw)
-		}
-		expansionConfidence["username_verified_via"] = keybase1.UsernameVerificationTypeMap[strings.ToUpper(verification)]
-	}
-	// reach into expansionConfidence and change vouched_by if present
-	if vouchedByRaw, ok := expansionConfidence["vouched_by"]; ok {
-		// replace user []uids -> []username
-		vouchedByUIDs, ok := vouchedByRaw.([]interface{})
-		if !ok {
-			return nil, fmt.Errorf("cannot convert %v into list of uids", vouchedByUIDs)
-		}
-		var vouchedByUsernames []string
-		for _, vuid := range vouchedByUIDs {
-			uid, ok := vuid.(string)
-			if !ok {
-				return nil, fmt.Errorf("cannot convert %v into uid", vuid)
-			}
-			username, err := mctx.G().GetUPAKLoader().LookupUsername(mctx.Ctx(), keybase1.UID(uid))
-			if err != nil {
-				return nil, err
-			}
-			vouchedByUsernames = append(vouchedByUsernames, username.String())
-		}
-		expansionConfidence["vouched_by"] = vouchedByUsernames
-	}
-	// now expansionConfidence should match keybase1.Confidence, so serialize and deserialize
-	// to do the recursive type conversion
-	asJsonBytes, err := json.Marshal(expansionConfidence)
-	if err != nil {
-		return nil, err
-	}
-	err = json.Unmarshal(asJsonBytes, &confidence)
-	if err != nil {
-		return nil, err
-	}
-	return &confidence, nil
-}
-
 type wotExpansionDetails struct {
-	User                wotExpansionUser       `json:"user"`
-	ExpansionConfidence map[string]interface{} `json:"confidence"`
-	VouchTexts          []string               `json:"vouch_text"`
+	User       wotExpansionUser     `json:"user"`
+	Confidence *keybase1.Confidence `json:"confidence,omitempty"`
+	VouchTexts []string             `json:"vouch_text"`
 }
 
 func transformPending(mctx MetaContext, serverPending apiPendingWot) (res keybase1.PendingVouch, err error) {
@@ -134,22 +87,21 @@ func transformPending(mctx MetaContext, serverPending apiPendingWot) (res keybas
 	if err != nil {
 		return res, fmt.Errorf("error casting expansion object to expected web-of-trust schema: %s", err.Error())
 	}
+	if wotObj.Confidence != nil && reflect.DeepEqual(*wotObj.Confidence, keybase1.Confidence{}) {
+		// nil out an empty confidence
+		wotObj.Confidence = nil
+	}
 	err = assertVouchIsForMe(mctx, wotObj.User)
 	if err != nil {
 		mctx.Debug("web-of-trust pending vouch user-section doesn't look right: %+v", wotObj.User)
 		return res, fmt.Errorf("error verifying user section of web-of-trust expansion: %s", err.Error())
-	}
-	// convert the confidence object that's in the expansion to the standard type in keybase1
-	confidence, err := standardizeConfidence(mctx, wotObj.ExpansionConfidence)
-	if err != nil {
-		return res, fmt.Errorf("error standardizing confidence: %s", err.Error())
 	}
 	// build a PendingVouch
 	vouch := keybase1.PendingVouch{
 		Voucher:    voucher.ToUserVersion(),
 		Proof:      serverPending.SigID,
 		VouchTexts: wotObj.VouchTexts,
-		Confidence: *confidence,
+		Confidence: wotObj.Confidence,
 	}
 	return vouch, nil
 }

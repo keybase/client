@@ -81,7 +81,7 @@ func TestWebOfTrustVouch(t *testing.T) {
 		VouchTexts: []string{"charlie rocks"},
 		Confidence: keybase1.Confidence{
 			UsernameVerifiedVia: keybase1.UsernameVerificationType_VIDEO,
-			VouchedBy:           []string{"t_doug"},
+			VouchedBy:           []keybase1.UID{keybase1.UID("c4c565570e7e87cafd077509abf5f619")}, // t_doug
 			KnownOnKeybaseDays:  78,
 		},
 	}
@@ -137,7 +137,7 @@ func TestWebOfTrustPending(t *testing.T) {
 	bobVouch := pending[0]
 	require.Equal(t, bob.User.GetUID(), bobVouch.Voucher.Uid)
 	require.Equal(t, vouchTexts, bobVouch.VouchTexts)
-	require.Empty(t, bobVouch.Confidence)
+	require.Nil(t, bobVouch.Confidence)
 	t.Log("alice sees one pending vouch")
 
 	tcCharlie := SetupEngineTest(t, "wot")
@@ -155,7 +155,7 @@ func TestWebOfTrustPending(t *testing.T) {
 	vouchTexts = []string{"alice is wondibar and doug agrees"}
 	confidence := keybase1.Confidence{
 		UsernameVerifiedVia: keybase1.UsernameVerificationType_VIDEO,
-		VouchedBy:           []string{"t_doug"},
+		VouchedBy:           []keybase1.UID{keybase1.UID("c4c565570e7e87cafd077509abf5f619")}, // t_doug
 		KnownOnKeybaseDays:  78,
 	}
 	arg = &WotVouchArg{
@@ -175,6 +175,6 @@ func TestWebOfTrustPending(t *testing.T) {
 	charlieVouch := pending[1]
 	require.Equal(t, charlie.User.GetUID(), charlieVouch.Voucher.Uid)
 	require.Equal(t, vouchTexts, charlieVouch.VouchTexts)
-	require.Equal(t, confidence, charlieVouch.Confidence)
+	require.Equal(t, confidence, *charlieVouch.Confidence)
 	t.Log("alice sees two pending vouches that look right")
 }

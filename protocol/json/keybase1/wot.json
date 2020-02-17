@@ -8,16 +8,10 @@
   ],
   "types": [
     {
-      "type": "enum",
+      "type": "record",
       "name": "UsernameVerificationType",
-      "symbols": [
-        "NONE_0",
-        "AUDIO_1",
-        "VIDEO_2",
-        "EMAIL_3",
-        "OTHER_CHAT_4",
-        "IN_PERSON_5"
-      ]
+      "fields": [],
+      "typedef": "string"
     },
     {
       "type": "record",
@@ -26,7 +20,7 @@
         {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "UID"
           },
           "name": "vouchedBy",
           "jsonkey": "vouched_by,omitempty"
@@ -74,7 +68,10 @@
           "name": "vouchTexts"
         },
         {
-          "type": "Confidence",
+          "type": [
+            null,
+            "Confidence"
+          ],
           "name": "confidence"
         }
       ]

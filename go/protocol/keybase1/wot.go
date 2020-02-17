@@ -4,52 +4,19 @@
 package keybase1
 
 import (
-	"fmt"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 	"time"
 )
 
-type UsernameVerificationType int
+type UsernameVerificationType string
 
-const (
-	UsernameVerificationType_NONE       UsernameVerificationType = 0
-	UsernameVerificationType_AUDIO      UsernameVerificationType = 1
-	UsernameVerificationType_VIDEO      UsernameVerificationType = 2
-	UsernameVerificationType_EMAIL      UsernameVerificationType = 3
-	UsernameVerificationType_OTHER_CHAT UsernameVerificationType = 4
-	UsernameVerificationType_IN_PERSON  UsernameVerificationType = 5
-)
-
-func (o UsernameVerificationType) DeepCopy() UsernameVerificationType { return o }
-
-var UsernameVerificationTypeMap = map[string]UsernameVerificationType{
-	"NONE":       0,
-	"AUDIO":      1,
-	"VIDEO":      2,
-	"EMAIL":      3,
-	"OTHER_CHAT": 4,
-	"IN_PERSON":  5,
-}
-
-var UsernameVerificationTypeRevMap = map[UsernameVerificationType]string{
-	0: "NONE",
-	1: "AUDIO",
-	2: "VIDEO",
-	3: "EMAIL",
-	4: "OTHER_CHAT",
-	5: "IN_PERSON",
-}
-
-func (e UsernameVerificationType) String() string {
-	if v, ok := UsernameVerificationTypeRevMap[e]; ok {
-		return v
-	}
-	return fmt.Sprintf("%v", int(e))
+func (o UsernameVerificationType) DeepCopy() UsernameVerificationType {
+	return o
 }
 
 type Confidence struct {
-	VouchedBy           []string                 `codec:"vouchedBy" json:"vouched_by,omitempty"`
+	VouchedBy           []UID                    `codec:"vouchedBy" json:"vouched_by,omitempty"`
 	Proofs              []SigID                  `codec:"proofs" json:"proofs"`
 	UsernameVerifiedVia UsernameVerificationType `codec:"usernameVerifiedVia" json:"username_verified_via,omitempty"`
 	Other               string                   `codec:"other" json:"other"`
@@ -58,13 +25,13 @@ type Confidence struct {
 
 func (o Confidence) DeepCopy() Confidence {
 	return Confidence{
-		VouchedBy: (func(x []string) []string {
+		VouchedBy: (func(x []UID) []UID {
 			if x == nil {
 				return nil
 			}
-			ret := make([]string, len(x))
+			ret := make([]UID, len(x))
 			for i, v := range x {
-				vCopy := v
+				vCopy := v.DeepCopy()
 				ret[i] = vCopy
 			}
 			return ret
@@ -90,7 +57,7 @@ type PendingVouch struct {
 	Voucher    UserVersion `codec:"voucher" json:"voucher"`
 	Proof      SigID       `codec:"proof" json:"proof"`
 	VouchTexts []string    `codec:"vouchTexts" json:"vouchTexts"`
-	Confidence Confidence  `codec:"confidence" json:"confidence"`
+	Confidence *Confidence `codec:"confidence,omitempty" json:"confidence,omitempty"`
 }
 
 func (o PendingVouch) DeepCopy() PendingVouch {
@@ -108,7 +75,13 @@ func (o PendingVouch) DeepCopy() PendingVouch {
 			}
 			return ret
 		})(o.VouchTexts),
-		Confidence: o.Confidence.DeepCopy(),
+		Confidence: (func(x *Confidence) *Confidence {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Confidence),
 	}
 }
 
