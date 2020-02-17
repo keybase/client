@@ -2,7 +2,7 @@
 
 import groovy.json.JsonSlurperClassic
 
-helpers = fileLoader.fromGit('helpers', 'https://github.com/keybase/jenkins-helpers.git', 'master', null, 'linux')
+helpers = fileLoader.fromGit('helpers', 'https://github.com/keybase/jenkins-helpers.git', 'master', null, 'linux-testing')
 
 def withKbweb(closure) {
   try {
@@ -36,7 +36,15 @@ def logKbwebServices(container) {
   archive("kbweb-logs.tar.gz")
 }
 
-helpers.rootLinuxNode(env, {
+def rootLinuxNode(env, handleError, cleanup, closure) {
+  if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
+    println "Skipping build because PR title contains [ci-skip]"
+  } else {
+    nodeWithDockerCleanup("linux-testing", handleError, cleanup, closure)
+  }
+}
+
+rootLinuxNode(env, {
   helpers.slackOnError("client", env, currentBuild)
 }, {}) {
   properties([
@@ -489,8 +497,7 @@ def testGo(prefix, packagesToTest) {
     println "Installing golangci-lint"
     dir("..") {
       retry(5) {
-        // This works with go1.12.12 but not go1.13.1 with an error containing "invalid pseudo-version"
-        sh 'GO111MODULE=on go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.16.0'
+        sh 'GO111MODULE=on go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.23.6'
       }
     }
 
@@ -501,9 +508,7 @@ def testGo(prefix, packagesToTest) {
       dir('kbfs') {
         retry(5) {
           timeout(activity: true, time: 180, unit: 'SECONDS') {
-          // Ignore the `dokan` directory since it contains lots of c code.
-          // Ignore the `protocol` directory, autogeneration has some critques
-          sh 'go list -f "{{.Dir}}" ./...  | fgrep -v dokan | xargs realpath --relative-to=. | xargs golangci-lint run'
+            sh 'make golangci-lint-kbfs'
           }
         }
       }
@@ -514,7 +519,7 @@ def testGo(prefix, packagesToTest) {
       fetchChangeTarget()
       def BASE_COMMIT_HASH = getBaseCommitHash()
       timeout(activity: true, time: 360, unit: 'SECONDS') {
-        sh "go list -f '{{.Dir}}' ./...  | fgrep -v kbfs | fgrep -v protocol | xargs realpath --relative-to=. | xargs golangci-lint run --new-from-rev ${BASE_COMMIT_HASH} --deadline 5m0s"
+        sh 'make golangci-lint-nonkbfs -e GOLANGCI_RUN_OPT="--new-from-rev ${BASE_COMMIT_HASH}"'
       }
 
       println("Running golangci-lint for dead code")

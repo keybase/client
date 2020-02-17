@@ -275,13 +275,13 @@ func (h *Server) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.GetInboxAn
 	// Read inbox from the source
 	ib, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
 		types.InboxSourceDataSourceAll, nil, arg.Query)
-	if err != nil {
-		if _, ok := err.(UnknownTLFNameError); ok {
-			h.Debug(ctx, "GetInboxAndUnboxLocal: got unknown TLF name error, returning blank results")
-			ib.Convs = nil
-		} else {
-			return res, err
-		}
+	switch err.(type) {
+	case nil:
+	case UnknownTLFNameError:
+		h.Debug(ctx, "GetInboxAndUnboxLocal: got unknown TLF name error, returning blank results")
+		ib.Convs = nil
+	default:
+		return res, err
 	}
 
 	return chat1.GetInboxAndUnboxLocalRes{
@@ -304,13 +304,13 @@ func (h *Server) GetInboxAndUnboxUILocal(ctx context.Context, arg chat1.GetInbox
 	// Read inbox from the source
 	ib, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
 		types.InboxSourceDataSourceAll, nil, arg.Query)
-	if err != nil {
-		if _, ok := err.(UnknownTLFNameError); ok {
-			h.Debug(ctx, "GetInboxAndUnboxUILocal: got unknown TLF name error, returning blank results")
-			ib.Convs = nil
-		} else {
-			return res, err
-		}
+	switch err.(type) {
+	case nil:
+	case UnknownTLFNameError:
+		h.Debug(ctx, "GetInboxAndUnboxUILocal: got unknown TLF name error, returning blank results")
+		ib.Convs = nil
+	default:
+		return res, err
 	}
 	return chat1.GetInboxAndUnboxUILocalRes{
 		Conversations: utils.PresentConversationLocals(ctx, h.G(), uid, ib.Convs,

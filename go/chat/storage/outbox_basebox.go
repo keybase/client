@@ -48,7 +48,7 @@ func (s *outboxBaseboxStorage) readStorage(ctx context.Context) (res diskOutbox,
 
 	if memobox := outboxMemCache.Get(s.uid); memobox != nil {
 		s.Debug(ctx, "hit in memory cache")
-		res = (*memobox).DeepCopy()
+		res = memobox.DeepCopy()
 	} else {
 		found, ierr := s.readDiskBox(ctx, s.dbKey(), &res)
 		if ierr != nil {
