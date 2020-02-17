@@ -5,8 +5,10 @@ import * as Styles from '../../styles'
 import TeamTabs from './tabs/container'
 import {Row} from './rows'
 import renderRow from './rows/render'
+import NewHeader from './new-header'
 import {TeamDetailsSubscriber, TeamsSubscriber} from '../subscriber'
 import SelectionPopup from './selection-popup'
+import flags from '../../util/feature-flags'
 export type Sections = Array<{data: Array<Row>; header?: Row; key: string}>
 
 export type Props = {
@@ -22,7 +24,6 @@ const Team = props => {
       case 'tabs':
         return (
           <TeamTabs
-            offset={offset}
             teamID={props.teamID}
             selectedTab={props.selectedTab}
             setSelectedTab={props.setSelectedTab}
@@ -67,6 +68,7 @@ const Team = props => {
     <Kb.Box style={styles.container}>
       <TeamsSubscriber />
       <TeamDetailsSubscriber teamID={props.teamID} />
+      {flags.teamsRedesign && <NewHeader teamID={props.teamID} offset={offset} />}
       <SectionList
         alwaysVounceVertical={false}
         renderItem={renderItem}
@@ -96,9 +98,6 @@ const styles = Styles.styleSheetCreate(() => ({
       ...Styles.globalStyles.fillAbsolute,
       ...Styles.globalStyles.flexBoxColumn,
       alignItems: 'stretch',
-    },
-    isMobile: {
-      ...Styles.globalStyles.fillAbsolute,
     },
   }),
   listContentContainer: Styles.platformStyles({

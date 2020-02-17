@@ -6,7 +6,6 @@ import * as Container from '../../../util/container'
 import {anyWaiting} from '../../../constants/waiting'
 
 type OwnProps = {
-  offset?: any
   selectedTab: Types.TabKey
   setSelectedTab: (tab: Types.TabKey) => void
   teamID: Types.TeamID
@@ -63,7 +62,6 @@ export default Container.connect(
       numInvites: stateProps.numInvites,
       numRequests: stateProps.numRequests,
       numSubteams: stateProps.numSubteams,
-      offset: ownProps.offset,
       resetUserCount: stateProps.resetUserCount,
       selectedTab: stateProps.selectedTab,
       setSelectedTab: stateProps.setSelectedTab,
