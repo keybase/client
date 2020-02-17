@@ -171,7 +171,13 @@ func ExtractExpansionObj(expansionID string, expansionJSON string) (expansionObj
 
 	// verify the hash of the expansion object payload matches the expension id
 	objBytes, err := json.Marshal(expansion.Obj)
+	if err != nil {
+		return nil, err
+	}
 	hmacKey, err := hex.DecodeString(expansion.Key)
+	if err != nil {
+		return nil, err
+	}
 	mac := hmac.New(sha256.New, hmacKey)
 	if _, err := mac.Write(objBytes); err != nil {
 		return nil, err

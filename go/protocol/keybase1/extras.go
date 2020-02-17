@@ -3802,6 +3802,16 @@ const (
 	UsernameVerificationType_IN_PERSON  = "in_person"
 )
 
+var UsernameVerificationTypeMap = map[string]UsernameVerificationType{
+	"":           UsernameVerificationType_NONE,
+	"none":       UsernameVerificationType_NONE,
+	"audio":      UsernameVerificationType_AUDIO,
+	"video":      UsernameVerificationType_VIDEO,
+	"email":      UsernameVerificationType_EMAIL,
+	"other_chat": UsernameVerificationType_OTHER_CHAT,
+	"in_person":  UsernameVerificationType_IN_PERSON,
+}
+
 func (c Confidence) ToJsonw() *jsonw.Wrapper {
 	j := jsonw.NewDictionary()
 	if c.UsernameVerifiedVia != UsernameVerificationType_NONE {
