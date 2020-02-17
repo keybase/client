@@ -855,25 +855,29 @@ func (i *Inbox) MarkLocalRead(ctx context.Context, uid gregor1.UID, convID chat1
 }
 
 func (i *Inbox) Draft(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	text *string) (err Error) {
+	text *string) (modified bool, err Error) {
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 	ibox, err := i.readDiskInbox(ctx, uid, true)
 	if err != nil {
 		if _, ok := err.(MissError); ok {
-			return nil
+			return false, nil
 		}
-		return err
+		return false, err
 	}
 	_, conv := i.getConv(convID, ibox.Conversations)
 	if conv == nil {
 		i.Debug(ctx, "MarkLocalRead: no conversation found: convID: %s", convID)
-		return nil
+		return false, nil
+	}
+	if text == nil && conv.LocalDraft == nil {
+		// don't do anything if we are clearing
+		return false, nil
 	}
 	conv.LocalDraft = text
 	conv.Conv.Metadata.LocalVersion++
-	return i.writeDiskInbox(ctx, uid, ibox)
+	return true, i.writeDiskInbox(ctx, uid, ibox)
 }
 
 func (i *Inbox) NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
