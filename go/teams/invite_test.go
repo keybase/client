@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -229,4 +230,10 @@ func TestSubteamForInviteLinkStore(t *testing.T) {
 	subTeamName, subTeamID := createSubteam(tcs[0], teamName, "__no_noobs_admins_only")
 	_ = subTeamName
 	_ = subTeamID
+}
+
+func TestMultiUseInviteChain(t *testing.T) {
+	team, _ := runUnitFromFilename(t, "multi_use_invite.json")
+	spew.Dump(team.chain().inner.ActiveInvites)
+	spew.Dump(team.chain().inner.UsedInvites)
 }

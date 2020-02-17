@@ -1096,6 +1096,7 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 				StubbedLinks:            make(map[keybase1.Seqno]bool),
 				ActiveInvites:           make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
 				ObsoleteInvites:         make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
+				UsedInvites:             make(map[keybase1.TeamInviteID][]keybase1.TeamUsedInviteLog),
 				TlfLegacyUpgrade:        make(map[keybase1.TeamApplication]keybase1.TeamLegacyTLFUpgradeChainInfo),
 				MerkleRoots:             make(map[keybase1.Seqno]keybase1.MerkleRootV2),
 				Bots:                    make(map[keybase1.UserVersion]keybase1.TeamBotSettings),
@@ -1483,6 +1484,7 @@ func (t *teamSigchainPlayer) addInnerLink(mctx libkb.MetaContext,
 				StubbedLinks:            make(map[keybase1.Seqno]bool),
 				ActiveInvites:           make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
 				ObsoleteInvites:         make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
+				UsedInvites:             make(map[keybase1.TeamInviteID][]keybase1.TeamUsedInviteLog),
 				MerkleRoots:             make(map[keybase1.Seqno]keybase1.MerkleRootV2),
 				Bots:                    make(map[keybase1.UserVersion]keybase1.TeamBotSettings),
 			}}
@@ -2234,12 +2236,15 @@ func (t *teamSigchainPlayer) obsoleteInvites(stateToUpdate *TeamSigChainState, r
 
 func (t *teamSigchainPlayer) useInvites(stateToUpdate *TeamSigChainState, roleUpdates chainRoleUpdates, used []SCMapInviteIDUVPair) {
 	for _, pair := range used {
-		uv := pair.UV.
+		uv, err := keybase1.ParseUserVersion(pair.UV)
+		if err != nil {
+			panic(err) // TODO: panic
+		}
 		logPoint := len(stateToUpdate.inner.UserLog[uv])
 		inviteID := keybase1.TeamInviteID(pair.InviteID)
 		stateToUpdate.inner.UsedInvites[inviteID] = append(stateToUpdate.inner.UsedInvites[inviteID],
 			keybase1.TeamUsedInviteLog{
-				Uv:       pair.UV,
+				Uv:       uv,
 				LogPoint: logPoint,
 			})
 	}
