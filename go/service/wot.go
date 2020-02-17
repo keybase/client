@@ -52,3 +52,9 @@ func (h *WebOfTrustHandler) WotVouchCLI(ctx context.Context, arg keybase1.WotVou
 	eng := engine.NewWotVouch(h.G(), earg)
 	return engine.RunEngine2(mctx, eng)
 }
+
+func (h *WebOfTrustHandler) WotPending(ctx context.Context, sessionID int) (res []keybase1.PendingVouch, err error) {
+	ctx = libkb.WithLogTag(ctx, "WOT")
+	mctx := libkb.NewMetaContext(ctx, h.G())
+	return libkb.FetchPendingWotVouches(mctx)
+}
