@@ -1,12 +1,9 @@
 import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/teams'
-import * as ChatConstants from '../../../constants/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as ChatTypes from '../../../constants/types/chat2'
 import * as Types from '../../../constants/types/teams'
-import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {ChannelHeader} from '.'
-import * as ImagePicker from 'expo-image-picker'
 
 export type OwnProps = {
   teamID: Types.TeamID
@@ -16,7 +13,12 @@ export type OwnProps = {
 export default Container.connect(
   (state, {teamID, conversationIDKey}: OwnProps) => {
     const yourOperations = Constants.getCanPerformByID(state, teamID)
-    const {channelname, description, teamname} = ChatConstants.getMeta(state, conversationIDKey)
+    const {teamname} = Constants.getTeamMeta(state, teamID)
+    const {channelname, description, numParticipants} = Constants.getChannelInfoFromConvID(
+      state,
+      teamID,
+      conversationIDKey
+    ) ?? {channelname: '', description: '', numParticipants: 0}
     return {
       _you: state.config.username,
       canChat: yourOperations.chat,
@@ -28,13 +30,13 @@ export default Container.connect(
       channelname,
       description,
       isActive: true, // TODO: populate
-      memberCount: 34, // TODO: populate
+      memberCount: numParticipants,
       recentMemberCount: 2, // TODO: populate
       role: Constants.getRole(state, teamID),
       teamname,
     }
   },
-  (dispatch, {teamID}: OwnProps) => ({
+  dispatch => ({
     _onChat: (conversationIDKey: ChatTypes.ConversationIDKey) =>
       dispatch(Chat2Gen.createPreviewConversation({conversationIDKey, reason: 'channelHeader'})),
   }),
