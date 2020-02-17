@@ -39,6 +39,7 @@ type DeviceEKStorage struct {
 func getLogger(mctx libkb.MetaContext) *log.Logger {
 	filename := mctx.G().Env.GetEKLogFile()
 	lfc := mctx.G().Env.GetLogFileConfig(filename)
+	lfc.SkipRedirectStdErr = true
 	lfw := logger.NewLogFileWriter(*lfc)
 	if err := lfw.Open(mctx.G().GetClock().Now()); err != nil {
 		mctx.Debug("Unable to getLogger %v", err)

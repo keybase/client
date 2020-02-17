@@ -259,6 +259,7 @@ func (g *GlobalContext) SetTeambotMemberKeyer(keyer TeambotMemberKeyer) { g.team
 
 func (g *GlobalContext) initPerfLogFile() {
 	lfc := g.Env.GetLogFileConfig(g.Env.GetPerfLogFile())
+	lfc.SkipRedirectStdErr = true
 	lfw := logger.NewLogFileWriter(*lfc)
 	if err := lfw.Open(g.GetClock().Now()); err != nil {
 		g.Log.Debug("Unable to getLogger %v", err)
