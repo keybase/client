@@ -73,7 +73,7 @@ const Team = props => {
         alwaysVounceVertical={false}
         renderItem={renderItem}
         renderSectionHeader={renderSectionHeader}
-        stickySectionHeadersEnabled={Styles.isMobile}
+        stickySectionHeadersEnabled={true}
         sections={props.sections}
         style={Styles.collapseStyles([styles.list, flags.teamsRedesign && styles.listTeamsRedesign])}
         contentContainerStyle={styles.listContentContainer}
