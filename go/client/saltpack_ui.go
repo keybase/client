@@ -82,21 +82,21 @@ func (s *SaltpackUI) SaltpackPromptForDecrypt(_ context.Context, arg keybase1.Sa
 	w := s.terminal.ErrorWriter()
 	switch arg.Sender.SenderType {
 	case keybase1.SaltpackSenderType_TRACKING_OK:
-		fmt.Fprint(w, ColorString(s.G(), "green", fmt.Sprintf("Authored by %s.\n", ColorString(s.G(), "bold", arg.Sender.Username))))
+		fmt.Fprint(w, ColorString(s.G(), "green", "Authored by %s.\n", ColorString(s.G(), "bold", arg.Sender.Username)))
 	case keybase1.SaltpackSenderType_NOT_TRACKED:
-		fmt.Fprint(w, ColorString(s.G(), "green", fmt.Sprintf("Authored by %s (whom you do not follow).\n", ColorString(s.G(), "bold", arg.Sender.Username))))
+		fmt.Fprint(w, ColorString(s.G(), "green", "Authored by %s (whom you do not follow).\n", ColorString(s.G(), "bold", arg.Sender.Username)))
 	case keybase1.SaltpackSenderType_UNKNOWN:
-		fmt.Fprint(w, ColorString(s.G(), "green", fmt.Sprintf("The author of this message is unknown to Keybase (key ID: %s).\n", arg.SigningKID)))
+		fmt.Fprint(w, ColorString(s.G(), "green", "The author of this message is unknown to Keybase (key ID: %s).\n", arg.SigningKID))
 	case keybase1.SaltpackSenderType_SELF:
-		fmt.Fprint(w, ColorString(s.G(), "green", fmt.Sprintf("Authored by %s (you).\n", ColorString(s.G(), "bold", arg.Sender.Username))))
+		fmt.Fprint(w, ColorString(s.G(), "green", "Authored by %s (you).\n", ColorString(s.G(), "bold", arg.Sender.Username)))
 	case keybase1.SaltpackSenderType_ANONYMOUS:
 		fmt.Fprint(w, ColorString(s.G(), "green", "The sender of this message has chosen to remain anonymous.\n"))
 	case keybase1.SaltpackSenderType_TRACKING_BROKE:
-		fmt.Fprint(w, ColorString(s.G(), "red", fmt.Sprintf("Authored by %s.\nYou follow the sender of this message, but your view of them is broken.\n", ColorString(s.G(), "bold", arg.Sender.Username))))
+		fmt.Fprint(w, ColorString(s.G(), "red", "Authored by %s.\nYou follow the sender of this message, but your view of them is broken.\n", ColorString(s.G(), "bold", arg.Sender.Username)))
 	case keybase1.SaltpackSenderType_REVOKED:
-		fmt.Fprint(w, ColorString(s.G(), "red", fmt.Sprintf("Authored by %s, however the key that authenticated this message has been revoked (key ID: %s).\n", ColorString(s.G(), "bold", arg.Sender.Username), arg.SigningKID)))
+		fmt.Fprint(w, ColorString(s.G(), "red", "Authored by %s, however the key that authenticated this message has been revoked (key ID: %s).\n", ColorString(s.G(), "bold", arg.Sender.Username), arg.SigningKID))
 	case keybase1.SaltpackSenderType_EXPIRED:
-		fmt.Fprint(w, ColorString(s.G(), "red", fmt.Sprintf("Authored by %s, however the key that authenticated this message has expired (key ID: %s).\n", ColorString(s.G(), "bold", arg.Sender.Username), arg.SigningKID)))
+		fmt.Fprint(w, ColorString(s.G(), "red", "Authored by %s, however the key that authenticated this message has expired (key ID: %s).\n", ColorString(s.G(), "bold", arg.Sender.Username), arg.SigningKID))
 	default:
 		return fmt.Errorf("Unexpected sender type: %s", arg.Sender.SenderType)
 	}
@@ -124,7 +124,7 @@ func (s *SaltpackUI) SaltpackVerifySuccess(_ context.Context, arg keybase1.Saltp
 	default:
 		return fmt.Errorf("Unexpected sender type: %s", arg.Sender.SenderType)
 	}
-	fmt.Fprint(w, ColorString(s.G(), "green", fmt.Sprintf("%s.\n", un)))
+	fmt.Fprint(w, ColorString(s.G(), "green", "%s.\n", un))
 	return nil
 }
 
@@ -149,7 +149,7 @@ func (s *SaltpackUI) SaltpackVerifyBadSender(_ context.Context, arg keybase1.Sal
 		return fmt.Errorf("Unexpected bad sender type: %s", arg.Sender.SenderType)
 	}
 	w := s.terminal.ErrorWriter()
-	fmt.Fprint(w, ColorString(s.G(), "red", fmt.Sprintf("Problem verifying the sender: %s\n", message)))
+	fmt.Fprint(w, ColorString(s.G(), "red", "Problem verifying the sender: %s\n", message))
 
 	if s.force {
 		return nil
