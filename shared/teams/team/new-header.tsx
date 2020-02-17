@@ -53,13 +53,10 @@ const roleDisplay = {
 }
 
 const _HeaderTitle = (props: HeaderTitleProps) => {
-  const dispatch = Container.useDispatch()
-  const nav = Container.useSafeNavigation()
   const {teamID} = props
   const meta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
   const details = Container.useSelector(s => Constants.getTeamDetails(s, teamID))
   const yourOperations = Container.useSelector(s => Constants.getCanPerformByID(s, teamID))
-  const loading = Container.useAnyWaiting(Constants.teamWaitingKey(meta.teamname)) // TODO unused?
   const activityLevel = 'active' // TODO plumbing
   const newMemberCount = 0 // TODO plumbing
 
