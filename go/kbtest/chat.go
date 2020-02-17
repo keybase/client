@@ -1484,7 +1484,8 @@ func (m *MockChatHelper) NewConversationSkipFindExisting(ctx context.Context, ui
 
 func (m *MockChatHelper) NewConversationWithMemberSourceConv(ctx context.Context, uid gregor1.UID, tlfName string,
 	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
-	vis keybase1.TLFVisibility, memberSourceConv *chat1.ConversationID) (chat1.ConversationLocal, bool, error) {
+	vis keybase1.TLFVisibility, retentionPolicy *chat1.RetentionPolicy,
+	memberSourceConv *chat1.ConversationID) (chat1.ConversationLocal, bool, error) {
 	return chat1.ConversationLocal{}, false, nil
 }
 
