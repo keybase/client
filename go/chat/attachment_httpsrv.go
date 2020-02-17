@@ -108,13 +108,13 @@ func (r *AttachmentHTTPSrv) genURLKey(prefix string, payload interface{}) (strin
 	h := r.hmacPool.Get().(hash.Hash)
 	defer r.hmacPool.Put(h)
 	h.Reset()
-	h.Write([]byte(prefix))
+	_, _ = h.Write([]byte(prefix))
 	var data []byte
 	mh := codec.MsgpackHandle{WriteExt: true}
 	if err := codec.NewEncoderBytes(&data, &mh).Encode(payload); err != nil {
 		return "", err
 	}
-	h.Write(data)
+	_, _ = h.Write(data)
 	return prefix + hex.EncodeToString(h.Sum(nil)), nil
 }
 

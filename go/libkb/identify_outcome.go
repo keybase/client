@@ -42,7 +42,7 @@ func (i *IdentifyOutcome) remoteProofLinks() *RemoteProofLinks {
 }
 
 func (i *IdentifyOutcome) GetRemoteCheckResultFor(service string, username string) ProofError {
-	cieq := func(a, b string) bool { return strings.ToLower(a) == strings.ToLower(b) }
+	cieq := strings.EqualFold
 	for _, pc := range i.ProofChecks {
 		k, v := pc.GetLink().ToKeyValuePair()
 		if cieq(k, service) && cieq(v, username) {
