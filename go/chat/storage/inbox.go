@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime/debug"
 	"sort"
 	"time"
 
@@ -273,7 +272,6 @@ func (i *Inbox) Flush(ctx context.Context, uid gregor1.UID) (err Error) {
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.Trace(ctx, func() error { return err }, fmt.Sprintf("Flush(%s)", uid))()
-	debug.PrintStack()
 	return i.flushLocked(ctx, uid)
 }
 
