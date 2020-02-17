@@ -22,6 +22,7 @@ const Team = props => {
       case 'tabs':
         return (
           <TeamTabs
+            offset={offset}
             teamID={props.teamID}
             selectedTab={props.selectedTab}
             setSelectedTab={props.setSelectedTab}
@@ -55,11 +56,18 @@ const Team = props => {
 
   const renderSectionHeader = ({section}) => (section.header ? renderItem({item: section.header}) : null)
 
+  // Header animation handling
+  const SectionList = Styles.isMobile ? Kb.ReAnimated.createAnimatedComponent(Kb.SectionList) : Kb.SectionList
+  const offset = Styles.isMobile ? new Kb.ReAnimated.Value(0) : undefined
+  const onScroll = Styles.isMobile
+    ? Kb.ReAnimated.event([{nativeEvent: {contentOffset: {y: offset}}}], {useNativeDriver: true})
+    : undefined
+
   return (
     <Kb.Box style={styles.container}>
       <TeamsSubscriber />
       <TeamDetailsSubscriber teamID={props.teamID} />
-      <Kb.SectionList
+      <SectionList
         alwaysVounceVertical={false}
         renderItem={renderItem}
         renderSectionHeader={renderSectionHeader}
@@ -67,6 +75,7 @@ const Team = props => {
         sections={props.sections}
         style={styles.list}
         contentContainerStyle={styles.listContentContainer}
+        onScroll={onScroll}
       />
       <SelectionPopup selectedTab={props.selectedTab} teamID={props.teamID} />
     </Kb.Box>

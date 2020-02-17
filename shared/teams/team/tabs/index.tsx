@@ -22,6 +22,7 @@ type TeamTabsProps = {
   numInvites: number
   numRequests: number
   numSubteams: number
+  offset?: any
   resetUserCount: number
   selectedTab?: string
   setSelectedTab: (arg0: Types.TabKey) => void
@@ -116,7 +117,7 @@ const TeamTabs = (props: TeamTabsProps) => {
   const selected = tabs.find(tab => tab.key === props.selectedTab) || null
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
-      {flags.teamsRedesign && <NewHeader teamID={props.teamID} />}
+      {flags.teamsRedesign && <NewHeader teamID={props.teamID} offset={props.offset} />}
       <Kb.Box style={styles.container}>
         <Kb.Tabs
           clickableBoxStyle={styles.clickableBox}

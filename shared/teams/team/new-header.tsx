@@ -41,6 +41,7 @@ const _AddPeopleButton = (
 const AddPeopleButton = Kb.OverlayParentHOC(_AddPeopleButton)
 
 type HeaderTitleProps = Kb.PropsWithOverlay<{
+  offset?: any
   teamID: TeamID
 }>
 
@@ -65,18 +66,29 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
 
   const callbacks = useHeaderCallbacks(teamID)
 
+  const AnimatedBox2 = Styles.isMobile ? Kb.ReAnimated.createAnimatedComponent(Kb.Box2) : Kb.Box2
+  let opacity = 1
+  if (Styles.isMobile) {
+    opacity = Kb.ReAnimated.interpolate(props.offset, {
+      inputRange: [-9999, 0, 40, 9999],
+      outputRange: [1, 1, 0, 0],
+    })
+  }
+
   const avatar = (
-    <Kb.Avatar
-      editable={!!callbacks.onEditAvatar}
-      onEditAvatarClick={callbacks.onEditAvatar}
-      teamname={meta.teamname}
-      size={96}
-      style={Styles.collapseStyles([
-        styles.alignSelfFlexStart,
-        callbacks.onEditAvatar && styles.marginBottomRightTiny, // space for edit icon
-        callbacks.onEditAvatar && styles.clickable,
-      ])}
-    />
+    <AnimatedBox2 style={{opacity}}>
+      <Kb.Avatar
+        editable={!!callbacks.onEditAvatar}
+        onEditAvatarClick={callbacks.onEditAvatar}
+        teamname={meta.teamname}
+        size={96}
+        style={Styles.collapseStyles([
+          styles.alignSelfFlexStart,
+          callbacks.onEditAvatar && styles.marginBottomRightTiny, // space for edit icon
+          callbacks.onEditAvatar && styles.clickable,
+        ])}
+      />
+    </AnimatedBox2>
   )
 
   const topDescriptors = (
