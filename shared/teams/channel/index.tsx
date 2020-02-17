@@ -6,7 +6,6 @@ import * as Styles from '../../styles'
 import ChannelTabs from './tabs/container'
 import {Row} from './rows'
 import renderRow from './rows/render'
-import SelectionPopup from './selection-popup'
 export type Sections = Array<{data: Array<Row>; header?: Row; key: string}>
 
 export type Props = {
@@ -27,7 +26,7 @@ const Channel = props => {
       case 'bot':
       case 'bot-add':
       case 'loading':
-        return renderRow(item, props.teamID)
+        return renderRow(item, props.teamID, props.conversationIDKey)
       default: {
         throw new Error(`Impossible case encountered in channel page list: ${item}`)
       }
@@ -50,11 +49,6 @@ const Channel = props => {
         contentContainerStyle={styles.listContentContainer}
       />
       <Kb.Box fullWidth={true} style={styles.endAnchor} ref={popupAnchor} />
-      <SelectionPopup
-        attachTo={() => popupAnchor.current}
-        selectedTab={props.selectedTab}
-        teamID={props.teamID}
-      />
     </Kb.Box>
   )
 }

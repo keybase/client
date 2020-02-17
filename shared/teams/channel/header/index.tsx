@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Constants from '../../../constants/teams'
+import * as ChatTypes from '../../../constants/types/chat2'
 import * as Types from '../../../constants/types/teams'
 import * as Kb from '../../../common-adapters'
 import AddPeopleHow from './add-people-how/container'
@@ -13,6 +14,7 @@ export type Props = {
   canEditDescription: boolean
   canJoinTeam: boolean
   canManageMembers: boolean
+  conversationIDKey: ChatTypes.ConversationIDKey
   description: string
   loading?: boolean
   memberCount: number

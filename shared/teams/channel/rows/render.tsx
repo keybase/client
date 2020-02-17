@@ -3,12 +3,7 @@ import * as Types from '../../../constants/types/teams'
 import * as ChatTypes from '../../../constants/types/chat2'
 import LoadingRow from '../../team/rows/loading'
 import {Row} from '.'
-import {BotRow, AddBotRow} from './bot-row'
-import {RequestRow, InviteRow, InvitesEmptyRow, DividerRow} from './invite-row'
-import {SubteamAddRow, SubteamIntroRow, SubteamNoneRow, SubteamTeamRow, SubteamInfoRow} from './subteam-row'
-import {ChannelRow, ChannelHeaderRow, ChannelFooterRow} from './channel-row'
 import ChannelHeaderRow from '../header/container'
-import SettingsRow from '../settings-tab/container'
 
 const renderRow = (row: Row, teamID: Types.TeamID, conversationIDKey: ChatTypes.ConversationIDKey) => {
   switch (row.type) {
@@ -20,6 +15,7 @@ const renderRow = (row: Row, teamID: Types.TeamID, conversationIDKey: ChatTypes.
       // Handled in team/index for now
       return null
   }
+  return null
 }
 
 export default renderRow

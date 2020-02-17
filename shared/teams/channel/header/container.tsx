@@ -2,6 +2,7 @@ import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/teams'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as ConfigGen from '../../../actions/config-gen'
+import * as ChatTypes from '../../../constants/types/chat2'
 import * as Types from '../../../constants/types/teams'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {createAddUsersToTeamSoFar} from '../../../actions/team-building-gen'
@@ -12,6 +13,7 @@ import * as ImagePicker from 'expo-image-picker'
 
 export type OwnProps = {
   teamID: Types.TeamID
+  conversationIDKey: ChatTypes.ConversationIDKey
 }
 
 export default Container.connect(
@@ -33,34 +35,19 @@ export default Container.connect(
     }
   },
   (dispatch, {teamID}: OwnProps) => ({
-    _onAddSelf: (you: string | null) => {
-      if (!you) {
-        return
-      }
-      dispatch(appendNewTeamBuilder(teamID))
-      dispatch(createAddUsersToTeamSoFar({namespace: 'teams', users: [selfToUser(you)]}))
-    },
-    _onChat: (teamname: string) =>
-      dispatch(Chat2Gen.createPreviewConversation({reason: 'teamHeader', teamname})),
-    _onEditIcon: (teamname: string, image?: ImagePicker.ImagePickerResult) =>
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [{props: {image, sendChatNotification: true, teamname}, selected: 'teamEditTeamAvatar'}],
-        })
-      ),
-    _onRename: (teamname: string) =>
-      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'teamRename'}]})),
-    onEditDescription: () =>
+    _onChat: (conversationIDKey: ChatTypes.ConversationIDKey) =>
+      dispatch(Chat2Gen.createPreviewConversation({conversationIDKey, reason: 'channelHeader'})),
+    onEdit: () =>
       dispatch(
         RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'teamEditTeamDescription'}]})
       ),
-    onFilePickerError: (error: Error) => dispatch(ConfigGen.createFilePickerError({error})),
   }),
   (stateProps, dispatchProps, ownProps) => ({
     canChat: stateProps.canChat,
     canEditDescription: stateProps.canEditDescription,
     canJoinTeam: stateProps.canJoinTeam,
     canManageMembers: stateProps.canManageMembers,
+    conversationIDKey: ownProps.conversationIDKey,
     description: stateProps.description,
     loading: false,
     memberCount: stateProps.memberCount,
