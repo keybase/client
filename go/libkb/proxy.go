@@ -310,17 +310,6 @@ func ProxyHTTPGet(g *GlobalContext, env *Env, u, instrumentationTag string) (*ht
 	return client.Get(u)
 }
 
-func ProxyHTTPDo(g *GlobalContext, env *Env, req *http.Request, instrumentationTag string) (*http.Response, error) {
-	xprt := NewInstrumentedTransport(g, func(*http.Request) string { return instrumentationTag }, &http.Transport{
-		Proxy: MakeProxy(env),
-	})
-	client := &http.Client{
-		Transport: xprt,
-	}
-
-	return client.Do(req)
-}
-
 // A struct that implements rpc.Dialable from go-framed-msgpack-rpc
 type ProxyDialable struct {
 	env       *Env
