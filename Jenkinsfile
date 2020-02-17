@@ -505,9 +505,13 @@ def testGo(prefix, packagesToTest) {
     def hasKBFSChanges = packagesToTest.keySet().findIndexOf { key -> key =~ /^github.com\/keybase\/client\/go\/kbfs/ } >= 0
     if (hasKBFSChanges) {
       println "Running golangci-lint on KBFS"
-      retry(5) {
-        timeout(activity: true, time: 180, unit: 'SECONDS') {
-          sh 'make golangci-lint-kbfs'
+      dir('kbfs') {
+        retry(5) {
+          timeout(activity: true, time: 180, unit: 'SECONDS') {
+          // Ignore the `dokan` directory since it contains lots of c code.
+          // Ignore the `protocol` directory, autogeneration has some critques
+          sh 'go list -f "{{.Dir}}" ./...  | fgrep -v dokan | xargs realpath --relative-to=. | xargs golangci-lint run'
+          }
         }
       }
     }
@@ -517,7 +521,7 @@ def testGo(prefix, packagesToTest) {
       fetchChangeTarget()
       def BASE_COMMIT_HASH = getBaseCommitHash()
       timeout(activity: true, time: 360, unit: 'SECONDS') {
-        sh "make golangci-lint-nonkbfs -e GOLANGCI_RUN_OPT='--new-from-rev ${BASE_COMMIT_HASH}'"
+        sh "go list -f '{{.Dir}}' ./...  | fgrep -v kbfs | fgrep -v protocol | xargs realpath --relative-to=. | xargs golangci-lint run --new-from-rev ${BASE_COMMIT_HASH} --deadline 5m0s"
       }
 
       println("Running golangci-lint for dead code")
