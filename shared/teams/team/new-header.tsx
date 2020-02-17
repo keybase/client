@@ -215,13 +215,9 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
     </Kb.Box2>
   )
 
-  const onBack = () => dispatch(nav.safeNavigateUpPayload())
   if (Styles.isMobile) {
     return (
       <Kb.Box2 alignItems="flex-start" direction="vertical" fullWidth={true} style={styles.backButton}>
-        <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="flex-start">
-          <Kb.BackButton onClick={onBack} />
-        </Kb.Box2>
         <Kb.Box2 direction="vertical" fullWidth={true} gap="small" style={styles.outerBoxMobile}>
           <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
             {avatar}
