@@ -9,6 +9,7 @@ import {Row} from './rows'
 import renderRow from './rows/render'
 import {TeamDetailsSubscriber, TeamsSubscriber} from '../subscriber'
 import SelectionPopup from './selection-popup'
+import flags from '../../util/feature-flags'
 export type Sections = Array<{data: Array<Row>; header?: Row; key: string}>
 
 export type Props = {
@@ -67,14 +68,14 @@ const Team = props => {
     <Kb.Box style={styles.container}>
       <TeamsSubscriber />
       <TeamDetailsSubscriber teamID={props.teamID} />
-      {Styles.isMobile && <MobileHeader teamID={props.teamID} offset={offset} />}
+      {Styles.isMobile && flags.teamsRedesign && <MobileHeader teamID={props.teamID} offset={offset} />}
       <SectionList
         alwaysVounceVertical={false}
         renderItem={renderItem}
         renderSectionHeader={renderSectionHeader}
         stickySectionHeadersEnabled={Styles.isMobile}
         sections={props.sections}
-        style={styles.list}
+        style={Styles.collapseStyles([styles.list, flags.teamsRedesign && styles.listTeamsRedesign])}
         contentContainerStyle={styles.listContentContainer}
         onScroll={onScroll}
       />
@@ -142,7 +143,6 @@ const styles = Styles.styleSheetCreate(() => ({
     },
     isMobile: {
       ...Styles.globalStyles.fillAbsolute,
-      top: 40,
     },
   }),
   listContentContainer: Styles.platformStyles({
@@ -151,6 +151,7 @@ const styles = Styles.styleSheetCreate(() => ({
       flexGrow: 1,
     },
   }),
+  listTeamsRedesign: Styles.platformStyles({isMobile: {top: 40}}),
   smallHeader: {
     ...Styles.padding(0, Styles.globalMargins.xlarge),
   },

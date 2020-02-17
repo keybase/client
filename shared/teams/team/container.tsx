@@ -60,7 +60,9 @@ const Connected = Container.compose(
       stateProps.subteamsFiltered
     )
     const sections: Sections = [
-      {data: [{key: 'header-inner', type: 'header' as const}], key: 'header'},
+      ...(Container.isMobile || flags.teamsRedesign
+        ? [{data: [{key: 'header-inner', type: 'header' as const}], key: 'header'}]
+        : []),
       {data: rows, header: {key: 'tabs', type: 'tabs'}, key: 'body'},
     ]
     const customComponent = <CustomTitle teamID={stateProps.teamID} />
