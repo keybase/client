@@ -110,7 +110,7 @@ const MobileHeader = ({teamID, offset}: {teamID: Types.TeamID; offset: any}) => 
         fullHeight={true}
       >
         <Kb.Avatar size={16} teamname={meta.teamname} />
-        <Kb.Text type="BodyBig" lineClamp={1}>
+        <Kb.Text type="BodyBig" lineClamp={1} ellipsizeMode="middle">
           {meta.teamname}
         </Kb.Text>
       </AnimatedBox2>
