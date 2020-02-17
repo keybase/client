@@ -60,7 +60,7 @@ const Connected = Container.compose(
       stateProps.subteamsFiltered
     )
     const sections: Sections = [
-      ...(Container.isMobile && !flags.teamsRedesign
+      ...(Container.isMobile
         ? [{data: [{key: 'header-inner', type: 'header' as const}], key: 'header'}]
         : []),
       {data: rows, header: {key: 'tabs', type: 'tabs'}, key: 'body'},

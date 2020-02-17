@@ -68,7 +68,6 @@ const Team = props => {
     <Kb.Box style={styles.container}>
       <TeamsSubscriber />
       <TeamDetailsSubscriber teamID={props.teamID} />
-      {flags.teamsRedesign && <NewHeader teamID={props.teamID} offset={offset} />}
       <SectionList
         alwaysVounceVertical={false}
         renderItem={renderItem}
