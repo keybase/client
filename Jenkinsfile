@@ -40,7 +40,7 @@ def rootLinuxNode(env, handleError, cleanup, closure) {
   if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
     println "Skipping build because PR title contains [ci-skip]"
   } else {
-    nodeWithDockerCleanup("linux-testing", handleError, cleanup, closure)
+    helpers.nodeWithDockerCleanup("linux-testing", handleError, cleanup, closure)
   }
 }
 
