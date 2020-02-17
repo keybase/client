@@ -1,14 +1,11 @@
 import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/teams'
+import * as ChatConstants from '../../../constants/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as ConfigGen from '../../../actions/config-gen'
 import * as ChatTypes from '../../../constants/types/chat2'
 import * as Types from '../../../constants/types/teams'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import {createAddUsersToTeamSoFar} from '../../../actions/team-building-gen'
-import {appendNewTeamBuilder} from '../../../actions/typed-routes'
-import {TeamHeader} from '.'
-import {selfToUser} from '../../../constants/team-building'
+import {ChannelHeader} from '.'
 import * as ImagePicker from 'expo-image-picker'
 
 export type OwnProps = {
@@ -17,19 +14,22 @@ export type OwnProps = {
 }
 
 export default Container.connect(
-  (state, {teamID}: OwnProps) => {
+  (state, {teamID, conversationIDKey}: OwnProps) => {
     const yourOperations = Constants.getCanPerformByID(state, teamID)
-    const {teamname, isOpen, memberCount} = Constants.getTeamMeta(state, teamID)
+    const {channelname, description, teamname} = ChatConstants.getMeta(state, conversationIDKey)
     return {
-      _canRenameTeam: yourOperations.renameTeam,
       _you: state.config.username,
       canChat: yourOperations.chat,
-      canEditDescription: yourOperations.editTeamDescription,
-      canJoinTeam: yourOperations.joinTeam,
+      canDeleteChannel: yourOperations.deleteChannel,
+      canEditDescription: yourOperations.editChannelDescription,
+      // TODO: check if this should be doable by writers too
       canManageMembers: yourOperations.manageMembers,
-      description: Constants.getTeamDetails(state, teamID).description,
-      memberCount,
-      openTeam: isOpen,
+      canRenameChannel: yourOperations.renameChannel,
+      channelname,
+      description,
+      isActive: true, // TODO: populate
+      memberCount: 34, // TODO: populate
+      recentMemberCount: 2, // TODO: populate
       role: Constants.getRole(state, teamID),
       teamname,
     }
@@ -37,31 +37,22 @@ export default Container.connect(
   (dispatch, {teamID}: OwnProps) => ({
     _onChat: (conversationIDKey: ChatTypes.ConversationIDKey) =>
       dispatch(Chat2Gen.createPreviewConversation({conversationIDKey, reason: 'channelHeader'})),
-    onEdit: () =>
-      dispatch(
-        RouteTreeGen.createNavigateAppend({path: [{props: {teamID}, selected: 'teamEditTeamDescription'}]})
-      ),
   }),
   (stateProps, dispatchProps, ownProps) => ({
     canChat: stateProps.canChat,
+    canDeleteChannel: stateProps.canDeleteChannel,
     canEditDescription: stateProps.canEditDescription,
-    canJoinTeam: stateProps.canJoinTeam,
     canManageMembers: stateProps.canManageMembers,
+    canRenameChannel: stateProps.canRenameChannel,
+    channelname: stateProps.channelname,
     conversationIDKey: ownProps.conversationIDKey,
     description: stateProps.description,
-    loading: false,
+    isActive: stateProps.isActive,
     memberCount: stateProps.memberCount,
-    onAddSelf: () => dispatchProps._onAddSelf(stateProps._you),
-    onChat: () => dispatchProps._onChat(stateProps.teamname),
-    onEditDescription: dispatchProps.onEditDescription,
-    onEditIcon: (image?: ImagePicker.ImagePickerResult) =>
-      dispatchProps._onEditIcon(stateProps.teamname, image),
-    onFilePickerError: dispatchProps.onFilePickerError,
-    onRename: stateProps._canRenameTeam ? () => dispatchProps._onRename(stateProps.teamname) : null,
-    openTeam: stateProps.openTeam,
+    onChat: () => dispatchProps._onChat(ownProps.conversationIDKey),
+    recentMemberCount: stateProps.recentMemberCount,
     role: stateProps.role,
-    showingMenu: false,
     teamID: ownProps.teamID,
     teamname: stateProps.teamname,
   })
-)(TeamHeader)
+)(ChannelHeader)

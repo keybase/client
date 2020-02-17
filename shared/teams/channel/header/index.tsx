@@ -1,9 +1,9 @@
 import * as React from 'react'
+import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/teams'
 import * as ChatTypes from '../../../constants/types/chat2'
 import * as Types from '../../../constants/types/teams'
 import * as Kb from '../../../common-adapters'
-import AddPeopleHow from './add-people-how/container'
 import NameWithIconWrapper from './name-with-icon-wrapper'
 import * as Styles from '../../../styles'
 import * as ImagePicker from 'expo-image-picker'
@@ -11,27 +11,26 @@ import {pluralize} from '../../../util/string'
 
 export type Props = {
   canChat: boolean
+  canDeleteChannel: boolean
   canEditDescription: boolean
-  canJoinTeam: boolean
   canManageMembers: boolean
+  canRenameChannel: boolean
+  channelname: string
   conversationIDKey: ChatTypes.ConversationIDKey
   description: string
-  loading?: boolean
+  isActive: boolean
   memberCount: number
-  openTeam: boolean
+  recentMemberCount: number
   role: Types.MaybeTeamRoleType
-  showingMenu: boolean
   teamID: Types.TeamID
   teamname: Types.Teamname
-  onAddSelf: () => void
   onChat: () => void
-  onEditDescription: () => void
-  onEditIcon: (image?: ImagePicker.ImagePickerResult) => void
-  onFilePickerError: (error: Error) => void
-  onRename: (() => void) | null
 } & Kb.OverlayParentProps
 
 const _TeamHeader = (props: Props) => (
+  const dispatch = Container.useDispatch()
+  React.useEffect(() => {
+  })
   <Kb.Box style={styles.container}>
     {props.canJoinTeam && (
       <Kb.Box key="add yourself" style={styles.addYourselfBanner}>
@@ -49,7 +48,7 @@ const _TeamHeader = (props: Props) => (
         </Kb.Text>
       </Kb.Box>
     )}
-    <Kb.Box style={styles.teamHeader}>
+    <Kb.Box style={styles.channelHeader}>
       {/* Summary */}
       <NameWithIconWrapper
         canEditDescription={props.canEditDescription}
@@ -122,14 +121,6 @@ const _TeamHeader = (props: Props) => (
         )}
       </Kb.ButtonBar>
 
-      {/* Add people how dropdown */}
-      <AddPeopleHow
-        attachTo={props.getAttachmentRef}
-        visible={props.showingMenu}
-        teamID={props.teamID}
-        onHidden={props.toggleShowingMenu}
-      />
-
       {/* CLI hint */}
       {!Styles.isMobile && (
         <Kb.InfoNote>
@@ -143,7 +134,7 @@ const _TeamHeader = (props: Props) => (
   </Kb.Box>
 )
 
-const TeamHeader = Kb.OverlayParentHOC(_TeamHeader)
+const ChannelHeader = Kb.OverlayParentHOC(_ChannelHeader)
 
 const getTeamSubtitle = (memberCount: number, role: Types.MaybeTeamRoleType): string => {
   if (memberCount === -1) {
@@ -202,7 +193,7 @@ const styles = Styles.styleSheetCreate(
         alignSelf: 'center',
         marginLeft: Styles.globalMargins.tiny,
       },
-      teamHeader: Styles.platformStyles({
+      channelHeader: Styles.platformStyles({
         common: {
           ...Styles.globalStyles.flexBoxColumn,
           alignItems: 'center',
@@ -218,4 +209,4 @@ const styles = Styles.styleSheetCreate(
     } as const)
 )
 
-export {TeamHeader}
+export {ChannelHeader}
