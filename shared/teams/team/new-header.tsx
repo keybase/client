@@ -3,11 +3,16 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
+import * as Chat2Gen from '../../actions/chat2-gen'
+import * as TeamBuildingGen from '../../actions/team-building-gen'
+import {selfToUser} from '../../constants/team-building'
 import TeamMenu from './menu-container'
 import {TeamID} from '../../constants/types/teams'
 import {pluralize} from '../../util/string'
 import capitalize from 'lodash/capitalize'
 import AddPeopleHow from './header/add-people-how/container'
+import {Activity} from '../common'
+import {appendNewTeamBuilder} from '../../actions/typed-routes'
 import flags from '../../util/feature-flags'
 
 const _AddPeopleButton = (
@@ -36,17 +41,6 @@ const _AddPeopleButton = (
 const AddPeopleButton = Kb.OverlayParentHOC(_AddPeopleButton)
 
 type HeaderTitleProps = Kb.PropsWithOverlay<{
-  active: boolean
-  location?: string
-  newMemberCount?: string
-  onAddSelf?: () => void
-  onChat: () => void
-  onEdit: () => void
-  onEditAvatar?: () => void
-  onEditDescription?: () => void
-  onManageInvites: () => void
-  onRename?: () => void
-  onShare: () => void
   teamID: TeamID
 }>
 
@@ -59,22 +53,28 @@ const roleDisplay = {
 }
 
 const _HeaderTitle = (props: HeaderTitleProps) => {
+  const dispatch = Container.useDispatch()
+  const nav = Container.useSafeNavigation()
   const {teamID} = props
   const meta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
   const details = Container.useSelector(s => Constants.getTeamDetails(s, teamID))
   const yourOperations = Container.useSelector(s => Constants.getCanPerformByID(s, teamID))
-  const loading = Container.useAnyWaiting(Constants.teamWaitingKey(meta.teamname))
+  const loading = Container.useAnyWaiting(Constants.teamWaitingKey(meta.teamname)) // TODO unused?
+  const activityLevel = 'active' // TODO plumbing
+  const newMemberCount = 0 // TODO plumbing
+
+  const callbacks = useHeaderCallbacks(teamID)
 
   const avatar = (
     <Kb.Avatar
-      editable={!!props.onEditAvatar}
-      onEditAvatarClick={props.onEditAvatar}
+      editable={!!callbacks.onEditAvatar}
+      onEditAvatarClick={callbacks.onEditAvatar}
       teamname={meta.teamname}
       size={96}
       style={Styles.collapseStyles([
         styles.alignSelfFlexStart,
-        props.onEditAvatar && styles.marginBottomRightTiny, // space for edit icon
-        props.onEditAvatar && styles.clickable,
+        callbacks.onEditAvatar && styles.marginBottomRightTiny, // space for edit icon
+        callbacks.onEditAvatar && styles.clickable,
       ])}
     />
   )
@@ -97,7 +97,7 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
           <Kb.Text type="Header" lineClamp={3} style={styles.header}>
             {meta.teamname}
           </Kb.Text>
-          {!!props.onRename && <Kb.Icon type="iconfont-edit" onClick={props.onRename} />}
+          {!!callbacks.onRename && <Kb.Icon type="iconfont-edit" onClick={callbacks.onRename} />}
         </Kb.Box2>
         {meta.isOpen && (
           <Kb.Meta title="open" backgroundColor={Styles.globalColors.green} style={styles.openMeta} />
@@ -120,7 +120,11 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
                   : `You are ${roleDisplay[meta.role] || 'a member of'} this team. `}
               </Kb.Text>
               {meta.role === 'none' && (
-                <Kb.Text type="BodySmallSecondaryLink" onClick={props.onAddSelf} style={styles.addSelfLink}>
+                <Kb.Text
+                  type="BodySmallSecondaryLink"
+                  onClick={callbacks.onAddSelf}
+                  style={styles.addSelfLink}
+                >
                   Add yourself
                 </Kb.Text>
               )}
@@ -137,8 +141,8 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
         <Kb.Text
           type="Body"
           lineClamp={3}
-          onClick={props.onEditDescription}
-          className={Styles.classNames({'hover-underline': !!props.onEditDescription})}
+          onClick={callbacks.onEditDescription}
+          className={Styles.classNames({'hover-underline': !!callbacks.onEditDescription})}
           style={styles.clickable}
         >
           {details.description}
@@ -147,23 +151,16 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
       {meta.memberCount !== -1 && (
         <Kb.Text type="BodySmall">
           {meta.memberCount.toLocaleString()} {pluralize('member', meta.memberCount)}
-          {!!props.newMemberCount && ` · ${props.newMemberCount} new this week`}
+          {!!newMemberCount && ` · ${newMemberCount} new this week`}
         </Kb.Text>
       )}
-      {props.active && (
-        <Kb.Box2 direction="horizontal" style={styles.alignSelfFlexStart} gap="xtiny">
-          <Kb.Icon type="iconfont-fire" color={Styles.globalColors.green} fontSize={16} />
-          <Kb.Text type="BodySmall" style={styles.greenText}>
-            Active
-          </Kb.Text>
-        </Kb.Box2>
-      )}
+      <Activity level={activityLevel} />
       <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.rightActionsContainer}>
-        {meta.isMember && <Kb.Button label="Chat" onClick={props.onChat} small={true} />}
+        {meta.isMember && <Kb.Button label="Chat" onClick={callbacks.onChat} small={true} />}
         {yourOperations.editTeamDescription && (
-          <Kb.Button label="Edit" onClick={props.onEdit} small={true} mode="Secondary" />
+          <Kb.Button label="Edit" onClick={callbacks.onEdit} small={true} mode="Secondary" />
         )}
-        <Kb.Button label="Share" onClick={props.onShare} small={true} mode="Secondary" />
+        <Kb.Button label="Share" onClick={callbacks.onShare} small={true} mode="Secondary" />
         <Kb.Button
           mode="Secondary"
           small={true}
@@ -201,7 +198,7 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
         (Styles.isMobile ? (
           <Kb.Button
             label="Generate invite link"
-            onClick={props.onManageInvites}
+            onClick={callbacks.onManageInvites}
             style={Styles.globalStyles.flexGrow}
             mode="Secondary"
             fullWidth={true}
@@ -210,7 +207,7 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
           <Kb.Box2 direction="vertical" gap="xtiny" alignItems="flex-start">
             <Kb.CopyText text="https://keybase.io/team/link/blahblah/" />
             <Kb.Text type="BodyTiny">Adds as writer • Expires 10,000 ys</Kb.Text>
-            <Kb.Text type="BodyTiny" onClick={props.onManageInvites} className="hover-underline">
+            <Kb.Text type="BodyTiny" onClick={callbacks.onManageInvites} className="hover-underline">
               Manage invite links
             </Kb.Text>
           </Kb.Box2>
@@ -218,8 +215,6 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
     </Kb.Box2>
   )
 
-  const dispatch = Container.useDispatch()
-  const nav = Container.useSafeNavigation()
   const onBack = () => dispatch(nav.safeNavigateUpPayload())
   if (Styles.isMobile) {
     return (
@@ -266,8 +261,52 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
     </Kb.Box2>
   )
 }
-
 export default Kb.OverlayParentHOC(_HeaderTitle)
+
+const nyi = () => console.warn('not yet implemented')
+const useHeaderCallbacks = (teamID: TeamID) => {
+  const dispatch = Container.useDispatch()
+  const nav = Container.useSafeNavigation()
+  const meta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
+  const yourUsername = Container.useSelector(s => s.config.username)
+  const yourOperations = Container.useSelector(s => Constants.getCanPerformByID(s, teamID))
+
+  const onAddSelf = () => {
+    dispatch(appendNewTeamBuilder(teamID))
+    dispatch(
+      TeamBuildingGen.createAddUsersToTeamSoFar({namespace: 'teams', users: [selfToUser(yourUsername)]})
+    )
+  }
+  const onChat = () =>
+    dispatch(Chat2Gen.createPreviewConversation({reason: 'teamHeader', teamname: meta.teamname}))
+  const onEditAvatar = yourOperations.editTeamDescription
+    ? () =>
+        dispatch(
+          nav.safeNavigateAppendPayload({
+            path: [
+              {props: {sendChatNotification: true, teamname: meta.teamname}, selected: 'teamEditTeamAvatar'},
+            ],
+          })
+        )
+    : undefined
+  const onEditDescription = yourOperations.editTeamDescription
+    ? () =>
+        dispatch(
+          nav.safeNavigateAppendPayload({path: [{props: {teamID}, selected: 'teamEditTeamDescription'}]})
+        )
+    : undefined
+  const onRename = yourOperations.renameTeam
+    ? () =>
+        dispatch(
+          nav.safeNavigateAppendPayload({path: [{props: {teamname: meta.teamname}, selected: 'teamRename'}]})
+        )
+    : undefined
+  const onEdit = nyi
+  const onManageInvites = nyi
+  const onShare = nyi
+
+  return {onAddSelf, onChat, onEdit, onEditAvatar, onEditDescription, onManageInvites, onRename, onShare}
+}
 
 const styles = Styles.styleSheetCreate(
   () =>

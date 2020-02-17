@@ -10,6 +10,7 @@ import {
   platformStyles,
   styleSheetCreate,
 } from '../../../styles'
+import NewHeader from '../new-header'
 
 type TeamTabsProps = {
   admin: boolean
@@ -25,6 +26,7 @@ type TeamTabsProps = {
   selectedTab?: string
   setSelectedTab: (arg0: Types.TabKey) => void
   showSubteams: boolean
+  teamID: Types.TeamID
 }
 
 const TabText = ({selected, text}: {selected: boolean; text: string}) => (
@@ -114,6 +116,7 @@ const TeamTabs = (props: TeamTabsProps) => {
   const selected = tabs.find(tab => tab.key === props.selectedTab) || null
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
+      {flags.teamsRedesign && <NewHeader teamID={props.teamID} />}
       <Kb.Box style={styles.container}>
         <Kb.Tabs
           clickableBoxStyle={styles.clickableBox}
