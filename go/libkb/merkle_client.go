@@ -780,13 +780,10 @@ func (mc *MerkleClient) lookupPathAndSkipSequenceHelper(m MetaContext, q HTTPArg
 	}
 
 	apiRes, err = m.G().API.Get(m, APIArg{
-		Endpoint:        "merkle/path",
-		SessionType:     APISessionTypeOPTIONAL,
-		Args:            q,
-		AppStatusCodes:  []int{SCOk, SCNotFound, SCDeleted},
-		RetryCount:      3,
-		InitialTimeout:  4 * time.Second,
-		RetryMultiplier: 1.1,
+		Endpoint:       "merkle/path",
+		SessionType:    APISessionTypeOPTIONAL,
+		Args:           q,
+		AppStatusCodes: []int{SCOk, SCNotFound, SCDeleted},
 	})
 
 	if err != nil {
