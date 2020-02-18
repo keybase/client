@@ -188,13 +188,13 @@ rootLinuxNode(env, {
             if (hasGoChanges) {
               // Check protocol diffs
               // Clean the index first
-              sh "git add -A"
+              // sh "git add -A"
               // Generate protocols
-              dir ('protocol') {
-                sh "yarn --frozen-lockfile"
-                sh "make clean"
-                sh "make"
-              }
+              // dir ('protocol') {
+              //   sh "yarn --frozen-lockfile"
+              //   sh "make clean"
+              //   sh "make"
+              // }
               // checkDiffs(['./go/', './protocol/'], 'Please run \\"make\\" inside the client/protocol directory.')
             }
             parallel (
@@ -215,12 +215,12 @@ rootLinuxNode(env, {
                     "GPG=/usr/bin/gpg.distrib",
                   ]) {
                     if (hasGoChanges) {
-                      dir("go/keybase") {
-                        sh "go build -ldflags \"-s -w\" -buildmode=pie --tags=production"
-                      }
-                      dir("go/fuzz") {
-                        sh "go build -tags gofuzz ./..."
-                      }
+                      // dir("go/keybase") {
+                      //   sh "go build -ldflags \"-s -w\" -buildmode=pie --tags=production"
+                      // }
+                      // dir("go/fuzz") {
+                      //   sh "go build -tags gofuzz ./..."
+                      // }
                       testGo("test_linux_go_", packagesToTest)
                     }
                   }},
@@ -257,9 +257,9 @@ rootLinuxNode(env, {
                       // TODO: if we re-enable tests
                       // other than Go tests on Windows,
                       // add a `hasGoChanges` check here.
-                      dir("go/keybase") {
-                        bat "go build -ldflags \"-s -w\" --tags=production"
-                      }
+                      // dir("go/keybase") {
+                      //   bat "go build -ldflags \"-s -w\" --tags=production"
+                      // }
                       testGo("test_windows_go_", getPackagesToTest(dependencyFiles))
                     }
                   )
