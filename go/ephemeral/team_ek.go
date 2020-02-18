@@ -161,9 +161,8 @@ func publishNewTeamEK(mctx libkb.MetaContext, teamID keybase1.TeamID,
 	if forceCreateGeneration != nil {
 		if *forceCreateGeneration+1 != teamEKMetadata.Generation {
 			return metadata, fmt.Errorf("Not posting new teamEK, expected %d, found %d", *forceCreateGeneration+1, teamEKMetadata.Generation)
-		} else {
-			mctx.Debug("forceCreateGeneration set to: %d", *forceCreateGeneration)
 		}
+		mctx.Debug("forceCreateGeneration set to: %d", *forceCreateGeneration)
 	}
 
 	if err = postNewTeamEK(mctx, teamID, sig, boxes); err != nil {
