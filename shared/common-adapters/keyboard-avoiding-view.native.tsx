@@ -1,26 +1,68 @@
 // @ts-nocheck
+/* eslint-disabled */
 import * as React from 'react'
 import {
-  KeyboardAvoidingView as RnKBAV,
   StatusBarIOS,
   NativeModules,
   LayoutAnimation,
   StyleSheet,
+  Keyboard,
   KeyboardAvoidingViewProps,
   View,
 } from 'react-native'
 import {isIOS} from '../constants/platform'
 const {StatusBarManager} = NativeModules
 
-// port of built in but is split aware
-class SplitAwareKeyboardAvoidingView extends RnKBAV {
-  _onKeyboardChange = (event: any) => {
+class SplitAwareKeyboardAvoidingView extends React.Component<Props, State> {
+  static defaultProps = {
+    enabled: true,
+    keyboardVerticalOffset: 0,
+  }
+
+  _frame = null
+  _subscriptions = []
+  viewRef = null
+  _initialFrameHeight = 0
+
+  constructor(props: Props) {
+    super(props)
+    // KB: added
+    this.state = {bottom: 0, disabledDueToSplit: false}
+    // KB: end added
+    this.viewRef = React.createRef()
+  }
+
+  _relativeKeyboardHeight(keyboardFrame) {
+    const frame = this._frame
+    if (!frame || !keyboardFrame) {
+      return 0
+    }
+
+    const keyboardY = keyboardFrame.screenY - this.props.keyboardVerticalOffset
+
+    // Calculate the displacement needed for the view such that it
+    // no longer overlaps with the keyboard
+    return Math.max(frame.y + frame.height - keyboardY, 0)
+  }
+
+  _onKeyboardChange = event => {
     if (event == null) {
       this.setState({bottom: 0})
       return
     }
 
     const {duration, easing, endCoordinates} = event
+
+    // KB: added split?
+    if (this._frame && endCoordinates.width !== this._frame.width) {
+      this.setState({disabledDueToSplit: true})
+    } else {
+      if (this.state.disabledDueToSplit) {
+        this.setState({disabledDueToSplit: false})
+      }
+    }
+    // KB: end added
+
     const height = this._relativeKeyboardHeight(endCoordinates)
 
     if (this.state.bottom === height) {
@@ -40,7 +82,32 @@ class SplitAwareKeyboardAvoidingView extends RnKBAV {
     this.setState({bottom: height})
   }
 
-  render() {
+  _onLayout = event => {
+    this._frame = event.nativeEvent.layout
+    if (!this._initialFrameHeight) {
+      // save the initial frame height, before the keyboard is visible
+      this._initialFrameHeight = this._frame.height
+    }
+  }
+
+  componentDidMount(): void {
+    if (Platform.OS === 'ios') {
+      this._subscriptions = [Keyboard.addListener('keyboardWillChangeFrame', this._onKeyboardChange)]
+    } else {
+      this._subscriptions = [
+        Keyboard.addListener('keyboardDidHide', this._onKeyboardChange),
+        Keyboard.addListener('keyboardDidShow', this._onKeyboardChange),
+      ]
+    }
+  }
+
+  componentWillUnmount(): void {
+    this._subscriptions.forEach(subscription => {
+      subscription.remove()
+    })
+  }
+
+  render(): React.Node {
     const {
       behavior,
       children,
@@ -52,6 +119,42 @@ class SplitAwareKeyboardAvoidingView extends RnKBAV {
     } = this.props
     const bottomHeight = enabled && !this.state.disabledDueToSplit ? this.state.bottom : 0
     switch (behavior) {
+      case 'height':
+        let heightStyle
+        if (this._frame != null && this.state.bottom > 0) {
+          // Note that we only apply a height change when there is keyboard present,
+          // i.e. this.state.bottom is greater than 0. If we remove that condition,
+          // this.frame.height will never go back to its original value.
+          // When height changes, we need to disable flex.
+          heightStyle = {
+            height: this._initialFrameHeight - bottomHeight,
+            flex: 0,
+          }
+        }
+        return (
+          <View
+            ref={this.viewRef}
+            style={StyleSheet.compose(style, heightStyle)}
+            onLayout={this._onLayout}
+            {...props}
+          >
+            {children}
+          </View>
+        )
+
+      case 'position':
+        return (
+          <View ref={this.viewRef} style={style} onLayout={this._onLayout} {...props}>
+            <View
+              style={StyleSheet.compose(contentContainerStyle, {
+                bottom: bottomHeight,
+              })}
+            >
+              {children}
+            </View>
+          </View>
+        )
+
       case 'padding':
         return (
           <View
@@ -63,8 +166,13 @@ class SplitAwareKeyboardAvoidingView extends RnKBAV {
             {children}
           </View>
         )
+
       default:
-        return super.render()
+        return (
+          <View ref={this.viewRef} onLayout={this._onLayout} style={style} {...props}>
+            {children}
+          </View>
+        )
     }
   }
 }
