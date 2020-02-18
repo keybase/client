@@ -6,12 +6,12 @@ helpers = fileLoader.fromGit('helpers', 'https://github.com/keybase/jenkins-help
 
 def withKbweb(closure) {
   try {
-    retry(5) {
-      sh "docker-compose up -d mysql.local"
-    }
-    // Give MySQL a few seconds to start up.
-    sleep(10)
-    sh "docker-compose up -d kbweb.local"
+    // retry(5) {
+    //   sh "docker-compose up -d mysql.local"
+    // }
+    // // Give MySQL a few seconds to start up.
+    // sleep(10)
+    // sh "docker-compose up -d kbweb.local"
 
     closure()
   } catch (ex) {
@@ -384,6 +384,7 @@ def testGo(prefix, packagesToTest) {
               println "dirList:\n${dirList}"
               def dirListReal = sh(returnStdout: true, script: "bash -c \"set -o pipefail; go list -f '{{.Dir}}' ./... | tr '\n' '\0' | xargs -0 cygpath -u | xargs realpath --relative-to=. | xargs cygpath -w\"")
               println "dirListReal:\n${dirListReal}"
+              sh 'go list -f "{{.Dir}}" ./...  | fgrep -v dokan | tr '\n' '\0' | xargs -0 cygpath -u | xargs realpath --relative-to=. | xargs cygpath -w | xargs golangci-lint run'
             }
           }
         }
