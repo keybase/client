@@ -8,8 +8,7 @@
 
 #import <UIKit/UIKit.h>
 #import <Social/Social.h>
-#import "InitFailedViewController.h"
 
-@interface ShareViewController : SLComposeServiceViewController <InitFailedViewDelegate>
+@interface ShareViewController : UIViewController
 
 @end

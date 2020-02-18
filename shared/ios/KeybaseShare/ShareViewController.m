@@ -21,32 +21,12 @@ const BOOL isSimulator = NO;
 
 
 @interface ShareViewController ()
-@property BOOL hasInited; // whether or not init has succeeded yet
 @property NSMutableArray * manifest;
 @property NSURL * payloadFolderURL;
+@property UIAlertController* alert;
 @end
 
 @implementation ShareViewController
-
-- (BOOL)isContentValid {
-  return self.hasInited;
-}
-
-// presentationAnimationDidFinish is called after the screen has rendered, and is the recommended place for loading data.
-- (void)presentationAnimationDidFinish {
-  dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-    [self setHasInited:YES]; // Init is complete, we can use this to take down spinner on convo choice row
-   
-    dispatch_async(dispatch_get_main_queue(), ^{
-      [self validateContent];
-    });
-  });
-}
-
--(void)initFailedClosed {
-  // Just bail out of the extension if init failed
-  [self cancel];
-}
 
 - (NSItemProvider*)firstSatisfiesTypeIdentifierCond:(NSArray*)attachments cond:(BOOL (^)(NSItemProvider*))cond {
   for (NSItemProvider* a in attachments) {
@@ -107,7 +87,6 @@ const BOOL isSimulator = NO;
 }
 
 - (void)didReceiveMemoryWarning {
-    KeybaseExtensionForceGC(); // run Go GC and hope for the best
     [super didReceiveMemoryWarning];
 }
 
@@ -127,8 +106,11 @@ const BOOL isSimulator = NO;
   if (!lastItem) { return; }
   [self writeManifest];
   dispatch_async(dispatch_get_main_queue(), ^{
-    [self.extensionContext completeRequestReturningItems:nil completionHandler:nil];
-    [self openApp];
+    [self.alert dismissViewControllerAnimated:true completion:^{
+      [self.extensionContext completeRequestReturningItems:nil completionHandler:^(BOOL expired) {
+        [self openApp];
+      }];
+    }];
   });
 }
 
@@ -225,7 +207,7 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
 - (void)processItem:(NSItemProvider*)item lastItem:(BOOL)lastItem {
   
   NSItemProviderCompletionHandler urlHandler = ^(NSURL* url, NSError* error) {
-    [self handleText:[NSString stringWithFormat:@"%@ %@", self.contentText, url.absoluteURL] loadError:error];
+    [self handleText: url.absoluteString loadError:error];
     [self maybeCompleteRequest:lastItem];
   };
   
@@ -240,12 +222,8 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
       [self maybeCompleteRequest:lastItem];
       return;
     }
-    if (self.contentText.length > 0) {
-      // If there's any user input, add that as a text payload first.
-      [self handleText:self.contentText loadError:nil];
-    }
-    NSData * imageData = UIImagePNGRepresentation(image);
-    [self handleData:imageData type:@"image" ext:@"png"];
+    NSData * imageData = UIImageJPEGRepresentation(image, .85);
+    [self handleData:imageData type:@"image" ext:@"jpg"];
     [self maybeCompleteRequest:lastItem];
   };
   
@@ -275,10 +253,6 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
       [self maybeCompleteRequest:lastItem];
       return;
     }
-    if (self.contentText.length > 0) {
-      // If there's any user input, add that as a text payload first.
-      [self handleText:self.contentText loadError: nil];
-    }
     [self appendManifestType:@"file" payloadFileURL:filePayloadURL];
     [self maybeCompleteRequest:lastItem];
   };
@@ -289,9 +263,6 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
     [item loadItemForTypeIdentifier:@"public.image" options:nil completionHandler:imageHandler];
   } else if ([item hasItemConformingToTypeIdentifier:@"public.file-url"]) {
     [item loadItemForTypeIdentifier:@"public.file-url" options:nil completionHandler:fileHandler];
-  } else if ([item hasItemConformingToTypeIdentifier:@"public.plain-text"]) {
-    [self handleText:self.contentText loadError:nil];
-    [self maybeCompleteRequest:lastItem];
   } else if ([item hasItemConformingToTypeIdentifier:@"public.text"]) {
     [item loadItemForTypeIdentifier:@"public.text" options:nil completionHandler:textHandler];
   } else if ([item hasItemConformingToTypeIdentifier:@"public.url"]) {
@@ -304,26 +275,26 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
 }
 
 - (void)showProgressView {
-  UIAlertController* alert = [UIAlertController
+  self.alert = [UIAlertController
                               alertControllerWithTitle:@"Working on it"
                               message:@"Preparing content for sharing into Keybase."
                               preferredStyle:UIAlertControllerStyleAlert];
   UIActivityIndicatorView* spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
   [spinner setTranslatesAutoresizingMaskIntoConstraints:NO];
-  [alert.view addConstraints:@[
+  [self.alert.view addConstraints:@[
        [NSLayoutConstraint constraintWithItem:spinner
                                     attribute:NSLayoutAttributeCenterX
                                     relatedBy:NSLayoutRelationEqual
-                                       toItem:alert.view
+                                       toItem:self.alert.view
                                     attribute:NSLayoutAttributeCenterX
                                    multiplier:1 constant:0],
        [NSLayoutConstraint constraintWithItem:spinner
                                     attribute:NSLayoutAttributeCenterY
                                     relatedBy:NSLayoutRelationEqual
-                                       toItem:alert.view
+                                       toItem:self.alert.view
                                     attribute:NSLayoutAttributeCenterY
                                    multiplier:1 constant:40],
-       [NSLayoutConstraint constraintWithItem:alert.view
+       [NSLayoutConstraint constraintWithItem:self.alert.view
                                     attribute:NSLayoutAttributeBottom
                                     relatedBy:NSLayoutRelationEqual
                                        toItem:spinner
@@ -332,9 +303,13 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
        ]
    ];
   
-  [alert.view addSubview:spinner];
+  [self.alert.view addSubview:spinner];
   [spinner startAnimating];
-  [self presentViewController:alert animated:YES completion:nil];
+  [self presentViewController:self.alert animated:YES completion:nil];
+}
+
+- (void) closeProgressView {
+  [self.alert dismissViewControllerAnimated:true completion:nil];
 }
 
 - (void)ensureManifestAndPayloadFolder {
@@ -345,7 +320,7 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
   self.payloadFolderURL = [self makePayloadFolder];
 }
 
-- (void)didSelectPost {
+- (void)viewDidLoad {
   NSArray* items = [self getSendableAttachments];
   if ([items count] == 0) {
     [self maybeCompleteRequest:YES];
