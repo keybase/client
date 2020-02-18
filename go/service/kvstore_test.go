@@ -120,6 +120,7 @@ func TestKvStoreSelfTeamPutGet(t *testing.T) {
 }
 
 func TestKvStoreMultiUserTeam(t *testing.T) {
+	t.Skip()
 	tcAlice := kvTestSetup(t)
 	defer tcAlice.Cleanup()
 	tcBob := kvTestSetup(t)
