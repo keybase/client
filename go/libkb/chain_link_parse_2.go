@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/jsonparserw"
 	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/msgpack"
+	"github.com/keybase/go-crypto/ed25519"
 	pkgerrors "github.com/pkg/errors"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -135,7 +136,7 @@ func ImportLinkFromServer2(m MetaContext, parent *SigChain, data []byte, selfUID
 	case sigVersion == KeybaseSignatureV1 && isPGP:
 		linkID, sigID, payload, err = importLinkFromServerPGP(m, sig, data)
 	case sigVersion == KeybaseSignatureV1 && !isPGP:
-		linkID, sigID, payload, err = importLinkFromServerV1NaCl(m, sig, data)
+		linkID, sigID, payload, err = importLinkFromServerV1NaCl(m, data)
 	case sigVersion == KeybaseSignatureV2 && !isPGP:
 		linkID, sigID, payload, ol2, err = importLinkFromServerV2Unstubbed(m, data)
 	default:
@@ -298,27 +299,63 @@ func (s *sigChainPayloadJSON) HighSkip() (*HighSkip, error) {
 	return &highSkip, nil
 }
 
-func importLinkFromServerV1NaCl(m MetaContext, sig string, packed []byte) (linkID LinkID, sigID keybase1.SigID, payload []byte, err error) {
-	var kid, payloadKID keybase1.KID
-	payload, kid, sigID, err = SigExtractKbPayloadAndKID(sig)
-	if err != nil {
-		return nil, sigID, nil, err
-	}
-	payloadJSON := newSigChainPayloadJSONFromBytes(payload)
-	err = payloadJSON.AssertJSON(payloadJSON.Hash())
-	if err != nil {
-		return nil, sigID, nil, err
-	}
+func importLinkFromServerV1NaCl(m MetaContext, packed []byte) (LinkID, keybase1.SigID, []byte, error) {
+	var payloadJSON *sigChainPayloadJSON
+	var linkID LinkID
+	var sigID keybase1.SigID
+	var kid keybase1.KID
 
-	payloadKID, err = payloadJSON.KID()
+	doImport := func() (err error) {
+		var sig2ImplodedRaw string
+		var sig2Imploded []byte
+		var naclSignature kbcrypto.NaclSignature
+		var version SigVersion
+		var sigBody []byte
+		sig2ImplodedRaw, err = jsonparserw.GetString(packed, "si1")
+		if err != nil || sig2ImplodedRaw == "" {
+			return ChainLinkError{"no si1 field as expected"}
+		}
+		sig2Imploded, err = base64.StdEncoding.DecodeString(sig2ImplodedRaw)
+		if err != nil || len(sig2Imploded) != ed25519.SignatureSize {
+			return ChainLinkError{"cannot decode ci1 field"}
+		}
+		copy(naclSignature[:], sig2Imploded)
+		payloadJSON, err = getPayloadJSONFromServerLink(packed)
+		if err != nil {
+			return err
+		}
+		version, err = payloadJSON.Version()
+		if err != nil {
+			return err
+		}
+		if version != KeybaseSignatureV1 {
+			return ChainLinkError{"inner chainlink showed wrong version, while expecting 1"}
+		}
+		linkID = payloadJSON.Hash()
+		kid, err = payloadJSON.KID()
+		if err != nil {
+			return err
+		}
+		sigInfo := &kbcrypto.NaclSigInfo{
+			Kid:      kid.ToBinaryKID(),
+			Payload:  payloadJSON.Bytes(),
+			Sig:      naclSignature,
+			SigType:  kbcrypto.SigKbEddsa,
+			Detached: true,
+		}
+
+		sigBody, err = kbcrypto.EncodePacketToBytes(sigInfo)
+		if err != nil {
+			return err
+		}
+		sigID = kbcrypto.ComputeSigIDFromSigBody(sigBody)
+		return nil
+	}
+	err := doImport()
 	if err != nil {
 		return nil, sigID, nil, err
 	}
-	if !payloadKID.Equal(kid) {
-		err = ChainLinkError{"kid mismatch bewteen signature and payload"}
-		return nil, sigID, nil, err
-	}
-	return linkID, sigID, payload, nil
+	return linkID, sigID, payloadJSON.Bytes(), nil
 }
 
 type Sig2Imploded struct {
