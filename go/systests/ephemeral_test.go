@@ -181,11 +181,14 @@ func TestEphemeralTeambotEK(t *testing.T) {
 	noTeambotEKNeeded(user2.tc, user2.notifications)
 	noNewTeambotEKNotification(botua.tc, botua.notifications)
 
-	// delete the initial key to check regeneration flows
-	err = teambot.DeleteTeambotEKForTest(mctx3, teamID, 1)
+	// simulate a bot restarting in one shot mode and losing it's deviceEKs
+	botDeviceEKStore := mctx3.G().GetDeviceEKStorage()
+	err = botDeviceEKStore.ForceDeleteAll(mctx3, libkb.NormalizedUsername(botua.username))
+	require.NoError(t, err)
+	ekLib3.ClearCaches(mctx3)
+	err = ekLib3.KeygenIfNeeded(mctx3)
 	require.NoError(t, err)
 
-	// initial get, bot has no key to access
 	_, created, err = ekLib3.GetOrCreateLatestTeambotEK(mctx3, teamID, botuaUID)
 	require.Error(t, err)
 	require.IsType(t, ephemeral.EphemeralKeyError{}, err)
@@ -216,7 +219,6 @@ func TestEphemeralTeambotEK(t *testing.T) {
 
 	teambotEK, _, err = ekLib1.GetOrCreateLatestTeambotEK(mctx1, teamID, botuaUID)
 	require.NoError(t, err)
-	//require.False(t, created)
 
 	require.Equal(t, teambotEK.Generation(), teambotEK2.Generation())
 	require.Equal(t, teambotEK.Material(), teambotEK2.Material())
@@ -235,8 +237,12 @@ func TestEphemeralTeambotEK(t *testing.T) {
 	}
 	checkNewTeambotEKNotifications(botua.tc, botua.notifications, newEkArg)
 
-	// delete to check regeneration flow
-	err = teambot.DeleteTeambotEKForTest(mctx3, teamID, 3)
+	// simulate a bot restarting in one shot mode and losing it's deviceEKs
+	botDeviceEKStore = mctx3.G().GetDeviceEKStorage()
+	err = botDeviceEKStore.ForceDeleteAll(mctx3, libkb.NormalizedUsername(botua.username))
+	require.NoError(t, err)
+	ekLib3.ClearCaches(mctx3)
+	err = ekLib3.KeygenIfNeeded(mctx3)
 	require.NoError(t, err)
 
 	// Force a wrongKID error on the bot user by expiring the wrongKID cache
@@ -357,25 +363,26 @@ func TestEphemeralTeambotEK(t *testing.T) {
 		require.NoError(t, err)
 
 		teambotEKBot, err := ekLib3.GetTeambotEK(mctx3, teamID, botuaUID, i, nil)
-		require.NoError(t, err)
 		switch i {
-		case 1, 3, 5:
-			// Missing generations are recreated when we force deleted for
-			// testing above.
+		case 1, 2, 3:
+			require.Error(t, err)
+		default:
+			require.NoError(t, err)
+			require.Equal(t, teambotEKBot.Generation(), teambotEKNonBot1.Generation())
+			require.Equal(t, teambotEKBot.Material(), teambotEKNonBot1.Material())
+			require.Equal(t, teambotEKBot.Generation(), teambotEKNonBot2.Generation())
+			require.Equal(t, teambotEKBot.Material(), teambotEKNonBot2.Material())
+		}
+		if i == 5 {
 			newEkArg = keybase1.NewTeambotEkArg{
 				Id:         teamID,
-				Generation: i,
+				Generation: 5,
 			}
 			checkNewTeambotEKNotifications(botua.tc, botua.notifications, newEkArg)
-		default:
-			noNewTeambotEKNotification(botua.tc, botua.notifications)
 		}
+		noNewTeambotEKNotification(botua.tc, botua.notifications)
 		noTeambotEKNeeded(user1.tc, user1.notifications)
 		noTeambotEKNeeded(user2.tc, user2.notifications)
-		require.Equal(t, teambotEKBot.Generation(), teambotEKNonBot1.Generation())
-		require.Equal(t, teambotEKBot.Material(), teambotEKNonBot1.Material())
-		require.Equal(t, teambotEKBot.Generation(), teambotEKNonBot2.Generation())
-		require.Equal(t, teambotEKBot.Material(), teambotEKNonBot2.Material())
 	}
 
 	// bot asks for a non-existent generation, no new key is created.
