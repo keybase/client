@@ -372,10 +372,19 @@ def testGo(prefix, packagesToTest) {
       dir('kbfs') {
         retry(5) {
           timeout(activity: true, time: 180, unit: 'SECONDS') {
-            def dirList = sh(returnStdout: true, script: "bash -c \"set -o pipefail; go list -f '{{.Dir}}' ./...\"")
-            println "dirList:\n${dirList}"
-            def dirListReal = sh(returnStdout: true, script: "bash -c \"set -o pipefail; go list -f '{{.Dir}}' ./... | xargs realpath --relative-to=.\"")
-            println "dirListReal:\n${dirListReal}"
+            if (isUnix()) {
+              println "UNIX"
+              def dirList = sh(returnStdout: true, script: "bash -c \"set -o pipefail; go list -f '{{.Dir}}' ./...\"")
+              println "dirList:\n${dirList}"
+              def dirListReal = sh(returnStdout: true, script: "bash -c \"set -o pipefail; go list -f '{{.Dir}}' ./... | xargs realpath --relative-to=.\"")
+              println "dirListReal:\n${dirListReal}"
+            } else {
+              println "WINDOWS"
+              def dirList = sh(returnStdout: true, script: "bash -c \"set -o pipefail; go list -f '{{.Dir}}' ./...\"")
+              println "dirList:\n${dirList}"
+              def dirListReal = sh(returnStdout: true, script: "bash -c \"set -o pipefail; go list -f '{{.Dir}}' ./... | tr '\n' '\0' | xargs -0 cygpath -u | xargs realpath --relative-to=. | xargs cygpath -w\"")
+              println "dirListReal:\n${dirListReal}"
+            }
           }
         }
       }
