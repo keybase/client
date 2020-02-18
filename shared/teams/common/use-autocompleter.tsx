@@ -26,7 +26,12 @@ const useAutocompleter = (items: Array<string>, onSelect: (value: string) => voi
         positionFallbacks={['bottom center']}
       >
         {itemsFiltered.map((item, idx) => (
-          <Kb.ClickableBox key={item} onMouseDown={() => onSelect(item)} onMouseOver={() => setSelected(idx)}>
+          <Kb.ClickableBox
+            key={item}
+            onMouseDown={() => onSelect(item)}
+            onMouseOver={() => setSelected(idx)}
+            style={styles.optionOuter}
+          >
             <Kb.Box2
               direction="horizontal"
               fullWidth={true}
@@ -77,8 +82,9 @@ const useAutocompleter = (items: Array<string>, onSelect: (value: string) => voi
 
 const styles = Styles.styleSheetCreate(() => ({
   option: {...Styles.padding(4, 10, 2), backgroundColor: Styles.globalColors.white},
+  optionOuter: {backgroundColor: Styles.globalColors.white}, // because blueLighter2 is transparent in dark mode
   optionSelected: {
-    backgroundColor: Styles.globalColors.blueLighter2, // TODO transparent in dark mode?
+    backgroundColor: Styles.globalColors.blueLighter2,
   },
 }))
 
