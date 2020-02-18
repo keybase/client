@@ -17,7 +17,6 @@ import {tlfToPreferredOrder} from '../../util/kbfs'
 import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
 import {NotifyPopup} from '../../native/notifications'
 import {RPCError} from '../../util/errors'
-import * as Copy from '../../util/copy'
 
 const rpcFolderTypeToTlfType = (rpcFolderType: RPCTypes.FolderType) => {
   switch (rpcFolderType) {
@@ -450,7 +449,7 @@ function* upload(_: Container.TypedState, action: FsGen.UploadPayload) {
 const uploadFromDragAndDrop = async (_: Container.TypedState, action: FsGen.UploadFromDragAndDropPayload) => {
   if (Platform.isDarwin) {
     const localPaths = await Promise.all(
-      action.payload.localPaths.map(localPath => Copy.copyToTmp(localPath))
+      action.payload.localPaths.map(localPath => KB.kb.darwinCopyToTmp(localPath))
     )
     return localPaths.map(localPath =>
       FsGen.createUpload({

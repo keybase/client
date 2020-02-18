@@ -50,6 +50,16 @@ declare var KB: {
       appPath: string
     }
   }
+  kb: {
+    darwinCopyToTmp: (p: string) => Promise<string>
+    darwinCopyToChatTempUploadFile: (
+      p: string
+    ) => Promise<{
+      outboxID: Buffer
+      path: string
+    }>
+    setEngine: (e: any) => void
+  }
   os: {
     homedir: string
   }

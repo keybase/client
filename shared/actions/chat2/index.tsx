@@ -32,7 +32,6 @@ import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {RPCError} from '../../util/errors'
 import * as Container from '../../util/container'
 import {isIOS} from '../../constants/platform'
-import * as Copy from '../../util/copy'
 
 const onConnect = async () => {
   try {
@@ -2224,7 +2223,9 @@ const attachFromDragAndDrop = async (
   action: Chat2Gen.AttachFromDragAndDropPayload
 ) => {
   if (Platform.isDarwin) {
-    const paths = await Promise.all(action.payload.paths.map(p => Copy.copyToChatTempUploadFile(p.path)))
+    const paths = await Promise.all(
+      action.payload.paths.map(p => KB.kb.darwinCopyToChatTempUploadFile(p.path))
+    )
     return Chat2Gen.createAttachmentsUpload({
       conversationIDKey: action.payload.conversationIDKey,
       paths,
