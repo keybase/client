@@ -107,7 +107,6 @@ func TestAccessRequestIgnore(t *testing.T) {
 	}); err != nil {
 		t.Fatal(err)
 	}
-	require.NoError(t, tc.G.UIDMapper.ClearUIDFullName(context.Background(), tc.G, u1.User.GetUID()))
 
 	// owner lists requests, sees u1 request
 	err = tc.Logout()
@@ -115,6 +114,7 @@ func TestAccessRequestIgnore(t *testing.T) {
 	if err := owner.Login(tc.G); err != nil {
 		t.Fatal(err)
 	}
+	require.NoError(t, tc.G.UIDMapper.ClearUIDFullName(context.Background(), tc.G, u1.User.GetUID()))
 	reqs, err := ListRequests(context.Background(), tc.G, nil)
 	if err != nil {
 		t.Fatal(err)
