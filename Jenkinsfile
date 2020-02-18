@@ -2,7 +2,7 @@
 
 import groovy.json.JsonSlurperClassic
 
-helpers = fileLoader.fromGit('helpers', 'https://github.com/keybase/jenkins-helpers.git', 'master', null, 'linux')
+helpers = fileLoader.fromGit('helpers', 'https://github.com/keybase/jenkins-helpers.git', 'master', null, 'linux-testing')
 
 def withKbweb(closure) {
   try {
@@ -36,7 +36,15 @@ def logKbwebServices(container) {
   archive("kbweb-logs.tar.gz")
 }
 
-helpers.rootLinuxNode(env, {
+def rootLinuxNode(env, handleError, cleanup, closure) {
+  if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
+    println "Skipping build because PR title contains [ci-skip]"
+  } else {
+    helpers.nodeWithDockerCleanup("linux-testing", handleError, cleanup, closure)
+  }
+}
+
+rootLinuxNode(env, {
   helpers.slackOnError("client", env, currentBuild)
 }, {}) {
   properties([
@@ -290,7 +298,7 @@ helpers.rootLinuxNode(env, {
             // TODO: If we re-enable tests other than Go tests on
             // Windows, this check should go away.
             if (hasGoChanges) {
-              helpers.nodeWithCleanup('windows-ssh', {}, {}) {
+              helpers.nodeWithCleanup('windows-ssh-testing', {}, {}) {
                 def BASEDIR="${pwd()}"
                 def GOPATH="${BASEDIR}\\go"
                 withEnv([
@@ -487,11 +495,10 @@ def testGo(prefix, packagesToTest) {
     sh '(cd citogo && go install)'
 
     if (prefix == "test_linux_go_") {
-      // Only on linux
+      // Only test golangci-lint on linux
       println "Installing golangci-lint"
       dir("..") {
         retry(5) {
-          // This works with go1.12.12 but not go1.13.1 with an error containing "invalid pseudo-version"
           sh 'GO111MODULE=on go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.23.6'
         }
       }
