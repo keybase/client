@@ -127,8 +127,8 @@ export const TeamMemberRow = (props: Props) => {
           fullName={props.fullName}
           label={
             <Kb.Box2 direction="horizontal">
-              {crown}
-              {roleLabel}
+              <Kb.Text type="BodySmall">{crown}</Kb.Text>
+              <Kb.Text type="BodySmall">{roleLabel}</Kb.Text>
             </Kb.Box2>
           }
         />
@@ -348,7 +348,10 @@ const styles = Styles.styleSheetCreate(() => ({
     flexShrink: 1,
     height: '100%',
   },
-  checkCircle: Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
+  checkCircle: {
+    ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
+    alignSelf: 'center',
+  },
   clickable: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',

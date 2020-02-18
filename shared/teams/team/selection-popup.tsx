@@ -141,7 +141,6 @@ const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.white,
-      position: 'absolute',
     },
     isElectron: {
       ...Styles.desktopStyles.boxShadow,
@@ -149,11 +148,11 @@ const styles = Styles.styleSheetCreate(() => ({
       borderRadius: 4,
       bottom: -48,
       left: Styles.globalMargins.tiny,
+      position: 'absolute',
       right: Styles.globalMargins.tiny,
     },
     isMobile: {
       ...Styles.padding(Styles.globalMargins.small),
-      bottom: 0,
       shadowOffset: {height: 2, width: 0},
       shadowOpacity: 0.8,
       shadowRadius: 5,
