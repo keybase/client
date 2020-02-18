@@ -16,6 +16,7 @@ export type OwnProps = {
   attachTo?: () => React.Component<any> | null
   onHidden: () => void
   isSmallTeam: boolean
+  isOnRight?: boolean
   teamID?: TeamTypes.TeamID
   conversationIDKey: ChatTypes.ConversationIDKey
   visible: boolean
@@ -186,6 +187,7 @@ export default Container.namedConnect(
       canAddPeople: s.canAddPeople,
       convProps,
       isSmallTeam: s.isSmallTeam,
+      isOnRight: o.isOnRight,
       manageChannelsSubtitle: s.manageChannelsSubtitle,
       manageChannelsTitle: s.manageChannelsTitle,
       memberCount: s.memberCount,

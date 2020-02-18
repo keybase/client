@@ -3,7 +3,6 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import * as ChatTypes from '../../../../constants/types/chat2'
 import * as TeamTypes from '../../../../constants/types/teams'
-import {Avatars, TeamAvatar} from '../../../avatars'
 import {TeamsSubscriberMountOnly} from '../../../../teams/subscriber'
 
 export type ConvProps = {
@@ -22,6 +21,7 @@ export type Props = {
   canAddPeople: boolean
   convProps?: ConvProps
   isSmallTeam: boolean
+  isOnRight?: boolean
   manageChannelsSubtitle: string
   manageChannelsTitle: string
   memberCount: number
@@ -37,61 +37,6 @@ export type Props = {
   onUnhideConv: () => void
   onManageChannels: () => void
   onViewTeam: () => void
-}
-
-type AdhocHeaderProps = {
-  fullname: string
-  isMuted: boolean
-  participants: Array<string>
-}
-
-const AdhocHeader = (props: AdhocHeaderProps) => (
-  <Kb.Box2 direction="vertical" gap="tiny" gapStart={false} gapEnd={true} style={styles.headerContainer}>
-    <Avatars
-      backgroundColor={Styles.globalColors.white}
-      isHovered={false}
-      isLocked={false}
-      isMuted={props.isMuted}
-      isSelected={false}
-      participants={props.participants}
-    />
-    <Kb.Box2 direction="vertical" centerChildren={true}>
-      <Kb.ConnectedUsernames
-        colorFollowing={true}
-        commaColor={Styles.globalColors.black_50}
-        inline={false}
-        skipSelf={props.participants.length > 1}
-        containerStyle={Styles.collapseStyles([styles.maybeLongText, styles.adhocUsernames])}
-        type="BodyBig"
-        underline={false}
-        usernames={props.participants}
-        onUsernameClicked="profile"
-      />
-      {!!props.fullname && <Kb.Text type="BodySmall">{props.fullname}</Kb.Text>}
-    </Kb.Box2>
-  </Kb.Box2>
-)
-
-type TeamHeaderProps = {
-  isMuted: boolean
-  memberCount: number
-  teamname: string
-  onViewTeam: () => void
-}
-const TeamHeader = (props: TeamHeaderProps) => {
-  return (
-    <Kb.Box2 direction="vertical" gap="tiny" gapStart={false} gapEnd={true} style={styles.headerContainer}>
-      <TeamAvatar teamname={props.teamname} isMuted={props.isMuted} isSelected={false} isHovered={false} />
-      <Kb.Box2 direction="vertical" centerChildren={true}>
-        <Kb.Text type="BodySemibold" style={styles.maybeLongText} onClick={props.onViewTeam}>
-          {props.teamname}
-        </Kb.Text>
-        <Kb.Text type="BodySmall">{`${props.memberCount} member${
-          props.memberCount !== 1 ? 's' : ''
-        }`}</Kb.Text>
-      </Kb.Box2>
-    </Kb.Box2>
-  )
 }
 
 class InfoPanelMenu extends React.Component<Props> {
@@ -152,27 +97,6 @@ class InfoPanelMenu extends React.Component<Props> {
       return arr
     }, [])
 
-    const header = {
-      title: 'header',
-      view:
-        isAdhoc && props.convProps ? (
-          <AdhocHeader
-            isMuted={props.convProps.muted}
-            fullname={props.convProps.fullname}
-            participants={props.convProps.participants}
-          />
-        ) : props.teamname ? (
-          <TeamHeader
-            isMuted={
-              props.convProps === null || props.convProps === undefined ? false : props.convProps.muted
-            }
-            teamname={props.teamname}
-            memberCount={props.memberCount}
-            onViewTeam={props.onViewTeam}
-          />
-        ) : null,
-    }
-
     return (
       <>
         {props.visible && <TeamsSubscriberMountOnly />}
@@ -180,9 +104,8 @@ class InfoPanelMenu extends React.Component<Props> {
           attachTo={props.attachTo}
           visible={props.visible}
           items={items}
-          header={header}
           onHidden={props.onHidden}
-          position="bottom left"
+          position={props.isOnRight ? 'bottom right' : 'bottom left'}
           closeOnSelect={true}
         />
       </>
@@ -229,69 +152,5 @@ class InfoPanelMenu extends React.Component<Props> {
     }
   }
 }
-
-const styles = Styles.styleSheetCreate(
-  () =>
-    ({
-      adhocUsernames: {
-        justifyContent: 'center',
-      },
-      badge: Styles.platformStyles({
-        common: {
-          backgroundColor: Styles.globalColors.blue,
-          borderRadius: 6,
-          height: 8,
-          margin: 6,
-          width: 8,
-        },
-        isElectron: {
-          margin: 4,
-          marginTop: 5,
-          position: 'absolute',
-          right: Styles.globalMargins.tiny,
-        },
-      }),
-      headerAvatar: Styles.platformStyles({
-        isElectron: {
-          marginBottom: 2,
-        },
-        isMobile: {
-          marginBottom: 4,
-        },
-      }),
-      headerContainer: Styles.platformStyles({
-        common: {
-          ...Styles.globalStyles.flexBoxColumn,
-          alignItems: 'center',
-        },
-        isElectron: {
-          paddingTop: 16,
-          width: 200, // don't expand if text is long
-        },
-        isMobile: {paddingBottom: 24, paddingTop: 40},
-      }),
-      maybeLongText: Styles.platformStyles({
-        common: {
-          ...Styles.padding(0, Styles.globalMargins.tiny),
-          textAlign: 'center',
-        },
-        isElectron: {
-          wordBreak: 'break-word',
-        } as const,
-      }),
-      muteAction: {
-        ...Styles.globalStyles.flexBoxRow,
-        alignItems: 'center',
-      },
-      noTopborder: {
-        borderTopWidth: 0,
-      },
-      text: Styles.platformStyles({
-        isMobile: {
-          color: Styles.globalColors.blueDark,
-        },
-      }),
-    } as const)
-)
 
 export {InfoPanelMenu}

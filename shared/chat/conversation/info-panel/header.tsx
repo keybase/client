@@ -46,6 +46,7 @@ const TeamHeader = (props: SmallProps) => {
       conversationIDKey={conversationIDKey}
       teamID={teamID}
       isSmallTeam={false}
+      isOnRight={true}
     />
   ))
 
@@ -61,6 +62,7 @@ const TeamHeader = (props: SmallProps) => {
       isSmallTeam={isSmallTeam}
       conversationIDKey={conversationIDKey}
       visible={showingChannelMenuPopup}
+      isOnRight={true}
     />
   ))
 
