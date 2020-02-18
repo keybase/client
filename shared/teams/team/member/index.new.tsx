@@ -7,33 +7,154 @@ import * as Container from '../../../util/container'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as ProfileGen from '../../../actions/profile-gen'
 import logger from '../../../logger'
+import {pluralize} from '../../../util/string'
+import {FloatingRolePicker} from '../../role-picker'
+import * as TeamsGen from '../../../actions/teams-gen'
 
 type Props = {
   teamID: Types.TeamID
   username: string
 }
+type OwnProps = Container.RouteProps<Props>
 
-class TeamMember extends React.Component<Container.RouteProps<Props>> {
-  static navigationOptions = (ownProps: Container.RouteProps<Props>) => ({
-    header: Container.isMobile
-      ? () => (
-          <TeamMemberHeader
-            teamID={Container.getRouteProps(ownProps, 'teamID', Types.noTeamID)}
-            username={Container.getRouteProps(ownProps, 'username', '')}
-          />
-        )
-      : undefined,
-    headerExpandable: true,
-    headerTitle: () => (
-      <TeamMemberHeader
-        teamID={Container.getRouteProps(ownProps, 'teamID', Types.noTeamID)}
-        username={Container.getRouteProps(ownProps, 'username', '')}
-      />
-    ),
+// TODO: upon visiting this page, dispatch something to load the subteam data into the store for all these subteams
+const getSubteamsInNotIn = (state: Container.TypedState, teamID: Types.TeamID, username: string) => {
+  const subteamsAll = Constants.getTeamDetails(state, teamID).subteams
+  let subteamsNotIn: Array<Types.TeamMeta> = []
+  let subteamsIn: Array<Types.TeamMeta> = []
+  subteamsAll.forEach(subteamID => {
+    const subteamDetails = Constants.getTeamDetails(state, subteamID)
+    const subteamMeta = Constants.getTeamMeta(state, subteamID)
+    const memberInSubteam = subteamDetails.members.has(username)
+    if (memberInSubteam) {
+      subteamsIn.push(subteamMeta)
+    } else {
+      subteamsNotIn.push(subteamMeta)
+    }
   })
-  render() {
-    return null
+  return {
+    subteamsIn,
+    subteamsNotIn,
   }
+}
+
+const TeamMember = (props: OwnProps) => {
+  const username = Container.getRouteProps(props, 'username', '')
+  const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
+  const {subteamsIn, subteamsNotIn} = Container.useSelector(state =>
+    getSubteamsInNotIn(state, teamID, username)
+  )
+  const sections = [
+    {
+      data: subteamsIn,
+      key: 'section-subteams',
+      title: `${username} is in:`,
+      renderItem: (item, idx) => (
+        <SubteamInRow teamID={teamID} subteam={item} idx={idx} username={username} />
+      ),
+    },
+    {
+      data: subteamsNotIn,
+      key: 'section-add-subteams',
+      title: `Add ${username} to:`,
+      renderItem: (item, idx) => (
+        <SubteamNotInRow teamID={teamID} subteam={item} idx={idx} username={username} />
+      ),
+    },
+  ]
+  return (
+    <Kb.SectionList
+      stickySectionHeadersEnabled={true}
+      renderSectionHeader={({section}) => <Kb.SectionDivider label={section.title} />}
+      sections={sections}
+      keyExtractor={item => `member:${username}:${item.subTeamName}`}
+    />
+  )
+}
+
+TeamMember.navigationOptions = (ownProps: OwnProps) => ({
+  header: Container.isMobile
+    ? () => (
+        <TeamMemberHeader
+          teamID={Container.getRouteProps(ownProps, 'teamID', Types.noTeamID)}
+          username={Container.getRouteProps(ownProps, 'username', '')}
+        />
+      )
+    : undefined,
+  headerExpandable: true,
+  headerTitle: () => (
+    <TeamMemberHeader
+      teamID={Container.getRouteProps(ownProps, 'teamID', Types.noTeamID)}
+      username={Container.getRouteProps(ownProps, 'username', '')}
+    />
+  ),
+})
+
+type SubteamNotInRowProps = {
+  teamID: Types.TeamID
+  username: string
+  subteam: Types.TeamMeta
+  idx: number
+}
+const SubteamNotInRow = (props: SubteamNotInRowProps) => {
+  const dispatch = Container.useDispatch()
+  const onAdd = (role: Types.TeamRoleType) =>
+    dispatch(
+      TeamsGen.createAddToTeam({
+        sendChatNotification: true,
+        teamID: props.teamID,
+        users: [{assertion: props.username, role}],
+      })
+    )
+
+  const [role, setRole] = React.useState<Types.TeamRoleType>('writer')
+  const {popup, toggleShowingPopup, showingPopup, popupAnchor} = Kb.usePopup(() => (
+    <FloatingRolePicker open={showingPopup} onConfirm={() => onAdd(role)} onSelectRole={setRole} />
+  ))
+  const action = <Kb.Button label="Add" onClick={toggleShowingPopup} ref={popupAnchor} />
+
+  const memberCount = props.subteam.memberCount ?? -1
+  const body = (
+    <Kb.Box2 direction="vertical" alignItems="flex-start">
+      <Kb.Text type="BodySemibold">{props.subteam.teamname}</Kb.Text>
+      <Kb.Text type="BodySmall">
+        {memberCount.toLocaleString()} {pluralize('member', memberCount)}
+      </Kb.Text>
+      {popup}
+    </Kb.Box2>
+  )
+  const icon = <Kb.Avatar teamname={props.subteam.teamname} size={32} />
+  return <Kb.ListItem2 icon={icon} body={body} action={action} firstItem={props.idx === 1} type="Large" />
+}
+const SubteamInRow = (props: SubteamNotInRowProps) => {
+  const dispatch = Container.useDispatch()
+  const onAdd = (role: Types.TeamRoleType) =>
+    dispatch(
+      TeamsGen.createAddToTeam({
+        sendChatNotification: true,
+        teamID: props.teamID,
+        users: [{assertion: props.username, role}],
+      })
+    )
+
+  const [role, setRole] = React.useState<Types.TeamRoleType>('writer')
+  const {popup, toggleShowingPopup, showingPopup, popupAnchor} = Kb.usePopup(() => (
+    <FloatingRolePicker open={showingPopup} onConfirm={() => onAdd(role)} onSelectRole={setRole} />
+  ))
+  const action = <Kb.Button label="Add" onClick={toggleShowingPopup} ref={popupAnchor} />
+
+  const memberCount = props.subteam.memberCount ?? -1
+  const body = (
+    <Kb.Box2 direction="vertical" alignItems="flex-start">
+      <Kb.Text type="BodySemibold">{props.subteam.teamname}</Kb.Text>
+      <Kb.Text type="BodySmall">
+        {memberCount.toLocaleString()} {pluralize('member', memberCount)}
+      </Kb.Text>
+      {popup}
+    </Kb.Box2>
+  )
+  const icon = <Kb.Avatar teamname={props.subteam.teamname} size={32} />
+  return <Kb.ListItem2 icon={icon} body={body} action={action} firstItem={props.idx === 1} type="Large" />
 }
 
 // exported for stories
