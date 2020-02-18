@@ -67,7 +67,7 @@ export const Bot = (props: BotProps) => {
       // fetch bot settings if trying to show the add to channel button
       dispatch(Chat2Gen.createRefreshBotSettings({conversationIDKey, username: botUsername}))
     }
-  }, [dispatch, botUsername, conversationIDKey])
+  }, [dispatch, botUsername, conversationIDKey, showChannelAdd])
 
   const lower = (
     <Kb.Box2
