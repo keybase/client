@@ -114,7 +114,6 @@ func importLinkFromServerV2Stubbed(m MetaContext, parent *SigChain, raw string) 
 func ImportLinkFromServer2(m MetaContext, parent *SigChain, data []byte, selfUID keybase1.UID) (ret *ChainLink, err error) {
 
 	sig2Stubbed, _ := jsonparserw.GetString(data, "s2")
-	sig, _ := jsonparserw.GetString(data, "sig")
 
 	if sig2Stubbed != "" {
 		return importLinkFromServerV2Stubbed(m, parent, sig2Stubbed)
@@ -125,20 +124,22 @@ func ImportLinkFromServer2(m MetaContext, parent *SigChain, data []byte, selfUID
 		return nil, ChainLinkError{"cannot read signature version from server"}
 	}
 
+	sig, _ := jsonparserw.GetString(data, "sig")
 	isPGP := IsPGPSig(sig)
 
 	var payload []byte
 	var sigID keybase1.SigID
 	var linkID LinkID
 	var ol2 *OuterLinkV2WithMetadata
+	var kid keybase1.KID
 	sigVersion := SigVersion(versionRaw)
 	switch {
 	case sigVersion == KeybaseSignatureV1 && isPGP:
-		linkID, sigID, payload, err = importLinkFromServerPGP(m, sig, data)
+		kid, linkID, sigID, payload, err = importLinkFromServerPGP(m, sig, data)
 	case sigVersion == KeybaseSignatureV1 && !isPGP:
-		linkID, sigID, payload, err = importLinkFromServerV1NaCl(m, data)
+		kid, linkID, sigID, sig, payload, err = importLinkFromServerV1NaCl(m, data)
 	case sigVersion == KeybaseSignatureV2 && !isPGP:
-		linkID, sigID, payload, ol2, err = importLinkFromServerV2Unstubbed(m, data)
+		kid, linkID, sigID, sig, payload, ol2, err = importLinkFromServerV2Unstubbed(m, data)
 	default:
 		err = ChainLinkError{fmt.Sprintf("bad link back from server; version=%d; pgp=%v", sigVersion, isPGP)}
 	}
@@ -163,7 +164,12 @@ func ImportLinkFromServer2(m MetaContext, parent *SigChain, data []byte, selfUID
 	if err != nil {
 		return nil, err
 	}
-	m.Debug("got sig ID %s", sigID)
+	tmp.sig = sig
+	tmp.sigID = sigID
+
+	// this might overwrite the actions of unpackPayloadJSON. TODO: to change
+	// unpackPayloadJSON to fix this issue.
+	tmp.kid = kid
 	return ret, nil
 }
 
@@ -299,11 +305,12 @@ func (s *sigChainPayloadJSON) HighSkip() (*HighSkip, error) {
 	return &highSkip, nil
 }
 
-func importLinkFromServerV1NaCl(m MetaContext, packed []byte) (LinkID, keybase1.SigID, []byte, error) {
+func importLinkFromServerV1NaCl(m MetaContext, packed []byte) (keybase1.KID, LinkID, keybase1.SigID, string, []byte, error) {
 	var payloadJSON *sigChainPayloadJSON
 	var linkID LinkID
 	var sigID keybase1.SigID
 	var kid keybase1.KID
+	var sig string
 
 	doImport := func() (err error) {
 		var sig2ImplodedRaw string
@@ -348,14 +355,15 @@ func importLinkFromServerV1NaCl(m MetaContext, packed []byte) (LinkID, keybase1.
 		if err != nil {
 			return err
 		}
+		sig = base64.StdEncoding.EncodeToString(sigBody)
 		sigID = kbcrypto.ComputeSigIDFromSigBody(sigBody)
 		return nil
 	}
 	err := doImport()
 	if err != nil {
-		return nil, sigID, nil, err
+		return "", nil, sigID, "", nil, err
 	}
-	return linkID, sigID, payloadJSON.Bytes(), nil
+	return kid, linkID, sigID, sig, payloadJSON.Bytes(), nil
 }
 
 type Sig2Imploded struct {
@@ -418,12 +426,13 @@ func decodeSig2Imploded(s string) (*Sig2Imploded, error) {
 	return &ret, nil
 }
 
-func importLinkFromServerV2Unstubbed(m MetaContext, packed []byte) (LinkID, keybase1.SigID, []byte, *OuterLinkV2WithMetadata, error) {
+func importLinkFromServerV2Unstubbed(m MetaContext, packed []byte) (keybase1.KID, LinkID, keybase1.SigID, string, []byte, *OuterLinkV2WithMetadata, error) {
 	var payloadJSON *sigChainPayloadJSON
 	var outerLinkID LinkID
 	var sigID keybase1.SigID
 	var kid keybase1.KID
 	var ol2 *OuterLinkV2WithMetadata
+	var sig string
 
 	doImport := func() (err error) {
 		var prev LinkID
@@ -496,6 +505,7 @@ func importLinkFromServerV2Unstubbed(m MetaContext, packed []byte) (LinkID, keyb
 		if err != nil {
 			return err
 		}
+		sig = base64.StdEncoding.EncodeToString(sigBody)
 		sigID = kbcrypto.ComputeSigIDFromSigBody(sigBody)
 
 		ol2 = &OuterLinkV2WithMetadata{
@@ -544,28 +554,59 @@ func importLinkFromServerV2Unstubbed(m MetaContext, packed []byte) (LinkID, keyb
 
 	err := doImport()
 	if err != nil {
-		return nil, sigID, nil, nil, err
+		return "", nil, sigID, "", nil, nil, err
 	}
-	return outerLinkID, sigID, payloadJSON.Bytes(), ol2, nil
+	return kid, outerLinkID, sigID, sig, payloadJSON.Bytes(), ol2, nil
 }
 
-func importLinkFromServerPGP(m MetaContext, sig string, packed []byte) (linkID LinkID, sigID keybase1.SigID, payload []byte, err error) {
+func importLinkFromServerPGP(m MetaContext, sig string, packed []byte) (keybase1.KID, LinkID, keybase1.SigID, []byte, error) {
+	var linkID LinkID
+	var sigID keybase1.SigID
+	var payloadJSON *sigChainPayloadJSON
+	var payload []byte
+	var kid keybase1.KID
 
-	payload, sigID, err = SigExtractPGPPayload(sig)
-	if err != nil {
-		return nil, sigID, nil, err
+	doImport := func() (err error) {
+		var rawServerKID string
+		var payloadKID, serverKID keybase1.KID
+
+		payload, sigID, err = SigExtractPGPPayload(sig)
+		if err != nil {
+			return err
+		}
+		linkID, err = computeLinkIDFromHashWithWhitespaceFixes(m, payload)
+		if err != nil {
+			return err
+		}
+		payloadJSON = newSigChainPayloadJSONFromBytes(payload)
+
+		err = payloadJSON.AssertJSON(linkID)
+		if err != nil {
+			return err
+		}
+
+		// Very old PGP signatures did not include kids in signature bodies.
+		// So the server always returns such KIDs, and we check for equality
+		// with what's in the payload if it was specified.
+		payloadKID, _ = payloadJSON.KID()
+		rawServerKID, err = jsonparserw.GetString(packed, "kid")
+		if err != nil {
+			return err
+		}
+		serverKID = keybase1.KIDFromString(rawServerKID)
+		if serverKID.IsNil() {
+			return ChainLinkError{"server returned an invalid KID for PGP key"}
+		}
+		if !payloadKID.IsNil() && !payloadKID.Equal(serverKID) {
+			return ChainLinkError{"server returned a bad KID that didn't match PGP body"}
+		}
+		kid = serverKID
+		return nil
 	}
-	linkID, err = computeLinkIDFromHashWithWhitespaceFixes(m, payload)
+
+	err := doImport()
 	if err != nil {
-		return nil, sigID, nil, err
+		return "", nil, "", nil, err
 	}
-
-	payloadJSON := newSigChainPayloadJSONFromBytes(payload)
-
-	err = payloadJSON.AssertJSON(linkID)
-	if err != nil {
-		return nil, sigID, nil, err
-	}
-
-	return linkID, sigID, payload, nil
+	return kid, linkID, sigID, payloadJSON.Bytes(), nil
 }
