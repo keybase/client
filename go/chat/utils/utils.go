@@ -440,6 +440,14 @@ func IsVisibleChatMessageType(messageType chat1.MessageType) bool {
 	return checkMessageTypeQual(messageType, chat1.VisibleChatMessageTypes())
 }
 
+func IsBadgeableMessageType(messageType chat1.MessageType) bool {
+	return checkMessageTypeQual(messageType, chat1.BadgeableMessageTypes())
+}
+
+func IsNonEmptyConvMessageType(messageType chat1.MessageType) bool {
+	return checkMessageTypeQual(messageType, chat1.NonEmptyConvMessageTypes())
+}
+
 func IsEditableByEditMessageType(messageType chat1.MessageType) bool {
 	return checkMessageTypeQual(messageType, chat1.EditableMessageTypesByEdit())
 }
@@ -469,21 +477,19 @@ func IsCollapsibleMessageType(messageType chat1.MessageType) bool {
 
 func IsNotifiableChatMessageType(messageType chat1.MessageType, atMentions []gregor1.UID,
 	chanMention chat1.ChannelMention) bool {
-	if IsVisibleChatMessageType(messageType) {
-		return true
-	}
 	switch messageType {
 	case chat1.MessageType_EDIT:
 		// an edit with atMention or channel mention should generate notifications
-		if len(atMentions) > 0 || chanMention != chat1.ChannelMention_NONE {
-			return true
-		}
+		return len(atMentions) > 0 || chanMention != chat1.ChannelMention_NONE
 	case chat1.MessageType_REACTION:
 		// effect of this is all reactions will notify if they are sent to a person that
 		// is notified for any messages in the conversation
 		return true
+	case chat1.MessageType_JOIN, chat1.MessageType_LEAVE:
+		return false
+	default:
+		return IsVisibleChatMessageType(messageType)
 	}
-	return false
 }
 
 type DebugLabeler struct {
@@ -872,7 +878,7 @@ func IsConvEmpty(conv chat1.Conversation) bool {
 		return false
 	default:
 		for _, msg := range conv.MaxMsgSummaries {
-			if IsVisibleChatMessageType(msg.GetMessageType()) {
+			if IsNonEmptyConvMessageType(msg.GetMessageType()) {
 				return false
 			}
 		}
@@ -2796,7 +2802,7 @@ func supersedersNotEmpty(ctx context.Context, superseders []chat1.ConversationMe
 		for _, conv := range convs {
 			if superseder.ConversationID.Eq(conv.GetConvID()) {
 				for _, msg := range conv.Conv.MaxMsgSummaries {
-					if IsVisibleChatMessageType(msg.GetMessageType()) {
+					if IsNonEmptyConvMessageType(msg.GetMessageType()) {
 						return true
 					}
 				}
