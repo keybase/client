@@ -2242,6 +2242,7 @@ export enum StatsSeverityLevel {
 export enum StatusCode {
   scok = 0,
   scinputerror = 100,
+  scassertionparseerror = 101,
   scloginrequired = 201,
   scbadsession = 202,
   scbadloginusernotfound = 203,

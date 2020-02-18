@@ -5,6 +5,7 @@ package client
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	"golang.org/x/net/context"
@@ -157,7 +158,11 @@ func (c *CmdEncrypt) Run() error {
 
 	arg := keybase1.SaltpackEncryptArg{Source: src, Sink: snk, Opts: c.opts}
 	res, err := cli.SaltpackEncrypt(context.TODO(), arg)
-	if err != nil {
+	switch {
+	case err == nil:
+	case libkb.IsAssertionParseErrorWithReason(err, libkb.AssertionParseErrorReasonUnexpectedOR):
+		return fmt.Errorf("Unexpected OR in assertion (hint: to encrypt to multiple users, try `keybase encrypt alice bob carol -m ...`)")
+	default:
 		return err
 	}
 	err = c.filter.Close(err)
