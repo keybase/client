@@ -64,19 +64,35 @@ const load = () => {
         draftState.waiting.counts.set(Constants.encryptStringWaitingKey, 1)
       })
     )
-    .add('Disabled', () => <OutputBar operation={Constants.Operations.Encrypt} />)
+    .add('Disabled (Copy/Save)', () => <OutputBar operation={Constants.Operations.Encrypt} />)
 
   Sb.storiesOf('Crypto/Output Bar', module)
-    .addDecorator((story: any) => (
-      <Sb.MockStore
-        store={Container.produce(store, draftState => {
-          draftState.waiting.counts.set(Constants.encryptStringWaitingKey, 0)
-        })}
-      >
-        {story()}
-      </Sb.MockStore>
-    ))
-    .add('Enabled', () => <OutputBar operation={Constants.Operations.Encrypt} />)
+    .addDecorator(
+      Sb.updateStoreDecorator(store, draftState => {
+        draftState.waiting.counts.set(Constants.decryptStringWaitingKey, 1)
+        draftState.crypto.decrypt.outputSigned = true
+        draftState.crypto.decrypt.outputSenderUsername = new Container.HiddenString('cecileb')
+      })
+    )
+    .add('Disabled (Chat/Copy/Save)', () => <OutputBar operation={Constants.Operations.Decrypt} />)
+
+  Sb.storiesOf('Crypto/Output Bar', module)
+    .addDecorator(
+      Sb.updateStoreDecorator(store, draftState => {
+        draftState.waiting.counts.set(Constants.encryptStringWaitingKey, 0)
+      })
+    )
+    .add('Enabled (Copy/Save)', () => <OutputBar operation={Constants.Operations.Encrypt} />)
+
+  Sb.storiesOf('Crypto/Output Bar', module)
+    .addDecorator(
+      Sb.updateStoreDecorator(store, draftState => {
+        draftState.waiting.counts.set(Constants.decryptStringWaitingKey, 0)
+        draftState.crypto.decrypt.outputSigned = true
+        draftState.crypto.decrypt.outputSenderUsername = new Container.HiddenString('cecileb')
+      })
+    )
+    .add('Enabled (Chat/Copy/Save)', () => <OutputBar operation={Constants.Operations.Decrypt} />)
 
   Sb.storiesOf('Crypto/Output Signed Sender', module)
     .addDecorator(

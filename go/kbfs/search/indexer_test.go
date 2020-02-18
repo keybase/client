@@ -482,7 +482,7 @@ func TestFullIndexSearch(t *testing.T) {
 	t.Log("Search!")
 	checkSearch := func(
 		query string, numResults, start int, expectedResults map[string]bool) {
-		results, err := i.Search(ctx, query, numResults, start)
+		results, _, err := i.Search(ctx, query, numResults, start)
 		require.NoError(t, err)
 		for _, r := range results {
 			_, ok := expectedResults[r.Path]
@@ -508,10 +508,12 @@ func TestFullIndexSearch(t *testing.T) {
 	})
 
 	t.Log("Try partial results")
-	results, err := i.Search(ctx, names[0], 2, 0)
+	results, nextResult, err := i.Search(ctx, names[0], 2, 0)
 	require.NoError(t, err)
 	require.Len(t, results, 2)
-	results2, err := i.Search(ctx, names[0], 2, 2)
+	require.Equal(t, 2, nextResult)
+	results2, nextResult2, err := i.Search(ctx, names[0], 2, nextResult)
 	require.NoError(t, err)
 	require.Len(t, results2, 1)
+	require.Equal(t, -1, nextResult2)
 }
