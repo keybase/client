@@ -2,7 +2,7 @@
 
 import groovy.json.JsonSlurperClassic
 
-helpers = fileLoader.fromGit('helpers', 'https://github.com/keybase/jenkins-helpers.git', 'master', null, 'linux')
+helpers = fileLoader.fromGit('helpers', 'https://github.com/keybase/jenkins-helpers.git', 'master', null, 'linux-testing')
 
 def withKbweb(closure) {
   try {
@@ -36,7 +36,15 @@ def logKbwebServices(container) {
   archive("kbweb-logs.tar.gz")
 }
 
-helpers.rootLinuxNode(env, {
+def rootLinuxNode(env, handleError, cleanup, closure) {
+  if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
+    println "Skipping build because PR title contains [ci-skip]"
+  } else {
+    helpers.nodeWithDockerCleanup("linux-testing", handleError, cleanup, closure)
+  }
+}
+
+rootLinuxNode(env, {
   helpers.slackOnError("client", env, currentBuild)
 }, {}) {
   properties([
@@ -290,7 +298,7 @@ helpers.rootLinuxNode(env, {
             // TODO: If we re-enable tests other than Go tests on
             // Windows, this check should go away.
             if (hasGoChanges) {
-              helpers.nodeWithCleanup('windows-ssh', {}, {}) {
+              helpers.nodeWithCleanup('windows-ssh-testing', {}, {}) {
                 def BASEDIR="${pwd()}"
                 def GOPATH="${BASEDIR}\\go"
                 withEnv([
