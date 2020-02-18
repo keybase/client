@@ -68,14 +68,13 @@ var _ types.Unfurler = (*Unfurler)(nil)
 
 func NewUnfurler(g *globals.Context, store attachments.Store, s3signer s3.Signer,
 	storage types.ConversationBackedStorage, sender UnfurlMessageSender, ri func() chat1.RemoteInterface) *Unfurler {
-	log := g.GetLog()
-	extractor := NewExtractor(log, g.GetPerfLog())
+	extractor := NewExtractor(g)
 	scraper := NewScraper(g)
 	packager := NewPackager(g, store, s3signer, ri)
-	settings := NewSettings(log, g.GetPerfLog(), storage)
+	settings := NewSettings(g, storage)
 	return &Unfurler{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(log, g.GetPerfLog(), "Unfurler", false),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "Unfurler", false),
 		unfurlMap:    make(map[string]bool),
 		extractor:    extractor,
 		scraper:      scraper,

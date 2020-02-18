@@ -21,7 +21,7 @@ type Sender struct {
 func NewSender(g *globals.Context) *Sender {
 	return &Sender{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "Attachments.Sender", false),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "Attachments.Sender", false),
 	}
 }
 

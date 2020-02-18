@@ -76,7 +76,7 @@ type baseInboxSource struct {
 
 func newBaseInboxSource(g *globals.Context, ibs types.InboxSource,
 	getChatInterface func() chat1.RemoteInterface) *baseInboxSource {
-	labeler := utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "baseInboxSource", false)
+	labeler := utils.NewDebugLabeler(g.ExternalG(), "baseInboxSource", false)
 	return &baseInboxSource{
 		Contextified:     globals.NewContextified(g),
 		sub:              ibs,
@@ -258,7 +258,7 @@ type RemoteInboxSource struct {
 var _ types.InboxSource = (*RemoteInboxSource)(nil)
 
 func NewRemoteInboxSource(g *globals.Context, ri func() chat1.RemoteInterface) *RemoteInboxSource {
-	labeler := utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "RemoteInboxSource", false)
+	labeler := utils.NewDebugLabeler(g.ExternalG(), "RemoteInboxSource", false)
 	s := &RemoteInboxSource{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: labeler,
@@ -490,7 +490,7 @@ var _ types.InboxSource = (*HybridInboxSource)(nil)
 
 func NewHybridInboxSource(g *globals.Context,
 	getChatInterface func() chat1.RemoteInterface) *HybridInboxSource {
-	labeler := utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "HybridInboxSource", false)
+	labeler := utils.NewDebugLabeler(g.ExternalG(), "HybridInboxSource", false)
 	s := &HybridInboxSource{
 		Contextified:   globals.NewContextified(g),
 		DebugLabeler:   labeler,

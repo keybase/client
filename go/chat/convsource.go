@@ -29,7 +29,7 @@ type baseConversationSource struct {
 }
 
 func newBaseConversationSource(g *globals.Context, ri func() chat1.RemoteInterface, boxer *Boxer) *baseConversationSource {
-	labeler := utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "baseConversationSource", false)
+	labeler := utils.NewDebugLabeler(g.ExternalG(), "baseConversationSource", false)
 	return &baseConversationSource{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: labeler,
@@ -405,7 +405,7 @@ func NewHybridConversationSource(g *globals.Context, b *Boxer, storage *storage.
 	ri func() chat1.RemoteInterface) *HybridConversationSource {
 	return &HybridConversationSource{
 		Contextified:           globals.NewContextified(g),
-		DebugLabeler:           utils.NewDebugLabeler(g.GetLog(), g.GetPerfLog(), "HybridConversationSource", false),
+		DebugLabeler:           utils.NewDebugLabeler(g.ExternalG(), "HybridConversationSource", false),
 		baseConversationSource: newBaseConversationSource(g, ri, b),
 		storage:                storage,
 		lockTab:                utils.NewConversationLockTab(g),

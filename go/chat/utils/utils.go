@@ -499,10 +499,10 @@ type DebugLabeler struct {
 	verbose bool
 }
 
-func NewDebugLabeler(log, perfLog logger.Logger, label string, verbose bool) DebugLabeler {
+func NewDebugLabeler(g *libkb.GlobalContext, label string, verbose bool) DebugLabeler {
 	return DebugLabeler{
-		log:     log.CloneWithAddedDepth(1),
-		perfLog: perfLog.CloneWithAddedDepth(1),
+		log:     g.GetLog().CloneWithAddedDepth(1),
+		perfLog: g.GetPerfLog().CloneWithAddedDepth(1),
 		label:   label,
 		verbose: verbose,
 	}
