@@ -1423,8 +1423,9 @@ type SyncInboxArg struct {
 }
 
 type SyncChatArg struct {
-	Vers             InboxVers `codec:"vers" json:"vers"`
-	SummarizeMaxMsgs bool      `codec:"summarizeMaxMsgs" json:"summarizeMaxMsgs"`
+	Vers             InboxVers               `codec:"vers" json:"vers"`
+	SummarizeMaxMsgs bool                    `codec:"summarizeMaxMsgs" json:"summarizeMaxMsgs"`
+	ParticipantsMode SyncAllParticipantsMode `codec:"participantsMode" json:"participantsMode"`
 }
 
 type SyncAllArg struct {
