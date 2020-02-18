@@ -16,7 +16,7 @@ type Props = {
 const ChannelsWidget = (props: Props) => {
   return (
     <Kb.Box2 direction="vertical" gap="tiny" style={styles.container}>
-      <ChannelInput teamID={props.teamID} />
+      <ChannelInput onAdd={props.onAddChannel} teamID={props.teamID} />
       <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.pillContainer}>
         <ChannelPill channelname="general" />
         {props.channels.map(channelname => (
@@ -31,18 +31,19 @@ const ChannelsWidget = (props: Props) => {
   )
 }
 
-type ChannelInputProps = {teamID: Types.TeamID}
+type ChannelInputProps = {onAdd: (channelname: string) => void; teamID: Types.TeamID}
 
-const ChannelInputDesktop = ({teamID}: ChannelInputProps) => {
+const ChannelInputDesktop = ({onAdd, teamID}: ChannelInputProps) => {
   const [filter, setFilter] = React.useState('')
   const channels = Container.useSelector(s => Constants.getTeamChannelInfos(s, teamID))
   const channelnames = [...channels.values()].map(c => `#${c.channelname}`)
 
-  const {popup, popupAnchor, onKeyDown, setShowingPopup} = useAutocompleter(
-    channelnames,
-    () => setFilter(''),
-    filter
-  )
+  const onSelect = value => {
+    onAdd(value)
+    setFilter('')
+  }
+
+  const {popup, popupAnchor, onKeyDown, setShowingPopup} = useAutocompleter(channelnames, onSelect, filter)
 
   return (
     <>
@@ -87,16 +88,17 @@ const useAutocompleter = (items: Array<string>, onSelect: (value: string) => voi
         positionFallbacks={['bottom center']}
       >
         {itemsFiltered.map((item, idx) => (
-          <Kb.Box2
-            key={item}
-            direction="horizontal"
-            fullWidth={true}
-            style={Styles.collapseStyles([styles.channelOption, selected === idx && styles.optionSelected])}
-          >
-            <Kb.Text type="BodySemibold" lineClamp={1}>
-              {item}
-            </Kb.Text>
-          </Kb.Box2>
+          <Kb.ClickableBox key={item} onMouseDown={() => onSelect(item)} onMouseOver={() => setSelected(idx)}>
+            <Kb.Box2
+              direction="horizontal"
+              fullWidth={true}
+              style={Styles.collapseStyles([styles.channelOption, selected === idx && styles.optionSelected])}
+            >
+              <Kb.Text type="BodySemibold" lineClamp={1}>
+                {item}
+              </Kb.Text>
+            </Kb.Box2>
+          </Kb.ClickableBox>
         ))}
       </Kb.Overlay>
     ),
@@ -176,7 +178,7 @@ const styles = Styles.styleSheetCreate(() => ({
     borderRadius: Styles.borderRadius,
   },
   optionSelected: {
-    backgroundColor: Styles.globalColors.blueLighter2,
+    backgroundColor: Styles.globalColors.blueLighter2, // TODO transparent in dark mode?
   },
   pill: Styles.platformStyles({
     common: {
