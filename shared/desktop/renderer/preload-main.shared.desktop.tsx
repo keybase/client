@@ -6,9 +6,7 @@ import * as Electron from 'electron'
 const isRenderer = typeof process !== 'undefined' && process.type === 'renderer'
 const target = isRenderer ? window : global
 const {argv, platform, env, type} = process
-export const isWindows = platform === 'win32'
-export const isLinux = platform === 'linux'
-export const isDarwin = platform === 'darwin'
+const isDarwin = platform === 'darwin'
 // @ts-ignore
 const pid = isRenderer ? Electron.remote.process.pid : process.pid
 
