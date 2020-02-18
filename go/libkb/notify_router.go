@@ -451,8 +451,13 @@ func (n *NotifyRouter) HandleClientOutOfDate(upgradeTo, upgradeURI, upgradeMsg s
 
 // HandleUserChanged is called whenever we know that a given user has
 // changed (and must be cache-busted). It will broadcast the messages
-// to all curious listeners.
+// to all curious listeners. NOTE: we now only do this for the current logged in user
 func (n *NotifyRouter) HandleUserChanged(mctx MetaContext, uid keybase1.UID, reason string) {
+	if !mctx.G().GetMyUID().Equal(uid) {
+		// don't send these for anyone but the current logged in user, no one cares about anything
+		// about other users
+		return
+	}
 	mctx.Debug("Sending UserChanged notification %v '%v')", uid, reason)
 	if n == nil {
 		return

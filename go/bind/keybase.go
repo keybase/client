@@ -44,7 +44,6 @@ var kbSvc *service.Service
 var conn net.Conn
 var startOnce sync.Once
 var logSendContext status.LogSendContext
-var kbfsConfig libkbfs.Config
 
 var initMutex sync.Mutex
 var initComplete bool
@@ -250,7 +249,7 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 		// before KBFS-on-mobile is ready.
 		kbfsParams.Debug = true                         // false
 		kbfsParams.Mode = libkbfs.InitConstrainedString // libkbfs.InitMinimalString
-		kbfsConfig, _ = libkbfs.Init(
+		_, _ = libkbfs.Init(
 			context.Background(), kbfsCtx, kbfsParams, serviceCn{}, func() error { return nil },
 			kbCtx.Log)
 	}()
@@ -264,9 +263,9 @@ func (s serviceCn) NewKeybaseService(config libkbfs.Config, params libkbfs.InitP
 	// TODO: plumb the func somewhere it can be called on shutdown?
 	gitrpc, _ := libgit.NewRPCHandlerWithCtx(
 		ctx, config, nil)
+	sfsIface, _ := simplefs.NewSimpleFS(ctx, config)
 	additionalProtocols := []rpc.Protocol{
-		keybase1.SimpleFSProtocol(
-			simplefs.NewSimpleFS(ctx, config)),
+		keybase1.SimpleFSProtocol(sfsIface),
 		keybase1.KBFSGitProtocol(gitrpc),
 		keybase1.FsProtocol(fsrpc.NewFS(config, log)),
 	}

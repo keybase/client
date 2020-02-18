@@ -10,16 +10,65 @@ import * as RPCTypes from '../../../constants/types/rpc-gen'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
 
+type AddToChannelProps = {
+  conversationIDKey: Types.ConversationIDKey
+  username: string
+}
+
+const AddToChannel = (props: AddToChannelProps) => {
+  const {conversationIDKey, username} = props
+  const dispatch = Container.useDispatch()
+  const settings = Container.useSelector(
+    state => state.chat2.botSettings.get(conversationIDKey)?.get(username) ?? undefined
+  )
+  return (
+    <Kb.WaitingButton
+      disabled={!settings}
+      type="Dim"
+      mode="Secondary"
+      icon="iconfont-new"
+      tooltip="Add to this channel"
+      onClick={e => {
+        e.preventDefault()
+        // if settings aren't loaded, don't even try to do anything
+        if (settings && !settings.convs?.includes(conversationIDKey)) {
+          dispatch(
+            Chat2Gen.createEditBotSettings({
+              allowCommands: settings.cmds,
+              allowMentions: settings.mentions,
+              conversationIDKey,
+              convs: [conversationIDKey].concat(settings.convs ?? []),
+              username,
+            })
+          )
+        }
+      }}
+      waitingKey={Constants.waitingKeyBotAdd}
+    />
+  )
+}
+
 type BotProps = RPCTypes.FeaturedBot & {
   description?: string
   firstItem?: boolean
+  showChannelAdd?: boolean
+  showTeamAdd?: boolean
+  conversationIDKey?: Types.ConversationIDKey
   onClick: (username: string) => void
 }
-
 export const Bot = (props: BotProps) => {
   const {botAlias, description, botUsername} = props
   const {ownerTeam, ownerUser} = props
   const {onClick, firstItem} = props
+  const {conversationIDKey, showChannelAdd, showTeamAdd} = props
+  const dispatch = Container.useDispatch()
+  React.useEffect(() => {
+    if (conversationIDKey && showChannelAdd) {
+      // fetch bot settings if trying to show the add to channel button
+      dispatch(Chat2Gen.createRefreshBotSettings({conversationIDKey, username: botUsername}))
+    }
+  }, [dispatch, botUsername, conversationIDKey, showChannelAdd])
+
   const lower = (
     <Kb.Box2
       direction="horizontal"
@@ -63,6 +112,13 @@ export const Bot = (props: BotProps) => {
       type="Large"
       firstItem={!!firstItem}
       icon={<Kb.Avatar size={Styles.isMobile ? 48 : 32} style={styles.avatarStyle} username={botUsername} />}
+      action={
+        showTeamAdd ? (
+          <Kb.Button type="Dim" mode="Secondary" icon="iconfont-new" tooltip="Add to this team" />
+        ) : showChannelAdd && conversationIDKey ? (
+          <AddToChannel conversationIDKey={conversationIDKey} username={botUsername} />
+        ) : null
+      }
       body={
         <Kb.Box2 direction="vertical" style={styles.container}>
           {usernameDisplay}
@@ -200,9 +256,10 @@ export default (props: Props) => {
     }))
 
   // bots in conv
-  const botsInConv = teamType === 'big' ? botUsernames.filter(b => participantsAll.includes(b)) : botUsernames
+  const botsInConv: string[] =
+    teamType === 'big' ? botUsernames.filter(b => participantsAll.includes(b)) : botUsernames
 
-  const botsInTeam = botUsernames.filter(b => !botsInConv.includes(b))
+  const botsInTeam: string[] = botUsernames.filter(b => !botsInConv.includes(b))
 
   const onBotAdd = () => {
     dispatch(
@@ -296,7 +353,16 @@ export default (props: Props) => {
         if (!item.botUsername) {
           return null
         } else {
-          return <Bot {...item} firstItem={item.index === 0} onClick={onBotSelect} />
+          return (
+            <Bot
+              {...item}
+              conversationIDKey={conversationIDKey}
+              firstItem={item.index === 0}
+              onClick={onBotSelect}
+              showChannelAdd={canManageBots && teamType === 'big' && botsInTeam.includes(item.botUsername)}
+              showTeamAdd={canManageBots && featuredBots.find(bot => bot.botUsername === item.botUsername)}
+            />
+          )
         }
       },
       renderSectionHeader: renderTabs,

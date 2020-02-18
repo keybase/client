@@ -719,6 +719,27 @@ func (u *User) WotVouchProof(m MetaContext, signingKey GenericKey, sigVersion Si
 	return ret, nil
 }
 
+func (u *User) WotReactProof(m MetaContext, signingKey GenericKey, sigVersion SigVersion, mac []byte) (*ProofMetadataRes, error) {
+	md := ProofMetadata{
+		Me:                  u,
+		LinkType:            LinkTypeWotReact,
+		SigningKey:          signingKey,
+		SigVersion:          sigVersion,
+		IgnoreIfUnsupported: true,
+	}
+	ret, err := md.ToJSON2(m)
+	if err != nil {
+		return nil, err
+	}
+
+	body := ret.J.AtKey("body")
+	if err := body.SetKey("wot_react", jsonw.NewString(hex.EncodeToString(mac))); err != nil {
+		return nil, err
+	}
+
+	return ret, nil
+}
+
 // SimpleSignJson marshals the given Json structure and then signs it.
 func SignJSON(jw *jsonw.Wrapper, key GenericKey) (out string, id keybase1.SigID, lid LinkID, err error) {
 	var tmp []byte

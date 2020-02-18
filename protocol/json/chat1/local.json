@@ -5701,6 +5701,15 @@
         "values": "LastActiveStatus",
         "keys": "TLFIDStr"
       }
+    },
+    "getRecentJoinsLocal": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": "int"
     }
   },
   "namespace": "chat.1"

@@ -45,6 +45,9 @@
       ],
       "navKey?": "string"
     },
+    "channelSuggestionsTriggered": {
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
     // Got an error while creating a conversation.
     "conversationErrored": {
       "allowedUsers": "Array<string>",

@@ -84,6 +84,7 @@ export type TypedActionsMap = {
   'chat2:toggleSmallTeamsExpanded': chat2.ToggleSmallTeamsExpandedPayload
   'chat2:deselectConversation': chat2.DeselectConversationPayload
   'chat2:selectConversation': chat2.SelectConversationPayload
+  'chat2:channelSuggestionsTriggered': chat2.ChannelSuggestionsTriggeredPayload
   'chat2:conversationErrored': chat2.ConversationErroredPayload
   'chat2:previewConversation': chat2.PreviewConversationPayload
   'chat2:createConversation': chat2.CreateConversationPayload
