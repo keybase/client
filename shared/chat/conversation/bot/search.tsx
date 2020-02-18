@@ -77,7 +77,7 @@ const SearchBotPopup = (props: Props) => {
   }
   const botSection = {
     data: botData,
-    renderItem: ({item}: {item: RPCTypes.FeaturedBot | string}) => {
+    renderItem: ({index, item}: {index: number; item: RPCTypes.FeaturedBot | string}) => {
       return item === resultEmptyPlaceholder ? (
         <Kb.Text
           style={{...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.tiny)}}
@@ -86,7 +86,7 @@ const SearchBotPopup = (props: Props) => {
           No results were found
         </Kb.Text>
       ) : typeof item !== 'string' ? (
-        <Bot {...item} onClick={onSelect} />
+        <Bot {...item} onClick={onSelect} firstItem={index === 0} />
       ) : null
     },
     title: 'Featured bots',

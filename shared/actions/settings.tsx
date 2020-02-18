@@ -846,7 +846,6 @@ function* settingsSaga() {
   yield* Saga.chainAction2(SettingsGen.onChangeLockdownMode, setLockdownMode)
   yield* Saga.chainAction2(SettingsGen.sendFeedback, sendFeedback)
   yield* Saga.chainAction2(SettingsGen.contactSettingsRefresh, contactSettingsRefresh)
-  yield* Saga.chainAction2(SettingsGen.contactSettingsRefresh, contactSettingsRefresh)
   yield* Saga.chainAction2(SettingsGen.contactSettingsSaved, contactSettingsSaved)
   yield* Saga.chainAction2(SettingsGen.unfurlSettingsRefresh, unfurlSettingsRefresh)
   yield* Saga.chainAction2(SettingsGen.unfurlSettingsSaved, unfurlSettingsSaved)
@@ -872,7 +871,6 @@ function* settingsSaga() {
     [SettingsGen.loadContactImportEnabled, ConfigGen.loadOnStart],
     loadContactImportEnabled
   )
-  yield* Saga.chainAction2(SettingsGen.editContactImportEnabled, editContactImportEnabled)
   yield* Saga.chainAction2(SettingsGen.editContactImportEnabled, editContactImportEnabled)
 
   // Emails

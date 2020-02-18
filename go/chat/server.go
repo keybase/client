@@ -3329,6 +3329,7 @@ func (h *Server) DismissJourneycard(ctx context.Context, arg chat1.DismissJourne
 }
 
 const welcomeMessageName = "__welcome_message"
+const welcomeMessageMaxLen = 400
 
 func getWelcomeMessage(ctx context.Context, g *globals.Context, ri func() chat1.RemoteInterface, uid gregor1.UID, teamID keybase1.TeamID) (message chat1.WelcomeMessage, err error) {
 	s := NewTeamDevConversationBackedStorage(g, true /* adminOnly */, ri)
@@ -3338,15 +3339,21 @@ func getWelcomeMessage(ctx context.Context, g *globals.Context, ri func() chat1.
 	}
 	switch err.(type) {
 	case nil:
-		return message, nil
 	case *DevStorageAdminOnlyError:
 		return chat1.WelcomeMessage{Set: false}, nil
 	default:
 		return message, err
 	}
+	if len(message.Text) > welcomeMessageMaxLen {
+		return chat1.WelcomeMessage{Set: false}, nil
+	}
+	return message, nil
 }
 
 func setWelcomeMessage(ctx context.Context, g *globals.Context, ri func() chat1.RemoteInterface, uid gregor1.UID, teamID keybase1.TeamID, message chat1.WelcomeMessage) (err error) {
+	if len(message.Text) > welcomeMessageMaxLen {
+		return fmt.Errorf("welcome message must be less than %d characters; was %d", welcomeMessageMaxLen, len(message.Text))
+	}
 	s := NewTeamDevConversationBackedStorage(g, true /* adminOnly */, ri)
 	return s.Put(ctx, uid, teamID, welcomeMessageName, message)
 }
@@ -3470,4 +3477,14 @@ func (h *Server) GetLastActiveForTeams(ctx context.Context) (res map[chat1.TLFID
 		res[tlfID] = utils.ToLastActiveStatus(mtime)
 	}
 	return res, nil
+}
+
+func (h *Server) GetRecentJoinsLocal(ctx context.Context, convID chat1.ConversationID) (numJoins int, err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "GetRecentJoinsLocal")()
+	_, err = utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return 0, err
+	}
+	return h.G().TeamChannelSource.GetRecentJoins(ctx, convID, h.remoteClient())
 }

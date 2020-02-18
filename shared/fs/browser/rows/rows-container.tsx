@@ -124,7 +124,11 @@ const getNormalRowItemsFromStateProps = (stateProps, path): Array<RowTypes.Named
 
 const filterable = new Set([RowTypes.RowType.TlfType, RowTypes.RowType.Tlf, RowTypes.RowType.Still])
 const filterRowItems = (rows, filter) =>
-  filter ? rows.filter(row => !filterable.has(row.rowType) || row.name.includes(filter)) : rows
+  filter
+    ? rows.filter(
+        row => !filterable.has(row.rowType) || row.name.toLowerCase().includes(filter.toLowerCase())
+      )
+    : rows
 
 export default namedConnect(
   (state, {path}: OwnProps) => ({

@@ -741,6 +741,15 @@
           "name": "body",
           "mpackkey": "b",
           "jsonkey": "b"
+        },
+        {
+          "type": [
+            null,
+            "gregor1.UID"
+          ],
+          "name": "targetUID",
+          "mpackkey": "t",
+          "jsonkey": "t"
         }
       ]
     },
@@ -5692,6 +5701,15 @@
         "values": "LastActiveStatus",
         "keys": "TLFIDStr"
       }
+    },
+    "getRecentJoinsLocal": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": "int"
     }
   },
   "namespace": "chat.1"

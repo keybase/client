@@ -7,7 +7,12 @@ import {globalColors, globalMargins, styleSheetCreate, platformStyles} from '../
 import {isMobile} from '../../../constants/platform'
 import {FloatingRolePicker} from '../../role-picker'
 import {pluralize} from '../../../util/string'
+import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
+import TeamJourney from '../../../chat/conversation/messages/cards/team-journey/index'
+import {renderWelcomeMessage} from '../../../chat/conversation/messages/cards/team-journey/util'
+import {Mode} from '../../../chat/conversation/messages/cards/team-journey/index'
 import RetentionPicker from './retention/container'
+import * as Styles from '../../../styles'
 
 type Props = {
   canShowcase: boolean
@@ -23,6 +28,10 @@ type Props = {
   teamID: Types.TeamID
   yourOperations: Types.TeamOperations
   waitingForSavePublicity: boolean
+  waitingForWelcomeMessage: boolean
+  welcomeMessage?: RPCChatTypes.WelcomeMessage
+  loadWelcomeMessage: () => void
+  teamname: string
 }
 
 type RolePickerProps = {
@@ -231,6 +240,10 @@ export class Settings extends React.Component<Props, State> {
     }
   }
 
+  componentDidMount() {
+    this.props.loadWelcomeMessage()
+  }
+
   componentDidUpdate(prevProps: Props) {
     if (
       this.props.ignoreAccessRequests !== prevProps.ignoreAccessRequests ||
@@ -323,6 +336,40 @@ export class Settings extends React.Component<Props, State> {
             entityType={this.props.isBigTeam ? 'big team' : 'small team'}
           />
         )}
+        {(this.props.waitingForWelcomeMessage || this.props.welcomeMessage) && (
+          <Kb.Box2 direction="vertical" style={styles.welcomeMessage} fullWidth={true}>
+            <Kb.Box>
+              <Kb.Text style={styles.header} type="BodySmallSemibold">
+                Welcome message
+              </Kb.Text>
+            </Kb.Box>
+            <Kb.Box2 direction="horizontal" fullWidth={true}>
+              <Kb.Box2 direction="horizontal" style={styles.welcomeMessageBorder} />
+              <Kb.Box2 direction="vertical" style={styles.welcomeMessageContainer} fullWidth={true}>
+                {this.props.waitingForWelcomeMessage ? (
+                  <Kb.ProgressIndicator />
+                ) : (
+                  this.props.welcomeMessage && (
+                    <TeamJourney
+                      actions={[]}
+                      teamname={this.props.teamname}
+                      conversationIDKey=""
+                      image="icon-illustration-welcome-96"
+                      onAuthorClick={() => {}}
+                      onDismiss={() => {}}
+                      textComponent={renderWelcomeMessage(
+                        this.props.welcomeMessage!,
+                        false /* cannotWrite */
+                      )}
+                      deactivateButtons={true}
+                      mode={'settings-tab' as Mode}
+                    />
+                  )
+                )}
+              </Kb.Box2>
+            </Kb.Box2>
+          </Kb.Box2>
+        )}
         <Kb.Box2 direction="horizontal" style={styles.button}>
           <Kb.Button
             label="Save"
@@ -349,6 +396,10 @@ const styles = styleSheetCreate(() => ({
     },
   }),
   grey: {color: globalColors.black_50},
+  header: {
+    ...Styles.globalStyles.flexBoxRow,
+    marginBottom: Styles.globalMargins.tiny,
+  },
   joinAs: platformStyles({
     isElectron: {
       paddingRight: globalMargins.xtiny,
@@ -373,4 +424,16 @@ const styles = styleSheetCreate(() => ({
   },
   shrink: {flex: 1},
   teamPadding: {paddingTop: globalMargins.small},
+  welcomeMessage: {
+    paddingRight: globalMargins.small,
+    paddingTop: globalMargins.small,
+  },
+  welcomeMessageBorder: {
+    alignSelf: 'stretch',
+    backgroundColor: Styles.globalColors.grey,
+    paddingLeft: Styles.globalMargins.xtiny,
+  },
+  welcomeMessageContainer: {
+    position: 'relative',
+  },
 }))

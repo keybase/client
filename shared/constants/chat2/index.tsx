@@ -306,6 +306,7 @@ export const isTeamConversationSelected = (state: TypedState, teamname: string) 
 
 export const inboxSearchNewKey = 'chat:inboxSearchNew'
 export const waitingKeyJoinConversation = 'chat:joinConversation'
+export const waitingKeyLeaveConversation = 'chat:leaveConversation'
 export const waitingKeyDeleteHistory = 'chat:deleteHistory'
 export const waitingKeyPost = 'chat:post'
 export const waitingKeyRetryPost = 'chat:retryPost'

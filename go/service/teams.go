@@ -143,6 +143,14 @@ func (h *TeamsHandler) GetAnnotatedTeam(ctx context.Context, arg keybase1.TeamID
 	return teams.GetAnnotatedTeam(ctx, h.G().ExternalG(), arg)
 }
 
+func (h *TeamsHandler) GetUserSubteamMemberships(ctx context.Context, arg keybase1.GetUserSubteamMembershipsArg) (res []keybase1.AnnotatedSubteamMemberDetails, err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("GetUserSubteamMemberships(%s, %s)", arg.TeamID, arg.Username), func() error { return err })()
+
+	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
+	return teams.GetUserSubteamMemberships(mctx, arg.TeamID, arg.Username)
+}
+
 func (h *TeamsHandler) teamGet(ctx context.Context, details keybase1.TeamDetails, teamDescriptor string) (keybase1.TeamDetails, error) {
 	if details.Settings.Open {
 		h.G().Log.CDebugf(ctx, "TeamGet: %q is an open team, filtering reset writers and readers", teamDescriptor)

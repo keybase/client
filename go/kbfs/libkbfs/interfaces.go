@@ -2554,12 +2554,14 @@ type blockPutStateCopiable interface {
 
 type fileBlockMap interface {
 	putTopBlock(
-		ctx context.Context, parentPtr data.BlockPointer, childName string,
-		topBlock *data.FileBlock) error
+		ctx context.Context, parentPtr data.BlockPointer,
+		childName data.PathPartString, topBlock *data.FileBlock) error
 	GetTopBlock(
-		ctx context.Context, parentPtr data.BlockPointer, childName string) (
-		*data.FileBlock, error)
-	getFilenames(ctx context.Context, parentPtr data.BlockPointer) ([]string, error)
+		ctx context.Context, parentPtr data.BlockPointer,
+		childName data.PathPartString) (*data.FileBlock, error)
+	getFilenames(
+		ctx context.Context, parentPtr data.BlockPointer) (
+		[]data.PathPartString, error)
 }
 
 type dirBlockMap interface {

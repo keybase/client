@@ -14,13 +14,14 @@ import {
 type TeamTabsProps = {
   admin: boolean
   error?: string
+  isBig: boolean
+  loadBots: () => void
+  loading: boolean
   newRequests: number
   numInvites: number
   numRequests: number
   numSubteams: number
   resetUserCount: number
-  loadBots: () => void
-  loading: boolean
   selectedTab?: string
   setSelectedTab: (arg0: Types.TabKey) => void
   showSubteams: boolean
@@ -39,6 +40,14 @@ const TeamTabs = (props: TeamTabsProps) => {
       {!!props.resetUserCount && <Kb.Badge badgeNumber={props.resetUserCount} badgeStyle={styles.badge} />}
     </Kb.Box>,
   ]
+
+  if (flags.teamsRedesign && props.isBig) {
+    tabs.push(
+      <Kb.Box key="channels" style={styles.tabTextContainer}>
+        <TabText selected={props.selectedTab === 'channels'} text="Channels" />
+      </Kb.Box>
+    )
+  }
 
   const requestsBadge = Math.min(props.newRequests, props.numRequests)
 
@@ -78,11 +87,13 @@ const TeamTabs = (props: TeamTabsProps) => {
         style={props.selectedTab === 'settings' ? styles.iconSelected : styles.icon}
       />
     ) : (
-      <TabText key="settings" selected={props.selectedTab === 'settings'} text="Settings" />
+      <Kb.Box key="settings" style={styles.tabTextContainer}>
+        <TabText key="settings" selected={props.selectedTab === 'settings'} text="Settings" />
+      </Kb.Box>
     )
   )
 
-  if (!isMobile && props.loading) {
+  if (!isMobile && props.loading && !flags.teamsRedesign) {
     tabs.push(<Kb.ProgressIndicator style={styles.progressIndicator} />)
   }
 
@@ -112,6 +123,9 @@ const TeamTabs = (props: TeamTabsProps) => {
           style={styles.tabContainer}
           tabStyle={styles.tab}
         />
+        {!isMobile && props.loading && flags.teamsRedesign && (
+          <Kb.ProgressIndicator style={styles.inlineProgressIndicator} />
+        )}
       </Kb.Box>
       {!!props.error && <Kb.Banner color="red">{props.error}</Kb.Banner>}
     </Kb.Box2>
@@ -129,6 +143,7 @@ const styles = styleSheetCreate(() => ({
     },
   }),
   clickableBox: platformStyles({
+    isElectron: flags.teamsRedesign ? {flex: 1} : {},
     isMobile: {
       flexGrow: 1,
     },
@@ -143,11 +158,21 @@ const styles = styleSheetCreate(() => ({
     alignSelf: 'center',
     color: globalColors.black,
   },
+  inlineProgressIndicator: {
+    height: 17,
+    position: 'absolute',
+    right: globalMargins.small,
+    top: globalMargins.small,
+    width: 17,
+  },
   progressIndicator: {
     height: 17,
     width: 17,
   },
   tab: platformStyles({
+    isElectron: {
+      flexGrow: 1,
+    },
     isMobile: {
       paddingLeft: globalMargins.tiny,
       paddingRight: globalMargins.tiny,

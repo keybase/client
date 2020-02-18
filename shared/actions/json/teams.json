@@ -1,5 +1,6 @@
 {
   "prelude": [
+    "import * as RPCChatTypes from '../constants/types/rpc-chat-gen'",
     "import * as ChatTypes from '../constants/types/chat2'",
     "import * as Types from '../constants/types/teams'",
     "import {RetentionPolicy} from '../constants/types/retention-policy'"
@@ -48,6 +49,13 @@
     "getChannels": {
       "_description": "Fetches the channel information for all channels in a team from the server. Should only be called for components that need the full list.",
       "teamID": "Types.TeamID"
+    },
+    "setChannelSelected": {
+      "_description": "Sets whether a channel is selected on the team page",
+      "teamID": "Types.TeamID",
+      "channel": "string",
+      "selected": "boolean",
+      "clearAll?": "boolean"
     },
     "getTeams": {
       "_description": "Load team list if we are stale. _subscribe is for use by teams/subscriber only.",
@@ -312,6 +320,15 @@
     "toggleInvitesCollapsed": {
       "_description": "Toggle whether invites are collapsed in the member list for this team",
       "teamID": "Types.TeamID"
+    },
+    "loadWelcomeMessage": {
+      "_description": "Load welcome message for new team members",
+      "teamID": "Types.TeamID"
+    },
+    "loadedWelcomeMessage": {
+      "_description": "Loaded welcome message for new team members",
+      "teamID": "Types.TeamID",
+      "message": "RPCChatTypes.WelcomeMessage"
     },
     "setSubteamFilter": {
       "_description": "Set filtering for the subteams tab.",

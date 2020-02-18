@@ -6083,8 +6083,7 @@ func (fbo *folderBranchOps) syncAllLocked(
 		}
 		resolvedPaths[file.TailPointer()] = file
 		parent := file.ParentPath().TailPointer()
-		err = fileBlocks.putTopBlock(
-			ctx, parent, file.TailName().Plaintext(), fblock)
+		err = fileBlocks.putTopBlock(ctx, parent, file.TailName(), fblock)
 		if err != nil {
 			return err
 		}

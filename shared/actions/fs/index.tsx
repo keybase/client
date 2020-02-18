@@ -894,17 +894,21 @@ const loadDownloadStatus = async () => {
 }
 
 const loadFileContext = async (action: FsGen.LoadFileContextPayload) => {
-  const res = await RPCTypes.SimpleFSSimpleFSGetGUIFileContextRpcPromise({
-    path: Constants.pathToRPCPath(action.payload.path).kbfs,
-  })
-  return FsGen.createLoadedFileContext({
-    fileContext: {
-      contentType: res.contentType,
-      url: res.url,
-      viewType: res.viewType,
-    },
-    path: action.payload.path,
-  })
+  try {
+    const res = await RPCTypes.SimpleFSSimpleFSGetGUIFileContextRpcPromise({
+      path: Constants.pathToRPCPath(action.payload.path).kbfs,
+    })
+    return FsGen.createLoadedFileContext({
+      fileContext: {
+        contentType: res.contentType,
+        url: res.url,
+        viewType: res.viewType,
+      },
+      path: action.payload.path,
+    })
+  } catch (err) {
+    return makeUnretriableErrorHandler(action)(err)
+  }
 }
 
 const loadFilesTabBadge = async () => {

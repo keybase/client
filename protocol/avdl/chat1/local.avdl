@@ -220,6 +220,8 @@ protocol local {
      MessageID messageID;
      @mpackkey("b") @jsonkey("b")
      string body; // emoji reaction :+1:
+     @mpackkey("t") @jsonkey("t")
+     union { null, gregor1.UID } targetUID;
   }
 
   record MessageSendPayment {
@@ -1339,4 +1341,6 @@ protocol local {
 
   LastActiveStatus getLastActiveForTLF(TLFIDStr tlfID);
   map<TLFIDStr, LastActiveStatus> getLastActiveForTeams();
+
+  int getRecentJoinsLocal(ConversationID convID);
 }
