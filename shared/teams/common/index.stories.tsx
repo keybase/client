@@ -13,6 +13,7 @@ const store = Container.produce(Sb.createStoreWithCommon(), draftState => {
       [
         fakeTeamID,
         new Map([
+          ['0', {...Constants.initialChannelInfo, channelname: 'general'}],
           ['1', {...Constants.initialChannelInfo, channelname: 'random'}],
           ['2', {...Constants.initialChannelInfo, channelname: 'hellos'}],
           ['3', {...Constants.initialChannelInfo, channelname: 'NY_MemorialDay'}],
