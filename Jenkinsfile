@@ -372,9 +372,9 @@ def testGo(prefix, packagesToTest) {
       dir('kbfs') {
         retry(5) {
           timeout(activity: true, time: 180, unit: 'SECONDS') {
-            def dirList = sh(returnStdout: true, script: "bash -c \"set -o pipefail; go list -f '{{.Dir}} ./...'\"")
+            def dirList = sh(returnStdout: true, script: "bash -c \"set -o pipefail; go list -f '{{.Dir}}' ./...\"")
             println "dirList:\n${dirList}"
-            def dirListReal = sh(returnStdout: true, script: "bash -c \"set -o pipefail; go list -f '{{.Dir}} ./... | xargs realpath --relative-to=.'\"")
+            def dirListReal = sh(returnStdout: true, script: "bash -c \"set -o pipefail; go list -f '{{.Dir}}' ./... | xargs realpath --relative-to=.\"")
             println "dirListReal:\n${dirListReal}"
           }
         }
