@@ -226,6 +226,11 @@ protocol remote {
     INCREMENTAL_1
   }
 
+  enum SyncAllParticipantsMode {
+    ALL_0,
+    SKIP_BIGTEAMS_1
+  }
+
   variant SyncAllNotificationRes switch(SyncAllNotificationType typ) {
   case STATE: gregor1.State;
   case INCREMENTAL: gregor1.SyncResult;
@@ -239,7 +244,7 @@ protocol remote {
   }
 
   @compression_type("msgpackzip")
-  SyncAllResult syncAll(gregor1.UID uid, gregor1.DeviceID deviceID, gregor1.SessionToken session, InboxVers inboxVers, gregor1.Time ctime, boolean fresh, SyncAllProtVers protVers, string hostName, boolean summarizeMaxMsgs);
+  SyncAllResult syncAll(gregor1.UID uid, gregor1.DeviceID deviceID, gregor1.SessionToken session, InboxVers inboxVers, gregor1.Time ctime, boolean fresh, SyncAllProtVers protVers, string hostName, boolean summarizeMaxMsgs, SyncAllParticipantsMode participantsMode);
 
   // tlfFinalize is an endpoint for kbfstlfd to notify Gregor that a TLF ID has been finalized.
   // Gregor keeps an internal record of these TLF IDs, so that it can always return the latest

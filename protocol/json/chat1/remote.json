@@ -445,6 +445,14 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "SyncAllParticipantsMode",
+      "symbols": [
+        "ALL_0",
+        "SKIP_BIGTEAMS_1"
+      ]
+    },
+    {
       "type": "variant",
       "name": "SyncAllNotificationRes",
       "switch": {
@@ -1225,6 +1233,10 @@
         {
           "name": "summarizeMaxMsgs",
           "type": "boolean"
+        },
+        {
+          "name": "participantsMode",
+          "type": "SyncAllParticipantsMode"
         }
       ],
       "response": "SyncAllResult",

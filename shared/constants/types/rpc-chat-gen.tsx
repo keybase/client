@@ -929,6 +929,11 @@ export enum SyncAllNotificationType {
   incremental = 1,
 }
 
+export enum SyncAllParticipantsMode {
+  all = 0,
+  skipBigteams = 1,
+}
+
 export enum SyncAllProtVers {
   v0 = 0,
   v1 = 1,

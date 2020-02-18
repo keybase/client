@@ -578,6 +578,32 @@ func (e SyncAllNotificationType) String() string {
 	return fmt.Sprintf("%v", int(e))
 }
 
+type SyncAllParticipantsMode int
+
+const (
+	SyncAllParticipantsMode_ALL           SyncAllParticipantsMode = 0
+	SyncAllParticipantsMode_SKIP_BIGTEAMS SyncAllParticipantsMode = 1
+)
+
+func (o SyncAllParticipantsMode) DeepCopy() SyncAllParticipantsMode { return o }
+
+var SyncAllParticipantsModeMap = map[string]SyncAllParticipantsMode{
+	"ALL":           0,
+	"SKIP_BIGTEAMS": 1,
+}
+
+var SyncAllParticipantsModeRevMap = map[SyncAllParticipantsMode]string{
+	0: "ALL",
+	1: "SKIP_BIGTEAMS",
+}
+
+func (e SyncAllParticipantsMode) String() string {
+	if v, ok := SyncAllParticipantsModeRevMap[e]; ok {
+		return v
+	}
+	return fmt.Sprintf("%v", int(e))
+}
+
 type SyncAllNotificationRes struct {
 	Typ__         SyncAllNotificationType `codec:"typ" json:"typ"`
 	State__       *gregor1.State          `codec:"state,omitempty" json:"state,omitempty"`
@@ -1402,15 +1428,16 @@ type SyncChatArg struct {
 }
 
 type SyncAllArg struct {
-	Uid              gregor1.UID          `codec:"uid" json:"uid"`
-	DeviceID         gregor1.DeviceID     `codec:"deviceID" json:"deviceID"`
-	Session          gregor1.SessionToken `codec:"session" json:"session"`
-	InboxVers        InboxVers            `codec:"inboxVers" json:"inboxVers"`
-	Ctime            gregor1.Time         `codec:"ctime" json:"ctime"`
-	Fresh            bool                 `codec:"fresh" json:"fresh"`
-	ProtVers         SyncAllProtVers      `codec:"protVers" json:"protVers"`
-	HostName         string               `codec:"hostName" json:"hostName"`
-	SummarizeMaxMsgs bool                 `codec:"summarizeMaxMsgs" json:"summarizeMaxMsgs"`
+	Uid              gregor1.UID             `codec:"uid" json:"uid"`
+	DeviceID         gregor1.DeviceID        `codec:"deviceID" json:"deviceID"`
+	Session          gregor1.SessionToken    `codec:"session" json:"session"`
+	InboxVers        InboxVers               `codec:"inboxVers" json:"inboxVers"`
+	Ctime            gregor1.Time            `codec:"ctime" json:"ctime"`
+	Fresh            bool                    `codec:"fresh" json:"fresh"`
+	ProtVers         SyncAllProtVers         `codec:"protVers" json:"protVers"`
+	HostName         string                  `codec:"hostName" json:"hostName"`
+	SummarizeMaxMsgs bool                    `codec:"summarizeMaxMsgs" json:"summarizeMaxMsgs"`
+	ParticipantsMode SyncAllParticipantsMode `codec:"participantsMode" json:"participantsMode"`
 }
 
 type TlfFinalizeArg struct {
