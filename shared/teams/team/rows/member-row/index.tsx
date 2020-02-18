@@ -80,7 +80,7 @@ export const TeamMemberRow = (props: Props) => {
     )
 
     const onSelect = (selected: boolean) => {
-      dispatch(TeamsGen.createSetMemberSelected({username: props.username, selected, teamID}))
+      dispatch(TeamsGen.createSetMemberSelected({selected, teamID, username: props.username}))
     }
 
     const checkCircle = (
@@ -119,7 +119,7 @@ export const TeamMemberRow = (props: Props) => {
       </Kb.Box2>
     )
 
-    const menuHeader ={
+    const menuHeader = {
       title: 'header',
       view: (
         <MenuHeader
@@ -169,7 +169,7 @@ export const TeamMemberRow = (props: Props) => {
     ]
     const {showingPopup, toggleShowingPopup, popupAnchor, popup} = Kb.usePopup(attachTo => (
       <Kb.FloatingMenu
-        header ={menuHeader}
+        header={menuHeader}
         attachTo={attachTo}
         closeOnSelect={true}
         items={menuItems}
