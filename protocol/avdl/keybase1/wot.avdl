@@ -3,18 +3,13 @@
 protocol wot {
   import idl "common.avdl";
 
-  enum UsernameVerificationType {
-    NONE_0,
-    AUDIO_1,
-    VIDEO_2,
-    EMAIL_3,
-    OTHER_CHAT_4,
-    IN_PERSON_5
-  }
+  // none (""), audio, video, email, other_chat, in_person
+  @typedef("string")
+  record UsernameVerificationType {}
 
   record Confidence {
     @jsonkey("vouched_by,omitempty")
-    array<string> vouchedBy; // usernames
+    array<UID> vouchedBy;
     array<SigID> proofs;
     @jsonkey("username_verified_via,omitempty")
     UsernameVerificationType usernameVerifiedVia;
@@ -22,6 +17,15 @@ protocol wot {
     @jsonkey("known_on_keybase_days,omitempty")
     int knownOnKeybaseDays;
   }
+
+  record PendingVouch {
+    UserVersion voucher;
+    SigID proof;
+    array<string> vouchTexts;
+    union { null, Confidence } confidence;
+  }
+
+  array<PendingVouch> wotPending(int sessionID);
 
   void wotVouch(int sessionID, UserVersion uv, array<string> vouchTexts, Confidence confidence);
 

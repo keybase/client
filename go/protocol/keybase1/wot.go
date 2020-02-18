@@ -4,52 +4,19 @@
 package keybase1
 
 import (
-	"fmt"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 	"time"
 )
 
-type UsernameVerificationType int
+type UsernameVerificationType string
 
-const (
-	UsernameVerificationType_NONE       UsernameVerificationType = 0
-	UsernameVerificationType_AUDIO      UsernameVerificationType = 1
-	UsernameVerificationType_VIDEO      UsernameVerificationType = 2
-	UsernameVerificationType_EMAIL      UsernameVerificationType = 3
-	UsernameVerificationType_OTHER_CHAT UsernameVerificationType = 4
-	UsernameVerificationType_IN_PERSON  UsernameVerificationType = 5
-)
-
-func (o UsernameVerificationType) DeepCopy() UsernameVerificationType { return o }
-
-var UsernameVerificationTypeMap = map[string]UsernameVerificationType{
-	"NONE":       0,
-	"AUDIO":      1,
-	"VIDEO":      2,
-	"EMAIL":      3,
-	"OTHER_CHAT": 4,
-	"IN_PERSON":  5,
-}
-
-var UsernameVerificationTypeRevMap = map[UsernameVerificationType]string{
-	0: "NONE",
-	1: "AUDIO",
-	2: "VIDEO",
-	3: "EMAIL",
-	4: "OTHER_CHAT",
-	5: "IN_PERSON",
-}
-
-func (e UsernameVerificationType) String() string {
-	if v, ok := UsernameVerificationTypeRevMap[e]; ok {
-		return v
-	}
-	return fmt.Sprintf("%v", int(e))
+func (o UsernameVerificationType) DeepCopy() UsernameVerificationType {
+	return o
 }
 
 type Confidence struct {
-	VouchedBy           []string                 `codec:"vouchedBy" json:"vouched_by,omitempty"`
+	VouchedBy           []UID                    `codec:"vouchedBy" json:"vouched_by,omitempty"`
 	Proofs              []SigID                  `codec:"proofs" json:"proofs"`
 	UsernameVerifiedVia UsernameVerificationType `codec:"usernameVerifiedVia" json:"username_verified_via,omitempty"`
 	Other               string                   `codec:"other" json:"other"`
@@ -58,13 +25,13 @@ type Confidence struct {
 
 func (o Confidence) DeepCopy() Confidence {
 	return Confidence{
-		VouchedBy: (func(x []string) []string {
+		VouchedBy: (func(x []UID) []UID {
 			if x == nil {
 				return nil
 			}
-			ret := make([]string, len(x))
+			ret := make([]UID, len(x))
 			for i, v := range x {
-				vCopy := v
+				vCopy := v.DeepCopy()
 				ret[i] = vCopy
 			}
 			return ret
@@ -86,6 +53,42 @@ func (o Confidence) DeepCopy() Confidence {
 	}
 }
 
+type PendingVouch struct {
+	Voucher    UserVersion `codec:"voucher" json:"voucher"`
+	Proof      SigID       `codec:"proof" json:"proof"`
+	VouchTexts []string    `codec:"vouchTexts" json:"vouchTexts"`
+	Confidence *Confidence `codec:"confidence,omitempty" json:"confidence,omitempty"`
+}
+
+func (o PendingVouch) DeepCopy() PendingVouch {
+	return PendingVouch{
+		Voucher: o.Voucher.DeepCopy(),
+		Proof:   o.Proof.DeepCopy(),
+		VouchTexts: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.VouchTexts),
+		Confidence: (func(x *Confidence) *Confidence {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Confidence),
+	}
+}
+
+type WotPendingArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type WotVouchArg struct {
 	SessionID  int         `codec:"sessionID" json:"sessionID"`
 	Uv         UserVersion `codec:"uv" json:"uv"`
@@ -101,6 +104,7 @@ type WotVouchCLIArg struct {
 }
 
 type WotInterface interface {
+	WotPending(context.Context, int) ([]PendingVouch, error)
 	WotVouch(context.Context, WotVouchArg) error
 	WotVouchCLI(context.Context, WotVouchCLIArg) error
 }
@@ -109,6 +113,21 @@ func WotProtocol(i WotInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.wot",
 		Methods: map[string]rpc.ServeHandlerDescription{
+			"wotPending": {
+				MakeArg: func() interface{} {
+					var ret [1]WotPendingArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]WotPendingArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]WotPendingArg)(nil), args)
+						return
+					}
+					ret, err = i.WotPending(ctx, typedArgs[0].SessionID)
+					return
+				},
+			},
 			"wotVouch": {
 				MakeArg: func() interface{} {
 					var ret [1]WotVouchArg
@@ -145,6 +164,12 @@ func WotProtocol(i WotInterface) rpc.Protocol {
 
 type WotClient struct {
 	Cli rpc.GenericClient
+}
+
+func (c WotClient) WotPending(ctx context.Context, sessionID int) (res []PendingVouch, err error) {
+	__arg := WotPendingArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.wot.wotPending", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
 }
 
 func (c WotClient) WotVouch(ctx context.Context, __arg WotVouchArg) (err error) {
