@@ -588,7 +588,6 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	uid gregor1.UID, reason chat1.GetThreadReason, query *chat1.GetThreadQuery, pagination *chat1.Pagination) (thread chat1.ThreadView, err error) {
 	ctx = libkb.WithLogTag(ctx, "PUL")
 	defer s.Trace(ctx, func() error { return err }, "Pull(%s)", convID)()
-	defer s.PerfTrace(ctx, func() error { return err }, "Pull(%s)", convID)()
 	if convID.IsNil() {
 		return chat1.ThreadView{}, errors.New("HybridConversationSource.Pull called with empty convID")
 	}
@@ -800,8 +799,6 @@ func (s *HybridConversationSource) Clear(ctx context.Context, convID chat1.Conve
 func (s *HybridConversationSource) GetMessages(ctx context.Context, conv types.UnboxConversationInfo,
 	uid gregor1.UID, msgIDs []chat1.MessageID, threadReason *chat1.GetThreadReason) (res []chat1.MessageUnboxed, err error) {
 	defer s.Trace(ctx, func() error { return err }, "GetMessages: convID: %s msgIDs: %d",
-		conv.GetConvID(), len(msgIDs))()
-	defer s.PerfTrace(ctx, func() error { return err }, "GetMessages: convID: %s msgIDs: %d",
 		conv.GetConvID(), len(msgIDs))()
 	convID := conv.GetConvID()
 	if _, err := s.lockTab.Acquire(ctx, uid, convID); err != nil {
