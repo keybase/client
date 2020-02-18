@@ -58,6 +58,7 @@ const packagerOpts: any = {
     },
   },
   electronVersion: 0,
+  // macOS file association to saltpack files
   extendInfo: {
     CFBundleDocumentTypes: [
       {
@@ -82,6 +83,7 @@ const packagerOpts: any = {
       },
     ],
   },
+  // Any paths placed here will be moved to the final bundle
   extraResource: [],
   helperBundleId: 'keybase.ElectronHelper',
   icon: null,
@@ -114,23 +116,17 @@ function main() {
   })
 
   const icon = argv.icon
-  const saltpackEncryptedIcon = argv.saltpackEncryptedIcon
-  const saltpackSignedIcon = argv.saltpackSignedIcon
+  const saltpackIcon = argv.saltpackICon
 
   if (icon) {
     packagerOpts.icon = icon
   }
 
-  if (saltpackEncryptedIcon && saltpackSignedIcon) {
-    packagerOpts.extraResource = [...packagerOpts.extraResource, saltpackEncryptedIcon, saltpackSignedIcon]
+  if (saltpackIcon) {
+    packagerOpts.extraResource = [...packagerOpts.extraResource, saltpackIcon]
   } else {
-    const missingIcon = !saltpackEncryptedIcon
-      ? 'saltpackEncryptedIcon'
-      : !saltpackSignedIcon
-      ? 'saltpackSignedIcon'
-      : ''
     console.log(
-      `Missing ${missingIcon} from yarn package arguments. Need ${missingIcon} to associate ".saltpack" files with Electron on macOS, Windows, and Linux.`
+      `Missing 'saltpackIcon' from yarn package arguments. Need ${saltpackIcon} to associate ".saltpack" files with Electron on macOS, Windows, and Linux.`
     )
   }
 
