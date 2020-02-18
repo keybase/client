@@ -52,15 +52,15 @@ class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
       <Kb.Box2
         direction="horizontal"
         ref={this._attachmentRef}
-        style={Styles.collapseStyles([styles.container, this.props.style])}
+        style={Styles.collapseStyles([styles.container, this.props.style, {backgroundColor: '#8ff'}])}
         className={this.props.className}
       >
-        <Kb.Box2 direction="horizontal" gap="tiny">
+        <Kb.Box2 direction="horizontal" gap="tiny" style={{backgroundColor: '#f82'}}>
           {this.props.emojis.map(e => (
             <HoverEmoji name={e} key={e} onClick={() => this.props.onReact(e)} />
           ))}
         </Kb.Box2>
-        <Kb.Box2 direction="horizontal">
+        <Kb.Box2 direction="horizontal" style={{backgroundColor: '#8f8'}}>
           <Kb.Divider style={styles.divider} vertical={true} />
           <Kb.WithTooltip tooltip="React">
             <Kb.Box className="hover_container" onClick={this._showPicker} style={styles.iconContainer}>
@@ -115,6 +115,7 @@ const styles = Styles.styleSheetCreate(
         justifyContent: 'center',
         marginRight: Styles.globalMargins.xxtiny,
         width: Styles.globalMargins.small,
+        backgroundColor: '#88f',
       },
       icon: {
         position: 'relative',

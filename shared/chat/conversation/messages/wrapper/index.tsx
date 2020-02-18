@@ -404,6 +404,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         onMouseOver: this.onMouseOver,
         // attach popups to the message itself
         ref: this.props.setAttachmentRef,
+        style: {backgroundColor: 'rgba(' + Math.random() * 256 + ', 50, 50, 0.8)'},
       }
     }
   }
