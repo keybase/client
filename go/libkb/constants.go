@@ -408,6 +408,7 @@ const (
 	LinkTypePerUserKey        LinkType = "per_user_key"
 	LinkTypeWalletStellar     LinkType = "wallet.stellar"
 	LinkTypeWotVouch          LinkType = "wot.vouch"
+	LinkTypeWotReact          LinkType = "wot.react"
 
 	// team links
 	LinkTypeTeamRoot         LinkType = "team.root"

@@ -75,21 +75,17 @@
           "name": "confidence"
         }
       ]
+    },
+    {
+      "type": "enum",
+      "name": "WotReactionType",
+      "symbols": [
+        "ACCEPT_0",
+        "REJECT_1"
+      ]
     }
   ],
   "messages": {
-    "wotPending": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        }
-      ],
-      "response": {
-        "type": "array",
-        "items": "PendingVouch"
-      }
-    },
     "wotVouch": {
       "request": [
         {
@@ -134,6 +130,39 @@
         {
           "name": "confidence",
           "type": "Confidence"
+        }
+      ],
+      "response": null
+    },
+    "wotPending": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "PendingVouch"
+      }
+    },
+    "wotReact": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "uv",
+          "type": "UserVersion"
+        },
+        {
+          "name": "proof",
+          "type": "SigID"
+        },
+        {
+          "name": "reaction",
+          "type": "WotReactionType"
         }
       ],
       "response": null

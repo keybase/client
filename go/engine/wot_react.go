@@ -5,72 +5,70 @@ package engine
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
-type WotVouchArg struct {
-	Vouchee    keybase1.UserVersion
-	Confidence keybase1.Confidence
-	VouchTexts []string
+type WotReactArg struct {
+	Voucher  keybase1.UserVersion
+	Proof    keybase1.SigID
+	Reaction keybase1.WotReactionType
 }
 
-// WotVouch is an engine.
-type WotVouch struct {
-	arg *WotVouchArg
+// WotReact is an engine.
+type WotReact struct {
+	arg *WotReactArg
 	libkb.Contextified
 }
 
-// NewWotVouch creates a WotVouch engine.
-func NewWotVouch(g *libkb.GlobalContext, arg *WotVouchArg) *WotVouch {
-	return &WotVouch{
+// NewWotReact creates a WotReact engine.
+func NewWotReact(g *libkb.GlobalContext, arg *WotReactArg) *WotReact {
+	return &WotReact{
 		arg:          arg,
 		Contextified: libkb.NewContextified(g),
 	}
 }
 
 // Name is the unique engine name.
-func (e *WotVouch) Name() string {
-	return "WotVouch"
+func (e *WotReact) Name() string {
+	return "WotReact"
 }
 
 // GetPrereqs returns the engine prereqs.
-func (e *WotVouch) Prereqs() Prereqs {
+func (e *WotReact) Prereqs() Prereqs {
 	return Prereqs{Device: true}
 }
 
 // RequiredUIs returns the required UIs.
-func (e *WotVouch) RequiredUIs() []libkb.UIKind {
+func (e *WotReact) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{}
 }
 
 // SubConsumers returns the other UI consumers for this engine.
-func (e *WotVouch) SubConsumers() []libkb.UIConsumer {
+func (e *WotReact) SubConsumers() []libkb.UIConsumer {
 	return nil
 }
 
 // Run starts the engine.
-func (e *WotVouch) Run(mctx libkb.MetaContext) error {
-	luArg := libkb.NewLoadUserArgWithMetaContext(mctx).WithUID(e.arg.Vouchee.Uid)
+func (e *WotReact) Run(mctx libkb.MetaContext) error {
+	luArg := libkb.NewLoadUserArgWithMetaContext(mctx).WithUID(e.arg.Voucher.Uid)
 	them, err := libkb.LoadUser(luArg)
 	if err != nil {
 		return err
 	}
-
-	if them.GetCurrentEldestSeqno() != e.arg.Vouchee.EldestSeqno {
-		return errors.New("vouchee has reset, make sure you still know them")
+	if them.GetCurrentEldestSeqno() != e.arg.Voucher.EldestSeqno {
+		return errors.New("voucher has reset, make sure you still know them")
 	}
 
 	statement := jsonw.NewDictionary()
-	if err := statement.SetKey("user", them.ToWotStatement()); err != nil {
+	if err := statement.SetKey("sig_id", jsonw.NewString(string(e.arg.Proof))); err != nil {
 		return err
 	}
-	if err := statement.SetKey("vouch_text", libkb.JsonwStringArray(e.arg.VouchTexts)); err != nil {
-		return err
-	}
-	if err := statement.SetKey("confidence", e.arg.Confidence.ToJsonw()); err != nil {
+	reactionType := strings.ToLower(keybase1.WotReactionTypeRevMap[e.arg.Reaction])
+	if err := statement.SetKey("reaction", jsonw.NewString(reactionType)); err != nil {
 		return err
 	}
 	expansions, sum, err := libkb.EmbedExpansionObj(statement)
@@ -82,17 +80,16 @@ func (e *WotVouch) Run(mctx libkb.MetaContext) error {
 	if err != nil {
 		return err
 	}
-
 	sigVersion := libkb.KeybaseSignatureV2
 	var inner []byte
 	var sig string
 
 	// ForcePoll is required.
 	err = mctx.G().GetFullSelfer().WithSelfForcePoll(mctx.Ctx(), func(me *libkb.User) error {
-		if me.GetUID() == e.arg.Vouchee.Uid {
-			return libkb.InvalidArgumentError{Msg: "can't vouch for yourself"}
+		if me.GetUID() == e.arg.Voucher.Uid {
+			return libkb.InvalidArgumentError{Msg: "can't react to a vouch from yourself"}
 		}
-		proof, err := me.WotVouchProof(mctx, signingKey, sigVersion, sum)
+		proof, err := me.WotReactProof(mctx, signingKey, sigVersion, sum)
 		if err != nil {
 			return err
 		}
@@ -104,7 +101,7 @@ func (e *WotVouch) Run(mctx libkb.MetaContext) error {
 		sig, _, _, err = libkb.MakeSig(
 			mctx,
 			signingKey,
-			libkb.LinkTypeWotVouch,
+			libkb.LinkTypeWotReact,
 			inner,
 			libkb.SigHasRevokes(false),
 			keybase1.SeqType_PUBLIC,
@@ -123,7 +120,7 @@ func (e *WotVouch) Run(mctx libkb.MetaContext) error {
 	item := libkb.SigMultiItem{
 		Sig:        sig,
 		SigningKID: signingKey.GetKID(),
-		Type:       string(libkb.LinkTypeWotVouch),
+		Type:       string(libkb.LinkTypeWotReact),
 		SeqType:    keybase1.SeqType_PUBLIC,
 		SigInner:   string(inner),
 		Version:    sigVersion,
