@@ -789,7 +789,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		// the conversation source configured in the global context
 		var summaries []chat1.MessageSummary
 		snippetSummary, err := utils.PickLatestMessageSummary(conversationRemote,
-			append(chat1.VisibleChatMessageTypes(), chat1.MessageType_DELETEHISTORY))
+			append(append([]chat1.MessageType{}, chat1.VisibleChatMessageTypes()...), chat1.MessageType_DELETEHISTORY))
 		if err == nil {
 			summaries = append(summaries, snippetSummary)
 		}

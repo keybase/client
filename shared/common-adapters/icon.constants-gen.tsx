@@ -529,6 +529,7 @@ export type IconType =
   | 'icon-illustration-teams-180'
   | 'icon-illustration-teams-216'
   | 'icon-illustration-teams-80'
+  | 'icon-illustration-teams-channels-460-96'
   | 'icon-illustration-welcome-96'
   | 'icon-illustration-zen-240-180'
   | 'icon-invite-link-48'
@@ -5712,6 +5713,14 @@ export const iconMeta: {[k in IconType]: IconMeta} = {
     isFont: false,
     get require() {
       return require('../images/icons/icon-illustration-teams-80.png')
+    },
+  },
+  'icon-illustration-teams-channels-460-96': {
+    extension: 'png',
+    imagesDir: 'icons',
+    isFont: false,
+    get require() {
+      return require('../images/icons/icon-illustration-teams-channels-460-96.png')
     },
   },
   'icon-illustration-welcome-96': {

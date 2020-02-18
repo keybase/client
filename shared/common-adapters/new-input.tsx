@@ -2,6 +2,7 @@ import * as React from 'react'
 import PlainInput, {PropsWithInput} from './plain-input'
 import Box, {Box2} from './box'
 import Icon, {IconType} from './icon'
+import Text from './text'
 import {getStyle as getTextStyle} from './text'
 import * as Styles from '../styles'
 import './input.css'
@@ -12,7 +13,7 @@ export type _Props = {
   error?: boolean
   hideBorder?: boolean
   icon?: IconType
-  dummyInput?: boolean
+  prefix?: string
 }
 
 type Props = PropsWithInput<_Props>
@@ -46,7 +47,11 @@ class ReflessNewInput extends React.Component<Props & RefProps, State> {
 
   render() {
     const textStyle = getTextStyle(this.props.textType || 'BodySemibold')
-    const {containerStyle, decoration, error, forwardedRef, hideBorder, icon, ...plainInputProps} = this.props
+    // prettier-ignore
+    const {containerStyle, decoration, error, forwardedRef, hideBorder, icon, prefix, ...plainInputProps} = this.props
+    const plainInputStyle = prefix
+      ? Styles.collapseStyles([styles.prefixInput, plainInputProps.style])
+      : plainInputProps.style
     return (
       <Box2
         direction="horizontal"
@@ -68,11 +73,17 @@ class ReflessNewInput extends React.Component<Props & RefProps, State> {
             />
           </Box>
         )}
+        {!!prefix && (
+          <Text type={plainInputProps.textType || PlainInput.defaultProps.textType} style={styles.prefix}>
+            {prefix}
+          </Text>
+        )}
         <PlainInput
           {...plainInputProps}
           onFocus={this._onFocus}
           onBlur={this._onBlur}
           ref={this.props.forwardedRef}
+          style={plainInputStyle}
         />
         {this.props.decoration}
       </Box2>
@@ -114,6 +125,8 @@ const styles = Styles.styleSheetCreate(
       icon: {
         marginRight: Styles.globalMargins.xtiny,
       },
+      prefix: Styles.platformStyles({isMobile: {alignSelf: 'flex-end'}}),
+      prefixInput: {padding: 0},
     } as const)
 )
 
