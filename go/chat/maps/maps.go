@@ -90,7 +90,7 @@ func httpClient(g *libkb.GlobalContext, host string) *http.Client {
 	xprt.TLSClientConfig = tlsConfig
 	return &http.Client{
 		Transport: libkb.NewInstrumentedRoundTripper(g,
-			func(*http.Request) string { return "LocationShare" }, &xprt),
+			func(*http.Request) string { return "LocationShare" }, libkb.NewClosingRoundTripper(&xprt)),
 		Timeout: 10 * time.Second,
 	}
 }

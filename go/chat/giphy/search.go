@@ -115,7 +115,7 @@ func httpClient(mctx libkb.MetaContext, host string) *http.Client {
 
 	return &http.Client{
 		Transport: libkb.NewInstrumentedRoundTripper(mctx.G(),
-			func(*http.Request) string { return host + " Giphy" }, &xprt),
+			func(*http.Request) string { return host + " Giphy" }, libkb.NewClosingRoundTripper(&xprt)),
 		Timeout: 10 * time.Second,
 	}
 }
