@@ -18,8 +18,8 @@ global.KB = {
     },
   },
   kb: {
-    darwinCopyToTmp: () => invalidPreload(),
     darwinCopyToChatTempUploadFile: () => invalidPreload(),
+    darwinCopyToTmp: () => invalidPreload(),
     setEngine: () => {},
   },
   os: {
