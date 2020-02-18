@@ -4,6 +4,7 @@ import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
+import ChannelPopup from '../team/settings-tab/channel-popup'
 
 type Props = {
   channels: Array<string>
@@ -16,7 +17,7 @@ type Props = {
 const ChannelsWidget = (props: Props) => {
   return (
     <Kb.Box2 direction="vertical" gap="tiny" style={styles.container}>
-      <ChannelInput onAdd={props.onAddChannel} teamID={props.teamID} />
+      <ChannelInput onAdd={props.onAddChannel} teamID={props.teamID} selected={props.channels} />
       <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.pillContainer}>
         <ChannelPill channelname="general" />
         {props.channels.map(channelname => (
@@ -31,7 +32,7 @@ const ChannelsWidget = (props: Props) => {
   )
 }
 
-type ChannelInputProps = {onAdd: (channelname: string) => void; teamID: Types.TeamID}
+type ChannelInputProps = {onAdd: (channelname: string) => void; selected: Array<string>; teamID: Types.TeamID}
 
 const ChannelInputDesktop = ({onAdd, teamID}: ChannelInputProps) => {
   const [filter, setFilter] = React.useState('')
@@ -137,20 +138,35 @@ const useAutocompleter = (items: Array<string>, onSelect: (value: string) => voi
   return {onKeyDown, popup, popupAnchor, setShowingPopup}
 }
 
-const ChannelInputMobile = ({teamID}: ChannelInputProps) => {
+const ChannelInputMobile = ({onAdd, selected, teamID}: ChannelInputProps) => {
+  const [showingPopup, setShowingPopup] = React.useState(false)
+  const onComplete = (channelnames: Array<string>) => {
+    setShowingPopup(false)
+    channelnames.forEach(c => onAdd(c))
+  }
   return (
-    <Kb.Box2
-      direction="horizontal"
-      gap="tiny"
-      alignSelf="stretch"
-      centerChildren={true}
-      style={styles.channelDummyInput}
-    >
-      <Kb.Icon type="iconfont-search" color={Styles.globalColors.black_50} sizeType="Small" />
-      <Kb.Text type="BodySemibold" style={styles.channelDummyInputText}>
-        Add channels
-      </Kb.Text>
-    </Kb.Box2>
+    <Kb.ClickableBox onClick={() => setShowingPopup(true)}>
+      <Kb.Box2
+        direction="horizontal"
+        gap="tiny"
+        alignSelf="stretch"
+        centerChildren={true}
+        style={styles.channelDummyInput}
+      >
+        <Kb.Icon type="iconfont-search" color={Styles.globalColors.black_50} sizeType="Small" />
+        <Kb.Text type="BodySemibold" style={styles.channelDummyInputText}>
+          Add channels
+        </Kb.Text>
+      </Kb.Box2>
+      {showingPopup && (
+        <ChannelPopup
+          teamID={teamID}
+          onCancel={() => setShowingPopup(false)}
+          onComplete={onComplete}
+          disabledChannels={selected}
+        />
+      )}
+    </Kb.ClickableBox>
   )
 }
 
