@@ -107,6 +107,22 @@ func testEncryptDecryptFile(tc libkb.TestContext, h *SaltpackHandler, u1, u2 *kb
 	require.True(tc.T, decRes.Signed)
 
 	filesEqual(tc, encArg.Filename, decRes.DecryptedFilename)
+
+	decArg.DestinationDir = os.TempDir()
+	decRes, err = h.SaltpackDecryptFile(ctx, decArg)
+	require.NoError(tc.T, err)
+	defer os.Remove(decRes.DecryptedFilename)
+	require.Equal(tc.T, filepath.Join(decArg.DestinationDir, filepath.Base(encArg.Filename)), decRes.DecryptedFilename)
+	require.True(tc.T, decRes.Signed)
+	filesEqual(tc, encArg.Filename, decRes.DecryptedFilename)
+
+	encArg.DestinationDir = os.TempDir()
+	encRes, err = h.SaltpackEncryptFile(ctx, encArg)
+	require.NoError(tc.T, err)
+	defer os.Remove(encRes.Filename)
+	require.NotEqual(tc.T, encRes.Filename, encArg.Filename)
+	require.True(tc.T, strings.HasSuffix(encRes.Filename, ".encrypted.saltpack"))
+	require.Equal(tc.T, filepath.Join(encArg.DestinationDir, filepath.Base(encArg.Filename)+".encrypted.saltpack"), encRes.Filename)
 }
 
 func testSignVerifyFile(tc libkb.TestContext, h *SaltpackHandler, u1, u2 *kbtest.FakeUser) {

@@ -96,7 +96,7 @@ protocol saltpack {
 
   SaltpackEncryptFileResult saltpackEncryptStringToTextFile(int sessionID, string plaintext, SaltpackFrontendEncryptOptions opts);
 
-  SaltpackEncryptFileResult saltpackEncryptFile(int sessionID, string filename, SaltpackFrontendEncryptOptions opts);
+  SaltpackEncryptFileResult saltpackEncryptFile(int sessionID, string filename, string destinationDir, SaltpackFrontendEncryptOptions opts);
 
   record SaltpackPlaintextResult {
     SaltpackEncryptedMessageInfo info;
@@ -110,11 +110,11 @@ protocol saltpack {
     string decryptedFilename;
     boolean signed;
   }
-  SaltpackFileResult saltpackDecryptFile(int sessionID, string encryptedFilename);
+  SaltpackFileResult saltpackDecryptFile(int sessionID, string encryptedFilename, string destinationDir);
 
   string saltpackSignString(int sessionID, string plaintext);
   string saltpackSignStringToTextFile(int sessionID, string plaintext);
-  string saltpackSignFile(int sessionID, string filename);
+  string saltpackSignFile(int sessionID, string filename, string destinationDir);
 
   string saltpackSaveCiphertextToFile(int sessionID, string ciphertext);
   string saltpackSaveSignedMsgToFile(int sessionID, string signedMsg);
@@ -133,5 +133,5 @@ protocol saltpack {
     string verifiedFilename;
     boolean verified;
   }
-  SaltpackVerifyFileResult saltpackVerifyFile(int sessionID, string signedFilename);
+  SaltpackVerifyFileResult saltpackVerifyFile(int sessionID, string signedFilename, string destinationDir);
 }
