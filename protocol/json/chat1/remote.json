@@ -445,14 +445,6 @@
       ]
     },
     {
-      "type": "enum",
-      "name": "SyncAllParticipantsMode",
-      "symbols": [
-        "ALL_0",
-        "SKIP_BIGTEAMS_1"
-      ]
-    },
-    {
       "type": "variant",
       "name": "SyncAllNotificationRes",
       "switch": {
@@ -1195,7 +1187,7 @@
         },
         {
           "name": "participantsMode",
-          "type": "SyncAllParticipantsMode"
+          "type": "InboxParticipantsMode"
         }
       ],
       "response": "SyncChatRes"
@@ -1240,7 +1232,7 @@
         },
         {
           "name": "participantsMode",
-          "type": "SyncAllParticipantsMode"
+          "type": "InboxParticipantsMode"
         }
       ],
       "response": "SyncAllResult",
