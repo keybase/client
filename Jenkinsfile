@@ -486,52 +486,54 @@ def testGo(prefix, packagesToTest) {
     println "Building citogo"
     sh '(cd citogo && go install)'
 
-    println "Installing golangci-lint"
-    dir("..") {
-      retry(5) {
-        sh 'GO111MODULE=on go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.23.6'
-      }
-    }
-
-
-    def hasKBFSChanges = packagesToTest.keySet().findIndexOf { key -> key =~ /^github.com\/keybase\/client\/go\/kbfs/ } >= 0
-    if (hasKBFSChanges) {
-      println "Running golangci-lint on KBFS"
-      dir('kbfs') {
-        retry(5) {
-          timeout(activity: true, time: 180, unit: 'SECONDS') {
-          // Ignore the `dokan` directory since it contains lots of c code.
-          // Ignore the `protocol` directory, autogeneration has some critques
-          sh 'go list -f "{{.Dir}}" ./...  | fgrep -v dokan | xargs realpath --relative-to=. | xargs golangci-lint run'
-          }
-        }
-      }
-    }
-
-    if (env.CHANGE_TARGET) {
-      println("Running golangci-lint on new code")
-      fetchChangeTarget()
-      def BASE_COMMIT_HASH = getBaseCommitHash()
-      timeout(activity: true, time: 360, unit: 'SECONDS') {
-        sh "go list -f '{{.Dir}}' ./...  | fgrep -v kbfs | fgrep -v protocol | xargs realpath --relative-to=. | xargs golangci-lint run --new-from-rev ${BASE_COMMIT_HASH} --deadline 5m0s"
-      }
-
-      println("Running golangci-lint for dead code")
-      timeout(activity: true, time: 360, unit: 'SECONDS') {
-        def diffFileList = getDiffFileList()
-        def diffPackageList = sh(returnStdout: true, script: "bash -c \"set -o pipefail; echo '${diffFileList}' | { grep '^go\\/' || true; } | { grep -v 'go/revision' || true; } | { grep -v 'go/vendor' || true; } | { grep -v 'go/Makefile' || true; } | sed 's/^go\\///' | sed 's/^\\(.*\\)\\/[^\\/]*\$/\\1/' | sort | uniq\"").trim().split()
-        diffPackageList.each { pkg ->
-          dir(pkg) {
-            // Ignore the exit code 5, which indicates that there were
-            // no files to analyze -- that's expected if the files were
-            // all tagged for a different platform.
-            sh 'golangci-lint run --no-config --disable-all --enable=deadcode --deadline 5m0s || test $? -eq 5'
-          }
-        }
-      }
-    }
-
     if (prefix == "test_linux_go_") {
+      // Only on linux
+      println "Installing golangci-lint"
+      dir("..") {
+        retry(5) {
+          // This works with go1.12.12 but not go1.13.1 with an error containing "invalid pseudo-version"
+          sh 'GO111MODULE=on go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.23.6'
+        }
+      }
+
+
+      def hasKBFSChanges = packagesToTest.keySet().findIndexOf { key -> key =~ /^github.com\/keybase\/client\/go\/kbfs/ } >= 0
+      if (hasKBFSChanges) {
+        println "Running golangci-lint on KBFS"
+        dir('kbfs') {
+          retry(5) {
+            timeout(activity: true, time: 180, unit: 'SECONDS') {
+            // Ignore the `dokan` directory since it contains lots of c code.
+            // Ignore the `protocol` directory, autogeneration has some critques
+            sh 'go list -f "{{.Dir}}" ./...  | fgrep -v dokan | xargs realpath --relative-to=. | xargs golangci-lint run'
+            }
+          }
+        }
+      }
+
+      if (env.CHANGE_TARGET) {
+        println("Running golangci-lint on new code")
+        fetchChangeTarget()
+        def BASE_COMMIT_HASH = getBaseCommitHash()
+        timeout(activity: true, time: 360, unit: 'SECONDS') {
+          sh "go list -f '{{.Dir}}' ./...  | fgrep -v kbfs | fgrep -v protocol | xargs realpath --relative-to=. | xargs golangci-lint run --new-from-rev ${BASE_COMMIT_HASH} --deadline 5m0s"
+        }
+
+        println("Running golangci-lint for dead code")
+        timeout(activity: true, time: 360, unit: 'SECONDS') {
+          def diffFileList = getDiffFileList()
+          def diffPackageList = sh(returnStdout: true, script: "bash -c \"set -o pipefail; echo '${diffFileList}' | { grep '^go\\/' || true; } | { grep -v 'go/revision' || true; } | { grep -v 'go/vendor' || true; } | { grep -v 'go/Makefile' || true; } | sed 's/^go\\///' | sed 's/^\\(.*\\)\\/[^\\/]*\$/\\1/' | sort | uniq\"").trim().split()
+          diffPackageList.each { pkg ->
+            dir(pkg) {
+              // Ignore the exit code 5, which indicates that there were
+              // no files to analyze -- that's expected if the files were
+              // all tagged for a different platform.
+              sh 'golangci-lint run --no-config --disable-all --enable=deadcode --deadline 5m0s || test $? -eq 5'
+            }
+          }
+        }
+      }
+
       // Windows `gofmt` pukes on CRLF.
       // Macos pukes on mockgen because ¯\_(ツ)_/¯.
       // So, only run on Linux.
