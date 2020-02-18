@@ -91,7 +91,9 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       innerContainer: {
-        flex: 1,
+        flexGrow: 1,
+        flexShrink: 1,
+        minHeight: 0,
         position: 'relative',
       },
       outerContainer: Styles.platformStyles({
