@@ -83,8 +83,8 @@ func (s *Srv) loadFromURL(raw string) (io.ReadCloser, error) {
 	switch parsed.Scheme {
 	case "http", "https":
 		avatarTransport.Proxy = libkb.MakeProxy(s.G().GetEnv())
-		xprt := libkb.NewInstrumentedTransport(s.G(), func(*http.Request) string { return "AvatarSrv" },
-			avatarTransport)
+		xprt := libkb.NewInstrumentedRoundTripper(s.G(), func(*http.Request) string { return "AvatarSrv" },
+			libkb.NewClosingRoundTripper(avatarTransport))
 		cli := &http.Client{
 			Transport: xprt,
 		}

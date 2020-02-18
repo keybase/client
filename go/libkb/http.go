@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
+	"net/http"
 	"net/url"
 	"strconv"
 
@@ -87,4 +88,19 @@ func HTTPArgsFromKeyValuePair(key string, val HTTPValue) HTTPArgs {
 	ret := HTTPArgs{}
 	ret[key] = val
 	return ret
+}
+
+type ClosingRoundTripper struct {
+	transport *http.Transport
+}
+
+func NewClosingRoundTripper(transport *http.Transport) *ClosingRoundTripper {
+	return &ClosingRoundTripper{
+		transport: transport,
+	}
+}
+
+func (t ClosingRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
+	req.Close = true
+	return t.transport.RoundTrip(req)
 }
