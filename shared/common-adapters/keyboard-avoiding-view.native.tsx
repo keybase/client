@@ -26,7 +26,12 @@ const KeyboardAvoidingView = (p: KeyboardAvoidingViewProps) => {
     return () => listener.remove()
   }, [])
 
-  return <RnKBAV {...p} keyboardVerticalOffset={isTwoLineStatusBar ? 20 : 0} />
+  return (
+    <RnKBAV
+      {...p}
+      keyboardVerticalOffset={(p?.keyboardVerticalOffset ?? 0) + (isTwoLineStatusBar ? 20 : 0)}
+    />
+  )
 }
 
 export default KeyboardAvoidingView
