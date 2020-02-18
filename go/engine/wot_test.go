@@ -178,3 +178,114 @@ func TestWebOfTrustPending(t *testing.T) {
 	require.Equal(t, confidence, *charlieVouch.Confidence)
 	t.Log("alice sees two pending vouches that look right")
 }
+
+func TestWebOfTrustAccept(t *testing.T) {
+	tcAlice := SetupEngineTest(t, "wot")
+	tcBob := SetupEngineTest(t, "wot")
+	defer tcAlice.Cleanup()
+	defer tcBob.Cleanup()
+	alice := CreateAndSignupFakeUser(tcAlice, "wot")
+	bob := CreateAndSignupFakeUser(tcBob, "wot")
+	mctxA := NewMetaContextForTest(tcAlice)
+	mctxB := NewMetaContextForTest(tcBob)
+	t.Log("alice and bob exist")
+
+	sigVersion := libkb.GetDefaultSigVersion(tcAlice.G)
+	trackUser(tcBob, bob, alice.NormalizedUsername(), sigVersion)
+	trackUser(tcAlice, alice, bob.NormalizedUsername(), sigVersion)
+	err := bob.LoadUser(tcBob)
+	require.NoError(tcBob.T, err)
+	err = alice.LoadUser(tcAlice)
+	require.NoError(tcAlice.T, err)
+	t.Log("alice and bob follow each other")
+
+	vouchTexts := []string{"alice is wondibar and doug agrees"}
+	confidence := keybase1.Confidence{
+		UsernameVerifiedVia: keybase1.UsernameVerificationType_VIDEO,
+		VouchedBy:           []keybase1.UID{keybase1.UID("c4c565570e7e87cafd077509abf5f619")}, // t_doug
+		KnownOnKeybaseDays:  25,
+	}
+	argV := &WotVouchArg{
+		Vouchee:    alice.User.ToUserVersion(),
+		VouchTexts: vouchTexts,
+		Confidence: confidence,
+	}
+	engV := NewWotVouch(tcBob.G, argV)
+	err = RunEngine2(mctxB, engV)
+	require.NoError(t, err)
+	t.Log("bob vouches for alice with confidence")
+
+	pending, err := libkb.FetchPendingWotVouches(mctxA)
+	require.NoError(t, err)
+	require.Len(t, pending, 1)
+	bobVouch := pending[0]
+	require.Equal(t, bob.User.GetUID(), bobVouch.Voucher.Uid)
+	require.Equal(t, vouchTexts, bobVouch.VouchTexts)
+	t.Log("alice fetches one pending vouch")
+
+	argR := &WotReactArg{
+		Voucher:  bob.User.ToUserVersion(),
+		Proof:    pending[0].Proof,
+		Reaction: keybase1.WotReactionType_ACCEPT,
+	}
+	engR := NewWotReact(tcAlice.G, argR)
+	err = RunEngine2(mctxA, engR)
+	require.NoError(t, err)
+	t.Log("alice accepts")
+
+	// add expectations here that the accepted attestation is
+	// really in Alice's sigchain / accessible to someone else
+}
+
+func TestWebOfTrustReject(t *testing.T) {
+	tcAlice := SetupEngineTest(t, "wot")
+	tcBob := SetupEngineTest(t, "wot")
+	defer tcAlice.Cleanup()
+	defer tcBob.Cleanup()
+	alice := CreateAndSignupFakeUser(tcAlice, "wot")
+	bob := CreateAndSignupFakeUser(tcBob, "wot")
+	mctxA := NewMetaContextForTest(tcAlice)
+	mctxB := NewMetaContextForTest(tcBob)
+	t.Log("alice and bob exist")
+
+	sigVersion := libkb.GetDefaultSigVersion(tcAlice.G)
+	trackUser(tcBob, bob, alice.NormalizedUsername(), sigVersion)
+	trackUser(tcAlice, alice, bob.NormalizedUsername(), sigVersion)
+	err := bob.LoadUser(tcBob)
+	require.NoError(tcBob.T, err)
+	err = alice.LoadUser(tcAlice)
+	require.NoError(tcAlice.T, err)
+	t.Log("alice and bob follow each other")
+
+	vouchTexts := []string{"alice is wondibar"}
+	argV := &WotVouchArg{
+		Vouchee:    alice.User.ToUserVersion(),
+		VouchTexts: vouchTexts,
+		// no confidence
+	}
+	engV := NewWotVouch(tcBob.G, argV)
+	err = RunEngine2(mctxB, engV)
+	require.NoError(t, err)
+	t.Log("bob vouches for alice without confidence")
+
+	pending, err := libkb.FetchPendingWotVouches(mctxA)
+	require.NoError(t, err)
+	require.Len(t, pending, 1)
+	bobVouch := pending[0]
+	require.Equal(t, bob.User.GetUID(), bobVouch.Voucher.Uid)
+	require.Equal(t, vouchTexts, bobVouch.VouchTexts)
+	t.Log("alice fetches one pending vouch")
+
+	argR := &WotReactArg{
+		Voucher:  bob.User.ToUserVersion(),
+		Proof:    pending[0].Proof,
+		Reaction: keybase1.WotReactionType_REJECT,
+	}
+	engR := NewWotReact(tcAlice.G, argR)
+	err = RunEngine2(mctxA, engR)
+	require.NoError(t, err)
+	t.Log("alice rejects it")
+
+	// add expectations here that the rejected attestation is
+	// really in Alice's sigchain, not accessible to someone else
+}

@@ -58,3 +58,16 @@ func (h *WebOfTrustHandler) WotPending(ctx context.Context, sessionID int) (res 
 	mctx := libkb.NewMetaContext(ctx, h.G())
 	return libkb.FetchPendingWotVouches(mctx)
 }
+
+func (h *WebOfTrustHandler) WotReact(ctx context.Context, arg keybase1.WotReactArg) error {
+	ctx = libkb.WithLogTag(ctx, "WOT")
+	mctx := libkb.NewMetaContext(ctx, h.G())
+
+	earg := &engine.WotReactArg{
+		Voucher:  arg.Uv,
+		Proof:    arg.Proof,
+		Reaction: arg.Reaction,
+	}
+	eng := engine.NewWotReact(h.G(), earg)
+	return engine.RunEngine2(mctx, eng)
+}
