@@ -9,12 +9,14 @@ import {ChannelRow, ChannelHeaderRow, ChannelFooterRow} from './channel-row'
 import TeamPageDivider from './divider'
 import LoadingRow from './loading'
 import TeamHeaderRow from '../header/container'
+import NewTeamHeaderRow from '../new-header'
 import SettingsRow from '../settings-tab/container'
+import flags from '../../../util/feature-flags'
 
 const renderRow = (row: Row, teamID: Types.TeamID) => {
   switch (row.type) {
     case 'header':
-      return <TeamHeaderRow teamID={teamID} />
+      return flags.teamsRedesign ? <NewTeamHeaderRow teamID={teamID} /> : <TeamHeaderRow teamID={teamID} />
     case 'member':
       return <MemberRow teamID={teamID} username={row.username} />
     case 'bot':
