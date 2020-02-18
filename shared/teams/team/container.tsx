@@ -118,23 +118,18 @@ const newNavigationOptions = () => ({
 TabsState.navigationOptions = flags.teamsRedesign
   ? newNavigationOptions
   : (ownProps: TabsStateOwnProps) => ({
-      header:
-        Container.isMobile && flags.teamsRedesign
-          ? () => <HeaderTitle teamID={Container.getRouteProps(ownProps, 'teamID', '')} />
-          : null,
+      header: null,
       headerExpandable: true,
       headerHideBorder: true,
-      headerRightActions:
-        Container.isMobile || flags.teamsRedesign
-          ? undefined
-          : () => <HeaderRightActions teamID={Container.getRouteProps(ownProps, 'teamID', '')} />,
+      headerRightActions: Container.isMobile
+        ? undefined
+        : () => <HeaderRightActions teamID={Container.getRouteProps(ownProps, 'teamID', '')} />,
       headerTitle: Container.isMobile
         ? undefined
         : () => <HeaderTitle teamID={Container.getRouteProps(ownProps, 'teamID', '')} />,
-      subHeader:
-        Container.isMobile && !flags.teamsRedesign
-          ? undefined
-          : () => <SubHeader teamID={Container.getRouteProps(ownProps, 'teamID', '')} />,
+      subHeader: Container.isMobile
+        ? undefined
+        : () => <SubHeader teamID={Container.getRouteProps(ownProps, 'teamID', '')} />,
     })
 
 export default TabsState
