@@ -8,7 +8,7 @@ export {AnimationType} from './animation'
 
 export {NavigationEvents} from '@react-navigation/core'
 
-export {default as Animated, Transition, animated} from './animated'
+export {default as Animated, Transition, animated, useSpring} from './animated'
 export {default as Animation} from './animation'
 export {default as Avatar} from './avatar'
 export {default as AvatarLine} from './avatar-line'

@@ -160,6 +160,7 @@ class SectionList extends React.Component<Props, State> {
 
   _onScroll = e => {
     e.currentTarget && this._checkOnEndReached(e.currentTarget)
+    this.props.onScroll && this.props.onScroll(e)
     this._checkStickyDebounced()
     this._checkStickyThrottled()
   }

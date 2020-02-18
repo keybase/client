@@ -355,6 +355,9 @@ module.exports = {
   get usePopup() {
     return require('./use-popup').usePopup
   },
+  get useSpring() {
+    return require('./animated').useSpring
+  },
   get useTimeout() {
     return require('./use-timers').useTimeout
   },
