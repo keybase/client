@@ -128,33 +128,67 @@ const SubteamNotInRow = (props: SubteamNotInRowProps) => {
 }
 const SubteamInRow = (props: SubteamNotInRowProps) => {
   const dispatch = Container.useDispatch()
-  const onAdd = (role: Types.TeamRoleType) =>
+  const nav = Container.useSafeNavigation()
+  const onAddToChannels = () =>
     dispatch(
-      TeamsGen.createAddToTeam({
-        sendChatNotification: true,
-        teamID: props.teamID,
-        users: [{assertion: props.username, role}],
+      nav.safeNavigateAppendPayload({
+        path: [
+          {
+            props: {teamID: props.subteam.id, username: props.username},
+            selected: 'teamsAddMemberToChannels',
+          },
+        ],
       })
     )
+  const onKickOut = () =>
+    dispatch(TeamsGen.createRemoveMember({teamID: props.subteam.id, username: props.username}))
 
-  const [role, setRole] = React.useState<Types.TeamRoleType>('writer')
-  const {popup, toggleShowingPopup, showingPopup, popupAnchor} = Kb.usePopup(() => (
-    <FloatingRolePicker open={showingPopup} onConfirm={() => onAdd(role)} onSelectRole={setRole} />
-  ))
-  const action = <Kb.Button label="Add" onClick={toggleShowingPopup} ref={popupAnchor} />
+  const [expanded, setExpanded] = React.useState(false)
 
-  const memberCount = props.subteam.memberCount ?? -1
+  const icon = (
+    <Kb.Icon
+      type={expanded ? 'iconfont-arrow-down' : 'iconfont-arrow-right'}
+      onClick={() => setExpanded(!expanded)}
+    />
+  )
+
+  const channels = ['general', 'aaa', 'bbb', 'ccc', 'ddd', 'eee', 'fff', 'mmm']
+  const channelsJoined = channels.join(', #')
   const body = (
-    <Kb.Box2 direction="vertical" alignItems="flex-start">
-      <Kb.Text type="BodySemibold">{props.subteam.teamname}</Kb.Text>
-      <Kb.Text type="BodySmall">
-        {memberCount.toLocaleString()} {pluralize('member', memberCount)}
-      </Kb.Text>
-      {popup}
+    <Kb.Box2 direction="vertical" fullWidth={true} alignItems="flex-start" gap="tiny" style={styles.listItem}>
+      <Kb.Box2 direction="horizontal" alignSelf="flex-start" gap="tiny">
+        <Kb.Avatar teamname={props.subteam.teamname} size={32} />
+        <Kb.Box2 direction="vertical" alignItems="flex-start">
+          <Kb.Text type="BodySemibold">{props.subteam.teamname}</Kb.Text>
+          <Kb.Text type="BodySmall">Joined Feb 1944 {/* TODO: where to get this data? */}</Kb.Text>
+        </Kb.Box2>
+      </Kb.Box2>
+      {expanded && (
+        <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start">
+          <Kb.Icon type="iconfont-clock" color={Styles.globalColors.black_20} />
+          <Kb.Text type="BodySmall">Active 1 min ago</Kb.Text>
+          {/* TODO: where to get this data? */}
+        </Kb.Box2>
+      )}
+      {expanded && (
+        <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start">
+          <Kb.Icon type="iconfont-clock" color={Styles.globalColors.black_20} />
+          <Kb.Text type="BodySmall">Member of #{channelsJoined}</Kb.Text>
+        </Kb.Box2>
+      )}
+      {expanded && (
+        <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start">
+          <Kb.Button mode="Secondary" onClick={onAddToChannels} label="Add to Channels" />
+          {/* TODO: icon on this button */}
+          <Kb.Button mode="Secondary" type="Danger" onClick={onKickOut} label="Kick out" />
+        </Kb.Box2>
+      )}
     </Kb.Box2>
   )
-  const icon = <Kb.Avatar teamname={props.subteam.teamname} size={32} />
-  return <Kb.ListItem2 icon={icon} body={body} action={action} firstItem={props.idx === 1} type="Large" />
+  const height = expanded ? (Styles.isMobile ? 208 : 140) : undefined
+  return (
+    <Kb.ListItem2 statusIcon={icon} body={body} firstItem={props.idx === 1} type="Large" height={height} />
+  )
 }
 
 // exported for stories
@@ -301,6 +335,9 @@ const styles = Styles.styleSheetCreate(() => ({
   headerTextContainer: Styles.platformStyles({
     isMobile: {paddingBottom: Styles.globalMargins.tiny},
   }),
+  listItem: {
+    marginLeft: Styles.globalMargins.tiny,
+  },
 }))
 
 export default TeamMember
