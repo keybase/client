@@ -259,7 +259,7 @@ const Output = (props: OutputProps) => {
   const {fontSize, lineHeight} = getStyle('HeaderBig')
   const outputLargeStyle = outputTextIsLarge &&
     output &&
-    output.length <= largeOutputLimit && {fontSize, lineHeight}
+    output.length <= largeOutputLimit && {fontSize, lineHeight, minHeight: lineHeight}
 
   const fileOutputTextColor =
     textType === 'cipher' ? Styles.globalColors.greenDark : Styles.globalColors.black
