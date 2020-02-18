@@ -61,8 +61,9 @@ const useAutocompleter = (items: Array<string>, onSelect: (value: string) => voi
           diff = -1
           break
         case 'Enter':
+          setSelected(0)
           onSelect(selectedItem)
-          break
+          return
       }
       let newSelected = selected + diff
       if (newSelected >= numItems) {
