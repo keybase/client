@@ -52,6 +52,7 @@ export const setChannelSelected = 'teams:setChannelSelected'
 export const setEditDescriptionError = 'teams:setEditDescriptionError'
 export const setEmailInviteError = 'teams:setEmailInviteError'
 export const setMemberPublicity = 'teams:setMemberPublicity'
+export const setMemberSelected = 'teams:setMemberSelected'
 export const setMembers = 'teams:setMembers'
 export const setNewTeamInfo = 'teams:setNewTeamInfo'
 export const setPublicity = 'teams:setPublicity'
@@ -205,6 +206,12 @@ type _SetChannelSelectedPayload = {
 type _SetEditDescriptionErrorPayload = {readonly error: string}
 type _SetEmailInviteErrorPayload = {readonly message: string; readonly malformed: Array<string>}
 type _SetMemberPublicityPayload = {readonly teamID: Types.TeamID; readonly showcase: boolean}
+type _SetMemberSelectedPayload = {
+  readonly teamID: Types.TeamID
+  readonly username: string
+  readonly selected: boolean
+  readonly clearAll?: boolean
+}
 type _SetMembersPayload = {readonly teamID: Types.TeamID; readonly members: Map<string, Types.MemberInfo>}
 type _SetNewTeamInfoPayload = {
   readonly deletedTeams: Array<RPCTypes.DeletedTeamInfo>
@@ -387,6 +394,13 @@ export const createSaveTeamRetentionPolicy = (
 export const createSetChannelSelected = (payload: _SetChannelSelectedPayload): SetChannelSelectedPayload => ({
   payload,
   type: setChannelSelected,
+})
+/**
+ * Sets whether a member is selected on the team page
+ */
+export const createSetMemberSelected = (payload: _SetMemberSelectedPayload): SetMemberSelectedPayload => ({
+  payload,
+  type: setMemberSelected,
 })
 /**
  * Stop listening for team details for this team
@@ -765,6 +779,10 @@ export type SetMemberPublicityPayload = {
   readonly payload: _SetMemberPublicityPayload
   readonly type: typeof setMemberPublicity
 }
+export type SetMemberSelectedPayload = {
+  readonly payload: _SetMemberSelectedPayload
+  readonly type: typeof setMemberSelected
+}
 export type SetMembersPayload = {readonly payload: _SetMembersPayload; readonly type: typeof setMembers}
 export type SetNewTeamInfoPayload = {
   readonly payload: _SetNewTeamInfoPayload
@@ -935,6 +953,7 @@ export type Actions =
   | SetEditDescriptionErrorPayload
   | SetEmailInviteErrorPayload
   | SetMemberPublicityPayload
+  | SetMemberSelectedPayload
   | SetMembersPayload
   | SetNewTeamInfoPayload
   | SetPublicityPayload

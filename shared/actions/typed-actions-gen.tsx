@@ -902,6 +902,7 @@ export type TypedActionsMap = {
   'teams:setTeamVersion': teams.SetTeamVersionPayload
   'teams:getMembers': teams.GetMembersPayload
   'teams:setMembers': teams.SetMembersPayload
+  'teams:setMemberSelected': teams.SetMemberSelectedPayload
   'teams:getTeamProfileAddList': teams.GetTeamProfileAddListPayload
   'teams:addTeamWithChosenChannels': teams.AddTeamWithChosenChannelsPayload
   'teams:saveChannelMembership': teams.SaveChannelMembershipPayload

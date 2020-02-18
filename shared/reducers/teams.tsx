@@ -228,6 +228,19 @@ export default Container.makeReducer<
       }
     }
   },
+  [TeamsGen.setMemberSelected]: (draftState, action) => {
+    const {teamID, username, selected, clearAll} = action.payload
+    if (clearAll) {
+      draftState.selectedMembers.set(teamID, new Set())
+    } else {
+      const membersSelected = mapGetEnsureValue(draftState.selectedMembers, teamID, new Set())
+      if (selected) {
+        membersSelected.add(username)
+      } else {
+        membersSelected.delete(username)
+      }
+    }
+  },
   [TeamsGen.setTeamRoleMapLatestKnownVersion]: (draftState, action) => {
     draftState.teamRoleMap.latestKnownVersion = action.payload.version
   },

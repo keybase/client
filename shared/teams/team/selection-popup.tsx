@@ -15,24 +15,54 @@ const getSelectedCount = (state: Container.TypedState, props: Props) => {
   switch (props.selectedTab) {
     case 'channels':
       return state.teams.selectedChannels.get(props.teamID)?.size ?? 0
+    case 'members':
+      return state.teams.selectedMembers.get(props.teamID)?.size ?? 0
     default:
       return 0
   }
 }
 
+// In order for Selection Popup to show in a tab
+// the respective tab needs to be added to this map
 const tabThings = {
   channels: 'channel',
+  members: 'member',
 }
 
 const SelectionPopup = (props: Props) => {
   const selectedCount = Container.useSelector(state => getSelectedCount(state, props))
   const dispatch = Container.useDispatch()
 
-  const onUnselect = () =>
-    dispatch(
-      TeamsGen.createSetChannelSelected({channel: '', clearAll: true, selected: false, teamID: props.teamID})
-    )
+  const onUnselect = () => {
+    switch (props.selectedTab) {
+      case 'channels':
+        return dispatch(
+          TeamsGen.createSetChannelSelected({
+            channel: '',
+            clearAll: true,
+            selected: false,
+            teamID: props.teamID,
+          })
+        )
+      case 'members':
+        return dispatch(
+          TeamsGen.createSetMemberSelected({
+            clearAll: true,
+            selected: false,
+            teamID: props.teamID,
+            username: '',
+          })
+        )
+    }
+  }
+
+  // Chanels tab functions
   const onDelete = () => {}
+
+  // Members tab functions
+  const onAddToChannel = () => {}
+  const onEditRoles = () => {}
+  const onRemoveFromTeam = () => {}
 
   const tabThing = tabThings[props.selectedTab]
   const onSelectableTab = !!tabThing
@@ -62,8 +92,41 @@ const SelectionPopup = (props: Props) => {
           </Kb.Text>
         )}
       </Kb.Text>
+
       {!Styles.isMobile && <Kb.BoxGrow />}
-      <Kb.Button label="Delete" type="Danger" onClick={onDelete} fullWidth={Styles.isMobile} />
+      {props.selectedTab == 'channels' && (
+        <Kb.Button label="Delete" type="Danger" onClick={onDelete} fullWidth={Styles.isMobile} />
+      )}
+
+      {props.selectedTab == 'members' && (
+        <Kb.Box2
+          fullWidth={Styles.isMobile}
+          direction={Styles.isMobile ? 'vertical' : 'horizontal'}
+          gap={Styles.isMobile ? 'tiny' : undefined}
+        >
+          <Kb.Button
+            style={styles.buttonStyle}
+            label="Add to channels"
+            mode="Secondary"
+            onClick={onAddToChannel}
+            fullWidth={Styles.isMobile}
+          />
+          <Kb.Button
+            style={styles.buttonStyle}
+            label="Edit role"
+            mode="Secondary"
+            onClick={onEditRoles}
+            fullWidth={Styles.isMobile}
+          />
+          <Kb.Button
+            style={styles.buttonStyle}
+            label="Remove from team"
+            type="Danger"
+            onClick={onRemoveFromTeam}
+            fullWidth={Styles.isMobile}
+          />
+        </Kb.Box2>
+      )}
     </Kb.Box2>
   ) : null
 }
@@ -71,6 +134,10 @@ const SelectionPopup = (props: Props) => {
 export default SelectionPopup
 
 const styles = Styles.styleSheetCreate(() => ({
+  buttonStyle: {
+    marginLeft: Styles.globalMargins.tiny,
+    marginRight: Styles.globalMargins.tiny,
+  },
   container: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.white,
