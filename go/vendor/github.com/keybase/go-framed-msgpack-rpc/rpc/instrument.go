@@ -71,28 +71,43 @@ func NewNetworkInstrumenter(storage NetworkInstrumenterStorage, tag string) *Net
 }
 
 func (r *NetworkInstrumenter) String() string {
+	if r == nil {
+		return "<NetworkInstrumenter(nil)>"
+	}
 	return fmt.Sprintf("Tag: %s, Ctime: %v, Dur: %v, Size: %d, finished: %v", r.tag, r.Ctime, r.Dur, r.Size, r.finished)
 }
 
 func (r *NetworkInstrumenter) IncrementSize(size int64) {
+	if r == nil {
+		return
+	}
 	if r.InstrumentationRecord != nil {
 		r.Size += size
 	}
 }
 
 func (r *NetworkInstrumenter) EndCall() {
+	if r == nil {
+		return
+	}
 	if r.InstrumentationRecord != nil {
 		r.Dur = time.Since(r.Ctime)
 	}
 }
 
 func (r *NetworkInstrumenter) RecordAndFinish(size int64) error {
+	if r == nil {
+		return nil
+	}
 	r.IncrementSize(size)
 	r.EndCall()
 	return r.Finish()
 }
 
 func (r *NetworkInstrumenter) Finish() error {
+	if r == nil {
+		return nil
+	}
 	if r.finished {
 		return errors.New("record already finished")
 	}
