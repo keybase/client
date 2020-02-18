@@ -330,9 +330,7 @@ const styles = Styles.styleSheetCreate(
   () =>
     ({
       container: {
-        flexGrow: 1,
-        flexShrink: 1,
-        minHeight: 0,
+        flex: 1,
         position: 'relative',
       },
       contentContainer: {bottom: -mobileTypingContainerHeight},
