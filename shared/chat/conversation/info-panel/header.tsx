@@ -7,16 +7,17 @@ import * as Kb from '../../../common-adapters'
 import * as Constants from '../../../constants/chat2'
 import * as Styles from '../../../styles'
 import InfoPanelMenu from './menu/container'
+import TeamMenu from './menu/container'
 import * as ChatTypes from '../../../constants/types/chat2'
 import AddPeople from './add-people'
 import {pluralize} from '../../../util/string'
 
-type SmallProps = {conversationIDKey: ChatTypes.ConversationIDKey} & Kb.OverlayParentProps
+type SmallProps = {conversationIDKey: ChatTypes.ConversationIDKey}
 
 const gearIconSize = Styles.isMobile ? 24 : 16
 
-const _TeamHeader = (props: SmallProps) => {
-  const {conversationIDKey, toggleShowingMenu, getAttachmentRef, showingMenu, setAttachmentRef} = props
+const TeamHeader = (props: SmallProps) => {
+  const {conversationIDKey} = props
   const dispatch = Container.useDispatch()
   const meta = Container.useSelector(state => Constants.getMeta(state, conversationIDKey))
   const {teamname, teamID, channelname, descriptionDecorated: description, membershipType, teamType} = meta
@@ -30,37 +31,108 @@ const _TeamHeader = (props: SmallProps) => {
   const participantCount = Container.useSelector(
     state => Constants.getParticipantInfo(state, conversationIDKey)?.all?.length ?? 0
   )
-  let title = teamname
-  if (channelname && !isSmallTeam) {
-    title += '#' + channelname
-  }
   const isGeneralChannel = !!(channelname && channelname === 'general')
+
+  const {
+    showingPopup: showingTeamMenuPopup,
+    setShowingPopup: setShowingTeamMenuPopup,
+    popup: teamMenuPopup,
+    popupAnchor: teamMenuPopupRef,
+  } = Kb.usePopup(attachTo => (
+    <TeamMenu
+      attachTo={attachTo}
+      visible={showingTeamMenuPopup}
+      onHidden={() => setShowingTeamMenuPopup(false)}
+      conversationIDKey={conversationIDKey}
+      teamID={teamID}
+      isSmallTeam={false}
+    />
+  ))
+
+  const {
+    showingPopup: showingChannelMenuPopup,
+    setShowingPopup: setShowingChannelMenuPopup,
+    popup: channelMenuPopup,
+    popupAnchor: channelMenuPopupRef,
+  } = Kb.usePopup(attachTo => (
+    <InfoPanelMenu
+      attachTo={attachTo}
+      onHidden={() => setShowingChannelMenuPopup(false)}
+      isSmallTeam={isSmallTeam}
+      conversationIDKey={conversationIDKey}
+      visible={showingChannelMenuPopup}
+    />
+  ))
+
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="small">
       <Kb.Box2 direction="horizontal" style={styles.smallContainer} fullWidth={true}>
-        <InfoPanelMenu
-          attachTo={getAttachmentRef}
-          onHidden={toggleShowingMenu}
-          isSmallTeam={isSmallTeam}
-          conversationIDKey={conversationIDKey}
-          visible={showingMenu}
-        />
         <Kb.ConnectedNameWithIcon
           containerStyle={styles.flexOne}
           horizontal={true}
           teamname={teamname}
           onClick="profile"
-          title={title}
-          metaOne={
-            participantCount ? `${participantCount} ${pluralize('member', participantCount)}` : 'Loading...'
+          title={
+            isSmallTeam ? (
+              teamname
+            ) : (
+              <Kb.Box
+                className="hover_background_color_green"
+                onClick={() => setShowingTeamMenuPopup(!showingTeamMenuPopup)}
+                ref={teamMenuPopupRef}
+                style={{
+                  ...Styles.globalStyles.flexBoxRow,
+                  borderRadius: Styles.borderRadius,
+                  width: '100%',
+                }}
+              >
+                {teamMenuPopup}
+                <Kb.Box2 alignSelf="flex-start" direction="horizontal" style={styles.flexOne}>
+                  <Kb.Text lineClamp={1} type="BodySemibold">
+                    {teamname}
+                  </Kb.Text>
+                </Kb.Box2>
+                <Kb.Box2 alignItems="center" alignSelf="flex-end" direction="horizontal">
+                  <Kb.Text lineClamp={1} type="BodySmall">
+                    {`${participantCount} ${pluralize('member', participantCount)}`}
+                  </Kb.Text>
+                  <Kb.Icon type="iconfont-gear" style={styles.gear} fontSize={gearIconSize} />
+                </Kb.Box2>
+              </Kb.Box>
+            )
           }
-        />
-        <Kb.Icon
-          type="iconfont-gear"
-          onClick={toggleShowingMenu}
-          ref={setAttachmentRef}
-          style={styles.gear}
-          fontSize={gearIconSize}
+          metaOne={
+            participantCount ? (
+              <Kb.Box
+                className="hover_background_color_red"
+                onClick={() => setShowingChannelMenuPopup(!showingChannelMenuPopup)}
+                ref={channelMenuPopupRef}
+                style={{
+                  ...Styles.globalStyles.flexBoxRow,
+                  borderRadius: Styles.borderRadius,
+                  width: '100%',
+                }}
+              >
+                {channelMenuPopup}
+                <Kb.Box2 alignSelf="flex-start" direction="horizontal" style={styles.flexOne}>
+                  <Kb.Text lineClamp={1} type="BodySmall">
+                    # <Kb.Text type="BodySmall">{channelname}</Kb.Text>
+                  </Kb.Text>
+                </Kb.Box2>
+                <Kb.Box2 alignItems="center" alignSelf="flex-end" direction="horizontal">
+                  <Kb.Text lineClamp={1} type="BodySmall">
+                    {`${participantCount} ${pluralize('member', participantCount)}`}
+                  </Kb.Text>
+                  <Kb.Icon type="iconfont-gear" style={styles.gear} fontSize={gearIconSize} />
+                </Kb.Box2>
+              </Kb.Box>
+            ) : (
+              'Loading...'
+            )
+          }
+          metaStyle={{
+            flex: 1,
+          }}
         />
       </Kb.Box2>
       {!!description && (
@@ -89,7 +161,6 @@ const _TeamHeader = (props: SmallProps) => {
     </Kb.Box2>
   )
 }
-const TeamHeader = Kb.OverlayParentHOC(_TeamHeader)
 
 type AdhocHeaderProps = {conversationIDKey: ChatTypes.ConversationIDKey}
 
@@ -157,8 +228,8 @@ const styles = Styles.styleSheetCreate(
       gear: Styles.platformStyles({
         common: {
           height: gearIconSize,
-          paddingLeft: 16,
-          paddingRight: 16,
+          paddingLeft: Styles.globalMargins.tiny,
+          // paddingRight: 16,
           width: gearIconSize,
         },
         isMobile: {width: gearIconSize + 32},
@@ -166,6 +237,7 @@ const styles = Styles.styleSheetCreate(
       smallContainer: {
         alignItems: 'center',
         paddingLeft: Styles.globalMargins.small,
+        paddingRight: Styles.globalMargins.small,
       },
     } as const)
 )
