@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import {HeaderRightActions, HeaderTitle, SubHeader} from './nav-header/container'
+import {HeaderTitle, SubHeader} from './nav-header/container'
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
@@ -9,7 +9,6 @@ import * as ChatTypes from '../../constants/types/chat2'
 import {TabKey} from './tabs'
 import Channel, {Sections, TabProps} from '.'
 import makeRows from './rows'
-import flags from '../../util/feature-flags'
 
 type RouteProps = Container.RouteProps<{teamID: Types.TeamID; conversationIDKey: ChatTypes.ConversationIDKey}>
 type OwnProps = TabProps & RouteProps
@@ -48,12 +47,7 @@ const ConnectedChannel = Container.compose(
       ownProps.selectedTab,
       stateProps._yourOperations
     )
-    const sections: Sections = [
-      ...(Container.isMobile && !flags.teamsRedesign
-        ? [{data: [{key: 'header-inner', type: 'header' as const}], key: 'header'}]
-        : []),
-      {data: rows, header: {key: 'tabs', type: 'tabs'}, key: 'body'},
-    ]
+    const sections: Sections = [{data: rows, header: {key: 'tabs', type: 'tabs'}, key: 'body'}]
     return {
       onBack: dispatchProps.onBack,
       rows,
