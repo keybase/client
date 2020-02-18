@@ -2316,7 +2316,7 @@ func GetUserSubteamMemberships(m libkb.MetaContext, id keybase1.TeamID, username
 		if err != nil {
 			return nil, err
 		}
-		det, err := details(m.Ctx(), m.G(), team, tracer)
+		members, err := MembersDetails(m.Ctx(), m.G(), team)
 		if err != nil {
 			return nil, err
 		}
@@ -2333,17 +2333,17 @@ func GetUserSubteamMemberships(m libkb.MetaContext, id keybase1.TeamID, username
 		case keybase1.TeamRole_NONE:
 			continue
 		case keybase1.TeamRole_READER:
-			details, ok = findMemberDetails(det.Members.Readers, upak.GetUID())
+			details, ok = findMemberDetails(members.Readers, upak.GetUID())
 		case keybase1.TeamRole_WRITER:
-			details, ok = findMemberDetails(det.Members.Writers, upak.GetUID())
+			details, ok = findMemberDetails(members.Writers, upak.GetUID())
 		case keybase1.TeamRole_ADMIN:
-			details, ok = findMemberDetails(det.Members.Admins, upak.GetUID())
+			details, ok = findMemberDetails(members.Admins, upak.GetUID())
 		case keybase1.TeamRole_OWNER:
-			details, ok = findMemberDetails(det.Members.Owners, upak.GetUID())
+			details, ok = findMemberDetails(members.Owners, upak.GetUID())
 		case keybase1.TeamRole_BOT:
-			details, ok = findMemberDetails(det.Members.Bots, upak.GetUID())
+			details, ok = findMemberDetails(members.Bots, upak.GetUID())
 		case keybase1.TeamRole_RESTRICTEDBOT:
-			details, ok = findMemberDetails(det.Members.RestrictedBots, upak.GetUID())
+			details, ok = findMemberDetails(members.RestrictedBots, upak.GetUID())
 		}
 		if !ok {
 			// We're not a member, possibly a race condition?
