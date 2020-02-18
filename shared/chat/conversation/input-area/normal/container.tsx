@@ -1,10 +1,12 @@
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import * as TeamsTypes from '../../../../constants/types/teams'
+import * as TeamsConstants from '../../../../constants/teams'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as ConfigGen from '../../../../actions/config-gen'
 import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import * as Waiting from '../../../../constants/waiting'
 import HiddenString from '../../../../util/hidden-string'
 import * as Container from '../../../../util/container'
 import {memoize} from '../../../../util/memoize'
@@ -138,6 +140,7 @@ export default Container.namedConnect(
       suggestBotCommands: Constants.getBotCommands(state, conversationIDKey),
       suggestBotCommandsUpdateStatus,
       suggestChannels: getChannelSuggestions(state, teamname, meta.teamID),
+      suggestChannelsLoading: Waiting.anyWaiting(state, TeamsConstants.getChannelsWaitingKey(meta.teamID)),
       suggestCommands: Constants.getCommands(state, conversationIDKey),
       suggestTeams: getTeams(state.chat2.inboxLayout),
       suggestUsers: Constants.getParticipantSuggestions(state, conversationIDKey),
@@ -203,6 +206,8 @@ export default Container.namedConnect(
       conversationIDKey &&
       dispatch(Chat2Gen.createUnsentTextChanged({conversationIDKey, text: new HiddenString(text)})),
     clearInboxFilter: () => dispatch(Chat2Gen.createToggleInboxSearch({enabled: false})),
+    onChannelSuggestionsTriggered: (conversationIDKey: Types.ConversationIDKey) =>
+      dispatch(Chat2Gen.createChannelSuggestionsTriggered({conversationIDKey})),
     onFilePickerError: (error: Error) => dispatch(ConfigGen.createFilePickerError({error})),
     onSetExplodingModeLock: (conversationIDKey: Types.ConversationIDKey, unset: boolean) =>
       dispatch(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset})),
@@ -254,6 +259,8 @@ export default Container.namedConnect(
       onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
       onCancelEditing: () => dispatchProps._onCancelEditing(stateProps.conversationIDKey),
       onCancelReply: () => dispatchProps._onCancelReply(stateProps.conversationIDKey),
+      onChannelSuggestionsTriggered: () =>
+        dispatchProps.onChannelSuggestionsTriggered(stateProps.conversationIDKey),
       onEditLastMessage: () =>
         dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
       onFilePickerError: dispatchProps.onFilePickerError,
@@ -321,6 +328,7 @@ export default Container.namedConnect(
       suggestBotCommands: stateProps.suggestBotCommands,
       suggestBotCommandsUpdateStatus: stateProps.suggestBotCommandsUpdateStatus,
       suggestChannels: stateProps.suggestChannels,
+      suggestChannelsLoading: stateProps.suggestChannelsLoading,
       suggestCommands: stateProps.suggestCommands,
       suggestTeams: stateProps.suggestTeams,
       suggestUsers: stateProps.suggestUsers,
