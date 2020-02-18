@@ -1,5 +1,5 @@
 // @ts-nocheck
-/* eslint-disabled */
+/* eslint-disable */
 import * as React from 'react'
 import {
   StatusBarIOS,
