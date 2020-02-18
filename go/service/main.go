@@ -497,6 +497,8 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 
 	// team channel source
 	g.TeamChannelSource = chat.NewTeamChannelSource(g)
+	g.AddLogoutHook(g.TeamChannelSource, "TeamChannelSource")
+	g.AddDbNukeHook(g.TeamChannelSource, "TeamChannelSource")
 
 	if g.Standalone {
 		g.AttachmentURLSrv = types.DummyAttachmentHTTPSrv{}
