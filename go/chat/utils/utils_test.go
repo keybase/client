@@ -98,6 +98,18 @@ func (t *testTeamChannelSource) GetChannelsFull(ctx context.Context, uid gregor1
 	return res, nil
 }
 
+func (t *testTeamChannelSource) GetRecentJoins(ctx context.Context, convID chat1.ConversationID, remoteClient chat1.RemoteInterface) (int, error) {
+	return 0, nil
+}
+
+func (t *testTeamChannelSource) OnDbNuke(mctx libkb.MetaContext) error {
+	return nil
+}
+
+func (t *testTeamChannelSource) OnLogout(mctx libkb.MetaContext) error {
+	return nil
+}
+
 func TestParseChannelNameMentions(t *testing.T) {
 	uid := gregor1.UID{0}
 	teamID := chat1.TLFID{0}

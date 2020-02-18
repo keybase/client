@@ -4,6 +4,10 @@
 package libkb
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -122,6 +126,69 @@ func CanonicalProofName(t TypedChainLink) string {
 
 //
 //=========================================================================
+
+//=========================================================================
+// Web of Trust
+
+type WotVouchChainLink struct {
+	GenericChainLink
+	ExpansionID string
+}
+
+func (cl *WotVouchChainLink) DoOwnNewLinkFromServerNotifications(g *GlobalContext) {}
+
+var _ TypedChainLink = (*WotVouchChainLink)(nil)
+
+func ParseWotVouch(base GenericChainLink) (ret *WotVouchChainLink, err error) {
+	body := base.UnmarshalPayloadJSON()
+	expansionID, err := body.AtPath("body.wot_vouch").GetString()
+	if err != nil {
+		return nil, err
+	}
+	return &WotVouchChainLink{
+		GenericChainLink: base,
+		ExpansionID:      expansionID,
+	}, nil
+}
+
+type sigExpansion struct {
+	Key string      `json:"key"`
+	Obj interface{} `json:"obj"`
+}
+
+// ExtractExpansionObj extracts the `obj` field from a sig expansion and verifies the
+// hash of the content matches the expected id. This is reusable beyond WotVouchChainLink.
+func ExtractExpansionObj(expansionID string, expansionJSON string) (expansionObj []byte, err error) {
+	var expansions map[string]sigExpansion
+	err = json.Unmarshal([]byte(expansionJSON), &expansions)
+	if err != nil {
+		return nil, err
+	}
+	expansion, ok := expansions[expansionID]
+	if !ok {
+		return nil, fmt.Errorf("expansion %s does not exist", expansionID)
+	}
+
+	// verify the hash of the expansion object payload matches the expension id
+	objBytes, err := json.Marshal(expansion.Obj)
+	if err != nil {
+		return nil, err
+	}
+	hmacKey, err := hex.DecodeString(expansion.Key)
+	if err != nil {
+		return nil, err
+	}
+	mac := hmac.New(sha256.New, hmacKey)
+	if _, err := mac.Write(objBytes); err != nil {
+		return nil, err
+	}
+	sum := mac.Sum(nil)
+	expectedID := hex.EncodeToString(sum)
+	if expectedID != expansionID {
+		return nil, fmt.Errorf("expansion id doesn't match expected value %s != %s", expansionID, expectedID)
+	}
+	return objBytes, nil
+}
 
 //=========================================================================
 // Remote, Web and Social
@@ -1318,6 +1385,8 @@ func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, w Warning) {
 			ret, err = ParseDeviceChainLink(base)
 		case string(LinkTypeWalletStellar):
 			ret, err = ParseWalletStellarChainLink(base)
+		case string(LinkTypeWotVouch):
+			ret, err = ParseWotVouch(base)
 		default:
 			err = fmt.Errorf("Unknown signature type %s @%s", s, base.ToDebugString())
 		}

@@ -67,15 +67,20 @@ func (c *cmdWotVouch) ParseArgv(ctx *cli.Context) error {
 	}
 	via := ctx.String("verified-via")
 	if via != "" {
-		viaType, ok := keybase1.UsernameVerificationTypeMap[strings.ToUpper(via)]
+		viaType, ok := keybase1.UsernameVerificationTypeMap[strings.ToLower(via)]
 		if !ok {
 			return errors.New("invalid verified-via option")
 		}
 		c.confidence.UsernameVerifiedVia = viaType
 	}
-	c.confidence.VouchedBy = strings.Split(ctx.String("vouched-by"), ",")
+	vouchingUsernames := strings.Split(ctx.String("vouched-by"), ",")
+	var vouchers []keybase1.UID
+	for _, username := range vouchingUsernames {
+		uid := libkb.UsernameToUID(username)
+		vouchers = append(vouchers, uid)
+	}
+	c.confidence.VouchedBy = vouchers
 	c.confidence.Other = ctx.String("other")
-
 	return nil
 }
 

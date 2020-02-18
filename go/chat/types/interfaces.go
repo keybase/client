@@ -299,6 +299,9 @@ type TeamChannelSource interface {
 		teamID chat1.TLFID, topicType chat1.TopicType) ([]chat1.ChannelNameMention, error)
 	GetChannelTopicName(ctx context.Context, uid gregor1.UID,
 		tlfID chat1.TLFID, topicType chat1.TopicType, convID chat1.ConversationID) (string, error)
+	GetRecentJoins(ctx context.Context, convID chat1.ConversationID, remoteClient chat1.RemoteInterface) (int, error)
+	OnLogout(libkb.MetaContext) error
+	OnDbNuke(libkb.MetaContext) error
 }
 
 type ActivityNotifier interface {

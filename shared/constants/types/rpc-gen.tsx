@@ -2628,15 +2628,6 @@ export enum UserOrTeamResult {
   user = 1,
   team = 2,
 }
-
-export enum UsernameVerificationType {
-  none = 0,
-  audio = 1,
-  video = 2,
-  email = 3,
-  otherChat = 4,
-  inPerson = 5,
-}
 export type APIRes = {readonly status: String; readonly body: String; readonly httpStatus: Int; readonly appStatus: String}
 export type APIUserKeybaseResult = {readonly username: String; readonly uid: UID; readonly pictureUrl?: String | null; readonly fullName?: String | null; readonly rawScore: Double; readonly stellar?: String | null; readonly isFollowee: Boolean}
 export type APIUserSearchResult = {readonly score: Double; readonly keybase?: APIUserKeybaseResult | null; readonly service?: APIUserServiceResult | null; readonly contact?: ProcessedContact | null; readonly imptofu?: ImpTofuSearchResult | null; readonly servicesSummary: {[key: string]: APIUserServiceSummary}; readonly rawScore: Double}
@@ -2686,7 +2677,7 @@ export type ClientDetails = {readonly pid: Int; readonly clientType: ClientType;
 export type ClientStatus = {readonly details: ClientDetails; readonly connectionID: Int; readonly notificationChannels: NotificationChannels}
 export type CompatibilityTeamID = {typ: TeamType.legacy; legacy: TLFID} | {typ: TeamType.modern; modern: TeamID} | {typ: TeamType.none}
 export type ComponentResult = {readonly name: String; readonly status: Status; readonly exitCode: Int}
-export type Confidence = {readonly vouchedBy?: Array<String> | null; readonly proofs?: Array<SigID> | null; readonly usernameVerifiedVia: UsernameVerificationType; readonly other: String; readonly knownOnKeybaseDays: Int}
+export type Confidence = {readonly vouchedBy?: Array<UID> | null; readonly proofs?: Array<SigID> | null; readonly usernameVerifiedVia: UsernameVerificationType; readonly other: String; readonly knownOnKeybaseDays: Int}
 export type Config = {readonly serverURI: String; readonly socketFile: String; readonly label: String; readonly runMode: String; readonly gpgExists: Boolean; readonly gpgPath: String; readonly version: String; readonly path: String; readonly binaryRealpath: String; readonly configPath: String; readonly versionShort: String; readonly versionFull: String; readonly isAutoForked: Boolean; readonly forkType: ForkType}
 export type ConfigValue = {readonly isNull: Boolean; readonly b?: Boolean | null; readonly i?: Int | null; readonly f?: Double | null; readonly s?: String | null; readonly o?: String | null}
 export type ConfiguredAccount = {readonly username: String; readonly fullname: FullName; readonly hasStoredSecret: Boolean; readonly isCurrent: Boolean}
@@ -2929,6 +2920,7 @@ export type ParamProofServiceConfig = {readonly version: Int; readonly domain: S
 export type ParamProofUsernameConfig = {readonly re: String; readonly min: Int; readonly max: Int}
 export type PassphraseStream = {readonly passphraseStream: Bytes; readonly generation: Int}
 export type Path = {PathType: PathType.local; local: String} | {PathType: PathType.kbfs; kbfs: KBFSPath} | {PathType: PathType.kbfsArchived; kbfsArchived: KBFSArchivedPath}
+export type PendingVouch = {readonly voucher: UserVersion; readonly proof: SigID; readonly vouchTexts?: Array<String> | null; readonly confidence?: Confidence | null}
 export type PerTeamKey = {readonly gen: PerTeamKeyGeneration; readonly seqno: Seqno; readonly sigKID: KID; readonly encKID: KID}
 export type PerTeamKeyAndCheck = {readonly ptk: PerTeamKey; readonly check: PerTeamSeedCheckPostImage}
 export type PerTeamKeyGeneration = Int
@@ -3203,6 +3195,7 @@ export type UserTeamVersionUpdate = {readonly version: UserTeamVersion}
 export type UserVersion = {readonly uid: UID; readonly eldestSeqno: Seqno}
 export type UserVersionPercentForm = String
 export type UserVersionVector = {readonly id: Long; readonly sigHints: Int; readonly sigChain: Long; readonly cachedAt: Time}
+export type UsernameVerificationType = String
 export type VID = String
 export type VerifyAllEmailTodoExt = {readonly lastVerifyEmailDate: UnixTime}
 export type VerifySessionRes = {readonly uid: UID; readonly sid: String; readonly generated: Int; readonly lifetime: Int}
@@ -4128,5 +4121,6 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.user.findNextMerkleRootAfterRevoke'
 // 'keybase.1.user.findNextMerkleRootAfterReset'
 // 'keybase.1.user.getTeamBlocks'
+// 'keybase.1.wot.wotPending'
 // 'keybase.1.wot.wotVouch'
 // 'keybase.1.wot.wotVouchCLI'
