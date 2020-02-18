@@ -8,6 +8,8 @@ const commonProps = {
   loadBots: action('loadBots'),
   loading: false,
   memberCount: 12,
+  selectedTab: 'members' as const,
+  setSelectedTab: action('setSelectedTab'),
   teamID: 'Cool Team 😎 ID',
 }
 

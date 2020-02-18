@@ -1,4 +1,5 @@
 import * as Types from '../../../constants/types/teams'
+import {TabKey} from '../tabs'
 import {getOrderedBotsArray} from '../../team/rows/helpers'
 
 type HeaderRow = {key: string; type: 'header'}
@@ -16,21 +17,23 @@ type LoadingRow = {key: string; type: 'loading'}
 export type Row = BotRow | DividerRow | HeaderRow | LoadingRow | MemberRow | SettingsRow | TabsRow
 
 const makeRows = (
-  meta: Types.TeamMeta,
-  details: Types.TeamDetails,
-  selectedTab: Types.TabKey,
+  channelInfo: Types.ChannelInfo,
+  teamMembers: Map<string, Types.MemberInfo>,
+  selectedTab: TabKey,
   yourOperations: Types.TeamOperations
 ): Array<Row> => {
   const rows: Array<Row> = []
   switch (selectedTab) {
     case 'members':
-      if (meta.memberCount > 0 && !details.members.size) {
+      // This might need to be refactored to conversation participants.
+      if ((channelInfo?.numParticipants ?? 0) > 0 && !teamMembers.size) {
         // loading
         rows.push({key: 'loading', type: 'loading'})
       }
+      // TODO: load member rows here.
       break
     case 'bots': {
-      const bots = getOrderedBotsArray(details.members)
+      const bots = getOrderedBotsArray(teamMembers)
       rows.push(
         ...bots.map(bot => ({
           key: `bot:${bot.username}`,
@@ -38,7 +41,7 @@ const makeRows = (
           username: bot.username,
         }))
       )
-      if (meta.memberCount > 0 && !details.members) {
+      if ((channelInfo?.numParticipants ?? 0) > 0 && !teamMembers) {
         // loading
         rows.push({key: 'loading', type: 'loading'})
       }

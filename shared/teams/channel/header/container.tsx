@@ -40,7 +40,7 @@ export default Container.connect(
     _onChat: (conversationIDKey: ChatTypes.ConversationIDKey) =>
       dispatch(Chat2Gen.createPreviewConversation({conversationIDKey, reason: 'channelHeader'})),
   }),
-  (stateProps, dispatchProps, ownProps) => ({
+  (stateProps, dispatchProps, ownProps: OwnProps) => ({
     canChat: stateProps.canChat,
     canDeleteChannel: stateProps.canDeleteChannel,
     canEditDescription: stateProps.canEditDescription,

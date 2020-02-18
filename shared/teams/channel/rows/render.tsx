@@ -12,7 +12,7 @@ const renderRow = (row: Row, teamID: Types.TeamID, conversationIDKey: ChatTypes.
     case 'loading':
       return <LoadingRow />
     case 'tabs':
-      // Handled in team/index for now
+      // Handled in channels/index so we don't need to pass `selectedTab`/`setSelectedTab` everywhere.
       return null
   }
   return null

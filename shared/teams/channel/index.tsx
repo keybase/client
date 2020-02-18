@@ -4,9 +4,15 @@ import * as Types from '../../constants/types/teams'
 import * as ChatTypes from '../../constants/types/chat2'
 import * as Styles from '../../styles'
 import ChannelTabs from './tabs/container'
+import {TabKey} from './tabs'
 import {Row} from './rows'
 import renderRow from './rows/render'
 export type Sections = Array<{data: Array<Row>; header?: Row; key: string}>
+
+export type TabProps = {
+  selectedTab: TabKey
+  setSelectedTab: (t: TabKey) => void
+}
 
 export type Props = {
   teamID: Types.TeamID
@@ -14,11 +20,19 @@ export type Props = {
   sections: Sections
 }
 
-const Channel = props => {
+const Channel = (props: Props & TabProps) => {
+  const {teamID, conversationIDKey, selectedTab, setSelectedTab} = props
   const renderItem = ({item}: {item: Row}) => {
     switch (item.type) {
       case 'tabs':
-        return <ChannelTabs teamID={props.teamID} conversationIDKey={props.conversationIDKey} />
+        return (
+          <ChannelTabs
+            teamID={teamID}
+            conversationIDKey={conversationIDKey}
+            selectedTab={selectedTab}
+            setSelectedTab={setSelectedTab}
+          />
+        )
       case 'settings':
       case 'header':
       case 'divider':
@@ -26,7 +40,7 @@ const Channel = props => {
       case 'bot':
       case 'bot-add':
       case 'loading':
-        return renderRow(item, props.teamID, props.conversationIDKey)
+        return renderRow(item, teamID, conversationIDKey)
       default: {
         throw new Error(`Impossible case encountered in channel page list: ${item}`)
       }

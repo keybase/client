@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as Types from '../../../constants/types/teams'
 import * as ChatTypes from '../../../constants/types/chat2'
 import * as Kb from '../../../common-adapters'
-import * as Container from '../../../util/container'
 import flags from '../../../util/feature-flags'
 import {
   globalColors,
@@ -13,11 +12,13 @@ import {
   styleSheetCreate,
 } from '../../../styles'
 
-type TabKey = 'members' | 'attachments' | 'bots' | 'settings' | 'loading'
+export type TabKey = 'members' | 'attachments' | 'bots' | 'settings' | 'loading'
 
 export type OwnProps = {
   teamID: Types.TeamID
   conversationIDKey: ChatTypes.ConversationIDKey
+  selectedTab: TabKey
+  setSelectedTab: (t: TabKey) => void
 }
 
 export type Props = OwnProps & {
@@ -27,9 +28,6 @@ export type Props = OwnProps & {
   loading: boolean
 }
 
-// keep track during session
-const lastSelectedTabs: {[T: string]: TabKey} = {}
-
 const TabText = ({selected, text}: {selected: boolean; text: string}) => (
   <Kb.Text type="BodySmallSemibold" style={selected ? styles.tabTextSelected : styles.tabText}>
     {text}
@@ -37,32 +35,7 @@ const TabText = ({selected, text}: {selected: boolean; text: string}) => (
 )
 
 const ChannelTabs = (props: Props) => {
-  const {teamID} = props
-  const defaultSelectedTab = lastSelectedTabs[teamID] ?? 'members'
-  const [selectedTab, _setSelectedTab] = React.useState<TabKey>(defaultSelectedTab)
-  const setSelectedTab = React.useCallback(
-    t => {
-      lastSelectedTabs[teamID] = t
-      _setSelectedTab(t)
-    },
-    [teamID, _setSelectedTab]
-  )
-  const prevTeamID = Container.usePrevious(teamID)
-  const prevSelectedTab = Container.usePrevious(selectedTab)
-  const dispatch = Container.useDispatch()
-
-  React.useEffect(() => {
-    if (teamID !== prevTeamID) {
-      setSelectedTab(defaultSelectedTab)
-    }
-  }, [teamID, prevTeamID, setSelectedTab, defaultSelectedTab])
-
-  React.useEffect(() => {
-    if (selectedTab !== prevSelectedTab && selectedTab === 'bots') {
-      // TODO: load bots here
-    }
-  }, [selectedTab, dispatch, teamID, prevSelectedTab])
-
+  const {selectedTab, setSelectedTab} = props
   const wrapTab = (key: string, child: React.ReactNode) => (
     <Kb.Box key={key} style={styles.tabTextContainer}>
       {child}
