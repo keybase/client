@@ -91,16 +91,16 @@ func HTTPArgsFromKeyValuePair(key string, val HTTPValue) HTTPArgs {
 }
 
 type ClosingRoundTripper struct {
-	transport *http.Transport
+	rt http.RoundTripper
 }
 
-func NewClosingRoundTripper(transport *http.Transport) *ClosingRoundTripper {
+func NewClosingRoundTripper(rt http.RoundTripper) *ClosingRoundTripper {
 	return &ClosingRoundTripper{
-		transport: transport,
+		rt: rt,
 	}
 }
 
 func (t ClosingRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
 	req.Close = true
-	return t.transport.RoundTrip(req)
+	return t.rt.RoundTrip(req)
 }

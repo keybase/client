@@ -360,7 +360,6 @@ func (i *InstrumentedRoundTripper) getGzipWriter(writer io.Writer) (*gzip.Writer
 
 func (i *InstrumentedRoundTripper) RoundTrip(req *http.Request) (resp *http.Response, err error) {
 	record := rpc.NewNetworkInstrumenter(i.G().RemoteNetworkInstrumenterStorage, i.tagger(req))
-	req.Close = true
 	resp, err = i.RoundTripper.RoundTrip(req)
 	record.EndCall()
 	if err != nil {
