@@ -253,9 +253,9 @@ const registerForAppLinks = () => {
 export default () => {
   setupDefaultSession()
   loadWindowState()
-
   // pass to main window
   htmlFile = htmlFile + `?darkModePreference=${darkModePreference || ''}`
+  logger.info("@@@ SPELLCHECK 0")
   const win = new Electron.BrowserWindow({
     backgroundColor: isDarkMode ? '#191919' : '#ffffff',
     frame: useNativeFrame,
@@ -277,11 +277,14 @@ export default () => {
     ...(isDarwin ? {titleBarStyle: 'hiddenInset'} : {}),
   })
   win.loadURL(htmlFile)
+  logger.info("@@@ SPELLCHECK 1")
   if (!disableSpellCheck) {
+    logger.info("@@@ SPELLCHECK")
     win.webContents.session.setSpellCheckerDictionaryDownloadURL(
       'https://keybase.io/dictionaries/hunspell_dictionaries.zip'
     )
     win.webContents.session.setSpellCheckerLanguages(['en-US'])
+    logger.info(win.webContents.session.getSpellCheckerLanguages())
   }
 
   if (windowState.isFullScreen) {
