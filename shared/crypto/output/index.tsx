@@ -259,7 +259,7 @@ const Output = (props: OutputProps) => {
   const {fontSize, lineHeight} = getStyle('HeaderBig')
   const outputLargeStyle = outputTextIsLarge &&
     output &&
-    output.length <= largeOutputLimit && {fontSize, lineHeight, minHeight: lineHeight}
+    output.length <= largeOutputLimit && {fontSize, lineHeight}
 
   const fileOutputTextColor =
     textType === 'cipher' ? Styles.globalColors.greenDark : Styles.globalColors.black
@@ -287,17 +287,13 @@ const Output = (props: OutputProps) => {
       </Kb.Box2>
     ) : (
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
-        {output &&
-          output.split('\n').map((line, index) => (
-            <Kb.Text
-              key={index}
-              type={textType === 'cipher' ? 'Terminal' : 'Body'}
-              selectable={!actionsDisabled}
-              style={Styles.collapseStyles([styles.output, outputLargeStyle])}
-            >
-              {line}
-            </Kb.Text>
-          ))}
+        <Kb.Text
+          type={textType === 'cipher' ? 'Terminal' : 'Body'}
+          selectable={!actionsDisabled}
+          style={Styles.collapseStyles([styles.output, outputLargeStyle])}
+        >
+          {output}
+        </Kb.Text>
       </Kb.Box2>
     )
   ) : (
@@ -333,7 +329,7 @@ const styles = Styles.styleSheetCreate(
       fileOutputText: {...Styles.globalStyles.fontSemibold},
       output: Styles.platformStyles({
         common: {color: Styles.globalColors.black},
-        isElectron: {wordBreak: 'break-word'},
+        isElectron: {whiteSpace: 'pre-wrap', wordBreak: 'break-word'},
       }),
       outputBarContainer: {...Styles.padding(Styles.globalMargins.tiny)},
       outputPlaceholder: {backgroundColor: Styles.globalColors.blueGreyLight},
