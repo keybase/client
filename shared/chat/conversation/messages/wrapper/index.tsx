@@ -723,12 +723,12 @@ const styles = Styles.styleSheetCreate(
         common: {
           color: Styles.globalColors.black,
         },
-        isMobile: {
-          maxWidth: 120,
-        },
         isElectron: {
           maxWidth: 240,
           wordBreak: 'break-all',
+        },
+        isMobile: {
+          maxWidth: 120,
         },
       }),
       centeredOrdinal: {backgroundColor: Styles.globalColors.yellowOrYellowAlt},
@@ -852,15 +852,18 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       timestamp: Styles.platformStyles({
-        isElectron: {lineHeight: 19, flexShrink: 0},
+        isElectron: {
+          flexShrink: 0,
+          lineHeight: 19,
+        },
       }),
       timestampHighlighted: {color: Styles.globalColors.black_50OrBlack_40},
       usernameCrown: Styles.platformStyles({
         isElectron: {
           alignItems: 'baseline',
           position: 'relative',
-          top: -2,
           marginRight: 48,
+          top: -2,
         },
         isMobile: {
           alignItems: 'center',
