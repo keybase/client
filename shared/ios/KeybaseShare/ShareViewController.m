@@ -24,6 +24,7 @@ const BOOL isSimulator = NO;
 @property NSMutableArray * manifest;
 @property NSURL * payloadFolderURL;
 @property UIAlertController* alert;
+@property NSString* attributedContentText;
 @end
 
 @implementation ShareViewController
@@ -59,6 +60,7 @@ const BOOL isSimulator = NO;
 // - If we still don't have anything, select only the first item and hope for the best.
 - (NSArray*)getSendableAttachments {
   NSExtensionItem *input = self.extensionContext.inputItems.firstObject;
+  self.attributedContentText = input.attributedContentText.string;
   NSArray* attachments = [input attachments];
   NSMutableArray* res = [NSMutableArray array];
   NSItemProvider* item = [self firstSatisfiesTypeIdentifierCond:attachments cond:^(NSItemProvider* a) {
@@ -207,7 +209,11 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
 - (void)processItem:(NSItemProvider*)item lastItem:(BOOL)lastItem {
   
   NSItemProviderCompletionHandler urlHandler = ^(NSURL* url, NSError* error) {
-    [self handleText: url.absoluteString loadError:error];
+    if (self.attributedContentText != nil){
+      [self handleText: [NSString stringWithFormat:@"%@ %@", self.attributedContentText, url.absoluteString] loadError:error];
+    }else{
+      [self handleText: url.absoluteString loadError:error];
+    }
     [self maybeCompleteRequest:lastItem];
   };
   
