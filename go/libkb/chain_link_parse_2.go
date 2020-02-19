@@ -13,7 +13,6 @@ import (
 	"github.com/keybase/client/go/jsonparserw"
 	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/msgpack"
-	"github.com/keybase/go-crypto/ed25519"
 	pkgerrors "github.com/pkg/errors"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -145,6 +144,7 @@ func importLinkFromServer2(m MetaContext, parent *SigChain, data []byte, selfUID
 	if err != nil {
 		return nil, err
 	}
+	m.Debug("DECODE %s -> %s", linkID, sigID.String())
 
 	ret = NewChainLink(m.G(), parent, linkID)
 	tmp := ChainLinkUnpacked{sigVersion: sigVersion}
@@ -156,10 +156,6 @@ func importLinkFromServer2(m MetaContext, parent *SigChain, data []byte, selfUID
 		return nil, err
 	}
 	err = tmp.assertPayloadSigVersionMatchesHint(payload)
-	if err != nil {
-		return nil, err
-	}
-	err = assertCorrectSigVersion(sigVersion, payload, linkID)
 	if err != nil {
 		return nil, err
 	}
@@ -317,6 +313,12 @@ func (s *sigChainPayloadJSON) HighSkip() (*HighSkip, error) {
 	return &highSkip, nil
 }
 
+type Sig1Imploded struct {
+	_struct bool `codec:",toarray"` //nolint
+	Sig     kbcrypto.NaclSignature
+	Hash    bool
+}
+
 func importLinkFromServerV1NaCl(m MetaContext, packed []byte) (keybase1.KID, LinkID, keybase1.SigID, string, []byte, error) {
 	var payloadJSON *sigChainPayloadJSON
 	var linkID LinkID
@@ -325,20 +327,21 @@ func importLinkFromServerV1NaCl(m MetaContext, packed []byte) (keybase1.KID, Lin
 	var sig string
 
 	doImport := func() (err error) {
-		var sig2ImplodedRaw string
-		var sig2Imploded []byte
-		var naclSignature kbcrypto.NaclSignature
+		var sig1ImplodedRaw string
+		var sig1Imploded *Sig1Imploded
 		var version SigVersion
 		var sigBody []byte
-		sig2ImplodedRaw, err = jsonparserw.GetString(packed, "si1")
-		if err != nil || sig2ImplodedRaw == "" {
+
+		sig1ImplodedRaw, err = jsonparserw.GetString(packed, "si1")
+		if err != nil || sig1ImplodedRaw == "" {
 			return ChainLinkError{"no si1 field as expected"}
 		}
-		sig2Imploded, err = base64.StdEncoding.DecodeString(sig2ImplodedRaw)
-		if err != nil || len(sig2Imploded) != ed25519.SignatureSize {
-			return ChainLinkError{"cannot decode ci1 field"}
+
+		sig1Imploded, err = decodeSig1Imploded(sig1ImplodedRaw)
+		if err != nil {
+			return err
 		}
-		copy(naclSignature[:], sig2Imploded)
+
 		payloadJSON, err = getPayloadJSONFromServerLink(packed)
 		if err != nil {
 			return err
@@ -351,23 +354,32 @@ func importLinkFromServerV1NaCl(m MetaContext, packed []byte) (keybase1.KID, Lin
 			return ChainLinkError{"inner chainlink showed wrong version, while expecting 1"}
 		}
 		linkID = payloadJSON.Hash()
+		err = payloadJSON.AssertJSON(linkID)
+		if err != nil {
+			return err
+		}
 		kid, err = payloadJSON.KID()
 		if err != nil {
 			return err
 		}
-		sigInfo := &kbcrypto.NaclSigInfo{
-			Kid:      kid.ToBinaryKID(),
-			Payload:  payloadJSON.Bytes(),
-			Sig:      naclSignature,
-			SigType:  kbcrypto.SigKbEddsa,
-			Detached: true,
-		}
+		sigInfo := kbcrypto.NewNaclSigInfoWithOptionalHash(
+			kbcrypto.NaclSigInfo{
+				Kid:      kid.ToBinaryKID(),
+				Payload:  payloadJSON.Bytes(),
+				Sig:      sig1Imploded.Sig,
+				SigType:  kbcrypto.SigKbEddsa,
+				HashType: kbcrypto.HashPGPSha512,
+				Detached: true,
+			},
+			sig1Imploded.Hash,
+		)
 
 		sigBody, err = kbcrypto.EncodePacketToBytes(sigInfo)
 		if err != nil {
 			return err
 		}
 		sig = base64.StdEncoding.EncodeToString(sigBody)
+		m.Debug("SIG %s\n", sig)
 		sigID = kbcrypto.ComputeSigIDFromSigBody(sigBody)
 		return nil
 	}
@@ -381,6 +393,7 @@ func importLinkFromServerV1NaCl(m MetaContext, packed []byte) (keybase1.KID, Lin
 type Sig2Imploded struct {
 	_struct   bool `codec:",toarray"` //nolint
 	Sig       kbcrypto.NaclSignature
+	Hash      bool
 	OuterLink OuterLinkV2
 }
 
@@ -428,6 +441,22 @@ func decodeSig2Imploded(s string) (*Sig2Imploded, error) {
 		return nil, err
 	}
 	var ret Sig2Imploded
+	if !msgpack.IsEncodedMsgpackArray(raw) {
+		return nil, ChainLinkError{"expected a msgpack array but got leading junk"}
+	}
+	err = msgpack.Decode(&ret, raw)
+	if err != nil {
+		return nil, err
+	}
+	return &ret, nil
+}
+
+func decodeSig1Imploded(s string) (*Sig1Imploded, error) {
+	raw, err := base64.StdEncoding.DecodeString(s)
+	if err != nil {
+		return nil, err
+	}
+	var ret Sig1Imploded
 	if !msgpack.IsEncodedMsgpackArray(raw) {
 		return nil, ChainLinkError{"expected a msgpack array but got leading junk"}
 	}

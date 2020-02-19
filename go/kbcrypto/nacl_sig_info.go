@@ -22,9 +22,29 @@ type NaclSigInfo struct {
 	Prefix   SignaturePrefix    `codec:"prefix,omitempty"`
 }
 
+type NaclSigInfoWithOptionalHash struct {
+	NaclSigInfo
+	doHash bool
+}
+
+func NewNaclSigInfoWithOptionalHash(si NaclSigInfo, doHash bool) *NaclSigInfoWithOptionalHash {
+	return &NaclSigInfoWithOptionalHash{NaclSigInfo: si, doHash: doHash}
+}
+
 func (s *NaclSigInfo) GetTagAndVersion() (PacketTag, PacketVersion) {
 	return TagSignature, KeybasePacketV1
 }
+
+func (s *NaclSigInfo) DoHash() bool {
+	return false
+}
+
+func (s *NaclSigInfoWithOptionalHash) DoHash() bool {
+	return s.doHash
+}
+
+var _ Packetable = (*NaclSigInfoWithOptionalHash)(nil)
+var _ Packetable = (*NaclSigInfo)(nil)
 
 type BadKeyError struct {
 	Msg string

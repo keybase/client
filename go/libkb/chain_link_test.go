@@ -1,7 +1,6 @@
 package libkb
 
 import (
-	"fmt"
 	"testing"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -12,7 +11,6 @@ func importExportLink(tc TestContext, data []byte, uid keybase1.UID) {
 	m := NewMetaContextForTest(tc)
 	linkServer, err := ImportLinkFromServer(m, nil, data, uid)
 	require.NoError(tc.T, err)
-	fmt.Printf("%+v\n", linkServer)
 	packed, err := linkServer.Pack()
 	require.NoError(tc.T, err)
 	packedBytes, err := packed.Marshal()

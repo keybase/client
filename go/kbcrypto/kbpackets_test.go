@@ -43,6 +43,8 @@ func (*testPacketable) GetTagAndVersion() (PacketTag, PacketVersion) {
 	return TagSignature, KeybasePacketV1
 }
 
+func (*testPacketable) DoHash() bool { return true }
+
 // Guard against unexpected codec encoding changes, in particular for
 // ints.
 func TestHardcodedPacketEncode(t *testing.T) {

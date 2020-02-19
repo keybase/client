@@ -134,6 +134,7 @@ func (s *SKB) newLKSec(pps *PassphraseStream) *LKSec {
 func (s *SKB) GetTagAndVersion() (kbcrypto.PacketTag, kbcrypto.PacketVersion) {
 	return kbcrypto.TagP3skb, kbcrypto.KeybasePacketV1
 }
+func (s *SKB) DoHash() bool { return true }
 
 func (s *SKB) ReadKey() (g GenericKey, err error) {
 	switch {

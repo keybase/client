@@ -47,6 +47,7 @@ func (t PacketTag) String() string {
 
 type Packetable interface {
 	GetTagAndVersion() (PacketTag, PacketVersion)
+	DoHash() bool
 }
 
 func EncodePacket(p Packetable, encoder *codec.Encoder) error {
@@ -176,17 +177,18 @@ func newKeybasePacket(body Packetable) (*keybasePacket, error) {
 		Body:    body,
 		Tag:     tag,
 		Version: version,
-		Hash: &keybasePacketHash{
+	}
+	if body.DoHash() {
+		ret.Hash = &keybasePacketHash{
 			Type:  SHA256Code,
 			Value: []byte{},
-		},
+		}
+		hashBytes, hashErr := ret.hashSum()
+		if hashErr != nil {
+			return nil, hashErr
+		}
+		ret.Hash.Value = hashBytes
 	}
-
-	hashBytes, hashErr := ret.hashSum()
-	if hashErr != nil {
-		return nil, hashErr
-	}
-	ret.Hash.Value = hashBytes
 	return &ret, nil
 }
 

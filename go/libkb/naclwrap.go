@@ -688,6 +688,8 @@ func (k *NaclEncryptionInfo) GetTagAndVersion() (kbcrypto.PacketTag, kbcrypto.Pa
 	return kbcrypto.TagEncryption, kbcrypto.KeybasePacketV1
 }
 
+func (k *NaclEncryptionInfo) DoHash() bool { return true }
+
 // DecryptFromString decrypts the output of EncryptToString above,
 // and returns the kbcrypto.KID of the other end.
 func (k NaclDHKeyPair) DecryptFromString(ciphertext string) (msg []byte, sender keybase1.KID, err error) {
