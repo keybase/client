@@ -48,6 +48,7 @@ const ConnectedChannel = Container.compose(
     )
     const sections: Sections = [{data: rows, header: {key: 'tabs', type: 'tabs'}, key: 'body'}]
     return {
+      ...ownProps,
       onBack: dispatchProps.onBack,
       rows,
       sections,
