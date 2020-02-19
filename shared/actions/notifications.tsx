@@ -31,7 +31,6 @@ const setupNotifications = async () => {
         kbfssubscription: true,
         keyfamily: false,
         paperkeys: false,
-        perfLogEvents: false,
         pgp: true,
         reachability: true,
         runtimestats: true,
