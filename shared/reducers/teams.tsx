@@ -218,13 +218,26 @@ export default Container.makeReducer<
   [TeamsGen.setChannelSelected]: (draftState, action) => {
     const {teamID, channel, selected, clearAll} = action.payload
     if (clearAll) {
-      draftState.selectedChannels.set(teamID, new Set())
+      draftState.selectedChannels.delete(teamID)
     } else {
       const channelsSelected = mapGetEnsureValue(draftState.selectedChannels, teamID, new Set())
       if (selected) {
         channelsSelected.add(channel)
       } else {
         channelsSelected.delete(channel)
+      }
+    }
+  },
+  [TeamsGen.setMemberSelected]: (draftState, action) => {
+    const {teamID, username, selected, clearAll} = action.payload
+    if (clearAll) {
+      draftState.selectedMembers.delete(teamID)
+    } else {
+      const membersSelected = mapGetEnsureValue(draftState.selectedMembers, teamID, new Set())
+      if (selected) {
+        membersSelected.add(username)
+      } else {
+        membersSelected.delete(username)
       }
     }
   },
