@@ -721,6 +721,7 @@ func (idx *Indexer) setSelectiveSyncActive(val bool) {
 // varies between desktop and mobile so mobile can be more conservative.
 func (idx *Indexer) SelectiveSync(ctx context.Context) (err error) {
 	defer idx.Trace(ctx, func() error { return err }, "SelectiveSync")()
+	defer idx.PerfTrace(ctx, func() error { return err }, "SelectiveSync")()
 	idx.setSelectiveSyncActive(true)
 	defer func() { idx.setSelectiveSyncActive(false) }()
 

@@ -476,6 +476,7 @@ func (b *BackgroundConvLoader) IsBackgroundActive() bool {
 
 func (b *BackgroundConvLoader) load(ictx context.Context, task clTask, uid gregor1.UID) *clTask {
 	defer b.Trace(ictx, func() error { return nil }, "load: %s", task.job)()
+	defer b.PerfTrace(ictx, func() error { return nil }, "load: %s", task.job)()
 	b.Lock()
 	var al activeLoad
 	al.Ctx, al.CancelFn = context.WithCancel(
