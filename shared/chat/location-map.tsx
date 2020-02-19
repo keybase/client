@@ -1,9 +1,6 @@
 import * as React from 'react'
-import {Box2} from './box'
-import Image from './image'
-import ProgressIndicator from './progress-indicator'
+import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import {Banner, BannerParagraph} from './banner'
 import openURL from '../util/open-url'
 
 type Props = {
@@ -21,19 +18,19 @@ const LocationMap = (props: Props) => {
     !!props.onLoad && props.onLoad()
   }
   return (
-    <Box2 direction="vertical" fullHeight={true} fullWidth={true} gap="small" style={styles.container}>
-      {!!mapSrc && <Image src={mapSrc} style={{height, width}} onLoad={onLoad} />}
-      {!mapLoaded && <ProgressIndicator style={styles.loading} />}
-      <Banner color="white" style={styles.banner}>
-        <BannerParagraph
+    <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} gap="small" style={styles.container}>
+      {!!mapSrc && <Kb.Image src={mapSrc} style={{height, width}} onLoad={onLoad} />}
+      {!mapLoaded && <Kb.ProgressIndicator style={styles.loading} />}
+      <Kb.Banner color="white" style={styles.banner}>
+        <Kb.BannerParagraph
           bannerColor="white"
           content={[
             'Your location is protected. ',
             {onClick: () => openURL('https://keybase.io/docs/chat/location'), text: 'Learn more'},
           ]}
         />
-      </Banner>
-    </Box2>
+      </Kb.Banner>
+    </Kb.Box2>
   )
 }
 

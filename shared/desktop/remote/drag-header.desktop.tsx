@@ -1,15 +1,19 @@
-import React, {Component} from 'react'
-import Text from './text'
-import {Props} from './header'
-import Icon from './icon'
-import * as Styles from '../styles'
+import * as React from 'react'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 
-const Kb = {
-  Icon,
-  Text,
+export type HeaderType = 'Default' | 'Strong'
+export type Props = {
+  icon?: boolean
+  title?: string
+  onClose?: () => void
+  style?: Object
+  children?: React.ReactNode
+  windowDragging?: boolean
+  type: HeaderType
 }
 
-class Header extends Component<Props> {
+class DragHeader extends React.Component<Props> {
   static defaultProps = {type: 'Default', windowDragging: true}
 
   renderDefault() {
@@ -106,4 +110,4 @@ const styles = {
   },
 }
 
-export default Header
+export default DragHeader

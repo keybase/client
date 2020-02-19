@@ -1,12 +1,7 @@
-import Avatar from './avatar'
+import * as Kb from '../../common-adapters'
 import * as React from 'react'
-import * as Styles from '../styles'
-
-import {Props} from './user-card'
-
-const Kb = {
-  Avatar,
-}
+import * as Styles from '../../styles'
+import {Props} from '.'
 
 const UserCard = ({
   avatarSize,

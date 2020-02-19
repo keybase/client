@@ -7,6 +7,7 @@ import * as Chat2Gen from '../../../../../../actions/chat2-gen'
 import * as Constants from '../../../../../../constants/chat2'
 import * as Styles from '../../../../../../styles'
 import openURL from '../../../../../../util/open-url'
+import LocationMap from '../../../../../location-map'
 import HiddenString from '../../../../../../util/hidden-string'
 
 type Props = Container.RouteProps<{
@@ -81,7 +82,7 @@ const UnfurlMapPopup = (props: Props) => {
         ),
       }}
     >
-      <Kb.LocationMap mapSrc={mapSrc} height={height} width={width} />
+      <LocationMap mapSrc={mapSrc} height={height} width={width} />
     </Kb.Modal>
   )
 }

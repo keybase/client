@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {AvatarSize} from './avatar'
+import {AvatarSize} from '../../common-adapters/avatar'
 
 export type Props = {
   avatarSize: AvatarSize
