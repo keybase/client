@@ -3832,3 +3832,18 @@ func (c Confidence) ToJsonw() *jsonw.Wrapper {
 	}
 	return j
 }
+
+func (fsc FolderSyncConfig) Equal(other FolderSyncConfig) bool {
+	if fsc.Mode != other.Mode {
+		return false
+	}
+	if len(fsc.Paths) != len(other.Paths) {
+		return false
+	}
+	for i, p := range fsc.Paths {
+		if p != other.Paths[i] {
+			return false
+		}
+	}
+	return true
+}
