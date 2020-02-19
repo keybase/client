@@ -87,7 +87,8 @@
       "startupLink": "string",
       "startupTab?": "Tabs.Tab",
       "startupFollowUser": "string",
-      "startupSharePath?": "FsTypes.LocalPath"
+      "startupSharePath?": "FsTypes.LocalPath",
+      "startupShareText?": "string"
     },
     "setOpenAtLogin": {"openAtLogin": "boolean"},
     "setNotifySound": {"notifySound": "boolean"},
@@ -159,8 +160,9 @@
       "mimeType": "string"
     },
     "androidShare": {
-        "_description": "Intent fired with a share url",
-        "url": "string"
+      "_description": "Intent fired with a share url",
+      "url?": "string",
+      "text?": "string"
     }
   }
 }

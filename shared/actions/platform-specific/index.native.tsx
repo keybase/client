@@ -326,6 +326,7 @@ function* loadStartupDetails() {
   let startupLink = ''
   let startupTab = undefined
   let startupSharePath = undefined
+  let startupShareText = undefined
 
   const routeStateTask = yield Saga._fork(async () => {
     try {
@@ -364,7 +365,8 @@ function* loadStartupDetails() {
     // Second priority, deep link
     startupLink = link
   } else if (share) {
-    startupSharePath = share
+    startupSharePath = share.fileUrl || undefined
+    startupShareText = share.text || undefined
   } else if (routeState) {
     // Last priority, saved from last session
     try {
@@ -385,6 +387,7 @@ function* loadStartupDetails() {
       startupFollowUser,
       startupLink,
       startupSharePath,
+      startupShareText,
       startupTab,
       startupWasFromPush,
     })

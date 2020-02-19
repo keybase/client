@@ -65,7 +65,7 @@ export const updateNow = 'config:updateNow'
 export const updateWindowState = 'config:updateWindowState'
 
 // Payload Types
-type _AndroidSharePayload = {readonly url: string}
+type _AndroidSharePayload = {readonly url?: string; readonly text?: string}
 type _BootstrapStatusLoadedPayload = {
   readonly deviceID: string
   readonly deviceName: string
@@ -146,6 +146,7 @@ type _SetStartupDetailsPayload = {
   readonly startupTab?: Tabs.Tab
   readonly startupFollowUser: string
   readonly startupSharePath?: FsTypes.LocalPath
+  readonly startupShareText?: string
 }
 type _SetSystemDarkModePayload = {readonly dark: boolean}
 type _SetUseNativeFramePayload = {readonly useNativeFrame: boolean}
@@ -173,10 +174,9 @@ type _UpdateWindowStatePayload = {readonly windowState: Types.WindowState}
 /**
  * Intent fired with a share url
  */
-export const createAndroidShare = (payload: _AndroidSharePayload): AndroidSharePayload => ({
-  payload,
-  type: androidShare,
-})
+export const createAndroidShare = (
+  payload: _AndroidSharePayload = Object.freeze({})
+): AndroidSharePayload => ({payload, type: androidShare})
 /**
  * Log out the current user, keeping secrets stored. Then prefill the username for provisioned another user to log in.
  */

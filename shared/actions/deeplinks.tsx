@@ -2,6 +2,7 @@ import * as ChatGen from './chat2-gen'
 import * as Constants from '../constants/config'
 import * as Container from '../util/container'
 import * as DeeplinksGen from './deeplinks-gen'
+import * as Platform from '../constants/platform'
 import * as ProfileGen from './profile-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as Saga from '../util/saga'
@@ -86,6 +87,8 @@ const handleKeybaseLink = (action: DeeplinksGen.HandleKeybaseLinkPayload) => {
         }
       }
       break
+    case 'incoming-share':
+      return Platform.isIOS && RouteTreeGen.createNavigateAppend({path: ['iosChooseTarget']})
     default:
     // Fall through to the error return below.
   }

@@ -411,7 +411,7 @@ export type MoveOrCopySource = {
 
 export type IncomingShareSource = {
   readonly type: DestinationPickerSource.IncomingShare
-  readonly localPath: LocalPath
+  readonly source: LocalPath | Array<RPCTypes.IncomingShareItem>
 }
 
 export type NoSource = {

@@ -63,7 +63,12 @@ const listenForNativeAndroidIntentNotifications = async (
 
   RNEmitter.addListener('onShareData', evt => {
     logger.debug('[ShareDataIntent]', evt)
-    emitter(ConfigGen.createAndroidShare({url: evt.localPath}))
+    emitter(
+      ConfigGen.createAndroidShare({
+        text: evt.text,
+        url: evt.localPath,
+      })
+    )
   })
 }
 
@@ -376,8 +381,9 @@ function* _checkPermissions(action: ConfigGen.MobileAppStatePayload | null) {
 
 function* getStartupDetailsFromInitialShare() {
   if (isAndroid) {
-    const share = yield NativeModules.KeybaseEngine.getInitialShareData()
-    return share
+    const fileUrl = yield NativeModules.KeybaseEngine.getInitialShareFileUrl()
+    const text = yield NativeModules.KeybaseEngine.getInitialShareText()
+    return {fileUrl, text}
   } else {
     return null
   }
