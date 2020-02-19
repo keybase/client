@@ -72,7 +72,7 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
         )}
         <Kb.Button
           label="Add members"
-          onClick={() => undefined}
+          onClick={undefined /* TODO */}
           ref={props.setAttachmentRef}
           small={true}
           mode="Secondary"
@@ -118,7 +118,7 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
         direction="vertical"
         alignItems="flex-start"
         alignSelf="flex-start"
-        style={styles.flexShrinkGrow}
+        style={styles.outerBoxDesktop}
       >
         {topDescriptors}
         {bottomDescriptorsAndButtons}
@@ -167,10 +167,6 @@ const styles = Styles.styleSheetCreate(
       flexShrink: {
         flexShrink: 1,
       },
-      flexShrinkGrow: {
-        flexGrow: 1,
-        flexShrink: 1,
-      },
       greenText: {
         color: Styles.globalColors.greenDark,
       },
@@ -188,6 +184,11 @@ const styles = Styles.styleSheetCreate(
         },
         isMobile: {alignSelf: 'flex-start'},
       }),
+      outerBoxDesktop: {
+        flexGrow: 1,
+        flexShrink: 1,
+        marginBottom: Styles.globalMargins.small,
+      },
       outerBoxMobile: {
         ...Styles.padding(Styles.globalMargins.small),
         backgroundColor: Styles.globalColors.white,
