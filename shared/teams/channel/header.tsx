@@ -9,27 +9,6 @@ import {TeamID} from '../../constants/types/teams'
 import {pluralize} from '../../util/string'
 import {Activity} from '../common'
 
-const _AddMembersButton = (
-  props: {
-    teamID: TeamID
-    conversationIDKey: ConversationIDKey
-  } & Kb.OverlayParentProps
-) => (
-  <>
-    <Kb.Button
-      label="Add members"
-      onClick={() => undefined}
-      ref={props.setAttachmentRef}
-      type="Success"
-      mode="Primary"
-      fullWidth={true}
-      style={styles.addMembersButton}
-    />
-    {/* TODO: use the attachment ref above */}
-  </>
-)
-const AddMembersButton = Kb.OverlayParentHOC(_AddMembersButton)
-
 type HeaderTitleProps = Kb.PropsWithOverlay<{
   teamID: TeamID
   conversationIDKey: ConversationIDKey
@@ -59,7 +38,7 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
         <Kb.Text type="BodySmallSemibold">{teamname}</Kb.Text>
       </Kb.Box2>
       <Kb.Text type="Header" lineClamp={1} style={styles.header}>
-        {channelname}
+        {'#' + channelname}
       </Kb.Text>
     </Kb.Box2>
   )
@@ -79,11 +58,26 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
       )}
       <Activity level={activityLevel} />
       <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.rightActionsContainer}>
-        {yourOperations.chat && <Kb.Button label="View" onClick={callbacks.onChat} small={true} />}
-        {yourOperations.editChannelDescription && (
-          <Kb.Button label="Edit" onClick={undefined /* TODO */} small={true} mode="Secondary" />
+        {yourOperations.chat && (
+          <Kb.Button label="View" onClick={callbacks.onChat} small={true} style={styles.button} />
         )}
-        <AddMembersButton teamID={teamID} conversationIDKey={conversationIDKey} />
+        {yourOperations.editChannelDescription && (
+          <Kb.Button
+            label="Edit"
+            onClick={undefined /* TODO */}
+            small={true}
+            mode="Secondary"
+            style={styles.button}
+          />
+        )}
+        <Kb.Button
+          label="Add members"
+          onClick={() => undefined}
+          ref={props.setAttachmentRef}
+          small={true}
+          mode="Secondary"
+          style={styles.addMembersButton}
+        />
         <Kb.Button
           mode="Secondary"
           small={true}

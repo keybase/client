@@ -40,6 +40,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
 
 const ConnectedChannel = Container.compose(
   Container.connect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps, ownProps) => {
+    const {conversationIDKey, teamID} = stateProps
     const rows = makeRows(
       stateProps._channelInfo,
       stateProps._teamMembers,
@@ -51,11 +52,11 @@ const ConnectedChannel = Container.compose(
       {data: rows, header: {key: 'tabs', type: 'tabs'}, key: 'body'},
     ]
     return {
-      ...ownProps,
+      conversationIDKey,
       onBack: dispatchProps.onBack,
       rows,
       sections,
-      teamID: stateProps.teamID,
+      teamID,
     }
   }),
   Kb.HeaderHoc
