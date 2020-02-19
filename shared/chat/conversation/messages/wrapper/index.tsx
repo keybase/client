@@ -175,11 +175,25 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               onClick={this.onAuthorClick}
               style={styles.avatar}
             />
-            <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.usernameCrown}>
+            <Kb.Box2
+              direction="horizontal"
+              gap="xtiny"
+              fullWidth={true}
+              style={Styles.collapseStyles([styles.usernameCrown])}
+            >
               {this.props.botAlias ? (
                 <Kb.Box2 direction="horizontal">
+                  <Kb.Text
+                    type="BodySmallBold"
+                    style={Styles.collapseStyles([
+                      {color: Styles.globalColors.black, wordBreak: 'break-all', maxWidth: 300},
+                    ])}
+                    lineClamp={1}
+                  >
+                    {this.props.botAlias}
+                  </Kb.Text>
                   <Kb.Text type="BodySmallBold" style={{color: Styles.globalColors.black}}>
-                    {this.props.botAlias} [
+                    &nbsp;[
                   </Kb.Text>
                   {username}
                   <Kb.Text type="BodySmallBold" style={{color: Styles.globalColors.black}}>
@@ -831,7 +845,10 @@ const styles = Styles.styleSheetCreate(
           top: -8,
         },
       }),
-      timestamp: Styles.platformStyles({isElectron: {lineHeight: 19}}),
+      timestamp: Styles.platformStyles({
+        common: {flexShrink: 0},
+        isElectron: {lineHeight: 19},
+      }),
       timestampHighlighted: {color: Styles.globalColors.black_50OrBlack_40},
       usernameCrown: Styles.platformStyles({
         isElectron: {
