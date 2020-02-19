@@ -7,16 +7,31 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
 	"runtime"
+	"time"
 
 	"github.com/keybase/client/go/kbhttp/manager"
 	"github.com/keybase/client/go/protocol/keybase1"
 
 	"github.com/keybase/client/go/libkb"
 )
+
+var avatarTransport = &http.Transport{
+	DialContext: (&net.Dialer{
+		Timeout:   30 * time.Second,
+		KeepAlive: 30 * time.Second,
+		DualStack: true,
+	}).DialContext,
+	MaxConnsPerHost:       10,
+	MaxIdleConns:          100,
+	IdleConnTimeout:       90 * time.Second,
+	TLSHandshakeTimeout:   10 * time.Second,
+	ExpectContinueTimeout: 1 * time.Second,
+}
 
 type Srv struct {
 	libkb.Contextified
@@ -67,7 +82,13 @@ func (s *Srv) loadFromURL(raw string) (io.ReadCloser, error) {
 	}
 	switch parsed.Scheme {
 	case "http", "https":
-		resp, err := libkb.ProxyHTTPGet(s.G(), s.G().GetEnv(), raw, "AvatarSrv")
+		avatarTransport.Proxy = libkb.MakeProxy(s.G().GetEnv())
+		xprt := libkb.NewInstrumentedRoundTripper(s.G(), func(*http.Request) string { return "AvatarSrv" },
+			libkb.NewClosingRoundTripper(avatarTransport))
+		cli := &http.Client{
+			Transport: xprt,
+		}
+		resp, err := cli.Get(raw)
 		if err != nil {
 			return nil, err
 		}

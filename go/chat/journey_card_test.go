@@ -195,12 +195,7 @@ func TestJourneycardDismissTeamwide(t *testing.T) {
 		require.NoError(t, err)
 		t.Logf("the messages: %v", chat1.MessageUnboxedDebugList(thread.Messages))
 		require.True(t, len(thread.Messages) >= 1)
-		// Skip initial JOIN/LEAVE message. There was a bug where journeycards couldn't attach to JOIN/LEAVE messages (TRIAGE-1738).
 		msg := thread.Messages[0]
-		if msg.Valid__ != nil && (msg.Valid__.ClientHeader.MessageType == chat1.MessageType_JOIN || msg.Valid__.ClientHeader.MessageType == chat1.MessageType_LEAVE) {
-			require.True(t, len(thread.Messages) >= 2, "need more messages for LEAVE workaround")
-			msg = thread.Messages[1]
-		}
 		require.NotNil(t, msg.Journeycard__, "requireJourneycard expects a journeycard")
 		require.Equal(t, cardType, msg.Journeycard().CardType, "card type")
 	}

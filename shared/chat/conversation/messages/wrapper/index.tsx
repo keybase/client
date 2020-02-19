@@ -618,6 +618,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                       conversationIDKey={this.props.conversationIDKey}
                       onShowingEmojiPicker={this.setShowingPicker}
                       ordinal={message.ordinal}
+                      tooltipPosition={this.props.isLastInThread ? 'top center' : 'bottom center'}
                       style={Styles.collapseStyles([
                         styles.emojiRow,
                         !Styles.isDarkMode && styles.emojiRowBorder,

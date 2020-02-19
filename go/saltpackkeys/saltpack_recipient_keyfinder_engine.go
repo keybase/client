@@ -162,6 +162,8 @@ func (e *SaltpackRecipientKeyfinderEngine) identifyAndAddUserRecipient(m libkb.M
 	case libkb.IsNoKeyError(err):
 		// User exists but has no keys. Just try adding implicit team keys.
 		return e.lookupAndAddImplicitTeamKeys(m, u)
+	case libkb.IsAssertionParseErrorWithReason(err, libkb.AssertionParseErrorReasonUnexpectedOR):
+		return err
 	default:
 		return fmt.Errorf("Error while adding keys for %v: %v", u, err)
 	}

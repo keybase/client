@@ -566,6 +566,19 @@ func (s *HybridConversationSource) resolveHoles(ctx context.Context, uid gregor1
 	return nil
 }
 
+func (s *HybridConversationSource) getConvForPull(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID) (res types.RemoteConversation, err error) {
+	rconv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
+	if err != nil {
+		return res, err
+	}
+	if !rconv.Conv.HasMemberStatus(chat1.ConversationMemberStatus_NEVER_JOINED) {
+		return rconv, nil
+	}
+	s.Debug(ctx, "getConvForPull: in conversation with never joined, getting conv from remote")
+	return utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceRemoteOnly)
+}
+
 // maxHolesForPull is the number of misses in the body storage cache we will tolerate missing. A good
 // way to think about this number is the number of extra reads from the cache we need to do before
 // formally declaring the request a failure.
@@ -584,9 +597,9 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	defer s.lockTab.Release(ctx, uid, convID)
 
 	// Get conversation metadata
-	rconv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
+	rconv, err := s.getConvForPull(ctx, uid, convID)
 	var unboxConv types.UnboxConversationInfo
-	if err == nil {
+	if err == nil && !rconv.Conv.HasMemberStatus(chat1.ConversationMemberStatus_NEVER_JOINED) {
 		conv := rconv.Conv
 		unboxConv = conv
 		// Try locally first

@@ -8,6 +8,11 @@ import * as Constants from '../constants/tracker2'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import logger from '../logger'
 
+const identify3UserReset = (action: EngineGen.Keybase1Identify3UiIdentify3UserResetPayload) =>
+  Tracker2Gen.createUpdateUserReset({
+    guiID: action.payload.params.guiID,
+  })
+
 const identify3Result = (action: EngineGen.Keybase1Identify3UiIdentify3ResultPayload) =>
   Tracker2Gen.createUpdateResult({
     guiID: action.payload.params.guiID,
@@ -319,6 +324,7 @@ function* tracker2Saga() {
 
   yield* Saga.chainAction2(EngineGen.keybase1NotifyTrackingTrackingChanged, refreshChanged)
   yield* Saga.chainAction(EngineGen.keybase1Identify3UiIdentify3Result, identify3Result)
+  yield* Saga.chainAction(EngineGen.keybase1Identify3UiIdentify3UserReset, identify3UserReset)
   yield* Saga.chainAction(EngineGen.keybase1Identify3UiIdentify3ShowTracker, identify3ShowTracker)
   yield* Saga.chainAction(EngineGen.keybase1Identify3UiIdentify3UpdateRow, identify3UpdateRow)
   yield* Saga.chainAction2(EngineGen.connected, connected)

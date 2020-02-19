@@ -264,9 +264,9 @@ func (s serviceCn) NewKeybaseService(config libkbfs.Config, params libkbfs.InitP
 	// TODO: plumb the func somewhere it can be called on shutdown?
 	gitrpc, _ := libgit.NewRPCHandlerWithCtx(
 		ctx, config, nil)
+	sfsIface, _ := simplefs.NewSimpleFS(ctx, config)
 	additionalProtocols := []rpc.Protocol{
-		keybase1.SimpleFSProtocol(
-			simplefs.NewSimpleFS(ctx, config)),
+		keybase1.SimpleFSProtocol(sfsIface),
 		keybase1.KBFSGitProtocol(gitrpc),
 		keybase1.FsProtocol(fsrpc.NewFS(config, log)),
 	}

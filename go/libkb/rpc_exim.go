@@ -763,6 +763,21 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 			}
 		}
 		return e
+	case SCAssertionParseError:
+		e := AssertionParseError{}
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "err":
+				e.err = field.Value
+			case "reason":
+				s, err := strconv.Atoi(field.Value)
+				if err == nil {
+					reason := AssertionParseErrorReason(s)
+					e.reason = reason
+				}
+			}
+		}
+		return e
 	default:
 		ase := AppStatusError{
 			Code:   s.Code,
@@ -2464,4 +2479,13 @@ func parseUsernamesToString(input []NormalizedUsername) string {
 		usernames[i] = username.String()
 	}
 	return strings.Join(usernames, ",")
+}
+
+func (e AssertionParseError) ToStatus() (ret keybase1.Status) {
+	ret.Code = SCAssertionParseError
+	ret.Name = "ASSERTION_PARSE_ERROR"
+	ret.Desc = e.Error()
+	ret.Fields = append(ret.Fields, keybase1.StringKVPair{Key: "err", Value: e.err})
+	ret.Fields = append(ret.Fields, keybase1.StringKVPair{Key: "reason", Value: fmt.Sprintf("%d", e.reason)})
+	return
 }

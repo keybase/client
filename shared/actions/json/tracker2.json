@@ -23,6 +23,9 @@
       "blocked": "boolean",
       "hidFromFollowers": "boolean"
     },
+    "updateUserReset": {
+      "guiID": "string"
+    },
     "updateResult": {
       "guiID": "string",
       "result": "Types.DetailsState",

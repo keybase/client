@@ -3378,12 +3378,14 @@ func (fbo *folderBranchOps) processMissedLookup(
 	name data.PathPartString, missErr error) (
 	node Node, ei data.EntryInfo, err error) {
 	// Check if the directory node wants to autocreate this.
-	autocreate, ctx, et, fi, sympath := dir.ShouldCreateMissedLookup(ctx, name)
+	autocreate, ctx, et, fi, sympath, ptr := dir.ShouldCreateMissedLookup(
+		ctx, name)
 	if !autocreate {
 		return nil, data.EntryInfo{}, missErr
 	}
 
-	if et == data.FakeDir {
+	switch et {
+	case data.FakeDir:
 		de, err := fbo.makeFakeDirEntry(ctx, dir, name)
 		if err != nil {
 			return nil, data.EntryInfo{}, missErr
@@ -3393,10 +3395,27 @@ func (fbo *folderBranchOps) processMissedLookup(
 			return nil, data.EntryInfo{}, err
 		}
 		return node, de.EntryInfo, nil
-	} else if et == data.FakeFile {
+	case data.FakeFile:
 		de, err := fbo.makeFakeFileEntry(ctx, dir, name, fi, sympath)
 		if err != nil {
 			return nil, data.EntryInfo{}, missErr
+		}
+		node, err := fbo.blocks.GetChildNode(lState, dir, name, de)
+		if err != nil {
+			return nil, data.EntryInfo{}, err
+		}
+		return node, de.EntryInfo, nil
+	case data.RealDir:
+		de := data.DirEntry{
+			BlockInfo: data.BlockInfo{
+				BlockPointer: ptr,
+			},
+			EntryInfo: data.EntryInfo{
+				Type:  data.Dir,
+				Size:  uint64(fi.Size()),
+				Mtime: fi.ModTime().Unix(),
+				Ctime: fi.ModTime().Unix(),
+			},
 		}
 		node, err := fbo.blocks.GetChildNode(lState, dir, name, de)
 		if err != nil {
@@ -3437,18 +3456,33 @@ func (fbo *folderBranchOps) statUsingFS(
 	}
 
 	// First check if this is needs to be a faked-out node.
-	autocreate, _, et, fi, sympath := node.ShouldCreateMissedLookup(ctx, name)
+	autocreate, _, et, fi, sympath, ptr := node.ShouldCreateMissedLookup(
+		ctx, name)
 	if autocreate {
-		if et == data.FakeDir {
+		switch et {
+		case data.FakeDir:
 			de, err := fbo.makeFakeDirEntry(ctx, node, name)
 			if err != nil {
 				return data.DirEntry{}, false, err
 			}
 			return de, true, nil
-		} else if et == data.FakeFile {
+		case data.FakeFile:
 			de, err = fbo.makeFakeFileEntry(ctx, node, name, fi, sympath)
 			if err != nil {
 				return data.DirEntry{}, false, err
+			}
+			return de, true, nil
+		case data.RealDir:
+			de := data.DirEntry{
+				BlockInfo: data.BlockInfo{
+					BlockPointer: ptr,
+				},
+				EntryInfo: data.EntryInfo{
+					Type:  data.Dir,
+					Size:  uint64(fi.Size()),
+					Mtime: fi.ModTime().Unix(),
+					Ctime: fi.ModTime().Unix(),
+				},
 			}
 			return de, true, nil
 		}
@@ -5795,9 +5829,17 @@ func (fbo *folderBranchOps) syncAllLocked(
 	ctx context.Context, lState *kbfssync.LockState, excl Excl) (err error) {
 	fbo.mdWriterLock.AssertLocked(lState)
 
-	dirtyFiles := fbo.blocks.GetDirtyFileBlockRefs(lState)
-	dirtyDirs := fbo.blocks.GetDirtyDirBlockRefs(lState)
+	dirtyDirs, holdNewWritesCh := fbo.blocks.GetDirtyDirBlockRefs(lState)
+	doCloseHoldNewWritesCh := true
+	defer func() {
+		if doCloseHoldNewWritesCh {
+			close(holdNewWritesCh)
+		}
+	}()
 	defer fbo.blocks.GetDirtyDirBlockRefsDone(lState)
+
+	dirtyFiles := fbo.blocks.GetDirtyFileBlockRefs(lState)
+
 	if len(dirtyFiles) == 0 && len(dirtyDirs) == 0 {
 		return nil
 	}
@@ -6083,8 +6125,7 @@ func (fbo *folderBranchOps) syncAllLocked(
 		}
 		resolvedPaths[file.TailPointer()] = file
 		parent := file.ParentPath().TailPointer()
-		err = fileBlocks.putTopBlock(
-			ctx, parent, file.TailName().Plaintext(), fblock)
+		err = fileBlocks.putTopBlock(ctx, parent, file.TailName(), fblock)
 		if err != nil {
 			return err
 		}
@@ -6120,6 +6161,11 @@ func (fbo *folderBranchOps) syncAllLocked(
 			}
 		}
 	}
+
+	// Now that we've copied all the directory blocks and marked dirty
+	// files for syncing, we can unblock new writes.
+	close(holdNewWritesCh)
+	doCloseHoldNewWritesCh = false
 
 	session, err := fbo.config.KBPKI().GetCurrentSession(ctx)
 	if err != nil {

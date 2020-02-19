@@ -8,7 +8,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
-	"strings"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -74,7 +73,7 @@ func (e *WotVouch) Run(mctx libkb.MetaContext) error {
 	if err := statement.SetKey("vouch_text", libkb.JsonwStringArray(e.arg.VouchTexts)); err != nil {
 		return err
 	}
-	if err := statement.SetKey("confidence", e.confidence()); err != nil {
+	if err := statement.SetKey("confidence", e.arg.Confidence.ToJsonw()); err != nil {
 		return err
 	}
 
@@ -168,26 +167,4 @@ func (e *WotVouch) Run(mctx libkb.MetaContext) error {
 		JSONPayload: payload,
 	})
 	return err
-}
-
-func (e *WotVouch) confidence() *jsonw.Wrapper {
-	c := jsonw.NewDictionary()
-	if e.arg.Confidence.UsernameVerifiedVia != keybase1.UsernameVerificationType_NONE {
-		_ = c.SetKey("username_verified_via", jsonw.NewString(strings.ToLower(e.arg.Confidence.UsernameVerifiedVia.String())))
-	}
-	if len(e.arg.Confidence.VouchedBy) > 0 {
-		vb := jsonw.NewArray(len(e.arg.Confidence.VouchedBy))
-		for i, username := range e.arg.Confidence.VouchedBy {
-			_ = vb.SetIndex(i, jsonw.NewString(libkb.GetUIDByUsername(e.G(), username).String()))
-		}
-		_ = c.SetKey("vouched_by", vb)
-	}
-	if e.arg.Confidence.KnownOnKeybaseDays > 0 {
-		_ = c.SetKey("known_on_keybase_days", jsonw.NewInt(e.arg.Confidence.KnownOnKeybaseDays))
-	}
-	if e.arg.Confidence.Other != "" {
-		_ = c.SetKey("other", jsonw.NewString(e.arg.Confidence.Other))
-	}
-
-	return c
 }

@@ -28,6 +28,7 @@ export const attemptAudioRecording = 'chat2:attemptAudioRecording'
 export const badgesUpdated = 'chat2:badgesUpdated'
 export const blockConversation = 'chat2:blockConversation'
 export const changeFocus = 'chat2:changeFocus'
+export const channelSuggestionsTriggered = 'chat2:channelSuggestionsTriggered'
 export const clearAttachmentView = 'chat2:clearAttachmentView'
 export const clearCommandStatusInfo = 'chat2:clearCommandStatusInfo'
 export const clearMessages = 'chat2:clearMessages'
@@ -254,6 +255,7 @@ type _BlockConversationPayload = {
   readonly reportUser: boolean
 }
 type _ChangeFocusPayload = {readonly nextFocus: Types.Focus}
+type _ChannelSuggestionsTriggeredPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _ClearAttachmentViewPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _ClearCommandStatusInfoPayload = {readonly conversationIDKey: Types.ConversationIDKey}
 type _ClearMessagesPayload = void
@@ -1460,6 +1462,9 @@ export const createBlockConversation = (payload: _BlockConversationPayload): Blo
   payload,
   type: blockConversation,
 })
+export const createChannelSuggestionsTriggered = (
+  payload: _ChannelSuggestionsTriggeredPayload
+): ChannelSuggestionsTriggeredPayload => ({payload, type: channelSuggestionsTriggered})
 export const createClearMessages = (payload: _ClearMessagesPayload): ClearMessagesPayload => ({
   payload,
   type: clearMessages,
@@ -1752,6 +1757,10 @@ export type BlockConversationPayload = {
   readonly type: typeof blockConversation
 }
 export type ChangeFocusPayload = {readonly payload: _ChangeFocusPayload; readonly type: typeof changeFocus}
+export type ChannelSuggestionsTriggeredPayload = {
+  readonly payload: _ChannelSuggestionsTriggeredPayload
+  readonly type: typeof channelSuggestionsTriggered
+}
 export type ClearAttachmentViewPayload = {
   readonly payload: _ClearAttachmentViewPayload
   readonly type: typeof clearAttachmentView
@@ -2325,6 +2334,7 @@ export type Actions =
   | BadgesUpdatedPayload
   | BlockConversationPayload
   | ChangeFocusPayload
+  | ChannelSuggestionsTriggeredPayload
   | ClearAttachmentViewPayload
   | ClearCommandStatusInfoPayload
   | ClearMessagesPayload

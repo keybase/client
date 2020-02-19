@@ -238,7 +238,7 @@ func NewClient(g *GlobalContext, config *ClientConfig, needCookie bool) (*Client
 	if jar != nil {
 		ret.cli.Jar = jar
 	}
-	ret.cli.Transport = NewInstrumentedTransport(g, InstrumentationTagFromRequest, &xprt)
+	ret.cli.Transport = NewInstrumentedRoundTripper(g, InstrumentationTagFromRequest, &xprt)
 	return ret, nil
 }
 
@@ -328,19 +328,19 @@ func (b *InstrumentedBody) Close() (err error) {
 	return b.body.Close()
 }
 
-type InstrumentedTransport struct {
+type InstrumentedRoundTripper struct {
 	Contextified
-	Transport *http.Transport
-	tagger    func(*http.Request) string
-	gzipPool  sync.Pool
+	RoundTripper http.RoundTripper
+	tagger       func(*http.Request) string
+	gzipPool     sync.Pool
 }
 
-var _ http.RoundTripper = (*InstrumentedTransport)(nil)
+var _ http.RoundTripper = (*InstrumentedRoundTripper)(nil)
 
-func NewInstrumentedTransport(g *GlobalContext, tagger func(*http.Request) string, xprt *http.Transport) *InstrumentedTransport {
-	return &InstrumentedTransport{
+func NewInstrumentedRoundTripper(g *GlobalContext, tagger func(*http.Request) string, xprt http.RoundTripper) *InstrumentedRoundTripper {
+	return &InstrumentedRoundTripper{
 		Contextified: NewContextified(g),
-		Transport:    xprt,
+		RoundTripper: xprt,
 		tagger:       tagger,
 		gzipPool: sync.Pool{
 			New: func() interface{} {
@@ -350,7 +350,7 @@ func NewInstrumentedTransport(g *GlobalContext, tagger func(*http.Request) strin
 	}
 }
 
-func (i *InstrumentedTransport) getGzipWriter(writer io.Writer) (*gzip.Writer, func()) {
+func (i *InstrumentedRoundTripper) getGzipWriter(writer io.Writer) (*gzip.Writer, func()) {
 	gzipWriter := i.gzipPool.Get().(*gzip.Writer)
 	gzipWriter.Reset(writer)
 	return gzipWriter, func() {
@@ -358,9 +358,9 @@ func (i *InstrumentedTransport) getGzipWriter(writer io.Writer) (*gzip.Writer, f
 	}
 }
 
-func (i *InstrumentedTransport) RoundTrip(req *http.Request) (resp *http.Response, err error) {
+func (i *InstrumentedRoundTripper) RoundTrip(req *http.Request) (resp *http.Response, err error) {
 	record := rpc.NewNetworkInstrumenter(i.G().RemoteNetworkInstrumenterStorage, i.tagger(req))
-	resp, err = i.Transport.RoundTrip(req)
+	resp, err = i.RoundTripper.RoundTrip(req)
 	record.EndCall()
 	if err != nil {
 		if rerr := record.Finish(); rerr != nil {

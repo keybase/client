@@ -26,7 +26,7 @@ class List<Item> extends PureComponent<Props<Item>> {
     }
 
     const keyProp = this.props.keyProperty || 'key'
-    return item[keyProp]
+    return item[keyProp] ?? String(index)
   }
 
   render() {

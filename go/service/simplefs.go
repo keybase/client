@@ -757,3 +757,16 @@ func (s *SimpleFSHandler) SimpleFSSetSfmiBannerDismissed(ctx context.Context, di
 	defer cancel()
 	return cli.SimpleFSSetSfmiBannerDismissed(ctx, dismissed)
 }
+
+// SimpleFSSearch implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSSearch(
+	ctx context.Context, arg keybase1.SimpleFSSearchArg) (
+	keybase1.SimpleFSSearchResults, error) {
+	cli, err := s.client(ctx)
+	if err != nil {
+		return keybase1.SimpleFSSearchResults{}, err
+	}
+	ctx, cancel := s.wrapContextWithTimeout(ctx)
+	defer cancel()
+	return cli.SimpleFSSearch(ctx, arg)
+}

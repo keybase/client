@@ -84,6 +84,7 @@ export type TypedActionsMap = {
   'chat2:toggleSmallTeamsExpanded': chat2.ToggleSmallTeamsExpandedPayload
   'chat2:deselectConversation': chat2.DeselectConversationPayload
   'chat2:selectConversation': chat2.SelectConversationPayload
+  'chat2:channelSuggestionsTriggered': chat2.ChannelSuggestionsTriggeredPayload
   'chat2:conversationErrored': chat2.ConversationErroredPayload
   'chat2:previewConversation': chat2.PreviewConversationPayload
   'chat2:createConversation': chat2.CreateConversationPayload
@@ -892,6 +893,7 @@ export type TypedActionsMap = {
   'teams:setEmailInviteError': teams.SetEmailInviteErrorPayload
   'teams:getChannelInfo': teams.GetChannelInfoPayload
   'teams:getChannels': teams.GetChannelsPayload
+  'teams:setChannelSelected': teams.SetChannelSelectedPayload
   'teams:getTeams': teams.GetTeamsPayload
   'teams:unsubscribeTeamList': teams.UnsubscribeTeamListPayload
   'teams:loadTeam': teams.LoadTeamPayload
@@ -955,10 +957,13 @@ export type TypedActionsMap = {
   'teams:setTeamRoleMapLatestKnownVersion': teams.SetTeamRoleMapLatestKnownVersionPayload
   'teams:setTeamRoleMap': teams.SetTeamRoleMapPayload
   'teams:toggleInvitesCollapsed': teams.ToggleInvitesCollapsedPayload
+  'teams:loadWelcomeMessage': teams.LoadWelcomeMessagePayload
+  'teams:loadedWelcomeMessage': teams.LoadedWelcomeMessagePayload
   'teams:setSubteamFilter': teams.SetSubteamFilterPayload
   'teams:showTeamByName': teams.ShowTeamByNamePayload
   'tracker2:load': tracker2.LoadPayload
   'tracker2:updatedDetails': tracker2.UpdatedDetailsPayload
+  'tracker2:updateUserReset': tracker2.UpdateUserResetPayload
   'tracker2:updateResult': tracker2.UpdateResultPayload
   'tracker2:closeTracker': tracker2.CloseTrackerPayload
   'tracker2:updateAssertion': tracker2.UpdateAssertionPayload

@@ -2369,7 +2369,10 @@ const dismissJourneycard = (action: Chat2Gen.DismissJourneycardPayload, logger: 
 }
 
 // Get the full channel names/descs for a team if we don't already have them.
-function* loadChannelInfos(state: Container.TypedState, action: Chat2Gen.SelectConversationPayload) {
+function* loadSuggestionData(
+  state: Container.TypedState,
+  action: Chat2Gen.ChannelSuggestionsTriggeredPayload
+) {
   const {conversationIDKey} = action.payload
   const meta = Constants.getMeta(state, conversationIDKey)
   const teamID = meta.teamID
@@ -2377,10 +2380,10 @@ function* loadChannelInfos(state: Container.TypedState, action: Chat2Gen.SelectC
   if (!meta.teamname) {
     return
   }
-  if (!TeamsConstants.hasChannelInfos(state, teamID)) {
-    yield Saga.delay(4000)
-    yield Saga.put(TeamsGen.createGetChannels({teamID}))
-  }
+  // This only happens when user enters '#' which isn't that often. If this
+  // becomes a problem, we can make a notification from service for when
+  // channels change, and skip the load here if nothing has changed yet.
+  yield Saga.put(TeamsGen.createGetChannels({teamID}))
 }
 
 const clearModalsFromConvEvent = () => RouteTreeGen.createClearModals()
@@ -2659,9 +2662,12 @@ const fetchConversationBio = async (
 }
 
 const leaveConversation = async (action: Chat2Gen.LeaveConversationPayload) => {
-  await RPCChatTypes.localLeaveConversationLocalRpcPromise({
-    convID: Types.keyToConversationID(action.payload.conversationIDKey),
-  })
+  await RPCChatTypes.localLeaveConversationLocalRpcPromise(
+    {
+      convID: Types.keyToConversationID(action.payload.conversationIDKey),
+    },
+    Constants.waitingKeyLeaveConversation
+  )
 }
 
 const muteConversation = async (action: Chat2Gen.MuteConversationPayload) => {
@@ -3806,9 +3812,9 @@ function* chat2Saga() {
   yield* Saga.chainAction2(GregorGen.pushState, gregorPushState)
   yield* Saga.chainAction2(Chat2Gen.prepareFulfillRequestForm, prepareFulfillRequestForm)
 
-  yield* Saga.chainGenerator<Chat2Gen.SelectConversationPayload>(
-    Chat2Gen.selectConversation,
-    loadChannelInfos
+  yield* Saga.chainGenerator<Chat2Gen.ChannelSuggestionsTriggeredPayload>(
+    Chat2Gen.channelSuggestionsTriggered,
+    loadSuggestionData
   )
 
   yield* Saga.chainAction(Chat2Gen.addUsersToChannel, addUsersToChannel)

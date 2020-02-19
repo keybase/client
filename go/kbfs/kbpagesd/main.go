@@ -7,6 +7,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"os"
 	"strings"
 	"time"
@@ -123,6 +124,7 @@ func main() {
 	params.LogFileConfig.MaxKeepFiles = 32
 	// Enable simpleFS in case we need to debug.
 	shutdownGit := func() {}
+	shutdownSimpleFS := func(_ context.Context) error { return nil }
 	createSimpleFS := func(
 		libkbfsCtx libkbfs.Context, config libkbfs.Config) (
 		rpc.Protocol, error) {
@@ -131,10 +133,16 @@ func main() {
 		// need memory for other stuff.
 		shutdownGit = libgit.StartAutogit(config, 1000)
 
-		return keybase1.SimpleFSProtocol(
-			simplefs.NewSimpleFS(libkbfsCtx, config)), nil
+		var simplefsIface keybase1.SimpleFSInterface
+		simplefsIface, shutdownSimpleFS = simplefs.NewSimpleFS(
+			libkbfsCtx, config)
+		return keybase1.SimpleFSProtocol(simplefsIface), nil
 	}
 	defer func() {
+		err := shutdownSimpleFS(context.Background())
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Couldn't shut down SimpleFS: %+v\n", err)
+		}
 		shutdownGit()
 	}()
 

@@ -215,6 +215,19 @@ export default Container.makeReducer<
     const oldChannelInfo = mapGetEnsureValue(oldChannelInfos, conversationIDKey, Constants.initialChannelInfo)
     oldChannelInfo.memberStatus = RPCChatTypes.ConversationMemberStatus.left
   },
+  [TeamsGen.setChannelSelected]: (draftState, action) => {
+    const {teamID, channel, selected, clearAll} = action.payload
+    if (clearAll) {
+      draftState.selectedChannels.set(teamID, new Set())
+    } else {
+      const channelsSelected = mapGetEnsureValue(draftState.selectedChannels, teamID, new Set())
+      if (selected) {
+        channelsSelected.add(channel)
+      } else {
+        channelsSelected.delete(channel)
+      }
+    }
+  },
   [TeamsGen.setTeamRoleMapLatestKnownVersion]: (draftState, action) => {
     draftState.teamRoleMap.latestKnownVersion = action.payload.version
   },
@@ -253,6 +266,10 @@ export default Container.makeReducer<
     } else {
       draftState.subteamsFiltered = undefined
     }
+  },
+  [TeamsGen.loadedWelcomeMessage]: (draftState, action) => {
+    const {teamID, message} = action.payload
+    draftState.teamIDToWelcomeMessage.set(teamID, message)
   },
   [EngineGen.chat1NotifyChatChatWelcomeMessageLoaded]: (draftState, action) => {
     const {teamID, message} = action.payload.params

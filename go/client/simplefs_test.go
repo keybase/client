@@ -380,6 +380,12 @@ func (s SimpleFSMock) SimpleFSSetSfmiBannerDismissed(ctx context.Context, dismis
 	return nil
 }
 
+func (s SimpleFSMock) SimpleFSSearch(
+	_ context.Context, _ keybase1.SimpleFSSearchArg) (
+	keybase1.SimpleFSSearchResults, error) {
+	return keybase1.SimpleFSSearchResults{}, nil
+}
+
 /*
  file source cases:
  1. file

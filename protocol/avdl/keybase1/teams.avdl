@@ -195,7 +195,7 @@ protocol teams {
 
   record UntrustedTeamInfo {
     TeamName name;
-    boolean inTeam; 
+    boolean inTeam;
     boolean open;
     string description;
     array<string> publicAdmins;
@@ -1541,4 +1541,12 @@ protocol teams {
   }
 
   AnnotatedTeam getAnnotatedTeam(TeamID teamID);
+
+  record AnnotatedSubteamMemberDetails {
+    TeamName teamName;
+    TeamID teamID;
+    TeamMemberDetails details;
+    TeamRole role;
+  }
+  array<AnnotatedSubteamMemberDetails> getUserSubteamMemberships(TeamID teamID, string username);
 }

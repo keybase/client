@@ -108,6 +108,7 @@ const InputContainer = (props: Props) => {
     },
     onCancelEditing: Sb.action('onCancelEditing'),
     onCancelReply: Sb.action('onCancelReply'),
+    onChannelSuggestionsTriggered: Sb.action('onChannelSuggestionsTriggered'),
     onEditLastMessage: Sb.action('onEditLastMessage'),
     onFilePickerError: Sb.action('onFilePickerError'),
     onGiphyToggle: Sb.action('onGiphyToggle'),
@@ -152,6 +153,7 @@ const InputContainer = (props: Props) => {
     ],
     suggestBotCommandsUpdateStatus: RPCChatTypes.UIBotCommandsUpdateStatusTyp.updating,
     suggestChannels: ['general', 'random', 'spelunky', 'music', 'vidya-games'],
+    suggestChannelsLoading: true,
     suggestCommands: [
       {description: 'Hide current or given conv', hasHelpText: false, name: 'hide', usage: '[conversation]'},
       {description: 'Message a user', hasHelpText: false, name: 'msg', usage: '<conversation> <msg>'},

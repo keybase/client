@@ -2359,7 +2359,7 @@ func (cr *ConflictResolver) makeFileBlockDeepCopy(ctx context.Context,
 		}
 	}
 
-	err = blocks.putTopBlock(ctx, mergedMostRecent, name.Plaintext(), fblock)
+	err = blocks.putTopBlock(ctx, mergedMostRecent, name, fblock)
 	if err != nil {
 		return data.BlockPointer{}, err
 	}

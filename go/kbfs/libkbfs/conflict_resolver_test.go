@@ -1496,7 +1496,7 @@ func TestCRDoActionsWriteConflict(t *testing.T) {
 			mergedRootPath.TailPointer())
 	} else if len(blocks) != 1 {
 		t.Errorf("Unexpected number of blocks")
-	} else if fblock, ok := blocks[mergedName]; !ok {
+	} else if fblock, ok := blocks[data.NewPathPartString(mergedName, nil)]; !ok {
 		t.Errorf("No block for name %s", mergedName)
 	} else if fblock.IsInd {
 		t.Errorf("Unexpected indirect block")

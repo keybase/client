@@ -8,16 +8,10 @@
   ],
   "types": [
     {
-      "type": "enum",
+      "type": "record",
       "name": "UsernameVerificationType",
-      "symbols": [
-        "NONE_0",
-        "AUDIO_1",
-        "VIDEO_2",
-        "EMAIL_3",
-        "OTHER_CHAT_4",
-        "IN_PERSON_5"
-      ]
+      "fields": [],
+      "typedef": "string"
     },
     {
       "type": "record",
@@ -26,7 +20,7 @@
         {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "UID"
           },
           "name": "vouchedBy",
           "jsonkey": "vouched_by,omitempty"
@@ -53,9 +47,49 @@
           "jsonkey": "known_on_keybase_days,omitempty"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "PendingVouch",
+      "fields": [
+        {
+          "type": "UserVersion",
+          "name": "voucher"
+        },
+        {
+          "type": "SigID",
+          "name": "proof"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "vouchTexts"
+        },
+        {
+          "type": [
+            null,
+            "Confidence"
+          ],
+          "name": "confidence"
+        }
+      ]
     }
   ],
   "messages": {
+    "wotPending": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "PendingVouch"
+      }
+    },
     "wotVouch": {
       "request": [
         {

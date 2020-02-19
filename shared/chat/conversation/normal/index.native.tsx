@@ -67,14 +67,7 @@ const Conversation = React.memo((props: Props) => {
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
         {props.threadLoadedOffline && <Offline />}
         {Styles.isTablet ? (
-          <Kb.KeyboardAvoidingView
-            style={Styles.globalStyles.fillAbsolute}
-            pointerEvents="box-none"
-            behavior="height"
-            keyboardVerticalOffset={80}
-          >
-            {innerComponent}
-          </Kb.KeyboardAvoidingView>
+          innerComponent
         ) : (
           <>
             <HeaderArea conversationIDKey={props.conversationIDKey} />
