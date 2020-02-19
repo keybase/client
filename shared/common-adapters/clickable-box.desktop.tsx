@@ -47,7 +47,7 @@ const ClickableBox = React.forwardRef<HTMLDivElement, Props>(
 
     let underlay: React.ReactNode
 
-    if (mouseIn && props.onClick) {
+    if (mouseIn && props.onClick && (props.feedback || props.feedback === undefined)) {
       let borderRadius = 0
       if (style && typeof style === 'object') {
         borderRadius = (style as _StylesCrossPlatform).borderRadius || 0
