@@ -552,7 +552,7 @@ func importLinkFromServerV2Unstubbed(m MetaContext, packed []byte) (keybase1.KID
 			KeybaseSignatureV2,
 			seqno,
 			prev,
-			outerLinkID,
+			innerLinkID,
 			linkType,
 			sig2Imploded.OuterLink.SeqType,
 			sig2Imploded.OuterLink.IgnoreIfUnsupported,
