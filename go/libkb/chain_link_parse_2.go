@@ -176,6 +176,12 @@ func importLinkFromServer2(m MetaContext, parent *SigChain, data []byte, selfUID
 		}
 	}
 
+	ret.unpacked = &tmp
+
+	// this should be safe, but please double-check in review
+	ret.hashVerified = true
+	ret.payloadVerified = true
+
 	return ret, nil
 }
 
