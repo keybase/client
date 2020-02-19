@@ -59,7 +59,12 @@ export const TeamJourney = (props: Props) => {
           <Kb.Box2 direction="horizontal" style={props.image ? styles.text : undefined}>
             {props.textComponent}
           </Kb.Box2>
-          {!!props.image && <Kb.Icon style={styles.image} type={props.image} />}
+          {!!props.image && (
+            <Kb.Icon
+              style={props.mode === 'team-settings' ? styles.imageSettingsTab : styles.image}
+              type={props.image}
+            />
+          )}
         </Kb.Box2>
         <Kb.ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
           <Kb.Box2
@@ -173,7 +178,7 @@ const styles = Styles.styleSheetCreate(
           marginLeft: Styles.globalMargins.tiny,
           marginTop: 0,
         },
-        isMobile: {marginLeft: Styles.globalMargins.tiny},
+        isMobile: {marginLeft: Styles.globalMargins.xtiny},
       }),
       bottomLine: {
         ...Styles.globalStyles.flexGrow,
@@ -239,6 +244,19 @@ const styles = Styles.styleSheetCreate(
         },
         isMobile: {
           right: 40,
+        },
+      }),
+      imageSettingsTab: Styles.platformStyles({
+        common: {
+          position: 'absolute',
+          top: 0,
+        },
+        isElectron: {
+          left: '50%',
+          marginLeft: 15,
+        },
+        isMobile: {
+          right: 25,
         },
       }),
       teamnameText: Styles.platformStyles({

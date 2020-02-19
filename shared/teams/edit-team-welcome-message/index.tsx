@@ -31,6 +31,7 @@ const EditTeamWelcomeMessage = (props: Props) => {
     raw: origWelcomeMessage.raw,
     set: origWelcomeMessage.set,
   })
+  const showNoWelcomeMessage = welcomeMessage.set && welcomeMessage.raw.length === 0
 
   const dispatch = Container.useDispatch()
   const nav = Container.useSafeNavigation()
@@ -81,19 +82,18 @@ const EditTeamWelcomeMessage = (props: Props) => {
           value={computeWelcomeMessageTextRaw(welcomeMessage, false /* cannotWrite */)}
           multiline={true}
           rowsMin={3}
-          rowsMax={3}
+          rowsMax={Styles.isMobile ? 8 : 3}
           maxLength={welcomeMessageMaxLen}
           autoFocus={true}
         />
-        <Kb.Text
-          type="BodySmall"
-          style={Styles.collapseStyles([
-            styles.info,
-            !(welcomeMessage.set && welcomeMessage.raw.length === 0) && {visibility: 'hidden'},
-          ])}
-        >
-          No welcome note will be shown to new members.
-        </Kb.Text>
+        {(!Styles.isMobile || showNoWelcomeMessage) && (
+          <Kb.Text
+            type="BodySmall"
+            style={Styles.collapseStyles([styles.info, !showNoWelcomeMessage && {visibility: 'hidden'}])}
+          >
+            No welcome note will be shown to new members.
+          </Kb.Text>
+        )}
       </Kb.Box2>
     </Kb.Modal>
   )

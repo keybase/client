@@ -376,7 +376,7 @@ export class Settings extends React.Component<Props, State> {
                         false /* cannotWrite */
                       )}
                       deactivateButtons={true}
-                      mode={'settings-tab' as Mode}
+                      mode="team-settings"
                     />
                   )
                 )}
