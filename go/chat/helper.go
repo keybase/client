@@ -1028,6 +1028,7 @@ func (n *newConversationHelper) findExisting(ctx context.Context, tlfID chat1.TL
 					TlfID:       &tlfID,
 					MembersType: n.membersType,
 				},
+				MemberStatus:  chat1.AllConversationMemberStatuses(),
 				TlfVisibility: &n.vis,
 				TopicName:     &topicName,
 				TopicType:     &n.topicType,
