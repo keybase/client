@@ -183,13 +183,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
             >
               {this.props.botAlias ? (
                 <Kb.Box2 direction="horizontal">
-                  <Kb.Text
-                    type="BodySmallBold"
-                    style={Styles.collapseStyles([
-                      {color: Styles.globalColors.black, wordBreak: 'break-all', maxWidth: 300},
-                    ])}
-                    lineClamp={1}
-                  >
+                  <Kb.Text type="BodySmallBold" style={styles.botAlias} lineClamp={1}>
                     {this.props.botAlias}
                   </Kb.Text>
                   <Kb.Text type="BodySmallBold" style={{color: Styles.globalColors.black}}>
@@ -725,6 +719,18 @@ const styles = Styles.styleSheetCreate(
         isElectron: {marginLeft: Styles.globalMargins.small},
         isMobile: {marginLeft: Styles.globalMargins.tiny},
       }),
+      botAlias: Styles.platformStyles({
+        common: {
+          color: Styles.globalColors.black,
+        },
+        isMobile: {
+          maxWidth: 120,
+        },
+        isElectron: {
+          maxWidth: 240,
+          wordBreak: 'break-all',
+        },
+      }),
       centeredOrdinal: {backgroundColor: Styles.globalColors.yellowOrYellowAlt},
       container: Styles.platformStyles({isMobile: {overflow: 'hidden'}}),
       containerNoUsername: Styles.platformStyles({
@@ -846,8 +852,7 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       timestamp: Styles.platformStyles({
-        common: {flexShrink: 0},
-        isElectron: {lineHeight: 19},
+        isElectron: {lineHeight: 19, flexShrink: 0},
       }),
       timestampHighlighted: {color: Styles.globalColors.black_50OrBlack_40},
       usernameCrown: Styles.platformStyles({
@@ -855,8 +860,11 @@ const styles = Styles.styleSheetCreate(
           alignItems: 'baseline',
           position: 'relative',
           top: -2,
+          marginRight: 48,
         },
-        isMobile: {alignItems: 'center'},
+        isMobile: {
+          alignItems: 'center',
+        },
       }),
       usernameHighlighted: {color: Styles.globalColors.blackOrBlack},
     } as const)
