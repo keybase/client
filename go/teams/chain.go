@@ -2215,7 +2215,7 @@ func (t *teamSigchainPlayer) completeInvites(stateToUpdate *TeamSigChainState, c
 			continue
 		}
 		if invite.ExpireAfterUses != nil {
-			return fmt.Errorf("completed_invites` for %s is invalid because of `expire_after_uses`", id)
+			return fmt.Errorf("completed_invites` for an invite with `expire_after_uses`: %s", id)
 		}
 		stateToUpdate.informCompletedInvite(id)
 	}
@@ -2244,11 +2244,12 @@ func (t *teamSigchainPlayer) useInvites(stateToUpdate *TeamSigChainState, roleUp
 		if !ok {
 			return fmt.Errorf("could not find active invite ID in used_invites: %s", inviteID)
 		}
-		if invite.ExpireAfterUses != nil {
-			uses := len(stateToUpdate.inner.UsedInvites[inviteID])
-			if uses+1 >= *invite.ExpireAfterUses {
-				return fmt.Errorf("invite %s is expired after %d uses", inviteID, uses)
-			}
+		if invite.ExpireAfterUses == nil {
+			return fmt.Errorf("`used_invites` for an invite that did not have `expire_after_uses`: %s", inviteID)
+		}
+		uses := len(stateToUpdate.inner.UsedInvites[inviteID])
+		if uses+1 >= *invite.ExpireAfterUses {
+			return fmt.Errorf("invite %s is expired after %d uses", inviteID, uses)
 		}
 		uv, err := keybase1.ParseUserVersion(pair.UV)
 		if err != nil {
