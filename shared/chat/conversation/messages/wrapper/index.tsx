@@ -175,12 +175,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               onClick={this.onAuthorClick}
               style={styles.avatar}
             />
-            <Kb.Box2
-              direction="horizontal"
-              gap="xtiny"
-              fullWidth={true}
-              style={Styles.collapseStyles([styles.usernameCrown])}
-            >
+            <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.usernameCrown}>
               {this.props.botAlias ? (
                 <Kb.Box2 direction="horizontal">
                   <Kb.Text type="BodySmallBold" style={styles.botAlias} lineClamp={1}>
