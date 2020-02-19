@@ -3,7 +3,11 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Container from '../../util/container'
 
-const useAutocompleter = (items: Array<string>, onSelect: (value: string) => void, filter: string) => {
+const useAutocompleter = <T extends React.Component>(
+  items: Array<string>,
+  onSelect: (value: string) => void,
+  filter: string
+) => {
   const [selected, setSelected] = React.useState(0)
   const filterLCase = filter.trim().toLowerCase()
   const prevFilterLCase = Container.usePrevious(filterLCase)
@@ -15,7 +19,7 @@ const useAutocompleter = (items: Array<string>, onSelect: (value: string) => voi
   let itemsFiltered = filter ? items.filter(item => item.toLowerCase().includes(filterLCase)) : items
   itemsFiltered = itemsFiltered.slice(0, 5)
 
-  const {popup, popupAnchor, setShowingPopup, showingPopup} = Kb.usePopup(
+  const {popup, popupAnchor, setShowingPopup, showingPopup} = Kb.usePopup<T>(
     getAttachmentRef => (
       <Kb.Overlay
         attachTo={getAttachmentRef}
