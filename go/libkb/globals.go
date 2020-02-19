@@ -173,6 +173,7 @@ type GlobalContext struct {
 	// OS Version passed from mobile native code. iOS and Android only.
 	// See go/bind/keybase.go
 	MobileOsVersion string
+	IsIPad          bool
 
 	SyncedContactList SyncedContactListProvider
 
