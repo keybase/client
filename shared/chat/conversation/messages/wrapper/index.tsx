@@ -129,31 +129,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
   }
   private showCenteredHighlight = () =>
     !this.state.disableCenteredHighlight && this.props.centeredOrdinal !== 'none'
-
-  private showMenuButtonTransitionTimeoutId: any = undefined
-  private onMouseOver = () => {
-    if (this.showMenuButtonTransitionTimeoutId) {
-      clearTimeout(this.showMenuButtonTransitionTimeoutId)
-      this.showMenuButtonTransitionTimeoutId = undefined
-    }
-    this.setState(o => (o.showMenuButton === true ? null : {showMenuButton: true}))
-  }
-  private onMouseOut = () => {
-    if (this.showMenuButtonTransitionTimeoutId) {
-      return
-    }
-    // Set this with a slight delay. Otherwise it seems when the cursor is
-    // moved from the message body into the EmojiRow this gets triggered. The
-    // CSS hover thing fixes it for most of cases, but in some cases that
-    // still happen. This seems to fix it in all cases.
-    this.showMenuButtonTransitionTimeoutId = setTimeout(() => {
-      if (!this.mounted) {
-        return
-      }
-      this.setState(o => (!o.showMenuButton ? null : {showMenuButton: false}))
-    })
-  }
-
+  private onMouseOver = () => this.setState(o => (o.showMenuButton ? null : {showMenuButton: true}))
   private setShowingPicker = (showingPicker: boolean) =>
     this.setState(s => (s.showingPicker === showingPicker ? null : {showingPicker}))
   private dismissKeyboard = () => dismissKeyboard()
@@ -426,7 +402,6 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         ),
         onContextMenu: this.props.toggleShowingMenu,
         onMouseOver: this.onMouseOver,
-        onMouseOut: this.onMouseOut,
         // attach popups to the message itself
         ref: this.props.setAttachmentRef,
       }
@@ -632,7 +607,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               </Kb.WithTooltip>
             )}
             {showMenuButton ? (
-              <Kb.Box style={styles.buttonContainer}>
+              <Kb.Box className="WrapperMessage-buttons">
                 {!this.hasReactions() &&
                   Constants.isMessageWithReactions(this.props.message) &&
                   !this.props.showingMenu && (
@@ -736,12 +711,6 @@ const styles = Styles.styleSheetCreate(
         isElectron: {marginLeft: Styles.globalMargins.small},
         isMobile: {marginLeft: Styles.globalMargins.tiny},
       }),
-      buttonContainer: {
-        ...Styles.globalStyles.flexBoxRow,
-        marginLeft: 8,
-        maxWidth: '100%',
-        width: '100%',
-      },
       centeredOrdinal: {backgroundColor: Styles.globalColors.yellowOrYellowAlt},
       container: Styles.platformStyles({isMobile: {overflow: 'hidden'}}),
       containerNoUsername: Styles.platformStyles({

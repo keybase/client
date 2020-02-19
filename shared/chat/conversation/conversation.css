@@ -14,6 +14,21 @@
 .WrapperMessage-noOverflow {
   overflow: hidden;
 }
+.WrapperMessage-hoverBox .WrapperMessage-buttons {
+  display: none;
+  flex-direction: row;
+  max-width: 100%;
+  width: 100%;
+  margin-left: 8px;
+}
+.WrapperMessage-hoverBox:hover .WrapperMessage-buttons,
+.WrapperMessage-decorated.active .WrapperMessage-buttons {
+  display: flex;
+  flex-direction: row;
+  max-width: 100%;
+  width: 100%;
+  margin-left: 8px;
+}
 .WrapperMessage-hoverColor:hover {
   background-color: #f7f9fc;
   /* Using a second box shadow instead of a border to prevent changing the height of the box. */
