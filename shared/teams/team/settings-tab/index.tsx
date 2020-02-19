@@ -10,7 +10,6 @@ import {pluralize} from '../../../util/string'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import TeamJourney from '../../../chat/conversation/messages/cards/team-journey/index'
 import {renderWelcomeMessage} from '../../../chat/conversation/messages/cards/team-journey/util'
-import {Mode} from '../../../chat/conversation/messages/cards/team-journey/index'
 import RetentionPicker from './retention/container'
 import * as Styles from '../../../styles'
 
@@ -22,6 +21,7 @@ type Props = {
   publicityAnyMember: boolean
   publicityMember: boolean
   publicityTeam: boolean
+  onEditWelcomeMessage: () => void
   openTeam: boolean
   openTeamRole: Types.TeamRoleType
   savePublicity: (arg0: Types.PublicitySettings, arg1: boolean, arg2: RetentionPolicy | null) => void
@@ -29,7 +29,7 @@ type Props = {
   yourOperations: Types.TeamOperations
   waitingForSavePublicity: boolean
   waitingForWelcomeMessage: boolean
-  welcomeMessage?: RPCChatTypes.WelcomeMessage
+  welcomeMessage?: RPCChatTypes.WelcomeMessageDisplay
   loadWelcomeMessage: () => void
   teamname: string
 }
@@ -336,6 +336,14 @@ export class Settings extends React.Component<Props, State> {
             entityType={this.props.isBigTeam ? 'big team' : 'small team'}
           />
         )}
+        <Kb.Box2 direction="horizontal" style={styles.button}>
+          <Kb.Button
+            label="Save"
+            onClick={this.onSaveSettings}
+            disabled={!this.state.publicitySettingsChanged}
+            waiting={this.props.waitingForSavePublicity}
+          />
+        </Kb.Box2>
         {(this.props.waitingForWelcomeMessage || this.props.welcomeMessage) && (
           <Kb.Box2 direction="vertical" style={styles.welcomeMessage} fullWidth={true}>
             <Kb.Box>
@@ -343,11 +351,16 @@ export class Settings extends React.Component<Props, State> {
                 Welcome message
               </Kb.Text>
             </Kb.Box>
-            <Kb.Box2 direction="horizontal" fullWidth={true}>
+            <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.welcomeMessageCard}>
               <Kb.Box2 direction="horizontal" style={styles.welcomeMessageBorder} />
-              <Kb.Box2 direction="vertical" style={styles.welcomeMessageContainer} fullWidth={true}>
+              <Kb.Box2
+                alignItems="flex-start"
+                direction="vertical"
+                style={styles.welcomeMessageContainer}
+                fullWidth={true}
+              >
                 {this.props.waitingForWelcomeMessage ? (
-                  <Kb.ProgressIndicator />
+                  <Kb.ProgressIndicator type="Small" style={styles.spinner} />
                 ) : (
                   this.props.welcomeMessage && (
                     <TeamJourney
@@ -362,22 +375,24 @@ export class Settings extends React.Component<Props, State> {
                         false /* cannotWrite */
                       )}
                       deactivateButtons={true}
-                      mode={'settings-tab' as Mode}
+                      mode="team-settings"
                     />
                   )
                 )}
               </Kb.Box2>
             </Kb.Box2>
+            {!this.props.waitingForWelcomeMessage && this.props.welcomeMessage && (
+              <Kb.Box2 direction="vertical" alignSelf="flex-start">
+                <Kb.Button
+                  label="Edit"
+                  onClick={this.props.onEditWelcomeMessage}
+                  small={true}
+                  mode="Secondary"
+                />
+              </Kb.Box2>
+            )}
           </Kb.Box2>
         )}
-        <Kb.Box2 direction="horizontal" style={styles.button}>
-          <Kb.Button
-            label="Save"
-            onClick={this.onSaveSettings}
-            disabled={!this.state.publicitySettingsChanged}
-            waiting={this.props.waitingForSavePublicity}
-          />
-        </Kb.Box2>
       </Kb.Box2>
     )
   }
@@ -423,6 +438,9 @@ const styles = styleSheetCreate(() => ({
     paddingTop: globalMargins.small,
   },
   shrink: {flex: 1},
+  spinner: {
+    paddingLeft: Styles.globalMargins.xtiny,
+  },
   teamPadding: {paddingTop: globalMargins.small},
   welcomeMessage: {
     paddingRight: globalMargins.small,
@@ -432,6 +450,9 @@ const styles = styleSheetCreate(() => ({
     alignSelf: 'stretch',
     backgroundColor: Styles.globalColors.grey,
     paddingLeft: Styles.globalMargins.xtiny,
+  },
+  welcomeMessageCard: {
+    paddingBottom: Styles.globalMargins.tiny,
   },
   welcomeMessageContainer: {
     position: 'relative',

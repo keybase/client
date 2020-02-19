@@ -78,6 +78,8 @@ export const setTeamVersion = 'teams:setTeamVersion'
 export const setTeamsWithChosenChannels = 'teams:setTeamsWithChosenChannels'
 export const setUpdatedChannelName = 'teams:setUpdatedChannelName'
 export const setUpdatedTopic = 'teams:setUpdatedTopic'
+export const setWelcomeMessage = 'teams:setWelcomeMessage'
+export const setWelcomeMessageError = 'teams:setWelcomeMessageError'
 export const settingsError = 'teams:settingsError'
 export const showTeamByName = 'teams:showTeamByName'
 export const teamCreated = 'teams:teamCreated'
@@ -174,7 +176,7 @@ type _LoadTeamPayload = {readonly _subscribe?: boolean; readonly teamID: Types.T
 type _LoadWelcomeMessagePayload = {readonly teamID: Types.TeamID}
 type _LoadedWelcomeMessagePayload = {
   readonly teamID: Types.TeamID
-  readonly message: RPCChatTypes.WelcomeMessage
+  readonly message: RPCChatTypes.WelcomeMessageDisplay
 }
 type _ReAddToTeamPayload = {readonly teamID: Types.TeamID; readonly username: string}
 type _RemoveMemberPayload = {readonly teamID: Types.TeamID; readonly username: string}
@@ -285,6 +287,11 @@ type _SetUpdatedTopicPayload = {
   readonly conversationIDKey: ChatTypes.ConversationIDKey
   readonly newTopic: string
 }
+type _SetWelcomeMessageErrorPayload = {readonly error: string}
+type _SetWelcomeMessagePayload = {
+  readonly teamID: Types.TeamID
+  readonly message: RPCChatTypes.WelcomeMessage
+}
 type _SettingsErrorPayload = {readonly error: string}
 type _ShowTeamByNamePayload = {
   readonly teamname: string
@@ -381,6 +388,13 @@ export const createRenameTeam = (payload: _RenameTeamPayload): RenameTeamPayload
 export const createSetSubteamFilter = (payload: _SetSubteamFilterPayload): SetSubteamFilterPayload => ({
   payload,
   type: setSubteamFilter,
+})
+/**
+ * Set welcome message for new team members
+ */
+export const createSetWelcomeMessage = (payload: _SetWelcomeMessagePayload): SetWelcomeMessagePayload => ({
+  payload,
+  type: setWelcomeMessage,
 })
 /**
  * Sets the retention policy for a team. The store will be updated automatically.
@@ -612,6 +626,9 @@ export const createSetUpdatedTopic = (payload: _SetUpdatedTopicPayload): SetUpda
   payload,
   type: setUpdatedTopic,
 })
+export const createSetWelcomeMessageError = (
+  payload: _SetWelcomeMessageErrorPayload
+): SetWelcomeMessageErrorPayload => ({payload, type: setWelcomeMessageError})
 export const createSettingsError = (payload: _SettingsErrorPayload): SettingsErrorPayload => ({
   payload,
   type: settingsError,
@@ -874,6 +891,14 @@ export type SetUpdatedTopicPayload = {
   readonly payload: _SetUpdatedTopicPayload
   readonly type: typeof setUpdatedTopic
 }
+export type SetWelcomeMessageErrorPayload = {
+  readonly payload: _SetWelcomeMessageErrorPayload
+  readonly type: typeof setWelcomeMessageError
+}
+export type SetWelcomeMessagePayload = {
+  readonly payload: _SetWelcomeMessagePayload
+  readonly type: typeof setWelcomeMessage
+}
 export type SettingsErrorPayload = {
   readonly payload: _SettingsErrorPayload
   readonly type: typeof settingsError
@@ -979,6 +1004,8 @@ export type Actions =
   | SetTeamsWithChosenChannelsPayload
   | SetUpdatedChannelNamePayload
   | SetUpdatedTopicPayload
+  | SetWelcomeMessageErrorPayload
+  | SetWelcomeMessagePayload
   | SettingsErrorPayload
   | ShowTeamByNamePayload
   | TeamCreatedPayload

@@ -284,9 +284,15 @@ export default Container.makeReducer<
     const {teamID, message} = action.payload
     draftState.teamIDToWelcomeMessage.set(teamID, message)
   },
+  [TeamsGen.setWelcomeMessageError]: (draftState, action) => {
+    draftState.errorInEditWelcomeMessage = action.payload.error
+  },
+  [TeamsGen.setWelcomeMessage]: (draftState, _) => {
+    draftState.errorInEditWelcomeMessage = ''
+  },
   [EngineGen.chat1NotifyChatChatWelcomeMessageLoaded]: (draftState, action) => {
     const {teamID, message} = action.payload.params
-    draftState.teamIDToWelcomeMessage.set(teamID, {set: message.set, text: message.text})
+    draftState.teamIDToWelcomeMessage.set(teamID, message)
   },
   [TeamBuildingGen.tbResetStore]: handleTeamBuilding,
   [TeamBuildingGen.cancelTeamBuilding]: handleTeamBuilding,

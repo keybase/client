@@ -358,7 +358,7 @@ func (cc *JourneyCardManagerSingleUser) PickCard(ctx context.Context,
 				message, messageErr := getWelcomeMessage(ctx, cc.G(), cc.ri, cc.uid, teamID)
 				if messageErr != nil {
 					cc.Debug(ctx, "failed to get welcome message: %s", messageErr)
-					message = chat1.WelcomeMessage{Set: false}
+					message = chat1.WelcomeMessageDisplay{Set: false}
 				}
 				cc.G().ExternalG().NotifyRouter.HandleChatWelcomeMessageLoaded(ctx, teamID, message)
 			}(globals.BackgroundChatCtx(ctx, cc.G()))

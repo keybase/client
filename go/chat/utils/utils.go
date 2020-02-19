@@ -1734,6 +1734,20 @@ func systemMsgPresentText(ctx context.Context, uid gregor1.UID, msg chat1.Messag
 	return ""
 }
 
+func PresentDecoratedTextNoMentions(ctx context.Context, body string) string {
+	// escape before applying xforms
+	body = EscapeForDecorate(ctx, body)
+	body = EscapeShrugs(ctx, body)
+
+	// This needs to happen before (deep) links.
+	kbfsPaths := ParseKBFSPaths(ctx, body)
+	body = DecorateWithKBFSPath(ctx, body, kbfsPaths)
+
+	// Links
+	body = DecorateWithLinks(ctx, body)
+	return body
+}
+
 func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	msg chat1.MessageUnboxedValid) *string {
 	msgBody := msg.MessageBody
@@ -1759,18 +1773,11 @@ func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, uid grego
 		return nil
 	}
 
-	// escape before applying xforms
-	body = EscapeForDecorate(ctx, body)
-	body = EscapeShrugs(ctx, body)
+	body = PresentDecoratedTextNoMentions(ctx, body)
 
-	// This needs to happen before (deep) links.
-	kbfsPaths := ParseKBFSPaths(ctx, body)
-	body = DecorateWithKBFSPath(ctx, body, kbfsPaths)
-
-	// Links
-	body = DecorateWithLinks(ctx, body)
 	// Payment decorations
 	body = g.StellarSender.DecorateWithPayments(ctx, body, payments)
+
 	// Mentions
 	body = DecorateWithMentions(ctx, body, msg.AtMentionUsernames, msg.MaybeMentions, msg.ChannelMention,
 		msg.ChannelNameMentions)

@@ -12,6 +12,7 @@ const commonProps = {
   ignoreAccessRequests: true,
   isBigTeam: true,
   loadWelcomeMessage: Sb.action('loadWelcomeMessage'),
+  onEditWelcomeMessage: Sb.action('onEditWelcomeMessage'),
   openTeam: true,
   openTeamRole: 'admin' as 'admin',
   publicityAnyMember: true,
@@ -22,7 +23,7 @@ const commonProps = {
   teamname: 'myteam',
   waitingForSavePublicity: false,
   waitingForWelcomeMessage: false,
-  welcomeMessage: {set: false, text: ''},
+  welcomeMessage: {display: '', raw: '', set: false},
   yourOperations: {
     changeOpenTeam: true,
     changeTarsDisabled: true,

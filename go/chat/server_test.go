@@ -2182,7 +2182,7 @@ func (n *serverChatListener) ChatPromptUnfurl(uid keybase1.UID, convID chat1.Con
 	n.unfurlPrompt <- msgID
 }
 func (n *serverChatListener) ChatWelcomeMessageLoaded(teamID keybase1.TeamID,
-	_ chat1.WelcomeMessage) {
+	_ chat1.WelcomeMessageDisplay) {
 	n.welcomeMessage <- teamID
 }
 func (n *serverChatListener) TeamChangedByID(teamID keybase1.TeamID, latestSeqno keybase1.Seqno, implicitTeam bool, changes keybase1.TeamChangeSet, latestHiddenSeqno keybase1.Seqno) {

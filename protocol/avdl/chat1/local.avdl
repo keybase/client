@@ -1321,12 +1321,21 @@ protocol local {
     PINNED_MESSAGE_11
   }
 
+  record WelcomeMessageDisplay{
+    boolean set;
+    // display is text suitable for displaying in Kb.Markdown (e.g., it
+    // has KB-escaped URLs)
+    string display;
+    // raw is the raw user-input plaintext
+    string raw;
+  }
   record WelcomeMessage {
     boolean set;
-    string text;
+    // raw is the raw user-input plaintext
+    string raw;
   }
   void setWelcomeMessage(keybase1.TeamID teamID, WelcomeMessage message);
-  WelcomeMessage getWelcomeMessage(keybase1.TeamID teamID);
+  WelcomeMessageDisplay getWelcomeMessage(keybase1.TeamID teamID);
 
   record GetDefaultTeamChannelsLocalRes {
     array<InboxUIItem> convs;
