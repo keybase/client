@@ -67,8 +67,8 @@ const linkVer1 = `{
       "last_check": null,
       "last_success": null,
       "version": null,
-      "fingerprint": ""
-      "si1" : "aFWjav1+kGe8j73ulzmDTJYSPlD2VQsRXUzX2Ch628qdnVzbg24ZuOgwPMKt8RENC9O6VCnPAhSnMfuYO86lAA==",
+      "fingerprint": "",
+      "si1" : "aFWjav1+kGe8j73ulzmDTJYSPlD2VQsRXUzX2Ch628qdnVzbg24ZuOgwPMKt8RENC9O6VCnPAhSnMfuYO86lAA=="
     }`
 
 const linkVer2 = `{
@@ -103,5 +103,6 @@ const linkVer2 = `{
       "last_check": null,
       "last_success": null,
       "version": null,
-      "fingerprint": ""
+      "fingerprint": "",
+      "si2" : "ksRAg38rHEmvaUJHc3QGMqx8tZCDjxi2z1e7c+9brX1WWbqSHOLXDY+hRsnSkPNv7MfnrOK6hjzww/udG30iQYvEDpcCBsDAAwHC"
     }`
