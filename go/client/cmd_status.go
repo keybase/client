@@ -106,6 +106,7 @@ type jsonStatus struct {
 		Pid     string
 		Log     string
 		EKLog   string
+		PerfLog string
 	}
 	KBFS struct {
 		Version          string
@@ -186,6 +187,7 @@ func (c *CmdStatus) outputJSON(fstatus *keybase1.FullStatus) error {
 	status.Service.Pid = fstatus.Service.Pid
 	status.Service.Log = fstatus.Service.Log
 	status.Service.EKLog = fstatus.Service.EkLog
+	status.Service.PerfLog = fstatus.Service.PerfLog
 
 	status.KBFS.Version = fstatus.Kbfs.Version
 	status.KBFS.InstalledVersion = fstatus.Kbfs.InstalledVersion
@@ -263,6 +265,7 @@ func (c *CmdStatus) outputTerminal(status *keybase1.FullStatus) error {
 	dui.Printf("    version:   %s\n", status.Service.Version)
 	dui.Printf("    log:       %s\n", status.Service.Log)
 	dui.Printf("    eklog:     %s\n", status.Service.EkLog)
+	dui.Printf("    perflog:   %s\n", status.Service.PerfLog)
 	dui.Printf("\nUpdater:\n")
 	dui.Printf("    log:       %s\n", status.Updater.Log)
 	dui.Printf("\nPlatform Information:\n")

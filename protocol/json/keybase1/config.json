@@ -359,6 +359,10 @@
         {
           "type": "string",
           "name": "ekLog"
+        },
+        {
+          "type": "string",
+          "name": "perfLog"
         }
       ]
     },
