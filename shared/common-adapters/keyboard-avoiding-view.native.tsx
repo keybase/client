@@ -13,7 +13,7 @@ import {
 import {isIOS} from '../constants/platform'
 const {StatusBarManager} = NativeModules
 
-class SplitAwareKeyboardAvoidingView extends React.Component<Props, State> {
+class SplitAwareKeyboardAvoidingView extends React.Component<KeyboardAvoidingViewProps, State> {
   static defaultProps = {
     enabled: true,
     keyboardVerticalOffset: 0,
