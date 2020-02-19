@@ -475,17 +475,6 @@ def testGo(prefix, packagesToTest) {
     println "Testing Go code on commit ${env.COMMIT_HASH} with ${goversion}. Merging to branch ${env.CHANGE_TARGET}."
 
 
-    packagesToTest.each { pkg, _ ->
-      println "ST"
-      println pkg
-      def testSpec = getPackageTestSpec(pkg)
-      if (!testSpec) {
-        return
-      }
-      println "EN"
-    }
-
-
     println "Running golint"
     retry(5) {
       sh 'go get -u golang.org/x/lint/golint'
@@ -506,8 +495,6 @@ def testGo(prefix, packagesToTest) {
           sh 'GO111MODULE=on go get github.com/golangci/golangci-lint/cmd/golangci-lint@v1.23.6'
         }
       }
-
-      println "Running golangci-lint on KBFS"
 
       def hasKBFSChanges = packagesToTest.keySet().findIndexOf { key -> key =~ /^github.com\/keybase\/client\/go\/kbfs/ } >= 0
       if (hasKBFSChanges) {
