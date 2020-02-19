@@ -1,1 +1,1 @@
-export {default as Activity} from './activity'
+export {default as Activity, ModalTitle} from './activity'
