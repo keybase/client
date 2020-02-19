@@ -317,6 +317,7 @@ const plumbEvents = () => {
             nodeIntegration: true,
             nodeIntegrationInWorker: false,
             preload: resolveRoot('dist', `preload-main${__DEV__ ? '.dev' : ''}.bundle.js`),
+            spellcheck: true,
           },
           width: 500,
           ...action.payload.windowOpts,
