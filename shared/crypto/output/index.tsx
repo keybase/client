@@ -9,6 +9,7 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import capitalize from 'lodash/capitalize'
 import {getStyle} from '../../common-adapters/text'
 
 type OutputProps = {
@@ -250,12 +251,79 @@ export const OutputBar = (props: OutputBarProps) => {
   )
 }
 
+const OutpuFileDestination = (props: {operation: Types.Operations}) => {
+  const {operation} = props
+  const operationTitle = capitalize(operation)
+  const dispatch = Container.useDispatch()
+
+  // Actions
+  const onRunFileOperation = (path: string) => {
+    const destinationDir = new Container.HiddenString(path)
+    dispatch(
+      CryptoGen.createRunFileOperation({
+        destinationDir,
+        operation,
+      })
+    )
+  }
+
+  // Handle native file browser via <input type='file' ... />
+  const directoryPickerRef = React.useRef<HTMLInputElement>(null)
+  const selectDirectory = () => {
+    const directories =
+      (directoryPickerRef && directoryPickerRef.current && directoryPickerRef.current.files) || []
+    const allPaths: Array<string> = directories.length
+      ? Array.from(directories)
+          .map((f: File) => {
+            console.log('JRY directory picker', {f})
+            return f.path
+          })
+          .filter(Boolean)
+      : ([] as any)
+
+    const path = allPaths.pop()
+    if (path) {
+      onRunFileOperation(path)
+    }
+  }
+  const openFilePicker = () => {
+    if (directoryPickerRef && directoryPickerRef.current) {
+      directoryPickerRef.current.click()
+    }
+  }
+
+  // Effects
+  React.useEffect(() => {
+    if (directoryPickerRef?.current) {
+      directoryPickerRef.current.setAttribute('webkitdirectory', '')
+      directoryPickerRef.current.setAttribute('directory', '')
+    }
+  }, [directoryPickerRef])
+
+  return (
+    <Kb.Box2 direction="horizontal" fullWidth={true}>
+      <Kb.ButtonBar>
+        <Kb.Button mode="Primary" label={`${operationTitle}`} onClick={() => openFilePicker()} />
+
+        <input
+          type="file"
+          ref={directoryPickerRef}
+          multiple={false}
+          onChange={selectDirectory}
+          style={{display: 'none'}}
+        />
+      </Kb.ButtonBar>
+    </Kb.Box2>
+  )
+}
+
 const Output = (props: OutputProps) => {
   const {operation} = props
   const textType = Constants.getOutputTextType(operation)
   const dispatch = Container.useDispatch()
 
   // Store
+  const inputType = Container.useSelector(state => state.crypto[operation].inputType)
   const output = Container.useSelector(state => state.crypto[operation].output.stringValue())
   const outputValid = Container.useSelector(state => state.crypto[operation].outputValid)
   const outputStatus = Container.useSelector(state => state.crypto[operation].outputStatus)
@@ -292,7 +360,9 @@ const Output = (props: OutputProps) => {
         fullHeight={true}
         fullWidth={true}
         style={Styles.collapseStyles([styles.coverOutput, styles.outputPlaceholder])}
-      />
+      >
+        {inputType === 'file' && <OutpuFileDestination operation={operation} />}
+      </Kb.Box2>
     )
   }
 
@@ -328,45 +398,6 @@ const Output = (props: OutputProps) => {
         {output}
       </Kb.Text>
     </Kb.Box2>
-  )
-
-  return outputStatus && outputStatus === 'success' ? (
-    outputType === 'file' ? (
-      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
-        <Kb.Box2
-          direction="horizontal"
-          fullWidth={true}
-          alignItems="center"
-          style={styles.fileOutputContainer}
-        >
-          <Kb.Icon type={fileIcon} sizeType="Huge" />
-          <Kb.Text
-            type="BodyPrimaryLink"
-            style={Styles.collapseStyles([styles.fileOutputText, {color: fileOutputTextColor}])}
-            onClick={() => onShowInFinder()}
-          >
-            {output}
-          </Kb.Text>
-        </Kb.Box2>
-      </Kb.Box2>
-    ) : (
-      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
-        <Kb.Text
-          type={textType === 'cipher' ? 'Terminal' : 'Body'}
-          selectable={!actionsDisabled}
-          style={Styles.collapseStyles([styles.output, outputLargeStyle])}
-        >
-          {output}
-        </Kb.Text>
-      </Kb.Box2>
-    )
-  ) : (
-    <Kb.Box2
-      direction="vertical"
-      fullHeight={true}
-      fullWidth={true}
-      style={Styles.collapseStyles([styles.coverOutput, styles.outputPlaceholder])}
-    />
   )
 }
 

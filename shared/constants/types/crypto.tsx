@@ -32,7 +32,7 @@ export type TextType = 'cipher' | 'plain'
 export type Operations = 'encrypt' | 'decrypt' | 'sign' | 'verify'
 export type InputTypes = 'text' | 'file'
 export type OutputType = 'text' | 'file'
-export type OutputStatus = 'success' | 'pending' | 'error'
+export type OutputStatus = 'success' | 'error'
 
 export type CommonState = {
   bytesComplete: number

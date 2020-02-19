@@ -116,13 +116,16 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     // Reset input to 'text' when no value given (cleared input or removed file upload)
     const inputType = value.stringValue() ? type : 'text'
 
-    if (inputType === 'file') {
-      op.outputFileDestination = new HiddenString(value.stringValue())
-    }
-
     op.inputType = inputType
     op.input = value
     op.outputValid = oldInput.stringValue() === value.stringValue()
+  },
+  [CryptoGen.runFileOperation]: (draftState, action) => {
+    const {operation} = action.payload
+    if (operationGuard(operation, action)) return
+
+    const op = draftState[operation]
+    op.outputValid = false
   },
   [CryptoGen.saltpackDone]: (draftState, action) => {
     const {operation} = action.payload

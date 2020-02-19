@@ -10,6 +10,15 @@ import HiddenString from '../util/hidden-string'
 import {TypedState} from '../util/container'
 import commonTeamBuildingSaga, {filterForNs} from './team-building'
 
+type OperationActionArgs = {
+  operation: Types.Operations
+  input: HiddenString
+  inputType: Types.InputTypes
+  recipients?: Array<string>
+  options?: Types.EncryptOptions
+  destinationDir?: HiddenString
+}
+
 type SetRecipientsSagaActions =
   | TeamBuildingGen.CancelTeamBuildingPayload
   | CryptoGen.SetRecipientsPayload
@@ -81,6 +90,7 @@ const handleRunOperation = (
     | CryptoGen.SetRecipientsPayload
     | CryptoGen.SetEncryptOptionsPayload
     | CryptoGen.ClearRecipientsPayload
+    | CryptoGen.RunFileOperationPayload
 ) => {
   switch (action.type) {
     case CryptoGen.setInputThrottled: {
@@ -89,6 +99,11 @@ const handleRunOperation = (
       // Input (text or file) was cleared or deleted
       if (!value.stringValue()) {
         return CryptoGen.createClearInput({operation})
+      }
+
+      // Bail on running file operations automatically. Wait for CryptoGen.runFileOperation
+      if (type === 'file') {
+        return
       }
 
       // Handle recipients and options for Encrypt
@@ -172,32 +187,48 @@ const handleRunOperation = (
       }
       return
     }
+    case CryptoGen.runFileOperation: {
+      const {operation, destinationDir} = action.payload
+      const {input, inputType} = state.crypto[operation]
+      const {username} = state.config
+      const args: OperationActionArgs = {
+        destinationDir,
+        input,
+        inputType,
+        operation,
+      }
+
+      if (operation === Constants.Operations.Encrypt) {
+        const recipients = state.crypto.encrypt.recipients?.length
+          ? state.crypto.encrypt.recipients
+          : [username]
+        args.recipients = recipients
+        args.options = state.crypto.encrypt.options
+      }
+
+      console.log('JRY crypto runFileOperation makeOperationAction', args)
+      return makeOperationAction(args)
+    }
     default:
       return
   }
 }
 
 // Dispatch action to appropriate operation
-const makeOperationAction = (p: {
-  operation: Types.Operations
-  input: HiddenString
-  inputType: Types.InputTypes
-  recipients?: Array<string>
-  options?: Types.EncryptOptions
-}) => {
-  const {operation, input, inputType, recipients, options} = p
+const makeOperationAction = (p: OperationActionArgs) => {
+  const {operation, input, inputType, recipients, options, destinationDir} = p
   switch (operation) {
     case Constants.Operations.Encrypt: {
       return recipients && recipients.length && options
-        ? CryptoGen.createSaltpackEncrypt({input, options, recipients, type: inputType})
+        ? CryptoGen.createSaltpackEncrypt({destinationDir, input, options, recipients, type: inputType})
         : null
     }
     case Constants.Operations.Decrypt:
-      return CryptoGen.createSaltpackDecrypt({input, type: inputType})
+      return CryptoGen.createSaltpackDecrypt({destinationDir, input, type: inputType})
     case Constants.Operations.Sign:
-      return CryptoGen.createSaltpackSign({input, type: inputType})
+      return CryptoGen.createSaltpackSign({destinationDir, input, type: inputType})
     case Constants.Operations.Verify:
-      return CryptoGen.createSaltpackVerify({input, type: inputType})
+      return CryptoGen.createSaltpackVerify({destinationDir, input, type: inputType})
     default:
       return
   }
@@ -209,13 +240,17 @@ const saltpackEncrypt = async (
   logger: Saga.SagaLogger
 ) => {
   const {username} = state.config
-  const {input, recipients, type, options} = action.payload
+  const {destinationDir, input, recipients, type, options} = action.payload
   switch (type) {
     case 'file': {
       try {
+        console.log('JRY saltpackEncrypt', {
+          destinationDir: destinationDir?.stringValue(),
+          input: input.stringValue(),
+        })
         const fileRes = await RPCTypes.saltpackSaltpackEncryptFileRpcPromise(
           {
-            destinationDir: '',
+            destinationDir: destinationDir ? destinationDir.stringValue() : '',
             filename: input.stringValue(),
             opts: {
               includeSelf: options.includeSelf,
@@ -287,14 +322,14 @@ const saltpackEncrypt = async (
 }
 
 const saltpackDecrypt = async (action: CryptoGen.SaltpackDecryptPayload, logger: Saga.SagaLogger) => {
-  const {input, type} = action.payload
+  const {destinationDir, input, type} = action.payload
 
   switch (type) {
     case 'file': {
       try {
         const result = await RPCTypes.saltpackSaltpackDecryptFileRpcPromise(
           {
-            destinationDir: '',
+            destinationDir: destinationDir ? destinationDir.stringValue() : '',
             encryptedFilename: input.stringValue(),
           },
           Constants.decryptFileWaitingKey
@@ -370,13 +405,13 @@ const saltpackSign = async (
   logger: Saga.SagaLogger
 ) => {
   const {username} = state.config
-  const {input, type} = action.payload
+  const {destinationDir, input, type} = action.payload
   switch (type) {
     case 'file': {
       try {
         const signedFilename = await RPCTypes.saltpackSaltpackSignFileRpcPromise(
           {
-            destinationDir: '',
+            destinationDir: destinationDir ? destinationDir.stringValue() : '',
             filename: input.stringValue(),
           },
           Constants.signFileWaitingKey
@@ -431,13 +466,13 @@ const saltpackSign = async (
 }
 
 const saltpackVerify = async (action: CryptoGen.SaltpackVerifyPayload, logger: Saga.SagaLogger) => {
-  const {input, type} = action.payload
+  const {destinationDir, input, type} = action.payload
   switch (type) {
     case 'file': {
       try {
         const result = await RPCTypes.saltpackSaltpackVerifyFileRpcPromise(
           {
-            destinationDir: '',
+            destinationDir: destinationDir ? destinationDir.stringValue() : '',
             signedFilename: input.stringValue(),
           },
           Constants.verifyFileWaitingKey
@@ -567,6 +602,7 @@ function* cryptoSaga() {
       CryptoGen.setRecipients,
       CryptoGen.setEncryptOptions,
       CryptoGen.clearRecipients,
+      CryptoGen.runFileOperation,
     ],
     handleRunOperation
   )
