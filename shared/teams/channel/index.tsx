@@ -62,7 +62,7 @@ const Channel = (props: Props & TabProps) => {
         style={styles.list}
         contentContainerStyle={styles.listContentContainer}
       />
-      <Kb.Box2 fullWidth={true} style={styles.endAnchor} ref={popupAnchor} />
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.endAnchor} ref={popupAnchor} />
     </Kb.Box>
   )
 }

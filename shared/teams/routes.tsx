@@ -21,6 +21,9 @@ import flags from '../util/feature-flags'
 
 export const newRoutes = {
   team: {getScreen: (): TeamScreenType => require('./team/container').default},
+  teamEditChannel: {
+    getScreen: (): typeof TeamEditChannel => require('./channel/container').default,
+  },
   teamMember: flags.teamsRedesign
     ? {getScreen: (): typeof TeamMemberNew => require('./team/member/index.new').default}
     : {getScreen: (): typeof TeamMember => require('./team/member/container').default},
@@ -38,9 +41,6 @@ export const newModalRoutes = {
       require('./team/settings-tab/retention/warning/container').default,
   },
   teamDeleteTeam: {getScreen: (): typeof TeamDeleteTeam => require('./delete-team/container').default},
-  teamEditChannel: {
-    getScreen: (): typeof TeamEditChannel => require('./channel/container').default,
-  },
   teamEditTeamAvatar: {
     getScreen: (): typeof TeamEditTeamAvatar => require('../profile/edit-avatar/container').default,
   },
