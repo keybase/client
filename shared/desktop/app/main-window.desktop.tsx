@@ -255,7 +255,6 @@ export default () => {
   loadWindowState()
   // pass to main window
   htmlFile = htmlFile + `?darkModePreference=${darkModePreference || ''}`
-  logger.info("@@@ SPELLCHECK 0")
   const win = new Electron.BrowserWindow({
     backgroundColor: isDarkMode ? '#191919' : '#ffffff',
     frame: useNativeFrame,
@@ -269,7 +268,7 @@ export default () => {
       nodeIntegration: true,
       nodeIntegrationInWorker: false,
       preload: resolveRoot('dist', `preload-main${__DEV__ ? '.dev' : ''}.bundle.js`),
-      spellcheck: true,
+      spellcheck: !disableSpellcheck,
     },
     width: windowState.width,
     x: windowState.x,
@@ -277,14 +276,12 @@ export default () => {
     ...(isDarwin ? {titleBarStyle: 'hiddenInset'} : {}),
   })
   win.loadURL(htmlFile)
-  logger.info("@@@ SPELLCHECK 1")
   if (!disableSpellCheck) {
-    logger.info("@@@ SPELLCHECK")
     win.webContents.session.setSpellCheckerDictionaryDownloadURL(
       'https://keybase.io/dictionaries/hunspell_dictionaries.zip'
     )
-    win.webContents.session.setSpellCheckerLanguages(['en-US'])
-    logger.info(win.webContents.session.getSpellCheckerLanguages())
+    // win.webContents.session.setSpellCheckerLanguages(['en-US'])
+    // logger.info(win.webContents.session.getSpellCheckerLanguages())
   }
 
   if (windowState.isFullScreen) {
