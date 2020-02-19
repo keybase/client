@@ -10,7 +10,6 @@ import {pluralize} from '../../../util/string'
 import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 import TeamJourney from '../../../chat/conversation/messages/cards/team-journey/index'
 import {renderWelcomeMessage} from '../../../chat/conversation/messages/cards/team-journey/util'
-import {Mode} from '../../../chat/conversation/messages/cards/team-journey/index'
 import RetentionPicker from './retention/container'
 import * as Styles from '../../../styles'
 
