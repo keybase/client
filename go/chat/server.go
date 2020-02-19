@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"bytes"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -1663,7 +1664,7 @@ func (h *Server) GetTLFConversationsLocal(ctx context.Context, arg chat1.GetTLFC
 	// Fetch the TLF ID from specified name
 	nameInfo, err := CreateNameInfoSource(ctx, h.G(), arg.MembersType).LookupID(ctx, arg.TlfName, false)
 	if err != nil {
-		h.Debug(ctx, "GetTLFConversationsLocal: failed to get TLFID from name: %s", err.Error())
+		h.Debug(ctx, "GetTLFConversationsLocal: failed to get TLFID from name: %v", err)
 		return res, err
 	}
 
@@ -1674,6 +1675,57 @@ func (h *Server) GetTLFConversationsLocal(ctx context.Context, arg chat1.GetTLFC
 	}
 	res.Convs = utils.PresentConversationLocals(ctx, h.G(), uid, convs, utils.PresentParticipantsModeInclude)
 	res.Offline = h.G().InboxSource.IsOffline(ctx)
+	return res, nil
+}
+
+func (h *Server) GetChannelMembershipsLocal(ctx context.Context, arg chat1.GetChannelMembershipsLocalArg) (res chat1.GetChannelMembershipsLocalRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI,
+		&identBreaks, h.identNotifier)
+	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
+	defer func() { h.setResultRateLimit(ctx, &res) }()
+	defer func() {
+		if res.Offline {
+			h.Debug(ctx, "GetTLFConversationsLocal: result obtained offline")
+		}
+	}()
+	myUID, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return chat1.GetChannelMembershipsLocalRes{}, err
+	}
+
+	chatTopicType := chat1.TopicType_CHAT
+	tlfID := chat1.TLFID(arg.TeamID.ToBytes())
+
+	// fetch all conversations in the supplied team
+	inbox, err := h.G().InboxSource.ReadUnverified(ctx, myUID, types.InboxSourceDataSourceAll, &chat1.GetInboxQuery{
+		TlfID:        &tlfID,
+		MembersTypes: []chat1.ConversationMembersType{chat1.ConversationMembersType_TEAM},
+		TopicType:    &chatTopicType,
+	})
+	if err != nil {
+		return res, err
+	}
+
+	// find a list of conversations that the provided uid is a member of
+	var memberConvs []types.RemoteConversation
+	for _, conv := range inbox.ConvsUnverified {
+		for _, uid := range conv.Conv.Metadata.AllList {
+			if bytes.Equal(uid, arg.Uid) {
+				memberConvs = append(memberConvs, conv)
+				break
+			}
+		}
+	}
+
+	// localize those conversations so we can get the topic name
+	convsLocal, _, err := h.G().InboxSource.Localize(ctx, myUID, memberConvs, types.ConversationLocalizerBlocking)
+	for _, conv := range convsLocal {
+		res.Channels = append(res.Channels, chat1.ChannelNameMention{
+			ConvID:    conv.GetConvID(),
+			TopicName: conv.GetTopicName(),
+		})
+	}
 	return res, nil
 }
 
@@ -3395,4 +3447,40 @@ func (h *Server) SetDefaultTeamChannelsLocal(ctx context.Context, arg chat1.SetD
 		Convs:  convs,
 	})
 	return res, err
+}
+
+func (h *Server) GetLastActiveForTLF(ctx context.Context, tlfIDStr chat1.TLFIDStr) (res chat1.LastActiveStatus, err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "GetLastActiveForTLF")()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
+	tlfID, err := chat1.MakeTLFID(tlfIDStr.String())
+	if err != nil {
+		return res, err
+	}
+	mtime, err := h.G().TeamChannelSource.GetLastActiveForTLF(ctx, uid, tlfID, chat1.TopicType_CHAT)
+	if err != nil {
+		return res, err
+	}
+	return utils.ToLastActiveStatus(mtime), nil
+}
+
+func (h *Server) GetLastActiveForTeams(ctx context.Context) (res map[chat1.TLFIDStr]chat1.LastActiveStatus, err error) {
+	ctx = globals.ChatCtx(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "GetLastActiveForTeams")()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return nil, err
+	}
+	teamActivity, err := h.G().TeamChannelSource.GetLastActiveForTeams(ctx, uid, chat1.TopicType_CHAT)
+	if err != nil {
+		return nil, err
+	}
+	res = make(map[chat1.TLFIDStr]chat1.LastActiveStatus)
+	for tlfID, mtime := range teamActivity {
+		res[tlfID] = utils.ToLastActiveStatus(mtime)
+	}
+	return res, nil
 }

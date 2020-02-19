@@ -107,7 +107,7 @@ const Header = (p: Props) => {
   return (
     <Kb.Box2 direction="horizontal" style={styles.container} fullWidth={true}>
       <Kb.Box2 direction="vertical" style={styles.left}>
-        <ChatInboxHeader />
+        <ChatInboxHeader showNewChat={true} showSearch={!Styles.isTablet} />
       </Kb.Box2>
       <Kb.Box2
         direction="horizontal"
@@ -216,9 +216,16 @@ const Header = (p: Props) => {
 const styles = Styles.styleSheetCreate(
   () =>
     ({
-      actionIcons: {
-        paddingBottom: Styles.globalMargins.tiny,
-      },
+      actionIcons: Styles.platformStyles({
+        common: {
+          paddingBottom: Styles.globalMargins.tiny,
+        },
+        isTablet: {
+          flexGrow: 0,
+          flexShrink: 0,
+          minWidth: 200,
+        },
+      }),
       clickable: Styles.platformStyles({isElectron: Styles.desktopStyles.windowDraggingClickable}),
       container: {
         flexGrow: 1,
@@ -238,10 +245,19 @@ const styles = Styles.styleSheetCreate(
         },
       }),
       headerTitle: Styles.platformStyles({
-        common: {flexGrow: Styles.isTablet ? 0 : 1, paddingBottom: Styles.globalMargins.xtiny},
+        common: {
+          flexGrow: 1,
+          paddingBottom: Styles.globalMargins.xtiny,
+        },
         isElectron: Styles.desktopStyles.windowDraggingClickable,
+        isTablet: {
+          flex: 1,
+        },
       }),
-      left: {minWidth: 260},
+      left: Styles.platformStyles({
+        isElectron: {minWidth: 260},
+        isTablet: {minWidth: 180},
+      }),
       right: {
         flexGrow: 1,
         paddingLeft: Styles.globalMargins.xsmall,

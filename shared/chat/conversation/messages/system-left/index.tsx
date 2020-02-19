@@ -12,7 +12,7 @@ type Props = {
 
 export default (props: Props) => (
   <UserNotice>
-    <Kb.Text type="BodySmall">{` left ${
+    <Kb.Text type="BodySmall">{`left ${
       props.isBigTeam ? `#${props.channelname}` : props.teamname
     }.`}</Kb.Text>
   </UserNotice>

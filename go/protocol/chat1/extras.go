@@ -1726,6 +1726,10 @@ func (r *GetTLFConversationsLocalRes) SetOffline() {
 	r.Offline = true
 }
 
+func (r *GetChannelMembershipsLocalRes) SetOffline() {
+	r.Offline = true
+}
+
 func (r *SetAppNotificationSettingsLocalRes) SetOffline() {
 	r.Offline = true
 }
@@ -1743,7 +1747,7 @@ func (r *SearchInboxRes) SetOffline() {
 }
 
 func (t TyperInfo) String() string {
-	return fmt.Sprintf("typer(u:%s d:%s)", t.Username, t.DeviceName)
+	return fmt.Sprintf("typer(u:%s d:%s)", t.Username, t.DeviceID)
 }
 
 func (o TLFConvOrdinal) Int() int {
@@ -2120,6 +2124,14 @@ func (r *GetTLFConversationsLocalRes) GetRateLimit() []RateLimit {
 }
 
 func (r *GetTLFConversationsLocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *GetChannelMembershipsLocalRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *GetChannelMembershipsLocalRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 

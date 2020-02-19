@@ -1577,7 +1577,7 @@ func (g *gregorHandler) connectTLS() error {
 	g.conn = rpc.NewTLSConnectionWithDialable(rpc.NewFixedRemote(uri.HostPort),
 		[]byte(rawCA), libkb.NewContextifiedErrorUnwrapper(g.G().ExternalG()),
 		g, libkb.NewRPCLogFactory(g.G().ExternalG()),
-		g.G().ExternalG().NetworkInstrumenterStorage,
+		g.G().ExternalG().RemoteNetworkInstrumenterStorage,
 		logger.LogOutputWithDepthAdder{Logger: g.G().Log},
 		rpc.DefaultMaxFrameLength, opts,
 		libkb.NewProxyDialable(g.G().Env))

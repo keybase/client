@@ -829,7 +829,7 @@ func (u *userPlusDevice) newSecretUI() *libkb.TestSecretUI {
 	return &libkb.TestSecretUI{Passphrase: u.passphrase}
 }
 
-func (u *userPlusDevice) provisionNewDevice() *deviceWrapper {
+func (u *userPlusDevice) provisionNewDevice() (d *deviceWrapper, cleanup func()) {
 	tc := setupTest(u.tc.T, "sub")
 	t := tc.T
 	g := tc.G
@@ -870,7 +870,16 @@ func (u *userPlusDevice) provisionNewDevice() *deviceWrapper {
 	device.deviceKey.DeviceID = g.ActiveDevice.DeviceID()
 	require.True(t, device.deviceKey.DeviceID.Exists())
 
-	return device
+	cleanup = func() {
+		device.tctx.Cleanup()
+		if device.service != nil {
+			device.service.Stop(0)
+			err := device.stop()
+			require.NoError(tc.T, err)
+		}
+	}
+
+	return device, cleanup
 }
 
 func (u *userPlusDevice) reset() {
@@ -1278,7 +1287,8 @@ func TestTeamSignedByRevokedDevice2(t *testing.T) {
 
 	// the signer
 	alice := tt.addUserWithPaper("alice")
-	aliced2 := alice.provisionNewDevice()
+	aliced2, cleanup := alice.provisionNewDevice()
+	defer cleanup()
 
 	// the loader
 	bob := tt.addUser("bob")

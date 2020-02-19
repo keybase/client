@@ -741,6 +741,15 @@
           "name": "body",
           "mpackkey": "b",
           "jsonkey": "b"
+        },
+        {
+          "type": [
+            null,
+            "gregor1.UID"
+          ],
+          "name": "targetUID",
+          "mpackkey": "t",
+          "jsonkey": "t"
         }
       ]
     },
@@ -3200,6 +3209,30 @@
     },
     {
       "type": "record",
+      "name": "GetChannelMembershipsLocalRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "ChannelNameMention"
+          },
+          "name": "channels"
+        },
+        {
+          "type": "boolean",
+          "name": "offline"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "SetAppNotificationSettingsLocalRes",
       "fields": [
         {
@@ -4994,6 +5027,19 @@
       ],
       "response": "GetTLFConversationsLocalRes"
     },
+    "getChannelMembershipsLocal": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "keybase1.TeamID"
+        },
+        {
+          "name": "uid",
+          "type": "gregor1.UID"
+        }
+      ],
+      "response": "GetChannelMembershipsLocalRes"
+    },
     "setAppNotificationSettingsLocal": {
       "request": [
         {
@@ -5656,6 +5702,23 @@
         }
       ],
       "response": "SetDefaultTeamChannelsLocalRes"
+    },
+    "getLastActiveForTLF": {
+      "request": [
+        {
+          "name": "tlfID",
+          "type": "TLFIDStr"
+        }
+      ],
+      "response": "LastActiveStatus"
+    },
+    "getLastActiveForTeams": {
+      "request": [],
+      "response": {
+        "type": "map",
+        "values": "LastActiveStatus",
+        "keys": "TLFIDStr"
+      }
     }
   },
   "namespace": "chat.1"

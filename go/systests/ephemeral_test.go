@@ -679,7 +679,8 @@ func TestEphemeralNewUserEKAndTeamEKAfterRevokes(t *testing.T) {
 	require.NoError(t, err)
 
 	// Provision a new device that we can revoke.
-	newDevice := ann.provisionNewDevice()
+	newDevice, cleanup := ann.provisionNewDevice()
+	defer cleanup()
 
 	// Revoke it.
 	revokeEngine := engine.NewRevokeDeviceEngine(annMctx.G(), engine.RevokeDeviceEngineArgs{
@@ -725,7 +726,7 @@ func readdToTeamWithEKs(t *testing.T, leave bool) {
 	// Make standalone user that will not run gregor. This is
 	// important in the *leave* case, where we want to observe
 	// effects of team key and EK not being rotated.
-	user1 := makeUserStandalone(t, "user1", standaloneUserArgs{
+	user1 := makeUserStandalone(t, tt, "user1", standaloneUserArgs{
 		disableGregor:            true,
 		suppressTeamChatAnnounce: true,
 	})
@@ -791,7 +792,7 @@ func TestEphemeralAfterEKError(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
-	user1 := makeUserStandalone(t, "user1", standaloneUserArgs{
+	user1 := makeUserStandalone(t, tt, "user1", standaloneUserArgs{
 		disableGregor:            true,
 		suppressTeamChatAnnounce: true,
 	})
@@ -835,7 +836,8 @@ func TestEphemeralAfterEKError(t *testing.T) {
 	// reboxed for the second userEK. Try to access the first userEK and fail.
 	userEKMetdata, err := ephemeral.ForcePublishNewUserEKForTesting(mctx2, *merkleRoot)
 	require.NoError(t, err)
-	newDevice := user2.provisionNewDevice()
+	newDevice, cleanup := user2.provisionNewDevice()
+	defer cleanup()
 	mctx2 = libkb.NewMetaContextForTest(*newDevice.tctx)
 
 	_, err = mctx2.G().GetUserEKBoxStorage().Get(mctx2, userEKMetdata.Generation-1, nil)

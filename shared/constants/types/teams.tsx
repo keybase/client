@@ -22,6 +22,8 @@ export type PublicitySettings = {
   publicityTeam: boolean
 }
 
+export type ActivityLevel = 'active' | 'recently' | 'extinct'
+
 export type Teamname = string
 
 export type TeamProfileAddList = {
@@ -67,7 +69,7 @@ export type InviteInfo = {
   id: string
 }
 
-export type TabKey = 'members' | 'invites' | 'bots' | 'subteams' | 'settings'
+export type TabKey = 'members' | 'invites' | 'bots' | 'subteams' | 'settings' | 'channels'
 
 export type TypeMap = {[K in TeamRoleType]: string}
 
@@ -148,6 +150,7 @@ export type State = {
   readonly teamsWithChosenChannels: Set<Teamname>
   readonly sawChatBanner: boolean
   readonly sawSubteamsBanner: boolean
+  readonly selectedChannels: Map<TeamID, Set<string>>
   readonly subteamFilter: string
   readonly subteamsFiltered: Set<TeamID> | undefined
   readonly teamAccessRequestsPending: Set<Teamname>

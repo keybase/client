@@ -4,6 +4,8 @@
 package libkb
 
 import (
+	"bytes"
+	"compress/gzip"
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
@@ -16,6 +18,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -262,33 +265,66 @@ type InstrumentedBody struct {
 	Contextified
 	record *rpc.NetworkInstrumenter
 	body   io.ReadCloser
-	n      int
+	// track how large the body is
+	n int
+	// uncompressed indicates if the body was compressed on the wire but
+	// uncompressed by the http library. In this case we recompress to
+	// instrument the gzipped size.
+	uncompressed bool
+	gzipBuf      bytes.Buffer
+	gzipGetter   func(io.Writer) (*gzip.Writer, func())
 }
 
 var _ io.ReadCloser = (*InstrumentedBody)(nil)
 
-func NewInstrumentedBody(g *GlobalContext, record *rpc.NetworkInstrumenter, body io.ReadCloser) *InstrumentedBody {
+func NewInstrumentedBody(g *GlobalContext, record *rpc.NetworkInstrumenter, body io.ReadCloser, uncompressed bool,
+	gzipGetter func(io.Writer) (*gzip.Writer, func())) *InstrumentedBody {
 	return &InstrumentedBody{
 		Contextified: NewContextified(g),
 		record:       record,
 		body:         body,
+		gzipGetter:   gzipGetter,
+		uncompressed: uncompressed,
 	}
 }
 
 func (b *InstrumentedBody) Read(p []byte) (n int, err error) {
 	n, err = b.body.Read(p)
 	b.n += n
+	if b.uncompressed && n > 0 {
+		if n, err := b.gzipBuf.Write(p[:n]); err != nil {
+			return n, err
+		}
+	}
 	return n, err
 }
 
-func (b *InstrumentedBody) Close() error {
+func (b *InstrumentedBody) Close() (err error) {
 	// instrument the full body size even if the caller hasn't consumed it.
 	_, _ = io.Copy(ioutil.Discard, b.body)
-	b.record.IncrementSize(int64(b.n))
-	if err := b.record.Finish(); err != nil {
-		b.G().Log.CDebugf(context.TODO(), "InstrumentedBody: unable to instrument network request: %s, %s", b.record, err)
-		return err
-	}
+	// Do actual instrumentation in the background
+	go func() {
+		if b.uncompressed {
+			// gzip the body we stored and instrument the compressed size
+			var buf bytes.Buffer
+			writer, reclaim := b.gzipGetter(&buf)
+			defer reclaim()
+			if _, err = writer.Write(b.gzipBuf.Bytes()); err != nil {
+				b.G().Log.CDebugf(context.TODO(), "InstrumentedBody:unable to write gzip %v", err)
+				return
+			}
+			if err = writer.Close(); err != nil {
+				b.G().Log.CDebugf(context.TODO(), "InstrumentedBody:unable to close gzip %v", err)
+				return
+			}
+			b.record.IncrementSize(int64(buf.Len()))
+		} else {
+			b.record.IncrementSize(int64(b.n))
+		}
+		if err := b.record.Finish(); err != nil {
+			b.G().Log.CDebugf(context.TODO(), "InstrumentedBody: unable to instrument network request: %s, %s", b.record, err)
+		}
+	}()
 	return b.body.Close()
 }
 
@@ -296,6 +332,7 @@ type InstrumentedTransport struct {
 	Contextified
 	Transport *http.Transport
 	tagger    func(*http.Request) string
+	gzipPool  sync.Pool
 }
 
 var _ http.RoundTripper = (*InstrumentedTransport)(nil)
@@ -305,11 +342,24 @@ func NewInstrumentedTransport(g *GlobalContext, tagger func(*http.Request) strin
 		Contextified: NewContextified(g),
 		Transport:    xprt,
 		tagger:       tagger,
+		gzipPool: sync.Pool{
+			New: func() interface{} {
+				return gzip.NewWriter(ioutil.Discard)
+			},
+		},
+	}
+}
+
+func (i *InstrumentedTransport) getGzipWriter(writer io.Writer) (*gzip.Writer, func()) {
+	gzipWriter := i.gzipPool.Get().(*gzip.Writer)
+	gzipWriter.Reset(writer)
+	return gzipWriter, func() {
+		i.gzipPool.Put(gzipWriter)
 	}
 }
 
 func (i *InstrumentedTransport) RoundTrip(req *http.Request) (resp *http.Response, err error) {
-	record := rpc.NewNetworkInstrumenter(i.G().NetworkInstrumenterStorage, i.tagger(req))
+	record := rpc.NewNetworkInstrumenter(i.G().RemoteNetworkInstrumenterStorage, i.tagger(req))
 	resp, err = i.Transport.RoundTrip(req)
 	record.EndCall()
 	if err != nil {
@@ -318,6 +368,6 @@ func (i *InstrumentedTransport) RoundTrip(req *http.Request) (resp *http.Respons
 		}
 		return resp, err
 	}
-	resp.Body = NewInstrumentedBody(i.G(), record, resp.Body)
+	resp.Body = NewInstrumentedBody(i.G(), record, resp.Body, resp.Uncompressed, i.getGzipWriter)
 	return resp, err
 }

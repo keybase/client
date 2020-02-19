@@ -347,6 +347,10 @@ export type MessageTypes = {
     inParam: {readonly convID: ConversationID; readonly username: String}
     outParam: Keybase1.TeamBotSettings
   }
+  'chat.1.local.getChannelMembershipsLocal': {
+    inParam: {readonly teamID: Keybase1.TeamID; readonly uid: Gregor1.UID}
+    outParam: GetChannelMembershipsLocalRes
+  }
   'chat.1.local.getGlobalAppNotificationSettingsLocal': {
     inParam: void
     outParam: GlobalAppNotificationSettings
@@ -783,6 +787,12 @@ export enum JourneycardType {
   msgNoAnswer = 7,
 }
 
+export enum LastActiveStatus {
+  none = 0,
+  active = 1,
+  recentlyActive = 2,
+}
+
 export enum MessageBoxedVersion {
   vnone = 0,
   v1 = 1,
@@ -1147,6 +1157,7 @@ export type FlipGameIDStr = String
 export type GenericPayload = {readonly Action: String; readonly inboxVers: InboxVers; readonly convID: ConversationID; readonly topicType: TopicType; readonly unreadUpdate?: UnreadUpdate | null}
 export type GetAllResetConvMembersRes = {readonly members?: Array<ResetConvMember> | null; readonly rateLimits?: Array<RateLimit> | null}
 export type GetBotInfoRes = {readonly response: BotInfoResponse; readonly rateLimit?: RateLimit | null}
+export type GetChannelMembershipsLocalRes = {readonly channels?: Array<ChannelNameMention> | null; readonly offline: Boolean; readonly rateLimits?: Array<RateLimit> | null}
 export type GetConversationForCLILocalQuery = {readonly markAsRead: Boolean; readonly MessageTypes?: Array<MessageType> | null; readonly Since?: String | null; readonly limit: UnreadFirstNumLimit; readonly conv: ConversationLocal}
 export type GetConversationForCLILocalRes = {readonly conversation: ConversationLocal; readonly messages?: Array<MessageUnboxed> | null; readonly offline: Boolean; readonly rateLimits?: Array<RateLimit> | null}
 export type GetConversationMetadataRemoteRes = {readonly conv: Conversation; readonly rateLimit?: RateLimit | null}
@@ -1231,7 +1242,7 @@ export type MessageLeave = {}
 export type MessagePin = {readonly msgID: MessageID}
 export type MessagePlaintext = {readonly clientHeader: MessageClientHeader; readonly messageBody: MessageBody; readonly supersedesOutboxID?: OutboxID | null}
 export type MessagePreviousPointer = {readonly id: MessageID; readonly hash: Hash}
-export type MessageReaction = {readonly m: /* messageID */ MessageID; readonly b: /* body */ String}
+export type MessageReaction = {readonly m: /* messageID */ MessageID; readonly b: /* body */ String; readonly t /* targetUID */?: Gregor1.UID | null}
 export type MessageRequestPayment = {readonly requestID: Stellar1.KeybaseRequestID; readonly note: String}
 export type MessageSendPayment = {readonly paymentID: Stellar1.PaymentID}
 export type MessageServerHeader = {readonly messageID: MessageID; readonly supersededBy: MessageID; readonly r /* reactionIDs */?: Array<MessageID> | null; readonly u /* unfurlIDs */?: Array<MessageID> | null; readonly replies?: Array<MessageID> | null; readonly ctime: Gregor1.Time; readonly n: /* now */ Gregor1.Time; readonly rt /* rtime */?: Gregor1.Time | null}
@@ -1362,7 +1373,7 @@ export type ThreadView = {readonly messages?: Array<MessageUnboxed> | null; read
 export type ThreadViewBoxed = {readonly messages?: Array<MessageBoxed> | null; readonly pagination?: Pagination | null}
 export type TopicID = Bytes
 export type TopicNameState = Bytes
-export type TyperInfo = {readonly uid: Keybase1.UID; readonly username: String; readonly deviceID: Keybase1.DeviceID; readonly deviceName: String; readonly deviceType: Keybase1.DeviceTypeV2}
+export type TyperInfo = {readonly uid: Keybase1.UID; readonly username: String; readonly deviceID: Keybase1.DeviceID}
 export type UIAssetUrlInfo = {readonly previewUrl: String; readonly fullUrl: String; readonly fullUrlCached: Boolean; readonly mimeType: String; readonly videoDuration?: String | null; readonly inlineVideoPlayable: Boolean}
 export type UIBotCommandsUpdateSettings = {readonly settings: {[key: string]: Keybase1.TeamBotSettings}}
 export type UIBotCommandsUpdateStatus = {typ: UIBotCommandsUpdateStatusTyp.uptodate; uptodate: UIBotCommandsUpdateSettings} | {typ: UIBotCommandsUpdateStatusTyp.updating} | {typ: UIBotCommandsUpdateStatusTyp.failed} | {typ: UIBotCommandsUpdateStatusTyp.blank}
@@ -1554,6 +1565,7 @@ export const localEditBotMemberRpcPromise = (params: MessageTypes['chat.1.local.
 export const localFindConversationsLocalRpcPromise = (params: MessageTypes['chat.1.local.findConversationsLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.findConversationsLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.findConversationsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localFindGeneralConvFromTeamIDRpcPromise = (params: MessageTypes['chat.1.local.findGeneralConvFromTeamID']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.findGeneralConvFromTeamID']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.findGeneralConvFromTeamID', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetBotMemberSettingsRpcPromise = (params: MessageTypes['chat.1.local.getBotMemberSettings']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getBotMemberSettings']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getBotMemberSettings', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localGetChannelMembershipsLocalRpcPromise = (params: MessageTypes['chat.1.local.getChannelMembershipsLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getChannelMembershipsLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getChannelMembershipsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetGlobalAppNotificationSettingsLocalRpcPromise = (params: MessageTypes['chat.1.local.getGlobalAppNotificationSettingsLocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getGlobalAppNotificationSettingsLocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getGlobalAppNotificationSettingsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetInboxAndUnboxUILocalRpcPromise = (params: MessageTypes['chat.1.local.getInboxAndUnboxUILocal']['inParam'], waitingKey?: WaitingKey) => new Promise<MessageTypes['chat.1.local.getInboxAndUnboxUILocal']['outParam']>((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getInboxAndUnboxUILocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetInboxNonblockLocalRpcSaga = (p: {params: MessageTypes['chat.1.local.getInboxNonblockLocal']['inParam']; incomingCallMap: IncomingCallMapType; customResponseIncomingCallMap?: CustomResponseIncomingCallMap; waitingKey?: WaitingKey}) => call(getEngineSaga(), {method: 'chat.1.local.getInboxNonblockLocal', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
@@ -1678,6 +1690,8 @@ export const localUpdateUnsentTextRpcPromise = (params: MessageTypes['chat.1.loc
 // 'chat.1.local.teamIDFromTLFName'
 // 'chat.1.local.getDefaultTeamChannelsLocal'
 // 'chat.1.local.setDefaultTeamChannelsLocal'
+// 'chat.1.local.getLastActiveForTLF'
+// 'chat.1.local.getLastActiveForTeams'
 // 'chat.1.NotifyChat.NewChatActivity'
 // 'chat.1.NotifyChat.ChatIdentifyUpdate'
 // 'chat.1.NotifyChat.ChatTLFFinalize'

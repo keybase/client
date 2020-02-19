@@ -1900,6 +1900,15 @@
           "name": "status"
         }
       ]
+    },
+    {
+      "type": "enum",
+      "name": "LastActiveStatus",
+      "symbols": [
+        "NONE_0",
+        "ACTIVE_1",
+        "RECENTLY_ACTIVE_2"
+      ]
     }
   ],
   "messages": {},

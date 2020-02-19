@@ -1521,6 +1521,7 @@ func (fbo *folderBlockOps) updateEntryLocked(ctx context.Context,
 		fbo.deferredDirUpdates = append(
 			fbo.deferredDirUpdates, func(lState *kbfssync.LockState) error {
 				file := fbo.nodeCache.PathFromNode(n)
+				de.BlockPointer = file.TailPointer()
 				return fbo.updateEntryLocked(
 					ctx, lState, kmd, file, de, includeDeleted)
 			})

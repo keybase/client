@@ -65,6 +65,7 @@ const Reply = (props: ReplyProps) => {
                 <Kb.Text
                   type="BodySmall"
                   style={Styles.collapseStyles([props.isParentHighlighted && styles.textHighlighted])}
+                  lineClamp={3}
                 >
                   {props.text}
                 </Kb.Text>

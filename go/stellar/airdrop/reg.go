@@ -6,13 +6,14 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
+	"net"
+	"time"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/msgpack"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/crypto/nacl/box"
-	"net"
-	"time"
 )
 
 // An experimental airdrop registration protocol, we may or may not decide to use this.
@@ -81,7 +82,7 @@ func (a *Client) connect(m libkb.MetaContext) (cli keybase1.AirdropClient, xp rp
 		return cli, nil, err
 	}
 
-	xp = libkb.NewTransportFromSocket(m.G(), conn)
+	xp = libkb.NewTransportFromSocket(m.G(), conn, keybase1.NetworkSource_REMOTE)
 	genericCli := rpc.NewClient(xp, libkb.NewContextifiedErrorUnwrapper(m.G()), nil)
 	return keybase1.AirdropClient{Cli: genericCli}, xp, nil
 }

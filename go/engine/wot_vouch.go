@@ -15,71 +15,71 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 )
 
-type WotAttestArg struct {
-	Attestee     keybase1.UserVersion
-	Confidence   keybase1.Confidence
-	Attestations []string
+type WotVouchArg struct {
+	Vouchee    keybase1.UserVersion
+	Confidence keybase1.Confidence
+	VouchTexts []string
 }
 
-// WotAttest is an engine.
-type WotAttest struct {
-	arg *WotAttestArg
+// WotVouch is an engine.
+type WotVouch struct {
+	arg *WotVouchArg
 	libkb.Contextified
 }
 
-// NewWotAttest creates a WotAttest engine.
-func NewWotAttest(g *libkb.GlobalContext, arg *WotAttestArg) *WotAttest {
-	return &WotAttest{
+// NewWotVouch creates a WotVouch engine.
+func NewWotVouch(g *libkb.GlobalContext, arg *WotVouchArg) *WotVouch {
+	return &WotVouch{
 		arg:          arg,
 		Contextified: libkb.NewContextified(g),
 	}
 }
 
 // Name is the unique engine name.
-func (e *WotAttest) Name() string {
-	return "WotAttest"
+func (e *WotVouch) Name() string {
+	return "WotVouch"
 }
 
 // GetPrereqs returns the engine prereqs.
-func (e *WotAttest) Prereqs() Prereqs {
+func (e *WotVouch) Prereqs() Prereqs {
 	return Prereqs{Device: true}
 }
 
 // RequiredUIs returns the required UIs.
-func (e *WotAttest) RequiredUIs() []libkb.UIKind {
+func (e *WotVouch) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{}
 }
 
 // SubConsumers returns the other UI consumers for this engine.
-func (e *WotAttest) SubConsumers() []libkb.UIConsumer {
+func (e *WotVouch) SubConsumers() []libkb.UIConsumer {
 	return nil
 }
 
 // Run starts the engine.
-func (e *WotAttest) Run(mctx libkb.MetaContext) error {
-	luArg := libkb.NewLoadUserArgWithMetaContext(mctx).WithUID(e.arg.Attestee.Uid)
+func (e *WotVouch) Run(mctx libkb.MetaContext) error {
+	luArg := libkb.NewLoadUserArgWithMetaContext(mctx).WithUID(e.arg.Vouchee.Uid)
 	them, err := libkb.LoadUser(luArg)
 	if err != nil {
 		return err
 	}
 
-	if them.GetCurrentEldestSeqno() != e.arg.Attestee.EldestSeqno {
-		return errors.New("attestee has reset, make sure you still know them")
+	if them.GetCurrentEldestSeqno() != e.arg.Vouchee.EldestSeqno {
+		return errors.New("vouchee has reset, make sure you still know them")
 	}
 
 	statement := jsonw.NewDictionary()
 	if err := statement.SetKey("user", them.ToWotStatement()); err != nil {
 		return err
 	}
-	if err := statement.SetKey("attestation", libkb.JsonwStringArray(e.arg.Attestations)); err != nil {
+	if err := statement.SetKey("vouch_text", libkb.JsonwStringArray(e.arg.VouchTexts)); err != nil {
 		return err
 	}
 	if err := statement.SetKey("confidence", e.confidence()); err != nil {
 		return err
 	}
 
-	attest := jsonw.NewDictionary()
-	if err := attest.SetKey("obj", statement); err != nil {
+	vouch := jsonw.NewDictionary()
+	if err := vouch.SetKey("obj", statement); err != nil {
 		return err
 	}
 	randKey, err := libkb.RandBytes(16)
@@ -87,7 +87,7 @@ func (e *WotAttest) Run(mctx libkb.MetaContext) error {
 		return err
 	}
 	hexKey := hex.EncodeToString(randKey)
-	if err := attest.SetKey("key", jsonw.NewString(hexKey)); err != nil {
+	if err := vouch.SetKey("key", jsonw.NewString(hexKey)); err != nil {
 		return err
 	}
 
@@ -103,7 +103,7 @@ func (e *WotAttest) Run(mctx libkb.MetaContext) error {
 	sum := mac.Sum(nil)
 
 	expansions := jsonw.NewDictionary()
-	if err := expansions.SetKey(hex.EncodeToString(sum), attest); err != nil {
+	if err := expansions.SetKey(hex.EncodeToString(sum), vouch); err != nil {
 		return err
 	}
 
@@ -118,10 +118,10 @@ func (e *WotAttest) Run(mctx libkb.MetaContext) error {
 
 	// ForcePoll is required.
 	err = mctx.G().GetFullSelfer().WithSelfForcePoll(mctx.Ctx(), func(me *libkb.User) error {
-		if me.GetUID() == e.arg.Attestee.Uid {
-			return libkb.InvalidArgumentError{Msg: "can't claim an attestation about yourself"}
+		if me.GetUID() == e.arg.Vouchee.Uid {
+			return libkb.InvalidArgumentError{Msg: "can't vouch for yourself"}
 		}
-		proof, err := me.WotAttestProof(mctx, signingKey, sigVersion, sum)
+		proof, err := me.WotVouchProof(mctx, signingKey, sigVersion, sum)
 		if err != nil {
 			return err
 		}
@@ -133,7 +133,7 @@ func (e *WotAttest) Run(mctx libkb.MetaContext) error {
 		sig, _, _, err = libkb.MakeSig(
 			mctx,
 			signingKey,
-			libkb.LinkTypeWotAttest,
+			libkb.LinkTypeWotVouch,
 			inner,
 			libkb.SigHasRevokes(false),
 			keybase1.SeqType_PUBLIC,
@@ -152,7 +152,7 @@ func (e *WotAttest) Run(mctx libkb.MetaContext) error {
 	item := libkb.SigMultiItem{
 		Sig:        sig,
 		SigningKID: signingKey.GetKID(),
-		Type:       string(libkb.LinkTypeWotAttest),
+		Type:       string(libkb.LinkTypeWotVouch),
 		SeqType:    keybase1.SeqType_PUBLIC,
 		SigInner:   string(inner),
 		Version:    sigVersion,
@@ -170,7 +170,7 @@ func (e *WotAttest) Run(mctx libkb.MetaContext) error {
 	return err
 }
 
-func (e *WotAttest) confidence() *jsonw.Wrapper {
+func (e *WotVouch) confidence() *jsonw.Wrapper {
 	c := jsonw.NewDictionary()
 	if e.arg.Confidence.UsernameVerifiedVia != keybase1.UsernameVerificationType_NONE {
 		_ = c.SetKey("username_verified_via", jsonw.NewString(strings.ToLower(e.arg.Confidence.UsernameVerifiedVia.String())))

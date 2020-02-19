@@ -9,6 +9,8 @@ import SettingsList from './settings'
 import MembersList from './members'
 import BotsList from './bot'
 import AttachmentsList from './attachments'
+import {MaybeTeamRoleType} from 'constants/types/teams'
+import * as TeamConstants from '../../../constants/teams'
 
 export type Panel = 'settings' | 'members' | 'attachments' | 'bots'
 type InfoPanelProps = {
@@ -20,6 +22,7 @@ type InfoPanelProps = {
   selectedTab: Panel
   smallTeam: boolean
   teamname?: string
+  yourRole: MaybeTeamRoleType
 } & HeaderHocProps
 
 const TabText = ({selected, text}: {selected: boolean; text: string}) => (
@@ -31,12 +34,22 @@ const TabText = ({selected, text}: {selected: boolean; text: string}) => (
 class _InfoPanel extends React.PureComponent<InfoPanelProps> {
   private isSelected = (s: Panel) => s === this.props.selectedTab
 
-  private getTabPanels = (): Array<Panel> => [
-    'members' as const,
-    'attachments' as const,
-    ...(flags.botUI ? ['bots' as const] : []),
-    ...(this.props.isPreview ? [] : ['settings' as const]),
-  ]
+  private getTabPanels = (): Array<Panel> => {
+    var showSettings = !this.props.isPreview
+    if (flags.teamsRedesign) {
+      showSettings =
+        !this.props.isPreview ||
+        TeamConstants.isAdmin(this.props.yourRole) ||
+        TeamConstants.isOwner(this.props.yourRole)
+    }
+
+    return [
+      'members' as const,
+      'attachments' as const,
+      ...(flags.botUI ? ['bots' as const] : []),
+      ...(showSettings ? ['settings' as const] : []),
+    ]
+  }
 
   private getTabs = () =>
     this.getTabPanels().map(p => {
@@ -126,6 +139,7 @@ class _InfoPanel extends React.PureComponent<InfoPanelProps> {
         sectionList = (
           <SettingsList
             conversationIDKey={this.props.selectedConversationIDKey}
+            isPreview={this.props.isPreview}
             renderTabs={this.renderTabs}
             commonSections={this.commonSections}
           />

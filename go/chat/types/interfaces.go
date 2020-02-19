@@ -103,8 +103,6 @@ type ConversationSource interface {
 		replyFiller ReplyFiller) ([]chat1.MessageUnboxed, error)
 	Expunge(ctx context.Context, convID chat1.ConversationID,
 		uid gregor1.UID, expunge chat1.Expunge) error
-	ClearFromDelete(ctx context.Context, uid gregor1.UID,
-		convID chat1.ConversationID, deleteID chat1.MessageID) bool
 	EphemeralPurge(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 		purgeInfo *chat1.EphemeralPurgeInfo) (*chat1.EphemeralPurgeInfo, []chat1.MessageUnboxed, error)
 
@@ -294,6 +292,8 @@ type MobileAppState interface {
 }
 
 type TeamChannelSource interface {
+	GetLastActiveForTLF(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType) (gregor1.Time, error)
+	GetLastActiveForTeams(context.Context, gregor1.UID, chat1.TopicType) (map[chat1.TLFIDStr]gregor1.Time, error)
 	GetChannelsFull(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType) ([]chat1.ConversationLocal, error)
 	GetChannelsTopicName(ctx context.Context, uid gregor1.UID,
 		teamID chat1.TLFID, topicType chat1.TopicType) ([]chat1.ChannelNameMention, error)

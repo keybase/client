@@ -124,8 +124,6 @@ protocol NotifyChat {
     keybase1.UID uid;
     string username;
     keybase1.DeviceID deviceID;
-    string deviceName;
-    keybase1.DeviceTypeV2 deviceType;
   }
 
   record ConvTypingUpdate {

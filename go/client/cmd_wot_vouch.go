@@ -81,9 +81,9 @@ func (c *cmdWotVouch) ParseArgv(ctx *cli.Context) error {
 
 func (c *cmdWotVouch) Run() error {
 	arg := keybase1.WotVouchCLIArg{
-		Assertion:    c.assertion,
-		Attestations: []string{c.message},
-		Confidence:   c.confidence,
+		Assertion:  c.assertion,
+		VouchTexts: []string{c.message},
+		Confidence: c.confidence,
 	}
 
 	cli, err := GetWebOfTrustClient(c.G())

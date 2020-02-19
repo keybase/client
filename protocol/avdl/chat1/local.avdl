@@ -220,6 +220,8 @@ protocol local {
      MessageID messageID;
      @mpackkey("b") @jsonkey("b")
      string body; // emoji reaction :+1:
+     @mpackkey("t") @jsonkey("t")
+     union { null, gregor1.UID } targetUID;
   }
 
   record MessageSendPayment {
@@ -1063,6 +1065,13 @@ protocol local {
   }
   GetTLFConversationsLocalRes getTLFConversationsLocal(string tlfName, TopicType topicType, ConversationMembersType membersType);
 
+  record GetChannelMembershipsLocalRes {
+    array<ChannelNameMention> channels;
+    boolean offline;
+    array<RateLimit> rateLimits;
+  }
+  GetChannelMembershipsLocalRes getChannelMembershipsLocal(keybase1.TeamID teamID, gregor1.UID uid);
+
   // Chat notification configuration endpoint. Does not need to be complete, just a delta on the
   // currently configured settings.
   record SetAppNotificationSettingsLocalRes {
@@ -1338,4 +1347,7 @@ protocol local {
     union { null, RateLimit } rateLimit;
   }
   SetDefaultTeamChannelsLocalRes setDefaultTeamChannelsLocal(string teamName, array<ConvIDStr> convs);
+
+  LastActiveStatus getLastActiveForTLF(TLFIDStr tlfID);
+  map<TLFIDStr, LastActiveStatus> getLastActiveForTeams();
 }

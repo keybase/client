@@ -468,13 +468,16 @@ func computeSetBitsBigEndian(x uint) []uint {
 	return ret
 }
 
-func computeLogPatternMerkleSkips(startSeqno keybase1.Seqno, endSeqno keybase1.Seqno) []uint {
-	end := uint(endSeqno)
-	var ret []uint
-	diff := end - uint(startSeqno)
-	if diff <= 0 {
-		return ret
+func computeLogPatternMerkleSkips(startSeqno keybase1.Seqno, endSeqno keybase1.Seqno) (ret []uint, err error) {
+	if endSeqno < startSeqno {
+		return ret, fmt.Errorf("got startSeqno > endSeqno (%d > %d) in merkle skip sequence", startSeqno, endSeqno)
 	}
+	if endSeqno == startSeqno {
+		return ret, nil
+	}
+	end := uint(endSeqno)
+	start := uint(startSeqno)
+	diff := end - start
 	skips := computeSetBitsBigEndian(diff)
 	curr := end
 	// Ignore first set bit
@@ -482,7 +485,7 @@ func computeLogPatternMerkleSkips(startSeqno keybase1.Seqno, endSeqno keybase1.S
 		curr -= skips[i]
 		ret = append(ret, curr)
 	}
-	return ret
+	return ret, nil
 }
 
 func NewMerkleClient(g *GlobalContext) *MerkleClient {
@@ -1185,7 +1188,10 @@ func (mc *MerkleClient) verifySkipSequence(m MetaContext, ss SkipSequence, thisR
 func (ss SkipSequence) verify(m MetaContext, thisRoot keybase1.Seqno, lastRoot keybase1.Seqno) (err error) {
 	defer m.VTrace(VLog1, "SkipSequence#verify", func() error { return err })()
 
-	expectedSkips := computeLogPatternMerkleSkips(lastRoot, thisRoot)
+	expectedSkips, err := computeLogPatternMerkleSkips(lastRoot, thisRoot)
+	if err != nil {
+		return MerkleClientError{fmt.Sprintf("Failed to compute expected skip pattern: %s", err), merkleErrorWrongSkipSequence}
+	}
 	// Don't check bookends that were added by client
 	if len(expectedSkips)+2 != len(ss) {
 		return MerkleClientError{fmt.Sprintf("Wrong number of skips: expected %d, got %d.", len(expectedSkips)+2, len(ss)), merkleErrorWrongSkipSequence}

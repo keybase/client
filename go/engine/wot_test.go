@@ -9,7 +9,6 @@ import (
 )
 
 func TestWebOfTrust(t *testing.T) {
-	t.Skip("skipping for server change")
 	tc1 := SetupEngineTest(t, "wot")
 	tc2 := SetupEngineTest(t, "wot")
 	tc3 := SetupEngineTest(t, "wot")
@@ -40,12 +39,12 @@ func TestWebOfTrust(t *testing.T) {
 	mctx := NewMetaContextForTest(tc1)
 
 	// fu1 vouches for fu2
-	arg := &WotAttestArg{
-		Attestee:     fu2.User.ToUserVersion(),
-		Attestations: []string{"alice is awesome"},
+	arg := &WotVouchArg{
+		Vouchee:    fu2.User.ToUserVersion(),
+		VouchTexts: []string{"alice is awesome"},
 	}
 
-	eng := NewWotAttest(tc1.G, arg)
+	eng := NewWotVouch(tc1.G, arg)
 	err = RunEngine2(mctx, eng)
 	require.NoError(t, err)
 
@@ -63,11 +62,11 @@ func TestWebOfTrust(t *testing.T) {
 	// a user and eldest seqno changes, that they get an error.
 	uv := fu3.User.ToUserVersion()
 	uv.EldestSeqno++
-	arg = &WotAttestArg{
-		Attestee:     uv,
-		Attestations: []string{"bob is nice"},
+	arg = &WotVouchArg{
+		Vouchee:    uv,
+		VouchTexts: []string{"bob is nice"},
 	}
-	eng = NewWotAttest(tc1.G, arg)
+	eng = NewWotVouch(tc1.G, arg)
 	err = RunEngine2(mctx, eng)
 	require.Error(tc1.T, err)
 
@@ -77,16 +76,16 @@ func TestWebOfTrust(t *testing.T) {
 	require.Equal(tc1.T, lenBefore+1, idt.Len())
 
 	// make an fu1 -> fu3 attest with confidence stuff
-	arg = &WotAttestArg{
-		Attestee:     fu3.User.ToUserVersion(),
-		Attestations: []string{"charlie rocks"},
+	arg = &WotVouchArg{
+		Vouchee:    fu3.User.ToUserVersion(),
+		VouchTexts: []string{"charlie rocks"},
 		Confidence: keybase1.Confidence{
 			UsernameVerifiedVia: keybase1.UsernameVerificationType_VIDEO,
 			VouchedBy:           []string{"t_doug"},
 			KnownOnKeybaseDays:  78,
 		},
 	}
-	eng = NewWotAttest(tc1.G, arg)
+	eng = NewWotVouch(tc1.G, arg)
 	err = RunEngine2(mctx, eng)
 	require.NoError(tc1.T, err)
 

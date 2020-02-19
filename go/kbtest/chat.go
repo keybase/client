@@ -622,6 +622,16 @@ type dummyChannelSource struct{}
 
 var _ types.TeamChannelSource = (*dummyChannelSource)(nil)
 
+func (d dummyChannelSource) GetLastActiveForTLF(ctx context.Context, uid gregor1.UID, tlfID chat1.TLFID,
+	topicType chat1.TopicType) (gregor1.Time, error) {
+	return 0, nil
+}
+
+func (d dummyChannelSource) GetLastActiveForTeams(ctx context.Context, uid gregor1.UID,
+	topicType chat1.TopicType) (map[chat1.TLFIDStr]gregor1.Time, error) {
+	return nil, nil
+}
+
 func (d dummyChannelSource) GetChannelsFull(ctx context.Context, uid gregor1.UID, tlfID chat1.TLFID,
 	topicType chat1.TopicType) ([]chat1.ConversationLocal, error) {
 	return nil, nil
