@@ -38,8 +38,6 @@ type AddMemberTx struct {
 
 	// EmailInviteMsg is used for sending a welcome message in email invites
 	EmailInviteMsg *string
-
-	TestUseInvites bool
 }
 
 type txPayloadTag string
@@ -151,14 +149,7 @@ func (tx *AddMemberTx) addMemberAndCompleteInvite(uv keybase1.UserVersion,
 	// exists. Role is not RESTRICTEDBOT as botSettings are set to nil.
 	payload := tx.changeMembershipPayload(uv.Uid)
 	err := payload.AddUVWithRole(uv, role, nil /* botSettings */)
-	if tx.TestUseInvites {
-		payload.UsedInvites = append(payload.UsedInvites, keybase1.TeamUsedInvite{
-			InviteID: inviteID,
-			Uv:       uv.PercentForm(),
-		})
-	} else {
-		payload.CompleteInviteID(inviteID, uv.PercentForm())
-	}
+	payload.CompleteInviteID(inviteID, uv.PercentForm())
 	return err
 }
 
@@ -849,16 +840,6 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 			}
 
 			section.CompletedInvites = payload.CompletedInvites
-			if len(payload.UsedInvites) > 0 {
-				section.UsedInvites = make([]SCMapInviteIDUVPair, len(payload.UsedInvites))
-				for i, v := range payload.UsedInvites {
-					section.UsedInvites[i] = SCMapInviteIDUVPair{
-						InviteID: SCTeamInviteID(v.InviteID),
-						UV:       v.Uv,
-					}
-				}
-			}
-
 			sections = append(sections, section)
 
 			// If there are additions, then there will be a new key involved.

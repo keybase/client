@@ -1388,7 +1388,9 @@ func (t *Team) InviteSeitanV2(ctx context.Context, role keybase1.TeamRole, label
 }
 
 func (t *Team) InviteSeitanInviteLink(ctx context.Context, role keybase1.TeamRole, label keybase1.SeitanKeyLabel) (ikey SeitanIKeyV2, err error) {
-	defer t.G().CTraceTimed(ctx, fmt.Sprintf("InviteSeitanV2: team: %v, role: %v", t.Name(), role), func() error { return err })()
+	defer t.G().CTraceTimed(ctx, fmt.Sprintf("InviteSeitanInviteLink: team: %v, role: %v", t.Name(), role), func() error { return err })()
+
+	// Experimental code: we are figuring out how to do invite links.
 
 	ikey, err = GenerateIKeyV2()
 	if err != nil {
