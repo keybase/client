@@ -2236,6 +2236,20 @@ func (t *teamSigchainPlayer) obsoleteInvites(stateToUpdate *TeamSigChainState, r
 
 func (t *teamSigchainPlayer) useInvites(stateToUpdate *TeamSigChainState, roleUpdates chainRoleUpdates, used []SCMapInviteIDUVPair) error {
 	for _, pair := range used {
+		inviteID, err := pair.InviteID.TeamInviteID()
+		if err != nil {
+			return err
+		}
+		invite, ok := stateToUpdate.inner.ActiveInvites[inviteID]
+		if !ok {
+			return fmt.Errorf("could not find active invite ID in used_invites: %s", inviteID)
+		}
+		if invite.ExpireAfterUses != nil {
+			uses := len(stateToUpdate.inner.UsedInvites[inviteID])
+			if uses+1 >= *invite.ExpireAfterUses {
+				return fmt.Errorf("invite %s is expired after %d uses", inviteID, uses)
+			}
+		}
 		uv, err := keybase1.ParseUserVersion(pair.UV)
 		if err != nil {
 			return err
@@ -2244,7 +2258,6 @@ func (t *teamSigchainPlayer) useInvites(stateToUpdate *TeamSigChainState, roleUp
 		if logPoint < 0 {
 			return fmt.Errorf("used_invite for UV %s that was not added to to the team", pair.UV)
 		}
-		inviteID := keybase1.TeamInviteID(pair.InviteID)
 		stateToUpdate.inner.UsedInvites[inviteID] = append(stateToUpdate.inner.UsedInvites[inviteID],
 			keybase1.TeamUsedInviteLog{
 				Uv:       uv,
