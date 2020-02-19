@@ -46,7 +46,10 @@ const ConnectedChannel = Container.compose(
       ownProps.selectedTab,
       stateProps._yourOperations
     )
-    const sections: Sections = [{data: rows, header: {key: 'tabs', type: 'tabs'}, key: 'body'}]
+    const sections: Sections = [
+      {data: [{key: 'header-inner', type: 'header' as const}], key: 'header'},
+      {data: rows, header: {key: 'tabs', type: 'tabs'}, key: 'body'},
+    ]
     return {
       ...ownProps,
       onBack: dispatchProps.onBack,
