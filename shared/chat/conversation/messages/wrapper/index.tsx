@@ -861,8 +861,8 @@ const styles = Styles.styleSheetCreate(
       usernameCrown: Styles.platformStyles({
         isElectron: {
           alignItems: 'baseline',
-          position: 'relative',
           marginRight: 48,
+          position: 'relative',
           top: -2,
         },
         isMobile: {
