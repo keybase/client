@@ -1124,8 +1124,9 @@ func (h *Server) PostFileAttachmentLocalNonblock(ctx context.Context,
 	if err != nil {
 		return res, err
 	}
-	if _, err := h.G().AttachmentUploader.Register(ctx, uid, arg.Arg.ConversationID, outboxID, arg.Arg.Title,
-		arg.Arg.Filename, nil, arg.Arg.CallerPreview); err != nil {
+	_, err = h.G().AttachmentUploader.Register(ctx, uid, arg.Arg.ConversationID, outboxID, arg.Arg.Title,
+		arg.Arg.Filename, nil, arg.Arg.CallerPreview)
+	if err != nil {
 		return res, err
 	}
 	return chat1.PostLocalNonblockRes{

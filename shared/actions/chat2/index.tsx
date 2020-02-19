@@ -23,6 +23,7 @@ import * as Tabs from '../../constants/tabs'
 import * as UsersGen from '../users-gen'
 import * as WaitingGen from '../waiting-gen'
 import * as Router2Constants from '../../constants/router2'
+import * as Platform from '../../constants/platform'
 import commonTeamBuildingSaga, {filterForNs} from '../team-building'
 import * as TeamsConstants from '../../constants/teams'
 import {NotifyPopup} from '../../native/notifications'
@@ -2217,6 +2218,27 @@ function* attachmentsUpload(
   )
 }
 
+const attachFromDragAndDrop = async (
+  _: Container.TypedState,
+  action: Chat2Gen.AttachFromDragAndDropPayload
+) => {
+  if (Platform.isDarwin) {
+    const paths = await Promise.all(
+      action.payload.paths.map(p => KB.kb.darwinCopyToChatTempUploadFile(p.path))
+    )
+    return Chat2Gen.createAttachmentsUpload({
+      conversationIDKey: action.payload.conversationIDKey,
+      paths,
+      titles: action.payload.titles,
+    })
+  }
+  return Chat2Gen.createAttachmentsUpload({
+    conversationIDKey: action.payload.conversationIDKey,
+    paths: action.payload.paths,
+    titles: action.payload.titles,
+  })
+}
+
 // Tell service we're typing
 const sendTyping = (action: Chat2Gen.SendTypingPayload) => {
   const {conversationIDKey, typing} = action.payload
@@ -3746,6 +3768,7 @@ function* chat2Saga() {
     attachmentDownload
   )
   yield* Saga.chainGenerator<Chat2Gen.AttachmentsUploadPayload>(Chat2Gen.attachmentsUpload, attachmentsUpload)
+  yield* Saga.chainAction2(Chat2Gen.attachFromDragAndDrop, attachFromDragAndDrop)
   yield* Saga.chainAction(Chat2Gen.attachmentPasted, attachmentPasted)
 
   yield* Saga.chainAction(Chat2Gen.sendTyping, sendTyping)
