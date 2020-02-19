@@ -1,9 +1,10 @@
 package libkb
 
 import (
+	"testing"
+
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func importExportLink(tc TestContext, data []byte, uid keybase1.UID) {
@@ -67,6 +68,7 @@ const linkVer1 = `{
       "last_success": null,
       "version": null,
       "fingerprint": ""
+      "si1" : "aFWjav1+kGe8j73ulzmDTJYSPlD2VQsRXUzX2Ch628qdnVzbg24ZuOgwPMKt8RENC9O6VCnPAhSnMfuYO86lAA==",
     }`
 
 const linkVer2 = `{

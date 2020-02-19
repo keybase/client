@@ -111,10 +111,9 @@ func importLinkFromServerV2Stubbed(m MetaContext, parent *SigChain, raw string) 
 	return ret, nil
 }
 
-func ImportLinkFromServer2(m MetaContext, parent *SigChain, data []byte, selfUID keybase1.UID) (ret *ChainLink, err error) {
+func importLinkFromServer2(m MetaContext, parent *SigChain, data []byte, selfUID keybase1.UID) (ret *ChainLink, err error) {
 
 	sig2Stubbed, _ := jsonparserw.GetString(data, "s2")
-
 	if sig2Stubbed != "" {
 		return importLinkFromServerV2Stubbed(m, parent, sig2Stubbed)
 	}
@@ -164,12 +163,19 @@ func ImportLinkFromServer2(m MetaContext, parent *SigChain, data []byte, selfUID
 	if err != nil {
 		return nil, err
 	}
+
 	tmp.sig = sig
 	tmp.sigID = sigID
-
 	// this might overwrite the actions of unpackPayloadJSON. TODO: to change
 	// unpackPayloadJSON to fix this issue.
 	tmp.kid = kid
+
+	if selfUID.Equal(tmp.uid) {
+		if pt, tmpErr := jsonparserw.GetString(data, "proof_text_full"); tmpErr == nil {
+			tmp.proofText = pt
+		}
+	}
+
 	return ret, nil
 }
 
