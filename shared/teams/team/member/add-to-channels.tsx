@@ -16,8 +16,9 @@ const AddToChannels = ({teamID, username}: Props) => {
   const meta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
   const channels = Container.useSelector(s => Constants.getTeamChannelInfos(s, teamID))
   const [, setFilter] = React.useState('')
+  const [filtering, setFiltering] = React.useState(false)
   const items = [
-    {type: 'header' as const},
+    ...(filtering ? [] : [{type: 'header' as const}]),
     ...[...channels.values()].map(c => ({
       channelname: c.channelname,
       numMembers: c.numParticipants,
@@ -78,6 +79,8 @@ const AddToChannels = ({teamID, username}: Props) => {
             icon="iconfont-search"
             onChange={setFilter}
             size="full-width"
+            onFocus={() => setFiltering(true)}
+            onBlur={() => setFiltering(false)}
           />
         </Kb.Box2>
         <Kb.Box2 direction="vertical" style={styles.listContainer} fullWidth={true}>
