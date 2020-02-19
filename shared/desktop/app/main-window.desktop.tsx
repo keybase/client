@@ -269,7 +269,7 @@ export default () => {
       nodeIntegration: true,
       nodeIntegrationInWorker: false,
       preload: resolveRoot('dist', `preload-main${__DEV__ ? '.dev' : ''}.bundle.js`),
-      spellcheck: !disableSpellCheck,
+      spellcheck: true,
     },
     width: windowState.width,
     x: windowState.x,
