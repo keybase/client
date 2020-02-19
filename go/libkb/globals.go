@@ -74,6 +74,7 @@ type GlobalContext struct {
 	IdentifyDispatch                 *IdentifyDispatch           // get notified of identify successes
 	Identify3State                   *Identify3State             // keep track of Identify3 sessions
 	vidMu                            *sync.Mutex                 // protect VID
+	RuntimeStats                     RuntimeStats                // performance runtime stats
 
 	cacheMu                *sync.RWMutex   // protects all caches
 	ProofCache             *ProofCache     // where to cache proof results
@@ -240,6 +241,7 @@ func NewGlobalContext() *GlobalContext {
 		switchedUsers:      make(map[NormalizedUsername]bool),
 		Pegboard:           NewPegboard(),
 		random:             &SecureRandom{},
+		RuntimeStats:       NewDummyRuntimeStats(),
 	}
 	return ret
 }

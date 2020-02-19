@@ -549,9 +549,9 @@ func (h ConfigHandler) ToggleRuntimeStats(ctx context.Context) error {
 		return err
 	}
 	if curValue {
-		<-h.svc.runtimeStats.Stop(ctx)
+		<-h.G().RuntimeStats.Stop(ctx)
 	} else {
-		h.svc.runtimeStats.Start(ctx)
+		h.G().RuntimeStats.Start(ctx)
 	}
 	return nil
 }

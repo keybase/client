@@ -241,6 +241,11 @@ func (s *DiskInstrumentationStorage) logRecord(tag string, record rpc.Instrument
 	}
 	if _, ok := tagLogBlacklist[tag]; !ok {
 		s.G().PerfLog.Debug("%s %v %s", tag, record.Dur, humanize.Bytes(uint64(record.Size)))
+		s.G().RuntimeStats.PushPerfEvent(keybase1.PerfEvent{
+			EventType: keybase1.PerfEventType_NETWORK,
+			Message:   tag,
+			Ctime:     keybase1.ToTime(record.Ctime),
+		})
 	}
 }
 

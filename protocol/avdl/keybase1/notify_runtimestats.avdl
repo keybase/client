@@ -32,10 +32,24 @@ protocol NotifyRuntimeStats {
     StatsSeverityLevel residentSeverity;
   }
 
+  enum PerfEventType {
+    NETWORK_0,
+    TEAMBOXAUDIT_1,
+    TEAMAUDIT_2
+  }
+
+  record PerfEvent {
+    string message;
+    Time ctime;
+    PerfEventType eventType;
+  }
+
   record RuntimeStats {
     array<ProcessRuntimeStats> processStats;
 
     array<DbStats> dbStats;
+
+    array<PerfEvent> perfEvents;
 
     // Chat specific
     boolean convLoaderActive;

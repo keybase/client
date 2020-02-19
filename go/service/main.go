@@ -80,7 +80,6 @@ type Service struct {
 	walletState     *stellar.WalletState
 	offlineRPCCache *offline.RPCCache
 	trackerLoader   *TrackerLoader
-	runtimeStats    *runtimestats.Runner
 	httpSrv         *manager.Srv
 	avatarSrv       *avatars.Srv
 
@@ -111,7 +110,6 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		home:             home.NewHome(g),
 		tlfUpgrader:      tlfupgrade.NewBackgroundTLFUpdater(g),
 		trackerLoader:    NewTrackerLoader(g),
-		runtimeStats:     runtimestats.NewRunner(allG),
 		teamUpgrader:     teams.NewUpgrader(),
 		walletState:      stellar.NewWalletState(g, remote.NewRemoteNet(g)),
 		offlineRPCCache:  offline.NewRPCCache(g),
@@ -342,6 +340,7 @@ func (d *Service) Run() (err error) {
 func (d *Service) SetupCriticalSubServices() error {
 	allG := globals.NewContext(d.G(), d.ChatG())
 	mctx := d.MetaContext(context.TODO())
+	d.G().RuntimeStats = runtimestats.NewRunner(allG)
 	teams.ServiceInit(d.G())
 	stellar.ServiceInit(d.G(), d.walletState, d.badger)
 	pvl.NewPvlSourceAndInstall(d.G())
@@ -559,7 +558,7 @@ func (d *Service) runTrackerLoader(ctx context.Context) {
 }
 
 func (d *Service) runRuntimeStats(ctx context.Context) {
-	d.runtimeStats.Start(ctx)
+	d.G().RuntimeStats.Start(ctx)
 }
 
 func (d *Service) runTeamUpgrader(ctx context.Context) {
