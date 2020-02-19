@@ -39,6 +39,7 @@ const ListItem = (props: Props) => (
     onClick={props.onClick}
     style={Styles.collapseStyles([
       props.type === 'Small' ? styles.clickableBoxSmall : styles.clickableBoxLarge,
+      !!props.height && {minHeight: props.height},
       props.style,
     ])}
   >
@@ -47,7 +48,10 @@ const ListItem = (props: Props) => (
         listItem2: !props.hideHover,
       })}
       direction="horizontal"
-      style={props.type === 'Small' ? styles.rowSmall : styles.rowLarge}
+      style={Styles.collapseStyles([
+        props.type === 'Small' ? styles.rowSmall : styles.rowLarge,
+        !!props.height && {minHeight: props.height},
+      ])}
       fullWidth={true}
     >
       {props.statusIcon && (
@@ -70,15 +74,7 @@ const ListItem = (props: Props) => (
           {props.icon}
         </Kb.Box2>
       )}
-      <Kb.Box2
-        direction="horizontal"
-        style={
-          // If this becomes a problem, memoize different heights we use.
-          props.height
-            ? Styles.collapseStyles([getContainerStyles(props), {minHeight: props.height}])
-            : getContainerStyles(props)
-        }
-      >
+      <Kb.Box2 direction="horizontal" style={getContainerStyles(props)}>
         {!props.firstItem && <Divider style={styles.divider} />}
         <Kb.BoxGrow>
           <Kb.Box2 fullHeight={true} direction="horizontal" style={styles.bodyContainer}>
@@ -320,6 +316,8 @@ const getContainerStyles = (props: Props) =>
       : props.icon
       ? styles.containerLargeNoStatusIconWithIcon
       : styles.containerLargeNoStatusIconNoIcon,
+    // If this becomes a problem, memoize different heights we use.
+    !!props.height && {minHeight: props.height},
     props.containerStyleOverride,
   ])
 
