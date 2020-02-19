@@ -1216,7 +1216,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.saltpack.saltpackDecryptFile': {
-    inParam: {readonly encryptedFilename: String}
+    inParam: {readonly encryptedFilename: String; readonly destinationDir: String}
     outParam: SaltpackFileResult
   }
   'keybase.1.saltpack.saltpackDecryptString': {
@@ -1224,7 +1224,7 @@ export type MessageTypes = {
     outParam: SaltpackPlaintextResult
   }
   'keybase.1.saltpack.saltpackEncryptFile': {
-    inParam: {readonly filename: String; readonly opts: SaltpackFrontendEncryptOptions}
+    inParam: {readonly filename: String; readonly destinationDir: String; readonly opts: SaltpackFrontendEncryptOptions}
     outParam: SaltpackEncryptFileResult
   }
   'keybase.1.saltpack.saltpackEncryptString': {
@@ -1240,7 +1240,7 @@ export type MessageTypes = {
     outParam: String
   }
   'keybase.1.saltpack.saltpackSignFile': {
-    inParam: {readonly filename: String}
+    inParam: {readonly filename: String; readonly destinationDir: String}
     outParam: String
   }
   'keybase.1.saltpack.saltpackSignString': {
@@ -1248,7 +1248,7 @@ export type MessageTypes = {
     outParam: String
   }
   'keybase.1.saltpack.saltpackVerifyFile': {
-    inParam: {readonly signedFilename: String}
+    inParam: {readonly signedFilename: String; readonly destinationDir: String}
     outParam: SaltpackVerifyFileResult
   }
   'keybase.1.saltpack.saltpackVerifyString': {
