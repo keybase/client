@@ -3,7 +3,7 @@ import * as Types from '../../../constants/types/teams'
 import * as ChatTypes from '../../../constants/types/chat2'
 import LoadingRow from '../../team/rows/loading'
 import {Row} from '.'
-import ChannelHeaderRow from '../header/container'
+import ChannelHeaderRow from '../header'
 
 const renderRow = (row: Row, teamID: Types.TeamID, conversationIDKey: ChatTypes.ConversationIDKey) => {
   switch (row.type) {

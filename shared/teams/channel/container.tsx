@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import {HeaderTitle, SubHeader} from './nav-header/container'
 import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
@@ -91,16 +90,8 @@ const ConnectedChannelWithTabs = (props: RouteProps) => {
   return <ConnectedChannel {...props} selectedTab={selectedTab} setSelectedTab={setSelectedTab} />
 }
 
-ConnectedChannelWithTabs.navigationOptions = (ownProps: RouteProps) => ({
-  header: Container.isMobile
-    ? () => <HeaderTitle teamID={Container.getRouteProps(ownProps, 'teamID', '')} />
-    : null,
-  headerExpandable: true,
+ConnectedChannelWithTabs.navigationOptions = () => ({
   headerHideBorder: true,
-  headerTitle: Container.isMobile
-    ? undefined
-    : () => <HeaderTitle teamID={Container.getRouteProps(ownProps, 'teamID', '')} />,
-  subHeader: () => <SubHeader teamID={Container.getRouteProps(ownProps, 'teamID', '')} />,
 })
 
 export default ConnectedChannelWithTabs
