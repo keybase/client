@@ -24,22 +24,43 @@ const AddToChannels = ({teamID, username}: Props) => {
       type: 'channel' as const,
     })),
   ]
+  const [selected, setSelected] = React.useState(new Set<string>())
+  const onSelect = (channelname: string) => {
+    if (selected.has(channelname)) {
+      selected.delete(channelname)
+      setSelected(new Set(selected))
+    } else {
+      selected.add(channelname)
+      setSelected(new Set(selected))
+    }
+  }
+  const onSelectAll = () => setSelected(new Set([...channels.values()].map(c => c.channelname)))
+  const onSelectNone = () => setSelected(new Set())
+
   const renderItem = (_, item: Unpacked<typeof items>) => {
-    let content
     switch (item.type) {
-      case 'header':
-        return <HeaderRow />
+      case 'header': {
+        const allSelected = selected.size === channels.size
+        return (
+          <HeaderRow
+            onCreate={() => {}}
+            onSelectAll={allSelected ? undefined : onSelectAll}
+            onSelectNone={allSelected ? onSelectNone : undefined}
+          />
+        )
+      }
       case 'channel':
         return (
           <ChannelRow
             channelname={item.channelname}
             numMembers={item.numMembers}
-            selected={false}
-            onSelect={() => {}}
+            selected={selected.has(item.channelname)}
+            onSelect={() => onSelect(item.channelname)}
           />
         )
     }
   }
+
   return (
     <Kb.Modal
       header={{
@@ -67,15 +88,17 @@ const AddToChannels = ({teamID, username}: Props) => {
   )
 }
 
-const HeaderRow = ({onCreate, onSelectAll}) => (
+const HeaderRow = ({onCreate, onSelectAll, onSelectNone}) => (
   <Kb.Box2
     direction="horizontal"
     alignItems="center"
     fullWidth={true}
     style={Styles.collapseStyles([styles.item, styles.headerItem])}
   >
-    <Kb.Button label="Create channel" small={true} mode="Secondary" />
-    <Kb.Text type="BodyPrimaryLink">Select all</Kb.Text>
+    <Kb.Button label="Create channel" small={true} mode="Secondary" onClick={onCreate} />
+    <Kb.Text type="BodyPrimaryLink" onClick={onSelectAll || onSelectNone}>
+      {onSelectAll ? 'Select all' : 'Select none'}
+    </Kb.Text>
   </Kb.Box2>
 )
 
@@ -88,7 +111,7 @@ const ChannelRow = ({channelname, numMembers, selected, onSelect}) => (
     body={
       <Kb.Box2 direction="vertical" alignItems="stretch">
         <Kb.Text type={Styles.isMobile ? 'Body' : 'BodySemibold'} lineClamp={1}>
-          {channelname}
+          #{channelname}
         </Kb.Text>
         {!Styles.isMobile && (
           <Kb.Box2 direction="horizontal" alignSelf="stretch" gap="xxtiny">
