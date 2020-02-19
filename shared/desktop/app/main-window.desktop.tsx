@@ -281,6 +281,7 @@ export default () => {
     win.webContents.session.setSpellCheckerDictionaryDownloadURL(
       'https://keybase.io/dictionaries/hunspell_dictionaries.zip'
     )
+    win.webContents.session.setSpellCheckerLanguages(['en-US'])
   }
 
   if (windowState.isFullScreen) {
