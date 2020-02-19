@@ -14,10 +14,9 @@ type request interface {
 }
 
 type requestImpl struct {
-	ctx                 context.Context
-	cancelFunc          context.CancelFunc
-	instrumenterStorage NetworkInstrumenterStorage
-	log                 LogInterface
+	ctx        context.Context
+	cancelFunc context.CancelFunc
+	log        LogInterface
 }
 
 func (req *requestImpl) CancelFunc() context.CancelFunc {
@@ -29,16 +28,14 @@ type callRequest struct {
 	requestImpl
 }
 
-func newCallRequest(rpc *rpcCallMessage, log LogInterface,
-	instrumenterStorage NetworkInstrumenterStorage) *callRequest {
+func newCallRequest(rpc *rpcCallMessage, log LogInterface) *callRequest {
 	ctx, cancel := context.WithCancel(rpc.Context())
 	return &callRequest{
 		rpcCallMessage: rpc,
 		requestImpl: requestImpl{
-			ctx:                 ctx,
-			cancelFunc:          cancel,
-			log:                 log,
-			instrumenterStorage: instrumenterStorage,
+			ctx:        ctx,
+			cancelFunc: cancel,
+			log:        log,
 		},
 	}
 }
@@ -60,8 +57,7 @@ func (r *callRequest) Reply(enc *framedMsgpackEncoder, res interface{}, errArg i
 	}
 
 	size, errCh := enc.EncodeAndWrite(r.ctx, v, nil)
-	record := NewNetworkInstrumenter(r.instrumenterStorage, RPCInstrumentTag(MethodResponse, r.Name()))
-	defer func() { _ = record.RecordAndFinish(size) }()
+	defer func() { _ = r.RecordAndFinish(size) }()
 
 	select {
 	case err := <-errCh:
@@ -94,16 +90,14 @@ type callCompressedRequest struct {
 	requestImpl
 }
 
-func newCallCompressedRequest(rpc *rpcCallCompressedMessage, log LogInterface,
-	instrumenterStorage NetworkInstrumenterStorage) *callCompressedRequest {
+func newCallCompressedRequest(rpc *rpcCallCompressedMessage, log LogInterface) *callCompressedRequest {
 	ctx, cancel := context.WithCancel(rpc.Context())
 	return &callCompressedRequest{
 		rpcCallCompressedMessage: rpc,
 		requestImpl: requestImpl{
-			ctx:                 ctx,
-			cancelFunc:          cancel,
-			log:                 log,
-			instrumenterStorage: instrumenterStorage,
+			ctx:        ctx,
+			cancelFunc: cancel,
+			log:        log,
 		},
 	}
 }
@@ -129,8 +123,7 @@ func (r *callCompressedRequest) Reply(enc *framedMsgpackEncoder, res interface{}
 	}
 
 	size, errCh := enc.EncodeAndWrite(r.ctx, v, nil)
-	record := NewNetworkInstrumenter(r.instrumenterStorage, RPCInstrumentTag(MethodResponse, r.Name()))
-	defer func() { _ = record.RecordAndFinish(size) }()
+	defer func() { _ = r.RecordAndFinish(size) }()
 
 	select {
 	case err := <-errCh:

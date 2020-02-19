@@ -16,11 +16,13 @@ type rpcMessage interface {
 	MinLength() int
 	Compression() CompressionType
 	Err() error
-	DecodeMessage(int, *fieldDecoder, *protocolHandler, *callContainer, *compressorCacher) error
+	DecodeMessage(int, *fieldDecoder, *protocolHandler, *callContainer, *compressorCacher, NetworkInstrumenterStorage) error
+	RecordAndFinish(int64) error
 }
 
 type basicRPCData struct {
-	ctx context.Context
+	ctx          context.Context
+	instrumenter *NetworkInstrumenter
 }
 
 func (r *basicRPCData) Context() context.Context {
@@ -54,13 +56,20 @@ func (rpcCallMessage) MinLength() int {
 	return 3
 }
 
-func (r *rpcCallMessage) DecodeMessage(l int, d *fieldDecoder, p *protocolHandler, _ *callContainer, _ *compressorCacher) error {
+func (r *rpcCallMessage) RecordAndFinish(size int64) error {
+	return r.instrumenter.RecordAndFinish(size)
+}
+
+func (r *rpcCallMessage) DecodeMessage(l int, d *fieldDecoder, p *protocolHandler, _ *callContainer,
+	_ *compressorCacher, instrumenterStorage NetworkInstrumenterStorage) error {
 	if r.err = d.Decode(&r.seqno); r.err != nil {
 		return r.err
 	}
 	if r.err = d.Decode(&r.name); r.err != nil {
 		return r.err
 	}
+	r.instrumenter = NewNetworkInstrumenter(instrumenterStorage, RPCInstrumentTag(r.Type(), r.Name()))
+	r.instrumenter.IncrementSize(int64(d.totalSize))
 	if r.arg, r.err = p.getArg(r.name); r.err != nil {
 		return r.err
 	}
@@ -104,7 +113,12 @@ func (rpcCallCompressedMessage) MinLength() int {
 	return 4
 }
 
-func (r *rpcCallCompressedMessage) DecodeMessage(l int, d *fieldDecoder, p *protocolHandler, _ *callContainer, compressorCacher *compressorCacher) error {
+func (r *rpcCallCompressedMessage) RecordAndFinish(size int64) error {
+	return r.instrumenter.RecordAndFinish(size)
+}
+
+func (r *rpcCallCompressedMessage) DecodeMessage(l int, d *fieldDecoder, p *protocolHandler, _ *callContainer,
+	compressorCacher *compressorCacher, instrumenterStorage NetworkInstrumenterStorage) error {
 	if r.err = d.Decode(&r.seqno); r.err != nil {
 		return r.err
 	}
@@ -114,6 +128,8 @@ func (r *rpcCallCompressedMessage) DecodeMessage(l int, d *fieldDecoder, p *prot
 	if r.err = d.Decode(&r.name); r.err != nil {
 		return r.err
 	}
+	r.instrumenter = NewNetworkInstrumenter(instrumenterStorage, RPCInstrumentTag(r.Type(), r.Name()))
+	r.instrumenter.IncrementSize(int64(d.totalSize))
 	if r.arg, r.err = p.getArg(r.name); r.err != nil {
 		return r.err
 	}
@@ -161,7 +177,15 @@ func (r rpcResponseMessage) MinLength() int {
 	return 3
 }
 
-func (r *rpcResponseMessage) DecodeMessage(l int, d *fieldDecoder, _ *protocolHandler, cc *callContainer, compressorCacher *compressorCacher) error {
+func (r *rpcResponseMessage) RecordAndFinish(size int64) error {
+	if r.c == nil {
+		return nil
+	}
+	return r.c.instrumenter.RecordAndFinish(size)
+}
+
+func (r *rpcResponseMessage) DecodeMessage(l int, d *fieldDecoder, _ *protocolHandler, cc *callContainer,
+	compressorCacher *compressorCacher, _ NetworkInstrumenterStorage) error {
 
 	var seqNo SeqNumber
 	if r.err = d.Decode(&seqNo); r.err != nil {
@@ -174,6 +198,7 @@ func (r *rpcResponseMessage) DecodeMessage(l int, d *fieldDecoder, _ *protocolHa
 		r.err = newCallNotFoundError(seqNo)
 		return r.err
 	}
+	r.c.instrumenter.IncrementSize(int64(d.totalSize))
 
 	// Decode the error
 	var responseErr interface{}
@@ -278,10 +303,17 @@ type rpcNotifyMessage struct {
 	err  error
 }
 
-func (r *rpcNotifyMessage) DecodeMessage(l int, d *fieldDecoder, p *protocolHandler, _ *callContainer, _ *compressorCacher) error {
+func (r *rpcNotifyMessage) RecordAndFinish(size int64) error {
+	return r.instrumenter.RecordAndFinish(size)
+}
+
+func (r *rpcNotifyMessage) DecodeMessage(l int, d *fieldDecoder, p *protocolHandler, _ *callContainer,
+	_ *compressorCacher, instrumenterStorage NetworkInstrumenterStorage) error {
 	if r.err = d.Decode(&r.name); r.err != nil {
 		return r.err
 	}
+	r.instrumenter = NewNetworkInstrumenter(instrumenterStorage, RPCInstrumentTag(r.Type(), r.Name()))
+	r.instrumenter.IncrementSize(int64(d.totalSize))
 	if r.arg, r.err = p.getArg(r.name); r.err != nil {
 		return r.err
 	}
@@ -326,7 +358,12 @@ type rpcCancelMessage struct {
 	err   error
 }
 
-func (r *rpcCancelMessage) DecodeMessage(l int, d *fieldDecoder, p *protocolHandler, _ *callContainer, _ *compressorCacher) error {
+func (r *rpcCancelMessage) RecordAndFinish(size int64) error {
+	return nil
+}
+
+func (r *rpcCancelMessage) DecodeMessage(l int, d *fieldDecoder, p *protocolHandler, _ *callContainer,
+	_ *compressorCacher, _ NetworkInstrumenterStorage) error {
 	if r.err = d.Decode(&r.seqno); r.err != nil {
 		return r.err
 	}
@@ -362,12 +399,14 @@ func (r rpcCancelMessage) Err() error {
 type fieldDecoder struct {
 	d           *codec.Decoder
 	fieldNumber int
+	totalSize   int32
 }
 
 func newFieldDecoder(reader *frameReader) *fieldDecoder {
 	return &fieldDecoder{
 		d:           codec.NewDecoder(reader, newCodecMsgpackHandle()),
 		fieldNumber: 0,
+		totalSize:   reader.totalSize,
 	}
 }
 
@@ -375,6 +414,7 @@ func newUncompressedDecoder(data []byte, fieldNumber int) *fieldDecoder {
 	return &fieldDecoder{
 		d:           codec.NewDecoder(bytes.NewBuffer(data), newCodecMsgpackHandle()),
 		fieldNumber: fieldNumber,
+		totalSize:   int32(len(data)),
 	}
 }
 
@@ -390,7 +430,8 @@ func (dw *fieldDecoder) Decode(i interface{}) error {
 	return nil
 }
 
-func decodeRPC(l int, r *frameReader, p *protocolHandler, cc *callContainer, compressorCacher *compressorCacher) (rpcMessage, error) {
+func decodeRPC(l int, r *frameReader, p *protocolHandler, cc *callContainer, compressorCacher *compressorCacher,
+	instrumenterStorage NetworkInstrumenterStorage) (rpcMessage, error) {
 	decoder := newFieldDecoder(r)
 
 	typ := MethodInvalid
@@ -419,7 +460,7 @@ func decodeRPC(l int, r *frameReader, p *protocolHandler, cc *callContainer, com
 		return nil, newRPCDecodeError(typ, "", l, errors.New("wrong message length"))
 	}
 
-	if err := data.DecodeMessage(dataLength, decoder, p, cc, compressorCacher); err != nil {
+	if err := data.DecodeMessage(dataLength, decoder, p, cc, compressorCacher, instrumenterStorage); err != nil {
 		return data, newRPCDecodeError(typ, data.Name(), l, err)
 	}
 	return data, nil
