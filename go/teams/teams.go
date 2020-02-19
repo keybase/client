@@ -1411,13 +1411,11 @@ func (t *Team) InviteSeitanInviteLink(ctx context.Context, role keybase1.TeamRol
 	}
 
 	expireUseCount := 10
-	multipleUse := true
 	invite := SCTeamInvite{
 		Type:            "seitan_invite_token",
 		Name:            keybase1.TeamInviteName(encoded),
 		ID:              inviteID,
 		ExpireAfterUses: &expireUseCount,
-		MultipleUse:     &multipleUse,
 	}
 
 	if err := t.postInvite(ctx, invite, role); err != nil {

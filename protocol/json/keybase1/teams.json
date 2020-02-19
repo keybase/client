@@ -1345,10 +1345,6 @@
           "name": "inviter"
         },
         {
-          "type": "boolean",
-          "name": "multiUse"
-        },
-        {
           "type": [
             null,
             "int"

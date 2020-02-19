@@ -23,9 +23,9 @@ type SCTeamEntropy string
 
 func (s SCTeamID) ToTeamID() (keybase1.TeamID, error) { return keybase1.TeamIDFromString(string(s)) }
 
-// A (username, seqno) pair.
-// The username is adorned with "%n" at the end
-// where n is the seqno IF the seqno is not 1.
+// An (uid%eldest_seqno) pair.
+// The uid is adorned with "%n" at the end where n is the eldest seqno.
+// Just UID is fine as well (implicit %1), but marshaling will always add %1.
 type SCTeamMember keybase1.UserVersion
 
 type SCMapInviteIDToUV map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm
@@ -77,8 +77,7 @@ type SCTeamInvite struct {
 	Type            string                  `json:"type"`
 	Name            keybase1.TeamInviteName `json:"name"`
 	ID              SCTeamInviteID          `json:"id"`
-	MultipleUse     *bool                   `json:"multiple_use,omitempty"`
-	ExpireAfterTime *int                    `json:"expire_after_time,omitempty"`
+	ExpireAfterTime *int                    `json:"expire_after_time,omitempty"` // UnixTime
 	ExpireAfterUses *int                    `json:"expire_after_uses,omitempty"`
 }
 
@@ -231,7 +230,7 @@ func (link *SCChainLink) UnmarshalPayload() (res SCChainLinkPayload, err error) 
 
 type SCChainLinkPayload struct {
 	Body                SCPayloadBody                `json:"body,omitempty"`
-	Ctime               int                          `json:"ctime,omitempty"`
+	Ctime               int                          `json:"ctime,omitempty"` // UnixTime
 	ExpireIn            int                          `json:"expire_in,omitempty"`
 	Prev                *string                      `json:"prev,omitempty"`
 	SeqType             keybase1.SeqType             `json:"seq_type,omitempty"`
@@ -248,7 +247,7 @@ func (s SCChainLinkPayload) SigChainLocation() keybase1.SigChainLocation {
 }
 
 type SCMerkleRootSection struct {
-	Ctime    int               `json:"ctime"`
+	Ctime    int               `json:"ctime"` // UnixTime
 	Seqno    keybase1.Seqno    `json:"seqno"`
 	HashMeta keybase1.HashMeta `json:"hash_meta"`
 }
@@ -339,7 +338,6 @@ func (i SCTeamInvite) TeamInvite(mctx libkb.MetaContext, r keybase1.TeamRole, in
 		Type:            typ,
 		Name:            i.Name,
 		Inviter:         inviter,
-		MultiUse:        i.MultipleUse != nil && *i.MultipleUse,
 		ExpireAfterUses: i.ExpireAfterUses,
 		ExpireAfterTime: expireAfterTime,
 	}, nil

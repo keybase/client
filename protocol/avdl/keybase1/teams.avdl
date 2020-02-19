@@ -614,7 +614,6 @@ protocol teams {
     TeamInviteType type;
     TeamInviteName name;
     UserVersion inviter;
-    boolean multiUse;
     union { null, int } expireAfterUses;
     union { null, UnixTime } expireAfterTime;
   }

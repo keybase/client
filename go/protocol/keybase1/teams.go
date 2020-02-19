@@ -1723,19 +1723,17 @@ type TeamInvite struct {
 	Type            TeamInviteType `codec:"type" json:"type"`
 	Name            TeamInviteName `codec:"name" json:"name"`
 	Inviter         UserVersion    `codec:"inviter" json:"inviter"`
-	MultiUse        bool           `codec:"multiUse" json:"multiUse"`
 	ExpireAfterUses *int           `codec:"expireAfterUses,omitempty" json:"expireAfterUses,omitempty"`
 	ExpireAfterTime *UnixTime      `codec:"expireAfterTime,omitempty" json:"expireAfterTime,omitempty"`
 }
 
 func (o TeamInvite) DeepCopy() TeamInvite {
 	return TeamInvite{
-		Role:     o.Role.DeepCopy(),
-		Id:       o.Id.DeepCopy(),
-		Type:     o.Type.DeepCopy(),
-		Name:     o.Name.DeepCopy(),
-		Inviter:  o.Inviter.DeepCopy(),
-		MultiUse: o.MultiUse,
+		Role:    o.Role.DeepCopy(),
+		Id:      o.Id.DeepCopy(),
+		Type:    o.Type.DeepCopy(),
+		Name:    o.Name.DeepCopy(),
+		Inviter: o.Inviter.DeepCopy(),
 		ExpireAfterUses: (func(x *int) *int {
 			if x == nil {
 				return nil

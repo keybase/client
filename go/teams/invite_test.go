@@ -203,6 +203,11 @@ func TestMultiUseInviteLink(t *testing.T) {
 	err = tx.Post(tcs[0].MetaContext())
 	require.NoError(t, err)
 
+	team, err = Load(context.Background(), tcs[0].G, keybase1.LoadTeamArg{Name: teamname})
+	require.NoError(t, err)
+
+	spew.Dump(team.chain().inner)
+
 	// team2, err := Load(context.Background(), tcs[1].G, keybase1.LoadTeamArg{Name: teamname, NeedAdmin: true})
 	// require.NoError(t, err)
 
@@ -234,6 +239,62 @@ func TestSubteamForInviteLinkStore(t *testing.T) {
 
 func TestMultiUseInviteChains(t *testing.T) {
 	team, _ := runUnitFromFilename(t, "multi_use_invite.json")
-	spew.Dump(team.chain().inner.ActiveInvites)
-	spew.Dump(team.chain().inner.UsedInvites)
+
+	state := &team.chain().inner
+	require.Len(t, state.ActiveInvites, 1)
+
+	var inviteID keybase1.TeamInviteID
+	var invite keybase1.TeamInvite
+	for inviteID, invite = range state.ActiveInvites {
+		break // grab first invite
+	}
+
+	require.Equal(t, inviteID, invite.Id)
+	require.Nil(t, invite.ExpireAfterTime)
+	require.NotNil(t, invite.ExpireAfterUses)
+
+	require.Len(t, state.UsedInvites, 1)
+	usedInvitesForID, ok := state.UsedInvites[inviteID]
+	require.True(t, ok)
+	require.Len(t, usedInvitesForID, 3)
+
+	spew.Dump(state)
+
+	for _, usedInvitePair := range usedInvitesForID {
+		// Mostly check if UserLog pointed at by usedInvitePair exists
+		// (otherwise crash on map/list access).
+		ulog := state.UserLog[usedInvitePair.Uv][usedInvitePair.LogPoint]
+		require.Equal(t, ulog.Role, invite.Role)
+	}
+}
+
+func TestMultiInviteBadLinks(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	_ = fus
+
+	teamname := createTeam(*tcs[0])
+	t.Logf("Created team %s", teamname)
+
+	team, err := Load(context.Background(), tcs[0].G, keybase1.LoadTeamArg{Name: teamname})
+	require.NoError(t, err)
+
+	teamSection := SCTeamSection{
+		ID:       SCTeamID(team.ID),
+		Implicit: team.IsImplicit(),
+		Public:   team.IsPublic(),
+	}
+
+	mr, err := team.G().MerkleClient.FetchRootFromServer(team.MetaContext(context.TODO()), libkb.TeamMerkleFreshnessForAdmin)
+	require.NoError(t, err)
+
+	sigMultiItem, _, err := team.sigTeamItem(context.TODO(), teamSection, libkb.LinkTypeInvite, mr)
+	require.NoError(t, err)
+
+	sigMulti := []libkb.SigMultiItem{sigMultiItem}
+	err = team.precheckLinksToPost(context.TODO(), sigMulti)
+	require.NoError(t, err)
+
+	_ = team
 }
