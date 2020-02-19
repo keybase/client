@@ -6232,6 +6232,7 @@ func TestChatSrvNewConvAfterReset(t *testing.T) {
 }
 
 func TestChatSrvUserResetAndDeleted(t *testing.T) {
+	t.Skip()
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		// Only run this test for teams
 		switch mt {
