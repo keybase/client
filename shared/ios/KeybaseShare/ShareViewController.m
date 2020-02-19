@@ -260,7 +260,10 @@ NSInteger TEXT_LENGTH_THRESHOLD = 512; // TODO make this match the actual limit 
   if ([item hasItemConformingToTypeIdentifier:@"public.movie"]) {
     [item loadItemForTypeIdentifier:@"public.movie" options:nil completionHandler:fileHandler];
   } else if ([item hasItemConformingToTypeIdentifier:@"public.image"]) {
-    [item loadItemForTypeIdentifier:@"public.image" options:nil completionHandler:imageHandler];
+    // Use the fileHandler here, so if the image is from e.g. the Photos app,
+    // we'd go with the copy routine instead of having to encode an NSImage.
+    // This is important for staying under the mem limit.
+    [item loadItemForTypeIdentifier:@"public.image" options:nil completionHandler:fileHandler];
   } else if ([item hasItemConformingToTypeIdentifier:@"public.file-url"]) {
     [item loadItemForTypeIdentifier:@"public.file-url" options:nil completionHandler:fileHandler];
   } else if ([item hasItemConformingToTypeIdentifier:@"public.text"]) {
