@@ -162,6 +162,7 @@ const defaultCommonState = {
   input: new HiddenString(''),
   inputType: 'text' as Types.InputTypes,
   output: new HiddenString(''),
+  outputFileDestination: new HiddenString(''),
   outputSenderFullname: undefined,
   outputSenderUsername: undefined,
   outputSigned: false,

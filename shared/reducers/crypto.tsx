@@ -114,7 +114,13 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     const op = draftState[operation]
     const oldInput = op.input
     // Reset input to 'text' when no value given (cleared input or removed file upload)
-    op.inputType = value.stringValue() ? type : 'text'
+    const inputType = value.stringValue() ? type : 'text'
+
+    if (inputType === 'file') {
+      op.outputFileDestination = new HiddenString(value.stringValue())
+    }
+
+    op.inputType = inputType
     op.input = value
     op.outputValid = oldInput.stringValue() === value.stringValue()
   },

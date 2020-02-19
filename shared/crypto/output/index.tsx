@@ -285,6 +285,51 @@ const Output = (props: OutputProps) => {
   const fileIcon = Constants.getOutputFileIcon(operation)
   const actionsDisabled = waiting || !outputValid
 
+  if (!outputStatus || outputStatus !== 'success') {
+    return (
+      <Kb.Box2
+        direction="vertical"
+        fullHeight={true}
+        fullWidth={true}
+        style={Styles.collapseStyles([styles.coverOutput, styles.outputPlaceholder])}
+      />
+    )
+  }
+
+  if (outputType === 'file') {
+    return (
+      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
+        <Kb.Box2
+          direction="horizontal"
+          fullWidth={true}
+          alignItems="center"
+          style={styles.fileOutputContainer}
+        >
+          <Kb.Icon type={fileIcon} sizeType="Huge" />
+          <Kb.Text
+            type="BodyPrimaryLink"
+            style={Styles.collapseStyles([styles.fileOutputText, {color: fileOutputTextColor}])}
+            onClick={() => onShowInFinder()}
+          >
+            {output}
+          </Kb.Text>
+        </Kb.Box2>
+      </Kb.Box2>
+    )
+  }
+
+  return (
+    <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
+      <Kb.Text
+        type={textType === 'cipher' ? 'Terminal' : 'Body'}
+        selectable={!actionsDisabled}
+        style={Styles.collapseStyles([styles.output, outputLargeStyle])}
+      >
+        {output}
+      </Kb.Text>
+    </Kb.Box2>
+  )
+
   return outputStatus && outputStatus === 'success' ? (
     outputType === 'file' ? (
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>

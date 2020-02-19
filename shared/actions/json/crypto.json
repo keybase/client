@@ -62,6 +62,10 @@
       "_description": "Resets all values in the store for the given operation",
       "operation": "Types.Operations"
     },
+    "runFileOperation": {
+      "_description": "",
+      "operation": "Types.Operations"
+    },
     "saltpackDone": {
       "_description": "Progress logging",
       "filename": "HiddenString",
