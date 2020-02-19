@@ -253,6 +253,7 @@ const registerForAppLinks = () => {
 export default () => {
   setupDefaultSession()
   loadWindowState()
+
   // pass to main window
   htmlFile = htmlFile + `?darkModePreference=${darkModePreference || ''}`
   const win = new Electron.BrowserWindow({
@@ -268,7 +269,7 @@ export default () => {
       nodeIntegration: true,
       nodeIntegrationInWorker: false,
       preload: resolveRoot('dist', `preload-main${__DEV__ ? '.dev' : ''}.bundle.js`),
-      spellcheck: !disableSpellcheck,
+      spellcheck: !disableSpellCheck,
     },
     width: windowState.width,
     x: windowState.x,
@@ -280,8 +281,6 @@ export default () => {
     win.webContents.session.setSpellCheckerDictionaryDownloadURL(
       'https://keybase.io/dictionaries/hunspell_dictionaries.zip'
     )
-    // win.webContents.session.setSpellCheckerLanguages(['en-US'])
-    // logger.info(win.webContents.session.getSpellCheckerLanguages())
   }
 
   if (windowState.isFullScreen) {
