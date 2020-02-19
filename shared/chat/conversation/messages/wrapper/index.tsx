@@ -130,26 +130,47 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
   private showCenteredHighlight = () =>
     !this.state.disableCenteredHighlight && this.props.centeredOrdinal !== 'none'
 
-  private showMenuButtonTransitionTimeoutId: any = undefined
+  // Set thisi with a slight delay. Otherwise it seems when the cursor is
+  // moved from the message body into the EmojiRow this gets triggered. The
+  // CSS hover thing fixes it for most of cases, but in some cases that
+  // still happen. This seems to fix it in all cases.
+  private showMenuButtonInTimeoutId: any = undefined
+  private showMenuButtonOutTimeoutId: any = undefined
   private onMouseOver = () => {
-    if (this.showMenuButtonTransitionTimeoutId) {
-      clearTimeout(this.showMenuButtonTransitionTimeoutId)
-      this.showMenuButtonTransitionTimeoutId = undefined
-    }
     this.setState(o => (o.showMenuButton === true ? null : {showMenuButton: true}))
-  }
-  private onMouseOut = () => {
-    if (this.showMenuButtonTransitionTimeoutId) {
+    return
+    if (this.showMenuButtonOutTimeoutId) {
+      clearTimeout(this.showMenuButtonOutTimeoutId)
+      this.showMenuButtonOutTimeoutId = undefined
       return
     }
-    // Set this with a slight delay. Otherwise it seems when the cursor is
-    // moved from the message body into the EmojiRow this gets triggered. The
-    // CSS hover thing fixes it for most of cases, but in some cases that
-    // still happen. This seems to fix it in all cases.
-    this.showMenuButtonTransitionTimeoutId = setTimeout(() => {
+    if (this.showMenuButtonInTimeoutId) {
+      return
+    }
+    this.showMenuButtonInTimeoutId = setTimeout(() => {
       if (!this.mounted) {
         return
       }
+      this.showMenuButtonInTimeoutId = undefined
+      this.setState(o => (o.showMenuButton === true ? null : {showMenuButton: true}))
+    })
+  }
+  private onMouseLeave = () => {
+    this.setState(o => (!o.showMenuButton ? null : {showMenuButton: false}))
+    return
+    if (this.showMenuButtonInTimeoutId) {
+      clearTimeout(this.showMenuButtonInTimeoutId)
+      this.showMenuButtonInTimeoutId = undefined
+      return
+    }
+    if (this.showMenuButtonOutTimeoutId) {
+      return
+    }
+    this.showMenuButtonOutTimeoutId = setTimeout(() => {
+      if (!this.mounted) {
+        return
+      }
+      this.showMenuButtonOutTimeoutId = undefined
       this.setState(o => (!o.showMenuButton ? null : {showMenuButton: false}))
     })
   }
@@ -425,8 +446,8 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
           'WrapperMessage-hoverBox'
         ),
         onContextMenu: this.props.toggleShowingMenu,
+        onMouseLeave: this.onMouseLeave,
         onMouseOver: this.onMouseOver,
-        onMouseOut: this.onMouseOut,
         // attach popups to the message itself
         ref: this.props.setAttachmentRef,
       }
@@ -638,7 +659,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                   !this.props.showingMenu && (
                     <EmojiRow
                       className={Styles.classNames({
-                        'WrapperMessage-emojiRow': !this.props.isLastInThread,
+                        //'WrapperMessage-emojiRow': !this.props.isLastInThread,
                       })}
                       conversationIDKey={this.props.conversationIDKey}
                       onShowingEmojiPicker={this.setShowingPicker}
@@ -648,6 +669,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                         styles.emojiRow,
                         !Styles.isDarkMode && styles.emojiRowBorder,
                         this.props.isLastInThread && styles.emojiRowLast,
+                        {backgroundColor: 'yellow'},
                       ])}
                     />
                   )}
@@ -741,6 +763,7 @@ const styles = Styles.styleSheetCreate(
         marginLeft: 8,
         maxWidth: '100%',
         width: '100%',
+        backgroundColor: 'red',
       },
       centeredOrdinal: {backgroundColor: Styles.globalColors.yellowOrYellowAlt},
       container: Styles.platformStyles({isMobile: {overflow: 'hidden'}}),
@@ -783,7 +806,7 @@ const styles = Styles.styleSheetCreate(
         isElectron: {
           borderBottomLeftRadius: Styles.borderRadius,
           borderBottomRightRadius: Styles.borderRadius,
-          bottom: -Styles.globalMargins.mediumLarge,
+          bottom: -Styles.globalMargins.mediumLarge + 1,
           height: Styles.globalMargins.mediumLarge,
           paddingBottom: Styles.globalMargins.tiny,
           paddingRight: Styles.globalMargins.xtiny,
