@@ -3,6 +3,7 @@ import * as Sb from '../../../stories/storybook'
 import * as Constants from '../../../constants/teams'
 import * as Container from '../../../util/container'
 import {TeamMemberHeader} from './index.new'
+import AddToChannels from './add-to-channels'
 
 const fakeTeamID = 'fakeTeamID'
 const store = Container.produce(Sb.createStoreWithCommon(), draftState => {
@@ -36,5 +37,6 @@ const load = () =>
     .add('Header normal', () => <TeamMemberHeader teamID={fakeTeamID} username="jeff" />)
     .add('Header long name', () => <TeamMemberHeader teamID={fakeTeamID} username="paula" />)
     .add('Header self + no name', () => <TeamMemberHeader teamID={fakeTeamID} username="andonuts" />)
+    .add('Add to channels', () => <AddToChannels teamID={fakeTeamID} username="andonuts" />)
 
 export default load
