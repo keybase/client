@@ -40,8 +40,8 @@ const load = () => {
             </Kb.Text>
           </Kb.Box2>
           <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny">
-            <Kb.Button label="Do the thing" />
-            <Kb.Button label="Close" type="Dim" />
+            <Kb.Button label="Do the thing" fullWidth={true} />
+            <Kb.Button label="Close" type="Dim" fullWidth={true} />
           </Kb.Box2>
         </Kb.Box2>
       </Kb.MobilePopup>

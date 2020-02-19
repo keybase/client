@@ -474,6 +474,7 @@ def testGo(prefix, packagesToTest) {
     def goversion = sh(returnStdout: true, script: "go version").trim()
     println "Testing Go code on commit ${env.COMMIT_HASH} with ${goversion}. Merging to branch ${env.CHANGE_TARGET}."
 
+
     println "Running golint"
     retry(5) {
       sh 'go get -u golang.org/x/lint/golint'
@@ -495,7 +496,6 @@ def testGo(prefix, packagesToTest) {
         }
       }
 
-
       def hasKBFSChanges = packagesToTest.keySet().findIndexOf { key -> key =~ /^github.com\/keybase\/client\/go\/kbfs/ } >= 0
       if (hasKBFSChanges) {
         println "Running golangci-lint on KBFS"
@@ -504,7 +504,7 @@ def testGo(prefix, packagesToTest) {
             timeout(activity: true, time: 180, unit: 'SECONDS') {
             // Ignore the `dokan` directory since it contains lots of c code.
             // Ignore the `protocol` directory, autogeneration has some critques
-            sh 'go list -f "{{.Dir}}" ./...  | fgrep -v dokan | xargs realpath --relative-to=. | xargs golangci-lint run'
+            sh 'go list -f "{{.Dir}}" ./...  | fgrep -v dokan | xargs realpath --relative-to=. | xargs golangci-lint run --deadline 5m0s'
             }
           }
         }

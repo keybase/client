@@ -257,6 +257,7 @@ func (d *Service) Run() (err error) {
 	}()
 
 	mctx.Debug("+ service starting up; forkType=%v", d.ForkType)
+	mctx.PerfDebug("+ service starting up; forkType=%v", d.ForkType)
 
 	d.startProfile()
 
@@ -487,7 +488,7 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 
 	// Message sending apparatus
 	s3signer := attachments.NewS3Signer(ri)
-	store := attachments.NewS3Store(g.GlobalContext, g.GetRuntimeDir())
+	store := attachments.NewS3Store(g, g.GetRuntimeDir())
 	attachmentLRUSize := 1000
 	g.AttachmentUploader = attachments.NewUploader(g, store, s3signer, ri, attachmentLRUSize)
 	g.AddDbNukeHook(g.AttachmentUploader, "AttachmentUploader")
@@ -918,6 +919,7 @@ func (d *Service) OnLogin(mctx libkb.MetaContext) error {
 
 func (d *Service) OnLogout(m libkb.MetaContext) (err error) {
 	defer m.Trace("Service#OnLogout", func() error { return err })()
+	defer m.PerfTrace("Service#OnLogout", func() error { return err })()
 	log := func(s string) {
 		m.Debug("Service#OnLogout: %s", s)
 	}

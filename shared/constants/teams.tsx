@@ -186,6 +186,7 @@ const emptyState: Types.State = {
   sawChatBanner: false,
   sawSubteamsBanner: false,
   selectedChannels: new Map(),
+  selectedMembers: new Map(),
   subteamFilter: '',
   subteamsFiltered: undefined,
   teamAccessRequestsPending: new Set(),

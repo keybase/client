@@ -35,6 +35,7 @@ type Logs struct {
 	Kbfs       string
 	Service    string
 	EK         string
+	Perf       string
 	Updater    string
 	Start      string
 	Install    string
@@ -61,6 +62,7 @@ type LogSendContext struct {
 	kbfsLog          string
 	svcLog           string
 	ekLog            string
+	perfLog          string
 	desktopLog       string
 	updaterLog       string
 	startLog         string
@@ -185,6 +187,9 @@ func (l *LogSendContext) post(mctx libkb.MetaContext) (keybase1.LogSendID, error
 	if err := addGzippedFile(mpart, "ek_log_gz", "ek_log.gz", l.ekLog); err != nil {
 		return "", err
 	}
+	if err := addGzippedFile(mpart, "perf_log_gz", "perf_log.gz", l.perfLog); err != nil {
+		return "", err
+	}
 	if err := addGzippedFile(mpart, "updater_log_gz", "updater_log.gz", l.updaterLog); err != nil {
 		return "", err
 	}
@@ -276,6 +281,7 @@ func (l *LogSendContext) LogSend(sendLogs bool, numBytes int, mergeExtendedStatu
 		// so we have more comprehensive coverage there.
 		l.svcLog = tail(l.G().Log, "service", logs.Service, numBytes*AvgCompressionRatio)
 		l.ekLog = tail(l.G().Log, "ek", logs.EK, numBytes)
+		l.perfLog = tail(l.G().Log, "perf", logs.Perf, numBytes)
 		l.kbfsLog = tail(l.G().Log, "kbfs", logs.Kbfs, numBytes*AvgCompressionRatio)
 		l.desktopLog = tail(l.G().Log, "gui", logs.GUI, numBytes)
 		l.updaterLog = tail(l.G().Log, "updater", logs.Updater, numBytes)
@@ -346,6 +352,7 @@ func (l *LogSendContext) mergeExtendedStatus(status string) string {
 func (l *LogSendContext) Clear() {
 	l.svcLog = ""
 	l.ekLog = ""
+	l.perfLog = ""
 	l.kbfsLog = ""
 	l.desktopLog = ""
 	l.updaterLog = ""

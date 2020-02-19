@@ -135,7 +135,7 @@ func TestChatSrvUnfurl(t *testing.T) {
 		sender := NewNonblockingSender(tc.Context(),
 			NewBlockingSender(tc.Context(), NewBoxer(tc.Context()),
 				func() chat1.RemoteInterface { return ri }))
-		store := attachments.NewStoreTesting(tc.Context().GetLog(), nil, etc.G)
+		store := attachments.NewStoreTesting(tc.Context(), nil)
 		s3signer := &ptsigner{}
 		unfurler := unfurl.NewUnfurler(tc.Context(), store, s3signer, storage, sender,
 			func() chat1.RemoteInterface { return ri })

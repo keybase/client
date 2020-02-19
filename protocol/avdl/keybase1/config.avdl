@@ -102,6 +102,7 @@ protocol config {
     string pid;
     string log;
     string ekLog;
+    string perfLog;
   }
 
   record KBFSStatus {

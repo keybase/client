@@ -796,6 +796,9 @@ func (f *JSONConfigFile) GetLogFile() string {
 func (f *JSONConfigFile) GetEKLogFile() string {
 	return f.GetTopLevelString("ek_log_file")
 }
+func (f *JSONConfigFile) GetPerfLogFile() string {
+	return f.GetTopLevelString("perf_log_file")
+}
 func (f *JSONConfigFile) GetGUILogFile() string {
 	return f.GetTopLevelString("gui_log_file")
 }

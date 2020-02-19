@@ -597,6 +597,9 @@ func (g *GlobalContext) CTrace(ctx context.Context, msg string, f func() error) 
 func (g *GlobalContext) CTraceTimed(ctx context.Context, msg string, f func() error) func() {
 	return CTraceTimed(ctx, g.Log.CloneWithAddedDepth(1), msg, f, g.Clock())
 }
+func (g *GlobalContext) CPerfTrace(ctx context.Context, msg string, f func() error) func() {
+	return CTraceTimed(ctx, g.PerfLog, msg, f, g.Clock())
+}
 
 func (g *GlobalContext) CVTrace(ctx context.Context, lev VDebugLevel, msg string, f func() error) func() {
 	g.VDL.CLogf(ctx, lev, "+ %s", msg)
