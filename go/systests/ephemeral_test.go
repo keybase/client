@@ -186,8 +186,6 @@ func TestEphemeralTeambotEK(t *testing.T) {
 	err = botDeviceEKStore.ForceDeleteAll(mctx3, libkb.NormalizedUsername(botua.username))
 	require.NoError(t, err)
 	ekLib3.ClearCaches(mctx3)
-	err = ekLib3.KeygenIfNeeded(mctx3)
-	require.NoError(t, err)
 
 	_, created, err = ekLib3.GetOrCreateLatestTeambotEK(mctx3, teamID, botuaUID)
 	require.Error(t, err)
@@ -242,8 +240,6 @@ func TestEphemeralTeambotEK(t *testing.T) {
 	err = botDeviceEKStore.ForceDeleteAll(mctx3, libkb.NormalizedUsername(botua.username))
 	require.NoError(t, err)
 	ekLib3.ClearCaches(mctx3)
-	err = ekLib3.KeygenIfNeeded(mctx3)
-	require.NoError(t, err)
 
 	// Force a wrongKID error on the bot user by expiring the wrongKID cache
 	key := teambot.TeambotEKWrongKIDCacheKey(teamID, botua.uid, teambotEK2.Generation())
