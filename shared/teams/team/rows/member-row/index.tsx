@@ -202,7 +202,7 @@ export const TeamMemberRow = (props: Props) => {
 
     return (
       <Kb.ListItem2
-        action={actions}
+        action={selected ? null : actions}
         onlyShowActionOnHover="fade"
         height={Styles.isMobile ? 90 : 64}
         icon={checkCircle}
