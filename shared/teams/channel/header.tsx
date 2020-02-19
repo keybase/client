@@ -60,17 +60,9 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
         <Activity level={activityLevel} />
       </Kb.Box2>
       <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.rightActionsContainer}>
-        {yourOperations.chat && (
-          <Kb.Button label="View" onClick={callbacks.onChat} small={true} style={styles.button} />
-        )}
+        {yourOperations.chat && <Kb.Button label="View" onClick={callbacks.onChat} small={true} />}
         {yourOperations.editChannelDescription && (
-          <Kb.Button
-            label="Edit"
-            onClick={undefined /* TODO */}
-            small={true}
-            mode="Secondary"
-            style={styles.button}
-          />
+          <Kb.Button label="Edit" onClick={undefined /* TODO */} small={true} mode="Secondary" />
         )}
         <Kb.Button
           label="Add members"
