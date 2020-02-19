@@ -71,7 +71,7 @@ export const TeamMemberRow = (props: Props) => {
   const isYou = props.you === props.username
 
   if (flags.teamsRedesign) {
-    const isOwner = true // TODO: Implement this
+    const isOwner = props.roleType == 'owner'
     const teamID = props.teamID
 
     const dispatch = Container.useDispatch()
@@ -86,7 +86,6 @@ export const TeamMemberRow = (props: Props) => {
     const checkCircle = (
       <Kb.CheckCircle
         checked={selected}
-        disabled={isYou}
         onCheck={onSelect}
         key={`check-${props.username}`}
         selectedColor={Styles.isDarkMode() ? Styles.globalColors.black : undefined}
@@ -213,7 +212,7 @@ export const TeamMemberRow = (props: Props) => {
         body={body}
         firstItem={isOwner}
         style={selected ? styles.selected : undefined}
-        onClick={isOwner ? undefined : () => onSelect(!selected)}
+        onClick={() => onSelect(!selected)}
       />
     )
   }

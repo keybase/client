@@ -36,7 +36,7 @@ const SelectionPopup = (props: Props) => {
   const onUnselect = () => {
     switch (props.selectedTab) {
       case 'channels':
-        return dispatch(
+        dispatch(
           TeamsGen.createSetChannelSelected({
             channel: '',
             clearAll: true,
@@ -44,8 +44,9 @@ const SelectionPopup = (props: Props) => {
             teamID: props.teamID,
           })
         )
+        return
       case 'members':
-        return dispatch(
+        dispatch(
           TeamsGen.createSetMemberSelected({
             clearAll: true,
             selected: false,
@@ -53,6 +54,7 @@ const SelectionPopup = (props: Props) => {
             username: '',
           })
         )
+        return
     }
   }
 
@@ -102,24 +104,16 @@ const SelectionPopup = (props: Props) => {
         <Kb.Box2
           fullWidth={Styles.isMobile}
           direction={Styles.isMobile ? 'vertical' : 'horizontal'}
-          gap={Styles.isMobile ? 'tiny' : undefined}
+          gap="tiny"
         >
           <Kb.Button
-            style={styles.buttonStyle}
             label="Add to channels"
             mode="Secondary"
             onClick={onAddToChannel}
             fullWidth={Styles.isMobile}
           />
+          <Kb.Button label="Edit role" mode="Secondary" onClick={onEditRoles} fullWidth={Styles.isMobile} />
           <Kb.Button
-            style={styles.buttonStyle}
-            label="Edit role"
-            mode="Secondary"
-            onClick={onEditRoles}
-            fullWidth={Styles.isMobile}
-          />
-          <Kb.Button
-            style={styles.buttonStyle}
             label="Remove from team"
             type="Danger"
             onClick={onRemoveFromTeam}
@@ -134,10 +128,6 @@ const SelectionPopup = (props: Props) => {
 export default SelectionPopup
 
 const styles = Styles.styleSheetCreate(() => ({
-  buttonStyle: {
-    marginLeft: Styles.globalMargins.tiny,
-    marginRight: Styles.globalMargins.tiny,
-  },
   container: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.white,
