@@ -1350,4 +1350,6 @@ protocol local {
 
   LastActiveStatus getLastActiveForTLF(TLFIDStr tlfID);
   map<TLFIDStr, LastActiveStatus> getLastActiveForTeams();
+
+  int getRecentJoinsLocal(ConversationID convID);
 }

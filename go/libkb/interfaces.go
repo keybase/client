@@ -873,7 +873,10 @@ type EKLib interface {
 
 	// Teambot ephemeral keys
 	GetOrCreateLatestTeambotEK(mctx MetaContext, teamID keybase1.TeamID, botUID gregor1.UID) (keybase1.TeamEphemeralKey, bool, error)
-	GetTeambotEK(mctx MetaContext, teamID keybase1.TeamID, botUID gregor1.UID, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEphemeralKey, error)
+	GetTeambotEK(mctx MetaContext, teamID keybase1.TeamID, botUID gregor1.UID, generation keybase1.EkGeneration,
+		contentCtime *gregor1.Time) (keybase1.TeamEphemeralKey, error)
+	ForceCreateTeambotEK(mctx MetaContext, teamID keybase1.TeamID, botUID gregor1.UID,
+		generation keybase1.EkGeneration) (keybase1.TeamEphemeralKey, bool, error)
 	PurgeTeambotEKCachesForTeamIDAndGeneration(mctx MetaContext, teamID keybase1.TeamID, generation keybase1.EkGeneration)
 	PurgeTeambotEKCachesForTeamID(mctx MetaContext, teamID keybase1.TeamID)
 	PurgeAllTeambotMetadataCaches(mctx MetaContext)
@@ -1040,7 +1043,8 @@ type ChatHelper interface {
 		vis keybase1.TLFVisibility) (chat1.ConversationLocal, bool, error)
 	NewConversationWithMemberSourceConv(ctx context.Context, uid gregor1.UID, tlfName string,
 		topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
-		vis keybase1.TLFVisibility, memberSourceConv *chat1.ConversationID) (chat1.ConversationLocal, bool, error)
+		vis keybase1.TLFVisibility, retentionPolicy *chat1.RetentionPolicy,
+		memberSourceConv *chat1.ConversationID) (chat1.ConversationLocal, bool, error)
 	SendTextByID(ctx context.Context, convID chat1.ConversationID,
 		tlfName string, text string, vis keybase1.TLFVisibility) error
 	SendMsgByID(ctx context.Context, convID chat1.ConversationID,

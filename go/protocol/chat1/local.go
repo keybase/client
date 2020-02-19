@@ -6708,6 +6708,10 @@ type GetLastActiveForTLFArg struct {
 type GetLastActiveForTeamsArg struct {
 }
 
+type GetRecentJoinsLocalArg struct {
+	ConvID ConversationID `codec:"convID" json:"convID"`
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetThreadNonblock(context.Context, GetThreadNonblockArg) (NonblockFetchRes, error)
@@ -6815,6 +6819,7 @@ type LocalInterface interface {
 	SetDefaultTeamChannelsLocal(context.Context, SetDefaultTeamChannelsLocalArg) (SetDefaultTeamChannelsLocalRes, error)
 	GetLastActiveForTLF(context.Context, TLFIDStr) (LastActiveStatus, error)
 	GetLastActiveForTeams(context.Context) (map[TLFIDStr]LastActiveStatus, error)
+	GetRecentJoinsLocal(context.Context, ConversationID) (int, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -8356,6 +8361,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"getRecentJoinsLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]GetRecentJoinsLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetRecentJoinsLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetRecentJoinsLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetRecentJoinsLocal(ctx, typedArgs[0].ConvID)
+					return
+				},
+			},
 		},
 	}
 }
@@ -8917,5 +8937,11 @@ func (c LocalClient) GetLastActiveForTLF(ctx context.Context, tlfID TLFIDStr) (r
 
 func (c LocalClient) GetLastActiveForTeams(ctx context.Context) (res map[TLFIDStr]LastActiveStatus, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.getLastActiveForTeams", []interface{}{GetLastActiveForTeamsArg{}}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c LocalClient) GetRecentJoinsLocal(ctx context.Context, convID ConversationID) (res int, err error) {
+	__arg := GetRecentJoinsLocalArg{ConvID: convID}
+	err = c.Cli.Call(ctx, "chat.1.local.getRecentJoinsLocal", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

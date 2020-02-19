@@ -3640,6 +3640,22 @@ func (o AnnotatedTeam) DeepCopy() AnnotatedTeam {
 	}
 }
 
+type AnnotatedSubteamMemberDetails struct {
+	TeamName TeamName          `codec:"teamName" json:"teamName"`
+	TeamID   TeamID            `codec:"teamID" json:"teamID"`
+	Details  TeamMemberDetails `codec:"details" json:"details"`
+	Role     TeamRole          `codec:"role" json:"role"`
+}
+
+func (o AnnotatedSubteamMemberDetails) DeepCopy() AnnotatedSubteamMemberDetails {
+	return AnnotatedSubteamMemberDetails{
+		TeamName: o.TeamName.DeepCopy(),
+		TeamID:   o.TeamID.DeepCopy(),
+		Details:  o.Details.DeepCopy(),
+		Role:     o.Role.DeepCopy(),
+	}
+}
+
 type GetUntrustedTeamInfoArg struct {
 	TeamName TeamName `codec:"teamName" json:"teamName"`
 }
@@ -3998,6 +4014,11 @@ type GetAnnotatedTeamArg struct {
 	TeamID TeamID `codec:"teamID" json:"teamID"`
 }
 
+type GetUserSubteamMembershipsArg struct {
+	TeamID   TeamID `codec:"teamID" json:"teamID"`
+	Username string `codec:"username" json:"username"`
+}
+
 type TeamsInterface interface {
 	GetUntrustedTeamInfo(context.Context, TeamName) (UntrustedTeamInfo, error)
 	TeamCreate(context.Context, TeamCreateArg) (TeamCreateResult, error)
@@ -4079,6 +4100,7 @@ type TeamsInterface interface {
 	Ftl(context.Context, FastTeamLoadArg) (FastTeamLoadRes, error)
 	GetTeamRoleMap(context.Context) (TeamRoleMapAndVersion, error)
 	GetAnnotatedTeam(context.Context, TeamID) (AnnotatedTeam, error)
+	GetUserSubteamMemberships(context.Context, GetUserSubteamMembershipsArg) ([]AnnotatedSubteamMemberDetails, error)
 }
 
 func TeamsProtocol(i TeamsInterface) rpc.Protocol {
@@ -5010,6 +5032,21 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 					return
 				},
 			},
+			"getUserSubteamMemberships": {
+				MakeArg: func() interface{} {
+					var ret [1]GetUserSubteamMembershipsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetUserSubteamMembershipsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetUserSubteamMembershipsArg)(nil), args)
+						return
+					}
+					ret, err = i.GetUserSubteamMemberships(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -5355,5 +5392,10 @@ func (c TeamsClient) GetTeamRoleMap(ctx context.Context) (res TeamRoleMapAndVers
 func (c TeamsClient) GetAnnotatedTeam(ctx context.Context, teamID TeamID) (res AnnotatedTeam, err error) {
 	__arg := GetAnnotatedTeamArg{TeamID: teamID}
 	err = c.Cli.Call(ctx, "keybase.1.teams.getAnnotatedTeam", []interface{}{__arg}, &res, 0*time.Millisecond)
+	return
+}
+
+func (c TeamsClient) GetUserSubteamMemberships(ctx context.Context, __arg GetUserSubteamMembershipsArg) (res []AnnotatedSubteamMemberDetails, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.getUserSubteamMemberships", []interface{}{__arg}, &res, 0*time.Millisecond)
 	return
 }

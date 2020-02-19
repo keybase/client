@@ -72,6 +72,8 @@ class Engine {
   }
 
   constructor(dispatch: Dispatch, getState: () => TypedState) {
+    KB.kb.setEngine(this)
+
     // setup some static vars
     if (DEFER_INCOMING_DURING_DEBUG) {
       Engine._dispatch = a => setTimeout(() => dispatch(a), 1)

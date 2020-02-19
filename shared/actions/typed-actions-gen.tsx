@@ -84,6 +84,7 @@ export type TypedActionsMap = {
   'chat2:toggleSmallTeamsExpanded': chat2.ToggleSmallTeamsExpandedPayload
   'chat2:deselectConversation': chat2.DeselectConversationPayload
   'chat2:selectConversation': chat2.SelectConversationPayload
+  'chat2:channelSuggestionsTriggered': chat2.ChannelSuggestionsTriggeredPayload
   'chat2:conversationErrored': chat2.ConversationErroredPayload
   'chat2:previewConversation': chat2.PreviewConversationPayload
   'chat2:createConversation': chat2.CreateConversationPayload
@@ -135,6 +136,7 @@ export type TypedActionsMap = {
   'chat2:attachmentLoading': chat2.AttachmentLoadingPayload
   'chat2:attachmentDownloaded': chat2.AttachmentDownloadedPayload
   'chat2:attachmentsUpload': chat2.AttachmentsUploadPayload
+  'chat2:attachFromDragAndDrop': chat2.AttachFromDragAndDropPayload
   'chat2:attachmentUploading': chat2.AttachmentUploadingPayload
   'chat2:attachmentUploaded': chat2.AttachmentUploadedPayload
   'chat2:attachmentPasted': chat2.AttachmentPastedPayload
@@ -565,6 +567,7 @@ export type TypedActionsMap = {
   'fs:shareNative': fs.ShareNativePayload
   'fs:saveMedia': fs.SaveMediaPayload
   'fs:upload': fs.UploadPayload
+  'fs:uploadFromDragAndDrop': fs.UploadFromDragAndDropPayload
   'fs:uploadStarted': fs.UploadStartedPayload
   'fs:uploadWritingSuccess': fs.UploadWritingSuccessPayload
   'fs:journalUpdate': fs.JournalUpdatePayload

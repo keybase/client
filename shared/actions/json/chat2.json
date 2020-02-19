@@ -45,6 +45,9 @@
       ],
       "navKey?": "string"
     },
+    "channelSuggestionsTriggered": {
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
     // Got an error while creating a conversation.
     "conversationErrored": {
       "allowedUsers": "Array<string>",
@@ -368,6 +371,11 @@
       "paths": "Array<Types.PathAndOutboxID>",
       "titles": "Array<string>",
       "tlfName?": "string"
+    },
+    "attachFromDragAndDrop": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "paths": "Array<Types.PathAndOutboxID>",
+      "titles": "Array<string>"
     },
     // Update progress on an upload
     "attachmentUploading": {

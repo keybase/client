@@ -47,7 +47,12 @@ const DragAndDrop = ({
 }) => {
   const dispatch = Container.useDispatch()
   const onAttach = (localPaths: Array<string>) =>
-    localPaths.forEach(localPath => dispatch(FsGen.createUpload({localPath, parentPath: path})))
+    dispatch(
+      FsGen.createUploadFromDragAndDrop({
+        localPaths,
+        parentPath: path,
+      })
+    )
   return (
     <Kb.DragAndDrop
       allowFolders={true}

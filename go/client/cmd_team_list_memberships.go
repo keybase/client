@@ -6,7 +6,6 @@ package client
 import (
 	"context"
 	"errors"
-	"text/tabwriter"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -24,7 +23,6 @@ type CmdTeamListMemberships struct {
 	verbose              bool
 	showInviteID         bool
 	verified             bool
-	tabw                 *tabwriter.Writer
 }
 
 func (c *CmdTeamListMemberships) SetTeam(s string) {

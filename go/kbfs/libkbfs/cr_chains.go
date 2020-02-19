@@ -1177,11 +1177,9 @@ func (ccs *crChains) changeOriginal(oldOriginal data.BlockPointer,
 		delete(ccs.deletedOriginals, oldOriginal)
 		ccs.deletedOriginals[newOriginal] = true
 	}
-	if _, ok := ccs.createdOriginals[oldOriginal]; ok {
-		delete(ccs.createdOriginals, oldOriginal)
-		// We're swapping in an original made on some other branch, so
-		// it shouldn't go in the `createdOriginals` map.
-	}
+	delete(ccs.createdOriginals, oldOriginal)
+	// We're swapping in an original made on some other branch, so
+	// it shouldn't go in the `createdOriginals` map.
 	if ri, ok := ccs.renamedOriginals[oldOriginal]; ok {
 		delete(ccs.renamedOriginals, oldOriginal)
 		ccs.renamedOriginals[newOriginal] = ri

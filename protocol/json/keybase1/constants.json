@@ -8,6 +8,7 @@
       "symbols": [
         "SCOk_0",
         "SCInputError_100",
+        "SCAssertionParseError_101",
         "SCLoginRequired_201",
         "SCBadSession_202",
         "SCBadLoginUserNotFound_203",

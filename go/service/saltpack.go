@@ -302,7 +302,7 @@ func (h *SaltpackHandler) SaltpackEncryptFile(ctx context.Context, arg keybase1.
 	}
 	defer sf.Close()
 
-	outFilename, bw, err := boxFilename(arg.Filename, encryptedSuffix)
+	outFilename, bw, err := boxFilename(arg.Filename, encryptedSuffix, arg.DestinationDir)
 	if err != nil {
 		return keybase1.SaltpackEncryptFileResult{}, err
 	}
@@ -345,7 +345,7 @@ func (h *SaltpackHandler) SaltpackDecryptFile(ctx context.Context, arg keybase1.
 	}
 	defer sf.Close()
 
-	outFilename, bw, err := unboxFilename(arg.EncryptedFilename, decryptedExtension)
+	outFilename, bw, err := unboxFilename(arg.EncryptedFilename, decryptedExtension, arg.DestinationDir)
 	if err != nil {
 		return keybase1.SaltpackFileResult{}, err
 	}
@@ -384,7 +384,7 @@ func (h *SaltpackHandler) SaltpackSignFile(ctx context.Context, arg keybase1.Sal
 	}
 	defer sf.Close()
 
-	outFilename, bw, err := boxFilename(arg.Filename, signedSuffix)
+	outFilename, bw, err := boxFilename(arg.Filename, signedSuffix, arg.DestinationDir)
 	if err != nil {
 		return "", err
 	}
@@ -420,7 +420,7 @@ func (h *SaltpackHandler) SaltpackVerifyFile(ctx context.Context, arg keybase1.S
 	}
 	defer sf.Close()
 
-	outFilename, bw, err := unboxFilename(arg.SignedFilename, verifiedExtension)
+	outFilename, bw, err := unboxFilename(arg.SignedFilename, verifiedExtension, arg.DestinationDir)
 	if err != nil {
 		return keybase1.SaltpackVerifyFileResult{}, err
 	}
@@ -537,8 +537,11 @@ func (h *SaltpackHandler) frontendSign(ctx context.Context, sessionID int, arg *
 	return engine.RunEngine2(m, eng)
 }
 
-func boxFilename(inFilename, suffix string) (string, *libkb.BufferWriter, error) {
+func boxFilename(inFilename, suffix, destinationDir string) (string, *libkb.BufferWriter, error) {
 	dir, file := filepath.Split(inFilename)
+	if destinationDir != "" {
+		dir = destinationDir
+	}
 	withExt := filepath.Join(dir, file+suffix+saltpackExtension)
 	f, err := os.Create(withExt)
 	if err != nil {
@@ -557,8 +560,13 @@ func boxFilename(inFilename, suffix string) (string, *libkb.BufferWriter, error)
 //
 // If inFilename doesn't have a saltpack suffix, it uses the suffix that is passed
 // in, so it would be <filename>.decrypted or <filename>.verified.
-func unboxFilename(inFilename, suffix string) (string, *libkb.BufferWriter, error) {
+//
+// If destinationDir is empty, it will use the directory of inFilename.
+func unboxFilename(inFilename, suffix, destinationDir string) (string, *libkb.BufferWriter, error) {
 	dir, file := filepath.Split(inFilename)
+	if destinationDir != "" {
+		dir = destinationDir
+	}
 	// default desired filename is the input filename plus the suffix.
 	desiredFilename := file + suffix
 

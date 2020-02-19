@@ -54,9 +54,10 @@ func (h *Helper) NewConversationSkipFindExisting(ctx context.Context, uid gregor
 
 func (h *Helper) NewConversationWithMemberSourceConv(ctx context.Context, uid gregor1.UID, tlfName string,
 	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
-	vis keybase1.TLFVisibility, memberSourceConv *chat1.ConversationID) (chat1.ConversationLocal, bool, error) {
+	vis keybase1.TLFVisibility, retentionPolicy *chat1.RetentionPolicy,
+	memberSourceConv *chat1.ConversationID) (chat1.ConversationLocal, bool, error) {
 	return NewConversationWithMemberSourceConv(ctx, h.G(), uid, tlfName, topicName,
-		topicType, membersType, vis, h.ri, NewConvFindExistingNormal, memberSourceConv)
+		topicType, membersType, vis, h.ri, NewConvFindExistingNormal, retentionPolicy, memberSourceConv)
 }
 
 func (h *Helper) SendTextByID(ctx context.Context, convID chat1.ConversationID,
@@ -966,16 +967,17 @@ const (
 func NewConversation(ctx context.Context, g *globals.Context, uid gregor1.UID, tlfName string,
 	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
 	vis keybase1.TLFVisibility, ri func() chat1.RemoteInterface, findExistingMode NewConvFindExistingMode) (chat1.ConversationLocal, bool, error) {
-	return NewConversationWithMemberSourceConv(ctx, g, uid, tlfName, topicName, topicType, membersType, vis, ri, findExistingMode, nil)
+	return NewConversationWithMemberSourceConv(ctx, g, uid, tlfName, topicName, topicType, membersType, vis, ri, findExistingMode, nil, nil)
 }
 
 func NewConversationWithMemberSourceConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	tlfName string, topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
 	vis keybase1.TLFVisibility, ri func() chat1.RemoteInterface,
-	findExistingMode NewConvFindExistingMode, memberSourceConv *chat1.ConversationID) (chat1.ConversationLocal, bool, error) {
+	findExistingMode NewConvFindExistingMode, retentionPolicy *chat1.RetentionPolicy,
+	memberSourceConv *chat1.ConversationID) (chat1.ConversationLocal, bool, error) {
 	defer utils.SuspendComponent(ctx, g, g.ConvLoader)()
 	helper := newNewConversationHelper(g, uid, tlfName, topicName, topicType, membersType, vis, ri,
-		findExistingMode, memberSourceConv)
+		findExistingMode, retentionPolicy, memberSourceConv)
 	return helper.create(ctx)
 }
 
@@ -992,12 +994,13 @@ type newConversationHelper struct {
 	vis              keybase1.TLFVisibility
 	ri               func() chat1.RemoteInterface
 	findExistingMode NewConvFindExistingMode
+	retentionPolicy  *chat1.RetentionPolicy
 }
 
 func newNewConversationHelper(g *globals.Context, uid gregor1.UID, tlfName string, topicName *string,
 	topicType chat1.TopicType, membersType chat1.ConversationMembersType, vis keybase1.TLFVisibility,
 	ri func() chat1.RemoteInterface, findExistingMode NewConvFindExistingMode,
-	memberSourceConv *chat1.ConversationID) *newConversationHelper {
+	retentionPolicy *chat1.RetentionPolicy, memberSourceConv *chat1.ConversationID) *newConversationHelper {
 	return &newConversationHelper{
 		Contextified:     globals.NewContextified(g),
 		DebugLabeler:     utils.NewDebugLabeler(g.GetLog(), "newConversationHelper", false),
@@ -1010,6 +1013,7 @@ func newNewConversationHelper(g *globals.Context, uid gregor1.UID, tlfName strin
 		vis:              vis,
 		ri:               ri,
 		findExistingMode: findExistingMode,
+		retentionPolicy:  retentionPolicy,
 	}
 }
 
@@ -1205,6 +1209,7 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 			MembersType:      n.membersType,
 			TopicNameState:   topicNameState,
 			MemberSourceConv: n.memberSourceConv,
+			RetentionPolicy:  n.retentionPolicy,
 		})
 		convID := ncrres.ConvID
 		if reserr != nil {

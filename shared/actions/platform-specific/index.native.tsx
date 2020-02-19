@@ -146,7 +146,11 @@ export async function saveAttachmentToCameraRoll(filePath: string, mimeType: str
     logger.debug(logPrefix + 'failed to save: ' + e)
     throw e
   } finally {
-    require('rn-fetch-blob').default.fs.unlink(filePath)
+    try {
+      require('rn-fetch-blob').default.fs.unlink(filePath)
+    } catch (_) {
+      logger.warn('failed to unlink')
+    }
   }
 }
 

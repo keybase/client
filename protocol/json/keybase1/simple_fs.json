@@ -939,6 +939,33 @@
           "name": "url"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "SimpleFSSearchHit",
+      "fields": [
+        {
+          "type": "string",
+          "name": "path"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SimpleFSSearchResults",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "SimpleFSSearchHit"
+          },
+          "name": "hits"
+        },
+        {
+          "type": "int",
+          "name": "nextResult"
+        }
+      ]
     }
   ],
   "messages": {
@@ -1643,6 +1670,23 @@
         }
       ],
       "response": null
+    },
+    "simpleFSSearch": {
+      "request": [
+        {
+          "name": "query",
+          "type": "string"
+        },
+        {
+          "name": "numResults",
+          "type": "int"
+        },
+        {
+          "name": "startingFrom",
+          "type": "int"
+        }
+      ],
+      "response": "SimpleFSSearchResults"
     }
   },
   "namespace": "keybase.1"

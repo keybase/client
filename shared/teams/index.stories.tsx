@@ -11,6 +11,8 @@ import rename from './rename-team/index.stories'
 import create from './new-team/index.stories'
 import member from './team/member/index.stories'
 import teamRow from './main/team-row.stories'
+import newTeamWizard from './new-team/wizard/index.stories'
+import addMembersWizard from './add-members-wizard/index.stories'
 
 const load = () => {
   main()
@@ -26,6 +28,8 @@ const load = () => {
   create()
   member()
   teamRow()
+  newTeamWizard()
+  addMembersWizard()
 }
 
 export default load

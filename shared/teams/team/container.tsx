@@ -60,7 +60,7 @@ const Connected = Container.compose(
       stateProps.subteamsFiltered
     )
     const sections: Sections = [
-      ...(Container.isMobile && !flags.teamsRedesign
+      ...(Container.isMobile || flags.teamsRedesign
         ? [{data: [{key: 'header-inner', type: 'header' as const}], key: 'header'}]
         : []),
       {data: rows, header: {key: 'tabs', type: 'tabs'}, key: 'body'},
@@ -76,7 +76,7 @@ const Connected = Container.compose(
       teamID: stateProps.teamID,
     }
   }),
-  Kb.HeaderHoc
+  flags.teamsRedesign ? a => a : Kb.HeaderHoc
 )(Team) as any
 
 const TabsState = (props: TabsStateOwnProps) => {
@@ -111,25 +111,26 @@ const TabsState = (props: TabsStateOwnProps) => {
   return <Connected {...props} setSelectedTab={setSelectedTab} selectedTab={selectedTab} />
 }
 
-TabsState.navigationOptions = (ownProps: TabsStateOwnProps) => ({
-  header:
-    Container.isMobile && flags.teamsRedesign
-      ? () => <HeaderTitle teamID={Container.getRouteProps(ownProps, 'teamID', '')} />
-      : null,
-  headerExpandable: true,
+const newNavigationOptions = () => ({
   headerHideBorder: true,
-  headerRightActions:
-    Container.isMobile || flags.teamsRedesign
-      ? undefined
-      : () => <HeaderRightActions teamID={Container.getRouteProps(ownProps, 'teamID', '')} />,
-  headerTitle: Container.isMobile
-    ? undefined
-    : () => <HeaderTitle teamID={Container.getRouteProps(ownProps, 'teamID', '')} />,
-  subHeader:
-    Container.isMobile && !flags.teamsRedesign
-      ? undefined
-      : () => <SubHeader teamID={Container.getRouteProps(ownProps, 'teamID', '')} />,
 })
+
+TabsState.navigationOptions = flags.teamsRedesign
+  ? newNavigationOptions
+  : (ownProps: TabsStateOwnProps) => ({
+      header: null,
+      headerExpandable: true,
+      headerHideBorder: true,
+      headerRightActions: Container.isMobile
+        ? undefined
+        : () => <HeaderRightActions teamID={Container.getRouteProps(ownProps, 'teamID', '')} />,
+      headerTitle: Container.isMobile
+        ? undefined
+        : () => <HeaderTitle teamID={Container.getRouteProps(ownProps, 'teamID', '')} />,
+      subHeader: Container.isMobile
+        ? undefined
+        : () => <SubHeader teamID={Container.getRouteProps(ownProps, 'teamID', '')} />,
+    })
 
 export default TabsState
 export type TeamScreenType = React.ComponentType<TabsStateOwnProps>

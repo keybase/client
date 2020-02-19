@@ -6306,8 +6306,13 @@ func TestChatSrvUserResetAndDeleted(t *testing.T) {
 		require.Equal(t, 1, len(iboxRes.Conversations))
 		require.Equal(t, conv.Id, iboxRes.Conversations[0].GetConvID())
 		require.Equal(t, 4, len(iboxRes.Conversations[0].AllNames()))
-		require.Equal(t, 1, len(iboxRes.Conversations[0].Info.ResetNames))
-		require.Equal(t, users[1].Username, iboxRes.Conversations[0].Info.ResetNames[0])
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+			require.Zero(t, len(iboxRes.Conversations[0].Info.ResetNames))
+		default:
+			require.Equal(t, 1, len(iboxRes.Conversations[0].Info.ResetNames))
+			require.Equal(t, users[1].Username, iboxRes.Conversations[0].Info.ResetNames[0])
+		}
 		iboxRes, err = ctc.as(t, users[1]).chatLocalHandler().GetInboxAndUnboxLocal(ctx1,
 			chat1.GetInboxAndUnboxLocalArg{})
 		require.NoError(t, err)
@@ -8137,5 +8142,24 @@ func TestChatSrvTeamActivity(t *testing.T) {
 		require.Equal(t, 2, len(res))
 		require.Equal(t, chat1.LastActiveStatus_ACTIVE, res[tlfID1])
 		require.Equal(t, chat1.LastActiveStatus_ACTIVE, res[tlfID2])
+	})
+}
+
+func TestChatSrvGetRecentJoins(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+		default:
+			return
+		}
+
+		ctc := makeChatTestContext(t, "TeamActivity", 2)
+		defer ctc.cleanup()
+		users := ctc.users()
+		tc := ctc.as(t, users[0])
+		created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt, users[1])
+		numJoins, err := tc.chatLocalHandler().GetRecentJoinsLocal(context.TODO(), created.Id)
+		require.NoError(t, err)
+		require.Equal(t, 2, numJoins)
 	})
 }

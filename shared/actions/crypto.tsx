@@ -215,6 +215,7 @@ const saltpackEncrypt = async (
       try {
         const fileRes = await RPCTypes.saltpackSaltpackEncryptFileRpcPromise(
           {
+            destinationDir: '',
             filename: input.stringValue(),
             opts: {
               includeSelf: options.includeSelf,
@@ -292,7 +293,10 @@ const saltpackDecrypt = async (action: CryptoGen.SaltpackDecryptPayload, logger:
     case 'file': {
       try {
         const result = await RPCTypes.saltpackSaltpackDecryptFileRpcPromise(
-          {encryptedFilename: input.stringValue()},
+          {
+            destinationDir: '',
+            encryptedFilename: input.stringValue(),
+          },
           Constants.decryptFileWaitingKey
         )
         const {decryptedFilename, info, signed} = result
@@ -371,7 +375,10 @@ const saltpackSign = async (
     case 'file': {
       try {
         const signedFilename = await RPCTypes.saltpackSaltpackSignFileRpcPromise(
-          {filename: input.stringValue()},
+          {
+            destinationDir: '',
+            filename: input.stringValue(),
+          },
           Constants.signFileWaitingKey
         )
         return CryptoGen.createOnOperationSuccess({
@@ -429,7 +436,10 @@ const saltpackVerify = async (action: CryptoGen.SaltpackVerifyPayload, logger: S
     case 'file': {
       try {
         const result = await RPCTypes.saltpackSaltpackVerifyFileRpcPromise(
-          {signedFilename: input.stringValue()},
+          {
+            destinationDir: '',
+            signedFilename: input.stringValue(),
+          },
           Constants.verifyFileWaitingKey
         )
         const {verifiedFilename, sender, verified} = result

@@ -5,6 +5,8 @@ import * as Types from '../../constants/types/crypto'
 import * as FSGen from '../../actions/fs-gen'
 import * as ConfigGen from '../../actions/config-gen'
 import * as CryptoGen from '../../actions/crypto-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {getStyle} from '../../common-adapters/text'
@@ -134,6 +136,8 @@ export const OutputBar = (props: OutputBarProps) => {
   const {operation} = props
   const dispatch = Container.useDispatch()
   const canSaveAsText = operation === Constants.Operations.Encrypt || operation === Constants.Operations.Sign
+  const canReplyInChat =
+    operation === Constants.Operations.Decrypt || operation === Constants.Operations.Verify
 
   // Waiting
   const waitingKey = Constants.getStringWaitingKey(props.operation)
@@ -144,11 +148,18 @@ export const OutputBar = (props: OutputBarProps) => {
   const outputValid = Container.useSelector(state => state.crypto[operation].outputValid)
   const outputStatus = Container.useSelector(state => state.crypto[operation].outputStatus)
   const outputType = Container.useSelector(state => state.crypto[operation].outputType)
+  const signed = Container.useSelector(state => state.crypto[operation].outputSigned)
+  const signedByUsername = Container.useSelector(state => state.crypto[operation].outputSenderUsername)
   const actionsDisabled = waiting || !outputValid
 
   // Actions
   const onShowInFinder = () => {
     dispatch(FSGen.createOpenLocalPathInSystemFileManager({localPath: output}))
+  }
+
+  const onReplyInChat = (username: Container.HiddenString) => {
+    dispatch(RouteTreeGen.createNavigateUp())
+    dispatch(Chat2Gen.createPreviewConversation({participants: [username.stringValue()], reason: 'search'}))
   }
 
   const onCopyOutput = () => {
@@ -194,6 +205,14 @@ export const OutputBar = (props: OutputBarProps) => {
         </Kb.ButtonBar>
       ) : (
         <Kb.ButtonBar direction="row" align="flex-start" style={styles.buttonBar}>
+          {canReplyInChat && signed && signedByUsername && (
+            <Kb.Button
+              mode="Primary"
+              label="Reply in chat"
+              onClick={() => onReplyInChat(signedByUsername)}
+              disabled={actionsDisabled}
+            />
+          )}
           <Kb.Box2 direction="horizontal" ref={attachmentRef}>
             <Kb.Toast position="top center" attachTo={() => attachmentRef.current} visible={showingToast}>
               <Kb.Text type="BodySmall" style={styles.toastText}>
@@ -287,17 +306,13 @@ const Output = (props: OutputProps) => {
       </Kb.Box2>
     ) : (
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
-        {output &&
-          output.split('\n').map((line, index) => (
-            <Kb.Text
-              key={index}
-              type={textType === 'cipher' ? 'Terminal' : 'Body'}
-              selectable={!actionsDisabled}
-              style={Styles.collapseStyles([styles.output, outputLargeStyle])}
-            >
-              {line}
-            </Kb.Text>
-          ))}
+        <Kb.Text
+          type={textType === 'cipher' ? 'Terminal' : 'Body'}
+          selectable={!actionsDisabled}
+          style={Styles.collapseStyles([styles.output, outputLargeStyle])}
+        >
+          {output}
+        </Kb.Text>
       </Kb.Box2>
     )
   ) : (
@@ -333,7 +348,7 @@ const styles = Styles.styleSheetCreate(
       fileOutputText: {...Styles.globalStyles.fontSemibold},
       output: Styles.platformStyles({
         common: {color: Styles.globalColors.black},
-        isElectron: {wordBreak: 'break-word'},
+        isElectron: {whiteSpace: 'pre-wrap', wordBreak: 'break-word'},
       }),
       outputBarContainer: {...Styles.padding(Styles.globalMargins.tiny)},
       outputPlaceholder: {backgroundColor: Styles.globalColors.blueGreyLight},

@@ -101,7 +101,7 @@ func (r *ekHandler) teambotEKNeeded(ctx context.Context, cli gregor1.IncomingInt
 	}
 	r.G().Log.CDebugf(ctx, "ephemeral.teambot_key_needed unmarshaled: %+v", msg)
 
-	if err := ephemeral.HandleTeambotEKNeeded(r.MetaContext(ctx), msg.Id, msg.Uid, msg.Generation); err != nil {
+	if err := ephemeral.HandleTeambotEKNeeded(r.MetaContext(ctx), msg.Id, msg.Uid, msg.Generation, msg.ForceCreateGeneration); err != nil {
 		return err
 	}
 
