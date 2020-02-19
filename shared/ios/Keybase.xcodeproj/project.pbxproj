@@ -14,10 +14,7 @@
 		279FB5A72139AB6A005E4864 /* KeybaseShare.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 279FB59C2139AB6A005E4864 /* KeybaseShare.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		279FB66921402D68005E4864 /* Fs.m in Sources */ = {isa = PBXBuildFile; fileRef = 279FB66821402D68005E4864 /* Fs.m */; };
 		279FB66A21402D68005E4864 /* Fs.m in Sources */ = {isa = PBXBuildFile; fileRef = 279FB66821402D68005E4864 /* Fs.m */; };
-		279FB6ED214037F6005E4864 /* keybase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB0846041BA75DC800F54960 /* keybase.framework */; };
-		279FB6EF214039DA005E4864 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 279FB6EE214039DA005E4864 /* AVFoundation.framework */; };
 		279FB6F021403A05005E4864 /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 274AFB721E972F5300615A64 /* libresolv.tbd */; };
-		279FB6F221403A2B005E4864 /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 279FB6F121403A2A005E4864 /* CoreMedia.framework */; };
 		279FB6F421403A49005E4864 /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 279FB6F321403A49005E4864 /* MobileCoreServices.framework */; };
 		27EE26A820A140EF00F92CD1 /* Pusher.m in Sources */ = {isa = PBXBuildFile; fileRef = 27EE26A720A140EF00F92CD1 /* Pusher.m */; };
 		27F0BBB52142C19D007195B7 /* Pusher.m in Sources */ = {isa = PBXBuildFile; fileRef = 27EE26A720A140EF00F92CD1 /* Pusher.m */; };
@@ -209,10 +206,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				279FB6F421403A49005E4864 /* MobileCoreServices.framework in Frameworks */,
-				279FB6F221403A2B005E4864 /* CoreMedia.framework in Frameworks */,
 				279FB6F021403A05005E4864 /* libresolv.tbd in Frameworks */,
-				279FB6EF214039DA005E4864 /* AVFoundation.framework in Frameworks */,
-				279FB6ED214037F6005E4864 /* keybase.framework in Frameworks */,
 				338AE322D1D19D1B68AD9975 /* libPods-KeybaseShare.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
