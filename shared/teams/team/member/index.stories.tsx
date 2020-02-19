@@ -4,6 +4,7 @@ import * as Constants from '../../../constants/teams'
 import * as Container from '../../../util/container'
 import {TeamMemberHeader} from './index.new'
 import AddToChannels from './add-to-channels'
+import {teamChannels} from '../../common/index.stories'
 
 const fakeTeamID = 'fakeTeamID'
 const store = Container.produce(Sb.createStoreWithCommon(), draftState => {
@@ -23,6 +24,7 @@ const store = Container.produce(Sb.createStoreWithCommon(), draftState => {
         },
       ],
     ]),
+    teamIDToChannelInfos: new Map([[fakeTeamID, teamChannels]]),
     teamMeta: new Map([[fakeTeamID, Constants.makeTeamMeta({teamname: 'keybase_storybook'})]]),
   }
   draftState.config = {
