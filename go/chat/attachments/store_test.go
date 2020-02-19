@@ -339,9 +339,10 @@ type uploader struct {
 	fullSigKey    []byte
 }
 
-func newUploader(t *testing.T, size int64, g *libkb.GlobalContext) *uploader {
+func newUploader(t *testing.T, size int64, gc *libkb.GlobalContext) *uploader {
 	u := &uploader{t: t}
-	u.s = NewStoreTesting(globals.NewContext(g, nil), nil)
+	g := globals.NewContext(gc, &globals.ChatContext{})
+	u.s = NewStoreTesting(g, u.keyTracker)
 	u.plaintext, u.task = makeUploadTask(t, size)
 	return u
 }
