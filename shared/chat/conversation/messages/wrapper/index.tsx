@@ -752,7 +752,7 @@ const styles = Styles.styleSheetCreate(
         isElectron: {
           borderBottomLeftRadius: Styles.borderRadius,
           borderBottomRightRadius: Styles.borderRadius,
-          bottom: -Styles.globalMargins.mediumLarge,
+          bottom: -Styles.globalMargins.mediumLarge + 1,
           height: Styles.globalMargins.mediumLarge,
           paddingBottom: Styles.globalMargins.tiny,
           paddingRight: Styles.globalMargins.xtiny,

@@ -34,6 +34,7 @@ const (
 	SigchainV2TypePerUserKey                  SigchainV2Type = 14
 	SigchainV2TypeWalletStellar               SigchainV2Type = 15
 	SigchainV2TypeWotVouch                    SigchainV2Type = 16
+	SigchainV2TypeWotReact                    SigchainV2Type = 18
 
 	// Team link types
 	// If you add a new one be sure to get all of these too:
@@ -445,6 +446,8 @@ func SigchainV2TypeFromV1TypeAndRevocations(s string, hasRevocations SigHasRevok
 		ret = SigchainV2TypeWalletStellar
 	case string(LinkTypeWotVouch):
 		ret = SigchainV2TypeWotVouch
+	case string(LinkTypeWotReact):
+		ret = SigchainV2TypeWotReact
 	default:
 		teamRes, teamErr := SigchainV2TypeFromV1TypeTeams(s)
 		if teamErr == nil {

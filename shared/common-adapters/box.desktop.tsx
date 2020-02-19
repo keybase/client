@@ -6,7 +6,7 @@ import './box.css'
 
 export class Box extends React.PureComponent<any> {
   render() {
-    const {forwardedRef, ...rest} = this.props
+    const {forwardedRef, onLayout, ...rest} = this.props
     return <div {...rest} ref={this.props.forwardedRef} />
   }
 }

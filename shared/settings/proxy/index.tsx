@@ -99,58 +99,45 @@ class ProxySettings extends React.Component<Props, State> {
     this.setState({proxyType}, cb)
   }
 
-  renderProxySettings() {
-    if (this.state.proxyType === 'noProxy') {
-      return null
-    }
-    return (
-      <Kb.Box direction="vertical" style={styles.expandedProxyContainer}>
-        <Kb.Box2 direction="vertical" gap="tiny" style={styles.proxySetting}>
-          <Kb.Text type="BodySmall">Proxy Address</Kb.Text>
-          <Kb.NewInput
-            placeholder="127.0.0.1"
-            onChangeText={address => this.setState({address})}
-            value={this.state.address}
-          />
-        </Kb.Box2>
-        <Kb.Box2 direction="vertical" gap="tiny" style={styles.proxySetting}>
-          <Kb.Text type="BodySmall">Proxy Port</Kb.Text>
-          <Kb.NewInput
-            placeholder="8080"
-            onChangeText={port => this.setState({port})}
-            value={this.state.port}
-          />
-        </Kb.Box2>
-        <Kb.Checkbox
-          checked={!this.certPinning()}
-          onCheck={this.toggleCertPinning}
-          label="Allow TLS Interception"
-          style={styles.proxySetting}
-        />
-        <Kb.Button onClick={this.saveProxySettings} label="Save Proxy Settings" />
-      </Kb.Box>
-    )
-  }
-
   render() {
     return (
-      <Kb.Box style={styles.proxyContainer}>
+      <>
         <Kb.Text type="Header" style={styles.text}>
           Proxy settings
         </Kb.Text>
-        <Kb.Box style={styles.flexButtons}>
-          {proxyTypeList.map(proxyType => (
-            <Kb.RadioButton
-              onSelect={() => this.proxyTypeSelected(proxyType)}
-              selected={this.state.proxyType === proxyType}
-              key={proxyType}
-              label={proxyTypeToDisplayName[proxyType]}
-              style={styles.radioButton}
+        {proxyTypeList.map(proxyType => (
+          <Kb.RadioButton
+            onSelect={() => this.proxyTypeSelected(proxyType)}
+            selected={this.state.proxyType === proxyType}
+            key={proxyType}
+            label={proxyTypeToDisplayName[proxyType]}
+            style={styles.radioButton}
+          />
+        ))}
+        {this.state.proxyType === 'noProxy' ? null : (
+          <>
+            <Kb.Text type="BodySmall">Proxy Address</Kb.Text>
+            <Kb.NewInput
+              placeholder="127.0.0.1"
+              onChangeText={address => this.setState({address})}
+              value={this.state.address}
             />
-          ))}
-        </Kb.Box>
-        {this.renderProxySettings()}
-      </Kb.Box>
+            <Kb.Text type="BodySmall">Proxy Port</Kb.Text>
+            <Kb.NewInput
+              placeholder="8080"
+              onChangeText={port => this.setState({port})}
+              value={this.state.port}
+            />
+            <Kb.Checkbox
+              checked={!this.certPinning()}
+              onCheck={this.toggleCertPinning}
+              label="Allow TLS Interception"
+              style={styles.proxySetting}
+            />
+            <Kb.Button onClick={this.saveProxySettings} label="Save Proxy Settings" />
+          </>
+        )}
+      </>
     )
   }
 }
@@ -181,9 +168,6 @@ const styles = Styles.styleSheetCreate(() => ({
   divider: {
     marginTop: Styles.globalMargins.xsmall,
     width: '100%',
-  },
-  expandedProxyContainer: {
-    marginTop: Styles.globalMargins.small,
   },
   flexButtons: {
     display: 'flex',

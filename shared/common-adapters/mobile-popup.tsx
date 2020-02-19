@@ -29,11 +29,16 @@ const MobilePopup = (props: Props) => (
 )
 
 const styles = Styles.styleSheetCreate(() => ({
-  overlay: {
-    backgroundColor: Styles.globalColors.white,
-    borderRadius: Styles.borderRadius,
-    maxHeight: 0.8 * windowHeight,
-  },
+  overlay: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.white,
+      borderRadius: Styles.borderRadius,
+      maxHeight: 0.8 * windowHeight,
+    },
+    isTablet: {
+      maxWidth: 460,
+    },
+  }),
   underlay: {
     ...Styles.globalStyles.fillAbsolute,
     ...Styles.padding(27, Styles.globalMargins.small, Styles.globalMargins.small),

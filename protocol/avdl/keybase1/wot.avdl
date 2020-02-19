@@ -18,6 +18,9 @@ protocol wot {
     int knownOnKeybaseDays;
   }
 
+  void wotVouch(int sessionID, UserVersion uv /* vouchee */, array<string> vouchTexts, Confidence confidence);
+  void wotVouchCLI(int sessionID, string assertion, array<string> vouchTexts, Confidence confidence);
+
   record PendingVouch {
     UserVersion voucher;
     SigID proof;
@@ -27,7 +30,9 @@ protocol wot {
 
   array<PendingVouch> wotPending(int sessionID);
 
-  void wotVouch(int sessionID, UserVersion uv, array<string> vouchTexts, Confidence confidence);
-
-  void wotVouchCLI(int sessionID, string assertion, array<string> vouchTexts, Confidence confidence);
+  enum WotReactionType {
+    ACCEPT_0,
+    REJECT_1
+  }
+  void wotReact(int sessionID, UserVersion uv /* voucher */, SigID proof, WotReactionType reaction);
 }
