@@ -39,7 +39,7 @@ const store = Container.produce(Sb.createStoreWithCommon(), draftState => {
 })
 
 const channelsWidgetProps = {
-  channels: ['stir-fry', 'salad', 'veg', 'plate-presentation', 'team-sqawk', 'team-beasts'],
+  channels: ['general', 'stir-fry', 'salad', 'veg', 'plate-presentation', 'team-sqawk', 'team-beasts'],
   onAddChannel: Sb.action('onAddChannel'),
   onRemoveChannel: Sb.action('onRemoveChannel'),
   teamID: fakeTeamID,

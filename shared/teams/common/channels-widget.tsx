@@ -20,12 +20,11 @@ const ChannelsWidget = (props: Props) => {
     <Kb.Box2 direction="vertical" gap="tiny" style={styles.container}>
       <ChannelInput onAdd={props.onAddChannel} teamID={props.teamID} selected={props.channels} />
       <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.pillContainer}>
-        <ChannelPill channelname="general" />
         {props.channels.map(channelname => (
           <ChannelPill
             key={channelname}
             channelname={channelname}
-            onRemove={() => props.onRemoveChannel(channelname)}
+            onRemove={channelname === 'general' ? undefined : () => props.onRemoveChannel(channelname)}
           />
         ))}
       </Kb.Box2>
@@ -35,10 +34,12 @@ const ChannelsWidget = (props: Props) => {
 
 type ChannelInputProps = {onAdd: (channelname: string) => void; selected: Array<string>; teamID: Types.TeamID}
 
-const ChannelInputDesktop = ({onAdd, teamID}: ChannelInputProps) => {
+const ChannelInputDesktop = ({onAdd, selected, teamID}: ChannelInputProps) => {
   const [filter, setFilter] = React.useState('')
   const channels = Container.useSelector(s => Constants.getTeamChannelInfos(s, teamID))
-  const channelnames = [...channels.values()].map(c => `#${c.channelname}`)
+  const channelnames = [...channels.values()]
+    .filter(c => !selected.includes(c.channelname))
+    .map(c => `#${c.channelname}`)
 
   const onSelect = value => {
     onAdd(value)
@@ -50,7 +51,6 @@ const ChannelInputDesktop = ({onAdd, teamID}: ChannelInputProps) => {
   return (
     <>
       <Kb.SearchFilter
-        // @ts-ignore ref typing
         ref={popupAnchor}
         onFocus={() => setShowingPopup(true)}
         onBlur={() => setShowingPopup(false)}
