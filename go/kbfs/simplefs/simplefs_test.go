@@ -48,7 +48,9 @@ func closeSimpleFS(ctx context.Context, t *testing.T, fs *SimpleFS) {
 	// Sync in-memory data to disk before shutting down and flushing
 	// the journal.
 	syncFS(ctx, t, fs, "/private/jdoe")
-	err := fs.config.Shutdown(ctx)
+	err := fs.Shutdown(ctx)
+	require.NoError(t, err)
+	err = fs.config.Shutdown(ctx)
 	require.NoError(t, err)
 }
 

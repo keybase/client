@@ -146,7 +146,7 @@ export type TextInfo = {
 export type InternalProps = {} & DefaultProps & Props
 
 declare class PlainInput extends React.Component<Props> {
-  defaultProps: DefaultProps
+  static defaultProps: DefaultProps
   blur: () => void
   focus: () => void
   isFocused: () => boolean

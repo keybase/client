@@ -89,8 +89,9 @@ func httpClient(g *libkb.GlobalContext, host string) *http.Client {
 	}
 	xprt.TLSClientConfig = tlsConfig
 	return &http.Client{
-		Transport: libkb.NewInstrumentedTransport(g, func(*http.Request) string { return "LocationShare" }, &xprt),
-		Timeout:   10 * time.Second,
+		Transport: libkb.NewInstrumentedRoundTripper(g,
+			func(*http.Request) string { return "LocationShare" }, libkb.NewClosingRoundTripper(&xprt)),
+		Timeout: 10 * time.Second,
 	}
 }
 
@@ -124,8 +125,8 @@ func DecorateMap(ctx context.Context, avatarReader, mapReader io.Reader) (res io
 	iconRect := image.Rect(middle.X-avatarRadius, middle.Y-avatarRadius, middle.X+avatarRadius, middle.Y+avatarRadius)
 
 	decorated := image.NewRGBA(bounds)
-	draw.Draw(decorated, bounds, mapPng, image.ZP, draw.Src)
-	draw.Draw(decorated, iconRect, avatarImg, image.ZP, draw.Over)
+	draw.Draw(decorated, bounds, mapPng, image.Point{}, draw.Src)
+	draw.Draw(decorated, iconRect, avatarImg, image.Point{}, draw.Over)
 
 	var buf bytes.Buffer
 	err = png.Encode(&buf, decorated)
