@@ -693,21 +693,27 @@ func (e *EKLib) GetOrCreateLatestTeambotEK(mctx libkb.MetaContext, teamID keybas
 	if teambot.CurrentUserIsBot(mctx, &gBotUID) {
 		created = false
 		ek, err = e.getLatestTeambotEK(mctx, teamID, botUID)
-		if err != nil {
-			if _, ok := err.(EphemeralKeyError); ok {
-				// Ping team members to generate the latest key for us
-				if err2 := teambot.NotifyTeambotEKNeeded(mctx, teamID, 0); err2 != nil {
-					mctx.Debug("Unable to NotifyTeambotEKNeeded %v", err2)
-				}
-				// See if we should downgrade this to a transient error. Since
-				// bot members get a key when added to the team this should
-				// only happen in a tight race before the key is created or if
-				// the TeamEK has been purged and we don't have a new one.
-				ekErr := err.(EphemeralKeyError)
-				if ekErr.AllowTransient() {
-					err = newTransientEphemeralKeyError(ekErr)
-				}
+		switch err := err.(type) {
+		case nil:
+		case EphemeralKeyError:
+			// Make sure we have a valid deviceEK, we may be in a oneshot
+			// configuration and be fighting with another bot for one.
+			if err2 := e.KeygenIfNeeded(mctx); err2 != nil {
+				return ek, false, err2
 			}
+			// Ping team members to generate the latest key for us
+			if err2 := teambot.NotifyTeambotEKNeeded(mctx, teamID, 0); err2 != nil {
+				mctx.Debug("Unable to NotifyTeambotEKNeeded %v", err2)
+			}
+			// See if we should downgrade this to a transient error. Since
+			// bot members get a key when added to the team this should
+			// only happen in a tight race before the key is created or if
+			// the TeamEK has been purged and we don't have a new one.
+			if err.AllowTransient() {
+				err = newTransientEphemeralKeyError(err)
+			}
+			return ek, false, err
+		default:
 			return ek, false, err
 		}
 	} else { // we are a team member who needs the latest bot key, get or create that puppy.
