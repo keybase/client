@@ -51,6 +51,7 @@ const ChannelInputDesktop = ({onAdd, selected, teamID}: ChannelInputProps) => {
   return (
     <>
       <Kb.SearchFilter
+        // @ts-ignore ref typing
         ref={popupAnchor}
         onFocus={() => setShowingPopup(true)}
         onBlur={() => setShowingPopup(false)}
