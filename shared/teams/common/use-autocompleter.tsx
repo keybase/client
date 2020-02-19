@@ -45,7 +45,7 @@ const useAutocompleter = (items: Array<string>, onSelect: (value: string) => voi
         ))}
       </Kb.Overlay>
     ),
-    filterLCase + selected
+    [filterLCase, selected]
   )
 
   const numItems = itemsFiltered.length
