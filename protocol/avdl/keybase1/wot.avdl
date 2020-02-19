@@ -3,6 +3,14 @@
 protocol wot {
   import idl "common.avdl";
 
+  enum WotStatusType {
+    NONE_0,
+    PROPOSED_1,
+    ACCEPTED_2,
+    REJECTED_3,
+    REVOKED_4
+  }
+
   // none (""), audio, video, email, other_chat, in_person
   @typedef("string")
   record UsernameVerificationType {}

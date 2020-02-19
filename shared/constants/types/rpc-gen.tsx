@@ -2650,6 +2650,14 @@ export enum WotReactionType {
   accept = 0,
   reject = 1,
 }
+
+export enum WotStatusType {
+  none = 0,
+  proposed = 1,
+  accepted = 2,
+  rejected = 3,
+  revoked = 4,
+}
 export type APIRes = {readonly status: String; readonly body: String; readonly httpStatus: Int; readonly appStatus: String}
 export type APIUserKeybaseResult = {readonly username: String; readonly uid: UID; readonly pictureUrl?: String | null; readonly fullName?: String | null; readonly rawScore: Double; readonly stellar?: String | null; readonly isFollowee: Boolean}
 export type APIUserSearchResult = {readonly score: Double; readonly keybase?: APIUserKeybaseResult | null; readonly service?: APIUserServiceResult | null; readonly contact?: ProcessedContact | null; readonly imptofu?: ImpTofuSearchResult | null; readonly servicesSummary: {[key: string]: APIUserServiceSummary}; readonly rawScore: Double}

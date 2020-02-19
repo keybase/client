@@ -70,14 +70,17 @@ type wotExpansionDetails struct {
 	VouchTexts []string             `json:"vouch_text"`
 }
 
-func transformPending(mctx MetaContext, serverPending apiPendingWot) (res keybase1.PendingVouch, err error) {
+func transformPending(mctx MetaContext, serverVouch serverWotVouch) (res *keybase1.PendingVouch, err error) {
+	if serverVouch.Status != keybase1.WotStatusType_PROPOSED {
+		return nil, nil
+	}
 	// load the voucher and fetch the relevant chain link
-	wotVouchLink, voucher, err := getWotVouchChainLink(mctx, serverPending.UID, serverPending.SigID)
+	wotVouchLink, voucher, err := getWotVouchChainLink(mctx, serverVouch.Voucher, serverVouch.VouchSigID)
 	if err != nil {
 		return res, fmt.Errorf("error finding the pending vouch in the voucher's sigchain: %s", err.Error())
 	}
 	// extract the sig expansion
-	expansionObject, err := ExtractExpansionObj(wotVouchLink.ExpansionID, serverPending.ExpansionJSON)
+	expansionObject, err := ExtractExpansionObj(wotVouchLink.ExpansionID, serverVouch.VouchExpansionJSON)
 	if err != nil {
 		return res, fmt.Errorf("error extracting and validating the expansion: %s", err.Error())
 	}
@@ -99,44 +102,61 @@ func transformPending(mctx MetaContext, serverPending apiPendingWot) (res keybas
 	// build a PendingVouch
 	vouch := keybase1.PendingVouch{
 		Voucher:    voucher.ToUserVersion(),
-		Proof:      serverPending.SigID,
+		Proof:      serverVouch.VouchSigID,
 		VouchTexts: wotObj.VouchTexts,
 		Confidence: wotObj.Confidence,
 	}
-	return vouch, nil
+	return &vouch, nil
 }
 
-type apiPendingWot struct {
-	UID           keybase1.UID   `json:"voucher"`
-	EldestSeqno   keybase1.Seqno `json:"voucher_eldest_seqno"`
-	SigID         keybase1.SigID `json:"sig_id"`
-	ExpansionJSON string         `json:"expansion_json"`
+type serverWotVouch struct {
+	Voucher               keybase1.UID           `json:"voucher"`
+	VoucherEldestSeqno    keybase1.Seqno         `json:"voucher_eldest_seqno"`
+	VouchSigID            keybase1.SigID         `json:"vouch_sig"`
+	VouchExpansionJSON    string                 `json:"vouch_expansion"`
+	ReactionSigID         *keybase1.SigID        `json:"reaction_sig,omitempty"`
+	ReactionExpansionJSON *string                `json:"reaction_expansion,omitempty"`
+	Status                keybase1.WotStatusType `json:"status"`
 }
 
-type GetPendingWotVouches struct {
+type apiWot struct {
 	AppStatusEmbed
-	Pending []apiPendingWot `json:"pending"`
+	Vouches []serverWotVouch `json:"webOfTrust"`
+}
+
+func fetchWot(mctx MetaContext, username *string) (res []serverWotVouch, err error) {
+	apiArg := APIArg{
+		Endpoint:    "wot/get",
+		SessionType: APISessionTypeREQUIRED,
+	}
+	if username != nil {
+		apiArg.Args = HTTPArgs{"username": S{Val: *username}}
+	}
+	var response apiWot
+	err = mctx.G().API.GetDecode(mctx, apiArg, &response)
+	if err != nil {
+		mctx.Debug("error fetching web-of-trust vouches: %s", err.Error())
+		return nil, err
+	}
+	return response.Vouches, nil
 }
 
 func FetchPendingWotVouches(mctx MetaContext) (res []keybase1.PendingVouch, err error) {
 	defer mctx.Trace("FetchPendingWotVouches", func() error { return err })()
-	apiArg := APIArg{
-		Endpoint:    "wot/pending",
-		SessionType: APISessionTypeREQUIRED,
-	}
-	var response GetPendingWotVouches
-	err = mctx.G().API.GetDecode(mctx, apiArg, &response)
+	vouches, err := fetchWot(mctx, nil)
 	if err != nil {
 		mctx.Debug("error fetching pending web-of-trust vouches: %s", err.Error())
 		return nil, err
 	}
-	for _, apiPending := range response.Pending {
-		newPending, err := transformPending(mctx, apiPending)
+	for _, serverVouch := range vouches {
+		pendingVouch, err := transformPending(mctx, serverVouch)
 		if err != nil {
 			mctx.Debug("error validating server-reported pending web-of-trust vouches: %s", err.Error())
 			return nil, err
 		}
-		res = append(res, newPending)
+		if pendingVouch != nil {
+			res = append(res, *pendingVouch)
+		}
 	}
 	mctx.Debug("found %d pending web-of-trust vouches", len(res))
 	return res, nil
