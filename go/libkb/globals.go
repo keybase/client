@@ -64,7 +64,6 @@ type GlobalContext struct {
 	LocalChatDb                      *JSONLocalDb                // Local DB for cache
 	MerkleClient                     MerkleClientInterface       // client for querying server's merkle sig tree
 	XAPI                             ExternalAPI                 // for contacting Twitter, Github, etc.
-	Output                           io.Writer                   // where 'Stdout'-style output goes
 	DNSNSFetcher                     DNSNameServerFetcher        // The mobile apps potentially pass an implementor of this interface which is used to grab currently configured DNS name servers
 	MobileNetState                   *MobileNetState             // The kind of network connection for the currently running instance of the app
 	MobileAppState                   *MobileAppState             // The state of focus for the currently running instance of the app
@@ -370,7 +369,6 @@ func (g *GlobalContext) ConfigureLogging(usage *Usage) error {
 			return err
 		}
 	}
-	g.Output = os.Stdout
 	g.VDL.Configure(g.Env.GetVDebugSetting())
 
 	shouldConfigureGUILog := true
@@ -983,14 +981,6 @@ func (g *GlobalContext) ConfigureUsage(usage Usage) error {
 	}
 
 	return g.ConfigureTimers()
-}
-
-func (g *GlobalContext) OutputString(s string) {
-	_, _ = g.Output.Write([]byte(s))
-}
-
-func (g *GlobalContext) OutputBytes(b []byte) {
-	_, _ = g.Output.Write(b)
 }
 
 func (g *GlobalContext) GetGpgClient() *GpgCLI {
