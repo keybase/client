@@ -12,6 +12,7 @@ import * as Container from '../../util/container'
 import logger from '../../logger'
 import platformSpecificSaga, {ensureDownloadPermissionPromise} from './platform-specific'
 import * as RouteTreeGen from '../route-tree-gen'
+import * as Platform from '../../constants/platform'
 import {tlfToPreferredOrder} from '../../util/kbfs'
 import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
 import {NotifyPopup} from '../../native/notifications'
@@ -414,6 +415,7 @@ function* upload(_: Container.TypedState, action: FsGen.UploadPayload) {
   const {parentPath, localPath} = action.payload
   const opID = Constants.makeUUID()
   const path = Constants.getUploadedPath(parentPath, localPath)
+  const src = {PathType: RPCTypes.PathType.local, local: Types.getNormalizedLocalPath(localPath)} as const
 
   yield Saga.put(FsGen.createUploadStarted({path}))
 
@@ -422,15 +424,48 @@ function* upload(_: Container.TypedState, action: FsGen.UploadPayload) {
   yield RPCTypes.SimpleFSSimpleFSCopyRecursiveRpcPromise({
     dest: Constants.pathToRPCPath(path),
     opID,
-    src: {PathType: RPCTypes.PathType.local, local: Types.getNormalizedLocalPath(localPath)},
+    src,
   })
 
   try {
     yield RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID})
     yield Saga.put(FsGen.createUploadWritingSuccess({path}))
+
+    // TODO move this in go. Perhaps an upload manager in simplefs.
+    if (action.payload.deleteSourceFile) {
+      const opIDRemove = Constants.makeUUID()
+      yield RPCTypes.SimpleFSSimpleFSRemoveRpcPromise({
+        opID: opIDRemove,
+        path: src,
+        recursive: false,
+      })
+      yield RPCTypes.SimpleFSSimpleFSWaitRpcPromise({opID: opIDRemove})
+    }
   } catch (error) {
-    yield makeRetriableErrorHandler(action, path)(error).map(action => Saga.put(action))
+    yield makeRetriableErrorHandler(action, path)(error).map(a => Saga.put(a))
   }
+}
+
+const uploadFromDragAndDrop = async (_: Container.TypedState, action: FsGen.UploadFromDragAndDropPayload) => {
+  if (Platform.isDarwin) {
+    const localPaths = await Promise.all(
+      action.payload.localPaths.map(localPath => KB.kb.darwinCopyToTmp(localPath))
+    )
+    return localPaths.map(localPath =>
+      FsGen.createUpload({
+        deleteSourceFile: true,
+        localPath,
+        parentPath: action.payload.parentPath,
+      })
+    )
+  }
+  return action.payload.localPaths.map(localPath =>
+    FsGen.createUpload({
+      deleteSourceFile: false,
+      localPath,
+      parentPath: action.payload.parentPath,
+    })
+  )
 }
 
 const getWaitDuration = (endEstimate: number | null, lower: number, upper: number): number => {
@@ -993,6 +1028,7 @@ const subscribeAndLoadSettings = () => {
 
 function* fsSaga() {
   yield* Saga.chainGenerator<FsGen.UploadPayload>(FsGen.upload, upload)
+  yield* Saga.chainAction2(FsGen.uploadFromDragAndDrop, uploadFromDragAndDrop)
   yield* Saga.chainGenerator<FsGen.FolderListLoadPayload>(FsGen.folderListLoad, folderList)
   yield* Saga.chainAction2(FsGen.favoritesLoad, loadFavorites)
   yield* Saga.chainAction2(FsGen.kbfsDaemonRpcStatusChanged, setTlfsAsUnloadedWhenKbfsDaemonDisconnects)

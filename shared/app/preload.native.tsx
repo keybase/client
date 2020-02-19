@@ -17,6 +17,11 @@ global.KB = {
       },
     },
   },
+  kb: {
+    darwinCopyToChatTempUploadFile: () => invalidPreload(),
+    darwinCopyToTmp: () => invalidPreload(),
+    setEngine: () => {},
+  },
   os: {
     get homedir() {
       return invalidPreload()

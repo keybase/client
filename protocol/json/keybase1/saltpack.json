@@ -439,6 +439,10 @@
           "type": "string"
         },
         {
+          "name": "destinationDir",
+          "type": "string"
+        },
+        {
           "name": "opts",
           "type": "SaltpackFrontendEncryptOptions"
         }
@@ -466,6 +470,10 @@
         },
         {
           "name": "encryptedFilename",
+          "type": "string"
+        },
+        {
+          "name": "destinationDir",
           "type": "string"
         }
       ],
@@ -505,6 +513,10 @@
         },
         {
           "name": "filename",
+          "type": "string"
+        },
+        {
+          "name": "destinationDir",
           "type": "string"
         }
       ],
@@ -557,6 +569,10 @@
         },
         {
           "name": "signedFilename",
+          "type": "string"
+        },
+        {
+          "name": "destinationDir",
           "type": "string"
         }
       ],

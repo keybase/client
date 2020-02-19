@@ -95,6 +95,7 @@ export const tlfSyncConfigLoaded = 'fs:tlfSyncConfigLoaded'
 export const uninstallKBFSConfirm = 'fs:uninstallKBFSConfirm'
 export const unsubscribe = 'fs:unsubscribe'
 export const upload = 'fs:upload'
+export const uploadFromDragAndDrop = 'fs:uploadFromDragAndDrop'
 export const uploadStarted = 'fs:uploadStarted'
 export const uploadWritingSuccess = 'fs:uploadWritingSuccess'
 export const userFileEditsLoad = 'fs:userFileEditsLoad'
@@ -225,7 +226,12 @@ type _TlfSyncConfigLoadedPayload = {
 }
 type _UninstallKBFSConfirmPayload = void
 type _UnsubscribePayload = {readonly subscriptionID: string}
-type _UploadPayload = {readonly parentPath: Types.Path; readonly localPath: string}
+type _UploadFromDragAndDropPayload = {readonly parentPath: Types.Path; readonly localPaths: Array<string>}
+type _UploadPayload = {
+  readonly parentPath: Types.Path
+  readonly localPath: string
+  readonly deleteSourceFile?: boolean
+}
 type _UploadStartedPayload = {readonly path: Types.Path}
 type _UploadWritingSuccessPayload = {readonly path: Types.Path}
 type _UserFileEditsLoadPayload = void
@@ -544,6 +550,9 @@ export const createUnsubscribe = (payload: _UnsubscribePayload): UnsubscribePayl
   type: unsubscribe,
 })
 export const createUpload = (payload: _UploadPayload): UploadPayload => ({payload, type: upload})
+export const createUploadFromDragAndDrop = (
+  payload: _UploadFromDragAndDropPayload
+): UploadFromDragAndDropPayload => ({payload, type: uploadFromDragAndDrop})
 export const createUploadStarted = (payload: _UploadStartedPayload): UploadStartedPayload => ({
   payload,
   type: uploadStarted,
@@ -874,6 +883,10 @@ export type UninstallKBFSConfirmPayload = {
   readonly type: typeof uninstallKBFSConfirm
 }
 export type UnsubscribePayload = {readonly payload: _UnsubscribePayload; readonly type: typeof unsubscribe}
+export type UploadFromDragAndDropPayload = {
+  readonly payload: _UploadFromDragAndDropPayload
+  readonly type: typeof uploadFromDragAndDrop
+}
 export type UploadPayload = {readonly payload: _UploadPayload; readonly type: typeof upload}
 export type UploadStartedPayload = {
   readonly payload: _UploadStartedPayload
@@ -990,6 +1003,7 @@ export type Actions =
   | TlfSyncConfigLoadedPayload
   | UninstallKBFSConfirmPayload
   | UnsubscribePayload
+  | UploadFromDragAndDropPayload
   | UploadPayload
   | UploadStartedPayload
   | UploadWritingSuccessPayload

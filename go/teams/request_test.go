@@ -84,6 +84,8 @@ func TestAccessRequestAccept(t *testing.T) {
 }
 
 func TestAccessRequestIgnore(t *testing.T) {
+	t.Skip() // Y2K-1455
+
 	tc, owner, u1, _, teamName := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
