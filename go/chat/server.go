@@ -71,7 +71,7 @@ var _ chat1.LocalInterface = (*Server)(nil)
 func NewServer(g *globals.Context, serverConn ServerConnection, uiSource UISource) *Server {
 	return &Server{
 		Contextified:                      globals.NewContextified(g),
-		DebugLabeler:                      utils.NewDebugLabeler(g.GetLog(), "Server", false),
+		DebugLabeler:                      utils.NewDebugLabeler(g.ExternalG(), "Server", false),
 		serverConn:                        serverConn,
 		uiSource:                          uiSource,
 		boxer:                             NewBoxer(g),
@@ -197,6 +197,7 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 	ctx = globals.ChatCtx(ctx, h.G(), arg.IdentifyBehavior, &breaks, h.identNotifier)
 	ctx = globals.CtxAddLocalizerCancelable(ctx)
 	defer h.Trace(ctx, func() error { return err }, "GetInboxNonblockLocal")()
+	defer h.PerfTrace(ctx, func() error { return err }, "GetInboxNonblockLocal")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
 	defer func() {
@@ -275,13 +276,13 @@ func (h *Server) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.GetInboxAn
 	// Read inbox from the source
 	ib, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
 		types.InboxSourceDataSourceAll, nil, arg.Query)
-	if err != nil {
-		if _, ok := err.(UnknownTLFNameError); ok {
-			h.Debug(ctx, "GetInboxAndUnboxLocal: got unknown TLF name error, returning blank results")
-			ib.Convs = nil
-		} else {
-			return res, err
-		}
+	switch err.(type) {
+	case nil:
+	case UnknownTLFNameError:
+		h.Debug(ctx, "GetInboxAndUnboxLocal: got unknown TLF name error, returning blank results")
+		ib.Convs = nil
+	default:
+		return res, err
 	}
 
 	return chat1.GetInboxAndUnboxLocalRes{
@@ -304,13 +305,13 @@ func (h *Server) GetInboxAndUnboxUILocal(ctx context.Context, arg chat1.GetInbox
 	// Read inbox from the source
 	ib, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
 		types.InboxSourceDataSourceAll, nil, arg.Query)
-	if err != nil {
-		if _, ok := err.(UnknownTLFNameError); ok {
-			h.Debug(ctx, "GetInboxAndUnboxUILocal: got unknown TLF name error, returning blank results")
-			ib.Convs = nil
-		} else {
-			return res, err
-		}
+	switch err.(type) {
+	case nil:
+	case UnknownTLFNameError:
+		h.Debug(ctx, "GetInboxAndUnboxUILocal: got unknown TLF name error, returning blank results")
+		ib.Convs = nil
+	default:
+		return res, err
 	}
 	return chat1.GetInboxAndUnboxUILocalRes{
 		Conversations: utils.PresentConversationLocals(ctx, h.G(), uid, ib.Convs,
@@ -366,6 +367,8 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = globals.ChatCtx(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err },
+		fmt.Sprintf("GetThreadNonblock(%s,%v,%v)", arg.ConversationID, arg.CbMode, arg.Reason))()
+	defer h.PerfTrace(ctx, func() error { return err },
 		fmt.Sprintf("GetThreadNonblock(%s,%v,%v)", arg.ConversationID, arg.CbMode, arg.Reason))()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
@@ -1124,8 +1127,9 @@ func (h *Server) PostFileAttachmentLocalNonblock(ctx context.Context,
 	if err != nil {
 		return res, err
 	}
-	if _, err := h.G().AttachmentUploader.Register(ctx, uid, arg.Arg.ConversationID, outboxID, arg.Arg.Title,
-		arg.Arg.Filename, nil, arg.Arg.CallerPreview); err != nil {
+	_, err = h.G().AttachmentUploader.Register(ctx, uid, arg.Arg.ConversationID, outboxID, arg.Arg.Title,
+		arg.Arg.Filename, nil, arg.Arg.CallerPreview)
+	if err != nil {
 		return res, err
 	}
 	return chat1.PostLocalNonblockRes{

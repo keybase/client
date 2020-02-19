@@ -73,7 +73,7 @@ var _ types.Indexer = (*Indexer)(nil)
 func NewIndexer(g *globals.Context) *Indexer {
 	idx := &Indexer{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Search.Indexer", false),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "Search.Indexer", false),
 		pageSize:     defaultPageSize,
 		suspendCh:    make(chan chan struct{}, 10),
 		resumeWait:   time.Second,
@@ -721,6 +721,7 @@ func (idx *Indexer) setSelectiveSyncActive(val bool) {
 // varies between desktop and mobile so mobile can be more conservative.
 func (idx *Indexer) SelectiveSync(ctx context.Context) (err error) {
 	defer idx.Trace(ctx, func() error { return err }, "SelectiveSync")()
+	defer idx.PerfTrace(ctx, func() error { return err }, "SelectiveSync")()
 	idx.setSelectiveSyncActive(true)
 	defer func() { idx.setSelectiveSyncActive(false) }()
 

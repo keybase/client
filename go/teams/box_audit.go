@@ -206,6 +206,7 @@ func (a *BoxAuditor) initMctx(mctx libkb.MetaContext) libkb.MetaContext {
 func (a *BoxAuditor) BoxAuditTeam(mctx libkb.MetaContext, teamID keybase1.TeamID) (attempt *keybase1.BoxAuditAttempt, err error) {
 	mctx = a.initMctx(mctx)
 	defer mctx.TraceTimed(fmt.Sprintf("BoxAuditTeam(%s)", teamID), func() error { return err })()
+	defer mctx.PerfTrace(fmt.Sprintf("BoxAuditTeam(%s)", teamID), func() error { return err })()
 
 	if !ShouldRunBoxAudit(mctx) {
 		mctx.Debug("Box auditor feature flagged off or not logged in; not auditing...")

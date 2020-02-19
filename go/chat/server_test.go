@@ -64,7 +64,7 @@ var _ rpc.ConnectionHandler = (*gregorTestConnection)(nil)
 func newGregorTestConnection(g *globals.Context, uid gregor1.UID, sessionToken string) *gregorTestConnection {
 	return &gregorTestConnection{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "gregorTestConnection", false),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "gregorTestConnection", false),
 		uid:          uid,
 		sessionToken: sessionToken,
 	}
@@ -6306,8 +6306,13 @@ func TestChatSrvUserResetAndDeleted(t *testing.T) {
 		require.Equal(t, 1, len(iboxRes.Conversations))
 		require.Equal(t, conv.Id, iboxRes.Conversations[0].GetConvID())
 		require.Equal(t, 4, len(iboxRes.Conversations[0].AllNames()))
-		require.Equal(t, 1, len(iboxRes.Conversations[0].Info.ResetNames))
-		require.Equal(t, users[1].Username, iboxRes.Conversations[0].Info.ResetNames[0])
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+			require.Zero(t, len(iboxRes.Conversations[0].Info.ResetNames))
+		default:
+			require.Equal(t, 1, len(iboxRes.Conversations[0].Info.ResetNames))
+			require.Equal(t, users[1].Username, iboxRes.Conversations[0].Info.ResetNames[0])
+		}
 		iboxRes, err = ctc.as(t, users[1]).chatLocalHandler().GetInboxAndUnboxLocal(ctx1,
 			chat1.GetInboxAndUnboxLocalArg{})
 		require.NoError(t, err)

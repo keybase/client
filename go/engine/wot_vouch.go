@@ -4,9 +4,6 @@
 package engine
 
 import (
-	"crypto/hmac"
-	"crypto/sha256"
-	"encoding/hex"
 	"errors"
 
 	"github.com/keybase/client/go/libkb"
@@ -76,33 +73,8 @@ func (e *WotVouch) Run(mctx libkb.MetaContext) error {
 	if err := statement.SetKey("confidence", e.arg.Confidence.ToJsonw()); err != nil {
 		return err
 	}
-
-	vouch := jsonw.NewDictionary()
-	if err := vouch.SetKey("obj", statement); err != nil {
-		return err
-	}
-	randKey, err := libkb.RandBytes(16)
+	expansions, sum, err := libkb.EmbedExpansionObj(statement)
 	if err != nil {
-		return err
-	}
-	hexKey := hex.EncodeToString(randKey)
-	if err := vouch.SetKey("key", jsonw.NewString(hexKey)); err != nil {
-		return err
-	}
-
-	marshaled, err := statement.Marshal()
-	if err != nil {
-		return err
-	}
-
-	mac := hmac.New(sha256.New, randKey)
-	if _, err := mac.Write(marshaled); err != nil {
-		return err
-	}
-	sum := mac.Sum(nil)
-
-	expansions := jsonw.NewDictionary()
-	if err := expansions.SetKey(hex.EncodeToString(sum), vouch); err != nil {
 		return err
 	}
 

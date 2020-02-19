@@ -80,7 +80,7 @@ var _ types.TeamChannelSource = (*TeamChannelSource)(nil)
 func NewTeamChannelSource(g *globals.Context) *TeamChannelSource {
 	return &TeamChannelSource{
 		Contextified:     globals.NewContextified(g),
-		DebugLabeler:     utils.NewDebugLabeler(g.GetLog(), "TeamChannelSource", false),
+		DebugLabeler:     utils.NewDebugLabeler(g.ExternalG(), "TeamChannelSource", false),
 		recentJoinsCache: newRecentJoinsMemCache(),
 	}
 }

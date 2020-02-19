@@ -136,6 +136,7 @@ export type TypedActionsMap = {
   'chat2:attachmentLoading': chat2.AttachmentLoadingPayload
   'chat2:attachmentDownloaded': chat2.AttachmentDownloadedPayload
   'chat2:attachmentsUpload': chat2.AttachmentsUploadPayload
+  'chat2:attachFromDragAndDrop': chat2.AttachFromDragAndDropPayload
   'chat2:attachmentUploading': chat2.AttachmentUploadingPayload
   'chat2:attachmentUploaded': chat2.AttachmentUploadedPayload
   'chat2:attachmentPasted': chat2.AttachmentPastedPayload
@@ -566,6 +567,7 @@ export type TypedActionsMap = {
   'fs:shareNative': fs.ShareNativePayload
   'fs:saveMedia': fs.SaveMediaPayload
   'fs:upload': fs.UploadPayload
+  'fs:uploadFromDragAndDrop': fs.UploadFromDragAndDropPayload
   'fs:uploadStarted': fs.UploadStartedPayload
   'fs:uploadWritingSuccess': fs.UploadWritingSuccessPayload
   'fs:journalUpdate': fs.JournalUpdatePayload
@@ -902,6 +904,7 @@ export type TypedActionsMap = {
   'teams:setTeamVersion': teams.SetTeamVersionPayload
   'teams:getMembers': teams.GetMembersPayload
   'teams:setMembers': teams.SetMembersPayload
+  'teams:setMemberSelected': teams.SetMemberSelectedPayload
   'teams:getTeamProfileAddList': teams.GetTeamProfileAddListPayload
   'teams:addTeamWithChosenChannels': teams.AddTeamWithChosenChannelsPayload
   'teams:saveChannelMembership': teams.SaveChannelMembershipPayload

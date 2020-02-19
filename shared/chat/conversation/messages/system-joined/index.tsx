@@ -100,7 +100,7 @@ const JoinedUserNotice = (props: Props) => (
     </Kb.Text>
     {props.authorIsYou && props.isBigTeam && (
       <Kb.Text type="BodySmall">
-        <Kb.Text onClick={props.onManageNotifications} type={textType} center={true}>
+        <Kb.Text onClick={props.onManageNotifications} type={textType}>
           Manage your notifications
         </Kb.Text>
         {` or `}

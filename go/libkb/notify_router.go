@@ -79,7 +79,7 @@ type NotifyListener interface {
 	NewlyAddedToTeam(teamID keybase1.TeamID)
 	NewTeamEK(teamID keybase1.TeamID, generation keybase1.EkGeneration)
 	NewTeambotEK(teamID keybase1.TeamID, generation keybase1.EkGeneration)
-	TeambotEKNeeded(teamID keybase1.TeamID, botUID keybase1.UID, generation keybase1.EkGeneration)
+	TeambotEKNeeded(teamID keybase1.TeamID, botUID keybase1.UID, generation keybase1.EkGeneration, forceCreateGen *keybase1.EkGeneration)
 	NewTeambotKey(teamID keybase1.TeamID, generation keybase1.TeambotKeyGeneration)
 	TeambotKeyNeeded(teamID keybase1.TeamID, botUID keybase1.UID, generation keybase1.TeambotKeyGeneration)
 	AvatarUpdated(name string, formats []keybase1.AvatarFormat)
@@ -198,7 +198,7 @@ func (n *NoopNotifyListener) TeamRoleMapChanged(version keybase1.UserTeamVersion
 func (n *NoopNotifyListener) NewTeamEK(teamID keybase1.TeamID, generation keybase1.EkGeneration)    {}
 func (n *NoopNotifyListener) NewTeambotEK(teamID keybase1.TeamID, generation keybase1.EkGeneration) {}
 func (n *NoopNotifyListener) TeambotEKNeeded(teamID keybase1.TeamID, botUID keybase1.UID,
-	generation keybase1.EkGeneration) {
+	generation keybase1.EkGeneration, forceCreateGen *keybase1.EkGeneration) {
 }
 func (n *NoopNotifyListener) NewTeambotKey(teamID keybase1.TeamID, generation keybase1.TeambotKeyGeneration) {
 }
@@ -2247,15 +2247,16 @@ func (n *NotifyRouter) HandleNewTeambotEK(ctx context.Context, teamID keybase1.T
 }
 
 func (n *NotifyRouter) HandleTeambotEKNeeded(ctx context.Context, teamID keybase1.TeamID,
-	botUID keybase1.UID, generation keybase1.EkGeneration) {
+	botUID keybase1.UID, generation keybase1.EkGeneration, forceCreateGen *keybase1.EkGeneration) {
 	if n == nil {
 		return
 	}
 
 	arg := keybase1.TeambotEkNeededArg{
-		Id:         teamID,
-		Uid:        botUID,
-		Generation: generation,
+		Id:                    teamID,
+		Uid:                   botUID,
+		Generation:            generation,
+		ForceCreateGeneration: forceCreateGen,
 	}
 
 	var wg sync.WaitGroup
@@ -2275,7 +2276,7 @@ func (n *NotifyRouter) HandleTeambotEKNeeded(ctx context.Context, teamID keybase
 	wg.Wait()
 
 	n.runListeners(func(listener NotifyListener) {
-		listener.TeambotEKNeeded(teamID, botUID, generation)
+		listener.TeambotEKNeeded(teamID, botUID, generation, forceCreateGen)
 	})
 	n.G().Log.CDebugf(ctx, "- Sent TeambotEKNeeded notification")
 }

@@ -277,6 +277,12 @@ const updateNow = async () => {
   return ConfigGen.createCheckForUpdate()
 }
 
+// don't leak these handlers on hot load
+module?.hot?.dispose(() => {
+  const pm = Electron.remote.powerMonitor
+  pm.removeAllListeners()
+})
+
 function* startPowerMonitor() {
   const channel = Saga.eventChannel(emitter => {
     const pm = Electron.remote.powerMonitor

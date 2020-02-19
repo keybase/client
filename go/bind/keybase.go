@@ -44,7 +44,6 @@ var kbSvc *service.Service
 var conn net.Conn
 var startOnce sync.Once
 var logSendContext status.LogSendContext
-var kbfsConfig libkbfs.Config
 
 var initMutex sync.Mutex
 var initComplete bool
@@ -142,11 +141,13 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	}()
 
 	fmt.Printf("Go: Initializing: home: %s mobileSharedHome: %s\n", homeDir, mobileSharedHome)
-	var ekLogFile, guiLogFile string
+	var perfLogFile, ekLogFile, guiLogFile string
 	if logFile != "" {
 		fmt.Printf("Go: Using log: %s\n", logFile)
 		ekLogFile = logFile + ".ek"
 		fmt.Printf("Go: Using eklog: %s\n", ekLogFile)
+		perfLogFile = logFile + ".perf"
+		fmt.Printf("Go: Using perfLog: %s\n", perfLogFile)
 		guiLogFile = logFile + ".gui"
 		fmt.Printf("Go: Using guilog: %s\n", guiLogFile)
 	}
@@ -192,6 +193,7 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 		MobileSharedHomeDir:            mobileSharedHome,
 		LogFile:                        logFile,
 		EKLogFile:                      ekLogFile,
+		PerfLogFile:                    ekLogFile,
 		GUILogFile:                     guiLogFile,
 		RunMode:                        runMode,
 		Debug:                          true,
@@ -250,7 +252,7 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 		// before KBFS-on-mobile is ready.
 		kbfsParams.Debug = true                         // false
 		kbfsParams.Mode = libkbfs.InitConstrainedString // libkbfs.InitMinimalString
-		kbfsConfig, _ = libkbfs.Init(
+		_, _ = libkbfs.Init(
 			context.Background(), kbfsCtx, kbfsParams, serviceCn{}, func() error { return nil },
 			kbCtx.Log)
 	}()

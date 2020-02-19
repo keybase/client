@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	humanize "github.com/dustin/go-humanize"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
@@ -230,10 +231,24 @@ func (s *DiskInstrumentationStorage) Stats() (res []keybase1.InstrumentationStat
 	return s.GetAll()
 }
 
+var tagLogBlacklist = map[string]struct{}{
+	"Call gregor.1.incoming.ping": struct{}{},
+}
+
+func (s *DiskInstrumentationStorage) logRecord(tag string, record rpc.InstrumentationRecord) {
+	if s.src == keybase1.NetworkSource_LOCAL {
+		return
+	}
+	if _, ok := tagLogBlacklist[tag]; !ok {
+		s.G().PerfLog.Debug("%s %v %s", tag, record.Dur, humanize.Bytes(uint64(record.Size)))
+	}
+}
+
 func (s *DiskInstrumentationStorage) Put(tag string, record rpc.InstrumentationRecord) error {
 	s.Lock()
 	defer s.Unlock()
 	s.storage[tag] = AddRPCRecord(tag, s.storage[tag], record)
+	s.logRecord(tag, record)
 	return nil
 }
 

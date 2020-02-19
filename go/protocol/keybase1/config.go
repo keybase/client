@@ -334,6 +334,7 @@ type KbServiceStatus struct {
 	Pid     string `codec:"pid" json:"pid"`
 	Log     string `codec:"log" json:"log"`
 	EkLog   string `codec:"ekLog" json:"ekLog"`
+	PerfLog string `codec:"perfLog" json:"perfLog"`
 }
 
 func (o KbServiceStatus) DeepCopy() KbServiceStatus {
@@ -343,6 +344,7 @@ func (o KbServiceStatus) DeepCopy() KbServiceStatus {
 		Pid:     o.Pid,
 		Log:     o.Log,
 		EkLog:   o.EkLog,
+		PerfLog: o.PerfLog,
 	}
 }
 

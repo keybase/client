@@ -33,7 +33,7 @@ var _ (libkb.ChatHelper) = (*Helper)(nil)
 func NewHelper(g *globals.Context, ri func() chat1.RemoteInterface) *Helper {
 	return &Helper{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Helper", false),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "Helper", false),
 		ri:           ri,
 	}
 }
@@ -389,7 +389,7 @@ func newSendHelper(g *globals.Context, name string, topicName *string,
 	ri func() chat1.RemoteInterface) *sendHelper {
 	return &sendHelper{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "sendHelper", false),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "sendHelper", false),
 		name:         name,
 		topicName:    topicName,
 		membersType:  membersType,
@@ -464,7 +464,7 @@ type recentConversationParticipants struct {
 func newRecentConversationParticipants(g *globals.Context) *recentConversationParticipants {
 	return &recentConversationParticipants{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "recentConversationParticipants", false),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "recentConversationParticipants", false),
 	}
 }
 
@@ -1003,7 +1003,7 @@ func newNewConversationHelper(g *globals.Context, uid gregor1.UID, tlfName strin
 	retentionPolicy *chat1.RetentionPolicy, memberSourceConv *chat1.ConversationID) *newConversationHelper {
 	return &newConversationHelper{
 		Contextified:     globals.NewContextified(g),
-		DebugLabeler:     utils.NewDebugLabeler(g.GetLog(), "newConversationHelper", false),
+		DebugLabeler:     utils.NewDebugLabeler(g.ExternalG(), "newConversationHelper", false),
 		uid:              uid,
 		tlfName:          utils.AddUserToTLFName(g, tlfName, vis, membersType),
 		topicName:        topicName,

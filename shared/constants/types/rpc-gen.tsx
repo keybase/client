@@ -72,7 +72,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.NotifyEphemeral.teambotEkNeeded': {
-    inParam: {readonly id: TeamID; readonly uid: UID; readonly generation: EkGeneration}
+    inParam: {readonly id: TeamID; readonly uid: UID; readonly generation: EkGeneration; readonly forceCreateGeneration?: EkGeneration | null}
     outParam: void
   }
   'keybase.1.NotifyFS.FSActivity': {
@@ -1216,7 +1216,7 @@ export type MessageTypes = {
     outParam: void
   }
   'keybase.1.saltpack.saltpackDecryptFile': {
-    inParam: {readonly encryptedFilename: String}
+    inParam: {readonly encryptedFilename: String; readonly destinationDir: String}
     outParam: SaltpackFileResult
   }
   'keybase.1.saltpack.saltpackDecryptString': {
@@ -1224,7 +1224,7 @@ export type MessageTypes = {
     outParam: SaltpackPlaintextResult
   }
   'keybase.1.saltpack.saltpackEncryptFile': {
-    inParam: {readonly filename: String; readonly opts: SaltpackFrontendEncryptOptions}
+    inParam: {readonly filename: String; readonly destinationDir: String; readonly opts: SaltpackFrontendEncryptOptions}
     outParam: SaltpackEncryptFileResult
   }
   'keybase.1.saltpack.saltpackEncryptString': {
@@ -1240,7 +1240,7 @@ export type MessageTypes = {
     outParam: String
   }
   'keybase.1.saltpack.saltpackSignFile': {
-    inParam: {readonly filename: String}
+    inParam: {readonly filename: String; readonly destinationDir: String}
     outParam: String
   }
   'keybase.1.saltpack.saltpackSignString': {
@@ -1248,7 +1248,7 @@ export type MessageTypes = {
     outParam: String
   }
   'keybase.1.saltpack.saltpackVerifyFile': {
-    inParam: {readonly signedFilename: String}
+    inParam: {readonly signedFilename: String; readonly destinationDir: String}
     outParam: SaltpackVerifyFileResult
   }
   'keybase.1.saltpack.saltpackVerifyString': {
@@ -2629,6 +2629,11 @@ export enum UserOrTeamResult {
   user = 1,
   team = 2,
 }
+
+export enum WotReactionType {
+  accept = 0,
+  reject = 1,
+}
 export type APIRes = {readonly status: String; readonly body: String; readonly httpStatus: Int; readonly appStatus: String}
 export type APIUserKeybaseResult = {readonly username: String; readonly uid: UID; readonly pictureUrl?: String | null; readonly fullName?: String | null; readonly rawScore: Double; readonly stellar?: String | null; readonly isFollowee: Boolean}
 export type APIUserSearchResult = {readonly score: Double; readonly keybase?: APIUserKeybaseResult | null; readonly service?: APIUserServiceResult | null; readonly contact?: ProcessedContact | null; readonly imptofu?: ImpTofuSearchResult | null; readonly servicesSummary: {[key: string]: APIUserServiceSummary}; readonly rawScore: Double}
@@ -2857,7 +2862,7 @@ export type KVListEntryResult = {readonly teamName: String; readonly namespace: 
 export type KVListNamespaceResult = {readonly teamName: String; readonly namespaces?: Array<String> | null}
 export type KVPutResult = {readonly teamName: String; readonly namespace: String; readonly entryKey: String; readonly revision: Int}
 export type KbClientStatus = {readonly version: String}
-export type KbServiceStatus = {readonly version: String; readonly running: Boolean; readonly pid: String; readonly log: String; readonly ekLog: String}
+export type KbServiceStatus = {readonly version: String; readonly running: Boolean; readonly pid: String; readonly log: String; readonly ekLog: String; readonly perfLog: String}
 export type KeyBundle = {readonly version: Int; readonly bundle: Bytes}
 export type KeyBundleResponse = {readonly WriterBundle: KeyBundle; readonly ReaderBundle: KeyBundle}
 export type KeyHalf = {readonly user: UID; readonly deviceKID: KID; readonly key: Bytes}
@@ -3860,6 +3865,7 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.kvstore.listKVEntries'
 // 'keybase.1.kvstore.delKVEntry'
 // 'keybase.1.log.registerLogger'
+// 'keybase.1.log.perfLogPoint'
 // 'keybase.1.logUi.log'
 // 'keybase.1.login.loginProvisionedDevice'
 // 'keybase.1.login.loginWithPaperKey'
@@ -4127,6 +4133,7 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.user.findNextMerkleRootAfterRevoke'
 // 'keybase.1.user.findNextMerkleRootAfterReset'
 // 'keybase.1.user.getTeamBlocks'
-// 'keybase.1.wot.wotPending'
 // 'keybase.1.wot.wotVouch'
 // 'keybase.1.wot.wotVouchCLI'
+// 'keybase.1.wot.wotPending'
+// 'keybase.1.wot.wotReact'

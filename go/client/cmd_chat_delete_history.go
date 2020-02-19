@@ -112,7 +112,7 @@ func (c *CmdChatDeleteHistory) parseAge(s string) (gregor1.DurationSec, string, 
 	if len(s) < 2 {
 		return 0, "", generalErr
 	}
-	factor := time.Second
+	var factor time.Duration
 	unitName := ""
 	switch s[len(s)-1] {
 	case 's':

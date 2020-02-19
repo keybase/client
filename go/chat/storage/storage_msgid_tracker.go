@@ -19,7 +19,7 @@ type msgIDTracker struct {
 func newMsgIDTracker(g *globals.Context) *msgIDTracker {
 	return &msgIDTracker{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "MsgIDTracker", false),
+		DebugLabeler: utils.NewDebugLabeler(g.ExternalG(), "MsgIDTracker", false),
 	}
 }
 

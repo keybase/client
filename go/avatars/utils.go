@@ -90,9 +90,9 @@ func GetBorderedCircleAvatar(ctx context.Context, g *globals.Context, username s
 
 	result := image.NewRGBA(bounds)
 
-	draw.Draw(result, bounds, &circle{middle, borderedRadius, blue}, image.ZP, draw.Over)
-	draw.Draw(result, bounds, &circle{middle, avatarRadius + innerBorder, white}, image.ZP, draw.Over)
-	draw.DrawMask(result, iconRect, scaledAvatar, image.ZP, mask, image.ZP, draw.Over)
+	draw.Draw(result, bounds, &circle{middle, borderedRadius, blue}, image.Point{}, draw.Over)
+	draw.Draw(result, bounds, &circle{middle, avatarRadius + innerBorder, white}, image.Point{}, draw.Over)
+	draw.DrawMask(result, iconRect, scaledAvatar, image.Point{}, mask, image.Point{}, draw.Over)
 
 	var buf bytes.Buffer
 	err = png.Encode(&buf, result)
