@@ -56,7 +56,9 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
           {!!newMemberCount && ' · ' + newMemberCount.toLocaleString() + ' new this week'}
         </Kb.Text>
       )}
-      <Activity level={activityLevel} />
+      <Kb.Box2 direction="horizontal" alignSelf="flex-start">
+        <Activity level={activityLevel} />
+      </Kb.Box2>
       <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.rightActionsContainer}>
         {yourOperations.chat && (
           <Kb.Button label="View" onClick={callbacks.onChat} small={true} style={styles.button} />
