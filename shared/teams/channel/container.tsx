@@ -41,6 +41,7 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
 const ConnectedChannel = Container.compose(
   Container.connect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps, ownProps) => {
     const {conversationIDKey, teamID} = stateProps
+    const {selectedTab, setSelectedTab} = ownProps
     const rows = makeRows(
       stateProps._channelInfo,
       stateProps._teamMembers,
@@ -56,6 +57,8 @@ const ConnectedChannel = Container.compose(
       onBack: dispatchProps.onBack,
       rows,
       sections,
+      selectedTab,
+      setSelectedTab,
       teamID,
     }
   }),
