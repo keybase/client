@@ -1170,3 +1170,9 @@ type AvatarLoaderSource interface {
 	StartBackgroundTasks(MetaContext)
 	StopBackgroundTasks(MetaContext)
 }
+
+type RuntimeStats interface {
+	Start(context.Context)
+	Stop(context.Context) chan struct{}
+	PushPerfEvent(keybase1.PerfEvent)
+}
