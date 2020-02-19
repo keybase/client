@@ -91,9 +91,9 @@ const ChannelRow = ({channelname, numMembers, selected, onSelect}) => (
           {channelname}
         </Kb.Text>
         {!Styles.isMobile && (
-          <Kb.Box2 direction="horizontal" alignSelf="stretch">
+          <Kb.Box2 direction="horizontal" alignSelf="stretch" gap="xxtiny">
             <Kb.Text type="BodySmall">
-              {numMembers} {pluralize('member', numMembers)} •{' '}
+              {numMembers} {pluralize('member', numMembers)} •
             </Kb.Text>
             <Activity level="extinct" />
           </Kb.Box2>
@@ -104,24 +104,6 @@ const ChannelRow = ({channelname, numMembers, selected, onSelect}) => (
     height={48}
   />
 )
-// (
-//   <Kb.Box2 direction="horizontal" alignItems="center" style={styles.item} fullWidth={true}>
-//     <Kb.Box2 direction="vertical" alignItems="stretch">
-//       <Kb.Text type={Styles.isMobile ? 'Body' : 'BodySemibold'} lineClamp={1}>
-//         {channelname}
-//       </Kb.Text>
-//       {!Styles.isMobile && (
-//         <Kb.Box2 direction="horizontal" alignSelf="stretch">
-//           <Kb.Text type="BodySmall">
-//             {numMembers} {pluralize('member', numMembers)} •{' '}
-//           </Kb.Text>
-//           <Activity level="extinct" />
-//         </Kb.Box2>
-//       )}
-//     </Kb.Box2>
-//     <Kb.CheckCircle checked={selected} onCheck={onSelect} />
-//   </Kb.Box2>
-// )
 
 const styles = Styles.styleSheetCreate(() => ({
   headerItem: {backgroundColor: Styles.globalColors.blueGrey},
