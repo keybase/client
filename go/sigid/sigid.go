@@ -2,6 +2,7 @@ package sigid
 
 import (
 	"encoding/binary"
+	"fmt"
 	"sort"
 
 	"github.com/blang/semver"
@@ -82,6 +83,7 @@ func ComputeSigBodyAndID(sigInfo *kbcrypto.NaclSigInfo, clientName string, clien
 	if isModern == Yes {
 		return body, sigID, nil
 	}
+	fmt.Printf("going it! %s\n", sigID.String())
 	if isModern == Maybe && isMaybeModernSigIDMakerModern(sigID) {
 		return body, sigID, nil
 	}
