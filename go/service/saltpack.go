@@ -35,7 +35,7 @@ const signedExtension = signedSuffix + saltpackExtension
 const decryptedExtension = ".decrypted"
 const verifiedExtension = ".verified"
 const encryptedDirSuffix = zipExtension + encryptedSuffix
-const signedDirSuffix = zipExtension + encryptedSuffix
+const signedDirSuffix = zipExtension + signedSuffix
 
 type SaltpackHandler struct {
 	*BaseHandler
@@ -515,6 +515,18 @@ func (h *SaltpackHandler) SaltpackDecryptFile(ctx context.Context, arg keybase1.
 
 func (h *SaltpackHandler) SaltpackSignFile(ctx context.Context, arg keybase1.SaltpackSignFileArg) (string, error) {
 	ctx = libkb.WithLogTag(ctx, "SP")
+	dir, err := IsDir(arg.Filename)
+	if err != nil {
+		return "", err
+	}
+
+	if dir {
+		return h.saltpackSignDirectory(ctx, arg)
+	}
+	return h.saltpackSignFile(ctx, arg)
+}
+
+func (h *SaltpackHandler) saltpackSignFile(ctx context.Context, arg keybase1.SaltpackSignFileArg) (string, error) {
 	sf, err := newSourceFile(h.G(), keybase1.SaltpackOperationType_SIGN, arg.Filename)
 	if err != nil {
 		return "", err
@@ -544,6 +556,131 @@ func (h *SaltpackHandler) SaltpackSignFile(ctx context.Context, arg keybase1.Sal
 			h.G().Log.Debug("error removing %q: %s", outFilename, rmErr)
 		}
 		return "", err
+	}
+
+	return outFilename, nil
+}
+
+func (h *SaltpackHandler) saltpackSignDirectory(ctx context.Context, arg keybase1.SaltpackSignFileArg) (string, error) {
+	h.G().Log.Debug("signing directory %s", arg.Filename)
+
+	// make a pipe so we can give sign engine a reader for the zip
+	pipeRead, pipeWrite := io.Pipe()
+
+	// connect a zip archiver to the writer side of the pipe
+	w := zip.NewWriter(pipeWrite)
+
+	// given an arg.Filename like "a/b/c/d" or "/opt/blah/d", we want the files in the
+	// zip file to recreate just the final directory.  In other words, d/, d/1/, d/1/000.log
+	// and *not* a/b/c/d/, a/b/c/d/1/, a/b/c/d/1/000.log.
+	parent := filepath.Dir(arg.Filename)
+	stripParent := func(s string) string {
+		return strings.TrimPrefix(s, parent+string(filepath.Separator))
+	}
+
+	// for progress purposes, we need to know total size of everything in the directory
+	size, err := DirTotalSize(arg.Filename)
+	if err != nil {
+		return "", err
+	}
+	h.G().Log.Debug("directory %s total size: %d", arg.Filename, size)
+	progReporter := func(bytesComplete, bytesTotal int64) {
+		h.G().NotifyRouter.HandleSaltpackOperationProgress(ctx, keybase1.SaltpackOperationType_SIGN, arg.Filename, bytesComplete, bytesTotal)
+	}
+	prog := progress.NewProgressWriterWithUpdateDuration(progReporter, size, 80*time.Millisecond)
+	// --------------------
+	// so far this is identical to saltpackEncryptDirectory
+	// only difference is sign op in notify router
+	// --------------------
+
+	// --------------------
+	// this thing is the same:
+	// --------------------
+
+	// in a goroutine, make a zip archive of everything in arg.Filename.
+	zipch := make(chan error)
+	go func() {
+		err := filepath.Walk(arg.Filename, func(path string, info os.FileInfo, inErr error) error {
+			if inErr != nil {
+				return inErr
+			}
+
+			stripped := stripParent(path)
+
+			if info.IsDir() {
+				// make a directory by calling Create with a filename ending in a separator.
+				_, err := w.Create(stripped + string(filepath.Separator))
+				if err != nil {
+					return err
+				}
+				return nil
+			}
+
+			// make a regular file and copy all the data into it.
+			w, err := w.Create(stripped)
+			if err != nil {
+				return err
+			}
+			f, err := os.Open(path)
+			if err != nil {
+				return err
+			}
+			defer f.Close()
+			tr := io.TeeReader(bufio.NewReader(f), prog)
+			_, err = io.Copy(w, tr)
+			if err != nil {
+				return err
+			}
+
+			return nil
+		})
+
+		// close everything
+		w.Close()
+		pipeWrite.Close()
+
+		// send the error over zipch
+		zipch <- err
+	}()
+
+	// signedDirSuffix is only change here
+	outFilename, bw, err := boxFilename(arg.Filename, signedDirSuffix, arg.DestinationDir)
+	if err != nil {
+		return "", err
+	}
+	defer bw.Close()
+
+	// here's where things diverge:
+
+	earg := &engine.SaltpackSignArg{
+		Sink:   bw,
+		Source: pipeRead,
+		Opts: keybase1.SaltpackSignOptions{
+			Binary: true,
+		},
+	}
+
+	if err := h.frontendSign(ctx, arg.SessionID, earg); err != nil {
+		h.G().Log.Debug("sign error, so removing %q", outFilename)
+		if clErr := bw.Close(); clErr != nil {
+			h.G().Log.Debug("error closing bw for %q: %s", outFilename, clErr)
+		}
+		if rmErr := os.Remove(outFilename); rmErr != nil {
+			h.G().Log.Debug("error removing %q: %s", outFilename, rmErr)
+		}
+		return "", err
+	}
+
+	ziperr := <-zipch
+	if ziperr != nil {
+		h.G().Log.Debug("sign error (zip), so removing %q", outFilename)
+		if clErr := bw.Close(); clErr != nil {
+			h.G().Log.Debug("error closing bw for %q: %s", outFilename, clErr)
+		}
+		if rmErr := os.Remove(outFilename); rmErr != nil {
+			h.G().Log.Debug("error removing %q: %s", outFilename, rmErr)
+		}
+		return "", ziperr
 	}
 
 	return outFilename, nil

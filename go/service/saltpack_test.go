@@ -44,7 +44,7 @@ func TestSaltpackFrontend(t *testing.T) {
 	testEncryptToTextFile(tc, h, u1, u2)
 	testDecryptBogusFile(tc, h, u1, u2)
 	testEncryptDecryptDirectory(tc, h, u1, u2)
-	// testSignVerifyDirectory(tc, h, u1, u2)
+	testSignVerifyDirectory(tc, h, u1, u2)
 }
 
 func testEncryptDecryptString(tc libkb.TestContext, h *SaltpackHandler, u1, u2 *kbtest.FakeUser) {
@@ -221,7 +221,6 @@ func testEncryptDecryptDirectory(tc libkb.TestContext, h *SaltpackHandler, u1, u
 	require.NoError(tc.T, err)
 	defer os.Remove(encRes.Filename)
 	require.NotEqual(tc.T, encRes.Filename, encArg.Filename)
-	tc.T.Logf("encRes.Filename: %s", encRes.Filename)
 	require.True(tc.T, strings.HasSuffix(encRes.Filename, ".zip.encrypted.saltpack"))
 	require.False(tc.T, encRes.UsedUnresolvedSBS)
 	require.Empty(tc.T, encRes.UnresolvedSBSAssertion)
@@ -233,7 +232,38 @@ func testEncryptDecryptDirectory(tc libkb.TestContext, h *SaltpackHandler, u1, u
 	require.Equal(tc.T, encArg.Filename+".zip", decRes.DecryptedFilename)
 	require.True(tc.T, decRes.Signed)
 
-	r, err := zip.OpenReader(decRes.DecryptedFilename)
+	checkZipArchive(tc, decRes.DecryptedFilename)
+}
+
+func testSignVerifyDirectory(tc libkb.TestContext, h *SaltpackHandler, u1, u2 *kbtest.FakeUser) {
+	ctx := context.Background()
+	signArg := keybase1.SaltpackSignFileArg{Filename: filepath.FromSlash("testdata/archive")}
+	signedFile, err := h.SaltpackSignFile(ctx, signArg)
+	require.NoError(tc.T, err)
+	defer os.Remove(signedFile)
+	require.NotEqual(tc.T, signedFile, signArg.Filename)
+	require.True(tc.T, strings.HasSuffix(signedFile, ".zip.signed.saltpack"))
+
+	verifyArg := keybase1.SaltpackVerifyFileArg{SignedFilename: signedFile}
+	verifyRes, err := h.SaltpackVerifyFile(ctx, verifyArg)
+	require.NoError(tc.T, err)
+	defer os.Remove(verifyRes.VerifiedFilename)
+	require.Equal(tc.T, signArg.Filename+".zip", verifyRes.VerifiedFilename)
+	require.True(tc.T, verifyRes.Verified)
+
+	checkZipArchive(tc, verifyRes.VerifiedFilename)
+}
+
+func filesEqual(tc libkb.TestContext, a, b string) {
+	adata, err := ioutil.ReadFile(a)
+	require.NoError(tc.T, err)
+	bdata, err := ioutil.ReadFile(b)
+	require.NoError(tc.T, err)
+	require.Equal(tc.T, adata, bdata)
+}
+
+func checkZipArchive(tc libkb.TestContext, filename string) {
+	r, err := zip.OpenReader(filename)
 	require.NoError(tc.T, err)
 	defer r.Close()
 	require.Len(tc.T, r.File, 9)
@@ -256,32 +286,4 @@ func testEncryptDecryptDirectory(tc libkb.TestContext, h *SaltpackHandler, u1, u
 			tc.T.Errorf("unknown file in zip: %s", f.Name)
 		}
 	}
-	// filesEqual(tc, encArg.Filename, decRes.DecryptedFilename)
-}
-
-func testSignVerifyDirectory(tc libkb.TestContext, h *SaltpackHandler, u1, u2 *kbtest.FakeUser) {
-	ctx := context.Background()
-	signArg := keybase1.SaltpackSignFileArg{Filename: filepath.FromSlash("testdata/archive")}
-	signedFile, err := h.SaltpackSignFile(ctx, signArg)
-	require.NoError(tc.T, err)
-	defer os.Remove(signedFile)
-	require.NotEqual(tc.T, signedFile, signArg.Filename)
-	require.True(tc.T, strings.HasSuffix(signedFile, ".signed.saltpack"))
-
-	verifyArg := keybase1.SaltpackVerifyFileArg{SignedFilename: signedFile}
-	verifyRes, err := h.SaltpackVerifyFile(ctx, verifyArg)
-	require.NoError(tc.T, err)
-	defer os.Remove(verifyRes.VerifiedFilename)
-	require.Equal(tc.T, signArg.Filename+" (1)", verifyRes.VerifiedFilename)
-	require.True(tc.T, verifyRes.Verified)
-
-	filesEqual(tc, signArg.Filename, verifyRes.VerifiedFilename)
-}
-
-func filesEqual(tc libkb.TestContext, a, b string) {
-	adata, err := ioutil.ReadFile(a)
-	require.NoError(tc.T, err)
-	bdata, err := ioutil.ReadFile(b)
-	require.NoError(tc.T, err)
-	require.Equal(tc.T, adata, bdata)
 }
