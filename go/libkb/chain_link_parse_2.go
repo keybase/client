@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/jsonparserw"
 	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/msgpack"
+	"github.com/keybase/client/go/sigid"
 	pkgerrors "github.com/pkg/errors"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -227,6 +228,19 @@ func (s *sigChainPayloadJSON) Version() (SigVersion, error) {
 	return SigVersion(tmp), err
 }
 
+func (s *sigChainPayloadJSON) ClientNameAndVersion() (string, string, error) {
+	name, err := jsonparserw.GetString(s.b, "client", "name")
+	if err != nil {
+		return "", "", err
+	}
+	version, err := jsonparserw.GetString(s.b, "client", "version")
+	if err != nil {
+		return "", "", err
+	}
+	return name, version, nil
+
+}
+
 func (s *sigChainPayloadJSON) AssertJSON(linkID LinkID) (err error) {
 	if !isJSONObject(s.b, linkID) {
 		return ChainLinkError{"JSON payload has leading garbage"}
@@ -337,6 +351,7 @@ func importLinkFromServerV1NaCl(m MetaContext, packed []byte) (keybase1.KID, Lin
 		var version SigVersion
 		var sigBody []byte
 		var sigInfo *kbcrypto.NaclSigInfo
+		var clientName, clientVersion string
 
 		sig1ImplodedRaw, err = jsonparserw.GetString(packed, "si1")
 		if err != nil || sig1ImplodedRaw == "" {
@@ -370,10 +385,16 @@ func importLinkFromServerV1NaCl(m MetaContext, packed []byte) (keybase1.KID, Lin
 		}
 		sigInfo = newSigInfo(kid, payloadJSON.Bytes(), *sig1Imploded)
 
-		sigBody, err = kbcrypto.EncodePacketToBytes(sigInfo)
+		clientName, clientVersion, err = payloadJSON.ClientNameAndVersion()
 		if err != nil {
 			return err
 		}
+
+		sigBody, sigID, err = sigid.ComputeSigBodyAndID(sigInfo, clientName, clientVersion)
+		if err != nil {
+			return err
+		}
+
 		sig = base64.StdEncoding.EncodeToString(sigBody)
 		m.Debug("SIG %s\n", sig)
 		sigID = kbcrypto.ComputeSigIDFromSigBody(sigBody)
