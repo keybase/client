@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/attachments/progress"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -300,7 +301,7 @@ func (h *SaltpackHandler) SaltpackVerifyString(ctx context.Context, arg keybase1
 
 func (h *SaltpackHandler) SaltpackEncryptFile(ctx context.Context, arg keybase1.SaltpackEncryptFileArg) (keybase1.SaltpackEncryptFileResult, error) {
 	ctx = libkb.WithLogTag(ctx, "SP")
-	dir, err := IsDir(arg.Filename)
+	dir, err := isDir(arg.Filename)
 	if err != nil {
 		return keybase1.SaltpackEncryptFileResult{}, err
 	}
@@ -356,76 +357,15 @@ func (h *SaltpackHandler) saltpackEncryptFile(ctx context.Context, arg keybase1.
 func (h *SaltpackHandler) saltpackEncryptDirectory(ctx context.Context, arg keybase1.SaltpackEncryptFileArg) (keybase1.SaltpackEncryptFileResult, error) {
 	h.G().Log.Debug("encrypting directory %s", arg.Filename)
 
-	// make a pipe so we can give encrypt engine a reader for the zip
-	pipeRead, pipeWrite := io.Pipe()
-
-	// connect a zip archiver to the writer side of the pipe
-	w := zip.NewWriter(pipeWrite)
-
-	// given an arg.Filename like "a/b/c/d" or "/opt/blah/d", we want the files in the
-	// zip file to recreate just the final directory.  In other words, d/, d/1/, d/1/000.log
-	// and *not* a/b/c/d/, a/b/c/d/1/, a/b/c/d/1/000.log.
-	parent := filepath.Dir(arg.Filename)
-	stripParent := func(s string) string {
-		return strings.TrimPrefix(s, parent+string(filepath.Separator))
-	}
-
-	// for progress purposes, we need to know total size of everything in the directory
-	size, err := DirTotalSize(arg.Filename)
-	if err != nil {
-		return keybase1.SaltpackEncryptFileResult{}, err
-	}
-	h.G().Log.Debug("directory %s total size: %d", arg.Filename, size)
 	progReporter := func(bytesComplete, bytesTotal int64) {
 		h.G().NotifyRouter.HandleSaltpackOperationProgress(ctx, keybase1.SaltpackOperationType_ENCRYPT, arg.Filename, bytesComplete, bytesTotal)
 	}
-	prog := progress.NewProgressWriterWithUpdateDuration(progReporter, size, 80*time.Millisecond)
+	prog, err := newDirProgressWriter(progReporter, arg.Filename)
+	if err != nil {
+		return keybase1.SaltpackEncryptFileResult{}, err
+	}
 
-	// in a goroutine, make a zip archive of everything in arg.Filename.
-	zipch := make(chan error)
-	go func() {
-		err := filepath.Walk(arg.Filename, func(path string, info os.FileInfo, inErr error) error {
-			if inErr != nil {
-				return inErr
-			}
-
-			stripped := stripParent(path)
-
-			if info.IsDir() {
-				// make a directory by calling Create with a filename ending in a separator.
-				_, err := w.Create(stripped + string(filepath.Separator))
-				if err != nil {
-					return err
-				}
-				return nil
-			}
-
-			// make a regular file and copy all the data into it.
-			w, err := w.Create(stripped)
-			if err != nil {
-				return err
-			}
-			f, err := os.Open(path)
-			if err != nil {
-				return err
-			}
-			defer f.Close()
-			tr := io.TeeReader(bufio.NewReader(f), prog)
-			_, err = io.Copy(w, tr)
-			if err != nil {
-				return err
-			}
-
-			return nil
-		})
-
-		// close everything
-		w.Close()
-		pipeWrite.Close()
-
-		// send the error over zipch
-		zipch <- err
-	}()
+	zipch, pipeRead := zipDir(arg.Filename, prog)
 
 	outFilename, bw, err := boxFilename(arg.Filename, encryptedDirSuffix, arg.DestinationDir)
 	if err != nil {
@@ -442,6 +382,8 @@ func (h *SaltpackHandler) saltpackEncryptDirectory(ctx context.Context, arg keyb
 		Sink:   bw,
 		Source: pipeRead,
 	}
+
+	h.G().NotifyRouter.HandleSaltpackOperationStart(ctx, keybase1.SaltpackOperationType_ENCRYPT, arg.Filename)
 
 	usedSBS, assertion, err := h.frontendEncrypt(ctx, arg.SessionID, earg)
 	if err != nil {
@@ -466,6 +408,8 @@ func (h *SaltpackHandler) saltpackEncryptDirectory(ctx context.Context, arg keyb
 		}
 		return keybase1.SaltpackEncryptFileResult{}, ziperr
 	}
+
+	h.G().NotifyRouter.HandleSaltpackOperationDone(ctx, keybase1.SaltpackOperationType_ENCRYPT, arg.Filename)
 
 	return keybase1.SaltpackEncryptFileResult{
 		UsedUnresolvedSBS:      usedSBS,
@@ -515,7 +459,7 @@ func (h *SaltpackHandler) SaltpackDecryptFile(ctx context.Context, arg keybase1.
 
 func (h *SaltpackHandler) SaltpackSignFile(ctx context.Context, arg keybase1.SaltpackSignFileArg) (string, error) {
 	ctx = libkb.WithLogTag(ctx, "SP")
-	dir, err := IsDir(arg.Filename)
+	dir, err := isDir(arg.Filename)
 	if err != nil {
 		return "", err
 	}
@@ -564,93 +508,22 @@ func (h *SaltpackHandler) saltpackSignFile(ctx context.Context, arg keybase1.Sal
 func (h *SaltpackHandler) saltpackSignDirectory(ctx context.Context, arg keybase1.SaltpackSignFileArg) (string, error) {
 	h.G().Log.Debug("signing directory %s", arg.Filename)
 
-	// make a pipe so we can give sign engine a reader for the zip
-	pipeRead, pipeWrite := io.Pipe()
-
-	// connect a zip archiver to the writer side of the pipe
-	w := zip.NewWriter(pipeWrite)
-
-	// given an arg.Filename like "a/b/c/d" or "/opt/blah/d", we want the files in the
-	// zip file to recreate just the final directory.  In other words, d/, d/1/, d/1/000.log
-	// and *not* a/b/c/d/, a/b/c/d/1/, a/b/c/d/1/000.log.
-	parent := filepath.Dir(arg.Filename)
-	stripParent := func(s string) string {
-		return strings.TrimPrefix(s, parent+string(filepath.Separator))
-	}
-
-	// for progress purposes, we need to know total size of everything in the directory
-	size, err := DirTotalSize(arg.Filename)
-	if err != nil {
-		return "", err
-	}
-	h.G().Log.Debug("directory %s total size: %d", arg.Filename, size)
 	progReporter := func(bytesComplete, bytesTotal int64) {
 		h.G().NotifyRouter.HandleSaltpackOperationProgress(ctx, keybase1.SaltpackOperationType_SIGN, arg.Filename, bytesComplete, bytesTotal)
 	}
-	prog := progress.NewProgressWriterWithUpdateDuration(progReporter, size, 80*time.Millisecond)
-	// --------------------
-	// so far this is identical to saltpackEncryptDirectory
-	// only difference is sign op in notify router
-	// --------------------
 
-	// --------------------
-	// this thing is the same:
-	// --------------------
+	prog, err := newDirProgressWriter(progReporter, arg.Filename)
+	if err != nil {
+		return "", err
+	}
 
-	// in a goroutine, make a zip archive of everything in arg.Filename.
-	zipch := make(chan error)
-	go func() {
-		err := filepath.Walk(arg.Filename, func(path string, info os.FileInfo, inErr error) error {
-			if inErr != nil {
-				return inErr
-			}
+	zipch, pipeRead := zipDir(arg.Filename, prog)
 
-			stripped := stripParent(path)
-
-			if info.IsDir() {
-				// make a directory by calling Create with a filename ending in a separator.
-				_, err := w.Create(stripped + string(filepath.Separator))
-				if err != nil {
-					return err
-				}
-				return nil
-			}
-
-			// make a regular file and copy all the data into it.
-			w, err := w.Create(stripped)
-			if err != nil {
-				return err
-			}
-			f, err := os.Open(path)
-			if err != nil {
-				return err
-			}
-			defer f.Close()
-			tr := io.TeeReader(bufio.NewReader(f), prog)
-			_, err = io.Copy(w, tr)
-			if err != nil {
-				return err
-			}
-
-			return nil
-		})
-
-		// close everything
-		w.Close()
-		pipeWrite.Close()
-
-		// send the error over zipch
-		zipch <- err
-	}()
-
-	// signedDirSuffix is only change here
 	outFilename, bw, err := boxFilename(arg.Filename, signedDirSuffix, arg.DestinationDir)
 	if err != nil {
 		return "", err
 	}
 	defer bw.Close()
-
-	// here's where things diverge:
 
 	earg := &engine.SaltpackSignArg{
 		Sink:   bw,
@@ -659,6 +532,8 @@ func (h *SaltpackHandler) saltpackSignDirectory(ctx context.Context, arg keybase
 			Binary: true,
 		},
 	}
+
+	h.G().NotifyRouter.HandleSaltpackOperationStart(ctx, keybase1.SaltpackOperationType_SIGN, arg.Filename)
 
 	if err := h.frontendSign(ctx, arg.SessionID, earg); err != nil {
 		h.G().Log.Debug("sign error, so removing %q", outFilename)
@@ -682,6 +557,8 @@ func (h *SaltpackHandler) saltpackSignDirectory(ctx context.Context, arg keybase
 		}
 		return "", ziperr
 	}
+
+	h.G().NotifyRouter.HandleSaltpackOperationDone(ctx, keybase1.SaltpackOperationType_SIGN, arg.Filename)
 
 	return outFilename, nil
 }
@@ -992,7 +869,7 @@ func (sf *sourceFile) reporter(bytesComplete, bytesTotal int64) {
 	sf.G().NotifyRouter.HandleSaltpackOperationProgress(context.Background(), sf.op, sf.filename, bytesComplete, bytesTotal)
 }
 
-func IsDir(filename string) (bool, error) {
+func isDir(filename string) (bool, error) {
 	s, err := os.Stat(filename)
 	if err != nil {
 		return false, err
@@ -1000,7 +877,7 @@ func IsDir(filename string) (bool, error) {
 	return s.IsDir(), nil
 }
 
-func DirTotalSize(filename string) (int64, error) {
+func dirTotalSize(filename string) (int64, error) {
 	var total int64
 	err := filepath.Walk(filename, func(path string, info os.FileInfo, inErr error) error {
 		if inErr != nil {
@@ -1013,4 +890,80 @@ func DirTotalSize(filename string) (int64, error) {
 		return nil
 	})
 	return total, err
+}
+
+// zipDir will create a zip archive of everything in directory suitablie for streaming.
+// It will send something on the chan error when it is done.
+// Read the data of the zip archive from the returned io.ReadCloser.
+func zipDir(directory string, prog *progress.ProgressWriter) (chan error, io.ReadCloser) {
+	// make a pipe so we can give encrypt engine a reader for the zip
+	pipeRead, pipeWrite := io.Pipe()
+
+	// connect a zip archiver to the writer side of the pipe
+	w := zip.NewWriter(pipeWrite)
+
+	// given a directory like "a/b/c/d" or "/opt/blah/d", we want the files in the
+	// zip file to recreate just the final directory.  In other words, d/, d/1/, d/1/000.log
+	// and *not* a/b/c/d/, a/b/c/d/1/, a/b/c/d/1/000.log.
+	parent := filepath.Dir(directory)
+	stripParent := func(s string) string {
+		return strings.TrimPrefix(s, parent+string(filepath.Separator))
+	}
+
+	zipch := make(chan error)
+	go func() {
+		err := filepath.Walk(directory, func(path string, info os.FileInfo, inErr error) error {
+			if inErr != nil {
+				return inErr
+			}
+
+			stripped := stripParent(path)
+
+			if info.IsDir() {
+				// make a directory by calling Create with a filename ending in a separator.
+				_, err := w.Create(stripped + string(filepath.Separator))
+				if err != nil {
+					return err
+				}
+				return nil
+			}
+
+			// make a regular file and copy all the data into it.
+			w, err := w.Create(stripped)
+			if err != nil {
+				return err
+			}
+			f, err := os.Open(path)
+			if err != nil {
+				return err
+			}
+			defer f.Close()
+			tr := io.TeeReader(bufio.NewReader(f), prog)
+			_, err = io.Copy(w, tr)
+			if err != nil {
+				return err
+			}
+
+			return nil
+		})
+
+		// close everything
+		w.Close()
+		pipeWrite.Close()
+
+		// send the error over zipch
+		zipch <- err
+	}()
+
+	return zipch, pipeRead
+}
+
+func newDirProgressWriter(p types.ProgressReporter, dir string) (*progress.ProgressWriter, error) {
+	// for progress purposes, we need to know total size of everything in the directory
+	size, err := dirTotalSize(dir)
+	if err != nil {
+		return nil, err
+	}
+
+	return progress.NewProgressWriterWithUpdateDuration(p, size, 80*time.Millisecond), nil
 }
