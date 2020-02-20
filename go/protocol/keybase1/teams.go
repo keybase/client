@@ -2521,20 +2521,17 @@ func (o SeitanKeyAndLabelVersion2) DeepCopy() SeitanKeyAndLabelVersion2 {
 type SeitanKeyLabelType int
 
 const (
-	SeitanKeyLabelType_SMS         SeitanKeyLabelType = 1
-	SeitanKeyLabelType_INVITE_LINK SeitanKeyLabelType = 2
+	SeitanKeyLabelType_SMS SeitanKeyLabelType = 1
 )
 
 func (o SeitanKeyLabelType) DeepCopy() SeitanKeyLabelType { return o }
 
 var SeitanKeyLabelTypeMap = map[string]SeitanKeyLabelType{
-	"SMS":         1,
-	"INVITE_LINK": 2,
+	"SMS": 1,
 }
 
 var SeitanKeyLabelTypeRevMap = map[SeitanKeyLabelType]string{
 	1: "SMS",
-	2: "INVITE_LINK",
 }
 
 func (e SeitanKeyLabelType) String() string {

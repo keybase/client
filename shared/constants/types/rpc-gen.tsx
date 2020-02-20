@@ -2232,7 +2232,6 @@ export enum SeitanKeyAndLabelVersion {
 
 export enum SeitanKeyLabelType {
   sms = 1,
-  inviteLink = 2,
 }
 
 export enum SeqType {
@@ -3045,7 +3044,7 @@ export type SeitanIKeyV2 = String
 export type SeitanKeyAndLabel = {v: SeitanKeyAndLabelVersion.v1; v1: SeitanKeyAndLabelVersion1} | {v: SeitanKeyAndLabelVersion.v2; v2: SeitanKeyAndLabelVersion2}
 export type SeitanKeyAndLabelVersion1 = {readonly i: SeitanIKey; readonly l: SeitanKeyLabel}
 export type SeitanKeyAndLabelVersion2 = {readonly k: SeitanPubKey; readonly l: SeitanKeyLabel}
-export type SeitanKeyLabel = {t: SeitanKeyLabelType.sms; sms: SeitanKeyLabelSms} | {t: SeitanKeyLabelType.inviteLink}
+export type SeitanKeyLabel = {t: SeitanKeyLabelType.sms; sms: SeitanKeyLabelSms}
 export type SeitanKeyLabelSms = {readonly f: String; readonly n: String}
 export type SeitanPubKey = String
 export type SelectKeyRes = {readonly keyID: String; readonly doSecretPush: Boolean}

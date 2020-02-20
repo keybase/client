@@ -932,8 +932,7 @@ protocol teams {
   }
 
   enum SeitanKeyLabelType {
-    SMS_1,
-    INVITE_LINK_2
+    SMS_1
   }
 
   variant SeitanKeyLabel switch (SeitanKeyLabelType t) {

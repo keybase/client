@@ -2089,8 +2089,7 @@
       "type": "enum",
       "name": "SeitanKeyLabelType",
       "symbols": [
-        "SMS_1",
-        "INVITE_LINK_2"
+        "SMS_1"
       ]
     },
     {
