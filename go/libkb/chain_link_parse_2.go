@@ -313,10 +313,15 @@ func (s *sigChainPayloadJSON) HighSkip() (*HighSkip, error) {
 	return &highSkip, nil
 }
 
-type Sig1Imploded struct {
-	_struct bool `codec:",toarray"` //nolint
-	Sig     kbcrypto.NaclSignature
-	Hash    bool
+func newSigInfo(kid keybase1.KID, payload []byte, sig kbcrypto.NaclSignature) *kbcrypto.NaclSigInfo {
+	return &kbcrypto.NaclSigInfo{
+		Kid:      kid.ToBinaryKID(),
+		Payload:  payload,
+		Sig:      sig,
+		SigType:  kbcrypto.SigKbEddsa,
+		HashType: kbcrypto.HashPGPSha512,
+		Detached: true,
+	}
 }
 
 func importLinkFromServerV1NaCl(m MetaContext, packed []byte) (keybase1.KID, LinkID, keybase1.SigID, string, []byte, error) {
@@ -328,9 +333,10 @@ func importLinkFromServerV1NaCl(m MetaContext, packed []byte) (keybase1.KID, Lin
 
 	doImport := func() (err error) {
 		var sig1ImplodedRaw string
-		var sig1Imploded *Sig1Imploded
+		var sig1Imploded *kbcrypto.NaclSignature
 		var version SigVersion
 		var sigBody []byte
+		var sigInfo *kbcrypto.NaclSigInfo
 
 		sig1ImplodedRaw, err = jsonparserw.GetString(packed, "si1")
 		if err != nil || sig1ImplodedRaw == "" {
@@ -362,17 +368,7 @@ func importLinkFromServerV1NaCl(m MetaContext, packed []byte) (keybase1.KID, Lin
 		if err != nil {
 			return err
 		}
-		sigInfo := kbcrypto.NewNaclSigInfoWithOptionalHash(
-			kbcrypto.NaclSigInfo{
-				Kid:      kid.ToBinaryKID(),
-				Payload:  payloadJSON.Bytes(),
-				Sig:      sig1Imploded.Sig,
-				SigType:  kbcrypto.SigKbEddsa,
-				HashType: kbcrypto.HashPGPSha512,
-				Detached: true,
-			},
-			sig1Imploded.Hash,
-		)
+		sigInfo = newSigInfo(kid, payloadJSON.Bytes(), *sig1Imploded)
 
 		sigBody, err = kbcrypto.EncodePacketToBytes(sigInfo)
 		if err != nil {
@@ -451,19 +447,13 @@ func decodeSig2Imploded(s string) (*Sig2Imploded, error) {
 	return &ret, nil
 }
 
-func decodeSig1Imploded(s string) (*Sig1Imploded, error) {
+func decodeSig1Imploded(s string) (*kbcrypto.NaclSignature, error) {
 	raw, err := base64.StdEncoding.DecodeString(s)
 	if err != nil {
 		return nil, err
 	}
-	var ret Sig1Imploded
-	if !msgpack.IsEncodedMsgpackArray(raw) {
-		return nil, ChainLinkError{"expected a msgpack array but got leading junk"}
-	}
-	err = msgpack.Decode(&ret, raw)
-	if err != nil {
-		return nil, err
-	}
+	var ret kbcrypto.NaclSignature
+	copy(ret[:], raw)
 	return &ret, nil
 }
 
@@ -486,6 +476,7 @@ func importLinkFromServerV2Unstubbed(m MetaContext, packed []byte) (keybase1.KID
 		var version SigVersion
 		var seqno keybase1.Seqno
 		var highSkip *HighSkip
+		var sigInfo *kbcrypto.NaclSigInfo
 
 		sig2ImplodedRaw, err = jsonparserw.GetString(packed, "si2")
 		if err != nil || sig2ImplodedRaw == "" {
@@ -534,13 +525,7 @@ func importLinkFromServerV2Unstubbed(m MetaContext, packed []byte) (keybase1.KID
 			return err
 		}
 
-		sigInfo := &kbcrypto.NaclSigInfo{
-			Kid:      kid.ToBinaryKID(),
-			Payload:  outerPayload,
-			Sig:      sig2Imploded.Sig,
-			SigType:  kbcrypto.SigKbEddsa,
-			Detached: true,
-		}
+		sigInfo = newSigInfo(kid, outerPayload, sig2Imploded.Sig)
 
 		sigBody, err = kbcrypto.EncodePacketToBytes(sigInfo)
 		if err != nil {
