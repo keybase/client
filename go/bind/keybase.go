@@ -193,7 +193,7 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 		MobileSharedHomeDir:            mobileSharedHome,
 		LogFile:                        logFile,
 		EKLogFile:                      ekLogFile,
-		PerfLogFile:                    ekLogFile,
+		PerfLogFile:                    perfLogFile,
 		GUILogFile:                     guiLogFile,
 		RunMode:                        runMode,
 		Debug:                          true,
@@ -229,6 +229,7 @@ func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	logs := status.Logs{
 		Service: config.GetLogFile(),
 		EK:      config.GetEKLogFile(),
+		Perf:    config.GetPerfLogFile(),
 	}
 
 	fmt.Printf("Go: Using config: %+v\n", kbCtx.Env.GetLogFileConfig(config.GetLogFile()))
