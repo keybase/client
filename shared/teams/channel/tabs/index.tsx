@@ -2,15 +2,8 @@ import * as React from 'react'
 import * as Types from '../../../constants/types/teams'
 import * as ChatTypes from '../../../constants/types/chat2'
 import * as Kb from '../../../common-adapters'
+import * as Styles from '../../../styles'
 import flags from '../../../util/feature-flags'
-import {
-  globalColors,
-  globalMargins,
-  globalStyles,
-  isMobile,
-  platformStyles,
-  styleSheetCreate,
-} from '../../../styles'
 
 export type TabKey = 'members' | 'attachments' | 'bots' | 'settings' | 'loading'
 
@@ -48,7 +41,7 @@ const ChannelTabs = (props: Props) => {
     ...(props.admin
       ? [wrapTab('settings', <TabText selected={selectedTab === 'settings'} text="Settings" />)]
       : []),
-    ...(!isMobile && props.loading
+    ...(!Styles.isMobile && props.loading
       ? [<Kb.ProgressIndicator key="loading" style={styles.progressIndicator} />]
       : []),
   ]
@@ -85,39 +78,39 @@ const ChannelTabs = (props: Props) => {
   )
 }
 
-const styles = styleSheetCreate(() => ({
-  clickableBox: platformStyles({
+const styles = Styles.styleSheetCreate(() => ({
+  clickableBox: Styles.platformStyles({
     isMobile: {
       flexGrow: 1,
     },
   }),
   container: {
-    backgroundColor: globalColors.white,
+    backgroundColor: Styles.globalColors.white,
   },
   progressIndicator: {
     height: 17,
     width: 17,
   },
-  tab: platformStyles({
+  tab: Styles.platformStyles({
     isElectron: {
       flexGrow: 1,
     },
     isMobile: {
-      paddingLeft: globalMargins.tiny,
-      paddingRight: globalMargins.tiny,
+      paddingLeft: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.tiny,
     },
   }),
   tabContainer: {
-    backgroundColor: globalColors.white,
+    backgroundColor: Styles.globalColors.white,
     flexBasis: '100%',
     marginTop: 0,
   },
   tabText: {},
   tabTextContainer: {
-    ...globalStyles.flexBoxRow,
+    ...Styles.globalStyles.flexBoxRow,
     justifyContent: 'center',
   },
-  tabTextSelected: {color: globalColors.black},
+  tabTextSelected: {color: Styles.globalColors.black},
 }))
 
 export default ChannelTabs

@@ -49,8 +49,6 @@ const Channel = (props: Props & TabProps) => {
 
   const renderSectionHeader = ({section}) => (section.header ? renderItem({item: section.header}) : null)
 
-  const popupAnchor = React.useRef<React.Component<any>>(null)
-
   return (
     <Kb.Box style={styles.container}>
       <Kb.SectionList
@@ -62,7 +60,6 @@ const Channel = (props: Props & TabProps) => {
         style={styles.list}
         contentContainerStyle={styles.listContentContainer}
       />
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.endAnchor} ref={popupAnchor} />
     </Kb.Box>
   )
 }
