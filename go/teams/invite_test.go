@@ -155,7 +155,7 @@ func TestKeybaseInviteMalformed(t *testing.T) {
 	require.Len(t, team.GetActiveAndObsoleteInvites(), 0)
 }
 
-func TestMultiUseInviteChains(t *testing.T) {
+func TestMultiUseInviteChains1(t *testing.T) {
 	team, _ := runUnitFromFilename(t, "multiple_use_invite.json")
 
 	state := &team.chain().inner
@@ -183,6 +183,60 @@ func TestMultiUseInviteChains(t *testing.T) {
 		ulog := state.UserLog[usedInvitePair.Uv][usedInvitePair.LogPoint]
 		require.Equal(t, ulog.Role, invite.Role)
 	}
+}
+
+func TestMultiUseInviteChains2(t *testing.T) {
+	team, _ := runUnitFromFilename(t, "multiple_use_invite_3.json")
+
+	state := &team.chain().inner
+	require.Len(t, state.ActiveInvites, 1)
+
+	var inviteID keybase1.TeamInviteID
+	var invite keybase1.TeamInvite
+	for inviteID, invite = range state.ActiveInvites {
+		break // grab first invite
+	}
+
+	require.Equal(t, inviteID, invite.Id)
+	require.Nil(t, invite.Etime)
+	require.NotNil(t, invite.MaxUses)
+	require.Equal(t, 999, *invite.MaxUses)
+
+	require.Len(t, state.UsedInvites, 1)
+	usedInvitesForID, ok := state.UsedInvites[inviteID]
+	require.True(t, ok)
+	require.Len(t, usedInvitesForID, 3)
+
+	require.Equal(t, keybase1.UserVersion{
+		Uid:         "579651b0d574971040b531b66efbc519",
+		EldestSeqno: keybase1.Seqno(1),
+	}, usedInvitesForID[0].Uv)
+	require.Equal(t, 0, usedInvitesForID[0].LogPoint)
+
+	require.Equal(t, keybase1.UserVersion{
+		Uid:         "40903c59d19feef1d67c455499304c19",
+		EldestSeqno: keybase1.Seqno(1),
+	}, usedInvitesForID[1].Uv)
+	require.Equal(t, 0, usedInvitesForID[1].LogPoint)
+
+	require.Equal(t, keybase1.UserVersion{
+		Uid:         "579651b0d574971040b531b66efbc519",
+		EldestSeqno: keybase1.Seqno(1),
+	}, usedInvitesForID[2].Uv)
+	// Logpoint 0 is when they first join, logpoint 1 is when they leave, and
+	// logpoint 3 is the second join.
+	require.Equal(t, 2, usedInvitesForID[2].LogPoint)
+
+	for _, usedInvitePair := range usedInvitesForID {
+		// Check if UserLog pointed at by usedInvitePair exists (otherwise
+		// crash on map/list access).
+		ulog := state.UserLog[usedInvitePair.Uv][usedInvitePair.LogPoint]
+		require.Equal(t, ulog.Role, invite.Role)
+	}
+
+	members, err := team.Members()
+	require.NoError(t, err)
+	require.Len(t, members.AllUIDs(), 3)
 }
 
 func TestMultiInviteBadLinks(t *testing.T) {
