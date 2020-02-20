@@ -140,6 +140,8 @@ const styles = Styles.styleSheetCreate(
           ...Styles.desktopStyles.windowDraggingClickable,
           alignSelf: 'flex-end',
           paddingRight: Styles.globalMargins.tiny,
+          display: 'flex',
+          flexWrap: 'wrap',
         },
       }),
     } as const)
