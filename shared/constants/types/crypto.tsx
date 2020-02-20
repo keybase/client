@@ -37,8 +37,8 @@ export type OutputStatus = 'success' | 'error'
 export type CommonState = {
   bytesComplete: number
   bytesTotal: number
-  warningMessage: HiddenString
   errorMessage: HiddenString
+  inProgress: boolean
   input: HiddenString
   inputType: InputTypes
   output: HiddenString
@@ -48,6 +48,7 @@ export type CommonState = {
   outputSigned?: boolean
   outputStatus?: OutputStatus
   outputType?: OutputType
+  warningMessage: HiddenString
   // to ensure what the user types matches the input
   outputValid: boolean
 }

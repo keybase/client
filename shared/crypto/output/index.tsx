@@ -9,6 +9,7 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import {useOpenFile} from '../../util/use-file-picker.desktop'
 import capitalize from 'lodash/capitalize'
 import {getStyle} from '../../common-adapters/text'
 
@@ -251,13 +252,23 @@ export const OutputBar = (props: OutputBarProps) => {
   )
 }
 
-const OutpuFileDestination = (props: {operation: Types.Operations}) => {
+const OutputFileDestination = (props: {operation: Types.Operations}) => {
   const {operation} = props
   const operationTitle = capitalize(operation)
   const dispatch = Container.useDispatch()
 
+  // State
+  const [counter, setCounter] = React.useState(0)
+
+  // Store
+  const input = Container.useSelector(state => state.crypto[operation].input.stringValue())
+
   // Actions
-  const onRunFileOperation = (path: string) => {
+  const onRunFileOperation = (result: Electron.OpenDialogReturnValue) => {
+    if (result.canceled) {
+      return
+    }
+    const path = result.filePaths[0]
     const destinationDir = new Container.HiddenString(path)
     dispatch(
       CryptoGen.createRunFileOperation({
@@ -267,51 +278,21 @@ const OutpuFileDestination = (props: {operation: Types.Operations}) => {
     )
   }
 
-  // Handle native file browser via <input type='file' ... />
-  const directoryPickerRef = React.useRef<HTMLInputElement>(null)
-  const selectDirectory = () => {
-    const directories =
-      (directoryPickerRef && directoryPickerRef.current && directoryPickerRef.current.files) || []
-    const allPaths: Array<string> = directories.length
-      ? Array.from(directories)
-          .map((f: File) => {
-            console.log('JRY directory picker', {f})
-            return f.path
-          })
-          .filter(Boolean)
-      : ([] as any)
-
-    const path = allPaths.pop()
-    if (path) {
-      onRunFileOperation(path)
-    }
-  }
-  const openFilePicker = () => {
-    if (directoryPickerRef && directoryPickerRef.current) {
-      directoryPickerRef.current.click()
-    }
-  }
-
   // Effects
-  React.useEffect(() => {
-    if (directoryPickerRef?.current) {
-      directoryPickerRef.current.setAttribute('webkitdirectory', '')
-      directoryPickerRef.current.setAttribute('directory', '')
-    }
-  }, [directoryPickerRef])
+  useOpenFile(
+    counter,
+    {
+      buttonLabel: 'Select',
+      defaultPath: input,
+      properties: ['openDirectory'],
+    },
+    onRunFileOperation
+  )
 
   return (
     <Kb.Box2 direction="horizontal" fullWidth={true}>
       <Kb.ButtonBar>
-        <Kb.Button mode="Primary" label={`${operationTitle}`} onClick={() => openFilePicker()} />
-
-        <input
-          type="file"
-          ref={directoryPickerRef}
-          multiple={false}
-          onChange={selectDirectory}
-          style={{display: 'none'}}
-        />
+        <Kb.Button mode="Primary" label={`${operationTitle}`} onClick={() => setCounter(p => p + 1)} />
       </Kb.ButtonBar>
     </Kb.Box2>
   )
@@ -324,6 +305,7 @@ const Output = (props: OutputProps) => {
 
   // Store
   const inputType = Container.useSelector(state => state.crypto[operation].inputType)
+  const inProgress = Container.useSelector(state => state.crypto[operation].inProgress)
   const output = Container.useSelector(state => state.crypto[operation].output.stringValue())
   const outputValid = Container.useSelector(state => state.crypto[operation].outputValid)
   const outputStatus = Container.useSelector(state => state.crypto[operation].outputStatus)
@@ -361,7 +343,7 @@ const Output = (props: OutputProps) => {
         fullWidth={true}
         style={Styles.collapseStyles([styles.coverOutput, styles.outputPlaceholder])}
       >
-        {inputType === 'file' && <OutpuFileDestination operation={operation} />}
+        {inputType === 'file' && !inProgress && <OutputFileDestination operation={operation} />}
       </Kb.Box2>
     )
   }

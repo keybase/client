@@ -136,6 +136,7 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     op.outputValid = false
     op.bytesComplete = 0
     op.bytesTotal = 0
+    op.inProgress = false
   },
   [CryptoGen.onOperationSuccess]: (draftState, action) => {
     const {
@@ -225,10 +226,12 @@ export default Container.makeReducer<Actions, Types.State>(initialState, {
     if (bytesComplete === bytesTotal) {
       op.bytesComplete = 0
       op.bytesTotal = 0
+      op.inProgress = false
       return
     }
     op.bytesComplete = bytesComplete
     op.bytesTotal = bytesTotal
+    op.inProgress = true
   },
 
   // Encrypt: Handle team building when selecting keybase users
