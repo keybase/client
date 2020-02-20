@@ -13,7 +13,7 @@ const load = () => {
       onClick={() => {
         console.log('hi')
       }}
-      image=""
+      imageUrl=""
       title="Friends, family, or squad"
       description="A small group of people, with no initial need for channels."
     />
