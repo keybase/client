@@ -1184,6 +1184,10 @@
         {
           "name": "summarizeMaxMsgs",
           "type": "boolean"
+        },
+        {
+          "name": "participantsMode",
+          "type": "InboxParticipantsMode"
         }
       ],
       "response": "SyncChatRes"
@@ -1225,6 +1229,10 @@
         {
           "name": "summarizeMaxMsgs",
           "type": "boolean"
+        },
+        {
+          "name": "participantsMode",
+          "type": "InboxParticipantsMode"
         }
       ],
       "response": "SyncAllResult",
