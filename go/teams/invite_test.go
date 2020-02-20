@@ -238,34 +238,3 @@ func TestMultiUseInviteChains2(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, members.AllUIDs(), 3)
 }
-
-func TestMultiInviteBadLinks(t *testing.T) {
-	fus, tcs, cleanup := setupNTests(t, 1)
-	defer cleanup()
-
-	_ = fus
-
-	teamname := createTeam(*tcs[0])
-	t.Logf("Created team %s", teamname)
-
-	team, err := Load(context.Background(), tcs[0].G, keybase1.LoadTeamArg{Name: teamname})
-	require.NoError(t, err)
-
-	teamSection := SCTeamSection{
-		ID:       SCTeamID(team.ID),
-		Implicit: team.IsImplicit(),
-		Public:   team.IsPublic(),
-	}
-
-	mr, err := team.G().MerkleClient.FetchRootFromServer(team.MetaContext(context.TODO()), libkb.TeamMerkleFreshnessForAdmin)
-	require.NoError(t, err)
-
-	sigMultiItem, _, err := team.sigTeamItem(context.TODO(), teamSection, libkb.LinkTypeInvite, mr)
-	require.NoError(t, err)
-
-	sigMulti := []libkb.SigMultiItem{sigMultiItem}
-	err = team.precheckLinksToPost(context.TODO(), sigMulti)
-	require.NoError(t, err)
-
-	_ = team
-}
