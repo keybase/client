@@ -27,13 +27,15 @@ export class Conversation extends React.PureComponent<SwitchProps> {
     this.props.selectConversation()
   }
   _onWillBlur = () => {
-    this.props.deselectConversation()
+    if (Container.isPhone) {
+      this.props.deselectConversation()
+    }
   }
   componentWillUnmount() {
     // Workaround
     // https://github.com/react-navigation/react-navigation/issues/5669
     // Covers the case of swiping back on iOS
-    if (Container.isIOS) {
+    if (Container.isIOS && Container.isPhone) {
       this.props.deselectConversation()
     }
   }
