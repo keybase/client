@@ -1068,7 +1068,7 @@ func (n *newConversationHelper) getNameInfo(ctx context.Context) (res types.Name
 	return res, errors.New("unknown members type")
 }
 
-func (n *newConversationHelper) findExistingViaInboxSearch(ctx context.Context) *chat1.ConversationLocal {
+func (n *newConversationHelper) findExistingViaInboxSearch(ctx context.Context, searchTopicName string) *chat1.ConversationLocal {
 	query := utils.StripUsernameFromConvName(n.tlfName, n.G().GetEnv().GetUsername().String())
 	n.Debug(ctx, "findExistingViaInboxSearch: looking for: %s", query)
 	convs, err := n.G().InboxSource.Search(ctx, n.uid, query, 0, types.InboxSourceSearchEmptyModeAll)
@@ -1086,10 +1086,7 @@ func (n *newConversationHelper) findExistingViaInboxSearch(ctx context.Context) 
 		n.Debug(ctx, "findExistingViaInboxSearch: failed to localize: %s", err)
 		return nil
 	}
-	searchTopicName := ""
-	if n.topicName != nil {
-		searchTopicName = *n.topicName
-	}
+	searchIsPublic := n.vis == keybase1.TLFVisibility_PUBLIC
 	for _, conv := range convsLocal {
 		convName := conv.Info.TlfName
 		if conv.Error != nil {
@@ -1098,7 +1095,8 @@ func (n *newConversationHelper) findExistingViaInboxSearch(ctx context.Context) 
 		convName = utils.StripUsernameFromConvName(convName, n.G().GetEnv().GetUsername().String())
 		n.Debug(ctx, "findExistingViaInboxSearch: candidate: %s", convName)
 		if convName == query && conv.GetTopicType() == n.topicType &&
-			conv.GetTopicName() == searchTopicName && conv.GetMembersType() == n.membersType {
+			conv.GetTopicName() == searchTopicName && conv.GetMembersType() == n.membersType &&
+			conv.IsPublic() == searchIsPublic {
 			n.Debug(ctx, "findExistingViaInboxSearch: found conv match: %s id: %s", conv.Info.TlfName,
 				conv.GetConvID())
 			return &conv
@@ -1130,7 +1128,7 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 		// If we failed this, just do a quick inbox search to see if we can find one with the same name.
 		// This can happen if a user tries to create a conversation with the same person as a conversation
 		// in which they are currently locked out due to reset.
-		if conv := n.findExistingViaInboxSearch(ctx); conv != nil {
+		if conv := n.findExistingViaInboxSearch(ctx, findConvsTopicName); conv != nil {
 			return *conv, false, nil
 		}
 		return res, false, err
