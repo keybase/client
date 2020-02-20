@@ -103,10 +103,6 @@ const Tabs = () => {
   )
 }
 
-//<Tab.Navigator>
-//<Tab.Screen name="tabs.peopleTab" component={PeopleStack} />
-//<Tab.Screen name="tabs.chatTab" component={ChatStack} />
-//</Tab.Navigator>
 const RouterV3 = () => {
   const isDarkMode = Styles.isDarkMode()
   const [nav, setNav] = React.useState(null)
@@ -123,8 +119,8 @@ const RouterV3 = () => {
           }
         }}
       >
-        <ModalStack.Navigator mode="modal">
-          <ModalStack.Screen name="Tabs" component={Tabs} options={{headerShown: false}} />
+        <ModalStack.Navigator mode="modal" screenOptions={{headerShown: false}}>
+          <ModalStack.Screen name="Tabs" component={Tabs} />
           <ModalStack.Screen name="peopleTeamBuilder" component={TeamBuildingModal} />
         </ModalStack.Navigator>
       </NavigationContainer>

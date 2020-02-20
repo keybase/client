@@ -101,7 +101,9 @@ export const oldActionToNewActions = (action: any, navigation: any, allowAppendD
       //return numModals ? [StackActions.pop(numModals)] : []
     }
     case RouteTreeGen.navigateUp:
-      return [{...CommonActions.goBack(), source: action.payload.fromKey, target: navigation.state.key}]
+      // TODO key handling
+      return [CommonActions.goBack()]
+    //return [{...CommonActions.goBack(), source: action.payload.fromKey, target: navigation.state.key}]
     case RouteTreeGen.navUpToScreen: {
       const fullPath = Constants._getFullRouteForNavigator(navigation.state)
       const popActions: Array<unknown> = []
