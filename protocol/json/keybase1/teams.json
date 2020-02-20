@@ -1349,14 +1349,14 @@
             null,
             "int"
           ],
-          "name": "expireAfterUses"
+          "name": "maxUses"
         },
         {
           "type": [
             null,
             "UnixTime"
           ],
-          "name": "expireAfterTime"
+          "name": "etime"
         }
       ]
     },

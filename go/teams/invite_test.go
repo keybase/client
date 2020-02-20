@@ -4,7 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -157,7 +156,7 @@ func TestKeybaseInviteMalformed(t *testing.T) {
 }
 
 func TestMultiUseInviteChains(t *testing.T) {
-	team, _ := runUnitFromFilename(t, "multi_use_invite.json")
+	team, _ := runUnitFromFilename(t, "multiple_use_invite.json")
 
 	state := &team.chain().inner
 	require.Len(t, state.ActiveInvites, 1)
@@ -169,19 +168,18 @@ func TestMultiUseInviteChains(t *testing.T) {
 	}
 
 	require.Equal(t, inviteID, invite.Id)
-	require.Nil(t, invite.ExpireAfterTime)
-	require.NotNil(t, invite.ExpireAfterUses)
+	require.Nil(t, invite.Etime)
+	require.NotNil(t, invite.MaxUses)
+	require.Equal(t, 10, *invite.MaxUses)
 
 	require.Len(t, state.UsedInvites, 1)
 	usedInvitesForID, ok := state.UsedInvites[inviteID]
 	require.True(t, ok)
 	require.Len(t, usedInvitesForID, 3)
 
-	spew.Dump(state)
-
 	for _, usedInvitePair := range usedInvitesForID {
-		// Mostly check if UserLog pointed at by usedInvitePair exists
-		// (otherwise crash on map/list access).
+		// Check if UserLog pointed at by usedInvitePair exists (otherwise
+		// crash on map/list access).
 		ulog := state.UserLog[usedInvitePair.Uv][usedInvitePair.LogPoint]
 		require.Equal(t, ulog.Role, invite.Role)
 	}

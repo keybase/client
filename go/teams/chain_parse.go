@@ -74,11 +74,11 @@ type SCTeamInvites struct {
 }
 
 type SCTeamInvite struct {
-	Type            string                  `json:"type"`
-	Name            keybase1.TeamInviteName `json:"name"`
-	ID              SCTeamInviteID          `json:"id"`
-	ExpireAfterTime *int                    `json:"expire_after_time,omitempty"` // UnixTime
-	ExpireAfterUses *int                    `json:"expire_after_uses,omitempty"`
+	Type    string                  `json:"type"`
+	Name    keybase1.TeamInviteName `json:"name"`
+	ID      SCTeamInviteID          `json:"id"`
+	Etime   *int                    `json:"etime,omitempty"` // UnixTime
+	MaxUses *int                    `json:"max_uses,omitempty"`
 }
 
 type SCTeamParent struct {
@@ -327,19 +327,19 @@ func (i SCTeamInvite) TeamInvite(mctx libkb.MetaContext, r keybase1.TeamRole, in
 	if err != nil {
 		return keybase1.TeamInvite{}, err
 	}
-	var expireAfterTime *keybase1.UnixTime
-	if i.ExpireAfterTime != nil {
-		expireUnix := keybase1.UnixTime(*i.ExpireAfterTime)
-		expireAfterTime = &expireUnix
+	var etimePtr *keybase1.UnixTime
+	if i.Etime != nil {
+		etimeVal := keybase1.UnixTime(*i.Etime)
+		etimePtr = &etimeVal
 	}
 	return keybase1.TeamInvite{
-		Id:              id,
-		Role:            r,
-		Type:            typ,
-		Name:            i.Name,
-		Inviter:         inviter,
-		ExpireAfterUses: i.ExpireAfterUses,
-		ExpireAfterTime: expireAfterTime,
+		Id:      id,
+		Role:    r,
+		Type:    typ,
+		Name:    i.Name,
+		Inviter: inviter,
+		MaxUses: i.MaxUses,
+		Etime:   etimePtr,
 	}, nil
 }
 

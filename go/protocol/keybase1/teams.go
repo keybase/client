@@ -1718,13 +1718,13 @@ func (o TeamInviteName) DeepCopy() TeamInviteName {
 }
 
 type TeamInvite struct {
-	Role            TeamRole       `codec:"role" json:"role"`
-	Id              TeamInviteID   `codec:"id" json:"id"`
-	Type            TeamInviteType `codec:"type" json:"type"`
-	Name            TeamInviteName `codec:"name" json:"name"`
-	Inviter         UserVersion    `codec:"inviter" json:"inviter"`
-	ExpireAfterUses *int           `codec:"expireAfterUses,omitempty" json:"expireAfterUses,omitempty"`
-	ExpireAfterTime *UnixTime      `codec:"expireAfterTime,omitempty" json:"expireAfterTime,omitempty"`
+	Role    TeamRole       `codec:"role" json:"role"`
+	Id      TeamInviteID   `codec:"id" json:"id"`
+	Type    TeamInviteType `codec:"type" json:"type"`
+	Name    TeamInviteName `codec:"name" json:"name"`
+	Inviter UserVersion    `codec:"inviter" json:"inviter"`
+	MaxUses *int           `codec:"maxUses,omitempty" json:"maxUses,omitempty"`
+	Etime   *UnixTime      `codec:"etime,omitempty" json:"etime,omitempty"`
 }
 
 func (o TeamInvite) DeepCopy() TeamInvite {
@@ -1734,20 +1734,20 @@ func (o TeamInvite) DeepCopy() TeamInvite {
 		Type:    o.Type.DeepCopy(),
 		Name:    o.Name.DeepCopy(),
 		Inviter: o.Inviter.DeepCopy(),
-		ExpireAfterUses: (func(x *int) *int {
+		MaxUses: (func(x *int) *int {
 			if x == nil {
 				return nil
 			}
 			tmp := (*x)
 			return &tmp
-		})(o.ExpireAfterUses),
-		ExpireAfterTime: (func(x *UnixTime) *UnixTime {
+		})(o.MaxUses),
+		Etime: (func(x *UnixTime) *UnixTime {
 			if x == nil {
 				return nil
 			}
 			tmp := (*x).DeepCopy()
 			return &tmp
-		})(o.ExpireAfterTime),
+		})(o.Etime),
 	}
 }
 

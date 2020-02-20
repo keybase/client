@@ -1412,12 +1412,12 @@ func (t *Team) InviteSeitanInviteLink(ctx context.Context, role keybase1.TeamRol
 		return ikey, err
 	}
 
-	expireUseCount := 10
+	maxUses := 10
 	invite := SCTeamInvite{
-		Type:            "seitan_invite_token",
-		Name:            keybase1.TeamInviteName(encoded),
-		ID:              inviteID,
-		ExpireAfterUses: &expireUseCount,
+		Type:    "seitan_invite_token",
+		Name:    keybase1.TeamInviteName(encoded),
+		ID:      inviteID,
+		MaxUses: &maxUses,
 	}
 
 	if err := t.postInvite(ctx, invite, role); err != nil {
