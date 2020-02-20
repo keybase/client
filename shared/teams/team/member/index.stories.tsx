@@ -2,9 +2,11 @@ import React from 'react'
 import * as Sb from '../../../stories/storybook'
 import * as Constants from '../../../constants/teams'
 import * as Container from '../../../util/container'
-import {TeamMemberHeader} from './index.new'
+import {default as TeamMember, TeamMemberHeader} from './index.new'
 
 const fakeTeamID = 'fakeTeamID'
+const subteamID1 = 'subteam1'
+const subteamID2 = 'subteam2'
 const store = Container.produce(Sb.createStoreWithCommon(), draftState => {
   draftState.teams = {
     ...draftState.teams,
@@ -19,10 +21,27 @@ const store = Container.produce(Sb.createStoreWithCommon(), draftState => {
             ['paula', {fullName: 'Paula Superlonglastnamelikereallylongforreal', status: 'active', type: 'writer', username: 'paula'}],
             ['andonuts', {fullName: '', status: 'active', type: 'writer', username: 'andonuts'}],
           ]),
+          subteams: new Set([subteamID1, subteamID2]),
+        },
+      ],
+      [
+        subteamID1,
+        {
+          ...Constants.emptyTeamDetails,
+          members: new Map([
+            ['jeff', {fullName: 'Jeff', status: 'active', type: 'admin', username: 'jeff'}],
+            // prettier-ignore
+            ['paula', {fullName: 'Paula Superlonglastnamelikereallylongforreal', status: 'active', type: 'writer', username: 'paula'}],
+            ['andonuts', {fullName: '', status: 'active', type: 'writer', username: 'andonuts'}],
+          ]),
         },
       ],
     ]),
-    teamMeta: new Map([[fakeTeamID, Constants.makeTeamMeta({teamname: 'keybase_storybook'})]]),
+    teamMeta: new Map([
+      [fakeTeamID, Constants.makeTeamMeta({teamname: 'keybase_storybook'})],
+      [subteamID1, Constants.makeTeamMeta({teamname: 'keybase_storybook.public'})],
+      [subteamID2, Constants.makeTeamMeta({memberCount: 12, teamname: 'keybase_storybook.secret'})],
+    ]),
   }
   draftState.config = {
     ...draftState.config,
@@ -36,5 +55,6 @@ const load = () =>
     .add('Header normal', () => <TeamMemberHeader teamID={fakeTeamID} username="jeff" />)
     .add('Header long name', () => <TeamMemberHeader teamID={fakeTeamID} username="paula" />)
     .add('Header self + no name', () => <TeamMemberHeader teamID={fakeTeamID} username="andonuts" />)
+    .add('Rows', () => <TeamMember {...Sb.createNavigator({teamID: fakeTeamID, username: 'jeff'})} />)
 
 export default load

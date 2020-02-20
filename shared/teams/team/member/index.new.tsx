@@ -49,16 +49,16 @@ const TeamMember = (props: OwnProps) => {
       data: subteamsIn,
       key: 'section-subteams',
       title: `${username} is in:`,
-      renderItem: (item, idx) => (
-        <SubteamInRow teamID={teamID} subteam={item} idx={idx} username={username} />
+      renderItem: ({item, index}: {item: Types.TeamMeta; index: number}) => (
+        <SubteamInRow teamID={teamID} subteam={item} idx={index} username={username} />
       ),
     },
     {
       data: subteamsNotIn,
       key: 'section-add-subteams',
       title: `Add ${username} to:`,
-      renderItem: (item, idx) => (
-        <SubteamNotInRow teamID={teamID} subteam={item} idx={idx} username={username} />
+      renderItem: ({item, index}: {item: Types.TeamMeta; index: number}) => (
+        <SubteamNotInRow teamID={teamID} subteam={item} idx={index} username={username} />
       ),
     },
   ]
@@ -67,7 +67,7 @@ const TeamMember = (props: OwnProps) => {
       stickySectionHeadersEnabled={true}
       renderSectionHeader={({section}) => <Kb.SectionDivider label={section.title} />}
       sections={sections}
-      keyExtractor={item => `member:${username}:${item.subTeamName}`}
+      keyExtractor={(item: Types.TeamMeta) => `member:${username}:${item.teamname}`}
     />
   )
 }
@@ -108,10 +108,21 @@ const SubteamNotInRow = (props: SubteamNotInRowProps) => {
     )
 
   const [role, setRole] = React.useState<Types.TeamRoleType>('writer')
-  const {popup, toggleShowingPopup, showingPopup, popupAnchor} = Kb.usePopup(() => (
-    <FloatingRolePicker open={showingPopup} onConfirm={() => onAdd(role)} onSelectRole={setRole} />
-  ))
-  const action = <Kb.Button label="Add" onClick={toggleShowingPopup} ref={popupAnchor} />
+  const [open, setOpen] = React.useState(false)
+  const action = (
+    <FloatingRolePicker
+      onConfirm={() => {
+        onAdd(role)
+        setOpen(false)
+      }}
+      onSelectRole={setRole}
+      open={open}
+      onCancel={() => setOpen(false)}
+      selectedRole={role}
+    >
+      <Kb.Button label="Add" onClick={() => setOpen(!open)} />
+    </FloatingRolePicker>
+  )
 
   const memberCount = props.subteam.memberCount ?? -1
   const body = (
@@ -120,11 +131,10 @@ const SubteamNotInRow = (props: SubteamNotInRowProps) => {
       <Kb.Text type="BodySmall">
         {memberCount.toLocaleString()} {pluralize('member', memberCount)}
       </Kb.Text>
-      {popup}
     </Kb.Box2>
   )
   const icon = <Kb.Avatar teamname={props.subteam.teamname} size={32} />
-  return <Kb.ListItem2 icon={icon} body={body} action={action} firstItem={props.idx === 1} type="Large" />
+  return <Kb.ListItem2 icon={icon} body={body} action={action} firstItem={props.idx === 0} type="Large" />
 }
 const SubteamInRow = (props: SubteamNotInRowProps) => {
   const dispatch = Container.useDispatch()
@@ -187,7 +197,7 @@ const SubteamInRow = (props: SubteamNotInRowProps) => {
   )
   const height = expanded ? (Styles.isMobile ? 208 : 140) : undefined
   return (
-    <Kb.ListItem2 statusIcon={icon} body={body} firstItem={props.idx === 1} type="Large" height={height} />
+    <Kb.ListItem2 statusIcon={icon} body={body} firstItem={props.idx === 0} type="Large" height={height} />
   )
 }
 
