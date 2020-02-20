@@ -57,7 +57,7 @@ func (r *callRequest) Reply(enc *framedMsgpackEncoder, res interface{}, errArg i
 	}
 
 	size, errCh := enc.EncodeAndWrite(r.ctx, v, nil)
-	defer func() { _ = r.RecordAndFinish(size) }()
+	defer func() { _ = r.RecordAndFinish(r.ctx, size) }()
 
 	select {
 	case err := <-errCh:
@@ -123,7 +123,7 @@ func (r *callCompressedRequest) Reply(enc *framedMsgpackEncoder, res interface{}
 	}
 
 	size, errCh := enc.EncodeAndWrite(r.ctx, v, nil)
-	defer func() { _ = r.RecordAndFinish(size) }()
+	defer func() { _ = r.RecordAndFinish(r.ctx, size) }()
 
 	select {
 	case err := <-errCh:

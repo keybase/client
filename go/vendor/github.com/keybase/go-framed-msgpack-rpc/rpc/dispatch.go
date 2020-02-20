@@ -89,7 +89,7 @@ func (d *dispatch) Call(ctx context.Context, name string, arg interface{}, res i
 		v = append(v, rpcTags)
 	}
 	size, errCh := d.writer.EncodeAndWrite(ctx, v, currySendNotifier(sendNotifier, c.seqid))
-	defer func() { _ = record.RecordAndFinish(size) }()
+	defer func() { _ = record.RecordAndFinish(ctx, size) }()
 
 	// Wait for result from encode
 	select {
@@ -98,7 +98,7 @@ func (d *dispatch) Call(ctx context.Context, name string, arg interface{}, res i
 			return err
 		}
 	case <-c.ctx.Done():
-		return d.handleCancel(c)
+		return d.handleCancel(ctx, c)
 	case <-d.stopCh:
 		return io.EOF
 	}
@@ -111,7 +111,7 @@ func (d *dispatch) Call(ctx context.Context, name string, arg interface{}, res i
 		d.log.ClientReply(c.seqid, c.method, res.ResponseErr(), res.Res())
 		return res.ResponseErr()
 	case <-c.ctx.Done():
-		return d.handleCancel(c)
+		return d.handleCancel(ctx, c)
 	case <-d.stopCh:
 		return io.EOF
 	}
@@ -126,7 +126,7 @@ func (d *dispatch) Notify(ctx context.Context, name string, arg interface{}, sen
 
 	size, errCh := d.writer.EncodeAndWrite(ctx, v, currySendNotifier(sendNotifier, SeqNumber(-1)))
 	record := NewNetworkInstrumenter(d.instrumenterStorage, RPCInstrumentTag(MethodNotify, name))
-	defer func() { _ = record.RecordAndFinish(size) }()
+	defer func() { _ = record.RecordAndFinish(ctx, size) }()
 
 	select {
 	case err := <-errCh:
@@ -146,11 +146,11 @@ func (d *dispatch) Close() {
 	close(d.stopCh)
 }
 
-func (d *dispatch) handleCancel(c *call) error {
+func (d *dispatch) handleCancel(ctx context.Context, c *call) error {
 	d.log.ClientCancel(c.seqid, c.method, nil)
 	size, errCh := d.writer.EncodeAndWriteAsync([]interface{}{MethodCancel, c.seqid, c.method})
 	record := NewNetworkInstrumenter(d.instrumenterStorage, RPCInstrumentTag(MethodCancel, c.method))
-	defer func() { _ = record.RecordAndFinish(size) }()
+	defer func() { _ = record.RecordAndFinish(ctx, size) }()
 	select {
 	case err := <-errCh:
 		if err != nil {
