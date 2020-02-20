@@ -1981,6 +1981,9 @@ func (t *teamSigchainPlayer) sanityCheckInvites(mctx libkb.MetaContext,
 		if byName[key] {
 			return nil, nil, NewInviteError(fmt.Sprintf("Invite %s appears twice in invite set", key))
 		}
+		if res.ExpireAfterUses != nil && *res.ExpireAfterUses == 0 {
+			return nil, nil, NewInviteError(fmt.Sprintf("Invite ID %s has expire_after_uses=0", id))
+		}
 		byName[key] = true
 		byID[id] = true
 		additions[res.Role] = append(additions[res.Role], res)
