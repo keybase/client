@@ -42,6 +42,10 @@ const AddToChannels = ({teamID, username}: Props) => {
   const onSelectAll = () => setSelected(new Set([...channelInfos.values()].map(c => c.channelname)))
   const onSelectNone = () => setSelected(new Set())
 
+  const onCancel = () => {} // TODO
+  const onFinish = () => {} // TODO useRPC probably
+  const numSelected = selected.size
+
   const renderItem = (_, item: Unpacked<typeof items>) => {
     switch (item.type) {
       case 'header': {
@@ -49,7 +53,9 @@ const AddToChannels = ({teamID, username}: Props) => {
         return (
           <HeaderRow
             key="{header}"
-            onCreate={() => {}}
+            onCreate={() => {
+              /* TODO */
+            }}
             onSelectAll={allSelected ? undefined : onSelectAll}
             onSelectNone={allSelected ? onSelectNone : undefined}
           />
@@ -73,8 +79,39 @@ const AddToChannels = ({teamID, username}: Props) => {
       header={{
         hideBorder: Styles.isMobile,
         leftButton: Styles.isMobile ? <Kb.Text type="BodyBigLink">Cancel</Kb.Text> : undefined,
+        rightButton: Styles.isMobile ? (
+          <Kb.Text type="BodyBigLink" onClick={onFinish} style={!numSelected && styles.disabled}>
+            Add
+          </Kb.Text>
+        ) : (
+          undefined
+        ),
         title: <ModalTitle teamname={meta.teamname} title={`Add ${username} to...`} />,
       }}
+      footer={
+        Styles.isMobile
+          ? undefined
+          : {
+              content: (
+                <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
+                  <Kb.Button
+                    type="Dim"
+                    label="Cancel"
+                    onClick={onCancel}
+                    style={Styles.globalStyles.flexOne}
+                  />
+                  <Kb.Button
+                    label={
+                      numSelected ? `Add to ${numSelected} ${pluralize('channel', numSelected)}` : 'Add...'
+                    }
+                    onClick={onFinish}
+                    disabled={!numSelected}
+                    style={Styles.globalStyles.flexOne}
+                  />
+                </Kb.Box2>
+              ),
+            }
+      }
       allowOverflow={true}
       noScrollView={true}
     >
@@ -162,6 +199,7 @@ const ChannelRow = ({channelname, numMembers, selected, onSelect}) =>
   )
 
 const styles = Styles.styleSheetCreate(() => ({
+  disabled: {opacity: 0.4},
   headerItem: {backgroundColor: Styles.globalColors.blueGrey},
   item: Styles.platformStyles({
     common: {justifyContent: 'space-between', ...Styles.padding(0, Styles.globalMargins.small)},
