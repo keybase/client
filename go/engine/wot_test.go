@@ -115,10 +115,15 @@ func TestWebOfTrustPending(t *testing.T) {
 	require.NoError(tcAlice.T, err)
 	t.Log("alice and bob follow each other")
 
-	pending, err := libkb.FetchPendingWotVouches(mctxA)
+	var vouches []keybase1.WotVouch
+	vouches, err = libkb.FetchMyWot(mctxA)
 	require.NoError(t, err)
-	require.Empty(t, pending)
+	require.Empty(t, vouches)
 	t.Log("alice has no pending vouches")
+	vouches, err = libkb.FetchUserWot(mctxB, alice.User.GetName())
+	require.NoError(t, err)
+	require.Empty(t, vouches)
+	t.Log("bob sees no vouches for Alice")
 
 	firstVouch := "alice is wondibar but i don't have much confidence"
 	vouchTexts := []string{firstVouch}
@@ -131,14 +136,19 @@ func TestWebOfTrustPending(t *testing.T) {
 	require.NoError(t, err)
 	t.Log("bob vouches for alice without confidence")
 
-	pending, err = libkb.FetchPendingWotVouches(mctxA)
+	vouches, err = libkb.FetchMyWot(mctxA)
 	require.NoError(t, err)
-	require.Len(t, pending, 1)
-	bobVouch := pending[0]
+	require.Len(t, vouches, 1)
+	bobVouch := vouches[0]
 	require.Equal(t, bob.User.GetUID(), bobVouch.Voucher.Uid)
 	require.Equal(t, vouchTexts, bobVouch.VouchTexts)
 	require.Nil(t, bobVouch.Confidence)
+	require.Equal(t, keybase1.WotStatusType_PROPOSED, bobVouch.Status)
 	t.Log("alice sees one pending vouch")
+	vouches, err = libkb.FetchUserWot(mctxB, alice.User.GetName())
+	require.NoError(t, err)
+	require.Empty(t, vouches)
+	t.Log("bob sees no vouches for Alice")
 
 	tcCharlie := SetupEngineTest(t, "wot")
 	defer tcCharlie.Cleanup()
@@ -168,15 +178,14 @@ func TestWebOfTrustPending(t *testing.T) {
 	require.NoError(t, err)
 	t.Log("charlie vouches for alice with confidence")
 
-	pending, err = libkb.FetchPendingWotVouches(mctxA)
+	vouches, err = libkb.FetchMyWot(mctxA)
 	require.NoError(t, err)
-	require.Len(t, pending, 2)
-	require.EqualValues(t, bobVouch, pending[0])
-	charlieVouch := pending[1]
-	require.Equal(t, charlie.User.GetUID(), charlieVouch.Voucher.Uid)
-	require.Equal(t, vouchTexts, charlieVouch.VouchTexts)
+	require.Len(t, vouches, 2)
+	require.EqualValues(t, bobVouch, vouches[0])
+	charlieVouch := vouches[1]
+	require.Equal(t, keybase1.WotStatusType_PROPOSED, charlieVouch.Status)
 	require.Equal(t, confidence, *charlieVouch.Confidence)
-	t.Log("alice sees two pending vouches that look right")
+	t.Log("alice sees two pending vouches")
 }
 
 func TestWebOfTrustAccept(t *testing.T) {
@@ -233,8 +242,23 @@ func TestWebOfTrustAccept(t *testing.T) {
 	require.NoError(t, err)
 	t.Log("alice accepts")
 
-	// add expectations here that the accepted attestation is
-	// really in Alice's sigchain / accessible to someone else
+	vouches, err := libkb.FetchMyWot(mctxA)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(vouches))
+	vouch := vouches[0]
+	require.Equal(t, keybase1.WotStatusType_ACCEPTED, vouch.Status)
+	require.Equal(t, bob.User.GetUID(), vouch.Voucher.Uid)
+	require.Equal(t, vouchTexts, vouch.VouchTexts)
+	require.EqualValues(t, confidence, *vouch.Confidence)
+
+	vouches, err = libkb.FetchUserWot(mctxB, alice.User.GetName())
+	require.NoError(t, err)
+	require.Equal(t, 1, len(vouches))
+	vouch = vouches[0]
+	require.Equal(t, keybase1.WotStatusType_ACCEPTED, vouch.Status)
+	require.Equal(t, bob.User.GetUID(), vouch.Voucher.Uid)
+	require.Equal(t, vouchTexts, vouch.VouchTexts)
+	require.EqualValues(t, confidence, *vouch.Confidence)
 }
 
 func TestWebOfTrustReject(t *testing.T) {
@@ -286,6 +310,18 @@ func TestWebOfTrustReject(t *testing.T) {
 	require.NoError(t, err)
 	t.Log("alice rejects it")
 
-	// add expectations here that the rejected attestation is
-	// really in Alice's sigchain, not accessible to someone else
+	vouches, err := libkb.FetchMyWot(mctxA)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(vouches))
+	vouch := vouches[0]
+	require.Equal(t, keybase1.WotStatusType_REJECTED, vouch.Status)
+	require.Equal(t, bob.User.GetUID(), vouch.Voucher.Uid)
+	require.Equal(t, vouchTexts, vouch.VouchTexts)
+	require.Nil(t, vouch.Confidence)
+	t.Log("alice can see it as rejected")
+
+	vouches, err = libkb.FetchUserWot(mctxB, alice.User.GetName())
+	require.NoError(t, err)
+	require.Equal(t, 0, len(vouches))
+	t.Log("bob cannot see it")
 }

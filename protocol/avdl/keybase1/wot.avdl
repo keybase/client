@@ -43,4 +43,16 @@ protocol wot {
     REJECT_1
   }
   void wotReact(int sessionID, UserVersion uv /* voucher */, SigID proof, WotReactionType reaction);
+
+  record WotVouch {
+    WotStatusType status;
+    SigID vouchProof;
+    UserVersion voucher;
+    array<string> vouchTexts;
+    Time vouchedAt;
+    union { null, Confidence } confidence;
+  }
+
+  array<WotVouch> wotListCLI(int sessionID, union {null, string} username);
+
 }

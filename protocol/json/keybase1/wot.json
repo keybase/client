@@ -94,6 +94,42 @@
         "ACCEPT_0",
         "REJECT_1"
       ]
+    },
+    {
+      "type": "record",
+      "name": "WotVouch",
+      "fields": [
+        {
+          "type": "WotStatusType",
+          "name": "status"
+        },
+        {
+          "type": "SigID",
+          "name": "vouchProof"
+        },
+        {
+          "type": "UserVersion",
+          "name": "voucher"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "vouchTexts"
+        },
+        {
+          "type": "Time",
+          "name": "vouchedAt"
+        },
+        {
+          "type": [
+            null,
+            "Confidence"
+          ],
+          "name": "confidence"
+        }
+      ]
     }
   ],
   "messages": {
@@ -177,6 +213,25 @@
         }
       ],
       "response": null
+    },
+    "wotListCLI": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "username",
+          "type": [
+            null,
+            "string"
+          ]
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "WotVouch"
+      }
     }
   },
   "namespace": "keybase.1"

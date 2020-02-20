@@ -3236,6 +3236,7 @@ export type VerifyAllEmailTodoExt = {readonly lastVerifyEmailDate: UnixTime}
 export type VerifySessionRes = {readonly uid: UID; readonly sid: String; readonly generated: Int; readonly lifetime: Int}
 export type WalletAccountInfo = {readonly accountID: String; readonly numUnread: Int}
 export type WebProof = {readonly hostname: String; readonly protocols?: Array<String> | null}
+export type WotVouch = {readonly status: WotStatusType; readonly vouchProof: SigID; readonly voucher: UserVersion; readonly vouchTexts?: Array<String> | null; readonly vouchedAt: Time; readonly confidence?: Confidence | null}
 export type WriteArgs = {readonly opID: OpID; readonly path: Path; readonly offset: Long}
 
 export type IncomingCallMapType = {
@@ -4164,3 +4165,4 @@ export const userUserCardRpcPromise = (params: MessageTypes['keybase.1.user.user
 // 'keybase.1.wot.wotVouchCLI'
 // 'keybase.1.wot.wotPending'
 // 'keybase.1.wot.wotReact'
+// 'keybase.1.wot.wotListCLI'
