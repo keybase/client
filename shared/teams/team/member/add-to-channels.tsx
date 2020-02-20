@@ -14,12 +14,16 @@ type Props = {
 
 const AddToChannels = ({teamID, username}: Props) => {
   const meta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
-  const channels = Container.useSelector(s => Constants.getTeamChannelInfos(s, teamID))
-  const [, setFilter] = React.useState('')
+  const channelInfos = Container.useSelector(s => Constants.getTeamChannelInfos(s, teamID))
+  const [filter, setFilter] = React.useState('')
+  const filterLCase = filter.trim().toLowerCase()
   const [filtering, setFiltering] = React.useState(false)
+  const channels = filterLCase
+    ? [...channelInfos.values()].filter(c => c.channelname.toLowerCase().includes(filterLCase))
+    : [...channelInfos.values()]
   const items = [
     ...(filtering ? [] : [{type: 'header' as const}]),
-    ...[...channels.values()].map(c => ({
+    ...channels.map(c => ({
       channelname: c.channelname,
       numMembers: c.numParticipants,
       type: 'channel' as const,
@@ -35,13 +39,13 @@ const AddToChannels = ({teamID, username}: Props) => {
       setSelected(new Set(selected))
     }
   }
-  const onSelectAll = () => setSelected(new Set([...channels.values()].map(c => c.channelname)))
+  const onSelectAll = () => setSelected(new Set([...channelInfos.values()].map(c => c.channelname)))
   const onSelectNone = () => setSelected(new Set())
 
   const renderItem = (_, item: Unpacked<typeof items>) => {
     switch (item.type) {
       case 'header': {
-        const allSelected = selected.size === channels.size
+        const allSelected = selected.size === channelInfos.size
         return (
           <HeaderRow
             key="{header}"
@@ -77,7 +81,7 @@ const AddToChannels = ({teamID, username}: Props) => {
       <Kb.Box2 direction="vertical" fullWidth={true} style={Styles.globalStyles.flexOne}>
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.searchFilterContainer}>
           <Kb.SearchFilter
-            placeholderText={`Search ${channels.size} ${pluralize('channel', channels.size)}`}
+            placeholderText={`Search ${channelInfos.size} ${pluralize('channel', channelInfos.size)}`}
             icon="iconfont-search"
             onChange={setFilter}
             size="full-width"
@@ -131,7 +135,14 @@ const ChannelRow = ({channelname, numMembers, selected, onSelect}) =>
         onSelect()
       }}
       type="Large"
-      action={<Kb.CheckCircle checked={selected} onCheck={onSelect} />}
+      action={
+        <Kb.CheckCircle
+          checked={selected}
+          onCheck={() => {
+            /* ListItem onMouseDown triggers this */
+          }}
+        />
+      }
       firstItem={true}
       body={
         <Kb.Box2 direction="vertical" alignItems="stretch">
@@ -152,7 +163,11 @@ const ChannelRow = ({channelname, numMembers, selected, onSelect}) =>
 
 const styles = Styles.styleSheetCreate(() => ({
   headerItem: {backgroundColor: Styles.globalColors.blueGrey},
-  item: {height: 48, justifyContent: 'space-between', ...Styles.padding(0, Styles.globalMargins.small)},
+  item: Styles.platformStyles({
+    common: {justifyContent: 'space-between', ...Styles.padding(0, Styles.globalMargins.small)},
+    isElectron: {height: 56},
+    isMobile: {height: 48},
+  }),
   listContainer: Styles.platformStyles({
     isElectron: {
       height: 370, // shortcut to expand the modal
