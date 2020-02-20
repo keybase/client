@@ -3,6 +3,8 @@
 import './app/globals.native'
 import {NativeModules} from 'react-native'
 import {_setSystemIsDarkMode, _setSystemSupported, _setDarkModePreference} from './styles/dark-mode'
+import {enableScreens} from 'react-native-screens'
+enableScreens()
 
 // Load storybook or the app
 if (__STORYBOOK__) {

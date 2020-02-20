@@ -2,7 +2,8 @@ import * as React from 'react'
 import * as Kb from '../common-adapters/mobile.native'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
-import RouterSwitcheroo from '../router-v2/switcheroo'
+//import RouterSwitcheroo from '../router-v2/switcheroo'
+import RouterV3 from '../router-v3'
 import {GatewayDest} from 'react-gateway'
 import {View} from 'react-native'
 import ResetModal from '../login/reset/modal'
@@ -13,7 +14,8 @@ const Main = (_: Props) => {
   const isResetActive = Container.useSelector(state => state.autoreset.active)
   return (
     <>
-      <RouterSwitcheroo />
+      <RouterV3 />
+      {/*<RouterSwitcheroo />*/}
       <GatewayDest
         name="popup-root"
         component={ViewForGatewayDest}
