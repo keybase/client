@@ -28,6 +28,7 @@ type Props = {
   // it's too large, the animation would also seem much faster.
   onlyShowActionOnHover?: 'fade' | 'grow' | null
   onClick?: () => void
+  onMouseDown?: (evt: React.BaseSyntheticEvent) => void // desktop only
   height?: number // optional, for non-standard heights
   style?: Styles.StylesCrossPlatform
   iconStyleOverride?: Styles.StylesCrossPlatform
@@ -36,7 +37,8 @@ type Props = {
 
 const ListItem = (props: Props) => (
   <Kb.ClickableBox
-    onClick={props.onClick}
+    onClick={props.onClick || (props.onMouseDown ? () => {} : undefined)} // cause click styles if just onMouseDown is defined
+    onMouseDown={props.onMouseDown}
     style={Styles.collapseStyles([
       props.type === 'Small' ? styles.clickableBoxSmall : styles.clickableBoxLarge,
       !!props.height && {minHeight: props.height},

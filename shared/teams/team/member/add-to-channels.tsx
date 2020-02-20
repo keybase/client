@@ -44,6 +44,7 @@ const AddToChannels = ({teamID, username}: Props) => {
         const allSelected = selected.size === channels.size
         return (
           <HeaderRow
+            key="{header}"
             onCreate={() => {}}
             onSelectAll={allSelected ? undefined : onSelectAll}
             onSelectNone={allSelected ? onSelectNone : undefined}
@@ -53,6 +54,7 @@ const AddToChannels = ({teamID, username}: Props) => {
       case 'channel':
         return (
           <ChannelRow
+            key={item.channelname}
             channelname={item.channelname}
             numMembers={item.numMembers}
             selected={selected.has(item.channelname)}
@@ -84,7 +86,13 @@ const AddToChannels = ({teamID, username}: Props) => {
           />
         </Kb.Box2>
         <Kb.Box2 direction="vertical" style={styles.listContainer} fullWidth={true}>
-          <Kb.List2 items={items} renderItem={renderItem} itemHeight={{height: 48, type: 'fixed'}} />
+          <Kb.List2
+            items={items}
+            renderItem={renderItem}
+            itemHeight={
+              Styles.isMobile ? {height: 48, type: 'fixed'} : {sizeType: 'Large', type: 'fixedListItem2Auto'}
+            }
+          />
         </Kb.Box2>
       </Kb.Box2>
     </Kb.Modal>
@@ -105,31 +113,42 @@ const HeaderRow = ({onCreate, onSelectAll, onSelectNone}) => (
   </Kb.Box2>
 )
 
-const ChannelRow = ({channelname, numMembers, selected, onSelect}) => (
-  <Kb.ListItem2
-    onClick={onSelect}
-    type="Small"
-    action={<Kb.CheckCircle checked={selected} onCheck={onSelect} />}
-    firstItem={true}
-    body={
-      <Kb.Box2 direction="vertical" alignItems="stretch">
-        <Kb.Text type={Styles.isMobile ? 'Body' : 'BodySemibold'} lineClamp={1}>
+const ChannelRow = ({channelname, numMembers, selected, onSelect}) =>
+  Styles.isMobile ? (
+    <Kb.ClickableBox onClick={onSelect}>
+      <Kb.Box2 direction="horizontal" style={styles.item} alignItems="center" fullWidth={true} gap="medium">
+        <Kb.Text type="Body" lineClamp={1} style={Styles.globalStyles.flexOne}>
           #{channelname}
         </Kb.Text>
-        {!Styles.isMobile && (
+        <Kb.CheckCircle checked={selected} onCheck={onSelect} />
+      </Kb.Box2>
+    </Kb.ClickableBox>
+  ) : (
+    <Kb.ListItem2
+      onMouseDown={evt => {
+        // using onMouseDown so we can prevent blurring the search filter
+        evt.preventDefault()
+        onSelect()
+      }}
+      type="Large"
+      action={<Kb.CheckCircle checked={selected} onCheck={onSelect} />}
+      firstItem={true}
+      body={
+        <Kb.Box2 direction="vertical" alignItems="stretch">
+          <Kb.Text type="BodySemibold" lineClamp={1}>
+            #{channelname}
+          </Kb.Text>
           <Kb.Box2 direction="horizontal" alignSelf="stretch" gap="xxtiny">
             <Kb.Text type="BodySmall">
               {numMembers} {pluralize('member', numMembers)} •
             </Kb.Text>
             <Activity level="extinct" />
           </Kb.Box2>
-        )}
-      </Kb.Box2>
-    }
-    containerStyleOverride={{marginLeft: 16, marginRight: 8}}
-    height={48}
-  />
-)
+        </Kb.Box2>
+      }
+      containerStyleOverride={{marginLeft: 16, marginRight: 8}}
+    />
+  )
 
 const styles = Styles.styleSheetCreate(() => ({
   headerItem: {backgroundColor: Styles.globalColors.blueGrey},
