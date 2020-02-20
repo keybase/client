@@ -6,8 +6,10 @@ import * as Kb from '../../common-adapters'
 import * as TeamsGen from '../../actions/teams-gen'
 import {pluralize} from '../../util/string'
 
+type SelectableTab = Extract<Types.TabKey, 'members' | 'channels'> // TODO is this the best type for this?
+
 type Props = {
-  selectedTab: Types.TabKey
+  selectedTab: SelectableTab
   teamID: Types.TeamID
 }
 
@@ -24,7 +26,7 @@ const getSelectedCount = (state: Container.TypedState, props: Props) => {
 
 // In order for Selection Popup to show in a tab
 // the respective tab needs to be added to this map
-const tabThings = {
+const tabThings: {[k in SelectableTab]: string} = {
   channels: 'channel',
   members: 'member',
 }
@@ -58,16 +60,10 @@ const SelectionPopup = (props: Props) => {
     }
   }
 
-  // Chanels tab functions
-  const onDelete = () => {}
-
-  // Members tab functions
-  const onAddToChannel = () => {}
-  const onEditRoles = () => {}
-  const onRemoveFromTeam = () => {}
-
   const tabThing = tabThings[props.selectedTab]
   const onSelectableTab = !!tabThing
+
+  const Actions = actionsComponent[props.selectedTab]
 
   return onSelectableTab && (!Styles.isMobile || !!selectedCount) ? (
     <Kb.Box2
@@ -96,36 +92,57 @@ const SelectionPopup = (props: Props) => {
       </Kb.Text>
 
       {!Styles.isMobile && <Kb.BoxGrow />}
-      {props.selectedTab == 'channels' && (
-        <Kb.Button label="Delete" type="Danger" onClick={onDelete} fullWidth={Styles.isMobile} />
-      )}
 
-      {props.selectedTab == 'members' && (
-        <Kb.Box2
-          fullWidth={Styles.isMobile}
-          direction={Styles.isMobile ? 'vertical' : 'horizontal'}
-          gap="tiny"
-        >
-          <Kb.Button
-            label="Add to channels"
-            mode="Secondary"
-            onClick={onAddToChannel}
-            fullWidth={Styles.isMobile}
-          />
-          <Kb.Button label="Edit role" mode="Secondary" onClick={onEditRoles} fullWidth={Styles.isMobile} />
-          <Kb.Button
-            label="Remove from team"
-            type="Danger"
-            onClick={onRemoveFromTeam}
-            fullWidth={Styles.isMobile}
-          />
-        </Kb.Box2>
-      )}
+      <Actions teamID={props.teamID} />
     </Kb.Box2>
   ) : null
 }
 
-export default SelectionPopup
+type ActionsProps = {teamID: Types.TeamID}
+const ActionsWrapper = ({children}) => (
+  <Kb.Box2 fullWidth={Styles.isMobile} direction={Styles.isMobile ? 'vertical' : 'horizontal'} gap="tiny">
+    {children}
+  </Kb.Box2>
+)
+const MembersActions = ({teamID}: ActionsProps) => {
+  // Members tab functions
+  const onAddToChannel = () => {}
+  const onEditRoles = () => {}
+  const onRemoveFromTeam = () => {}
+
+  return (
+    <ActionsWrapper>
+      <Kb.Button
+        label="Add to channels"
+        mode="Secondary"
+        onClick={onAddToChannel}
+        fullWidth={Styles.isMobile}
+      />
+      <Kb.Button label="Edit role" mode="Secondary" onClick={onEditRoles} fullWidth={Styles.isMobile} />
+      <Kb.Button
+        label="Remove from team"
+        type="Danger"
+        onClick={onRemoveFromTeam}
+        fullWidth={Styles.isMobile}
+      />
+    </ActionsWrapper>
+  )
+}
+
+const ChannelsActions = ({teamID}: ActionsProps) => {
+  // Channels tab functions
+  const onDelete = () => {}
+  return (
+    <ActionsWrapper>
+      <Kb.Button label="Delete" type="Danger" onClick={onDelete} fullWidth={Styles.isMobile} />
+    </ActionsWrapper>
+  )
+}
+
+const actionsComponent: {[k in SelectableTab]: React.ComponentType<ActionsProps>} = {
+  channels: ChannelsActions,
+  members: MembersActions,
+}
 
 const styles = Styles.styleSheetCreate(() => ({
   container: Styles.platformStyles({
@@ -157,3 +174,5 @@ const styles = Styles.styleSheetCreate(() => ({
     paddingBottom: Styles.globalMargins.tiny,
   },
 }))
+
+export default SelectionPopup

@@ -5,12 +5,10 @@ import * as Types from '../../constants/types/teams'
 
 const activityToIcon: {[key in Types.ActivityLevel]: Kb.IconType} = {
   active: 'iconfont-fire',
-  extinct: 'iconfont-rip',
   recently: 'iconfont-team-leave',
 }
 const activityToLabel = {
   active: 'Active',
-  extinct: 'Extinct',
   recently: 'Recently active',
 }
 const Activity = ({level}: {level: Types.ActivityLevel}) => (

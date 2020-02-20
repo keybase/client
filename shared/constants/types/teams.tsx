@@ -22,7 +22,7 @@ export type PublicitySettings = {
   publicityTeam: boolean
 }
 
-export type ActivityLevel = 'active' | 'recently' | 'extinct'
+export type ActivityLevel = 'active' | 'recently'
 
 export type Teamname = string
 
