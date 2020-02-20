@@ -1368,10 +1368,6 @@
         {
           "name": "summarizeMaxMsgs",
           "type": "boolean"
-        },
-        {
-          "name": "useCache",
-          "type": "boolean"
         }
       ],
       "response": "GetTLFConversationsRes"

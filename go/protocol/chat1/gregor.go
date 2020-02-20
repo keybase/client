@@ -454,16 +454,6 @@ func (o UpdateConversations) DeepCopy() UpdateConversations {
 	}
 }
 
-type TeamChannelUpdate struct {
-	TeamID TLFID `codec:"teamID" json:"teamID"`
-}
-
-func (o TeamChannelUpdate) DeepCopy() TeamChannelUpdate {
-	return TeamChannelUpdate{
-		TeamID: o.TeamID.DeepCopy(),
-	}
-}
-
 type SetConvRetentionUpdate struct {
 	InboxVers InboxVers       `codec:"inboxVers" json:"inboxVers"`
 	ConvID    ConversationID  `codec:"convID" json:"convID"`

@@ -1460,7 +1460,6 @@ type GetTLFConversationsArg struct {
 	TlfID            TLFID     `codec:"tlfID" json:"tlfID"`
 	TopicType        TopicType `codec:"topicType" json:"topicType"`
 	SummarizeMaxMsgs bool      `codec:"summarizeMaxMsgs" json:"summarizeMaxMsgs"`
-	UseCache         bool      `codec:"useCache" json:"useCache"`
 }
 
 type SetAppNotificationSettingsArg struct {

@@ -1360,7 +1360,6 @@ export type TLFFinalizeUpdate = {readonly finalizeInfo: ConversationFinalizeInfo
 export type TLFID = Bytes
 export type TLFIDStr = String
 export type TLFResolveUpdate = {readonly convID: ConversationID; readonly inboxVers: InboxVers}
-export type TeamChannelUpdate = {readonly teamID: TLFID}
 export type TeamMember = {readonly uid: Gregor1.UID; readonly role: Keybase1.TeamRole; readonly status: Keybase1.TeamMemberStatus}
 export type TeamMemberRoleUpdate = {readonly tlfID: TLFID; readonly role: Keybase1.TeamRole}
 export type TeamTypeInfo = {readonly convID: ConversationID; readonly teamType: TeamType; readonly conv?: InboxUIItem | null}
