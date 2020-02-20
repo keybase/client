@@ -20,6 +20,7 @@ export const _setSystemSupported = (supported: boolean) => {
 }
 
 export const isDarkMode = () => {
+  return false // TEMP
   switch (darkModePreference) {
     case undefined:
       return systemDarkMode
