@@ -181,6 +181,11 @@
     int maxCalls; // Max amount of calls allowed in a window for the given RPC
   }
 
+  enum InboxParticipantsMode {
+    ALL_0,
+    SKIP_TEAMS_1
+  }
+
   record GetInboxQuery {
     union { null, ConversationID } convID;
     union { null, TopicType } topicType;
@@ -208,6 +213,7 @@
     boolean readOnly;
     boolean computeActiveList;
     boolean summarizeMaxMsgs; // if true, resulting conversation will only have summaries of max msgs
+    InboxParticipantsMode participantsMode; // how to return participants
     boolean skipBgLoads; // optionally skip queuing the conversation in the background loader.
     // Normally a query that has not been seen before will return an error.
     // With allowUnseenQuery, an unfamiliar query is accepted.

@@ -28,7 +28,6 @@ const (
 	PushMembershipUpdate    = "chat.membershipUpdate"
 	PushTLFFinalize         = "chat.tlffinalize"
 	PushTLFResolve          = "chat.tlfresolve"
-	PushTeamChannels        = "chat.teamchannels"
 	PushKBFSUpgrade         = "chat.kbfsupgrade"
 	PushConvRetention       = "chat.convretention"
 	PushTeamRetention       = "chat.teamretention"
