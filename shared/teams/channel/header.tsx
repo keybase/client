@@ -148,44 +148,18 @@ const styles = Styles.styleSheetCreate(
       addMembersButton: {
         flexGrow: 0,
       },
-      addSelfLink: {
-        marginLeft: Styles.globalMargins.xtiny,
-        textDecorationLine: 'underline',
-      },
       alignSelfFlexStart: {
         alignSelf: 'flex-start',
       },
       backButton: {
         backgroundColor: Styles.globalColors.white,
       },
-      banner: {
-        ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall, 0),
-      },
-      clickable: Styles.platformStyles({
-        isElectron: {
-          ...Styles.desktopStyles.windowDraggingClickable,
-        },
-      }),
       flexShrink: {
         flexShrink: 1,
-      },
-      greenText: {
-        color: Styles.globalColors.greenDark,
       },
       header: {
         flexShrink: 1,
       },
-      marginBottomRightTiny: {
-        marginBottom: Styles.globalMargins.tiny,
-        marginRight: Styles.globalMargins.tiny,
-      },
-      openMeta: Styles.platformStyles({
-        isElectron: {
-          alignSelf: 'center',
-          marginLeft: Styles.globalMargins.xtiny,
-        },
-        isMobile: {alignSelf: 'flex-start'},
-      }),
       outerBoxDesktop: {
         flexGrow: 1,
         flexShrink: 1,
