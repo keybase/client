@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import UserCard from '../../login/user-card'
 import {maxUsernameLength} from '../../constants/signup'
 import {SignupScreen, errorBanner} from '../../signup/common'
 
@@ -75,7 +76,7 @@ const Username = (props: Props) => {
         style={styles.fill}
         contentContainerStyle={styles.scrollContentContainer}
       >
-        <Kb.UserCard
+        <UserCard
           style={styles.card}
           avatarBackgroundStyle={styles.outerCardAvatar}
           outerStyle={styles.outerCard}
@@ -100,7 +101,7 @@ const Username = (props: Props) => {
               Forgot username?
             </Kb.Text>
           </Kb.Box2>
-        </Kb.UserCard>
+        </UserCard>
       </Kb.ScrollView>
     </SignupScreen>
   )
