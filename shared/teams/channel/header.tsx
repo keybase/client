@@ -26,6 +26,14 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
       }
   )
   const yourOperations = Container.useSelector(s => Constants.getCanPerformByID(s, teamID))
+  const dispatch = Container.useDispatch()
+  const nav = Container.useSafeNavigation()
+  const onEditChannel = () =>
+    dispatch(
+      nav.safeNavigateAppendPayload({
+        path: [{props: {conversationIDKey, teamID}, selected: 'chatEditChannel'}],
+      })
+    )
   const activityLevel = 'active' // TODO plumbing
   const newMemberCount = 1 // TODO plumbing
 
@@ -62,7 +70,7 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
       <Kb.Box2 direction="horizontal" gap="tiny" alignItems="center" style={styles.rightActionsContainer}>
         {yourOperations.chat && <Kb.Button label="View" onClick={callbacks.onChat} small={true} />}
         {yourOperations.editChannelDescription && (
-          <Kb.Button label="Edit" onClick={undefined /* TODO */} small={true} mode="Secondary" />
+          <Kb.Button label="Edit" onClick={onEditChannel} small={true} mode="Secondary" />
         )}
         <Kb.Button
           label="Add members"

@@ -69,7 +69,7 @@ const ConnectedChannel = Container.compose(
 // Unfortunately this has to be in the container because it's interleaved with
 // connected state while providing its props to downstream components.
 const ConnectedChannelWithTabs = (props: RouteProps) => {
-  const teamID = Container.getRouteProps(props, 'teamID', '')
+  const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
   const defaultSelectedTab = lastSelectedTabs[teamID] ?? defaultTab
   const [selectedTab, _setSelectedTab] = React.useState<TabKey>(defaultSelectedTab)
   const setSelectedTab = React.useCallback(
