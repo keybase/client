@@ -9,10 +9,10 @@ import {pluralize} from '../../../util/string'
 
 type Props = {
   teamID: Types.TeamID
-  username: string
+  usernames: Array<string>
 }
 
-const AddToChannels = ({teamID, username}: Props) => {
+const AddToChannels = ({teamID, usernames}: Props) => {
   const meta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
   const channelInfos = Container.useSelector(s => Constants.getTeamChannelInfos(s, teamID))
   const [filter, setFilter] = React.useState('')
@@ -86,7 +86,12 @@ const AddToChannels = ({teamID, username}: Props) => {
         ) : (
           undefined
         ),
-        title: <ModalTitle teamname={meta.teamname} title={`Add ${username} to...`} />,
+        title: (
+          <ModalTitle
+            teamname={meta.teamname}
+            title={`Add${usernames.length === 1 ? ` ${usernames[0]}` : ''} to...`}
+          />
+        ),
       }}
       footer={
         Styles.isMobile
