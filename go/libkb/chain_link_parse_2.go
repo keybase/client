@@ -394,10 +394,7 @@ func importLinkFromServerV1NaCl(m MetaContext, packed []byte) (keybase1.KID, Lin
 		if err != nil {
 			return err
 		}
-
 		sig = base64.StdEncoding.EncodeToString(sigBody)
-		m.Debug("SIG %s\n", sig)
-		sigID = kbcrypto.ComputeSigIDFromSigBody(sigBody)
 		return nil
 	}
 	err := doImport()
