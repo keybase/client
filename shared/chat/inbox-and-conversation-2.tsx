@@ -17,13 +17,23 @@ const InboxAndConversation = (props: Props) => {
   const infoPanelShowing = Container.useSelector(state => state.chat2.infoPanelShowing)
   const navKey = props.navigation.state.key
 
-  return (
-    <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
-      {!Container.isTablet && inboxSearch ? <InboxSearch /> : <Inbox navKey={navKey} />}
-      <Conversation navigation={props.navigation} />
-      {infoPanelShowing && <InfoPanel />}
-    </Kb.Box2>
-  )
+  if (Container.isMobile) {
+    return (
+      <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
+        {!infoPanelShowing && <Inbox navKey={navKey} />}
+        {!infoPanelShowing && <Conversation navigation={props.navigation} />}
+        {infoPanelShowing && <InfoPanel />}
+      </Kb.Box2>
+    )
+  } else {
+    return (
+      <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
+        {inboxSearch ? <InboxSearch /> : <Inbox navKey={navKey} />}
+        <Conversation navigation={props.navigation} />
+        {infoPanelShowing && <InfoPanel />}
+      </Kb.Box2>
+    )
+  }
 }
 
 InboxAndConversation.navigationOptions = {
