@@ -896,7 +896,7 @@ func dirTotalSize(filename string) (int64, error) {
 // It will send something on the chan error when it is done.
 // Read the data of the zip archive from the returned io.ReadCloser.
 func zipDir(directory string, prog *progress.ProgressWriter) (chan error, io.ReadCloser) {
-	// make a pipe so we can give encrypt engine a reader for the zip
+	// make a pipe so we can give saltpack engines a reader for the zip source
 	pipeRead, pipeWrite := io.Pipe()
 
 	// connect a zip archiver to the writer side of the pipe
