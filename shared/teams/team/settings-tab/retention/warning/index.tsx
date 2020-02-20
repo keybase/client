@@ -53,7 +53,7 @@ const RetentionWarning = (props: Props) => {
           style={styles.checkboxStyle}
           label=""
           labelComponent={
-            <Kb.Box2 direction="vertical" alignItems="flex-start">
+            <Kb.Box2 direction="vertical" alignItems="flex-start" style={styles.flexOneNonTablet}>
               <Kb.Text type="Body">
                 I understand that messages older than {props.timePeriod} will be deleted for everyone.
               </Kb.Text>
@@ -125,6 +125,10 @@ const styles = Styles.styleSheetCreate(() => ({
       paddingRight: Styles.globalMargins.small,
       paddingTop: Styles.globalMargins.small,
     },
+  }),
+  flexOneNonTablet: Styles.platformStyles({
+    isElectron: {flex: 1},
+    isPhone: {flex: 1},
   }),
   headerStyle: {marginBottom: Styles.globalMargins.small},
   iconStyle: {marginBottom: 20},
