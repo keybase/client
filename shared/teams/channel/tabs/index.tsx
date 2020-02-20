@@ -4,6 +4,7 @@ import * as ChatTypes from '../../../constants/types/chat2'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import flags from '../../../util/feature-flags'
+import capitalize from 'lodash/capitalize'
 
 export type TabKey = 'members' | 'attachments' | 'bots' | 'settings' | 'loading'
 
@@ -27,20 +28,24 @@ const TabText = ({selected, text}: {selected: boolean; text: string}) => (
   </Kb.Text>
 )
 
+type TabProps = {
+  key: TabKey
+  selectedTab: TabKey
+}
+
+const Tab = ({key, selectedTab}: TabProps) => (
+  <Kb.Box key={key} style={styles.tabTextContainer}>
+    <TabText selected={selectedTab === key} text={capitalize(key)} />
+  </Kb.Box>
+)
+
 const ChannelTabs = (props: Props) => {
   const {selectedTab, setSelectedTab} = props
-  const wrapTab = (key: string, child: React.ReactNode) => (
-    <Kb.Box key={key} style={styles.tabTextContainer}>
-      {child}
-    </Kb.Box>
-  )
   const tabs = [
-    wrapTab('members', <TabText selected={selectedTab === 'members'} text="Members" />),
-    wrapTab('attachments', <TabText selected={selectedTab === 'attachments'} text="Attachments" />),
-    ...(flags.botUI ? [wrapTab('bots', <TabText selected={selectedTab === 'bots'} text="Bots" />)] : []),
-    ...(props.admin
-      ? [wrapTab('settings', <TabText selected={selectedTab === 'settings'} text="Settings" />)]
-      : []),
+    <Tab key="members" selectedTab={selectedTab} />,
+    <Tab key="attachments" selectedTab={selectedTab} />,
+    ...(flags.botUI ? [<Tab key="bots" selectedTab={selectedTab} />] : []),
+    ...(props.admin ? [<Tab key="settings" selectedTab={selectedTab} />] : []),
     ...(!Styles.isMobile && props.loading
       ? [<Kb.ProgressIndicator key="loading" style={styles.progressIndicator} />]
       : []),

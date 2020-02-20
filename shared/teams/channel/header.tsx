@@ -52,7 +52,7 @@ const _HeaderTitle = (props: HeaderTitleProps) => {
   )
 
   const bottomDescriptorsAndButtons = (
-    <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="tiny">
+    <Kb.Box2 direction="vertical" alignSelf="flex-start" gap="tiny" gapStart={true}>
       {!!description && (
         <Kb.Text type="Body" lineClamp={3}>
           {description}
