@@ -2258,6 +2258,16 @@ func (t *teamSigchainPlayer) useInvites(stateToUpdate *TeamSigChainState, roleUp
 		if err != nil {
 			return err
 		}
+		var foundUV bool
+		for _, updatedUV := range roleUpdates[invite.Role] {
+			if uv.Eq(updatedUV) {
+				foundUV = true
+				break
+			}
+		}
+		if !foundUV {
+			return fmt.Errorf("used_invite for UV %s that was not added as role %s", pair.UV, invite.Role.HumanString())
+		}
 		logPoint := len(stateToUpdate.inner.UserLog[uv]) - 1
 		if logPoint < 0 {
 			return fmt.Errorf("used_invite for UV %s that was not added to to the team", pair.UV)
