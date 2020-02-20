@@ -5,6 +5,7 @@ hash_to_uint32 = (h) -> "0x" + h[0...8]
 hash_to_3bytes = (h) -> ( "0x#{h[i...(i+2)]}" for i in [0...6] by 2)
 hash_to_uint16 = (h) -> "0x" + h[0...4]
 
+# "abcdef1234" => ["abcd", "abcdef", "abcdef12" ]
 prefix_split = (h) -> (h[0...i] for i in [4..8] by 2)
 
 class Runner
@@ -15,8 +16,8 @@ class Runner
   read : ({input}, cb) ->
     esc = make_esc cb, "read"
     gets = (new Gets input).run()
-    h = {}
-    g = []
+    h = {} # Sigs that start with 'h' are the fixed/new ones
+    g = [] # Sigs that start with 'g' are the bugged/legacy ones
     loop
       await gets.gets esc defer line
       break unless line?
