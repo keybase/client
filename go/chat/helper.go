@@ -1086,6 +1086,10 @@ func (n *newConversationHelper) findExistingViaInboxSearch(ctx context.Context) 
 		n.Debug(ctx, "findExistingViaInboxSearch: failed to localize: %s", err)
 		return nil
 	}
+	searchTopicName := ""
+	if n.topicName != nil {
+		searchTopicName = *n.topicName
+	}
 	for _, conv := range convsLocal {
 		convName := conv.Info.TlfName
 		if conv.Error != nil {
@@ -1093,7 +1097,8 @@ func (n *newConversationHelper) findExistingViaInboxSearch(ctx context.Context) 
 		}
 		convName = utils.StripUsernameFromConvName(convName, n.G().GetEnv().GetUsername().String())
 		n.Debug(ctx, "findExistingViaInboxSearch: candidate: %s", convName)
-		if convName == query {
+		if convName == query && conv.GetTopicType() == n.topicType &&
+			conv.GetTopicName() == searchTopicName && conv.GetMembersType() == n.membersType {
 			n.Debug(ctx, "findExistingViaInboxSearch: found conv match: %s id: %s", conv.Info.TlfName,
 				conv.GetConvID())
 			return &conv
