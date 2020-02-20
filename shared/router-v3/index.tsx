@@ -7,58 +7,19 @@ import logger from '../logger'
 import GlobalError from '../app/global-errors/container'
 import OutOfDate from '../app/out-of-date'
 import RuntimeStats from '../app/runtime-stats/container'
-import {NavigationContainer, useNavigation} from '@react-navigation/native'
-import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
+import {NavigationContainer, NavigationContainerRef} from '@react-navigation/native'
 import {createStackNavigator} from '@react-navigation/stack'
-import {StatusBar, Text} from 'react-native'
+import {StatusBar} from 'react-native'
+import NavTabs from './tabs'
 
-// TODO orutes
-import {newRoutes as peopleNewRoutes, newModalRoutes as peopleNewModalRoutes} from '../people/routes'
-import {newRoutes as chatNewRoutes, newModalRoutes as chatNewModalRoutes} from '../chat/routes'
+import {newModalRoutes as peopleNewModalRoutes} from '../people/routes'
 
 const ModalStack = createStackNavigator()
-const Stack = createStackNavigator()
-const Tab = createBottomTabNavigator()
-
-const convertNavigationOptionsToStackOptions = (C: any) => {
-  const {navigationOptions} = C
-
-  if (navigationOptions) {
-    return {
-      header: navigationOptions.header,
-      headerTitle: navigationOptions.headerTitle,
-      headerTitleContainerStyle: navigationOptions.headerTitleContainerStyle,
-    }
-  }
-  return undefined
-}
 
 const TeamBuildingModal = peopleNewModalRoutes.peopleTeamBuilder.getScreen()
 
-const PeopleRoot = peopleNewRoutes.peopleRoot.getScreen()
-const PeopleStack = () => {
-  return (
-    <Stack.Navigator>
-      <Stack.Screen
-        name="peopleRoot"
-        component={PeopleRoot}
-        options={convertNavigationOptionsToStackOptions(PeopleRoot)}
-      />
-    </Stack.Navigator>
-  )
-}
-const TempChat = () => {
-  return <Text>temp chat</Text>
-}
-const ChatStack = () => {
-  return (
-    <Stack.Navigator>
-      <Stack.Screen name="chatRoot" component={TempChat /*chatNewRoutes.chatRoot.getScreen()*/} />
-    </Stack.Navigator>
-  )
-}
-
-const ReduxPlumbing = React.memo(({navRef}) => {
+const ReduxPlumbing = React.memo((props: {navRef: NavigationContainerRef | null}) => {
+  const {navRef} = props
   const dispatch = Container.useDispatch()
 
   const navigator = {
@@ -80,6 +41,7 @@ const ReduxPlumbing = React.memo(({navRef}) => {
         logger.error('Nav error', e)
       }
     },
+    // TODO wrong
     getNavState: () => navRef?.state?.nav ?? null,
   }
 
@@ -94,19 +56,12 @@ const ReduxPlumbing = React.memo(({navRef}) => {
   return null
 })
 
-const Tabs = () => {
-  return (
-    <Tab.Navigator>
-      <Tab.Screen name="tabs.peopleTab" component={PeopleStack} />
-      <Tab.Screen name="tabs.chatTab" component={ChatStack} />
-    </Tab.Navigator>
-  )
-}
-
 const RouterV3 = () => {
   const isDarkMode = Styles.isDarkMode()
-  const [nav, setNav] = React.useState(null)
+  const [nav, setNav] = React.useState<NavigationContainerRef>(null)
   const navIsSet = React.useRef(false)
+  // TODO chagne routes
+  //const loggedIn = Container.useSelector(state => state.config.loggedIn)
   return (
     <>
       <StatusBar barStyle={Styles.isAndroid ? 'default' : isDarkMode ? 'light-content' : 'dark-content'} />
@@ -119,8 +74,8 @@ const RouterV3 = () => {
           }
         }}
       >
-        <ModalStack.Navigator mode="modal" screenOptions={{headerShown: false}}>
-          <ModalStack.Screen name="Tabs" component={Tabs} />
+        <ModalStack.Navigator mode="modal" screenOptions={{headerShown: false}} initialRouteName="Tabs">
+          <ModalStack.Screen name="Tabs" component={NavTabs} />
           <ModalStack.Screen name="peopleTeamBuilder" component={TeamBuildingModal} />
         </ModalStack.Navigator>
       </NavigationContainer>
