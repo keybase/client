@@ -83,52 +83,6 @@ type reactionExpansion struct {
 	Reaction string         `json:"reaction"`
 }
 
-func transformPending(mctx MetaContext, serverVouch serverWotVouch) (res *keybase1.PendingVouch, err error) {
-	if serverVouch.Status != keybase1.WotStatusType_PROPOSED {
-		return nil, nil
-	}
-	// load the voucher and fetch the relevant chain link
-	wotVouchLink, voucher, err := getWotVouchChainLink(mctx, serverVouch.Voucher, serverVouch.VouchSigID)
-	if err != nil {
-		return res, fmt.Errorf("error finding the pending vouch in the voucher's sigchain: %s", err.Error())
-	}
-	if wotVouchLink.revoked {
-		return res, fmt.Errorf("%s is revoked", serverVouch.VouchSigID)
-	}
-	// extract the sig expansion
-	expansionObject, err := ExtractExpansionObj(wotVouchLink.ExpansionID, serverVouch.VouchExpansionJSON)
-	if err != nil {
-		return res, fmt.Errorf("error extracting and validating the expansion: %s", err.Error())
-	}
-	// load it into the right type for web-of-trust vouching
-	var wotObj vouchExpansion
-	err = json.Unmarshal(expansionObject, &wotObj)
-	if err != nil {
-		return res, fmt.Errorf("error casting expansion object to expected web-of-trust schema: %s", err.Error())
-	}
-	if wotObj.Confidence != nil && reflect.DeepEqual(*wotObj.Confidence, keybase1.Confidence{}) {
-		// nil out an empty confidence
-		wotObj.Confidence = nil
-	}
-	me, err := LoadMe(NewLoadUserArgWithMetaContext(mctx))
-	if err != nil {
-		return res, fmt.Errorf("error loading myself: %s", err.Error())
-	}
-	err = assertVouchIsForUser(mctx, wotObj.User, me)
-	if err != nil {
-		mctx.Debug("web-of-trust pending vouch user-section doesn't look right: %+v", wotObj.User)
-		return res, fmt.Errorf("error verifying user section of web-of-trust expansion: %s", err.Error())
-	}
-	// build a PendingVouch
-	vouch := keybase1.PendingVouch{
-		Voucher:    voucher.ToUserVersion(),
-		Proof:      serverVouch.VouchSigID,
-		VouchTexts: wotObj.VouchTexts,
-		Confidence: wotObj.Confidence,
-	}
-	return &vouch, nil
-}
-
 type serverWotVouch struct {
 	Voucher               keybase1.UID           `json:"voucher"`
 	VoucherEldestSeqno    keybase1.Seqno         `json:"voucher_eldest_seqno"`
@@ -241,27 +195,6 @@ func fetchWot(mctx MetaContext, username *string) (res []serverWotVouch, err err
 	}
 	mctx.Debug("server returned %d web-of-trust vouches", len(response.Vouches))
 	return response.Vouches, nil
-}
-
-func FetchPendingWotVouches(mctx MetaContext) (res []keybase1.PendingVouch, err error) {
-	defer mctx.Trace("FetchPendingWotVouches", func() error { return err })()
-	vouches, err := fetchWot(mctx, nil)
-	if err != nil {
-		mctx.Debug("error fetching pending web-of-trust vouches: %s", err.Error())
-		return nil, err
-	}
-	for _, serverVouch := range vouches {
-		pendingVouch, err := transformPending(mctx, serverVouch)
-		if err != nil {
-			mctx.Debug("error validating server-reported pending web-of-trust vouches: %s", err.Error())
-			return nil, err
-		}
-		if pendingVouch != nil {
-			res = append(res, *pendingVouch)
-		}
-	}
-	mctx.Debug("found %d pending web-of-trust vouches", len(res))
-	return res, nil
 }
 
 func FetchMyWot(mctx MetaContext) (res []keybase1.WotVouch, err error) {

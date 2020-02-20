@@ -29,15 +29,6 @@ protocol wot {
   void wotVouch(int sessionID, UserVersion uv /* vouchee */, array<string> vouchTexts, Confidence confidence);
   void wotVouchCLI(int sessionID, string assertion, array<string> vouchTexts, Confidence confidence);
 
-  record PendingVouch {
-    UserVersion voucher;
-    SigID proof;
-    array<string> vouchTexts;
-    union { null, Confidence } confidence;
-  }
-
-  array<PendingVouch> wotPending(int sessionID);
-
   enum WotReactionType {
     ACCEPT_0,
     REJECT_1

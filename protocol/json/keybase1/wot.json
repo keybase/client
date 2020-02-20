@@ -60,34 +60,6 @@
       ]
     },
     {
-      "type": "record",
-      "name": "PendingVouch",
-      "fields": [
-        {
-          "type": "UserVersion",
-          "name": "voucher"
-        },
-        {
-          "type": "SigID",
-          "name": "proof"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "string"
-          },
-          "name": "vouchTexts"
-        },
-        {
-          "type": [
-            null,
-            "Confidence"
-          ],
-          "name": "confidence"
-        }
-      ]
-    },
-    {
       "type": "enum",
       "name": "WotReactionType",
       "symbols": [
@@ -180,18 +152,6 @@
         }
       ],
       "response": null
-    },
-    "wotPending": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        }
-      ],
-      "response": {
-        "type": "array",
-        "items": "PendingVouch"
-      }
     },
     "wotReact": {
       "request": [

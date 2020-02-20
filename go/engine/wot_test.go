@@ -224,17 +224,18 @@ func TestWebOfTrustAccept(t *testing.T) {
 	require.NoError(t, err)
 	t.Log("bob vouches for alice with confidence")
 
-	pending, err := libkb.FetchPendingWotVouches(mctxA)
+	vouches, err := libkb.FetchMyWot(mctxA)
 	require.NoError(t, err)
-	require.Len(t, pending, 1)
-	bobVouch := pending[0]
+	require.Len(t, vouches, 1)
+	bobVouch := vouches[0]
+	require.Equal(t, keybase1.WotStatusType_PROPOSED, bobVouch.Status)
 	require.Equal(t, bob.User.GetUID(), bobVouch.Voucher.Uid)
 	require.Equal(t, vouchTexts, bobVouch.VouchTexts)
 	t.Log("alice fetches one pending vouch")
 
 	argR := &WotReactArg{
 		Voucher:  bob.User.ToUserVersion(),
-		Proof:    pending[0].Proof,
+		Proof:    bobVouch.VouchProof,
 		Reaction: keybase1.WotReactionType_ACCEPT,
 	}
 	engR := NewWotReact(tcAlice.G, argR)
@@ -242,7 +243,7 @@ func TestWebOfTrustAccept(t *testing.T) {
 	require.NoError(t, err)
 	t.Log("alice accepts")
 
-	vouches, err := libkb.FetchMyWot(mctxA)
+	vouches, err = libkb.FetchMyWot(mctxA)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(vouches))
 	vouch := vouches[0]
@@ -292,17 +293,18 @@ func TestWebOfTrustReject(t *testing.T) {
 	require.NoError(t, err)
 	t.Log("bob vouches for alice without confidence")
 
-	pending, err := libkb.FetchPendingWotVouches(mctxA)
+	vouches, err := libkb.FetchMyWot(mctxA)
 	require.NoError(t, err)
-	require.Len(t, pending, 1)
-	bobVouch := pending[0]
+	require.Len(t, vouches, 1)
+	bobVouch := vouches[0]
+	require.Equal(t, keybase1.WotStatusType_PROPOSED, bobVouch.Status)
 	require.Equal(t, bob.User.GetUID(), bobVouch.Voucher.Uid)
 	require.Equal(t, vouchTexts, bobVouch.VouchTexts)
 	t.Log("alice fetches one pending vouch")
 
 	argR := &WotReactArg{
 		Voucher:  bob.User.ToUserVersion(),
-		Proof:    pending[0].Proof,
+		Proof:    bobVouch.VouchProof,
 		Reaction: keybase1.WotReactionType_REJECT,
 	}
 	engR := NewWotReact(tcAlice.G, argR)
@@ -310,7 +312,7 @@ func TestWebOfTrustReject(t *testing.T) {
 	require.NoError(t, err)
 	t.Log("alice rejects it")
 
-	vouches, err := libkb.FetchMyWot(mctxA)
+	vouches, err = libkb.FetchMyWot(mctxA)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(vouches))
 	vouch := vouches[0]
