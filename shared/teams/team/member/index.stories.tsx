@@ -33,12 +33,14 @@ const store = Container.produce(Sb.createStoreWithCommon(), draftState => {
   }
 })
 
+const addToChannelsProps = Sb.createNavigator({teamID: fakeTeamID, usernames: ['andonuts']})
+
 const load = () =>
   Sb.storiesOf('Teams/Member', module)
     .addDecorator(story => <Sb.MockStore store={store}>{story()}</Sb.MockStore>)
     .add('Header normal', () => <TeamMemberHeader teamID={fakeTeamID} username="jeff" />)
     .add('Header long name', () => <TeamMemberHeader teamID={fakeTeamID} username="paula" />)
     .add('Header self + no name', () => <TeamMemberHeader teamID={fakeTeamID} username="andonuts" />)
-    .add('Add to channels', () => <AddToChannels teamID={fakeTeamID} username="andonuts" />)
+    .add('Add to channels', () => <AddToChannels {...addToChannelsProps} />)
 
 export default load

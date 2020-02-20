@@ -7,12 +7,16 @@ import * as Container from '../../../util/container'
 import {Activity, ModalTitle} from '../../common'
 import {pluralize} from '../../../util/string'
 
-type Props = {
+type Props = Container.RouteProps<{
   teamID: Types.TeamID
   usernames: Array<string>
-}
+}>
 
-const AddToChannels = ({teamID, usernames}: Props) => {
+const AddToChannels = (props: Props) => {
+  const dispatch = Container.useDispatch()
+  const nav = Container.useSafeNavigation()
+  const teamID = Container.getRouteProps(props, 'teamID', Types.noTeamID)
+  const usernames = Container.getRouteProps(props, 'usernames', [])
   const meta = Container.useSelector(s => Constants.getTeamMeta(s, teamID))
   const channelInfos = Container.useSelector(s => Constants.getTeamChannelInfos(s, teamID))
   const [filter, setFilter] = React.useState('')
@@ -42,7 +46,7 @@ const AddToChannels = ({teamID, usernames}: Props) => {
   const onSelectAll = () => setSelected(new Set([...channelInfos.values()].map(c => c.channelname)))
   const onSelectNone = () => setSelected(new Set())
 
-  const onCancel = () => {} // TODO
+  const onCancel = () => dispatch(nav.safeNavigateUpPayload())
   const onFinish = () => {} // TODO useRPC probably
   const numSelected = selected.size
 
@@ -78,7 +82,13 @@ const AddToChannels = ({teamID, usernames}: Props) => {
     <Kb.Modal
       header={{
         hideBorder: Styles.isMobile,
-        leftButton: Styles.isMobile ? <Kb.Text type="BodyBigLink">Cancel</Kb.Text> : undefined,
+        leftButton: Styles.isMobile ? (
+          <Kb.Text type="BodyBigLink" onClick={onCancel}>
+            Cancel
+          </Kb.Text>
+        ) : (
+          undefined
+        ),
         rightButton: Styles.isMobile ? (
           <Kb.Text type="BodyBigLink" onClick={onFinish} style={!numSelected && styles.disabled}>
             Add

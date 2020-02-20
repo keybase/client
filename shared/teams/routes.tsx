@@ -15,6 +15,7 @@ import TeamReallyLeaveTeam from './really-leave-team/container'
 import TeamReallyRemoveMember from './team/really-remove-member'
 import TeamRename from './rename-team/container'
 import TeamsTeamBuilder from '../team-building/container'
+import TeamAddToChannels from './team/member/add-to-channels'
 import flags from '../util/feature-flags'
 
 export const newRoutes = {
@@ -34,6 +35,9 @@ export const newModalRoutes = {
   retentionWarning: {
     getScreen: (): typeof RetentionWarning =>
       require('./team/settings-tab/retention/warning/container').default,
+  },
+  teamAddToChannels: {
+    getScreen: (): typeof TeamAddToChannels => require('./team/member/add-to-channels').default,
   },
   teamDeleteTeam: {getScreen: (): typeof TeamDeleteTeam => require('./delete-team/container').default},
   teamEditTeamAvatar: {

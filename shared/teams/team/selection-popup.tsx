@@ -105,8 +105,21 @@ const ActionsWrapper = ({children}) => (
   </Kb.Box2>
 )
 const MembersActions = ({teamID}: ActionsProps) => {
+  const dispatch = Container.useDispatch()
+  const nav = Container.useSafeNavigation()
+  const members = Container.useSelector(s => s.teams.selectedMembers.get(teamID))
+  if (!members) {
+    // we shouldn't be rendered
+    return null
+  }
+
   // Members tab functions
-  const onAddToChannel = () => {}
+  const onAddToChannel = () =>
+    dispatch(
+      nav.safeNavigateAppendPayload({
+        path: [{props: {teamID, usernames: [...members]}, selected: 'teamAddToChannels'}],
+      })
+    )
   const onEditRoles = () => {}
   const onRemoveFromTeam = () => {}
 
