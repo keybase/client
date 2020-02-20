@@ -268,7 +268,7 @@ func checkZipArchive(tc libkb.TestContext, filename string) {
 	defer r.Close()
 	require.Len(tc.T, r.File, 9)
 	for _, f := range r.File {
-		switch f.Name {
+		switch filepath.ToSlash(f.Name) {
 		case "archive/", "archive/1/", "archive/2/": // skip the directory entries
 		case "archive/a.txt":
 			require.Equal(tc.T, f.UncompressedSize64, uint64(3))
