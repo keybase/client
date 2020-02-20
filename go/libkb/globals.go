@@ -218,6 +218,7 @@ func NewGlobalContext() *GlobalContext {
 	log := logger.New("keybase")
 	ret := &GlobalContext{
 		Log:                log,
+		PerfLog:            log,
 		VDL:                NewVDebugLog(log),
 		SKBKeyringMu:       new(sync.Mutex),
 		perUserKeyringMu:   new(sync.Mutex),
@@ -282,7 +283,6 @@ func (g *GlobalContext) initGUILogFile() {
 
 func (g *GlobalContext) Init() *GlobalContext {
 	g.Env = NewEnv(nil, nil, g.GetLog)
-	g.initPerfLogFile()
 	g.Service = false
 	g.Resolver = NewResolverImpl()
 	g.RateLimits = NewRateLimits(g)
@@ -356,6 +356,7 @@ func (g *GlobalContext) simulateServiceRestart() {
 // ConfigureLogging should be given non-nil Usage if called by the main
 // service.
 func (g *GlobalContext) ConfigureLogging(usage *Usage) error {
+	g.initPerfLogFile()
 	style := g.Env.GetLogFormat()
 	debug := g.Env.GetDebug()
 
