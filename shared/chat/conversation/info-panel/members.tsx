@@ -5,6 +5,7 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Types from '../../../constants/types/chat2'
 import * as ProfileGen from '../../../actions/profile-gen'
+import * as Styles from '../../../styles'
 import flags from '../../../util/feature-flags'
 import Participant from './participant'
 
@@ -83,6 +84,7 @@ export default (props: Props) => {
       stickySectionHeadersEnabled={true}
       keyboardShouldPersistTaps="handled"
       renderSectionHeader={({section}: any) => section?.renderSectionHeader?.({section}) ?? null}
+      style={styles.sectionList}
       sections={[
         ...props.commonSections,
         {
@@ -115,3 +117,12 @@ export default (props: Props) => {
     />
   )
 }
+
+const styles = Styles.styleSheetCreate(
+  () =>
+    ({
+      sectionList: Styles.platformStyles({
+        isTablet: {alignSelf: 'center', minWidth: 400, maxWidth: 800},
+      }),
+    } as const)
+)

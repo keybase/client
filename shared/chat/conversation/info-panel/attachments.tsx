@@ -288,7 +288,10 @@ const styles = Styles.styleSheetCreate(
         top: '50%',
         width: 24,
       },
-      selectorContainer: {padding: Styles.globalMargins.small},
+      selectorContainer: Styles.platformStyles({
+        common: {padding: Styles.globalMargins.small},
+        isTablet: {maxWidth: 600, alignSelf: 'center'},
+      }),
       selectorDocContainer: {
         borderColor: Styles.globalColors.blue,
         borderLeftWidth: 1,
