@@ -1,6 +1,7 @@
 package service
 
 import (
+	"archive/zip"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -232,6 +233,29 @@ func testEncryptDecryptDirectory(tc libkb.TestContext, h *SaltpackHandler, u1, u
 	require.Equal(tc.T, encArg.Filename+".zip", decRes.DecryptedFilename)
 	require.True(tc.T, decRes.Signed)
 
+	r, err := zip.OpenReader(decRes.DecryptedFilename)
+	require.NoError(tc.T, err)
+	defer r.Close()
+	require.Len(tc.T, r.File, 9)
+	for _, f := range r.File {
+		switch f.Name {
+		case "archive/", "archive/1/", "archive/2/": // skip the directory entries
+		case "archive/a.txt":
+			require.Equal(tc.T, f.UncompressedSize64, uint64(3))
+		case "archive/b.txt":
+			require.Equal(tc.T, f.UncompressedSize64, uint64(4))
+		case "archive/c.txt":
+			require.Equal(tc.T, f.UncompressedSize64, uint64(7))
+		case "archive/1/000.log":
+			require.Equal(tc.T, f.UncompressedSize64, uint64(9))
+		case "archive/1/001.log":
+			require.Equal(tc.T, f.UncompressedSize64, uint64(17))
+		case "archive/2/000.log":
+			require.Equal(tc.T, f.UncompressedSize64, uint64(16))
+		default:
+			tc.T.Errorf("unknown file in zip: %s", f.Name)
+		}
+	}
 	// filesEqual(tc, encArg.Filename, decRes.DecryptedFilename)
 }
 
