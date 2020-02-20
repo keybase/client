@@ -4,6 +4,7 @@
 package service
 
 import (
+	"archive/zip"
 	"bufio"
 	"bytes"
 	"errors"
@@ -28,10 +29,13 @@ const saltpackExtension = ".saltpack"
 const encryptedSuffix = ".encrypted"
 const signedSuffix = ".signed"
 const txtExtension = ".txt"
+const zipExtension = ".zip"
 const encryptedExtension = encryptedSuffix + saltpackExtension
 const signedExtension = signedSuffix + saltpackExtension
 const decryptedExtension = ".decrypted"
 const verifiedExtension = ".verified"
+const encryptedDirSuffix = zipExtension + encryptedSuffix
+const signedDirSuffix = zipExtension + encryptedSuffix
 
 type SaltpackHandler struct {
 	*BaseHandler
@@ -296,6 +300,18 @@ func (h *SaltpackHandler) SaltpackVerifyString(ctx context.Context, arg keybase1
 
 func (h *SaltpackHandler) SaltpackEncryptFile(ctx context.Context, arg keybase1.SaltpackEncryptFileArg) (keybase1.SaltpackEncryptFileResult, error) {
 	ctx = libkb.WithLogTag(ctx, "SP")
+	dir, err := IsDir(arg.Filename)
+	if err != nil {
+		return keybase1.SaltpackEncryptFileResult{}, err
+	}
+
+	if dir {
+		return h.saltpackEncryptDirectory(ctx, arg)
+	}
+	return h.saltpackEncryptFile(ctx, arg)
+}
+
+func (h *SaltpackHandler) saltpackEncryptFile(ctx context.Context, arg keybase1.SaltpackEncryptFileArg) (keybase1.SaltpackEncryptFileResult, error) {
 	sf, err := newSourceFile(h.G(), keybase1.SaltpackOperationType_ENCRYPT, arg.Filename)
 	if err != nil {
 		return keybase1.SaltpackEncryptFileResult{}, err
@@ -328,6 +344,127 @@ func (h *SaltpackHandler) SaltpackEncryptFile(ctx context.Context, arg keybase1.
 			h.G().Log.Debug("error removing %q: %s", outFilename, rmErr)
 		}
 		return keybase1.SaltpackEncryptFileResult{}, err
+	}
+
+	return keybase1.SaltpackEncryptFileResult{
+		UsedUnresolvedSBS:      usedSBS,
+		UnresolvedSBSAssertion: assertion,
+		Filename:               outFilename,
+	}, nil
+}
+
+func (h *SaltpackHandler) saltpackEncryptDirectory(ctx context.Context, arg keybase1.SaltpackEncryptFileArg) (keybase1.SaltpackEncryptFileResult, error) {
+	h.G().Log.Debug("encrypting directory %s", arg.Filename)
+
+	// make a pipe so we can give encrypt engine a reader for the zip
+	pipeRead, pipeWrite := io.Pipe()
+
+	// connect a zip archiver to the writer side of the pipe
+	w := zip.NewWriter(pipeWrite)
+
+	// given an arg.Filename like "a/b/c/d" or "/opt/blah/d", we want the files in the
+	// zip file to recreate just the final directory.  In other words, d/, d/1/, d/1/000.log
+	// and *not* a/b/c/d/, a/b/c/d/1/, a/b/c/d/1/000.log.
+	parent := filepath.Dir(arg.Filename)
+	stripParent := func(s string) string {
+		return strings.TrimPrefix(s, parent+string(filepath.Separator))
+	}
+
+	// for progress purposes, we need to know total size of everything in the directory
+	size, err := DirTotalSize(arg.Filename)
+	if err != nil {
+		return keybase1.SaltpackEncryptFileResult{}, err
+	}
+	h.G().Log.Debug("directory %s total size: %d", arg.Filename, size)
+	progReporter := func(bytesComplete, bytesTotal int64) {
+		h.G().NotifyRouter.HandleSaltpackOperationProgress(ctx, keybase1.SaltpackOperationType_ENCRYPT, arg.Filename, bytesComplete, bytesTotal)
+	}
+	prog := progress.NewProgressWriterWithUpdateDuration(progReporter, size, 80*time.Millisecond)
+
+	// in a goroutine, make a zip archive of everything in arg.Filename.
+	zipch := make(chan error)
+	go func() {
+		err := filepath.Walk(arg.Filename, func(path string, info os.FileInfo, inErr error) error {
+			if inErr != nil {
+				return inErr
+			}
+
+			stripped := stripParent(path)
+
+			if info.IsDir() {
+				// make a directory by calling Create with a filename ending in a separator.
+				_, err := w.Create(stripped + string(filepath.Separator))
+				if err != nil {
+					return err
+				}
+				return nil
+			}
+
+			// make a regular file and copy all the data into it.
+			w, err := w.Create(stripped)
+			if err != nil {
+				return err
+			}
+			f, err := os.Open(path)
+			if err != nil {
+				return err
+			}
+			defer f.Close()
+			tr := io.TeeReader(bufio.NewReader(f), prog)
+			_, err = io.Copy(w, tr)
+			if err != nil {
+				return err
+			}
+
+			return nil
+		})
+
+		// close everything
+		w.Close()
+		pipeWrite.Close()
+
+		// send the error over zipch
+		zipch <- err
+	}()
+
+	outFilename, bw, err := boxFilename(arg.Filename, encryptedDirSuffix, arg.DestinationDir)
+	if err != nil {
+		return keybase1.SaltpackEncryptFileResult{}, err
+	}
+	defer bw.Close()
+
+	opts := h.encryptOptions(arg.Opts)
+	opts.Binary = true
+	opts.UseDeviceKeys = true
+
+	earg := &engine.SaltpackEncryptArg{
+		Opts:   opts,
+		Sink:   bw,
+		Source: pipeRead,
+	}
+
+	usedSBS, assertion, err := h.frontendEncrypt(ctx, arg.SessionID, earg)
+	if err != nil {
+		h.G().Log.Debug("encrypt error, so removing %q", outFilename)
+		if clErr := bw.Close(); clErr != nil {
+			h.G().Log.Debug("error closing bw for %q: %s", outFilename, clErr)
+		}
+		if rmErr := os.Remove(outFilename); rmErr != nil {
+			h.G().Log.Debug("error removing %q: %s", outFilename, rmErr)
+		}
+		return keybase1.SaltpackEncryptFileResult{}, err
+	}
+
+	ziperr := <-zipch
+	if ziperr != nil {
+		h.G().Log.Debug("encrypt error, so removing %q", outFilename)
+		if clErr := bw.Close(); clErr != nil {
+			h.G().Log.Debug("error closing bw for %q: %s", outFilename, clErr)
+		}
+		if rmErr := os.Remove(outFilename); rmErr != nil {
+			h.G().Log.Debug("error removing %q: %s", outFilename, rmErr)
+		}
+		return keybase1.SaltpackEncryptFileResult{}, ziperr
 	}
 
 	return keybase1.SaltpackEncryptFileResult{
@@ -716,4 +853,27 @@ func (sf *sourceFile) Close() error {
 
 func (sf *sourceFile) reporter(bytesComplete, bytesTotal int64) {
 	sf.G().NotifyRouter.HandleSaltpackOperationProgress(context.Background(), sf.op, sf.filename, bytesComplete, bytesTotal)
+}
+
+func IsDir(filename string) (bool, error) {
+	s, err := os.Stat(filename)
+	if err != nil {
+		return false, err
+	}
+	return s.IsDir(), nil
+}
+
+func DirTotalSize(filename string) (int64, error) {
+	var total int64
+	err := filepath.Walk(filename, func(path string, info os.FileInfo, inErr error) error {
+		if inErr != nil {
+			return inErr
+		}
+		if info.IsDir() {
+			return nil
+		}
+		total += info.Size()
+		return nil
+	})
+	return total, err
 }
