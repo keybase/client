@@ -205,7 +205,7 @@ const ChannelRow = ({channelname, numMembers, selected, onSelect}) =>
             <Kb.Text type="BodySmall">
               {numMembers} {pluralize('member', numMembers)} •
             </Kb.Text>
-            <Activity level="extinct" />
+            <Activity level="recently" />
           </Kb.Box2>
         </Kb.Box2>
       }
