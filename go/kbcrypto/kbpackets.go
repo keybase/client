@@ -50,7 +50,7 @@ type Packetable interface {
 }
 
 func EncodePacket(p Packetable, encoder *codec.Encoder) error {
-	packet, err := newKeybasePacket(p)
+	packet, err := newKeybasePacket(p, true)
 	if err != nil {
 		return err
 	}
@@ -58,7 +58,15 @@ func EncodePacket(p Packetable, encoder *codec.Encoder) error {
 }
 
 func EncodePacketToBytes(p Packetable) ([]byte, error) {
-	packet, err := newKeybasePacket(p)
+	packet, err := newKeybasePacket(p, true)
+	if err != nil {
+		return nil, err
+	}
+	return packet.encode()
+}
+
+func EncodePacketToBytesWithOptionalHash(p Packetable, doHash bool) ([]byte, error) {
+	packet, err := newKeybasePacket(p, doHash)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +74,7 @@ func EncodePacketToBytes(p Packetable) ([]byte, error) {
 }
 
 func EncodePacketToArmoredString(p Packetable) (string, error) {
-	packet, err := newKeybasePacket(p)
+	packet, err := newKeybasePacket(p, true)
 	if err != nil {
 		return "", err
 	}
@@ -170,23 +178,24 @@ type keybasePacket struct {
 	Version PacketVersion      `codec:"version"`
 }
 
-func newKeybasePacket(body Packetable) (*keybasePacket, error) {
+func newKeybasePacket(body Packetable, doHash bool) (*keybasePacket, error) {
 	tag, version := body.GetTagAndVersion()
 	ret := keybasePacket{
 		Body:    body,
 		Tag:     tag,
 		Version: version,
-		Hash: &keybasePacketHash{
+	}
+	if doHash {
+		ret.Hash = &keybasePacketHash{
 			Type:  SHA256Code,
 			Value: []byte{},
-		},
+		}
+		hashBytes, hashErr := ret.hashSum()
+		if hashErr != nil {
+			return nil, hashErr
+		}
+		ret.Hash.Value = hashBytes
 	}
-
-	hashBytes, hashErr := ret.hashSum()
-	if hashErr != nil {
-		return nil, hashErr
-	}
-	ret.Hash.Value = hashBytes
 	return &ret, nil
 }
 
