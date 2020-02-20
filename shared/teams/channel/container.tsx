@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import * as Kb from '../../common-adapters'
 import * as Container from '../../util/container'
 import * as Constants from '../../constants/teams'
 import * as Types from '../../constants/types/teams'
@@ -38,8 +37,10 @@ const mapDispatchToProps = (dispatch: Container.TypedDispatch) => ({
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
-const ConnectedChannel = Container.compose(
-  Container.connect(mapStateToProps, mapDispatchToProps, (stateProps, dispatchProps, ownProps) => {
+const ConnectedChannel = Container.connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  (stateProps, dispatchProps, ownProps) => {
     const {conversationIDKey, teamID} = stateProps
     const {selectedTab, setSelectedTab} = ownProps
     const rows = makeRows(
@@ -61,9 +62,8 @@ const ConnectedChannel = Container.compose(
       setSelectedTab,
       teamID,
     }
-  }),
-  Kb.HeaderHoc
-)(Channel) as any
+  }
+)(Channel)
 
 // Maintains the tab state.
 // Unfortunately this has to be in the container because it's interleaved with
