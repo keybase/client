@@ -95,6 +95,7 @@ func TestFlipManagerStartFlip(t *testing.T) {
 				consumeNewMsgRemote(t, listener2, chat1.MessageType_SYSTEM)
 			}
 
+			var flipMsgs []chat1.UIMessage
 			expectedDevConvs := 0
 			// bool
 			expectedDevConvs++
@@ -103,6 +104,7 @@ func TestFlipManagerStartFlip(t *testing.T) {
 					Body: "/flip",
 				}))
 			flipMsg := consumeNewMsgRemote(t, listener0, chat1.MessageType_FLIP)
+			flipMsgs = append(flipMsgs, flipMsg)
 			require.True(t, flipMsg.IsValid())
 			require.NotNil(t, flipMsg.Valid().FlipGameID)
 			gameID := *flipMsg.Valid().FlipGameID
@@ -123,6 +125,7 @@ func TestFlipManagerStartFlip(t *testing.T) {
 					Body: "/flip 10",
 				}))
 			flipMsg = consumeNewMsgRemote(t, listener0, chat1.MessageType_FLIP)
+			flipMsgs = append(flipMsgs, flipMsg)
 			require.True(t, flipMsg.IsValid())
 			require.NotNil(t, flipMsg.Valid().FlipGameID)
 			gameID = *flipMsg.Valid().FlipGameID
@@ -150,6 +153,7 @@ func TestFlipManagerStartFlip(t *testing.T) {
 					Body: "/flip 10..15",
 				}))
 			flipMsg = consumeNewMsgRemote(t, listener0, chat1.MessageType_FLIP)
+			flipMsgs = append(flipMsgs, flipMsg)
 			require.True(t, flipMsg.IsValid())
 			require.NotNil(t, flipMsg.Valid().FlipGameID)
 			gameID = *flipMsg.Valid().FlipGameID
@@ -182,6 +186,7 @@ func TestFlipManagerStartFlip(t *testing.T) {
 					Body: fmt.Sprintf("/flip %s", strings.Join(ref, ",")),
 				}))
 			flipMsg = consumeNewMsgRemote(t, listener0, chat1.MessageType_FLIP)
+			flipMsgs = append(flipMsgs, flipMsg)
 			require.True(t, flipMsg.IsValid())
 			require.NotNil(t, flipMsg.Valid().FlipGameID)
 			gameID = *flipMsg.Valid().FlipGameID
@@ -217,6 +222,18 @@ func TestFlipManagerStartFlip(t *testing.T) {
 				}
 			}
 			require.Equal(t, expectedDevConvs, numConvs)
+			for _, flipMsg := range flipMsgs {
+				mustDeleteMsg(ctx, t, ctc, users[0], conv, flipMsg.GetMessageID())
+				consumeNewMsgRemote(t, listener1, chat1.MessageType_DELETE)
+				consumeNewMsgRemote(t, listener2, chat1.MessageType_DELETE)
+			}
+			ibox, _, err = ctc.as(t, users[0]).h.G().InboxSource.Read(ctx, uid,
+				types.ConversationLocalizerBlocking, types.InboxSourceDataSourceAll, nil,
+				&chat1.GetInboxLocalQuery{
+					TopicType: &ttype,
+				})
+			require.NoError(t, err)
+			require.Zero(t, len(ibox.Convs))
 		})
 	})
 }
