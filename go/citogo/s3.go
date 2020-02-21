@@ -84,8 +84,7 @@ func s3put(src io.Reader, bucket string, name string) (string, error) {
 }
 
 func lambdaInvoke(functionName string, buf []byte) error {
-	resp, err := awsCall("lambda", "lambda.us-east-1.amazonaws.com", "2015-03-31/functions/"+functionName+"/invocations", "POST", buf)
-	fmt.Println("debug", resp)
+	_, err := awsCall("lambda", "lambda.us-east-1.amazonaws.com", "2015-03-31/functions/"+functionName+"/invocations", "POST", buf)
 	return err
 }
 

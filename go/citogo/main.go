@@ -12,6 +12,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/keybase/client/go/citogo/types"
 )
 
 type opts struct {
@@ -147,7 +149,7 @@ func (r *runner) flushTestLogsToTemp(logName string, log bytes.Buffer) (string, 
 	return fmt.Sprintf("see log: %s", tmpfile.Name()), nil
 }
 
-func (r *runner) report(result TestResult) {
+func (r *runner) report(result types.TestResult) {
 	b, err := json.Marshal(result)
 	if err != nil {
 		logError("error marshalling result: %s", err.Error())
@@ -160,34 +162,13 @@ func (r *runner) report(result TestResult) {
 	}
 }
 
-type Outcome string
-
-const (
-	OutcomeSuccess Outcome = "success"
-	OutcomeFlake   Outcome = "flake"
-	OutcomeFail    Outcome = "fail"
-)
-
-func (o Outcome) Abbrv() string {
-	switch o {
-	case OutcomeSuccess:
-		return "PASS"
-	case OutcomeFlake:
-		return "FLK?"
-	case OutcomeFail:
-		return "FAIL"
-	default:
-		return "????"
-	}
-}
-
 func (r *runner) runTest(test string) error {
-	canRerun := len(r.flakes) >= r.opts.Flakes
+	canRerun := len(r.flakes) < r.opts.Flakes
 	outcome, where, err := r.runTestOnce(test, false /* isRerun */, canRerun)
 	if err != nil {
 		return err
 	}
-	if outcome == OutcomeSuccess {
+	if outcome == types.OutcomeSuccess {
 		return nil
 	}
 	if len(r.flakes) >= r.opts.Flakes {
@@ -198,10 +179,10 @@ func (r *runner) runTest(test string) error {
 		return err2
 	}
 	switch outcome2 {
-	case OutcomeFail:
+	case types.OutcomeFail:
 		return errTestFailed
-	case OutcomeSuccess:
-		r.report(TestResult{Outcome: OutcomeFlake, TestName: test, Where: where, Branch: r.opts.Branch})
+	case types.OutcomeSuccess:
+		r.report(types.TestResult{Outcome: types.OutcomeFlake, TestName: test, Where: where, Branch: r.opts.Branch})
 		r.flakes = append(r.flakes, test)
 	}
 	return nil
@@ -211,21 +192,20 @@ var errTestFailed = errors.New("test failed")
 
 // runTestOnce only returns an error if there was a problem with the test
 // harness code; it does not return an error if the test failed.
-func (r *runner) runTestOnce(test string, isRerun bool, canRerun bool) (outcome Outcome, where string, err error) {
+func (r *runner) runTestOnce(test string, isRerun bool, canRerun bool) (outcome types.Outcome, where string, err error) {
 	defer func() {
 		logOutcome := outcome
-		if outcome == OutcomeFail && canRerun {
-			logOutcome = OutcomeFlake
+		if outcome == types.OutcomeFail && canRerun {
+			logOutcome = types.OutcomeFlake
 		}
 		fmt.Printf("%s: %s %s\n", logOutcome.Abbrv(), test, where)
 		if r.opts.Branch == "master" && err == nil {
-			r.report(TestResult{Outcome: outcome, TestName: test, Where: where, Branch: r.opts.Branch})
+			r.report(types.TestResult{Outcome: outcome, TestName: test, Where: where, Branch: r.opts.Branch})
 		}
 	}()
 
 	cmd := exec.Command(r.testerName(), "-test.run", "^"+test+"$", "-test.timeout", r.opts.Timeout)
 	if isRerun {
-		fmt.Println("Rerun, appending env var")
 		cmd.Env = append(os.Environ(), "CITOGO_FLAKE_RERUN=1")
 	}
 	var combined bytes.Buffer
@@ -238,11 +218,11 @@ func (r *runner) runTestOnce(test string, isRerun bool, canRerun bool) (outcome 
 		var flushErr error
 		where, flushErr := r.flushTestLogs(test, combined)
 		if flushErr != nil {
-			return OutcomeFail, "", flushErr
+			return types.OutcomeFail, "", flushErr
 		}
-		return OutcomeFail, where, nil
+		return types.OutcomeFail, where, nil
 	}
-	return OutcomeSuccess, "", nil
+	return types.OutcomeSuccess, "", nil
 }
 
 func (r *runner) runTestFixError(t string) error {
@@ -352,13 +332,6 @@ func (r *runner) run() error {
 		return fmt.Errorf("RED!: %d total tests failed", len(r.fails))
 	}
 	return nil
-}
-
-type TestResult struct {
-	Outcome  Outcome
-	TestName string
-	Where    string
-	Branch   string
 }
 
 func main2() error {

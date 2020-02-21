@@ -3,7 +3,6 @@ package terminalescaper
 import (
 	"bytes"
 	"fmt"
-	"os"
 	"reflect"
 	"testing"
 	"unicode"
@@ -241,13 +240,4 @@ func Test_replace(t *testing.T) {
 	if m != expect {
 		t.Errorf("Escaping: expected %q got %q", expect, m)
 	}
-}
-
-func TestShouldFlake(t *testing.T) {
-	ret := os.Getenv("CITOGO_FLAKE_RERUN")
-	fmt.Printf("ENV %q\n", ret)
-	if ret == "1" {
-		return
-	}
-	t.Fatalf("Flake first failure")
 }
