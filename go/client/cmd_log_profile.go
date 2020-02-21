@@ -1,5 +1,3 @@
-// +build !production
-
 package client
 
 import (
