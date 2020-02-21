@@ -275,19 +275,31 @@ func checkZipArchive(tc libkb.TestContext, filename string) {
 		switch filepath.ToSlash(f.Name) {
 		case "archive/", "archive/1/", "archive/2/": // skip the directory entries
 		case "archive/a.txt":
-			require.Equal(tc.T, f.UncompressedSize64, uint64(3))
+			checkZipFileEqual(tc, f)
 		case "archive/b.txt":
-			require.Equal(tc.T, f.UncompressedSize64, uint64(4))
+			checkZipFileEqual(tc, f)
 		case "archive/c.txt":
-			require.Equal(tc.T, f.UncompressedSize64, uint64(7))
+			checkZipFileEqual(tc, f)
 		case "archive/1/000.log":
-			require.Equal(tc.T, f.UncompressedSize64, uint64(9))
+			checkZipFileEqual(tc, f)
 		case "archive/1/001.log":
-			require.Equal(tc.T, f.UncompressedSize64, uint64(17))
+			checkZipFileEqual(tc, f)
 		case "archive/2/000.log":
-			require.Equal(tc.T, f.UncompressedSize64, uint64(16))
+			checkZipFileEqual(tc, f)
 		default:
 			tc.T.Logf("unknown file in zip: %s", f.Name)
 		}
 	}
+}
+
+func checkZipFileEqual(tc libkb.TestContext, f *zip.File) {
+	localName := filepath.Join("testdata", f.Name)
+	localData, err := ioutil.ReadFile(localName)
+	require.NoError(tc.T, err)
+	fz, err := f.Open()
+	require.NoError(tc.T, err)
+	defer fz.Close()
+	zipData, err := ioutil.ReadAll(fz)
+	require.NoError(tc.T, err)
+	require.Equal(tc.T, localData, zipData)
 }
