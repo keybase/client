@@ -266,7 +266,11 @@ func checkZipArchive(tc libkb.TestContext, filename string) {
 	r, err := zip.OpenReader(filename)
 	require.NoError(tc.T, err)
 	defer r.Close()
-	require.Len(tc.T, r.File, 9)
+	// some platforms make `@tmp` entries for the directories, so there
+	// can be 11
+	if len(r.File) != 9 && len(r.File) != 11 {
+		tc.T.Errorf("number of files in zip archive: %d, expected 9 or 11", len(r.File))
+	}
 	for _, f := range r.File {
 		switch filepath.ToSlash(f.Name) {
 		case "archive/", "archive/1/", "archive/2/": // skip the directory entries
