@@ -208,7 +208,8 @@ func (h *Helper) FindConversationsByID(ctx context.Context, convIDs []chat1.Conv
 	}
 	uid := gregor1.UID(kuid.ToBytes())
 	query := &chat1.GetInboxLocalQuery{
-		ConvIDs: convIDs,
+		ConvIDs:          convIDs,
+		ParticipantsMode: chat1.InboxParticipantsMode_SKIP_TEAMS,
 	}
 	inbox, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
 		types.InboxSourceDataSourceAll, nil, query)
@@ -232,19 +233,10 @@ func (h *Helper) GetChannelTopicName(ctx context.Context, teamID keybase1.TeamID
 	if err != nil {
 		return topicName, err
 	}
-	query := &chat1.GetInboxLocalQuery{
-		ConvIDs: []chat1.ConversationID{convID},
-	}
-	inbox, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
-		types.InboxSourceDataSourceAll, nil, query)
-	if err != nil {
-		return topicName, err
-	}
-	h.Debug(ctx, "found inbox convs: %v", len(inbox.Convs))
-	for _, conv := range inbox.Convs {
-		if conv.GetConvID().Eq(convID) && conv.GetMembersType() == chat1.ConversationMembersType_TEAM {
-			return conv.Info.TopicName, nil
-		}
+	conv, err := utils.GetVerifiedConv(ctx, h.G(), uid, convID, types.InboxSourceDataSourceAll)
+	if err == nil && conv.GetConvID().Eq(convID) &&
+		conv.GetMembersType() == chat1.ConversationMembersType_TEAM {
+		return conv.Info.TopicName, nil
 	}
 	// Fallback to TeamChannelSource
 	h.Debug(ctx, "using TeamChannelSource")
@@ -605,6 +597,7 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 			TopicName:         &topicName,
 			TopicType:         &topicType,
 			OneChatTypePerTLF: oneChatPerTLF,
+			ParticipantsMode:  chat1.InboxParticipantsMode_SKIP_TEAMS,
 		}
 
 		inbox, _, err := g.InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, dataSource, nil,
@@ -783,19 +776,10 @@ func postJoinLeave(ctx context.Context, g *globals.Context, ri func() chat1.Remo
 	}
 
 	// Get the conversation from the inbox.
-	query := chat1.GetInboxLocalQuery{
-		ConvIDs: []chat1.ConversationID{convID},
-	}
-	ib, _, err := g.InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
-		types.InboxSourceDataSourceAll, nil, &query)
+	conv, err := utils.GetVerifiedConv(ctx, g, uid, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
-		return fmt.Errorf("inbox read error: %s", err)
+		return err
 	}
-	if len(ib.Convs) != 1 {
-		return fmt.Errorf("post join/leave: found %d conversations", len(ib.Convs))
-	}
-
-	conv := ib.Convs[0]
 	if conv.GetTopicType() != chat1.TopicType_CHAT {
 		// only post these in chat convs
 		return nil
@@ -1028,9 +1012,10 @@ func (n *newConversationHelper) findExisting(ctx context.Context, tlfID chat1.TL
 					TlfID:       &tlfID,
 					MembersType: n.membersType,
 				},
-				TlfVisibility: &n.vis,
-				TopicName:     &topicName,
-				TopicType:     &n.topicType,
+				TlfVisibility:    &n.vis,
+				TopicName:        &topicName,
+				TopicType:        &n.topicType,
+				ParticipantsMode: chat1.InboxParticipantsMode_SKIP_TEAMS,
 			})
 		if err != nil {
 			return res, err
@@ -1278,7 +1263,8 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 		ib, _, err := n.G().InboxSource.Read(ctx, n.uid, types.ConversationLocalizerBlocking,
 			types.InboxSourceDataSourceRemoteOnly, nil,
 			&chat1.GetInboxLocalQuery{
-				ConvIDs: []chat1.ConversationID{convID},
+				ConvIDs:          []chat1.ConversationID{convID},
+				ParticipantsMode: chat1.InboxParticipantsMode_SKIP_TEAMS,
 			})
 		if err != nil {
 			return res, false, err

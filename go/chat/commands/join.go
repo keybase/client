@@ -33,7 +33,8 @@ func (h *Join) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Conver
 	ib, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
 		types.InboxSourceDataSourceAll, nil,
 		&chat1.GetInboxLocalQuery{
-			ConvIDs: []chat1.ConversationID{convID},
+			ConvIDs:          []chat1.ConversationID{convID},
+			ParticipantsMode: chat1.InboxParticipantsMode_SKIP_TEAMS,
 		})
 	if err != nil {
 		return err

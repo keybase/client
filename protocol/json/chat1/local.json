@@ -2434,6 +2434,10 @@
         {
           "type": "boolean",
           "name": "computeActiveList"
+        },
+        {
+          "type": "InboxParticipantsMode",
+          "name": "participantsMode"
         }
       ]
     },

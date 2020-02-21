@@ -27,22 +27,6 @@ func NewSender(g *globals.Context) *Sender {
 	}
 }
 
-func (s *Sender) getConv(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (res chat1.ConversationLocal, err error) {
-	// slow path just in case (still should be fast)
-	inbox, _, err := s.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
-		types.InboxSourceDataSourceAll, nil,
-		&chat1.GetInboxLocalQuery{
-			ConvIDs: []chat1.ConversationID{convID},
-		})
-	if err != nil {
-		return res, err
-	}
-	if len(inbox.Convs) != 1 {
-		return res, errors.New("too many/little convs")
-	}
-	return inbox.Convs[0], nil
-}
-
 func (s *Sender) getConvParseInfo(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (parts []string, membersType chat1.ConversationMembersType, err error) {
 	localConv, err := storage.NewInbox(s.G()).GetConversation(ctx, uid, convID)
 	if err == nil && localConv.LocalMetadata != nil && len(localConv.LocalMetadata.WriterNames) > 0 {
@@ -50,7 +34,7 @@ func (s *Sender) getConvParseInfo(ctx context.Context, uid gregor1.UID, convID c
 		membersType = localConv.Conv.GetMembersType()
 		parts = localConv.LocalMetadata.WriterNames
 	} else {
-		conv, err := s.getConv(ctx, uid, convID)
+		conv, err := utils.GetVerifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 		if err != nil {
 			return parts, membersType, err
 		}
@@ -65,7 +49,7 @@ func (s *Sender) getConvParseInfo(ctx context.Context, uid gregor1.UID, convID c
 
 func (s *Sender) getConvFullnames(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (res map[string]string, err error) {
 	res = make(map[string]string)
-	conv, err := s.getConv(ctx, uid, convID)
+	conv, err := utils.GetVerifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
 		return res, err
 	}

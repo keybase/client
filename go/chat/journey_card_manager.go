@@ -542,6 +542,7 @@ func (cc *JourneyCardManagerSingleUser) cardPopularChannels(ctx context.Context,
 			SummarizeMaxMsgs: true,
 			SkipBgLoads:      true,
 			AllowUnseenQuery: true, // Make an effort, it's ok if convs are missed.
+			ParticipantsMode: chat1.InboxParticipantsMode_SKIP_TEAMS,
 		})
 	if err != nil {
 		debugDebug(ctx, "cardPopularChannels ReadUnverified error: %v", err)
@@ -596,6 +597,7 @@ func (cc *JourneyCardManagerSingleUser) cardAddPeople(ctx context.Context, conv 
 			SummarizeMaxMsgs: true,
 			SkipBgLoads:      true,
 			AllowUnseenQuery: true, // Make an effort, it's ok if convs are missed.
+			ParticipantsMode: chat1.InboxParticipantsMode_SKIP_TEAMS,
 		})
 	if err != nil {
 		debugDebug(ctx, "cardAddPeople ReadUnverified error: %v", err)
@@ -642,6 +644,7 @@ func (cc *JourneyCardManagerSingleUser) cardCreateChannels(ctx context.Context, 
 			SummarizeMaxMsgs: true,
 			SkipBgLoads:      true,
 			AllowUnseenQuery: true, // Make an effort, it's ok if convs are missed.
+			ParticipantsMode: chat1.InboxParticipantsMode_SKIP_TEAMS,
 		})
 	if err != nil {
 		debugDebug(ctx, "cardCreateChannels ReadUnverified error: %v", err)

@@ -4018,6 +4018,7 @@ type GetInboxLocalQuery struct {
 	UnreadOnly        bool                       `codec:"unreadOnly" json:"unreadOnly"`
 	ReadOnly          bool                       `codec:"readOnly" json:"readOnly"`
 	ComputeActiveList bool                       `codec:"computeActiveList" json:"computeActiveList"`
+	ParticipantsMode  InboxParticipantsMode      `codec:"participantsMode" json:"participantsMode"`
 }
 
 func (o GetInboxLocalQuery) DeepCopy() GetInboxLocalQuery {
@@ -4107,6 +4108,7 @@ func (o GetInboxLocalQuery) DeepCopy() GetInboxLocalQuery {
 		UnreadOnly:        o.UnreadOnly,
 		ReadOnly:          o.ReadOnly,
 		ComputeActiveList: o.ComputeActiveList,
+		ParticipantsMode:  o.ParticipantsMode.DeepCopy(),
 	}
 }
 

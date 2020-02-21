@@ -2659,8 +2659,9 @@ func GetUnverifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	convID chat1.ConversationID, dataSource types.InboxSourceDataSourceTyp) (res types.RemoteConversation, err error) {
 
 	inbox, err := g.InboxSource.ReadUnverified(ctx, uid, dataSource, &chat1.GetInboxQuery{
-		ConvIDs:      []chat1.ConversationID{convID},
-		MemberStatus: chat1.AllConversationMemberStatuses(),
+		ConvIDs:          []chat1.ConversationID{convID},
+		MemberStatus:     chat1.AllConversationMemberStatuses(),
+		ParticipantsMode: chat1.InboxParticipantsMode_SKIP_TEAMS,
 	})
 	if err != nil {
 		return res, err
@@ -2709,8 +2710,9 @@ func GetVerifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	ctx = globals.CtxRemoveLocalizerCancelable(ctx)
 	inbox, _, err := g.InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, dataSource, nil,
 		&chat1.GetInboxLocalQuery{
-			ConvIDs:      []chat1.ConversationID{convID},
-			MemberStatus: chat1.AllConversationMemberStatuses(),
+			ConvIDs:          []chat1.ConversationID{convID},
+			MemberStatus:     chat1.AllConversationMemberStatuses(),
+			ParticipantsMode: chat1.InboxParticipantsMode_SKIP_TEAMS,
 		})
 	if err != nil {
 		return res, err

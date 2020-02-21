@@ -633,7 +633,8 @@ func (idx *Indexer) allConvs(ctx context.Context, convID *chat1.ConversationID) 
 			chat1.ConversationMemberStatus_ACTIVE,
 			chat1.ConversationMemberStatus_PREVIEW,
 		},
-		SkipBgLoads: true,
+		SkipBgLoads:      true,
+		ParticipantsMode: chat1.InboxParticipantsMode_SKIP_TEAMS,
 	}
 	select {
 	case <-ctx.Done():

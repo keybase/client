@@ -345,21 +345,12 @@ func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage)
 		defer g.Unlock()
 		defer g.orderer.CompleteTurn(ctx, uid, update.InboxVers)
 		// Get and localize the conversation to get the new tlfname.
-		inbox, _, err := g.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
-			types.InboxSourceDataSourceAll, nil,
-			&chat1.GetInboxLocalQuery{
-				ConvIDs: []chat1.ConversationID{update.ConvID},
-			})
+		updateConv, err := utils.GetVerifiedConv(ctx, g.G(), uid, update.ConvID,
+			types.InboxSourceDataSourceAll)
 		if err != nil {
 			g.Debug(ctx, "resolve: unable to read conversation: %v", err.Error())
 			return
 		}
-		if len(inbox.Convs) != 1 {
-			g.Debug(ctx, "resolve: unable to find conversation, found: %d, expected 1", len(inbox.Convs))
-			return
-		}
-		updateConv := inbox.Convs[0]
-
 		resolveInfo := chat1.ConversationResolveInfo{
 			NewTLFName: updateConv.Info.TlfName,
 		}
@@ -1256,7 +1247,8 @@ func (g *PushHandler) SubteamRename(ctx context.Context, m gregor.OutOfBandMessa
 		// Update inbox and get conversations
 		ib, _, err := g.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
 			types.InboxSourceDataSourceAll, nil, &chat1.GetInboxLocalQuery{
-				ConvIDs: update.ConvIDs,
+				ConvIDs:          update.ConvIDs,
+				ParticipantsMode: chat1.InboxParticipantsMode_SKIP_TEAMS,
 			})
 		if err != nil {
 			g.Debug(ctx, "SubteamRename: unable to read conversation: %v", err)

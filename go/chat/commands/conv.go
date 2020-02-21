@@ -15,7 +15,8 @@ import (
 func getConvByID(ctx context.Context, g *globals.Context, uid gregor1.UID, convID chat1.ConversationID) (res types.RemoteConversation, err error) {
 	ib, err := g.InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll,
 		&chat1.GetInboxQuery{
-			ConvID: &convID,
+			ConvID:           &convID,
+			ParticipantsMode: chat1.InboxParticipantsMode_SKIP_TEAMS,
 		})
 	if err != nil {
 		return res, err
