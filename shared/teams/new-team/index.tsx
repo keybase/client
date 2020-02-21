@@ -104,14 +104,6 @@ const CreateNewTeam = (props: Props) => {
 }
 
 const styles = Styles.styleSheetCreate(() => ({
-  body: Styles.platformStyles({
-    common: {
-      ...Styles.padding(Styles.globalMargins.small),
-      backgroundColor: Styles.globalColors.blueGrey,
-    },
-    isElectron: {minHeight: 326},
-    isMobile: {...Styles.globalStyles.flexOne},
-  }),
   container: {
     padding: Styles.globalMargins.small,
   },
